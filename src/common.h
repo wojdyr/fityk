@@ -11,6 +11,10 @@
 #  include <config.h>  
 #endif 
 
+#ifndef VERSION
+#   define VERSION "unknown"
+#endif
+
 #define USE_XTAL 1
 
 #include <string>

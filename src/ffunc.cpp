@@ -9,6 +9,7 @@ RCSID ("$Id$")
 using namespace std; 
 
 std::string V_f::xstr = "x";
+#define LN2_str "0.69314718"
 
 void V_f_z_common::pre_compute (const vector<fp>& A, const vector<V_g*>& G) 
 {
@@ -101,7 +102,7 @@ fp fGauss::area() const { return av[0] * fabs(av[2]) * sqrt(M_PI / M_LN2); }
 
 string fGauss::formula (const vector<fp>& A, const vector<V_g*>& G) 
 {
-    return ps(0, A, G) + "*exp(-log(2)*((" + xstr  + "-"
+    return ps(0, A, G) + "*exp(-" LN2_str "*((" + xstr  + "-"
         + ps(1, A, G) + ")/" + ps(2, A, G) + ")**2)";
 }
 
@@ -311,7 +312,7 @@ string fPsVoigt::formula (const vector<fp>& A, const vector<V_g*>& G)
     string a2 = ps(2, A, G); 
     string a3 = ps(3, A, G); 
     return a0 + "*(" + a3 + "/(1+((x-" + a1 + ")/" + a2 + ")**2)+(1-"
-        + a3 + ")*exp(-log(2)*((x-" + a1 +")/" + a2 + ")**2))";
+        + a3 + ")*exp(-" LN2_str "*((x-" + a1 +")/" + a2 + ")**2))";
 }
 
 

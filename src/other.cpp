@@ -22,6 +22,7 @@ Various_commands *my_other;
 ApplicationLogic *AL;
 
 
+const char* fityk_version_line = "#  Fityk  version: " VERSION "\n";
 
 Various_commands::Various_commands() 
     : logging_mode('n'), log_filename()
@@ -82,6 +83,7 @@ void Various_commands::start_logging_to_file (std::string filename, char mode)
             assert(0);
     }
     logfile << " TO THIS FILE (" << filename << ")\n";
+    logfile << fityk_version_line;
     log_filename = filename;
     logging_mode = mode;
 }
@@ -133,6 +135,8 @@ void Various_commands::log_output (const string& s)
 
 bool Various_commands::include_file (std::string name, std::vector<int> lines)
 {
+    // every two int's in lines are treated as range (first-second).
+    // TODO change it to vector<pair<int, int> >
     assert (lines.size() % 2 == 0);
     file_I_stdout_O fio(lines);
     return fio.start(name.c_str());
@@ -171,6 +175,7 @@ void ApplicationLogic::dump_all_as_script (string filename)
         return;
     }
     os << "####### Dump time: " << time_now() << endl;
+    os << fityk_version_line << endl;
     os << my_other->set_script('o') << endl;
     params->export_as_script(os);
     os << endl;

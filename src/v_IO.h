@@ -1,13 +1,19 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
+// v_IO 
+//
+
 #ifndef v_IO__h__
 #define v_IO__h__
 #include "common.h"
 #include <vector>
 
-bool //return value: false -> quit
-parser (std::string cmd, bool from_file = false); 
+struct NumberedLine;
+
+// return value: false -> quit
+// if flag from_file is set, input is not logged
+bool parser (std::string cmd, bool from_file=false); 
 
 class v_IO 
 {
@@ -21,14 +27,19 @@ public:
 
 class file_I_stdout_O : public v_IO
 {
-    std::vector<int> lines;
 public:
     file_I_stdout_O() {}
     file_I_stdout_O (std::vector<int> li) : lines(li) {}
     bool start (const char* parameter);
     void message (const char *s);
     void plot_now (const std::vector<fp>& a);
+
+protected:
+    std::vector<int> lines;
+
+    bool exec_line(const NumberedLine& nl);
 };
+    
     
 class gui_IO : public v_IO
 {

@@ -46,11 +46,8 @@ int main (int argc, char **argv)
                 my_IO = &interact_IO;
                 my_IO->start(0);
             }
-            else {
-                file_I_stdout_O f_IO;
-                my_IO = &f_IO;
-                my_IO->start(argv[i]);
-            }
+            else 
+                exec_commands_from_file(argv[i]);
     delete AL;
     return 0;
 }

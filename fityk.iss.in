@@ -1,5 +1,9 @@
 ; $Id$
 ; InnoSetup script. It is used to make MS Windows installer.
+
+;TODO: samples in menu, if 'associate' task is selected
+;      output setup filename should be fityk-@VERSION@-setup.exe 
+
 [Setup]
 AppName=fityk
 AppId=fityk
@@ -16,14 +20,14 @@ ChangesAssociations=yes
 
 
 [Files]
-Source: fityk.exe; DestDir: {app} 
+Source: src\fityk.exe; DestDir: {app} 
 Source: COPYING; DestDir: {app} 
 Source: AUTHORS; DestDir: {app} 
 Source: TODO; DestDir: {app} 
 Source: NEWS; DestDir: {app}
-Source: fityk_tips.txt; DestDir: {app} 
-Source: fitykhelp.chm; DestDir: {app} 
-Source: fitykhelp.htb; DestDir: {app} 
+Source: doc\fityk_tips.txt; DestDir: {app} 
+Source: doc\fitykhelp.chm; DestDir: {app} 
+Source: doc\fitykhelp.htb; DestDir: {app} 
 Source: samples\README; DestDir: {app}\samples\ 
 Source: samples\nacl01.dat; DestDir: {app}\samples\ 
 Source: samples\nacl01.fit; DestDir: {app}\samples\ 

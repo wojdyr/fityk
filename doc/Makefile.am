@@ -1,3 +1,4 @@
+# $Id$
 
 data_DATA = fityk_tips.txt fitykhelp.htb
 EXTRA_DIST = $(data_DATA) fitykhelp.xml cmdidx.xsl fitykhelp.html 

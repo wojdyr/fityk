@@ -14,6 +14,15 @@ v_IO *my_IO;
 const char* config_dirname = ".fityk";
 const char* startup_commands_filename = "init";
 
+//utility for storing lines from script file: line number and line as a string
+struct NumberedLine
+{
+    int nr;  //1 - first line, etc.
+    string txt;
+    NumberedLine(int nr_, string txt_) : nr(nr_), txt(txt_) {}
+};
+
+
 void exec_commands_from_file(const char *filename)
 {
     file_I_stdout_O f_IO;
@@ -22,49 +31,54 @@ void exec_commands_from_file(const char *filename)
 }
 
 
-bool file_I_stdout_O::start (const char* filename)
+bool file_I_stdout_O::start(const char* filename)
 {
     ifstream file (filename, ios::in);
     if (!file) {
         warn ("Can't open file: " + S(filename));
         return false;
     }
+
+    vector<NumberedLine> nls, //all lines from file
+                         exec_nls; //lines to execute (in order of execution)
+
+    //fill nls for easier manipulation of file lines
     string s;
-    vector<string> all_lines, exec_lines;
-    vector<int> exec_lines_nr;
+    int line_index = 1;
     while (getline (file, s)) 
-        all_lines.push_back (s);
-    if (lines.empty()) {
-        exec_lines = all_lines;
-        exec_lines_nr.resize(all_lines.size());
-        for (unsigned int i = 0; i < exec_lines.size(); i++)
-            exec_lines_nr[i] = i + 1;
-    }
-    else
-        for (vector<int>::iterator i = lines.begin(); i < lines.end(); i += 2){
-            int f = *i, t = *(i+1);
-            if (t > size(all_lines)) t = all_lines.size();
-            if (f == 0) f = 1;
-            if (f > t || f < 0)
-                continue;
-            exec_lines.insert (exec_lines.end(), all_lines.begin() + f - 1, 
-                                                 all_lines.begin() + t);
-            for (int i = f; i <= t; i++)
-                exec_lines_nr.push_back(i);
+        nls.push_back(NumberedLine(line_index++, s));
+
+    if (!lines.empty())
+        //TODO lines will be changed from vector<int> to vector<pair<int, int> >
+        for (vector<int>::iterator i = lines.begin(); i < lines.end(); i += 2) {
+            int f = max(*i, 1);  // f and t are 1-based (not 0-based)
+            int t = min(*(i+1), size(nls));
+            exec_nls.insert (exec_nls.end(), nls.begin()+f-1, nls.begin()+t);
         }
-    assert (exec_lines_nr.size() == exec_lines.size());
-    for (unsigned int i = 0; i < exec_lines.size(); i++) {
-        if (exec_lines[i].length() == 0)
-            continue;
-        if (*(exec_lines[i].end() - 1) == 0) //there was a problem with Borland
-            exec_lines[i].erase (exec_lines[i].end() - 1);//C++ 5.5; it's a fix
-        string out = S(exec_lines_nr[i]) + "> " + exec_lines[i];
-        mesg (out.c_str()); 
-        if (parser (exec_lines[i], true) == false)//parser(...,true) ->don't log
+    else
+        exec_nls = nls;
+
+    for (vector<NumberedLine>::const_iterator i = exec_nls.begin(); 
+                                                    i != exec_nls.end(); i++) {
+        bool r = exec_line(*i);
+        if (!r)
             break;
     }
+
     mesg("");
     return true;
+}
+
+
+//return value mean the same as parser()
+bool file_I_stdout_O::exec_line(const NumberedLine& nl)
+{
+    if (nl.txt.length() == 0)
+        return true;
+    // there was a problem with Borland C++ 5.5 if nl.text ends with '\0',
+    // but now only GCC is supported...
+    mesg (S(nl.nr) + "> " + nl.txt); 
+    return parser(nl.txt, true);    //parser(...,true) ->don't log
 }
         
 

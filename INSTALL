@@ -1,7 +1,7 @@
 
 REQUIREMENTS:
 ============
-common 
+both CLI and GUI
   modern c++ compiler (see below)
   optionally flex and bison (there are pre-generated C++ files)
 only for CLI (command line interface, cfityk): 
@@ -32,22 +32,14 @@ wxGTK version
 -----------
 
 GTK+ and wxGTK required.
-All changes in program are tested with the latest version of gcc compiler
-(the latest version I have on my linux box - now 3.3)
-and with gcc 2.95 (2.95.4 20010319 (prerelease)).
+All changes in program are tested with GCC 3.4 and GCC 2.95.
 
-egcs 2.91.66 - NO. 
-        First error at "#include <sstream>". No such header file.
-
+egcs 2.91.66 - Failed. 
+gcc 2.96 from RedHat 7.2 - Failed.
 gcc 2.95.4 - OK
-
-gcc 2.96 from RedHat 7.2 - probably OK, but without -fno-rtti
-        because of presence dynamic_cast<> in headers of C++ standard
-	library.  tested in 04.2002.
-
-gcc 3.0.2 - OK, tested in 05.2002
-
+gcc 3.0.2 - OK (tested in 05.2002)
 gcc 3.3 - OK
+gcc 3.4 - OK
 
 
 wxMotif version
@@ -64,20 +56,14 @@ Not tested yet.
 		===============================================
 
 Current version is compiled with MinGW 3.0.0
-Versions <= 3.2 where compiled with the free Borland C++ Compiler 5.5 
-(probably it is still possible to compile current version with BCC)
+Fityk versions <= 3.2 where compiled with the free Borland C++ Compiler 5.5 
+(perhaps it is still possible to compile current version with BCC)
 Windows installer is prepared with Inno Setup.
 
-
-minGW - OK
-
+MinGW - OK
 Borland C++ 5.5 (bcc32) - OK, tested in 2003.  
-	
-
-Cygwin - fityk -- ?
-         cfityk -- OK (under MS Windows CLI version works only with Cygwin)
-
-VC++6 - No.  
+Cygwin - CLI - OK, GUI - ?
+VC++6 - Failed.  
 
 
 ---------------------------------------------------------------------------

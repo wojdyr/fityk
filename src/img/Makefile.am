@@ -1,3 +1,4 @@
+# $Id$
 
 EXTRA_DIST = addpeak_t.xpm \
              addpoint.xpm\

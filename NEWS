@@ -1,3 +1,9 @@
+* ambigous 'log(2)' in "export as function" was replaced by numeric value
+  (in gnuplot log means natural log, in Excel log=log10). 
+
+* program version is written in scripts (session dumps and log files) 
+  and in configuration files
+
 User-visible changes in version 0.4.1:
 
 * two independent auxiliary plots (by default one is visible)

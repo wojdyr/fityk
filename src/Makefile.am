@@ -1,4 +1,5 @@
-EXTRA_DIST = scanner.ll parser.yy winres.rc #makefile.unx 
+# $Id$
+EXTRA_DIST = scanner.ll parser.yy winres.rc 
 SUBDIRS = img 
 
 # tested only on MinGW 
