@@ -68,7 +68,8 @@ void replot()
 %token D_ACTIVATE
 %token D_LOAD D_BACKGROUND D_CALIBRATE D_RANGE D_DEVIATION D_INFO D_EXPORT
 %token F_RUN F_CONTINUE F_METHOD F_INFO 
-%token S_ADD S_FREEZE S_HISTORY S_INFO S_REMOVE S_CHANGE S_VALUE S_EXPORT 
+%token S_ADD S_FREEZE S_HISTORY S_INFO S_GUESS S_REMOVE S_CHANGE S_VALUE 
+%token S_EXPORT 
 %token C_WAVELENGTH C_ADD C_INFO C_REMOVE C_FIND 
 %token O_PLOT O_LOG O_INCLUDE O_WAIT O_DUMP
 %token M_FINDPEAK
@@ -183,6 +184,7 @@ exp:  SET DASH_STRING EQ_STRING SEP {
     | S_INFO '<' SEP               { imsg (V_fzg::print_type_info (zType, 0)); }
     | S_INFO fzg_type SEP       { imsg (V_fzg::print_type_info ($2.fzg, $2.c));}
     | S_INFO SEP                   { imsg (my_sum->general_info()); }
+    | S_GUESS F_NUM SEP            { my_sum->guess_f($2); }
     | S_REMOVE a_num SEP           { AL->pars()->rm_a ($2); }
     | S_REMOVE fzg_num SEP         { my_sum->rm_fzg ($2.fzg, $2.i); }
     | S_REMOVE '*' '*' SEP         { my_sum->rm_all(); }

@@ -9,6 +9,19 @@ RCSID ("$Id$")
 
 using namespace std;
 
+fp VirtPeak::get_approx_y(fp x) const
+{
+    if (fabs(x - center) < fwhm) {
+        fp dist_in_fwhm = fabs((x - center) / fwhm);
+        if (dist_in_fwhm < 0.5)
+            return height;
+        else // 0.5 < dist_in_fwhm < 1.0
+            return height * 2. * (1. - dist_in_fwhm);
+    }
+    else
+        return 0;
+}
+
 Manipul::Manipul()
     : estimate_consider_sum(true), 
       search_width (1.), cancel_peak_out_of_search(true),
@@ -21,31 +34,40 @@ Manipul::Manipul()
     fpar ["fwhm-correction"] = &fwhm_correction;
 }
 
-fp Manipul::my_y(int n, EstConditions *ec) const
+fp Manipul::my_y(int n, const EstConditions * ec) const
 {
     //pre: sum->use_param_a_for_value();
-    fp y;
     fp x = my_data->get_x(n);
-    if (estimate_consider_sum) {
-        fp ys = my_sum->value(x);  
-        y = my_data->get_y(n) - ys;
-    }
-    else
-        y = my_data->get_y(n);
-    if (ec && !ec->virtual_peaks.empty())
-        for (vector<VirtPeak>::const_iterator i = ec->virtual_peaks.begin();
+    fp y = my_data->get_y(n);
+
+    if (!estimate_consider_sum)
+        return y;
+
+    if (!ec)
+        return y - my_sum->value(x);
+
+    for (vector<VirtPeak>::const_iterator i = ec->virtual_peaks.begin();
                                              i != ec->virtual_peaks.end(); i++)
-            if (fabs(x - i->center) < i->fwhm) {
-                fp dist_in_fwhm = fabs((x - i->center) / i->fwhm);
-                if (dist_in_fwhm < 0.5)
-                    y -= i->height;
-                else // 0.5 < dist_in_fwhm < 1.0
-                    y -= i->height * 2. * (1. - dist_in_fwhm);
-            }
+        y -= i->get_approx_y(x);
+
+    if (ec->incl_peaks.empty() && ec->excl_peaks.empty())
+        return y - my_sum->value(x);
+
+    std::vector<int> peaks;
+    if (ec->incl_peaks.empty())
+        peaks = ec->incl_peaks;
+    else
+        peaks = range_vector(0, my_sum->fzg_size(fType));
+    for (vector<int>::const_iterator i = ec->excl_peaks.begin(); 
+                                        i != ec->excl_peaks.end(); ++i) {
+        vector<int>::iterator f = find(peaks.begin(), peaks.end(), *i);
+        if (f != peaks.end())
+            peaks.erase(f);
+    }
     return y;
 }
 
-fp Manipul::data_area(int from, int to, EstConditions *ec) const
+fp Manipul::data_area(int from, int to, const EstConditions *ec) const
 {
     fp area = 0;
     fp x_prev = my_data->get_x (from);
@@ -60,7 +82,7 @@ fp Manipul::data_area(int from, int to, EstConditions *ec) const
     return area;
 }
 
-int Manipul::max_data_y_pos(int from, int to, EstConditions *ec) const 
+int Manipul::max_data_y_pos(int from, int to, const EstConditions *ec) const 
 {
     assert (from < to);
     int pos = from;
@@ -76,7 +98,7 @@ int Manipul::max_data_y_pos(int from, int to, EstConditions *ec) const
 }
 
 fp Manipul::compute_data_fwhm(int from, int max_pos, int to, fp level,
-                              EstConditions *ec) const
+                              const EstConditions *ec) const
 {
     assert (from <= max_pos && max_pos <= to);
     const fp hm = my_y(max_pos, ec) * level;
@@ -116,7 +138,7 @@ fp Manipul::compute_data_fwhm(int from, int max_pos, int to, fp level,
 
 bool Manipul::estimate_peak_parameters(fp approx_ctr, fp ctrplusmin,
                             fp *center, fp *height, fp *area, fp *fwhm,
-                            EstConditions *ec) const
+                            const EstConditions *ec) const
 {
     my_sum->use_param_a_for_value();
     if (my_data->get_n() <= 0) {
@@ -178,9 +200,7 @@ string Manipul::print_global_peakfind ()
     for (int i = 1; i <= 4; i++) {
         fp c = 0., h = 0., a = 0., fwhm = 0.;
         estimate_peak_parameters(0., +INF, &c, &h, &a, &fwhm, &estc);
-        VirtPeak vpeak;
-        vpeak.center = c, vpeak.height = h, vpeak.fwhm = fwhm; 
-        estc.virtual_peaks.push_back (vpeak);
+        estc.virtual_peaks.push_back(VirtPeak(c, h, fwhm));
         if (h == 0.) break;
         s += S(i != 1 ? "\n" : "") + "Peak #" + S(i) + " - center: " + S(c) 
             + ", height: " + S(h) + ", area: " + S(a) + ", FWHM: " + S(fwhm);

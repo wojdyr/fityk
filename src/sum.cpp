@@ -10,7 +10,8 @@ RCSID ("$Id$")
 #include <fstream>
 #include "ffunc.h"
 #include "gfunc.h"
-#include "data.h"
+#include "data.h"  //used in export_as...() methods
+#include "manipul.h" //estimate_peak_parameters() in guess_f()
 #include "pcore.h"
 
 using namespace std;
@@ -218,7 +219,7 @@ string Sum::general_info() const
     os << "Number of  " << V_fzg::full_type(fType) << ": " << fvec.size()
        <<"\nNumber of  "<< V_fzg::full_type(zType) << ": " << zvec.size()
        <<"\nNumber of  "<< V_fzg::full_type(gType) << ": " << gvec.size()
-       <<"\nNumber of A-parameters @: " << parameters->count_a(); 
+       <<"\nNumber of parameters @: " << parameters->count_a(); 
     return os.str();
 }
 
@@ -639,7 +640,7 @@ int Sum::rm_fzg (One_of_fzg fzg, int n, bool silent)
         synch_after_rm_ag (Pag((V_g*)0, n));
     }
     for (int i = n; i < fzg_size(fzg); ++i) {
-        V_fzg *t = get_fzg_m (fzg, i);
+        V_fzg *t = const_cast<V_fzg*>(get_fzg (fzg, i)); 
         t->c_name = V_fzg::short_type(fzg) + S(i);
     }
 
@@ -706,6 +707,50 @@ void Sum::change_in_f (int f, vector<int> arg, vector<Pag> np) //experimental
     }
     PagContainer (this, old); //to call recursive_rm() in destructor
 }
+
+/** guess_f() tries to find out what the fit should be for the peak 
+ * - much like what happens when you add a peak using the range function. 
+ * The only difference is that this is done on already existing 
+ * peaks - for instance when a nearby peak is moved etc and the user wants 
+ * this why estimated again. It changes only these peak parameters, 
+ * that are simple parameters.
+ */
+void Sum::guess_f(int n)
+{
+    if (n < 0 || n >= fzg_size(fType)) {
+        warn(V_fzg::full_type(fType) + S(n) + " not found.");
+        return;
+    }
+    verbose("Guessing " + S(n));
+    assert(my_manipul);
+
+    const V_f *p = fvec[n];
+    fp plusmin = max(fabs(p->fwhm()), p->area() / p->height());    
+    fp c, h, area, fwhm;
+    EstConditions ec;
+    ec.excl_peaks.push_back(n);
+    bool r = my_manipul->estimate_peak_parameters(p->center(), plusmin,
+                                                  &c, &h, &area, &fwhm,
+                                                  &ec);
+    if (!r) {
+        warn("Unable to find new peak, old peak kept.");
+        return;
+    }
+    vector<fp> ini = V_f::get_default_peak_parameters(*p->type_info(), 
+                                                      vector3(h, c, fwhm/2));
+    std::vector<fp> new_params = parameters->values();
+    bool changed = false;
+    for (int i = 0; i < p->g_size; i++) {
+        Pag pag = p->get_pag(i);
+        if (pag.is_a() && pag.a() != ini[i]) {
+            new_params[i] = ini[i];
+            changed = true;
+        }
+    }
+    if (changed)
+        parameters->write_avec(new_params, "peak adjusting");
+}
+
 
 /*
 vector<Pag> Sum::pags_of_f(int n) const 

@@ -472,17 +472,17 @@ V_f* V_f::copy_factory (Sum* sum, char type, V_f* orig)
     return factory (sum, type, p);
 }
 
-vector<fp> V_f::get_default_peak_parameters(const f_names_type *f, 
+vector<fp> V_f::get_default_peak_parameters(const f_names_type &f, 
                                             const vector<fp> &peak_hcw)
 {
     assert(peak_hcw.size() >= 3);
     fp height = peak_hcw[0]; 
     fp center = peak_hcw[1];
     fp hwhm = peak_hcw[2]; 
-    vector<fp> ini(f->psize);
-    for (int i = 0; i < f->psize; i++) {
-        string pname = f->pnames[i];
-        const ParDefault &pd = f->pdefaults[i];
+    vector<fp> ini(f.psize);
+    for (int i = 0; i < f.psize; i++) {
+        string pname = f.pnames[i];
+        const ParDefault &pd = f.pdefaults[i];
         fp t = 0;
         if (i > 2 && size(peak_hcw) > i) t = peak_hcw[i];
         else if (pname == "height") t = height;

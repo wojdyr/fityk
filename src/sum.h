@@ -62,14 +62,14 @@ public:
     int multi_rm_fzg (One_of_fzg fzg, std::vector<int> nn, bool silent = false);
     int rm_all();
     const V_fzg *get_fzg (One_of_fzg fzg, int n) const;
-    V_fzg *get_fzg_m (One_of_fzg fzg, int n)
-        { return const_cast<V_fzg*>(get_fzg (fzg, n)); }
     std::string print_fzg_value (One_of_fzg fzg, int n, fp x = 0, 
                                  bool with_deriv = true);
 
 /*** f-func ***/
+    const V_f* get_f(int n) { assert(n>=0 && n<size(fvec)); return fvec[n]; }
     void change_f (int f, char type);
     void change_in_f (int f, std::vector<int> arg, std::vector<Pag> np);
+    void guess_f(int n); 
 
 /*** zero-shift ***/
     fp zero_shift (fp x) const;

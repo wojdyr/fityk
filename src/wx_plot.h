@@ -110,6 +110,7 @@ public:
     void OnPeakInfo (wxCommandEvent& event);
     void OnPeakDelete (wxCommandEvent& event);
     void OnPeakShowTree (wxCommandEvent& event);
+    void OnPeakGuess(wxCommandEvent &event);
     void cancel_mouse_press();
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);

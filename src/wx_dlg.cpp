@@ -200,7 +200,7 @@ FuncBrowserDlg::FuncBrowserDlg (wxWindow* parent, wxWindowID id, int tab)
     //page "Change"
     p_change = new wxPanel(notebook, -1);
     wxSizer *panelsizer_c = new wxBoxSizer (wxVERTICAL);
-    ch_label = new wxStaticText (p_change, -1, "Select @-parameter.");
+    ch_label = new wxStaticText (p_change, -1, "Select parameter.");
     panelsizer_c->Add (ch_label, 0, wxALIGN_CENTER|wxADJUST_MINSIZE);
     panelsizer_c->Add (new wxStaticLine(p_change, -1), 
                        0, wxEXPAND|wxLEFT|wxRIGHT, 10);
@@ -312,7 +312,7 @@ FuncBrowserDlg::FuncBrowserDlg (wxWindow* parent, wxWindowID id, int tab)
     panelsizer_d->Add (1, 1, 1);
     //---
     panelsizer_d->Add (new wxStaticText (p_delete, -1, 
-                                         "Frozen @-parameters:"), 
+                                         "Frozen parameters:"), 
                        0, wxALIGN_CENTER);
     frozen_tc = new wxTextCtrl (p_delete, -1, "", 
                                 wxDefaultPosition, wxDefaultSize,
@@ -386,7 +386,7 @@ void FuncBrowserDlg::OnSelChanged (wxTreeEvent& WXUNUSED(event))
     int nr = atoi (sel_fun.c_str() + 1);
     info_text->SetValue (txt.c_str());
     if (type == '^') {
-        const V_f* f = static_cast<const V_f*>(my_sum->get_fzg(fType, nr));
+        const V_f* f = my_sum->get_f(nr);
         info_text->AppendText (("\n" + f->extra_description()).c_str());
     }
     else if (type == 's')
@@ -1353,7 +1353,7 @@ BEGIN_EVENT_TABLE(SumHistoryDlg, wxDialog)
 END_EVENT_TABLE()
 
 SumHistoryDlg::SumHistoryDlg (wxWindow* parent, wxWindowID id)
-    : wxDialog(parent, id, "@-parameters History", 
+    : wxDialog(parent, id, "Parameters History", 
                wxDefaultPosition, wxDefaultSize, 
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER), 
       lc(0)

@@ -292,7 +292,7 @@ void Parameters::write_avec (const vector<fp>& a, string comment, bool no_move)
     history.push_back (HistoryItem (a, comment));
     if (!no_move) {
         hp = history.size() - 1;
-        mesg ("A-parameters changed (by: " + comment + ")");
+        mesg ("Parameters changed (by: " + comment + ")");
     }
 }
 
@@ -406,7 +406,7 @@ int Parameters::rm_a (int n, bool silent)
         for (int i = nA - 1; i >= 0; i--)
             if (do_rm_a(i))
                 counter ++;
-        if (!silent) mesg (S(counter) + " A-parameters removed.");
+        if (!silent) mesg (S(counter) + " parameters removed.");
         return counter;
     }
 
@@ -415,11 +415,11 @@ int Parameters::rm_a (int n, bool silent)
         return 0;
     }
     else if (do_rm_a(n)) {
-        if (!silent) mesg ("A-parameter @" + S(n) + " removed.");
+        if (!silent) mesg ("Parameter @" + S(n) + " removed.");
         return 1;
     }
     else {
-        warn ("A-parameter @" + S(n) + " NOT removed. " 
+        warn ("Parameter @" + S(n) + " NOT removed. " 
                 + S(AL->refs_to_a (Pag(0., n))) + " links. First remove: " 
                 + AL->descr_refs_to_a (Pag(0., n)));
         return 0;
@@ -451,7 +451,7 @@ fp Parameters::change_a (int nr, fp value, char c /*='='*/, bool add_to_history)
     if (nr == -1) {
         for (int i = 0; i < nA; i++)
             change_a (i, value, c, i == nA - 1 ? add_to_history : false);
-        mesg (S(nA) + " A-parameters changed.");
+        mesg (S(nA) + " parameters changed.");
         return 0.;
     }
     if (nr < 0 || nr >= nA) {

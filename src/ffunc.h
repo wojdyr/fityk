@@ -86,12 +86,14 @@ class V_f : public V_f_z_common
     virtual fp height() const { return 0; }
     virtual fp fwhm() const { return 0; }
     std::string extra_description() const;
+    const f_names_type* type_info() const 
+       {return static_cast<const f_names_type*>(V_fzg::type_info(fType, type));}
     virtual fp compute(fp x, fp* dy_dx) = 0;
     Pag change_arg(int n, Pag p) 
         { assert(n < g_size); Pag old = pags[n]; pags[n] = p; return old;}
     static V_f* factory (Sum* sum, char type, const std::vector<Pag> &p);
     static V_f* copy_factory (Sum* sum, char type, V_f* orig);
-    static std::vector<fp> get_default_peak_parameters(const f_names_type *f, 
+    static std::vector<fp> get_default_peak_parameters(const f_names_type &f, 
                                               const std::vector<fp> &peak_hcw);
 
  protected:

@@ -77,6 +77,7 @@ f\.i(nfo)?	   r_cmd(); return F_INFO;
 s\.a(dd)?	   r_cmd(); return S_ADD; 
 s\.h(istory)?      r_cmd(); BEGIN(D_UI_SLASH); return S_HISTORY;
 s\.i(nfo)?	   r_cmd(); return S_INFO;
+s\.g(uess)?        r_cmd(); return S_GUESS;
 s\.r(emove)?	   r_cmd(); return S_REMOVE;
 s\.c(hange)?	   r_cmd(); return S_CHANGE; 
 s\.f(reeze)?	   r_cmd(); return S_FREEZE;

@@ -901,7 +901,7 @@ void FFrame::OnDSet (wxCommandEvent& WXUNUSED(event))
 void FFrame::OnSHistory      (wxCommandEvent& WXUNUSED(event))
 {
     if (my_sum->pars()->count_a() == 0) {
-        wxMessageBox ("no @-parameters -- no history", "no history",
+        wxMessageBox ("no parameters -- no history", "no history",
                       wxOK|wxICON_ERROR);
         return;
     }
@@ -1481,7 +1481,7 @@ void add_peak(fp height, fp ctr, fp hwhm)
     fp center = ctr + my_sum->zero_shift(ctr);
     string cmd = "s.add ^" + S(f.type);
     vector<fp> ini 
-          = V_f::get_default_peak_parameters(&f, vector3(height, center, hwhm));
+          = V_f::get_default_peak_parameters(f, vector3(height, center, hwhm));
     for (int i = 0; i < f.psize; i++) {
         cmd += " ~" + S(ini[i]);
         const ParDefault &pd = f.pdefaults[i];

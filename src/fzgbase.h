@@ -73,7 +73,7 @@ class V_fzg: public PagContainer
 {
 public:
     const char type;
-    const int g_size;
+    const int g_size; //number of parameters
 
     V_fzg(Sum* sum, const std::vector<Pag> &v, char t, One_of_fzg fzg) 
         : PagContainer(sum, v), type(t), g_size(type_info(fzg, t)->psize), 

@@ -66,6 +66,7 @@ enum {
     ID_peak_popup_info              = 45250,
     ID_peak_popup_del                      ,
     ID_peak_popup_tree                     ,
+    ID_peak_popup_guess                    ,
 
     ID_aux_popup_plot_0            = 45310,
     ID_aux_popup_c_background      = 45340,
@@ -177,6 +178,7 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_MENU (ID_peak_popup_info,   MainPlot::OnPeakInfo)
     EVT_MENU (ID_peak_popup_del,    MainPlot::OnPeakDelete)
     EVT_MENU (ID_peak_popup_tree,   MainPlot::OnPeakShowTree)
+    EVT_MENU (ID_peak_popup_guess,  MainPlot::OnPeakGuess)
 END_EVENT_TABLE()
 
 MainPlot::MainPlot (wxWindow *parent, Plot_shared &shar) 
@@ -537,7 +539,7 @@ void MainPlot::prepare_peaktops()
     int Y0 = y2Y(0);
     shared.peaktops.clear();
     for (int k = 0; k < my_sum->fzg_size(fType); k++) {
-        const V_f *f = static_cast<const V_f*>(my_sum->get_fzg (fType, k));
+        const V_f *f = my_sum->get_f(k);
         int X, Y;
         if (f->is_peak()) {
             fp x = f->center();
@@ -742,6 +744,7 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
     wxMenu peak_menu; 
     peak_menu.Append(ID_peak_popup_info, "&Info");
     peak_menu.Append(ID_peak_popup_tree, "&Show tree");
+    peak_menu.Append(ID_peak_popup_guess, "&Guess");
     peak_menu.Append(ID_peak_popup_del, "&Delete");
     peak_menu.Enable(ID_peak_popup_del, my_sum->refs_to_f(over_peak) == 0);
     peak_menu.AppendSeparator();
@@ -761,6 +764,12 @@ void MainPlot::OnPeakDelete(wxCommandEvent &WXUNUSED(event))
         exec_command("s.remove ^" + S(over_peak));
 }
 
+void MainPlot::OnPeakGuess(wxCommandEvent &WXUNUSED(event))
+{
+    if (over_peak >= 0)
+        exec_command("s.guess ^" + S(over_peak));
+}
+
 void MainPlot::OnPeakShowTree(wxCommandEvent &WXUNUSED(event))
 {
     if (over_peak >= 0) {
@@ -771,7 +780,6 @@ void MainPlot::OnPeakShowTree(wxCommandEvent &WXUNUSED(event))
     }
            
 }
-
 
 bool MainPlot::has_mod_keys(const wxMouseEvent& event)
 {
@@ -896,7 +904,7 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
     //if we are here, over_peak != nearest; changing cursor and statusbar text
     over_peak = nearest;
     if (nearest != -1) {
-        const V_f* f=static_cast<const V_f*>(my_sum->get_fzg(fType, over_peak));
+        const V_f* f = my_sum->get_f(over_peak);
         string s = f->short_type() + S(over_peak) + " ";  
         string ref = my_sum->descr_refs_to_f(over_peak);
         if (!ref.empty())
@@ -953,8 +961,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     }
     else if (button == 1 && mode == mmd_peak) {
         move_peak(mat_start, event);
-        if (static_cast<const V_f*>(my_sum->get_fzg(fType, over_peak))
-                                                             ->is_peak()) {
+        if (my_sum->get_f(over_peak)->is_peak()) {
             frame->SetStatusText(wxString("Moving peak ^") +S(over_peak).c_str()
                                  + " (press Shift to change width)");
         }
@@ -1069,8 +1076,8 @@ void MainPlot::move_peak (Mouse_act_enum ma, wxMouseEvent &event)
     }
     switch (ma) {
         case mat_start: {
-            p = static_cast<const V_f*>(my_sum->get_fzg(fType, over_peak));
-            ft = static_cast<const f_names_type*>(p->type_info());
+            p = my_sum->get_f(over_peak);
+            ft = p->type_info();
             if (!p->is_peak()) return;
             my_sum->use_param_a_for_value();
             height = p->height();
@@ -1165,7 +1172,7 @@ void MainPlot::draw_peak_draft(int Ctr, int Hwhm, int Y,
     dc.DrawLine (Ctr - Hwhm, (Y+Y0)/2, Ctr + Hwhm, (Y+Y0)/2); //horizontal line
     if (f) {
         vector<fp> hcw =  vector4(Y2y(Y), fp(Ctr), fp(Hwhm), fp(Shape));
-        vector<fp> ini = V_f::get_default_peak_parameters(f, hcw); 
+        vector<fp> ini = V_f::get_default_peak_parameters(*f, hcw); 
         vector<Pag> ini_p(ini.begin(), ini.end());
         const int n = 40;
         vector<wxPoint> v(2*n+1);
@@ -1349,8 +1356,8 @@ void MainPlot::OnZoomAll (wxCommandEvent& WXUNUSED(event))
 void MainPlot::change_peak_parameters(const vector<fp> &peak_hcw)
 {
     vector<string> changes;
-    const V_f *peak = static_cast<const V_f*>(my_sum->get_fzg(fType,over_peak));
-    const f_names_type *f = static_cast<const f_names_type*>(peak->type_info());
+    const V_f *peak = my_sum->get_f(over_peak);
+    const f_names_type *f = peak->type_info();
     assert(peak_hcw.size() >= 3);
     fp height = peak_hcw[0]; 
     fp center = peak_hcw[1];
