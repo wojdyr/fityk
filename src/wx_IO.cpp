@@ -27,8 +27,6 @@ void UserInterface::showMessage (OutputStyle style, const string& s)
 
 void UserInterface::doDrawPlot(bool now, const std::vector<fp>& a)
 {
-        if (now || AL->was_changed())
-            clear_buffered_sum();
         params4plot = a;
         frame->refresh_plots(now);
 }

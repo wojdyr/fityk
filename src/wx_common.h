@@ -14,7 +14,6 @@ struct Plot_shared
     fp dX2dx (int dX) { return dX / xUserScale; }
 
     fp xUserScale, xLogicalOrigin; 
-    bool buffer_enabled;
     std::vector<std::vector<fp> > buf;
     fp plot_y_scale;
     std::vector<wxPoint> peaktops;

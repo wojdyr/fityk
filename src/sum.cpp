@@ -106,11 +106,19 @@ void Sum::use_param_a_for_value (const vector<fp>& A) const
 fp Sum::value (fp x) const
     // pre: use_param_a_for_value() called (or not in special cases)
 {
+#ifdef USE_HASHMAP
+    hash_map<fp, fp>::const_iterator hi = buffered_sum.find(x);
+    if (hi != buffered_sum.end())
+        return hi.second;
+#endif
     x += zero_shift(x);
     fp y = 0;
     for(vector<V_f*>::const_iterator i = fvec.begin(); i != fvec.end(); i++)
         if (!cut_tails || (*i)->range_l <= x && x <= (*i)->range_r)
             y += (*i)->compute (x, 0);
+#ifdef USE_HASHMAP
+    buffered_sum[x] = y;
+#endif
     return y;
 }
 
@@ -519,7 +527,7 @@ int Sum::add_fzg (One_of_fzg fzg, char type, const vector<Pag> &p,
     else if (fzg == gType) gvec.push_back (static_cast<V_g*>(v));
     int n = fzg_size(fzg) - 1;
     if (fzg == fType || fzg == zType) 
-        s_was_changed = true;
+        notify_change();
     verbose ("Added " + V_fzg::full_type(fzg) + S(n));
     v->c_name = V_fzg::short_type(fzg) + S(n);
     v->c_description = desc;
@@ -632,14 +640,14 @@ int Sum::rm_fzg (One_of_fzg fzg, int n, bool silent)
     const V_fzg *ptr = get_fzg (fzg, n);
     if (fzg == fType) {
         fvec.erase (fvec.begin() + n);
-        s_was_changed = true;
+        notify_change();
         for (set<FuncContainer*>::iterator i = f_usage.begin(); 
                 i != f_usage.end(); i++)
             (*i)->synch_after_rm_f (n);
     }
     else if (fzg == zType) {
         zvec.erase (zvec.begin() + n);
-        s_was_changed = true;
+        notify_change();
     }
     else if (fzg == gType) {
         gvec.erase (gvec.begin() + n);
@@ -658,6 +666,14 @@ int Sum::rm_fzg (One_of_fzg fzg, int n, bool silent)
     }
     delete ptr;
     return 1;
+}
+
+void Sum::notify_change() 
+{ 
+    s_was_changed = true; 
+#ifdef USE_HASHMAP
+    buffered_sum.clear(); 
+#endif
 }
 
 int Sum::rm_all()

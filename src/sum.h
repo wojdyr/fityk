@@ -8,6 +8,9 @@
 #include <set>
 #include <utility>
 #include <memory>
+#ifdef USE_HASHMAP
+#include <hash_map>
+#endif
 #include "common.h"
 #include "dotset.h"
 #include "pag.h"
@@ -111,7 +114,11 @@ private:
     mutable std::vector<fp> av_numder;
     std::set<FuncContainer*> f_usage;
     std::set<PagContainer*> vp_usage;
+#ifdef USE_HASHMAP
+    std::hash_map<fp, fp> sum_buffer
+#endif
 
+    void notify_change();
     std::string format_der_output(const std::vector<fp>& df_s, 
                    const std::vector<fp>& df_n1, const std::vector<fp>& df_n2);
     void export_fzg_as_script (std::ostream& os, One_of_fzg fzg) const;

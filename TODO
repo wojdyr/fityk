@@ -1,5 +1,11 @@
 [Suggestions from Fityk users survey are not included here yet.]
 
+* fix documentation according to DH's suggestions
+
+* default vertical zoom should contain both data points and whole sum
+
+* WIN32: make output window scroll when there is a new output  
+
 * data viewer (grid); 
 
 * problem: fityk can't be compiled with UNICODE-enabled wxWidgets
@@ -22,9 +28,6 @@
   peak detection algorithms
 
 * document s.guess command 
-
-* (GUI) in input ComboBox up/down arrow keys should work like 
-  in bash -- moving in command history. (use TextCtrl instead of ComboBox)
 
 * logarithmic scale  
 
@@ -66,8 +69,8 @@
 
 * automatic background substraction - what algorithm is good?
 
-* (plotting) smoothing curves where data points are sparse (computations for 
-  additional points)
+* (GUI) fonts used for scale labels should be configurable
+  font settings for output window should be written in config
 
 * exporting file dialogs - (d.export and s.export) default filenames in GUI
 
@@ -81,9 +84,6 @@
 * more sophisticated algorithms for peak detection
 
 * write documentation for fwhm-correction and height-correction (m.set) 
-
-* (GUI) fonts used for scale labels should be configurable
-  font settings for output window should be written in config
 
 * (GUI) single ergonomic interface changing colors of everything
 

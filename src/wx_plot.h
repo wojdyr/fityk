@@ -33,10 +33,13 @@ enum Aux_plot_kind_enum
     apk_peak_pos
 };
 
-void clear_buffered_sum();
 
+/* convention here: lowercase coordinates of point are real values,
+ * and uppercase ones are coordinates of point on screen (integers).
+ * eg. x2X() - convert point x coordinate to pixel position on screen 
+ */
 
-//This class has no instances, MainPlot and AuxPlot are derived from it
+/// This class has no instances, MainPlot and AuxPlot are derived from it
 class FPlot : public wxPanel
 {
 public:
@@ -106,7 +109,6 @@ public:
     void set_scale();
 
     void OnPopupShowXX (wxCommandEvent& event);
-    void OnPopupBuffer (wxCommandEvent& event);
     void OnPopupColor (wxCommandEvent& event);
     void OnInvertColors (wxCommandEvent& event);
     void OnPopupRadius (wxCommandEvent& event);
@@ -128,6 +130,7 @@ private:
     static const int max_phase_pens = 8;
     static const int max_peak_pens = 24;
     static const int max_radius = 4; //size of data point
+    bool smooth;
     bool peaks_visible, phases_visible, sum_visible, data_visible; 
     wxPen sumPen, bg_pointsPen;
     wxPen phasePen[max_phase_pens], peakPen[max_peak_pens];

@@ -47,6 +47,7 @@ enum {
     ID_plot_popup_peak                     ,
     ID_plot_popup_xaxis                    ,
     ID_plot_popup_tics                     ,
+    ID_plot_popup_smooth                   ,
 
     ID_plot_popup_c_background             ,
     ID_plot_popup_c_active_data            ,
@@ -59,7 +60,6 @@ enum {
     ID_plot_popup_c_peak                   ,
     ID_plot_popup_c_inv                    ,
 
-    ID_plot_popup_buffer                   ,
     ID_plot_popup_pt_size           = 25210,// and next 10 ,
     ID_peak_popup_info              = 25250,
     ID_peak_popup_del                      ,
@@ -131,29 +131,10 @@ bool FPlot::vert_line_following_cursor (Mouse_act_enum ma, int x, int x0)
 BEGIN_EVENT_TABLE(FPlot, wxPanel)
 END_EVENT_TABLE()
 
-//-------------------------------------
-//optimization: remembering sum values
 
-const fp initial_buffered_value = -1.234565;
-
-vector<fp> buffered_sum;
-
-void clear_buffered_sum()
+inline fp sum_value(vector<Point>::const_iterator pt)
 {
-    int size = my_data->points().size();
-    if (size) {
-        buffered_sum.resize (size);
-        fill (buffered_sum.begin(), buffered_sum.end(), initial_buffered_value);
-    }
-}
-
-fp sum_value(vector<Point>::const_iterator pt)
-{
-    vector<fp>::iterator y = buffered_sum.begin() 
-                                            + (pt - my_data->points().begin());
-    if (*y == initial_buffered_value)
-        *y = my_sum->value(pt->x);
-    return *y;
+    return my_sum->value(pt->x);
 }
 
 //===============================================================
@@ -172,10 +153,8 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_MIDDLE_UP (       MainPlot::OnButtonUp)
     EVT_KEY_DOWN   (      MainPlot::OnKeyDown)
     EVT_MENU (ID_plot_popup_za,     MainPlot::OnZoomAll)
-    EVT_MENU_RANGE (ID_plot_popup_data, ID_plot_popup_tics,  
+    EVT_MENU_RANGE (ID_plot_popup_data, ID_plot_popup_smooth,  
                                     MainPlot::OnPopupShowXX)
-    EVT_MENU (ID_plot_popup_buffer, MainPlot::OnPopupBuffer)
-
     EVT_MENU_RANGE (ID_plot_popup_c_background, ID_plot_popup_c_phase - 1, 
                                     MainPlot::OnPopupColor)
     EVT_MENU_RANGE (ID_plot_popup_pt_size, ID_plot_popup_pt_size + max_radius, 
@@ -252,31 +231,17 @@ void MainPlot::Draw(wxDC &dc)
 
     vector<Point>::const_iterator f =my_data->get_point_at(my_core->view.left),
                                 l = my_data->get_point_at(my_core->view.right);
+    if (l != my_data->points().end())
+        ++l;
+
+    if (peaks_visible)
+        draw_peaks (dc, f, l);
+    if (phases_visible)
+        draw_phases (dc, f, l);
+    if (sum_visible)
+        draw_sum (dc, f, l);
     if (x_axis_visible) 
         draw_x_axis (dc, f, l);
-
-/*
-    if (shared.buffer_enabled) {
-        //TODO
-        buffer_peaks (f, l);
-        if (sum_visible)
-            ;//draw_sum_from_buffer (dc);
-        if (phases_visible)
-            ;//draw_phases_from_buffer (dc);
-        if (peaks_visible)
-            ;//draw_peaks_from_buffer (dc);
-        
-    }
-    else 
-*/
-    {
-        if (sum_visible)
-            draw_sum (dc, f, l);
-        if (phases_visible)
-            draw_phases (dc, f, l);
-        if (peaks_visible)
-            draw_peaks (dc, f, l);
-    }
 
     if (mode == mmd_bg) {
         draw_background_points(dc); 
@@ -306,7 +271,7 @@ void MainPlot::draw_x_axis (wxDC& dc, vector<Point>::const_iterator first,
                 dc.DrawLine (X_, Y_, X, Y); 
         }
     }
-    else
+    else 
         dc.DrawLine (0, y2Y(0), GetClientSize().GetWidth(), y2Y(0));
 }
 
@@ -317,6 +282,8 @@ void FPlot::draw_tics (wxDC& dc, const Rect &v,
     dc.SetPen (xAxisPen);
     dc.SetFont(*wxSMALL_FONT);
     dc.SetTextForeground(xAxisPen.GetColour());
+
+    // x axis tics
     fp x_tic_step = scale_tics_step(v.left, v.right, x_max_tics);
     for (fp x = x_tic_step * ceil(v.left / x_tic_step); x < v.right; 
             x += x_tic_step) {
@@ -328,6 +295,8 @@ void FPlot::draw_tics (wxDC& dc, const Rect &v,
         dc.GetTextExtent (label, &w, &h);
         dc.DrawText (label, X - w/2, Y + 1);
     }
+
+    // y axis tics
     fp y_tic_step = scale_tics_step(v.bottom, v.top, y_max_tics);
     for (fp y = y_tic_step * ceil(v.bottom / y_tic_step); y < v.top; 
             y += y_tic_step) {
@@ -461,41 +430,53 @@ void MainPlot::buffer_peaks (vector<Point>::const_iterator /*first*/,
     */
 }
 
-void MainPlot::draw_sum (wxDC& dc, vector<Point>::const_iterator first,
-                                   vector<Point>::const_iterator last)
+
+void MainPlot::draw_sum(wxDC& dc, vector<Point>::const_iterator first,
+                                  vector<Point>::const_iterator last)
 {
     dc.SetPen (sumPen);
-    int X = 0, Y = 0;
-    int Y_zero = y2Y(0);
+    int X = -1, Y = -1;
     for (vector<Point>::const_iterator i = first; i < last; i++) {
         int X_ = X, Y_ = Y;
         X = x2X(i->x);
-        Y = y2Y (my_core->plus_background ? sum_value(i) +  i->get_bg()
-                                           : sum_value(i));
-        if (i != first 
-                && (X != X_ || Y != Y_) 
-                && (Y_ != Y_zero || Y != Y_zero //not drawing on x axis
-                    || my_core->plus_background))
+        Y = y2Y(my_sum->value(i->x) 
+                + (my_core->plus_background && smooth ? i->get_bg() : 0));
+        if (smooth)
+            while (X_ < X-1) {
+                ++X_;
+                int Y_p = Y_;
+                Y_ = y2Y(my_sum->value(X2x(X_)));
+                if (X_ > 0)
+                    dc.DrawLine (X_-1, Y_p, X_, Y_); 
+            }
+        if (X_ >= 0 && (X != X_ || Y != Y_)) 
             dc.DrawLine (X_, Y_, X, Y); 
     }
 }
 
+
 void MainPlot::draw_phases (wxDC& dc, vector<Point>::const_iterator first,
                                       vector<Point>::const_iterator last)
+                            
 {
 #ifdef USE_XTAL
     for (int k = 0; k < my_crystal->get_nr_of_phases(); k++) {
         dc.SetPen (phasePen[k % max_phase_pens]);
-        vector<int>peaks = my_crystal->get_funcs_in_phase(k);
-        int X = 0, Y = 0;
-        int Y_zero = y2Y(0);
+        vector<int> peaks = my_crystal->get_funcs_in_phase(k);
+        int X = -1, Y = -1;
         for (vector<Point>::const_iterator i = first; i < last; i++) {
             int X_ = X, Y_ = Y;
-            X = x2X (i->x);
+            X = x2X(i->x);
             Y = y2Y(my_sum->funcs_value (peaks, i->x));
-            if (i != first 
-                    && (X != X_ || Y != Y_) 
-                    && (Y_ != Y_zero || Y != Y_zero)) //not drawing on x axis
+            if (smooth)
+                while (X_ < X-1) {
+                    ++X_;
+                    int Y_p = Y_;
+                    Y_ = y2Y(my_sum->funcs_value (peaks, X2x(X_)));
+                    if (X_ > 0)
+                        dc.DrawLine (X_-1, Y_p, X_, Y_); 
+                }
+            if (X_ >= 0 && (X != X_ || Y != Y_)) 
                 dc.DrawLine (X_, Y_, X, Y); 
         }
     }
@@ -507,16 +488,21 @@ void MainPlot::draw_peaks (wxDC& dc, vector<Point>::const_iterator first,
 {
     for (int k = 0; k < my_sum->fzg_size(fType); k++) {
         dc.SetPen (peakPen[k % max_peak_pens]);
-        int X = x2X (first->x), 
-            Y = y2Y (my_sum->f_value(first->x, k));
-        int Y_zero = y2Y(0);
-        for (vector<Point>::const_iterator i = first + 1; i < last; i++) {
+        int X = -1, Y = -1;
+        for (vector<Point>::const_iterator i = first; i < last; i++) {
             int X_ = X, Y_ = Y;
-            X = x2X (i->x);
-            Y = y2Y (my_sum->f_value (i->x, k));
-            if (Y_ != Y_zero || Y != Y_zero //not drawing on x axis
-                    && (X != X_ || Y != Y_))
-                dc.DrawLine (X_, Y_, X, Y );
+            X = x2X(i->x);
+            Y = y2Y(my_sum->f_value (i->x, k));
+            if (smooth)
+                while (X_ < X-1) {
+                    ++X_;
+                    int Y_p = Y_;
+                    Y_ = y2Y(my_sum->f_value (X2x(X_), k));
+                    if (X_ > 0)
+                        dc.DrawLine (X_-1, Y_p, X_, Y_); 
+                }
+            if (X_ >= 0 && (X != X_ || Y != Y_)) 
+                dc.DrawLine (X_, Y_, X, Y); 
         }
     }
 }
@@ -616,6 +602,7 @@ void MainPlot::read_settings(wxConfigBase *cf)
                                 default_peak_col[i % default_peak_col.size()]));
                             
     cf->SetPath("/MainPlot/Visible");
+    smooth = read_bool_from_config(cf, "smooth", false);
     peaks_visible = read_bool_from_config (cf, "peaks", false); 
     phases_visible = read_bool_from_config (cf, "phases", false);  
     sum_visible = read_bool_from_config (cf, "sum", true);
@@ -651,6 +638,7 @@ void MainPlot::save_settings(wxConfigBase *cf) const
                                peakPen[i].GetColour());
 
     cf->SetPath("/MainPlot/Visible");
+    cf->Write ("smooth", smooth);
     cf->Write ("peaks", peaks_visible);
     cf->Write ("phases", phases_visible);
     cf->Write ("sum", sum_visible);
@@ -700,6 +688,9 @@ void MainPlot::show_popup_menu (wxMouseEvent &event)
     show_menu->Check (ID_plot_popup_xaxis, x_axis_visible);
     show_menu->AppendCheckItem (ID_plot_popup_tics, "&Tics", "");
     show_menu->Check (ID_plot_popup_tics, tics_visible);
+    show_menu->AppendSeparator();
+    show_menu->AppendCheckItem (ID_plot_popup_smooth, "Sm&ooth lines", "");
+    show_menu->Check (ID_plot_popup_smooth, smooth);
     popup_menu.Append (wxNewId(), "&Show", show_menu);
 
     wxMenu *color_menu = new wxMenu;
@@ -722,11 +713,6 @@ void MainPlot::show_popup_menu (wxMouseEvent &event)
     color_menu->Append (ID_plot_popup_c_inv, "&Invert colors"); 
     popup_menu.Append (wxNewId(), "&Color", color_menu);  
 
-    /*
-    popup_menu.Append (ID_plot_popup_buffer, "&Buffer data", 
-                        "Keeping data in memory makes redrawing faster", true);
-    popup_menu.Check (ID_plot_popup_buffer, shared.buffer_enabled);
-    */
     wxMenu *size_menu = new wxMenu;
     size_menu->AppendCheckItem (ID_plot_popup_pt_size, "&Line", "");
     size_menu->Check (ID_plot_popup_pt_size, line_between_points);
@@ -1266,22 +1252,8 @@ void MainPlot::OnPopupShowXX (wxCommandEvent& event)
         case ID_plot_popup_peak :  peaks_visible = !peaks_visible;   break;  
         case ID_plot_popup_xaxis:  x_axis_visible = !x_axis_visible; break; 
         case ID_plot_popup_tics :  tics_visible = !tics_visible;     break; 
+        case ID_plot_popup_smooth :  smooth = !smooth;               break; 
         default: assert(0);
-    }
-    Refresh(false);
-}
-
-void MainPlot::OnPopupBuffer(wxCommandEvent& WXUNUSED(event))
-{
-    wxMessageBox ("This menu item is not working yet.");//TODO
-
-    if (shared.buffer_enabled) {
-        shared.buffer_enabled = false;
-        shared.buf.clear();
-    }
-    else {
-        //TODO
-        shared.buffer_enabled = true;
     }
     Refresh(false);
 }

@@ -26,10 +26,7 @@ RCSID ("$Id$")
 using namespace std;
 
 enum { 
-    ID_COMBO            = 27001,
-    ID_OUTPUT_TEXT             ,
-
-    ID_OUTPUT_C_BG             ,
+    ID_OUTPUT_C_BG      = 27001,
     ID_OUTPUT_C_IN             ,
     ID_OUTPUT_C_OU             ,
     ID_OUTPUT_C_QT             ,
@@ -218,22 +215,17 @@ BEGIN_EVENT_TABLE(IOPane, wxPanel)
 END_EVENT_TABLE()
 
 IOPane::IOPane(wxWindow *parent, wxWindowID id)
-    : wxPanel(parent, id), output_win(0), input_combo(0)
+    : wxPanel(parent, id), output_win(0), input_field(0)
 {
     wxBoxSizer *io_sizer = new wxBoxSizer (wxVERTICAL);
 
-    // wxTextCtrl which displays output of commands
-    output_win = new OutputWin (this, ID_OUTPUT_TEXT);
+    output_win = new OutputWin (this, -1);
     io_sizer->Add (output_win, 1, wxEXPAND);
 
-    // FCombo - wxComboBox used for user keybord input
-    //wxString input_choices[] = { /*"help"*/ };
-    input_combo = new FCombo (this, ID_COMBO, "",
-                               wxDefaultPosition, wxDefaultSize, 
-                               0, 0,//input_choices, 
-                               wxCB_DROPDOWN|wxWANTS_CHARS|
-                               wxTE_PROCESS_ENTER|wxTE_PROCESS_TAB);
-    io_sizer->Add (input_combo, 0, wxEXPAND);
+    input_field = new InputField (this, -1, "",
+                            wxDefaultPosition, wxDefaultSize, 
+                            wxWANTS_CHARS|wxTE_PROCESS_ENTER|wxTE_PROCESS_TAB);
+    io_sizer->Add (input_field, 0, wxEXPAND);
 
     SetAutoLayout (true);
     SetSizer (io_sizer);
@@ -581,41 +573,62 @@ void OutputWin::OnKeyDown (wxKeyEvent& event)
 }
 
 //===============================================================
-//                            combo
+//                            input field
 //===============================================================
 
-BEGIN_EVENT_TABLE(FCombo, wxComboBox)
-    EVT_KEY_DOWN (FCombo::OnKeyDown)
+BEGIN_EVENT_TABLE(InputField, wxTextCtrl)
+    EVT_KEY_DOWN (InputField::OnKeyDown)
 END_EVENT_TABLE()
 
-void FCombo::OnKeyDown (wxKeyEvent& event)
+void InputField::OnKeyDown (wxKeyEvent& event)
 {
-    const int n_list_items = 15;
-    if (event.m_keyCode == WXK_RETURN || event.m_keyCode == WXK_NUMPAD_ENTER) {
-        wxString s = GetValue().Trim();
-        if (s.IsEmpty())
-            return;
-        frame->SetStatusText (s);
-        // changing drop-down list
-        vector<wxString> list;
-        list.push_back(s);
-        int n = std::min (n_list_items, GetCount() + 1);
-        for (int i = 0; i < n - 1; i++)
-            list.push_back(GetString(i));
-        Clear();
-        for (vector<wxString>::iterator i = list.begin(); i != list.end(); i++)
-            Append (*i);
-        SetValue("");
-
-        //displaying and executing command
-        exec_command (s.c_str());
+    switch (event.m_keyCode) {
+        case WXK_RETURN:
+        case WXK_NUMPAD_ENTER:
+            {
+            wxString s = GetValue().Trim();
+            if (s.IsEmpty())
+                return;
+            frame->SetStatusText (s);
+            history.insert(++history.begin(), s);
+            h_pos = history.begin();
+            Clear();
+            exec_command (s.c_str()); //displaying and executing command
+            }
+            break;
+        case WXK_TAB:
+            {
+            IOPane *parent = static_cast<IOPane*>(GetParent());//to not use RTTI
+            parent->focus_output();
+            }
+            break;
+        case WXK_UP:
+        case WXK_NUMPAD_UP:
+            if (h_pos == --history.end())
+                return;
+            ++h_pos;
+            SetValue(*h_pos);
+            break;
+        case WXK_DOWN:
+        case WXK_NUMPAD_DOWN:
+            if (h_pos == history.begin())
+                return;
+            --h_pos;
+            SetValue(*h_pos);
+            break;
+        case WXK_PAGEUP:
+        case WXK_NUMPAD_PAGEUP:
+            h_pos == --history.end();
+            SetValue(*h_pos);
+            break;
+        case WXK_PAGEDOWN:
+        case WXK_NUMPAD_PAGEDOWN:
+            h_pos == history.begin();
+            SetValue(*h_pos);
+            break;
+        default:
+            event.Skip();
     }
-    else if (event.m_keyCode == WXK_TAB) {
-        IOPane *parent = static_cast<IOPane*>(GetParent()); //to not use RTTI
-        parent->focus_output();
-    }
-    else
-        event.Skip();
 }
 
 //===============================================================

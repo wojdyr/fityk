@@ -8,6 +8,7 @@
 #include <wx/config.h>
 #include <wx/splitter.h>
 #include <wx/treectrl.h>
+#include <list>
 #include "wx_common.h"  //for Mouse_mode_enum, OutputStyle
 
 class PlotPane;
@@ -47,21 +48,21 @@ protected:
 };
 
 
-class FCombo : public wxComboBox
+class InputField : public wxTextCtrl
 {
 public:
-    FCombo(wxWindow *parent, wxWindowID id,
-                const wxString& value = wxEmptyString,
-                const wxPoint& pos = wxDefaultPosition,
-                const wxSize& size = wxDefaultSize,
-                int n = 0, const wxString choices[] = NULL,
-                long style = 0,
-                const wxValidator& validator = wxDefaultValidator,
-                const wxString& name = wxComboBoxNameStr)
-    : wxComboBox(parent, id, value, pos, size, n, choices, style,
-                    validator, name) { }
+    InputField(wxWindow *parent, wxWindowID id,
+               const wxString& value = wxEmptyString,
+               const wxPoint& pos = wxDefaultPosition,
+               const wxSize& size = wxDefaultSize,
+               long style = 0)
+    : wxTextCtrl(parent, id, value, pos, size, style), 
+      history(1), h_pos(history.begin()) {} 
 protected:
     void OnKeyDown (wxKeyEvent& event);
+
+    std::list<wxString> history;
+    std::list<wxString>::iterator h_pos;
 
     DECLARE_EVENT_TABLE()
 };
@@ -99,12 +100,12 @@ public:
                                       { output_win->append_text(style, str); }
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
-    void focus_input() { input_combo->SetFocus(); }
+    void focus_input() { input_field->SetFocus(); }
     void focus_output() { output_win->SetFocus(); }
     void show_fancy_dashes() { output_win->fancy_dashes(); }
 private:
     OutputWin *output_win;
-    FCombo   *input_combo;
+    InputField *input_field;
 
     DECLARE_EVENT_TABLE()
 };
