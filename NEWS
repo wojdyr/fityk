@@ -1,3 +1,8 @@
+User-visible changes in version 0.3.4:
+
+* commands from ${HOME}/.fityk/init are executed on start-up
+* added Data->Recent files->... to menu
+
 User-visible changes in version 0.3.3:
 
 * Major changes in graphical interface (mouse usage, toolbar etc.)

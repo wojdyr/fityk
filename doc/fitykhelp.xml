@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
-<!DOCTYPE book PUBLIC "-//Norman Walsh//DTD DocBk XML V4.1//EN"
-                            "http://nwalsh.com/docbook/xml/4.1/db3xml.dtd" [
+<!DOCTYPE book PUBLIC '-//OASIS//DTD DocBook XML V4.2//EN' 
+              'http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd'
+[
 <!ENTITY two-theta "
     <inlinemediaobject>
      <imageobject><imagedata fileref='fitykhelp_img/2theta.png'/></imageobject>
@@ -425,7 +426,9 @@
      d.b 60.5 185.1 # d.b is a shortcut for d.background
     </userinput>
    </para>
+   <para>
     is equivalent to
+   </para>
    <para>
     <userinput>
      d.background 10 150.2 ; d.background 60.5 185.1 
@@ -879,15 +882,19 @@
      by the type. Two examples: 
      <orderedlist>
       <listitem>
-       Gaussian is a type of f-function, and
-       f-function of this type has 3 parameters: a<subscript>0</subscript>,
-       a<subscript>1</subscript> and a<subscript>2</subscript> (see formula
-       above). 
+       <para>
+        Gaussian is a type of f-function, and
+        f-function of this type has 3 parameters: a<subscript>0</subscript>,
+        a<subscript>1</subscript> and a<subscript>2</subscript> (see formula
+        above). 
+       </para>
       </listitem>
       <listitem>
+       <para>
        One of g-parameter types is <firstterm>division</firstterm>:
        a<subscript>0</subscript>/a<subscript>1</subscript>. A g-parameter
        of this type contains two parameters.
+       </para>
       </listitem>
      </orderedlist>
     </para>
@@ -1690,7 +1697,7 @@
     </cmdsynopsis>
     The second is just a dot (.), and it remains appropriate range not changed.
     It will be explained on examples:
-    <simplelist type="vertical">
+    <simplelist type="vert">
      <member> <userinput>o.plot [20.4:50] [10:20]</userinput> 
       - plot will show x from 20.4 to 50 and y from 10 to 20
      </member>
@@ -2268,16 +2275,16 @@
    <abbrev>1</abbrev>
    <authorgroup>
     <author>
-     <surname>Press</surname>, <firstname>William</firstname>
+     <surname>Press</surname>  <firstname>William</firstname>
     </author>
     <author>
-     <surname>Teukolsky</surname>, <firstname>Saul</firstname>
+     <surname>Teukolsky</surname> <firstname>Saul</firstname>
     </author>
     <author>
-     <surname>Vetterling</surname>, <firstname>William</firstname>
+     <surname>Vetterling</surname> <firstname>William</firstname>
     </author>
     <author>
-     <surname>Flannery</surname>, <firstname>Brian</firstname>
+     <surname>Flannery</surname> <firstname>Brian</firstname>
     </author>
    </authorgroup>
    <title>Numerical Recipes in C</title>
