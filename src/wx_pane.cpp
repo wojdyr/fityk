@@ -469,8 +469,9 @@ void OutputWin::read_settings(wxConfigBase *cf)
     text_color[os_input] = read_color_from_config(cf, "input", 
                                                      wxColour(0, 200, 0));
     bg_color = read_color_from_config(cf, "bg", wxColour(20, 20, 20));
-
-    SetDefaultStyle (wxTextAttr(text_color[os_quot], bg_color));
+    cf->SetPath("/OutputWin");
+    wxFont font = read_font_from_config(cf, "font", wxNullFont);
+    SetDefaultStyle (wxTextAttr(text_color[os_quot], bg_color, font));
 
     // this "if" is needed on GTK 1.2 (I don't know why)
     // if it is called before window is shown, it doesn't work 
@@ -488,6 +489,8 @@ void OutputWin::save_settings(wxConfigBase *cf) const
     write_color_to_config (cf, "quot", text_color[os_quot]); 
     write_color_to_config (cf, "input", text_color[os_input]); 
     write_color_to_config (cf, "bg", bg_color); 
+    cf->SetPath("/OutputWin");
+    write_font_to_config (cf, "font", GetDefaultStyle().GetFont());
 }
 
 void OutputWin::append_text (OutputStyle style, const wxString& str)
@@ -528,7 +531,7 @@ void OutputWin::OnPopupFont (wxCommandEvent& WXUNUSED(event))
 {
     wxFontData data; 
     data.SetInitialFont (GetDefaultStyle().GetFont());
-    wxFontDialog dlg (this, &data);
+    wxFontDialog dlg (frame, &data);
     int r = dlg.ShowModal();
     if (r == wxID_OK) {
         wxFont f = dlg.GetFontData().GetChosenFont();
@@ -696,6 +699,21 @@ void write_color_to_config (wxConfigBase *config, const wxString& key,
 wxFont read_font_from_config (const wxConfigBase *config, const wxString& key,
                               const wxFont& default_value)
 {
+    if (!default_value.Ok()) {
+        if (config->HasEntry(key+"/pointSize")
+              && config->HasEntry(key+"/family")
+              && config->HasEntry(key+"/style")
+              && config->HasEntry(key+"/weight")
+              && config->HasEntry(key+"/faceName"))
+            return wxFont (config->Read(key+"/pointSize", 0L),
+                           config->Read(key+"/family", 0L),
+                           config->Read(key+"/style", 0L),
+                           config->Read(key+"/weight", 0L),
+                           false, //underline
+                           config->Read(key+"/faceName", ""));
+        else
+            return wxNullFont;
+    }
     return wxFont (config->Read(key+"/pointSize", default_value.GetPointSize()),
                    config->Read(key+"/family", default_value.GetFamily()),
                    config->Read(key+"/style", default_value.GetStyle()),

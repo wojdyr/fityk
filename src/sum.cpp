@@ -294,8 +294,18 @@ void Sum::export_as_peaks (std::ostream& os, const vector<int> &peaks) const
         os << "  " << p->type_info()->name; //Type
         os << "  " << p->center() << " " << p->height() << " " << p->area() 
             << " " << p->fwhm() << "  ";
-        for (int i = 0; i < p->type_info()->psize; i++) // a0  a1 ...
-            os << " " << p->get_pag(i).value(parameters->values(), gvec);
+        for (int j = 0; j < p->type_info()->psize; j++) // a0  a1 ...
+            os << " " << p->get_pag(j).value(parameters->values(), gvec);
+        if (refs_to_f(*i)) {
+            os << "  \"";
+            string s = descr_refs_to_f(*i);
+            for (string::const_iterator j = s.begin(); j != s.end(); ++j)
+                if (*j == '"')
+                    os << "\\\"";
+                else
+                    os << *j;
+            os << '"';
+        }
         os << endl;
     }
 }

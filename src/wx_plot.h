@@ -70,7 +70,7 @@ protected:
     int mouse_press_X, mouse_press_Y;
     int vlfc_prev_x;
 
-    void draw_dashed_vert_lines (int x1, int x2 = INVALID);
+    void draw_dashed_vert_lines (int x1, int x2=INVALID);
     bool vert_line_following_cursor(Mouse_act_enum ma, int x=0, int x0=INVALID);
     void draw_tics (wxDC& dc, const Rect &v, 
                     const int x_max_tics, const int y_max_tics, 

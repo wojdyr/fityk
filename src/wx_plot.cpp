@@ -293,7 +293,6 @@ void FPlot::draw_tics (wxDC& dc, const Rect &v,
                           const int x_tic_size, const int y_tic_size)
 {
     dc.SetPen (xAxisPen);
-    //dc.SetFont(*wxSMALL_FONT);
     dc.SetFont(ticsFont);
     dc.SetTextForeground(xAxisPen.GetColour());
 
@@ -532,6 +531,7 @@ void MainPlot::draw_peaktops (wxDC& dc)
 
 void MainPlot::draw_plabels (wxDC& dc)
 {
+    const bool vertical_plabels = false;
     prepare_peak_labels(); //TODO re-prepare only when peaks where changed
     dc.SetFont(plabelFont);
     vector<wxRect> previous;
@@ -541,7 +541,10 @@ void MainPlot::draw_plabels (wxDC& dc)
 
         wxString label = plabels[k].c_str();
         wxCoord w, h;
-        dc.GetTextExtent (label, &w, &h);
+        if (vertical_plabels)
+            dc.GetTextExtent (label, &h, &w); // w and h swapped
+        else
+            dc.GetTextExtent (label, &w, &h);
         int X = peaktop.x - w/2;
         int Y = peaktop.y - h - 2;
         wxRect rect(X, Y, w, h);
@@ -549,12 +552,13 @@ void MainPlot::draw_plabels (wxDC& dc)
         // eliminate labels overlap 
         // perhaps more sophisticated algorithm for automatic label placement
         // should be used
+        const int mrg = 0; //margin around label, can be negative
         int counter = 0;
         vector<wxRect>::const_iterator i = previous.begin();
         while (i != previous.end() && counter < 10) {
-            //if not intersection -- optimised "if (!rect.Intersects(*i))"
-            if (i->x > rect.GetRight() || rect.x > i->GetRight()
-                      || i->y > rect.GetBottom() || rect.y > i->GetBottom()) 
+            //if not intersection 
+            if (i->x > rect.GetRight()+mrg || rect.x > i->GetRight()+mrg
+                || i->y > rect.GetBottom()+mrg || rect.y > i->GetBottom()+mrg) 
                 ++i;
             else { // intersects -- try upper rectangle
                 rect.SetY(i->y - h - 2); 
@@ -563,7 +567,10 @@ void MainPlot::draw_plabels (wxDC& dc)
             }
         }
         previous.push_back(rect);
-        dc.DrawText(label, rect.x, rect.y);
+        if (vertical_plabels)
+            dc.DrawRotatedText(label, rect.x, rect.y, 90);
+        else
+            dc.DrawText(label, rect.x, rect.y);
     }
 }
 
@@ -1448,14 +1455,11 @@ void MainPlot::OnPlabelFont (wxCommandEvent& WXUNUSED(event))
 {
     wxFontData data;
     data.SetInitialFont(plabelFont);
-    //data.SetColour(.GetColour());
-
     wxFontDialog dialog(frame, &data);
     if (dialog.ShowModal() == wxID_OK)
     {
         wxFontData retData = dialog.GetFontData();
         plabelFont = retData.GetChosenFont();
-        //.SetColour(retData.GetColour());
         Refresh(false);
     }
 }
