@@ -44,8 +44,8 @@ void ApplicationLogic::dump_all_as_script (string filename)
         warn ("Can't open file: " + filename);
         return;
     }
-    os << "####### Dump time: " << time_now() << endl;
     os << fityk_version_line << endl;
+    os << "####### Dump time: " << time_now() << endl << endl;
     params->export_as_script(os);
     os << endl;
 

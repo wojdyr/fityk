@@ -36,7 +36,8 @@ class FPlot : public wxPanel
 {
 public:
     FPlot (wxWindow *parent, Plot_shared &shar)
-       : wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER),
+       : wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize, 
+                 wxNO_BORDER|wxFULL_REPAINT_ON_RESIZE),
          yUserScale(1.), yLogicalOrigin(0.), 
          shared(shar), mouse_press_X(INVALID), mouse_press_Y(INVALID), 
          vlfc_prev_x(INVALID)   {}
@@ -96,7 +97,6 @@ public:
     void OnLeftDClick (wxMouseEvent& WXUNUSED(event)) { PeakInfo(); }
     void OnButtonUp (wxMouseEvent &event);
     void OnKeyDown (wxKeyEvent& event);
-    void OnSize (wxSizeEvent& event);
     void set_scale();
 
     void OnPopupShowXX (wxCommandEvent& event);
@@ -171,7 +171,6 @@ public:
     void Draw(wxDC &dc);
     void OnLeaveWindow (wxMouseEvent& event);
     void OnMouseMove(wxMouseEvent &event);
-    void OnSize (wxSizeEvent& event);
     void OnLeftDown (wxMouseEvent &event);
     void OnLeftUp (wxMouseEvent &event);
     void OnRightDown (wxMouseEvent &event);

@@ -406,8 +406,8 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
 #ifdef __WXMSW__
       help()
 #else
-      help(wxHF_TOOLBAR|wxHF_CONTENTS|wxHF_INDEX|wxHF_SEARCH|wxHF_PRINT
-           |wxHF_MERGE_BOOKS)
+      help(wxHF_TOOLBAR | wxHF_CONTENTS | wxHF_SEARCH | wxHF_BOOKMARKS 
+           | wxHF_PRINT | wxHF_MERGE_BOOKS)
 #endif
 {
     // Load icon and bitmap
@@ -447,11 +447,6 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     string help_path = get_full_path_of_help_file(help_file); 
     string help_path_no_exten = help_path.substr(0, help_path.size() - 4);
     help.Initialize(help_path_no_exten.c_str());
-    //bool r = help.AddBook(help_path.c_str());
-    //if (!r)
-    //    wxMessageBox(("Couldn't open help file:\n " + help_path).c_str());
-    // help.UseConfig(    );
-    // help.SetTempDir(    );
     focus_input();
 }
 
@@ -840,10 +835,21 @@ void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
                               "|mca files (*.mca)|*.mca;*.MCA"
                               "|Siemens/Bruker (*.raw)|*.raw;*.RAW"
                               "|all files (*)|*",
-                              wxOPEN | wxFILE_MUST_EXIST);
+                              wxOPEN | wxFILE_MUST_EXIST | wxMULTIPLE);
     if (fdlg.ShowModal() == wxID_OK) {
-        exec_command (("d.load '" + fdlg.GetPath() + "'").c_str());
-        add_recent_data_file(fdlg.GetPath());
+        wxArrayString paths;
+        fdlg.GetPaths(paths);
+        int count = paths.GetCount();
+        wxString cmd;
+        for (int i = 0; i < count; ++i) {
+            if (i > 0)
+                cmd += " ; d.activate ::* ; "; 
+            cmd += "d.load '" + paths[i] + "'";
+            add_recent_data_file(paths[i]);
+        }
+        exec_command (cmd.c_str());
+        if (count > 1)
+            SwitchDPane(true);
     }
     dir = fdlg.GetDirectory();
 }
@@ -1812,30 +1818,29 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
 
 string get_full_path_of_help_file (const string &name)
 {
-    vector<string> possible_prefixes;
-    possible_prefixes.push_back("");
-    const char *argv0 = wxGetApp().argv[0];
-    possible_prefixes.push_back(wxPathOnly(argv0).c_str());
-    char *possible_paths[] = {
-        HELP_DIR,
-        ".",
-        "..",
-        "doc",
-        "../doc",
+    // filename --> path and filename
+    // if there is no `name' file in HELP_DIR, we are trying a few other dirs
+    wxString exedir = wxPathOnly(wxGetApp().argv[0]);
+    if (!exedir.IsEmpty() && exedir.Last() != wxFILE_SEP_PATH)
+            exedir += wxFILE_SEP_PATH;
+    wxChar *possible_paths[] = {
+        wxT(HELP_DIR),
+        wxT("."),
+        wxT(".."),
+        wxT("doc"),
+        wxT("../doc"), 
         0
     };
-    for (vector<string>::const_iterator pref = possible_prefixes.begin(); 
-            pref != possible_prefixes.end(); pref++) {
-        string pref_path = *pref;
-        if (!pref_path.empty() && *(pref_path.end()-1) != wxFILE_SEP_PATH)
-                pref_path += wxFILE_SEP_PATH;
+    for (int flag = 0; flag <= 1; ++flag) {
         for (int i = 0; possible_paths[i]; i++) {
-            string path = pref_path + possible_paths[i];
-            if (!path.empty() && *(path.end()-1) != wxFILE_SEP_PATH)
+            wxString path = !flag ? possible_paths[i]
+                                  : exedir + possible_paths[i];
+            if (!path.IsEmpty() && path.Last() != wxFILE_SEP_PATH) 
                 path += wxFILE_SEP_PATH;
-            //mesg("Looking for " + name + " in " + path);
-            path += name;
-            if (wxFileExists(path.c_str())) return path;
+            string path_name = path.c_str() + name;
+            //wxMessageBox(("Looking for \n" + path_name).c_str());
+            if (wxFileExists(path_name.c_str())) 
+                return path_name;
         }
     }
     return name;
@@ -1874,7 +1879,7 @@ void FStatusBar::OnSize(wxSizeEvent& event)
 
 void FStatusBar::set_hint(const char *left, const char *right)
 {
-    wxString space = "    "; //TODO more sophisticated solution 
+    wxString space = wxT("    "); //TODO more sophisticated solution 
     if (left)  SetStatusText(space + wxString(left),  sbf_hint1);
     if (right) SetStatusText(space + wxString(right), sbf_hint2);
 }

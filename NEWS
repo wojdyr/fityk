@@ -1,3 +1,8 @@
+User-visible changes in version 0.4.3:
+
+* "Data->Load File" dialog (simple) allows to open many files 
+* unix man page (Carlo Segre)
+
 User-visible changes in version 0.4.2:
 
 * "File" menu name was replaced with "Session", and "Manipulate" with "FindPeak"
@@ -5,7 +10,7 @@ User-visible changes in version 0.4.2:
 * fixed problem with locales, that have decimal point different than dot. 
   Now LC_NUMERIC variable is ignored. (Vincent Favre-Nicolin)
 * new configure flags: --enable-debug and --enable-optimization 
-* ambigous 'log(2)' in "export as function" was replaced by numeric value
+* ambiguous 'log(2)' in "export as function" was replaced by numeric value
   (in gnuplot log means natural log, in Excel log=log10). 
 * program version is written in scripts (session dumps and log files) 
   and in configuration files
@@ -20,7 +25,7 @@ User-visible changes in version 0.4.1:
 User-visible changes in version 0.4.0:
 
 * multiple datasets in one plot
-* multiple plots - all can be fitted simultanously
+* multiple plots - all can be fitted simultaneously
 * New menu items - GUI->Show->..., GUI->Scroll...
 
 User-visible changes in version 0.3.4:

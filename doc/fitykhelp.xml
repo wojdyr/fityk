@@ -49,8 +49,8 @@
    </para> 
    <para>
     The <acronym>GUI</acronym> was written with portable 
-    <ulink url="http://www.wxwindows.org">
-     <systemitem class="library">wxWindows</systemitem> 
+    <ulink url="http://www.wxwidgets.org">
+     <systemitem class="library">wxWidgets</systemitem> 
     </ulink>
     library, so <application>fityk</application> works in both Unix/Linux 
     and MS Windows environments.
@@ -124,14 +124,14 @@
    </para>
    <para>
     <acronym>GUI</acronym> version is written using 
-    <ulink url="http://www.wxwindows.org">
-     <systemitem class="library">wxWindows</systemitem> 
+    <ulink url="http://www.wxwidgets.org">
+     <systemitem class="library">wxWidgets</systemitem> 
     </ulink>
     library. 
     One of the main features of this library is portability. Program can be
     run on most Unix species with <systemitem class="library">GTK+</systemitem>
     (it is developed on Linux) and on MS Windows. Ports to other platforms
-    supported by <systemitem class="library">wxWindows</systemitem> library 
+    supported by <systemitem class="library">wxWidgets</systemitem> library 
     are also possible. Read <xref linkend="gui"/> to learn how to use it.
    </para>
   </section> 

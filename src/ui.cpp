@@ -63,7 +63,8 @@ void UserInterface::startLog(char mode, const string& filename)
         warn ("Can't open file for writing: " + filename);
         return;
     }
-    logfile << "\n### AT "<< time_now() << "### START LOGGING ";
+    logfile << fityk_version_line << endl;
+    logfile << "### AT "<< time_now() << "### START LOGGING ";
     switch (mode) {
         case 'i':
             info ("Logging input to file: " + filename);
@@ -81,7 +82,6 @@ void UserInterface::startLog(char mode, const string& filename)
             assert(0);
     }
     logfile << " TO THIS FILE (" << filename << ")\n";
-    logfile << fityk_version_line;
     log_filename = filename;
     log_mode = mode;
 }

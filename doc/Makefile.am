@@ -1,7 +1,8 @@
 # $Id$
 
-data_DATA = fityk_tips.txt fitykhelp.htb
-EXTRA_DIST = $(data_DATA) fitykhelp.xml cmdidx.xsl fitykhelp.html 
+dist_pkgdata_DATA = fityk_tips.txt fitykhelp.htb
+dist_man_MANS = fityk.1
+EXTRA_DIST = fitykhelp.xml cmdidx.xsl hh-mod.xsl fitykhelp.html 
 SUBDIRS = fitykhelp_img
 
 all: fitykhelp.htb fitykhelp.html
@@ -15,7 +16,7 @@ fitykhelp.htb: fitykhelp_with_idx.xml
 	mkdir fitykhelp_tmp
 	mkdir fitykhelp_tmp/fitykhelp_img/
 	cp -r fitykhelp_img/*.png fitykhelp_tmp/fitykhelp_img/
-	xmlto -o fitykhelp_tmp htmlhelp fitykhelp_with_idx.xml 
+	xmlto -o fitykhelp_tmp -m hh-mod.xsl htmlhelp fitykhelp_with_idx.xml 
 	cd fitykhelp_tmp/ && zip -r fitykhelp.zip .
 	mv -f fitykhelp_tmp/fitykhelp.zip ./fitykhelp.htb 
 

@@ -1,19 +1,19 @@
 [Suggestions from Fityk users survey are not included here yet.]
 
 * after upgrading wxWidgets to 2.5.2:
-    problems with refreshing after window resizing 
     check for compatibility with 2.4.
-    ugly splitters
 
-* (GUI) "Report Bug" item in Help menu
+* (GUI) crosshair cursor option (vertical and horizontal line at the cursor 
+  position, wxDC::CrossHair)
 
-* new command line options: -d and --data that will load data file
-  Perhaps 'fityk nacl01.dat' should also load data file?
-  Automatically recognize if it is script or data?
+* Automatically recognize if argument given on input line is a script 
+  or data. Scripts has .fit or .fityk extensions, or begin with "# Fityk".
+
+* dialogs -> center on parent  
+
+---
 
 * data viewer (grid); 
-
-* document s.guess command 
 
 * problem: fityk can't be compiled with UNICODE-enabled wxWidgets
 
@@ -35,14 +35,16 @@
 * integrate m.findpeak and s.add options. Prepare interface for many
   peak detection algorithms
 
+* document s.guess command 
+
 * (GUI) in input ComboBox up/down arrow keys should work like 
   in bash -- moving in command history. (use TextCtrl instead of ComboBox)
 
 * More visible toolbar icons (icons 5-9 from left must be changed).
   Perhaps bigger (24x24) icons should be used?
 
-* (s.add) possiblity to add description of peak/parameter 
-  This description could be used eg. in exporting files.
+* (s.add) possibility to add description of peak/parameter 
+  This description could be used e.g. in exporting files.
 
 * loading data -- use Difdaf library (when it will be ready) for powder
   diffraction data import.
@@ -50,8 +52,6 @@
 * (loading data) -- merging a few file
   rewrite loading ASCII data 
   change order of arguments in syntax of d.load command 
-
-* d.load: optimize loading file with xy data 
 
 * redesign "Load File Custom" dialog 
 
@@ -75,9 +75,6 @@
 
 * (GUI) stopping fitting interactively (when user don't want to wait longer);
   use threads?
-
-* (GUI) crosshair cursor option (vertical and horizontal line at the cursor 
-  position)
 
 * automatic background substraction - what algorithm is good?
 
@@ -119,9 +116,10 @@
 * f.info -- more informations about error, confidence limits, etc.
   graphical interface to f.info; easy way to get parameters with errors
 
-* problem: when gnuplot is not available, cfityk abort exits in some situations
-
 * Now only '.' is supported as a decimal separator. ',' should also
   be an option.
+
+* (GUI) "Report Bug" item in Help menu, clickable link in About dialog
+        http://wiki.wxwidgets.org/wiki.pl?Launching_The_Default_Browser
 
 

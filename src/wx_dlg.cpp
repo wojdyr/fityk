@@ -723,7 +723,7 @@ void FuncBrowserDlg::OnValueButton (wxCommandEvent& WXUNUSED(event))
 
 void FuncBrowserDlg::show_expanded (int item_nr, int subitem_nr)
 {
-    long cookie;
+    wxTreeItemIdValue cookie;
     wxTreeItemId id = func_tree->GetFirstChild(func_tree->GetRootItem(),cookie);
     for (int i = 1; i <= item_nr && id.IsOk(); i++)
         id = func_tree->GetNextChild(func_tree->GetRootItem(), cookie);
@@ -849,7 +849,7 @@ void FuncTree::ExpandAll(const wxTreeItemId& item)
         if ( !IsExpanded(item) )
             return;
     }
-    long cookie;
+    wxTreeItemIdValue cookie;
     wxTreeItemId child = GetFirstChild(item, cookie);
     while ( child.IsOk() )
     {
@@ -877,7 +877,7 @@ void FuncTree::OnPopupReset         (wxCommandEvent& WXUNUSED(event))
 wxTreeItemId FuncTree::next_item (const wxTreeItemId& item)
 {
     if (ItemHasChildren(item)) {
-        long cookie;
+        wxTreeItemIdValue cookie;
         return GetFirstChild (item, cookie);
     }
     else 

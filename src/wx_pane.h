@@ -28,8 +28,7 @@ public:
                          wxWindowID id=-1, 
                          float proportion=0.66, // 0. - 1.
                          const wxSize& size = wxDefaultSize,
-                         //IMHO default wxSP_3D doesn't look good (on wxGTK).
-                         long style=wxSP_NOBORDER|wxSP_FULLSASH,
+                         long style=wxSP_NOBORDER|wxSP_FULLSASH|wxSP_3DSASH,
                          const wxString& name = "proportionalSplitterWindow");
     bool SplitHorizontally(wxWindow* win1, wxWindow* win2, float proportion=-1);
     bool SplitVertically(wxWindow* win1, wxWindow* win2, float proportion=-1);

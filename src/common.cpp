@@ -17,7 +17,7 @@ const vector<int> int_v0; //just empty vector
 const fp INF = 1e99; //almost ininity. floating points limits are about:
                      // double: 10^+308, float: 10^+38, long double: 10^+4932
 
-const char* fityk_version_line = "#  Fityk  version: " VERSION "\n";
+const char* fityk_version_line = "# Fityk script. Fityk version: " VERSION;
 
 vector<int> range_vector (int l, int u)
 {

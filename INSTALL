@@ -5,8 +5,8 @@ both CLI and GUI
   modern c++ compiler (see below)
   optionally flex and bison (there are pre-generated C++ files)
 only for CLI (command line interface, cfityk): 
-  readline library 
-  gnuplot program (for graph output)
+  readline library (optional)
+  gnuplot program (for graph output, optional)
 only for GUI (graphical user interface, fityk):
   wxWindows >= 2.4.0, (I'm testing it only with the latest stable version)
 
@@ -18,46 +18,39 @@ Just run ./autogen.sh before ./configure. You may need to tune autogen.sh.
 
 There are additional tools needed to run make in doc/ subdirectory
 (to convert XML DocBook document to HTML). If you don't want to bother 
-with it, run `make' only in src/ subdirectory. 
-In tarballs converted help files are included.  
+with it, run `make' only in src/ subdirectory and read documentation on-line
+or extracted from tarballs.
 
 
 PORTABILITY:
 ===========
-		====================================
+
 		 Linux (and probably other unices): 
-		====================================
+		 ----------------------------------
 
-wxGTK version
------------
-
-GTK+ and wxGTK required.
+The only wxWidgets port I use is wxGTK. I don't test wxMotif and wxX11.
 All changes in program are tested with GCC 3.4 and GCC 2.95.
 Only GCC 2.95 and GCC 3.x compilers are supported.
 
 
-wxMotif version
--------------
-It is not supported.
-
-wxX11 version
------------
-Not tested yet. 
-
-
-		===============================================
 		                  MS Windows 
-		===============================================
+		-----------------------------------------------
 
 Current version is compiled with MinGW 3.0.0
 Fityk versions <= 3.2 where compiled with the free Borland C++ Compiler 5.5.
-Windows installer is prepared with Inno Setup.
+Windows installer is prepared with Inno Setup (configuration in fityk.iss).
 
 If you would like to try compiler other than GCC/MinGW, here are some tests: 
 MinGW - OK
 Borland C++ 5.5 (bcc32) - OK, tested in 2003.  
 Cygwin - CLI - OK, GUI - ?
-VC++6 - Failed.  
+VC++6 - http://sourceforge.net/mailarchive/message.php?msg_id=9217477 
+
+
+				 Mac OS 
+		     --------------------------------
+I don't have Mac, but fityk was reported to run under Mac OS X.
+There were also some problems reported, see fityk-users mailing list.
 
 
 ---------------------------------------------------------------------------

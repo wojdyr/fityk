@@ -163,7 +163,6 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_RIGHT_UP (        MainPlot::OnButtonUp)
     EVT_MIDDLE_UP (       MainPlot::OnButtonUp)
     EVT_KEY_DOWN   (      MainPlot::OnKeyDown)
-    EVT_SIZE (            MainPlot::OnSize)
     EVT_MENU (ID_plot_popup_za,     MainPlot::OnZoomAll)
     EVT_MENU_RANGE (ID_plot_popup_data, ID_plot_popup_tics,  
                                     MainPlot::OnPopupShowXX)
@@ -184,11 +183,6 @@ MainPlot::MainPlot (wxWindow *parent, Plot_shared &shar)
     : FPlot (parent, shar), mode (mmd_zoom), basic_mode(mmd_zoom),
       pressed_mouse_button(0), ctrl(false), over_peak(-1)
 { }
-
-void MainPlot::OnSize(wxSizeEvent& WXUNUSED(event))
-{
-    //Refresh();
-}
 
 void MainPlot::OnPaint(wxPaintEvent& WXUNUSED(event))
 {
@@ -1393,7 +1387,6 @@ BEGIN_EVENT_TABLE (AuxPlot, FPlot)
     EVT_RIGHT_DOWN (      AuxPlot::OnRightDown)
     EVT_MIDDLE_DOWN (     AuxPlot::OnMiddleDown)
     EVT_KEY_DOWN   (      AuxPlot::OnKeyDown)
-    EVT_SIZE (            AuxPlot::OnSize)
     EVT_MENU_RANGE (ID_aux_popup_plot_0, ID_aux_popup_plot_0 + 10,
                                                     AuxPlot::OnPopupPlot)
     EVT_MENU_RANGE (ID_aux_popup_c_background, ID_aux_popup_color - 1, 
@@ -1402,11 +1395,6 @@ BEGIN_EVENT_TABLE (AuxPlot, FPlot)
     EVT_MENU (ID_aux_popup_yz_fit, AuxPlot::OnPopupYZoomFit)
     EVT_MENU (ID_aux_popup_yz_auto, AuxPlot::OnPopupYZoomAuto)
 END_EVENT_TABLE()
-
-void AuxPlot::OnSize(wxSizeEvent& WXUNUSED(event))
-{
-    //Refresh();
-}
 
 void AuxPlot::OnPaint(wxPaintEvent &WXUNUSED(event))
 {

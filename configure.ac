@@ -5,7 +5,7 @@ AC_CONFIG_SRCDIR([src/fzgbase.h])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_HEADERS([config.h])
 AC_CANONICAL_TARGET([])
-AM_INIT_AUTOMAKE(fityk, 0.4.2)
+AM_INIT_AUTOMAKE(fityk, 0.4.3)
 AM_MAINTAINER_MODE
 
 dnl What versions of program are to be made 
@@ -150,11 +150,6 @@ dnl AC_CHECK_FUNCS(putenv strtod)
 
 dnl in generated configure script, this line is too late
 test "x$prefix" = xNONE && prefix=$ac_default_prefix
-
-eval help_dir=${datadir} 
-
-AC_MSG_RESULT([Directory for online help system: $help_dir])
-AC_DEFINE_UNQUOTED(HELP_DIR, "$help_dir", [Directory for online help system])
 
 AC_CONFIG_FILES([Makefile fityk.spec fityk.iss src/Makefile src/img/Makefile doc/Makefile doc/fitykhelp_img/Makefile samples/Makefile config/Makefile])
 AC_OUTPUT
