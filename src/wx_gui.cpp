@@ -116,19 +116,6 @@ using namespace std;
 FFrame *frame = NULL;
 std::vector<fp> params4plot;  //TODO move it to MainPlot or other class
 
-static const wxCmdLineEntryDesc cmdLineDesc[] = {
-    { wxCMD_LINE_SWITCH, _T("h"), _T("help"), "show this help message",
-                                wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
-    /*
-    { wxCMD_LINE_SWITCH, "v", "verbose", "be verbose", wxCMD_LINE_VAL_NONE, 0 },
-    { wxCMD_LINE_SWITCH, "q", "quiet",   "be quiet", wxCMD_LINE_VAL_NONE, 0 },
-    { wxCMD_LINE_OPTION, "o", "output", "output file", wxCMD_LINE_VAL_NONE, 0 },
-    */
-    { wxCMD_LINE_PARAM,  0, 0, "input file", wxCMD_LINE_VAL_STRING, 
-                        wxCMD_LINE_PARAM_OPTIONAL|wxCMD_LINE_PARAM_MULTIPLE },
-    { wxCMD_LINE_NONE, 0, 0, 0,  wxCMD_LINE_VAL_NONE, 0 }
-};  
-
 enum {
     ID_QUIT             = 44001,
     ID_H_MANUAL                ,
@@ -167,7 +154,6 @@ enum {
     ID_C_REMOVE                ,
     ID_C_ESTIMATE              ,
     ID_C_SET                   ,
-    ID_O_PLOT                  ,
     ID_O_LOG                   ,
     ID_O_RESET                 ,
     ID_PRINT                   ,
@@ -228,31 +214,6 @@ bool FApp::OnInit(void)
 
     AL = new ApplicationLogic; 
 
-    //Parsing command line
-    wxCmdLineParser cmdLineParser(cmdLineDesc, argc, argv);
-    if (cmdLineParser.Parse(false) != 0) {
-        cmdLineParser.Usage();
-        return false;
-    }
-    /*
-    if (cmdLineParser.Found("v"))
-        verbosity++;
-    if (cmdLineParser.Found("q"))
-        verbosity--;
-    */
-    wxString fityk_dir = wxGetHomeDir() + wxFILE_SEP_PATH + config_dirname;
-    if (!wxDirExists(fityk_dir))
-        wxMkdir(fityk_dir);
-    wxString startup_file_path = fityk_dir + wxFILE_SEP_PATH 
-                                + startup_commands_filename;
-    if (wxFileExists(startup_file_path)) {
-        getUI()->execScript(startup_file_path.c_str());
-    }
-    for (unsigned int i = 0; i < cmdLineParser.GetParamCount(); i++) {
-        wxString par = cmdLineParser.GetParam(i);
-        getUI()->execScript(par.c_str());
-    }
-
     //global settings
 #if wxUSE_TOOLTIPS
     wxToolTip::Enable (true);
@@ -270,19 +231,35 @@ bool FApp::OnInit(void)
     frame = new FFrame(NULL, -1, app_name, wxDEFAULT_FRAME_STYLE);
 
     frame->plot_pane->set_mouse_mode(mmd_zoom);
-    clear_buffered_sum();
+
     wxConfigBase *cf = new wxConfig("", "", conf_filename, "", 
                                     wxCONFIG_USE_LOCAL_FILE);
     frame->read_all_settings(cf);
+
     frame->Show(true);
+
     frame->io_pane->read_settings(cf); //it does not work earlier (wxGTK)
     delete cf;
+
     SetTopWindow(frame);
 
-    if (read_bool_from_config(wxConfig::Get(), "/TipOfTheDay/ShowAtStartup", 
-                              true)) {
-        frame->OnTipOfTheDay(dummy_cmd_event);
+    //run initial commands (from ~/.fityk/init file)
+    wxString fityk_dir = wxGetHomeDir() + wxFILE_SEP_PATH + config_dirname;
+    if (!wxDirExists(fityk_dir))
+        wxMkdir(fityk_dir);
+    wxString startup_file_path = fityk_dir + wxFILE_SEP_PATH 
+                                + startup_commands_filename;
+    if (wxFileExists(startup_file_path)) {
+        getUI()->execScript(startup_file_path.c_str());
     }
+
+    bool r = parse_opt();
+    if (!r) 
+        return false;
+
+    wxString conf_path = "/TipOfTheDay/ShowAtStartup";
+    if (read_bool_from_config(wxConfig::Get(), conf_path, true)) 
+        frame->OnTipOfTheDay(dummy_cmd_event);
 
     return true;
 }
@@ -294,6 +271,43 @@ int FApp::OnExit()
     wxConfig::Get()->Write("/FitykVersion", VERSION);
     delete wxConfigBase::Set((wxConfigBase *) NULL);
     return 0;
+}
+
+
+static const wxCmdLineEntryDesc cmdLineDesc[] = {
+    { wxCMD_LINE_SWITCH, _T("h"), _T("help"), "show this help message",
+                                wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+    /*
+    { wxCMD_LINE_SWITCH, "v", "verbose", "be verbose", wxCMD_LINE_VAL_NONE, 0 },
+    { wxCMD_LINE_SWITCH, "q", "quiet",   "be quiet", wxCMD_LINE_VAL_NONE, 0 },
+    { wxCMD_LINE_OPTION, "o", "output", "output file", wxCMD_LINE_VAL_NONE, 0 },
+    */
+    { wxCMD_LINE_PARAM,  0, 0, "input file", wxCMD_LINE_VAL_STRING, 
+                        wxCMD_LINE_PARAM_OPTIONAL|wxCMD_LINE_PARAM_MULTIPLE },
+    { wxCMD_LINE_NONE, 0, 0, 0,  wxCMD_LINE_VAL_NONE, 0 }
+};  
+
+
+/// parse and execute command line switches and arguments
+/// return value: false - exit app
+bool FApp::parse_opt()
+{
+    wxCmdLineParser cmdLineParser(cmdLineDesc, argc, argv);
+    if (cmdLineParser.Parse(false) != 0) {
+        cmdLineParser.Usage();
+        return false;
+    }
+    /*
+    if (cmdLineParser.Found("v"))
+        verbosity++;
+    if (cmdLineParser.Found("q"))
+        verbosity--;
+    */
+    for (unsigned int i = 0; i < cmdLineParser.GetParamCount(); i++) {
+        wxString par = cmdLineParser.GetParam(i);
+        getUI()->execScript(par.c_str());
+    }
+    return true;
 }
 
 
@@ -341,7 +355,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_C_SET,         FFrame::OnCSet)    
 #endif
 
-    EVT_MENU (ID_O_PLOT,        FFrame::OnOPlot)    
     EVT_MENU (ID_O_LOG,         FFrame::OnOLog)    
     EVT_MENU (ID_O_RESET,       FFrame::OnO_Reset)    
     EVT_MENU (ID_O_INCLUDE,     FFrame::OnOInclude)    
@@ -596,7 +609,8 @@ void FFrame::set_menubar()
     data_bg_menu->Append(ID_D_B_INFO, "&Info", "Info about baseline points");
     data_bg_menu->Append(ID_D_B_CLEAR, "&Clear", "Clear all baseline points");
     data_menu->Append (ID_D_BACKGROUND, "&Background", data_bg_menu);
-    data_menu->Append (ID_D_CALIBRATE, "&Calibrate","Define calibration curve");
+    data_menu->Append (ID_D_CALIBRATE, "&Calibrate",
+                       "Define calibration curve (command line only)");
     data_menu->Append (ID_D_EXPORT,   "&Export", "Save data to file");
     data_menu->Append (ID_D_SET,      "&Settings", "Preferences and options");
 
@@ -614,7 +628,8 @@ void FFrame::set_menubar()
     sum_menu->Append (ID_S_SET,       "&Settings", "Preferences and options"); 
 
     wxMenu* manipul_menu = new wxMenu;
-    manipul_menu->Append (ID_M_FINDPEAK, "&Find peak", "Search for a peak");
+    manipul_menu->Append (ID_M_FINDPEAK, "&Find peak", 
+                                       "Search for a peak (rather useless)");
     manipul_menu->Append (ID_M_SET,   "&Settings", "Preferences and options");
 
     wxMenu* fit_menu = new wxMenu;
@@ -636,12 +651,15 @@ void FFrame::set_menubar()
 #ifdef USE_XTAL
     wxMenu* crystal_menu = new wxMenu;
     crystal_menu->Append (ID_C_WAVELENGTH, "&Wavelength", 
-                                                "Defines X-rays wavelengths");
-    crystal_menu->Append (ID_C_ADD,      "&Add", "Add phase or plane");      
-    crystal_menu->Append (ID_C_INFO,     "&Info", "Crystalography info");      
-    crystal_menu->Append (ID_C_REMOVE,   "&Remove", "Remove phase or plane");
+                    "Defines X-rays wavelengths (command line only)");
+    crystal_menu->Append (ID_C_ADD,      "&Add", 
+            "Add phase or plane (command line only)"); 
+    crystal_menu->Append (ID_C_INFO,     "&Info", 
+                            "Crystalography info (command line only)"); 
+    crystal_menu->Append (ID_C_REMOVE,   "&Remove", 
+                          "Remove phase or plane (command line only)");
     crystal_menu->Append (ID_C_ESTIMATE, "&Estimate peak", 
-                                            "Guess peak parameters");      
+                            "Guess peak parameters (command line only)");      
     crystal_menu->Append (ID_C_SET,    "&Settings", "Preferences and options");
 #endif //USE_XTAL
 
@@ -706,28 +724,27 @@ void FFrame::set_menubar()
                        "Save current configuration to alternative config file");
     gui_menu->Append(ID_G_SCONF, "&Save current config", gui_menu_sconfig);
 
-    wxMenu* other_menu = new wxMenu;
-    other_menu->Append (ID_O_INCLUDE,   "&Include file", 
+    wxMenu* session_menu = new wxMenu;
+    session_menu->Append (ID_O_INCLUDE,   "&Include file", 
                                             "Execute commands from a file");
-    other_menu->Append (ID_O_REINCLUDE, "&Re-Include file", 
+    session_menu->Append (ID_O_REINCLUDE, "&Re-Include file", 
                 "Reset & execute commands from the file included last time");
-    other_menu->Enable (ID_O_REINCLUDE, false);
-    other_menu->Append (ID_O_RESET,     "&Reset", "Reset current session");
-    other_menu->AppendSeparator();
-    other_menu->Append (ID_O_LOG,       "&Log to file", 
+    session_menu->Enable (ID_O_REINCLUDE, false);
+    session_menu->Append (ID_O_RESET,     "&Reset", "Reset current session");
+    session_menu->AppendSeparator();
+    session_menu->Append (ID_O_LOG,       "&Log to file", 
                                             "Start/stop logging to file");
-    other_menu->Append (ID_O_DUMP,      "&Dump to file", 
+    session_menu->Append (ID_O_DUMP,      "&Dump to file", 
                                          "Save current program state to file");
-    other_menu->AppendSeparator();
-    other_menu->Append (ID_PRINT,       "&Print...", "Print plots");
-    other_menu->Append (ID_PRINT_SETUP, "Print Se&tup",
+    session_menu->AppendSeparator();
+    session_menu->Append (ID_PRINT,       "&Print...", "Print plots");
+    session_menu->Append (ID_PRINT_SETUP, "Print Se&tup",
                                                     "Printer and page setup");
-    other_menu->Append (ID_PRINT_PREVIEW, "Print Pre&view", "Preview"); 
-    other_menu->AppendSeparator();
-    other_menu->Append (ID_O_PLOT,      "&Replot", "Plot data and sum");
-    other_menu->Append (ID_O_WAIT,      "&Wait", "What for?");
-    other_menu->AppendSeparator();
-    other_menu->Append (ID_O_SET,       "&Settings", "Preferences and options");
+    session_menu->Append (ID_PRINT_PREVIEW, "Print Pre&view", "Preview"); 
+    session_menu->AppendSeparator();
+    session_menu->Append (ID_O_WAIT,    "&Wait", "Just wait (rather useless)");
+    session_menu->AppendSeparator();
+    session_menu->Append (ID_O_SET,     "&Settings", "Preferences and options");
 
     wxMenu *help_menu = new wxMenu;
     help_menu->Append(ID_H_MANUAL, "&Manual", "User's Manual");
@@ -737,10 +754,10 @@ void FFrame::set_menubar()
     //help_menu->Append(ID_QUIT, "&Exit", "Exit the program");
 
     wxMenuBar *menu_bar = new wxMenuBar(wxMENU_TEAROFF);
-    menu_bar->Append (other_menu, "&File" );
+    menu_bar->Append (session_menu, "S&ession" );
     menu_bar->Append (data_menu, "&Data" );
     menu_bar->Append (sum_menu, "&Sum" );
-    menu_bar->Append (manipul_menu, "&Manipulate");
+    menu_bar->Append (manipul_menu, "Find&Peak");
     menu_bar->Append (fit_menu, "Fi&t" );
 #ifdef USE_XTAL
     menu_bar->Append (crystal_menu, "&Xtal/Diffr" );
@@ -1068,11 +1085,6 @@ void FFrame::OnCSet          (wxCommandEvent& WXUNUSED(event))
 }
         
 
-void FFrame::OnOPlot         (wxCommandEvent& WXUNUSED(event))
-{
-    exec_command ("o.plot");
-}
-         
 void FFrame::OnOLog          (wxCommandEvent& WXUNUSED(event))
 {
     wxFileDialog fdlg (frame, "Log to file", "", "",

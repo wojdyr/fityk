@@ -1,3 +1,6 @@
+User-visible changes in version 0.4.2:
+
+* "File" menu name was replaced with "Session", and "Manipulate" with "FindPeak"
 * "s.info ^number" prints more informations.
 * fixed problem with locales, that have decimal point different than dot. 
   Now LC_NUMERIC variable is ignored. (Vincent Favre-Nicolin)

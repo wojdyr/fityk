@@ -12,7 +12,7 @@ RCSID ("$Id$")
 #include <stdlib.h>
 #include <fstream>
 #include <ctype.h>
-#include <unistd.h>
+#include <time.h>
 #include <signal.h>
 #include <locale.h>
 #ifndef NO_READLINE
@@ -43,9 +43,13 @@ void UserInterface::doDrawPlot (bool /*now*/, const vector<fp>& a)
     my_gnuplot.plot (a);
 }
 
-void UserInterface::sleep (int seconds) 
+void UserInterface::wait (float seconds) 
 {
-    sleep(seconds);
+    seconds = fabs(seconds);
+    timespec ts;
+    ts.tv_sec = static_cast<int>(seconds);
+    ts.tv_nsec = static_cast<int>((seconds - ts.tv_sec) * 1e9);
+    nanosleep(&ts, 0);
 }
 
 void UserInterface::execCommand(const string& s)
@@ -229,15 +233,15 @@ char **my_completion (const char *text, int start, int end)
 /// Reads history (for readline) in ctor and saves it to file in dtor.
 /// Proper use: single instance created at the beginning of the program
 /// and destroyed at the end.
-struct HistoryManager
+struct RlHistoryManager
 {
-    HistoryManager();
-    ~HistoryManager();
+    RlHistoryManager();
+    ~RlHistoryManager();
     string hist_file;
 };
 
 /// read history file
-HistoryManager::HistoryManager()
+RlHistoryManager::RlHistoryManager()
 {
     string fityk_dir = get_config_dir();
     if (!fityk_dir.empty()) {
@@ -247,7 +251,7 @@ HistoryManager::HistoryManager()
 }
 
 /// save history to file
-HistoryManager::~HistoryManager()
+RlHistoryManager::~RlHistoryManager()
 {
     //saving command history to file
     if (!hist_file.empty()) {
@@ -270,7 +274,7 @@ bool main_loop()
     rl_readline_name = "fit";
     rl_attempted_completion_function = my_completion;
 
-    HistoryManager hm;//it takes care about reading/saving readline history
+    RlHistoryManager hm;//it takes care about reading/saving readline history
 
     //the main loop -- reading input and executing commands
     for (;;)

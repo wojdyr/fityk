@@ -17,7 +17,7 @@ bool parser(std::string cmd);
 
 
 /// A Singleton class.
-/// Some methods (plot, plotNow, sleep, execCommand, showMessage) 
+/// Some methods (plot, plotNow, wait, execCommand, showMessage) 
 /// are different and defined separatly for GUI and CLI versions.
 /// The program is always linked only with one version of each method.
 class UserInterface : public DotSet
@@ -35,7 +35,7 @@ public:
     void outputMessage (int level, const std::string& s);
 
     /// Wait and disable UI for ... seconds. Different for GUI and CLI.
-    void sleep(int seconds); 
+    void wait(float seconds); 
 
     void startLog (char mode, const std::string& filename);
     void stopLog();

@@ -212,7 +212,7 @@ exp:  SET DASH_STRING EQ_STRING SEP {
     | O_INCLUDE '!' FILENAME rows SEP { AL->reset_all(); 
                                        getUI()->execScript($3.str(), ivec);}
     | O_INCLUDE '!' SEP            { AL->reset_all(); }
-    | O_WAIT UINt SEP             { getUI()->sleep ($2); }
+    | O_WAIT flt SEP              { getUI()->wait ($2); }
     | O_DUMP FILENAME SEP          { AL->dump_all_as_script ($2.str()); }
     | QUIT SEP                     { YYABORT;}
     /***/

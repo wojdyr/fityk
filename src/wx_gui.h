@@ -39,6 +39,9 @@ public:
 
     bool OnInit(void);
     int OnExit();
+
+private:
+    bool parse_opt();
 };
 
 DECLARE_APP(FApp)
@@ -142,7 +145,6 @@ public:
     void OnCEstimate     (wxCommandEvent& event);             
     void OnCSet          (wxCommandEvent& event);        
 
-    void OnOPlot         (wxCommandEvent& event);         
     void OnOLog          (wxCommandEvent& event);        
     void OnOInclude      (wxCommandEvent& event);            
     void OnOReInclude    (wxCommandEvent& event);            

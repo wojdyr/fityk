@@ -34,9 +34,9 @@ void UserInterface::doDrawPlot(bool now, const std::vector<fp>& a)
 }
 
 
-void UserInterface::sleep (int seconds) 
-{
-    wxSleep (seconds);
+void UserInterface::wait (float seconds) 
+{  
+    wxUsleep (static_cast<int>(seconds*1e3)); //wxUsleep takes mili-seconds
 }
 
 void UserInterface::execCommand(const string& s)

@@ -21,7 +21,9 @@ class FPlot;
 class PlotCore;
 
 
-// based on http://wiki.wxpython.org/index.cgi/ProportionalSplitterWindow
+/// based on http://wiki.wxpython.org/index.cgi/ProportionalSplitterWindow
+/// it is like wxSplitterWindow, but when resized, both windows are resized
+/// proporionally
 class ProportionalSplitter: public wxSplitterWindow
 {
 public:

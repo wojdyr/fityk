@@ -22,6 +22,8 @@ struct Enum_string
     Enum_string (std::map<char, std::string>& e_, char* v_) : e(e_), v(v_) {}
 };
 
+/// it stores setting - variables of various types, 
+/// such as lambda-starting-value in LMfit class
 class DotSet 
 {
 protected:
