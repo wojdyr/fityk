@@ -1,0 +1,2372 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//Norman Walsh//DTD DocBk XML V4.1//EN"
+                            "http://nwalsh.com/docbook/xml/4.1/db3xml.dtd" [
+<!ENTITY two-theta "
+    <inlinemediaobject>
+     <imageobject><imagedata fileref='fitykhelp_img/2theta.png'/></imageobject>
+     <textobject><phrase>2theta</phrase></textobject>
+    </inlinemediaobject> 
+  ">
+]>
+<!-- XML header above -->
+<!-- SGML header below-->
+<!-- <!DOCTYPE article  PUBLIC "-//OASIS//DTD DocBook V4.1//EN"> -->
+
+<!-- the first version of this manual was created with LyX -->
+<book lang="en">
+ <title>Fityk - User's Manual</title> 
+ <bookinfo> 
+  <date>2002-10-26</date>
+  <author> 
+   <firstname>Marcin</firstname> <surname>Wojdyr</surname>
+  </author> 
+ </bookinfo>
+
+ <chapter> 
+  <title>Introduction</title> 
+  <section>
+   <title>Fityk's purpose</title>
+   <para>
+    <application>Fityk</application> is a flexible and portable program 
+    for nonlinear fitting of analytical functions (especially peak-shaped) 
+    to data (usually experimental data). In other words, for nonlinear peak
+    separation and analysis. 
+   </para>
+   <para>
+    It was developed for analyzing diffraction patterns, but can be also used
+    in other fields, since concepts and operations specific for crystallography
+    are separated from the rest of the program.
+   </para>
+   <para>
+    <application>Fityk</application> offers various nonlinear fitting methods, 
+    subtracting background, calibrating data, easy placement of peaks and
+    changing peak parameters, automation of common tasks with scripts, and much
+    more. The main advantage of the program is a flexibility - parameters
+    of peaks can be arbitrarily binded with each other, eg. width of peak can
+    be an independent variable, can be the same as width of other peak or can
+    be given by complicated - common for all peaks - formula.
+   </para> 
+   <para>
+    The <acronym>GUI</acronym> was written with portable 
+    <ulink url="http://www.wxwindows.org">
+     <systemitem class="library">wxWindows</systemitem> 
+    </ulink>
+    library, so <application>fityk</application> works in both Unix/Linux 
+    and MS Windows environments.
+   </para>
+   <para>
+    As far as I know, the only program which also is specialized in fitting
+    peaks is <application>PeakFit</application>. 
+    Some of useful features found in <application>PeakFit</application>, 
+    that are not present in <application>fityk</application> yet, 
+    will be implemented in future.
+   </para>
+   <para>
+    <application>Fityk</application> is free software; you can redistribute 
+    and modify it under the terms of <acronym>GPL</acronym>, version 2. 
+    See <xref linkend="license"/> for details. 
+    You can download the latest version of <application>fityk</application> from
+    <ulink url="http://www.unipress.waw.pl/~wojdyr/fityk">
+     http://www.unipress.waw.pl/~wojdyr/fityk
+    </ulink>.
+    To contact author, visit the same page or send e-mail to Marcin
+    Wojdyr <email>wojdyr@if.pw.edu.pl</email>. Remember that 
+    <application>fityk</application> is in early development stage. 
+    It probably has a lot of bugs, and is lacking some features. 
+   </para> 
+  </section>
+  <section>
+   <title>How to read this manual</title>
+   <para>
+    After this introduction, read
+    entire <xref linkend="using"/>. It is also
+    recommended to read <xref linkend="CommandReference"/>,
+    especially <xref linkend="GeneralSyntax"/>, <xref linkend="sum"/>
+    and, if your field is crystallography,
+    reading <xref linkend="crystallography"/> is a must.
+    Note, that menu commands and toolbar buttons are
+    generally not explained, because they are either
+    intuitive and self-explaining or analogical to textual
+    commands, that have accurate
+    description.
+   </para>
+  </section> 
+ </chapter>
+
+ <chapter id="using">
+  <title>Using fityk</title>
+  <section>
+   <title><acronym>GUI</acronym> vs <acronym>CLI</acronym></title>
+   <para>
+    The program comes in two versions: <acronym>GUI</acronym> (Graphical User
+    Interface) version - more comfortable in most cases,
+    and <acronym>CLI</acronym> (Command Line Interface) version 
+    (named <command>cfityk</command> to differentiate, Unix only) 
+    - used only in special situations, when visualization is not essential 
+    and user prefers to use a text terminal.
+   </para>
+   <para>
+    If <acronym>CLI</acronym> version is compiled with 
+    the <systemitem class="library">GNU Readline Library</systemitem>, 
+    it enables command line editing and command history 
+    like in <application>bash</application>.
+    Especially useful is <keycap>TAB</keycap>-expanding. 
+    All <application>fityk</application> 
+    commands, filenames and option names can be expanded. Options are
+    set by <command>d.set</command>, <command>s.set</command>, 
+    <command>f.set</command> etc. commands. 
+    In <acronym>CLI</acronym> version, 
+    data and sum of functions can be visualized with 
+    <application>gnuplot</application> program. It is
+    done automatically, if <command>gnuplot</command> is found.
+   </para>
+   <para>
+    <acronym>GUI</acronym> version is written using 
+    <ulink url="http://www.wxwindows.org">
+     <systemitem class="library">wxWindows</systemitem> 
+    </ulink>
+    library. 
+    One of main features of this library is portability. Program can be
+    run on most Unix species with <systemitem class="library">GTK+</systemitem>
+    (it is developed on Linux) and on MS Windows. Ports to other platforms
+    supported by <systemitem class="library">wxWindows</systemitem> library 
+    are also possible. Read <xref linkend="gui"/> to learn how to use it.
+   </para>
+  </section> 
+
+  <section>
+   <title>The minimal example</title>
+   <para>
+    Let us analyze a diffraction pattern of NaCl. Our goal is to determine the
+    position of the center of the biggest peak. It is needed for calculating
+    pressure, under which the sample was measured, but the further processing
+    does not matter in our example.
+   </para>
+   <para>
+    Data file used in this example is distributed with the program and 
+    can be found in <filename class="directory">samples</filename> directory. 
+   </para>
+   <para>
+    First load data from file <filename>nacl01.dat</filename>. 
+    You can do it by typing <userinput>d.load 'nacl01.dat'</userinput> 
+    in <acronym>CLI</acronym> version (or in <acronym>GUI</acronym> version 
+    in the input box - at the bottom, just above the status bar). 
+    In <acronym>GUI</acronym>, you can select
+    <menuchoice>
+     <guimenu>Data</guimenu><guimenuitem>Load File</guimenuitem>
+    </menuchoice> 
+    from menu and choose proper file, instead. All commands can be
+    abbreviated with letter-dot-letter, eg. you can type: 
+    <userinput>d.l 'nacl01.dat'</userinput>. 
+   </para> 
+   <para>
+    If you use GUI, you can zoom in the biggest peak 
+    using <mousebutton>left</mousebutton> mouse button on the auxiliary plot
+    (the plot below main plot). To zoom out, press either 
+    <mousebutton>middle</mousebutton> button 
+    or <keycap>Shift</keycap> and <mousebutton>left</mousebutton> button 
+    on the auxiliary plot. Other ways of zooming are described in
+    <xref linkend="mouse"/>. If you want the data to be drawn using 
+    bigger points or line, or if you want to change color of line or background,
+    press <mousebutton>right</mousebutton> mouse button on main plot
+    and use <guimenu>Data point size</guimenu> or <guimenu>Color</guimenu>
+    menu from pop-up menu.
+   </para> 
+   <para>
+    Now all data points are active.
+    Because only the biggest peak is our interest, the rest of points can be
+    deactivated. Type: <userinput> d.range 23.0:25.0 </userinput>
+    or select 
+    <menuchoice>
+     <guimenu>Data</guimenu><guimenuitem>Range</guimenuitem> 
+    </menuchoice>
+    from menu, or, and this is
+    the the easiest way, press <keycap>Ctrl</keycap> and select range 
+    to be deactivated with <mousebutton>right</mousebutton> mouse button.
+   </para>
+   <para>
+    We see that our data has no background, we
+    would have to worry about, so now we only have to define peak with 
+    reasonable initial values of peak's parameter and fit it to data. We will
+    use Gaussian. To see it's formula, type: <userinput>s.info ^G</userinput>
+    or look for it in the documentation (in <xref linkend="fflist"/>). 
+   </para>
+   <para>
+    To define peak, type: <userinput>s.add ^G ~60000 ~24.6 ~0.2</userinput>
+    or select 
+    <menuchoice>
+     <guimenu>Sum</guimenu><guimenuitem>Simple Mode</guimenuitem>
+    </menuchoice>. 
+    Toolbar will appear.
+    Select <menuchoice><guilabel>Gaussian</guilabel></menuchoice> 
+    from the list of functions, press 
+    <guiicon>
+     click-add 
+     <!-- <inlinegraphic fileref="../src/img/clickadd.xpm"> -->
+    </guiicon> 
+    toolbar button and click on the top of peak. 
+    There are also other ways to add peak in <acronym>GUI</acronym>,
+    you can read about them in <xref linkend="mouse"/>.
+   </para>
+   <para>
+    Now let us fit the function. Type: <userinput>f.run</userinput> 
+    or select 
+    <menuchoice>
+     <guimenu>Fit</guimenu><guimenuitem>Run</guimenuitem>
+    </menuchoice> 
+    from menu. 
+   </para>
+   <para>
+    To see position of center, type: <userinput> s.info ^0 </userinput>
+    ('^' stands for function and ^0 for first function) or
+    <userinput> s.info @1 </userinput>
+    ('@' stands for simple-parameter, @0 is the height and @1 is the center).
+    This will be explained <link linkend="sum">later</link> in this manual.
+    In <acronym>GUI</acronym> information about peak is displayed 
+    on status bar, when you move mouse over top of peak.
+   </para>
+   <para>
+    That is all. To do the same second time, you can write all the commands 
+    to file, eg. to file <filename>nacl01.fit</filename>, and use this script: 
+    <userinput>o.include 'nacl01.fit'</userinput>
+    or select 
+    <menuchoice>
+     <guimenu>File</guimenu><guimenuitem>Include file</guimenuitem>
+    </menuchoice> 
+    from menu, or run program with the name of script: 
+    <prompt>bash$ </prompt><userinput>fityk nacl01.fit</userinput>
+   </para>
+  </section> 
+
+  <section>
+   <title>Invoking fityk </title>
+   <para>
+    [TODO]
+   </para>
+  </section> 
+
+  <section id="gui">
+   <title>GUI specific issues </title>
+   <section>
+    <title>Menu and plots </title>
+    <para>
+     The window of <application>fityk</application> program consists 
+     of (from the top): menu bar, 
+     optional toolbars, main plot, auxiliary plot, output window, input field
+     and status bar. The input field allows to type and execute commands in
+     similar way as it is done in <acronym>CLI</acronym> version. 
+     The output windows shows results. Click the 
+     <mousebutton>right</mousebutton> mouse button on it to
+     see configuration options for the output window.
+    </para>
+    <para>
+     Most of menu commands correspond to commands described in 
+     <xref linkend="CommandReference"/>. 
+     Some of them are simply translated to text
+     strings and executed - you can see it in output window. I hope that menu
+     commands are self-explaining (especially after reading the rest of
+     this manual) - just try them. 
+    </para>
+    <para>
+     The main plot can display
+     data points, functions, phases and/or the sum of all functions. Use pop-up
+     menu (click <mousebutton>right</mousebutton> button on the plot) 
+     to configure it. 
+     <emphasis>Phase</emphasis> is a sum of related functions. The word
+     comes from the crystallographic module, where a phase of investigated 
+     powder is represented by a set of peaks.
+    </para>
+    <para>
+     The auxiliary plot can display a difference of data
+     and the sum of functions, the difference divided by standard deviation of
+     data or other plot. It can be controlled by its pop-up menu. I hope
+     having a look at this menu and a minute of experiments will explain
+     possibilities of the auxiliary plot.
+    </para>
+    <para>
+     Sometimes it is useful to print effects of our fitting work. Hard copy
+     will contain plots visible on the screen, scaled to fit the page. The only
+     difference is that backgrounds of plots will be white (to not waste
+     toner/ink). So it may be necessary to change color of axis or data to
+     darker one.
+    </para>
+    <para>
+     Configuration of GUI (everything that can be changed using pop-up menus 
+     and size of window) can be saved using pop-up menu of main plot. 
+     Two different configurations can be saved, what allows easy changing of colors
+     for printing. On Unix platform, these configurations are stored in file in user's
+     home directory. On Windows - they are stored in registry.
+    </para>
+   </section>
+
+   <section id="mouse">
+    <title>Mouse, Modes and Toolbars </title>
+    <para>
+     Now it is a time to explain quite complicated mouse usage. The usage of
+     the mouse on menu, dialog windows, input field and output window is
+     intuitive, so the only topic described here will be: how to effectively
+     operate mouse on plots.
+    </para>
+    <para>
+     Let us start with the auxiliary plot - it is simpler. 
+     <mousebutton>Right</mousebutton> button displays
+     mentioned earlier pop-up menu, with <mousebutton>left</mousebutton> 
+     button you can select range to be displayed - range on x axis. 
+     Clicking with <mousebutton>middle</mousebutton> button on auxiliary plot
+     will zoom it out and display all data. If you do not have three button
+     mouse (I do not have), you can use <keycap>Shift</keycap> 
+     and <mousebutton>left</mousebutton> button instead. And if
+     you are lucky enough, your system emulates missing 
+     <mousebutton>middle</mousebutton> button by
+     simultaneous pressing both <mousebutton>left</mousebutton> 
+     and <mousebutton>right</mousebutton> buttons. If any mouse operation 
+     requires pressing <keycap>Ctrl</keycap>, you can also 
+     press <keycap>Alt</keycap> instead.
+    </para>
+    <para>
+     On the main plot, the right mouse button also invokes pop-up menu, and
+     middle button can be simulated by clicking left button, when 
+     <keycap>Shift</keycap> is pressed.
+     Right button pressed with <keycap>Ctrl</keycap> (or <keycap>Alt</keycap>) 
+     shows zoom pop-up menu, and <mousebutton>middle</mousebutton> 
+     button can be used to select a rectangle, that you want to zoom in. If an
+     operation has two steps, like rectangle zooming (first you press button
+     to select first corner, then you move mouse and release button to select 
+     second corner of rectangle),
+     you can cancel it by pressing another button when first one is pressed.
+     Meaning of the rest of mouse clicks depends on the current 
+     <firstterm>mode</firstterm>.
+    </para>
+    <para>
+     Mode can be changed using either main plot pop-up menu or application
+     menu. In <firstterm>normal mode</firstterm> you can activate data points 
+     with <keycap>Ctrl</keycap> and <mousebutton>left</mousebutton> mouse
+     button or deactivate with <keycap>Ctrl</keycap> 
+     and <mousebutton>right</mousebutton> button.
+    </para>
+    <para>
+     <firstterm>Simple mode</firstterm> is especially
+     convenient for adding, removing and changing peaks, when parameters of
+     peaks are not constrained. 
+     (Not constrained parameters are called 
+     <firstterm>simple-parameters</firstterm>. Kinds of parameters 
+     are described in <xref linkend="sum"/>). In this mode you have a
+     toolbar, which enables adding peaks (the left part of the toolbar) and
+     changing or deleting peaks (the right part). 
+     There are a few ways of adding peaks. You can just click to place 
+     the top of peak, when <guiicon>click-add</guiicon> tool is pressed. 
+     You can select a range with <keycap>Ctrl</keycap> 
+     and <mousebutton>left</mousebutton> mouse button - the program will 
+     search and add peak in the selected range. 
+     And you can also draw a peak with 
+     <keycap>Ctrl</keycap> and the <mousebutton>right</mousebutton> button.
+     A peak for changing/deleting operation can be selected by clicking 
+     on its top.
+    </para>
+    <para>
+     <firstterm>Background mode</firstterm> is suitable
+     for specifying background as an interpolation of selected points. After
+     reading <link linkend="background">about <command>d.background</command> 
+      command</link>, 
+     you will not have any problems with using it (I hope).
+    </para>
+   </section> 
+  </section> 
+ </chapter>
+
+ <chapter id="CommandReference">
+  <title>Command reference </title>
+  <section id="GeneralSyntax">
+   <title>General syntax </title>
+   <para>
+    All commands begin with a token 
+    <replaceable>x</replaceable>.<replaceable>xxxxx</replaceable> 
+    (letter-dot-letter). Character before dot denotes what the command 
+    is related to, and the word after dot describes what it does. 
+    Every command can be abbreviated with 
+    <replaceable>x</replaceable>.<replaceable>x</replaceable> 
+    (letter-dot-letter).
+    The letter before dot can be one of:
+   </para>
+   <variablelist>
+    <varlistentry>
+     <term>d </term>
+     <listitem>
+      <para>
+       data related commands
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>s </term>
+     <listitem>
+      <para>
+       sum related commands
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>m </term>
+     <listitem>
+      <para>
+       manipulations, various algorithms and computations related commands
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>f </term>
+     <listitem>
+      <para>
+       fitting related commands
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>o </term>
+     <listitem>
+      <para>
+       other commands - including scripts, logging to file,
+       plotting etc.
+      </para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>c </term>
+     <listitem>
+      <para>
+       commands from crystallography/diffraction module
+      </para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+   <para>
+    For instance, <command>f.run</command> is used to start fitting 
+    and <command>f.info</command> to display some informations related 
+    to fitting.
+   </para>
+   <para>
+    Commands are finished with new line (or by pressing enter 
+    interactively), semicolon (;) or comma (,). Basically, one command is in one
+    line. If, for some reasons, it is more comfortable to place more than one
+    command in one line, they can be separated with semicolon (;). Sequence of
+    commands with the same beginning token can be replaced with one command,
+    which has one common beginning token and tokens of each command separated
+    by commas (,). Eg.
+   </para>
+   <para>
+    <userinput>
+     d.background 10 150.2 
+    </userinput>
+   </para>
+   <para>
+    <userinput>
+     d.b 60.5 185.1 # d.b is a shortcut for d.background
+    </userinput>
+   </para>
+    is equivalent to
+   <para>
+    <userinput>
+     d.background 10 150.2 ; d.background 60.5 185.1 
+    </userinput>
+   </para>
+   <para>
+    and is equivalent to
+   </para>
+   <para>
+    <userinput>
+     d.background 10 150.2 , 60.5 185.1 
+    </userinput>
+   </para>
+   <para>
+    Symbol '#' starts a comment - everything from
+    hash (#) to the end of the line is ignored.
+   </para>
+   <para>
+    There is one command, that has the same syntax in all families of commands.
+    It is <command><replaceable>x</replaceable>.set</command> command, 
+    where <replaceable>x</replaceable> is one of letters described above. 
+    It is used to set or read values of various options. Command
+    <cmdsynopsis>
+     <command><replaceable>x</replaceable>.set</command>
+     <arg><replaceable>option</replaceable></arg>
+    </cmdsynopsis>
+    shows the list of all options and their values 
+    if <replaceable>option</replaceable> is not given, or only value of 
+    <replaceable>option</replaceable>.
+    Command:
+    <cmdsynopsis>
+     <command><replaceable>x</replaceable>.set</command> 
+     <arg choice="plain"><replaceable>option</replaceable></arg> 
+     <arg choice="plain"> = <replaceable>value</replaceable></arg>
+    </cmdsynopsis>
+    is used to set a new value of <replaceable>option</replaceable>. 
+    In <acronym>CLI</acronym> version,
+    <keycap>TAB</keycap> can be used to expand names of options and possible 
+    values.  In <acronym>GUI</acronym> version, 
+    <guimenuitem>Settings</guimenuitem> dialogs can be used.
+   </para>
+  </section>
+
+  <section>
+   <title>Data from experiment </title>
+   <section id="DataLoad">
+    <title>Storing and loading data </title>
+    <para>
+     Data are stored in files.  Unfortunately, there are various formats of
+     files with data. Usually we have text files and one line in file
+     corresponds to one data points. Every line should contain at least two
+     numbers: x and y of point. It can also contain standard deviation of y
+     coordinate.  Numbers can be separated by whitespace, commas, colons or
+     semicolons. Some lines can contain comments or extra informations. If
+     these lines have a hash (#) in first column, they are ignored. In other
+     case, they are usually also ignored. There are also other file types, that
+     can be read: .rit and .mca. In future, the way the special file formats
+     are handled will be changed.
+    </para>
+    <para>
+     Points are loaded from files using command
+    </para>
+    <cmdsynopsis>
+     <command>d.load</command> 
+     <arg><replaceable>xcol</replaceable>:<replaceable>ycol</replaceable>
+      <arg>:<replaceable>scol</replaceable></arg>
+     </arg> 
+     <arg><replaceable>from</replaceable>
+      <arg>-<replaceable>to</replaceable></arg>/<replaceable>of</replaceable>
+     </arg> 
+     <arg><arg>+</arg>*<replaceable>merge</replaceable></arg> 
+     <arg choice="plain">'<replaceable>filename</replaceable>'</arg> 
+    </cmdsynopsis>
+    <para>
+     where 
+     <replaceable>xcol</replaceable>, <replaceable>ycol</replaceable>, 
+     <replaceable>scol</replaceable>, <replaceable>from</replaceable>, 
+     <replaceable>to</replaceable>, <replaceable>of</replaceable>, 
+     <replaceable>merge</replaceable> 
+     are unsigned integers. Note that the name of the file is inside of single
+     quotation marks. If the file is in a normal format (columns with numbers)
+     it can be specified which column contains x, y and, optionally, std. dev.
+     of y. Only selected points can be read from the file, what can be
+     specified using 
+     <replaceable>from</replaceable>-<replaceable>to</replaceable>
+     /<replaceable>of</replaceable> syntax, eg. <userinput>1/2</userinput> 
+     - odd points (first, third, etc.), <userinput>2/2</userinput> 
+     - even points, <userinput>5-10/50</userinput> - from every 50 points 
+     only 5th, 6th, ... 10th are loaded. A few neighboring points can 
+     be merged (loaded as one point).  
+     Resulting point have value of x equal to average of merged
+     points, and value of y is either equal to sum of y's of merged points
+     (<userinput>+*</userinput>), or to average (<userinput>*</userinput>).
+    </para>
+    <para>
+     Data can be saved to file either as points or as simple script, that
+     contains all information about currently loaded data, its background,
+     calibration, settings etc. Command
+     <cmdsynopsis>
+      <command>d.export</command> 
+      <group><arg>d</arg><arg>s</arg><arg>b</arg></group>  
+      <arg choice="plain">'<replaceable>filename</replaceable>'</arg> 
+      <arg>+</arg>
+     </cmdsynopsis>
+     can export data as points, data as script or background as points if
+     letter before <replaceable>filename</replaceable> is, 
+     respectively, <userinput>d</userinput>, <userinput>s</userinput> 
+     or <userinput>b</userinput>.  Only active points are being 
+     exported (see next chapter to learn about active and inactive points).
+     <userinput>+</userinput> will cause, if specified file exist, 
+     appending to the file rather than overwritting.
+    </para>
+    <para>
+     Some information about current data can be obtained using command:
+    </para>
+    <cmdsynopsis>
+     <command>d.info</command>
+    </cmdsynopsis>
+   </section> 
+
+   <section>
+    <title>Active and inactive points </title>
+    <para>
+     We often have situation, that only part of data from file is interesting
+     for us.  We should be able to exclude selected points from fitting and all
+     computations. It can be done with command <command>d.range</command> 
+     or with <link linkend="mouse">mouse-click in <acronym>GUI</acronym></link>.
+     The idea of active and inactive points is simple: 
+     only the active ones are subject to all computations, 
+     inactive ones are neglected. Command <command>d.range</command> 
+     has following syntax:
+     <cmdsynopsis>
+      <command>d.range</command> 
+      <group><arg>+</arg><arg>-</arg></group> 
+      <arg><replaceable>xmin</replaceable></arg>
+      <arg choice="plain">:</arg>
+      <arg><replaceable>xmax</replaceable></arg> 
+     </cmdsynopsis>
+     If sign is not specified, only points with x coordinate between 
+     <replaceable>xmin</replaceable> and <replaceable>xmax</replaceable> 
+     are marked as active. If <replaceable>xmin</replaceable> 
+     or <replaceable>xmax</replaceable> is omitted, it is equivalent to
+     -inf or +inf respectively.  When command contains 
+     <userinput>+</userinput> or <userinput>-</userinput>, given range
+     is added to set of currently active points or subtracted from it.
+    </para>
+    <para>
+     In case we care only about segments of points in which there are peaks, 
+     we can use command
+     <cmdsynopsis>
+      <command>d.range</command> 
+      <arg choice="plain">*</arg> 
+      <arg choice="plain"><replaceable>level</replaceable></arg> 
+      <arg choice="plain"><replaceable>margin</replaceable></arg> 
+     </cmdsynopsis>
+     It will mark as active only these points, which have y coordinate 
+     greater than <replaceable>level</replaceable>, 
+     and points around the first ones - points which distance from point
+     above <replaceable>level</replaceable> is less than 
+     <replaceable>margin</replaceable>.
+    </para>
+   </section> 
+   <section id="background">  
+    <title>Background and calibration </title>
+    <para>
+     Data background can be defined as the extrapolation of points chosen by
+     user. These chosen points are called 
+     <firstterm>background points</firstterm>, to differ from
+     data points. Apart from this, background can be defined as a function, eg.
+     polynomial, and parameters of this function can be fitted. You can read
+     about the second way in <xref linkend="sum"/>.
+    </para>
+    <para>Command
+     <cmdsynopsis>
+      <command>d.background</command> 
+      <arg choice="plain"><replaceable>X</replaceable></arg> 
+      <arg choice="plain"><replaceable>Y</replaceable></arg> 
+     </cmdsynopsis>
+     adds (X,Y) point to background points. If there is only one background
+     point, background is equal Y for all data points. If there are two
+     background points, background is a straight line, that contains both of
+     them. If the number of background points is larger, background is either
+     cubic spline - if option 
+     <parameter class="option">spline-background</parameter> is set, 
+     or polyline otherwise.  If distance along x axis from new point 
+     to other existing point is smaller than value of option 
+     <parameter class="option">min-background-points-distance</parameter>, 
+     this other point is deleted. You can remove background point with command
+     <cmdsynopsis>
+      <command>d.background</command> <arg choice="plain">!</arg> 
+      <arg><replaceable>X</replaceable></arg> 
+     </cmdsynopsis>
+     If <replaceable>X</replaceable> is specified, it will delete 
+     all background points with x in range 
+     (<replaceable>X</replaceable> - dx, <replaceable>X</replaceable> + dx),
+     where dx is a value of option 
+     <parameter class="option">min-background-points-distance</parameter>. 
+     Without <replaceable>X</replaceable>, it will delete all background 
+     points. 
+    </para>
+    <para>
+     Command
+     <cmdsynopsis>
+      <command>d.background</command> <arg>.</arg>  
+     </cmdsynopsis>
+     will display information about background (if dot is omitted) 
+     and recompute background.  Explicit background recomputing is required 
+     only after changing value of
+     option <parameter class="option">spline-background</parameter>, 
+     after other background-related commands it is done automatically.
+     If dot follows command, the only effect is the recomputation.
+    </para>
+    <para>
+     Sometimes the instrument introduces errors to the x coordinate 
+     of the data points, which can be determined by using a reference sample.
+     Correcting these errors is called here <firstterm>calibration</firstterm>.
+     (See also <link linkend="sum">description of zero-shift</link>.) 
+     Calibration commands are analogical to background commands
+     described above. We also have a set of points, called here calibration
+     points. If there is only one calibration point (X, D), process of
+     calibration changes x coordinate of all data points x -> x-D. If
+     there are two calibration points, calibration curve d(x) is a straight
+     line that contains both of calibration points. If the number of
+     calibration points is greater, calibration curve is either cubic spline -
+     if option <parameter class="option">spline-calibration</parameter> is set,
+     or polyline otherwise. Every point is transformed using calibration curve
+     d(x) in the following way: (x, y) -> (x-d(x), y).
+    </para>
+    <para>
+     The following commands are analogical to <command>d.background</command> 
+     commands:
+     <cmdsynopsis>
+      <command>d.calibrate</command> 
+      <arg choice="plain"><replaceable>X</replaceable></arg> 
+      <arg choice="plain"><replaceable>D</replaceable></arg> 
+     </cmdsynopsis>
+     <cmdsynopsis>
+      <command>d.calibrate</command> <arg choice="plain">!</arg> 
+      <arg><replaceable>X</replaceable></arg> 
+     </cmdsynopsis>
+     <cmdsynopsis>
+      <command>d.calibrate</command> <arg>.</arg>  
+     </cmdsynopsis>
+     To delete calibration point with second listed command, 
+     exact value of <replaceable>D</replaceable> must be given, 
+     there is no equivalent to
+     <parameter class="option">min-background-points-distance</parameter>.
+    </para>
+   </section>
+
+   <section>
+    <title>Standard deviation or weight </title>
+    <para>
+     When fitting data, we assume that only y coordinate of data is subject to
+     statistical error in measurement. Is is quit
+     common assumption. To see how y standard deviation
+     <inlinemediaobject>
+      <imageobject><imagedata fileref="fitykhelp_img/sigma.png"/></imageobject>
+      <textobject><phrase>sigma</phrase></textobject>
+     </inlinemediaobject>  
+     influences minimized function, look at
+     weighted sum of squared residuals formula in <xref linkend="nonlinear"/>. 
+     We can also think about weights of points -
+     every point has a weight assigned, that is equal 
+     <inlineequation>
+      <inlinemediaobject>
+       <imageobject>
+        <imagedata fileref="fitykhelp_img/w_1_sigma.png"/>
+       </imageobject>
+       <textobject>
+        <phrase>w<subscript>i</subscript>=1/sigma^2</phrase>
+       </textobject>
+      </inlinemediaobject>  
+     </inlineequation>
+    </para>
+    <para>
+     Standard deviation of points can be 
+     <link linkend="DataLoad">read from file</link> together with x and y
+     coordinates, or set with command:
+    </para>
+    <cmdsynopsis>
+     <command>d.deviation</command> 
+     <group choice="req"><arg>u</arg><arg>r</arg></group> 
+     <arg><replaceable>min</replaceable></arg> 
+    </cmdsynopsis>
+    <para>
+     This commands is setting y standard deviation according to specified
+     letter:
+     <itemizedlist spacing="compact">
+      <listitem>
+       <para>
+        <userinput>u</userinput>
+        - equal <replaceable>min</replaceable> for all points 
+        (default: <replaceable>min</replaceable>=1),
+       </para>
+      </listitem>
+      <listitem>
+       <para>
+        <userinput>r</userinput>
+        - max (sqrt(y), <replaceable>min</replaceable>), setting std. dev. as
+        a square root of value is common when y is the number of
+        counted independent events (default: <replaceable>min</replaceable>=1).
+       </para>
+      </listitem>
+     </itemizedlist>
+    </para>
+    <para>
+     If option 
+     <parameter class="option">background-influences-std-dev</parameter> is set,
+     y standard deviation is computed after subtracting background - it does
+     matter only in second case.
+    </para>
+    <para>
+     Command
+     <cmdsynopsis>
+      <command>d.deviation</command> 
+     </cmdsynopsis>
+     displays information about y standard deviations of points.
+    </para>
+   </section> 
+  </section> 
+
+  <section id="sum">
+   <title>Sum of fitting functions </title>
+   <section>
+    <title>Sum - Introduction</title>
+    <para>
+     The sum of functions S - curve that is fitted to data - is itself a
+     function. Value of the whole sum is computed as sum of functions,
+     like Gaussian or polynomial, and can be given by formula:
+     <inlineequation>
+      <inlinemediaobject>
+       <imageobject>
+        <imagedata fileref="fitykhelp_img/sum_f.png"/>
+       </imageobject>
+       <textobject>
+        <phrase>
+         S = \sum<subscript>i</subscript> f<subscript>i</subscript>
+        </phrase>
+       </textobject>
+      </inlinemediaobject>  
+     </inlineequation>, 
+     where f<subscript>i</subscript> is a function of x, and
+     depends on a vector of parameters a. This vector contains all
+     fitted parameters. 
+     Because we often have situation, that error in x coordinate of data
+     points can be modeled with function z(x; a),
+     we introduce this term to sum:
+     <informalequation>
+      <mediaobject>
+       <imageobject>
+        <imagedata fileref="fitykhelp_img/sum_f_x_z.png"/>
+       </imageobject>
+       <textobject>
+        <phrase>
+         S(x;a) = \sum<subscript>i</subscript> f<subscript>i</subscript>
+                                                                (x+z(x;a);a)
+        </phrase>
+       </textobject>
+      </mediaobject>  
+     </informalequation>
+     where
+     <inlineequation>
+      <inlinemediaobject>
+       <imageobject>
+        <imagedata fileref="fitykhelp_img/z_x_a.png"/>
+       </imageobject>
+       <textobject>
+        <phrase>
+         z(x;a) = \sum<subscript>j</subscript> z<subscript>j</subscript>(x;a)
+        </phrase>
+       </textobject>
+      </inlinemediaobject>  
+     </inlineequation>
+     . Note that the same z(x) is used in all functions.
+    </para>
+    <para>
+     Now we will have a closer look at f<subscript>i</subscript> functions. 
+     Every function f<subscript>i</subscript> has a type chosen from 
+     function types available in program. One of these types is 
+     <emphasis>Gaussian</emphasis>. It has a following formula:
+     <informalequation>
+      <mediaobject>
+       <imageobject>
+        <imagedata fileref="fitykhelp_img/gauss_example.png"/>
+       </imageobject>
+       <textobject>
+        <phrase>
+         a<subscript>0</subscript> 
+         exp[-ln(2) ((x-a<subscript>1</subscript>)/a<subscript>2</subscript>)^2]
+        </phrase>
+       </textobject>
+      </mediaobject>  
+     </informalequation>
+     a<subscript>0</subscript> is a height of peak, 
+     a<subscript>1</subscript> - position of center and 
+     a<subscript>2</subscript> - half width
+     at half maximum. Every of these parameters can be:
+     <itemizedlist>
+      <listitem>
+       <para>
+	a <firstterm>constant parameter</firstterm> - a constant real number.
+       </para>
+      </listitem>
+      <listitem>
+       <para>
+	a <firstterm>simple parameter</firstterm> - a real number, 
+	that can be changed. 
+       </para>
+      </listitem>
+      <listitem>
+       <para>
+        a function of parameters, eg. sum of two simple parameters 
+        or product of contant and simple parameter.
+	Let us call it <firstterm>g-parameter</firstterm>. 
+        (There is no reason for this name.  FIXME: how can I name it?). 
+        A g-parameter is of course different 
+	from functions f<subscript>i</subscript>. 
+        The basic difference is that g-parameter is not a function of x. 
+       </para>
+      </listitem>
+     </itemizedlist>
+     Functions 
+     <!--
+     <inlineequation>
+      <inlinemediaobject>
+       <textobject>
+        <phrase>f<subscript>i</subscript></phrase>
+       </textobject>
+      </inlinemediaobject>  
+     </inlineequation>
+     -->
+     f<subscript>i</subscript>
+     are called <firstterm>f-functions</firstterm>. See the list of available
+     f-function types in <xref linkend="fflist"/>.
+    </para>
+    <para>
+     Functions z<subscript>i</subscript>(x;a) are called 
+     <firstterm>zero-shifts</firstterm>. 
+     This name is not precise (FIXME: what is a better name). 
+     The simplest of them has a formula: z = a<subscript>0</subscript> 
+     and can be used for modeling error of shifting zero in instrument. In
+     general case, so-called zero-shifts are parametrized functions of x, 
+     like f-functions. 
+    </para>
+    <para>
+     Every f-function, zero-shift and g-parameter has its type 
+     and its parameters - the number of its parameters is determined
+     by the type. Two examples: 
+     <orderedlist>
+      <listitem>
+       Gaussian is a type of f-function, and
+       f-function of this type has 3 parameters: a<subscript>0</subscript>,
+       a<subscript>1</subscript> and a<subscript>2</subscript> (see formula
+       above). 
+      </listitem>
+      <listitem>
+       One of g-parameter types is <firstterm>division</firstterm>:
+       a<subscript>0</subscript>/a<subscript>1</subscript>. G-parameter
+       of this type has two parameters.
+      </listitem>
+     </orderedlist>
+    </para>
+    <para>
+     F-functions, zero-shifts, g-parameters and simple-parameters are
+     <firstterm>elements</firstterm> of a sum. Every sort of element
+     has a symbol: f-function (^), zero-shift (&lt;), g-parameter ($)
+     and simple-parameter (@). Every f-function contained in the sum
+     has a number assigned, that allows referring to this f-function.
+     If there is only one f-function defined, it has number 0.
+     If there are two f-functions, the first has number 0 and the second 1.
+     As you will see further in this chapter, commands refer to f-functions
+     using symbol (^) and number, eg. ^0 or ^15. The same about other
+     sorts of elements: first zero-shift is referred to as &lt;0,
+     fifth simple-parameter - as @4, etc. 
+    </para>
+    <para>
+     Three kinds of parameters were described above. They are used in
+     f-functions, zero-shifts and g-parameters, 
+     and are denoted in adeqate formulae 
+     as a<subscript><replaceable>i</replaceable></subscript>. 
+     Note, that actually only simple-parameters are fitted. Term
+     <glossterm>parameter</glossterm> used in context of fitting 
+     and term <glossterm>vector of parameters</glossterm> are related
+     only to parameters called here <glossterm>simple-parameters</glossterm>.
+    </para>
+   </section> 
+
+   <section>
+    <title>Adding and removing functions </title>
+    <para id="domain">
+     Every simple parameter has a value and, optionally, domain.  Command
+     <cmdsynopsis>
+      <command>s.add</command> 
+      <arg>~<replaceable>p</replaceable></arg>
+      <arg><replaceable>domain</replaceable></arg> 
+     </cmdsynopsis>
+     creates simple-parameter equal <replaceable>p</replaceable>.
+     Once created, the parameter will be given a number (first available),
+     say <replaceable>m</replaceable>, and later can be referred to as 
+     @<replaceable>m</replaceable>. Domain is used only by fitting
+     algorithms, when they need to randomly initialize variable, or
+     change it. In some cases only width of domain is needed. Domain
+     must be enclosed by square brackets. It can be specified in three ways: 
+     <itemizedlist>
+      <listitem>
+       <para>
+        <userinput>
+         [<replaceable>a</replaceable>:<replaceable>b</replaceable>] 
+        </userinput>
+        -- from <replaceable>a</replaceable> to <replaceable>b</replaceable>,
+       </para>
+      </listitem>
+      <listitem>
+       <para>
+        <userinput>
+         [<replaceable>a</replaceable> +- <replaceable>b</replaceable>] 
+        </userinput>
+        -- from <replaceable>a</replaceable>-<replaceable>b</replaceable> 
+        to <replaceable>a</replaceable>+<replaceable>b</replaceable>, 
+       </para>
+      </listitem>
+      <listitem>
+       <para>
+        and <userinput>[ +- <replaceable>b</replaceable>]</userinput> 
+        -- from <replaceable>v</replaceable>-<replaceable>b</replaceable> 
+        to <replaceable>v</replaceable>+<replaceable>b</replaceable>, 
+        where <replaceable>v</replaceable> is the value 
+        of simple parameter. 
+       </para>
+      </listitem>
+     </itemizedlist>
+     If domain of parameter is not defined, it is assumed to be 
+     [<replaceable>v</replaceable> 
+     - <replaceable>r</replaceable> <replaceable>v</replaceable>, 
+     <replaceable>v</replaceable> 
+     + <replaceable>r</replaceable> <replaceable>v</replaceable>], 
+     where <replaceable>v</replaceable> is the value of simple parameter 
+     and <replaceable>r</replaceable> is the value of option
+     <parameter class="option">default-relative-domain-width</parameter>.
+    </para>
+    <para>
+     F-functions, zero-shifts and g-parameters can be created using command:
+     <cmdsynopsis>
+      <command>s.add </command> 
+      <arg choice="plain">
+       <group choice="req"><arg>^</arg><arg>&lt;</arg><arg>$</arg></group>
+       <replaceable>t</replaceable>
+      </arg>
+      <arg choice="plain"><replaceable>param1</replaceable></arg>
+      <arg><replaceable>param2</replaceable>
+       <arg rep="repeat"><replaceable>param3</replaceable></arg>
+      </arg> 
+     </cmdsynopsis>
+     where <replaceable>t</replaceable> is a letter denoting type of
+     f-function, zero-shift or g-parameter (respectively 
+     <userinput>^<replaceable>t</replaceable></userinput>, 
+     <userinput>&lt;<replaceable>t</replaceable></userinput>
+     or <userinput>$<replaceable>t</replaceable></userinput>). 
+     It is followed by parameters in number required
+     for given type of object. Parameters can be given as:
+    </para>
+    <itemizedlist>
+     <listitem>
+      <para>
+       <userinput>@<replaceable>n</replaceable></userinput> 
+       - existing simple parameter, eg. <userinput>@15</userinput>,
+      </para>
+     </listitem>
+     <listitem>
+      <para>
+       <userinput>$<replaceable>n</replaceable></userinput> 
+       - existing g-parameter, eg.  <userinput>$15</userinput>,
+      </para>
+     </listitem>
+     <listitem>
+      <para>
+       <userinput>_<replaceable>p</replaceable></userinput> 
+       - constant value, eg.  <userinput>_3.14159</userinput>,
+      </para>
+     </listitem>
+     <listitem>
+      <para>
+       <userinput>~<replaceable>p</replaceable></userinput> 
+       - simple parameter created on-the-fly, eg. <userinput>~3.2</userinput>
+      </para>
+     </listitem>
+    </itemizedlist>
+    <para>
+     In particular, a g-parameter can be defined as a function of another
+     g-parameters. As a result of it, every parameter of f-function
+     (eg. of Lorentzian function) can be an arbitrary combination of
+     simple parameters. You can learn about available types using
+     command <command>s.info</command> described below.
+    </para>
+    <para>
+     Every f-function, zero-shift, g-parameter or simple-parameter, 
+     that was created (added), can also be removed. The only condition is, 
+     that there are no references to it. It is obvious - you can not remove a
+     simple parameter, that represents a height of a peak, before
+     removing the peak. The syntax of command is
+     straightforward:
+     <cmdsynopsis>
+      <command>s.remove</command> 
+      <arg choice="plain">
+       <group choice="req"> 
+        <arg>^</arg><arg>&lt;</arg><arg>$</arg><arg>@</arg>
+       </group>
+       <replaceable>n</replaceable>
+      </arg> 
+     </cmdsynopsis>
+     <replaceable>n</replaceable> is the number of f-function, 
+     zero-shift, g-parameter or simple-parameter. 
+     It can be replaced with an asterisk(*). 
+     Command <userinput>s.remove ^3</userinput> will remove 
+     ^3, and <userinput>s.remove ^*</userinput> 
+     will remove all f-functions. 
+     To avoid gaps in numeration, all larger numbers are
+     <emphasis>decreased</emphasis> by one. If f-function 
+     ^3 is removed, ^9 will become ^8 and ^4 will become ^3. All
+     references are properly updated. If option 
+     <parameter class="option">recursive-remove</parameter> is set, 
+     also parameters, in our example parameters of ^3, will be removed.
+    </para>
+    <para>
+     Information about every element of the sum can be obtained using command:
+     <cmdsynopsis>
+      <command>s.info</command> 
+      <arg choice="plain">
+       <group choice="req"> 
+        <arg>^</arg><arg>&lt;</arg><arg>$</arg><arg>@</arg>
+       </group>
+       <replaceable>n</replaceable>
+      </arg> 
+     </cmdsynopsis>
+     And informations about available types of f-functions, zero-shifts and
+     g-parameters can be displayed with:
+     <cmdsynopsis>
+      <command>s.info</command> 
+      <arg choice="plain">
+       <group choice="req"> 
+        <arg>^</arg><arg>&lt;</arg><arg>$</arg>
+       </group>
+       <arg><replaceable>t</replaceable></arg>
+      </arg> 
+     </cmdsynopsis>
+     <replaceable>t</replaceable> is a letter that stands
+     for type, eg. ^G means f-function Gaussian. If type is not
+     specified, list of all available types will be
+     displayed.
+    </para>
+    <para>
+     The whole sum or selected f-functions can be saved to file in various 
+     formats with command:
+     <cmdsynopsis>
+      <command>s.export</command> 
+      <arg>
+       ^<replaceable>n1</replaceable> 
+       <arg rep="repeat">+ ^<replaceable>n2</replaceable> </arg>
+      </arg> 
+      <arg><replaceable>t</replaceable></arg> 
+      <arg choice="plain">'<replaceable>filename</replaceable>'</arg> 
+     </cmdsynopsis>
+     where <replaceable>t</replaceable> is a letter that stands for 
+     format of file: 
+     <userinput>f</userinput> - mathematical formula, 
+     <userinput>d</userinput> - xy points, 
+     <userinput>p</userinput> - peak listing, 
+     <userinput>x</userinput> - XFIT peak listing (used by some 
+     crystallographic software), 
+     <userinput>s</userinput> - <application>fityk</application> script.
+     <userinput>+</userinput> will cause, if specified file exist, 
+     appending to the file rather than overwritting.
+    </para>
+   </section>
+
+   <section>
+    <title>Changing and freezing </title>
+    <para>
+     Value and domain of simple parameters can be changed with command:
+     <cmdsynopsis>
+      <command>s.change</command> 
+      <arg choice="plain">@<replaceable>n</replaceable></arg> 
+      <arg choice="plain"><replaceable>p</replaceable> <arg>%</arg></arg> 
+      <arg><replaceable>domain</replaceable></arg>
+     </cmdsynopsis>
+     <replaceable>p</replaceable> is a new value 
+     of @<replaceable>n</replaceable>, or, if % is given, 
+     new value is equal to <replaceable>p</replaceable>% of current value. 
+     <replaceable>domain</replaceable> is specified in the same way 
+     <link linkend="domain">as in command <command>s.add</command></link>. 
+     If <replaceable>domain</replaceable> is not given, it is not changed.
+    </para>
+    <para>
+     Vector of simple parameters is a subject
+     to change in a fitting process. Sometimes it is useful to
+     refine only selected parameters. The parameters that are not to
+     be refined are called <firstterm>frozen</firstterm>. You can
+     freeze and thaw parameters with command:
+     <cmdsynopsis>
+      <command>s.freeze</command> 
+      <arg>!</arg> <arg choice="plain">@<replaceable>n</replaceable></arg> 
+     </cmdsynopsis>
+     This command will freeze @<replaceable>n</replaceable> if
+     exclamation mark (!) is not present and thaw if it is present.
+     To freeze or thaw all parameters, use asterisk(*) instead of 
+     <replaceable>n</replaceable>.
+     Example: <userinput>s.freeze @*, ! @0, ! @3</userinput> 
+     causes, that only @0 and @3 would be fitted. 
+     To display information about currently frozen parameters, just type:
+     <cmdsynopsis>
+      <command>s.freeze</command> 
+     </cmdsynopsis>
+    </para>
+    <para>
+     Every change of values of parameters is remembered. It is remembered
+     since last adding or removing simple parameter operation. You
+     can display history of changes with command:
+     <cmdsynopsis>
+      <command>s.history</command> 
+     </cmdsynopsis>
+     and move to selected position in history with command:
+    </para>
+    <cmdsynopsis>
+     <command>s.history</command> 
+     <group><arg>+</arg><arg>-</arg></group> 
+     <arg choice="plain"><replaceable>n</replaceable></arg> 
+    </cmdsynopsis>
+    <para>
+     Without sign - you will move
+     to n-th position, with plus(+) or minus(-) - you will go 
+     <replaceable>n</replaceable> steps
+     forward or backward. The history is similar to a history in web
+     browser - if you move backward and then add a new entry, eg. by
+     fitting, last entries of history will be erased. In some cases
+     it can be reasonable to fit curve with one method, move back to
+     initial parameters, fit with another method and compare
+     results. To make this comparison easier, you can
+     <firstterm>save</firstterm> result obtained with first method
+     using command:
+     <cmdsynopsis>
+      <command>s.history</command> 
+      <arg choice="plain">*<arg><replaceable>n</replaceable></arg></arg> 
+     </cmdsynopsis>
+     The command toggles saved and not saved state of 
+     <firstterm>history item</firstterm>, 
+     what means that using it second time on the same item 
+     will allow to delete it. If <replaceable>n</replaceable> is not
+     specified, current history item is used.
+    </para>
+   </section>
+
+   <section>
+    <title>Computing value </title>
+    <para>
+     Now it is time to explain how value
+     of the sum and its derivatives are computed. You may skip it and
+     read next chapter, if you are not interested. 
+    </para>
+    <para>
+     All fitting methods involve computing value of the sum S(x) for x =
+     x<subscript>1</subscript> x<subscript>2</subscript> ..., 
+     x<subscript>N</subscript> and such series of computations are
+     repeated multiple times, for different parameter vectors. 
+     x<subscript>1</subscript> x<subscript>2</subscript> ..., 
+     x<subscript>N</subscript> are x coordinates of active data points. In
+     typical cases N >> 1, therefore, when thinking about time
+     consumed by computations, only operations executed for every point matter. 
+    </para>
+    <para>
+     At the beginning of every series of
+     S(x) computations values of g-parameters and some expressions
+     in f-functions, that do not depend on x, are computed. Then
+     S(x) value of every f-function and zero-shift is computed in
+     every point. To speedup computations, tails of peaks, that are
+     very small, can be neglected. This can be controlled with two
+     options: <parameter class="option">cut-tails</parameter> 
+     and <parameter class="option">cut-tails-level</parameter>. 
+     If option <parameter class="option">cut-tails</parameter> is
+     set, at the beginning of each series of computations, for every
+     peak, points, where the peak has value approximately equal to value
+     of <parameter class="option">cut-tails-level</parameter> option, 
+     are computed. Outside of these points, value of the peak function 
+     is assumed to be zero.
+    </para>
+    <para>
+     Most commonly used nonlinear fitting methods
+     (in our program Levenberg-Marquard) are using first derivatives
+     of functions. The program knows derivative formulae for all
+     types of f-functions, zero-shifts and g-functions, but it can
+     also use numerical differentiation. If is useful only for
+     testing the program. Numerical differentiation is used when
+     option <parameter class="option">numerical-d</parameter> is set. 
+     If option <parameter class="option">numerical-d-both-sides</parameter> 
+     is set, it uses formula 
+     df(x)/dx=(f(x+h)-f(x-h))/2h, 
+     otherwise
+     df(x)/dx=(f(x+h)-f(x))/h. 
+     h is computed as value of option
+     <parameter class="option">numerical-d-rel-change</parameter> 
+     multiplied by x. 
+    </para>
+    <para>
+     A value either of the whole sum or of a an element of the sum, 
+     and all appropriate derivatives can be viewed using command:
+     <cmdsynopsis>
+      <command>s.value</command> 
+      <arg>
+       <group choice="req"> 
+        <arg>^</arg><arg>&lt;</arg><arg>$</arg><arg>@</arg>
+       </group> 
+       <replaceable>n</replaceable> 
+      </arg>
+      <arg choice="plain"><replaceable>x</replaceable></arg> 
+      <arg>*</arg>
+     </cmdsynopsis>
+     eg. <userinput>s.value ^0 41.5</userinput>. With asterisk(*), derivatives, 
+     computed symbolically and numerically are shown and compared,
+     what is useful for program developers. 
+    </para>
+   </section> 
+  </section>
+
+  <section>
+   <title>Fitting </title>
+   <section id="nonlinear">
+    <title>Nonlinear optimization </title>
+    <para>
+     This is the core. We have a set of observations (data points), 
+     and we want to fit a <firstterm>model</firstterm> (sum of functions), 
+     that depends on adjustable parameters, to observations. 
+     Let me quote <citetitle pubwork="book">Numerical Recipes</citetitle>, 
+     chapter 15.0, page 656 (if you do not know the book, visit 
+     <ulink url="http://www.nr.com">http://www.nr.com </ulink>):
+    </para>
+    <blockquote>
+     <para>
+      The basic approach in all cases is usually the same: You choose or design
+      a figure-of-merit function (merit function, for short) that measures the
+      agreement between the data and the model with a particular choice of
+      parameters. The merit function is conventionally arranged so that small
+      values represent close agreement. The parameters of the model are then
+      adjusted to achieve a minimum in the merit function, yielding best-fit
+      parameters.  The adjustment process is thus a problem in minimization in
+      many dimensions.  [...] however, there exist special, more
+      efficient, methods that are specific to modeling, and we will discuss
+      these in this chapter. There are important issues that go beyond the mere
+      finding of best-fit parameters. Data are generally not exact. They are
+      subject to measurement errors (called noise in the context of
+      signal-processing). Thus, typical data never exactly fit the model that
+      is being used, even when that model is correct. We need the means to
+      assess whether or not the model is appropriate, that is, we need to test
+      the goodness-of-fit against some useful statistical standard. We usually
+      also need to know the accuracy with which parameters are determined by
+      the data set.  In other words, we need to know the likely errors of the
+      best-fit parameters. Finally, it is not uncommon in fitting data to
+      discover that the merit function is not unimodal, with a single minimum.
+      In some cases, we may be interested in global rather than local
+      questions. Not, "how good is this fit?" but rather, "how
+      sure am I that there is not a very much better fit in some corner of
+      parameter space?"
+     </para>
+    </blockquote>
+    <para>
+     Our function of merit is <acronym>WSSR</acronym> - weighted sum of
+     squared residuals, called also chi-square:
+     <informalequation>
+      <mediaobject>
+       <imageobject>
+        <imagedata fileref="fitykhelp_img/chi2.png"/>
+       </imageobject>
+       <textobject>
+        <phrase>
+         chi<superscript>2</superscript> 
+         = sum<subscript>i=1</subscript><superscript>N</superscript>
+         [(y<subscript>i</subscript> - y(x<subscript>i</subscript>;a))
+         /sigma<subscript>i</subscript>]<superscript>2</superscript>
+         = sum<subscript>i=1</subscript><superscript>N</superscript>
+         w<superscript>i</superscript>
+         [y<subscript>i</subscript> - y(x<subscript>i</subscript>;a)]
+         <superscript>2</superscript>
+        </phrase>
+       </textobject>
+      </mediaobject>  
+     </informalequation>
+     Weights can be are based on standard deviations, 
+     <inlineequation>
+      <inlinemediaobject>
+       <imageobject>
+        <imagedata fileref="fitykhelp_img/w_1_sigma.png"/>
+       </imageobject>
+       <textobject>
+        <phrase>w<subscript>i</subscript>=1/sigma^2</phrase>
+       </textobject>
+      </inlinemediaobject>  
+     </inlineequation>.
+     You can learn why squares of residuals are
+     minimized eg. from chapter 15.1 of 
+     <citetitle pubwork="book">Numerical Recipes</citetitle>. So we
+     are looking for a global minimum of chi<superscript>2</superscript>. 
+     This large field of numerical research - looking for minimum or maximum -
+     is usually called optimization; it is non-linear and global optimization. 
+     <application>Fityk</application> implements
+     three very different optimization methods. All are well-known and
+     described in many book. 
+    </para>
+   </section>
+
+   <section>
+    <title>Fitting related commands </title>
+    <para>
+     You can switch between fitting methods using command:
+     <cmdsynopsis>
+      <command>f.method</command> 
+      <arg><replaceable>f</replaceable></arg> 
+     </cmdsynopsis>
+     where <replaceable>f</replaceable> is one of following 
+     lower case letters:
+     <userinput>g</userinput> - Genetic Algorithm, 
+     <userinput>m</userinput> - Levenberg-Marquardt gradient method,
+     <userinput>s</userinput> - simplex method. 
+     If <replaceable>f</replaceable> is not specified, current fitting 
+     method is displayed.
+     <note>
+      <para>
+       <command>f.method</command> affects the rest 
+       of <command>f.<replaceable>xxx</replaceable></command> commands.
+      </para>
+     </note>
+    </para>
+    <para>
+     To run fit, use commands
+     <cmdsynopsis>
+      <command>f.run</command> <arg><replaceable>n</replaceable></arg> 
+     </cmdsynopsis>
+     and
+     <cmdsynopsis>
+      <command>f.continue</command> <arg><replaceable>n</replaceable></arg> 
+     </cmdsynopsis>
+     The first initializes and runs fitting algorithm, and the second starts
+     fitting without the initialization. <replaceable>n</replaceable> 
+     is the maximum number of iterations. All
+     non-linear fitting methods are iterative, and there are two common
+     stopping criteria. The first is the number of iterations. 
+     If it is not specified with command, value of option 
+     <parameter class="option">default-max-iterations</parameter> is used.  
+     And the second is the number of evaluations of objective function 
+     (<acronym>WSSR</acronym>), specified by value of option 
+     <parameter class="option">max-wssr-evaluations</parameter>. 
+     It is approximately proportional to time of computations, because most of
+     time in fitting process is taken by evaluating <acronym>WSSR</acronym>. 
+     There are also other criteria, different for each method. 
+     Note that values of all options, even those common for
+     all methods, are set separately for every method. 
+    </para>
+    <para>
+     If you give too small <replaceable>n</replaceable> 
+     to <command>f.run</command> command, and fit is stopped because of
+     it, not because of convergence, it makes sense to use 
+     <command>f.continue</command> command to process further iterations. 
+     [TODO: how to stop fit interactively] 
+    </para>
+    <para>
+     When fit is running, each iteration outputs some informations. If they are
+     scrolling too fast, you can reduce it <replaceable>n</replaceable> times 
+     by assigning <replaceable>n</replaceable> 
+     to <parameter class="option">output-one-of</parameter> option. 
+    </para>
+    <para>
+     Setting <userinput>o.set autoplot = on-fit-iteration</userinput>
+     will draw a plot after every iteration, to visualize progress. 
+     (see <link linkend="autoplot">
+      <parameter class="option">autoplot</parameter></link>)
+    </para>
+    <para>
+     Command
+     <footnote><para>
+       Syntax of this command will be changed, other
+       error estimates or measures of goodness-of-fit will be added.
+     </para></footnote>
+     :
+     <cmdsynopsis>
+      <command>f.info</command> <group><arg>*</arg><arg>**</arg></group> 
+     </cmdsynopsis>
+     can be used to display <acronym>WSSR</acronym>, 
+     symmetric errors and variance-covariance matrix.
+    </para>
+    <para>
+     Available methods can be mixed together, eg. it is
+     sensible to obtain initial parameter estimates using simplex method,
+     and than fit it using Levenberg-Marquard method. 
+     Command <command>s.history</command> can
+     be useful for trying various methods with different options and/or
+     initial parameters and choosing the best solution.
+    </para>
+    <para>
+     Some fitting methods are using random number generator. In some situations
+     one may want to have repeatable and predictable results of fitting, eg.
+     to make a presentation. Seed for a new sequence of pseudo-random
+     numbers is set at the beginning of fitting initialization 
+     (when <command>f.run</command> is called). If value of 
+     <parameter class="option">pseudo-random-seed</parameter> 
+     option is set to -1, the seed is based on system time and sequence of
+     pseudo-random numbers is every time different. In other case, if
+     <parameter class="option">pseudo-random-seed</parameter> option has
+     a non-negative value, this value is used as a seed. Remember, that like
+     all other options, value of 
+     <parameter class="option">pseudo-random-seed</parameter> is independent 
+     for each fitting method.
+    </para>
+   </section>
+
+   <section>
+    <title>Levenberg-Marquardt </title>
+    <para>
+     It is a standard of nonlinear least-squares routines. It involves
+     computing first derivatives of functions. For description of L-M method
+     see <citetitle pubwork="book">Numerical Recipes</citetitle>, chapter 15.5 
+     or Siegmund Brandt <citetitle pubwork="book">Data Analysis</citetitle>,
+     chapter 10.15 (there is a Polish translation of the second). 
+     In a few words: it combines
+     inverse-Hessian method (called Gauss-Newton method?) with steepest descent
+     method by introducing lambda factor. When lambda is equal 0, the method is
+     equivalent to inverse-Hessian method. When lambda increases, the shift
+     vector is rotated toward the direction of steepest descent and the length
+     of the shift vector decreases. (The shift vector is a vector that is added
+     to the parameter vector.) If the better fit is found in iteration, lambda
+     is decreased - it is divided by value of 
+     <parameter class="option">lambda-down-factor</parameter> option 
+     (default: 10). Otherwise, lambda is multiplied by value of 
+     <parameter class="option">lambda-up-factor</parameter> (default: 10). 
+     You can also change a value of 
+     <parameter class="option">lambda-starting-value</parameter> option. 
+    </para>
+    <para>
+     Marquardt method has one stopping criterium apart from common stopping
+     criteria. If it happens two times in sequence, that relative 
+     progress in value of objective function (<acronym>WSSR</acronym>) 
+     is smaller then value of 
+     <parameter class="option">stop-rel-change</parameter> option,
+     fit is considered to be converged and is stopped. </para>
+    <para>
+     L-M method finds a minimum quickly. The question is, if it is the
+     global minimum.  It can be a good idea to add a small random vector to
+     the vector of parameters and try again. This small shift vector is added, 
+     when value of <parameter class="option">shake-before</parameter> option 
+     is positive (by default it is 0). Value of every parameter's shift 
+     is independent and randomly drawn from distribution of type specified by
+     value of <parameter class="option">shake-type</parameter> option 
+     (see <link linkend="distribtype">option 
+      <parameter class="option">distrib-type</parameter></link>)
+     in simplex method). The expected value of parameter shift is
+     directly proportional to both value of 
+     <parameter class="option">shake-before</parameter> option and width of
+     parameter's domain.
+    </para>
+   </section>
+
+   <section>
+    <title>Nelder-Mead downhill simplex method </title>
+    <para>
+     This time I am quoting chapter 4.8.3, p. 86 of Peter Gans
+     <citetitle>
+      Data Fitting in the Chemical Sciences by the Method of Least Squares 
+     </citetitle> 
+    </para>
+    <blockquote>
+     <para>
+      A simplex is a geometrical entity that has n+1 vertices corresponding to
+      variations in n parameters.  For two parameters the simplex is a
+      triangle, for three parameters the simplex is a tetrahedron and so forth.
+      The value of the objective function is calculated at each of the
+      vertices. An iteration consists of the following process. Locate the
+      vertex with the highest value of the objective function and replace this
+      vertex by one lying on the line between it and the centroid of the other
+      vertices. Four possible replacements can be considered, which I call
+      contraction, short reflection, reflection and expansion.[...]
+     </para>
+     <para>
+      It starts with an arbitrary simplex. Neither the shape nor position of
+      this are critically important, except insofar as it may determine which
+      one of a set of multiple minima will be reached. The simplex than expands
+      and contracts as required in order to locate a valley if one exists. Then
+      the size and shape of the simplex is adjusted so that progress may be
+      made towards the minimum. Note particularly that if a pair of
+      parameters are highly correlated, <emphasis>both</emphasis> will be
+      simultaneously adjusted in about the correct proportion, as the shape of
+      the simplex is adapted to the local contours.[...]
+     </para>
+     <para>
+      Unfortunately it does not provide estimates of the parameter errors, etc.
+      It is therefore to be recommended as a method for obtaining initial
+      parameter estimates that can be used in the standard least squares
+      method.
+     </para>
+    </blockquote>
+    <para>
+     This method is also described in previously mentioned 
+     <citetitle>Numerical Recipes</citetitle> (chapter 10.4) 
+     and <citetitle>Data Analysis</citetitle> (chapter 10.8).
+    </para>
+    <para>
+     After changing current fitting method to Nelder-Mead simplex, what can be
+     done, as you already know, either using menu or using command
+     <userinput>f.method s</userinput>
+     you have a few options specific to this method, that can be changed. 
+     One of those is a stopping criterium 
+     <parameter class="option">min-fract-range</parameter>. If value of
+     expression 2(M-m)/(M+m), where M and m are values of worst and best
+     vertices respectively (values of objective functions of vertices, to be
+     precise), is smaller then value of 
+     <parameter class="option">min-fract-range</parameter> option, fitting is
+     stopped. In other words, it is stopped if all vertices are at almost the
+     same level.
+    </para>
+    <para id="distribtype">
+     The rest of options is related to initialization of simplex. Before
+     starting iterations, we have to chose set of points in space of
+     parameters, called vertices.  Unless option 
+     <parameter class="option">move-all</parameter> is set, one of these
+     points will be the current point - values that parameters have at this
+     moment. All but this one are drawn as follows: each parameter of each
+     vertex is drawn separately. It is drawn from distribution, that has center
+     in center of domain of parameter, and width proportional to both width of
+     domain and value of <parameter class="option">move-multiplier</parameter> 
+     parameter.  Distribution type can be set using option 
+     <parameter class="option">distrib-type</parameter> as one
+     of: uniform, Gaussian, Lorentzian and bound. The last one causes value of
+     parameter to be either greatest or smallest value in domain of parameter 
+     - one of two bounds of domain 
+     (assuming that <parameter class="option">move-multiplier</parameter>
+     is equal 1).
+    </para>
+   </section>
+
+   <section>
+    <title>Genetic Algorithms</title>
+    <para>
+     [TODO]
+    </para>
+   </section>
+
+  </section> 
+  <section>
+   <title>Manipulations and various computations</title>
+   <para>
+    Note: The title of this chapter is not appropriate now, but in future more
+    commands will be implemented and described here.
+   </para>
+   <section id="FindingPeaks">
+    <title>Finding peaks </title>
+    <para>
+     For now, <application>fityk</application> offers only primitive 
+     algorithm for peak-detection. It looks for highest point in given range,
+     and than tries to find out width of peak. This method is used by
+     crystallographic module, and it is used in most cases when adding 
+     peaks in <acronym>GUI</acronym>'s simple-mode. It can be called directly,
+     using command:
+     <cmdsynopsis>
+      <command>m.findpeak</command> 
+      <arg>
+       <replaceable>center</replaceable> 
+       <arg><replaceable>margin</replaceable></arg>
+      </arg>
+     </cmdsynopsis>
+     If <replaceable>center</replaceable> and <replaceable>margin</replaceable>
+     are not specified, highest peaks are searched in all data, 
+     otherwise only a range 
+     (<replaceable>center</replaceable> - <replaceable>margin</replaceable> ; 
+     <replaceable>center</replaceable> + <replaceable>margin</replaceable>) 
+     is considered.  Default value of
+     <replaceable>margin</replaceable> is equal to value of option
+     <parameter class="option">search-width</parameter>. Option
+     <parameter class="option">estimate-consider-sum</parameter> is set 
+     by default and causes that program is looking
+     for peaks by analyzing difference of the data and the sum of functions. 
+     If not set, only data will be considered. Setting option
+     <parameter class="option">cancel-peak-out-of-search</parameter> disables 
+     adding peak, when the highest point in the range is found at the border of
+     requested range.
+    </para>
+   </section>
+
+  </section> 
+  <section>
+   <title>Other commands </title>
+   <para>
+    Commands described in this chapter can not be classified into
+    categories mentioned in previous chapters. Some of them are related to
+    script files. 
+   </para>
+   <para>
+    Command 
+    <cmdsynopsis>
+     <command>o.include</command> <arg>!</arg> 
+     <arg>'<replaceable>filename</replaceable>'</arg> 
+     <arg>
+      <replaceable>from1</replaceable>
+      <arg>-<replaceable>to1</replaceable></arg> 
+      <arg rep="repeat">
+       <replaceable>from2</replaceable>
+       <arg>-<replaceable>to2</replaceable></arg>
+      </arg>
+     </arg> 
+    </cmdsynopsis>
+    reads and executes commands from file <replaceable>filename</replaceable>. 
+    If exclamation mark (!) is present, program is reseted to initial state.
+    Only in this case filename can be omitted. You can specify lines or ranges
+    of lines in file, that are to be read.
+   </para>
+   <para>
+    Command:
+    <cmdsynopsis>
+     <command>o.log</command> 
+     <group><arg>i</arg><arg>o</arg><arg>a</arg></group> 
+     <arg choice="plain">'<replaceable>filename</replaceable>'</arg> 
+    </cmdsynopsis>
+    starts logging to file user input (i), output of program (o)
+    or both of them (a). To stop logging, or to display informations 
+    about log file, use command:
+    <cmdsynopsis>
+     <command>o.log</command> <arg>!</arg> 
+    </cmdsynopsis>
+    With exclamation mark (!) - it will stop logging, 
+    otherwise - display informations.
+   </para>
+   <para>
+    There is also a command
+    <cmdsynopsis>
+     <command>o.dump</command>
+     <arg choice="plain">'<replaceable>filename</replaceable>'</arg> 
+    </cmdsynopsis>
+    that is writing a script, which can be used to restore current state of
+    the program. It is different from logging, and usually output given by
+    logging is easier to read by humans.  
+   </para>
+   <para>
+    Command <command>o.plot</command> controls visualization of data 
+    and the sum.
+    It is used to plot given area - in <acronym>GUI</acronym> it is plotted
+    in program's main window, in <acronym>CLI</acronym> popular program 
+    <application>gnuplot</application> is used, if available. 
+    Actually there is no reason to type this command in GUI version, 
+    because it is very easy to zoom in and zoom out using mouse. 
+    <cmdsynopsis>
+     <command>o.plot</command> 
+     <arg><replaceable>xrange</replaceable>
+      <arg><replaceable>yrange</replaceable></arg>
+     </arg> 
+    </cmdsynopsis>
+    <replaceable>xrange</replaceable> and <replaceable>yrange</replaceable>
+    have one of two following syntaxes:
+    <cmdsynopsis>
+     <arg choice="req">[</arg> <arg><replaceable>min</replaceable></arg>
+     <arg choice="plain">:</arg>
+     <arg><replaceable>max</replaceable></arg> <arg choice="req">]</arg>
+    </cmdsynopsis>
+    <cmdsynopsis>
+     <arg choice="plain">.</arg>
+    </cmdsynopsis>
+    The second is just a dot (.), and it remains appropriate range not changed.
+    It will be explained on examples:
+    <simplelist type="vertical">
+     <member> <userinput>o.plot [20.4:50] [10:20]</userinput> 
+      - plot will show x from 20.4 to 50 and y from 10 to 20
+     </member>
+     <member>
+      <userinput>o.plot [20.4:]</userinput> 
+      - x from 20.4 to end of data points, y range will be fitted to contain
+      all data.
+     </member>
+     <member>
+      <userinput>o.plot . [:10]</userinput> 
+      - x range will not be changed, lower bound of y range will be a bit
+      smaller than the smallest y coordinate of point in this x range,
+      and upper bound of y range is equal 10.
+     </member>
+     <member>
+      <userinput>o.plot [:] [:]</userinput> 
+      - all data will be showed.   
+     </member>
+     <member>
+      <userinput>o.plot . . </userinput> 
+      - the visible area will not be changed, but information
+      about this area will be printed.
+     </member>
+     <member>
+      <userinput>o.plot</userinput> 
+      - the plot will be refreshed.
+     </member>
+    </simplelist>
+    There is also command in <command>o.plot</command> family, that decides 
+    about plotting background:
+    <cmdsynopsis>
+     <command>o.plot</command> 
+     <group choice="req"><arg>+</arg><arg>-</arg></group>
+    </cmdsynopsis>
+    Plus (+) or minus (-) are causing background to be, respectively, added or
+    not to the sum and the data while plotting.
+   </para>
+   <para id="autoplot">
+    Value of option <parameter class="option">autoplot</parameter> changes 
+    automatic plotting behaviour. By default, plot is refreshed automatically 
+    after changing the data or the sum of functions.  
+    It is also possible to visualize every iteration of fitting method by
+    replotting peaks after every iteration.
+   </para>
+   <para>
+    Value of <parameter class="option">verbosity</parameter> option changes 
+    amount of text output. 
+    Possible values of <parameter class="option">verbosity</parameter> 
+    and <parameter class="option">autoplot</parameter> options 
+    can be expanded with <keycap>TAB</keycap> in <acronym>CLI</acronym> or
+    are visible as a list in <acronym>GUI</acronym>.
+   </para>
+   <para>
+    Command:
+    <cmdsynopsis>
+     <command>o.wait</command> 
+     <arg choice="plain"><replaceable>sec</replaceable></arg>
+    </cmdsynopsis>
+    makes program waiting <replaceable>sec</replaceable> seconds,
+    doing nothing. 
+   </para>
+   <para>
+    At last, if option <parameter class="option">exit-on-error</parameter> 
+    is set, any warning will close the program. It ensures, that no warnings
+    can be overlooked.
+   </para>
+  </section> 
+
+  <section id="crystallography">
+   <title>Module for crystallography</title>
+   <para>
+    This module simplifies using <application>fityk</application> 
+    for analyzing diffractograms. User must know approximate unit-cell
+    parameters, and know or guess Miller's indices of reflections.  
+    Widths and shapes of peaks can be independend or angle-depended parameters.
+    The whole pattern is refined. Note, that individual profiles can also 
+    be fitted, but this module is not needed for it.
+   </para>
+   <para>
+    It is assumed, that x coordinate of data points represent scattering angle
+    &two-theta; and wavelengths are constant.
+   </para>
+   <para>
+    Everything, what can be done with crystallographic commands, could be done
+    with <command>s.add</command>, <command>s.remove</command>, 
+    <command>s.info</command> and <command>m.findpeak</command> commands, 
+    although it would be very inconvenient.
+   </para>
+   <para>
+    The wavelength can be specified with command:
+    <cmdsynopsis>
+     <command>c.wavelength</command> 
+     <arg choice="plain"><replaceable>lambda</replaceable></arg> 
+     <arg><replaceable>intens</replaceable></arg> 
+    </cmdsynopsis>
+    <replaceable>lambda</replaceable> and <replaceable>intens</replaceable> 
+    are parameters and can be specified as parameters in
+    <command>s.add</command> command. 
+    It practice, two forms are used: _<replaceable>p</replaceable> 
+    (eg. <userinput>_1.93597</userinput>) if wavelength is known 
+    or ~<replaceable>p</replaceable> (eg. <userinput>~0.9</userinput>) 
+    if it should be fitted.
+    <replaceable>intens</replaceable> is a relative intensity of wavelength, 
+    and it matters, when there are two or more wavelengths. 
+    Above command adds a wavelength with
+    its ratio to a set of wavelength. This means, that if you want to define
+    two wavelengths, you should use this command twice, and if you want to
+    change constant wavelength, you must delete previously defined one and add
+    a new one. To delete all defined wavelengths, use command
+    <cmdsynopsis>
+     <command>c.wavelength</command> <arg choice="plain">!</arg> 
+    </cmdsynopsis>
+    and to display informations about them, just type:
+    <cmdsynopsis>
+     <command>c.wavelength</command> 
+    </cmdsynopsis>
+   </para>
+   <para>
+    Now about a few essential options. You must choose a peak-shape, that will
+    model a reflections. To do this, assign proper value to option 
+    <parameter class="option">peak-type</parameter>.
+    You can use <link linkend="gaussian">Gaussian</link>, 
+    <link linkend="lorentzian">Lorentzian</link>, 
+    <link linkend="pearson7">Pearson VII</link>, 
+    <link linkend="psvoigt">pseudo-Voigt</link> or Mod-TCHpV.
+    The last one is also a pseudo-Voigt, but its width and shape parameters are
+    given by following formulae:
+    <informalequation>
+     <mediaobject>
+      <imageobject>
+       <imagedata fileref="fitykhelp_img/modtchpv.png"/>
+      </imageobject>
+      <textobject>
+       <phrase>
+        complicated Mod-TCHpV formula
+       </phrase>
+      </textobject>
+     </mediaobject>  
+    </informalequation>
+
+    Positions (centers) of peaks are determined by Bragg's Law, 
+    and heights (and, therefore, areas) are
+    fitted almost freely - the only constraint is, 
+    that ratio of heights of peaks in one plane is equal to appropriate ratio
+    of wavelength intensities. If you do not use Mod-TCHpV type, width and
+    shape parameters of peak can be:
+    <itemizedlist>
+     <listitem>
+      <para>
+       fitted autonomously for every peak,
+      </para>
+     </listitem>
+     <listitem>
+      <para>
+       equal for peaks in one plane (if there is more than one wavelength used,
+       plane is represented by more than one peak),
+      </para>
+     </listitem>
+     <listitem>
+      <para>
+       equal for all peaks in one phase,
+      </para>
+     </listitem>
+     <listitem>
+      <para>
+       or function of &two-theta;; for width, it is Lowe-Ma formula:
+       <informalequation>
+        <mediaobject>
+         <imageobject>
+          <imagedata fileref="fitykhelp_img/LoweMa.png"/>
+         </imageobject>
+         <textobject>
+          <phrase>
+           H_K^2 = U tan^2 \theta + V tan \theta + W + CT cot^2 \theta 
+          </phrase>
+         </textobject>
+        </mediaobject>  
+       </informalequation>
+       H<subscript>K</subscript> usually means FWHM, 
+       but note that above formula can be also applied to HWHM, by rescaling
+       refinable variables: U'=U/4, V'=V/4, etc.
+       Shape parameter of peak can be modeled by function of peak's position,
+       for pseudo-Voigt peak:
+       <informalequation>
+        <mediaobject>
+         <imageobject>
+          <imagedata fileref="fitykhelp_img/a3psvoigt.png"/>
+         </imageobject>
+         <textobject>
+          <phrase>
+           a_3 = A + B * (2 \theta)
+          </phrase>
+         </textobject>
+        </mediaobject>  
+       </informalequation>
+       and for Pearson peak:
+       <informalequation>
+        <mediaobject>
+         <imageobject>
+          <imagedata fileref="fitykhelp_img/a3pearson.png"/>
+         </imageobject>
+         <textobject>
+          <phrase>
+           a_3 = A + B / (2\theta) + C/(2\theta)^2
+          </phrase>
+         </textobject>
+        </mediaobject>  
+       </informalequation>
+      </para>
+     </listitem>
+    </itemizedlist>
+   </para>
+   <para>
+    You can select one of possibilities listed above using options
+    <parameter class="option">fwhm-constrain</parameter> 
+    and <parameter class="option">shape-constrain</parameter>.
+   </para>
+   <para>
+    Phase is defined by its type and lattice parameters. Command
+    <cmdsynopsis>
+     <command>c.add</command> 
+     <arg choice="plain">%<replaceable>p</replaceable></arg> 
+     <arg choice="plain"><replaceable>param1</replaceable></arg> 
+     <arg rep="repeat"><replaceable>param2</replaceable></arg>
+    </cmdsynopsis>
+    adds a new phase to set of phases in our model. 
+    <replaceable>p</replaceable> is a letter that stands for type of lattice:
+   </para>
+   <itemizedlist>
+    <listitem>
+     <para>
+      <userinput>%c</userinput> - cubic phase,
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      <userinput>%t</userinput> - tetragonal phase,
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      <userinput>%o</userinput> - orthorhombic phase,
+     </para>
+    </listitem>
+    <listitem>
+     <para>
+      <userinput>%h</userinput> - hexagonal phase.
+     </para>
+    </listitem>
+   </itemizedlist>
+   <para>
+    Monoclinic and triclinic types are not implemented, 
+    because author of program had no need to use them. You can also display 
+    this list with command:
+    <cmdsynopsis>
+     <command>c.info</command> <arg choice="plain">%</arg> 
+    </cmdsynopsis>
+    Lattice parameters, that follow type of
+    phase, can be specified in the same way as 
+    <replaceable>lambda</replaceable> and <replaceable>intens</replaceable> in
+    <command>c.wavelength</command> command described above. 
+   </para>
+   <para>
+    The last information, which the program needs, is what planes are 
+    visible on diffractogram. It has to be specified using Miller 
+    indices (hkl).  Command
+    <cmdsynopsis>
+     <command>c.add</command> 
+     <arg>%<replaceable>n</replaceable></arg> 
+     <arg choice="plain">(<replaceable>hkl</replaceable>)</arg>
+    </cmdsynopsis>
+    adds appropriate functions, that represent
+    that plane, to the sum of functions. If %<replaceable>n</replaceable> 
+    is omitted, first phase (%0) is assumed. Eg. command 
+    <userinput>c.add %1 (100)</userinput> will add plane (100) 
+    of second defined phase %1. Informations about
+    phases and planes can be viewed with command:
+    <cmdsynopsis>
+     <command>c.info</command> 
+     <arg>%<replaceable>n</replaceable> 
+      <arg>(<replaceable>hkl</replaceable>)</arg>
+     </arg> 
+    </cmdsynopsis>
+    Every plane or the whole phase can be removed from the model using:
+    <cmdsynopsis>
+     <command>c.remove</command> 
+     <arg choice="plain">%<replaceable>n</replaceable> 
+      <arg>(<replaceable>hkl</replaceable>)</arg>
+     </arg> 
+    </cmdsynopsis>
+   </para>
+   <para>
+    The last thing that requires explanation is how initial height, 
+    width and shape parameters of peaks are being found. 
+    It is based on algorithm used in 
+    <link linkend="FindingPeaks"><command>m.findpeak</command> command</link>.
+    It is also influenced by the same options 
+    as <command>m.findpeak</command>. In case of two or more wavelengths used,
+    this algorithm is a little enhanced. To see, how peaks representing plane
+    will look like, use command:
+    <cmdsynopsis>
+     <command>c.estimate</command> 
+     <arg>%<replaceable>n</replaceable></arg> 
+     <arg choice="plain">(<replaceable>hkl</replaceable>)</arg> 
+     <arg><replaceable>width</replaceable></arg> 
+    </cmdsynopsis>
+    If width is given, it is used instead of value of 
+    <parameter class="option">search-width</parameter> option.
+   </para>
+
+   <section>
+    <title>Example</title>
+    <para>
+     You can find following script and data used by it in 
+     <filename class="directory">samples</filename> directory.
+     <programlisting>
+## this script is an example of crystallography/diffraction module usage
+
+ d.load 'SiC_Zn.dat' # Load data file from current directory (SiC+Zn data)
+
+ #background was obtained by clicking on plot in "background mode"
+ d.background  20.4823 43.3474 , 28.004 24.3128 , 31.4412 23.6984 , 
+ d.background  33.7911 36.0138 , 38.6477 30.5403 , 98.9835 23.6079 , 
+ d.b 98.9835 23.6079 , 79.5965 22.1979 , 65.1888 17.968 , 49.9335 17.263
+
+ d.range [ 31 : ] # only data with 2theta greater then 31.0 are active
+
+ #Used wavelength in known and we do not want to fit it.
+ # If you would like to fit wavelength, replace '_' with '~'
+ c.w _1.54051 # Cu Ka1 
+
+ c.set peak-type = Mod-TCHpV 
+
+ #define phases and initial lattice parameters
+ c.add %c ~4.35  #SiC, %0 
+ c.add %h ~2.66  ~4.92  #Zn, %1 
+
+ #defining some peaks (order does not matter)
+ c.add %0 (220) # (220) plane of SiC phase
+ c.add %1 (002) # (002) plane of Zn phase
+ c.add %0 (111)
+ c.add %1 (100), %1 (101) # do you remember how comma(,) works?
+ c.a %1 (102) # every command can be shortened with x.x (letter-dot-letter)
+
+ #after adding a few peaks, it can be a good idea to fit it, to obtain
+ #better approximation of lattice parameters
+ #f.run 10 
+
+ # the rest of peaks
+ c.add %1 (103), %1(110), %1(112), %1(200), %1(201), %1(202)
+ c.add %0 (311)
+
+ s.add &lt;x ~0 #zero-shift
+
+ f.run # running default fitting method (Lev-Mar)
+ #'lambda' that you can see in output window is a parameter used by
+ # fitting method, not wavelength.
+
+ c.info # see refined lattice parameters
+ 
+ # if you want to zoom, the easiest way is to use left button on auxiliary
+ # plot (this plot with difference). To zoom out, use middle button on it.
+ # To see individual peaks, select Show->Peaks from pop-up menu.
+
+     </programlisting>
+    </para>
+   </section> 
+  </section> 
+ </chapter>
+
+ <appendix>
+  <title>Command index </title>
+  <para role="cmdidx">
+   [TODO]
+  </para>
+ </appendix>
+
+ <appendix>
+  <title>Option Index </title>
+  <para role="optidx">
+   [TODO]
+  </para>
+ </appendix>
+
+ <appendix id="fflist">
+  <title>List of functions</title>
+  <para>
+   To simplify equations, following substitution is introduced:
+   <informalequation>
+    <mediaobject>
+     <imageobject>
+      <imagedata fileref="fitykhelp_img/t_xa1a2.png"/>
+     </imageobject>
+     <textobject>
+      <phrase> 
+       t = (x - a1) / a2 
+      </phrase>
+     </textobject>
+    </mediaobject>  
+   </informalequation>
+   where a<subscript>1</subscript> is a position of peak's center 
+   and a<subscript>2</subscript> is a HWHM.
+
+   <equation id="gaussian">
+    <title>Gaussian (^G)</title>
+    <mediaobject>
+     <imageobject>
+      <imagedata fileref="fitykhelp_img/gaussian.png"/>
+     </imageobject>
+     <textobject>
+      <phrase> 
+       Type in program "s.i ^G" to see formula.
+      </phrase>
+     </textobject>
+    </mediaobject>  
+   </equation>
+   <equation id="lorentzian">
+    <title>Lorentzian (^L)</title>
+    <mediaobject>
+     <imageobject>
+      <imagedata fileref="fitykhelp_img/lorentzian.png"/>
+     </imageobject>
+     <textobject>
+      <phrase> 
+       Type in program "s.i ^L" to see formula.
+      </phrase>
+     </textobject>
+    </mediaobject>  
+   </equation>
+   <equation id="pearson7">
+    <title>Pearson VII (^P)</title>
+    <mediaobject>
+     <imageobject>
+      <imagedata fileref="fitykhelp_img/pearson7.png"/>
+     </imageobject>
+     <textobject>
+      <phrase> 
+       Type in program "s.i ^P" to see formula.
+      </phrase>
+     </textobject>
+    </mediaobject>  
+   </equation>
+   <equation id="psvoigt">
+    <title>Pseudo-Voigt (^S)</title>
+    <mediaobject>
+     <imageobject>
+      <imagedata fileref="fitykhelp_img/pseudo_voigt.png"/>
+     </imageobject>
+     <textobject>
+      <phrase> 
+       Type in program "s.i ^S" to see formula.
+      </phrase>
+     </textobject>
+    </mediaobject>  
+   </equation>
+   <equation id="voigt">
+    <title>Voigt (^V)</title>
+    <mediaobject>
+     <imageobject>
+      <imagedata fileref="fitykhelp_img/voigt.png"/>
+     </imageobject>
+     <textobject>
+      <phrase> 
+       Type in program "s.i ^V" to see formula.
+      </phrase>
+     </textobject>
+    </mediaobject>  
+   </equation>
+   Voigt function is a convolution of Gaussian and Lorentzian functions.
+   a<subscript>0</subscript> = heigth,
+   a<subscript>1</subscript> = center,
+   a<subscript>2</subscript> is proportional to the Gaussian width, and
+   a<subscript>3</subscript> is proportional to the ratio of Lorentzian 
+   and Gaussian widths. And t is just a variable of integration.  
+   Voigt is computed according to R.J.Wells, 
+   <citetitle pubwork="article">
+    Rapid approximation to the Voigt/Faddeeva function and its derivatives
+   </citetitle>, 
+   Journal of Quantitative Spectroscopy &amp; Radiative Transfer 
+   62 (1999) 29-48.
+   (See also: http://personalpages.umist.ac.uk/staff/Bob.Wells/voigt.html). 
+   Is the approximation exact enough for all possible uses of 
+   <application>fityk</application> program? 
+   <equation>
+    <title>Polynomial (^n)</title>
+    <mediaobject>
+     <imageobject>
+      <imagedata fileref="fitykhelp_img/polynom5.png"/>
+     </imageobject>
+     <textobject>
+      <phrase> 
+       Type in program "s.i ^n" to see formula.
+      </phrase>
+     </textobject>
+    </mediaobject>  
+   </equation>
+  </para>
+ </appendix>
+
+ <appendix>
+  <title>Acronym Index </title>
+  <variablelist>
+   <varlistentry>
+    <term>WSSR </term>
+    <listitem>
+     <para>
+      weighted sum of squared residuals
+     </para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>CLI </term>
+    <listitem>
+     <para>
+      Command Line Interface 
+     </para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>GUI </term>
+    <listitem>
+     <para>
+      Graphical User Interface
+     </para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>FWHM </term>
+    <listitem>
+     <para>
+      Full Width at Half Maximum
+     </para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>HWHM </term>
+    <listitem>
+     <para>
+      Half Width at Half Maximum
+     </para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </appendix>
+
+ <appendix id="license">
+  <title>License</title>
+  <para>
+   <application>Fityk</application> is free software; you can redistribute
+   and modify it under terms of GNU General Public License,
+   version 2. There is no warranty. 
+   <acronym>GPL</acronym> is one of most popular
+   licenses, and it is worth reading, if you have not done it
+   before. The program is copyrighted by author, and the license
+   itself by <acronym>FSF</acronym>. 
+   Text of license is distributed with program 
+   in file <filename>COPYING</filename>.
+  </para>
+ </appendix> 
+
+ <appendix>
+  <title>About this manual </title>
+  <para>
+   This manual is written by author of program in DocBook (XML)
+   and converted to other formats. All changes, improvements,
+   fixes of mistakes, etc. are welcome. 
+   The <filename>fitykhelp.xml</filename> file is
+   distributed with program sources, and can be modified with any
+   text editor. 
+  </para>
+ </appendix> 
+
+ <bibliography> 
+  <biblioentry> 
+   <abbrev>1</abbrev>
+   <authorgroup>
+    <author>
+     <surname>Press</surname>, <firstname>William</firstname>
+    </author>
+    <author>
+     <surname>Teukolsky</surname>, <firstname>Saul</firstname>
+    </author>
+    <author>
+     <surname>Vetterling</surname>, <firstname>William</firstname>
+    </author>
+    <author>
+     <surname>Flannery</surname>, <firstname>Brian</firstname>
+    </author>
+   </authorgroup>
+   <title>Numerical Recipes in C</title>
+   <address><otheraddr>http://www.nr.com</otheraddr></address>
+  </biblioentry>
+  <biblioentry> 
+   <abbrev>2</abbrev>
+   <author>
+    <surname>Gans</surname> <firstname>Peter</firstname>
+   </author>
+   <title>
+    Data Fitting in the Chemical Sciences by the Method of Least Squares
+   </title>
+   <publishername>John Wiley &amp; Sons</publishername>
+   <pubdate>1992</pubdate>
+  </biblioentry> 
+  <biblioentry>
+   <abbrev>3</abbrev>
+   <author><firstname>Siegmund</firstname><surname>Brandt</surname></author>
+   <title>Data Analysis</title>
+   <publishername>Springer Verlag</publishername>
+   <pubdate>1999</pubdate>
+  </biblioentry>
+  <biblioentry>
+   <abbrev>4</abbrev>
+   <title>PeakFit 4.0 for Windows User's Manual</title>
+   <publishername>AISN Software</publishername>
+   <pubdate>1997</pubdate>
+  </biblioentry>
+  <biblioentry>
+   <abbrev>5</abbrev>
+   <author>
+    <firstname>Zbigniew</firstname><surname>Michalewicz</surname>
+   </author>
+   <title>Algorytmy genetyczne + struktury danych = programy ewolucyjne</title>
+   <publishername>WNT</publishername>
+   <pubdate>1996</pubdate>
+  </biblioentry>
+  <biblioentry>
+   <abbrev>6</abbrev>
+   <editor><firstname>R. A.</firstname><surname>Young</surname></editor>
+   <title>The Rietveld Method</title>
+   <publishername>Oxford University Press</publishername>
+   <pubdate>1993</pubdate>
+  </biblioentry>
+  <biblioentry>
+   <abbrev>7</abbrev>
+   <author><firstname>R. A.</firstname><surname>Young</surname></author>
+   <title>User's Guide to Program DBWS-9807a</title>
+   <pubdate>2000</pubdate>
+  </biblioentry>
+ </bibliography>
+
+</book>
+<!-- vim: set ai sw=1 expandtab:  -->
+

@@ -1,0 +1,36 @@
+===  new/not tested  ===
+
+======  TODO  =======
+exporting to PostScript file and to metafile(clipboard) (Windows only) 
+simple peak - drag'n'drop peak-tops and FWHM/HWHM
+Settings windows -- wxSpinCtrl; alphabetical order 
+file with initial commands - fityk-init 
+any number of auxiliary windows (diff, etc.)
+auxiliary: another statistics
+background toolbar -> "plot with(out) background" button should be toggled
+                       by "o.plot +/-" command, etc.
+background mode -- problem with rectangle zooming, when background is large
+simple toolbar - Win - toolbar is blinking when changing peak  
+---
+optim. Q: should point circles should be drawed with non-transparent pen?
+simple peak - pressing (keeping pressed) arrow --> changing value 
+changing colors of peaks/phases/sum/etc - one dialog  
+Short-cuts (Ctrl-O, F1, etc.)
+exit-on-error = 1 -> MessageBox + stop including; now exiting 
+---
+tree - reversed -- parameters->functions 
+sum->add - avoiding of resetting tree
+in input ComboBox -- up/down arrow should work like in bash 
+more attractive icons in img/
+data->load(custom) - reseting? d.range, d.background, etc.
+f.info *, ** -- GUI interface
+exporting - default filenames?
+how to stop fitting interactively? -> signal?; in message()? threads?
+hiding (or detaching from main window) input/output window;
+some interaction with peaks in normal mode -- not only displaying info 
+smoothing curves (computations for additional points)
+buffering data  ?GetClippingRegion, ?wxMemoryDC
+imsg from parser.y -> optionally - output as a Message Box.
+length of history commands -- changable
+a_copy4plot - what about it
+

@@ -1,0 +1,4 @@
+If you do not have middle mouse button, you can use Shift + left button.
+This program is still in development phase, and can be unstable.
+Logging session (File->Log to file) from the beggining can save you a lot of time, especially when program crashes.
+If you have any comments, ideas, tips of the day, etc. send it to author.

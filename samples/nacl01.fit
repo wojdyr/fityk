@@ -1,0 +1,7 @@
+### the minimal example
+d.load 'nacl01.dat'
+d.range 23.0:26.0
+s.add ^G  ~60000 ~24.6 ~0.2 
+f.run
+s.info ^0
+

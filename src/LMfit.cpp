@@ -1,0 +1,150 @@
+// This file is part of fityk program. Copyright (C) Marcin Wojdyr
+#include "common.h"
+RCSID ("$Id$")
+
+#include "LMfit.h"
+#include <math.h>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+LMfit::LMfit () 
+    : v_fit ('m', "Levenberg-Marquardt"),
+      lambda_starting_value (0.001),
+      lambda_up_factor (10), lambda_down_factor (10),
+      stop_rel (1e-4), shake_before (0), shake_type ('u'),
+      alpha(0), alpha_(0), beta(0), beta_(0)
+{
+    fpar ["lambda-starting-value"] = &lambda_starting_value;
+    fpar ["lambda-up-factor"] = &lambda_up_factor;
+    fpar ["lambda-down-factor"] = &lambda_down_factor;
+    fpar ["stop-rel-change"] = &stop_rel;
+    fpar ["shake-before"] = &shake_before;
+    epar.insert(pair<string, Enum_string>("shake-type", 
+                               Enum_string (Distrib_enum, &shake_type)));
+}    
+    
+LMfit::~LMfit () {}
+
+// WSSR is also called chi2
+fp LMfit::init ()   
+{
+    alpha.resize (na*na);
+    alpha_.resize (na*na);
+    beta.resize (na);
+    beta_.resize (na);
+    if (na < 1 ) {
+        warn ("What should I fit ?");
+        return -1;
+    }
+    lambda = lambda_starting_value;
+    if (shake_before > 0.) {
+        for (int i = 0; i < na; i++) 
+            a[i] = draw_a_from_distribution (i, shake_type, shake_before);
+    }
+    else
+        a = a_orig; 
+
+    mesg (print_matrix (a, 1, na, "Initial A"));
+    chi2 = compute_wssr (a);
+    compute_derivatives_alpha_beta(a, alpha, beta);
+    //it would be faster to compute chi2 and derivatives together,but what for?
+    return chi2;
+}
+
+int LMfit::autoiter () 
+{
+    wssr_before = (shake_before > 0. ? compute_wssr() : chi2);
+    fp prev_chi2 = chi2;
+    verbose("\t === Levenberg-Marquardt method ===");
+    mesg ("Initial values:  lambda=" + S(lambda) + "  WSSR=" + S(chi2));
+    verbose ("Max. number of iterations: " + max_iterations);
+    if (stop_rel > 0) {
+        verbose ("Stopping when relative change of WSSR is "
+                  "second time below " + S (stop_rel * 100.) + "%");
+    }
+    bool converged = false;
+    int small_change_counter = 0;
+    for (int iter = 0; !common_termination_criteria(iter); iter++) {
+        int result = do_iteration();
+        if (result < 0) {
+            warn ("Error when processing iteration " + S(iter+1) + ".");
+            return result;
+        }
+        if (result == 1) { //better fit
+            fp d = prev_chi2 - chi2;
+            if (iter % output_one_of == 0)
+                mesg ("#" + S(iter_nr) + ":  WSSR=" + S(chi2) 
+                        + "  lambda=" + S(lambda) + "  d(WSSR)=" +  S(-d) 
+                        + "  (" + S (d / prev_chi2 * 100) + "%)");  
+            if (d / prev_chi2 < stop_rel || chi2 == 0) { //another termination
+                small_change_counter++;                  // criterium:
+                if (small_change_counter >= 2 || chi2 == 0) { //second time
+                    mesg("Fit converged.");              // neglectable change 
+                    converged = true;                    // of chi2; or chi2==0
+                    break;
+                }
+            }
+            else
+                small_change_counter = 0;
+            prev_chi2 = chi2;
+            if (auto_plot == 3)
+                fplot (a);
+        }
+        else { // result == 0, worse fit
+            mesg ("#" + S(iter_nr) + ": (WSSR=" + S(chi2_) 
+                    + ")  lambda=" + S(lambda));
+        }
+    }
+    post_fit (a, chi2);
+    return 1;
+}
+
+int LMfit::do_iteration()
+    //pre: init() callled
+{
+    if (na < 1) {
+        warn ("What am I to fit ?");
+        return -1;
+    }
+    iter_nr++;
+    alpha_ = alpha;
+    for (int j = 0; j < na; j++) 
+        alpha_[na * j + j] *= (1.0 + lambda);
+    beta_ = beta;
+#ifdef debug
+    mesg (print_matrix (beta_, 1, na, "beta"));
+    mesg (print_matrix (alpha_, na, na, "alpha'"));
+#endif /*debug*/
+
+    // Matrix solution (Ax=b)  alpha_ * da == beta_
+    if (Jordan (alpha_, beta_, na) < 0)
+        return -1;
+
+    // da is in beta_  
+    if (verbosity >= 4) {
+        vector<fp> rel (na);
+        for (int q = 0; q < na; q++)
+            rel[q] = beta_[q] / a[q] * 100;
+        verbose (print_matrix (rel, 1, na, "delta(A)/A[%]"));
+    }
+    for (int i = 0; i < na; i++) 
+        beta_[i] = a[i] + beta_[i];   // and now there is new a[] in beta_[] 
+    verbose_lazy (print_matrix (beta_, 1, na, "Trying A"));
+    //  compute chi2_
+    chi2_ = compute_wssr (beta_);
+
+    if (chi2_ < chi2) { // better fitting
+        chi2 = chi2_; 
+        a = beta_;
+        compute_derivatives_alpha_beta(a, alpha, beta);
+        lambda /= lambda_down_factor;
+        return 1;
+    }
+    else {// worse fitting
+        lambda *= lambda_up_factor;
+        return 0;
+    }
+}    
+

@@ -1,0 +1,23 @@
+User-visible changes in version 0.3.2:
+
+* Voigt function  
+* File->Re-Include menu item
+* File->Print Setup menu item
+* Zoom All menu item added to main plot popup menu
+* Zooming with left mouse button in normal mode 
+* Auto-scaling auxiliary plot when changing type of the plot
+* Exporting peak parameters (Sum->Export or s.export)
+* Sum/Data Export: optionally appending to a file, instead of overwritting 
+* Minor changes and bug fixes
+
+User-visible changes in version 0.3.1:
+
+* Saving GUI configuration to file (Unix) or registry (Windows)
+* s.export ---> XFIT format 
+* d.load ---> CPI format
+* Minor bug fixes
+* Minor changes in documentation (XSLT stylesheet for generating command and option indices)
+* fityk.spec for creating RPMs
+* Windows installer (produced with InnoSetup) 
+* Using HtmlHelp (*.chm) manual format in Windows version
+

@@ -1,0 +1,60 @@
+==============  not tested  ================
+
+============== small/urgent ================
+voigt: exact FWHM,  cut-tails, better approx. ? 
+c.add --> d=1.23456  
+s.add ---> possiblity to add description of peak/parameter 
+s.export --> selecting peaks - reg.expr. for search in peak descr.
+d.load: change order of arguments in d.load command 
+d.load: loading/merging a few files, 
+d.load: new fileformat .raw; formats with blocks/series of data 
+d.load: optimize loading file with xy data 
+d.load: python? file-type plug-ins  
+documentation for fwhm-correction and height-correction (m.set) 
+
+==============    medium    ================ 
+!problem with "exit" command in script 
+?Sum::export_sum_as_dat() -> manipul.*
+PagContainer/FuncContainer -- merge? change? use template?
+ the same about Sum::refs_to..., Sum::synch_... etc.
+parser/scanner: differ between "$*" and "$3" etc.?
+s.history n1 / n2 a_vec -> diff of only selected @-parameters;
+? o.plot ^17 ; o.plot %1(234) 
+data: exporting explicit filetype letter
+Gfuncs - checking arguments (!= 0, >0, etc.)
+more f-funcs
+c.estimate - c.guess? guessing plane knowing %n and x+-dx
+           - guessing wavelength / cell parameters if %n(hkl) is at 2theta
+           - min-peak-height <float>
+           - if failed -> imsg() not warn()
+?ffunc/sum: ?variable number of parameters in s.add ^p @... (polynomial)
+crystal -> what if peak-type or constrained-* changed?
+optimize v_fit::compute_wssr() (and ...derivatives..()) for (s.set)cut_tails
+optimize numeric derivatives?
+confidence limits
+f.info - improve
+separate Crystal from the rest
+move evaluating(adding @a) ~p from parser.y - a_num to parser.y - exp
+
+==============    large     ================  
+crystal: peaks asymetry 
+f.method: simulated annealing 
+user defined functions
+ mixed computing of derivatives: numeric/symbolic
+crystal: chem. elements eg. <Fe>a1 a2 b as wavelengths; ?
+?user defined file format. Plugins? stand-alone small converting programs?
+robust fit: other error distributions then Gaussian, eg. Lorenzian...
+auto_background - needs some work, docs + gui 
+smoothing, deconvolution, derivatives, ...
+
+==============  unimportant ================
+?s.export - steps - s.set export-points-step = 0.
+?class PagContainer_with_ini; -> Wavelength, Phase
+
+============== how to do it? =================
+is it possible to use readline with wxTextCtrl?
+
+============  simplify  =================
+logging to file
+
+

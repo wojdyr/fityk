@@ -1,0 +1,7 @@
+
+This directory contains small samples of data 
+and scripts that are used to test program.
+Paths to data in scripts are relative, so you can either run script
+from proper directory (probably from fityk/samples/) 
+or load data first and then run script and ignore "file not found" warning.
+

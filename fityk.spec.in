@@ -1,0 +1,53 @@
+Summary:        A program for fitting and analyzing data.
+Name:           @PACKAGE@
+Version:        @VERSION@
+Release:        1
+Group:          Applications/Engineering
+Copyright:      GPL
+Vendor:         Marcin Wojdyr <wojdyr@if.pw.edu.pl>
+Source:         http://www.unipress.waw.pl/~wojdyr/fityk/d/%{name}-%{version}.tar.gz
+BuildRoot:      /tmp/%{name}-%{version}-root
+Prefix: /usr
+
+#%define                _prefix         /usr
+#%define                _sysconfdir     /etc
+%define                 _datadir        %{_prefix}/share/fityk
+#%define                _bindir         %{_prefix}/bin
+
+%description
+Fityk is nonlinear curve-fitting and data analysis software. It allows data
+visualization, separation of overlapping peaks, and least squares fitting using
+standard Levenberg-Marquardt algorithm, a genetic algorithm, or Nelder-Mead
+simplex method. It only knows about common bell-shaped functions (Gaussian,
+Loretzian, Pearson 7, Voigt, Pseudo-Voigt) and polynomials, but more
+sophisticated formulae can be easily added if necessary. It also enables
+background substracting, data calibration and task automation with a simple
+script language. It is being developed to analyze powder diffraction patterns,
+but it can be used to fit analytical functions to any kind of data. 
+
+
+%prep
+%setup -q
+
+%build
+export LDFLAGS="-s"
+export CXX="c++2"
+# wx library is often not installed or too old. Link statically with it.
+%configure --disable-shared-wx 
+make 
+
+%install
+rm -rf $RPM_BUILD_ROOT
+%makeinstall 
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(644,root,root,755)
+%doc AUTHORS ChangeLog COPYING INSTALL NEWS README TODO TODO.gui  
+# *.xml *.xsl *.html?
+%attr(755,root,root) %{_bindir}/fityk 
+%attr(755,root,root) %{_bindir}/cfityk 
+%{_datadir}
+

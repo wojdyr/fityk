@@ -1,0 +1,10 @@
+This directory contains files, that are used by program to display
+on-line documentation and files that are used to produce documentation. 
+If you want to just read documentation, the easiest way is to run program 
+and read help.
+
+.htb file is just renamed .zip file. It is used by help viewer in fityk.
+
+fitykhelp.xml is a DocBook (XML) file. It can be converted to various
+formats (html, HtmlHelp, PDF etc.)
+

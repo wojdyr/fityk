@@ -1,0 +1,9 @@
+
+For compilation instructions read file INSTALL. 
+
+Recent (second half of 2002) popular linux distributions have default encoding
+set to UTF-8.  In case of problems with fonts just change encoding.
+
+If anything doesn't work as expected, contact author: <wojdyr@if.pw.edu.pl>
+or <wojdyr@unipress.waw.pl>. 
+
