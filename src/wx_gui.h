@@ -10,23 +10,26 @@
 
 #include "common.h"
 #include "pag.h"
+#include "wx_common.h"  // Output_style_enum
 #include <list>
 #include <wx/spinctrl.h>
-#include <wx/print.h>
 #include <wx/html/helpctrl.h>
 #ifdef __WXMSW__
 #  include <wx/msw/helpbest.h>
 #endif
 
-struct z_names_type;
+//struct z_names_type;
 struct f_names_type;
 class MainManager;
 class FDXLoadDlg;
-
-enum Output_style_enum  { os_ty_normal, os_ty_warn, os_ty_quot, os_ty_input };
+class PlotPane;
+class IOPane;
+class DataPane;
+class ProportionalSplitter;
 
 extern std::vector<fp> a_copy4plot;
 
+//status bar fields
 enum { sbf_text, sbf_hint1, sbf_hint2, sbf_coord, sbf_max };  
 
 class FApp: public wxApp
@@ -40,49 +43,6 @@ public:
 };
 
 DECLARE_APP(FApp)
-
-class FCombo : public wxComboBox
-{
-public:
-    FCombo(wxWindow *parent, wxWindowID id,
-                const wxString& value = wxEmptyString,
-                const wxPoint& pos = wxDefaultPosition,
-                const wxSize& size = wxDefaultSize,
-                int n = 0, const wxString choices[] = NULL,
-                long style = 0,
-                const wxValidator& validator = wxDefaultValidator,
-                const wxString& name = wxComboBoxNameStr)
-    : wxComboBox(parent, id, value, pos, size, n, choices, style,
-                    validator, name) { }
-protected:
-    void OnKeyDown (wxKeyEvent& event);
-
-    DECLARE_EVENT_TABLE()
-};
-
-class Output_win : public wxTextCtrl
-{
-public:
-    Output_win (wxWindow *parent, wxWindowID id,
-                const wxPoint& pos = wxDefaultPosition, 
-                const wxSize& size = wxDefaultSize);
-    void append_text (const wxString& str, Output_style_enum style);
-    void OnRightDown (wxMouseEvent& event);
-    void OnPopupColor  (wxCommandEvent& event);       
-    void OnPopupFont   (wxCommandEvent& event);  
-    void OnPopupClear  (wxCommandEvent& event); 
-    void OnKeyDown     (wxKeyEvent& event);
-    void read_settings(wxConfigBase *cf);
-    void save_settings(wxConfigBase *cf);
-
-private:
-    wxColour text_color[4]; 
-    wxColour bg_color;
-
-    void fancy_dashes();
-
-    DECLARE_EVENT_TABLE()
-};
 
 class DotSet;
 
@@ -131,17 +91,10 @@ class FFrame: public wxFrame
 {
     friend class FToolBar;
 public:
-    Output_win* output_win;
-    Plot_common plot_common;
-    MainPlot *plot;
-    DiffPlot *diff_plot;
-    FStatusBar *status_bar;
-
     FFrame(wxWindow *parent, const wxWindowID id, const wxString& title, 
             const long style);
     ~FFrame();
-    void OnSize (wxSizeEvent& event);
-    void OnKeyDown (wxKeyEvent& event);
+    //void OnSize (wxSizeEvent& event);
 
     void OnShowHelp (wxCommandEvent& event);
     void OnTipOfTheDay (wxCommandEvent& event);
@@ -207,27 +160,32 @@ public:
     void OnConfigBuiltin (wxCommandEvent& event);
     void OnConfigSave    (wxCommandEvent& event);
     void OnSwitchDPane   (wxCommandEvent& event);
+    void OnSwitchIOPane (wxCommandEvent& event);
     void OnSwitchToolbar (wxCommandEvent& event);
     void OnSwitchStatbar (wxCommandEvent& event);
-
-    void OnSashDrag (wxSashEvent& event);
-
-    FCombo *get_input_combo() { return input_combo; }
-    void save_all_settings(wxConfigBase *cf);
-    void zoom_history_changed();
-    void read_settings(wxConfigBase *cf);
+    void OnShowMenuZoomPrev(wxCommandEvent &event);
+    void save_all_settings(wxConfigBase *cf) const;
+    void save_settings(wxConfigBase *cf) const;
     void read_all_settings(wxConfigBase *cf);
+    void read_settings(wxConfigBase *cf);
     const FToolBar* get_toolbar() const { return toolbar; }
     const f_names_type& get_peak_type() const;
+    void set_status_hint(const char *left, const char *right);
+    void output_text(const wxString& str, Output_style_enum style);
+    void change_zoom(const std::string& s);
+    void refresh_plots(bool update=false);
 
 protected:
+    ProportionalSplitter *main_pane;
+    PlotPane *plot_pane;
+    IOPane *io_pane;
+    DataPane *data_pane;
+    FStatusBar *status_bar;
+
     int peak_type_nr;
     FToolBar *toolbar;
-    FCombo   *input_combo;
     FDXLoadDlg *dxload_dialog;
-    wxSashLayoutWindow* plot_window;
-    wxSashLayoutWindow* aux_window;
-    wxSashLayoutWindow* bottom_window;
+    ProportionalSplitter *v_splitter;
     wxPrintData *print_data;
     wxPageSetupData* page_setup_data;
 #ifdef __WXMSW__
@@ -239,6 +197,8 @@ protected:
     std::list<wxFileName> recent_data_files;
     wxMenu *data_menu_recent;
 
+    void place_plot_and_io_windows(wxWindow *parent);
+    void create_io_panel(wxWindow *parent);
     void OnXSet (std::string name, char letter);
     void set_menubar();
     void not_implemented_menu_item (const std::string &command) const; 
@@ -250,27 +210,6 @@ DECLARE_EVENT_TABLE()
 };
 
 
-class FPrintout: public wxPrintout
-{
-public:
-    FPrintout();
-    bool HasPage(int page) { return (page == 1); }
-    bool OnPrintPage(int page);
-    void GetPageInfo(int *minPage,int *maxPage,int *selPageFrom,int *selPageTo)
-        { *minPage = *maxPage = *selPageFrom = *selPageTo = 1; }
-};
-
-
-class wxConfigBase;
-wxColour read_color_from_config(const wxConfigBase *config, const wxString& key,
-                                const wxColour& default_value);
-
-void write_color_to_config (wxConfigBase *config, const wxString& key,
-                            const wxColour& value);
-inline bool read_bool_from_config (const wxConfigBase *config, 
-                                   const wxString& key, bool def_val)
-                    { bool b; config->Read(key, &b, def_val); return b; }
-void save_size_and_position (wxConfigBase *config, wxWindow *window);
 
 void exec_command (const std::string& s);
 void exec_command (const wxString& s);

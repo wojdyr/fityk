@@ -16,7 +16,7 @@
 RCSID ("$Id$")
 
 #include <wx/laywin.h>
-#include <wx/sashwin.h>
+#include <wx/splitter.h>
 #include <wx/filedlg.h>
 #include <wx/resource.h>
 #include <wx/valtext.h>
@@ -24,8 +24,6 @@ RCSID ("$Id$")
 #if wxUSE_TOOLTIPS
     #include <wx/tooltip.h>
 #endif
-#include <wx/colordlg.h>
-#include <wx/fontdlg.h>
 #include <wx/cmdline.h> 
 #include <wx/tipdlg.h>
 #include <wx/statline.h>
@@ -39,6 +37,7 @@ RCSID ("$Id$")
 #include "wx_plot.h"
 #include "wx_gui.h"
 #include "wx_dlg.h"
+#include "wx_pane.h"
 #include "other.h"
 #include "v_fit.h"
 #include "data.h"
@@ -189,6 +188,7 @@ enum {
     ID_G_S_TOOLBAR             ,
     ID_G_S_STATBAR             ,
     ID_G_S_DPANE               ,
+    ID_G_S_IO                  ,
     ID_G_V_ALL                 ,
     ID_G_V_VERT                ,
     ID_G_V_ZOOM_PREV   = 44302 ,
@@ -198,21 +198,6 @@ enum {
     ID_G_SCONF                 ,
     ID_G_SCONF1                ,
     ID_G_SCONF2                ,
-    
-    ID_WINDOW_TOP1             ,
-    ID_WINDOW_TOP2             ,
-    ID_WINDOW_BOTTOM           ,
-    ID_COMBO                   ,
-    ID_OUTPUT_TEXT             ,
-
-    ID_OUTPUT_C_BG             ,
-    ID_OUTPUT_C_IN             ,
-    ID_OUTPUT_C_OU             ,
-    ID_OUTPUT_C_QT             ,
-    ID_OUTPUT_C_WR             ,
-    ID_OUTPUT_C                ,
-    ID_OUTPUT_P_FONT           ,
-    ID_OUTPUT_P_CLEAR          ,
 
     ID_ft_m_zoom               ,
     ID_ft_m_range              ,
@@ -274,22 +259,21 @@ bool FApp::OnInit(void)
     // Create the main frame window
     frame = new FFrame(NULL, -1, app_name, wxDEFAULT_FRAME_STYLE);
 
-    frame->plot->set_scale();//workaround on problem with diff plot scale
-    frame->plot->set_mouse_mode(mmd_zoom);
+    //TODO!frame->plot->set_scale();//workaround on problem with diff plot scale
+    //TODO! frame->plot->set_mouse_mode(mmd_zoom);
     clear_buffered_sum();
     wxConfigBase *cf = new wxConfig("", "", conf_filename, "", 
                                     wxCONFIG_USE_LOCAL_FILE);
     frame->read_all_settings(cf);
     frame->Show(true);
-    frame->output_win->read_settings(cf); //it does not work earlier
+    //TODO! frame->output_win->read_settings(cf); //it does not work earlier
     delete cf;
     SetTopWindow(frame);
     my_IO = &my_gui_IO;
 
     if (read_bool_from_config(wxConfig::Get(), "/TipOfTheDay/ShowAtStartup", 
                               false)) {
-        wxCommandEvent dummy;
-        frame->OnTipOfTheDay(dummy);
+        frame->OnTipOfTheDay(dummy_cmd_event);
     }
 
     return true;
@@ -303,8 +287,6 @@ int FApp::OnExit()
 }
 
 BEGIN_EVENT_TABLE(FFrame, wxFrame)
-    EVT_SIZE (                  FFrame::OnSize)
-
     EVT_MENU (ID_D_LOAD,        FFrame::OnDLoad)   
     EVT_MENU (ID_D_XLOAD,       FFrame::OnDXLoad)   
     EVT_MENU_RANGE (ID_D_RECENT+1, ID_D_RECENT+100, FFrame::OnDRecent)
@@ -330,6 +312,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_M_SET,         FFrame::OnMSet)
 
     EVT_MENU (ID_F_METHOD,      FFrame::OnFMethod)    
+    EVT_UPDATE_UI (ID_F_METHOD, FFrame::OnFMethod)
     EVT_MENU_RANGE (ID_F_M+0, ID_F_M+8, FFrame::OnFOneOfMethods)    
     EVT_MENU (ID_F_RUN,         FFrame::OnFRun)    
     EVT_MENU (ID_F_CONTINUE,    FFrame::OnFContinue)    
@@ -362,12 +345,16 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_M_BG,        FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_ADD,       FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_PEAK,      FFrame::OnModePeak)
+    EVT_UPDATE_UI (ID_G_M_PEAK, FFrame::OnModePeak)
     EVT_MENU_RANGE (ID_G_M_PEAK_N+0, ID_G_M_PEAK_N+30, FFrame::OnChangePeakType)
     EVT_MENU (ID_G_S_DPANE,     FFrame::OnSwitchDPane)
+    EVT_MENU (ID_G_S_IO,        FFrame::OnSwitchIOPane)
     EVT_MENU (ID_G_S_TOOLBAR,   FFrame::OnSwitchToolbar)
     EVT_MENU (ID_G_S_STATBAR,   FFrame::OnSwitchStatbar)
     EVT_MENU (ID_G_V_ALL,       FFrame::OnGViewAll)
     EVT_MENU (ID_G_V_VERT,      FFrame::OnGFitHeight)
+    EVT_MENU (ID_G_V_ZOOM_PREV, FFrame::OnShowMenuZoomPrev)
+    EVT_UPDATE_UI (ID_G_V_ZOOM_PREV, FFrame::OnShowMenuZoomPrev)
     EVT_MENU_RANGE (ID_G_V_ZOOM_PREV+0, ID_G_V_ZOOM_PREV+20, 
                                 FFrame::OnPreviousZoom)    
     EVT_MENU (ID_G_LCONF1,      FFrame::OnConfigRead)
@@ -381,19 +368,16 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (wxID_ABOUT,       FFrame::OnAbout)
     EVT_MENU (ID_QUIT,          FFrame::OnQuit)
 
-    EVT_SASH_DRAGGED_RANGE (ID_WINDOW_TOP1, ID_WINDOW_BOTTOM, 
-                                FFrame::OnSashDrag)
-    EVT_UPDATE_UI (ID_F_METHOD, FFrame::OnFMethod)
-    EVT_KEY_DOWN  (             FFrame::OnKeyDown)
+//  EVT_SASH_DRAGGED_RANGE (ID_WINDOW_TOP1, ID_WINDOW_BOTTOM, 
+//                            FFrame::OnSashDrag)
 END_EVENT_TABLE()
 
     // Define my frame constructor
 FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title, 
                  const long style)
     : wxFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, style), 
-      output_win(0), plot(0), diff_plot(0), status_bar(0), 
-      peak_type_nr(0), toolbar(0),
-      dxload_dialog(0), plot_window(0), aux_window(0), bottom_window(0), 
+      main_pane(0), data_pane(0), status_bar(0), 
+      peak_type_nr(0), toolbar(0), dxload_dialog(0), 
       print_data(new wxPrintData), page_setup_data(new wxPageSetupData),
 #ifdef __WXMSW__
       help()
@@ -405,58 +389,17 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     // Load icon and bitmap
     SetIcon (wxICON (fityk));
 
-    //window with main plot
-    wxSashLayoutWindow* win = new wxSashLayoutWindow(this, ID_WINDOW_TOP1, 
-                        wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxSW_3D);
-    //win->SetDefaultSize(wxSize(-1, main_height));
-    win->SetOrientation(wxLAYOUT_HORIZONTAL);
-    win->SetAlignment(wxLAYOUT_TOP);
-    //win->SetBackgroundColour(wxColour(150, 0, 0));
-    win->SetSashVisible(wxSASH_BOTTOM, true);
-    plot_window = win;
-    plot = new MainPlot (plot_window, plot_common);
-
-    // window with diff plot
-    win = new wxSashLayoutWindow(this, ID_WINDOW_TOP2, 
-                        wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxSW_3D);
-    //win->SetDefaultSize(wxSize(-1, aux_height));
-    win->SetOrientation(wxLAYOUT_HORIZONTAL);
-    win->SetAlignment(wxLAYOUT_TOP);
-    //win->SetBackgroundColour(wxColour(10, 10, 50));
-    win->SetSashVisible(wxSASH_BOTTOM, true);
-    aux_window = win;
-    diff_plot = new DiffPlot (aux_window, plot_common);
-
-    //window with input line (combo box) and output wxTextCtrl
-    win = new wxSashLayoutWindow(this, ID_WINDOW_BOTTOM, 
-                                wxDefaultPosition, wxDefaultSize, 
-                                wxNO_BORDER|wxSW_3D);
-    //win->SetDefaultSize(wxSize(-1, 100));
-    win->SetOrientation(wxLAYOUT_HORIZONTAL);
-    win->SetAlignment(wxLAYOUT_BOTTOM);
-    //win->SetBackgroundColour(wxColour(100, 100, 100));
-    bottom_window = win;
-    
-    wxPanel *io_panel = new wxPanel (bottom_window, -1);
-    wxBoxSizer *io_sizer = new wxBoxSizer (wxVERTICAL);
-
-    // wxTextCtrl which displays output of commands
-    output_win = new Output_win (io_panel, ID_OUTPUT_TEXT);
-    io_sizer->Add (output_win, 1, wxEXPAND);
-
-    // FCombo - wxComboBox used for user keybord input
-    //wxString input_choices[] = { /*"help"*/ };
-    input_combo = new FCombo (io_panel, ID_COMBO, "",
-                               wxDefaultPosition, wxDefaultSize, 
-                               0, 0,//input_choices, 
-                               wxCB_DROPDOWN|wxWANTS_CHARS|
-                               wxTE_PROCESS_ENTER|wxTE_PROCESS_TAB);
-    io_sizer->Add (input_combo, 0, wxEXPAND);
-
-    io_panel->SetAutoLayout (true);
-    io_panel->SetSizer (io_sizer);
-    io_sizer->Fit (io_panel);
-    io_sizer->SetSizeHints (io_panel);
+    //sizer, splitters, etc.
+    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+    v_splitter = new ProportionalSplitter(this, -1, 0.8);
+    main_pane = new ProportionalSplitter(v_splitter, -1, 0.7);
+    plot_pane = new PlotPane(main_pane);
+    io_pane = new IOPane(main_pane);
+    main_pane->SplitHorizontally(plot_pane, io_pane);
+    data_pane = new DataPane(v_splitter);
+    data_pane->Show(false);
+    v_splitter->Initialize(main_pane);
+    sizer->Add(v_splitter, 1, wxEXPAND, 0);
 
     read_recent_data_files();
     set_menubar();
@@ -467,6 +410,12 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     //status bar
     status_bar = new FStatusBar(this);
     SetStatusBar(status_bar);
+
+    SetAutoLayout (true);
+    SetSizer(sizer);
+    sizer->Fit(this);
+    sizer->SetSizeHints(this);
+
 
     wxFileSystem::AddHandler(new wxZipFSHandler);
     wxImage::AddHandler(new wxPNGHandler);
@@ -479,7 +428,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     //    wxMessageBox(("Couldn't open help file:\n " + help_path).c_str());
     // help.UseConfig(    );
     // help.SetTempDir(    );
-    input_combo->SetFocus();
+    //TODO! io_pane->input_combo->SetFocus();
 }
 
 FFrame::~FFrame() 
@@ -489,24 +438,11 @@ FFrame::~FFrame()
     delete page_setup_data;
 }
 
-void FFrame::read_settings(wxConfigBase *cf)
+void FFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
 {
-    // restore frame position and size
-    cf->SetPath("/Frame");
-    int x = cf->Read("x", 50),
-        y = cf->Read("y", 50),
-        w = cf->Read("w", 650),
-        h = cf->Read("h", 400);
-    Move(x, y);
-    SetClientSize(w, h);
-
-    int plot_height = cf->Read("PlotWinHeight", 200);
-    if (plot_window) plot_window->SetDefaultSize (wxSize(-1, plot_height));
-    int aux_height = cf->Read("AuxWinHeight", 70);
-    if (aux_window) aux_window->SetDefaultSize(wxSize(-1, aux_height));
-    int bot_height = cf->Read ("BotWinHeight", 100);
-    if (bottom_window) bottom_window->SetDefaultSize(wxSize(-1, bot_height));
+    Close(true);
 }
+
 
 void FFrame::read_recent_data_files()
 {
@@ -564,27 +500,45 @@ void FFrame::add_recent_data_file(wxString filename)
 
 void FFrame::read_all_settings(wxConfigBase *cf)
 {
-    output_win->read_settings(cf);
-    plot->read_settings(cf);
-    diff_plot->read_settings(cf);
+    plot_pane->read_settings(cf);
+    io_pane->read_settings(cf);
+    //data_pane->read_settings(cf);
     read_settings(cf);
 }
 
-void FFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
+void FFrame::read_settings(wxConfigBase *cf)
 {
-    Close(true);
+    // restore frame position and size
+    cf->SetPath("/Frame");
+    int x = cf->Read("x", 50),
+        y = cf->Read("y", 50),
+        w = cf->Read("w", 650),
+        h = cf->Read("h", 400);
+    Move(x, y);
+    SetClientSize(w, h);
+    //int bot_height = cf->Read ("BotWinHeight", 100);
+    //if (bottom_window) bottom_window->SetDefaultSize(wxSize(-1, bot_height));
 }
 
-void FFrame::save_all_settings(wxConfigBase *cf)
+void FFrame::save_all_settings(wxConfigBase *cf) const
 {
-    output_win->save_settings(cf);
-    plot->save_settings(cf);
-    diff_plot->save_settings(cf);
+    plot_pane->save_settings(cf);
+    io_pane->save_settings(cf);
+    //data_pane->save_settings(cf);
+    save_settings(cf);
+}
+
+void FFrame::save_settings(wxConfigBase *cf) const
+{
     cf->SetPath ("/Frame");
-    save_size_and_position(cf, this);
-    cf->Write ("PlotWinHeight", plot_window->GetClientSize().GetHeight()); 
-    cf->Write ("AuxWinHeight", aux_window->GetClientSize().GetHeight()); 
-    cf->Write ("BotWinHeight", bottom_window->GetClientSize().GetHeight()); 
+    int x, y, w, h;
+    GetClientSize(&w, &h);
+    GetPosition(&x, &y);
+    cf->Write("x", (long) x);
+    cf->Write("y", (long) y);
+    cf->Write("w", (long) w);
+    cf->Write("h", (long) h);
+    //cf->Write ("BotWinHeight", bottom_window->GetClientSize().GetHeight()); 
 }
 
 void FFrame::set_menubar()
@@ -689,6 +643,9 @@ void FFrame::set_menubar()
     gui_menu_show->Check(ID_G_S_STATBAR, true);
     gui_menu_show->AppendCheckItem (ID_G_S_DPANE, "&Datasets Pane", 
                                     "Show/hide datasets pane");  
+    gui_menu_show->AppendCheckItem (ID_G_S_IO, "&Input/Output Text Pane", 
+                                    "Show/hide text input/output");  
+    gui_menu_show->Check(ID_G_S_IO, true);
     gui_menu->Append(ID_G_SHOW, "S&how", gui_menu_show);
     gui_menu->AppendSeparator();
     gui_menu->Append (ID_G_V_ALL, "Zoom &All", "View whole data");
@@ -755,14 +712,18 @@ void FFrame::set_menubar()
 }
 
 
-void FFrame::zoom_history_changed()
+void FFrame::OnShowMenuZoomPrev(wxCommandEvent& WXUNUSED(event))
 {
+/* TODO!
+    //construct GUI->Previous Zooms menu
+    const vector<string> zoom_hist = main_pane->get_zoom_hist();
     wxMenu *menu = GetMenuBar()->FindItem(ID_G_V_ZOOM_PREV)->GetSubMenu(); 
     while (menu->GetMenuItemCount() > 0) //clear 
         menu->Delete(menu->GetMenuItems().GetLast()->GetData());
-    int last = plot_common.zoom_hist.size() - 1;
+    int last = zoom_hist.size() - 1;
     for (int i = last, j = 1; i >= 0 && i > last - 10; i--, j++) 
-        menu->Append(ID_G_V_ZOOM_PREV + j, plot_common.zoom_hist[i].c_str());
+        menu->Append(ID_G_V_ZOOM_PREV + j, zoom_hist[i].c_str());
+*/
 }
            
 
@@ -815,45 +776,6 @@ void FFrame::not_implemented_menu_item (const std::string &command) const
                   command.c_str(), wxOK|wxICON_INFORMATION);
 }
 
-void FFrame::OnSashDrag(wxSashEvent& event)
-{
-    if (event.GetDragStatus() == wxSASH_STATUS_OUT_OF_RANGE)
-        return;
-    switch (event.GetId())
-    {
-    case ID_WINDOW_TOP1:
-        plot_window->SetDefaultSize(wxSize(-1, event.GetDragRect().height));
-        break;
-    case ID_WINDOW_TOP2:
-        aux_window->SetDefaultSize(wxSize(-1, event.GetDragRect().height));
-        break;
-    case ID_WINDOW_BOTTOM:
-        bottom_window->SetDefaultSize(wxSize(-1, event.GetDragRect().height));
-        break;
-    }
-    wxLayoutAlgorithm layout;
-    layout.LayoutFrame(this);
-}
-
-void FFrame::OnSize(wxSizeEvent& WXUNUSED(event))
-{
-    wxLayoutAlgorithm layout;
-    layout.LayoutFrame(this);
-}
-
-void FFrame::OnKeyDown (wxKeyEvent& event)
-{
-    if (event.GetKeyCode() == WXK_ESCAPE) {
-        if (plot) plot->cancel_mouse_press(); 
-        if (diff_plot) diff_plot->cancel_mouse_left_press();
-    }
-    else if (event.GetKeyCode() == ' ' || event.GetKeyCode() == WXK_TAB) {
-        frame->get_input_combo()->SetFocus();
-    }
-    else
-        event.Skip();
-}
-
 void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
 {
     static wxString dir = ".";
@@ -880,8 +802,7 @@ void FFrame::OnDXLoad (wxCommandEvent& WXUNUSED(event))
 
     string fname = my_data->get_filename();
     if (fname.empty()) {
-        wxCommandEvent dummy;
-        dxload_dialog->OnChangeButton(dummy);
+        dxload_dialog->OnChangeButton(dummy_cmd_event);
         if (dxload_dialog->filename.empty())
             return;
     }
@@ -1270,7 +1191,7 @@ void FFrame::OnChangeMouseMode (wxCommandEvent& event)
         toolbar->ToggleTool(ID_ft_b_with, true);
         exec_command ("o.plot +");
     }
-    plot->set_mouse_mode(mode);
+    //TODO! plot_pane->set_mouse_mode(mode);
 }
 
 void FFrame::OnModePeak(wxCommandEvent& event)
@@ -1302,34 +1223,69 @@ void FFrame::OnSwitchStatbar (wxCommandEvent& event)
     if (event.IsChecked() && !GetStatusBar()) {
         status_bar = new FStatusBar(this);
         SetStatusBar(status_bar);
+        //TODO! plot_pane->update_mouse_hints();
     }
     else if (!event.IsChecked() && GetStatusBar()) {
         SetStatusBar(0);
+        //bug in wxGTK - after SetStatusBar(0) blank gray status bar remains.
         delete status_bar; 
         status_bar = 0;
-        Layout();
+        //Layout();
+        SendSizeEvent();
     }
 }
 
 void FFrame::OnSwitchDPane (wxCommandEvent& event)
 {
-    //event.IsChecked() 
+    bool checked = event.IsChecked();
+    if (checked && !v_splitter->IsSplit()) {
+        data_pane->Show(true);
+        v_splitter->SplitVertically(main_pane, data_pane);
+    }
+    else if (!checked && v_splitter->IsSplit()) {
+        v_splitter->Unsplit();
+    }
+    GetMenuBar()->Check(ID_G_S_DPANE, checked);
+    if (toolbar) toolbar->ToggleTool(ID_ft_dpane, checked);
+}
+
+void FFrame::OnSwitchIOPane (wxCommandEvent& event)
+{
+    bool checked = event.IsChecked();
+    if (checked && !main_pane->IsSplit()) {
+        io_pane->Show(true);
+        main_pane->SplitHorizontally(plot_pane, io_pane);
+    }
+    else if (!checked && main_pane->IsSplit()) {
+        main_pane->Unsplit();
+    }
+    GetMenuBar()->Check(ID_G_S_IO, checked);
+    //if (toolbar) toolbar->ToggleTool(ID_ft_..., checked);
 }
 
 void FFrame::OnGViewAll (wxCommandEvent& WXUNUSED(event))
 {
-    plot->change_zoom ("[]");
+    change_zoom("[]");
 }
 
 void FFrame::OnGFitHeight (wxCommandEvent& WXUNUSED(event))
 {
-    plot->change_zoom (". []");
+    change_zoom(". []");
 }
 
 void FFrame::OnPreviousZoom(wxCommandEvent& event)
 {
-    int n = event.GetId() - ID_G_V_ZOOM_PREV;
-    plot->previous_zoom(n);
+    int id = event.GetId();
+    string s = plot_pane->zoom_backward(id ? id - ID_G_V_ZOOM_PREV : 1);
+    if (s.size()) 
+        exec_command("o.plot " + s);
+}
+
+void FFrame::change_zoom(const string& s)
+{
+    plot_pane->zoom_forward();
+    string cmd = "o.plot " + s;
+    exec_command(cmd);
 }
 
 
@@ -1383,7 +1339,8 @@ void FFrame::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 {
     // Pass two printout objects: for preview, and possible printing.
     wxPrintDialogData print_dialog_data (*print_data);
-    wxPrintPreview *preview = new wxPrintPreview (new FPrintout,new FPrintout,
+    wxPrintPreview *preview = new wxPrintPreview (new FPrintout(plot_pane),
+                                                  new FPrintout(plot_pane), 
                                                   &print_dialog_data);
     if (!preview->Ok()) {
         delete preview;
@@ -1411,6 +1368,7 @@ void FFrame::OnPrintSetup(wxCommandEvent& WXUNUSED(event))
 
 void FFrame::OnPrint(wxCommandEvent& WXUNUSED(event))
 {
+/* TODO!
     if (plot->get_bg_color() != *wxWHITE)
         if (wxMessageBox ("Plots will be printed on white background, \n"
                             "to save ink/toner.\n"
@@ -1420,9 +1378,10 @@ void FFrame::OnPrint(wxCommandEvent& WXUNUSED(event))
                           "Are you sure?", 
                           wxYES_NO|wxCANCEL|wxICON_QUESTION) != wxYES)
             return;
+*/
     wxPrintDialogData print_dialog_data (*print_data);
     wxPrinter printer (&print_dialog_data);
-    FPrintout printout;
+    FPrintout printout(plot_pane);
     bool r = printer.Print(this, &printout, true);
     if (r) 
         (*print_data) = printer.GetPrintDialogData().GetPrintData();
@@ -1436,243 +1395,23 @@ const f_names_type& FFrame::get_peak_type() const
     return V_f::f_names[peak_type_nr];
 }
 
-
-FPrintout::FPrintout() 
-    : wxPrintout(my_data->get_filename().c_str()) {}
-
-bool FPrintout::OnPrintPage(int page)
+void FFrame::set_status_hint(const char *left, const char *right)
 {
-    if (page != 1) return false;
-    if (my_data->is_empty()) return false;
-    wxDC *dc = GetDC();
-    if (!dc) return false;
+    if (status_bar)
+        status_bar->set_hint(left, right);  
+}
 
-    // Set the scale and origin
-    int w, h;
-    int space = 20;
-    int maxX = frame->plot->GetClientSize().GetWidth();
-    int maxY = frame->plot->GetClientSize().GetHeight();
-    int maxYsum = maxY + space + frame->diff_plot->GetClientSize().GetHeight();
-    int marginX = 50, marginY = 50;
-    dc->GetSize(&w, &h);
-    fp scaleX = static_cast<fp>(w) / (maxX + 2 * marginX);
-    fp scaleY = static_cast<fp>(h) / (maxYsum + 2 * marginY);
-    fp actualScale = min (scaleX, scaleY);
-    int posX = static_cast<int>((w - maxX * actualScale) / 2. + 0.5);
-    int posY = static_cast<int>((h - maxYsum * actualScale) / 2. + 0.5);
-    dc->SetUserScale (actualScale, actualScale);
-    dc->SetDeviceOrigin (posX, posY);
-    
-    frame->plot->Draw(*dc);//printing main plot  
-    posY += static_cast<int>((maxY + space) * actualScale);   
-    dc->SetDeviceOrigin (posX, posY);
-    frame->diff_plot->Draw(*dc); //printing auxiliary plot  
-    return true;
+void FFrame::output_text(const wxString& str, Output_style_enum style)
+{
+    io_pane->append_text(str, style);
+}
+
+void FFrame::refresh_plots(bool update)
+{
+    plot_pane->refresh_plots(update);
 }
 
 //===============================================================
-//                            Output_win
-//===============================================================
-
-BEGIN_EVENT_TABLE(Output_win, wxTextCtrl)
-    EVT_RIGHT_DOWN (                      Output_win::OnRightDown)
-    EVT_MENU_RANGE (ID_OUTPUT_C_BG, ID_OUTPUT_C_WR, Output_win::OnPopupColor)
-    EVT_MENU       (ID_OUTPUT_P_FONT    , Output_win::OnPopupFont)
-    EVT_MENU       (ID_OUTPUT_P_CLEAR   , Output_win::OnPopupClear)
-    EVT_KEY_DOWN   (                      Output_win::OnKeyDown)
-END_EVENT_TABLE()
-
-Output_win::Output_win (wxWindow *parent, wxWindowID id, 
-                        const wxPoint& pos, const wxSize& size)
-    : wxTextCtrl(parent, id, "", pos, size,
-                 wxTE_MULTILINE|wxTE_RICH|wxNO_BORDER|wxTE_READONLY)
-{
-    //GetFont().SetFamily(wxMODERN);
-    fancy_dashes();
-    //SetScrollbar (wxVERTICAL, 0, 5, 50);
-}
-
-void Output_win::fancy_dashes() {
-    for (int i = 0; i < 16; i++) {
-        SetDefaultStyle (wxTextAttr (wxColour(i * 16, i * 16, i * 16)));
-        AppendText ("-");
-    }
-    AppendText ("\n");
-}
-
-void Output_win::read_settings(wxConfigBase *cf)
-{
-    cf->SetPath("/OutputWin/Colors");
-    text_color[os_ty_normal] = read_color_from_config(cf, "normal", 
-                                                      wxColour(150, 150, 150));
-    text_color[os_ty_warn] = read_color_from_config(cf, "warn", 
-                                                    wxColour(200, 0, 0));
-    text_color[os_ty_quot] = read_color_from_config(cf, "quot", 
-                                                    wxColour(50, 50, 255));
-    text_color[os_ty_input] = read_color_from_config(cf, "input", 
-                                                     wxColour(0, 200, 0));
-    bg_color = read_color_from_config(cf, "bg", wxColour(20, 20, 20));
-
-    SetDefaultStyle (wxTextAttr(text_color[os_ty_quot], bg_color));
-    if (frame->IsShown()) // this "if" is needed on GTK 1.2 (I don't know why)
-        SetBackgroundColour (bg_color);
-    Refresh();
-}
-
-void Output_win::save_settings(wxConfigBase *cf)
-{
-    cf->SetPath("/OutputWin/Colors");
-    write_color_to_config (cf, "normal", text_color[os_ty_normal]);  
-    write_color_to_config (cf, "warn", text_color[os_ty_warn]); 
-    write_color_to_config (cf, "quot", text_color[os_ty_quot]); 
-    write_color_to_config (cf, "input", text_color[os_ty_input]); 
-    write_color_to_config (cf, "bg", bg_color); 
-}
-
-wxColour read_color_from_config(const wxConfigBase *config, const wxString& key,
-                                 const wxColour& default_value)
-{
-    return wxColour (config->Read (key + "/Red", default_value.Red()), 
-                     config->Read (key + "/Green", default_value.Green()), 
-                     config->Read (key + "/Blue", default_value.Blue()));
-}
-
-void write_color_to_config (wxConfigBase *config, const wxString& key,
-                            const wxColour& value)
-{
-    config->Write (key + "/Red", value.Red());
-    config->Write (key + "/Green", value.Green());
-    config->Write (key + "/Blue", value.Blue());
-}
-
-void save_size_and_position (wxConfigBase *config, wxWindow *window)
-{
-    //SetPath should be used before
-    int x, y, w, h;
-    window->GetClientSize(&w, &h);
-    window->GetPosition(&x, &y);
-    config->Write("x", (long) x);
-    config->Write("y", (long) y);
-    config->Write("w", (long) w);
-    config->Write("h", (long) h);
-}
-
-void Output_win::append_text (const wxString& str, Output_style_enum style)
-{
-    SetDefaultStyle (wxTextAttr (text_color[style]));
-    AppendText (str);
-}
-
-void Output_win::OnPopupColor (wxCommandEvent& event)
-{
-    int n = event.GetId();
-    wxColour *col;
-    if (n == ID_OUTPUT_C_BG)
-        col = &bg_color;
-    else if (n == ID_OUTPUT_C_OU)
-        col = &text_color[os_ty_normal];
-    else if (n == ID_OUTPUT_C_QT)
-        col = &text_color[os_ty_quot];
-    else if (n == ID_OUTPUT_C_WR)
-        col = &text_color[os_ty_warn];
-    else if (n == ID_OUTPUT_C_IN)
-        col = &text_color[os_ty_input];
-    else 
-        return;
-    wxColourData col_data;
-    col_data.SetCustomColour (0, *col);
-    col_data.SetColour (*col);
-    wxColourDialog dialog (this, &col_data);
-    if (dialog.ShowModal() == wxID_OK) {
-        *col = dialog.GetColourData().GetColour();
-        SetBackgroundColour (bg_color);
-        SetDefaultStyle (wxTextAttr(wxNullColour, bg_color));
-        Refresh();
-    }
-}
-
-void Output_win::OnPopupFont (wxCommandEvent& WXUNUSED(event))
-{
-    wxFontData data; 
-    data.SetInitialFont (GetDefaultStyle().GetFont());
-    wxFontDialog dlg (this, &data);
-    int r = dlg.ShowModal();
-    if (r == wxID_OK) {
-        wxFont f = dlg.GetFontData().GetChosenFont();
-        SetDefaultStyle (wxTextAttr (wxNullColour, wxNullColour, f));
-        Refresh();
-    }
-}
-
-void Output_win::OnPopupClear (wxCommandEvent& WXUNUSED(event))
-{
-    Clear();
-    fancy_dashes();
-}
-
-    
-void Output_win::OnRightDown (wxMouseEvent& event)
-{
-    wxMenu popup_menu ("output text menu");
-
-    wxMenu *color_menu = new wxMenu;
-    color_menu->Append (ID_OUTPUT_C_BG, "&Background");
-    color_menu->Append (ID_OUTPUT_C_IN, "&Input");
-    color_menu->Append (ID_OUTPUT_C_OU, "&Output");
-    color_menu->Append (ID_OUTPUT_C_QT, "&Quotation");
-    color_menu->Append (ID_OUTPUT_C_WR, "&Warning");
-    popup_menu.Append  (ID_OUTPUT_C   , "&Color", color_menu);
-
-    popup_menu.Append  (ID_OUTPUT_P_FONT, "&Font");
-    popup_menu.Append  (ID_OUTPUT_P_CLEAR, "Clea&r");
-
-    PopupMenu (&popup_menu, event.GetX(), event.GetY());
-}
-
-void Output_win::OnKeyDown (wxKeyEvent& event)
-{
-    if (event.GetKeyCode() == ' ' || event.GetKeyCode() == WXK_TAB) {
-        frame->get_input_combo()->SetFocus();
-    }
-    else
-        event.Skip();
-}
-
-//===============================================================
-//                            combo
-//===============================================================
-
-BEGIN_EVENT_TABLE(FCombo, wxComboBox)
-    EVT_KEY_DOWN (FCombo::OnKeyDown)
-END_EVENT_TABLE()
-
-void FCombo::OnKeyDown (wxKeyEvent& event)
-{
-    const int n_list_items = 15;
-    if (event.m_keyCode == WXK_RETURN || event.m_keyCode == WXK_NUMPAD_ENTER) {
-        wxString s = GetValue().Trim();
-        if (s.IsEmpty())
-            return;
-        frame->SetStatusText (s);
-        // changing drop-down list
-        vector<wxString> list;
-        list.push_back(s);
-        int n = std::min (n_list_items, GetCount() + 1);
-        for (int i = 0; i < n - 1; i++)
-            list.push_back(GetString(i));
-        Clear();
-        for (vector<wxString>::iterator i = list.begin(); i != list.end(); i++)
-            Append (*i);
-        SetValue("");
-
-        //displaying and executing command
-        exec_command (s);
-    }
-    else if (event.m_keyCode == WXK_TAB)
-        frame->output_win->SetFocus();
-    else
-        event.Skip();
-}
 
 const char input_prompt[] = "=-> ";
 
@@ -1683,7 +1422,7 @@ void exec_command (const string& s)
     if (!strncmp(s.c_str(), "o.plot", 6))
         frame->SetStatusText((input_prompt + s).c_str());
     else
-        frame->output_win->append_text (out_s.c_str(), os_ty_input);
+        frame->output_text(out_s.c_str(), os_ty_input);
     wxBusyCursor wait;
     bool r = parser(s);
     if (!r)
@@ -1693,7 +1432,9 @@ void exec_command (const string& s)
 void exec_command (const wxString& s) { exec_command (S(s.c_str())); }
 void exec_command (const char* s) { exec_command (wxString(s)); }
 
+
 //=====================    set  dialog    ==================
+
 FSetDlg::FSetDlg(wxWindow* parent, const wxWindowID id, const wxString& title,
              vector<string>& names, vector<string>& vals, vector<string>& types,
              DotSet* myset)
@@ -1802,8 +1543,8 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
                      wxNO_BORDER | /*wxTB_FLAT |*/ wxTB_DOCKABLE) 
 {
     // mode
-    Mouse_mode_enum m = frame && frame->plot ? frame->plot->get_mouse_mode() 
-                                             : mmd_zoom;
+    Mouse_mode_enum m = //TODO!frame && frame->plot ? frame->plot->get_mouse_mode() 
+                                           /*  :*/ mmd_zoom;
     AddRadioTool(ID_ft_m_zoom, "Zoom", wxBitmap(zoom_t_xpm), wxNullBitmap, 
                  "Normal Mode", "Use mouse for zooming, moving peaks etc."); 
     ToggleTool(ID_ft_m_zoom, m == mmd_zoom);
@@ -1913,7 +1654,7 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
 {
     switch (event.GetId()) {
         case ID_ft_v_pr:  
-            frame->plot->previous_zoom();
+            frame->OnPreviousZoom(dummy_cmd_event);
             break;
         case ID_ft_b_with: 
             exec_command(S("o.plot ") + (event.IsChecked() ? "+" : "-")); 
@@ -1931,7 +1672,7 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
         {
             fp c, h, f;
             bool r = my_manipul->estimate_peak_parameters(0.,+INF,&c,&h,0,&f);
-            if (r) frame->plot->add_peak(h, c, f/2);
+            //TODO! if (r) frame->plot->add_peak(h, c, f/2);
             break; 
         }
         default: assert(0);
@@ -1990,8 +1731,6 @@ FStatusBar::FStatusBar(wxWindow *parent)
     SetMinHeight(15);
     statbmp1 = new wxStaticBitmap(this, -1, wxIcon(mouse_l_xpm));
     statbmp2 = new wxStaticBitmap(this, -1, wxIcon(mouse_r_xpm));
-    if (frame && frame->plot)
-        frame->plot->update_mouse_hints();
 }
 
 void FStatusBar::OnSize(wxSizeEvent& event)

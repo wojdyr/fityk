@@ -28,6 +28,7 @@ RCSID ("$Id$")
 #include "wx_plot.h"
 #include "wx_gui.h"
 #include "wx_dlg.h"
+#include "wx_pane.h"
 #include "data.h"
 #include "sum.h"
 #include "other.h" 
@@ -133,35 +134,7 @@ void FPlot::move_view_horizontally (bool on_left)
         new_left = vw.left + diff;
         new_right = vw.right + diff;
     }
-    change_zoom ("[" + S(new_left) + " : " + S(new_right) + "] .");
-}
-
-void FPlot::change_zoom (string s)
-{
-    const int max_length_of_zoom_history = 10;
-    string cmd = "o.plot " + s;
-    common.zoom_hist.push_back(my_other->view.str());
-    if (size(common.zoom_hist) > max_length_of_zoom_history)
-        common.zoom_hist.erase(common.zoom_hist.begin());
-    frame->zoom_history_changed();
-    exec_command(cmd);
-    //frame->SetStatusText (""); 
-}
-
-void FPlot::previous_zoom(int n)
-{
-    if (n < 1 || common.zoom_hist.empty()) return;
-    int pos = common.zoom_hist.size() - n;
-    if (pos < 0) pos = 0;
-    string cmd = "o.plot " + common.zoom_hist[pos];
-    common.zoom_hist.erase(common.zoom_hist.end() - n, common.zoom_hist.end());
-    frame->zoom_history_changed();
-    exec_command(cmd);
-}
-
-void FPlot::perhaps_it_was_silly_zoom_try() const
-{
-    frame->SetStatusText("You can zoom with middle button or using aux. plot.");
+    frame->change_zoom("[" + S(new_left) + " : " + S(new_right) + "] .");
 }
 
 BEGIN_EVENT_TABLE(FPlot, wxPanel)
@@ -222,8 +195,8 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_MENU (ID_peak_popup_tree,   MainPlot::OnPeakShowTree)
 END_EVENT_TABLE()
 
-MainPlot::MainPlot (wxWindow *parent, Plot_common &comm) 
-    : FPlot (parent, comm), mode (mmd_zoom), basic_mode(mmd_zoom),
+MainPlot::MainPlot (wxWindow *parent, Plot_shared &shar) 
+    : FPlot (parent, shar), mode (mmd_zoom), basic_mode(mmd_zoom),
       pressed_mouse_button(0), ctrl(false), over_peak(-1)
 { }
 
@@ -273,7 +246,7 @@ void MainPlot::Draw(wxDC &dc)
         draw_tics(dc, my_other->view, 7, 7, 4, 4);
 
 /*
-    if (common.buffer_enabled) {
+    if (shared.buffer_enabled) {
         //TODO
         buffer_peaks (f, l);
         if (sum_visible)
@@ -459,12 +432,12 @@ void MainPlot::buffer_peaks (vector<Point>::const_iterator /*first*/,
     //TODO
     //bool function_as_points = (i_l - i_f > smooth_limit);
     int p = my_sum->fzg_size(fType);
-    common.buf = vector<vector<fp> > (p + 1, vector<fp>(last - first));
+    shared.buf = vector<vector<fp> > (p + 1, vector<fp>(last - first));
     int j = 0;
     for (vector<Point>::const_iterator i = first; i < last; i++, j++) {
-        common.buf[0][j] = i->x;
+        shared.buf[0][j] = i->x;
         for (int k = 0; k < my_sum->fzg_size(fType); k++) 
-            common.buf[k][j] = my_sum->f_value(i->x, k);
+            shared.buf[k][j] = my_sum->f_value(i->x, k);
     }
     */
 }
@@ -642,7 +615,7 @@ void MainPlot::read_settings(wxConfigBase *cf)
     Refresh();
 }
 
-void MainPlot::save_settings(wxConfigBase *cf)
+void MainPlot::save_settings(wxConfigBase *cf) const
 {
     cf->SetPath("/MainPlot");
     cf->Write ("point_radius", point_radius);
@@ -682,15 +655,15 @@ void MainPlot::OnLeaveWindow (wxMouseEvent& WXUNUSED(event))
 void MainPlot::set_scale()
 {
     const Rect &v = my_other->view;
-    common.xUserScale = GetClientSize().GetWidth() / (v.right - v.left);
+    shared.xUserScale = GetClientSize().GetWidth() / (v.right - v.left);
     int H =  GetClientSize().GetHeight();
     fp h = v.top - v.bottom;
     fp label_width = tics_visible && v.bottom <= 0 ?max(v.bottom * H/h + 12, 0.)
                                                    : 0;
     yUserScale = - (H - label_width) / h;
-    common.xLogicalOrigin = v.left;
+    shared.xLogicalOrigin = v.left;
     yLogicalOrigin = v.top;
-    common.plot_y_scale = yUserScale;
+    shared.plot_y_scale = yUserScale;
 }
  
 void MainPlot::show_popup_menu (wxMouseEvent &event)
@@ -738,7 +711,7 @@ void MainPlot::show_popup_menu (wxMouseEvent &event)
     /*
     popup_menu.Append (ID_plot_popup_buffer, "&Buffer data", 
                         "Keeping data in memory makes redrawing faster", true);
-    popup_menu.Check (ID_plot_popup_buffer, common.buffer_enabled);
+    popup_menu.Check (ID_plot_popup_buffer, shared.buffer_enabled);
     */
     wxMenu *size_menu = new wxMenu;
     size_menu->AppendCheckItem (ID_plot_popup_pt_size, "&Line", "");
@@ -827,45 +800,42 @@ void MainPlot::update_mouse_hints()
     string left="", right="";
     switch (pressed_mouse_button) {
         case 1:
-            left = "";
-            right = "cancel";
+            left = "";       right = "cancel";
             break;
         case 2:
-            left = "cancel";
-            right = "cancel";
+            left = "cancel"; right = "cancel";
             break;
         case 3:
-            left = "cancel";
-            right = "";
+            left = "cancel"; right = "";
             break;
         default:
+            //button not pressed
             switch (mode) {
                 case mmd_peak:
-                    left = "move peak";
-                    right = "peak menu";
+                    left = "move peak"; right = "peak menu";
+                    SetCursor (wxCURSOR_CROSS);
                     break;
                 case mmd_zoom: 
-                    left = "rect zoom";
-                    right = "plot menu";
+                    left = "rect zoom"; right = "plot menu";
+                    SetCursor (wxCURSOR_ARROW);
                     break;
                 case mmd_bg: 
-                    left = "add point";
-                    right = "del point";
+                    left = "add point"; right = "del point";
+                    SetCursor (wxCURSOR_ARROW);
                     break;
                 case mmd_add: 
-                    left = "draw-add";
-                    right = "add-in-range";
+                    left = "draw-add";  right = "add-in-range";
+                    SetCursor (wxCURSOR_ARROW);
                     break;
                 case mmd_range: 
-                    left = "activate";
-                    right = "disactivate";
+                    left = "activate";  right = "disactivate";
+                    SetCursor (wxCURSOR_ARROW);
                     break;
                 default: 
                     assert(0);
             }
     }
-    if (frame->status_bar)
-        frame->status_bar->set_hint(left.c_str(), right.c_str());  
+    frame->set_status_hint(left.c_str(), right.c_str());
 }
 
 void MainPlot::OnMouseMove(wxMouseEvent &event)
@@ -909,9 +879,9 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
             nearest = i - peaktops.begin();
         }
     }
-    //changing cursor and statusbar text, if needed.
     if (over_peak == nearest) return;
-    //else:
+
+    //if we are here, over_peak != nearest; changing cursor and statusbar text
     over_peak = nearest;
     if (nearest != -1) {
         const V_f* f=static_cast<const V_f*>(my_sum->get_fzg(fType, over_peak));
@@ -923,16 +893,12 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
             + " " + my_sum->info_fzg_parameters(fType, over_peak, true)
             + " " + f->extra_description();
         frame->SetStatusText (s.c_str());
-        SetCursor (wxCURSOR_CROSS);
         set_mouse_mode(mmd_peak);
     }
     else { //was over peak, but now is not 
         frame->SetStatusText ("");
-        SetCursor (wxCURSOR_ARROW);
         set_mouse_mode(basic_mode);
     }
-    //TODO: move SetCursor to change_mouse_hints
-    //update_mouse_hints();
 }
 
 void MainPlot::cancel_mouse_press()
@@ -944,7 +910,6 @@ void MainPlot::cancel_mouse_press()
         vert_line_following_cursor (mat_cancel);
         mouse_press_X = mouse_press_Y = INVALID;
         pressed_mouse_button = 0;
-        SetCursor (wxCURSOR_ARROW);
         frame->SetStatusText ("");
         update_mouse_hints();
     }
@@ -1025,7 +990,6 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     // if Down and Up events are at the same position -> cancel
     if (button == 1 && (ctrl || mode == mmd_zoom) || button == 2) {
         rect_zoom(dist_x + dist_y < 10 ? mat_cancel: mat_stop, event);
-        SetCursor(wxCURSOR_ARROW);
         frame->SetStatusText("");
     }
     else if (mode == mmd_peak && button == 1) {
@@ -1042,16 +1006,13 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             else //button == 3
                 exec_command ("d.range - [ " + S(xmin) + " : " + S(xmax)+" ]");
         }
-        SetCursor(wxCURSOR_ARROW);
         frame->SetStatusText ("");
     }
     else if (mode == mmd_add && button == 1) {
-        SetCursor(wxCURSOR_ARROW);
         frame->SetStatusText ("");
         peak_draft (dist_x + dist_y < 5 ? mat_cancel: mat_stop, event);
     }
     else if (mode == mmd_add && button == 3) {
-        SetCursor(wxCURSOR_ARROW);
         frame->SetStatusText ("");
         if (dist_x >= 5)  
             add_peak_in_range(X2x(mouse_press_X), X2x(event.GetX()));
@@ -1072,7 +1033,7 @@ void MainPlot::OnKeyDown (wxKeyEvent& event)
     }
     else if (event.GetKeyCode() == ' ' || event.GetKeyCode() == WXK_TAB) {
         cancel_mouse_press(); 
-        frame->get_input_combo()->SetFocus();
+        //TODO! frame->get_input_combo()->SetFocus();
     }
     else
         event.Skip();
@@ -1091,7 +1052,7 @@ void MainPlot::move_peak (Mouse_act_enum ma, wxMouseEvent &event)
     if (ma != mat_start) {
         if (!started) return;
         draw_peak_draft(x2X(center - my_sum->zero_shift(center)), 
-                        common.dx2dX(hwhm), y2Y(height),
+                        shared.dx2dX(hwhm), y2Y(height),
                         shape, ft);//clear old
     }
     switch (ma) {
@@ -1109,7 +1070,7 @@ void MainPlot::move_peak (Mouse_act_enum ma, wxMouseEvent &event)
             c_hwhm = p->get_pag(2).is_a();
             c_shape = p->g_size > 3 && p->get_pag(3).is_a();
             draw_peak_draft(x2X(center - my_sum->zero_shift(center)), 
-                            common.dx2dX(hwhm), y2Y(height),
+                            shared.dx2dX(hwhm), y2Y(height),
                             shape, ft);
             prev.x = event.GetX(), prev.y = event.GetY();
             started = true;
@@ -1135,7 +1096,7 @@ void MainPlot::move_peak (Mouse_act_enum ma, wxMouseEvent &event)
             }
             prev.x = event.GetX(), prev.y = event.GetY();
             draw_peak_draft(x2X(center - my_sum->zero_shift(center)), 
-                            common.dx2dX(hwhm), y2Y(height), 
+                            shared.dx2dX(hwhm), y2Y(height), 
                             shape, ft);
             break;
         }
@@ -1170,7 +1131,7 @@ void MainPlot::peak_draft (Mouse_act_enum ma, wxMouseEvent &event)
             break;
         case mat_stop: 
             add_peak(Y2y(event.GetY()), X2x(mouse_press_X),
-                     fabs(common.dX2dx(mouse_press_X - event.GetX())));
+                     fabs(shared.dX2dx(mouse_press_X - event.GetX())));
             //no break
         case mat_cancel:
             prev.x = prev.y = INVALID;
@@ -1242,9 +1203,9 @@ bool MainPlot::rect_zoom (Mouse_act_enum ma, wxMouseEvent &event)
         int Ymin = min (Y1, Y2), Ymax = max (Y1, Y2);
         int height = Ymax - Ymin;
         if (width > 5 && height > 5) 
-            change_zoom ("[ " + S(X2x(Xmin)) + " : " 
-                         + S(X2x(Xmax)) + " ] [ " + S(Y2y(Ymax)) 
-                         + " : " + S(Y2y(Ymin)) + " ]"); //Y2y(Ymax) < Y2y(Ymin)
+            frame->change_zoom("[ "+S(X2x(Xmin))+" : "+S(X2x(Xmax))+" ]"
+                               "[ "+S(Y2y(Ymax))+" : "+S(Y2y(Ymin))+" ]"); 
+                                    //Y2y(Ymax) < Y2y(Ymin)
     }
 
     if (ma == mat_cancel || ma == mat_stop) {
@@ -1287,13 +1248,13 @@ void MainPlot::OnPopupBuffer(wxCommandEvent& WXUNUSED(event))
 {
     wxMessageBox ("This menu item is not working yet.");//TODO
 
-    if (common.buffer_enabled) {
-        common.buffer_enabled = false;
-        common.buf.clear();
+    if (shared.buffer_enabled) {
+        shared.buffer_enabled = false;
+        shared.buf.clear();
     }
     else {
         //TODO
-        common.buffer_enabled = true;
+        shared.buffer_enabled = true;
     }
     Refresh(false);
 }
@@ -1372,7 +1333,7 @@ void MainPlot::OnPopupRadius (wxCommandEvent& event)
 
 void MainPlot::OnZoomAll (wxCommandEvent& WXUNUSED(event))
 {
-    change_zoom ("[]");
+    frame->OnGViewAll(dummy_cmd_event);
 }
 
 //functions..........
@@ -1581,7 +1542,7 @@ void DiffPlot::set_scale()
             yUserScale = 1.; //y scale doesn't matter
             break; 
         case apk_diff: 
-            yUserScale = common.plot_y_scale * y_zoom;
+            yUserScale = shared.plot_y_scale * y_zoom;
             break;
         case apk_diff_stddev:
         case apk_diff_y_proc:
@@ -1620,7 +1581,7 @@ void DiffPlot::read_settings(wxConfigBase *cf)
     Refresh();
 }
 
-void DiffPlot::save_settings(wxConfigBase *cf)
+void DiffPlot::save_settings(wxConfigBase *cf) const
 {
     cf->SetPath("/AuxPlot");
     cf->Write ("kind", kind); 
@@ -1642,7 +1603,7 @@ void DiffPlot::OnLeftDown (wxMouseEvent &event)
 {
     cancel_mouse_left_press();
     if (event.ShiftDown()) { // the same as OnMiddleDown()
-        change_zoom ("[]");
+        frame->OnGViewAll(dummy_cmd_event);
         return;
     }
     int X = event.GetPosition().x;
@@ -1685,7 +1646,7 @@ void DiffPlot::OnLeftUp (wxMouseEvent &event)
 
     if (xmax - xmin < 5) //cancel
         return;
-    change_zoom ("[" + S(X2x(xmin)) + " : " + S(X2x(xmax)) + "]");
+    frame->change_zoom("[" + S(X2x(xmin)) + " : " + S(X2x(xmax)) + "]");
 }
 
 //popup-menu
@@ -1732,7 +1693,7 @@ void DiffPlot::OnMiddleDown (wxMouseEvent& WXUNUSED(event))
 {
     if (cancel_mouse_left_press())
         return;
-    change_zoom ("[]");
+    frame->OnGViewAll(dummy_cmd_event);
 }
 
 void DiffPlot::OnKeyDown (wxKeyEvent& event)
@@ -1742,7 +1703,7 @@ void DiffPlot::OnKeyDown (wxKeyEvent& event)
     }
     else if (event.GetKeyCode() == ' ' || event.GetKeyCode() == WXK_TAB) {
         cancel_mouse_left_press();
-        frame->get_input_combo()->SetFocus();
+        //TODO! //frame->get_input_combo()->SetFocus();
     }
     else
         event.Skip();
@@ -1812,7 +1773,7 @@ void DiffPlot::fit_y_zoom()
             {
             y = get_max_abs_y (diff_of_data_for_draw_data);
             y_zoom = fabs (GetClientSize().GetHeight() / 
-                                            (2 * y * common.plot_y_scale));
+                                            (2 * y * shared.plot_y_scale));
             fp order = pow (10, floor (log10(y_zoom)));
             y_zoom = floor(y_zoom / order) * order;
             }
@@ -1862,5 +1823,7 @@ fp scale_tics_step (fp beg, fp end, int max_tics)
     //first = s * ceil(beg / s);
 }
 
+//dummy events declared in wx_common.h
 wxMouseEvent dummy_mouse_event;
+wxCommandEvent dummy_cmd_event;
 

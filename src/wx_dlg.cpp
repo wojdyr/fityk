@@ -20,6 +20,7 @@ RCSID ("$Id$")
 #include <wx/statline.h>
 #include <wx/bmpbuttn.h>
 #include "wx_dlg.h"
+#include "wx_common.h"
 #include "data.h"
 #include "sum.h"
 #include "ffunc.h"
@@ -1119,8 +1120,7 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id)
     h2a_sizer->Fit (columns_panel);
     h2a_sizer->SetSizeHints (columns_panel);
     top_sizer->Add (columns_panel, 0, wxALL|wxEXPAND, 5);
-    wxCommandEvent dummy;
-    OnStdDevCheckBox (dummy);
+    OnStdDevCheckBox (dummy_cmd_event);
 
 
     //selecting one of other types of files 
@@ -1217,7 +1217,7 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id)
     m_sizer->Add (yrbox, 0, wxALL|wxALIGN_CENTER, 5);
     //top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT,5);
     top_sizer->Add (m_sizer, 0, wxALL|wxEXPAND, 5);
-    OnMergeCheckBox (dummy);
+    OnMergeCheckBox (dummy_cmd_event);
 
     /*
     //buttons
@@ -1272,14 +1272,13 @@ void FDXLoadDlg::set_filename (const string &path)
     filename = path;
     file_txt_ctrl->SetValue (filename.c_str());
     char ft = my_data->guess_file_type (filename);
-    wxCommandEvent dummy;
     if (ft == 'd') {// xy
         rb_filetype->SetSelection(0);
-        OnFTypeRadioBoxSelection (dummy);
+        OnFTypeRadioBoxSelection (dummy_cmd_event);
     }
     else {//other
         rb_filetype->SetSelection(1);
-        OnFTypeRadioBoxSelection (dummy);
+        OnFTypeRadioBoxSelection (dummy_cmd_event);
         //TODO
     }
 }

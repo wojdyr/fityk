@@ -8,6 +8,7 @@ arbitrary number of auxiliary windows
 background toolbar -> "plot with(out) background" button should be toggled
                        by "o.plot +/-" command, etc.
 ---
+fix hiding status bar problem (wxGTK)
 exporting to PostScript file and to metafile(clipboard) (Windows only) 
 optim. Q: point circles should be drawed with non-transparent pen?
 changing colors of peaks/phases/sum/etc - one dialog  

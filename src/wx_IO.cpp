@@ -19,6 +19,7 @@ RCSID ("$Id$")
 #include "v_IO.h"
 #include "wx_plot.h"
 #include "wx_gui.h"
+#include "wx_pane.h"
 #include "data.h"
 #include "sum.h"
 
@@ -61,7 +62,7 @@ void gui_IO::message (const char *s)
         if (s[i] == '>')
             style = os_ty_quot;
     }
-    frame->output_win->append_text (wxString(s) + "\n", style);
+    frame->output_text(wxString(s) + "\n", style);
 }
 
 void gui_IO::plot ()
@@ -69,17 +70,13 @@ void gui_IO::plot ()
     if (my_sum->was_changed() || my_data->was_changed())
         clear_buffered_sum();
     a_copy4plot.clear();
-    frame->plot->Refresh(false);
-    frame->diff_plot->Refresh(false);
+    frame->refresh_plots(false);
 }
 
 void gui_IO::plot_now (const std::vector<fp>& a)
 {
     clear_buffered_sum();
     a_copy4plot = a;
-    frame->plot->Refresh(false);
-    frame->plot->Update();
-    frame->diff_plot->Refresh(false);
-    frame->diff_plot->Update();
+    frame->refresh_plots(true);
 }
 

@@ -12,6 +12,7 @@
 
 #include <map>
 #include <limits.h>
+#include "wx_common.h" // Mouse_mode_enum
 
 class wxConfigBase;
 
@@ -20,8 +21,7 @@ class MainPlot;
 class Rect;
 struct f_names_type;
 
-enum Mouse_mode_enum   { mmd_zoom, mmd_bg, mmd_add, mmd_range, mmd_peak }; 
-enum Mouse_act_enum    { mat_start, mat_stop, mat_move, mat_cancel };
+enum Mouse_act_enum  { mat_start, mat_stop, mat_move, mat_cancel };
 
 enum Aux_plot_kind_enum 
 { 
@@ -32,40 +32,20 @@ enum Aux_plot_kind_enum
     apk_peak_pos
 };
 
-extern wxMouseEvent dummy_mouse_event;
-
 void clear_buffered_sum();
-
-class Plot_common
-{
-public:
-    fp xUserScale, xLogicalOrigin; 
-    bool buffer_enabled;
-    std::vector<std::vector<fp> > buf;
-    fp plot_y_scale;
-    std::vector<std::string> zoom_hist;
-
-    Plot_common() : xUserScale(1.), xLogicalOrigin(0.), plot_y_scale(1e3) {}
-    int x2X (fp x) {return static_cast<int>((x - xLogicalOrigin) * xUserScale);}
-    fp X2x (int X) { return X / xUserScale + xLogicalOrigin; }
-    int dx2dX (fp dx) { return static_cast<int>(dx * xUserScale); }
-    fp dX2dx (int dX) { return dX / xUserScale; }
-};
 
 class FPlot : public wxPanel
 {
 public:
-    FPlot (wxWindow *parent, Plot_common &comm)
+    FPlot (wxWindow *parent, Plot_shared &shar)
        : wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER),
          yUserScale(1.), yLogicalOrigin(0.), 
-         common (comm), mouse_press_X(INVALID), mouse_press_Y(INVALID), 
+         shared(shar), mouse_press_X(INVALID), mouse_press_Y(INVALID), 
          vlfc_prev_x(INVALID)   {}
          
     ~FPlot() {}
     wxColour get_bg_color() { return backgroundBrush.GetColour(); }
-    virtual void save_settings(wxConfigBase *cf) = 0;
-    void change_zoom(std::string s);
-    void previous_zoom(int n=1);
+    virtual void save_settings(wxConfigBase *cf) const = 0;
 
 protected:
     wxBrush backgroundBrush;
@@ -77,12 +57,11 @@ protected:
     bool line_between_points;
     bool x_axis_visible, tics_visible;
     fp yUserScale, yLogicalOrigin; 
-    Plot_common &common;
+    Plot_shared &shared;
     int mouse_press_X, mouse_press_Y;
     int vlfc_prev_x;
 
     void move_view_horizontally (bool on_left);
-    void perhaps_it_was_silly_zoom_try() const;
     void draw_dashed_vert_lines (int x1, int x2 = INVALID);
     bool vert_line_following_cursor(Mouse_act_enum ma, int x=0, int x0=INVALID);
     void draw_tics (wxDC& dc, const Rect &v, 
@@ -97,8 +76,8 @@ protected:
                                                  : t > 0 ? SHRT_MAX : SHRT_MIN);
                    }
     fp Y2y (int Y) { return Y / yUserScale + yLogicalOrigin; }
-    int x2X (fp x) { return common.x2X(x); }
-    fp X2x (int X) { return common.X2x(X); }
+    int x2X (fp x) { return shared.x2X(x); }
+    fp X2x (int X) { return shared.X2x(X); }
 
     DECLARE_EVENT_TABLE()
 };
@@ -106,7 +85,7 @@ protected:
 class MainPlot : public FPlot 
 {
 public:
-    MainPlot (wxWindow *parent, Plot_common &comm); 
+    MainPlot (wxWindow *parent, Plot_shared &shar); 
     ~MainPlot() {}
     void OnPaint(wxPaintEvent &event);
     void Draw(wxDC &dc);
@@ -128,10 +107,10 @@ public:
     void OnPeakDelete (wxCommandEvent& event);
     void OnPeakShowTree (wxCommandEvent& event);
     void cancel_mouse_press();
-    void save_settings(wxConfigBase *cf);
+    void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
-    void set_mouse_mode(Mouse_mode_enum m);
     void update_mouse_hints();
+    void set_mouse_mode(Mouse_mode_enum m);
     Mouse_mode_enum get_mouse_mode() const { return mode; }
     void add_peak(fp height, fp ctr, fp hwhm);
     void change_peak_parameters(const std::vector<fp> &peak_hcw);
@@ -183,7 +162,7 @@ private:
 class DiffPlot : public FPlot
 {
 public:
-    DiffPlot (wxWindow *parent, Plot_common &comm) : FPlot (parent, comm), 
+    DiffPlot (wxWindow *parent, Plot_shared &shar) : FPlot (parent, shar), 
               y_zoom(1.), y_zoom_base(1.) { }
     ~DiffPlot() {}
     void OnPaint(wxPaintEvent &event);
@@ -203,7 +182,7 @@ public:
     void OnPopupYZoom (wxCommandEvent& event);
     void OnPopupYZoomFit (wxCommandEvent& event);
     void OnPopupYZoomAuto (wxCommandEvent& event);
-    void save_settings(wxConfigBase *cf);
+    void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
 
 private:
