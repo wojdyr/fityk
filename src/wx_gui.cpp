@@ -97,7 +97,7 @@ char* about_html =
 "   <tr> <td bgcolor=#73A183>                                            "
 "     <font color=black>                                                 "
 "      <b><font size=+1> <p align = center>                              "
-"       Copyright (C) 2001 - 2003 Marcin Wojdyr                          "
+"       Copyright (C) 2001 - 2004 Marcin Wojdyr                          "
 "      </font></b><p>                                                    "
 "      <font size=-1>                                                    "
 "       This program is free software; you can redistribute it           "
@@ -263,8 +263,7 @@ bool FApp::OnInit(void)
     wxConfig::Set (config);
 
     // Create the main frame window
-    frame = new FFrame(NULL, -1, app_name, 
-                        wxDEFAULT_FRAME_STYLE | wxHSCROLL | wxVSCROLL);
+    frame = new FFrame(NULL, -1, app_name, wxDEFAULT_FRAME_STYLE);
 
     frame->plot->set_scale();//workaround on problem with diff plot scale
     frame->plot->set_mouse_mode(mmd_zoom);

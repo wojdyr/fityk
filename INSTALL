@@ -8,7 +8,7 @@ only for cfityk (CLI):
   readline library 
   gnuplot program (for graph output)
 only for fityk (GUI):
-  wxWindows >= 2.3.4 (www.wxwindows.org)
+  wxWindows >= 2.3.4, (I'm testing it only with the latest version)
 
 ----------
 cfityk -- CLI = Command Line Interface
@@ -40,7 +40,7 @@ GTK version
 
 GTK+ and wxGTK required.
 All changes in program are tested with the latest version of gcc compiler
-(the latest version I have on my linux box - now 3.2)
+(the latest version I have on my linux box - now 3.3.1)
 and with latest version in gcc 2 branch (now 2.95.4 20010319 (prerelease)).
 
 egcs 2.91.66 - NO. 
@@ -54,7 +54,7 @@ gcc 2.96 from RedHat 7.2 - probably OK, but without -fno-rtti
 
 gcc 3.0.2 - OK, tested in 05.2002
 
-gcc 3.2 - OK
+gcc 3.3 - OK
 
 Motif version
 -------------
@@ -70,14 +70,18 @@ Not tested yet.
 
 
 		===============================================
-		 MS Windows 98 (and probably other MS Windows):
+		                  MS Windows 
 		===============================================
-All changes in program are tested with the latest version of 
-free Borland C++ Compiler - now 5.5
 
-Borland C++ 5.5 (bcc32) - OK.  
+Current version is compiled with MinGW 3.0.0
+Versions <= 3.2 where compiled with the free Borland C++ Compiler 5.5 
+(probably it is still possible to compile current version with BCC)
+Windows installed is prepared with Inno Setup.
 
-minGW - ?
+
+minGW - OK
+
+Borland C++ 5.5 (bcc32) - OK, tested in 2003.  
 	
 
 Cygwin - fityk -- ?
