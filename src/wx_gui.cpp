@@ -105,8 +105,9 @@ char* about_html =
 "       License, version 2, as published by the Free Software Foundation;"
 "      </font> <p>                                                       "
 "       Feel free to send comments, questions, patches, bugreports       "
-"       and even feature requests to author:                             "
-"       Marcin Wojdyr &lt;wojdyr@if.pw.edu.pl&gt;                        "
+"       and feature requests to author                                   "
+"       or to <i>fityk-users</i> mailing-list.                           "
+"      <p align = center> WWW: <b>fityk.sf.net</b>                       "
 "     </font>                                                            "
 "   </td> </tr>                                                          "
 "</table> </body> </html>                                                ";
@@ -259,14 +260,13 @@ bool FApp::OnInit(void)
     // Create the main frame window
     frame = new FFrame(NULL, -1, app_name, wxDEFAULT_FRAME_STYLE);
 
-    //TODO!frame->plot->set_scale();//workaround on problem with diff plot scale
-    //TODO! frame->plot->set_mouse_mode(mmd_zoom);
+    frame->plot_pane->set_mouse_mode(mmd_zoom);
     clear_buffered_sum();
     wxConfigBase *cf = new wxConfig("", "", conf_filename, "", 
                                     wxCONFIG_USE_LOCAL_FILE);
     frame->read_all_settings(cf);
     frame->Show(true);
-    //TODO! frame->output_win->read_settings(cf); //it does not work earlier
+    frame->io_pane->read_settings(cf); //it does not work earlier (wxGTK)
     delete cf;
     SetTopWindow(frame);
     my_IO = &my_gui_IO;
@@ -355,7 +355,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_V_VERT,      FFrame::OnGFitHeight)
     EVT_MENU (ID_G_V_ZOOM_PREV, FFrame::OnShowMenuZoomPrev)
     EVT_UPDATE_UI (ID_G_V_ZOOM_PREV, FFrame::OnShowMenuZoomPrev)
-    EVT_MENU_RANGE (ID_G_V_ZOOM_PREV+0, ID_G_V_ZOOM_PREV+20, 
+    EVT_MENU_RANGE (ID_G_V_ZOOM_PREV+1, ID_G_V_ZOOM_PREV+20, 
                                 FFrame::OnPreviousZoom)    
     EVT_MENU (ID_G_LCONF1,      FFrame::OnConfigRead)
     EVT_MENU (ID_G_LCONF2,      FFrame::OnConfigRead)
@@ -428,7 +428,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     //    wxMessageBox(("Couldn't open help file:\n " + help_path).c_str());
     // help.UseConfig(    );
     // help.SetTempDir(    );
-    //TODO! io_pane->input_combo->SetFocus();
+    focus_input();
 }
 
 FFrame::~FFrame() 
@@ -712,18 +712,20 @@ void FFrame::set_menubar()
 }
 
 
+    //construct GUI->Previous Zooms menu
 void FFrame::OnShowMenuZoomPrev(wxCommandEvent& WXUNUSED(event))
 {
-/* TODO!
-    //construct GUI->Previous Zooms menu
-    const vector<string> zoom_hist = main_pane->get_zoom_hist();
+    static vector<string> old_zoom_hist;
+    const vector<string> &zoom_hist = plot_pane->get_zoom_hist();
+    if (old_zoom_hist == zoom_hist) 
+        return;
     wxMenu *menu = GetMenuBar()->FindItem(ID_G_V_ZOOM_PREV)->GetSubMenu(); 
     while (menu->GetMenuItemCount() > 0) //clear 
         menu->Delete(menu->GetMenuItems().GetLast()->GetData());
     int last = zoom_hist.size() - 1;
     for (int i = last, j = 1; i >= 0 && i > last - 10; i--, j++) 
         menu->Append(ID_G_V_ZOOM_PREV + j, zoom_hist[i].c_str());
-*/
+    old_zoom_hist = zoom_hist;
 }
            
 
@@ -1191,7 +1193,7 @@ void FFrame::OnChangeMouseMode (wxCommandEvent& event)
         toolbar->ToggleTool(ID_ft_b_with, true);
         exec_command ("o.plot +");
     }
-    //TODO! plot_pane->set_mouse_mode(mode);
+    plot_pane->set_mouse_mode(mode);
 }
 
 void FFrame::OnModePeak(wxCommandEvent& event)
@@ -1223,7 +1225,7 @@ void FFrame::OnSwitchStatbar (wxCommandEvent& event)
     if (event.IsChecked() && !GetStatusBar()) {
         status_bar = new FStatusBar(this);
         SetStatusBar(status_bar);
-        //TODO! plot_pane->update_mouse_hints();
+        plot_pane->update_mouse_hints();
     }
     else if (!event.IsChecked() && GetStatusBar()) {
         SetStatusBar(0);
@@ -1368,8 +1370,7 @@ void FFrame::OnPrintSetup(wxCommandEvent& WXUNUSED(event))
 
 void FFrame::OnPrint(wxCommandEvent& WXUNUSED(event))
 {
-/* TODO!
-    if (plot->get_bg_color() != *wxWHITE)
+    if (plot_pane->is_background_white())
         if (wxMessageBox ("Plots will be printed on white background, \n"
                             "to save ink/toner.\n"
                             "Now background of your plot on screen\n"
@@ -1378,7 +1379,6 @@ void FFrame::OnPrint(wxCommandEvent& WXUNUSED(event))
                           "Are you sure?", 
                           wxYES_NO|wxCANCEL|wxICON_QUESTION) != wxYES)
             return;
-*/
     wxPrintDialogData print_dialog_data (*print_data);
     wxPrinter printer (&print_dialog_data);
     FPrintout printout(plot_pane);
@@ -1411,7 +1411,50 @@ void FFrame::refresh_plots(bool update)
     plot_pane->refresh_plots(update);
 }
 
-//===============================================================
+void FFrame::focus_input()
+{
+    io_pane->focus_input();
+}
+
+//=======================================================================
+
+void add_peak(fp height, fp ctr, fp hwhm) 
+{
+    const f_names_type &f = frame->get_peak_type();
+
+    //TODO? function add_peak(f_names_type, map<string,fp>) 
+    my_sum->use_param_a_for_value();
+    fp center = ctr + my_sum->zero_shift(ctr);
+    string cmd = "s.add ^" + S(f.type);
+    vector<fp> ini 
+          = V_f::get_default_peak_parameters(&f, vector3(height, center, hwhm));
+    for (int i = 0; i < f.psize; i++) {
+        cmd += " ~" + S(ini[i]);
+        const ParDefault &pd = f.pdefaults[i];
+        if (pd.lower_set || pd.upper_set)  {
+            cmd += " [" + (pd.lower_set ? S(pd.lower) : S()) + ":" 
+                   + (pd.upper_set ? S(pd.upper) : S()) + "]";
+        }
+    }
+    string stat = "Height: " + S(height) + " Ctr: " + S(center) 
+                   + " HWHM: " + S(hwhm);
+//return cmd, stat
+    frame->SetStatusText (stat.c_str());
+    exec_command (cmd);
+}
+
+
+void add_peak_in_range(fp xmin, fp xmax) 
+{
+    fp center, height, fwhm;
+    my_sum->use_param_a_for_value();
+    bool r = my_manipul->estimate_peak_parameters ((xmax + xmin)/2, 
+                                                   fabs(xmax - xmin)/2, 
+                                                   &center, &height, 0, &fwhm);
+    if (r) add_peak (height, center, fwhm/2);
+}
+
+//=======================================================================
 
 const char input_prompt[] = "=-> ";
 
@@ -1543,8 +1586,8 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
                      wxNO_BORDER | /*wxTB_FLAT |*/ wxTB_DOCKABLE) 
 {
     // mode
-    Mouse_mode_enum m = //TODO!frame && frame->plot ? frame->plot->get_mouse_mode() 
-                                           /*  :*/ mmd_zoom;
+    Mouse_mode_enum m = frame ? frame->plot_pane->get_plot()->get_mouse_mode() 
+                              : mmd_zoom;
     AddRadioTool(ID_ft_m_zoom, "Zoom", wxBitmap(zoom_t_xpm), wxNullBitmap, 
                  "Normal Mode", "Use mouse for zooming, moving peaks etc."); 
     ToggleTool(ID_ft_m_zoom, m == mmd_zoom);
@@ -1672,7 +1715,8 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
         {
             fp c, h, f;
             bool r = my_manipul->estimate_peak_parameters(0.,+INF,&c,&h,0,&f);
-            //TODO! if (r) frame->plot->add_peak(h, c, f/2);
+            if (r) 
+                add_peak(h, c, f/2);
             break; 
         }
         default: assert(0);

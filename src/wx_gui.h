@@ -90,6 +90,7 @@ private:
 class FFrame: public wxFrame
 {
     friend class FToolBar;
+    friend class FApp;
 public:
     FFrame(wxWindow *parent, const wxWindowID id, const wxString& title, 
             const long style);
@@ -174,6 +175,7 @@ public:
     void output_text(const wxString& str, Output_style_enum style);
     void change_zoom(const std::string& s);
     void refresh_plots(bool update=false);
+    void focus_input();
 
 protected:
     ProportionalSplitter *main_pane;
@@ -214,6 +216,8 @@ DECLARE_EVENT_TABLE()
 void exec_command (const std::string& s);
 void exec_command (const wxString& s);
 void exec_command (const char* s);
+void add_peak(fp height, fp ctr, fp hwhm);
+void add_peak_in_range(fp xmin, fp xmax);
 extern FFrame *frame;
 
 #endif //WXGUI__H__

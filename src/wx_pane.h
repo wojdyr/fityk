@@ -100,6 +100,8 @@ public:
                                       { output_win->append_text(str, style); }
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
+    void focus_input() { input_combo->SetFocus(); }
+    void focus_output() { output_win->SetFocus(); }
 private:
     Output_win *output_win;
     FCombo   *input_combo;
@@ -118,6 +120,11 @@ public:
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
     void refresh_plots(bool update);
+    void set_mouse_mode(Mouse_mode_enum m);
+    void update_mouse_hints();
+    bool is_background_white();
+    const std::vector<std::string>& get_zoom_hist() const { return zoom_hist; }
+    const MainPlot* get_plot() const { return plot; }
 private:
     Plot_shared plot_shared;
     MainPlot *plot;

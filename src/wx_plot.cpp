@@ -1033,7 +1033,7 @@ void MainPlot::OnKeyDown (wxKeyEvent& event)
     }
     else if (event.GetKeyCode() == ' ' || event.GetKeyCode() == WXK_TAB) {
         cancel_mouse_press(); 
-        //TODO! frame->get_input_combo()->SetFocus();
+        frame->focus_input();
     }
     else
         event.Skip();
@@ -1336,31 +1336,6 @@ void MainPlot::OnZoomAll (wxCommandEvent& WXUNUSED(event))
     frame->OnGViewAll(dummy_cmd_event);
 }
 
-//functions..........
-void MainPlot::add_peak(fp height, fp ctr, fp hwhm) 
-{
-    const f_names_type &f = frame->get_peak_type();
-
-// -> f_names_type, map<string,fp> 
-    my_sum->use_param_a_for_value();
-    fp center = ctr + my_sum->zero_shift(ctr);
-    string cmd = "s.add ^" + S(f.type);
-    vector<fp> ini 
-          = V_f::get_default_peak_parameters(&f, vector3(height, center, hwhm));
-    for (int i = 0; i < f.psize; i++) {
-        cmd += " ~" + S(ini[i]);
-        const ParDefault &pd = f.pdefaults[i];
-        if (pd.lower_set || pd.upper_set)  {
-            cmd += " [" + (pd.lower_set ? S(pd.lower) : S()) + ":" 
-                   + (pd.upper_set ? S(pd.upper) : S()) + "]";
-        }
-    }
-    string stat = "Height: " + S(height) + " Ctr: " + S(center) 
-                   + " HWHM: " + S(hwhm);
-//return cmd, stat
-    frame->SetStatusText (stat.c_str());
-    exec_command (cmd);
-}
 
 
 void MainPlot::change_peak_parameters(const vector<fp> &peak_hcw)
@@ -1394,25 +1369,6 @@ void MainPlot::change_peak_parameters(const vector<fp> &peak_hcw)
     }
 }
 
-
-void MainPlot::add_peak_in_range (fp xmin, fp xmax) //TODO move to FFrame
-{
-    fp center, height, fwhm;
-    my_sum->use_param_a_for_value();
-    bool r = my_manipul->estimate_peak_parameters ((xmax + xmin)/2, 
-                                                   fabs(xmax - xmin)/2, 
-                                                   &center, &height, 0, &fwhm);
-    if (r) add_peak (height, center, fwhm/2);
-}
-
-/*
-void MainPlot::left_button_clicked (fp x, fp y)
-{
-    fp fwhm;
-    bool r = my_manipul->estimate_peak_parameters (x, -1, 0, 0, 0, &fwhm);
-    if (r) add_peak (y, x, fwhm/2);
-}
-*/
 
 //===============================================================
 //                           DiffPlot (difference plot) 
@@ -1703,7 +1659,7 @@ void DiffPlot::OnKeyDown (wxKeyEvent& event)
     }
     else if (event.GetKeyCode() == ' ' || event.GetKeyCode() == WXK_TAB) {
         cancel_mouse_left_press();
-        //TODO! //frame->get_input_combo()->SetFocus();
+        frame->focus_input();
     }
     else
         event.Skip();

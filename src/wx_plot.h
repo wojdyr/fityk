@@ -112,8 +112,6 @@ public:
     void update_mouse_hints();
     void set_mouse_mode(Mouse_mode_enum m);
     Mouse_mode_enum get_mouse_mode() const { return mode; }
-    void add_peak(fp height, fp ctr, fp hwhm);
-    void change_peak_parameters(const std::vector<fp> &peak_hcw);
 
 private:
     Mouse_mode_enum mode, basic_mode;
@@ -152,7 +150,7 @@ private:
     bool rect_zoom (Mouse_act_enum ma, wxMouseEvent &event = dummy_mouse_event);
     void draw_rect (int X1, int Y1, int X2, int Y2);
     bool has_mod_keys(const wxMouseEvent& event); 
-    void add_peak_in_range(fp xmin, fp xmax);
+    void change_peak_parameters(const std::vector<fp> &peak_hcw);
     bool visible_peaktops(Mouse_mode_enum mode);
 
     DECLARE_EVENT_TABLE()

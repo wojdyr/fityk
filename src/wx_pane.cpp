@@ -27,10 +27,7 @@ RCSID ("$Id$")
 using namespace std;
 
 enum { 
-    ID_WINDOW_TOP1      = 47001,
-    ID_WINDOW_TOP2             ,
-    ID_WINDOW_BOTTOM           ,
-    ID_COMBO                   ,
+    ID_COMBO            = 47001,
     ID_OUTPUT_TEXT             ,
 
     ID_OUTPUT_C_BG             ,
@@ -43,60 +40,6 @@ enum {
     ID_OUTPUT_P_CLEAR          
 };
 
-
-
-/* TODO!
-void MainPane::OnKeyDown (wxKeyEvent& event)
-{
-    if (event.GetKeyCode() == WXK_ESCAPE) {
-        if (plot) plot->cancel_mouse_press(); 
-        if (diff_plot) diff_plot->cancel_mouse_left_press();
-    }
-    else if (event.GetKeyCode() == ' ' || event.GetKeyCode() == WXK_TAB) {
-        //TODO! frame->get_input_combo()->SetFocus();
-    }
-    else
-        event.Skip();
-}
-
-
-void MainPane::save_settings(wxConfigBase *cf)
-{
-    TODO!
-    cf->SetPath ("/MainPanel");
-    cf->Write ("PlotWinHeight", plot_window->GetClientSize().GetHeight()); 
-    cf->Write ("AuxWinHeight", aux_window->GetClientSize().GetHeight()); 
-    cf->Write ("BotWinHeight", bottom_window->GetClientSize().GetHeight()); 
-    main_plot->save_settings(cf);
-    diff_plot->save_settings(cf);
-    output_win->save_settings(cf);
-}
-
-void MainPane::read_settings(wxConfigBase *cf)
-{
-    TODO!
-    cf->SetPath ("/MainPanel");
-    int plot_height = cf->Read("PlotWinHeight", 200);
-    if (plot_window) plot_window->SetDefaultSize (wxSize(-1, plot_height));
-    int aux_height = cf->Read("AuxWinHeight", 70);
-    if (aux_window) aux_window->SetDefaultSize(wxSize(-1, aux_height));
-    int bot_height = cf->Read ("BotWinHeight", 100);
-    if (bottom_window) bottom_window->SetDefaultSize(wxSize(-1, bot_height));
-    main_plot->read_settings(cf);
-    diff_plot->read_settings(cf);
-    output_win->read_settings(cf);
-}
-
-void MainPane::set_mouse_mode(Mouse_mode_enum m) 
-{ 
-        //TODO! plot->set_mouse_mode(m); 
-}
-
-void MainPane::update_mouse_hints() 
-{ 
-        //TODO! plot->update_mouse_hints();
-}
-*/
 
 //===============================================================
 //                            PlotPane
@@ -127,7 +70,9 @@ string PlotPane::zoom_backward(int n)
     if (n < 1 || zoom_hist.empty()) return "";
     int pos = zoom_hist.size() - n;
     if (pos < 0) pos = 0;
-    return zoom_hist[pos];
+    string val = zoom_hist[pos];
+    zoom_hist.erase(zoom_hist.begin() + pos, zoom_hist.end());
+    return val;
 }
 
 void PlotPane::save_settings(wxConfigBase *cf) const
@@ -151,6 +96,23 @@ void PlotPane::refresh_plots(bool update)
     diff_plot->Refresh(false);
     if (update) diff_plot->Update();
 }
+
+void PlotPane::set_mouse_mode(Mouse_mode_enum m) 
+{ 
+    plot->set_mouse_mode(m); 
+}
+
+void PlotPane::update_mouse_hints() 
+{ 
+    plot->update_mouse_hints();
+}
+
+bool PlotPane::is_background_white() 
+{ 
+    return plot->get_bg_color() == *wxWHITE 
+        && diff_plot->get_bg_color() == *wxWHITE;
+}
+
 
 //===============================================================
 //                            IOPane
@@ -342,7 +304,8 @@ void Output_win::OnRightDown (wxMouseEvent& event)
 void Output_win::OnKeyDown (wxKeyEvent& event)
 {
     if (event.GetKeyCode() == ' ' || event.GetKeyCode() == WXK_TAB) {
-        //TODO! frame->get_input_combo()->SetFocus();
+        IOPane *parent = static_cast<IOPane*>(GetParent()); //to not use RTTI
+        parent->focus_input();
     }
     else
         event.Skip();
@@ -378,8 +341,10 @@ void FCombo::OnKeyDown (wxKeyEvent& event)
         //displaying and executing command
         exec_command (s);
     }
-    else if (event.m_keyCode == WXK_TAB)
-        event.Skip();//TODO! output_win->SetFocus();
+    else if (event.m_keyCode == WXK_TAB) {
+        IOPane *parent = static_cast<IOPane*>(GetParent()); //to not use RTTI
+        parent->focus_output();
+    }
     else
         event.Skip();
 }
