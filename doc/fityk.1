@@ -1,0 +1,61 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH FITYK 1 "September 3, 2004" 
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+fityk \- non-linear curve fitting and data analysis
+.SH SYNOPSIS
+.B fityk
+.br
+.B cfityk
+.SH DESCRIPTION
+This manpage documents briefly the 
+.B fityk
+and 
+.B cfityk
+programs, flexible and portable program for nonlinear fitting of analytical
+functions (especially peak-shaped) to data (usually experimental data). In
+other words, for nonlinear peak separation and analysis.
+.br
+It was developed for analyzing diffraction patterns, but can be also used in
+other fields, since concepts and operations specific for crystallography are
+separated from the rest of the program.
+.br
+Fityk offers various nonlinear fitting methods, subtracting background,
+calibrating data, easy placement of peaks and changing peak parameters,
+automation of common tasks with scripts, and much more. The main advantage
+of the program is a flexibility - parameters of peaks can be arbitrarily
+binded with each other, eg. width of peak can be an independent variable,
+can be the same as width of other peak or can be given by complicated -
+common for all peaks - formula.
+.br
+The program comes in two versions: 
+.B fityk
+, the GUI version and 
+.B cfityk
+, the command line version.
+.br
+A user manual for 
+.B fityk
+and
+.B cfityk
+can be found in /usr/share/doc/fityk/fitykhelp.html.
+.PP
+.SH OPTIONS
+This program requires no options.
+.SH AUTHOR
+This manual page was written by Carlo Segre <segre@iit.edu>,
+for the Debian GNU/Linux system (but may be used by others).
