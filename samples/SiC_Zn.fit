@@ -1,0 +1,46 @@
+## this script is an example of crystallography/diffraction module usage  
+
+ d.load 'SiC_Zn.dat' # Load data file from current directory (SiC+Zn data)
+
+ #background was obtained by clicking on plot in "background mode"
+ d.background  20.4823 43.3474 , 28.004 24.3128 , 31.4412 23.6984 , 33.7911 36.0138 , 38.6477 30.5403 , 98.9835 23.6079 , 98.9835 23.6079 , 79.5965 22.1979 , 65.1888 17.968 , 49.9335 17.263
+
+ d.range [ 31 : ] # only data with 2theta greater then 31.0 are active
+
+ #Used wavelength in known and we do not want to fit it.
+ # If you would like to fit wavelength, replace '_' with '~'
+ c.w _1.54051 # Cu Ka1
+
+ c.set peak-type = Mod-TCHpV 
+
+ #define phases and initial lattice parameters
+ c.add %c ~4.35  #SiC, %0
+ c.add %h ~2.66  ~4.92  #Zn, %1
+
+ #defining some peaks (order does not matter)
+ c.add %0 (220) # (220) plane of SiC phase
+ c.add %1 (002) # (002) plane of Zn phase
+ c.add %0 (111)
+ c.add %1 (100), %1 (101) # do you remember how comma(,) works?
+ c.a %1 (102) # every command can be shortened with x.x (letter-dot-letter)
+
+ #after adding a few peaks, it can be a good idea to fit it, to obtain
+ #better approximation of lattice parameters
+ #f.run 10 
+
+ # the rest of peaks
+ c.add %1 (103), %1(110), %1(112), %1(200), %1(201), %1(202)
+ c.add %0 (311)
+
+ s.add <x ~0 #zero-shift
+
+ f.run #running default fitting method (Lev-Mar)
+       #'lambda' that you can see in output window is a parameter used by
+       # fitting method, not wavelength.
+
+ c.info # see refined lattice parameters
+ 
+ # if you want to zoom, the easiest way is to use left button on auxiliary
+ # plot (this plot with difference). To zoom out, use middle button.
+ # To see individual peaks, select Show->Peaks from pop-up menu.
+

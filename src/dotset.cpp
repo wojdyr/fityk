@@ -6,6 +6,7 @@ RCSID ("$Id$")
 #include "dotset.h"
 #include <string.h>
 #include <ctype.h>
+#include <algorithm>
 
 using namespace std;
 
