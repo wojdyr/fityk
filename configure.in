@@ -3,7 +3,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/fzgbase.h)
 AC_CONFIG_AUX_DIR(config)
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(fityk, 0.3.3)
+AM_INIT_AUTOMAKE(fityk, 0.3.4)
 AM_MAINTAINER_MODE
 
 dnl What versions of program are to be made 
