@@ -1075,7 +1075,7 @@ void MainPlot::move_peak (Mouse_act_enum ma, wxMouseEvent &event)
     static bool c_height, c_center, c_hwhm, c_shape; //changable 
     static const V_f *p = 0;
     static const f_names_type *ft = 0;
-    static wxCursor old_cursor = wxCURSOR_NONE;
+    static wxCursor old_cursor = wxNullCursor;
     if (ma != mat_start) {
         if (!started) return;
         draw_peak_draft(x2X(center - my_sum->zero_shift(center)), 
@@ -1132,9 +1132,9 @@ void MainPlot::move_peak (Mouse_act_enum ma, wxMouseEvent &event)
             //no break
         case mat_cancel:
             started = false;
-            if (old_cursor != wxCURSOR_NONE) {
+            if (old_cursor.Ok()) {
                 SetCursor(old_cursor);
-                old_cursor = wxCURSOR_NONE;
+                old_cursor = wxNullCursor;
             }
             break;
         default: assert(0);

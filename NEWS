@@ -1,3 +1,7 @@
+User-visible changes in version 0.4.4:
+
+* info about wxWidgets version in About box and --version switch for fityk-GUI. 
+
 User-visible changes in version 0.4.3:
 
 * wxWidgets 2.5 compatible

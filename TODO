@@ -1,7 +1,5 @@
 [Suggestions from Fityk users survey are not included here yet.]
 
-* wxWidgets version in About box
-
 * data viewer (grid); 
 
 * problem: fityk can't be compiled with UNICODE-enabled wxWidgets
@@ -28,6 +26,8 @@
 * (GUI) in input ComboBox up/down arrow keys should work like 
   in bash -- moving in command history. (use TextCtrl instead of ComboBox)
 
+* logarithmic scale  
+
 * More visible toolbar icons (icons 5-9 from left must be changed).
   Perhaps bigger (24x24) icons should be used?
 
@@ -37,7 +37,7 @@
 * loading data -- use Difdaf library (when it will be ready) for powder
   diffraction data import.
 
-* (loading data) -- merging a few file
+* (loading data) -- merging a few files
   rewrite loading ASCII data 
   change order of arguments in syntax of d.load command 
 
@@ -102,7 +102,8 @@
   error distribution.
 
 * f.info -- more informations about error, confidence limits, etc.
-  graphical interface to f.info; easy way to get parameters with errors
+  graphical interface to f.info; 
+  easy way to get (write to file) parameters with errors [IMPORTANT]
 
 * Now only '.' is supported as a decimal separator. ',' should also
   be an option.

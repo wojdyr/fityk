@@ -1,3 +1,4 @@
+# Fityk 0.4.3
 ## this script is an example of crystallography/diffraction module usage  
 
  d.load 'SiC_Zn.dat' # Load data file from current directory (SiC+Zn data)

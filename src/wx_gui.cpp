@@ -87,14 +87,14 @@ char* about_html =
 "<html> <body bgcolor=white text=white>                                  "
 "  <table cellspacing=3 cellpadding=4 width=100%>                        "
 "   <tr bgcolor=#101010 align=center> <td>                               "
-"      <h1> fityk </h1>                                                  "
-"      <h3> ver. " VERSION "</h3>                                        "
-"      <h6> $Date$</h6>                            "
+"      <h1> fityk " VERSION "</h1>                                       "
+"      <h6> powered by " wxVERSION_STRING "</h6>                         "
+"      <p><font size=-2>$Date$</font></p>          "
 "   </td> </tr>                                                          "
 "   <tr> <td bgcolor=#73A183>                                            "
 "     <font color=black>                                                 "
 "      <b><font size=+1> <p align = center>                              "
-"       Copyright (C) 2001 - 2004 Marcin Wojdyr                          "
+"       Copyright (C) 2001 - 2005 Marcin Wojdyr                          "
 "      </font></b><p>                                                    "
 "      <font size=-1>                                                    "
 "       This program is free software; you can redistribute it           "
@@ -215,6 +215,8 @@ static const wxCmdLineEntryDesc cmdLineDesc[] = {
     { wxCMD_LINE_SWITCH, "q", "quiet",   "be quiet", wxCMD_LINE_VAL_NONE, 0 },
     { wxCMD_LINE_OPTION, "o", "output", "output file", wxCMD_LINE_VAL_NONE, 0 },
     */
+    { wxCMD_LINE_SWITCH, "V", "version", 
+              "output version information and exit", wxCMD_LINE_VAL_NONE, 0 },
     { wxCMD_LINE_OPTION, "c", "cmd", "script passed in as string", 
                                                    wxCMD_LINE_VAL_STRING, 0 },
     { wxCMD_LINE_PARAM,  0, 0, "script or data file", wxCMD_LINE_VAL_STRING, 
@@ -232,8 +234,12 @@ bool FApp::OnInit(void)
     wxCmdLineParser cmdLineParser(cmdLineDesc, argc, argv);
     if (cmdLineParser.Parse(false) != 0) {
         cmdLineParser.Usage();
-        return false;
+        return false; //false = exit the application
     }
+    else if (cmdLineParser.Found("V")) {
+        wxMessageOutput::Get()->Printf("fityk version " VERSION "\n");
+        return false; //false = exit the application
+    } //the rest of options will be processed in process_argv()
 
     AL = new ApplicationLogic; 
 
@@ -248,7 +254,7 @@ bool FApp::OnInit(void)
     alt_conf_filename = pre + "alt-config";
     wxConfigBase *config = new wxConfig("", "", pre+"wxoptions", "", 
                                         wxCONFIG_USE_LOCAL_FILE);
-    wxConfig::Set (config);
+    wxConfig::Set(config);
 
     // Create the main frame window
     frame = new FFrame(NULL, -1, app_name, wxDEFAULT_FRAME_STYLE);
@@ -782,13 +788,13 @@ void FFrame::set_menubar()
     session_menu->Append (ID_O_WAIT,    "&Wait", "Just wait (rather useless)");
     session_menu->AppendSeparator();
     session_menu->Append (ID_O_SET,     "&Settings", "Preferences and options");
+    session_menu->AppendSeparator();
+    session_menu->Append(ID_QUIT, "&Quit", "Exit the program");
 
     wxMenu *help_menu = new wxMenu;
     help_menu->Append(ID_H_MANUAL, "&Manual", "User's Manual");
     help_menu->Append(ID_H_TIP, "&Tip of the day", "Show tip of the day");
     help_menu->Append(wxID_ABOUT, "&About...", "Show about dialog");
-    //help_menu->AppendSeparator();
-    //help_menu->Append(ID_QUIT, "&Exit", "Exit the program");
 
     wxMenuBar *menu_bar = new wxMenuBar(wxMENU_TEAROFF);
     menu_bar->Append (session_menu, "S&ession" );
