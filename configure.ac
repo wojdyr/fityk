@@ -44,6 +44,11 @@ AC_ARG_WITH(readline,
   --with-readline=PATH    Specify the location of readline])
 test -z "$with_readline" && with_readline="yes"  
 
+dnl don't run make in docs/
+AC_ARG_WITH(doc,
+	    [  --without-doc           do not build and install documentation]) 
+test -z "$with_doc" && with_doc="yes"  
+
 AM_OPTIONS_WXCONFIG
 
 dnl both CLI and GUI can't be disabled.
@@ -135,10 +140,16 @@ if test "$enable_CLI" != "no"; then
       [You don't have an unistd.h header, that is required to build cfityk.])])
 fi
 
+if test "$with_doc" != "no"; then
+    DOC=doc
+else
+    DOC=
+fi
 
 AC_SUBST(FITYK)
 AC_SUBST(CFITYK)
 AC_SUBST(WX_LIBS_DS) 
+AC_SUBST(DOC)
 
 
 dnl Checks for typedefs, structures, and compiler characteristics.
