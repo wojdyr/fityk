@@ -70,10 +70,7 @@
     <ulink url="http://www.unipress.waw.pl/~wojdyr/fityk">
      http://www.unipress.waw.pl/~wojdyr/fityk
     </ulink>.
-    To contact author, visit the same page or send e-mail to Marcin
-    Wojdyr <email>wojdyr@if.pw.edu.pl</email>. Remember that 
-    <application>fityk</application> is in early development stage. 
-    It probably has a lot of bugs, and is lacking some features. 
+    To contact author, visit the same page. 
    </para> 
   </section>
   <section>
@@ -1697,7 +1694,7 @@
     </cmdsynopsis>
     The second is just a dot (.), and it remains appropriate range not changed.
     It will be explained on examples:
-    <simplelist type="vert">
+    <simplelist type="vert"> <!-- TODO fix pdf problem -->
      <member> <userinput>o.plot [20.4:50] [10:20]</userinput> 
       - plot will show x from 20.4 to 50 and y from 10 to 20
      </member>

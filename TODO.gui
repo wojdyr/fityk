@@ -1,6 +1,9 @@
 ===  new/not tested  ===
 
 ======  TODO  =======
+!Problem with locales, that have different LC_NUMERIC
+problem with UNICODE-enabled wxWindows
+
 arbitrary number of auxiliary windows 
 background toolbar -> "plot with(out) background" button should be toggled
                        by "o.plot +/-" command, etc.
