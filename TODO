@@ -1,7 +1,9 @@
 [Suggestions from Fityk users survey are not included here yet.]
 
-* problem: "exit" command in script. What should it do? 
-  The same about warning/error, when 'exit-on-error=1' is set
+* move auto_plot variable from common.cpp to ui.cpp
+
+* "File" menu should be replaced with "Session". Some items can be moved
+  to "GUI". 
 
 * new command line options: -d and --data that will load data file
   Perhaps 'fityk nacl01.dat' should also load data file?
@@ -14,9 +16,6 @@
 * document s.guess command 
 
 * problem: fityk can't be compiled with UNICODE-enabled wxWidgets
-
-* problem: problem with locales, that has decimal point different than '.' 
-  as a workaround, run:  bash$ LC_NUMERIC=en_US fityk
 
 * automate (as possible) procedure of releasing new version. 
   Write a good portable .spec (spec is used for building RPM)
@@ -109,5 +108,8 @@
   graphical interface to f.info
 
 * problem: when gnuplot is not available, cfityk abort exits in some situations
+
+* Now only '.' is supported as a decimal separator. ',' should also
+  be an option.
 
 

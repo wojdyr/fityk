@@ -176,7 +176,7 @@ exp:  SET DASH_STRING EQ_STRING SEP {
     | S_HISTORY '*' opt_uint SEP  { AL->pars()->toggle_history_item_saved($3); }
     | S_HISTORY uint_slashes SEP   { mesg (AL->pars()->history_diff (ivec)); }
     | S_INFO a_num SEP             { mesg (AL->pars()->info_a ($2)); }
-    | S_INFO fzg_num SEP           { mesg (my_sum->info_fzg ($2.fzg, $2.i)); }
+    | S_INFO fzg_num SEP       { mesg (my_sum->info_fzg ($2.fzg, $2.i, true)); }
     | S_INFO '$' SEP               { mesg (V_fzg::print_type_info (gType, 0)); }
     | S_INFO '^' SEP               { mesg (V_fzg::print_type_info (fType, 0)); }
     | S_INFO '<' SEP               { mesg (V_fzg::print_type_info (zType, 0)); }

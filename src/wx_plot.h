@@ -97,6 +97,7 @@ public:
     void OnLeaveWindow (wxMouseEvent& event);
     void OnMouseMove(wxMouseEvent &event);
     void OnButtonDown (wxMouseEvent &event);
+    void OnLeftDClick (wxMouseEvent& WXUNUSED(event)) { PeakInfo(); }
     void OnButtonUp (wxMouseEvent &event);
     void OnKeyDown (wxKeyEvent& event);
     void OnSize (wxSizeEvent& event);
@@ -108,7 +109,8 @@ public:
     void OnInvertColors (wxCommandEvent& event);
     void OnPopupRadius (wxCommandEvent& event);
     void OnZoomAll (wxCommandEvent& event);
-    void OnPeakInfo (wxCommandEvent& event);
+    void PeakInfo ();
+    void OnPeakInfo (wxCommandEvent& WXUNUSED(event)) { PeakInfo(); }
     void OnPeakDelete (wxCommandEvent& event);
     void OnPeakShowTree (wxCommandEvent& event);
     void OnPeakGuess(wxCommandEvent &event);
@@ -145,7 +147,6 @@ private:
     void draw_peaktops (wxDC& dc);
     void prepare_peaktops();
     void look_for_peaktop (wxMouseEvent& event);
-    void show_peak_info (int n);
     void show_popup_menu (wxMouseEvent &event);
     void show_peak_menu (wxMouseEvent &event);
     void peak_draft (Mouse_act_enum ma, wxMouseEvent &event =dummy_mouse_event);

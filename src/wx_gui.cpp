@@ -33,6 +33,7 @@ RCSID ("$Id$")
 #include <wx/image.h>
 #include <wx/config.h>
 #include <algorithm>
+#include <locale.h>
 
 #include "wx_plot.h"
 #include "wx_gui.h"
@@ -223,6 +224,8 @@ string get_full_path_of_help_file (const string &name);
 
 bool FApp::OnInit(void)
 {
+    setlocale(LC_NUMERIC, "C");
+
     AL = new ApplicationLogic; 
 
     //Parsing command line

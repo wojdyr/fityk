@@ -56,7 +56,7 @@ public:
     int fzg_size (One_of_fzg fzg) const;
     int add_fzg (One_of_fzg fzg, char type, const std::vector<Pag> &p,
                  const std::string &desc = "");
-    std::string info_fzg (One_of_fzg fzg, int n) const;
+    std::string info_fzg (One_of_fzg fzg, int n, bool extra=false) const;
     std::string info_fzg_parameters(One_of_fzg fzg, int n, bool only_val) const;
     int rm_fzg (One_of_fzg fzg, int n, bool silent = false);
     int multi_rm_fzg (One_of_fzg fzg, std::vector<int> nn, bool silent = false);

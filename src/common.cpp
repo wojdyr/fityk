@@ -10,7 +10,7 @@ RCSID ("$Id$")
 using namespace std;
 
 char auto_plot = 2;
-int smooth_limit = 0;
+int smooth_limit = 0; //TODO use it in GUI version
 volatile bool user_interrupt = false;
 const vector<fp> fp_v0; //just empty vector
 const vector<int> int_v0; //just empty vector

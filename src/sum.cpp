@@ -535,10 +535,10 @@ Pag Sum::add_g (char type, const vector<Pag> &p, const string &desc)
         return Pag ((V_g*)0, n); 
 }
 
+// return something like:  
+// [@19=861.501 $53=43.1904 $62=0.193862 $64=1.09655] 
 string Sum::info_fzg_parameters (One_of_fzg fzg, int n, bool only_val) const
 {
-    // return something like:  
-    // [@19=861.501 $53=43.1904 $62=0.193862 $64=1.09655] 
     assert (n >= 0 && n < fzg_size(fzg));
     const V_fzg *p = get_fzg (fzg, n);
     string s = "[";
@@ -557,7 +557,9 @@ string Sum::info_fzg_parameters (One_of_fzg fzg, int n, bool only_val) const
     return s + "]";
 }
 
-string Sum::info_fzg (One_of_fzg fzg, int n) const
+// return something like eg.:  
+// ^0: Gaussian [@0=66424 @1=24.7118 @2=0.11605]  
+string Sum::info_fzg (One_of_fzg fzg, int n, bool extra) const
 {
     if (n == -1){ // info about all 
         string s;
@@ -575,6 +577,8 @@ string Sum::info_fzg (One_of_fzg fzg, int n) const
     string refs = descr_refs_to_fzg (fzg, n);
     if (!refs.empty())
         s += " (used by: " + refs + ")"; 
+    if (extra && fzg == fType)
+        s += "   " + fvec[n]->extra_description();
     return s;
 }
 

@@ -1,13 +1,6 @@
 
 For compilation instructions read file INSTALL. 
 
-Recent (second half of 2002) popular linux distributions have default encoding
-set to UTF-8.  In case of problems with fonts just change encoding.
-
-If your system uses comma(,) as a decimal point, run fityk in this way:
-bash$ LC_NUMERIC=en_US fityk 
-This problem will be fixed later.
-
 If anything doesn't work as expected, contact fityk-users mailing list
 or author. See fityk.sf.net for details.
 

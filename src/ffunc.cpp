@@ -44,13 +44,16 @@ void V_f::get_range (fp /*level*/) //default
 string V_f::extra_description() const
 {
     string s;
-    fp a = area(), h = height(), c = center(), fw = fwhm(), beta = 0;
+    fp a = area(), h = height(), c = center(), fw = fwhm();
     if (a)   s += " Area:" + S(a);
     if (h) s += " H:"    + S(h);
     if (c) s += " Ctr:"  + S(c);
     if (fw)   s += " FWHM:" + S(fw);
-    if (a && h) s += " Integr.breadth(beta):" + S(beta = a / h);
-    if (fw && beta) s += " shape(FWHM/beta):" + S(fw / beta);
+    if (a && h) {
+        fp ib = a / h;
+        s += " IB:" + S(ib); //integral breadth
+        if (fw && ib) s += " FWHM/IB:" + S(fw / ib); //shape
+    }
     return s;
 }
 

@@ -14,6 +14,7 @@ RCSID ("$Id$")
 #include <ctype.h>
 #include <unistd.h>
 #include <signal.h>
+#include <locale.h>
 #ifndef NO_READLINE
 #    include <readline/readline.h>
 #    include <readline/history.h>
@@ -274,7 +275,7 @@ bool main_loop()
     rl_readline_name = "fit";
     rl_attempted_completion_function = my_completion;
 
-    HistoryManager hm();//it takes care about reading/saving readline history
+    HistoryManager hm;//it takes care about reading/saving readline history
 
     //the main loop -- reading input and executing commands
     for (;;)
@@ -287,7 +288,7 @@ bool main_loop()
 }
 
 
-#else //NO_READLINE 
+#else //if NO_READLINE 
 
 // the simplest version of user interface -- when readline is not available
 bool main_loop()
@@ -316,6 +317,7 @@ void interrupt_handler (int /*signum*/)
 
 int main (int argc, char **argv)
 {
+    setlocale(LC_NUMERIC, "C");
     // setting ^C handler
     if (signal (SIGINT, interrupt_handler) == SIG_IGN) 
         signal (SIGINT, SIG_IGN);

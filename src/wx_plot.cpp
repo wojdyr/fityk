@@ -161,6 +161,7 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_LEFT_DOWN (       MainPlot::OnButtonDown)
     EVT_RIGHT_DOWN (      MainPlot::OnButtonDown)
     EVT_MIDDLE_DOWN (     MainPlot::OnButtonDown)
+    EVT_LEFT_DCLICK (     MainPlot::OnLeftDClick)
     EVT_LEFT_UP   (       MainPlot::OnButtonUp)
     EVT_RIGHT_UP (        MainPlot::OnButtonUp)
     EVT_MIDDLE_UP (       MainPlot::OnButtonUp)
@@ -556,10 +557,6 @@ void MainPlot::prepare_peaktops()
     }
 }
 
-void MainPlot::show_peak_info (int n)
-{
-    exec_command ("s.info ^" + S(n));
-}
 
 void MainPlot::draw_background_points (wxDC& dc)
 {
@@ -753,7 +750,7 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
     PopupMenu (&peak_menu, event.GetX(), event.GetY());
 }
 
-void MainPlot::OnPeakInfo(wxCommandEvent &WXUNUSED(event))
+void MainPlot::PeakInfo()
 {
     if (over_peak >= 0)
         exec_command("s.info ^" + S(over_peak));
@@ -997,6 +994,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     }
     update_mouse_hints();
 }
+
 
 void MainPlot::OnButtonUp (wxMouseEvent &event)
 {
