@@ -1,6 +1,9 @@
 
 * (WWW) update screenshots 
 
+* bug: printing - warning about non-white background is shown 
+  when it should not be.
+
 * there are problems with refreshing plots and output window when program
   is busy (ie. when running script or fitting). It seems to be platform
   dependent.

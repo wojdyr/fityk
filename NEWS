@@ -1,4 +1,4 @@
-User-visible changes in version 0.4.4:
+User-visible changes in version 0.4.4 (2005-03-04):
 
 * fixed Pseudo-Voigt formula in manual (program was not changed) (David Hovis)
 * peak labels (above each peak) that can display peak area, position etc.
