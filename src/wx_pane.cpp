@@ -26,7 +26,7 @@ RCSID ("$Id$")
 using namespace std;
 
 enum { 
-    ID_COMBO            = 47001,
+    ID_COMBO            = 27001,
     ID_OUTPUT_TEXT             ,
 
     ID_OUTPUT_C_BG             ,

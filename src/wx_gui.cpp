@@ -114,13 +114,13 @@ FFrame *frame = NULL;
 std::vector<fp> params4plot;  //TODO move it to MainPlot or other class
 
 enum {
-    ID_QUIT             = 44001,
+    ID_QUIT            = 24001 ,
     ID_H_MANUAL                ,
     ID_H_TIP                   ,
     ID_D_LOAD                  ,
     ID_D_XLOAD                 ,
-    ID_D_RECENT         = 44010, //and next ones
-    ID_D_INFO           = 44130,
+    ID_D_RECENT        = 24010 , //and next ones
+    ID_D_INFO          = 24130 ,
     ID_D_DEVIATION             ,
     ID_D_RANGE                 ,
     ID_D_B_INFO                ,
@@ -144,8 +144,8 @@ enum {
     ID_F_CONTINUE              ,
     ID_F_INFO                  ,
     ID_F_SET                   ,
-    ID_F_M             = 44160 , // and a few next IDs
-    ID_C_WAVELENGTH    = 44171 ,
+    ID_F_M             = 24160 , // and a few next IDs
+    ID_C_WAVELENGTH    = 24171 ,
     ID_C_ADD                   ,
     ID_C_INFO                  ,
     ID_C_REMOVE                ,
@@ -167,8 +167,8 @@ enum {
     ID_G_M_BG                  ,
     ID_G_M_ADD                 ,
     ID_G_M_PEAK                ,
-    ID_G_M_PEAK_N      = 44220 ,
-    ID_G_SHOW          = 44260 ,
+    ID_G_M_PEAK_N      = 24220 ,
+    ID_G_SHOW          = 24260 ,
     ID_G_S_TOOLBAR             ,
     ID_G_S_STATBAR             ,
     ID_G_S_DPANE               ,
@@ -180,8 +180,8 @@ enum {
     ID_G_V_VERT                ,
     ID_G_V_SCROLL_L            ,
     ID_G_V_SCROLL_R            ,
-    ID_G_V_ZOOM_PREV   = 44302 ,
-    ID_G_LCONF1        = 44342 ,
+    ID_G_V_ZOOM_PREV   = 24302 ,
+    ID_G_LCONF1        = 24342 ,
     ID_G_LCONF2                ,
     ID_G_LCONFB                ,
     ID_G_SCONF                 ,

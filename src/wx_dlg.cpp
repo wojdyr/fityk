@@ -34,13 +34,13 @@ using namespace std;
 
 
 enum {
-    ID_BRO_TREE             = 46100,
+    ID_BRO_TREE             = 26100,
     ID_BRO_A_WHAT                  ,
     ID_BRO_A_TYPE                  ,
     ID_BRO_A_ADD                   ,
-    ID_BRO_A_NRB            = 46110, // and next 10
-    ID_BRO_A_TPC            = 46125, // and next 2
-    ID_BRO_A_NTC            = 46130,
+    ID_BRO_A_NRB            = 26110, // and next 10
+    ID_BRO_A_TPC            = 26125, // and next 2
+    ID_BRO_A_NTC            = 26130,
     ID_BRO_C_LL                    ,
     ID_BRO_C_L                     ,
     ID_BRO_C_R                     ,
@@ -78,7 +78,7 @@ enum {
     ID_SHIST_DOWN                  ,
     ID_SHIST_TSAV                  ,
     ID_SHIST_CWSSR                 ,
-    ID_SHIST_V              = 46300 // and next 2
+    ID_SHIST_V              = 26300 // and next 2
 };
 
 //======================== FuncBrowserDlg ===========================
