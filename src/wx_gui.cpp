@@ -121,6 +121,7 @@ enum {
     ID_D_XLOAD                 ,
     ID_D_RECENT        = 24010 , //and next ones
     ID_D_INFO          = 24130 ,
+    ID_D_EDITOR                ,
     ID_D_DEVIATION             ,
     ID_D_RANGE                 ,
     ID_D_B_INFO                ,
@@ -363,6 +364,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_D_LOAD,        FFrame::OnDLoad)   
     EVT_MENU (ID_D_XLOAD,       FFrame::OnDXLoad)   
     EVT_MENU_RANGE (ID_D_RECENT+1, ID_D_RECENT+100, FFrame::OnDRecent)
+    EVT_MENU (ID_D_EDITOR,      FFrame::OnDEditor)
     EVT_MENU (ID_D_INFO,        FFrame::OnDInfo)
     EVT_MENU (ID_D_DEVIATION  , FFrame::OnDDeviation)  
     EVT_MENU (ID_D_RANGE,       FFrame::OnDRange)
@@ -452,7 +454,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
                  const long style)
     : wxFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, style), 
       main_pane(0), data_pane(0), status_bar(0), 
-      peak_type_nr(0), toolbar(0), dxload_dialog(0), 
+      peak_type_nr(0), toolbar(0), dxload_dialog(0), data_editor(0),
       print_data(new wxPrintData), page_setup_data(new wxPageSetupData),
 #ifdef __WXMSW__
       help()
@@ -642,6 +644,7 @@ void FFrame::set_menubar()
     data_menu->Append(ID_D_RECENT, "Recent &Files", data_menu_recent); 
     data_menu->AppendSeparator();
 
+    data_menu->Append (ID_D_EDITOR,   "&Viewer", "Open data viewer");
     data_menu->Append (ID_D_INFO,     "&Info", "Info about loaded data");
     data_menu->Append (ID_D_DEVIATION  , "Std. &Dev.", 
                                             "Change errors for data points");
@@ -934,6 +937,17 @@ void FFrame::OnDRecent (wxCommandEvent& event)
     wxString s = GetMenuBar()->GetHelpString(event.GetId());
     exec_command (("d.load '" + s + "'").c_str());
     add_recent_data_file(s);
+}
+
+void FFrame::OnDEditor (wxCommandEvent& WXUNUSED(event))
+{
+    if (!data_editor) {
+        data_editor = new DataEditorDlg(this, -1, my_data);
+        data_editor->Show();
+    }
+    else {
+        data_editor->update_data(my_data);
+    }
 }
 
 void FFrame::OnDInfo (wxCommandEvent& WXUNUSED(event))

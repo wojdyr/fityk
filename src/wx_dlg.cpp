@@ -16,6 +16,7 @@ RCSID ("$Id$")
 #include <wx/valtext.h>
 #include <wx/statline.h>
 #include <wx/bmpbuttn.h>
+#include <wx/grid.h>
 #include "wx_dlg.h"
 #include "wx_common.h"
 #include "data.h"
@@ -78,7 +79,9 @@ enum {
     ID_SHIST_DOWN                  ,
     ID_SHIST_TSAV                  ,
     ID_SHIST_CWSSR                 ,
-    ID_SHIST_V              = 26300 // and next 2
+    ID_SHIST_V              = 26300, // and next 2
+    ID_DE_REVERT            = 26310,
+    ID_DE_GRID                      
 };
 
 //======================== FuncBrowserDlg ===========================
@@ -1498,4 +1501,98 @@ void SumHistoryDlg::OnViewSpinCtrlUpdate (wxSpinEvent& event)
         lc->SetItem (i, 4 + v, S(item.a[view[v]]).c_str());
     }
 }
+
+
+//=====================   data->editor dialog  ==================
+
+class GridTable: public wxGridTableBase
+{
+public:
+    GridTable(Data *data_) : wxGridTableBase(), data(data_) {}
+    int GetNumberRows() { return data->points().size(); }
+    int GetNumberCols() { return 4; }
+    bool IsEmptyCell(int row, int col) { return false; }
+    wxString GetValue(int row, int col) 
+              { return "x"; }
+    void SetValue(int /*row*/, int /*col*/, const wxString& /*value*/) {}
+    wxString GetTypeName(int WXUNUSED(row), int col)
+        { return col == 0 ? wxGRID_VALUE_BOOL : wxGRID_VALUE_FLOAT; }
+    bool CanGetValueAs(int row, int col, const wxString& typeName)
+        { return typeName == wxGRID_VALUE_STRING 
+                || typeName == GetTypeName(row, col); }
+    //bool CanSetValueAs(int row, int col, const wxString& typeName)
+    //    { return false; }
+    double GetValueAsDouble(int row, int col)
+        { const Point &p = data->points()[row]; 
+          return col==1 ? p.x : (col==2 ? p.y : (col==3 ? p.sigma : 0.)); }
+    bool GetValueAsBool(int row, int /*col*/)
+        { return data->points()[row].is_active; }
+    void SetValueAsDouble(int row, int col, double value)
+        {}
+    void SetValueAsBool(int row, int col, bool value)
+        {}
+    wxString GetRowLabelValue(int row) { return S(row).c_str(); }
+    wxString GetColLabelValue(int col) 
+        { return col==0 ? "active" 
+                  : (col==1 ? "x" : (col==2 ? "y" : (col==3 ? "sigma": ""))); }
+private:
+    Data *data;
+};
+
+BEGIN_EVENT_TABLE(DataEditorDlg, wxDialog)
+    EVT_BUTTON      (ID_DE_REVERT,  DataEditorDlg::OnRevert)
+END_EVENT_TABLE()
+
+DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_)
+    : wxDialog(parent, id, "Data Viewer", 
+               wxDefaultPosition, wxDefaultSize, 
+               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
+      data(0)
+{
+    wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
+    vsizer->Add(new wxStaticText(this, -1, "Original filename:"));
+    filename_label = new wxStaticText(this, -1, "");
+    vsizer->Add(filename_label);
+    hsizer->Add(vsizer, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    //hsizer->Add(new wxButton(this, ID_DE_REVERT, "&Revert"),
+    //            0, wxALL, 5);
+    top_sizer->Add(hsizer, 0);
+    top_sizer->Add(new wxStaticText(this, -1, "Data title: "),
+                   0, wxLEFT|wxRIGHT|wxTOP, 5);
+    title_label = new wxStaticText(this, -1, "");
+    top_sizer->Add(title_label, 0, wxLEFT|wxRIGHT|wxBOTTOM, 5);
+    grid = new wxGrid(this, ID_DE_GRID);
+    top_sizer->Add(grid, 1, wxEXPAND);
+
+    top_sizer->Add(new wxButton(this, wxID_CANCEL, "&Close"), 
+                   0, wxALIGN_CENTER|wxALL, 5);
+
+    update_data(data_);
+    grid->SetEditable(false);
+    grid->SetColumnWidth(0, 40);
+    grid->SetRowLabelSize(60);
+
+    SetAutoLayout(true);
+    SetSizer(top_sizer);
+    top_sizer->Fit(this);
+    top_sizer->SetSizeHints(this);
+}
+
+void DataEditorDlg::update_data(Data *data_)
+{
+    data = data_;
+    filename_label->SetLabel(data->get_filename().c_str());
+    title_label->SetLabel(data->get_title().c_str());
+    grid->SetTable(new GridTable(data), true, wxGrid::wxGridSelectRows);
+    grid->ForceRefresh();
+    grid->AdjustScrollbars();
+    Show();
+}
+
+void DataEditorDlg::OnRevert (wxCommandEvent& WXUNUSED(event))
+{
+}
+
 

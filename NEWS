@@ -1,5 +1,6 @@
 User-visible changes in version 0.4.4:
 
+* data viewer (it is first step in implementing data editor)
 * input field: up/down arrow keys work as in bash (wxComboBox was replaced
   by wxTextCtrl)
 * optionally drawing sum and peaks as smooth curves (computed at every pixel)

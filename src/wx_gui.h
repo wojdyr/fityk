@@ -14,6 +14,7 @@
 #  include <wx/msw/helpbest.h>
 #endif
 
+class wxCmdLineParser;
 //struct z_names_type;
 struct f_names_type;
 class ApplicationLogic;
@@ -22,7 +23,7 @@ class PlotPane;
 class IOPane;
 class DataPane;
 class ProportionalSplitter;
-class wxCmdLineParser;
+class DataEditorDlg;
 
 extern std::vector<fp> params4plot;
 
@@ -108,6 +109,7 @@ public:
     void OnDLoad         (wxCommandEvent& event);   
     void OnDXLoad        (wxCommandEvent& event);   
     void OnDRecent       (wxCommandEvent& event);
+    void OnDEditor       (wxCommandEvent& event);
     void OnDInfo         (wxCommandEvent& event);
     void OnDDeviation    (wxCommandEvent& event);
     void OnDRange        (wxCommandEvent& event);
@@ -201,6 +203,7 @@ protected:
     int peak_type_nr;
     FToolBar *toolbar;
     FDXLoadDlg *dxload_dialog;
+    DataEditorDlg *data_editor;
     ProportionalSplitter *v_splitter;
     wxPrintData *print_data;
     wxPageSetupData* page_setup_data;

@@ -12,6 +12,7 @@
 
 class FuncTree;
 struct z_names_type;
+class wxGrid;
 
 struct par_descr_type
 {
@@ -172,6 +173,20 @@ protected:
 
     void initialize_lc();
     void update_selection();
+    DECLARE_EVENT_TABLE()
+};
+
+
+class DataEditorDlg : public wxDialog
+{
+public:
+    DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_);
+    void OnRevert (wxCommandEvent& event);
+    void update_data(Data *data_);
+protected:
+    wxGrid *grid;
+    Data *data;
+    wxStaticText *filename_label, *title_label;
     DECLARE_EVENT_TABLE()
 };
 

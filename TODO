@@ -1,12 +1,10 @@
 [Suggestions from Fityk users survey are not included here yet.]
 
+* WIN32: make output window scroll when there is a new output  
+
 * fix documentation according to DH's suggestions
 
 * default vertical zoom should contain both data points and whole sum
-
-* WIN32: make output window scroll when there is a new output  
-
-* data viewer (grid); 
 
 * problem: fityk can't be compiled with UNICODE-enabled wxWidgets
 
@@ -23,6 +21,10 @@
       d.transform x=y & y=x                  -> will swap x and y axes 
 
 * GUI for d.transform command 
+
+* Data->Revert, datapane - "duplicate" command 
+
+* auto-freezing of peaks at disactivated range
 
 * integrate m.findpeak and s.add options. Prepare interface for many
   peak detection algorithms

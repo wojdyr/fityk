@@ -75,8 +75,8 @@ char Data::guess_file_type (const string& filename)
         return 'd';
 }
 
-int Data::load (string file, int type, 
-                vector<int> col, vector<int> evr, int merge)
+int Data::load_file (string file, int type, 
+                     vector<int> col, vector<int> evr, int merge)
 { 
     if (type == 0) {                  // "detect" file format
         type = guess_file_type(file);

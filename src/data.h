@@ -52,8 +52,8 @@ public :
     void d_was_plotted() { d_was_changed = false; }
     bool was_changed() const { return d_was_changed; }
     std::string getInfo() const;
-    int load (std::string file, int type, 
-              std::vector<int> usn, std::vector<int> evr, int merge);
+    int load_file (std::string file, int type, 
+                   std::vector<int> usn, std::vector<int> evr, int merge);
     char guess_file_type (const std::string& filename);
     fp get_x (int n) const { return p[active_p[n]].x; }
     fp get_y (int n) const { return p[active_p[n]].y; } 

@@ -117,8 +117,8 @@ exp:  SET DASH_STRING EQ_STRING SEP {
     | D_ACTIVATE '*' TWO_COLONS SEP { AL->append_core();}
     | D_ACTIVATE opt_uint_1 TWO_COLONS '*' SEP { AL->append_data($2); }
     | D_LOAD opt_lcase dload_arg FILENAME SEP { 
-                                   my_data->load($4.str(), $2, ivec, ivec2, $3);
-				   my_core->set_view (Rect()); }
+                             my_data->load_file($4.str(), $2, ivec, ivec2, $3);
+			     my_core->set_view (Rect()); }
     | D_RANGE sign range SEP  { my_data->change_range ($3.l, $3.r, $2 == '+'); }
     | D_RANGE range SEP            { 
                                      my_data->change_range (-INF, +INF, false);
