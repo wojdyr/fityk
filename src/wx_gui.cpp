@@ -1879,7 +1879,7 @@ BEGIN_EVENT_TABLE(FStatusBar, wxStatusBar)
 END_EVENT_TABLE()
 
 FStatusBar::FStatusBar(wxWindow *parent)
-        : wxStatusBar(parent, -1)
+        : wxStatusBar(parent, -1), statbmp2(0)
 {
     int widths[sbf_max] = { -1, 100, 100, 120 };
     SetFieldsCount (sbf_max, widths);
@@ -1890,6 +1890,7 @@ FStatusBar::FStatusBar(wxWindow *parent)
 
 void FStatusBar::OnSize(wxSizeEvent& event)
 {
+    if (!statbmp2) return; 
     wxRect rect;
     GetFieldRect(sbf_hint1, rect);
     wxSize size = statbmp1->GetSize();
@@ -1902,7 +1903,7 @@ void FStatusBar::OnSize(wxSizeEvent& event)
 
 void FStatusBar::set_hint(const char *left, const char *right)
 {
-    wxString space = "   ";
+    wxString space = "    "; //TODO more sophisticated solution 
     if (left)  SetStatusText(space + wxString(left),  sbf_hint1);
     if (right) SetStatusText(space + wxString(right), sbf_hint2);
 }
