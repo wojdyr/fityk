@@ -20,7 +20,7 @@
 
 //struct z_names_type;
 struct f_names_type;
-class MainManager;
+class ApplicationLogic;
 class FDXLoadDlg;
 class PlotPane;
 class IOPane;
@@ -38,7 +38,6 @@ public:
     wxString conf_filename, alt_conf_filename;
 
     bool OnInit(void);
-    MainManager *main_manager;
     int OnExit();
 };
 
@@ -156,6 +155,8 @@ public:
     void OnChangePeakType(wxCommandEvent& event);
     void OnGViewAll      (wxCommandEvent& event);
     void OnGFitHeight    (wxCommandEvent& event);
+    void OnGScrollLeft   (wxCommandEvent& event);
+    void OnGScrollRight  (wxCommandEvent& event);
     void OnPreviousZoom  (wxCommandEvent& event);
     void OnConfigRead    (wxCommandEvent& event);
     void OnConfigBuiltin (wxCommandEvent& event);
@@ -174,6 +175,7 @@ public:
     void set_status_hint(const char *left, const char *right);
     void output_text(const wxString& str, Output_style_enum style);
     void change_zoom(const std::string& s);
+    void scroll_view_horizontally(fp step);
     void refresh_plots(bool update=false);
     void focus_input();
 

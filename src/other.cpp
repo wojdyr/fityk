@@ -18,15 +18,17 @@ RCSID ("$Id$")
 using namespace std;
 
 Various_commands *my_other;
+PlotCore *my_core;
+ApplicationLogic *AL;
 
-const fp Various_commands::relative_view_x_margin = 1./20.;
-const fp Various_commands::relative_view_y_margin = 1./20.;
+const fp PlotCore::relative_view_x_margin = 1./20.;
+const fp PlotCore::relative_view_y_margin = 1./20.;
 
 //==================================================================
 
+
 Various_commands::Various_commands() 
-    : view(0, 180, 0, 1e3), plus_background(false),  
-      logging_mode('n'), log_filename(), v_was_changed(false) 
+    : logging_mode('n'), log_filename()
 {
     verbosity_enum [0] = "silent";
     verbosity_enum [1] = "only-warnings";
@@ -140,13 +142,71 @@ bool Various_commands::include_file (std::string name, std::vector<int> lines)
     return fio.start(name.c_str());
 }
 
-std::string Various_commands::view_info() const
+int Various_commands::sleep (int seconds)
+{
+    return my_sleep (seconds);
+}
+
+//==================================================================
+
+PlotCore::PlotCore()
+    : view(0, 180, 0, 1e3), plus_background(false),
+      ds_was_changed(false), v_was_changed(false)
+{
+    sum = new Sum;
+#ifdef USE_XTAL
+    crystal = new Crystal(sum);
+#endif //USE_XTAL
+    activate_data(-1); //and set_my_vars() is called from there
+}
+
+PlotCore::~PlotCore()
+{
+#ifdef USE_XTAL
+    delete crystal;
+#endif //USE_XTAL
+    delete sum;
+    for (vector<Data*>::iterator i = datasets.begin(); i != datasets.end(); i++)
+        delete *i;
+}
+
+bool PlotCore::activate_data(int n)
+{
+    int sel = 0;
+    if (n == -1) {
+        datasets.push_back(new Data);
+        sel = datasets.size() - 1;
+    }
+    else if (n >= 0 && n < size(datasets)) {
+        sel = n;
+    }
+    else {
+        warn("No such datafile in this dataset: " + S(n));
+        return false;
+    }
+
+    if (sel != active_data) {
+        active_data = sel;
+        ds_was_changed = true;
+    }
+    set_my_vars();
+    return true;
+}
+
+void PlotCore::set_my_vars() const
+{
+    my_data = datasets[active_data];//TODO
+    my_sum = sum;
+    my_crystal = crystal;
+}
+
+std::string PlotCore::view_info() const
 { 
     return view.str() + 
         (plus_background ? "\nAdding background while plotting." : "");
 }
 
-void Various_commands::set_view (Rect rt, bool fit)
+void PlotCore::set_view (Rect rt, bool fit)
 {
     v_was_changed = true;
     if (my_data->is_empty()) {
@@ -188,7 +248,7 @@ void Various_commands::set_view (Rect rt, bool fit)
     }
 }
 
-void Various_commands::set_view_y_fit()
+void PlotCore::set_view_y_fit()
 {
     if (my_data->is_empty()) {
         warn ("Can't set view when no points are loaded");
@@ -235,38 +295,76 @@ void Various_commands::set_view_y_fit()
     view.top = y_max + (y_max - y_min) * relative_view_y_margin;;
 }
 
-//==================================================================
 
-void reset_all (bool finito) 
+bool PlotCore::was_changed() const
+{ 
+    for (vector<Data*>::const_iterator i = datasets.begin(); 
+                                                    i != datasets.end(); i++)
+        if ((*i)->was_changed())
+            return true;
+    //if here - no Data changed
+    return v_was_changed || ds_was_changed || sum->was_changed();
+}
+
+void PlotCore::was_plotted() 
+{ 
+    ds_was_changed = false; 
+    v_was_changed = false;
+    for (vector<Data*>::iterator i = datasets.begin(); i != datasets.end(); i++)
+        (*i)->d_was_plotted();
+    sum->s_was_plotted();
+}
+
+vector<string> PlotCore::get_data_titles() const
 {
-#ifdef USE_XTAL
-    delete my_crystal;
-#endif //USE_XTAL
+    vector<string> v;
+    //v.reserve(datasets.size());
+    for (vector<Data*>::const_iterator i = datasets.begin(); 
+                                                    i != datasets.end(); i++)
+        v.push_back((*i)->get_title());
+    return v;
+}
+
+const Data *PlotCore::get_data(int n) const
+{
+    return (n >= 0 && n < size(datasets)) ?  datasets[n] : 0;
+}
+
+void PlotCore::del_data(int n)
+{
+    if (n >= 0 && n < size(datasets)) {
+        if (n == active_data) 
+            active_data = n > 0 ? n-1 : 0;
+        delete datasets[n];
+        datasets.erase(datasets.begin() + n);
+        if (datasets.empty()) //it should not be empty
+            datasets.push_back(new Data);
+        ds_was_changed = true;
+    }
+    else
+        warn("No such dataset number: " + S(n));
+}
+
+//==========================================================================
+
+void ApplicationLogic::reset_all (bool finish) 
+{
     delete my_manipul;
-    delete my_sum;
-    delete my_data;
     delete my_other;
     delete fitMethodsContainer;
-    if (finito)
+    for (vector<PlotCore*>::iterator i = cores.begin(); i != cores.end(); i++)
+        delete *i;
+    cores.clear();
+    if (finish)
         return;
     fitMethodsContainer = new FitMethodsContainer;
     my_other = new Various_commands;
-    my_sum = new Sum;
-    my_datasets = new DataSets; //my_data is set in DataSets ctor
     my_manipul = new Manipul;
-#ifdef USE_XTAL
-    my_crystal = new Crystal(my_sum);
-#endif //USE_XTAL
+    activate_core(-1);
 }
 
-int Various_commands::sleep (int seconds)
-{
-    return my_sleep (seconds);
-}
 
-//==================================================================
-
-void dump_all_as_script (string filename)
+void ApplicationLogic::dump_all_as_script (string filename)
 {
     ofstream os(filename.c_str(), ios::out);
     if (!os) {
@@ -275,6 +373,7 @@ void dump_all_as_script (string filename)
     }
     os << "####### Dump time: " << time_now() << endl;
     os << my_other->set_script('o') << endl;
+    //TODO all datasets, etc
     my_data->export_as_script (os);
     os << endl;
     my_sum->export_as_script (os);
@@ -286,9 +385,66 @@ void dump_all_as_script (string filename)
     fitMethodsContainer->export_methods_settings_as_script(os);
     os << "f.method " << my_fit->symbol <<" ### back to current method\n";
     os << endl;
-    os << "o.plot " << my_other->view.str() << endl;
+    os << "o.plot " << my_core->view.str() << endl;
     os << endl << "####### End of dump " << endl; 
 }
+
+
+bool ApplicationLogic::activate_core(int p)
+{
+    int sel = 0;
+    if (p == -1) {
+        cores.push_back(new PlotCore);
+        sel = cores.size() - 1;
+    }
+    else if (p >= 0 && p < size(cores)) {
+        sel = p;
+    }
+    else {
+        warn("No such plot: " + S(p));
+        return false;
+    }
+
+    if (sel != active_core) {
+        active_core = sel;
+        c_was_changed = true;
+    }
+    my_core = cores[active_core];//TODO
+    my_core->set_my_vars();
+    return true;
+}
+
+bool ApplicationLogic::was_changed() const
+{ 
+    return c_was_changed || get_active_core()->was_changed();
+}
+
+void ApplicationLogic::was_plotted() 
+{ 
+    c_was_changed = false;
+    cores[active_core]->was_plotted();
+}
+
+const PlotCore *ApplicationLogic::get_core(int n) const
+{
+    return (n >= 0 && n < size(cores)) ?  cores[n] : 0;
+}
+
+void ApplicationLogic::del_core(int n)
+{
+    if (n >= 0 && n < size(cores)) {
+        if (n == active_core) 
+            active_core = n > 0 ? n-1 : 0;
+        delete cores[n];
+        cores.erase(cores.begin() + n);
+        if (cores.empty()) //it should not be empty
+            cores.push_back(new PlotCore);
+        c_was_changed = true;
+    }
+    else
+        warn("Not a plot number: " + S(n));
+}
+
 
 //==================================================================
 
@@ -296,41 +452,16 @@ DotSet *
 set_class_p (char c)
 {
     switch (c) {
-        case 'd':
-            return my_data;
-        case 'f':
-            return my_fit;
-        case 's':
-            return my_sum;
-        case 'm':
-            return my_manipul;
+        case 'd': return my_data;
+        case 'f': return my_fit;
+        case 's': return my_sum;
+        case 'm': return my_manipul;
 #ifdef USE_XTAL
-        case 'c':
-            return my_crystal;
+        case 'c': return my_crystal;
 #endif //USE_XTAL
-        case 'o':
-            return my_other;
-        default :
-            return 0;
+        case 'o': return my_other;
+        default : return 0;
     }
 }
 
-//==================================================================
-
-const string help_filename = 
-#ifdef HELP_DIR //temporary solution
-    HELP_DIR + S("/syntax");
-#else
-    "syntax";
-#endif
-
-string list_help_topics()
-{
-    return "Sorry, interactive help is not available. Read HTML docs.";
-}
-
-string print_help_on_topic (string /*topic*/)
-{
-    return "Sorry, interactive help is not available. Read HTML docs.";
-}
 

@@ -37,7 +37,6 @@ extern bool new_line;
 %option noyywrap
 %option prefix="ip"
 %array
-%x HELP_COND 
 %x SET_COND
 %s D_UI_SLASH
 %s FILE_COND
@@ -89,7 +88,6 @@ o\.l(og)?	   r_cmd(); BEGIN(FILE_COND); return O_LOG;
 o\.i(nclude)?	   r_cmd(); BEGIN(FILE_COND); return O_INCLUDE; 
 o\.w(ait)?	   r_cmd(); return O_WAIT;
 o\.d(ump)?	   r_cmd(); BEGIN(FILE_COND); return O_DUMP;
-h(elp)?		   r_cmd(); BEGIN(HELP_COND); return HELP;
 (q(uit)?)|(exit)   r_cmd(); return QUIT;
 
 c\.w(avelength)?   r_cmd(); return C_WAVELENGTH; 
@@ -171,13 +169,6 @@ c\.e(stimate)?     r_cmd(); return C_FIND;
 		return EQ_STRING;
 	       }
 
-<HELP_COND>[^ \t\r\n#;,]+ {
-	        strncpy (str_tb, iptext, 256);
-	        iplval.s.c = str_tb; 
-		iplval.s.l = ipleng;
-		BEGIN(0);
-		return HELP_STRING;
-	       }
 
 <*>([[:alnum:]]+|.)   { /* last rule - error */
 	        strncpy (str_tb, iptext, 256);

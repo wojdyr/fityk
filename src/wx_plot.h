@@ -60,7 +60,6 @@ protected:
     int mouse_press_X, mouse_press_Y;
     int vlfc_prev_x;
 
-    void move_view_horizontally (bool on_left);
     void draw_dashed_vert_lines (int x1, int x2 = INVALID);
     bool vert_line_following_cursor(Mouse_act_enum ma, int x=0, int x0=INVALID);
     void draw_tics (wxDC& dc, const Rect &v, 

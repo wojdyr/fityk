@@ -84,15 +84,15 @@ int GnuPlot::plot (const vector<fp>& workingA)
     }                    //testing pipe -- stop
     signal (SIGPIPE, shp);
     my_sum->use_param_a_for_value(workingA);
-    bool plus_bg = my_other->plus_background;
+    bool plus_bg = my_core->plus_background;
     string yfun = my_sum->sum_full_formula (workingA);
     very_verbose("Plotting function: " + yfun); 
     // Send commands through the pipe to gnuplot
-    int i_f = my_data->get_lower_bound_ac (my_other->view.left);
-    int i_l = my_data->get_upper_bound_ac (my_other->view.right);
+    int i_f = my_data->get_lower_bound_ac (my_core->view.left);
+    int i_l = my_data->get_upper_bound_ac (my_core->view.right);
     if (i_l - i_f > 0) { //plot data & sum
         bool function_as_points = (i_l - i_f > smooth_limit);
-        string plot_string = "plot "+ my_other->view.str() 
+        string plot_string = "plot "+ my_core->view.str() 
             + " \'-\' title \"data\", ";
         if (function_as_points) {
             plot_string += " '-' title \"sum\" with line\n ";
@@ -120,7 +120,7 @@ int GnuPlot::plot (const vector<fp>& workingA)
         }
     }
     else { // plot only sum
-        string plot_string =  "plot " + my_other->view.str() + " " + yfun 
+        string plot_string =  "plot " + my_core->view.str() + " " + yfun 
             + " title \"function\"\n";
         fprintf (gnuplot_pipe, plot_string.c_str());
     }

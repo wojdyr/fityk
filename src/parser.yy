@@ -36,13 +36,9 @@ void replot()
         new_line = false;
     else
         return; //do not replot
-    if (auto_plot >= 2 &&
-            (my_datasets->was_changed() || my_sum->was_changed() 
-             || my_other->was_changed())) {
+    if (auto_plot >= 2 && my_core->was_changed()) {
         my_IO->plot();
-        my_datasets->was_plotted();
-        my_sum->s_was_plotted();
-        my_other->v_was_plotted(); 
+	my_core->was_plotted();
     }
 }
 
@@ -75,10 +71,10 @@ void replot()
 %token C_WAVELENGTH C_ADD C_INFO C_REMOVE C_FIND 
 %token O_PLOT O_LOG O_INCLUDE O_WAIT O_DUMP
 %token M_FINDPEAK
-%token HELP QUIT 
+%token QUIT 
 %token PLUS_MINUS TWO_COLONS
 %token SEP
-%token <s> FILENAME DASH_STRING EQ_STRING HELP_STRING
+%token <s> FILENAME DASH_STRING EQ_STRING 
 %token <c> LOWERCASE G_TYPE F_TYPE Z_TYPE PH_TYPE
 %token <i> UINt UI_DASH UI_SLASH INt A_NUM G_NUM F_NUM Z_NUM PH_NUM
 %token <f> FLOAt P_NUM NEW_A
@@ -117,10 +113,10 @@ exp:  SET DASH_STRING EQ_STRING SEP {
     | SET DASH_STRING SEP          { set_class_p($1)->getp ($2.str()); }
     | SET SEP                      { imsg (set_class_p($1)->print_usage($1)); }
     | D_ACTIVATE opt_uint_1 TWO_COLONS opt_uint_1 SEP 
-                                        { my_datasets->activate(/*$2,*/ $4); }  
+                                        { my_core->activate_data(/*$2,*/ $4); }
     | D_LOAD opt_lcase dload_arg FILENAME SEP { 
                                    my_data->load($4.str(), $2, ivec, ivec2, $3);
-				   my_other->set_view (Rect()); }
+				   my_core->set_view (Rect()); }
     | D_RANGE sign range SEP  { my_data->change_range ($3.l, $3.r, $2 == '+'); }
     | D_RANGE range SEP            { 
                                      my_data->change_range (-INF, +INF, false);
@@ -198,26 +194,24 @@ exp:  SET DASH_STRING EQ_STRING SEP {
                             imsg (my_manipul->print_simple_estimate ($2, $3)); }
     | M_FINDPEAK                   {imsg (my_manipul->print_global_peakfind());}
     | O_PLOT SEP                   { my_IO->plot_now ();}
-    | O_PLOT range SEP          { my_other->set_view (Rect($2.l, $2.r), true); }
+    | O_PLOT range SEP          { my_core->set_view (Rect($2.l, $2.r), true); }
     | O_PLOT bracket_range bracket_range SEP  { 
-                            my_other->set_view (Rect($2.l, $2.r, $3.l, $3.r)); }
-    | O_PLOT '.' range SEP         { my_other->set_view_v ($3.l, $3.r); }
-    | O_PLOT range '.' SEP         { my_other->set_view_h ($2.l, $2.r); }
-    | O_PLOT '.' SEP               { imsg (my_other->view_info()); } 
-    | O_PLOT '.' '.' SEP           { imsg (my_other->view_info()); } 
-    | O_PLOT sign SEP              { my_other->set_plus_background($2 == '+'); }
+                            my_core->set_view (Rect($2.l, $2.r, $3.l, $3.r)); }
+    | O_PLOT '.' range SEP         { my_core->set_view_v ($3.l, $3.r); }
+    | O_PLOT range '.' SEP         { my_core->set_view_h ($2.l, $2.r); }
+    | O_PLOT '.' SEP               { imsg (my_core->view_info()); } 
+    | O_PLOT '.' '.' SEP           { imsg (my_core->view_info()); } 
+    | O_PLOT sign SEP              { my_core->set_plus_background($2 == '+'); }
     | O_LOG opt_lcase FILENAME SEP {
 			      my_other->start_logging_to_file ($3.str(), $2); }
     | O_LOG '!' SEP                { my_other->stop_logging_to_file (); }
     | O_LOG                        { imsg (my_other->logging_info()); }
     | O_INCLUDE FILENAME rows SEP  { my_other->include_file ($2.str(), ivec);}
-    | O_INCLUDE '!' FILENAME rows SEP { reset_all(); 
+    | O_INCLUDE '!' FILENAME rows SEP { AL->reset_all(); 
                                        my_other->include_file ($3.str(), ivec);}
-    | O_INCLUDE '!' SEP            { reset_all(); }
+    | O_INCLUDE '!' SEP            { AL->reset_all(); }
     | O_WAIT UINt SEP             { my_other->sleep ($2); }
-    | O_DUMP FILENAME SEP          { dump_all_as_script ($2.str()); }
-    | HELP HELP_STRING SEP         { imsg (print_help_on_topic ($2.str())); }
-    | HELP SEP                     { imsg (list_help_topics()); }
+    | O_DUMP FILENAME SEP          { AL->dump_all_as_script ($2.str()); }
     | QUIT SEP                     { YYABORT;}
     /***/
     | C_WAVELENGTH pags_vec SEP    { my_crystal->xrays.add (pgvec); }

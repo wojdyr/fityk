@@ -121,22 +121,6 @@ bool FPlot::vert_line_following_cursor (Mouse_act_enum ma, int x, int x0)
     return true;
 }
 
-void FPlot::move_view_horizontally (bool on_left)
-{
-    const Rect &vw = my_other->view;
-    fp diff = vw.width() / 3;
-    fp new_left, new_right;
-    if (on_left) {
-        new_left = vw.left - diff;
-        new_right = vw.right - diff;
-    }
-    else { //on right
-        new_left = vw.left + diff;
-        new_right = vw.right + diff;
-    }
-    frame->change_zoom("[" + S(new_left) + " : " + S(new_right) + "] .");
-}
-
 BEGIN_EVENT_TABLE(FPlot, wxPanel)
 END_EVENT_TABLE()
 
@@ -219,8 +203,9 @@ void MainPlot::OnPaint(wxPaintEvent& WXUNUSED(event))
 
 fp y_of_data_for_draw_data(vector<Point>::const_iterator i)
 {
-    return my_other->plus_background ? i->orig_y : i->y;
+    return my_core->plus_background ? i->orig_y : i->y;
 }
+
 
 void MainPlot::Draw(wxDC &dc)
 {
@@ -229,33 +214,37 @@ void MainPlot::Draw(wxDC &dc)
         dc.SetTextForeground (colourTextForeground);
     if (colourTextBackground.Ok())
         dc.SetTextBackground (colourTextBackground);
-    if (my_data->is_empty())
-        return;
-    vector<Point>::const_iterator f =my_data->get_point_at(my_other->view.left),
-                                l = my_data->get_point_at(my_other->view.right);
+
     if (data_visible) {
         //TODO changable colors for each dataset
         wxPen unsel_active(activeDataPen);
         wxPen unsel_inactive(inactiveDataPen);
         unsel_active.SetColour(0, 90, 0);
         unsel_inactive.SetColour(30, 60, 30);
-        for (int i = 0; i < my_datasets->get_size(); i++) {
-            const Data *d = my_datasets->get_data(i);
-            if (d != my_data)
+        for (int i = 0; i < my_core->get_data_count(); i++) {
+            if (i != my_core->get_active_data_position())
                 draw_data(dc, y_of_data_for_draw_data, 
-                          d, &unsel_active, &unsel_inactive);
+                          my_core->get_data(i), &unsel_active, &unsel_inactive);
         }
         draw_data(dc, y_of_data_for_draw_data);
     }
+
+    if (tics_visible)
+        draw_tics(dc, my_core->view, 7, 7, 4, 4);
+
+    if (my_data->is_empty())
+        return;
+    vector<Point>::const_iterator f =my_data->get_point_at(my_core->view.left),
+                                l = my_data->get_point_at(my_core->view.right);
+
     if (!a_copy4plot.empty() && size(a_copy4plot) != my_sum->count_a()) {
         a_copy4plot = my_sum->current_a();
         frame->SetStatusText ("Number of parameters changed.");
     }
     my_sum->use_param_a_for_value (a_copy4plot);
+
     if (x_axis_visible) 
         draw_x_axis (dc, f, l);
-    if (tics_visible)
-        draw_tics(dc, my_other->view, 7, 7, 4, 4);
 
 /*
     if (shared.buffer_enabled) {
@@ -279,6 +268,7 @@ void MainPlot::Draw(wxDC &dc)
         if (peaks_visible)
             draw_peaks (dc, f, l);
     }
+
     prepare_peaktops();
     if (mode == mmd_bg) {
         draw_background_points(dc); 
@@ -287,6 +277,7 @@ void MainPlot::Draw(wxDC &dc)
         draw_peaktops(dc); 
     }
 }
+
 
 bool MainPlot::visible_peaktops(Mouse_mode_enum mode)
 {
@@ -297,7 +288,7 @@ void MainPlot::draw_x_axis (wxDC& dc, vector<Point>::const_iterator first,
                                       vector<Point>::const_iterator last)
 {
     dc.SetPen (xAxisPen);
-    if (my_other->plus_background) {
+    if (my_core->plus_background) {
         int X = 0, Y = 0;
         for (vector<Point>::const_iterator i = first; i < last; i++) {
             int X_ = X, Y_ = Y;
@@ -345,8 +336,8 @@ void FPlot::draw_tics (wxDC& dc, const Rect &v,
 fp FPlot::get_max_abs_y (fp (*compute_y)(vector<Point>::const_iterator))
 {
     vector<Point>::const_iterator 
-                            first = my_data->get_point_at(my_other->view.left),
-                            last = my_data->get_point_at(my_other->view.right);
+                            first = my_data->get_point_at(my_core->view.left),
+                            last = my_data->get_point_at(my_core->view.right);
     fp max_abs_y = 0;
     for (vector<Point>::const_iterator i = first; i < last; i++) {
         if (i->is_active) {
@@ -367,9 +358,10 @@ void FPlot::draw_data (wxDC& dc,
     const wxPen &inactivePen = inactive_p ? *inactive_p : inactiveDataPen;
     const wxBrush activeBrush(activePen.GetColour(), wxSOLID);
     const wxBrush inactiveBrush(inactivePen.GetColour(), wxSOLID);
+    if (data->is_empty()) return;
     vector<Point>::const_iterator 
-                            first = data->get_point_at(my_other->view.left),
-                            last = data->get_point_at(my_other->view.right);
+                            first = data->get_point_at(my_core->view.left),
+                            last = data->get_point_at(my_core->view.right);
     //if (last - first < 0) return;
     bool active = !first->is_active;//causes pens to be initialized in main loop
     int X_ = 0, Y_ = 0;
@@ -378,7 +370,7 @@ void FPlot::draw_data (wxDC& dc,
     if (line_between_points) {
         dc.SetPen(first->is_active ? activePen : inactivePen);
         if (first > data->points().begin()) {
-            X_ = x2X (my_other->view.left);
+            X_ = x2X (my_core->view.left);
             int Y_l = y2Y ((*compute_y)(first - 1));
             int Y_r = y2Y ((*compute_y)(first));
             int X_l = x2X ((first - 1)->x);
@@ -432,7 +424,7 @@ void FPlot::draw_data (wxDC& dc,
 
     //the last line segment, toward next point
     if (line_between_points && last < data->points().end()) {
-        int X = x2X (my_other->view.right);
+        int X = x2X (my_core->view.right);
         int Y_l = y2Y ((*compute_y)(last - 1));
         int Y_r = y2Y ((*compute_y)(last));
         int X_l = x2X ((last - 1)->x);
@@ -470,12 +462,12 @@ void MainPlot::draw_sum (wxDC& dc, vector<Point>::const_iterator first,
     for (vector<Point>::const_iterator i = first; i < last; i++) {
         int X_ = X, Y_ = Y;
         X = x2X(i->x);
-        Y = y2Y (my_other->plus_background ? sum_value(i) +  i->get_bg()
+        Y = y2Y (my_core->plus_background ? sum_value(i) +  i->get_bg()
                                            : sum_value(i));
         if (i != first 
                 && (X != X_ || Y != Y_) 
                 && (Y_ != Y_zero || Y != Y_zero //not drawing on x axis
-                    || my_other->plus_background))
+                    || my_core->plus_background))
             dc.DrawLine (X_, Y_, X, Y); 
     }
 }
@@ -671,7 +663,7 @@ void MainPlot::OnLeaveWindow (wxMouseEvent& WXUNUSED(event))
 
 void MainPlot::set_scale()
 {
-    const Rect &v = my_other->view;
+    const Rect &v = my_core->view;
     shared.xUserScale = GetClientSize().GetWidth() / (v.right - v.left);
     int H =  GetClientSize().GetHeight();
     fp h = v.top - v.bottom;
@@ -860,7 +852,7 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
     //display coords in status bar 
     fp x = X2x (event.GetX());
     fp y = Y2y (event.GetY());
-    if (my_other->plus_background && mode == mmd_bg) //TODO
+    if (my_core->plus_background && mode == mmd_bg) //TODO
         y -= my_data->get_bg_at (x);
     wxString str;
     str.Printf ("%.3f  %d", x, static_cast<int>(y + 0.5));
@@ -1576,9 +1568,9 @@ void DiffPlot::OnLeftDown (wxMouseEvent &event)
     int X = event.GetPosition().x;
     // if mouse pointer is near to left or right border, move view
     if (X < move_plot_margin_width) 
-        move_view_horizontally (true);  // <--
+        frame->scroll_view_horizontally(-0.33);  // <--
     else if (X > GetClientSize().GetWidth() - move_plot_margin_width) 
-        move_view_horizontally (false); // -->
+        frame->scroll_view_horizontally(+0.33); // -->
     else {
         mouse_press_X = X;
         vert_line_following_cursor(mat_start, mouse_press_X+1, mouse_press_X);

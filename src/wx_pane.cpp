@@ -65,7 +65,7 @@ PlotPane::PlotPane(wxWindow *parent, wxWindowID id)
 void PlotPane::zoom_forward()
 {
     const int max_length_of_zoom_history = 10;
-    zoom_hist.push_back(my_other->view.str());
+    zoom_hist.push_back(my_core->view.str());
     if (size(zoom_hist) > max_length_of_zoom_history)
         zoom_hist.erase(zoom_hist.begin());
 }
@@ -207,12 +207,13 @@ void DataPaneTree::OnIdle(wxIdleEvent &event)
     //TODO
     wxTreeItemId root = GetFirstChild(GetRootItem(), unused_cookie);
     update_tree_datalabels(root);
+    //TODO if (GetSelection() != )
     event.Skip();
 }
 
 void DataPaneTree::update_tree_datalabels(const wxTreeItemId &plot_item)
 {
-    vector<string> new_labels = my_datasets->get_data_titles(); //TODO
+    vector<string> new_labels = my_core->get_data_titles(); //TODO
     vector<string> old_labels;
     long cookie;
     for (wxTreeItemId i = GetFirstChild(plot_item, cookie); i.IsOk(); 
@@ -224,6 +225,7 @@ void DataPaneTree::update_tree_datalabels(const wxTreeItemId &plot_item)
         for (vector<string>::const_iterator i = new_labels.begin();
                                                  i != new_labels.end(); i++)
             AppendItem(plot_item, (*i).c_str());
+        Expand(plot_item);
     }
 }
 

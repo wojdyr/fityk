@@ -47,9 +47,9 @@ fp LMfit::init ()
         a = a_orig; 
 
     mesg (print_matrix (a, 1, na, "Initial A"));
+    //no need to optimise it (and compute chi2 and derivatives together)
     chi2 = compute_wssr (a);
     compute_derivatives_alpha_beta(a, alpha, beta);
-    //it would be faster to compute chi2 and derivatives together,but what for?
     return chi2;
 }
 

@@ -78,7 +78,7 @@ fp v_fit::compute_wssr (const vector<fp>& A, bool weigthed)
 
 fp v_fit::compute_wssr_for_data(const Data* data, const Sum *sum, bool weigthed)
 {
-    // pre: Sum::use_param_a_for_value() called
+    // pre: sum->use_param_a_for_value() called
     fp wssr = 0;
     int n = data->get_n();
     for (int j = 0; j < n; j++) {
@@ -92,7 +92,6 @@ fp v_fit::compute_wssr_for_data(const Data* data, const Sum *sum, bool weigthed)
 
 void v_fit::compute_derivatives_alpha_beta (vector<fp>& A, vector<fp>& alpha, 
                                             vector<fp>& beta)
-    // pre: Sum::use_param_a_for_value() called
 {
     assert (size(A) == na && size(alpha) == na * na && size(beta) == na);
     static vector<fp> tmp, tmp2;

@@ -76,6 +76,8 @@ RCSID ("$Id$")
 #include "img/dump.xpm"
 #include "img/whole.xpm"
 #include "img/vertic.xpm"
+#include "img/leftscroll.xpm"
+#include "img/rightscroll.xpm"
 #include "img/backv.xpm"
 #include "img/dpane.xpm"
 #include "img/mouse_l.xpm"
@@ -192,6 +194,8 @@ enum {
     ID_G_S_IO                  ,
     ID_G_V_ALL                 ,
     ID_G_V_VERT                ,
+    ID_G_V_SCROLL_L            ,
+    ID_G_V_SCROLL_R            ,
     ID_G_V_ZOOM_PREV   = 44302 ,
     ID_G_LCONF1        = 44342 ,
     ID_G_LCONF2                ,
@@ -219,7 +223,7 @@ string get_full_path_of_help_file (const string &name);
 
 bool FApp::OnInit(void)
 {
-    main_manager = new MainManager; 
+    AL = new ApplicationLogic; 
 
     //Parsing command line
     wxCmdLineParser cmdLineParser(cmdLineDesc, argc, argv);
@@ -281,7 +285,7 @@ bool FApp::OnInit(void)
 
 int FApp::OnExit()
 { 
-    delete main_manager; 
+    delete AL; 
     delete wxConfigBase::Set((wxConfigBase *) NULL);
     return 0;
 }
@@ -353,6 +357,8 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_S_STATBAR,   FFrame::OnSwitchStatbar)
     EVT_MENU (ID_G_V_ALL,       FFrame::OnGViewAll)
     EVT_MENU (ID_G_V_VERT,      FFrame::OnGFitHeight)
+    EVT_MENU (ID_G_V_SCROLL_L,  FFrame::OnGScrollLeft)
+    EVT_MENU (ID_G_V_SCROLL_R,  FFrame::OnGScrollRight)
     EVT_MENU (ID_G_V_ZOOM_PREV, FFrame::OnShowMenuZoomPrev)
     EVT_UPDATE_UI (ID_G_V_ZOOM_PREV, FFrame::OnShowMenuZoomPrev)
     EVT_MENU_RANGE (ID_G_V_ZOOM_PREV+1, ID_G_V_ZOOM_PREV+20, 
@@ -650,6 +656,9 @@ void FFrame::set_menubar()
     gui_menu->AppendSeparator();
     gui_menu->Append (ID_G_V_ALL, "Zoom &All", "View whole data");
     gui_menu->Append (ID_G_V_VERT, "Fit &vertically", "Adjust vertical zoom");
+    gui_menu->Append (ID_G_V_SCROLL_L, "Scroll &Left", "Scroll view left");
+    gui_menu->Append (ID_G_V_SCROLL_R, "Scroll &Right", "Scroll view right");
+
     wxMenu* gui_menu_zoom_prev = new wxMenu;
     gui_menu->Append(ID_G_V_ZOOM_PREV, "&Previous Zooms", gui_menu_zoom_prev);
     gui_menu->AppendSeparator();
@@ -1275,6 +1284,17 @@ void FFrame::OnGFitHeight (wxCommandEvent& WXUNUSED(event))
     change_zoom(". []");
 }
 
+void FFrame::OnGScrollLeft (wxCommandEvent & WXUNUSED(event))
+{
+    scroll_view_horizontally(-0.5);
+}
+
+void FFrame::OnGScrollRight (wxCommandEvent & WXUNUSED(event))
+{
+    scroll_view_horizontally(+0.5);
+}
+
+
 void FFrame::OnPreviousZoom(wxCommandEvent& event)
 {
     int id = event.GetId();
@@ -1288,6 +1308,15 @@ void FFrame::change_zoom(const string& s)
     plot_pane->zoom_forward();
     string cmd = "o.plot " + s;
     exec_command(cmd);
+}
+
+void FFrame::scroll_view_horizontally(fp step)
+{
+    const Rect &vw = my_core->view;
+    fp diff = vw.width() * step;
+    fp new_left = vw.left + diff; 
+    fp new_right = vw.right + diff;
+    change_zoom("[" + S(new_left) + " : " + S(new_right) + "] .");
 }
 
 
@@ -1415,6 +1444,7 @@ void FFrame::focus_input()
 {
     io_pane->focus_input();
 }
+
 
 //=======================================================================
 
@@ -1609,6 +1639,10 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     AddTool (ID_G_V_VERT, "Fit height", wxBitmap(vertic_xpm), wxNullBitmap,
             wxITEM_NORMAL, "Fit vertically",
             "Set optimal y scale"); 
+    AddTool(ID_G_V_SCROLL_L,"<-- scroll",wxBitmap(leftscroll_xpm), wxNullBitmap,
+            wxITEM_NORMAL, "Scroll left", "Scroll view left"); 
+    AddTool(ID_G_V_SCROLL_R,"scroll -->",wxBitmap(rightscroll_xpm),wxNullBitmap,
+            wxITEM_NORMAL, "Scroll right", "Scroll view right"); 
     AddTool (ID_ft_v_pr, "Back", wxBitmap(backv_xpm), wxNullBitmap, 
              wxITEM_NORMAL, "Previous view", 
              "Go to previous View");
@@ -1636,7 +1670,7 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     AddTool (ID_ft_b_with, "With Bg", wxBitmap(plusbg_xpm), wxNullBitmap,  
              wxITEM_CHECK, "Plot with/without background",
              "Draw plot with added (or not) baseline");
-    ToggleTool (ID_ft_b_with, my_other->plus_background);
+    ToggleTool (ID_ft_b_with, my_core->plus_background);
     AddTool (ID_D_B_CLEAR, "Clear Bg", wxBitmap(clear_xpm), wxNullBitmap, 
              wxITEM_NORMAL, "Clear background", 
              "Delete all baseline points");

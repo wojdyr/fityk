@@ -19,7 +19,7 @@ string fityk_dir;
 int main (int argc, char **argv)
 {
     sys_depen_init();
-    MainManager main_manager;
+    AL = new ApplicationLogic;
     char *home_dir = getenv("HOME");
     if (!home_dir) home_dir = "";
     // '/' is assumed as path separator
@@ -51,6 +51,7 @@ int main (int argc, char **argv)
                 my_IO = &f_IO;
                 my_IO->start(argv[i]);
             }
+    delete AL;
     return 0;
 }
 

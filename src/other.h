@@ -26,9 +26,6 @@ struct Rect
 class Various_commands : public DotSet
 {
 public:    
-    Rect view;
-    bool plus_background;
-    static const fp relative_view_x_margin, relative_view_y_margin;
 
     Various_commands();
     Various_commands& operator= (const Various_commands& v);
@@ -41,14 +38,6 @@ public:
     void log_output (const std::string& s);
     bool include_file (std::string name, std::vector<int> lines);
     int sleep (int seconds);
-    std::string view_info() const;
-    void set_view (Rect rect, bool fit = false);
-    void set_view_h (fp l, fp r) {set_view (Rect(l, r, view.bottom, view.top));}
-    void set_view_v (fp b, fp t) {set_view (Rect(view.left, view.right, b, t));}
-    void set_view_y_fit();
-    void set_plus_background(bool b) {plus_background=b; v_was_changed = true;}
-    void v_was_plotted() { v_was_changed = false; } 
-    bool was_changed() const { return v_was_changed; } 
 
 private:
     char logging_mode;
@@ -56,25 +45,84 @@ private:
     std::ofstream logfile;
     std::map<char, std::string> autoplot_enum;
     std::map<char, std::string> verbosity_enum;
-    bool v_was_changed;
 
     Various_commands (const Various_commands&); //disable
 };
 
-void reset_all (bool finito = false); 
-void dump_all_as_script (std::string filename);
 
-DotSet *set_class_p (char c);
-std::string list_help_topics();
-std::string print_help_on_topic (std::string topic);
-
-extern Various_commands *my_other;
-
-class MainManager
+class PlotCore
 {
 public:
-    MainManager() { reset_all(); }
-    ~MainManager() {reset_all (true); }
+    static const fp relative_view_x_margin, relative_view_y_margin;
+    Rect view;
+    bool plus_background;
+
+    PlotCore();
+    ~PlotCore();
+
+    bool activate_data(int n); // for n=-1 create new dataset
+    std::vector<std::string> get_data_titles() const;
+    int get_data_count() const { return datasets.size(); }
+    const Data *get_data(int n) const; 
+    int get_active_data_position() const { return active_data; }
+    const Data *get_active_data() const { return get_data(active_data);}
+    void set_my_vars() const;
+    void del_data(int n);
+
+    std::string view_info() const;
+    void set_view (Rect rect, bool fit = false);
+    void set_view_h (fp l, fp r) {set_view (Rect(l, r, view.bottom, view.top));}
+    void set_view_v (fp b, fp t) {set_view (Rect(view.left, view.right, b, t));}
+    void set_view_y_fit();
+    void set_plus_background(bool b) {plus_background=b; v_was_changed = true;}
+
+    bool was_changed() const; 
+    void was_plotted();
+
+private:
+    ///each dataset (class Data) usually comes from one datafile
+    std::vector<Data*> datasets;
+    Sum *sum;
+#ifdef USE_XTAL
+    Crystal *crystal;
+#endif //USE_XTAL
+    int active_data; //position of selected dataset in vector<Data*> datasets
+    bool ds_was_changed; //selection of dataset changed
+    bool v_was_changed; //view was changed
+
+    PlotCore (const PlotCore&); //disable
 };
+
+
+//now it's only initilizing all classes...
+//
+class ApplicationLogic
+{
+public:
+    ApplicationLogic() : c_was_changed(false) { reset_all(); }
+    ~ApplicationLogic() { reset_all(true); }
+    void reset_all (bool finish=false); 
+    void dump_all_as_script (std::string filename);
+
+    bool activate_core(int n); // for n=-1 create new plot-core
+    int get_core_count() const { return cores.size(); }
+    const PlotCore *get_core(int n) const; 
+    int get_active_core_position() const { return active_core; }
+    const PlotCore *get_active_core() const { return get_core(active_core); }
+    void del_core(int n);
+    bool was_changed() const; 
+    void was_plotted();
+protected:
+    std::vector<PlotCore*> cores;
+    bool c_was_changed;
+    int active_core;
+};
+
+
+DotSet *set_class_p (char c);
+
+extern Various_commands *my_other;
+extern PlotCore *my_core;
+extern ApplicationLogic *AL;
 
 #endif 
