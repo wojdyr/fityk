@@ -22,6 +22,14 @@ struct Plot_shared
     std::vector<wxPoint> peaktops;
 };
 
+//because only wxString and long types can be read conveniently from wxConfig
+class wxConfigBase;
+class wxString;
+bool from_config_read_bool(wxConfigBase *cf, const wxString& key, bool def_val);
+double from_config_read_double(wxConfigBase *cf, const wxString& key, 
+                               double def_val);
+
+
 //dummy events -- useful when calling event handler functions
 extern wxMouseEvent dummy_mouse_event;
 extern wxCommandEvent dummy_cmd_event;

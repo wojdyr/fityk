@@ -14,8 +14,8 @@ bool exit_on_error = false;
 char auto_plot = 2;
 int smooth_limit = 0;
 volatile bool user_interrupt = false;
-vector<fp> fp_v0; //just empty vector
-vector<int> int_v0; //just empty vector
+const vector<fp> fp_v0; //just empty vector
+const vector<int> int_v0; //just empty vector
 
 const fp INF = 1e99; //almost ininity. floating points limits are about:
                      // double: 10^+308, float: 10^+38, long double: 10^+4932

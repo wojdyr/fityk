@@ -747,8 +747,8 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
     peak_menu.Append(ID_peak_popup_guess, "&Guess");
     peak_menu.Append(ID_peak_popup_del, "&Delete");
     peak_menu.Enable(ID_peak_popup_del, my_sum->refs_to_f(over_peak) == 0);
-    peak_menu.AppendSeparator();
-    //TODO parameters: height, ...
+    //peak_menu.AppendSeparator();
+    //TODO? parameters: height, ...
     PopupMenu (&peak_menu, event.GetX(), event.GetY());
 }
 
@@ -1536,16 +1536,16 @@ void AuxPlot::set_scale()
  
 void AuxPlot::read_settings(wxConfigBase *cf)
 {
-    cf->SetPath("/AuxPlot");
-
+    wxString path = "/AuxPlot_" + name;
+    cf->SetPath(path);
     kind = static_cast <Aux_plot_kind_enum> (cf->Read ("kind", apk_diff));
     auto_zoom_y = false;
     line_between_points = read_bool_from_config(cf,"line_between_points", true);
     point_radius = cf->Read ("point_radius", 1);
-    cf->SetPath("/AuxPlot/Visible");
+    cf->SetPath(path + "/Visible");
     x_axis_visible = read_bool_from_config (cf, "xAxis", true);
     tics_visible = read_bool_from_config (cf, "tics", true);
-    cf->SetPath("/AuxPlot/Colors");
+    cf->SetPath(path + "/Colors");
     //backgroundBrush = *wxBLACK_BRUSH;
     backgroundBrush.SetColour (read_color_from_config (cf, "bg", 
                                                        wxColour(50, 50, 50)));
@@ -1562,16 +1562,17 @@ void AuxPlot::read_settings(wxConfigBase *cf)
 
 void AuxPlot::save_settings(wxConfigBase *cf) const
 {
-    cf->SetPath("/AuxPlot");
+    wxString path = "/AuxPlot_" + name;
+    cf->SetPath(path);
     cf->Write ("kind", kind); 
     cf->Write ("line_between_points", line_between_points);
     cf->Write ("point_radius", point_radius);
 
-    cf->SetPath("/AuxPlot/Visible");
+    cf->SetPath(path + "/Visible");
     cf->Write ("xAxis", x_axis_visible);
     cf->Write ("tics", tics_visible);
 
-    cf->SetPath("/AuxPlot/Colors");
+    cf->SetPath(path + "/Colors");
     write_color_to_config (cf, "bg", backgroundBrush.GetColour()); 
     write_color_to_config (cf, "active_data", activeDataPen.GetColour());
     write_color_to_config (cf, "inactive_data", inactiveDataPen.GetColour());
@@ -1796,6 +1797,14 @@ fp scale_tics_step (fp beg, fp end, int max_tics)
     return s;
     //first = s * ceil(beg / s);
 }
+
+//simple utils declared in wx_common.h 
+bool from_config_read_bool(wxConfigBase *cf, const wxString& key, bool def_val)
+{ bool b; cf->Read(key, &b, def_val); return b; }
+
+double from_config_read_double(wxConfigBase *cf, const wxString& key, 
+                               double def_val)
+{ double d; cf->Read(key, &d, def_val); return d; }
 
 //dummy events declared in wx_common.h
 wxMouseEvent dummy_mouse_event;

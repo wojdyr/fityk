@@ -128,7 +128,7 @@ public:
     void OnMFindpeak     (wxCommandEvent& event);        
     void OnMSet          (wxCommandEvent& event);        
 
-    void OnFMethod       (wxCommandEvent& event);           
+    void OnFMethodUpdate (wxCommandEvent& event);           
     void OnFOneOfMethods (wxCommandEvent& event);
     void OnFRun          (wxCommandEvent& event);        
     void OnFContinue     (wxCommandEvent& event);             
@@ -164,11 +164,16 @@ public:
     void OnConfigRead    (wxCommandEvent& event);
     void OnConfigBuiltin (wxCommandEvent& event);
     void OnConfigSave    (wxCommandEvent& event);
-    void OnSwitchDPane   (wxCommandEvent& event);
-    void OnSwitchAuxPlot (wxCommandEvent& event);
-    void OnSwitchIOPane  (wxCommandEvent& event);
-    void OnSwitchToolbar (wxCommandEvent& event);
-    void OnSwitchStatbar (wxCommandEvent& event);
+    void OnGuiShowUpdate (wxCommandEvent& event);
+    void SwitchDPane(bool show);
+    void OnSwitchDPane(wxCommandEvent& ev) {SwitchDPane(ev.IsChecked());}
+    void OnSwitchAuxPlot(wxCommandEvent& ev);
+    void SwitchIOPane(bool show);
+    void OnSwitchIOPane(wxCommandEvent& ev) {SwitchIOPane(ev.IsChecked());}
+    void SwitchToolbar(bool show);
+    void OnSwitchToolbar(wxCommandEvent& ev) {SwitchToolbar(ev.IsChecked());}
+    void SwitchStatbar(bool show);
+    void OnSwitchStatbar(wxCommandEvent& ev) {SwitchStatbar(ev.IsChecked());}
     void OnShowMenuZoomPrev(wxCommandEvent &event);
     void save_all_settings(wxConfigBase *cf) const;
     void save_settings(wxConfigBase *cf) const;

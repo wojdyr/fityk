@@ -55,9 +55,9 @@ fp Manipul::my_y(int n, const EstConditions * ec) const
 
     std::vector<int> peaks;
     if (ec->incl_peaks.empty())
-        peaks = ec->incl_peaks;
-    else
         peaks = range_vector(0, my_sum->fzg_size(fType));
+    else
+        peaks = ec->incl_peaks;
     for (vector<int>::const_iterator i = ec->excl_peaks.begin(); 
                                         i != ec->excl_peaks.end(); ++i) {
         vector<int>::iterator f = find(peaks.begin(), peaks.end(), *i);

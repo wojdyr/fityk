@@ -48,6 +48,7 @@ public:
     ~FPlot() {}
     wxColour get_bg_color() { return backgroundBrush.GetColour(); }
     virtual void save_settings(wxConfigBase *cf) const = 0;
+    virtual void Draw(wxDC &dc) = 0;
 
 protected:
     wxBrush backgroundBrush;
@@ -165,8 +166,9 @@ private:
 class AuxPlot : public FPlot
 {
 public:
-    AuxPlot (wxWindow *parent, Plot_shared &shar, int number_) 
-        : FPlot (parent, shar), number(number_), y_zoom(1.), y_zoom_base(1.) {}
+    AuxPlot (wxWindow *parent, Plot_shared &shar, std::string name_) 
+        : FPlot (parent, shar), name(name_.c_str()), y_zoom(1.), 
+          y_zoom_base(1.) {}
     ~AuxPlot() {}
     void OnPaint(wxPaintEvent &event);
     void Draw(wxDC &dc);
@@ -190,7 +192,7 @@ public:
     void read_settings(wxConfigBase *cf);
 
 private:
-    int number;
+    wxString name;
     Aux_plot_kind_enum kind;
     fp y_zoom, y_zoom_base;
     bool auto_zoom_y;

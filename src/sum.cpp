@@ -742,9 +742,12 @@ void Sum::guess_f(int n)
     bool changed = false;
     for (int i = 0; i < p->g_size; i++) {
         Pag pag = p->get_pag(i);
-        if (pag.is_a() && pag.a() != ini[i]) {
-            new_params[i] = ini[i];
-            changed = true;
+        if (pag.is_a()) {
+            int nr = pag.a();
+            if (new_params[nr] != ini[i]) {
+                new_params[nr] = ini[i];
+                changed = true;
+            }
         }
     }
     if (changed)

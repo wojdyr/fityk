@@ -139,7 +139,7 @@ eval help_dir=${datadir}
 AC_MSG_RESULT([Directory for online help system: $help_dir])
 AC_DEFINE_UNQUOTED(HELP_DIR, "$help_dir", [Directory for online help system])
 
-AC_CONFIG_FILES([Makefile fityk.spec src/Makefile src/img/Makefile doc/Makefile doc/fitykhelp_img/Makefile samples/Makefile config/Makefile])
+AC_CONFIG_FILES([Makefile fityk.spec fityk.iss src/Makefile src/img/Makefile doc/Makefile doc/fitykhelp_img/Makefile samples/Makefile config/Makefile])
 AC_OUTPUT
 
 

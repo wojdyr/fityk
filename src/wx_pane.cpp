@@ -56,16 +56,16 @@ BEGIN_EVENT_TABLE(PlotPane, ProportionalSplitter)
 END_EVENT_TABLE()
 
 PlotPane::PlotPane(wxWindow *parent, wxWindowID id)
-    : ProportionalSplitter(parent, id, 0.75),
-      plot_shared(), plot(0), aux_plot1(0), aux_plot2(0)
+    : ProportionalSplitter(parent, id, 0.75), plot_shared()
 {
     plot = new MainPlot(this, plot_shared);
     aux_split = new ProportionalSplitter(this, -1, 0.5);
     SplitHorizontally(plot, aux_split);
 
-    aux_plot1 = new AuxPlot(aux_split, plot_shared, 0);
-    aux_plot2 = new AuxPlot(aux_split, plot_shared, 1);
-    aux_split->Initialize(aux_plot1);
+    aux_plot[0] = new AuxPlot(aux_split, plot_shared, "0");
+    aux_plot[1] = new AuxPlot(aux_split, plot_shared, "1");
+    aux_plot[1]->Show(false);
+    aux_split->Initialize(aux_plot[0]);
 }
 
 void PlotPane::zoom_forward()
@@ -88,20 +88,27 @@ string PlotPane::zoom_backward(int n)
 
 void PlotPane::save_settings(wxConfigBase *cf) const
 {
-    //TODO
+    cf->SetPath("/PlotPane");
+    cf->Write("PlotPaneProportion", GetProportion());
+    cf->Write("AuxPlotsProportion", aux_split->GetProportion());
+    cf->Write("ShowAuxPane0", aux_visible(0));
+    cf->Write("ShowAuxPane1", aux_visible(1));
     plot->save_settings(cf);
-    aux_plot1->save_settings(cf);
-    aux_plot2->save_settings(cf);
-    //TODO height
+    aux_plot[0]->save_settings(cf);
+    aux_plot[1]->save_settings(cf);
 }
 
 void PlotPane::read_settings(wxConfigBase *cf)
 {
-    //TODO
+    cf->SetPath("/PlotPane");
+    SetProportion(from_config_read_double(cf, "PlotPaneProportion", 0.75));
+    aux_split->SetProportion(from_config_read_double(cf, "AuxPlotsProportion", 
+                                                         0.5));
+    show_aux(0, from_config_read_bool(cf, "ShowAuxPane0", true));
+    show_aux(1, from_config_read_bool(cf, "ShowAuxPane1", false));
     plot->read_settings(cf);
-    aux_plot1->read_settings(cf);
-    aux_plot2->read_settings(cf);
-    //TODO height
+    aux_plot[0]->read_settings(cf);
+    aux_plot[1]->read_settings(cf);
 }
 
 void PlotPane::refresh_plots(bool update)
@@ -137,42 +144,43 @@ const std::vector<FPlot*> PlotPane::get_visible_plots() const
 {
     vector<FPlot*> visible;
     visible.push_back(plot);
-    //TODO if...
-    visible.push_back(aux_plot1);
-    visible.push_back(aux_plot2);
+    for (int i = 0; i < 2; ++i)
+        if (aux_visible(i))
+            visible.push_back(aux_plot[i]);
     return visible;
+}
+
+bool PlotPane::aux_visible(int n) const
+{
+    return IsSplit() && (aux_split->GetWindow1() == aux_plot[n]
+                         || aux_split->GetWindow2() == aux_plot[n]);
 }
 
 void PlotPane::show_aux(int n, bool show)
 {
-    wxWindow *switching = n == 0 ? aux_plot1 : aux_plot2;
-    wxWindow *other = n == 0 ? aux_plot2 : aux_plot1;
-    bool was_shown = IsSplit() && (aux_split->GetWindow1()==switching 
-                                  || aux_split->GetWindow2()==switching);
-    if (was_shown == show)
-        return;
+    if (aux_visible(n) == show) return;
 
     if (show) {
         if (!IsSplit()) { //both where invisible
             SplitHorizontally(plot, aux_split);
             aux_split->Show(true);
             assert(!aux_split->IsSplit());
-            if (aux_split->GetWindow1() == switching)
+            if (aux_split->GetWindow1() == aux_plot[n])
                 ;
             else {
-                aux_split->SplitHorizontally(aux_plot1, aux_plot2);
-                switching->Show(true);
-                aux_split->Unsplit(other);
+                aux_split->SplitHorizontally(aux_plot[0], aux_plot[1]);
+                aux_plot[n]->Show(true);
+                aux_split->Unsplit(aux_plot[n==0 ? 1 : 0]);
             }
         }
         else {//one was invisible
-            aux_split->SplitHorizontally(aux_plot1, aux_plot2);
-            switching->Show(true);
+            aux_split->SplitHorizontally(aux_plot[0], aux_plot[1]);
+            aux_plot[n]->Show(true);
         }
     }
     else { //hide
         if (aux_split->IsSplit()) //both where visible
-            aux_split->Unsplit(switching);
+            aux_split->Unsplit(aux_plot[n]);
         else // only one was visible
             Unsplit(); //hide whole aux_split
     }
@@ -453,9 +461,9 @@ void Output_win::read_settings(wxConfigBase *cf)
 
     SetDefaultStyle (wxTextAttr(text_color[os_ty_quot], bg_color));
     if (frame->IsShown()) // this "if" is needed on GTK 1.2 (I don't know why)
-        SetBackgroundColour (bg_color);
-    Refresh();
-}
+        SetBackgroundColour(bg_color); //if it is called before window is shown,
+    Refresh();                         //it doesn't work and it is impossible
+}                                      // to change the background later.
 
 void Output_win::save_settings(wxConfigBase *cf) const
 {
@@ -603,27 +611,30 @@ bool FPrintout::OnPrintPage(int page)
     if (!dc) return false;
 
     // Set the scale and origin
+    const int space = 20; //vertical space between plots
+    const int marginX = 50, marginY = 50; //page margins
+    //width is the same for all plots
+    int width = pane->plot->GetClientSize().GetWidth(); 
+    vector<FPlot*> vp = pane->get_visible_plots();
+    int height = -space;  //height = sum of all heights + (N-1)*space
+    for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i) 
+        height += (*i)->GetClientSize().GetHeight() + space;
     int w, h;
-    int space = 20;
-    int maxX = pane->plot->GetClientSize().GetWidth();
-    int maxY = pane->plot->GetClientSize().GetHeight();
-    int maxYsum = maxY + space + pane->aux_plot1->GetClientSize().GetHeight();
-    //TODO                       ^^^^^^^^^^^^^^^^^^^^^^
-    int marginX = 50, marginY = 50;
     dc->GetSize(&w, &h);
-    fp scaleX = static_cast<fp>(w) / (maxX + 2 * marginX);
-    fp scaleY = static_cast<fp>(h) / (maxYsum + 2 * marginY);
+    fp scaleX = w / (width + 2.*marginX);
+    fp scaleY = h / (height + 2.*marginY);
     fp actualScale = min (scaleX, scaleY);
-    int posX = static_cast<int>((w - maxX * actualScale) / 2. + 0.5);
-    int posY = static_cast<int>((h - maxYsum * actualScale) / 2. + 0.5);
     dc->SetUserScale (actualScale, actualScale);
-    dc->SetDeviceOrigin (posX, posY);
-    
-    pane->plot->Draw(*dc);//printing main plot  
-    posY += static_cast<int>((maxY + space) * actualScale);   
-    dc->SetDeviceOrigin (posX, posY);
-    pane->aux_plot1->Draw(*dc); //printing auxiliary plot  
-    //TODO ^^^^^
+
+    const int posX = iround((w - width * actualScale) / 2.);
+    int posY = iround((h - height * actualScale) / 2.);
+
+    //drawing all visible plots, every at different posY
+    for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i) {
+        dc->SetDeviceOrigin (posX, posY);
+        (*i)->Draw(*dc);
+        posY += iround(((*i)->GetClientSize().GetHeight()+space) * actualScale);
+    }
     return true;
 }
 

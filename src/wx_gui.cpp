@@ -318,8 +318,8 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_M_FINDPEAK,    FFrame::OnMFindpeak)
     EVT_MENU (ID_M_SET,         FFrame::OnMSet)
 
-    EVT_MENU (ID_F_METHOD,      FFrame::OnFMethod)    
-    EVT_UPDATE_UI (ID_F_METHOD, FFrame::OnFMethod)
+    EVT_MENU (ID_F_METHOD,      FFrame::OnFMethodUpdate)    
+    EVT_UPDATE_UI (ID_F_METHOD, FFrame::OnFMethodUpdate)
     EVT_MENU_RANGE (ID_F_M+0, ID_F_M+8, FFrame::OnFOneOfMethods)    
     EVT_MENU (ID_F_RUN,         FFrame::OnFRun)    
     EVT_MENU (ID_F_CONTINUE,    FFrame::OnFContinue)    
@@ -354,6 +354,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_M_PEAK,      FFrame::OnModePeak)
     EVT_UPDATE_UI (ID_G_M_PEAK, FFrame::OnModePeak)
     EVT_MENU_RANGE (ID_G_M_PEAK_N+0, ID_G_M_PEAK_N+30, FFrame::OnChangePeakType)
+    EVT_UPDATE_UI (ID_G_SHOW,   FFrame::OnGuiShowUpdate)
     EVT_MENU (ID_G_S_DPANE,     FFrame::OnSwitchDPane)
     EVT_MENU_RANGE (ID_G_S_A1, ID_G_S_A2, FFrame::OnSwitchAuxPlot)
     EVT_MENU (ID_G_S_IO,        FFrame::OnSwitchIOPane)
@@ -510,37 +511,49 @@ void FFrame::add_recent_data_file(wxString filename)
 
 void FFrame::read_all_settings(wxConfigBase *cf)
 {
+    read_settings(cf);
     plot_pane->read_settings(cf);
     io_pane->read_settings(cf);
     //data_pane->read_settings(cf);
-    read_settings(cf);
 }
 
 void FFrame::read_settings(wxConfigBase *cf)
 {
-    // restore frame position and size
+    // restore window layout, frame position and size
     cf->SetPath("/Frame");
+    SwitchToolbar(from_config_read_bool(cf, "ShowToolbar", true));
+    SwitchStatbar(from_config_read_bool(cf, "ShowStatbar", true));
     int x = cf->Read("x", 50),
         y = cf->Read("y", 50),
         w = cf->Read("w", 650),
         h = cf->Read("h", 400);
     Move(x, y);
     SetClientSize(w, h);
-    //int bot_height = cf->Read ("BotWinHeight", 100);
-    //if (bottom_window) bottom_window->SetDefaultSize(wxSize(-1, bot_height));
+    v_splitter->SetProportion(from_config_read_double(cf, "VertSplitProportion",
+                                                          0.8));
+    SwitchDPane(from_config_read_bool(cf, "ShowDataPane", false));
+    main_pane->SetProportion(from_config_read_double(cf, "MainPaneProportion",
+                                                          0.7));
+    SwitchIOPane(from_config_read_bool(cf, "ShowIOPane", true));
 }
 
 void FFrame::save_all_settings(wxConfigBase *cf) const
 {
+    save_settings(cf);
     plot_pane->save_settings(cf);
     io_pane->save_settings(cf);
     //data_pane->save_settings(cf);
-    save_settings(cf);
 }
 
 void FFrame::save_settings(wxConfigBase *cf) const
 {
     cf->SetPath ("/Frame");
+    cf->Write("ShowToolbar", toolbar != 0);
+    cf->Write("ShowStatbar", status_bar != 0);
+    cf->Write("VertSplitProportion", v_splitter->GetProportion());
+    cf->Write("ShowDataPane", v_splitter->IsSplit());
+    cf->Write("MainPaneProportion", main_pane->GetProportion());
+    cf->Write("ShowIOPane", main_pane->IsSplit());
     int x, y, w, h;
     GetClientSize(&w, &h);
     GetPosition(&x, &y);
@@ -974,11 +987,10 @@ void FFrame::OnMSet          (wxCommandEvent& WXUNUSED(event))
 }
         
 
-void FFrame::OnFMethod       (wxCommandEvent& event)
+void FFrame::OnFMethodUpdate (wxCommandEvent& event)
 {
-    wxMenuBar* mb = GetMenuBar();
-    assert (mb);
-    mb->Check (ID_F_M + fitMethodsContainer->current_method_number(), true);
+    int method_nr = fitMethodsContainer->current_method_number();
+    GetMenuBar()->Check (ID_F_M + method_nr, true);
     event.Skip();
 }
 
@@ -1227,68 +1239,75 @@ void FFrame::OnChangePeakType(wxCommandEvent& event)
     if (toolbar) toolbar->update_peak_type();
 }
 
-void FFrame::OnSwitchToolbar (wxCommandEvent& event)
+void FFrame::SwitchToolbar(bool show)
 {
-    if (event.IsChecked() && !GetToolBar()) {
+    if (show && !GetToolBar()) {
         toolbar = new FToolBar(this, -1);
         SetToolBar(toolbar);
     }
-    else if (!event.IsChecked() && GetToolBar()){
+    else if (!show && GetToolBar()){
         SetToolBar(0);
         delete toolbar; 
+        toolbar = 0;
     }
+    GetMenuBar()->Check(ID_G_S_TOOLBAR, show);
 }
 
-void FFrame::OnSwitchStatbar (wxCommandEvent& event)
+void FFrame::SwitchStatbar (bool show)
 {
-    if (event.IsChecked() && !GetStatusBar()) {
+    if (show && !GetStatusBar()) {
         status_bar = new FStatusBar(this);
         SetStatusBar(status_bar);
         plot_pane->update_mouse_hints();
     }
-    else if (!event.IsChecked() && GetStatusBar()) {
+    else if (!show && GetStatusBar()) {
         SetStatusBar(0);
-        //bug in wxGTK - after SetStatusBar(0) blank gray status bar remains.
         delete status_bar; 
         status_bar = 0;
-        //Layout();
-        SendSizeEvent();
     }
+    GetMenuBar()->Check(ID_G_S_STATBAR, show);
 }
 
-void FFrame::OnSwitchDPane (wxCommandEvent& event)
+void FFrame::SwitchDPane(bool show)
 {
-    bool checked = event.IsChecked();
-    if (checked && !v_splitter->IsSplit()) {
+    //v_splitter->IsSplit() means data_pane is visible 
+    if (show && !v_splitter->IsSplit()) {
         data_pane->Show(true);
         v_splitter->SplitVertically(main_pane, data_pane);
     }
-    else if (!checked && v_splitter->IsSplit()) {
+    else if (!show && v_splitter->IsSplit()) {
         v_splitter->Unsplit();
     }
-    GetMenuBar()->Check(ID_G_S_DPANE, checked);
-    if (toolbar) toolbar->ToggleTool(ID_ft_dpane, checked);
+    GetMenuBar()->Check(ID_G_S_DPANE, show);
+    if (toolbar) 
+        toolbar->ToggleTool(ID_ft_dpane, show);
 }
 
-void FFrame::OnSwitchAuxPlot (wxCommandEvent& event)
+void FFrame::OnSwitchAuxPlot(wxCommandEvent& ev) 
 {
-    bool checked = event.IsChecked();
-    int id = event.GetId();
-    plot_pane->show_aux(id-ID_G_S_A1, checked);
+    plot_pane->show_aux(ev.GetId() - ID_G_S_A1, ev.IsChecked());
 }
 
-void FFrame::OnSwitchIOPane (wxCommandEvent& event)
+void FFrame::SwitchIOPane (bool show)
 {
-    bool checked = event.IsChecked();
-    if (checked && !main_pane->IsSplit()) {
+    //main_pane->IsSplit() means io_pane is visible 
+    if (show && !main_pane->IsSplit()) {
         io_pane->Show(true);
         main_pane->SplitHorizontally(plot_pane, io_pane);
     }
-    else if (!checked && main_pane->IsSplit()) {
+    else if (!show && main_pane->IsSplit()) {
         main_pane->Unsplit();
     }
-    GetMenuBar()->Check(ID_G_S_IO, checked);
-    //if (toolbar) toolbar->ToggleTool(ID_ft_..., checked);
+    GetMenuBar()->Check(ID_G_S_IO, show);
+    //if (toolbar) toolbar->ToggleTool(ID_ft_..., show);
+}
+
+void FFrame::OnGuiShowUpdate (wxCommandEvent& event)
+{
+    for (int i = 0; i < 2; i++) 
+        if (GetMenuBar()->IsChecked(ID_G_S_A1+i) != plot_pane->aux_visible(i))
+            GetMenuBar()->Check(ID_G_S_A1+i, plot_pane->aux_visible(i));
+    event.Skip();
 }
 
 void FFrame::OnGViewAll (wxCommandEvent& WXUNUSED(event))
@@ -1423,7 +1442,8 @@ void FFrame::OnPrint(wxCommandEvent& WXUNUSED(event))
                             "is not white, so visiblity of lines and points\n"
                             "can be different.\n Do you want to continue?",
                           "Are you sure?", 
-                          wxYES_NO|wxCANCEL|wxICON_QUESTION) != wxYES)
+                          wxYES_NO|wxCANCEL|wxICON_QUESTION) 
+                != wxYES)
             return;
     wxPrintDialogData print_dialog_data (*print_data);
     wxPrinter printer (&print_dialog_data);
@@ -1750,6 +1770,7 @@ void FToolBar::update_peak_type()
     peak_choice->SetSelection(frame ? frame->peak_type_nr : 0); 
 }
 
+//FIXME move these small functions to header file?
 void FToolBar::OnChangeMouseMode (wxCommandEvent& event)
 {
     frame->OnChangeMouseMode(event);

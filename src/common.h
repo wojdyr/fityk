@@ -37,8 +37,8 @@ extern const fp INF;
 # define M_LN2   0.6931471805599453094172321214581766  /* log_e 2 */
 #endif
 
-extern std::vector<fp> fp_v0; //just empty vector
-extern std::vector<int> int_v0; //just empty vector
+extern const std::vector<fp> fp_v0; //just empty vector
+extern const std::vector<int> int_v0; //just empty vector
 
 /* idea taken from gnuplot:
  * some machines have trouble with exp(-x) for large x
@@ -104,6 +104,8 @@ inline bool is_index (int idx, const std::vector<T>& v)
 { 
     return idx >= 0 && idx < static_cast<int>(v.size()); 
 }
+
+inline int iround(fp d) { return static_cast<int>(round(d)); }
 
 extern bool exit_on_error;
 extern char auto_plot;

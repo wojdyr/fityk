@@ -36,7 +36,7 @@ public:
     bool SplitVertically(wxWindow* win1, wxWindow* win2, float proportion=-1);
     int GetExpectedSashPosition();
     void ResetSash();
-    float GetProportion() { return m_proportion; }
+    float GetProportion() const { return m_proportion; }
     void SetProportion(float proportion) {m_proportion=proportion; ResetSash();}
 
 protected:
@@ -129,11 +129,12 @@ public:
     const MainPlot* get_plot() const { return plot; }
     const std::vector<FPlot*> get_visible_plots() const;
     void show_aux(int n, bool show); 
+    bool aux_visible(int n) const;
 private:
     Plot_shared plot_shared;
     MainPlot *plot;
     ProportionalSplitter *aux_split;
-    AuxPlot *aux_plot1, *aux_plot2;
+    AuxPlot *aux_plot[2];
     std::vector<std::string> zoom_hist;
 
     DECLARE_EVENT_TABLE()

@@ -45,7 +45,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc AUTHORS ChangeLog COPYING INSTALL NEWS README TODO TODO.gui  
+%doc AUTHORS ChangeLog COPYING INSTALL NEWS README TODO 
 # *.xml *.xsl *.html?
 %attr(755,root,root) %{_bindir}/fityk 
 %attr(755,root,root) %{_bindir}/cfityk 
