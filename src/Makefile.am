@@ -4,7 +4,7 @@ SUBDIRS = img
 
 # tested only on MinGW 
 if OS_WIN32
-fityk_LDFLAGS = -mwindows
+fityk_LDFLAGS = -mwindows 
 ms_win_res = winres.o
 $(ms_win_res): winres.rc
 	windres -o $@ --include-dir $(srcdir) \
@@ -24,7 +24,7 @@ gui_sources = wx_dlg.cpp wx_gui.cpp wx_IO.cpp wx_plot.cpp wx_pane.cpp \
 	         wx_common.h
 fityk_SOURCES = $(common_sources) $(gui_sources) 
 cfityk_SOURCES = $(common_sources) u_gnuplot.cpp u_main.cpp u_rl_IO.cpp 
-common_ldadd = ##ext.a @FLIBS@  
+common_ldadd = ##none
 fityk_LDADD = $(common_ldadd) @WX_LIBS_DS@ $(ms_win_res)
 cfityk_LDADD = $(common_ldadd) @READLINE_LIBS@ -lm
 noinst_HEADERS = common.h crystal.h data.h dotset.h ffunc.h fzgbase.h \
@@ -33,11 +33,9 @@ noinst_HEADERS = common.h crystal.h data.h dotset.h ffunc.h fzgbase.h \
 		 u_gnuplot.h wx_dlg.h wx_gui.h wx_plot.h wx_pane.h \
 		 parser.tab.hh
 
-CXXFLAGS_BASE = -W -Wall -fno-rtti -fno-exceptions -pipe
-AM_CXXFLAGS = $(CXXFLAGS_BASE)
-# gcc 2.95 has too small template-depth
-other.o: AM_CXXFLAGS = $(CXXFLAGS_BASE) -ftemplate-depth-30 
-$(gui_sources:.cpp=.o): AM_CXXFLAGS = $(CXXFLAGS_BASE) @WX_CPPFLAGS@ @WX_CXXFLAGS_ONLY@ 
+# -ftemplate-depth-50 is for gcc 2.95 
+AM_CXXFLAGS = -Wall -fno-rtti -fno-exceptions -ftemplate-depth-50 
+$(gui_sources:.cpp=.o): AM_CXXFLAGS = $(AM_CXXFLAGS) @WX_CPPFLAGS@ @WX_CXXFLAGS_ONLY@ 
 
 ##TODO:
 parser.cpp: parser.yy

@@ -5,26 +5,43 @@ AC_CONFIG_SRCDIR([src/fzgbase.h])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_HEADERS([config.h])
 AC_CANONICAL_TARGET([])
-AM_INIT_AUTOMAKE(fityk, 0.4.1)
+AM_INIT_AUTOMAKE(fityk, 0.4.2)
 AM_MAINTAINER_MODE
 
 dnl What versions of program are to be made 
 AC_ARG_ENABLE(GUI, 
-[  --disable-GUI            do not build GUI version of program])
+[  --disable-GUI           do not build GUI version of program])
 test -z "$enable_GUI" && enable_GUI="yes"  
 AC_ARG_ENABLE(CLI, 
-[  --disable-CLI            do not build CLI version of program])
+[  --disable-CLI           do not build CLI version of program])
 test -z "$enable_CLI" && enable_CLI="yes"  
 
+dnl normal/debug/optimize flags
+AC_ARG_ENABLE(debug, 
+[  --enable-debug          debug flags, no optimization       ])
+AC_ARG_ENABLE(optimization, 
+[  --enable-optimization   all optimizations, no debug info])
+
+dnl Checks for -enable-debug/optimization options
+if test "$enable_debug" = "yes"; then 
+	CXXFLAGS="-g -O0 -fno-inline -W $CXXFLAGS"
+fi
+if test "$enable_optimization" = "yes"; then 
+	CPPFLAGS="-DNDEBUG $CPPFLAGS"
+	CXXFLAGS="-O3 $CXXFLAGS"
+	LDFLAGS="-s $LDFLAGS"
+fi
+
+
 dnl use static/dynamic wxWin library
-AC_ARG_ENABLE(CLI, 
-[  --disable-shared-wx      link with static version of wxWindows library])
-test -z "$enable_shared_wx" && enable_shared_wx="yes"  
+AC_ARG_ENABLE(sharedwx, 
+[  --disable-shared-wx     link with static version of wxWindows library])
+test -z "$enable_sharedwx" && enable_sharedwx="yes"  
 
 dnl The GNU readline library
 AC_ARG_WITH(readline, 
-[  --with-readline           use the GNU readline library for cfityk (default) 
-  --with-readline=PATH      Specify the location of readline])
+[  --without-readline      do not use the GNU readline library for cfityk 
+  --with-readline=PATH    Specify the location of readline])
 test -z "$with_readline" && with_readline="yes"  
 
 AM_OPTIONS_WXCONFIG
@@ -93,7 +110,7 @@ if test "$enable_GUI" != "no" ; then
             ])
     fi
 
-    if test "$enable_shared_wx" != "no"; then
+    if test "$enable_sharedwx" != "no"; then
 	    WX_LIBS_DS="$WX_LIBS"
 	    dnl AC_MSG_RESULT([Chosen shared version of wxWindows library.])
     else
@@ -108,7 +125,7 @@ if test "$enable_CLI" != "no"; then
     READLINE_STUFF
 
     AC_CHECK_PROG(gnuplot_in_path, gnuplot, yes)
-    if test "x$gnuplot_in_path" != "xyes" ; then
+    if test "$gnuplot_in_path" != "yes" ; then
 	    AC_MSG_RESULT(
 	  [ gnuplot is used by cfityk (command line version) for drawing plots, 
 		       but it is not necessery])

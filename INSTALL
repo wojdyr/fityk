@@ -33,13 +33,7 @@ wxGTK version
 
 GTK+ and wxGTK required.
 All changes in program are tested with GCC 3.4 and GCC 2.95.
-
-egcs 2.91.66 - Failed. 
-gcc 2.96 from RedHat 7.2 - Failed.
-gcc 2.95.4 - OK
-gcc 3.0.2 - OK (tested in 05.2002)
-gcc 3.3 - OK
-gcc 3.4 - OK
+Only GCC 2.95 and GCC 3.x compilers are supported.
 
 
 wxMotif version
@@ -56,10 +50,10 @@ Not tested yet.
 		===============================================
 
 Current version is compiled with MinGW 3.0.0
-Fityk versions <= 3.2 where compiled with the free Borland C++ Compiler 5.5 
-(perhaps it is still possible to compile current version with BCC)
+Fityk versions <= 3.2 where compiled with the free Borland C++ Compiler 5.5.
 Windows installer is prepared with Inno Setup.
 
+If you would like to try compiler other than GCC/MinGW, here are some tests: 
 MinGW - OK
 Borland C++ 5.5 (bcc32) - OK, tested in 2003.  
 Cygwin - CLI - OK, GUI - ?
