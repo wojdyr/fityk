@@ -7,11 +7,10 @@ SUBDIRS = fitykhelp_img
 
 all: fitykhelp.htb fitykhelp.html
 
-fitykhelp_with_idx.xml: fitykhelp.xml cmdidx.xsl
-	export SGML_CATALOG_FILES=/usr/share/sgml/docbook/xml-dtd-4.2/
+# fitykhelp_with_idx.xml is produced twice, but it is not a separate target,
+# to not have to be include it in EXTRA_DIST
+fitykhelp.htb: fitykhelp.xml cmdidx.xsl
 	xsltproc -o fitykhelp_with_idx.xml --nonet cmdidx.xsl fitykhelp.xml 
-
-fitykhelp.htb: fitykhelp_with_idx.xml
 	rm -rf fitykhelp_tmp/
 	mkdir fitykhelp_tmp
 	mkdir fitykhelp_tmp/fitykhelp_img/
@@ -20,7 +19,8 @@ fitykhelp.htb: fitykhelp_with_idx.xml
 	cd fitykhelp_tmp/ && zip -r fitykhelp.zip .
 	mv -f fitykhelp_tmp/fitykhelp.zip ./fitykhelp.htb 
 
-fitykhelp.html: fitykhelp_with_idx.xml
+fitykhelp.html: fitykhelp.xml cmdidx.xsl
+	xsltproc -o fitykhelp_with_idx.xml --nonet cmdidx.xsl fitykhelp.xml 
 	xmlto html-nochunks fitykhelp_with_idx.xml 
 	mv -f fitykhelp_with_idx.html fitykhelp.html 
 

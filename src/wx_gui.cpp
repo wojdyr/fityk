@@ -311,10 +311,11 @@ bool FApp::is_fityk_script(string filename)
 
     const int magic_len = strlen(magic);
     char *buffer = new char[magic_len + 1];
-    int r = f.readsome(buffer, magic_len);
+    for (int i = 0; i <= magic_len; ++i) buffer[i] = 0;
+    f.read(buffer, magic_len);
     int cmp = strncmp(magic, buffer, magic_len);
     delete [] buffer;
-    return r == magic_len && !cmp;
+    return !cmp;
 }
 
 /// parse and execute command line switches and arguments
@@ -1892,7 +1893,7 @@ string get_full_path_of_help_file (const string &name)
     };
     for (int flag = 0; flag <= 1; ++flag) {
         for (int i = 0; possible_paths[i]; i++) {
-            wxString path = !flag ? possible_paths[i]
+            wxString path = !flag ? wxString(possible_paths[i])
                                   : exedir + possible_paths[i];
             if (!path.IsEmpty() && path.Last() != wxFILE_SEP_PATH) 
                 path += wxFILE_SEP_PATH;

@@ -1,11 +1,5 @@
 [Suggestions from Fityk users survey are not included here yet.]
 
-* after upgrading wxWidgets to 2.5.2:
-    check for compatibility with 2.4.
-   (Windows) are dialogs centered on parent  ?
-
----
-
 * data viewer (grid); 
 
 * problem: fityk can't be compiled with UNICODE-enabled wxWidgets

@@ -10,6 +10,11 @@
 #include <limits.h>
 #include "wx_common.h" // Mouse_mode_enum
 
+// wxFULL_REPAINT_ON_RESIZE is defined only in wxWidgets >= 2.5
+#ifndef wxFULL_REPAINT_ON_RESIZE
+    #define wxFULL_REPAINT_ON_RESIZE 0
+#endif 
+
 class wxConfigBase;
 
 struct Point;
