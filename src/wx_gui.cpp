@@ -1613,7 +1613,7 @@ void add_peak(fp height, fp ctr, fp hwhm)
     string stat = "Height: " + S(height) + " Ctr: " + S(center) 
                    + " HWHM: " + S(hwhm);
 //return cmd, stat
-    frame->SetStatusText (stat.c_str());
+    frame->set_status_text(stat.c_str());
     exec_command (cmd);
 }
 

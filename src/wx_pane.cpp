@@ -589,7 +589,7 @@ void InputField::OnKeyDown (wxKeyEvent& event)
             wxString s = GetValue().Trim();
             if (s.IsEmpty())
                 return;
-            frame->SetStatusText (s);
+            frame->set_status_text(s);
             history.insert(++history.begin(), s);
             h_pos = history.begin();
             Clear();
@@ -693,6 +693,26 @@ void write_color_to_config (wxConfigBase *config, const wxString& key,
     config->Write (key + "/Blue", value.Blue());
 }
 
+wxFont read_font_from_config (const wxConfigBase *config, const wxString& key,
+                              const wxFont& default_value)
+{
+    return wxFont (config->Read(key+"/pointSize", default_value.GetPointSize()),
+                   config->Read(key+"/family", default_value.GetFamily()),
+                   config->Read(key+"/style", default_value.GetStyle()),
+                   config->Read(key+"/weight", default_value.GetWeight()),
+                   false, //underline
+                   config->Read(key+"/faceName", default_value.GetFaceName()));
+}
+
+void write_font_to_config (wxConfigBase *config, const wxString& key,
+                           const wxFont& value)
+{
+    config->Write (key + "/pointSize", value.GetPointSize());
+    config->Write (key + "/family", value.GetFamily());
+    config->Write (key + "/style", value.GetStyle());
+    config->Write (key + "/weight", value.GetWeight());
+    config->Write (key + "/faceName", value.GetFaceName());
+}
 
 //===============================================================
 //                            ProportionalSplitter

@@ -17,6 +17,8 @@ RCSID ("$Id$")
 #include <wx/colordlg.h>
 #include <wx/gdicmn.h>
 #include <wx/statline.h>
+#include <wx/fontdlg.h>
+#include <wx/textdlg.h>
 #include <algorithm>
 #include <numeric>
 #include <vector>
@@ -45,6 +47,7 @@ enum {
     ID_plot_popup_sum                      ,
     ID_plot_popup_phase                    ,
     ID_plot_popup_peak                     ,
+    ID_plot_popup_plabels                  ,
     ID_plot_popup_xaxis                    ,
     ID_plot_popup_tics                     ,
     ID_plot_popup_smooth                   ,
@@ -59,6 +62,10 @@ enum {
     ID_plot_popup_c_phase           = 25190,
     ID_plot_popup_c_peak                   ,
     ID_plot_popup_c_inv                    ,
+
+    ID_plot_popup_m_plabel                 ,
+    ID_plot_popup_m_plfont                 ,
+    ID_plot_popup_m_tfont                  ,
 
     ID_plot_popup_pt_size           = 25210,// and next 10 ,
     ID_peak_popup_info              = 25250,
@@ -160,6 +167,9 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_MENU_RANGE (ID_plot_popup_pt_size, ID_plot_popup_pt_size + max_radius, 
                                     MainPlot::OnPopupRadius)
     EVT_MENU (ID_plot_popup_c_inv,  MainPlot::OnInvertColors)
+    EVT_MENU (ID_plot_popup_m_plabel,MainPlot::OnPeakLabel)
+    EVT_MENU (ID_plot_popup_m_plfont,MainPlot::OnPlabelFont)
+    EVT_MENU (ID_plot_popup_m_tfont,MainPlot::OnTicsFont)
     EVT_MENU (ID_peak_popup_info,   MainPlot::OnPeakInfo)
     EVT_MENU (ID_peak_popup_del,    MainPlot::OnPeakDelete)
     EVT_MENU (ID_peak_popup_tree,   MainPlot::OnPeakShowTree)
@@ -199,7 +209,7 @@ void MainPlot::Draw(wxDC &dc)
 
     if (!params4plot.empty() && size(params4plot) != my_sum->pars()->count_a()){
         params4plot = my_sum->pars()->values();
-        frame->SetStatusText ("Number of parameters changed.");
+        frame->set_status_text("Number of parameters changed.");
     }
     my_sum->use_param_a_for_value (params4plot);
     prepare_peaktops();
@@ -243,11 +253,14 @@ void MainPlot::Draw(wxDC &dc)
     if (x_axis_visible) 
         draw_x_axis (dc, f, l);
 
+    if (visible_peaktops(mode)) 
+        draw_peaktops(dc); 
     if (mode == mmd_bg) {
         draw_background_points(dc); 
     }
-    else if (visible_peaktops(mode)) {
-        draw_peaktops(dc); 
+    else {
+        if (plabels_visible)
+            draw_plabels(dc);
     }
 }
 
@@ -280,7 +293,8 @@ void FPlot::draw_tics (wxDC& dc, const Rect &v,
                           const int x_tic_size, const int y_tic_size)
 {
     dc.SetPen (xAxisPen);
-    dc.SetFont(*wxSMALL_FONT);
+    //dc.SetFont(*wxSMALL_FONT);
+    dc.SetFont(ticsFont);
     dc.SetTextForeground(xAxisPen.GetColour());
 
     // x axis tics
@@ -516,6 +530,43 @@ void MainPlot::draw_peaktops (wxDC& dc)
         dc.DrawRectangle (i->x - 1, i->y - 1, 3, 3);
 }
 
+void MainPlot::draw_plabels (wxDC& dc)
+{
+    prepare_peak_labels(); //TODO re-prepare only when peaks where changed
+    dc.SetFont(plabelFont);
+    vector<wxRect> previous;
+    for (int k = 0; k < my_sum->fzg_size(fType); k++) {
+        const wxPoint &peaktop = shared.peaktops[k];
+        dc.SetTextForeground(peakPen[k % max_peak_pens].GetColour());
+
+        wxString label = plabels[k].c_str();
+        wxCoord w, h;
+        dc.GetTextExtent (label, &w, &h);
+        int X = peaktop.x - w/2;
+        int Y = peaktop.y - h - 2;
+        wxRect rect(X, Y, w, h);
+
+        // eliminate labels overlap 
+        // perhaps more sophisticated algorithm for automatic label placement
+        // should be used
+        int counter = 0;
+        vector<wxRect>::const_iterator i = previous.begin();
+        while (i != previous.end() && counter < 10) {
+            //if not intersection -- optimised "if (!rect.Intersects(*i))"
+            if (i->x > rect.GetRight() || rect.x > i->GetRight()
+                      || i->y > rect.GetBottom() || rect.y > i->GetBottom()) 
+                ++i;
+            else { // intersects -- try upper rectangle
+                rect.SetY(i->y - h - 2); 
+                i = previous.begin(); //and check for intersections with all...
+                ++counter;
+            }
+        }
+        previous.push_back(rect);
+        dc.DrawText(label, rect.x, rect.y);
+    }
+}
+
 
 /*
 static bool operator< (const wxPoint& a, const wxPoint& b) 
@@ -528,8 +579,9 @@ void MainPlot::prepare_peaktops()
 {
     int H =  GetClientSize().GetHeight();
     int Y0 = y2Y(0);
-    shared.peaktops.clear();
-    for (int k = 0; k < my_sum->fzg_size(fType); k++) {
+    int n = my_sum->fzg_size(fType);
+    shared.peaktops.resize(n);
+    for (int k = 0; k < n; k++) {
         const V_f *f = my_sum->get_f(k);
         int X, Y;
         if (f->is_peak()) {
@@ -542,7 +594,48 @@ void MainPlot::prepare_peaktops()
             Y = y2Y (my_sum->f_value(X2x(X), k));
         }
         if (Y < 0 || Y > H) Y = Y0;
-        shared.peaktops.push_back(wxPoint(X, Y));
+        shared.peaktops[k] = wxPoint(X, Y);
+    }
+}
+
+
+void MainPlot::prepare_peak_labels()
+{
+    int n = my_sum->fzg_size(fType);
+    plabels.resize(n);
+    for (int k = 0; k < n; k++) {
+        string label = plabel_format;
+        const V_f *f = my_sum->get_f(k);
+        if (f->is_peak()) {
+            string::size_type pos = 0; 
+            while ((pos = label.find("<", pos)) != string::npos) {
+                string::size_type right = label.find(">", pos+1); 
+                if (right == string::npos)
+                    break;
+                string tag(label, pos+1, right-pos-1);
+                if (tag == "area")
+                    label.replace(pos, right-pos+1, S(f->area()));
+                else if (tag == "height")
+                    label.replace(pos, right-pos+1, S(f->height()));
+                else if (tag == "center")
+                    label.replace(pos, right-pos+1, S(f->center()));
+                else if (tag == "fwhm")
+                    label.replace(pos, right-pos+1, S(f->fwhm()));
+                else if (tag == "ib")
+                    label.replace(pos, right-pos+1, S(f->area()/f->height()));
+                else if (tag == "n")
+                    label.replace(pos, right-pos+1, S(k));
+                else if (tag == "ref")
+                    label.replace(pos, right-pos+1, my_sum->descr_refs_to_f(k));
+                else if (tag == "br")
+                    label.replace(pos, right-pos+1, "\n");
+                else
+                    ++pos;
+            }
+            plabels[k] = label;
+        }
+        else
+            plabels[k] = "";
     }
 }
 
@@ -604,6 +697,7 @@ void MainPlot::read_settings(wxConfigBase *cf)
     cf->SetPath("/MainPlot/Visible");
     smooth = read_bool_from_config(cf, "smooth", false);
     peaks_visible = read_bool_from_config (cf, "peaks", false); 
+    plabels_visible = read_bool_from_config (cf, "plabels", false); 
     phases_visible = read_bool_from_config (cf, "phases", false);  
     sum_visible = read_bool_from_config (cf, "sum", true);
     data_visible = read_bool_from_config (cf, "data", true); 
@@ -612,6 +706,9 @@ void MainPlot::read_settings(wxConfigBase *cf)
     cf->SetPath("/MainPlot");
     point_radius = cf->Read ("point_radius", 1);
     line_between_points = read_bool_from_config(cf,"line_between_points",false);
+    ticsFont = read_font_from_config(cf, "ticsFont", *wxSMALL_FONT);
+    plabelFont = read_font_from_config(cf, "plabelFont", *wxNORMAL_FONT);
+    plabel_format = cf->Read("plabel_format", "<area>").c_str();
     Refresh();
 }
 
@@ -620,6 +717,9 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->SetPath("/MainPlot");
     cf->Write ("point_radius", point_radius);
     cf->Write ("line_between_points", line_between_points);
+    write_font_to_config (cf, "ticsFont", ticsFont);
+    write_font_to_config (cf, "plabelFont", plabelFont);
+    cf->Write("plabel_format", plabel_format.c_str());
 
     cf->SetPath("/MainPlot/Colors");
     write_color_to_config (cf, "text_fg", colourTextForeground);
@@ -640,6 +740,7 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->SetPath("/MainPlot/Visible");
     cf->Write ("smooth", smooth);
     cf->Write ("peaks", peaks_visible);
+    cf->Write ("plabels", plabels_visible);
     cf->Write ("phases", phases_visible);
     cf->Write ("sum", sum_visible);
     cf->Write ("data", data_visible);
@@ -649,7 +750,7 @@ void MainPlot::save_settings(wxConfigBase *cf) const
 
 void MainPlot::OnLeaveWindow (wxMouseEvent& WXUNUSED(event))
 {
-    frame->SetStatusText ("", sbf_coord);
+    frame->set_status_text("", sbf_coord);
     vert_line_following_cursor (mat_cancel);
     frame->draw_crosshair(-1, -1);
 }
@@ -684,6 +785,8 @@ void MainPlot::show_popup_menu (wxMouseEvent &event)
     show_menu->Check (ID_plot_popup_phase, phases_visible);
     show_menu->AppendCheckItem (ID_plot_popup_peak, "&Peaks", "");
     show_menu->Check (ID_plot_popup_peak, peaks_visible);
+    show_menu->AppendCheckItem (ID_plot_popup_plabels, "Peak &labels", "");
+    show_menu->Check (ID_plot_popup_plabels, plabels_visible);
     show_menu->AppendCheckItem (ID_plot_popup_xaxis, "&X axis", "");
     show_menu->Check (ID_plot_popup_xaxis, x_axis_visible);
     show_menu->AppendCheckItem (ID_plot_popup_tics, "&Tics", "");
@@ -712,6 +815,12 @@ void MainPlot::show_popup_menu (wxMouseEvent &event)
     color_menu->AppendSeparator(); 
     color_menu->Append (ID_plot_popup_c_inv, "&Invert colors"); 
     popup_menu.Append (wxNewId(), "&Color", color_menu);  
+
+    wxMenu *misc_menu = new wxMenu;
+    misc_menu->Append (ID_plot_popup_m_plabel, "Peak &label");
+    misc_menu->Append (ID_plot_popup_m_plfont, "Peak label &font");
+    misc_menu->Append (ID_plot_popup_m_tfont, "&Tics font");
+    popup_menu.Append (wxNewId(), "&Miscellaneous", misc_menu);
 
     wxMenu *size_menu = new wxMenu;
     size_menu->AppendCheckItem (ID_plot_popup_pt_size, "&Line", "");
@@ -855,7 +964,7 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
         y -= my_data->get_bg_at (x);
     wxString str;
     str.Printf ("%.3f  %d", x, static_cast<int>(y + 0.5));
-    frame->SetStatusText (str, sbf_coord);
+    frame->set_status_text(str, sbf_coord);
 
     if (pressed_mouse_button == 0) {
         if (mode == mmd_range) {
@@ -904,11 +1013,11 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
         s += " " + f->type_info()->name 
             + " " + my_sum->info_fzg_parameters(fType, over_peak, true)
             + " " + f->extra_description();
-        frame->SetStatusText (s.c_str());
+        frame->set_status_text(s.c_str());
         set_mouse_mode(mmd_peak);
     }
     else { //was over peak, but now is not 
-        frame->SetStatusText ("");
+        frame->set_status_text("");
         set_mouse_mode(basic_mode);
     }
 }
@@ -922,7 +1031,7 @@ void MainPlot::cancel_mouse_press()
         vert_line_following_cursor (mat_cancel);
         mouse_press_X = mouse_press_Y = INVALID;
         pressed_mouse_button = 0;
-        frame->SetStatusText ("");
+        frame->set_status_text("");
         update_mouse_hints();
     }
 }
@@ -946,7 +1055,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     if (button == 1 && (ctrl || mode == mmd_zoom) || button == 2) {
         rect_zoom (mat_start, event);
         SetCursor(wxCURSOR_MAGNIFIER);  
-        frame->SetStatusText ("Select second corner to zoom...");
+        frame->set_status_text("Select second corner to zoom...");
     }
     else if (button == 3 && (ctrl || mode == mmd_zoom)) {
         show_popup_menu (event);
@@ -955,11 +1064,12 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     else if (button == 1 && mode == mmd_peak) {
         move_peak(mat_start, event);
         if (my_sum->get_f(over_peak)->is_peak()) {
-            frame->SetStatusText(wxString("Moving peak ^") +S(over_peak).c_str()
-                                 + " (press Shift to change width)");
+            frame->set_status_text(wxString("Moving peak ^") 
+                                   + S(over_peak).c_str()
+                                   + " (press Shift to change width)");
         }
         else
-            frame->SetStatusText("It is not a peak, it can't be dragged.");
+            frame->set_status_text("It is not a peak, it can't be dragged.");
     }
     else if (button == 3 && mode == mmd_peak) {
         show_peak_menu(event);
@@ -974,17 +1084,17 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     else if (button == 1 && mode == mmd_add) {
         peak_draft (mat_start, event);
         SetCursor(wxCURSOR_SIZING);
-        frame->SetStatusText("Add drawed peak...");
+        frame->set_status_text("Add drawed peak...");
     }
     else if (button == 3 && mode == mmd_add) {
         vert_line_following_cursor(mat_start, mouse_press_X+1, mouse_press_X);
         SetCursor(wxCURSOR_SIZEWE);
-        frame->SetStatusText("Select range to add a peak in it..."); 
+        frame->set_status_text("Select range to add a peak in it..."); 
     }
     else if (button != 2 && mode == mmd_range) {
         vert_line_following_cursor(mat_start, mouse_press_X+1, mouse_press_X);
         SetCursor(wxCURSOR_SIZEWE);
-        frame->SetStatusText(button==1 ? "Select data range to activate..."
+        frame->set_status_text(button==1 ? "Select data range to activate..."
                                        : "Select data range to disactivate...");
     }
     update_mouse_hints();
@@ -1003,11 +1113,11 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     // if Down and Up events are at the same position -> cancel
     if (button == 1 && (ctrl || mode == mmd_zoom) || button == 2) {
         rect_zoom(dist_x + dist_y < 10 ? mat_cancel: mat_stop, event);
-        frame->SetStatusText("");
+        frame->set_status_text("");
     }
     else if (mode == mmd_peak && button == 1) {
         move_peak(dist_x + dist_y < 2 ? mat_cancel: mat_stop, event);
-        frame->SetStatusText ("");
+        frame->set_status_text("");
     }
     else if (mode == mmd_range && button != 2) {
         vert_line_following_cursor(mat_cancel);
@@ -1019,14 +1129,14 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             else //button == 3
                 exec_command ("d.range - [ " + S(xmin) + " : " + S(xmax)+" ]");
         }
-        frame->SetStatusText ("");
+        frame->set_status_text("");
     }
     else if (mode == mmd_add && button == 1) {
-        frame->SetStatusText ("");
+        frame->set_status_text("");
         peak_draft (dist_x + dist_y < 5 ? mat_cancel: mat_stop, event);
     }
     else if (mode == mmd_add && button == 3) {
-        frame->SetStatusText ("");
+        frame->set_status_text("");
         if (dist_x >= 5)  
             add_peak_in_range(X2x(mouse_press_X), X2x(event.GetX()));
         vert_line_following_cursor(mat_cancel);
@@ -1097,15 +1207,15 @@ void MainPlot::move_peak (Mouse_act_enum ma, wxMouseEvent &event)
             if (!has_mod_keys(event)) {
                 if (c_center) center += dx;
                 if (c_height) height += dy;
-                frame->SetStatusText("[Shift=change width/shape] Ctr:" 
-                                     + wxString(S(center).c_str())
-                                     + " Height:" + S(height).c_str());
+                frame->set_status_text("[Shift=change width/shape] Ctr:" 
+                                       + wxString(S(center).c_str())
+                                       + " Height:" + S(height).c_str());
             }
             else {
                 if (c_hwhm) hwhm = fabs(hwhm + dx);
                 if (c_shape) shape *= (1 - 0.05 * (event.GetY() - prev.y)); 
-                frame->SetStatusText("Width:" + wxString(S(hwhm*2).c_str())
-                                   + " Shape:" + wxString(S(shape).c_str()));
+                frame->set_status_text("Width:" + wxString(S(hwhm*2).c_str())
+                                       + " Shape:" + S(shape).c_str());
             }
             prev.x = event.GetX(), prev.y = event.GetY();
             draw_peak_draft(x2X(center - my_sum->zero_shift(center)), 
@@ -1250,6 +1360,7 @@ void MainPlot::OnPopupShowXX (wxCommandEvent& event)
         case ID_plot_popup_sum  :  sum_visible = !sum_visible;       break; 
         case ID_plot_popup_phase:  phases_visible = !phases_visible; break; 
         case ID_plot_popup_peak :  peaks_visible = !peaks_visible;   break;  
+        case ID_plot_popup_plabels:plabels_visible = !plabels_visible; break;
         case ID_plot_popup_xaxis:  x_axis_visible = !x_axis_visible; break; 
         case ID_plot_popup_tics :  tics_visible = !tics_visible;     break; 
         case ID_plot_popup_smooth :  smooth = !smooth;               break; 
@@ -1287,7 +1398,7 @@ void MainPlot::OnPopupColor(wxCommandEvent& event)
     wxColourData col_data;
     col_data.SetCustomColour (0, col);
     col_data.SetColour (col);
-    wxColourDialog dialog (this, &col_data);
+    wxColourDialog dialog (frame, &col_data);
     if (dialog.ShowModal() == wxID_OK) {
         wxColour new_col = dialog.GetColourData().GetColour();
         if (brush) brush->SetColour (new_col);
@@ -1313,6 +1424,56 @@ void MainPlot::OnInvertColors (wxCommandEvent& WXUNUSED(event))
     for (int i = 0; i < max_peak_pens; i++)
         peakPen[i].SetColour (invert_colour (peakPen[i].GetColour()));
     Refresh();
+}
+
+void MainPlot::OnPeakLabel (wxCommandEvent& WXUNUSED(event))
+{
+    const char *msg = "Select format of peak labels.\n"
+                      "Following strings will be substitued by proper values:\n"
+                      "<area> <height> <center> <fwhm> <ib> <n> <ref> <br>.\n"
+                      "<ib> = integral breadth,\n"
+                      "<ref> is useful only when xtallography module is used,\n"
+                      "<br> = break line\n"
+                      "Use option Show->Peak labels to show/hide labels.";
+
+    wxString s = wxGetTextFromUser(msg, "Peak label format", 
+                                   plabel_format.c_str());
+    if (!s.IsEmpty()) {
+        plabel_format = s.c_str();
+        Refresh(false);
+    }
+}
+
+void MainPlot::OnPlabelFont (wxCommandEvent& WXUNUSED(event))
+{
+    wxFontData data;
+    data.SetInitialFont(plabelFont);
+    //data.SetColour(.GetColour());
+
+    wxFontDialog dialog(frame, &data);
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        wxFontData retData = dialog.GetFontData();
+        plabelFont = retData.GetChosenFont();
+        //.SetColour(retData.GetColour());
+        Refresh(false);
+    }
+}
+
+void MainPlot::OnTicsFont (wxCommandEvent& WXUNUSED(event))
+{
+    wxFontData data;
+    data.SetInitialFont(ticsFont);
+    data.SetColour(xAxisPen.GetColour());
+
+    wxFontDialog dialog(frame, &data);
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        wxFontData retData = dialog.GetFontData();
+        ticsFont = retData.GetChosenFont();
+        xAxisPen.SetColour(retData.GetColour());
+        Refresh(false);
+    }
 }
 
 void MainPlot::OnPopupRadius (wxCommandEvent& event)
@@ -1465,7 +1626,7 @@ void AuxPlot::OnMouseMove(wxMouseEvent &event)
     vert_line_following_cursor (mat_move, X);
     wxString str;
     str.Printf ("%.3f  [%d]", x, static_cast<int>(y + 0.5));
-    frame->SetStatusText (str, sbf_coord);
+    frame->set_status_text(str, sbf_coord);
     wxCursor new_cursor;
     if (X < move_plot_margin_width)
         new_cursor = wxCURSOR_POINT_LEFT;
@@ -1483,7 +1644,7 @@ void AuxPlot::OnMouseMove(wxMouseEvent &event)
 
 void AuxPlot::OnLeaveWindow (wxMouseEvent& WXUNUSED(event))
 {
-    frame->SetStatusText ("", sbf_coord);
+    frame->set_status_text("", sbf_coord);
     vert_line_following_cursor (mat_cancel);
     frame->draw_crosshair(-1, -1);
 }
@@ -1575,7 +1736,7 @@ void AuxPlot::OnLeftDown (wxMouseEvent &event)
         mouse_press_X = X;
         vert_line_following_cursor(mat_start, mouse_press_X+1, mouse_press_X);
         SetCursor(wxCURSOR_SIZEWE);  
-        frame->SetStatusText ("Select x range and release button to zoom..."); 
+        frame->set_status_text("Select x range and release button to zoom..."); 
         CaptureMouse();
     }
 }
@@ -1588,7 +1749,7 @@ bool AuxPlot::cancel_mouse_left_press()
         mouse_press_X = INVALID;
         cursor = wxCURSOR_CROSS;
         SetCursor(wxCURSOR_CROSS);  
-        frame->SetStatusText(""); 
+        frame->set_status_text(""); 
         return true;
     }
     else
@@ -1691,7 +1852,7 @@ void AuxPlot::OnPopupColor (wxCommandEvent& event)
     wxColourData col_data;
     col_data.SetCustomColour (0, col);
     col_data.SetColour (col);
-    wxColourDialog dialog (this, &col_data);
+    wxColourDialog dialog (frame, &col_data);
     if (dialog.ShowModal() == wxID_OK) {
         wxColour new_col = dialog.GetColourData().GetColour();
         if (brush) brush->SetColour (new_col);

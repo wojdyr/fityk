@@ -201,6 +201,10 @@ inline bool read_bool_from_config (const wxConfigBase *config,
                                    const wxString& key, bool def_val)
                     { bool b; config->Read(key, &b, def_val); return b; }
 
+wxFont read_font_from_config (const wxConfigBase *config, const wxString& key,
+                              const wxFont& default_value);
+void write_font_to_config (wxConfigBase *config, const wxString& key,
+                           const wxFont& value);
 
 
 #endif //WX_PANE__H__

@@ -47,7 +47,7 @@ void UserInterface::execCommand(const string& s)
     if (output)
         frame->output_text(os_input, prompted_s + "\n");
     else
-        frame->SetStatusText(s.c_str());
+        frame->set_status_text(s.c_str());
     wxBusyCursor wait;
     bool r = parser(s);
     if (!r)

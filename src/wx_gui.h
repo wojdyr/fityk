@@ -28,7 +28,7 @@ class DataEditorDlg;
 extern std::vector<fp> params4plot;
 
 //status bar fields
-enum { sbf_text, sbf_hint1, sbf_hint2, sbf_coord, sbf_max };  
+enum StatusBarField { sbf_text, sbf_hint1, sbf_hint2, sbf_coord, sbf_max };  
 
 class FApp: public wxApp
 {
@@ -192,6 +192,8 @@ public:
     void refresh_plots(bool update=false);
     void draw_crosshair(int X, int Y);
     void focus_input();
+    void set_status_text(const wxString &text, StatusBarField field=sbf_text) 
+            { if (status_bar) SetStatusText(text, field); }
 
 protected:
     ProportionalSplitter *main_pane;

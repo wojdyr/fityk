@@ -60,6 +60,7 @@ protected:
     wxBrush backgroundBrush;
     wxPen activeDataPen, inactiveDataPen;
     wxPen xAxisPen;
+    wxFont ticsFont;
     wxColour colourTextForeground, colourTextBackground;
     int point_radius;
     bool line_between_points;
@@ -111,6 +112,9 @@ public:
     void OnPopupShowXX (wxCommandEvent& event);
     void OnPopupColor (wxCommandEvent& event);
     void OnInvertColors (wxCommandEvent& event);
+    void OnPeakLabel (wxCommandEvent& event);
+    void OnPlabelFont (wxCommandEvent& event);
+    void OnTicsFont (wxCommandEvent& event);
     void OnPopupRadius (wxCommandEvent& event);
     void OnZoomAll (wxCommandEvent& event);
     void PeakInfo ();
@@ -131,7 +135,11 @@ private:
     static const int max_peak_pens = 24;
     static const int max_radius = 4; //size of data point
     bool smooth;
-    bool peaks_visible, phases_visible, sum_visible, data_visible; 
+    bool peaks_visible, phases_visible, sum_visible, data_visible, 
+         plabels_visible; 
+    wxFont plabelFont;
+    std::string plabel_format;
+    std::vector<std::string> plabels;
     wxPen sumPen, bg_pointsPen;
     wxPen phasePen[max_phase_pens], peakPen[max_peak_pens];
     int pressed_mouse_button;
@@ -150,7 +158,9 @@ private:
     void buffer_peaks (std::vector<Point>::const_iterator first,
                        std::vector<Point>::const_iterator last);
     void draw_peaktops (wxDC& dc);
+    void draw_plabels (wxDC& dc);
     void prepare_peaktops();
+    void prepare_peak_labels();
     void look_for_peaktop (wxMouseEvent& event);
     void show_popup_menu (wxMouseEvent &event);
     void show_peak_menu (wxMouseEvent &event);

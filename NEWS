@@ -1,5 +1,8 @@
 User-visible changes in version 0.4.4:
 
+* fixed Pseudo-Voigt formula in manual (program was not changed) (David Hovis)
+* peak labels (above each peak) that can display peak area, position etc.
+* fonts used for scale labels can be changed 
 * data viewer (it is first step in implementing data editor)
 * input field: up/down arrow keys work as in bash (wxComboBox was replaced
   by wxTextCtrl)
