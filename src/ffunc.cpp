@@ -341,28 +341,32 @@ void fVoigt::f_val_precomputations ()
     if (av.size() != 6)
         av.resize(6);
     float k, l, dkdx, dkdy; 
-    humdev(0, av[3], k, l, dkdx, dkdy);
+    humdev(0, fabs(av[3]), k, l, dkdx, dkdy);
     av[4] = 1. / k;  
     av[5] = dkdy / k;
 }
 
 fp fVoigt::compute (fp x, fp* dy_dx) 
 {
+    // humdev/humlik routines require with y (a3 here) parameter >0.
+    // here fabs(av[3]) is used, and der[3] is negated if av[3]<0.
     float k;
     fp xa1a2 = (x - av[1]) / av[2];
     fp a0a4 = av[0] * av[4];
     if (dy_dx) {
         float l, dkdx, dkdy; 
-        humdev(xa1a2, av[3], k, l, dkdx, dkdy); 
+        humdev(xa1a2, fabs(av[3]), k, l, dkdx, dkdy); 
         der[0] = av[4] * k;
         fp dcenter = -a0a4 * dkdx / av[2]; 
         der[1] = dcenter;
         der[2] = dcenter * xa1a2;
         der[3] = a0a4 * (dkdy - k * av[5]);  
+        if (av[3] < 0)
+            der[3] = - der[3];
         *dy_dx -= dcenter;
     }
     else
-        k = humlik(xa1a2, av[3]);
+        k = humlik(xa1a2, fabs(av[3]));
     return a0a4 * k;
 }
 
@@ -372,12 +376,13 @@ fp fVoigt::compute (fp x, fp* dy_dx)
 
 fp fVoigt::height() const { return av[0]; }
 fp fVoigt::center() const { return av[1]; }
-fp fVoigt::fwhm() const { return 2 * fabs(av[2]) * sqrt(av[3] + 1); }
+fp fVoigt::fwhm() const { return 2 * fabs(av[2]) * sqrt(fabs(av[3]) + 1); }
                                                             //Posener, 1959
 
 fp fVoigt::area() const  
 { 
-    return fabs(av[0] * av[2] * sqrt(M_PI) / humlik(0, av[3]));//* av[4];//TODO
+    return fabs(av[0] * av[2] * sqrt(M_PI) / humlik(0, fabs(av[3])));
+                                                    //* av[4];//TODO
 }
 
 string fVoigt::formula (const vector<fp>& /*A*/, const vector<V_g*>& /*G*/) 

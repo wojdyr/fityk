@@ -1,11 +1,12 @@
 [Suggestions from Fityk users survey are not included here yet.]
 
+* wxWidgets version in About box
+
 * data viewer (grid); 
 
 * problem: fityk can't be compiled with UNICODE-enabled wxWidgets
 
-* automate (as possible) procedure of releasing new version. 
-  Write a good portable .spec (spec is used for building RPM)
+* write a good portable .spec (spec is used for building RPM)
 
 * www page with links to various peak-fitting programs (based on results
   of survey)
