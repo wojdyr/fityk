@@ -1545,7 +1545,7 @@ void FFrame::OnPrintSetup(wxCommandEvent& WXUNUSED(event))
 
 void FFrame::OnPrint(wxCommandEvent& WXUNUSED(event))
 {
-    if (plot_pane->is_background_white())
+    if (!plot_pane->is_background_white())
         if (wxMessageBox ("Plots will be printed on white background, \n"
                             "to save ink/toner.\n"
                             "Now background of your plot on screen\n"
