@@ -5,6 +5,7 @@ RCSID ("$Id$")
 #include "pcore.h"
 #include <stdio.h>
 #include <fstream>
+#include <algorithm>
 #include "data.h"
 #include "sum.h"
 #include "other.h" //temporary

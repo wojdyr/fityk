@@ -28,7 +28,7 @@ public:
     std::vector<int_fp> get_derivatives (const std::vector<fp>& A, 
                                          const std::vector<V_g*>& G);
     static std::vector<char> all_types();
-    static V_g* V_g::factory (Sum* sum, char type, const std::vector<Pag> &p);
+    static V_g* factory (Sum* sum, char type, const std::vector<Pag> &p);
 
 protected:
     virtual void prepare_deriv () = 0;
