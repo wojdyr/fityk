@@ -97,7 +97,7 @@ AC_LANG_POP([C++]) dnl C is faster than C++
 dnl Checks for version specific libraries and headers.
 if test "$enable_GUI" != "no" ; then 
     FITYK=fityk$PROGRAM_EXT 
-    AM_PATH_WXCONFIG(2.3.4, wxWin=1)
+    AM_PATH_WXCONFIG(2.4.2, wxWin=1)
     if test "$wxWin" != 1; then
     	AC_MSG_ERROR([
     	      wxWindows must be installed on your system
@@ -106,7 +106,7 @@ if test "$enable_GUI" != "no" ; then
     	      Please check that wx-config is in path, the directory
     	      where wxWindows libraries are installed (returned by
     	      'wx-config --libs' command) is in LD_LIBRARY_PATH or
-    	      equivalent variable and wxWindows version is 2.3.3 or above.
+    	      equivalent variable and wxWindows version is 2.4.2 or above.
             ])
     fi
 

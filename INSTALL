@@ -8,7 +8,8 @@ only for CLI (command line interface, cfityk):
   readline library (optional)
   gnuplot program (for graph output, optional)
 only for GUI (graphical user interface, fityk):
-  wxWindows >= 2.4.0, (I'm testing it only with the latest stable version)
+  wxWidgets (formerly wxWindows) >= 2.4.2, (I'm testing it only with 2.4.2 
+                                            and the latest version)
 
 
 CVS:
@@ -24,7 +25,6 @@ or extracted from tarballs.
 
 PORTABILITY:
 ===========
-
 		 Linux (and probably other unices): 
 		 ----------------------------------
 
