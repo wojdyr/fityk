@@ -35,8 +35,8 @@ void replot()
         new_line = false;
     else
         return; //do not replot
-    if (auto_plot >= 2 && AL->was_changed()) {
-        getUI()->plot();
+    if (/*auto_plot >= 2 &&*/ AL->was_changed()) {
+        getUI()->drawPlot(2);
 	AL->was_plotted();
     }
 }
@@ -196,7 +196,7 @@ exp:  SET DASH_STRING EQ_STRING SEP {
     | M_FINDPEAK flt opt_flt SEP { 
                             mesg (my_manipul->print_simple_estimate ($2, $3)); }
     | M_FINDPEAK                   {mesg (my_manipul->print_global_peakfind());}
-    | O_PLOT SEP                   { getUI()->plotNow();}
+    | O_PLOT SEP                   { getUI()->drawPlot(1, true);}
     | O_PLOT range SEP          { my_core->set_view (Rect($2.l, $2.r), true); }
     | O_PLOT bracket_range bracket_range SEP  { 
                             my_core->set_view (Rect($2.l, $2.r, $3.l, $3.r)); }

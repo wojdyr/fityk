@@ -90,8 +90,7 @@ int LMfit::autoiter ()
             else
                 small_change_counter = 0;
             prev_chi2 = chi2;
-            if (auto_plot == 3)
-                fplot (a);
+            iteration_plot(a);
         }
         else { // result == 0, worse fit
             info ("#" + S(iter_nr) + ": (WSSR=" + S(chi2_) 

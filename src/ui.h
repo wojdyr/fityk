@@ -26,12 +26,10 @@ public:
     /// get Singleton class instance
     static UserInterface* getInstance();
 
-    /// update plot (if a is given, use it as parameters vector for functions)
-    /// different definition for GUI and CLI
-    void plotNow (const std::vector<fp>& a = fp_v0);
-
-    /// plot is outdated and should be replotted; different for GUI and CLI
-    void plot(); 
+    /// Update plot (if a is given, use it as parameters vector for functions)
+    /// Updates only if pri<=auto_plot.   If !now, update can be delayed
+    /// Different definition for GUI and CLI
+    void drawPlot (int pri=0, bool now=false, const std::vector<fp>& a = fp_v0);
 
     /// sent message - to user input and to log file (if logging is on)
     void outputMessage (int level, const std::string& s);
@@ -60,6 +58,7 @@ private:
     UserInterface (const UserInterface&); //disable
     UserInterface& operator= (const UserInterface&); //disable
 
+    void doDrawPlot (bool now=false, const std::vector<fp>& a = fp_v0);
     /// show message to user; different definition for GUI and CLI
     void showMessage (OutputStyle style, const std::string& s);
 
@@ -77,6 +76,7 @@ private:
     std::ofstream logfile;
     char verbosity;
     bool exit_on_warning;
+    char auto_plot;
     std::map<char, std::string> autoplot_enum;
     std::map<char, std::string> verbosity_enum;
 };

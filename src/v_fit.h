@@ -49,7 +49,7 @@ protected:
                              std::vector<fp>& alpha, std::vector<fp>& beta);
     bool post_fit (const std::vector<fp>& aa, fp chi2);
     fp draw_a_from_distribution (int nr, char distribution = 'u', fp mult = 1.);
-    void fplot (const std::vector<fp>& a);
+    void iteration_plot (const std::vector<fp>& a);
 private:
     std::vector<fp> fitted2all (const std::vector<fp>& A);
     int fitted2all (int nr);

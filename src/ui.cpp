@@ -6,6 +6,7 @@ RCSID ("$Id$")
 #include <fstream>
 #include <string>
 #include <iostream>
+#include "other.h"
 
 using namespace std;
 
@@ -32,7 +33,8 @@ UserInterface* UserInterface::getInstance()
 
 
 UserInterface::UserInterface() 
-    : log_mode('n'), log_filename(), verbosity(3), exit_on_warning(false)
+    : log_mode('n'), log_filename(), verbosity(3), exit_on_warning(false),
+      auto_plot(2)
 {
     verbosity_enum [0] = "silent";
     verbosity_enum [1] = "only-warnings";
@@ -42,7 +44,6 @@ UserInterface::UserInterface()
     verbosity_enum [5] = "very-verbose";
     epar.insert (pair<string, Enum_string> ("verbosity", 
                                Enum_string (verbosity_enum, &verbosity)));
-    autoplot_enum [0] = "really-never";
     autoplot_enum [1] = "never";
     autoplot_enum [2] = "on-plot-change";
     autoplot_enum [3] = "on-fit-iteration";
@@ -182,4 +183,15 @@ void UserInterface::execScript (const string& filename,
             break;
     }
 }
+
+
+void UserInterface::drawPlot (int pri, bool now, const std::vector<fp>& a)
+{
+    if (pri <= auto_plot && (now || AL->was_changed())) {
+            doDrawPlot(now, a);
+            if (a.empty())
+                AL->was_plotted();
+    }
+}
+
 

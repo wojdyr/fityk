@@ -65,13 +65,14 @@ void GnuPlot::fork_and_make_pipe ()
     }
 }
 
-int GnuPlot::plot (const vector<fp>& workingA) 
+bool GnuPlot::gnuplot_pipe_ok()
 {
-    if (auto_plot == 0) 
-        return -1;
+    static bool give_up = false;
+    if (give_up) 
+        return false;
     //sighandler_t and sig_t are not portable
     typedef void (*my_sighandler_type) (int);
-    my_sighandler_type shp = signal (SIGPIPE, SIG_IGN);//testing pipe -- start
+    my_sighandler_type shp = signal (SIGPIPE, SIG_IGN);
     errno = 0;
     fprintf (gnuplot_pipe, " "); //pipe test
     fflush(gnuplot_pipe);
@@ -82,12 +83,19 @@ int GnuPlot::plot (const vector<fp>& workingA)
         fprintf (gnuplot_pipe, " "); //test again
         fflush(gnuplot_pipe);
         if (errno == EPIPE) {
-            auto_plot = 0;
+            give_up = true;
             signal (SIGPIPE, shp);
-            return -2;
+            return false;
         }
-    }                    //testing pipe -- end
+    }                    
     signal (SIGPIPE, shp);
+    return true;
+}
+
+int GnuPlot::plot (const vector<fp>& workingA) 
+{
+    if (!gnuplot_pipe_ok())
+        return -1;
     my_sum->use_param_a_for_value(workingA);
     bool plus_bg = my_core->plus_background;
     string yfun = my_sum->sum_full_formula (workingA);

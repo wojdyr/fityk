@@ -80,8 +80,7 @@ int NMfit::autoiter ()
     wssr_before = compute_wssr ();
     info ("WSSR before starting simplex fit: " + S(wssr_before));
     for (int iter = 0; !termination_criteria (iter); iter ++) {
-        if (auto_plot == 3) 
-            fplot (best->a);
+        iteration_plot(best->a);
         iter_nr++;
         change_simplex();
         find_best_worst();

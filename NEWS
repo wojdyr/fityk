@@ -1,7 +1,7 @@
 * "s.info ^number" prints more informations.
 * fixed problem with locales, that have decimal point different than dot. 
   Now LC_NUMERIC variable is ignored. (Vincent Favre-Nicolin)
-* new configure flags: --enable-debug and --enable-release 
+* new configure flags: --enable-debug and --enable-optimization 
 * ambigous 'log(2)' in "export as function" was replaced by numeric value
   (in gnuplot log means natural log, in Excel log=log10). 
 * program version is written in scripts (session dumps and log files) 

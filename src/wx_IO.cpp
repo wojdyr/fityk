@@ -25,20 +25,14 @@ void UserInterface::showMessage (OutputStyle style, const string& s)
     frame->output_text(style, s + "\n");
 }
 
-void UserInterface::plot()
+void UserInterface::doDrawPlot(bool now, const std::vector<fp>& a)
 {
-    if (AL->was_changed())
-        clear_buffered_sum();
-    params4plot.clear();
-    frame->refresh_plots(false);
+        if (now || AL->was_changed())
+            clear_buffered_sum();
+        params4plot = a;
+        frame->refresh_plots(now);
 }
 
-void UserInterface::plotNow (const std::vector<fp>& a)
-{
-    clear_buffered_sum();
-    params4plot = a;
-    frame->refresh_plots(true);
-}
 
 void UserInterface::sleep (int seconds) 
 {

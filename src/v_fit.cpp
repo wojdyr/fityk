@@ -193,7 +193,6 @@ bool v_fit::post_fit (const std::vector<fp>& aa, fp chi2)
     else
         AL->pars()->write_avec (aa, method, no_move);
     if (chi2 < wssr_before) {
-        // if (auto_plot >= 2) fplot (aa); //will be plotted by replot()
         info ("Better fit found (WSSR = " + S(chi2) + ", was " + S(wssr_before)
                 + ", " + S((chi2 - wssr_before) / wssr_before * 100) + "%).");
         return true;
@@ -203,8 +202,7 @@ bool v_fit::post_fit (const std::vector<fp>& aa, fp chi2)
             info ("Better fit NOT found (WSSR = " + S(chi2)
                     + ", was " + S(wssr_before) + ").\nParameters NOT changed");
         }
-        if (auto_plot >= 3) //reverting to old plot
-            fplot (fp_v0);
+        iteration_plot(fp_v0); //reverting to old plot
         return false;
     }
 }
@@ -322,14 +320,9 @@ vector<fp> v_fit::all2fitted (const vector<fp>& A)
     return r;
 }
 
-void v_fit::fplot (const vector<fp>& a)
+void v_fit::iteration_plot (const vector<fp>& a)
 {
-    if (nf > 0 && !a.empty()) {
-        vector<fp> aa = fitted2all(a);
-        getUI()->plotNow(aa); 
-    }
-    else
-        getUI()->plotNow(a);
+    getUI()->drawPlot(3, true, nf > 0 && !a.empty() ? fitted2all(a) : a);
 }
 
 FitMethodsContainer::FitMethodsContainer()

@@ -8,16 +8,18 @@
 
 class GnuPlot
 {
-    public:
-        GnuPlot();
-        ~GnuPlot();
-        int plot (const std::vector<fp>& workingA);
-        void raw_command(char *command);// no syntax checking
-        static char path_to_gnuplot[] ; 
-    private:
-        FILE *gnuplot_pipe;
+public:
+    GnuPlot();
+    ~GnuPlot();
+    int plot (const std::vector<fp>& workingA);
+    void raw_command(char *command);// no syntax checking
+    static char path_to_gnuplot[] ; 
 
-        void fork_and_make_pipe ();
+private:
+    FILE *gnuplot_pipe;
+
+    void fork_and_make_pipe ();
+    bool gnuplot_pipe_ok();
 };
 
 #endif 

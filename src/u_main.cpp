@@ -37,15 +37,10 @@ void UserInterface::showMessage (OutputStyle style, const string& s)
     cout << s << endl;
 }
 
-void UserInterface::plotNow (const vector<fp>& a)
+void UserInterface::doDrawPlot (bool /*now*/, const vector<fp>& a)
 {
     static GnuPlot my_gnuplot;
     my_gnuplot.plot (a);
-}
-
-void UserInterface::plot()
-{
-    plotNow();
 }
 
 void UserInterface::sleep (int seconds) 
@@ -232,7 +227,7 @@ char **my_completion (const char *text, int start, int end)
 
 
 /// Reads history (for readline) in ctor and saves it to file in dtor.
-/// Proper use: single instance created at the beginning of program
+/// Proper use: single instance created at the beginning of the program
 /// and destroyed at the end.
 struct HistoryManager
 {

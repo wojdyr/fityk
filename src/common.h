@@ -113,9 +113,11 @@ inline bool is_index (int idx, const std::vector<T>& v)
 /// Round real to integer.
 inline int iround(fp d) { return static_cast<int>(floor(d+0.5)); }
 
-extern char auto_plot;
 extern int smooth_limit;
+
+/// flag that is set to interrupt fitting (it is checked after each iteration)
 extern volatile bool user_interrupt;
+
 extern const std::string help_filename;
 
 

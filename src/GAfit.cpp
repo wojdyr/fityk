@@ -131,12 +131,9 @@ void GAfit::compute_wssr_for_ind (vector<Individual>::iterator ind)
 
 void GAfit::autoplot_in_autoiter()
 {
-    if (auto_plot == 3) {
-        if (autoplot_indiv_nr >= 0 && autoplot_indiv_nr < size(*pop))
-            fplot ((*pop)[autoplot_indiv_nr].g);
-        else if (best_indiv.raw_score) // if best_indiv contains sth
-            fplot (best_indiv.g);
-    }
+    const Individual& indiv = is_index(autoplot_indiv_nr, *pop) 
+                                    ? (*pop)[autoplot_indiv_nr] : best_indiv;
+    iteration_plot(indiv.g);
 }
 
 void GAfit::mutation()
