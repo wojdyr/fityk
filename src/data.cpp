@@ -81,8 +81,8 @@ int Data::load (string file, int type,
     if (type == 0) {                  // "detect" file format
         type = guess_file_type(file);
     }
-    ifstream plik (file.c_str(), ios::in | ios::binary);
-    if (!plik) {
+    ifstream f (file.c_str(), ios::in | ios::binary);
+    if (!f) {
         warn ("Can't open file: " + file );
         return -1;
     }
@@ -99,13 +99,13 @@ int Data::load (string file, int type,
     merge_table.clear();
 
     if (type=='d')                            // x y x y ... 
-        load_xy_filetype (plik, col);
+        load_xy_filetype(f, col);
     else if (type=='m')                       // .mca
-        load_mca_filetype (plik);
+        load_mca_filetype(f);
     else if (type=='r')                       // .rit
-        load_rit_filetype (plik);
+        load_rit_filetype(f);
     else if (type=='c')                       // .rit
-        load_cpi_filetype (plik);
+        load_cpi_filetype(f);
     else if (type=='s')                       // .raw
         load_siemensbruker_filetype(filename, this);
     else {                                  // other ?
@@ -114,7 +114,7 @@ int Data::load (string file, int type,
     }
     if (p.size() < 5)
         warn ("Only " + S(p.size()) + " data points found in file.");
-    if (!plik.eof() && type != 'm') //!=mca; .mca doesn't have to reach EOF
+    if (!f.eof() && type != 'm') //!=mca; .mca doesn't have to reach EOF
         warn ("Unexpected char when reading " + S (p.size() + 1) + ". point");
     if (p.empty())
         return 0;
@@ -178,7 +178,7 @@ void Data::add_point_2nd_stage (const Point& pt)
     }
 }
 
-void Data::load_xy_filetype (ifstream& plik, vector<int>& usn)
+void Data::load_xy_filetype (ifstream& f, vector<int>& usn)
 {
     /* format  x y \n x y \n x y \n ...
     *           38.834110      361
@@ -203,7 +203,7 @@ void Data::load_xy_filetype (ifstream& plik, vector<int>& usn)
     bool prev_empty = false;
     //TODO: optimize loop below
     //most of time (?) is spent in getline() in get_one_line_with_numbers()
-    while (get_one_line_with_numbers(plik, xy)) {
+    while (get_one_line_with_numbers(f, xy)) {
         if (xy.empty()) {
             non_data_lines++;
             if (!prev_empty) {
@@ -247,12 +247,12 @@ void Data::load_xy_filetype (ifstream& plik, vector<int>& usn)
     x_step = find_step();
 }
 
-void Data::load_mca_filetype (ifstream& plik) 
+void Data::load_mca_filetype (ifstream& f) 
 {
     typedef unsigned short int ui2b;
     char all_data [9216];//2*512+2048*4];
-    plik.read (all_data, sizeof(all_data));
-    if (plik.gcount() != static_cast<int>(sizeof(all_data)) 
+    f.read (all_data, sizeof(all_data));
+    if (f.gcount() != static_cast<int>(sizeof(all_data)) 
             || *reinterpret_cast<ui2b*>(all_data) !=0 
             || *reinterpret_cast<ui2b*>(all_data+34) != 4
             || *reinterpret_cast<ui2b*>(all_data+36) != 2048
@@ -276,7 +276,7 @@ void Data::load_mca_filetype (ifstream& plik)
     x_step = energy_quadr ? 0 : energy_slope;
 }
 
-void Data::load_cpi_filetype (ifstream& plik) 
+void Data::load_cpi_filetype (ifstream& f) 
 {
    /* format example:
         SIETRONICS XRD SCAN
@@ -300,28 +300,28 @@ void Data::load_cpi_filetype (ifstream& plik)
     string header = "SIETRONICS XRD SCAN";
     string start_flag = "SCANDATA";
     string s;
-    getline (plik, s);
+    getline (f, s);
     if (s.substr(0, header.size()).compare (header) != 0){
         warn ("No \"" + header + "\" header found.");
         return;
     }
-    getline (plik, s);//xmin
+    getline (f, s);//xmin
     fp xmin = strtod (s.c_str(), 0);
-    getline (plik, s); //xmax
-    getline (plik, s); //xstep
+    getline (f, s); //xmax
+    getline (f, s); //xstep
     x_step = strtod (s.c_str(), 0); 
     //the rest of header
     while (s.substr(0, start_flag.size()).compare(start_flag) != 0)
-        getline (plik, s);
+        getline (f, s);
     //data
-    while (getline(plik, s)) {
+    while (getline(f, s)) {
         fp y = strtod (s.c_str(), 0);
         fp x = xmin + p.size() * x_step;
         add_point (Point (x, y));
     }
 }
 
-void Data::load_rit_filetype (ifstream& plik) 
+void Data::load_rit_filetype (ifstream& f) 
 {
    /* format example:
     *    10.0000   .0200150 foobar
@@ -336,7 +336,7 @@ void Data::load_rit_filetype (ifstream& plik)
     */
 
     vector<fp> num;
-    bool r = get_one_line_with_numbers(plik, num);
+    bool r = get_one_line_with_numbers(f, num);
     if (!r || num.size() < 2 ){
         warn ("Bad format in \"header\" of .rit file");
         return;
@@ -344,7 +344,7 @@ void Data::load_rit_filetype (ifstream& plik)
     fp xmin = num[0];
     x_step = static_cast<int>(num[1] * 1e4) / 1e4; //only 4 digits after '.'
     vector<fp> ys;
-    while (get_one_line_with_numbers(plik, ys)) {
+    while (get_one_line_with_numbers(f, ys)) {
         if (ys.size() == 0)
             warn ("Error when trying to read " + S (p.size() + 1) + ". point. " 
                     "Ignoring line.");

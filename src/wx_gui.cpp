@@ -30,6 +30,7 @@ RCSID ("$Id$")
 #include <wx/config.h>
 #include <algorithm>
 #include <locale.h>
+#include <string.h>
 
 #include "wx_plot.h"
 #include "wx_gui.h"
@@ -205,9 +206,34 @@ IMPLEMENT_APP(FApp)
 string get_full_path_of_help_file (const string &name);
 
 
+/// command line options
+static const wxCmdLineEntryDesc cmdLineDesc[] = {
+    { wxCMD_LINE_SWITCH, _T("h"), _T("help"), "show this help message",
+                                wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+    /*
+    { wxCMD_LINE_SWITCH, "v", "verbose", "be verbose", wxCMD_LINE_VAL_NONE, 0 },
+    { wxCMD_LINE_SWITCH, "q", "quiet",   "be quiet", wxCMD_LINE_VAL_NONE, 0 },
+    { wxCMD_LINE_OPTION, "o", "output", "output file", wxCMD_LINE_VAL_NONE, 0 },
+    */
+    { wxCMD_LINE_OPTION, "c", "cmd", "script passed in as string", 
+                                                   wxCMD_LINE_VAL_STRING, 0 },
+    { wxCMD_LINE_PARAM,  0, 0, "script or data file", wxCMD_LINE_VAL_STRING, 
+                        wxCMD_LINE_PARAM_OPTIONAL|wxCMD_LINE_PARAM_MULTIPLE },
+    { wxCMD_LINE_NONE, 0, 0, 0,  wxCMD_LINE_VAL_NONE, 0 }
+};  
+
+
+
 bool FApp::OnInit(void)
 {
     setlocale(LC_NUMERIC, "C");
+
+    // if options can be parsed
+    wxCmdLineParser cmdLineParser(cmdLineDesc, argc, argv);
+    if (cmdLineParser.Parse(false) != 0) {
+        cmdLineParser.Usage();
+        return false;
+    }
 
     AL = new ApplicationLogic; 
 
@@ -235,7 +261,9 @@ bool FApp::OnInit(void)
 
     frame->Show(true);
 
-    frame->io_pane->read_settings(cf); //it does not work earlier (wxGTK)
+    // it does not work earlier, problems with OutputWin colors (wxGTK gtk1.2)
+    frame->io_pane->read_settings(cf);
+    frame->io_pane->show_fancy_dashes();
     delete cf;
 
     SetTopWindow(frame);
@@ -250,9 +278,7 @@ bool FApp::OnInit(void)
         getUI()->execScript(startup_file_path.c_str());
     }
 
-    bool r = parse_opt();
-    if (!r) 
-        return false;
+    process_argv(cmdLineParser);
 
     wxString conf_path = "/TipOfTheDay/ShowAtStartup";
     if (read_bool_from_config(wxConfig::Get(), conf_path, true)) 
@@ -270,42 +296,58 @@ int FApp::OnExit()
     return 0;
 }
 
+bool FApp::is_fityk_script(string filename)
+{
+    const char *magic = "# Fityk";
 
-static const wxCmdLineEntryDesc cmdLineDesc[] = {
-    { wxCMD_LINE_SWITCH, _T("h"), _T("help"), "show this help message",
-                                wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
-    /*
-    { wxCMD_LINE_SWITCH, "v", "verbose", "be verbose", wxCMD_LINE_VAL_NONE, 0 },
-    { wxCMD_LINE_SWITCH, "q", "quiet",   "be quiet", wxCMD_LINE_VAL_NONE, 0 },
-    { wxCMD_LINE_OPTION, "o", "output", "output file", wxCMD_LINE_VAL_NONE, 0 },
-    */
-    { wxCMD_LINE_PARAM,  0, 0, "input file", wxCMD_LINE_VAL_STRING, 
-                        wxCMD_LINE_PARAM_OPTIONAL|wxCMD_LINE_PARAM_MULTIPLE },
-    { wxCMD_LINE_NONE, 0, 0, 0,  wxCMD_LINE_VAL_NONE, 0 }
-};  
+    ifstream f(filename.c_str(), ios::in | ios::binary);
+    if (!f) 
+        return false;
 
+    int n = filename.size();
+    if (n > 4 && !filename.substr(n-4, n).compare(".fit")
+            || n > 6 && !filename.substr(n-6, n).compare(".fityk"))
+        return true;
+
+    const int magic_len = strlen(magic);
+    char *buffer = new char[magic_len + 1];
+    int r = f.readsome(buffer, magic_len);
+    int cmp = strncmp(magic, buffer, magic_len);
+    delete [] buffer;
+    return r == magic_len && !cmp;
+}
 
 /// parse and execute command line switches and arguments
-/// return value: false - exit app
-bool FApp::parse_opt()
+void FApp::process_argv(wxCmdLineParser &cmdLineParser)
 {
-    wxCmdLineParser cmdLineParser(cmdLineDesc, argc, argv);
-    if (cmdLineParser.Parse(false) != 0) {
-        cmdLineParser.Usage();
-        return false;
-    }
     /*
     if (cmdLineParser.Found("v"))
         verbosity++;
     if (cmdLineParser.Found("q"))
         verbosity--;
     */
+    wxString cmd;
+    if (cmdLineParser.Found("c", &cmd))
+        getUI()->execAndLogCmd(cmd.c_str());
+    int data_flag = false;
     for (unsigned int i = 0; i < cmdLineParser.GetParamCount(); i++) {
-        wxString par = cmdLineParser.GetParam(i);
-        getUI()->execScript(par.c_str());
+        string par = cmdLineParser.GetParam(i).c_str();
+        if (is_fityk_script(par))
+            getUI()->execScript(par);
+        else {
+            if (!data_flag) {
+                getUI()->execAndLogCmd("d.load '" + par + "'");
+                data_flag = true;
+            }
+            else {
+                getUI()->execAndLogCmd("d.activate ::* ; d.load '" + par + "'");
+                frame->SwitchDPane(true);
+            }
+        }
     }
-    return true;
 }
+
+
 
 
 BEGIN_EVENT_TABLE(FFrame, wxFrame)
@@ -694,9 +736,9 @@ void FFrame::set_menubar()
                                     "Show/hide text input/output");  
     gui_menu_show->Check(ID_G_S_IO, true);
     gui_menu->Append(ID_G_SHOW, "S&how", gui_menu_show);
-    gui_menu->AppendSeparator();
     gui_menu->AppendCheckItem(ID_G_CROSSHAIR, "&Crosshair Cursor", 
                                               "Show crosshair cursor");
+    gui_menu->AppendSeparator();
     gui_menu->Append (ID_G_V_ALL, "Zoom &All", "View whole data");
     gui_menu->Append (ID_G_V_VERT, "Fit &vertically", "Adjust vertical zoom");
     gui_menu->Append (ID_G_V_SCROLL_L, "Scroll &Left", "Scroll view left");

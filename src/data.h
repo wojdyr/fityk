@@ -129,10 +129,10 @@ private:
     void add_point_2nd_stage (const Point& pt);
     static double pdp11_f (char* fl);  
     fp find_step();
-    void load_xy_filetype (std::ifstream& plik, std::vector<int>& usn);
-    void load_mca_filetype (std::ifstream& plik);
-    void load_rit_filetype (std::ifstream& plik);
-    void load_cpi_filetype (std::ifstream& plik);
+    void load_xy_filetype (std::ifstream& f, std::vector<int>& usn);
+    void load_mca_filetype (std::ifstream& f);
+    void load_rit_filetype (std::ifstream& f);
+    void load_cpi_filetype (std::ifstream& f);
     void recompute_sigma();
 
     void spline_interpolation (Bg_cl_enum bg_cl);

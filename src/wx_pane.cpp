@@ -223,7 +223,7 @@ IOPane::IOPane(wxWindow *parent, wxWindowID id)
     wxBoxSizer *io_sizer = new wxBoxSizer (wxVERTICAL);
 
     // wxTextCtrl which displays output of commands
-    output_win = new Output_win (this, ID_OUTPUT_TEXT);
+    output_win = new OutputWin (this, ID_OUTPUT_TEXT);
     io_sizer->Add (output_win, 1, wxEXPAND);
 
     // FCombo - wxComboBox used for user keybord input
@@ -440,28 +440,24 @@ void DataPaneTree::OnKeyDown(wxKeyEvent& event)
 
 
 //===============================================================
-//                            Output_win
+//                            OutputWin
 //===============================================================
 
-BEGIN_EVENT_TABLE(Output_win, wxTextCtrl)
-    EVT_RIGHT_DOWN (                      Output_win::OnRightDown)
-    EVT_MENU_RANGE (ID_OUTPUT_C_BG, ID_OUTPUT_C_WR, Output_win::OnPopupColor)
-    EVT_MENU       (ID_OUTPUT_P_FONT    , Output_win::OnPopupFont)
-    EVT_MENU       (ID_OUTPUT_P_CLEAR   , Output_win::OnPopupClear)
-    EVT_KEY_DOWN   (                      Output_win::OnKeyDown)
+BEGIN_EVENT_TABLE(OutputWin, wxTextCtrl)
+    EVT_RIGHT_DOWN (                      OutputWin::OnRightDown)
+    EVT_MENU_RANGE (ID_OUTPUT_C_BG, ID_OUTPUT_C_WR, OutputWin::OnPopupColor)
+    EVT_MENU       (ID_OUTPUT_P_FONT    , OutputWin::OnPopupFont)
+    EVT_MENU       (ID_OUTPUT_P_CLEAR   , OutputWin::OnPopupClear)
+    EVT_KEY_DOWN   (                      OutputWin::OnKeyDown)
 END_EVENT_TABLE()
 
-Output_win::Output_win (wxWindow *parent, wxWindowID id, 
-                        const wxPoint& pos, const wxSize& size)
+OutputWin::OutputWin (wxWindow *parent, wxWindowID id, 
+                      const wxPoint& pos, const wxSize& size)
     : wxTextCtrl(parent, id, "", pos, size,
                  wxTE_MULTILINE|wxTE_RICH|wxNO_BORDER|wxTE_READONLY)
-{
-    //GetFont().SetFamily(wxMODERN);
-    fancy_dashes();
-    //SetScrollbar (wxVERTICAL, 0, 5, 50);
-}
+{}
 
-void Output_win::fancy_dashes() {
+void OutputWin::fancy_dashes() {
     for (int i = 0; i < 16; i++) {
         SetDefaultStyle (wxTextAttr (wxColour(i * 16, i * 16, i * 16)));
         AppendText ("-");
@@ -469,7 +465,7 @@ void Output_win::fancy_dashes() {
     AppendText ("\n");
 }
 
-void Output_win::read_settings(wxConfigBase *cf)
+void OutputWin::read_settings(wxConfigBase *cf)
 {
     cf->SetPath("/OutputWin/Colors");
     text_color[os_normal] = read_color_from_config(cf, "normal", 
@@ -483,12 +479,16 @@ void Output_win::read_settings(wxConfigBase *cf)
     bg_color = read_color_from_config(cf, "bg", wxColour(20, 20, 20));
 
     SetDefaultStyle (wxTextAttr(text_color[os_quot], bg_color));
-    if (frame->IsShown()) // this "if" is needed on GTK 1.2 (I don't know why)
-        SetBackgroundColour(bg_color); //if it is called before window is shown,
-    Refresh();                         //it doesn't work and it is impossible
-}                                      // to change the background later.
 
-void Output_win::save_settings(wxConfigBase *cf) const
+    // this "if" is needed on GTK 1.2 (I don't know why)
+    // if it is called before window is shown, it doesn't work 
+    // and it is impossible to change the background later.
+    if (frame->IsShown())  
+        SetBackgroundColour(bg_color); 
+    Refresh(); 
+} 
+
+void OutputWin::save_settings(wxConfigBase *cf) const
 {
     cf->SetPath("/OutputWin/Colors");
     write_color_to_config (cf, "normal", text_color[os_normal]);  
@@ -498,13 +498,13 @@ void Output_win::save_settings(wxConfigBase *cf) const
     write_color_to_config (cf, "bg", bg_color); 
 }
 
-void Output_win::append_text (OutputStyle style, const wxString& str)
+void OutputWin::append_text (OutputStyle style, const wxString& str)
 {
     SetDefaultStyle (wxTextAttr (text_color[style]));
     AppendText (str);
 }
 
-void Output_win::OnPopupColor (wxCommandEvent& event)
+void OutputWin::OnPopupColor (wxCommandEvent& event)
 {
     int n = event.GetId();
     wxColour *col;
@@ -532,7 +532,7 @@ void Output_win::OnPopupColor (wxCommandEvent& event)
     }
 }
 
-void Output_win::OnPopupFont (wxCommandEvent& WXUNUSED(event))
+void OutputWin::OnPopupFont (wxCommandEvent& WXUNUSED(event))
 {
     wxFontData data; 
     data.SetInitialFont (GetDefaultStyle().GetFont());
@@ -545,14 +545,14 @@ void Output_win::OnPopupFont (wxCommandEvent& WXUNUSED(event))
     }
 }
 
-void Output_win::OnPopupClear (wxCommandEvent& WXUNUSED(event))
+void OutputWin::OnPopupClear (wxCommandEvent& WXUNUSED(event))
 {
     Clear();
     fancy_dashes();
 }
 
     
-void Output_win::OnRightDown (wxMouseEvent& event)
+void OutputWin::OnRightDown (wxMouseEvent& event)
 {
     wxMenu popup_menu ("output text menu");
 
@@ -570,7 +570,7 @@ void Output_win::OnRightDown (wxMouseEvent& event)
     PopupMenu (&popup_menu, event.GetX(), event.GetY());
 }
 
-void Output_win::OnKeyDown (wxKeyEvent& event)
+void OutputWin::OnKeyDown (wxKeyEvent& event)
 {
     if (event.GetKeyCode() == ' ' || event.GetKeyCode() == WXK_TAB) {
         IOPane *parent = static_cast<IOPane*>(GetParent()); //to not use RTTI

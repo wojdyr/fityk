@@ -22,6 +22,7 @@ class PlotPane;
 class IOPane;
 class DataPane;
 class ProportionalSplitter;
+class wxCmdLineParser;
 
 extern std::vector<fp> params4plot;
 
@@ -37,7 +38,8 @@ public:
     int OnExit();
 
 private:
-    bool parse_opt();
+    bool is_fityk_script(std::string filename);
+    void process_argv(wxCmdLineParser &cmdLineParser);
 };
 
 DECLARE_APP(FApp)

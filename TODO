@@ -4,9 +4,6 @@
     check for compatibility with 2.4.
    (Windows) are dialogs centered on parent  ?
 
-* Automatically recognize if argument given on input line is a script 
-  or data. Scripts has .fit or .fityk extensions, or begin with "# Fityk".
-
 ---
 
 * data viewer (grid); 

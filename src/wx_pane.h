@@ -67,10 +67,10 @@ protected:
 };
 
 
-class Output_win : public wxTextCtrl
+class OutputWin : public wxTextCtrl
 {
 public:
-    Output_win (wxWindow *parent, wxWindowID id,
+    OutputWin (wxWindow *parent, wxWindowID id,
                 const wxPoint& pos = wxDefaultPosition, 
                 const wxSize& size = wxDefaultSize);
     void append_text (OutputStyle style, const wxString& str);
@@ -81,12 +81,11 @@ public:
     void OnKeyDown     (wxKeyEvent& event);
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
+    void fancy_dashes();
 
 private:
     wxColour text_color[4]; 
     wxColour bg_color;
-
-    void fancy_dashes();
 
     DECLARE_EVENT_TABLE()
 };
@@ -102,8 +101,9 @@ public:
     void read_settings(wxConfigBase *cf);
     void focus_input() { input_combo->SetFocus(); }
     void focus_output() { output_win->SetFocus(); }
+    void show_fancy_dashes() { output_win->fancy_dashes(); }
 private:
-    Output_win *output_win;
+    OutputWin *output_win;
     FCombo   *input_combo;
 
     DECLARE_EVENT_TABLE()

@@ -184,7 +184,6 @@ void UserInterface::execScript (const string& filename,
     }
 }
 
-
 void UserInterface::drawPlot (int pri, bool now, const std::vector<fp>& a)
 {
     if (pri <= auto_plot && (now || AL->was_changed())) {
