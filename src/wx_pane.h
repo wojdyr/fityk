@@ -145,10 +145,14 @@ public:
     void OnSelChanging(wxTreeEvent &event);
     void OnSelChanged(wxTreeEvent &event);
     void OnPopupMenu(wxMouseEvent &event);
+    void OnMenuItem(wxCommandEvent &event);
+    void OnKeyDown(wxKeyEvent& event);
 private:
+    int pmenu_p, pmenu_d;// communication between OnPopupMenu and OnMenuItem
+
     void update_tree_datalabels(const PlotCore *pcore, 
                                 const wxTreeItemId &plot_item);
-    int get_number_of_previous_siblings(const wxTreeItemId &id);
+    int count_previous_siblings(const wxTreeItemId &id);
 
     DECLARE_EVENT_TABLE()
 };

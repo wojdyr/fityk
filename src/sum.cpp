@@ -11,13 +11,12 @@ RCSID ("$Id$")
 #include "ffunc.h"
 #include "gfunc.h"
 #include "data.h"
+#include "pcore.h"
 
 using namespace std;
 
-Sum::Sum () 
-    : s_was_changed(true), 
-      nA(0), history (vector1(History_item(fp_v0, "new"))), hp(0),
-      adomain(), afrozen(),
+Sum::Sum(Parameters *params) 
+    : s_was_changed(true), parameters(params),
       cut_tails(false), cut_level(10.),
       numerical_deriv(false), numerical_h(1e-4), two_side(false),
       recursive_remove(true), def_rel_domain_width(0.1) 
@@ -84,21 +83,21 @@ Sum& Sum::operator= (Sum& r)
 }
 */
 
-void Sum::use_param_a_for_value (const vector<fp>& A)
+void Sum::use_param_a_for_value (const vector<fp>& A) const
 {
-    if (nA == 0)
+    if (parameters->count_a() == 0)
         return;
     if (A.empty()) {
-        use_param_a_for_value(current_a());
+        use_param_a_for_value(parameters->values());
         return;
     }
-    for (vector<V_f*>::iterator i = fvec.begin(); i != fvec.end(); i++)
+    for (vector<V_f*>::const_iterator i = fvec.begin(); i != fvec.end(); i++)
         (*i)->pre_compute (A, gvec);
-    for (vector<V_z*>::iterator i = zvec.begin(); i != zvec.end(); i++)
+    for (vector<V_z*>::const_iterator i = zvec.begin(); i != zvec.end(); i++)
         (*i)->pre_compute (A, gvec);
     av_numder = A;
     if (cut_tails) //neglecting zero-shift here  
-        for (vector<V_f*>::iterator i = fvec.begin(); i != fvec.end(); i++)
+        for (vector<V_f*>::const_iterator i =fvec.begin(); i != fvec.end(); i++)
             (*i)->get_range(cut_level);
 }
     
@@ -136,11 +135,11 @@ fp Sum::funcs_value (const vector<int>& fn, fp x) const
     return y;
 }
 
-fp Sum::value_and_put_deriv (fp x, vector<fp>& dy_da) 
+fp Sum::value_and_put_deriv (fp x, vector<fp>& dy_da) const
     // pre: use_param_a_for_value() called
     // this func does _not_ take into consideration Domain::frozen
 {
-    assert(size(dy_da) == nA);
+    assert(size(dy_da) == parameters->count_a());
     fill (dy_da.begin(), dy_da.end(), 0);
     if (numerical_deriv == false) {
         x += zero_shift(x);
@@ -151,7 +150,7 @@ fp Sum::value_and_put_deriv (fp x, vector<fp>& dy_da)
                 y += (*i)->compute (x, &dy_dx);
                 (*i)->put_deriv (dy_da);
             }
-        for (vector<V_z*>::iterator i = zvec.begin(); i != zvec.end(); i++) {
+        for (vector<V_z*>::const_iterator i=zvec.begin(); i != zvec.end(); i++){
             (*i)->compute_deriv (x, dy_dx);
             (*i)->put_deriv (dy_da);
         }
@@ -161,25 +160,26 @@ fp Sum::value_and_put_deriv (fp x, vector<fp>& dy_da)
         return value_and_add_numeric_deriv (x, two_side, dy_da);
 }
 
-fp Sum::value_and_add_numeric_deriv (fp x, bool both_sides, vector<fp>& dy_da)
+fp Sum::value_and_add_numeric_deriv (fp x, bool both_sides, 
+                                     vector<fp>& dy_da) const
 {
     // pre: use_param_a_for_value() called
     // this func does _not_ take into consideration Domain::frozen
     // pre: dy_da is zeroed 
     
-    assert (nA == size(av_numder));
+    assert (parameters->count_a() == size(av_numder));
     const fp small_number = 1e-10; //it only prevents h==0
     fp y = value(x);
-    for (int k = 0; k < nA; k++) {
+    for (int k = 0; k < parameters->count_a(); k++) {
         fp acopy = av_numder[k];
         fp h = max (fabs(acopy), small_number) * numerical_h;
         av_numder[k] -= h;
 
         //use_param_a_for_value (av_numder);
         // a bit of optimization -- this is insteed of use_param_a_for_value():
-        for (vector<V_f*>::iterator i = fvec.begin(); i != fvec.end(); i++)
+        for (vector<V_f*>::const_iterator i= fvec.begin(); i != fvec.end(); i++)
             (*i)->pre_compute_value_only (av_numder, gvec);
-        for (vector<V_z*>::iterator i = zvec.begin(); i != zvec.end(); i++)
+        for (vector<V_z*>::const_iterator i =zvec.begin(); i != zvec.end(); i++)
             (*i)->pre_compute_value_only (av_numder, gvec);
         //till here 
         
@@ -189,9 +189,11 @@ fp Sum::value_and_add_numeric_deriv (fp x, bool both_sides, vector<fp>& dy_da)
             av_numder[k] = acopy + h;
             //use_param_a_for_value (av_numder);
             // the same optimization again
-            for (vector<V_f*>::iterator i = fvec.begin(); i != fvec.end(); i++)
+            for (vector<V_f*>::const_iterator i = fvec.begin(); i != fvec.end();
+                                                                           i++)
                 (*i)->pre_compute_value_only (av_numder, gvec);
-            for (vector<V_z*>::iterator i = zvec.begin(); i != zvec.end(); i++)
+            for (vector<V_z*>::const_iterator i = zvec.begin(); i != zvec.end();
+                                                                           i++)
                 (*i)->pre_compute_value_only (av_numder, gvec);
             //till here 
             fp y_amore = value(x);
@@ -203,9 +205,9 @@ fp Sum::value_and_add_numeric_deriv (fp x, bool both_sides, vector<fp>& dy_da)
     }
     //use_param_a_for_value (av_numder);
     // the same optimization again
-    for (vector<V_f*>::iterator i = fvec.begin(); i != fvec.end(); i++)
+    for (vector<V_f*>::const_iterator i = fvec.begin(); i != fvec.end(); i++)
         (*i)->pre_compute_value_only (av_numder, gvec);
-    for (vector<V_z*>::iterator i = zvec.begin(); i != zvec.end(); i++)
+    for (vector<V_z*>::const_iterator i = zvec.begin(); i != zvec.end(); i++)
         (*i)->pre_compute_value_only (av_numder, gvec);
     return y;
 }
@@ -216,16 +218,18 @@ string Sum::general_info() const
     os << "Number of  " << V_fzg::full_type(fType) << ": " << fvec.size()
        <<"\nNumber of  "<< V_fzg::full_type(zType) << ": " << zvec.size()
        <<"\nNumber of  "<< V_fzg::full_type(gType) << ": " << gvec.size()
-       <<"\nNumber of A-parameters @: " << nA; 
+       <<"\nNumber of A-parameters @: " << parameters->count_a(); 
     return os.str();
 }
 
+//TODO!!!
 void Sum::export_as_script (ostream& os) const
 {
     os << "### sum exported as script -- begin" << endl;
     os << set_script('s');
-    for (int i = 0; i < nA; i++) {  // @
-        os << "s.add ~"<< get_a(i) << "  " << adomain[i].str();
+    for (int i = 0; i < parameters->count_a(); i++) {  // @
+        os << "s.add ~"<< parameters->get_a(i) 
+           << "  " << parameters->get_domain(i).str();
         os << "  # @" << i 
             <<  "  (" << refs_to_ag(Pag(0., i)) << " link(s))";
         string refs = descr_refs_to_ag (Pag(0., i));
@@ -236,8 +240,8 @@ void Sum::export_as_script (ostream& os) const
     export_fzg_as_script (os, gType);
     export_fzg_as_script (os, fType);
     export_fzg_as_script (os, zType);
-    if (count_frozen())
-        os << "s.freeze " << frozen_info() << endl;
+    if (parameters->count_frozen())
+        os << "s.freeze " << parameters->frozen_info() << endl;
     os << "### end of exported sum" << endl;
 }
 
@@ -295,7 +299,7 @@ void Sum::export_as_peaks (std::ostream& os, vector<int> &peaks) const
         os << "  " << p->center() << " " << p->height() << " " << p->area() 
             << " " << p->fwhm() << "  ";
         for (int i = 0; i < p->type_info()->psize; i++) // a0  a1 ...
-            os << " " << p->get_pag(i).value(current_a(), gvec);
+            os << " " << p->get_pag(i).value(parameters->values(), gvec);
         os << endl;
     }
 }
@@ -387,7 +391,7 @@ void Sum::export_to_file (string filename, bool append, char filetype,
 
 string Sum::print_sum_value (fp x, bool with_deriv)
 {
-    if (nA == 0)
+    if (parameters->count_a() == 0)
         return "empty";
     return print_fzg_value (fType, -2, x, with_deriv);
 }
@@ -410,11 +414,12 @@ string Sum::print_fzg_value (One_of_fzg fzg, int n, fp x, bool with_deriv)
     }
 
     const fp small_number = 1e-10; //it only prevents from h==0
+    int nA = parameters->count_a();
     vector<fp> df_s(nA), df_n1(nA), df_n2(nA); 
     fp y = 0, df_dx = 0;
 
     if (fzg != gType) use_param_a_for_value ();
-    else av_numder = current_a();
+    else av_numder = parameters->values();
     //computing y and df_s -- value and (semi-)symbolic derivatives
     if (whole_sum) {
         y = value_and_put_deriv (x, df_s);
@@ -435,8 +440,8 @@ string Sum::print_fzg_value (One_of_fzg fzg, int n, fp x, bool with_deriv)
         zvec[n]->put_deriv (df_s);
     }
     else if (fzg == gType) {
-        y = gvec[n]->g_value(current_a(), gvec);
-        vector<int_fp> v = gvec[n]->get_derivatives (current_a(), gvec);
+        y = gvec[n]->g_value(parameters->values(), gvec);
+        vector<int_fp> v = gvec[n]->get_derivatives(parameters->values(), gvec);
         for (vector<int_fp>::const_iterator i = v.begin(); i != v.end(); i++) 
             df_s[i->nr] = i->der;
     }
@@ -489,7 +494,7 @@ string Sum::format_der_output(const vector<fp>& df_s, const vector<fp>& df_n1,
     string s;
     s += " ;   non-zero derivatives:\n";
     int count = 0;
-    for (int i = 0; i < nA; i++) { 
+    for (int i = 0; i < parameters->count_a(); i++) { 
         const fp epsilon = 1e-12;
         if (fabs(df_s[i]) > epsilon || fabs(df_n1[i]) > epsilon 
                 || fabs(df_n2[i]) > epsilon) {
@@ -540,20 +545,6 @@ Pag Sum::add_g (char type, const vector<Pag> &p, const string &desc)
         return Pag ((V_g*)0, n); 
 }
 
-Pag Sum::add_a (fp value, Domain d) 
-{
-    assert (size(current_a()) == nA && size(adomain)==nA && size(afrozen)==nA);
-    vector<fp> a_new = current_a();
-    a_new.push_back (value);
-    adomain.push_back (d);
-    afrozen.push_back (false);
-    int n = nA;
-    nA++;
-    write_avec (a_new, "add @" + S(n));
-    assert (history.size() == 1);
-    return Pag (0., n); 
-}
-
 string Sum::info_fzg_parameters (One_of_fzg fzg, int n, bool only_val) const
 {
     // return something like:  
@@ -564,7 +555,7 @@ string Sum::info_fzg_parameters (One_of_fzg fzg, int n, bool only_val) const
     for (int i = 0; i < p->g_size; i++) {
         if (i != 0) s += " ";
         Pag pag = p->get_pag(i);
-        fp value = pag.value(current_a(), gvec);
+        fp value = pag.value(parameters->values(), gvec);
         if (only_val) 
             s += S(value);
         else {
@@ -678,11 +669,11 @@ int Sum::rm_fzg (One_of_fzg fzg, int n, bool silent)
 int Sum::rm_all()
 {
     int b_f = fzg_size(fType), b_z = fzg_size(zType), b_g = fzg_size(gType),
-        b_a = count_a();
+        b_a = parameters->count_a();
     rm_fzg (fType, -1, true); rm_fzg (zType, -1, true); rm_fzg(gType, -1, true);
-    rm_a(-1, true);
+    parameters->rm_a(-1, true);
     int r_f = b_f - fzg_size(fType), r_z = b_z - fzg_size(zType),
-        r_g = b_g - fzg_size(gType), r_a = b_a - count_a();
+        r_g = b_g - fzg_size(gType), r_a = b_a - parameters->count_a();
     mesg (S(r_f) + " " + V_fzg::full_type(fType, false) + "s, " 
           + S(r_z) + " " + V_fzg::full_type(zType, false) + "s, " 
           + S(r_g) + " " + V_fzg::full_type(gType, false) + "s and "
@@ -743,220 +734,6 @@ vector<Pag> Sum::pags_of_g(int n) const
 }
 */
 
-void Sum::write_avec (const vector<fp>& a, string comment, bool no_move) 
-{ 
-    assert (size(a) == nA && size(adomain) == nA && size(afrozen) == nA);
-     //3 special cases:
-    if (a == current_a()) //1. no change
-        return;
-    s_was_changed = true;
-    if (a.size() != current_a().size()) { //2. added/removed a (change in size)
-        history.clear();
-        history.push_back (History_item (a, comment));
-        hp = 0;
-        return;
-    }
-    if (comment.empty() && !history[hp].saved) { //3. change in place
-        history[hp].a = a; 
-        return;
-    }
-    if (!no_move && hp < size(history) - 1) 
-        for (vector<History_item>::iterator i = history.end() - 1; 
-                                                i > history.begin() + hp; i--)
-            if (!i->saved)
-                history.erase (i);
-    history.push_back (History_item (a, comment));
-    if (!no_move) {
-        hp = history.size() - 1;
-        mesg ("A-parameters changed (by: " + comment + ")");
-    }
-}
-
-string Sum::print_history () const
-{
-    string s = "History contains " + S(history.size()) + " entries. "
-        "Current is #" + S(hp + 1);
-    for (int i = 0; i < size(history); i++) {
-        s += (hp == i ? "\n->" : "\n  ");
-        s += (history[i].saved ? " *" : " #") + S(i + 1) 
-            + "  changed by: " + history[i].comment;
-        //if (...)
-        //   s += "   WSSR = " + S(compute_wssr (history[i].a));
-        // it would be necessary to include v_fit.h to do this 
-        // convenient comparision of WSSRs is done in wxfityk version 
-    }
-    return s;
-}
-
-string Sum::history_diff (vector<int> hist_items) const
-{
-    //hist_items empty -> info about all items
-    if (hist_items.empty())
-        for (int i = 0; i < size(history); i++)
-            hist_items.push_back(i+1);
-    //check user input
-    if (*max_element(hist_items.begin(), hist_items.end()) > size(history)
-            || *min_element (hist_items.begin(), hist_items.end()) <= 0)
-        return "Wrong numbers of history entries in query";
-    //draw "table"
-    string s = "   ";
-    for (vector<int>::iterator j = hist_items.begin(); j!=hist_items.end(); j++)
-        s += "   #" + S(*j) + "    "; 
-    for (int i = 0; i < nA; i++) {
-        s += "\n@" + S(i) + ": ";
-        for (vector<int>::iterator j = hist_items.begin(); 
-                                                j != hist_items.end(); j++)
-            s += S(history[(*j) - 1].a[i]) + " | ";
-    }
-    return s;
-}
-
-void Sum::move_in_history (int k, bool relative)
-{
-    if (relative)
-        hp += k;
-    else
-        hp = k - 1;
-    if (hp < 0) {
-        warn ("Beginning of history reached.");
-        hp = 0;
-    }
-    else if (hp >= size(history)) {
-        warn ("End of history reached.");
-        hp = history.size() - 1;
-    }
-    s_was_changed = true;
-    verbose ("Current history position is #" + S(hp + 1)
-            + " of " + S(history.size()));
-}
-
-void Sum::toggle_history_item_saved(int k)
-{
-    if (k - 1 < 0) k = hp + 1;
-    else if (k  - 1 >= size(history)) {
-        warn ("There is no item #" + S(k) + " in history");
-        return;  
-    }  
-    history[k - 1].saved = ! history[k - 1].saved;  
-}
-
-bool Sum::rm_a_core (int nr)
-{
-    assert (nr >= 0 && nr < nA);
-    if (refs_to_ag (Pag(0., nr)) != 0) 
-        return false;
-    vector<fp> a_new = current_a();
-    a_new.erase (a_new.begin() + nr);
-    adomain.erase (adomain.begin() + nr);
-    afrozen.erase (afrozen.begin() + nr);
-    nA--;
-    synch_after_rm_ag (Pag(0., nr));
-    write_avec (a_new, "rm @" + S(nr));
-    assert (history.size() == 1);
-    return true;
-}
-
-int Sum::rm_a (int n, bool silent)
-{
-    if (n == -1) {
-        int counter = 0;
-        for (int i = nA - 1; i >= 0; i--)
-            if (rm_a_core(i))
-                counter ++;
-        if (!silent) mesg (S(counter) + " A-parameters removed.");
-        return counter;
-    }
-
-    if (n < 0 || n >= nA) {
-        warn ("No such A: @" + S(n));
-        return 0;
-    }
-    else if (rm_a_core (n)) {
-        if (!silent) mesg ("A-parameter @" + S(n) + " removed.");
-        return 1;
-    }
-    else {
-        warn ("A-parameter @" + S(n) + " NOT removed. " 
-                + S(refs_to_ag (Pag(0., n))) + " links. First remove: " 
-                + descr_refs_to_ag (Pag(0., n)));
-        return 0;
-    }
-}
-
-string Sum::info_a (int nr) const
-{
-    if (nr == -1) { // info about all A's
-        string s;
-        for (int i = 0; i < nA; i++)
-            s += info_a(i) + (i != nA - 1 ? "\n" : "");
-        return s;
-    }
-    else if (nr < 0 || nr >= nA ) 
-        return "No such A: @"  + S(nr);
-    else {
-        ostringstream os;
-        os << "@" << nr << ": " << get_a(nr); 
-        os << (afrozen[nr] ? " F " : "  ") << adomain[nr].str();
-        if (refs_to_ag (Pag(0., nr)))
-            os << " (used by: " << descr_refs_to_ag (Pag(0., nr)) + ")"; 
-        return os.str();
-    }
-}
-
-fp Sum::change_a (int nr, fp value, char c /* ='=' */, bool add_to_history) 
-{
-    if (nr == -1) {
-        for (int i = 0; i < nA; i++)
-            change_a (i, value, c, i == nA - 1 ? add_to_history : false);
-        mesg (S(nA) + " A-parameters changed.");
-        return 0.;
-    }
-    if (nr < 0 || nr >= nA) {
-        warn ("No such A: @" + S(nr));
-        return 0.;
-    }
-    fp before = get_a (nr); 
-    vector<fp> a = current_a();
-    switch (c) {
-        case '=': a[nr] = value; break;
-        case '+': a[nr] += value; break;
-        case '-': a[nr] -= value; break;
-        case '*': a[nr] *= value; break;
-        case '/':
-            if (value)
-                a[nr] /= value;
-            else 
-                warn ("Trying to divide by zero in sum::change_a");
-            break;
-        case '%': if (value != 100.) a[nr] *= (value/100); break;
-        default: assert(0); break;
-    }
-    if (before != a[nr])
-        s_was_changed = true;
-    if (add_to_history)
-        write_avec (a, "manual");
-    else
-        write_avec (a, "");
-    return before;
-}
-
-void Sum::change_domain (int nr, Domain d) 
-{ 
-    if (nr < 0 || nr >= size(adomain)) {
-        warn ("No such A: @" + S(nr));
-        return;
-    }
-    adomain[nr] = d; 
-}
-
-fp Sum::variation_of_a (int n, fp variat) const
-{
-    assert (0 <= n && n < nA);
-    const Domain& dom = get_domain (n);
-    fp ctr = dom.is_ctr_set() ? dom.Ctr() : get_a(n);
-    fp sgm = dom.is_set() ? dom.Sigma() : def_rel_domain_width * ctr;
-    return ctr + sgm * variat;
-}
 
 string Sum::sum_full_formula(const vector<fp>& localA) const
 {
@@ -969,7 +746,7 @@ string Sum::sum_full_formula(const vector<fp>& localA) const
 string Sum::sum_of_peaks_formula (vector<int>& peaks, const vector<fp>& localA)
                                                                           const
 {
-    const vector<fp>& workingA = !localA.empty() ? localA : current_a();
+    const vector<fp>& workingA = localA.empty() ? parameters->values() : localA;
     string x = "x";
     //TODO () around x+a
     for (vector<V_z*>::const_iterator i = zvec.begin(); i != zvec.end(); i++)
@@ -1069,42 +846,6 @@ int Sum::find_zshift (char type) const
             return i - zvec.begin();
     //if not found:
     return -1;
-}
-
-int Sum::freeze(int nr, bool frozen)
-{
-    if (nr == -1) {
-        fill (afrozen.begin(), afrozen.end(), frozen);
-        return 0;
-    }
-    if (nr >= nA || nr < 0) {
-        warn("There is no @" + S(nr) + ".");
-        return -1;
-    }
-    if (frozen == afrozen[nr]) {
-        warn ("@" + S(nr) + " is already " + S(frozen ? "" : "not ") 
-               + "frozen.");
-        return -1;
-    }
-    else {
-        afrozen[nr] = frozen;
-        verbose ("@" + S(nr) + "set " + S(frozen ? "" : "not ") + "frozen");
-        return 0;
-    }
-}
-
-int Sum::count_frozen() const
-{
-    return count (afrozen.begin(), afrozen.end(), true);
-}
-
-string Sum::frozen_info () const
-{
-    string s;
-    for (int i = 0; i < size(afrozen); i++)
-        if (afrozen[i])
-            s += (s.empty() ? "@" : ", @") + S(i);
-    return s;
 }
 
 void Sum::register_fc (FuncContainer* cnt, bool flag)

@@ -119,7 +119,7 @@ bool Manipul::estimate_peak_parameters(fp approx_ctr, fp ctrplusmin,
                             EstConditions *ec) const
 {
     my_sum->use_param_a_for_value();
-    if (my_data->get_n() <=0 ) {
+    if (my_data->get_n() <= 0) {
         warn ("No active data.");
         return false;
     }

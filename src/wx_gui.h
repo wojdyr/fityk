@@ -27,7 +27,7 @@ class IOPane;
 class DataPane;
 class ProportionalSplitter;
 
-extern std::vector<fp> a_copy4plot;
+extern std::vector<fp> params4plot;
 
 //status bar fields
 enum { sbf_text, sbf_hint1, sbf_hint2, sbf_coord, sbf_max };  

@@ -68,14 +68,14 @@ void gui_IO::plot ()
 {
     if (AL->was_changed())
         clear_buffered_sum();
-    a_copy4plot.clear();
+    params4plot.clear();
     frame->refresh_plots(false);
 }
 
 void gui_IO::plot_now (const std::vector<fp>& a)
 {
     clear_buffered_sum();
-    a_copy4plot = a;
+    params4plot = a;
     frame->refresh_plots(true);
 }
 

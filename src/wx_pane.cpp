@@ -23,7 +23,8 @@ RCSID ("$Id$")
 #include "wx_gui.h" 
 #include "wx_plot.h" 
 #include "data.h" 
-#include "other.h" //view
+#include "pcore.h" 
+#include "other.h" 
 
 using namespace std;
 
@@ -40,9 +41,10 @@ enum {
     ID_OUTPUT_P_FONT           ,
     ID_OUTPUT_P_CLEAR          ,
     ID_DATAPANE_TREE           ,
-    ID_DPT_POPUP_APPEND        ,
-    ID_DPT_POPUP_REPLACE       ,
-    ID_DPT_POPUP_DELETE
+    ID_DPT_POPUP_APPEND_DATA   ,
+    ID_DPT_POPUP_APPEND_PLOT   ,
+    ID_DPT_POPUP_REMOVE_DATA   ,
+    ID_DPT_POPUP_REMOVE_PLOT
 };
 
 
@@ -185,10 +187,15 @@ END_EVENT_TABLE()
 //===============================================================
 
 BEGIN_EVENT_TABLE(DataPaneTree, wxTreeCtrl)
-    EVT_IDLE(DataPaneTree::OnIdle)
-    EVT_TREE_SEL_CHANGING(ID_DATAPANE_TREE, DataPaneTree::OnSelChanging)
-    EVT_TREE_SEL_CHANGED(ID_DATAPANE_TREE, DataPaneTree::OnSelChanged)
-    EVT_RIGHT_DOWN(DataPaneTree::OnPopupMenu)
+    EVT_IDLE (DataPaneTree::OnIdle)
+    EVT_TREE_SEL_CHANGING (ID_DATAPANE_TREE, DataPaneTree::OnSelChanging)
+    EVT_TREE_SEL_CHANGED (ID_DATAPANE_TREE, DataPaneTree::OnSelChanged)
+    EVT_RIGHT_DOWN (DataPaneTree::OnPopupMenu)
+    EVT_MENU (ID_DPT_POPUP_APPEND_DATA, DataPaneTree::OnMenuItem)
+    EVT_MENU (ID_DPT_POPUP_APPEND_PLOT, DataPaneTree::OnMenuItem)
+    EVT_MENU (ID_DPT_POPUP_REMOVE_DATA, DataPaneTree::OnMenuItem)
+    EVT_MENU (ID_DPT_POPUP_REMOVE_PLOT, DataPaneTree::OnMenuItem)
+    EVT_KEY_DOWN (                      DataPaneTree::OnKeyDown)
 END_EVENT_TABLE()
 
 DataPaneTree::DataPaneTree(wxWindow *parent, wxWindowID id)
@@ -196,7 +203,6 @@ DataPaneTree::DataPaneTree(wxWindow *parent, wxWindowID id)
                  wxTR_HIDE_ROOT|wxTR_HAS_BUTTONS|wxTR_TWIST_BUTTONS)
 {
     AddRoot("root");
-    AppendItem(GetRootItem(), "plot 0"); //TODO
 }
 
 void DataPaneTree::OnIdle(wxIdleEvent &event)
@@ -259,13 +265,13 @@ void DataPaneTree::OnSelChanged(wxTreeEvent &event)
     if (id == GetRootItem() || GetItemParent(id) == GetRootItem()) 
         return;
     else { //dataset
-        int p = get_number_of_previous_siblings(GetItemParent(id));
-        int d = get_number_of_previous_siblings(id);
+        int p = count_previous_siblings(GetItemParent(id));
+        int d = count_previous_siblings(id);
         exec_command("d.activate " + S(p) + "::" + S(d));
     }
 }
 
-int DataPaneTree::get_number_of_previous_siblings(const wxTreeItemId &id)
+int DataPaneTree::count_previous_siblings(const wxTreeItemId &id)
 {
     int counter = 0;
     for (wxTreeItemId i = id; i.IsOk(); i = GetPrevSibling(i))
@@ -277,19 +283,62 @@ void DataPaneTree::OnPopupMenu(wxMouseEvent &event)
 {
     int flags;
     wxTreeItemId id = HitTest(event.GetPosition(), flags);
-    wxString what = "data panel";
+
+    //find title for menu
+    wxString what = "data pane";
     if (id.IsOk()) 
         what = GetItemText(id);
     if (what.Length() > 20)
         what = "..." + what.Right(18);
     wxMenu popup_menu ("Menu for " + what);
 
-    popup_menu.Append (ID_DPT_POPUP_APPEND, "&Append data file to plot...");
-    popup_menu.Append (ID_DPT_POPUP_REPLACE, "&Replace with data file...");
-    popup_menu.Append (ID_DPT_POPUP_DELETE, "&Delete dataset");
+    if (id.IsOk() && GetItemParent(id).IsOk()) { 
+        if (GetItemParent(id) == GetRootItem()) { //plot
+            pmenu_p = count_previous_siblings(id);
+            pmenu_d = -1;
+            popup_menu.Append (ID_DPT_POPUP_APPEND_DATA, 
+                                                "&Append slot for dataset");
+            popup_menu.Append (ID_DPT_POPUP_REMOVE_PLOT, 
+                                            "&Remove plot (with datasets)");
+            popup_menu.Append (ID_DPT_POPUP_APPEND_PLOT, "&New plot");
+        }
+        else { //data
+            pmenu_p = count_previous_siblings(GetItemParent(id));
+            pmenu_d = count_previous_siblings(id);
+            popup_menu.Append (ID_DPT_POPUP_APPEND_DATA, 
+                                                "&Append slot for dataset");
+            popup_menu.Append (ID_DPT_POPUP_REMOVE_DATA, "&Remove dataset");
+        }
+    }
+    else { //no item
+        popup_menu.Append (ID_DPT_POPUP_APPEND_PLOT, "&New plot");
+    }
+    
     PopupMenu (&popup_menu, event.GetX(), event.GetY());
 }
 
+void DataPaneTree::OnMenuItem(wxCommandEvent &event)
+{
+    int eid = event.GetId();
+    string cmd = "d.activate ";
+    if (eid == ID_DPT_POPUP_APPEND_DATA)
+        cmd += S(pmenu_p) + "::*";
+    else if (eid == ID_DPT_POPUP_APPEND_PLOT)
+        cmd += "*::";
+    else if (eid == ID_DPT_POPUP_REMOVE_DATA)
+        cmd += "! " + S(pmenu_p) + "::" + S(pmenu_d);
+    else if (eid == ID_DPT_POPUP_REMOVE_PLOT)
+        cmd += "! " + S(pmenu_p) + "::";
+    exec_command(cmd);
+}
+
+void DataPaneTree::OnKeyDown(wxKeyEvent& event)
+{
+    if (event.GetKeyCode() == ' ' || event.GetKeyCode() == WXK_TAB) 
+        frame->focus_input();
+    else
+        event.Skip();
+}
 
 
 //===============================================================

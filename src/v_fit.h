@@ -45,8 +45,8 @@ protected:
     virtual int autoiter () = 0;
     bool common_termination_criteria(int iter);
     fp compute_wssr (const std::vector<fp>& A = fp_v0, bool weigthed = true);
-    void compute_derivatives_alpha_beta (std::vector<fp>& A, 
-                                std::vector<fp>& alpha, std::vector<fp>& beta);
+    void compute_derivatives(const std::vector<fp>& A, 
+                             std::vector<fp>& alpha, std::vector<fp>& beta);
     bool post_fit (const std::vector<fp>& aa, fp chi2);
     fp draw_a_from_distribution (int nr, char distribution = 'u', fp mult = 1.);
     void fplot ();
@@ -55,6 +55,9 @@ private:
     std::vector<fp> fitted2all (const std::vector<fp>& A);
     int fitted2all (int nr);
     std::vector<fp> all2fitted (const std::vector<fp>& A);
+    void compute_derivatives_for(const Data* data, const Sum *sum,
+                                 const std::vector<fp>& A, 
+                                 std::vector<fp>& alpha, std::vector<fp>& beta);
 };
 
 class FitMethodsContainer

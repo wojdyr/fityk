@@ -42,6 +42,7 @@ RCSID ("$Id$")
 #include "v_fit.h"
 #include "data.h"
 #include "sum.h"
+#include "pcore.h"
 #include "fzgbase.h" 
 #include "ffunc.h"
 #include "manipul.h"
@@ -117,7 +118,7 @@ char* about_html =
 
 using namespace std;
 FFrame *frame = NULL;
-std::vector<fp> a_copy4plot; 
+std::vector<fp> params4plot; 
 gui_IO my_gui_IO;
 
 static const wxCmdLineEntryDesc cmdLineDesc[] = {
@@ -890,7 +891,7 @@ void FFrame::OnDSet (wxCommandEvent& WXUNUSED(event))
 
 void FFrame::OnSHistory      (wxCommandEvent& WXUNUSED(event))
 {
-    if (my_sum->count_a() == 0) {
+    if (my_sum->pars()->count_a() == 0) {
         wxMessageBox ("no @-parameters -- no history", "no history",
                       wxOK|wxICON_ERROR);
         return;

@@ -49,7 +49,7 @@ fp LMfit::init ()
     mesg (print_matrix (a, 1, na, "Initial A"));
     //no need to optimise it (and compute chi2 and derivatives together)
     chi2 = compute_wssr (a);
-    compute_derivatives_alpha_beta(a, alpha, beta);
+    compute_derivatives(a, alpha, beta);
     return chi2;
 }
 
@@ -138,7 +138,7 @@ int LMfit::do_iteration()
     if (chi2_ < chi2) { // better fitting
         chi2 = chi2_; 
         a = beta_;
-        compute_derivatives_alpha_beta(a, alpha, beta);
+        compute_derivatives(a, alpha, beta);
         lambda /= lambda_down_factor;
         return 1;
     }

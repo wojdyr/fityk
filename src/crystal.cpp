@@ -10,6 +10,7 @@ RCSID ("$Id$")
 #include "data.h"
 #include "gfunc.h"
 #include "manipul.h"
+#include "pcore.h"
 
 using namespace std;
 
@@ -42,7 +43,7 @@ Phase::Phase (Sum *s, char t, const std::vector<Pag>& latt_a)
 string Phase::ph_str(int n) const
 {
     assert (n >= 0 && n < size(pags)); 
-    const vector<fp>& aa = sum->current_a();
+    const vector<fp>& aa = sum->pars()->values();
     const vector<V_g*>& gg = sum->gfuncs_vec();
     string s = pags[n].str(); 
     if (!pags[n].is_p()) 
@@ -66,7 +67,7 @@ void Phase::set_containers_descriptions(int n)
 fp Wavelengths::lambda(int n) const
 {
     assert (n >= 0 && n < get_count()); 
-    const vector<fp>& aa = sum->current_a();
+    const vector<fp>& aa = sum->pars()->values();
     const vector<V_g*>& gg = sum->gfuncs_vec();
     return pags[n * 2].value (aa, gg);
 }
@@ -74,7 +75,7 @@ fp Wavelengths::lambda(int n) const
 fp Wavelengths::intensity(int n) const
 {
     assert (n >= 0 && n < get_count()); 
-    const vector<fp>& aa = sum->current_a();
+    const vector<fp>& aa = sum->pars()->values();
     const vector<V_g*>& gg = sum->gfuncs_vec();
     return pags[n * 2 + 1].value (aa, gg);
 }
@@ -281,7 +282,7 @@ int Crystal::add_plane (int phase_nr, Hkl hkl)
     sum->use_param_a_for_value();
     fp diff = sum->value (center) - h_at_center_before; 
     if (diff != 0.) 
-        sum->change_a (a_corr.a(), h / diff, '*', false);
+        sum->pars()->change_a (a_corr.a(), h / diff, '*', false);
     HklF temp_hkl (hkl, sum, vint);
     temp_hkl.c_name = "%" + S(phase_nr) + hkl.str();
     phases[phase_nr].planes.insert (temp_hkl); 
@@ -292,7 +293,7 @@ int Crystal::add_plane (int phase_nr, Hkl hkl)
 vector<Pag> Crystal::heights_of_peaks (fp &h, Pag* a_for_h_correction) const
 {
     fp xh = h / sum_of_wavelength_ratio();
-    Pag ha = sum->add_a (xh, Domain());
+    Pag ha = sum->pars()->add_a (xh, Domain());
     vector<Pag> hh;
     if (xrays.get_count() == 1)
         hh.push_back (ha);
@@ -319,12 +320,12 @@ Pag Crystal::fwhm_of_peak_TCHpV (fp fwhm, Phase& p, Pag c_g)
     assert(peak_type = 'T');
     fp hwhm = fwhm / 2;
     if (p.fwhm_refinable.pags_size() == 0) { //initialization
-            Pag u = sum->add_a (0., Domain());
-            Pag v = sum->add_a (0., Domain());
-            Pag w = sum->add_a (hwhm * hwhm, Domain());
-            Pag z = sum->add_a (0., Domain());
-            Pag x = sum->add_a (0., Domain());
-            Pag y = sum->add_a (0., Domain());
+            Pag u = sum->pars()->add_a (0., Domain());
+            Pag v = sum->pars()->add_a (0., Domain());
+            Pag w = sum->pars()->add_a (hwhm * hwhm, Domain());
+            Pag z = sum->pars()->add_a (0., Domain());
+            Pag x = sum->pars()->add_a (0., Domain());
+            Pag y = sum->pars()->add_a (0., Domain());
             vector<Pag> rf = vector4 (u, v, w, z);
             rf.push_back(x);
             rf.push_back(y);
@@ -397,10 +398,10 @@ Pag Crystal::fwhm_of_peak_LoweMa (fp fwhm, Phase& p, int xray_nr, Pag c_g)
         return fwhm_of_peak (fwhm, p, xray_nr, c_g);
     }
     else if (p.fwhm_refinable.pags_size() == 0) {
-        Pag u = sum->add_a (0., Domain());
-        Pag v = sum->add_a (0., Domain());
-        Pag w = sum->add_a (hwhm * hwhm, Domain());
-        Pag ct = sum->add_a (0., Domain());
+        Pag u = sum->pars()->add_a (0., Domain());
+        Pag v = sum->pars()->add_a (0., Domain());
+        Pag w = sum->pars()->add_a (hwhm * hwhm, Domain());
+        Pag ct = sum->pars()->add_a (0., Domain());
         vector<Pag> rf = vector4 (u, v, w, ct);
         p.fwhm_refinable = PagContainer (sum, rf);
         return fwhm_of_peak (fwhm, p, xray_nr, c_g);
@@ -418,10 +419,10 @@ Pag Crystal::fwhm_of_peak (fp fwhm, Phase& p, int xray_nr, Pag c_g)
     fp hwhm = fwhm / 2;
     switch (constrained_fwhm) {
         case 'n':
-            return sum->add_a (hwhm, Domain());
+            return sum->pars()->add_a (hwhm, Domain());
         case 'p':
             if (xray_nr == 0)
-                n0 = sum->add_a (hwhm, Domain());
+                n0 = sum->pars()->add_a (hwhm, Domain());
             return n0;
         case 'e':
             if (p.fwhm_refinable.pags_size() == 1)
@@ -433,7 +434,7 @@ Pag Crystal::fwhm_of_peak (fp fwhm, Phase& p, int xray_nr, Pag c_g)
                 return fwhm_of_peak (fwhm, p, xray_nr, c_g);
             }
             else if (p.fwhm_refinable.pags_size() == 0) {
-                Pag a = sum->add_a (hwhm, Domain());
+                Pag a = sum->pars()->add_a (hwhm, Domain());
                 p.fwhm_refinable = PagContainer (sum, vector1(a));
                 return p.fwhm_refinable.get_pag(0);
             }
@@ -473,9 +474,9 @@ Pag Crystal::shape_of_peak_func_theta (Phase& p, int xray_nr, Pag c_g)
     int refin_size = p.shape_refinable.pags_size();
     if (peak_type == 'P') {
         if (refin_size == 0) { //initialization
-            Pag na = sum->add_a (2., Domain());
-            Pag nb = sum->add_a (0., Domain());
-            Pag nc = sum->add_a (0., Domain());
+            Pag na = sum->pars()->add_a (2., Domain());
+            Pag nb = sum->pars()->add_a (0., Domain());
+            Pag nc = sum->pars()->add_a (0., Domain());
             vector<Pag> rf = vector3 (na, nb, nc);
             p.shape_refinable = PagContainer (sum, rf);
             return shape_of_peak (p, xray_nr, c_g);
@@ -498,8 +499,8 @@ Pag Crystal::shape_of_peak_func_theta (Phase& p, int xray_nr, Pag c_g)
     else if (peak_type == 'S' || peak_type == 'V') {
         // na + nb * (2theta)
         if (refin_size == 0) { //initialization
-            Pag na = sum->add_a (0.5, Domain());
-            Pag nb = sum->add_a (0., Domain());
+            Pag na = sum->pars()->add_a (0.5, Domain());
+            Pag nb = sum->pars()->add_a (0., Domain());
             vector<Pag> rf = vector2 (na, nb);
             p.shape_refinable = PagContainer (sum, rf);
             return shape_of_peak (p, xray_nr, c_g);
@@ -550,10 +551,10 @@ Pag Crystal::shape_of_peak_not_func_theta (Phase& p, int xray_nr)
     int refin_size = p.shape_refinable.pags_size();
     switch (constrained_shape) {
         case 'n':
-            return sum->add_a (value, domain);
+            return sum->pars()->add_a (value, domain);
         case 'p':
             if (xray_nr == 0)
-                s_p = sum->add_a (value, domain);
+                s_p = sum->pars()->add_a (value, domain);
             return s_p;
         case 'c': 
             if (xray_nr == 0) {  
@@ -563,7 +564,7 @@ Pag Crystal::shape_of_peak_not_func_theta (Phase& p, int xray_nr)
             return s_p;
         case 'e':
             if (refin_size == 0) { //initialization
-                Pag a = sum->add_a (value, domain);
+                Pag a = sum->pars()->add_a (value, domain);
                 p.shape_refinable = PagContainer (sum, vector1(a));
                 return p.shape_refinable.get_pag(0);
             }
@@ -587,23 +588,25 @@ Pag Crystal::bounded_a (fp value, bool bounded_from, fp from,
         if (value < from || value > to)
             value = (from + to) / 2.;
         fp sin_param = asin((2 * value - from - to) / (to - from));
-        Pag tmp = sum->add_a (sin_param, Domain (-M_PI/2., M_PI/2.));
+        Pag tmp = sum->pars()->add_a (sin_param, Domain (-M_PI/2., M_PI/2.));
         return sum->add_g ('b', vector3(tmp, Pag(from), Pag(to)));  
     }
     else if (bounded_from && !bounded_to) {
         if (value < from)
             value = from;
-        Pag tmp = sum->add_a (sqrt(value - from), Domain (0., sqrt(to - from)));
+        Pag tmp = sum->pars()->add_a (sqrt(value - from), 
+                                     Domain (0., sqrt(to - from)));
         return sum->add_g ('m', vector2(tmp, Pag(from)));
     }
     else if (!bounded_from && bounded_to) {
         if (value > to)
             value = to;
-        Pag tmp = sum->add_a (sqrt(to - value), Domain (0., sqrt(to - from)));  
+        Pag tmp = sum->pars()->add_a (sqrt(to - value), 
+                                     Domain (0., sqrt(to - from)));  
         return sum->add_g ('M', vector2(tmp, Pag(to)));
     }
     else // !bounded_from && !bounded_to
-        return sum->add_a (value, Domain((from+to)/2, (from-to/2)));  
+        return sum->pars()->add_a (value, Domain((from+to)/2, (from-to/2)));  
 }
             
 Pag Crystal::shape_of_peak (Phase& p, int xray_nr, Pag c_g)
@@ -661,7 +664,7 @@ fp Crystal::peak_center (fp lambda, const Phase& p, Hkl hkl, fp *d) const
     char g_type = inverse_of_d (p, hkl, &params);
     V_g *g = V_g::factory (0, g_type, params);
     assert (g);
-    fp inv_d = g->g_value (sum->current_a(), sum->gfuncs_vec());
+    fp inv_d = g->g_value (sum->pars()->values(), sum->gfuncs_vec());
     delete g;
     if (d)
         *d = 1. / inv_d;

@@ -4,9 +4,9 @@
 !Problem with locales, that have different LC_NUMERIC
 problem with UNICODE-enabled wxWindows
 
+!button "plot with(out) background" and menu item button should be checked/toggled in OnIdle()
+                       
 arbitrary number of auxiliary windows 
-background toolbar -> "plot with(out) background" button should be toggled
-                       by "o.plot +/-" command, etc.
 ---
 fix hiding status bar problem (wxGTK)
 exporting to PostScript file and to metafile(clipboard) (Windows only) 

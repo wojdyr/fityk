@@ -13,6 +13,7 @@ RCSID ("$Id$")
 #include <errno.h>
 #include "data.h"
 #include "sum.h"
+#include "pcore.h"
 #include "other.h"
 
 using namespace std;

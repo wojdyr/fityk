@@ -31,6 +31,7 @@ RCSID ("$Id$")
 #include "wx_pane.h"
 #include "data.h"
 #include "sum.h"
+#include "pcore.h"
 #include "other.h" 
 #include "ffunc.h"
 #include "manipul.h"
@@ -237,11 +238,11 @@ void MainPlot::Draw(wxDC &dc)
     vector<Point>::const_iterator f =my_data->get_point_at(my_core->view.left),
                                 l = my_data->get_point_at(my_core->view.right);
 
-    if (!a_copy4plot.empty() && size(a_copy4plot) != my_sum->count_a()) {
-        a_copy4plot = my_sum->current_a();
+    if (!params4plot.empty() && size(params4plot) != my_sum->pars()->count_a()){
+        params4plot = my_sum->pars()->values();
         frame->SetStatusText ("Number of parameters changed.");
     }
-    my_sum->use_param_a_for_value (a_copy4plot);
+    my_sum->use_param_a_for_value (params4plot);
 
     if (x_axis_visible) 
         draw_x_axis (dc, f, l);
@@ -1002,7 +1003,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         frame->SetStatusText("");
     }
     else if (mode == mmd_peak && button == 1) {
-        move_peak(dist_x + dist_y < 5 ? mat_cancel: mat_stop, event);
+        move_peak(dist_x + dist_y < 2 ? mat_cancel: mat_stop, event);
         frame->SetStatusText ("");
     }
     else if (mode == mmd_range && button != 2) {
@@ -1363,7 +1364,7 @@ void MainPlot::change_peak_parameters(const vector<fp> &peak_hcw)
         else if (pname.find("width") < pname.size())  val = hwhm; 
         else continue;
         Pag pag = peak->get_pag(i);
-        if (pag.is_a() && my_sum->get_a(pag.a()) != val)
+        if (pag.is_a() && my_sum->pars()->get_a(pag.a()) != val)
             changes.push_back("@" + S(pag.a()) + " " + S(val));
     }
     if (!changes.empty()) {

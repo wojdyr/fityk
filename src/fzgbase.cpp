@@ -7,6 +7,7 @@ RCSID ("$Id$")
 #include "ffunc.h"
 #include "gfunc.h"
 #include "sum.h"
+#include "pcore.h"
 
 using namespace std;
 
@@ -53,7 +54,7 @@ void PagContainer::recursive_rm ()
             else if (i->is_a()) { 
                 int n = i->a();
                 pags.erase(i);
-                sum->rm_a_core (n);
+                sum->pars()->do_rm_a(n);
             }
             else if (i->is_g()) {
                 int n = i->g();
@@ -72,7 +73,7 @@ bool PagContainer::is_ok (const Sum* with_sum) const
         return sum ? is_ok(sum) : false;
     bool ok = true;
     for (vector<Pag>::const_iterator i = pags.begin(); i != pags.end(); i++) {
-        if (i->is_a() && (i->a() < 0 || i->a() >= with_sum->count_a())) {
+        if (i->is_a() && (i->a() < 0 || i->a() >= with_sum->pars()->count_a())){
             warn ("@" + S(i->a()) + " not found.");
             ok = false;
         }
@@ -87,7 +88,7 @@ bool PagContainer::is_ok (const Sum* with_sum) const
 
 std::vector<fp> PagContainer::values_of_pags() const
 {
-    const vector<fp>& aa = sum->current_a();
+    const vector<fp>& aa = sum->pars()->values();
     const vector<V_g*>& gg = sum->gfuncs_vec();
     vector<fp> v;
     for (vector<Pag>::const_iterator i = pags.begin(); i != pags.end(); i++)

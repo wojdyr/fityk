@@ -26,6 +26,7 @@ RCSID ("$Id$")
 #include "ffunc.h"
 #include "gfunc.h"
 #include "v_fit.h"
+#include "pcore.h"
 
 //bitmaps for buttons
 #include "img/up_arrow.xpm"
@@ -432,8 +433,8 @@ void FuncBrowserDlg::OnSelChanged (wxTreeEvent& WXUNUSED(event))
 void FuncBrowserDlg::set_change_initials(int n)
 {
         ch_label->SetLabel (("Parameter @" + S(n) + ":").c_str());
-        fp a_value = (n >= 0 ? my_sum->get_a (n) : 0);
-        const Domain &dom = (n >= 0 ? my_sum->get_domain(n) : Domain());
+        fp a_value = (n >= 0 ? my_sum->pars()->get_a (n) : 0);
+        const Domain &dom = (n >= 0 ? my_sum->pars()->get_domain(n) : Domain());
         string label = (n >= 0 ? ("Parameter @" + S(n) + ":") 
                                : S("Select @parameter."));
         ch_label->SetLabel (label.c_str());
@@ -690,7 +691,7 @@ void FuncBrowserDlg::OnFreezeAllButton (wxCommandEvent& event)
 
 void FuncBrowserDlg::update_frozen_tc()
 {
-    string f_i = my_sum->frozen_info(); 
+    string f_i = my_sum->pars()->frozen_info(); 
     frozen_tc->SetValue (f_i.empty() ? "none" : f_i.c_str());
 }
 
@@ -698,7 +699,7 @@ void FuncBrowserDlg::update_freeze_button_label()
 {
     string freeze_button_label;
     int a_nr = atoi (sel_fun.c_str() + 1);
-    if (my_sum->is_frozen(a_nr))
+    if (my_sum->pars()->is_frozen(a_nr))
         freeze_button_label = "Thaw " + sel_fun;
     else
         freeze_button_label = "Freeze " + sel_fun;
@@ -718,7 +719,7 @@ void FuncBrowserDlg::OnValueButton (wxCommandEvent& WXUNUSED(event))
         char c = sel_fun[0]; 
         int n = atoi (sel_fun.c_str() + 1);
         if (c == '@')
-            output = my_sum->info_a(n);
+            output = my_sum->pars()->info_a(n);
         else // ^,$,<
             output = my_sum->print_fzg_value(V_fzg::type_of_symbol(c), n, at);
     }
@@ -770,7 +771,7 @@ void FuncTree::reset_funcs_in_root()
     f_ids.clear();
     z_ids.clear();
     wxTreeItemId root = AddRoot("sum");
-    a_ids.resize(my_sum->count_a());
+    a_ids.resize(my_sum->pars()->count_a());
     g_ids.resize(my_sum->fzg_size(gType));
     f_ids.resize(my_sum->fzg_size(fType));
     z_ids.resize(my_sum->fzg_size(zType));
@@ -796,9 +797,10 @@ void FuncTree::add_pags_to_tree(wxTreeItemId p_id, const vector<Pag>& pags)
         if (i->is_g()) 
             add_fzg_to_tree (p_id, gType, i->g());
         else if (i->is_a()) {
-            wxTreeItemId id = AppendItem (p_id, my_sum->info_a(i->a()).c_str());
+            wxTreeItemId id = AppendItem (p_id, 
+                                       my_sum->pars()->info_a(i->a()).c_str());
             a_ids[i->a()].push_back(id);
-            if (my_sum->is_frozen(i->a()) == false)
+            if (my_sum->pars()->is_frozen(i->a()) == false)
                 SetItemTextColour (id, wxColour(0, 100, 0));
             else
                 SetItemTextColour (id, wxColour(0, 200, 0));
@@ -910,8 +912,8 @@ int FuncTree::update_labels (const string& beginning)
             int nr = atoi (GetItemText(item).c_str() + 1);
             string new_label;
             if (symb == '@') {
-                new_label = my_sum->info_a(nr); 
-                if (my_sum->is_frozen(nr) == false)
+                new_label = my_sum->pars()->info_a(nr); 
+                if (my_sum->pars()->is_frozen(nr) == false)
                     SetItemTextColour (item, wxColour(0, 100, 0));
                 else
                     SetItemTextColour (item, wxColour(0, 200, 0));
@@ -1403,7 +1405,7 @@ SumHistoryDlg::SumHistoryDlg (wxWindow* parent, wxWindowID id)
 void SumHistoryDlg::initialize_lc()
 {
     assert (lc == 0);
-    view_max = my_sum->count_a() - 1;
+    view_max = my_sum->pars()->count_a() - 1;
     assert (view_max != -1);
     for (int i = 0; i < 3; i++)
         view[i] = min (i, view_max);
@@ -1418,8 +1420,8 @@ void SumHistoryDlg::initialize_lc()
     for (int i = 0; i < 3; i++)
         lc->InsertColumn(4 + i, ("@" + S(view[i])).c_str()); 
 
-    for (int i = 0; i != my_sum->history_size(); ++i) {
-        const History_item& item = my_sum->history_item(i);
+    for (int i = 0; i != my_sum->pars()->history_size(); ++i) {
+        const HistoryItem& item = my_sum->pars()->history_item(i);
         lc->InsertItem(i, item.saved ? "   *   " : "       ");
         lc->SetItem (i, 1, ("  " + S(i+1) + "  ").c_str());
         lc->SetItem (i, 2, item.comment.c_str());
@@ -1433,11 +1435,11 @@ void SumHistoryDlg::initialize_lc()
 
 void SumHistoryDlg::update_selection()
 {
-    int index = my_sum->history_position();
+    int index = my_sum->pars()->history_position();
     lc->SetItemState (index, wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED, 
                              wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED);
     up_arrow->Enable (index != 0);
-    down_arrow->Enable (index != my_sum->history_size() - 1);
+    down_arrow->Enable (index != my_sum->pars()->history_size() - 1);
 }
 
 void SumHistoryDlg::OnUpButton       (wxCommandEvent& WXUNUSED(event))
@@ -1455,15 +1457,15 @@ void SumHistoryDlg::OnDownButton     (wxCommandEvent& WXUNUSED(event))
 void SumHistoryDlg::OnToggleSavedButton (wxCommandEvent& WXUNUSED(event))
 {
     exec_command ("s.history *");
-    int idx = my_sum->history_position();
-    lc->SetItemText (idx, my_sum->history_item(idx).saved ? "   *   " 
+    int idx = my_sum->pars()->history_position();
+    lc->SetItemText (idx, my_sum->pars()->history_item(idx).saved ? "   *   " 
                                                           : "       ");
 }
 
 void SumHistoryDlg::OnComputeWssrButton (wxCommandEvent& WXUNUSED(event))
 {
-    for (int i = 0; i != my_sum->history_size(); ++i) {
-        const History_item& item = my_sum->history_item(i);
+    for (int i = 0; i != my_sum->pars()->history_size(); ++i) {
+        const HistoryItem& item = my_sum->pars()->history_item(i);
         my_sum->use_param_a_for_value (item.a);
         fp wssr = v_fit::compute_wssr_for_data (my_data, my_sum, true);
         lc->SetItem (i, 3, S(wssr).c_str());
@@ -1496,8 +1498,8 @@ void SumHistoryDlg::OnViewSpinCtrlUpdate (wxSpinEvent& event)
     li.SetText (("@" + S(view[v])).c_str());
     lc->SetColumn(4 + v, li); 
     //update data in wxListCtrl
-    for (int i = 0; i != my_sum->history_size(); ++i) {
-        const History_item& item = my_sum->history_item(i);
+    for (int i = 0; i != my_sum->pars()->history_size(); ++i) {
+        const HistoryItem& item = my_sum->pars()->history_item(i);
         lc->SetItem (i, 4 + v, S(item.a[view[v]]).c_str());
     }
 }

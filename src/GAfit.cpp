@@ -85,16 +85,16 @@ fp GAfit::init()
     return 0;
 }
 
-int GAfit::autoiter ()
+int GAfit::autoiter()
 {
-    wssr_before = compute_wssr ();
+    wssr_before = compute_wssr();
     mesg ("WSSR before starting GA: " + S(wssr_before));
     assert (pop && opop); 
     if (elitism >= popsize) {
         warn ("hmm, now elitism >= popsize, setting elitism = 1");
         elitism = 1;
     }
-    for (int iter = 0; !termination_criteria_and_print_info (iter); iter ++) {
+    for (int iter = 0; !termination_criteria_and_print_info(iter); iter++) {
         autoplot_in_autoiter();
         iter_nr ++;
         pre_selection();
@@ -106,7 +106,7 @@ int GAfit::autoiter ()
     return 0;
 }
 
-void GAfit::log_ga_options ()
+void GAfit::log_ga_options()
 {
     ofstream os(log_file.c_str(), ios::app);
     if (!os) {
@@ -124,7 +124,7 @@ void GAfit::log_ga_options ()
 
 void GAfit::compute_wssr_for_ind (vector<Individual>::iterator ind)
 {
-    ind->raw_score = compute_wssr (ind->g);
+    ind->raw_score = compute_wssr(ind->g);
     ind->generation = iter_nr;
 }
 
@@ -138,7 +138,7 @@ void GAfit::autoplot_in_autoiter()
     }
 }
 
-void GAfit::mutation ()
+void GAfit::mutation()
 {   
     for (vector<Individual>::iterator i = pop->begin(); i != pop->end(); i++) {
         if (mutate_all_genes) {
@@ -159,7 +159,7 @@ void GAfit::mutation ()
     }
 }
 
-void GAfit::crossover ()
+void GAfit::crossover()
 {
     for (vector<Individual>::iterator i = pop->begin(); i != pop->end(); i++) 
         if (rand() < RAND_MAX / 2 * p_crossover) {
@@ -247,7 +247,7 @@ void GAfit::guaranteed_avarage_crossover (vector<Individual>::iterator c1,
         c1->g[j] = c2->g[j] = (c1->g[j] + c2->g[j]) / 2; 
 }
 
-void GAfit::pre_selection ()
+void GAfit::pre_selection()
 {
     vector<int> next(popsize - elitism);
     switch (selection_type) {
@@ -279,7 +279,7 @@ void GAfit::pre_selection ()
     swap (pop, opop);
 }
 
-void GAfit::post_selection ()
+void GAfit::post_selection()
 {
     if (elitism == 0)
         return;

@@ -1,6 +1,7 @@
 There is a mailing list fityk-users. You can find a link at fityk.sf.net.
 To see individual peaks - select Show->Peaks from main plot popup menu.
 You can drag a peak or change its shape with mouse. Just press a mouse button on the peak top (in normal mode).
+Pressing space will focus input field.
 Logging session (File->Log to file) from the beginning can save you a lot of time, especially when program crashes.
 There are a few ways to zoom and unzoom, eg. using left and middle mouse button on auxiliary plot.
 You can easily compare results obtained with different fitting methods using Sum->History dialog.

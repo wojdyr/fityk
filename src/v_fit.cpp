@@ -7,6 +7,8 @@ RCSID ("$Id$")
 #include <sstream>
 #include <time.h>
 #include <math.h>
+#include "other.h"
+#include "pcore.h"
 #include "sum.h"
 #include "data.h"
 #include "v_IO.h"
@@ -36,18 +38,22 @@ v_fit::v_fit (char symb, string m)
 
 string v_fit::info (int mode)
 {
-    int n_m = my_data->get_n() - my_sum->count_a();
+    //n_m = number of points - degrees of freedom (parameters)
+    int n_m = - AL->pars()->count_a();
+    for (int i = 0; i < AL->get_core_count(); i++) 
+        n_m += AL->get_core(i)->get_active_data()->get_n(); 
+
     string s = "Current WSSR = " + S(compute_wssr()) 
                 + " (expected: " + S(n_m) + "); SSR = " 
                 + S(compute_wssr(fp_v0, false));
     if (mode == 1 || mode == 2) {
-        if (na + nf != my_sum->count_a() || nf != my_sum->count_frozen()
-                || na == 0) 
+        if (na + nf != AL->pars()->count_a() 
+                            || nf != AL->pars()->count_frozen() || na == 0) 
             return s + "\nTo show covariance matrix or errors, method must be "
                         "initialized (f.run).";
         vector<fp> alpha(na*na), beta(na);
-        a_orig = all2fitted (my_sum->current_a());
-        compute_derivatives_alpha_beta (a_orig, alpha, beta);
+        a_orig = all2fitted (AL->pars()->values());
+        compute_derivatives(a_orig, alpha, beta);
         reverse_matrix (alpha, na);
         for (vector<fp>::iterator i = alpha.begin(); i != alpha.end(); i++)
             (*i) *= 2;//FIXME: is it right? (S.Brandt, Analiza danych (10.17.4))
@@ -55,7 +61,7 @@ string v_fit::info (int mode)
             s += "\nSymetric errors: ";
             for (int i = 0; i < na; i++) {
                 int nr = fitted2all(i);
-                s += " @" + S(nr) + "=" + S(my_sum->get_a(nr)) + "+-" 
+                s += " @" + S(nr) + "=" + S(AL->pars()->get_a(nr)) + "+-" 
                     + S(sqrt(alpha[i * na + i]));
             }
         }
@@ -69,16 +75,20 @@ string v_fit::info (int mode)
 fp v_fit::compute_wssr (const vector<fp>& A, bool weigthed)
 {
     evaluations++;
-    if (nf > 0 && !A.empty())
-        my_sum->use_param_a_for_value (fitted2all (A));
-    else
-        my_sum->use_param_a_for_value (A);
-    return compute_wssr_for_data (my_data, my_sum, weigthed);
+    const vector<fp>& all = (nf == 0 || A.empty() ? A : fitted2all(A));
+    fp wssr = 0;
+    for (int i = 0; i < AL->get_core_count(); i++) {
+        const PlotCore *core = AL->get_core(i);
+        core->get_sum()->use_param_a_for_value(all);
+        wssr += compute_wssr_for_data(core->get_active_data(), core->get_sum(),
+                                      weigthed);
+    }
+    return wssr;
 }
 
 fp v_fit::compute_wssr_for_data(const Data* data, const Sum *sum, bool weigthed)
 {
-    // pre: sum->use_param_a_for_value() called
+    // pre: sum->precompute() called
     fp wssr = 0;
     int n = data->get_n();
     for (int j = 0; j < n; j++) {
@@ -90,33 +100,52 @@ fp v_fit::compute_wssr_for_data(const Data* data, const Sum *sum, bool weigthed)
     return wssr;
 }
 
-void v_fit::compute_derivatives_alpha_beta (vector<fp>& A, vector<fp>& alpha, 
-                                            vector<fp>& beta)
+//results in alpha and beta 
+void v_fit::compute_derivatives(const vector<fp>& A, 
+                                vector<fp>& alpha, vector<fp>& beta)
 {
     assert (size(A) == na && size(alpha) == na * na && size(beta) == na);
+    fill (alpha.begin(), alpha.end(), 0.0);
+    fill (beta.begin(), beta.end(), 0.0);
+
+    for (int i = 0; i < AL->get_core_count(); i++) {
+        const PlotCore *core = AL->get_core(i);
+        compute_derivatives_for(core->get_active_data(), core->get_sum(),
+                                A, alpha, beta);
+    }
+    // filling second half of alpha[] 
+    for (int j = 1; j < na; j++)
+        for (int k = 0; k < j; k++)
+            alpha[na * k + j] = alpha[na * j + k]; 
+}
+
+//results in alpha and beta 
+//it computes only half of alpha matrix
+void v_fit::compute_derivatives_for(const Data* data, const Sum *sum,
+                                const vector<fp>& A, 
+                                vector<fp>& alpha, vector<fp>& beta)
+{
     static vector<fp> tmp, tmp2;
     if (size(tmp) != na)
         tmp.resize (na);
     if (nf > 0) { //there are frozen @a
-        my_sum->use_param_a_for_value (fitted2all(A));
+        sum->use_param_a_for_value(fitted2all(A));
         tmp2.resize(na + nf);
     }
     else
-        my_sum->use_param_a_for_value (A);
-    fill (alpha.begin(), alpha.end(), 0.0);
-    fill (beta.begin(), beta.end(), 0.0);
-    // *** compute chi2 and alpha and beta
-    int ndata = my_data->get_n ();
+        sum->use_param_a_for_value(A);
+    
+    int ndata = data->get_n ();
     for (int i = 0; i < ndata; i++) {
         fp y;
         if (nf > 0) { //there are frozen @a
-            y = my_sum->value_and_put_deriv (my_data->get_x(i), tmp2);
+            y = sum->value_and_put_deriv (data->get_x(i), tmp2);
             tmp = all2fitted (tmp2);
         }
         else //no frozen ...
-            y = my_sum->value_and_put_deriv (my_data->get_x(i), tmp);
-        fp inv_sig = 1.0 / my_data->get_sigma(i);
-        fp dy_sig = (my_data->get_y(i) - y) * inv_sig;
+            y = sum->value_and_put_deriv (data->get_x(i), tmp);
+        fp inv_sig = 1.0 / data->get_sigma(i);
+        fp dy_sig = (data->get_y(i) - y) * inv_sig;
         for (vector<fp>::iterator j = tmp.begin(); j != tmp.end(); j++) 
             *j *= inv_sig;
         for (int j = 0; j < na; j++) {
@@ -125,10 +154,6 @@ void v_fit::compute_derivatives_alpha_beta (vector<fp>& A, vector<fp>& alpha,
             beta[j] += dy_sig * tmp[j]; 
         }
     }   
-    // *-* chi2  and (half of) alpha and beta computed. 
-    for (int j = 1; j < na; j++)
-        for (int k = 0; k < j; k++)
-            alpha[na * k + j] = alpha[na * j + k]; // second half of alpha[]
 }
 
 string v_fit::print_matrix (const vector<fp>& vec, int m, int n, char *name)
@@ -163,10 +188,10 @@ bool v_fit::post_fit (const std::vector<fp>& aa, fp chi2)
     string comment = method + (chi2 < wssr_before ? "" : " (worse)");
     if (nf > 0) {
         vector<fp> aaa = fitted2all(aa);
-        my_sum->write_avec (aaa, method, no_move);
+        AL->pars()->write_avec (aaa, method, no_move);
     }
     else
-        my_sum->write_avec (aa, method, no_move);
+        AL->pars()->write_avec (aa, method, no_move);
     if (chi2 < wssr_before) {
         // if (auto_plot >= 2) fplot (aa); //will be plotted by replot()
         mesg ("Better fit found (WSSR = " + S(chi2) + ", was " + S(wssr_before)
@@ -186,7 +211,8 @@ bool v_fit::post_fit (const std::vector<fp>& aa, fp chi2)
 
 fp v_fit::draw_a_from_distribution (int nr, char distribution, fp mult)
 {
-    assert (nr >= 0 && nr < my_sum->count_a() - my_sum->count_frozen());
+    assert (nr >= 0 
+            && nr < AL->pars()->count_a() - AL->pars()->count_frozen());
     if (nf > 0)
         nr = fitted2all (nr);
     fp dv = 0;
@@ -204,28 +230,29 @@ fp v_fit::draw_a_from_distribution (int nr, char distribution, fp mult)
             dv = rand_1_1();
             break;
     }
-    return my_sum->variation_of_a (nr, dv * mult);
+    return AL->pars()->variation_of_a (nr, dv * mult);
 }
 
 void v_fit::fit (bool ini, int max_iter)
 {
-    if (my_sum->count_a() == 0) {
+    if (AL->pars()->count_a() == 0) {
         warn ("What am I to fit?");
         return;
     }
     if (ini) {
         user_interrupt = false;
         iter_nr = 0;
-        nf = my_sum->count_frozen();
-        na = my_sum->count_a() - nf;
-        a_orig = all2fitted (my_sum->current_a());
+        nf = AL->pars()->count_frozen();
+        na = AL->pars()->count_a() - nf;
+        a_orig = all2fitted (AL->pars()->values());
         int rs = random_seed >= 0 ? random_seed : time(0);
         srand (rs);
         verbose ("Seed for a sequence of pseudo-random numbers: " + S(rs));
         init();
     }
     //was init() callled ?
-    else if (na + nf != my_sum->count_a() || nf != my_sum->count_frozen()) {
+    else if (na + nf != AL->pars()->count_a() 
+                                  || nf != AL->pars()->count_frozen()) {
         warn (method + " method should be initialized first. Canceled");
         return;
     }
@@ -260,12 +287,12 @@ vector<fp> v_fit::fitted2all (const vector<fp>& A)
     vector<fp> r(na + nf);
     vector<fp>::const_iterator ai = A.begin(); 
     for (int i = 0; i < na + nf; i++)
-        if (!my_sum->is_frozen(i)) {
+        if (!AL->pars()->is_frozen(i)) {
             r[i] = *ai;
             ai++;
         }
         else
-            r[i] = my_sum->get_a(i);
+            r[i] = AL->pars()->get_a(i);
     assert (ai == A.end());
     return r;
 }
@@ -274,7 +301,7 @@ int v_fit::fitted2all (int nr)
 {
     int f = 0, a = 0;
     while (f != nr) {
-        if (!my_sum->is_frozen(a))
+        if (!AL->pars()->is_frozen(a))
             f++;
         a++;
     }
@@ -287,7 +314,7 @@ vector<fp> v_fit::all2fitted (const vector<fp>& A)
     vector<fp> r(na);
     vector<fp>::iterator ri = r.begin(); 
     for (int i = 0; i < na + nf; i++)
-        if (!my_sum->is_frozen(i)) {
+        if (!AL->pars()->is_frozen(i)) {
             *ri = A[i];
             ri++;
         }

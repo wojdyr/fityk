@@ -15,6 +15,7 @@ RCSID("$Id$")
 #include "v_IO.h"
 #include "manipul.h"
 #include "other.h"
+#include "pcore.h"
 
 using namespace std;
 int iperror (char *s);
@@ -38,7 +39,7 @@ void replot()
         return; //do not replot
     if (auto_plot >= 2 && AL->was_changed()) {
         my_IO->plot();
-	my_core->was_plotted();
+	AL->was_plotted();
     }
 }
 
@@ -161,35 +162,35 @@ exp:  SET DASH_STRING EQ_STRING SEP {
     | F_INFO '*' '*' SEP           { imsg (my_fit->info(2)); }
     | S_ADD fzg_type pags_vec SEP  { my_sum->add_fzg ($2.fzg, $2.c, pgvec); }
     | S_ADD a_num SEP              {/*nothing, @ is added inside a_num*/}
-    | S_CHANGE a_num flt opt_proc SEP  { my_sum->change_a ($2, $3, $4); }
-    | S_CHANGE a_num flt opt_proc domain SEP { my_sum->change_a ($2, $3, $4); 
-                                       my_sum->change_domain ($2, Domain($5)); }
+    | S_CHANGE a_num flt opt_proc SEP  { AL->pars()->change_a ($2, $3, $4); }
+    | S_CHANGE a_num flt opt_proc domain SEP { AL->pars()->change_a($2, $3, $4);
+                                  AL->pars()->change_domain ($2, Domain($5)); }
     | S_CHANGE F_NUM F_TYPE SEP    { my_sum->change_f ($2, $3); }
     | S_CHANGE F_NUM '[' uints ']' pags_vec SEP
 			           { my_sum->change_in_f ($2, ivec, pgvec); }
-    | S_FREEZE SEP                 { imsg (my_sum->frozen_info ()); }
-    | S_FREEZE a_num SEP           { my_sum->freeze ($2, true); }
-    | S_FREEZE '!' a_num SEP       { my_sum->freeze ($3, false); }
-    | S_HISTORY SEP                { imsg (my_sum->print_history()); }
-    | S_HISTORY INt SEP           { my_sum->move_in_history ($2, true); }
-    | S_HISTORY UINt SEP          { my_sum->move_in_history ($2, false); }
-    | S_HISTORY '*' opt_uint SEP  { my_sum->toggle_history_item_saved ($3); }
-    | S_HISTORY uint_slashes SEP   { imsg (my_sum->history_diff (ivec)); }
-    | S_INFO a_num SEP             { imsg (my_sum->info_a ($2)); }
+    | S_FREEZE SEP                 { imsg (AL->pars()->frozen_info ()); }
+    | S_FREEZE a_num SEP           { AL->pars()->freeze($2, true); }
+    | S_FREEZE '!' a_num SEP       { AL->pars()->freeze($3, false); }
+    | S_HISTORY SEP                { imsg (AL->pars()->print_history()); }
+    | S_HISTORY INt SEP            { AL->pars()->move_in_history ($2, true); }
+    | S_HISTORY UINt SEP           { AL->pars()->move_in_history ($2, false); }
+    | S_HISTORY '*' opt_uint SEP  { AL->pars()->toggle_history_item_saved($3); }
+    | S_HISTORY uint_slashes SEP   { imsg (AL->pars()->history_diff (ivec)); }
+    | S_INFO a_num SEP             { imsg (AL->pars()->info_a ($2)); }
     | S_INFO fzg_num SEP           { imsg (my_sum->info_fzg ($2.fzg, $2.i)); }
     | S_INFO '$' SEP               { imsg (V_fzg::print_type_info (gType, 0)); }
     | S_INFO '^' SEP               { imsg (V_fzg::print_type_info (fType, 0)); }
     | S_INFO '<' SEP               { imsg (V_fzg::print_type_info (zType, 0)); }
     | S_INFO fzg_type SEP       { imsg (V_fzg::print_type_info ($2.fzg, $2.c));}
     | S_INFO SEP                   { imsg (my_sum->general_info()); }
-    | S_REMOVE a_num SEP           { my_sum->rm_a ($2); }
+    | S_REMOVE a_num SEP           { AL->pars()->rm_a ($2); }
     | S_REMOVE fzg_num SEP         { my_sum->rm_fzg ($2.fzg, $2.i); }
     | S_REMOVE '*' '*' SEP         { my_sum->rm_all(); }
     | S_VALUE flt opt_asterix SEP { imsg (my_sum->print_sum_value ($2, $3)); }
     | S_VALUE fzg_num flt opt_asterix SEP 
 		       { imsg (my_sum->print_fzg_value($2.fzg, $2.i, $3, $4)); }
     | S_VALUE G_NUM SEP            {imsg (my_sum->print_fzg_value (gType, $2));}
-    | S_VALUE a_num SEP            { imsg (my_sum->info_a ($2)); }
+    | S_VALUE a_num SEP            { imsg (AL->pars()->info_a ($2)); }
     | S_EXPORT peaks_to_sum opt_lcase FILENAME opt_plus SEP { 
                              my_sum->export_to_file ($4.str(), $5, $3, ivec); }
     | M_FINDPEAK flt opt_flt SEP { 
@@ -237,9 +238,9 @@ exp:  SET DASH_STRING EQ_STRING SEP {
     /***/
     ;
 
-a_num: A_NUM                     { $$ = $1; }
-    |  NEW_A                     { $$ = my_sum->add_a ($1, Domain()) .a(); } 
-    |  NEW_A domain              { $$ = my_sum->add_a ($1, Domain($2)) .a(); } 
+a_num: A_NUM                  { $$ = $1; }
+    |  NEW_A                  { $$ = AL->pars()->add_a($1, Domain()) .a(); }
+    |  NEW_A domain           { $$ = AL->pars()->add_a($1, Domain($2)) .a(); }
     ;
 
 domain: '[' ']'             { $$.set = $$.ctr_set = false; }
