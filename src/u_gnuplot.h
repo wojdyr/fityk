@@ -4,7 +4,6 @@
 #ifndef gnuplot__H__
 #define gnuplot__H__
 #include "common.h"
-#include <stdio.h>
 #include <vector>
 
 class GnuPlot
@@ -20,7 +19,5 @@ class GnuPlot
 
         void fork_and_make_pipe ();
 };
-
-int dmplot_export(char *filename);
 
 #endif 

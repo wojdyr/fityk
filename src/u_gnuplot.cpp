@@ -1,4 +1,7 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
+
+// CLI-only file
+
 #include "common.h"
 RCSID ("$Id$")
 
@@ -83,7 +86,7 @@ int GnuPlot::plot (const vector<fp>& workingA)
             signal (SIGPIPE, shp);
             return -2;
         }
-    }                    //testing pipe -- stop
+    }                    //testing pipe -- end
     signal (SIGPIPE, shp);
     my_sum->use_param_a_for_value(workingA);
     bool plus_bg = my_core->plus_background;

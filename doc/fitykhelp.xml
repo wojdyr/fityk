@@ -1805,7 +1805,7 @@
     doing nothing. 
    </para>
    <para>
-    At last, if option <parameter class="option">exit-on-error</parameter> 
+    At last, if option <parameter class="option">exit-on-warning</parameter> 
     is set, any warning will close the program. It ensures, that no warnings
     can be overlooked.
    </para>

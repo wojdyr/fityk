@@ -60,8 +60,6 @@ extern const std::vector<int> int_v0; //just empty vector
 //#define RCSID(x)  static const char *RCSid(const char *s) { return RCSid(x); }
 #define RCSID(x)  static const char *RCSid = x; static const char *RCSid_() { return RCSid ? RCSid : RCSid_(); }
 
-extern char verbosity;
-
 extern const char* fityk_version_line; /// it is used to put version to script
 
 /// S() converts to string
@@ -115,7 +113,6 @@ inline bool is_index (int idx, const std::vector<T>& v)
 /// Round real to integer.
 inline int iround(fp d) { return static_cast<int>(floor(d+0.5)); }
 
-extern bool exit_on_error;
 extern char auto_plot;
 extern int smooth_limit;
 extern volatile bool user_interrupt;

@@ -23,7 +23,7 @@ common_sources = other.cpp scanner.cpp parser.cpp common.cpp crystal.cpp \
 gui_sources = wx_dlg.cpp wx_gui.cpp wx_IO.cpp wx_plot.cpp wx_pane.cpp \
 	         wx_common.h
 fityk_SOURCES = $(common_sources) $(gui_sources) 
-cfityk_SOURCES = $(common_sources) u_gnuplot.cpp u_main.cpp u_rl_IO.cpp 
+cfityk_SOURCES = $(common_sources) u_gnuplot.cpp u_main.cpp 
 common_ldadd = ##none
 fityk_LDADD = $(common_ldadd) @WX_LIBS_DS@ $(ms_win_res)
 cfityk_LDADD = $(common_ldadd) @READLINE_LIBS@ -lm

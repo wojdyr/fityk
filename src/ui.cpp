@@ -32,7 +32,7 @@ UserInterface* UserInterface::getInstance()
 
 
 UserInterface::UserInterface() 
-    : log_mode('n'), log_filename()
+    : log_mode('n'), log_filename(), verbosity(3), exit_on_warning(false)
 {
     verbosity_enum [0] = "silent";
     verbosity_enum [1] = "only-warnings";
@@ -48,7 +48,7 @@ UserInterface::UserInterface()
     autoplot_enum [3] = "on-fit-iteration";
     epar.insert (pair<string, Enum_string> ("autoplot", 
                                Enum_string (autoplot_enum, &auto_plot)));
-    bpar ["exit-on-error"] = &exit_on_error;
+    bpar ["exit-on-warning"] = &exit_on_warning;
     //ipar ["plot-min-curve-points"] = &smooth_limit;
 }
 
@@ -112,10 +112,14 @@ string UserInterface::getLogInfo() const
 
 void UserInterface::outputMessage (int level, const string& s)
 {
+    OutputStyle style = level <= 1 ? os_warn : os_normal;
     if (level <= verbosity) {
-        OutputStyle style = level <= 1 ? os_warn : os_normal;
         showMessage(style, s);
         log_output (s);
+    }
+    if (exit_on_warning && style == os_warn) {
+        showMessage(os_normal, "Warning -> exiting program.");
+        close();
     }
 }
 

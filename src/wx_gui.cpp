@@ -113,14 +113,16 @@ char* about_html =
 
 using namespace std;
 FFrame *frame = NULL;
-std::vector<fp> params4plot; 
+std::vector<fp> params4plot;  //TODO move it to MainPlot or other class
 
 static const wxCmdLineEntryDesc cmdLineDesc[] = {
     { wxCMD_LINE_SWITCH, _T("h"), _T("help"), "show this help message",
                                 wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+    /*
     { wxCMD_LINE_SWITCH, "v", "verbose", "be verbose", wxCMD_LINE_VAL_NONE, 0 },
     { wxCMD_LINE_SWITCH, "q", "quiet",   "be quiet", wxCMD_LINE_VAL_NONE, 0 },
     { wxCMD_LINE_OPTION, "o", "output", "output file", wxCMD_LINE_VAL_NONE, 0 },
+    */
     { wxCMD_LINE_PARAM,  0, 0, "input file", wxCMD_LINE_VAL_STRING, 
                         wxCMD_LINE_PARAM_OPTIONAL|wxCMD_LINE_PARAM_MULTIPLE },
     { wxCMD_LINE_NONE, 0, 0, 0,  wxCMD_LINE_VAL_NONE, 0 }
@@ -218,6 +220,7 @@ enum {
 IMPLEMENT_APP(FApp)
 string get_full_path_of_help_file (const string &name);
 
+
 bool FApp::OnInit(void)
 {
     AL = new ApplicationLogic; 
@@ -228,10 +231,12 @@ bool FApp::OnInit(void)
         cmdLineParser.Usage();
         return false;
     }
+    /*
     if (cmdLineParser.Found("v"))
         verbosity++;
     if (cmdLineParser.Found("q"))
         verbosity--;
+    */
     wxString fityk_dir = wxGetHomeDir() + wxFILE_SEP_PATH + config_dirname;
     if (!wxDirExists(fityk_dir))
         wxMkdir(fityk_dir);
@@ -279,6 +284,7 @@ bool FApp::OnInit(void)
     return true;
 }
 
+
 int FApp::OnExit()
 { 
     delete AL; 
@@ -286,6 +292,7 @@ int FApp::OnExit()
     delete wxConfigBase::Set((wxConfigBase *) NULL);
     return 0;
 }
+
 
 BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_IDLE (FFrame::OnIdle)
@@ -378,6 +385,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
 //  EVT_SASH_DRAGGED_RANGE (ID_WINDOW_TOP1, ID_WINDOW_BOTTOM, 
 //                            FFrame::OnSashDrag)
 END_EVENT_TABLE()
+
 
     // Define my frame constructor
 FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title, 

@@ -9,8 +9,6 @@ RCSID ("$Id$")
 
 using namespace std;
 
-char verbosity = 3;
-bool exit_on_error = false;
 char auto_plot = 2;
 int smooth_limit = 0;
 volatile bool user_interrupt = false;

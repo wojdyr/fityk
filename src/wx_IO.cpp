@@ -12,10 +12,6 @@
 #include "common.h"
 RCSID ("$Id$")
 
-#include <wx/laywin.h>
-#include <wx/sashwin.h>
-#include <wx/minifram.h>
-
 #include "ui.h"
 #include "wx_plot.h"
 #include "wx_gui.h"
@@ -63,7 +59,11 @@ void UserInterface::execCommand(const string& s)
     wxBusyCursor wait;
     bool r = parser(s);
     if (!r)
-        frame->Close(true);
+        close();
 }
 
+void UserInterface::close()
+{
+        frame->Close(true);
+}
 

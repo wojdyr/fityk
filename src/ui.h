@@ -52,6 +52,8 @@ public:
 
     void execAndLogCmd(const std::string& s) {log_input(s); execCommand(s);}
     int getVerbosity() { return verbosity; }
+    //exit UI and program
+    void close();
 
 private:
     UserInterface();
@@ -60,7 +62,9 @@ private:
 
     /// show message to user; different definition for GUI and CLI
     void showMessage (OutputStyle style, const std::string& s);
+
     /// Execute command(s) from string; different definition for GUI and CLI.
+    /// It can finish the program (eg. if s=="quit").
     void execCommand (const std::string& s);
 
     void log_output (const std::string& s);
@@ -71,6 +75,8 @@ private:
     char log_mode; //i, a, o, n  //TODO: change to enum 
     std::string log_filename;
     std::ofstream logfile;
+    char verbosity;
+    bool exit_on_warning;
     std::map<char, std::string> autoplot_enum;
     std::map<char, std::string> verbosity_enum;
 };
@@ -92,7 +98,7 @@ inline void gmessage (int level, const std::string& str)
                                     { getUI()->outputMessage(level, str); }
 //
 /// Send warning to UI. Message priority: 1 (lower - more important)
-inline void warn (const std::string& s) { gmessage (1, s); }
+inline void warn(const std::string& s) { gmessage (1, s); }
 /// Send message to UI. Message priority: 2 (lower - more important)
 inline void mesg(const std::string& s) { gmessage(2, s); }
 /// Send information to UI. Message priority: 3 (lower - more important)
@@ -100,7 +106,7 @@ inline void info(const std::string& s) { gmessage (3, s); }
 /// Send verbose message to UI. Message priority: 4 (lower - more important)
 inline void verbose(const std::string& s) { gmessage (4, s); }
 /// Send very verbose message to UI. Message priority: 5 (the least important)
-inline void very_verbose (const std::string& s) { gmessage (5, s); }
+inline void very_verbose(const std::string& s) { gmessage (5, s); }
 /// The same as verbose(), but string is evaluated only when needed.
 #define verbose_lazy(x)   if(getUI()->getVerbosity() >= 4)  verbose((x));  
 

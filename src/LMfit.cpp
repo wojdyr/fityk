@@ -124,7 +124,7 @@ int LMfit::do_iteration()
         return -1;
 
     // da is in beta_  
-    if (verbosity >= 4) {
+    if (getUI()->getVerbosity() >= 4) {
         vector<fp> rel (na);
         for (int q = 0; q < na; q++)
             rel[q] = beta_[q] / a[q] * 100;

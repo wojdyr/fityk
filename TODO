@@ -108,3 +108,6 @@
 * f.info -- more informations about error, confidence limits, etc.
   graphical interface to f.info
 
+* problem: when gnuplot is not available, cfityk abort exits in some situations
+
+
