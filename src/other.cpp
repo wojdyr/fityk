@@ -157,7 +157,7 @@ PlotCore::PlotCore()
 #ifdef USE_XTAL
     crystal = new Crystal(sum);
 #endif //USE_XTAL
-    activate_data(-1); //and set_my_vars() is called from there
+    append_data(); //and set_my_vars() is called from there
 }
 
 PlotCore::~PlotCore()
@@ -172,32 +172,35 @@ PlotCore::~PlotCore()
 
 bool PlotCore::activate_data(int n)
 {
-    int sel = 0;
-    if (n == -1) {
-        datasets.push_back(new Data);
-        sel = datasets.size() - 1;
-    }
-    else if (n >= 0 && n < size(datasets)) {
-        sel = n;
-    }
-    else {
-        warn("No such datafile in this dataset: " + S(n));
+    //if n==-1: only call set_my_vars()
+    if (n < -1 || n >= size(datasets)) {
+        warn("No such datafile in this plot: " + S(n));
         return false;
     }
 
-    if (sel != active_data) {
-        active_data = sel;
+    if (n != -1 && n != active_data) {
+        active_data = n;
         ds_was_changed = true;
     }
     set_my_vars();
     return true;
 }
 
-void PlotCore::set_my_vars() const
+int PlotCore::append_data()
 {
-    my_data = datasets[active_data];//TODO
+    datasets.push_back(new Data);
+    active_data = datasets.size() - 1;
+    ds_was_changed = true;
+    set_my_vars();
+    return active_data;
+}
+
+void PlotCore::set_my_vars()
+{
+    my_data = datasets[active_data];
     my_sum = sum;
     my_crystal = crystal;
+    my_core = this;
 }
 
 std::string PlotCore::view_info() const
@@ -330,19 +333,19 @@ const Data *PlotCore::get_data(int n) const
     return (n >= 0 && n < size(datasets)) ?  datasets[n] : 0;
 }
 
-void PlotCore::del_data(int n)
+void PlotCore::remove_data(int n)
 {
-    if (n >= 0 && n < size(datasets)) {
-        if (n == active_data) 
-            active_data = n > 0 ? n-1 : 0;
-        delete datasets[n];
-        datasets.erase(datasets.begin() + n);
-        if (datasets.empty()) //it should not be empty
-            datasets.push_back(new Data);
-        ds_was_changed = true;
-    }
-    else
+    if (n < 0 || n >= size(datasets)) {
         warn("No such dataset number: " + S(n));
+        return;
+    }
+    if (n == active_data) 
+        active_data = n > 0 ? n-1 : 0;
+    delete datasets[n];
+    datasets.erase(datasets.begin() + n);
+    if (datasets.empty()) //it should not be empty
+        datasets.push_back(new Data);
+    ds_was_changed = true;
 }
 
 //==========================================================================
@@ -360,7 +363,7 @@ void ApplicationLogic::reset_all (bool finish)
     fitMethodsContainer = new FitMethodsContainer;
     my_other = new Various_commands;
     my_manipul = new Manipul;
-    activate_core(-1);
+    append_core();
 }
 
 
@@ -389,29 +392,73 @@ void ApplicationLogic::dump_all_as_script (string filename)
     os << endl << "####### End of dump " << endl; 
 }
 
+void ApplicationLogic::activate(int p, int d)
+{
+    if (p != -1)
+        activate_core(p);
+    cores[active_core]->activate_data(d);
+}
+
+void ApplicationLogic::remove(int p, int d)
+{
+    if (p != -1 && d == -1) //eg. ! 2::
+        remove_core(p);
+    else if (p != -1 && d != -1) { //eg. ! 2::3
+        if (p < 0 || p >= size(cores)) {
+            warn("No such plot: " + S(p));
+            return;
+        }
+        cores[p]->remove_data(d);
+    }
+    else if (p == -1) //eg. ! ::  or  ! ::3
+        my_core->remove_data(d);
+}
 
 bool ApplicationLogic::activate_core(int p)
 {
-    int sel = 0;
-    if (p == -1) {
-        cores.push_back(new PlotCore);
-        sel = cores.size() - 1;
-    }
-    else if (p >= 0 && p < size(cores)) {
-        sel = p;
-    }
-    else {
+    if (p < 0 || p >= size(cores)) {
         warn("No such plot: " + S(p));
         return false;
     }
 
-    if (sel != active_core) {
-        active_core = sel;
+    if (p == active_core) 
+        return true;
+
+    active_core = p;
+    c_was_changed = true;
+    cores[active_core]->set_my_vars();
+    return true;
+}
+
+int ApplicationLogic::append_core()
+{
+    cores.push_back(new PlotCore);
+    active_core = cores.size() - 1;
+    c_was_changed = true;
+    cores[active_core]->set_my_vars();
+    return active_core;
+}
+
+int ApplicationLogic::append_data(int p)
+{
+    if (p != -1)
+        activate_core(p);
+    return my_core->append_data(); 
+}
+
+void ApplicationLogic::remove_core(int p)
+{
+    if (p >= 0 && p < size(cores)) {
+        if (p == active_core) 
+            active_core = p > 0 ? p-1 : 0;
+        delete cores[p];
+        cores.erase(cores.begin() + p);
+        if (cores.empty()) //it should not be empty
+            cores.push_back(new PlotCore);
         c_was_changed = true;
     }
-    my_core = cores[active_core];//TODO
-    my_core->set_my_vars();
-    return true;
+    else
+        warn("Not a plot number: " + S(p));
 }
 
 bool ApplicationLogic::was_changed() const
@@ -428,21 +475,6 @@ void ApplicationLogic::was_plotted()
 const PlotCore *ApplicationLogic::get_core(int n) const
 {
     return (n >= 0 && n < size(cores)) ?  cores[n] : 0;
-}
-
-void ApplicationLogic::del_core(int n)
-{
-    if (n >= 0 && n < size(cores)) {
-        if (n == active_core) 
-            active_core = n > 0 ? n-1 : 0;
-        delete cores[n];
-        cores.erase(cores.begin() + n);
-        if (cores.empty()) //it should not be empty
-            cores.push_back(new PlotCore);
-        c_was_changed = true;
-    }
-    else
-        warn("Not a plot number: " + S(n));
 }
 
 

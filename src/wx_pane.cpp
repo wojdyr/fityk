@@ -203,17 +203,34 @@ void DataPaneTree::OnIdle(wxIdleEvent &event)
 {
     if (!IsShown()) return;
 
-    long unused_cookie;
-    //TODO
-    wxTreeItemId root = GetFirstChild(GetRootItem(), unused_cookie);
-    update_tree_datalabels(root);
-    //TODO if (GetSelection() != )
+    const wxTreeItemId& root = GetRootItem();
+    //correct number of plots,
+    int diff = AL->get_core_count() - GetChildrenCount(root, false);
+    if (diff > 0)
+        for (int i = 0; i < diff; i++)
+            AppendItem(root, "");
+    else if (diff < 0)
+        for (int i = 0; i < diff; i++)
+            Delete(GetLastChild(root));
+    //  ... plot labels, and data files
+    long cookie;
+    int counter = 0;
+    wxString label;
+    for (wxTreeItemId i = GetFirstChild(root, cookie); i.IsOk(); 
+                                   i = GetNextChild(root, cookie), counter++) {
+        label.Printf("plot %d", counter);
+        if (GetItemText(i) != label)
+            SetItemText(i, label);
+        update_tree_datalabels(AL->get_core(counter), i); 
+    }
+    //TODO set selection if (GetSelection() != )
     event.Skip();
 }
 
-void DataPaneTree::update_tree_datalabels(const wxTreeItemId &plot_item)
+void DataPaneTree::update_tree_datalabels(const PlotCore *pcore, 
+                                          const wxTreeItemId &plot_item)
 {
-    vector<string> new_labels = my_core->get_data_titles(); //TODO
+    vector<string> new_labels = pcore->get_data_titles(); 
     vector<string> old_labels;
     long cookie;
     for (wxTreeItemId i = GetFirstChild(plot_item, cookie); i.IsOk(); 
@@ -239,10 +256,10 @@ void DataPaneTree::OnSelChanging(wxTreeEvent &event)
 void DataPaneTree::OnSelChanged(wxTreeEvent &event)
 {
     const wxTreeItemId &id = event.GetItem();
-    if (id == GetRootItem()) // || GetItemParent(id) == GetRootItem()) //plot
+    if (id == GetRootItem() || GetItemParent(id) == GetRootItem()) 
         return;
     else { //dataset
-        int p = 0;//get_number_of_previous_siblings(GetItemParent(id));
+        int p = get_number_of_previous_siblings(GetItemParent(id));
         int d = get_number_of_previous_siblings(id);
         exec_command("d.activate " + S(p) + "::" + S(d));
     }
@@ -259,10 +276,13 @@ int DataPaneTree::get_number_of_previous_siblings(const wxTreeItemId &id)
 void DataPaneTree::OnPopupMenu(wxMouseEvent &event)
 {
     int flags;
-    HitTest(event.GetPosition(), flags);
-    //TODO
-
-    wxMenu popup_menu ("datasets menu");
+    wxTreeItemId id = HitTest(event.GetPosition(), flags);
+    wxString what = "data panel";
+    if (id.IsOk()) 
+        what = GetItemText(id);
+    if (what.Length() > 20)
+        what = "..." + what.Right(18);
+    wxMenu popup_menu ("Menu for " + what);
 
     popup_menu.Append (ID_DPT_POPUP_APPEND, "&Append data file to plot...");
     popup_menu.Append (ID_DPT_POPUP_REPLACE, "&Replace with data file...");

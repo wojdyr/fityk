@@ -20,8 +20,7 @@ RCSID ("$Id$")
 #include "wx_plot.h"
 #include "wx_gui.h"
 #include "wx_pane.h"
-#include "data.h"
-#include "sum.h"
+#include "other.h"
 
 int my_sleep (int seconds) 
 {
@@ -67,7 +66,7 @@ void gui_IO::message (const char *s)
 
 void gui_IO::plot ()
 {
-    if (my_sum->was_changed() || my_data->was_changed())
+    if (AL->was_changed())
         clear_buffered_sum();
     a_copy4plot.clear();
     frame->refresh_plots(false);

@@ -61,13 +61,14 @@ public:
     ~PlotCore();
 
     bool activate_data(int n); // for n=-1 create new dataset
+    int append_data();
     std::vector<std::string> get_data_titles() const;
     int get_data_count() const { return datasets.size(); }
     const Data *get_data(int n) const; 
     int get_active_data_position() const { return active_data; }
     const Data *get_active_data() const { return get_data(active_data);}
-    void set_my_vars() const;
-    void del_data(int n);
+    void set_my_vars();
+    void remove_data(int n);
 
     std::string view_info() const;
     void set_view (Rect rect, bool fit = false);
@@ -104,18 +105,23 @@ public:
     void reset_all (bool finish=false); 
     void dump_all_as_script (std::string filename);
 
-    bool activate_core(int n); // for n=-1 create new plot-core
+    void activate(int p, int d);
+    int append_core(); // append and activate new PlotCore
+    int append_data(int p);
+    void remove(int p, int d);
+    void remove_core(int p);
     int get_core_count() const { return cores.size(); }
     const PlotCore *get_core(int n) const; 
     int get_active_core_position() const { return active_core; }
     const PlotCore *get_active_core() const { return get_core(active_core); }
-    void del_core(int n);
     bool was_changed() const; 
     void was_plotted();
 protected:
     std::vector<PlotCore*> cores;
     bool c_was_changed;
     int active_core;
+
+    bool activate_core(int n); 
 };
 
 

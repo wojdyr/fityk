@@ -36,7 +36,7 @@ void replot()
         new_line = false;
     else
         return; //do not replot
-    if (auto_plot >= 2 && my_core->was_changed()) {
+    if (auto_plot >= 2 && AL->was_changed()) {
         my_IO->plot();
 	my_core->was_plotted();
     }
@@ -112,8 +112,10 @@ exp:  SET DASH_STRING EQ_STRING SEP {
       }
     | SET DASH_STRING SEP          { set_class_p($1)->getp ($2.str()); }
     | SET SEP                      { imsg (set_class_p($1)->print_usage($1)); }
-    | D_ACTIVATE opt_uint_1 TWO_COLONS opt_uint_1 SEP 
-                                        { my_core->activate_data(/*$2,*/ $4); }
+    | D_ACTIVATE opt_uint_1 TWO_COLONS opt_uint_1 SEP { AL->activate($2, $4); }
+    | D_ACTIVATE '!' opt_uint_1 TWO_COLONS opt_uint_1 SEP { AL->remove($3, $5);}
+    | D_ACTIVATE '*' TWO_COLONS SEP { AL->append_core();}
+    | D_ACTIVATE opt_uint_1 TWO_COLONS '*' SEP { AL->append_data($2); }
     | D_LOAD opt_lcase dload_arg FILENAME SEP { 
                                    my_data->load($4.str(), $2, ivec, ivec2, $3);
 				   my_core->set_view (Rect()); }

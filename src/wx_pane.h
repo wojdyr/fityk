@@ -17,6 +17,7 @@ class PlotPane;
 class IOPane;
 class MainPlot;
 class DiffPlot;
+class PlotCore;
 
 
 // based on http://wiki.wxpython.org/index.cgi/ProportionalSplitterWindow
@@ -145,7 +146,8 @@ public:
     void OnSelChanged(wxTreeEvent &event);
     void OnPopupMenu(wxMouseEvent &event);
 private:
-    void update_tree_datalabels(const wxTreeItemId &plot_item);
+    void update_tree_datalabels(const PlotCore *pcore, 
+                                const wxTreeItemId &plot_item);
     int get_number_of_previous_siblings(const wxTreeItemId &id);
 
     DECLARE_EVENT_TABLE()
