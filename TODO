@@ -85,6 +85,7 @@
 * write documentation for fwhm-correction and height-correction (m.set) 
 
 * (GUI) fonts used for scale labels should be configurable
+  font settings for output window should be written in config
 
 * (GUI) single ergonomic interface changing colors of everything
 

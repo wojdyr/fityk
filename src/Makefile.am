@@ -38,12 +38,12 @@ AM_CXXFLAGS = -Wall -fno-rtti -ftemplate-depth-50
 $(gui_sources:.cpp=.o): AM_CXXFLAGS += @WX_CPPFLAGS@ @WX_CXXFLAGS_ONLY@ 
 
 ##TODO:
-parser.cpp: parser.yy
-	bison -p ip -d parser.yy && \
+parser.cpp: $(srcdir)/parser.yy
+	bison -p ip -d $(srcdir)/parser.yy && \
 	mv parser.tab.cc parser.cpp
 
-scanner.cpp: scanner.ll parser.cpp 
-	flex scanner.ll && \
+scanner.cpp: $(srcdir)/scanner.ll $(srcdir)/parser.cpp 
+	flex $(srcdir)/scanner.ll && \
 	sed "s/#include <unistd.h>/\/\/&/" lex.ip.c >scanner.cpp && \
 	rm -f lex.ip.c
 

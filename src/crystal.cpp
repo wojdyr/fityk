@@ -414,8 +414,10 @@ Pag Crystal::fwhm_of_peak_LoweMa (fp fwhm, Phase& p, int xray_nr, Pag c_g)
         p.fwhm_refinable = PagContainer (sum, rf);
         return fwhm_of_peak (fwhm, p, xray_nr, c_g);
     }
-    else 
+    else {
         assert(0);
+        return Pag();
+    }
 }
 
 Pag Crystal::fwhm_of_peak (fp fwhm, Phase& p, int xray_nr, Pag c_g) 
@@ -586,6 +588,7 @@ Pag Crystal::shape_of_peak_not_func_theta (Phase& p, int xray_nr)
             }
         default:
             assert(0);
+            return Pag();
     }
 }
 

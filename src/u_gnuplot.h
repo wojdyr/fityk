@@ -4,6 +4,7 @@
 #ifndef gnuplot__H__
 #define gnuplot__H__
 #include "common.h"
+#include <stdio.h>
 #include <vector>
 
 class GnuPlot

@@ -13,6 +13,7 @@ RCSID ("$Id$")
 #include <fstream>
 #include <ctype.h>
 #include <time.h>
+#include <unistd.h>
 #include <signal.h>
 #include <locale.h>
 #ifndef NO_READLINE
@@ -85,7 +86,7 @@ string get_config_dir()
     // '/' is assumed as path separator
     dir = S(home_dir) + "/" + config_dirname + "/"; 
     if (access(dir.c_str(), X_OK) != 0)
-        dir.clear();
+        dir = ""; //gcc 2.95 have no std::string.clear() method
     first_run = false;
     return dir;
 }
