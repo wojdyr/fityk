@@ -190,6 +190,8 @@ enum {
     ID_G_S_TOOLBAR             ,
     ID_G_S_STATBAR             ,
     ID_G_S_DPANE               ,
+    ID_G_S_A1                  ,
+    ID_G_S_A2                  ,
     ID_G_S_IO                  ,
     ID_G_V_ALL                 ,
     ID_G_V_VERT                ,
@@ -353,6 +355,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_UPDATE_UI (ID_G_M_PEAK, FFrame::OnModePeak)
     EVT_MENU_RANGE (ID_G_M_PEAK_N+0, ID_G_M_PEAK_N+30, FFrame::OnChangePeakType)
     EVT_MENU (ID_G_S_DPANE,     FFrame::OnSwitchDPane)
+    EVT_MENU_RANGE (ID_G_S_A1, ID_G_S_A2, FFrame::OnSwitchAuxPlot)
     EVT_MENU (ID_G_S_IO,        FFrame::OnSwitchIOPane)
     EVT_MENU (ID_G_S_TOOLBAR,   FFrame::OnSwitchToolbar)
     EVT_MENU (ID_G_S_STATBAR,   FFrame::OnSwitchStatbar)
@@ -650,6 +653,12 @@ void FFrame::set_menubar()
     gui_menu_show->Check(ID_G_S_STATBAR, true);
     gui_menu_show->AppendCheckItem (ID_G_S_DPANE, "&Datasets Pane", 
                                     "Show/hide datasets pane");  
+    gui_menu_show->AppendCheckItem (ID_G_S_A1, "&Auxiliary Plot 1", 
+                                    "Show/hide auxiliary plot I");  
+    gui_menu_show->Check(ID_G_S_A1, true);
+    gui_menu_show->AppendCheckItem (ID_G_S_A2, "&Auxiliary Plot 2", 
+                                    "Show/hide auxiliary plot II");  
+    gui_menu_show->Check(ID_G_S_A2, false);
     gui_menu_show->AppendCheckItem (ID_G_S_IO, "&Input/Output Text Pane", 
                                     "Show/hide text input/output");  
     gui_menu_show->Check(ID_G_S_IO, true);
@@ -1259,6 +1268,13 @@ void FFrame::OnSwitchDPane (wxCommandEvent& event)
     }
     GetMenuBar()->Check(ID_G_S_DPANE, checked);
     if (toolbar) toolbar->ToggleTool(ID_ft_dpane, checked);
+}
+
+void FFrame::OnSwitchAuxPlot (wxCommandEvent& event)
+{
+    bool checked = event.IsChecked();
+    int id = event.GetId();
+    plot_pane->show_aux(id-ID_G_S_A1, checked);
 }
 
 void FFrame::OnSwitchIOPane (wxCommandEvent& event)

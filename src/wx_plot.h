@@ -34,6 +34,8 @@ enum Aux_plot_kind_enum
 
 void clear_buffered_sum();
 
+
+//This class has no instances, MainPlot and AuxPlot are derived from it
 class FPlot : public wxPanel
 {
 public:
@@ -82,6 +84,8 @@ protected:
     DECLARE_EVENT_TABLE()
 };
 
+
+//main plot, single in application, displays data, fitted peaks etc. 
 class MainPlot : public FPlot 
 {
 public:
@@ -123,7 +127,6 @@ private:
     wxPen phasePen[max_phase_pens], peakPen[max_peak_pens];
     int pressed_mouse_button;
     bool ctrl;
-    std::vector<wxPoint> peaktops;
     int over_peak;
 
     void draw_x_axis (wxDC& dc, std::vector<Point>::const_iterator first,
@@ -157,12 +160,13 @@ private:
 };
 
 
-class DiffPlot : public FPlot
+//Auxiliary plot, usually shows residuals or peak positions
+class AuxPlot : public FPlot
 {
 public:
-    DiffPlot (wxWindow *parent, Plot_shared &shar) : FPlot (parent, shar), 
-              y_zoom(1.), y_zoom_base(1.) { }
-    ~DiffPlot() {}
+    AuxPlot (wxWindow *parent, Plot_shared &shar, int number_) 
+        : FPlot (parent, shar), number(number_), y_zoom(1.), y_zoom_base(1.) {}
+    ~AuxPlot() {}
     void OnPaint(wxPaintEvent &event);
     void Draw(wxDC &dc);
     void OnLeaveWindow (wxMouseEvent& event);
@@ -175,6 +179,7 @@ public:
     void OnKeyDown (wxKeyEvent& event);
     bool cancel_mouse_left_press();
     void set_scale();
+    bool is_zoomable(); //false if kind is eg. empty or peak-position
     void OnPopupPlot (wxCommandEvent& event);
     void OnPopupColor (wxCommandEvent& event);
     void OnPopupYZoom (wxCommandEvent& event);
@@ -184,6 +189,7 @@ public:
     void read_settings(wxConfigBase *cf);
 
 private:
+    int number;
     Aux_plot_kind_enum kind;
     fp y_zoom, y_zoom_base;
     bool auto_zoom_y;

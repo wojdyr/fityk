@@ -67,16 +67,15 @@ enum {
     ID_peak_popup_del                      ,
     ID_peak_popup_tree                     ,
 
-    ID_diff_popup_plot_0            = 45310,
-    ID_diff_popup_c_background      = 45340,
-    ID_diff_popup_c_active_data            ,
-    ID_diff_popup_c_inactive_data          ,
-    ID_diff_popup_c_axis                   ,
-    ID_diff_popup_color                    ,
-    ID_diff_popup_yz_fit                   ,
-    ID_diff_popup_yz_change                ,
-    ID_diff_popup_yz_auto                  ,
-    ID_diff_popup_y_zoom                   
+    ID_aux_popup_plot_0            = 45310,
+    ID_aux_popup_c_background      = 45340,
+    ID_aux_popup_c_active_data            ,
+    ID_aux_popup_c_inactive_data          ,
+    ID_aux_popup_c_axis                   ,
+    ID_aux_popup_color                    ,
+    ID_aux_popup_yz_fit                   ,
+    ID_aux_popup_yz_change                ,
+    ID_aux_popup_yz_auto                  
 };
 
 fp scale_tics_step (fp beg, fp end, int max_tics);
@@ -211,6 +210,14 @@ fp y_of_data_for_draw_data(vector<Point>::const_iterator i)
 void MainPlot::Draw(wxDC &dc)
 {
     set_scale();
+
+    if (!params4plot.empty() && size(params4plot) != my_sum->pars()->count_a()){
+        params4plot = my_sum->pars()->values();
+        frame->SetStatusText ("Number of parameters changed.");
+    }
+    my_sum->use_param_a_for_value (params4plot);
+    prepare_peaktops();
+
     if (colourTextForeground.Ok())
         dc.SetTextForeground (colourTextForeground);
     if (colourTextBackground.Ok())
@@ -235,15 +242,9 @@ void MainPlot::Draw(wxDC &dc)
 
     if (my_data->is_empty())
         return;
+
     vector<Point>::const_iterator f =my_data->get_point_at(my_core->view.left),
                                 l = my_data->get_point_at(my_core->view.right);
-
-    if (!params4plot.empty() && size(params4plot) != my_sum->pars()->count_a()){
-        params4plot = my_sum->pars()->values();
-        frame->SetStatusText ("Number of parameters changed.");
-    }
-    my_sum->use_param_a_for_value (params4plot);
-
     if (x_axis_visible) 
         draw_x_axis (dc, f, l);
 
@@ -270,7 +271,6 @@ void MainPlot::Draw(wxDC &dc)
             draw_peaks (dc, f, l);
     }
 
-    prepare_peaktops();
     if (mode == mmd_bg) {
         draw_background_points(dc); 
     }
@@ -518,8 +518,8 @@ void MainPlot::draw_peaktops (wxDC& dc)
 {
     dc.SetPen (xAxisPen);
     dc.SetBrush (*wxTRANSPARENT_BRUSH);
-    for (vector<wxPoint>::const_iterator i = peaktops.begin(); 
-         i != peaktops.end(); i++) 
+    for (vector<wxPoint>::const_iterator i = shared.peaktops.begin(); 
+         i != shared.peaktops.end(); i++) 
         dc.DrawRectangle (i->x - 1, i->y - 1, 3, 3);
 }
 
@@ -535,7 +535,7 @@ void MainPlot::prepare_peaktops()
 {
     int H =  GetClientSize().GetHeight();
     int Y0 = y2Y(0);
-    peaktops.clear();
+    shared.peaktops.clear();
     for (int k = 0; k < my_sum->fzg_size(fType); k++) {
         const V_f *f = static_cast<const V_f*>(my_sum->get_fzg (fType, k));
         int X, Y;
@@ -549,7 +549,7 @@ void MainPlot::prepare_peaktops()
             Y = y2Y (my_sum->f_value(X2x(X), k));
         }
         if (Y < 0 || Y > H) Y = Y0;
-        peaktops.push_back(wxPoint(X, Y));
+        shared.peaktops.push_back(wxPoint(X, Y));
     }
 }
 
@@ -881,14 +881,14 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
     // searching the closest peak-top and distance from it, d = dx + dy < 10 
     int min_dist = 10;
     int nearest = -1;
-    if (size(peaktops) != my_sum->fzg_size(fType))
+    if (size(shared.peaktops) != my_sum->fzg_size(fType))
         prepare_peaktops();
-    for (vector<wxPoint>::const_iterator i = peaktops.begin(); 
-         i != peaktops.end(); i++) {
+    for (vector<wxPoint>::const_iterator i = shared.peaktops.begin(); 
+         i != shared.peaktops.end(); i++) {
         int d = abs(event.GetX() - i->x) + abs(event.GetY() - i->y);
         if (d < min_dist) {
             min_dist = d;
-            nearest = i - peaktops.begin();
+            nearest = i - shared.peaktops.begin();
         }
     }
     if (over_peak == nearest) return;
@@ -1379,33 +1379,33 @@ void MainPlot::change_peak_parameters(const vector<fp> &peak_hcw)
 
 
 //===============================================================
-//                           DiffPlot (difference plot) 
+//                           AuxPlot (auxiliary plot) 
 //===============================================================
-BEGIN_EVENT_TABLE (DiffPlot, FPlot)
-    EVT_PAINT (           DiffPlot::OnPaint)
-    EVT_MOTION (          DiffPlot::OnMouseMove)
-    EVT_LEAVE_WINDOW (    DiffPlot::OnLeaveWindow)
-    EVT_LEFT_DOWN (       DiffPlot::OnLeftDown)
-    EVT_LEFT_UP (         DiffPlot::OnLeftUp)
-    EVT_RIGHT_DOWN (      DiffPlot::OnRightDown)
-    EVT_MIDDLE_DOWN (     DiffPlot::OnMiddleDown)
-    EVT_KEY_DOWN   (      DiffPlot::OnKeyDown)
-    EVT_SIZE (            DiffPlot::OnSize)
-    EVT_MENU_RANGE (ID_diff_popup_plot_0, ID_diff_popup_plot_0 + 10,
-                                                    DiffPlot::OnPopupPlot)
-    EVT_MENU_RANGE (ID_diff_popup_c_background, ID_diff_popup_color - 1, 
-                                                      DiffPlot::OnPopupColor)
-    EVT_MENU (ID_diff_popup_yz_change, DiffPlot::OnPopupYZoom)
-    EVT_MENU (ID_diff_popup_yz_fit, DiffPlot::OnPopupYZoomFit)
-    EVT_MENU (ID_diff_popup_yz_auto, DiffPlot::OnPopupYZoomAuto)
+BEGIN_EVENT_TABLE (AuxPlot, FPlot)
+    EVT_PAINT (           AuxPlot::OnPaint)
+    EVT_MOTION (          AuxPlot::OnMouseMove)
+    EVT_LEAVE_WINDOW (    AuxPlot::OnLeaveWindow)
+    EVT_LEFT_DOWN (       AuxPlot::OnLeftDown)
+    EVT_LEFT_UP (         AuxPlot::OnLeftUp)
+    EVT_RIGHT_DOWN (      AuxPlot::OnRightDown)
+    EVT_MIDDLE_DOWN (     AuxPlot::OnMiddleDown)
+    EVT_KEY_DOWN   (      AuxPlot::OnKeyDown)
+    EVT_SIZE (            AuxPlot::OnSize)
+    EVT_MENU_RANGE (ID_aux_popup_plot_0, ID_aux_popup_plot_0 + 10,
+                                                    AuxPlot::OnPopupPlot)
+    EVT_MENU_RANGE (ID_aux_popup_c_background, ID_aux_popup_color - 1, 
+                                                      AuxPlot::OnPopupColor)
+    EVT_MENU (ID_aux_popup_yz_change, AuxPlot::OnPopupYZoom)
+    EVT_MENU (ID_aux_popup_yz_fit, AuxPlot::OnPopupYZoomFit)
+    EVT_MENU (ID_aux_popup_yz_auto, AuxPlot::OnPopupYZoomAuto)
 END_EVENT_TABLE()
 
-void DiffPlot::OnSize(wxSizeEvent& WXUNUSED(event))
+void AuxPlot::OnSize(wxSizeEvent& WXUNUSED(event))
 {
     //Refresh();
 }
 
-void DiffPlot::OnPaint(wxPaintEvent &WXUNUSED(event))
+void AuxPlot::OnPaint(wxPaintEvent &WXUNUSED(event))
 {
     vert_line_following_cursor (mat_cancel);
     wxPaintDC dc(this);
@@ -1431,16 +1431,20 @@ fp diff_y_proc_of_data_for_draw_data (vector<Point>::const_iterator i)
     return i->y ? (i->y - sum_value(i)) / i->y * 100 : 0;
 }
 
-void DiffPlot::Draw(wxDC &dc)
+void AuxPlot::Draw(wxDC &dc)
 {
     if (auto_zoom_y)
         fit_y_zoom();
     set_scale();
-    if (my_data->is_empty()) return;
-    if (kind == apk_empty) return;
+    if (kind == apk_empty || my_data->is_empty()) 
+        return;
     dc.SetPen (xAxisPen);
+
     if (kind == apk_peak_pos) {
-        //TODO
+        int ymax = GetClientSize().GetHeight();
+        for (vector<wxPoint>::const_iterator i = shared.peaktops.begin(); 
+             i != shared.peaktops.end(); i++) 
+            dc.DrawLine(i->x, 0, i->x, ymax);
         return;
     }
 
@@ -1461,7 +1465,7 @@ void DiffPlot::Draw(wxDC &dc)
         draw_data (dc, diff_y_proc_of_data_for_draw_data);
 }
 
-void DiffPlot::draw_zoom_text(wxDC& dc)
+void AuxPlot::draw_zoom_text(wxDC& dc)
 {
     dc.SetTextForeground(xAxisPen.GetColour());
     dc.SetFont(*wxNORMAL_FONT);  
@@ -1471,7 +1475,7 @@ void DiffPlot::draw_zoom_text(wxDC& dc)
     dc.DrawText (s.c_str(), dc.MaxX() - w - 2, 2);
 }
 
-void DiffPlot::OnMouseMove(wxMouseEvent &event)
+void AuxPlot::OnMouseMove(wxMouseEvent &event)
 {
     vert_line_following_cursor (mat_move, event.GetX());
     fp x = X2x (event.GetX());
@@ -1492,13 +1496,19 @@ void DiffPlot::OnMouseMove(wxMouseEvent &event)
     }
 }
 
-void DiffPlot::OnLeaveWindow (wxMouseEvent& WXUNUSED(event))
+void AuxPlot::OnLeaveWindow (wxMouseEvent& WXUNUSED(event))
 {
     frame->SetStatusText ("", sbf_coord);
     vert_line_following_cursor (mat_cancel);
 }
 
-void DiffPlot::set_scale()
+bool AuxPlot::is_zoomable()
+{
+    return kind == apk_diff || kind == apk_diff_stddev 
+           || kind == apk_diff_y_proc;
+}
+
+void AuxPlot::set_scale()
 {
     switch (kind) {
         case apk_empty:
@@ -1517,7 +1527,7 @@ void DiffPlot::set_scale()
     yLogicalOrigin = - h / 2. / yUserScale;
 }
  
-void DiffPlot::read_settings(wxConfigBase *cf)
+void AuxPlot::read_settings(wxConfigBase *cf)
 {
     cf->SetPath("/AuxPlot");
 
@@ -1543,7 +1553,7 @@ void DiffPlot::read_settings(wxConfigBase *cf)
     Refresh();
 }
 
-void DiffPlot::save_settings(wxConfigBase *cf) const
+void AuxPlot::save_settings(wxConfigBase *cf) const
 {
     cf->SetPath("/AuxPlot");
     cf->Write ("kind", kind); 
@@ -1561,7 +1571,7 @@ void DiffPlot::save_settings(wxConfigBase *cf) const
     write_color_to_config (cf, "xAxis", xAxisPen.GetColour());
 }
 
-void DiffPlot::OnLeftDown (wxMouseEvent &event)
+void AuxPlot::OnLeftDown (wxMouseEvent &event)
 {
     cancel_mouse_left_press();
     if (event.ShiftDown()) { // the same as OnMiddleDown()
@@ -1583,7 +1593,7 @@ void DiffPlot::OnLeftDown (wxMouseEvent &event)
     }
 }
 
-bool DiffPlot::cancel_mouse_left_press()
+bool AuxPlot::cancel_mouse_left_press()
 {
     if (mouse_press_X != INVALID) {
         vert_line_following_cursor(mat_cancel);
@@ -1598,7 +1608,7 @@ bool DiffPlot::cancel_mouse_left_press()
         return false;
 }
 
-void DiffPlot::OnLeftUp (wxMouseEvent &event)
+void AuxPlot::OnLeftUp (wxMouseEvent &event)
 {
     if (mouse_press_X == INVALID)
         return;
@@ -1612,53 +1622,48 @@ void DiffPlot::OnLeftUp (wxMouseEvent &event)
 }
 
 //popup-menu
-void DiffPlot::OnRightDown (wxMouseEvent &event)
+void AuxPlot::OnRightDown (wxMouseEvent &event)
 {
     if (cancel_mouse_left_press())
         return;
 
     wxMenu popup_menu ("aux. plot menu");
     //wxMenu *kind_menu = new wxMenu;
-    popup_menu.AppendRadioItem(ID_diff_popup_plot_0 + 0, "&empty", "nothing");
-    popup_menu.AppendRadioItem(ID_diff_popup_plot_0 + 1, "&diff", "y_d - y_s");
-    popup_menu.AppendRadioItem(ID_diff_popup_plot_0 + 2, "&weighted diff", 
+    popup_menu.AppendRadioItem(ID_aux_popup_plot_0 + 0, "&empty", "nothing");
+    popup_menu.AppendRadioItem(ID_aux_popup_plot_0 + 1, "&diff", "y_d - y_s");
+    popup_menu.AppendRadioItem(ID_aux_popup_plot_0 + 2, "&weighted diff", 
                                 "(y_d - y_s) / sigma");
-    popup_menu.AppendRadioItem(ID_diff_popup_plot_0 + 3, "&proc diff", 
+    popup_menu.AppendRadioItem(ID_aux_popup_plot_0 + 3, "&proc diff", 
                                 "(y_d - y_s) / y_d [%]");
-    //kind_menu->AppendRadioItem (ID_diff_popup_plot_0 + 4, "p&eak positions", 
-    //                            "mark centers of peaks");
-    //popup_menu.Append (wxNewId(), "&Plot", kind_menu);
-    popup_menu.Check(ID_diff_popup_plot_0 + kind, true);
+    popup_menu.AppendRadioItem (ID_aux_popup_plot_0 + 4, "p&eak positions", 
+                                "mark centers of peaks");
+    popup_menu.Check(ID_aux_popup_plot_0 + kind, true);
     popup_menu.AppendSeparator();
-    //wxMenu *yzoom_menu = new wxMenu;
-    bool y_zoomable = !(kind == apk_empty || kind == apk_peak_pos);
-    popup_menu.Append (ID_diff_popup_yz_fit, "&Fit to window");
-    popup_menu.Enable(ID_diff_popup_yz_fit, y_zoomable);
-    popup_menu.Append (ID_diff_popup_yz_change, "&Change");
-    popup_menu.Enable(ID_diff_popup_yz_change, y_zoomable);
-    popup_menu.AppendCheckItem (ID_diff_popup_yz_auto, "&Auto-fit");
-    popup_menu.Check (ID_diff_popup_yz_auto, auto_zoom_y);
-    popup_menu.Enable(ID_diff_popup_yz_auto, y_zoomable);
-    //popup_menu.Append (ID_diff_popup_y_zoom, "Y &zoom", yzoom_menu);
-    //popup_menu.Enable(ID_diff_popup_y_zoom, y_zoomable);
+    popup_menu.Append (ID_aux_popup_yz_fit, "&Fit to window");
+    popup_menu.Enable(ID_aux_popup_yz_fit, is_zoomable());
+    popup_menu.Append (ID_aux_popup_yz_change, "&Change y scale");
+    popup_menu.Enable(ID_aux_popup_yz_change, is_zoomable());
+    popup_menu.AppendCheckItem (ID_aux_popup_yz_auto, "&Auto-fit");
+    popup_menu.Check (ID_aux_popup_yz_auto, auto_zoom_y);
+    popup_menu.Enable(ID_aux_popup_yz_auto, is_zoomable());
     popup_menu.AppendSeparator();
     wxMenu *color_menu = new wxMenu;
-    color_menu->Append (ID_diff_popup_c_background, "&Background");
-    color_menu->Append (ID_diff_popup_c_active_data, "&Active Data");
-    color_menu->Append (ID_diff_popup_c_inactive_data, "&Inactive Data");
-    color_menu->Append (ID_diff_popup_c_axis, "&X Axis");
-    popup_menu.Append (ID_diff_popup_color, "&Color", color_menu);
+    color_menu->Append (ID_aux_popup_c_background, "&Background");
+    color_menu->Append (ID_aux_popup_c_active_data, "&Active Data");
+    color_menu->Append (ID_aux_popup_c_inactive_data, "&Inactive Data");
+    color_menu->Append (ID_aux_popup_c_axis, "&X Axis");
+    popup_menu.Append (ID_aux_popup_color, "&Color", color_menu);
     PopupMenu (&popup_menu, event.GetX(), event.GetY());
 }
 
-void DiffPlot::OnMiddleDown (wxMouseEvent& WXUNUSED(event))
+void AuxPlot::OnMiddleDown (wxMouseEvent& WXUNUSED(event))
 {
     if (cancel_mouse_left_press())
         return;
     frame->OnGViewAll(dummy_cmd_event);
 }
 
-void DiffPlot::OnKeyDown (wxKeyEvent& event)
+void AuxPlot::OnKeyDown (wxKeyEvent& event)
 {
     if (event.GetKeyCode() == WXK_ESCAPE) {
         cancel_mouse_left_press();
@@ -1671,26 +1676,27 @@ void DiffPlot::OnKeyDown (wxKeyEvent& event)
         event.Skip();
 }
 
-void DiffPlot::OnPopupPlot (wxCommandEvent& event)
+void AuxPlot::OnPopupPlot (wxCommandEvent& event)
 {
-    kind = static_cast<Aux_plot_kind_enum>(event.GetId()-ID_diff_popup_plot_0);
+    kind = static_cast<Aux_plot_kind_enum>(event.GetId()-ID_aux_popup_plot_0);
     fit_y_zoom();
+    Refresh(false);
 }
 
-void DiffPlot::OnPopupColor (wxCommandEvent& event)
+void AuxPlot::OnPopupColor (wxCommandEvent& event)
 {
     wxBrush *brush = 0;
     wxPen *pen = 0;
     int n = event.GetId();
-    if (n == ID_diff_popup_c_background)
+    if (n == ID_aux_popup_c_background)
         brush = &backgroundBrush;
-    else if (n == ID_diff_popup_c_active_data) {
+    else if (n == ID_aux_popup_c_active_data) {
         pen = &activeDataPen;
     }
-    else if (n == ID_diff_popup_c_inactive_data) {
+    else if (n == ID_aux_popup_c_inactive_data) {
         pen = &inactiveDataPen;
     }
-    else if (n == ID_diff_popup_c_axis)
+    else if (n == ID_aux_popup_c_axis)
         pen = &xAxisPen;
     else 
         return;
@@ -1707,7 +1713,7 @@ void DiffPlot::OnPopupColor (wxCommandEvent& event)
     }
 }
 
-void DiffPlot::OnPopupYZoom (wxCommandEvent& WXUNUSED(event))
+void AuxPlot::OnPopupYZoom (wxCommandEvent& WXUNUSED(event))
 {
     int r = wxGetNumberFromUser ("Set zoom in y direction [%]", 
                                  "", "", static_cast<int>(y_zoom * 100 + 0.5), 
@@ -1717,18 +1723,18 @@ void DiffPlot::OnPopupYZoom (wxCommandEvent& WXUNUSED(event))
     Refresh(false);
 }
 
-void DiffPlot::OnPopupYZoomFit (wxCommandEvent& WXUNUSED(event))
+void AuxPlot::OnPopupYZoomFit (wxCommandEvent& WXUNUSED(event))
 {
     fit_y_zoom();
+    Refresh(false);
 }
 
-void DiffPlot::fit_y_zoom()
+void AuxPlot::fit_y_zoom()
 {
+    if (!is_zoomable())
+        return;
     fp y = 0.;
     switch (kind) { // setting y_zoom
-        case apk_empty:
-        case apk_peak_pos:
-            break; //y_zoom does not matter
         case apk_diff: 
             {
             y = get_max_abs_y (diff_of_data_for_draw_data);
@@ -1751,14 +1757,15 @@ void DiffPlot::fit_y_zoom()
         default:
             assert(0);
     }
-    Refresh(false);
 }
 
-void DiffPlot::OnPopupYZoomAuto (wxCommandEvent& WXUNUSED(event))
+void AuxPlot::OnPopupYZoomAuto (wxCommandEvent& WXUNUSED(event))
 {
     auto_zoom_y = !auto_zoom_y;
-    if (auto_zoom_y) 
+    if (auto_zoom_y) {
         fit_y_zoom();
+        Refresh(false);
+    }
 }
 
 fp scale_tics_step (fp beg, fp end, int max_tics)

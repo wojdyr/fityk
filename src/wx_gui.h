@@ -165,7 +165,8 @@ public:
     void OnConfigBuiltin (wxCommandEvent& event);
     void OnConfigSave    (wxCommandEvent& event);
     void OnSwitchDPane   (wxCommandEvent& event);
-    void OnSwitchIOPane (wxCommandEvent& event);
+    void OnSwitchAuxPlot (wxCommandEvent& event);
+    void OnSwitchIOPane  (wxCommandEvent& event);
     void OnSwitchToolbar (wxCommandEvent& event);
     void OnSwitchStatbar (wxCommandEvent& event);
     void OnShowMenuZoomPrev(wxCommandEvent &event);

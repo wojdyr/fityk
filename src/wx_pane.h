@@ -16,7 +16,8 @@
 class PlotPane;
 class IOPane;
 class MainPlot;
-class DiffPlot;
+class AuxPlot;
+class FPlot;
 class PlotCore;
 
 
@@ -126,10 +127,13 @@ public:
     bool is_background_white();
     const std::vector<std::string>& get_zoom_hist() const { return zoom_hist; }
     const MainPlot* get_plot() const { return plot; }
+    const std::vector<FPlot*> get_visible_plots() const;
+    void show_aux(int n, bool show); 
 private:
     Plot_shared plot_shared;
     MainPlot *plot;
-    DiffPlot *diff_plot;
+    ProportionalSplitter *aux_split;
+    AuxPlot *aux_plot1, *aux_plot2;
     std::vector<std::string> zoom_hist;
 
     DECLARE_EVENT_TABLE()
