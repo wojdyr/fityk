@@ -1,64 +1,108 @@
-==============  not tested  ================
+[Suggestions from Fityk users survey are not included here yet.]
 
-============== small/urgent ================
-!Problem with locales, that have different LC_NUMERIC
-!Problem with ambigous ln(2) in "export as function"
-debug/release configure flag: -g -fno-inline / -O3 -s -DNDEBUG 
-write (and verify) program version in scripts 
-Pearson-derivative function
---
-voigt: exact FWHM,  cut-tails, better approx. ? 
-c.add --> d=1.23456  
-s.add ---> possiblity to add description of peak/parameter 
-s.export --> selecting peaks - reg.expr. for search in peak descr.
-d.load: change order of arguments in d.load command 
-d.load: loading/merging a few files, 
-d.load: new fileformat .raw; formats with blocks/series of data 
-d.load: optimize loading file with xy data 
-d.load: python? file-type plug-ins  
-documentation for fwhm-correction and height-correction (m.set) 
-cmd line options: -d and --data
+* problem: fityk can't be compiled with UNICODE-enabled wxWidgets
 
-==============    medium    ================ 
-!problem with "exit" command in script 
-?Sum::export_sum_as_dat() -> manipul.*
-PagContainer/FuncContainer -- merge? change? use template?
- the same about Sum::refs_to..., Sum::synch_... etc.
-parser/scanner: differ between "$*" and "$3" etc.?
-s.history n1 / n2 a_vec -> diff of only selected @-parameters;
-? o.plot ^17 ; o.plot %1(234) 
-data: exporting explicit filetype letter
-Gfuncs - checking arguments (!= 0, >0, etc.)
-more f-funcs
-c.estimate - c.guess? guessing plane knowing %n and x+-dx
-           - guessing wavelength / cell parameters if %n(hkl) is at 2theta
-           - min-peak-height <float>
-           - if failed -> imsg() not warn()
-?ffunc/sum: ?variable number of parameters in s.add ^p @... (polynomial)
-crystal -> what if peak-type or constrained-* changed?
-optimize v_fit::compute_wssr() (and ...derivatives..()) for (s.set)cut_tails
-optimize numeric derivatives?
-confidence limits
-f.info - improve
-separate Crystal from the rest
-move evaluating(adding @a) ~p from parser.y - a_num to parser.y - exp
+* problem: problem with locales, that has decimal point different than '.' 
+  as a workaround, run LC_NUMERIC=en_US
 
-==============    large     ================  
-crystal: peak asymetry 
-f.method: simulated annealing 
-user defined functions
- mixed computing of derivatives: numeric/symbolic
-crystal: chem. elements eg. <Fe>a1 a2 b as wavelengths; ?
-?user defined file format. Plugins? stand-alone small converting programs?
-robust fit: other error distributions then Gaussian, eg. Lorenzian...
-auto_background - needs some work, docs + gui 
-smoothing, deconvolution, derivatives, ...
+* problem: ambigous 'log' in "export as function" (in gnuplot it means
+  natural, in Excel log=log10). 
 
-==============  unimportant ================
-?s.export - steps - s.set export-points-step = 0.
-?class PagContainer_with_ini; -> Wavelength, Phase
+* --debug / --release configure flag, equivalent to: -g -fno-inline 
+  / -O3 -s -DNDEBUG 
 
-============  simplify  =================
-logging to file
+* automate (as possible) building and releasing procedure
 
+* d.transform  --  new powerful command for transforming data, 
+      that will replace d.deviation, d.range(?). It is partially done
+      (as a separate program) using boost::spirit. Examples:
+      d.transform Y[n>0] = Y[n-1] + y[n]     -> will integrate data
+      d.transform S = sqrt(max(1,y[n]))      -> will set std. dev.
+      d.transform x=y & y=x                  -> will swap x and y axes 
+
+* write (and verify) program version in scripts 
+
+* problem: "exit" command in script. What should it do? 
+  The same about warning/error, when 'exit-on-error=1' is set
+
+* More visible toolbar icons (icons 5-9 from left must be changed).
+  Perhaps bigger (24x24) icons should be used?
+
+* new command line options: -d and --data that will load data file
+  Perhaps 'fityk nacl01.dat' should also load data file?
+  Automatically recognize if it is script or data?
+
+* (s.add) possiblity to add description of peak/parameter 
+  This description could be used eg. in exporting files.
+
+* loading data -- use Difdaf library (when it will be ready) for powder
+  diffraction data import.
+
+* (loading data) -- merging a few file
+  rewrite loading ASCII data 
+  change order of arguments in syntax of d.load command 
+
+* d.load: optimize loading file with xy data 
+
+* redesign "Load File Custom" dialog 
+
+* rewrite scanner/parser using boost::spirit. Now it uses flex/bison.
+  [IMPORTANT]
+
+* document source with Doxygen [IMPORTANT]  
+
+* user defined functions; it includes symbolic computing of derivatives.
+  Important but needs a lot of work. Perhaps the idea of simple parameters,
+  compund-parameters and functions will be revised. 
+  [IMPORTANT]
+
+* python scripts  -- built-in Python interpreter which allows to extend 
+  Fityk using user-written scripts, optional modules, etc. 
+  [IMPORTANT]
+
+* rewrite crystallographic part in python
+  [IMPORTANT]
+
+* (GUI) stopping fitting interactively (when user don't want to wait longer);
+  use threads?
+
+* automatic background substraction - what algorithm is good?
+
+* (plotting) smoothing curves where data points are sparse (computations for 
+  additional points)
+
+* exporting file dialogs - (d.export and s.export) default filenames in GUI
+
+* (s.export) when exporting function/sum as points, it shuld be possible 
+  to set step of these points (s.set export-points-step = 0.?)
+
+* (Windows only) exporting plots to PostScript file and to metafile(clipboard) 
+
+* problem: MS Windows - tree at data pane looks bad
+
+* more sophisticated algorithms for peak detection
+
+* write documentation for fwhm-correction and height-correction (m.set) 
+
+* single ergonomic interface changing colors of everything
+
+* short-cuts for menu commands (Ctrl-O, F1, etc.)
+
+* improve Voigt function (FWHM, cut-tails, better approx?) 
+
+* (GUI) in input ComboBox up/down arrow keys should work like 
+  in bash -- moving in command history. (use TextCtrl instead of ComboBox)
+
+* fitting: it should be separated even more from the rest of the program.
+  Perhaps it fitting functions should be in extern library (AFAIK there 
+  is no such libary -- with unified interface to various nonlinear 
+  optimisation methods). 
+  Add more methods, eg. simulated annealing 
+
+* fitting: robust fit - other error distributions then Gaussian, 
+  eg. Lorenzian...; so called 'maximum-likelihood method' -- using Poisson
+  error distribution.
+
+* f.info -- more informations about error, confidence limits, etc.
+  graphical interface to f.info
 
