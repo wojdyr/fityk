@@ -173,7 +173,8 @@ void Various_commands::set_view (Rect rt, bool fit)
         view.left = x_min - x_size * relative_view_x_margin;
         view.right = x_max + x_size * relative_view_x_margin; 
     }
-    if (fit)
+    if (fit || view.bottom == -INF && view.top == INF 
+            || view.bottom >= view.top)
         set_view_y_fit();
     else {
         fp y_min = my_data->get_y_min(false);
@@ -184,10 +185,6 @@ void Various_commands::set_view (Rect rt, bool fit)
             view.bottom = min (y_min, 0.);
         if (view.top >  y_max + y_size)
             view.top = y_max + y_size * relative_view_y_margin;;
-        if (view.bottom >= sens_mult * view.top) {
-            view.bottom = min (y_min, 0.);
-            view.top = y_max + y_size * relative_view_y_margin;;
-        }
     }
 }
 

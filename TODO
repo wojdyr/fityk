@@ -1,6 +1,8 @@
 ==============  not tested  ================
 
 ============== small/urgent ================
+Pearson-derivative function
+--
 voigt: exact FWHM,  cut-tails, better approx. ? 
 c.add --> d=1.23456  
 s.add ---> possiblity to add description of peak/parameter 
@@ -11,6 +13,7 @@ d.load: new fileformat .raw; formats with blocks/series of data
 d.load: optimize loading file with xy data 
 d.load: python? file-type plug-ins  
 documentation for fwhm-correction and height-correction (m.set) 
+cmd line options: -d and --data
 
 ==============    medium    ================ 
 !problem with "exit" command in script 
@@ -37,7 +40,7 @@ separate Crystal from the rest
 move evaluating(adding @a) ~p from parser.y - a_num to parser.y - exp
 
 ==============    large     ================  
-crystal: peaks asymetry 
+crystal: peak asymetry 
 f.method: simulated annealing 
 user defined functions
  mixed computing of derivatives: numeric/symbolic
@@ -50,9 +53,6 @@ smoothing, deconvolution, derivatives, ...
 ==============  unimportant ================
 ?s.export - steps - s.set export-points-step = 0.
 ?class PagContainer_with_ini; -> Wavelength, Phase
-
-============== how to do it? =================
-is it possible to use readline with wxTextCtrl?
 
 ============  simplify  =================
 logging to file

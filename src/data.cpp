@@ -17,13 +17,13 @@ Data *my_data;
 Data::Data ()
     : d_was_changed(true), background_infl_sigma(false)
 {
-    min_background_distance[bg_ty] = 0.5;
-    spline_background[bg_ty] = true;
-    min_background_distance[cl_ty] = 0.002, 
-    spline_background[cl_ty] = false, 
-    fpar ["min-background-points-distance"] = &min_background_distance[bg_ty];
-    bpar ["spline-background"] = &spline_background[bg_ty];
-    bpar ["spline-calibration"] = &spline_background[cl_ty];
+    min_background_distance[bgc_bg] = 0.5;
+    spline_background[bgc_bg] = true;
+    min_background_distance[bgc_cl] = 0.002, 
+    spline_background[bgc_cl] = false, 
+    fpar ["min-background-points-distance"] = &min_background_distance[bgc_bg];
+    bpar ["spline-background"] = &spline_background[bgc_bg];
+    bpar ["spline-calibration"] = &spline_background[bgc_cl];
     bpar ["background-influences-error"] = &background_infl_sigma;
 }
 
@@ -127,10 +127,10 @@ int Data::load (string file, int type,
         if (i->orig_y > y_orig_max)
             y_orig_max = i->orig_y;
     }
-    if (!background[bg_ty].empty())
-        recompute_background (bg_ty);
-    if (!background[cl_ty].empty())
-        recompute_background (cl_ty);
+    if (!background[bgc_bg].empty())
+        recompute_background (bgc_bg);
+    if (!background[bgc_cl].empty())
+        recompute_background (bgc_cl);
     else
         recompute_y_bounds();
     return p.size();
@@ -607,13 +607,13 @@ void Data::auto_background (int n, fp p1, bool is_proc1, fp p2, bool is_proc2)
             y += v[j];
         }
         y /= counter;
-        add_background_point ((p[l].x + p[u - 1].x) / 2, y, bg_ty);
+        add_background_point ((p[l].x + p[u - 1].x) / 2, y, bgc_bg);
     }
 }
 
 ////background/calibration functions
-//default value of bg_cl is bg_ty (background), in this case names of functions 
-//are proper. In case bg_cl = cl_ty (calibration) functions' names are
+//default value of bg_cl is bgc_bg (background), in this case names of functions
+//are proper. In case bg_cl = bgc_cl (calibration) functions' names are
 //not adequate.
 
 void Data::add_background_point (fp x, fp y, Bg_cl_enum bg_cl)
@@ -652,7 +652,7 @@ void Data::clear_background (Bg_cl_enum bg_cl)
 
 string Data::background_info (Bg_cl_enum bg_cl) 
 {
-    string msg = bg_cl == bg_ty ? "Background " : "Calibration ";
+    string msg = bg_cl == bgc_bg ? "Background " : "Calibration ";
     recompute_background(bg_cl);
     vector<B_point> &bc = background[bg_cl];
     int s = bc.size();
@@ -685,13 +685,13 @@ void Data::recompute_background (Bg_cl_enum bg_cl)
     int size = bc.size();
     if (size == 0) 
         for (vector<Point>::iterator i = p.begin(); i != p.end(); i++)
-            if (bg_cl == bg_ty)
+            if (bg_cl == bgc_bg)
                 i->y = i->orig_y; 
             else
                 i->x = i->orig_x;
     else if (size == 1) 
         for (vector<Point>::iterator i = p.begin(); i != p.end(); i++)
-            if (bg_cl == bg_ty)
+            if (bg_cl == bgc_bg)
                 i->y = i->orig_y - bc[0].y;
             else
                 i->x = i->orig_x - bc[0].y;
@@ -699,7 +699,7 @@ void Data::recompute_background (Bg_cl_enum bg_cl)
         fp a = (bc[1].y - bc[0].y) / (bc[1].x - bc[0].x);
         fp b = bc[0].y - a * bc[0].x;
         for (vector<Point>::iterator i = p.begin(); i != p.end(); i++)
-            if (bg_cl == bg_ty)
+            if (bg_cl == bgc_bg)
                 i->y = i->orig_y - (a * i->orig_x + b);
                                           //^^^^^^it's not a typo
             else
@@ -711,7 +711,7 @@ void Data::recompute_background (Bg_cl_enum bg_cl)
         else
             linear_interpolation(bg_cl);
     }
-    if (bg_cl == bg_ty) {
+    if (bg_cl == bgc_bg) {
         recompute_y_bounds();
         if (background_infl_sigma)
             recompute_sigma();
@@ -795,7 +795,7 @@ void Data::spline_interpolation (Bg_cl_enum bg_cl)
         fp t = a * pos->y + b * (pos + 1)->y + ((a * a * a - a) * pos->q 
                 + (b * b * b - b) * (pos + 1)->q) * (h * h) / 6.0;
 
-        if (bg_cl == bg_ty)
+        if (bg_cl == bgc_bg)
             i->y = i->orig_y - t;
         else 
             i->x = i->orig_x - t;
@@ -817,7 +817,7 @@ void Data::linear_interpolation (Bg_cl_enum bg_cl)
         fp a = ((pos + 1)->y - pos->y) / ((pos + 1)->x - pos->x);
         fp b = pos->y - a * pos->x;
 
-        if (bg_cl == bg_ty)
+        if (bg_cl == bgc_bg)
             i->y = i->orig_y - (a * i->orig_x + b);
         else 
             i->x = i->orig_x - (a * i->orig_x + b);
@@ -870,10 +870,10 @@ void Data::export_as_script (ostream& os)
     if (sigma_type != 'f')
         os << "d.deviation " << sigma_type << " " << sigma_minim << endl;
     os << "d.range " << range_as_string() << endl;
-    for (int bg_cl = bg_ty; bg_cl <= cl_ty; bg_cl++) {
+    for (int bg_cl = bgc_bg; bg_cl <= bgc_cl; bg_cl++) {
         vector<B_point> &bc = background[bg_cl];
         if (!bc.empty()) {
-            os << (bg_cl == bg_ty ? "d.background " : "d.calibrate ");
+            os << (bg_cl == bgc_bg ? "d.background " : "d.calibrate ");
             for (vector<B_point>::iterator i = bc.begin(); i != bc.end(); i++) {
                 if (i != bc.begin())
                     os << " , ";

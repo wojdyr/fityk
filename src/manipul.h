@@ -20,7 +20,6 @@ public:
     fp compute_data_fwhm (int from, int max_pos, int to, fp level) const;
     bool estimate_peak_parameters (fp approx_ctr, fp ctrplusmin, 
                             fp *center, fp *height, fp *area, fp *fwhm) const;
-    bool global_peakfind (fp *center, fp *height, fp *area, fp *fwhm);
     std::string print_simple_estimate (fp center, fp w = -1.) const; 
     std::string print_global_peakfind ();
     fp trapezoid_area_of_peaks (std::vector<int> peaks) const;

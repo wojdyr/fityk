@@ -39,7 +39,7 @@ struct Point : public Simple_point
     fp get_calibr() const { return orig_x - x; }
 };
 
-enum Bg_cl_enum { bg_ty = 0, cl_ty = 1 };
+enum Bg_cl_enum { bgc_bg = 0, bgc_cl = 1 };  //background / calibration 
 
 class Data : public DotSet
 {

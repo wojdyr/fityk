@@ -1,3 +1,8 @@
+User-visible changes in version 0.3.3:
+
+* Major changes in graphical interface (mouse usage, toolbar etc.)
+* Added support for Siemens .raw data file format (Stefan Krumm) 
+
 User-visible changes in version 0.3.2:
 
 * Voigt function  

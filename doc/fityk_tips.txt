@@ -1,4 +1,5 @@
-If you do not have middle mouse button, you can use Shift + left button.
-This program is still in development phase, and can be unstable.
-Logging session (File->Log to file) from the beggining can save you a lot of time, especially when program crashes.
+There is a mailing list fityk-users. You can find a link at fityk.sf.net.
+Logging session (File->Log to file) from the beginning can save you a lot of time, especially when program crashes.
+There are a few ways to zoom and unzoom, eg. using left and middle mouse button on auxiliary plot.
+You can easily compare results obtained with different fitting methods using Sum->History dialog.
 If you have any comments, ideas, tips of the day, etc. send it to author.

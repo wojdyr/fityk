@@ -134,16 +134,16 @@ exp:  SET DASH_STRING EQ_STRING SEP {
                   my_data->auto_background ($3, $4, false, $5, true); }
     | D_BACKGROUND '*' UINt flt '%' flt '%' SEP {
                   my_data->auto_background ($3, $4, true, $6, true); }
-    | D_BACKGROUND flt flt SEP {my_data->add_background_point($2, $3, bg_ty);}
-    | D_BACKGROUND '!' flt SEP   { my_data->rm_background_point($3, bg_ty); }
-    | D_BACKGROUND SEP      { imsg (my_data->background_info(bg_ty)); }
-    | D_BACKGROUND '.' SEP    { my_data->recompute_background(bg_ty); }
-    | D_BACKGROUND '!' SEP        { my_data->clear_background(bg_ty); }
-    | D_CALIBRATE flt flt SEP {my_data->add_background_point($2, $3, cl_ty);}
-    | D_CALIBRATE '!' flt SEP{my_data->rm_background_point($3,cl_ty);}
-    | D_CALIBRATE SEP              { imsg (my_data->background_info(cl_ty)); }
-    | D_CALIBRATE '.' SEP          { my_data->recompute_background(cl_ty); }
-    | D_CALIBRATE '!' SEP          { my_data->clear_background(cl_ty); }
+    | D_BACKGROUND flt flt SEP {my_data->add_background_point($2, $3, bgc_bg);}
+    | D_BACKGROUND '!' flt SEP   { my_data->rm_background_point($3, bgc_bg); }
+    | D_BACKGROUND SEP      { imsg (my_data->background_info(bgc_bg)); }
+    | D_BACKGROUND '.' SEP    { my_data->recompute_background(bgc_bg); }
+    | D_BACKGROUND '!' SEP        { my_data->clear_background(bgc_bg); }
+    | D_CALIBRATE flt flt SEP {my_data->add_background_point($2, $3, bgc_cl);}
+    | D_CALIBRATE '!' flt SEP{my_data->rm_background_point($3,bgc_cl);}
+    | D_CALIBRATE SEP              { imsg (my_data->background_info(bgc_cl)); }
+    | D_CALIBRATE '.' SEP          { my_data->recompute_background(bgc_cl); }
+    | D_CALIBRATE '!' SEP          { my_data->clear_background(bgc_cl); }
     | D_DEVIATION LOWERCASE opt_flt SEP  { my_data->change_sigma($2, $3); }
     | D_DEVIATION SEP              { imsg (my_data->print_sigma()); }
     | D_INFO SEP                   { imsg (my_data->info()); } 

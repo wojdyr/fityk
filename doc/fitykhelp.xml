@@ -126,7 +126,7 @@
      <systemitem class="library">wxWindows</systemitem> 
     </ulink>
     library. 
-    One of main features of this library is portability. Program can be
+    One of the main features of this library is portability. Program can be
     run on most Unix species with <systemitem class="library">GTK+</systemitem>
     (it is developed on Linux) and on MS Windows. Ports to other platforms
     supported by <systemitem class="library">wxWindows</systemitem> library 
@@ -176,12 +176,9 @@
     Now all data points are active.
     Because only the biggest peak is our interest, the rest of points can be
     deactivated. Type: <userinput> d.range 23.0:25.0 </userinput>
-    or select 
-    <menuchoice>
-     <guimenu>Data</guimenu><guimenuitem>Range</guimenuitem> 
-    </menuchoice>
-    from menu, or, and this is
-    the the easiest way, press <keycap>Ctrl</keycap> and select range 
+    or change to <firstterm>range</firstterm> mode (press 
+    <guiicon> Data-Range Mode </guiicon>
+    button on toolbar) and select range 
     to be deactivated with <mousebutton>right</mousebutton> mouse button.
    </para>
    <para>
@@ -194,19 +191,15 @@
    <para>
     To define peak, type: <userinput>s.add ^G ~60000 ~24.6 ~0.2</userinput>
     or select 
-    <menuchoice>
-     <guimenu>Sum</guimenu><guimenuitem>Simple Mode</guimenuitem>
-    </menuchoice>. 
-    Toolbar will appear.
-    Select <menuchoice><guilabel>Gaussian</guilabel></menuchoice> 
-    from the list of functions, press 
+    <menuchoice><guilabel>Gaussian</guilabel></menuchoice> 
+    from the list of functions on toolbar and press 
     <guiicon>
-     click-add 
+     auto-add 
      <!-- <inlinegraphic fileref="../src/img/clickadd.xpm"> -->
     </guiicon> 
-    toolbar button and click on the top of peak. 
+    toolbar button.
     There are also other ways to add peak in <acronym>GUI</acronym>,
-    you can read about them in <xref linkend="mouse"/>.
+    try <firstterm>add-peak</firstterm> mode. 
    </para>
    <para>
     Now let us fit the function. Type: <userinput>f.run</userinput> 
@@ -246,18 +239,18 @@
   </section> 
 
   <section id="gui">
-   <title>GUI specific issues </title>
+   <title>Graphical interface </title>
    <section>
     <title>Menu and plots </title>
     <para>
      The window of <application>fityk</application> program consists 
      of (from the top): menu bar, 
-     optional toolbars, main plot, auxiliary plot, output window, input field
+     toolbar, main plot, auxiliary plot, output window, input field
      and status bar. The input field allows to type and execute commands in
      similar way as it is done in <acronym>CLI</acronym> version. 
      The output windows shows results. Click the 
      <mousebutton>right</mousebutton> mouse button on it to
-     see configuration options for the output window.
+     see its configuration options.
     </para>
     <para>
      Most of menu commands correspond to commands described in 
@@ -279,7 +272,7 @@
     <para>
      The auxiliary plot can display a difference of data
      and the sum of functions, the difference divided by standard deviation of
-     data or other plot. It can be controlled by its pop-up menu. I hope
+     data or another plot. It can be controlled by its pop-up menu. I hope
      having a look at this menu and a minute of experiments will explain
      possibilities of the auxiliary plot.
     </para>
@@ -292,10 +285,16 @@
     </para>
     <para>
      Configuration of GUI (everything that can be changed using pop-up menus 
-     and size of window) can be saved using pop-up menu of main plot. 
-     Two different configurations can be saved, what allows easy changing of colors
-     for printing. On Unix platform, these configurations are stored in file in user's
-     home directory. On Windows - they are stored in registry.
+     and size of the window) can be saved using 
+     <menuchoice>
+      <guimenu>GUI</guimenu><guimenuitem>Save current config</guimenuitem>
+     </menuchoice>. 
+     Two different configurations can be saved, 
+     what allows easy changing of colors
+     for printing. On Unix platform, these configurations are stored 
+     in file in user's home directory. 
+     On Windows - they are stored in registry (perhaps in future they will 
+     be also stored in file).
     </para>
    </section>
 
@@ -308,67 +307,30 @@
      operate mouse on plots.
     </para>
     <para>
-     Let us start with the auxiliary plot - it is simpler. 
+     Let us start with the auxiliary plot. 
      <mousebutton>Right</mousebutton> button displays
      mentioned earlier pop-up menu, with <mousebutton>left</mousebutton> 
      button you can select range to be displayed - range on x axis. 
-     Clicking with <mousebutton>middle</mousebutton> button on auxiliary plot
-     will zoom it out and display all data. If you do not have three button
-     mouse (I do not have), you can use <keycap>Shift</keycap> 
-     and <mousebutton>left</mousebutton> button instead. And if
-     you are lucky enough, your system emulates missing 
-     <mousebutton>middle</mousebutton> button by
-     simultaneous pressing both <mousebutton>left</mousebutton> 
-     and <mousebutton>right</mousebutton> buttons. If any mouse operation 
-     requires pressing <keycap>Ctrl</keycap>, you can also 
-     press <keycap>Alt</keycap> instead.
+     Clicking with <mousebutton>middle</mousebutton> button (or with 
+     <mousebutton>left</mousebutton> button and pressed <keycap>Shift</keycap>)
+     on auxiliary plot will zoom it out and display all data. 
     </para>
     <para>
-     On the main plot, the right mouse button also invokes pop-up menu, and
-     middle button can be simulated by clicking left button, when 
-     <keycap>Shift</keycap> is pressed.
-     Right button pressed with <keycap>Ctrl</keycap> (or <keycap>Alt</keycap>) 
-     shows zoom pop-up menu, and <mousebutton>middle</mousebutton> 
-     button can be used to select a rectangle, that you want to zoom in. If an
-     operation has two steps, like rectangle zooming (first you press button
-     to select first corner, then you move mouse and release button to select 
-     second corner of rectangle),
+     On the main plot, meaning of the <mousebutton>left</mousebutton> and
+     <mousebutton>right</mousebutton> mouse button depends on current 
+     <firstterm>mode</firstterm>, that can be changed using toolbar or menu.  
+     You will see hints on status bar.
+     In normal mode, <mousebutton>left</mousebutton> button is used for
+     zooming and <mousebutton>right</mousebutton> invokes pop-up menu.
+     The same behaviour can be obtained in any mode by pressing
+     <keycap>Ctrl</keycap> (or <keycap>Alt</keycap> or <keycap>Shift</keycap>).
+
+     <mousebutton>Middle</mousebutton> 
+     button can be used to select a rectangle, that you want to zoom in. 
+     If an operation has two steps, like rectangle zooming (first you 
+     press button to select first corner, then you move mouse and release 
+     button to select second corner of rectangle),
      you can cancel it by pressing another button when first one is pressed.
-     Meaning of the rest of mouse clicks depends on the current 
-     <firstterm>mode</firstterm>.
-    </para>
-    <para>
-     Mode can be changed using either main plot pop-up menu or application
-     menu. In <firstterm>normal mode</firstterm> you can activate data points 
-     with <keycap>Ctrl</keycap> and <mousebutton>left</mousebutton> mouse
-     button or deactivate with <keycap>Ctrl</keycap> 
-     and <mousebutton>right</mousebutton> button.
-    </para>
-    <para>
-     <firstterm>Simple mode</firstterm> is especially
-     convenient for adding, removing and changing peaks, when parameters of
-     peaks are not constrained. 
-     (Not constrained parameters are called 
-     <firstterm>simple-parameters</firstterm>. Kinds of parameters 
-     are described in <xref linkend="sum"/>). In this mode you have a
-     toolbar, which enables adding peaks (the left part of the toolbar) and
-     changing or deleting peaks (the right part). 
-     There are a few ways of adding peaks. You can just click to place 
-     the top of peak, when <guiicon>click-add</guiicon> tool is pressed. 
-     You can select a range with <keycap>Ctrl</keycap> 
-     and <mousebutton>left</mousebutton> mouse button - the program will 
-     search and add peak in the selected range. 
-     And you can also draw a peak with 
-     <keycap>Ctrl</keycap> and the <mousebutton>right</mousebutton> button.
-     A peak for changing/deleting operation can be selected by clicking 
-     on its top.
-    </para>
-    <para>
-     <firstterm>Background mode</firstterm> is suitable
-     for specifying background as an interpolation of selected points. After
-     reading <link linkend="background">about <command>d.background</command> 
-      command</link>, 
-     you will not have any problems with using it (I hope).
     </para>
    </section> 
   </section> 
@@ -792,8 +754,8 @@
     <title>Sum - Introduction</title>
     <para>
      The sum of functions S - curve that is fitted to data - is itself a
-     function. Value of the whole sum is computed as sum of functions,
-     like Gaussian or polynomial, and can be given by formula:
+     function. The value of the whole sum is computed as a sum of functions,
+     like Gaussians or polynomials, and can be given by formula:
      <inlineequation>
       <inlinemediaobject>
        <imageobject>
@@ -809,8 +771,8 @@
      where f<subscript>i</subscript> is a function of x, and
      depends on a vector of parameters a. This vector contains all
      fitted parameters. 
-     Because we often have situation, that error in x coordinate of data
-     points can be modeled with function z(x; a),
+     Because we often have the situation, that the error 
+     in the x coordinate of data points can be modeled with function z(x; a),
      we introduce this term to sum:
      <informalequation>
       <mediaobject>
@@ -843,8 +805,8 @@
     <para>
      Now we will have a closer look at f<subscript>i</subscript> functions. 
      Every function f<subscript>i</subscript> has a type chosen from 
-     function types available in program. One of these types is 
-     <emphasis>Gaussian</emphasis>. It has a following formula:
+     function types available in program. One of these types is the
+     <emphasis>Gaussian</emphasis>. It has the following formula:
      <informalequation>
       <mediaobject>
        <imageobject>
@@ -876,10 +838,11 @@
       </listitem>
       <listitem>
        <para>
-        a function of parameters, eg. sum of two simple parameters 
-        or product of contant and simple parameter.
-	Let us call it <firstterm>g-parameter</firstterm>. 
-        (There is no reason for this name.  FIXME: how can I name it?). 
+        compound parameter - a function of parameters, 
+        eg. sum of two simple parameters 
+        or product of constant and simple parameter.
+        I called it <firstterm>g-parameter</firstterm> (this name will be
+        changed to more meaningful in future). 
         A g-parameter is of course different 
 	from functions f<subscript>i</subscript>. 
         The basic difference is that g-parameter is not a function of x. 
@@ -903,7 +866,8 @@
     <para>
      Functions z<subscript>i</subscript>(x;a) are called 
      <firstterm>zero-shifts</firstterm>. 
-     This name is not precise (FIXME: what is a better name). 
+     This name is not precise (FIXME: what is a better name? 
+     calibration function? instrumental function?). 
      The simplest of them has a formula: z = a<subscript>0</subscript> 
      and can be used for modeling error of shifting zero in instrument. In
      general case, so-called zero-shifts are parametrized functions of x, 
@@ -922,8 +886,8 @@
       </listitem>
       <listitem>
        One of g-parameter types is <firstterm>division</firstterm>:
-       a<subscript>0</subscript>/a<subscript>1</subscript>. G-parameter
-       of this type has two parameters.
+       a<subscript>0</subscript>/a<subscript>1</subscript>. A g-parameter
+       of this type contains two parameters.
       </listitem>
      </orderedlist>
     </para>
@@ -943,12 +907,12 @@
     <para>
      Three kinds of parameters were described above. They are used in
      f-functions, zero-shifts and g-parameters, 
-     and are denoted in adeqate formulae 
+     and are denoted in adequate formulae 
      as a<subscript><replaceable>i</replaceable></subscript>. 
-     Note, that actually only simple-parameters are fitted. Term
+     Note, that actually only simple-parameters are fitted. The term
      <glossterm>parameter</glossterm> used in context of fitting 
-     and term <glossterm>vector of parameters</glossterm> are related
-     only to parameters called here <glossterm>simple-parameters</glossterm>.
+     and the term <glossterm>vector of parameters</glossterm> refer to 
+     <glossterm>simple-parameters</glossterm> only.
     </para>
    </section> 
 
@@ -1619,9 +1583,9 @@
      For now, <application>fityk</application> offers only primitive 
      algorithm for peak-detection. It looks for highest point in given range,
      and than tries to find out width of peak. This method is used by
-     crystallographic module, and it is used in most cases when adding 
-     peaks in <acronym>GUI</acronym>'s simple-mode. It can be called directly,
-     using command:
+     crystallographic module, and it is used when adding 
+     peaks (semi-)automatically in graphical version of the program. 
+     It can be called directly, using command:
      <cmdsynopsis>
       <command>m.findpeak</command> 
       <arg>

@@ -47,7 +47,7 @@ public:
     void OnFreezeButton      (wxCommandEvent& event);
     void OnFreezeAllButton   (wxCommandEvent& event);
     void OnValueButton       (wxCommandEvent& event);
-    void show_expanded (int item, int subitem);
+    void show_expanded (int item, int subitem=-1);
 protected:
     FuncTree *func_tree;
     wxTextCtrl *info_text, *frozen_tc, *value_at_tc, *value_output_tc;
@@ -105,11 +105,11 @@ protected:
     DECLARE_EVENT_TABLE()
 };
 
-class MyDStdDevDlg : public wxDialog
+class FDStdDevDlg : public wxDialog
 {
 public:
     std::string get_command();
-    MyDStdDevDlg (wxWindow* parent, wxWindowID id);
+    FDStdDevDlg (wxWindow* parent, wxWindowID id);
 protected:
     wxTextCtrl *tc_val;
     wxString val;
@@ -117,25 +117,25 @@ protected:
     DECLARE_EVENT_TABLE()
 };
 
-class MyDRangeDlg : public wxDialog
+class FDRangeDlg : public wxDialog
 {
 public:
     wxTextCtrl *tc_from, *tc_to;
     wxStaticText *label_from, *label_to;
     wxString from, to;
     wxRadioBox *rb;
-    MyDRangeDlg (wxWindow* parent, wxWindowID id);
+    FDRangeDlg (wxWindow* parent, wxWindowID id);
 protected:
     void OnRadioBoxSelection (wxCommandEvent& event);
     void OnApplyButton (wxCommandEvent& event);
     DECLARE_EVENT_TABLE()
 };
 
-class MyDXLoadDlg : public wxDialog
+class FDXLoadDlg : public wxDialog
 {
 public:
     std::string filename;
-    MyDXLoadDlg (wxWindow* parent, wxWindowID id);
+    FDXLoadDlg (wxWindow* parent, wxWindowID id);
     std::string get_command();
     void OnChangeButton (wxCommandEvent& event);
     void set_filename (const std::string &path);

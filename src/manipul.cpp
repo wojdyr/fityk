@@ -161,13 +161,6 @@ bool Manipul::estimate_peak_parameters(fp approx_ctr, fp ctrplusmin,
     return true;
 }
 
-bool Manipul::global_peakfind (fp *center, fp *height, fp *area, fp *fwhm) 
- // search for n-th biggest peak
- // return value - true = successed, false = failed
-{
-    return estimate_peak_parameters (0., +INF, center, height, area, fwhm);
-}
-
 string Manipul::print_simple_estimate (fp center, fp w) const
 {
     if (w <= 0)
@@ -185,7 +178,7 @@ string Manipul::print_global_peakfind ()
     string s;
     for (int i = 1; i <= 4; i++) {
         fp c = 0., h = 0., a = 0., fwhm = 0.;
-        global_peakfind (&c, &h, &a, &fwhm); 
+        estimate_peak_parameters (0., +INF, &c, &h, &a, &fwhm);
         VirtPeak vpeak;
         vpeak.center = c, vpeak.height = h, vpeak.fwhm = fwhm; 
         virtual_peaks.push_back (vpeak);

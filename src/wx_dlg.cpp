@@ -731,13 +731,17 @@ void FuncBrowserDlg::show_expanded (int item_nr, int subitem_nr)
     for (int i = 1; i <= item_nr && id.IsOk(); i++)
         id = func_tree->GetNextChild(func_tree->GetRootItem(), cookie);
     if (!id.IsOk()) return;
-    wxTreeItemId s_id = func_tree->GetFirstChild(id, cookie);
-    for (int i = 1; i <= subitem_nr && s_id.IsOk(); i++)
-        s_id = func_tree->GetNextChild(id, cookie);
-    if (!s_id.IsOk()) return;
-    func_tree->EnsureVisible(s_id);
-    func_tree->SelectItem(s_id);
-    func_tree->ExpandAll(s_id);
+    wxTreeItemId show_id = id;
+    if (subitem_nr >= 0) {
+        wxTreeItemId s_id = func_tree->GetFirstChild(id, cookie);
+        for (int i = 1; i <= subitem_nr && s_id.IsOk(); i++)
+            s_id = func_tree->GetNextChild(id, cookie);
+        if (!s_id.IsOk()) return;
+        show_id = s_id;
+    }
+    func_tree->EnsureVisible(show_id);
+    func_tree->SelectItem(show_id);
+    func_tree->ExpandAll(show_id);
 }
 
 //======================== FuncTree ===========================
@@ -922,12 +926,12 @@ int FuncTree::update_labels (const string& beginning)
 
 
 //=====================  my data range dialog  ==================
-BEGIN_EVENT_TABLE(MyDRangeDlg, wxDialog)
-    EVT_RADIOBOX(ID_DRANGE_RADIOBOX, MyDRangeDlg::OnRadioBoxSelection)
-    EVT_BUTTON (ID_DRANGE_APPLY,     MyDRangeDlg::OnApplyButton)
+BEGIN_EVENT_TABLE(FDRangeDlg, wxDialog)
+    EVT_RADIOBOX(ID_DRANGE_RADIOBOX, FDRangeDlg::OnRadioBoxSelection)
+    EVT_BUTTON (ID_DRANGE_APPLY,     FDRangeDlg::OnApplyButton)
 END_EVENT_TABLE()
 
-MyDRangeDlg::MyDRangeDlg (wxWindow* parent, wxWindowID id) 
+FDRangeDlg::FDRangeDlg (wxWindow* parent, wxWindowID id) 
     :  wxDialog(parent, id, wxString("Data range"))
 {
     wxBoxSizer *top_sizer = new wxBoxSizer (wxVERTICAL);
@@ -974,7 +978,7 @@ MyDRangeDlg::MyDRangeDlg (wxWindow* parent, wxWindowID id)
     top_sizer->SetSizeHints (this);
 }
 
-void MyDRangeDlg::OnApplyButton (wxCommandEvent& WXUNUSED(event))
+void FDRangeDlg::OnApplyButton (wxCommandEvent& WXUNUSED(event))
 {
     string s = "d.range ";
     string f = tc_from->GetValue().Trim().c_str(); 
@@ -991,7 +995,7 @@ void MyDRangeDlg::OnApplyButton (wxCommandEvent& WXUNUSED(event))
     exec_command (s);
 }
 
-void MyDRangeDlg::OnRadioBoxSelection(wxCommandEvent& WXUNUSED(event) )
+void FDRangeDlg::OnRadioBoxSelection(wxCommandEvent& WXUNUSED(event) )
 {
   
     if (rb->GetSelection() == 3) {
@@ -1006,11 +1010,11 @@ void MyDRangeDlg::OnRadioBoxSelection(wxCommandEvent& WXUNUSED(event) )
 }
 
 //================  my data uncertainty (std. dev.) dialog  =============
-BEGIN_EVENT_TABLE(MyDStdDevDlg, wxDialog)
-//    EVT_RADIOBOX(ID_DRANGE_RADIOBOX, MyDStdDevDlg::OnRadioBoxSelection)
+BEGIN_EVENT_TABLE(FDStdDevDlg, wxDialog)
+//    EVT_RADIOBOX(ID_DRANGE_RADIOBOX, FDStdDevDlg::OnRadioBoxSelection)
 END_EVENT_TABLE()
 
-MyDStdDevDlg:: MyDStdDevDlg (wxWindow* parent, wxWindowID id) 
+FDStdDevDlg:: FDStdDevDlg (wxWindow* parent, wxWindowID id) 
     :  wxDialog(parent, id, wxString("Data error")), val("1.0")
 {
     wxBoxSizer *top_sizer = new wxBoxSizer (wxVERTICAL);
@@ -1042,7 +1046,7 @@ MyDStdDevDlg:: MyDStdDevDlg (wxWindow* parent, wxWindowID id)
     top_sizer->SetSizeHints (this);
 }
 
-string MyDStdDevDlg::get_command()
+string FDStdDevDlg::get_command()
 {
     string s = "d.deviation ";
     if (rb0->GetValue()) 
@@ -1054,17 +1058,17 @@ string MyDStdDevDlg::get_command()
 
 //=====================   data->LoadFile(Custom) dialog  ==================
 
-BEGIN_EVENT_TABLE(MyDXLoadDlg, wxDialog)
-    EVT_BUTTON      (ID_DXLOAD_CHANGE_B,  MyDXLoadDlg::OnChangeButton)
-    EVT_RADIOBOX    (ID_DXLOAD_FTYPE_RB,  MyDXLoadDlg::OnFTypeRadioBoxSelection)
-    EVT_RADIOBUTTON (ID_DXLOAD_ALL_RB,    MyDXLoadDlg::OnSelRadioBoxSelection)
-    EVT_RADIOBUTTON (ID_DXLOAD_FRTO_RB,   MyDXLoadDlg::OnSelRadioBoxSelection)
-    EVT_RADIOBUTTON (ID_DXLOAD_FTOF_RB,   MyDXLoadDlg::OnSelRadioBoxSelection)
-    EVT_CHECKBOX    (ID_DXLOAD_MERGE_CB,  MyDXLoadDlg::OnMergeCheckBox)
-    EVT_CHECKBOX    (ID_DXLOAD_STDDEV_CB, MyDXLoadDlg::OnStdDevCheckBox)
+BEGIN_EVENT_TABLE(FDXLoadDlg, wxDialog)
+    EVT_BUTTON      (ID_DXLOAD_CHANGE_B,  FDXLoadDlg::OnChangeButton)
+    EVT_RADIOBOX    (ID_DXLOAD_FTYPE_RB,  FDXLoadDlg::OnFTypeRadioBoxSelection)
+    EVT_RADIOBUTTON (ID_DXLOAD_ALL_RB,    FDXLoadDlg::OnSelRadioBoxSelection)
+    EVT_RADIOBUTTON (ID_DXLOAD_FRTO_RB,   FDXLoadDlg::OnSelRadioBoxSelection)
+    EVT_RADIOBUTTON (ID_DXLOAD_FTOF_RB,   FDXLoadDlg::OnSelRadioBoxSelection)
+    EVT_CHECKBOX    (ID_DXLOAD_MERGE_CB,  FDXLoadDlg::OnMergeCheckBox)
+    EVT_CHECKBOX    (ID_DXLOAD_STDDEV_CB, FDXLoadDlg::OnStdDevCheckBox)
 END_EVENT_TABLE()
 
-MyDXLoadDlg::MyDXLoadDlg (wxWindow* parent, wxWindowID id)
+FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id)
     : wxDialog(parent, id, "Data load (Custom)", 
                wxDefaultPosition, wxDefaultSize, 
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER) 
@@ -1231,7 +1235,7 @@ MyDXLoadDlg::MyDXLoadDlg (wxWindow* parent, wxWindowID id)
     top_sizer->SetSizeHints (this);
 }
 
-void MyDXLoadDlg::OnChangeButton (wxCommandEvent& WXUNUSED(event))
+void FDXLoadDlg::OnChangeButton (wxCommandEvent& WXUNUSED(event))
 {
     wxFileDialog fdlg (GetParent(), "Select a file", "", "",
                        "x y files (*.dat, *.xy, *.fio)"
@@ -1247,7 +1251,7 @@ void MyDXLoadDlg::OnChangeButton (wxCommandEvent& WXUNUSED(event))
     }
 }
 
-void MyDXLoadDlg::OnFTypeRadioBoxSelection (wxCommandEvent& WXUNUSED(event))
+void FDXLoadDlg::OnFTypeRadioBoxSelection (wxCommandEvent& WXUNUSED(event))
 {
   
     if (rb_filetype->GetSelection() == 0) { //x y type
@@ -1262,7 +1266,7 @@ void MyDXLoadDlg::OnFTypeRadioBoxSelection (wxCommandEvent& WXUNUSED(event))
     //Layout();
 }
 
-void MyDXLoadDlg::set_filename (const string &path)
+void FDXLoadDlg::set_filename (const string &path)
 {
     assert (!path.empty());
     filename = path;
@@ -1280,7 +1284,7 @@ void MyDXLoadDlg::set_filename (const string &path)
     }
 }
 
-void MyDXLoadDlg::OnSelRadioBoxSelection(wxCommandEvent& event)
+void FDXLoadDlg::OnSelRadioBoxSelection(wxCommandEvent& event)
 {
     //bool r0 = (event.GetId() == ID_DXLOAD_ALL_RB);
     bool r1 = (event.GetId() == ID_DXLOAD_FRTO_RB); 
@@ -1292,20 +1296,20 @@ void MyDXLoadDlg::OnSelRadioBoxSelection(wxCommandEvent& event)
     of_every->Enable(r2);
 }
 
-void MyDXLoadDlg::OnMergeCheckBox (wxCommandEvent& WXUNUSED(event))
+void FDXLoadDlg::OnMergeCheckBox (wxCommandEvent& WXUNUSED(event))
 {
     bool checked = merge_cb->GetValue();
     merge_number->Enable (checked);
     yrbox->Enable (checked);
 }
 
-void MyDXLoadDlg::OnStdDevCheckBox (wxCommandEvent& WXUNUSED(event))
+void FDXLoadDlg::OnStdDevCheckBox (wxCommandEvent& WXUNUSED(event))
 {
     bool checked = std_dev_cb->GetValue();
     s_column->Enable (checked);
 }
 
-string MyDXLoadDlg::get_command()
+string FDXLoadDlg::get_command()
 {
     string s = "d.load ";
     //TODO s += opt_lcase;
