@@ -18,6 +18,7 @@ RCSID ("$Id$")
 #include <math.h> //round
 #include <wx/colordlg.h>
 #include <wx/fontdlg.h>
+#include <wx/treectrl.h>
 #include "wx_pane.h" 
 #include "wx_gui.h" 
 #include "wx_plot.h" 
@@ -37,7 +38,11 @@ enum {
     ID_OUTPUT_C_WR             ,
     ID_OUTPUT_C                ,
     ID_OUTPUT_P_FONT           ,
-    ID_OUTPUT_P_CLEAR          
+    ID_OUTPUT_P_CLEAR          ,
+    ID_DATAPANE_TREE           ,
+    ID_DPT_POPUP_APPEND        ,
+    ID_DPT_POPUP_REPLACE       ,
+    ID_DPT_POPUP_DELETE
 };
 
 
@@ -163,13 +168,11 @@ void IOPane::read_settings(wxConfigBase *cf)
 BEGIN_EVENT_TABLE(DataPane, wxPanel)
 END_EVENT_TABLE()
 
-DataPane::DataPane(wxWindow *parent, wxWindowID id)
-    : wxPanel(parent, id)
+    DataPane::DataPane(wxWindow *parent, wxWindowID id)
+: wxPanel(parent, id), tree(0)
 {
     wxBoxSizer *sizer = new wxBoxSizer (wxVERTICAL);
-    wxTreeCtrl *tree = new wxTreeCtrl(this, -1, 
-                                      wxDefaultPosition, wxDefaultSize,
-                           wxTR_HIDE_ROOT|wxTR_HAS_BUTTONS|wxTR_TWIST_BUTTONS);
+    tree = new DataPaneTree(this, ID_DATAPANE_TREE);
     sizer->Add(tree, 1, wxEXPAND);
 
     SetAutoLayout (true);
@@ -177,6 +180,94 @@ DataPane::DataPane(wxWindow *parent, wxWindowID id)
     sizer->Fit (this);
     sizer->SetSizeHints (this);
 }
+//===============================================================
+//                            DataPaneTree
+//===============================================================
+
+BEGIN_EVENT_TABLE(DataPaneTree, wxTreeCtrl)
+    EVT_IDLE(DataPaneTree::OnIdle)
+    EVT_TREE_SEL_CHANGING(ID_DATAPANE_TREE, DataPaneTree::OnSelChanging)
+    EVT_TREE_SEL_CHANGED(ID_DATAPANE_TREE, DataPaneTree::OnSelChanged)
+    EVT_RIGHT_DOWN(DataPaneTree::OnPopupMenu)
+END_EVENT_TABLE()
+
+DataPaneTree::DataPaneTree(wxWindow *parent, wxWindowID id)
+    : wxTreeCtrl(parent, id, wxDefaultPosition, wxDefaultSize,
+                 wxTR_HIDE_ROOT|wxTR_HAS_BUTTONS|wxTR_TWIST_BUTTONS)
+{
+    AddRoot("root");
+    AppendItem(GetRootItem(), "plot 0"); //TODO
+}
+
+void DataPaneTree::OnIdle(wxIdleEvent &event)
+{
+    if (!IsShown()) return;
+
+    long unused_cookie;
+    //TODO
+    wxTreeItemId root = GetFirstChild(GetRootItem(), unused_cookie);
+    update_tree_datalabels(root);
+    event.Skip();
+}
+
+void DataPaneTree::update_tree_datalabels(const wxTreeItemId &plot_item)
+{
+    vector<string> new_labels = my_datasets->get_data_titles(); //TODO
+    vector<string> old_labels;
+    long cookie;
+    for (wxTreeItemId i = GetFirstChild(plot_item, cookie); i.IsOk(); 
+                                    i = GetNextChild(plot_item, cookie)) 
+        old_labels.push_back(GetItemText(i).c_str());
+
+    if (new_labels != old_labels) {
+        DeleteChildren(plot_item);
+        for (vector<string>::const_iterator i = new_labels.begin();
+                                                 i != new_labels.end(); i++)
+            AppendItem(plot_item, (*i).c_str());
+    }
+}
+
+void DataPaneTree::OnSelChanging(wxTreeEvent &event)
+{
+    const wxTreeItemId &id = event.GetItem();
+    if (id == GetRootItem() || GetItemParent(id) == GetRootItem()) 
+        event.Veto();
+}
+
+void DataPaneTree::OnSelChanged(wxTreeEvent &event)
+{
+    const wxTreeItemId &id = event.GetItem();
+    if (id == GetRootItem()) // || GetItemParent(id) == GetRootItem()) //plot
+        return;
+    else { //dataset
+        int p = 0;//get_number_of_previous_siblings(GetItemParent(id));
+        int d = get_number_of_previous_siblings(id);
+        exec_command("d.activate " + S(p) + "::" + S(d));
+    }
+}
+
+int DataPaneTree::get_number_of_previous_siblings(const wxTreeItemId &id)
+{
+    int counter = 0;
+    for (wxTreeItemId i = id; i.IsOk(); i = GetPrevSibling(i))
+        counter++;
+    return counter-1;
+}
+
+void DataPaneTree::OnPopupMenu(wxMouseEvent &event)
+{
+    int flags;
+    HitTest(event.GetPosition(), flags);
+    //TODO
+
+    wxMenu popup_menu ("datasets menu");
+
+    popup_menu.Append (ID_DPT_POPUP_APPEND, "&Append data file to plot...");
+    popup_menu.Append (ID_DPT_POPUP_REPLACE, "&Replace with data file...");
+    popup_menu.Append (ID_DPT_POPUP_DELETE, "&Delete dataset");
+    PopupMenu (&popup_menu, event.GetX(), event.GetY());
+}
+
 
 
 //===============================================================

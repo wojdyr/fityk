@@ -157,6 +157,7 @@ public:
     int find_active() const;
     int get_size() const { return datasets.size(); }
     const Data *get_data(int n) const; 
+    std::vector<std::string> get_data_titles() const;
     void del_data(int n);
     void was_plotted(); 
     bool was_changed() const;

@@ -976,6 +976,17 @@ const Data *DataSets::get_data(int n) const
         return 0;
 }
 
+
+vector<string> DataSets::get_data_titles() const
+{
+    vector<string> v;
+    //v.reserve(datasets.size());
+    for (vector<Data*>::const_iterator i = datasets.begin(); 
+                                                    i != datasets.end(); i++)
+        v.push_back((*i)->get_title());
+    return v;
+}
+
 void DataSets::del_data(int n)
 {
     if (n >= 0 && n < size(datasets)) {

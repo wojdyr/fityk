@@ -43,7 +43,7 @@ void load_siemensbruker_filetype (std::string filename, Data *data)
 			//scan->setStepSize(double(stepsize));
 			//cerr<<"The end: "<<double(numofpoints-1)*stepsize<<endl;
 
-			double xmax=start+(double(numofpoints-1))*stepsize;
+			//? double xmax=start+(double(numofpoints-1))*stepsize;
             //scan->setEndAngle(xmax);
             //scan->setEndAngle(stepsize*double(numofpoints)+start);
 			//cerr<<start<<"  "<<xmax<<"  "<<stepsize<<"  "<<numofpoints<<"      "<<endl;
@@ -88,7 +88,7 @@ void load_siemensbruker_filetype (std::string filename, Data *data)
 	       fread(&stepsize, 8, 1, stream);
 		   //scan->setStepSize(stepsize);
 		   //cerr<<"The end: "<<double(numofpoints-1)*stepsize<<endl;
-		   double xmax=start+(double(numofpoints-1))*stepsize;
+		   //? double xmax=start+(double(numofpoints-1))*stepsize;
            //scan->setEndAngle(xmax);
            //scan->setEndAngle(stepsize*double(numofpoints)+start);
 			//cerr<<start<<"  "<<xmax<<"  "<<stepsize<<"  "<<numofpoints<<"      "<<endl;

@@ -51,7 +51,6 @@ protected:
     wxBrush backgroundBrush;
     wxPen activeDataPen, inactiveDataPen;
     wxPen xAxisPen;
-    wxBrush activeDataBrush, inactiveDataBrush;
     wxColour colourTextForeground, colourTextBackground;
     int point_radius;
     bool line_between_points;
@@ -69,7 +68,9 @@ protected:
                     const int x_tic_size, const int y_tic_size);
     fp get_max_abs_y (fp (*compute_y)(std::vector<Point>::const_iterator));
     void draw_data (wxDC& dc, 
-                    fp (*compute_y)(std::vector<Point>::const_iterator));
+                    fp (*compute_y)(std::vector<Point>::const_iterator),
+                    const Data *dat=0, 
+                    const wxPen *active=0, const wxPen *inactive=0);
     virtual void read_settings(wxConfigBase *cf) = 0;
     int y2Y (fp y) {  fp t = (y - yLogicalOrigin) * yUserScale;
                       return (fabs(t) < SHRT_MAX ? static_cast<int>(t) 

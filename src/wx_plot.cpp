@@ -233,8 +233,20 @@ void MainPlot::Draw(wxDC &dc)
         return;
     vector<Point>::const_iterator f =my_data->get_point_at(my_other->view.left),
                                 l = my_data->get_point_at(my_other->view.right);
-    if (data_visible)
+    if (data_visible) {
+        //TODO changable colors for each dataset
+        wxPen unsel_active(activeDataPen);
+        wxPen unsel_inactive(inactiveDataPen);
+        unsel_active.SetColour(0, 90, 0);
+        unsel_inactive.SetColour(30, 60, 30);
+        for (int i = 0; i < my_datasets->get_size(); i++) {
+            const Data *d = my_datasets->get_data(i);
+            if (d != my_data)
+                draw_data(dc, y_of_data_for_draw_data, 
+                          d, &unsel_active, &unsel_inactive);
+        }
         draw_data(dc, y_of_data_for_draw_data);
+    }
     if (!a_copy4plot.empty() && size(a_copy4plot) != my_sum->count_a()) {
         a_copy4plot = my_sum->current_a();
         frame->SetStatusText ("Number of parameters changed.");
@@ -346,19 +358,26 @@ fp FPlot::get_max_abs_y (fp (*compute_y)(vector<Point>::const_iterator))
 }
 
 void FPlot::draw_data (wxDC& dc, 
-                        fp (*compute_y)(vector<Point>::const_iterator))
+                       fp (*compute_y)(vector<Point>::const_iterator),
+                       const Data* dat, 
+                       const wxPen *active_p, const wxPen *inactive_p)
 {
+    const Data *data = dat ? dat : my_data;
+    const wxPen &activePen = active_p ? *active_p : activeDataPen;
+    const wxPen &inactivePen = inactive_p ? *inactive_p : inactiveDataPen;
+    const wxBrush activeBrush(activePen.GetColour(), wxSOLID);
+    const wxBrush inactiveBrush(inactivePen.GetColour(), wxSOLID);
     vector<Point>::const_iterator 
-                            first = my_data->get_point_at(my_other->view.left),
-                            last = my_data->get_point_at(my_other->view.right);
+                            first = data->get_point_at(my_other->view.left),
+                            last = data->get_point_at(my_other->view.right);
     //if (last - first < 0) return;
     bool active = !first->is_active;//causes pens to be initialized in main loop
     int X_ = 0, Y_ = 0;
     // first line segment -- lines should be drawed towards points 
     //                                                 that are outside of plot 
     if (line_between_points) {
-        dc.SetPen(first->is_active ? activeDataPen : inactiveDataPen);
-        if (first > my_data->points().begin()) {
+        dc.SetPen(first->is_active ? activePen : inactivePen);
+        if (first > data->points().begin()) {
             X_ = x2X (my_other->view.left);
             int Y_l = y2Y ((*compute_y)(first - 1));
             int Y_r = y2Y ((*compute_y)(first));
@@ -383,12 +402,12 @@ void FPlot::draw_data (wxDC& dc,
         if (i->is_active != active) {
             active = i->is_active;
             if (active) {
-                dc.SetPen (activeDataPen);
-                dc.SetBrush (activeDataBrush);
+                dc.SetPen (activePen);
+                dc.SetBrush (activeBrush);
             }
             else {
-                dc.SetPen (inactiveDataPen);
-                dc.SetBrush (inactiveDataBrush);
+                dc.SetPen (inactivePen);
+                dc.SetBrush (inactiveBrush);
             }
             //half of line between points should be active and half not.
             //draw first half here and change X_, Y_; the rest will be drawed
@@ -412,7 +431,7 @@ void FPlot::draw_data (wxDC& dc,
     }
 
     //the last line segment, toward next point
-    if (line_between_points && last < my_data->points().end()) {
+    if (line_between_points && last < data->points().end()) {
         int X = x2X (my_other->view.right);
         int Y_l = y2Y ((*compute_y)(last - 1));
         int Y_r = y2Y ((*compute_y)(last));
@@ -569,11 +588,9 @@ void MainPlot::read_settings(wxConfigBase *cf)
                                                        wxColour ("GREEN"));
     activeDataPen.SetColour (active_data_col);
     //activeDataPen.SetStyle (wxSOLID);
-    activeDataBrush.SetColour (active_data_col);
     wxColour inactive_data_col = read_color_from_config (cf, "inactive_data",
                                                       wxColour (128, 128, 128));
     inactiveDataPen.SetColour (inactive_data_col);
-    inactiveDataBrush.SetColour (inactive_data_col);
     sumPen.SetColour (read_color_from_config (cf, "sum", wxColour("YELLOW")));
     xAxisPen.SetColour (read_color_from_config(cf, "xAxis", wxColour("WHITE")));
     bg_pointsPen.SetColour (read_color_from_config (cf, "BgPoints", 
@@ -625,8 +642,8 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     write_color_to_config (cf, "text_fg", colourTextForeground);
     write_color_to_config (cf, "text_bg", colourTextBackground);
     write_color_to_config (cf, "bg", backgroundBrush.GetColour());
-    write_color_to_config (cf, "active_data", activeDataBrush.GetColour());
-    write_color_to_config (cf, "inactive_data", inactiveDataBrush.GetColour());
+    write_color_to_config (cf, "active_data", activeDataPen.GetColour());
+    write_color_to_config (cf, "inactive_data", inactiveDataPen.GetColour());
     write_color_to_config (cf, "sum", sumPen.GetColour());
     write_color_to_config (cf, "xAxis", xAxisPen.GetColour());
     write_color_to_config (cf, "BgPoints", bg_pointsPen.GetColour());
@@ -1267,11 +1284,9 @@ void MainPlot::OnPopupColor(wxCommandEvent& event)
     if (n == ID_plot_popup_c_background)
         brush = &backgroundBrush;
     else if (n == ID_plot_popup_c_active_data) {
-        brush = &activeDataBrush;
         pen = &activeDataPen;
     }
     else if (n == ID_plot_popup_c_inactive_data) {
-        brush = &inactiveDataBrush;
         pen = &inactiveDataPen;
     }
     else if (n == ID_plot_popup_c_sum)
@@ -1307,10 +1322,8 @@ wxColour invert_colour(const wxColour& col)
 void MainPlot::OnInvertColors (wxCommandEvent& WXUNUSED(event))
 {
     backgroundBrush.SetColour (invert_colour (backgroundBrush.GetColour()));
-    activeDataBrush.SetColour (invert_colour (activeDataBrush.GetColour()));
-    activeDataPen.SetColour (activeDataBrush.GetColour());
-    inactiveDataBrush.SetColour (invert_colour (inactiveDataBrush.GetColour()));
-    inactiveDataPen.SetColour (inactiveDataBrush.GetColour());
+    activeDataPen.SetColour (invert_colour(activeDataPen.GetColour()));
+    inactiveDataPen.SetColour (invert_colour(inactiveDataPen.GetColour()));
     sumPen.SetColour (invert_colour (sumPen.GetColour()));  
     xAxisPen.SetColour (invert_colour (xAxisPen.GetColour()));  
     for (int i = 0; i < max_phase_pens; i++)
@@ -1528,11 +1541,9 @@ void DiffPlot::read_settings(wxConfigBase *cf)
                                                        wxColour ("GREEN"));
     activeDataPen.SetColour (active_data_col);
     //activeDataPen.SetStyle (wxDOT);
-    activeDataBrush.SetColour (active_data_col);
     wxColour inactive_data_col = read_color_from_config (cf, "inactive_data",
                                                       wxColour (128, 128, 128));
     inactiveDataPen.SetColour (inactive_data_col);
-    inactiveDataBrush.SetColour (inactive_data_col);
     xAxisPen.SetColour (read_color_from_config(cf, "xAxis", wxColour("WHITE")));
     Refresh();
 }
@@ -1550,8 +1561,8 @@ void DiffPlot::save_settings(wxConfigBase *cf) const
 
     cf->SetPath("/AuxPlot/Colors");
     write_color_to_config (cf, "bg", backgroundBrush.GetColour()); 
-    write_color_to_config (cf, "active_data", activeDataBrush.GetColour());
-    write_color_to_config (cf, "inactive_data", inactiveDataBrush.GetColour());
+    write_color_to_config (cf, "active_data", activeDataPen.GetColour());
+    write_color_to_config (cf, "inactive_data", inactiveDataPen.GetColour());
     write_color_to_config (cf, "xAxis", xAxisPen.GetColour());
 }
 
@@ -1679,11 +1690,9 @@ void DiffPlot::OnPopupColor (wxCommandEvent& event)
     if (n == ID_diff_popup_c_background)
         brush = &backgroundBrush;
     else if (n == ID_diff_popup_c_active_data) {
-        brush = &activeDataBrush;
         pen = &activeDataPen;
     }
     else if (n == ID_diff_popup_c_inactive_data) {
-        brush = &inactiveDataBrush;
         pen = &inactiveDataPen;
     }
     else if (n == ID_diff_popup_c_axis)

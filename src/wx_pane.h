@@ -135,11 +135,28 @@ private:
 };
 
 
+class DataPaneTree : public wxTreeCtrl
+{
+public:
+    DataPaneTree(wxWindow *parent, wxWindowID id);
+
+    void OnIdle(wxIdleEvent &event);
+    void OnSelChanging(wxTreeEvent &event);
+    void OnSelChanged(wxTreeEvent &event);
+    void OnPopupMenu(wxMouseEvent &event);
+private:
+    void update_tree_datalabels(const wxTreeItemId &plot_item);
+    int get_number_of_previous_siblings(const wxTreeItemId &id);
+
+    DECLARE_EVENT_TABLE()
+};
+
 class DataPane : public wxPanel
 {
 public:
     DataPane(wxWindow *parent, wxWindowID id=-1);
 private:
+    DataPaneTree *tree;
 
     DECLARE_EVENT_TABLE()
 };
