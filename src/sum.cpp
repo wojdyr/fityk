@@ -126,12 +126,12 @@ fp Sum::f_value (fp x, int fn) const
         return 0;
 }
 
-fp Sum::funcs_value (vector<int>& fn, fp x) const
+fp Sum::funcs_value (const vector<int>& fn, fp x) const
     // pre: use_param_a_for_value() called
 {
     //no need for optimization
     fp y = 0;
-    for (vector<int>::iterator i = fn.begin(); i != fn.end(); i++) 
+    for (vector<int>::const_iterator i = fn.begin(); i != fn.end(); i++) 
         y += f_value (x, *i);
     return y;
 }

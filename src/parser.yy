@@ -37,10 +37,10 @@ void replot()
     else
         return; //do not replot
     if (auto_plot >= 2 &&
-            (my_data->was_changed() || my_sum->was_changed() 
+            (my_datasets->was_changed() || my_sum->was_changed() 
              || my_other->was_changed())) {
         my_IO->plot();
-        my_data->d_was_plotted();
+        my_datasets->was_plotted();
         my_sum->s_was_plotted();
         my_other->v_was_plotted(); 
     }
@@ -68,6 +68,7 @@ void replot()
 }
 
 %token <c> SET
+%token D_ACTIVATE
 %token D_LOAD D_BACKGROUND D_CALIBRATE D_RANGE D_DEVIATION D_INFO D_EXPORT
 %token F_RUN F_CONTINUE F_METHOD F_INFO 
 %token S_ADD S_FREEZE S_HISTORY S_INFO S_REMOVE S_CHANGE S_VALUE S_EXPORT 
@@ -75,7 +76,7 @@ void replot()
 %token O_PLOT O_LOG O_INCLUDE O_WAIT O_DUMP
 %token M_FINDPEAK
 %token HELP QUIT 
-%token PLUS_MINUS
+%token PLUS_MINUS TWO_COLONS
 %token SEP
 %token <s> FILENAME DASH_STRING EQ_STRING HELP_STRING
 %token <c> LOWERCASE G_TYPE F_TYPE Z_TYPE PH_TYPE
@@ -83,7 +84,7 @@ void replot()
 %token <f> FLOAt P_NUM NEW_A
 /* %token <pl> PLANE */
 %token <s> LEX_ERROR
-%type <i> inr opt_uint a_num dl_merge dload_arg 
+%type <i> inr opt_uint opt_uint_1 a_num dl_merge dload_arg 
 %type <f> flt opt_flt
 %type <c> sign opt_lcase opt_proc
 %type <range> range sim_range bracket_range
@@ -115,6 +116,8 @@ exp:  SET DASH_STRING EQ_STRING SEP {
       }
     | SET DASH_STRING SEP          { set_class_p($1)->getp ($2.str()); }
     | SET SEP                      { imsg (set_class_p($1)->print_usage($1)); }
+    | D_ACTIVATE opt_uint_1 TWO_COLONS opt_uint_1 SEP 
+                                        { my_datasets->activate(/*$2,*/ $4); }  
     | D_LOAD opt_lcase dload_arg FILENAME SEP { 
                                    my_data->load($4.str(), $2, ivec, ivec2, $3);
 				   my_other->set_view (Rect()); }
@@ -313,6 +316,10 @@ inr: INt
     ;
 
 opt_uint: /*empty*/   { $$ = 0; }
+    |  UINt           { $$ = $1; }
+    ;
+
+opt_uint_1: /*empty*/ { $$ = -1; }
     |  UINt           { $$ = $1; }
     ;
 

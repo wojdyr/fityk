@@ -166,7 +166,16 @@ END_EVENT_TABLE()
 DataPane::DataPane(wxWindow *parent, wxWindowID id)
     : wxPanel(parent, id)
 {
-    SetBackgroundColour(*wxBLUE);
+    wxBoxSizer *sizer = new wxBoxSizer (wxVERTICAL);
+    wxTreeCtrl *tree = new wxTreeCtrl(this, -1, 
+                                      wxDefaultPosition, wxDefaultSize,
+                           wxTR_HIDE_ROOT|wxTR_HAS_BUTTONS|wxTR_TWIST_BUTTONS);
+    sizer->Add(tree, 1, wxEXPAND);
+
+    SetAutoLayout (true);
+    SetSizer (sizer);
+    sizer->Fit (this);
+    sizer->SetSizeHints (this);
 }
 
 

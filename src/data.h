@@ -147,4 +147,24 @@ private:
 
 extern Data *my_data;
 
+///a set of datasets; each dataset (class Data) usually comes from one datafile
+class DataSets
+{
+public:
+    DataSets() { activate(-1); }
+    ~DataSets();
+    bool activate(int n); // for n=-1 create new dataset
+    int find_active() const;
+    int get_size() const { return datasets.size(); }
+    const Data *get_data(int n) const; 
+    void del_data(int n);
+    void was_plotted(); 
+    bool was_changed() const;
+protected:
+    std::vector<Data*> datasets;
+    bool ds_was_changed;
+};
+
+extern DataSets *my_datasets;
+
 #endif

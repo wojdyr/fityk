@@ -60,7 +60,7 @@ public:
     void use_param_a_for_value (const std::vector<fp>& A = fp_v0);
     fp value (fp x) const;
     fp f_value (fp x, int fn) const;
-    fp funcs_value (std::vector<int>& fn, fp x) const;
+    fp funcs_value (const std::vector<int>& fn, fp x) const;
     fp value_and_put_deriv (fp x, std::vector<fp>& dy_da);
     fp value_and_add_numeric_deriv (fp x, bool both_sides, 
                                     std::vector<fp>& dy_da);

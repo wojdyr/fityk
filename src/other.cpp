@@ -239,7 +239,6 @@ void Various_commands::set_view_y_fit()
 
 void reset_all (bool finito) 
 {
-    static bool initialized = false;
 #ifdef USE_XTAL
     delete my_crystal;
 #endif //USE_XTAL
@@ -253,12 +252,11 @@ void reset_all (bool finito)
     fitMethodsContainer = new FitMethodsContainer;
     my_other = new Various_commands;
     my_sum = new Sum;
-    my_data = new Data; 
-    my_manipul = new Manipul (my_data, my_sum);
+    my_datasets = new DataSets; //my_data is set in DataSets ctor
+    my_manipul = new Manipul;
 #ifdef USE_XTAL
     my_crystal = new Crystal(my_sum);
 #endif //USE_XTAL
-    initialized = true;
 }
 
 int Various_commands::sleep (int seconds)
@@ -329,53 +327,10 @@ const string help_filename =
 string list_help_topics()
 {
     return "Sorry, interactive help is not available. Read HTML docs.";
-/*
-    int number_of_topics = 0;
-    ifstream hfile (help_filename.c_str());
-    if (!hfile) {
-        return "! Can't open help file: " + help_filename;
-    }
-    string s, t;
-    while (getline(hfile, t)) 
-        if (t.size() > 1 && !isspace(t[0]) && t[0] != '#') {
-            int counter = 0;
-            const char *ptr = t.c_str();
-            while (*ptr && !isspace(*ptr))
-                ptr++, counter++;
-            s += string (t, 0, counter) + "  \t";
-            number_of_topics++;
-        }
-    return "Use `help topic', where topic is one of " + S(number_of_topics) 
-        + " topics:\n" + s;
-*/
 }
 
 string print_help_on_topic (string /*topic*/)
 {
     return "Sorry, interactive help is not available. Read HTML docs.";
-/*
-    ifstream hfile (help_filename.c_str());
-    if (!hfile) {
-        return "! Can't open help file: " + help_filename;
-    }
-    string s, t;
-    bool found = false;
-    while (getline(hfile, t)) 
-        if (t.size() > 1 && !isspace(t[0]) && t[0] != '#') {
-            int counter = 0;
-            const char *ptr = t.c_str();
-            while (*ptr && !isspace(*ptr))
-                ptr++, counter++;
-            if (!string (t, 0, counter).compare(topic)) {
-                found = true;
-                while (getline(hfile, t) && t.size() > 1) 
-                    s += t + "\n";
-            }
-        }
-    if (!found)
-        return "Topic not found.";
-    else
-        return s;
-*/
 }
 

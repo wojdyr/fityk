@@ -13,6 +13,7 @@ RCSID ("$Id$")
 using namespace std;
 
 Data *my_data;
+DataSets *my_datasets;
 
 Data::Data ()
     : d_was_changed(true), background_infl_sigma(false)
@@ -928,6 +929,89 @@ void Data::export_to_file (string filename, bool append, char filetype)
         default:
             warn ("Unknown filetype letter: " + S(filetype));
     }
+}
+
+//==========================================================================
+
+DataSets::~DataSets()
+{
+    for (vector<Data*>::iterator i = datasets.begin(); i != datasets.end(); i++)
+        delete *i;
+}
+
+bool DataSets::activate(int n)
+{
+    if (n == -1) {
+        datasets.push_back(new Data);
+        my_data = *(datasets.end() - 1);
+        ds_was_changed = true;
+        return true;
+    }
+    else if (n >= 0 && n < size(datasets)) {
+        my_data = datasets[n];
+        ds_was_changed = true;
+        return true;
+    }
+    else {
+        warn("No such datafile in this dataset: " + S(n));
+        return false;
+    }
+}
+
+int DataSets::find_active() const
+{
+    for (unsigned int i = 0; i < datasets.size(); i++)
+        if (datasets[i] == my_data)
+            return i;
+    //not found
+    return -1; 
+}
+
+const Data *DataSets::get_data(int n) const
+{
+    if (n >= 0 && n < size(datasets)) {
+        return datasets[n];
+    }
+    else
+        return 0;
+}
+
+void DataSets::del_data(int n)
+{
+    if (n >= 0 && n < size(datasets)) {
+        if (my_data == datasets[n]) {
+            if (n > 0)
+                my_data = datasets[n-1];
+            else
+                my_data = 0;
+        }
+        delete datasets[n];
+        datasets.erase(datasets.begin() + n);
+        if (datasets.empty()) //it should not be empty
+            datasets.push_back(new Data);
+        if (!my_data)
+            my_data = datasets.front();
+        ds_was_changed = true;
+    }
+    else
+        warn("No such dataset number: " + S(n));
+}
+
+void DataSets::was_plotted() 
+{ 
+    ds_was_changed = false; 
+    for (vector<Data*>::iterator i = datasets.begin(); i != datasets.end(); i++)
+        (*i)->d_was_plotted();
+}
+
+bool DataSets::was_changed() const 
+{ 
+    for (vector<Data*>::const_iterator i = datasets.begin(); 
+                                                    i != datasets.end(); i++)
+        if ((*i)->was_changed())
+            return true;
+    //if here - no Data changed
+    return ds_was_changed; 
 }
 
 
