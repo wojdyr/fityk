@@ -28,6 +28,7 @@ RCSID ("$Id$")
 #include <wx/printdlg.h>
 #include <wx/image.h>
 #include <wx/config.h>
+#include <wx/msgout.h>
 #include <algorithm>
 #include <locale.h>
 #include <string.h>
