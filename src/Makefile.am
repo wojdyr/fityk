@@ -34,8 +34,8 @@ noinst_HEADERS = common.h crystal.h data.h dotset.h ffunc.h fzgbase.h \
 		 parser.tab.hh
 
 # -ftemplate-depth-50 is for gcc 2.95 
-AM_CXXFLAGS = -Wall -fno-rtti -fno-exceptions -ftemplate-depth-50 
-$(gui_sources:.cpp=.o): AM_CXXFLAGS = $(AM_CXXFLAGS) @WX_CPPFLAGS@ @WX_CXXFLAGS_ONLY@ 
+AM_CXXFLAGS = -Wall -fno-rtti -ftemplate-depth-50 
+$(gui_sources:.cpp=.o): AM_CXXFLAGS += @WX_CPPFLAGS@ @WX_CXXFLAGS_ONLY@ 
 
 ##TODO:
 parser.cpp: parser.yy
