@@ -2,14 +2,10 @@
 
 * after upgrading wxWidgets to 2.5.2:
     check for compatibility with 2.4.
-
-* (GUI) crosshair cursor option (vertical and horizontal line at the cursor 
-  position, wxDC::CrossHair)
+   (Windows) are dialogs centered on parent  ?
 
 * Automatically recognize if argument given on input line is a script 
   or data. Scripts has .fit or .fityk extensions, or begin with "# Fityk".
-
-* dialogs -> center on parent  
 
 ---
 

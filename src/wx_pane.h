@@ -128,12 +128,17 @@ public:
     const std::vector<FPlot*> get_visible_plots() const;
     void show_aux(int n, bool show); 
     bool aux_visible(int n) const;
+    void draw_crosshair(int X, int Y);
+
+    bool crosshair_cursor;
 private:
     Plot_shared plot_shared;
     MainPlot *plot;
     ProportionalSplitter *aux_split;
     AuxPlot *aux_plot[2];
     std::vector<std::string> zoom_hist;
+
+    void do_draw_crosshair(int X, int Y);
 
     DECLARE_EVENT_TABLE()
 };

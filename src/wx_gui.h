@@ -172,6 +172,8 @@ public:
     void OnSwitchToolbar(wxCommandEvent& ev) {SwitchToolbar(ev.IsChecked());}
     void SwitchStatbar(bool show);
     void OnSwitchStatbar(wxCommandEvent& ev) {SwitchStatbar(ev.IsChecked());}
+    void SwitchCrosshair(bool show);
+    void OnSwitchCrosshair(wxCommandEvent& ev){SwitchCrosshair(ev.IsChecked());}
     void OnShowMenuZoomPrev(wxUpdateUIEvent& event);
     void save_all_settings(wxConfigBase *cf) const;
     void save_settings(wxConfigBase *cf) const;
@@ -184,6 +186,7 @@ public:
     void change_zoom(const std::string& s);
     void scroll_view_horizontally(fp step);
     void refresh_plots(bool update=false);
+    void draw_crosshair(int X, int Y);
     void focus_input();
 
 protected:

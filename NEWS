@@ -1,5 +1,6 @@
 User-visible changes in version 0.4.3:
 
+* crosshair cursor (GUI->Crosshair cursor)
 * "Data->Load File" dialog (simple) allows to open many files 
 * unix man page (Carlo Segre)
 

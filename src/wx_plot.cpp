@@ -97,6 +97,14 @@ void FPlot::draw_dashed_vert_lines (int x1, int x2)
     }
 }
 
+void FPlot::draw_crosshair(int X, int Y)
+{
+    wxClientDC dc(this);
+    dc.SetLogicalFunction (wxINVERT);
+    dc.SetPen(*wxBLACK_DASHED_PEN);
+    dc.CrossHair(X, Y);
+}
+
 bool FPlot::vert_line_following_cursor (Mouse_act_enum ma, int x, int x0)
 {
     static int prev_x = INVALID, prev_x0 = INVALID;
@@ -186,7 +194,9 @@ MainPlot::MainPlot (wxWindow *parent, Plot_shared &shar)
 
 void MainPlot::OnPaint(wxPaintEvent& WXUNUSED(event))
 {
-    vert_line_following_cursor (mat_cancel);
+    vert_line_following_cursor(mat_cancel);//erase XOR lines before repainting
+    frame->draw_crosshair(-1, -1); 
+
     wxPaintDC dc(this);
     if (backgroundBrush.Ok())
         dc.SetBackground (backgroundBrush);
@@ -205,6 +215,8 @@ fp y_of_data_for_draw_data(vector<Point>::const_iterator i)
 void MainPlot::Draw(wxDC &dc)
 {
     set_scale();
+
+    frame->draw_crosshair(-1, -1); //erase crosshair before redrawing plot
 
     if (!params4plot.empty() && size(params4plot) != my_sum->pars()->count_a()){
         params4plot = my_sum->pars()->values();
@@ -651,6 +663,7 @@ void MainPlot::OnLeaveWindow (wxMouseEvent& WXUNUSED(event))
 {
     frame->SetStatusText ("", sbf_coord);
     vert_line_following_cursor (mat_cancel);
+    frame->draw_crosshair(-1, -1);
 }
 
 void MainPlot::set_scale()
@@ -848,22 +861,26 @@ void MainPlot::update_mouse_hints()
 void MainPlot::OnMouseMove(wxMouseEvent &event)
 {
     //display coords in status bar 
-    fp x = X2x (event.GetX());
-    fp y = Y2y (event.GetY());
+    int X = event.GetX();
+    int Y = event.GetY();
+    fp x = X2x(X);
+    fp y = Y2y(Y);
     if (my_core->plus_background) 
         y -= my_data->get_bg_at (x);
     wxString str;
     str.Printf ("%.3f  %d", x, static_cast<int>(y + 0.5));
     frame->SetStatusText (str, sbf_coord);
 
-    if (pressed_mouse_button == 0 && mode == mmd_range) {
-        if (!ctrl)
-            vert_line_following_cursor (mat_move, event.GetX());
-        else
-            vert_line_following_cursor (mat_cancel);
-    }
-    else if (pressed_mouse_button == 0 && visible_peaktops(mode)) {
-        look_for_peaktop (event);
+    if (pressed_mouse_button == 0) {
+        if (mode == mmd_range) {
+            if (!ctrl)
+                vert_line_following_cursor (mat_move, event.GetX());
+            else
+                vert_line_following_cursor (mat_cancel);
+        }
+        if (visible_peaktops(mode)) 
+            look_for_peaktop (event);
+        frame->draw_crosshair(X, Y);
     }
     else {
         vert_line_following_cursor (mat_move, event.GetX());
@@ -932,6 +949,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         return;
     }
 
+    frame->draw_crosshair(-1, -1);
     int button = event.GetButton();
     pressed_mouse_button = button;
     ctrl = has_mod_keys(event);
@@ -1398,7 +1416,8 @@ END_EVENT_TABLE()
 
 void AuxPlot::OnPaint(wxPaintEvent &WXUNUSED(event))
 {
-    vert_line_following_cursor (mat_cancel);
+    vert_line_following_cursor(mat_cancel);//erase XOR lines before repainting
+    frame->draw_crosshair(-1, -1); 
     wxPaintDC dc(this);
     dc.SetLogicalFunction (wxCOPY);
     if (backgroundBrush.Ok())
@@ -1468,19 +1487,22 @@ void AuxPlot::draw_zoom_text(wxDC& dc)
 
 void AuxPlot::OnMouseMove(wxMouseEvent &event)
 {
-    vert_line_following_cursor (mat_move, event.GetX());
-    fp x = X2x (event.GetX());
+    int X = event.GetX();
+    fp x = X2x(X);
     fp y = Y2y (event.GetY()); 
+    vert_line_following_cursor (mat_move, X);
     wxString str;
     str.Printf ("%.3f  [%d]", x, static_cast<int>(y + 0.5));
     frame->SetStatusText (str, sbf_coord);
     wxCursor new_cursor;
-    if (event.GetX() < move_plot_margin_width)
+    if (X < move_plot_margin_width)
         new_cursor = wxCURSOR_POINT_LEFT;
-    else if (event.GetX() > GetClientSize().GetWidth() - move_plot_margin_width)
+    else if (X > GetClientSize().GetWidth() - move_plot_margin_width)
         new_cursor = wxCURSOR_POINT_RIGHT;
-    else
+    else {
+        frame->draw_crosshair(X, -1);
         new_cursor = wxCURSOR_CROSS;
+    }
     if (new_cursor != cursor) {
         cursor = new_cursor;
         SetCursor (new_cursor);
@@ -1491,6 +1513,7 @@ void AuxPlot::OnLeaveWindow (wxMouseEvent& WXUNUSED(event))
 {
     frame->SetStatusText ("", sbf_coord);
     vert_line_following_cursor (mat_cancel);
+    frame->draw_crosshair(-1, -1);
 }
 
 bool AuxPlot::is_zoomable()

@@ -44,6 +44,7 @@ public:
          
     ~FPlot() {}
     wxColour get_bg_color() { return backgroundBrush.GetColour(); }
+    void FPlot::draw_crosshair(int X, int Y);
     virtual void save_settings(wxConfigBase *cf) const = 0;
     virtual void Draw(wxDC &dc) = 0;
 

@@ -53,7 +53,8 @@ BEGIN_EVENT_TABLE(PlotPane, ProportionalSplitter)
 END_EVENT_TABLE()
 
 PlotPane::PlotPane(wxWindow *parent, wxWindowID id)
-    : ProportionalSplitter(parent, id, 0.75), plot_shared()
+    : ProportionalSplitter(parent, id, 0.75), 
+      crosshair_cursor(false), plot_shared() 
 {
     plot = new MainPlot(this, plot_shared);
     aux_split = new ProportionalSplitter(this, -1, 0.5);
@@ -91,8 +92,8 @@ void PlotPane::save_settings(wxConfigBase *cf) const
     cf->Write("ShowAuxPane0", aux_visible(0));
     cf->Write("ShowAuxPane1", aux_visible(1));
     plot->save_settings(cf);
-    aux_plot[0]->save_settings(cf);
-    aux_plot[1]->save_settings(cf);
+    for (int i = 0; i < 2; ++i)
+        aux_plot[i]->save_settings(cf);
 }
 
 void PlotPane::read_settings(wxConfigBase *cf)
@@ -104,8 +105,8 @@ void PlotPane::read_settings(wxConfigBase *cf)
     show_aux(0, from_config_read_bool(cf, "ShowAuxPane0", true));
     show_aux(1, from_config_read_bool(cf, "ShowAuxPane1", false));
     plot->read_settings(cf);
-    aux_plot[0]->read_settings(cf);
-    aux_plot[1]->read_settings(cf);
+    for (int i = 0; i < 2; ++i)
+        aux_plot[i]->read_settings(cf);
 }
 
 void PlotPane::refresh_plots(bool update)
@@ -181,6 +182,31 @@ void PlotPane::show_aux(int n, bool show)
         else // only one was visible
             Unsplit(); //hide whole aux_split
     }
+}
+
+// draw "crosshair cursor" -> erase old and draw new
+void PlotPane::draw_crosshair(int X, int Y)
+{
+    static bool drawn = false;
+    static int oldX = 0, oldY = 0;
+    if (drawn) {
+        do_draw_crosshair(oldX, oldY);
+        drawn = false;
+    }
+    if (crosshair_cursor && X >= 0) {
+        do_draw_crosshair(X, Y);
+        oldX = X;
+        oldY = Y;
+        drawn = true;
+    }
+}
+
+void PlotPane::do_draw_crosshair(int X, int Y)
+{
+    plot->draw_crosshair(X, Y);
+    for (int i = 0; i < 2; ++i)
+        if (aux_visible(i))
+            aux_plot[i]->draw_crosshair(X, -1);
 }
 
 

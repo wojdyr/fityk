@@ -174,6 +174,7 @@ enum {
     ID_G_S_A1                  ,
     ID_G_S_A2                  ,
     ID_G_S_IO                  ,
+    ID_G_CROSSHAIR             ,
     ID_G_V_ALL                 ,
     ID_G_V_VERT                ,
     ID_G_V_SCROLL_L            ,
@@ -373,6 +374,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_S_IO,        FFrame::OnSwitchIOPane)
     EVT_MENU (ID_G_S_TOOLBAR,   FFrame::OnSwitchToolbar)
     EVT_MENU (ID_G_S_STATBAR,   FFrame::OnSwitchStatbar)
+    EVT_MENU (ID_G_CROSSHAIR,   FFrame::OnSwitchCrosshair)
     EVT_MENU (ID_G_V_ALL,       FFrame::OnGViewAll)
     EVT_MENU (ID_G_V_VERT,      FFrame::OnGFitHeight)
     EVT_MENU (ID_G_V_SCROLL_L,  FFrame::OnGScrollLeft)
@@ -543,6 +545,7 @@ void FFrame::read_settings(wxConfigBase *cf)
     main_pane->SetProportion(from_config_read_double(cf, "MainPaneProportion",
                                                           0.7));
     SwitchIOPane(from_config_read_bool(cf, "ShowIOPane", true));
+    SwitchCrosshair(from_config_read_bool(cf, "ShowCrosshair", false));
 }
 
 void FFrame::save_all_settings(wxConfigBase *cf) const
@@ -563,6 +566,7 @@ void FFrame::save_settings(wxConfigBase *cf) const
     cf->Write("ShowDataPane", v_splitter->IsSplit());
     cf->Write("MainPaneProportion", main_pane->GetProportion());
     cf->Write("ShowIOPane", main_pane->IsSplit());
+    cf->Write("ShowCrosshair", plot_pane->crosshair_cursor);
     int x, y, w, h;
     GetClientSize(&w, &h);
     GetPosition(&x, &y);
@@ -691,6 +695,8 @@ void FFrame::set_menubar()
     gui_menu_show->Check(ID_G_S_IO, true);
     gui_menu->Append(ID_G_SHOW, "S&how", gui_menu_show);
     gui_menu->AppendSeparator();
+    gui_menu->AppendCheckItem(ID_G_CROSSHAIR, "&Crosshair Cursor", 
+                                              "Show crosshair cursor");
     gui_menu->Append (ID_G_V_ALL, "Zoom &All", "View whole data");
     gui_menu->Append (ID_G_V_VERT, "Fit &vertically", "Adjust vertical zoom");
     gui_menu->Append (ID_G_V_SCROLL_L, "Scroll &Left", "Scroll view left");
@@ -1322,6 +1328,12 @@ void FFrame::SwitchIOPane (bool show)
     //if (toolbar) toolbar->ToggleTool(ID_ft_..., show);
 }
 
+void FFrame::SwitchCrosshair (bool show)
+{
+    plot_pane->crosshair_cursor = show;
+    GetMenuBar()->Check(ID_G_CROSSHAIR, show);
+}
+
 void FFrame::OnGuiShowUpdate (wxUpdateUIEvent& event)
 {
     for (int i = 0; i < 2; i++) 
@@ -1495,6 +1507,11 @@ void FFrame::output_text(OutputStyle style, const string& str)
 void FFrame::refresh_plots(bool update)
 {
     plot_pane->refresh_plots(update);
+}
+
+void FFrame::draw_crosshair(int X, int Y)
+{
+    plot_pane->draw_crosshair(X, Y);
 }
 
 void FFrame::focus_input()
