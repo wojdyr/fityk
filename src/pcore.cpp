@@ -118,12 +118,13 @@ void PlotCore::set_view (Rect rt, bool fit)
     else {
         fp y_min = my_data->get_y_min(false);
         fp y_max = my_data->get_y_max(false);
-        if (y_min == y_max) y_min -= 0.1, y_max += 0.1;
+        if (y_min == y_max) 
+            y_min -= 0.1, y_max += 0.1;
         fp y_size = y_max - y_min;
-        if (view.bottom <  y_min - sens_mult * y_size)
+        if (view.bottom < y_min - sens_mult * y_size)
             view.bottom = min (y_min, 0.);
-        if (view.top >  y_max + y_size)
-            view.top = y_max + y_size * relative_view_y_margin;;
+        if (view.top > y_max + y_size)
+            view.top = y_max + y_size * relative_view_y_margin;
     }
 }
 
@@ -133,15 +134,9 @@ void PlotCore::set_view_y_fit()
         warn ("Can't set view when no points are loaded");
         return;
     }
-    /*
-    if (my_data->get_n() == 0) {
-        warn ("No active points. Y range not changed.");
-        return;
-    }
-    */
     vector<Point>::const_iterator f = my_data->get_point_at(view.left);
     vector<Point>::const_iterator l = my_data->get_point_at(view.right);
-    if (f >= l) {
+    if (f >= l) { //no points in this range
         view.bottom = 0.;
         view.top = 1.;
         return;
@@ -152,24 +147,31 @@ void PlotCore::set_view_y_fit()
     for (vector<Point>::const_iterator i = f; i < l; i++) {
         if (i->is_active) {
             fp y = plus_background ? i->orig_y : i->y;
-            if (!min_max_set) min_max_set = true;
-            if (y > y_max) y_max = y;
-            if (y < y_min) y_min = y;
+            min_max_set = true;
+            if (y > y_max) 
+                y_max = y;
+            if (y < y_min) 
+                y_min = y;
         }
     }
     if (!min_max_set || y_min == y_max) { //none or 1 active point, so now we  
-        min_max_set = false;       // search for min. and max. y in all points 
+                                   // search for min. and max. y in all points 
         for (vector<Point>::const_iterator i = f; i < l; i++) { 
             fp y = plus_background ? i->orig_y : i->y;
-            if (!min_max_set) min_max_set = true;
-            if (y > y_max) y_max = y;
-            if (y < y_min) y_min = y;
+            if (y > y_max) 
+                y_max = y;
+            if (y < y_min) 
+                y_min = y;
+        }
+        if (y_min == y_max) { // again not enough points (with different y's)
+                y_min -= 0.1; 
+                y_min += 0.1;
         }
     }
-    if (!min_max_set || y_min == y_max) { //none or 1 point, so now we  
-        if (min_max_set) y_min -= 0.1, y_min += 0.1;
-        else y_min = 0, y_max = +1;
-    }
+    // estimated sum maximum
+    fp sum_y_max = sum->approx_max(view.left, view.right);
+    if (sum_y_max > y_max)
+        y_max = sum_y_max;
     view.bottom = y_min;
     view.top = y_max + (y_max - y_min) * relative_view_y_margin;;
 }

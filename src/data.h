@@ -52,7 +52,9 @@ public :
     void d_was_plotted() { d_was_changed = false; }
     bool was_changed() const { return d_was_changed; }
     std::string getInfo() const;
-    int load_file (std::string file, int type, 
+    int load_arrays(const std::vector<fp> &x, const std::vector<fp> &y, 
+                   const std::vector<fp> &sigma, const std::string &data_title);
+    int load_file (const std::string &file, int type, 
                    std::vector<int> usn, std::vector<int> evr, int merge);
     char guess_file_type (const std::string& filename);
     fp get_x (int n) const { return p[active_p[n]].x; }
@@ -101,18 +103,11 @@ private:
     bool d_was_changed;
     std::string title;
     std::string filename;
-    int filetype;
-                /*  0  unknown
-                 *  1  x  y  
-                 *  2  .mca
-                 *  3  .rit  -> in 1.line: xmin xstep 
-                 *              in next lines: y y y y y y y ....
-                 *  4  Siemens-Bruker-AXS raw-files
-                 */
     std::vector<int> col_nums;
     std::vector<int> every;
-    std::vector<Point> merge_table;
-    int every_idx, merging;
+    std::vector<Point> merge_table;//for internal use in add_point_2nd_stage()
+    int every_idx; //internal index used by add_point()
+    int merging;
     fp x_step; // 0 if not fixed;
     std::vector<Point> p;
     std::vector<int> active_p;
@@ -134,6 +129,8 @@ private:
     void load_rit_filetype (std::ifstream& f);
     void load_cpi_filetype (std::ifstream& f);
     void recompute_sigma();
+    void clear();
+    void post_load();
 
     void spline_interpolation (Bg_cl_enum bg_cl);
     void linear_interpolation (Bg_cl_enum bg_cl);

@@ -1,12 +1,6 @@
 
 * WIN32: make output window scroll when there is a new output  
 
-* default vertical zoom should contain both data points and whole sum
-
-* (GUI) export file-dialogs - (d.export and s.export) default filenames in GUI
-
-* Data::load_arrays() method 
-
 * www page with links to various peak-fitting programs, based on results
   of survey:  Peakfit (v.3 & 4), Origin+PFM, 
   peaksolve&GRAMS/32 (www.galactic.com), kaleidagraph (www.synergy.com),
@@ -36,6 +30,8 @@
 * GUI for d.transform command 
 
 * (GUI) Data->Revert, datapane - "duplicate" command 
+
+* (GUI) datapane tree - hint with full filenames, editable labels (titles)
 
 * auto-freezing of peaks at disactivated range
 

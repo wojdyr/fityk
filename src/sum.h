@@ -39,7 +39,7 @@ public:
     fp value_and_put_deriv (fp x, std::vector<fp>& dy_da) const;
     fp value_and_add_numeric_deriv (fp x, bool both_sides, 
                                     std::vector<fp>& dy_da) const;
-    fp get_ffunc_deriv (int f, fp x, std::vector<fp>& dy_da);
+    fp approx_max(fp x_min, fp x_max);
     std::string general_info() const;
     std::string sum_full_formula (const std::vector<fp>& localA = fp_v0) const;
     std::string sum_of_peaks_formula (const std::vector<int>& peaks, 

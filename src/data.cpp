@@ -13,6 +13,27 @@ RCSID ("$Id$")
 
 using namespace std;
 
+// filename utils
+#if defined(_WIN32) || defined(WIN32) || defined(__NT__) || defined(__WIN32__) || defined(__OS2__)
+#define FILE_SEP_PATH '\\'
+#elif defined(__MAC__) || defined(__APPLE__) || defined(macintosh)
+#define FILE_SEP_PATH ':'
+#else
+#define FILE_SEP_PATH '/'
+#endif
+
+string get_file_basename(const string &path)
+{
+    string::size_type last_sep = path.rfind(FILE_SEP_PATH);
+    string::size_type last_dot = path.rfind('.');
+    size_t basename_begin = (last_sep == string::npos ? 0 : last_sep + 1);
+    if (last_dot != string::npos && last_dot > basename_begin)
+        return string(path, basename_begin, last_dot-basename_begin);
+    else
+        return string(path, basename_begin);
+}
+
+
 Data *my_data;
 
 Data::Data ()
@@ -75,7 +96,66 @@ char Data::guess_file_type (const string& filename)
         return 'd';
 }
 
-int Data::load_file (string file, int type, 
+void Data::clear()
+{
+    d_was_changed = true;
+    filename.clear();   //removing previos file
+    title.clear();
+    p.clear();
+    active_p.clear();
+    col_nums.clear();
+    every.clear();
+    every_idx = 1;
+    merging = 0;
+    merge_table.clear();
+}
+
+void Data::post_load()
+{
+    change_range (-INF, +INF, true);
+    if (!p[0].sigma)
+        change_sigma('r');
+    y_orig_min = y_orig_max = p.front().orig_y;
+    for (vector<Point>::iterator i = p.begin(); i != p.end(); i++) {
+        if (i->orig_y < y_orig_min)
+            y_orig_min = i->orig_y;
+        if (i->orig_y > y_orig_max)
+            y_orig_max = i->orig_y;
+    }
+    if (title.empty())
+        title = get_file_basename(filename);
+    if (!background[bgc_bg].empty())
+        recompute_background (bgc_bg);
+    if (!background[bgc_cl].empty())
+        recompute_background (bgc_cl);
+    else
+        recompute_y_bounds();
+}
+
+
+int Data::load_arrays(const vector<fp> &x, const vector<fp> &y, 
+                      const vector<fp> &sigma, const string &data_title)
+{
+    size_t size = y.size();
+    assert(y.size() == size);
+    assert(sigma.empty() || sigma.size() == size);
+    clear();
+    filename = "-";
+    title = data_title;
+    if (sigma.empty()) 
+        for (size_t i = 0; i < size; ++i)
+            add_point (Point (x[i], y[i]));
+    else
+        for (size_t i = 0; i < size; ++i)
+            add_point (Point (x[i], y[i], sigma[i]));
+    sort(p.begin(), p.end());
+    x_step = find_step();
+    post_load();
+    return p.size();
+}
+
+
+int Data::load_file (const string &file, int type, 
                      vector<int> col, vector<int> evr, int merge)
 { 
     if (type == 0) {                  // "detect" file format
@@ -86,17 +166,11 @@ int Data::load_file (string file, int type,
         warn ("Can't open file: " + file );
         return -1;
     }
-    d_was_changed = true;
-    filename = file;   //removing previos file
-    title = "";
-    p.clear();
-    active_p.clear();
-    filetype = type;
+    clear(); //removing previous file
+    filename = file;   
     col_nums = col;
     every = evr;
-    every_idx = 1;
     merging = merge;
-    merge_table.clear();
 
     if (type=='d')                            // x y x y ... 
         load_xy_filetype(f, col);
@@ -118,22 +192,8 @@ int Data::load_file (string file, int type,
         warn ("Unexpected char when reading " + S (p.size() + 1) + ". point");
     if (p.empty())
         return 0;
-    change_range (-INF, +INF, true);
-    if (!p[0].sigma)
-        change_sigma('r');
-    y_orig_min = y_orig_max = p.front().orig_y;
-    for (vector<Point>::iterator i = p.begin(); i != p.end(); i++) {
-        if (i->orig_y < y_orig_min )
-            y_orig_min = i->orig_y;
-        if (i->orig_y > y_orig_max)
-            y_orig_max = i->orig_y;
-    }
-    if (!background[bgc_bg].empty())
-        recompute_background (bgc_bg);
-    if (!background[bgc_cl].empty())
-        recompute_background (bgc_cl);
-    else
-        recompute_y_bounds();
+
+    post_load();
     return p.size();
 }
 
@@ -525,6 +585,7 @@ string Data::range_as_string () const
     return s;
 }
 
+///check for fixed step
 fp Data::find_step() 
 {
     const fp tiny_relat_diff=0.01;
@@ -538,10 +599,10 @@ fp Data::find_step()
         max_step = max (max_step, step);
     }
     fp avg = (max_step + min_step) / 2;
-    if ((max_step - min_step) / fabs(avg) < tiny_relat_diff) 
+    if ((max_step - min_step) < tiny_relat_diff * fabs(avg)) 
         return avg;
     else 
-        return 0;
+        return 0.;
 }
         
 int Data::get_one_line_with_numbers(istream &is, vector<fp>& result_numbers) 

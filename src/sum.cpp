@@ -222,6 +222,30 @@ fp Sum::value_and_add_numeric_deriv (fp x, bool both_sides,
     return y;
 }
 
+// estimate max. value in given range (probe at peak centers and between)
+fp Sum::approx_max(fp x_min, fp x_max)
+{
+    use_param_a_for_value();
+    fp x = x_min;
+    fp y_max = value(x);
+    vector<fp> xx; 
+    for (vector<V_f*>::const_iterator i = fvec.begin(); i != fvec.end(); i++) {
+        fp ctr = (*i)->center();
+        if (x_min < ctr && ctr < x_max)
+            xx.push_back(ctr);
+    }
+    xx.push_back(x_max);
+    sort(xx.begin(), xx.end());
+    for (vector<fp>::const_iterator i = xx.begin(); i != xx.end(); i++) {
+        fp x_between = (x + *i)/2.;
+        x = *i;
+        fp y = max(value(x_between), value(x));
+        if (y > y_max) 
+            y_max = y;
+    }
+    return y_max;
+}
+
 string Sum::general_info() const
 {
     ostringstream os; 
@@ -740,11 +764,11 @@ void Sum::change_in_f (int f, vector<int> arg, vector<Pag> np) //experimental
     PagContainer (this, old); //to call recursive_rm() in destructor
 }
 
-/** guess_f() tries to find out what the fit should be for the peak 
- * - much like what happens when you add a peak using the range function. 
+/* guess_f() tries to find out what the fit should be for the peak 
+ * - much like what happens when you add a new peak. 
  * The only difference is that this is done on already existing 
- * peaks - for instance when a nearby peak is moved etc and the user wants 
- * this why estimated again. It changes only these peak parameters, 
+ * peak - for instance when a nearby peak is moved etc and the user wants 
+ * estimate this again. It changes only these peak parameters, 
  * that are simple parameters.
  */
 void Sum::guess_f(int n)

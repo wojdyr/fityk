@@ -992,12 +992,17 @@ void FFrame::OnDCalibrate (wxCommandEvent& WXUNUSED(event))
 
 void FFrame::OnDExport (wxCommandEvent& WXUNUSED(event))
 {
-    wxFileDialog fdlg (frame, "Export data to file", "", "",
+    static int filter_idx = 0;
+    static wxString dir = ".";
+    wxFileDialog fdlg (frame, "Export data to file", dir, "",
                        "x y data (*.dat)|*.dat;*.DAT"
                        "|fityk file (*.fit)|*.fit;*.FIT",
                        wxSAVE | wxOVERWRITE_PROMPT);
+    fdlg.SetFilterIndex(filter_idx);
     if (fdlg.ShowModal() == wxID_OK) 
         exec_command (("d.export '" + fdlg.GetPath() + "'").c_str());
+    filter_idx = fdlg.GetFilterIndex();
+    dir = fdlg.GetDirectory();
 }
 
 void FFrame::OnDSet (wxCommandEvent& WXUNUSED(event))
@@ -1054,15 +1059,21 @@ void FFrame::OnSValue        (wxCommandEvent& WXUNUSED(event))
           
 void FFrame::OnSExport       (wxCommandEvent& WXUNUSED(event))
 {
-    wxFileDialog fdlg (frame, "Export curve to file", "", "",
-                       "x y data (*.dat)|*.dat;*.DAT"
+    static int filter_idx = 0;
+    static wxString dir = ".";
+    wxString name = wxFileName(my_data->get_filename().c_str()).GetName();
+    wxFileDialog fdlg (frame, "Export curve to file", dir, name,
+                       "parameters of peaks (*.peaks)|*.peaks"
+                       "|x y data (*.dat)|*.dat;*.DAT"
                        "|XFIT peak listing (*xfit.txt)|*xfit.txt;*XFIT.TXT" 
                        "|mathematic formula (*.formula)|*.formula"
-                       "|parameters of peaks (*.peaks)|*.peaks"
                        "|fityk file (*.fit)|*.fit;*.FIT",
                        wxSAVE | wxOVERWRITE_PROMPT);
+    fdlg.SetFilterIndex(filter_idx);
     if (fdlg.ShowModal() == wxID_OK) 
         exec_command (("s.export '" + fdlg.GetPath() + "'").c_str());
+    filter_idx = fdlg.GetFilterIndex();
+    dir = fdlg.GetDirectory();
 }
            
 void FFrame::OnSSet          (wxCommandEvent& WXUNUSED(event))
