@@ -102,13 +102,14 @@ class FToolBar : public wxToolBar
 {
 public:
     FToolBar (wxFrame *parent, wxWindowID id); 
-    const f_names_type& get_peak_type() const;
+    void update_peak_type(); 
 
 private:
     wxChoice *peak_choice; 
-    std::vector<const z_names_type*> all_t;
 
+    void OnPeakChoice (wxCommandEvent& event);
     void OnChangeMouseMode (wxCommandEvent& event);
+    void OnSwitchDPane (wxCommandEvent& event);
     void OnClickTool (wxCommandEvent& event);
     DECLARE_EVENT_TABLE()
 };
@@ -197,12 +198,17 @@ public:
     void OnPrintSetup    (wxCommandEvent& event);
     void OnPrint         (wxCommandEvent& event);
     void OnChangeMouseMode (wxCommandEvent& event);
+    void OnModePeak      (wxCommandEvent& event);
+    void OnChangePeakType(wxCommandEvent& event);
     void OnGViewAll      (wxCommandEvent& event);
     void OnGFitHeight    (wxCommandEvent& event);
     void OnPreviousZoom  (wxCommandEvent& event);
     void OnConfigRead    (wxCommandEvent& event);
     void OnConfigBuiltin (wxCommandEvent& event);
     void OnConfigSave    (wxCommandEvent& event);
+    void OnSwitchDPane   (wxCommandEvent& event);
+    void OnSwitchToolbar (wxCommandEvent& event);
+    void OnSwitchStatbar (wxCommandEvent& event);
 
     void OnSashDrag (wxSashEvent& event);
 
@@ -212,8 +218,10 @@ public:
     void read_settings(wxConfigBase *cf);
     void read_all_settings(wxConfigBase *cf);
     const FToolBar* get_toolbar() const { return toolbar; }
+    const f_names_type& get_peak_type() const;
 
 protected:
+    int peak_type_nr;
     FToolBar *toolbar;
     FCombo   *input_combo;
     FDXLoadDlg *dxload_dialog;

@@ -864,7 +864,8 @@ void MainPlot::update_mouse_hints()
                     assert(0);
             }
     }
-    frame->status_bar->set_hint(left.c_str(), right.c_str());  
+    if (frame->status_bar)
+        frame->status_bar->set_hint(left.c_str(), right.c_str());  
 }
 
 void MainPlot::OnMouseMove(wxMouseEvent &event)
@@ -1377,7 +1378,7 @@ void MainPlot::OnZoomAll (wxCommandEvent& WXUNUSED(event))
 //functions..........
 void MainPlot::add_peak(fp height, fp ctr, fp hwhm) 
 {
-    const f_names_type &f = frame->get_toolbar()->get_peak_type();
+    const f_names_type &f = frame->get_peak_type();
 
 // -> f_names_type, map<string,fp> 
     my_sum->use_param_a_for_value();

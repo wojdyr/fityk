@@ -78,6 +78,7 @@ RCSID ("$Id$")
 #include "img/whole.xpm"
 #include "img/vertic.xpm"
 #include "img/backv.xpm"
+#include "img/dpane.xpm"
 #include "img/mouse_l.xpm"
 #include "img/mouse_r.xpm"
 
@@ -177,11 +178,17 @@ enum {
     ID_O_WAIT                  ,
     ID_O_DUMP                  ,
     ID_O_SET                   ,
+    ID_G_MODE                  ,
     ID_G_M_ZOOM                ,
     ID_G_M_RANGE               ,
     ID_G_M_BG                  ,
     ID_G_M_ADD                 ,
-    ID_G_MODE                  ,
+    ID_G_M_PEAK                ,
+    ID_G_M_PEAK_N      = 44220 ,
+    ID_G_SHOW          = 44260 ,
+    ID_G_S_TOOLBAR             ,
+    ID_G_S_STATBAR             ,
+    ID_G_S_DPANE               ,
     ID_G_V_ALL                 ,
     ID_G_V_VERT                ,
     ID_G_V_ZOOM_PREV   = 44302 ,
@@ -216,7 +223,9 @@ enum {
     ID_ft_f_run                ,
     ID_ft_f_cont               ,
     ID_ft_f_undo               ,
-    ID_ft_s_aa                 
+    ID_ft_s_aa                 ,
+    ID_ft_dpane                ,
+    ID_ft_peakchoice
 };
 
 IMPLEMENT_APP(FApp)
@@ -352,6 +361,11 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_M_RANGE,     FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_BG,        FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_ADD,       FFrame::OnChangeMouseMode)
+    EVT_MENU (ID_G_M_PEAK,      FFrame::OnModePeak)
+    EVT_MENU_RANGE (ID_G_M_PEAK_N+0, ID_G_M_PEAK_N+30, FFrame::OnChangePeakType)
+    EVT_MENU (ID_G_S_DPANE,     FFrame::OnSwitchDPane)
+    EVT_MENU (ID_G_S_TOOLBAR,   FFrame::OnSwitchToolbar)
+    EVT_MENU (ID_G_S_STATBAR,   FFrame::OnSwitchStatbar)
     EVT_MENU (ID_G_V_ALL,       FFrame::OnGViewAll)
     EVT_MENU (ID_G_V_VERT,      FFrame::OnGFitHeight)
     EVT_MENU_RANGE (ID_G_V_ZOOM_PREV+0, ID_G_V_ZOOM_PREV+20, 
@@ -377,6 +391,8 @@ END_EVENT_TABLE()
 FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title, 
                  const long style)
     : wxFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, style), 
+      output_win(0), plot(0), diff_plot(0), status_bar(0), 
+      peak_type_nr(0), toolbar(0),
       dxload_dialog(0), plot_window(0), aux_window(0), bottom_window(0), 
       print_data(new wxPrintData), page_setup_data(new wxPageSetupData),
 #ifdef __WXMSW__
@@ -479,7 +495,7 @@ void FFrame::read_settings(wxConfigBase *cf)
     cf->SetPath("/Frame");
     int x = cf->Read("x", 50),
         y = cf->Read("y", 50),
-        w = cf->Read("w", 600),
+        w = cf->Read("w", 650),
         h = cf->Read("h", 400);
     Move(x, y);
     SetClientSize(w, h);
@@ -654,7 +670,26 @@ void FFrame::set_menubar()
                                     "Use mouse for substracting background");
     gui_menu_mode->AppendRadioItem (ID_G_M_ADD, "&Peak-Add", 
                                     "Use mouse for adding new peaks");
+    wxMenu* gui_menu_mode_peak = new wxMenu;
+    vector<const z_names_type*> all_t = V_fzg::all_types(fType);
+    for (vector<const z_names_type*>::const_iterator i = all_t.begin();
+                                                         i != all_t.end(); i++)
+        gui_menu_mode_peak->AppendRadioItem(ID_G_M_PEAK_N + (i - all_t.begin()),
+                                            (*i)->name.c_str());
+    gui_menu_mode->AppendSeparator();
+    gui_menu_mode->Append (ID_G_M_PEAK, "Peak &type", gui_menu_mode_peak);
     gui_menu->Append(ID_G_MODE, "&Mode", gui_menu_mode);
+    gui_menu->AppendSeparator();
+    wxMenu* gui_menu_show = new wxMenu;
+    gui_menu_show->AppendCheckItem (ID_G_S_TOOLBAR, "&Toolbar", 
+                                    "Show/hide toolbar");
+    gui_menu_show->Check(ID_G_S_TOOLBAR, true);
+    gui_menu_show->AppendCheckItem (ID_G_S_STATBAR, "&Status Bar", 
+                                    "Show/hide status bar");
+    gui_menu_show->Check(ID_G_S_STATBAR, true);
+    gui_menu_show->AppendCheckItem (ID_G_S_DPANE, "&Datasets Pane", 
+                                    "Show/hide datasets pane");  
+    gui_menu->Append(ID_G_SHOW, "S&how", gui_menu_show);
     gui_menu->AppendSeparator();
     gui_menu->Append (ID_G_V_ALL, "Zoom &All", "View whole data");
     gui_menu->Append (ID_G_V_VERT, "Fit &vertically", "Adjust vertical zoom");
@@ -1209,33 +1244,76 @@ void FFrame::OnChangeMouseMode (wxCommandEvent& event)
         case ID_ft_m_zoom:   
             mode = mmd_zoom;   
             GetMenuBar()->Check(ID_G_M_ZOOM, true);
-            toolbar->ToggleTool(ID_ft_m_zoom, true);
+            if (toolbar) toolbar->ToggleTool(ID_ft_m_zoom, true);
             break;
         case ID_G_M_RANGE:   
         case ID_ft_m_range:  
             mode = mmd_range;  
             GetMenuBar()->Check(ID_G_M_RANGE, true);
-            toolbar->ToggleTool(ID_ft_m_range, true);
+            if (toolbar) toolbar->ToggleTool(ID_ft_m_range, true);
             break;
         case ID_G_M_BG:   
         case ID_ft_m_bg:     
             mode = mmd_bg;     
             GetMenuBar()->Check(ID_G_M_BG, true);
-            toolbar->ToggleTool(ID_ft_m_bg, true);
+            if (toolbar) toolbar->ToggleTool(ID_ft_m_bg, true);
             break;
         case ID_G_M_ADD:   
         case ID_ft_m_add:    
             mode = mmd_add;    
             GetMenuBar()->Check(ID_G_M_ADD, true);
-            toolbar->ToggleTool(ID_ft_m_add, true);
+            if (toolbar) toolbar->ToggleTool(ID_ft_m_add, true);
             break;  
         default: assert(0);
     }
-    if (mode == mmd_bg && toolbar->GetToolState(ID_ft_b_with) == false) {
+    if (mode==mmd_bg && toolbar && toolbar->GetToolState(ID_ft_b_with)==false) {
         toolbar->ToggleTool(ID_ft_b_with, true);
         exec_command ("o.plot +");
     }
     plot->set_mouse_mode(mode);
+}
+
+void FFrame::OnModePeak(wxCommandEvent& event)
+{
+    GetMenuBar()->Check(ID_G_M_PEAK_N + peak_type_nr, true);
+    event.Skip();
+}
+
+void FFrame::OnChangePeakType(wxCommandEvent& event)
+{
+    peak_type_nr = event.GetId() - ID_G_M_PEAK_N;
+    if (toolbar) toolbar->update_peak_type();
+}
+
+void FFrame::OnSwitchToolbar (wxCommandEvent& event)
+{
+    if (event.IsChecked() && !GetToolBar()) {
+        toolbar = new FToolBar(this, -1);
+        SetToolBar(toolbar);
+    }
+    else if (!event.IsChecked() && GetToolBar()){
+        SetToolBar(0);
+        delete toolbar; 
+    }
+}
+
+void FFrame::OnSwitchStatbar (wxCommandEvent& event)
+{
+    if (event.IsChecked() && !GetStatusBar()) {
+        status_bar = new FStatusBar(this);
+        SetStatusBar(status_bar);
+    }
+    else if (!event.IsChecked() && GetStatusBar()) {
+        SetStatusBar(0);
+        delete status_bar; 
+        status_bar = 0;
+        Layout();
+    }
+}
+
+void FFrame::OnSwitchDPane (wxCommandEvent& event)
+{
+    //event.IsChecked() 
 }
 
 void FFrame::OnGViewAll (wxCommandEvent& WXUNUSED(event))
@@ -1352,6 +1430,12 @@ void FFrame::OnPrint(wxCommandEvent& WXUNUSED(event))
         wxMessageBox("There was a problem printing.\nPerhaps your current "
                      "printer is not set correctly?", "Printing", wxOK);
 }
+
+const f_names_type& FFrame::get_peak_type() const
+{
+    return V_f::f_names[peak_type_nr];
+}
+
 
 FPrintout::FPrintout() 
     : wxPrintout(my_data->get_filename().c_str()) {}
@@ -1709,6 +1793,8 @@ FSetDlg::FSetDlg(wxWindow* parent, const wxWindowID id, const wxString& title,
 BEGIN_EVENT_TABLE (FToolBar, wxToolBar)
     EVT_TOOL_RANGE (ID_ft_m_zoom, ID_ft_m_add,  FToolBar::OnChangeMouseMode)
     EVT_TOOL_RANGE (ID_ft_v_pr, ID_ft_s_aa,        FToolBar::OnClickTool)
+    EVT_TOOL (ID_ft_dpane, FToolBar::OnSwitchDPane)
+    EVT_CHOICE (ID_ft_peakchoice, FToolBar::OnPeakChoice)
 END_EVENT_TABLE()
 
 FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
@@ -1716,15 +1802,21 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
                      wxNO_BORDER | /*wxTB_FLAT |*/ wxTB_DOCKABLE) 
 {
     // mode
+    Mouse_mode_enum m = frame && frame->plot ? frame->plot->get_mouse_mode() 
+                                             : mmd_zoom;
     AddRadioTool(ID_ft_m_zoom, "Zoom", wxBitmap(zoom_t_xpm), wxNullBitmap, 
                  "Normal Mode", "Use mouse for zooming, moving peaks etc."); 
+    ToggleTool(ID_ft_m_zoom, m == mmd_zoom);
     AddRadioTool(ID_ft_m_range, "Range", wxBitmap(range_t_xpm), wxNullBitmap, 
          "Data-Range Mode", "Use mouse for activating and disactivating data"); 
+    ToggleTool(ID_ft_m_range, m == mmd_range);
     AddRadioTool(ID_ft_m_bg, "Background", wxBitmap(baseline_t_xpm), 
                                                                  wxNullBitmap, 
                  "Baseline Mode", "Use mouse for substracting background"); 
+    ToggleTool(ID_ft_m_bg, m == mmd_bg);
     AddRadioTool(ID_ft_m_add, "Add peak", wxBitmap(addpeak_t_xpm), wxNullBitmap,
                  "Add-Peak Mode", "Use mouse for adding new peaks"); 
+    ToggleTool(ID_ft_m_add, m == mmd_add);
     AddSeparator();
     // view
     AddTool (ID_G_V_ALL, "Whole", wxBitmap(whole_xpm), wxNullBitmap, 
@@ -1769,12 +1861,12 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     AddTool (ID_S_INFO, "Tree", wxBitmap(tree_xpm), wxNullBitmap,
              wxITEM_NORMAL, "Show tree", "Show tree of functions");
     AddSeparator();
-    peak_choice = new wxChoice (this, -1); //type of peak -- wxChoice
-    all_t = V_fzg::all_types(fType);
+    peak_choice = new wxChoice(this, ID_ft_peakchoice); 
+    vector<const z_names_type*> all_t = V_fzg::all_types(fType);
     for (vector<const z_names_type*>::const_iterator i = all_t.begin();
                                                          i != all_t.end(); i++)
         peak_choice->Append ((*i)->name.c_str());
-    peak_choice->SetSelection(0);
+    update_peak_type();
     AddControl (peak_choice);
     AddTool (ID_ft_s_aa, "add", wxBitmap(autoadd_xpm), wxNullBitmap, 
              wxITEM_NORMAL, "auto-add", "Add peak automatically");
@@ -1790,13 +1882,31 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     //help
     AddTool (ID_H_MANUAL, "Help", wxBitmap(manual_xpm), wxNullBitmap,
              wxITEM_NORMAL, "Manual", "Open user manual");
+    AddSeparator();
+    AddTool (ID_ft_dpane, "Datasets", wxBitmap(dpane_xpm), wxNullBitmap,
+             wxITEM_CHECK, "Datasets Pane", "Show/hide datasets pane");
 
     Realize();
+}
+
+void FToolBar::OnPeakChoice(wxCommandEvent &event) 
+{
+    if (frame) frame->peak_type_nr = event.GetSelection();
+}
+
+void FToolBar::update_peak_type() 
+{ 
+    peak_choice->SetSelection(frame ? frame->peak_type_nr : 0); 
 }
 
 void FToolBar::OnChangeMouseMode (wxCommandEvent& event)
 {
     frame->OnChangeMouseMode(event);
+}
+
+void FToolBar::OnSwitchDPane (wxCommandEvent& event)
+{
+    frame->OnSwitchDPane(event);
 }
 
 void FToolBar::OnClickTool (wxCommandEvent& event)
@@ -1826,11 +1936,6 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
         }
         default: assert(0);
     }
-}
-
-const f_names_type& FToolBar::get_peak_type() const
-{
-    return V_f::f_names[peak_choice->GetSelection()];
 }
 
 
@@ -1885,6 +1990,8 @@ FStatusBar::FStatusBar(wxWindow *parent)
     SetMinHeight(15);
     statbmp1 = new wxStaticBitmap(this, -1, wxIcon(mouse_l_xpm));
     statbmp2 = new wxStaticBitmap(this, -1, wxIcon(mouse_r_xpm));
+    if (frame && frame->plot)
+        frame->plot->update_mouse_hints();
 }
 
 void FStatusBar::OnSize(wxSizeEvent& event)
