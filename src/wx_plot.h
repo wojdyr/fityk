@@ -4,10 +4,6 @@
 #ifndef WX_PLOT__H__
 #define WX_PLOT__H__
 
-#ifdef __GNUG__
-#pragma interface
-#endif
-
 #define INVALID -1234565 //i know it is ugly 
 
 #include <map>

@@ -1,9 +1,6 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 
 // wxwindows headers, see wxwindows samples for description
-#ifdef __GNUG__
-#pragma implementation
-#endif
 #include <wx/wxprec.h>
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -285,7 +282,7 @@ void DataPaneTree::OnIdle(wxIdleEvent &event)
         for (int i = 0; i < -diff; i++)
             Delete(GetLastChild(root));
     //  ... "plot n" labels, and data files
-    long cookie, cookie2;
+    wxTreeItemIdValue cookie, cookie2;
     int counter = 0;
     wxString label;
     for (wxTreeItemId i = GetFirstChild(root, cookie); i.IsOk(); 
@@ -311,7 +308,7 @@ void DataPaneTree::update_tree_datalabels(const PlotCore *pcore,
 {
     vector<string> new_labels = pcore->get_data_titles(); 
     vector<string> old_labels;
-    long cookie;
+    wxTreeItemIdValue cookie;
     for (wxTreeItemId i = GetFirstChild(plot_item, cookie); i.IsOk(); 
                                     i = GetNextChild(plot_item, cookie)) 
         old_labels.push_back(GetItemText(i).c_str());

@@ -6,12 +6,10 @@ SUBDIRS = img
 if OS_WIN32
 fityk_LDFLAGS = -mwindows 
 ms_win_res = winres.o
+# windres has "--include-dir" instead of "-I" 
 $(ms_win_res): winres.rc
-	windres -o $@ --include-dir $(srcdir) \
-	--include-dir /usr/local/include --include-dir /usr/include/ \
-	-D__WIN32__ -D__WIN95__ -D__GNUWIN32__ $<
-# there is a problem with windres syntax (--include-dir instead of -I).
-# perhaps 'sed/ -I/ --include-dir /g' should be run 
+	windres -o $@ `echo $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS)\
+			    @WX_CPPFLAGS@ | sed -e 's/-I/--include-dir /g'` $<
 endif
 
 bin_PROGRAMS = @FITYK@ @CFITYK@ 

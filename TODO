@@ -1,5 +1,12 @@
 [Suggestions from Fityk users survey are not included here yet.]
 
+* after upgrading wxWidgets to 2.5.2:
+    problems with refreshing after window resizing 
+    check for compatibility with 2.4.
+    ugly splitters
+
+* (GUI) "Report Bug" item in Help menu
+
 * new command line options: -d and --data that will load data file
   Perhaps 'fityk nacl01.dat' should also load data file?
   Automatically recognize if it is script or data?
@@ -24,6 +31,9 @@
       d.transform x=y & y=x                  -> will swap x and y axes 
 
 * GUI for d.transform command 
+
+* integrate m.findpeak and s.add options. Prepare interface for many
+  peak detection algorithms
 
 * (GUI) in input ComboBox up/down arrow keys should work like 
   in bash -- moving in command history. (use TextCtrl instead of ComboBox)
@@ -65,6 +75,9 @@
 
 * (GUI) stopping fitting interactively (when user don't want to wait longer);
   use threads?
+
+* (GUI) crosshair cursor option (vertical and horizontal line at the cursor 
+  position)
 
 * automatic background substraction - what algorithm is good?
 

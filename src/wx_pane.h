@@ -4,14 +4,11 @@
 #ifndef WX_PANE__H__
 #define WX_PANE__H__
 
-#ifdef __GNUG__
-#pragma interface
-#endif
-
 #include <wx/print.h>
 #include <wx/config.h>
-#include "wx_common.h"  //for Mouse_mode_enum, OutputStyle
 #include <wx/splitter.h>
+#include <wx/treectrl.h>
+#include "wx_common.h"  //for Mouse_mode_enum, OutputStyle
 
 class PlotPane;
 class IOPane;

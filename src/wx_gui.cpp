@@ -1,9 +1,6 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 
 // wxwindows headers, see wxwindows samples for description
-#ifdef __GNUG__
-#pragma implementation
-#endif
 #include <wx/wxprec.h>
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -18,7 +15,6 @@ RCSID ("$Id$")
 #include <wx/laywin.h>
 #include <wx/splitter.h>
 #include <wx/filedlg.h>
-#include <wx/resource.h>
 #include <wx/valtext.h>
 #include <wx/textdlg.h>
 #if wxUSE_TOOLTIPS
@@ -338,7 +334,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_M_FINDPEAK,    FFrame::OnMFindpeak)
     EVT_MENU (ID_M_SET,         FFrame::OnMSet)
 
-    EVT_MENU (ID_F_METHOD,      FFrame::OnFMethodUpdate)    
     EVT_UPDATE_UI (ID_F_METHOD, FFrame::OnFMethodUpdate)
     EVT_MENU_RANGE (ID_F_M+0, ID_F_M+8, FFrame::OnFOneOfMethods)    
     EVT_MENU (ID_F_RUN,         FFrame::OnFRun)    
@@ -370,7 +365,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_M_RANGE,     FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_BG,        FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_ADD,       FFrame::OnChangeMouseMode)
-    EVT_MENU (ID_G_M_PEAK,      FFrame::OnModePeak)
     EVT_UPDATE_UI (ID_G_M_PEAK, FFrame::OnModePeak)
     EVT_MENU_RANGE (ID_G_M_PEAK_N+0, ID_G_M_PEAK_N+30, FFrame::OnChangePeakType)
     EVT_UPDATE_UI (ID_G_SHOW,   FFrame::OnGuiShowUpdate)
@@ -383,7 +377,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_V_VERT,      FFrame::OnGFitHeight)
     EVT_MENU (ID_G_V_SCROLL_L,  FFrame::OnGScrollLeft)
     EVT_MENU (ID_G_V_SCROLL_R,  FFrame::OnGScrollRight)
-    EVT_MENU (ID_G_V_ZOOM_PREV, FFrame::OnShowMenuZoomPrev)
     EVT_UPDATE_UI (ID_G_V_ZOOM_PREV, FFrame::OnShowMenuZoomPrev)
     EVT_MENU_RANGE (ID_G_V_ZOOM_PREV+1, ID_G_V_ZOOM_PREV+20, 
                                 FFrame::OnPreviousZoom)    
@@ -770,7 +763,7 @@ void FFrame::set_menubar()
 
 
     //construct GUI->Previous Zooms menu
-void FFrame::OnShowMenuZoomPrev(wxCommandEvent& WXUNUSED(event))
+void FFrame::OnShowMenuZoomPrev(wxUpdateUIEvent& event)
 {
     static vector<string> old_zoom_hist;
     const vector<string> &zoom_hist = plot_pane->get_zoom_hist();
@@ -783,6 +776,7 @@ void FFrame::OnShowMenuZoomPrev(wxCommandEvent& WXUNUSED(event))
     for (int i = last, j = 1; i >= 0 && i > last - 10; i--, j++) 
         menu->Append(ID_G_V_ZOOM_PREV + j, zoom_hist[i].c_str());
     old_zoom_hist = zoom_hist;
+    event.Skip();
 }
            
 
@@ -1012,7 +1006,7 @@ void FFrame::OnMSet          (wxCommandEvent& WXUNUSED(event))
 }
         
 
-void FFrame::OnFMethodUpdate (wxCommandEvent& event)
+void FFrame::OnFMethodUpdate (wxUpdateUIEvent& event)
 {
     int method_nr = fitMethodsContainer->current_method_number();
     GetMenuBar()->Check (ID_F_M + method_nr, true);
@@ -1247,7 +1241,7 @@ void FFrame::OnChangeMouseMode (wxCommandEvent& event)
     plot_pane->set_mouse_mode(mode);
 }
 
-void FFrame::OnModePeak(wxCommandEvent& event)
+void FFrame::OnModePeak(wxUpdateUIEvent& event)
 {
     GetMenuBar()->Check(ID_G_M_PEAK_N + peak_type_nr, true);
     event.Skip();
@@ -1322,7 +1316,7 @@ void FFrame::SwitchIOPane (bool show)
     //if (toolbar) toolbar->ToggleTool(ID_ft_..., show);
 }
 
-void FFrame::OnGuiShowUpdate (wxCommandEvent& event)
+void FFrame::OnGuiShowUpdate (wxUpdateUIEvent& event)
 {
     for (int i = 0; i < 2; i++) 
         if (GetMenuBar()->IsChecked(ID_G_S_A1+i) != plot_pane->aux_visible(i))

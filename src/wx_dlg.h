@@ -4,10 +4,6 @@
 #ifndef WX_DLG__H__
 #define WX_DLG__H__
 
-#ifdef __GNUG__
-#pragma interface
-#endif
-
 #include <wx/treectrl.h>
 #include <wx/notebook.h>
 #include <wx/spinctrl.h>

@@ -4,10 +4,6 @@
 #ifndef WX_GUI__H__
 #define WX_GUI__H__
 
-#ifdef __GNUG__
-#pragma interface
-#endif
-
 #include "common.h"
 #include "pag.h"
 #include "wx_common.h"  // Output_style_enum
@@ -131,7 +127,7 @@ public:
     void OnMFindpeak     (wxCommandEvent& event);        
     void OnMSet          (wxCommandEvent& event);        
 
-    void OnFMethodUpdate (wxCommandEvent& event);           
+    void OnFMethodUpdate (wxUpdateUIEvent& event);           
     void OnFOneOfMethods (wxCommandEvent& event);
     void OnFRun          (wxCommandEvent& event);        
     void OnFContinue     (wxCommandEvent& event);             
@@ -156,7 +152,7 @@ public:
     void OnPrintSetup    (wxCommandEvent& event);
     void OnPrint         (wxCommandEvent& event);
     void OnChangeMouseMode (wxCommandEvent& event);
-    void OnModePeak      (wxCommandEvent& event);
+    void OnModePeak      (wxUpdateUIEvent& event);
     void OnChangePeakType(wxCommandEvent& event);
     void OnGViewAll      (wxCommandEvent& event);
     void OnGFitHeight    (wxCommandEvent& event);
@@ -166,7 +162,7 @@ public:
     void OnConfigRead    (wxCommandEvent& event);
     void OnConfigBuiltin (wxCommandEvent& event);
     void OnConfigSave    (wxCommandEvent& event);
-    void OnGuiShowUpdate (wxCommandEvent& event);
+    void OnGuiShowUpdate (wxUpdateUIEvent& event);
     void SwitchDPane(bool show);
     void OnSwitchDPane(wxCommandEvent& ev) {SwitchDPane(ev.IsChecked());}
     void OnSwitchAuxPlot(wxCommandEvent& ev);
@@ -176,7 +172,7 @@ public:
     void OnSwitchToolbar(wxCommandEvent& ev) {SwitchToolbar(ev.IsChecked());}
     void SwitchStatbar(bool show);
     void OnSwitchStatbar(wxCommandEvent& ev) {SwitchStatbar(ev.IsChecked());}
-    void OnShowMenuZoomPrev(wxCommandEvent &event);
+    void OnShowMenuZoomPrev(wxUpdateUIEvent& event);
     void save_all_settings(wxConfigBase *cf) const;
     void save_settings(wxConfigBase *cf) const;
     void read_all_settings(wxConfigBase *cf);

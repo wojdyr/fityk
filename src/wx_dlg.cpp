@@ -1,9 +1,6 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 
 // wxwindows headers, see wxwindows samples for description
-#ifdef __GNUG__
-#pragma implementation
-#endif
 #include <wx/wxprec.h>
 #ifdef __BORLANDC__
 #pragma hdrstop
