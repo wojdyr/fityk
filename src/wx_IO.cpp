@@ -28,7 +28,7 @@ void UserInterface::showMessage (OutputStyle style, const string& s)
 void UserInterface::doDrawPlot(bool now, const std::vector<fp>& a)
 {
         params4plot = a;
-        frame->refresh_plots(now);
+        frame->refresh_plots(true, now);
 }
 
 
@@ -52,6 +52,7 @@ void UserInterface::execCommand(const string& s)
     bool r = parser(s);
     if (!r)
         close();
+    frame->refresh_plots(false, true);
 }
 
 void UserInterface::close()

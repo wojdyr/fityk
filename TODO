@@ -1,20 +1,9 @@
 
-* WIN32: make output window scroll when there is a new output  
+* (WWW) update screenshots 
 
-* www page with links to various peak-fitting programs, based on results
-  of survey:  Peakfit (v.3 & 4), Origin+PFM, 
-  peaksolve&GRAMS/32 (www.galactic.com), kaleidagraph (www.synergy.com),
-  http://www.uksaf.org/software.html#1, lorentz.sf.net, graphpad prism,
-  http://www.phy.cuhk.edu.hk/~surface/XPSPEAK/,
-  http://escalab.snu.ac.kr/~berd/Fitt/fitt.html
-  MDI Shadow (http://www.materialsdata.com/products.htm?), Jade, 
-  GSAS, FullProf, CelRef, Powdercell
-  WinPLOTR, WinFit, gnuplot,grace/xmgr,fudgit,qtiplot, paw/root (cern.ch)
-  TableCurve, SigmaPlot
-
-* update webpage - screenshots, features, etc.
-
----- [ 0.4.4 release ]
+* there are problems with refreshing plots and output window when program
+  is busy (ie. when running script or fitting). It seems to be platform
+  dependent.
 
 * problem: fityk can't be compiled with UNICODE-enabled wxWidgets
 

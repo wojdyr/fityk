@@ -337,20 +337,23 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
     wxString cmd;
     if (cmdLineParser.Found("c", &cmd))
         getUI()->execAndLogCmd(cmd.c_str());
-    int data_flag = false;
+    //the rest of parameters/arguments are scripts and/or data files
+    int data_counter = 0; //number of data files
     for (unsigned int i = 0; i < cmdLineParser.GetParamCount(); i++) {
         string par = cmdLineParser.GetParam(i).c_str();
         if (is_fityk_script(par))
             getUI()->execScript(par);
         else {
-            if (!data_flag) {
+            //if there are multiple data files specified at command line,
+            //open each as separate dataset in the same plot
+            if (data_counter == 0) {
                 getUI()->execAndLogCmd("d.load '" + par + "'");
-                data_flag = true;
             }
             else {
                 getUI()->execAndLogCmd("d.activate ::* ; d.load '" + par + "'");
                 frame->SwitchDPane(true);
             }
+            data_counter++;
         }
     }
 }
@@ -1578,9 +1581,9 @@ void FFrame::output_text(OutputStyle style, const string& str)
     io_pane->append_text(style, str.c_str());
 }
 
-void FFrame::refresh_plots(bool update)
+void FFrame::refresh_plots(bool refresh, bool update)
 {
-    plot_pane->refresh_plots(update);
+    plot_pane->refresh_plots(refresh, update);
 }
 
 void FFrame::draw_crosshair(int X, int Y)

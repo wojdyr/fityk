@@ -106,12 +106,14 @@ void PlotPane::read_settings(wxConfigBase *cf)
         aux_plot[i]->read_settings(cf);
 }
 
-void PlotPane::refresh_plots(bool update)
+void PlotPane::refresh_plots(bool refresh, bool update)
 {
     vector<FPlot*> vp = get_visible_plots();
     for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i) {
-        (*i)->Refresh(false);
-        if (update) (*i)->Update();
+        if (refresh)
+            (*i)->Refresh(false);
+        if (update) 
+            (*i)->Update();
     }
 }
 
@@ -497,6 +499,10 @@ void OutputWin::append_text (OutputStyle style, const wxString& str)
 {
     SetDefaultStyle (wxTextAttr (text_color[style]));
     AppendText (str);
+    ShowPosition(GetLastPosition());
+    //TODO TextCtrl is not refreshed when program is busy
+    //I think it used to work with older versions of wx
+    //Refresh() and Update() here don't help
 }
 
 void OutputWin::OnPopupColor (wxCommandEvent& event)

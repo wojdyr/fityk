@@ -99,8 +99,9 @@ char Data::guess_file_type (const string& filename)
 void Data::clear()
 {
     d_was_changed = true;
-    filename.clear();   //removing previos file
-    title.clear();
+    //gcc2.95 has no `basic_string<...>::clear ()'
+    filename = "";   //removing previos file
+    title = "";
     p.clear();
     active_p.clear();
     col_nums.clear();
