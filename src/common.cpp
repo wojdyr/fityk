@@ -4,7 +4,7 @@ RCSID ("$Id$")
 
 #include <string>
 #include <time.h>
-#include "v_IO.h"
+#include "ui.h"
 #include "other.h"
 
 using namespace std;
@@ -20,6 +20,8 @@ const vector<int> int_v0; //just empty vector
 const fp INF = 1e99; //almost ininity. floating points limits are about:
                      // double: 10^+308, float: 10^+38, long double: 10^+4932
 
+const char* fityk_version_line = "#  Fityk  version: " VERSION "\n";
+
 vector<int> range_vector (int l, int u)
 {
     vector<int> v(u - l);
@@ -28,26 +30,10 @@ vector<int> range_vector (int l, int u)
     return v;
 }
 
-void gmessage (const string& str) 
-{
-    my_IO->message (str.c_str());
-    my_other->log_output (str);
-}
-
-int warn (const string &s) {
-    if (verbosity >= 1) {
-	string st = "! " + s;
-	gmessage (st);
-    }
-    if (exit_on_error)
-	exit(-1);
-    return -1;
-}
-
 std::string time_now ()
 {
-    const time_t czas = time(0);
-    return ctime (&czas);
+    const time_t t = time(0);
+    return ctime (&t);
 }
 
 bool is_double (string s) {

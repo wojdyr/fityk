@@ -11,7 +11,7 @@ RCSID ("$Id$")
 #include "pcore.h"
 #include "sum.h"
 #include "data.h"
-#include "v_IO.h"
+#include "ui.h"
 #include "LMfit.h"
 #include "GAfit.h"
 #include "NMfit.h"
@@ -36,7 +36,7 @@ v_fit::v_fit (char symb, string m)
     Distrib_enum ['b'] = "bound";
 }
 
-string v_fit::info (int mode)
+string v_fit::getInfo (int mode)
 {
     //n_m = number of points - degrees of freedom (parameters)
     int n_m = - AL->pars()->count_a();
@@ -194,13 +194,13 @@ bool v_fit::post_fit (const std::vector<fp>& aa, fp chi2)
         AL->pars()->write_avec (aa, method, no_move);
     if (chi2 < wssr_before) {
         // if (auto_plot >= 2) fplot (aa); //will be plotted by replot()
-        mesg ("Better fit found (WSSR = " + S(chi2) + ", was " + S(wssr_before)
+        info ("Better fit found (WSSR = " + S(chi2) + ", was " + S(wssr_before)
                 + ", " + S((chi2 - wssr_before) / wssr_before * 100) + "%).");
         return true;
     }
     else {
         if (chi2 > wssr_before) {
-            mesg ("Better fit NOT found (WSSR = " + S(chi2)
+            info ("Better fit NOT found (WSSR = " + S(chi2)
                     + ", was " + S(wssr_before) + ").\nParameters NOT changed");
         }
         if (auto_plot >= 3) //reverting to old plot
@@ -267,15 +267,15 @@ bool v_fit::common_termination_criteria(int iter)
     bool stop = false;
     if (user_interrupt) {
         user_interrupt = false;
-        mesg ("Fitting stopped manually.");
+        info ("Fitting stopped manually.");
         stop = true;
     }
     if (max_iterations >= 0 && iter >= max_iterations) {
-        mesg("Maximum iteration number reached.");
+        info("Maximum iteration number reached.");
         stop = true;
     }
     if (max_evaluations > 0 && evaluations >= max_evaluations) {
-        mesg("Maximum evaluations number reached.");
+        info("Maximum evaluations number reached.");
         stop = true;
     }
     return stop;
@@ -326,10 +326,10 @@ void v_fit::fplot (const vector<fp>& a)
 {
     if (nf > 0 && !a.empty()) {
         vector<fp> aa = fitted2all(a);
-        my_IO->plot_now(aa); 
+        getUI()->plotNow(aa); 
     }
     else
-        my_IO->plot_now(a);
+        getUI()->plotNow(a);
 }
 
 FitMethodsContainer::FitMethodsContainer()
@@ -361,18 +361,18 @@ string FitMethodsContainer::list_available_methods()
 void FitMethodsContainer::change_method (char c)
 {
     if (my_fit->symbol == c) {
-        mesg ("Fitting method already was: " + my_fit->method);
+        info ("Fitting method already was: " + my_fit->method);
         return;
     }
     for (vector<v_fit*>::iterator i = methods.begin(); i != methods.end(); i++)
         if ((*i)->symbol == c) {
             my_fit = *i;
-            mesg ("Fitting method changed to: " + my_fit->method);
+            info ("Fitting method changed to: " + my_fit->method);
             return;
         }
     // if we are here, symbol c was not found in vector methods
     warn ("Unknown symbol for fitting method: " + S(c));
-    mesg (list_available_methods());
+    info (list_available_methods());
 }
 
 string FitMethodsContainer::print_current_method()
@@ -470,7 +470,7 @@ int v_fit::Jordan(vector<fp>& A, vector<fp>& b, int n)
             for (int j = i; j < n; j++)
                 if (A[n * i + j] || b[i]) {
                     verbose (print_matrix(A, n, n, "A"));
-                    mesg (print_matrix(b, 1, n, "b"));
+                    info (print_matrix(b, 1, n, "b"));
                     warn ("Inside Jordan elimination: singular matrix.");
                     verbose ("Column " + S(i) + " is zeroed."
                             " Jordan method with partial pivoting used.");

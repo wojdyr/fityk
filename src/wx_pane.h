@@ -10,7 +10,7 @@
 
 #include <wx/print.h>
 #include <wx/config.h>
-#include "wx_common.h"  //for Mouse_mode_enum, Output_style_enum
+#include "wx_common.h"  //for Mouse_mode_enum, OutputStyle
 #include <wx/splitter.h>
 
 class PlotPane;
@@ -75,7 +75,7 @@ public:
     Output_win (wxWindow *parent, wxWindowID id,
                 const wxPoint& pos = wxDefaultPosition, 
                 const wxSize& size = wxDefaultSize);
-    void append_text (const wxString& str, Output_style_enum style);
+    void append_text (OutputStyle style, const wxString& str);
     void OnRightDown (wxMouseEvent& event);
     void OnPopupColor  (wxCommandEvent& event);       
     void OnPopupFont   (wxCommandEvent& event);  
@@ -98,8 +98,8 @@ class IOPane : public wxPanel
 {
 public:
     IOPane(wxWindow *parent, wxWindowID id=-1);
-    void append_text (const wxString& str, Output_style_enum style) 
-                                      { output_win->append_text(str, style); }
+    void append_text (OutputStyle style, const wxString& str) 
+                                      { output_win->append_text(style, str); }
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
     void focus_input() { input_combo->SetFocus(); }

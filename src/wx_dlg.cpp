@@ -27,6 +27,7 @@ RCSID ("$Id$")
 #include "gfunc.h"
 #include "v_fit.h"
 #include "pcore.h"
+#include "ui.h"
 
 //bitmaps for buttons
 #include "img/up_arrow.xpm"
@@ -34,9 +35,6 @@ RCSID ("$Id$")
 
 using namespace std;
 
-void exec_command (const wxString& s); //from wx_gui.h
-void exec_command (const string& s);   //from wx_gui.h
-void exec_command (const char* s);     //from wx_gui.h 
 
 enum {
     ID_BRO_TREE             = 46100,
@@ -570,7 +568,7 @@ void FuncBrowserDlg::OnAddValText (wxCommandEvent& WXUNUSED(event))
 
 void FuncBrowserDlg::OnAddAddButton (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command ("s.add " + add_preview_tc->GetValue());
+    exec_command (("s.add " + add_preview_tc->GetValue()).c_str());
     func_tree->reset_funcs_in_root();
 }
 

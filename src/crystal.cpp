@@ -11,6 +11,7 @@ RCSID ("$Id$")
 #include "gfunc.h"
 #include "manipul.h"
 #include "pcore.h"
+#include "ui.h"
 
 using namespace std;
 
@@ -192,13 +193,14 @@ int Crystal::add_phase (char type, vector<Pag> pg)
             warn ("Unknown phase symbol: %" + S(type));
             return -1;
     }
-    if (size(pg) != param_number)
-        return warn (type_name + " phase requires " 
-                                        + S(param_number) + " parameter(s)");
+    if (size(pg) != param_number) {
+        warn (type_name + " phase requires " + S(param_number)+" parameter(s)");
+        return -1;
+    }
     phases.push_back (Phase(sum, type, pg));
     int n = phases.size() - 1;
     phases[n].set_containers_descriptions(n);
-    mesg (type_name + " phase %" + S(n) + " added.");
+    info (type_name + " phase %" + S(n) + " added.");
     return n;
 }
 
@@ -215,7 +217,7 @@ int Crystal::rm_phase (int phase_nr)
 {
     if (phase_nr == -1) {  // rm_phase(-1) means: remove all phases
         phases.clear();
-        mesg ("All phases deleted.");
+        info ("All phases deleted.");
         return 0;
     }
     if (!is_index (phase_nr, phases)){
@@ -223,7 +225,7 @@ int Crystal::rm_phase (int phase_nr)
         return -1;
     }
     phases.erase (phases.begin() + phase_nr);
-    mesg ("Phase %" + S(phase_nr) + " deleted.");
+    info ("Phase %" + S(phase_nr) + " deleted.");
     if (size_t(phase_nr) < phases.size() - 1 + 1)  {
         verbose ("Some phases have changed numbers");
         for (int i = phase_nr; i < size(phases); i++) {
@@ -236,12 +238,18 @@ int Crystal::rm_phase (int phase_nr)
 int Crystal::add_plane (int phase_nr, Hkl hkl) 
 {
     if (hkl.invalid()) return -1;
-    if (xrays.get_count() == 0) 
-        return warn ("Wavelength(s) not defined (yet)");
-    if (!is_index (phase_nr, phases))
-        return warn ("No such phase: %" + S(phase_nr));
-    if (phases[phase_nr].planes.count(hkl) != 0) 
-        return warn ("Plane already exists.");
+    if (xrays.get_count() == 0) {
+        warn ("Wavelength(s) not defined (yet)");
+        return -1;
+    }
+    if (!is_index (phase_nr, phases)) {
+        warn ("No such phase: %" + S(phase_nr));
+        return -1;
+    }
+    if (phases[phase_nr].planes.count(hkl) != 0) {
+        warn ("Plane already exists.");
+        return -1;
+    }
     
     //its complicated in case when there are many wavelengths
     fp center = peak_center (xrays.lambda(0), phases[phase_nr], hkl);
@@ -286,7 +294,7 @@ int Crystal::add_plane (int phase_nr, Hkl hkl)
     HklF temp_hkl (hkl, sum, vint);
     temp_hkl.c_name = "%" + S(phase_nr) + hkl.str();
     phases[phase_nr].planes.insert (temp_hkl); 
-    mesg ("Plane %" + S(phase_nr) + " " + hkl.str() + " added as:" + sp); 
+    info ("Plane %" + S(phase_nr) + " " + hkl.str() + " added as:" + sp); 
     return 0;
 }
 
@@ -635,10 +643,14 @@ Pag Crystal::shape_of_peak (Phase& p, int xray_nr, Pag c_g)
 int Crystal::add_plane_as_f (int phase_nr, Hkl hkl, vector<int> ff) 
 {
     if (hkl.invalid()) return -1;
-    if (!is_index (phase_nr, phases))
-        return warn ("No such phase: %" + S(phase_nr));
-    if (phases[phase_nr].planes.count(hkl) != 0) 
-        return warn ("Plane already exists.");
+    if (!is_index (phase_nr, phases)) {
+        warn ("No such phase: %" + S(phase_nr));
+        return -1;
+    }
+    if (phases[phase_nr].planes.count(hkl) != 0) {
+        warn ("Plane already exists.");
+        return -1;
+    }
     HklF temp_hkl (hkl, sum, ff);
     temp_hkl.c_name = "%" + S(phase_nr) + hkl.str();
     if (temp_hkl.is_ok(sum)) {
@@ -760,7 +772,7 @@ void Crystal::rm_plane (int phase_nr, Hkl hkl)
     }
     int count = phases[phase_nr].planes.count(hkl);
     if (count > 0) {
-        mesg ("Plane %" + S(phase_nr) + " " + hkl.str() + " removed.");
+        info ("Plane %" + S(phase_nr) + " " + hkl.str() + " removed.");
         phases[phase_nr].planes.erase(hkl);
     }
     else 

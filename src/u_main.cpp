@@ -6,15 +6,15 @@ RCSID ("$Id$")
 #include <iostream>
 #include <unistd.h>
 #include <signal.h>
-#include "v_IO.h"
+#include "ui.h"
 #include "other.h"
-
-#define Interactive_IO readline_IO
 
 using namespace std;
 void sys_depen_init();
 
 string fityk_dir;
+
+bool start_loop(); //defined in u_rl_IO.cpp
 
 int main (int argc, char **argv)
 {
@@ -28,35 +28,20 @@ int main (int argc, char **argv)
     ifstream file (conf_file.c_str(), ios::in);//only checking if can be opened
     if (file) {
         cerr << " -- reading init file: " << conf_file << " --\n";
-        exec_commands_from_file(conf_file.c_str());
+        getUI()->execScript(conf_file);
         cerr << " -- end of init file --" << endl;
     }
     else
         ;//cerr << "Init file not found: " << conf_file << endl;
 
-    if (argc == 1) {
-        Interactive_IO interact_IO;
-        my_IO = &interact_IO;
-        my_IO->start(0);
-    }
-    else
-        for (int i = 1; i < argc; i++) 
-            if (!strcmp(argv[i], "-")) {
-                Interactive_IO interact_IO;
-                my_IO = &interact_IO;
-                my_IO->start(0);
-            }
-            else 
-                exec_commands_from_file(argv[i]);
-    delete AL;
+    for (int i = 1; i < argc; i++) 
+        getUI()->execScript(argv[i]);
+    if (0 /*TODO -q option*/) 
+        return 0;
+    start_loop();
     return 0;
 }
 
-
-int my_sleep (int seconds) 
-{
-        return sleep (seconds);
-}
 
 
 void interrupt_handler (int /*signum*/)

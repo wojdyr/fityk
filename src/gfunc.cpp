@@ -3,6 +3,7 @@
 RCSID ("$Id$")
 
 #include "gfunc.h"
+#include "ui.h"
 #include <algorithm>
 
 using namespace std;

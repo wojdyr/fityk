@@ -4,6 +4,7 @@ RCSID ("$Id$")
 
 
 #include "dotset.h"
+#include "ui.h"
 #include <string.h>
 #include <ctype.h>
 #include <algorithm>
@@ -119,7 +120,7 @@ bool DotSet::getp (const string k)
     else {
         string t;
         typep (k, t);
-        mesg ("Option '" + k + "' (" + t + ") has value: " + s);
+        info ("Option '" + k + "' (" + t + ") has value: " + s);
     }
     return r;
 }
@@ -133,11 +134,11 @@ bool DotSet::setp (const string k, string v)
     if (!r)
         warn ("Unknown option: " +  k);
     else if (sp == v)
-        mesg ("Option '" + k + "' already has value: " + v);
+        info ("Option '" + k + "' already has value: " + v);
     else {
         r = setp_core (k, v);
         if (r)
-            mesg ("Value for '" + k + "' changed from '"+ sp
+            info ("Value for '" + k + "' changed from '"+ sp
                     + "' to '" + v + "'");
         else
             warn ("'" + v + "' is not valid value for '" + k + "'");

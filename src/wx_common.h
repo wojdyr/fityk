@@ -4,8 +4,6 @@
 #define WX_COMMON__H__
 
 enum Mouse_mode_enum { mmd_zoom, mmd_bg, mmd_add, mmd_range, mmd_peak };
-enum Output_style_enum  { os_ty_normal, os_ty_warn, os_ty_quot, os_ty_input };
-
 
 struct Plot_shared
 {
@@ -28,8 +26,6 @@ class wxString;
 bool from_config_read_bool(wxConfigBase *cf, const wxString& key, bool def_val);
 double from_config_read_double(wxConfigBase *cf, const wxString& key, 
                                double def_val);
-
-
 //dummy events -- useful when calling event handler functions
 extern wxMouseEvent dummy_mouse_event;
 extern wxCommandEvent dummy_cmd_event;

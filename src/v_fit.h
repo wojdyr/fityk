@@ -20,7 +20,7 @@ public:
     v_fit (char symb, std::string m);
     virtual ~v_fit () {};
     void fit (bool ini, int max_iter);
-    std::string info (int mode);
+    std::string getInfo (int mode);
     int get_default_max_iter() { return default_max_iterations; }
     static fp compute_wssr_for_data (const Data* data, const Sum* sum, 
                                      bool weigthed);
@@ -49,7 +49,6 @@ protected:
                              std::vector<fp>& alpha, std::vector<fp>& beta);
     bool post_fit (const std::vector<fp>& aa, fp chi2);
     fp draw_a_from_distribution (int nr, char distribution = 'u', fp mult = 1.);
-    void fplot ();
     void fplot (const std::vector<fp>& a);
 private:
     std::vector<fp> fitted2all (const std::vector<fp>& A);

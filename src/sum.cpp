@@ -13,6 +13,7 @@ RCSID ("$Id$")
 #include "data.h"  //used in export_as...() methods
 #include "manipul.h" //estimate_peak_parameters() in guess_f()
 #include "pcore.h"
+#include "ui.h"
 
 using namespace std;
 
@@ -371,7 +372,7 @@ void Sum::export_to_file (string filename, bool append, char filetype,
                      filename.substr(filename.size()-8).compare("xfit.txt")==0)
                     return export_to_file (filename, append, 'x', peaks);
             }
-            mesg ("exporting as formula");
+            info ("exporting as formula");
             return export_to_file (filename, append, 'f', peaks);
         default:
             warn ("Unknown filetype letter: " + S(filetype));
@@ -597,7 +598,7 @@ int Sum::multi_rm_fzg (One_of_fzg fzg, vector<int> nn, bool silent)
         counter += rm_fzg (fzg, *i, true);
     }
     if (!silent)
-        mesg (S(counter) + " " + V_fzg::full_type(fzg, false) + "s removed.");
+        info (S(counter) + " " + V_fzg::full_type(fzg, false) + "s removed.");
     return counter;
 }
 
@@ -646,7 +647,7 @@ int Sum::rm_fzg (One_of_fzg fzg, int n, bool silent)
     }
 
     if (!silent) {
-        mesg (V_fzg::full_type(fzg) + S(n) + " removed.");
+        info (V_fzg::full_type(fzg) + S(n) + " removed.");
         if (n < fzg_size(fzg) - 1 + 1) 
             verbose ("Some " + V_fzg::full_type(fzg, false) 
                      + " have changed numbers");
@@ -663,7 +664,7 @@ int Sum::rm_all()
     parameters->rm_a(-1, true);
     int r_f = b_f - fzg_size(fType), r_z = b_z - fzg_size(zType),
         r_g = b_g - fzg_size(gType), r_a = b_a - parameters->count_a();
-    mesg (S(r_f) + " " + V_fzg::full_type(fType, false) + "s, " 
+    info (S(r_f) + " " + V_fzg::full_type(fType, false) + "s, " 
           + S(r_z) + " " + V_fzg::full_type(zType, false) + "s, " 
           + S(r_g) + " " + V_fzg::full_type(gType, false) + "s and "
           + S(r_a) + " a-parameters removed.");

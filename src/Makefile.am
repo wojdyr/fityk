@@ -17,7 +17,7 @@ endif
 bin_PROGRAMS = @FITYK@ @CFITYK@ 
 EXTRA_PROGRAMS = fityk cfityk 
 common_sources = other.cpp scanner.cpp parser.cpp common.cpp crystal.cpp \
-		 data.cpp dotset.cpp ffunc.cpp file_IO.cpp fzgbase.cpp \
+		 data.cpp dotset.cpp ffunc.cpp fzgbase.cpp ui.cpp \
 		 GAfit.cpp gfunc.cpp LMfit.cpp manipul.cpp NMfit.cpp \
 		 sum.cpp v_fit.cpp voigt.cpp pcore.cpp fileroutines.cpp 
 gui_sources = wx_dlg.cpp wx_gui.cpp wx_IO.cpp wx_plot.cpp wx_pane.cpp \
@@ -29,7 +29,7 @@ fityk_LDADD = $(common_ldadd) @WX_LIBS_DS@ $(ms_win_res)
 cfityk_LDADD = $(common_ldadd) @READLINE_LIBS@ -lm
 noinst_HEADERS = common.h crystal.h data.h dotset.h ffunc.h fzgbase.h \
 		 GAfit.h gfunc.h LMfit.h manipul.h NMfit.h other.h pag.h \
-		 sum.h v_fit.h v_IO.h voigt.h pcore.h fileroutines.h \
+		 sum.h v_fit.h ui.h voigt.h pcore.h fileroutines.h \
 		 u_gnuplot.h wx_dlg.h wx_gui.h wx_plot.h wx_pane.h \
 		 parser.tab.hh
 

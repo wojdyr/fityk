@@ -6,6 +6,7 @@ RCSID ("$Id$")
 #include <algorithm>
 #include "data.h"
 #include "sum.h"
+#include "ui.h"
 
 using namespace std;
 
@@ -163,7 +164,7 @@ bool Manipul::estimate_peak_parameters(fp approx_ctr, fp ctrplusmin,
             return false;
         }
         else
-            mesg (s);
+            info (s);
     }
     fp h = my_y(max_y_pos, ec);
     if (height) 

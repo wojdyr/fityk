@@ -182,7 +182,7 @@ public:
     const FToolBar* get_toolbar() const { return toolbar; }
     const f_names_type& get_peak_type() const;
     void set_status_hint(const char *left, const char *right);
-    void output_text(const wxString& str, Output_style_enum style);
+    void output_text(OutputStyle style, const std::string& str);
     void change_zoom(const std::string& s);
     void scroll_view_horizontally(fp step);
     void refresh_plots(bool update=false);
@@ -206,7 +206,7 @@ protected:
 #else
     wxHtmlHelpController help; 
 #endif
-    wxString last_include_path;
+    std::string last_include_path;
     std::list<wxFileName> recent_data_files;
     wxMenu *data_menu_recent;
 
@@ -223,10 +223,6 @@ DECLARE_EVENT_TABLE()
 };
 
 
-
-void exec_command (const std::string& s);
-void exec_command (const wxString& s);
-void exec_command (const char* s);
 void add_peak(fp height, fp ctr, fp hwhm);
 void add_peak_in_range(fp xmin, fp xmax);
 extern FFrame *frame;

@@ -24,6 +24,7 @@ RCSID ("$Id$")
 #include "data.h" 
 #include "pcore.h" 
 #include "other.h" 
+#include "ui.h" 
 
 using namespace std;
 
@@ -448,17 +449,17 @@ void Output_win::fancy_dashes() {
 void Output_win::read_settings(wxConfigBase *cf)
 {
     cf->SetPath("/OutputWin/Colors");
-    text_color[os_ty_normal] = read_color_from_config(cf, "normal", 
+    text_color[os_normal] = read_color_from_config(cf, "normal", 
                                                       wxColour(150, 150, 150));
-    text_color[os_ty_warn] = read_color_from_config(cf, "warn", 
+    text_color[os_warn] = read_color_from_config(cf, "warn", 
                                                     wxColour(200, 0, 0));
-    text_color[os_ty_quot] = read_color_from_config(cf, "quot", 
+    text_color[os_quot] = read_color_from_config(cf, "quot", 
                                                     wxColour(50, 50, 255));
-    text_color[os_ty_input] = read_color_from_config(cf, "input", 
+    text_color[os_input] = read_color_from_config(cf, "input", 
                                                      wxColour(0, 200, 0));
     bg_color = read_color_from_config(cf, "bg", wxColour(20, 20, 20));
 
-    SetDefaultStyle (wxTextAttr(text_color[os_ty_quot], bg_color));
+    SetDefaultStyle (wxTextAttr(text_color[os_quot], bg_color));
     if (frame->IsShown()) // this "if" is needed on GTK 1.2 (I don't know why)
         SetBackgroundColour(bg_color); //if it is called before window is shown,
     Refresh();                         //it doesn't work and it is impossible
@@ -467,14 +468,14 @@ void Output_win::read_settings(wxConfigBase *cf)
 void Output_win::save_settings(wxConfigBase *cf) const
 {
     cf->SetPath("/OutputWin/Colors");
-    write_color_to_config (cf, "normal", text_color[os_ty_normal]);  
-    write_color_to_config (cf, "warn", text_color[os_ty_warn]); 
-    write_color_to_config (cf, "quot", text_color[os_ty_quot]); 
-    write_color_to_config (cf, "input", text_color[os_ty_input]); 
+    write_color_to_config (cf, "normal", text_color[os_normal]);  
+    write_color_to_config (cf, "warn", text_color[os_warn]); 
+    write_color_to_config (cf, "quot", text_color[os_quot]); 
+    write_color_to_config (cf, "input", text_color[os_input]); 
     write_color_to_config (cf, "bg", bg_color); 
 }
 
-void Output_win::append_text (const wxString& str, Output_style_enum style)
+void Output_win::append_text (OutputStyle style, const wxString& str)
 {
     SetDefaultStyle (wxTextAttr (text_color[style]));
     AppendText (str);
@@ -487,13 +488,13 @@ void Output_win::OnPopupColor (wxCommandEvent& event)
     if (n == ID_OUTPUT_C_BG)
         col = &bg_color;
     else if (n == ID_OUTPUT_C_OU)
-        col = &text_color[os_ty_normal];
+        col = &text_color[os_normal];
     else if (n == ID_OUTPUT_C_QT)
-        col = &text_color[os_ty_quot];
+        col = &text_color[os_quot];
     else if (n == ID_OUTPUT_C_WR)
-        col = &text_color[os_ty_warn];
+        col = &text_color[os_warn];
     else if (n == ID_OUTPUT_C_IN)
-        col = &text_color[os_ty_input];
+        col = &text_color[os_input];
     else 
         return;
     wxColourData col_data;
@@ -584,7 +585,7 @@ void FCombo::OnKeyDown (wxKeyEvent& event)
         SetValue("");
 
         //displaying and executing command
-        exec_command (s);
+        exec_command (s.c_str());
     }
     else if (event.m_keyCode == WXK_TAB) {
         IOPane *parent = static_cast<IOPane*>(GetParent()); //to not use RTTI

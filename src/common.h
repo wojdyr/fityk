@@ -24,7 +24,7 @@
 #include <math.h>
 #include <assert.h>
 
-// favourite floating point type 
+/// favourite floating point type 
 #ifdef FP_IS_LDOUBLE
 typedef long double fp ;  
 #else
@@ -44,10 +44,10 @@ extern const fp INF;
 extern const std::vector<fp> fp_v0; //just empty vector
 extern const std::vector<int> int_v0; //just empty vector
 
-/* idea taken from gnuplot:
- * some machines have trouble with exp(-x) for large x
- * if MINEXP is defined at compile time, use exp_(x) instead,
- * which returns 0 for exp_(x) with x < MINEXP
+/** idea of exp_() is taken from gnuplot:
+ *  some machines have trouble with exp(-x) for large x
+ *  if MINEXP is defined at compile time, use exp_(x) instead,
+ *  which returns 0 for exp_(x) with x < MINEXP
  */
 #ifdef MINEXP
   inline fp exp_(fp x) { return (x < (MINEXP)) ? 0.0 : exp(x); }
@@ -62,7 +62,9 @@ extern const std::vector<int> int_v0; //just empty vector
 
 extern char verbosity;
 
-//S() converts to string
+extern const char* fityk_version_line; /// it is used to put version to script
+
+/// S() converts to string
 template <typename T>
 inline std::string S(T k) {
     return static_cast<std::ostringstream&>(std::ostringstream() << k).str();
@@ -73,42 +75,44 @@ inline std::string S(char *k) { return std::string(k); }
 inline std::string S(const char k) { return std::string(1, k); }
 inline std::string S() { return std::string(); }
 
-//makes 1-element vector
+/// Makes 1-element vector
 template <typename T>
 inline std::vector<T> vector1 (T a) { return std::vector<T>(1, a); }
 
-//makes 2-element vector
+/// Makes 2-element vector
 template <typename T>
 inline std::vector<T> vector2 (T a, T b) 
     { std::vector<T> v = std::vector<T>(2, a); v[1] = b; return v;}
 
-//makes 3-element vector
+/// Make 3-element vector
 template <typename T>
 inline std::vector<T> vector3 (T a, T b, T c) 
     { std::vector<T> v = std::vector<T>(3, a); v[1] = b; v[2] = c; return v;}
 
-//makes 4-element vector
+/// Make 4-element vector
 template <typename T>
 inline std::vector<T> vector4 (T a, T b, T c, T d) { 
     std::vector<T> v = std::vector<T>(4, a); v[1] = b; v[2] = c; v[3] = d;
     return v; 
 }
 
+/// Make (u-l)-element vector, filled by numbers: l, l+1, ..., u.
 std::vector<int> range_vector (int l, int u);
 
-//usually i'm using `int', not `unsigned int', and expression like "i<v.size()"
-//where v is a std::vector gives: 
-//"warning: comparison between signed and unsigned integer expressions"
-//implicit cast is too long and IMHO makes code less clear than this:
+/// Expression like "i<v.size()", where i is int and v is a std::vector gives: 
+/// "warning: comparison between signed and unsigned integer expressions"
+/// implicit cast IMHO makes code less clear than "i<size(v)":
 template <typename T>
 inline int size(const std::vector<T>& v) { return static_cast<int>(v.size()); }
 
+/// Return 0 <= n < a.size()
 template <typename T>
 inline bool is_index (int idx, const std::vector<T>& v) 
 { 
     return idx >= 0 && idx < static_cast<int>(v.size()); 
 }
 
+/// Round real to integer.
 inline int iround(fp d) { return static_cast<int>(floor(d+0.5)); }
 
 extern bool exit_on_error;
@@ -117,26 +121,14 @@ extern int smooth_limit;
 extern volatile bool user_interrupt;
 extern const std::string help_filename;
 
-void gmessage (const std::string &str);
 
-int warn (const std::string &s);
-
-inline void mesg (const std::string &s) { if (verbosity >= 3) gmessage (s); }
-
-inline void verbose (const std::string &s) { if (verbosity >= 4) gmessage (s); }
-
-//in version below x is evalueted only when verbosity >= 4
-#define verbose_lazy(x) \
-    if(verbosity >= 4) { \
-        gmessage((x)); \
-    } 
-
-inline void very_verbose (const std::string &s) 
-    { if (verbosity >= 5) gmessage (s); }
-
-int my_sleep (int seconds);
+/// Get current date and time as formatted string
 std::string time_now ();
+
+/// True if the string contains only a real number
 bool is_double (std::string s);
+
+enum OutputStyle  { os_normal, os_warn, os_quot, os_input };
 
 
 class Sum;

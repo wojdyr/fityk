@@ -5,6 +5,7 @@ RCSID ("$Id$")
 #include "ffunc.h"
 #include "gfunc.h"
 #include "voigt.h"
+#include "ui.h"
 
 using namespace std; 
 

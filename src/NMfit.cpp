@@ -7,6 +7,7 @@ RCSID ("$Id$")
 #include <time.h>
 #include <math.h>
 #include <vector>
+#include <ui.h>
 
 #define TINY 1e-10
 
@@ -77,7 +78,7 @@ void NMfit::find_best_worst()
 int NMfit::autoiter ()
 {
     wssr_before = compute_wssr ();
-    mesg ("WSSR before starting simplex fit: " + S(wssr_before));
+    info ("WSSR before starting simplex fit: " + S(wssr_before));
     for (int iter = 0; !termination_criteria (iter); iter ++) {
         if (auto_plot == 3) 
             fplot (best->a);
@@ -145,12 +146,12 @@ void NMfit::compute_coord_sum()
 bool NMfit::termination_criteria (int iter)
 {
     if (iter % output_one_of == 0) 
-        mesg ("#" + S(iter_nr) + " (ev:" + S(evaluations) + "): best:" 
+        info ("#" + S(iter_nr) + " (ev:" + S(evaluations) + "): best:" 
                 + S(best->wssr) + " worst:" + S(worst->wssr) + ", " 
                 + S(s_worst->wssr) + " [V * |" + S(volume_factor) + "|]");
     bool stop = false;
     if (volume_factor == 1. && iter != 0) {
-        mesg ("Simplex got stuck.");
+        info ("Simplex got stuck.");
         stop = true;
     }
     volume_factor = 1.;
@@ -159,7 +160,7 @@ bool NMfit::termination_criteria (int iter)
     string s = "WSSR:";
     for (vector<Vertex>::iterator i = vertices.begin(); i!=vertices.end(); i++)
         s += " " + S(i->wssr);
-    mesg (s);
+    info (s);
 *DEBUG - END*/
     //checking stop conditions
     if (common_termination_criteria(iter))
@@ -167,7 +168,7 @@ bool NMfit::termination_criteria (int iter)
     fp r_diff = 2 * (worst->wssr - best->wssr) 
                                         / (best->wssr + worst->wssr + TINY);
     if (r_diff < min_rel_diff) {
-        mesg ("Relative difference between worst and best vertex is only "
+        info ("Relative difference between worst and best vertex is only "
                 + S(r_diff) + ". Stop");
         stop = true;
     }

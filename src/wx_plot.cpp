@@ -35,6 +35,7 @@ RCSID ("$Id$")
 #include "other.h" 
 #include "ffunc.h"
 #include "manipul.h"
+#include "ui.h"
 #ifdef USE_XTAL
     #include "crystal.h"
 #endif //USE_XTAL

@@ -46,7 +46,7 @@ RCSID ("$Id$")
 #include "fzgbase.h" 
 #include "ffunc.h"
 #include "manipul.h"
-#include "v_IO.h"
+#include "ui.h"
 #ifdef USE_XTAL
     #include "crystal.h"
 #endif //USE_XTAL
@@ -114,7 +114,6 @@ char* about_html =
 using namespace std;
 FFrame *frame = NULL;
 std::vector<fp> params4plot; 
-gui_IO my_gui_IO;
 
 static const wxCmdLineEntryDesc cmdLineDesc[] = {
     { wxCMD_LINE_SWITCH, _T("h"), _T("help"), "show this help message",
@@ -239,11 +238,11 @@ bool FApp::OnInit(void)
     wxString startup_file_path = fityk_dir + wxFILE_SEP_PATH 
                                 + startup_commands_filename;
     if (wxFileExists(startup_file_path)) {
-        exec_commands_from_file(startup_file_path.c_str());
+        getUI()->execScript(startup_file_path.c_str());
     }
     for (unsigned int i = 0; i < cmdLineParser.GetParamCount(); i++) {
         wxString par = cmdLineParser.GetParam(i);
-        exec_commands_from_file(par.c_str());
+        getUI()->execScript(par.c_str());
     }
 
     //global settings
@@ -271,7 +270,6 @@ bool FApp::OnInit(void)
     frame->io_pane->read_settings(cf); //it does not work earlier (wxGTK)
     delete cf;
     SetTopWindow(frame);
-    my_IO = &my_gui_IO;
 
     if (read_bool_from_config(wxConfig::Get(), "/TipOfTheDay/ShowAtStartup", 
                               true)) {
@@ -822,7 +820,7 @@ void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
                               "|all files (*)|*",
                               wxOPEN | wxFILE_MUST_EXIST);
     if (fdlg.ShowModal() == wxID_OK) {
-        exec_command ("d.load '" + fdlg.GetPath() + "'");
+        exec_command (("d.load '" + fdlg.GetPath() + "'").c_str());
         add_recent_data_file(fdlg.GetPath());
     }
     dir = fdlg.GetDirectory();
@@ -851,7 +849,7 @@ void FFrame::OnDXLoad (wxCommandEvent& WXUNUSED(event))
 void FFrame::OnDRecent (wxCommandEvent& event)
 {
     wxString s = GetMenuBar()->GetHelpString(event.GetId());
-    exec_command ("d.load '" + s + "'");
+    exec_command (("d.load '" + s + "'").c_str());
     add_recent_data_file(s);
 }
 
@@ -902,7 +900,7 @@ void FFrame::OnDExport (wxCommandEvent& WXUNUSED(event))
                        "|fityk file (*.fit)|*.fit;*.FIT",
                        wxSAVE | wxOVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) 
-        exec_command ("d.export '" + fdlg.GetPath() + "'");
+        exec_command (("d.export '" + fdlg.GetPath() + "'").c_str());
 }
 
 void FFrame::OnDSet (wxCommandEvent& WXUNUSED(event))
@@ -967,7 +965,7 @@ void FFrame::OnSExport       (wxCommandEvent& WXUNUSED(event))
                        "|fityk file (*.fit)|*.fit;*.FIT",
                        wxSAVE | wxOVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) 
-        exec_command ("s.export '" + fdlg.GetPath() + "'");
+        exec_command (("s.export '" + fdlg.GetPath() + "'").c_str());
 }
            
 void FFrame::OnSSet          (wxCommandEvent& WXUNUSED(event))
@@ -1072,7 +1070,7 @@ void FFrame::OnOLog          (wxCommandEvent& WXUNUSED(event))
                        "|Log input & output (*.fit)|*.fit;*.FIT"
                        "|Stop logging to file |none.none",
                        wxSAVE);
-    char m = my_other->get_log_mode();
+    char m = getUI()->getLogMode();
     if (m == 'i')
         fdlg.SetFilterIndex(0);
     else if (m == 'o')
@@ -1084,14 +1082,14 @@ void FFrame::OnOLog          (wxCommandEvent& WXUNUSED(event))
     else 
         assert (0);
     if (m != 'n')
-        fdlg.SetPath(my_other->get_log_filename().c_str());
+        fdlg.SetPath(getUI()->getLogFilename().c_str());
     if (fdlg.ShowModal() == wxID_OK) {
         int mode = fdlg.GetFilterIndex();
         char *modes = "ioan";
         assert(mode >= 0 && mode < 4);
         if (mode < 3)
-            exec_command ("o.log " + wxString(S(modes[mode]).c_str()) 
-                           + " '" + fdlg.GetPath() + "'");
+            exec_command ("o.log " + S(modes[mode]) 
+                                    + " '" + fdlg.GetPath().c_str() + "'");
         else
             exec_command ("o.log !"); 
     }
@@ -1114,8 +1112,8 @@ void FFrame::OnOInclude      (wxCommandEvent& WXUNUSED(event))
                               "fityk file (*.fit)|*.fit;*.FIT|all files|*",
                               wxOPEN | wxFILE_MUST_EXIST);
     if (fdlg.ShowModal() == wxID_OK) {
-        exec_command ("o.include '" + fdlg.GetPath() + "'");
-        last_include_path = fdlg.GetPath();
+        exec_command (("o.include '" + fdlg.GetPath() + "'").c_str());
+        last_include_path = fdlg.GetPath().c_str();
         GetMenuBar()->Enable(ID_O_REINCLUDE, true);
     }
     dir = fdlg.GetDirectory();
@@ -1140,7 +1138,7 @@ void FFrame::OnODump         (wxCommandEvent& WXUNUSED(event))
                                 "", "", "fityk file (*.fit)|*.fit;*.FIT",
                        wxSAVE | wxOVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) 
-        exec_command ("o.dump '" + fdlg.GetPath() + "'");
+        exec_command (("o.dump '" + fdlg.GetPath() + "'").c_str());
 }
          
 void FFrame::OnOSet          (wxCommandEvent& WXUNUSED(event))
@@ -1466,9 +1464,9 @@ void FFrame::set_status_hint(const char *left, const char *right)
         status_bar->set_hint(left, right);  
 }
 
-void FFrame::output_text(const wxString& str, Output_style_enum style)
+void FFrame::output_text(OutputStyle style, const string& str)
 {
-    io_pane->append_text(str, style);
+    io_pane->append_text(style, str.c_str());
 }
 
 void FFrame::refresh_plots(bool update)
@@ -1527,29 +1525,6 @@ void add_peak_in_range(fp xmin, fp xmax)
     if (r) add_peak (height, center, fwhm/2);
 }
 
-//=======================================================================
-
-const char input_prompt[] = "=-> ";
-
-void exec_command (const string& s)
-{
-    //FIXME should I limit number of displayed lines?
-    //const int max_lines_in_output_win = 1000;
-    string out_s = input_prompt + s + "\n";
-    //don't output o.plot command - it is generated by every zoom in/out etc.
-    bool output = strncmp(s.c_str(), "o.plot", 6) != 0;
-    if (output)
-        frame->output_text(out_s.c_str(), os_ty_input);
-    else
-        frame->SetStatusText((input_prompt + s).c_str());
-    wxBusyCursor wait;
-    bool r = parser(s);
-    if (!r)
-        frame->Close(true);
-}
-
-void exec_command (const wxString& s) { exec_command (S(s.c_str())); }
-void exec_command (const char* s) { exec_command (wxString(s)); }
 
 
 //=====================    set  dialog    ==================

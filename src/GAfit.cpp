@@ -3,6 +3,7 @@
 RCSID ("$Id$")
 
 #include "GAfit.h"
+#include "ui.h"
 #include <stdlib.h>
 #include <time.h>
 #include <algorithm>
@@ -88,7 +89,7 @@ fp GAfit::init()
 int GAfit::autoiter()
 {
     wssr_before = compute_wssr();
-    mesg ("WSSR before starting GA: " + S(wssr_before));
+    info ("WSSR before starting GA: " + S(wssr_before));
     assert (pop && opop); 
     if (elitism >= popsize) {
         warn ("hmm, now elitism >= popsize, setting elitism = 1");
@@ -472,7 +473,7 @@ bool GAfit::termination_criteria_and_print_info (int iter)
     }
     fp std_dev = sq_sum > 0 ? sqrt (sq_sum / pop->size()) : 0;
     if (iter % output_one_of == 0)
-        mesg ("Population #" + S(iter_nr) + ": best " + S(min) 
+        info ("Population #" + S(iter_nr) + ": best " + S(min) 
                 + ", avg " + S(avg) + ", worst " + S(tmp_max) 
                 + ", std dev. " + S(std_dev));
     if (!log_file.empty()) {
@@ -496,16 +497,16 @@ bool GAfit::termination_criteria_and_print_info (int iter)
     if (common_termination_criteria(iter)) 
         stop = true;
     if (std_dev < std_dev_stop * avg) {
-        mesg ("Standard deviation of results is small enough to stop");
+        info ("Standard deviation of results is small enough to stop");
         stop = true;
     }
     if (iter_with_no_progresss_stop > 0
           && no_progress_iters >= iter_with_no_progresss_stop) {
-        mesg ("No progress in " + S(no_progress_iters) + " iterations. Stop");
+        info ("No progress in " + S(no_progress_iters) + " iterations. Stop");
         stop = true;
     }
     if (min <= wssr_stop) {
-        mesg ("WSSR is small enough to stop");
+        info ("WSSR is small enough to stop");
         stop = true;
     }
     return stop;

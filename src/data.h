@@ -51,7 +51,7 @@ public :
     ~Data () {}
     void d_was_plotted() { d_was_changed = false; }
     bool was_changed() const { return d_was_changed; }
-    std::string info() const;
+    std::string getInfo() const;
     int load (std::string file, int type, 
               std::vector<int> usn, std::vector<int> evr, int merge);
     char guess_file_type (const std::string& filename);

@@ -8,7 +8,7 @@ RCSID ("$Id$")
 #include "ffunc.h"
 #include "data.h"
 #include "sum.h"
-#include "v_IO.h"
+#include "ui.h"
 #include "v_fit.h"
 #include "manipul.h"
 #ifdef USE_XTAL
@@ -18,141 +18,12 @@ RCSID ("$Id$")
 
 using namespace std;
 
-Various_commands *my_other;
 ApplicationLogic *AL;
 
-
-const char* fityk_version_line = "#  Fityk  version: " VERSION "\n";
-
-Various_commands::Various_commands() 
-    : logging_mode('n'), log_filename()
-{
-    verbosity_enum [0] = "silent";
-    verbosity_enum [1] = "only-warnings";
-    verbosity_enum [2] = "rather-quiet";
-    verbosity_enum [3] = "normal";
-    verbosity_enum [4] = "verbose";
-    verbosity_enum [5] = "very-verbose";
-    epar.insert (pair<string, Enum_string> ("verbosity", 
-                               Enum_string (verbosity_enum, &verbosity)));
-    autoplot_enum [0] = "really-never";
-    autoplot_enum [1] = "never";
-    autoplot_enum [2] = "on-plot-change";
-    autoplot_enum [3] = "on-fit-iteration";
-    epar.insert (pair<string, Enum_string> ("autoplot", 
-                               Enum_string (autoplot_enum, &auto_plot)));
-    bpar ["exit-on-error"] = &exit_on_error;
-    //ipar ["plot-min-curve-points"] = &smooth_limit;
-}
-
-Various_commands& Various_commands::operator= (const Various_commands& v)
-{
-    this->DotSet::operator=(v);
-    logging_mode = v.logging_mode;
-    if (logging_mode != 'n')
-        warn ("Unexpected error in Various_commands::operator=()");
-    log_filename = v.log_filename;
-    return *this;
-}
-
-void Various_commands::start_logging_to_file (std::string filename, char mode)
-{
-    if (mode == 0)
-        mode = 'a';
-    stop_logging_to_file();
-    logfile.open (filename.c_str(), ios::app);
-    if (!logfile) {
-        warn ("Can't open file for writing: " + filename);
-        return;
-    }
-    logfile << "\n### AT "<< time_now() << "### START LOGGING ";
-    switch (mode) {
-        case 'i':
-            mesg ("Logging input to file: " + filename);
-            logfile << "INPUT";
-            break;
-        case 'o':
-            mesg ("Logging output to file: " + filename);
-            logfile << "OUTPUT";
-            break;
-        case 'a':
-            mesg ("Logging input and output to file: " + filename);
-            logfile << "INPUT AND OUTPUT";
-            break;
-        default:
-            assert(0);
-    }
-    logfile << " TO THIS FILE (" << filename << ")\n";
-    logfile << fityk_version_line;
-    log_filename = filename;
-    logging_mode = mode;
-}
-
-void Various_commands::stop_logging_to_file ()
-{
-    if (logging_mode != 'n') {  
-        logfile.close();
-        logging_mode = 'n';
-    }
-}
-
-string Various_commands::logging_info() const
-{
-    switch (logging_mode) {
-        case 'a':
-            return "Logging input and output to file: " + log_filename;
-        case 'i':
-            return "Logging input to file: " + log_filename;
-        case 'o':
-            return "Logging output to file: " + log_filename;
-        case 'n':
-            return "No logging to file now.";
-        default: 
-            assert(0);
-            return "";
-    }
-}
-
-void Various_commands::log_input (const string& s)
-{
-     if (logging_mode == 'i' || logging_mode == 'a')  
-                 logfile << " " << s << endl;
-
-}
-
-void Various_commands::log_output (const string& s)
-{
-    if (logging_mode == 'o' || logging_mode == 'a') {
-        logfile << "# ";
-        for (const char *p = s.c_str(); *p; p++) {
-            logfile << *p;
-            if (*p == '\n')
-                logfile << "# ";
-        }
-        logfile << endl;
-    }
-}
-
-bool Various_commands::include_file (std::string name, std::vector<int> lines)
-{
-    // every two int's in lines are treated as range (first-second).
-    // TODO change it to vector<pair<int, int> >
-    assert (lines.size() % 2 == 0);
-    file_I_stdout_O fio(lines);
-    return fio.start(name.c_str());
-}
-
-int Various_commands::sleep (int seconds)
-{
-    return my_sleep (seconds);
-}
-
-//==========================================================================
 
 void ApplicationLogic::reset_all (bool finish) 
 {
     delete my_manipul;
-    delete my_other;
     delete fitMethodsContainer;
     purge_all_elements(cores);
     cores.clear();
@@ -160,7 +31,6 @@ void ApplicationLogic::reset_all (bool finish)
     if (finish)
         return;
     fitMethodsContainer = new FitMethodsContainer;
-    my_other = new Various_commands;
     my_manipul = new Manipul;
     params = new Parameters;
     append_core();
@@ -176,7 +46,6 @@ void ApplicationLogic::dump_all_as_script (string filename)
     }
     os << "####### Dump time: " << time_now() << endl;
     os << fityk_version_line << endl;
-    os << my_other->set_script('o') << endl;
     params->export_as_script(os);
     os << endl;
 
@@ -324,7 +193,7 @@ set_class_p (char c)
 #ifdef USE_XTAL
         case 'c': return my_crystal;
 #endif //USE_XTAL
-        case 'o': return my_other;
+        case 'o': return getUI();
         default : return 0;
     }
 }

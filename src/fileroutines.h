@@ -14,7 +14,7 @@
 
 void load_siemensbruker_filetype (std::string filename, Data *data);
 int frint(int pos, FILE *stream);
-char *frstr(int pos,int cnt,FILE *stream);
+void frstr(int pos,int cnt,FILE *stream,char *dum);
 float frfloat(int pos,FILE *stream);
 int frshort(short pos,FILE *stream);
 

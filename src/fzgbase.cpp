@@ -8,6 +8,7 @@ RCSID ("$Id$")
 #include "gfunc.h"
 #include "sum.h"
 #include "pcore.h"
+#include "ui.h"
 
 using namespace std;
 

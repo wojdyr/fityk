@@ -7,10 +7,11 @@
 
 #include "fileroutines.h"
 #include "common.h"
+#include "ui.h"
 
 void load_siemensbruker_filetype (std::string filename, Data *data)
 {
-	mesg("entered SiemensBruker loading: "+ filename);
+	info("entered SiemensBruker loading: "+ filename);
 
 	float biggest=0, smallest=99999, average=0;
   	char ctest[140];
@@ -22,7 +23,7 @@ void load_siemensbruker_filetype (std::string filename, Data *data)
 
 	// let's have a look at the first bytes.
 	// Siemens files tell us something there...
-	strcpy(ctest,frstr(0,6,stream));
+	frstr(0,6,stream,ctest);
 	if((strncmp("RAW2",ctest,4)!=0) &&  (strncmp("RAW1.0",ctest,5)!=0) &&  (strncmp("RAW ",ctest,4)!=0)){
 	    if(strncmp("RAW_1",ctest,5)==0)
 	         warn("This looks like a STOE raw file.\nSelect STOE from the file options menu and try again, please!");
@@ -227,15 +228,12 @@ float frfloat(int pos,FILE *stream)
    return(dum);
 }
 
-char *frstr(int pos,int cnt,FILE *stream)
+void frstr(int pos,int cnt,FILE *stream,char *dum)
 {
 
-   char dum[250];
    strcpy(dum,"");
    fseek(stream,pos,0);
    fread(&dum,1,cnt,stream);
    dum[cnt]=0;
-   return(dum);
-
 }
 

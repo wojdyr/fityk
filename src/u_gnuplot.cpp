@@ -15,6 +15,7 @@ RCSID ("$Id$")
 #include "sum.h"
 #include "pcore.h"
 #include "other.h"
+#include "ui.h"
 
 using namespace std;
 

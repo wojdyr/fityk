@@ -4,6 +4,7 @@ RCSID ("$Id$")
 
 #include "data.h" 
 #include "fileroutines.h"
+#include "ui.h"
 #include <math.h>
 #include <string.h>
 #include <fstream>
@@ -27,7 +28,7 @@ Data::Data ()
     bpar ["background-influences-error"] = &background_infl_sigma;
 }
 
-string Data::info () const
+string Data::getInfo () const
 {
     if (filename.empty()) 
         return "No file loaded.";
@@ -233,14 +234,14 @@ void Data::load_xy_filetype (ifstream& plik, vector<int>& usn)
         }
     }
     if (non_data_lines > 0)
-        mesg (S(non_data_lines) +" (not empty and not `#...') non-data lines "
+        info (S(non_data_lines) +" (not empty and not `#...') non-data lines "
                 "in " + S(non_data_blocks) + " blocks.");
     if (not_enough_cols > 0)
         warn ("Less than " + S(maxc) + " numbers in " + S(not_enough_cols) 
                 + " lines.");
     if (usn.size() == 3) {
         sigma_type = 'f';
-        mesg ("Std. dev. read from file.");
+        info ("Std. dev. read from file.");
     }
     sort(p.begin(), p.end());
     x_step = find_step();
@@ -376,7 +377,7 @@ void Data::change_sigma(char type, fp minim)
         default:
             warn("Unknown standard deviation symbol.");
     }
-    mesg (print_sigma());
+    info (print_sigma());
 }
 
 void Data::recompute_sigma()
@@ -469,8 +470,10 @@ int Data::change_range (fp left, fp right, bool state)
 int Data::auto_range (fp y_level, fp x_margin)
 {
     // pre: p.x sorted
-    if (p.empty()) 
-        return warn("No points loaded.");
+    if (p.empty()) {
+        warn("No points loaded.");
+        return -1;
+    }
     d_was_changed = true;
     bool state = (p.begin()->y >= y_level);
     for (vector<Point>::iterator i = p.begin(); i < p.end(); i++) {
@@ -636,7 +639,7 @@ void Data::rm_background_point (fp x, Bg_cl_enum bg_cl)
                                                B_point(x + min_dist, 0));
     if (u - l) {
         bc.erase (l, u);
-        mesg (S (u - l) + " points removed.");
+        info (S (u - l) + " points removed.");
         recompute_background(bg_cl);
     }
 }
@@ -647,7 +650,7 @@ void Data::clear_background (Bg_cl_enum bg_cl)
     int n = bc.size();
     bc.clear();
     recompute_background(bg_cl);
-    mesg (S(n) + " points deleted.");
+    info (S(n) + " points deleted.");
 }
 
 string Data::background_info (Bg_cl_enum bg_cl) 
@@ -923,7 +926,7 @@ void Data::export_to_file (string filename, bool append, char filetype)
                 if (ex == ".dat" || ex == ".DAT" || ex == ".xy" || ex == ".XY")
                     return export_to_file (filename, append, 'd');
             }
-            mesg ("exporting as script");
+            info ("exporting as script");
             return export_to_file (filename, append, 's');
         default:
             warn ("Unknown filetype letter: " + S(filetype));

@@ -12,7 +12,7 @@ RCSID("$Id$")
 #include "crystal.h"
 #include "sum.h"
 #include "data.h"
-#include "v_IO.h"
+#include "ui.h"
 #include "manipul.h"
 #include "other.h"
 #include "pcore.h"
@@ -29,8 +29,6 @@ vector<Pag> pgvec;
 
 bool new_line = false;
 
-inline void imsg(std::string s) {if (verbosity >= 2 && !s.empty()) gmessage(s);}
-
 void replot()
 {
     if (new_line)
@@ -38,7 +36,7 @@ void replot()
     else
         return; //do not replot
     if (auto_plot >= 2 && AL->was_changed()) {
-        my_IO->plot();
+        getUI()->plot();
 	AL->was_plotted();
     }
 }
@@ -113,7 +111,7 @@ exp:  SET DASH_STRING EQ_STRING SEP {
 	set_class_p($1)->setp ($2.str(), $3.str());
       }
     | SET DASH_STRING SEP          { set_class_p($1)->getp ($2.str()); }
-    | SET SEP                      { imsg (set_class_p($1)->print_usage($1)); }
+    | SET SEP                      { mesg (set_class_p($1)->print_usage($1)); }
     | D_ACTIVATE opt_uint_1 TWO_COLONS opt_uint_1 SEP { AL->activate($2, $4); }
     | D_ACTIVATE '!' opt_uint_1 TWO_COLONS opt_uint_1 SEP { AL->remove($3, $5);}
     | D_ACTIVATE '*' TWO_COLONS SEP { AL->append_core();}
@@ -127,7 +125,7 @@ exp:  SET DASH_STRING EQ_STRING SEP {
                                      my_data->change_range ($2.l, $2.r);
 	                           }
     | D_RANGE SEP                  { 
-		    imsg("Active data range: " + my_data->range_as_string()); }
+		    mesg("Active data range: " + my_data->range_as_string()); }
     | D_RANGE '*' flt flt SEP    { my_data->auto_range ($3, $4); }
     | D_BACKGROUND '*' UINt flt flt SEP { /*experimental auto-background*/
                  my_data->auto_background ($3, $4, false, $5, false); }
@@ -139,28 +137,28 @@ exp:  SET DASH_STRING EQ_STRING SEP {
                   my_data->auto_background ($3, $4, true, $6, true); }
     | D_BACKGROUND flt flt SEP {my_data->add_background_point($2, $3, bgc_bg);}
     | D_BACKGROUND '!' flt SEP   { my_data->rm_background_point($3, bgc_bg); }
-    | D_BACKGROUND SEP      { imsg (my_data->background_info(bgc_bg)); }
+    | D_BACKGROUND SEP      { mesg (my_data->background_info(bgc_bg)); }
     | D_BACKGROUND '.' SEP    { my_data->recompute_background(bgc_bg); }
     | D_BACKGROUND '!' SEP        { my_data->clear_background(bgc_bg); }
     | D_CALIBRATE flt flt SEP {my_data->add_background_point($2, $3, bgc_cl);}
     | D_CALIBRATE '!' flt SEP{my_data->rm_background_point($3,bgc_cl);}
-    | D_CALIBRATE SEP              { imsg (my_data->background_info(bgc_cl)); }
+    | D_CALIBRATE SEP              { mesg (my_data->background_info(bgc_cl)); }
     | D_CALIBRATE '.' SEP          { my_data->recompute_background(bgc_cl); }
     | D_CALIBRATE '!' SEP          { my_data->clear_background(bgc_cl); }
     | D_DEVIATION LOWERCASE opt_flt SEP  { my_data->change_sigma($2, $3); }
-    | D_DEVIATION SEP              { imsg (my_data->print_sigma()); }
-    | D_INFO SEP                   { imsg (my_data->info()); } 
+    | D_DEVIATION SEP              { mesg (my_data->print_sigma()); }
+    | D_INFO SEP                   { mesg (my_data->getInfo()); } 
     | D_EXPORT opt_lcase FILENAME opt_plus SEP 
                                    { my_data->export_to_file($3.str(), $4, $2);}
     | F_RUN UINt SEP               { my_fit->fit(true, $2); }
     | F_RUN SEP                    { my_fit->fit(true, -1); }
     | F_CONTINUE UINt SEP          { my_fit->fit(false, $2); }
     | F_CONTINUE SEP               { my_fit->fit(false, -1); }
-    | F_METHOD SEP     { imsg (fitMethodsContainer->print_current_method ()); }
+    | F_METHOD SEP     { mesg (fitMethodsContainer->print_current_method ()); }
     | F_METHOD LOWERCASE SEP       { fitMethodsContainer->change_method ($2); }
-    | F_INFO SEP                   { imsg (my_fit->info(0)); }
-    | F_INFO '*' SEP               { imsg (my_fit->info(1)); }
-    | F_INFO '*' '*' SEP           { imsg (my_fit->info(2)); }
+    | F_INFO SEP                   { mesg (my_fit->getInfo(0)); }
+    | F_INFO '*' SEP               { mesg (my_fit->getInfo(1)); }
+    | F_INFO '*' '*' SEP           { mesg (my_fit->getInfo(2)); }
     | S_ADD fzg_type pags_vec SEP  { my_sum->add_fzg ($2.fzg, $2.c, pgvec); }
     | S_ADD a_num SEP              {/*nothing, @ is added inside a_num*/}
     | S_CHANGE a_num flt opt_proc SEP  { AL->pars()->change_a ($2, $3, $4); }
@@ -169,74 +167,73 @@ exp:  SET DASH_STRING EQ_STRING SEP {
     | S_CHANGE F_NUM F_TYPE SEP    { my_sum->change_f ($2, $3); }
     | S_CHANGE F_NUM '[' uints ']' pags_vec SEP
 			           { my_sum->change_in_f ($2, ivec, pgvec); }
-    | S_FREEZE SEP                 { imsg (AL->pars()->frozen_info ()); }
+    | S_FREEZE SEP                 { mesg (AL->pars()->frozen_info ()); }
     | S_FREEZE a_num SEP           { AL->pars()->freeze($2, true); }
     | S_FREEZE '!' a_num SEP       { AL->pars()->freeze($3, false); }
-    | S_HISTORY SEP                { imsg (AL->pars()->print_history()); }
+    | S_HISTORY SEP                { mesg (AL->pars()->print_history()); }
     | S_HISTORY INt SEP            { AL->pars()->move_in_history ($2, true); }
     | S_HISTORY UINt SEP           { AL->pars()->move_in_history ($2, false); }
     | S_HISTORY '*' opt_uint SEP  { AL->pars()->toggle_history_item_saved($3); }
-    | S_HISTORY uint_slashes SEP   { imsg (AL->pars()->history_diff (ivec)); }
-    | S_INFO a_num SEP             { imsg (AL->pars()->info_a ($2)); }
-    | S_INFO fzg_num SEP           { imsg (my_sum->info_fzg ($2.fzg, $2.i)); }
-    | S_INFO '$' SEP               { imsg (V_fzg::print_type_info (gType, 0)); }
-    | S_INFO '^' SEP               { imsg (V_fzg::print_type_info (fType, 0)); }
-    | S_INFO '<' SEP               { imsg (V_fzg::print_type_info (zType, 0)); }
-    | S_INFO fzg_type SEP       { imsg (V_fzg::print_type_info ($2.fzg, $2.c));}
-    | S_INFO SEP                   { imsg (my_sum->general_info()); }
+    | S_HISTORY uint_slashes SEP   { mesg (AL->pars()->history_diff (ivec)); }
+    | S_INFO a_num SEP             { mesg (AL->pars()->info_a ($2)); }
+    | S_INFO fzg_num SEP           { mesg (my_sum->info_fzg ($2.fzg, $2.i)); }
+    | S_INFO '$' SEP               { mesg (V_fzg::print_type_info (gType, 0)); }
+    | S_INFO '^' SEP               { mesg (V_fzg::print_type_info (fType, 0)); }
+    | S_INFO '<' SEP               { mesg (V_fzg::print_type_info (zType, 0)); }
+    | S_INFO fzg_type SEP       { mesg (V_fzg::print_type_info ($2.fzg, $2.c));}
+    | S_INFO SEP                   { mesg (my_sum->general_info()); }
     | S_GUESS F_NUM SEP            { my_sum->guess_f($2); }
     | S_REMOVE a_num SEP           { AL->pars()->rm_a ($2); }
     | S_REMOVE fzg_num SEP         { my_sum->rm_fzg ($2.fzg, $2.i); }
     | S_REMOVE '*' '*' SEP         { my_sum->rm_all(); }
-    | S_VALUE flt opt_asterix SEP { imsg (my_sum->print_sum_value ($2, $3)); }
+    | S_VALUE flt opt_asterix SEP { mesg (my_sum->print_sum_value ($2, $3)); }
     | S_VALUE fzg_num flt opt_asterix SEP 
-		       { imsg (my_sum->print_fzg_value($2.fzg, $2.i, $3, $4)); }
-    | S_VALUE G_NUM SEP            {imsg (my_sum->print_fzg_value (gType, $2));}
-    | S_VALUE a_num SEP            { imsg (AL->pars()->info_a ($2)); }
+		       { mesg (my_sum->print_fzg_value($2.fzg, $2.i, $3, $4)); }
+    | S_VALUE G_NUM SEP            {mesg (my_sum->print_fzg_value (gType, $2));}
+    | S_VALUE a_num SEP            { mesg (AL->pars()->info_a ($2)); }
     | S_EXPORT peaks_to_sum opt_lcase FILENAME opt_plus SEP { 
                              my_sum->export_to_file ($4.str(), $5, $3, ivec); }
     | M_FINDPEAK flt opt_flt SEP { 
-                            imsg (my_manipul->print_simple_estimate ($2, $3)); }
-    | M_FINDPEAK                   {imsg (my_manipul->print_global_peakfind());}
-    | O_PLOT SEP                   { my_IO->plot_now ();}
+                            mesg (my_manipul->print_simple_estimate ($2, $3)); }
+    | M_FINDPEAK                   {mesg (my_manipul->print_global_peakfind());}
+    | O_PLOT SEP                   { getUI()->plotNow();}
     | O_PLOT range SEP          { my_core->set_view (Rect($2.l, $2.r), true); }
     | O_PLOT bracket_range bracket_range SEP  { 
                             my_core->set_view (Rect($2.l, $2.r, $3.l, $3.r)); }
     | O_PLOT '.' range SEP         { my_core->set_view_v ($3.l, $3.r); }
     | O_PLOT range '.' SEP         { my_core->set_view_h ($2.l, $2.r); }
-    | O_PLOT '.' SEP               { imsg (my_core->view_info()); } 
-    | O_PLOT '.' '.' SEP           { imsg (my_core->view_info()); } 
+    | O_PLOT '.' SEP               { mesg (my_core->view_info()); } 
+    | O_PLOT '.' '.' SEP           { mesg (my_core->view_info()); } 
     | O_PLOT sign SEP              { my_core->set_plus_background($2 == '+'); }
-    | O_LOG opt_lcase FILENAME SEP {
-			      my_other->start_logging_to_file ($3.str(), $2); }
-    | O_LOG '!' SEP                { my_other->stop_logging_to_file (); }
-    | O_LOG                        { imsg (my_other->logging_info()); }
-    | O_INCLUDE FILENAME rows SEP  { my_other->include_file ($2.str(), ivec);}
+    | O_LOG opt_lcase FILENAME SEP { getUI()->startLog($2, $3.str()); }
+    | O_LOG '!' SEP                { getUI()->stopLog(); }
+    | O_LOG                        { mesg (getUI()->getLogInfo()); }
+    | O_INCLUDE FILENAME rows SEP  { getUI()->execScript($2.str(), ivec);}
     | O_INCLUDE '!' FILENAME rows SEP { AL->reset_all(); 
-                                       my_other->include_file ($3.str(), ivec);}
+                                       getUI()->execScript($3.str(), ivec);}
     | O_INCLUDE '!' SEP            { AL->reset_all(); }
-    | O_WAIT UINt SEP             { my_other->sleep ($2); }
+    | O_WAIT UINt SEP             { getUI()->sleep ($2); }
     | O_DUMP FILENAME SEP          { AL->dump_all_as_script ($2.str()); }
     | QUIT SEP                     { YYABORT;}
     /***/
     | C_WAVELENGTH pags_vec SEP    { my_crystal->xrays.add (pgvec); }
     | C_WAVELENGTH '!' SEP         { my_crystal->xrays.clear(); }
-    | C_WAVELENGTH SEP             { imsg (my_crystal->wavelength_info()); }
+    | C_WAVELENGTH SEP             { mesg (my_crystal->wavelength_info()); }
     | C_ADD PH_TYPE pags_vec SEP   { my_crystal->add_phase ($2, pgvec); }
     | C_ADD p_plane SEP            { my_crystal->add_plane ($2.ph, $2.hkl); }
     | C_ADD p_plane f_num_vec SEP  { 
                           my_crystal->add_plane_as_f ($2.ph, $2.hkl, ivec); }
-    | C_INFO '%' SEP               { imsg (my_crystal->phase_type_info()); }
-    | C_INFO PH_TYPE SEP           { imsg (my_crystal->phase_type_info()); }
-    | C_INFO PH_NUM SEP            { imsg (my_crystal->phase_info ($2) + "\n"
+    | C_INFO '%' SEP               { mesg (my_crystal->phase_type_info()); }
+    | C_INFO PH_TYPE SEP           { mesg (my_crystal->phase_type_info()); }
+    | C_INFO PH_NUM SEP            { mesg (my_crystal->phase_info ($2) + "\n"
     				     + my_crystal->list_planes_in_phase ($2)); }
-    | C_INFO p_plane SEP      { imsg (my_crystal->plane_info ($2.ph, $2.hkl)); }
-    | C_INFO SEP                   { imsg (my_crystal->wavelength_info() + "\n"
+    | C_INFO p_plane SEP      { mesg (my_crystal->plane_info ($2.ph, $2.hkl)); }
+    | C_INFO SEP                   { mesg (my_crystal->wavelength_info() + "\n"
                                             + my_crystal->phase_info (-1)); }
     | C_REMOVE PH_NUM SEP          { my_crystal->rm_phase ($2); }
     | C_REMOVE p_plane SEP         { my_crystal->rm_plane ($2.ph, $2.hkl); }
     | C_FIND p_plane opt_flt SEP  { 
-                       imsg (my_crystal->print_estimate ($2.ph, $2.hkl, $3)); }
+                       mesg (my_crystal->print_estimate ($2.ph, $2.hkl, $3)); }
     /***/
     ;
 
@@ -401,10 +398,8 @@ int iperror (char * /*s*/) { return 0; }
 void start_of_string_parsing(const char *s);
 void end_of_string_parsing();
 
-bool parser (std::string cmd, bool from_file)
+bool parser (std::string cmd)
 {
-    if (!from_file)
-        my_other->log_input (cmd);
     cmd = " " + cmd + "\n";
     start_of_string_parsing (cmd.c_str());
     int result = ipparse();

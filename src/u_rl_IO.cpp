@@ -2,7 +2,7 @@
 #include "common.h"
 RCSID ("$Id$")
             
-#include "v_IO.h"
+#include "ui.h"
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,18 +18,36 @@ using namespace std;
 
 static const char* prompt = "=-> ";
 
-void readline_IO::message (const char *s)
+void UserInterface::showMessage (OutputStyle style, const string& s)
 {
-    if (s && s[0] == '!')
+    if (style == os_warn)
         cout << '\a';
     cout << s << endl;
 }
 
-void readline_IO::plot_now (const vector<fp>& a)
+void UserInterface::plotNow (const vector<fp>& a)
 {
     static GnuPlot my_gnuplot;
     my_gnuplot.plot (a);
 }
+
+void UserInterface::plot()
+{
+    plotNow();
+}
+
+void UserInterface::sleep (int seconds) 
+{
+    sleep(seconds);
+}
+
+void UserInterface::execCommand(const string& s)
+{
+    //TODO!!!!
+    //now there is no input logging
+}
+
+
 
 #ifndef NO_READLINE
 
@@ -39,7 +57,7 @@ static const char* set_eq_str;
 
 extern string fityk_dir; /*u_main.cpp*/
 
-bool readline_IO::start (const char* /*parameter*/)
+bool start_loop()
 {
     initialize_readline();
     string hist_file;
@@ -117,40 +135,6 @@ char *command_generator (const char *text, int state)
     return 0;
 }
 
-char *help_generator (const char * /*text*/, int /*state*/)
-{
-/*
-    static unsigned int list_index = 0;
-    static vector<string> e;
-    if (!state) {
-        e.clear();
-        list_index = 0;
-        ifstream hfile (help_filename.c_str());
-        if (!hfile) {
-            warn ("Can't open help file: " + help_filename);
-            return 0;
-        }
-        string t;
-        while (getline(hfile, t))
-            if (t.size() > 1 && !isspace(t[0]) && t[0] != '#') {
-                int counter = 0;
-                const char *ptr = t.c_str();
-                while (*ptr && !isspace(*ptr))
-                    ptr++, counter++;
-                string s(t, 0, counter);
-                unsigned int n = strlen(text);
-                if (s.size() >= n && !string(s, 0, n).compare (text))
-                    e.push_back (s);
-            }
-    }
-    else
-        list_index++;
-    if (list_index < e.size())
-        return dupstr (e[list_index].c_str());
-    else
-        return 0;
-*/  return 0;
-}
 
 char *set_generator (const char *text, int state)
 {
@@ -230,10 +214,6 @@ char **my_completion (const char *text, int start, int end)
                     return rl_completion_matches (text, set_eq_generator);
                 }
             }
-            else if (start > i && !strncmp (rl_line_buffer + i, "h ", 2)
-                    || start > i + 4
-                    && !strncmp (rl_line_buffer + i, "help ", 5)) 
-                return rl_completion_matches (text, help_generator);
             else if (is_before(end, '\'')) {
                 rl_attempted_completion_over = 0;
                 return 0;
@@ -252,7 +232,7 @@ void initialize_readline ()
 
 #else //NO_READLINE 
 
-bool readline_IO::start (const char* /*parameter*/)
+bool start_loop()
 {
     string s;
     for (;;) {

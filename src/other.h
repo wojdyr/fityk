@@ -11,33 +11,6 @@
 class PlotCore;
 class Parameters;
 
-class Various_commands : public DotSet
-{
-public:    
-
-    Various_commands();
-    Various_commands& operator= (const Various_commands& v);
-    void start_logging_to_file (std::string filename, char mode);
-    void stop_logging_to_file ();
-    std::string logging_info() const;
-    char get_log_mode() const { return logging_mode; };
-    std::string get_log_filename() const { return log_filename; };
-    void log_input  (const std::string& s);
-    void log_output (const std::string& s);
-    bool include_file (std::string name, std::vector<int> lines);
-    int sleep (int seconds);
-
-private:
-    char logging_mode;
-    std::string log_filename;
-    std::ofstream logfile;
-    std::map<char, std::string> autoplot_enum;
-    std::map<char, std::string> verbosity_enum;
-
-    Various_commands (const Various_commands&); //disable
-};
-
-
 
 //now it's only initilizing all classes...
 //
@@ -79,7 +52,6 @@ protected:
 
 DotSet *set_class_p (char c);
 
-extern Various_commands *my_other;
 extern ApplicationLogic *AL;
 
 #endif 

@@ -3,6 +3,7 @@
 RCSID ("$Id$")
 
 #include "LMfit.h"
+#include "ui.h"
 #include <math.h>
 #include <vector>
 #include <algorithm>
@@ -46,7 +47,7 @@ fp LMfit::init ()
     else
         a = a_orig; 
 
-    mesg (print_matrix (a, 1, na, "Initial A"));
+    info (print_matrix (a, 1, na, "Initial A"));
     //no need to optimise it (and compute chi2 and derivatives together)
     chi2 = compute_wssr (a);
     compute_derivatives(a, alpha, beta);
@@ -58,7 +59,7 @@ int LMfit::autoiter ()
     wssr_before = (shake_before > 0. ? compute_wssr() : chi2);
     fp prev_chi2 = chi2;
     verbose("\t === Levenberg-Marquardt method ===");
-    mesg ("Initial values:  lambda=" + S(lambda) + "  WSSR=" + S(chi2));
+    info ("Initial values:  lambda=" + S(lambda) + "  WSSR=" + S(chi2));
     verbose ("Max. number of iterations: " + max_iterations);
     if (stop_rel > 0) {
         verbose ("Stopping when relative change of WSSR is "
@@ -75,13 +76,13 @@ int LMfit::autoiter ()
         if (result == 1) { //better fit
             fp d = prev_chi2 - chi2;
             if (iter % output_one_of == 0)
-                mesg ("#" + S(iter_nr) + ":  WSSR=" + S(chi2) 
+                info ("#" + S(iter_nr) + ":  WSSR=" + S(chi2) 
                         + "  lambda=" + S(lambda) + "  d(WSSR)=" +  S(-d) 
                         + "  (" + S (d / prev_chi2 * 100) + "%)");  
             if (d / prev_chi2 < stop_rel || chi2 == 0) { //another termination
                 small_change_counter++;                  // criterium:
                 if (small_change_counter >= 2 || chi2 == 0) { //second time
-                    mesg("Fit converged.");              // neglectable change 
+                    info("Fit converged.");              // neglectable change 
                     converged = true;                    // of chi2; or chi2==0
                     break;
                 }
@@ -93,7 +94,7 @@ int LMfit::autoiter ()
                 fplot (a);
         }
         else { // result == 0, worse fit
-            mesg ("#" + S(iter_nr) + ": (WSSR=" + S(chi2_) 
+            info ("#" + S(iter_nr) + ": (WSSR=" + S(chi2_) 
                     + ")  lambda=" + S(lambda));
         }
     }
@@ -114,8 +115,8 @@ int LMfit::do_iteration()
         alpha_[na * j + j] *= (1.0 + lambda);
     beta_ = beta;
 #ifdef debug
-    mesg (print_matrix (beta_, 1, na, "beta"));
-    mesg (print_matrix (alpha_, na, na, "alpha'"));
+    info (print_matrix (beta_, 1, na, "beta"));
+    info (print_matrix (alpha_, na, na, "alpha'"));
 #endif /*debug*/
 
     // Matrix solution (Ax=b)  alpha_ * da == beta_

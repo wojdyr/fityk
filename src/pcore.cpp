@@ -8,6 +8,7 @@ RCSID ("$Id$")
 #include <algorithm>
 #include "data.h"
 #include "sum.h"
+#include "ui.h"
 #include "other.h" //temporary
 #ifdef USE_XTAL
     #include "crystal.h"
@@ -292,7 +293,7 @@ void Parameters::write_avec (const vector<fp>& a, string comment, bool no_move)
     history.push_back (HistoryItem (a, comment));
     if (!no_move) {
         hp = history.size() - 1;
-        mesg ("Parameters changed (by: " + comment + ")");
+        info ("Parameters changed (by: " + comment + ")");
     }
 }
 
@@ -406,7 +407,7 @@ int Parameters::rm_a (int n, bool silent)
         for (int i = nA - 1; i >= 0; i--)
             if (do_rm_a(i))
                 counter ++;
-        if (!silent) mesg (S(counter) + " parameters removed.");
+        if (!silent) info (S(counter) + " parameters removed.");
         return counter;
     }
 
@@ -415,7 +416,7 @@ int Parameters::rm_a (int n, bool silent)
         return 0;
     }
     else if (do_rm_a(n)) {
-        if (!silent) mesg ("Parameter @" + S(n) + " removed.");
+        if (!silent) info ("Parameter @" + S(n) + " removed.");
         return 1;
     }
     else {
@@ -451,7 +452,7 @@ fp Parameters::change_a (int nr, fp value, char c /*='='*/, bool add_to_history)
     if (nr == -1) {
         for (int i = 0; i < nA; i++)
             change_a (i, value, c, i == nA - 1 ? add_to_history : false);
-        mesg (S(nA) + " parameters changed.");
+        info (S(nA) + " parameters changed.");
         return 0.;
     }
     if (nr < 0 || nr >= nA) {
