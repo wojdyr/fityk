@@ -8,11 +8,11 @@
 #include <string>
 #include "common.h"
 
-struct Int_with_range 
+struct IntRange 
 {
     int *v, l, u;
-    Int_with_range() : v(0), l(0), u(0) {}
-    Int_with_range(int *v_, int l_, int u_) : v(v_), l(l_), u(u_) {}
+    IntRange() : v(0), l(0), u(0) {}
+    IntRange(int *v_, int l_, int u_) : v(v_), l(l_), u(u_) {}
 };
 
 struct Enum_string
@@ -28,7 +28,7 @@ protected:
     std::map <std::string, int*> ipar;
     std::map <std::string, fp*> fpar;
     std::map <std::string, bool*> bpar;
-    std::map <std::string, Int_with_range> irpar;
+    std::map <std::string, IntRange> irpar;
     std::map <std::string, Enum_string> epar;
     std::map <std::string, std::string*> spar;
 public:

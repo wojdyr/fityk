@@ -48,5 +48,8 @@ public:
 };
 
 extern v_IO* my_IO;
+extern const char* startup_commands_filename;
+extern const char* config_dirname;
+void exec_commands_from_file(const char *filename);
 
 #endif

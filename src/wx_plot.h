@@ -18,6 +18,7 @@ class wxConfigBase;
 struct Point;
 class MainPlot;
 class Rect;
+struct f_names_type;
 
 enum Mouse_mode_enum   { mmd_zoom, mmd_bg, mmd_add, mmd_range, mmd_peak }; 
 enum Mouse_act_enum    { mat_start, mat_stop, mat_move, mat_cancel };
@@ -133,7 +134,7 @@ public:
     void update_mouse_hints();
     Mouse_mode_enum get_mouse_mode() const { return mode; }
     void add_peak(fp height, fp ctr, fp hwhm);
-    void change_peak_parameters(fp height, fp ctr, fp hwhm);
+    void change_peak_parameters(const std::vector<fp> &peak_hcw);
 
 private:
     Mouse_mode_enum mode, basic_mode;
@@ -167,7 +168,8 @@ private:
     void show_peak_menu (wxMouseEvent &event);
     void peak_draft (Mouse_act_enum ma, wxMouseEvent &event =dummy_mouse_event);
     void move_peak (Mouse_act_enum ma, wxMouseEvent &event = dummy_mouse_event);
-    void draw_peak_draft (int X_mid, int X_hwhm, int Y);
+    void draw_peak_draft (int X_mid, int X_hwhm, int Y, float Shape=0., 
+                                                      const f_names_type *f=0);
     bool rect_zoom (Mouse_act_enum ma, wxMouseEvent &event = dummy_mouse_event);
     void draw_rect (int X1, int Y1, int X2, int Y2);
     bool has_mod_keys(const wxMouseEvent& event); 

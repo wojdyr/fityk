@@ -65,6 +65,7 @@ const char *const fGauss::wzor =
         "       + - - - - - - - - - - - - - - - - - - + ";  
 
 const char *fGauss::p_names[] = { "height", "center", "HWHM" };
+const vector<ParDefault> fGauss::p_defaults = vector<ParDefault>(3);
 
 fp fGauss::compute (fp x, fp* dy_dx) 
 {
@@ -116,6 +117,7 @@ const char *const fLorentz::wzor =
   "     + - - - - - - - - - - - - - - - - - +  ";
 
 const char *fLorentz::p_names[] = { "height", "center", "HWHM" };
+const vector<ParDefault> fLorentz::p_defaults = vector<ParDefault>(3);
 
 fp fLorentz::compute (fp x, fp* dy_dx) 
 {
@@ -167,8 +169,9 @@ const char *const fPearson::wzor =
   "     |     [          \\  a2  /     \\          /   ]        | \n"
   "     + - - - - - - - - - - - - - - - - - - - - - - - - - - + ";
 
-const char *fPearson::p_names[] = { "height", "center", "HWHM", 
-                                    "shape:2 [0.6:5]" };
+const char *fPearson::p_names[] = { "height", "center", "HWHM", "shape" };
+const vector<ParDefault> fPearson::p_defaults = vector4(ParDefault(), 
+                        ParDefault(), ParDefault(), ParDefault(2., 0.6, 5));
 
 void fPearson::f_val_precomputations ()
 {
@@ -254,8 +257,9 @@ const char *const fPsVoigt::wzor =
 "    |              \\ a2 /                                             |\n"
 "    + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - + "; 
 
-const char *fPsVoigt::p_names[] = { "height", "center", "width", 
-                                    "shape:0.5 [0.:1.]" };
+const char *fPsVoigt::p_names[] = { "height", "center", "width", "shape" };
+const vector<ParDefault> fPsVoigt::p_defaults = vector4(ParDefault(), 
+                         ParDefault(), ParDefault(), ParDefault(0.5, 0., 1.));
 
 fp fPsVoigt::compute (fp x, fp* dy_dx) 
 {
@@ -325,6 +329,7 @@ const char *const fVoigt::wzor =
 
 const char *fVoigt::p_names[] = { "height", "center", "Gaussian width", 
                                     "shape" };
+const vector<ParDefault> fVoigt::p_defaults = vector<ParDefault>(4);
 
 void fVoigt::f_val_precomputations ()
 {
@@ -383,6 +388,7 @@ const char *const fPolynomial5::wzor =
   "     + - - - - - - - - - - - - - - - - - - - - - - - - + ";
 
 const char *fPolynomial5::p_names[] = { "a0", "a1", "a2", "a3", "a4", "a5" };
+const vector<ParDefault> fPolynomial5::p_defaults = vector<ParDefault>(6);
 
 fp fPolynomial5::compute (fp x, fp* dy_dx) 
 {
@@ -411,14 +417,19 @@ string fPolynomial5::formula (const vector<fp>& A, const vector<V_g*>& G)
 
 const f_names_type V_f::f_names[] = 
 { 
-  f_names_type( 'G', "Gaussian",     3, fGauss::wzor,     fGauss::p_names   ),
-  f_names_type( 'L', "Lorentzian",   3, fLorentz::wzor,   fLorentz::p_names ),
-  f_names_type( 'P', "PearsonVII",   4, fPearson::wzor,   fPearson::p_names ),
-  f_names_type( 'S', "Pseudo-Voigt", 4, fPsVoigt::wzor,   fPsVoigt::p_names ),
-  f_names_type( 'V', "Voigt",        4, fVoigt::wzor,     fVoigt::p_names   ),
+  f_names_type( 'G', "Gaussian",     3, fGauss::wzor,     fGauss::p_names,
+                                        fGauss::p_defaults),
+  f_names_type( 'L', "Lorentzian",   3, fLorentz::wzor,   fLorentz::p_names,
+                                        fLorentz::p_defaults),
+  f_names_type( 'P', "PearsonVII",   4, fPearson::wzor,   fPearson::p_names,
+                                        fPearson::p_defaults),
+  f_names_type( 'S', "Pseudo-Voigt", 4, fPsVoigt::wzor,   fPsVoigt::p_names,
+                                        fPsVoigt::p_defaults),
+  f_names_type( 'V', "Voigt",        4, fVoigt::wzor,     fVoigt::p_names,
+                                        fVoigt::p_defaults),
   f_names_type( 'n', "polynomial5",  6, fPolynomial5::wzor, 
-                                                      fPolynomial5::p_names ),
-  f_names_type( 0 , "the end", 0, 0, 0 )
+                              fPolynomial5::p_names, fPolynomial5::p_defaults),
+  f_names_type( 0 , "the end", 0, 0, 0, vector<ParDefault>())
 };
 
 V_f* V_f::factory (Sum* sum, char type, const vector<Pag>& p) 
@@ -459,6 +470,30 @@ V_f* V_f::copy_factory (Sum* sum, char type, V_f* orig)
         verbose ("Additional parameter(s) for ^" + S(type) + " set to _1.0");
     }
     return factory (sum, type, p);
+}
+
+vector<fp> V_f::get_default_peak_parameters(const f_names_type *f, 
+                                            const vector<fp> &peak_hcw)
+{
+    assert(peak_hcw.size() >= 3);
+    fp height = peak_hcw[0]; 
+    fp center = peak_hcw[1];
+    fp hwhm = peak_hcw[2]; 
+    vector<fp> ini(f->psize);
+    for (int i = 0; i < f->psize; i++) {
+        string pname = f->pnames[i];
+        const ParDefault &pd = f->pdefaults[i];
+        fp t = 0;
+        if (i > 2 && size(peak_hcw) > i) t = peak_hcw[i];
+        else if (pname == "height") t = height;
+        else if (pname == "center") t = center;
+        else if (pname == "HWHM")   t = hwhm;
+        else if (pname == "FWHM")   t = 2*hwhm;
+        else if (pname.find("width") < pname.size())   t = hwhm; 
+        else if (pd.is_set) t = pd.p;
+        ini[i] = t;
+    }
+    return ini;
 }
 
 /********************   z e r o  -  s h i f t   ************************/

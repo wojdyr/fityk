@@ -24,8 +24,8 @@ v_fit::v_fit (char symb, string m)
       default_max_iterations(50), output_one_of(1), random_seed(-1),
       max_evaluations(0), evaluations(0), iter_nr (0), na(0), nf(0) 
 {
-    irpar ["output-one-of"] = Int_with_range (&output_one_of, 1, 999);
-    ipar["pseudo-random-seed"] = &random_seed;
+    irpar ["output-one-of"] = IntRange (&output_one_of, 1, 999);
+    irpar["pseudo-random-seed"] = IntRange (&random_seed, -1, 999999999);
     ipar["default-max-iterations"] = &default_max_iterations;
     ipar["max-wssr-evaluations"] = &max_evaluations;
     Distrib_enum ['u'] = "uniform";

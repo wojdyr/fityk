@@ -893,7 +893,7 @@ wxTreeItemId FuncTree::next_item_but_not_child (const wxTreeItemId& item)
     else if (item == GetRootItem())
         return wxTreeItemId(); //invalid item 
     else 
-        return next_item_but_not_child (GetParent (item));
+        return next_item_but_not_child (GetItemParent (item));
 }
 
 int FuncTree::update_labels (const string& beginning)

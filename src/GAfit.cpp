@@ -28,8 +28,8 @@ GAfit::GAfit ()
      best_indiv(0)
 {
     default_max_iterations = 200;
-    irpar["population-size"] = Int_with_range (&popsize, 2, 9999);
-    irpar["steady-size"] = Int_with_range (&elitism, 0, 9999);
+    irpar["population-size"] = IntRange (&popsize, 2, 9999);
+    irpar["steady-size"] = IntRange (&elitism, 0, 9999);
     epar.insert(pair<string, Enum_string>("mutation-type", 
                                Enum_string (Distrib_enum, &mutation_type)));
     fpar["p-mutation"] = &p_mutation;
@@ -51,15 +51,15 @@ GAfit::GAfit ()
     epar.insert (pair<string, Enum_string>("selection-type", 
                                Enum_string (Selection_enum, &selection_type)));
     bpar["rank-scoring"] = &rank_scoring;
-    irpar["tournament-size"] = Int_with_range (&tournament_size, 2, 999);
-    irpar["window-size"] = Int_with_range (&window_size, -1, 199);
+    irpar["tournament-size"] = IntRange (&tournament_size, 2, 999);
+    irpar["window-size"] = IntRange (&window_size, -1, 199);
     fpar["linear-scaling-a"] = &linear_scaling_a;
     fpar["linear-scaling-c"] = &linear_scaling_c;
     fpar["linear-scaling-b"] = &linear_scaling_b;
     fpar["rel-std-dev-stop"] = &std_dev_stop;
     ipar["iterations-with-no-progresss-stop"] = &iter_with_no_progresss_stop;
     fpar["wssr-stop"] = &wssr_stop;
-    ipar["autoplot-indiv-nr"] = &autoplot_indiv_nr;
+    irpar["autoplot-indiv-nr"] = IntRange(&autoplot_indiv_nr, -1, 999999999);
     spar["GA-log-file"] = &log_file;
 }
 

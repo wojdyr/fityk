@@ -135,7 +135,7 @@ enum {
     ID_D_LOAD                  ,
     ID_D_XLOAD                 ,
     ID_D_RECENT         = 44010, //and next ones
-    ID_D_INFO           = 44030,
+    ID_D_INFO           = 44130,
     ID_D_DEVIATION             ,
     ID_D_RANGE                 ,
     ID_D_B_INFO                ,
@@ -159,8 +159,8 @@ enum {
     ID_F_CONTINUE              ,
     ID_F_INFO                  ,
     ID_F_SET                   ,
-    ID_F_M             = 44060 , // and a few next IDs
-    ID_C_WAVELENGTH    = 44071 ,
+    ID_F_M             = 44160 , // and a few next IDs
+    ID_C_WAVELENGTH    = 44171 ,
     ID_C_ADD                   ,
     ID_C_INFO                  ,
     ID_C_REMOVE                ,
@@ -184,8 +184,8 @@ enum {
     ID_G_MODE                  ,
     ID_G_V_ALL                 ,
     ID_G_V_VERT                ,
-    ID_G_V_ZOOM_PREV   = 44202 ,
-    ID_G_LCONF1        = 44242 ,
+    ID_G_V_ZOOM_PREV   = 44302 ,
+    ID_G_LCONF1        = 44342 ,
     ID_G_LCONF2                ,
     ID_G_LCONFB                ,
     ID_G_SCONF                 ,
@@ -236,11 +236,17 @@ bool FApp::OnInit(void)
         verbosity++;
     if (cmdLineParser.Found("q"))
         verbosity--;
+    wxString fityk_dir = wxGetHomeDir() + wxFILE_SEP_PATH + config_dirname;
+    if (!wxDirExists(fityk_dir))
+        wxMkdir(fityk_dir);
+    wxString startup_file_path = fityk_dir + wxFILE_SEP_PATH 
+                                + startup_commands_filename;
+    if (wxFileExists(startup_file_path)) {
+        exec_commands_from_file(startup_file_path.c_str());
+    }
     for (unsigned int i = 0; i < cmdLineParser.GetParamCount(); i++) {
         wxString par = cmdLineParser.GetParam(i);
-        file_I_stdout_O f_IO;
-        my_IO = &f_IO;
-        my_IO->start(par.c_str());
+        exec_commands_from_file(par.c_str());
     }
 
     //global settings
@@ -249,7 +255,7 @@ bool FApp::OnInit(void)
     wxToolTip::SetDelay (500);
 #endif
     wxConfig::DontCreateOnDemand();
-    wxString pre = wxString(".fityk") + wxFILE_SEP_PATH;
+    wxString pre = wxString(config_dirname) + wxFILE_SEP_PATH;
     conf_filename = pre + "config";
     alt_conf_filename = pre + "alt-config";
     wxConfigBase *config = new wxConfig("", "", pre+"wxoptions", "", 
@@ -293,6 +299,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
 
     EVT_MENU (ID_D_LOAD,        FFrame::OnDLoad)   
     EVT_MENU (ID_D_XLOAD,       FFrame::OnDXLoad)   
+    EVT_MENU_RANGE (ID_D_RECENT+1, ID_D_RECENT+100, FFrame::OnDRecent)
     EVT_MENU (ID_D_INFO,        FFrame::OnDInfo)
     EVT_MENU (ID_D_DEVIATION  , FFrame::OnDDeviation)  
     EVT_MENU (ID_D_RANGE,       FFrame::OnDRange)
@@ -436,6 +443,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     io_sizer->Fit (io_panel);
     io_sizer->SetSizeHints (io_panel);
 
+    read_recent_data_files();
     set_menubar();
 
     toolbar = new FToolBar(this, -1);
@@ -461,6 +469,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
 
 FFrame::~FFrame() 
 {
+    write_recent_data_files();
     delete print_data;
     delete page_setup_data;
 }
@@ -482,6 +491,60 @@ void FFrame::read_settings(wxConfigBase *cf)
     if (aux_window) aux_window->SetDefaultSize(wxSize(-1, aux_height));
     int bot_height = cf->Read ("BotWinHeight", 100);
     if (bottom_window) bottom_window->SetDefaultSize(wxSize(-1, bot_height));
+}
+
+void FFrame::read_recent_data_files()
+{
+    recent_data_files.clear();
+    wxConfigBase *c = wxConfig::Get();
+    if (c && c->HasGroup("/RecentDataFiles")) {
+        for (int i = 0; i < 20; i++) {
+            wxString key = wxString("/RecentDataFiles/") + S(i).c_str();
+            if (c->HasEntry(key))
+                recent_data_files.push_back(wxFileName(c->Read(key, "")));
+        }
+    }
+}
+
+void FFrame::write_recent_data_files()
+{
+    wxConfigBase *c = wxConfig::Get();
+    wxString group("/RecentDataFiles");
+    if (c->HasGroup(group))
+        c->DeleteGroup(group);
+    int counter = 0;
+    for (list<wxFileName>::const_iterator i = recent_data_files.begin(); 
+         i != recent_data_files.end() && counter < 9; 
+         i++, counter++) {
+        wxString key = group + "/" + S(counter).c_str();
+        c->Write(key, i->GetFullPath());
+    }
+}
+
+void FFrame::add_recent_data_file(wxString filename)
+{
+    const int count = data_menu_recent->GetMenuItemCount();
+    const wxMenuItemList& mlist = data_menu_recent->GetMenuItems();
+    const wxFileName fn = wxFileName(filename);
+    recent_data_files.remove(filename);
+    recent_data_files.push_front(fn);
+    int id_new = 0;
+    for (wxMenuItemList::Node *i = mlist.GetFirst(); i; i = i->GetNext()) 
+        if (i->GetData()->GetHelp() == fn.GetFullPath()) {
+            id_new = i->GetData()->GetId();
+            data_menu_recent->Delete(i->GetData());
+            break;
+        }
+    if (id_new == 0) {
+        if (count >= 15) {
+            wxMenuItem *item = mlist.GetLast()->GetData();
+            id_new = item->GetId();
+            data_menu_recent->Delete(item);
+        }
+        else
+            id_new = ID_D_RECENT+count+1;
+    }
+    data_menu_recent->Prepend(id_new, fn.GetFullName(), fn.GetFullPath());
 }
 
 void FFrame::read_all_settings(wxConfigBase *cf)
@@ -516,8 +579,13 @@ void FFrame::set_menubar()
     data_menu->Append (ID_D_LOAD,     "&Load File", "Load data from file");
     data_menu->Append (ID_D_XLOAD,    "&Load File (Custom)", 
                                     "Load data from file, with some options");
-    //wxMenu* data_menu_recent = new wxMenu;
-    //data_menu->Append(ID_D_RECENT, "Recent &Files", data_menu_recent); TODO
+    this->data_menu_recent = new wxMenu;
+    int rf_counter = 1;
+    for (list<wxFileName>::const_iterator i = recent_data_files.begin(); 
+         i != recent_data_files.end() && rf_counter < 16; i++, rf_counter++) 
+        data_menu_recent->Append(ID_D_RECENT + rf_counter, 
+                                 i->GetFullName(), i->GetFullPath());
+    data_menu->Append(ID_D_RECENT, "Recent &Files", data_menu_recent); 
     data_menu->AppendSeparator();
 
     data_menu->Append (ID_D_INFO,     "&Info", "Info about loaded data");
@@ -606,7 +674,6 @@ void FFrame::set_menubar()
     gui_menu_sconfig->Append(ID_G_SCONF2, "as alternative",
                        "Save current configuration to alternative config file");
     gui_menu->Append(ID_G_SCONF, "&Save current config", gui_menu_sconfig);
-    //TODO configuration 1,2
 
     wxMenu* other_menu = new wxMenu;
     other_menu->Append (ID_O_INCLUDE,   "&Include file", 
@@ -635,8 +702,8 @@ void FFrame::set_menubar()
     help_menu->Append(ID_H_MANUAL, "&Manual", "User's Manual");
     help_menu->Append(ID_H_TIP, "&Tip of the day", "Show tip of the day");
     help_menu->Append(wxID_ABOUT, "&About...", "Show about dialog");
-    help_menu->AppendSeparator();
-    help_menu->Append(ID_QUIT, "&Exit", "Exit the program");
+    //help_menu->AppendSeparator();
+    //help_menu->Append(ID_QUIT, "&Exit", "Exit the program");
 
     wxMenuBar *menu_bar = new wxMenuBar(wxMENU_TEAROFF);
     menu_bar->Append (other_menu, "&File" );
@@ -765,8 +832,10 @@ void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
                               "|Siemens/Bruker (*.raw)|*.raw;*.RAW"
                               "|all files (*)|*",
                               wxOPEN | wxFILE_MUST_EXIST);
-    if (fdlg.ShowModal() == wxID_OK) 
+    if (fdlg.ShowModal() == wxID_OK) {
         exec_command ("d.load '" + fdlg.GetPath() + "'");
+        add_recent_data_file(fdlg.GetPath());
+    }
     dir = fdlg.GetDirectory();
 }
 
@@ -787,7 +856,15 @@ void FFrame::OnDXLoad (wxCommandEvent& WXUNUSED(event))
 
     if (dxload_dialog->ShowModal() == wxID_OK) {
         exec_command (dxload_dialog->get_command());
+        add_recent_data_file(dxload_dialog->filename.c_str());
     }
+}
+
+void FFrame::OnDRecent (wxCommandEvent& event)
+{
+    wxString s = GetMenuBar()->GetHelpString(event.GetId());
+    exec_command ("d.load '" + s + "'");
+    add_recent_data_file(s);
 }
 
 void FFrame::OnDInfo (wxCommandEvent& WXUNUSED(event))
@@ -1089,7 +1166,7 @@ void FFrame::OnXSet (string name, char letter)
     DotSet* myset = set_class_p (letter);
     vector<string> ev, vv, tv;
     myset->expanp ("", ev);
-    for (vector<string>::iterator i = ev.begin(); i != ev.end(); i++){
+    for (vector<string>::iterator i = ev.begin(); i != ev.end(); i++) {
         string v;
         myset->getp_core (*i, v);
         vv.push_back (v);
@@ -1105,12 +1182,15 @@ void FFrame::OnXSet (string name, char letter)
             wxTextCtrl *tctrl = wxDynamicCast (dialog->tc_v[i], wxTextCtrl);
             wxCheckBox *chbox = wxDynamicCast (dialog->tc_v[i], wxCheckBox);
             wxChoice *chic = wxDynamicCast (dialog->tc_v[i], wxChoice);
+            wxSpinCtrl *spinc = wxDynamicCast (dialog->tc_v[i], wxSpinCtrl);
             if (tctrl)
                 s = tctrl->GetValue().Trim(true).Trim(false) .c_str();
             else if (chbox)
                 s = S(chbox->GetValue());
             else if (chic)
                 s = chic->GetStringSelection().c_str();
+            else if (spinc)
+                s = S(spinc->GetValue());
             else
                 assert (0);
             if (s != vv[i]) {
@@ -1198,7 +1278,7 @@ void FFrame::OnConfigRead (wxCommandEvent& event)
 
 void FFrame::OnConfigBuiltin (wxCommandEvent& WXUNUSED(event))
 {
-    wxString name = wxString(".fityk") + wxFILE_SEP_PATH + "builtin-config";
+    wxString name = wxString(config_dirname) + wxFILE_SEP_PATH+"builtin-config";
     wxConfigBase *config = new wxConfig("", "", name, "", 
                                         wxCONFIG_USE_LOCAL_FILE);
     if (config->GetNumberOfEntries(true))
@@ -1551,13 +1631,17 @@ FSetDlg::FSetDlg(wxWindow* parent, const wxWindowID id, const wxString& title,
         }
         wxBoxSizer *sizerH = new wxBoxSizer (wxHORIZONTAL);
         wxControl* tc;
-        if (types[i].find ("bool") != string::npos) {//boolean type
+        bool put_static_text = true;
+        bool with_tooltip = false;
+
+        if (types[i].find("bool") != string::npos) {//boolean type
             wxCheckBox* tc_ = new wxCheckBox (this, -1, names[i].c_str());
             tc_->SetValue (vals[i] != "0");
             tc = tc_;
+            put_static_text = false;
         }
             //enumaration of strings
-        else if (types[i].find ("enum") != string::npos) {
+        else if (types[i].find("enum") != string::npos) {
             vector<string> std_choices;
             myset->expand_enum (names[i], "", std_choices);
             const int max_choice_items = 20;//it should be enough
@@ -1570,22 +1654,43 @@ FSetDlg::FSetDlg(wxWindow* parent, const wxWindowID id, const wxString& title,
                                           std_choices.size(), wx_choice);
             tc_->SetStringSelection (vals[i].c_str());
             tc = tc_;
-            wxStaticText* st = new wxStaticText (this,-1, names[i].c_str());
-            sizerH->Add (st, 0, wxALL|wxALIGN_LEFT, 5);
+        }
+        else if (types[i].find("integer") != string::npos) {//integer
+            tc = new wxSpinCtrl(this, -1, vals[i].c_str(),
+                                wxDefaultPosition, wxSize(50, -1), 
+                                wxSP_ARROW_KEYS,
+                                0, 999999999);
+            with_tooltip = true;
+        }
+        else if (types[i].find("...,") != string::npos) { //integer range
+            const string &t = types[i];
+            string lower(t.begin(), t.begin() + t.find_first_of(','));
+            string upper(t.begin() + t.find_last_of(',') + 1, t.end());
+            tc = new wxSpinCtrl(this, -1, vals[i].c_str(),
+                                wxDefaultPosition, wxSize(50, -1), 
+                                wxSP_ARROW_KEYS,
+                                atoi(lower.c_str()), atoi(upper.c_str()));
+            with_tooltip = true;
         }
         else { //another type
-            wxStaticText* st = new wxStaticText (this,-1, names[i].c_str());
-            sizerH->Add (st, 0, wxALL|wxALIGN_LEFT, 5);
             tc = new wxTextCtrl (this, -1, vals[i].c_str(), 
-                                        wxDefaultPosition, wxSize(50, -1));
+                                 wxDefaultPosition, wxSize(50, -1));
+            with_tooltip = true;
+        }
+
 #if wxUSE_TOOLTIPS
+        if (with_tooltip)
             tc->SetToolTip (types[i].c_str()); 
 #endif
+        if (put_static_text) {
+            wxStaticText* st = new wxStaticText (this, -1, names[i].c_str());
+            sizerH->Add (st, 0, wxALL|wxALIGN_LEFT, 5);
         }
         sizerH->Add (tc, 0, wxALL|wxALIGN_LEFT, 0);
         tc_v.push_back(tc);
         sizer_V0->Add (sizerH, 0, wxALL|wxALIGN_LEFT, 5);
     }
+    sizer0->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
     wxBoxSizer *sizerH = new wxBoxSizer (wxHORIZONTAL);
     wxButton *btOk = new wxButton (this, wxID_OK, "OK");
     sizerH->Add (btOk, 0, wxALL|wxALIGN_CENTER, 5 );

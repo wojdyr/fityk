@@ -1077,36 +1077,43 @@ void MainPlot::OnKeyDown (wxKeyEvent& event)
         event.Skip();
 }
 
-//TODO ?? move_peak and peak_draft -> one funtion
+
 void MainPlot::move_peak (Mouse_act_enum ma, wxMouseEvent &event)
 {
     static bool started = false;
     static wxPoint prev(INVALID, INVALID);
     static fp height, center, hwhm, shape;
-    static fp shape_multip = 20;
     static bool c_height, c_center, c_hwhm, c_shape; //changable 
+    static const V_f *p = 0;
+    static const f_names_type *ft = 0;
+    static wxCursor old_cursor = wxCURSOR_NONE;
     if (ma != mat_start) {
         if (!started) return;
         draw_peak_draft(x2X(center - my_sum->zero_shift(center)), 
-                        common.dx2dX(hwhm), y2Y(height));//clear old
+                        common.dx2dX(hwhm), y2Y(height),
+                        shape, ft);//clear old
     }
     switch (ma) {
         case mat_start: {
-            const V_f *p 
-                  = static_cast<const V_f*>(my_sum->get_fzg(fType, over_peak));
+            p = static_cast<const V_f*>(my_sum->get_fzg(fType, over_peak));
+            ft = static_cast<const f_names_type*>(p->type_info());
             if (!p->is_peak()) return;
             my_sum->use_param_a_for_value();
             height = p->height();
             center = p->center();
             hwhm = p->fwhm() / 2.;
+            shape = p->g_size > 3 ? p->values_of_pags()[3] : 0;
             c_height = p->get_pag(0).is_a();
             c_center = p->get_pag(1).is_a();
             c_hwhm = p->get_pag(2).is_a();
-            c_shape = false;
+            c_shape = p->g_size > 3 && p->get_pag(3).is_a();
             draw_peak_draft(x2X(center - my_sum->zero_shift(center)), 
-                            common.dx2dX(hwhm), y2Y(height));
+                            common.dx2dX(hwhm), y2Y(height),
+                            shape, ft);
             prev.x = event.GetX(), prev.y = event.GetY();
             started = true;
+            old_cursor = GetCursor();
+            SetCursor(wxCURSOR_SIZENWSE);
             break;
         }
         case mat_move: {
@@ -1115,21 +1122,31 @@ void MainPlot::move_peak (Mouse_act_enum ma, wxMouseEvent &event)
             if (!has_mod_keys(event)) {
                 if (c_center) center += dx;
                 if (c_height) height += dy;
+                frame->SetStatusText("[Shift=change width/shape] Ctr:" 
+                                     + wxString(S(center).c_str())
+                                     + " Height:" + S(height).c_str());
             }
             else {
                 if (c_hwhm) hwhm = fabs(hwhm + dx);
-                if (c_shape) shape += (event.GetY() - prev.y) * shape_multip; 
+                if (c_shape) shape *= (1 - 0.05 * (event.GetY() - prev.y)); 
+                frame->SetStatusText("Width:" + wxString(S(hwhm*2).c_str())
+                                   + " Shape:" + wxString(S(shape).c_str()));
             }
             prev.x = event.GetX(), prev.y = event.GetY();
             draw_peak_draft(x2X(center - my_sum->zero_shift(center)), 
-                            common.dx2dX(hwhm), y2Y(height));
+                            common.dx2dX(hwhm), y2Y(height), 
+                            shape, ft);
             break;
         }
         case mat_stop:
-            change_peak_parameters(height, center, hwhm);
+            change_peak_parameters(vector4(height, center, hwhm, shape));
             //no break
         case mat_cancel:
             started = false;
+            if (old_cursor != wxCURSOR_NONE) {
+                SetCursor(old_cursor);
+                old_cursor = wxCURSOR_NONE;
+            }
             break;
         default: assert(0);
     }
@@ -1161,18 +1178,41 @@ void MainPlot::peak_draft (Mouse_act_enum ma, wxMouseEvent &event)
     }
 }
 
-void MainPlot::draw_peak_draft (int X_mid, int X_hwhm, int Y)
+void MainPlot::draw_peak_draft(int Ctr, int Hwhm, int Y, 
+                               float Shape, const f_names_type *f)
 {
-    if (X_mid == INVALID || X_hwhm == INVALID || Y == INVALID)
+    if (Ctr == INVALID || Hwhm == INVALID || Y == INVALID)
         return;
     wxClientDC dc(this);
     dc.SetLogicalFunction (wxINVERT);
     dc.SetPen(*wxBLACK_DASHED_PEN);
-    int y0 = GetClientSize().GetHeight();
-    dc.DrawLine (X_mid, y0, X_mid, Y);
-    dc.DrawLine (X_mid - X_hwhm, (Y+y0)/2, X_mid + X_hwhm, (Y+y0)/2);
-    dc.DrawLine (X_mid, Y, X_mid - 2 * X_hwhm, y0);
-    dc.DrawLine (X_mid, Y, X_mid + 2 * X_hwhm, y0);
+    int Y0 = y2Y(0);
+    dc.DrawLine (Ctr, Y0, Ctr, Y); //vertical line
+    dc.DrawLine (Ctr - Hwhm, (Y+Y0)/2, Ctr + Hwhm, (Y+Y0)/2); //horizontal line
+    if (f) {
+        vector<fp> hcw =  vector4(Y2y(Y), fp(Ctr), fp(Hwhm), fp(Shape));
+        vector<fp> ini = V_f::get_default_peak_parameters(f, hcw); 
+        vector<Pag> ini_p(ini.begin(), ini.end());
+        const int n = 40;
+        vector<wxPoint> v(2*n+1);
+        char type = f->type;
+        V_f *peak = V_f::factory(0, type, ini_p);
+        peak->pre_compute_value_only(vector<fp>(), vector<V_g*>());
+        int pX_=0, pY_=0;
+        for (int i = -n; i <= n; i++) {
+            int X_ = int(Ctr + Hwhm * 5. * i / n); 
+            int Y_ = y2Y(peak->compute(X_, 0));
+            if (i+n != 0)
+                dc.DrawLine(pX_, pY_, X_, Y_); 
+            pX_ = X_;
+            pY_ = Y_;
+        }
+        delete peak;
+    }
+    else {
+        dc.DrawLine (Ctr, Y, Ctr - 2 * Hwhm, Y0); //left slope
+        dc.DrawLine (Ctr, Y, Ctr + 2 * Hwhm, Y0); //right slope
+    }
 }
 
 bool MainPlot::rect_zoom (Mouse_act_enum ma, wxMouseEvent &event) 
@@ -1335,8 +1375,7 @@ void MainPlot::OnZoomAll (wxCommandEvent& WXUNUSED(event))
 }
 
 //functions..........
-void MainPlot::add_peak(fp height, fp ctr, fp hwhm) //TODO move partially ->sum
-                                                   // and to FFrame
+void MainPlot::add_peak(fp height, fp ctr, fp hwhm) 
 {
     const f_names_type &f = frame->get_toolbar()->get_peak_type();
 
@@ -1344,16 +1383,15 @@ void MainPlot::add_peak(fp height, fp ctr, fp hwhm) //TODO move partially ->sum
     my_sum->use_param_a_for_value();
     fp center = ctr + my_sum->zero_shift(ctr);
     string cmd = "s.add ^" + S(f.type);
+    vector<fp> ini 
+          = V_f::get_default_peak_parameters(&f, vector3(height, center, hwhm));
     for (int i = 0; i < f.psize; i++) {
-        string pname = f.pnames[i];
-        if      (pname == "height") cmd += " ~" + S( height );
-        else if (pname == "center") cmd += " ~" + S( center );
-        else if (pname == "HWHM")   cmd += " ~" + S( hwhm   );
-        else if (pname == "FWHM")   cmd += " ~" + S( 2*hwhm );
-        else if (pname.find("width") < pname.size())   cmd += " ~" + S(hwhm); 
-        else if (pname.find(':') < pname.size())
-            cmd += " ~" + pname.substr(pname.find(':') + 1) + " ";
-        else cmd += " ~0";
+        cmd += " ~" + S(ini[i]);
+        const ParDefault &pd = f.pdefaults[i];
+        if (pd.lower_set || pd.upper_set)  {
+            cmd += " [" + (pd.lower_set ? S(pd.lower) : S()) + ":" 
+                   + (pd.upper_set ? S(pd.upper) : S()) + "]";
+        }
     }
     string stat = "Height: " + S(height) + " Ctr: " + S(center) 
                    + " HWHM: " + S(hwhm);
@@ -1362,16 +1400,22 @@ void MainPlot::add_peak(fp height, fp ctr, fp hwhm) //TODO move partially ->sum
     exec_command (cmd);
 }
 
-void MainPlot::change_peak_parameters(fp height, fp ctr, fp hwhm)
+
+void MainPlot::change_peak_parameters(const vector<fp> &peak_hcw)
 {
     vector<string> changes;
     const V_f *peak = static_cast<const V_f*>(my_sum->get_fzg(fType,over_peak));
     const f_names_type *f = static_cast<const f_names_type*>(peak->type_info());
+    assert(peak_hcw.size() >= 3);
+    fp height = peak_hcw[0]; 
+    fp center = peak_hcw[1];
+    fp hwhm = peak_hcw[2]; 
     for (int i = 0; i < f->psize; i++) {
         string pname = f->pnames[i];
         fp val = 0;
-        if      (pname == "height") val = height; //TODO in ffunc ->
-        else if (pname == "center") val = ctr; // int find_pag(string)
+        if (i > 2 && size(peak_hcw) > i) val = peak_hcw[i];
+        else if (pname == "height") val = height; 
+        else if (pname == "center") val = center; 
         else if (pname == "HWHM")   val = hwhm;
         else if (pname == "FWHM")   val = 2*hwhm;
         else if (pname.find("width") < pname.size())  val = hwhm; 
@@ -1791,6 +1835,8 @@ void DiffPlot::fit_y_zoom()
 void DiffPlot::OnPopupYZoomAuto (wxCommandEvent& WXUNUSED(event))
 {
     auto_zoom_y = !auto_zoom_y;
+    if (auto_zoom_y) 
+        fit_y_zoom();
 }
 
 fp scale_tics_step (fp beg, fp end, int max_tics)

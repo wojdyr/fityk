@@ -21,7 +21,7 @@ DotSet& DotSet::operator= (const DotSet &v)
     for (map<string, bool*>::const_iterator i = v.bpar.begin(); 
                                                         i !=v.bpar.end(); i++)
         *bpar[i->first] = *i->second;
-    for (map<string, Int_with_range>::const_iterator i = v.irpar.begin(); 
+    for (map<string, IntRange>::const_iterator i = v.irpar.begin(); 
                                                         i != v.irpar.end(); i++)
         *irpar[i->first].v = *i->second.v;
     for (map<string, Enum_string>::const_iterator i = v.epar.begin(); 
@@ -194,7 +194,7 @@ int DotSet::expanp (const string k, vector<string>& e) const
     for (map <string, bool*>::const_iterator i = bpar.begin();i!=bpar.end();i++)
         if (!string(i->first, 0, len).compare (k))
             e.push_back (i->first);
-    for (map <string, Int_with_range>::const_iterator i = irpar.begin(); 
+    for (map <string, IntRange>::const_iterator i = irpar.begin(); 
                                                         i != irpar.end(); i++)
         if (!string(i->first, 0, len).compare (k))
             e.push_back (i->first);
@@ -206,6 +206,7 @@ int DotSet::expanp (const string k, vector<string>& e) const
                                                           i != spar.end(); i++)
         if (!string(i->first, 0, len).compare (k))
             e.push_back (i->first);
+    sort(e.begin(), e.end());
     return e.size();
 }
 

@@ -43,7 +43,7 @@ Various_commands::Various_commands()
     epar.insert (pair<string, Enum_string> ("autoplot", 
                                Enum_string (autoplot_enum, &auto_plot)));
     bpar ["exit-on-error"] = &exit_on_error;
-    ipar ["plot-min-curve-points"] = &smooth_limit;
+    //ipar ["plot-min-curve-points"] = &smooth_limit;
 }
 
 Various_commands& Various_commands::operator= (const Various_commands& v)

@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "pag.h"
+#include <list>
 #include <wx/spinctrl.h>
 #include <wx/print.h>
 #include <wx/html/helpctrl.h>
@@ -148,6 +149,7 @@ public:
 
     void OnDLoad         (wxCommandEvent& event);   
     void OnDXLoad        (wxCommandEvent& event);   
+    void OnDRecent       (wxCommandEvent& event);
     void OnDInfo         (wxCommandEvent& event);
     void OnDDeviation    (wxCommandEvent& event);
     void OnDRange        (wxCommandEvent& event);
@@ -226,10 +228,15 @@ protected:
     wxHtmlHelpController help; 
 #endif
     wxString last_include_path;
+    std::list<wxFileName> recent_data_files;
+    wxMenu *data_menu_recent;
 
     void OnXSet (std::string name, char letter);
     void set_menubar();
     void not_implemented_menu_item (const std::string &command) const; 
+    void read_recent_data_files();
+    void write_recent_data_files();
+    void add_recent_data_file(wxString filename);
 
 DECLARE_EVENT_TABLE()
 };

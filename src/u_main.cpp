@@ -22,15 +22,14 @@ int main (int argc, char **argv)
     MainManager main_manager;
     char *home_dir = getenv("HOME");
     if (!home_dir) home_dir = "";
-    fityk_dir = S(home_dir) + "/.fityk/";
-    string conf_file = fityk_dir + "fitykrc";
+    // '/' is assumed as path separator
+    fityk_dir = S(home_dir) + "/" + config_dirname + "/"; 
+    string conf_file = fityk_dir + startup_commands_filename;
     ifstream file (conf_file.c_str(), ios::in);//only checking if can be opened
     if (file) {
-        cerr << "Reading init file: " << conf_file << endl;
-        file_I_stdout_O f_IO;
-        my_IO = &f_IO;
-        my_IO->start(conf_file.c_str());
-        cerr << " End of init file." << endl;
+        cerr << " -- reading init file: " << conf_file << " --\n";
+        exec_commands_from_file(conf_file.c_str());
+        cerr << " -- end of init file --" << endl;
     }
     else
         ;//cerr << "Init file not found: " << conf_file << endl;

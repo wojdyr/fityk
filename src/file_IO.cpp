@@ -11,6 +11,17 @@ using namespace std;
 
 v_IO *my_IO;
 
+const char* config_dirname = ".fityk";
+const char* startup_commands_filename = "init";
+
+void exec_commands_from_file(const char *filename)
+{
+    file_I_stdout_O f_IO;
+    my_IO = &f_IO;
+    my_IO->start(filename);
+}
+
+
 bool file_I_stdout_O::start (const char* filename)
 {
     ifstream file (filename, ios::in);

@@ -13,14 +13,28 @@
     /*        f-functions and zero-shift
      */
 
+
+struct ParDefault 
+{ 
+    bool is_set, lower_set, upper_set;
+    fp p; 
+    fp lower, upper; 
+    ParDefault(): is_set(false), lower_set(false), upper_set(false) {}
+    ParDefault(fp p_): is_set(true), lower_set(false), upper_set(false), p(p_){}
+    ParDefault(fp p_, fp l, fp u): is_set(true), lower_set(true), 
+                                 upper_set(true), p(p_), lower(l), upper(u) {}
+};
+
 struct int_int_fp { int a_nr; fp factor; int der_nr; };
 
 struct f_names_type : z_names_type
 { 
     const char *formula; 
     const char **pnames;
-    f_names_type (char t, std::string n, int s, const char *f, const char **p) 
-        : z_names_type (t, n, s), formula(f), pnames(p) {}
+    const std::vector<ParDefault>& pdefaults;
+    f_names_type (char t, std::string n, int s, const char *f, const char **p,
+                  const std::vector<ParDefault> &pd) 
+        : z_names_type (t, n, s), formula(f), pnames(p), pdefaults(pd) {}
 };
 
 class V_f_z_common : public V_fzg
@@ -77,6 +91,8 @@ class V_f : public V_f_z_common
         { assert(n < g_size); Pag old = pags[n]; pags[n] = p; return old;}
     static V_f* factory (Sum* sum, char type, const std::vector<Pag> &p);
     static V_f* copy_factory (Sum* sum, char type, V_f* orig);
+    static std::vector<fp> get_default_peak_parameters(const f_names_type *f, 
+                                              const std::vector<fp> &peak_hcw);
 
  protected:
 };
@@ -92,6 +108,7 @@ class fGauss : public V_f
 public:
     static const char *const wzor;
     static const char *p_names[];
+    static const std::vector<ParDefault> p_defaults;
     fp compute (fp x, fp* dy_dx); 
     void f_val_precomputations () { if (fabs(av[2]) < TINY) av[2] = TINY; }
     void get_range (fp level);  
@@ -113,6 +130,7 @@ class fLorentz : public V_f
 public:
     static const char *const wzor;
     static const char *p_names[];
+    static const std::vector<ParDefault> p_defaults;
     fp compute (fp x, fp* dy_dx); 
     void f_val_precomputations () { if (fabs(av[2]) < TINY) av[2] = TINY; }
     void get_range (fp level);
@@ -134,6 +152,7 @@ class fPearson : public V_f
 public:
     static const char *const wzor;
     static const char *p_names[];
+    static const std::vector<ParDefault> p_defaults;
     fp compute (fp x, fp* dy_dx);
     void f_val_precomputations ();
     void get_range (fp level); 
@@ -157,6 +176,7 @@ class fPsVoigt : public V_f
  public:
     static const char *const wzor;
     static const char *p_names[];
+    static const std::vector<ParDefault> p_defaults;
     fp compute (fp x, fp* dy_dx);
     void f_val_precomputations () { if (fabs(av[2]) < TINY) av[2] = TINY; }
     void get_range (fp level);
@@ -178,6 +198,7 @@ class fVoigt : public V_f
  public:
     static const char *const wzor;
     static const char *p_names[];
+    static const std::vector<ParDefault> p_defaults;
     fp compute (fp x, fp* dy_dx);
     void f_val_precomputations ();
     //void get_range (fp level);
@@ -199,6 +220,7 @@ class fPolynomial5 : public V_f
 public:
     static const char *const wzor; 
     static const char *p_names[];
+    static const std::vector<ParDefault> p_defaults;
     fp compute (fp x, fp* dy_dx); 
     bool is_peak() const { return false; }
     std::string formula (const std::vector<fp>& A, const std::vector<V_g*>& G);

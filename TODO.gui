@@ -1,11 +1,9 @@
 ===  new/not tested  ===
 
 ======  TODO  =======
-Settings windows -- alphabetical order?
 arbitrary number of auxiliary windows 
 background toolbar -> "plot with(out) background" button should be toggled
                        by "o.plot +/-" command, etc.
-background mode -- problem with rectangle zooming, when background is large
 ---
 exporting to PostScript file and to metafile(clipboard) (Windows only) 
 optim. Q: point circles should be drawed with non-transparent pen?
