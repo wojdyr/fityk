@@ -15,7 +15,6 @@
 #include "common.h"
 RCSID ("$Id$")
 
-#include <math.h> //round
 #include <wx/colordlg.h>
 #include <wx/fontdlg.h>
 #include <wx/treectrl.h>
@@ -686,7 +685,7 @@ bool ProportionalSplitter::SplitHorizontally(wxWindow* win1, wxWindow* win2,
     if (proportion >= 0. && proportion <= 1.)
         m_proportion = proportion;
     int height = GetClientSize().GetHeight();
-    int h = int(round(height * m_proportion));
+    int h = iround(height * m_proportion);
     //sometimes there is a strange problem without it (why?)
     if (h < GetMinimumPaneSize() || h > height-GetMinimumPaneSize())
         h = 0; 
@@ -699,7 +698,7 @@ bool ProportionalSplitter::SplitVertically(wxWindow* win1, wxWindow* win2,
     if (proportion >= 0. && proportion <= 1.)
         m_proportion = proportion;
     int width = GetClientSize().GetWidth();
-    int w = int(round(width * m_proportion));
+    int w = iround(width * m_proportion);
     if (w < GetMinimumPaneSize() || w > width-GetMinimumPaneSize())
         w = 0;
     return wxSplitterWindow::SplitVertically(win1, win2, w);
@@ -707,7 +706,7 @@ bool ProportionalSplitter::SplitVertically(wxWindow* win1, wxWindow* win2,
 
 int ProportionalSplitter::GetExpectedSashPosition()
 {
-    return int(round(GetWindowSize() * m_proportion));
+    return iround(GetWindowSize() * m_proportion);
 }
 
 void ProportionalSplitter::ResetSash()

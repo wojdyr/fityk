@@ -1,3 +1,5 @@
+# this .spec was not tested with last fityk versions 
+# writing good spec is on my TODO list, but with low priority 
 Summary:        A program for fitting and analyzing data.
 Name:           @PACKAGE@
 Version:        @VERSION@

@@ -39,12 +39,12 @@ public:
     fp get_ffunc_deriv (int f, fp x, std::vector<fp>& dy_da);
     std::string general_info() const;
     std::string sum_full_formula (const std::vector<fp>& localA = fp_v0) const;
-    std::string sum_of_peaks_formula (std::vector<int>& peaks, 
+    std::string sum_of_peaks_formula (const std::vector<int>& peaks, 
                                   const std::vector<fp>& localA = fp_v0) const;
     std::string print_sum_value (fp x, bool with_deriv = true);
     std::string test_g (int g_num);
     void export_to_file (std::string filename, bool append, char filetype, 
-                                            std::vector<int> &peaks = int_v0);
+                                      const std::vector<int> &peaks = int_v0);
     void export_as_script (std::ostream& os) const;
     void register_fc (FuncContainer* cnt, bool flag);
     void register_pc (PagContainer* vp, bool flag);
@@ -117,9 +117,10 @@ private:
     void export_fzg_as_script (std::ostream& os, One_of_fzg fzg) const;
     //TODO int remove_spare_brackets(std::string);
 
-    void export_as_dat (std::ostream& os, std::vector<int>&peaks=int_v0);
-    void export_as_peaks (std::ostream& os, std::vector<int> &peaks) const;
-    void export_as_xfit(std::ostream& os, std::vector<int>&peaks=int_v0) const;
+    void export_as_dat (std::ostream& os, const std::vector<int>&peaks=int_v0);
+    void export_as_peaks (std::ostream& os, const std::vector<int>&peaks) const;
+    void export_as_xfit(std::ostream& os, 
+                        const std::vector<int> &peaks=int_v0) const;
     Sum (const Sum&); //disable
     Sum& operator= (Sum&); //disable
 };

@@ -250,7 +250,7 @@ void Sum::export_fzg_as_script (ostream& os, One_of_fzg fzg) const
 }
 
 
-void Sum::export_as_dat (ostream& os, vector<int> &peaks) 
+void Sum::export_as_dat (ostream& os, const vector<int> &peaks) 
 {
     int n = my_data->get_n();
     if (n < 2) {
@@ -271,14 +271,13 @@ void Sum::export_as_dat (ostream& os, vector<int> &peaks)
     os << x << "\t" << y << endl; 
 }
 
-void Sum::export_as_peaks (std::ostream& os, vector<int> &peaks) const
+void Sum::export_as_peaks (std::ostream& os, const vector<int> &peaks) const
 {
     os << "# data file: " << my_data->get_filename() << endl;  
     os << "# Peak Type     Center  Height  Area    FWHM    "
                                         "a0     a1     a2     a3 (...)\n"; 
-    if (peaks.empty()) 
-        peaks = range_vector(0, fzg_size(fType));
-    for (vector<int>::const_iterator i = peaks.begin(); i != peaks.end(); i++){
+    vector<int> pk = peaks.empty() ? range_vector(0, fzg_size(fType)) : peaks;
+    for (vector<int>::const_iterator i = pk.begin(); i != pk.end(); i++){
         V_f* p = fvec[*i];
         os << p->c_name;  //Peak 
         if (!p->c_description.empty()) 
@@ -292,7 +291,7 @@ void Sum::export_as_peaks (std::ostream& os, vector<int> &peaks) const
     }
 }
 
-void Sum::export_as_xfit (std::ostream& os, vector<int> &peaks) const
+void Sum::export_as_xfit (std::ostream& os, const vector<int> &peaks) const
 {
     const char* header = "     File        Peak     Th2        "
                             "Code      Constr      Area        Err     \r\n";
@@ -305,14 +304,16 @@ void Sum::export_as_xfit (std::ostream& os, vector<int> &peaks) const
     if (last_slash != string::npos) filename = filename.substr(last_slash+1);
     if (filename.size() > 16)
         filename = filename.substr(filename.size() - 16, 16); 
-    if (peaks.empty()) 
-        peaks = range_vector(0, fzg_size(fType));
-    for (vector<int>::const_iterator i = peaks.begin(); i != peaks.end(); i++){
-        if (*i < 0 || *i >= fzg_size(fType)) continue;
+    vector<int> pk = peaks.empty() ? range_vector(0, fzg_size(fType)) : peaks;
+    for (vector<int>::const_iterator i = pk.begin(); i != pk.end(); i++){
+        if (*i < 0 || *i >= fzg_size(fType)) 
+            continue;
         V_f* p = fvec[*i];
-        if (!p->is_peak()) continue;
+        if (!p->is_peak()) 
+            continue;
         string line = line_template;
-        if (i == peaks.begin()) line.replace (0, filename.size(), filename);
+        if (i == pk.begin()) 
+            line.replace (0, filename.size(), filename);
         string ctr = S(p->center());
         line.replace (23, ctr.size(), ctr);
         string area = S(p->area());
@@ -322,7 +323,7 @@ void Sum::export_as_xfit (std::ostream& os, vector<int> &peaks) const
 }
 
 void Sum::export_to_file (string filename, bool append, char filetype, 
-                          vector<int> &peaks) 
+                          const vector<int> &peaks) 
 {
     ofstream os(filename.c_str(), ios::out | (append ? ios::app : ios::trunc));
     if (!os) {
@@ -778,8 +779,8 @@ string Sum::sum_full_formula(const vector<fp>& localA) const
     return sum_of_peaks_formula (pks, localA);
 }
 
-string Sum::sum_of_peaks_formula (vector<int>& peaks, const vector<fp>& localA)
-                                                                          const
+string Sum::sum_of_peaks_formula (const vector<int>& peaks, 
+                                  const vector<fp>& localA) const
 {
     const vector<fp>& workingA = localA.empty() ? parameters->values() : localA;
     string x = "x";

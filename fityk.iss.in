@@ -1,0 +1,68 @@
+; $Id$
+; InnoSetup script. It is used to make MS Windows installer.
+[Setup]
+AppName=fityk
+AppId=fityk
+AppPublisher=Marcin Wojdyr
+AppPublisherURL=http://www.unipress.waw.pl/~wojdyr
+AppVersion=@VERSION@
+AppVerName=Fityk @VERSION@
+UninstallFilesDir={app}
+DefaultDirName={pf}\Fityk
+DefaultGroupName=Fityk
+LicenseFile=COPYING
+SolidCompression=yes
+ChangesAssociations=yes
+
+
+[Files]
+Source: fityk.exe; DestDir: {app} 
+Source: COPYING; DestDir: {app} 
+Source: AUTHORS; DestDir: {app} 
+Source: TODO; DestDir: {app} 
+Source: NEWS; DestDir: {app}
+Source: fityk_tips.txt; DestDir: {app} 
+Source: fitykhelp.chm; DestDir: {app} 
+Source: fitykhelp.htb; DestDir: {app} 
+Source: samples\README; DestDir: {app}\samples\ 
+Source: samples\nacl01.dat; DestDir: {app}\samples\ 
+Source: samples\nacl01.fit; DestDir: {app}\samples\ 
+Source: samples\SiC_Zn.dat; DestDir: {app}\samples\ 
+Source: samples\SiC_Zn.fit; DestDir: {app}\samples\ 
+Source: fityk.url; DestDir: {app}
+
+[Icons]
+Name: {group}\Fityk; Filename: {app}\fityk.exe; WorkingDir: {app}; IconFilename: {app}\fityk.exe; IconIndex: 0
+Name: {group}\Fityk Manual; Filename: {app}\fitykhelp.chm; WorkingDir: {app}; Flags: useapppaths
+Name: "{group}\Fityk Web Site"; Filename: {app}\fityk.url
+Name: {group}\Uninstall Fityk; Filename: {uninstallexe}
+Name: {group}\Fityk; Filename: {app}\fityk.exe; WorkingDir: {app}; IconFilename: {app}\fityk.exe; IconIndex: 0
+Name: {userdesktop}\Fityk; Filename: {app}\fityk.exe; WorkingDir: {app}\samples\; Tasks: desktopicon
+Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\Fityk"; Filename: {app}\fityk.exe; Tasks: quicklaunchicon
+
+
+[Tasks]
+Name: desktopicon; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:"
+Name: quicklaunchicon; Description: "Create a &Quick Launch icon"; GroupDescription: "Additional icons:"; Flags: unchecked 
+Name: associate; Description: "&Associate .fit files"; GroupDescription: "Other tasks:"; Flags: unchecked
+
+[INI]
+
+[Registry]
+Root: HKCU; SubKey: Software\.fityk\; ValueName: dummy; ValueType: none; Flags: createvalueifdoesntexist
+
+Root: HKCR; Subkey: ".fit"; ValueType: string; ValueName: ""; ValueData: "FitykScript"; Flags: uninsdeletevalue; Tasks: associate
+Root: HKCR; Subkey: "FitykScript"; ValueType: string; ValueName: ""; ValueData: "Fityk Script"; Flags: uninsdeletekey; Tasks: associate
+Root: HKCR; Subkey: "FitykScript\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\fityk.exe,0"; Tasks: associate
+Root: HKCR; Subkey: "FitykScript\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\fityk.exe"" ""%1"""; Tasks: associate
+
+
+[UninstallDelete]
+
+[InstallDelete]
+
+[Run]
+Filename: "{app}\fityk.exe"; Description: "Launch application"; Flags: postinstall nowait skipifsilent unchecked 
+
+[UninstallRun]
+

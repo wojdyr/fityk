@@ -5,7 +5,7 @@
 * problem: fityk can't be compiled with UNICODE-enabled wxWidgets
 
 * problem: problem with locales, that has decimal point different than '.' 
-  as a workaround, run LC_NUMERIC=en_US
+  as a workaround, run:  bash$ LC_NUMERIC=en_US fityk
 
 * problem: ambigous 'log' in "export as function" (in gnuplot it means
   natural, in Excel log=log10). 
@@ -13,7 +13,8 @@
 * --debug / --release configure flag, equivalent to: -g -fno-inline 
   / -O3 -s -DNDEBUG 
 
-* automate (as possible) procedure of releasing new version
+* automate (as possible) procedure of releasing new version. 
+  Write a good portable .spec (spec is used for building RPM)
 
 * www page with links to various peak-fitting programs (based on results
   of survey)

@@ -105,7 +105,7 @@ inline bool is_index (int idx, const std::vector<T>& v)
     return idx >= 0 && idx < static_cast<int>(v.size()); 
 }
 
-inline int iround(fp d) { return static_cast<int>(round(d)); }
+inline int iround(fp d) { return static_cast<int>(floor(d+0.5)); }
 
 extern bool exit_on_error;
 extern char auto_plot;

@@ -1,7 +1,9 @@
 User-visible changes in version 0.4.1:
+
 * two independent auxiliary plots (by default one is visible)
 * implemented s.guess command that adjusts existing peak - also in peak pop-up 
   menu (based on patch sent by Jonathan Hunt)
+* config file can store info, what windows are visible (see GUI->Show)
 
 User-visible changes in version 0.4.0:
 
