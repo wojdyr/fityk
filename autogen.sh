@@ -1,7 +1,7 @@
 #!/bin/sh
 set -x
-aclocal -I config
+aclocal-1.7 -I config -I /usr/local/share/aclocal
 autoheader
-automake --add-missing --copy
+automake-1.7 --add-missing --copy
 autoconf
 

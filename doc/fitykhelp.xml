@@ -760,7 +760,7 @@
      in <firstterm>plots</firstterm>. 
      There can be any number of plots, and any number of datasets in each plot.
      There is always one active plot and one active dataset in each plot. 
-     Inactive datasets are drawed, but do not influence any other operations.
+     Inactive datasets are drawn, but do not influence any operations.
      So there are only two reasons to have more than one datasets in one plot -
      it is possible to compare them visually and to easily switch between them.
      Let me repeat: all command are related only to the active dataset.
@@ -768,7 +768,7 @@
     <para>
      A so-called plot contains not only datasets, but also described below 
      <link linkend="sum">so-called sum</link>.
-     Only datasets and sum in active plot are drawed and 
+     Only datasets and sum in active plot are drawn and 
      all commands except fitting are related to active plot. 
      But for <command>f.<replaceable>xxx</replaceable></command> commands
      it doesn't matter if plot is active - all plots are fitted simultanously.
@@ -777,7 +777,7 @@
     </para>
     <para>
      You can manage plots and datasets using the data pane in GUI or 
-     <command>d.activete</command> command. The following syntax:
+     <command>d.activate</command> command. The following syntax:
     </para>
     <cmdsynopsis>
      <command>d.activate </command> 

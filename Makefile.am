@@ -1,6 +1,5 @@
 
-EXTRA_DIST = TODO.gui fityk.spec config/ samples/ 
-AUTOMAKE_OPTIONS = dist-zip 
-## add dist-bzip2 in new version of automake 
-SUBDIRS = doc src 
+EXTRA_DIST = TODO.gui fityk.spec 
+AUTOMAKE_OPTIONS = dist-zip dist-bzip2
+SUBDIRS = doc src samples config 
 

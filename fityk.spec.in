@@ -4,8 +4,8 @@ Version:        @VERSION@
 Release:        1
 Group:          Applications/Engineering
 Copyright:      GPL
-Vendor:         Marcin Wojdyr <wojdyr@if.pw.edu.pl>
-Source:         http://www.unipress.waw.pl/~wojdyr/fityk/d/%{name}-%{version}.tar.gz
+Vendor:         Marcin Wojdyr 
+Source:         http://fityk.sf.net
 BuildRoot:      /tmp/%{name}-%{version}-root
 Prefix: /usr
 
@@ -31,7 +31,7 @@ but it can be used to fit analytical functions to any kind of data.
 
 %build
 export LDFLAGS="-s"
-export CXX="c++2"
+# export CXX="c++2"
 # wx library is often not installed or too old. Link statically with it.
 %configure --disable-shared-wx 
 make 

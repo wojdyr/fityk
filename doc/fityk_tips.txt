@@ -6,3 +6,4 @@ Logging session (File->Log to file) from the beginning can save you a lot of tim
 There are a few ways to zoom and unzoom, eg. using left and middle mouse button on auxiliary plot.
 You can easily compare results obtained with different fitting methods using Sum->History dialog.
 If you have any comments, ideas, tips of the day, etc. send it to author.
+Use pop-up menus. You can't do some things without pop-up menus.

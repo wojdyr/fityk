@@ -1,11 +1,10 @@
 ===  new/not tested  ===
 
 ======  TODO  =======
-!Problem with locales, that have different LC_NUMERIC
+one clear TODO file.
 problem with UNICODE-enabled wxWindows
-
-!button "plot with(out) background" and menu item button should be checked/toggled in OnIdle()
-                       
+better toolbar icons (icons 5-9 from left)
+MS Windows - tree at data pane looks bad
 arbitrary number of auxiliary windows 
 ---
 fix hiding status bar problem (wxGTK)

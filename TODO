@@ -1,6 +1,10 @@
 ==============  not tested  ================
 
 ============== small/urgent ================
+!Problem with locales, that have different LC_NUMERIC
+!Problem with ambigous ln(2) in "export as function"
+debug/release configure flag: -g -fno-inline / -O3 -s -DNDEBUG 
+write (and verify) program version in scripts 
 Pearson-derivative function
 --
 voigt: exact FWHM,  cut-tails, better approx. ? 

@@ -1,3 +1,9 @@
+User-visible changes in version 0.4.0:
+
+* multiple datasets in one plot
+* multiple plots - all can be fitted simultanously
+* New menu items - GUI->Show->..., GUI->Scroll...
+
 User-visible changes in version 0.3.4:
 
 * enhanced peak dragging

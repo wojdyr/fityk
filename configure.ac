@@ -1,9 +1,11 @@
 dnl $Id$
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(src/fzgbase.h)
+AC_INIT
+AC_CONFIG_SRCDIR([src/fzgbase.h])
 AC_CONFIG_AUX_DIR(config)
-AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(fityk, 0.3.4)
+AC_CONFIG_HEADERS([config.h])
+AC_CANONICAL_TARGET([])
+AM_INIT_AUTOMAKE(fityk, 0.4.0)
 AM_MAINTAINER_MODE
 
 dnl What versions of program are to be made 
@@ -32,14 +34,35 @@ if test "$enable_CLI" = "no" -a "$enable_GUI" = "no"; then
 	AC_MSG_ERROR([Disabling both GUI and CLI versions makes no sense.])
 fi
 
+
+PROGRAM_EXT=
+#################################
+# MS Windows specific macros 
+
+AC_MSG_CHECKING([for native Win32 - MinGW])
+case "${host}" in
+    *-*-mingw*)
+        os_win32=yes
+	PROGRAM_EXT=".exe"
+	;;
+    *)
+        os_win32=no
+	;;
+esac
+AC_MSG_RESULT([$os_win32])
+AM_CONDITIONAL(OS_WIN32, test "$os_win32" = "yes")
+
+if test "$os_win32" = "yes"; then
+    AC_CHECK_TOOL(RC, windres)
+    if test "${RC}" = "" ; then
+        AC_MSG_ERROR([Required resource tool 'windres' not found on PATH.])
+    fi
+fi
+#################################
+
+
 dnl Checks for programs.
 AC_PROG_CXX
-dnl AC_PROG_F77
-dnl AC_F77_LIBRARY_LDFLAGS
-dnl TODO: using LEX and YACC in Makefile
-dnl AM_PROG_LEX
-dnl AC_PROG_YACC
-
 
 dnl Checks for common header files.
 AC_HEADER_STDC
@@ -47,16 +70,16 @@ if test "$ac_cv_header_stdc" != yes; then
 	AC_MSG_ERROR([ANSI C header files not found :-(])
 fi
 dnl use c++ for testing <sstream>
-AC_LANG_SAVE 
-AC_LANG_CPLUSPLUS
+ 
+AC_LANG_PUSH([C++])
 AC_CHECK_HEADER(sstream, [], [AC_MSG_ERROR(
  [You don't have a <sstream> header. It is a part of standard C++ library.
   Either you have too old compiler, or standard C++ library can't be found.])])
-AC_LANG_RESTORE dnl C is faster than C++
+AC_LANG_POP([C++]) dnl C is faster than C++
 
 dnl Checks for version specific libraries and headers.
 if test "$enable_GUI" != "no" ; then 
-    FITYK=fityk 
+    FITYK=fityk$PROGRAM_EXT 
     AM_PATH_WXCONFIG(2.3.4, wxWin=1)
     if test "$wxWin" != 1; then
     	AC_MSG_ERROR([
@@ -81,7 +104,7 @@ if test "$enable_GUI" != "no" ; then
 fi
 
 if test "$enable_CLI" != "no"; then 
-    CFITYK=cfityk 
+    CFITYK=cfityk$PROGRAM_EXT 
     READLINE_STUFF
 
     AC_CHECK_PROG(gnuplot_in_path, gnuplot, yes)
@@ -116,6 +139,7 @@ eval help_dir=${datadir}
 AC_MSG_RESULT([Directory for online help system: $help_dir])
 AC_DEFINE_UNQUOTED(HELP_DIR, "$help_dir", [Directory for online help system])
 
-AC_OUTPUT(Makefile fityk.spec src/Makefile doc/Makefile)
+AC_CONFIG_FILES([Makefile fityk.spec src/Makefile src/img/Makefile doc/Makefile doc/fitykhelp_img/Makefile samples/Makefile config/Makefile])
+AC_OUTPUT
 
 
