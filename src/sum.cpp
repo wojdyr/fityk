@@ -222,26 +222,13 @@ string Sum::general_info() const
     return os.str();
 }
 
-//TODO!!!
 void Sum::export_as_script (ostream& os) const
 {
     os << "### sum exported as script -- begin" << endl;
     os << set_script('s');
-    for (int i = 0; i < parameters->count_a(); i++) {  // @
-        os << "s.add ~"<< parameters->get_a(i) 
-           << "  " << parameters->get_domain(i).str();
-        os << "  # @" << i 
-            <<  "  (" << refs_to_ag(Pag(0., i)) << " link(s))";
-        string refs = descr_refs_to_ag (Pag(0., i));
-        if (!refs.empty())
-            os << " (used by: " << refs << ")"; 
-        os << endl;
-    }
     export_fzg_as_script (os, gType);
     export_fzg_as_script (os, fType);
     export_fzg_as_script (os, zType);
-    if (parameters->count_frozen())
-        os << "s.freeze " << parameters->frozen_info() << endl;
     os << "### end of exported sum" << endl;
 }
 

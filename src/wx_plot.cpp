@@ -853,7 +853,7 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
     //display coords in status bar 
     fp x = X2x (event.GetX());
     fp y = Y2y (event.GetY());
-    if (my_core->plus_background && mode == mmd_bg) //TODO
+    if (my_core->plus_background) 
         y -= my_data->get_bg_at (x);
     wxString str;
     str.Printf ("%.3f  %d", x, static_cast<int>(y + 0.5));
@@ -881,6 +881,8 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
     // searching the closest peak-top and distance from it, d = dx + dy < 10 
     int min_dist = 10;
     int nearest = -1;
+    if (size(peaktops) != my_sum->fzg_size(fType))
+        prepare_peaktops();
     for (vector<wxPoint>::const_iterator i = peaktops.begin(); 
          i != peaktops.end(); i++) {
         int d = abs(event.GetX() - i->x) + abs(event.GetY() - i->y);

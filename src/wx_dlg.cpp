@@ -326,7 +326,7 @@ FuncBrowserDlg::FuncBrowserDlg (wxWindow* parent, wxWindowID id, int tab)
     fh_sizer->Add (new wxButton(p_delete, ID_BRO_F_FA, "Freeze All"), 
                    0, wxALL, 5);
     fh_sizer->Add (5, 5, 1);
-    fh_sizer->Add (new wxButton(p_delete, ID_BRO_F_TA, "Thaw All"), 
+    fh_sizer->Add (new wxButton(p_delete, ID_BRO_F_TA, "Unfreeze All"), 
                    0, wxALL, 5);
     panelsizer_d->Add (fh_sizer, 0, wxEXPAND);
 
@@ -671,7 +671,7 @@ void FuncBrowserDlg::OnRRCheckBox   (wxCommandEvent& event)
 void FuncBrowserDlg::OnFreezeButton    (wxCommandEvent& WXUNUSED(event))
 {
     const wxString label = freeze_button->GetLabel();
-    bool frozen = (label[0] == 'T'); //[T]haw
+    bool frozen = (label[0] == 'U'); //[U]nfreeze
     exec_command ("s.freeze " + S(frozen ? "! " : "") + sel_fun);
     update_frozen_tc();
     func_tree->update_labels (sel_fun);
@@ -680,7 +680,7 @@ void FuncBrowserDlg::OnFreezeButton    (wxCommandEvent& WXUNUSED(event))
 
 void FuncBrowserDlg::OnFreezeAllButton (wxCommandEvent& event)
 {
-    //"freeze all" or "thaw all" button 
+    //"freeze all" or "unfreeze all" button 
     string cmd = "s.freeze " + S(event.GetId() == ID_BRO_F_TA ? "! " : "") 
                  + "@*";
     exec_command (cmd);
@@ -700,7 +700,7 @@ void FuncBrowserDlg::update_freeze_button_label()
     string freeze_button_label;
     int a_nr = atoi (sel_fun.c_str() + 1);
     if (my_sum->pars()->is_frozen(a_nr))
-        freeze_button_label = "Thaw " + sel_fun;
+        freeze_button_label = "Unfreeze " + sel_fun;
     else
         freeze_button_label = "Freeze " + sel_fun;
     freeze_button->SetLabel (freeze_button_label.c_str());

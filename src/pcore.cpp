@@ -41,8 +41,7 @@ PlotCore::~PlotCore()
     delete crystal;
 #endif //USE_XTAL
     delete sum;
-    for (vector<Data*>::iterator i = datasets.begin(); i != datasets.end(); i++)
-        delete *i;
+    purge_all_elements(datasets);
 }
 
 bool PlotCore::activate_data(int n)
@@ -216,8 +215,7 @@ void PlotCore::remove_data(int n)
     }
     if (n == active_data) 
         active_data = n > 0 ? n-1 : 0;
-    delete datasets[n];
-    datasets.erase(datasets.begin() + n);
+    purge_element(datasets, n);
     if (datasets.empty()) //it should not be empty
         datasets.push_back(new Data);
     ds_was_changed = true;
@@ -226,9 +224,15 @@ void PlotCore::remove_data(int n)
 
 void PlotCore::export_as_script(std::ostream& os) const
 {
-    //TODO all data
-    my_data->export_as_script(os);
-    os << endl;
+    for (int i = 0; i != size(datasets); i++) {
+        os << "#dataset " << i << endl;
+        if (i != 0)
+            os << "d.activate ::*" << endl;
+        datasets[i]->export_as_script(os);
+        os << endl;
+    }
+    if (active_data != size(datasets) - 1)
+        os << "d.activate ::" << active_data << " # set active" << endl; 
     sum->export_as_script(os);
     os << endl;
 #ifdef USE_XTAL
@@ -514,4 +518,20 @@ string Parameters::frozen_info () const
     return s;
 }
 
+void Parameters::export_as_script(std::ostream& os) const
+{
+    os << "# exporting parameters..." << endl;
+    for (int i = 0; i < count_a(); i++) {  // @
+        os << "s.add ~"<< get_a(i) 
+           << "  " << get_domain(i).str();
+        os << "  # @" << i <<  "  ("<< AL->refs_to_a(Pag(0., i)) << " link(s))";
+        string refs = AL->descr_refs_to_a(Pag(0., i));
+        if (!refs.empty())
+            os << " (used by: " << refs << ")"; 
+        os << endl;
+    }
+    if (count_frozen())
+        os << "s.freeze " << frozen_info() << endl;
+    os << "# parameters exported..." << endl;
+}
 

@@ -60,7 +60,6 @@ RCSID ("$Id$")
 #include "img/plusbg.xpm"  
 //#include "img/spline.xpm"
 #include "img/autoadd.xpm"     
-//#include "img/test.xpm"
 #include "img/tree.xpm" 
 #include "img/zoom_t.xpm"
 #include "img/range_t.xpm"
@@ -114,7 +113,6 @@ char* about_html =
 "     </font>                                                            "
 "   </td> </tr>                                                          "
 "</table> </body> </html>                                                ";
-
 
 using namespace std;
 FFrame *frame = NULL;
@@ -292,6 +290,8 @@ int FApp::OnExit()
 }
 
 BEGIN_EVENT_TABLE(FFrame, wxFrame)
+    EVT_IDLE (FFrame::OnIdle)
+
     EVT_MENU (ID_D_LOAD,        FFrame::OnDLoad)   
     EVT_MENU (ID_D_XLOAD,       FFrame::OnDXLoad)   
     EVT_MENU_RANGE (ID_D_RECENT+1, ID_D_RECENT+100, FFrame::OnDRecent)
@@ -1446,6 +1446,13 @@ void FFrame::focus_input()
     io_pane->focus_input();
 }
 
+void FFrame::OnIdle(wxIdleEvent &event) 
+{
+    if (GetToolBar())
+        toolbar->OnIdle(event);
+    event.Skip();
+}
+
 
 //=======================================================================
 
@@ -1606,6 +1613,8 @@ FSetDlg::FSetDlg(wxWindow* parent, const wxWindowID id, const wxString& title,
 //===============================================================
 
 BEGIN_EVENT_TABLE (FToolBar, wxToolBar)
+//  EVT_IDLE (FToolBar::OnIdle)  //it doesn't work (why??); 
+//                     //FToolBar::OnIdle is now called from FFrame::OnIdle
     EVT_TOOL_RANGE (ID_ft_m_zoom, ID_ft_m_add,  FToolBar::OnChangeMouseMode)
     EVT_TOOL_RANGE (ID_ft_v_pr, ID_ft_s_aa,        FToolBar::OnClickTool)
     EVT_TOOL (ID_ft_dpane, FToolBar::OnSwitchDPane)
@@ -1706,6 +1715,13 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
              wxITEM_CHECK, "Datasets Pane", "Show/hide datasets pane");
 
     Realize();
+}
+
+void FToolBar::OnIdle(wxIdleEvent &event)
+{
+    if (GetToolState(ID_ft_b_with) != my_core->plus_background) 
+        ToggleTool(ID_ft_b_with, my_core->plus_background);
+    event.Skip();
 }
 
 void FToolBar::OnPeakChoice(wxCommandEvent &event) 
@@ -1831,7 +1847,6 @@ void FStatusBar::set_hint(const char *left, const char *right)
     if (left)  SetStatusText(space + wxString(left),  sbf_hint1);
     if (right) SetStatusText(space + wxString(right), sbf_hint2);
 }
-
 
 
 

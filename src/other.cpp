@@ -150,8 +150,7 @@ void ApplicationLogic::reset_all (bool finish)
     delete my_manipul;
     delete my_other;
     delete fitMethodsContainer;
-    for (vector<PlotCore*>::iterator i = cores.begin(); i != cores.end(); i++)
-        delete *i;
+    purge_all_elements(cores);
     cores.clear();
     delete params;
     if (finish)
@@ -173,16 +172,19 @@ void ApplicationLogic::dump_all_as_script (string filename)
     }
     os << "####### Dump time: " << time_now() << endl;
     os << my_other->set_script('o') << endl;
+    params->export_as_script(os);
+    os << endl;
 
-    for (unsigned int i = 0; i != cores.size(); i++) {
-        if (cores.size() > 1) {
+    for (int i = 0; i != size(cores); i++) {
+        if (cores.size() > 1) 
             os << endl << "### core of plot #" << i << endl;
+        if (i != 0)
             os << "d.activate *::" << endl; 
-        }
         cores[i]->export_as_script(os);
         os << endl;
     }
-    //TODO!! set active core/dataset
+    if (active_core != size(cores) - 1)
+        os << "d.activate " << active_core << ":: # set active" << endl; 
     os << "o.plot " << my_core->view.str() << endl;
 
     fitMethodsContainer->export_methods_settings_as_script(os);
@@ -250,8 +252,7 @@ void ApplicationLogic::remove_core(int p)
     if (p >= 0 && p < size(cores)) {
         if (p == active_core) 
             active_core = p > 0 ? p-1 : 0;
-        delete cores[p];
-        cores.erase(cores.begin() + p);
+        purge_element(cores, p);
         if (cores.empty()) //it should not be empty
             cores.push_back(new PlotCore(params));
         c_was_changed = true;

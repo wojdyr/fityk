@@ -216,10 +216,10 @@ void DataPaneTree::OnIdle(wxIdleEvent &event)
         for (int i = 0; i < diff; i++)
             AppendItem(root, "");
     else if (diff < 0)
-        for (int i = 0; i < diff; i++)
+        for (int i = 0; i < -diff; i++)
             Delete(GetLastChild(root));
-    //  ... plot labels, and data files
-    long cookie;
+    //  ... "plot n" labels, and data files
+    long cookie, cookie2;
     int counter = 0;
     wxString label;
     for (wxTreeItemId i = GetFirstChild(root, cookie); i.IsOk(); 
@@ -228,8 +228,15 @@ void DataPaneTree::OnIdle(wxIdleEvent &event)
         if (GetItemText(i) != label)
             SetItemText(i, label);
         update_tree_datalabels(AL->get_core(counter), i); 
+        // if active plot, select active data item
+        if (AL->get_active_core_position() == counter) {
+            wxTreeItemId active_item = GetFirstChild(i, cookie2);
+            for (int j = 0; j < my_core->get_active_data_position(); j++)
+                active_item = GetNextChild(i, cookie2);
+            if (!IsSelected(active_item))
+                SelectItem(active_item);
+        }
     }
-    //TODO set selection if (GetSelection() != )
     event.Skip();
 }
 
@@ -267,6 +274,8 @@ void DataPaneTree::OnSelChanged(wxTreeEvent &event)
     else { //dataset
         int p = count_previous_siblings(GetItemParent(id));
         int d = count_previous_siblings(id);
+        if (p != AL->get_active_core_position() 
+                                || d != my_core->get_active_data_position())
         exec_command("d.activate " + S(p) + "::" + S(d));
     }
 }

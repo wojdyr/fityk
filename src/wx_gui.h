@@ -63,13 +63,15 @@ public:
     FToolBar (wxFrame *parent, wxWindowID id); 
     void update_peak_type(); 
 
-private:
-    wxChoice *peak_choice; 
-
+    void OnIdle(wxIdleEvent &event);
     void OnPeakChoice (wxCommandEvent& event);
     void OnChangeMouseMode (wxCommandEvent& event);
     void OnSwitchDPane (wxCommandEvent& event);
     void OnClickTool (wxCommandEvent& event);
+
+private:
+    wxChoice *peak_choice; 
+
     DECLARE_EVENT_TABLE()
 };
 
@@ -96,6 +98,7 @@ public:
     ~FFrame();
     //void OnSize (wxSizeEvent& event);
 
+    void OnIdle(wxIdleEvent &event); 
     void OnShowHelp (wxCommandEvent& event);
     void OnTipOfTheDay (wxCommandEvent& event);
     void OnAbout (wxCommandEvent& event);
