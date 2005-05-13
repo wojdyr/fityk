@@ -55,11 +55,6 @@ extern const std::vector<int> int_v0; //just empty vector
 #  define exp_(x) exp(x)
 #endif
 
-//this is only for RCS ident
-//static const char *RCSid (const char *s); //for RCSID
-//#define RCSID(x)  static const char *RCSid(const char *s) { return RCSid(x); }
-#define RCSID(x)  static const char *RCSid = x; static const char *RCSid_() { return RCSid ? RCSid : RCSid_(); }
-
 extern const char* fityk_version_line; /// it is used to put version to script
 
 /// S() converts to string

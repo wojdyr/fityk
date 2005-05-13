@@ -1,7 +1,7 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
-#include "common.h"
-RCSID ("$Id$")
+// $Id$
 
+#include "common.h"
 #include "manipul.h"
 #include <algorithm>
 #include "data.h"

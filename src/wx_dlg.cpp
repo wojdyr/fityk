@@ -1,4 +1,6 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
+// $Id$
+
 
 // wxwindows headers, see wxwindows samples for description
 #include <wx/wxprec.h>
@@ -10,13 +12,11 @@
 #endif
 
 
-#include "common.h"
-RCSID ("$Id$")
-
 #include <wx/valtext.h>
 #include <wx/statline.h>
 #include <wx/bmpbuttn.h>
 #include <wx/grid.h>
+#include "common.h"
 #include "wx_dlg.h"
 #include "wx_common.h"
 #include "data.h"

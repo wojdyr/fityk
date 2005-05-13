@@ -1,5 +1,5 @@
 // This file is part of fityk program. Copyright (C) 2003 Stefan Krumm  
-
+// $Id$
 
 
 #include <fstream>

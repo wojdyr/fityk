@@ -1,8 +1,7 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
+// $Id$
+
 #include "common.h"
-RCSID ("$Id$")
-
-
 #include "dotset.h"
 #include "ui.h"
 #include <string.h>

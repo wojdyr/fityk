@@ -23,7 +23,8 @@ EXTRA_PROGRAMS = fityk cfityk
 common_sources = other.cpp scanner.cpp parser.cpp common.cpp crystal.cpp \
 		 data.cpp dotset.cpp ffunc.cpp fzgbase.cpp ui.cpp \
 		 GAfit.cpp gfunc.cpp LMfit.cpp manipul.cpp NMfit.cpp \
-		 sum.cpp v_fit.cpp voigt.cpp pcore.cpp fileroutines.cpp 
+		 sum.cpp v_fit.cpp voigt.cpp pcore.cpp fileroutines.cpp \
+		 numfuncs.cpp
 gui_sources = wx_dlg.cpp wx_gui.cpp wx_IO.cpp wx_plot.cpp wx_pane.cpp \
 	         wx_common.h
 fityk_SOURCES = $(common_sources) $(gui_sources) 
@@ -35,7 +36,7 @@ noinst_HEADERS = common.h crystal.h data.h dotset.h ffunc.h fzgbase.h \
 		 GAfit.h gfunc.h LMfit.h manipul.h NMfit.h other.h pag.h \
 		 sum.h v_fit.h ui.h voigt.h pcore.h fileroutines.h \
 		 u_gnuplot.h wx_dlg.h wx_gui.h wx_plot.h wx_pane.h \
-		 parser.tab.hh
+		 numfuncs.h parser.tab.hh
 
 # -ftemplate-depth-50 is for gcc 2.95 
 AM_CXXFLAGS = -Wall -fno-rtti -ftemplate-depth-50 

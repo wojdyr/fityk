@@ -1,10 +1,9 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
+// $Id$
 
 // CLI-only file
 
 #include "common.h"
-RCSID ("$Id$")
-
 #include "u_gnuplot.h"
 #include <stdlib.h>
 #include <stdio.h>

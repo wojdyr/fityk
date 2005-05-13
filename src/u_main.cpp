@@ -1,12 +1,12 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
+// $Id$
 
 // CLI-only file 
 // in this file: main loop, readline support (command expansion)
 // and part of UserInterface implementation (CLI-specific)
 
-#include "common.h"
-RCSID ("$Id$")
             
+#include "common.h"
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>

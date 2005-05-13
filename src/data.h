@@ -29,14 +29,19 @@ struct Point : public Simple_point
 {
     fp orig_x, orig_y, sigma;
     bool is_active;
-    Point () : Simple_point(), orig_x (0), orig_y (0), sigma (0) {}
-    Point (fp x_) : Simple_point(x_, 0), orig_x (0), orig_y (0), sigma (0) {}
+    Point () : Simple_point(), orig_x(0), orig_y(0), sigma(0), 
+               is_active(true) {}
+    Point (fp x_) : Simple_point(x_, 0), orig_x(0), orig_y(0), sigma(0),
+                    is_active(true) {}
     Point (fp x_, fp y_) : Simple_point(x_, y_), orig_x(x_), orig_y (y_), 
-                           sigma (0) {}
+                           sigma (0), is_active(true) {}
     Point (fp x_, fp y_, fp sigma_) : Simple_point(x_, y_), 
-                                      orig_x(x_), orig_y(y_), sigma(sigma_) {}
+                                      orig_x(x_), orig_y(y_), sigma(sigma_), 
+                                      is_active(true) {}
     fp get_bg() const { return orig_y - y; } 
     fp get_calibr() const { return orig_x - x; }
+    std::string str() { return "(" + S(x) + "; " + S(y) + "; " + S(sigma) 
+                               + (is_active ? ")*" : ") "); }
 };
 
 enum Bg_cl_enum { bgc_bg = 0, bgc_cl = 1 };  //background / calibration 
@@ -134,9 +139,6 @@ private:
 
     void spline_interpolation (Bg_cl_enum bg_cl);
     void linear_interpolation (Bg_cl_enum bg_cl);
-    static std::vector<B_point>::iterator 
-    bg_interpolation_find_place(std::vector<B_point> &background, fp x);
-    static void prepare_spline_interpolation (std::vector<B_point> &background);
 
     void export_as_dat (std::ostream& os);
     void export_bg_as_dat (std::ostream& os);

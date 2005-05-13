@@ -1,12 +1,12 @@
 /* This file is part of fityk program. Copyright (C) Marcin Wojdyr */
 
 %{
-#include "common.h"
-RCSID("$Id$")
+// $Id$
 #include <string>
 #include <stdlib.h>
 #include <ctype.h>
 #include <iostream>
+#include "common.h"
 #include "pag.h"
 #include "parser.tab.hh"
 char str_tb[1024+1];

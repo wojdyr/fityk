@@ -3,11 +3,11 @@
 /* file for bison. */
 
 %{
-#include "common.h"
-RCSID("$Id$")
+// $Id$
 #include <string>
 #include <stdlib.h>
 #include <vector>
+#include "common.h"
 #include "v_fit.h"
 #include "crystal.h"
 #include "sum.h"

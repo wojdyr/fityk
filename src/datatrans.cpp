@@ -1,4 +1,4 @@
-// this is stand-alone program for a while
+
 //
 // the idea of VM is based on one of boost::spirit samples - vmachine_calc
 
@@ -67,21 +67,27 @@
 //     
 //
 // Syntax examples:
-//    s = sqrt(max(1,y))
-//    is the same as:  s = sqrt(max(1,y[n]))
-//                or:  S = sqrt(max(1,y[n]))
-//                or:  S = sqrt(max(1,Y[n]))
-//                or:  S = sqrt(max(1,Y))
+//    set standard deviation as sqrt(max(1,y))
+//                         s = sqrt(max(1,y))
+//         or (the same):  s = sqrt(max(1,y[n]))
+//                    or:  S = sqrt(max(1,y[n]))
+//                    or:  S = sqrt(max(1,Y[n]))
+//                    or:  S = sqrt(max(1,Y))
+//
 //    integration:   Y[1...] = Y[n-1] + y[n]  
+//
 //    swaping x and y axes: y=x & x=y & s=sqrt(Y) 
 //                      or: y=x & x=y & s=sqrt(x)
+//
 //    smoothing: Y[1...-1] = (y[n-1] + y[n+1])/2  
+//
 //    reducing: order = x,
 //              x[...-1] = (x[n]+x[n+1])/2, 
 //              y[...-1] = y[n]+y[n+1],
 //              delete(n%2==1)    
-//           delete(not a)  
-//           normalize area: 
+//
+//    delete inactive points:    delete(not a)  
+//    normalize area: 
 //           y = y / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0) 
 //
 
@@ -98,39 +104,32 @@
 //   * execute all assignments for every point (from first to last),
 //     unless the point is outside of specified range.
 //
-//
-//
+
+
 //#define BOOST_SPIRIT_DEBUG
 
 
-//from common.h
-#include <math.h>
-#include <vector>
-inline int iround(double d) { return static_cast<int>(floor(d+0.5)); }
-template <typename T>
-inline int size(const std::vector<T>& v) { return static_cast<int>(v.size()); }
-
+#include "common.h"
+#include "data.h"
+#include "numfuncs.h"
 #include <boost/spirit/core.hpp>
-#include <string>
-#include <assert.h>
-#include <iostream> 
+
+
+#ifdef STANDALONE_DATATRANS
+#    include <iostream>  
+     bool verbose = false;
+#    define DT_DEBUG(x) if (verbose) std::cout << (x) << std::endl;
+#    define DT_DEBUG_N(x) if (verbose) std::cout << (x); 
+#else
+#    define DT_DEBUG(x) 
+#    define DT_DEBUG_N(x) 
+#endif //STANDALONE_DATATRANS
 
 using namespace std;
 using namespace boost::spirit;
 
 const double epsilon = 1e-9;
 
-struct Point 
-{ 
-    Point() : x(0), y(0), sigma(0), is_active(false) {}
-    Point(double x_, double y_, double s_) : x(x_), y(y_), sigma(s_), 
-                                             is_active(true) {} 
-    double x, y, sigma; 
-    bool is_active;
-};
-
-ostream& operator<<(ostream& out, const Point& p)
-    { out << '(' << p.x << ", " << p.y << ", " << p.sigma << ')'; return out; }
 
 
 bool x_lt(const Point &p1, const Point &p2) { return p1.x < p2.x; }
@@ -144,13 +143,42 @@ bool active_lt(const Point &p1, const Point &p2)
 bool active_gt(const Point &p1, const Point &p2) 
                                         { return p1.is_active > p2.is_active; }
 
+
+//------------------------  Special Functions -------------------------------
+class ParameterizedFunction
+{
+public:
+    ParameterizedFunction() {}
+    virtual fp calculate(fp x) = 0;
+};
+
+class InterpolateFunction : public ParameterizedFunction
+{
+public:
+    InterpolateFunction(vector<fp> &params) 
+    {
+        for (int i=0; i < size(params) - 1; i+=2)
+            bb.push_back(B_point(params[i], params[i+1]));
+    }
+
+    fp calculate(fp x) { return get_linear_interpolation(bb, x); }
+
+private:
+    std::vector<B_point> bb;
+};
+
+enum {
+    PF_INTERPOLATE, PF_SPLINE
+};
+
 //------------------------  Virtual Machine  --------------------------------
 
 vector<int> code;        //  VM code 
 vector<double> numbers;  //  VM data 
+vector<ParameterizedFunction*> parameterized;  //  VM data 
 
 // operators used in VM code
-enum DataTransformVMOperators
+enum DataTransformVMOperator
 {
     OP_NEG=1,   OP_EXP,   OP_SIN,   OP_COS,  OP_ATAN,  OP_ABS,  OP_ROUND, 
     OP_TAN/*!*/, OP_ASIN, OP_ACOS,
@@ -165,8 +193,18 @@ enum DataTransformVMOperators
     OP_GT, OP_GE, OP_LT, OP_LE, OP_EQ, OP_NEQ, OP_RANGE, OP_INDEX, 
     OP_ASSIGN_X, OP_ASSIGN_Y, OP_ASSIGN_S, OP_ASSIGN_A,
     OP_DO_ONCE, OP_RESIZE, OP_ORDER, OP_DELETE, OP_BEGIN, OP_END, 
-    OP_SUM, OP_IGNORE
+    OP_SUM, OP_IGNORE, 
+    OP_PARAMETERIZED, OP_PLIST_BEGIN, OP_PLIST_END
 };
+
+// code vector contains not only operators, but also indices that
+// points locations in numbers or parameterized vectors
+bool is_operator(vector<int>::iterator i, DataTransformVMOperator op)
+{
+    assert(code.begin() <= i && i < code.end());
+    return (*i == op && (i != code.begin() 
+                        || *(i-1) != OP_NUMBER && *(i-1) != OP_PARAMETERIZED));
+}
 
 vector<int>::const_iterator 
 skip_code(vector<int>::const_iterator i, int start_op, int finish_op)
@@ -182,7 +220,7 @@ skip_code(vector<int>::const_iterator i, int start_op, int finish_op)
 
 void skip_to_end(vector<int>::const_iterator &i)
 {
-    cout << "SKIPing" << endl;
+    DT_DEBUG("SKIPing")
     while (*i != OP_END)
         ++i;
 }
@@ -199,13 +237,13 @@ bool execute_code(int n, int &M, vector<double>& stack,
                   vector<Point> const& old_points, vector<Point>& new_points,
                   vector<int> const& code)  
 {
-    cout << "executing code; n=" << n << " M=" << M << endl;
+    DT_DEBUG("executing code; n=" + S(n) + " M=" + S(M))
     assert(M == size(new_points));
     bool once = (n == M);
     bool return_value=false; 
     vector<double>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
     for (vector<int>::const_iterator i=code.begin(); i != code.end(); i++) {
-        cout << "NOW op " << *i << endl;
+        DT_DEBUG("NOW op " + S(*i))
         switch (*i) {
             //unary-operators
             case OP_NEG:
@@ -246,6 +284,11 @@ bool execute_code(int n, int &M, vector<double>& stack,
                 break;
             case OP_ROUND:
                 *stackPtr = floor(*stackPtr + 0.5);
+                break;
+
+            case OP_PARAMETERIZED:
+                i++;
+                *stackPtr = parameterized[*i]->calculate(*stackPtr);
                 break;
 
             //binary-operators
@@ -450,11 +493,11 @@ bool execute_code(int n, int &M, vector<double>& stack,
                 //x[i...j]= or delete[i...j]
                 int right = iround(*stackPtr); //Last In First Out
                 stackPtr--;                    
-                if (right < 0)
+                if (right <= 0)
                     right += M;
                 int left = iround(*stackPtr);
                 stackPtr--;
-                if (left <= 0)
+                if (left < 0)
                     left += M;
                 if (*(i+1) == OP_DELETE) {
                     if (0 < left && left < right && right <= M) {
@@ -499,21 +542,21 @@ bool execute_code(int n, int &M, vector<double>& stack,
                 assert(once);
                 int ord = iround(*stackPtr);
                 stackPtr--;
-                cout << "in OP_ORDER with " << ord << endl;
+                DT_DEBUG("in OP_ORDER with " + S(ord))
                 if (ord == 1) {
-                    cout << "sort x_lt" << endl;
+                    DT_DEBUG("sort x_lt")
                     stable_sort(new_points.begin(), new_points.end(), x_lt);
                 }
                 else if(ord == -1) {
-                    cout << "sort x_gt" << endl;
+                    DT_DEBUG("sort x_gt")
                     stable_sort(new_points.begin(), new_points.end(), x_gt);
                 }
                 else if(ord == 2) {
-                    cout << "sort y_lt" << endl;
+                    DT_DEBUG("sort y_lt")
                     stable_sort(new_points.begin(), new_points.end(), y_lt);
                 }
                 else if(ord == -2) {
-                    cout << "sort y_gt" << endl;
+                    DT_DEBUG("sort y_gt")
                     stable_sort(new_points.begin(), new_points.end(), y_gt);
                 }
                 break;
@@ -528,7 +571,7 @@ bool execute_code(int n, int &M, vector<double>& stack,
             case OP_IGNORE:
                 break;
             default:
-                cout << "Unknown operator in VM code: " << int(*i) << endl;
+                DT_DEBUG("Unknown operator in VM code: " + S(*i))
         }
     }
     assert(stackPtr == stack.begin() - 1);
@@ -538,45 +581,45 @@ bool execute_code(int n, int &M, vector<double>& stack,
 //change  BEGIN X X X SUM END  with  NUMBER END END END END
 void replace_sums(int M, vector<double>& stack, vector<Point> const& old_points)
 {
-    cout << "code before replace:";
+    DT_DEBUG_N("code before replace:");
     for (vector<int>::const_iterator i=code.begin(); i != code.end(); i++) 
-        cout << " " << *i;
-    cout << endl;
+        DT_DEBUG_N(" " + S(*i));
+    DT_DEBUG("")
     bool nested = false;
     bool in_sum = false;
     vector<int>::iterator sum_end;
     for (vector<int>::iterator i = code.end()-1; i != code.begin(); i--) {
-        if (*i == OP_SUM && *(i-1) != OP_NUMBER) {
+        if (is_operator(i, OP_SUM)) {
             if (in_sum)
                 nested = true;
             sum_end = i;
             in_sum = true;
         }
-        else if (in_sum && *i == OP_BEGIN && *(i-1) != OP_NUMBER) {
+        else if (in_sum && is_operator(i, OP_BEGIN)) {
             double sum = 0.;
             vector<Point> fake_new_points(M);
             vector<int> sum_code(i, sum_end+1);
             for (int n = 0; n != M; n++) {
                 execute_code(n, M, stack, old_points, fake_new_points,sum_code);
-                cout  << "n=" << n << " on stack: " << stack.front();
+                DT_DEBUG_N("n=" + S(n) + " on stack: " + S(stack.front()));
                 sum += stack.front();
-                cout<< " sum:" << sum << endl;
+                DT_DEBUG(" sum:" + S(sum))
             }
             *i = OP_NUMBER;
             *(i+1) = size(numbers);
             numbers.push_back(sum);
             for (vector<int>::iterator j=i+2; j < sum_end+1; j++) 
-                *j = OP_IGNORE;
+                *j = OP_IGNORE; //FIXME:
             in_sum = false;
         }
     }
     //in rare case of nested sum() we need:
     if (nested)
         replace_sums(M, stack, old_points);
-    cout << "code after replace:";
+    DT_DEBUG_N("code after replace:");
     for (vector<int>::const_iterator i=code.begin(); i != code.end(); i++) 
-        cout << " " << *i;
-    cout << endl;
+        DT_DEBUG_N(" " + S(*i));
+    DT_DEBUG("")
 }
 
 
@@ -586,7 +629,7 @@ struct push_double
 {
     void operator()(const double& n) const
     {
-        cout << "PUSH_DOUBLE "<< n << endl;
+        DT_DEBUG("PUSH_DOUBLE " + S(n))
         code.push_back(OP_NUMBER);
         code.push_back(size(numbers));
         numbers.push_back(n);
@@ -609,13 +652,48 @@ struct push_op
 {
     push_op(int op_) : op(op_) {}
 
-    void push() const { cout<<"PUSHOP "<<op<<endl;  code.push_back(op); }
+    void push() const { DT_DEBUG("PUSHOP " + S(op))  code.push_back(op); }
     void operator()(char const*, char const*) const { push(); }
     void operator()(char) const { push(); }
 
     int op;
 };
 
+
+struct parameterized_op
+{
+    parameterized_op(int op_) : op(op_) {}
+
+    void push() const;
+    void operator()(char const*, char const*) const { push(); }
+    void operator()(char) const { push(); }
+
+    int op;
+};
+
+void parameterized_op::push() const
+{ 
+    DT_DEBUG("PARAMETERIZED " + S(op))  
+    typedef vector<int>::iterator viit;
+    viit first = find(code.begin(), code.end(), OP_PLIST_BEGIN);
+    viit last = find(code.begin(), code.end(), OP_PLIST_END) + 1;
+    vector<fp> params;
+    for (viit i=first; i != last; ++i) 
+        if (*i == OP_NUMBER) 
+            params.push_back(numbers[*++i]);
+    code.erase(first, last);
+    code.push_back(OP_PARAMETERIZED); 
+    code.push_back(size(parameterized));
+    ParameterizedFunction *func = 0;
+    switch (op) {
+        case PF_INTERPOLATE:
+            func = new InterpolateFunction(params);
+            break;
+        default:
+            assert(0);
+    }
+    parameterized.push_back(func);
+}
 
 
 //----------------------------  grammar  ----------------------------------
@@ -656,6 +734,13 @@ struct DataTransformGrammar : public grammar<DataTransformGrammar>
           |  as_lower_d["false"] [push_the_double(0.)]
           ;
 
+      parameterized_args
+          =  ch_p('[') [push_op(OP_PLIST_BEGIN)]
+              >> +real_constant 
+                  >>  ch_p(']') [push_op(OP_PLIST_END)]
+                      >> '(' >> rprec1 >> ')'
+          ;
+
       real_variable 
           =  ("x" >> index) [push_op(OP_VAR_x)]
           |  ("y" >> index) [push_op(OP_VAR_y)]
@@ -675,6 +760,8 @@ struct DataTransformGrammar : public grammar<DataTransformGrammar>
               //sum will be refactored, see: replace_sums()
           |   (as_lower_d["sum"] [push_op(OP_BEGIN)]
                   >> '(' >> rprec1 >> ')') [push_op(OP_SUM)]
+          |   (as_lower_d["interpolate"] >> parameterized_args)
+                                             [parameterized_op(PF_INTERPOLATE)]
           |   (as_lower_d["sqrt"] >> '(' >> rprec1 >> ')') [push_op(OP_SQRT)] 
           |   (as_lower_d["exp"] >> '(' >> rprec1 >> ')') [push_op(OP_EXP)] 
           |   (as_lower_d["log10"] >> '(' >> rprec1 >> ')') [push_op(OP_LOG10)]
@@ -819,7 +906,7 @@ struct DataTransformGrammar : public grammar<DataTransformGrammar>
 
     rule<ScannerT> rprec1, rprec2, rprec3, rprec4, rprec5, rprec6,  
                    rbool_or, rbool_and, rbool_not, rbool,
-                   real_constant, real_variable,       
+                   real_constant, real_variable, parameterized_args,
                    index, assignment, statement, range, order;
 
     rule<ScannerT> const& start() const { return statement; }
@@ -855,29 +942,41 @@ void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
 }
 
 
-bool do_transform(string const& str, 
+bool transform_data(string const& str, 
                   vector<Point> const& old_points, 
                   vector<Point> &new_points)
 {
+    assert(code.empty());
     // First compile string...
-    code.clear();
-    numbers.clear();
     DataTransformGrammar calc; 
     parse_info<> result = parse(str.c_str(), calc, space_p);
     // and then execute compiled code.
     if (result.full) {
         new_points = old_points; //initial values of new_points
         execute_vm_code(old_points, new_points);
-        return true;
     }
-    else
-        return false;
+    // cleaning
+    code.clear();
+    numbers.clear();
+    for (vector<ParameterizedFunction*>::iterator i=parameterized.begin();
+            i != parameterized.end(); ++i)
+        delete *i;
+    parameterized.clear();
+    return (bool) result.full;
 }
 
+#ifdef STANDALONE_DATATRANS
 //-------------------------  Main program  ---------------------------------
-int main()
+#include <string.h>
+
+int main(int argc, char **argv)
 {
     cout << "DataTransformVMachine test started...\n";
+    if (argc > 1 && !strcmp(argv[1], "-v")) {
+        cout << "[verbose mode]" << endl;
+        verbose=true;
+    }
+    cout << "==> ";
 
     string str;
     while (getline(cin, str))
@@ -890,15 +989,18 @@ int main()
         points.push_back(Point(0.4, 3, 1));
         points.push_back(Point(0.5, 3, 1));
 
-        bool r = do_transform(str, points, transformed_points);
+        bool r = transform_data(str, points, transformed_points);
         int len = (int) points.size();
         if (r)
             for (int n = 0; n != (int) transformed_points.size(); n++) 
-                cout << "point " << n << ": " << (n < len ? points[n] : Point())
-                    << " -> " << transformed_points[n] <<  endl;
+                cout << "point " << n << ": " 
+                    << (n < len ? points[n] : Point()).str()
+                    << " -> " << transformed_points[n].str() << endl;
         else
-            cout << "Syntax error" << endl;
+            cout << "Syntax error." << endl;
+        cout << "==> ";
     }
     return 0;
 }
 
+#endif //STANDALONE_DATATRANS

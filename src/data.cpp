@@ -1,10 +1,12 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
-#include "common.h"
-RCSID ("$Id$")
+// $Id$
 
+#include "common.h"
 #include "data.h" 
 #include "fileroutines.h"
 #include "ui.h"
+#include "numfuncs.h"
+
 #include <math.h>
 #include <string.h>
 #include <fstream>
@@ -747,34 +749,25 @@ void Data::recompute_background (Bg_cl_enum bg_cl)
         return;
     }
     d_was_changed = true;
-    int size = bc.size();
-    if (size == 0) 
+    if (bc.empty()) 
         for (vector<Point>::iterator i = p.begin(); i != p.end(); i++)
             if (bg_cl == bgc_bg)
                 i->y = i->orig_y; 
             else
                 i->x = i->orig_x;
-    else if (size == 1) 
-        for (vector<Point>::iterator i = p.begin(); i != p.end(); i++)
+    else {
+        vector<B_point> &bc = background[bg_cl];
+        if (spline_background[bg_cl]) 
+            prepare_spline_interpolation (bc);
+        for (vector<Point>::iterator i = p.begin(); i != p.end(); i++) {
+            fp t = spline_background[bg_cl] ? 
+                                    get_spline_interpolation(bc, i->orig_x)
+                                  : get_linear_interpolation(bc, i->orig_x);
             if (bg_cl == bgc_bg)
-                i->y = i->orig_y - bc[0].y;
-            else
-                i->x = i->orig_x - bc[0].y;
-    else if (size == 2) {
-        fp a = (bc[1].y - bc[0].y) / (bc[1].x - bc[0].x);
-        fp b = bc[0].y - a * bc[0].x;
-        for (vector<Point>::iterator i = p.begin(); i != p.end(); i++)
-            if (bg_cl == bgc_bg)
-                i->y = i->orig_y - (a * i->orig_x + b);
-                                          //^^^^^^it's not a typo
-            else
-                i->x = i->orig_x - (a * i->orig_x + b);
-    }
-    else {//size > 2
-        if (spline_background[bg_cl])
-            spline_interpolation(bg_cl);
-        else
-            linear_interpolation(bg_cl);
+                i->y = i->orig_y - t;
+            else 
+                i->x = i->orig_x - t;
+        }
     }
     if (bg_cl == bgc_bg) {
         recompute_y_bounds();
@@ -790,102 +783,6 @@ void Data::recompute_y_bounds() {
             y_min = i->y;
         if (i->y > y_max)
             y_max = i->y;
-    }
-}
-
-vector<B_point>::iterator 
-Data::bg_interpolation_find_place (vector<B_point> &b,  fp x)
-{
-    //optimized for sequence of x = x1, x2, x3, x1 < x2 < x3...
-    static vector<B_point>::iterator pos = b.begin();
-    assert (size(b) > 1);
-    assert (x > b.front().x && x < b.back().x);
-    if (pos < b.begin() || pos >= b.end() - 1) 
-        pos = b.begin();
-    if (pos->x <= x && ((pos + 1)->x >= b.back().x || x <= (pos + 1)->x )) 
-        return pos;
-    else {
-        pos++;
-        if (pos->x <= x && ((pos + 1)->x >= b.back().x || x <= (pos + 1)->x )) 
-            return pos;
-        else {
-            pos = lower_bound (b.begin(), b.end(), Simple_point(x, 0)) - 1;
-            return pos;
-        }
-    }
-}
-
-void Data::prepare_spline_interpolation (vector<B_point> &background)
-{// based on Numerical Recipes www.nr.com
-    //first wroten for background interpolation, then generalized
-    const int n = background.size();
-        //find d2y/dx2 and put it in .q
-    background[0].q = 0; //natural spline
-    vector<fp> u (n);
-    for (int k = 1; k <= n - 2; k++) {
-        B_point *b = &background[k];
-        fp sig = (b->x - (b - 1)->x) / ((b + 1)->x - (b - 1)->x);
-        fp t = sig * (b - 1)->q + 2.0;
-        b->q = (sig - 1.0) / t;
-        u[k] = ((b + 1)->y - b->y) / ((b + 1)->x - b->x) - (b->y - (b - 1)->y)
-                            / (b->x - (b - 1)->x);
-        u[k] = (6.0 * u[k] / ((b + 1)->x - (b - 1)->x) - sig * u[k - 1]) / t;
-    }
-    background.back().q = 0; 
-    for (int k = n - 2; k >= 0; k--) {
-        B_point *b = &background[k];
-        b->q = b->q * (b + 1)->q + u[k];
-    }
-}
-
-void Data::spline_interpolation (Bg_cl_enum bg_cl)
-{ // based on Numerical Recipes www.nr.com
-    //first wroten for background interpolation, then generalized
-    vector<B_point> &bc = background[bg_cl];
-    prepare_spline_interpolation (bc);
-
-    //put background/calibration into `p'
-    for (vector<Point>::iterator i = p.begin(); i != p.end(); i++) {
-        vector<B_point>::iterator pos;
-        if (i->orig_x <= bc.front().x)
-            pos = bc.begin();//i->y = i->orig_y;
-        else if (i->orig_x >= bc.back().x)
-            pos = bc.end() - 2;//i->y = i->orig_y;
-        else 
-            pos = bg_interpolation_find_place (bc, i->orig_x);
-
-        fp h = (pos + 1)->x - pos->x;
-        fp a = ((pos + 1)->x - i->orig_x) / h;
-        fp b = (i->orig_x - pos->x) / h;
-        fp t = a * pos->y + b * (pos + 1)->y + ((a * a * a - a) * pos->q 
-                + (b * b * b - b) * (pos + 1)->q) * (h * h) / 6.0;
-
-        if (bg_cl == bgc_bg)
-            i->y = i->orig_y - t;
-        else 
-            i->x = i->orig_x - t;
-    }
-}
-
-void Data::linear_interpolation (Bg_cl_enum bg_cl)
-{
-    //first wroten for background interpolation, then generalized
-    vector<B_point> &bc = background[bg_cl];
-    for (vector<Point>::iterator i = p.begin(); i != p.end(); i++) {
-        vector<B_point>::iterator pos; 
-        if (i->orig_x <= bc.front().x)
-            pos = bc.begin();
-        else if (i->orig_x >= bc.back().x)
-            pos = bc.end() - 2;
-        else 
-            pos = bg_interpolation_find_place (bc, i->orig_x);
-        fp a = ((pos + 1)->y - pos->y) / ((pos + 1)->x - pos->x);
-        fp b = pos->y - a * pos->x;
-
-        if (bg_cl == bgc_bg)
-            i->y = i->orig_y - (a * i->orig_x + b);
-        else 
-            i->x = i->orig_x - (a * i->orig_x + b);
     }
 }
 
