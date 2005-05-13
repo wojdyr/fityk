@@ -1,11 +1,11 @@
 
+* problem: fityk can't be compiled with UNICODE-enabled wxWidgets
+
 * (WWW) update screenshots 
 
 * there are problems with refreshing plots and output window when program
   is busy (ie. when running script or fitting). It seems to be platform
   dependent.
-
-* problem: fityk can't be compiled with UNICODE-enabled wxWidgets
 
 * write a good portable .spec (spec is used for building RPM)
 
@@ -57,7 +57,7 @@
 * rewrite scanner/parser using boost::spirit. Now it uses flex/bison.
   [IMPORTANT]
 
-* user defined functions; it includes symbolic computing of derivatives.
+* user defined functions; it includes symbolic computing of derivatives and CSE.
   Important but needs a lot of work. Perhaps the idea of simple parameters,
   compund-parameters and functions will be revised. 
   [IMPORTANT]
