@@ -32,6 +32,11 @@ if test "$enable_optimization" = "yes"; then
 	LDFLAGS="-s $LDFLAGS"
 fi
 
+dnl use 3rdparty/ if it's not empty (it's empty in CVS)
+if test -e 3rdparty/boost ; then
+	CPPFLAGS="$CPPFLAGS -I\$(top_srcdir)/3rdparty"
+fi
+
 
 dnl use static/dynamic wxWin library
 AC_ARG_ENABLE(sharedwx, 
@@ -162,7 +167,7 @@ dnl AC_CHECK_FUNCS(putenv strtod)
 dnl in generated configure script, this line is too late
 test "x$prefix" = xNONE && prefix=$ac_default_prefix
 
-AC_CONFIG_FILES([Makefile fityk.spec fityk.iss src/Makefile src/img/Makefile doc/Makefile doc/fitykhelp_img/Makefile samples/Makefile config/Makefile])
+AC_CONFIG_FILES([Makefile fityk.spec fityk.iss src/Makefile src/img/Makefile doc/Makefile doc/fitykhelp_img/Makefile samples/Makefile config/Makefile 3rdparty/Makefile])
 AC_OUTPUT
 
 

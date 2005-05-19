@@ -9,33 +9,33 @@
 #include "common.h"
 #include "dotset.h"
 
-struct Simple_point
-{
+
+/// Points used for parametrized functions. They have q parameter, that
+/// is used for cubic spline computation
+struct B_point 
+{ 
     fp x, y;
-    Simple_point () : x(0), y(0) {}
-    Simple_point (fp x_, fp y_) : x(x_), y(y_) {}
+    fp q; /* q is used for spline */ 
+    B_point (fp x_, fp y_) : x(x_), y(y_) {}
     std::string str() { return "(" + S(x) + "; " + S(y) + ")"; }
 };
-inline bool operator< (const Simple_point& p, const Simple_point& q) 
-{ return p.x < q.x; }
 
-struct B_point : public Simple_point 
-{ 
-    fp q; /* q is used for spline */ 
-    B_point (fp x, fp y) : Simple_point(x, y) {}
-};
+inline bool operator< (const B_point& p, const B_point& q) 
+{ return p.x < q.x; }
     
-struct Point : public Simple_point
+/// data points
+struct Point 
 {
+    fp x, y;
     fp orig_x, orig_y, sigma;
     bool is_active;
-    Point () : Simple_point(), orig_x(0), orig_y(0), sigma(0), 
+    Point () : x(0), y(0), orig_x(0), orig_y(0), sigma(0), 
                is_active(true) {}
-    Point (fp x_) : Simple_point(x_, 0), orig_x(0), orig_y(0), sigma(0),
+    Point (fp x_) : x(x_), y(0), orig_x(0), orig_y(0), sigma(0),
                     is_active(true) {}
-    Point (fp x_, fp y_) : Simple_point(x_, y_), orig_x(x_), orig_y (y_), 
+    Point (fp x_, fp y_) : x(x_), y(y_), orig_x(x_), orig_y (y_), 
                            sigma (0), is_active(true) {}
-    Point (fp x_, fp y_, fp sigma_) : Simple_point(x_, y_), 
+    Point (fp x_, fp y_, fp sigma_) : x(x_), y(y_), 
                                       orig_x(x_), orig_y(y_), sigma(sigma_), 
                                       is_active(true) {}
     fp get_bg() const { return orig_y - y; } 
@@ -43,6 +43,10 @@ struct Point : public Simple_point
     std::string str() { return "(" + S(x) + "; " + S(y) + "; " + S(sigma) 
                                + (is_active ? ")*" : ") "); }
 };
+
+inline bool operator< (const Point& p, const Point& q) 
+{ return p.x < q.x; }
+    
 
 enum Bg_cl_enum { bgc_bg = 0, bgc_cl = 1 };  //background / calibration 
 

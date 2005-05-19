@@ -29,7 +29,7 @@ get_interpolation_segment(vector<B_point> &bb,  fp x)
         if (pos->x <= x && (pos+1 == bb.end() || x <= (pos+1)->x)) 
             return pos;
     }
-    pos = lower_bound(bb.begin(), bb.end(), Simple_point(x, 0)) - 1;
+    pos = lower_bound(bb.begin(), bb.end(), B_point(x, 0)) - 1;
     // pos >= bb.begin() because x > bb.front().x
     return pos;
 }

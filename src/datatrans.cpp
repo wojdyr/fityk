@@ -152,11 +152,11 @@ public:
     virtual fp calculate(fp x) = 0;
 };
 
+
 class InterpolateFunction : public ParameterizedFunction
 {
 public:
-    InterpolateFunction(vector<fp> &params) 
-    {
+    InterpolateFunction(vector<fp> &params) {
         for (int i=0; i < size(params) - 1; i+=2)
             bb.push_back(B_point(params[i], params[i+1]));
     }
@@ -166,6 +166,23 @@ public:
 private:
     std::vector<B_point> bb;
 };
+
+
+class SplineFunction : public ParameterizedFunction
+{
+public:
+    SplineFunction(vector<fp> &params) {
+        for (int i=0; i < size(params) - 1; i+=2)
+            bb.push_back(B_point(params[i], params[i+1]));
+        prepare_spline_interpolation(bb);
+    }
+
+    fp calculate(fp x) { return get_spline_interpolation(bb, x); }
+
+private:
+    std::vector<B_point> bb;
+};
+
 
 enum {
     PF_INTERPOLATE, PF_SPLINE
@@ -578,7 +595,7 @@ bool execute_code(int n, int &M, vector<double>& stack,
     return return_value;
 }
 
-//change  BEGIN X X X SUM END  with  NUMBER END END END END
+//change  BEGIN X ... X SUM END  with  NUMBER INDEX IGNORE ... IGNORE END
 void replace_sums(int M, vector<double>& stack, vector<Point> const& old_points)
 {
     DT_DEBUG_N("code before replace:");
@@ -609,7 +626,7 @@ void replace_sums(int M, vector<double>& stack, vector<Point> const& old_points)
             *(i+1) = size(numbers);
             numbers.push_back(sum);
             for (vector<int>::iterator j=i+2; j < sum_end+1; j++) 
-                *j = OP_IGNORE; //FIXME:
+                *j = OP_IGNORE; //FIXME: why not code.erase() ?
             in_sum = false;
         }
     }
@@ -688,6 +705,9 @@ void parameterized_op::push() const
     switch (op) {
         case PF_INTERPOLATE:
             func = new InterpolateFunction(params);
+            break;
+        case PF_SPLINE:
+            func = new SplineFunction(params);
             break;
         default:
             assert(0);

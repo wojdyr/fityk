@@ -1,0 +1,8 @@
+
+For convenience of user, who will build fityk from source (from tarball,
+not from CVS -- if you've downloaded fityk from CVS, you have to first install
+these dependencies), following dependencies are distributed with fityk:
+
+* Spirit 1.8.2 (without docs, examples etc. See http://spirit.sf.net 
+                for details. Spirit consists only of header files)
+
