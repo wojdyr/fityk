@@ -19,6 +19,7 @@
 #include "wx_pane.h" 
 #include "wx_gui.h" 
 #include "wx_plot.h" 
+#include "wx_mplot.h" 
 #include "data.h" 
 #include "pcore.h" 
 #include "other.h" 
@@ -97,11 +98,11 @@ void PlotPane::save_settings(wxConfigBase *cf) const
 void PlotPane::read_settings(wxConfigBase *cf)
 {
     cf->SetPath("/PlotPane");
-    SetProportion(from_config_read_double(cf, "PlotPaneProportion", 0.75));
-    aux_split->SetProportion(from_config_read_double(cf, "AuxPlotsProportion", 
+    SetProportion(read_double_from_config(cf, "PlotPaneProportion", 0.75));
+    aux_split->SetProportion(read_double_from_config(cf, "AuxPlotsProportion", 
                                                          0.5));
-    show_aux(0, from_config_read_bool(cf, "ShowAuxPane0", true));
-    show_aux(1, from_config_read_bool(cf, "ShowAuxPane1", false));
+    show_aux(0, read_bool_from_config(cf, "ShowAuxPane0", true));
+    show_aux(1, read_bool_from_config(cf, "ShowAuxPane1", false));
     plot->read_settings(cf);
     for (int i = 0; i < 2; ++i)
         aux_plot[i]->read_settings(cf);
@@ -184,7 +185,8 @@ void PlotPane::show_aux(int n, bool show)
     }
 }
 
-// draw "crosshair cursor" -> erase old and draw new
+
+/// draw "crosshair cursor" -> erase old and draw new
 void PlotPane::draw_crosshair(int X, int Y)
 {
     static bool drawn = false;
@@ -684,60 +686,6 @@ bool FPrintout::OnPrintPage(int page)
     return true;
 }
 
-
-//===============================================================
-
-wxColour read_color_from_config(const wxConfigBase *config, const wxString& key,
-                                 const wxColour& default_value)
-{
-    return wxColour (config->Read (key + "/Red", default_value.Red()), 
-                     config->Read (key + "/Green", default_value.Green()), 
-                     config->Read (key + "/Blue", default_value.Blue()));
-}
-
-void write_color_to_config (wxConfigBase *config, const wxString& key,
-                            const wxColour& value)
-{
-    config->Write (key + "/Red", value.Red());
-    config->Write (key + "/Green", value.Green());
-    config->Write (key + "/Blue", value.Blue());
-}
-
-wxFont read_font_from_config (const wxConfigBase *config, const wxString& key,
-                              const wxFont& default_value)
-{
-    if (!default_value.Ok()) {
-        if (config->HasEntry(key+"/pointSize")
-              && config->HasEntry(key+"/family")
-              && config->HasEntry(key+"/style")
-              && config->HasEntry(key+"/weight")
-              && config->HasEntry(key+"/faceName"))
-            return wxFont (config->Read(key+"/pointSize", 0L),
-                           config->Read(key+"/family", 0L),
-                           config->Read(key+"/style", 0L),
-                           config->Read(key+"/weight", 0L),
-                           false, //underline
-                           config->Read(key+"/faceName", ""));
-        else
-            return wxNullFont;
-    }
-    return wxFont (config->Read(key+"/pointSize", default_value.GetPointSize()),
-                   config->Read(key+"/family", default_value.GetFamily()),
-                   config->Read(key+"/style", default_value.GetStyle()),
-                   config->Read(key+"/weight", default_value.GetWeight()),
-                   false, //underline
-                   config->Read(key+"/faceName", default_value.GetFaceName()));
-}
-
-void write_font_to_config (wxConfigBase *config, const wxString& key,
-                           const wxFont& value)
-{
-    config->Write (key + "/pointSize", value.GetPointSize());
-    config->Write (key + "/family", value.GetFamily());
-    config->Write (key + "/style", value.GetStyle());
-    config->Write (key + "/weight", value.GetWeight());
-    config->Write (key + "/faceName", value.GetFaceName());
-}
 
 //===============================================================
 //                            ProportionalSplitter

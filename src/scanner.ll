@@ -64,8 +64,6 @@ ws_ [ \t\v\f\r]+
 [dfsmoc]\.s(et)?   r_cmd(); BEGIN(SET_COND); iplval.c = iptext[0]; return SET;
 d\.l(oad)?	   r_cmd(); BEGIN(D_LOAD_COND); return D_LOAD;
 d\.a(ctivate)?     r_cmd(); return D_ACTIVATE;
-d\.b(ackground)?   r_cmd(); return D_BACKGROUND;
-d\.c(alibrate)?    r_cmd(); return D_CALIBRATE;
 d\.r(ange)?	   r_cmd(); return D_RANGE;
 d\.d(eviation)?    r_cmd(); return D_DEVIATION;
 d\.i(nfo)?	   r_cmd(); return D_INFO;

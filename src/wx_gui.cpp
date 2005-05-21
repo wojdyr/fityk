@@ -34,6 +34,7 @@
 
 #include "common.h"
 #include "wx_plot.h"
+#include "wx_mplot.h"
 #include "wx_gui.h"
 #include "wx_dlg.h"
 #include "wx_pane.h"
@@ -55,7 +56,6 @@
 #endif
 
 //toolbars icons
-#include "img/clear.xpm"     
 #include "img/plusbg.xpm"  
 //#include "img/spline.xpm"
 #include "img/autoadd.xpm"     
@@ -125,10 +125,8 @@ enum {
     ID_D_EDITOR                ,
     ID_D_DEVIATION             ,
     ID_D_RANGE                 ,
-    ID_D_B_INFO                ,
     ID_D_B_CLEAR               ,
     ID_D_BACKGROUND            ,
-    ID_D_CALIBRATE             ,
     ID_D_EXPORT                ,
     ID_D_SET                   ,
     ID_S_ADD                   ,
@@ -372,9 +370,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_D_INFO,        FFrame::OnDInfo)
     EVT_MENU (ID_D_DEVIATION  , FFrame::OnDDeviation)  
     EVT_MENU (ID_D_RANGE,       FFrame::OnDRange)
-    EVT_MENU (ID_D_B_INFO,      FFrame::OnDBInfo)
     EVT_MENU (ID_D_B_CLEAR,     FFrame::OnDBClear)
-    EVT_MENU (ID_D_CALIBRATE,   FFrame::OnDCalibrate)  
     EVT_MENU (ID_D_EXPORT,      FFrame::OnDExport) 
     EVT_MENU (ID_D_SET,         FFrame::OnDSet) 
 
@@ -586,21 +582,21 @@ void FFrame::read_settings(wxConfigBase *cf)
 {
     // restore window layout, frame position and size
     cf->SetPath("/Frame");
-    SwitchToolbar(from_config_read_bool(cf, "ShowToolbar", true));
-    SwitchStatbar(from_config_read_bool(cf, "ShowStatbar", true));
+    SwitchToolbar(read_bool_from_config(cf, "ShowToolbar", true));
+    SwitchStatbar(read_bool_from_config(cf, "ShowStatbar", true));
     int x = cf->Read("x", 50),
         y = cf->Read("y", 50),
         w = cf->Read("w", 650),
         h = cf->Read("h", 400);
     Move(x, y);
     SetClientSize(w, h);
-    v_splitter->SetProportion(from_config_read_double(cf, "VertSplitProportion",
+    v_splitter->SetProportion(read_double_from_config(cf, "VertSplitProportion",
                                                           0.8));
-    SwitchDPane(from_config_read_bool(cf, "ShowDataPane", false));
-    main_pane->SetProportion(from_config_read_double(cf, "MainPaneProportion",
+    SwitchDPane(read_bool_from_config(cf, "ShowDataPane", false));
+    main_pane->SetProportion(read_double_from_config(cf, "MainPaneProportion",
                                                           0.7));
-    SwitchIOPane(from_config_read_bool(cf, "ShowIOPane", true));
-    SwitchCrosshair(from_config_read_bool(cf, "ShowCrosshair", false));
+    SwitchIOPane(read_bool_from_config(cf, "ShowIOPane", true));
+    SwitchCrosshair(read_bool_from_config(cf, "ShowCrosshair", false));
 }
 
 void FFrame::save_all_settings(wxConfigBase *cf) const
@@ -654,11 +650,8 @@ void FFrame::set_menubar()
                                             "Change errors for data points");
     data_menu->Append (ID_D_RANGE,    "&Range", "Change active points");
     wxMenu* data_bg_menu = new wxMenu;
-    data_bg_menu->Append(ID_D_B_INFO, "&Info", "Info about baseline points");
     data_bg_menu->Append(ID_D_B_CLEAR, "&Clear", "Clear all baseline points");
     data_menu->Append (ID_D_BACKGROUND, "&Background", data_bg_menu);
-    data_menu->Append (ID_D_CALIBRATE, "&Calibrate",
-                       "Define calibration curve (command line only)");
     data_menu->Append (ID_D_EXPORT,   "&Export", "Save data to file");
     data_menu->Append (ID_D_SET,      "&Settings", "Preferences and options");
 
@@ -975,23 +968,9 @@ void FFrame::OnDRange (wxCommandEvent& WXUNUSED(event))
     dialog->Destroy();
 }
 
-void FFrame::OnDBInfo (wxCommandEvent& WXUNUSED(event))
-{
-    exec_command(S("d.background")); 
-}
-
 void FFrame::OnDBClear (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command(S("d.background !")); 
-}
-
-void FFrame::OnDCalibrate (wxCommandEvent& WXUNUSED(event))
-{
-    wxMessageBox (("This menu item is only reminding about command d.calibarate"
-                   ".\n If you don't know how to use this command,\n"
-                   " look for it in the manual.\n"
-                   "By the way, is anyone using command d.calibrate?"),
-                  "d.calibrate", wxOK|wxICON_INFORMATION);
+    //TODO
 }
 
 void FFrame::OnDExport (wxCommandEvent& WXUNUSED(event))
@@ -1808,13 +1787,9 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
              "Load data from file");
     AddSeparator();
     //background
-    AddTool (ID_ft_b_with, "With Bg", wxBitmap(plusbg_xpm), wxNullBitmap,  
-             wxITEM_CHECK, "Plot with/without background",
-             "Draw plot with added (or not) baseline");
-    ToggleTool (ID_ft_b_with, my_core->plus_background);
-    AddTool (ID_D_B_CLEAR, "Clear Bg", wxBitmap(clear_xpm), wxNullBitmap, 
-             wxITEM_NORMAL, "Clear background", 
-             "Delete all baseline points");
+    AddTool (ID_ft_b_with, "Strip Bg", wxBitmap(plusbg_xpm), wxNullBitmap,  
+             wxITEM_NORMAL, "Strip background",
+             "Remove selected background from data");
     AddSeparator();
     //sum
     AddTool (ID_S_INFO, "Tree", wxBitmap(tree_xpm), wxNullBitmap,
@@ -1850,8 +1825,6 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
 
 void FToolBar::OnIdle(wxIdleEvent &event)
 {
-    if (GetToolState(ID_ft_b_with) != my_core->plus_background) 
-        ToggleTool(ID_ft_b_with, my_core->plus_background);
     event.Skip();
 }
 

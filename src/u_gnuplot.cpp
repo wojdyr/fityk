@@ -96,7 +96,6 @@ int GnuPlot::plot (const vector<fp>& workingA)
     if (!gnuplot_pipe_ok())
         return -1;
     my_sum->use_param_a_for_value(workingA);
-    bool plus_bg = my_core->plus_background;
     string yfun = my_sum->sum_full_formula (workingA);
     very_verbose("Plotting function: " + yfun); 
     // Send commands through the pipe to gnuplot
@@ -117,16 +116,14 @@ int GnuPlot::plot (const vector<fp>& workingA)
         if (fflush (gnuplot_pipe) != 0)
             warn ("Flushing pipe program-to-gnuplot failed.");
         for (int i = i_f; i < i_l; i++)
-            fprintf (gnuplot_pipe, "%f  %f\n", my_data->get_x(i), 
-                    plus_bg ? my_data->get_original_y(i) : my_data->get_y(i));
+            fprintf (gnuplot_pipe, 
+                     "%f  %f\n", my_data->get_x(i), my_data->get_y(i));
         fprintf (gnuplot_pipe, "e\n");//gnuplot needs 'e' at the end of data
         if (function_as_points) {
             my_sum->use_param_a_for_value (workingA);
             for (int i = i_f; i < i_l; i++) {
                 fp x = my_data->get_x(i);
-                fprintf(gnuplot_pipe, "%f  %f\n", x, 
-                       plus_bg ? my_sum->value(x) + my_data->get_background_y(i)
-                               : my_sum->value (x));
+                fprintf(gnuplot_pipe, "%f  %f\n", x, my_sum->value(x));
             }
             fprintf(gnuplot_pipe, "e\n");
         }

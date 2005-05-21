@@ -10,36 +10,16 @@
 #include "dotset.h"
 
 
-/// Points used for parametrized functions. They have q parameter, that
-/// is used for cubic spline computation
-struct B_point 
-{ 
-    fp x, y;
-    fp q; /* q is used for spline */ 
-    B_point (fp x_, fp y_) : x(x_), y(y_) {}
-    std::string str() { return "(" + S(x) + "; " + S(y) + ")"; }
-};
-
-inline bool operator< (const B_point& p, const B_point& q) 
-{ return p.x < q.x; }
-    
 /// data points
 struct Point 
 {
-    fp x, y;
-    fp orig_x, orig_y, sigma;
+    fp x, y, sigma;
     bool is_active;
-    Point () : x(0), y(0), orig_x(0), orig_y(0), sigma(0), 
-               is_active(true) {}
-    Point (fp x_) : x(x_), y(0), orig_x(0), orig_y(0), sigma(0),
-                    is_active(true) {}
-    Point (fp x_, fp y_) : x(x_), y(y_), orig_x(x_), orig_y (y_), 
-                           sigma (0), is_active(true) {}
-    Point (fp x_, fp y_, fp sigma_) : x(x_), y(y_), 
-                                      orig_x(x_), orig_y(y_), sigma(sigma_), 
+    Point () : x(0), y(0), sigma(0), is_active(true) {}
+    Point (fp x_) : x(x_), y(0), sigma(0), is_active(true) {}
+    Point (fp x_, fp y_) : x(x_), y(y_), sigma (0), is_active(true) {}
+    Point (fp x_, fp y_, fp sigma_) : x(x_), y(y_), sigma(sigma_), 
                                       is_active(true) {}
-    fp get_bg() const { return orig_y - y; } 
-    fp get_calibr() const { return orig_x - x; }
     std::string str() { return "(" + S(x) + "; " + S(y) + "; " + S(sigma) 
                                + (is_active ? ")*" : ") "); }
 };
@@ -48,14 +28,9 @@ inline bool operator< (const Point& p, const Point& q)
 { return p.x < q.x; }
     
 
-enum Bg_cl_enum { bgc_bg = 0, bgc_cl = 1 };  //background / calibration 
-
 class Data : public DotSet
 {
 public :
-    fp min_background_distance[2];
-    bool spline_background[2];
-
     Data ();
     ~Data () {}
     void d_was_plotted() { d_was_changed = false; }
@@ -68,9 +43,6 @@ public :
     char guess_file_type (const std::string& filename);
     fp get_x (int n) const { return p[active_p[n]].x; }
     fp get_y (int n) const { return p[active_p[n]].y; } 
-    fp get_original_x (int n) const { return p[active_p[n]].orig_x; }
-    fp get_original_y (int n) const { return p[active_p[n]].orig_y; }
-    fp get_background_y (int n) const { return p[active_p[n]].get_bg(); }
     fp get_sigma (int n) const { return p[active_p[n]].sigma; }
     int get_n () const {return active_p.size();}
     bool is_empty () const {return p.empty();}
@@ -85,28 +57,17 @@ public :
     std::string get_title() const { return title.empty() ? filename : title; }
     std::string get_filename() const { return filename; }
 
-    void auto_background (int n, fp p1, bool is_proc1, fp p2, bool is_proc2);
-    //background (modifying y)  or  calibration (modifying x) 
-    void add_background_point (fp x, fp y, Bg_cl_enum bg_cl);
-    void rm_background_point (fp x, Bg_cl_enum bg_cl);
-    void clear_background (Bg_cl_enum bg_cl);
-    std::string background_info (Bg_cl_enum bg_cl);
-    void recompute_background (Bg_cl_enum bg_cl);
     void recompute_y_bounds();
-    const std::vector<B_point>& get_background_points(Bg_cl_enum bg_cl)
-        { return background[bg_cl]; }
-
     fp get_y_at (fp x) const;
-    fp get_bg_at (fp x) const;
     //return points at x (if any) or (usually) after it.
     std::vector<Point>::const_iterator get_point_at(fp x) const;
     void export_to_file (std::string filename, bool append, char filetype);
     void export_as_script (std::ostream& os);
     fp get_x_min() { return p.front().x; }
     fp get_x_max() { return p.back().x; } 
-    fp get_y_min (bool plus_bg) const {return plus_bg ? y_orig_min : y_min;}
-    fp get_y_max (bool plus_bg) const {return plus_bg ? y_orig_max : y_max;}
-    const std::vector<Point>& points() const {return p;}
+    fp get_y_min() const { return y_min; }
+    fp get_y_max() const { return y_max; }
+    const std::vector<Point>& points() const { return p; }
     void add_point (const Point& pt);
 private:
     bool d_was_changed;
@@ -120,9 +81,7 @@ private:
     fp x_step; // 0 if not fixed;
     std::vector<Point> p;
     std::vector<int> active_p;
-    std::vector<B_point> background[2];
-    bool background_infl_sigma;
-    fp y_orig_min, y_orig_max, y_min, y_max;
+    fp y_min, y_max;
     char sigma_type;
     fp sigma_minim;
 
@@ -141,11 +100,7 @@ private:
     void clear();
     void post_load();
 
-    void spline_interpolation (Bg_cl_enum bg_cl);
-    void linear_interpolation (Bg_cl_enum bg_cl);
-
     void export_as_dat (std::ostream& os);
-    void export_bg_as_dat (std::ostream& os);
 };
 
 extern Data *my_data;

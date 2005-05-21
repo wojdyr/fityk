@@ -115,7 +115,6 @@ public:
     void OnDRange        (wxCommandEvent& event);
     void OnDBInfo        (wxCommandEvent& event);
     void OnDBClear       (wxCommandEvent& event);
-    void OnDCalibrate    (wxCommandEvent& event); 
     void OnDExport       (wxCommandEvent& event);
     void OnDSet          (wxCommandEvent& event); 
 

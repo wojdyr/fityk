@@ -2,6 +2,10 @@
 //
 // the idea of VM is based on one of boost::spirit samples - vmachine_calc
 
+// this file can be compiled to stand-alone test program:
+// $ g++ -I../3rdparty -DSTANDALONE_DATATRANS datatrans.cpp numfuncs.cpp -o dt
+// $ ./dt 
+
 //TODO how to cooperate with background/calibration??
 
 // right hand variables: 

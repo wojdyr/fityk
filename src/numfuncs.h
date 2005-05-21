@@ -6,7 +6,21 @@
 
 #include "common.h"
 
-class B_point;
+
+struct B_point;
+/// Points used for parametrized functions. They have q parameter, that
+/// is used for cubic spline computation
+struct B_point 
+{ 
+    fp x, y;
+    fp q; /* q is used for spline */ 
+    B_point (fp x_, fp y_) : x(x_), y(y_) {}
+    std::string str() { return "(" + S(x) + "; " + S(y) + ")"; }
+};
+
+inline bool operator< (const B_point& p, const B_point& q) 
+{ return p.x < q.x; }
+    
 
 /// returns position pos in sorted vector of points, *pos and *(pos+1) are
 /// required segment for interpolation

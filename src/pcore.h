@@ -87,7 +87,6 @@ class PlotCore
 public:
     static const fp relative_view_x_margin, relative_view_y_margin;
     Rect view;
-    bool plus_background;
 
     PlotCore(Parameters *parameters);
     ~PlotCore();
@@ -104,12 +103,11 @@ public:
     void export_as_script (std::ostream& os) const;
     const Sum *get_sum() const { return sum; }
 
-    std::string view_info() const;
+    std::string view_info() const { return view.str(); }
     void set_view (Rect rect, bool fit = false);
     void set_view_h (fp l, fp r) {set_view (Rect(l, r, view.bottom, view.top));}
     void set_view_v (fp b, fp t) {set_view (Rect(view.left, view.right, b, t));}
     void set_view_y_fit();
-    void set_plus_background(bool b) {plus_background=b; v_was_changed = true;}
 
     bool was_changed() const;  // return true when plot should be redrawed
     void was_plotted(); // called on redrawing 

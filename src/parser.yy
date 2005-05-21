@@ -64,7 +64,7 @@ void replot()
 
 %token <c> SET
 %token D_ACTIVATE
-%token D_LOAD D_BACKGROUND D_CALIBRATE D_RANGE D_DEVIATION D_INFO D_EXPORT
+%token D_LOAD D_TRANSFORM D_RANGE D_DEVIATION D_INFO D_EXPORT
 %token F_RUN F_CONTINUE F_METHOD F_INFO 
 %token S_ADD S_FREEZE S_HISTORY S_INFO S_GUESS S_REMOVE S_CHANGE S_VALUE 
 %token S_EXPORT 
@@ -127,24 +127,6 @@ exp:  SET DASH_STRING EQ_STRING SEP {
     | D_RANGE SEP                  { 
 		    mesg("Active data range: " + my_data->range_as_string()); }
     | D_RANGE '*' flt flt SEP    { my_data->auto_range ($3, $4); }
-    | D_BACKGROUND '*' UINt flt flt SEP { /*experimental auto-background*/
-                 my_data->auto_background ($3, $4, false, $5, false); }
-    | D_BACKGROUND '*' UINt flt '%' flt SEP { 
-                  my_data->auto_background ($3, $4, true, $6, false); }
-    | D_BACKGROUND '*' UINt flt flt '%' SEP { 
-                  my_data->auto_background ($3, $4, false, $5, true); }
-    | D_BACKGROUND '*' UINt flt '%' flt '%' SEP {
-                  my_data->auto_background ($3, $4, true, $6, true); }
-    | D_BACKGROUND flt flt SEP {my_data->add_background_point($2, $3, bgc_bg);}
-    | D_BACKGROUND '!' flt SEP   { my_data->rm_background_point($3, bgc_bg); }
-    | D_BACKGROUND SEP      { mesg (my_data->background_info(bgc_bg)); }
-    | D_BACKGROUND '.' SEP    { my_data->recompute_background(bgc_bg); }
-    | D_BACKGROUND '!' SEP        { my_data->clear_background(bgc_bg); }
-    | D_CALIBRATE flt flt SEP {my_data->add_background_point($2, $3, bgc_cl);}
-    | D_CALIBRATE '!' flt SEP{my_data->rm_background_point($3,bgc_cl);}
-    | D_CALIBRATE SEP              { mesg (my_data->background_info(bgc_cl)); }
-    | D_CALIBRATE '.' SEP          { my_data->recompute_background(bgc_cl); }
-    | D_CALIBRATE '!' SEP          { my_data->clear_background(bgc_cl); }
     | D_DEVIATION LOWERCASE opt_flt SEP  { my_data->change_sigma($2, $3); }
     | D_DEVIATION SEP              { mesg (my_data->print_sigma()); }
     | D_INFO SEP                   { mesg (my_data->getInfo()); } 
@@ -204,7 +186,6 @@ exp:  SET DASH_STRING EQ_STRING SEP {
     | O_PLOT range '.' SEP         { my_core->set_view_h ($2.l, $2.r); }
     | O_PLOT '.' SEP               { mesg (my_core->view_info()); } 
     | O_PLOT '.' '.' SEP           { mesg (my_core->view_info()); } 
-    | O_PLOT sign SEP              { my_core->set_plus_background($2 == '+'); }
     | O_LOG opt_lcase FILENAME SEP { getUI()->startLog($2, $3.str()); }
     | O_LOG '!' SEP                { getUI()->stopLog(); }
     | O_LOG                        { mesg (getUI()->getLogInfo()); }

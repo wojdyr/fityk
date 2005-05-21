@@ -38,22 +38,24 @@ void prepare_spline_interpolation (vector<B_point> &bb)
 {   
     //first wroten for bb interpolation, then generalized
     const int n = bb.size();
+    if (n == 0)
+        return;
         //find d2y/dx2 and put it in .q
     bb[0].q = 0; //natural spline
-    vector<fp> u (n);
-    for (int k = 1; k <= n - 2; k++) {
+    vector<fp> u(n);
+    for (int k = 1; k <= n-2; k++) {
         B_point *b = &bb[k];
-        fp sig = (b->x - (b - 1)->x) / ((b + 1)->x - (b - 1)->x);
-        fp t = sig * (b - 1)->q + 2.;
+        fp sig = (b->x - (b-1)->x) / ((b+1)->x - (b-1)->x);
+        fp t = sig * (b-1)->q + 2.;
         b->q = (sig - 1.) / t;
-        u[k] = ((b + 1)->y - b->y) / ((b + 1)->x - b->x) - (b->y - (b - 1)->y)
+        u[k] = ((b+1)->y - b->y) / ((b+1)->x - b->x) - (b->y - (b-1)->y)
                             / (b->x - (b - 1)->x);
-        u[k] = (6. * u[k] / ((b + 1)->x - (b - 1)->x) - sig * u[k - 1]) / t;
+        u[k] = (6. * u[k] / ((b+1)->x - (b-1)->x) - sig * u[k-1]) / t;
     }
     bb.back().q = 0; 
-    for (int k = n - 2; k >= 0; k--) {
+    for (int k = n-2; k >= 0; k--) {
         B_point *b = &bb[k];
-        b->q = b->q * (b + 1)->q + u[k];
+        b->q = b->q * (b+1)->q + u[k];
     }
 }
 

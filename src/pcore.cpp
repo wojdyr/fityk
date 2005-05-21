@@ -27,8 +27,7 @@ const fp PlotCore::relative_view_y_margin = 1./20.;
 
 
 PlotCore::PlotCore(Parameters *parameters)
-    : view(0, 180, 0, 1e3), plus_background(false),
-      ds_was_changed(false), v_was_changed(false)
+    : view(0, 180, 0, 1e3), ds_was_changed(false), v_was_changed(false)
 {
     sum = new Sum(parameters);
 #ifdef USE_XTAL
@@ -79,12 +78,6 @@ void PlotCore::set_my_vars()
     my_core = this;
 }
 
-std::string PlotCore::view_info() const
-{ 
-    return view.str() + 
-        (plus_background ? "\nAdding background while plotting." : "");
-}
-
 void PlotCore::set_view (Rect rt, bool fit)
 {
     v_was_changed = true;
@@ -116,8 +109,8 @@ void PlotCore::set_view (Rect rt, bool fit)
             || view.bottom >= view.top)
         set_view_y_fit();
     else {
-        fp y_min = my_data->get_y_min(false);
-        fp y_max = my_data->get_y_max(false);
+        fp y_min = my_data->get_y_min();
+        fp y_max = my_data->get_y_max();
         if (y_min == y_max) 
             y_min -= 0.1, y_max += 0.1;
         fp y_size = y_max - y_min;
@@ -146,22 +139,20 @@ void PlotCore::set_view_y_fit()
     bool min_max_set = false;
     for (vector<Point>::const_iterator i = f; i < l; i++) {
         if (i->is_active) {
-            fp y = plus_background ? i->orig_y : i->y;
             min_max_set = true;
-            if (y > y_max) 
-                y_max = y;
-            if (y < y_min) 
-                y_min = y;
+            if (i->y > y_max) 
+                y_max = i->y;
+            if (i->y < y_min) 
+                y_min = i->y;
         }
     }
     if (!min_max_set || y_min == y_max) { //none or 1 active point, so now we  
                                    // search for min. and max. y in all points 
         for (vector<Point>::const_iterator i = f; i < l; i++) { 
-            fp y = plus_background ? i->orig_y : i->y;
-            if (y > y_max) 
-                y_max = y;
-            if (y < y_min) 
-                y_min = y;
+            if (i->y > y_max) 
+                y_max = i->y;
+            if (i->y < y_min) 
+                y_min = i->y;
         }
         if (y_min == y_max) { // again not enough points (with different y's)
                 y_min -= 0.1; 

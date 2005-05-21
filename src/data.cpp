@@ -39,17 +39,7 @@ string get_file_basename(const string &path)
 Data *my_data;
 
 Data::Data ()
-    : d_was_changed(true), background_infl_sigma(false)
-{
-    min_background_distance[bgc_bg] = 0.5;
-    spline_background[bgc_bg] = true;
-    min_background_distance[bgc_cl] = 0.002, 
-    spline_background[bgc_cl] = false, 
-    fpar ["min-background-points-distance"] = &min_background_distance[bgc_bg];
-    bpar ["spline-background"] = &spline_background[bgc_bg];
-    bpar ["spline-calibration"] = &spline_background[bgc_cl];
-    bpar ["background-influences-error"] = &background_infl_sigma;
-}
+    : d_was_changed(true) {}
 
 string Data::getInfo () const
 {
@@ -118,23 +108,20 @@ void Data::post_load()
     change_range (-INF, +INF, true);
     if (!p[0].sigma)
         change_sigma('r');
-    y_orig_min = y_orig_max = p.front().orig_y;
-    for (vector<Point>::iterator i = p.begin(); i != p.end(); i++) {
-        if (i->orig_y < y_orig_min)
-            y_orig_min = i->orig_y;
-        if (i->orig_y > y_orig_max)
-            y_orig_max = i->orig_y;
-    }
     if (title.empty())
         title = get_file_basename(filename);
-    if (!background[bgc_bg].empty())
-        recompute_background (bgc_bg);
-    if (!background[bgc_cl].empty())
-        recompute_background (bgc_cl);
-    else
-        recompute_y_bounds();
+    recompute_y_bounds();
 }
 
+void Data::recompute_y_bounds() {
+    y_min = y_max = p.front().y;
+    for (vector<Point>::iterator i = p.begin(); i != p.end(); i++) {
+        if (i->y < y_min)
+            y_min = i->y;
+        if (i->y > y_max)
+            y_max = i->y;
+    }
+}
 
 int Data::load_arrays(const vector<fp> &x, const vector<fp> &y, 
                       const vector<fp> &sigma, const string &data_title)
@@ -453,7 +440,7 @@ void Data::recompute_sigma()
             break;
         case 'r':
             for (vector<Point>::iterator i = p.begin(); i < p.end(); i++) {
-                fp y = background_infl_sigma ? i->y : i->orig_y;
+                fp y = i->y;
                 i->sigma = y > sigma_minim_2 ? sqrt (y) : sigma_minim;
             }
             break;
@@ -486,22 +473,6 @@ fp Data::get_y_at (fp x) const
         return 0;
     fp y1 = get_y (n - 1);
     fp y2 = get_y (n);
-    fp x1 = get_x (n - 1);
-    fp x2 = get_x (n);
-    return y1 + (y2 - y1) * (x - x1) / (x2 - x1);
-}
-
-fp Data::get_bg_at (fp x) const
-{
-    int n = get_upper_bound_ac (x);
-    if (n >= size(active_p) || n <= 0) {
-        if (active_p.empty()) return 0;
-        else if (n == 0) return get_background_y (0);
-        else if (n == size(active_p)) return get_background_y (n - 1);
-        else return 0;
-    }
-    fp y1 = get_background_y (n - 1);
-    fp y2 = get_background_y (n);
     fp x1 = get_x (n - 1);
     fp x2 = get_x (n);
     return y1 + (y2 - y1) * (x - x1) / (x2 - x1);
@@ -626,166 +597,6 @@ int Data::get_one_line_with_numbers(istream &is, vector<fp>& result_numbers)
     return !is.eof();
 }
 
-void Data::auto_background (int n, fp p1, bool is_proc1, fp p2, bool is_proc2)
-{
-    //FIXME: Do you know any good algorithm, that can extract background
-    //       from data?
-    if (n <= 0 || n >= size(p) / 2)
-        return;
-    int ps = p.size();
-    for (int i = 0; i < n; i++) {
-        int l = ps * i / n;
-        int u = ps * (i + 1) / n;
-        vector<fp> v (u - l);
-        for (int k = l; k < u; k++)
-            v[k - l] = p[k].orig_y;
-        sort (v.begin(), v.end());
-        int y_avg_beg = 0, y_avg_end = v.size();
-        if (is_proc1) {
-            p1 = min (max (p1, 0.), 100.);
-            y_avg_beg = static_cast<int>(v.size() * p1 / 100); 
-        }
-        else {
-            y_avg_beg = upper_bound (v.begin(), v.end(), v[0] + p1) - v.begin();
-            if (y_avg_beg == size(v))
-                y_avg_beg--;
-        }
-        if (is_proc2) {
-            p2 = min (max (p2, 0.), 100.);
-            y_avg_end = y_avg_beg + static_cast<int>(v.size() * p2 / 100);
-        }
-        else {
-            fp end_val = v[y_avg_beg] + p2;
-            y_avg_end = upper_bound (v.begin(), v.end(), end_val) - v.begin();
-        }
-        if (y_avg_beg < 0) 
-            y_avg_beg = 0;
-        if (y_avg_end > size(v))
-            y_avg_end = v.size();
-        if (y_avg_beg >= y_avg_end) {
-            if (y_avg_beg >= size(v))
-                y_avg_beg = v.size() - 1;;
-            y_avg_end = y_avg_beg + 1;
-        }
-        int counter = 0;
-        fp y = 0;
-        for (int j = y_avg_beg; j < y_avg_end; j++){
-            counter++;
-            y += v[j];
-        }
-        y /= counter;
-        add_background_point ((p[l].x + p[u - 1].x) / 2, y, bgc_bg);
-    }
-}
-
-////background/calibration functions
-//default value of bg_cl is bgc_bg (background), in this case names of functions
-//are proper. In case bg_cl = bgc_cl (calibration) functions' names are
-//not adequate.
-
-void Data::add_background_point (fp x, fp y, Bg_cl_enum bg_cl)
-{
-    rm_background_point (x, bg_cl);
-    B_point t(x, y);
-    vector<B_point> &bc = background[bg_cl];
-    vector<B_point>::iterator l = lower_bound (bc.begin(), bc.end(), t);
-    bc.insert (l, t);
-    recompute_background(bg_cl);
-}
-
-void Data::rm_background_point (fp x, Bg_cl_enum bg_cl)
-{
-    vector<B_point> &bc = background[bg_cl];
-    fp min_dist = min_background_distance[bg_cl];
-    vector<B_point>::iterator l = lower_bound (bc.begin(), bc.end(), 
-                                               B_point(x - min_dist, 0));
-    vector<B_point>::iterator u = upper_bound (bc.begin(), bc.end(), 
-                                               B_point(x + min_dist, 0));
-    if (u - l) {
-        bc.erase (l, u);
-        info (S (u - l) + " points removed.");
-        recompute_background(bg_cl);
-    }
-}
-
-void Data::clear_background (Bg_cl_enum bg_cl)
-{
-    vector<B_point> &bc = background[bg_cl];
-    int n = bc.size();
-    bc.clear();
-    recompute_background(bg_cl);
-    info (S(n) + " points deleted.");
-}
-
-string Data::background_info (Bg_cl_enum bg_cl) 
-{
-    string msg = bg_cl == bgc_bg ? "Background " : "Calibration ";
-    recompute_background(bg_cl);
-    vector<B_point> &bc = background[bg_cl];
-    int s = bc.size();
-    if (s == 0)
-        msg += "not defined";
-    else if (s == 1)
-        msg += "constant and equal " + S(bc[0].y);
-    else if (s == 2)
-        msg += "linear given by two points: " + bc[0].str()
-                + " and " + bc[1].str();
-    else if (s <= 16) {
-        msg += "given as interpolation of " + S(s) +" points: ";
-        for (vector<B_point>::iterator i = bc.begin(); i != bc.end(); i++)
-            msg += (i == bc.begin() ? "" : " , ") + S(i->x) + " " + S(i->y);
-            //older version: msg += " " + i->str();
-    }
-    else
-        msg += "given as interpolation of " + S(s) + " points";
-    return msg;
-}
-
-void Data::recompute_background (Bg_cl_enum bg_cl)
-{
-    vector<B_point> &bc = background[bg_cl];
-    if (active_p.empty()) {
-        warn ("File not loaded or all points inactive.");
-        return;
-    }
-    d_was_changed = true;
-    if (bc.empty()) 
-        for (vector<Point>::iterator i = p.begin(); i != p.end(); i++)
-            if (bg_cl == bgc_bg)
-                i->y = i->orig_y; 
-            else
-                i->x = i->orig_x;
-    else {
-        vector<B_point> &bc = background[bg_cl];
-        if (spline_background[bg_cl]) 
-            prepare_spline_interpolation (bc);
-        for (vector<Point>::iterator i = p.begin(); i != p.end(); i++) {
-            fp t = spline_background[bg_cl] ? 
-                                    get_spline_interpolation(bc, i->orig_x)
-                                  : get_linear_interpolation(bc, i->orig_x);
-            if (bg_cl == bgc_bg)
-                i->y = i->orig_y - t;
-            else 
-                i->x = i->orig_x - t;
-        }
-    }
-    if (bg_cl == bgc_bg) {
-        recompute_y_bounds();
-        if (background_infl_sigma)
-            recompute_sigma();
-    }
-}
-
-void Data::recompute_y_bounds() {
-    y_min = y_max = p.front().y;
-    for (vector<Point>::iterator i = p.begin(); i != p.end(); i++) {
-        if (i->y < y_min)
-            y_min = i->y;
-        if (i->y > y_max)
-            y_max = i->y;
-    }
-}
-
 
 int Data::get_lower_bound_ac (fp x) const
 {
@@ -814,6 +625,7 @@ void Data::export_as_script (ostream& os)
         os << "## no data loaded ##";
         return;
     }
+    //TODO embed data
     os << "### data settings exported as script -- begin" << endl;
     os << set_script('d');
     os << "d.load '";
@@ -832,18 +644,6 @@ void Data::export_as_script (ostream& os)
     if (sigma_type != 'f')
         os << "d.deviation " << sigma_type << " " << sigma_minim << endl;
     os << "d.range " << range_as_string() << endl;
-    for (int bg_cl = bgc_bg; bg_cl <= bgc_cl; bg_cl++) {
-        vector<B_point> &bc = background[bg_cl];
-        if (!bc.empty()) {
-            os << (bg_cl == bgc_bg ? "d.background " : "d.calibrate ");
-            for (vector<B_point>::iterator i = bc.begin(); i != bc.end(); i++) {
-                if (i != bc.begin())
-                    os << " , ";
-                os << i->x << " " << i->y;
-            }
-            os << endl;
-        }
-    }
     os << "### data settings -- end" << endl;
 }
 
@@ -851,12 +651,6 @@ void Data::export_as_dat (ostream& os)
 {
     for (int i = 0; i < get_n(); i++)
         os << get_x(i) << "\t" << get_y(i) << "\t" << get_sigma(i) << endl;
-}
-
-void Data::export_bg_as_dat (ostream& os)
-{
-    for (int i = 0; i < get_n(); i++)
-        os << get_x(i) << "\t" << get_background_y(i) << endl; 
 }
 
 void Data::export_to_file (string filename, bool append, char filetype) 
@@ -870,9 +664,6 @@ void Data::export_to_file (string filename, bool append, char filetype)
     switch (filetype) {
         case 'd': 
             export_as_dat (os);
-            break;
-        case 'b': 
-            export_bg_as_dat (os);
             break;
         case 's':
             export_as_script (os);
