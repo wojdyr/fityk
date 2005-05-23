@@ -63,8 +63,7 @@ void replot()
 }
 
 %token <c> SET
-%token D_ACTIVATE
-%token D_LOAD D_TRANSFORM D_RANGE D_DEVIATION D_INFO D_EXPORT
+%token D_ACTIVATE D_LOAD D_TRANSFORM D_INFO D_EXPORT
 %token F_RUN F_CONTINUE F_METHOD F_INFO 
 %token S_ADD S_FREEZE S_HISTORY S_INFO S_GUESS S_REMOVE S_CHANGE S_VALUE 
 %token S_EXPORT 
@@ -74,7 +73,7 @@ void replot()
 %token QUIT 
 %token PLUS_MINUS TWO_COLONS
 %token SEP
-%token <s> FILENAME DASH_STRING EQ_STRING 
+%token <s> FILENAME DASH_STRING EQ_STRING DT_STRING
 %token <c> LOWERCASE G_TYPE F_TYPE Z_TYPE PH_TYPE
 %token <i> UINt UI_DASH UI_SLASH INt A_NUM G_NUM F_NUM Z_NUM PH_NUM
 %token <f> FLOAt P_NUM NEW_A
@@ -82,7 +81,7 @@ void replot()
 %token <s> LEX_ERROR
 %type <i> inr opt_uint opt_uint_1 a_num dl_merge dload_arg 
 %type <f> flt opt_flt
-%type <c> sign opt_lcase opt_proc
+%type <c> opt_lcase opt_proc
 %type <range> range sim_range bracket_range
 %type <ph_n_pl> p_plane
 %type <pl> plane
@@ -119,16 +118,7 @@ exp:  SET DASH_STRING EQ_STRING SEP {
     | D_LOAD opt_lcase dload_arg FILENAME SEP { 
                              my_data->load_file($4.str(), $2, ivec, ivec2, $3);
 			     my_core->set_view (Rect()); }
-    | D_RANGE sign range SEP  { my_data->change_range ($3.l, $3.r, $2 == '+'); }
-    | D_RANGE range SEP            { 
-                                     my_data->change_range (-INF, +INF, false);
-                                     my_data->change_range ($2.l, $2.r);
-	                           }
-    | D_RANGE SEP                  { 
-		    mesg("Active data range: " + my_data->range_as_string()); }
-    | D_RANGE '*' flt flt SEP    { my_data->auto_range ($3, $4); }
-    | D_DEVIATION LOWERCASE opt_flt SEP  { my_data->change_sigma($2, $3); }
-    | D_DEVIATION SEP              { mesg (my_data->print_sigma()); }
+    | D_TRANSFORM DT_STRING SEP { my_data->transform($2.str()); }
     | D_INFO SEP                   { mesg (my_data->getInfo()); } 
     | D_EXPORT opt_lcase FILENAME opt_plus SEP 
                                    { my_data->export_to_file($3.str(), $4, $2);}
@@ -357,10 +347,6 @@ dload_arg: columns rows_of dl_merge  { $$ = $3; }
 rows: /*empty*/           { ivec.clear(); }
    |  rows UI_DASH UINt  { ivec.push_back($2); ivec.push_back($3); }
    |  rows UINt          { ivec.push_back($2); ivec.push_back($2); }
-   ;
-
-sign: '+'  { $$ = '+'; } 
-   |  '-'  { $$ = '-'; }
    ;
 
 uint_slashes_: UI_SLASH               { ivec = vector1 ($1); }

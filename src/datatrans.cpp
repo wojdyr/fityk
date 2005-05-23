@@ -1,12 +1,11 @@
+// This file is part of fityk program. Copyright (C) Marcin Wojdyr
+// $Id$
 
-//
 // the idea of VM is based on one of boost::spirit samples - vmachine_calc
 
 // this file can be compiled to stand-alone test program:
 // $ g++ -I../3rdparty -DSTANDALONE_DATATRANS datatrans.cpp numfuncs.cpp -o dt
 // $ ./dt 
-
-//TODO how to cooperate with background/calibration??
 
 // right hand variables: 
 //       arrays (index in square brackets can be ommitted and n is assumed):
@@ -113,27 +112,68 @@
 //#define BOOST_SPIRIT_DEBUG
 
 
+#include "datatrans.h"
 #include "common.h"
 #include "data.h"
 #include "numfuncs.h"
 #include <boost/spirit/core.hpp>
-
-
-#ifdef STANDALONE_DATATRANS
-#    include <iostream>  
-     bool verbose = false;
-#    define DT_DEBUG(x) if (verbose) std::cout << (x) << std::endl;
-#    define DT_DEBUG_N(x) if (verbose) std::cout << (x); 
-#else
-#    define DT_DEBUG(x) 
-#    define DT_DEBUG_N(x) 
-#endif //STANDALONE_DATATRANS
 
 using namespace std;
 using namespace boost::spirit;
 
 const double epsilon = 1e-9;
 
+
+
+#ifdef STANDALONE_DATATRANS
+
+#include <iostream>  
+bool dt_verbose = false;
+#define DT_DEBUG(x) if (dt_verbose) std::cout << (x) << std::endl;
+#define DT_DEBUG_N(x) if (dt_verbose) std::cout << (x); 
+//-------------------------  Main program  ---------------------------------
+#include <string.h>
+
+int main(int argc, char **argv)
+{
+    cout << "DataTransformVMachine test started...\n";
+    if (argc > 1 && !strcmp(argv[1], "-v")) {
+        cout << "[verbose mode]" << endl;
+        dt_verbose=true;
+    }
+    cout << "==> ";
+
+    string str;
+    while (getline(cin, str))
+    {
+        vector<Point> points, transformed_points;
+
+        points.push_back(Point(0.1, 4, 1));
+        points.push_back(Point(0.2, 2, 1));
+        points.push_back(Point(0.3, -2, 1));
+        points.push_back(Point(0.4, 3, 1));
+        points.push_back(Point(0.5, 3, 1));
+
+        bool r = transform_data(str, points, transformed_points);
+        int len = (int) points.size();
+        if (r)
+            for (int n = 0; n != (int) transformed_points.size(); n++) 
+                cout << "point " << n << ": " 
+                    << (n < len ? points[n] : Point()).str()
+                    << " -> " << transformed_points[n].str() << endl;
+        else
+            cout << "Syntax error." << endl;
+        cout << "==> ";
+    }
+    return 0;
+}
+
+#else 
+
+#    define DT_DEBUG(x) ;
+#    define DT_DEBUG_N(x) ;
+
+#endif //STANDALONE_DATATRANS
 
 
 bool x_lt(const Point &p1, const Point &p2) { return p1.x < p2.x; }
@@ -148,11 +188,12 @@ bool active_gt(const Point &p1, const Point &p2)
                                         { return p1.is_active > p2.is_active; }
 
 
-//------------------------  Special Functions -------------------------------
+//----------------------  Parameterized Functions -------------------------
 class ParameterizedFunction
 {
 public:
     ParameterizedFunction() {}
+    virtual ~ParameterizedFunction() {}
     virtual fp calculate(fp x) = 0;
 };
 
@@ -194,29 +235,9 @@ enum {
 
 //------------------------  Virtual Machine  --------------------------------
 
-vector<int> code;        //  VM code 
-vector<double> numbers;  //  VM data 
-vector<ParameterizedFunction*> parameterized;  //  VM data 
-
-// operators used in VM code
-enum DataTransformVMOperator
-{
-    OP_NEG=1,   OP_EXP,   OP_SIN,   OP_COS,  OP_ATAN,  OP_ABS,  OP_ROUND, 
-    OP_TAN/*!*/, OP_ASIN, OP_ACOS,
-    OP_LOG10, OP_LN,  OP_SQRT,  OP_POW,   //these functions can set errno    
-    OP_ADD,   OP_SUB,   OP_MUL,   OP_DIV/*!*/,  OP_MOD,
-    OP_MIN,   OP_MAX,     
-    OP_VAR_X, OP_VAR_Y, OP_VAR_S, OP_VAR_A, 
-    OP_VAR_x, OP_VAR_y, OP_VAR_s, OP_VAR_a, 
-    OP_VAR_n, OP_VAR_M, OP_NUMBER,  
-    OP_OR, OP_AFTER_OR, OP_AND, OP_AFTER_AND, OP_NOT,
-    OP_TERNARY, OP_TERNARY_MID, OP_AFTER_TERNARY, OP_DELETE_COND,
-    OP_GT, OP_GE, OP_LT, OP_LE, OP_EQ, OP_NEQ, OP_RANGE, OP_INDEX, 
-    OP_ASSIGN_X, OP_ASSIGN_Y, OP_ASSIGN_S, OP_ASSIGN_A,
-    OP_DO_ONCE, OP_RESIZE, OP_ORDER, OP_DELETE, OP_BEGIN, OP_END, 
-    OP_SUM, OP_IGNORE, 
-    OP_PARAMETERIZED, OP_PLIST_BEGIN, OP_PLIST_END
-};
+static vector<int> code;        //  VM code 
+static vector<double> numbers;  //  VM data 
+static vector<ParameterizedFunction*> parameterized; // also used by VM 
 
 // code vector contains not only operators, but also indices that
 // points locations in numbers or parameterized vectors
@@ -424,7 +445,7 @@ bool execute_code(int n, int &M, vector<double>& stack,
                 stackPtr--; 
                 break;
             case OP_ASSIGN_A:
-                new_points[n].is_active = abs(*stackPtr) < epsilon;
+                new_points[n].is_active = abs(*stackPtr) > epsilon;
                 stackPtr--; 
                 break;
 
@@ -643,54 +664,14 @@ void replace_sums(int M, vector<double>& stack, vector<Point> const& old_points)
     DT_DEBUG("")
 }
 
-
-//-- functors used in the grammar for putting VM code and data into vectors --
-
-struct push_double
+void push_double::operator()(const double& n) const
 {
-    void operator()(const double& n) const
-    {
-        DT_DEBUG("PUSH_DOUBLE " + S(n))
-        code.push_back(OP_NUMBER);
-        code.push_back(size(numbers));
-        numbers.push_back(n);
-    }
+    code.push_back(OP_NUMBER);
+    code.push_back(size(numbers));
+    numbers.push_back(n);
+}
 
-   //void operator()(const int& n) const { operator()(static_cast<double>(n)); }
-};
-
-
-struct push_the_double: public push_double
-{
-    push_the_double(double d_) : d(d_) {}
-    void operator()(char const*, char const*) const 
-                                               { push_double::operator()(d); }
-    void operator()(const char) const { push_double::operator()(d); }
-    double d;
-};
-
-struct push_op
-{
-    push_op(int op_) : op(op_) {}
-
-    void push() const { DT_DEBUG("PUSHOP " + S(op))  code.push_back(op); }
-    void operator()(char const*, char const*) const { push(); }
-    void operator()(char) const { push(); }
-
-    int op;
-};
-
-
-struct parameterized_op
-{
-    parameterized_op(int op_) : op(op_) {}
-
-    void push() const;
-    void operator()(char const*, char const*) const { push(); }
-    void operator()(char) const { push(); }
-
-    int op;
-};
+void push_op::push() const { code.push_back(op); }
 
 void parameterized_op::push() const
 { 
@@ -718,224 +699,6 @@ void parameterized_op::push() const
     }
     parameterized.push_back(func);
 }
-
-
-//----------------------------  grammar  ----------------------------------
-struct DataTransformGrammar : public grammar<DataTransformGrammar>
-{
-  template <typename ScannerT>
-  struct definition
-  {
-    definition(DataTransformGrammar const& self)
-    {
-    BOOST_SPIRIT_DEBUG_RULE(rprec1);
-    BOOST_SPIRIT_DEBUG_RULE(rprec2);
-    BOOST_SPIRIT_DEBUG_RULE(rprec3);
-    BOOST_SPIRIT_DEBUG_RULE(rprec4);
-    BOOST_SPIRIT_DEBUG_RULE(rprec5);
-    BOOST_SPIRIT_DEBUG_RULE(rprec6);
-    BOOST_SPIRIT_DEBUG_RULE(real_constant);
-    BOOST_SPIRIT_DEBUG_RULE(real_variable);
-    BOOST_SPIRIT_DEBUG_RULE(index);
-    BOOST_SPIRIT_DEBUG_RULE(rbool);
-    BOOST_SPIRIT_DEBUG_RULE(rbool_or);
-    BOOST_SPIRIT_DEBUG_RULE(rbool_and);
-    BOOST_SPIRIT_DEBUG_RULE(range);
-    BOOST_SPIRIT_DEBUG_RULE(assignment);
-    BOOST_SPIRIT_DEBUG_RULE(statement);
-
-      index 
-          =  ch_p('[') >> rprec1 >> ch_p(']')
-          |  (!(ch_p('[') >> ']')) [push_op(OP_VAR_n)]
-          ;
-
-      //--------
-
-      real_constant
-          =  real_p [push_double()] 
-          |  as_lower_d["pi"] [push_the_double(M_PI)]
-          |  as_lower_d["true"] [push_the_double(1.)]
-          |  as_lower_d["false"] [push_the_double(0.)]
-          ;
-
-      parameterized_args
-          =  ch_p('[') [push_op(OP_PLIST_BEGIN)]
-              >> +real_constant 
-                  >>  ch_p(']') [push_op(OP_PLIST_END)]
-                      >> '(' >> rprec1 >> ')'
-          ;
-
-      real_variable 
-          =  ("x" >> index) [push_op(OP_VAR_x)]
-          |  ("y" >> index) [push_op(OP_VAR_y)]
-          |  ("s" >> index) [push_op(OP_VAR_s)]
-          |  ("a" >> index) [push_op(OP_VAR_a)]
-          |  ("X" >> index) [push_op(OP_VAR_X)]
-          |  ("Y" >> index) [push_op(OP_VAR_Y)]
-          |  ("S" >> index) [push_op(OP_VAR_S)]
-          |  ("A" >> index) [push_op(OP_VAR_A)]
-          |  str_p("n") [push_op(OP_VAR_n)] 
-          |  str_p("M") [push_op(OP_VAR_M)]
-          ;
-
-      rprec6 
-          =   real_constant
-          |   '(' >> rprec1 >> ')'
-              //sum will be refactored, see: replace_sums()
-          |   (as_lower_d["sum"] [push_op(OP_BEGIN)]
-                  >> '(' >> rprec1 >> ')') [push_op(OP_SUM)]
-          |   (as_lower_d["interpolate"] >> parameterized_args)
-                                             [parameterized_op(PF_INTERPOLATE)]
-          |   (as_lower_d["sqrt"] >> '(' >> rprec1 >> ')') [push_op(OP_SQRT)] 
-          |   (as_lower_d["exp"] >> '(' >> rprec1 >> ')') [push_op(OP_EXP)] 
-          |   (as_lower_d["log10"] >> '(' >> rprec1 >> ')') [push_op(OP_LOG10)]
-          |   (as_lower_d["ln"] >> '(' >> rprec1 >> ')') [push_op(OP_LN)] 
-          |   (as_lower_d["sin"] >> '(' >> rprec1 >> ')') [push_op(OP_SIN)] 
-          |   (as_lower_d["cos"] >> '(' >> rprec1 >> ')') [push_op(OP_COS)] 
-          |   (as_lower_d["tan"] >> '(' >> rprec1 >> ')') [push_op(OP_TAN)] 
-          |   (as_lower_d["atan"] >> '(' >> rprec1 >> ')') [push_op(OP_ATAN)] 
-          |   (as_lower_d["asin"] >> '(' >> rprec1 >> ')') [push_op(OP_ASIN)] 
-          |   (as_lower_d["acos"] >> '(' >> rprec1 >> ')') [push_op(OP_ACOS)] 
-          |   (as_lower_d["abs"] >> '(' >> rprec1 >> ')') [push_op(OP_ABS)] 
-          |   (as_lower_d["round"] >> '(' >> rprec1 >> ')') [push_op(OP_ROUND)]
-          |   (as_lower_d["min"] >> '(' >> rprec1 >> ',' >> rprec1 >> ')')
-                                                         [push_op(OP_MIN)] 
-          |   (as_lower_d["max"] >> '(' >> rprec1 >> ',' >> rprec1 >> ')')
-                                                         [push_op(OP_MAX)] 
-          |   real_variable   //"s" is checked after "sin" and "sqrt"   
-          ;
-
-      rprec5 
-          =   rprec6
-          |   ('-' >> rprec6) [push_op(OP_NEG)]
-          |   ('+' >> rprec6)
-          ;
-
-      rprec4 
-          =   rprec5 
-              >> *(
-                    ('^' >> rprec5) [push_op(OP_POW)]
-                  )
-          ;
-          
-      rprec3 
-          =   rprec4
-              >> *(   ('*' >> rprec4)[push_op(OP_MUL)]
-                  |   ('/' >> rprec4)[push_op(OP_DIV)]
-                  |   ('%' >> rprec4)[push_op(OP_MOD)]
-                  )
-          ;
-
-      rprec2 
-          =   rprec3
-              >> *(   ('+' >> rprec3) [push_op(OP_ADD)]
-                  |   ('-' >> rprec3) [push_op(OP_SUB)]
-                  )
-          ;
-
-      rbool
-          = rprec2
-             >> !( ("<=" >> rprec2) [push_op(OP_LE)]
-                 | (">=" >> rprec2) [push_op(OP_GE)]
-                 | ((str_p("==")|"=") >> rprec2)  [push_op(OP_EQ)]
-                 | ((str_p("!=")|"<>") >> rprec2)  [push_op(OP_NEQ)]
-                 | ('<' >> rprec2)  [push_op(OP_LT)]
-                 | ('>' >> rprec2)  [push_op(OP_GT)]
-                 )
-          ;
-
-      rbool_not
-          =  (as_lower_d["not"] >> rbool) [push_op(OP_NOT)]
-          |  rbool
-          ;
-
-      rbool_and
-          =  rbool_not
-             >> *(
-                  as_lower_d["and"] [push_op(OP_AND)] 
-                  >> rbool_not
-                 ) [push_op(OP_AFTER_AND)]
-          ;
-
-      rbool_or  
-          =  rbool_and 
-             >> *(
-                  as_lower_d["or"] [push_op(OP_OR)] 
-                  >> rbool_and
-                 ) [push_op(OP_AFTER_OR)]
-          ;  
- 
-
-      rprec1
-          =  rbool_or 
-             >> !(ch_p('?') [push_op(OP_TERNARY)] 
-                  >> rbool_or 
-                  >> ch_p(':') [push_op(OP_TERNARY_MID)] 
-                  >> rbool_or
-                 ) [push_op(OP_AFTER_TERNARY)]
-          ;
-
-      //--------
-
-      range
-          =  '[' >> 
-                ( eps_p(int_p >> ']')[push_op(OP_DO_ONCE)] 
-                  >> int_p [push_double()] [push_op(OP_INDEX)]
-                | (
-                    ch_p('n') [push_the_double(0.)] [push_the_double(0.)]
-                  | (
-                      ( int_p [push_double()]
-                      | eps_p [push_the_double(0.)]
-                      )
-                       >> (str_p("...") | "..")
-                       >> ( int_p [push_double()]
-                          | eps_p [push_the_double(0)]
-                          )
-                     )
-                  ) [push_op(OP_RANGE)] 
-                )  
-              >> ']'
-          ;
-
-      order 
-          =  ('-' >> as_lower_d["x"])        [push_the_double(-1.)]
-          |  (!ch_p('+') >> as_lower_d["x"]) [push_the_double(+1.)]
-          |  ('-' >> as_lower_d["y"])        [push_the_double(-2.)]
-          |  (!ch_p('+') >> as_lower_d["y"]) [push_the_double(+2.)]
-          |  ('-' >> as_lower_d["s"])        [push_the_double(-3.)]
-          |  (!ch_p('+') >> as_lower_d["s"]) [push_the_double(+3.)]
-          ;
-
-
-      assignment //not only assignments
-          =  (as_lower_d["x"] >> !range >>'='>> rprec1) [push_op(OP_ASSIGN_X)]
-          |  (as_lower_d["y"] >> !range >>'='>> rprec1) [push_op(OP_ASSIGN_Y)]
-          |  (as_lower_d["s"] >> !range >>'='>> rprec1) [push_op(OP_ASSIGN_S)]
-          |  (as_lower_d["a"] >> !range >>'='>> rprec1) [push_op(OP_ASSIGN_A)]
-          |  ((ch_p('M') >> '=') [push_op(OP_DO_ONCE)]  
-             >> rprec1) [push_op(OP_RESIZE)]  
-          |  ((as_lower_d["order"] >> '=') [push_op(OP_DO_ONCE)]  
-             >> order) [push_op(OP_ORDER)] 
-          |  (as_lower_d["delete"] >> eps_p('[') [push_op(OP_DO_ONCE)]  
-              >> range) [push_op(OP_DELETE)]
-          |  (as_lower_d["delete"] >> '(' >> rprec1 >> ')') 
-                                                     [push_op(OP_DELETE_COND)]
-          ;
-
-      statement 
-          =  (eps_p[push_op(OP_BEGIN)] >> assignment >> eps_p[push_op(OP_END)])
-             % ch_p('&') 
-          ;
-    }
-
-    rule<ScannerT> rprec1, rprec2, rprec3, rprec4, rprec5, rprec6,  
-                   rbool_or, rbool_and, rbool_not, rbool,
-                   real_constant, real_variable, parameterized_args,
-                   index, assignment, statement, range, order;
-
-    rule<ScannerT> const& start() const { return statement; }
-  };
-};
 
 
 //-------------------------------------------------------------------------
@@ -972,8 +735,7 @@ bool transform_data(string const& str,
 {
     assert(code.empty());
     // First compile string...
-    DataTransformGrammar calc; 
-    parse_info<> result = parse(str.c_str(), calc, space_p);
+    parse_info<> result = parse(str.c_str(), DataTransformG, space_p);
     // and then execute compiled code.
     if (result.full) {
         new_points = old_points; //initial values of new_points
@@ -986,45 +748,7 @@ bool transform_data(string const& str,
             i != parameterized.end(); ++i)
         delete *i;
     parameterized.clear();
+
     return (bool) result.full;
 }
 
-#ifdef STANDALONE_DATATRANS
-//-------------------------  Main program  ---------------------------------
-#include <string.h>
-
-int main(int argc, char **argv)
-{
-    cout << "DataTransformVMachine test started...\n";
-    if (argc > 1 && !strcmp(argv[1], "-v")) {
-        cout << "[verbose mode]" << endl;
-        verbose=true;
-    }
-    cout << "==> ";
-
-    string str;
-    while (getline(cin, str))
-    {
-        vector<Point> points, transformed_points;
-
-        points.push_back(Point(0.1, 4, 1));
-        points.push_back(Point(0.2, 2, 1));
-        points.push_back(Point(0.3, -2, 1));
-        points.push_back(Point(0.4, 3, 1));
-        points.push_back(Point(0.5, 3, 1));
-
-        bool r = transform_data(str, points, transformed_points);
-        int len = (int) points.size();
-        if (r)
-            for (int n = 0; n != (int) transformed_points.size(); n++) 
-                cout << "point " << n << ": " 
-                    << (n < len ? points[n] : Point()).str()
-                    << " -> " << transformed_points[n].str() << endl;
-        else
-            cout << "Syntax error." << endl;
-        cout << "==> ";
-    }
-    return 0;
-}
-
-#endif //STANDALONE_DATATRANS

@@ -7,6 +7,12 @@
 #include "ui.h"
 #include "numfuncs.h"
 
+//#include "datatrans.h" 
+// for faster compilation - don't include datatrans.h
+bool transform_data(std::string const& str, 
+                    std::vector<Point> const& old_points, 
+                    std::vector<Point> &new_points);
+
 #include <math.h>
 #include <string.h>
 #include <fstream>
@@ -51,6 +57,8 @@ string Data::getInfo () const
              + S(active_p.size()) + " active now. Filename: " + filename;
         if (!title.empty())
             s += "Data title: " + title;
+        if (active_p.size() != p.size())
+            s += "\nActive data range: " + range_as_string();
         return s;
     }
 }
@@ -476,6 +484,21 @@ fp Data::get_y_at (fp x) const
     fp x1 = get_x (n - 1);
     fp x2 = get_x (n);
     return y1 + (y2 - y1) * (x - x1) / (x2 - x1);
+}
+
+bool Data::transform(const string &s) 
+{
+    vector<Point> new_p;
+    bool r = transform_data(s, p, new_p);
+    if (r) {
+        //TODO history
+        p = new_p;
+        d_was_changed = true;
+    }
+    else {
+        warn("Syntax error.");
+    }
+    return r;
 }
 
 int Data::change_range (fp left, fp right, bool state) 

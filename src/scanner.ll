@@ -38,6 +38,7 @@ extern bool new_line;
 %option prefix="ip"
 %array
 %x SET_COND
+%x D_TRANS_COND
 %s D_UI_SLASH
 %s FILE_COND
 %s D_LOAD_COND
@@ -64,8 +65,7 @@ ws_ [ \t\v\f\r]+
 [dfsmoc]\.s(et)?   r_cmd(); BEGIN(SET_COND); iplval.c = iptext[0]; return SET;
 d\.l(oad)?	   r_cmd(); BEGIN(D_LOAD_COND); return D_LOAD;
 d\.a(ctivate)?     r_cmd(); return D_ACTIVATE;
-d\.r(ange)?	   r_cmd(); return D_RANGE;
-d\.d(eviation)?    r_cmd(); return D_DEVIATION;
+d\.t(ransform)?    r_cmd(); BEGIN(D_TRANS_COND); return D_TRANSFORM;
 d\.i(nfo)?	   r_cmd(); return D_INFO;
 d\.e(xport)?       r_cmd(); BEGIN(FILE_COND); return D_EXPORT;
 f\.r(un)?	   r_cmd(); return F_RUN;
@@ -151,6 +151,14 @@ c\.e(stimate)?     r_cmd(); return C_FIND;
 	   iplval.s.l = ipleng;
 	   return FILENAME;
 	   }
+
+<D_TRANS_COND>[^\n;#]+ {
+	strncpy (str_tb, iptext, 1024);
+	iplval.s.c = str_tb; 
+	iplval.s.l = ipleng;
+	return DT_STRING;
+}
+
 <SET_COND>[[:alpha:]_-]+  {
 		strncpy (str_tb, iptext, 256);
 	        iplval.s.c = str_tb; 
