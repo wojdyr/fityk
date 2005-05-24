@@ -111,10 +111,6 @@ public:
     void OnDRecent       (wxCommandEvent& event);
     void OnDEditor       (wxCommandEvent& event);
     void OnDInfo         (wxCommandEvent& event);
-    void OnDDeviation    (wxCommandEvent& event);
-    void OnDRange        (wxCommandEvent& event);
-    void OnDBInfo        (wxCommandEvent& event);
-    void OnDBClear       (wxCommandEvent& event);
     void OnDExport       (wxCommandEvent& event);
     void OnDSet          (wxCommandEvent& event); 
 

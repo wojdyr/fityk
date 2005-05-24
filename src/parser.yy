@@ -79,7 +79,7 @@ void replot()
 %token <f> FLOAt P_NUM NEW_A
 /* %token <pl> PLANE */
 %token <s> LEX_ERROR
-%type <i> inr opt_uint opt_uint_1 a_num dl_merge dload_arg 
+%type <i> inr opt_uint opt_uint_1 a_num 
 %type <f> flt opt_flt
 %type <c> opt_lcase opt_proc
 %type <range> range sim_range bracket_range
@@ -115,13 +115,13 @@ exp:  SET DASH_STRING EQ_STRING SEP {
     | D_ACTIVATE '!' opt_uint_1 TWO_COLONS opt_uint_1 SEP { AL->remove($3, $5);}
     | D_ACTIVATE '*' TWO_COLONS SEP { AL->append_core();}
     | D_ACTIVATE opt_uint_1 TWO_COLONS '*' SEP { AL->append_data($2); }
-    | D_LOAD opt_lcase dload_arg FILENAME SEP { 
-                             my_data->load_file($4.str(), $2, ivec, ivec2, $3);
-			     my_core->set_view (Rect()); }
+    | D_LOAD opt_lcase columns FILENAME SEP { 
+                                     my_data->load_file($4.str(), $2, ivec);
+                                     my_core->set_view (Rect()); }
     | D_TRANSFORM DT_STRING SEP { my_data->transform($2.str()); }
     | D_INFO SEP                   { mesg (my_data->getInfo()); } 
-    | D_EXPORT opt_lcase FILENAME opt_plus SEP 
-                                   { my_data->export_to_file($3.str(), $4, $2);}
+    | D_EXPORT FILENAME opt_plus SEP 
+                                   { my_data->export_to_file($2.str(), $3); }
     | F_RUN UINt SEP               { my_fit->fit(true, $2); }
     | F_RUN SEP                    { my_fit->fit(true, -1); }
     | F_CONTINUE UINt SEP          { my_fit->fit(false, $2); }
@@ -328,20 +328,6 @@ peaks_to_sum:  /*empty*/      { ivec.clear(); }
 columns: /*empty*/      { ivec.clear(); }
    |  UINt ':' UINt   { ivec = vector2 ($1, $3); }
    |  UINt ':' UINt ':' UINt  { ivec = vector3 ($1, $3, $5); }
-   ;
-
-rows_of: /*empty*/      { ivec2.clear(); }
-   |  UI_DASH UINt     { ivec2 = vector2($1, $2); }
-   |  UI_DASH UI_SLASH UINt { ivec2 = vector3 ($1, $2, $3); }
-   |  UI_SLASH UINt    { ivec2 = vector3($1, $1, $2); }
-   ;
-
-dl_merge: /*empty*/     { $$ = 0; }
-   |  '*' UINt         { $$ = -$2; }
-   |  '+' '*' UINt     { $$ = $3; }
-   ;
-
-dload_arg: columns rows_of dl_merge  { $$ = $3; }
    ;
 
 rows: /*empty*/           { ivec.clear(); }

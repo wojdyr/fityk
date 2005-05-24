@@ -926,136 +926,6 @@ int FuncTree::update_labels (const string& beginning)
 }
 
 
-//=====================  my data range dialog  ==================
-BEGIN_EVENT_TABLE(FDRangeDlg, wxDialog)
-    EVT_RADIOBOX(ID_DRANGE_RADIOBOX, FDRangeDlg::OnRadioBoxSelection)
-    EVT_BUTTON (ID_DRANGE_APPLY,     FDRangeDlg::OnApplyButton)
-END_EVENT_TABLE()
-
-FDRangeDlg::FDRangeDlg (wxWindow* parent, wxWindowID id) 
-    :  wxDialog(parent, id, wxString("Data range"))
-{
-    wxBoxSizer *top_sizer = new wxBoxSizer (wxVERTICAL);
-    /*
-    top_sizer->Add (new wxStaticText (this, -1,
-                                      "With mouse (close dialog first):\n"
-                                             "Alt + left button -- add \n"
-                                             "Alt + right button -- substract"),
-                                  0, wxALL|wxALIGN_CENTER, 5);
-     */
-    top_sizer->Add (CreateTextSizer ("With mouse in normal mode \n"
-                                     "   (close dialog first):\n"
-                                     "Alt + left button -- add \n"
-                                     "Alt + right button -- substract"),
-                    0, wxALL, 5);
-    top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
-    wxString radio_labels[] = {"specify range", 
-                               "add to current range", 
-                               "substract from current range", 
-                               "auto-range" };
-    rb = new wxRadioBox (this, ID_DRANGE_RADIOBOX, " with keyboard: ", 
-                         wxDefaultPosition, wxDefaultSize, 
-                         4, radio_labels, 1, wxRA_SPECIFY_COLS);
-    top_sizer->Add(rb, 0, wxALL|wxALIGN_CENTER, 5);
-    wxFlexGridSizer *sizer1 = new wxFlexGridSizer(2);
-    label_from = new wxStaticText(this, -1, "from ");
-    sizer1->Add (label_from, 0, wxALL|wxALIGN_RIGHT|wxADJUST_MINSIZE, 2);
-    tc_from = new wxTextCtrl (this, -1, "", wxDefaultPosition, wxSize(50, -1), 
-                              0, wxTextValidator (wxFILTER_NUMERIC, &from));
-    sizer1->Add (tc_from, 0, wxALL|wxALIGN_LEFT, 2);
-    label_to = new wxStaticText(this, -1, "to ");
-    sizer1->Add (label_to, 0, wxALL|wxALIGN_RIGHT|wxADJUST_MINSIZE, 2);
-    tc_to = new wxTextCtrl (this, -1, "", wxDefaultPosition, wxSize(50, -1), 
-                            0, wxTextValidator (wxFILTER_NUMERIC, &to));
-    sizer1->Add (tc_to, 0, wxALL|wxALIGN_LEFT, 2);
-    wxButton *btApply = new wxButton (this, ID_DRANGE_APPLY, "&Apply");
-    sizer1->Add (btApply, 0, wxALL|wxALIGN_CENTER, 5 );
-    wxButton *btCancel = new wxButton (this, wxID_CANCEL, "&Close");
-    sizer1->Add (btCancel, 0, wxALL|wxALIGN_CENTER, 5 );
-    top_sizer->Add (sizer1, 0, wxALL|wxALIGN_CENTER, 5);
-    SetAutoLayout (true);
-    SetSizer (top_sizer);
-    top_sizer->Fit (this);
-    top_sizer->SetSizeHints (this);
-}
-
-void FDRangeDlg::OnApplyButton (wxCommandEvent& WXUNUSED(event))
-{
-    string s = "d.range ";
-    string f = tc_from->GetValue().Trim().c_str(); 
-    string t = tc_to->GetValue().c_str();
-    if (f.empty() && t.empty())
-        return;
-    switch (rb->GetSelection()) {
-        case 0: s += "[ " + f + " : " + t + " ]";      break;
-        case 1: s += "+ [ " + f + " : " + t + " ]";    break;
-        case 2: s += "- [ " + f + " : " + t + " ]";    break;
-        case 3: s += "* " + f + " " + t;               break;
-        default: assert (0);
-    }
-    exec_command (s);
-}
-
-void FDRangeDlg::OnRadioBoxSelection(wxCommandEvent& WXUNUSED(event) )
-{
-  
-    if (rb->GetSelection() == 3) {
-        label_from->SetLabel("level ");
-        label_to->SetLabel("margin ");
-    }
-    else {
-        label_from->SetLabel("from ");
-        label_to->SetLabel("to ");
-    }
-    Layout();
-}
-
-//================  my data uncertainty (std. dev.) dialog  =============
-BEGIN_EVENT_TABLE(FDStdDevDlg, wxDialog)
-//    EVT_RADIOBOX(ID_DRANGE_RADIOBOX, FDStdDevDlg::OnRadioBoxSelection)
-END_EVENT_TABLE()
-
-FDStdDevDlg:: FDStdDevDlg (wxWindow* parent, wxWindowID id) 
-    :  wxDialog(parent, id, wxString("Data error")), val("1.0")
-{
-    wxBoxSizer *top_sizer = new wxBoxSizer (wxVERTICAL);
-    top_sizer->Add (CreateTextSizer ("Currently:\n"), 
-                    0, wxALL, 5);
-    top_sizer->Add (CreateTextSizer (my_data->print_sigma().c_str()), 
-                    0, wxALL, 5);
-    wxSizer *sizer1 = new wxStaticBoxSizer (new wxStaticBox(this, -1,
-                                          "Change data standard deviation to:"),
-                                            wxHORIZONTAL);
-    wxSizer *sizer_radio = new wxBoxSizer(wxVERTICAL);
-    rb0 = new wxRadioButton (this, -1, 
-                             "square root of value, but not less than:");
-    rb1 = new wxRadioButton (this, -1, "equal for all points:");
-    sizer_radio->Add (rb0, 0, wxALL, 5);
-    sizer_radio->Add (rb1, 0, wxALL, 5);
-    sizer1->Add(sizer_radio, 0, wxALL|wxALIGN_CENTER, 5);
-    tc_val = new wxTextCtrl (this, -1, "", wxDefaultPosition, wxSize(50, -1), 
-                              0, wxTextValidator (wxFILTER_NUMERIC, &val));
-    sizer1->Add (tc_val, 0, wxALL|wxALIGN_CENTER, 5);
-    top_sizer->Add (sizer1, 0, wxALL|wxALIGN_CENTER, 5);
-    top_sizer->Add (CreateButtonSizer (my_data->is_empty() ? wxCANCEL : 
-                                                             wxOK|wxCANCEL), 
-                    0, wxALL|wxALIGN_CENTER, 5);
-
-    SetAutoLayout (true);
-    SetSizer (top_sizer);
-    top_sizer->Fit (this);
-    top_sizer->SetSizeHints (this);
-}
-
-string FDStdDevDlg::get_command()
-{
-    string s = "d.deviation ";
-    if (rb0->GetValue()) 
-        s += "r";
-    else if (rb1->GetValue())
-        s += "u";
-    return s + " " + val.c_str();
-}
 
 //=====================   data->LoadFile(Custom) dialog  ==================
 
@@ -1505,16 +1375,16 @@ void SumHistoryDlg::OnViewSpinCtrlUpdate (wxSpinEvent& event)
 
 //=====================   data->editor dialog  ==================
 
-class GridTable: public wxGridTableBase
+class DataTable: public wxGridTableBase
 {
 public:
-    GridTable(Data *data_) : wxGridTableBase(), data(data_) {}
+    DataTable(Data *data_) : wxGridTableBase(), data(data_) {}
     int GetNumberRows() { return data->points().size(); }
     int GetNumberCols() { return 4; }
     bool IsEmptyCell(int row, int col) { return false; }
     wxString GetValue(int row, int col) 
               { return "x"; }
-    void SetValue(int /*row*/, int /*col*/, const wxString& /*value*/) {}
+    void SetValue(int row, int col, const wxString& value) {}
     wxString GetTypeName(int WXUNUSED(row), int col)
         { return col == 0 ? wxGRID_VALUE_BOOL : wxGRID_VALUE_FLOAT; }
     bool CanGetValueAs(int row, int col, const wxString& typeName)
@@ -1528,9 +1398,9 @@ public:
     bool GetValueAsBool(int row, int /*col*/)
         { return data->points()[row].is_active; }
     void SetValueAsDouble(int row, int col, double value)
-        {}
+        { assert(col>0); }
     void SetValueAsBool(int row, int col, bool value)
-        {}
+        { assert(col==0); }
     wxString GetRowLabelValue(int row) { return S(row).c_str(); }
     wxString GetColLabelValue(int col) 
         { return col==0 ? "active" 
@@ -1570,7 +1440,7 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_)
                    0, wxALIGN_CENTER|wxALL, 5);
 
     update_data(data_);
-    grid->SetEditable(false);
+    grid->SetEditable(true);
     grid->SetColumnWidth(0, 40);
     grid->SetRowLabelSize(60);
 
@@ -1585,7 +1455,7 @@ void DataEditorDlg::update_data(Data *data_)
     data = data_;
     filename_label->SetLabel(data->get_filename().c_str());
     title_label->SetLabel(data->get_title().c_str());
-    grid->SetTable(new GridTable(data), true, wxGrid::wxGridSelectRows);
+    grid->SetTable(new DataTable(data), true, wxGrid::wxGridSelectRows);
     grid->ForceRefresh();
     grid->AdjustScrollbars();
     Show();

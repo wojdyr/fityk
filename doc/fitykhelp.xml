@@ -40,9 +40,10 @@
    </para>
    <para>
     <application>Fityk</application> offers various nonlinear fitting methods, 
-    subtracting background, calibrating data, easy placement of peaks and
-    changing peak parameters, automation of common tasks with scripts, and much
-    more. The main advantage of the program is a flexibility - parameters
+    background subtracting, various data transformations, 
+    easy placement of peaks and changing peak parameters, 
+    automation of common tasks with scripts, and much more. 
+    The main advantage of the program is a flexibility - parameters
     of peaks can be arbitrarily binded with each other, eg. width of peak can
     be an independent variable, can be the same as width of other peak or can
     be given by complicated - common for all peaks - formula.
@@ -310,12 +311,12 @@
     </para>
     <para>
      Let us start with the auxiliary plot. 
-     <mousebutton>Right</mousebutton> button displays
-     mentioned earlier pop-up menu, with <mousebutton>left</mousebutton> 
+     <mousebutton>Right</mousebutton> button displays pop-up menu, 
+     with <mousebutton>left</mousebutton> 
      button you can select range to be displayed - range on x axis. 
      Clicking with <mousebutton>middle</mousebutton> button (or with 
      <mousebutton>left</mousebutton> button and pressed <keycap>Shift</keycap>)
-     on auxiliary plot will zoom it out and display all data. 
+     will zoom it out and display all data. 
     </para>
     <para>
      On the main plot, meaning of the <mousebutton>left</mousebutton> and
@@ -337,6 +338,7 @@
    </section> 
   </section> 
  </chapter>
+
 
  <chapter id="CommandReference">
   <title>Command reference </title>
@@ -415,32 +417,11 @@
     command in one line, they can be separated with semicolon (;). Sequence of
     commands with the same beginning token can be replaced with one command,
     which has one common beginning token and tokens of each command separated
-    by commas (,). Eg.
+    by commas, eg. 
    </para>
    <para>
     <userinput>
-     d.background 10 150.2 
-    </userinput>
-   </para>
-   <para>
-    <userinput>
-     d.b 60.5 185.1 # d.b is a shortcut for d.background
-    </userinput>
-   </para>
-   <para>
-    is equivalent to
-   </para>
-   <para>
-    <userinput>
-     d.background 10 150.2 ; d.background 60.5 185.1 
-    </userinput>
-   </para>
-   <para>
-    and is equivalent to
-   </para>
-   <para>
-    <userinput>
-     d.background 10 150.2 , 60.5 185.1 
+     s.info ^0, ^1, ^2 
     </userinput>
    </para>
    <para>
@@ -497,48 +478,28 @@
      <arg><replaceable>xcol</replaceable>:<replaceable>ycol</replaceable>
       <arg>:<replaceable>scol</replaceable></arg>
      </arg> 
-     <arg><replaceable>from</replaceable>
-      <arg>-<replaceable>to</replaceable></arg>/<replaceable>of</replaceable>
-     </arg> 
-     <arg><arg>+</arg>*<replaceable>merge</replaceable></arg> 
      <arg choice="plain">'<replaceable>filename</replaceable>'</arg> 
     </cmdsynopsis>
     <para>
      where 
      <replaceable>xcol</replaceable>, <replaceable>ycol</replaceable>, 
-     <replaceable>scol</replaceable>, <replaceable>from</replaceable>, 
-     <replaceable>to</replaceable>, <replaceable>of</replaceable>, 
-     <replaceable>merge</replaceable> 
+     <replaceable>scol</replaceable>, 
      are unsigned integers. Note that the name of the file is inside of single
      quotation marks. If the file is in a normal format (columns with numbers)
      it can be specified which column contains x, y and, optionally, std. dev.
-     of y. Only selected points can be read from the file, what can be
-     specified using 
-     <replaceable>from</replaceable>-<replaceable>to</replaceable>
-     /<replaceable>of</replaceable> syntax, eg. <userinput>1/2</userinput> 
-     - odd points (first, third, etc.), <userinput>2/2</userinput> 
-     - even points, <userinput>5-10/50</userinput> - from every 50 points 
-     only 5th, 6th, ... 10th are loaded. A few neighboring points can 
-     be merged (loaded as one point).  
-     Resulting point have value of x equal to average of merged
-     points, and value of y is either equal to sum of y's of merged points
-     (<userinput>+*</userinput>), or to average (<userinput>*</userinput>).
+     of y. 
     </para>
     <para>
-     Data can be saved to file either as points or as simple script, that
-     contains all information about currently loaded data, its background,
-     calibration, settings etc. Command
+     Command
      <cmdsynopsis>
       <command>d.export</command> 
-      <group><arg>d</arg><arg>s</arg><arg>b</arg></group>  
       <arg choice="plain">'<replaceable>filename</replaceable>'</arg> 
       <arg>+</arg>
      </cmdsynopsis>
-     can export data as points, data as script or background as points if
-     letter before <replaceable>filename</replaceable> is, 
-     respectively, <userinput>d</userinput>, <userinput>s</userinput> 
-     or <userinput>b</userinput>.  Only active points are being 
-     exported (see next chapter to learn about active and inactive points).
+     can export data to ASCII file, that has 3 columns: x, y 
+     and standard deviation.
+     Only active points are being exported (see next chapter to learn about 
+     active and inactive points).
      <userinput>+</userinput> will cause, if specified file exist, 
      appending to the file rather than overwritting.
     </para>
@@ -551,146 +512,30 @@
    </section> 
 
    <section>
-    <title>Active and inactive points </title>
+    <title>Active and inactive points</title>
     <para>
      We often have situation, that only part of data from file is interesting
      for us.  We should be able to exclude selected points from fitting and all
-     computations. It can be done with command <command>d.range</command> 
+     computations. It can be done with command <command>d.transform</command> 
+     (which will be explained later)
      or with <link linkend="mouse">mouse-click in <acronym>GUI</acronym></link>.
      The idea of active and inactive points is simple: 
-     only the active ones are subject to all computations, 
-     inactive ones are neglected. Command <command>d.range</command> 
-     has following syntax:
-     <cmdsynopsis>
-      <command>d.range</command> 
-      <group><arg>+</arg><arg>-</arg></group> 
-      <arg><replaceable>xmin</replaceable></arg>
-      <arg choice="plain">:</arg>
-      <arg><replaceable>xmax</replaceable></arg> 
-     </cmdsynopsis>
-     If sign is not specified, only points with x coordinate between 
-     <replaceable>xmin</replaceable> and <replaceable>xmax</replaceable> 
-     are marked as active. If <replaceable>xmin</replaceable> 
-     or <replaceable>xmax</replaceable> is omitted, it is equivalent to
-     -inf or +inf respectively.  When command contains 
-     <userinput>+</userinput> or <userinput>-</userinput>, given range
-     is added to set of currently active points or subtracted from it.
-    </para>
-    <para>
-     In case we care only about segments of points in which there are peaks, 
-     we can use command
-     <cmdsynopsis>
-      <command>d.range</command> 
-      <arg choice="plain">*</arg> 
-      <arg choice="plain"><replaceable>level</replaceable></arg> 
-      <arg choice="plain"><replaceable>margin</replaceable></arg> 
-     </cmdsynopsis>
-     It will mark as active only these points, which have y coordinate 
-     greater than <replaceable>level</replaceable>, 
-     and points around the first ones - points which distance from point
-     above <replaceable>level</replaceable> is less than 
-     <replaceable>margin</replaceable>.
+     only the active ones are subject to fitting and peak-finding, 
+     inactive ones are neglected in these cases. 
     </para>
    </section> 
-   <section id="background">  
-    <title>Background and calibration </title>
-    <para>
-     Data background can be defined as the extrapolation of points chosen by
-     user. These chosen points are called 
-     <firstterm>background points</firstterm>, to differ from
-     data points. Apart from this, background can be defined as a function, eg.
-     polynomial, and parameters of this function can be fitted. You can read
-     about the second way in <xref linkend="sum"/>.
-    </para>
-    <para>Command
-     <cmdsynopsis>
-      <command>d.background</command> 
-      <arg choice="plain"><replaceable>X</replaceable></arg> 
-      <arg choice="plain"><replaceable>Y</replaceable></arg> 
-     </cmdsynopsis>
-     adds (X,Y) point to background points. If there is only one background
-     point, background is equal Y for all data points. If there are two
-     background points, background is a straight line, that contains both of
-     them. If the number of background points is larger, background is either
-     cubic spline - if option 
-     <parameter class="option">spline-background</parameter> is set, 
-     or polyline otherwise.  If distance along x axis from new point 
-     to other existing point is smaller than value of option 
-     <parameter class="option">min-background-points-distance</parameter>, 
-     this other point is deleted. You can remove background point with command
-     <cmdsynopsis>
-      <command>d.background</command> <arg choice="plain">!</arg> 
-      <arg><replaceable>X</replaceable></arg> 
-     </cmdsynopsis>
-     If <replaceable>X</replaceable> is specified, it will delete 
-     all background points with x in range 
-     (<replaceable>X</replaceable> - dx, <replaceable>X</replaceable> + dx),
-     where dx is a value of option 
-     <parameter class="option">min-background-points-distance</parameter>. 
-     Without <replaceable>X</replaceable>, it will delete all background 
-     points. 
-    </para>
-    <para>
-     Command
-     <cmdsynopsis>
-      <command>d.background</command> <arg>.</arg>  
-     </cmdsynopsis>
-     will display information about background (if dot is omitted) 
-     and recompute background.  Explicit background recomputing is required 
-     only after changing value of
-     option <parameter class="option">spline-background</parameter>, 
-     after other background-related commands it is done automatically.
-     If dot follows command, the only effect is the recomputation.
-    </para>
-    <para>
-     Sometimes the instrument introduces errors to the x coordinate 
-     of the data points, which can be determined by using a reference sample.
-     Correcting these errors is called here <firstterm>calibration</firstterm>.
-     (See also <link linkend="sum">description of zero-shift</link>.) 
-     Calibration commands are analogical to background commands
-     described above. We also have a set of points, called here calibration
-     points. If there is only one calibration point (X, D), process of
-     calibration changes x coordinate of all data points x -> x-D. If
-     there are two calibration points, calibration curve d(x) is a straight
-     line that contains both of calibration points. If the number of
-     calibration points is greater, calibration curve is either cubic spline -
-     if option <parameter class="option">spline-calibration</parameter> is set,
-     or polyline otherwise. Every point is transformed using calibration curve
-     d(x) in the following way: (x, y) -> (x-d(x), y).
-    </para>
-    <para>
-     The following commands are analogical to <command>d.background</command> 
-     commands:
-     <cmdsynopsis>
-      <command>d.calibrate</command> 
-      <arg choice="plain"><replaceable>X</replaceable></arg> 
-      <arg choice="plain"><replaceable>D</replaceable></arg> 
-     </cmdsynopsis>
-     <cmdsynopsis>
-      <command>d.calibrate</command> <arg choice="plain">!</arg> 
-      <arg><replaceable>X</replaceable></arg> 
-     </cmdsynopsis>
-     <cmdsynopsis>
-      <command>d.calibrate</command> <arg>.</arg>  
-     </cmdsynopsis>
-     To delete calibration point with second listed command, 
-     exact value of <replaceable>D</replaceable> must be given, 
-     there is no equivalent to
-     <parameter class="option">min-background-points-distance</parameter>.
-    </para>
-   </section>
 
    <section>
     <title>Standard deviation or weight </title>
     <para>
      When fitting data, we assume that only y coordinate of data is subject to
-     statistical error in measurement. Is is quit
-     common assumption. To see how y standard deviation
+     statistical error in measurement. Is is very common assumption. 
+     To see how y standard deviation
      <inlinemediaobject>
       <imageobject><imagedata fileref="fitykhelp_img/sigma.png"/></imageobject>
       <textobject><phrase>sigma</phrase></textobject>
      </inlinemediaobject>  
-     influences minimized function, look at
+     influences fitting (optimization), look at
      weighted sum of squared residuals formula in <xref linkend="nonlinear"/>. 
      We can also think about weights of points -
      every point has a weight assigned, that is equal 
@@ -708,48 +553,53 @@
     <para>
      Standard deviation of points can be 
      <link linkend="DataLoad">read from file</link> together with x and y
-     coordinates, or set with command:
-    </para>
-    <cmdsynopsis>
-     <command>d.deviation</command> 
-     <group choice="req"><arg>u</arg><arg>r</arg></group> 
-     <arg><replaceable>min</replaceable></arg> 
-    </cmdsynopsis>
-    <para>
-     This commands is setting y standard deviation according to specified
-     letter:
-     <itemizedlist spacing="compact">
-      <listitem>
-       <para>
-        <userinput>u</userinput>
-        - equal <replaceable>min</replaceable> for all points 
-        (default: <replaceable>min</replaceable>=1),
-       </para>
-      </listitem>
-      <listitem>
-       <para>
-        <userinput>r</userinput>
-        - max (sqrt(y), <replaceable>min</replaceable>), setting std. dev. as
-        a square root of value is common when y is the number of
-        counted independent events (default: <replaceable>min</replaceable>=1).
-       </para>
-      </listitem>
-     </itemizedlist>
-    </para>
-    <para>
-     If option 
-     <parameter class="option">background-influences-std-dev</parameter> is set,
-     y standard deviation is computed after subtracting background - it does
-     matter only in second case.
-    </para>
-    <para>
-     Command
-     <cmdsynopsis>
-      <command>d.deviation</command> 
-     </cmdsynopsis>
-     displays information about y standard deviations of points.
+     coordinates. Otherwise, it is set to max(sqrt(y), 1.0), 
+     Setting std. dev. as a square root of value is common 
+     and has theoretical grounds when y is the number of independent events.
     </para>
    </section> 
+
+   <section id="transform">  
+    <title>Data transformations</title>
+    <para>
+     In <application>fityk 0.5.0</application> new powerful command 
+     <command>d.transform</command> was introduced. 
+     It's not well documented yet. The best documentation for a while
+     is the extensive comment at the beginning of datatrans.cpp source file.
+     You can see CVS version of the file here:
+     <ulink url="http://cvs.sourceforge.net/viewcvs.py/fityk/fityk/src/datatrans.cpp?only_with_tag=HEAD&amp;view=markup">
+      http://cvs.sourceforge.net/viewcvs.py/fityk/fityk/src/datatrans.cpp?only_with_tag=HEAD&amp;view=markup
+     </ulink>
+    </para>
+   </section> 
+
+   <section id="background">  
+    <title>Background and calibration </title>
+    <para>
+     Historically, there were separete commands for dealing with spline
+     background and with calibration. Now all changes to data points are 
+     made using <command>d.transform</command> command, but there is still
+     <firstterm>background mode</firstterm> in <acronym>GUI</acronym>,
+     which helps in manual baseline substraction and generates proper
+     <command>d.transform</command> command to apply the change to the data.
+     Have a look at two useful GUI options related to background mode: 
+     <parameter class="option">background type</parameter>
+     and 
+     <parameter class="option">minimal BG points distance</parameter>. 
+    </para>
+    <para>
+     Sometimes the instrument introduces errors to the x coordinate 
+     of the data points, which can be determined by using a reference sample.
+     Correcting these errors is called here <firstterm>calibration</firstterm>.
+     (See also <link linkend="sum">description of zero-shift</link>.) 
+     Historically, there was a special command for calibration in 
+     <application>fityk</application>, but it was removed to simplify 
+     the program. Now you can change x coordinate of data points using
+     <command>d.transform</command> command, analogically to baseline
+     substraction.
+    </para>
+   </section>
+
    <section>
     <title>Working with many datasets</title>
     <para>
@@ -795,6 +645,7 @@
     </para>
    </section> 
   </section> 
+
 
   <section id="sum">
    <title>Sum of fitting functions </title>

@@ -139,6 +139,8 @@ bool PlotPane::is_background_white()
     return true;
 }
 
+BgManager* PlotPane::get_bg_manager() { return plot; }
+
 const std::vector<FPlot*> PlotPane::get_visible_plots() const
 {
     vector<FPlot*> visible;

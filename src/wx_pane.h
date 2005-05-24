@@ -17,6 +17,7 @@ class MainPlot;
 class AuxPlot;
 class FPlot;
 class PlotCore;
+class BgManager;
 
 
 /// based on http://wiki.wxpython.org/index.cgi/ProportionalSplitterWindow
@@ -126,6 +127,7 @@ public:
     bool is_background_white();
     const std::vector<std::string>& get_zoom_hist() const { return zoom_hist; }
     const MainPlot* get_plot() const { return plot; }
+    BgManager* get_bg_manager(); 
     const std::vector<FPlot*> get_visible_plots() const;
     void show_aux(int n, bool show); 
     bool aux_visible(int n) const;

@@ -30,13 +30,14 @@
 //     k...m means that expression is executed for k, k+1, ... m-1. Not for m.
 //
 // Assignments are executed for n = 0, ..., M-1 (if assignments are joined 
-// with '&', all are executed of n=0, then all for n=1, and so on).
+// with '&', all are executed for n=0, then all for n=1, and so on).
 // Before transformation the new point coordinates are a copy of the old ones.
 //
 // There is a special function sum(), which can be used as a real value. 
 // and returns a sum over all points of value of expression 
 // eg. sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0) -> area.
 // The value of sum() is computed before transformation.
+//
 //
 // There are statements, that are executed only once: 
 //    M=..., 
@@ -49,8 +50,8 @@
 //        either appends new data points with x=y=sigma=0, is_active=false,
 //        or deletes last points.
 //        order=[-]coordinate (eg. order=x, order=-x) 
-//        sort data points; sorting is stable. Order of points affects only
-//        export of data and some transform command
+//        sort data points; sorting is stable. After finishing transform 
+//        command, points are sorted using x.
 //        delete[k] (or delete[k...m])
 //        delete(condition)
 //           deletion and change of M is postponed to the end of computation
@@ -61,6 +62,12 @@
 // 
 //functions: sqrt exp log10 ln sin cos tan atan asin acos abs min max round
 // boolean: AND, OR, >, >=, <, <=, = (or ==), != (or <>), TRUE, FALSE, NOT
+//
+//parametrized functions: spline, interpolate
+// The general syntax is: pfunc[param1 param2 ...](expression), 
+//  eg. spline[22.1 37.9 48.1 17.2 93.0 20.7](x)
+// spline - cubic spline interpolation, parameters are x1, y1, x2, y2, ...
+// interpolate - polyline interpolation, parameters are x1, y1, x2, y2, ...
 //
 // All computations are performed using real numbers, but using round for
 // comparisions should not be neccessary. Two numbers that differ less
@@ -84,7 +91,7 @@
 //
 //    smoothing: Y[1...-1] = (y[n-1] + y[n+1])/2  
 //
-//    reducing: order = x,
+//    reducing: order = x, # not neccessary, points are always in this order
 //              x[...-1] = (x[n]+x[n+1])/2, 
 //              y[...-1] = y[n]+y[n+1],
 //              delete(n%2==1)    
@@ -92,6 +99,10 @@
 //    delete inactive points:    delete(not a)  
 //    normalize area: 
 //           y = y / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0) 
+//
+//    substract spline baseline given by points (22.17, 37.92), (48.06, 17.23),
+//                                              (93.03, 20.68).
+//    y = y - spline[22.17 37.92  48.06 17.23  93.03 20.68](x) 
 //
 
 //-----------------------------------------------------------------

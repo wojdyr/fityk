@@ -96,7 +96,7 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
 END_EVENT_TABLE()
 
 MainPlot::MainPlot (wxWindow *parent, Plot_shared &shar) 
-    : FPlot (parent, shar), mode (mmd_zoom), basic_mode(mmd_zoom),
+    : FPlot (parent, shar), basic_mode(mmd_zoom), mode(mmd_zoom), 
       pressed_mouse_button(0), ctrl(false), over_peak(-1)
 { }
 
@@ -1379,19 +1379,28 @@ void BgManager::rm_background_point (fp x)
                                  B_point(x + min_bg_distance, 0));
     if (u > l) {
         bg.erase(l, u);
-        info (S(u - l) + " points removed.");
+        verbose (S(u - l) + " background points removed.");
         recompute_bgline();
     }
 }
 
-void BgManager::clear_background ()
+void BgManager::clear_background()
 {
     int n = bg.size();
     bg.clear();
     recompute_bgline();
-    info (S(n) + " points deleted.");
+    verbose (S(n) + " background points deleted.");
 }
 
+void BgManager::strip_background()
+{
+    string pars;
+    for (bg_const_iterator i = bg.begin(); i != bg.end(); i++) 
+        pars += " " + S(i->x) + " " + S(i->y) + " ";
+    exec_command("d.transform y = y - spline[" + pars + "](x)");
+    verbose("Background stripped.");
+    clear_background();
+}
 
 void BgManager::recompute_bgline()
 {

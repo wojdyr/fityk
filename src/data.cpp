@@ -53,10 +53,11 @@ string Data::getInfo () const
         return "No file loaded.";
     else {
         string s;
-        s = "Loaded " + S(p.size()) + " points.\n"
-             + S(active_p.size()) + " active now. Filename: " + filename;
+        s = "Data: " + S(p.size()) + " points, " 
+            + S(active_p.size()) + " active.\n"
+            + "Filename: " + filename;
         if (!title.empty())
-            s += "Data title: " + title;
+            s += "\nData title: " + title;
         if (active_p.size() != p.size())
             s += "\nActive data range: " + range_as_string();
         return s;
@@ -105,19 +106,20 @@ void Data::clear()
     p.clear();
     active_p.clear();
     col_nums.clear();
-    every.clear();
-    every_idx = 1;
-    merging = 0;
-    merge_table.clear();
 }
 
 void Data::post_load()
 {
-    change_range (-INF, +INF, true);
-    if (!p[0].sigma)
-        change_sigma('r');
+    if (!p[0].sigma) {
+        for (vector<Point>::iterator i = p.begin(); i < p.end(); i++) 
+            i->sigma = i->y > 1. ? sqrt (i->y) : 1.;
+        info(S(p.size()) + "points. No explicit std. dev. Set as sqrt(y)");
+    }
+    else
+        info(S(p.size()) + "points.");
     if (title.empty())
         title = get_file_basename(filename);
+    update_active_p();
     recompute_y_bounds();
 }
 
@@ -142,10 +144,10 @@ int Data::load_arrays(const vector<fp> &x, const vector<fp> &y,
     title = data_title;
     if (sigma.empty()) 
         for (size_t i = 0; i < size; ++i)
-            add_point (Point (x[i], y[i]));
+            p.push_back (Point (x[i], y[i]));
     else
         for (size_t i = 0; i < size; ++i)
-            add_point (Point (x[i], y[i], sigma[i]));
+            p.push_back (Point (x[i], y[i], sigma[i]));
     sort(p.begin(), p.end());
     x_step = find_step();
     post_load();
@@ -153,8 +155,7 @@ int Data::load_arrays(const vector<fp> &x, const vector<fp> &y,
 }
 
 
-int Data::load_file (const string &file, int type, 
-                     vector<int> col, vector<int> evr, int merge)
+int Data::load_file (const string &file, int type, const vector<int> &cols)
 { 
     if (type == 0) {                  // "detect" file format
         type = guess_file_type(file);
@@ -166,12 +167,10 @@ int Data::load_file (const string &file, int type,
     }
     clear(); //removing previous file
     filename = file;   
-    col_nums = col;
-    every = evr;
-    merging = merge;
+    col_nums = cols;
 
     if (type=='d')                            // x y x y ... 
-        load_xy_filetype(f, col);
+        load_xy_filetype(f, col_nums);
     else if (type=='m')                       // .mca
         load_mca_filetype(f);
     else if (type=='r')                       // .rit
@@ -195,48 +194,8 @@ int Data::load_file (const string &file, int type,
     return p.size();
 }
 
-void Data::add_point (const Point& pt)
-{
-    if (every.size() == 0)
-        add_point_2nd_stage (pt);
-    else if (every.size() == 2) {
-        if (every[0] <= every_idx && every_idx <= every[1])
-            add_point_2nd_stage (pt);
-        ++every_idx;
-    }
-    else if (every.size() == 3) {
-        if (every[0] <= every_idx && every_idx <= every[1])
-            add_point_2nd_stage (pt);
-        ++every_idx;
-        if (every_idx > every[2])
-            every_idx -= every[2];
-    }
-    else
-        assert(0);
-}
 
-void Data::add_point_2nd_stage (const Point& pt)
-{
-    if (!merging)
-        p.push_back (pt);
-    else {
-        merge_table.push_back(pt);
-        if (size(merge_table) == abs(merging)) {
-            fp x_sum = 0, y_sum = 0;
-            for (vector<Point>::const_iterator i = merge_table.begin();
-                 i != merge_table.end(); ++i) {
-                x_sum += i->x;
-                y_sum += i->y;
-            }
-            merge_table.clear();
-            //merging > 0 --> y_sum; merging < 0 --> y_avg
-            p.push_back (Point (x_sum / abs(merging),
-                                merging > 0 ? y_sum : y_sum / (-merging)));
-        }
-    }
-}
-
-void Data::load_xy_filetype (ifstream& f, vector<int>& usn)
+void Data::load_xy_filetype (ifstream& f, vector<int>& cols)
 {
     /* format  x y \n x y \n x y \n ...
     *           38.834110      361
@@ -244,14 +203,14 @@ void Data::load_xy_filetype (ifstream& f, vector<int>& usn)
     *           38.911500      352.431
     * delimiters: white spaces and  , : ;
      */
-    assert (usn.empty() || usn.size() == 2 || usn.size() == 3);
-    if (usn.empty()) {
-        usn.push_back(1);
-        usn.push_back(2);
+    assert (cols.empty() || cols.size() == 2 || cols.size() == 3);
+    if (cols.empty()) {
+        cols.push_back(1);
+        cols.push_back(2);
     }
     vector<fp> xy;
-    int maxc = *max_element (usn.begin(), usn.end());
-    int minc = *min_element (usn.begin(), usn.end());
+    int maxc = *max_element (cols.begin(), cols.end());
+    int minc = *min_element (cols.begin(), cols.end());
     if (minc < 1) {
         warn ("Invalid column number: " + S(minc) 
                 + ". (First column is 1, column number has to be positive)");
@@ -278,17 +237,17 @@ void Data::load_xy_filetype (ifstream& f, vector<int>& usn)
             continue;
         }
 
-        fp x = xy[usn[0] - 1];
-        fp y = xy[usn[1] - 1];
-        if (usn.size() == 2)
-            add_point (Point (x, y));
-        else {// usn.size() == 3
-            fp sig = xy[usn[2] - 1];
+        fp x = xy[cols[0] - 1];
+        fp y = xy[cols[1] - 1];
+        if (cols.size() == 2)
+            p.push_back (Point (x, y));
+        else {// cols.size() == 3
+            fp sig = xy[cols[2] - 1];
             if (sig <= 0) 
                 warn ("Point " + S(p.size()) + " has sigma = " + S(sig) 
                         + ". Point canceled.");
             else
-                add_point (Point (x, y, sig));
+                p.push_back (Point (x, y, sig));
         }
     }
     if (non_data_lines > 0)
@@ -297,10 +256,6 @@ void Data::load_xy_filetype (ifstream& f, vector<int>& usn)
     if (not_enough_cols > 0)
         warn ("Less than " + S(maxc) + " numbers in " + S(not_enough_cols) 
                 + " lines.");
-    if (usn.size() == 3) {
-        sigma_type = 'f';
-        info ("Std. dev. read from file.");
-    }
     sort(p.begin(), p.end());
     x_step = find_step();
 }
@@ -329,7 +284,7 @@ void Data::load_mca_filetype (ifstream& f)
                         // perhaps from 0 to 2047, description was not clear.
         fp x = energy_offset + energy_slope * i + energy_quadr * i * i;
         fp y = *pw * 65536 + *(pw+1);
-        add_point (Point (x, y));
+        p.push_back (Point(x, y));
     }
     x_step = energy_quadr ? 0 : energy_slope;
 }
@@ -375,7 +330,7 @@ void Data::load_cpi_filetype (ifstream& f)
     while (getline(f, s)) {
         fp y = strtod (s.c_str(), 0);
         fp x = xmin + p.size() * x_step;
-        add_point (Point (x, y));
+        p.push_back (Point (x, y));
     }
 }
 
@@ -408,69 +363,8 @@ void Data::load_rit_filetype (ifstream& f)
                     "Ignoring line.");
         for (vector<fp>::iterator i = ys.begin(); i != ys.end(); i++) {
             fp x = xmin + p.size() * x_step;
-            add_point (Point (x, *i));
+            p.push_back (Point(x, *i));
         }
-    }
-}
-
-void Data::change_sigma(char type, fp minim) 
-{
-    //changing sigma for all points. Not only active points.
-    if (is_empty()) {
-        warn("No points loaded.");
-        return;
-    }
-    if (minim <= 0.) minim = 1.;
-    switch(type){
-        case 'u':
-        case 'r':
-            sigma_type = type;
-            sigma_minim = minim;
-            recompute_sigma();
-            break;
-        case 'f':
-            warn ("Assigning std. dev. from file is possible only when "
-                    "loading data. Canceled");
-            break;
-        default:
-            warn("Unknown standard deviation symbol.");
-    }
-    info (print_sigma());
-}
-
-void Data::recompute_sigma()
-{
-    fp sigma_minim_2 = sigma_minim * sigma_minim;
-    switch (sigma_type) {
-        case 'u':
-            for (vector<Point>::iterator i = p.begin(); i < p.end(); i++)
-                i->sigma = sigma_minim;
-            break;
-        case 'r':
-            for (vector<Point>::iterator i = p.begin(); i < p.end(); i++) {
-                fp y = i->y;
-                i->sigma = y > sigma_minim_2 ? sqrt (y) : sigma_minim;
-            }
-            break;
-    }
-}
-
-string Data::print_sigma()
-{
-    if (is_empty()) {
-        return "No points loaded.";
-    }
-    switch(sigma_type){
-        case 'u':
-            return "Standard deviations assumed equal " + S(sigma_minim) 
-                + " for all points.";
-        case 'r':
-            return "Standard deviation assumed as square root of value "
-                "(not less then " + S(sigma_minim) + ")";
-        case 'f':
-            return "Standard deviation loaded from file.";
-        default:
-            return "! Unknown standard deviation symbol. Ooops.";
     }
 }
 
@@ -490,40 +384,30 @@ bool Data::transform(const string &s)
 {
     vector<Point> new_p;
     bool r = transform_data(s, p, new_p);
-    if (r) {
-        //TODO history
-        p = new_p;
-        d_was_changed = true;
-    }
-    else {
+    if (!r) {
         warn("Syntax error.");
+        return false;
     }
-    return r;
+    //TODO history
+    p = new_p;
+    sort(p.begin(), p.end());
+    update_active_p();
+    d_was_changed = true;
+    return true;
 }
 
-int Data::change_range (fp left, fp right, bool state) 
+void Data::update_active_p() 
     // pre: p.x sorted
     // post: active_p sorted
-    // returns number of active points
 {
-    if (is_empty()) {
-        warn("No points loaded.");
-        return -1;
-    }
-    vector<Point>::iterator l = lower_bound (p.begin(), p.end(), Point(left));
-    vector<Point>::iterator r = upper_bound (p.begin(), p.end(), Point(right));
-    if (l > r)
-        return 0;
-    d_was_changed = true;
-    for (vector<Point>::iterator i = l; i < r; i++)
-        i->is_active = state;
     active_p.clear();
     for (unsigned int i = 0; i < p.size(); i++)
         if (p[i].is_active) 
             active_p.push_back (i);
-    return active_p.size();
 }
 
+// does anyone need it ? 
+/*
 int Data::auto_range (fp y_level, fp x_margin)
 {
     // pre: p.x sorted
@@ -540,7 +424,7 @@ int Data::auto_range (fp y_level, fp x_margin)
             i->is_active = false;
             vector<Point>::iterator e = lower_bound (p.begin(), p.end(),
                                                         Point(i->x + x_margin));
-            for (/*`i' can be changed*/; i < e; i++)
+            for ( ; i < e; i++)
                 i->is_active = true;
             state = false;
         }
@@ -552,13 +436,12 @@ int Data::auto_range (fp y_level, fp x_margin)
             state = true;
         }
     }
-    active_p.clear();
-    for (unsigned int i = 0; i < p.size(); i++)
-        if (p[i].is_active) 
-            active_p.push_back (i);
+    update_active_p();
     return active_p.size();
 }
+*/
 
+//FIXME to remove it or to leave it?
 string Data::range_as_string () const 
 {
     if (active_p.empty()) {
@@ -648,61 +531,26 @@ void Data::export_as_script (ostream& os)
         os << "## no data loaded ##";
         return;
     }
-    //TODO embed data
+    //TODO optionally embed data (?)
     os << "### data settings exported as script -- begin" << endl;
     os << set_script('d');
     os << "d.load '";
     //TODO explicit filetype, when needed.
     for (vector<int>::iterator i = col_nums.begin(); i != col_nums.end(); i++)
         os << *i << (i != col_nums.end() - 1 ? " : " : "  ");
-    if (!every.empty()) {
-        assert (size(every) == 2 || size(every) == 3);
-        os << every[0] << "-" << every[1];
-        if (size(every) == 3)  os << "/" << every[2];
-        os << "  ";
-    }
-    if (merging) 
-            os << (merging > 0 ? "+*" : "*") << abs(merging) << "  ";
     os << filename << "'\n";
-    if (sigma_type != 'f')
-        os << "d.deviation " << sigma_type << " " << sigma_minim << endl;
-    os << "d.range " << range_as_string() << endl;
+    //TODO transform history  
     os << "### data settings -- end" << endl;
 }
 
-void Data::export_as_dat (ostream& os)
-{
-    for (int i = 0; i < get_n(); i++)
-        os << get_x(i) << "\t" << get_y(i) << "\t" << get_sigma(i) << endl;
-}
-
-void Data::export_to_file (string filename, bool append, char filetype) 
+void Data::export_to_file (string filename, bool append) 
 {
     ofstream os(filename.c_str(), ios::out | (append ? ios::app : ios::trunc));
     if (!os) {
         warn ("Can't open file: " + filename);
         return;
     }
-    int dot = 0;//for filetype detection
-    switch (filetype) {
-        case 'd': 
-            export_as_dat (os);
-            break;
-        case 's':
-            export_as_script (os);
-            break;
-        case 0:
-            //guessing filetype
-            dot = filename.rfind('.');
-            if (dot > 0 && dot < static_cast<int>(filename.length()) - 1) {
-                string ex(filename.begin() + dot, filename.end());
-                if (ex == ".dat" || ex == ".DAT" || ex == ".xy" || ex == ".XY")
-                    return export_to_file (filename, append, 'd');
-            }
-            info ("exporting as script");
-            return export_to_file (filename, append, 's');
-        default:
-            warn ("Unknown filetype letter: " + S(filetype));
-    }
+    for (int i = 0; i < get_n(); i++)
+        os << get_x(i) << "\t" << get_y(i) << "\t" << get_sigma(i) << endl;
 }
 

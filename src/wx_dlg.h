@@ -102,32 +102,6 @@ protected:
     DECLARE_EVENT_TABLE()
 };
 
-class FDStdDevDlg : public wxDialog
-{
-public:
-    std::string get_command();
-    FDStdDevDlg (wxWindow* parent, wxWindowID id);
-protected:
-    wxTextCtrl *tc_val;
-    wxString val;
-    wxRadioButton *rb0, *rb1;
-    DECLARE_EVENT_TABLE()
-};
-
-class FDRangeDlg : public wxDialog
-{
-public:
-    wxTextCtrl *tc_from, *tc_to;
-    wxStaticText *label_from, *label_to;
-    wxString from, to;
-    wxRadioBox *rb;
-    FDRangeDlg (wxWindow* parent, wxWindowID id);
-protected:
-    void OnRadioBoxSelection (wxCommandEvent& event);
-    void OnApplyButton (wxCommandEvent& event);
-    DECLARE_EVENT_TABLE()
-};
-
 class FDXLoadDlg : public wxDialog
 {
 public:

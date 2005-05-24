@@ -20,7 +20,8 @@ public:
     void add_background_point(fp x, fp y);
     void rm_background_point(fp x);
     void clear_background();
-    void recompute_bgline();
+    void strip_background();
+    bool bg_empty() const { return bg.empty(); }
 protected:
     typedef std::vector<B_point>::iterator bg_iterator;
     typedef std::vector<B_point>::const_iterator bg_const_iterator;
@@ -28,6 +29,8 @@ protected:
     std::vector<t_xy> bgline;
     fp min_bg_distance;
     bool spline_bg;
+
+    void recompute_bgline();
 };
 
 
@@ -68,7 +71,8 @@ public:
     Mouse_mode_enum get_mouse_mode() const { return mode; }
 
 private:
-    Mouse_mode_enum mode, basic_mode;
+    Mouse_mode_enum basic_mode, 
+                    mode;  //actual mode -- either basic_mode or mmd_peak
     static const int max_phase_pens = 8;
     static const int max_peak_pens = 24;
     static const int max_radius = 4; //size of data point

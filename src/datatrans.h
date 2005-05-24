@@ -142,6 +142,8 @@ struct DataTransformGrammar : public grammar<DataTransformGrammar>
                     >> '(' >> rprec1 >> ')') [push_op(OP_SUM)]
             |   (as_lower_d["interpolate"] >> parameterized_args)
                                               [parameterized_op(PF_INTERPOLATE)]
+            |   (as_lower_d["spline"] >> parameterized_args)
+                                              [parameterized_op(PF_SPLINE)]
             |   (as_lower_d["sqrt"] >> '(' >> rprec1 >> ')') [push_op(OP_SQRT)] 
             |   (as_lower_d["exp"] >> '(' >> rprec1 >> ')') [push_op(OP_EXP)] 
             |   (as_lower_d["log10"] >> '(' >> rprec1 >> ')')[push_op(OP_LOG10)]

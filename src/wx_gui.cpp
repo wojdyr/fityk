@@ -123,9 +123,6 @@ enum {
     ID_D_RECENT        = 24010 , //and next ones
     ID_D_INFO          = 24130 ,
     ID_D_EDITOR                ,
-    ID_D_DEVIATION             ,
-    ID_D_RANGE                 ,
-    ID_D_B_CLEAR               ,
     ID_D_BACKGROUND            ,
     ID_D_EXPORT                ,
     ID_D_SET                   ,
@@ -193,7 +190,7 @@ enum {
     ID_ft_m_bg                 ,
     ID_ft_m_add                ,
     ID_ft_v_pr                 ,
-    ID_ft_b_with               ,
+    ID_ft_b_strip              ,
     ID_ft_f_run                ,
     ID_ft_f_cont               ,
     ID_ft_f_undo               ,
@@ -368,9 +365,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU_RANGE (ID_D_RECENT+1, ID_D_RECENT+100, FFrame::OnDRecent)
     EVT_MENU (ID_D_EDITOR,      FFrame::OnDEditor)
     EVT_MENU (ID_D_INFO,        FFrame::OnDInfo)
-    EVT_MENU (ID_D_DEVIATION  , FFrame::OnDDeviation)  
-    EVT_MENU (ID_D_RANGE,       FFrame::OnDRange)
-    EVT_MENU (ID_D_B_CLEAR,     FFrame::OnDBClear)
     EVT_MENU (ID_D_EXPORT,      FFrame::OnDExport) 
     EVT_MENU (ID_D_SET,         FFrame::OnDSet) 
 
@@ -644,14 +638,8 @@ void FFrame::set_menubar()
     data_menu->Append(ID_D_RECENT, "Recent &Files", data_menu_recent); 
     data_menu->AppendSeparator();
 
-    data_menu->Append (ID_D_EDITOR,   "&Viewer", "Open data viewer");
+    data_menu->Append (ID_D_EDITOR,   "&Editor", "Open data editor");
     data_menu->Append (ID_D_INFO,     "&Info", "Info about loaded data");
-    data_menu->Append (ID_D_DEVIATION  , "Std. &Dev.", 
-                                            "Change errors for data points");
-    data_menu->Append (ID_D_RANGE,    "&Range", "Change active points");
-    wxMenu* data_bg_menu = new wxMenu;
-    data_bg_menu->Append(ID_D_B_CLEAR, "&Clear", "Clear all baseline points");
-    data_menu->Append (ID_D_BACKGROUND, "&Background", data_bg_menu);
     data_menu->Append (ID_D_EXPORT,   "&Export", "Save data to file");
     data_menu->Append (ID_D_SET,      "&Settings", "Preferences and options");
 
@@ -950,27 +938,6 @@ void FFrame::OnDEditor (wxCommandEvent& WXUNUSED(event))
 void FFrame::OnDInfo (wxCommandEvent& WXUNUSED(event))
 {
     exec_command ("d.info");
-}
-
-void FFrame::OnDDeviation  (wxCommandEvent& WXUNUSED(event))
-{
-    FDStdDevDlg *dialog = new FDStdDevDlg(this, -1);
-    if (dialog->ShowModal() == wxID_OK) {
-        exec_command (dialog->get_command());
-    }
-    dialog->Destroy();
-}
-
-void FFrame::OnDRange (wxCommandEvent& WXUNUSED(event))
-{
-    FDRangeDlg *dialog = new FDRangeDlg(this, -1);
-    dialog->ShowModal();
-    dialog->Destroy();
-}
-
-void FFrame::OnDBClear (wxCommandEvent& WXUNUSED(event))
-{
-    //TODO
 }
 
 void FFrame::OnDExport (wxCommandEvent& WXUNUSED(event))
@@ -1275,38 +1242,55 @@ void FFrame::OnXSet (string name, char letter)
 
 void FFrame::OnChangeMouseMode (wxCommandEvent& event)
 {
+    const MainPlot* plot = plot_pane->get_plot();
+    if (plot->get_mouse_mode() == mmd_bg && !plot->bg_empty()) {
+        int r = wxMessageBox("You have selected the baseline, but have not\n"
+                             "stripped it. Do you want to change data\n"
+                              "and strip selected baseline?\n" 
+                              "If you want to stay in background mode,\n"
+                              "press Cancel.",
+                              "Want to strip background?", 
+                              wxICON_QUESTION|wxYES_NO|wxCANCEL);
+        if (r == wxYES)
+            plot_pane->get_bg_manager()->strip_background();
+        else if (r == wxNO)
+            plot_pane->get_bg_manager()->clear_background();
+        else //wxCANCEL
+            return;
+    }
     Mouse_mode_enum mode = mmd_zoom;
     switch (event.GetId()) {
         case ID_G_M_ZOOM:   
         case ID_ft_m_zoom:   
             mode = mmd_zoom;   
             GetMenuBar()->Check(ID_G_M_ZOOM, true);
-            if (toolbar) toolbar->ToggleTool(ID_ft_m_zoom, true);
+            if (toolbar) 
+                toolbar->ToggleTool(ID_ft_m_zoom, true);
             break;
         case ID_G_M_RANGE:   
         case ID_ft_m_range:  
             mode = mmd_range;  
             GetMenuBar()->Check(ID_G_M_RANGE, true);
-            if (toolbar) toolbar->ToggleTool(ID_ft_m_range, true);
+            if (toolbar) 
+                toolbar->ToggleTool(ID_ft_m_range, true);
             break;
         case ID_G_M_BG:   
         case ID_ft_m_bg:     
             mode = mmd_bg;     
             GetMenuBar()->Check(ID_G_M_BG, true);
-            if (toolbar) toolbar->ToggleTool(ID_ft_m_bg, true);
+            if (toolbar) 
+                toolbar->ToggleTool(ID_ft_m_bg, true);
             break;
         case ID_G_M_ADD:   
         case ID_ft_m_add:    
             mode = mmd_add;    
             GetMenuBar()->Check(ID_G_M_ADD, true);
-            if (toolbar) toolbar->ToggleTool(ID_ft_m_add, true);
+            if (toolbar) 
+                toolbar->ToggleTool(ID_ft_m_add, true);
             break;  
         default: assert(0);
     }
-    if (mode==mmd_bg && toolbar && toolbar->GetToolState(ID_ft_b_with)==false) {
-        toolbar->ToggleTool(ID_ft_b_with, true);
-        exec_command ("o.plot +");
-    }
+    toolbar->EnableTool(ID_ft_b_strip, (mode == mmd_bg));
     plot_pane->set_mouse_mode(mode);
 }
 
@@ -1787,7 +1771,7 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
              "Load data from file");
     AddSeparator();
     //background
-    AddTool (ID_ft_b_with, "Strip Bg", wxBitmap(plusbg_xpm), wxNullBitmap,  
+    AddTool (ID_ft_b_strip, "Strip Bg", wxBitmap(plusbg_xpm), wxNullBitmap,  
              wxITEM_NORMAL, "Strip background",
              "Remove selected background from data");
     AddSeparator();
@@ -1855,8 +1839,8 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
         case ID_ft_v_pr:  
             frame->OnPreviousZoom(dummy_cmd_event);
             break;
-        case ID_ft_b_with: 
-            exec_command(S("o.plot ") + (event.IsChecked() ? "+" : "-")); 
+        case ID_ft_b_strip: 
+            frame->plot_pane->get_bg_manager()->strip_background();
             break; 
         case ID_ft_f_run : 
             exec_command("f.run"); 
