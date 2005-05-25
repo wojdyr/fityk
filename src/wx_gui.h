@@ -112,7 +112,6 @@ public:
     void OnDEditor       (wxCommandEvent& event);
     void OnDInfo         (wxCommandEvent& event);
     void OnDExport       (wxCommandEvent& event);
-    void OnDSet          (wxCommandEvent& event); 
 
     void OnSHistory      (wxCommandEvent& event);            
     void OnSInfo         (wxCommandEvent& event);         

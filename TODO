@@ -95,10 +95,10 @@
 * improve Voigt function (FWHM, cut-tails, better approx?) 
 
 * fitting: it should be separated even more from the rest of the program.
-  Perhaps it fitting functions should be in extern library (AFAIK there 
-  is no such libary -- with unified interface to various nonlinear 
-  optimisation methods). 
-  Add more methods, eg. simulated annealing 
+  Perhaps it fitting functions should be in extern library (COOOL,
+  GAUL, are there any other such libraries? I haven't investigated
+  the possibility to use COOOL and GAUL yet. Links: http://coool.mines.edu/
+  http://gaul.sourceforge.net/) 
 
 * fitting: robust fit - other error distributions then Gaussian, 
   eg. Lorenzian...; so called 'maximum-likelihood method' -- using Poisson

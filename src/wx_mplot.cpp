@@ -909,10 +909,11 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         if (dist_x >= 5) { 
             fp xmin = X2x (min (event.GetX(), mouse_press_X));
             fp xmax = X2x (max (event.GetX(), mouse_press_X));
+            string xmin_x_xmax = "(" + S(xmin) + "<x and x<" + S(xmax) + ")";
             if (button == 1)
-                exec_command ("d.range + [ " + S(xmin) + " : " + S(xmax)+" ]");
+                exec_command ("d.transform a = a or " + xmin_x_xmax);
             else //button == 3
-                exec_command ("d.range - [ " + S(xmin) + " : " + S(xmax)+" ]");
+                exec_command ("d.transform a = a and not " + xmin_x_xmax);
         }
         frame->set_status_text("");
     }
@@ -1397,9 +1398,9 @@ void BgManager::strip_background()
     string pars;
     for (bg_const_iterator i = bg.begin(); i != bg.end(); i++) 
         pars += " " + S(i->x) + " " + S(i->y) + " ";
+    clear_background();
     exec_command("d.transform y = y - spline[" + pars + "](x)");
     verbose("Background stripped.");
-    clear_background();
 }
 
 void BgManager::recompute_bgline()

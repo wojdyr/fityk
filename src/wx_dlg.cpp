@@ -356,7 +356,6 @@ FuncBrowserDlg::FuncBrowserDlg (wxWindow* parent, wxWindowID id, int tab)
     notebook->AddPage (p_value, "value");
 
     notebook->SetSelection(tab);
-    //button "Close"
     wxButton *button = new wxButton (this, wxID_CANCEL, "&Close");
     top_sizer->Add (button, 0, wxALIGN_CENTER); 
     initialized = true;
@@ -1420,29 +1419,53 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_)
       data(0)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *two_col_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    // left side of the dialog
+    wxBoxSizer *left_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
     vsizer->Add(new wxStaticText(this, -1, "Original filename:"));
     filename_label = new wxStaticText(this, -1, "");
     vsizer->Add(filename_label);
     hsizer->Add(vsizer, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    //hsizer->Add(new wxButton(this, ID_DE_REVERT, "&Revert"),
-    //            0, wxALL, 5);
-    top_sizer->Add(hsizer, 0);
-    top_sizer->Add(new wxStaticText(this, -1, "Data title: "),
-                   0, wxLEFT|wxRIGHT|wxTOP, 5);
+    //TODO wxID_REVERT
+    hsizer->Add(new wxButton(this, ID_DE_REVERT, "&Revert"),
+                0, wxALL, 5);
+    left_sizer->Add(hsizer, 0);
+    left_sizer->Add(new wxStaticText(this, -1, "Data title: "),
+                    0, wxLEFT|wxRIGHT|wxTOP, 5);
     title_label = new wxStaticText(this, -1, "");
-    top_sizer->Add(title_label, 0, wxLEFT|wxRIGHT|wxBOTTOM, 5);
+    left_sizer->Add(title_label, 0, wxLEFT|wxRIGHT|wxBOTTOM, 5);
     grid = new wxGrid(this, ID_DE_GRID);
-    top_sizer->Add(grid, 1, wxEXPAND);
+    left_sizer->Add(grid, 1, wxEXPAND);
 
+    // right side of the dialog
+    wxBoxSizer *right_sizer = new wxBoxSizer(wxVERTICAL);
+    //wxListCtrl + buttons wxID_ADD, wxID_DELETE, wxID_UP, wxID_DOWN, Reset?
+    description = new wxStaticText(this, -1, "", 
+                                   wxDefaultPosition, wxDefaultSize,
+                                   wxALIGN_LEFT|wxST_NO_AUTORESIZE);
+    right_sizer->Add(description, 0, wxEXPAND|wxALL, 5);
+    code = new wxTextCtrl(this, -1, "", wxDefaultPosition, wxDefaultSize,
+                          wxHSCROLL);
+    right_sizer->Add(code, 0, wxEXPAND|wxALL, 5);
+    apply_button = new wxButton(this, wxID_APPLY, "&Apply");
+    right_sizer->Add(apply_button, 0, wxALIGN_CENTER|wxALL, 5);
+
+    // ...
+    two_col_sizer->Add(left_sizer, 0);
+    two_col_sizer->Add(right_sizer, 1);
+    top_sizer->Add(two_col_sizer, 1);
     top_sizer->Add(new wxButton(this, wxID_CANCEL, "&Close"), 
                    0, wxALIGN_CENTER|wxALL, 5);
+    //TODO? wxID_CLOSE ?
 
     update_data(data_);
     grid->SetEditable(true);
     grid->SetColumnWidth(0, 40);
     grid->SetRowLabelSize(60);
+    apply_button->Enable(false);
 
     SetAutoLayout(true);
     SetSizer(top_sizer);

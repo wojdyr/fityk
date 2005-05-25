@@ -113,10 +113,10 @@ void Data::post_load()
     if (!p[0].sigma) {
         for (vector<Point>::iterator i = p.begin(); i < p.end(); i++) 
             i->sigma = i->y > 1. ? sqrt (i->y) : 1.;
-        info(S(p.size()) + "points. No explicit std. dev. Set as sqrt(y)");
+        info(S(p.size()) + " points. No explicit std. dev. Set as sqrt(y)");
     }
     else
-        info(S(p.size()) + "points.");
+        info(S(p.size()) + " points.");
     if (title.empty())
         title = get_file_basename(filename);
     update_active_p();
@@ -533,7 +533,6 @@ void Data::export_as_script (ostream& os)
     }
     //TODO optionally embed data (?)
     os << "### data settings exported as script -- begin" << endl;
-    os << set_script('d');
     os << "d.load '";
     //TODO explicit filetype, when needed.
     for (vector<int>::iterator i = col_nums.begin(); i != col_nums.end(); i++)

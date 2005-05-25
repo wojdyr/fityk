@@ -112,8 +112,7 @@ void read_and_execute_input()
 }
 
 
-char *commands[] = { "d.load", "d.transform", "d.range", 
-        "d.deviation", "d.info", "d.set", "d.export",
+char *commands[] = { "d.load", "d.transform", "d.info", "d.export",
         "f.run", "f.continue", "f.set", "f.method", "f.info",
         "s.add", "s.info", "s.remove", "s.change", "s.set", "s.freeze", 
         "s.value", "s.history", "s.export", 

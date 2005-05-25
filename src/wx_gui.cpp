@@ -31,6 +31,7 @@
 #include <algorithm>
 #include <locale.h>
 #include <string.h>
+#include <boost/spirit/version.hpp> //SPIRIT_VERSION
 
 #include "common.h"
 #include "wx_plot.h"
@@ -90,6 +91,7 @@ char* about_html =
 "   <tr bgcolor=#101010 align=center> <td>                               "
 "      <h1> fityk " VERSION "</h1>                                       "
 "      <h6> powered by " wxVERSION_STRING "</h6>                         "
+"      <h6> powered by Boost.Spirit v. %d.%d.%d</h6>                         "
 "      <p><font size=-2>$Date$</font></p>          "
 "   </td> </tr>                                                          "
 "   <tr> <td bgcolor=#73A183>                                            "
@@ -125,7 +127,6 @@ enum {
     ID_D_EDITOR                ,
     ID_D_BACKGROUND            ,
     ID_D_EXPORT                ,
-    ID_D_SET                   ,
     ID_S_ADD                   ,
     ID_S_HISTORY               ,
     ID_S_INFO                  ,
@@ -366,7 +367,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_D_EDITOR,      FFrame::OnDEditor)
     EVT_MENU (ID_D_INFO,        FFrame::OnDInfo)
     EVT_MENU (ID_D_EXPORT,      FFrame::OnDExport) 
-    EVT_MENU (ID_D_SET,         FFrame::OnDSet) 
 
     EVT_MENU (ID_S_HISTORY,     FFrame::OnSHistory)    
     EVT_MENU (ID_S_INFO,        FFrame::OnSInfo)    
@@ -641,7 +641,6 @@ void FFrame::set_menubar()
     data_menu->Append (ID_D_EDITOR,   "&Editor", "Open data editor");
     data_menu->Append (ID_D_INFO,     "&Info", "Info about loaded data");
     data_menu->Append (ID_D_EXPORT,   "&Export", "Save data to file");
-    data_menu->Append (ID_D_SET,      "&Settings", "Preferences and options");
 
     wxMenu* sum_menu = new wxMenu;
     sum_menu->Append (ID_S_HISTORY,   "&History", "Go back or forward"
@@ -844,7 +843,9 @@ void FFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
                                            wxDefaultPosition, wxSize(300, 160), 
                                            wxHW_SCROLLBAR_NEVER);
     html->SetBorders(0);
-    html->SetPage(about_html);
+    html->SetPage(wxString::Format(about_html, SPIRIT_VERSION / 0x1000,
+                                               SPIRIT_VERSION % 0x1000 / 0x0100,
+                                               SPIRIT_VERSION % 0x0100));
     html->SetSize (html->GetInternalRepresentation()->GetWidth(), 
                    html->GetInternalRepresentation()->GetHeight());
     topsizer->Add (html, 1, wxALL, 10);
@@ -953,11 +954,6 @@ void FFrame::OnDExport (wxCommandEvent& WXUNUSED(event))
         exec_command (("d.export '" + fdlg.GetPath() + "'").c_str());
     filter_idx = fdlg.GetFilterIndex();
     dir = fdlg.GetDirectory();
-}
-
-void FFrame::OnDSet (wxCommandEvent& WXUNUSED(event))
-{
-    OnXSet ("Data", 'd');
 }
 
 void FFrame::OnSHistory      (wxCommandEvent& WXUNUSED(event))
@@ -1255,8 +1251,12 @@ void FFrame::OnChangeMouseMode (wxCommandEvent& event)
             plot_pane->get_bg_manager()->strip_background();
         else if (r == wxNO)
             plot_pane->get_bg_manager()->clear_background();
-        else //wxCANCEL
+        else { //wxCANCEL
+            GetMenuBar()->Check(ID_G_M_BG, true);
+            if (toolbar) 
+                toolbar->ToggleTool(ID_ft_m_bg, true);
             return;
+        }
     }
     Mouse_mode_enum mode = mmd_zoom;
     switch (event.GetId()) {
@@ -1774,6 +1774,7 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     AddTool (ID_ft_b_strip, "Strip Bg", wxBitmap(plusbg_xpm), wxNullBitmap,  
              wxITEM_NORMAL, "Strip background",
              "Remove selected background from data");
+    EnableTool(ID_ft_b_strip, (m == mmd_bg));
     AddSeparator();
     //sum
     AddTool (ID_S_INFO, "Tree", wxBitmap(tree_xpm), wxNullBitmap,

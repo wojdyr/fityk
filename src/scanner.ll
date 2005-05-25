@@ -62,7 +62,7 @@ ws_ [ \t\v\f\r]+
 		   }
                    return SEP;
                  }
-[dfsmoc]\.s(et)?   r_cmd(); BEGIN(SET_COND); iplval.c = iptext[0]; return SET;
+[fsmoc]\.s(et)?   r_cmd(); BEGIN(SET_COND); iplval.c = iptext[0]; return SET;
 d\.l(oad)?	   r_cmd(); BEGIN(D_LOAD_COND); return D_LOAD;
 d\.a(ctivate)?     r_cmd(); return D_ACTIVATE;
 d\.t(ransform)?    r_cmd(); BEGIN(D_TRANS_COND); return D_TRANSFORM;

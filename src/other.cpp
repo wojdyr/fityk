@@ -186,7 +186,6 @@ DotSet *
 set_class_p (char c)
 {
     switch (c) {
-        case 'd': return my_data;
         case 'f': return my_fit;
         case 's': return my_sum;
         case 'm': return my_manipul;

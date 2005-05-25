@@ -160,7 +160,9 @@ public:
 protected:
     wxGrid *grid;
     Data *data;
-    wxStaticText *filename_label, *title_label;
+    wxStaticText *filename_label, *title_label, *description;
+    wxTextCtrl *code;
+    wxButton *apply_button;
     DECLARE_EVENT_TABLE()
 };
 

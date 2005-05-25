@@ -7,7 +7,6 @@
 #include <vector>
 #include <fstream>
 #include "common.h"
-#include "dotset.h"
 
 
 /// data points
@@ -28,7 +27,7 @@ inline bool operator< (const Point& p, const Point& q)
 { return p.x < q.x; }
     
 
-class Data : public DotSet
+class Data 
 {
 public :
     Data ();
