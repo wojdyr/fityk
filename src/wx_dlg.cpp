@@ -16,6 +16,7 @@
 #include <wx/statline.h>
 #include <wx/bmpbuttn.h>
 #include <wx/grid.h>
+#include <wx/splitter.h>
 #include "common.h"
 #include "wx_dlg.h"
 #include "wx_common.h"
@@ -80,8 +81,10 @@ enum {
     ID_SHIST_TSAV                  ,
     ID_SHIST_CWSSR                 ,
     ID_SHIST_V              = 26300, // and next 2
-    ID_DE_REVERT            = 26310,
-    ID_DE_GRID                      
+    ID_DE_GRID              = 26310,
+    ID_DE_RESET                    ,
+    ID_DE_CODE                     ,
+    ID_DE_EXAMPLES
 };
 
 //======================== FuncBrowserDlg ===========================
@@ -1408,8 +1411,36 @@ private:
     Data *data;
 };
 
+
+struct DataTransExample
+{
+    string name;
+    string category;
+    string description;
+    string code;
+    bool in_menu;
+};
+
+static const char *ExampleText = 
+"integrate|useful|Integrate data numerically and adjust std. dev."
+"|Y[1...] = Y[n-1] + y[n]; S = sqrt(max(1,y))|N\n"
+"swap axes|example|Swap X and Y axes and adjust std. dev."
+"|Y=x & X=y & S=sqrt(Y)|N\n"
+;
+
 BEGIN_EVENT_TABLE(DataEditorDlg, wxDialog)
-    EVT_BUTTON      (ID_DE_REVERT,  DataEditorDlg::OnRevert)
+    EVT_BUTTON      (wxID_REVERT_TO_SAVED,  DataEditorDlg::OnRevert)
+    EVT_BUTTON      (wxID_ADD,              DataEditorDlg::OnAdd)
+    EVT_BUTTON      (wxID_DELETE,           DataEditorDlg::OnDelete)
+    EVT_BUTTON      (wxID_UP,               DataEditorDlg::OnUp)
+    EVT_BUTTON      (wxID_DOWN,             DataEditorDlg::OnDown)
+    EVT_BUTTON      (wxID_SAVE,             DataEditorDlg::OnSave)
+    EVT_BUTTON      (ID_DE_RESET,           DataEditorDlg::OnReset)
+    EVT_BUTTON      (wxID_APPLY,            DataEditorDlg::OnApply)
+    EVT_BUTTON      (wxID_CLOSE,            DataEditorDlg::OnClose)
+    EVT_TEXT        (ID_DE_CODE,            DataEditorDlg::OnCodeText)
+    EVT_LIST_ITEM_SELECTED(ID_DE_EXAMPLES,  DataEditorDlg::OnESelected)
+    EVT_LIST_ITEM_ACTIVATED(ID_DE_EXAMPLES,  DataEditorDlg::OnEActivated)
 END_EVENT_TABLE()
 
 DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_)
@@ -1419,47 +1450,67 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_)
       data(0)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *two_col_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxSplitterWindow *splitter = new wxSplitterWindow(this);
 
     // left side of the dialog
+    wxPanel *left_panel = new wxPanel(splitter); 
     wxBoxSizer *left_sizer = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
-    vsizer->Add(new wxStaticText(this, -1, "Original filename:"));
-    filename_label = new wxStaticText(this, -1, "");
-    vsizer->Add(filename_label);
-    hsizer->Add(vsizer, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    //TODO wxID_REVERT
-    hsizer->Add(new wxButton(this, ID_DE_REVERT, "&Revert"),
-                0, wxALL, 5);
-    left_sizer->Add(hsizer, 0);
-    left_sizer->Add(new wxStaticText(this, -1, "Data title: "),
+    left_sizer->Add(new wxStaticText(left_panel, -1, "Original filename:"));
+    filename_label = new wxStaticText(left_panel, -1, "");
+    left_sizer->Add(filename_label);
+    revert_button = new wxButton(left_panel, wxID_REVERT_TO_SAVED, 
+                                 "Revert to Saved");
+    left_sizer->Add(revert_button, 0, wxALL|wxALIGN_CENTER, 5);
+    left_sizer->Add(new wxStaticText(left_panel, -1, "Data title: "),
                     0, wxLEFT|wxRIGHT|wxTOP, 5);
-    title_label = new wxStaticText(this, -1, "");
+    title_label = new wxStaticText(left_panel, -1, "");
     left_sizer->Add(title_label, 0, wxLEFT|wxRIGHT|wxBOTTOM, 5);
-    grid = new wxGrid(this, ID_DE_GRID);
+    grid = new wxGrid(left_panel, ID_DE_GRID);
     left_sizer->Add(grid, 1, wxEXPAND);
+    left_panel->SetSizer(left_sizer);
 
     // right side of the dialog
+    wxPanel *right_panel = new wxPanel(splitter); 
     wxBoxSizer *right_sizer = new wxBoxSizer(wxVERTICAL);
-    //wxListCtrl + buttons wxID_ADD, wxID_DELETE, wxID_UP, wxID_DOWN, Reset?
-    description = new wxStaticText(this, -1, "", 
+    wxBoxSizer *example_sizer = new wxBoxSizer(wxHORIZONTAL);
+    example_list = new wxListCtrl(right_panel, ID_DE_EXAMPLES, 
+                                  wxDefaultPosition, wxDefaultSize,
+                                  wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_HRULES);
+    example_sizer->Add(example_list, 1, wxEXPAND|wxALL, 5);
+    wxBoxSizer *example_button_sizer = new wxBoxSizer(wxVERTICAL);
+    add_button = new wxButton(right_panel, wxID_ADD, "Add");
+    example_button_sizer->Add(add_button, 0, wxALL, 5);
+    delete_button = new wxButton(right_panel, wxID_DELETE, "&Delete");
+    example_button_sizer->Add(delete_button, 0, wxALL, 5);
+    up_button = new wxButton(right_panel, wxID_UP, "&Up");
+    example_button_sizer->Add(up_button, 0, wxALL, 5);
+    down_button = new wxButton(right_panel, wxID_DOWN, "&Down");
+    example_button_sizer->Add(down_button, 0, wxALL, 5);
+    save_button = new wxButton(right_panel, wxID_SAVE, "&Save");
+    example_button_sizer->Add(save_button, 0, wxALL, 5);
+    reset_button = new wxButton(right_panel, ID_DE_RESET, "&Reset");
+    example_button_sizer->Add(reset_button, 0, wxALL, 5);
+    example_sizer->Add(example_button_sizer, 0);
+    right_sizer->Add(example_sizer, 0);
+    description = new wxStaticText(right_panel, -1, "\n\n\n\n", 
                                    wxDefaultPosition, wxDefaultSize,
                                    wxALIGN_LEFT|wxST_NO_AUTORESIZE);
     right_sizer->Add(description, 0, wxEXPAND|wxALL, 5);
-    code = new wxTextCtrl(this, -1, "", wxDefaultPosition, wxDefaultSize,
-                          wxHSCROLL);
-    right_sizer->Add(code, 0, wxEXPAND|wxALL, 5);
-    apply_button = new wxButton(this, wxID_APPLY, "&Apply");
+    code = new wxTextCtrl(right_panel, ID_DE_CODE, "", 
+                          wxDefaultPosition, wxSize(200,100),
+                          wxTE_MULTILINE|wxHSCROLL);
+    right_sizer->Add(code, 1, wxEXPAND|wxALL, 5);
+    apply_button = new wxButton(right_panel, wxID_APPLY, "&Apply");
     right_sizer->Add(apply_button, 0, wxALIGN_CENTER|wxALL, 5);
+    right_panel->SetSizer(right_sizer);
 
     // ...
-    two_col_sizer->Add(left_sizer, 0);
-    two_col_sizer->Add(right_sizer, 1);
-    top_sizer->Add(two_col_sizer, 1);
-    top_sizer->Add(new wxButton(this, wxID_CANCEL, "&Close"), 
+    splitter->SplitVertically(left_panel, right_panel);
+    top_sizer->Add(splitter, 1, wxEXPAND, 1);
+    top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
+    top_sizer->Add(new wxButton(this, wxID_CLOSE, "&Close"), 
                    0, wxALIGN_CENTER|wxALL, 5);
-    //TODO? wxID_CLOSE ?
+
 
     update_data(data_);
     grid->SetEditable(true);
@@ -1487,5 +1538,53 @@ void DataEditorDlg::update_data(Data *data_)
 void DataEditorDlg::OnRevert (wxCommandEvent& WXUNUSED(event))
 {
 }
+
+void DataEditorDlg::OnAdd (wxCommandEvent& WXUNUSED(event))
+{
+}
+
+void DataEditorDlg::OnDelete (wxCommandEvent& WXUNUSED(event))
+{
+}
+
+void DataEditorDlg::OnUp (wxCommandEvent& WXUNUSED(event))
+{
+}
+
+void DataEditorDlg::OnDown (wxCommandEvent& WXUNUSED(event))
+{
+}
+
+void DataEditorDlg::OnSave (wxCommandEvent& WXUNUSED(event))
+{
+}
+
+void DataEditorDlg::OnReset (wxCommandEvent& WXUNUSED(event))
+{
+}
+
+void DataEditorDlg::OnApply (wxCommandEvent& WXUNUSED(event))
+{
+}
+
+void DataEditorDlg::OnClose (wxCommandEvent& event)
+{
+    OnCancel(event);
+}
+
+void DataEditorDlg::OnCodeText (wxCommandEvent& WXUNUSED(event))
+{
+}
+
+void DataEditorDlg::OnESelected (wxListEvent& event)
+{
+}
+
+void DataEditorDlg::OnEActivated (wxListEvent& event)
+{
+}
+
+
+
 
 

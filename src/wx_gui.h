@@ -152,6 +152,7 @@ public:
     void OnChangeMouseMode (wxCommandEvent& event);
     void OnModePeak      (wxUpdateUIEvent& event);
     void OnChangePeakType(wxCommandEvent& event);
+    void OnStripBg       (wxCommandEvent& event);
     void OnGViewAll      (wxCommandEvent& event);
     void OnGFitHeight    (wxCommandEvent& event);
     void OnGScrollLeft   (wxCommandEvent& event);

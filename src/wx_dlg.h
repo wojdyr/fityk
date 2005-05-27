@@ -156,13 +156,26 @@ class DataEditorDlg : public wxDialog
 public:
     DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_);
     void OnRevert (wxCommandEvent& event);
+    void OnAdd (wxCommandEvent& event);
+    void OnDelete (wxCommandEvent& event);
+    void OnUp (wxCommandEvent& event);
+    void OnDown (wxCommandEvent& event);
+    void OnSave (wxCommandEvent& event);
+    void OnReset (wxCommandEvent& event);
+    void OnApply (wxCommandEvent& event);
+    void OnClose (wxCommandEvent& event);
+    void OnCodeText (wxCommandEvent& event);
+    void OnESelected (wxListEvent& event);
+    void OnEActivated (wxListEvent& event);
     void update_data(Data *data_);
 protected:
     wxGrid *grid;
     Data *data;
     wxStaticText *filename_label, *title_label, *description;
+    wxListCtrl *example_list; 
     wxTextCtrl *code;
-    wxButton *apply_button;
+    wxButton *revert_button, *apply_button, *add_button, *delete_button, 
+             *up_button, *down_button, *save_button, *reset_button;
     DECLARE_EVENT_TABLE()
 };
 

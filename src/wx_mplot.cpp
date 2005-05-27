@@ -1395,6 +1395,8 @@ void BgManager::clear_background()
 
 void BgManager::strip_background()
 {
+    if (bg.empty())
+        return;
     string pars;
     for (bg_const_iterator i = bg.begin(); i != bg.end(); i++) 
         pars += " " + S(i->x) + " " + S(i->y) + " ";

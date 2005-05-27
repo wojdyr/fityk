@@ -91,7 +91,7 @@ char* about_html =
 "   <tr bgcolor=#101010 align=center> <td>                               "
 "      <h1> fityk " VERSION "</h1>                                       "
 "      <h6> powered by " wxVERSION_STRING "</h6>                         "
-"      <h6> powered by Boost.Spirit v. %d.%d.%d</h6>                         "
+"      <h6> powered by Boost.Spirit %d.%d.%d</h6>                        "
 "      <p><font size=-2>$Date$</font></p>          "
 "   </td> </tr>                                                          "
 "   <tr> <td bgcolor=#73A183>                                            "
@@ -164,6 +164,7 @@ enum {
     ID_G_M_RANGE               ,
     ID_G_M_BG                  ,
     ID_G_M_ADD                 ,
+    ID_G_M_BG_STRIP            ,
     ID_G_M_PEAK                ,
     ID_G_M_PEAK_N      = 24220 ,
     ID_G_SHOW          = 24260 ,
@@ -413,6 +414,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_M_ADD,       FFrame::OnChangeMouseMode)
     EVT_UPDATE_UI (ID_G_M_PEAK, FFrame::OnModePeak)
     EVT_MENU_RANGE (ID_G_M_PEAK_N+0, ID_G_M_PEAK_N+30, FFrame::OnChangePeakType)
+    EVT_MENU (ID_G_M_BG_STRIP,  FFrame::OnStripBg)
     EVT_UPDATE_UI (ID_G_SHOW,   FFrame::OnGuiShowUpdate)
     EVT_MENU (ID_G_S_DPANE,     FFrame::OnSwitchDPane)
     EVT_MENU_RANGE (ID_G_S_A1, ID_G_S_A2, FFrame::OnSwitchAuxPlot)
@@ -698,7 +700,7 @@ void FFrame::set_menubar()
     gui_menu_mode->AppendRadioItem (ID_G_M_RANGE, "&Range", 
                              "Use mouse for activating and disactivating data");
     gui_menu_mode->AppendRadioItem (ID_G_M_BG, "&Baseline", 
-                                    "Use mouse for substracting background");
+                                    "Use mouse for subtracting background");
     gui_menu_mode->AppendRadioItem (ID_G_M_ADD, "&Peak-Add", 
                                     "Use mouse for adding new peaks");
     wxMenu* gui_menu_mode_peak = new wxMenu;
@@ -709,6 +711,10 @@ void FFrame::set_menubar()
                                             (*i)->name.c_str());
     gui_menu_mode->AppendSeparator();
     gui_menu_mode->Append (ID_G_M_PEAK, "Peak &type", gui_menu_mode_peak);
+    gui_menu_mode->AppendSeparator();
+    gui_menu_mode->Append (ID_G_M_BG_STRIP, "&Strip baseline", 
+                           "Subtract selected baseline from data");
+    gui_menu_mode->Enable(ID_G_M_BG_STRIP, false);
     gui_menu->Append(ID_G_MODE, "&Mode", gui_menu_mode);
     gui_menu->AppendSeparator();
     wxMenu* gui_menu_show = new wxMenu;
@@ -840,7 +846,7 @@ void FFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
     wxDialog* dlg = new wxDialog(this, -1, wxString("About..."));
     wxBoxSizer *topsizer = new wxBoxSizer(wxVERTICAL);
     wxHtmlWindow *html = new wxHtmlWindow (dlg, -1, 
-                                           wxDefaultPosition, wxSize(300, 160), 
+                                           wxDefaultPosition, wxSize(400, 160), 
                                            wxHW_SCROLLBAR_NEVER);
     html->SetBorders(0);
     html->SetPage(wxString::Format(about_html, SPIRIT_VERSION / 0x1000,
@@ -849,10 +855,10 @@ void FFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
     html->SetSize (html->GetInternalRepresentation()->GetWidth(), 
                    html->GetInternalRepresentation()->GetHeight());
     topsizer->Add (html, 1, wxALL, 10);
-    topsizer->Add (new wxStaticLine(dlg, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
+    //topsizer->Add (new wxStaticLine(dlg, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
     wxButton *bu_ok = new wxButton (dlg, wxID_OK, "OK");
     bu_ok->SetDefault();
-    topsizer->Add (bu_ok, 0, wxALL | wxALIGN_RIGHT, 15);
+    topsizer->Add (bu_ok, 0, wxALL|wxEXPAND, 10);
     dlg->SetAutoLayout(true);
     dlg->SetSizer(topsizer);
     topsizer->Fit(dlg);
@@ -1306,6 +1312,11 @@ void FFrame::OnChangePeakType(wxCommandEvent& event)
     if (toolbar) toolbar->update_peak_type();
 }
 
+void FFrame::OnStripBg(wxCommandEvent& WXUNUSED(event))
+{
+    plot_pane->get_bg_manager()->strip_background();
+}
+
 void FFrame::SwitchToolbar(bool show)
 {
     if (show && !GetToolBar()) {
@@ -1730,7 +1741,7 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     ToggleTool(ID_ft_m_range, m == mmd_range);
     AddRadioTool(ID_ft_m_bg, "Background", wxBitmap(baseline_t_xpm), 
                                                                  wxNullBitmap, 
-                 "Baseline Mode", "Use mouse for substracting background"); 
+                 "Baseline Mode", "Use mouse for subtracting background"); 
     ToggleTool(ID_ft_m_bg, m == mmd_bg);
     AddRadioTool(ID_ft_m_add, "Add peak", wxBitmap(addpeak_t_xpm), wxNullBitmap,
                  "Add-Peak Mode", "Use mouse for adding new peaks"); 
