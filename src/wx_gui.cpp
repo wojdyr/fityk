@@ -273,12 +273,8 @@ bool FApp::OnInit(void)
 
     SetTopWindow(frame);
 
-    //run initial commands (from ~/.fityk/init file)
-    wxString fityk_dir = wxGetHomeDir() + wxFILE_SEP_PATH + config_dirname;
-    if (!wxDirExists(fityk_dir))
-        wxMkdir(fityk_dir);
-    wxString startup_file_path = fityk_dir + wxFILE_SEP_PATH 
-                                + startup_commands_filename;
+    // run initial commands (from ~/.fityk/init file)
+    wxString startup_file_path = get_user_conffile(startup_commands_filename);
     if (wxFileExists(startup_file_path)) {
         getUI()->execScript(startup_file_path.c_str());
     }
@@ -484,9 +480,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     status_bar = new FStatusBar(this);
     SetStatusBar(status_bar);
 
-    SetAutoLayout (true);
     SetSizer(sizer);
-    sizer->Fit(this);
     sizer->SetSizeHints(this);
 
 
@@ -859,7 +853,6 @@ void FFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
     wxButton *bu_ok = new wxButton (dlg, wxID_OK, "OK");
     bu_ok->SetDefault();
     topsizer->Add (bu_ok, 0, wxALL|wxEXPAND, 10);
-    dlg->SetAutoLayout(true);
     dlg->SetSizer(topsizer);
     topsizer->Fit(dlg);
     dlg->ShowModal();
@@ -1462,6 +1455,7 @@ void FFrame::OnConfigRead (wxCommandEvent& event)
 
 void FFrame::OnConfigBuiltin (wxCommandEvent& WXUNUSED(event))
 {
+    // fake config file
     wxString name = wxString(config_dirname) + wxFILE_SEP_PATH+"builtin-config";
     wxConfigBase *config = new wxConfig("", "", name, "", 
                                         wxCONFIG_USE_LOCAL_FILE);
@@ -1707,9 +1701,7 @@ FSetDlg::FSetDlg(wxWindow* parent, const wxWindowID id, const wxString& title,
     wxButton *btCancel = new wxButton (this, wxID_CANCEL, "Cancel");
     sizerH->Add (btCancel, 0, wxALL|wxALIGN_CENTER, 5 );
     sizer0->Add (sizerH, 0, wxALL|wxALIGN_CENTER, 5);
-    SetAutoLayout (true);
     SetSizer (sizer0);
-    sizer0->Fit (this);
     sizer0->SetSizeHints (this);
 }
 
@@ -1947,6 +1939,5 @@ void FStatusBar::set_hint(const char *left, const char *right)
     if (left)  SetStatusText(space + wxString(left),  sbf_hint1);
     if (right) SetStatusText(space + wxString(right), sbf_hint2);
 }
-
 
 

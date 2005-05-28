@@ -225,7 +225,6 @@ protected:
 DECLARE_EVENT_TABLE()
 };
 
-
 void add_peak(fp height, fp ctr, fp hwhm);
 void add_peak_in_range(fp xmin, fp xmax);
 extern FFrame *frame;

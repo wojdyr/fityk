@@ -533,13 +533,15 @@ void Data::export_as_script (ostream& os)
     }
     //TODO optionally embed data (?)
     os << "### data settings exported as script -- begin" << endl;
-    os << "d.load '";
-    //TODO explicit filetype, when needed.
-    for (vector<int>::iterator i = col_nums.begin(); i != col_nums.end(); i++)
-        os << *i << (i != col_nums.end() - 1 ? " : " : "  ");
-    os << filename << "'\n";
+    os << get_load_cmd();
     //TODO transform history  
     os << "### data settings -- end" << endl;
+}
+
+string Data::get_load_cmd()
+{
+    //TODO explicit filetype, when needed.
+    return "d.load " + join_vector(col_nums, ":") + "'" + filename + "'";
 }
 
 void Data::export_to_file (string filename, bool append) 
@@ -552,4 +554,5 @@ void Data::export_to_file (string filename, bool append)
     for (int i = 0; i < get_n(); i++)
         os << get_x(i) << "\t" << get_y(i) << "\t" << get_sigma(i) << endl;
 }
+
 

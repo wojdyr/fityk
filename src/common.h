@@ -105,8 +105,27 @@ inline bool is_index (int idx, const std::vector<T>& v)
     return idx >= 0 && idx < static_cast<int>(v.size()); 
 }
 
+
+template <typename T>
+inline std::string join_vector(const std::vector<T>& v, const std::string& sep)
+{
+    if (v.empty()) 
+        return "";
+    std::string s = S(v[0]);
+    for (typename std::vector<T>::const_iterator i = v.begin() + 1; 
+            i != v.end(); i++) 
+        s += sep + S(*i);
+    return s;
+}
+
+
+
 /// Round real to integer.
 inline int iround(fp d) { return static_cast<int>(floor(d+0.5)); }
+
+/// replace all occurences of old in string s with new_
+void replace_all(std::string &s, const std::string &old, 
+                                 const std::string &new_);
 
 extern int smooth_limit;
 

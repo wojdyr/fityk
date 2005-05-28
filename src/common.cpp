@@ -43,3 +43,10 @@ bool is_double (string s) {
     return (*endptr == 0); 
 }
 
+void replace_all(string &s, const string &old, const string &new_)
+{
+    string::size_type pos = 0; 
+    while ((pos = s.find(old, pos)) != string::npos) 
+        s.replace(pos, old.size(), new_);
+}
+

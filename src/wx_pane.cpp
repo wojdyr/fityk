@@ -234,10 +234,8 @@ IOPane::IOPane(wxWindow *parent, wxWindowID id)
                             wxWANTS_CHARS|wxTE_PROCESS_ENTER|wxTE_PROCESS_TAB);
     io_sizer->Add (input_field, 0, wxEXPAND);
 
-    SetAutoLayout (true);
-    SetSizer (io_sizer);
-    io_sizer->Fit (this);
-    io_sizer->SetSizeHints (this);
+    SetSizer(io_sizer);
+    io_sizer->SetSizeHints(this);
 }
 
 void IOPane::save_settings(wxConfigBase *cf) const
@@ -265,10 +263,8 @@ END_EVENT_TABLE()
     tree = new DataPaneTree(this, ID_DATAPANE_TREE);
     sizer->Add(tree, 1, wxEXPAND);
 
-    SetAutoLayout (true);
-    SetSizer (sizer);
-    sizer->Fit (this);
-    sizer->SetSizeHints (this);
+    SetSizer(sizer);
+    sizer->SetSizeHints(this);
 }
 //===============================================================
 //                            DataPaneTree

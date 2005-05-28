@@ -151,6 +151,23 @@ protected:
 };
 
 
+struct DataTransExample
+{
+    std::string name;
+    std::string category;
+    std::string description;
+    std::string code;
+    bool in_menu;
+    bool editable;
+
+    DataTransExample(const std::string& name_, const std::string& category_, 
+                     const std::string& description_, const std::string& code_,
+                     bool in_menu_=false, bool editable_=true)
+        : name(name_), category(category_), description(description_),
+          code(code_), in_menu(in_menu_), editable(editable_) {}
+   DataTransExample(std::string line);
+};
+
 class DataEditorDlg : public wxDialog
 {
 public:
@@ -169,6 +186,7 @@ public:
     void OnEActivated (wxListEvent& event);
     void update_data(Data *data_);
 protected:
+    std::vector<DataTransExample> examples;
     wxGrid *grid;
     Data *data;
     wxStaticText *filename_label, *title_label, *description;
@@ -176,8 +194,14 @@ protected:
     wxTextCtrl *code;
     wxButton *revert_button, *apply_button, *add_button, *delete_button, 
              *up_button, *down_button, *save_button, *reset_button;
+
+    void initialize_example_list(wxWindow *parent);
+    void on_changed_example_selection();
     DECLARE_EVENT_TABLE()
 };
+
+
+wxString get_user_conffile(const wxString &filename);
 
 #endif
 
