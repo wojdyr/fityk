@@ -25,6 +25,11 @@ void UserInterface::showMessage (OutputStyle style, const string& s)
     frame->output_text(style, s + "\n");
 }
 
+bool UserInterface::displayHelpTopic(const string& s)
+{
+    return frame->display_help_section(s);
+}
+
 void UserInterface::doDrawPlot(bool now, const std::vector<fp>& a)
 {
         params4plot = a;

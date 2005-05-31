@@ -60,6 +60,13 @@ void UserInterface::execCommand(const string& s)
         close();
 }
 
+bool UserInterface::displayHelpTopic(const string& s)
+{
+    showMessage(os_normal, "Sorry, help is not implemented in CLI version. "
+                        "You can try to search for '" + s + "' at HTML docs.");
+    return false;
+}
+
 void UserInterface::close()
 {
     throw ExitRequestedException();

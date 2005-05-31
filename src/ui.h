@@ -49,8 +49,10 @@ public:
                      const std::vector<int>& selected_lines=int_v0);
 
     void execAndLogCmd(const std::string& s) {log_input(s); execCommand(s);}
+
+    bool displayHelpTopic(const std::string &topic); 
     int getVerbosity() { return verbosity; }
-    //exit UI and program
+    /// exit UI and program
     void close();
 
 private:

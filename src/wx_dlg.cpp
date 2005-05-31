@@ -15,6 +15,7 @@
 #include <istream>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 #include <wx/valtext.h>
 #include <wx/statline.h>
 #include <wx/bmpbuttn.h>
@@ -1432,20 +1433,30 @@ DataTransExample::DataTransExample(string line)
     }
 }
 
+string DataTransExample::as_fileline() const
+{
+    string s = name + "|" + category + "|" + description + "|" + code 
+               + "|" + (in_menu ? "Y" : "N");
+    replace_all(s, "\n", ";");
+    return s;
+}
+
 
 BEGIN_EVENT_TABLE(DataEditorDlg, wxDialog)
     EVT_BUTTON      (wxID_REVERT_TO_SAVED,  DataEditorDlg::OnRevert)
+    EVT_BUTTON      (wxID_SAVEAS,           DataEditorDlg::OnSaveAs)
     EVT_BUTTON      (wxID_ADD,              DataEditorDlg::OnAdd)
-    EVT_BUTTON      (wxID_DELETE,           DataEditorDlg::OnDelete)
+    EVT_BUTTON      (wxID_REMOVE,           DataEditorDlg::OnRemove)
     EVT_BUTTON      (wxID_UP,               DataEditorDlg::OnUp)
     EVT_BUTTON      (wxID_DOWN,             DataEditorDlg::OnDown)
     EVT_BUTTON      (wxID_SAVE,             DataEditorDlg::OnSave)
     EVT_BUTTON      (ID_DE_RESET,           DataEditorDlg::OnReset)
     EVT_BUTTON      (wxID_APPLY,            DataEditorDlg::OnApply)
+    EVT_BUTTON      (wxID_HELP,             DataEditorDlg::OnHelp)
     EVT_BUTTON      (wxID_CLOSE,            DataEditorDlg::OnClose)
     EVT_TEXT        (ID_DE_CODE,            DataEditorDlg::OnCodeText)
     EVT_LIST_ITEM_SELECTED(ID_DE_EXAMPLES,  DataEditorDlg::OnESelected)
-    EVT_LIST_ITEM_ACTIVATED(ID_DE_EXAMPLES,  DataEditorDlg::OnEActivated)
+    EVT_LIST_ITEM_ACTIVATED(ID_DE_EXAMPLES, DataEditorDlg::OnEActivated)
 END_EVENT_TABLE()
 
 DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_)
@@ -1462,61 +1473,77 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_)
     left_sizer->Add(new wxStaticText(left_panel, -1, "Original filename:"));
     filename_label = new wxStaticText(left_panel, -1, "");
     left_sizer->Add(filename_label);
-    revert_button = new wxButton(left_panel, wxID_REVERT_TO_SAVED, 
-                                 "Revert to Saved");
-    left_sizer->Add(revert_button, 0, wxALL|wxALIGN_CENTER, 5);
+    wxBoxSizer *two_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+    revert_btn = new wxButton(left_panel, wxID_REVERT_TO_SAVED, 
+                              "Revert to Saved");
+    two_btn_sizer->Add(revert_btn, 0, wxALL|wxALIGN_CENTER, 5);
+    save_as_btn = new wxButton(left_panel, wxID_REVERT_TO_SAVED, 
+                               "Save &As...");
+    two_btn_sizer->Add(save_as_btn, 0, wxALL|wxALIGN_CENTER, 5);
+    left_sizer->Add(two_btn_sizer, 0, wxALIGN_CENTER);
     left_sizer->Add(new wxStaticText(left_panel, -1, "Data title: "),
                     0, wxLEFT|wxRIGHT|wxTOP, 5);
     title_label = new wxStaticText(left_panel, -1, "");
+    title_label->SetCursor(wxCURSOR_HAND);
+    //TODO title editing 
     left_sizer->Add(title_label, 0, wxLEFT|wxRIGHT|wxBOTTOM, 5);
-    grid = new wxGrid(left_panel, ID_DE_GRID);
+    grid = new wxGrid(left_panel, ID_DE_GRID, 
+                      wxDefaultPosition, wxSize(-1, 350));
     left_sizer->Add(grid, 1, wxEXPAND);
-    left_panel->SetSizer(left_sizer);
+    left_panel->SetSizerAndFit(left_sizer);
 
     // right side of the dialog
     wxPanel *right_panel = new wxPanel(splitter); 
     wxBoxSizer *right_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *example_sizer = new wxBoxSizer(wxHORIZONTAL);
-    initialize_example_list(right_panel);
+    example_list = new wxListCtrl(right_panel, ID_DE_EXAMPLES, 
+                                  wxDefaultPosition, wxDefaultSize,
+                                  wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_HRULES);
+    example_list->InsertColumn(0, "transformation");
+    example_list->InsertColumn(1, "in menu");
     example_sizer->Add(example_list, 1, wxEXPAND|wxALL, 5);
     wxBoxSizer *example_button_sizer = new wxBoxSizer(wxVERTICAL);
-    add_button = new wxButton(right_panel, wxID_ADD, "Add");
-    example_button_sizer->Add(add_button, 0, wxALL, 5);
-    delete_button = new wxButton(right_panel, wxID_DELETE, "&Delete");
-    example_button_sizer->Add(delete_button, 0, wxALL, 5);
-    up_button = new wxButton(right_panel, wxID_UP, "&Up");
-    example_button_sizer->Add(up_button, 0, wxALL, 5);
-    down_button = new wxButton(right_panel, wxID_DOWN, "&Down");
-    example_button_sizer->Add(down_button, 0, wxALL, 5);
-    save_button = new wxButton(right_panel, wxID_SAVE, "&Save");
-    example_button_sizer->Add(save_button, 0, wxALL, 5);
-    reset_button = new wxButton(right_panel, ID_DE_RESET, "&Reset");
-    example_button_sizer->Add(reset_button, 0, wxALL, 5);
+    add_btn = new wxButton(right_panel, wxID_ADD, "Add");
+    example_button_sizer->Add(add_btn, 0, wxALL, 5);
+    remove_btn = new wxButton(right_panel, wxID_REMOVE, "Remove");
+    example_button_sizer->Add(remove_btn, 0, wxALL, 5);
+    up_btn = new wxButton(right_panel, wxID_UP, "&Up");
+    example_button_sizer->Add(up_btn, 0, wxALL, 5);
+    down_btn = new wxButton(right_panel, wxID_DOWN, "&Down");
+    example_button_sizer->Add(down_btn, 0, wxALL, 5);
+    save_btn = new wxButton(right_panel, wxID_SAVE, "&Save");
+    example_button_sizer->Add(save_btn, 0, wxALL, 5);
+    reset_btn = new wxButton(right_panel, ID_DE_RESET, "&Reset");
+    example_button_sizer->Add(reset_btn, 0, wxALL, 5);
     example_sizer->Add(example_button_sizer, 0);
-    right_sizer->Add(example_sizer, 1, wxEXPAND);
+    right_sizer->Add(example_sizer, 0, wxEXPAND);
     description = new wxStaticText(right_panel, -1, "\n\n\n\n", 
                                    wxDefaultPosition, wxDefaultSize,
                                    wxALIGN_LEFT);
     right_sizer->Add(description, 0, wxEXPAND|wxALL, 5);
     code = new wxTextCtrl(right_panel, ID_DE_CODE, "", 
-                          wxDefaultPosition, wxSize(-1, 100),
-                          wxTE_MULTILINE|wxHSCROLL);
+                          wxDefaultPosition, wxDefaultSize,
+                          wxTE_MULTILINE|wxHSCROLL|wxVSCROLL);
     right_sizer->Add(code, 1, wxEXPAND|wxALL, 5);
-    apply_button = new wxButton(right_panel, wxID_APPLY, "&Apply");
-    right_sizer->Add(apply_button, 0, wxALIGN_CENTER|wxALL, 5);
-    //TODO help_button
-    right_panel->SetSizer(right_sizer);
-    right_sizer->SetSizeHints(right_panel);
+    wxBoxSizer *apply_help_sizer = new wxBoxSizer(wxHORIZONTAL);
+    apply_help_sizer->Add(1, 1, 1);
+    apply_btn = new wxButton(right_panel, wxID_APPLY, "&Apply");
+    apply_help_sizer->Add(apply_btn, 0, wxALIGN_CENTER|wxALL, 5);
+    apply_help_sizer->Add(1, 1, 1);
+    help_btn = new wxButton(right_panel, wxID_HELP, "&Help");
+    apply_help_sizer->Add(help_btn, 0, wxALIGN_RIGHT|wxALL, 5);
+    right_sizer->Add(apply_help_sizer, 0, wxEXPAND);
+    right_panel->SetSizerAndFit(right_sizer);
 
-
-    // a bit of logic
-    on_changed_example_selection();
-
+    // setting column sizes and a bit of logic
     update_data(data_);
     grid->SetEditable(true);
     grid->SetColumnWidth(0, 40);
     grid->SetRowLabelSize(60);
-    apply_button->Enable(false);
+    read_examples();
+    for (int i = 0; i < 2; i++)
+        example_list->SetColumnWidth(i, wxLIST_AUTOSIZE);
+    apply_btn->Enable(false);
 
     // finishing layout
     splitter->SplitVertically(left_panel, right_panel);
@@ -1525,28 +1552,23 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_)
     top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
     top_sizer->Add(new wxButton(this, wxID_CLOSE, "&Close"), 
                    0, wxALIGN_CENTER|wxALL, 5);
-    SetSizer(top_sizer);
-    top_sizer->SetSizeHints(this);
+    SetSizerAndFit(top_sizer);
+    Centre();
 }
 
-void DataEditorDlg::initialize_example_list(wxWindow *parent)
+void DataEditorDlg::read_examples(bool reset)
 {
-    example_list = new wxListCtrl(parent, ID_DE_EXAMPLES, 
-                                  wxDefaultPosition, wxDefaultSize,
-                                  wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_HRULES);
-    example_list->InsertColumn(0, "transformation");
-    example_list->InsertColumn(1, "in menu");
-    // add items
-    examples.push_back(DataTransExample("custom", "blank", 
+    examples.clear();
+    // this item should be always present
+    examples.push_back(DataTransExample("custom", "builtin", 
                                         "Custom transformation.\n"
                                         "You can type eg. Y=log10(y).\n"
                                         "See Help for details.",
                                         "", false, false));
     //TODO last transformation item
-    // run initial commands (from ~/.fityk/init file)
     wxString transform_path = get_user_conffile("transform");
     string t_line;
-    if (wxFileExists(transform_path)) {
+    if (wxFileExists(transform_path) && !reset) {
         ifstream f(transform_path.c_str());
         while (getline(f, t_line))
             examples.push_back(DataTransExample(t_line));
@@ -1556,28 +1578,33 @@ void DataEditorDlg::initialize_example_list(wxWindow *parent)
         while (getline(f, t_line))
             examples.push_back(DataTransExample(t_line));
     }
-    for (int i = 0; i < size(examples); ++i) {
-        const DataTransExample& ex = examples[i];
-        example_list->InsertItem(i, ex.name.c_str());
-        example_list->SetItem(i, 1, (ex.in_menu ? "Yes" : "No"));
-    }
-    //example_list->SetItemState (0, wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED,
-    //                           wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED);
+
+    example_list->DeleteAllItems();
+    for (int i = 0; i < size(examples); ++i) 
+        insert_example_list_item(i);
+    select_example(0);
 }
 
-void DataEditorDlg::on_changed_example_selection()
+void DataEditorDlg::insert_example_list_item(int n)
 {
-    int item = example_list->GetNextItem(-1, wxLIST_NEXT_ALL, 
-                                         wxLIST_STATE_SELECTED);
-    if (item == -1) {
-        item = 0;
-        example_list->SetItemState(0,wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED,
-                                   wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED);
-    }
-    const DataTransExample& ex = examples[item];
-    description->SetLabel(ex.description.c_str());
-    code->SetValue(ex.code.c_str());
+    const DataTransExample& ex = examples[n];
+    example_list->InsertItem(n, ex.name.c_str());
+    example_list->SetItem(n, 1, (ex.in_menu ? "Yes" : "No"));
+}
 
+void DataEditorDlg::select_example(int item)
+{
+    if (item >= example_list->GetItemCount())
+        return;
+    example_list->SetItemState (item, 
+                                wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED,
+                                wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED);
+    // ESelected();
+}
+
+int DataEditorDlg::get_selected_item()
+{
+    return example_list->GetNextItem(-1,wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 }
 
 void DataEditorDlg::update_data(Data *data_)
@@ -1593,44 +1620,92 @@ void DataEditorDlg::update_data(Data *data_)
 
 void DataEditorDlg::OnRevert (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command("d.load ");
+    exec_command(my_data->get_load_cmd());
+    grid->ForceRefresh();
+    grid->AdjustScrollbars();
+}
+
+void DataEditorDlg::OnSaveAs (wxCommandEvent& WXUNUSED(event))
+{
+    bool ok = export_data_dlg(GetParent(), true);
+    if (ok) {
+        filename_label->SetLabel(my_data->get_filename().c_str());
+    }
 }
 
 void DataEditorDlg::OnAdd (wxCommandEvent& WXUNUSED(event))
 {
-    //TODO
+    edit_item(-1, DataTransExample("new", "user-defined",
+                                   "", code->GetValue().c_str()));
 }
 
-void DataEditorDlg::OnDelete (wxCommandEvent& WXUNUSED(event))
+void DataEditorDlg::OnRemove (wxCommandEvent& WXUNUSED(event))
 {
-    //TODO
+    int item = get_selected_item();
+    if (item == -1 || examples[item].category == "builtin")
+        return;
+    examples.erase(examples.begin() + item);
+    example_list->DeleteItem(item);
+    select_example(item > 0 ? item-1 : 0);
 }
 
 void DataEditorDlg::OnUp (wxCommandEvent& WXUNUSED(event))
 {
-    //TODO
+    int item = get_selected_item();
+    if (item == 0)
+        return;
+    // swap item-1 and item
+    DataTransExample ex = examples[item-1];
+    examples.erase(examples.begin() + item - 1);
+    example_list->DeleteItem(item-1);
+    examples.insert(examples.begin() + item, ex);
+    insert_example_list_item(item);
+    up_btn->Enable(item-1 > 0);
+    down_btn->Enable(true);
 }
 
 void DataEditorDlg::OnDown (wxCommandEvent& WXUNUSED(event))
 {
-    //TODO
+    int item = get_selected_item();
+    if (item >= size(examples) - 1)
+        return;
+    // swap item+1 and item
+    DataTransExample ex = examples[item+1];
+    examples.erase(examples.begin() + item + 1);
+    example_list->DeleteItem(item+1);
+    examples.insert(examples.begin() + item, ex);
+    insert_example_list_item(item);
+    up_btn->Enable(true);
+    down_btn->Enable(item+1 < example_list->GetItemCount() - 1);
 }
 
 void DataEditorDlg::OnSave (wxCommandEvent& WXUNUSED(event))
 {
-    //TODO
+    wxString transform_path = get_user_conffile("transform");
+    ofstream f(transform_path.c_str());
+    for (vector<DataTransExample>::const_iterator i = examples.begin();
+            i != examples.end(); ++i)
+        if (i->category != "builtin")
+            f << i->as_fileline() << endl;
 }
 
 void DataEditorDlg::OnReset (wxCommandEvent& WXUNUSED(event))
 {
-    //TODO
+    read_examples(true);
 }
 
 void DataEditorDlg::OnApply (wxCommandEvent& WXUNUSED(event))
 {
     string t = code->GetValue().Trim().c_str();
-    replace_all(t, "\n", ";   d.transform");
+    replace_all(t, "\n", ";   d.transform ");
     exec_command("d.transform " + t);
+    grid->ForceRefresh();
+    grid->AdjustScrollbars();
+}
+
+void DataEditorDlg::OnHelp (wxCommandEvent& WXUNUSED(event))
+{
+    getUI()->displayHelpTopic("Data transformations");
 }
 
 void DataEditorDlg::OnClose (wxCommandEvent& event)
@@ -1638,22 +1713,44 @@ void DataEditorDlg::OnClose (wxCommandEvent& event)
     OnCancel(event);
 }
 
-void DataEditorDlg::OnCodeText (wxCommandEvent& WXUNUSED(event))
+void DataEditorDlg::CodeText()
 {
     wxString text = code->GetValue().Trim();
-    apply_button->Enable(!text.IsEmpty());
+    apply_btn->Enable(!text.IsEmpty());
 }
 
-void DataEditorDlg::OnESelected (wxListEvent& WXUNUSED(event))
+void DataEditorDlg::ESelected()
 {
-    on_changed_example_selection();
+    int item = get_selected_item();
+    if (item == -1) {
+        item = 0;
+        select_example(0);
+        return;
+    }
+    const DataTransExample& ex = examples[item];
+    // to avoid frequent resizing, description should have >= 3 lines
+    string desc = ex.description;
+    for (int i = count(desc.begin(), desc.end(), '\n') + 1; i < 3; ++i)
+        desc += "\n";
+    description->SetLabel(desc.c_str());
+    Layout(); // to resize description
+    code->SetValue(ex.code.c_str());
+
+    up_btn->Enable(item > 0);
+    down_btn->Enable(item < example_list->GetItemCount() - 1);
+    remove_btn->Enable(ex.category != "builtin");
+    CodeText();
 }
 
 void DataEditorDlg::OnEActivated (wxListEvent& event)
 {
-    //TODO
+    int n = event.GetIndex();
+    edit_item(n, examples[n]);
 }
 
+void DataEditorDlg::edit_item(int n, DataTransExample ex)
+{
+}
 
 
 /// get path ~/.fityk/filename and create ~/.fityk/ dir if not exists
@@ -1663,6 +1760,26 @@ wxString get_user_conffile(const wxString &filename)
     if (!wxDirExists(fityk_dir))
         wxMkdir(fityk_dir);
     return fityk_dir + wxFILE_SEP_PATH + filename;
+}
+
+
+/// show "Export data" dialog
+bool export_data_dlg(wxWindow *parent, bool load_exported)
+{
+    static wxString dir = ".";
+    wxFileDialog fdlg (parent, "Export data to file", dir, "",
+                       "x y data (*.dat, *.xy)|*.dat;*.DAT;*.xy;*.XY",
+                       wxSAVE | wxOVERWRITE_PROMPT);
+    dir = fdlg.GetDirectory();
+    if (fdlg.ShowModal() == wxID_OK) {
+        string path = fdlg.GetPath().c_str();
+        exec_command("d.export '" + path + "'");
+        if (load_exported)
+            exec_command("d.load '" + path + "'");
+        return true;
+    }
+    else
+        return false;
 }
 
 

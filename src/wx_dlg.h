@@ -166,6 +166,7 @@ struct DataTransExample
         : name(name_), category(category_), description(description_),
           code(code_), in_menu(in_menu_), editable(editable_) {}
    DataTransExample(std::string line);
+   std::string as_fileline() const;
 };
 
 class DataEditorDlg : public wxDialog
@@ -173,16 +174,20 @@ class DataEditorDlg : public wxDialog
 public:
     DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_);
     void OnRevert (wxCommandEvent& event);
+    void OnSaveAs (wxCommandEvent& event);
     void OnAdd (wxCommandEvent& event);
-    void OnDelete (wxCommandEvent& event);
+    void OnRemove (wxCommandEvent& event);
     void OnUp (wxCommandEvent& event);
     void OnDown (wxCommandEvent& event);
     void OnSave (wxCommandEvent& event);
     void OnReset (wxCommandEvent& event);
     void OnApply (wxCommandEvent& event);
+    void OnHelp (wxCommandEvent& event);
     void OnClose (wxCommandEvent& event);
-    void OnCodeText (wxCommandEvent& event);
-    void OnESelected (wxListEvent& event);
+    void OnCodeText (wxCommandEvent&) { CodeText(); }
+    void CodeText();
+    void OnESelected (wxListEvent&) { ESelected(); }
+    void ESelected();
     void OnEActivated (wxListEvent& event);
     void update_data(Data *data_);
 protected:
@@ -192,16 +197,21 @@ protected:
     wxStaticText *filename_label, *title_label, *description;
     wxListCtrl *example_list; 
     wxTextCtrl *code;
-    wxButton *revert_button, *apply_button, *add_button, *delete_button, 
-             *up_button, *down_button, *save_button, *reset_button;
+    wxButton *revert_btn, *save_as_btn, *apply_btn, *help_btn,
+             *add_btn, *remove_btn, *up_btn, *down_btn, 
+             *save_btn, *reset_btn;
 
-    void initialize_example_list(wxWindow *parent);
-    void on_changed_example_selection();
+    void read_examples(bool reset=false);
+    int get_selected_item();
+    void insert_example_list_item(int n);
+    void select_example(int item);
+    void edit_item(int n, DataTransExample ex);
     DECLARE_EVENT_TABLE()
 };
 
 
 wxString get_user_conffile(const wxString &filename);
+bool export_data_dlg(wxWindow *parent, bool load_exported=false);
 
 #endif
 

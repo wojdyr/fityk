@@ -189,6 +189,7 @@ public:
     void focus_input();
     void set_status_text(const wxString &text, StatusBarField field=sbf_text) 
             { if (status_bar) SetStatusText(text, field); }
+    bool display_help_section(const std::string &s);
 
 protected:
     ProportionalSplitter *main_pane;

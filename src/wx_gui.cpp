@@ -90,8 +90,8 @@ char* about_html =
 "  <table cellspacing=3 cellpadding=4 width=100%>                        "
 "   <tr bgcolor=#101010 align=center> <td>                               "
 "      <h1> fityk " VERSION "</h1>                                       "
-"      <h6> powered by " wxVERSION_STRING "</h6>                         "
-"      <h6> powered by Boost.Spirit %d.%d.%d</h6>                        "
+"      <h6> powered by " wxVERSION_STRING "<br>                          "
+"           powered by Boost.Spirit %d.%d.%d</h6>                        "
 "      <p><font size=-2>$Date$</font></p>          "
 "   </td> </tr>                                                          "
 "   <tr> <td bgcolor=#73A183>                                            "
@@ -835,6 +835,11 @@ void FFrame::OnShowHelp(wxCommandEvent& WXUNUSED(event))
         help.DisplayContents();
 }
 
+bool FFrame::display_help_section(const string &s)
+{
+    return help.DisplaySection(s.c_str());
+}
+
 void FFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
     wxDialog* dlg = new wxDialog(this, -1, wxString("About..."));
@@ -942,17 +947,7 @@ void FFrame::OnDInfo (wxCommandEvent& WXUNUSED(event))
 
 void FFrame::OnDExport (wxCommandEvent& WXUNUSED(event))
 {
-    static int filter_idx = 0;
-    static wxString dir = ".";
-    wxFileDialog fdlg (frame, "Export data to file", dir, "",
-                       "x y data (*.dat)|*.dat;*.DAT"
-                       "|fityk file (*.fit)|*.fit;*.FIT",
-                       wxSAVE | wxOVERWRITE_PROMPT);
-    fdlg.SetFilterIndex(filter_idx);
-    if (fdlg.ShowModal() == wxID_OK) 
-        exec_command (("d.export '" + fdlg.GetPath() + "'").c_str());
-    filter_idx = fdlg.GetFilterIndex();
-    dir = fdlg.GetDirectory();
+    export_data_dlg(this);
 }
 
 void FFrame::OnSHistory      (wxCommandEvent& WXUNUSED(event))
@@ -1007,7 +1002,7 @@ void FFrame::OnSExport       (wxCommandEvent& WXUNUSED(event))
     static int filter_idx = 0;
     static wxString dir = ".";
     wxString name = wxFileName(my_data->get_filename().c_str()).GetName();
-    wxFileDialog fdlg (frame, "Export curve to file", dir, name,
+    wxFileDialog fdlg (this, "Export curve to file", dir, name,
                        "parameters of peaks (*.peaks)|*.peaks"
                        "|x y data (*.dat)|*.dat;*.DAT"
                        "|XFIT peak listing (*xfit.txt)|*xfit.txt;*XFIT.TXT" 
@@ -1112,7 +1107,7 @@ void FFrame::OnCSet          (wxCommandEvent& WXUNUSED(event))
 
 void FFrame::OnOLog          (wxCommandEvent& WXUNUSED(event))
 {
-    wxFileDialog fdlg (frame, "Log to file", "", "",
+    wxFileDialog fdlg (this, "Log to file", "", "",
                        "Log input to file (*.fit)|*.fit;*.FIT"
                        "|Log output to file (*.fit)|*.fit;*.FIT"
                        "|Log input & output (*.fit)|*.fit;*.FIT"
@@ -1156,7 +1151,7 @@ void FFrame::OnO_Reset   (wxCommandEvent& WXUNUSED(event))
 void FFrame::OnOInclude      (wxCommandEvent& WXUNUSED(event))
 {
     static wxString dir = ".";
-    wxFileDialog fdlg (frame, "Execute commands from file", dir, "",
+    wxFileDialog fdlg (this, "Execute commands from file", dir, "",
                               "fityk file (*.fit)|*.fit;*.FIT|all files|*",
                               wxOPEN | wxFILE_MUST_EXIST);
     if (fdlg.ShowModal() == wxID_OK) {
@@ -1182,7 +1177,7 @@ void FFrame::OnOWait         (wxCommandEvent& WXUNUSED(event))
          
 void FFrame::OnODump         (wxCommandEvent& WXUNUSED(event))
 {
-    wxFileDialog fdlg (frame, "Dump current program state to file as script", 
+    wxFileDialog fdlg (this, "Dump current program state to file as script", 
                                 "", "", "fityk file (*.fit)|*.fit;*.FIT",
                        wxSAVE | wxOVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) 

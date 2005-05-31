@@ -541,7 +541,7 @@ void Data::export_as_script (ostream& os)
 string Data::get_load_cmd()
 {
     //TODO explicit filetype, when needed.
-    return "d.load " + join_vector(col_nums, ":") + "'" + filename + "'";
+    return "d.load " + join_vector(col_nums, ":") + " '" + filename + "'";
 }
 
 void Data::export_to_file (string filename, bool append) 
