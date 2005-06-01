@@ -9,16 +9,7 @@
 
 * write a good portable .spec (spec is used for building RPM)
 
-* d.transform  --  new powerful command for transforming data, 
-      that will replace d.deviation, d.range(?). It is partially done
-      (as a separate program) using boost::spirit. Examples:
-      d.transform Y[n>0] = Y[n-1] + y[n]     -> will integrate data
-      d.transform S = sqrt(max(1,y[n]))      -> will set std. dev.
-      d.transform x=y & y=x                  -> will swap x and y axes 
-
-* GUI for d.transform command 
-
-* (GUI) Data->Revert, datapane - "duplicate" command 
+* (GUI) datapane - "duplicate" command 
 
 * (GUI) datapane tree - hint with full filenames, editable labels (titles)
 

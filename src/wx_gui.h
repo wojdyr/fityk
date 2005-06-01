@@ -110,6 +110,8 @@ public:
     void OnDXLoad        (wxCommandEvent& event);   
     void OnDRecent       (wxCommandEvent& event);
     void OnDEditor       (wxCommandEvent& event);
+    void OnFastDT        (wxCommandEvent& event);
+    void OnFastDTUpdate  (wxUpdateUIEvent& event);           
     void OnDInfo         (wxCommandEvent& event);
     void OnDExport       (wxCommandEvent& event);
 
@@ -212,7 +214,7 @@ protected:
 #endif
     std::string last_include_path;
     std::list<wxFileName> recent_data_files;
-    wxMenu *data_menu_recent;
+    wxMenu *data_menu_recent, *data_ft_menu;
 
     void place_plot_and_io_windows(wxWindow *parent);
     void create_io_panel(wxWindow *parent);

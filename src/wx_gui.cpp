@@ -122,10 +122,12 @@ enum {
     ID_H_TIP                   ,
     ID_D_LOAD                  ,
     ID_D_XLOAD                 ,
-    ID_D_RECENT        = 24010 , //and next ones
-    ID_D_INFO          = 24130 ,
+    ID_D_RECENT                , //and next ones
+    ID_D_RECENT_END = ID_D_RECENT+30 , 
+    ID_D_INFO                  ,
     ID_D_EDITOR                ,
-    ID_D_BACKGROUND            ,
+    ID_D_FDT                   ,
+    ID_D_FDT_END = ID_D_FDT+50 ,
     ID_D_EXPORT                ,
     ID_S_ADD                   ,
     ID_S_HISTORY               ,
@@ -142,8 +144,9 @@ enum {
     ID_F_CONTINUE              ,
     ID_F_INFO                  ,
     ID_F_SET                   ,
-    ID_F_M             = 24160 , // and a few next IDs
-    ID_C_WAVELENGTH    = 24171 ,
+    ID_F_M                     , 
+    ID_F_M_END = ID_F_M+10     , 
+    ID_C_WAVELENGTH            ,
     ID_C_ADD                   ,
     ID_C_INFO                  ,
     ID_C_REMOVE                ,
@@ -166,8 +169,9 @@ enum {
     ID_G_M_ADD                 ,
     ID_G_M_BG_STRIP            ,
     ID_G_M_PEAK                ,
-    ID_G_M_PEAK_N      = 24220 ,
-    ID_G_SHOW          = 24260 ,
+    ID_G_M_PEAK_N              ,
+    ID_G_M_PEAK_N_END = ID_G_M_PEAK_N+40 ,
+    ID_G_SHOW                  ,
     ID_G_S_TOOLBAR             ,
     ID_G_S_STATBAR             ,
     ID_G_S_DPANE               ,
@@ -179,8 +183,9 @@ enum {
     ID_G_V_VERT                ,
     ID_G_V_SCROLL_L            ,
     ID_G_V_SCROLL_R            ,
-    ID_G_V_ZOOM_PREV   = 24302 ,
-    ID_G_LCONF1        = 24342 ,
+    ID_G_V_ZOOM_PREV           ,
+    ID_G_V_ZOOM_PREV_END = ID_G_V_ZOOM_PREV+40 ,
+    ID_G_LCONF1                ,
     ID_G_LCONF2                ,
     ID_G_LCONFB                ,
     ID_G_SCONF                 ,
@@ -360,8 +365,10 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
 
     EVT_MENU (ID_D_LOAD,        FFrame::OnDLoad)   
     EVT_MENU (ID_D_XLOAD,       FFrame::OnDXLoad)   
-    EVT_MENU_RANGE (ID_D_RECENT+1, ID_D_RECENT+100, FFrame::OnDRecent)
+    EVT_MENU_RANGE (ID_D_RECENT+1, ID_D_RECENT_END, FFrame::OnDRecent)
     EVT_MENU (ID_D_EDITOR,      FFrame::OnDEditor)
+    EVT_UPDATE_UI (ID_D_FDT,    FFrame::OnFastDTUpdate)
+    EVT_MENU_RANGE (ID_D_FDT+1, ID_D_FDT_END, FFrame::OnFastDT)
     EVT_MENU (ID_D_INFO,        FFrame::OnDInfo)
     EVT_MENU (ID_D_EXPORT,      FFrame::OnDExport) 
 
@@ -378,7 +385,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_M_SET,         FFrame::OnMSet)
 
     EVT_UPDATE_UI (ID_F_METHOD, FFrame::OnFMethodUpdate)
-    EVT_MENU_RANGE (ID_F_M+0, ID_F_M+8, FFrame::OnFOneOfMethods)    
+    EVT_MENU_RANGE (ID_F_M+0, ID_F_M_END, FFrame::OnFOneOfMethods)    
     EVT_MENU (ID_F_RUN,         FFrame::OnFRun)    
     EVT_MENU (ID_F_CONTINUE,    FFrame::OnFContinue)    
     EVT_MENU (ID_F_INFO,        FFrame::OnFInfo)    
@@ -409,7 +416,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_M_BG,        FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_ADD,       FFrame::OnChangeMouseMode)
     EVT_UPDATE_UI (ID_G_M_PEAK, FFrame::OnModePeak)
-    EVT_MENU_RANGE (ID_G_M_PEAK_N+0, ID_G_M_PEAK_N+30, FFrame::OnChangePeakType)
+    EVT_MENU_RANGE (ID_G_M_PEAK_N, ID_G_M_PEAK_N_END, FFrame::OnChangePeakType)
     EVT_MENU (ID_G_M_BG_STRIP,  FFrame::OnStripBg)
     EVT_UPDATE_UI (ID_G_SHOW,   FFrame::OnGuiShowUpdate)
     EVT_MENU (ID_G_S_DPANE,     FFrame::OnSwitchDPane)
@@ -423,7 +430,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_V_SCROLL_L,  FFrame::OnGScrollLeft)
     EVT_MENU (ID_G_V_SCROLL_R,  FFrame::OnGScrollRight)
     EVT_UPDATE_UI (ID_G_V_ZOOM_PREV, FFrame::OnShowMenuZoomPrev)
-    EVT_MENU_RANGE (ID_G_V_ZOOM_PREV+1, ID_G_V_ZOOM_PREV+20, 
+    EVT_MENU_RANGE (ID_G_V_ZOOM_PREV+1, ID_G_V_ZOOM_PREV_END, 
                                 FFrame::OnPreviousZoom)    
     EVT_MENU (ID_G_LCONF1,      FFrame::OnConfigRead)
     EVT_MENU (ID_G_LCONF2,      FFrame::OnConfigRead)
@@ -635,6 +642,9 @@ void FFrame::set_menubar()
     data_menu->AppendSeparator();
 
     data_menu->Append (ID_D_EDITOR,   "&Editor", "Open data editor");
+    this->data_ft_menu = new wxMenu;
+    data_menu->Append (ID_D_FDT,      "&Fast DT", data_ft_menu, 
+                                      "Quick data transformations");
     data_menu->Append (ID_D_INFO,     "&Info", "Info about loaded data");
     data_menu->Append (ID_D_EXPORT,   "&Export", "Save data to file");
 
@@ -938,6 +948,38 @@ void FFrame::OnDEditor (wxCommandEvent& WXUNUSED(event))
     else {
         data_editor->update_data(my_data);
     }
+}
+
+void FFrame::OnFastDTUpdate (wxUpdateUIEvent& event)
+{
+    const vector<DataTransExample> &examples = DataEditorDlg::get_examples();
+    bool ok = true;
+    int menu_len = data_ft_menu->GetMenuItemCount();
+    for (int i = 0; i < size(examples); ++i) {
+        int id = ID_D_FDT+i+1;
+        wxString name = examples[i].name.c_str();
+        if (i >= menu_len)
+            data_ft_menu->Append(id, name);
+        else if (data_ft_menu->GetLabel(id) == name)
+            continue;
+        else
+            data_ft_menu->SetLabel(id, name);
+    }
+    for (int i = size(examples); i < menu_len; ++i) 
+        data_ft_menu->Delete(ID_D_FDT+i+1);
+    event.Skip();
+}
+
+void FFrame::OnFastDT (wxCommandEvent& event)
+{
+    string name = GetMenuBar()->GetLabel(event.GetId()).c_str();
+    const vector<DataTransExample> &examples = DataEditorDlg::get_examples();
+    for (vector<DataTransExample>::const_iterator i = examples.begin();
+            i != examples.end(); ++i)
+        if (i->name == name) {
+            DataEditorDlg::execute_tranform(i->code);
+            return;
+        }
 }
 
 void FFrame::OnDInfo (wxCommandEvent& WXUNUSED(event))
@@ -1285,6 +1327,7 @@ void FFrame::OnChangeMouseMode (wxCommandEvent& event)
         default: assert(0);
     }
     toolbar->EnableTool(ID_ft_b_strip, (mode == mmd_bg));
+    GetMenuBar()->Enable(ID_G_M_BG_STRIP, (mode == mmd_bg));
     plot_pane->set_mouse_mode(mode);
 }
 

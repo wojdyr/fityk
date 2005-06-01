@@ -190,8 +190,11 @@ public:
     void ESelected();
     void OnEActivated (wxListEvent& event);
     void update_data(Data *data_);
+    static const std::vector<DataTransExample>& get_examples() 
+                                                    { return examples; }
+    static void DataEditorDlg::execute_tranform(std::string code);
 protected:
-    std::vector<DataTransExample> examples;
+    static std::vector<DataTransExample> examples;
     wxGrid *grid;
     Data *data;
     wxStaticText *filename_label, *title_label, *description;
@@ -205,7 +208,7 @@ protected:
     int get_selected_item();
     void insert_example_list_item(int n);
     void select_example(int item);
-    void edit_item(int n, DataTransExample ex);
+    void edit_item(int n, DataTransExample &ex);
     DECLARE_EVENT_TABLE()
 };
 

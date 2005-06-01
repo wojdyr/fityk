@@ -1,3 +1,9 @@
+User-visible changes in version 0.5.0 (2005-0 -  ):
+* d.transform  --  new quite powerful command for transforming data, 
+  Commands d.deviation, d.range, d.background, d.calibrate, d.set were removed.
+  Handling of background (and calibration) is now a little different.
+* added Data Editor dialog and Data->Fast DT menu. 
+
 User-visible changes in version 0.4.4 (2005-03-04):
 
 * fixed Pseudo-Voigt formula in manual (program was not changed) (David Hovis)

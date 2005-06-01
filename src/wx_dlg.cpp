@@ -1460,7 +1460,7 @@ BEGIN_EVENT_TABLE(DataEditorDlg, wxDialog)
 END_EVENT_TABLE()
 
 DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_)
-    : wxDialog(parent, id, "Data Viewer", 
+    : wxDialog(parent, id, "Data Editor", 
                wxDefaultPosition, wxDefaultSize, 
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
       data(0)
@@ -1484,8 +1484,6 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_)
     left_sizer->Add(new wxStaticText(left_panel, -1, "Data title: "),
                     0, wxLEFT|wxRIGHT|wxTOP, 5);
     title_label = new wxStaticText(left_panel, -1, "");
-    title_label->SetCursor(wxCURSOR_HAND);
-    //TODO title editing 
     left_sizer->Add(title_label, 0, wxLEFT|wxRIGHT|wxBOTTOM, 5);
     grid = new wxGrid(left_panel, ID_DE_GRID, 
                       wxDefaultPosition, wxSize(-1, 350));
@@ -1555,6 +1553,8 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_)
     SetSizerAndFit(top_sizer);
     Centre();
 }
+
+std::vector<DataTransExample> DataEditorDlg::examples;
 
 void DataEditorDlg::read_examples(bool reset)
 {
@@ -1696,11 +1696,15 @@ void DataEditorDlg::OnReset (wxCommandEvent& WXUNUSED(event))
 
 void DataEditorDlg::OnApply (wxCommandEvent& WXUNUSED(event))
 {
-    string t = code->GetValue().Trim().c_str();
-    replace_all(t, "\n", ";   d.transform ");
-    exec_command("d.transform " + t);
+    execute_tranform(code->GetValue().Trim().c_str());
     grid->ForceRefresh();
     grid->AdjustScrollbars();
+}
+
+void DataEditorDlg::execute_tranform(string code)
+{
+    replace_all(code, "\n", ";   d.transform ");
+    exec_command("d.transform " + code);
 }
 
 void DataEditorDlg::OnHelp (wxCommandEvent& WXUNUSED(event))
@@ -1748,8 +1752,9 @@ void DataEditorDlg::OnEActivated (wxListEvent& event)
     edit_item(n, examples[n]);
 }
 
-void DataEditorDlg::edit_item(int n, DataTransExample ex)
+void DataEditorDlg::edit_item(int n, DataTransExample &ex)
 {
+    // TODO
 }
 
 
