@@ -175,7 +175,7 @@ int Data::load_file (const string &file, int type, const vector<int> &cols)
         load_mca_filetype(f);
     else if (type=='r')                       // .rit
         load_rit_filetype(f);
-    else if (type=='c')                       // .rit
+    else if (type=='c')                       // .cpi
         load_cpi_filetype(f);
     else if (type=='s')                       // .raw
         load_siemensbruker_filetype(filename, this);

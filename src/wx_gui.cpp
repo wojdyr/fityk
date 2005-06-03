@@ -168,6 +168,9 @@ enum {
     ID_G_M_BG                  ,
     ID_G_M_ADD                 ,
     ID_G_M_BG_STRIP            ,
+    ID_G_M_BG_CLEAR            ,
+    ID_G_M_BG_SPLINE           ,
+    ID_G_M_BG_SUB              ,
     ID_G_M_PEAK                ,
     ID_G_M_PEAK_N              ,
     ID_G_M_PEAK_N_END = ID_G_M_PEAK_N+40 ,
@@ -259,6 +262,8 @@ bool FApp::OnInit(void)
     wxConfigBase *config = new wxConfig("", "", pre+"wxoptions", "", 
                                         wxCONFIG_USE_LOCAL_FILE);
     wxConfig::Set(config);
+
+    DataEditorDlg::read_examples();
 
     // Create the main frame window
     frame = new FFrame(NULL, -1, app_name, wxDEFAULT_FRAME_STYLE);
@@ -418,6 +423,8 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_UPDATE_UI (ID_G_M_PEAK, FFrame::OnModePeak)
     EVT_MENU_RANGE (ID_G_M_PEAK_N, ID_G_M_PEAK_N_END, FFrame::OnChangePeakType)
     EVT_MENU (ID_G_M_BG_STRIP,  FFrame::OnStripBg)
+    EVT_MENU (ID_G_M_BG_CLEAR,  FFrame::OnClearBg)
+    EVT_MENU (ID_G_M_BG_SPLINE, FFrame::OnSplineBg)
     EVT_UPDATE_UI (ID_G_SHOW,   FFrame::OnGuiShowUpdate)
     EVT_MENU (ID_G_S_DPANE,     FFrame::OnSwitchDPane)
     EVT_MENU_RANGE (ID_G_S_A1, ID_G_S_A2, FFrame::OnSwitchAuxPlot)
@@ -643,7 +650,7 @@ void FFrame::set_menubar()
 
     data_menu->Append (ID_D_EDITOR,   "&Editor", "Open data editor");
     this->data_ft_menu = new wxMenu;
-    data_menu->Append (ID_D_FDT,      "&Fast DT", data_ft_menu, 
+    data_menu->Append (ID_D_FDT,      "&Fast Transformations", data_ft_menu, 
                                       "Quick data transformations");
     data_menu->Append (ID_D_INFO,     "&Info", "Info about loaded data");
     data_menu->Append (ID_D_EXPORT,   "&Export", "Save data to file");
@@ -716,9 +723,16 @@ void FFrame::set_menubar()
     gui_menu_mode->AppendSeparator();
     gui_menu_mode->Append (ID_G_M_PEAK, "Peak &type", gui_menu_mode_peak);
     gui_menu_mode->AppendSeparator();
-    gui_menu_mode->Append (ID_G_M_BG_STRIP, "&Strip baseline", 
+    wxMenu* baseline_menu = new wxMenu;
+    baseline_menu->Append (ID_G_M_BG_STRIP, "&Strip baseline", 
                            "Subtract selected baseline from data");
-    gui_menu_mode->Enable(ID_G_M_BG_STRIP, false);
+    baseline_menu->Append (ID_G_M_BG_CLEAR, "&Clear baseline", 
+                           "Clear baseline points");
+    baseline_menu->AppendCheckItem (ID_G_M_BG_SPLINE, "&Spline interpolation", 
+                                    "Cubic spline interpolation of points");
+    baseline_menu->Check(ID_G_M_BG_SPLINE, true);
+    gui_menu_mode->Append(ID_G_M_BG_SUB, "Baseline handling", baseline_menu);
+    gui_menu_mode->Enable(ID_G_M_BG_SUB, false);
     gui_menu->Append(ID_G_MODE, "&Mode", gui_menu_mode);
     gui_menu->AppendSeparator();
     wxMenu* gui_menu_show = new wxMenu;
@@ -952,8 +966,12 @@ void FFrame::OnDEditor (wxCommandEvent& WXUNUSED(event))
 
 void FFrame::OnFastDTUpdate (wxUpdateUIEvent& event)
 {
-    const vector<DataTransExample> &examples = DataEditorDlg::get_examples();
-    bool ok = true;
+    const vector<DataTransExample> &all = DataEditorDlg::get_examples();
+    vector<DataTransExample> examples;
+    for (vector<DataTransExample>::const_iterator i = all.begin(); 
+            i != all.end(); ++i)
+        if (i->in_menu)
+            examples.push_back(*i);
     int menu_len = data_ft_menu->GetMenuItemCount();
     for (int i = 0; i < size(examples); ++i) {
         int id = ID_D_FDT+i+1;
@@ -1327,7 +1345,7 @@ void FFrame::OnChangeMouseMode (wxCommandEvent& event)
         default: assert(0);
     }
     toolbar->EnableTool(ID_ft_b_strip, (mode == mmd_bg));
-    GetMenuBar()->Enable(ID_G_M_BG_STRIP, (mode == mmd_bg));
+    GetMenuBar()->Enable(ID_G_M_BG_SUB, (mode == mmd_bg));
     plot_pane->set_mouse_mode(mode);
 }
 
@@ -1346,6 +1364,18 @@ void FFrame::OnChangePeakType(wxCommandEvent& event)
 void FFrame::OnStripBg(wxCommandEvent& WXUNUSED(event))
 {
     plot_pane->get_bg_manager()->strip_background();
+}
+
+void FFrame::OnClearBg(wxCommandEvent& WXUNUSED(event))
+{
+    plot_pane->get_bg_manager()->clear_background();
+    refresh_plots(true, false, true);
+}
+
+void FFrame::OnSplineBg(wxCommandEvent& event)
+{
+    plot_pane->get_bg_manager()->set_spline_bg(event.IsChecked());
+    refresh_plots(true, false, true);
 }
 
 void FFrame::SwitchToolbar(bool show)
@@ -1588,9 +1618,9 @@ void FFrame::output_text(OutputStyle style, const string& str)
     io_pane->append_text(style, str.c_str());
 }
 
-void FFrame::refresh_plots(bool refresh, bool update)
+void FFrame::refresh_plots(bool refresh, bool update, bool only_main)
 {
-    plot_pane->refresh_plots(refresh, update);
+    plot_pane->refresh_plots(refresh, update, only_main);
 }
 
 void FFrame::draw_crosshair(int X, int Y)

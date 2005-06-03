@@ -155,6 +155,8 @@ public:
     void OnModePeak      (wxUpdateUIEvent& event);
     void OnChangePeakType(wxCommandEvent& event);
     void OnStripBg       (wxCommandEvent& event);
+    void OnClearBg       (wxCommandEvent& event);
+    void OnSplineBg      (wxCommandEvent& event);
     void OnGViewAll      (wxCommandEvent& event);
     void OnGFitHeight    (wxCommandEvent& event);
     void OnGScrollLeft   (wxCommandEvent& event);
@@ -186,7 +188,8 @@ public:
     void output_text(OutputStyle style, const std::string& str);
     void change_zoom(const std::string& s);
     void scroll_view_horizontally(fp step);
-    void refresh_plots(bool refresh=true, bool update=false);
+    void refresh_plots(bool refresh=true, bool update=false, 
+                       bool only_main=false);
     void draw_crosshair(int X, int Y);
     void focus_input();
     void set_status_text(const wxString &text, StatusBarField field=sbf_text) 

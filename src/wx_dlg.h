@@ -158,13 +158,12 @@ struct DataTransExample
     std::string description;
     std::string code;
     bool in_menu;
-    bool editable;
 
     DataTransExample(const std::string& name_, const std::string& category_, 
                      const std::string& description_, const std::string& code_,
-                     bool in_menu_=false, bool editable_=true)
+                     bool in_menu_=false)
         : name(name_), category(category_), description(description_),
-          code(code_), in_menu(in_menu_), editable(editable_) {}
+          code(code_), in_menu(in_menu_) {}
    DataTransExample(std::string line);
    std::string as_fileline() const;
 };
@@ -192,7 +191,8 @@ public:
     void update_data(Data *data_);
     static const std::vector<DataTransExample>& get_examples() 
                                                     { return examples; }
-    static void DataEditorDlg::execute_tranform(std::string code);
+    static void read_examples(bool reset=false);
+    static void execute_tranform(std::string code);
 protected:
     static std::vector<DataTransExample> examples;
     wxGrid *grid;
@@ -204,14 +204,30 @@ protected:
              *add_btn, *remove_btn, *up_btn, *down_btn, 
              *save_btn, *reset_btn;
 
-    void read_examples(bool reset=false);
+    void initialize_examples(bool reset=false);
     int get_selected_item();
     void insert_example_list_item(int n);
     void select_example(int item);
-    void edit_item(int n, DataTransExample &ex);
     DECLARE_EVENT_TABLE()
 };
 
+
+class ExampleEditorDlg : public wxDialog
+{
+public:
+    ExampleEditorDlg(wxWindow* parent, wxWindowID id, DataTransExample& ex_,
+                     const std::vector<DataTransExample>& examples_, int pos_);
+    void OnOK(wxCommandEvent &event);
+protected:
+    DataTransExample& ex;
+    const std::vector<DataTransExample>& examples;
+    int pos;
+    wxTextCtrl *name_tc, *description_tc, *code_tc;
+    wxComboBox *category_c;
+    wxCheckBox *inmenu_cb;
+
+    DECLARE_EVENT_TABLE()
+};
 
 wxString get_user_conffile(const wxString &filename);
 bool export_data_dlg(wxWindow *parent, bool load_exported=false);

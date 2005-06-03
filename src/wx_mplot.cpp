@@ -95,8 +95,9 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_MENU (ID_peak_popup_guess,  MainPlot::OnPeakGuess)
 END_EVENT_TABLE()
 
-MainPlot::MainPlot (wxWindow *parent, Plot_shared &shar) 
-    : FPlot (parent, shar), basic_mode(mmd_zoom), mode(mmd_zoom), 
+MainPlot::MainPlot (wxWindow *parent, PlotShared &shar) 
+    : FPlot (parent, shar), BgManager(shar),
+      basic_mode(mmd_zoom), mode(mmd_zoom), 
       pressed_mouse_button(0), ctrl(false), over_peak(-1)
 { }
 
@@ -1374,10 +1375,9 @@ void BgManager::add_background_point(fp x, fp y)
 
 void BgManager::rm_background_point (fp x)
 {
-    bg_iterator l = lower_bound(bg.begin(), bg.end(), 
-                                B_point(x - min_bg_distance, 0));
-    bg_iterator u = upper_bound (bg.begin(), bg.end(), 
-                                 B_point(x + min_bg_distance, 0));
+    fp dx = x_calc.dX2dx(min_dist);
+    bg_iterator l = lower_bound(bg.begin(), bg.end(), B_point(x-dx, 0));
+    bg_iterator u = upper_bound (bg.begin(), bg.end(), B_point(x+dx, 0));
     if (u > l) {
         bg.erase(l, u);
         verbose (S(u - l) + " background points removed.");

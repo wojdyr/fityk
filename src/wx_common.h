@@ -7,9 +7,9 @@
 
 enum Mouse_mode_enum { mmd_zoom, mmd_bg, mmd_add, mmd_range, mmd_peak };
 
-struct Plot_shared
+struct PlotShared
 {
-    Plot_shared() : xUserScale(1.), xLogicalOrigin(0.), plot_y_scale(1e3) {}
+    PlotShared() : xUserScale(1.), xLogicalOrigin(0.), plot_y_scale(1e3) {}
     int x2X (fp x) {return static_cast<int>((x - xLogicalOrigin) * xUserScale);}
     fp X2x (int X) { return X / xUserScale + xLogicalOrigin; }
     int dx2dX (fp dx) { return static_cast<int>(dx * xUserScale); }

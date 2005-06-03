@@ -108,8 +108,16 @@ void PlotPane::read_settings(wxConfigBase *cf)
         aux_plot[i]->read_settings(cf);
 }
 
-void PlotPane::refresh_plots(bool refresh, bool update)
+void PlotPane::refresh_plots(bool refresh, bool update, bool only_main)
 {
+    if (only_main) {
+        if (refresh)
+            plot->Refresh(false);
+        if (update) 
+            plot->Update();
+        return;
+    }
+    // not only main
     vector<FPlot*> vp = get_visible_plots();
     for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i) {
         if (refresh)

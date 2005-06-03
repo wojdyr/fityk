@@ -121,7 +121,7 @@ public:
     std::string zoom_backward(int n=1);
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
-    void refresh_plots(bool refresh, bool update);
+    void refresh_plots(bool refresh, bool update, bool only_main=false);
     void set_mouse_mode(Mouse_mode_enum m);
     void update_mouse_hints();
     bool is_background_white();
@@ -135,7 +135,7 @@ public:
 
     bool crosshair_cursor;
 private:
-    Plot_shared plot_shared;
+    PlotShared plot_shared;
     MainPlot *plot;
     ProportionalSplitter *aux_split;
     AuxPlot *aux_plot[2];

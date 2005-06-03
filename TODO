@@ -1,4 +1,48 @@
 
+* (loading data) -- merging a few files (+ at the end of command)
+
+* (GUI) redesign "Load File Custom" dialog 
+
+* data editor: editing in grid. modal dialog? always on top?
+
+* benchmark d.transform command on some large datasets
+
+------------------ 0.5.0  2005.06
+
+* More visible toolbar icons (icons 5-9 from left must be changed).
+  Bigger (24x24) icons should be used. Data editor tool.
+
+* short-cuts for menu commands (Ctrl-O, F1, etc.)
+
+------------------ 0.5.1  2005.06
+
+* data tranformations: handle "3 < x < 4" like "3 < x and x < 4"
+                       new functions: randuniform[a b]() randnormal[mu sigma]()
+                       temporary variables
+		       documentation
+
+* data export -- in first (commented) lines: title and column 
+  description (x, y, sigma). Data loading should check for this info.
+
+* (GUI) datapane - hint with full filenames, editable labels (titles)
+                  "duplicate" command, when right-clicking on inactive label
+		  [new dataset: title1 + title2] menu item
+
+* problem: MS Windows - tree at data pane looks bad
+
+* (GUI) data viewer - "Apply" button should be inactive when statement
+  grammar 
+
+
+------------------ 0.5.2  2005.07
+
+* user defined functions; it includes symbolic computing of derivatives and CSE.
+  Important but needs a lot of work. Perhaps the idea of simple parameters,
+  compund-parameters and functions will be revised. 
+  [IMPORTANT]
+
+------------------ 0.6.0 2005.??
+
 * problem: fityk can't be compiled with UNICODE-enabled wxWidgets
 
 * (WWW) update screenshots 
@@ -9,10 +53,6 @@
 
 * write a good portable .spec (spec is used for building RPM)
 
-* (GUI) datapane - "duplicate" command 
-
-* (GUI) datapane tree - hint with full filenames, editable labels (titles)
-
 * auto-freezing of peaks at disactivated range
 
 * integrate m.findpeak and s.add options. Prepare interface for many
@@ -22,9 +62,6 @@
 
 * logarithmic scale  
 
-* More visible toolbar icons (icons 5-9 from left must be changed).
-  Perhaps bigger (24x24) icons should be used?
-
 * (s.add) possibility to add description of peak/parameter 
   This description could be used e.g. in exporting files.
 
@@ -33,24 +70,11 @@
   other formats (from survey): .jdx JCAMP-DX (www.jcamp.org)
 		         Galactic (GRAMS/32) SPC files (especially multifiles)
 
-* (loading data) -- merging a few files
-  rewrite loading ASCII data 
-  change order of arguments in syntax of d.load command 
-
-* (GUI) redesign "Load File Custom" dialog 
-
 * (GUI) one dialog for plot settings. More precise configuration of axis tics.
   horizontal/vertical peak labels, etc.
-
-* (d.set) min-background-points-distance should be automatically changed 
-  whan loading data to (xmax-xmin)/A
+  single ergonomic interface changing colors of everything
 
 * rewrite scanner/parser using boost::spirit. Now it uses flex/bison.
-  [IMPORTANT]
-
-* user defined functions; it includes symbolic computing of derivatives and CSE.
-  Important but needs a lot of work. Perhaps the idea of simple parameters,
-  compund-parameters and functions will be revised. 
   [IMPORTANT]
 
 * python scripts  -- built-in Python interpreter which allows to extend 
@@ -63,25 +87,19 @@
 * (GUI) stopping fitting interactively (when user don't want to wait longer);
   use threads?
 
-* automatic background substraction - what algorithm is good?
+* automatic background substraction - what are good algorithms?
 
 * (s.export) when exporting function/sum as points, it shuld be possible 
   to set step of these points (s.set export-points-step = 0.?)
   and to export baseline and each peak as a separately (multicolumn CSV)
 
-* subtract fitted functions from the real data ie for peak removal
+* possibility to subtract fitted functions from the data (ie peak removal)
 
 * (Windows only) exporting plots to PostScript file and to metafile(clipboard) 
-
-* problem: MS Windows - tree at data pane looks bad
 
 * more sophisticated algorithms for peak detection
 
 * write documentation for fwhm-correction and height-correction (m.set) 
-
-* (GUI) single ergonomic interface changing colors of everything
-
-* short-cuts for menu commands (Ctrl-O, F1, etc.)
 
 * improve Voigt function (FWHM, cut-tails, better approx?) 
 

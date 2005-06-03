@@ -1403,14 +1403,47 @@ private:
 
 // ';' will be replaced by line break
 static const char *default_examples = 
-"integrate|useful|Integrate data numerically and adjust std. dev."
-"|Y[1...] = Y[n-1] + y[n]; S = sqrt(max(1,y))|N\n"
+
+"integrate|useful|Integrate data numerically and adjust std. dev.;"
+"in other words it produces cumulative area"
+"|Y[1...] = Y[n-1] + y[n];S = sqrt(max(1,y))|Y\n"
+
+"differentiate|useful|compute numerical derivative f'(x)"
+"|Y[...-1] = y[n+1]-y[n];X[...-1] = (x[n+1]+x[n])/2;"
+"M=M-1;S = sqrt(max(1,y))|Y\n"
+
+"normalize area|useful|divide all Y (and std. dev.) values;"
+"by the current data area; it produces unit area"
+"|S = s / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0);" 
+"Y = y / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0)|Y\n" 
+
+"zero negative y|useful|zero the Y value; of points with negative Y"
+"|Y=max(y,0)|Y\n"
+
+"clear inactive|useful|delete inactive points"
+"|delete(not a)|Y\n"
+
 "swap axes|example|Swap X and Y axes and adjust std. dev."
-"|Y=x & X=y & S=sqrt(Y)|N\n"
+"|Y=x & X=y & S=sqrt(max(1,Y))|N\n"
+
+"generate sinusoid|example|replaces current data with sinusoid"
+"|M=2000; x=n/100; y=sin(x); s=1|N\n"
+
+"invert|example|inverts y value of points"
+"|Y=-y|N\n"
+
+"activate all|example|activate all data points"
+"|a=true|N\n"
+
+"Q -> 2theta(Cu)|example|rescale X axis;in powder diffraction pattern"
+"|X = asin(x/(4*pi)*1.54051) * 2*180/pi|N\n"
+
+"2theta(Cu) -> Q|example|rescale X axis;in powder diffraction pattern"
+"|X = 4*pi * sin(x/2*pi/180) / 1.54051|N\n"
 ;
 
 DataTransExample::DataTransExample(string line)
-     : in_menu(false), editable(true)
+     : in_menu(false) 
 {
     replace_all(line, ";", "\n");
     string::size_type pos=0;
@@ -1477,7 +1510,7 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_)
     revert_btn = new wxButton(left_panel, wxID_REVERT_TO_SAVED, 
                               "Revert to Saved");
     two_btn_sizer->Add(revert_btn, 0, wxALL|wxALIGN_CENTER, 5);
-    save_as_btn = new wxButton(left_panel, wxID_REVERT_TO_SAVED, 
+    save_as_btn = new wxButton(left_panel, wxID_SAVEAS, 
                                "Save &As...");
     two_btn_sizer->Add(save_as_btn, 0, wxALL|wxALIGN_CENTER, 5);
     left_sizer->Add(two_btn_sizer, 0, wxALIGN_CENTER);
@@ -1538,7 +1571,7 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_)
     grid->SetEditable(true);
     grid->SetColumnWidth(0, 40);
     grid->SetRowLabelSize(60);
-    read_examples();
+    initialize_examples();
     for (int i = 0; i < 2; i++)
         example_list->SetColumnWidth(i, wxLIST_AUTOSIZE);
     apply_btn->Enable(false);
@@ -1564,7 +1597,7 @@ void DataEditorDlg::read_examples(bool reset)
                                         "Custom transformation.\n"
                                         "You can type eg. Y=log10(y).\n"
                                         "See Help for details.",
-                                        "", false, false));
+                                        "", false));
     //TODO last transformation item
     wxString transform_path = get_user_conffile("transform");
     string t_line;
@@ -1578,7 +1611,12 @@ void DataEditorDlg::read_examples(bool reset)
         while (getline(f, t_line))
             examples.push_back(DataTransExample(t_line));
     }
+}
 
+void DataEditorDlg::initialize_examples(bool reset)
+{
+    if (reset)
+        read_examples(reset);
     example_list->DeleteAllItems();
     for (int i = 0; i < size(examples); ++i) 
         insert_example_list_item(i);
@@ -1627,7 +1665,7 @@ void DataEditorDlg::OnRevert (wxCommandEvent& WXUNUSED(event))
 
 void DataEditorDlg::OnSaveAs (wxCommandEvent& WXUNUSED(event))
 {
-    bool ok = export_data_dlg(GetParent(), true);
+    bool ok = export_data_dlg(this /*GetParent()*/, true);
     if (ok) {
         filename_label->SetLabel(my_data->get_filename().c_str());
     }
@@ -1635,8 +1673,15 @@ void DataEditorDlg::OnSaveAs (wxCommandEvent& WXUNUSED(event))
 
 void DataEditorDlg::OnAdd (wxCommandEvent& WXUNUSED(event))
 {
-    edit_item(-1, DataTransExample("new", "user-defined",
-                                   "", code->GetValue().c_str()));
+    DataTransExample new_example("new", "useful",
+                                 "", code->GetValue().c_str());
+    ExampleEditorDlg dlg(this, -1, new_example, examples, -1);
+    if (dlg.ShowModal() == wxID_OK) {
+        int pos = get_selected_item() + 1;
+        examples.insert(examples.begin() + pos, new_example);
+        insert_example_list_item(pos);
+        select_example(pos);
+    }
 }
 
 void DataEditorDlg::OnRemove (wxCommandEvent& WXUNUSED(event))
@@ -1691,7 +1736,7 @@ void DataEditorDlg::OnSave (wxCommandEvent& WXUNUSED(event))
 
 void DataEditorDlg::OnReset (wxCommandEvent& WXUNUSED(event))
 {
-    read_examples(true);
+    initialize_examples(true);
 }
 
 void DataEditorDlg::OnApply (wxCommandEvent& WXUNUSED(event))
@@ -1749,14 +1794,83 @@ void DataEditorDlg::ESelected()
 void DataEditorDlg::OnEActivated (wxListEvent& event)
 {
     int n = event.GetIndex();
-    edit_item(n, examples[n]);
+    if (examples[n].category == "builtin")
+        return;
+    ExampleEditorDlg dlg(this, -1, examples[n], examples, n);
+    if (dlg.ShowModal() == wxID_OK) {
+        example_list->DeleteItem(n);
+        insert_example_list_item(n);
+        select_example(n);
+    }
 }
 
-void DataEditorDlg::edit_item(int n, DataTransExample &ex)
+
+BEGIN_EVENT_TABLE(ExampleEditorDlg, wxDialog)
+    EVT_BUTTON  (wxID_OK,    ExampleEditorDlg::OnOK)
+END_EVENT_TABLE()
+
+ExampleEditorDlg::ExampleEditorDlg(wxWindow* parent, wxWindowID id, 
+                                   DataTransExample& ex_,
+                                   const vector<DataTransExample>& examples_,
+                                   int pos_)
+    : wxDialog(parent, id, "Example Editor", 
+               wxDefaultPosition, wxDefaultSize, 
+               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
+      ex(ex_), examples(examples_), pos(pos_)
 {
-    // TODO
+    name_tc = new wxTextCtrl(this, -1, ex.name.c_str());
+    description_tc = new wxTextCtrl(this, -1, ex.description.c_str(),
+                                    wxDefaultPosition, wxSize(-1, 80),
+                                    wxTE_MULTILINE|wxHSCROLL|wxVSCROLL);
+    wxString choices[] = {"useful", "example", "other"};
+    category_c = new wxComboBox(this, -1, ex.category.c_str(),
+                                wxDefaultPosition, wxDefaultSize,
+                                3, choices,
+                                wxCB_READONLY);
+    code_tc = new wxTextCtrl(this, -1, ex.code.c_str(), 
+                             wxDefaultPosition, wxSize(-1, 100),
+                             wxTE_MULTILINE|wxHSCROLL|wxVSCROLL);
+    inmenu_cb = new wxCheckBox(this, -1, "show item in Data->Fast_DT menu");
+    inmenu_cb->SetValue(ex.in_menu);
+
+    wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
+    wxFlexGridSizer *flexsizer = new wxFlexGridSizer(2);
+    flexsizer->Add(new wxStaticText(this, -1, "name"), 0, wxALL, 5);
+    flexsizer->Add(name_tc, 0, wxALL|wxEXPAND, 5);
+    flexsizer->Add(new wxStaticText(this, -1, "category"), 0, wxALL, 5);
+    flexsizer->Add(category_c, 0, wxALL|wxEXPAND, 5);
+    flexsizer->Add(new wxStaticText(this, -1, "description"), 0, wxALL, 5);
+    flexsizer->Add(description_tc, 0, wxALL|wxEXPAND, 5);
+    flexsizer->Add(new wxStaticText(this, -1, "code"), 0, wxALL, 5);
+    flexsizer->Add(code_tc, 0, wxALL|wxEXPAND, 5);
+    flexsizer->AddGrowableRow(2); // description
+    flexsizer->AddGrowableRow(3); // code
+    flexsizer->AddGrowableCol(1);
+    top_sizer->Add(flexsizer, 0, wxEXPAND);
+    top_sizer->Add(inmenu_cb, 0, wxALL, 5);
+    top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
+    top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL), 0, wxALL, 5);
+    SetSizerAndFit(top_sizer);
+    Centre();
 }
 
+void ExampleEditorDlg::OnOK(wxCommandEvent &event)
+{
+    string new_name = name_tc->GetValue().Trim().c_str();
+    for (int i = 0; i < size(examples); ++i) 
+            if (i != pos && examples[i].name == new_name) {//name is not unique
+                name_tc->SetFocus();
+                name_tc->SetSelection(-1, -1);
+                return;
+            }
+    // we are here -- name is unique
+    ex.name = new_name;
+    ex.category = category_c->GetValue().c_str();
+    ex.description = description_tc->GetValue().Trim().c_str();
+    ex.code = code_tc->GetValue().Trim().c_str();
+    ex.in_menu = inmenu_cb->GetValue();
+    wxDialog::OnOK(event);
+}
 
 /// get path ~/.fityk/filename and create ~/.fityk/ dir if not exists
 wxString get_user_conffile(const wxString &filename)

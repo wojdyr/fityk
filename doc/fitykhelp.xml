@@ -564,7 +564,7 @@
     <para>
      In <application>fityk 0.5.0</application> new powerful command 
      <command>d.transform</command> was introduced. 
-     It's not well documented yet. The best documentation for a while
+     It's not documented here yet. The best documentation for a while
      is the extensive comment at the beginning of datatrans.cpp source file.
      You can see CVS version of the file here:
      <ulink url="http://cvs.sourceforge.net/viewcvs.py/fityk/fityk/src/datatrans.cpp?only_with_tag=HEAD&amp;view=markup">

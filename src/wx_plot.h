@@ -43,7 +43,7 @@ enum Aux_plot_kind_enum
 class FPlot : public wxPanel
 {
 public:
-    FPlot (wxWindow *parent, Plot_shared &shar)
+    FPlot (wxWindow *parent, PlotShared &shar)
        : wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize, 
                  wxNO_BORDER|wxFULL_REPAINT_ON_RESIZE),
          yUserScale(1.), yLogicalOrigin(0.), 
@@ -66,7 +66,7 @@ protected:
     bool line_between_points;
     bool x_axis_visible, tics_visible;
     fp yUserScale, yLogicalOrigin; 
-    Plot_shared &shared;
+    PlotShared &shared;
     int mouse_press_X, mouse_press_Y;
     int vlfc_prev_x;
 
@@ -97,7 +97,7 @@ protected:
 class AuxPlot : public FPlot
 {
 public:
-    AuxPlot (wxWindow *parent, Plot_shared &shar, std::string name_) 
+    AuxPlot (wxWindow *parent, PlotShared &shar, std::string name_) 
         : FPlot (parent, shar), name(name_.c_str()), y_zoom(1.), 
           y_zoom_base(1.) {}
     ~AuxPlot() {}

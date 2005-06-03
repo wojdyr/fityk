@@ -16,19 +16,22 @@ struct t_xy { fp x, y; };
 class BgManager
 {
 public:
-    BgManager() : min_bg_distance(0.5), spline_bg(true) {}
+    BgManager(PlotShared &x_calc_) : x_calc(x_calc_), min_dist(8), 
+                                     spline_bg(true) {}
     void add_background_point(fp x, fp y);
     void rm_background_point(fp x);
     void clear_background();
     void strip_background();
     bool bg_empty() const { return bg.empty(); }
+    void set_spline_bg(bool s) { spline_bg=s; recompute_bgline(); }
 protected:
+    PlotShared &x_calc;
+    int min_dist; //minimal distance in X between bg points
+    bool spline_bg;
     typedef std::vector<B_point>::iterator bg_iterator;
     typedef std::vector<B_point>::const_iterator bg_const_iterator;
     std::vector<B_point> bg;
     std::vector<t_xy> bgline;
-    fp min_bg_distance;
-    bool spline_bg;
 
     void recompute_bgline();
 };
@@ -38,7 +41,7 @@ protected:
 class MainPlot : public FPlot, public BgManager
 {
 public:
-    MainPlot (wxWindow *parent, Plot_shared &shar); 
+    MainPlot (wxWindow *parent, PlotShared &shar); 
     ~MainPlot() {}
     void OnPaint(wxPaintEvent &event);
     void Draw(wxDC &dc);
