@@ -115,8 +115,8 @@ exp:  SET DASH_STRING EQ_STRING SEP {
     | D_ACTIVATE '!' opt_uint_1 TWO_COLONS opt_uint_1 SEP { AL->remove($3, $5);}
     | D_ACTIVATE '*' TWO_COLONS SEP { AL->append_core();}
     | D_ACTIVATE opt_uint_1 TWO_COLONS '*' SEP { AL->append_data($2); }
-    | D_LOAD opt_lcase columns FILENAME SEP { 
-                                     my_data->load_file($4.str(), $2, ivec);
+    | D_LOAD opt_lcase columns FILENAME opt_plus SEP { 
+                                     my_data->load_file($4.str(), $2, ivec, $5);
                                      my_core->set_view (Rect()); }
     | D_TRANSFORM DT_STRING SEP { my_data->transform($2.str()); }
     | D_INFO SEP                   { mesg (my_data->getInfo()); } 

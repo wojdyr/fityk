@@ -1,4 +1,7 @@
 User-visible changes in version 0.5.0 (2005-0 -  ):
+* d.load -- possibility of loading of only selected points from file 
+            was removed (it can be done with d.tranform after loading)
+            new option: adding data from file to currently loaded data 
 * d.transform  --  new quite powerful command for transforming data, 
   Commands d.deviation, d.range, d.background, d.calibrate, d.set were removed.
   Handling of background (and calibration) is now a little different.

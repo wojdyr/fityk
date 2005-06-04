@@ -155,7 +155,8 @@ int Data::load_arrays(const vector<fp> &x, const vector<fp> &y,
 }
 
 
-int Data::load_file (const string &file, int type, const vector<int> &cols)
+int Data::load_file (const string &file, int type, const vector<int> &cols,
+                     bool append)
 { 
     if (type == 0) {                  // "detect" file format
         type = guess_file_type(file);
@@ -165,12 +166,18 @@ int Data::load_file (const string &file, int type, const vector<int> &cols)
         warn ("Can't open file: " + file );
         return -1;
     }
-    clear(); //removing previous file
-    filename = file;   
-    col_nums = cols;
+    if (append) {
+        filename = "";
+        col_nums.clear();
+    }
+    else {
+        clear(); //removing previous file
+        filename = file;   
+        col_nums = cols;
+    }
 
     if (type=='d')                            // x y x y ... 
-        load_xy_filetype(f, col_nums);
+        load_xy_filetype(f, cols);
     else if (type=='m')                       // .mca
         load_mca_filetype(f);
     else if (type=='r')                       // .rit
@@ -195,7 +202,7 @@ int Data::load_file (const string &file, int type, const vector<int> &cols)
 }
 
 
-void Data::load_xy_filetype (ifstream& f, vector<int>& cols)
+void Data::load_xy_filetype (ifstream& f, const vector<int>& columns)
 {
     /* format  x y \n x y \n x y \n ...
     *           38.834110      361
@@ -203,11 +210,8 @@ void Data::load_xy_filetype (ifstream& f, vector<int>& cols)
     *           38.911500      352.431
     * delimiters: white spaces and  , : ;
      */
-    assert (cols.empty() || cols.size() == 2 || cols.size() == 3);
-    if (cols.empty()) {
-        cols.push_back(1);
-        cols.push_back(2);
-    }
+    assert (columns.empty() || columns.size() == 2 || columns.size() == 3);
+    vector<int> cols = columns.empty() ? vector2<int>(1, 2) : columns;
     vector<fp> xy;
     int maxc = *max_element (cols.begin(), cols.end());
     int minc = *min_element (cols.begin(), cols.end());

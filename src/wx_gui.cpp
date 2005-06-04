@@ -460,7 +460,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
                  const long style)
     : wxFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, style), 
       main_pane(0), data_pane(0), status_bar(0), 
-      peak_type_nr(0), toolbar(0), dxload_dialog(0), data_editor(0),
+      peak_type_nr(0), toolbar(0), data_editor(0),
       print_data(new wxPrintData), page_setup_data(new wxPageSetupData),
 #ifdef __WXMSW__
       help()
@@ -928,21 +928,10 @@ void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
 
 void FFrame::OnDXLoad (wxCommandEvent& WXUNUSED(event))
 {
-    if (!dxload_dialog)
-        dxload_dialog = new FDXLoadDlg(this, -1);
-
-    string fname = my_data->get_filename();
-    if (fname.empty()) {
-        dxload_dialog->OnChangeButton(dummy_cmd_event);
-        if (dxload_dialog->filename.empty())
-            return;
-    }
-    else
-        dxload_dialog->set_filename(fname);
-
-    if (dxload_dialog->ShowModal() == wxID_OK) {
-        exec_command (dxload_dialog->get_command());
-        add_recent_data_file(dxload_dialog->filename.c_str());
+    FDXLoadDlg dxload_dialog(this, -1);
+    if (dxload_dialog.ShowModal() == wxID_OK) {
+        exec_command (dxload_dialog.get_command());
+        add_recent_data_file(dxload_dialog.get_filename().c_str());
     }
 }
 

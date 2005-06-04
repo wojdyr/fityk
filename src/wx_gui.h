@@ -205,7 +205,6 @@ protected:
 
     int peak_type_nr;
     FToolBar *toolbar;
-    FDXLoadDlg *dxload_dialog;
     DataEditorDlg *data_editor;
     ProportionalSplitter *v_splitter;
     wxPrintData *print_data;

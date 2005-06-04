@@ -8,6 +8,7 @@
 #include <wx/notebook.h>
 #include <wx/spinctrl.h>
 #include <wx/listctrl.h> 
+#include <wx/dirctrl.h>
 #include "pag.h"
 
 class FuncTree;
@@ -102,27 +103,36 @@ protected:
     DECLARE_EVENT_TABLE()
 };
 
+
+class FDXLoadDlg;
+
+/// helper class used in FDXLoadDlg
+class LoadDataDirCtrl : public wxGenericDirCtrl
+{
+public:
+    LoadDataDirCtrl(FDXLoadDlg* parent);
+    void OnPathSelectionChanged(wxTreeEvent &event);
+    void SetFilterIndex(int n);
+    DECLARE_EVENT_TABLE()
+private:
+    FDXLoadDlg *load_dlg;
+};
+
 class FDXLoadDlg : public wxDialog
 {
 public:
-    std::string filename;
     FDXLoadDlg (wxWindow* parent, wxWindowID id);
     std::string get_command();
-    void OnChangeButton (wxCommandEvent& event);
-    void set_filename (const std::string &path);
+    std::string get_filename();
+    void on_filter_change();
+    void on_path_change();
 
 protected:
-    wxTextCtrl *file_txt_ctrl;
-    wxSpinCtrl *x_column, *y_column, *s_column, 
-               *from_range, *to_range, *from_every, 
-               *to_every, *of_every, *merge_number; 
-    wxPanel *columns_panel, *other_types_panel;
-    wxRadioBox *rb_filetype, *yrbox;
-    wxCheckBox *merge_cb, *std_dev_cb;
-    wxListBox *lb_filetypes;
-    void OnFTypeRadioBoxSelection (wxCommandEvent& event);
-    void OnSelRadioBoxSelection (wxCommandEvent& event);
-    void OnMergeCheckBox (wxCommandEvent& event);
+    LoadDataDirCtrl *dir_ctrl;
+    wxTextCtrl *filename_tc;
+    wxSpinCtrl *x_column, *y_column, *s_column;
+    wxPanel *columns_panel;
+    wxCheckBox *std_dev_cb, *append_cb;
     void OnStdDevCheckBox (wxCommandEvent& event);
     DECLARE_EVENT_TABLE()
 };

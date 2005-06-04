@@ -36,11 +36,11 @@ public :
     bool was_changed() const { return d_was_changed; }
     std::string getInfo() const;
     int load_file (const std::string &file, int type, 
-                   const std::vector<int> &cols);
+                   const std::vector<int> &cols, bool append=false);
     int load_arrays(const std::vector<fp> &x, const std::vector<fp> &y, 
                    const std::vector<fp> &sigma, const std::string &data_title);
     void add_point(const Point &pt) { p.push_back(pt); };
-    char guess_file_type (const std::string& filename);
+    static char guess_file_type (const std::string& filename);
     fp get_x (int n) const { return p[active_p[n]].x; }
     fp get_y (int n) const { return p[active_p[n]].y; } 
     fp get_sigma (int n) const { return p[active_p[n]].sigma; }
@@ -84,7 +84,7 @@ private:
                                     std::vector<fp>& result_numbers);
     static double pdp11_f (char* fl);  
     fp find_step();
-    void load_xy_filetype (std::ifstream& f, std::vector<int>& cols);
+    void load_xy_filetype (std::ifstream& f, const std::vector<int>& cols);
     void load_mca_filetype (std::ifstream& f);
     void load_rit_filetype (std::ifstream& f);
     void load_cpi_filetype (std::ifstream& f);

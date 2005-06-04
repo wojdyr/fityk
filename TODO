@@ -1,10 +1,6 @@
 
-* (loading data) -- merging a few files (+ at the end of command)
-
-* (GUI) redesign "Load File Custom" dialog 
-
 * data editor: editing in grid. modal dialog? always on top?
-
+* test (and fix) and document "d.load ... +" 
 * benchmark d.transform command on some large datasets
 
 ------------------ 0.5.0  2005.06
@@ -54,6 +50,8 @@
 * write a good portable .spec (spec is used for building RPM)
 
 * auto-freezing of peaks at disactivated range
+
+* (GUI) file preview (in grid) in "Load File Custom" dialog 
 
 * integrate m.findpeak and s.add options. Prepare interface for many
   peak detection algorithms

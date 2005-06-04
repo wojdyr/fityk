@@ -17,9 +17,9 @@
 #include <sstream>
 #include <algorithm>
 #include <wx/valtext.h>
-#include <wx/statline.h>
 #include <wx/bmpbuttn.h>
 #include <wx/grid.h>
+#include <wx/statline.h>
 #include <wx/splitter.h>
 #include "common.h"
 #include "wx_dlg.h"
@@ -68,16 +68,8 @@ enum {
     ID_BRO_MENU_BUT                , 
     ID_BRO_MENU_RST                , 
     
-    ID_DRANGE_RADIOBOX             ,
-    ID_DRANGE_APPLY                ,
-   
-    ID_DXLOAD_CHANGE_B             ,
     ID_DXLOAD_FTYPE_RB             ,
     ID_DXLOAD_STDDEV_CB            ,
-    ID_DXLOAD_ALL_RB               , 
-    ID_DXLOAD_FRTO_RB              ,
-    ID_DXLOAD_FTOF_RB              ,
-    ID_DXLOAD_MERGE_CB             ,
   
     ID_SHIST_LC                    ,
     ID_SHIST_UP                    ,
@@ -928,38 +920,56 @@ int FuncTree::update_labels (const string& beginning)
 
 //=====================   data->LoadFile(Custom) dialog  ==================
 
+// first helper class: LoadDataDirCtrl
+BEGIN_EVENT_TABLE(LoadDataDirCtrl, wxGenericDirCtrl)
+    EVT_TREE_SEL_CHANGED(wxID_TREECTRL, LoadDataDirCtrl::OnPathSelectionChanged)
+END_EVENT_TABLE()
+
+LoadDataDirCtrl::LoadDataDirCtrl(FDXLoadDlg* parent)
+    : wxGenericDirCtrl(parent, -1, wxDirDialogDefaultFolderStr,
+                       wxDefaultPosition, wxDefaultSize,
+                       wxDIRCTRL_SHOW_FILTERS,
+                       "all files (*)|*"
+                       "|ASCII x y files (*.dat, *.xy, *.fio)"
+                       "|*.dat;*.DAT;*.xy;*.XY;*.fio;*.FIO" 
+                       "|rit files (*.rit)|*.rit;*.RIT"
+                       "|mca files (*.mca)|*.mca;*.MCA"
+                       "|Siemens/Bruker (*.raw)|*.raw;*.RAW"),
+      load_dlg(parent)
+{}
+
+void LoadDataDirCtrl::OnPathSelectionChanged(wxTreeEvent &WXUNUSED(event))
+{
+    load_dlg->on_path_change();
+}
+
+void LoadDataDirCtrl::SetFilterIndex(int n)
+{
+    wxGenericDirCtrl::SetFilterIndex(n);
+    load_dlg->on_filter_change();
+}
+
+
 BEGIN_EVENT_TABLE(FDXLoadDlg, wxDialog)
-    EVT_BUTTON      (ID_DXLOAD_CHANGE_B,  FDXLoadDlg::OnChangeButton)
-    EVT_RADIOBOX    (ID_DXLOAD_FTYPE_RB,  FDXLoadDlg::OnFTypeRadioBoxSelection)
-    EVT_RADIOBUTTON (ID_DXLOAD_ALL_RB,    FDXLoadDlg::OnSelRadioBoxSelection)
-    EVT_RADIOBUTTON (ID_DXLOAD_FRTO_RB,   FDXLoadDlg::OnSelRadioBoxSelection)
-    EVT_RADIOBUTTON (ID_DXLOAD_FTOF_RB,   FDXLoadDlg::OnSelRadioBoxSelection)
-    EVT_CHECKBOX    (ID_DXLOAD_MERGE_CB,  FDXLoadDlg::OnMergeCheckBox)
     EVT_CHECKBOX    (ID_DXLOAD_STDDEV_CB, FDXLoadDlg::OnStdDevCheckBox)
 END_EVENT_TABLE()
 
 FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id)
-    : wxDialog(parent, id, "Data load (Custom)", 
+    : wxDialog(parent, id, "Data load (custom)", 
                wxDefaultPosition, wxDefaultSize, 
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER) 
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
 
-    wxBoxSizer *h1_sizer = new wxBoxSizer(wxHORIZONTAL);
-    file_txt_ctrl = new wxTextCtrl (this, -1, "", 
-                                    wxDefaultPosition, wxSize(200, -1),
-                                    wxTE_READONLY);
-    h1_sizer->Add (file_txt_ctrl, 1, wxALL|wxEXPAND, 5);
-    wxButton *change_button = new wxButton(this, ID_DXLOAD_CHANGE_B, "&Change");
-    h1_sizer->Add (change_button, 0, wxALL, 5);
-    top_sizer->Add (h1_sizer, 0, wxALL|wxEXPAND, 5);
-    //top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT,5);
+    dir_ctrl = new LoadDataDirCtrl(this);
+    string path = my_data->get_filename();
+    dir_ctrl->SetPath(path.c_str());
+    top_sizer->Add(dir_ctrl, 1, wxALL|wxEXPAND, 5);
 
-    wxString radio_labels[] = {"x y file", "other"};
-    rb_filetype = new wxRadioBox (this, ID_DXLOAD_FTYPE_RB, "Type of file:", 
-                                  wxDefaultPosition, wxDefaultSize, 
-                                  2, radio_labels, 2, wxRA_SPECIFY_COLS);
-    top_sizer->Add (rb_filetype, 0, wxALL|wxEXPAND, 5);
+    filename_tc = new wxTextCtrl (this, -1, path.c_str(), 
+                                  wxDefaultPosition, wxSize(200, -1),
+                                  wxTE_READONLY);
+    top_sizer->Add (filename_tc, 0, wxALL|wxEXPAND, 5);
 
     //selecting columns
     columns_panel = new wxPanel (this, -1);
@@ -984,218 +994,64 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id)
                                wxDefaultPosition, wxSize(70, -1), 
                                wxSP_ARROW_KEYS, 1, 99, 3);
     h2a_sizer->Add (s_column, 0, wxALL|wxALIGN_LEFT, 5);
-    columns_panel->SetSizer (h2a_sizer);
-    h2a_sizer->SetSizeHints (columns_panel);
+    columns_panel->SetSizerAndFit(h2a_sizer);
     top_sizer->Add (columns_panel, 0, wxALL|wxEXPAND, 5);
     OnStdDevCheckBox (dummy_cmd_event);
 
+    append_cb = new wxCheckBox(this, -1, 
+                               "Append data from file to already loaded data");
+    append_cb->Enable(!my_data->is_empty());
+    top_sizer->Add(append_cb, 0, wxALL, 5);
 
-    //selecting one of other types of files 
-    other_types_panel = new wxPanel (this, -1);
-    /*TODO
-    wxStaticBox *sbox = new wxStaticBox (other_types_panel, -1, 
-                                         "Select file type:");
-    wxStaticBoxSizer *h2b_sizer = new wxStaticBoxSizer (sbox, wxHORIZONTAL);
-    wxString lb_types[] = {".mca", ".rit"};
-    lb_filetypes = new wxListBox (other_types_panel, -1, 
-                                  wxDefaultPosition, wxDefaultSize, 
-                                  2, lb_types, wxLB_SINGLE);
-    h2b_sizer->Add (lb_filetypes, 1, wxALL|wxEXPAND, 5);
-    other_types_panel->SetSizer (h2b_sizer);
-    h2b_sizer->SetSizeHints (other_types_panel);
-    top_sizer->Add (other_types_panel, 0, wxALL|wxEXPAND, 5);
     top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
-    */
-
-    // a - b / c
-    wxStaticBox *rbox = new wxStaticBox (this, -1, "Load points:");
-    wxStaticBoxSizer *r_sizer = new wxStaticBoxSizer (rbox, wxVERTICAL);
-    
-    wxRadioButton *rb_all = new wxRadioButton (this, ID_DXLOAD_ALL_RB, 
-                                               "all points");
-    rb_all->SetValue (true);
-    r_sizer->Add (rb_all, 0, wxALL|wxALIGN_LEFT, 5);
-
-    wxBoxSizer *h3_sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxRadioButton *rb_range = new wxRadioButton (this, ID_DXLOAD_FRTO_RB, 
-                                                 "range");
-    rb_range->SetValue (false);
-    h3_sizer->Add (rb_range, 0, wxLEFT|wxRIGHT|wxALIGN_LEFT, 5);
-    from_range = new wxSpinCtrl (this, -1, "1", 
-                                 wxDefaultPosition, wxSize(70, -1), 
-                                 wxSP_ARROW_KEYS, 1, 99999999, 1);
-    h3_sizer->Add (from_range, 0, wxLEFT|wxRIGHT|wxALIGN_LEFT, 5);
-    h3_sizer->Add (new wxStaticText(this, -1, " - "),
-                   0, wxALIGN_CENTER_VERTICAL);
-    to_range = new wxSpinCtrl (this, -1, "500", 
-                               wxDefaultPosition, wxSize(70, -1), 
-                               wxSP_ARROW_KEYS, 1, 99999999, 500);
-    h3_sizer->Add (to_range, 0, wxLEFT|wxRIGHT|wxALIGN_LEFT, 5);
-    r_sizer->Add (h3_sizer, 0);
-
-    wxBoxSizer *h4_sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxRadioButton *rb_every = new wxRadioButton (this, ID_DXLOAD_FTOF_RB, 
-                                                 "every");
-    rb_every->SetValue (false);
-    h4_sizer->Add (rb_every, 0, wxALL|wxALIGN_LEFT, 5);
-    from_every = new wxSpinCtrl (this, -1, "1", 
-                                 wxDefaultPosition, wxSize(70, -1), 
-                                 wxSP_ARROW_KEYS, 1, 99999999, 1);
-    h4_sizer->Add (from_every, 0, wxLEFT|wxRIGHT|wxALIGN_LEFT, 5);
-    h4_sizer->Add (new wxStaticText(this, -1, " - "), 
-                   0, wxALIGN_CENTER_VERTICAL);
-    to_every = new wxSpinCtrl (this, -1, "1", 
-                               wxDefaultPosition, wxSize(70, -1), 
-                               wxSP_ARROW_KEYS, 1, 99999999, 1);
-    h4_sizer->Add (to_every, 0, wxLEFT|wxRIGHT|wxALIGN_LEFT, 5);
-    h4_sizer->Add (new wxStaticText(this, -1, " of "), 
-                   0, wxALIGN_CENTER_VERTICAL);
-    of_every = new wxSpinCtrl (this, -1, "2", 
-                               wxDefaultPosition, wxSize(70, -1), 
-                               wxSP_ARROW_KEYS, 1, 99999999, 2);
-    h4_sizer->Add (of_every, 0, wxLEFT|wxRIGHT|wxALIGN_LEFT, 5);
-    r_sizer->Add (h4_sizer, 0);
-    //top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT,5);
-    top_sizer->Add (r_sizer, 0, wxALL|wxEXPAND, 5);
-    wxCommandEvent event(0, ID_DXLOAD_ALL_RB);
-    OnSelRadioBoxSelection (event); //first button clicked
-
-    // merging
-    wxStaticBox *mbox = new wxStaticBox(this, -1, "Merge successive points:");
-    wxStaticBoxSizer *m_sizer = new wxStaticBoxSizer (mbox, wxVERTICAL);
-
-    wxBoxSizer *h5_sizer = new wxBoxSizer(wxHORIZONTAL);
-    merge_cb = new wxCheckBox (this, ID_DXLOAD_MERGE_CB, "merge every");
-    merge_cb->SetValue (false);
-    h5_sizer->Add (merge_cb, 0, wxALL|wxALIGN_LEFT, 5);
-    merge_number = new wxSpinCtrl (this, -1, "2", 
-                                   wxDefaultPosition, wxSize(70, -1), 
-                                   wxSP_ARROW_KEYS, 1, 99999999, 2);
-    h5_sizer->Add (merge_number, 1, wxALL|wxALIGN_LEFT, 5);
-    h5_sizer->Add (new wxStaticText (this, -1, "points together"), 
-                   0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    m_sizer->Add (h5_sizer, 0);
-    wxString labels[] = {"x-avg y-sum", "x-avg y-avg"};
-    yrbox = new wxRadioBox (this, -1, "how to compute new x and y?", 
-                            wxDefaultPosition, wxDefaultSize, 
-                            2, labels, 2, wxRA_SPECIFY_COLS);
-    m_sizer->Add (yrbox, 0, wxALL|wxALIGN_CENTER, 5);
-    //top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT,5);
-    top_sizer->Add (m_sizer, 0, wxALL|wxEXPAND, 5);
-    OnMergeCheckBox (dummy_cmd_event);
-
-    /*
-    //buttons
-    wxBoxSizer *h6_sizer = new wxBoxSizer(wxHORIZONTAL);
-    h6_sizer->Add (new wxButton (this, wxID_OK, "&OK"), 0, wxALL, 5);
-    h6_sizer->Add (new wxButton (this, wxID_CANCEL, "&Cancel"), 
-                   0, wxALL|wxALIGN_RIGHT, 5);
-    top_sizer->Add (h6_sizer, 0);
-    */
-    top_sizer->Add (CreateButtonSizer (wxOK|wxCANCEL), 0, wxALL, 5);
-
-    SetSizer (top_sizer);
-    top_sizer->SetSizeHints (this);
-}
-
-void FDXLoadDlg::OnChangeButton (wxCommandEvent& WXUNUSED(event))
-{
-    wxFileDialog fdlg (GetParent(), "Select a file", "", "",
-                       "x y files (*.dat, *.xy, *.fio)"
-                                   "|*.dat;*.DAT;*.xy;*.XY;*.fio;*.FIO" 
-                              "|rit files (*.rit)|*.rit;*.RIT"
-                              "|mca files (*.mca)|*.mca;*.MCA"
-                              "|Siemens/Bruker (*.raw)|*.raw;*.RAW"
-                              "|all files (*)|*",
-                       wxOPEN | wxFILE_MUST_EXIST);
-    fdlg.SetPath(filename.c_str());
-    if (fdlg.ShowModal() == wxID_OK) {
-        set_filename (fdlg.GetPath().c_str());
-    }
-}
-
-void FDXLoadDlg::OnFTypeRadioBoxSelection (wxCommandEvent& WXUNUSED(event))
-{
-  
-    if (rb_filetype->GetSelection() == 0) { //x y type
-        columns_panel->Enable (true);
-        //other_types_panel->Enable (false);
-    }
-    else { // other type
-        columns_panel->Enable (false);
-        //other_types_panel->Enable (true);
-        //TODO
-    }
-    //Layout();
-}
-
-void FDXLoadDlg::set_filename (const string &path)
-{
-    assert (!path.empty());
-    filename = path;
-    file_txt_ctrl->SetValue (filename.c_str());
-    char ft = my_data->guess_file_type (filename);
-    if (ft == 'd') {// xy
-        rb_filetype->SetSelection(0);
-        OnFTypeRadioBoxSelection (dummy_cmd_event);
-    }
-    else {//other
-        rb_filetype->SetSelection(1);
-        OnFTypeRadioBoxSelection (dummy_cmd_event);
-        //TODO
-    }
-}
-
-void FDXLoadDlg::OnSelRadioBoxSelection(wxCommandEvent& event)
-{
-    //bool r0 = (event.GetId() == ID_DXLOAD_ALL_RB);
-    bool r1 = (event.GetId() == ID_DXLOAD_FRTO_RB); 
-    from_range->Enable(r1);
-    to_range->Enable(r1);
-    bool r2 = (event.GetId() == ID_DXLOAD_FTOF_RB);
-    from_every->Enable(r2); 
-    to_every->Enable(r2);
-    of_every->Enable(r2);
-}
-
-void FDXLoadDlg::OnMergeCheckBox (wxCommandEvent& WXUNUSED(event))
-{
-    bool checked = merge_cb->GetValue();
-    merge_number->Enable (checked);
-    yrbox->Enable (checked);
+    top_sizer->Add (CreateButtonSizer (wxOK|wxCANCEL), 
+                    0, wxALL|wxALIGN_CENTER, 5);
+    SetSizerAndFit(top_sizer);
+    on_filter_change();
 }
 
 void FDXLoadDlg::OnStdDevCheckBox (wxCommandEvent& WXUNUSED(event))
 {
-    bool checked = std_dev_cb->GetValue();
-    s_column->Enable (checked);
+    s_column->Enable(std_dev_cb->GetValue());
+}
+
+void FDXLoadDlg::on_filter_change()
+{
+    int idx = dir_ctrl->GetFilterIndex();
+    if (idx == 0) // all files
+        on_path_change();
+    else
+        columns_panel->Enable(idx == 1); // enable if ASCII 
+}
+
+void FDXLoadDlg::on_path_change()
+{
+    wxString path = dir_ctrl->GetFilePath();
+    filename_tc->SetValue(path);
+    if (dir_ctrl->GetFilterIndex() == 0) { // all files
+        columns_panel->Enable(!path.IsEmpty() 
+                              && Data::guess_file_type(path.c_str()) == 'd'); 
+    }
+    //TODO enable/disable OK button?
+}
+
+string FDXLoadDlg::get_filename()
+{
+    return filename_tc->GetValue().c_str();
 }
 
 string FDXLoadDlg::get_command()
 {
-    string s = "d.load ";
-    //TODO s += opt_lcase;
+    string cols;
     if (columns_panel->IsEnabled()) { // a:b[:c]
-        s += S(x_column->GetValue()) + S(":") + S(y_column->GetValue());
-        if (std_dev_cb->GetValue() == true)
-            s += S(":") + S(s_column->GetValue());
-        s += " ";
+        cols = " " + S(x_column->GetValue()) + ":" + S(y_column->GetValue());
+        if (std_dev_cb->GetValue())
+            cols += S(":") + S(s_column->GetValue());
     }
-    if (from_range->IsEnabled()) { // a - b
-        s += S(from_range->GetValue()) + " - " + S(to_range->GetValue()) + " ";
-    }
-    else if (from_every->IsEnabled()) { // a - b / c
-        s += S(from_every->GetValue()) + " - " + S(to_every->GetValue()) 
-            + " / " + S(of_every->GetValue()) + " ";
-    }
-    if (merge_cb->GetValue() == true) {
-        if (yrbox->GetSelection() == 0)
-            s += " +*";
-        else
-            s += " *";
-        s += S(merge_number->GetValue()) + " ";
-    }
-    s += "'" + filename + "'";
+    //TODO opt_lcase;
+    string s = "d.load" + cols + " '" + get_filename() + "'";
+    if (append_cb->GetValue())
+        s += " +";
     return s;
 }
 
