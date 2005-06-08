@@ -53,7 +53,8 @@ public:
     ~FPlot() {}
     wxColour get_bg_color() { return backgroundBrush.GetColour(); }
     void FPlot::draw_crosshair(int X, int Y);
-    virtual void save_settings(wxConfigBase *cf) const = 0;
+    virtual void save_settings(wxConfigBase *cf) const;
+    virtual void read_settings(wxConfigBase *cf);
     virtual void Draw(wxDC &dc) = 0;
 
 protected:
@@ -80,7 +81,7 @@ protected:
                     fp (*compute_y)(std::vector<Point>::const_iterator),
                     const Data *dat=0, 
                     const wxPen *active=0, const wxPen *inactive=0);
-    virtual void read_settings(wxConfigBase *cf) = 0;
+    void change_tics_font();
     int y2Y (fp y) {  fp t = (y - yLogicalOrigin) * yUserScale;
                       return (fabs(t) < SHRT_MAX ? static_cast<int>(t) 
                                                  : t > 0 ? SHRT_MAX : SHRT_MIN);
@@ -118,6 +119,7 @@ public:
     void OnPopupYZoom (wxCommandEvent& event);
     void OnPopupYZoomFit (wxCommandEvent& event);
     void OnPopupYZoomAuto (wxCommandEvent& event);
+    void OnTicsFont (wxCommandEvent& WXUNUSED(event)) { change_tics_font(); }
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
 

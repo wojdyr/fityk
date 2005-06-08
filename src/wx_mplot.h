@@ -58,7 +58,7 @@ public:
     void OnInvertColors (wxCommandEvent& event);
     void OnPeakLabel (wxCommandEvent& event);
     void OnPlabelFont (wxCommandEvent& event);
-    void OnTicsFont (wxCommandEvent& event);
+    void OnTicsFont (wxCommandEvent& WXUNUSED(event)) { change_tics_font(); }
     void OnPopupRadius (wxCommandEvent& event);
     void OnZoomAll (wxCommandEvent& event);
     void PeakInfo ();

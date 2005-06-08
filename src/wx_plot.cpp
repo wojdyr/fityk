@@ -11,7 +11,7 @@
 #endif
 
 #include <wx/colordlg.h>
-//#include <wx/fontdlg.h>
+#include <wx/fontdlg.h>
 
 #include "common.h"
 #include "wx_plot.h"
@@ -30,6 +30,7 @@ enum {
     ID_aux_popup_c_inactive_data          ,
     ID_aux_popup_c_axis                   ,
     ID_aux_popup_color                    ,
+    ID_aux_popup_m_tfont                  ,
     ID_aux_popup_yz_fit                   ,
     ID_aux_popup_yz_change                ,
     ID_aux_popup_yz_auto                  
@@ -224,6 +225,45 @@ void FPlot::draw_data (wxDC& dc,
     }
 }
 
+void FPlot::change_tics_font()
+{
+    wxFontData data;
+    data.SetInitialFont(ticsFont);
+    data.SetColour(xAxisPen.GetColour());
+
+    wxFontDialog dialog(frame, &data);
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        wxFontData retData = dialog.GetFontData();
+        ticsFont = retData.GetChosenFont();
+        xAxisPen.SetColour(retData.GetColour());
+        Refresh(false);
+    }
+}
+
+void FPlot::read_settings(wxConfigBase *cf)
+{
+    cf->SetPath("Visible");
+    x_axis_visible = read_bool_from_config (cf, "xAxis", true);  
+    tics_visible = read_bool_from_config (cf, "tics", true);
+    cf->SetPath("../Colors");
+    xAxisPen.SetColour (read_color_from_config(cf, "xAxis", wxColour("WHITE")));
+    cf->SetPath("..");
+    ticsFont = read_font_from_config(cf, "ticsFont", *wxSMALL_FONT);
+}
+
+void FPlot::save_settings(wxConfigBase *cf) const
+{
+    cf->SetPath("Visible");
+    cf->Write ("xAxis", x_axis_visible);
+    cf->Write ("tics", tics_visible);
+    cf->SetPath("../Colors");
+    write_color_to_config (cf, "xAxis", xAxisPen.GetColour());
+    cf->SetPath("..");
+    write_font_to_config (cf, "ticsFont", ticsFont);
+}
+
+
 BEGIN_EVENT_TABLE(FPlot, wxPanel)
 END_EVENT_TABLE()
 
@@ -245,6 +285,7 @@ BEGIN_EVENT_TABLE (AuxPlot, FPlot)
                                                     AuxPlot::OnPopupPlot)
     EVT_MENU_RANGE (ID_aux_popup_c_background, ID_aux_popup_color - 1, 
                                                       AuxPlot::OnPopupColor)
+    EVT_MENU (ID_aux_popup_m_tfont, AuxPlot::OnTicsFont)
     EVT_MENU (ID_aux_popup_yz_change, AuxPlot::OnPopupYZoom)
     EVT_MENU (ID_aux_popup_yz_fit, AuxPlot::OnPopupYZoomFit)
     EVT_MENU (ID_aux_popup_yz_auto, AuxPlot::OnPopupYZoomAuto)
@@ -390,10 +431,9 @@ void AuxPlot::read_settings(wxConfigBase *cf)
     auto_zoom_y = false;
     line_between_points = read_bool_from_config(cf,"line_between_points", true);
     point_radius = cf->Read ("point_radius", 1);
-    cf->SetPath(path + "/Visible");
-    x_axis_visible = read_bool_from_config (cf, "xAxis", true);
-    tics_visible = read_bool_from_config (cf, "tics", true);
-    cf->SetPath(path + "/Colors");
+    cf->SetPath("Visible");
+    // nothing here now
+    cf->SetPath("../Colors");
     //backgroundBrush = *wxBLACK_BRUSH;
     backgroundBrush.SetColour (read_color_from_config (cf, "bg", 
                                                        wxColour(50, 50, 50)));
@@ -404,27 +444,27 @@ void AuxPlot::read_settings(wxConfigBase *cf)
     wxColour inactive_data_col = read_color_from_config (cf, "inactive_data",
                                                       wxColour (128, 128, 128));
     inactiveDataPen.SetColour (inactive_data_col);
-    xAxisPen.SetColour (read_color_from_config(cf, "xAxis", wxColour("WHITE")));
+    cf->SetPath("..");
+    FPlot::read_settings(cf);
     Refresh();
 }
 
 void AuxPlot::save_settings(wxConfigBase *cf) const
 {
-    wxString path = "/AuxPlot_" + name;
-    cf->SetPath(path);
+    cf->SetPath("/AuxPlot_" + name);
     cf->Write ("kind", kind); 
     cf->Write ("line_between_points", line_between_points);
     cf->Write ("point_radius", point_radius);
 
-    cf->SetPath(path + "/Visible");
-    cf->Write ("xAxis", x_axis_visible);
-    cf->Write ("tics", tics_visible);
+    cf->SetPath("Visible");
+    // nothing here now
 
-    cf->SetPath(path + "/Colors");
+    cf->SetPath("../Colors");
     write_color_to_config (cf, "bg", backgroundBrush.GetColour()); 
     write_color_to_config (cf, "active_data", activeDataPen.GetColour());
     write_color_to_config (cf, "inactive_data", inactiveDataPen.GetColour());
-    write_color_to_config (cf, "xAxis", xAxisPen.GetColour());
+    cf->SetPath("..");
+    FPlot::save_settings(cf);
 }
 
 void AuxPlot::OnLeftDown (wxMouseEvent &event)
@@ -509,6 +549,9 @@ void AuxPlot::OnRightDown (wxMouseEvent &event)
     color_menu->Append (ID_aux_popup_c_inactive_data, "&Inactive Data");
     color_menu->Append (ID_aux_popup_c_axis, "&X Axis");
     popup_menu.Append (ID_aux_popup_color, "&Color", color_menu);
+    wxMenu *misc_menu = new wxMenu;
+    misc_menu->Append (ID_aux_popup_m_tfont, "&Tics font");
+    popup_menu.Append (wxNewId(), "&Miscellaneous", misc_menu);
     PopupMenu (&popup_menu, event.GetX(), event.GetY());
 }
 

@@ -137,7 +137,7 @@ struct DataTransformGrammar : public grammar<DataTransformGrammar>
         rprec6 
             =   real_constant
             |   '(' >> rprec1 >> ')'
-                //sum will be refactored, see: replace_sums()
+                // sum will be refactored, see: replace_sums()
             |   (as_lower_d["sum"] [push_op(OP_BEGIN)]
                     >> '(' >> rprec1 >> ')') [push_op(OP_SUM)]
             |   (as_lower_d["interpolate"] >> parameterized_args)

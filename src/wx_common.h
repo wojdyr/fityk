@@ -46,4 +46,16 @@ void write_font_to_config (wxConfigBase *config, const wxString& key,
 extern wxMouseEvent dummy_mouse_event;
 extern wxCommandEvent dummy_cmd_event;
 
+
+// version 2.4 compatibility
+#if !wxCHECK_VERSION(2,5,3)
+enum {
+    wxID_REVERT_TO_SAVED = 15000,
+    wxID_ADD,
+    wxID_REMOVE,
+    wxID_UP,
+    wxID_DOWN
+};
+#endif
+
 #endif // WX_COMMON__H__

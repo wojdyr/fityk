@@ -453,7 +453,6 @@ void MainPlot::read_settings(wxConfigBase *cf)
                                                       wxColour (128, 128, 128));
     inactiveDataPen.SetColour (inactive_data_col);
     sumPen.SetColour (read_color_from_config (cf, "sum", wxColour("YELLOW")));
-    xAxisPen.SetColour (read_color_from_config(cf, "xAxis", wxColour("WHITE")));
     bg_pointsPen.SetColour (read_color_from_config (cf, "BgPoints", 
                                                     wxColour("RED")));
     vector<wxColour> default_phase_col;
@@ -487,14 +486,12 @@ void MainPlot::read_settings(wxConfigBase *cf)
     phases_visible = read_bool_from_config (cf, "phases", false);  
     sum_visible = read_bool_from_config (cf, "sum", true);
     data_visible = read_bool_from_config (cf, "data", true); 
-    x_axis_visible = read_bool_from_config (cf, "xAxis", true);  
-    tics_visible = read_bool_from_config (cf, "tics", true);
     cf->SetPath("/MainPlot");
     point_radius = cf->Read ("point_radius", 1);
     line_between_points = read_bool_from_config(cf,"line_between_points",false);
-    ticsFont = read_font_from_config(cf, "ticsFont", *wxSMALL_FONT);
     plabelFont = read_font_from_config(cf, "plabelFont", *wxNORMAL_FONT);
     plabel_format = cf->Read("plabel_format", "<area>").c_str();
+    FPlot::read_settings(cf);
     Refresh();
 }
 
@@ -503,7 +500,6 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->SetPath("/MainPlot");
     cf->Write ("point_radius", point_radius);
     cf->Write ("line_between_points", line_between_points);
-    write_font_to_config (cf, "ticsFont", ticsFont);
     write_font_to_config (cf, "plabelFont", plabelFont);
     cf->Write("plabel_format", plabel_format.c_str());
 
@@ -514,7 +510,6 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     write_color_to_config (cf, "active_data", activeDataPen.GetColour());
     write_color_to_config (cf, "inactive_data", inactiveDataPen.GetColour());
     write_color_to_config (cf, "sum", sumPen.GetColour());
-    write_color_to_config (cf, "xAxis", xAxisPen.GetColour());
     write_color_to_config (cf, "BgPoints", bg_pointsPen.GetColour());
     for (int i = 0; i < max_phase_pens; i++)
         write_color_to_config (cf, ("phase/" + S(i)).c_str(), 
@@ -530,8 +525,8 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->Write ("phases", phases_visible);
     cf->Write ("sum", sum_visible);
     cf->Write ("data", data_visible);
-    cf->Write ("xAxis", x_axis_visible);
-    cf->Write ("tics", tics_visible);
+    cf->SetPath("/MainPlot");
+    FPlot::save_settings(cf);
 }
 
 void MainPlot::OnLeaveWindow (wxMouseEvent& WXUNUSED(event))
@@ -1235,22 +1230,6 @@ void MainPlot::OnPlabelFont (wxCommandEvent& WXUNUSED(event))
     {
         wxFontData retData = dialog.GetFontData();
         plabelFont = retData.GetChosenFont();
-        Refresh(false);
-    }
-}
-
-void MainPlot::OnTicsFont (wxCommandEvent& WXUNUSED(event))
-{
-    wxFontData data;
-    data.SetInitialFont(ticsFont);
-    data.SetColour(xAxisPen.GetColour());
-
-    wxFontDialog dialog(frame, &data);
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        wxFontData retData = dialog.GetFontData();
-        ticsFont = retData.GetChosenFont();
-        xAxisPen.SetColour(retData.GetColour());
         Refresh(false);
     }
 }

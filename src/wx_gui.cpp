@@ -460,7 +460,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
                  const long style)
     : wxFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, style), 
       main_pane(0), data_pane(0), status_bar(0), 
-      peak_type_nr(0), toolbar(0), data_editor(0),
+      peak_type_nr(0), toolbar(0), 
       print_data(new wxPrintData), page_setup_data(new wxPageSetupData),
 #ifdef __WXMSW__
       help()
@@ -944,13 +944,8 @@ void FFrame::OnDRecent (wxCommandEvent& event)
 
 void FFrame::OnDEditor (wxCommandEvent& WXUNUSED(event))
 {
-    if (!data_editor) {
-        data_editor = new DataEditorDlg(this, -1, my_data);
-        data_editor->Show();
-    }
-    else {
-        data_editor->update_data(my_data);
-    }
+    DataEditorDlg data_editor(this, -1, my_data);
+    data_editor.ShowModal();
 }
 
 void FFrame::OnFastDTUpdate (wxUpdateUIEvent& event)

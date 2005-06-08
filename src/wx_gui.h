@@ -205,7 +205,6 @@ protected:
 
     int peak_type_nr;
     FToolBar *toolbar;
-    DataEditorDlg *data_editor;
     ProportionalSplitter *v_splitter;
     wxPrintData *print_data;
     wxPageSetupData* page_setup_data;

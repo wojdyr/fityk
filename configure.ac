@@ -5,7 +5,7 @@ AC_CONFIG_SRCDIR([src/fzgbase.h])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_HEADERS([config.h])
 AC_CANONICAL_TARGET([])
-AM_INIT_AUTOMAKE(fityk, 0.4.4)
+AM_INIT_AUTOMAKE(fityk, 0.5.0)
 AM_MAINTAINER_MODE
 
 dnl What versions of program are to be made 
@@ -32,10 +32,8 @@ if test "$enable_optimization" = "yes"; then
 	LDFLAGS="-s $LDFLAGS"
 fi
 
-dnl use 3rdparty/ if it's not empty (it's empty in CVS)
-if test -e 3rdparty/boost ; then
-	CPPFLAGS="$CPPFLAGS -I\$(top_srcdir)/3rdparty"
-fi
+dnl use headers from 3rdparty/  
+CPPFLAGS="$CPPFLAGS -I\$(top_srcdir)/3rdparty"
 
 
 dnl use static/dynamic wxWin library
