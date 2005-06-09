@@ -1,3 +1,3 @@
 # $Id$
 
-EXTRA_DIST = README boost/ 
+EXTRA_DIST = README boost 

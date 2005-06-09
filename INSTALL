@@ -36,19 +36,19 @@ PORTABILITY:
 		 ----------------------------------
 
 The only wxWidgets port I use is wxGTK. I don't test wxMotif and wxX11.
-All changes in program are tested with GCC 3.4 and GCC 2.95.
-Only GCC 2.95 and GCC 3.x compilers are supported.
+Only GCC compiler, versions 3.1 and newer are supported.
+(I test compilation only with one GCC version, it is 3.4 at this moment)
 
 
 		                  MS Windows 
 		-----------------------------------------------
 
-Current version is compiled with MinGW 3.0.0
+Current version is compiled with MinGW.
 Fityk versions <= 3.2 where compiled with the free Borland C++ Compiler 5.5.
 Windows installer is prepared with Inno Setup (configuration in fityk.iss).
 
-If you would like to try compiler other than GCC/MinGW, here are some tests: 
-MinGW - OK
+If you would like to try compiler other than GCC/MinGW, here are some 
+outdated tests: 
 Borland C++ 5.5 (bcc32) - OK, tested in 2003.  
 Cygwin - CLI - OK, GUI - ?
 VC++6 - http://sourceforge.net/mailarchive/message.php?msg_id=9217477 

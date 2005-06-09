@@ -24,6 +24,7 @@
 #include "common.h"
 #include "wx_dlg.h"
 #include "wx_common.h"
+#include "wx_pane.h"
 #include "data.h"
 #include "sum.h"
 #include "ffunc.h"
@@ -1397,7 +1398,7 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_)
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
       data(0)
 {
-    wxSplitterWindow *splitter = new wxSplitterWindow(this);
+    ProportionalSplitter *splitter = new ProportionalSplitter(this, -1, 0.5);
 
     // left side of the dialog
     wxPanel *left_panel = new wxPanel(splitter); 
@@ -1483,6 +1484,11 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_)
     top_sizer->Add(new wxButton(this, wxID_CLOSE, "&Close"), 
                    0, wxALIGN_CENTER|wxALL, 5);
     SetSizerAndFit(top_sizer);
+
+    // workaround for wxMSW 2.5.3 strange problem -- very small dialog window
+    if (GetClientSize().GetHeight() < 200)
+        SetClientSize(500, 500); 
+                             
     Centre();
 }
 
