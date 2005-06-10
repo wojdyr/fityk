@@ -37,6 +37,11 @@ enum DataTransformVMOperator
     OP_PARAMETERIZED, OP_PLIST_BEGIN, OP_PLIST_END
 };
 
+// parametrized functions
+enum {
+    PF_INTERPOLATE, PF_SPLINE
+};
+
 //-- functors used in the grammar for putting VM code and data into vectors --
 
 struct push_double

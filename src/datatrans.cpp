@@ -240,10 +240,6 @@ private:
 };
 
 
-enum {
-    PF_INTERPOLATE, PF_SPLINE
-};
-
 //------------------------  Virtual Machine  --------------------------------
 
 static vector<int> code;        //  VM code 
