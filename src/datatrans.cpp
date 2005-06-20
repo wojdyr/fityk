@@ -521,6 +521,12 @@ bool execute_code(int n, int &M, vector<double>& stack,
                 stackPtr--;
                 *stackPtr = (fabs(*stackPtr - *(stackPtr+1)) > epsilon);
                 break;
+
+                // next comparision hack, see rbool rule for more...
+            case OP_NCMP_HACK:
+                stackPtr++;                // put number, that is accidentally 
+                *stackPtr = *(stackPtr+1); // in unused part of the stack
+                break;
             
             //transformation condition 
             case OP_INDEX:
@@ -678,7 +684,12 @@ void push_double::operator()(const double& n) const
     numbers.push_back(n);
 }
 
-void push_op::push() const { code.push_back(op); }
+void push_op::push() const 
+{ 
+    code.push_back(op); 
+    if (op2)
+        code.push_back(op2); 
+}
 
 void parameterized_op::push() const
 { 

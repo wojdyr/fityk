@@ -1,18 +1,21 @@
 
+* short-cuts for menu commands (Ctrl-O, F1, etc.)
+
 * More visible toolbar icons (icons 5-9 from left must be changed).
   Bigger (24x24) icons should be used. Data editor tool.
 
-* short-cuts for menu commands (Ctrl-O, F1, etc.)
+* (GUI) data viewer - "Resize plot" button between Apply and Help
 
 * (GUI) data viewer - "Apply" button should be inactive when statement
-  can't be parsed; "Resize plot" button between Apply and Help
+  can't be parsed; 
 
 * check for Boost.Spirit in configure.ac
 
+* improve Voigt function (probably bug in FWHM, cut-tails, better approx?) 
+
 ------------------ 0.5.1  2005.06
 
-* data tranformations: handle "3 < x < 4" like "3 < x and x < 4"
-                       new functions: randuniform[a b]() randnormal[mu sigma]()
+* data tranformations: new functions: randuniform[a b]() randnormal[mu sigma]()
                        temporary variables
 		       documentation
 
@@ -97,8 +100,6 @@
 * more sophisticated algorithms for peak detection
 
 * write documentation for fwhm-correction and height-correction (m.set) 
-
-* improve Voigt function (FWHM, cut-tails, better approx?) 
 
 * fitting: it should be separated even more from the rest of the program.
   Perhaps it fitting functions should be in extern library (COOOL,

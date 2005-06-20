@@ -1,5 +1,5 @@
 
-AC_DEFUN(READLINE_STUFF, 
+AC_DEFUN([READLINE_STUFF], 
 [
  dnl GNU readline and the required terminal library check
  AC_SUBST(READLINE_LIBS)

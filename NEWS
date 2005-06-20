@@ -1,3 +1,6 @@
+User-visible changes in version 0.5.1 (2005-0 -  ):
+* data tranformations: treat "3 < x < 4" like "3 < x and x < 4"
+
 User-visible changes in version 0.5.0 (2005-06-09):
 * d.load -- possibility of loading of only selected points from file 
             was removed (it can be done with d.tranform after loading)

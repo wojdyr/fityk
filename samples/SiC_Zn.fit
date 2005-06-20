@@ -1,12 +1,12 @@
-# Fityk 0.4.3
+# Fityk 0.5.1
 ## this script is an example of crystallography/diffraction module usage  
 
  d.load 'SiC_Zn.dat' # Load data file from current directory (SiC+Zn data)
 
  #background was obtained by clicking on plot in "background mode"
- d.background  20.4823 43.3474 , 28.004 24.3128 , 31.4412 23.6984 , 33.7911 36.0138 , 38.6477 30.5403 , 98.9835 23.6079 , 98.9835 23.6079 , 79.5965 22.1979 , 65.1888 17.968 , 49.9335 17.263
+ d.t y = y - spline[20.4823 43.3474   28.004 24.3128   31.4412 23.6984   33.7911 36.0138   38.6477 30.5403   49.9335 17.263   65.1888 17.968   79.5965 22.1979  98.9835 23.6079](x)
 
- d.range [ 31 : ] # only data with 2theta greater then 31.0 are active
+ d.t a = x>31 # only data with 2theta greater then 31.0 are active
 
  #Used wavelength in known and we do not want to fit it.
  # If you would like to fit wavelength, replace '_' with '~'
