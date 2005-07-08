@@ -471,7 +471,7 @@ void AuxPlot::OnLeftDown (wxMouseEvent &event)
 {
     cancel_mouse_left_press();
     if (event.ShiftDown()) { // the same as OnMiddleDown()
-        frame->OnGViewAll(dummy_cmd_event);
+        frame->GViewAll();
         return;
     }
     int X = event.GetPosition().x;
@@ -559,7 +559,7 @@ void AuxPlot::OnMiddleDown (wxMouseEvent& WXUNUSED(event))
 {
     if (cancel_mouse_left_press())
         return;
-    frame->OnGViewAll(dummy_cmd_event);
+    frame->GViewAll();
 }
 
 void AuxPlot::OnKeyDown (wxKeyEvent& event)

@@ -157,7 +157,8 @@ public:
     void OnStripBg       (wxCommandEvent& event);
     void OnClearBg       (wxCommandEvent& event);
     void OnSplineBg      (wxCommandEvent& event);
-    void OnGViewAll      (wxCommandEvent& event);
+    void GViewAll();
+    void OnGViewAll      (wxCommandEvent& WXUNUSED(event)) { GViewAll(); }
     void OnGFitHeight    (wxCommandEvent& event);
     void OnGScrollLeft   (wxCommandEvent& event);
     void OnGScrollRight  (wxCommandEvent& event);

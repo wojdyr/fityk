@@ -636,8 +636,8 @@ void FFrame::set_menubar()
 {
     // Make a menubar
     wxMenu* data_menu = new wxMenu;
-    data_menu->Append (ID_D_LOAD,     "&Load File", "Load data from file");
-    data_menu->Append (ID_D_XLOAD,    "&Load File (Custom)", 
+    data_menu->Append (ID_D_LOAD, "&Load File\tCtrl-L", "Load data from file");
+    data_menu->Append (ID_D_XLOAD, "&Load File (Custom)", 
                                     "Load data from file, with some options");
     this->data_menu_recent = new wxMenu;
     int rf_counter = 1;
@@ -648,7 +648,7 @@ void FFrame::set_menubar()
     data_menu->Append(ID_D_RECENT, "Recent &Files", data_menu_recent); 
     data_menu->AppendSeparator();
 
-    data_menu->Append (ID_D_EDITOR,   "&Editor", "Open data editor");
+    data_menu->Append (ID_D_EDITOR,   "&Editor\tCtrl-E", "Open data editor");
     this->data_ft_menu = new wxMenu;
     data_menu->Append (ID_D_FDT,      "&Fast Transformations", data_ft_menu, 
                                       "Quick data transformations");
@@ -803,7 +803,7 @@ void FFrame::set_menubar()
     session_menu->Append(ID_QUIT, "&Quit", "Exit the program");
 
     wxMenu *help_menu = new wxMenu;
-    help_menu->Append(ID_H_MANUAL, "&Manual", "User's Manual");
+    help_menu->Append(ID_H_MANUAL, "&Manual\tF1", "User's Manual");
     help_menu->Append(ID_H_TIP, "&Tip of the day", "Show tip of the day");
     help_menu->Append(wxID_ABOUT, "&About...", "Show about dialog");
 
@@ -1439,7 +1439,7 @@ void FFrame::OnGuiShowUpdate (wxUpdateUIEvent& event)
     event.Skip();
 }
 
-void FFrame::OnGViewAll (wxCommandEvent& WXUNUSED(event))
+void FFrame::GViewAll()
 {
     change_zoom("[]");
 }

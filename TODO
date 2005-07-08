@@ -1,10 +1,6 @@
 
-* short-cuts for menu commands (Ctrl-O, F1, etc.)
-
 * More visible toolbar icons (icons 5-9 from left must be changed).
   Bigger (24x24) icons should be used. Data editor tool.
-
-* (GUI) data viewer - "Resize plot" button between Apply and Help
 
 * (GUI) data viewer - "Apply" button should be inactive when statement
   can't be parsed; 

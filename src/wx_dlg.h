@@ -14,6 +14,7 @@
 class FuncTree;
 struct z_names_type;
 class wxGrid;
+class DataTable;
 
 struct par_descr_type
 {
@@ -180,6 +181,7 @@ struct DataTransExample
 
 class DataEditorDlg : public wxDialog
 {
+    friend class DataTable;
 public:
     DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_);
     void OnRevert (wxCommandEvent& event);
@@ -191,6 +193,7 @@ public:
     void OnSave (wxCommandEvent& event);
     void OnReset (wxCommandEvent& event);
     void OnApply (wxCommandEvent& event);
+    void OnReZoom (wxCommandEvent& event);
     void OnHelp (wxCommandEvent& event);
     void OnClose (wxCommandEvent& event);
     void OnCodeText (wxCommandEvent&) { CodeText(); }
@@ -210,7 +213,7 @@ protected:
     wxStaticText *filename_label, *title_label, *description;
     wxListCtrl *example_list; 
     wxTextCtrl *code;
-    wxButton *revert_btn, *save_as_btn, *apply_btn, *help_btn,
+    wxButton *revert_btn, *save_as_btn, *apply_btn, *rezoom_btn, *help_btn,
              *add_btn, *remove_btn, *up_btn, *down_btn, 
              *save_btn, *reset_btn;
 

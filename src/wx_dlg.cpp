@@ -25,6 +25,7 @@
 #include "wx_dlg.h"
 #include "wx_common.h"
 #include "wx_pane.h"
+#include "wx_gui.h"
 #include "data.h"
 #include "sum.h"
 #include "ffunc.h"
@@ -81,7 +82,8 @@ enum {
     ID_DE_GRID              = 26310,
     ID_DE_RESET                    ,
     ID_DE_CODE                     ,
-    ID_DE_EXAMPLES
+    ID_DE_EXAMPLES                 ,
+    ID_DE_REZOOM
 };
 
 //======================== FuncBrowserDlg ===========================
@@ -1230,8 +1232,8 @@ void SumHistoryDlg::OnViewSpinCtrlUpdate (wxSpinEvent& event)
 class DataTable: public wxGridTableBase
 {
 public:
-    DataTable(Data *data_, wxGrid *grid_) : wxGridTableBase(), 
-                                            data(data_), grid(grid_) {}
+    DataTable(Data *data_, DataEditorDlg *ded_) : wxGridTableBase(), 
+                                            data(data_), ded(ded_) {}
     int GetNumberRows() { return data->points().size(); }
     int GetNumberCols() { return 4; }
     bool IsEmptyCell(int WXUNUSED(row), int WXUNUSED(col)) { return false; }
@@ -1273,13 +1275,15 @@ public:
         }
         exec_command("d.transform " + t + "[" + S(row)+"]=" + S(value));
         if (col == 1) // order of items can be changed
-            grid->ForceRefresh();
+            ded->grid->ForceRefresh();
+        ded->rezoom_btn->Enable();
     }
 
     void SetValueAsBool(int row, int col, bool value) 
     { 
         assert(col==0); 
         exec_command("d.transform a[" + S(row)+"]=" + (value ?"true":"false")); 
+        ded->rezoom_btn->Enable();
     }
 
     wxString GetRowLabelValue(int row) { return S(row).c_str(); }
@@ -1297,7 +1301,7 @@ public:
 
 private:
     Data *data;
-    wxGrid *grid;
+    DataEditorDlg *ded;
 };
 
 
@@ -1385,6 +1389,7 @@ BEGIN_EVENT_TABLE(DataEditorDlg, wxDialog)
     EVT_BUTTON      (wxID_SAVE,             DataEditorDlg::OnSave)
     EVT_BUTTON      (ID_DE_RESET,           DataEditorDlg::OnReset)
     EVT_BUTTON      (wxID_APPLY,            DataEditorDlg::OnApply)
+    EVT_BUTTON      (ID_DE_REZOOM,          DataEditorDlg::OnReZoom)
     EVT_BUTTON      (wxID_HELP,             DataEditorDlg::OnHelp)
     EVT_BUTTON      (wxID_CLOSE,            DataEditorDlg::OnClose)
     EVT_TEXT        (ID_DE_CODE,            DataEditorDlg::OnCodeText)
@@ -1460,6 +1465,9 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_)
     apply_help_sizer->Add(1, 1, 1);
     apply_btn = new wxButton(right_panel, wxID_APPLY, "&Apply");
     apply_help_sizer->Add(apply_btn, 0, wxALIGN_CENTER|wxALL, 5);
+    apply_help_sizer->Add(1, 1, 1);
+    rezoom_btn = new wxButton(right_panel, ID_DE_REZOOM, "&Fit Zoom");
+    apply_help_sizer->Add(rezoom_btn, 0, wxALIGN_CENTER|wxALL, 5);
     apply_help_sizer->Add(1, 1, 1);
     help_btn = new wxButton(right_panel, wxID_HELP, "&Help");
     apply_help_sizer->Add(help_btn, 0, wxALIGN_RIGHT|wxALL, 5);
@@ -1555,7 +1563,7 @@ void DataEditorDlg::update_data(Data *data_)
     data = data_;
     filename_label->SetLabel(data->get_filename().c_str());
     title_label->SetLabel(data->get_title().c_str());
-    grid->SetTable(new DataTable(data, grid), true, wxGrid::wxGridSelectRows);
+    grid->SetTable(new DataTable(data, this), true, wxGrid::wxGridSelectRows);
     grid->ForceRefresh();
     grid->AdjustScrollbars();
     Show();
@@ -1649,6 +1657,13 @@ void DataEditorDlg::OnApply (wxCommandEvent& WXUNUSED(event))
     execute_tranform(code->GetValue().Trim().c_str());
     grid->ForceRefresh();
     grid->AdjustScrollbars();
+    rezoom_btn->Enable();
+}
+
+void DataEditorDlg::OnReZoom (wxCommandEvent& WXUNUSED(event))
+{
+    frame->GViewAll();
+    rezoom_btn->Enable(false);
 }
 
 void DataEditorDlg::execute_tranform(string code)

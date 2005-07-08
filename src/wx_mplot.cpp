@@ -905,7 +905,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         if (dist_x >= 5) { 
             fp xmin = X2x (min (event.GetX(), mouse_press_X));
             fp xmax = X2x (max (event.GetX(), mouse_press_X));
-            string xmin_x_xmax = "(" + S(xmin) + "<x and x<" + S(xmax) + ")";
+            string xmin_x_xmax = "(" + S(xmin) + "< x <" + S(xmax) + ")";
             if (button == 1)
                 exec_command ("d.transform a = a or " + xmin_x_xmax);
             else //button == 3
