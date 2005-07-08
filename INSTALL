@@ -1,11 +1,73 @@
-Installation Instructions
-*************************
+REQUIREMENTS:
+============
+both CLI and GUI
+  modern c++ compiler (see below)
+only for CLI (command line interface, cfityk): 
+  readline library (optional)
+  gnuplot program (for graph output, optional)
+only for GUI (graphical user interface, fityk):
+  wxWidgets (formerly wxWindows) >= 2.4.2, (I'm testing it only with 2.4.2 
+                                            and the latest version)
+   note: wxWidgets should be compiled without Unicode support (usually 
+         you don't have to worry about it, default compilation is OK).
+        
 
-Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2004, 2005 Free
-Software Foundation, Inc.
+CVS:
+===
+To compile source code from CVS, automake and autoconf are needed.
+Just run ./autogen.sh before ./configure. You may need to tune autogen.sh.
 
-This file is free documentation; the Free Software Foundation gives
-unlimited permission to copy, distribute and modify it.
+Also flex and bison are needed (in tarballs there are pre-generated C++ files).
+
+There are additional tools needed to run make in doc/ subdirectory
+(to convert XML DocBook document to HTML). If you don't want to bother 
+with it, either use --without-doc configure option or run `make' only in src/ 
+subdirectory. Manual and tips won't be installed then. 
+
+Fityk uses Boost::Spirit. (Only some header files are needed, in fityk tarballs 
+these files are put in 3rdparty/ directory). When using CVS, install 
+either whole Boost library or only Spirit (http://spirit.sf.net).
+
+
+PORTABILITY:
+===========
+		 Linux (and probably other unices): 
+		 ----------------------------------
+
+The only wxWidgets port I use is wxGTK. I don't test wxMotif and wxX11.
+Only GCC compiler, versions 3.1 and newer are supported.
+(I test compilation only with one GCC version, it is 3.4 at this moment)
+
+
+		                  MS Windows 
+		-----------------------------------------------
+
+Current version is compiled with MinGW.
+Fityk versions <= 3.2 where compiled with the free Borland C++ Compiler 5.5.
+Windows installer is prepared with Inno Setup (configuration in fityk.iss).
+
+If you would like to try compiler other than GCC/MinGW, here are some 
+outdated tests: 
+Borland C++ 5.5 (bcc32) - OK, tested in 2003.  
+Cygwin - CLI - OK, GUI - ?
+VC++6 - http://sourceforge.net/mailarchive/message.php?msg_id=9217477 
+
+
+				 Mac OS 
+		     --------------------------------
+I don't have Mac, but fityk was reported to run under Mac OS X.
+See fityk-users mailing list for details:
+https://sourceforge.net/mailarchive/forum.php?forum=fityk-users
+eg:
+https://sourceforge.net/mailarchive/message.php?msg_id=10022599
+and newer messages.
+
+
+---------------------------------------------------------------------------
+--------- the rest of file contains generic instructions that comes -------
+------------------------ with GNU automake tool --------------------------
+---------------------------------------------------------------------------
+
 
 Basic Installation
 ==================
