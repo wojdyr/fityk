@@ -57,29 +57,30 @@
 #endif
 
 //toolbars icons
-#include "img/plusbg.xpm"  
-//#include "img/spline.xpm"
-#include "img/autoadd.xpm"     
-#include "img/tree.xpm" 
-#include "img/zoom_t.xpm"
-#include "img/range_t.xpm"
-#include "img/baseline_t.xpm"
-#include "img/addpeak_t.xpm"
+#include "img/active_mode.xpm"
+#include "img/addpeak_mode.xpm"
+#include "img/add_peak.xpm"
+#include "img/bg_mode.xpm"
+#include "img/cont_fit.xpm"
+#include "img/edit_data.xpm"
 #include "img/manual.xpm"
-#include "img/openfile.xpm"
-#include "img/fitrun.xpm"
-#include "img/fitcont.xpm"
-#include "img/fitundo.xpm"
-#include "img/execute.xpm"
-#include "img/log.xpm"
-#include "img/reset.xpm"
-#include "img/dump.xpm"
-#include "img/whole.xpm"
-#include "img/vertic.xpm"
-#include "img/leftscroll.xpm"
-#include "img/rightscroll.xpm"
-#include "img/backv.xpm"
-#include "img/dpane.xpm"
+#include "img/open_data_custom.xpm"
+#include "img/open_data.xpm"
+#include "img/right_pane.xpm"
+#include "img/run_fit.xpm"
+#include "img/run_script.xpm"
+#include "img/save_data.xpm"
+#include "img/save_script.xpm"
+#include "img/strip_bg.xpm"
+#include "img/sum.xpm"
+#include "img/undo_fit.xpm"
+#include "img/zoom_all.xpm"
+#include "img/zoom_left.xpm"
+#include "img/zoom_mode.xpm"
+#include "img/zoom_prev.xpm"
+#include "img/zoom_right.xpm"
+#include "img/zoom_vert.xpm"
+//statusbar icons
 #include "img/mouse_l.xpm"
 #include "img/mouse_r.xpm"
 
@@ -636,8 +637,8 @@ void FFrame::set_menubar()
 {
     // Make a menubar
     wxMenu* data_menu = new wxMenu;
-    data_menu->Append (ID_D_LOAD, "&Load File\tCtrl-L", "Load data from file");
-    data_menu->Append (ID_D_XLOAD, "&Load File (Custom)", 
+    data_menu->Append (ID_D_LOAD, "&Load File\tCtrl-O", "Load data from file");
+    data_menu->Append (ID_D_XLOAD, "&Load File (Custom)\tCtrl-M", 
                                     "Load data from file, with some options");
     this->data_menu_recent = new wxMenu;
     int rf_counter = 1;
@@ -653,10 +654,10 @@ void FFrame::set_menubar()
     data_menu->Append (ID_D_FDT,      "&Fast Transformations", data_ft_menu, 
                                       "Quick data transformations");
     data_menu->Append (ID_D_INFO,     "&Info", "Info about loaded data");
-    data_menu->Append (ID_D_EXPORT,   "&Export", "Save data to file");
+    data_menu->Append (ID_D_EXPORT,   "&Export\tCtrl-S", "Save data to file");
 
     wxMenu* sum_menu = new wxMenu;
-    sum_menu->Append (ID_S_HISTORY,   "&History", "Go back or forward"
+    sum_menu->Append (ID_S_HISTORY,   "&History\tCtrl-H", "Go back or forward"
                                                     " in change history");      
     sum_menu->Append (ID_S_INFO,      "&Info", "Info about fitted curve");      
     sum_menu->Append (ID_S_ADD,       "&Add", "Add parameter or function"); 
@@ -684,8 +685,8 @@ void FFrame::set_menubar()
     fit_menu->Append (ID_F_METHOD,    "&Method", fit_method_menu, 
                                             "It influences commands below");
     fit_menu->AppendSeparator();
-    fit_menu->Append (ID_F_RUN,       "&Run", "Start fitting sum to data");
-    fit_menu->Append (ID_F_CONTINUE,  "&Continue", "Continue fitting");      
+    fit_menu->Append (ID_F_RUN,    "&Run\tCtrl-R", "Start fitting sum to data");
+    fit_menu->Append (ID_F_CONTINUE,  "&Continue\tCtrl-T", "Continue fitting");
     fit_menu->Append (ID_F_INFO,      "&Info", "Info about current fit");      
     fit_menu->Append (ID_F_SET,       "&Settings", "Preferences and options"); 
 
@@ -706,13 +707,13 @@ void FFrame::set_menubar()
 
     wxMenu* gui_menu = new wxMenu;
     wxMenu* gui_menu_mode = new wxMenu;
-    gui_menu_mode->AppendRadioItem (ID_G_M_ZOOM, "&Normal", 
+    gui_menu_mode->AppendRadioItem (ID_G_M_ZOOM, "&Normal\tCtrl-N", 
                                     "Use mouse for zooming, moving peaks etc.");
-    gui_menu_mode->AppendRadioItem (ID_G_M_RANGE, "&Range", 
+    gui_menu_mode->AppendRadioItem (ID_G_M_RANGE, "&Range\tCtrl-I", 
                              "Use mouse for activating and disactivating data");
-    gui_menu_mode->AppendRadioItem (ID_G_M_BG, "&Baseline", 
+    gui_menu_mode->AppendRadioItem (ID_G_M_BG, "&Baseline\tCtrl-B", 
                                     "Use mouse for subtracting background");
-    gui_menu_mode->AppendRadioItem (ID_G_M_ADD, "&Peak-Add", 
+    gui_menu_mode->AppendRadioItem (ID_G_M_ADD, "&Peak-Add\tCtrl-K", 
                                     "Use mouse for adding new peaks");
     wxMenu* gui_menu_mode_peak = new wxMenu;
     vector<const z_names_type*> all_t = V_fzg::all_types(fType);
@@ -757,10 +758,13 @@ void FFrame::set_menubar()
     gui_menu->AppendCheckItem(ID_G_CROSSHAIR, "&Crosshair Cursor", 
                                               "Show crosshair cursor");
     gui_menu->AppendSeparator();
-    gui_menu->Append (ID_G_V_ALL, "Zoom &All", "View whole data");
-    gui_menu->Append (ID_G_V_VERT, "Fit &vertically", "Adjust vertical zoom");
-    gui_menu->Append (ID_G_V_SCROLL_L, "Scroll &Left", "Scroll view left");
-    gui_menu->Append (ID_G_V_SCROLL_R, "Scroll &Right", "Scroll view right");
+    gui_menu->Append (ID_G_V_ALL, "Zoom &All\tCtrl-A", "View whole data");
+    gui_menu->Append (ID_G_V_VERT, "Fit &vertically\tCtrl-V", 
+                      "Adjust vertical zoom");
+    gui_menu->Append (ID_G_V_SCROLL_L, "Scroll &Left\tCtrl-[", 
+                      "Scroll view left");
+    gui_menu->Append (ID_G_V_SCROLL_R, "Scroll &Right\tCtrl-]", 
+                      "Scroll view right");
 
     wxMenu* gui_menu_zoom_prev = new wxMenu;
     gui_menu->Append(ID_G_V_ZOOM_PREV, "&Previous Zooms", gui_menu_zoom_prev);
@@ -779,19 +783,19 @@ void FFrame::set_menubar()
     gui_menu->Append(ID_G_SCONF, "&Save current config", gui_menu_sconfig);
 
     wxMenu* session_menu = new wxMenu;
-    session_menu->Append (ID_O_INCLUDE,   "&Include file", 
+    session_menu->Append (ID_O_INCLUDE,   "&Execute script\tCtrl-X", 
                                             "Execute commands from a file");
-    session_menu->Append (ID_O_REINCLUDE, "&Re-Include file", 
+    session_menu->Append (ID_O_REINCLUDE, "&Re-Execute script", 
                 "Reset & execute commands from the file included last time");
     session_menu->Enable (ID_O_REINCLUDE, false);
     session_menu->Append (ID_O_RESET,     "&Reset", "Reset current session");
     session_menu->AppendSeparator();
     session_menu->Append (ID_O_LOG,       "&Log to file", 
-                                            "Start/stop logging to file");
+                            "Start/stop logging to file (it produces script)");
     session_menu->Append (ID_O_DUMP,      "&Dump to file", 
-                                         "Save current program state to file");
+                                  "Save current program state as script file");
     session_menu->AppendSeparator();
-    session_menu->Append (ID_PRINT,       "&Print...", "Print plots");
+    session_menu->Append (ID_PRINT,       "&Print...\tCtrl-P", "Print plots");
     session_menu->Append (ID_PRINT_SETUP, "Print Se&tup",
                                                     "Printer and page setup");
     session_menu->Append (ID_PRINT_PREVIEW, "Print Pre&view", "Preview"); 
@@ -899,7 +903,7 @@ void FFrame::not_implemented_menu_item (const std::string &command) const
 void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
 {
     static wxString dir = ".";
-    wxFileDialog fdlg (frame, "Load data from a file", dir, "",
+    wxFileDialog fdlg (this, "Load data from a file", dir, "",
                               "x y files (*.dat, *.xy, *.fio)"
                                           "|*.dat;*.DAT;*.xy;*.XY;*.fio;*.FIO" 
                               "|rit files (*.rit)|*.rit;*.RIT"
@@ -1774,65 +1778,75 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
         : wxToolBar (parent, id, wxDefaultPosition, wxDefaultSize,
                      wxNO_BORDER | /*wxTB_FLAT |*/ wxTB_DOCKABLE) 
 {
+    SetToolBitmapSize(wxSize(24, 24));
     // mode
     Mouse_mode_enum m = frame ? frame->plot_pane->get_plot()->get_mouse_mode() 
                               : mmd_zoom;
-    AddRadioTool(ID_ft_m_zoom, "Zoom", wxBitmap(zoom_t_xpm), wxNullBitmap, 
+    AddRadioTool(ID_ft_m_zoom, "Zoom", wxBitmap(zoom_mode_xpm), wxNullBitmap, 
                  "Normal Mode", "Use mouse for zooming, moving peaks etc."); 
     ToggleTool(ID_ft_m_zoom, m == mmd_zoom);
-    AddRadioTool(ID_ft_m_range, "Range", wxBitmap(range_t_xpm), wxNullBitmap, 
+    AddRadioTool(ID_ft_m_range, "Range", wxBitmap(active_mode_xpm),wxNullBitmap,
          "Data-Range Mode", "Use mouse for activating and disactivating data"); 
     ToggleTool(ID_ft_m_range, m == mmd_range);
-    AddRadioTool(ID_ft_m_bg, "Background", wxBitmap(baseline_t_xpm), 
-                                                                 wxNullBitmap, 
+    AddRadioTool(ID_ft_m_bg, "Background", wxBitmap(bg_mode_xpm), wxNullBitmap, 
                  "Baseline Mode", "Use mouse for subtracting background"); 
     ToggleTool(ID_ft_m_bg, m == mmd_bg);
-    AddRadioTool(ID_ft_m_add, "Add peak", wxBitmap(addpeak_t_xpm), wxNullBitmap,
+    AddRadioTool(ID_ft_m_add, "Add peak", 
+                 wxBitmap(addpeak_mode_xpm), wxNullBitmap,
                  "Add-Peak Mode", "Use mouse for adding new peaks"); 
     ToggleTool(ID_ft_m_add, m == mmd_add);
     AddSeparator();
     // view
-    AddTool (ID_G_V_ALL, "Whole", wxBitmap(whole_xpm), wxNullBitmap, 
+    AddTool (ID_G_V_ALL, "Whole", wxBitmap(zoom_all_xpm), wxNullBitmap, 
              wxITEM_NORMAL, "View whole", 
              "Fit data in window");
-    AddTool (ID_G_V_VERT, "Fit height", wxBitmap(vertic_xpm), wxNullBitmap,
+    AddTool (ID_G_V_VERT, "Fit height", wxBitmap(zoom_vert_xpm), wxNullBitmap,
             wxITEM_NORMAL, "Fit vertically",
             "Set optimal y scale"); 
-    AddTool(ID_G_V_SCROLL_L,"<-- scroll",wxBitmap(leftscroll_xpm), wxNullBitmap,
+    AddTool(ID_G_V_SCROLL_L,"<-- scroll",wxBitmap(zoom_left_xpm), wxNullBitmap,
             wxITEM_NORMAL, "Scroll left", "Scroll view left"); 
-    AddTool(ID_G_V_SCROLL_R,"scroll -->",wxBitmap(rightscroll_xpm),wxNullBitmap,
+    AddTool(ID_G_V_SCROLL_R,"scroll -->",wxBitmap(zoom_right_xpm),wxNullBitmap,
             wxITEM_NORMAL, "Scroll right", "Scroll view right"); 
-    AddTool (ID_ft_v_pr, "Back", wxBitmap(backv_xpm), wxNullBitmap, 
+    AddTool (ID_ft_v_pr, "Back", wxBitmap(zoom_prev_xpm), wxNullBitmap, 
              wxITEM_NORMAL, "Previous view", 
              "Go to previous View");
     AddSeparator();
     //file
-    AddTool (ID_O_INCLUDE, "Execute", wxBitmap(execute_xpm), wxNullBitmap,  
+    AddTool (ID_O_INCLUDE, "Execute", wxBitmap(run_script_xpm), wxNullBitmap,  
              wxITEM_NORMAL, "Execute script",
              "Execute (include) script from file");
-    AddTool (ID_O_LOG, "Log", wxBitmap(log_xpm), wxNullBitmap,  
-             wxITEM_NORMAL, "Start/Stop logging",
-             "Start/Stop logging commands to file");
-    AddTool (ID_O_RESET, "Reset", wxBitmap(reset_xpm), wxNullBitmap,  
-             wxITEM_NORMAL, "Reset current session",
-             "Reset current session");
-    AddTool (ID_O_DUMP, "Dump", wxBitmap(dump_xpm), wxNullBitmap,  
+    //AddTool (ID_O_LOG, "Log", wxBitmap(log_xpm), wxNullBitmap,  
+    //         wxITEM_NORMAL, "Start/Stop logging",
+    //         "Start/Stop logging commands to file");
+    //AddTool (ID_O_RESET, "Reset", wxBitmap(reset_xpm), wxNullBitmap,  
+    //         wxITEM_NORMAL, "Reset current session",
+    //         "Reset current session");
+    AddTool (ID_O_DUMP, "Dump", wxBitmap(save_script_xpm), wxNullBitmap,  
              wxITEM_NORMAL, "Dump session to file",
              "Dump current session to file");
     AddSeparator();
     //data
-    AddTool (ID_D_LOAD, "Load", wxBitmap(openfile_xpm), wxNullBitmap,  
+    AddTool (ID_D_LOAD, "Load", wxBitmap(open_data_xpm), wxNullBitmap,  
              wxITEM_NORMAL, "Load file",
              "Load data from file");
+    AddTool (ID_D_XLOAD, "Load2", wxBitmap(open_data_custom_xpm), wxNullBitmap,
+             wxITEM_NORMAL, "Load file (custom)",
+             "Load data from file");
+    AddTool (ID_D_EDITOR, "Edit data", wxBitmap(edit_data_xpm), wxNullBitmap,  
+             wxITEM_NORMAL, "View and transform current dataset",
+             "Save data to file");
+    AddTool (ID_D_EXPORT, "Save", wxBitmap(save_data_xpm), wxNullBitmap,  
+             wxITEM_NORMAL, "Save data as...",
+             "Save data to file");
     AddSeparator();
     //background
-    AddTool (ID_ft_b_strip, "Strip Bg", wxBitmap(plusbg_xpm), wxNullBitmap,  
+    AddTool (ID_ft_b_strip, "Strip Bg", wxBitmap(strip_bg_xpm), wxNullBitmap,  
              wxITEM_NORMAL, "Strip background",
              "Remove selected background from data");
     EnableTool(ID_ft_b_strip, (m == mmd_bg));
     AddSeparator();
     //sum
-    AddTool (ID_S_INFO, "Tree", wxBitmap(tree_xpm), wxNullBitmap,
+    AddTool (ID_S_INFO, "Tree", wxBitmap(sum_xpm), wxNullBitmap,
              wxITEM_NORMAL, "Show tree", "Show tree of functions");
     AddSeparator();
     peak_choice = new wxChoice(this, ID_ft_peakchoice); 
@@ -1842,22 +1856,22 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
         peak_choice->Append ((*i)->name.c_str());
     update_peak_type();
     AddControl (peak_choice);
-    AddTool (ID_ft_s_aa, "add", wxBitmap(autoadd_xpm), wxNullBitmap, 
+    AddTool (ID_ft_s_aa, "add", wxBitmap(add_peak_xpm), wxNullBitmap, 
              wxITEM_NORMAL, "auto-add", "Add peak automatically");
     AddSeparator();
     //fit
-    AddTool (ID_ft_f_run, "Run", wxBitmap(fitrun_xpm), wxNullBitmap,
+    AddTool (ID_ft_f_run, "Run", wxBitmap(run_fit_xpm), wxNullBitmap,
              wxITEM_NORMAL, "Start fitting", "Start fitting sum to data");
-    AddTool (ID_ft_f_cont, "Continue", wxBitmap(fitcont_xpm), wxNullBitmap,
+    AddTool (ID_ft_f_cont, "Continue", wxBitmap(cont_fit_xpm), wxNullBitmap,
              wxITEM_NORMAL, "Continue fitting", "Continue fitting sum to data");
-    AddTool (ID_ft_f_undo, "Continue", wxBitmap(fitundo_xpm), wxNullBitmap,
+    AddTool (ID_ft_f_undo, "Continue", wxBitmap(undo_fit_xpm), wxNullBitmap,
              wxITEM_NORMAL, "Undo fitting", "Previous set of parameters");
     AddSeparator();
     //help
     AddTool (ID_H_MANUAL, "Help", wxBitmap(manual_xpm), wxNullBitmap,
              wxITEM_NORMAL, "Manual", "Open user manual");
     AddSeparator();
-    AddTool (ID_ft_dpane, "Datasets", wxBitmap(dpane_xpm), wxNullBitmap,
+    AddTool (ID_ft_dpane, "Datasets", wxBitmap(right_pane_xpm), wxNullBitmap,
              wxITEM_CHECK, "Datasets Pane", "Show/hide datasets pane");
 
     Realize();
