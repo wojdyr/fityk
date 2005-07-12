@@ -101,11 +101,10 @@ AC_CHECK_HEADER(sstream, [], [AC_MSG_ERROR(
  [You don't have a <sstream> header. It is a part of standard C++ library.
   Either you have too old compiler, or standard C++ library can't be found.])])
 AC_CHECK_HEADER([boost/spirit/core.hpp], [], [AC_MSG_ERROR(
- [Boost::Spirit headers were not found. I think it shouldn't happend
-  when you use tarball, because these headers are included there. 
-  If you use CVS version, either install Spirit from http://spirit.sf.net
-  (you can also install entire Boost library), or copy 3rdparty/ directory
-  from Fityk tarball])])
+ [Boost::Spirit headers were not found 
+  or your compiler can't compile it.
+  If you use CVS version, make sure you have Spirit installed (see INSTALL).
+ ])])
 AC_LANG_POP([C++]) dnl C is faster than C++
 
 dnl Checks for version specific libraries and headers.

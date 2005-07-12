@@ -87,31 +87,32 @@
 
 char* app_name = "fityk"; 
 char* about_html = 
-"<html> <body bgcolor=white text=white>                                  "
-"  <table cellspacing=3 cellpadding=4 width=100%>                        "
-"   <tr bgcolor=#101010 align=center> <td>                               "
-"      <h1> fityk " VERSION "</h1>                                       "
-"      <h6> powered by " wxVERSION_STRING "<br>                          "
-"           powered by Boost.Spirit %d.%d.%d</h6>                        "
-"      <p><font size=-2>$Date$</font></p>          "
-"   </td> </tr>                                                          "
-"   <tr> <td bgcolor=#73A183>                                            "
-"     <font color=black>                                                 "
-"      <b><font size=+1> <p align = center>                              "
-"       Copyright (C) 2001 - 2005 Marcin Wojdyr                          "
-"      </font></b><p>                                                    "
-"      <font size=-1>                                                    "
-"       This program is free software; you can redistribute it           "
-"       and/or modify it under the terms of the GNU General Public       "
-"       License, version 2, as published by the Free Software Foundation;"
-"      </font> <p>                                                       "
-"       Feel free to send comments, questions, patches, bugreports       "
-"       and feature requests to author                                   "
-"       or to <i>fityk-users</i> mailing-list.                           "
-"      <p align = center> WWW: <b>fityk.sf.net</b>                       "
-"     </font>                                                            "
-"   </td> </tr>                                                          "
-"</table> </body> </html>                                                ";
+"<html> <body bgcolor=white text=white>"
+ "<table cellspacing=3 cellpadding=4 width=100%>"
+   "<tr bgcolor=#101010 align=center> <td>"
+     "<h1> fityk " VERSION "</h1>"
+     "<h6> powered by " wxVERSION_STRING "<br>"
+          "powered by Boost.Spirit %d.%d.%d</h6>"
+     "<p><font size=-2>$Date$</font></p>"
+   "</td> </tr>"
+   "<tr> <td bgcolor=#73A183>"
+     "<font color=black>"
+      "<b><font size=+1> <p align = center>"
+       "Copyright (C) 2001 - 2005 Marcin Wojdyr"
+      "</font></b><p>"
+      "<font size=-1>"
+       "This program is free software; you can redistribute it "
+       "and/or modify it under the terms of the GNU General Public "
+       "License, version 2, as published by the Free Software Foundation;"
+      "</font> <p>"
+       "Feel free to send comments, questions, patches, bugreports "
+       "and feature requests to author "
+       "or to <i>fityk-users</i> mailing-list."
+      "<p align = center> WWW: <b>fityk.sf.net</b>"
+     "</font> "
+   "</td></tr>"
+"</table></body></html>";
+//in wx2.6.1 the string above can't be too long -- haven't investigated it (MW)
 
 using namespace std;
 FFrame *frame = NULL;
@@ -902,7 +903,7 @@ void FFrame::not_implemented_menu_item (const std::string &command) const
 
 void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
 {
-    static wxString dir = ".";
+    static wxString dir = "";
     wxFileDialog fdlg (this, "Load data from a file", dir, "",
                               "x y files (*.dat, *.xy, *.fio)"
                                           "|*.dat;*.DAT;*.xy;*.XY;*.fio;*.FIO" 
@@ -1048,7 +1049,7 @@ void FFrame::OnSValue        (wxCommandEvent& WXUNUSED(event))
 void FFrame::OnSExport       (wxCommandEvent& WXUNUSED(event))
 {
     static int filter_idx = 0;
-    static wxString dir = ".";
+    static wxString dir = "";
     wxString name = wxFileName(my_data->get_filename().c_str()).GetName();
     wxFileDialog fdlg (this, "Export curve to file", dir, name,
                        "parameters of peaks (*.peaks)|*.peaks"
@@ -1198,7 +1199,7 @@ void FFrame::OnO_Reset   (wxCommandEvent& WXUNUSED(event))
         
 void FFrame::OnOInclude      (wxCommandEvent& WXUNUSED(event))
 {
-    static wxString dir = ".";
+    static wxString dir = "";
     wxFileDialog fdlg (this, "Execute commands from file", dir, "",
                               "fityk file (*.fit)|*.fit;*.FIT|all files|*",
                               wxOPEN | wxFILE_MUST_EXIST);

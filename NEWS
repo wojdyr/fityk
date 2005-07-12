@@ -1,4 +1,5 @@
-User-visible changes in version 0.5.1 (2005-0 -  ):
+User-visible changes in version 0.5.1 (2005-07-  ):
+* new toolbar icons 
 * data tranformations: treat "3 < x < 4" like "3 < x and x < 4"
 * GUI data viewer - "Fit Zoom" button 
 
