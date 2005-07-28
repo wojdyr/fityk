@@ -90,22 +90,6 @@ struct DataTransformGrammar : public grammar<DataTransformGrammar>
   {
     definition(DataTransformGrammar const& /*self*/)
     {
-      BOOST_SPIRIT_DEBUG_RULE(rprec1);
-      BOOST_SPIRIT_DEBUG_RULE(rprec2);
-      BOOST_SPIRIT_DEBUG_RULE(rprec3);
-      BOOST_SPIRIT_DEBUG_RULE(rprec4);
-      BOOST_SPIRIT_DEBUG_RULE(rprec5);
-      BOOST_SPIRIT_DEBUG_RULE(rprec6);
-      BOOST_SPIRIT_DEBUG_RULE(real_constant);
-      BOOST_SPIRIT_DEBUG_RULE(real_variable);
-      BOOST_SPIRIT_DEBUG_RULE(index);
-      BOOST_SPIRIT_DEBUG_RULE(rbool);
-      BOOST_SPIRIT_DEBUG_RULE(rbool_or);
-      BOOST_SPIRIT_DEBUG_RULE(rbool_and);
-      BOOST_SPIRIT_DEBUG_RULE(range);
-      BOOST_SPIRIT_DEBUG_RULE(assignment);
-      BOOST_SPIRIT_DEBUG_RULE(statement);
-
         index 
             =  ch_p('[') >> rprec1 >> ch_p(']')
             |  (!(ch_p('[') >> ']')) [push_op(OP_VAR_n)]

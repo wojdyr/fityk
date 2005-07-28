@@ -1,55 +1,33 @@
 # $Id$
 
-EXTRA_DIST = addpeak_t.xpm \
-             addpoint.xpm\
-             aparam.xpm\
-             autoadd.xpm\
-             backv.xpm\
-             baseline_t.xpm\
-             center.xpm\
-             clear.xpm\
-             clickadd.xpm\
-             close.xpm\
-             delpeak.xpm\
-             delpoint.xpm\
-             down_arrow.xpm\
-             dpane.xpm\
-             dump.xpm\
-             execute.xpm\
-             exportb.xpm\
-             exportd.xpm\
-             fitcont.xpm\
-             fitrun.xpm\
-             fitundo.xpm\
-             fityk.xpm\
-             freeze.xpm\
-             fwhm.xpm\
-             gparam.xpm\
-             height.xpm\
-             hwhm.xpm\
-             importb.xpm\
-             info.xpm\
-             left_2arrows.xpm\
-             left_arrow.xpm\
-             leftscroll.xpm\
-             log.xpm\
-             manual.xpm\
-             mouse_l.xpm\
-             mouse_r.xpm\
-             openfile.xpm\
-             plusbg.xpm\
-             pparam.xpm\
-             range_t.xpm\
-             reset.xpm\
-             right_2arrows.xpm\
-             right_arrow.xpm\
-             rightscroll.xpm\
-             spline.xpm\
-             test.xpm\
-             todo.xpm\
-             tree.xpm\
-             up_arrow.xpm\
-             vertic.xpm\
-             whole.xpm\
-             zoom_t.xpm \
-	     fityk.ico 
+EXTRA_DIST = active_mode.xpm \
+             addpeak_mode.xpm \
+             add_peak.xpm \
+             bg_mode.xpm \
+             cont_fit.xpm \
+             down_arrow.xpm \
+             edit_data.xpm \
+             fityk.xpm \
+             manual.xpm \
+             mouse_l.xpm \
+             mouse_r.xpm \
+             open_data_custom.xpm \
+             open_data.xpm \
+             right_pane.xpm \
+             run_fit.xpm \
+             run_script.xpm \
+             save_data.xpm \
+             save_script.xpm \
+             strip_bg.xpm \
+             sum.xpm \
+             undo_fit.xpm \
+             up_arrow.xpm \
+             zoom_all.xpm \
+             zoom_left.xpm \
+             zoom_mode.xpm \
+             zoom_prev.xpm \
+             zoom_right.xpm \
+             zoom_vert.xpm \
+             fityk.ico 
+
+

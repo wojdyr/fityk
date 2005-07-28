@@ -92,9 +92,9 @@
 
 * fitting: it should be separated even more from the rest of the program.
   Perhaps it fitting functions should be in extern library (COOOL,
-  GAUL, are there any other such libraries? I haven't investigated
-  the possibility to use COOOL and GAUL yet. Links: http://coool.mines.edu/
-  http://gaul.sourceforge.net/) 
+  GAUL, WNLIB, are there any other such libraries? I haven't investigated
+  the possibility of using mentioned libs yet. Links: http://coool.mines.edu/
+  http://gaul.sourceforge.net/, http://www.willnaylor.com/wnlib.html) 
 
 * fitting: robust fit - other error distributions then Gaussian, 
   eg. Lorenzian...; so called 'maximum-likelihood method' -- using Poisson

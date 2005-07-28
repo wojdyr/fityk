@@ -7,27 +7,6 @@
 #include <string>
 #include "pag.h"
 
-//small utility - for vector<T*> - delete & erase
-template<typename T>
-void purge_element(std::vector<T*> &vec, int n)
-{
-    assert(n >= 0 && n < static_cast<int>(vec.size()));
-    T* tmp = vec[n];
-    delete tmp;
-    vec.erase(vec.begin() + n);
-}
-
-// and similar utility - delete & clear
-template<typename T>
-void purge_all_elements(std::vector<T*> &vec)
-{
-    while (!vec.empty()) {
-        T* tmp = vec.back();
-        delete tmp;
-        vec.pop_back();
-    }
-}
-
 class Parameters;
 
 struct Rect 

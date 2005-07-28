@@ -118,6 +118,24 @@ inline std::string join_vector(const std::vector<T>& v, const std::string& sep)
     return s;
 }
 
+/// for vector<T*> - delete object and erase pointer
+template<typename T>
+void purge_element(std::vector<T*> &vec, int n)
+{
+    assert(n >= 0 && n < size(vec));
+    delete vec[n];
+    vec.erase(vec.begin() + n);
+}
+
+/// delete all objects handled by pointers and clear vector
+template<typename T>
+void purge_all_elements(std::vector<T*> &vec)
+{
+    for (typename std::vector<T*>::iterator i=vec.begin(); i!=vec.end(); ++i) 
+        delete *i;
+    vec.clear();
+}
+
 
 
 /// Round real to integer.
