@@ -1,0 +1,211 @@
+#!/bin/bash 
+
+version=0.5.1
+WEB="iris:/d2/people/wojdyr/www/fityk2/" 
+WINEXPORT=../wspolne/
+TEMP_DOWNLOAD=$WEB/d/
+SF_NEW_RELEASE="https://sourceforge.net/project/admin/newrelease.php?package_id=80864&group_id=79434"
+SF_ADMIN_PAGE="https://sourceforge.net/project/admin/?group_id=79434"
+WEB_ANNOUNCE_DIR=$WEB
+WEB_ANNOUNCE_FILE="index.html"
+
+BUILD_DIR=testbuild
+CVSTEST_DIR=cvs_test
+GCC2_DIR=gcc295
+OLDWX_DIR=oldwx
+
+win_setup_filename=fityk-$version-setup.exe
+tarball_filename=fityk-$version.tar.gz
+
+if [ $# -eq 0 ]; then 
+ echo Version in this script is set to $version
+ echo usage: $0 step_nr
+ echo steps:
+ echo 0. prepare new version and increase version number 
+ echo "1. test if everything compiles after distclean, run samples"
+ echo "2. [deleted] test if this release can be compiled with gcc 2.95 "
+ echo "   don't forget to commit to cvs"
+ echo "3. test if it compiles with older wxWidgets"
+ echo "4. test if CVS version compiles"
+ echo 5. put docs on www
+ echo 6. compile windows version and make installer
+ echo 7. uploading to local server, for testing on other computers
+ echo 8. SourceForge release
+ echo 9. web announce
+ echo 10. FreshMeat announce
+ echo 11. clean all changes... 
+ exit
+fi
+
+echo
+echo        Step $1 of the release procedure...         
+echo
+echo -n '===>' 
+
+
+
+if [ $1 -eq 0 ]; then
+ echo increase version number in configure.ac
+ echo "please do it!  See the line with AM_INIT_AUTOMAKE(fityk, x.y.z)"
+ echo "and the line with version=x.x.x in this release script"
+ echo
+ echo now the version in this script is: $version
+ echo and configure.ac contains:
+ grep AM_INIT_AUTOMAKE configure.ac
+
+
+
+elif [ $1 -eq 1 ]; then
+ echo  testing compilation and instalation after make distclean
+
+ make distclean
+ ./autogen.sh
+ rm -rf $BUILD_DIR
+ mkdir $BUILD_DIR
+ cd $BUILD_DIR
+ ../configure --prefix=$HOME/local
+ make 
+ make dist-gzip
+ mv $tarball_filename ..
+ make install
+ echo run samples...
+ cd ../samples
+ cfityk nacl01.fit 
+ fityk nacl01.fit
+ fityk SiC_Zn.fit
+
+
+
+elif [ $1 -eq 2 ]; then
+ echo  testing compilation with gcc 2.95 
+ rm -rf $GCC2_DIR
+ mkdir $GCC2_DIR
+ cd $GCC2_DIR
+ tar xzf ../$tarball_filename
+ cd fityk-$version  
+ CC=gcc2 CXX=g++2 ./configure 
+ cd src
+ make cfityk
+ make 2>&1 | tee log
+ echo
+ echo linking fityk can fail-- different wx version
+ echo was it trying to link? grep log...
+ grep lwx_ log
+ echo if it tried to link, it is ok...
+ echo is cfityk here, in `pwd`?
+ ls -l cfityk
+ cd ../../..
+ 
+
+elif [ $1 -eq 3 ]; then
+ echo test other wx version
+ mv -i $HOME/local $HOME/Local
+ echo Testing with version `wx-config --version`
+ rm -rf $OLDWX_DIR
+ mkdir $OLDWX_DIR
+ cd $OLDWX_DIR
+ ../configure 
+ cd src
+ make
+ ./fityk
+ mv -i $HOME/Local $HOME/local
+
+elif [ $1 -eq 4 ]; then
+ echo  testing downloading and building CVS version 
+ rm -rf $CVSTEST_DIR
+ mkdir $CVSTEST_DIR
+ cd $CVSTEST_DIR
+ echo "anonymous login to CVS..."
+ cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/fityk login
+ cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/fityk co fityk
+ cd fityk
+ ./autogen.sh
+ ./configure
+ make 
+ 
+
+ 
+elif [ $1 -eq 5 ]; then
+ echo  putting docs on www   
+ echo destination: $WEB
+ echo sending fitykhelp.html fitykhelp.xml ...
+ cd doc/ 
+ scp fitykhelp.html fitykhelp.xml $WEB/doc/
+ echo sending fitykhelp_img ...
+ scp -r fitykhelp_img/ $WEB/doc/
+ echo generating html chunks...
+ xmlto html fitykhelp_with_idx.xml
+ echo sending html chunks...
+ scp [^f]*.html $WEB/doc/html/
+ cd ..
+ echo sending NEWS file...
+ scp NEWS $WEB/d/
+ echo generating doxygen docs...
+ cd doxygen/
+ doxygen
+ echo sending doxygen docs... 
+ scp -r html/ $WEB/doxygen/
+ cd ..
+ 
+ 
+ 
+elif [ $1 -eq 6 ]; then
+ echo Building MS Windows version
+ # better solution would be:
+ # cross-compile (using mingw) wx and fityk
+ # wine hhp
+ # wine InnoSetup 
+ scp $tarball_filename $WINEXPORT
+ echo Tarball was sent to $WINEXPORT 
+ echo Prepare MS Windows setup named $win_setup_filename
+ echo and leave it also in $WINEXPORT
+ read -p "When ready, press Enter..."
+ scp $WINEXPORT/$win_setup_filename .
+ 
+
+elif [ $1 -eq 7 ]; then
+ echo uploading files to $TEMP_DOWNLOAD testing windows installer 
+ scp $tarball_filename $TEMP_DOWNLOAD  
+ scp $win_setup_filename $TEMP_DOWNLOAD   
+ echo now ask other people to download it and test...
+ 
+
+elif [ $1 -eq 8 ]; then
+ echo  SF release
+ echo uploading files...
+ curl -v -T $tarball_filename ftp://upload.sourceforge.net/incoming/ 
+ curl -v -T $win_setup_filename ftp://upload.sourceforge.net/incoming/ 
+ echo now go to:
+ echo $SF_NEW_RELEASE
+ echo and add release named: $version
+ 
+
+elif [ $1 -eq 9 ]; then
+ echo web announce, prepare for vim editing...
+ scp $WEB_ANNOUNCE_DIR/$WEB_ANNOUNCE_FILE .
+ sleep 2
+ vi $WEB_ANNOUNCE_FILE
+ scp $WEB_ANNOUNCE_FILE $WEB_ANNOUNCE_DIR
+ 
+ 
+elif [ $1 -eq 10 ]; then
+ echo FM announce
+ echo TODO
+ # freshmeat-submit
+ 
+ 
+elif [ $1 -eq 11 ]; then
+ echo cleaning everything and preparing normal working environment
+ rm -rf $BUILD_DIR
+ rm -rf $CVSTEST_DIR
+ rm -rf $GCC2_DIR
+ rm -rf $OLDWX_DIR
+ make clean
+ #./autogen.sh
+ ./configure --enable-debug
+ make
+ 
+else
+ echo unexpected step number: $1
+fi
+
