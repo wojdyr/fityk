@@ -6,25 +6,20 @@
 // this file can be compiled to stand-alone test program:
 // $ g++ -I../3rdparty -DSTANDALONE_DF calc.cpp -o calc
 // $ ./calc
+#define STANDALONE_DF
 
 //TODO:
 // white characters in expression (and then check if "sin" != "s in")
-// -(x*y) -> don't needs brackets
-// simplify_terms()
 // CSE in tree (or in VM code?)
 // new op: SQR? DUP? STORE/WRITE?
 // output VM code for tests
 
-#define STANDALONE_DF
 
 
 #include <boost/spirit/core.hpp>
 #include <boost/spirit/tree/ast.hpp>
 
-#include <iostream>
 #include <sstream>
-#include <stack>
-#include <functional>
 #include <string>
 #include <vector>
 #include <cassert>
@@ -32,6 +27,11 @@
 #include <cmath>
 
 #include "calc.h"
+
+#ifdef STANDALONE_DF
+//#define DEBUG_SIMPLIFY
+#include <iostream>
+#endif
 
 ////////////////////////////////////////////////////////////////////////////
 using namespace std;
@@ -77,6 +77,10 @@ inline std::string S(T k) {
     return static_cast<std::ostringstream&>(std::ostringstream() << k).str();
 }
 
+inline bool is_eq(double a, double b)
+{
+    return fabs(a-b) < 1e-7;
+}
 ////////////////////////////////////////////////////////////////////////////
 
 enum CompoundVarOperator
@@ -116,6 +120,7 @@ struct OpTree
     //void swap_args() { assert(c1 && c2); OpTree *t=c1; c1=c2; c2=t; }
     OpTree* remove_c1() { OpTree *t=c1; c1=0; return t; }
     OpTree* remove_c2() { OpTree *t=c2; c2=0; return t; }
+    void change_op(int op_) { op=op_; }
     bool operator==(const OpTree &t) { 
         return op == t.op && val == t.val && var_name == t.var_name 
                && (c1 == t.c1 || (c1 && t.c1 && *c1 == *t.c1)) 
@@ -222,191 +227,10 @@ vector<string> find_variables(tree_parse_info<> info)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-OpTree* do_add(OpTree *a, OpTree *b);
-OpTree* do_sub(OpTree *a, OpTree *b);
-
-void get_factors(OpTree *a, vector<OpTree*>& u, vector<OpTree*>& b)
-{
-    assert (a->op == OP_MUL || a->op == OP_DIV || a->op == OP_NEG);
-    if (a->c1->op == OP_MUL || a->c1->op == OP_DIV || a->c1->op == OP_NEG) 
-        get_factors(a->c1, u, b);
-    else
-        u.push_back(a->remove_c1());
-    if (a->op == OP_MUL) {
-        if (a->c2->op == OP_MUL || a->c2->op == OP_DIV || a->c2->op == OP_NEG) 
-            get_factors(a->c2, u, b);
-        else
-            u.push_back(a->remove_c2());
-    }
-    else if (a->op == OP_DIV) { 
-        if (a->c2->op == OP_MUL || a->c2->op == OP_DIV || a->c2->op == OP_NEG) 
-            get_factors(a->c2, b, u);
-        else
-            b.push_back(a->remove_c2());
-    }
-    else if (a->op == OP_NEG) {
-        u.push_back(new OpTree(-1.));
-    }
-}
-
-OpTree* simplify_factors(OpTree *a)
-{
-    //cout << "before simplify_factors(): " << a->str() << endl;
-    assert (a->op == OP_MUL || a->op == OP_DIV || a->op == OP_NEG);
-    vector<OpTree*> u, b;
-    //              \product_i u_i 
-    //    tree ->   -------------- 
-    //              \product_i b_i
-    get_factors(a, u, b);
-    delete a;
-    // tan -> sin/cos
-    for (vector<OpTree*>::iterator i = u.begin(); i != u.end(); ++i) 
-        if ((*i)->op == OP_TAN) {
-            (*i)->op = OP_SIN;
-            b.push_back(new OpTree(OP_COS, (*i)->c1->copy()));
-        }
-    for (vector<OpTree*>::iterator i = b.begin(); i != b.end(); ++i) 
-        if ((*i)->op == OP_TAN) {
-            (*i)->op = OP_SIN;
-            u.push_back(new OpTree(OP_COS, (*i)->c1->copy()));
-        }
-    // reduce (x / x)
-    for (vector<OpTree*>::iterator i = u.begin(); i != u.end(); ++i) 
-        for (vector<OpTree*>::iterator j = b.begin(); j != b.end(); ++j) 
-            if (*i && *j && **j == **i) {
-                *i = *j = 0;
-                break;
-            }
-    // reduce (x^n / x^m) -> x^(m-n)
-    for (vector<OpTree*>::iterator i = u.begin(); i != u.end(); ++i) {
-        if (*i && (*i)->op == OP_POW) {
-            for (vector<OpTree*>::iterator j = i+1; j != u.end(); ++j) 
-                if (*j && (*j)->op == OP_POW && *(*j)->c1 == *(*i)->c1) {
-                    (*i)->c2 = do_add((*i)->remove_c2(), (*j)->remove_c2());
-                    delete *j;
-                    *j = 0;
-                }
-                else if (*j && **j == *(*i)->c1) {
-                    (*i)->c2 = do_add((*i)->remove_c2(), new OpTree(1.));
-                    delete *j;
-                    *j = 0;
-                }
-            for (vector<OpTree*>::iterator j = b.begin(); j != b.end(); ++j) 
-                if (*j && (*j)->op == OP_POW && *(*j)->c1 == *(*i)->c1) {
-                    (*i)->c2 = do_sub((*i)->remove_c2(), (*j)->remove_c2());
-                    delete *j;
-                    *j = 0;
-                }
-                else if (*j && **j == *(*i)->c1) {
-                    (*i)->c2 = do_sub((*i)->remove_c2(), new OpTree(1.));
-                    delete *j;
-                    *j = 0;
-                }
-        }
-    }
-    for (vector<OpTree*>::iterator i = b.begin(); i != b.end(); ++i) {
-        if (*i && (*i)->op == OP_POW) {
-            for (vector<OpTree*>::iterator j = i+1; j != b.end(); ++j) {
-                if (*j && (*j)->op == OP_POW && *(*j)->c1 == *(*i)->c1) {
-                    (*i)->c2 = do_add((*i)->remove_c2(), (*j)->remove_c2());
-                    delete *j;
-                    *j = 0;
-                }
-                else if (*j && **j == *(*i)->c1) {
-                    (*i)->c2 = do_add((*i)->remove_c2(), new OpTree(1.));
-                    delete *j;
-                    *j = 0;
-                }
-            }
-        }
-    }
-    //sin/cos -> tan
-    for (vector<OpTree*>::iterator i = u.begin(); i != u.end(); ++i) {
-        if (*i == 0)
-            continue;
-        if ((*i)->op == OP_SIN)
-            for (vector<OpTree*>::iterator j = b.begin(); j != b.end(); ++j) {
-                if (*j && (*j)->op == OP_COS && *(*j)->c1 == *(*i)->c1) {
-                    (*i)->op = OP_TAN;
-                    *j = 0;
-                    break;
-                }
-            }
-        else if ((*i)->op == OP_COS)
-            for (vector<OpTree*>::iterator j = b.begin(); j != b.end(); ++j) {
-                if (*j && (*j)->op == OP_SIN && *(*j)->c1 == *(*i)->c1) {
-                    (*j)->op = OP_TAN;
-                    *i = 0;
-                    break;
-                }
-            }
-    }
-    // multiply constants
-    double val = 1.;
-    for (vector<OpTree*>::iterator i = u.begin(); i != u.end(); ++i) {
-        if (*i == 0)
-            continue;
-        else if ((*i)->op == 0) {
-            val *= (*i)->val;
-            delete *i;
-            *i = 0;
-        }
-        else
-            assert((*i)->op != OP_NEG);
-    }
-    for (vector<OpTree*>::iterator i = b.begin(); i != b.end(); ++i) {
-        if (*i == 0)
-            continue;
-        if ((*i)->op == 0) {
-            val /= (*i)->val;
-            *i = 0;
-        }
-        else if ((*i)->op == OP_NEG)
-            val = -val;
-    }
-    // -> tree
-    OpTree *tu = 0;
-    for (vector<OpTree*>::iterator i = u.begin(); i != u.end(); ++i) {
-        if (*i == 0)
-            continue;
-        if (!tu)
-            tu = *i;
-        else
-            tu = new OpTree(OP_MUL, tu, *i);
-    }
-    OpTree *tb = 0;
-    for (vector<OpTree*>::iterator i = b.begin(); i != b.end(); ++i) {
-        if (*i == 0)
-            continue;
-        if (!tb)
-            tb = *i;
-        else
-            tb = new OpTree(OP_MUL, tb, *i);
-    }
-    if (tu && val != 1.) {
-        tu = (val == -1. ? new OpTree(OP_NEG, tu)
-                         : new OpTree(OP_MUL, new OpTree(val), tu));
-    }
-    else if (!tu)
-        tu = new OpTree(val);
-    OpTree *ret = tb ? new OpTree(OP_DIV, tu, tb) : tu;
-    //cout << "after simplify_factors(): " << ret->str() << endl;
-    return ret;
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-OpTree* simplify_terms(OpTree *a)
-{
-    //TODO x+3+x -> 2*x+3 ; 3*y+y -> 4y ; 
-    //handle cases like (x*x*x+(x*x+2*x*x)*x)
-    return a;
-}
-
-////////////////////////////////////////////////////////////////////////////
+OpTree* simplify_terms(OpTree *a);
 OpTree* do_multiply(OpTree *a, OpTree *b);
 
-OpTree* do_change_sign(OpTree *a)
+OpTree* do_neg(OpTree *a)
 {
     if (a->op == 0) {
         double val = - a->val;
@@ -424,44 +248,44 @@ OpTree* do_change_sign(OpTree *a)
 
 OpTree* do_add(int op, OpTree *a, OpTree *b)
 {
-    if (a->op == 0 && a->val == 0.) {
+    if (a->op == 0 && a->val == 0.) { // 0 + t
         delete a;
         if (op == OP_ADD)
             return b;
         else
-            return do_change_sign(b);
+            return do_neg(b);
     }
-    else if (b->op == 0 && b->val == 0.) {
+    else if (b->op == 0 && b->val == 0.) { // t + 0
         delete b;
         return a;
     }
-    else if (a->op == 0 && b->op == 0) {
+    else if (a->op == 0 && b->op == 0) { // p + q
         double val = (op == OP_ADD ? a->val + b->val : a->val - b->val);
         delete a;
         delete b;
         return new OpTree(val);
     }
-    else if (b->op == OP_NEG) {
+    else if (b->op == OP_NEG) { // t + -u
         OpTree *t = b->remove_c1();
         delete b;
         return do_add(op == OP_ADD ? OP_SUB : OP_ADD, a, t);
     }
-    else if ((b->op == OP_MUL || b->op == OP_DIV) 
-             && b->c1->op == 0  && b->c1->val < 0) {
+    else if ((b->op == OP_MUL || b->op == OP_DIV)  
+             && b->c1->op == 0  && b->c1->val < 0) { // t + -p*v  
         b->c1->val = - b->c1->val;
         return do_add(op == OP_ADD ? OP_SUB : OP_ADD, a, b);
     }
-    else if (*a == *b) {
+    else if (*a == *b) { 
         delete b;
-        if (op == OP_ADD)
+        if (op == OP_ADD) // t + t
             return do_multiply(new OpTree(2.), a);
-        else {
+        else { // t - t
             delete a;
             return new OpTree(0.);
         }
     }
     else
-        return simplify_terms(new OpTree(op, a, b));
+        return new OpTree(op, a, b);
 }
 
 OpTree* do_add(OpTree *a, OpTree *b)
@@ -493,9 +317,16 @@ OpTree* do_multiply(OpTree *a, OpTree *b)
         delete b;
         return a;
     }
+    else if (a->op == 0 && a->val == -1.) {
+        delete a;
+        return do_neg(b);
+    }
+    else if (b->op == 0 && b->val == -1.) {
+        delete b;
+        return do_neg(a);
+    }
     else {
-        //return new OpTree(OP_MUL, a, b);
-        return simplify_factors(new OpTree(OP_MUL, a, b));
+        return new OpTree(OP_MUL, a, b);
     }
 }
 
@@ -518,8 +349,7 @@ OpTree* do_divide(OpTree *a, OpTree *b)
         return a;
     }
     else {
-        //return new OpTree(OP_DIV, a, b);
-        return simplify_factors(new OpTree(OP_DIV, a, b));
+        return new OpTree(OP_DIV, a, b);
     }
 }
 
@@ -543,7 +373,7 @@ OpTree* do_exp(OpTree *a)
         return new OpTree(val);
     }
     else
-        return new OpTree(OP_EXP, a);
+        return new OpTree(OP_EXP, simplify_terms(a));
 }
 
 OpTree* do_sqrt(OpTree *a)
@@ -565,7 +395,7 @@ OpTree* do_log10(OpTree *a)
         return new OpTree(val);
     }
     else
-        return new OpTree(OP_LOG10, a);
+        return new OpTree(OP_LOG10, simplify_terms(a));
 }
 
 OpTree* do_ln(OpTree *a)
@@ -576,7 +406,7 @@ OpTree* do_ln(OpTree *a)
         return new OpTree(val);
     }
     else
-        return new OpTree(OP_LN, a);
+        return new OpTree(OP_LN, simplify_terms(a));
 }
 
 OpTree* do_sin(OpTree *a)
@@ -587,7 +417,7 @@ OpTree* do_sin(OpTree *a)
         return new OpTree(val);
     }
     else
-        return new OpTree(OP_SIN, a);
+        return new OpTree(OP_SIN, simplify_terms(a));
 }
 
 OpTree* do_cos(OpTree *a)
@@ -598,7 +428,7 @@ OpTree* do_cos(OpTree *a)
         return new OpTree(val);
     }
     else
-        return new OpTree(OP_COS, a);
+        return new OpTree(OP_COS, simplify_terms(a));
 }
 
 OpTree* do_tan(OpTree *a)
@@ -609,7 +439,7 @@ OpTree* do_tan(OpTree *a)
         return new OpTree(val);
     }
     else
-        return new OpTree(OP_TAN, a);
+        return new OpTree(OP_TAN, simplify_terms(a));
 }
 
 OpTree* do_atan(OpTree *a)
@@ -620,7 +450,7 @@ OpTree* do_atan(OpTree *a)
         return new OpTree(val);
     }
     else
-        return new OpTree(OP_ATAN, a);
+        return new OpTree(OP_ATAN, simplify_terms(a));
 }
 
 OpTree* do_asin(OpTree *a)
@@ -631,7 +461,7 @@ OpTree* do_asin(OpTree *a)
         return new OpTree(val);
     }
     else
-        return new OpTree(OP_ASIN, a);
+        return new OpTree(OP_ASIN, simplify_terms(a));
 }
 
 OpTree* do_acos(OpTree *a)
@@ -642,7 +472,7 @@ OpTree* do_acos(OpTree *a)
         return new OpTree(val);
     }
     else
-        return new OpTree(OP_ACOS, a);
+        return new OpTree(OP_ACOS, simplify_terms(a));
 }
 
 OpTree* do_pow(OpTree *a, OpTree *b)
@@ -652,15 +482,19 @@ OpTree* do_pow(OpTree *a, OpTree *b)
         delete b;
         return new OpTree(0.);
     }
-    if ((b->op == 0 && b->val == 0.) 
+    if ((b->op == 0 && is_eq(b->val, 0.)) 
         || (a->op == 0 && a->val == 1.)) {
         delete a;
         delete b;
         return new OpTree(1.);
     }
-    else if (b->op == 0 && b->val == 1.) {
+    else if (b->op == 0 && is_eq(b->val, 1.)) {
         delete b;
         return a;
+    }
+    else if (b->op == 0 && is_eq(b->val, -1.)) {
+        delete b;
+        return do_oneover(a);
     }
     if (a->op == 0 && b->op == 0) {
         double val = pow(a->val, b->val);
@@ -669,8 +503,264 @@ OpTree* do_pow(OpTree *a, OpTree *b)
         return new OpTree(val);
     }
     else {
-        return new OpTree(OP_POW, a, b);
+        return new OpTree(OP_POW, a, simplify_terms(b));
     }
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+struct MultFactor
+{
+    OpTree *t, *e;
+    MultFactor(OpTree *t_, OpTree *e_) : t(t_), e(e_) {}
+    void clear() { delete t; delete e; t=e=0; }
+};
+
+
+/// recursively walk though OP_MUL, OP_DIV, OP_NEG, OP_SQRT, OP_POW
+/// and builds list of nodes with factors, such that tree a is equal to
+/// (v[0]->t)^(v[0]->e) * (v[1]->t)^(v[1]->e) * ...
+void get_factors(OpTree *a, OpTree *expo, 
+                 double &constant, vector<MultFactor>& v)
+{
+    if (a->op == OP_ADD || a->op == OP_SUB)
+        a = simplify_terms(a);
+    if (a->op == 0 && expo->op == 0)
+        constant *= pow(a->val, expo->val);
+    else if (a->op == OP_MUL) {
+        get_factors(a->c1, expo, constant, v);
+        get_factors(a->c2, expo, constant, v);
+    }
+    else if (a->op == OP_DIV) {
+        get_factors(a->c1, expo, constant, v);
+        OpTree *expo2 = do_neg(expo->copy());
+        get_factors(a->c2, expo2, constant, v);
+        delete expo2;
+    }
+    else if (a->op == OP_NEG) {
+        get_factors(a->c1, expo, constant, v);
+        constant = -constant;
+    }
+    else if (a->op == OP_SQRT) {
+        OpTree *expo2 = do_multiply(new OpTree(0.5), expo->copy());
+        get_factors(a->c1, expo2, constant, v);
+        delete expo2;
+    }
+    else if (a->op == OP_POW) {
+        OpTree *expo2 = do_multiply(a->remove_c2(), expo->copy());
+        get_factors(a->c1, expo2, constant, v);
+        delete expo2;
+    }
+    else {
+        bool found = false;
+        for (vector<MultFactor>::iterator i = v.begin(); i != v.end(); ++i) 
+            if (*i->t == *a) {
+                i->e = do_add(i->e, expo->copy());
+                found = true;
+                break;
+            }
+            if (!found) {
+                v.push_back(MultFactor(a, expo->copy()));
+                return; //don't delete a
+            }
+    }
+    //we are here -- MultFactor(a,...) not created
+    a->c1 = a->c2 = 0;
+    delete a;
+}
+
+
+OpTree* simplify_factors(OpTree *a)
+{
+#ifdef DEBUG_SIMPLIFY
+    cout << "simplify_factors() [<] " << a->str() << endl;
+#endif
+    vector<MultFactor> v;
+    OpTree expo(1.);
+    double constant = 1;
+    get_factors(a, &expo, constant, v); //deletes a
+#ifdef DEBUG_SIMPLIFY
+    cout << "simplify_factors(): [.] {" << constant << "} ";
+    for (vector<MultFactor>::iterator i = v.begin(); i != v.end(); ++i) 
+        cout << "{" << i->t->str() << "|" << i->e->str() << "} ";
+    cout << endl;
+#endif
+
+    // tan*cos -> sin; tan/sin -> cos
+    for (vector<MultFactor>::iterator i = v.begin(); i != v.end(); ++i) 
+        if (i->t && i->t->op == OP_TAN) {
+            for (vector<MultFactor>::iterator j = v.begin(); j != v.end(); ++j){
+                if (j->t && j->t->op == OP_COS && *j->e == *i->e) {
+                    i->t->change_op(OP_SIN);
+                    j->clear();
+                }
+                if (j->t && j->t->op == OP_SIN 
+                    && ((j->e->op==0 && i->e->op==0 && j->e->val==-i->e->val)
+                        || (j->e->op==OP_NEG && *j->e->c1 == *i->e) 
+                        || (i->e->op==OP_NEG && *i->e->c1 == *j->e))) {
+                    i->t->change_op(OP_COS);
+                    j->clear();
+                }
+            }
+        }
+    // sin/cos -> tan
+    for (vector<MultFactor>::iterator i = v.begin(); i != v.end(); ++i) 
+        if (i->t && i->t->op == OP_SIN) {
+            for (vector<MultFactor>::iterator j = v.begin(); j != v.end(); ++j){
+                if (j->t && j->t->op == OP_COS 
+                    && ((j->e->op==0 && i->e->op==0 && j->e->val==-i->e->val)
+                        || (j->e->op==OP_NEG && *j->e->c1 == *i->e) 
+                        || (i->e->op==OP_NEG && *i->e->c1 == *j->e))) {
+                    i->t->change_op(OP_TAN);
+                    j->clear();
+                }
+            }
+        }
+
+    // -> tree
+    OpTree *tu = 0, *tb = 0;
+    for (vector<MultFactor>::iterator i = v.begin(); i != v.end(); ++i) 
+        if (i->t) {
+            if ((i->e->op == 0 && i->e->val < 0) || i->e->op == OP_NEG) {
+                OpTree *p = do_pow(i->t, do_neg(i->e));
+                tb = (tb == 0 ? p : do_multiply(tb, p));
+            }
+            else {
+                OpTree *p = do_pow(i->t, i->e);
+                tu = (tu == 0 ? p : do_multiply(tu, p));
+            }
+        }
+    OpTree *constant_t = new OpTree(constant);
+    OpTree *ret = 0;
+    if (tu) {
+        if (tb)
+            ret = do_multiply(constant_t, do_divide(tu, tb));
+        else //tu && !tb
+            ret = do_multiply(constant_t, tu);
+    }
+    else {
+        if (tb) //!tu && tb
+            ret = do_divide(constant_t, tb);
+        else //!tu && !tb 
+            ret = constant_t;
+    }
+#ifdef DEBUG_SIMPLIFY
+    cout << "simplify_factors() [>] " << ret->str() << endl;
+#endif
+    return ret;
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+struct MultTerm
+{
+    OpTree *t; 
+    double k;
+    MultTerm(OpTree *t_, double k_) : t(t_), k(k_) {}
+    void clear() { delete t; t=0; }
+};
+
+void get_terms(OpTree *a, double multiplier, vector<MultTerm> &v)
+{
+    if (a->op == OP_MUL || a->op == OP_DIV || a->op == OP_SQRT 
+            || a->op == OP_POW)
+        a = simplify_factors(a);
+    if (a->op == OP_ADD) {
+        get_terms(a->c1, multiplier, v);
+        get_terms(a->c2, multiplier, v);
+    }
+    else if (a->op == OP_SUB) {
+        get_terms(a->c1, multiplier, v);
+        get_terms(a->c2, -multiplier, v);
+    }
+    else if (a->op == OP_NEG) {
+        get_terms(a->c1, -multiplier, v);
+    }
+    else if (a->op == OP_MUL && a->c1->op == 0) {
+        get_terms(a->c2, multiplier*(a->c1->val), v);
+    }
+    else if (a->op == OP_DIV && a->c1->op == 0 && !is_eq(a->c1->val,1.)) {
+        get_terms(do_oneover(a->c2), multiplier*(a->c1->val), v);
+    }
+    else {
+        bool found = false;
+        if (a->op == 0)
+
+        for (vector<MultTerm>::iterator i = v.begin(); i != v.end(); ++i) 
+            if (i->t && *i->t == *a) {
+                i->k += multiplier;
+                found = true;
+                break;
+            }
+            else if (a->op == 0 && i->t && i->t->op == 0) {
+                i->k += multiplier * a->val;
+                found = true;
+                break;
+            }
+        if (!found) {
+            if (a->op == 0)
+                v.push_back(MultTerm(new OpTree(1.), multiplier * a->val));
+            else {
+                v.push_back(MultTerm(a, multiplier));
+                return; //don't delete a
+            }
+        }
+    }
+    //we are here -- MultTerm(a,...) not created
+    a->c1 = a->c2 = 0;
+    delete a;
+}
+
+OpTree* simplify_terms(OpTree *a)
+{
+    // not handled:
+    //        (x+y) * (x-y) == x^2 - y^2 
+    //        (x+/-y)^2 == x^2 +/- 2xy + y^2
+#ifdef DEBUG_SIMPLIFY
+    cout << "simplify_terms() [<] " << a->str() << endl;
+#endif
+    vector<MultTerm> v;
+    get_terms(a, 1., v); //deletes a
+#ifdef DEBUG_SIMPLIFY
+    cout << "simplify_terms() [.] ";
+    for (vector<MultTerm>::iterator i = v.begin(); i != v.end(); ++i) 
+        cout << "{" << i->t->str() << "|" << i->k << "} ";
+    cout << endl;
+#endif
+
+    // sin^2(x) + cos^2(x) = 1
+    double to_add = 0.;
+    for (vector<MultTerm>::iterator i = v.begin(); i != v.end(); ++i) 
+        if (i->t && i->t->op == OP_POW && i->t->c1->op == OP_SIN 
+                && i->t->c2->op == 0 && is_eq(i->t->c2->val, 2.))
+            for (vector<MultTerm>::iterator j = v.begin(); j != v.end(); ++j) 
+                if (j->t && j->t->op == OP_POW && j->t->c1->op == OP_COS 
+                        && j->t->c2->op == 0 && is_eq(j->t->c2->val, 2.)) {
+                    double k = j->k;
+                    i->k -= k;
+                    j->clear();
+                    to_add += k;
+                }
+    if (to_add)
+        get_terms(new OpTree(1.), to_add, v);
+
+    // -> tree
+    OpTree *t = 0;
+    for (vector<MultTerm>::iterator i = v.begin(); i != v.end(); ++i) 
+        if (i->t && !is_eq(i->k, 0)) {
+            if (!t)
+                t = do_multiply(new OpTree(i->k), i->t);
+            else if (i->k > 0)
+                t = do_add(t, do_multiply(new OpTree(i->k), i->t));
+            else //i->k < 0
+                t = do_sub(t, do_multiply(new OpTree(-i->k), i->t));
+        }
+    if (!t)
+        t = new OpTree(0.);
+#ifdef DEBUG_SIMPLIFY
+    cout << "simplify_terms() [>] " << t->str() << endl;
+#endif
+    return t;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -706,7 +796,7 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
         vector<OpTree*> arg = calculate_deriv(i->children.begin(), vars);
         if (s == "-")
             for (int k = 0; k < len+1; ++k) 
-                results[k] = do_change_sign(arg[k]);
+                results[k] = do_neg(arg[k]);
         else {
             OpTree* (* do_op)(OpTree *) = 0;
             OpTree* der = 0;
@@ -733,7 +823,7 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
                 do_op = do_sin;
             }
             else if (s == "cos") {
-                der = do_change_sign(do_sin(larg));
+                der = do_neg(do_sin(larg));
                 do_op = do_cos;
             }
             else if (s == "tan") {
@@ -765,10 +855,11 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
 
     else if (i->value.id() == FuncGrammar::factorID)
     {
-        assert(i->children.size() == 2);
         assert(s == "^");
+        assert(i->children.size() == 2);
         vector<OpTree*> left = calculate_deriv(i->children.begin(), vars);
         vector<OpTree*> right = calculate_deriv(i->children.begin() + 1, vars);
+        //special cases like a(x)^n are not handeled separately. Should they?
         for (int k = 0; k < len; ++k) {
             OpTree *a = left[len],
                    *b = right[len],
@@ -787,8 +878,8 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
 
     else if (i->value.id() == FuncGrammar::termID)
     {
-        assert(i->children.size() == 2);
         assert(s == "*" || s == "/");
+        assert(i->children.size() == 2);
         int op = (s == "*" ? OP_MUL : OP_DIV);
         vector<OpTree*> left = calculate_deriv(i->children.begin(), vars);
         vector<OpTree*> right = calculate_deriv(i->children.begin() + 1, vars);
@@ -813,8 +904,8 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
 
     else if (i->value.id() == FuncGrammar::expressionID)
     {
-        assert(i->children.size() == 2);
         assert(s == "+" || s == "-");
+        assert(i->children.size() == 2);
         vector<OpTree*> left = calculate_deriv(i->children.begin(), vars);
         vector<OpTree*> right = calculate_deriv(i->children.begin() + 1, vars);
         for (int k = 0; k < len+1; ++k) 
@@ -824,6 +915,9 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
 
     else
         assert(0); // error
+
+    for (int k = 0; k < len+1; ++k) 
+        results[k] = simplify_terms(results[k]);
 
     return results;
 }
