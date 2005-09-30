@@ -16,6 +16,7 @@
 #include "manipul.h"
 #include "other.h"
 #include "pcore.h"
+#include "cmd.h"
 
 using namespace std;
 int iperror (char *s);
@@ -31,13 +32,12 @@ bool new_line = false;
 
 void replot()
 {
-    if (new_line)
+    if (new_line) {
         new_line = false;
-    else
-        return; //do not replot
-    if (/*auto_plot >= 2 &&*/ AL->was_changed()) {
-        getUI()->drawPlot(2);
-	AL->was_plotted();
+        if (AL->was_changed()) {
+            getUI()->drawPlot(2);
+            AL->was_plotted();
+        }
     }
 }
 
@@ -118,6 +118,7 @@ exp:  SET DASH_STRING EQ_STRING SEP {
     | D_LOAD opt_lcase columns FILENAME opt_plus SEP { 
                                      my_data->load_file($4.str(), $2, ivec, $5);
                                      my_core->set_view (Rect()); }
+     //TODO
     | D_TRANSFORM DT_STRING SEP { my_data->transform($2.str()); }
     | D_INFO SEP                   { mesg (my_data->getInfo()); } 
     | D_EXPORT FILENAME opt_plus SEP 
@@ -351,12 +352,20 @@ int iperror (char * /*s*/) { return 0; }
 void start_of_string_parsing(const char *s);
 void end_of_string_parsing();
 
-bool parser (std::string cmd)
+bool bison_parser (const std::string &cmd)
 {
-    cmd = " " + cmd + "\n";
-    start_of_string_parsing (cmd.c_str());
+    start_of_string_parsing ((" " + cmd + "\n").c_str());
     int result = ipparse();
     end_of_string_parsing();
     return result == 0 ? true : false;
+}
+
+bool cmd_parser (std::string cmd)
+{
+    bool r = spirit_parser(cmd);
+    if (!r)
+        return bison_parser(cmd);
+    else
+        return r;
 }
 

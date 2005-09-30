@@ -68,9 +68,10 @@ public :
     fp get_y_min() const { return y_min; }
     fp get_y_max() const { return y_max; }
     const std::vector<Point>& points() const { return p; }
+
+    std::string title;
 private:
     bool d_was_changed;
-    std::string title;
     std::string filename;
     std::vector<int> col_nums;
     fp x_step; // 0.0 if not fixed;

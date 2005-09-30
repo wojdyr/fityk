@@ -555,6 +555,8 @@ void Data::export_to_file (string filename, bool append)
         warn ("Can't open file: " + filename);
         return;
     }
+    os << "# " << title << endl;
+    os << "# x\ty\tsigma\t#exported by fityk " VERSION << endl;
     for (int i = 0; i < get_n(); i++)
         os << get_x(i) << "\t" << get_y(i) << "\t" << get_sigma(i) << endl;
 }

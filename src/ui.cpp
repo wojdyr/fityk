@@ -178,7 +178,7 @@ void UserInterface::execScript (const string& filename,
         if (i->txt.length() == 0)
             continue;
         showMessage (os_quot, S(i->nr) + "> " + i->txt); 
-        bool r = parser(i->txt);
+        bool r = cmd_parser(i->txt);
         if (!r)
             break;
     }

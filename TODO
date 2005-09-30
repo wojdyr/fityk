@@ -1,29 +1,35 @@
 
-* (GUI) data viewer - "Apply" button should be inactive when statement
-  can't be parsed; 
 
 * improve Voigt function (probably bug in FWHM, cut-tails, better approx?) 
 
 * data tranformations: new functions: randuniform[a b]() randnormal[mu sigma]()
                        temporary variables
 		       documentation
+		       transform title="new title here"
 
-* data export -- in first (commented) lines: title and column 
-  description (x, y, sigma). Data loading should check for this info.
-
-* (GUI) datapane - hint with full filenames, editable labels (titles)
+* (GUI) datapane - editable labels (titles)
                   "duplicate" command, when right-clicking on inactive label
 		  [new dataset: title1 + title2] menu item
 
 * problem: MS Windows - tree at data pane looks bad
 
+* peak positions as an option to any aux. plot (not separate type of aux.p.)
+* new aux. plot type: cumulative chi2 (normalized, ie. cum. chi2 / (N-P))
+* (GUI) show function limits when cursor is over peak top
+* [del] button at data pane
+* view with/without background button (like in 0.4.x, requires storing
+  background points)
 
------------------- 0.5.2  2005.07
+------------------ 0.5.2  2005.0?
 
-* user defined functions; it includes symbolic computing of derivatives and CSE.
-  Important but needs a lot of work. The idea of simple parameters,
-  compund-parameters and functions will be revised. 
-  [IMPORTANT]
+* user defined functions: 
+      - parsing string into AST [DONE]
+      - symbolic calculations of derivatives [DONE] 
+      - simplifying equations and CSE [partially DONE]
+      - changing the idea of simple parameters, compund-parameters 
+        and functions. Rewritting computations of sum/functions values.
+	Major changes in syntax. Joining transform with functions.
+      - calculating limits, width, area, etc. for UDF
 
 ------------------ 0.6.0 2005.??
 
@@ -92,9 +98,13 @@
 
 * fitting: it should be separated even more from the rest of the program.
   Perhaps it fitting functions should be in extern library (COOOL,
-  GAUL, WNLIB, are there any other such libraries? I haven't investigated
-  the possibility of using mentioned libs yet. Links: http://coool.mines.edu/
-  http://gaul.sourceforge.net/, http://www.willnaylor.com/wnlib.html) 
+  GAUL, WNLIB, netlib, OOL.sf.net
+  are there any other such libraries? 
+  I haven't investigated the possibility of using mentioned libs yet. 
+  Links: http://coool.mines.edu/ http://gaul.sourceforge.net/, 
+  http://www.willnaylor.com/wnlib.html,
+  http://sal.jyu.fi/B/3/index.shtml, http://coin-or.org,
+  http://www-unix.mcs.anl.gov/otc/Guide/faq/nonlinear-programming-faq.html) 
 
 * fitting: robust fit - other error distributions then Gaussian, 
   eg. Lorenzian...; so called 'maximum-likelihood method' -- using Poisson

@@ -54,7 +54,7 @@ void UserInterface::execCommand(const string& s)
     else
         frame->set_status_text(s.c_str());
     wxBusyCursor wait;
-    bool r = parser(s);
+    bool r = cmd_parser(s);
     if (!r)
         close();
     frame->refresh_plots(false, true);

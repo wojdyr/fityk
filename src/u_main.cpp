@@ -55,7 +55,7 @@ void UserInterface::wait (float seconds)
 
 void UserInterface::execCommand(const string& s)
 {
-    bool r = parser(s);
+    bool r = cmd_parser(s);
     if (!r)
         close();
 }

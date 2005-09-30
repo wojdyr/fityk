@@ -33,6 +33,9 @@
 #include "v_fit.h"
 #include "pcore.h"
 #include "ui.h"
+//#include "datatrans.h" 
+// for faster compilation - don't include datatrans.h
+bool validate_transformation(std::string const& str); 
 
 //bitmaps for buttons
 #include "img/up_arrow.xpm"
@@ -1564,16 +1567,23 @@ void DataEditorDlg::update_data(Data *data_)
     filename_label->SetLabel(data->get_filename().c_str());
     title_label->SetLabel(data->get_title().c_str());
     grid->SetTable(new DataTable(data, this), true, wxGrid::wxGridSelectRows);
+    refresh_grid();
+    Show();
+}
+
+void DataEditorDlg::refresh_grid()
+{
+    if (grid->GetNumberRows() != grid->GetTable()->GetNumberRows())
+        grid->SetTable(new DataTable(data, this), true, 
+                       wxGrid::wxGridSelectRows);
     grid->ForceRefresh();
     grid->AdjustScrollbars();
-    Show();
 }
 
 void DataEditorDlg::OnRevert (wxCommandEvent& WXUNUSED(event))
 {
     exec_command(data->get_load_cmd());
-    grid->ForceRefresh();
-    grid->AdjustScrollbars();
+    refresh_grid();
 }
 
 void DataEditorDlg::OnSaveAs (wxCommandEvent& WXUNUSED(event))
@@ -1655,8 +1665,7 @@ void DataEditorDlg::OnReset (wxCommandEvent& WXUNUSED(event))
 void DataEditorDlg::OnApply (wxCommandEvent& WXUNUSED(event))
 {
     execute_tranform(code->GetValue().Trim().c_str());
-    grid->ForceRefresh();
-    grid->AdjustScrollbars();
+    refresh_grid();
     rezoom_btn->Enable();
 }
 
@@ -1684,8 +1693,15 @@ void DataEditorDlg::OnClose (wxCommandEvent& event)
 
 void DataEditorDlg::CodeText()
 {
+    bool check_syntax = true;
     wxString text = code->GetValue().Trim();
-    apply_btn->Enable(!text.IsEmpty());
+    if (check_syntax) {
+        string text = code->GetValue().c_str();
+        replace_all(text, "\n", " & ");
+        apply_btn->Enable(validate_transformation(text));
+    }
+    else
+        apply_btn->Enable(!code->GetValue().Trim().IsEmpty());
 }
 
 void DataEditorDlg::ESelected()

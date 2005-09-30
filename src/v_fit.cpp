@@ -432,7 +432,6 @@ int v_fit::Jordan(vector<fp>& A, vector<fp>& b, int n)
     
     /* This function solves a set of linear algebraic equations using
      * Jordan elimination with partial pivoting.
-     * (PL:metoda eliminacji Jordana z czê¶ciowym wyborem elementu podstawowego)
      *
      * A * x = b
      * 

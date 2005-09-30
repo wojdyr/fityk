@@ -13,7 +13,7 @@ struct NumberedLine;
 
 
 // return value: false -> quit
-bool parser(std::string cmd); 
+bool cmd_parser(std::string cmd); 
 
 
 /// A Singleton class.

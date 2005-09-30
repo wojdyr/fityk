@@ -23,9 +23,9 @@ struct FuncGrammar : public grammar<FuncGrammar>
         definition(FuncGrammar const& /*self*/)
         {
             //  Start grammar definition
-            real_const  =  leaf_node_d[ real_p |  as_lower_d["pi"] ];
+            real_const  =  leaf_node_d[ real_p |  as_lower_d[str_p("pi")] ];
 
-            variable    =  leaf_node_d[+alpha_p];
+            variable    =  leaf_node_d[lexeme_d[+alpha_p]];
 
             exptoken    =  real_const
                         |  inner_node_d[ch_p('(') >> expression >> ')']

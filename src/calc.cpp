@@ -9,7 +9,6 @@
 #define STANDALONE_DF
 
 //TODO:
-// white characters in expression (and then check if "sin" != "s in")
 // CSE in tree (or in VM code?)
 // new op: SQR? DUP? STORE/WRITE?
 // output VM code for tests
@@ -511,6 +510,7 @@ OpTree* do_pow(OpTree *a, OpTree *b)
 
 struct MultFactor
 {
+    // factor (*t)^(*e)
     OpTree *t, *e;
     MultFactor(OpTree *t_, OpTree *e_) : t(t_), e(e_) {}
     void clear() { delete t; delete e; t=e=0; }
@@ -539,7 +539,7 @@ void get_factors(OpTree *a, OpTree *expo,
     }
     else if (a->op == OP_NEG) {
         get_factors(a->c1, expo, constant, v);
-        constant = -constant;
+        get_factors(new OpTree(-1.), expo, constant, v);
     }
     else if (a->op == OP_SQRT) {
         OpTree *expo2 = do_multiply(new OpTree(0.5), expo->copy());
@@ -618,7 +618,8 @@ OpTree* simplify_factors(OpTree *a)
         }
 
     // -> tree
-    OpTree *tu = 0, *tb = 0;
+    // TODO x^z * y^z -> (x*y)^z  (if z != -1,0,1)
+    OpTree *tu = 0, *tb = 0; // preparing expression as (tu / tb)
     for (vector<MultFactor>::iterator i = v.begin(); i != v.end(); ++i) 
         if (i->t) {
             if ((i->e->op == 0 && i->e->val < 0) || i->e->op == OP_NEG) {
@@ -776,7 +777,11 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
     {
         for (int k = 0; k < len; ++k)
             results[k] = new OpTree(0.); 
-        double v = strtod(s.c_str(), 0);
+        double v;
+        if (s == "pi")
+            v = M_PI;
+        else
+            v = strtod(s.c_str(), 0);
         results[len] = new OpTree(v);
     }
 
@@ -937,7 +942,7 @@ main()
     string str;
     while (getline(cin, str))
     {
-        tree_parse_info<> info = ast_parse(str.c_str(), gram);
+        tree_parse_info<> info = ast_parse(str.c_str(), gram, space_p);
 
         if (info.full) {
             cout << "parsing succeeded\n";

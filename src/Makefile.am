@@ -7,7 +7,7 @@ if OS_WIN32
 fityk_LDFLAGS = -mwindows 
 ms_win_res = winres.o
 # windres has "--include-dir" instead of "-I" 
-$(ms_win_res): winres.rc
+$(ms_win_res): winres.rc img/fityk.ico 
 	windres -o $@ `echo $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS)\
 			    @WX_CPPFLAGS@ \
 				    | sed -e 's/-I/--include-dir /g' \
@@ -20,7 +20,8 @@ endif  #OS_WIN32
 
 bin_PROGRAMS = @FITYK@ @CFITYK@ 
 EXTRA_PROGRAMS = fityk cfityk 
-common_sources = other.cpp scanner.cpp parser.cpp common.cpp crystal.cpp \
+common_sources = cmd.cpp other.cpp scanner.cpp parser.cpp common.cpp \
+		 crystal.cpp \
 		 data.cpp datatrans.cpp dotset.cpp ffunc.cpp fzgbase.cpp \
 		 ui.cpp GAfit.cpp gfunc.cpp LMfit.cpp manipul.cpp NMfit.cpp \
 		 sum.cpp v_fit.cpp voigt.cpp pcore.cpp fileroutines.cpp \
@@ -36,7 +37,7 @@ noinst_HEADERS = common.h crystal.h data.h datatrans.h dotset.h ffunc.h \
 		 fzgbase.h GAfit.h gfunc.h LMfit.h manipul.h NMfit.h other.h \
 		 pag.h sum.h v_fit.h ui.h voigt.h pcore.h fileroutines.h \
 		 u_gnuplot.h wx_dlg.h wx_gui.h wx_plot.h wx_mplot.h wx_pane.h \
-		 numfuncs.h parser.tab.hh
+		 numfuncs.h parser.tab.hh cmd.h
 
 # -ftemplate-depth-50 is for gcc 2.95 
 AM_CXXFLAGS = -Wall -ftemplate-depth-50 

@@ -1,4 +1,5 @@
 #!/bin/bash 
+# $Id$
 
 version=0.5.1
 WEB="iris:/d2/people/wojdyr/www/fityk2/" 
@@ -153,7 +154,7 @@ elif [ $1 -eq 6 ]; then
  echo Building MS Windows version
  # better solution would be:
  # cross-compile (using mingw) wx and fityk
- # wine hhp
+ # wine hhp (HTML Help Compiler)
  # wine InnoSetup 
  scp $tarball_filename $WINEXPORT
  echo Tarball was sent to $WINEXPORT 

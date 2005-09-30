@@ -221,6 +221,7 @@ protected:
     int get_selected_item();
     void insert_example_list_item(int n);
     void select_example(int item);
+    void refresh_grid();
     DECLARE_EVENT_TABLE()
 };
 

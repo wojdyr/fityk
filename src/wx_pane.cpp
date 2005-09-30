@@ -38,6 +38,8 @@ enum {
     ID_OUTPUT_P_CLEAR          ,
     ID_DATAPANE_TREE           ,
     ID_DPT_POPUP_APPEND_DATA   ,
+    ID_DPT_POPUP_DUP_DATA      ,
+    ID_DPT_POPUP_SUM_DATA      ,
     ID_DPT_POPUP_APPEND_PLOT   ,
     ID_DPT_POPUP_REMOVE_DATA   ,
     ID_DPT_POPUP_REMOVE_PLOT
@@ -284,6 +286,8 @@ BEGIN_EVENT_TABLE(DataPaneTree, wxTreeCtrl)
     EVT_TREE_SEL_CHANGED (ID_DATAPANE_TREE, DataPaneTree::OnSelChanged)
     EVT_RIGHT_DOWN (DataPaneTree::OnPopupMenu)
     EVT_MENU (ID_DPT_POPUP_APPEND_DATA, DataPaneTree::OnMenuItem)
+    EVT_MENU (ID_DPT_POPUP_DUP_DATA,    DataPaneTree::OnMenuItem)
+    EVT_MENU (ID_DPT_POPUP_SUM_DATA,    DataPaneTree::OnMenuItem)
     EVT_MENU (ID_DPT_POPUP_APPEND_PLOT, DataPaneTree::OnMenuItem)
     EVT_MENU (ID_DPT_POPUP_REMOVE_DATA, DataPaneTree::OnMenuItem)
     EVT_MENU (ID_DPT_POPUP_REMOVE_PLOT, DataPaneTree::OnMenuItem)
@@ -390,7 +394,9 @@ void DataPaneTree::OnPopupMenu(wxMouseEvent &event)
     if (id.IsOk()) 
         what = GetItemText(id);
     if (what.Length() > 20)
-        what = "..." + what.Right(18);
+        what = "..." + what.Right(17);
+    else if (what.Length() == 0)
+        what = "empty slot";
     wxMenu popup_menu ("Menu for " + what);
 
     if (id.IsOk() && GetItemParent(id).IsOk()) { 
@@ -408,7 +414,15 @@ void DataPaneTree::OnPopupMenu(wxMouseEvent &event)
             pmenu_d = count_previous_siblings(id);
             popup_menu.Append (ID_DPT_POPUP_APPEND_DATA, 
                                                 "&Append slot for dataset");
-            popup_menu.Append (ID_DPT_POPUP_REMOVE_DATA, "&Remove dataset");
+            popup_menu.Append (ID_DPT_POPUP_DUP_DATA, 
+                                                "&Duplicate dataset");
+            wxTreeItemId sel = GetSelection();
+            if (sel != id && !GetItemText(id).IsEmpty()
+                          && !GetItemText(sel).IsEmpty())
+                popup_menu.Append(ID_DPT_POPUP_SUM_DATA, 
+                       "&Create " + GetItemText(sel) + "+" + GetItemText(id));
+            popup_menu.Append(ID_DPT_POPUP_REMOVE_DATA, 
+                                                "&Remove slot and dataset");
         }
     }
     else { //no item
@@ -430,6 +444,13 @@ void DataPaneTree::OnMenuItem(wxCommandEvent &event)
         cmd += "! " + S(pmenu_p) + "::" + S(pmenu_d);
     else if (eid == ID_DPT_POPUP_REMOVE_PLOT)
         cmd += "! " + S(pmenu_p) + "::";
+    else if (eid == ID_DPT_POPUP_DUP_DATA)
+        cmd += S(pmenu_p) + "::*; d.load " + S(pmenu_p) + "::" + S(pmenu_d);
+    else if (eid == ID_DPT_POPUP_SUM_DATA) {
+        //TODO
+        cmd += S(pmenu_p) + "::*; d.load " + S(pmenu_p) + "::" + S(pmenu_d)
+                                  + S() + "::" + S();
+    }
     exec_command(cmd);
 }
 
