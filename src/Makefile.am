@@ -8,7 +8,7 @@ fityk_LDFLAGS = -mwindows
 ms_win_res = winres.o
 # windres has "--include-dir" instead of "-I" 
 $(ms_win_res): winres.rc img/fityk.ico 
-	windres -o $@ `echo $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS)\
+	$(RC) -o $@ `echo $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS)\
 			    @WX_CPPFLAGS@ \
 				    | sed -e 's/-I/--include-dir /g' \
 				    | sed -e 's/-mthreads//g' ` \

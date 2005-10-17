@@ -32,9 +32,6 @@ if test "$enable_optimization" = "yes"; then
 	LDFLAGS="-s $LDFLAGS"
 fi
 
-dnl use headers from 3rdparty/  
-CPPFLAGS="$CPPFLAGS -I\$(top_srcdir)/3rdparty"
-
 
 dnl use static/dynamic wxWin library
 AC_ARG_ENABLE(sharedwx, 
@@ -100,11 +97,24 @@ AC_LANG_PUSH([C++])
 AC_CHECK_HEADER(sstream, [], [AC_MSG_ERROR(
  [You don't have a <sstream> header. It is a part of standard C++ library.
   Either you have too old compiler, or standard C++ library can't be found.])])
+
+dnl use headers from 3rdparty/  
+dnl CPPFLAGS="$CPPFLAGS -I\$(top_srcdir)/3rdparty" #doesn't work here(?), 
+dnl or substitutes top_srcdir only in Makefile's(?)
+OLD_CPPFLAGS=$CPPFLAGS
+dnl it's ugly hack, that can cause problems...
+dnl CPPFLAGS is set here only for this test, and it is changed later 
+CPPFLAGS="$CPPFLAGS -I$srcdir/3rdparty"
+
 AC_CHECK_HEADER([boost/spirit/core.hpp], [], [AC_MSG_ERROR(
  [Boost::Spirit headers were not found 
   or your compiler can't compile it.
   If you use CVS version, make sure you have Spirit installed (see INSTALL).
  ])])
+
+dnl see comments above...
+CPPFLAGS="$OLD_CPPFLAGS -I\$(top_srcdir)/3rdparty"
+
 AC_LANG_POP([C++]) dnl C is faster than C++
 
 dnl Checks for version specific libraries and headers.

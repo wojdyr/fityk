@@ -14,6 +14,7 @@ BUILD_DIR=testbuild
 CVSTEST_DIR=cvs_test
 GCC2_DIR=gcc295
 OLDWX_DIR=oldwx
+MINGW_DIR=cross_win32
 
 win_setup_filename=fityk-$version-setup.exe
 tarball_filename=fityk-$version.tar.gz
@@ -152,8 +153,29 @@ elif [ $1 -eq 5 ]; then
  
 elif [ $1 -eq 6 ]; then
  echo Building MS Windows version
- # better solution would be:
- # cross-compile (using mingw) wx and fityk
+ #
+ # wxWidgets where cross-compiled using debian mingw32* packages:
+ #      download wxAll
+ #      tar xjf ../tarballs/wxWidgets-2.6.2.tar.bz2
+ #      cd wxWidgets-2.6.2/
+ #      mkdir build-mingw
+ #      cd build-mingw/
+ #      WXMSWINSTALL=/home/wojdyr/local/mingw32msvc/
+ #      ../configure --build=i686-pc-linux-gnu --host=i586-mingw32msvc \
+ #        --with-msw --disable-threads --disable-shared --disable-unicode \
+ #        --enable-optimise --prefix=$WXMSWINSTALL \
+ #        --without-regex --without-expat --without-odbc \
+ #        --without-opengl --without-libjpeg --without-libtiff 
+ #      # last 2 lines are not neccessary -- fityk is not using these features
+ #      # and we don't have to build it.
+ #      make; make install
+ #
+ rm -rf $MINGW_DIR
+ mkdir $MINGW_DIR
+ cd $MINGW_DIR
+ ../configure --build=i686-pc-linux-gnu --host=i586-mingw32msvc \
+   --enable-optimization --disable-CLI --with-wx-prefix=$WXMSWINSTALL 
+ #
  # wine hhp (HTML Help Compiler)
  # wine InnoSetup 
  scp $tarball_filename $WINEXPORT
