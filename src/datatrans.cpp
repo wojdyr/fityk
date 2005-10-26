@@ -132,8 +132,6 @@
 using namespace std;
 using namespace boost::spirit;
 
-const double epsilon = 1e-9;
-
 #ifdef STANDALONE_DATATRANS
 
 #include <iostream>  
@@ -184,6 +182,7 @@ int main(int argc, char **argv)
 
 #endif //STANDALONE_DATATRANS
 
+namespace {
 
 bool x_lt(const Point &p1, const Point &p2) { return p1.x < p2.x; }
 bool x_gt(const Point &p1, const Point &p2) { return p1.x > p2.x; }
@@ -263,6 +262,7 @@ struct parameterized_op
 };
 
 
+} //namespace
 
 //----------------------------  grammar  ----------------------------------
 template <typename ScannerT>
@@ -482,6 +482,8 @@ DataTransformGrammar::definition<ScannerT>::definition(
 // explicit template instantiation -- to accelerate compilation 
 template DataTransformGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(DataTransformGrammar const&);
 
+
+namespace {
 
 //----------------------  Parameterized Functions -------------------------
 class ParameterizedFunction
@@ -736,7 +738,7 @@ bool execute_code(int n, int &M, vector<double>& stack,
                 stackPtr--; 
                 break;
             case OP_ASSIGN_A:
-                new_points[n].is_active = abs(*stackPtr) > epsilon;
+                new_points[n].is_active = is_neq(*stackPtr, 0.);
                 stackPtr--; 
                 break;
 
@@ -756,7 +758,7 @@ bool execute_code(int n, int &M, vector<double>& stack,
                 break;
 
             case OP_NOT:
-                *stackPtr = (fabs(*stackPtr) < epsilon);
+                *stackPtr = is_eq(*stackPtr, 0.);
                 break;
 
             case OP_TERNARY:
@@ -783,27 +785,27 @@ bool execute_code(int n, int &M, vector<double>& stack,
             // comparisions
             case OP_LT:
                 stackPtr--;
-                *stackPtr = (*stackPtr < *(stackPtr+1) - epsilon);
+                *stackPtr = is_lt(*stackPtr, *(stackPtr+1));
                 break;
             case OP_GT:
                 stackPtr--;
-                *stackPtr = (*stackPtr > *(stackPtr+1) + epsilon);
+                *stackPtr = is_gt(*stackPtr, *(stackPtr+1));
                 break;
             case OP_LE:
                 stackPtr--;
-                *stackPtr = (*stackPtr <= *(stackPtr+1) + epsilon);
+                *stackPtr = is_le(*stackPtr, *(stackPtr+1));
                 break;
             case OP_GE:
                 stackPtr--;
-                *stackPtr = (*stackPtr >= *(stackPtr+1) - epsilon);
+                *stackPtr = is_ge(*stackPtr, *(stackPtr+1));
                 break;
             case OP_EQ:
                 stackPtr--;
-                *stackPtr = (fabs(*stackPtr - *(stackPtr+1)) < epsilon);
+                *stackPtr = is_eq(*stackPtr, *(stackPtr+1));
                 break;
             case OP_NEQ:
                 stackPtr--;
-                *stackPtr = (fabs(*stackPtr - *(stackPtr+1)) > epsilon);
+                *stackPtr = is_neq(*stackPtr, *(stackPtr+1));
                 break;
 
                 // next comparision hack, see rbool rule for more...
@@ -1030,6 +1032,7 @@ void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
             new_points.erase(new_points.begin() + *i);
 }
 
+} //namespace
 
 bool transform_data(string const& str, 
                     vector<Point> const& old_points, 

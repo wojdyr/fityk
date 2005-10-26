@@ -6,12 +6,14 @@
 // this file can be compiled to stand-alone test program:
 // $ g++ -I../3rdparty -DSTANDALONE_DF calc.cpp -o calc
 // $ ./calc
-#define STANDALONE_DF
+//#define STANDALONE_DF
 
 //TODO:
 // CSE in tree (or in VM code?)
 // new op: SQR? DUP? STORE/WRITE?
+// AST -> VM code
 // output VM code for tests
+// constant-merge (merge identical constants)
 
 
 
@@ -25,6 +27,7 @@
 #include <cstdlib>
 #include <cmath>
 
+#include "common.h"
 #include "calc.h"
 
 #ifdef STANDALONE_DF
@@ -42,125 +45,54 @@ typedef parse_tree_match_t::tree_iterator iter_t;
 typedef parse_tree_match_t::const_tree_iterator const_iter_t;
 
 ////////////////////////////////////////////////////////////////////////////
-string join_strings(const vector<string>& v, const string& sep)
-{
-    if (v.empty())
-        return "";
-    string s = v[0];
-    for (vector<string>::const_iterator i = v.begin() + 1; i != v.end(); ++i)
-        s += sep + *i;
-    return s;
-}
 
-/// for vector<T*> - delete object and erase pointer
-template<typename T>
-void purge_element(std::vector<T*> &vec, int n)
-{
-    assert(n >= 0 && n < size(vec));
-    delete vec[n];
-    vec.erase(vec.begin() + n);
-}
-
-/// delete all objects handled by pointers and clear vector
-template<typename T>
-void purge_all_elements(std::vector<T*> &vec)
-{
-    for (typename std::vector<T*>::iterator i=vec.begin(); i!=vec.end(); ++i) 
-        delete *i;
-    vec.clear();
-}
-
-/// S() converts to string
-template <typename T>
-inline std::string S(T k) {
-    return static_cast<std::ostringstream&>(std::ostringstream() << k).str();
-}
-
-inline bool is_eq(double a, double b)
-{
-    return fabs(a-b) < 1e-7;
-}
 ////////////////////////////////////////////////////////////////////////////
 
-enum CompoundVarOperator
+
+OpTree::OpTree(int n, OpTree *arg1) : op(n), c1(arg1), c2(0), val(0.) 
+                              { assert(OP_ONE_ARG < n && n < OP_TWO_ARG); }
+OpTree::OpTree(int n, OpTree *arg1, OpTree *arg2) 
+    : op(n), c1(arg1), c2(arg2), val(0.)   { assert(n > OP_TWO_ARG); }
+
+string OpTree::str(const vector<string> *vars)
 {
-    OP_CONSTANT=0,
-    OP_ONE_ARG=1,
-    OP_NEG,   OP_EXP,   OP_SIN,   OP_COS,  OP_ATAN,  
-    OP_TAN, OP_ASIN, OP_ACOS, OP_LOG10, OP_LN,  OP_SQRT,  
-    OP_TWO_ARG,
-    OP_POW, OP_MUL, OP_DIV, OP_ADD, OP_SUB   
-};
-
-
-struct OpTree
-{
-    int op;   // op < 0: variable (n=-op-1)
-              // op == 0: constant
-              // op > 0: operator
-    OpTree *c1, 
-           *c2;
-    double val;
-    string var_name;
-
-    explicit OpTree(double v) : op(0), c1(0), c2(0), val(v) {}
-    explicit OpTree(int n, string s) 
-                            : op(-n-1), c1(0), c2(0), val(0.), var_name(s) {}
-    explicit OpTree(int n, OpTree *arg1) : op(n), c1(arg1), c2(0), val(0.) 
-                                  { assert(OP_ONE_ARG < n && n < OP_TWO_ARG); }
-    explicit OpTree(int n, OpTree *arg1, OpTree *arg2) 
-        : op(n), c1(arg1), c2(arg2), val(0.)   { assert(n > OP_TWO_ARG); }
-
-    ~OpTree() { delete c1; delete c2; }
-    string str(); 
-    string str_b(bool b=true) { return b ? "(" + str() + ")" : str(); } 
-    string ascii_tree(int width=64, int start=0);
-    OpTree *copy();
-    //void swap_args() { assert(c1 && c2); OpTree *t=c1; c1=c2; c2=t; }
-    OpTree* remove_c1() { OpTree *t=c1; c1=0; return t; }
-    OpTree* remove_c2() { OpTree *t=c2; c2=0; return t; }
-    void change_op(int op_) { op=op_; }
-    bool operator==(const OpTree &t) { 
-        return op == t.op && val == t.val && var_name == t.var_name 
-               && (c1 == t.c1 || (c1 && t.c1 && *c1 == *t.c1)) 
-               && (c2 == t.c2 || (c2 && t.c2 && *c2 == *t.c2));
+    if (op < 0) {
+        int v_nr = -op-1;
+        return vars->empty() ? "var"+S(v_nr) : "$"+(*vars)[v_nr];
     }
-};
-
-string OpTree::str()
-{
-    if (op < 0)
-        return var_name; //"var"+S(-op-1);
     switch (op) {
         case 0:       return S(val);
-        case OP_NEG:  return "-" + c1->str_b(c1->op >= OP_POW);
-        case OP_EXP:  return "exp(" + c1->str() + ")";
-        case OP_SIN:  return "sin(" + c1->str() + ")";
-        case OP_COS:  return "cos(" + c1->str() + ")";
-        case OP_ATAN: return "atan("+ c1->str() + ")";
-        case OP_TAN:  return "tan(" + c1->str() + ")";
-        case OP_ASIN: return "asin("+ c1->str() + ")";
-        case OP_ACOS: return "acos("+ c1->str() + ")";
-        case OP_LOG10:return "log10("+c1->str() + ")";
-        case OP_LN:   return "ln("  + c1->str() + ")";
-        case OP_SQRT: return "sqrt("+ c1->str() + ")";
-        case OP_POW:  return c1->str_b(c1->op >= OP_POW) 
-                             + "^" + c2->str_b(c2->op >= OP_POW);
-        case OP_ADD:  return c1->str() + "+" + c2->str();
-        case OP_SUB:  return c1->str() + "-" + c2->str_b(c2->op >= OP_ADD);
-        case OP_MUL:  return c1->str_b(c1->op >= OP_ADD) 
-                             + "*" + c2->str_b(c2->op >= OP_ADD);
-        case OP_DIV:  return c1->str_b(c1->op >= OP_ADD) 
-                             + "/" + c2->str_b(c2->op >= OP_MUL);
+        case OP_NEG:  return "-" + c1->str_b(c1->op >= OP_POW, vars);
+        case OP_EXP:  return "exp(" + c1->str(vars) + ")";
+        case OP_SIN:  return "sin(" + c1->str(vars) + ")";
+        case OP_COS:  return "cos(" + c1->str(vars) + ")";
+        case OP_ATAN: return "atan("+ c1->str(vars) + ")";
+        case OP_TAN:  return "tan(" + c1->str(vars) + ")";
+        case OP_ASIN: return "asin("+ c1->str(vars) + ")";
+        case OP_ACOS: return "acos("+ c1->str(vars) + ")";
+        case OP_LOG10:return "log10("+c1->str(vars) + ")";
+        case OP_LN:   return "ln("  + c1->str(vars) + ")";
+        case OP_SQRT: return "sqrt("+ c1->str(vars) + ")";
+        case OP_POW:  return c1->str_b(c1->op >= OP_POW, vars) 
+                             + "^" + c2->str_b(c2->op >= OP_POW, vars);
+        case OP_ADD:  return c1->str(vars) + "+" + c2->str(vars);
+        case OP_SUB:  return c1->str(vars) + "-" 
+                                         + c2->str_b(c2->op >= OP_ADD, vars);
+        case OP_MUL:  return c1->str_b(c1->op >= OP_ADD, vars) 
+                             + "*" + c2->str_b(c2->op >= OP_ADD, vars);
+        case OP_DIV:  return c1->str_b(c1->op >= OP_ADD, vars) 
+                             + "/" + c2->str_b(c2->op >= OP_MUL, vars);
         default: assert(0); return "";
     }
 }
 
-string OpTree::ascii_tree(int width, int start)
+string OpTree::ascii_tree(int width, int start, const vector<string> *vars)
 {
     string node = "???";
-    if (op < 0)
-        node = var_name;
+    if (op < 0) {
+        int v_nr = -op-1;
+        node = vars->empty() ? "var"+S(v_nr) : (*vars)[v_nr];
+    }
     else
         switch (op) {
             case 0:       node = S(val); break;
@@ -185,9 +117,9 @@ string OpTree::ascii_tree(int width, int start)
                                  : start);
     node = string(n, ' ') + node + "\n";
     if (c1)
-        node += c1->ascii_tree(width/2, start);
+        node += c1->ascii_tree(width/2, start, vars);
     if (c2)
-        node += c2->ascii_tree(width/2, start+width/2);
+        node += c2->ascii_tree(width/2, start+width/2, vars);
     return node;
 }
 
@@ -201,28 +133,33 @@ OpTree* OpTree::copy()
 
 ////////////////////////////////////////////////////////////////////////////
 
-void do_find_variables(const_iter_t const &i, vector<string> &vars)
+void do_find_tokens(int tokenID, const_iter_t const &i, vector<string> &vars)
 {
     for (const_iter_t j = i->children.begin(); j != i->children.end(); ++j) {
-        if (j->value.id() == FuncGrammar::variableID) {
+        if (j->value.id() == tokenID) {
             string v(j->value.begin(), j->value.end());
             if (find(vars.begin(), vars.end(), v) == vars.end())
                 vars.push_back(v);
         }
         else
-            do_find_variables(j, vars);
+            do_find_tokens(tokenID, j, vars);
     }
 }
 
-vector<string> find_variables(tree_parse_info<> info)
+vector<string> find_tokens(int tokenID, const tree_parse_info<> &info)
 {
     vector<string> vars;
     const_iter_t const &root = info.trees.begin();
-    if (root->value.id() == FuncGrammar::variableID) //special case: "x"
+    if (root->value.id() == tokenID) 
         vars.push_back(string(root->value.begin(), root->value.end()));
     else
-        do_find_variables(root, vars);
+        do_find_tokens(tokenID, root, vars);
     return vars;
+}
+
+vector<string> find_variables(const tree_parse_info<> info)
+{
+    return find_tokens(FuncGrammar::variableID, info);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -927,6 +864,33 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
     return results;
 }
 
+////////////////////////////////////////////////////////////////////////////
+
+void add_calc_bytecode(const OpTree* tree, const vector<int> &vmvar_idx,
+                       vector<int> &vmcode, vector<fp> &vmdata)
+{
+    int op = tree->op;
+    if (op < 0) {
+        int var_idx = vmvar_idx[-op-1];
+        vmcode.push_back(OP_VARIABLE);
+        vmcode.push_back(var_idx);
+    }
+    else if (op == 0) {
+        vmcode.push_back(OP_CONSTANT);
+        vmcode.push_back(vmdata.size());
+        vmdata.push_back(tree->val);
+    }
+    else if (op > OP_ONE_ARG && op < OP_TWO_ARG) { //one argument
+        add_calc_bytecode(tree->c1, vmvar_idx, vmcode, vmdata);
+        vmcode.push_back(op);
+    }
+    else if (op > OP_TWO_ARG) { //two arguments
+        add_calc_bytecode(tree->c1, vmvar_idx, vmcode, vmdata);
+        add_calc_bytecode(tree->c2, vmvar_idx, vmcode, vmdata);
+        vmcode.push_back(op);
+    }
+}
+
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -949,11 +913,12 @@ main()
             vector<string> vars = find_variables(info);
             vector<OpTree*> results = calculate_deriv(info.trees.begin(), vars);
             assert(results.size() == vars.size() + 1);
-            cout << "f("<< join_strings(vars, ", ") << ") = " 
-                                              << results.back()->str()  << endl;
-            // cout << results.front()->ascii_tree() << endl;
+            cout << "f("<< join_vector(vars, ", ") << ") = " 
+                                          << results.back()->str(&vars) << endl;
+            // cout << results.front()->ascii_tree(vars) << endl;
             for (unsigned int i = 0; i < vars.size(); ++i)
-                cout << "df/d" << vars[i] << " = " << results[i]->str() << endl;
+                cout << "df/d" << vars[i] << " = " 
+                    << results[i]->str(&vars) << endl;
             purge_all_elements(results);
         }
         else

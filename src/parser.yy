@@ -362,10 +362,13 @@ bool bison_parser (const std::string &cmd)
 
 bool cmd_parser (std::string cmd)
 {
-    bool r = spirit_parser(cmd);
-    if (!r)
-        return bison_parser(cmd);
-    else
-        return r;
+    try {
+        bool r = spirit_parser(cmd);
+        if (!r)
+            return bison_parser(cmd);
+    } catch (ExecuteError &e) {
+        warn(string("Error: ") + e.what());
+    }
+    return true;
 }
 

@@ -24,14 +24,24 @@
 #include <math.h>
 #include <assert.h>
 
+
+//--------------------------  N U M E R I C  --------------------------------
+
 /// favourite floating point type 
 #ifdef FP_IS_LDOUBLE
-typedef long double fp ;  
+typedef long double fp;  
 #else
-typedef double fp ;  
+typedef double fp;  
 #endif
 
 extern const fp INF;
+// epsilon=1e-9 is used for comparision of real numbers
+inline bool is_eq(fp a, fp b) { return fabs(a-b) < 1e-9; }
+inline bool is_neq(fp a, fp b) { return fabs(a-b) > 1e-9; }
+inline bool is_lt(fp a, fp b) { return a < b - 1e-9; }
+inline bool is_gt(fp a, fp b) { return a > b + 1e-9; }
+inline bool is_le(fp a, fp b) { return a <= b + 1e-9; }
+inline bool is_ge(fp a, fp b) { return a >= b - 1e-9; }
 
 
 #ifndef M_PI
@@ -40,9 +50,6 @@ extern const fp INF;
 #ifndef M_LN2
 # define M_LN2   0.6931471805599453094172321214581766  /* log_e 2 */
 #endif
-
-extern const std::vector<fp> fp_v0; //just empty vector
-extern const std::vector<int> int_v0; //just empty vector
 
 /** idea of exp_() is taken from gnuplot:
  *  some machines have trouble with exp(-x) for large x
@@ -55,7 +62,11 @@ extern const std::vector<int> int_v0; //just empty vector
 #  define exp_(x) exp(x)
 #endif
 
-extern const char* fityk_version_line; /// it is used to put version to script
+/// Round real to integer.
+inline int iround(fp d) { return static_cast<int>(floor(d+0.5)); }
+
+
+//---------------------------  S T R I N G  --------------------------------
 
 /// S() converts to string
 template <typename T>
@@ -63,10 +74,26 @@ inline std::string S(T k) {
     return static_cast<std::ostringstream&>(std::ostringstream() << k).str();
 }
 
+inline std::string S(bool b) { return b ? "true" : "false"; }
 inline std::string S(const char *k) { return std::string(k); }
 inline std::string S(char *k) { return std::string(k); }
 inline std::string S(const char k) { return std::string(1, k); }
+inline std::string S(const std::string &k) { return k; }
 inline std::string S() { return std::string(); }
+
+
+/// True if the string contains only a real number
+bool is_double (std::string s);
+
+/// replace all occurences of old in string s with new_
+void replace_all(std::string &s, const std::string &old, 
+                                 const std::string &new_);
+
+
+//---------------------------  V E C T O R  --------------------------------
+
+extern const std::vector<fp> fp_v0; //empty vector
+extern const std::vector<int> int_v0; //empty vector
 
 /// Makes 1-element vector
 template <typename T>
@@ -137,13 +164,9 @@ void purge_all_elements(std::vector<T*> &vec)
 }
 
 
+//-------------------- M I S C E L A N O U S ------------------------------
 
-/// Round real to integer.
-inline int iround(fp d) { return static_cast<int>(floor(d+0.5)); }
-
-/// replace all occurences of old in string s with new_
-void replace_all(std::string &s, const std::string &old, 
-                                 const std::string &new_);
+extern const char* fityk_version_line; /// it is used to put version to script
 
 extern int smooth_limit;
 
@@ -155,9 +178,6 @@ extern const std::string help_filename;
 
 /// Get current date and time as formatted string
 std::string time_now ();
-
-/// True if the string contains only a real number
-bool is_double (std::string s);
 
 enum OutputStyle  { os_normal, os_warn, os_quot, os_input };
 
