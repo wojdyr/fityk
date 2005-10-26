@@ -69,15 +69,16 @@ private:
 extern std::vector<Variable*> variables; 
 
 /// if name is empty, variable name is generated automatically
-/// and returned in name
-void assign_variable(std::string &name, const std::string &rhs);
+/// name of created variable is returned
+std::string assign_variable(const std::string &name, const std::string &rhs);
 
 void sort_variables();
 
 bool del_variable(const std::string &name);
 
 //returns -1 if not found or idx in variables if found
-int find_variable(const std::string &name);
+int find_variable_nr(const std::string &name);
+const Variable* find_variable(const std::string &name);
 
 // search for "simple" variable which handles parameter par
 //returns -1 if not found or idx in variables if found
@@ -87,6 +88,22 @@ int find_parameter_variable(int par);
 void recalculate_variables();
 
 
+struct VariableLhsGrammar : public grammar<VariableLhsGrammar>
+{
+  template <typename ScannerT>
+  struct definition
+  {
+    definition(VariableLhsGrammar const& /*self*/)
+    {
+        t = lexeme_d["$" >> +(alnum_p | '_')];
+    }
+    rule<ScannerT> t;
+    rule<ScannerT> const& start() const { return t; }
+  };
+};
+
+extern VariableLhsGrammar  VariableLhsG;
+
 struct VariableRhsGrammar : public grammar<VariableRhsGrammar>
 {
     static const int real_constID = 1;
@@ -95,44 +112,12 @@ struct VariableRhsGrammar : public grammar<VariableRhsGrammar>
     static const int factorID = 4;
     static const int termID = 5;
     static const int expressionID = 6;
+    static const int datatrans_constID = 7;
 
     template <typename ScannerT>
     struct definition
     {
-        definition(VariableRhsGrammar const& /*self*/)
-        {
-            //  Start grammar definition
-            real_const  =  leaf_node_d[ real_p |  as_lower_d[str_p("pi")] ];
-
-            variable    =  leaf_node_d[lexeme_d['$' >> +(alnum_p | '_')]]
-                        |  leaf_node_d[lexeme_d['~' >> real_p]]
-                        ;
-
-            exptoken    =  real_const
-                        |  inner_node_d[ch_p('(') >> expression >> ')']
-                        |  root_node_d[ as_lower_d[ str_p("sqrt") 
-                                                  | "exp" | "log10" | "ln" 
-                                                  | "sin" | "cos" | "tan" 
-                                                  | "atan" | "asin" | "acos"
-                                                  ] ]
-                           >>  inner_node_d[ch_p('(') >> expression >> ')']
-                        |  (root_node_d[ch_p('-')] >> exptoken)
-                        |  variable;
-
-            factor      =  exptoken >>
-                           *(  (root_node_d[ch_p('^')] >> exptoken)
-                            );
-
-            term        =  factor >>
-                           *(  (root_node_d[ch_p('*')] >> factor)
-                             | (root_node_d[ch_p('/')] >> factor)
-                           );
-
-            expression  =  term >>
-                           *(  (root_node_d[ch_p('+')] >> term)
-                             | (root_node_d[ch_p('-')] >> term)
-                           );
-        }
+        definition(VariableRhsGrammar const& /*self*/);
 
         rule<ScannerT, parser_context<>, parser_tag<expressionID> > expression;
         rule<ScannerT, parser_context<>, parser_tag<termID> >       term;
@@ -140,6 +125,8 @@ struct VariableRhsGrammar : public grammar<VariableRhsGrammar>
         rule<ScannerT, parser_context<>, parser_tag<exptokenID> >   exptoken;
         rule<ScannerT, parser_context<>, parser_tag<variableID> >   variable;
         rule<ScannerT, parser_context<>, parser_tag<real_constID> > real_const;
+        rule<ScannerT, parser_context<>, parser_tag<datatrans_constID> > 
+                                                               datatrans_const;
 
         rule<ScannerT, parser_context<>, parser_tag<expressionID> > const&
         start() const { return expression; }

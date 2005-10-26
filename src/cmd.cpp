@@ -13,7 +13,7 @@ using namespace boost::spirit;
 
 namespace {
 
-int extended_print = 0;
+bool extended_print;
 string t, t2;
 
 void set_data_title(char const*, char const*)  { my_data->title = t; }
@@ -22,12 +22,10 @@ void do_transform(char const* a, char const* b)
                                          { my_data->transform(string(a,b)); }
 
 void do_assign_var(char const* a, char const* b) 
-                                   { assign_variable(t, string(a,b)); }
+               { assign_variable(string(t, 1), string(a,b)); }
 
 void do_print(char const* a, char const* b)
 {
-    //mesg("extended_print= " + S(extended_print));
-    //TODO why it doesn't work ???
     string s = string(a,b);
     string m;
     if (s == "variables") {
@@ -40,17 +38,14 @@ void do_print(char const* a, char const* b)
                 m += "$" + (*i)->get_name() + " ";
     }
     else if (s[0] == '$') {
-        int f = find_variable(string(s, 1));
-        if (f == -1)
-            m = "Undefined variable: " + s;
-        else
-            m = variables[f]->get_info(extended_print);
+        const Variable* v = find_variable(string(s, 1));
+        m = v ? v->get_info(extended_print) : "Undefined variable: " + s;
     }
     mesg(m);
-
 }
 
 } //namespace
+
 
 struct CmdGrammar : public grammar<CmdGrammar>
 {
@@ -59,6 +54,13 @@ struct CmdGrammar : public grammar<CmdGrammar>
   {
     definition(CmdGrammar const& /*self*/)
     {
+        //these static constants for assign_a are workaround for assign_a
+        //problems, as proposed by Joao Abecasis at Spirit-general ML
+        //Message-ID: <435FB3DD.8030205@gmail.com>
+        //Subject: [Spirit-general] Re: weird assign_a(x,y) problem
+        static const bool true_ = true;
+        static const bool false_ = false;
+
         transform_arg 
             = "title">>ch_p('=') >> lexeme_d['"' >> (+~ch_p('"'))[assign_a(t)] 
                                              >> '"']  [&set_data_title]
@@ -66,14 +68,13 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         assign_var 
-            = lexeme_d['$' >> (+(alnum_p | '_'))[assign_a(t)]
-                      ] 
+            = VariableLhsG [assign_a(t)]
                       >> '=' >> no_actions_d[VariableRhsG] [&do_assign_var]
             ;
 
         print_arg
             = (str_p("variables") 
-              | lexeme_d["$" >> +(alnum_p | '_')]
+              | VariableLhsG
               )[&do_print]
             ;
 
@@ -81,8 +82,8 @@ struct CmdGrammar : public grammar<CmdGrammar>
             = str_p("d.transform") >> (transform_arg % ',')
             | assign_var % ','
             | str_p("print") 
-                >> (str_p("ext") [assign_a(extended_print, 1)] 
-                   | eps_p[assign_a(extended_print, 0)] 
+                >> (str_p("ext") [assign_a(extended_print, true_)] 
+                   | eps_p[assign_a(extended_print, false_)] 
                    )
                 >> (print_arg % ',')
             ;

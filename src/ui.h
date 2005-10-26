@@ -6,6 +6,7 @@
 #define ui__h__
 #include "common.h"
 #include <vector>
+#include <utility>
 #include <stdexcept>
 #include "dotset.h"
 
@@ -53,7 +54,9 @@ public:
     /// Excute all commands (or these from specified lines) from file. 
     /// In other words, run a script (.fit).
     void execScript (const std::string& filename, 
-                     const std::vector<int>& selected_lines=int_v0);
+                     const std::vector<std::pair<int,int> >& selected_lines);
+    void execScript (const std::string& filename) 
+    { execScript(filename, std::vector<std::pair<int,int> >()); }
 
     void execAndLogCmd(const std::string& s) {log_input(s); execCommand(s);}
 

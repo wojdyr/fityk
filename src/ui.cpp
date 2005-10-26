@@ -140,13 +140,11 @@ void UserInterface::log_output (const string& s)
 }
 
 
+/// items in selected_lines are ranges (first, last (not after-last)).
+/// if selected_lines are empty - all lines from file are executed
 void UserInterface::execScript (const string& filename, 
-                                const vector<int>& selected_lines)
+                                const vector<pair<int,int> >& selected_lines)
 {
-    // every two int's in selected_lines are treated as range (first-second).
-    // TODO change it to vector<pair<int, int> >
-    assert (selected_lines.size() % 2 == 0);
-
     ifstream file (filename.c_str(), ios::in);
     if (!file) {
         warn ("Can't open file: " + filename);
@@ -162,16 +160,15 @@ void UserInterface::execScript (const string& filename,
     while (getline (file, s)) 
         nls.push_back(NumberedLine(line_index++, s));
 
-    if (!selected_lines.empty())
-        //TODO will be changed from vector<int> to vector<pair<int, int> >
-        for (vector<int>::const_iterator i = selected_lines.begin(); 
-                                         i < selected_lines.end(); i += 2) {
-            int f = max(*i, 1);  // f and t are 1-based (not 0-based)
-            int t = min(*(i+1), size(nls));
-            exec_nls.insert (exec_nls.end(), nls.begin()+f-1, nls.begin()+t);
-        }
-    else
+    if (selected_lines.empty())
         exec_nls = nls;
+    else
+        for (vector<pair<int,int> >::const_iterator i = selected_lines.begin(); 
+                                            i != selected_lines.end(); i++) {
+            int f = max(i->first, 1);  // f and t are 1-based (not 0-based)
+            int t = min(i->second, size(nls));
+            exec_nls.insert(exec_nls.end(), nls.begin()+f-1, nls.begin()+t);
+        }
 
     for (vector<NumberedLine>::const_iterator i = exec_nls.begin(); 
                                                     i != exec_nls.end(); i++) {

@@ -126,6 +126,7 @@
 #include "datatrans.h"
 #include "common.h"
 #include "data.h"
+#include "var.h"
 #include "numfuncs.h"
 #include <boost/spirit/core.hpp>
 
@@ -239,6 +240,12 @@ struct push_the_double: public push_double
     double d;
 };
 
+struct push_the_var: public push_double
+{
+    void operator()(char const* a, char const* b) const 
+        { push_double::operator()(find_variable(string(a+1,b))->get_value()); }
+};
+
 struct push_op
 {
     push_op(int op_, int op2_=0) : op(op_), op2(op2_) {}
@@ -281,6 +288,7 @@ DataTransformGrammar::definition<ScannerT>::definition(
         |  as_lower_d["pi"] [push_the_double(M_PI)]
         |  as_lower_d["true"] [push_the_double(1.)]
         |  as_lower_d["false"] [push_the_double(0.)]
+        |  VariableLhsG [push_the_var()]
         ;
 
     parameterized_args

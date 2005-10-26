@@ -261,7 +261,7 @@ Variable *create_variable(const string &name, const string &rhs)
     for (vector<string>::iterator i = vmvar.begin(); i != vmvar.end(); ++i) {
         assert(i->size() >= 1);
         if ((*i)[0] == '~') {
-            *i = create_simple_variable("", *i)->get_name();
+            *i = assign_variable("", *i);
         }
         else if ((*i)[0] == '$')
             *i = string(i->begin()+1, i->end());
@@ -269,13 +269,13 @@ Variable *create_variable(const string &name, const string &rhs)
     return new Variable(name, vmvar, op_trees);
 }
 
-void assign_variable(string &name, const string &rhs)
+string assign_variable(const string &name, const string &rhs)
 {
     auto_ptr<Variable> var(create_variable(name, rhs));
-    name = var->get_name();
+    string var_name = var->get_name();
     var->set_vmvar_idx(variables);
     var->tree_to_bytecode();
-    int old_pos = find_variable(name);
+    int old_pos = find_variable_nr(var->get_name());
     if (old_pos == -1) {
         var->recalculate(variables, parameters);
         variables.push_back(var.release());
@@ -294,11 +294,12 @@ void assign_variable(string &name, const string &rhs)
         }
         recalculate_variables();
     }
+    return var_name;
 }
 
 bool del_variable(const string &name)
 {
-    int n = find_variable(name);
+    int n = find_variable_nr(name);
     if (n >= 0) {
         for (vector<Variable*>::iterator i = variables.begin(); 
                 i != variables.end(); ++i)
@@ -313,12 +314,26 @@ bool del_variable(const string &name)
     }
 }
 
-int find_variable(const string &name) {
+int find_variable_nr(const string &name) {
     for (int i = 0; i < size(variables); ++i)
         if (variables[i]->get_name() == name)
             return i;
     return -1;
 }
+
+const Variable* find_variable(const string &name) {
+    int n = find_variable_nr(name);
+    return n == -1 ? 0 : variables[n];
+}
+
+
+int get_variable_value(const string &name) {
+    for (int i = 0; i < size(variables); ++i)
+        if (variables[i]->get_name() == name)
+            return i;
+    return -1;
+}
+
 
 int find_parameter_variable(int par)
 {
@@ -336,7 +351,52 @@ void recalculate_variables()
 }
 
 
+template <typename ScannerT>
+VariableRhsGrammar::definition<ScannerT>::definition(
+                                          VariableRhsGrammar const& /*self*/)
+{
+    //TODO -- datatrans_const = 
+    //  Start grammar definition
+    real_const  =  leaf_node_d[ real_p |  as_lower_d[str_p("pi")] ];
+
+    variable    =  leaf_node_d[lexeme_d['$' >> +(alnum_p | '_')]]
+    //variable    =  leaf_node_d[VariableLhsG] //FIXME: why it doesn't work???
+                |  leaf_node_d[lexeme_d['~' >> real_p]]
+                ;
+
+    exptoken    =  real_const
+                |  inner_node_d[ch_p('(') >> expression >> ')']
+                |  root_node_d[ as_lower_d[ str_p("sqrt") 
+                                          | "exp" | "log10" | "ln" 
+                                          | "sin" | "cos" | "tan" 
+                                          | "atan" | "asin" | "acos"
+                                          ] ]
+                   >>  inner_node_d[ch_p('(') >> expression >> ')']
+                |  (root_node_d[ch_p('-')] >> exptoken)
+                |  variable;
+
+    factor      =  exptoken >>
+                   *(  (root_node_d[ch_p('^')] >> exptoken)
+                    );
+
+    term        =  factor >>
+                   *(  (root_node_d[ch_p('*')] >> factor)
+                     | (root_node_d[ch_p('/')] >> factor)
+                    );
+
+    expression  =  term >>
+                   *(  (root_node_d[ch_p('+')] >> term)
+                     | (root_node_d[ch_p('-')] >> term)
+                    );
+}
+
+// explicit template instantiation -- to accelerate compilation 
+template VariableRhsGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(VariableRhsGrammar const&);
+
+
+
 VariableRhsGrammar VariableRhsG;
+VariableLhsGrammar VariableLhsG;
 int Variable::unnamed_counter = 0;
 vector<Parameter> parameters;
 vector<Variable*> variables; 

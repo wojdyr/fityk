@@ -7,6 +7,7 @@
 #include <string>
 #include <stdlib.h>
 #include <vector>
+#include <utility>
 #include "common.h"
 #include "v_fit.h"
 #include "crystal.h"
@@ -25,6 +26,7 @@ struct yy_buffer_state;
 yy_buffer_state *yy_scan_string(const char *str);
 void ip_delete_buffer (yy_buffer_state *b);
 vector<int> ivec, ivec2;
+vector<pair<int,int> > vlines;
 vector <double> fvec;
 vector<Pag> pgvec;
 
@@ -180,9 +182,9 @@ exp:  SET DASH_STRING EQ_STRING SEP {
     | O_LOG opt_lcase FILENAME SEP { getUI()->startLog($2, $3.str()); }
     | O_LOG '!' SEP                { getUI()->stopLog(); }
     | O_LOG                        { mesg (getUI()->getLogInfo()); }
-    | O_INCLUDE FILENAME rows SEP  { getUI()->execScript($2.str(), ivec);}
-    | O_INCLUDE '!' FILENAME rows SEP { AL->reset_all(); 
-                                       getUI()->execScript($3.str(), ivec);}
+    | O_INCLUDE FILENAME lines SEP  { getUI()->execScript($2.str(), vlines);}
+    | O_INCLUDE '!' FILENAME lines SEP { AL->reset_all(); 
+                                       getUI()->execScript($3.str(), vlines);}
     | O_INCLUDE '!' SEP            { AL->reset_all(); }
     | O_WAIT flt SEP              { getUI()->wait ($2); }
     | O_DUMP FILENAME SEP          { AL->dump_all_as_script ($2.str()); }
@@ -331,9 +333,9 @@ columns: /*empty*/      { ivec.clear(); }
    |  UINt ':' UINt ':' UINt  { ivec = vector3 ($1, $3, $5); }
    ;
 
-rows: /*empty*/           { ivec.clear(); }
-   |  rows UI_DASH UINt  { ivec.push_back($2); ivec.push_back($3); }
-   |  rows UINt          { ivec.push_back($2); ivec.push_back($2); }
+lines: /*empty*/          { vlines.clear(); }
+   |  lines UI_DASH UINt  { vlines.push_back(make_pair($2,$3)); }
+   |  lines UINt          { vlines.push_back(make_pair($2,$2)); }
    ;
 
 uint_slashes_: UI_SLASH               { ivec = vector1 ($1); }

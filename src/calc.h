@@ -32,6 +32,7 @@ struct FuncGrammar : public grammar<FuncGrammar>
     static const int factorID = 4;
     static const int termID = 5;
     static const int expressionID = 6;
+    static const int datatrans_constID = 7;
 
     template <typename ScannerT>
     struct definition
@@ -75,6 +76,8 @@ struct FuncGrammar : public grammar<FuncGrammar>
         rule<ScannerT, parser_context<>, parser_tag<exptokenID> >   exptoken;
         rule<ScannerT, parser_context<>, parser_tag<variableID> >   variable;
         rule<ScannerT, parser_context<>, parser_tag<real_constID> > real_const;
+        rule<ScannerT, parser_context<>, parser_tag<datatrans_constID> > 
+                                                               datatrans_const;
 
         rule<ScannerT, parser_context<>, parser_tag<expressionID> > const&
         start() const { return expression; }

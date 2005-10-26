@@ -722,6 +722,10 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
         results[len] = new OpTree(v);
     }
 
+    else if (i->value.id() == FuncGrammar::datatrans_constID)
+    {
+    }
+
     else if (i->value.id() == FuncGrammar::variableID)
     {
         for (int k = 0; k < len; ++k)
@@ -855,7 +859,7 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
                                    : do_sub(left[k], right[k]));
     }
 
-    else
+    else 
         assert(0); // error
 
     for (int k = 0; k < len+1; ++k) 
