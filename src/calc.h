@@ -125,6 +125,7 @@ std::vector<OpTree*> calculate_deriv(const_tm_iter_t const &i,
                                      std::vector<std::string> const &vars);
 void add_calc_bytecode(const OpTree* tree, const std::vector<int> &vmvar_idx,
                        std::vector<int> &vmcode, std::vector<fp> &vmdata);
+fp get_constant_value(std::string const &s);
 
 #endif
 

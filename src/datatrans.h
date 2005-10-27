@@ -17,6 +17,7 @@ bool transform_data(std::string const& str,
                     std::vector<Point> &new_points);
 
 bool validate_transformation(std::string const& str); 
+fp get_transform_expression_value(std::string const &s);
 
 
 struct DataTransformGrammar : public grammar<DataTransformGrammar>

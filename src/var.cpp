@@ -3,7 +3,7 @@
 
 #include "var.h"
 #include "common.h"
-#include "datatrans.h"
+//#include "datatrans.h"
 #include "calc.h"
 #include "ui.h"
 #include <boost/spirit/core.hpp>
@@ -238,7 +238,7 @@ void sort_variables()
 Variable *create_simple_variable(const string &name, const string &rhs)
 {
     assert(rhs.size() > 1 && rhs[0] == '~');
-    fp val = strtod(rhs.c_str()+1, 0);
+    fp val = get_constant_value(string(rhs, 1));
     parameters.push_back(val);
     int nr = parameters.size() - 1;
     Variable *var = new Variable(name, nr);
@@ -355,13 +355,17 @@ template <typename ScannerT>
 VariableRhsGrammar::definition<ScannerT>::definition(
                                           VariableRhsGrammar const& /*self*/)
 {
-    //TODO -- datatrans_const = 
     //  Start grammar definition
-    real_const  =  leaf_node_d[ real_p |  as_lower_d[str_p("pi")] ];
+    real_const  =  leaf_node_d[   real_p 
+                               |  as_lower_d[str_p("pi")] 
+                               | '{' >> +~ch_p('}') >> '}' 
+                              ];
 
     variable    =  leaf_node_d[lexeme_d['$' >> +(alnum_p | '_')]]
-    //variable    =  leaf_node_d[VariableLhsG] //FIXME: why it doesn't work???
+    // variable    =  root_node_d[VariableLhsG] //FIXME: why it doesn't work???
                 |  leaf_node_d[lexeme_d['~' >> real_p]]
+                //|  leaf_node_d["~{" >> no_actions_d[DataTransformG] >> '}']
+                |  leaf_node_d["~{" >> +~ch_p('}') >> '}']
                 ;
 
     exptoken    =  real_const

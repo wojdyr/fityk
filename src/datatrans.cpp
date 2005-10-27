@@ -1081,5 +1081,11 @@ bool validate_transformation(string const& str)
     return (bool) result.full;
 }
 
+fp get_transform_expression_value(string const &s)
+{
+    //TODO
+    return 777.777;
+}
+
 DataTransformGrammar DataTransformG;
 

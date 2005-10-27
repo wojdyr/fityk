@@ -29,6 +29,7 @@
 
 #include "common.h"
 #include "calc.h"
+#include "datatrans.h"
 
 #ifdef STANDALONE_DF
 //#define DEBUG_SIMPLIFY
@@ -703,6 +704,19 @@ OpTree* simplify_terms(OpTree *a)
 
 ////////////////////////////////////////////////////////////////////////////
 
+fp get_constant_value(string const &s)
+{
+    if (s == "pi")
+        return M_PI;
+    else if (s[0] == '{') {
+        assert(*(s.end()-1) == '}');
+        const string expr(s.begin()+1, s.end()-1);
+        return get_transform_expression_value(s);
+    }
+    else
+        return strtod(s.c_str(), 0);
+}
+
 vector<OpTree*> calculate_deriv(const_iter_t const &i,
                                 vector<string> const &vars)
 {
@@ -712,13 +726,10 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
 
     if (i->value.id() == FuncGrammar::real_constID)
     {
+        assert(s.size() > 0);
         for (int k = 0; k < len; ++k)
             results[k] = new OpTree(0.); 
-        double v;
-        if (s == "pi")
-            v = M_PI;
-        else
-            v = strtod(s.c_str(), 0);
+        double v = get_constant_value(s);
         results[len] = new OpTree(v);
     }
 
