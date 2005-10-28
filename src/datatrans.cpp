@@ -485,6 +485,8 @@ DataTransformGrammar::definition<ScannerT>::definition(
         = (eps_p[push_op(OP_BEGIN)] >> assignment >> eps_p[push_op(OP_END)])
                                                              % ch_p('&') 
         ;
+
+    this->start_parsers(statement, rprec1);
 }
 
 // explicit template instantiation -- to accelerate compilation 
@@ -539,6 +541,19 @@ private:
 static vector<int> code;        //  VM code 
 static vector<double> numbers;  //  VM data 
 static vector<ParameterizedFunction*> parameterized; // also used by VM 
+const int stack_size = 8192;  //should be enough, 
+                              //there are no checks for stack overflow  
+
+void clear_parse_vecs()
+{
+    code.clear();
+    numbers.clear();
+    //TODO shared_ptr
+    for (vector<ParameterizedFunction*>::iterator i=parameterized.begin();
+            i != parameterized.end(); ++i)
+        delete *i;
+    parameterized.clear();
+}
 
 // code vector contains not only operators, but also indices that
 // points locations in numbers or parameterized vectors
@@ -923,7 +938,8 @@ bool execute_code(int n, int &M, vector<double>& stack,
                 DT_DEBUG("Unknown operator in VM code: " + S(*i))
         }
     }
-    assert(stackPtr == stack.begin() - 1);
+    assert(stackPtr == stack.begin() - 1 //use_parser<0>
+            || (stackPtr == stack.begin() && once)); //use_parser<1>
     return return_value;
 }
 
@@ -1001,6 +1017,7 @@ void parameterized_op::push() const
     ParameterizedFunction *func = 0;
     switch (op) {
         case PF_INTERPOLATE:
+            //TODO shared_ptr
             func = new InterpolateFunction(params);
             break;
         case PF_SPLINE:
@@ -1018,8 +1035,6 @@ void parameterized_op::push() const
 
 void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
 {
-    const int stack_size = 8192;  //should be enough, 
-                                  //there are no checks for stack overflow  
     vector<double> stack(stack_size);
     int M = (int) new_points.size();
     replace_sums(M, stack, old_points);
@@ -1055,12 +1070,7 @@ bool transform_data(string const& str,
         execute_vm_code(old_points, new_points);
     }
     // cleaning
-    code.clear();
-    numbers.clear();
-    for (vector<ParameterizedFunction*>::iterator i=parameterized.begin();
-            i != parameterized.end(); ++i)
-        delete *i;
-    parameterized.clear();
+    clear_parse_vecs();
 
     return (bool) result.full;
 }
@@ -1070,21 +1080,35 @@ bool validate_transformation(string const& str)
     assert(code.empty());
     // First compile string...
     parse_info<> result = parse(str.c_str(), DataTransformG, space_p);
-    // cleaning
-    code.clear();
-    numbers.clear();
-    for (vector<ParameterizedFunction*>::iterator i=parameterized.begin();
-            i != parameterized.end(); ++i)
-        delete *i;
-    parameterized.clear();
-
+    clear_parse_vecs();
     return (bool) result.full;
 }
 
-fp get_transform_expression_value(string const &s)
+fp get_transform_expression_value(/*vector<Point> const& points,*/
+                                  string const &s)
 {
-    //TODO
-    return 777.777;
+    vector<Point> const& points = my_data->points();
+    assert(code.empty());
+    // First compile string...
+    parse_info<> result = parse(s.c_str(), DataTransformG.use_parser<1>(), 
+                                space_p);
+    // and then execute compiled code.
+    if (!result.full) {
+        clear_parse_vecs();
+        throw ExecuteError("Syntax error in expression: " + s);
+    }
+    int M = (int) points.size();
+    vector<Point> fake_new_points(M);
+    vector<double> stack(stack_size);
+    replace_sums(M, stack, points);
+    // first execute one-time operations: sorting, x[15]=3, etc. 
+    // n==M => one-time op.
+    bool t = execute_code(M, M, stack, points, fake_new_points, code);
+    clear_parse_vecs();
+    if (t) { 
+        throw ExecuteError("Expression depends on undefined `n' index: " + s);
+    }
+    return stack.front();
 }
 
 DataTransformGrammar DataTransformG;

@@ -7,7 +7,6 @@
 #include "common.h"
 #include <vector>
 #include <utility>
-#include <stdexcept>
 #include "dotset.h"
 
 class wxString;
@@ -16,13 +15,6 @@ struct NumberedLine;
 
 // return value: false -> quit
 bool cmd_parser(std::string cmd); 
-
-/// exception thrown at run-time (when executing parsed command)
-class ExecuteError : public std::runtime_error 
-{
-public:
-    ExecuteError(const std::string& msg) : runtime_error(msg) {}
-};
 
 /// A Singleton class.
 /// Some methods (plot, plotNow, wait, execCommand, showMessage) 

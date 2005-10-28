@@ -6,6 +6,8 @@
 
 
 #include <boost/spirit/core.hpp>
+#include <boost/spirit/utility/grammar_def.hpp> 
+
 
 #include "common.h"
 using namespace boost::spirit;
@@ -17,13 +19,15 @@ bool transform_data(std::string const& str,
                     std::vector<Point> &new_points);
 
 bool validate_transformation(std::string const& str); 
-fp get_transform_expression_value(std::string const &s);
+fp get_transform_expression_value(/*std::vector<Point> const& points,*/
+                                  std::string const &s);
 
 
 struct DataTransformGrammar : public grammar<DataTransformGrammar>
 {
   template <typename ScannerT>
   struct definition
+  : public grammar_def<rule<ScannerT>, same>
   {
     definition(DataTransformGrammar const& /*self*/);
 
@@ -32,7 +36,7 @@ struct DataTransformGrammar : public grammar<DataTransformGrammar>
                    real_constant, real_variable, parameterized_args,
                    index, assignment, statement, range, order;
 
-    rule<ScannerT> const& start() const { return statement; }
+    // rule<ScannerT> const& start() const { return statement; }
   };
 };
 

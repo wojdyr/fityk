@@ -711,7 +711,7 @@ fp get_constant_value(string const &s)
     else if (s[0] == '{') {
         assert(*(s.end()-1) == '}');
         const string expr(s.begin()+1, s.end()-1);
-        return get_transform_expression_value(s);
+        return get_transform_expression_value(expr);
     }
     else
         return strtod(s.c_str(), 0);

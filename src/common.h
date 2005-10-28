@@ -23,6 +23,7 @@
 #include <vector>
 #include <math.h>
 #include <assert.h>
+#include <stdexcept>
 
 
 //--------------------------  N U M E R I C  --------------------------------
@@ -180,6 +181,14 @@ extern const std::string help_filename;
 std::string time_now ();
 
 enum OutputStyle  { os_normal, os_warn, os_quot, os_input };
+
+/// exception thrown at run-time (when executing parsed command)
+class ExecuteError : public std::runtime_error 
+{
+public:
+    ExecuteError(const std::string& msg) : runtime_error(msg) {}
+};
+
 
 
 class Sum;
