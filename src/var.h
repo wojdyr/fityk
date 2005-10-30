@@ -72,9 +72,9 @@ extern std::vector<Variable*> variables;
 /// name of created variable is returned
 std::string assign_variable(const std::string &name, const std::string &rhs);
 
-void sort_variables();
+void sort_variables(std::vector<Variable*> &variables);
 
-bool del_variable(const std::string &name);
+void delete_variables(const std::vector<std::string> &name);
 
 //returns -1 if not found or idx in variables if found
 int find_variable_nr(const std::string &name);

@@ -215,7 +215,7 @@ void Variable::tree_to_bytecode()
 }
 
 
-void sort_variables()
+void sort_variables(vector<Variable*> &variables)
 {
     for (vector<Variable*>::iterator i = variables.begin(); 
             i != variables.end(); ++i)
@@ -269,6 +269,11 @@ Variable *create_variable(const string &name, const string &rhs)
     return new Variable(name, vmvar, op_trees);
 }
 
+void remove_unreffered()
+{
+    //TODO
+}
+
 string assign_variable(const string &name, const string &rhs)
 {
     auto_ptr<Variable> var(create_variable(name, rhs));
@@ -287,32 +292,46 @@ string assign_variable(const string &name, const string &rhs)
         delete variables[old_pos];
         variables[old_pos] = var.release();
         if (variables[old_pos]->get_max_vmvar_idx() > old_pos) {
-            sort_variables();
+            sort_variables(variables);
             for (vector<Variable*>::iterator i = variables.begin(); 
                     i != variables.end(); ++i)
                 (*i)->tree_to_bytecode();
         }
         recalculate_variables();
+        remove_unreffered();
     }
     return var_name;
 }
 
-bool del_variable(const string &name)
+void delete_variables(const vector<string> &names)
 {
-    int n = find_variable_nr(name);
-    if (n >= 0) {
-        for (vector<Variable*>::iterator i = variables.begin(); 
-                i != variables.end(); ++i)
-            if ((*i)->is_directly_dependent_on(n)) {
-                return false;
+    const int n = names.size();
+    vector<int> nrs (n);
+    for (int i = 0; i < n; ++i) {
+        nrs[i] = find_variable_nr(names[i]);
+        if (nrs[i] == -1)
+            throw ExecuteError("undefined variable: " + names[i]);
+        //check if it is reffered by other variable
+        for (vector<Variable*>::iterator j = variables.begin(); 
+                j != variables.end(); ++j) {
+            if ((*j)->is_directly_dependent_on(nrs[i])
+                    && find(names.begin(), names.end(), (*j)->get_name()) 
+                        == names.end()) {
+                throw ExecuteError("can't delete $" + names[i] + " because $"
+                                   + (*j)->get_name() + " depends on it.");
             }
-        delete variables[n];
-        return true;
+        //TODO check if it is reffered by functions
+        }
     }
-    else {
-        return false;
+    sort(nrs.begin(), nrs.end());
+    for (int i = n-1; i >= 0; --i) {
+        int k = nrs[i];
+        delete variables[k];
+        variables.erase(variables.begin() + k);
     }
+    remove_unreffered();
 }
+
 
 int find_variable_nr(const string &name) {
     for (int i = 0; i < size(variables); ++i)

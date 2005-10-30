@@ -1,11 +1,30 @@
 
+* finish parameter/variable transition:
+   parameter domain ~3[2,14]
+   on add/remove/change: delete (unreferred and unnamed) variables 
+	   and unreferred parameters
+   recalculate() when neccessary (parameters change)
+   history -- disabled for a while -- one for variables and functions
+   replace gfunc.*, pag.h, ...
+   
+* d.transform y=x -> y=x, changes in GUI data editor and examples
 
-* improve Voigt function (probably bug in FWHM, cut-tails, better approx?) 
+* s.info -> print
+
+* documentation for data transform, $variable assignments, etc
+
+------------------ 0.5.2  2005.0?
+
+* (GUI) peak positions as an option to any aux. plot 
+        (not separate type of aux.p.)
+
+* (GUI) new aux. plot type: cumulative chi2 (normalized, ie. cum. chi2 / (N-P))
+
+* (GUI) show function limits when cursor is over peak top
 
 * data tranformations: new functions: randuniform[a b]() randnormal[mu sigma]()
-                       temporary variables
-		       documentation
-		       transform title="new title here"
+
+* d.activate, d.load, d.export -> data; d.info -> print
 
 * (GUI) datapane - editable labels (titles)
                   "duplicate" command, when right-clicking on inactive label
@@ -13,25 +32,38 @@
 
 * problem: MS Windows - tree at data pane looks bad
 
-* peak positions as an option to any aux. plot (not separate type of aux.p.)
-* new aux. plot type: cumulative chi2 (normalized, ie. cum. chi2 / (N-P))
-* (GUI) show function limits when cursor is over peak top
 * [del] button at data pane
+
+* improve Voigt function (there is bug in FWHM, cut-tails, better approx?) 
+
+------------------ 0.5.3  2005.0?
+
 * view with/without background button (like in 0.4.x, requires storing
   background points)
 
------------------- 0.5.2  2005.0?
-
 * user defined functions: 
-      - parsing string into AST [DONE]
-      - symbolic calculations of derivatives [DONE] 
-      - simplifying equations and CSE [partially DONE]
-      - changing the idea of simple parameters, compund-parameters 
-        and functions. Rewritting computations of sum/functions values.
-	Major changes in syntax. Joining transform with functions.
-      - calculating limits, width, area, etc. for UDF
+      - syntax:
+        --> define Gaussian(a,pos,width): a*exp(-((x-pos)/width)^2)
+	                    ^^^ any name but 'x' allowed here
+	--> %g = Gaussian(1,$b,~3.4)
+	--> %g2 = 1*exp(-((x-$b)/~3.4)^2)
+      - `%g' in data transform (Y=y-%g -> peak removal)
+      - to avoid ambiguity, transform '%' operator should be replaced with 'mod'
+      - more sophisticated simplifications of expressions and CSE(!)
+      - calculating limits, width, area, etc. for UDF(!)
 
 ------------------ 0.6.0 2005.??
+
+* rewrite scanner/parser using only boost::spirit. 
+  (in progress, now it uses both Spirit and flex/bison).
+
+* propagate errors using exceptions (when suitable) rather than error codes
+
+* use smart pointers: http://www.boost.org/libs/smart_ptr/smart_ptr.htm
+  (the library will be distributed in 3rdparty/boost)
+
+* build engine (everything but GUI/CLI interface) as a library
+  with documented API.
 
 * problem: fityk can't be compiled with UNICODE-enabled wxWidgets
 
@@ -69,9 +101,6 @@
   horizontal/vertical peak labels, etc.
   single ergonomic interface changing colors of everything
 
-* rewrite scanner/parser using boost::spirit. Now it uses flex/bison.
-  [IMPORTANT]
-
 * python scripts  -- built-in Python interpreter which allows to extend 
   Fityk using user-written scripts, optional modules, etc. 
   [IMPORTANT]
@@ -87,8 +116,6 @@
 * (s.export) when exporting function/sum as points, it shuld be possible 
   to set step of these points (s.set export-points-step = 0.?)
   and to export baseline and each peak as a separately (multicolumn CSV)
-
-* possibility to subtract fitted functions from the data (ie peak removal)
 
 * (Windows only) exporting plots to PostScript file and to metafile(clipboard) 
 
@@ -120,4 +147,6 @@
 * (GUI) "Report Bug" item in Help menu, clickable link in About dialog
         http://wiki.wxwidgets.org/wiki.pl?Launching_The_Default_Browser
 
+* investigate LLVM - can it be used for faster calculation of 
+  user-defined functions?
 

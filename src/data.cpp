@@ -6,12 +6,7 @@
 #include "fileroutines.h"
 #include "ui.h"
 #include "numfuncs.h"
-
-//#include "datatrans.h" 
-// for faster compilation - don't include datatrans.h
-bool transform_data(std::string const& str, 
-                    std::vector<Point> const& old_points, 
-                    std::vector<Point> &new_points);
+#include "datatrans.h" 
 
 #include <math.h>
 #include <string.h>

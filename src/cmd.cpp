@@ -7,6 +7,9 @@
 #include "datatrans.h"
 #include "var.h"
 #include <boost/spirit/core.hpp>
+#include <boost/spirit/actor/assign_actor.hpp>
+#include <boost/spirit/actor/push_back_actor.hpp>
+#include <boost/spirit/actor/clear_actor.hpp>
 
 using namespace std;
 using namespace boost::spirit;
@@ -15,6 +18,7 @@ namespace {
 
 bool extended_print;
 string t, t2;
+vector<string> vt;
 
 void set_data_title(char const*, char const*)  { my_data->title = t; }
 
@@ -23,6 +27,20 @@ void do_transform(char const* a, char const* b)
 
 void do_assign_var(char const* a, char const* b) 
                { assign_variable(string(t, 1), string(a,b)); }
+
+void do_delete_var(char const*, char const*) 
+{ 
+    vector<string> vars, funcs;
+    for (vector<string>::const_iterator i = vt.begin(); i != vt.end(); ++i) {
+        if ((*i)[0] == '$')
+            vars.push_back(string(*i, 1));
+        else if ((*i)[0] == '%')
+            funcs.push_back(string(*i, 1));
+        else
+            assert(0);
+    }
+    delete_variables(vars); 
+}
 
 void do_print(char const* a, char const* b)
 {
@@ -61,7 +79,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
         static const bool true_ = true;
         static const bool false_ = false;
 
-        transform_arg 
+        transform 
             = "title">>ch_p('=') >> lexeme_d['"' >> (+~ch_p('"'))[assign_a(t)] 
                                              >> '"']  [&set_data_title]
             | no_actions_d[DataTransformG][&do_transform] 
@@ -79,8 +97,10 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         statement 
-            = str_p("d.transform") >> (transform_arg % ',')
+            = transform % ','
             | assign_var % ','
+            | (str_p("delete")[clear_a(vt)] 
+                >> VariableLhsG[push_back_a(vt)] % ',')[&do_delete_var]
             | str_p("print") 
                 >> (str_p("ext") [assign_a(extended_print, true_)] 
                    | eps_p[assign_a(extended_print, false_)] 
@@ -92,7 +112,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
             = statement % ';';
     }
 
-    rule<ScannerT> transform_arg, assign_var, print_arg, 
+    rule<ScannerT> transform, assign_var, print_arg, 
                    statement, multi;  
 
     rule<ScannerT> const& start() const { return multi; }
