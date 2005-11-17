@@ -17,12 +17,13 @@
 #include <signal.h>
 #include <locale.h>
 #ifndef NO_READLINE
+#define _FUNCTION_DEF //(hack?) disable old-style typedef for Function
 #    include <readline/readline.h>
 #    include <readline/history.h>
 #endif
 #include "ui.h"
 #include "u_gnuplot.h"
-#include "other.h"
+#include "logic.h"
 
 using namespace std;
 

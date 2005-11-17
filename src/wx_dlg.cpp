@@ -31,7 +31,6 @@
 #include "ffunc.h"
 #include "gfunc.h"
 #include "v_fit.h"
-#include "pcore.h"
 #include "ui.h"
 //#include "datatrans.h" 
 // for faster compilation - don't include datatrans.h

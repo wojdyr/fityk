@@ -31,17 +31,9 @@ private:
 // to e.g. Manipul::estimate_peak_parameters() 
 struct EstConditions
 {
-    EstConditions() {} 
-    EstConditions(const std::vector<VirtPeak> &v,  const std::vector<int> &ip,
-                  const std::vector<int> &ep)
-        : incl_peaks(ip), excl_peaks(ep), virtual_peaks(v) {} 
-
-    //it says: imagine that only following peaks exist (+ these virtual below)
-    //empty == all peaks
-    std::vector<int> incl_peaks;
-    //it says: imagine that following peaks do not exist 
-    std::vector<int> excl_peaks;
-    //it says: imagine that there are some additional peaks...
+    //it says: imagine that only following peaks exist ...
+    std::vector<int> real_peaks;
+    // ... and that there are some additional peaks.
     std::vector<VirtPeak> virtual_peaks;
 };
 
@@ -53,11 +45,9 @@ public:
     bool estimate_peak_parameters (fp approx_ctr, fp ctrplusmin, 
                             fp *center, fp *height, fp *area, fp *fwhm,
                             const EstConditions *ec=0) const;
-    std::string print_simple_estimate (fp center, fp w = -1.) const; 
-    std::string print_global_peakfind ();
-    fp trapezoid_area_of_peaks (const std::vector<int> &peaks) const;
+    std::string print_simple_estimate(fp center, fp w = -1.) const; 
+    std::string print_global_peakfind();
 private:
-    bool estimate_consider_sum;
     fp search_width;
     bool cancel_peak_out_of_search;
     fp height_correction, fwhm_correction;

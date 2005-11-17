@@ -12,38 +12,15 @@
 using namespace std; 
 using namespace boost::spirit;
 
-
-vector<Function*> functions;
-
-void assign_func(std::string const &name, std::string const &function, 
-                 std::vector<std::string> const &vars)
-{
-    Function *func = Function::factory(name, function, vars);
-    //if there is already function with the same name -- replace
-    bool found = false;
-    for (int i = 0; i < size(functions); ++i) {
-        if (functions[i]->name == func->name) {
-            delete functions[i];
-            functions[i] = func;
-            mesg("New function %"+func->name+" replaced the old one.");
-            remove_unreffered();
-            found = true;
-            break;
-        }
-    }
-    if (!found) {
-        functions.push_back(func);
-        info("New function %" + func->name + " was created.");
-    }
-}
-
+std::vector<fp> Function::calc_val_xx(1); 
+std::vector<fp> Function::calc_val_yy(1);
 
 Function::Function (string const &name_, vector<string> const &vars,
-                    string const &formula_)
-    : name(name_), type_formula(formula_),
-      type_name(strip_string(string(formula_, 0, formula_.find_first_of("(")))),
+                    string const &formula_, VariableManager *m)
+    : VariableUser(name_, "%"), type_formula(formula_),
+      type_name(strip_string(string(formula_,0,formula_.find_first_of("(")+1))),
       type_rhs(strip_string(string(formula_, formula_.find('=')+1))),
-      cutoff_level(0.), vv(vars.size())
+      cutoff_level(0.), vv(vars.size()), mgr(m)
 {
     // parsing formula for every instance of the class is not effective 
     // but the overhead is negligible
@@ -61,45 +38,47 @@ Function::Function (string const &name_, vector<string> const &vars,
                            + S(type_var_names.size()) + " parameters.");
     for (vector<string>::const_iterator i = vars.begin(); i != vars.end(); ++i){
         bool just_name = parse(i->c_str(), VariableLhsG).full;
-        varnames.push_back(just_name ? string(*i, 1) : assign_variable("", *i));
+        varnames.push_back(just_name ? string(*i, 1) 
+                                     : m->assign_variable("", *i));
     }
+    set_var_idx(mgr->get_variables());
 
     //?? gnuplot_formula =  //^->**, type_var_names->varnames
     //                        ln->...
     
 }
 
-Function* Function::factory (string const &name, string const &function,
-                             vector<string> const &vars) 
+Function* Function::factory (string const &name, string const &type_name,
+                             vector<string> const &vars, VariableManager *m) 
 {
-    if (name == "Constant")
-        return new FuncConstant(name, vars);
-    else if (name == "Gaussian")
-        return new FuncGaussian(name, vars);
+    if (type_name == "Constant")
+        return new FuncConstant(name, vars, m);
+    else if (type_name == "Gaussian")
+        return new FuncGaussian(name, vars, m);
 #if 0
-    else if (name == "Lorentzian")
+    else if (type_name == "Lorentzian")
         return new fLorentz(name, vars);
-    else if (name == "PearsonVII")
+    else if (type_name == "PearsonVII")
         return new fPearson(name, vars);
-    else if (name == "Pseudo-Voigt")
+    else if (type_name == "Pseudo-Voigt")
         return new fPsVoigt(name, vars);
-    else if (name == "Voigt")
+    else if (type_name == "Voigt")
         return new fVoigt(name, vars);
-    else if (name == "Polynomial5")
+    else if (type_name == "Polynomial5")
         return new fPolynomial5(name, vars);
 #endif
     else 
-        throw ExecuteError("Undefined type of function: " + function);
+        throw ExecuteError("Undefined type of function: " + type_name);
 }
 
-void Function::do_precomputations()
+void Function::do_precomputations(vector<Variable*> const &variables)
 {
-    //precondition: recalculate_variables() 
+    //precondition: recalculate() for all variables
     multi.clear();
-    for (int i = 0; i < size(varnames); ++i) {
-        vv[i] = variables[i]->get_value(); 
-        vector<Variable::ParMult> const &pm 
-                                  = variables[i]->get_recursive_derivatives();
+    for (int i = 0; i < size(var_idx); ++i) {
+        Variable const *v = variables[var_idx[i]];
+        vv[i] = v->get_value(); 
+        vector<Variable::ParMult> const &pm = v->get_recursive_derivatives();
         for (vector<Variable::ParMult>::const_iterator j = pm.begin();
                 j != pm.end(); ++j)
             multi.push_back(Multi(i, *j));
@@ -107,7 +86,7 @@ void Function::do_precomputations()
 }
 
 void Function::get_nonzero_idx_range(std::vector<fp> const &x,
-                                     int &first, int &last)
+                                     int &first, int &last) const
 {
     //precondition: x is sorted
     fp left, right;
@@ -122,13 +101,39 @@ void Function::get_nonzero_idx_range(std::vector<fp> const &x,
     }
 }
 
+fp Function::calculate_value(fp x) const
+{
+    calc_val_xx[0] = x;
+    calc_val_yy[0] = 0.;
+    calculate_value(calc_val_xx, calc_val_yy);
+    return calc_val_yy[0];
+}
+
+string Function::get_info(vector<Variable*> const &variables, 
+                          vector<fp> const &parameters, 
+                          bool extended) const 
+{ 
+    vector<string> xvarnames; 
+    for (vector<int>::const_iterator i = var_idx.begin(); 
+            i != var_idx.end(); ++i)
+        xvarnames.push_back(variables[*i]->xname);
+    string s = xname+" = "+type_name+ "(" + join_vector(xvarnames, ", ") + ")";
+    if (extended) {
+        s += "\n" + type_formula;
+        for (vector<int>::const_iterator i = var_idx.begin(); 
+                i != var_idx.end(); ++i)
+            s += "\n" + variables[*i]->get_info(parameters);
+    }
+    return s;
+} 
+
 
 ///////////////////////////////////////////////////////////////////////
 
 const char *FuncConstant::formula 
 = "Constant(a) = a"; 
 
-void FuncConstant::calculate_value(vector<fp> const &/*x*/, vector<fp> &y) 
+void FuncConstant::calculate_value(vector<fp> const &/*x*/, vector<fp> &y) const
 {
     for (vector<fp>::iterator i = y.begin(); i != y.end(); ++i)
         *i += vv[0];
@@ -137,9 +142,10 @@ void FuncConstant::calculate_value(vector<fp> const &/*x*/, vector<fp> &y)
 void FuncConstant::calculate_value_deriv(vector<fp> const &x, 
                                          vector<fp> &y, 
                                          vector<fp> &dy_da,
-                                         bool in_dx)
+                                         bool in_dx) const
 {
-    int dyn = x.size() / dy_da.size();
+    // dy_da.size() == x.size() * (parameters.size()+1)
+    int dyn = dy_da.size() / x.size();
     vector<fp> dy_dv(vv.size());
     for (int i = 0; i < size(y); ++i) {
         dy_dv[0] = 1.;
@@ -168,7 +174,7 @@ const char *FuncGaussian::formula
                         "height*exp(-ln(2)*((x-center)/HWHM)^2)"; 
 
 
-void FuncGaussian::calculate_value(vector<fp> const &x, vector<fp> &y) 
+void FuncGaussian::calculate_value(vector<fp> const &x, vector<fp> &y) const
 {
     int first, last;
     get_nonzero_idx_range(x, first, last);
@@ -182,7 +188,7 @@ void FuncGaussian::calculate_value(vector<fp> const &x, vector<fp> &y)
 void FuncGaussian::calculate_value_deriv(vector<fp> const &x, 
                                          vector<fp> &y, 
                                          vector<fp> &dy_da,
-                                         bool in_dx)
+                                         bool in_dx) const
 {
     int first, last;
     get_nonzero_idx_range(x, first, last);

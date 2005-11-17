@@ -1,12 +1,11 @@
 
 * finish parameter/variable transition:
    parameter domain ~3[2,14]
-   on add/remove/change: delete (unreferred and unnamed) variables 
-	   and unreferred parameters
+   mark parameters, which are not used in sum calculation
    recalculate() when neccessary (parameters change)
    history -- disabled for a while -- one for variables and functions
    replace gfunc.*, pag.h, ...
-   
+
 * d.transform y=x -> y=x, changes in GUI data editor and examples
 
 * s.info -> print
@@ -54,12 +53,18 @@
 
 ------------------ 0.6.0 2005.??
 
+* data transform: variable step -> fixed step (i.e. x[n]-x[n-1] is constant)
+
+* (INTERNAL) put `const' always behind the type
+
 * rewrite scanner/parser using only boost::spirit. 
   (in progress, now it uses both Spirit and flex/bison).
 
-* propagate errors using exceptions (when suitable) rather than error codes
+* (INTERNAL) propagate errors using exceptions (when suitable) rather 
+  than error codes
 
-* use smart pointers: http://www.boost.org/libs/smart_ptr/smart_ptr.htm
+* (INTERNAL) use smart pointers: 
+  http://www.boost.org/libs/smart_ptr/smart_ptr.htm
   (the library will be distributed in 3rdparty/boost)
 
 * build engine (everything but GUI/CLI interface) as a library

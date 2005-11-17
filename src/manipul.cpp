@@ -6,6 +6,7 @@
 #include <algorithm>
 #include "data.h"
 #include "sum.h"
+#include "logic.h"
 #include "ui.h"
 
 using namespace std;
@@ -24,25 +25,20 @@ fp VirtPeak::get_approx_y(fp x) const
 }
 
 Manipul::Manipul()
-    : estimate_consider_sum(true), 
-      search_width (1.), cancel_peak_out_of_search(true),
+    : search_width (1.), cancel_peak_out_of_search(true),
       height_correction(1.), fwhm_correction(1.) 
 {
-    bpar ["estimate-consider-sum"] = &estimate_consider_sum;
     fpar ["search-width"] = &search_width;   
     bpar ["cancel-peak-out-of-search"] = &cancel_peak_out_of_search;
     fpar ["height-correction"] = &height_correction;
     fpar ["fwhm-correction"] = &fwhm_correction;
 }
 
-fp Manipul::my_y(int n, const EstConditions * ec) const
+fp Manipul::my_y(int n, const EstConditions *ec) const
 {
     //pre: sum->use_param_a_for_value();
     fp x = my_data->get_x(n);
     fp y = my_data->get_y(n);
-
-    if (!estimate_consider_sum)
-        return y;
 
     if (!ec)
         return y - my_sum->value(x);
@@ -50,19 +46,9 @@ fp Manipul::my_y(int n, const EstConditions * ec) const
     for (vector<VirtPeak>::const_iterator i = ec->virtual_peaks.begin();
                                              i != ec->virtual_peaks.end(); i++)
         y -= i->get_approx_y(x);
-
-    if (ec->incl_peaks.empty() && ec->excl_peaks.empty())
-        return y - my_sum->value(x);
-
-    std::vector<int> peaks = ec->incl_peaks.empty() 
-                              ?  range_vector(0, my_sum->fzg_size(fType)) //all
-                              : ec->incl_peaks;        //or only selected peaks
-    for (vector<int>::const_iterator i = ec->excl_peaks.begin(); 
-                                        i != ec->excl_peaks.end(); ++i) {
-        vector<int>::iterator f = find(peaks.begin(), peaks.end(), *i);
-        if (f != peaks.end())
-            peaks.erase(f);
-    }
+    for (vector<int>::const_iterator i = ec->real_peaks.begin();
+                                             i != ec->real_peaks.end(); i++)
+        y -= AL->get_functions()[*i]->calculate_value(x); 
     return y;
 }
 
@@ -139,7 +125,7 @@ bool Manipul::estimate_peak_parameters(fp approx_ctr, fp ctrplusmin,
                             fp *center, fp *height, fp *area, fp *fwhm,
                             const EstConditions *ec) const
 {
-    my_sum->use_param_a_for_value();
+    AL->use_parameters();
     if (my_data->get_n() <= 0) {
         warn ("No active data.");
         return false;
@@ -196,29 +182,17 @@ string Manipul::print_global_peakfind ()
 {
     string s;
     EstConditions estc;
+    estc.real_peaks = my_sum->get_ff_idx();
     for (int i = 1; i <= 4; i++) {
         fp c = 0., h = 0., a = 0., fwhm = 0.;
         estimate_peak_parameters(0., +INF, &c, &h, &a, &fwhm, &estc);
         estc.virtual_peaks.push_back(VirtPeak(c, h, fwhm));
-        if (h == 0.) break;
+        if (h == 0.) 
+            break;
         s += S(i != 1 ? "\n" : "") + "Peak #" + S(i) + " - center: " + S(c) 
             + ", height: " + S(h) + ", area: " + S(a) + ", FWHM: " + S(fwhm);
     }
     return s;
-}
-
-fp Manipul::trapezoid_area_of_peaks (const vector<int> &peaks) const
-{
-    fp area = 0;
-    fp x_prev = 0, y_prev = 0;
-    for (int i = 0; i < my_data->get_n(); i++) {
-        fp x = my_data->get_x(i);
-        fp y = my_sum->funcs_value(peaks, x);
-        if (i != 0)
-            area += (y + y_prev) / 2 * (x - x_prev);
-        x_prev = x, y_prev = y;
-    }
-    return area;
 }
 
 Manipul *my_manipul;

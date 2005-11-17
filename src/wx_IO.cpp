@@ -16,7 +16,7 @@
 #include "wx_plot.h"
 #include "wx_gui.h"
 #include "wx_pane.h"
-#include "other.h"
+#include "logic.h"
 
 using namespace std;
 

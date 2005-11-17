@@ -6,7 +6,7 @@
 #include <fstream>
 #include <string>
 #include <iostream>
-#include "other.h"
+#include "logic.h"
 
 using namespace std;
 

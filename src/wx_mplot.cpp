@@ -17,7 +17,6 @@
 #include "wx_mplot.h"
 #include "wx_gui.h"
 #include "wx_dlg.h"
-#include "pcore.h"
 #include "data.h"
 #include "sum.h"
 #include "ffunc.h"

@@ -41,8 +41,8 @@ public :
                    const std::vector<fp> &sigma, const std::string &data_title);
     void add_point(const Point &pt) { p.push_back(pt); };
     static char guess_file_type (const std::string& filename);
-    fp get_x (int n) const { return p[active_p[n]].x; }
-    fp get_y (int n) const { return p[active_p[n]].y; } 
+    fp get_x(int n) const { return p[active_p[n]].x; }
+    fp get_y(int n) const { return p[active_p[n]].y; } 
     fp get_sigma (int n) const { return p[active_p[n]].sigma; }
     int get_n () const {return active_p.size();}
     bool is_empty () const {return p.empty();}
@@ -63,10 +63,10 @@ public :
     void export_to_file (std::string filename, bool append);
     std::string Data::get_load_cmd();
     void export_as_script (std::ostream& os);
-    fp get_x_min() { return p.front().x; }
-    fp get_x_max() { return p.back().x; } 
-    fp get_y_min() const { return y_min; }
-    fp get_y_max() const { return y_max; }
+    fp get_x_min() { return p.empty() ? 0 : p.front().x; }
+    fp get_x_max() { return p.empty() ? 180. : p.back().x; } 
+    fp get_y_min() const { return p.empty() ? 0 : y_min; }
+    fp get_y_max() const { return p.empty() ? 1e3 : y_max; }
     const std::vector<Point>& points() const { return p; }
 
     std::string title;

@@ -21,8 +21,7 @@
 #include "wx_plot.h" 
 #include "wx_mplot.h" 
 #include "data.h" 
-#include "pcore.h" 
-#include "other.h" 
+#include "logic.h" 
 #include "ui.h" 
 
 using namespace std;

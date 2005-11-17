@@ -5,7 +5,7 @@
 #include <string>
 #include <time.h>
 #include "ui.h"
-#include "other.h"
+#include "logic.h"
 
 using namespace std;
 

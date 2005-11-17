@@ -18,8 +18,7 @@
 #include "wx_gui.h"
 #include "data.h"
 #include "sum.h"
-#include "pcore.h"
-#include "other.h" 
+#include "logic.h" 
 
 using namespace std;
 

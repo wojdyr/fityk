@@ -13,7 +13,7 @@
 //              X[] - x coordinate after transformation (new x),
 //              y[], Y[] - y coordinate of point (before/after transformation)
 //              s[], S[]  -  std. dev. of y, 
-//              a[], A[] - active point, either 0 and 1
+//              a[], A[] - active point, either 0 or 1
 //       scalars:
 //              M - size of arrays, 
 //              n - current index (index of currently transformed point)
@@ -63,7 +63,7 @@
 //functions: sqrt exp log10 ln sin cos tan atan asin acos abs min max round
 // boolean: AND, OR, >, >=, <, <=, = (or ==), != (or <>), TRUE, FALSE, NOT
 //
-//parametrized functions: spline, interpolate
+//parametrized functions: spline, interpolate //TODO->polyline
 // The general syntax is: pfunc[param1 param2 ...](expression), 
 //  eg. spline[22.1 37.9 48.1 17.2 93.0 20.7](x)
 // spline - cubic spline interpolation, parameters are x1, y1, x2, y2, ...
@@ -128,6 +128,7 @@
 #include "data.h"
 #include "var.h"
 #include "numfuncs.h"
+#include "logic.h"
 #include <boost/spirit/core.hpp>
 
 using namespace std;
@@ -243,7 +244,7 @@ struct push_the_double: public push_double
 struct push_the_var: public push_double
 {
     void operator()(char const* a, char const* b) const 
-        { push_double::operator()(find_variable(string(a+1,b))->get_value()); }
+     { push_double::operator()(AL->find_variable(string(a+1,b))->get_value()); }
 };
 
 struct push_op

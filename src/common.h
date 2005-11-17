@@ -90,6 +90,24 @@ bool is_double (std::string s);
 void replace_all(std::string &s, const std::string &old, 
                                  const std::string &new_);
 
+/// splits string into tokens, separated by one-character delimitors
+template<typename T>
+std::vector<std::string> split_string(std::string const &s, T delim) {
+    std::vector<std::string> v;
+    unsigned int start_pos = 0, pos=0;
+    while (pos != std::string::npos) {
+        pos = s.find_first_of(delim, start_pos);
+        v.push_back(std::string(s, start_pos, pos));
+        start_pos = pos+1;
+    }
+    return v;
+}
+
+/// similar to Python string.strip() method
+inline std::string strip_string(std::string const &s) {
+    const char *blank = " \r\n\t";
+    return std::string(s, s.find_first_not_of(blank),s.find_last_not_of(blank));
+}
 
 //---------------------------  V E C T O R  --------------------------------
 

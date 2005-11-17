@@ -7,7 +7,12 @@
 #include <ctype.h>
 #include <iostream>
 #include "common.h"
-#include "pag.h"
+struct Pre_string //used in parser.y and parser.l
+{ 
+char *c; int l; 
+std::string str() { return std::string(c, l); }
+};
+
 #include "parser.tab.hh"
 char str_tb[1024+1];
  // table for saving strings (yytext(iptext) can be changed - %array)
@@ -38,10 +43,8 @@ extern bool new_line;
 %option prefix="ip"
 %array
 %x SET_COND
-%x D_TRANS_COND
 %s D_UI_SLASH
 %s FILE_COND
-%s D_LOAD_COND
 
 UINT [[:digit:]]+
 INT [+|-]?[[:digit:]]+
@@ -63,24 +66,11 @@ ws_ [ \t\v\f\r]+
                    return SEP;
                  }
 [fsmoc]\.s(et)?   r_cmd(); BEGIN(SET_COND); iplval.c = iptext[0]; return SET;
-d\.l(oad)?	   r_cmd(); BEGIN(D_LOAD_COND); return D_LOAD;
-d\.a(ctivate)?     r_cmd(); return D_ACTIVATE;
-d\.t(ransform)?    r_cmd(); BEGIN(D_TRANS_COND); return D_TRANSFORM;
-d\.i(nfo)?	   r_cmd(); return D_INFO;
 d\.e(xport)?       r_cmd(); BEGIN(FILE_COND); return D_EXPORT;
 f\.r(un)?	   r_cmd(); return F_RUN;
 f\.c(ontinue)?	   r_cmd(); return F_CONTINUE;
 f\.m(ethod)?	   r_cmd(); return F_METHOD;
 f\.i(nfo)?	   r_cmd(); return F_INFO;
-s\.a(dd)?	   r_cmd(); return S_ADD; 
-s\.h(istory)?      r_cmd(); BEGIN(D_UI_SLASH); return S_HISTORY;
-s\.i(nfo)?	   r_cmd(); return S_INFO;
-s\.g(uess)?        r_cmd(); return S_GUESS;
-s\.r(emove)?	   r_cmd(); return S_REMOVE;
-s\.c(hange)?	   r_cmd(); return S_CHANGE; 
-s\.f(reeze)?	   r_cmd(); return S_FREEZE;
-s\.v(alue)?        r_cmd(); return S_VALUE;
-s\.e(xport)?       r_cmd(); BEGIN(FILE_COND); return S_EXPORT;
 m\.f(indpeak)?     r_cmd(); return M_FINDPEAK;
 o\.p(lot)?	   r_cmd(); return O_PLOT; 
 o\.l(og)?	   r_cmd(); BEGIN(FILE_COND); return O_LOG; 
@@ -89,18 +79,12 @@ o\.w(ait)?	   r_cmd(); return O_WAIT;
 o\.d(ump)?	   r_cmd(); BEGIN(FILE_COND); return O_DUMP;
 (q(uit)?)|(exit)   r_cmd(); return QUIT;
 
-c\.w(avelength)?   r_cmd(); return C_WAVELENGTH; 
-c\.a(dd)?	   r_cmd(); return C_ADD; 
-c\.i(nfo)?	   r_cmd(); return C_INFO; 
-c\.r(emove)?	   r_cmd(); return C_REMOVE; 
-c\.e(stimate)?     r_cmd(); return C_FIND;
-
   
 {UINT}     iplval.i = atoi (iptext); return UINt; 
 {INT}      iplval.i = atoi (iptext); return INt; 
 {FLOAT}    iplval.f = atof (iptext); return FLOAt; 
 ({UINT}"-")|({UINT}{ws_}"-"{ws_})   iplval.i = atoi (iptext); return UI_DASH; 
-<D_UI_SLASH,D_LOAD_COND>{UINT}{ws}"/"  iplval.i = atoi(iptext); return UI_SLASH;
+<D_UI_SLASH>{UINT}{ws}"/"  iplval.i = atoi(iptext); return UI_SLASH;
 ":"        return ':'; 
 "/"        return '/'; 
 "!"        return '!'; 
@@ -123,41 +107,18 @@ c\.e(stimate)?     r_cmd(); return C_FIND;
 {ws_}[[:lower:]]/({ws_}|\n|\0)  { int i=0; while (isspace (iptext[i])) ++i; 
                              iplval.c = iptext[i]; return LOWERCASE; 
 		           }
-"_"{FLOAT} iplval.f = atof (iptext + 1); return P_NUM; 
-"~"{FLOAT} iplval.f = atof (iptext + 1); return NEW_A; 
-"@"{UINT}  iplval.i = atoi (iptext + 1); return A_NUM;
-"@*"       iplval.i = -1; return A_NUM; 
-"$"{UINT}  iplval.i = atoi (iptext + 1); return G_NUM; 
-"$*"       iplval.i = -1; return G_NUM; 
-"^"{UINT}  iplval.i = atoi (iptext + 1); return F_NUM; 
-"^*"       iplval.i = -1; return F_NUM; 
-"<"{UINT}  iplval.i = atoi (iptext + 1); return Z_NUM; 
-"<*"       iplval.i = -1; return Z_NUM; 
-"%"{UINT}  iplval.i = atoi (iptext + 1); return PH_NUM; 
-"%*"       iplval.i = -1; return PH_NUM; 
-"$"[[:alpha:]]  iplval.c = *(iptext + 1); return G_TYPE; 
-"^"[[:alpha:]]  iplval.c = *(iptext + 1); return F_TYPE; 
-"<"[[:alpha:]]  iplval.c = *(iptext + 1); return Z_TYPE; 
-"%"[[:alpha:]]  iplval.c = *(iptext + 1); return PH_TYPE; 
 '[^']+'    { /* 'filename' */
            strncpy (str_tb, iptext + 1, 256);
            iplval.s.c = str_tb; 
 	   iplval.s.l = ipleng - 2;
 	   return FILENAME;
 	   }
-<FILE_COND,D_LOAD_COND>[[:alpha:]./\\_][[:alnum:]./\\_-]{2,255} { /* filename */
+<FILE_COND>[[:alpha:]./\\_][[:alnum:]./\\_-]{2,255} { /* filename */
            strncpy (str_tb, iptext, 256);
            iplval.s.c = str_tb; 
 	   iplval.s.l = ipleng;
 	   return FILENAME;
 	   }
-
-<D_TRANS_COND>[^\n;#]+ {
-	strncpy (str_tb, iptext, 1024);
-	iplval.s.c = str_tb; 
-	iplval.s.l = ipleng;
-	return DT_STRING;
-}
 
 <SET_COND>[[:alpha:]_-]+  {
 		strncpy (str_tb, iptext, 256);

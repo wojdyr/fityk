@@ -38,24 +38,19 @@ protected:
     fp wssr_before;
     std::vector<fp> a_orig;
     int na; //number of fitted parameters
-    int nf; //number of frozen parameters
     std::map<char, std::string> Distrib_enum;
 
     virtual fp init() = 0; // called before autoiter()
     virtual int autoiter () = 0;
     bool common_termination_criteria(int iter);
-    fp compute_wssr (const std::vector<fp>& A = fp_v0, bool weigthed = true);
-    void compute_derivatives(const std::vector<fp>& A, 
+    fp compute_wssr (std::vector<fp> const &A = fp_v0, bool weigthed = true);
+    void compute_derivatives(std::vector<fp> const &A, 
                              std::vector<fp>& alpha, std::vector<fp>& beta);
     bool post_fit (const std::vector<fp>& aa, fp chi2);
     fp draw_a_from_distribution (int nr, char distribution = 'u', fp mult = 1.);
-    void iteration_plot (const std::vector<fp>& a);
+    void iteration_plot (std::vector<fp> const &a);
 private:
-    std::vector<fp> fitted2all (const std::vector<fp>& A);
-    int fitted2all (int nr);
-    std::vector<fp> all2fitted (const std::vector<fp>& A);
-    void compute_derivatives_for(const Data* data, const Sum *sum,
-                                 const std::vector<fp>& A, 
+    void compute_derivatives_for(Data const *data, Sum const *sum,
                                  std::vector<fp>& alpha, std::vector<fp>& beta);
 };
 
