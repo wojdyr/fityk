@@ -30,7 +30,7 @@
 #include "sum.h"
 #include "ffunc.h"
 #include "gfunc.h"
-#include "v_fit.h"
+#include "fit.h"
 #include "ui.h"
 //#include "datatrans.h" 
 // for faster compilation - don't include datatrans.h
@@ -1191,7 +1191,7 @@ void SumHistoryDlg::OnComputeWssrButton (wxCommandEvent& WXUNUSED(event))
     for (int i = 0; i != my_sum->pars()->history_size(); ++i) {
         const HistoryItem& item = my_sum->pars()->history_item(i);
         my_sum->use_param_a_for_value (item.a);
-        fp wssr = v_fit::compute_wssr_for_data (my_data, my_sum, true);
+        fp wssr = Fit::compute_wssr_for_data (my_data, my_sum, true);
         lc->SetItem (i, 3, S(wssr).c_str());
     }
     lc->SetColumnWidth(3, wxLIST_AUTOSIZE);

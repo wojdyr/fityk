@@ -14,7 +14,7 @@
 using namespace std;
 
 NMfit::NMfit ()
-    :v_fit ('s', "Nelder-Mead simplex"), 
+    :Fit ('s', "Nelder-Mead simplex"), 
      min_rel_diff(0.0001), move_all(false), distrib_type('b'), move_mult(1.)
 {
     default_max_iterations = 500;
@@ -77,7 +77,7 @@ void NMfit::find_best_worst()
 
 int NMfit::autoiter ()
 {
-    wssr_before = compute_wssr ();
+    wssr_before = compute_wssr(a_orig);
     info ("WSSR before starting simplex fit: " + S(wssr_before));
     for (int iter = 0; !termination_criteria (iter); iter ++) {
         iteration_plot(best->a);

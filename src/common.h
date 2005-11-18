@@ -76,10 +76,10 @@ inline std::string S(T k) {
 }
 
 inline std::string S(bool b) { return b ? "true" : "false"; }
-inline std::string S(const char *k) { return std::string(k); }
+inline std::string S(char const *k) { return std::string(k); }
 inline std::string S(char *k) { return std::string(k); }
-inline std::string S(const char k) { return std::string(1, k); }
-inline std::string S(const std::string &k) { return k; }
+inline std::string S(char const k) { return std::string(1, k); }
+inline std::string S(std::string const &k) { return k; }
 inline std::string S() { return std::string(); }
 
 
@@ -87,8 +87,11 @@ inline std::string S() { return std::string(); }
 bool is_double (std::string s);
 
 /// replace all occurences of old in string s with new_
-void replace_all(std::string &s, const std::string &old, 
-                                 const std::string &new_);
+void replace_all(std::string &s, std::string const &old, 
+                                 std::string const &new_);
+
+void replace_words(std::string &t, std::string const &old_word, 
+                                   std::string const &new_word);
 
 /// splits string into tokens, separated by one-character delimitors
 template<typename T>
@@ -97,7 +100,7 @@ std::vector<std::string> split_string(std::string const &s, T delim) {
     unsigned int start_pos = 0, pos=0;
     while (pos != std::string::npos) {
         pos = s.find_first_of(delim, start_pos);
-        v.push_back(std::string(s, start_pos, pos));
+        v.push_back(std::string(s, start_pos, pos-start_pos));
         start_pos = pos+1;
     }
     return v;
@@ -105,14 +108,14 @@ std::vector<std::string> split_string(std::string const &s, T delim) {
 
 /// similar to Python string.strip() method
 inline std::string strip_string(std::string const &s) {
-    const char *blank = " \r\n\t";
-    return std::string(s, s.find_first_not_of(blank),s.find_last_not_of(blank));
+    char const *blank = " \r\n\t";
+    std::string::size_type first = s.find_first_not_of(blank);
+    if (first == std::string::npos)
+        return std::string();
+    return std::string(s, first, s.find_last_not_of(blank)-first+1);
 }
 
 //---------------------------  V E C T O R  --------------------------------
-
-extern const std::vector<fp> fp_v0; //empty vector
-extern const std::vector<int> int_v0; //empty vector
 
 /// Makes 1-element vector
 template <typename T>

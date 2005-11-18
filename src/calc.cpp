@@ -717,6 +717,8 @@ fp get_constant_value(string const &s)
         return strtod(s.c_str(), 0);
 }
 
+/// returns array of trees, 
+/// first n=vars.size() derivatives and the last tree for value
 vector<OpTree*> calculate_deriv(const_iter_t const &i,
                                 vector<string> const &vars)
 {
@@ -731,10 +733,6 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
             results[k] = new OpTree(0.); 
         double v = get_constant_value(s);
         results[len] = new OpTree(v);
-    }
-
-    else if (i->value.id() == FuncGrammar::datatrans_constID)
-    {
     }
 
     else if (i->value.id() == FuncGrammar::variableID)
@@ -878,6 +876,7 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
 
     return results;
 }
+
 
 ////////////////////////////////////////////////////////////////////////////
 

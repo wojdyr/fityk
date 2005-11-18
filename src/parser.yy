@@ -9,7 +9,7 @@
 #include <vector>
 #include <utility>
 #include "common.h"
-#include "v_fit.h"
+#include "fit.h"
 #include "sum.h"
 #include "data.h"
 #include "ui.h"
@@ -62,7 +62,6 @@ void replot()
 }
 
 %token <c> SET
-%token D_EXPORT
 %token F_RUN F_CONTINUE F_METHOD F_INFO 
 %token O_PLOT O_LOG O_INCLUDE O_WAIT O_DUMP
 %token M_FINDPEAK
@@ -100,8 +99,6 @@ exp:  SET DASH_STRING EQ_STRING SEP {
       }
     | SET DASH_STRING SEP          { set_class_p($1)->getp ($2.str()); }
     | SET SEP                      { mesg (set_class_p($1)->print_usage($1)); }
-    | D_EXPORT FILENAME opt_plus SEP 
-                                   { my_data->export_to_file($2.str(), $3); }
     | F_RUN UINt SEP               { my_fit->fit(true, $2); }
     | F_RUN SEP                    { my_fit->fit(true, -1); }
     | F_CONTINUE UINt SEP          { my_fit->fit(false, $2); }

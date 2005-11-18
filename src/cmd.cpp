@@ -6,6 +6,7 @@
 #include "data.h"
 #include "datatrans.h"
 #include "var.h"
+#include "sum.h"
 #include "func.h"
 #include "logic.h"
 #include <boost/spirit/core.hpp>
@@ -38,9 +39,17 @@ void do_assign_func(char const*, char const*)
    AL->assign_func(string(t,1), t2, vt);
 }
 
-void do_change_func_param(char const* a, char const* b)
+void do_subst_func_param(char const* a, char const* b)
 {
     AL->substitute_func_param(string(t,1), t2, string(a,b));
+}
+
+void do_put_function(char const* a, char const* b)
+{
+    string s(a,b);
+    for (vector<string>::const_iterator i = vt.begin(); i != vt.end(); ++i)
+        if (s.size() == 1)
+            AL->get_active_ds()->get_sum()->add_function_to(string(*i,1), s[0]);
 }
 
 void do_delete(char const*, char const*) 
@@ -67,8 +76,16 @@ void do_print(char const* a, char const* b)
     }
     else if (s[0] == '$') {
         const Variable* v = AL->find_variable(string(s, 1));
-        m = v ? v->get_info(AL->get_parameters(), extended_print) 
-              : "Undefined variable: " + s;
+        if (v) {
+            m = v->get_info(AL->get_parameters(), extended_print);
+            if (extended_print) {
+                vector<string> refs = AL->get_variable_references(string(s, 1));
+                if (!refs.empty())
+                    m += "\nreferenced by: " + join_vector(refs, ", ");
+            }
+        }
+        else 
+            m = "Undefined variable: " + s;
     }
     if (s == "functions") {
         m = "Defined functions: ";
@@ -85,12 +102,38 @@ void do_print(char const* a, char const* b)
               : "Undefined function: " + s;
     }
     else if (s[0] == '@') {
-        int k = (s[1]=='.' ? AL->get_active_ds_position() : atoi(s.c_str()+1));
-        if (k >= 0 && k < AL->get_ds_count())
-            m = AL->get_ds(k)->get_data()->getInfo();
-        else
-            m = "There is no dataset: " + s;
+        m = AL->get_data(tmp_int)->getInfo();
     }
+    else if (s == "view") {
+        m = AL->view.str();
+    }
+    else if (s == "F") {
+        m = "F: "; 
+        vector<int> const &idx = AL->get_active_ds()->get_sum()->get_ff_idx();
+        for (vector<int>::const_iterator i = idx.begin(); i != idx.end(); ++i){
+            Function const* f = functions[*i];
+            if (extended_print)
+                m += "\n" + f->get_info(variables, AL->get_parameters());
+            else
+                m += f->xname + " ";
+        }
+    }
+    else if (s == "Z") {
+        m = "Z: "; 
+        vector<int> const &idx = AL->get_active_ds()->get_sum()->get_zz_idx();
+        for (vector<int>::const_iterator i = idx.begin(); i != idx.end(); ++i){
+            Function const* f = functions[*i];
+            if (extended_print)
+                m += "\n" + f->get_info(variables, AL->get_parameters());
+            else
+                m += f->xname + " ";
+        }
+    }
+    else if (s == "sum-formula") {
+        AL->use_parameters();
+        m = AL->get_active_ds()->get_sum()->get_formula(!extended_print);
+    }
+
     mesg(m);
 }
 
@@ -122,8 +165,13 @@ void do_import_dataset(char const*, char const*)
     }
     else {
         //TODO columns, type
-        AL->get_active_ds()->get_data()->load_file(t, 0, vector<int>()); 
+        AL->get_data(tmp_int)->load_file(t, 0, vector<int>()); 
     }
+}
+
+void do_export_dataset(char const*, char const*)
+{
+    AL->get_data(tmp_int)->export_to_file(t); 
 }
 
 void do_select_data(char const*, char const*)
@@ -135,7 +183,7 @@ void do_select_data(char const*, char const*)
 
 void do_load_data_sum(char const*, char const*)
 {
-    //TODO
+    //TODO do_load_data_sum
 }
 
 } //namespace
@@ -155,8 +203,8 @@ struct CmdGrammar : public grammar<CmdGrammar>
         static const bool true_ = true;
         static const bool false_ = false;
         static const int new_dataset = -1;
-
         transform 
+            //TODO data tranform with "in @3" or "in @3, @4
             = "title">>ch_p('=') >> lexeme_d['"' >> (+~ch_p('"'))[assign_a(t)] 
                                              >> '"']  [&set_data_title]
             | no_actions_d[DataTransformG][&do_transform] 
@@ -185,7 +233,13 @@ struct CmdGrammar : public grammar<CmdGrammar>
             = FunctionLhsG [assign_a(t)]
               >> "[" >> (+(alnum_p | '_')) [assign_a(t2)]
               >> "]" >> "="
-              >> no_actions_d[VariableRhsG][&do_change_func_param]
+              >> no_actions_d[VariableRhsG][&do_subst_func_param]
+            ;
+
+        put_function
+            = FunctionLhsG[clear_a(vt)] [push_back_a(vt)] 
+              >> *("," >> FunctionLhsG [push_back_a(vt)])
+              >> "->" >> (str_p("F")|"Z"|"N")[&do_put_function]
             ;
 
         filename_str
@@ -194,11 +248,17 @@ struct CmdGrammar : public grammar<CmdGrammar>
                       | (+~space_p) [assign_a(t)]
             ;
 
-        dataset_nr
+        existing_dataset_nr
             = lexeme_d['@' >> (uint_p [assign_a(tmp_int)]
-                              | ch_p('*') [assign_a(tmp_int, new_dataset)]
+                              | ch_p('.') [assign_a(tmp_int, 
+                                                 AL->get_active_ds_position())]
                               )
                       ]
+            ;
+
+        dataset_nr
+            = existing_dataset_nr
+            | str_p("@*") [assign_a(tmp_int, new_dataset)]
             ;
 
         dataset_sum
@@ -207,13 +267,14 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         dataset_handling
-            = (dataset_nr >> '<' >> filename_str)[&do_import_dataset]
+            = (dataset_nr >> '<' >> filename_str) [&do_import_dataset]
                                                              [&do_select_data]
-            | (filename_str >> '>' >> dataset_nr)[&do_import_dataset]
-            | (dataset_nr >> '<' >> dataset_sum)[&do_load_data_sum]
+            | (filename_str >> '>' >> dataset_nr) [&do_import_dataset]
+            | (dataset_nr >> '<' >> dataset_sum) [&do_load_data_sum]
                                                              [&do_select_data]
-            | (dataset_sum >> '>' >> dataset_nr)[&do_load_data_sum] 
+            | (dataset_sum >> '>' >> dataset_nr) [&do_load_data_sum] 
             | dataset_nr[&do_select_data]
+            | (dataset_nr >> '>' >> filename_str) [&do_export_dataset]
             ;
 
         print_arg
@@ -222,19 +283,23 @@ struct CmdGrammar : public grammar<CmdGrammar>
             | str_p("functions")[&do_print]
             | (FunctionLhsG[assign_a(t)] 
                >> "(" 
-               >> (+~ch_p(')'))[assign_a(t2)]
-               //TODO
-               //>> no_actions_d[DataTransformG.use_parser<1>()][assign_a(t2)]
+               >> no_actions_d[DataExpressionG][assign_a(t2)]
                >> ")")[&do_print_func_value]
             | FunctionLhsG[&do_print]
-            | lexeme_d['@' >> (uint_p | '.')][&do_print]
+            | existing_dataset_nr[&do_print]
+            | str_p("view")[&do_print]
+            | (str_p("F")|"Z")[&do_print]
+            //TODO F(3.2), Z(2.1)
+            | str_p("sum-formula")[&do_print]
+            // gnuplot formula... 
             ;
 
         statement 
-            = transform % ','
-            | assign_var % ','
-            | assign_func % ','
-            | subst_func_param % ','
+            = transform 
+            | assign_var 
+            | assign_func 
+            | subst_func_param 
+            | put_function
             | (str_p("delete")[clear_a(vt)][clear_a(vn)] 
                 >> ( VariableLhsG [push_back_a(vt)]
                    | FunctionLhsG [push_back_a(vt)]
@@ -252,8 +317,9 @@ struct CmdGrammar : public grammar<CmdGrammar>
     }
 
     rule<ScannerT> transform, assign_var, function_name, assign_func, 
-                   subst_func_param, dataset_handling, filename_str,
-                   dataset_nr, dataset_sum,
+                   subst_func_param, put_function, 
+                   dataset_handling, filename_str,
+                   existing_dataset_nr, dataset_nr, dataset_sum,
                    print_arg, statement, multi;  
 
     rule<ScannerT> const& start() const { return multi; }

@@ -104,7 +104,6 @@ string Variable::get_info(vector<fp> const &parameters,
             s += "\nd(" + xname + ")/d($" + varnames[i] + "): " 
                     + op_trees[i]->str(&varnames) + " == " + S(derivatives[i]);
     }
-    //TODO used by:...
     return s;
 } 
 
@@ -291,6 +290,8 @@ Variable *VariableManager::create_variable(string const &name,string const &rhs)
         return create_simple_variable(name, root_str);
     }
     vector<string> vars = find_tokens(VariableRhsGrammar::variableID, info);
+    if (find(vars.begin(), vars.end(), "x") != vars.end())
+        throw ExecuteError("variable can't depend on x.");
     vector<OpTree*> op_trees = calculate_deriv(root, vars);
     // ~14.3 -> $var4
     for (vector<string>::iterator i = vars.begin(); i != vars.end(); ++i) {
@@ -328,6 +329,21 @@ bool VariableManager::is_variable_referred(int i,
     return false;
 }
 
+vector<string> VariableManager::get_variable_references(string const &name)
+{
+    int idx = find_variable_nr(name);
+    vector<string> refs;
+    for (vector<Variable*>::const_iterator i = variables.begin(); 
+            i != variables.end(); ++i)
+        if ((*i)->is_directly_dependent_on(idx)) 
+            refs.push_back((*i)->xname);
+    for (vector<Function*>::const_iterator i = functions.begin(); 
+            i != functions.end(); ++i)
+        if ((*i)->is_directly_dependent_on(idx)) 
+            refs.push_back((*i)->xname);
+    return refs;
+}
+
 void VariableManager::remove_unreferred() 
 {
     // remove auto-delete marked variables, which are not referred by others
@@ -346,7 +362,7 @@ void VariableManager::remove_unreferred()
             i != functions.end(); ++i)
         (*i)->set_var_idx(variables);
     // remove unreffered parameters
-    for (int i = size(parameters)-1; i >= 0; ++i) {
+    for (int i = size(parameters)-1; i >= 0; --i) {
         bool del=true;
         for (int j = 0; j < size(variables); ++j)
             if (variables[j]->get_nr() == i) {
@@ -467,11 +483,21 @@ int VariableManager::find_variable_nr(string const &name) {
     return -1;
 }
 
-const Variable* VariableManager::find_variable(string const &name) {
+Variable const* VariableManager::find_variable(string const &name) {
     int n = find_variable_nr(name);
     return n == -1 ? 0 : variables[n];
 }
 
+Variable const* VariableManager::find_variable_handling_param(int p)
+{
+    assert(p >= 0 && p < size(parameters));
+    for (vector<Variable*>::const_iterator i = variables.begin(); 
+            i != variables.end(); ++i)
+        if ((*i)->get_nr() == p)
+            return *i;
+    assert(0);
+    return 0;
+}
 
 int VariableManager::get_variable_value(string const &name) {
     for (int i = 0; i < size(variables); ++i)
@@ -557,7 +583,7 @@ void VariableManager::substitute_func_param(string const &name,
 fp VariableManager::variation_of_a (int n, fp variat) const
 {
     assert (0 <= n && n < size(get_parameters()));
-    //TODO
+    //TODO domain
 #if 0
     const Domain& dom = get_domain(n);
     fp ctr = dom.is_ctr_set() ? dom.Ctr() : parameters[n];
@@ -586,6 +612,7 @@ VariableRhsGrammar::definition<ScannerT>::definition(
                 |  leaf_node_d[lexeme_d['~' >> real_p]]
                 //|  leaf_node_d["~{" >> no_actions_d[DataTransformG] >> '}']
                 |  leaf_node_d["~{" >> +~ch_p('}') >> '}']
+                | leaf_node_d[str_p("x")] //only in functions
                 ;
 
     exptoken    =  real_const
@@ -616,6 +643,21 @@ VariableRhsGrammar::definition<ScannerT>::definition(
 
 // explicit template instantiation -- to accelerate compilation 
 template VariableRhsGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(VariableRhsGrammar const&);
+
+
+/// small but slow utility function 
+/// uses calculate_deriv() to simplify formulea
+std::string simplify_formula(std::string const &formula)
+{
+    tree_parse_info<> info = ast_parse(formula.c_str(), VariableRhsG, space_p);
+    assert(info.full);
+    const_tm_iter_t const &root = info.trees.begin();
+    vector<string> vars(1, "x");
+    vector<OpTree*> results = calculate_deriv(root, vars);
+    string simplified = results.back()->str(&vars);
+    purge_all_elements(results);
+    return simplified;
+}
 
 
 VariableRhsGrammar VariableRhsG;

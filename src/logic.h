@@ -105,8 +105,12 @@ class ApplicationLogic : public VariableManager
 {
 public:
     View view;
+    /// used for randomly drawing parameter values, in fitting methods like GA
+    fp default_relative_domain_width;
 
-    ApplicationLogic() : c_was_changed(false) { reset_all(); }
+    ApplicationLogic() :default_relative_domain_width(0.1), c_was_changed(false)
+                        { reset_all(); }
+
     ~ApplicationLogic() { reset_all(true); }
     void reset_all (bool finish=false); 
     void dump_all_as_script (std::string const &filename);
@@ -123,6 +127,7 @@ public:
     const DataWithSum *get_ds(int n) const { return dsds[n]; } 
     int get_active_ds_position() const { return active_ds; }
     const DataWithSum *get_active_ds() const { return get_ds(active_ds); }
+    Data *get_data(int n);
     bool was_changed() const; 
     void was_plotted();
 

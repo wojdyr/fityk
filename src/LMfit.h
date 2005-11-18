@@ -7,13 +7,13 @@
 #include <vector>
 #include <map>
 #include <string>
-#include "v_fit.h"
+#include "fit.h"
 
 /*     this class contains Levenberg-Marquardt method
  */
 
 
-class LMfit : public v_fit
+class LMfit : public Fit
 {
 public:
     LMfit ();

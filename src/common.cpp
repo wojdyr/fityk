@@ -11,8 +11,6 @@ using namespace std;
 
 int smooth_limit = 0; //TODO use it in GUI version
 volatile bool user_interrupt = false;
-const vector<fp> fp_v0; //just empty vector
-const vector<int> int_v0; //just empty vector
 
 const fp INF = 1e99; //almost ininity. floating points limits are about:
                      // double: 10^+308, float: 10^+38, long double: 10^+4932
@@ -29,13 +27,13 @@ vector<int> range_vector (int l, int u)
 
 std::string time_now ()
 {
-    const time_t t = time(0);
+    time_t const t = time(0);
     return ctime (&t);
 }
 
 bool is_double (string s) {
     if (s.empty()) return false;
-    const char *c = s.c_str();
+    char const *c = s.c_str();
     char *endptr;
     strtod(c, &endptr);
     while (isspace(*endptr))
@@ -43,10 +41,27 @@ bool is_double (string s) {
     return (*endptr == 0); 
 }
 
-void replace_all(string &s, const string &old, const string &new_)
+void replace_all(string &s, string const &old, string const &new_)
 {
     string::size_type pos = 0; 
     while ((pos = s.find(old, pos)) != string::npos) 
         s.replace(pos, old.size(), new_);
+}
+
+/// replaces all words `old_word' in text `str' with `new_word'
+///  word `foo' is in: "4*foo+1" but not in "foobar" nor in "_foo"
+void replace_words(string &t, string const &old_word, string const &new_word)
+{
+    string::size_type pos = 0;
+    while ((pos=t.find(old_word, pos)) != string::npos) {
+        int k = old_word.size();
+        if ((pos == 0 || !(isalnum(t[pos-1]) || t[pos-1]=='_'))
+                && (pos+k==t.size() || !(isalnum(t[pos+k]) || t[pos+k]=='_'))) {
+            t.replace(pos, k, new_word);
+            pos += new_word.size();
+        }
+        else
+            pos++;
+    }
 }
 

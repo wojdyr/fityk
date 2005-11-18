@@ -12,7 +12,7 @@ class GnuPlot
 public:
     GnuPlot();
     ~GnuPlot();
-    int plot (const std::vector<fp>& workingA);
+    int plot();
     void raw_command(char *command);// no syntax checking
     static char path_to_gnuplot[] ; 
 

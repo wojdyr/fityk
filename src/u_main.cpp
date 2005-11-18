@@ -39,10 +39,10 @@ void UserInterface::showMessage (OutputStyle style, const string& s)
     cout << s << endl;
 }
 
-void UserInterface::doDrawPlot (bool /*now*/, const vector<fp>& a)
+void UserInterface::doDrawPlot (bool /*now*/)
 {
     static GnuPlot my_gnuplot;
-    my_gnuplot.plot (a);
+    my_gnuplot.plot();
 }
 
 void UserInterface::wait (float seconds) 

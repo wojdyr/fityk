@@ -8,7 +8,7 @@
 #include "data.h"
 #include "sum.h"
 #include "ui.h"
-#include "v_fit.h"
+#include "fit.h"
 #include "manipul.h"
 
 using namespace std;
@@ -68,7 +68,7 @@ void ApplicationLogic::dump_all_as_script(string const &filename)
     }
     os << fityk_version_line << endl;
     os << "####### Dump time: " << time_now() << endl << endl;
-    //TODO
+    //TODO dump_all_as_script
 #if 0
     params->export_as_script(os);
     os << endl;
@@ -111,19 +111,25 @@ void PlotCore::export_as_script(std::ostream& os) const
 
 bool ApplicationLogic::was_changed() const
 { 
-    //TODO
+    //TODO was_changed/was_changed
     return c_was_changed ;//|| params->was_changed() 
            //|| get_active_core()->was_changed();
 }
 
 void ApplicationLogic::was_plotted() 
 { 
-    //TODO
+    //TODO was_changed/was_changed
     c_was_changed = false;
     //params->was_plotted();
     //cores[active_core]->was_plotted();
 }
 
+Data *ApplicationLogic::get_data(int n)
+{
+    if (n < 0 || n >= get_ds_count())
+        throw ExecuteError("There is no dataset @" + n);
+    return get_ds(n)->get_data();
+}
 
 //==================================================================
 

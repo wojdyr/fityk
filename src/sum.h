@@ -37,17 +37,18 @@ public:
                                     std::vector<fp>& dy_da) const;
     fp approx_max(fp x_min, fp x_max);
     std::string general_info() const;
-    std::string get_sum_formula() const;
+    std::string get_formula(bool simplify=false) const;
     void export_to_file (std::string filename, bool append, char filetype);
     void export_as_script (std::ostream& os) const;
-    fp get_def_rel_domain_width() const { return def_rel_domain_width; }
     std::vector<fp> get_numeric_derivatives(fp x, fp numerical_h) const;
     fp zero_shift (fp x) const;
     std::vector<int> const& get_ff_idx() { return ff_idx; }
+    std::vector<int> const& get_zz_idx() { return zz_idx; }
+    //std::vector<std::string> const &get_ff_names() { return ff_names; }
+    //std::vector<std::string> const &get_zz_names() { return zz_names; }
 
 private:
     fp cut_level;
-    fp def_rel_domain_width; 
     VariableManager &mgr;
     std::vector<std::string> ff_names;
     std::vector<std::string> zz_names;

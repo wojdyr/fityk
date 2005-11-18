@@ -17,6 +17,8 @@ class Variable;
 class Function;
 class Sum;
 
+std::string simplify_formula(std::string const &formula);
+
 class VariableUser
 {
 public:
@@ -103,6 +105,7 @@ public:
     ///returns -1 if not found or idx in variables if found
     int find_variable_nr(std::string const &name);
     Variable const* find_variable(std::string const &name);
+    Variable const* find_variable_handling_param(int p);
 
     /// search for "simple" variable which handles parameter par
     /// returns -1 if not found or idx in variables if found
@@ -139,6 +142,7 @@ public:
     void put_new_parameters(std::vector<fp> const &aa, std::string const&method,
                             bool change=true);
     fp variation_of_a(int n, fp variat) const;
+    std::vector<std::string> get_variable_references(std::string const &name);
 
 protected:
     std::vector<Sum*> sums;
@@ -155,7 +159,7 @@ protected:
     int get_variable_value(std::string const &name);
     bool is_variable_referred(int i, 
                               std::vector<std::string> const &ignore_vars
-                                                 =std::vector<std::string>(0),
+                                                 =std::vector<std::string>(),
                               std::string *first_referrer=0);
 };
 

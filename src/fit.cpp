@@ -2,7 +2,7 @@
 // $Id$
 
 #include "common.h"
-#include "v_fit.h"
+#include "fit.h"
 #include <algorithm>
 #include <sstream>
 #include <time.h>
@@ -17,10 +17,10 @@
 
 using namespace std;
 
-v_fit *my_fit;
+Fit *my_fit;
 FitMethodsContainer *fitMethodsContainer;
 
-v_fit::v_fit (char symb, string m)  
+Fit::Fit (char symb, string m)  
     : symbol(symb), method(m), 
       default_max_iterations(50), output_one_of(1), random_seed(-1),
       max_evaluations(0), evaluations(0), iter_nr (0), na(0)
@@ -35,40 +35,40 @@ v_fit::v_fit (char symb, string m)
     Distrib_enum ['b'] = "bound";
 }
 
-string v_fit::getInfo(int mode)
+string Fit::getInfo(int mode)
 {
-    const int na = AL->get_parameters().size(); //TODO
+    AL->use_parameters();
+    vector<fp> const &pp = AL->get_parameters();
+    const int n = pp.size(); 
     //n_m = number of points - degrees of freedom (parameters)
-    int n_m = -na;
+    int n_m = -n;
     for (int i = 0; i < 1; i++)  //TODO
         n_m += AL->get_active_ds()->get_data()->get_n(); 
-
-    string s = "Current WSSR = " + S(compute_wssr()) 
+    string s = "Current WSSR = " + S(compute_wssr(pp)) 
                 + " (expected: " + S(n_m) + "); SSR = " 
-                + S(compute_wssr(fp_v0, false));
+                + S(compute_wssr(pp, false));
     if (mode == 1 || mode == 2) {
-        vector<fp> alpha(na*na), beta(na);
-        a_orig = AL->get_parameters();
-        compute_derivatives(a_orig, alpha, beta);
-        reverse_matrix (alpha, na);
+        vector<fp> alpha(n*n), beta(n);
+        compute_derivatives(pp, alpha, beta);
+        reverse_matrix (alpha, n);
         for (vector<fp>::iterator i = alpha.begin(); i != alpha.end(); i++)
             (*i) *= 2;//FIXME: is it right? (S.Brandt, Analiza danych (10.17.4))
         if (mode == 1) {
             s += "\nSymetric errors: ";
-            for (int i = 0; i < na; i++) {
-                //TODO
-                s += " par. " + S(i) + "=" + S(a_orig[i]) + "+-" 
-                    + S(sqrt(alpha[i * na + i]));
+            for (int i = 0; i < n; i++) {
+                fp val = pp[i];
+                s += AL->find_variable_handling_param(i)->xname 
+                    + "=" + S(val) + "+-" + S(sqrt(alpha[i * n + i]));
             }
         }
         else if (mode == 2)
-            s += "\n" + print_matrix(alpha /*reversed*/, na, na, 
+            s += "\n" + print_matrix(alpha /*reversed*/, n, n, 
                                      "(co)variance matrix");
     }
     return s;
 }
 
-fp v_fit::compute_wssr(vector<fp> const &A, bool weigthed)
+fp Fit::compute_wssr(vector<fp> const &A, bool weigthed)
 {
     //TODO fitting multiple plots
     evaluations++;
@@ -81,7 +81,7 @@ fp v_fit::compute_wssr(vector<fp> const &A, bool weigthed)
     return wssr;
 }
 
-fp v_fit::compute_wssr_for_data(Data const *data, Sum const *sum, bool weigthed)
+fp Fit::compute_wssr_for_data(Data const *data, Sum const *sum, bool weigthed)
 {
     int n = data->get_n();
     vector<fp> xx(n);
@@ -100,7 +100,7 @@ fp v_fit::compute_wssr_for_data(Data const *data, Sum const *sum, bool weigthed)
 }
 
 //results in alpha and beta 
-void v_fit::compute_derivatives(vector<fp> const &A, 
+void Fit::compute_derivatives(vector<fp> const &A, 
                                 vector<fp>& alpha, vector<fp>& beta)
 {
     assert (size(A) == na && size(alpha) == na * na && size(beta) == na);
@@ -122,7 +122,7 @@ void v_fit::compute_derivatives(vector<fp> const &A,
 
 //results in alpha and beta 
 //it computes only half of alpha matrix
-void v_fit::compute_derivatives_for(Data const* data, Sum const* sum,
+void Fit::compute_derivatives_for(Data const* data, Sum const* sum,
                                     vector<fp>& alpha, vector<fp>& beta)
 {
     int n = data->get_n();
@@ -147,7 +147,7 @@ void v_fit::compute_derivatives_for(Data const* data, Sum const* sum,
     }   
 }
 
-string v_fit::print_matrix (const vector<fp>& vec, int m, int n, char *name)
+string Fit::print_matrix (const vector<fp>& vec, int m, int n, char *name)
     //m rows, n columns
 { 
     assert (size(vec) == m * n);
@@ -173,12 +173,12 @@ string v_fit::print_matrix (const vector<fp>& vec, int m, int n, char *name)
     return h.str();
 }
 
-bool v_fit::post_fit (const std::vector<fp>& aa, fp chi2)
+bool Fit::post_fit (const std::vector<fp>& aa, fp chi2)
 {
     bool better = (chi2 < wssr_before);
     string comment = method + (better ? "" : " (worse)");
     AL->put_new_parameters(aa, method, better);
-    if (chi2 < wssr_before) {
+    if (better) {
         info ("Better fit found (WSSR = " + S(chi2) + ", was " + S(wssr_before)
                 + ", " + S((chi2 - wssr_before) / wssr_before * 100) + "%).");
         return true;
@@ -188,12 +188,12 @@ bool v_fit::post_fit (const std::vector<fp>& aa, fp chi2)
             info ("Better fit NOT found (WSSR = " + S(chi2)
                     + ", was " + S(wssr_before) + ").\nParameters NOT changed");
         }
-        iteration_plot(fp_v0); //reverting to old plot
+        iteration_plot(a_orig); //reverting to old plot
         return false;
     }
 }
 
-fp v_fit::draw_a_from_distribution (int nr, char distribution, fp mult)
+fp Fit::draw_a_from_distribution (int nr, char distribution, fp mult)
 {
     assert (nr >= 0 && nr < na);
     fp dv = 0;
@@ -214,7 +214,7 @@ fp v_fit::draw_a_from_distribution (int nr, char distribution, fp mult)
     return AL->variation_of_a(nr, dv * mult);
 }
 
-void v_fit::fit(bool ini, int max_iter)
+void Fit::fit(bool ini, int max_iter)
 {
     if (AL->get_parameters().empty()) 
         throw ExecuteError("there are no fittable parameters.");
@@ -239,7 +239,7 @@ void v_fit::fit(bool ini, int max_iter)
     autoiter();
 }
 
-bool v_fit::common_termination_criteria(int iter)
+bool Fit::common_termination_criteria(int iter)
 {
     bool stop = false;
     if (user_interrupt) {
@@ -258,14 +258,15 @@ bool v_fit::common_termination_criteria(int iter)
     return stop;
 }
 
-void v_fit::iteration_plot (const vector<fp>& a)
+void Fit::iteration_plot(vector<fp> const &A)
 {
-    getUI()->drawPlot(3, true, a);
+    AL->use_external_parameters(A);
+    getUI()->drawPlot(3, true);
 }
 
 FitMethodsContainer::FitMethodsContainer()
 {
-    v_fit *f = new LMfit;
+    Fit *f = new LMfit;
     methods.push_back(f); 
     f = new NMfit;
     methods.push_back(f); 
@@ -276,14 +277,14 @@ FitMethodsContainer::FitMethodsContainer()
 
 FitMethodsContainer::~FitMethodsContainer()
 {
-    for (vector<v_fit*>::iterator i = methods.begin(); i != methods.end(); i++)
+    for (vector<Fit*>::iterator i = methods.begin(); i != methods.end(); i++)
         delete *i;
 }
 
 string FitMethodsContainer::list_available_methods()
 {
     string s = "Available methods: ";
-    for (vector<v_fit*>::iterator i = methods.begin(); i != methods.end(); i++)
+    for (vector<Fit*>::iterator i = methods.begin(); i != methods.end(); i++)
         s += S(i == methods.begin() ? " [" : ",  [") + (*i)->symbol + "] " 
             + (*i)->method;
     return s;
@@ -295,7 +296,7 @@ void FitMethodsContainer::change_method (char c)
         info ("Fitting method already was: " + my_fit->method);
         return;
     }
-    for (vector<v_fit*>::iterator i = methods.begin(); i != methods.end(); i++)
+    for (vector<Fit*>::iterator i = methods.begin(); i != methods.end(); i++)
         if ((*i)->symbol == c) {
             my_fit = *i;
             info ("Fitting method changed to: " + my_fit->method);
@@ -322,7 +323,7 @@ int FitMethodsContainer::current_method_number()
 void FitMethodsContainer::export_methods_settings_as_script(std::ostream& os)
 {
     os << "### Settings of all method\n";
-    for (vector<v_fit*>::iterator i = methods.begin(); i != methods.end(); i++)
+    for (vector<Fit*>::iterator i = methods.begin(); i != methods.end(); i++)
         os << "f.method " << (*i)->symbol << " ### " << (*i)->method
             << endl << (*i)->set_script('f');
 }
@@ -365,7 +366,7 @@ fp rand_cauchy()
 }
 
 
-int v_fit::Jordan(vector<fp>& A, vector<fp>& b, int n) 
+int Fit::Jordan(vector<fp>& A, vector<fp>& b, int n) 
 {
     
     /* This function solves a set of linear algebraic equations using
@@ -436,7 +437,7 @@ int v_fit::Jordan(vector<fp>& A, vector<fp>& b, int n)
     return 0;
 }
 
-int v_fit::reverse_matrix (vector<fp>&A, int n) 
+int Fit::reverse_matrix (vector<fp>&A, int n) 
     //returns A^(-1) in A
 {
     assert (size(A) == n*n);    //it's slow, but there is no need 

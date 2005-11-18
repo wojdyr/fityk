@@ -181,12 +181,12 @@ void UserInterface::execScript (const string& filename,
     }
 }
 
-void UserInterface::drawPlot (int pri, bool now, const std::vector<fp>& a)
+void UserInterface::drawPlot (int pri, bool now)
 {
     if (pri <= auto_plot && (now || AL->was_changed())) {
-            doDrawPlot(now, a);
-            if (a.empty())
-                AL->was_plotted();
+        doDrawPlot(now);
+        //TODO if (a.empty())
+        //    AL->was_plotted();
     }
 }
 

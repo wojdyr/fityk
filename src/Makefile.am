@@ -24,7 +24,7 @@ common_sources = cmd.cpp logic.cpp scanner.cpp parser.cpp common.cpp \
 		 var.cpp func.cpp calc.cpp \
 		 data.cpp datatrans.cpp dotset.cpp  \
 		 ui.cpp GAfit.cpp LMfit.cpp manipul.cpp NMfit.cpp \
-		 sum.cpp v_fit.cpp voigt.cpp fileroutines.cpp \
+		 sum.cpp fit.cpp voigt.cpp fileroutines.cpp \
 		 numfuncs.cpp
 gui_sources = wx_dlg.cpp wx_gui.cpp wx_IO.cpp wx_plot.cpp wx_mplot.cpp \
 	      wx_pane.cpp wx_common.h
@@ -35,7 +35,7 @@ fityk_LDADD = $(common_ldadd) @WX_LIBS_DS@ $(ms_win_res)
 cfityk_LDADD = $(common_ldadd) @READLINE_LIBS@ -lm
 noinst_HEADERS = common.h data.h datatrans.h dotset.h  \
 		 GAfit.h LMfit.h manipul.h NMfit.h logic.h \
-		 sum.h v_fit.h ui.h voigt.h fileroutines.h \
+		 sum.h fit.h ui.h voigt.h fileroutines.h \
 		 u_gnuplot.h wx_dlg.h wx_gui.h wx_plot.h wx_mplot.h wx_pane.h \
 		 numfuncs.h parser.tab.hh cmd.h var.h func.h calc.h
 

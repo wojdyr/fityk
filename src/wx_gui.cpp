@@ -40,7 +40,7 @@
 #include "wx_dlg.h"
 #include "wx_pane.h"
 #include "logic.h"
-#include "v_fit.h"
+#include "fit.h"
 #include "data.h"
 #include "sum.h"
 #include "fzgbase.h" 

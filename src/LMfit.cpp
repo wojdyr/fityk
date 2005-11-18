@@ -11,7 +11,7 @@
 using namespace std;
 
 LMfit::LMfit () 
-    : v_fit ('m', "Levenberg-Marquardt"),
+    : Fit ('m', "Levenberg-Marquardt"),
       lambda_starting_value (0.001),
       lambda_up_factor (10), lambda_down_factor (10),
       stop_rel (1e-4), shake_before (0), shake_type ('u'),
@@ -54,9 +54,9 @@ fp LMfit::init ()
     return chi2;
 }
 
-int LMfit::autoiter () 
+int LMfit::autoiter() 
 {
-    wssr_before = (shake_before > 0. ? compute_wssr() : chi2);
+    wssr_before = (shake_before > 0. ? compute_wssr(a_orig) : chi2);
     fp prev_chi2 = chi2;
     verbose("\t === Levenberg-Marquardt method ===");
     info ("Initial values:  lambda=" + S(lambda) + "  WSSR=" + S(chi2));

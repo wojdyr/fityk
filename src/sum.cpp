@@ -17,12 +17,11 @@
 using namespace std;
 
 Sum::Sum(VariableManager *mgr_) 
-    : replot_needed(true), cut_level(10.), def_rel_domain_width(0.1),
+    : replot_needed(true), cut_level(10.),
       mgr(*mgr_)
 {
     mgr.register_sum(this);
     fpar ["cut-tails-level"] = &cut_level;
-    fpar ["default-relative-domain-width"] = &def_rel_domain_width;
 }
 
 Sum::~Sum()
@@ -276,7 +275,7 @@ void Sum::export_to_file (string filename, bool append, char filetype)
     }
     switch (filetype) {
         case 'f': 
-            os << get_sum_formula() << endl;
+            os << get_formula() << endl;
             break;
         case 'd': 
             export_as_dat(os);
@@ -297,31 +296,22 @@ void Sum::export_to_file (string filename, bool append, char filetype)
 }
 
 
-string Sum::get_sum_formula() const
+string Sum::get_formula(bool simplify) const
 {
-#if 0
-    vector<int> pks (fvec.size());
-    for (unsigned int i = 0; i < pks.size(); i++)
-        pks[i] = i;
-
-    const vector<fp>& workingA = localA.empty() ? parameters->values() : localA;
-    string x = "x";
-    //TODO () around x+a
-    for (vector<V_z*>::const_iterator i = zvec.begin(); i != zvec.end(); i++)
-        x += "+" + (*i)->formula(workingA, gvec);
-    V_f::xstr = x;
-    string yf = "   ";
-    if (!peaks.empty()) 
-        for (unsigned int i = 0; i < peaks.size(); i++) {
-            yf += fvec[peaks[i]]->formula (workingA, gvec);
-            if (i != peaks.size() - 1)
-                yf += "\n + ";
-        }
-    else
-#endif
-        string
-        yf = "0";
-    return yf;
+    if (ff_names.empty())
+        return "0";
+    string shift;
+    for (vector<int>::const_iterator i = zz_idx.begin(); i != zz_idx.end(); i++)
+        shift += "+(" + mgr.get_function(*i)->get_current_formula() + ")";
+    string x = "(x" + shift + ")";
+    string formula;
+    for (vector<int>::const_iterator i = ff_idx.begin(); i != ff_idx.end(); i++)
+        formula += (i==ff_idx.begin() ? "" : "+") 
+                   + mgr.get_function(*i)->get_current_formula(x); 
+    if (simplify) {
+        formula = simplify_formula(formula);
+    }
+    return formula;
 }
 
 

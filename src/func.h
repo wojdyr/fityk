@@ -55,6 +55,7 @@ public:
     std::string get_info(std::vector<Variable*> const &variables, 
                     std::vector<fp> const &parameters, 
                     bool extended=false) const;
+    std::string get_current_formula(std::string const& x = "x") const;
 protected:
     std::vector<std::string> type_var_names;
     std::vector<fp> vv; /// current variable values

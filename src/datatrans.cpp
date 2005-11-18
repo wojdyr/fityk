@@ -274,8 +274,8 @@ struct parameterized_op
 
 //----------------------------  grammar  ----------------------------------
 template <typename ScannerT>
-DataTransformGrammar::definition<ScannerT>::definition(
-                                          DataTransformGrammar const& /*self*/)
+DataExpressionGrammar::definition<ScannerT>::definition(
+                                          DataExpressionGrammar const& /*self*/)
 {
     index 
         =  ch_p('[') >> rprec1 >> ch_p(']')
@@ -434,8 +434,13 @@ DataTransformGrammar::definition<ScannerT>::definition(
                 >> rbool_or
                ) [push_op(OP_AFTER_TERNARY)]
         ;
+}
 
-    //--------
+
+template <typename ScannerT>
+DataTransformGrammar::definition<ScannerT>::definition(
+                                          DataTransformGrammar const& /*self*/)
+{
 
     range
         =  '[' >> 
@@ -468,17 +473,21 @@ DataTransformGrammar::definition<ScannerT>::definition(
 
 
     assignment //not only assignments
-        =  (as_lower_d["x"] >> !range >>'='>> rprec1) [push_op(OP_ASSIGN_X)]
-        |  (as_lower_d["y"] >> !range >>'='>> rprec1) [push_op(OP_ASSIGN_Y)]
-        |  (as_lower_d["s"] >> !range >>'='>> rprec1) [push_op(OP_ASSIGN_S)]
-        |  (as_lower_d["a"] >> !range >>'='>> rprec1) [push_op(OP_ASSIGN_A)]
+        =  (as_lower_d["x"] >> !range >> '=' >> DataExpressionG) 
+                                                     [push_op(OP_ASSIGN_X)]
+        |  (as_lower_d["y"] >> !range >> '=' >> DataExpressionG) 
+                                                     [push_op(OP_ASSIGN_Y)]
+        |  (as_lower_d["s"] >> !range >> '=' >> DataExpressionG) 
+                                                     [push_op(OP_ASSIGN_S)]
+        |  (as_lower_d["a"] >> !range >> '=' >> DataExpressionG) 
+                                                     [push_op(OP_ASSIGN_A)]
         |  ((ch_p('M') >> '=') [push_op(OP_DO_ONCE)]  
-           >> rprec1) [push_op(OP_RESIZE)]  
+           >> DataExpressionG) [push_op(OP_RESIZE)]  
         |  ((as_lower_d["order"] >> '=') [push_op(OP_DO_ONCE)]  
            >> order) [push_op(OP_ORDER)] 
         |  (as_lower_d["delete"] >> eps_p('[') [push_op(OP_DO_ONCE)]  
             >> range) [push_op(OP_DELETE)]
-        |  (as_lower_d["delete"] >> '(' >> rprec1 >> ')') 
+        |  (as_lower_d["delete"] >> '(' >> DataExpressionG >> ')') 
                                                    [push_op(OP_DELETE_COND)]
         ;
 
@@ -487,12 +496,12 @@ DataTransformGrammar::definition<ScannerT>::definition(
                                                              % ch_p('&') 
         ;
 
-    this->start_parsers(statement, rprec1);
 }
 
-// explicit template instantiation -- to accelerate compilation 
-template DataTransformGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(DataTransformGrammar const&);
+// explicit template instantiations -- to accelerate compilation 
+template DataExpressionGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(DataExpressionGrammar const&);
 
+template DataTransformGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(DataTransformGrammar const&);
 
 namespace {
 
@@ -939,8 +948,8 @@ bool execute_code(int n, int &M, vector<double>& stack,
                 DT_DEBUG("Unknown operator in VM code: " + S(*i))
         }
     }
-    assert(stackPtr == stack.begin() - 1 //use_parser<0>
-            || (stackPtr == stack.begin() && once)); //use_parser<1>
+    assert(stackPtr == stack.begin() - 1 //DataTransformGrammar
+            || (stackPtr == stack.begin() && once)); //DataExpressionGrammar
     return return_value;
 }
 
@@ -1091,7 +1100,7 @@ fp get_transform_expression_value(/*vector<Point> const& points,*/
     vector<Point> const& points = my_data->points();
     assert(code.empty());
     // First compile string...
-    parse_info<> result = parse(s.c_str(), DataTransformG.use_parser<1>(), 
+    parse_info<> result = parse(s.c_str(), DataExpressionG, 
                                 space_p);
     // and then execute compiled code.
     if (!result.full) {
@@ -1112,5 +1121,6 @@ fp get_transform_expression_value(/*vector<Point> const& points,*/
     return stack.front();
 }
 
+DataExpressionGrammar DataExpressionG;
 DataTransformGrammar DataTransformG;
 

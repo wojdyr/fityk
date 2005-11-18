@@ -7,6 +7,7 @@
 #include "voigt.h"
 #include "ui.h"
 #include <memory>
+#include <ctype.h>
 #include <boost/spirit/core.hpp>
 
 using namespace std; 
@@ -26,8 +27,9 @@ Function::Function (string const &name_, vector<string> const &vars,
     // but the overhead is negligible
     // the ease of adding new built-in function types is more important
     // is there a better way to do it? (MW)
-    int eq = formula_.find('=');
-    string all_t_names(formula_, formula_.find('(')+1, formula_.rfind(')', eq));
+    int lb = formula_.find('('),
+        rb = formula_.find(')');
+    string all_t_names(formula_, lb+1, rb-lb-1);
     type_var_names = split_string(all_t_names, ',');
     for (vector<string>::iterator i = type_var_names.begin(); 
             i != type_var_names.end(); ++i)
@@ -42,10 +44,6 @@ Function::Function (string const &name_, vector<string> const &vars,
                                      : m->assign_variable("", *i));
     }
     set_var_idx(mgr->get_variables());
-
-    //?? gnuplot_formula =  //^->**, type_var_names->varnames
-    //                        ln->...
-    
 }
 
 Function* Function::factory (string const &name, string const &type_name,
@@ -127,6 +125,14 @@ string Function::get_info(vector<Variable*> const &variables,
     return s;
 } 
 
+string Function::get_current_formula(string const& x) const
+{
+    string t = type_rhs;
+    for (int i = 0; i < size(type_var_names); ++i) 
+        replace_words(t, type_var_names[i], S(vv[i]));
+    replace_words(t, "x", x);
+    return t;
+}
 
 ///////////////////////////////////////////////////////////////////////
 

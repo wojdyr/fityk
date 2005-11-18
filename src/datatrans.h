@@ -23,6 +23,25 @@ fp get_transform_expression_value(/*std::vector<Point> const& points,*/
                                   std::string const &s);
 
 
+struct DataExpressionGrammar : public grammar<DataExpressionGrammar>
+{
+  template <typename ScannerT>
+  struct definition
+  : public grammar_def<rule<ScannerT>, same>
+  {
+    definition(DataExpressionGrammar const& /*self*/);
+
+    rule<ScannerT> rprec1, rprec2, rprec3, rprec4, rprec5, rprec6,  
+                   rbool_or, rbool_and, rbool_not, rbool,
+                   real_constant, real_variable, parameterized_args,
+                   index;
+
+    rule<ScannerT> const& start() const { return rprec1; }
+  };
+};
+
+extern DataExpressionGrammar DataExpressionG;
+
 struct DataTransformGrammar : public grammar<DataTransformGrammar>
 {
   template <typename ScannerT>
@@ -31,12 +50,9 @@ struct DataTransformGrammar : public grammar<DataTransformGrammar>
   {
     definition(DataTransformGrammar const& /*self*/);
 
-    rule<ScannerT> rprec1, rprec2, rprec3, rprec4, rprec5, rprec6,  
-                   rbool_or, rbool_and, rbool_not, rbool,
-                   real_constant, real_variable, parameterized_args,
-                   index, assignment, statement, range, order;
+    rule<ScannerT> assignment, statement, range, order;
 
-    // rule<ScannerT> const& start() const { return statement; }
+    rule<ScannerT> const& start() const { return statement; }
   };
 };
 

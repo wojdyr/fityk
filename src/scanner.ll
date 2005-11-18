@@ -66,7 +66,6 @@ ws_ [ \t\v\f\r]+
                    return SEP;
                  }
 [fsmoc]\.s(et)?   r_cmd(); BEGIN(SET_COND); iplval.c = iptext[0]; return SET;
-d\.e(xport)?       r_cmd(); BEGIN(FILE_COND); return D_EXPORT;
 f\.r(un)?	   r_cmd(); return F_RUN;
 f\.c(ontinue)?	   r_cmd(); return F_CONTINUE;
 f\.m(ethod)?	   r_cmd(); return F_METHOD;

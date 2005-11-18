@@ -5,7 +5,7 @@
 #define GAfit__h__
 #include <vector>
 #include "common.h"
-#include "v_fit.h"
+#include "fit.h"
 
 /*     this class contains genetic algorithm for fitting
  */
@@ -19,7 +19,7 @@ struct Individual
     Individual () : g(), raw_score(0) {}
 };
 
-class GAfit : public v_fit
+class GAfit : public Fit
 {
 public:
     GAfit ();
