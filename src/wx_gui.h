@@ -135,13 +135,6 @@ public:
     void OnFInfo         (wxCommandEvent& event);         
     void OnFSet          (wxCommandEvent& event);        
 
-    void OnCWavelength   (wxCommandEvent& event);               
-    void OnCAdd          (wxCommandEvent& event);        
-    void OnCInfo         (wxCommandEvent& event);         
-    void OnCRemove       (wxCommandEvent& event);           
-    void OnCEstimate     (wxCommandEvent& event);             
-    void OnCSet          (wxCommandEvent& event);        
-
     void OnOLog          (wxCommandEvent& event);        
     void OnOInclude      (wxCommandEvent& event);            
     void OnOReInclude    (wxCommandEvent& event);            
@@ -185,7 +178,7 @@ public:
     void read_all_settings(wxConfigBase *cf);
     void read_settings(wxConfigBase *cf);
     const FToolBar* get_toolbar() const { return toolbar; }
-    const f_names_type& get_peak_type() const;
+    std::string get_peak_type() const;
     void set_status_hint(const char *left, const char *right);
     void output_text(OutputStyle style, const std::string& str);
     void change_zoom(const std::string& s);
@@ -202,7 +195,8 @@ protected:
     ProportionalSplitter *main_pane;
     PlotPane *plot_pane;
     IOPane *io_pane;
-    DataPane *data_pane;
+    //TODO//DataPane *data_pane;
+    wxPanel *data_pane;
     FStatusBar *status_bar;
 
     int peak_type_nr;
@@ -223,7 +217,6 @@ protected:
     void create_io_panel(wxWindow *parent);
     void OnXSet (std::string name, char letter);
     void set_menubar();
-    void not_implemented_menu_item (const std::string &command) const; 
     void read_recent_data_files();
     void write_recent_data_files();
     void add_recent_data_file(wxString filename);
@@ -231,8 +224,6 @@ protected:
 DECLARE_EVENT_TABLE()
 };
 
-void add_peak(fp height, fp ctr, fp hwhm);
-void add_peak_in_range(fp xmin, fp xmax);
 extern FFrame *frame;
 
 #endif //WXGUI__H__

@@ -225,11 +225,7 @@ string FDXLoadDlg::get_command()
         if (std_dev_cb->GetValue())
             cols += S(":") + S(s_column->GetValue());
     }
-    //TODO opt_lcase;
-    string s = "d.load" + cols + " '" + get_filename() + "'";
-    if (append_cb->GetValue())
-        s += " +";
-    return s;
+    return "@ <'" + get_filename() + "'" + cols;
 }
 
 #if 0
@@ -440,12 +436,12 @@ public:
     { 
         string t;
         switch (col) {
-            case 1: t = "x";  break;
-            case 2: t = "y";  break;
-            case 3: t = "s";  break;
+            case 1: t = "X";  break;
+            case 2: t = "Y";  break;
+            case 3: t = "S";  break;
             default: assert(0);
         }
-        exec_command("d.transform " + t + "[" + S(row)+"]=" + S(value));
+        exec_command(t + "[" + S(row)+"]=" + S(value));
         if (col == 1) // order of items can be changed
             ded->grid->ForceRefresh();
         ded->rezoom_btn->Enable();
@@ -454,7 +450,7 @@ public:
     void SetValueAsBool(int row, int col, bool value) 
     { 
         assert(col==0); 
-        exec_command("d.transform a[" + S(row)+"]=" + (value ?"true":"false")); 
+        exec_command("A[" + S(row)+"]=" + (value ?"true":"false")); 
         ded->rezoom_btn->Enable();
     }
 
@@ -751,7 +747,7 @@ void DataEditorDlg::refresh_grid()
 
 void DataEditorDlg::OnRevert (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command(data->get_load_cmd());
+    exec_command("@ <'" + data->get_filename() + "'"); //TODO cols etc.
     refresh_grid();
 }
 
@@ -846,8 +842,8 @@ void DataEditorDlg::OnReZoom (wxCommandEvent& WXUNUSED(event))
 
 void DataEditorDlg::execute_tranform(string code)
 {
-    replace_all(code, "\n", ";   d.transform ");
-    exec_command("d.transform " + code);
+    replace_all(code, "\n", "; ");
+    exec_command(code);
 }
 
 void DataEditorDlg::OnHelp (wxCommandEvent& WXUNUSED(event))
@@ -999,7 +995,7 @@ bool export_data_dlg(wxWindow *parent, bool load_exported)
         string path = fdlg.GetPath().c_str();
         exec_command("d.export '" + path + "'");
         if (load_exported)
-            exec_command("d.load '" + path + "'");
+            exec_command("@ <'" + path + "'");
         return true;
     }
     else

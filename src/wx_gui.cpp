@@ -347,10 +347,10 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
             //if there are multiple data files specified at command line,
             //open each as separate dataset in the same plot
             if (data_counter == 0) {
-                getUI()->execAndLogCmd("d.load '" + par + "'");
+                getUI()->execAndLogCmd("@ <'" + par + "'");
             }
             else {
-                getUI()->execAndLogCmd("d.activate ::* ; d.load '" + par + "'");
+                getUI()->execAndLogCmd("@* <'" + par + "'");
                 frame->SwitchDPane(true);
             }
             data_counter++;
@@ -466,7 +466,8 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     plot_pane = new PlotPane(main_pane);
     io_pane = new IOPane(main_pane);
     main_pane->SplitHorizontally(plot_pane, io_pane);
-    data_pane = new DataPane(v_splitter);
+    data_pane = new wxPanel(v_splitter, -1);
+    //TODO//data_pane = new DataPane(v_splitter);
     data_pane->Show(false);
     v_splitter->Initialize(main_pane);
     sizer->Add(v_splitter, 1, wxEXPAND, 0);
@@ -689,9 +690,10 @@ void FFrame::set_menubar()
     gui_menu_mode->AppendRadioItem (ID_G_M_ADD, "&Peak-Add\tCtrl-K", 
                                     "Use mouse for adding new peaks");
     wxMenu* gui_menu_mode_peak = new wxMenu;
+    //qqqqqqqq //TODO dynamic changing of type list
     vector<string> all_t = Function::get_all_types();
     for (int i = 0; i < size(all_t); i++)
-        gui_menu_mode_peak->AppendRadioItem(ID_G_M_PEAK_N + i, all_t[i]);
+        gui_menu_mode_peak->AppendRadioItem(ID_G_M_PEAK_N+i, all_t[i].c_str());
     gui_menu_mode->AppendSeparator();
     gui_menu_mode->Append (ID_G_M_PEAK, "Peak &type", gui_menu_mode_peak);
     gui_menu_mode->AppendSeparator();
@@ -860,14 +862,6 @@ void FFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
     dlg->Destroy();
 }
 
-void FFrame::not_implemented_menu_item (const std::string &command) const 
-{
-    wxMessageBox (("This menu item is only reminding about command " + command 
-                    + ".\n If you don't know how to use this command,\n"
-                    " look for it in the manual.").c_str(), 
-                  command.c_str(), wxOK|wxICON_INFORMATION);
-}
-
 void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
 {
     static wxString dir = "";
@@ -886,9 +880,10 @@ void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
         int count = paths.GetCount();
         wxString cmd;
         for (int i = 0; i < count; ++i) {
-            if (i > 0)
-                cmd += " ; d.activate ::* ; "; 
-            cmd += "d.load '" + paths[i] + "'";
+            if (i == 0)
+                cmd = "@ <'" + paths[i] + "'";
+            else
+                cmd += " ; @* <'" + paths[i] + "'"; 
             add_recent_data_file(paths[i]);
         }
         exec_command (cmd.c_str());
@@ -910,7 +905,7 @@ void FFrame::OnDXLoad (wxCommandEvent& WXUNUSED(event))
 void FFrame::OnDRecent (wxCommandEvent& event)
 {
     wxString s = GetMenuBar()->GetHelpString(event.GetId());
-    exec_command (("d.load '" + s + "'").c_str());
+    exec_command (("@ <'" + s + "'").c_str());
     add_recent_data_file(s);
 }
 
@@ -958,7 +953,7 @@ void FFrame::OnFastDT (wxCommandEvent& event)
 
 void FFrame::OnDInfo (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command ("d.info");
+    exec_command ("info @");
 }
 
 void FFrame::OnDExport (wxCommandEvent& WXUNUSED(event))
@@ -1069,7 +1064,7 @@ void FFrame::OnFRun          (wxCommandEvent& WXUNUSED(event))
                                  "Max. number of iterations", "Fit->Run", 
                                  my_fit->default_max_iterations, 0, 9999);
     if (r != -1)
-        exec_command (("f.run " + S(r)).c_str());
+        exec_command (("fit " + S(r)).c_str());
 }
         
 void FFrame::OnFContinue     (wxCommandEvent& WXUNUSED(event))
@@ -1078,12 +1073,12 @@ void FFrame::OnFContinue     (wxCommandEvent& WXUNUSED(event))
                                  "Max. number of iterations", "Fit->Continue", 
                                  my_fit->default_max_iterations, 0, 9999);
     if (r != -1)
-        exec_command (("f.continue " + S(r)).c_str());
+        exec_command (("fit +" + S(r)).c_str());
 }
              
 void FFrame::OnFInfo         (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command ("f.info");
+    exec_command ("info fit");
 }
          
 void FFrame::OnFSet          (wxCommandEvent& WXUNUSED(event))
@@ -1092,36 +1087,6 @@ void FFrame::OnFSet          (wxCommandEvent& WXUNUSED(event))
 }
         
 
-void FFrame::OnCWavelength   (wxCommandEvent& WXUNUSED(event))
-{
-    not_implemented_menu_item ("c.wavelength");
-}
-               
-void FFrame::OnCAdd          (wxCommandEvent& WXUNUSED(event))
-{
-    not_implemented_menu_item ("c.add");
-}
-        
-void FFrame::OnCInfo         (wxCommandEvent& WXUNUSED(event))
-{
-    not_implemented_menu_item ("c.info");
-}
-         
-void FFrame::OnCRemove       (wxCommandEvent& WXUNUSED(event))
-{
-    not_implemented_menu_item ("c.remove");
-}
-           
-void FFrame::OnCEstimate     (wxCommandEvent& WXUNUSED(event))
-{
-    not_implemented_menu_item ("c.estimate");
-}
-             
-void FFrame::OnCSet          (wxCommandEvent& WXUNUSED(event))
-{
-    OnXSet ("Crystalography", 'c');
-}
-        
 
 void FFrame::OnOLog          (wxCommandEvent& WXUNUSED(event))
 {
@@ -1560,9 +1525,9 @@ void FFrame::OnPrint(wxCommandEvent& WXUNUSED(event))
                      "printer is not set correctly?", "Printing", wxOK);
 }
 
-const f_names_type& FFrame::get_peak_type() const
+string FFrame::get_peak_type() const
 {
-    return V_f::f_names[peak_type_nr];
+    return Function::get_all_types()[peak_type_nr];
 }
 
 void FFrame::set_status_hint(const char *left, const char *right)
@@ -1597,46 +1562,6 @@ void FFrame::OnIdle(wxIdleEvent &event)
         toolbar->OnIdle(event);
     event.Skip();
 }
-
-
-//=======================================================================
-
-void add_peak(fp height, fp ctr, fp hwhm) 
-{
-    const f_names_type &f = frame->get_peak_type();
-
-    //TODO? function add_peak(f_names_type, map<string,fp>) 
-    my_sum->use_param_a_for_value();
-    fp center = ctr + my_sum->zero_shift(ctr);
-    string cmd = "s.add ^" + S(f.type);
-    vector<fp> ini 
-          = V_f::get_default_peak_parameters(f, vector3(height, center, hwhm));
-    for (int i = 0; i < f.psize; i++) {
-        cmd += " ~" + S(ini[i]);
-        const ParDefault &pd = f.pdefaults[i];
-        if (pd.lower_set || pd.upper_set)  {
-            cmd += " [" + (pd.lower_set ? S(pd.lower) : S()) + ":" 
-                   + (pd.upper_set ? S(pd.upper) : S()) + "]";
-        }
-    }
-    string stat = "Height: " + S(height) + " Ctr: " + S(center) 
-                   + " HWHM: " + S(hwhm);
-//return cmd, stat
-    frame->set_status_text(stat.c_str());
-    exec_command (cmd);
-}
-
-
-void add_peak_in_range(fp xmin, fp xmax) 
-{
-    fp center, height, fwhm;
-    my_sum->use_param_a_for_value();
-    bool r = my_manipul->estimate_peak_parameters ((xmax + xmin)/2, 
-                                                   fabs(xmax - xmin)/2, 
-                                                   &center, &height, 0, &fwhm);
-    if (r) add_peak (height, center, fwhm/2);
-}
-
 
 
 //=====================    set  dialog    ==================
@@ -1820,10 +1745,10 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
              wxITEM_NORMAL, "Show tree", "Show tree of functions");
     AddSeparator();
     peak_choice = new wxChoice(this, ID_ft_peakchoice); 
-    vector<const z_names_type*> all_t = V_fzg::all_types(fType);
-    for (vector<const z_names_type*>::const_iterator i = all_t.begin();
-                                                         i != all_t.end(); i++)
-        peak_choice->Append ((*i)->name.c_str());
+    //qqqqqqqq //TODO dynamic changing of type list
+    vector<string> all_t = Function::get_all_types();
+    for (int i = 0; i < size(all_t); i++)
+        peak_choice->Append(all_t[i].c_str());
     update_peak_type();
     AddControl (peak_choice);
     AddTool (ID_ft_s_aa, "add", wxBitmap(add_peak_xpm), wxNullBitmap, 
@@ -1883,23 +1808,19 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
             frame->plot_pane->get_bg_manager()->strip_background();
             break; 
         case ID_ft_f_run : 
-            exec_command("f.run"); 
+            exec_command("fit"); 
             break; 
         case ID_ft_f_cont: 
-            exec_command("f.continue"); 
+            exec_command("fit +"); 
             break; 
         case ID_ft_f_undo: 
             exec_command("s.history -1"); 
             break; 
         case ID_ft_s_aa: 
-        {
-            fp c, h, f;
-            bool r = my_manipul->estimate_peak_parameters(0.,+INF,&c,&h,0,&f);
-            if (r) 
-                add_peak(h, c, f/2);
+            exec_command("guess " + frame->get_peak_type() + " -> F");
             break; 
-        }
-        default: assert(0);
+        default: 
+            assert(0);
     }
 }
 

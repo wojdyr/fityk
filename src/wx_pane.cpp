@@ -69,7 +69,7 @@ PlotPane::PlotPane(wxWindow *parent, wxWindowID id)
 void PlotPane::zoom_forward()
 {
     const int max_length_of_zoom_history = 10;
-    zoom_hist.push_back(my_core->view.str());
+    zoom_hist.push_back(AL->view.str());
     if (size(zoom_hist) > max_length_of_zoom_history)
         zoom_hist.erase(zoom_hist.begin());
 }
@@ -258,6 +258,7 @@ void IOPane::read_settings(wxConfigBase *cf)
 }
 
 
+#if 0
 //===============================================================
 //                            DataPane
 //===============================================================
@@ -460,7 +461,7 @@ void DataPaneTree::OnKeyDown(wxKeyEvent& event)
     else
         event.Skip();
 }
-
+#endif
 
 //===============================================================
 //                            OutputWin

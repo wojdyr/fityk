@@ -110,8 +110,8 @@ private:
     void show_peak_menu (wxMouseEvent &event);
     void peak_draft (Mouse_act_enum ma, wxMouseEvent &event =dummy_mouse_event);
     void move_peak (Mouse_act_enum ma, wxMouseEvent &event = dummy_mouse_event);
-    void draw_peak_draft (int X_mid, int X_hwhm, int Y, float Shape=0., 
-                                                      const f_names_type *f=0);
+    void draw_peak_draft (int X_mid, int X_hwhm, int Y, float Shape=0./*, 
+                                                  const f_names_type *f=0*/);
     bool rect_zoom (Mouse_act_enum ma, wxMouseEvent &event = dummy_mouse_event);
     void draw_rect (int X1, int Y1, int X2, int Y2);
     bool has_mod_keys(const wxMouseEvent& event); 

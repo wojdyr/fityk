@@ -168,6 +168,7 @@ private:
     DECLARE_EVENT_TABLE()
 };
 
+#if 0
 class DataPane : public wxPanel
 {
 public:
@@ -177,7 +178,7 @@ private:
 
     DECLARE_EVENT_TABLE()
 };
-
+#endif
 
 
 class FPrintout: public wxPrintout

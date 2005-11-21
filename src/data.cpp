@@ -524,25 +524,6 @@ vector<Point>::const_iterator Data::get_point_at(fp x) const
     return lower_bound (p.begin(), p.end(), Point(x));
 }
 
-void Data::export_as_script (ostream& os)
-{
-    if (filename.empty()) {
-        os << "## no data loaded ##";
-        return;
-    }
-    //TODO optionally embed data (?)
-    os << "### data settings exported as script -- begin" << endl;
-    os << get_load_cmd();
-    //TODO transform history  
-    os << "### data settings -- end" << endl;
-}
-
-string Data::get_load_cmd()
-{
-    //TODO explicit filetype, when needed.
-    return "d.load " + join_vector(col_nums, ":") + " '" + filename + "'";
-}
-
 void Data::export_to_file (string filename, bool append) 
 {
     ofstream os(filename.c_str(), ios::out | (append ? ios::app : ios::trunc));

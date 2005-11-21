@@ -21,7 +21,7 @@ Function::Function (string const &name_, vector<string> const &vars,
     : VariableUser(name_, "%"), type_formula(formula_),
       type_name(strip_string(string(formula_,0,formula_.find_first_of("(")+1))),
       type_rhs(strip_string(string(formula_, formula_.find('=')+1))),
-      nv(vars.size()), cutoff_level(0.), vv(vars.size()), mgr(m)
+      nv(vars.size()), cutoff_level(0.), vv(vars.size())
 {
     // parsing formula for every instance of the class is not effective 
     // but the overhead is negligible
@@ -72,7 +72,8 @@ Function* Function::factory (string const &name, string const &type_name,
 vector<string> Function::get_all_types()
 {
     const char* builtin[] = {
-        "Constant", "Gaussian", "Lorentzian", "PearsonVII", "PseudoVoigt",
+        "Constant", "Linear", "Polynomial3", "Polynomial4", "Polynomial5",
+        "Gaussian", "Lorentzian", "PearsonVII", "PseudoVoigt",
         "Voigt"
     };
     vector<string> types;

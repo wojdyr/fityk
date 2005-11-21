@@ -338,11 +338,11 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         plot_range 
-            = '[' >> (real_p|"."|eps_p) [push_back_a(vt)] 
+            = (ch_p('[') >> ']') [push_back_a(vt,empty)][push_back_a(vt,empty)]
+            | '[' >> (real_p|"."|eps_p) [push_back_a(vt)] 
               >> ':' >> (real_p|"."|eps_p) [push_back_a(vt)] 
               >> ']'  
             | str_p(".") [push_back_a(vt,dot)][push_back_a(vt,dot)] // [.:.]
-            | (ch_p('[')>>']') [push_back_a(vt,dot)][push_back_a(vt,dot)]//[.:.]
             | eps_p [push_back_a(vt,empty)][push_back_a(vt,empty)] // [:]
             ;
 
