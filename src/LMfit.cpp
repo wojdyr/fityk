@@ -29,7 +29,7 @@ LMfit::LMfit ()
 LMfit::~LMfit () {}
 
 // WSSR is also called chi2
-fp LMfit::init ()   
+fp LMfit::init()   
 {
     alpha.resize (na*na);
     alpha_.resize (na*na);
@@ -49,7 +49,7 @@ fp LMfit::init ()
 
     info (print_matrix (a, 1, na, "Initial A"));
     //no need to optimise it (and compute chi2 and derivatives together)
-    chi2 = compute_wssr (a);
+    chi2 = compute_wssr(a);
     compute_derivatives(a, alpha, beta);
     return chi2;
 }

@@ -69,6 +69,7 @@ public:
     void tree_to_bytecode(); 
     std::vector<ParMult> const& get_recursive_derivatives() const 
                                             { return recursive_derivatives; }
+    bool is_simple() const { return nr != -1; }
 private:
     int nr; /// -1 unless it's simple "variable"
     bool auto_delete;

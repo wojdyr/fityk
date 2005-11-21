@@ -8,7 +8,7 @@
 
 #include <map>
 #include <limits.h>
-#include "wx_common.h" // Mouse_mode_enum
+#include "wx_common.h" // MouseModeEnum
 
 // wxFULL_REPAINT_ON_RESIZE is defined only in wxWidgets >= 2.5
 #ifndef wxFULL_REPAINT_ON_RESIZE
@@ -19,7 +19,7 @@ class wxConfigBase;
 
 struct Point;
 class MainPlot;
-class Rect;
+class View;
 struct f_names_type;
 
 enum Mouse_act_enum  { mat_start, mat_stop, mat_move, mat_cancel };
@@ -73,14 +73,14 @@ protected:
 
     void draw_dashed_vert_lines (int x1, int x2=INVALID);
     bool vert_line_following_cursor(Mouse_act_enum ma, int x=0, int x0=INVALID);
-    void draw_tics (wxDC& dc, const Rect &v, 
-                    const int x_max_tics, const int y_max_tics, 
-                    const int x_tic_size, const int y_tic_size);
+    void draw_tics (wxDC& dc, View const &v, 
+                    int const x_max_tics, int const y_max_tics, 
+                    int const x_tic_size, int const y_tic_size);
     fp get_max_abs_y (fp (*compute_y)(std::vector<Point>::const_iterator));
     void draw_data (wxDC& dc, 
                     fp (*compute_y)(std::vector<Point>::const_iterator),
-                    const Data *dat=0, 
-                    const wxPen *active=0, const wxPen *inactive=0);
+                    Data const *dat=0, 
+                    wxPen const *active=0, wxPen const *inactive=0);
     void change_tics_font();
     int y2Y (fp y) {  fp t = (y - yLogicalOrigin) * yUserScale;
                       return (fabs(t) < SHRT_MAX ? static_cast<int>(t) 

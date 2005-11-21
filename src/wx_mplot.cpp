@@ -18,12 +18,10 @@
 #include "wx_gui.h"
 #include "wx_dlg.h"
 #include "data.h"
+#include "logic.h"
 #include "sum.h"
-#include "ffunc.h"
+#include "func.h"
 #include "ui.h"
-#ifdef USE_XTAL
-    #include "crystal.h"
-#endif //USE_XTAL
 
 using namespace std;
 
@@ -57,7 +55,6 @@ enum {
     ID_plot_popup_pt_size           = 25210,// and next 10 ,
     ID_peak_popup_info              = 25250,
     ID_peak_popup_del                      ,
-    ID_peak_popup_tree                     ,
     ID_peak_popup_guess                    ,
 };
 
@@ -90,7 +87,6 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_MENU (ID_plot_popup_m_tfont,MainPlot::OnTicsFont)
     EVT_MENU (ID_peak_popup_info,   MainPlot::OnPeakInfo)
     EVT_MENU (ID_peak_popup_del,    MainPlot::OnPeakDelete)
-    EVT_MENU (ID_peak_popup_tree,   MainPlot::OnPeakShowTree)
     EVT_MENU (ID_peak_popup_guess,  MainPlot::OnPeakGuess)
 END_EVENT_TABLE()
 
@@ -126,11 +122,6 @@ void MainPlot::Draw(wxDC &dc)
 
     frame->draw_crosshair(-1, -1); //erase crosshair before redrawing plot
 
-    if (!params4plot.empty() && size(params4plot) != my_sum->pars()->count_a()){
-        params4plot = my_sum->pars()->values();
-        frame->set_status_text("Number of parameters changed.");
-    }
-    my_sum->use_param_a_for_value (params4plot);
     prepare_peaktops();
 
     if (colourTextForeground.Ok())
@@ -144,22 +135,22 @@ void MainPlot::Draw(wxDC &dc)
         wxPen unsel_inactive(inactiveDataPen);
         unsel_active.SetColour(0, 90, 0);
         unsel_inactive.SetColour(30, 60, 30);
-        for (int i = 0; i < my_core->get_data_count(); i++) {
-            if (i != my_core->get_active_data_position())
+        for (int i = 0; i < AL->get_ds_count(); i++) {
+            if (i != AL->get_active_ds_position())
                 draw_data(dc, y_of_data_for_draw_data, 
-                          my_core->get_data(i), &unsel_active, &unsel_inactive);
+                          AL->get_data(i), &unsel_active, &unsel_inactive);
         }
         draw_data(dc, y_of_data_for_draw_data);
     }
 
     if (tics_visible)
-        draw_tics(dc, my_core->view, 7, 7, 4, 4);
+        draw_tics(dc, AL->view, 7, 7, 4, 4);
 
     if (my_data->is_empty())
         return;
 
-    vector<Point>::const_iterator f =my_data->get_point_at(my_core->view.left),
-                                l = my_data->get_point_at(my_core->view.right);
+    vector<Point>::const_iterator f = my_data->get_point_at(AL->view.left),
+                                  l = my_data->get_point_at(AL->view.right);
     if (l != my_data->points().end())
         ++l;
 
@@ -184,7 +175,7 @@ void MainPlot::Draw(wxDC &dc)
 }
 
 
-bool MainPlot::visible_peaktops(Mouse_mode_enum mode)
+bool MainPlot::visible_peaktops(MouseModeEnum mode)
 {
     return (mode == mmd_zoom || mode == mmd_add || mode == mmd_peak);
 }
@@ -219,10 +210,17 @@ void MainPlot::draw_sum(wxDC& dc, vector<Point>::const_iterator first,
 {
     dc.SetPen (sumPen);
     int X = -1, Y = -1;
-    for (vector<Point>::const_iterator i = first; i < last; i++) {
+    int n = last - first;
+    vector<fp> xx(n), XX(n), yy(n);
+    for (vector<Point>::const_iterator i = first; i < last; i++) 
+        xx[i-first] = i->x;
+    for (int i = 0; i < size(xx); i++) 
+        XX[i] = x2X(xx[i]);
+    my_sum->calculate_sum_value(xx, yy);
+    for (int i = 0; i < size(xx); i++) 
         int X_ = X, Y_ = Y;
-        X = x2X(i->x);
-        Y = y2Y(my_sum->value(i->x));
+        X = XX[i]; //x2X(i->x);
+        Y = y2Y(yy[i]); //y2Y(my_sum->value(i->x));
         if (smooth)
             while (X_ < X-1) {
                 ++X_;
@@ -237,11 +235,12 @@ void MainPlot::draw_sum(wxDC& dc, vector<Point>::const_iterator first,
 }
 
 
+//TODO draw groups
 void MainPlot::draw_phases (wxDC& dc, vector<Point>::const_iterator first,
                                       vector<Point>::const_iterator last)
                             
 {
-#ifdef USE_XTAL
+#if 0
     for (int k = 0; k < my_crystal->get_nr_of_phases(); k++) {
         dc.SetPen (phasePen[k % max_phase_pens]);
         vector<int> peaks = my_crystal->get_funcs_in_phase(k);
@@ -262,24 +261,26 @@ void MainPlot::draw_phases (wxDC& dc, vector<Point>::const_iterator first,
                 dc.DrawLine (X_, Y_, X, Y); 
         }
     }
-#endif //USE_XTAL
+#endif 
 }
 
 void MainPlot::draw_peaks (wxDC& dc, vector<Point>::const_iterator first,
                                      vector<Point>::const_iterator last)
 {
-    for (int k = 0; k < my_sum->fzg_size(fType); k++) {
+    vector<int> const& idx = my_sum->get_ff_idx();
+    for (vector<int>::const_iterator k = idx.begin(); k != idx.end(); k++) {
+        Function const* f = AL->get_function(*k);
         dc.SetPen (peakPen[k % max_peak_pens]);
         int X = -1, Y = -1;
         for (vector<Point>::const_iterator i = first; i < last; i++) {
             int X_ = X, Y_ = Y;
             X = x2X(i->x);
-            Y = y2Y(my_sum->f_value (i->x, k));
+            Y = y2Y(f->calculate_value(i->x));
             if (smooth)
                 while (X_ < X-1) {
                     ++X_;
                     int Y_p = Y_;
-                    Y_ = y2Y(my_sum->f_value (X2x(X_), k));
+                    Y_ = y2Y(f_calculate_value(X2x(X_)));
                     if (X_ > 0)
                         dc.DrawLine (X_-1, Y_p, X_, Y_); 
                 }
@@ -304,7 +305,8 @@ void MainPlot::draw_plabels (wxDC& dc)
     prepare_peak_labels(); //TODO re-prepare only when peaks where changed
     dc.SetFont(plabelFont);
     vector<wxRect> previous;
-    for (int k = 0; k < my_sum->fzg_size(fType); k++) {
+    vector<int> const& idx = my_sum->get_ff_idx();
+    for (vector<int>::const_iterator k = idx.begin(); k != idx.end(); k++) {
         const wxPoint &peaktop = shared.peaktops[k];
         dc.SetTextForeground(peakPen[k % max_peak_pens].GetColour());
 
@@ -377,11 +379,11 @@ void MainPlot::prepare_peaktops()
 
 void MainPlot::prepare_peak_labels()
 {
-    int n = my_sum->fzg_size(fType);
-    plabels.resize(n);
-    for (int k = 0; k < n; k++) {
+    vector<int> const& idx = my_sum->get_ff_idx();
+    plabels.resize(idx.size());
+    for (vector<int>::const_iterator k = idx.begin(); k != idx.end(); k++) {
         string label = plabel_format;
-        const V_f *f = my_sum->get_f(k);
+        const V_f *f = AL->get_function(*k);
         if (f->is_peak()) {
             string::size_type pos = 0; 
             while ((pos = label.find("<", pos)) != string::npos) {
@@ -399,10 +401,8 @@ void MainPlot::prepare_peak_labels()
                     label.replace(pos, right-pos+1, S(f->fwhm()));
                 else if (tag == "ib")
                     label.replace(pos, right-pos+1, S(f->area()/f->height()));
-                else if (tag == "n")
-                    label.replace(pos, right-pos+1, S(k));
-                else if (tag == "ref")
-                    label.replace(pos, right-pos+1, my_sum->descr_refs_to_f(k));
+                else if (tag == "name")
+                    label.replace(pos, right-pos+1, f->name);
                 else if (tag == "br")
                     label.replace(pos, right-pos+1, "\n");
                 else
@@ -537,7 +537,7 @@ void MainPlot::OnLeaveWindow (wxMouseEvent& WXUNUSED(event))
 
 void MainPlot::set_scale()
 {
-    const Rect &v = my_core->view;
+    View const &v = AL->view;
     shared.xUserScale = GetClientSize().GetWidth() / (v.right - v.left);
     int H =  GetClientSize().GetHeight();
     fp h = v.top - v.bottom;
@@ -620,10 +620,8 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
     if (over_peak == -1) return;
     wxMenu peak_menu; 
     peak_menu.Append(ID_peak_popup_info, "&Info");
-    peak_menu.Append(ID_peak_popup_tree, "&Show tree");
     peak_menu.Append(ID_peak_popup_guess, "&Guess");
     peak_menu.Append(ID_peak_popup_del, "&Delete");
-    peak_menu.Enable(ID_peak_popup_del, my_sum->refs_to_f(over_peak) == 0);
     //peak_menu.AppendSeparator();
     //TODO? parameters: height, ...
     PopupMenu (&peak_menu, event.GetX(), event.GetY());
@@ -632,30 +630,19 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
 void MainPlot::PeakInfo()
 {
     if (over_peak >= 0)
-        exec_command("s.info ^" + S(over_peak));
+        exec_command("info " + AL->get_function(over_peak)->xname);
 }
 
 void MainPlot::OnPeakDelete(wxCommandEvent &WXUNUSED(event))
 {
     if (over_peak >= 0)
-        exec_command("s.remove ^" + S(over_peak));
+        exec_command("delete " + AL->get_function(over_peak)->xname);
 }
 
 void MainPlot::OnPeakGuess(wxCommandEvent &WXUNUSED(event))
 {
     if (over_peak >= 0)
-        exec_command("s.guess ^" + S(over_peak));
-}
-
-void MainPlot::OnPeakShowTree(wxCommandEvent &WXUNUSED(event))
-{
-    if (over_peak >= 0) {
-        FuncBrowserDlg *dialog = new FuncBrowserDlg(this, -1, 2);
-        dialog->show_expanded(over_peak);
-        dialog->ShowModal();
-        dialog->Destroy();
-    }
-           
+        exec_command("guess " + AL->get_function(over_peak)->xname);
 }
 
 bool MainPlot::has_mod_keys(const wxMouseEvent& event)
@@ -677,10 +664,10 @@ bool MainPlot::has_mod_keys(const wxMouseEvent& event)
 //   Ctrl + Left/Right Button      -- the same as Left/Right in normal mode 
 //   Middle Button                 -- rectangle zoom 
 
-void MainPlot::set_mouse_mode(Mouse_mode_enum m)
+void MainPlot::set_mouse_mode(MouseModeEnum m)
 {
     if (pressed_mouse_button) cancel_mouse_press();
-    Mouse_mode_enum old = mode;
+    MouseModeEnum old = mode;
     if (m != mmd_peak) basic_mode = m;
     mode = m;
     update_mouse_hints();
@@ -766,16 +753,17 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
 void MainPlot::look_for_peaktop (wxMouseEvent& event)
 {
     // searching the closest peak-top and distance from it, d = dx + dy < 10 
+    vector<int> const& idx = my_sum->get_ff_idx();
     int min_dist = 10;
     int nearest = -1;
-    if (size(shared.peaktops) != my_sum->fzg_size(fType))
+    if (size(shared.peaktops) != idx.size()) 
         prepare_peaktops();
     for (vector<wxPoint>::const_iterator i = shared.peaktops.begin(); 
          i != shared.peaktops.end(); i++) {
         int d = abs(event.GetX() - i->x) + abs(event.GetY() - i->y);
         if (d < min_dist) {
             min_dist = d;
-            nearest = i - shared.peaktops.begin();
+            nearest = idx[i - shared.peaktops.begin()];
         }
     }
     if (over_peak == nearest) return;
@@ -783,14 +771,11 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
     //if we are here, over_peak != nearest; changing cursor and statusbar text
     over_peak = nearest;
     if (nearest != -1) {
-        const V_f* f = my_sum->get_f(over_peak);
-        string s = f->short_type() + S(over_peak) + " ";  
-        string ref = my_sum->descr_refs_to_f(over_peak);
-        if (!ref.empty())
-            s += "(" + ref + ")";
-        s += " " + f->type_info()->name 
-            + " " + my_sum->info_fzg_parameters(fType, over_peak, true)
-            + " " + f->extra_description();
+        const V_f* f = AL->get_function(over_peak);
+        string s = f->xname + " " + f->type_name + " ";
+        vector<string> const& vn = f->get_type_var_names();
+        for (int i = 0; i < size(vn); ++i)
+            s += " " + vn[i] + "=" + S(get_var_values()[i]);
         frame->set_status_text(s.c_str());
         set_mouse_mode(mmd_peak);
     }
@@ -841,9 +826,9 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     }
     else if (button == 1 && mode == mmd_peak) {
         move_peak(mat_start, event);
-        if (my_sum->get_f(over_peak)->is_peak()) {
-            frame->set_status_text(wxString("Moving peak ^") 
-                                   + S(over_peak).c_str()
+        if (AL->get_function(over_peak)->is_peak()) {
+            frame->set_status_text(wxString("Moving peak ") 
+                                   + AL->get_function(over_peak)->xname.c_str()
                                    + " (press Shift to change width)");
         }
         else
@@ -950,7 +935,7 @@ void MainPlot::move_peak (Mouse_act_enum ma, wxMouseEvent &event)
     static wxPoint prev(INVALID, INVALID);
     static fp height, center, hwhm, shape;
     static bool c_height, c_center, c_hwhm, c_shape; //changable 
-    static const V_f *p = 0;
+    static Function const *p = 0;
     static const f_names_type *ft = 0;
     static wxCursor old_cursor = wxNullCursor;
     if (ma != mat_start) {
@@ -961,18 +946,18 @@ void MainPlot::move_peak (Mouse_act_enum ma, wxMouseEvent &event)
     }
     switch (ma) {
         case mat_start: {
-            p = my_sum->get_f(over_peak);
+            p = AL->get_function(over_peak);
             ft = p->type_info();
             if (!p->is_peak()) return;
-            my_sum->use_param_a_for_value();
             height = p->height();
             center = p->center();
             hwhm = p->fwhm() / 2.;
-            shape = p->g_size > 3 ? p->values_of_pags()[3] : 0;
-            c_height = p->get_pag(0).is_a();
-            c_center = p->get_pag(1).is_a();
-            c_hwhm = p->get_pag(2).is_a();
-            c_shape = p->g_size > 3 && p->get_pag(3).is_a();
+            shape = p->nv > 3 ? p->get_var_values()[3] : 0;
+  //Variable const *get_var(int n) { return mgr->get_variables()[var_idx[n]]; }
+            c_height = p->get_var(0)->is_simple();
+            c_center = p->get_var(1)->is_simple();
+            c_hwhm = p->get_var(2)->is_simple();
+            c_shape = p->nv > 3 && p->get_var(3)->is_simple();
             draw_peak_draft(x2X(center - my_sum->zero_shift(center)), 
                             shared.dx2dX(hwhm), y2Y(height),
                             shape, ft);
@@ -1253,7 +1238,7 @@ void MainPlot::OnZoomAll (wxCommandEvent& WXUNUSED(event))
 void MainPlot::change_peak_parameters(const vector<fp> &peak_hcw)
 {
     vector<string> changes;
-    const V_f *peak = my_sum->get_f(over_peak);
+    const V_f *peak = AL->get_function(over_peak);
     const f_names_type *f = peak->type_info();
     assert(peak_hcw.size() >= 3);
     fp height = peak_hcw[0]; 

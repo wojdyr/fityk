@@ -43,13 +43,8 @@
 #include "fit.h"
 #include "data.h"
 #include "sum.h"
-#include "fzgbase.h" 
-#include "ffunc.h"
 #include "manipul.h"
 #include "ui.h"
-#ifdef USE_XTAL
-    #include "crystal.h"
-#endif //USE_XTAL
 
 #ifndef __WXMSW__
 #include "img/fityk.xpm"
@@ -378,13 +373,13 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_D_INFO,        FFrame::OnDInfo)
     EVT_MENU (ID_D_EXPORT,      FFrame::OnDExport) 
 
-    EVT_MENU (ID_S_HISTORY,     FFrame::OnSHistory)    
-    EVT_MENU (ID_S_INFO,        FFrame::OnSInfo)    
-    EVT_MENU (ID_S_ADD,         FFrame::OnSAdd)    
-    EVT_MENU (ID_S_REMOVE,      FFrame::OnSRemove)    
-    EVT_MENU (ID_S_CHANGE,      FFrame::OnSChange)    
-    EVT_MENU (ID_S_VALUE,       FFrame::OnSValue)    
-    EVT_MENU (ID_S_EXPORT,      FFrame::OnSExport)    
+    //EVT_MENU (ID_S_HISTORY,     FFrame::OnSHistory)    
+    //EVT_MENU (ID_S_INFO,        FFrame::OnSInfo)    
+    //EVT_MENU (ID_S_ADD,         FFrame::OnSAdd)    
+    //EVT_MENU (ID_S_REMOVE,      FFrame::OnSRemove)    
+    //EVT_MENU (ID_S_CHANGE,      FFrame::OnSChange)    
+    //EVT_MENU (ID_S_VALUE,       FFrame::OnSValue)    
+    //EVT_MENU (ID_S_EXPORT,      FFrame::OnSExport)    
     EVT_MENU (ID_S_SET,         FFrame::OnSSet)    
 
     EVT_MENU (ID_M_FINDPEAK,    FFrame::OnMFindpeak)
@@ -396,15 +391,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_F_CONTINUE,    FFrame::OnFContinue)    
     EVT_MENU (ID_F_INFO,        FFrame::OnFInfo)    
     EVT_MENU (ID_F_SET,         FFrame::OnFSet)    
-
-#ifdef USE_XTAL
-    EVT_MENU (ID_C_WAVELENGTH,  FFrame::OnCWavelength)    
-    EVT_MENU (ID_C_ADD,         FFrame::OnCAdd)    
-    EVT_MENU (ID_C_INFO,        FFrame::OnCInfo)    
-    EVT_MENU (ID_C_REMOVE,      FFrame::OnCRemove)    
-    EVT_MENU (ID_C_ESTIMATE,    FFrame::OnCEstimate)    
-    EVT_MENU (ID_C_SET,         FFrame::OnCSet)    
-#endif
 
     EVT_MENU (ID_O_LOG,         FFrame::OnOLog)    
     EVT_MENU (ID_O_RESET,       FFrame::OnO_Reset)    
@@ -657,6 +643,7 @@ void FFrame::set_menubar()
     data_menu->Append (ID_D_EXPORT,   "&Export\tCtrl-S", "Save data to file");
 
     wxMenu* sum_menu = new wxMenu;
+#if 0
     sum_menu->Append (ID_S_HISTORY,   "&History\tCtrl-H", "Go back or forward"
                                                     " in change history");      
     sum_menu->Append (ID_S_INFO,      "&Info", "Info about fitted curve");      
@@ -667,6 +654,7 @@ void FFrame::set_menubar()
     sum_menu->Append (ID_S_VALUE,     "&Value", "Computes value of sum"
                                                     " or selected function");
     sum_menu->Append (ID_S_EXPORT,    "&Export", "Export fitted curve to file");
+#endif
     sum_menu->Append (ID_S_SET,       "&Settings", "Preferences and options"); 
 
     wxMenu* manipul_menu = new wxMenu;
@@ -690,21 +678,6 @@ void FFrame::set_menubar()
     fit_menu->Append (ID_F_INFO,      "&Info", "Info about current fit");      
     fit_menu->Append (ID_F_SET,       "&Settings", "Preferences and options"); 
 
-#ifdef USE_XTAL
-    wxMenu* crystal_menu = new wxMenu;
-    crystal_menu->Append (ID_C_WAVELENGTH, "&Wavelength", 
-                    "Defines X-rays wavelengths (command line only)");
-    crystal_menu->Append (ID_C_ADD,      "&Add", 
-            "Add phase or plane (command line only)"); 
-    crystal_menu->Append (ID_C_INFO,     "&Info", 
-                            "Crystalography info (command line only)"); 
-    crystal_menu->Append (ID_C_REMOVE,   "&Remove", 
-                          "Remove phase or plane (command line only)");
-    crystal_menu->Append (ID_C_ESTIMATE, "&Estimate peak", 
-                            "Guess peak parameters (command line only)");      
-    crystal_menu->Append (ID_C_SET,    "&Settings", "Preferences and options");
-#endif //USE_XTAL
-
     wxMenu* gui_menu = new wxMenu;
     wxMenu* gui_menu_mode = new wxMenu;
     gui_menu_mode->AppendRadioItem (ID_G_M_ZOOM, "&Normal\tCtrl-N", 
@@ -716,11 +689,9 @@ void FFrame::set_menubar()
     gui_menu_mode->AppendRadioItem (ID_G_M_ADD, "&Peak-Add\tCtrl-K", 
                                     "Use mouse for adding new peaks");
     wxMenu* gui_menu_mode_peak = new wxMenu;
-    vector<const z_names_type*> all_t = V_fzg::all_types(fType);
-    for (vector<const z_names_type*>::const_iterator i = all_t.begin();
-                                                         i != all_t.end(); i++)
-        gui_menu_mode_peak->AppendRadioItem(ID_G_M_PEAK_N + (i - all_t.begin()),
-                                            (*i)->name.c_str());
+    vector<string> all_t = Function::get_all_types();
+    for (int i = 0; i < size(all_t); i++)
+        gui_menu_mode_peak->AppendRadioItem(ID_G_M_PEAK_N + i, all_t[i]);
     gui_menu_mode->AppendSeparator();
     gui_menu_mode->Append (ID_G_M_PEAK, "Peak &type", gui_menu_mode_peak);
     gui_menu_mode->AppendSeparator();
@@ -817,9 +788,6 @@ void FFrame::set_menubar()
     menu_bar->Append (sum_menu, "&Sum" );
     menu_bar->Append (manipul_menu, "Find&Peak");
     menu_bar->Append (fit_menu, "Fi&t" );
-#ifdef USE_XTAL
-    menu_bar->Append (crystal_menu, "&Xtal/Diffr" );
-#endif //USE_XTAL
     menu_bar->Append (gui_menu, "&GUI");
     menu_bar->Append (help_menu, "&Help");
 
@@ -998,6 +966,7 @@ void FFrame::OnDExport (wxCommandEvent& WXUNUSED(event))
     export_data_dlg(this);
 }
 
+#if 0
 void FFrame::OnSHistory      (wxCommandEvent& WXUNUSED(event))
 {
     if (my_sum->pars()->count_a() == 0) {
@@ -1063,6 +1032,7 @@ void FFrame::OnSExport       (wxCommandEvent& WXUNUSED(event))
     filter_idx = fdlg.GetFilterIndex();
     dir = fdlg.GetDirectory();
 }
+#endif
            
 void FFrame::OnSSet          (wxCommandEvent& WXUNUSED(event))
 {
@@ -1300,7 +1270,7 @@ void FFrame::OnChangeMouseMode (wxCommandEvent& event)
             return;
         }
     }
-    Mouse_mode_enum mode = mmd_zoom;
+    MouseModeEnum mode = mmd_zoom;
     switch (event.GetId()) {
         case ID_G_M_ZOOM:   
         case ID_ft_m_zoom:   
@@ -1475,13 +1445,13 @@ void FFrame::OnPreviousZoom(wxCommandEvent& event)
 void FFrame::change_zoom(const string& s)
 {
     plot_pane->zoom_forward();
-    string cmd = "o.plot " + s;
+    string cmd = "plot " + s;
     exec_command(cmd);
 }
 
 void FFrame::scroll_view_horizontally(fp step)
 {
-    const Rect &vw = my_core->view;
+    View const &vw = AL->view;
     fp diff = vw.width() * step;
     fp new_left = vw.left + diff; 
     fp new_right = vw.right + diff;
@@ -1780,7 +1750,7 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
 {
     SetToolBitmapSize(wxSize(24, 24));
     // mode
-    Mouse_mode_enum m = frame ? frame->plot_pane->get_plot()->get_mouse_mode() 
+    MouseModeEnum m = frame ? frame->plot_pane->get_plot()->get_mouse_mode() 
                               : mmd_zoom;
     AddRadioTool(ID_ft_m_zoom, "Zoom", wxBitmap(zoom_mode_xpm), wxNullBitmap, 
                  "Normal Mode", "Use mouse for zooming, moving peaks etc."); 

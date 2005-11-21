@@ -400,9 +400,9 @@ void Data::update_active_p()
     // post: active_p sorted
 {
     active_p.clear();
-    for (unsigned int i = 0; i < p.size(); i++)
+    for (int i = 0; i < size(p); i++)
         if (p[i].is_active) 
-            active_p.push_back (i);
+            active_p.push_back(i);
 }
 
 // does anyone need it ? 

@@ -128,7 +128,7 @@ void PlotPane::refresh_plots(bool refresh, bool update, bool only_main)
     }
 }
 
-void PlotPane::set_mouse_mode(Mouse_mode_enum m) 
+void PlotPane::set_mouse_mode(MouseModeEnum m) 
 { 
     plot->set_mouse_mode(m); 
 }

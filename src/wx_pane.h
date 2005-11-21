@@ -9,7 +9,7 @@
 #include <wx/splitter.h>
 #include <wx/treectrl.h>
 #include <list>
-#include "wx_common.h"  //for Mouse_mode_enum, OutputStyle
+#include "wx_common.h"  //for MouseModeEnum, OutputStyle
 
 class PlotPane;
 class IOPane;
@@ -122,7 +122,7 @@ public:
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
     void refresh_plots(bool refresh, bool update, bool only_main=false);
-    void set_mouse_mode(Mouse_mode_enum m);
+    void set_mouse_mode(MouseModeEnum m);
     void update_mouse_hints();
     bool is_background_white();
     const std::vector<std::string>& get_zoom_hist() const { return zoom_hist; }

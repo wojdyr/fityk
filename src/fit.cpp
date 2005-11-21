@@ -35,36 +35,44 @@ Fit::Fit (char symb, string m)
     Distrib_enum ['b'] = "bound";
 }
 
-string Fit::getInfo(int mode)
+string Fit::getInfo()
 {
     AL->use_parameters();
     vector<fp> const &pp = AL->get_parameters();
-    const int n = pp.size(); 
+    na = pp.size(); 
     //n_m = number of points - degrees of freedom (parameters)
-    int n_m = -n;
+    int n_m = -na;
     for (int i = 0; i < 1; i++)  //TODO
         n_m += AL->get_active_ds()->get_data()->get_n(); 
-    string s = "Current WSSR = " + S(compute_wssr(pp)) 
+    return "Current WSSR = " + S(compute_wssr(pp)) 
                 + " (expected: " + S(n_m) + "); SSR = " 
                 + S(compute_wssr(pp, false));
-    if (mode == 1 || mode == 2) {
-        vector<fp> alpha(n*n), beta(n);
-        compute_derivatives(pp, alpha, beta);
-        reverse_matrix (alpha, n);
-        for (vector<fp>::iterator i = alpha.begin(); i != alpha.end(); i++)
-            (*i) *= 2;//FIXME: is it right? (S.Brandt, Analiza danych (10.17.4))
-        if (mode == 1) {
-            s += "\nSymetric errors: ";
-            for (int i = 0; i < n; i++) {
-                fp val = pp[i];
-                s += AL->find_variable_handling_param(i)->xname 
-                    + "=" + S(val) + "+-" + S(sqrt(alpha[i * n + i]));
-            }
+}
+
+
+string Fit::getErrorInfo(bool matrix)
+{
+    AL->use_parameters();
+    vector<fp> const &pp = AL->get_parameters();
+    na = pp.size(); 
+
+    vector<fp> alpha(na*na), beta(na);
+    compute_derivatives(pp, alpha, beta);
+    reverse_matrix (alpha, na);
+    for (vector<fp>::iterator i = alpha.begin(); i != alpha.end(); i++)
+        (*i) *= 2;//FIXME: is it right? (S.Brandt, Analiza danych (10.17.4))
+    string s;
+    if (!matrix) {
+        s = "Symetric errors: ";
+        for (int i = 0; i < na; i++) {
+            fp val = pp[i];
+            s += AL->find_variable_handling_param(i)->xname 
+                + "=" + S(val) + "+-" + S(sqrt(alpha[i * na + i]));
         }
-        else if (mode == 2)
-            s += "\n" + print_matrix(alpha /*reversed*/, n, n, 
-                                     "(co)variance matrix");
     }
+    else 
+        s = "\n" + print_matrix(alpha /*reversed*/, na, na, 
+                                 "(co)variance matrix");
     return s;
 }
 

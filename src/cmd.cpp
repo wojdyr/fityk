@@ -9,6 +9,7 @@
 #include "sum.h"
 #include "func.h"
 #include "logic.h"
+#include "fit.h"
 #include <boost/spirit/core.hpp>
 #include <boost/spirit/actor/assign_actor.hpp>
 #include <boost/spirit/actor/push_back_actor.hpp>
@@ -20,11 +21,15 @@ using namespace boost::spirit;
 
 namespace {
 
-bool extended_print;
+bool extended_info;
 string t, t2;
 int tmp_int;
+bool tmp_bool;
+double tmp_real;
 vector<string> vt;
 vector<int> vn;
+static const int new_dataset = -1;
+static const int active_dataset = -2;
 
 void set_data_title(char const*, char const*)  { my_data->title = t; }
 
@@ -37,6 +42,7 @@ void do_assign_var(char const* a, char const* b)
 void do_assign_func(char const*, char const*)
 {
    AL->assign_func(string(t,1), t2, vt);
+   vt = vector1(t); //for do_put_function()
 }
 
 void do_subst_func_param(char const* a, char const* b)
@@ -58,17 +64,19 @@ void do_delete(char const*, char const*)
     AL->delete_funcs_and_vars(vt);
 }
 
-void do_print(char const* a, char const* b)
+void do_print_info(char const* a, char const* b)
 {
     string s = string(a,b);
     string m;
     vector<Variable*> const &variables = AL->get_variables(); 
     vector<Function*> const &functions = AL->get_functions(); 
+    if (s.empty())
+        m = "info about what?";
     if (s == "variables") {
         m = "Defined variables: ";
         for (vector<Variable*>::const_iterator i = variables.begin(); 
                 i != variables.end(); ++i)
-            if (extended_print)
+            if (extended_info)
                 m += "\n" + (*i)->get_info(AL->get_parameters(), false);
             else
                 if ((*i)->is_visible())
@@ -77,8 +85,8 @@ void do_print(char const* a, char const* b)
     else if (s[0] == '$') {
         const Variable* v = AL->find_variable(string(s, 1));
         if (v) {
-            m = v->get_info(AL->get_parameters(), extended_print);
-            if (extended_print) {
+            m = v->get_info(AL->get_parameters(), extended_info);
+            if (extended_info) {
                 vector<string> refs = AL->get_variable_references(string(s, 1));
                 if (!refs.empty())
                     m += "\nreferenced by: " + join_vector(refs, ", ");
@@ -91,17 +99,25 @@ void do_print(char const* a, char const* b)
         m = "Defined functions: ";
         for (vector<Function*>::const_iterator i = functions.begin(); 
                 i != functions.end(); ++i)
-            if (extended_print)
+            if (extended_info)
                 m += "\n" + (*i)->get_info(variables, AL->get_parameters());
             else
                 m += (*i)->xname + " ";
     }
     else if (s[0] == '%') {
         const Function* f = AL->find_function(string(s, 1));
-        m = f ? f->get_info(variables, AL->get_parameters(), extended_print) 
+        m = f ? f->get_info(variables, AL->get_parameters(), extended_info) 
               : "Undefined function: " + s;
     }
+    else if (s == "datasets") {
+        m = S(AL->get_ds_count()) + " datasets.";
+        if (extended_info)
+            for (int i = 0; i < AL->get_ds_count(); ++i)
+                m += "\n@" + S(i) + ": " + AL->get_data(i)->get_title();
+    }
     else if (s[0] == '@') {
+        if (tmp_int == active_dataset)
+            tmp_int = AL->get_active_ds_position();
         m = AL->get_data(tmp_int)->getInfo();
     }
     else if (s == "view") {
@@ -112,7 +128,7 @@ void do_print(char const* a, char const* b)
         vector<int> const &idx = AL->get_active_ds()->get_sum()->get_ff_idx();
         for (vector<int>::const_iterator i = idx.begin(); i != idx.end(); ++i){
             Function const* f = functions[*i];
-            if (extended_print)
+            if (extended_info)
                 m += "\n" + f->get_info(variables, AL->get_parameters());
             else
                 m += f->xname + " ";
@@ -123,17 +139,36 @@ void do_print(char const* a, char const* b)
         vector<int> const &idx = AL->get_active_ds()->get_sum()->get_zz_idx();
         for (vector<int>::const_iterator i = idx.begin(); i != idx.end(); ++i){
             Function const* f = functions[*i];
-            if (extended_print)
+            if (extended_info)
                 m += "\n" + f->get_info(variables, AL->get_parameters());
             else
                 m += f->xname + " ";
         }
     }
     else if (s == "sum-formula") {
-        AL->use_parameters();
-        m = AL->get_active_ds()->get_sum()->get_formula(!extended_print);
+        m = AL->get_active_ds()->get_sum()->get_formula(!extended_info);
     }
+    else if (s == "fit")
+        m = my_fit->getInfo();
+    else if (s == "errors")
+        m = my_fit->getErrorInfo(extended_info);
 
+    mesg(m);
+}
+
+void do_print_sum_derivatives_info(char const*, char const*)
+{
+    fp x = get_transform_expression_value(t);
+    Sum const* sum = AL->get_active_ds()->get_sum();
+    vector<fp> symb = sum->get_symbolic_derivatives(x);
+    vector<fp> num = sum->get_numeric_derivatives(x, 1e-4);
+    assert (symb.size() == num.size());
+    string m = "F(" + S(x) + ")=" + S(sum->value(x));
+    for (int i = 0; i < size(num); ++i) {
+        if (is_neq(symb[i], 0) || is_neq(num[i], 0))
+            m += "\ndF / d " + AL->find_variable_handling_param(i)->xname 
+                + " = (symb.) " + S(symb[i]) + " = (num.) " + S(num[i]);
+    }
     mesg(m);
 }
 
@@ -144,10 +179,9 @@ void do_print_func_value(char const*, char const*)
     const Function* f = AL->find_function(string(t, 1));
     if (f) {
         fp x = get_transform_expression_value(t2);
-        AL->use_parameters();
         fp y = f->calculate_value(x);
         m = f->xname + "(" + S(x) + ") = " + S(y);
-        if (extended_print) {
+        if (extended_info) {
             //TODO? derivatives
         }
     }
@@ -158,12 +192,14 @@ void do_print_func_value(char const*, char const*)
 
 void do_import_dataset(char const*, char const*)
 {
-    if (tmp_int == -1) {
+    if (tmp_int == new_dataset) {
         auto_ptr<Data> data(new Data);
         data->load_file(t, 0, vector<int>()); //TODO columns, type
         tmp_int = AL->append_ds(data.release());
     }
     else {
+        if (tmp_int == active_dataset)
+            tmp_int = AL->get_active_ds_position();
         //TODO columns, type
         AL->get_data(tmp_int)->load_file(t, 0, vector<int>()); 
     }
@@ -171,19 +207,41 @@ void do_import_dataset(char const*, char const*)
 
 void do_export_dataset(char const*, char const*)
 {
+    if (tmp_int == active_dataset)
+        tmp_int = AL->get_active_ds_position();
     AL->get_data(tmp_int)->export_to_file(t); 
 }
 
 void do_select_data(char const*, char const*)
 {
-    if (tmp_int == -1) 
+    if (tmp_int == new_dataset) 
         tmp_int = AL->append_ds();
+    else if (tmp_int == active_dataset)
+        tmp_int = AL->get_active_ds_position();
     AL->activate_ds(tmp_int);
 }
 
 void do_load_data_sum(char const*, char const*)
 {
+    if (tmp_int == active_dataset)
+        tmp_int = AL->get_active_ds_position();
     //TODO do_load_data_sum
+}
+
+void do_plot(char const*, char const*)
+{
+    AL->view.parse_and_set(vt);
+    getUI()->drawPlot(1, true);
+}
+
+void do_fit(char const*, char const*)
+{
+    my_fit->fit(tmp_bool, tmp_int);
+}
+
+void do_sleep(char const*, char const*)
+{
+    getUI()->wait(tmp_real);
 }
 
 } //namespace
@@ -202,7 +260,9 @@ struct CmdGrammar : public grammar<CmdGrammar>
         //Subject: [Spirit-general] Re: weird assign_a(x,y) problem
         static const bool true_ = true;
         static const bool false_ = false;
-        static const int new_dataset = -1;
+        static const int minus_one = -1;
+        static const char *dot = ".";
+        static const char *empty = "";
         transform 
             //TODO data tranform with "in @3" or "in @3, @4
             = "title">>ch_p('=') >> lexeme_d['"' >> (+~ch_p('"'))[assign_a(t)] 
@@ -227,6 +287,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
               >> !(no_actions_d[VariableRhsG][push_back_a(vt)] 
                    % ',')
               >> str_p(")")[&do_assign_func]
+              >> !("->" >> (str_p("F")|"Z"|"N")[&do_put_function])
             ;
 
         subst_func_param
@@ -250,18 +311,17 @@ struct CmdGrammar : public grammar<CmdGrammar>
 
         existing_dataset_nr
             = lexeme_d['@' >> (uint_p [assign_a(tmp_int)]
-                              | ch_p('.') [assign_a(tmp_int, 
-                                                 AL->get_active_ds_position())]
+                              |eps_p [assign_a(tmp_int, active_dataset)]
                               )
                       ]
             ;
 
         dataset_nr
-            = existing_dataset_nr
-            | str_p("@*") [assign_a(tmp_int, new_dataset)]
+            = str_p("@*") [assign_a(tmp_int, new_dataset)]
+            | existing_dataset_nr
             ;
 
-        dataset_sum
+        dataset_sum //TODO use existing_dataset_nr here
             = lexeme_d['@' >> uint_p[clear_a(vn)][push_back_a(vn)]]
               >> *('+' >> lexeme_d['@' >> uint_p[push_back_a(vn)]])
             ;
@@ -277,21 +337,49 @@ struct CmdGrammar : public grammar<CmdGrammar>
             | (dataset_nr >> '>' >> filename_str) [&do_export_dataset]
             ;
 
-        print_arg
-            = str_p("variables") [&do_print]
-            | VariableLhsG [&do_print]
-            | str_p("functions")[&do_print]
-            | (FunctionLhsG[assign_a(t)] 
+        plot_range 
+            = '[' >> (real_p|"."|eps_p) [push_back_a(vt)] 
+              >> ':' >> (real_p|"."|eps_p) [push_back_a(vt)] 
+              >> ']'  
+            | str_p(".") [push_back_a(vt,dot)][push_back_a(vt,dot)] // [.:.]
+            | (ch_p('[')>>']') [push_back_a(vt,dot)][push_back_a(vt,dot)]//[.:.]
+            | eps_p [push_back_a(vt,empty)][push_back_a(vt,empty)] // [:]
+            ;
+
+        info_arg
+            = str_p("variables") [&do_print_info]
+            | VariableLhsG [&do_print_info]
+            | str_p("functions") [&do_print_info]
+            | (FunctionLhsG [assign_a(t)] 
                >> "(" 
-               >> no_actions_d[DataExpressionG][assign_a(t2)]
-               >> ")")[&do_print_func_value]
-            | FunctionLhsG[&do_print]
-            | existing_dataset_nr[&do_print]
-            | str_p("view")[&do_print]
-            | (str_p("F")|"Z")[&do_print]
-            //TODO F(3.2), Z(2.1)
-            | str_p("sum-formula")[&do_print]
-            // gnuplot formula... 
+               >> no_actions_d[DataExpressionG] [assign_a(t2)]
+               >> ")") [&do_print_func_value] //TODO -> DataExpressionG
+            | FunctionLhsG [&do_print_info]
+            | str_p("datasets") [&do_print_info]
+            | existing_dataset_nr [&do_print_info]
+            | str_p("view") [&do_print_info]
+            | (str_p("F")|"Z") [&do_print_info]
+            | str_p("sum-formula") [&do_print_info]
+            | (str_p("dF") >> '(' 
+              >> no_actions_d[DataExpressionG][assign_a(t)] 
+              >> ')') [&do_print_sum_derivatives_info]
+            | str_p("fit") [&do_print_info]
+            | str_p("errors") [&do_print_info]
+            ;
+
+        fit
+            =
+            (str_p("fit") 
+             >> (str_p("+")[assign_a(tmp_bool, false_)]
+                |eps_p[assign_a(tmp_bool, true_)] 
+                )
+             >> (uint_p[assign_a(tmp_int)]
+                |eps_p[assign_a(tmp_int, minus_one)]
+                )
+            //TODO [@n, ...] 
+            //TODO [only %name, $name, not $name2, ...] 
+            //TODO [using method]
+            ) [&do_fit]
             ;
 
         statement 
@@ -305,11 +393,15 @@ struct CmdGrammar : public grammar<CmdGrammar>
                    | FunctionLhsG [push_back_a(vt)]
                    | lexeme_d['@'>>uint_p[push_back_a(vn)]]) % ',') [&do_delete]
             | dataset_handling
-            | str_p("print") 
-                >> (str_p("-v") [assign_a(extended_print, true_)] 
-                   | eps_p[assign_a(extended_print, false_)] 
+            | str_p("info") 
+                >> (str_p("-v") [assign_a(extended_info, true_)] 
+                   | eps_p[assign_a(extended_info, false_)] 
                    )
-                >> (print_arg % ',')
+                >> (info_arg % ',')
+            | (str_p("plot") [clear_a(vt)] 
+              >> plot_range >> plot_range) [&do_plot]
+            | fit
+            | (str_p("sleep") >> ureal_p[assign_a(tmp_real)])[&do_sleep]
             ;
 
         multi 
@@ -320,7 +412,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
                    subst_func_param, put_function, 
                    dataset_handling, filename_str,
                    existing_dataset_nr, dataset_nr, dataset_sum,
-                   print_arg, statement, multi;  
+                   plot_range, info_arg, fit, statement, multi;  
 
     rule<ScannerT> const& start() const { return multi; }
   };

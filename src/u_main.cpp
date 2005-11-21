@@ -120,16 +120,8 @@ void read_and_execute_input()
 }
 
 
-char *commands[] = { "d.load", "d.transform", "d.info", "d.export",
-        "f.run", "f.continue", "f.set", "f.method", "f.info",
-        "s.add", "s.info", "s.remove", "s.change", "s.set", "s.freeze", 
-        "s.value", "s.history", "s.export", 
-        "m.findpeak", "m.set",
-#ifdef USE_XTAL
-        "c.wavelength", "c.add", "c.info", "c.remove", "c.set", "c.estimate", 
-#endif
-        "o.set", "o.plot", "o.log", "o.include", "o.wait", "o.dump",
-        "help", "quit" 
+char *commands[] = { "info", "plot", "delete", "set", "fit",
+        "commands", "dump", "sleep", "reset", "quit", "guess"
         };
 
 char *command_generator (const char *text, int state)

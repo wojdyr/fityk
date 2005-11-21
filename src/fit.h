@@ -20,7 +20,8 @@ public:
     Fit(char symb, std::string m);
     virtual ~Fit() {};
     void fit(bool ini, int max_iter);
-    std::string getInfo(int mode);
+    std::string getInfo();
+    std::string getErrorInfo(bool matrix=false);
     int get_default_max_iter() { return default_max_iterations; }
     static fp compute_wssr_for_data (const Data* data, const Sum* sum, 
                                      bool weigthed);

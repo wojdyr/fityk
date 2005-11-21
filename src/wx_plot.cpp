@@ -86,9 +86,9 @@ bool FPlot::vert_line_following_cursor (Mouse_act_enum ma, int x, int x0)
     return true;
 }
 
-void FPlot::draw_tics (wxDC& dc, const Rect &v, 
-                          const int x_max_tics, const int y_max_tics, 
-                          const int x_tic_size, const int y_tic_size)
+void FPlot::draw_tics (wxDC& dc, View const &v, 
+                       int const x_max_tics, int const y_max_tics, 
+                       int const x_tic_size, int const y_tic_size)
 {
     dc.SetPen (xAxisPen);
     dc.SetFont(ticsFont);
@@ -123,9 +123,8 @@ void FPlot::draw_tics (wxDC& dc, const Rect &v,
 
 fp FPlot::get_max_abs_y (fp (*compute_y)(vector<Point>::const_iterator))
 {
-    vector<Point>::const_iterator 
-                            first = my_data->get_point_at(my_core->view.left),
-                            last = my_data->get_point_at(my_core->view.right);
+    vector<Point>::const_iterator first = my_data->get_point_at(AL->view.left),
+                                  last = my_data->get_point_at(AL->view.right);
     fp max_abs_y = 0;
     for (vector<Point>::const_iterator i = first; i < last; i++) {
         if (i->is_active) {
@@ -138,8 +137,8 @@ fp FPlot::get_max_abs_y (fp (*compute_y)(vector<Point>::const_iterator))
 
 void FPlot::draw_data (wxDC& dc, 
                        fp (*compute_y)(vector<Point>::const_iterator),
-                       const Data* dat, 
-                       const wxPen *active_p, const wxPen *inactive_p)
+                       Data const* dat, 
+                       wxPen const* active_p, wxPen const* inactive_p)
 {
     const Data *data = dat ? dat : my_data;
     const wxPen &activePen = active_p ? *active_p : activeDataPen;
@@ -147,9 +146,8 @@ void FPlot::draw_data (wxDC& dc,
     const wxBrush activeBrush(activePen.GetColour(), wxSOLID);
     const wxBrush inactiveBrush(inactivePen.GetColour(), wxSOLID);
     if (data->is_empty()) return;
-    vector<Point>::const_iterator 
-                            first = data->get_point_at(my_core->view.left),
-                            last = data->get_point_at(my_core->view.right);
+    vector<Point>::const_iterator first = data->get_point_at(AL->view.left),
+                                  last = data->get_point_at(AL->view.right);
     //if (last - first < 0) return;
     bool active = !first->is_active;//causes pens to be initialized in main loop
     int X_ = 0, Y_ = 0;
@@ -158,7 +156,7 @@ void FPlot::draw_data (wxDC& dc,
     if (line_between_points) {
         dc.SetPen(first->is_active ? activePen : inactivePen);
         if (first > data->points().begin()) {
-            X_ = x2X (my_core->view.left);
+            X_ = x2X (AL->view.left);
             int Y_l = y2Y ((*compute_y)(first - 1));
             int Y_r = y2Y ((*compute_y)(first));
             int X_l = x2X ((first - 1)->x);
@@ -212,7 +210,7 @@ void FPlot::draw_data (wxDC& dc,
 
     //the last line segment, toward next point
     if (line_between_points && last < data->points().end()) {
-        int X = x2X (my_core->view.right);
+        int X = x2X (AL->view.right);
         int Y_l = y2Y ((*compute_y)(last - 1));
         int Y_r = y2Y ((*compute_y)(last));
         int X_l = x2X ((last - 1)->x);
@@ -339,12 +337,13 @@ void AuxPlot::Draw(wxDC &dc)
         return;
     }
 
+    //don't draw y axis and y tics
     if (x_axis_visible) {
         dc.DrawLine (0, y2Y(0), GetClientSize().GetWidth(), y2Y(0));
         if (kind == apk_diff) draw_zoom_text(dc);
     }
     if (tics_visible) {
-        Rect v (0, 0, Y2y(GetClientSize().GetHeight()), Y2y(0));
+        View v(0, 0, Y2y(GetClientSize().GetHeight()), Y2y(0));
         draw_tics(dc, v, 0, 5, 0, 4);
     }
 
@@ -710,23 +709,23 @@ double read_double_from_config(wxConfigBase *cf, const wxString& key,
 }
 
 wxColour read_color_from_config(const wxConfigBase *config, const wxString& key,
-                                 const wxColour& default_value)
+                                const wxColour& default_value)
 {
     return wxColour (config->Read (key + "/Red", default_value.Red()), 
                      config->Read (key + "/Green", default_value.Green()), 
                      config->Read (key + "/Blue", default_value.Blue()));
 }
 
-void write_color_to_config (wxConfigBase *config, const wxString& key,
-                            const wxColour& value)
+void write_color_to_config(wxConfigBase *config, const wxString& key,
+                           const wxColour& value)
 {
     config->Write (key + "/Red", value.Red());
     config->Write (key + "/Green", value.Green());
     config->Write (key + "/Blue", value.Blue());
 }
 
-wxFont read_font_from_config (const wxConfigBase *config, const wxString& key,
-                              const wxFont& default_value)
+wxFont read_font_from_config(wxConfigBase const *config, wxString const& key,
+                             wxFont const &default_value)
 {
     if (!default_value.Ok()) {
         if (config->HasEntry(key+"/pointSize")

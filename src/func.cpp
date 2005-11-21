@@ -21,7 +21,7 @@ Function::Function (string const &name_, vector<string> const &vars,
     : VariableUser(name_, "%"), type_formula(formula_),
       type_name(strip_string(string(formula_,0,formula_.find_first_of("(")+1))),
       type_rhs(strip_string(string(formula_, formula_.find('=')+1))),
-      cutoff_level(0.), vv(vars.size()), mgr(m)
+      nv(vars.size()), cutoff_level(0.), vv(vars.size()), mgr(m)
 {
     // parsing formula for every instance of the class is not effective 
     // but the overhead is negligible
@@ -43,7 +43,7 @@ Function::Function (string const &name_, vector<string> const &vars,
         varnames.push_back(just_name ? string(*i, 1) 
                                      : m->assign_variable("", *i));
     }
-    set_var_idx(mgr->get_variables());
+    set_var_idx(m->get_variables());
 }
 
 Function* Function::factory (string const &name, string const &type_name,
@@ -58,7 +58,7 @@ Function* Function::factory (string const &name, string const &type_name,
         return new fLorentz(name, vars);
     else if (type_name == "PearsonVII")
         return new fPearson(name, vars);
-    else if (type_name == "Pseudo-Voigt")
+    else if (type_name == "PseudoVoigt")
         return new fPsVoigt(name, vars);
     else if (type_name == "Voigt")
         return new fVoigt(name, vars);
@@ -67,6 +67,18 @@ Function* Function::factory (string const &name, string const &type_name,
 #endif
     else 
         throw ExecuteError("Undefined type of function: " + type_name);
+}
+
+vector<string> Function::get_all_types()
+{
+    const char* builtin[] = {
+        "Constant", "Gaussian", "Lorentzian", "PearsonVII", "PseudoVoigt",
+        "Voigt"
+    };
+    vector<string> types;
+    for (unsigned int i = 0; i < sizeof(builtin)/sizeof(builtin[0]); ++i)
+        types.push_back(builtin[i]);
+    return types;
 }
 
 void Function::do_precomputations(vector<Variable*> const &variables)
@@ -198,7 +210,7 @@ void FuncGaussian::calculate_value_deriv(vector<fp> const &x,
 {
     int first, last;
     get_nonzero_idx_range(x, first, last);
-    int dyn = x.size() / dy_da.size();
+    int dyn = dy_da.size() / x.size();
     vector<fp> dy_dv(vv.size());
     for (int i = first; i < last; ++i) {
 

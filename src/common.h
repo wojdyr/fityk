@@ -15,8 +15,6 @@
 #   define VERSION "unknown"
 #endif
 
-#define USE_XTAL 1
-
 #include <string>
 #include <sstream>
 #include <fstream>

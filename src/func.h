@@ -17,6 +17,7 @@ public:
     const std::string type_formula; //eg. Gaussian(a,b,c) = a*(...)
     const std::string type_name;
     const std::string type_rhs;
+    const int nv;
     fp cutoff_level;
 
     Function(std::string const &name_, std::vector<std::string> const &vars,
@@ -26,6 +27,7 @@ public:
                              std::string const &type_name,
                              std::vector<std::string> const &vars,
                              VariableManager *m);
+    static std::vector<std::string> get_all_types();
 
     static bool statics_initialized;
     static std::map<std::string, std::string> default_variables;
@@ -60,10 +62,8 @@ protected:
     std::vector<std::string> type_var_names;
     std::vector<fp> vv; /// current variable values
     std::vector<Multi> multi;
-    VariableManager const *const mgr; //TODO is it neccessary
 private:
     static std::vector<fp> calc_val_xx, calc_val_yy;
-
 };
 
 

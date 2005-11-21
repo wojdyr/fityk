@@ -405,6 +405,7 @@ string VariableManager::assign_variable(string const &name, string const &rhs)
         }
         remove_unreferred();
     }
+    use_parameters();
     return var_name;
 }
 
@@ -442,9 +443,9 @@ void VariableManager::delete_funcs(vector<string> const &names)
         delete functions[k];
         functions.erase(functions.begin() + k);
     }
+    remove_unreferred();
     for (vector<Sum*>::iterator i = sums.begin(); i != sums.end(); ++i)
         (*i)->find_function_indices();
-    remove_unreferred();
 }
 
 void VariableManager::delete_funcs_and_vars(vector<string> const &xnames)
@@ -537,6 +538,7 @@ void VariableManager::put_new_parameters(vector<fp> const &aa,
     //TODO history
     if (change)
         parameters = aa;
+    use_parameters();
 }
 
 void VariableManager::assign_func(string const &name, string const &function, 
@@ -559,6 +561,7 @@ void VariableManager::assign_func(string const &name, string const &function,
         functions.push_back(func);
         info("New function %" + func->name + " was created.");
     }
+    func->do_precomputations(variables);
 }
 
 void VariableManager::substitute_func_param(string const &name, 
@@ -577,6 +580,7 @@ void VariableManager::substitute_func_param(string const &name,
     string new_p = just_name ? string(var, 1) : assign_variable("", var);
     k->substitute_param(i - tv.begin(), new_p); 
     k->set_var_idx(variables);
+    k->do_precomputations(variables);
     remove_unreferred();
 }
 

@@ -62,8 +62,8 @@ void replot()
 }
 
 %token <c> SET
-%token F_RUN F_CONTINUE F_METHOD F_INFO 
-%token O_PLOT O_LOG O_INCLUDE O_WAIT O_DUMP
+%token F_RUN F_CONTINUE F_METHOD 
+%token O_LOG O_INCLUDE O_DUMP
 %token M_FINDPEAK
 %token QUIT 
 %token PLUS_MINUS TWO_COLONS
@@ -99,26 +99,12 @@ exp:  SET DASH_STRING EQ_STRING SEP {
       }
     | SET DASH_STRING SEP          { set_class_p($1)->getp ($2.str()); }
     | SET SEP                      { mesg (set_class_p($1)->print_usage($1)); }
-    | F_RUN UINt SEP               { my_fit->fit(true, $2); }
-    | F_RUN SEP                    { my_fit->fit(true, -1); }
-    | F_CONTINUE UINt SEP          { my_fit->fit(false, $2); }
-    | F_CONTINUE SEP               { my_fit->fit(false, -1); }
     | F_METHOD SEP     { mesg (fitMethodsContainer->print_current_method ()); }
     | F_METHOD LOWERCASE SEP       { fitMethodsContainer->change_method ($2); }
-    | F_INFO SEP                   { mesg (my_fit->getInfo(0)); }
-    | F_INFO '*' SEP               { mesg (my_fit->getInfo(1)); }
-    | F_INFO '*' '*' SEP           { mesg (my_fit->getInfo(2)); }
     | M_FINDPEAK flt opt_flt SEP { 
                             mesg (my_manipul->print_simple_estimate ($2, $3)); }
     | M_FINDPEAK                   {mesg (my_manipul->print_global_peakfind());}
-    | O_PLOT SEP                   { getUI()->drawPlot(1, true);}
-    | O_PLOT range SEP      { /*TODO my_core->set_view (Rect($2.l, $2.r), true); */ }
-    | O_PLOT bracket_range bracket_range SEP  { 
-				    AL->view.set($2.l, $2.r, $3.l, $3.r); }
-    | O_PLOT '.' range SEP         { /*my_core->set_view_v ($3.l, $3.r);*/ }
-    | O_PLOT range '.' SEP         { /*my_core->set_view_h ($2.l, $2.r);*/ }
-    | O_PLOT '.' SEP               { mesg (AL->view.str()); } 
-    | O_PLOT '.' '.' SEP           { mesg (AL->view.str()); } 
+
     | O_LOG opt_lcase FILENAME SEP { getUI()->startLog($2, $3.str()); }
     | O_LOG '!' SEP                { getUI()->stopLog(); }
     | O_LOG                        { mesg (getUI()->getLogInfo()); }
@@ -126,7 +112,6 @@ exp:  SET DASH_STRING EQ_STRING SEP {
     | O_INCLUDE '!' FILENAME lines SEP { AL->reset_all(); 
                                        getUI()->execScript($3.str(), vlines);}
     | O_INCLUDE '!' SEP            { AL->reset_all(); }
-    | O_WAIT flt SEP              { getUI()->wait ($2); }
     | O_DUMP FILENAME SEP          { AL->dump_all_as_script ($2.str()); }
     | QUIT SEP                     { YYABORT;}
     ;

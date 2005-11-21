@@ -69,12 +69,9 @@ ws_ [ \t\v\f\r]+
 f\.r(un)?	   r_cmd(); return F_RUN;
 f\.c(ontinue)?	   r_cmd(); return F_CONTINUE;
 f\.m(ethod)?	   r_cmd(); return F_METHOD;
-f\.i(nfo)?	   r_cmd(); return F_INFO;
 m\.f(indpeak)?     r_cmd(); return M_FINDPEAK;
-o\.p(lot)?	   r_cmd(); return O_PLOT; 
 o\.l(og)?	   r_cmd(); BEGIN(FILE_COND); return O_LOG; 
 o\.i(nclude)?	   r_cmd(); BEGIN(FILE_COND); return O_INCLUDE; 
-o\.w(ait)?	   r_cmd(); return O_WAIT;
 o\.d(ump)?	   r_cmd(); BEGIN(FILE_COND); return O_DUMP;
 (q(uit)?)|(exit)   r_cmd(); return QUIT;
 

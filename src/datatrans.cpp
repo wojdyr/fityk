@@ -890,7 +890,7 @@ bool execute_code(int n, int &M, vector<double>& stack,
                 break;
               }
             case OP_BEGIN:
-            {
+              {
                 bool next_op_once = (*(i+1) == OP_DO_ONCE);
                 if (next_op_once != once) {
                     skip_to_end(i);
@@ -898,7 +898,7 @@ bool execute_code(int n, int &M, vector<double>& stack,
                         return_value=true;
                 }
                 break;
-            }
+              }
             case OP_END: //nothing -- it is used only for skipping assignment
                 break;
             // once - operators
@@ -938,7 +938,7 @@ bool execute_code(int n, int &M, vector<double>& stack,
             case OP_DELETE:
                 assert(0); //OP_DELETE is processed in OP_INDEX OR OP_RANGE
                 break;
-            case OP_SUM:
+            case OP_SUM: //called from replace_sums() only
                 assert(!once);
                 assert(stackPtr == stack.begin());
                 return false;
@@ -1102,6 +1102,9 @@ fp get_transform_expression_value(/*vector<Point> const& points,*/
     // First compile string...
     parse_info<> result = parse(s.c_str(), DataExpressionG, 
                                 space_p);
+    //TODO check for point-dependent ops
+    // OP_VAR_n, OP_VAR_x, OP_VAR_y, OP_VAR_s, OP_VAR_a, 
+    //           OP_VAR_X, OP_VAR_Y, OP_VAR_S, OP_VAR_A,
     // and then execute compiled code.
     if (!result.full) {
         clear_parse_vecs();

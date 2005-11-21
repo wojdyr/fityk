@@ -27,6 +27,7 @@ void ApplicationLogic::activate_ds(int d)
     active_ds = d;
     my_data = get_active_ds()->get_data();
     my_sum = get_active_ds()->get_sum();
+    view.set_items(vector1(my_data), vector1(my_sum));
 }
 
 void ApplicationLogic::remove_ds(int d)
@@ -249,4 +250,42 @@ void View::get_y_range(fp &y_min, fp &y_max)
         }
     }
 }
+
+void View::parse_and_set(std::vector<std::string> const& lrbt) 
+{
+    assert(lrbt.size() == 4);
+    string const &left = lrbt[0];
+    string const &right = lrbt[1];
+    string const &bottom = lrbt[2];
+    string const &top = lrbt[3];
+    fp l=0., r=0., b=0., t=0.;
+    int flag = 0;
+    if (left.empty())
+        flag |= fit_left;
+    else if (left != ".") {
+        flag |= change_left;
+        l = strtod(left.c_str(), 0);
+    }
+    if (right.empty())
+        flag |= fit_right;
+    else if (right != ".") {
+        flag |= change_right;
+        r = strtod(right.c_str(), 0);
+    }
+    if (bottom.empty())
+        flag |= fit_bottom;
+    else if (bottom != ".") {
+        flag |= change_bottom;
+        b = strtod(bottom.c_str(), 0);
+    }
+    if (top.empty())
+        flag |= fit_top;
+    else if (top != ".") {
+        flag |= change_top;
+        t = strtod(top.c_str(), 0);
+    }
+    set(l, r, b, t, flag);
+    fit(flag);
+}
+
 

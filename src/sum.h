@@ -40,6 +40,7 @@ public:
     std::string get_formula(bool simplify=false) const;
     void export_to_file (std::string filename, bool append, char filetype);
     void export_as_script (std::ostream& os) const;
+    std::vector<fp> get_symbolic_derivatives(fp x) const;
     std::vector<fp> get_numeric_derivatives(fp x, fp numerical_h) const;
     fp zero_shift (fp x) const;
     std::vector<int> const& get_ff_idx() { return ff_idx; }
@@ -60,6 +61,8 @@ private:
     void export_as_xfit(std::ostream& os) const;
     Sum (const Sum&); //disable
     Sum& operator= (Sum&); //disable
+    void do_find_function_indices(std::vector<std::string> &names,
+                                  std::vector<int> &idx);
 };
 
 extern Sum *my_sum;

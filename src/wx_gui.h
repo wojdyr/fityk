@@ -5,7 +5,6 @@
 #define WX_GUI__H__
 
 #include "common.h"
-#include "pag.h"
 #include "wx_common.h"  // Output_style_enum
 #include <list>
 #include <wx/spinctrl.h>
@@ -115,6 +114,7 @@ public:
     void OnDInfo         (wxCommandEvent& event);
     void OnDExport       (wxCommandEvent& event);
 
+#if 0
     void OnSHistory      (wxCommandEvent& event);            
     void OnSInfo         (wxCommandEvent& event);         
     void OnSAdd          (wxCommandEvent& event);        
@@ -122,6 +122,7 @@ public:
     void OnSChange       (wxCommandEvent& event);           
     void OnSValue        (wxCommandEvent& event);          
     void OnSExport       (wxCommandEvent& event);           
+#endif
     void OnSSet          (wxCommandEvent& event);        
 
     void OnMFindpeak     (wxCommandEvent& event);        

@@ -49,7 +49,7 @@ public:
     void set_items(std::vector<Data*> const &dd, std::vector<Sum*> const &ss) 
                                                     { datas = dd; sums = ss; }
     void fit(int flag=fit_all); 
-    void parse_and_set(std::string parsable); 
+    void parse_and_set(std::vector<std::string> const& lrbt); 
 protected:
     std::vector<Data*> datas; 
     std::vector<Sum*> sums; 

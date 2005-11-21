@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-enum Mouse_mode_enum { mmd_zoom, mmd_bg, mmd_add, mmd_range, mmd_peak };
+enum MouseModeEnum { mmd_zoom, mmd_bg, mmd_add, mmd_range, mmd_peak };
 
 struct PlotShared
 {
@@ -28,19 +28,19 @@ struct PlotShared
 class wxConfigBase;
 class wxString;
 
-bool read_bool_from_config(wxConfigBase *cf, const wxString& key, bool def_val);
-double read_double_from_config(wxConfigBase *cf, const wxString& key, 
+bool read_bool_from_config(wxConfigBase* cf, wxString const& key, bool def_val);
+double read_double_from_config(wxConfigBase* cf, wxString const& key, 
                                double def_val);
 
-wxColour read_color_from_config(const wxConfigBase *config, const wxString& key,
-                                const wxColour& default_value);
-void write_color_to_config (wxConfigBase *config, const wxString& key,
-                            const wxColour& value);
+wxColour read_color_from_config(wxConfigBase const* config, wxString const& key,
+                                wxColour const& default_value);
+void write_color_to_config(wxConfigBase* config, const wxString& key,
+                           const wxColour& value);
 
-wxFont read_font_from_config (const wxConfigBase *config, const wxString& key,
-                              const wxFont& default_value);
-void write_font_to_config (wxConfigBase *config, const wxString& key,
-                           const wxFont& value);
+wxFont read_font_from_config(wxConfigBase const* config, wxString const& key,
+                             wxFont const& default_value);
+void write_font_to_config(wxConfigBase* config, wxString const& key,
+                          wxFont const& value);
 
 //dummy events -- useful when calling event handler functions
 extern wxMouseEvent dummy_mouse_event;

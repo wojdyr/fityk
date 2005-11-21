@@ -97,7 +97,7 @@ int GnuPlot::plot()
     string yfun = my_sum->get_formula();
     //gnuplot format is a bit different
     replace_all(yfun, "^", "**");
-    replace_all(yfun, "ln", "log");
+    replace_words(yfun, "ln", "log");
     very_verbose("Plotting function: " + yfun); 
     // Send commands through the pipe to gnuplot
     int i_f = my_data->get_lower_bound_ac (AL->view.left);

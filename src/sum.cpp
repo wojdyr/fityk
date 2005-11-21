@@ -30,26 +30,25 @@ Sum::~Sum()
 }
 
 
+void Sum::do_find_function_indices(vector<string> &names,
+                                   vector<int> &idx)
+{
+    idx.clear();
+    for (int i = 0; i < size(names); ){
+        int k = mgr.find_function_nr(names[i]);
+        if (k == -1)
+            names.erase(names.begin() + i);
+        else {
+            idx.push_back(k);
+            ++i;
+        }
+    }
+}
+
 void Sum::find_function_indices()
 {
-    ff_idx.clear();
-    for (vector<string>::iterator i = ff_names.end()-1; 
-            i >= ff_names.begin(); --i){
-        int k = mgr.find_function_nr(*i);
-        if (k == -1)
-            ff_names.erase(i);
-        else
-            ff_idx.push_back(k);
-    }
-    zz_idx.clear();
-    for (vector<string>::iterator i = zz_names.end()-1; 
-            i >= zz_names.begin(); --i){
-        int k = mgr.find_function_nr(*i);
-        if (k == -1)
-            zz_names.erase(i);
-        else
-            zz_idx.push_back(k);
-    }
+    do_find_function_indices(ff_names, ff_idx);
+    do_find_function_indices(zz_names, zz_idx);
 }
 
 void Sum::add_function_to(string const &name, char add_to)
@@ -110,9 +109,12 @@ void Sum::calculate_sum_value(vector<fp> &x, vector<fp> &y) const
         mgr.get_function(*i)->calculate_value(x, y);
 }
 
+// x is changed to x+Z
 void Sum::calculate_sum_value_deriv(vector<fp> &x, vector<fp> &y,
                                     vector<fp> &dy_da) const
 {
+    if (x.empty())
+        return;
     fill (dy_da.begin(), dy_da.end(), 0);
     // add zero-shift to x
     for (vector<int>::const_iterator i = zz_idx.begin(); i != zz_idx.end(); i++)
@@ -122,6 +124,18 @@ void Sum::calculate_sum_value_deriv(vector<fp> &x, vector<fp> &y,
         mgr.get_function(*i)->calculate_value_deriv(x, y, dy_da, false);
     for (vector<int>::const_iterator i = zz_idx.begin(); i != zz_idx.end(); i++)
         mgr.get_function(*i)->calculate_value_deriv(x, y, dy_da, true);
+}
+
+vector<fp> 
+Sum::get_symbolic_derivatives(fp x) const
+{
+    int n = mgr.get_parameters().size();
+    vector<fp> dy_da(n+1);
+    vector<fp> xx(1, x);
+    vector<fp> yy(1);
+    calculate_sum_value_deriv(xx, yy, dy_da);
+    dy_da.resize(n); //throw out last item (dy/dy)
+    return dy_da;
 }
 
 vector<fp> 
