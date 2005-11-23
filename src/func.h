@@ -9,6 +9,7 @@
 
 class Function : public VariableUser
 {
+    static int unnamed_counter;
 public:
     struct Multi { 
         int p; int n; fp mult; 
@@ -16,21 +17,30 @@ public:
     };
     const std::string type_formula; //eg. Gaussian(a,b,c) = a*(...)
     const std::string type_name;
+    const std::vector<std::string> type_var_names;
+    const std::vector<std::string> type_var_eq;
     const std::string type_rhs;
     const int nv;
     fp cutoff_level;
 
     Function(std::string const &name_, std::vector<std::string> const &vars,
-             std::string const &formula_, VariableManager *m);
+             std::string const &formula_);
     virtual ~Function() {}
-    static Function* factory(std::string const &name, 
+    static Function* factory(std::string const &name_, 
                              std::string const &type_name,
-                             std::vector<std::string> const &vars,
-                             VariableManager *m);
+                             std::vector<std::string> const &vars);
     static std::vector<std::string> get_all_types();
+    static std::string get_formula(std::string const& type);
+    static std::string next_auto_name() { return "fun" + S(++unnamed_counter); }
 
     static bool statics_initialized;
     static std::map<std::string, std::string> default_variables;
+    static std::string get_typename_from_formula(std::string const &formula)
+     {return strip_string(std::string(formula, 0, formula.find_first_of("(")));}
+    static std::string get_rhs_from_formula(std::string const &formula)
+     { return strip_string(std::string(formula, formula.rfind('=')+1)); }
+    static std::vector<std::string> 
+      get_varnames_from_formula(std::string const &formula, bool get_eq=false);
 
     virtual void calculate_value(std::vector<fp> const &x, 
                                  std::vector<fp> &y) const = 0; 
@@ -52,14 +62,11 @@ public:
     virtual fp fwhm() const { return 0; }
     virtual fp area() const { return 0; }
     std::vector<fp> const& get_var_values() const { return vv; }
-    std::vector<std::string> const& get_type_var_names() const 
-                                               { return type_var_names; }
     std::string get_info(std::vector<Variable*> const &variables, 
                     std::vector<fp> const &parameters, 
                     bool extended=false) const;
     std::string get_current_formula(std::string const& x = "x") const;
 protected:
-    std::vector<std::string> type_var_names;
     std::vector<fp> vv; /// current variable values
     std::vector<Multi> multi;
 private:
@@ -69,9 +76,8 @@ private:
 
 class FuncConstant : public Function
 {
-    FuncConstant (std::string const &name, std::vector<std::string> const &vars,
-                  VariableManager *m)
-        : Function(name, vars, formula, m) {}
+    FuncConstant (std::string const &name, std::vector<std::string> const &vars)
+        : Function(name, vars, formula) {}
     friend class Function;
 public:
     static const char *formula; 
@@ -84,13 +90,12 @@ public:
 
 class FuncGaussian : public Function
 {
-    static const char *formula; 
-    FuncGaussian (std::string const &name, std::vector<std::string> const &vars,
-                  VariableManager *m)
-        : Function (name, vars, formula, m) {}  
+    FuncGaussian (std::string const &name, std::vector<std::string> const &vars)
+        : Function (name, vars, formula) {}  
     FuncGaussian (const FuncGaussian&);
     friend class Function;
 public:
+    static const char *formula; 
 
     void calculate_value(std::vector<fp> const &x, std::vector<fp> &y) const; 
     void calculate_value_deriv(std::vector<fp> const &x, 

@@ -61,16 +61,9 @@ int VariableUser::get_max_var_idx()
        return *max_element(var_idx.begin(), var_idx.end());
 }
 
-
-string Variable::new_name()
-{
-    string name = "var" + S(++unnamed_counter);
-    return name;
-}
-
 Variable::Variable(std::string const &name_, int nr_, 
                    bool auto_delete_, bool hidden_)
-    : VariableUser(name_.empty() ? new_name() : name_, "$"),
+    : VariableUser(name_, "$"),
       nr(nr_), auto_delete(auto_delete_), hidden(hidden_),
       recursive_derivatives(1)
 {
@@ -81,7 +74,7 @@ Variable::Variable(std::string const &name_, int nr_,
 Variable::Variable(std::string const &name_, vector<string> const &vars_,
                    vector<OpTree*> const &op_trees_, 
                    bool auto_delete_, bool hidden_)
-    : VariableUser(name_.empty() ? new_name() : name_, "$", vars_),
+    : VariableUser(name_, "$", vars_),
       nr(-1), auto_delete(auto_delete_), hidden(hidden_),
       derivatives(vars_.size()),
       op_trees(op_trees_) 
@@ -281,13 +274,14 @@ Variable *VariableManager::create_simple_variable(string const &name,
 
 Variable *VariableManager::create_variable(string const &name,string const &rhs)
 {
+    string t = name.empty() ? Variable::next_auto_name() : name; 
     tree_parse_info<> info = ast_parse(rhs.c_str(), VariableRhsG, space_p);
     assert(info.full);
     const_tm_iter_t const &root = info.trees.begin();
     if (root->value.id() == VariableRhsGrammar::variableID
             && *root->value.begin() == '~') {
         string root_str = string(root->value.begin(), root->value.end());
-        return create_simple_variable(name, root_str);
+        return create_simple_variable(t, root_str);
     }
     vector<string> vars = find_tokens(VariableRhsGrammar::variableID, info);
     if (find(vars.begin(), vars.end(), "x") != vars.end())
@@ -302,7 +296,7 @@ Variable *VariableManager::create_variable(string const &name,string const &rhs)
         else if ((*i)[0] == '$')
             *i = string(i->begin()+1, i->end());
     }
-    return new Variable(name, vars, op_trees);
+    return new Variable(t, vars, op_trees);
 }
 
 bool VariableManager::is_variable_referred(int i, 
@@ -466,8 +460,9 @@ void VariableManager::delete_funcs_and_vars(vector<string> const &xnames)
 
 
 int VariableManager::find_function_nr(string const &name) {
+    string only_name = !name.empty() && name[0]=='%' ? string(name,1) : name;
     for (int i = 0; i < size(functions); ++i)
-        if (functions[i]->name == name)
+        if (functions[i]->name == only_name)
             return i;
     return -1;
 }
@@ -541,10 +536,72 @@ void VariableManager::put_new_parameters(vector<fp> const &aa,
     use_parameters();
 }
 
-void VariableManager::assign_func(string const &name, string const &function, 
+vector<string> VariableManager::get_vars_from_kw(string const &function,
+                                                 vector<string> const &vars)
+{
+    string formula = Function::get_formula(function);
+    if (formula.empty())
+        throw ExecuteError("Undefined type of function: " + function);
+    vector<string> tnames 
+        = Function::get_varnames_from_formula(formula, false);
+    vector<string> tvalues 
+        = Function::get_varnames_from_formula(formula, true);
+    vector<string> vv(tnames.size());
+    // numeric values defined in function type definitions
+    for (int i = 0; i < size(tvalues); ++i)
+        if (is_double(tvalues[i]))
+            vv[i] = "~" + tvalues[i];
+    // variables given in vars
+    for (vector<string>::const_iterator i = vars.begin(); i != vars.end(); 
+                                                                      ++i){
+        string::size_type eq = i->find('=');
+        assert(eq != string::npos);
+        string name = string(*i, 0, eq);
+        string value = string(*i, eq+1);
+        vector<string>::iterator j=find(tnames.begin(), tnames.end(), name);
+        if (j != tnames.end())
+            vv[j - tnames.begin()] = value;
+        vector<string>::iterator k = find(tvalues.begin(), tvalues.end(), 
+                                                                  name);
+        if (k != tvalues.end())
+            vv[k - tvalues.begin()] = value;
+    }
+    for (int i = 0; i < size(vv); ++i) {
+        if (vv[i].empty())
+            throw ExecuteError("Can't create function " + function
+                               + " because " + tnames[i]+ " is unknown.");
+    }
+    return vv;
+}
+
+vector<string> VariableManager::make_varnames(string const &function,
+                                              vector<string> const &vars) 
+{
+    vector<string> varnames;
+    if (vars.empty())
+        return vars;
+    vector<string> vv = (vars[0].find('=') == string::npos ? vars
+                                           : get_vars_from_kw(function, vars));
+    for (int i = 0; i < size(vv); ++i) {
+        bool just_name = parse(vv[i].c_str(), VariableLhsG).full;
+        varnames.push_back(just_name ? string(vv[i], 1) 
+                                     : assign_variable("", vv[i]));
+    }
+    return varnames;
+}
+
+string VariableManager::assign_func(string const &name, string const &function, 
                                   vector<string> const &vars)
 {
-    Function *func = Function::factory(name, function, vars, this);
+    Function *func = 0;
+    try {
+        vector<string> varnames = make_varnames(function, vars);
+        func = Function::factory(name, function, varnames);
+    } catch (ExecuteError &) {
+        remove_unreferred();
+        throw;
+    }
+    func->set_var_idx(variables);
     //if there is already function with the same name -- replace
     bool found = false;
     for (int i = 0; i < size(functions); ++i) {
@@ -562,6 +619,7 @@ void VariableManager::assign_func(string const &name, string const &function,
         info("New function %" + func->name + " was created.");
     }
     func->do_precomputations(variables);
+    return func->name;
 }
 
 void VariableManager::substitute_func_param(string const &name, 
@@ -572,7 +630,7 @@ void VariableManager::substitute_func_param(string const &name,
     if (nr == -1)
         throw ExecuteError("undefined function: %" + name);
     Function *k = functions[nr];
-    vector<string> const &tv = k->get_type_var_names();
+    vector<string> const &tv = k->type_var_names;
     vector<string>::const_iterator i = find(tv.begin(), tv.end(), param);
     if (i == tv.end())
         throw ExecuteError("function %" + name + " has no parameter: " + param);

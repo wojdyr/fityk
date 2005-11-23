@@ -28,7 +28,8 @@ public:
 
     VariableUser(std::string const &name_, std::string const &prefix_, 
               std::vector<std::string> const &vars = std::vector<std::string>())
-        : name(name_), prefix(prefix_), xname(prefix_+name_), varnames(vars) {}
+        : name(name_), prefix(prefix_), xname(prefix_+name), varnames(vars) {}
+    virtual ~VariableUser() {}
     bool is_dependent_on(int idx, std::vector<Variable*> const &variables);
     bool is_directly_dependent_on(int idx);
     void set_var_idx(std::vector<Variable*> const &variables);
@@ -36,17 +37,15 @@ public:
     void substitute_param(int n, std::string const &new_p)
              { assert(n >= 0 && n < size(varnames)); varnames[n] = new_p; }
 protected:
+    std::vector<std::string> varnames; // variable names 
     /// var_idx is set after initialization (in derived class)
     /// and modified after variable removal or change
     std::vector<int> var_idx;
-    /// variable names - set once and never changed
-    std::vector<std::string> varnames;
 };
 
 class Variable : public VariableUser
 {
     static int unnamed_counter;
-    static std::string new_name();
 public:
     struct ParMult { int p; fp mult; };
     Variable(const std::string &name_, int nr_, 
@@ -54,6 +53,7 @@ public:
     Variable(std::string const &name_, std::vector<std::string> const &vars_,
              std::vector<OpTree*> const &op_trees_, 
              bool auto_delete_=false, bool hidden_=false);
+    static std::string next_auto_name() { return "var" + S(++unnamed_counter); }
     void recalculate(std::vector<Variable*> const &variables, 
                      std::vector<fp> const &parameters);
   
@@ -123,8 +123,9 @@ public:
     std::vector<fp> const& get_parameters() const { return parameters; }
     std::vector<Variable*> const& get_variables() const { return variables; }
 
-    void assign_func(std::string const &name, std::string const &function, 
-                     std::vector<std::string> const &vars);
+    std::string assign_func(std::string const &name, 
+                            std::string const &function, 
+                            std::vector<std::string> const &vars);
     void substitute_func_param(std::string const &name, 
                                std::string const &param,
                                std::string const &var);
@@ -162,6 +163,10 @@ protected:
                               std::vector<std::string> const &ignore_vars
                                                  =std::vector<std::string>(),
                               std::string *first_referrer=0);
+    std::vector<std::string> make_varnames(std::string const &function,
+                                          std::vector<std::string> const &vars);
+    std::vector<std::string> get_vars_from_kw(std::string const &function,
+                                         std::vector<std::string> const &vars);
 };
 
 

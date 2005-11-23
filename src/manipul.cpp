@@ -195,5 +195,34 @@ string Manipul::print_global_peakfind ()
     return s;
 }
 
+void Manipul::guess_and_add(string const& name, string const& function,
+                            bool in_range, fp range_from, fp range_to,
+                            vector<string> vars)
+{
+    fp c = 0., h = 0., a = 0., fwhm = 0.;
+    EstConditions estc;
+    estc.real_peaks = my_sum->get_ff_idx();
+    if (in_range)
+        estimate_peak_parameters((range_from+range_to)/2, 
+                                 (range_to-range_from)/2, 
+                                 &c, &h, &a, &fwhm, &estc);
+    else
+        estimate_peak_parameters(0., +INF, &c, &h, &a, &fwhm, &estc);
+    vector<string> vars_lhs(vars.size());
+    for (int i = 0; i < size(vars); ++i)
+        vars_lhs[i] = string(vars[i], 0, vars[i].find('='));
+    if (find(vars_lhs.begin(), vars_lhs.end(), "center") == vars_lhs.end())
+        vars.push_back("center=~"+S(c));
+    if (find(vars_lhs.begin(), vars_lhs.end(), "height") == vars_lhs.end())
+        vars.push_back("height=~"+S(h));
+    if (find(vars_lhs.begin(), vars_lhs.end(), "hwhm") == vars_lhs.end())
+        vars.push_back("hwhm=~"+S(fwhm/2));
+    if (find(vars_lhs.begin(), vars_lhs.end(), "area") == vars_lhs.end())
+        vars.push_back("area=~"+S(a));
+    string real_name = AL->assign_func(name, function, vars);
+    AL->get_active_ds()->get_sum()->add_function_to(real_name, 'F');
+}
+
+
 Manipul *my_manipul;
 

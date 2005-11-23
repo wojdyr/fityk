@@ -47,6 +47,9 @@ public:
                             const EstConditions *ec=0) const;
     std::string print_simple_estimate(fp center, fp w = -1.) const; 
     std::string print_global_peakfind();
+    void guess_and_add(std::string const& name, std::string const& function,
+                       bool in_range, fp range_from, fp range_to,
+                       std::vector<std::string> vars);
 private:
     fp search_width;
     bool cancel_peak_out_of_search;

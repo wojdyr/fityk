@@ -53,26 +53,27 @@ void Sum::find_function_indices()
 
 void Sum::add_function_to(string const &name, char add_to)
 {
+    string only_name = !name.empty() && name[0]=='%' ? string(name,1) : name;
     // first remove function if it is already in ff or zz
     for (int i = 0; i < size(ff_names); ++i)
-        if (ff_names[i] == name) {
+        if (ff_names[i] == only_name) {
             ff_names.erase(ff_names.begin() + i);
             ff_idx.erase(ff_idx.begin() + i);
         }
     for (int i = 0; i < size(zz_names); ++i)
-        if (zz_names[i] == name) {
+        if (zz_names[i] == only_name) {
             zz_names.erase(zz_names.begin() + i);
             zz_idx.erase(zz_idx.begin() + i);
         }
-    int idx = mgr.find_function_nr(name);
+    int idx = mgr.find_function_nr(only_name);
     if (idx == -1)
-        throw ExecuteError("function %" + name + " not found.");
+        throw ExecuteError("function %" + only_name + " not found.");
     if (add_to == 'F') {
-        ff_names.push_back(name);
+        ff_names.push_back(only_name);
         ff_idx.push_back(idx);
     }
     else if (add_to == 'Z') {
-        zz_names.push_back(name);
+        zz_names.push_back(only_name);
         zz_idx.push_back(idx);
     }
     else if (add_to == 'N')

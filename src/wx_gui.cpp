@@ -1817,7 +1817,7 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
             exec_command("s.history -1"); 
             break; 
         case ID_ft_s_aa: 
-            exec_command("guess " + frame->get_peak_type() + " -> F");
+            exec_command("guess " + frame->get_peak_type());
             break; 
         default: 
             assert(0);

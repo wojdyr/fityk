@@ -10,6 +10,7 @@
 #include "func.h"
 #include "logic.h"
 #include "fit.h"
+#include "manipul.h"
 #include <boost/spirit/core.hpp>
 #include <boost/spirit/actor/assign_actor.hpp>
 #include <boost/spirit/actor/push_back_actor.hpp>
@@ -25,7 +26,7 @@ bool extended_info;
 string t, t2;
 int tmp_int;
 bool tmp_bool;
-double tmp_real;
+double tmp_real, tmp_real2;
 vector<string> vt;
 vector<int> vn;
 static const int new_dataset = -1;
@@ -41,13 +42,13 @@ void do_assign_var(char const* a, char const* b)
 
 void do_assign_func(char const*, char const*)
 {
-   AL->assign_func(string(t,1), t2, vt);
+   AL->assign_func(t, t2, vt);
    vt = vector1(t); //for do_put_function()
 }
 
 void do_subst_func_param(char const* a, char const* b)
 {
-    AL->substitute_func_param(string(t,1), t2, string(a,b));
+    AL->substitute_func_param(t, t2, string(a,b));
 }
 
 void do_put_function(char const* a, char const* b)
@@ -55,7 +56,7 @@ void do_put_function(char const* a, char const* b)
     string s(a,b);
     for (vector<string>::const_iterator i = vt.begin(); i != vt.end(); ++i)
         if (s.size() == 1)
-            AL->get_active_ds()->get_sum()->add_function_to(string(*i,1), s[0]);
+            AL->get_active_ds()->get_sum()->add_function_to(*i, s[0]);
 }
 
 void do_delete(char const*, char const*) 
@@ -176,7 +177,7 @@ void do_print_sum_derivatives_info(char const*, char const*)
 void do_print_func_value(char const*, char const*)
 {
     string m;
-    const Function* f = AL->find_function(string(t, 1));
+    const Function* f = AL->find_function(t);
     if (f) {
         fp x = get_transform_expression_value(t2);
         fp y = f->calculate_value(x);
@@ -244,6 +245,12 @@ void do_sleep(char const*, char const*)
     getUI()->wait(tmp_real);
 }
 
+void do_guess(char const*, char const*)
+{
+    my_manipul->guess_and_add(t, t2, 
+                              tmp_bool, tmp_real, tmp_real2, vt);
+}
+
 } //namespace
 
 
@@ -276,23 +283,32 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         function_name
-            = lexeme_d[(upper_p >> *alnum_p)] [assign_a(t2)]
+            = lexeme_d[(upper_p >> *alnum_p)] 
+            ;
+
+        function_param
+            = +(alnum_p | '_')
             ;
 
         assign_func
-            = FunctionLhsG [assign_a(t)]
-              >> '=' 
-              >> function_name 
+            = (FunctionLhsG [assign_a(t)] >> '=' 
+              | eps_p [assign_a(t, empty)]
+              )
+              >> function_name [assign_a(t2)]
               >> str_p("(")[clear_a(vt)] 
-              >> !(no_actions_d[VariableRhsG][push_back_a(vt)] 
+              >> !((no_actions_d[VariableRhsG][push_back_a(vt)] 
                    % ',')
+                  | ((function_param >> "=" >> no_actions_d[VariableRhsG])
+                                                              [push_back_a(vt)] 
+                   % ',')
+                  )
               >> str_p(")")[&do_assign_func]
               >> !("->" >> (str_p("F")|"Z"|"N")[&do_put_function])
             ;
 
         subst_func_param
             = FunctionLhsG [assign_a(t)]
-              >> "[" >> (+(alnum_p | '_')) [assign_a(t2)]
+              >> "[" >> function_param [assign_a(t2)]
               >> "]" >> "="
               >> no_actions_d[VariableRhsG][&do_subst_func_param]
             ;
@@ -382,11 +398,24 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ) [&do_fit]
             ;
 
+        guess
+            = (str_p("guess") [clear_a(vt)] [assign_a(t, empty)] 
+                               [assign_a(tmp_bool, false_)]
+              >> function_name [assign_a(t2)]
+              >> !('[' >> real_p [assign_a(tmp_real)][assign_a(tmp_bool,true_)]
+                  >> ':' >> real_p [assign_a(tmp_real2)]
+                  >> ']') 
+              >> !((function_param >> '=' >> no_actions_d[VariableRhsG])
+                                                           [push_back_a(vt)]
+                   % ',')
+              >> !("as" >> FunctionLhsG [assign_a(t)])) [&do_guess]
+            ;
+
         statement 
             = transform 
             | assign_var 
-            | assign_func 
             | subst_func_param 
+            | assign_func 
             | put_function
             | (str_p("delete")[clear_a(vt)][clear_a(vn)] 
                 >> ( VariableLhsG [push_back_a(vt)]
@@ -394,13 +423,14 @@ struct CmdGrammar : public grammar<CmdGrammar>
                    | lexeme_d['@'>>uint_p[push_back_a(vn)]]) % ',') [&do_delete]
             | dataset_handling
             | str_p("info") 
-                >> (str_p("-v") [assign_a(extended_info, true_)] 
+                >> (str_p("+") [assign_a(extended_info, true_)] 
                    | eps_p[assign_a(extended_info, false_)] 
                    )
                 >> (info_arg % ',')
             | (str_p("plot") [clear_a(vt)] 
               >> plot_range >> plot_range) [&do_plot]
             | fit
+            | guess
             | (str_p("sleep") >> ureal_p[assign_a(tmp_real)])[&do_sleep]
             ;
 
@@ -409,8 +439,8 @@ struct CmdGrammar : public grammar<CmdGrammar>
     }
 
     rule<ScannerT> transform, assign_var, function_name, assign_func, 
-                   subst_func_param, put_function, 
-                   dataset_handling, filename_str,
+                   function_param, subst_func_param, put_function, 
+                   dataset_handling, filename_str, guess,
                    existing_dataset_nr, dataset_nr, dataset_sum,
                    plot_range, info_arg, fit, statement, multi;  
 

@@ -778,7 +778,7 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
     if (nearest != -1) {
         Function const* f = AL->get_function(over_peak);
         string s = f->xname + " " + f->type_name + " ";
-        vector<string> const& vn = f->get_type_var_names();
+        vector<string> const& vn = f->type_var_names;
         for (int i = 0; i < size(vn); ++i)
             s += " " + vn[i] + "=" + S(f->get_var_values()[i]);
         frame->set_status_text(s.c_str());
@@ -911,7 +911,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         if (dist_x >= 5) { 
             exec_command ("guess " + frame->get_peak_type() 
                           + " [" + S(X2x(mouse_press_X)) + " : " 
-                          + S(X2x(event.GetX())) + "] -> F");
+                          + S(X2x(event.GetX())) + "]");
         }
         vert_line_following_cursor(mat_cancel);
     }
