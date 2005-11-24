@@ -50,7 +50,7 @@ vector<string> Function::get_varnames_from_formula(string const &formula,
             defaults.push_back(string());
         }
         else {
-            names.push_back(strip_string(string(*i, 0, eq-1)));
+            names.push_back(strip_string(string(*i, 0, eq)));
             defaults.push_back(strip_string(string(*i, eq+1)));
         }
     }
@@ -79,13 +79,16 @@ Function* Function::factory (string const &name_, string const &type_name,
     else if (type_name == "Polynomial5")
         return new fPolynomial5(name, vars);
 #endif
+    else if (type_name == "PielaszekCube")
+        return new FuncPielaszekCube(name, vars);
     else 
         throw ExecuteError("Undefined type of function: " + type_name);
 }
 
 const char* builtin_formulas[] = {
     FuncConstant::formula,
-    FuncGaussian::formula
+    FuncGaussian::formula,
+    FuncPielaszekCube::formula
 };
 
 vector<string> Function::get_all_types()
@@ -181,6 +184,20 @@ string Function::get_current_formula(string const& x) const
 int Function::unnamed_counter = 0;
 
 ///////////////////////////////////////////////////////////////////////
+#define PUT_DERIVATIVES_AND_VALUE(VAL) \
+        if (!in_dx) { \
+            y[i] += (VAL); \
+            for (vector<Multi>::const_iterator j = multi.begin(); \
+                    j != multi.end(); ++j) \
+                dy_da[dyn*i+j->p] += dy_dv[j->n] * j->mult;\
+            dy_da[dyn*i+dyn-1] += dy_dx;\
+        }\
+        else {  \
+            for (vector<Multi>::const_iterator j = multi.begin(); \
+                    j != multi.end(); ++j) \
+                dy_da[dyn*i+j->p] += dy_da[dyn*i+dyn-1] * dy_dv[j->n]*j->mult;\
+        }
+///////////////////////////////////////////////////////////////////////
 
 const char *FuncConstant::formula 
 = "Constant(a) = a"; 
@@ -202,20 +219,7 @@ void FuncConstant::calculate_value_deriv(vector<fp> const &x,
     for (int i = 0; i < size(y); ++i) {
         dy_dv[0] = 1.;
         fp dy_dx = 0;
-
-        if (!in_dx) {
-            y[i] += vv[0];
-
-            for (vector<Multi>::const_iterator j = multi.begin(); 
-                    j != multi.end(); ++j)
-                dy_da[dyn*i+j->p] += dy_dv[j->n] * j->mult;
-            dy_da[dyn*i+dyn-1] += dy_dx;
-        }
-        else { //in dx
-            for (vector<Multi>::const_iterator j = multi.begin(); 
-                    j != multi.end(); ++j)
-                dy_da[dyn*i+j->p] += dy_da[dyn*i+dyn-1] * dy_dv[j->n] * j->mult;
-        }
+        PUT_DERIVATIVES_AND_VALUE(vv[0]);
     }
 }
 
@@ -247,7 +251,6 @@ void FuncGaussian::calculate_value_deriv(vector<fp> const &x,
     int dyn = dy_da.size() / x.size();
     vector<fp> dy_dv(vv.size());
     for (int i = first; i < last; ++i) {
-
         fp xa1a2 = (x[i] - vv[1]) / vv[2];
         fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
         dy_dv[0] = ex;
@@ -255,20 +258,7 @@ void FuncGaussian::calculate_value_deriv(vector<fp> const &x,
         dy_dv[1] = dcenter;
         dy_dv[2] = dcenter * xa1a2;
         fp dy_dx = -dcenter;
-
-        if (!in_dx) {
-            y[i] += vv[0] * ex;
-
-            for (vector<Multi>::const_iterator j = multi.begin(); 
-                    j != multi.end(); ++j)
-                dy_da[dyn*i+j->p] += dy_dv[j->n] * j->mult;
-            dy_da[dyn*i+dyn-1] += dy_dx;
-        }
-        else { //in dx
-            for (vector<Multi>::const_iterator j = multi.begin(); 
-                    j != multi.end(); ++j)
-                dy_da[dyn*i+j->p] += dy_da[dyn*i+dyn-1] * dy_dv[j->n] * j->mult;
-        }
+        PUT_DERIVATIVES_AND_VALUE(vv[0]*ex);
     }
 }
 
@@ -287,4 +277,145 @@ bool FuncGaussian::get_nonzero_range (fp level, fp &left, fp &right) const
 }
 
 ///////////////////////////////////////////////////////////////////////
+
+const char *FuncPielaszekCube::formula 
+= "PielaszekCube(a=height*0.016, center, r=300, s=150) = ..."; 
+
+
+void FuncPielaszekCube::calculate_value(vector<fp> const &x, 
+                                        vector<fp> &y) const
+{
+    fp height = vv[0];
+    fp center = vv[1];
+    fp R = vv[2];
+    fp s = vv[3];
+    fp s2 = s*s;
+    fp s4 = s2*s2;
+    fp R2 = R*R;
+    for (int i = 0; i < size(x); ++i) {
+        fp q = (x[i]-center);
+        fp q2 = q*q;
+        y[i] += height * 
+        (-3*R*(-1 - (R2*(-1 +
+                              pow(1 + (q2*s4)/R2, 1.5 - R2/(2.*s2))
+                              * cos(2*(-1.5 + R2/(2.*s2)) * atan((q*s2)/R))))/
+               (2.*q2*(-1.5 + R2/(2.*s2))* (-1 + R2/(2.*s2))*s4)))/
+          (sqrt(2*M_PI)*q2*(-0.5 + R2/(2.*s2))* s2);
+    }
+}
+
+void FuncPielaszekCube::calculate_value_deriv(vector<fp> const &x, 
+                                         vector<fp> &y, 
+                                         vector<fp> &dy_da,
+                                         bool in_dx) const
+{
+    int dyn = dy_da.size() / x.size();
+    vector<fp> dy_dv(vv.size());
+    fp height = vv[0];
+    fp center = vv[1];
+    fp R = vv[2];
+    fp s = vv[3];
+    fp s2 = s*s;
+    fp s3 = s*s2;
+    fp s4 = s2*s2;
+    fp R2 = R*R;
+    fp R4 = R2*R2;
+    fp R3 = R*R2;
+    for (int i = 0; i < size(x); ++i) {
+        fp q = (x[i]-center);
+        fp q2 = q*q;
+        fp t = (-3*R*(-1 - (R2*(-1 +
+                              pow(1 + (q2*s4)/R2, 1.5 - R2/(2.*s2))
+                              * cos(2*(-1.5 + R2/(2.*s2)) * atan((q*s2)/R))))/
+               (2.*q2*(-1.5 + R2/(2.*s2))* (-1 + R2/(2.*s2))*s4)))/
+          (sqrt(2*M_PI)*q2*(-0.5 + R2/(2.*s2))* s2);
+
+        fp dcenter = height * (
+            (3*sqrt(2/M_PI)*R*(-1 - 
+                        (R2* (-1 + pow(1 + (q2*s4)/R2, 1.5 - R2/(2.*s2))*
+             cos(2*(-1.5 + R2/(2.*s2))* atan((q*s2)/R))))/
+        (2.*q2*(-1.5 + R2/(2.*s2))* (-1 + R2/(2.*s2))*s4)))/
+   (q*q2*(-0.5 + R2/(2.*s2))*s2) - (3*R*((R2*(-1 + 
+            pow(1 + (q2*s4)/R2, 1.5 - R2/(2.*s2))*
+             cos(2*(-1.5 + R2/(2.*s2))* atan((q*s2)/R))))/
+        (q*q2*(-1.5 + R2/(2.*s2))* (-1 + R2/(2.*s2))*s4) - 
+       (R2*((2*q*(1.5 - R2/(2.*s2))* s4*
+               pow(1 + (q2*s4)/R2, 0.5 - R2/(2.*s2))*
+               cos(2*(-1.5 + R2/(2.*s2))* atan((q*s2)/R)))/R2 - 
+            (2*(-1.5 + R2/(2.*s2))*s2* pow(1 + (q2*s4)/R2,
+                0.5 - R2/(2.*s2))* sin(2*(-1.5 + R2/(2.*s2))*
+                 atan((q*s2)/R)))/R))/
+        (2.*q2*(-1.5 + R2/(2.*s2))* (-1 + R2/(2.*s2))*s4)))/
+   (sqrt(2*M_PI)*q2*(-0.5 + R2/(2.*s2))* s2));
+
+        fp dR = height * (
+        (3*R2*(-1 - (R2* (-1 + pow(1 + (q2*s4)/R2,
+              1.5 - R2/(2.*s2))* cos(2*(-1.5 + R2/(2.*s2))*
+               atan((q*s2)/R))))/ (2.*q2*(-1.5 + R2/(2.*s2))*
+          (-1 + R2/(2.*s2))*s4)))/ (sqrt(2*M_PI)*q2*pow(-0.5 + R2/(2.*s2),2)*
+     s4) - (3*(-1 - (R2*(-1 + pow(1 + (q2*s4)/R2,
+              1.5 - R2/(2.*s2))* cos(2*(-1.5 + R2/(2.*s2))*
+               atan((q*s2)/R))))/ (2.*q2*(-1.5 + R2/(2.*s2))*
+          (-1 + R2/(2.*s2))*s4)))/ (sqrt(2*M_PI)*q2*(-0.5 + R2/(2.*s2))*
+     s2) - (3*R*((R3* (-1 + pow(1 + (q2*s4)/R2,
+              1.5 - R2/(2.*s2))* cos(2*(-1.5 + R2/(2.*s2))*
+               atan((q*s2)/R))))/ (2.*q2*(-1.5 + R2/(2.*s2))*
+          pow(-1 + R2/(2.*s2),2)*s4*s2) + (R3*(-1 + pow(1 + (q2*s4)/R2,
+              1.5 - R2/(2.*s2))* cos(2*(-1.5 + R2/(2.*s2))* atan((q*s2)/R))))/
+        (2.*q2*pow(-1.5 + R2/(2.*s2),2)* (-1 + R2/(2.*s2))*(s4*s2)) - 
+       (R*(-1 + pow(1 + (q2*s4)/R2, 1.5 - R2/(2.*s2))*
+             cos(2*(-1.5 + R2/(2.*s2))* atan((q*s2)/R))))/
+        (q2*(-1.5 + R2/(2.*s2))* (-1 + R2/(2.*s2))*s4) - 
+       (R2*(pow(1 + (q2*s4)/R2, 1.5 - R2/(2.*s2))*
+             cos(2*(-1.5 + R2/(2.*s2))* atan((q*s2)/R))*
+             ((-2*q2*(1.5 - R2/(2.*s2))* s4)/ (R3*
+                  (1 + (q2*s4)/R2)) - (R*log(1 + (q2*s4)/R2))/ s2) + 
+            pow(1 + (q2*s4)/R2, 1.5 - R2/(2.*s2))* ((2*q*(-1.5 + R2/(2.*s2))*
+                  s2)/ (R2* (1 + (q2*s4)/R2)) - (2*R*atan((q*s2)/R))/s2)*
+             sin(2*(-1.5 + R2/(2.*s2))* atan((q*s2)/R))))/
+        (2.*q2*(-1.5 + R2/(2.*s2))* (-1 + R2/(2.*s2))*s4)))/
+   (sqrt(2*M_PI)*q2*(-0.5 + R2/(2.*s2))* s2));
+
+        fp ds = height * (
+            (-3*R3*(-1 - (R2* (-1 + pow(1 + (q2*s4)/R2,
+              1.5 - R2/(2.*s2))* cos(2*(-1.5 + R2/(2.*s2))*
+               atan((q*s2)/R))))/ (2.*q2*(-1.5 + R2/(2.*s2))*
+          (-1 + R2/(2.*s2))*s4)))/
+   (sqrt(2*M_PI)*q2*pow(-0.5 + R2/(2.*s2),2)* (s4*s)) + (3*sqrt(2/M_PI)*R*
+     (-1 - (R2*(-1 + pow(1 + (q2*s4)/R2, 1.5 - R2/(2.*s2))*
+             cos(2*(-1.5 + R2/(2.*s2))* atan((q*s2)/R))))/
+        (2.*q2*(-1.5 + R2/(2.*s2))* (-1 + R2/(2.*s2))*s4)))/
+   (q2*(-0.5 + R2/(2.*s2))*s3) - (3*R*(-(R4*(-1 + 
+             pow(1 + (q2*s4)/R2, 1.5 - R2/(2.*s2))*
+              cos(2*(-1.5 + R2/(2.*s2))* atan((q*s2)/R))))/
+        (2.*q2*(-1.5 + R2/(2.*s2))* pow(-1 + R2/(2.*s2),2)*(s4*s3)) - 
+       (R4*(-1 + pow(1 + (q2*s4)/R2, 1.5 - R2/(2.*s2))*
+             cos(2*(-1.5 + R2/(2.*s2))* atan((q*s2)/R))))/
+        (2.*q2*pow(-1.5 + R2/(2.*s2),2)* (-1 + R2/(2.*s2))*(s4*s3)) + 
+       (2*R2*(-1 + pow(1 + (q2*s4)/R2,
+              1.5 - R2/(2.*s2))* cos(2*(-1.5 + R2/(2.*s2))*
+               atan((q*s2)/R))))/ (q2*(-1.5 + R2/(2.*s2))*
+          (-1 + R2/(2.*s2))*(s4*s)) - (R2*(pow(1 + (q2*s4)/R2,
+              1.5 - R2/(2.*s2))* cos(2*(-1.5 + R2/(2.*s2))*
+               atan((q*s2)/R))* ((4*q2*(1.5 - R2/(2.*s2))* s3)/
+                (R2* (1 + (q2*s4)/R2)) + (R2*log(1 + 
+                    (q2*s4)/R2))/ s3) + 
+            pow(1 + (q2*s4)/R2, 1.5 - R2/(2.*s2))*
+             ((-4*q*(-1.5 + R2/(2.*s2))*s)/ (R*(1 + (q2*s4)/R2)) + 
+               (2*R2*atan((q*s2)/R))/ s3)*
+             sin(2*(-1.5 + R2/(2.*s2))* atan((q*s2)/R))))/
+        (2.*q2*(-1.5 + R2/(2.*s2))* (-1 + R2/(2.*s2))*s4)))/
+   (sqrt(2*M_PI)*q2*(-0.5 + R2/(2.*s2))* s2));
+
+        dy_dv[0] = t;
+        dy_dv[1] = -dcenter;
+        dy_dv[2] = dR;
+        dy_dv[3] = ds;
+        fp dy_dx = dcenter;
+        PUT_DERIVATIVES_AND_VALUE(height*t);
+
+    }
+}
+
+
 

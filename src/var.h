@@ -202,7 +202,7 @@ struct FunctionLhsGrammar : public grammar<FunctionLhsGrammar>
 
 extern FunctionLhsGrammar  FunctionLhsG;
 
-struct VariableRhsGrammar : public grammar<VariableRhsGrammar>
+struct FuncGrammar : public grammar<FuncGrammar>
 {
     static const int real_constID = 1;
     static const int variableID = 2;
@@ -214,7 +214,7 @@ struct VariableRhsGrammar : public grammar<VariableRhsGrammar>
     template <typename ScannerT>
     struct definition
     {
-        definition(VariableRhsGrammar const& /*self*/);
+        definition(FuncGrammar const& /*self*/);
 
         rule<ScannerT, parser_context<>, parser_tag<expressionID> > expression;
         rule<ScannerT, parser_context<>, parser_tag<termID> >       term;
@@ -228,6 +228,6 @@ struct VariableRhsGrammar : public grammar<VariableRhsGrammar>
     };
 };
 
-extern VariableRhsGrammar VariableRhsG;
+extern FuncGrammar FuncG;
 
 #endif 

@@ -275,15 +275,15 @@ Variable *VariableManager::create_simple_variable(string const &name,
 Variable *VariableManager::create_variable(string const &name,string const &rhs)
 {
     string t = name.empty() ? Variable::next_auto_name() : name; 
-    tree_parse_info<> info = ast_parse(rhs.c_str(), VariableRhsG, space_p);
+    tree_parse_info<> info = ast_parse(rhs.c_str(), FuncG, space_p);
     assert(info.full);
     const_tm_iter_t const &root = info.trees.begin();
-    if (root->value.id() == VariableRhsGrammar::variableID
+    if (root->value.id() == FuncGrammar::variableID
             && *root->value.begin() == '~') {
         string root_str = string(root->value.begin(), root->value.end());
         return create_simple_variable(t, root_str);
     }
-    vector<string> vars = find_tokens(VariableRhsGrammar::variableID, info);
+    vector<string> vars = find_tokens(FuncGrammar::variableID, info);
     if (find(vars.begin(), vars.end(), "x") != vars.end())
         throw ExecuteError("variable can't depend on x.");
     vector<OpTree*> op_trees = calculate_deriv(root, vars);
@@ -546,29 +546,56 @@ vector<string> VariableManager::get_vars_from_kw(string const &function,
         = Function::get_varnames_from_formula(formula, false);
     vector<string> tvalues 
         = Function::get_varnames_from_formula(formula, true);
-    vector<string> vv(tnames.size());
-    // numeric values defined in function type definitions
-    for (int i = 0; i < size(tvalues); ++i)
-        if (is_double(tvalues[i]))
+    int n = tnames.size();
+    vector<string> vv(n);
+    for (int i = 0; i < n; ++i) {
+        bool done=false;
+        // variables given in vars
+        for (vector<string>::const_iterator k = vars.begin(); 
+                                                    k != vars.end(); ++k) {
+            string::size_type eq = k->find('=');
+            assert(eq != string::npos);
+            string name = string(*k, 0, eq);
+            if (name == tnames[i]) {
+                vv[i] = string(*k, eq+1);
+                done=true;
+                break;
+            }
+        }
+        if (done)
+            continue;
+        // numeric values defined in function type definitions
+        if (is_double(tvalues[i])) {
             vv[i] = "~" + tvalues[i];
-    // variables given in vars
-    for (vector<string>::const_iterator i = vars.begin(); i != vars.end(); 
-                                                                      ++i){
-        string::size_type eq = i->find('=');
-        assert(eq != string::npos);
-        string name = string(*i, 0, eq);
-        string value = string(*i, eq+1);
-        vector<string>::iterator j=find(tnames.begin(), tnames.end(), name);
-        if (j != tnames.end())
-            vv[j - tnames.begin()] = value;
-        vector<string>::iterator k = find(tvalues.begin(), tvalues.end(), 
-                                                                  name);
-        if (k != tvalues.end())
-            vv[k - tvalues.begin()] = value;
-    }
-    for (int i = 0; i < size(vv); ++i) {
-        if (vv[i].empty())
-            throw ExecuteError("Can't create function " + function
+            continue;
+        }
+        // `keyword*real_number' values defined in function type definitions
+        if (!tvalues[i].empty()) {
+            string::size_type ax = tvalues[i].find('*');
+            if (ax != string::npos) {
+                string dname = string(tvalues[i], 0, ax);
+                for (vector<string>::const_iterator k = vars.begin(); 
+                                                    k != vars.end(); ++k) {
+                    string::size_type eq = k->find('=');
+                    string name = string(*k, 0, eq);
+                    if (name == dname) {
+                        string multip = string(tvalues[i], ax+1);
+                        string value = string(*k, eq+1);
+                        if (value[0] == '~' && is_double(string(value,1)))
+                            vv[i] = "~" + S(strtod(value.c_str()+1, 0) 
+                                            * strtod(multip.c_str(), 0));
+                        else
+                            vv[i] = value + "*" + multip;
+                        done=true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (done)
+            continue;
+
+        throw ExecuteError("Can't create function " + function
                                + " because " + tnames[i]+ " is unknown.");
     }
     return vv;
@@ -628,12 +655,12 @@ void VariableManager::substitute_func_param(string const &name,
 {
     int nr = find_function_nr(name);
     if (nr == -1)
-        throw ExecuteError("undefined function: %" + name);
+        throw ExecuteError("undefined function: " + name);
     Function *k = functions[nr];
     vector<string> const &tv = k->type_var_names;
     vector<string>::const_iterator i = find(tv.begin(), tv.end(), param);
     if (i == tv.end())
-        throw ExecuteError("function %" + name + " has no parameter: " + param);
+        throw ExecuteError("function " + name + " has no parameter: " + param);
     bool just_name = parse(var.c_str(), VariableLhsG).full;
     string new_p = just_name ? string(var, 1) : assign_variable("", var);
     k->substitute_param(i - tv.begin(), new_p); 
@@ -660,8 +687,7 @@ fp VariableManager::variation_of_a (int n, fp variat) const
 
 
 template <typename ScannerT>
-VariableRhsGrammar::definition<ScannerT>::definition(
-                                          VariableRhsGrammar const& /*self*/)
+FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
 {
     //  Start grammar definition
     real_const  =  leaf_node_d[   real_p 
@@ -704,14 +730,14 @@ VariableRhsGrammar::definition<ScannerT>::definition(
 }
 
 // explicit template instantiation -- to accelerate compilation 
-template VariableRhsGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(VariableRhsGrammar const&);
+template FuncGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(FuncGrammar const&);
 
 
 /// small but slow utility function 
 /// uses calculate_deriv() to simplify formulea
 std::string simplify_formula(std::string const &formula)
 {
-    tree_parse_info<> info = ast_parse(formula.c_str(), VariableRhsG, space_p);
+    tree_parse_info<> info = ast_parse(formula.c_str(), FuncG, space_p);
     assert(info.full);
     const_tm_iter_t const &root = info.trees.begin();
     vector<string> vars(1, "x");
@@ -722,7 +748,7 @@ std::string simplify_formula(std::string const &formula)
 }
 
 
-VariableRhsGrammar VariableRhsG;
+FuncGrammar FuncG;
 VariableLhsGrammar VariableLhsG;
 FunctionLhsGrammar  FunctionLhsG;
 int Variable::unnamed_counter = 0;

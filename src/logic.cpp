@@ -84,7 +84,7 @@ void ApplicationLogic::dump_all_as_script(string const &filename)
     }
     if (active_core != size(cores) - 1)
         os << "d.activate " << active_core << ":: # set active" << endl; 
-    os << "o.plot " << my_core->view.str() << endl;
+    os << "plot " << my_core->view.str() << endl;
 
 
 

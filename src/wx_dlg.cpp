@@ -993,7 +993,7 @@ bool export_data_dlg(wxWindow *parent, bool load_exported)
     dir = fdlg.GetDirectory();
     if (fdlg.ShowModal() == wxID_OK) {
         string path = fdlg.GetPath().c_str();
-        exec_command("d.export '" + path + "'");
+        exec_command("@ > '" + path + "'");
         if (load_exported)
             exec_command("@ <'" + path + "'");
         return true;

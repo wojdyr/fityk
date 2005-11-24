@@ -111,7 +111,6 @@ public:
     void OnDEditor       (wxCommandEvent& event);
     void OnFastDT        (wxCommandEvent& event);
     void OnFastDTUpdate  (wxUpdateUIEvent& event);           
-    void OnDInfo         (wxCommandEvent& event);
     void OnDExport       (wxCommandEvent& event);
 
 #if 0
@@ -139,7 +138,6 @@ public:
     void OnOInclude      (wxCommandEvent& event);            
     void OnOReInclude    (wxCommandEvent& event);            
     void OnO_Reset       (wxCommandEvent& event);
-    void OnOWait         (wxCommandEvent& event);         
     void OnODump         (wxCommandEvent& event);         
     void OnOSet          (wxCommandEvent& event);        
     void OnPrintPreview  (wxCommandEvent& event);

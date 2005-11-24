@@ -120,7 +120,6 @@ enum {
     ID_D_XLOAD                 ,
     ID_D_RECENT                , //and next ones
     ID_D_RECENT_END = ID_D_RECENT+30 , 
-    ID_D_INFO                  ,
     ID_D_EDITOR                ,
     ID_D_FDT                   ,
     ID_D_FDT_END = ID_D_FDT+50 ,
@@ -155,7 +154,6 @@ enum {
     ID_PRINT_PREVIEW           ,
     ID_O_INCLUDE               ,
     ID_O_REINCLUDE             ,
-    ID_O_WAIT                  ,
     ID_O_DUMP                  ,
     ID_O_SET                   ,
     ID_G_MODE                  ,
@@ -370,7 +368,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_D_EDITOR,      FFrame::OnDEditor)
     EVT_UPDATE_UI (ID_D_FDT,    FFrame::OnFastDTUpdate)
     EVT_MENU_RANGE (ID_D_FDT+1, ID_D_FDT_END, FFrame::OnFastDT)
-    EVT_MENU (ID_D_INFO,        FFrame::OnDInfo)
     EVT_MENU (ID_D_EXPORT,      FFrame::OnDExport) 
 
     //EVT_MENU (ID_S_HISTORY,     FFrame::OnSHistory)    
@@ -399,7 +396,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_PRINT,         FFrame::OnPrint)
     EVT_MENU (ID_PRINT_SETUP,   FFrame::OnPrintSetup)
     EVT_MENU (ID_PRINT_PREVIEW, FFrame::OnPrintPreview)
-    EVT_MENU (ID_O_WAIT,        FFrame::OnOWait)    
     EVT_MENU (ID_O_DUMP,        FFrame::OnODump)    
     EVT_MENU (ID_O_SET,         FFrame::OnOSet)    
 
@@ -640,7 +636,6 @@ void FFrame::set_menubar()
     this->data_ft_menu = new wxMenu;
     data_menu->Append (ID_D_FDT,      "&Fast Transformations", data_ft_menu, 
                                       "Quick data transformations");
-    data_menu->Append (ID_D_INFO,     "&Info", "Info about loaded data");
     data_menu->Append (ID_D_EXPORT,   "&Export\tCtrl-S", "Save data to file");
 
     wxMenu* sum_menu = new wxMenu;
@@ -668,7 +663,7 @@ void FFrame::set_menubar()
     fit_method_menu->AppendRadioItem (ID_F_M+0, "&Levenberg-Marquardt", 
                                                 "gradient based method");
     fit_method_menu->AppendRadioItem (ID_F_M+1, "Nelder-Mead &simplex", 
-                                      "old, slow but reliable method");
+                                      "slow but simple and reliable method");
     fit_method_menu->AppendRadioItem (ID_F_M+2, "&Genetic Algorithm", 
                                                 "almost AI");
     fit_menu->Append (ID_F_METHOD,    "&Method", fit_method_menu, 
@@ -772,8 +767,6 @@ void FFrame::set_menubar()
     session_menu->Append (ID_PRINT_SETUP, "Print Se&tup",
                                                     "Printer and page setup");
     session_menu->Append (ID_PRINT_PREVIEW, "Print Pre&view", "Preview"); 
-    session_menu->AppendSeparator();
-    session_menu->Append (ID_O_WAIT,    "&Wait", "Just wait (rather useless)");
     session_menu->AppendSeparator();
     session_menu->Append (ID_O_SET,     "&Settings", "Preferences and options");
     session_menu->AppendSeparator();
@@ -949,11 +942,6 @@ void FFrame::OnFastDT (wxCommandEvent& event)
             DataEditorDlg::execute_tranform(i->code);
             return;
         }
-}
-
-void FFrame::OnDInfo (wxCommandEvent& WXUNUSED(event))
-{
-    exec_command ("info @");
 }
 
 void FFrame::OnDExport (wxCommandEvent& WXUNUSED(event))
@@ -1150,14 +1138,6 @@ void FFrame::OnOReInclude    (wxCommandEvent& WXUNUSED(event))
     exec_command ("o.include ! '" + last_include_path + "'");
 }
             
-void FFrame::OnOWait         (wxCommandEvent& WXUNUSED(event))
-{
-    int r = wxGetNumberFromUser ("Note: Wait command has a sense only "
-            "in script", "Number of seconds to wait", "", 5, 0, 60);
-    if (r != -1)
-        exec_command (("o.wait " + S(r)).c_str());
-}
-         
 void FFrame::OnODump         (wxCommandEvent& WXUNUSED(event))
 {
     wxFileDialog fdlg (this, "Dump current program state to file as script", 
@@ -1404,7 +1384,7 @@ void FFrame::OnPreviousZoom(wxCommandEvent& event)
     int id = event.GetId();
     string s = plot_pane->zoom_backward(id ? id - ID_G_V_ZOOM_PREV : 1);
     if (s.size()) 
-        exec_command("o.plot " + s);
+        exec_command("plot " + s);
 }
 
 void FFrame::change_zoom(const string& s)

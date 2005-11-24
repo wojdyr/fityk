@@ -436,6 +436,11 @@ DataExpressionGrammar::definition<ScannerT>::definition(
         ;
 }
 
+// explicit template instantiations 
+template DataExpressionGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(DataExpressionGrammar const&);
+
+DataExpressionGrammar DataExpressionG;
+
 
 template <typename ScannerT>
 DataTransformGrammar::definition<ScannerT>::definition(
@@ -498,10 +503,11 @@ DataTransformGrammar::definition<ScannerT>::definition(
 
 }
 
-// explicit template instantiations -- to accelerate compilation 
-template DataExpressionGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(DataExpressionGrammar const&);
-
+// explicit template instantiations 
 template DataTransformGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(DataTransformGrammar const&);
+
+DataTransformGrammar DataTransformG;
+
 
 namespace {
 
@@ -1102,7 +1108,7 @@ fp get_transform_expression_value(/*vector<Point> const& points,*/
     // First compile string...
     parse_info<> result = parse(s.c_str(), DataExpressionG, 
                                 space_p);
-    //TODO check for point-dependent ops
+    //TODO check for point-dependent ops (?? outside of sum etc.)
     // OP_VAR_n, OP_VAR_x, OP_VAR_y, OP_VAR_s, OP_VAR_a, 
     //           OP_VAR_X, OP_VAR_Y, OP_VAR_S, OP_VAR_A,
     // and then execute compiled code.
@@ -1124,6 +1130,4 @@ fp get_transform_expression_value(/*vector<Point> const& points,*/
     return stack.front();
 }
 
-DataExpressionGrammar DataExpressionG;
-DataTransformGrammar DataTransformG;
 

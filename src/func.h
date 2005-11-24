@@ -4,7 +4,7 @@
 #define FUNCS__H__
 
 #include <map>
-#include <var.h>
+#include "var.h"
 
 
 class Function : public VariableUser
@@ -109,6 +109,24 @@ public:
     fp height() const { return vv[1]; }
     fp fwhm() const   { return 2 * fabs(vv[2]); }
     fp area() const   { return vv[0] * fabs(vv[2]) * sqrt(M_PI / M_LN2); }
+};
+
+
+
+class FuncPielaszekCube : public Function
+{
+    FuncPielaszekCube (std::string const &name, std::vector<std::string> const &vars)
+        : Function (name, vars, formula) {}  
+    FuncPielaszekCube (const FuncPielaszekCube&);
+    friend class Function;
+public:
+    static const char *formula; 
+
+    void calculate_value(std::vector<fp> const &x, std::vector<fp> &y) const; 
+    void calculate_value_deriv(std::vector<fp> const &x, 
+                               std::vector<fp> &y, std::vector<fp> &dy_da,
+                               bool in_dx=false) const; 
+    bool is_peak() const { return true; } 
 };
 
 

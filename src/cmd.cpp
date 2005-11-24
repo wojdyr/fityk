@@ -279,7 +279,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
 
         assign_var 
             = VariableLhsG [assign_a(t)]
-                      >> '=' >> no_actions_d[VariableRhsG] [&do_assign_var]
+                      >> '=' >> no_actions_d[FuncG] [&do_assign_var]
             ;
 
         function_name
@@ -296,9 +296,9 @@ struct CmdGrammar : public grammar<CmdGrammar>
               )
               >> function_name [assign_a(t2)]
               >> str_p("(")[clear_a(vt)] 
-              >> !((no_actions_d[VariableRhsG][push_back_a(vt)] 
+              >> !((no_actions_d[FuncG][push_back_a(vt)] 
                    % ',')
-                  | ((function_param >> "=" >> no_actions_d[VariableRhsG])
+                  | ((function_param >> "=" >> no_actions_d[FuncG])
                                                               [push_back_a(vt)] 
                    % ',')
                   )
@@ -310,7 +310,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
             = FunctionLhsG [assign_a(t)]
               >> "[" >> function_param [assign_a(t2)]
               >> "]" >> "="
-              >> no_actions_d[VariableRhsG][&do_subst_func_param]
+              >> no_actions_d[FuncG][&do_subst_func_param]
             ;
 
         put_function
@@ -349,8 +349,8 @@ struct CmdGrammar : public grammar<CmdGrammar>
             | (dataset_nr >> '<' >> dataset_sum) [&do_load_data_sum]
                                                              [&do_select_data]
             | (dataset_sum >> '>' >> dataset_nr) [&do_load_data_sum] 
+            | (existing_dataset_nr >> '>' >> filename_str) [&do_export_dataset]
             | dataset_nr[&do_select_data]
-            | (dataset_nr >> '>' >> filename_str) [&do_export_dataset]
             ;
 
         plot_range 
@@ -405,7 +405,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
               >> !('[' >> real_p [assign_a(tmp_real)][assign_a(tmp_bool,true_)]
                   >> ':' >> real_p [assign_a(tmp_real2)]
                   >> ']') 
-              >> !((function_param >> '=' >> no_actions_d[VariableRhsG])
+              >> !((function_param >> '=' >> no_actions_d[FuncG])
                                                            [push_back_a(vt)]
                    % ',')
               >> !("as" >> FunctionLhsG [assign_a(t)])) [&do_guess]

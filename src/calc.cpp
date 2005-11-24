@@ -3,11 +3,6 @@
 
 //  Based on ast_calc example from Boost::Spirit by Daniel Nuffer
 
-// this file can be compiled to stand-alone test program:
-// $ g++ -I../3rdparty -DSTANDALONE_DF calc.cpp -o calc
-// $ ./calc
-//#define STANDALONE_DF
-
 //TODO:
 // CSE in tree (or in VM code?)
 // new op: SQR? DUP? STORE/WRITE?
@@ -29,12 +24,8 @@
 
 #include "common.h"
 #include "calc.h"
+#include "var.h"
 #include "datatrans.h"
-
-#ifdef STANDALONE_DF
-//#define DEBUG_SIMPLIFY
-#include <iostream>
-#endif
 
 ////////////////////////////////////////////////////////////////////////////
 using namespace std;
@@ -158,10 +149,6 @@ vector<string> find_tokens(int tokenID, const tree_parse_info<> &info)
     return vars;
 }
 
-vector<string> find_variables(const tree_parse_info<> info)
-{
-    return find_tokens(FuncGrammar::variableID, info);
-}
 
 ////////////////////////////////////////////////////////////////////////////
 OpTree* simplify_terms(OpTree *a);
@@ -905,43 +892,4 @@ void add_calc_bytecode(const OpTree* tree, const vector<int> &vmvar_idx,
     }
 }
 
-
-////////////////////////////////////////////////////////////////////////////
-
-#ifdef STANDALONE_DF
-int
-main()
-{
-    FuncGrammar gram;
-
-    cout << "Usage example: f = 5*x^3 + exp(x*y) - y*tan(z)" << endl;
-    cout << "f = ";
-
-    string str;
-    while (getline(cin, str))
-    {
-        tree_parse_info<> info = ast_parse(str.c_str(), gram, space_p);
-
-        if (info.full) {
-            cout << "parsing succeeded\n";
-            vector<string> vars = find_variables(info);
-            vector<OpTree*> results = calculate_deriv(info.trees.begin(), vars);
-            assert(results.size() == vars.size() + 1);
-            cout << "f("<< join_vector(vars, ", ") << ") = " 
-                                          << results.back()->str(&vars) << endl;
-            // cout << results.front()->ascii_tree(vars) << endl;
-            for (unsigned int i = 0; i < vars.size(); ++i)
-                cout << "df/d" << vars[i] << " = " 
-                    << results[i]->str(&vars) << endl;
-            purge_all_elements(results);
-        }
-        else
-            cout << "parsing failed\n";
-        cout << "\nf = ";
-    }
-    cout << endl;
-    return 0;
-}
-
-#endif //STANDALONE_DF
 
