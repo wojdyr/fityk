@@ -48,7 +48,7 @@ void do_assign_var(char const* a, char const* b)
 
 void do_assign_func(char const*, char const*)
 {
-    AL->assign_func(t, t2, vt);
+    t = AL->assign_func(t, t2, vt);
     vt = vector1(t); //for do_put_function()
     outdated_plot=true;  //TODO only if...
 }
