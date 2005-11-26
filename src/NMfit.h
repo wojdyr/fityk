@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef NMfit__h__
-#define NMfit__h__
+#ifndef FITYK__NMFIT__H__
+#define FITYK__NMFIT__H__
 
 #include <vector>
 #include "common.h"

@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef DotSet__h__
-#define DotSet__h__
+#ifndef FITYK__DOTSET__H__
+#define FITYK__DOTSET__H__
 #include <vector>
 #include <map>
 #include <string>

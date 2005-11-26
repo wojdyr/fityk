@@ -37,13 +37,7 @@ std::string str() { return std::string(c, l); }
 
 void replot()
 {
-    if (new_line) {
-        new_line = false;
-        if (AL->was_changed()) {
-            getUI()->drawPlot(2);
-            AL->was_plotted();
-        }
-    }
+    getUI()->drawPlot(2);
 }
 
 #define YYERROR_VERBOSE 1

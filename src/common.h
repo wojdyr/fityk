@@ -4,8 +4,8 @@
 /*
  *  various headers and definitions. Included by all files.
  */
-#ifndef COMMON__H__
-#define COMMON__H__
+#ifndef FITYK__COMMON__H__
+#define FITYK__COMMON__H__
 
 #if HAVE_CONFIG_H   
 #  include <config.h>  
@@ -34,13 +34,14 @@ typedef double fp;
 #endif
 
 extern const fp INF;
+#define EPSILON 1e-9
 // epsilon=1e-9 is used for comparision of real numbers
-inline bool is_eq(fp a, fp b) { return fabs(a-b) < 1e-9; }
-inline bool is_neq(fp a, fp b) { return fabs(a-b) > 1e-9; }
-inline bool is_lt(fp a, fp b) { return a < b - 1e-9; }
-inline bool is_gt(fp a, fp b) { return a > b + 1e-9; }
-inline bool is_le(fp a, fp b) { return a <= b + 1e-9; }
-inline bool is_ge(fp a, fp b) { return a >= b - 1e-9; }
+inline bool is_eq(fp a, fp b) { return fabs(a-b) < EPSILON; }
+inline bool is_neq(fp a, fp b) { return fabs(a-b) > EPSILON; }
+inline bool is_lt(fp a, fp b) { return a < b - EPSILON; }
+inline bool is_gt(fp a, fp b) { return a > b + EPSILON; }
+inline bool is_le(fp a, fp b) { return a <= b + EPSILON; }
+inline bool is_ge(fp a, fp b) { return a >= b - EPSILON; }
 
 
 #ifndef M_PI

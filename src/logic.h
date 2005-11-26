@@ -90,9 +90,6 @@ public:
     Sum *get_sum() const { return sum.get(); }
     void export_as_script (std::ostream& os) const;
 
-    bool was_changed() const;  // return true when plot should be redrawed
-    void was_plotted(); // called on redrawing 
-
 private:
     std::auto_ptr<Data> data;
     std::auto_ptr<Sum> sum;
@@ -108,7 +105,7 @@ public:
     /// used for randomly drawing parameter values, in fitting methods like GA
     fp default_relative_domain_width;
 
-    ApplicationLogic() :default_relative_domain_width(0.1), c_was_changed(false)
+    ApplicationLogic() :default_relative_domain_width(0.1)
                         { reset_all(); }
 
     ~ApplicationLogic() { reset_all(true); }
@@ -128,12 +125,9 @@ public:
     int get_active_ds_position() const { return active_ds; }
     const DataWithSum *get_active_ds() const { return get_ds(active_ds); }
     Data *get_data(int n);
-    bool was_changed() const; 
-    void was_plotted();
 
 protected:
     std::vector<DataWithSum*> dsds;
-    bool c_was_changed;
     int active_ds;
 };
 

@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) 2003 Stefan Krumm  
 
 
-#ifndef FILEROUTINES__H__
-#define FILEROUTINES__H__
+#ifndef FITYK__FILEROUTINES__H__
+#define FITYK__FILEROUTINES__H__
 
 
 #include <iostream>

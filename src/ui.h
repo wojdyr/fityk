@@ -2,8 +2,8 @@
 // $Id$
 
 
-#ifndef ui__h__
-#define ui__h__
+#ifndef FITYK__UI__H__
+#define FITYK__UI__H__
 #include "common.h"
 #include <vector>
 #include <utility>
@@ -113,4 +113,4 @@ inline void very_verbose(std::string const &s) { gmessage (5, s); }
 /// The same as verbose(), but string is evaluated only when needed.
 #define verbose_lazy(x)   if(getUI()->getVerbosity() >= 4)  verbose((x));  
 
-#endif //ui__h__
+#endif 

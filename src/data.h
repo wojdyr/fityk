@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef DATA__H__
-#define DATA__H__
+#ifndef FITYK__DATA__H__
+#define FITYK__DATA__H__
 #include <string>
 #include <vector>
 #include <fstream>
@@ -30,10 +30,8 @@ inline bool operator< (const Point& p, const Point& q)
 class Data 
 {
 public :
-    Data ();
-    ~Data () {}
-    void d_was_plotted() { d_was_changed = false; }
-    bool was_changed() const { return d_was_changed; }
+    Data() {}
+    ~Data() {}
     std::string getInfo() const;
     int load_file (const std::string &file, int type, 
                    const std::vector<int> &cols, bool append=false);
@@ -69,7 +67,6 @@ public :
 
     std::string title;
 private:
-    bool d_was_changed;
     std::string filename;
     std::vector<int> col_nums;
     fp x_step; // 0.0 if not fixed;

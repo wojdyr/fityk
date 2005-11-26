@@ -91,8 +91,10 @@ string Variable::get_formula(vector<fp> const &parameters) const
 string Variable::get_info(vector<fp> const &parameters, 
                           bool extended) const 
 { 
-    string s = xname + " = "+ get_formula(parameters) + " == " + S(value);
+    string s = xname + " = "+ get_formula(parameters) + " = " + S(value);
     if (extended && nr == -1) {
+        if (auto_delete)
+            s += "  [auto]";
         for (unsigned int i = 0; i < varnames.size(); ++i)
             s += "\nd(" + xname + ")/d($" + varnames[i] + "): " 
                     + op_trees[i]->str(&varnames) + " == " + S(derivatives[i]);
@@ -261,42 +263,37 @@ void VariableManager::sort_variables()
 }
 
 
-Variable *VariableManager::create_simple_variable(string const &name, 
-                                                  string const &rhs)
-{
-    assert(rhs.size() > 1 && rhs[0] == '~');
-    fp val = get_constant_value(string(rhs, 1));
-    parameters.push_back(val);
-    int nr = parameters.size() - 1;
-    Variable *var = new Variable(name, nr, name.empty());
-    return var;
-}
-
 Variable *VariableManager::create_variable(string const &name,string const &rhs)
 {
-    string t = name.empty() ? Variable::next_auto_name() : name; 
+    bool auto_del = name.empty();
+    string nonempty_name = name.empty() ? Variable::next_auto_name() : name; 
     tree_parse_info<> info = ast_parse(rhs.c_str(), FuncG, space_p);
     assert(info.full);
     const_tm_iter_t const &root = info.trees.begin();
     if (root->value.id() == FuncGrammar::variableID
             && *root->value.begin() == '~') {
-        string root_str = string(root->value.begin(), root->value.end());
-        return create_simple_variable(t, root_str);
+        string val_str = string(root->value.begin()+1, root->value.end());
+        fp val = get_constant_value(val_str);
+        parameters.push_back(val);
+        int nr = parameters.size() - 1;
+        return new Variable(nonempty_name, nr, auto_del);
     }
-    vector<string> vars = find_tokens(FuncGrammar::variableID, info);
-    if (find(vars.begin(), vars.end(), "x") != vars.end())
-        throw ExecuteError("variable can't depend on x.");
-    vector<OpTree*> op_trees = calculate_deriv(root, vars);
-    // ~14.3 -> $var4
-    for (vector<string>::iterator i = vars.begin(); i != vars.end(); ++i) {
-        assert(i->size() >= 1);
-        if ((*i)[0] == '~') {
-            *i = assign_variable("", *i);
+    else {
+        vector<string> vars = find_tokens(FuncGrammar::variableID, info);
+        if (find(vars.begin(), vars.end(), "x") != vars.end())
+            throw ExecuteError("variable can't depend on x.");
+        vector<OpTree*> op_trees = calculate_deriv(root, vars);
+        // ~14.3 -> $var4
+        for (vector<string>::iterator i = vars.begin(); i != vars.end(); ++i) {
+            assert(i->size() >= 1);
+            if ((*i)[0] == '~') {
+                *i = assign_variable("", *i);
+            }
+            else if ((*i)[0] == '$')
+                *i = string(i->begin()+1, i->end());
         }
-        else if ((*i)[0] == '$')
-            *i = string(i->begin()+1, i->end());
+        return new Variable(nonempty_name, vars, op_trees, auto_del);
     }
-    return new Variable(t, vars, op_trees);
 }
 
 bool VariableManager::is_variable_referred(int i, 
@@ -572,23 +569,27 @@ vector<string> VariableManager::get_vars_from_kw(string const &function,
         // `keyword*real_number' values defined in function type definitions
         if (!tvalues[i].empty()) {
             string::size_type ax = tvalues[i].find('*');
-            if (ax != string::npos) {
-                string dname = string(tvalues[i], 0, ax);
-                for (vector<string>::const_iterator k = vars.begin(); 
-                                                    k != vars.end(); ++k) {
-                    string::size_type eq = k->find('=');
-                    string name = string(*k, 0, eq);
-                    if (name == dname) {
+            bool has_mult = (ax != string::npos);
+            string dname = has_mult ? string(tvalues[i], 0, ax) : tvalues[i];
+            for (vector<string>::const_iterator k = vars.begin(); 
+                                                k != vars.end(); ++k) {
+                string::size_type eq = k->find('=');
+                string name = string(*k, 0, eq);
+                if (name == dname) {
+                    string value = string(*k, eq+1);
+                    if (has_mult) {
                         string multip = string(tvalues[i], ax+1);
-                        string value = string(*k, eq+1);
                         if (value[0] == '~' && is_double(string(value,1)))
                             vv[i] = "~" + S(strtod(value.c_str()+1, 0) 
                                             * strtod(multip.c_str(), 0));
                         else
                             vv[i] = value + "*" + multip;
-                        done=true;
-                        break;
                     }
+                    else {
+                        vv[i] = value;
+                    }
+                    done=true;
+                    break;
                 }
             }
         }

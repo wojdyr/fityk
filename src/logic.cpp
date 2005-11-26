@@ -110,21 +110,6 @@ void PlotCore::export_as_script(std::ostream& os) const
 }
 
 
-bool ApplicationLogic::was_changed() const
-{ 
-    //TODO was_changed/was_changed
-    return c_was_changed ;//|| params->was_changed() 
-           //|| get_active_core()->was_changed();
-}
-
-void ApplicationLogic::was_plotted() 
-{ 
-    //TODO was_changed/was_changed
-    c_was_changed = false;
-    //params->was_plotted();
-    //cores[active_core]->was_plotted();
-}
-
 Data *ApplicationLogic::get_data(int n)
 {
     if (n < 0 || n >= get_ds_count())

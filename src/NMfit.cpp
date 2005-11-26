@@ -9,8 +9,6 @@
 #include <vector>
 #include <ui.h>
 
-#define TINY 1e-10
-
 using namespace std;
 
 NMfit::NMfit ()
@@ -165,7 +163,7 @@ bool NMfit::termination_criteria (int iter)
     if (common_termination_criteria(iter))
         stop=true;
     fp r_diff = 2 * (worst->wssr - best->wssr) 
-                                        / (best->wssr + worst->wssr + TINY);
+                                        / (best->wssr + worst->wssr + EPSILON);
     if (r_diff < min_rel_diff) {
         info ("Relative difference between worst and best vertex is only "
                 + S(r_diff) + ". Stop");

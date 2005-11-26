@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef WX_PLOT__H__
-#define WX_PLOT__H__
+#ifndef FITYK__WX_PLOT__H__
+#define FITYK__WX_PLOT__H__
 
 #define INVALID -1234565 //i know it is ugly 
 
@@ -146,5 +146,5 @@ inline wxColour invert_colour(const wxColour& col)
 
 fp scale_tics_step (fp beg, fp end, int max_tics);
 
-#endif //WX_PLOT__H__
+#endif 
 

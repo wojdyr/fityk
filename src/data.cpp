@@ -39,9 +39,6 @@ string get_file_basename(const string &path)
 
 Data *my_data;
 
-Data::Data ()
-    : d_was_changed(true) {}
-
 string Data::getInfo () const
 {
     if (filename.empty()) 
@@ -94,7 +91,6 @@ char Data::guess_file_type (const string& filename)
 
 void Data::clear()
 {
-    d_was_changed = true;
     //gcc2.95 has no `basic_string<...>::clear ()'
     filename = "";   //removing previos file
     title = "";
@@ -391,7 +387,6 @@ bool Data::transform(const string &s)
     p = new_p;
     sort(p.begin(), p.end());
     update_active_p();
-    d_was_changed = true;
     return true;
 }
 
@@ -414,7 +409,6 @@ int Data::auto_range (fp y_level, fp x_margin)
         warn("No points loaded.");
         return -1;
     }
-    d_was_changed = true;
     bool state = (p.begin()->y >= y_level);
     for (vector<Point>::iterator i = p.begin(); i < p.end(); i++) {
         if (state == (i->y >= y_level)) 

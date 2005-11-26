@@ -87,3 +87,16 @@ fp get_linear_interpolation(vector<B_point> &bb, fp x)
 }
 
 
+fp LnGammaE (fp x) //log_e of Gamma function
+    // x > 0
+{
+    const fp c[6] = { 76.18009172947146, -86.50532032941677,
+        24.01409824083091, -1.231739572450155,
+        0.1208650973866179e-2, -0.5395239384953e-5 };
+    fp tmp = x + 5.5 - (x + 0.5) * log(x + 5.5);
+    fp s = 1.000000000190015;
+    for (int j = 0; j <= 5; j++)
+        s += c[j] / (x + j + 1);
+    return - tmp + log (2.5066282746310005 * s / x);
+}
+

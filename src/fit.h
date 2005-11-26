@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef FITYK_FIT__h__
-#define FITYK_FIT__h__
+#ifndef FITYK__FIT__H__
+#define FITYK__FIT__H__
 #include <vector>
 #include <map>
 #include <string>

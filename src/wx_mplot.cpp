@@ -1035,9 +1035,9 @@ void MainPlot::peak_draft (Mouse_act_enum ma, wxMouseEvent &event)
             fp fwhm = fabs(shared.dX2dx(mouse_press_X - event.GetX()));
             fp area = height * 2*fwhm;
             exec_command(frame->get_peak_type()  
-                         + "(height=~" + S(height) 
-                         + ", center=~" + S(center) 
-                         + ", fwhm=~" + S(fwhm) + ", area=~" = S(area));
+                         + "(height=~" + S(height) + ", center=~" + S(center) 
+                         + ", fwhm=~" + S(fwhm) + ", area=~" + S(area) 
+                         + ") -> F");
             //no break
           }
         case mat_cancel:

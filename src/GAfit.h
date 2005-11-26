@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef GAfit__h__
-#define GAfit__h__
+#ifndef FITYK__GAFIT__H__
+#define FITYK__GAFIT__H__
 #include <vector>
 #include "common.h"
 #include "fit.h"

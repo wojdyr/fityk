@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef gnuplot__H__
-#define gnuplot__H__
+#ifndef FITYK__GNUPLOT__H__
+#define FITYK__GNUPLOT__H__
 #include "common.h"
 #include <stdio.h>
 #include <vector>

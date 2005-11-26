@@ -1,7 +1,7 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
-#ifndef FUNCS__H__
-#define FUNCS__H__
+#ifndef FITYK__FUNC__H__
+#define FITYK__FUNC__H__
 
 #include <map>
 #include "var.h"
@@ -73,35 +73,34 @@ private:
     static std::vector<fp> calc_val_xx, calc_val_yy;
 };
 
+//////////////////////////////////////////////////////////////////////////
+
+#define DECLARE_FUNC_OBLIGATORY_METHODS(NAME) \
+    Func##NAME (std::string const &name, std::vector<std::string> const &vars)\
+        : Function(name, vars, formula) {}\
+    Func##NAME (const Func##NAME&); \
+    friend class Function;\
+public:\
+    static const char *formula; \
+    void calculate_value(std::vector<fp> const &xx, std::vector<fp> &yy) const;\
+    void calculate_value_deriv(std::vector<fp> const &xx, \
+                               std::vector<fp> &yy, std::vector<fp> &dy_da,\
+                               bool in_dx=false) const; 
 
 class FuncConstant : public Function
 {
-    FuncConstant (std::string const &name, std::vector<std::string> const &vars)
-        : Function(name, vars, formula) {}
-    friend class Function;
-public:
-    static const char *formula; 
-    void calculate_value(std::vector<fp> const &x, std::vector<fp> &y) const; 
-    void calculate_value_deriv(std::vector<fp> const &x, 
-                               std::vector<fp> &y, std::vector<fp> &dy_da,
-                               bool in_dx=false) const; 
+    DECLARE_FUNC_OBLIGATORY_METHODS(Constant)
 };
     
+class FuncLinear : public Function
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(Linear)
+};
 
 class FuncGaussian : public Function
 {
-    FuncGaussian (std::string const &name, std::vector<std::string> const &vars)
-        : Function (name, vars, formula) {}  
-    FuncGaussian (const FuncGaussian&);
-    friend class Function;
-public:
-    static const char *formula; 
-
-    void calculate_value(std::vector<fp> const &x, std::vector<fp> &y) const; 
-    void calculate_value_deriv(std::vector<fp> const &x, 
-                               std::vector<fp> &y, std::vector<fp> &dy_da,
-                               bool in_dx=false) const; 
-    //void do_precomputations() { /*if (fabs(av[2]) < TINY) av[2] = TINY;*/ }
+    DECLARE_FUNC_OBLIGATORY_METHODS(Gaussian)
+    void do_precomputations(std::vector<Variable*> const &variables);
     bool get_nonzero_range (fp level, fp &left, fp &right) const;  
     bool is_peak() const { return true; } 
     bool knows_peak_properties() const { return true; }
@@ -111,24 +110,45 @@ public:
     fp area() const   { return vv[0] * fabs(vv[2]) * sqrt(M_PI / M_LN2); }
 };
 
+class FuncLorentzian : public Function
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(Lorentzian)
+    void do_precomputations(std::vector<Variable*> const &variables);
+    bool get_nonzero_range (fp level, fp &left, fp &right) const;  
+    bool is_peak() const { return true; } 
+    bool knows_peak_properties() const { return true; }
+    fp center() const { return vv[0]; }
+    fp height() const { return vv[1]; }
+    fp fwhm() const   { return 2 * fabs(vv[2]); }
+    fp area() const   { return vv[0] * fabs(vv[2]) * M_PI; }
+};
 
+class FuncPearson7 : public Function
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(Pearson7)
+    void do_precomputations(std::vector<Variable*> const &variables); 
+    bool get_nonzero_range (fp level, fp &left, fp &right) const;  
+    bool is_peak() const { return true; } 
+    bool knows_peak_properties() const { return true; }
+    fp center() const { return vv[0]; }
+    fp height() const { return vv[1]; }
+    fp fwhm() const   { return 2 * fabs(vv[2]); }
+    fp area() const;
+};
 
 class FuncPielaszekCube : public Function
 {
-    FuncPielaszekCube (std::string const &name, std::vector<std::string> const &vars)
-        : Function (name, vars, formula) {}  
-    FuncPielaszekCube (const FuncPielaszekCube&);
-    friend class Function;
-public:
-    static const char *formula; 
+    DECLARE_FUNC_OBLIGATORY_METHODS(PielaszekCube)
+    bool is_peak() const { return true; } 
+};
 
-    void calculate_value(std::vector<fp> const &x, std::vector<fp> &y) const; 
-    void calculate_value_deriv(std::vector<fp> const &x, 
-                               std::vector<fp> &y, std::vector<fp> &dy_da,
-                               bool in_dx=false) const; 
+class FuncValente : public Function
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(Valente)
     bool is_peak() const { return true; } 
 };
 
 
-#endif //FUNCS__H__
+
+#endif 
 

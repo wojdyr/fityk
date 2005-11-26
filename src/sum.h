@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef SUM__H__
-#define SUM__H__
+#ifndef FITYK__SUM__H__
+#define FITYK__SUM__H__
 #include <vector>
 #include <string>
 #include <utility>

@@ -118,7 +118,7 @@ fp Manipul::compute_data_fwhm(int from, int max_pos, int to, fp level,
         }
     }
     fp fwhm = my_data->get_x(r) - my_data->get_x(l);
-    return max (fwhm, 1e-9);
+    return max (fwhm, EPSILON);
 }
 
 bool Manipul::estimate_peak_parameters(fp approx_ctr, fp ctrplusmin,

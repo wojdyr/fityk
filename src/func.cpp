@@ -6,6 +6,7 @@
 #include "var.h"
 #include "voigt.h"
 #include "ui.h"
+#include "numfuncs.h"
 #include <memory>
 #include <ctype.h>
 #include <boost/spirit/core.hpp>
@@ -63,15 +64,18 @@ Function* Function::factory (string const &name_, string const &type_name,
     string name = name_.empty() ? Function::next_auto_name() : name_; 
     if (name[0] == '%')
         name = string(name, 1);
-    if (type_name == "Constant")
-        return new FuncConstant(name, vars);
-    else if (type_name == "Gaussian")
-        return new FuncGaussian(name, vars);
+
+#define FACTORY_FUNC(NAME) \
+    if (type_name == #NAME) \
+        return new Func##NAME(name, vars);
+
+    FACTORY_FUNC(Constant)
+    FACTORY_FUNC(Linear)
+    FACTORY_FUNC(Gaussian)
+    FACTORY_FUNC(Lorentzian)
+    FACTORY_FUNC(Pearson7)
+    FACTORY_FUNC(Valente)
 #if 0
-    else if (type_name == "Lorentzian")
-        return new fLorentz(name, vars);
-    else if (type_name == "PearsonVII")
-        return new fPearson(name, vars);
     else if (type_name == "PseudoVoigt")
         return new fPsVoigt(name, vars);
     else if (type_name == "Voigt")
@@ -79,27 +83,23 @@ Function* Function::factory (string const &name_, string const &type_name,
     else if (type_name == "Polynomial5")
         return new fPolynomial5(name, vars);
 #endif
-    else if (type_name == "PielaszekCube")
-        return new FuncPielaszekCube(name, vars);
+    FACTORY_FUNC(PielaszekCube)
     else 
         throw ExecuteError("Undefined type of function: " + type_name);
 }
 
 const char* builtin_formulas[] = {
     FuncConstant::formula,
+    FuncLinear::formula,
     FuncGaussian::formula,
+    FuncLorentzian::formula,
+    FuncPearson7::formula,
+    FuncValente::formula,
     FuncPielaszekCube::formula
 };
 
 vector<string> Function::get_all_types()
 {
-    /*
-    const char* builtin[] = {
-        "Constant", "Linear", "Polynomial3", "Polynomial4", "Polynomial5",
-        "Gaussian", "Lorentzian", "PearsonVII", "PseudoVoigt",
-        "Voigt"
-    };
-    */
     vector<string> types;
     int nb = sizeof(builtin_formulas)/sizeof(builtin_formulas[0]);
     for (int i = 0; i < nb; ++i)
@@ -130,19 +130,19 @@ void Function::do_precomputations(vector<Variable*> const &variables)
     }
 }
 
-void Function::get_nonzero_idx_range(std::vector<fp> const &x,
+void Function::get_nonzero_idx_range(std::vector<fp> const &xx,
                                      int &first, int &last) const
 {
-    //precondition: x is sorted
+    //precondition: xx is sorted
     fp left, right;
     bool r = get_nonzero_range(cutoff_level, left, right);
     if (r) {
-        first = lower_bound(x.begin(), x.end(), left) - x.begin(); 
-        last = upper_bound(x.begin(), x.end(), right) - x.begin(); 
+        first = lower_bound(xx.begin(), xx.end(), left) - xx.begin(); 
+        last = upper_bound(xx.begin(), xx.end(), right) - xx.begin(); 
     }
     else {
         first = 0; 
-        last = x.size();
+        last = xx.size();
     }
 }
 
@@ -165,9 +165,9 @@ string Function::get_info(vector<Variable*> const &variables,
     string s = xname+" = "+type_name+ "(" + join_vector(xvarnames, ", ") + ")";
     if (extended) {
         s += "\n" + type_formula;
-        for (vector<int>::const_iterator i = var_idx.begin(); 
-                i != var_idx.end(); ++i)
-            s += "\n" + variables[*i]->get_info(parameters);
+        for (int i = 0; i < size(var_idx); ++i)
+            s += "\n" + type_var_names[i] + " = "
+                + variables[var_idx[i]]->get_info(parameters);
     }
     return s;
 } 
@@ -184,9 +184,28 @@ string Function::get_current_formula(string const& x) const
 int Function::unnamed_counter = 0;
 
 ///////////////////////////////////////////////////////////////////////
+#define DEFINE_FUNC_CALCULATE_VALUE_BEGIN(NAME) \
+void Func##NAME::calculate_value(vector<fp> const &xx, vector<fp> &yy) const\
+{\
+    int first, last; \
+    get_nonzero_idx_range(xx, first, last); \
+    for (int i = first; i < last; ++i) {\
+        fp x = xx[i]; 
+
+
+#define DEFINE_FUNC_CALCULATE_VALUE_END(VAL) \
+        yy[i] += (VAL);\
+    }\
+}
+
+#define DEFINE_FUNC_CALCULATE_VALUE(NAME, VAL) \
+    DEFINE_FUNC_CALCULATE_VALUE_BEGIN(NAME) \
+    DEFINE_FUNC_CALCULATE_VALUE_END(VAL)
+
+
 #define PUT_DERIVATIVES_AND_VALUE(VAL) \
         if (!in_dx) { \
-            y[i] += (VAL); \
+            yy[i] += (VAL); \
             for (vector<Multi>::const_iterator j = multi.begin(); \
                     j != multi.end(); ++j) \
                 dy_da[dyn*i+j->p] += dy_dv[j->n] * j->mult;\
@@ -197,26 +216,51 @@ int Function::unnamed_counter = 0;
                     j != multi.end(); ++j) \
                 dy_da[dyn*i+j->p] += dy_da[dyn*i+dyn-1] * dy_dv[j->n]*j->mult;\
         }
+
+
+#define DEFINE_FUNC_CALCULATE_VALUE_DERIV_BEGIN(NAME) \
+void Func##NAME::calculate_value_deriv(vector<fp> const &xx, \
+                                         vector<fp> &yy, \
+                                         vector<fp> &dy_da, \
+                                         bool in_dx) const \
+{ \
+    int first, last; \
+    get_nonzero_idx_range(xx, first, last); \
+    int dyn = dy_da.size() / xx.size(); \
+    vector<fp> dy_dv(nv); \
+    for (int i = first; i < last; ++i) { \
+        fp x = xx[i]; \
+        fp dy_dx;
+
+
+#define DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(VAL) \
+        PUT_DERIVATIVES_AND_VALUE(VAL)  \
+    } \
+}
+
+
+
+
 ///////////////////////////////////////////////////////////////////////
 
 const char *FuncConstant::formula 
-= "Constant(a) = a"; 
+= "Constant(a=height) = a"; 
 
-void FuncConstant::calculate_value(vector<fp> const &/*x*/, vector<fp> &y) const
+void FuncConstant::calculate_value(vector<fp> const&/*xx*/, vector<fp>&yy) const
 {
-    for (vector<fp>::iterator i = y.begin(); i != y.end(); ++i)
+    for (vector<fp>::iterator i = yy.begin(); i != yy.end(); ++i)
         *i += vv[0];
 }
 
-void FuncConstant::calculate_value_deriv(vector<fp> const &x, 
-                                         vector<fp> &y, 
+void FuncConstant::calculate_value_deriv(vector<fp> const &xx, 
+                                         vector<fp> &yy, 
                                          vector<fp> &dy_da,
                                          bool in_dx) const
 {
-    // dy_da.size() == x.size() * (parameters.size()+1)
-    int dyn = dy_da.size() / x.size();
-    vector<fp> dy_dv(vv.size());
-    for (int i = 0; i < size(y); ++i) {
+    // dy_da.size() == xx.size() * (parameters.size()+1)
+    int dyn = dy_da.size() / xx.size();
+    vector<fp> dy_dv(nv);
+    for (int i = 0; i < size(yy); ++i) {
         dy_dv[0] = 1.;
         fp dy_dx = 0;
         PUT_DERIVATIVES_AND_VALUE(vv[0]);
@@ -225,42 +269,39 @@ void FuncConstant::calculate_value_deriv(vector<fp> const &x,
 
 ///////////////////////////////////////////////////////////////////////
 
+const char *FuncLinear::formula 
+= "Linear(a0=height,a1=0) = a0 + a1 * x"; 
+
+
+DEFINE_FUNC_CALCULATE_VALUE(Linear, vv[0] + x*vv[1])
+
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_BEGIN(Linear)
+    dy_dv[0] = 1.;
+    dy_dv[1] = x;
+    dy_dx = vv[1];
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(vv[0] + x*vv[1])
+
+///////////////////////////////////////////////////////////////////////
+
 const char *FuncGaussian::formula 
 = "Gaussian(height, center, hwhm) = "
                         "height*exp(-ln(2)*((x-center)/hwhm)^2)"; 
 
 
-void FuncGaussian::calculate_value(vector<fp> const &x, vector<fp> &y) const
-{
-    int first, last;
-    get_nonzero_idx_range(x, first, last);
-    for (int i = first; i < last; ++i) {
-        fp xa1a2 = (x[i] - vv[1]) / vv[2];
-        fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
-        y[i] += vv[0] * ex;
-    }
-}
+DEFINE_FUNC_CALCULATE_VALUE_BEGIN(Gaussian)
+    fp xa1a2 = (x - vv[1]) / vv[2];
+    fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
+DEFINE_FUNC_CALCULATE_VALUE_END(vv[0] * ex)
 
-void FuncGaussian::calculate_value_deriv(vector<fp> const &x, 
-                                         vector<fp> &y, 
-                                         vector<fp> &dy_da,
-                                         bool in_dx) const
-{
-    int first, last;
-    get_nonzero_idx_range(x, first, last);
-    int dyn = dy_da.size() / x.size();
-    vector<fp> dy_dv(vv.size());
-    for (int i = first; i < last; ++i) {
-        fp xa1a2 = (x[i] - vv[1]) / vv[2];
-        fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
-        dy_dv[0] = ex;
-        fp dcenter = 2 * M_LN2 * vv[0] * ex * xa1a2 / vv[2];
-        dy_dv[1] = dcenter;
-        dy_dv[2] = dcenter * xa1a2;
-        fp dy_dx = -dcenter;
-        PUT_DERIVATIVES_AND_VALUE(vv[0]*ex);
-    }
-}
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_BEGIN(Gaussian)
+    fp xa1a2 = (x - vv[1]) / vv[2];
+    fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
+    dy_dv[0] = ex;
+    fp dcenter = 2 * M_LN2 * vv[0] * ex * xa1a2 / vv[2];
+    dy_dv[1] = dcenter;
+    dy_dv[2] = dcenter * xa1a2;
+    dy_dx = -dcenter;
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(vv[0]*ex)
 
 bool FuncGaussian::get_nonzero_range (fp level, fp &left, fp &right) const
 {  
@@ -276,14 +317,155 @@ bool FuncGaussian::get_nonzero_range (fp level, fp &left, fp &right) const
     return true;
 }
 
+void FuncGaussian::do_precomputations(vector<Variable*> const &variables) 
+{ 
+    Function::do_precomputations(variables);
+    if (fabs(vv[2]) < EPSILON) 
+        vv[2] = EPSILON; 
+}
+
+///////////////////////////////////////////////////////////////////////
+
+const char *FuncLorentzian::formula 
+= "Lorentzian(height, center, hwhm) = "
+                        "height/(1+((x-center)/hwhm)^2)"; 
+
+
+DEFINE_FUNC_CALCULATE_VALUE_BEGIN(Lorentzian)
+    fp xa1a2 = (x - vv[1]) / vv[2];
+    fp inv_denomin = 1. / (1 + xa1a2 * xa1a2);
+DEFINE_FUNC_CALCULATE_VALUE_END(vv[0] * inv_denomin)
+
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_BEGIN(Lorentzian)
+    fp xa1a2 = (x - vv[1]) / vv[2];
+    fp inv_denomin = 1. / (1 + xa1a2 * xa1a2);
+    dy_dv[0] = inv_denomin;
+    fp dcenter = 2 * vv[0] * xa1a2 / vv[2] * inv_denomin * inv_denomin;
+    dy_dv[1] = dcenter;
+    dy_dv[2] = dcenter * xa1a2;
+    dy_dx = -dcenter;
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(vv[0] * inv_denomin)
+
+bool FuncLorentzian::get_nonzero_range (fp level, fp &left, fp &right) const
+{  
+    if (level <= 0)
+        return false;
+    else if (level >= vv[0])
+        left = right = 0;
+    else {
+        fp w = sqrt (vv[0] / level - 1) * vv[2];
+        left = vv[1] - w;             
+        right = vv[1] + w;
+    }
+    return true;
+}
+
+void FuncLorentzian::do_precomputations(vector<Variable*> const &variables)
+{ 
+    Function::do_precomputations(variables);
+    if (fabs(vv[2]) < EPSILON) 
+        vv[2] = EPSILON; 
+}
+
+///////////////////////////////////////////////////////////////////////
+
+const char *FuncPearson7::formula 
+= "Pearson7(height, center, hwhm, shape=2) = "
+                        "height/(1+((x-center)/hwhm)^2)"; 
+
+void FuncPearson7::do_precomputations(vector<Variable*> const &variables)
+{ 
+    Function::do_precomputations(variables);
+    if (fabs(vv[2]) < EPSILON) 
+        vv[2] = EPSILON; 
+    if (vv.size() != 5)
+        vv.resize(5);
+    // not checking for vv[3]>0 or even >0.5
+    vv[4] = pow(2, 1. / vv[3]) - 1;
+}
+
+DEFINE_FUNC_CALCULATE_VALUE_BEGIN(Pearson7)
+    fp xa1a2 = (x - vv[1]) / vv[2];
+    fp xa1a2sq = xa1a2 * xa1a2;
+    fp pow_2_1_a3_1 = vv[4]; //pow (2, 1. / a3) - 1;
+    fp denom_base = 1 + xa1a2sq * pow_2_1_a3_1;
+    fp inv_denomin = pow (denom_base, - vv[3]);
+DEFINE_FUNC_CALCULATE_VALUE_END(vv[0] * inv_denomin)
+
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_BEGIN(Pearson7)
+    fp xa1a2 = (x - vv[1]) / vv[2];
+    fp xa1a2sq = xa1a2 * xa1a2;
+    fp pow_2_1_a3_1 = vv[4]; //pow (2, 1. / a3) - 1;
+    fp denom_base = 1 + xa1a2sq * pow_2_1_a3_1;
+    fp inv_denomin = pow (denom_base, - vv[3]);
+    dy_dv[0] = inv_denomin;
+    fp dcenter = 2 * vv[0] * vv[3] * pow_2_1_a3_1 * xa1a2 * inv_denomin /
+                                                      (denom_base * vv[2]);
+    dy_dv[1] = dcenter;
+    dy_dv[2] = dcenter * xa1a2;
+    dy_dv[3] = vv[0] * inv_denomin * (M_LN2 * (pow_2_1_a3_1 + 1)
+                       * xa1a2sq / (denom_base * vv[3]) - log(denom_base));
+    dy_dx -= dcenter;
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(vv[0] * inv_denomin)
+
+
+bool FuncPearson7::get_nonzero_range (fp level, fp &left, fp &right) const
+{  
+    if (level <= 0)
+        return false;
+    else if (level >= vv[0])
+        left = right = 0;
+    else {
+        fp t = (pow (vv[0]/level, 1./vv[3]) - 1) / (pow (2, 1./vv[3]) - 1);
+        fp w = sqrt(t) * vv[2];
+        left = vv[1] - w;             
+        right = vv[1] + w;
+    }
+    return true;
+}
+
+fp FuncPearson7::area() const
+{
+    if (vv[3] <= 0.5)
+        return +INF;
+    fp g = exp_ (LnGammaE(vv[3] - 0.5) - LnGammaE(vv[3]));
+    return vv[0] * 2 * fabs(vv[2])
+        * sqrt(M_PI) * g / (2 * sqrt (vv[4]));
+    //in f_val_precomputations(): vv[4] = pow (2, 1. / a3) - 1;
+}
+
+///////////////////////////////////////////////////////////////////////
+
+const char *FuncValente::formula 
+= "Valente(amp=height, a=7.6, b=7.6, c=center, d=-6.9, n=0) ="
+"Amp*exp(-((exp(a)-exp(b)) * (x-c) + sqrt((exp(a)+exp(b))^2 * (x-c)^2" 
+                    "+ 4*exp(d)))^exp(n))";
+
+DEFINE_FUNC_CALCULATE_VALUE_BEGIN(Valente)
+fp amp=vv[0], a=vv[1], b=vv[2], c=vv[3], d=vv[4], n=vv[5];
+fp xc = x-c;
+fp a_b = exp(a)-exp(b);
+fp apb = exp(a)+exp(b);
+fp base = (a_b * xc + sqrt(apb*apb * xc*xc + 4*exp(d)));
+fp t = exp(-pow(base,exp(n)));
+DEFINE_FUNC_CALCULATE_VALUE_END(amp*t)
+
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_BEGIN(Valente)
+fp amp=vv[0], a=vv[1], b=vv[2], c=vv[3], d=vv[4], n=vv[5];
+fp xc = x-c;
+fp a_b = exp(a)-exp(b);
+fp apb = exp(a)+exp(b);
+fp base = (a_b * xc + sqrt(apb*apb * xc*xc + 4*exp(d)));
+fp t = exp(-pow(base,exp(n)));
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(amp*t)
 ///////////////////////////////////////////////////////////////////////
 
 const char *FuncPielaszekCube::formula 
 = "PielaszekCube(a=height*0.016, center, r=300, s=150) = ..."; 
 
 
-void FuncPielaszekCube::calculate_value(vector<fp> const &x, 
-                                        vector<fp> &y) const
+void FuncPielaszekCube::calculate_value(vector<fp> const &xx, 
+                                        vector<fp> &yy) const
 {
     fp height = vv[0];
     fp center = vv[1];
@@ -292,10 +474,10 @@ void FuncPielaszekCube::calculate_value(vector<fp> const &x,
     fp s2 = s*s;
     fp s4 = s2*s2;
     fp R2 = R*R;
-    for (int i = 0; i < size(x); ++i) {
-        fp q = (x[i]-center);
+    for (int i = 0; i < size(xx); ++i) {
+        fp q = (xx[i]-center);
         fp q2 = q*q;
-        y[i] += height * 
+        yy[i] += height * 
         (-3*R*(-1 - (R2*(-1 +
                               pow(1 + (q2*s4)/R2, 1.5 - R2/(2.*s2))
                               * cos(2*(-1.5 + R2/(2.*s2)) * atan((q*s2)/R))))/
@@ -304,13 +486,13 @@ void FuncPielaszekCube::calculate_value(vector<fp> const &x,
     }
 }
 
-void FuncPielaszekCube::calculate_value_deriv(vector<fp> const &x, 
-                                         vector<fp> &y, 
-                                         vector<fp> &dy_da,
-                                         bool in_dx) const
+void FuncPielaszekCube::calculate_value_deriv(vector<fp> const &xx, 
+                                              vector<fp> &yy, 
+                                              vector<fp> &dy_da,
+                                              bool in_dx) const
 {
-    int dyn = dy_da.size() / x.size();
-    vector<fp> dy_dv(vv.size());
+    int dyn = dy_da.size() / xx.size();
+    vector<fp> dy_dv(nv);
     fp height = vv[0];
     fp center = vv[1];
     fp R = vv[2];
@@ -321,8 +503,8 @@ void FuncPielaszekCube::calculate_value_deriv(vector<fp> const &x,
     fp R2 = R*R;
     fp R4 = R2*R2;
     fp R3 = R*R2;
-    for (int i = 0; i < size(x); ++i) {
-        fp q = (x[i]-center);
+    for (int i = 0; i < size(xx); ++i) {
+        fp q = (xx[i]-center);
         fp q2 = q*q;
         fp t = (-3*R*(-1 - (R2*(-1 +
                               pow(1 + (q2*s4)/R2, 1.5 - R2/(2.*s2))

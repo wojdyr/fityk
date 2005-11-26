@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef WX_PANE__H__
-#define WX_PANE__H__
+#ifndef FITYK__WX_PANE__H__
+#define FITYK__WX_PANE__H__
 
 #include <wx/print.h>
 #include <wx/config.h>
@@ -194,5 +194,5 @@ private:
 };
 
 
-#endif //WX_PANE__H__
+#endif 
 

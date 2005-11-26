@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef WX_DLG__H__
-#define WX_DLG__H__
+#ifndef FITYK__WX_DLG__H__
+#define FITYK__WX_DLG__H__
 
 #include <wx/treectrl.h>
 #include <wx/notebook.h>

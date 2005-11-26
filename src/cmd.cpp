@@ -31,24 +31,32 @@ vector<string> vt;
 vector<int> vn;
 static const int new_dataset = -1;
 static const int active_dataset = -2;
+bool outdated_plot = false;
 
 void set_data_title(char const*, char const*)  { my_data->title = t; }
 
-void do_transform(char const* a, char const* b)  
-                                         { my_data->transform(string(a,b)); }
+void do_transform(char const* a, char const* b)  { 
+    my_data->transform(string(a,b)); 
+    outdated_plot=true; 
+}
 
 void do_assign_var(char const* a, char const* b) 
-               { AL->assign_variable(string(t, 1), string(a,b)); }
+{ 
+    AL->assign_variable(string(t, 1), string(a,b)); 
+    outdated_plot=true;  //TODO only if...
+}
 
 void do_assign_func(char const*, char const*)
 {
-   AL->assign_func(t, t2, vt);
-   vt = vector1(t); //for do_put_function()
+    AL->assign_func(t, t2, vt);
+    vt = vector1(t); //for do_put_function()
+    outdated_plot=true;  //TODO only if...
 }
 
 void do_subst_func_param(char const* a, char const* b)
 {
     AL->substitute_func_param(t, t2, string(a,b));
+    outdated_plot=true;  //TODO only if...
 }
 
 void do_put_function(char const* a, char const* b)
@@ -57,12 +65,14 @@ void do_put_function(char const* a, char const* b)
     for (vector<string>::const_iterator i = vt.begin(); i != vt.end(); ++i)
         if (s.size() == 1)
             AL->get_active_ds()->get_sum()->add_function_to(*i, s[0]);
+    outdated_plot=true;  //TODO only if...
 }
 
 void do_delete(char const*, char const*) 
 { 
     AL->remove_ds(vn);
     AL->delete_funcs_and_vars(vt);
+    outdated_plot=true;  //TODO only if...
 }
 
 void do_print_info(char const* a, char const* b)
@@ -204,6 +214,7 @@ void do_import_dataset(char const*, char const*)
         //TODO columns, type
         AL->get_data(tmp_int)->load_file(t, 0, vector<int>()); 
     }
+    outdated_plot=true;  //TODO only if...
 }
 
 void do_export_dataset(char const*, char const*)
@@ -220,6 +231,7 @@ void do_select_data(char const*, char const*)
     else if (tmp_int == active_dataset)
         tmp_int = AL->get_active_ds_position();
     AL->activate_ds(tmp_int);
+    outdated_plot=true;  //TODO only if...
 }
 
 void do_load_data_sum(char const*, char const*)
@@ -227,17 +239,27 @@ void do_load_data_sum(char const*, char const*)
     if (tmp_int == active_dataset)
         tmp_int = AL->get_active_ds_position();
     //TODO do_load_data_sum
+    outdated_plot=true;  //TODO only if...
 }
 
 void do_plot(char const*, char const*)
 {
     AL->view.parse_and_set(vt);
     getUI()->drawPlot(1, true);
+    outdated_plot=false;
+}
+
+void do_replot(char const*, char const*) 
+{ 
+    if (outdated_plot)
+        getUI()->drawPlot(2); 
+    outdated_plot=false;
 }
 
 void do_fit(char const*, char const*)
 {
     my_fit->fit(tmp_bool, tmp_int);
+    outdated_plot=true;  //TODO only if...
 }
 
 void do_sleep(char const*, char const*)
@@ -247,8 +269,8 @@ void do_sleep(char const*, char const*)
 
 void do_guess(char const*, char const*)
 {
-    my_manipul->guess_and_add(t, t2, 
-                              tmp_bool, tmp_real, tmp_real2, vt);
+    my_manipul->guess_and_add(t, t2, tmp_bool, tmp_real, tmp_real2, vt);
+    outdated_plot=true;  //TODO only if...
 }
 
 } //namespace
@@ -435,7 +457,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         multi 
-            = statement % ';';
+            = (statement % ';') [&do_replot];
     }
 
     rule<ScannerT> transform, assign_var, function_name, assign_func, 

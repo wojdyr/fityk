@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef WX_MPLOT__H__
-#define WX_MPLOT__H__
+#ifndef FITYK__WX_MPLOT__H__
+#define FITYK__WX_MPLOT__H__
 
 #include "wx_plot.h"
 #include "numfuncs.h" // B_point definition
@@ -121,4 +121,4 @@ private:
     DECLARE_EVENT_TABLE()
 };
 
-#endif //WX_MPLOT__H__
+#endif 

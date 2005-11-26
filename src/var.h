@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef VAR__H__
-#define VAR__H__
+#ifndef FITYK__VAR__H__
+#define FITYK__VAR__H__
 
 #include <boost/spirit/core.hpp>
 #include <boost/spirit/tree/ast.hpp>
@@ -155,8 +155,6 @@ protected:
 
     std::vector<Function*> functions;
 
-    Variable *create_simple_variable(std::string const &name, 
-                                     std::string const &rhs);
     Variable *create_variable(std::string const &name, std::string const &rhs);
     int get_variable_value(std::string const &name);
     bool is_variable_referred(int i, 

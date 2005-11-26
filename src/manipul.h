@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef MANIPUL__H__
-#define MANIPUL__H__
+#ifndef FITYK__MANIPUL__H__
+#define FITYK__MANIPUL__H__
 
 #include "dotset.h"
 

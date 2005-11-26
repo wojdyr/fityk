@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef DATATRANS__H__
-#define DATATRANS__H__
+#ifndef FITYK__DATATRANS__H__
+#define FITYK__DATATRANS__H__
 
 
 #include <boost/spirit/core.hpp>
@@ -61,4 +61,4 @@ extern DataTransformGrammar DataTransformG;
 
 
 
-#endif //DATATRANS__H__
+#endif 

@@ -1,7 +1,7 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
-#ifndef WX_COMMON__H__
-#define WX_COMMON__H__
+#ifndef FITYK__WX_COMMON__H__
+#define FITYK__WX_COMMON__H__
 
 #include "common.h"
 
@@ -58,4 +58,4 @@ enum {
 };
 #endif
 
-#endif // WX_COMMON__H__
+#endif 

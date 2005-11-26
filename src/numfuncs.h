@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef NUMFUNCS__H__
-#define NUMFUNCS__H__
+#ifndef FITYK__NUMFUNCS__H__
+#define FITYK__NUMFUNCS__H__
 
 #include "common.h"
 
@@ -36,4 +36,6 @@ void prepare_spline_interpolation (std::vector<B_point> &bb);
 fp get_spline_interpolation(std::vector<B_point> &bb, fp x);
 fp get_linear_interpolation(std::vector<B_point> &bb, fp x);
 
-#endif //NUMFUNCS__H__
+fp LnGammaE (fp x); /// log_e of Gamma function
+
+#endif 

@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef WX_GUI__H__
-#define WX_GUI__H__
+#ifndef FITYK__WX_GUI__H__
+#define FITYK__WX_GUI__H__
 
 #include "common.h"
 #include "wx_common.h"  // Output_style_enum
@@ -224,5 +224,5 @@ DECLARE_EVENT_TABLE()
 
 extern FFrame *frame;
 
-#endif //WXGUI__H__
+#endif 
 

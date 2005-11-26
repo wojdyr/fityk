@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef CALC__H__
-#define CALC__H__
+#ifndef FITYK__CALC__H__
+#define FITYK__CALC__H__
 
 #include <boost/spirit/core.hpp>
 #include <boost/spirit/tree/ast.hpp>
