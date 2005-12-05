@@ -22,7 +22,8 @@ using namespace std;
 
 char GnuPlot::path_to_gnuplot[]="gnuplot";
 
-GnuPlot::GnuPlot ()
+GnuPlot::GnuPlot()
+    : smooth_limit(0)
 {
     fork_and_make_pipe ();
 }

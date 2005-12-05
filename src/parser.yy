@@ -57,7 +57,7 @@ void replot()
 
 %token <c> SET
 %token F_RUN F_CONTINUE F_METHOD 
-%token O_LOG O_INCLUDE O_DUMP
+%token O_INCLUDE O_DUMP
 %token M_FINDPEAK
 %token QUIT 
 %token PLUS_MINUS TWO_COLONS
@@ -99,9 +99,6 @@ exp:  SET DASH_STRING EQ_STRING SEP {
                             mesg (my_manipul->print_simple_estimate ($2, $3)); }
     | M_FINDPEAK                   {mesg (my_manipul->print_global_peakfind());}
 
-    | O_LOG opt_lcase FILENAME SEP { getUI()->startLog($2, $3.str()); }
-    | O_LOG '!' SEP                { getUI()->stopLog(); }
-    | O_LOG                        { mesg (getUI()->getLogInfo()); }
     | O_INCLUDE FILENAME lines SEP  { getUI()->execScript($2.str(), vlines);}
     | O_INCLUDE '!' FILENAME lines SEP { AL->reset_all(); 
                                        getUI()->execScript($3.str(), vlines);}

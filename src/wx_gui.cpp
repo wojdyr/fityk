@@ -141,13 +141,10 @@ enum {
     ID_F_SET                   ,
     ID_F_M                     , 
     ID_F_M_END = ID_F_M+10     , 
-    ID_C_WAVELENGTH            ,
-    ID_C_ADD                   ,
-    ID_C_INFO                  ,
-    ID_C_REMOVE                ,
-    ID_C_ESTIMATE              ,
-    ID_C_SET                   ,
-    ID_O_LOG                   ,
+    ID_SESSION_LOG             ,
+    ID_LOG_START               ,
+    ID_LOG_STOP                ,
+    ID_LOG_WITH_OUTPUT         ,
     ID_O_RESET                 ,
     ID_PRINT                   ,
     ID_PRINT_SETUP             ,
@@ -389,7 +386,10 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_F_INFO,        FFrame::OnFInfo)    
     EVT_MENU (ID_F_SET,         FFrame::OnFSet)    
 
-    EVT_MENU (ID_O_LOG,         FFrame::OnOLog)    
+    EVT_UPDATE_UI (ID_SESSION_LOG, FFrame::OnLogUpdate)    
+    EVT_MENU (ID_LOG_START,     FFrame::OnLogStart)
+    EVT_MENU (ID_LOG_STOP,      FFrame::OnLogStop)
+    EVT_MENU (ID_LOG_WITH_OUTPUT, FFrame::OnLogWithOutput)
     EVT_MENU (ID_O_RESET,       FFrame::OnO_Reset)    
     EVT_MENU (ID_O_INCLUDE,     FFrame::OnOInclude)    
     EVT_MENU (ID_O_REINCLUDE,   FFrame::OnOReInclude)    
@@ -758,8 +758,14 @@ void FFrame::set_menubar()
     session_menu->Enable (ID_O_REINCLUDE, false);
     session_menu->Append (ID_O_RESET,     "&Reset", "Reset current session");
     session_menu->AppendSeparator();
-    session_menu->Append (ID_O_LOG,       "&Log to file", 
-                            "Start/stop logging to file (it produces script)");
+    wxMenu *session_log_menu = new wxMenu;
+    session_log_menu->Append(ID_LOG_START, "Choose log file", 
+                            "Start logging to file (it produces script)");
+    session_log_menu->Append(ID_LOG_STOP, "Stop logging",
+                                          "Finish logging to file");
+    session_log_menu->AppendCheckItem(ID_LOG_WITH_OUTPUT, "Log also output",
+                              "output can be included in logfile as comments");
+    session_menu->Append(ID_SESSION_LOG, "&Logging", session_log_menu);
     session_menu->Append (ID_O_DUMP,      "&Dump to file", 
                                   "Save current program state as script file");
     session_menu->AppendSeparator();
@@ -1074,39 +1080,49 @@ void FFrame::OnFSet          (wxCommandEvent& WXUNUSED(event))
     OnXSet ("Fit (" + my_fit->method + ")", 'f');
 }
         
+void FFrame::OnLogUpdate (wxUpdateUIEvent& event)        
+{
+    string const& logfile = getUI()->getCommands().get_log_file();
+    if (logfile.empty()) {
+        GetMenuBar()->Enable(ID_LOG_START, true);
+        GetMenuBar()->Enable(ID_LOG_STOP, false);
+    }
+    else {
+        GetMenuBar()->Enable(ID_LOG_START, false);
+        GetMenuBar()->Enable(ID_LOG_STOP, true);
+        GetMenuBar()->Check(ID_LOG_WITH_OUTPUT, 
+                            getUI()->getCommands().get_log_with_output());
+    }
+    event.Skip();
+}
 
-
-void FFrame::OnOLog          (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnLogStart (wxCommandEvent& WXUNUSED(event))
 {
     wxFileDialog fdlg (this, "Log to file", "", "",
-                       "Log input to file (*.fit)|*.fit;*.FIT"
-                       "|Log output to file (*.fit)|*.fit;*.FIT"
-                       "|Log input & output (*.fit)|*.fit;*.FIT"
-                       "|Stop logging to file |none.none",
+                       "Fityk script file (*.fit)|*.fit;*.FIT"
+                        "|All files |*",
                        wxSAVE);
-    char m = getUI()->getLogMode();
-    if (m == 'i')
-        fdlg.SetFilterIndex(0);
-    else if (m == 'o')
-        fdlg.SetFilterIndex(1);
-    else if (m == 'a')
-        fdlg.SetFilterIndex(2);
-    else if (m == 'n')
-        fdlg.SetFilterIndex(3);
-    else 
-        assert (0);
-    if (m != 'n')
-        fdlg.SetPath(getUI()->getLogFilename().c_str());
+    string const& logfile = getUI()->getCommands().get_log_file();
+    if (!logfile.empty())
+        fdlg.SetPath(logfile.c_str());
     if (fdlg.ShowModal() == wxID_OK) {
-        int mode = fdlg.GetFilterIndex();
-        char *modes = "ioan";
-        assert(mode >= 0 && mode < 4);
-        if (mode < 3)
-            exec_command ("o.log " + S(modes[mode]) 
-                                    + " '" + fdlg.GetPath().c_str() + "'");
-        else
-            exec_command ("o.log !"); 
+        string plus = GetMenuBar()->IsChecked(ID_LOG_WITH_OUTPUT) ? "+" : "";
+        exec_command("commands" + plus + " > '" + fdlg.GetPath().c_str() + "'");
     }
+}
+
+void FFrame::OnLogStop (wxCommandEvent& WXUNUSED(event))
+{
+    exec_command("commands > /dev/null");
+}
+
+void FFrame::OnLogWithOutput (wxCommandEvent& event)
+{
+    bool checked = event.IsChecked();
+    GetMenuBar()->Check(ID_LOG_WITH_OUTPUT, checked);
+    string const& logfile = getUI()->getCommands().get_log_file();
+    if (!logfile.empty())
+        exec_command("commands+ > " + logfile);
 }
 
 void FFrame::OnO_Reset   (wxCommandEvent& WXUNUSED(event))
@@ -1690,12 +1706,6 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     AddTool (ID_O_INCLUDE, "Execute", wxBitmap(run_script_xpm), wxNullBitmap,  
              wxITEM_NORMAL, "Execute script",
              "Execute (include) script from file");
-    //AddTool (ID_O_LOG, "Log", wxBitmap(log_xpm), wxNullBitmap,  
-    //         wxITEM_NORMAL, "Start/Stop logging",
-    //         "Start/Stop logging commands to file");
-    //AddTool (ID_O_RESET, "Reset", wxBitmap(reset_xpm), wxNullBitmap,  
-    //         wxITEM_NORMAL, "Reset current session",
-    //         "Reset current session");
     AddTool (ID_O_DUMP, "Dump", wxBitmap(save_script_xpm), wxNullBitmap,  
              wxITEM_NORMAL, "Dump session to file",
              "Dump current session to file");

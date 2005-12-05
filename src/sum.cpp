@@ -197,6 +197,7 @@ void Sum::export_as_script (ostream& os) const
 
 void Sum::export_as_dat (ostream& os) 
 {
+    int smooth_limit = 0;
     int n = my_data->get_n();
     if (n < 2) {
         warn ("At least two data points should be active when"

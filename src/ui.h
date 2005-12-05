@@ -16,6 +16,48 @@ struct NumberedLine;
 // return value: false -> quit
 bool cmd_parser(std::string cmd); 
 
+/// used for storing commands and logging commands to file
+class Commands 
+{
+public:
+    static const int max_cmd = 1024;
+    enum Status { status_ok, status_execute_error, status_syntax_error };
+    struct Cmd
+    {
+        std::string cmd;
+        Status status;
+        Cmd(std::string const& c, Status s) : cmd(c), status(s) {}
+        std::string str() const { 
+            return cmd + " #>" + (status == status_ok ? "OK" 
+                           : (status == status_execute_error ? "Runtime Error"
+                               : "Syntax Error" )); }
+    };
+  
+    Commands() : command_counter(0) {}
+    void put_command(std::string const& s, Status s);
+    void put_output_message(std::string const& s); 
+    std::string get_command(int n) const { assert(is_index(n, cmds));
+                                           return cmds[n].cmd; }
+    Status get_status(int n) const { assert(is_index(n, cmds)); 
+                                     return cmds[n].status; }
+    std::vector<std::string> get_commands(int from, int to, 
+                                          bool with_status) const;
+    std::string get_info() const;
+    void start_logging(std::string const& filename, bool with_output);
+    void stop_logging();
+    std::string get_log_file() const { return log_filename; }
+    bool get_log_with_output() const { return log_with_output; }
+  
+  protected:
+    int command_counter; //!=cmds.size() if max_cmd was exceeded
+    std::vector<Cmd> cmds;
+    std::string log_filename;
+    std::ofstream log;
+    bool log_with_output;
+
+    int count_commands_with_status(Status st) const;
+};
+
 /// A Singleton class.
 /// Some methods (plot, plotNow, wait, execCommand, showMessage) 
 /// are different and defined separatly for GUI and CLI versions.
@@ -36,11 +78,10 @@ public:
     /// Wait and disable UI for ... seconds. Different for GUI and CLI.
     void wait(float seconds); 
 
-    void startLog (char mode, std::string const &filename);
-    void stopLog();
-    std::string getLogInfo() const;
-    char getLogMode() const { return log_mode; };
-    std::string getLogFilename() const { return log_filename; };
+    void startLog (std::string const &filename, bool with_output)
+                            { commands.start_logging(filename, with_output); }
+    void stopLog() { commands.stop_logging(); }
+    Commands const& getCommands() const { return commands; }
 
     /// Excute all commands (or these from specified lines) from file. 
     /// In other words, run a script (.fit).
@@ -49,8 +90,9 @@ public:
     void execScript (std::string const &filename) 
     { execScript(filename, std::vector<std::pair<int,int> >()); }
 
-    void execAndLogCmd(std::string const &s) {log_input(s); execCommand(s);}
-
+    void execAndLogCmd(std::string const &s) 
+        //TODO status
+             { commands.put_command(s, Commands::status_ok); execCommand(s); }
     bool displayHelpTopic(std::string const &topic); 
     int getVerbosity() { return verbosity; }
     /// exit UI and program
@@ -69,14 +111,8 @@ private:
     /// It can finish the program (eg. if s=="quit").
     void execCommand (std::string const &s);
 
-    void log_output (std::string const &s);
-    void log_input (std::string const &s) 
-           { if (log_mode=='i' || log_mode=='a')  logfile << " " << s << "\n"; }
-
     static UserInterface* instance;
-    char log_mode; //i, a, o, n  //TODO: change to enum 
-    std::string log_filename;
-    std::ofstream logfile;
+    Commands commands;
     char verbosity;
     bool exit_on_warning;
     char auto_plot;

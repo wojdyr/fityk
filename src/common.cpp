@@ -9,7 +9,6 @@
 
 using namespace std;
 
-int smooth_limit = 0; //TODO use it in GUI version
 volatile bool user_interrupt = false;
 
 const fp INF = 1e99; //almost ininity. floating points limits are about:

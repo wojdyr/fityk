@@ -70,7 +70,6 @@ f\.r(un)?	   r_cmd(); return F_RUN;
 f\.c(ontinue)?	   r_cmd(); return F_CONTINUE;
 f\.m(ethod)?	   r_cmd(); return F_METHOD;
 m\.f(indpeak)?     r_cmd(); return M_FINDPEAK;
-o\.l(og)?	   r_cmd(); BEGIN(FILE_COND); return O_LOG; 
 o\.i(nclude)?	   r_cmd(); BEGIN(FILE_COND); return O_INCLUDE; 
 o\.d(ump)?	   r_cmd(); BEGIN(FILE_COND); return O_DUMP;
 (q(uit)?)|(exit)   r_cmd(); return QUIT;

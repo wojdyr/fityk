@@ -576,9 +576,6 @@ void MainPlot::show_popup_menu (wxMouseEvent &event)
     show_menu->Check (ID_plot_popup_xaxis, x_axis_visible);
     show_menu->AppendCheckItem (ID_plot_popup_tics, "&Tics", "");
     show_menu->Check (ID_plot_popup_tics, tics_visible);
-    show_menu->AppendSeparator();
-    show_menu->AppendCheckItem (ID_plot_popup_smooth, "Sm&ooth lines", "");
-    show_menu->Check (ID_plot_popup_smooth, smooth);
     popup_menu.Append (wxNewId(), "&Show", show_menu);
 
     wxMenu *color_menu = new wxMenu;
@@ -616,6 +613,9 @@ void MainPlot::show_popup_menu (wxMouseEvent &event)
                                     wxString::Format ("&%d", i), "");
     size_menu->Check (ID_plot_popup_pt_size + point_radius, true);
     popup_menu.Append (wxNewId(), "Data point si&ze",size_menu);
+
+    popup_menu.AppendCheckItem (ID_plot_popup_smooth, "Sm&ooth lines", "");
+    popup_menu.Check (ID_plot_popup_smooth, smooth);
     
     PopupMenu (&popup_menu, event.GetX(), event.GetY());
 }

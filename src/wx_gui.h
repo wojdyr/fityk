@@ -134,7 +134,10 @@ public:
     void OnFInfo         (wxCommandEvent& event);         
     void OnFSet          (wxCommandEvent& event);        
 
-    void OnOLog          (wxCommandEvent& event);        
+    void OnLogUpdate     (wxUpdateUIEvent& event);        
+    void OnLogStart      (wxCommandEvent& event);        
+    void OnLogStop       (wxCommandEvent& event);        
+    void OnLogWithOutput (wxCommandEvent& event);        
     void OnOInclude      (wxCommandEvent& event);            
     void OnOReInclude    (wxCommandEvent& event);            
     void OnO_Reset       (wxCommandEvent& event);

@@ -13,6 +13,114 @@ using namespace std;
 const char* config_dirname = ".fityk";
 const char* startup_commands_filename = "init";
 
+
+void Commands::put_command(string const& c, Status s)
+{
+    cmds.push_back(Cmd(c, s));
+    ++command_counter;
+    if (!log_filename.empty())  
+        log << " " << c << endl; 
+}
+
+void Commands::put_output_message(string const& s)
+{
+    if (!log_filename.empty() && log_with_output) {
+        // insert "# " at the beginning of string and before every new line
+        log << "# ";
+        for (const char *p = s.c_str(); *p; p++) {
+            log << *p;
+            if (*p == '\n')
+                log << "# ";
+        }
+        log << endl;
+    }
+}
+
+vector<string> Commands::get_commands(int from, int to, bool with_status) const
+{
+    vector<string> r;
+    if (!cmds.empty())
+        for (int i = max(from, 0); i <= min(to, size(cmds)-1); ++i) {
+            string s;
+            if (with_status)
+                s = cmds[i].str();
+            else
+                s = cmds[i].cmd;
+            r.push_back(s);
+        }
+    return r;
+}
+
+int Commands::count_commands_with_status(Status st) const
+{
+    int cnt = 0;
+    for (vector<Cmd>::const_iterator i = cmds.begin(); i != cmds.end(); ++i)
+        if (i->status == st)
+            ++cnt;
+    return cnt;
+}
+
+string Commands::get_info() const
+{
+    string s = S(command_counter) + " commands since the start of the program,";
+    if (command_counter == size(cmds))
+        s += " of which:";
+    else
+        s += "\nin last " + S(cmds.size()) + " commands:";
+    s += "\n  " + S(count_commands_with_status(status_ok)) 
+              + " executed successfully"
+        + "\n  " + S(count_commands_with_status(status_execute_error)) 
+          + " finished with execute error"
+        + "\n  " + S(count_commands_with_status(status_syntax_error))
+          + " with syntax error";
+    if (log_filename.empty())
+        s += "\nCommands are not logged to any file.";
+    else
+        s += S("\nCommands (") + (log_with_output ? "with" : "without") 
+            + " output) are logged to file: " + log_filename;
+    return s;
+}
+
+
+void Commands::start_logging(string const& filename, bool with_output)
+{
+    if (filename.empty())
+       stop_logging(); 
+    else if (filename == log_filename) {
+        if (with_output != log_with_output) {
+            log_with_output = with_output;
+            log << "### AT "<< time_now() << "### CHANGED TO LOG "
+                << (log_with_output ? "WITH" : "WITHOUT") << " OUTPUT\n";
+        }
+    }
+    else {
+        stop_logging();
+        log_filename = filename;
+        log_with_output = with_output;
+        log.open(filename.c_str(), ios::app);
+        if (!log) 
+            throw ExecuteError("Can't open file for writing: " + filename);
+        log << fityk_version_line << endl;
+        log << "### AT "<< time_now() << "### START LOGGING ";
+        if (with_output) {
+            info ("Logging input and output to file: " + filename);
+            log << "INPUT AND OUTPUT";
+        }
+        else {
+            info ("Logging input to file: " + filename);
+            log << "INPUT";
+        }
+        log << " TO THIS FILE (" << filename << ")\n";
+    }
+}
+
+void Commands::stop_logging()
+{
+    log.close();
+    log_filename = "";
+}
+
+
 //utility for storing lines from script file: line number and line as a string
 struct NumberedLine
 {
@@ -33,8 +141,7 @@ UserInterface* UserInterface::getInstance()
 
 
 UserInterface::UserInterface() 
-    : log_mode('n'), log_filename(), verbosity(3), exit_on_warning(false),
-      auto_plot(2)
+    : verbosity(3), exit_on_warning(false), auto_plot(2)
 {
     verbosity_enum [0] = "silent";
     verbosity_enum [1] = "only-warnings";
@@ -50,65 +157,6 @@ UserInterface::UserInterface()
     epar.insert (pair<string, Enum_string> ("autoplot", 
                                Enum_string (autoplot_enum, &auto_plot)));
     bpar ["exit-on-warning"] = &exit_on_warning;
-    //ipar ["plot-min-curve-points"] = &smooth_limit;
-}
-
-void UserInterface::startLog(char mode, const string& filename)
-{
-    if (mode == 0)
-        mode = 'a';
-    stopLog();
-    logfile.open (filename.c_str(), ios::app);
-    if (!logfile) {
-        warn ("Can't open file for writing: " + filename);
-        return;
-    }
-    logfile << fityk_version_line << endl;
-    logfile << "### AT "<< time_now() << "### START LOGGING ";
-    switch (mode) {
-        case 'i':
-            info ("Logging input to file: " + filename);
-            logfile << "INPUT";
-            break;
-        case 'o':
-            info ("Logging output to file: " + filename);
-            logfile << "OUTPUT";
-            break;
-        case 'a':
-            info ("Logging input and output to file: " + filename);
-            logfile << "INPUT AND OUTPUT";
-            break;
-        default:
-            assert(0);
-    }
-    logfile << " TO THIS FILE (" << filename << ")\n";
-    log_filename = filename;
-    log_mode = mode;
-}
-
-void UserInterface::stopLog()
-{
-    if (log_mode != 'n') {  
-        logfile.close();
-        log_mode = 'n';
-    }
-}
-
-string UserInterface::getLogInfo() const
-{
-    switch (log_mode) {
-        case 'a':
-            return "Logging input and output to file: " + log_filename;
-        case 'i':
-            return "Logging input to file: " + log_filename;
-        case 'o':
-            return "Logging output to file: " + log_filename;
-        case 'n':
-            return "No logging to file now.";
-        default: 
-            assert(0);
-            return "";
-    }
 }
 
 void UserInterface::outputMessage (int level, const string& s)
@@ -116,26 +164,11 @@ void UserInterface::outputMessage (int level, const string& s)
     OutputStyle style = level <= 1 ? os_warn : os_normal;
     if (level <= verbosity) {
         showMessage(style, s);
-        log_output (s);
+        commands.put_output_message(s);
     }
     if (exit_on_warning && style == os_warn) {
         showMessage(os_normal, "Warning -> exiting program.");
         close();
-    }
-}
-
-
-void UserInterface::log_output (const string& s)
-{
-    if (log_mode == 'o' || log_mode == 'a') {
-        // insert "# " at the beginning of string and before every new line
-        logfile << "# ";
-        for (const char *p = s.c_str(); *p; p++) {
-            logfile << *p;
-            if (*p == '\n')
-                logfile << "# ";
-        }
-        logfile << endl;
     }
 }
 

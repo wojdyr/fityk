@@ -16,6 +16,7 @@
 #include <boost/spirit/actor/push_back_actor.hpp>
 #include <boost/spirit/actor/clear_actor.hpp>
 #include <stdlib.h>
+#include <fstream>
 
 using namespace std;
 using namespace boost::spirit;
@@ -24,7 +25,7 @@ namespace {
 
 bool extended_info;
 string t, t2;
-int tmp_int;
+int tmp_int, tmp_int2;
 bool tmp_bool;
 double tmp_real, tmp_real2;
 vector<string> vt;
@@ -83,7 +84,7 @@ void do_print_info(char const* a, char const* b)
     vector<Function*> const &functions = AL->get_functions(); 
     if (s.empty())
         m = "info about what?";
-    if (s == "variables") {
+    else if (s == "variables") {
         m = "Defined variables: ";
         for (vector<Variable*>::const_iterator i = variables.begin(); 
                 i != variables.end(); ++i)
@@ -106,7 +107,7 @@ void do_print_info(char const* a, char const* b)
         else 
             m = "Undefined variable: " + s;
     }
-    if (s == "functions") {
+    else if (s == "functions") {
         m = "Defined functions: ";
         for (vector<Function*>::const_iterator i = functions.begin(); 
                 i != functions.end(); ++i)
@@ -114,6 +115,16 @@ void do_print_info(char const* a, char const* b)
                 m += "\n" + (*i)->get_info(variables, AL->get_parameters());
             else
                 m += (*i)->xname + " ";
+    }
+    else if (s == "types") {
+        m = "Defined function types: ";
+        vector<string> const& types = Function::get_all_types();
+        for (vector<string>::const_iterator i = types.begin(); 
+                i != types.end(); ++i)
+            if (extended_info)
+                m += "\n" + Function::get_formula(*i);
+            else
+                m += *i + " ";
     }
     else if (s[0] == '%') {
         const Function* f = AL->find_function(string(s, 1));
@@ -163,7 +174,8 @@ void do_print_info(char const* a, char const* b)
         m = my_fit->getInfo();
     else if (s == "errors")
         m = my_fit->getErrorInfo(extended_info);
-
+    else if (s == "commands")
+        m = getUI()->getCommands().get_info();
     mesg(m);
 }
 
@@ -271,6 +283,30 @@ void do_guess(char const*, char const*)
 {
     my_manipul->guess_and_add(t, t2, tmp_bool, tmp_real, tmp_real2, vt);
     outdated_plot=true;  //TODO only if...
+}
+
+void do_commands_logging(char const*, char const*)
+{
+    if (t == "/dev/null")
+        getUI()->stopLog();
+    else
+        getUI()->startLog(t, extended_info);
+}
+
+void do_commands_print(char const*, char const*)
+{
+    vector<string> cc 
+        = getUI()->getCommands().get_commands(tmp_int, tmp_int2, extended_info);
+    string text = join_vector(cc, "\n");
+    if (t.empty())
+        mesg(text);
+    else {
+        ofstream f;
+        f.open(t.c_str(), ios::app);
+        if (!f) 
+            throw ExecuteError("Can't open file for writing: " + t);
+        f << text << endl;
+    }
 }
 
 } //namespace
@@ -403,6 +439,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
               >> ')') [&do_print_sum_derivatives_info]
             | str_p("fit") [&do_print_info]
             | str_p("errors") [&do_print_info]
+            | str_p("commands") [&do_print_info]
             ;
 
         fit
@@ -433,6 +470,22 @@ struct CmdGrammar : public grammar<CmdGrammar>
               >> !("as" >> FunctionLhsG [assign_a(t)])) [&do_guess]
             ;
 
+        commands
+            = str_p("commands") [assign_a(t, empty)] 
+              >> optional_plus
+              >> ( (ch_p('>') >> filename_str) [&do_commands_logging] 
+                 | ('[' >> int_p[assign_a(tmp_int)] 
+                    >> ':' >> int_p[assign_a(tmp_int2)] 
+                    >> ']'  
+                    >> !(ch_p('>') >> filename_str)) [&do_commands_print]
+                 ) 
+            ;
+
+        optional_plus
+            = str_p("+") [assign_a(extended_info, true_)] 
+            | eps_p [assign_a(extended_info, false_)] 
+            ;
+
         statement 
             = transform 
             | assign_var 
@@ -444,16 +497,13 @@ struct CmdGrammar : public grammar<CmdGrammar>
                    | FunctionLhsG [push_back_a(vt)]
                    | lexeme_d['@'>>uint_p[push_back_a(vn)]]) % ',') [&do_delete]
             | dataset_handling
-            | str_p("info") 
-                >> (str_p("+") [assign_a(extended_info, true_)] 
-                   | eps_p[assign_a(extended_info, false_)] 
-                   )
-                >> (info_arg % ',')
+            | str_p("info") >> optional_plus >> (info_arg % ',')
             | (str_p("plot") [clear_a(vt)] 
               >> plot_range >> plot_range) [&do_plot]
             | fit
             | guess
             | (str_p("sleep") >> ureal_p[assign_a(tmp_real)])[&do_sleep]
+            | commands
             ;
 
         multi 
@@ -464,6 +514,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
                    function_param, subst_func_param, put_function, 
                    dataset_handling, filename_str, guess,
                    existing_dataset_nr, dataset_nr, dataset_sum,
+                   optional_plus, commands,
                    plot_range, info_arg, fit, statement, multi;  
 
     rule<ScannerT> const& start() const { return multi; }

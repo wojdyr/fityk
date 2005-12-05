@@ -189,8 +189,6 @@ void purge_all_elements(std::vector<T*> &vec)
 
 extern const char* fityk_version_line; /// it is used to put version to script
 
-extern int smooth_limit;
-
 /// flag that is set to interrupt fitting (it is checked after each iteration)
 extern volatile bool user_interrupt;
 
