@@ -40,7 +40,7 @@ vector<string> Commands::get_commands(int from, int to, bool with_status) const
 {
     vector<string> r;
     if (!cmds.empty())
-        for (int i = max(from, 0); i <= min(to, size(cmds)-1); ++i) {
+        for (int i = max(from, 0); i < min(to, size(cmds)); ++i) {
             string s;
             if (with_status)
                 s = cmds[i].str();

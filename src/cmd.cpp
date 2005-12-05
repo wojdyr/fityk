@@ -15,6 +15,7 @@
 #include <boost/spirit/actor/assign_actor.hpp>
 #include <boost/spirit/actor/push_back_actor.hpp>
 #include <boost/spirit/actor/clear_actor.hpp>
+#include <boost/spirit/actor/increment_actor.hpp>
 #include <stdlib.h>
 #include <fstream>
 
@@ -326,6 +327,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
         static const bool true_ = true;
         static const bool false_ = false;
         static const int minus_one = -1;
+        static const int zero = 0;
         static const char *dot = ".";
         static const char *empty = "";
         transform 
@@ -470,14 +472,25 @@ struct CmdGrammar : public grammar<CmdGrammar>
               >> !("as" >> FunctionLhsG [assign_a(t)])) [&do_guess]
             ;
 
+        int_range
+            = '[' >> (int_p[assign_a(tmp_int)] 
+                     | eps_p[assign_a(tmp_int, zero)]
+                     )
+                  >> (':' >> (int_p[assign_a(tmp_int2)] 
+                             | eps_p[assign_a(tmp_int2, INT_MAX)]
+                             )
+                      | eps_p[assign_a(tmp_int2, tmp_int)]
+                            [increment_a(tmp_int2)] //see assign_a error above
+                     )
+                  >> ']'  
+            ;
+
         commands
             = str_p("commands") [assign_a(t, empty)] 
               >> optional_plus
               >> ( (ch_p('>') >> filename_str) [&do_commands_logging] 
-                 | ('[' >> int_p[assign_a(tmp_int)] 
-                    >> ':' >> int_p[assign_a(tmp_int2)] 
-                    >> ']'  
-                    >> !(ch_p('>') >> filename_str)) [&do_commands_print]
+                 | (int_range 
+                     >> !(ch_p('>') >> filename_str)) [&do_commands_print]
                  ) 
             ;
 
@@ -514,7 +527,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
                    function_param, subst_func_param, put_function, 
                    dataset_handling, filename_str, guess,
                    existing_dataset_nr, dataset_nr, dataset_sum,
-                   optional_plus, commands,
+                   optional_plus, int_range, commands,
                    plot_range, info_arg, fit, statement, multi;  
 
     rule<ScannerT> const& start() const { return multi; }
