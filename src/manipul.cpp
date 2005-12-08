@@ -171,21 +171,23 @@ string Manipul::print_simple_estimate (fp center, fp w) const
     if (w <= 0)
         w = search_width;
     fp c = 0, h = 0, a = 0, fwhm = 0;
-    int r = estimate_peak_parameters(center, w, &c, &h, &a, &fwhm); 
-    if (r < 0)
-        return "";
+    estimate_peak_parameters(center, w, &c, &h, &a, &fwhm); 
     return "Peak center: " + S(c) + " (expected: " + S(center) 
             + "), height: " + S(h) + ", area: " + S(a) + ", FWHM: " + S(fwhm);
 }
 
-string Manipul::print_global_peakfind () 
+string Manipul::print_multiple_peakfind(int n, vector<string> const& range) 
 {
+    fp range_from, range_to;
+    parse_range(range, range_from, range_to);
     string s;
     EstConditions estc;
     estc.real_peaks = my_sum->get_ff_idx();
-    for (int i = 1; i <= 4; i++) {
+    for (int i = 1; i <= n; i++) {
         fp c = 0., h = 0., a = 0., fwhm = 0.;
-        estimate_peak_parameters(0., +INF, &c, &h, &a, &fwhm, &estc);
+        estimate_peak_parameters((range_from+range_to)/2, 
+                                 (range_to-range_from)/2, 
+                                 &c, &h, &a, &fwhm, &estc);
         estc.virtual_peaks.push_back(VirtPeak(c, h, fwhm));
         if (h == 0.) 
             break;
@@ -195,19 +197,38 @@ string Manipul::print_global_peakfind ()
     return s;
 }
 
+void Manipul::parse_range(vector<string> const& range,
+                          fp& range_from, fp& range_to)
+{
+    assert (range.size() == 2);
+    string le = range[0];
+    string ri = range[1];
+    if (le.empty())
+        range_from = my_data->get_x_min();
+    else if (le == ".") 
+        range_from = AL->view.left;
+    else
+        range_from = strtod(le.c_str(), 0);
+    if (ri.empty())
+        range_to = my_data->get_x_max();
+    else if (ri == ".") 
+        range_to = AL->view.right;
+    else
+        range_to = strtod(ri.c_str(), 0);
+}
+
 void Manipul::guess_and_add(string const& name, string const& function,
-                            bool in_range, fp range_from, fp range_to,
+                            vector<string> const& range,
                             vector<string> vars)
 {
+    fp range_from, range_to;
+    parse_range(range, range_from, range_to);
     fp c = 0., h = 0., a = 0., fwhm = 0.;
     EstConditions estc;
     estc.real_peaks = my_sum->get_ff_idx();
-    if (in_range)
-        estimate_peak_parameters((range_from+range_to)/2, 
-                                 (range_to-range_from)/2, 
-                                 &c, &h, &a, &fwhm, &estc);
-    else
-        estimate_peak_parameters(0., +INF, &c, &h, &a, &fwhm, &estc);
+    estimate_peak_parameters((range_from+range_to)/2, 
+                             (range_to-range_from)/2, 
+                             &c, &h, &a, &fwhm, &estc);
     vector<string> vars_lhs(vars.size());
     for (int i = 0; i < size(vars); ++i)
         vars_lhs[i] = string(vars[i], 0, vars[i].find('='));

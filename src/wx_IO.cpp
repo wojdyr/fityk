@@ -53,14 +53,13 @@ void UserInterface::execCommand(const string& s)
     else
         frame->set_status_text(s.c_str());
     wxBusyCursor wait;
-    bool r = cmd_parser(s);
-    if (!r)
-        close();
+    try {
+        cmd_parser(s);
+    }
+    catch(ExitRequestedException) {
+        frame->Close(true);
+    }
     frame->refresh_plots(false, true);
 }
 
-void UserInterface::close()
-{
-        frame->Close(true);
-}
 

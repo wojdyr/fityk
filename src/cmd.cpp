@@ -18,6 +18,8 @@
 #include <boost/spirit/actor/increment_actor.hpp>
 #include <stdlib.h>
 #include <fstream>
+#include <utility>
+#include <limits.h>
 
 using namespace std;
 using namespace boost::spirit;
@@ -29,7 +31,7 @@ string t, t2;
 int tmp_int, tmp_int2;
 bool tmp_bool;
 double tmp_real, tmp_real2;
-vector<string> vt;
+vector<string> vt, vr;
 vector<int> vn;
 static const int new_dataset = -1;
 static const int active_dataset = -2;
@@ -177,6 +179,8 @@ void do_print_info(char const* a, char const* b)
         m = my_fit->getErrorInfo(extended_info);
     else if (s == "commands")
         m = getUI()->getCommands().get_info();
+    else if (string(s, 0, 5) == "peaks") 
+        m = my_manipul->print_multiple_peakfind(tmp_int, vr);
     mesg(m);
 }
 
@@ -257,7 +261,7 @@ void do_load_data_sum(char const*, char const*)
 
 void do_plot(char const*, char const*)
 {
-    AL->view.parse_and_set(vt);
+    AL->view.parse_and_set(vr);
     getUI()->drawPlot(1, true);
     outdated_plot=false;
 }
@@ -282,7 +286,7 @@ void do_sleep(char const*, char const*)
 
 void do_guess(char const*, char const*)
 {
-    my_manipul->guess_and_add(t, t2, tmp_bool, tmp_real, tmp_real2, vt);
+    my_manipul->guess_and_add(t, t2, vr, vt);
     outdated_plot=true;  //TODO only if...
 }
 
@@ -310,6 +314,18 @@ void do_commands_print(char const*, char const*)
     }
 }
 
+void do_reset(char const*, char const*)   { AL->reset_all(); }
+
+void do_dump(char const*, char const*)   { AL->dump_all_as_script(t); }
+
+void do_exec_file(char const*, char const*) 
+{ 
+    vector<pair<int,int> > vpn;
+    for (int i = 0; i < size(vn); i+=2)
+        vpn.push_back(make_pair(vn[i],vn[i+1]));
+    getUI()->execScript(t, vpn); 
+}
+
 } //namespace
 
 
@@ -327,7 +343,9 @@ struct CmdGrammar : public grammar<CmdGrammar>
         static const bool true_ = true;
         static const bool false_ = false;
         static const int minus_one = -1;
+        static const int one = 1;
         static const int zero = 0;
+        static const int int_max = INT_MAX;
         static const char *dot = ".";
         static const char *empty = "";
         transform 
@@ -413,13 +431,13 @@ struct CmdGrammar : public grammar<CmdGrammar>
             | dataset_nr[&do_select_data]
             ;
 
-        plot_range 
-            = (ch_p('[') >> ']') [push_back_a(vt,empty)][push_back_a(vt,empty)]
-            | '[' >> (real_p|"."|eps_p) [push_back_a(vt)] 
-              >> ':' >> (real_p|"."|eps_p) [push_back_a(vt)] 
+        plot_range  //first clear vr if needed 
+            = (ch_p('[') >> ']') [push_back_a(vr,empty)][push_back_a(vr,empty)]
+            | '[' >> (real_p|"."|eps_p) [push_back_a(vr)] 
+              >> ':' >> (real_p|"."|eps_p) [push_back_a(vr)] 
               >> ']'  
-            | str_p(".") [push_back_a(vt,dot)][push_back_a(vt,dot)] // [.:.]
-            | eps_p [push_back_a(vt,empty)][push_back_a(vt,empty)] // [:]
+            | str_p(".") [push_back_a(vr,dot)][push_back_a(vr,dot)] // [.:.]
+            | eps_p [push_back_a(vr,empty)][push_back_a(vr,empty)] // [:]
             ;
 
         info_arg
@@ -442,6 +460,10 @@ struct CmdGrammar : public grammar<CmdGrammar>
             | str_p("fit") [&do_print_info]
             | str_p("errors") [&do_print_info]
             | str_p("commands") [&do_print_info]
+            | (str_p("peaks") [clear_a(vr)]
+               >> ( uint_p [assign_a(tmp_int)]
+                  | eps_p [assign_a(tmp_int, one)])
+               >> plot_range) [&do_print_info]
             ;
 
         fit
@@ -460,12 +482,9 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         guess
-            = (str_p("guess") [clear_a(vt)] [assign_a(t, empty)] 
-                               [assign_a(tmp_bool, false_)]
+            = (str_p("guess") [clear_a(vt)] [clear_a(vr)] [assign_a(t, empty)] 
               >> function_name [assign_a(t2)]
-              >> !('[' >> real_p [assign_a(tmp_real)][assign_a(tmp_bool,true_)]
-                  >> ':' >> real_p [assign_a(tmp_real2)]
-                  >> ']') 
+              >> plot_range
               >> !((function_param >> '=' >> no_actions_d[FuncG])
                                                            [push_back_a(vt)]
                    % ',')
@@ -477,7 +496,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
                      | eps_p[assign_a(tmp_int, zero)]
                      )
                   >> (':' >> (int_p[assign_a(tmp_int2)] 
-                             | eps_p[assign_a(tmp_int2, INT_MAX)]
+                             | eps_p[assign_a(tmp_int2, int_max)]
                              )
                       | eps_p[assign_a(tmp_int2, tmp_int)]
                             [increment_a(tmp_int2)] //see assign_a error above
@@ -491,6 +510,11 @@ struct CmdGrammar : public grammar<CmdGrammar>
               >> ( (ch_p('>') >> filename_str) [&do_commands_logging] 
                  | (int_range 
                      >> !(ch_p('>') >> filename_str)) [&do_commands_print]
+                 | (ch_p('<') [clear_a(vn)]
+                     >> filename_str 
+                     >> *(int_range[push_back_a(vn, tmp_int)]
+                                                 [push_back_a(vn, tmp_int2)])
+                   ) [&do_exec_file]
                  ) 
             ;
 
@@ -511,12 +535,14 @@ struct CmdGrammar : public grammar<CmdGrammar>
                    | lexeme_d['@'>>uint_p[push_back_a(vn)]]) % ',') [&do_delete]
             | dataset_handling
             | str_p("info") >> optional_plus >> (info_arg % ',')
-            | (str_p("plot") [clear_a(vt)] 
+            | (str_p("plot") [clear_a(vr)] 
               >> plot_range >> plot_range) [&do_plot]
             | fit
             | guess
             | (str_p("sleep") >> ureal_p[assign_a(tmp_real)])[&do_sleep]
             | commands
+            | str_p("reset") [&do_reset]
+            | (str_p("dump") >> '>' >> filename_str)[&do_dump]
             ;
 
         multi 
@@ -537,6 +563,8 @@ struct CmdGrammar : public grammar<CmdGrammar>
 
 bool spirit_parser(string const& str)
 {
+    if (strip_string(str) == "quit")
+        throw ExitRequestedException();
     parse_info<> result = parse(str.c_str(), cmdG, space_p);
     if (result.full) {
     }

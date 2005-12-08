@@ -95,16 +95,6 @@ exp:  SET DASH_STRING EQ_STRING SEP {
     | SET SEP                      { mesg (set_class_p($1)->print_usage($1)); }
     | F_METHOD SEP     { mesg (fitMethodsContainer->print_current_method ()); }
     | F_METHOD LOWERCASE SEP       { fitMethodsContainer->change_method ($2); }
-    | M_FINDPEAK flt opt_flt SEP { 
-                            mesg (my_manipul->print_simple_estimate ($2, $3)); }
-    | M_FINDPEAK                   {mesg (my_manipul->print_global_peakfind());}
-
-    | O_INCLUDE FILENAME lines SEP  { getUI()->execScript($2.str(), vlines);}
-    | O_INCLUDE '!' FILENAME lines SEP { AL->reset_all(); 
-                                       getUI()->execScript($3.str(), vlines);}
-    | O_INCLUDE '!' SEP            { AL->reset_all(); }
-    | O_DUMP FILENAME SEP          { AL->dump_all_as_script ($2.str()); }
-    | QUIT SEP                     { YYABORT;}
     ;
 
 
@@ -199,15 +189,14 @@ bool bison_parser (const std::string &cmd)
     return result == 0 ? true : false;
 }
 
-bool cmd_parser (std::string cmd)
+void cmd_parser (std::string cmd)
 {
     try {
         bool r = spirit_parser(cmd);
         if (!r)
-            return bison_parser(cmd);
+            bison_parser(cmd);
     } catch (ExecuteError &e) {
         warn(string("Error: ") + e.what());
     }
-    return true;
 }
 

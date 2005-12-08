@@ -46,9 +46,10 @@ public:
                             fp *center, fp *height, fp *area, fp *fwhm,
                             const EstConditions *ec=0) const;
     std::string print_simple_estimate(fp center, fp w = -1.) const; 
-    std::string print_global_peakfind();
+    std::string print_multiple_peakfind(int n, 
+                                        std::vector<std::string> const& range);
     void guess_and_add(std::string const& name, std::string const& function,
-                       bool in_range, fp range_from, fp range_to,
+                       std::vector<std::string> const& range,
                        std::vector<std::string> vars);
 private:
     fp search_width;
@@ -60,6 +61,8 @@ private:
     int max_data_y_pos (int from, int to, const EstConditions *ec=0) const;
     fp compute_data_fwhm (int from, int max_pos, int to, fp level,
                           const EstConditions *ec=0) const;
+    void parse_range(std::vector<std::string> const& range, 
+                     fp& range_from, fp& range_to);
 };
 
 extern Manipul *my_manipul;

@@ -27,8 +27,6 @@
 
 using namespace std;
 
-struct ExitRequestedException : exception {};
-
 
 //------ UserInterface - implementation of CLI specific methods ------
 
@@ -56,9 +54,7 @@ void UserInterface::wait (float seconds)
 
 void UserInterface::execCommand(const string& s)
 {
-    bool r = cmd_parser(s);
-    if (!r)
-        close();
+    cmd_parser(s);
 }
 
 bool UserInterface::displayHelpTopic(const string& s)
@@ -68,10 +64,6 @@ bool UserInterface::displayHelpTopic(const string& s)
     return false;
 }
 
-void UserInterface::close()
-{
-    throw ExitRequestedException();
-}
 
 //----------------------------------------------------------------- 
 
@@ -111,7 +103,7 @@ void read_and_execute_input()
 {
     char *line = readline (prompt);
     if (!line)
-        getUI()->close(); 
+        throw ExitRequestedException();
     if (line && *line)
         add_history (line);
     string s = line;

@@ -13,8 +13,7 @@ class wxString;
 struct NumberedLine;
 
 
-// return value: false -> quit
-bool cmd_parser(std::string cmd); 
+void cmd_parser(std::string cmd); 
 
 /// used for storing commands and logging commands to file
 class Commands 
@@ -95,8 +94,6 @@ public:
              { commands.put_command(s, Commands::status_ok); execCommand(s); }
     bool displayHelpTopic(std::string const &topic); 
     int getVerbosity() { return verbosity; }
-    /// exit UI and program
-    void close();
 
 private:
     UserInterface();

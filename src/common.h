@@ -207,6 +207,9 @@ public:
     ExecuteError(const std::string& msg) : runtime_error(msg) {}
 };
 
+/// exception thrown to finish the program
+struct ExitRequestedException : std::exception {};
+
 
 
 class Sum;

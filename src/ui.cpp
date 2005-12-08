@@ -16,6 +16,8 @@ const char* startup_commands_filename = "init";
 
 void Commands::put_command(string const& c, Status s)
 {
+    if (strip_string(c).empty())
+        return;
     cmds.push_back(Cmd(c, s));
     ++command_counter;
     if (!log_filename.empty())  
@@ -168,12 +170,12 @@ void UserInterface::outputMessage (int level, const string& s)
     }
     if (exit_on_warning && style == os_warn) {
         showMessage(os_normal, "Warning -> exiting program.");
-        close();
+        throw ExitRequestedException();
     }
 }
 
 
-/// items in selected_lines are ranges (first, last (not after-last)).
+/// items in selected_lines are ranges (first, after-last).
 /// if selected_lines are empty - all lines from file are executed
 void UserInterface::execScript (const string& filename, 
                                 const vector<pair<int,int> >& selected_lines)
@@ -189,7 +191,7 @@ void UserInterface::execScript (const string& filename,
 
     //fill nls for easier manipulation of file lines
     string s;
-    int line_index = 1;
+    int line_index = 0;
     while (getline (file, s)) 
         nls.push_back(NumberedLine(line_index++, s));
 
@@ -198,9 +200,9 @@ void UserInterface::execScript (const string& filename,
     else
         for (vector<pair<int,int> >::const_iterator i = selected_lines.begin(); 
                                             i != selected_lines.end(); i++) {
-            int f = max(i->first, 1);  // f and t are 1-based (not 0-based)
+            int f = max(i->first, 0);  // f and t are 1-based (not 0-based)
             int t = min(i->second, size(nls));
-            exec_nls.insert(exec_nls.end(), nls.begin()+f-1, nls.begin()+t);
+            exec_nls.insert(exec_nls.end(), nls.begin()+f, nls.begin()+t);
         }
 
     for (vector<NumberedLine>::const_iterator i = exec_nls.begin(); 
@@ -208,9 +210,7 @@ void UserInterface::execScript (const string& filename,
         if (i->txt.length() == 0)
             continue;
         showMessage (os_quot, S(i->nr) + "> " + i->txt); 
-        bool r = cmd_parser(i->txt);
-        if (!r)
-            break;
+        cmd_parser(i->txt);
     }
 }
 

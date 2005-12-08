@@ -1132,7 +1132,7 @@ void FFrame::OnO_Reset   (wxCommandEvent& WXUNUSED(event))
                           "Are you sure?", 
                           wxYES_NO | wxCANCEL | wxCENTRE | wxICON_QUESTION);
     if (r == wxYES)
-        exec_command ("o.include !");
+        exec_command ("reset");
 }
         
 void FFrame::OnOInclude      (wxCommandEvent& WXUNUSED(event))
@@ -1142,7 +1142,7 @@ void FFrame::OnOInclude      (wxCommandEvent& WXUNUSED(event))
                               "fityk file (*.fit)|*.fit;*.FIT|all files|*",
                               wxOPEN | wxFILE_MUST_EXIST);
     if (fdlg.ShowModal() == wxID_OK) {
-        exec_command (("o.include '" + fdlg.GetPath() + "'").c_str());
+        exec_command (("commands < '" + fdlg.GetPath() + "'").c_str());
         last_include_path = fdlg.GetPath().c_str();
         GetMenuBar()->Enable(ID_O_REINCLUDE, true);
     }
@@ -1151,7 +1151,7 @@ void FFrame::OnOInclude      (wxCommandEvent& WXUNUSED(event))
             
 void FFrame::OnOReInclude    (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command ("o.include ! '" + last_include_path + "'");
+    exec_command ("reset; commands < '" + last_include_path + "'");
 }
             
 void FFrame::OnODump         (wxCommandEvent& WXUNUSED(event))
@@ -1160,7 +1160,7 @@ void FFrame::OnODump         (wxCommandEvent& WXUNUSED(event))
                                 "", "", "fityk file (*.fit)|*.fit;*.FIT",
                        wxSAVE | wxOVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) 
-        exec_command (("o.dump '" + fdlg.GetPath() + "'").c_str());
+        exec_command (("dump > '" + fdlg.GetPath() + "'").c_str());
 }
          
 void FFrame::OnOSet          (wxCommandEvent& WXUNUSED(event))
