@@ -89,6 +89,7 @@ private:
 };
 
 
+/// keeps all functions and variables
 class VariableManager
 {
 public:

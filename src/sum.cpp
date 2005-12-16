@@ -17,11 +17,9 @@
 using namespace std;
 
 Sum::Sum(VariableManager *mgr_) 
-    : replot_needed(true), cut_level(10.),
-      mgr(*mgr_)
+    : replot_needed(true), mgr(*mgr_)
 {
     mgr.register_sum(this);
-    fpar ["cut-tails-level"] = &cut_level;
 }
 
 Sum::~Sum()
@@ -189,7 +187,6 @@ fp Sum::approx_max(fp x_min, fp x_max)
 void Sum::export_as_script (ostream& os) const
 {
     os << "### sum exported as script -- begin" << endl;
-    os << set_script('s');
     //TODO
     os << "### end of exported sum" << endl;
 }

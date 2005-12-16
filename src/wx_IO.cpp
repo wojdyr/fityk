@@ -17,6 +17,7 @@
 #include "wx_gui.h"
 #include "wx_pane.h"
 #include "logic.h"
+#include "cmd.h"
 
 using namespace std;
 
@@ -54,7 +55,7 @@ void UserInterface::execCommand(const string& s)
         frame->set_status_text(s.c_str());
     wxBusyCursor wait;
     try {
-        cmd_parser(s);
+        parse_and_execute(s);
     }
     catch(ExitRequestedException) {
         frame->Close(true);

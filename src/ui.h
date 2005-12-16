@@ -7,13 +7,9 @@
 #include "common.h"
 #include <vector>
 #include <utility>
-#include "dotset.h"
 
 class wxString;
 struct NumberedLine;
-
-
-void cmd_parser(std::string cmd); 
 
 /// used for storing commands and logging commands to file
 class Commands 
@@ -61,7 +57,7 @@ public:
 /// Some methods (plot, plotNow, wait, execCommand, showMessage) 
 /// are different and defined separatly for GUI and CLI versions.
 /// The program is always linked only with one version of each method.
-class UserInterface : public DotSet
+class UserInterface 
 {
 public:
     /// get Singleton class instance
@@ -93,10 +89,10 @@ public:
         //TODO status
              { commands.put_command(s, Commands::status_ok); execCommand(s); }
     bool displayHelpTopic(std::string const &topic); 
-    int getVerbosity() { return verbosity; }
+    int getVerbosity();
 
 private:
-    UserInterface();
+    UserInterface() {}
     UserInterface (UserInterface const&); //disable
     UserInterface& operator= (UserInterface const&); //disable
 
@@ -110,11 +106,9 @@ private:
 
     static UserInterface* instance;
     Commands commands;
-    char verbosity;
-    bool exit_on_warning;
-    char auto_plot;
-    std::map<char, std::string> autoplot_enum;
-    std::map<char, std::string> verbosity_enum;
+    // char verbosity;
+    // bool exit_on_warning;
+    // char auto_plot;
 };
 
 

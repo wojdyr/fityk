@@ -4,8 +4,6 @@
 #ifndef FITYK__MANIPUL__H__
 #define FITYK__MANIPUL__H__
 
-#include "dotset.h"
-
 //class Data;
 //class Sum;
 
@@ -38,10 +36,10 @@ struct EstConditions
 };
 
 
-class Manipul : public DotSet
+class Manipul
 {
 public:
-    Manipul();
+    Manipul() {}
     bool estimate_peak_parameters (fp approx_ctr, fp ctrplusmin, 
                             fp *center, fp *height, fp *area, fp *fwhm,
                             const EstConditions *ec=0) const;
@@ -52,8 +50,9 @@ public:
                        std::vector<std::string> const& range,
                        std::vector<std::string> vars);
 private:
-    fp search_width;
-    bool cancel_peak_out_of_search;
+    // fp search_width;
+    // bool cancel_peak_out_of_search;
+    // TODO:
     fp height_correction, fwhm_correction;
 
     fp my_y (int n, const EstConditions *ec=0) const;

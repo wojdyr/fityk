@@ -36,7 +36,7 @@ fp LMfit::init()
     beta.resize (na);
     beta_.resize (na);
     if (na < 1 ) {
-        warn ("What should I fit ?");
+        warn ("No data points. What should I fit ?");
         return -1;
     }
     lambda = lambda_starting_value;

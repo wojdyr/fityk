@@ -24,6 +24,7 @@
 #include "ui.h"
 #include "u_gnuplot.h"
 #include "logic.h"
+#include "cmd.h"
 
 using namespace std;
 
@@ -54,7 +55,7 @@ void UserInterface::wait (float seconds)
 
 void UserInterface::execCommand(const string& s)
 {
-    cmd_parser(s);
+    parse_and_execute(s);
 }
 
 bool UserInterface::displayHelpTopic(const string& s)
@@ -135,6 +136,7 @@ char *command_generator (const char *text, int state)
 
 char *set_generator (const char *text, int state)
 {
+#if 0
     static unsigned int list_index = 0;
     static vector<string> e;
     if (!state) {
@@ -149,11 +151,13 @@ char *set_generator (const char *text, int state)
     if (list_index < e.size())
         return strdup (e[list_index].c_str());
     else
+#endif
         return 0;
 }
 
 char *set_eq_generator (const char * /*text*/, int state)
 {
+#if 0
     static unsigned int list_index = 0;
     static vector<string> e;
     if (!state) {
@@ -179,6 +183,7 @@ char *set_eq_generator (const char * /*text*/, int state)
         return strdup (e[list_index].c_str());
     else
         return 0;
+#endif
 }
 
 static bool is_before (int pos, char c)

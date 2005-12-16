@@ -8,6 +8,7 @@
 #include "sum.h"
 #include "logic.h"
 #include "ui.h"
+#include "settings.h"
 
 using namespace std;
 
@@ -22,16 +23,6 @@ fp VirtPeak::get_approx_y(fp x) const
     }
     else
         return 0;
-}
-
-Manipul::Manipul()
-    : search_width (1.), cancel_peak_out_of_search(true),
-      height_correction(1.), fwhm_correction(1.) 
-{
-    fpar ["search-width"] = &search_width;   
-    bpar ["cancel-peak-out-of-search"] = &cancel_peak_out_of_search;
-    fpar ["height-correction"] = &height_correction;
-    fpar ["fwhm-correction"] = &fwhm_correction;
 }
 
 fp Manipul::my_y(int n, const EstConditions *ec) const
@@ -132,7 +123,7 @@ bool Manipul::estimate_peak_parameters(fp approx_ctr, fp ctrplusmin,
     }
 
     if (ctrplusmin < 0)
-        ctrplusmin = search_width;
+        ctrplusmin = getSettings()->get_f("search-width");
     int l_bor = max (my_data->get_lower_bound_ac (approx_ctr - ctrplusmin), 0);
     int r_bor = min (my_data->get_upper_bound_ac (approx_ctr + ctrplusmin), 
                      my_data->get_n() - 1);
@@ -145,7 +136,7 @@ bool Manipul::estimate_peak_parameters(fp approx_ctr, fp ctrplusmin,
     if (max_y_pos == l_bor || max_y_pos == r_bor - 1) {
         string s = "Estimating peak parameters: peak outside of search scope."
               " Tried at " + S(approx_ctr) + " +- " + S(ctrplusmin);
-        if (cancel_peak_out_of_search) {
+        if (getSettings()->get_b("cancel-peak-out-of-search")) {
             warn (s + " Canceled.");
             return false;
         }
@@ -169,7 +160,7 @@ bool Manipul::estimate_peak_parameters(fp approx_ctr, fp ctrplusmin,
 string Manipul::print_simple_estimate (fp center, fp w) const
 {
     if (w <= 0)
-        w = search_width;
+        w = getSettings()->get_f("search-width");
     fp c = 0, h = 0, a = 0, fwhm = 0;
     estimate_peak_parameters(center, w, &c, &h, &a, &fwhm); 
     return "Peak center: " + S(c) + " (expected: " + S(center) 

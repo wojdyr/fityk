@@ -1168,8 +1168,9 @@ void FFrame::OnOSet          (wxCommandEvent& WXUNUSED(event))
     OnXSet ("Other", 'o');
 }
         
-void FFrame::OnXSet (string name, char letter)
+void FFrame::OnXSet (string /*name*/, char /*letter*/)
 {
+#if 0
     DotSet* myset = set_class_p (letter);
     vector<string> ev, vv, tv;
     myset->expanp ("", ev);
@@ -1207,6 +1208,7 @@ void FFrame::OnXSet (string name, char letter)
         }
     }
     dialog->Destroy();
+#endif
 }
 
 void FFrame::OnChangeMouseMode (wxCommandEvent& event)

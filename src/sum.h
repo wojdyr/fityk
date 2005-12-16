@@ -8,7 +8,6 @@
 #include <utility>
 #include <memory>
 #include "common.h"
-#include "dotset.h"
 #include "var.h"
 
 class Function;
@@ -16,7 +15,7 @@ class Function;
 ///  This class contains description of curve which we are trying to fit 
 ///  to data. This curve is described simply by listing names of functions
 ///  in F and in Z (in zero-shift)
-class Sum : public DotSet
+class Sum 
 {
 public:
     bool replot_needed;
@@ -49,7 +48,6 @@ public:
     //std::vector<std::string> const &get_zz_names() { return zz_names; }
 
 private:
-    fp cut_level;
     VariableManager &mgr;
     std::vector<std::string> ff_names;
     std::vector<std::string> zz_names;

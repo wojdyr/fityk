@@ -119,20 +119,6 @@ Data *ApplicationLogic::get_data(int n)
 
 //==================================================================
 
-DotSet *
-set_class_p (char c)
-{
-    switch (c) {
-        case 'f': return my_fit;
-        case 's': return my_sum;
-        case 'm': return my_manipul;
-        case 'o': return getUI();
-        default : return 0;
-    }
-}
-
-
-//==================================================================
 
 const fp View::relative_x_margin = 1./20.;
 const fp View::relative_y_margin = 1./20.;

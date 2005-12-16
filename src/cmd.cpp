@@ -561,14 +561,28 @@ struct CmdGrammar : public grammar<CmdGrammar>
 } cmdG;
 
 
-bool spirit_parser(string const& str)
+void parse_and_execute(string const& str)
 {
     if (strip_string(str) == "quit")
         throw ExitRequestedException();
-    parse_info<> result = parse(str.c_str(), cmdG, space_p);
-    if (result.full) {
+    try {
+        parse_info<> result = parse(str.c_str(), cmdG, space_p);
+        if (result.full) {
+        }
+    } catch (ExecuteError &e) {
+        warn(string("Error: ") + e.what());
     }
-    return (bool) result.full;
 }
 
+
+#if 0
+exp:  SET DASH_STRING EQ_STRING SEP { 
+	set_class_p($1)->setp ($2.str(), $3.str());
+      }
+    | SET DASH_STRING SEP          { set_class_p($1)->getp ($2.str()); }
+    | SET SEP                      { mesg (set_class_p($1)->print_usage($1)); }
+    | F_METHOD SEP     { mesg (fitMethodsContainer->print_current_method ()); }
+    | F_METHOD LOWERCASE SEP       { fitMethodsContainer->change_method ($2); }
+    ;
+#endif
 

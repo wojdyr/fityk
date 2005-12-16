@@ -8,7 +8,7 @@
 
 #include "common.h"
 
-bool spirit_parser(std::string const& str);
+void parse_and_execute(std::string const& str);
 
 
 #endif 

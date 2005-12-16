@@ -3,10 +3,12 @@
 
 #include "common.h"
 #include "ui.h"
+#include "settings.h"
 #include <fstream>
 #include <string>
 #include <iostream>
 #include "logic.h"
+#include "cmd.h"
 
 using namespace std;
 
@@ -133,7 +135,7 @@ struct NumberedLine
 
 
 //this is a part of Singleton design pattern
-UserInterface* UserInterface::instance = 0; // initialize pointer
+UserInterface* UserInterface::instance = 0; 
 UserInterface* UserInterface::getInstance() 
 {
     if (instance == 0)  // is it the first call?
@@ -142,33 +144,14 @@ UserInterface* UserInterface::getInstance()
 }
 
 
-UserInterface::UserInterface() 
-    : verbosity(3), exit_on_warning(false), auto_plot(2)
-{
-    verbosity_enum [0] = "silent";
-    verbosity_enum [1] = "only-warnings";
-    verbosity_enum [2] = "rather-quiet";
-    verbosity_enum [3] = "normal";
-    verbosity_enum [4] = "verbose";
-    verbosity_enum [5] = "very-verbose";
-    epar.insert (pair<string, Enum_string> ("verbosity", 
-                               Enum_string (verbosity_enum, &verbosity)));
-    autoplot_enum [1] = "never";
-    autoplot_enum [2] = "on-plot-change";
-    autoplot_enum [3] = "on-fit-iteration";
-    epar.insert (pair<string, Enum_string> ("autoplot", 
-                               Enum_string (autoplot_enum, &auto_plot)));
-    bpar ["exit-on-warning"] = &exit_on_warning;
-}
-
 void UserInterface::outputMessage (int level, const string& s)
 {
-    OutputStyle style = level <= 1 ? os_warn : os_normal;
-    if (level <= verbosity) {
+    OutputStyle style = (level <= 1 ? os_warn : os_normal);
+    if (level <= getVerbosity()) {
         showMessage(style, s);
         commands.put_output_message(s);
     }
-    if (exit_on_warning && style == os_warn) {
+    if (style == os_warn && getSettings()->get_b("exit-on-warning")) {
         showMessage(os_normal, "Warning -> exiting program.");
         throw ExitRequestedException();
     }
@@ -210,14 +193,15 @@ void UserInterface::execScript (const string& filename,
         if (i->txt.length() == 0)
             continue;
         showMessage (os_quot, S(i->nr) + "> " + i->txt); 
-        cmd_parser(i->txt);
+        parse_and_execute(i->txt);
     }
 }
 
 void UserInterface::drawPlot (int pri, bool now)
 {
-    if (pri <= auto_plot) 
+    if (pri <= getSettings()->get_e("auto-plot")) 
         doDrawPlot(now);
 }
 
 
+int UserInterface::getVerbosity() { return getSettings()->get_e("verbosity"); }

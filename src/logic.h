@@ -6,7 +6,6 @@
 
 #include <string>
 #include <memory>
-#include "dotset.h"
 #include "var.h"
 #include "func.h"
 
@@ -131,8 +130,6 @@ protected:
     int active_ds;
 };
 
-
-DotSet *set_class_p (char c);
 
 extern ApplicationLogic *AL;
 
