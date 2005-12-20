@@ -199,7 +199,7 @@ void UserInterface::execScript (const string& filename,
 
 void UserInterface::drawPlot (int pri, bool now)
 {
-    if (pri <= getSettings()->get_e("auto-plot")) 
+    if (pri <= getSettings()->get_e("autoplot")) 
         doDrawPlot(now);
 }
 

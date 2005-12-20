@@ -533,6 +533,69 @@ void VariableManager::put_new_parameters(vector<fp> const &aa,
     use_parameters();
 }
 
+string VariableManager::get_var_from_expression(string const& expr,
+                                                vector<string> const& vars)
+{
+    // `keyword*real_number' values defined in function type definitions
+    string::size_type ax = expr.find('*');
+    bool has_mult = (ax != string::npos);
+    string dname = has_mult ? string(expr, 0, ax) : expr;
+    for (vector<string>::const_iterator k = vars.begin(); k != vars.end(); ++k){
+        string::size_type eq = k->find('=');
+        string name = string(*k, 0, eq);
+        if (name == dname) {
+            string value = string(*k, eq+1);
+            if (has_mult) {
+                string multip = string(expr, ax+1);
+                // change "~1.2 * 2.5" to "~3.0"
+                if (value[0] == '~' && is_double(string(value,1)))
+                    return "~" + S(strtod(value.c_str()+1, 0) 
+                                    * strtod(multip.c_str(), 0));
+                else
+                    return value + "*" + multip;
+            }
+            else {
+                return value;
+            }
+        }
+    }
+    return "";
+}
+
+string VariableManager::get_variable_from_kw(string const& function,
+                                             string const& tname, 
+                                             string const& tvalue, 
+                                             vector<string> const& vars)
+{
+    // variables given in vars
+    for (vector<string>::const_iterator k = vars.begin(); 
+                                                k != vars.end(); ++k) {
+        string::size_type eq = k->find('=');
+        assert(eq != string::npos);
+        string name = string(*k, 0, eq);
+        if (name == tname) 
+            return string(*k, eq+1);
+    }
+    // numeric values defined in function type definitions
+    if (is_double(tvalue)) {
+        return "~" + tvalue;
+    }
+    // `keyword*real_number' values defined in function type definitions
+    string r;
+    if (!tvalue.empty()) 
+        r = get_var_from_expression(tvalue, vars);
+    if (!r.empty())
+        return r;
+    // special case: hwhm=fwhm*0.5
+    if (tname == "hwhm")
+        r = get_var_from_expression("fwhm*0.5", vars);
+    if (!r.empty())
+        return r;
+
+    throw ExecuteError("Can't create function " + function
+                           + " because " + tname + " is unknown.");
+}
+
 vector<string> VariableManager::get_vars_from_kw(string const &function,
                                                  vector<string> const &vars)
 {
@@ -546,58 +609,7 @@ vector<string> VariableManager::get_vars_from_kw(string const &function,
     int n = tnames.size();
     vector<string> vv(n);
     for (int i = 0; i < n; ++i) {
-        bool done=false;
-        // variables given in vars
-        for (vector<string>::const_iterator k = vars.begin(); 
-                                                    k != vars.end(); ++k) {
-            string::size_type eq = k->find('=');
-            assert(eq != string::npos);
-            string name = string(*k, 0, eq);
-            if (name == tnames[i]) {
-                vv[i] = string(*k, eq+1);
-                done=true;
-                break;
-            }
-        }
-        if (done)
-            continue;
-        // numeric values defined in function type definitions
-        if (is_double(tvalues[i])) {
-            vv[i] = "~" + tvalues[i];
-            continue;
-        }
-        // `keyword*real_number' values defined in function type definitions
-        if (!tvalues[i].empty()) {
-            string::size_type ax = tvalues[i].find('*');
-            bool has_mult = (ax != string::npos);
-            string dname = has_mult ? string(tvalues[i], 0, ax) : tvalues[i];
-            for (vector<string>::const_iterator k = vars.begin(); 
-                                                k != vars.end(); ++k) {
-                string::size_type eq = k->find('=');
-                string name = string(*k, 0, eq);
-                if (name == dname) {
-                    string value = string(*k, eq+1);
-                    if (has_mult) {
-                        string multip = string(tvalues[i], ax+1);
-                        if (value[0] == '~' && is_double(string(value,1)))
-                            vv[i] = "~" + S(strtod(value.c_str()+1, 0) 
-                                            * strtod(multip.c_str(), 0));
-                        else
-                            vv[i] = value + "*" + multip;
-                    }
-                    else {
-                        vv[i] = value;
-                    }
-                    done=true;
-                    break;
-                }
-            }
-        }
-        if (done)
-            continue;
-
-        throw ExecuteError("Can't create function " + function
-                               + " because " + tnames[i]+ " is unknown.");
+        vv[i] = get_variable_from_kw(function, tnames[i], tvalues[i], vars);
     }
     return vv;
 }
@@ -732,6 +744,8 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
 
 // explicit template instantiation -- to accelerate compilation 
 template FuncGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(FuncGrammar const&);
+
+template FuncGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<no_actions_action_policy<action_policy> > > > >::definition(FuncGrammar const&);
 
 
 /// small but slow utility function 

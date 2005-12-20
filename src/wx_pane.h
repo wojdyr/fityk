@@ -101,7 +101,7 @@ public:
                                       { output_win->append_text(style, str); }
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
-    void focus_input() { input_field->SetFocus(); }
+    void focus_input(int key);
     void focus_output() { output_win->SetFocus(); }
     void show_fancy_dashes() { output_win->fancy_dashes(); }
 private:

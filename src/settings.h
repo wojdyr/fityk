@@ -29,25 +29,35 @@ public:
     /// get Singleton class instance
     static Settings* getInstance();
 
+    /// get value of integer option
     inline int get_i(std::string const& k);
+    /// get value of real (floating-point) option
     fp get_f(std::string const& k) 
                   { assert(fpar.count(k)); return fpar.find(k)->second; }
+    /// get value of boolean option
     bool get_b(std::string const& k) 
                   { assert(bpar.count(k)); return bpar.find(k)->second; }
+    /// get value of string-enumeration option
     char get_e(std::string const& k) 
                   { assert(epar.count(k)); return epar.find(k)->second.v; }
+    /// get value of string option
     std::string get_s(std::string const& k) 
                   { assert(spar.count(k)); return spar.find(k)->second; }
 
-    bool setp (std::string const& k, std::string const& v);
-    bool getp (std::string const& k);
-    bool typep (std::string const& k, std::string& v) const;
-    int expanp (std::string const& k, std::vector<std::string>& e) const;
-    int expand_enum(std::string const& left, std::string const& k, 
-                    std::vector<std::string>& r) const;
+    /// set value of option (string v is parsed according to option type)
+    void setp (std::string const& k, std::string const& v);
+    /// show info about option k
+    void infop (std::string const& k);
+    /// get text information about type of option k
+    std::string typep(std::string const& k) const;
+    /// get all option keys that start with k
+    std::vector<std::string> expanp (std::string const& k = "") const;
+    std::vector<std::string> 
+    expand_enum(std::string const& k, std::string const& t="") const;
     std::string print_usage() const;
     std::string set_script() const; 
-    bool getp_core (std::string const& k, std::string &v) const;
+    /// get value of option as string
+    std::string getp(std::string const& k) const;
 
 private:
     static Settings* instance;
@@ -61,7 +71,7 @@ private:
     Settings();
     Settings(const Settings&); //disable
     Settings& operator= (const Settings&); //disable
-    bool setp_core (const std::string &k, const std::string &v);
+    void setp_core(std::string const& k, std::string const& v);
 };
 
 int Settings::get_i(std::string const& k) { 

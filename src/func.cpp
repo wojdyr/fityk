@@ -168,6 +168,16 @@ string Function::get_info(vector<Variable*> const &variables,
         for (int i = 0; i < size(var_idx); ++i)
             s += "\n" + type_var_names[i] + " = "
                 + variables[var_idx[i]]->get_info(parameters);
+        if (this->is_peak()) {
+            if (!contains_element(type_var_names, string("center")))
+                s += "\nCenter: " + S(center());
+            if (!contains_element(type_var_names, string("height")))
+                s += "\nHeight: " + S(height());
+            if (!contains_element(type_var_names, string("fwhm")))
+                s += "\nFWHM: " + S(fwhm());
+            if (!contains_element(type_var_names, string("area")))
+                s += "\nArea: " + S(area());
+        }
     }
     return s;
 } 
@@ -405,7 +415,7 @@ DEFINE_FUNC_CALCULATE_VALUE_DERIV_BEGIN(Pearson7)
     dy_dv[2] = dcenter * xa1a2;
     dy_dv[3] = vv[0] * inv_denomin * (M_LN2 * (pow_2_1_a3_1 + 1)
                        * xa1a2sq / (denom_base * vv[3]) - log(denom_base));
-    dy_dx -= dcenter;
+    dy_dx = dcenter;
 DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(vv[0] * inv_denomin)
 
 
@@ -457,6 +467,23 @@ fp a_b = exp(a)-exp(b);
 fp apb = exp(a)+exp(b);
 fp base = (a_b * xc + sqrt(apb*apb * xc*xc + 4*exp(d)));
 fp t = exp(-pow(base,exp(n)));
+dy_dv[0] = t;
+dy_dv[1] = amp*t*(-(exp(a+n)*(-c+x)*pow(sqrt(4*exp(d)+pow(exp(a)+exp(
+b),2)*pow(c-x,2))+(exp(a)-exp(b))*(-c+x),-1+exp(n))*(1+((exp(a)+exp(
+b))*(-c+x))/sqrt(4*exp(d)+pow(exp(a)+exp(b),2)*pow(x-c,2)))));
+dy_dv[2] = amp*t*(-(exp(b+n)*(-c+x)*pow(sqrt(4*exp(d)+pow(exp(a)+exp(
+b),2)*pow(x-c,2))+(exp(a)-exp(b))*(-c+x),-1+exp(n))*(-1+((exp(a)+exp(
+b))*(-c+x))/sqrt(4*exp(d)+pow(exp(a)+exp(b),2)*pow(c-x,2)))));
+dy_dv[3] = amp*t*(-(exp(n)*(-exp(a)+exp(b)+(pow(exp(a)+exp(b),2)*(c-
+x))/sqrt(4*exp(d)+pow(exp(a)+exp(b),2)*pow(c-x,2)))*pow(sqrt(4*exp(d)+
+pow(exp(a)+exp(b),2)*pow(c-x,2))+(exp(a)-exp(b))*(-c+x),-1+exp(n))));
+dy_dv[4] = amp*t*((-2*exp(d+n)*pow(sqrt(4*exp(d)+pow(exp(a)+exp(
+b),2)*pow(x-c,2))+(exp(a)-exp(b))*(-c+x),-1+exp(n)))/sqrt(4*exp(d)+
+pow(exp(a)+exp(b),2)*pow(x-c,2)));
+dy_dv[5] = amp*t*(-(exp(n)*pow(sqrt(4*exp(d)+pow(exp(a)+exp(b),2)*pow(c-x,2))+
+(exp(a)-exp(b))*(-c+x),exp(n))*log(sqrt(4*exp(d)+pow(exp(a)+exp(
+b),2)*pow(c-x,2))+(exp(a)-exp(b))*(-c+x))));
+dy_dx = - dy_dv[3];
 DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(amp*t)
 ///////////////////////////////////////////////////////////////////////
 

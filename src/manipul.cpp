@@ -145,12 +145,12 @@ bool Manipul::estimate_peak_parameters(fp approx_ctr, fp ctrplusmin,
     }
     fp h = my_y(max_y_pos, ec);
     if (height) 
-        *height = h * height_correction;
+        *height = h * getSettings()->get_f("height-correction");
     if (center)
         *center = my_data->get_x(max_y_pos);
     if (fwhm)
         *fwhm = compute_data_fwhm(l_bor, max_y_pos, r_bor, 0.5, ec) 
-                                                            * fwhm_correction;
+                                    * getSettings()->get_f("width-correction");
     if (area) 
         *area = data_area(l_bor, r_bor, ec); //FIXME: how to find peak borders? 
                                             // t * FWHM would be better? t=??

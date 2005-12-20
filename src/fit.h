@@ -7,10 +7,9 @@
 #include <map>
 #include <string>
 #include "common.h"
-#include "dotset.h"
 
 //     generic fit class interface
-class Fit : public DotSet
+class Fit //: public DotSet
 {               
 public:
     const char symbol;
@@ -61,7 +60,6 @@ public:
     FitMethodsContainer();
     ~FitMethodsContainer();
     std::string list_available_methods();
-    void export_methods_settings_as_script (std::ostream& os);
     void change_method (char c);
     std::string print_current_method();
     int current_method_number();

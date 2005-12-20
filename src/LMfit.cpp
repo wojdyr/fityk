@@ -17,6 +17,7 @@ LMfit::LMfit ()
       stop_rel (1e-4), shake_before (0), shake_type ('u'),
       alpha(0), alpha_(0), beta(0), beta_(0)
 {
+    /*
     fpar ["lambda-starting-value"] = &lambda_starting_value;
     fpar ["lambda-up-factor"] = &lambda_up_factor;
     fpar ["lambda-down-factor"] = &lambda_down_factor;
@@ -24,6 +25,7 @@ LMfit::LMfit ()
     fpar ["shake-before"] = &shake_before;
     epar.insert(pair<string, Enum_string>("shake-type", 
                                Enum_string (Distrib_enum, &shake_type)));
+    */
 }    
     
 LMfit::~LMfit () {}

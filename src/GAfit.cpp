@@ -4,6 +4,7 @@
 #include "common.h"
 #include "GAfit.h"
 #include "ui.h"
+#include "settings.h"
 #include <stdlib.h>
 #include <time.h>
 #include <algorithm>
@@ -29,6 +30,7 @@ GAfit::GAfit ()
      best_indiv(0)
 {
     default_max_iterations = 200;
+    /*
     irpar["population-size"] = IntRange (&popsize, 2, 9999);
     irpar["steady-size"] = IntRange (&elitism, 0, 9999);
     epar.insert(pair<string, Enum_string>("mutation-type", 
@@ -36,19 +38,23 @@ GAfit::GAfit ()
     fpar["p-mutation"] = &p_mutation;
     bpar["mutate-all-genes"] = &mutate_all_genes;
     fpar["mutation-strength"] = &mutation_strength;
+    */
     Crossover_enum ['u'] = "uniform";
     Crossover_enum ['o'] = "one-point";
     Crossover_enum ['t'] = "two-point";
     Crossover_enum ['a'] = "arithmetic1";
     Crossover_enum ['A'] = "arithmetic2";
     Crossover_enum ['g'] = "guaranteed-avg";
+    /*
     epar.insert(pair<string, Enum_string>("crossover-type", 
                                Enum_string (Crossover_enum, &crossover_type)));
     fpar["p-crossover"] = &p_crossover;
+    */
     Selection_enum ['r'] = "roulette";
     Selection_enum ['t'] = "tournament";
     Selection_enum ['s'] = "SRS";
     Selection_enum ['d'] = "DS";
+    /*
     epar.insert (pair<string, Enum_string>("selection-type", 
                                Enum_string (Selection_enum, &selection_type)));
     bpar["rank-scoring"] = &rank_scoring;
@@ -62,6 +68,7 @@ GAfit::GAfit ()
     fpar["wssr-stop"] = &wssr_stop;
     irpar["autoplot-indiv-nr"] = IntRange(&autoplot_indiv_nr, -1, 999999999);
     spar["GA-log-file"] = &log_file;
+    */
 }
 
 GAfit::~GAfit() {}
@@ -115,7 +122,7 @@ void GAfit::log_ga_options()
         return;
     }
     os << "####### Current time: " << time_now() << endl;
-    istringstream iss(set_script ('f'));
+    istringstream iss(getSettings()->set_script());
     string s;
     while (getline (iss, s)) 
         os << "# " << s << endl;

@@ -218,6 +218,22 @@ void do_print_func_value(char const*, char const*)
     mesg(m);
 }
 
+void do_print_data_expr(char const* a, char const* b)
+{
+    string s = string(a,b);
+    fp t = get_transform_expression_value(s);
+    mesg(S(t));
+}
+
+void do_print_func_type(char const* a, char const* b)
+{
+    string s = string(a,b);
+    string m = Function::get_formula(s);
+    if (m.empty())
+        m = "Undefined function type: " + s;
+    mesg(m);
+}
+
 void do_import_dataset(char const*, char const*)
 {
     if (tmp_int == new_dataset) {
@@ -464,6 +480,8 @@ struct CmdGrammar : public grammar<CmdGrammar>
                >> ( uint_p [assign_a(tmp_int)]
                   | eps_p [assign_a(tmp_int, one)])
                >> plot_range) [&do_print_info]
+            | no_actions_d[DataExpressionG][&do_print_data_expr]
+            | function_name[&do_print_func_type]
             ;
 
         fit
@@ -495,13 +513,14 @@ struct CmdGrammar : public grammar<CmdGrammar>
             = '[' >> (int_p[assign_a(tmp_int)] 
                      | eps_p[assign_a(tmp_int, zero)]
                      )
-                  >> (':' >> (int_p[assign_a(tmp_int2)] 
-                             | eps_p[assign_a(tmp_int2, int_max)]
-                             )
-                      | eps_p[assign_a(tmp_int2, tmp_int)]
+                  >> (':'
+                      >> (int_p[assign_a(tmp_int2)] 
+                         | eps_p[assign_a(tmp_int2, int_max)]
+                         )
+                      >> ']'
+                     | ch_p(']')[assign_a(tmp_int2, tmp_int)]
                             [increment_a(tmp_int2)] //see assign_a error above
-                     )
-                  >> ']'  
+                     )  
             ;
 
         commands
@@ -566,8 +585,12 @@ void parse_and_execute(string const& str)
     if (strip_string(str) == "quit")
         throw ExitRequestedException();
     try {
-        parse_info<> result = parse(str.c_str(), cmdG, space_p);
+        parse_info<> result = parse(str.c_str(), no_actions_d[cmdG], space_p);
         if (result.full) {
+            parse_info<> result = parse(str.c_str(), cmdG, space_p);
+        }
+        else {
+            warn("Syntax error.");
         }
     } catch (ExecuteError &e) {
         warn(string("Error: ") + e.what());
@@ -579,7 +602,7 @@ void parse_and_execute(string const& str)
 exp:  SET DASH_STRING EQ_STRING SEP { 
 	set_class_p($1)->setp ($2.str(), $3.str());
       }
-    | SET DASH_STRING SEP          { set_class_p($1)->getp ($2.str()); }
+    | SET DASH_STRING SEP          { set_class_p($1)->infop ($2.str()); }
     | SET SEP                      { mesg (set_class_p($1)->print_usage($1)); }
     | F_METHOD SEP     { mesg (fitMethodsContainer->print_current_method ()); }
     | F_METHOD LOWERCASE SEP       { fitMethodsContainer->change_method ($2); }

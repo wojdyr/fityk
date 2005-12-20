@@ -25,10 +25,12 @@ Fit::Fit (char symb, string m)
       default_max_iterations(50), output_one_of(1), random_seed(-1),
       max_evaluations(0), evaluations(0), iter_nr (0), na(0)
 {
+    /*
     irpar ["output-one-of"] = IntRange (&output_one_of, 1, 999);
     irpar["pseudo-random-seed"] = IntRange (&random_seed, -1, 999999999);
     ipar["default-max-iterations"] = &default_max_iterations;
     ipar["max-wssr-evaluations"] = &max_evaluations;
+    */
     Distrib_enum ['u'] = "uniform";
     Distrib_enum ['g'] = "gauss";
     Distrib_enum ['l'] = "lorentz";
@@ -326,14 +328,6 @@ int FitMethodsContainer::current_method_number()
     int n = find(methods.begin(), methods.end(), my_fit) - methods.begin();
     assert (n < size(methods));
     return n;
-}
-
-void FitMethodsContainer::export_methods_settings_as_script(std::ostream& os)
-{
-    os << "### Settings of all method\n";
-    for (vector<Fit*>::iterator i = methods.begin(); i != methods.end(); i++)
-        os << "f.method " << (*i)->symbol << " ### " << (*i)->method
-            << endl << (*i)->set_script('f');
 }
 
 static const fp TINY = 1e-12;

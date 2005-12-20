@@ -44,20 +44,6 @@ private:
 
 DECLARE_APP(FApp)
 
-class DotSet;
-
-class FSetDlg : public wxDialog
-{
-public:
-    std::vector<std::string>& opt_names;
-    std::vector<std::string>& opt_values;
-    std::vector<wxControl*> tc_v;
-    FSetDlg(wxWindow* parent, const wxWindowID id, const wxString& title,
-             std::vector<std::string>& names, std::vector<std::string>& vals,
-             std::vector<std::string>& types, DotSet* myset);
-};
-
-
 class FToolBar : public wxToolBar
 {
 public:
@@ -122,17 +108,14 @@ public:
     void OnSValue        (wxCommandEvent& event);          
     void OnSExport       (wxCommandEvent& event);           
 #endif
-    void OnSSet          (wxCommandEvent& event);        
 
     void OnMFindpeak     (wxCommandEvent& event);        
-    void OnMSet          (wxCommandEvent& event);        
 
     void OnFMethodUpdate (wxUpdateUIEvent& event);           
     void OnFOneOfMethods (wxCommandEvent& event);
     void OnFRun          (wxCommandEvent& event);        
     void OnFContinue     (wxCommandEvent& event);             
     void OnFInfo         (wxCommandEvent& event);         
-    void OnFSet          (wxCommandEvent& event);        
 
     void OnLogUpdate     (wxUpdateUIEvent& event);        
     void OnLogStart      (wxCommandEvent& event);        
@@ -142,7 +125,7 @@ public:
     void OnOReInclude    (wxCommandEvent& event);            
     void OnO_Reset       (wxCommandEvent& event);
     void OnODump         (wxCommandEvent& event);         
-    void OnOSet          (wxCommandEvent& event);        
+    void OnSetttings     (wxCommandEvent& event);        
     void OnPrintPreview  (wxCommandEvent& event);
     void OnPrintSetup    (wxCommandEvent& event);
     void OnPrint         (wxCommandEvent& event);
@@ -187,7 +170,7 @@ public:
     void refresh_plots(bool refresh=true, bool update=false, 
                        bool only_main=false);
     void draw_crosshair(int X, int Y);
-    void focus_input();
+    void focus_input(int key=0);
     void set_status_text(const wxString &text, StatusBarField field=sbf_text) 
             { if (status_bar) SetStatusText(text, field); }
     bool display_help_section(const std::string &s);
@@ -216,7 +199,6 @@ protected:
 
     void place_plot_and_io_windows(wxWindow *parent);
     void create_io_panel(wxWindow *parent);
-    void OnXSet (std::string name, char letter);
     void set_menubar();
     void read_recent_data_files();
     void write_recent_data_files();

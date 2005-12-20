@@ -16,11 +16,14 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <utility>
+#include <map>
 #include <wx/valtext.h>
 #include <wx/bmpbuttn.h>
 #include <wx/grid.h>
 #include <wx/statline.h>
 #include <wx/splitter.h>
+#include <wx/notebook.h>
 #include "common.h"
 #include "wx_dlg.h"
 #include "wx_common.h"
@@ -30,9 +33,8 @@
 #include "sum.h"
 #include "fit.h"
 #include "ui.h"
-//#include "datatrans.h" 
-// for faster compilation - don't include datatrans.h
-bool validate_transformation(std::string const& str); 
+#include "settings.h"
+#include "datatrans.h" 
 
 #if 0
 //bitmaps for buttons
@@ -173,7 +175,7 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id)
     h2a_sizer->Add (s_column, 0, wxALL|wxALIGN_LEFT, 5);
     columns_panel->SetSizerAndFit(h2a_sizer);
     top_sizer->Add (columns_panel, 0, wxALL|wxEXPAND, 5);
-    OnStdDevCheckBox (dummy_cmd_event);
+    OnStdDevCheckBox(dummy_cmd_event);
 
     append_cb = new wxCheckBox(this, -1, 
                                "Append data from file to already loaded data");
@@ -1002,4 +1004,86 @@ bool export_data_dlg(wxWindow *parent, bool load_exported)
         return false;
 }
 
+
+//=====================    setttings  dialog    ==================
+
+//small utility
+wxArrayString stl2wxArrayString(vector<string> const& vs)
+{
+    wxArrayString wxas; 
+    for (vector<string>::const_iterator i = vs.begin(); i != vs.end(); ++i)
+        wxas.Add(i->c_str());
+    return wxas;
+}
+
+SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
+    : wxDialog(parent, id, "Settings",
+               wxDefaultPosition, wxDefaultSize, 
+               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER) 
+{
+    wxNotebook *nb = new wxNotebook(this, -1);
+    wxPanel *page_general = new wxPanel(nb, -1);
+    nb->AddPage(page_general, "general");
+    wxPanel *page_peakfind = new wxPanel(nb, -1);
+    nb->AddPage(page_peakfind, "peak-finding");
+    wxPanel *page_fitting = new wxPanel(nb, -1);
+    nb->AddPage(page_fitting, "fitting");
+
+    // page general
+    autoplot_rb = new wxRadioBox(page_general, -1, "auto-refresh plot",
+                                 wxDefaultPosition, wxDefaultSize, 
+                                 stl2wxArrayString(
+                                      getSettings()->expand_enum("autoplot")));
+    autoplot_rb->SetStringSelection(getSettings()->getp("autoplot").c_str());
+
+    wxStaticText *verbosity_st = new wxStaticText(page_general, -1, 
+                            "verbosity (amount of messages in output pane)");
+    verbosity_ch = new wxChoice(page_general, -1, 
+                                wxDefaultPosition, wxDefaultSize,
+                                stl2wxArrayString(
+                                      getSettings()->expand_enum("verbosity")));
+    verbosity_ch->SetStringSelection(getSettings()->getp("verbosity").c_str());
+    exit_cb = new wxCheckBox(page_general, -1, 
+                             "quit if error or warning was generated");
+    exit_cb->SetValue(getSettings()->get_b("exit-on-warning"));
+
+    wxBoxSizer *sizer_general = new wxBoxSizer(wxVERTICAL);
+    sizer_general->Add(autoplot_rb, 0, wxEXPAND|wxALL, 5);
+    sizer_general->Add(verbosity_st, 0, wxLEFT|wxRIGHT|wxTOP, 5);
+    sizer_general->Add(verbosity_ch, 0, wxEXPAND|wxALL, 5);
+    sizer_general->Add(exit_cb, 0, wxEXPAND|wxALL, 5);
+    page_general->SetSizerAndFit(sizer_general);
+
+    // page peak-finding
+    // TODO
+    wxBoxSizer *sizer_pf = new wxBoxSizer(wxVERTICAL);
+    sizer_pf->Add(autoplot_rb, 0, wxEXPAND|wxALL, 5);
+    sizer_pf->Add(verbosity_st, 0, wxLEFT|wxRIGHT|wxTOP, 5);
+    sizer_pf->Add(verbosity_ch, 0, wxEXPAND|wxALL, 5);
+    sizer_pf->Add(exit_cb, 0, wxEXPAND|wxALL, 5);
+    page_peakfind->SetSizerAndFit(sizer_pf);
+
+    // TODO
+
+    wxBoxSizer *top_sizer = new wxBoxSizer (wxVERTICAL);
+    top_sizer->Add(nb, 1, wxALL|wxEXPAND, 10);
+    top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
+    top_sizer->Add (CreateButtonSizer (wxOK|wxCANCEL), 
+                    0, wxALL|wxALIGN_CENTER, 5);
+    SetSizerAndFit(top_sizer);
+}
+
+SettingsDlg::pair_vec SettingsDlg::get_changed_items()
+{
+    pair_vec result;
+    map<string, string> m;
+    m["autoplot"] = autoplot_rb->GetStringSelection();
+    m["verbosity"] = verbosity_ch->GetStringSelection();
+    m["exit-on-warning"] = exit_cb->GetValue() ? "1" : "0";
+    vector<string> kk = getSettings()->expanp();
+    for (vector<string>::const_iterator i = kk.begin(); i != kk.end(); ++i)
+        if (m.count(*i) && m[*i] != getSettings()->getp(*i))
+            result.push_back(make_pair(*i, m[*i]));
+    return result;
+}
 

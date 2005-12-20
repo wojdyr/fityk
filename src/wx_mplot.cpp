@@ -296,8 +296,9 @@ void MainPlot::draw_peaktops (wxDC& dc)
     dc.SetPen (xAxisPen);
     dc.SetBrush (*wxTRANSPARENT_BRUSH);
     for (vector<wxPoint>::const_iterator i = shared.peaktops.begin(); 
-         i != shared.peaktops.end(); i++) 
+                                           i != shared.peaktops.end(); i++) {
         dc.DrawRectangle (i->x - 1, i->y - 1, 3, 3);
+    }
 }
 
 void MainPlot::draw_plabels (wxDC& dc)
@@ -363,18 +364,21 @@ void MainPlot::prepare_peaktops()
     shared.peaktops.resize(n);
     for (int k = 0; k < n; k++) {
         Function const *f = AL->get_function(idx[k]);
+        fp x;
         int X, Y;
-        if (f->is_peak()) {
-            fp x = f->center();
+        if (f->is_peak() || f->center() != 0.) {
+            //TODO change f->center() to f has "center" type parameter
+            // or f->has_center (member)
+            x = f->center();
             X = x2X (x - my_sum->zero_shift(x));
-            Y = y2Y(f->calculate_value(x));
         }
         else {
             X = k * 10;
-            fp x = X2x(X);
+            x = X2x(X);
             x += my_sum->zero_shift(x);
-            Y = y2Y(f->calculate_value(x));
         }
+        //FIXME: check if these zero_shift()'s above are needed
+        Y = y2Y(f->calculate_value(x));
         if (Y < 0 || Y > H) 
             Y = Y0;
         shared.peaktops[k] = wxPoint(X, Y);
@@ -625,7 +629,7 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
     if (over_peak == -1) return;
     wxMenu peak_menu; 
     peak_menu.Append(ID_peak_popup_info, "&Info");
-    peak_menu.Append(ID_peak_popup_guess, "&Guess");
+    //peak_menu.Append(ID_peak_popup_guess, "&Guess");
     peak_menu.Append(ID_peak_popup_del, "&Delete");
     //peak_menu.AppendSeparator();
     //TODO? parameters: height, ...
@@ -635,7 +639,7 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
 void MainPlot::PeakInfo()
 {
     if (over_peak >= 0)
-        exec_command("info " + AL->get_function(over_peak)->xname);
+        exec_command("info+ " + AL->get_function(over_peak)->xname);
 }
 
 void MainPlot::OnPeakDelete(wxCommandEvent &WXUNUSED(event))
@@ -928,9 +932,9 @@ void MainPlot::OnKeyDown (wxKeyEvent& event)
     if (event.GetKeyCode() == WXK_ESCAPE) {
         cancel_mouse_press(); 
     }
-    else if (event.GetKeyCode() == ' ' || event.GetKeyCode() == WXK_TAB) {
+    else if (should_focus_input(event.GetKeyCode())) {
         cancel_mouse_press(); 
-        frame->focus_input();
+        frame->focus_input(event.GetKeyCode());
     }
     else
         event.Skip();

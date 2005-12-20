@@ -16,11 +16,13 @@ NMfit::NMfit ()
      min_rel_diff(0.0001), move_all(false), distrib_type('b'), move_mult(1.)
 {
     default_max_iterations = 500;
+    /*
     fpar["min-fract-range"] = &min_rel_diff;
     bpar["move-all"] = &move_all;
     epar.insert(pair<string, Enum_string>("distrib-type", 
                                Enum_string (Distrib_enum, &distrib_type)));
     fpar["move-multiplier"] = &move_mult;
+    */
 }
 
 NMfit::~NMfit() {}

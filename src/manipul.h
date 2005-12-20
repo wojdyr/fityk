@@ -50,11 +50,6 @@ public:
                        std::vector<std::string> const& range,
                        std::vector<std::string> vars);
 private:
-    // fp search_width;
-    // bool cancel_peak_out_of_search;
-    // TODO:
-    fp height_correction, fwhm_correction;
-
     fp my_y (int n, const EstConditions *ec=0) const;
     fp data_area (int from, int to, const EstConditions *ec=0) const;
     int max_data_y_pos (int from, int to, const EstConditions *ec=0) const;

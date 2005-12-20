@@ -131,14 +131,11 @@ enum {
     ID_S_CHANGE                ,
     ID_S_VALUE                 ,
     ID_S_EXPORT                ,
-    ID_S_SET                   ,
     ID_M_FINDPEAK              ,
-    ID_M_SET                   ,
     ID_F_METHOD                ,
     ID_F_RUN                   ,
     ID_F_CONTINUE              ,
     ID_F_INFO                  ,
-    ID_F_SET                   ,
     ID_F_M                     , 
     ID_F_M_END = ID_F_M+10     , 
     ID_SESSION_LOG             ,
@@ -152,7 +149,7 @@ enum {
     ID_O_INCLUDE               ,
     ID_O_REINCLUDE             ,
     ID_O_DUMP                  ,
-    ID_O_SET                   ,
+    ID_SESSION_SET             ,
     ID_G_MODE                  ,
     ID_G_M_ZOOM                ,
     ID_G_M_RANGE               ,
@@ -374,17 +371,14 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     //EVT_MENU (ID_S_CHANGE,      FFrame::OnSChange)    
     //EVT_MENU (ID_S_VALUE,       FFrame::OnSValue)    
     //EVT_MENU (ID_S_EXPORT,      FFrame::OnSExport)    
-    EVT_MENU (ID_S_SET,         FFrame::OnSSet)    
 
     EVT_MENU (ID_M_FINDPEAK,    FFrame::OnMFindpeak)
-    EVT_MENU (ID_M_SET,         FFrame::OnMSet)
 
     EVT_UPDATE_UI (ID_F_METHOD, FFrame::OnFMethodUpdate)
     EVT_MENU_RANGE (ID_F_M+0, ID_F_M_END, FFrame::OnFOneOfMethods)    
     EVT_MENU (ID_F_RUN,         FFrame::OnFRun)    
     EVT_MENU (ID_F_CONTINUE,    FFrame::OnFContinue)    
     EVT_MENU (ID_F_INFO,        FFrame::OnFInfo)    
-    EVT_MENU (ID_F_SET,         FFrame::OnFSet)    
 
     EVT_UPDATE_UI (ID_SESSION_LOG, FFrame::OnLogUpdate)    
     EVT_MENU (ID_LOG_START,     FFrame::OnLogStart)
@@ -397,7 +391,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_PRINT_SETUP,   FFrame::OnPrintSetup)
     EVT_MENU (ID_PRINT_PREVIEW, FFrame::OnPrintPreview)
     EVT_MENU (ID_O_DUMP,        FFrame::OnODump)    
-    EVT_MENU (ID_O_SET,         FFrame::OnOSet)    
+    EVT_MENU (ID_SESSION_SET,   FFrame::OnSetttings)    
 
     EVT_MENU (ID_G_M_ZOOM,      FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_RANGE,     FFrame::OnChangeMouseMode)
@@ -651,12 +645,10 @@ void FFrame::set_menubar()
                                                     " or selected function");
     sum_menu->Append (ID_S_EXPORT,    "&Export", "Export fitted curve to file");
 #endif
-    sum_menu->Append (ID_S_SET,       "&Settings", "Preferences and options"); 
 
     wxMenu* manipul_menu = new wxMenu;
     manipul_menu->Append (ID_M_FINDPEAK, "&Find peak", 
                                        "Search for a peak (rather useless)");
-    manipul_menu->Append (ID_M_SET,   "&Settings", "Preferences and options");
 
     wxMenu* fit_menu = new wxMenu;
     wxMenu* fit_method_menu = new wxMenu;
@@ -672,7 +664,6 @@ void FFrame::set_menubar()
     fit_menu->Append (ID_F_RUN,    "&Run\tCtrl-R", "Start fitting sum to data");
     fit_menu->Append (ID_F_CONTINUE,  "&Continue\tCtrl-T", "Continue fitting");
     fit_menu->Append (ID_F_INFO,      "&Info", "Info about current fit");      
-    fit_menu->Append (ID_F_SET,       "&Settings", "Preferences and options"); 
 
     wxMenu* gui_menu = new wxMenu;
     wxMenu* gui_menu_mode = new wxMenu;
@@ -774,7 +765,8 @@ void FFrame::set_menubar()
                                                     "Printer and page setup");
     session_menu->Append (ID_PRINT_PREVIEW, "Print Pre&view", "Preview"); 
     session_menu->AppendSeparator();
-    session_menu->Append (ID_O_SET,     "&Settings", "Preferences and options");
+    session_menu->Append (ID_SESSION_SET, "&Settings",
+                                          "Preferences and options");
     session_menu->AppendSeparator();
     session_menu->Append(ID_QUIT, "&Quit", "Exit the program");
 
@@ -1023,22 +1015,11 @@ void FFrame::OnSExport       (wxCommandEvent& WXUNUSED(event))
 }
 #endif
            
-void FFrame::OnSSet          (wxCommandEvent& WXUNUSED(event))
-{
-    OnXSet ("Sum", 's');
-}
-        
 void FFrame::OnMFindpeak     (wxCommandEvent& WXUNUSED(event))
 {
     exec_command ("m.findpeak ");
 }
         
-void FFrame::OnMSet          (wxCommandEvent& WXUNUSED(event))
-{
-    OnXSet ("Manipulations", 'm');
-}
-        
-
 void FFrame::OnFMethodUpdate (wxUpdateUIEvent& event)
 {
     int method_nr = fitMethodsContainer->current_method_number();
@@ -1075,11 +1056,6 @@ void FFrame::OnFInfo         (wxCommandEvent& WXUNUSED(event))
     exec_command ("info fit");
 }
          
-void FFrame::OnFSet          (wxCommandEvent& WXUNUSED(event))
-{
-    OnXSet ("Fit (" + my_fit->method + ")", 'f');
-}
-        
 void FFrame::OnLogUpdate (wxUpdateUIEvent& event)        
 {
     string const& logfile = getUI()->getCommands().get_log_file();
@@ -1163,52 +1139,20 @@ void FFrame::OnODump         (wxCommandEvent& WXUNUSED(event))
         exec_command (("dump > '" + fdlg.GetPath() + "'").c_str());
 }
          
-void FFrame::OnOSet          (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnSetttings    (wxCommandEvent& WXUNUSED(event))
 {
-    OnXSet ("Other", 'o');
-}
-        
-void FFrame::OnXSet (string /*name*/, char /*letter*/)
-{
-#if 0
-    DotSet* myset = set_class_p (letter);
-    vector<string> ev, vv, tv;
-    myset->expanp ("", ev);
-    for (vector<string>::iterator i = ev.begin(); i != ev.end(); i++) {
-        string v;
-        myset->getp_core (*i, v);
-        vv.push_back (v);
-        string t;
-        myset->typep (*i, t);
-        tv.push_back (t);
-    }
-    string nm =  "Preferences - " + name;
-    FSetDlg *dialog = new FSetDlg(this, -1, nm.c_str(), ev, vv, tv, myset);
+    SettingsDlg *dialog = new SettingsDlg(this, -1);
     if (dialog->ShowModal() == wxID_OK) {
-        for (unsigned int i = 0; i < ev.size(); i++) {
-            string s;
-            wxTextCtrl *tctrl = wxDynamicCast (dialog->tc_v[i], wxTextCtrl);
-            wxCheckBox *chbox = wxDynamicCast (dialog->tc_v[i], wxCheckBox);
-            wxChoice *chic = wxDynamicCast (dialog->tc_v[i], wxChoice);
-            wxSpinCtrl *spinc = wxDynamicCast (dialog->tc_v[i], wxSpinCtrl);
-            if (tctrl)
-                s = tctrl->GetValue().Trim(true).Trim(false) .c_str();
-            else if (chbox)
-                s = S(chbox->GetValue());
-            else if (chic)
-                s = chic->GetStringSelection().c_str();
-            else if (spinc)
-                s = S(spinc->GetValue());
-            else
-                assert (0);
-            if (s != vv[i]) {
-                string cm = S(letter) + ".set " + ev[i] + " = " + s;
-                exec_command (cm.c_str());
-            }
+        vector<pair<string, string> > p = dialog->get_changed_items();
+        if (!p.empty()) {
+            vector<string> eqs;
+            for (vector<pair<string, string> >::const_iterator i = p.begin();
+                    i != p.end(); ++i)
+                eqs.push_back(i->first + "=" + i->second);
+            exec_command ("set " + join_vector(eqs, ", "));
         }
     }
     dialog->Destroy();
-#endif
 }
 
 void FFrame::OnChangeMouseMode (wxCommandEvent& event)
@@ -1549,9 +1493,9 @@ void FFrame::draw_crosshair(int X, int Y)
     plot_pane->draw_crosshair(X, Y);
 }
 
-void FFrame::focus_input()
+void FFrame::focus_input(int key)
 {
-    io_pane->focus_input();
+    io_pane->focus_input(key);
 }
 
 void FFrame::OnIdle(wxIdleEvent &event) 
@@ -1561,98 +1505,6 @@ void FFrame::OnIdle(wxIdleEvent &event)
     event.Skip();
 }
 
-
-//=====================    set  dialog    ==================
-
-FSetDlg::FSetDlg(wxWindow* parent, const wxWindowID id, const wxString& title,
-             vector<string>& names, vector<string>& vals, vector<string>& types,
-             DotSet* myset)
-    :  wxDialog(parent, id, title), opt_names(names), opt_values(vals)
-{
-    const int max_rows = 10;
-    assert (names.size() == vals.size());
-    wxBoxSizer *sizer0 = new wxBoxSizer (wxVERTICAL);
-    wxStaticText* st = new wxStaticText (this, -1, title);
-    sizer0->Add (st, 0, wxALL|wxALIGN_CENTER, 10);
-    wxBoxSizer *sizer_H0 = new wxBoxSizer (wxHORIZONTAL);
-    sizer0->Add (sizer_H0, 0, wxALL|wxALIGN_CENTER, 0);
-    wxBoxSizer *sizer_V0 = 0;
-    for (unsigned int i = 0; i < names.size(); i++) { 
-        if (i % max_rows == 0) {
-            sizer_V0 = new wxBoxSizer (wxVERTICAL);
-            sizer_H0->Add (sizer_V0, 0, wxALL|wxALIGN_CENTER, 10);
-        }
-        wxBoxSizer *sizerH = new wxBoxSizer (wxHORIZONTAL);
-        wxControl* tc;
-        bool put_static_text = true;
-        bool with_tooltip = false;
-
-        if (types[i].find("bool") != string::npos) {//boolean type
-            wxCheckBox* tc_ = new wxCheckBox (this, -1, names[i].c_str());
-            tc_->SetValue (vals[i] != "0");
-            tc = tc_;
-            put_static_text = false;
-        }
-            //enumaration of strings
-        else if (types[i].find("enum") != string::npos) {
-            vector<string> std_choices;
-            myset->expand_enum (names[i], "", std_choices);
-            const int max_choice_items = 20;//it should be enough
-            assert (size(std_choices) < max_choice_items);
-            wxString wx_choice[max_choice_items]; 
-            for (unsigned int j = 0; j < std_choices.size(); j++)
-                wx_choice[j] = std_choices[j].c_str();
-            wxChoice *tc_ = new wxChoice (this, -1, wxDefaultPosition, 
-                                          wxDefaultSize,  
-                                          std_choices.size(), wx_choice);
-            tc_->SetStringSelection (vals[i].c_str());
-            tc = tc_;
-        }
-        else if (types[i].find("integer") != string::npos) {//integer
-            tc = new wxSpinCtrl(this, -1, vals[i].c_str(),
-                                wxDefaultPosition, wxSize(50, -1), 
-                                wxSP_ARROW_KEYS,
-                                0, 999999999);
-            with_tooltip = true;
-        }
-        else if (types[i].find("...,") != string::npos) { //integer range
-            const string &t = types[i];
-            string lower(t.begin(), t.begin() + t.find_first_of(','));
-            string upper(t.begin() + t.find_last_of(',') + 1, t.end());
-            tc = new wxSpinCtrl(this, -1, vals[i].c_str(),
-                                wxDefaultPosition, wxSize(50, -1), 
-                                wxSP_ARROW_KEYS,
-                                atoi(lower.c_str()), atoi(upper.c_str()));
-            with_tooltip = true;
-        }
-        else { //another type
-            tc = new wxTextCtrl (this, -1, vals[i].c_str(), 
-                                 wxDefaultPosition, wxSize(50, -1));
-            with_tooltip = true;
-        }
-
-#if wxUSE_TOOLTIPS
-        if (with_tooltip)
-            tc->SetToolTip (types[i].c_str()); 
-#endif
-        if (put_static_text) {
-            wxStaticText* st = new wxStaticText (this, -1, names[i].c_str());
-            sizerH->Add (st, 0, wxALL|wxALIGN_LEFT, 5);
-        }
-        sizerH->Add (tc, 0, wxALL|wxALIGN_LEFT, 0);
-        tc_v.push_back(tc);
-        sizer_V0->Add (sizerH, 0, wxALL|wxALIGN_LEFT, 5);
-    }
-    sizer0->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
-    wxBoxSizer *sizerH = new wxBoxSizer (wxHORIZONTAL);
-    wxButton *btOk = new wxButton (this, wxID_OK, "OK");
-    sizerH->Add (btOk, 0, wxALL|wxALIGN_CENTER, 5 );
-    wxButton *btCancel = new wxButton (this, wxID_CANCEL, "Cancel");
-    sizerH->Add (btCancel, 0, wxALL|wxALIGN_CENTER, 5 );
-    sizer0->Add (sizerH, 0, wxALL|wxALIGN_CENTER, 5);
-    SetSizer (sizer0);
-    sizer0->SetSizeHints (this);
-}
 
 //===============================================================
 //                    FToolBar 

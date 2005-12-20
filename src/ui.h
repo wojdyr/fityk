@@ -106,9 +106,6 @@ private:
 
     static UserInterface* instance;
     Commands commands;
-    // char verbosity;
-    // bool exit_on_warning;
-    // char auto_plot;
 };
 
 

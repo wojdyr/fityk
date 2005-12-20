@@ -184,6 +184,12 @@ void purge_all_elements(std::vector<T*> &vec)
     vec.clear();
 }
 
+template<typename T>
+bool contains_element(std::vector<T> const& vec, T t)
+{
+    return (find(vec.begin(), vec.end(), t) != vec.end());
+}
+
 
 //-------------------- M I S C E L A N O U S ------------------------------
 

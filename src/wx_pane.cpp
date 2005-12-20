@@ -257,6 +257,13 @@ void IOPane::read_settings(wxConfigBase *cf)
     output_win->read_settings(cf);
 }
 
+void IOPane::focus_input(int key) 
+{ 
+    input_field->SetFocus(); 
+    if (key != WXK_TAB && key > 0 && key < 256) {
+        input_field->WriteText(wxString(static_cast<char>(key)).Lower());
+    }
+}
 
 #if 0
 //===============================================================
@@ -456,8 +463,8 @@ void DataPaneTree::OnMenuItem(wxCommandEvent &event)
 
 void DataPaneTree::OnKeyDown(wxKeyEvent& event)
 {
-    if (event.GetKeyCode() == ' ' || event.GetKeyCode() == WXK_TAB) 
-        frame->focus_input();
+    if (should_focus_input(event.GetKeyCode()))
+        frame->focus_input(event.GetKeyCode());
     else
         event.Skip();
 }
@@ -603,9 +610,9 @@ void OutputWin::OnRightDown (wxMouseEvent& event)
 
 void OutputWin::OnKeyDown (wxKeyEvent& event)
 {
-    if (event.GetKeyCode() == ' ' || event.GetKeyCode() == WXK_TAB) {
+    if (should_focus_input(event.GetKeyCode())) {
         IOPane *parent = static_cast<IOPane*>(GetParent()); //to not use RTTI
-        parent->focus_input();
+        parent->focus_input(event.GetKeyCode());
     }
     else
         event.Skip();

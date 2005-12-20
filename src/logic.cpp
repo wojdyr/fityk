@@ -103,8 +103,6 @@ void PlotCore::export_as_script(std::ostream& os) const
     os << endl;
 }
 #endif
-    fitMethodsContainer->export_methods_settings_as_script(os);
-    os << "f.method " << my_fit->symbol <<" ### back to current method\n";
     os << endl;
     os << endl << "####### End of dump " << endl; 
 }

@@ -166,6 +166,12 @@ protected:
                                           std::vector<std::string> const &vars);
     std::vector<std::string> get_vars_from_kw(std::string const &function,
                                          std::vector<std::string> const &vars);
+    std::string get_variable_from_kw(std::string const& function,
+                                     std::string const& tname, 
+                                     std::string const& tvalue, 
+                                     std::vector<std::string> const& vars);
+    std::string get_var_from_expression(std::string const& expr,
+                                        std::vector<std::string> const& vars);
 };
 
 

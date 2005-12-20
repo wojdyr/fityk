@@ -42,6 +42,12 @@ wxFont read_font_from_config(wxConfigBase const* config, wxString const& key,
 void write_font_to_config(wxConfigBase* config, wxString const& key,
                           wxFont const& value);
 
+inline bool should_focus_input(int key)
+{
+    return key == ' ' || key == WXK_TAB || (key >= 'A' && key <= 'Z')
+        || key == '%' || key == '$' || key == '@' || key == '#';
+}
+
 //dummy events -- useful when calling event handler functions
 extern wxMouseEvent dummy_mouse_event;
 extern wxCommandEvent dummy_cmd_event;

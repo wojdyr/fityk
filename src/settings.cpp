@@ -48,61 +48,58 @@ Settings::Settings()
     fpar ["search-width"] = 1.;   
     bpar ["cancel-peak-out-of-search"] = true;
     fpar ["height-correction"] = 1.;
-    fpar ["fwhm-correction"] = 1.;
+    fpar ["width-correction"] = 1.;
+
+    //Fit
+    //TODO
 }
 
-bool Settings::getp_core (const string &k, string &v) const
+string Settings::getp(string const& k) const
 {
-    if (ipar.count (k)){
-        v = S (ipar.find(k)->second);
-        return true;
+    if (ipar.count(k)) {
+        return S(ipar.find(k)->second);
     }
-    else if (fpar.count (k)){
-        v = S (fpar.find(k)->second);
-        return true;
+    else if (fpar.count(k)) {
+        return S(fpar.find(k)->second);
     }
-    else if (bpar.count (k)){
-        v = S (bpar.find(k)->second);
-        return true;
+    else if (bpar.count(k)) {
+        return bpar.find(k)->second ? "1" : "0";
     }
-    else if (irpar.count (k)){
-        v = S (irpar.find(k)->second.v);
-        return true;
+    else if (irpar.count(k)) {
+        return S(irpar.find(k)->second.v);
     }
-    else if (epar.count (k)){
+    else if (epar.count(k)) {
         EnumString const& ens = epar.find(k)->second;
-        v = ens.e.find(ens.v)->second;
-        return true;
+        return ens.e.find(ens.v)->second;
     }
-    else if (spar.count (k)){
-        v = spar.find(k)->second;
-        return true;
+    else if (spar.count(k)) {
+        return spar.find(k)->second;
     }
     else 
-        return false;
+        throw ExecuteError("Unknown option: " +  k);
 }
 
-bool Settings::setp_core (const string &k, const string &v)
+void Settings::setp_core(string const& k, string const& v)
 {
     if (ipar.count (k)){
         int d;
         if (istringstream (v) >> d) {
             ipar[k] = d;
-            return true;
+            return;
         }
     }
     else if (fpar.count (k)){
         fp d;
         if (istringstream (v) >> d) {
             fpar[k] = d;
-            return true;
+            return;
         }
     }
     else if (bpar.count (k)){
         bool d;
         if (istringstream (v) >> d) {
             bpar[k] = d;
-            return true;
+            return;
         }
     }
     else if (irpar.count (k)) {
@@ -110,7 +107,7 @@ bool Settings::setp_core (const string &k, const string &v)
         istringstream (v) >> d;
         if (irpar[k].l <= d && d <= irpar[k].u) {
             irpar[k].v = d;
-            return true;
+            return;
         }
     }
     else if (epar.count (k)){
@@ -118,91 +115,67 @@ bool Settings::setp_core (const string &k, const string &v)
         for (map<char,string>::const_iterator i = t.e.begin(); 
                                                            i != t.e.end(); i++)
             if (i->second == v) {
-                    t.v = i->first;
-                    return true;
+                t.v = i->first;
+                return;
             }
     }
     else if (spar.count (k)){
         spar[k] = v;
-        return true;
+        return;
     }
-    return false;
+    throw ExecuteError("'" + v + "' is not a valid value for '" + k + "'");
 }
 
-bool Settings::getp (string const& k)
+void Settings::infop (string const& k)
 {
-    string s;
-    bool r = getp_core (k, s);
-    if (!r)
-        warn ("Unknown option: " +  k);
-    else {
-        string t;
-        typep (k, t);
-        info ("Option '" + k + "' (" + t + ") has value: " + s);
-    }
-    return r;
+    info("Option '" + k + "' (" + typep(k) + ") has value: " + getp(k));
 }
 
-bool Settings::setp (string const& k, string const& v)
+void Settings::setp (string const& k, string const& v)
 {
-    string sp;
-    bool r = getp_core (k, sp);
-    if (!r)
-        warn ("Unknown option: " +  k);
-    else if (sp == v)
+    string sp = getp(k);
+    if (sp == v)
         info ("Option '" + k + "' already has value: " + v);
     else {
-        r = setp_core (k, v);
-        if (r)
-            info ("Value for '" + k + "' changed from '"+ sp
-                    + "' to '" + v + "'");
-        else
-            warn ("'" + v + "' is not valid value for '" + k + "'");
+        setp_core (k, v);
+        info ("Value for '" + k + "' changed from '" + sp + "' to '" + v + "'");
     }
-    return r;
 }
 
-bool Settings::typep (string const& k, string& v) const
+string Settings::typep (string const& k) const
 {
     if (ipar.count (k)){
-        v = "<integer number>";
-        return true;
+        return "<integer number>";
     }
     else if (fpar.count (k)){
-        v = "<floating point number>";
-        return true;
+        return "<floating point number>";
     }
     else if (bpar.count (k)){
-        v = "<boolean (0/1)>";
-        return true;
+        return "<boolean (0/1)>";
     }
     else if (irpar.count (k)){
         int u = irpar.find(k)->second.u;
         int l = irpar.find(k)->second.l;
-        if (u - l  < 1)
-            assert(0);
-        else if (u - l == 1)
-            v = S(l) + ", " + S(u);
+        assert(u - l >= 1);
+        if (u - l == 1)
+            return S(l) + ", " + S(u);
         else
-            v = S(l) + ", ..., " + S(u);
-        return true;
+            return S(l) + ", ..., " + S(u);
     }
     else if (epar.count (k)){
-        v = "<enumeration (" + S(epar.find(k)->second.e.size()) + ")>";
-        return true;
+        return "<enumeration (" + S(epar.find(k)->second.e.size()) + ")>";
     }
     else if (spar.count (k)){
-        v = "<string (a-zA-Z0-9+-.>";
-        return true;
+        return "<string (a-zA-Z0-9+-.>";
     }
     else 
-        return false;
+        throw ExecuteError("Unknown option: " +  k);
 }
 
-int Settings::expanp (string const& k, vector<string>& e) const
+vector<string> Settings::expanp(string const& k) const
 {
+    vector<string> e;
     int len = k.size();
-    e.clear();
     for (map<string,int>::const_iterator i = ipar.begin(); i!=ipar.end();i++)
         if (!string(i->first, 0, len).compare (k))
             e.push_back (i->first);
@@ -225,20 +198,19 @@ int Settings::expanp (string const& k, vector<string>& e) const
         if (!string(i->first, 0, len).compare (k))
             e.push_back (i->first);
     sort(e.begin(), e.end());
-    return e.size();
+    return e;
 }
 
-int Settings::expand_enum(string const& left, string const& k, 
-                          vector<string>& r) const
+vector<string> Settings::expand_enum(string const& k, string const& t) const
 {
-    r.clear();
-    if (epar.count(left) == 0)
-        return 0;
-    map<char, string> const& es = epar.find(left)->second.e;
+    vector<string> r;
+    if (epar.count(k) == 0)
+        throw ExecuteError("Unknown option: " +  k);
+    map<char, string> const& es = epar.find(k)->second.e;
     for (map<char,string>::const_iterator i = es.begin(); i != es.end(); i++)
-        if (!string(i->second, 0, k.size()).compare(k))
+        if (!string(i->second, 0, t.size()).compare(t))
             r.push_back (i->second);
-    return r.size();
+    return r;
 }
 
 string Settings::print_usage() const
@@ -247,27 +219,21 @@ string Settings::print_usage() const
         "or, to see the current value: \n\t"
         "set option\n"
         "Available options:";
-    vector<string> e;
-    expanp ("", e);
-    string t, v;
+    vector<string> e = expanp();
     for (vector<string>::const_iterator i = e.begin(); i != e.end(); i++){
-        typep (*i, t);
-        getp_core (*i, v);
-        s += "\n " + *i + " = " + t + ", current value: " + v;
+        s += "\n " + *i + " = " + typep(*i) + ", current value: "+getp(*i);
     }
     return s;
 }
 
 string Settings::set_script() const
 {
-    vector<string> e;
-    expanp ("", e);
-    string s, t, v;
-    for (vector<string>::const_iterator i = e.begin(); i != e.end(); i++){
-        typep (*i, t);
-        getp_core (*i, v);
+    vector<string> e = expanp();
+    string s;
+    for (vector<string>::const_iterator i = e.begin(); i != e.end(); i++) {
+        string v = getp(*i);
         s += "set " + *i + " = " + (v.empty() ? "\"\"" : v) 
-            + " # " + t + "\n";
+            + " # " + typep(*i) + "\n";
     }
     return s;
 }

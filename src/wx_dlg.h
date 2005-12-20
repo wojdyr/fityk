@@ -5,7 +5,6 @@
 #define FITYK__WX_DLG__H__
 
 #include <wx/treectrl.h>
-#include <wx/notebook.h>
 #include <wx/spinctrl.h>
 #include <wx/listctrl.h> 
 #include <wx/dirctrl.h>
@@ -154,6 +153,20 @@ protected:
 
 wxString get_user_conffile(const wxString &filename);
 bool export_data_dlg(wxWindow *parent, bool load_exported=false);
+
+
+class SettingsDlg : public wxDialog
+{
+public:
+    typedef std::vector<std::pair<std::string, std::string> > pair_vec;
+    SettingsDlg(wxWindow* parent, const wxWindowID id);
+    pair_vec get_changed_items();
+private:
+    wxRadioBox *autoplot_rb;
+    wxChoice *verbosity_ch;
+    wxCheckBox *exit_cb;
+};
+
 
 #endif
 

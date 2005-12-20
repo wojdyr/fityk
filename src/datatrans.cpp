@@ -439,6 +439,8 @@ DataExpressionGrammar::definition<ScannerT>::definition(
 // explicit template instantiations 
 template DataExpressionGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(DataExpressionGrammar const&);
 
+template DataExpressionGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<no_actions_action_policy<action_policy> > > > >::definition(DataExpressionGrammar const&);
+
 DataExpressionGrammar DataExpressionG;
 
 
@@ -505,6 +507,8 @@ DataTransformGrammar::definition<ScannerT>::definition(
 
 // explicit template instantiations 
 template DataTransformGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(DataTransformGrammar const&);
+
+template DataTransformGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<no_actions_action_policy<action_policy> > > > >::definition(DataTransformGrammar const&);
 
 DataTransformGrammar DataTransformG;
 

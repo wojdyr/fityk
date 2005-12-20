@@ -56,7 +56,6 @@ public:
                                int &first, int &last) const;
                            
     virtual bool is_peak() const { return false; } 
-    virtual bool knows_peak_properties() const { return false; }
     virtual fp center() const { return 0; }
     virtual fp height() const { return 0; }
     virtual fp fwhm() const { return 0; }
@@ -103,9 +102,8 @@ class FuncGaussian : public Function
     void do_precomputations(std::vector<Variable*> const &variables);
     bool get_nonzero_range (fp level, fp &left, fp &right) const;  
     bool is_peak() const { return true; } 
-    bool knows_peak_properties() const { return true; }
-    fp center() const { return vv[0]; }
-    fp height() const { return vv[1]; }
+    fp center() const { return vv[1]; }
+    fp height() const { return vv[0]; }
     fp fwhm() const   { return 2 * fabs(vv[2]); }
     fp area() const   { return vv[0] * fabs(vv[2]) * sqrt(M_PI / M_LN2); }
 };
@@ -116,9 +114,8 @@ class FuncLorentzian : public Function
     void do_precomputations(std::vector<Variable*> const &variables);
     bool get_nonzero_range (fp level, fp &left, fp &right) const;  
     bool is_peak() const { return true; } 
-    bool knows_peak_properties() const { return true; }
-    fp center() const { return vv[0]; }
-    fp height() const { return vv[1]; }
+    fp center() const { return vv[1]; }
+    fp height() const { return vv[0]; }
     fp fwhm() const   { return 2 * fabs(vv[2]); }
     fp area() const   { return vv[0] * fabs(vv[2]) * M_PI; }
 };
@@ -129,9 +126,8 @@ class FuncPearson7 : public Function
     void do_precomputations(std::vector<Variable*> const &variables); 
     bool get_nonzero_range (fp level, fp &left, fp &right) const;  
     bool is_peak() const { return true; } 
-    bool knows_peak_properties() const { return true; }
-    fp center() const { return vv[0]; }
-    fp height() const { return vv[1]; }
+    fp center() const { return vv[1]; }
+    fp height() const { return vv[0]; }
     fp fwhm() const   { return 2 * fabs(vv[2]); }
     fp area() const;
 };
@@ -139,13 +135,15 @@ class FuncPearson7 : public Function
 class FuncPielaszekCube : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(PielaszekCube)
-    bool is_peak() const { return true; } 
+    bool is_peak() const { return false; } 
+    fp center() const { return vv[1]; }
 };
 
 class FuncValente : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(Valente)
-    bool is_peak() const { return true; } 
+    bool is_peak() const { return false; } 
+    fp center() const { return vv[3]; }
 };
 
 
