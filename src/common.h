@@ -19,6 +19,7 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <map>
 #include <math.h>
 #include <assert.h>
 #include <stdexcept>
@@ -166,6 +167,7 @@ inline std::string join_vector(const std::vector<T>& v, const std::string& sep)
     return s;
 }
 
+
 /// for vector<T*> - delete object and erase pointer
 template<typename T>
 void purge_element(std::vector<T*> &vec, int n)
@@ -184,10 +186,29 @@ void purge_all_elements(std::vector<T*> &vec)
     vec.clear();
 }
 
-template<typename T>
-bool contains_element(std::vector<T> const& vec, T t)
+template<typename T, typename T2>
+bool contains_element(std::vector<T> const& vec, T2 const& t)
 {
     return (find(vec.begin(), vec.end(), t) != vec.end());
+}
+
+//---------------------------  M A P  --------------------------------
+template<typename T1, typename T2>
+std::vector<T2> get_map_keys(std::map<T1,T2> const& m)
+{
+    std::vector<T2> result;
+    for (typename std::map<T1,T2>::const_iterator i=m.begin(); i!=m.end(); ++i)
+        result.push_back(i->first);
+    return result;
+}
+
+template<typename T1, typename T2>
+std::vector<T2> get_map_values(std::map<T1,T2> const& m)
+{
+    std::vector<T2> result;
+    for (typename std::map<T1,T2>::const_iterator i=m.begin(); i!=m.end(); ++i)
+        result.push_back(i->second);
+    return result;
 }
 
 

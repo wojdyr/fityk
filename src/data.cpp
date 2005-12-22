@@ -375,19 +375,12 @@ fp Data::get_y_at (fp x) const
     return y1 + (y2 - y1) * (x - x1) / (x2 - x1);
 }
 
-bool Data::transform(const string &s) 
+void Data::transform(const string &s) 
 {
-    vector<Point> new_p;
-    bool r = transform_data(s, p, new_p);
-    if (!r) {
-        warn("Syntax error.");
-        return false;
-    }
+    p = transform_data(s, p);
     //TODO history
-    p = new_p;
     sort(p.begin(), p.end());
     update_active_p();
-    return true;
 }
 
 void Data::update_active_p() 

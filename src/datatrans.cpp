@@ -155,7 +155,7 @@ int main(int argc, char **argv)
     string str;
     while (getline(cin, str))
     {
-        vector<Point> points, transformed_points;
+        vector<Point> points;
 
         points.push_back(Point(0.1, 4, 1));
         points.push_back(Point(0.2, 2, 1));
@@ -163,15 +163,16 @@ int main(int argc, char **argv)
         points.push_back(Point(0.4, 3, 1));
         points.push_back(Point(0.5, 3, 1));
 
-        bool r = transform_data(str, points, transformed_points);
-        int len = (int) points.size();
-        if (r)
+        try {
+            vector<Point> transformed_points = transform_data(str, points);
+            int len = (int) points.size();
             for (int n = 0; n != (int) transformed_points.size(); n++) 
                 cout << "point " << n << ": " 
                     << (n < len ? points[n] : Point()).str()
                     << " -> " << transformed_points[n].str() << endl;
-        else
-            cout << "Syntax error." << endl;
+        } catch (ExecuteError& e) {
+            cout << e.what() << endl;
+        }
         cout << "==> ";
     }
     return 0;
@@ -1077,22 +1078,22 @@ void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
 
 } //namespace
 
-bool transform_data(string const& str, 
-                    vector<Point> const& old_points, 
-                    vector<Point> &new_points)
+vector<Point> transform_data(string const& str, vector<Point> const& old_points)
 {
     assert(code.empty());
     // First compile string...
     parse_info<> result = parse(str.c_str(), DataTransformG, space_p);
-    // and then execute compiled code.
-    if (result.full) {
-        new_points = old_points; //initial values of new_points
-        execute_vm_code(old_points, new_points);
+    if (!result.full) {
+        // cleaning
+        clear_parse_vecs();
+        throw ExecuteError("Syntax error in data transformation formula.");
     }
+    // and then execute compiled code.
+    vector<Point> new_points = old_points; //initial values of new_points
+    execute_vm_code(old_points, new_points);
     // cleaning
     clear_parse_vecs();
-
-    return (bool) result.full;
+    return new_points;
 }
 
 bool validate_transformation(string const& str)

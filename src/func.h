@@ -15,12 +15,12 @@ public:
         int p; int n; fp mult; 
         Multi(int n_, Variable::ParMult const&pm): p(pm.p),n(n_),mult(pm.mult){}
     };
-    const std::string type_formula; //eg. Gaussian(a,b,c) = a*(...)
-    const std::string type_name;
-    const std::vector<std::string> type_var_names;
-    const std::vector<std::string> type_var_eq;
-    const std::string type_rhs;
-    const int nv;
+    std::string const type_formula; //eg. Gaussian(a,b,c) = a*(...)
+    std::string const type_name;
+    std::vector<std::string> const type_var_names;
+    std::vector<std::string> const type_var_eq;
+    std::string const type_rhs;
+    int const nv;
     fp cutoff_level;
 
     Function(std::string const &name_, std::vector<std::string> const &vars,
@@ -49,6 +49,7 @@ public:
                                        std::vector<fp> &dy_da,
                                        bool in_dx=false) const  = 0; 
     virtual void do_precomputations(std::vector<Variable*> const &variables); 
+    void erased_parameter(int k);
     fp calculate_value(fp x) const; ///wrapper around array version
     virtual bool get_nonzero_range(fp/*level*/, fp&/*left*/, fp&/*right*/) const
                                                               { return false; }
@@ -56,7 +57,8 @@ public:
                                int &first, int &last) const;
                            
     virtual bool is_peak() const { return false; } 
-    virtual fp center() const { return 0; }
+    virtual fp center() const { return center_idx==-1 ? 0. : vv[center_idx]; }
+    bool has_center() const { return this->is_peak() || center_idx != -1; }
     virtual fp height() const { return 0; }
     virtual fp fwhm() const { return 0; }
     virtual fp area() const { return 0; }
@@ -66,6 +68,7 @@ public:
                     bool extended=false) const;
     std::string get_current_formula(std::string const& x = "x") const;
 protected:
+    int const center_idx;
     std::vector<fp> vv; /// current variable values
     std::vector<Multi> multi;
 private:

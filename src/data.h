@@ -45,7 +45,7 @@ public :
     int get_n () const {return active_p.size();}
     bool is_empty () const {return p.empty();}
     fp get_x_step() const {return x_step;}
-    bool transform(const std::string &s);
+    void transform(const std::string &s);
     void update_active_p();
     //int auto_range (fp y_level, fp x_margin);
     std::string range_as_string () const;

@@ -17,8 +17,6 @@ CVS:
 To compile source code from CVS, automake and autoconf are needed.
 Just run ./autogen.sh before ./configure. You may need to tune autogen.sh.
 
-Also flex and bison are needed (in tarballs there are pre-generated C++ files).
-
 There are additional tools needed to run make in doc/ subdirectory
 (to convert XML DocBook document to HTML). If you don't want to bother 
 with it, either use --without-doc configure option or run `make' only in src/ 

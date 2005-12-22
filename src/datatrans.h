@@ -14,9 +14,8 @@ using namespace boost::spirit;
 
 struct Point;
 
-bool transform_data(std::string const& str, 
-                    std::vector<Point> const& old_points, 
-                    std::vector<Point> &new_points);
+std::vector<Point> transform_data(std::string const& str, 
+                                  std::vector<Point> const& old_points);
 
 bool validate_transformation(std::string const& str); 
 fp get_transform_expression_value(/*vector<Point> const& points,*/

@@ -11,6 +11,7 @@
 #include "logic.h"
 #include "fit.h"
 #include "manipul.h"
+#include "settings.h"
 #include <boost/spirit/core.hpp>
 #include <boost/spirit/actor/assign_actor.hpp>
 #include <boost/spirit/actor/push_back_actor.hpp>
@@ -88,14 +89,18 @@ void do_print_info(char const* a, char const* b)
     if (s.empty())
         m = "info about what?";
     else if (s == "variables") {
-        m = "Defined variables: ";
-        for (vector<Variable*>::const_iterator i = variables.begin(); 
-                i != variables.end(); ++i)
-            if (extended_info)
-                m += "\n" + (*i)->get_info(AL->get_parameters(), false);
-            else
-                if ((*i)->is_visible())
-                    m += (*i)->xname + " ";
+        if (variables.empty())
+            m = "No variables found.";
+        else {
+            m = "Defined variables: ";
+            for (vector<Variable*>::const_iterator i = variables.begin(); 
+                    i != variables.end(); ++i)
+                if (extended_info)
+                    m += "\n" + (*i)->get_info(AL->get_parameters(), false);
+                else
+                    if ((*i)->is_visible())
+                        m += (*i)->xname + " ";
+        }
     }
     else if (s[0] == '$') {
         const Variable* v = AL->find_variable(string(s, 1));
@@ -111,13 +116,17 @@ void do_print_info(char const* a, char const* b)
             m = "Undefined variable: " + s;
     }
     else if (s == "functions") {
-        m = "Defined functions: ";
-        for (vector<Function*>::const_iterator i = functions.begin(); 
-                i != functions.end(); ++i)
-            if (extended_info)
-                m += "\n" + (*i)->get_info(variables, AL->get_parameters());
-            else
-                m += (*i)->xname + " ";
+        if (functions.empty())
+            m = "No functions found.";
+        else {
+            m = "Defined functions: ";
+            for (vector<Function*>::const_iterator i = functions.begin(); 
+                    i != functions.end(); ++i)
+                if (extended_info)
+                    m += "\n" + (*i)->get_info(variables, AL->get_parameters());
+                else
+                    m += (*i)->xname + " ";
+        }
     }
     else if (s == "types") {
         m = "Defined function types: ";
@@ -342,6 +351,10 @@ void do_exec_file(char const*, char const*)
     getUI()->execScript(t, vpn); 
 }
 
+void do_set(char const* a, char const* b) {getSettings()->setp(t, string(a,b));}
+
+void do_set_show(char const*, char const*)  { mesg(getSettings()->infop(t)); }
+
 } //namespace
 
 
@@ -542,6 +555,16 @@ struct CmdGrammar : public grammar<CmdGrammar>
             | eps_p [assign_a(extended_info, false_)] 
             ;
 
+        set_arg
+            = (+(lower_p | '-'))[assign_a(t)]
+              >> ('=' >> ('"' >> (*~ch_p('"'))[&do_set]
+                          >> '"'
+                         | (*(alnum_p | '-' | '+' | '.'))[&do_set]
+                         )
+                 | eps_p[&do_set_show]
+                 )
+            ;
+
         statement 
             = transform 
             | assign_var 
@@ -562,17 +585,18 @@ struct CmdGrammar : public grammar<CmdGrammar>
             | commands
             | str_p("reset") [&do_reset]
             | (str_p("dump") >> '>' >> filename_str)[&do_dump]
+            | "set" >> (set_arg % ',')
             ;
 
         multi 
-            = (statement % ';') [&do_replot];
+            = (!(statement % ';') >> !('#' >> *~ch_p('\n'))) [&do_replot];
     }
 
     rule<ScannerT> transform, assign_var, function_name, assign_func, 
                    function_param, subst_func_param, put_function, 
                    dataset_handling, filename_str, guess,
                    existing_dataset_nr, dataset_nr, dataset_sum,
-                   optional_plus, int_range, commands,
+                   optional_plus, int_range, commands, set_arg,
                    plot_range, info_arg, fit, statement, multi;  
 
     rule<ScannerT> const& start() const { return multi; }

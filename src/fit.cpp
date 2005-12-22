@@ -337,13 +337,15 @@ fp rand_gauss()
     static bool is_saved = false;
     static fp saved;
     if (!is_saved) {
-        fp rsq = 0, x1, x2;
-        while (rsq < TINY || rsq >= 1) {
+        fp rsq, x1, x2;
+        while(1) {
             x1 = rand_1_1();
             x2 = rand_1_1();
             rsq = x1 * x1 + x2 * x2;
+            if (rsq >= TINY && rsq < 1) 
+                break;
         }
-        fp f = sqrt (-2. * log(rsq) / rsq);
+        fp f = sqrt(-2. * log(rsq) / rsq);
         saved = x1 * f;
         is_saved = true;
         return x2 * f;
@@ -356,15 +358,13 @@ fp rand_gauss()
 
 fp rand_cauchy()
 {
-    fp rsq = 0, x1, x2;
-    while (rsq < TINY || rsq >= 1) {
-        x1 = rand_1_1(); 
-        x2 = rand_1_1();
-        rsq = x1 * x1 + x2 * x2;
+    while (1) {
+        fp x1 = rand_1_1(); 
+        fp x2 = rand_1_1();
+        fp rsq = x1 * x1 + x2 * x2;
+        if (rsq >= TINY && rsq < 1 && fabs(x1) >= TINY)
+            return (x2 / x1);
     }
-    if (fabs(x1) < TINY) //bad luck
-        return rand_cauchy(); //try again
-    return (x2 / x1);
 }
 
 

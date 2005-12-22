@@ -24,7 +24,12 @@ Function::Function (string const &name_, vector<string> const &vars,
       type_var_names(get_varnames_from_formula(formula_)),
       type_var_eq(get_varnames_from_formula(formula_, true)),
       type_rhs(get_rhs_from_formula(formula_)),
-      nv(vars.size()), cutoff_level(0.), vv(vars.size())
+      nv(vars.size()), cutoff_level(0.), 
+      center_idx(contains_element(type_var_names, "center") 
+                 ? find(type_var_names.begin(), type_var_names.end(), "center")
+                                                      - type_var_names.begin()
+                 : -1),
+      vv(vars.size())
 {
     // parsing formula (above) for every instance of the class is not effective 
     // but the overhead is negligible
@@ -129,6 +134,14 @@ void Function::do_precomputations(vector<Variable*> const &variables)
             multi.push_back(Multi(i, *j));
     }
 }
+
+void Function::erased_parameter(int k)
+{
+    for (vector<Multi>::iterator i = multi.begin(); i != multi.end(); ++i)
+        if (i->p > k)
+            -- i->p;
+}
+
 
 void Function::get_nonzero_idx_range(std::vector<fp> const &xx,
                                      int &first, int &last) const
@@ -311,7 +324,21 @@ DEFINE_FUNC_CALCULATE_VALUE_DERIV_BEGIN(Gaussian)
     dy_dv[1] = dcenter;
     dy_dv[2] = dcenter * xa1a2;
     dy_dx = -dcenter;
-DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(vv[0]*ex)
+//DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(vv[0]*ex)
+        if (!in_dx) { 
+            yy[i] += (vv[0]*ex); 
+            for (vector<Multi>::const_iterator j = multi.begin(); 
+                    j != multi.end(); ++j) 
+                dy_da[dyn*i+j->p] += dy_dv[j->n] * j->mult;
+            dy_da[dyn*i+dyn-1] += dy_dx;
+        }
+        else {  
+            for (vector<Multi>::const_iterator j = multi.begin(); 
+                    j != multi.end(); ++j) 
+                dy_da[dyn*i+j->p] += dy_da[dyn*i+dyn-1] * dy_dv[j->n]*j->mult;
+        }
+    }
+}
 
 bool FuncGaussian::get_nonzero_range (fp level, fp &left, fp &right) const
 {  

@@ -366,9 +366,7 @@ void MainPlot::prepare_peaktops()
         Function const *f = AL->get_function(idx[k]);
         fp x;
         int X, Y;
-        if (f->is_peak() || f->center() != 0.) {
-            //TODO change f->center() to f has "center" type parameter
-            // or f->has_center (member)
+        if (f->has_center()) {
             x = f->center();
             X = x2X (x - my_sum->zero_shift(x));
         }

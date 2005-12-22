@@ -73,7 +73,7 @@ string Settings::getp(string const& k) const
         return ens.e.find(ens.v)->second;
     }
     else if (spar.count(k)) {
-        return spar.find(k)->second;
+        return "\"" +  spar.find(k)->second + "\"";
     }
     else 
         throw ExecuteError("Unknown option: " +  k);
@@ -126,9 +126,9 @@ void Settings::setp_core(string const& k, string const& v)
     throw ExecuteError("'" + v + "' is not a valid value for '" + k + "'");
 }
 
-void Settings::infop (string const& k)
+string Settings::infop (string const& k)
 {
-    info("Option '" + k + "' (" + typep(k) + ") has value: " + getp(k));
+    return k + " = " + getp(k) + "\ntype: " + typep(k);
 }
 
 void Settings::setp (string const& k, string const& v)
@@ -145,28 +145,27 @@ void Settings::setp (string const& k, string const& v)
 string Settings::typep (string const& k) const
 {
     if (ipar.count (k)){
-        return "<integer number>";
+        return "integer number";
     }
     else if (fpar.count (k)){
-        return "<floating point number>";
+        return "real number";
     }
     else if (bpar.count (k)){
-        return "<boolean (0/1)>";
+        return "boolean (0/1)";
     }
     else if (irpar.count (k)){
         int u = irpar.find(k)->second.u;
         int l = irpar.find(k)->second.l;
         assert(u - l >= 1);
-        if (u - l == 1)
-            return S(l) + ", " + S(u);
-        else
-            return S(l) + ", ..., " + S(u);
+        return "integer from range: " + S(l) + ", ..., " + S(u);
     }
     else if (epar.count (k)){
-        return "<enumeration (" + S(epar.find(k)->second.e.size()) + ")>";
+        map<char,string> const& e = epar.find(k)->second.e;
+        return "one of " + S(e.size()) + "choices: " 
+                                   + join_vector(get_map_values(e), ", ");
     }
     else if (spar.count (k)){
-        return "<string (a-zA-Z0-9+-.>";
+        return "string (a-zA-Z0-9+-.)";
     }
     else 
         throw ExecuteError("Unknown option: " +  k);
@@ -221,7 +220,7 @@ string Settings::print_usage() const
         "Available options:";
     vector<string> e = expanp();
     for (vector<string>::const_iterator i = e.begin(); i != e.end(); i++){
-        s += "\n " + *i + " = " + typep(*i) + ", current value: "+getp(*i);
+        s += "\n " + *i + " = <" + typep(*i) + ">, current value: "+getp(*i);
     }
     return s;
 }
@@ -232,8 +231,7 @@ string Settings::set_script() const
     string s;
     for (vector<string>::const_iterator i = e.begin(); i != e.end(); i++) {
         string v = getp(*i);
-        s += "set " + *i + " = " + (v.empty() ? "\"\"" : v) 
-            + " # " + typep(*i) + "\n";
+        s += "set " + *i + " = " + (v.empty() ? "\"\"" : v) + "\n";
     }
     return s;
 }

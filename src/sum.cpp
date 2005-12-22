@@ -112,6 +112,7 @@ void Sum::calculate_sum_value(vector<fp> &x, vector<fp> &y) const
 void Sum::calculate_sum_value_deriv(vector<fp> &x, vector<fp> &y,
                                     vector<fp> &dy_da) const
 {
+    assert(y.size() == x.size());
     if (x.empty())
         return;
     fill (dy_da.begin(), dy_da.end(), 0);

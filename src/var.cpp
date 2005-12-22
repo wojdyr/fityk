@@ -234,6 +234,17 @@ void Variable::tree_to_bytecode()
     }
 }
 
+void Variable::erased_parameter(int k)
+{
+    if (nr != -1 && nr > k) 
+            --nr; 
+    for (vector<ParMult>::iterator i = recursive_derivatives.begin(); 
+                                        i != recursive_derivatives.end(); ++i)
+        if (i->p > k)
+            -- i->p;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////
 
 void VariableManager::unregister_sum(Sum const *s)
@@ -350,8 +361,9 @@ void VariableManager::remove_unreferred()
             i != variables.end(); ++i)
         (*i)->set_var_idx(variables);
     for (vector<Function*>::iterator i = functions.begin(); 
-            i != functions.end(); ++i)
+            i != functions.end(); ++i) {
         (*i)->set_var_idx(variables);
+    }
     // remove unreffered parameters
     for (int i = size(parameters)-1; i >= 0; --i) {
         bool del=true;
@@ -362,11 +374,13 @@ void VariableManager::remove_unreferred()
             }
         if (del) {
             parameters.erase(parameters.begin() + i);
-            // take care about parameter indices in variables
-            for (int j = 0; j < size(variables); ++j)
-                if (variables[j]->get_nr() > i) {
-                    variables[j]->decrease_nr();
-                }
+            // take care about parameter indices in variables and functions
+            for (vector<Variable*>::iterator j = variables.begin(); 
+                    j != variables.end(); ++j)
+                (*j)->erased_parameter(i);
+            for (vector<Function*>::iterator j = functions.begin(); 
+                    j != functions.end(); ++j) 
+                (*j)->erased_parameter(i);
         }
     }
 }

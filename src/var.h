@@ -58,7 +58,7 @@ public:
                      std::vector<fp> const &parameters);
   
     int get_nr() const { return nr; };
-    void decrease_nr() { assert(nr != -1); --nr; };
+    void erased_parameter(int k);
     fp get_value() const { return value; };
     std::string get_info(std::vector<fp> const &parameters, 
                          bool extended=false) const;
