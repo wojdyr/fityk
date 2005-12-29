@@ -71,12 +71,17 @@ public:
     void update_mouse_hints();
     void set_mouse_mode(MouseModeEnum m);
     MouseModeEnum get_mouse_mode() const { return mode; }
+    wxColour const& get_data_color(int n) const
+        { return dataColour[n % max_data_pens]; }
+    void set_data_color(int n, wxColour const& col) 
+        { dataColour[n % max_data_pens] = col; }
 
 private:
     MouseModeEnum basic_mode, 
                     mode;  //actual mode -- either basic_mode or mmd_peak
     static const int max_phase_pens = 8;
-    static const int max_peak_pens = 24;
+    static const int max_peak_pens = 32;
+    static const int max_data_pens = 32;
     static const int max_radius = 4; //size of data point
     bool smooth;
     bool peaks_visible, phases_visible, sum_visible, data_visible, 
@@ -86,6 +91,7 @@ private:
     std::vector<std::string> plabels;
     wxPen sumPen, bg_pointsPen;
     wxPen phasePen[max_phase_pens], peakPen[max_peak_pens];
+    wxColour dataColour[max_data_pens];
     int pressed_mouse_button;
     bool ctrl;
     int over_peak;

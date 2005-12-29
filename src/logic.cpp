@@ -46,7 +46,6 @@ void ApplicationLogic::remove_ds(int d)
 //TODO ? this func should not be neccessary
 void ApplicationLogic::reset_all (bool finish) 
 {
-    delete my_manipul;
     delete fitMethodsContainer;
     dsds.clear();
     parameters.clear();
@@ -54,7 +53,6 @@ void ApplicationLogic::reset_all (bool finish)
         return;
     view = View(0, 180, 0, 1e3);
     fitMethodsContainer = new FitMethodsContainer;
-    my_manipul = new Manipul;
     append_ds();
     activate_ds(0);
 }
@@ -108,11 +106,17 @@ void PlotCore::export_as_script(std::ostream& os) const
 }
 
 
-Data *ApplicationLogic::get_data(int n)
+DataWithSum* ApplicationLogic::get_ds(int n)
 {
+    if (n == -1) {
+        if (get_ds_count() == 1)
+            return dsds[0];
+        else
+            throw ExecuteError("Dataset must be specified.");
+    }
     if (n < 0 || n >= get_ds_count())
-        throw ExecuteError("There is no dataset @" + n);
-    return get_ds(n)->get_data();
+        throw ExecuteError("There is no dataset @" + S(n));
+    return dsds[n];
 }
 
 //==================================================================

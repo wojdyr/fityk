@@ -10,7 +10,6 @@
 #include <wx/wx.h>
 #endif
 
-#include <wx/colordlg.h>
 #include <wx/fontdlg.h>
 #include <algorithm>
 
@@ -130,17 +129,16 @@ void MainPlot::Draw(wxDC &dc)
         dc.SetTextBackground (colourTextBackground);
 
     if (data_visible) {
-        //TODO changable colors for each dataset
-        wxPen unsel_active(activeDataPen);
-        wxPen unsel_inactive(inactiveDataPen);
-        unsel_active.SetColour(0, 90, 0);
-        unsel_inactive.SetColour(30, 60, 30);
+        int focused_data = AL->get_active_ds_position();
         for (int i = 0; i < AL->get_ds_count(); i++) {
-            if (i != AL->get_active_ds_position())
-                draw_data(dc, y_of_data_for_draw_data, 
-                          AL->get_data(i), &unsel_active, &unsel_inactive);
+            if (i != focused_data) {
+                draw_data(dc, y_of_data_for_draw_data, AL->get_data(i), 
+                          get_data_color(i));
+            }
         }
-        draw_data(dc, y_of_data_for_draw_data);
+        // focused dataset is drawed at the end (to be at the top)
+        draw_data(dc, y_of_data_for_draw_data, AL->get_data(focused_data),
+                  get_data_color(focused_data));
     }
 
     if (tics_visible)
@@ -451,43 +449,28 @@ void MainPlot::read_settings(wxConfigBase *cf)
                                                    wxColour ("LIGHT GREY"));
     backgroundBrush.SetColour (read_color_from_config (cf, "bg", 
                                                        wxColour("BLACK")));
-    wxColour active_data_col = read_color_from_config (cf, "active_data",
-                                                       wxColour ("GREEN"));
-    activeDataPen.SetColour (active_data_col);
+    for (int i = 0; i < max_data_pens; i++)
+        dataColour[i] = read_color_from_config(cf, ("data/" + S(i)).c_str(),
+                                               wxColour(0, 255, 0));
     //activeDataPen.SetStyle (wxSOLID);
     wxColour inactive_data_col = read_color_from_config (cf, "inactive_data",
                                                       wxColour (128, 128, 128));
     inactiveDataPen.SetColour (inactive_data_col);
     sumPen.SetColour (read_color_from_config (cf, "sum", wxColour("YELLOW")));
-    bg_pointsPen.SetColour (read_color_from_config (cf, "BgPoints", 
-                                                    wxColour("RED")));
-    vector<wxColour> default_phase_col;
-    default_phase_col.push_back (wxColour("CYAN"));
-    default_phase_col.push_back (wxColour("RED"));
-    default_phase_col.push_back (wxColour("LIGHT STEEL BLUE"));
+    bg_pointsPen.SetColour (read_color_from_config(cf, "BgPoints", 
+                                                   wxColour("RED")));
     for (int i = 0; i < max_phase_pens; i++)
-        phasePen[i].SetColour (read_color_from_config (cf, 
+        phasePen[i].SetColour (read_color_from_config(cf, 
                                                       ("phase/" + S(i)).c_str(),
-                              default_phase_col[i % default_phase_col.size()]));
-    vector<wxColour> default_peak_col;
-    default_peak_col.push_back (wxColour (0, 128, 128));
-    default_peak_col.push_back (wxColour (0, 0, 128));
-    default_peak_col.push_back (wxColour (128, 0, 128));
-    default_peak_col.push_back (wxColour (128, 128, 0));
-    default_peak_col.push_back (wxColour (128, 0, 0));
-    default_peak_col.push_back (wxColour (0, 128, 0));
-    default_peak_col.push_back (wxColour (0, 128, 128));
-    default_peak_col.push_back (wxColour (0, 0, 128));
-    default_peak_col.push_back (wxColour (128, 0, 128));
-    default_peak_col.push_back (wxColour (128, 128, 0));
+                                                      wxColour(173, 216, 230)));
     for (int i = 0; i < max_peak_pens; i++)
         peakPen[i].SetColour (read_color_from_config (cf, 
                                                       ("peak/" + S(i)).c_str(),
-                                default_peak_col[i % default_peak_col.size()]));
+                                                      wxColour(255, 165, 0)));
                             
     cf->SetPath("/MainPlot/Visible");
     smooth = read_bool_from_config(cf, "smooth", false);
-    peaks_visible = read_bool_from_config (cf, "peaks", false); 
+    peaks_visible = read_bool_from_config (cf, "peaks", true); 
     plabels_visible = read_bool_from_config (cf, "plabels", false); 
     phases_visible = read_bool_from_config (cf, "phases", false);  
     sum_visible = read_bool_from_config (cf, "sum", true);
@@ -510,10 +493,11 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->Write("plabel_format", plabel_format.c_str());
 
     cf->SetPath("/MainPlot/Colors");
-    write_color_to_config (cf, "text_fg", colourTextForeground);
-    write_color_to_config (cf, "text_bg", colourTextBackground);
+    write_color_to_config (cf, "text_fg", colourTextForeground);//FIXME: what is this for?
+    write_color_to_config (cf, "text_bg", colourTextBackground); // and this?
     write_color_to_config (cf, "bg", backgroundBrush.GetColour());
-    write_color_to_config (cf, "active_data", activeDataPen.GetColour());
+    for (int i = 0; i < max_data_pens; i++)
+        write_color_to_config (cf, ("data/" + S(i)).c_str(), dataColour[i]);
     write_color_to_config (cf, "inactive_data", inactiveDataPen.GetColour());
     write_color_to_config (cf, "sum", sumPen.GetColour());
     write_color_to_config (cf, "BgPoints", bg_pointsPen.GetColour());
@@ -911,9 +895,10 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     else if (mode == mmd_add && button == 3) {
         frame->set_status_text("");
         if (dist_x >= 5) { 
+            fp x1 = X2x(mouse_press_X);
+            fp x2 = X2x(event.GetX());
             exec_command ("guess " + frame->get_peak_type() 
-                          + " [" + S(X2x(mouse_press_X)) + " : " 
-                          + S(X2x(event.GetX())) + "]");
+                          + " [" + S(min(x1,x2)) + " : " + S(max(x1,x2)) + "]");
         }
         vert_line_following_cursor(mat_cancel);
     }
@@ -1157,14 +1142,15 @@ void MainPlot::OnPopupShowXX (wxCommandEvent& event)
 
 void MainPlot::OnPopupColor(wxCommandEvent& event)
 {
+    int n = event.GetId();
+    if (n == ID_plot_popup_c_active_data) {
+        //TODO focus datasets pane or sth like this
+        return;
+    }
     wxBrush *brush = 0;
     wxPen *pen = 0;
-    int n = event.GetId();
     if (n == ID_plot_popup_c_background)
         brush = &backgroundBrush;
-    else if (n == ID_plot_popup_c_active_data) {
-        pen = &activeDataPen;
-    }
     else if (n == ID_plot_popup_c_inactive_data) {
         pen = &inactiveDataPen;
     }
@@ -1180,15 +1166,14 @@ void MainPlot::OnPopupColor(wxCommandEvent& event)
         pen = &peakPen[n - ID_plot_popup_c_peak_0];
     else 
         return;
-    const wxColour &col = brush ? brush->GetColour() : pen->GetColour();
-    wxColourData col_data;
-    col_data.SetCustomColour (0, col);
-    col_data.SetColour (col);
-    wxColourDialog dialog (frame, &col_data);
-    if (dialog.ShowModal() == wxID_OK) {
-        wxColour new_col = dialog.GetColourData().GetColour();
-        if (brush) brush->SetColour (new_col);
-        if (pen) pen->SetColour (new_col);
+    wxColour col = brush ? brush->GetColour() : pen->GetColour();
+    if (change_color_dlg(col)) {
+        if (brush) 
+            brush->SetColour(col);
+        if (pen) 
+            pen->SetColour(col);
+        if (n == ID_plot_popup_c_background)
+            frame->update_data_pane();
         Refresh();
     }
 }
@@ -1196,7 +1181,8 @@ void MainPlot::OnPopupColor(wxCommandEvent& event)
 void MainPlot::OnInvertColors (wxCommandEvent& WXUNUSED(event))
 {
     backgroundBrush.SetColour (invert_colour (backgroundBrush.GetColour()));
-    activeDataPen.SetColour (invert_colour(activeDataPen.GetColour()));
+    for (int i = 0; i < max_data_pens; i++)
+        dataColour[i] = invert_colour(dataColour[i]);
     inactiveDataPen.SetColour (invert_colour(inactiveDataPen.GetColour()));
     sumPen.SetColour (invert_colour (sumPen.GetColour()));  
     xAxisPen.SetColour (invert_colour (xAxisPen.GetColour()));  
@@ -1204,6 +1190,7 @@ void MainPlot::OnInvertColors (wxCommandEvent& WXUNUSED(event))
         phasePen[i].SetColour (invert_colour (phasePen[i].GetColour()));
     for (int i = 0; i < max_peak_pens; i++)
         peakPen[i].SetColour (invert_colour (peakPen[i].GetColour()));
+    frame->update_data_pane();
     Refresh();
 }
 

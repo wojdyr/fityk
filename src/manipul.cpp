@@ -25,14 +25,28 @@ fp VirtPeak::get_approx_y(fp x) const
         return 0;
 }
 
-fp Manipul::my_y(int n, const EstConditions *ec) const
+namespace {
+
+fp my_y (DataWithSum const* ds, int n, EstConditions const* ec=0);
+fp data_area (DataWithSum const* ds, int from, int to, 
+              EstConditions const* ec=0);
+int max_data_y_pos (DataWithSum const* ds, int from, int to, 
+                    EstConditions const* ec=0);
+fp compute_data_fwhm (DataWithSum const* ds, 
+                      int from, int max_pos, int to, fp level,
+                      EstConditions const* ec=0);
+void parse_range(DataWithSum const* ds, std::vector<std::string> const& range, 
+                 fp& range_from, fp& range_to);
+
+
+fp my_y(DataWithSum const* ds, int n, EstConditions const* ec) 
 {
     //pre: sum->use_param_a_for_value();
-    fp x = my_data->get_x(n);
-    fp y = my_data->get_y(n);
+    fp x = ds->get_data()->get_x(n);
+    fp y = ds->get_data()->get_y(n);
 
     if (!ec)
-        return y - my_sum->value(x);
+        return y - ds->get_sum()->value(x);
 
     for (vector<VirtPeak>::const_iterator i = ec->virtual_peaks.begin();
                                              i != ec->virtual_peaks.end(); i++)
@@ -43,14 +57,15 @@ fp Manipul::my_y(int n, const EstConditions *ec) const
     return y;
 }
 
-fp Manipul::data_area(int from, int to, const EstConditions *ec) const
+fp data_area(DataWithSum const* ds, int from, int to, 
+             EstConditions const* ec) 
 {
     fp area = 0;
-    fp x_prev = my_data->get_x (from);
-    fp y_prev = my_y(from, ec);
+    fp x_prev = ds->get_data()->get_x(from);
+    fp y_prev = my_y(ds, from, ec);
     for (int i = from + 1; i <= to; i++) {
-        fp x =  my_data->get_x (i);
-        fp y =  my_y(i, ec);
+        fp x =  ds->get_data()->get_x(i);
+        fp y =  my_y(ds, i, ec);
         area += (x - x_prev) * (y_prev + y) / 2;
         x_prev = x;
         y_prev = y;
@@ -58,13 +73,14 @@ fp Manipul::data_area(int from, int to, const EstConditions *ec) const
     return area;
 }
 
-int Manipul::max_data_y_pos(int from, int to, const EstConditions *ec) const 
+int max_data_y_pos(DataWithSum const* ds, int from, int to, 
+                   EstConditions const* ec) 
 {
     assert (from < to);
     int pos = from;
-    fp maxy = my_y(from, ec);
+    fp maxy = my_y(ds, from, ec);
     for (int i = from + 1; i < to; i++) {
-        fp y = my_y(i, ec);
+        fp y = my_y(ds, i, ec);
         if (y > maxy) {
             maxy = y;
             pos = i;
@@ -73,15 +89,16 @@ int Manipul::max_data_y_pos(int from, int to, const EstConditions *ec) const
     return pos;
 }
 
-fp Manipul::compute_data_fwhm(int from, int max_pos, int to, fp level,
-                              const EstConditions *ec) const
+fp compute_data_fwhm(DataWithSum const* ds, 
+                     int from, int max_pos, int to, fp level,
+                     EstConditions const* ec) 
 {
     assert (from <= max_pos && max_pos <= to);
-    const fp hm = my_y(max_pos, ec) * level;
+    const fp hm = my_y(ds, max_pos, ec) * level;
     const int limit = 3; 
     int l = from, r = to, counter = 0;
     for (int i = max_pos; i >= from; i--) { //going down (and left) from maximum
-        fp y = my_y(i, ec);
+        fp y = my_y(ds, i, ec);
         if (y > hm) {
             if (counter > 0) //previous point had y < hm
                 counter--;  // compensating it; perhaps it was only fluctuation
@@ -95,7 +112,7 @@ fp Manipul::compute_data_fwhm(int from, int max_pos, int to, fp level,
         }
     }
     for (int i = max_pos; i <= to; i++) { //the same for right half of peak
-        fp y = my_y(i, ec);
+        fp y = my_y(ds, i, ec);
         if (y > hm) {
             if (counter > 0)
                 counter--;
@@ -108,76 +125,90 @@ fp Manipul::compute_data_fwhm(int from, int max_pos, int to, fp level,
             }
         }
     }
-    fp fwhm = my_data->get_x(r) - my_data->get_x(l);
+    fp fwhm = ds->get_data()->get_x(r) - ds->get_data()->get_x(l);
     return max (fwhm, EPSILON);
 }
 
-bool Manipul::estimate_peak_parameters(fp approx_ctr, fp ctrplusmin,
-                            fp *center, fp *height, fp *area, fp *fwhm,
-                            const EstConditions *ec) const
+void parse_range(DataWithSum const* ds, vector<string> const& range,
+                 fp& range_from, fp& range_to)
+{
+    assert (range.size() == 2);
+    string le = range[0];
+    string ri = range[1];
+    if (le.empty())
+        range_from = ds->get_data()->get_x_min();
+    else if (le == ".") 
+        range_from = AL->view.left;
+    else
+        range_from = strtod(le.c_str(), 0);
+    if (ri.empty())
+        range_to = ds->get_data()->get_x_max();
+    else if (ri == ".") 
+        range_to = AL->view.right;
+    else
+        range_to = strtod(ri.c_str(), 0);
+}
+
+} // anonymous namespace
+
+
+void estimate_peak_parameters(DataWithSum const* ds, fp range_from, fp range_to,
+                              fp *center, fp *height, fp *area, fp *fwhm,
+                              EstConditions const* ec) 
 {
     AL->use_parameters();
-    if (my_data->get_n() <= 0) {
-        warn ("No active data.");
-        return false;
-    }
+    if (ds->get_data()->get_n() <= 0) 
+        throw ExecuteError("No active data.");
 
-    if (ctrplusmin < 0)
-        ctrplusmin = getSettings()->get_f("search-width");
-    int l_bor = max (my_data->get_lower_bound_ac (approx_ctr - ctrplusmin), 0);
-    int r_bor = min (my_data->get_upper_bound_ac (approx_ctr + ctrplusmin), 
-                     my_data->get_n() - 1);
-    if (l_bor >= r_bor){
-        warn ("Searching peak outside of data points range. Abandoned."
-              " Tried at " + S(approx_ctr) + " +- " + S(ctrplusmin));
-        return false;
-    }
-    int max_y_pos = max_data_y_pos(l_bor, r_bor, ec);
+    int l_bor = max (ds->get_data()->get_lower_bound_ac (range_from), 0);
+    int r_bor = min (ds->get_data()->get_upper_bound_ac (range_to), 
+                     ds->get_data()->get_n() - 1);
+    if (l_bor >= r_bor)
+        throw ExecuteError("Searching peak outside of data points range. "
+                           "Abandoned. Tried at [" + S(range_from) + " : " 
+                           + S(range_to) + "]");
+    int max_y_pos = max_data_y_pos(ds, l_bor, r_bor, ec);
     if (max_y_pos == l_bor || max_y_pos == r_bor - 1) {
         string s = "Estimating peak parameters: peak outside of search scope."
-              " Tried at " + S(approx_ctr) + " +- " + S(ctrplusmin);
-        if (getSettings()->get_b("cancel-peak-out-of-search")) {
-            warn (s + " Canceled.");
-            return false;
-        }
-        else
-            info (s);
+                  " Tried at [" + S(range_from) + " : " + S(range_to) + "]";
+        if (getSettings()->get_b("cancel-peak-out-of-search")) 
+            throw ExecuteError(s + " Canceled.");
+        info (s);
     }
-    fp h = my_y(max_y_pos, ec);
+    fp h = my_y(ds, max_y_pos, ec);
     if (height) 
         *height = h * getSettings()->get_f("height-correction");
     if (center)
-        *center = my_data->get_x(max_y_pos);
+        *center = ds->get_data()->get_x(max_y_pos);
     if (fwhm)
-        *fwhm = compute_data_fwhm(l_bor, max_y_pos, r_bor, 0.5, ec) 
+        *fwhm = compute_data_fwhm(ds, l_bor, max_y_pos, r_bor, 0.5, ec) 
                                     * getSettings()->get_f("width-correction");
     if (area) 
-        *area = data_area(l_bor, r_bor, ec); //FIXME: how to find peak borders? 
-                                            // t * FWHM would be better? t=??
-    return true;
+        *area = data_area(ds, l_bor, r_bor, ec); 
+        //FIXME: how to find peak borders?  t * FWHM would be better? t=??
 }
 
-string Manipul::print_simple_estimate (fp center, fp w) const
+string print_simple_estimate(DataWithSum const* ds,
+                             fp range_from, fp range_to) 
 {
-    if (w <= 0)
-        w = getSettings()->get_f("search-width");
     fp c = 0, h = 0, a = 0, fwhm = 0;
-    estimate_peak_parameters(center, w, &c, &h, &a, &fwhm); 
-    return "Peak center: " + S(c) + " (expected: " + S(center) 
-            + "), height: " + S(h) + ", area: " + S(a) + ", FWHM: " + S(fwhm);
+    estimate_peak_parameters(ds, range_from, range_to, &c, &h, &a, &fwhm); 
+    return "Peak center: " + S(c) 
+            + " (searched in [" + S(range_from) + ":" + S(range_to) + "])" 
+            + " height: " + S(h) + ", area: " + S(a) + ", FWHM: " + S(fwhm);
 }
 
-string Manipul::print_multiple_peakfind(int n, vector<string> const& range) 
+string print_multiple_peakfind(DataWithSum const* ds,
+                               int n, vector<string> const& range) 
 {
     fp range_from, range_to;
-    parse_range(range, range_from, range_to);
+    parse_range(ds, range, range_from, range_to);
     string s;
     EstConditions estc;
-    estc.real_peaks = my_sum->get_ff_idx();
+    estc.real_peaks = ds->get_sum()->get_ff_idx();
     for (int i = 1; i <= n; i++) {
         fp c = 0., h = 0., a = 0., fwhm = 0.;
-        estimate_peak_parameters((range_from+range_to)/2, 
-                                 (range_to-range_from)/2, 
+        estimate_peak_parameters(ds, range_from, range_to, 
                                  &c, &h, &a, &fwhm, &estc);
         estc.virtual_peaks.push_back(VirtPeak(c, h, fwhm));
         if (h == 0.) 
@@ -188,37 +219,17 @@ string Manipul::print_multiple_peakfind(int n, vector<string> const& range)
     return s;
 }
 
-void Manipul::parse_range(vector<string> const& range,
-                          fp& range_from, fp& range_to)
-{
-    assert (range.size() == 2);
-    string le = range[0];
-    string ri = range[1];
-    if (le.empty())
-        range_from = my_data->get_x_min();
-    else if (le == ".") 
-        range_from = AL->view.left;
-    else
-        range_from = strtod(le.c_str(), 0);
-    if (ri.empty())
-        range_to = my_data->get_x_max();
-    else if (ri == ".") 
-        range_to = AL->view.right;
-    else
-        range_to = strtod(ri.c_str(), 0);
-}
 
-void Manipul::guess_and_add(string const& name, string const& function,
-                            vector<string> const& range,
-                            vector<string> vars)
+void guess_and_add(DataWithSum* ds, 
+                   string const& name, string const& function,
+                   vector<string> const& range, vector<string> vars)
 {
     fp range_from, range_to;
-    parse_range(range, range_from, range_to);
+    parse_range(ds, range, range_from, range_to);
     fp c = 0., h = 0., a = 0., fwhm = 0.;
     EstConditions estc;
-    estc.real_peaks = my_sum->get_ff_idx();
-    estimate_peak_parameters((range_from+range_to)/2, 
-                             (range_to-range_from)/2, 
+    estc.real_peaks = ds->get_sum()->get_ff_idx();
+    estimate_peak_parameters(ds, range_from, range_to, 
                              &c, &h, &a, &fwhm, &estc);
     vector<string> vars_lhs(vars.size());
     for (int i = 0; i < size(vars); ++i)
@@ -235,6 +246,4 @@ void Manipul::guess_and_add(string const& name, string const& function,
     AL->get_active_ds()->get_sum()->add_function_to(real_name, 'F');
 }
 
-
-Manipul *my_manipul;
 

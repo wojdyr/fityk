@@ -7,7 +7,7 @@
 #include <wx/print.h>
 #include <wx/config.h>
 #include <wx/splitter.h>
-#include <wx/treectrl.h>
+#include <wx/listctrl.h>
 #include <list>
 #include "wx_common.h"  //for MouseModeEnum, OutputStyle
 
@@ -125,10 +125,11 @@ public:
     void set_mouse_mode(MouseModeEnum m);
     void update_mouse_hints();
     bool is_background_white();
-    const std::vector<std::string>& get_zoom_hist() const { return zoom_hist; }
-    const MainPlot* get_plot() const { return plot; }
+    std::vector<std::string> const& get_zoom_hist() const { return zoom_hist; }
+    MainPlot const* get_plot() const { return plot; }
+    MainPlot* get_plot() { return plot; }
     BgManager* get_bg_manager(); 
-    const std::vector<FPlot*> get_visible_plots() const;
+    std::vector<FPlot*> const get_visible_plots() const;
     void show_aux(int n, bool show); 
     bool aux_visible(int n) const;
     void draw_crosshair(int X, int Y);
@@ -147,38 +148,36 @@ private:
 };
 
 
-class DataPaneTree : public wxTreeCtrl
+class DataList : public wxListView
 {
 public:
-    DataPaneTree(wxWindow *parent, wxWindowID id);
-
-    void OnIdle(wxIdleEvent &event);
-    void OnSelChanging(wxTreeEvent &event);
-    void OnSelChanged(wxTreeEvent &event);
-    void OnPopupMenu(wxMouseEvent &event);
-    void OnMenuItem(wxCommandEvent &event);
-    void OnKeyDown(wxKeyEvent& event);
-private:
-    int pmenu_p, pmenu_d;// communication between OnPopupMenu and OnMenuItem
-
-    void update_tree_datalabels(const PlotCore *pcore, 
-                                const wxTreeItemId &plot_item);
-    int count_previous_siblings(const wxTreeItemId &id);
-
+    DataList(wxWindow *parent, wxWindowID id=-1);
+    void populate();
+    std::vector<std::string> get_selected_data();
+    void OnFocusChanged(wxListEvent &event);
     DECLARE_EVENT_TABLE()
 };
 
-#if 0
-class DataPane : public wxPanel
+class DataPane : public ProportionalSplitter
 {
 public:
     DataPane(wxWindow *parent, wxWindowID id=-1);
+    void OnDataButtonNew (wxCommandEvent& event);
+    void OnDataButtonDup (wxCommandEvent& event);
+    void OnDataButtonRen (wxCommandEvent& event);
+    void OnDataButtonDel (wxCommandEvent& event);
+    void OnDataButtonCol (wxCommandEvent& event);
+    void OnDataLookChanged (wxCommandEvent& event);
+    void update();
+    /// get active dataset number -- if none is focused, return first one (0)
+    int get_focused_data() { int n=dl->GetFocusedItem(); return n==-1 ? 0 : n; }
+    int set_selection(int page) { return nb->SetSelection(page); }
 private:
-    DataPaneTree *tree;
+    wxNotebook *nb;
+    DataList *dl;
 
     DECLARE_EVENT_TABLE()
 };
-#endif
 
 
 class FPrintout: public wxPrintout

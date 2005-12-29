@@ -50,7 +50,6 @@ public:
     FToolBar (wxFrame *parent, wxWindowID id); 
     void update_peak_type(); 
 
-    void OnIdle(wxIdleEvent &event);
     void OnPeakChoice (wxCommandEvent& event);
     void OnChangeMouseMode (wxCommandEvent& event);
     void OnSwitchDPane (wxCommandEvent& event);
@@ -85,7 +84,6 @@ public:
     ~FFrame();
     //void OnSize (wxSizeEvent& event);
 
-    void OnIdle(wxIdleEvent &event); 
     void OnShowHelp (wxCommandEvent& event);
     void OnTipOfTheDay (wxCommandEvent& event);
     void OnAbout (wxCommandEvent& event);
@@ -99,17 +97,13 @@ public:
     void OnFastDTUpdate  (wxUpdateUIEvent& event);           
     void OnDExport       (wxCommandEvent& event);
 
-#if 0
+    void OnSEditor       (wxCommandEvent& event);            
     void OnSHistory      (wxCommandEvent& event);            
-    void OnSInfo         (wxCommandEvent& event);         
-    void OnSAdd          (wxCommandEvent& event);        
-    void OnSRemove       (wxCommandEvent& event);           
-    void OnSChange       (wxCommandEvent& event);           
-    void OnSValue        (wxCommandEvent& event);          
+    void OnSGuess        (wxCommandEvent& event);         
+    void OnSPFInfo       (wxCommandEvent& event);         
+    void OnSFuncList     (wxCommandEvent& event);        
+    void OnSVarList      (wxCommandEvent& event);           
     void OnSExport       (wxCommandEvent& event);           
-#endif
-
-    void OnMFindpeak     (wxCommandEvent& event);        
 
     void OnFMethodUpdate (wxUpdateUIEvent& event);           
     void OnFOneOfMethods (wxCommandEvent& event);
@@ -174,13 +168,18 @@ public:
     void set_status_text(const wxString &text, StatusBarField field=sbf_text) 
             { if (status_bar) SetStatusText(text, field); }
     bool display_help_section(const std::string &s);
+    void after_cmd_updates();
+    int get_focused_data();
+    MainPlot* get_main_plot(); 
+    MainPlot const* get_main_plot() const; 
+    void update_data_pane(); 
+    bool get_apply_to_all_ds();
 
 protected:
     ProportionalSplitter *main_pane;
     PlotPane *plot_pane;
     IOPane *io_pane;
-    //TODO//DataPane *data_pane;
-    wxPanel *data_pane;
+    DataPane *data_pane;
     FStatusBar *status_bar;
 
     int peak_type_nr;
@@ -202,7 +201,7 @@ protected:
     void set_menubar();
     void read_recent_data_files();
     void write_recent_data_files();
-    void add_recent_data_file(wxString filename);
+    void add_recent_data_file(std::string const& filename);
 
 DECLARE_EVENT_TABLE()
 };

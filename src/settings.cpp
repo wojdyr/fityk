@@ -45,7 +45,6 @@ Settings::Settings()
     fpar["cut-function-level"] = 0.;
 
     // Manipul
-    fpar ["search-width"] = 1.;   
     bpar ["cancel-peak-out-of-search"] = true;
     fpar ["height-correction"] = 1.;
     fpar ["width-correction"] = 1.;

@@ -120,10 +120,11 @@ public:
             remove_ds(*i);
     }
     int get_ds_count() const { return dsds.size(); }
-    const DataWithSum *get_ds(int n) const { return dsds[n]; } 
+    DataWithSum* get_ds(int n);
     int get_active_ds_position() const { return active_ds; }
-    const DataWithSum *get_active_ds() const { return get_ds(active_ds); }
-    Data *get_data(int n);
+    DataWithSum* get_active_ds() { return get_ds(active_ds); }
+    Data *get_data(int n) { return get_ds(n)->get_data(); }
+    Sum *get_sum(int n)   { return get_ds(n)->get_sum();  }
 
 protected:
     std::vector<DataWithSum*> dsds;

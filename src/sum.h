@@ -42,10 +42,12 @@ public:
     std::vector<fp> get_symbolic_derivatives(fp x) const;
     std::vector<fp> get_numeric_derivatives(fp x, fp numerical_h) const;
     fp zero_shift (fp x) const;
-    std::vector<int> const& get_ff_idx() { return ff_idx; }
-    std::vector<int> const& get_zz_idx() { return zz_idx; }
-    //std::vector<std::string> const &get_ff_names() { return ff_names; }
-    //std::vector<std::string> const &get_zz_names() { return zz_names; }
+    std::vector<int> const& get_ff_idx() const { return ff_idx; }
+    std::vector<int> const& get_zz_idx() const { return zz_idx; }
+    int get_ff_count() { return ff_idx.size(); }
+    int get_zz_count() { return zz_idx.size(); }
+    //std::vector<std::string> const &get_ff_names() const { return ff_names; }
+    //std::vector<std::string> const &get_zz_names() const { return zz_names; }
 
 private:
     VariableManager &mgr;

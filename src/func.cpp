@@ -324,21 +324,7 @@ DEFINE_FUNC_CALCULATE_VALUE_DERIV_BEGIN(Gaussian)
     dy_dv[1] = dcenter;
     dy_dv[2] = dcenter * xa1a2;
     dy_dx = -dcenter;
-//DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(vv[0]*ex)
-        if (!in_dx) { 
-            yy[i] += (vv[0]*ex); 
-            for (vector<Multi>::const_iterator j = multi.begin(); 
-                    j != multi.end(); ++j) 
-                dy_da[dyn*i+j->p] += dy_dv[j->n] * j->mult;
-            dy_da[dyn*i+dyn-1] += dy_dx;
-        }
-        else {  
-            for (vector<Multi>::const_iterator j = multi.begin(); 
-                    j != multi.end(); ++j) 
-                dy_da[dyn*i+j->p] += dy_da[dyn*i+dyn-1] * dy_dv[j->n]*j->mult;
-        }
-    }
-}
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(vv[0]*ex)
 
 bool FuncGaussian::get_nonzero_range (fp level, fp &left, fp &right) const
 {  

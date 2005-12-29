@@ -188,7 +188,9 @@ fp Sum::approx_max(fp x_min, fp x_max)
 void Sum::export_as_script (ostream& os) const
 {
     os << "### sum exported as script -- begin" << endl;
-    //TODO
+    //TODO @n.
+    os << join_vector(ff_names, ", ") << " -> F" << endl;
+    os << join_vector(zz_names, ", ") << " -> Z" << endl;
     os << "### end of exported sum" << endl;
 }
 
@@ -267,9 +269,7 @@ void Sum::export_to_file (string filename, bool append, char filetype)
         int dot = filename.rfind('.');
         if (dot > 0 && dot < static_cast<int>(filename.length()) - 1) {
             string exten(filename.begin() + dot, filename.end());
-            if (exten == ".fit")
-                filetype = 's';
-            else if (exten == ".dat")
+            if (exten == ".dat")
                 filetype = 'd';
             else if (exten == ".peaks")
                 filetype = 'p';
@@ -299,9 +299,6 @@ void Sum::export_to_file (string filename, bool append, char filetype)
             break;
         case 'x': 
             export_as_xfit(os);
-            break;
-        case 's':
-            export_as_script(os);
             break;
         case 0:
         default:

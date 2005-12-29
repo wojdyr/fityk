@@ -219,7 +219,7 @@ string FDXLoadDlg::get_filename()
     return filename_tc->GetValue().c_str();
 }
 
-string FDXLoadDlg::get_command()
+string FDXLoadDlg::get_command_tail()
 {
     string cols;
     if (columns_panel->IsEnabled()) { // a:b[:c]
@@ -227,7 +227,7 @@ string FDXLoadDlg::get_command()
         if (std_dev_cb->GetValue())
             cols += S(":") + S(s_column->GetValue());
     }
-    return "@ <'" + get_filename() + "'" + cols;
+    return "'" + get_filename() + "'" + cols;
 }
 
 #if 0
@@ -731,7 +731,9 @@ int DataEditorDlg::get_selected_item()
 void DataEditorDlg::update_data(Data *data_)
 {
     data = data_;
-    filename_label->SetLabel(data->get_filename().c_str());
+    string const& filename = data->get_filename();
+    filename_label->SetLabel(filename.c_str());
+    revert_btn->Enable(!filename.empty());
     title_label->SetLabel(data->get_title().c_str());
     grid->SetTable(new DataTable(data, this), true, wxGrid::wxGridSelectRows);
     refresh_grid();
@@ -995,9 +997,10 @@ bool export_data_dlg(wxWindow *parent, bool load_exported)
     dir = fdlg.GetDirectory();
     if (fdlg.ShowModal() == wxID_OK) {
         string path = fdlg.GetPath().c_str();
-        exec_command("@ > '" + path + "'");
+        string ds = "@" + S(frame->get_focused_data());
+        exec_command(ds + " > '" + path + "'");
         if (load_exported)
-            exec_command("@ <'" + path + "'");
+            exec_command(ds + " <'" + path + "'");
         return true;
     }
     else
@@ -1055,12 +1058,28 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     page_general->SetSizerAndFit(sizer_general);
 
     // page peak-finding
-    // TODO
+    wxStaticText *hc_st = new wxStaticText(page_peakfind, -1, 
+                               "factor used to correct detected peak height"); 
+    height_correction = new RealNumberCtrl(page_peakfind, -1, 
+                                    getSettings()->getp("height-correction"));
+    wxStaticText *wc_st = new wxStaticText(page_peakfind, -1, 
+                               "factor used to correct detected peak width"); 
+    width_correction = new RealNumberCtrl(page_peakfind, -1, 
+                                    getSettings()->getp("width-correction"));
+    cancel_poos = new wxCheckBox(page_peakfind, -1, 
+                             "cancel peak searching, if the highest point"
+                             "\nis near the boundary of the given range");
+    cancel_poos->SetValue(getSettings()->get_b("cancel-peak-out-of-search"));
     wxBoxSizer *sizer_pf = new wxBoxSizer(wxVERTICAL);
-    sizer_pf->Add(autoplot_rb, 0, wxEXPAND|wxALL, 5);
-    sizer_pf->Add(verbosity_st, 0, wxLEFT|wxRIGHT|wxTOP, 5);
-    sizer_pf->Add(verbosity_ch, 0, wxEXPAND|wxALL, 5);
-    sizer_pf->Add(exit_cb, 0, wxEXPAND|wxALL, 5);
+    wxBoxSizer *sizer_pf_hc = new wxBoxSizer(wxHORIZONTAL);
+    sizer_pf_hc->Add(hc_st, 0, wxALL, 5);
+    sizer_pf_hc->Add(height_correction, 0, wxALL, 5);
+    sizer_pf->Add(sizer_pf_hc, 0);
+    wxBoxSizer *sizer_pf_wc = new wxBoxSizer(wxHORIZONTAL);
+    sizer_pf_wc->Add(wc_st, 0, wxALL, 5);
+    sizer_pf_wc->Add(width_correction, 0, wxALL, 5);
+    sizer_pf->Add(sizer_pf_wc, 0);
+    sizer_pf->Add(cancel_poos, 0, wxALL, 5);
     page_peakfind->SetSizerAndFit(sizer_pf);
 
     // TODO
@@ -1077,9 +1096,12 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
 {
     pair_vec result;
     map<string, string> m;
-    m["autoplot"] = autoplot_rb->GetStringSelection();
-    m["verbosity"] = verbosity_ch->GetStringSelection();
+    m["autoplot"] = autoplot_rb->GetStringSelection().c_str();
+    m["verbosity"] = verbosity_ch->GetStringSelection().c_str();
     m["exit-on-warning"] = exit_cb->GetValue() ? "1" : "0";
+    m["height-correction"] = height_correction->GetValue().c_str();
+    m["width-correction"] = width_correction->GetValue().c_str();
+    m["cancel-peak-out-of-search"] = cancel_poos->GetValue() ? "1" : "0";
     vector<string> kk = getSettings()->expanp();
     for (vector<string>::const_iterator i = kk.begin(); i != kk.end(); ++i)
         if (m.count(*i) && m[*i] != getSettings()->getp(*i))

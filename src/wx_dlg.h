@@ -31,7 +31,7 @@ class FDXLoadDlg : public wxDialog
 {
 public:
     FDXLoadDlg (wxWindow* parent, wxWindowID id);
-    std::string get_command();
+    std::string get_command_tail();
     std::string get_filename();
     void on_filter_change();
     void on_path_change();
@@ -155,6 +155,13 @@ wxString get_user_conffile(const wxString &filename);
 bool export_data_dlg(wxWindow *parent, bool load_exported=false);
 
 
+class RealNumberCtrl : public wxTextCtrl
+{
+public:
+    RealNumberCtrl(wxWindow* parent, wxWindowID id, wxString const& value)
+        : wxTextCtrl(parent, id, value) {}
+};
+
 class SettingsDlg : public wxDialog
 {
 public:
@@ -165,6 +172,8 @@ private:
     wxRadioBox *autoplot_rb;
     wxChoice *verbosity_ch;
     wxCheckBox *exit_cb;
+    RealNumberCtrl *height_correction, *width_correction;
+    wxCheckBox *cancel_poos;
 };
 
 

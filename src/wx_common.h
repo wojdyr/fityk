@@ -48,6 +48,8 @@ inline bool should_focus_input(int key)
         || key == '%' || key == '$' || key == '@' || key == '#';
 }
 
+bool change_color_dlg(wxColour& col);
+
 //dummy events -- useful when calling event handler functions
 extern wxMouseEvent dummy_mouse_event;
 extern wxCommandEvent dummy_cmd_event;

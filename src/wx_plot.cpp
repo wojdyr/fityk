@@ -10,7 +10,6 @@
 #include <wx/wx.h>
 #endif
 
-#include <wx/colordlg.h>
 #include <wx/fontdlg.h>
 
 #include "common.h"
@@ -137,14 +136,14 @@ fp FPlot::get_max_abs_y (fp (*compute_y)(vector<Point>::const_iterator))
 
 void FPlot::draw_data (wxDC& dc, 
                        fp (*compute_y)(vector<Point>::const_iterator),
-                       Data const* dat, 
-                       wxPen const* active_p, wxPen const* inactive_p)
+                       Data const* data, wxColour const& color)
 {
-    const Data *data = dat ? dat : my_data;
-    const wxPen &activePen = active_p ? *active_p : activeDataPen;
-    const wxPen &inactivePen = inactive_p ? *inactive_p : inactiveDataPen;
-    const wxBrush activeBrush(activePen.GetColour(), wxSOLID);
-    const wxBrush inactiveBrush(inactivePen.GetColour(), wxSOLID);
+    if (color.Ok())
+        activeDataPen.SetColour(color);
+    wxPen const& activePen = activeDataPen;
+    wxPen const& inactivePen = inactiveDataPen;
+    wxBrush const activeBrush(activePen.GetColour(), wxSOLID);
+    wxBrush const inactiveBrush(inactivePen.GetColour(), wxSOLID);
     if (data->is_empty()) return;
     vector<Point>::const_iterator first = data->get_point_at(AL->view.left),
                                   last = data->get_point_at(AL->view.right);
@@ -322,10 +321,11 @@ fp diff_y_proc_of_data_for_draw_data (vector<Point>::const_iterator i)
 
 void AuxPlot::Draw(wxDC &dc)
 {
+    Data const* data = my_data;
     if (auto_zoom_y)
         fit_y_zoom();
     set_scale();
-    if (kind == apk_empty || my_data->is_empty()) 
+    if (kind == apk_empty || data->is_empty()) 
         return;
     dc.SetPen (xAxisPen);
 
@@ -348,11 +348,11 @@ void AuxPlot::Draw(wxDC &dc)
     }
 
     if (kind == apk_diff)
-        draw_data (dc, diff_of_data_for_draw_data);
+        draw_data (dc, diff_of_data_for_draw_data, data);
     else if (kind == apk_diff_stddev)
-        draw_data (dc, diff_stddev_of_data_for_draw_data);
+        draw_data (dc, diff_stddev_of_data_for_draw_data, data);
     else if (kind == apk_diff_y_proc)
-        draw_data (dc, diff_y_proc_of_data_for_draw_data);
+        draw_data (dc, diff_y_proc_of_data_for_draw_data, data);
 }
 
 void AuxPlot::draw_zoom_text(wxDC& dc)
@@ -597,15 +597,12 @@ void AuxPlot::OnPopupColor (wxCommandEvent& event)
         pen = &xAxisPen;
     else 
         return;
-    const wxColour &col = brush ? brush->GetColour() : pen->GetColour();
-    wxColourData col_data;
-    col_data.SetCustomColour (0, col);
-    col_data.SetColour (col);
-    wxColourDialog dialog (frame, &col_data);
-    if (dialog.ShowModal() == wxID_OK) {
-        wxColour new_col = dialog.GetColourData().GetColour();
-        if (brush) brush->SetColour (new_col);
-        if (pen) pen->SetColour (new_col);
+    wxColour col = brush ? brush->GetColour() : pen->GetColour();
+    if (change_color_dlg(col)) {
+        if (brush) 
+            brush->SetColour(col);
+        if (pen) 
+            pen->SetColour(col);
         Refresh();
     }
 }

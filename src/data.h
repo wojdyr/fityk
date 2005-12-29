@@ -33,12 +33,13 @@ public :
     Data() {}
     ~Data() {}
     std::string getInfo() const;
-    int load_file (const std::string &file, int type, 
-                   const std::vector<int> &cols, bool append=false);
-    int load_arrays(const std::vector<fp> &x, const std::vector<fp> &y, 
-                   const std::vector<fp> &sigma, const std::string &data_title);
-    void add_point(const Point &pt) { p.push_back(pt); };
-    static char guess_file_type (const std::string& filename);
+    int load_file (std::string const& file, int type, 
+                   std::vector<int> const& cols, bool append=false);
+    int load_arrays(std::vector<fp> const& x, std::vector<fp> const& y, 
+                   std::vector<fp> const& sigma, std::string const& data_title);
+    void load_data_sum(std::vector<Data const*> const& dd);
+    void add_point(Point const& pt) { p.push_back(pt); };
+    static char guess_file_type (std::string const& filename);
     fp get_x(int n) const { return p[active_p[n]].x; }
     fp get_y(int n) const { return p[active_p[n]].y; } 
     fp get_sigma (int n) const { return p[active_p[n]].sigma; }
@@ -63,7 +64,7 @@ public :
     fp get_x_max() { return p.empty() ? 180. : p.back().x; } 
     fp get_y_min() const { return p.empty() ? 0 : y_min; }
     fp get_y_max() const { return p.empty() ? 1e3 : y_max; }
-    const std::vector<Point>& points() const { return p; }
+    std::vector<Point> const& points() const { return p; }
 
     std::string title;
 private:
@@ -80,7 +81,7 @@ private:
                                     std::vector<fp>& result_numbers);
     static double pdp11_f (char* fl);  
     fp find_step();
-    void load_xy_filetype (std::ifstream& f, const std::vector<int>& cols);
+    void load_xy_filetype (std::ifstream& f, std::vector<int> const& cols);
     void load_mca_filetype (std::ifstream& f);
     void load_rit_filetype (std::ifstream& f);
     void load_cpi_filetype (std::ifstream& f);

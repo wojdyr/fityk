@@ -11,9 +11,10 @@
 #include <wx/wx.h>
 #endif
 
-#include <wx/colordlg.h>
 #include <wx/fontdlg.h>
 #include <wx/treectrl.h>
+#include <wx/notebook.h>
+#include <wx/textdlg.h>
 
 #include "common.h"
 #include "wx_pane.h" 
@@ -23,6 +24,14 @@
 #include "data.h" 
 #include "logic.h" 
 #include "ui.h" 
+#include "sum.h" 
+
+#include "img/add.xpm"
+#include "img/sum.xpm"
+#include "img/rename.xpm"
+#include "img/close.xpm"
+#include "img/colorsel.xpm"
+#include "img/color.xpm"
 
 using namespace std;
 
@@ -35,13 +44,12 @@ enum {
     ID_OUTPUT_C                ,
     ID_OUTPUT_P_FONT           ,
     ID_OUTPUT_P_CLEAR          ,
-    ID_DATAPANE_TREE           ,
-    ID_DPT_POPUP_APPEND_DATA   ,
-    ID_DPT_POPUP_DUP_DATA      ,
-    ID_DPT_POPUP_SUM_DATA      ,
-    ID_DPT_POPUP_APPEND_PLOT   ,
-    ID_DPT_POPUP_REMOVE_DATA   ,
-    ID_DPT_POPUP_REMOVE_PLOT
+    ID_DP_LOOK                 ,
+    ID_DP_NEW                  ,
+    ID_DP_DUP                  ,
+    ID_DP_REN                  ,
+    ID_DP_DEL                  ,
+    ID_DP_COL                   
 };
 
 
@@ -265,210 +273,209 @@ void IOPane::focus_input(int key)
     }
 }
 
-#if 0
 //===============================================================
 //                            DataPane
 //===============================================================
 
-BEGIN_EVENT_TABLE(DataPane, wxPanel)
+BEGIN_EVENT_TABLE(DataPane, ProportionalSplitter)
+    EVT_BUTTON (ID_DP_NEW, DataPane::OnDataButtonNew)
+    EVT_BUTTON (ID_DP_DUP, DataPane::OnDataButtonDup)
+    EVT_BUTTON (ID_DP_REN, DataPane::OnDataButtonRen)
+    EVT_BUTTON (ID_DP_DEL, DataPane::OnDataButtonDel)
+    EVT_BUTTON (ID_DP_COL, DataPane::OnDataButtonCol)
+    EVT_CHOICE (ID_DP_LOOK, DataPane::OnDataLookChanged)
 END_EVENT_TABLE()
 
-    DataPane::DataPane(wxWindow *parent, wxWindowID id)
-: wxPanel(parent, id), tree(0)
+DataPane::DataPane(wxWindow *parent, wxWindowID id)
+: ProportionalSplitter(parent, id, 0.75) 
 {
-    wxBoxSizer *sizer = new wxBoxSizer (wxVERTICAL);
-    tree = new DataPaneTree(this, ID_DATAPANE_TREE);
-    sizer->Add(tree, 1, wxEXPAND);
+    //wxPanel *upper = new wxPanel(this, -1);
+    //wxBoxSizer *upper_sizer = new wxBoxSizer(wxVERTICAL);
+    nb = new wxNotebook(this, -1);
+    //upper_sizer->Add(nb, 1, wxEXPAND);
+    //upper->SetSizerAndFit(upper_sizer);
 
-    SetSizer(sizer);
-    sizer->SetSizeHints(this);
+    wxPanel *data_page = new wxPanel(nb, -1);
+    wxBoxSizer *data_sizer = new wxBoxSizer(wxVERTICAL);
+    dl = new DataList(data_page, -1);
+    data_sizer->Add(dl, 1, wxEXPAND|wxALL, 1);
+
+    wxBoxSizer *data_look_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBitmapButton *btn_col = new wxBitmapButton(data_page, ID_DP_COL,
+                                                 wxBitmap(colorsel_xpm));
+    btn_col->SetToolTip("change color");
+    data_look_sizer->Add(btn_col);
+    wxChar const *choices[] = { "show all datasets", "show only selected", 
+                               "shadow unselected", "draw aside vert." };
+    int choices_len = sizeof(choices)/sizeof(choices[0]);
+    wxChoice *unfocused_look = new wxChoice(data_page, ID_DP_LOOK,
+                                           wxDefaultPosition, wxDefaultSize,
+                                           wxArrayString(choices_len, choices));
+    data_look_sizer->Add(unfocused_look, 1, wxEXPAND);
+    data_sizer->Add(data_look_sizer, 0, wxEXPAND);
+
+    wxBoxSizer *data_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBitmapButton *btn_new = new wxBitmapButton(data_page, ID_DP_NEW,
+                                                 wxBitmap(add_xpm));
+    btn_new->SetToolTip("new data");
+    data_buttons_sizer->Add(btn_new);
+    wxBitmapButton *btn_dup = new wxBitmapButton(data_page, ID_DP_DUP,
+                                                 wxBitmap(sum_xpm));
+    btn_dup->SetToolTip("duplicate/sum");
+    data_buttons_sizer->Add(btn_dup);
+    wxBitmapButton *btn_ren = new wxBitmapButton(data_page, ID_DP_REN,
+                                                 wxBitmap(rename_xpm));
+    btn_ren->SetToolTip("rename");
+    data_buttons_sizer->Add(btn_ren);
+    wxBitmapButton *btn_del = new wxBitmapButton(data_page, ID_DP_DEL,
+                                                 wxBitmap(close_xpm));
+    btn_del->SetToolTip("delete");
+    data_buttons_sizer->Add(btn_del);
+    data_sizer->Add(data_buttons_sizer, 0, wxEXPAND);
+    data_page->SetSizerAndFit(data_sizer);
+    nb->AddPage(data_page, "data");
+
+    wxPanel *func_page = new wxPanel(nb, -1);
+    nb->AddPage(func_page, "functions");
+    wxPanel *var_page = new wxPanel(nb, -1);
+    nb->AddPage(var_page, "variables");
+    wxPanel *bottom = new wxPanel(this, -1);
+    SplitHorizontally(nb, bottom);
 }
+
+void DataPane::OnDataButtonNew (wxCommandEvent& WXUNUSED(event))
+{
+    exec_command("@+");
+}
+
+void DataPane::OnDataButtonDup (wxCommandEvent& WXUNUSED(event))
+{
+    exec_command("@+ < " + join_vector(dl->get_selected_data(), " + "));
+}
+
+void DataPane::OnDataButtonRen (wxCommandEvent& WXUNUSED(event))
+{
+    int n = get_focused_data();
+    Data *data = AL->get_data(n);
+    wxString old_title = data->get_title().c_str();
+
+    wxString s = wxGetTextFromUser(wxString("New name for dataset @") 
+                                                              + S(n).c_str(), 
+                                   "Rename dataset",
+                                   old_title);
+    if (!s.IsEmpty() && s != old_title)
+        exec_command("@" + S(n) + ".title = \"" + s.c_str() + "\"");
+}
+
+void DataPane::OnDataButtonDel (wxCommandEvent& WXUNUSED(event))
+{
+    exec_command("delete " + join_vector(dl->get_selected_data(), ", "));
+}
+
+void DataPane::OnDataButtonCol (wxCommandEvent& WXUNUSED(event))
+{
+    int n = get_focused_data();
+    wxColour col = frame->get_main_plot()->get_data_color(n);
+    if (change_color_dlg(col)) {
+        frame->get_main_plot()->set_data_color(n, col);
+        update();
+        frame->refresh_plots(true, false, true);
+    }
+}
+
+void DataPane::OnDataLookChanged (wxCommandEvent& WXUNUSED(event))
+{
+    //TODO
+    frame->refresh_plots(true, false, true);
+}
+
+void DataPane::update()
+{
+    dl->populate();
+}
+
 //===============================================================
-//                            DataPaneTree
+//                            DataList
 //===============================================================
 
-BEGIN_EVENT_TABLE(DataPaneTree, wxTreeCtrl)
-    EVT_IDLE (DataPaneTree::OnIdle)
-    EVT_TREE_SEL_CHANGING (ID_DATAPANE_TREE, DataPaneTree::OnSelChanging)
-    EVT_TREE_SEL_CHANGED (ID_DATAPANE_TREE, DataPaneTree::OnSelChanged)
-    EVT_RIGHT_DOWN (DataPaneTree::OnPopupMenu)
-    EVT_MENU (ID_DPT_POPUP_APPEND_DATA, DataPaneTree::OnMenuItem)
-    EVT_MENU (ID_DPT_POPUP_DUP_DATA,    DataPaneTree::OnMenuItem)
-    EVT_MENU (ID_DPT_POPUP_SUM_DATA,    DataPaneTree::OnMenuItem)
-    EVT_MENU (ID_DPT_POPUP_APPEND_PLOT, DataPaneTree::OnMenuItem)
-    EVT_MENU (ID_DPT_POPUP_REMOVE_DATA, DataPaneTree::OnMenuItem)
-    EVT_MENU (ID_DPT_POPUP_REMOVE_PLOT, DataPaneTree::OnMenuItem)
-    EVT_KEY_DOWN (                      DataPaneTree::OnKeyDown)
+BEGIN_EVENT_TABLE(DataList, wxListView)
+    EVT_LIST_ITEM_FOCUSED(-1, DataList::OnFocusChanged)
 END_EVENT_TABLE()
-
-DataPaneTree::DataPaneTree(wxWindow *parent, wxWindowID id)
-    : wxTreeCtrl(parent, id, wxDefaultPosition, wxDefaultSize,
-                 wxTR_HIDE_ROOT|wxTR_HAS_BUTTONS|wxTR_TWIST_BUTTONS)
-{
-    AddRoot("root");
-}
-
-void DataPaneTree::OnIdle(wxIdleEvent &event)
-{
-    if (!IsShown()) return;
-
-    const wxTreeItemId& root = GetRootItem();
-    //correct number of plots,
-    int diff = AL->get_core_count() - GetChildrenCount(root, false);
-    if (diff > 0)
-        for (int i = 0; i < diff; i++)
-            AppendItem(root, "");
-    else if (diff < 0)
-        for (int i = 0; i < -diff; i++)
-            Delete(GetLastChild(root));
-    //  ... "plot n" labels, and data files
-    wxTreeItemIdValue cookie, cookie2;
-    int counter = 0;
-    wxString label;
-    for (wxTreeItemId i = GetFirstChild(root, cookie); i.IsOk(); 
-                                   i = GetNextChild(root, cookie), counter++) {
-        label.Printf("plot %d", counter);
-        if (GetItemText(i) != label)
-            SetItemText(i, label);
-        update_tree_datalabels(AL->get_core(counter), i); 
-        // if active plot, select active data item
-        if (AL->get_active_core_position() == counter) {
-            wxTreeItemId active_item = GetFirstChild(i, cookie2);
-            for (int j = 0; j < my_core->get_active_data_position(); j++)
-                active_item = GetNextChild(i, cookie2);
-            if (!IsSelected(active_item))
-                SelectItem(active_item);
-        }
-    }
-    event.Skip();
-}
-
-void DataPaneTree::update_tree_datalabels(const PlotCore *pcore, 
-                                          const wxTreeItemId &plot_item)
-{
-    vector<string> new_labels = pcore->get_data_titles(); 
-    vector<string> old_labels;
-    wxTreeItemIdValue cookie;
-    for (wxTreeItemId i = GetFirstChild(plot_item, cookie); i.IsOk(); 
-                                    i = GetNextChild(plot_item, cookie)) 
-        old_labels.push_back(GetItemText(i).c_str());
-
-    if (new_labels != old_labels) {
-        DeleteChildren(plot_item);
-        for (vector<string>::const_iterator i = new_labels.begin();
-                                                 i != new_labels.end(); i++)
-            AppendItem(plot_item, (*i).c_str());
-        Expand(plot_item);
-    }
-}
-
-void DataPaneTree::OnSelChanging(wxTreeEvent &event)
-{
-    const wxTreeItemId &id = event.GetItem();
-    if (id == GetRootItem() || GetItemParent(id) == GetRootItem()) 
-        event.Veto();
-}
-
-void DataPaneTree::OnSelChanged(wxTreeEvent &event)
-{
-    const wxTreeItemId &id = event.GetItem();
-    if (id == GetRootItem() || GetItemParent(id) == GetRootItem()) 
-        return;
-    else { //dataset
-        int p = count_previous_siblings(GetItemParent(id));
-        int d = count_previous_siblings(id);
-        if (p != AL->get_active_core_position() 
-                                || d != my_core->get_active_data_position())
-        exec_command("d.activate " + S(p) + "::" + S(d));
-    }
-}
-
-int DataPaneTree::count_previous_siblings(const wxTreeItemId &id)
-{
-    int counter = 0;
-    for (wxTreeItemId i = id; i.IsOk(); i = GetPrevSibling(i))
-        counter++;
-    return counter-1;
-}
-
-void DataPaneTree::OnPopupMenu(wxMouseEvent &event)
-{
-    int flags;
-    wxTreeItemId id = HitTest(event.GetPosition(), flags);
-
-    //find title for menu
-    wxString what = "data pane";
-    if (id.IsOk()) 
-        what = GetItemText(id);
-    if (what.Length() > 20)
-        what = "..." + what.Right(17);
-    else if (what.Length() == 0)
-        what = "empty slot";
-    wxMenu popup_menu ("Menu for " + what);
-
-    if (id.IsOk() && GetItemParent(id).IsOk()) { 
-        if (GetItemParent(id) == GetRootItem()) { //plot
-            pmenu_p = count_previous_siblings(id);
-            pmenu_d = -1;
-            popup_menu.Append (ID_DPT_POPUP_APPEND_DATA, 
-                                                "&Append slot for dataset");
-            popup_menu.Append (ID_DPT_POPUP_REMOVE_PLOT, 
-                                            "&Remove plot (with datasets)");
-            popup_menu.Append (ID_DPT_POPUP_APPEND_PLOT, "&New plot");
-        }
-        else { //data
-            pmenu_p = count_previous_siblings(GetItemParent(id));
-            pmenu_d = count_previous_siblings(id);
-            popup_menu.Append (ID_DPT_POPUP_APPEND_DATA, 
-                                                "&Append slot for dataset");
-            popup_menu.Append (ID_DPT_POPUP_DUP_DATA, 
-                                                "&Duplicate dataset");
-            wxTreeItemId sel = GetSelection();
-            if (sel != id && !GetItemText(id).IsEmpty()
-                          && !GetItemText(sel).IsEmpty())
-                popup_menu.Append(ID_DPT_POPUP_SUM_DATA, 
-                       "&Create " + GetItemText(sel) + "+" + GetItemText(id));
-            popup_menu.Append(ID_DPT_POPUP_REMOVE_DATA, 
-                                                "&Remove slot and dataset");
-        }
-    }
-    else { //no item
-        popup_menu.Append (ID_DPT_POPUP_APPEND_PLOT, "&New plot");
-    }
     
-    PopupMenu (&popup_menu, event.GetX(), event.GetY());
+DataList::DataList(wxWindow *parent, wxWindowID id)
+    : wxListView(parent, id, wxDefaultPosition, wxDefaultSize,
+                 wxLC_REPORT|wxLC_HRULES|wxLC_VRULES)
+{
+    InsertColumn(0, "No", wxLIST_FORMAT_LEFT);
+    InsertColumn(1, "#F+#Z", wxLIST_FORMAT_LEFT);
+    InsertColumn(2, "Name", wxLIST_FORMAT_LEFT);
 }
 
-void DataPaneTree::OnMenuItem(wxCommandEvent &event)
+void DataList::populate()
 {
-    int eid = event.GetId();
-    string cmd = "d.activate ";
-    if (eid == ID_DPT_POPUP_APPEND_DATA)
-        cmd += S(pmenu_p) + "::*";
-    else if (eid == ID_DPT_POPUP_APPEND_PLOT)
-        cmd += "*::";
-    else if (eid == ID_DPT_POPUP_REMOVE_DATA)
-        cmd += "! " + S(pmenu_p) + "::" + S(pmenu_d);
-    else if (eid == ID_DPT_POPUP_REMOVE_PLOT)
-        cmd += "! " + S(pmenu_p) + "::";
-    else if (eid == ID_DPT_POPUP_DUP_DATA)
-        cmd += S(pmenu_p) + "::*; d.load " + S(pmenu_p) + "::" + S(pmenu_d);
-    else if (eid == ID_DPT_POPUP_SUM_DATA) {
-        //TODO
-        cmd += S(pmenu_p) + "::*; d.load " + S(pmenu_p) + "::" + S(pmenu_d)
-                                  + S() + "::" + S();
+    int length = AL->get_ds_count();
+    if (GetItemCount() != length) {
+        DeleteAllItems();
+        for (int i = 0; i < length; ++i)
+            InsertItem(i, S(i).c_str());
     }
-    exec_command(cmd);
+    int active = AL->get_active_ds_position();
+    //create image list
+    MainPlot const* mplot = frame->get_main_plot();
+    wxImageList* image_list = new wxImageList(16, 16);
+    wxColour bg_col = mplot->get_bg_color();
+    for (int i = 0; i < length; ++i) {
+        wxColour const& data_col = mplot->get_data_color(i);
+        wxImage image(color_xpm);
+        image.Replace(0, 0, 0, bg_col.Red(), bg_col.Green(), bg_col.Blue());
+        image.Replace(255, 255, 255, 
+                      data_col.Red(), data_col.Green(), data_col.Blue());
+        image_list->Add(wxBitmap(image));
+    }
+    AssignImageList(image_list, wxIMAGE_LIST_SMALL);
+    for (int i = 0; i < length; ++i) {
+        //SetItemTextColour(i, wxColour(0,255,0));//mplot->get_data_color(i));
+        //SetItemBackgroundColour(i, mplot->get_bg_color());
+        SetItemImage(i, i);
+        DataWithSum const* ds = AL->get_ds(i);
+        string t1 = S(ds->get_sum()->get_ff_count()) 
+                    + "+" + S(ds->get_sum()->get_zz_count());
+        SetItem(i, 1, t1.c_str());
+        string t2 = ds->get_data()->get_title();
+        SetItem(i, 2, t2.c_str());
+        Select(i, i == active);
+    }
+    //resize columns
+    SetColumnWidth(0, wxLIST_AUTOSIZE);
+    SetColumnWidth(1, wxLIST_AUTOSIZE);
+    SetColumnWidth(2, wxLIST_AUTOSIZE);
+    int for_col2 = GetClientSize().GetWidth() - GetColumnWidth(0) 
+                                              - GetColumnWidth(1);
+    if (GetColumnWidth(2) < for_col2)
+        SetColumnWidth(2, for_col2);
+    
+    Focus(active);
 }
 
-void DataPaneTree::OnKeyDown(wxKeyEvent& event)
+vector<string> DataList::get_selected_data()
 {
-    if (should_focus_input(event.GetKeyCode()))
-        frame->focus_input(event.GetKeyCode());
-    else
-        event.Skip();
+    vector<string> dd;
+    for (int i = GetFirstSelected(); i != -1; i = GetNextSelected(i))
+        dd.push_back("@" + S(i));
+    if (dd.empty()) {
+        int n = GetFocusedItem();
+        dd.push_back("@" + S(n == -1 ? 0 : n));
+    }
+    return dd;
 }
-#endif
+
+void DataList::OnFocusChanged(wxListEvent &event)
+{
+    int n = event.GetIndex();
+    if (n >= 0 && AL->get_ds_count() > 1 && AL->get_active_ds_position() != n) 
+        exec_command("@" + S(n));
+}
+
 
 //===============================================================
 //                            OutputWin
@@ -558,12 +565,7 @@ void OutputWin::OnPopupColor (wxCommandEvent& event)
         col = &text_color[os_input];
     else 
         return;
-    wxColourData col_data;
-    col_data.SetCustomColour (0, *col);
-    col_data.SetColour (*col);
-    wxColourDialog dialog (this, &col_data);
-    if (dialog.ShowModal() == wxID_OK) {
-        *col = dialog.GetColourData().GetColour();
+    if (change_color_dlg(*col)) {
         SetBackgroundColour (bg_color);
         SetDefaultStyle (wxTextAttr(wxNullColour, bg_color));
         Refresh();

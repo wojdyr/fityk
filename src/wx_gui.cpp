@@ -66,7 +66,6 @@
 #include "img/save_data.xpm"
 #include "img/save_script.xpm"
 #include "img/strip_bg.xpm"
-#include "img/sum.xpm"
 #include "img/undo_fit.xpm"
 #include "img/zoom_all.xpm"
 #include "img/zoom_left.xpm"
@@ -123,15 +122,15 @@ enum {
     ID_D_EDITOR                ,
     ID_D_FDT                   ,
     ID_D_FDT_END = ID_D_FDT+50 ,
+    ID_D_ALLDS                 ,
     ID_D_EXPORT                ,
-    ID_S_ADD                   ,
+    ID_S_EDITOR                ,
     ID_S_HISTORY               ,
-    ID_S_INFO                  ,
-    ID_S_REMOVE                ,
-    ID_S_CHANGE                ,
-    ID_S_VALUE                 ,
+    ID_S_GUESS                 ,
+    ID_S_PFINFO                ,
+    ID_S_FUNCLIST              ,
+    ID_S_VARLIST               ,
     ID_S_EXPORT                ,
-    ID_M_FINDPEAK              ,
     ID_F_METHOD                ,
     ID_F_RUN                   ,
     ID_F_CONTINUE              ,
@@ -161,7 +160,7 @@ enum {
     ID_G_M_BG_SUB              ,
     ID_G_M_PEAK                ,
     ID_G_M_PEAK_N              ,
-    ID_G_M_PEAK_N_END = ID_G_M_PEAK_N+40 ,
+    ID_G_M_PEAK_N_END = ID_G_M_PEAK_N+100 ,
     ID_G_SHOW                  ,
     ID_G_S_TOOLBAR             ,
     ID_G_S_STATBAR             ,
@@ -282,7 +281,7 @@ bool FApp::OnInit(void)
     wxString conf_path = "/TipOfTheDay/ShowAtStartup";
     if (read_bool_from_config(wxConfig::Get(), conf_path, true)) 
         frame->OnTipOfTheDay(dummy_cmd_event);
-
+    frame->after_cmd_updates();
     return true;
 }
 
@@ -337,12 +336,13 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
             getUI()->execScript(par);
         else {
             //if there are multiple data files specified at command line,
-            //open each as separate dataset in the same plot
-            if (data_counter == 0) {
-                getUI()->execAndLogCmd("@ <'" + par + "'");
+            //open each as separate dataset 
+            if (data_counter == 0 && AL->get_ds_count() == 1
+                    && AL->get_data(0)->is_empty()) {
+                getUI()->execAndLogCmd("@0 <'" + par + "'");
             }
             else {
-                getUI()->execAndLogCmd("@* <'" + par + "'");
+                getUI()->execAndLogCmd("@+ <'" + par + "'");
                 frame->SwitchDPane(true);
             }
             data_counter++;
@@ -354,8 +354,6 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
 
 
 BEGIN_EVENT_TABLE(FFrame, wxFrame)
-    EVT_IDLE (FFrame::OnIdle)
-
     EVT_MENU (ID_D_LOAD,        FFrame::OnDLoad)   
     EVT_MENU (ID_D_XLOAD,       FFrame::OnDXLoad)   
     EVT_MENU_RANGE (ID_D_RECENT+1, ID_D_RECENT_END, FFrame::OnDRecent)
@@ -364,15 +362,13 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU_RANGE (ID_D_FDT+1, ID_D_FDT_END, FFrame::OnFastDT)
     EVT_MENU (ID_D_EXPORT,      FFrame::OnDExport) 
 
-    //EVT_MENU (ID_S_HISTORY,     FFrame::OnSHistory)    
-    //EVT_MENU (ID_S_INFO,        FFrame::OnSInfo)    
-    //EVT_MENU (ID_S_ADD,         FFrame::OnSAdd)    
-    //EVT_MENU (ID_S_REMOVE,      FFrame::OnSRemove)    
-    //EVT_MENU (ID_S_CHANGE,      FFrame::OnSChange)    
-    //EVT_MENU (ID_S_VALUE,       FFrame::OnSValue)    
-    //EVT_MENU (ID_S_EXPORT,      FFrame::OnSExport)    
-
-    EVT_MENU (ID_M_FINDPEAK,    FFrame::OnMFindpeak)
+    EVT_MENU (ID_S_EDITOR,      FFrame::OnSEditor)    
+    EVT_MENU (ID_S_HISTORY,     FFrame::OnSHistory)  
+    EVT_MENU (ID_S_GUESS,       FFrame::OnSGuess)   
+    EVT_MENU (ID_S_PFINFO,      FFrame::OnSPFInfo)   
+    EVT_MENU (ID_S_FUNCLIST,    FFrame::OnSFuncList)    
+    EVT_MENU (ID_S_VARLIST,     FFrame::OnSVarList)  
+    EVT_MENU (ID_S_EXPORT,      FFrame::OnSExport)   
 
     EVT_UPDATE_UI (ID_F_METHOD, FFrame::OnFMethodUpdate)
     EVT_MENU_RANGE (ID_F_M+0, ID_F_M_END, FFrame::OnFOneOfMethods)    
@@ -456,8 +452,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     plot_pane = new PlotPane(main_pane);
     io_pane = new IOPane(main_pane);
     main_pane->SplitHorizontally(plot_pane, io_pane);
-    data_pane = new wxPanel(v_splitter, -1);
-    //TODO//data_pane = new DataPane(v_splitter);
+    data_pane = new DataPane(v_splitter);
     data_pane->Show(false);
     v_splitter->Initialize(main_pane);
     sizer->Add(v_splitter, 1, wxEXPAND, 0);
@@ -526,12 +521,12 @@ void FFrame::write_recent_data_files()
     }
 }
 
-void FFrame::add_recent_data_file(wxString filename)
+void FFrame::add_recent_data_file(string const& filename)
 {
-    const int count = data_menu_recent->GetMenuItemCount();
-    const wxMenuItemList& mlist = data_menu_recent->GetMenuItems();
-    const wxFileName fn = wxFileName(filename);
-    recent_data_files.remove(filename);
+    int const count = data_menu_recent->GetMenuItemCount();
+    wxMenuItemList const& mlist = data_menu_recent->GetMenuItems();
+    wxFileName const fn = wxFileName(filename.c_str());
+    recent_data_files.remove(fn);
     recent_data_files.push_front(fn);
     int id_new = 0;
     for (wxMenuItemList::Node *i = mlist.GetFirst(); i; i = i->GetNext()) 
@@ -626,29 +621,35 @@ void FFrame::set_menubar()
     data_menu->Append(ID_D_RECENT, "Recent &Files", data_menu_recent); 
     data_menu->AppendSeparator();
 
-    data_menu->Append (ID_D_EDITOR,   "&Editor\tCtrl-E", "Open data editor");
+    data_menu->Append (ID_D_EDITOR, "&Editor\tCtrl-E", "Open data editor");
     this->data_ft_menu = new wxMenu;
-    data_menu->Append (ID_D_FDT,      "&Fast Transformations", data_ft_menu, 
-                                      "Quick data transformations");
-    data_menu->Append (ID_D_EXPORT,   "&Export\tCtrl-S", "Save data to file");
+    data_menu->Append (ID_D_FDT, "&Fast Transformations", data_ft_menu, 
+                                 "Quick data transformations");
+    data_menu->AppendCheckItem (ID_D_ALLDS, "Apply to &All Datasets", 
+                                "Apply data transformations to all datasets.");
+    data_menu->AppendSeparator();
+    data_menu->Append (ID_D_EXPORT, "&Export\tCtrl-S", "Save data to file");
 
     wxMenu* sum_menu = new wxMenu;
-#if 0
+    wxMenu* sum_menu_mode_peak = new wxMenu;
+    //qqqqqqqq //TODO dynamic changing of type list
+    vector<string> all_t = Function::get_all_types();
+    for (int i = 0; i < size(all_t); i++)
+        sum_menu_mode_peak->AppendRadioItem(ID_G_M_PEAK_N+i, all_t[i].c_str());
+    sum_menu->Append (ID_G_M_PEAK, "Function &type", sum_menu_mode_peak);
+/*
+    sum_menu->Append (ID_S_EDITOR, "FT &Editor", "Edit function types");
     sum_menu->Append (ID_S_HISTORY,   "&History\tCtrl-H", "Go back or forward"
                                                     " in change history");      
-    sum_menu->Append (ID_S_INFO,      "&Info", "Info about fitted curve");      
-    sum_menu->Append (ID_S_ADD,       "&Add", "Add parameter or function"); 
-    sum_menu->Append (ID_S_REMOVE,    "&Remove/Freeze",
-         "Remove parameter/function or avoid fitting of selected parameters");
-    sum_menu->Append (ID_S_CHANGE,    "&Change", "Change value of a-parameter");
-    sum_menu->Append (ID_S_VALUE,     "&Value", "Computes value of sum"
-                                                    " or selected function");
-    sum_menu->Append (ID_S_EXPORT,    "&Export", "Export fitted curve to file");
-#endif
-
-    wxMenu* manipul_menu = new wxMenu;
-    manipul_menu->Append (ID_M_FINDPEAK, "&Find peak", 
-                                       "Search for a peak (rather useless)");
+*/
+    sum_menu->Append (ID_S_GUESS, "&Guess Peak", "Guess and add peak");
+    sum_menu->Append (ID_S_PFINFO, "Peak-Find &Info", 
+                                    "Show where guessed peak would be placed");
+    sum_menu->Append (ID_S_FUNCLIST, "&Function List",
+                                    "Open `Functions' tab on right-hand pane");
+    sum_menu->Append (ID_S_VARLIST, "&Variable List",
+                                    "Open `Variables' tab on right-hand pane");
+    sum_menu->Append (ID_S_EXPORT, "&Export", "Export fitted curve to file");
 
     wxMenu* fit_menu = new wxMenu;
     wxMenu* fit_method_menu = new wxMenu;
@@ -658,12 +659,12 @@ void FFrame::set_menubar()
                                       "slow but simple and reliable method");
     fit_method_menu->AppendRadioItem (ID_F_M+2, "&Genetic Algorithm", 
                                                 "almost AI");
-    fit_menu->Append (ID_F_METHOD,    "&Method", fit_method_menu, 
+    fit_menu->Append (ID_F_METHOD, "&Method", fit_method_menu, 
                                             "It influences commands below");
     fit_menu->AppendSeparator();
-    fit_menu->Append (ID_F_RUN,    "&Run\tCtrl-R", "Start fitting sum to data");
-    fit_menu->Append (ID_F_CONTINUE,  "&Continue\tCtrl-T", "Continue fitting");
-    fit_menu->Append (ID_F_INFO,      "&Info", "Info about current fit");      
+    fit_menu->Append (ID_F_RUN, "&Run\tCtrl-R", "Start fitting sum to data");
+    fit_menu->Append (ID_F_CONTINUE, "&Continue\tCtrl-T", "Continue fitting");
+    fit_menu->Append (ID_F_INFO, "&Info", "Info about current fit");      
 
     wxMenu* gui_menu = new wxMenu;
     wxMenu* gui_menu_mode = new wxMenu;
@@ -675,13 +676,6 @@ void FFrame::set_menubar()
                                     "Use mouse for subtracting background");
     gui_menu_mode->AppendRadioItem (ID_G_M_ADD, "&Peak-Add\tCtrl-K", 
                                     "Use mouse for adding new peaks");
-    wxMenu* gui_menu_mode_peak = new wxMenu;
-    //qqqqqqqq //TODO dynamic changing of type list
-    vector<string> all_t = Function::get_all_types();
-    for (int i = 0; i < size(all_t); i++)
-        gui_menu_mode_peak->AppendRadioItem(ID_G_M_PEAK_N+i, all_t[i].c_str());
-    gui_menu_mode->AppendSeparator();
-    gui_menu_mode->Append (ID_G_M_PEAK, "Peak &type", gui_menu_mode_peak);
     gui_menu_mode->AppendSeparator();
     wxMenu* baseline_menu = new wxMenu;
     baseline_menu->Append (ID_G_M_BG_STRIP, "&Strip baseline", 
@@ -778,8 +772,7 @@ void FFrame::set_menubar()
     wxMenuBar *menu_bar = new wxMenuBar(wxMENU_TEAROFF);
     menu_bar->Append (session_menu, "S&ession" );
     menu_bar->Append (data_menu, "&Data" );
-    menu_bar->Append (sum_menu, "&Sum" );
-    menu_bar->Append (manipul_menu, "Find&Peak");
+    menu_bar->Append (sum_menu, "&Functions" );
     menu_bar->Append (fit_menu, "Fi&t" );
     menu_bar->Append (gui_menu, "&GUI");
     menu_bar->Append (help_menu, "&Help");
@@ -869,15 +862,15 @@ void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
         wxArrayString paths;
         fdlg.GetPaths(paths);
         int count = paths.GetCount();
-        wxString cmd;
+        string cmd;
         for (int i = 0; i < count; ++i) {
             if (i == 0)
-                cmd = "@ <'" + paths[i] + "'";
+                cmd = "@"+S(get_focused_data())+" <'"+paths[i].c_str()+"'";
             else
-                cmd += " ; @* <'" + paths[i] + "'"; 
-            add_recent_data_file(paths[i]);
+                cmd += " ; @+ <'" + S(paths[i].c_str()) + "'"; 
+            add_recent_data_file(paths[i].c_str());
         }
-        exec_command (cmd.c_str());
+        exec_command (cmd);
         if (count > 1)
             SwitchDPane(true);
     }
@@ -888,15 +881,16 @@ void FFrame::OnDXLoad (wxCommandEvent& WXUNUSED(event))
 {
     FDXLoadDlg dxload_dialog(this, -1);
     if (dxload_dialog.ShowModal() == wxID_OK) {
-        exec_command (dxload_dialog.get_command());
-        add_recent_data_file(dxload_dialog.get_filename().c_str());
+        exec_command("@" + S(get_focused_data()) 
+                     + " <" + dxload_dialog.get_command_tail());
+        add_recent_data_file(dxload_dialog.get_filename());
     }
 }
 
 void FFrame::OnDRecent (wxCommandEvent& event)
 {
-    wxString s = GetMenuBar()->GetHelpString(event.GetId());
-    exec_command (("@ <'" + s + "'").c_str());
+    string s = GetMenuBar()->GetHelpString(event.GetId()).c_str();
+    exec_command("@" + S(get_focused_data()) + " <'" + s + "'");
     add_recent_data_file(s);
 }
 
@@ -947,9 +941,13 @@ void FFrame::OnDExport (wxCommandEvent& WXUNUSED(event))
     export_data_dlg(this);
 }
 
-#if 0
-void FFrame::OnSHistory      (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnSEditor (wxCommandEvent& WXUNUSED(event))
 {
+}
+ 
+void FFrame::OnSHistory (wxCommandEvent& WXUNUSED(event))
+{
+/*
     if (my_sum->pars()->count_a() == 0) {
         wxMessageBox ("no parameters -- no history", "no history",
                       wxOK|wxICON_ERROR);
@@ -958,43 +956,32 @@ void FFrame::OnSHistory      (wxCommandEvent& WXUNUSED(event))
     SumHistoryDlg *dialog = new SumHistoryDlg (this, -1);
     dialog->ShowModal();
     dialog->Destroy();
+*/
 }
             
-void FFrame::OnSAdd          (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnSGuess (wxCommandEvent& WXUNUSED(event))
 {
-    FuncBrowserDlg *dialog = new FuncBrowserDlg(this, -1, 1);
-    dialog->ShowModal();
-    dialog->Destroy();
+    exec_command("guess " + frame->get_peak_type());
+}
+
+void FFrame::OnSPFInfo (wxCommandEvent& WXUNUSED(event))
+{
+    exec_command ("info peaks 3");
+    //TODO animations showing peak positions
 }
         
-void FFrame::OnSInfo         (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnSFuncList (wxCommandEvent& WXUNUSED(event))
 {
-    FuncBrowserDlg *dialog = new FuncBrowserDlg(this, -1, 0);
-    dialog->ShowModal();
-    dialog->Destroy();
+    SwitchDPane(true);
+    data_pane->set_selection(1);
 }
          
-void FFrame::OnSRemove       (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnSVarList (wxCommandEvent& WXUNUSED(event))
 {
-    FuncBrowserDlg *dialog = new FuncBrowserDlg(this, -1, 3);
-    dialog->ShowModal();
-    dialog->Destroy();
+    SwitchDPane(true);
+    data_pane->set_selection(2);
 }
            
-void FFrame::OnSChange       (wxCommandEvent& WXUNUSED(event))
-{
-    FuncBrowserDlg *dialog = new FuncBrowserDlg(this, -1, 2);
-    dialog->ShowModal();
-    dialog->Destroy();
-}
-           
-void FFrame::OnSValue        (wxCommandEvent& WXUNUSED(event))
-{
-    FuncBrowserDlg *dialog = new FuncBrowserDlg(this, -1, 4);
-    dialog->ShowModal();
-    dialog->Destroy();
-}
-          
 void FFrame::OnSExport       (wxCommandEvent& WXUNUSED(event))
 {
     static int filter_idx = 0;
@@ -1004,8 +991,7 @@ void FFrame::OnSExport       (wxCommandEvent& WXUNUSED(event))
                        "parameters of peaks (*.peaks)|*.peaks"
                        "|x y data (*.dat)|*.dat;*.DAT"
                        "|XFIT peak listing (*xfit.txt)|*xfit.txt;*XFIT.TXT" 
-                       "|mathematic formula (*.formula)|*.formula"
-                       "|fityk file (*.fit)|*.fit;*.FIT",
+                       "|mathematic formula (*.formula)|*.formula",
                        wxSAVE | wxOVERWRITE_PROMPT);
     fdlg.SetFilterIndex(filter_idx);
     if (fdlg.ShowModal() == wxID_OK) 
@@ -1013,12 +999,7 @@ void FFrame::OnSExport       (wxCommandEvent& WXUNUSED(event))
     filter_idx = fdlg.GetFilterIndex();
     dir = fdlg.GetDirectory();
 }
-#endif
            
-void FFrame::OnMFindpeak     (wxCommandEvent& WXUNUSED(event))
-{
-    exec_command ("m.findpeak ");
-}
         
 void FFrame::OnFMethodUpdate (wxUpdateUIEvent& event)
 {
@@ -1498,21 +1479,43 @@ void FFrame::focus_input(int key)
     io_pane->focus_input(key);
 }
 
-void FFrame::OnIdle(wxIdleEvent &event) 
+/// here we update all GUI buttons, lists etc. that can be changed
+/// after execCommand() and can't be updated in another way
+void FFrame::after_cmd_updates()
 {
-    if (GetToolBar())
-        toolbar->OnIdle(event);
-    event.Skip();
+    data_pane->update();
 }
 
+int FFrame::get_focused_data()
+{
+    return data_pane->get_focused_data();
+}
+
+MainPlot* FFrame::get_main_plot() 
+{ 
+    return plot_pane->get_plot(); 
+}
+
+MainPlot const* FFrame::get_main_plot() const
+{ 
+    return plot_pane->get_plot(); 
+}
+
+void FFrame::update_data_pane()
+{
+    data_pane->update();
+}
+
+bool FFrame::get_apply_to_all_ds()
+{ 
+    return GetMenuBar()->IsChecked(ID_D_ALLDS); 
+}
 
 //===============================================================
 //                    FToolBar 
 //===============================================================
 
 BEGIN_EVENT_TABLE (FToolBar, wxToolBar)
-//  EVT_IDLE (FToolBar::OnIdle)  //it doesn't work (why??); 
-//                     //FToolBar::OnIdle is now called from FFrame::OnIdle
     EVT_TOOL_RANGE (ID_ft_m_zoom, ID_ft_m_add,  FToolBar::OnChangeMouseMode)
     EVT_TOOL_RANGE (ID_ft_v_pr, ID_ft_s_aa,        FToolBar::OnClickTool)
     EVT_TOOL (ID_ft_dpane, FToolBar::OnSwitchDPane)
@@ -1584,10 +1587,6 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
              "Remove selected background from data");
     EnableTool(ID_ft_b_strip, (m == mmd_bg));
     AddSeparator();
-    //sum
-    AddTool (ID_S_INFO, "Tree", wxBitmap(sum_xpm), wxNullBitmap,
-             wxITEM_NORMAL, "Show tree", "Show tree of functions");
-    AddSeparator();
     peak_choice = new wxChoice(this, ID_ft_peakchoice); 
     //qqqqqqqq //TODO dynamic changing of type list
     vector<string> all_t = Function::get_all_types();
@@ -1614,11 +1613,6 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
              wxITEM_CHECK, "Datasets Pane", "Show/hide datasets pane");
 
     Realize();
-}
-
-void FToolBar::OnIdle(wxIdleEvent &event)
-{
-    event.Skip();
 }
 
 void FToolBar::OnPeakChoice(wxCommandEvent &event) 

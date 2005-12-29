@@ -11,6 +11,7 @@
 #endif
 
 #include <wx/config.h>
+#include <wx/colordlg.h>
 
 #include "common.h"
 #include "wx_common.h"
@@ -80,6 +81,21 @@ void write_font_to_config (wxConfigBase *config, const wxString& key,
     config->Write (key + "/style", value.GetStyle());
     config->Write (key + "/weight", value.GetWeight());
     config->Write (key + "/faceName", value.GetFaceName());
+}
+
+bool change_color_dlg(wxColour& col)
+{
+    wxColourData col_data;
+    col_data.SetCustomColour(0, col);
+    col_data.SetColour(col);
+    wxColourDialog dialog(0, &col_data);
+    if (dialog.ShowModal() == wxID_OK 
+            && col != dialog.GetColourData().GetColour()) { 
+        col = dialog.GetColourData().GetColour();
+        return true;
+    }
+    else
+        return false;
 }
 
 //dummy events declared in wx_common.h

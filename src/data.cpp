@@ -101,6 +101,8 @@ void Data::clear()
 
 void Data::post_load()
 {
+    if (p.empty())
+        return;
     if (!p[0].sigma) {
         for (vector<Point>::iterator i = p.begin(); i < p.end(); i++) 
             i->sigma = i->y > 1. ? sqrt (i->y) : 1.;
@@ -131,7 +133,6 @@ int Data::load_arrays(const vector<fp> &x, const vector<fp> &y,
     assert(y.size() == size);
     assert(sigma.empty() || sigma.size() == size);
     clear();
-    filename = "-";
     title = data_title;
     if (sigma.empty()) 
         for (size_t i = 0; i < size; ++i)
@@ -145,8 +146,25 @@ int Data::load_arrays(const vector<fp> &x, const vector<fp> &y,
     return p.size();
 }
 
+void Data::load_data_sum(vector<Data const*> const& dd)
+{
+    assert(!dd.empty());
+    clear();
+    title = dd[0]->get_title();
+    for (vector<Data const*>::const_iterator i = dd.begin()+1; 
+                                                          i != dd.end(); ++i)
+        title += " + " + (*i)->get_title();
+    for (vector<Data const*>::const_iterator i = dd.begin(); 
+                                                          i != dd.end(); ++i) {
+        vector<Point> const& points = (*i)->points();
+        p.insert(p.end(), points.begin(), points.end());
+    }
+    sort(p.begin(), p.end());
+    x_step = find_step();
+    post_load();
+}
 
-int Data::load_file (const string &file, int type, const vector<int> &cols,
+int Data::load_file (string const& file, int type, vector<int> const& cols,
                      bool append)
 { 
     if (type == 0) {                  // "detect" file format
@@ -185,9 +203,6 @@ int Data::load_file (const string &file, int type, const vector<int> &cols,
         warn ("Only " + S(p.size()) + " data points found in file.");
     if (!f.eof() && type != 'm') //!=mca; .mca doesn't have to reach EOF
         warn ("Unexpected char when reading " + S (p.size() + 1) + ". point");
-    if (p.empty())
-        return 0;
-
     post_load();
     return p.size();
 }
