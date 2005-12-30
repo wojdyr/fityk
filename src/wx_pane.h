@@ -9,6 +9,7 @@
 #include <wx/splitter.h>
 #include <wx/listctrl.h>
 #include <list>
+#include <utility>
 #include "wx_common.h"  //for MouseModeEnum, OutputStyle
 
 class PlotPane;
@@ -148,14 +149,23 @@ private:
 };
 
 
-class DataList : public wxListView
+class ListWithColors : public wxListView
 {
 public:
-    DataList(wxWindow *parent, wxWindowID id=-1);
-    void populate();
-    std::vector<std::string> get_selected_data();
-    void OnFocusChanged(wxListEvent &event);
+    ListWithColors(wxWindow *parent, wxWindowID id, 
+                   std::vector<std::pair<std::string,bool> > const& columns_);
+    void populate(std::vector<std::string> const& data, 
+                  std::vector<wxColour> const& data_colors, 
+                  wxColour const& bg_col,
+                  int active,
+                  bool nondata_changed);
+    void OnColumnMenu(wxListEvent &event);
+    void OnShowColumn(wxCommandEvent &event);
+    void OnFitColumnWidths(wxCommandEvent &event);
     DECLARE_EVENT_TABLE()
+private:
+    std::vector<std::pair<std::string,bool> > columns;
+    std::vector<std::string> list_data;
 };
 
 class DataPane : public ProportionalSplitter
@@ -168,13 +178,16 @@ public:
     void OnDataButtonDel (wxCommandEvent& event);
     void OnDataButtonCol (wxCommandEvent& event);
     void OnDataLookChanged (wxCommandEvent& event);
-    void update();
+    void OnDataFocusChanged(wxListEvent &event);
+    void update_lists(bool nondata_changed=true);
     /// get active dataset number -- if none is focused, return first one (0)
     int get_focused_data() { int n=dl->GetFocusedItem(); return n==-1 ? 0 : n; }
     int set_selection(int page) { return nb->SetSelection(page); }
+    std::vector<std::string> get_selected_data() const;
 private:
     wxNotebook *nb;
-    DataList *dl;
+    ListWithColors *dl;
+    ListWithColors *fl;
 
     DECLARE_EVENT_TABLE()
 };

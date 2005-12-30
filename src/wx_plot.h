@@ -51,7 +51,7 @@ public:
          vlfc_prev_x(INVALID)   {}
          
     ~FPlot() {}
-    wxColour get_bg_color() const { return backgroundBrush.GetColour(); }
+    wxColour const& get_bg_color() const { return backgroundBrush.GetColour(); }
     void FPlot::draw_crosshair(int X, int Y);
     virtual void save_settings(wxConfigBase *cf) const;
     virtual void read_settings(wxConfigBase *cf);

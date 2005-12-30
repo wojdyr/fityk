@@ -1,5 +1,10 @@
 User-visible changes in version 0. .  (2005-  -  ):
-* changing data title (title="new title here")
+* ###########################################################################
+  #                      completely changed syntax                          #
+  ###########################################################################
+* GUI: dataset/function/variable lists at right-hand panel
+* some features available in previous version are temporarily disabled
+  (powder diffraction part - c.xxx commands, parameters history)
 
 User-visible changes in version 0.5.1 (2005-07-21):
 * new toolbar icons 

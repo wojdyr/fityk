@@ -1,17 +1,4 @@
 
-* finish parameter/variable transition:
-   parameter domain ~3[2,14]
-   mark parameters, which are not used in sum calculation
-   recalculate() when neccessary (parameters change)
-   history -- disabled for a while -- one for variables and functions
-   replace gfunc.*, pag.h, ...
-
-* d.transform y=x -> y=x, changes in GUI data editor and examples
-
-* s.info -> print
-
-* documentation for data transform, $variable assignments, etc
-
 ------------------ 0.5.2  2005.0?
 
 * (GUI) peak positions as an option to any aux. plot 

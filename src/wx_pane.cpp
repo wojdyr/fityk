@@ -44,12 +44,16 @@ enum {
     ID_OUTPUT_C                ,
     ID_OUTPUT_P_FONT           ,
     ID_OUTPUT_P_CLEAR          ,
+    ID_DP_LIST                 ,
     ID_DP_LOOK                 ,
     ID_DP_NEW                  ,
     ID_DP_DUP                  ,
     ID_DP_REN                  ,
     ID_DP_DEL                  ,
-    ID_DP_COL                   
+    ID_DP_COL                  ,
+    ID_DL_CMENU_SHOW_START     ,
+    ID_DL_CMENU_SHOW_END = ID_DL_CMENU_SHOW_START+20,
+    ID_DL_CMENU_FITCOLS
 };
 
 
@@ -284,6 +288,7 @@ BEGIN_EVENT_TABLE(DataPane, ProportionalSplitter)
     EVT_BUTTON (ID_DP_DEL, DataPane::OnDataButtonDel)
     EVT_BUTTON (ID_DP_COL, DataPane::OnDataButtonCol)
     EVT_CHOICE (ID_DP_LOOK, DataPane::OnDataLookChanged)
+    EVT_LIST_ITEM_FOCUSED(ID_DP_LIST, DataPane::OnDataFocusChanged)
 END_EVENT_TABLE()
 
 DataPane::DataPane(wxWindow *parent, wxWindowID id)
@@ -295,9 +300,14 @@ DataPane::DataPane(wxWindow *parent, wxWindowID id)
     //upper_sizer->Add(nb, 1, wxEXPAND);
     //upper->SetSizerAndFit(upper_sizer);
 
+    //-----  data page  -----
     wxPanel *data_page = new wxPanel(nb, -1);
     wxBoxSizer *data_sizer = new wxBoxSizer(wxVERTICAL);
-    dl = new DataList(data_page, -1);
+    dl = new ListWithColors(data_page, ID_DP_LIST, 
+                            vector4(pair<string,bool>("No", true),
+                                    pair<string,bool>("#F+#Z", true),
+                                    pair<string,bool>("Name", true),
+                                    pair<string,bool>("File", false)));
     data_sizer->Add(dl, 1, wxEXPAND|wxALL, 1);
 
     wxBoxSizer *data_look_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -335,10 +345,35 @@ DataPane::DataPane(wxWindow *parent, wxWindowID id)
     data_page->SetSizerAndFit(data_sizer);
     nb->AddPage(data_page, "data");
 
+    //-----  functions page  -----
     wxPanel *func_page = new wxPanel(nb, -1);
+    wxBoxSizer *func_sizer = new wxBoxSizer(wxVERTICAL);
+    vector<pair<string,bool> > fdata;
+    fdata.push_back( pair<string,bool>("Name", true) );
+    fdata.push_back( pair<string,bool>("Type", true) );
+    fdata.push_back( pair<string,bool>("#data", true) );
+    fdata.push_back( pair<string,bool>("center", true) );
+    fdata.push_back( pair<string,bool>("area", false) );
+    fl = new ListWithColors(func_page, ID_DP_LIST, fdata);
+    func_sizer->Add(fl, 1, wxEXPAND|wxALL, 1);
+    wxBoxSizer *func_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBitmapButton *fbtn_new = new wxBitmapButton(func_page, ID_DP_NEW,
+                                                  wxBitmap(add_xpm));
+    fbtn_new->SetToolTip("new function");
+    func_buttons_sizer->Add(fbtn_new);
+    wxBitmapButton *fbtn_del = new wxBitmapButton(func_page, ID_DP_DEL,
+                                                  wxBitmap(close_xpm));
+    fbtn_del->SetToolTip("delete");
+    func_buttons_sizer->Add(fbtn_del);
+    func_sizer->Add(func_buttons_sizer, 0, wxEXPAND);
+    func_page->SetSizerAndFit(func_sizer);
     nb->AddPage(func_page, "functions");
+
+    //-----  variables page  -----
     wxPanel *var_page = new wxPanel(nb, -1);
     nb->AddPage(var_page, "variables");
+
+    //-----
     wxPanel *bottom = new wxPanel(this, -1);
     SplitHorizontally(nb, bottom);
 }
@@ -350,7 +385,7 @@ void DataPane::OnDataButtonNew (wxCommandEvent& WXUNUSED(event))
 
 void DataPane::OnDataButtonDup (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command("@+ < " + join_vector(dl->get_selected_data(), " + "));
+    exec_command("@+ < " + join_vector(get_selected_data(), " + "));
 }
 
 void DataPane::OnDataButtonRen (wxCommandEvent& WXUNUSED(event))
@@ -369,7 +404,7 @@ void DataPane::OnDataButtonRen (wxCommandEvent& WXUNUSED(event))
 
 void DataPane::OnDataButtonDel (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command("delete " + join_vector(dl->get_selected_data(), ", "));
+    exec_command("delete " + join_vector(get_selected_data(), ", "));
 }
 
 void DataPane::OnDataButtonCol (wxCommandEvent& WXUNUSED(event))
@@ -378,7 +413,7 @@ void DataPane::OnDataButtonCol (wxCommandEvent& WXUNUSED(event))
     wxColour col = frame->get_main_plot()->get_data_color(n);
     if (change_color_dlg(col)) {
         frame->get_main_plot()->set_data_color(n, col);
-        update();
+        update_lists();
         frame->refresh_plots(true, false, true);
     }
 }
@@ -389,93 +424,155 @@ void DataPane::OnDataLookChanged (wxCommandEvent& WXUNUSED(event))
     frame->refresh_plots(true, false, true);
 }
 
-void DataPane::update()
+void DataPane::update_lists(bool nondata_changed)
 {
-    dl->populate();
-}
-
-//===============================================================
-//                            DataList
-//===============================================================
-
-BEGIN_EVENT_TABLE(DataList, wxListView)
-    EVT_LIST_ITEM_FOCUSED(-1, DataList::OnFocusChanged)
-END_EVENT_TABLE()
-    
-DataList::DataList(wxWindow *parent, wxWindowID id)
-    : wxListView(parent, id, wxDefaultPosition, wxDefaultSize,
-                 wxLC_REPORT|wxLC_HRULES|wxLC_VRULES)
-{
-    InsertColumn(0, "No", wxLIST_FORMAT_LEFT);
-    InsertColumn(1, "#F+#Z", wxLIST_FORMAT_LEFT);
-    InsertColumn(2, "Name", wxLIST_FORMAT_LEFT);
-}
-
-void DataList::populate()
-{
+    vector<string> data;
     int length = AL->get_ds_count();
-    if (GetItemCount() != length) {
-        DeleteAllItems();
-        for (int i = 0; i < length; ++i)
-            InsertItem(i, S(i).c_str());
+    for (int i = 0; i < length; ++i) {
+        DataWithSum const* ds = AL->get_ds(i);
+        data.push_back(S(i));
+        data.push_back(S(ds->get_sum()->get_ff_count()) 
+                        + "+" + S(ds->get_sum()->get_zz_count()));
+        data.push_back(ds->get_data()->get_title());
+        data.push_back(ds->get_data()->get_filename());
     }
     int active = AL->get_active_ds_position();
-    //create image list
     MainPlot const* mplot = frame->get_main_plot();
-    wxImageList* image_list = new wxImageList(16, 16);
-    wxColour bg_col = mplot->get_bg_color();
-    for (int i = 0; i < length; ++i) {
-        wxColour const& data_col = mplot->get_data_color(i);
-        wxImage image(color_xpm);
-        image.Replace(0, 0, 0, bg_col.Red(), bg_col.Green(), bg_col.Blue());
-        image.Replace(255, 255, 255, 
-                      data_col.Red(), data_col.Green(), data_col.Blue());
-        image_list->Add(wxBitmap(image));
-    }
-    AssignImageList(image_list, wxIMAGE_LIST_SMALL);
-    for (int i = 0; i < length; ++i) {
-        //SetItemTextColour(i, wxColour(0,255,0));//mplot->get_data_color(i));
-        //SetItemBackgroundColour(i, mplot->get_bg_color());
-        SetItemImage(i, i);
-        DataWithSum const* ds = AL->get_ds(i);
-        string t1 = S(ds->get_sum()->get_ff_count()) 
-                    + "+" + S(ds->get_sum()->get_zz_count());
-        SetItem(i, 1, t1.c_str());
-        string t2 = ds->get_data()->get_title();
-        SetItem(i, 2, t2.c_str());
-        Select(i, i == active);
-    }
-    //resize columns
-    SetColumnWidth(0, wxLIST_AUTOSIZE);
-    SetColumnWidth(1, wxLIST_AUTOSIZE);
-    SetColumnWidth(2, wxLIST_AUTOSIZE);
-    int for_col2 = GetClientSize().GetWidth() - GetColumnWidth(0) 
-                                              - GetColumnWidth(1);
-    if (GetColumnWidth(2) < for_col2)
-        SetColumnWidth(2, for_col2);
-    
-    Focus(active);
+    wxColour const& bg_col = mplot->get_bg_color();
+    vector<wxColour> data_colors(length);
+    for (int i = 0; i < length; ++i) 
+        data_colors[i] = mplot->get_data_color(i);
+    dl->populate(data, data_colors, bg_col, active, nondata_changed);
 }
 
-vector<string> DataList::get_selected_data()
+vector<string> DataPane::get_selected_data() const
 {
     vector<string> dd;
-    for (int i = GetFirstSelected(); i != -1; i = GetNextSelected(i))
+    for (int i = dl->GetFirstSelected(); i != -1; i = dl->GetNextSelected(i))
         dd.push_back("@" + S(i));
     if (dd.empty()) {
-        int n = GetFocusedItem();
+        int n = dl->GetFocusedItem();
         dd.push_back("@" + S(n == -1 ? 0 : n));
     }
     return dd;
 }
 
-void DataList::OnFocusChanged(wxListEvent &event)
+void DataPane::OnDataFocusChanged(wxListEvent& event)
 {
     int n = event.GetIndex();
     if (n >= 0 && AL->get_ds_count() > 1 && AL->get_active_ds_position() != n) 
         exec_command("@" + S(n));
 }
 
+
+
+//===============================================================
+//                            ListWithColors
+//===============================================================
+
+BEGIN_EVENT_TABLE(ListWithColors, wxListView)
+    EVT_LIST_COL_CLICK(-1, ListWithColors::OnColumnMenu)
+    EVT_LIST_COL_RIGHT_CLICK(-1, ListWithColors::OnColumnMenu)
+    EVT_MENU_RANGE (ID_DL_CMENU_SHOW_START, ID_DL_CMENU_SHOW_END, 
+                    ListWithColors::OnShowColumn)
+    EVT_MENU (ID_DL_CMENU_FITCOLS, ListWithColors::OnFitColumnWidths)
+END_EVENT_TABLE()
+    
+ListWithColors::ListWithColors(wxWindow *parent, wxWindowID id, 
+                               vector<pair<string,bool> > const& columns_)
+    : wxListView(parent, id, wxDefaultPosition, wxDefaultSize,
+                 wxLC_REPORT|wxLC_HRULES|wxLC_VRULES),
+      columns(columns_)
+{
+    for (int i = 0; i < size(columns); ++i)
+        if (columns[i].second)
+            InsertColumn(i, columns[i].first.c_str(), wxLIST_FORMAT_LEFT);
+}
+
+void ListWithColors::populate(vector<string> const& data, 
+                              vector<wxColour> const& data_colors, 
+                              wxColour const& bg_col,
+                              int active,
+                              bool nondata_changed)
+{
+    assert(data.size() % columns.size() == 0);
+    if (!nondata_changed && data == list_data)
+        return;
+    int length = data.size() / columns.size();
+    Freeze();
+    if (GetItemCount() != length) {
+        nondata_changed = true;
+        DeleteAllItems();
+        for (int i = 0; i < length; ++i)
+            InsertItem(i, S(i).c_str());
+    }
+    if (nondata_changed) {
+        //create image list
+        wxImageList* image_list = new wxImageList(16, 16);
+        for (int i = 0; i < length; ++i) {
+            wxColour const& d_c = data_colors[i];
+            wxImage image(color_xpm);
+            image.Replace(0, 0, 0, bg_col.Red(), bg_col.Green(), bg_col.Blue());
+            image.Replace(255, 255, 255, d_c.Red(), d_c.Green(), d_c.Blue());
+            image_list->Add(wxBitmap(image));
+        }
+        AssignImageList(image_list, wxIMAGE_LIST_SMALL);
+    }
+    for (int i = 0; i < length; ++i) {
+        int c = 0;
+        for (int j = 0; j < size(columns); ++j) {
+            if (columns[j].second) {
+                SetItem(i, c, data[i*columns.size()+j].c_str(), 
+                              c == 0 ? i : -1);
+                ++c;
+            }
+        }
+        Select(i, i == active);
+    }
+    list_data = data;
+    
+    Focus(active);
+    Thaw();
+}
+
+void ListWithColors::OnColumnMenu(wxListEvent& WXUNUSED(event))
+{
+    wxMenu popup_menu; 
+    for (int i = 0; i < size(columns); ++i) {
+        popup_menu.AppendCheckItem(ID_DL_CMENU_SHOW_START+i, 
+                                   columns[i].first.c_str());
+        popup_menu.Check(ID_DL_CMENU_SHOW_START+i, columns[i].second);
+    }
+    popup_menu.AppendSeparator();
+    popup_menu.Append(ID_DL_CMENU_FITCOLS, "Fit Columns");
+    PopupMenu (&popup_menu, 10, 3);
+}
+
+void ListWithColors::OnShowColumn(wxCommandEvent &event)
+{
+    int n = event.GetId() - ID_DL_CMENU_SHOW_START;
+    int col;
+    for (int i = 0; i < n; ++i)
+        if (columns[i].second)
+            ++col;
+    //TODO if col==0 take care about images
+    bool show = event.IsChecked();
+    if (show) {
+        InsertColumn(col, columns[col].first.c_str());
+        for (int i = 0; i < GetItemCount(); ++i)
+            SetItem(i, col, list_data[i*columns.size()+n]);
+    }
+    else
+        DeleteColumn(col);
+    columns[n].second = show;
+    Refresh();
+}
+
+void ListWithColors::OnFitColumnWidths(wxCommandEvent &WXUNUSED(event))
+{
+    for (int i = 0; i < GetColumnCount(); ++i)
+        SetColumnWidth(i, wxLIST_AUTOSIZE);
+}
 
 //===============================================================
 //                            OutputWin

@@ -1483,7 +1483,7 @@ void FFrame::focus_input(int key)
 /// after execCommand() and can't be updated in another way
 void FFrame::after_cmd_updates()
 {
-    data_pane->update();
+    data_pane->update_lists();
 }
 
 int FFrame::get_focused_data()
@@ -1503,7 +1503,7 @@ MainPlot const* FFrame::get_main_plot() const
 
 void FFrame::update_data_pane()
 {
-    data_pane->update();
+    data_pane->update_lists();
 }
 
 bool FFrame::get_apply_to_all_ds()
