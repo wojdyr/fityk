@@ -432,10 +432,14 @@ struct CmdGrammar : public grammar<CmdGrammar>
             = +(alnum_p | '_')
             ;
 
-        assign_func
+        functionname_assign
             = (FunctionLhsG [assign_a(t)] >> '=' 
               | eps_p [assign_a(t, empty)]
               )
+            ;
+
+        assign_func
+            = functionname_assign
               >> function_name [assign_a(t2)]
               >> str_p("(")[clear_a(vt)] 
               >> !((no_actions_d[FuncG][push_back_a(vt)] 
@@ -555,13 +559,12 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         guess_arg
-            = eps_p [clear_a(vt)] [clear_a(vr)] [assign_a(t, empty)] 
+            = eps_p [clear_a(vt)] [clear_a(vr)] 
               >> function_name [assign_a(t2)]
               >> plot_range
               >> !((function_param >> '=' >> no_actions_d[FuncG])
                                                            [push_back_a(vt)]
                    % ',')
-              >> !("as" >> FunctionLhsG [assign_a(t)]) 
               >> in_data
             ;
 
@@ -611,6 +614,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
         statement 
             = transform 
             | assign_var 
+            | (functionname_assign >> "guess" >> guess_arg) [&do_guess]
             | subst_func_param 
             | assign_func 
             | put_function
@@ -623,13 +627,13 @@ struct CmdGrammar : public grammar<CmdGrammar>
             | (str_p("plot") [clear_a(vr)] 
               >> plot_range >> plot_range) [&do_plot]
             | ("fit" >> fit_arg) [&do_fit]
-            | ("guess" >> guess_arg) [&do_guess]
             | ("sleep" >> ureal_p[assign_a(tmp_real)])[&do_sleep]
             | "commands" >> commands_arg
             | str_p("reset") [&do_reset]
             | (str_p("dump") >> '>' >> filename_str)[&do_dump]
             | "set" >> (set_arg % ',')
             ;
+
         multi 
             = (!(statement % ';') >> !('#' >> *~ch_p('\n'))) [&do_replot];
 
@@ -637,7 +641,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
 
     rule<ScannerT> transform, assign_var, function_name, assign_func, 
                    function_param, subst_func_param, put_function, 
-                   put_func_to, in_data, ds_prefix,
+                   functionname_assign, put_func_to, in_data, ds_prefix,
                    dataset_handling, filename_str, guess_arg,
                    existing_dataset_nr, dataset_nr, 
                    optional_plus, int_range, commands_arg, set_arg,

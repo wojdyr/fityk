@@ -73,24 +73,28 @@ public:
     MouseModeEnum get_mouse_mode() const { return mode; }
     wxColour const& get_data_color(int n) const
         { return dataColour[n % max_data_pens]; }
+    wxColour const& get_func_color(int n) const
+        { return peakPen[n % max_peak_pens].GetColour(); }
     void set_data_color(int n, wxColour const& col) 
         { dataColour[n % max_data_pens] = col; }
+    void set_func_color(int n, wxColour const& col) 
+        { peakPen[n % max_peak_pens].SetColour(col); }
 
 private:
     MouseModeEnum basic_mode, 
                     mode;  //actual mode -- either basic_mode or mmd_peak
-    static const int max_phase_pens = 8;
+    static const int max_group_pens = 8;
     static const int max_peak_pens = 32;
     static const int max_data_pens = 32;
     static const int max_radius = 4; //size of data point
     bool smooth;
-    bool peaks_visible, phases_visible, sum_visible, data_visible, 
+    bool peaks_visible, groups_visible, sum_visible, data_visible, 
          plabels_visible; 
     wxFont plabelFont;
     std::string plabel_format;
     std::vector<std::string> plabels;
     wxPen sumPen, bg_pointsPen;
-    wxPen phasePen[max_phase_pens], peakPen[max_peak_pens];
+    wxPen groupPen[max_group_pens], peakPen[max_peak_pens];
     wxColour dataColour[max_data_pens];
     int pressed_mouse_button;
     bool ctrl;
@@ -101,14 +105,16 @@ private:
     void draw_background(wxDC& dc); 
     void draw_sum (wxDC& dc, std::vector<Point>::const_iterator first,
                    std::vector<Point>::const_iterator last);
-    void draw_phases (wxDC& dc, std::vector<Point>::const_iterator first,
+    void draw_groups (wxDC& dc, std::vector<Point>::const_iterator first,
                       std::vector<Point>::const_iterator last);
     void draw_peaks (wxDC& dc, std::vector<Point>::const_iterator first,
                      std::vector<Point>::const_iterator last);
     void buffer_peaks (std::vector<Point>::const_iterator first,
                        std::vector<Point>::const_iterator last);
     void draw_peaktops (wxDC& dc);
+    void draw_peaktop_selection(wxDC& dc);
     void draw_plabels (wxDC& dc);
+    void draw_dataset(wxDC& dc, int n);
     void prepare_peaktops();
     void prepare_peak_labels();
     void look_for_peaktop (wxMouseEvent& event);

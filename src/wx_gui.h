@@ -20,7 +20,7 @@ class ApplicationLogic;
 class FDXLoadDlg;
 class PlotPane;
 class IOPane;
-class DataPane;
+class SideBar;
 class ProportionalSplitter;
 class DataEditorDlg;
 
@@ -52,7 +52,7 @@ public:
 
     void OnPeakChoice (wxCommandEvent& event);
     void OnChangeMouseMode (wxCommandEvent& event);
-    void OnSwitchDPane (wxCommandEvent& event);
+    void OnSwitchSideBar (wxCommandEvent& event);
     void OnClickTool (wxCommandEvent& event);
 
 private:
@@ -95,6 +95,7 @@ public:
     void OnDEditor       (wxCommandEvent& event);
     void OnFastDT        (wxCommandEvent& event);
     void OnFastDTUpdate  (wxUpdateUIEvent& event);           
+    void OnAllDatasetsUpdate (wxUpdateUIEvent& event);           
     void OnDExport       (wxCommandEvent& event);
 
     void OnSEditor       (wxCommandEvent& event);            
@@ -139,8 +140,8 @@ public:
     void OnConfigBuiltin (wxCommandEvent& event);
     void OnConfigSave    (wxCommandEvent& event);
     void OnGuiShowUpdate (wxUpdateUIEvent& event);
-    void SwitchDPane(bool show);
-    void OnSwitchDPane(wxCommandEvent& ev) {SwitchDPane(ev.IsChecked());}
+    void SwitchSideBar(bool show);
+    void OnSwitchSideBar(wxCommandEvent& ev) {SwitchSideBar(ev.IsChecked());}
     void OnSwitchAuxPlot(wxCommandEvent& ev);
     void SwitchIOPane(bool show);
     void OnSwitchIOPane(wxCommandEvent& ev) {SwitchIOPane(ev.IsChecked());}
@@ -165,21 +166,24 @@ public:
                        bool only_main=false);
     void draw_crosshair(int X, int Y);
     void focus_input(int key=0);
+    void edit_in_input(std::string const& s);
     void set_status_text(const wxString &text, StatusBarField field=sbf_text) 
             { if (status_bar) SetStatusText(text, field); }
     bool display_help_section(const std::string &s);
     void after_cmd_updates();
-    int get_focused_data();
+    std::string get_focused_data_str();
     MainPlot* get_main_plot(); 
     MainPlot const* get_main_plot() const; 
     void update_data_pane(); 
     bool get_apply_to_all_ds();
+    SideBar const* get_sidebar() const { return sidebar; }
+    void activate_function(int n);
 
 protected:
     ProportionalSplitter *main_pane;
     PlotPane *plot_pane;
     IOPane *io_pane;
-    DataPane *data_pane;
+    SideBar *sidebar;
     FStatusBar *status_bar;
 
     int peak_type_nr;

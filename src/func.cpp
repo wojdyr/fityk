@@ -195,6 +195,18 @@ string Function::get_info(vector<Variable*> const &variables,
     return s;
 } 
 
+string Function::get_current_definition(vector<Variable*> const &variables,
+                                        vector<fp> const &parameters) const
+{
+    vector<string> vv; 
+    for (vector<int>::const_iterator i = var_idx.begin(); 
+            i != var_idx.end(); ++i) {
+        Variable const* v = variables[*i];
+        vv.push_back(v->is_simple() ? v->get_formula(parameters) : v->xname);
+    }
+    return xname + " = " + type_name + "(" + join_vector(vv, ", ") + ")";
+}
+
 string Function::get_current_formula(string const& x) const
 {
     string t = type_rhs;
@@ -202,6 +214,15 @@ string Function::get_current_formula(string const& x) const
         replace_words(t, type_var_names[i], S(vv[i]));
     replace_words(t, "x", x);
     return t;
+}
+
+int Function::find_param_nr(std::string const& param) const
+{
+    vector<string>::const_iterator i = find(type_var_names.begin(), 
+                                            type_var_names.end(), param);
+    if (i == type_var_names.end())
+        throw ExecuteError("function " + xname + " has no parameter: " + param);
+    return i - type_var_names.begin();
 }
 
 int Function::unnamed_counter = 0;

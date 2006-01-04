@@ -79,7 +79,8 @@ protected:
     fp get_max_abs_y (fp (*compute_y)(std::vector<Point>::const_iterator));
     void draw_data (wxDC& dc, 
                     fp (*compute_y)(std::vector<Point>::const_iterator),
-                    Data const *data, wxColour const& color = wxNullColour);
+                    Data const *data, wxColour const& color = wxNullColour,
+                    int Y_offset = 0);
     void change_tics_font();
     int y2Y (fp y) {  fp t = (y - yLogicalOrigin) * yUserScale;
                       return (fabs(t) < SHRT_MAX ? static_cast<int>(t) 

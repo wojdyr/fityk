@@ -16,6 +16,7 @@
 #include "wx_mplot.h"
 #include "wx_gui.h"
 #include "wx_dlg.h"
+#include "wx_pane.h"
 #include "data.h"
 #include "logic.h"
 #include "sum.h"
@@ -29,7 +30,7 @@ enum {
     ID_plot_popup_za                = 25001, 
     ID_plot_popup_data              = 25011,
     ID_plot_popup_sum                      ,
-    ID_plot_popup_phase                    ,
+    ID_plot_popup_groups                   ,
     ID_plot_popup_peak                     ,
     ID_plot_popup_plabels                  ,
     ID_plot_popup_xaxis                    ,
@@ -37,14 +38,9 @@ enum {
     ID_plot_popup_smooth                   ,
 
     ID_plot_popup_c_background             ,
-    ID_plot_popup_c_active_data            ,
     ID_plot_popup_c_inactive_data          ,
     ID_plot_popup_c_sum                    ,
     ID_plot_popup_c_xaxis                  ,
-    ID_plot_popup_c_phase_0         = 25100,
-    ID_plot_popup_c_peak_0          = 25140,
-    ID_plot_popup_c_phase           = 25190,
-    ID_plot_popup_c_peak                   ,
     ID_plot_popup_c_inv                    ,
 
     ID_plot_popup_m_plabel                 ,
@@ -76,7 +72,7 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_MENU (ID_plot_popup_za,     MainPlot::OnZoomAll)
     EVT_MENU_RANGE (ID_plot_popup_data, ID_plot_popup_smooth,  
                                     MainPlot::OnPopupShowXX)
-    EVT_MENU_RANGE (ID_plot_popup_c_background, ID_plot_popup_c_phase - 1, 
+    EVT_MENU_RANGE (ID_plot_popup_c_background, ID_plot_popup_c_xaxis, 
                                     MainPlot::OnPopupColor)
     EVT_MENU_RANGE (ID_plot_popup_pt_size, ID_plot_popup_pt_size + max_radius, 
                                     MainPlot::OnPopupRadius)
@@ -114,6 +110,22 @@ fp y_of_data_for_draw_data(vector<Point>::const_iterator i)
     return i->y;
 }
 
+void MainPlot::draw_dataset(wxDC& dc, int n)
+{
+    bool shadowed;
+    int offset;
+    bool r = frame->get_sidebar()->howto_plot_dataset(n, shadowed, offset);
+    if (!r)
+        return;
+    wxColour col = get_data_color(n);
+    if (shadowed) {
+        wxColour const& bg_col = get_bg_color();
+        col.Set((col.Red() + bg_col.Red())/2,
+                (col.Green() + bg_col.Green())/2,
+                (col.Blue() + bg_col.Blue())/2);
+    }
+    draw_data(dc, y_of_data_for_draw_data, AL->get_data(n), col, offset);
+}
 
 void MainPlot::Draw(wxDC &dc)
 {
@@ -132,13 +144,11 @@ void MainPlot::Draw(wxDC &dc)
         int focused_data = AL->get_active_ds_position();
         for (int i = 0; i < AL->get_ds_count(); i++) {
             if (i != focused_data) {
-                draw_data(dc, y_of_data_for_draw_data, AL->get_data(i), 
-                          get_data_color(i));
+                draw_dataset(dc, i);
             }
         }
         // focused dataset is drawed at the end (to be at the top)
-        draw_data(dc, y_of_data_for_draw_data, AL->get_data(focused_data),
-                  get_data_color(focused_data));
+        draw_dataset(dc, focused_data);
     }
 
     if (tics_visible)
@@ -154,8 +164,8 @@ void MainPlot::Draw(wxDC &dc)
 
     if (peaks_visible)
         draw_peaks (dc, f, l);
-    if (phases_visible)
-        draw_phases (dc, f, l);
+    if (groups_visible)
+        draw_groups (dc, f, l);
     if (sum_visible)
         draw_sum (dc, f, l);
     if (x_axis_visible) 
@@ -235,7 +245,7 @@ void MainPlot::draw_sum(wxDC& dc, vector<Point>::const_iterator first,
 
 
 //TODO draw groups
-void MainPlot::draw_phases (wxDC& /*dc*/, vector<Point>::const_iterator /*first*/,
+void MainPlot::draw_groups (wxDC& /*dc*/, vector<Point>::const_iterator /*first*/,
                                       vector<Point>::const_iterator /*last*/)
                             
 {
@@ -297,6 +307,18 @@ void MainPlot::draw_peaktops (wxDC& dc)
                                            i != shared.peaktops.end(); i++) {
         dc.DrawRectangle (i->x - 1, i->y - 1, 3, 3);
     }
+    draw_peaktop_selection(dc);
+}
+
+void MainPlot::draw_peaktop_selection (wxDC& dc)
+{
+    int n = frame->get_sidebar()->get_focused_func();
+    if (n >= size(shared.peaktops))
+            return;
+    wxPoint const&p = shared.peaktops[n];
+    dc.SetLogicalFunction (wxINVERT);
+    dc.SetPen(*wxBLACK_PEN);
+    dc.DrawCircle(p.x, p.y, 4);
 }
 
 void MainPlot::draw_plabels (wxDC& dc)
@@ -459,20 +481,20 @@ void MainPlot::read_settings(wxConfigBase *cf)
     sumPen.SetColour (read_color_from_config (cf, "sum", wxColour("YELLOW")));
     bg_pointsPen.SetColour (read_color_from_config(cf, "BgPoints", 
                                                    wxColour("RED")));
-    for (int i = 0; i < max_phase_pens; i++)
-        phasePen[i].SetColour (read_color_from_config(cf, 
-                                                      ("phase/" + S(i)).c_str(),
+    for (int i = 0; i < max_group_pens; i++)
+        groupPen[i].SetColour (read_color_from_config(cf, 
+                                                      ("group/" + S(i)).c_str(),
                                                       wxColour(173, 216, 230)));
     for (int i = 0; i < max_peak_pens; i++)
         peakPen[i].SetColour (read_color_from_config (cf, 
                                                       ("peak/" + S(i)).c_str(),
-                                                      wxColour(255, 165, 0)));
+                                                      wxColour(255, 0, 0)));
                             
     cf->SetPath("/MainPlot/Visible");
     smooth = read_bool_from_config(cf, "smooth", false);
     peaks_visible = read_bool_from_config (cf, "peaks", true); 
     plabels_visible = read_bool_from_config (cf, "plabels", false); 
-    phases_visible = read_bool_from_config (cf, "phases", false);  
+    groups_visible = read_bool_from_config (cf, "groups", false);  
     sum_visible = read_bool_from_config (cf, "sum", true);
     data_visible = read_bool_from_config (cf, "data", true); 
     cf->SetPath("/MainPlot");
@@ -501,9 +523,9 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     write_color_to_config (cf, "inactive_data", inactiveDataPen.GetColour());
     write_color_to_config (cf, "sum", sumPen.GetColour());
     write_color_to_config (cf, "BgPoints", bg_pointsPen.GetColour());
-    for (int i = 0; i < max_phase_pens; i++)
-        write_color_to_config (cf, ("phase/" + S(i)).c_str(), 
-                               phasePen[i].GetColour());
+    for (int i = 0; i < max_group_pens; i++)
+        write_color_to_config (cf, ("group/" + S(i)).c_str(), 
+                               groupPen[i].GetColour());
     for (int i = 0; i < max_peak_pens; i++)
         write_color_to_config (cf, ("peak/" + S(i)).c_str(), 
                                peakPen[i].GetColour());
@@ -512,7 +534,7 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->Write ("smooth", smooth);
     cf->Write ("peaks", peaks_visible);
     cf->Write ("plabels", plabels_visible);
-    cf->Write ("phases", phases_visible);
+    cf->Write ("groups", groups_visible);
     cf->Write ("sum", sum_visible);
     cf->Write ("data", data_visible);
     cf->SetPath("/MainPlot");
@@ -552,8 +574,8 @@ void MainPlot::show_popup_menu (wxMouseEvent &event)
     show_menu->Check (ID_plot_popup_data, data_visible);
     show_menu->AppendCheckItem (ID_plot_popup_sum, "S&um", "");
     show_menu->Check (ID_plot_popup_sum, sum_visible);
-    show_menu->AppendCheckItem (ID_plot_popup_phase, "P&hases", "");
-    show_menu->Check (ID_plot_popup_phase, phases_visible);
+    show_menu->AppendCheckItem (ID_plot_popup_groups, "Grouped peaks", "");
+    show_menu->Check (ID_plot_popup_groups, groups_visible);
     show_menu->AppendCheckItem (ID_plot_popup_peak, "&Peaks", "");
     show_menu->Check (ID_plot_popup_peak, peaks_visible);
     show_menu->AppendCheckItem (ID_plot_popup_plabels, "Peak &labels", "");
@@ -566,20 +588,9 @@ void MainPlot::show_popup_menu (wxMouseEvent &event)
 
     wxMenu *color_menu = new wxMenu;
     color_menu->Append (ID_plot_popup_c_background, "&Background");
-    color_menu->Append (ID_plot_popup_c_active_data, "&Active Data");
     color_menu->Append (ID_plot_popup_c_inactive_data, "&Inactive Data");
     color_menu->Append (ID_plot_popup_c_sum, "&Sum");
     color_menu->Append (ID_plot_popup_c_xaxis, "&X Axis");
-    wxMenu *color_phase_menu = new wxMenu;
-    for (int i = 0; i < max_phase_pens; i++)
-        color_phase_menu->Append (ID_plot_popup_c_phase_0 + i, 
-                                  wxString::Format("&%d", i));
-    color_menu->Append (ID_plot_popup_c_phase, "P&hases", color_phase_menu);
-    wxMenu *color_peak_menu = new wxMenu;
-    for (int i = 0; i < max_peak_pens; i++)
-        color_peak_menu->Append (ID_plot_popup_c_peak_0 + i, 
-                                 wxString::Format("%d", i));
-    color_menu->Append (ID_plot_popup_c_peak, "&Peaks", color_peak_menu);
     color_menu->AppendSeparator(); 
     color_menu->Append (ID_plot_popup_c_inv, "&Invert colors"); 
     popup_menu.Append (wxNewId(), "&Color", color_menu);  
@@ -816,6 +827,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         cancel_mouse_press();
     }
     else if (button == 1 && mode == mmd_peak) {
+        frame->activate_function(over_peak);
         move_peak(mat_start, event);
         if (AL->get_function(over_peak)->is_peak()) {
             frame->set_status_text(wxString("Moving peak ") 
@@ -1129,7 +1141,7 @@ void MainPlot::OnPopupShowXX (wxCommandEvent& event)
     switch (event.GetId()) {
         case ID_plot_popup_data :  data_visible = !data_visible;     break; 
         case ID_plot_popup_sum  :  sum_visible = !sum_visible;       break; 
-        case ID_plot_popup_phase:  phases_visible = !phases_visible; break; 
+        case ID_plot_popup_groups: groups_visible = !groups_visible; break; 
         case ID_plot_popup_peak :  peaks_visible = !peaks_visible;   break;  
         case ID_plot_popup_plabels:plabels_visible = !plabels_visible; break;
         case ID_plot_popup_xaxis:  x_axis_visible = !x_axis_visible; break; 
@@ -1143,10 +1155,6 @@ void MainPlot::OnPopupShowXX (wxCommandEvent& event)
 void MainPlot::OnPopupColor(wxCommandEvent& event)
 {
     int n = event.GetId();
-    if (n == ID_plot_popup_c_active_data) {
-        //TODO focus datasets pane or sth like this
-        return;
-    }
     wxBrush *brush = 0;
     wxPen *pen = 0;
     if (n == ID_plot_popup_c_background)
@@ -1158,12 +1166,6 @@ void MainPlot::OnPopupColor(wxCommandEvent& event)
         pen = &sumPen;
     else if (n == ID_plot_popup_c_xaxis)
         pen = &xAxisPen;
-    else if (n >= ID_plot_popup_c_phase_0 
-              && n < ID_plot_popup_c_phase_0 + max_phase_pens)
-        pen = &phasePen[n - ID_plot_popup_c_phase_0];
-    else if (n >= ID_plot_popup_c_peak_0
-              && n < ID_plot_popup_c_peak_0 + max_peak_pens)
-        pen = &peakPen[n - ID_plot_popup_c_peak_0];
     else 
         return;
     wxColour col = brush ? brush->GetColour() : pen->GetColour();
@@ -1186,8 +1188,8 @@ void MainPlot::OnInvertColors (wxCommandEvent& WXUNUSED(event))
     inactiveDataPen.SetColour (invert_colour(inactiveDataPen.GetColour()));
     sumPen.SetColour (invert_colour (sumPen.GetColour()));  
     xAxisPen.SetColour (invert_colour (xAxisPen.GetColour()));  
-    for (int i = 0; i < max_phase_pens; i++)
-        phasePen[i].SetColour (invert_colour (phasePen[i].GetColour()));
+    for (int i = 0; i < max_group_pens; i++)
+        groupPen[i].SetColour (invert_colour (groupPen[i].GetColour()));
     for (int i = 0; i < max_peak_pens; i++)
         peakPen[i].SetColour (invert_colour (peakPen[i].GetColour()));
     frame->update_data_pane();

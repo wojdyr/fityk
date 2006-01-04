@@ -32,8 +32,12 @@ public:
     virtual ~VariableUser() {}
     bool is_dependent_on(int idx, std::vector<Variable*> const &variables);
     bool is_directly_dependent_on(int idx);
-    void set_var_idx(std::vector<Variable*> const &variables);
+    void set_var_idx(std::vector<Variable*> const& variables);
+    std::vector<int> const& get_var_idx() { return var_idx; }
     int get_max_var_idx();
+    int get_vars_count() const { return varnames.size(); }
+    std::string get_var_name(int n) const
+             { assert(n >= 0 && n < size(varnames)); return varnames[n]; }
     void substitute_param(int n, std::string const &new_p)
              { assert(n >= 0 && n < size(varnames)); varnames[n] = new_p; }
 protected:
@@ -47,6 +51,9 @@ class Variable : public VariableUser
 {
     static int unnamed_counter;
 public:
+    bool const auto_delete;
+    bool const hidden;
+
     struct ParMult { int p; fp mult; };
     Variable(const std::string &name_, int nr_, 
              bool auto_delete_=false, bool hidden_=false);
@@ -64,17 +71,14 @@ public:
                          bool extended=false) const;
     std::string get_formula(std::vector<fp> const &parameters) const;
     bool is_visible() const { return !hidden; }
-    bool is_auto_delete() const { return auto_delete; }
     /// (re-)create bytecode, required after set_var_idx()
     void tree_to_bytecode(); 
     std::vector<ParMult> const& get_recursive_derivatives() const 
                                             { return recursive_derivatives; }
     bool is_simple() const { return nr != -1; }
+
 private:
     int nr; /// -1 unless it's simple "variable"
-    bool auto_delete;
-    bool hidden;
-  
     // these are recalculated every time parameters or variables are changed
     fp value;
     std::vector<fp> derivatives;
@@ -127,6 +131,7 @@ public:
     std::string assign_func(std::string const &name, 
                             std::string const &function, 
                             std::vector<std::string> const &vars);
+    std::string get_func_param(std::string const&name, std::string const&param);
     void substitute_func_param(std::string const &name, 
                                std::string const &param,
                                std::string const &var);
@@ -156,8 +161,8 @@ protected:
 
     std::vector<Function*> functions;
 
+    std::string get_or_make_variable(std::string const& func);
     Variable *create_variable(std::string const &name, std::string const &rhs);
-    int get_variable_value(std::string const &name);
     bool is_variable_referred(int i, 
                               std::vector<std::string> const &ignore_vars
                                                  =std::vector<std::string>(),

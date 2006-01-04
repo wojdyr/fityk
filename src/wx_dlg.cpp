@@ -479,7 +479,7 @@ private:
 static const char *default_examples = 
 
 "integrate|useful|Integrate data numerically and adjust std. dev.;"
-"in other words it produces cumulative area"
+" (it gives cumulative area)"
 "|Y[1...] = Y[n-1] + y[n];S = sqrt(max(1,y))|Y\n"
 
 "differentiate|useful|compute numerical derivative f'(x)"
@@ -487,9 +487,13 @@ static const char *default_examples =
 "M=M-1;S = sqrt(max(1,y))|Y\n"
 
 "normalize area|useful|divide all Y (and std. dev.) values;"
-"by the current data area; it produces unit area"
+"by the current data area; (it gives unit area)"
 "|S = s / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0);" 
 "Y = y / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0)|Y\n" 
+
+"reduce 2x|useful|join every two adjacent points"
+"|X[...-1] = (x[n]+x[n+1])/2;Y[...-1] = y[n]+y[n+1];"
+"S[...-1] = sqrt(s[n]^2+s[n]^2); delete(n%2==1)|Y\n"
 
 "zero negative y|useful|zero the Y value; of points with negative Y"
 "|Y=max(y,0)|Y\n"
@@ -997,7 +1001,7 @@ bool export_data_dlg(wxWindow *parent, bool load_exported)
     dir = fdlg.GetDirectory();
     if (fdlg.ShowModal() == wxID_OK) {
         string path = fdlg.GetPath().c_str();
-        string ds = "@" + S(frame->get_focused_data());
+        string ds = frame->get_focused_data_str();
         exec_command(ds + " > '" + path + "'");
         if (load_exported)
             exec_command(ds + " <'" + path + "'");

@@ -31,7 +31,13 @@
 #include "img/rename.xpm"
 #include "img/close.xpm"
 #include "img/colorsel.xpm"
+#include "img/editf.xpm"
+#include "img/filter.xpm"
+#include "img/convert.xpm"
 #include "img/color.xpm"
+#include "img/copyfunc.xpm"
+#include "img/unused.xpm"
+#include "img/zshift.xpm"
 
 using namespace std;
 
@@ -50,10 +56,23 @@ enum {
     ID_DP_DUP                  ,
     ID_DP_REN                  ,
     ID_DP_DEL                  ,
+    ID_DP_CPF                  ,
     ID_DP_COL                  ,
+    ID_FP_FILTER               ,
+    ID_FP_LIST                 ,
+    ID_FP_NEW                  ,
+    ID_FP_DEL                  ,
+    ID_FP_EDIT                 ,
+    ID_FP_CHTYPE               ,
+    ID_FP_COL                  ,
+    ID_VP_LIST                 ,
+    ID_VP_NEW                  ,
+    ID_VP_DEL                  ,
+    ID_VP_EDIT                 ,
     ID_DL_CMENU_SHOW_START     ,
     ID_DL_CMENU_SHOW_END = ID_DL_CMENU_SHOW_START+20,
-    ID_DL_CMENU_FITCOLS
+    ID_DL_CMENU_FITCOLS        ,
+    ID_DL_SELECTALL
 };
 
 
@@ -88,7 +107,8 @@ void PlotPane::zoom_forward()
 
 string PlotPane::zoom_backward(int n)
 {
-    if (n < 1 || zoom_hist.empty()) return "";
+    if (n < 1 || zoom_hist.empty()) 
+        return "";
     int pos = zoom_hist.size() - n;
     if (pos < 0) pos = 0;
     string val = zoom_hist[pos];
@@ -277,21 +297,44 @@ void IOPane::focus_input(int key)
     }
 }
 
+void IOPane::edit_in_input(string const& s) 
+{
+    input_field->WriteText(s.c_str());
+    input_field->SetFocus(); 
+}
+
 //===============================================================
-//                            DataPane
+//                            SideBar
 //===============================================================
 
-BEGIN_EVENT_TABLE(DataPane, ProportionalSplitter)
-    EVT_BUTTON (ID_DP_NEW, DataPane::OnDataButtonNew)
-    EVT_BUTTON (ID_DP_DUP, DataPane::OnDataButtonDup)
-    EVT_BUTTON (ID_DP_REN, DataPane::OnDataButtonRen)
-    EVT_BUTTON (ID_DP_DEL, DataPane::OnDataButtonDel)
-    EVT_BUTTON (ID_DP_COL, DataPane::OnDataButtonCol)
-    EVT_CHOICE (ID_DP_LOOK, DataPane::OnDataLookChanged)
-    EVT_LIST_ITEM_FOCUSED(ID_DP_LIST, DataPane::OnDataFocusChanged)
+void add_bitmap_button(wxWindow* parent, wxWindowID id, char** xpm,
+                       char const* tip, wxSizer* sizer)
+{
+    wxBitmapButton *btn = new wxBitmapButton(parent, id, wxBitmap(xpm));
+    btn->SetToolTip(tip);
+    sizer->Add(btn);
+}
+
+
+BEGIN_EVENT_TABLE(SideBar, ProportionalSplitter)
+    EVT_BUTTON (ID_DP_NEW, SideBar::OnDataButtonNew)
+    EVT_BUTTON (ID_DP_DUP, SideBar::OnDataButtonDup)
+    EVT_BUTTON (ID_DP_REN, SideBar::OnDataButtonRen)
+    EVT_BUTTON (ID_DP_DEL, SideBar::OnDataButtonDel)
+    EVT_BUTTON (ID_DP_CPF, SideBar::OnDataButtonCopyF)
+    EVT_BUTTON (ID_DP_COL, SideBar::OnDataButtonCol)
+    EVT_CHOICE (ID_DP_LOOK, SideBar::OnDataLookChanged)
+    EVT_LIST_ITEM_FOCUSED(ID_DP_LIST, SideBar::OnDataFocusChanged)
+    EVT_CHOICE (ID_FP_FILTER, SideBar::OnFuncFilterChanged)
+    EVT_BUTTON (ID_FP_NEW, SideBar::OnFuncButtonNew)
+    EVT_BUTTON (ID_FP_DEL, SideBar::OnFuncButtonDel)
+    EVT_BUTTON (ID_FP_EDIT, SideBar::OnFuncButtonEdit)
+    EVT_BUTTON (ID_FP_CHTYPE, SideBar::OnFuncButtonChType)
+    EVT_BUTTON (ID_FP_COL, SideBar::OnFuncButtonCol)
+    EVT_LIST_ITEM_FOCUSED(ID_FP_LIST, SideBar::OnFuncFocusChanged)
 END_EVENT_TABLE()
 
-DataPane::DataPane(wxWindow *parent, wxWindowID id)
+SideBar::SideBar(wxWindow *parent, wxWindowID id)
 : ProportionalSplitter(parent, id, 0.75) 
 {
     //wxPanel *upper = new wxPanel(this, -1);
@@ -301,7 +344,7 @@ DataPane::DataPane(wxWindow *parent, wxWindowID id)
     //upper->SetSizerAndFit(upper_sizer);
 
     //-----  data page  -----
-    wxPanel *data_page = new wxPanel(nb, -1);
+    data_page = new wxPanel(nb, -1);
     wxBoxSizer *data_sizer = new wxBoxSizer(wxVERTICAL);
     dl = new ListWithColors(data_page, ID_DP_LIST, 
                             vector4(pair<string,bool>("No", true),
@@ -311,36 +354,30 @@ DataPane::DataPane(wxWindow *parent, wxWindowID id)
     data_sizer->Add(dl, 1, wxEXPAND|wxALL, 1);
 
     wxBoxSizer *data_look_sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxBitmapButton *btn_col = new wxBitmapButton(data_page, ID_DP_COL,
-                                                 wxBitmap(colorsel_xpm));
-    btn_col->SetToolTip("change color");
-    data_look_sizer->Add(btn_col);
+    add_bitmap_button(data_page, ID_DP_COL, colorsel_xpm, 
+                      "change color", data_look_sizer);
     wxChar const *choices[] = { "show all datasets", "show only selected", 
-                               "shadow unselected", "draw aside vert." };
+                               "shadow unselected", 
+                               "draw aside vert. (10px)", 
+                               "draw aside vert. (30px)" };
     int choices_len = sizeof(choices)/sizeof(choices[0]);
-    wxChoice *unfocused_look = new wxChoice(data_page, ID_DP_LOOK,
-                                           wxDefaultPosition, wxDefaultSize,
-                                           wxArrayString(choices_len, choices));
-    data_look_sizer->Add(unfocused_look, 1, wxEXPAND);
+    data_look = new wxChoice(data_page, ID_DP_LOOK,
+                                  wxDefaultPosition, wxDefaultSize,
+                                  wxArrayString(choices_len, choices));
+    data_look_sizer->Add(data_look, 1, wxEXPAND);
     data_sizer->Add(data_look_sizer, 0, wxEXPAND);
 
     wxBoxSizer *data_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxBitmapButton *btn_new = new wxBitmapButton(data_page, ID_DP_NEW,
-                                                 wxBitmap(add_xpm));
-    btn_new->SetToolTip("new data");
-    data_buttons_sizer->Add(btn_new);
-    wxBitmapButton *btn_dup = new wxBitmapButton(data_page, ID_DP_DUP,
-                                                 wxBitmap(sum_xpm));
-    btn_dup->SetToolTip("duplicate/sum");
-    data_buttons_sizer->Add(btn_dup);
-    wxBitmapButton *btn_ren = new wxBitmapButton(data_page, ID_DP_REN,
-                                                 wxBitmap(rename_xpm));
-    btn_ren->SetToolTip("rename");
-    data_buttons_sizer->Add(btn_ren);
-    wxBitmapButton *btn_del = new wxBitmapButton(data_page, ID_DP_DEL,
-                                                 wxBitmap(close_xpm));
-    btn_del->SetToolTip("delete");
-    data_buttons_sizer->Add(btn_del);
+    add_bitmap_button(data_page, ID_DP_NEW, add_xpm, 
+                      "new data", data_buttons_sizer);
+    add_bitmap_button(data_page, ID_DP_DUP, sum_xpm, 
+                      "duplicate/sum", data_buttons_sizer);
+    add_bitmap_button(data_page, ID_DP_REN, rename_xpm, 
+                      "rename", data_buttons_sizer);
+    add_bitmap_button(data_page, ID_DP_DEL, close_xpm, 
+                      "delete", data_buttons_sizer);
+    add_bitmap_button(data_page, ID_DP_CPF, copyfunc_xpm, 
+                      "copy F to next dataset", data_buttons_sizer);
     data_sizer->Add(data_buttons_sizer, 0, wxEXPAND);
     data_page->SetSizerAndFit(data_sizer);
     nb->AddPage(data_page, "data");
@@ -348,29 +385,61 @@ DataPane::DataPane(wxWindow *parent, wxWindowID id)
     //-----  functions page  -----
     wxPanel *func_page = new wxPanel(nb, -1);
     wxBoxSizer *func_sizer = new wxBoxSizer(wxVERTICAL);
+
+    wxBoxSizer *func_filter_sizer = new wxBoxSizer(wxHORIZONTAL);
+    func_filter_sizer->Add(new wxStaticBitmap(func_page, -1, 
+                                              wxBitmap(filter_xpm)),
+                           0, wxALIGN_CENTER_VERTICAL);
+    wxArrayString filter_choices; 
+    filter_choices.Add("list all functions");
+    filter_ch = new wxChoice(func_page, ID_FP_FILTER,
+                             wxDefaultPosition, wxDefaultSize, filter_choices);
+    func_filter_sizer->Add(filter_ch, 1, wxEXPAND);
+    func_sizer->Add(func_filter_sizer, 0, wxEXPAND);
+
     vector<pair<string,bool> > fdata;
     fdata.push_back( pair<string,bool>("Name", true) );
     fdata.push_back( pair<string,bool>("Type", true) );
-    fdata.push_back( pair<string,bool>("#data", true) );
-    fdata.push_back( pair<string,bool>("center", true) );
-    fdata.push_back( pair<string,bool>("area", false) );
-    fl = new ListWithColors(func_page, ID_DP_LIST, fdata);
+    fdata.push_back( pair<string,bool>("Center", true) );
+    fdata.push_back( pair<string,bool>("Area", false) );
+    fdata.push_back( pair<string,bool>("Height", false) );
+    fdata.push_back( pair<string,bool>("FWHM", false) );
+    fl = new ListWithColors(func_page, ID_FP_LIST, fdata);
     func_sizer->Add(fl, 1, wxEXPAND|wxALL, 1);
     wxBoxSizer *func_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxBitmapButton *fbtn_new = new wxBitmapButton(func_page, ID_DP_NEW,
-                                                  wxBitmap(add_xpm));
-    fbtn_new->SetToolTip("new function");
-    func_buttons_sizer->Add(fbtn_new);
-    wxBitmapButton *fbtn_del = new wxBitmapButton(func_page, ID_DP_DEL,
-                                                  wxBitmap(close_xpm));
-    fbtn_del->SetToolTip("delete");
-    func_buttons_sizer->Add(fbtn_del);
+    add_bitmap_button(func_page, ID_FP_NEW, add_xpm, 
+                      "new function", func_buttons_sizer);
+    add_bitmap_button(func_page, ID_FP_DEL, close_xpm, 
+                      "delete", func_buttons_sizer);
+    add_bitmap_button(func_page, ID_FP_EDIT, editf_xpm, 
+                      "edit function", func_buttons_sizer);
+    add_bitmap_button(func_page, ID_FP_CHTYPE, convert_xpm, 
+                      "change type of function", func_buttons_sizer);
+    add_bitmap_button(func_page, ID_FP_COL, colorsel_xpm, 
+                      "change color", func_buttons_sizer);
     func_sizer->Add(func_buttons_sizer, 0, wxEXPAND);
     func_page->SetSizerAndFit(func_sizer);
     nb->AddPage(func_page, "functions");
 
     //-----  variables page  -----
     wxPanel *var_page = new wxPanel(nb, -1);
+    wxBoxSizer *var_sizer = new wxBoxSizer(wxVERTICAL);
+    vector<pair<string,bool> > vdata = vector4(
+                                     pair<string,bool>("Name", true),
+                                     pair<string,bool>("#/#", true), 
+                                     pair<string,bool>("value", true),
+                                     pair<string,bool>("formula", false) );
+    vl = new ListWithColors(var_page, ID_VP_LIST, vdata);
+    var_sizer->Add(vl, 1, wxEXPAND|wxALL, 1);
+    wxBoxSizer *var_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
+    add_bitmap_button(var_page, ID_VP_NEW, add_xpm, 
+                      "new variable", var_buttons_sizer);
+    add_bitmap_button(var_page, ID_VP_DEL, close_xpm, 
+                      "delete", var_buttons_sizer);
+    add_bitmap_button(var_page, ID_VP_EDIT, editf_xpm, 
+                      "edit variable", var_buttons_sizer);
+    var_sizer->Add(var_buttons_sizer, 0, wxEXPAND);
+    var_page->SetSizerAndFit(var_sizer);
     nb->AddPage(var_page, "variables");
 
     //-----
@@ -378,17 +447,17 @@ DataPane::DataPane(wxWindow *parent, wxWindowID id)
     SplitHorizontally(nb, bottom);
 }
 
-void DataPane::OnDataButtonNew (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnDataButtonNew (wxCommandEvent& WXUNUSED(event))
 {
     exec_command("@+");
 }
 
-void DataPane::OnDataButtonDup (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnDataButtonDup (wxCommandEvent& WXUNUSED(event))
 {
     exec_command("@+ < " + join_vector(get_selected_data(), " + "));
 }
 
-void DataPane::OnDataButtonRen (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnDataButtonRen (wxCommandEvent& WXUNUSED(event))
 {
     int n = get_focused_data();
     Data *data = AL->get_data(n);
@@ -402,12 +471,20 @@ void DataPane::OnDataButtonRen (wxCommandEvent& WXUNUSED(event))
         exec_command("@" + S(n) + ".title = \"" + s.c_str() + "\"");
 }
 
-void DataPane::OnDataButtonDel (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnDataButtonDel (wxCommandEvent& WXUNUSED(event))
 {
     exec_command("delete " + join_vector(get_selected_data(), ", "));
 }
 
-void DataPane::OnDataButtonCol (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnDataButtonCopyF (wxCommandEvent& WXUNUSED(event))
+{
+    int n = get_focused_data();
+    if (n+1 < AL->get_ds_count())
+        exec_command("@" + S(n+1) + ".F=copy(@" + S(n) + ".F); "
+                     "@" + S(n+1) + ".Z=copy(@" + S(n) + ".Z)");
+}
+
+void SideBar::OnDataButtonCol (wxCommandEvent& WXUNUSED(event))
 {
     int n = get_focused_data();
     wxColour col = frame->get_main_plot()->get_data_color(n);
@@ -418,34 +495,181 @@ void DataPane::OnDataButtonCol (wxCommandEvent& WXUNUSED(event))
     }
 }
 
-void DataPane::OnDataLookChanged (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnDataLookChanged (wxCommandEvent& WXUNUSED(event))
 {
-    //TODO
     frame->refresh_plots(true, false, true);
 }
 
-void DataPane::update_lists(bool nondata_changed)
+void SideBar::OnFuncFilterChanged (wxCommandEvent& WXUNUSED(event))
 {
-    vector<string> data;
-    int length = AL->get_ds_count();
-    for (int i = 0; i < length; ++i) {
-        DataWithSum const* ds = AL->get_ds(i);
-        data.push_back(S(i));
-        data.push_back(S(ds->get_sum()->get_ff_count()) 
-                        + "+" + S(ds->get_sum()->get_zz_count()));
-        data.push_back(ds->get_data()->get_title());
-        data.push_back(ds->get_data()->get_filename());
-    }
-    int active = AL->get_active_ds_position();
-    MainPlot const* mplot = frame->get_main_plot();
-    wxColour const& bg_col = mplot->get_bg_color();
-    vector<wxColour> data_colors(length);
-    for (int i = 0; i < length; ++i) 
-        data_colors[i] = mplot->get_data_color(i);
-    dl->populate(data, data_colors, bg_col, active, nondata_changed);
+    update_lists(false);
 }
 
-vector<string> DataPane::get_selected_data() const
+void SideBar::OnFuncButtonNew (wxCommandEvent& WXUNUSED(event))
+{
+    //TODO
+}
+
+void SideBar::OnFuncButtonDel (wxCommandEvent& WXUNUSED(event))
+{
+    exec_command("delete " + join_vector(get_selected_func(), ", "));
+}
+
+void SideBar::OnFuncButtonEdit (wxCommandEvent& WXUNUSED(event))
+{
+    int n = get_focused_func();
+    string t= AL->get_function(n)->get_current_definition(AL->get_variables(),
+                                                          AL->get_parameters());
+    frame->edit_in_input(t);
+}
+
+void SideBar::OnFuncButtonChType (wxCommandEvent& WXUNUSED(event))
+{
+}
+
+void SideBar::OnFuncButtonCol (wxCommandEvent& WXUNUSED(event))
+{
+    int n = get_focused_func();
+    wxColour col = frame->get_main_plot()->get_func_color(n);
+    if (change_color_dlg(col)) {
+        frame->get_main_plot()->set_func_color(n, col);
+        update_lists();
+        frame->refresh_plots(true, false, true);
+    }
+}
+
+void SideBar::update_lists(bool nondata_changed)
+{
+    MainPlot const* mplot = frame->get_main_plot();
+    wxColour const& bg_col = mplot->get_bg_color();
+    //data
+    vector<string> data_data;
+    for (int i = 0; i < AL->get_ds_count(); ++i) {
+        DataWithSum const* ds = AL->get_ds(i);
+        data_data.push_back(S(i));
+        data_data.push_back(S(ds->get_sum()->get_ff_count()) 
+                        + "+" + S(ds->get_sum()->get_zz_count()));
+        data_data.push_back(ds->get_data()->get_title());
+        data_data.push_back(ds->get_data()->get_filename());
+    }
+    wxImageList* data_images = 0;
+    if (nondata_changed || AL->get_ds_count() > dl->GetItemCount()) {
+        data_images = new wxImageList(16, 16);
+        for (int i = 0; i < AL->get_ds_count(); ++i) {
+            wxColour const& d_col = mplot->get_data_color(i);
+            wxImage image(color_xpm);
+            image.Replace(0, 0, 0, bg_col.Red(), bg_col.Green(), bg_col.Blue());
+            image.Replace(255, 255, 255,  
+                          d_col.Red(), d_col.Green(), d_col.Blue());
+            data_images->Add(wxBitmap(image));
+        }
+    }
+    dl->populate(data_data, data_images, AL->get_active_ds_position());
+
+    //functions filter
+    if (AL->get_ds_count()+1 != filter_ch->GetCount()) {
+        while (filter_ch->GetCount() > AL->get_ds_count()+1)
+            filter_ch->Delete(filter_ch->GetCount()-1);
+        for (int i = filter_ch->GetCount()-1; i < AL->get_ds_count(); ++i)
+            filter_ch->Append("only functions from @" + S(i));
+    }
+
+    //functions
+    static vector<int> func_col_id;
+    vector<string> func_data;
+    vector<int> new_func_col_id;
+    Sum const* sum = AL->get_active_ds()->get_sum();
+    Sum const* filter_sum = 0;
+    if (filter_ch->GetSelection() > 0)
+        filter_sum = AL->get_sum(filter_ch->GetSelection()-1);
+    for (int i = 0; i < size(AL->get_functions()); ++i) {
+        if (filter_sum && !contains_element(filter_sum->get_ff_idx(), i)
+                           && !contains_element(filter_sum->get_zz_idx(), i))
+            continue;
+        Function const* f = AL->get_function(i);
+        func_data.push_back(f->name);
+        func_data.push_back(f->type_name);
+        func_data.push_back(f->has_center() ? S(f->center()).c_str() : "-");
+        func_data.push_back(f->is_peak() ? S(f->area()).c_str() : "-");
+        func_data.push_back(f->is_peak() ? S(f->height()).c_str() : "-");
+        func_data.push_back(f->is_peak() ? S(f->fwhm()).c_str() : "-");
+        vector<int> const& ffi = sum->get_ff_idx();
+        vector<int> const& zzi = sum->get_zz_idx();
+        vector<int>::const_iterator in_ff = find(ffi.begin(), ffi.end(), i);
+        int col_id = -2;
+        if (in_ff != ffi.end())
+            col_id = in_ff - ffi.begin();
+        else if (find(zzi.begin(), zzi.end(), i) != zzi.end())
+            col_id = -1;
+        new_func_col_id.push_back(col_id);
+    }
+    wxImageList* func_images = 0;
+    if (nondata_changed || func_col_id != new_func_col_id) {
+        func_col_id = new_func_col_id;
+        func_images = new wxImageList(16, 16);
+        for (vector<int>::const_iterator i = func_col_id.begin(); 
+                                                i != func_col_id.end(); ++i) {
+            if (*i == -2)
+                func_images->Add(wxBitmap(unused_xpm));
+            else if (*i == -1)
+                func_images->Add(wxBitmap(zshift_xpm));
+            else {
+                wxColour const& d_col = mplot->get_func_color(*i);
+                wxImage image(color_xpm);
+                image.Replace(0, 0, 0, 
+                              bg_col.Red(), bg_col.Green(), bg_col.Blue());
+                image.Replace(255, 255, 255,  
+                              d_col.Red(), d_col.Green(), d_col.Blue());
+                func_images->Add(wxBitmap(image));
+            }
+        }
+    }
+    fl->populate(func_data, func_images, 0);
+
+    //variables
+    vector<string> var_data;
+    //  count references first
+    vector<Variable*> const& variables = AL->get_variables();
+    vector<int> var_vrefs(variables.size(), 0), var_frefs(variables.size(), 0);
+    for (vector<Variable*>::const_iterator i = variables.begin();
+                                                i != variables.end(); ++i) {
+        vector<int> const& var_idx = (*i)->get_var_idx(); 
+        for (vector<int>::const_iterator j = var_idx.begin(); 
+                                                    j != var_idx.end(); ++j)
+            var_vrefs[*j]++;
+    }
+    for (vector<Function*>::const_iterator i = AL->get_functions().begin();
+                                         i != AL->get_functions().end(); ++i) {
+        vector<int> const& var_idx = (*i)->get_var_idx(); 
+        for (vector<int>::const_iterator j = var_idx.begin(); 
+                                                    j != var_idx.end(); ++j)
+            var_frefs[*j]++;
+    }
+
+    for (int i = 0; i < size(variables); ++i) {
+        Variable const* v = variables[i];
+        var_data.push_back(v->name);           //name
+        string refs = S(var_frefs[i]) + "+" + S(var_vrefs[i]) + " / " 
+                      + S(v->get_vars_count());
+        var_data.push_back(refs); //refs
+        var_data.push_back(S(v->get_value())); //value
+        var_data.push_back(v->get_formula(AL->get_parameters()));  //formula
+    }
+    vl->populate(var_data);
+    
+    //-- non-lists
+    bool not_the_last = get_focused_data()+1 < AL->get_ds_count();
+    data_page->FindWindow(ID_DP_CPF)->Enable(not_the_last);
+}
+
+void SideBar::activate_function(int n)
+{
+    for (int i = 0; i != fl->GetItemCount(); ++i)
+        fl->Select(i, i==n);
+    frame->refresh_plots(true, false, true);
+}
+
+vector<string> SideBar::get_selected_data() const
 {
     vector<string> dd;
     for (int i = dl->GetFirstSelected(); i != -1; i = dl->GetNextSelected(i))
@@ -457,13 +681,50 @@ vector<string> DataPane::get_selected_data() const
     return dd;
 }
 
-void DataPane::OnDataFocusChanged(wxListEvent& event)
+void SideBar::OnDataFocusChanged(wxListEvent& event)
 {
     int n = event.GetIndex();
-    if (n >= 0 && AL->get_ds_count() > 1 && AL->get_active_ds_position() != n) 
+    int length = AL->get_ds_count();
+    if (n >= 0 && length > 1 && AL->get_active_ds_position() != n) 
         exec_command("@" + S(n));
+    data_page->FindWindow(ID_DP_CPF)->Enable(n+1<length);
 }
 
+bool SideBar::howto_plot_dataset(int n, bool& shadowed, int& offset) const
+{
+    //wxChar const *choices[] = { "show all datasets", "show only selected", 
+    //                           "shadow unselected", 
+    //                           "draw aside vert. (10px)", 
+    //                           "draw aside vert. (30px)" };
+    int choice_idx = data_look->GetSelection();
+    bool sel = dl->IsSelected(n) || dl->GetFocusedItem() == n;
+    if (choice_idx == 1 && !sel)
+        return false;
+    shadowed = (choice_idx == 2 && !sel);
+    offset = 0;
+    if (choice_idx == 3)
+        offset = n*10;
+    else if (choice_idx == 4)
+        offset = n*30;
+    return true;
+}
+
+vector<string> SideBar::get_selected_func() const
+{
+    vector<string> dd;
+    for (int i = fl->GetFirstSelected(); i != -1; i = fl->GetNextSelected(i))
+        dd.push_back(AL->get_function(i)->xname);
+    if (dd.empty()) {
+        int n = fl->GetFocusedItem();
+        dd.push_back(AL->get_function(n == -1 ? 0 : n)->xname);
+    }
+    return dd;
+}
+
+void SideBar::OnFuncFocusChanged(wxListEvent& WXUNUSED(event))
+{
+    frame->refresh_plots(true, false, true);
+}
 
 
 //===============================================================
@@ -473,9 +734,11 @@ void DataPane::OnDataFocusChanged(wxListEvent& event)
 BEGIN_EVENT_TABLE(ListWithColors, wxListView)
     EVT_LIST_COL_CLICK(-1, ListWithColors::OnColumnMenu)
     EVT_LIST_COL_RIGHT_CLICK(-1, ListWithColors::OnColumnMenu)
+    EVT_RIGHT_DOWN(              ListWithColors::OnRightDown)
     EVT_MENU_RANGE (ID_DL_CMENU_SHOW_START, ID_DL_CMENU_SHOW_END, 
                     ListWithColors::OnShowColumn)
     EVT_MENU (ID_DL_CMENU_FITCOLS, ListWithColors::OnFitColumnWidths)
+    EVT_MENU (ID_DL_SELECTALL, ListWithColors::OnSelectAll)
 END_EVENT_TABLE()
     
 ListWithColors::ListWithColors(wxWindow *parent, wxWindowID id, 
@@ -490,33 +753,20 @@ ListWithColors::ListWithColors(wxWindow *parent, wxWindowID id,
 }
 
 void ListWithColors::populate(vector<string> const& data, 
-                              vector<wxColour> const& data_colors, 
-                              wxColour const& bg_col,
-                              int active,
-                              bool nondata_changed)
+                              wxImageList* image_list,
+                              int active)
 {
     assert(data.size() % columns.size() == 0);
-    if (!nondata_changed && data == list_data)
+    if (!image_list && data == list_data)
         return;
     int length = data.size() / columns.size();
     Freeze();
+    if (image_list) 
+        AssignImageList(image_list, wxIMAGE_LIST_SMALL);
     if (GetItemCount() != length) {
-        nondata_changed = true;
         DeleteAllItems();
         for (int i = 0; i < length; ++i)
-            InsertItem(i, S(i).c_str());
-    }
-    if (nondata_changed) {
-        //create image list
-        wxImageList* image_list = new wxImageList(16, 16);
-        for (int i = 0; i < length; ++i) {
-            wxColour const& d_c = data_colors[i];
-            wxImage image(color_xpm);
-            image.Replace(0, 0, 0, bg_col.Red(), bg_col.Green(), bg_col.Blue());
-            image.Replace(255, 255, 255, d_c.Red(), d_c.Green(), d_c.Blue());
-            image_list->Add(wxBitmap(image));
-        }
-        AssignImageList(image_list, wxIMAGE_LIST_SMALL);
+            InsertItem(i, "");
     }
     for (int i = 0; i < length; ++i) {
         int c = 0;
@@ -527,7 +777,8 @@ void ListWithColors::populate(vector<string> const& data,
                 ++c;
             }
         }
-        Select(i, i == active);
+        if (active != -2)
+            Select(i, i == active);
     }
     list_data = data;
     
@@ -546,6 +797,13 @@ void ListWithColors::OnColumnMenu(wxListEvent& WXUNUSED(event))
     popup_menu.AppendSeparator();
     popup_menu.Append(ID_DL_CMENU_FITCOLS, "Fit Columns");
     PopupMenu (&popup_menu, 10, 3);
+}
+
+void ListWithColors::OnRightDown(wxMouseEvent &event)
+{
+    wxMenu popup_menu; 
+    popup_menu.Append(ID_DL_SELECTALL, "Select &All");
+    PopupMenu (&popup_menu, event.GetX(), event.GetY());
 }
 
 void ListWithColors::OnShowColumn(wxCommandEvent &event)
@@ -572,6 +830,12 @@ void ListWithColors::OnFitColumnWidths(wxCommandEvent &WXUNUSED(event))
 {
     for (int i = 0; i < GetColumnCount(); ++i)
         SetColumnWidth(i, wxLIST_AUTOSIZE);
+}
+
+void ListWithColors::OnSelectAll(wxCommandEvent &WXUNUSED(event))
+{
+    for (int i = 0; i < GetItemCount(); ++i)
+        Select(i, true);
 }
 
 //===============================================================

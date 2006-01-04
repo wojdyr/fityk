@@ -136,7 +136,8 @@ fp FPlot::get_max_abs_y (fp (*compute_y)(vector<Point>::const_iterator))
 
 void FPlot::draw_data (wxDC& dc, 
                        fp (*compute_y)(vector<Point>::const_iterator),
-                       Data const* data, wxColour const& color)
+                       Data const* data, wxColour const& color,
+                       int Y_offset)
 {
     if (color.Ok())
         activeDataPen.SetColour(color);
@@ -170,11 +171,12 @@ void FPlot::draw_data (wxDC& dc,
             Y_ = y2Y ((*compute_y)(first));
         }
     }
+    Y_ -= Y_offset;
 
     //drawing all points (and lines); main loop
     for (vector<Point>::const_iterator i = first; i < last; i++) {
         int X = x2X(i->x);
-        int Y = y2Y ((*compute_y)(i));
+        int Y = y2Y ((*compute_y)(i)) - Y_offset;
         if (X == X_ && Y == Y_) continue;
         if (i->is_active != active) {
             active = i->is_active;
@@ -215,7 +217,7 @@ void FPlot::draw_data (wxDC& dc,
         int X_l = x2X ((last - 1)->x);
         int X_r = x2X (last->x);
         if (X_r != X_l) {
-            int Y = Y_l + (Y_r - Y_l) * (X_ - X_l) / (X_r - X_l);
+            int Y = Y_l + (Y_r - Y_l) * (X_ - X_l) / (X_r - X_l) - Y_offset;
             dc.DrawLine (X_, Y_, X, Y);
         }
     }

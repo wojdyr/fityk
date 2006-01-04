@@ -164,7 +164,7 @@ enum {
     ID_G_SHOW                  ,
     ID_G_S_TOOLBAR             ,
     ID_G_S_STATBAR             ,
-    ID_G_S_DPANE               ,
+    ID_G_S_SIDEB               ,
     ID_G_S_A1                  ,
     ID_G_S_A2                  ,
     ID_G_S_IO                  ,
@@ -192,7 +192,7 @@ enum {
     ID_ft_f_cont               ,
     ID_ft_f_undo               ,
     ID_ft_s_aa                 ,
-    ID_ft_dpane                ,
+    ID_ft_sideb                ,
     ID_ft_peakchoice
 };
 
@@ -343,7 +343,7 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
             }
             else {
                 getUI()->execAndLogCmd("@+ <'" + par + "'");
-                frame->SwitchDPane(true);
+                frame->SwitchSideBar(true);
             }
             data_counter++;
         }
@@ -360,6 +360,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_D_EDITOR,      FFrame::OnDEditor)
     EVT_UPDATE_UI (ID_D_FDT,    FFrame::OnFastDTUpdate)
     EVT_MENU_RANGE (ID_D_FDT+1, ID_D_FDT_END, FFrame::OnFastDT)
+    EVT_UPDATE_UI (ID_D_ALLDS,  FFrame::OnAllDatasetsUpdate) 
     EVT_MENU (ID_D_EXPORT,      FFrame::OnDExport) 
 
     EVT_MENU (ID_S_EDITOR,      FFrame::OnSEditor)    
@@ -399,7 +400,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_M_BG_CLEAR,  FFrame::OnClearBg)
     EVT_MENU (ID_G_M_BG_SPLINE, FFrame::OnSplineBg)
     EVT_UPDATE_UI (ID_G_SHOW,   FFrame::OnGuiShowUpdate)
-    EVT_MENU (ID_G_S_DPANE,     FFrame::OnSwitchDPane)
+    EVT_MENU (ID_G_S_SIDEB,     FFrame::OnSwitchSideBar)
     EVT_MENU_RANGE (ID_G_S_A1, ID_G_S_A2, FFrame::OnSwitchAuxPlot)
     EVT_MENU (ID_G_S_IO,        FFrame::OnSwitchIOPane)
     EVT_MENU (ID_G_S_TOOLBAR,   FFrame::OnSwitchToolbar)
@@ -432,7 +433,7 @@ END_EVENT_TABLE()
 FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title, 
                  const long style)
     : wxFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, style), 
-      main_pane(0), data_pane(0), status_bar(0), 
+      main_pane(0), sidebar(0), status_bar(0), 
       peak_type_nr(0), toolbar(0), 
       print_data(new wxPrintData), page_setup_data(new wxPageSetupData),
 #ifdef __WXMSW__
@@ -452,8 +453,8 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     plot_pane = new PlotPane(main_pane);
     io_pane = new IOPane(main_pane);
     main_pane->SplitHorizontally(plot_pane, io_pane);
-    data_pane = new DataPane(v_splitter);
-    data_pane->Show(false);
+    sidebar = new SideBar(v_splitter);
+    sidebar->Show(false);
     v_splitter->Initialize(main_pane);
     sizer->Add(v_splitter, 1, wxEXPAND, 0);
 
@@ -552,7 +553,8 @@ void FFrame::read_all_settings(wxConfigBase *cf)
     read_settings(cf);
     plot_pane->read_settings(cf);
     io_pane->read_settings(cf);
-    //data_pane->read_settings(cf);
+    //sidebar->read_settings(cf);
+    sidebar->update_lists();
 }
 
 void FFrame::read_settings(wxConfigBase *cf)
@@ -569,7 +571,7 @@ void FFrame::read_settings(wxConfigBase *cf)
     SetClientSize(w, h);
     v_splitter->SetProportion(read_double_from_config(cf, "VertSplitProportion",
                                                           0.8));
-    SwitchDPane(read_bool_from_config(cf, "ShowDataPane", false));
+    SwitchSideBar(read_bool_from_config(cf, "ShowSideBar", false));
     main_pane->SetProportion(read_double_from_config(cf, "MainPaneProportion",
                                                           0.7));
     SwitchIOPane(read_bool_from_config(cf, "ShowIOPane", true));
@@ -582,7 +584,7 @@ void FFrame::save_all_settings(wxConfigBase *cf) const
     save_settings(cf);
     plot_pane->save_settings(cf);
     io_pane->save_settings(cf);
-    //data_pane->save_settings(cf);
+    //sidebar->save_settings(cf);
 }
 
 void FFrame::save_settings(wxConfigBase *cf) const
@@ -591,7 +593,7 @@ void FFrame::save_settings(wxConfigBase *cf) const
     cf->Write("ShowToolbar", toolbar != 0);
     cf->Write("ShowStatbar", status_bar != 0);
     cf->Write("VertSplitProportion", v_splitter->GetProportion());
-    cf->Write("ShowDataPane", v_splitter->IsSplit());
+    cf->Write("ShowSideBar", v_splitter->IsSplit());
     cf->Write("MainPaneProportion", main_pane->GetProportion());
     cf->Write("ShowIOPane", main_pane->IsSplit());
     cf->Write("ShowCrosshair", plot_pane->crosshair_cursor);
@@ -696,8 +698,8 @@ void FFrame::set_menubar()
     gui_menu_show->AppendCheckItem (ID_G_S_STATBAR, "&Status Bar", 
                                     "Show/hide status bar");
     gui_menu_show->Check(ID_G_S_STATBAR, true);
-    gui_menu_show->AppendCheckItem (ID_G_S_DPANE, "&Datasets Pane", 
-                                    "Show/hide datasets pane");  
+    gui_menu_show->AppendCheckItem (ID_G_S_SIDEB, "&SideBar", 
+                                    "Show/hide pane at right hand side");  
     gui_menu_show->AppendCheckItem (ID_G_S_A1, "&Auxiliary Plot 1", 
                                     "Show/hide auxiliary plot I");  
     gui_menu_show->Check(ID_G_S_A1, true);
@@ -865,14 +867,14 @@ void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
         string cmd;
         for (int i = 0; i < count; ++i) {
             if (i == 0)
-                cmd = "@"+S(get_focused_data())+" <'"+paths[i].c_str()+"'";
+                cmd = get_focused_data_str() + " <'" + paths[i].c_str() + "'";
             else
                 cmd += " ; @+ <'" + S(paths[i].c_str()) + "'"; 
             add_recent_data_file(paths[i].c_str());
         }
         exec_command (cmd);
         if (count > 1)
-            SwitchDPane(true);
+            SwitchSideBar(true);
     }
     dir = fdlg.GetDirectory();
 }
@@ -881,7 +883,7 @@ void FFrame::OnDXLoad (wxCommandEvent& WXUNUSED(event))
 {
     FDXLoadDlg dxload_dialog(this, -1);
     if (dxload_dialog.ShowModal() == wxID_OK) {
-        exec_command("@" + S(get_focused_data()) 
+        exec_command(get_focused_data_str()
                      + " <" + dxload_dialog.get_command_tail());
         add_recent_data_file(dxload_dialog.get_filename());
     }
@@ -890,7 +892,7 @@ void FFrame::OnDXLoad (wxCommandEvent& WXUNUSED(event))
 void FFrame::OnDRecent (wxCommandEvent& event)
 {
     string s = GetMenuBar()->GetHelpString(event.GetId()).c_str();
-    exec_command("@" + S(get_focused_data()) + " <'" + s + "'");
+    exec_command(get_focused_data_str() + " <'" + s + "'");
     add_recent_data_file(s);
 }
 
@@ -936,6 +938,11 @@ void FFrame::OnFastDT (wxCommandEvent& event)
         }
 }
 
+void FFrame::OnAllDatasetsUpdate (wxUpdateUIEvent& event)
+{
+    event.Enable(AL->get_ds_count() > 1);
+}
+
 void FFrame::OnDExport (wxCommandEvent& WXUNUSED(event))
 {
     export_data_dlg(this);
@@ -972,14 +979,14 @@ void FFrame::OnSPFInfo (wxCommandEvent& WXUNUSED(event))
         
 void FFrame::OnSFuncList (wxCommandEvent& WXUNUSED(event))
 {
-    SwitchDPane(true);
-    data_pane->set_selection(1);
+    SwitchSideBar(true);
+    sidebar->set_selection(1);
 }
          
 void FFrame::OnSVarList (wxCommandEvent& WXUNUSED(event))
 {
-    SwitchDPane(true);
-    data_pane->set_selection(2);
+    SwitchSideBar(true);
+    sidebar->set_selection(2);
 }
            
 void FFrame::OnSExport       (wxCommandEvent& WXUNUSED(event))
@@ -1253,19 +1260,19 @@ void FFrame::SwitchStatbar (bool show)
     GetMenuBar()->Check(ID_G_S_STATBAR, show);
 }
 
-void FFrame::SwitchDPane(bool show)
+void FFrame::SwitchSideBar(bool show)
 {
-    //v_splitter->IsSplit() means data_pane is visible 
+    //v_splitter->IsSplit() means sidebar is visible 
     if (show && !v_splitter->IsSplit()) {
-        data_pane->Show(true);
-        v_splitter->SplitVertically(main_pane, data_pane);
+        sidebar->Show(true);
+        v_splitter->SplitVertically(main_pane, sidebar);
     }
     else if (!show && v_splitter->IsSplit()) {
         v_splitter->Unsplit();
     }
-    GetMenuBar()->Check(ID_G_S_DPANE, show);
+    GetMenuBar()->Check(ID_G_S_SIDEB, show);
     if (toolbar) 
-        toolbar->ToggleTool(ID_ft_dpane, show);
+        toolbar->ToggleTool(ID_ft_sideb, show);
 }
 
 void FFrame::OnSwitchAuxPlot(wxCommandEvent& ev) 
@@ -1477,18 +1484,23 @@ void FFrame::draw_crosshair(int X, int Y)
 void FFrame::focus_input(int key)
 {
     io_pane->focus_input(key);
+} 
+
+void FFrame::edit_in_input(string const& s)
+{
+    io_pane->edit_in_input(s);
 }
 
 /// here we update all GUI buttons, lists etc. that can be changed
 /// after execCommand() and can't be updated in another way
 void FFrame::after_cmd_updates()
 {
-    data_pane->update_lists();
+    sidebar->update_lists(false);
 }
 
-int FFrame::get_focused_data()
+string FFrame::get_focused_data_str()
 {
-    return data_pane->get_focused_data();
+    return "@" + S(sidebar->get_focused_data());
 }
 
 MainPlot* FFrame::get_main_plot() 
@@ -1503,12 +1515,17 @@ MainPlot const* FFrame::get_main_plot() const
 
 void FFrame::update_data_pane()
 {
-    data_pane->update_lists();
+    sidebar->update_lists();
 }
 
 bool FFrame::get_apply_to_all_ds()
 { 
     return GetMenuBar()->IsChecked(ID_D_ALLDS); 
+}
+
+void FFrame::activate_function(int n)
+{
+    sidebar->activate_function(n);
 }
 
 //===============================================================
@@ -1518,7 +1535,7 @@ bool FFrame::get_apply_to_all_ds()
 BEGIN_EVENT_TABLE (FToolBar, wxToolBar)
     EVT_TOOL_RANGE (ID_ft_m_zoom, ID_ft_m_add,  FToolBar::OnChangeMouseMode)
     EVT_TOOL_RANGE (ID_ft_v_pr, ID_ft_s_aa,        FToolBar::OnClickTool)
-    EVT_TOOL (ID_ft_dpane, FToolBar::OnSwitchDPane)
+    EVT_TOOL (ID_ft_sideb, FToolBar::OnSwitchSideBar)
     EVT_CHOICE (ID_ft_peakchoice, FToolBar::OnPeakChoice)
 END_EVENT_TABLE()
 
@@ -1609,7 +1626,7 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     AddTool (ID_H_MANUAL, "Help", wxBitmap(manual_xpm), wxNullBitmap,
              wxITEM_NORMAL, "Manual", "Open user manual");
     AddSeparator();
-    AddTool (ID_ft_dpane, "Datasets", wxBitmap(right_pane_xpm), wxNullBitmap,
+    AddTool (ID_ft_sideb, "Datasets", wxBitmap(right_pane_xpm), wxNullBitmap,
              wxITEM_CHECK, "Datasets Pane", "Show/hide datasets pane");
 
     Realize();
@@ -1631,9 +1648,9 @@ void FToolBar::OnChangeMouseMode (wxCommandEvent& event)
     frame->OnChangeMouseMode(event);
 }
 
-void FToolBar::OnSwitchDPane (wxCommandEvent& event)
+void FToolBar::OnSwitchSideBar (wxCommandEvent& event)
 {
-    frame->OnSwitchDPane(event);
+    frame->OnSwitchSideBar(event);
 }
 
 void FToolBar::OnClickTool (wxCommandEvent& event)

@@ -61,10 +61,12 @@ int VariableUser::get_max_var_idx()
        return *max_element(var_idx.begin(), var_idx.end());
 }
 
+
+
 Variable::Variable(std::string const &name_, int nr_, 
                    bool auto_delete_, bool hidden_)
     : VariableUser(name_, "$"),
-      nr(nr_), auto_delete(auto_delete_), hidden(hidden_),
+      auto_delete(auto_delete_), hidden(hidden_), nr(nr_), 
       recursive_derivatives(1)
 {
     recursive_derivatives[0].p = nr_;
@@ -75,7 +77,7 @@ Variable::Variable(std::string const &name_, vector<string> const &vars_,
                    vector<OpTree*> const &op_trees_, 
                    bool auto_delete_, bool hidden_)
     : VariableUser(name_, "$", vars_),
-      nr(-1), auto_delete(auto_delete_), hidden(hidden_),
+      auto_delete(auto_delete_), hidden(hidden_), nr(-1), 
       derivatives(vars_.size()),
       op_trees(op_trees_) 
 {
@@ -274,6 +276,26 @@ void VariableManager::sort_variables()
 }
 
 
+/// takes string parsable by FuncGrammar and:
+///  if the string refers to one variable -- returns its name
+///  else makes variable and returns tis name
+string VariableManager::get_or_make_variable(string const& func)
+{
+    assert(!func.empty());
+    string tmp1, tmp2;
+    if (parse(func.c_str(), VariableLhsG).full)
+        return string(func, 1);
+    else if (parse(func.c_str(), 
+                       FunctionLhsG [assign_a(tmp1)]
+                           >> '[' >> (+(alnum_p | '_'))[assign_a(tmp2)] 
+                           >> ']')
+                  .full) {
+        return get_func_param(tmp1, tmp2);
+    }
+    else
+        return assign_variable("", func);
+}
+
 Variable *VariableManager::create_variable(string const &name,string const &rhs)
 {
     bool auto_del = name.empty();
@@ -296,12 +318,7 @@ Variable *VariableManager::create_variable(string const &name,string const &rhs)
         vector<OpTree*> op_trees = calculate_deriv(root, vars);
         // ~14.3 -> $var4
         for (vector<string>::iterator i = vars.begin(); i != vars.end(); ++i) {
-            assert(i->size() >= 1);
-            if ((*i)[0] == '~') {
-                *i = assign_variable("", *i);
-            }
-            else if ((*i)[0] == '$')
-                *i = string(i->begin()+1, i->end());
+            *i = get_or_make_variable(*i);
         }
         return new Variable(nonempty_name, vars, op_trees, auto_del);
     }
@@ -350,7 +367,7 @@ void VariableManager::remove_unreferred()
 {
     // remove auto-delete marked variables, which are not referred by others
     for (int i = variables.size()-1; i >= 0; --i)
-        if (variables[i]->is_auto_delete()) {
+        if (variables[i]->auto_delete) {
             if (!is_variable_referred(i)) {
                 delete variables[i];
                 variables.erase(variables.begin() + i);
@@ -506,14 +523,6 @@ Variable const* VariableManager::find_variable_handling_param(int p)
     return 0;
 }
 
-int VariableManager::get_variable_value(string const &name) {
-    for (int i = 0; i < size(variables); ++i)
-        if (variables[i]->name == name)
-            return i;
-    return -1;
-}
-
-
 int VariableManager::find_parameter_variable(int par)
 {
     for (int i = 0; i < size(variables); ++i)
@@ -636,11 +645,8 @@ vector<string> VariableManager::make_varnames(string const &function,
         return vars;
     vector<string> vv = (vars[0].find('=') == string::npos ? vars
                                            : get_vars_from_kw(function, vars));
-    for (int i = 0; i < size(vv); ++i) {
-        bool just_name = parse(vv[i].c_str(), VariableLhsG).full;
-        varnames.push_back(just_name ? string(vv[i], 1) 
-                                     : assign_variable("", vv[i]));
-    }
+    for (int i = 0; i < size(vv); ++i) 
+        varnames.push_back(get_or_make_variable(vv[i]));
     return varnames;
 }
 
@@ -682,18 +688,20 @@ void VariableManager::substitute_func_param(string const &name,
 {
     int nr = find_function_nr(name);
     if (nr == -1)
-        throw ExecuteError("undefined function: " + name);
-    Function *k = functions[nr];
-    vector<string> const &tv = k->type_var_names;
-    vector<string>::const_iterator i = find(tv.begin(), tv.end(), param);
-    if (i == tv.end())
-        throw ExecuteError("function " + name + " has no parameter: " + param);
-    bool just_name = parse(var.c_str(), VariableLhsG).full;
-    string new_p = just_name ? string(var, 1) : assign_variable("", var);
-    k->substitute_param(i - tv.begin(), new_p); 
+        throw ExecuteError("undefined function: %" + name);
+    Function* k = functions[nr];
+    k->substitute_param(k->find_param_nr(param), get_or_make_variable(var)); 
     k->set_var_idx(variables);
     k->do_precomputations(variables);
     remove_unreferred();
+}
+
+string VariableManager::get_func_param(string const &name, string const &param)
+{
+    Function const* k = find_function(name);
+    if (!k)
+        throw ExecuteError("undefined function: " + name);
+    return k->get_var_name(k->find_param_nr(param));
 }
 
 fp VariableManager::variation_of_a (int n, fp variat) const
@@ -739,7 +747,8 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
                                           ] ]
                    >>  inner_node_d[ch_p('(') >> expression >> ')']
                 |  (root_node_d[ch_p('-')] >> exptoken)
-                |  variable;
+                |  variable
+                ;
 
     factor      =  exptoken >>
                    *(  (root_node_d[ch_p('^')] >> exptoken)

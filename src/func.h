@@ -66,7 +66,10 @@ public:
     std::string get_info(std::vector<Variable*> const &variables, 
                     std::vector<fp> const &parameters, 
                     bool extended=false) const;
+    std::string get_current_definition(std::vector<Variable*> const &variables, 
+                                       std::vector<fp> const &parameters) const;
     std::string get_current_formula(std::string const& x = "x") const;
+    int find_param_nr(std::string const& param) const;
 protected:
     int const center_idx;
     std::vector<fp> vv; /// current variable values

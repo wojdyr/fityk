@@ -105,6 +105,7 @@ public:
     void focus_input(int key);
     void focus_output() { output_win->SetFocus(); }
     void show_fancy_dashes() { output_win->fancy_dashes(); }
+    void edit_in_input(std::string const& s);
 private:
     OutputWin *output_win;
     InputField *input_field;
@@ -155,39 +156,57 @@ public:
     ListWithColors(wxWindow *parent, wxWindowID id, 
                    std::vector<std::pair<std::string,bool> > const& columns_);
     void populate(std::vector<std::string> const& data, 
-                  std::vector<wxColour> const& data_colors, 
-                  wxColour const& bg_col,
-                  int active,
-                  bool nondata_changed);
+                  wxImageList* image_list = 0,
+                  int active = -2);
     void OnColumnMenu(wxListEvent &event);
+    void OnRightDown(wxMouseEvent &event);
     void OnShowColumn(wxCommandEvent &event);
     void OnFitColumnWidths(wxCommandEvent &event);
+    void OnSelectAll(wxCommandEvent &event);
     DECLARE_EVENT_TABLE()
 private:
     std::vector<std::pair<std::string,bool> > columns;
     std::vector<std::string> list_data;
 };
 
-class DataPane : public ProportionalSplitter
+
+class SideBar : public ProportionalSplitter
 {
 public:
-    DataPane(wxWindow *parent, wxWindowID id=-1);
+    SideBar(wxWindow *parent, wxWindowID id=-1);
     void OnDataButtonNew (wxCommandEvent& event);
     void OnDataButtonDup (wxCommandEvent& event);
     void OnDataButtonRen (wxCommandEvent& event);
     void OnDataButtonDel (wxCommandEvent& event);
+    void OnDataButtonCopyF (wxCommandEvent& event);
     void OnDataButtonCol (wxCommandEvent& event);
     void OnDataLookChanged (wxCommandEvent& event);
+    void OnFuncButtonNew (wxCommandEvent& event);
+    void OnFuncButtonDel (wxCommandEvent& event);
+    void OnFuncButtonEdit (wxCommandEvent& event);
+    void OnFuncButtonChType (wxCommandEvent& event);
+    void OnFuncButtonCol (wxCommandEvent& event);
+    void OnFuncFilterChanged (wxCommandEvent& event);
     void OnDataFocusChanged(wxListEvent &event);
+    void OnFuncFocusChanged(wxListEvent &event);
     void update_lists(bool nondata_changed=true);
     /// get active dataset number -- if none is focused, return first one (0)
-    int get_focused_data() { int n=dl->GetFocusedItem(); return n==-1 ? 0 : n; }
+    int get_focused_data() const
+                       { int n=dl->GetFocusedItem(); return n==-1 ? 0 : n; }
+    int get_focused_func() const 
+                       { int n=fl->GetFocusedItem(); return n==-1 ? 0 : n; }
+    bool is_func_selected(int n) const
+                    { return fl->IsSelected(n) || fl->GetFocusedItem() == n; }
     int set_selection(int page) { return nb->SetSelection(page); }
+    void activate_function(int n);
     std::vector<std::string> get_selected_data() const;
+    bool howto_plot_dataset(int n, bool& shadowed, int& offset) const;
+    std::vector<std::string> get_selected_func() const;
 private:
     wxNotebook *nb;
-    ListWithColors *dl;
-    ListWithColors *fl;
+    wxPanel *data_page;
+    ListWithColors *dl, *fl, *vl;
+    wxChoice *data_look, *filter_ch;
 
     DECLARE_EVENT_TABLE()
 };

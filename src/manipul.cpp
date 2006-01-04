@@ -243,7 +243,7 @@ void guess_and_add(DataWithSum* ds,
     if (find(vars_lhs.begin(), vars_lhs.end(), "area") == vars_lhs.end())
         vars.push_back("area=~"+S(a));
     string real_name = AL->assign_func(name, function, vars);
-    AL->get_active_ds()->get_sum()->add_function_to(real_name, 'F');
+    ds->get_sum()->add_function_to(real_name, 'F');
 }
 
 

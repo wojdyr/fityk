@@ -134,7 +134,7 @@ char *command_generator (const char *text, int state)
 }
 
 
-char *set_generator (const char *text, int state)
+char *set_generator (const char * /*text*/, int /*state*/)
 {
 #if 0
     static unsigned int list_index = 0;
@@ -155,7 +155,7 @@ char *set_generator (const char *text, int state)
         return 0;
 }
 
-char *set_eq_generator (const char * /*text*/, int state)
+char *set_eq_generator (const char * /*text*/, int /*state*/)
 {
 #if 0
     static unsigned int list_index = 0;
@@ -182,8 +182,8 @@ char *set_eq_generator (const char * /*text*/, int state)
     if (list_index < e.size())
         return strdup (e[list_index].c_str());
     else
-        return 0;
 #endif
+        return 0;
 }
 
 static bool is_before (int pos, char c)

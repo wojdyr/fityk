@@ -20,7 +20,7 @@ endif  #OS_WIN32
 
 bin_PROGRAMS = @FITYK@ @CFITYK@ 
 EXTRA_PROGRAMS = fityk cfityk 
-common_sources = cmd.cpp logic.cpp common.cpp \
+common_sources = logic.cpp cmd.cpp common.cpp \
 		 var.cpp func.cpp calc.cpp \
 		 data.cpp datatrans.cpp settings.cpp \
 		 ui.cpp GAfit.cpp LMfit.cpp manipul.cpp NMfit.cpp \
