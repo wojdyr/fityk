@@ -135,6 +135,7 @@ public:
     void OnGFitHeight    (wxCommandEvent& event);
     void OnGScrollLeft   (wxCommandEvent& event);
     void OnGScrollRight  (wxCommandEvent& event);
+    void OnGScrollUp     (wxCommandEvent& event);
     void OnPreviousZoom  (wxCommandEvent& event);
     void OnConfigRead    (wxCommandEvent& event);
     void OnConfigBuiltin (wxCommandEvent& event);

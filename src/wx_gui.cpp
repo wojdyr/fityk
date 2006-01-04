@@ -72,6 +72,7 @@
 #include "img/zoom_mode.xpm"
 #include "img/zoom_prev.xpm"
 #include "img/zoom_right.xpm"
+#include "img/zoom_up.xpm"
 #include "img/zoom_vert.xpm"
 //statusbar icons
 #include "img/mouse_l.xpm"
@@ -173,6 +174,7 @@ enum {
     ID_G_V_VERT                ,
     ID_G_V_SCROLL_L            ,
     ID_G_V_SCROLL_R            ,
+    ID_G_V_SCROLL_U            ,
     ID_G_V_ZOOM_PREV           ,
     ID_G_V_ZOOM_PREV_END = ID_G_V_ZOOM_PREV+40 ,
     ID_G_LCONF1                ,
@@ -410,6 +412,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_V_VERT,      FFrame::OnGFitHeight)
     EVT_MENU (ID_G_V_SCROLL_L,  FFrame::OnGScrollLeft)
     EVT_MENU (ID_G_V_SCROLL_R,  FFrame::OnGScrollRight)
+    EVT_MENU (ID_G_V_SCROLL_U,  FFrame::OnGScrollUp)
     EVT_UPDATE_UI (ID_G_V_ZOOM_PREV, FFrame::OnShowMenuZoomPrev)
     EVT_MENU_RANGE (ID_G_V_ZOOM_PREV+1, ID_G_V_ZOOM_PREV_END, 
                                 FFrame::OnPreviousZoom)    
@@ -720,6 +723,8 @@ void FFrame::set_menubar()
                       "Scroll view left");
     gui_menu->Append (ID_G_V_SCROLL_R, "Scroll &Right\tCtrl-]", 
                       "Scroll view right");
+    gui_menu->Append (ID_G_V_SCROLL_U, "Extend Zoom &Up\tCtrl--", 
+                      "Double vertical range");
 
     wxMenu* gui_menu_zoom_prev = new wxMenu;
     gui_menu->Append(ID_G_V_ZOOM_PREV, "&Previous Zooms", gui_menu_zoom_prev);
@@ -1328,6 +1333,13 @@ void FFrame::OnGScrollRight (wxCommandEvent & WXUNUSED(event))
     scroll_view_horizontally(+0.5);
 }
 
+void FFrame::OnGScrollUp (wxCommandEvent & WXUNUSED(event))
+{
+    fp const factor = 2.;
+    fp new_top = AL->view.bottom + factor * AL->view.height(); 
+    change_zoom(". [.:" + S(new_top) + "]");
+}
+
 
 void FFrame::OnPreviousZoom(wxCommandEvent& event)
 {
@@ -1572,6 +1584,8 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
             wxITEM_NORMAL, "Scroll left", "Scroll view left"); 
     AddTool(ID_G_V_SCROLL_R,"scroll -->",wxBitmap(zoom_right_xpm),wxNullBitmap,
             wxITEM_NORMAL, "Scroll right", "Scroll view right"); 
+    AddTool(ID_G_V_SCROLL_U, "V-zoom-out", wxBitmap(zoom_up_xpm), wxNullBitmap,
+            wxITEM_NORMAL, "Extend zoom up", "Double vertical range"); 
     AddTool (ID_ft_v_pr, "Back", wxBitmap(zoom_prev_xpm), wxNullBitmap, 
              wxITEM_NORMAL, "Previous view", 
              "Go to previous View");

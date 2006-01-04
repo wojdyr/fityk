@@ -139,6 +139,7 @@ void FPlot::draw_data (wxDC& dc,
                        Data const* data, wxColour const& color,
                        int Y_offset)
 {
+    Y_offset *= (GetClientSize().GetHeight() / 100);
     if (color.Ok())
         activeDataPen.SetColour(color);
     wxPen const& activePen = activeDataPen;

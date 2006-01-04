@@ -181,6 +181,7 @@ public:
     void OnDataButtonCopyF (wxCommandEvent& event);
     void OnDataButtonCol (wxCommandEvent& event);
     void OnDataLookChanged (wxCommandEvent& event);
+    void OnDataShiftUpChanged (wxSpinEvent& event);
     void OnFuncButtonNew (wxCommandEvent& event);
     void OnFuncButtonDel (wxCommandEvent& event);
     void OnFuncButtonEdit (wxCommandEvent& event);
@@ -207,6 +208,7 @@ private:
     wxPanel *data_page;
     ListWithColors *dl, *fl, *vl;
     wxChoice *data_look, *filter_ch;
+    wxSpinCtrl *shiftup_sc;
 
     DECLARE_EVENT_TABLE()
 };

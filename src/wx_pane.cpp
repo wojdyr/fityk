@@ -15,6 +15,7 @@
 #include <wx/treectrl.h>
 #include <wx/notebook.h>
 #include <wx/textdlg.h>
+#include <wx/spinctrl.h>
 
 #include "common.h"
 #include "wx_pane.h" 
@@ -33,6 +34,7 @@
 #include "img/colorsel.xpm"
 #include "img/editf.xpm"
 #include "img/filter.xpm"
+#include "img/shiftup.xpm"
 #include "img/convert.xpm"
 #include "img/color.xpm"
 #include "img/copyfunc.xpm"
@@ -52,6 +54,7 @@ enum {
     ID_OUTPUT_P_CLEAR          ,
     ID_DP_LIST                 ,
     ID_DP_LOOK                 ,
+    ID_DP_SHIFTUP              ,
     ID_DP_NEW                  ,
     ID_DP_DUP                  ,
     ID_DP_REN                  ,
@@ -324,6 +327,9 @@ BEGIN_EVENT_TABLE(SideBar, ProportionalSplitter)
     EVT_BUTTON (ID_DP_CPF, SideBar::OnDataButtonCopyF)
     EVT_BUTTON (ID_DP_COL, SideBar::OnDataButtonCol)
     EVT_CHOICE (ID_DP_LOOK, SideBar::OnDataLookChanged)
+    EVT_SPINCTRL (ID_DP_SHIFTUP, SideBar::OnDataShiftUpChanged)
+    EVT_LIST_ITEM_SELECTED(ID_DP_LIST, SideBar::OnDataFocusChanged)
+    EVT_LIST_ITEM_DESELECTED(ID_DP_LIST, SideBar::OnDataFocusChanged)
     EVT_LIST_ITEM_FOCUSED(ID_DP_LIST, SideBar::OnDataFocusChanged)
     EVT_CHOICE (ID_FP_FILTER, SideBar::OnFuncFilterChanged)
     EVT_BUTTON (ID_FP_NEW, SideBar::OnFuncButtonNew)
@@ -357,14 +363,20 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     add_bitmap_button(data_page, ID_DP_COL, colorsel_xpm, 
                       "change color", data_look_sizer);
     wxChar const *choices[] = { "show all datasets", "show only selected", 
-                               "shadow unselected", 
-                               "draw aside vert. (10px)", 
-                               "draw aside vert. (30px)" };
+                                "shadow unselected" };
     int choices_len = sizeof(choices)/sizeof(choices[0]);
     data_look = new wxChoice(data_page, ID_DP_LOOK,
-                                  wxDefaultPosition, wxDefaultSize,
-                                  wxArrayString(choices_len, choices));
+                             wxDefaultPosition, wxDefaultSize,
+                             wxArrayString(choices_len, choices));
     data_look_sizer->Add(data_look, 1, wxEXPAND);
+    data_look_sizer->Add(new wxStaticBitmap(data_page, -1, 
+                                            wxBitmap(shiftup_xpm)), 
+                         0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
+    shiftup_sc = new wxSpinCtrl(data_page, ID_DP_SHIFTUP, "0",
+                                wxDefaultPosition, wxSize(40, -1),
+                                wxSP_ARROW_KEYS, 0, 80, 0);
+    shiftup_sc->SetToolTip("shift up in \% of plot Y size");
+    data_look_sizer->Add(shiftup_sc, 0, wxEXPAND);
     data_sizer->Add(data_look_sizer, 0, wxEXPAND);
 
     wxBoxSizer *data_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -496,6 +508,11 @@ void SideBar::OnDataButtonCol (wxCommandEvent& WXUNUSED(event))
 }
 
 void SideBar::OnDataLookChanged (wxCommandEvent& WXUNUSED(event))
+{
+    frame->refresh_plots(true, false, true);
+}
+
+void SideBar::OnDataShiftUpChanged (wxSpinEvent& WXUNUSED(event))
 {
     frame->refresh_plots(true, false, true);
 }
@@ -681,9 +698,9 @@ vector<string> SideBar::get_selected_data() const
     return dd;
 }
 
-void SideBar::OnDataFocusChanged(wxListEvent& event)
+void SideBar::OnDataFocusChanged(wxListEvent& WXUNUSED(event))
 {
-    int n = event.GetIndex();
+    int n = dl->GetFocusedItem();
     int length = AL->get_ds_count();
     if (n >= 0 && length > 1 && AL->get_active_ds_position() != n) 
         exec_command("@" + S(n));
@@ -701,11 +718,7 @@ bool SideBar::howto_plot_dataset(int n, bool& shadowed, int& offset) const
     if (choice_idx == 1 && !sel)
         return false;
     shadowed = (choice_idx == 2 && !sel);
-    offset = 0;
-    if (choice_idx == 3)
-        offset = n*10;
-    else if (choice_idx == 4)
-        offset = n*30;
+    offset = n * shiftup_sc->GetValue();
     return true;
 }
 
