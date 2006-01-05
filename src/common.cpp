@@ -4,6 +4,7 @@
 #include "common.h"
 #include <string>
 #include <time.h>
+#include <stdlib.h>
 #include "ui.h"
 #include "logic.h"
 
@@ -30,11 +31,23 @@ std::string time_now ()
     return ctime (&t);
 }
 
-bool is_double (string s) {
-    if (s.empty()) return false;
+bool is_double (string const& s) {
     char const *c = s.c_str();
     char *endptr;
     strtod(c, &endptr);
+    if (c == endptr)
+        return false;
+    while (isspace(*endptr))
+        endptr++;
+    return (*endptr == 0); 
+}
+
+bool is_int (string const& s) {
+    char const *c = s.c_str();
+    char *endptr;
+    strtol(c, &endptr, 10);
+    if (c == endptr)
+        return false;
     while (isspace(*endptr))
         endptr++;
     return (*endptr == 0); 

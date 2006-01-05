@@ -76,12 +76,29 @@ void do_assign_func(char const*, char const*)
 {
     t = AL->assign_func(t, t2, vt);
     vt = vector1(t); //for do_put_function()
-    outdated_plot=true;  //TODO only if...
+    outdated_plot=true;  //TODO only if function in @active
 }
+
+void do_assign_func_copy(char const*, char const*)
+{
+    t = AL->assign_func_copy(t, t2);
+    vt = vector1(t); //for do_put_function()
+    outdated_plot=true;  //TODO only if function in @active
+}
+
 
 void do_subst_func_param(char const* a, char const* b)
 {
-    AL->substitute_func_param(t, t2, string(a,b));
+    if (t == "F" || t == "Z") {
+        Sum const* sum = AL->get_sum(ds_pref);
+        vector<string> const &names = (t == "F" ? sum->get_ff_names() 
+                                                : sum->get_zz_names());
+        for (vector<string>::const_iterator i = names.begin(); 
+                                                   i != names.end(); ++i)
+            AL->substitute_func_param(*i, t2, string(a,b));
+    }
+    else 
+        AL->substitute_func_param(t, t2, string(a,b));
     outdated_plot=true;  //TODO only if...
 }
 
@@ -194,23 +211,12 @@ void do_print_sum_info(char const* a, char const* b)
     string s = string(a,b);
     string m;
     Sum const* sum = AL->get_sum(ds_pref);
-    if (s == "F") {
-        m = "F: "; 
-        vector<int> const &idx = sum->get_ff_idx();
+    if (s == "F" || s == "Z") {
+        m = s + ": "; 
+        vector<int> const &idx = (s == "F" ? sum->get_ff_idx() 
+                                           : sum->get_zz_idx());
         for (vector<int>::const_iterator i = idx.begin(); i != idx.end(); ++i){
-            Function const* f = AL->get_functions()[*i];
-            if (with_plus)
-                m += "\n" 
-                    + f->get_info(AL->get_variables(), AL->get_parameters());
-            else
-                m += f->xname + " ";
-        }
-    }
-    else if (s == "Z") {
-        m = "Z: "; 
-        vector<int> const &idx = sum->get_zz_idx();
-        for (vector<int>::const_iterator i = idx.begin(); i != idx.end(); ++i){
-            Function const* f = AL->get_functions()[*i];
+            Function const* f = AL->get_function(*i);
             if (with_plus)
                 m += "\n" 
                     + f->get_info(AL->get_variables(), AL->get_parameters());
@@ -429,7 +435,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         function_param
-            = +(alnum_p | '_')
+            = lexeme_d[alpha_p >> *(alnum_p | '_')]
             ;
 
         functionname_assign
@@ -440,20 +446,25 @@ struct CmdGrammar : public grammar<CmdGrammar>
 
         assign_func
             = functionname_assign
-              >> function_name [assign_a(t2)]
-              >> str_p("(")[clear_a(vt)] 
-              >> !((no_actions_d[FuncG][push_back_a(vt)] 
-                   % ',')
-                  | ((function_param >> "=" >> no_actions_d[FuncG])
-                                                              [push_back_a(vt)] 
-                     % ',')
-                  )
-              >> str_p(")")[&do_assign_func]
+              >> (function_name [assign_a(t2)]
+                  >> str_p("(")[clear_a(vt)] 
+                  >> !((no_actions_d[FuncG][push_back_a(vt)] 
+                       % ',')
+                      | ((function_param >> "=" >> no_actions_d[FuncG])
+                                                             [push_back_a(vt)] 
+                         % ',')
+                      )
+                  >> str_p(")") [&do_assign_func]
+                 | str_p("copy(") >> FunctionLhsG [assign_a(t2)] 
+                   >> str_p(")") [&do_assign_func_copy]
+                 )
               >> !put_func_to
             ;
 
         subst_func_param
-            = FunctionLhsG [assign_a(t)]
+            = (ds_prefix >> (ch_p('F')|'Z')[assign_a(t)]
+              | FunctionLhsG [assign_a(t)]
+              )
               >> "[" >> function_param [assign_a(t2)]
               >> "]" >> "="
               >> no_actions_d[FuncG][&do_subst_func_param]
@@ -466,7 +477,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         put_func_to
-            = "->" >> ds_prefix >> (str_p("F")|"Z"|"N")[&do_put_function]
+            = "->" >> ds_prefix >> (ch_p('F')|'Z'|'N')[&do_put_function]
             ;
 
         in_data

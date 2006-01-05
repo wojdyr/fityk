@@ -46,8 +46,8 @@ public:
     std::vector<int> const& get_zz_idx() const { return zz_idx; }
     int get_ff_count() { return ff_idx.size(); }
     int get_zz_count() { return zz_idx.size(); }
-    //std::vector<std::string> const &get_ff_names() const { return ff_names; }
-    //std::vector<std::string> const &get_zz_names() const { return zz_names; }
+    std::vector<std::string> const &get_ff_names() const { return ff_names; }
+    std::vector<std::string> const &get_zz_names() const { return zz_names; }
 
 private:
     VariableManager &mgr;

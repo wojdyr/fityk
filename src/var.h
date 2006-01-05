@@ -30,10 +30,10 @@ public:
               std::vector<std::string> const &vars = std::vector<std::string>())
         : name(name_), prefix(prefix_), xname(prefix_+name), varnames(vars) {}
     virtual ~VariableUser() {}
-    bool is_dependent_on(int idx, std::vector<Variable*> const &variables);
+    bool is_dependent_on(int idx, std::vector<Variable*> const &variables)const;
     bool is_directly_dependent_on(int idx);
     void set_var_idx(std::vector<Variable*> const& variables);
-    std::vector<int> const& get_var_idx() { return var_idx; }
+    std::vector<int> const& get_var_idx() const { return var_idx; }
     int get_max_var_idx();
     int get_vars_count() const { return varnames.size(); }
     std::string get_var_name(int n) const
@@ -60,7 +60,7 @@ public:
     Variable(std::string const &name_, std::vector<std::string> const &vars_,
              std::vector<OpTree*> const &op_trees_, 
              bool auto_delete_=false, bool hidden_=false);
-    static std::string next_auto_name() { return "var" + S(++unnamed_counter); }
+    static std::string next_auto_name() { return "_" + S(++unnamed_counter); }
     void recalculate(std::vector<Variable*> const &variables, 
                      std::vector<fp> const &parameters);
   
@@ -76,6 +76,7 @@ public:
     std::vector<ParMult> const& get_recursive_derivatives() const 
                                             { return recursive_derivatives; }
     bool is_simple() const { return nr != -1; }
+    std::vector<OpTree*> const& get_op_trees() const { return op_trees; }
 
 private:
     int nr; /// -1 unless it's simple "variable"
@@ -106,6 +107,10 @@ public:
 
     void sort_variables();
 
+    std::string assign_variable_copy(std::string const& name, 
+                                     Variable const* orig, 
+                                     std::map<int,std::string> const& varmap);
+
     void delete_variables(std::vector<std::string> const &name);
 
     ///returns -1 if not found or idx in variables if found
@@ -132,6 +137,8 @@ public:
                             std::string const &function, 
                             std::vector<std::string> const &vars);
     std::string get_func_param(std::string const&name, std::string const&param);
+    std::string assign_func_copy(std::string const &name, 
+                                 std::string const &orig);
     void substitute_func_param(std::string const &name, 
                                std::string const &param,
                                std::string const &var);
@@ -161,8 +168,10 @@ protected:
 
     std::vector<Function*> functions;
 
+    std::string do_assign_func(Function* func);
     std::string get_or_make_variable(std::string const& func);
     Variable *create_variable(std::string const &name, std::string const &rhs);
+    std::string do_assign_variable(Variable* new_var);
     bool is_variable_referred(int i, 
                               std::vector<std::string> const &ignore_vars
                                                  =std::vector<std::string>(),
@@ -177,6 +186,7 @@ protected:
                                      std::vector<std::string> const& vars);
     std::string get_var_from_expression(std::string const& expr,
                                         std::vector<std::string> const& vars);
+    std::string make_var_copy_name(Variable const* v);
 };
 
 

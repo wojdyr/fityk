@@ -31,7 +31,7 @@ public:
                              std::vector<std::string> const &vars);
     static std::vector<std::string> get_all_types();
     static std::string get_formula(std::string const& type);
-    static std::string next_auto_name() { return "fun" + S(++unnamed_counter); }
+    static std::string next_auto_name() { return "_" + S(++unnamed_counter); }
 
     static bool statics_initialized;
     static std::map<std::string, std::string> default_variables;

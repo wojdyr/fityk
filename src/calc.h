@@ -44,7 +44,7 @@ struct OpTree
                             { return b ? "(" + str(vars) + ")" : str(vars); } 
     std::string ascii_tree(int width=64, int start=0, 
                            const std::vector<std::string> *vars=0);
-    OpTree *copy();
+    OpTree* copy() const;
     //void swap_args() { assert(c1 && c2); OpTree *t=c1; c1=c2; c2=t; }
     OpTree* remove_c1() { OpTree *t=c1; c1=0; return t; }
     OpTree* remove_c2() { OpTree *t=c2; c2=0; return t; }

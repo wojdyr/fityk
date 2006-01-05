@@ -115,7 +115,7 @@ string OpTree::ascii_tree(int width, int start, const vector<string> *vars)
     return node;
 }
 
-OpTree* OpTree::copy()
+OpTree* OpTree::copy() const
 { 
     OpTree *t = new OpTree(*this); 
     if (c1) t->c1 = c1->copy();

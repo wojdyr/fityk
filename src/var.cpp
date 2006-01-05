@@ -8,6 +8,7 @@
 #include "ui.h"
 #include "func.h"
 #include "sum.h"
+#include <stdlib.h>
 #include <boost/spirit/core.hpp>
 #include <algorithm>
 #include <memory>
@@ -26,7 +27,7 @@ bool VariableUser::is_directly_dependent_on(int idx) {
 }
 
 bool VariableUser::is_dependent_on(int idx, 
-                                        vector<Variable*> const &variables)
+                                   vector<Variable*> const &variables) const
 {
     for (vector<int>::const_iterator i = var_idx.begin(); 
             i != var_idx.end(); ++i)
@@ -286,9 +287,9 @@ string VariableManager::get_or_make_variable(string const& func)
     if (parse(func.c_str(), VariableLhsG).full)
         return string(func, 1);
     else if (parse(func.c_str(), 
-                       FunctionLhsG [assign_a(tmp1)]
-                           >> '[' >> (+(alnum_p | '_'))[assign_a(tmp2)] 
-                           >> ']')
+                   FunctionLhsG [assign_a(tmp1)]
+                       >> '[' >> (alpha_p >> *(alnum_p|'_'))[assign_a(tmp2)]
+                       >> ']')
                   .full) {
         return get_func_param(tmp1, tmp2);
     }
@@ -296,8 +297,9 @@ string VariableManager::get_or_make_variable(string const& func)
         return assign_variable("", func);
 }
 
-Variable *VariableManager::create_variable(string const &name,string const &rhs)
+string VariableManager::assign_variable(string const &name, string const &rhs)
 {
+    Variable *var = 0;
     bool auto_del = name.empty();
     string nonempty_name = name.empty() ? Variable::next_auto_name() : name; 
     tree_parse_info<> info = ast_parse(rhs.c_str(), FuncG, space_p);
@@ -309,7 +311,7 @@ Variable *VariableManager::create_variable(string const &name,string const &rhs)
         fp val = get_constant_value(val_str);
         parameters.push_back(val);
         int nr = parameters.size() - 1;
-        return new Variable(nonempty_name, nr, auto_del);
+        var = new Variable(nonempty_name, nr, auto_del);
     }
     else {
         vector<string> vars = find_tokens(FuncGrammar::variableID, info);
@@ -320,8 +322,9 @@ Variable *VariableManager::create_variable(string const &name,string const &rhs)
         for (vector<string>::iterator i = vars.begin(); i != vars.end(); ++i) {
             *i = get_or_make_variable(*i);
         }
-        return new Variable(nonempty_name, vars, op_trees, auto_del);
+        var = new Variable(nonempty_name, vars, op_trees, auto_del);
     }
+    return do_assign_variable(var);
 }
 
 bool VariableManager::is_variable_referred(int i, 
@@ -402,9 +405,10 @@ void VariableManager::remove_unreferred()
     }
 }
 
-string VariableManager::assign_variable(string const &name, string const &rhs)
+
+string VariableManager::do_assign_variable(Variable* new_var)
 {
-    auto_ptr<Variable> var(create_variable(name, rhs));
+    auto_ptr<Variable> var(new_var);
     string var_name = var->name;
     var->set_var_idx(variables);
     var->tree_to_bytecode();
@@ -429,6 +433,34 @@ string VariableManager::assign_variable(string const &name, string const &rhs)
     }
     use_parameters();
     return var_name;
+}
+
+string VariableManager::assign_variable_copy(string const& name, 
+                                             Variable const* orig, 
+                                             map<int,string> const& varmap)
+{
+    Variable *var=0;
+    assert(!name.empty());
+    if (orig->is_simple()) {
+        fp val = orig->get_value();
+        parameters.push_back(val);
+        int nr = parameters.size() - 1;
+        var = new Variable(name, nr, orig->auto_delete);
+    }
+    else {
+        vector<string> vars;
+        for (vector<int>::const_iterator i = orig->get_var_idx().begin(); 
+                                         i != orig->get_var_idx().end(); ++i) {
+            assert(varmap.count(*i));
+            vars.push_back(varmap.find(*i)->second);
+        }
+        vector<OpTree*> new_op_trees;
+        for (vector<OpTree*>::const_iterator i = orig->get_op_trees().begin();
+                                          i != orig->get_op_trees().end(); ++i) 
+            new_op_trees.push_back((*i)->copy());
+        var = new Variable(name, vars, new_op_trees, orig->auto_delete);
+    }
+    return do_assign_variable(var);
 }
 
 void VariableManager::delete_variables(vector<string> const &names)
@@ -651,7 +683,7 @@ vector<string> VariableManager::make_varnames(string const &function,
 }
 
 string VariableManager::assign_func(string const &name, string const &function, 
-                                  vector<string> const &vars)
+                                    vector<string> const &vars)
 {
     Function *func = 0;
     try {
@@ -661,6 +693,11 @@ string VariableManager::assign_func(string const &name, string const &function,
         remove_unreferred();
         throw;
     }
+    return do_assign_func(func);
+}
+
+string VariableManager::do_assign_func(Function* func)
+{
     func->set_var_idx(variables);
     //if there is already function with the same name -- replace
     bool found = false;
@@ -680,6 +717,48 @@ string VariableManager::assign_func(string const &name, string const &function,
     }
     func->do_precomputations(variables);
     return func->name;
+}
+
+string VariableManager::make_var_copy_name(Variable const* v)
+{
+    if (v->name[0] == '_') 
+        return Variable::next_auto_name(); 
+
+    int vs = v->name.size();
+    int appendix = 0;
+    string core = v->name;
+    if (vs > 2 && is_int(string(v->name, vs-2, 2))) { // foo02
+        appendix = atoi(v->name.c_str()+vs-2);
+        core.resize(vs-2);
+    }
+    while (true) {
+        ++appendix;
+        string new_varname = core + S(appendix/10) + S(appendix%10);
+        if (find_variable_nr(new_varname) == -1)
+            return new_varname;
+    }
+}
+
+string VariableManager::assign_func_copy(string const &name, string const &orig)
+{
+    Function const* of = find_function(orig);
+    map<int,string> varmap;
+    for (int i = 0; i < size(variables); ++i) {
+        if (!of->is_dependent_on(i, variables))
+            continue;
+        Variable const* var_orig = variables[i];
+        string new_varname = make_var_copy_name(var_orig);
+        assign_variable_copy(new_varname, var_orig, varmap);
+        varmap[i] = new_varname;
+    }
+    vector<string> varnames;
+    for (vector<int>::const_iterator i = of->get_var_idx().begin(); 
+                                           i != of->get_var_idx().end(); ++i) {
+        assert(varmap.count(*i));
+        varnames.push_back(varmap[*i]);
+    }
+    Function* cf = Function::factory(name, of->type_name, varnames);
+    return do_assign_func(cf);
 }
 
 void VariableManager::substitute_func_param(string const &name, 
@@ -736,6 +815,8 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
                 //|  leaf_node_d["~{" >> no_actions_d[DataTransformG] >> '}']
                 |  leaf_node_d["~{" >> +~ch_p('}') >> '}']
                 | leaf_node_d[str_p("x")] //only in functions
+                | leaf_node_d[FunctionLhsG >> '[' 
+                               >> lexeme_d[alpha_p >> *(alnum_p | '_')] >> ']'] 
                 ;
 
     exptoken    =  real_const

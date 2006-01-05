@@ -84,7 +84,10 @@ inline std::string S() { return std::string(); }
 
 
 /// True if the string contains only a real number
-bool is_double (std::string s);
+bool is_double (std::string const& s);
+
+/// True if the string contains only an integer number
+bool is_int (std::string const& s);
 
 /// replace all occurences of old in string s with new_
 void replace_all(std::string &s, std::string const &old, 
