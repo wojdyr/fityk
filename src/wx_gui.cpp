@@ -215,6 +215,8 @@ static const wxCmdLineEntryDesc cmdLineDesc[] = {
               "output version information and exit", wxCMD_LINE_VAL_NONE, 0 },
     { wxCMD_LINE_OPTION, "c", "cmd", "script passed in as string", 
                                                    wxCMD_LINE_VAL_STRING, 0 },
+    { wxCMD_LINE_SWITCH, "I", "--no-init", 
+              "don't process $HOME/.fityk/init file", wxCMD_LINE_VAL_NONE, 0 },
     { wxCMD_LINE_PARAM,  0, 0, "script or data file", wxCMD_LINE_VAL_STRING, 
                         wxCMD_LINE_PARAM_OPTIONAL|wxCMD_LINE_PARAM_MULTIPLE },
     { wxCMD_LINE_NONE, 0, 0, 0,  wxCMD_LINE_VAL_NONE, 0 }
@@ -272,10 +274,12 @@ bool FApp::OnInit(void)
 
     SetTopWindow(frame);
 
-    // run initial commands (from ~/.fityk/init file)
-    wxString startup_file_path = get_user_conffile(startup_commands_filename);
-    if (wxFileExists(startup_file_path)) {
-        getUI()->execScript(startup_file_path.c_str());
+    if (!cmdLineParser.Found("I")) {
+        // run initial commands (from ~/.fityk/init file)
+        wxString startup_file = get_user_conffile(startup_commands_filename);
+        if (wxFileExists(startup_file)) {
+            getUI()->execScript(startup_file.c_str());
+        }
     }
 
     process_argv(cmdLineParser);
@@ -296,28 +300,6 @@ int FApp::OnExit()
     return 0;
 }
 
-bool FApp::is_fityk_script(string filename)
-{
-    const char *magic = "# Fityk";
-
-    ifstream f(filename.c_str(), ios::in | ios::binary);
-    if (!f) 
-        return false;
-
-    int n = filename.size();
-    if (n > 4 && !filename.substr(n-4, n).compare(".fit")
-            || n > 6 && !filename.substr(n-6, n).compare(".fityk"))
-        return true;
-
-    const int magic_len = strlen(magic);
-    char *buffer = new char[magic_len + 1];
-    for (int i = 0; i <= magic_len; ++i) buffer[i] = 0;
-    f.read(buffer, magic_len);
-    int cmp = strncmp(magic, buffer, magic_len);
-    delete [] buffer;
-    return !cmp;
-}
-
 /// parse and execute command line switches and arguments
 void FApp::process_argv(wxCmdLineParser &cmdLineParser)
 {
@@ -331,25 +313,11 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
     if (cmdLineParser.Found("c", &cmd))
         getUI()->execAndLogCmd(cmd.c_str());
     //the rest of parameters/arguments are scripts and/or data files
-    int data_counter = 0; //number of data files
     for (unsigned int i = 0; i < cmdLineParser.GetParamCount(); i++) {
-        string par = cmdLineParser.GetParam(i).c_str();
-        if (is_fityk_script(par))
-            getUI()->execScript(par);
-        else {
-            //if there are multiple data files specified at command line,
-            //open each as separate dataset 
-            if (data_counter == 0 && AL->get_ds_count() == 1
-                    && AL->get_data(0)->is_empty()) {
-                getUI()->execAndLogCmd("@0 <'" + par + "'");
-            }
-            else {
-                getUI()->execAndLogCmd("@+ <'" + par + "'");
-                frame->SwitchSideBar(true);
-            }
-            data_counter++;
-        }
+        getUI()->process_cmd_line_filename(cmdLineParser.GetParam(i).c_str());
     }
+    if (AL->get_ds_count() > 1)
+        frame->SwitchSideBar(true);
 }
 
 
@@ -872,7 +840,7 @@ void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
         string cmd;
         for (int i = 0; i < count; ++i) {
             if (i == 0)
-                cmd = get_focused_data_str() + " <'" + paths[i].c_str() + "'";
+                cmd = get_active_data_str() + " <'" + paths[i].c_str() + "'";
             else
                 cmd += " ; @+ <'" + S(paths[i].c_str()) + "'"; 
             add_recent_data_file(paths[i].c_str());
@@ -886,10 +854,10 @@ void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
 
 void FFrame::OnDXLoad (wxCommandEvent& WXUNUSED(event))
 {
-    FDXLoadDlg dxload_dialog(this, -1);
+    int n = AL->get_active_ds_position();
+    FDXLoadDlg dxload_dialog(this, -1, AL->get_data(n));
     if (dxload_dialog.ShowModal() == wxID_OK) {
-        exec_command(get_focused_data_str()
-                     + " <" + dxload_dialog.get_command_tail());
+        exec_command("@" +S(n) + " <" + dxload_dialog.get_command_tail());
         add_recent_data_file(dxload_dialog.get_filename());
     }
 }
@@ -897,13 +865,22 @@ void FFrame::OnDXLoad (wxCommandEvent& WXUNUSED(event))
 void FFrame::OnDRecent (wxCommandEvent& event)
 {
     string s = GetMenuBar()->GetHelpString(event.GetId()).c_str();
-    exec_command(get_focused_data_str() + " <'" + s + "'");
+    exec_command(get_active_data_str() + " <'" + s + "'");
     add_recent_data_file(s);
 }
 
 void FFrame::OnDEditor (wxCommandEvent& WXUNUSED(event))
 {
-    DataEditorDlg data_editor(this, -1, my_data);
+    vector<pair<int,Data*> > dd;
+    if (get_apply_to_all_ds()) {
+        for (int i = 0; i < AL->get_ds_count(); ++i) 
+            dd.push_back(make_pair(i, AL->get_data(i)));
+    }
+    else {
+        int p = AL->get_active_ds_position();
+        dd.push_back(make_pair(p, AL->get_data(p)));
+    }
+    DataEditorDlg data_editor(this, -1, dd);
     data_editor.ShowModal();
 }
 
@@ -996,6 +973,7 @@ void FFrame::OnSVarList (wxCommandEvent& WXUNUSED(event))
            
 void FFrame::OnSExport       (wxCommandEvent& WXUNUSED(event))
 {
+/*
     static int filter_idx = 0;
     static wxString dir = "";
     wxString name = wxFileName(my_data->get_filename().c_str()).GetName();
@@ -1010,6 +988,7 @@ void FFrame::OnSExport       (wxCommandEvent& WXUNUSED(event))
         exec_command (("s.export '" + fdlg.GetPath() + "'").c_str());
     filter_idx = fdlg.GetFilterIndex();
     dir = fdlg.GetDirectory();
+*/
 }
            
         
@@ -1510,9 +1489,9 @@ void FFrame::after_cmd_updates()
     sidebar->update_lists(false);
 }
 
-string FFrame::get_focused_data_str()
+string FFrame::get_active_data_str()
 {
-    return "@" + S(sidebar->get_focused_data());
+    return "@" + S(AL->get_active_ds_position());
 }
 
 MainPlot* FFrame::get_main_plot() 
@@ -1538,6 +1517,16 @@ bool FFrame::get_apply_to_all_ds()
 void FFrame::activate_function(int n)
 {
     sidebar->activate_function(n);
+}
+
+void FFrame::update_app_title()
+{
+    string title = "fityk";
+    int pos = AL->get_active_ds_position();
+    string const& filename = AL->get_data(pos)->get_filename();
+    if (!filename.empty())
+        title += " - " + filename;
+    SetTitle(title.c_str());
 }
 
 //===============================================================

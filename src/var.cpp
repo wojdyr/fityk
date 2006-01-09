@@ -810,9 +810,7 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
                               ];
 
     variable    =  leaf_node_d[lexeme_d['$' >> +(alnum_p | '_')]]
-    // variable    =  root_node_d[VariableLhsG] //FIXME: why it doesn't work???
                 |  leaf_node_d[lexeme_d['~' >> real_p]]
-                //|  leaf_node_d["~{" >> no_actions_d[DataTransformG] >> '}']
                 |  leaf_node_d["~{" >> +~ch_p('}') >> '}']
                 | leaf_node_d[str_p("x")] //only in functions
                 | leaf_node_d[FunctionLhsG >> '[' 

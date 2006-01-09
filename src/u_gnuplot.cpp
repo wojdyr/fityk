@@ -93,16 +93,20 @@ bool GnuPlot::gnuplot_pipe_ok()
 
 int GnuPlot::plot() 
 {
+    // plot only active data with sum
+    DataWithSum const* ds = AL->get_ds(AL->get_active_ds_position());
+    Data const* data = ds->get_data();
+    Sum const* sum = ds->get_sum();
     if (!gnuplot_pipe_ok())
         return -1;
-    string yfun = my_sum->get_formula();
+    string yfun = ds->get_sum()->get_formula();
     //gnuplot format is a bit different
     replace_all(yfun, "^", "**");
     replace_words(yfun, "ln", "log");
     very_verbose("Plotting function: " + yfun); 
     // Send commands through the pipe to gnuplot
-    int i_f = my_data->get_lower_bound_ac (AL->view.left);
-    int i_l = my_data->get_upper_bound_ac (AL->view.right);
+    int i_f = data->get_lower_bound_ac (AL->view.left);
+    int i_l = data->get_upper_bound_ac (AL->view.right);
     if (i_l - i_f > 0) { //plot data & sum
         bool function_as_points = (i_l - i_f > smooth_limit);
         string plot_string = "plot "+ AL->view.str() 
@@ -119,12 +123,12 @@ int GnuPlot::plot()
             warn("Flushing pipe program-to-gnuplot failed.");
         for (int i = i_f; i < i_l; i++)
             fprintf (gnuplot_pipe, 
-                     "%f  %f\n", my_data->get_x(i), my_data->get_y(i));
+                     "%f  %f\n", data->get_x(i), data->get_y(i));
         fprintf (gnuplot_pipe, "e\n");//gnuplot needs 'e' at the end of data
         if (function_as_points) {
             for (int i = i_f; i < i_l; i++) {
-                fp x = my_data->get_x(i);
-                fprintf(gnuplot_pipe, "%f  %f\n", x, my_sum->value(x));
+                fp x = data->get_x(i);
+                fprintf(gnuplot_pipe, "%f  %f\n", x, sum->value(x));
             }
             fprintf(gnuplot_pipe, "e\n");
         }

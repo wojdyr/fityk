@@ -76,10 +76,17 @@ protected:
     void draw_tics (wxDC& dc, View const &v, 
                     int const x_max_tics, int const y_max_tics, 
                     int const x_tic_size, int const y_tic_size);
-    fp get_max_abs_y (fp (*compute_y)(std::vector<Point>::const_iterator));
+    fp get_max_abs_y (fp (*compute_y)(std::vector<Point>::const_iterator,
+                                      Sum const*),
+                         std::vector<Point>::const_iterator first,
+                         std::vector<Point>::const_iterator last,
+                         Sum const* sum);
     void draw_data (wxDC& dc, 
-                    fp (*compute_y)(std::vector<Point>::const_iterator),
-                    Data const *data, wxColour const& color = wxNullColour,
+                    fp (*compute_y)(std::vector<Point>::const_iterator, 
+                                    Sum const*),
+                    Data const* data, 
+                    Sum const* sum, 
+                    wxColour const& color = wxNullColour,
                     int Y_offset = 0);
     void change_tics_font();
     int y2Y (fp y) {  fp t = (y - yLogicalOrigin) * yUserScale;
@@ -99,8 +106,8 @@ class AuxPlot : public FPlot
 {
 public:
     AuxPlot (wxWindow *parent, PlotShared &shar, std::string name_) 
-        : FPlot (parent, shar), name(name_.c_str()), y_zoom(1.), 
-          y_zoom_base(1.) {}
+        : FPlot (parent, shar), name(name_.c_str()), 
+          y_zoom(1.), y_zoom_base(1.), fit_y_once(false) {}
     ~AuxPlot() {}
     void OnPaint(wxPaintEvent &event);
     void Draw(wxDC &dc);
@@ -128,13 +135,14 @@ private:
     Aux_plot_kind_enum kind;
     fp y_zoom, y_zoom_base;
     bool auto_zoom_y;
+    bool fit_y_once;
     wxCursor cursor;
     static const int move_plot_margin_width = 20;
 
     void draw_diff (wxDC& dc, std::vector<Point>::const_iterator first,
                                 std::vector<Point>::const_iterator last);
     void draw_zoom_text(wxDC& dc);
-    void fit_y_zoom();
+    void fit_y_zoom(Data const* data, Sum const* sum);
 
     DECLARE_EVENT_TABLE()
 };

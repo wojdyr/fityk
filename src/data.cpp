@@ -37,8 +37,6 @@ string get_file_basename(const string &path)
 }
 
 
-Data *my_data;
-
 string Data::getInfo () const
 {
     if (filename.empty()) 

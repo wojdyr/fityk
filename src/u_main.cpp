@@ -318,19 +318,62 @@ int main (int argc, char **argv)
     if (signal (SIGINT, interrupt_handler) == SIG_IGN) 
         signal (SIGINT, SIG_IGN);
 
-    AL = new ApplicationLogic;
-
-    // file with initial commands is executed first (if exists)
-    string init_file = get_config_dir() + startup_commands_filename;
-    if (access(init_file.c_str(), R_OK) == 0) {
-        cerr << " -- reading init file: " << init_file << " --\n";
-        getUI()->execScript(init_file);
-        cerr << " -- end of init file --" << endl;
+    // process command-line arguments
+    bool exec_init_file = true;
+    string script_string;
+    for (int i = 1; i < argc; ++i) {
+        if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
+            cout << 
+              "Usage: cfityk [-h] [-V] [-c <str>] [script or data file...]\n"
+              "  -h, --help            show this help message\n"
+              "  -V, --version         output version information and exit\n"
+              "  -c, --cmd=<str>       script passed in as string\n"
+              "  -I, --no-init         don't process $HOME/.fityk/init file\n";
+            return 0;
+        }
+        else if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--version")) {
+            cout << "fityk version " VERSION "\n";
+            return 0;
+        }
+        else if (!strcmp(argv[i], "-c") || !strcmp(argv[i], "--cmd")) {
+            argv[i] = 0;
+            ++i;
+            if (i+1 < argc) {
+                script_string = argv[i];
+                argv[i] = 0;
+            }
+            else {
+                cerr << "Option -c requires parameter\n";
+                return 1;
+            }
+        }
+        else if (!strcmp(argv[i], "-I") || !strcmp(argv[i], "--no-init")) {
+            argv[i] = 0;
+            exec_init_file = false;
+        }
     }
 
-    // executing files specified as program arguments
-    for (int i = 1; i < argc; i++) 
-        getUI()->execScript(argv[i]);
+    AL = new ApplicationLogic;
+
+
+    if (exec_init_file) {
+        // file with initial commands is executed first (if exists)
+        string init_file = get_config_dir() + startup_commands_filename;
+        if (access(init_file.c_str(), R_OK) == 0) {
+            cerr << " -- reading init file: " << init_file << " --\n";
+            getUI()->execScript(init_file);
+            cerr << " -- end of init file --" << endl;
+        }
+    }
+
+    //then string given with -c is executed
+    if (!script_string.empty())
+        getUI()->execAndLogCmd(script_string);
+    //the rest of parameters/arguments are scripts and/or data files
+    for (int i = 1; i < argc; ++i) {
+        if (argv[i])
+            getUI()->process_cmd_line_filename(argv[i]);
+    }
 
     try {
         // the version of main_loop() depends on NO_READLINE  

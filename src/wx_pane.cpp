@@ -581,7 +581,8 @@ void SideBar::update_lists(bool nondata_changed)
             data_images->Add(wxBitmap(image));
         }
     }
-    dl->populate(data_data, data_images, AL->get_active_ds_position());
+    int active_ds_pos = AL->get_active_ds_position();
+    dl->populate(data_data, data_images, active_ds_pos);
 
     //functions filter
     if (AL->get_ds_count()+1 != filter_ch->GetCount()) {
@@ -595,7 +596,7 @@ void SideBar::update_lists(bool nondata_changed)
     static vector<int> func_col_id;
     vector<string> func_data;
     vector<int> new_func_col_id;
-    Sum const* sum = AL->get_active_ds()->get_sum();
+    Sum const* sum = AL->get_sum(active_ds_pos);
     Sum const* filter_sum = 0;
     if (filter_ch->GetSelection() > 0)
         filter_sum = AL->get_sum(filter_ch->GetSelection()-1);
@@ -703,7 +704,7 @@ void SideBar::OnDataFocusChanged(wxListEvent& WXUNUSED(event))
     int n = dl->GetFocusedItem();
     int length = AL->get_ds_count();
     if (n >= 0 && length > 1 && AL->get_active_ds_position() != n) 
-        exec_command("@" + S(n));
+        exec_command("plot @" + S(n));
     data_page->FindWindow(ID_DP_CPF)->Enable(n+1<length);
 }
 
@@ -1058,13 +1059,12 @@ void InputField::OnKeyDown (wxKeyEvent& event)
 //===============================================================
 
 FPrintout::FPrintout(const PlotPane *p_pane) 
-    : wxPrintout(my_data->get_filename().c_str()), pane(p_pane) 
+    : wxPrintout("fityk printout"), pane(p_pane) 
 {}
 
 bool FPrintout::OnPrintPage(int page)
 {
     if (page != 1) return false;
-    if (my_data->is_empty()) return false;
     wxDC *dc = GetDC();
     if (!dc) return false;
 

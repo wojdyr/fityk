@@ -2,31 +2,23 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH FITYK 1 "September 3, 2004" 
+.TH FITYK 1 "January 8, 2006" 
 .\" Please adjust this date whenever revising the manpage.
 .\"
-.\" Some roff macros, for reference:
-.\" .nh        disable hyphenation
-.\" .hy        enable hyphenation
-.\" .ad l      left justify
-.\" .ad b      justify to both left and right margins
-.\" .nf        disable filling
-.\" .fi        enable filling
-.\" .br        insert line break
-.\" .sp <n>    insert n+1 empty lines
-.\" for manpage-specific macros, see man(7)
 .SH NAME
 fityk \- non-linear curve fitting and data analysis
 .SH SYNOPSIS
 .B fityk
+[\fIOPTION\fR]... [\fIFILE\fR]...
 .br
 .B cfityk
+[\fIOPTION\fR]... [\fIFILE\fR]...
 .SH DESCRIPTION
 This manpage documents briefly the 
 .B fityk
 and 
 .B cfityk
-programs, flexible and portable program for nonlinear fitting of analytical
+programs for nonlinear fitting of analytical
 functions (especially peak-shaped) to data (usually experimental data). In
 other words, for nonlinear peak separation and analysis.
 .br
@@ -55,7 +47,13 @@ and
 can be found in /usr/share/doc/fityk/fitykhelp.html.
 .PP
 .SH OPTIONS
-This program requires no options.
+.IP "-h, --help"
+Print the usage and exit.
+.IP "-V, --version"
+Print the version number and exit.
+.PP
+Use --help to see the full list of options.
 .SH AUTHOR
-This manual page was written by Carlo Segre <segre@iit.edu>,
-for the Debian GNU/Linux system (but may be used by others).
+This manual page was written by Carlo Segre <segre@iit.edu>
+and updated by Marcin Wojdyr.
+

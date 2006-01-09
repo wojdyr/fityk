@@ -172,13 +172,14 @@ public:
             { if (status_bar) SetStatusText(text, field); }
     bool display_help_section(const std::string &s);
     void after_cmd_updates();
-    std::string get_focused_data_str();
+    std::string get_active_data_str();
     MainPlot* get_main_plot(); 
     MainPlot const* get_main_plot() const; 
     void update_data_pane(); 
     bool get_apply_to_all_ds();
     SideBar const* get_sidebar() const { return sidebar; }
     void activate_function(int n);
+    void update_app_title();
 
 protected:
     ProportionalSplitter *main_pane;

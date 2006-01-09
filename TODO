@@ -1,5 +1,4 @@
 
------------------- 0.5.2  2005.0?
 
 * (GUI) peak positions as an option to any aux. plot 
         (not separate type of aux.p.)
@@ -10,47 +9,31 @@
 
 * data tranformations: new functions: randuniform[a b]() randnormal[mu sigma]()
 
-* d.activate, d.load, d.export -> data; d.info -> print
-
-* (GUI) datapane - editable labels (titles)
-                  "duplicate" command, when right-clicking on inactive label
-		  [new dataset: title1 + title2] menu item
-
-* problem: MS Windows - tree at data pane looks bad
-
-* [del] button at data pane
+* [del] key at data pane should work as close button
 
 * improve Voigt function (there is bug in FWHM, cut-tails, better approx?) 
 
------------------- 0.5.3  2005.0?
+------------------ 
 
 * view with/without background button (like in 0.4.x, requires storing
   background points)
 
-* user defined functions: 
+* user defined functions 
       - syntax:
         --> define Gaussian(a,pos,width): a*exp(-((x-pos)/width)^2)
 	                    ^^^ any name but 'x' allowed here
 	--> %g = Gaussian(1,$b,~3.4)
-	--> %g2 = 1*exp(-((x-$b)/~3.4)^2)
-      - `%g' in data transform (Y=y-%g -> peak removal)
-      - to avoid ambiguity, transform '%' operator should be replaced with 'mod'
       - more sophisticated simplifications of expressions and CSE(!)
       - calculating limits, width, area, etc. for UDF(!)
 
------------------- 0.6.0 2005.??
+------------------ 
 
-* data transform: variable step -> fixed step (i.e. x[n]-x[n-1] is constant)
+* (CODE STYLE) put `const' always behind the type
 
-* (INTERNAL) put `const' always behind the type
-
-* rewrite scanner/parser using only boost::spirit. 
-  (in progress, now it uses both Spirit and flex/bison).
-
-* (INTERNAL) propagate errors using exceptions (when suitable) rather 
+* (CODE STYLE) propagate errors using exceptions (when suitable) rather 
   than error codes
 
-* (INTERNAL) use smart pointers: 
+* (CODE STYLE) use smart pointers: 
   http://www.boost.org/libs/smart_ptr/smart_ptr.htm
   (the library will be distributed in 3rdparty/boost)
 
@@ -74,15 +57,7 @@
   is giving segfault, don't know why) 
   Perhaps use wxGenericFileDialog instead of wxGenericDirCtrl (?)
 
-* integrate m.findpeak and s.add options. Prepare interface for many
-  peak detection algorithms
-
-* document s.guess command 
-
 * logarithmic scale  
-
-* (s.add) possibility to add description of peak/parameter 
-  This description could be used e.g. in exporting files.
 
 * loading data -- use Difdaf library (when it will be ready) for powder
   diffraction data import.
@@ -91,7 +66,7 @@
 
 * (GUI) one dialog for plot settings. More precise configuration of axis tics.
   horizontal/vertical peak labels, etc.
-  single ergonomic interface changing colors of everything
+  single ergonomic interface changing colors of everything(?)
 
 * python scripts  -- built-in Python interpreter which allows to extend 
   Fityk using user-written scripts, optional modules, etc. 
@@ -105,15 +80,13 @@
 
 * automatic background substraction - what are good algorithms?
 
-* (s.export) when exporting function/sum as points, it shuld be possible 
+* (F > file) when exporting function/sum as points, it shuld be possible 
   to set step of these points (s.set export-points-step = 0.?)
   and to export baseline and each peak as a separately (multicolumn CSV)
 
 * (Windows only) exporting plots to PostScript file and to metafile(clipboard) 
 
 * more sophisticated algorithms for peak detection
-
-* write documentation for fwhm-correction and height-correction (m.set) 
 
 * fitting: it should be separated even more from the rest of the program.
   Perhaps it fitting functions should be in extern library (COOOL,
@@ -129,8 +102,8 @@
   eg. Lorenzian...; so called 'maximum-likelihood method' -- using Poisson
   error distribution.
 
-* f.info -- more informations about error, confidence limits, etc.
-  graphical interface to f.info; 
+* info -- more informations about error, confidence limits, etc.
+  graphical interface Fit > Info
   easy way to get (write to file) parameters with errors [IMPORTANT]
 
 * Now only '.' is supported as a decimal separator. ',' should also

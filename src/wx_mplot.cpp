@@ -35,7 +35,6 @@ enum {
     ID_plot_popup_plabels                  ,
     ID_plot_popup_xaxis                    ,
     ID_plot_popup_tics                     ,
-    ID_plot_popup_smooth                   ,
 
     ID_plot_popup_c_background             ,
     ID_plot_popup_c_inactive_data          ,
@@ -70,7 +69,7 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_MIDDLE_UP (       MainPlot::OnButtonUp)
     EVT_KEY_DOWN   (      MainPlot::OnKeyDown)
     EVT_MENU (ID_plot_popup_za,     MainPlot::OnZoomAll)
-    EVT_MENU_RANGE (ID_plot_popup_data, ID_plot_popup_smooth,  
+    EVT_MENU_RANGE (ID_plot_popup_data, ID_plot_popup_tics,  
                                     MainPlot::OnPopupShowXX)
     EVT_MENU_RANGE (ID_plot_popup_c_background, ID_plot_popup_c_xaxis, 
                                     MainPlot::OnPopupColor)
@@ -101,11 +100,10 @@ void MainPlot::OnPaint(wxPaintEvent& WXUNUSED(event))
         dc.SetBackground (backgroundBrush);
     dc.Clear();
     Draw(dc);
-    frame->SetTitle (wxString("fityk ") + (my_data->is_empty() ? "" 
-                                : ("- " + my_data->get_filename()).c_str()));
+    frame->update_app_title();
 }
 
-fp y_of_data_for_draw_data(vector<Point>::const_iterator i)
+fp y_of_data_for_draw_data(vector<Point>::const_iterator i, Sum const* /*sum*/)
 {
     return i->y;
 }
@@ -124,16 +122,19 @@ void MainPlot::draw_dataset(wxDC& dc, int n)
                 (col.Green() + bg_col.Green())/2,
                 (col.Blue() + bg_col.Blue())/2);
     }
-    draw_data(dc, y_of_data_for_draw_data, AL->get_data(n), col, offset);
+    draw_data(dc, y_of_data_for_draw_data, AL->get_data(n), 0, col, offset);
 }
 
 void MainPlot::Draw(wxDC &dc)
 {
+    int focused_data = AL->get_active_ds_position();
+    Sum const* sum = AL->get_sum(focused_data);
+
     set_scale();
 
     frame->draw_crosshair(-1, -1); //erase crosshair before redrawing plot
 
-    prepare_peaktops();
+    prepare_peaktops(sum);
 
     if (colourTextForeground.Ok())
         dc.SetTextForeground (colourTextForeground);
@@ -141,7 +142,6 @@ void MainPlot::Draw(wxDC &dc)
         dc.SetTextBackground (colourTextBackground);
 
     if (data_visible) {
-        int focused_data = AL->get_active_ds_position();
         for (int i = 0; i < AL->get_ds_count(); i++) {
             if (i != focused_data) {
                 draw_dataset(dc, i);
@@ -154,31 +154,24 @@ void MainPlot::Draw(wxDC &dc)
     if (tics_visible)
         draw_tics(dc, AL->view, 7, 7, 4, 4);
 
-    if (my_data->is_empty())
-        return;
-
-    vector<Point>::const_iterator f = my_data->get_point_at(AL->view.left),
-                                  l = my_data->get_point_at(AL->view.right);
-    if (l != my_data->points().end())
-        ++l;
 
     if (peaks_visible)
-        draw_peaks (dc, f, l);
+        draw_peaks(dc, sum);
     if (groups_visible)
-        draw_groups (dc, f, l);
+        draw_groups(dc, sum);
     if (sum_visible)
-        draw_sum (dc, f, l);
+        draw_sum(dc, sum);
     if (x_axis_visible) 
-        draw_x_axis (dc, f, l);
+        draw_x_axis(dc);
 
     if (visible_peaktops(mode)) 
-        draw_peaktops(dc); 
+        draw_peaktops(dc, sum); 
     if (mode == mmd_bg) {
         draw_background(dc); 
     }
     else {
         if (plabels_visible)
-            draw_plabels(dc);
+            draw_plabels(dc, sum);
     }
 }
 
@@ -188,118 +181,61 @@ bool MainPlot::visible_peaktops(MouseModeEnum mode)
     return (mode == mmd_zoom || mode == mmd_add || mode == mmd_peak);
 }
 
-void MainPlot::draw_x_axis (wxDC& dc, vector<Point>::const_iterator /*first*/,
-                                      vector<Point>::const_iterator /*last*/)
+void MainPlot::draw_x_axis (wxDC& dc)
 {
     dc.SetPen (xAxisPen);
     dc.DrawLine (0, y2Y(0), GetClientSize().GetWidth(), y2Y(0));
 }
 
-void MainPlot::buffer_peaks (vector<Point>::const_iterator /*first*/,
-                             vector<Point>::const_iterator /*last*/)
+void MainPlot::draw_sum(wxDC& dc, Sum const* sum)
 {
-    /*
-    //TODO
-    //bool function_as_points = (i_l - i_f > smooth_limit);
-    int p = my_sum->fzg_size(fType);
-    shared.buf = vector<vector<fp> > (p + 1, vector<fp>(last - first));
-    int j = 0;
-    for (vector<Point>::const_iterator i = first; i < last; i++, j++) {
-        shared.buf[0][j] = i->x;
-        for (int k = 0; k < my_sum->fzg_size(fType); k++) 
-            shared.buf[k][j] = my_sum->f_value(i->x, k);
-    }
-    */
-}
-
-
-void MainPlot::draw_sum(wxDC& dc, vector<Point>::const_iterator first,
-                                  vector<Point>::const_iterator last)
-{
-    dc.SetPen (sumPen);
-    int X = -1, Y = -1;
-    int n = last - first;
+    dc.SetPen(sumPen);
+    int n = GetClientSize().GetWidth();
     vector<fp> xx(n), yy(n);
-    vector<int> XX(n);
-    for (vector<Point>::const_iterator i = first; i < last; i++) 
-        xx[i-first] = i->x;
-    for (int i = 0; i < size(xx); i++) 
-        XX[i] = x2X(xx[i]);
-    my_sum->calculate_sum_value(xx, yy);
-    for (int i = 0; i < size(xx); i++) {
-        int X_ = X, Y_ = Y;
-        X = XX[i]; //x2X(i->x);
-        Y = y2Y(yy[i]); //y2Y(my_sum->value(i->x));
-        if (smooth)
-            while (X_ < X-1) {
-                ++X_;
-                int Y_p = Y_;
-                Y_ = y2Y(my_sum->value(X2x(X_)));
-                if (X_ > 0)
-                    dc.DrawLine (X_-1, Y_p, X_, Y_); 
-            }
-        if (X_ >= 0 && (X != X_ || Y != Y_)) 
-            dc.DrawLine (X_, Y_, X, Y); 
-    }
+    vector<int> YY(n);
+    for (int i = 0; i < n; ++i) 
+        xx[i] = X2x(i);
+    sum->calculate_sum_value(xx, yy);
+    for (int i = 0; i < n; ++i) 
+        YY[i] = y2Y(yy[i]);
+    for (int i = 1; i < n; i++) 
+        dc.DrawLine (i-1, YY[i-1], i, YY[i]); 
 }
 
 
 //TODO draw groups
-void MainPlot::draw_groups (wxDC& /*dc*/, vector<Point>::const_iterator /*first*/,
-                                      vector<Point>::const_iterator /*last*/)
-                            
+void MainPlot::draw_groups (wxDC& /*dc*/, Sum const*)
 {
-#if 0
-    for (int k = 0; k < my_crystal->get_nr_of_phases(); k++) {
-        dc.SetPen (phasePen[k % max_phase_pens]);
-        vector<int> peaks = my_crystal->get_funcs_in_phase(k);
-        int X = -1, Y = -1;
-        for (vector<Point>::const_iterator i = first; i < last; i++) {
-            int X_ = X, Y_ = Y;
-            X = x2X(i->x);
-            Y = y2Y(my_sum->funcs_value (peaks, i->x));
-            if (smooth)
-                while (X_ < X-1) {
-                    ++X_;
-                    int Y_p = Y_;
-                    Y_ = y2Y(my_sum->funcs_value (peaks, X2x(X_)));
-                    if (X_ > 0)
-                        dc.DrawLine (X_-1, Y_p, X_, Y_); 
-                }
-            if (X_ >= 0 && (X != X_ || Y != Y_)) 
-                dc.DrawLine (X_, Y_, X, Y); 
-        }
-    }
-#endif 
 }
 
-void MainPlot::draw_peaks (wxDC& dc, vector<Point>::const_iterator first,
-                                     vector<Point>::const_iterator last)
+void MainPlot::draw_peaks(wxDC& dc, Sum const* sum)
 {
-    vector<int> const& idx = my_sum->get_ff_idx();
+    fp level = 0;
+    vector<int> const& idx = sum->get_ff_idx();
+    int n = GetClientSize().GetWidth();
+    vector<fp> xx(n), yy(n);
+    vector<int> YY(n);
+    for (int i = 0; i < n; ++i) 
+        xx[i] = X2x(i);
     for (int k = 0; k < size(idx); k++) {
+        fill(yy.begin(), yy.end(), 0.);
         Function const* f = AL->get_function(idx[k]);
-        dc.SetPen (peakPen[k % max_peak_pens]);
-        int X = -1, Y = -1;
-        for (vector<Point>::const_iterator i = first; i < last; i++) {
-            int X_ = X, Y_ = Y;
-            X = x2X(i->x);
-            Y = y2Y(f->calculate_value(i->x));
-            if (smooth)
-                while (X_ < X-1) {
-                    ++X_;
-                    int Y_p = Y_;
-                    Y_ = y2Y(f->calculate_value(X2x(X_)));
-                    if (X_ > 0)
-                        dc.DrawLine (X_-1, Y_p, X_, Y_); 
-                }
-            if (X_ >= 0 && (X != X_ || Y != Y_)) 
-                dc.DrawLine (X_, Y_, X, Y); 
+        int from=0, to=n-1;
+        fp left, right;
+        if (f->get_nonzero_range(level, left, right)) {
+            from = max(from, x2X(left));
+            to = min(to, x2X(right));
         }
+        dc.SetPen (peakPen[k % max_peak_pens]);
+        f->calculate_value(xx, yy);
+        for (int i = from; i <= to; ++i) 
+            YY[i] = y2Y(yy[i]);
+        for (int i = from+1; i <= to; i++) 
+            dc.DrawLine (i-1, YY[i-1], i, YY[i]); 
     }
 }
 
-void MainPlot::draw_peaktops (wxDC& dc)
+void MainPlot::draw_peaktops (wxDC& dc, Sum const* sum)
 {
     dc.SetPen (xAxisPen);
     dc.SetBrush (*wxTRANSPARENT_BRUSH);
@@ -307,27 +243,29 @@ void MainPlot::draw_peaktops (wxDC& dc)
                                            i != shared.peaktops.end(); i++) {
         dc.DrawRectangle (i->x - 1, i->y - 1, 3, 3);
     }
-    draw_peaktop_selection(dc);
+    draw_peaktop_selection(dc, sum);
 }
 
-void MainPlot::draw_peaktop_selection (wxDC& dc)
+void MainPlot::draw_peaktop_selection (wxDC& dc, Sum const* sum)
 {
     int n = frame->get_sidebar()->get_focused_func();
-    if (n >= size(shared.peaktops))
-            return;
-    wxPoint const&p = shared.peaktops[n];
-    dc.SetLogicalFunction (wxINVERT);
-    dc.SetPen(*wxBLACK_PEN);
-    dc.DrawCircle(p.x, p.y, 4);
+    vector<int> const& idx = sum->get_ff_idx();
+    vector<int>::const_iterator t = find(idx.begin(), idx.end(), n);
+    if (t != idx.end()) {
+        wxPoint const&p = shared.peaktops[t-idx.begin()];
+        dc.SetLogicalFunction (wxINVERT);
+        dc.SetPen(*wxBLACK_PEN);
+        dc.DrawCircle(p.x, p.y, 4);
+    }
 }
 
-void MainPlot::draw_plabels (wxDC& dc)
+void MainPlot::draw_plabels (wxDC& dc, Sum const* sum)
 {
     const bool vertical_plabels = false;
-    prepare_peak_labels(); //TODO re-prepare only when peaks where changed
+    prepare_peak_labels(sum); //TODO re-prepare only when peaks where changed
     dc.SetFont(plabelFont);
     vector<wxRect> previous;
-    vector<int> const& idx = my_sum->get_ff_idx();
+    vector<int> const& idx = sum->get_ff_idx();
     for (int k = 0; k < size(idx); k++) {
         const wxPoint &peaktop = shared.peaktops[k];
         dc.SetTextForeground(peakPen[k % max_peak_pens].GetColour());
@@ -375,11 +313,11 @@ static bool operator< (const wxPoint& a, const wxPoint& b)
 }
 */
 
-void MainPlot::prepare_peaktops()
+void MainPlot::prepare_peaktops(Sum const* sum)
 {
     int H =  GetClientSize().GetHeight();
     int Y0 = y2Y(0);
-    vector<int> const& idx = my_sum->get_ff_idx();
+    vector<int> const& idx = sum->get_ff_idx();
     int n = idx.size();
     shared.peaktops.resize(n);
     for (int k = 0; k < n; k++) {
@@ -388,12 +326,12 @@ void MainPlot::prepare_peaktops()
         int X, Y;
         if (f->has_center()) {
             x = f->center();
-            X = x2X (x - my_sum->zero_shift(x));
+            X = x2X (x - sum->zero_shift(x));
         }
         else {
             X = k * 10;
             x = X2x(X);
-            x += my_sum->zero_shift(x);
+            x += sum->zero_shift(x);
         }
         //FIXME: check if these zero_shift()'s above are needed
         Y = y2Y(f->calculate_value(x));
@@ -404,9 +342,9 @@ void MainPlot::prepare_peaktops()
 }
 
 
-void MainPlot::prepare_peak_labels()
+void MainPlot::prepare_peak_labels(Sum const* sum)
 {
-    vector<int> const& idx = my_sum->get_ff_idx();
+    vector<int> const& idx = sum->get_ff_idx();
     plabels.resize(idx.size());
     for (int k = 0; k < size(idx); k++) {
         Function const *f = AL->get_function(idx[k]);
@@ -491,7 +429,6 @@ void MainPlot::read_settings(wxConfigBase *cf)
                                                       wxColour(255, 0, 0)));
                             
     cf->SetPath("/MainPlot/Visible");
-    smooth = read_bool_from_config(cf, "smooth", false);
     peaks_visible = read_bool_from_config (cf, "peaks", true); 
     plabels_visible = read_bool_from_config (cf, "plabels", false); 
     groups_visible = read_bool_from_config (cf, "groups", false);  
@@ -531,7 +468,6 @@ void MainPlot::save_settings(wxConfigBase *cf) const
                                peakPen[i].GetColour());
 
     cf->SetPath("/MainPlot/Visible");
-    cf->Write ("smooth", smooth);
     cf->Write ("peaks", peaks_visible);
     cf->Write ("plabels", plabels_visible);
     cf->Write ("groups", groups_visible);
@@ -611,9 +547,6 @@ void MainPlot::show_popup_menu (wxMouseEvent &event)
     size_menu->Check (ID_plot_popup_pt_size + point_radius, true);
     popup_menu.Append (wxNewId(), "Data point si&ze",size_menu);
 
-    popup_menu.AppendCheckItem (ID_plot_popup_smooth, "Sm&ooth lines", "");
-    popup_menu.Check (ID_plot_popup_smooth, smooth);
-    
     PopupMenu (&popup_menu, event.GetX(), event.GetY());
 }
 
@@ -755,11 +688,13 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
 void MainPlot::look_for_peaktop (wxMouseEvent& event)
 {
     // searching the closest peak-top and distance from it, d = dx + dy < 10 
-    vector<int> const& idx = my_sum->get_ff_idx();
+    int focused_data = AL->get_active_ds_position();
+    Sum const* sum = AL->get_sum(focused_data);
+    vector<int> const& idx = sum->get_ff_idx();
     int min_dist = 10;
     int nearest = -1;
     if (shared.peaktops.size() != idx.size()) 
-        prepare_peaktops();
+        Refresh(false);
     for (vector<wxPoint>::const_iterator i = shared.peaktops.begin(); 
          i != shared.peaktops.end(); i++) {
         int d = abs(event.GetX() - i->x) + abs(event.GetY() - i->y);
@@ -1146,7 +1081,6 @@ void MainPlot::OnPopupShowXX (wxCommandEvent& event)
         case ID_plot_popup_plabels:plabels_visible = !plabels_visible; break;
         case ID_plot_popup_xaxis:  x_axis_visible = !x_axis_visible; break; 
         case ID_plot_popup_tics :  tics_visible = !tics_visible;     break; 
-        case ID_plot_popup_smooth :  smooth = !smooth;               break; 
         default: assert(0);
     }
     Refresh(false);
@@ -1381,7 +1315,8 @@ void BgManager::strip_background()
 
 void BgManager::recompute_bgline()
 {
-    const std::vector<Point>& p = my_data->points();
+    int focused_data = AL->get_active_ds_position();
+    const std::vector<Point>& p = AL->get_data(focused_data)->points();
     bgline.resize(p.size());
     if (spline_bg) 
         prepare_spline_interpolation(bg);

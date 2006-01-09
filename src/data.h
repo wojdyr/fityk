@@ -43,17 +43,18 @@ public :
     fp get_x(int n) const { return p[active_p[n]].x; }
     fp get_y(int n) const { return p[active_p[n]].y; } 
     fp get_sigma (int n) const { return p[active_p[n]].sigma; }
-    int get_n () const {return active_p.size();}
-    bool is_empty () const {return p.empty();}
-    fp get_x_step() const {return x_step;}
+    int get_n () const { return active_p.size(); }
+    bool is_empty() const { return p.empty(); }
+    bool has_any_info() const { return !is_empty() || !get_title().empty(); }
+    fp get_x_step() const { return x_step; }
     void transform(const std::string &s);
     void update_active_p();
     //int auto_range (fp y_level, fp x_margin);
     std::string range_as_string () const;
     int get_lower_bound_ac (fp x) const; 
     int get_upper_bound_ac (fp x) const;
-    std::string get_title() const { return title.empty() ? filename : title; }
-    std::string get_filename() const { return filename; }
+    std::string const& get_title() const {return title.empty()?filename:title;}
+    std::string const& get_filename() const { return filename; }
 
     void recompute_y_bounds();
     fp get_y_at (fp x) const;
@@ -89,6 +90,5 @@ private:
     void post_load();
 };
 
-extern Data *my_data;
-
 #endif
+

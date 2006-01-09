@@ -8,6 +8,9 @@
 #include <string>
 #include "common.h"
 
+
+class DataWithSum;
+
 //     generic fit class interface
 class Fit //: public DotSet
 {               
@@ -18,17 +21,18 @@ public:
 
     Fit(char symb, std::string m);
     virtual ~Fit() {};
-    void fit(bool ini, int max_iter);
+    void fit(int max_iter, std::vector<DataWithSum*> const& dsds_);
+    void continue_fit(int max_iter);
     std::string getInfo();
     std::string getErrorInfo(bool matrix=false);
     int get_default_max_iter() { return default_max_iterations; }
-    static fp compute_wssr_for_data (const Data* data, const Sum* sum, 
-                                     bool weigthed);
+    static fp compute_wssr_for_data (DataWithSum const* ds, bool weigthed);
     static int Jordan (std::vector<fp>& A, std::vector<fp>& b, int n); 
     static int reverse_matrix (std::vector<fp>&A, int n);
     static std::string print_matrix (const std::vector<fp>& vec, 
                                      int m, int n, char *name);//m x n
 protected:
+    std::vector<DataWithSum*> dsds;
     int output_one_of;
     int random_seed;
     int max_evaluations;
@@ -50,7 +54,7 @@ protected:
     fp draw_a_from_distribution (int nr, char distribution = 'u', fp mult = 1.);
     void iteration_plot(std::vector<fp> const &A);
 private:
-    void compute_derivatives_for(Data const *data, Sum const *sum,
+    void compute_derivatives_for(DataWithSum const *ds, 
                                  std::vector<fp>& alpha, std::vector<fp>& beta);
 };
 

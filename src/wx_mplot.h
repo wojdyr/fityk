@@ -87,7 +87,6 @@ private:
     static const int max_peak_pens = 32;
     static const int max_data_pens = 32;
     static const int max_radius = 4; //size of data point
-    bool smooth;
     bool peaks_visible, groups_visible, sum_visible, data_visible, 
          plabels_visible; 
     wxFont plabelFont;
@@ -100,23 +99,17 @@ private:
     bool ctrl;
     int over_peak;
 
-    void draw_x_axis (wxDC& dc, std::vector<Point>::const_iterator first,
-                                   std::vector<Point>::const_iterator last);
+    void draw_x_axis (wxDC& dc);
     void draw_background(wxDC& dc); 
-    void draw_sum (wxDC& dc, std::vector<Point>::const_iterator first,
-                   std::vector<Point>::const_iterator last);
-    void draw_groups (wxDC& dc, std::vector<Point>::const_iterator first,
-                      std::vector<Point>::const_iterator last);
-    void draw_peaks (wxDC& dc, std::vector<Point>::const_iterator first,
-                     std::vector<Point>::const_iterator last);
-    void buffer_peaks (std::vector<Point>::const_iterator first,
-                       std::vector<Point>::const_iterator last);
-    void draw_peaktops (wxDC& dc);
-    void draw_peaktop_selection(wxDC& dc);
-    void draw_plabels (wxDC& dc);
+    void draw_sum (wxDC& dc, Sum const* sum);
+    void draw_groups (wxDC& dc, Sum const* sum);
+    void draw_peaks (wxDC& dc, Sum const* sum);
+    void draw_peaktops (wxDC& dc, Sum const* sum);
+    void draw_peaktop_selection(wxDC& dc, Sum const* sum);
+    void draw_plabels (wxDC& dc, Sum const* sum);
     void draw_dataset(wxDC& dc, int n);
-    void prepare_peaktops();
-    void prepare_peak_labels();
+    void prepare_peaktops(Sum const* sum);
+    void prepare_peak_labels(Sum const* sum);
     void look_for_peaktop (wxMouseEvent& event);
     void show_popup_menu (wxMouseEvent &event);
     void show_peak_menu (wxMouseEvent &event);

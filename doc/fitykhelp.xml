@@ -17,7 +17,7 @@
 <book lang="en">
  <title>Fityk - User's Manual</title> 
  <bookinfo> 
-  <date>2004-06-30</date>
+  <date>2006-01-07</date>
   <author> 
    <firstname>Marcin</firstname> <surname>Wojdyr</surname>
   </author> 
@@ -34,42 +34,29 @@
     separation and analysis. 
    </para>
    <para>
-    It was developed for analyzing diffraction patterns, but can be also used
-    in other fields, since concepts and operations specific for crystallography
-    are separated from the rest of the program.
+    It was developed for analyzing diffraction patterns, but now majority 
+    of users is working with data from other experimental methods, 
+    like chromatography, photoluminescence, infrared or Raman spectroscopy.
    </para>
    <para>
     <application>Fityk</application> offers various nonlinear fitting methods, 
-    background subtracting, various data transformations, 
+    background subtracting, almost any data transformations, 
     easy placement of peaks and changing peak parameters, 
+    convenient analyzing of series of datasets,
     automation of common tasks with scripts, and much more. 
     The main advantage of the program is a flexibility - parameters
-    of peaks can be arbitrarily binded with each other, eg. width of peak can
-    be an independent variable, can be the same as width of other peak or can
-    be given by complicated - common for all peaks - formula.
+    of peaks can be arbitrarily binded with each other, 
+    eg. width of the peak can be an independent variable, 
+    can be the same as the width of the other peak 
+    or can be given by complicated - common for all peaks - formula.
    </para> 
-   <para>
-    The <acronym>GUI</acronym> was written with portable 
-    <ulink url="http://www.wxwidgets.org">
-     <systemitem class="library">wxWidgets</systemitem> 
-    </ulink>
-    library, so <application>fityk</application> works in both Unix/Linux 
-    and MS Windows environments.
-   </para>
-   <para>
-    As far as I know, the only program which also is specialized in fitting
-    peaks is <application>PeakFit</application>. 
-    Some of useful features found in <application>PeakFit</application>, 
-    that are not present in <application>fityk</application> yet, 
-    will be implemented in future.
-   </para>
    <para>
     <application>Fityk</application> is free software; you can redistribute 
     and modify it under the terms of <acronym>GPL</acronym>, version 2. 
     See <xref linkend="license"/> for details. 
     You can download the latest version of <application>fityk</application> from
-    <ulink url="http://www.unipress.waw.pl/~wojdyr/fityk">
-     http://www.unipress.waw.pl/~wojdyr/fityk 
+    <ulink url="http://www.unipress.waw.pl/fityk">
+     http://www.unipress.waw.pl/fityk 
     </ulink>.
     or
     <ulink url="http://fityk.sf.net/">
@@ -78,35 +65,23 @@
     To contact author, visit the same page. 
    </para> 
   </section>
+
   <section>
    <title>How to read this manual</title>
    <para>
-    After this introduction, read
-    entire <xref linkend="using"/>. It is also
-    recommended to read <xref linkend="CommandReference"/>,
-    especially <xref linkend="GeneralSyntax"/>, <xref linkend="sum"/>
-    and, if your field is crystallography,
-    reading <xref linkend="crystallography"/> is a must.
-    Note, that menu commands and toolbar buttons are
-    generally not explained, because they are either
-    intuitive and self-explaining or analogical to textual
-    commands, that have accurate
-    description.
+    After this introduction, read the entire <xref linkend="using"/>.
+    If you are not using <acronym>GUI</acronym>, you will probably
+    need to read <xref linkend="CommandReference"/>.
    </para>
   </section> 
- </chapter>
 
- <chapter id="using">
-  <title>Using fityk</title>
   <section>
    <title><acronym>GUI</acronym> vs <acronym>CLI</acronym></title>
    <para>
     The program comes in two versions: <acronym>GUI</acronym> (Graphical User
-    Interface) version - more comfortable in most cases,
+    Interface) version - more comfortable for most users,
     and <acronym>CLI</acronym> (Command Line Interface) version 
-    (named <command>cfityk</command> to differentiate, Unix only) 
-    - used only in special situations, when visualization is not essential 
-    and user prefers to use a text terminal.
+    (named <command>cfityk</command> to differentiate, Unix only).
    </para>
    <para>
     If <acronym>CLI</acronym> version is compiled with 
@@ -114,14 +89,8 @@
     it enables command line editing and command history 
     like in <application>bash</application>.
     Especially useful is <keycap>TAB</keycap>-expanding. 
-    All <application>fityk</application> 
-    commands, filenames and option names can be expanded. Options are
-    set by <command>d.set</command>, <command>s.set</command>, 
-    <command>f.set</command> etc. commands. 
-    In <acronym>CLI</acronym> version, 
-    data and sum of functions can be visualized with 
-    <application>gnuplot</application> program. It is
-    done automatically, if <command>gnuplot</command> is found.
+    Data and curve fitted to data are visualized with 
+    <application>gnuplot</application> program (if it is installed).
    </para>
    <para>
     <acronym>GUI</acronym> version is written using 
@@ -131,17 +100,22 @@
     library. 
     One of the main features of this library is portability. Program can be
     run on most Unix species with <systemitem class="library">GTK+</systemitem>
-    (it is developed on Linux) and on MS Windows. Ports to other platforms
-    supported by <systemitem class="library">wxWidgets</systemitem> library 
-    are also possible. Read <xref linkend="gui"/> to learn how to use it.
+    (it is developed on Linux) and on MS Windows. There are also people
+    using it on MacOS X (have a look at fityk-users mailing list archives
+    for details).
    </para>
   </section> 
+ </chapter>
+
+
+ <chapter id="using">
+  <title>Getting started</title>
 
   <section>
    <title>The minimal example</title>
    <para>
     Let us analyze a diffraction pattern of NaCl. Our goal is to determine the
-    position of the center of the biggest peak. It is needed for calculating
+    position of the center of the highest peak. It is needed for calculating
     pressure, under which the sample was measured, but the further processing
     does not matter in our example.
    </para>
@@ -151,34 +125,32 @@
    </para>
    <para>
     First load data from file <filename>nacl01.dat</filename>. 
-    You can do it by typing <userinput>d.load 'nacl01.dat'</userinput> 
+    You can do it by typing <userinput>@0 &lt; nacl01.dat</userinput> 
     in <acronym>CLI</acronym> version (or in <acronym>GUI</acronym> version 
     in the input box - at the bottom, just above the status bar). 
     In <acronym>GUI</acronym>, you can select
     <menuchoice>
      <guimenu>Data</guimenu><guimenuitem>Load File</guimenuitem>
     </menuchoice> 
-    from menu and choose proper file, instead. All commands can be
-    abbreviated with letter-dot-letter, eg. you can type: 
-    <userinput>d.l 'nacl01.dat'</userinput>. 
+    from menu and choose proper file, instead. 
    </para> 
    <para>
     If you use GUI, you can zoom in the biggest peak 
     using <mousebutton>left</mousebutton> mouse button on the auxiliary plot
-    (the plot below main plot). To zoom out, press either 
-    <mousebutton>middle</mousebutton> button 
-    or <keycap>Shift</keycap> and <mousebutton>left</mousebutton> button 
-    on the auxiliary plot. Other ways of zooming are described in
-    <xref linkend="mouse"/>. If you want the data to be drawn using 
+    (the plot below main plot). 
+    To zoom out, press <guiicon>View whole</guiicon> toolbar button.
+    Other ways of zooming are described in <xref linkend="mouse"/>. 
+    If you want the data to be drawn using 
     bigger points or line, or if you want to change color of line or background,
     press <mousebutton>right</mousebutton> mouse button on main plot
     and use <guimenu>Data point size</guimenu> or <guimenu>Color</guimenu>
-    menu from pop-up menu.
+    menu from pop-up menu. To change color of data points, use right-hand
+    panel.
    </para> 
    <para>
     Now all data points are active.
     Because only the biggest peak is our interest, the rest of points can be
-    deactivated. Type: <userinput> d.range 23.0:25.0 </userinput>
+    deactivated. Type: <userinput> a = (23.0 &lt; x &lt; 26.0) </userinput>
     or change to <firstterm>range</firstterm> mode (press 
     <guiicon> Data-Range Mode </guiicon>
     button on toolbar) and select range 
@@ -188,11 +160,17 @@
     We see that our data has no background, we
     would have to worry about, so now we only have to define peak with 
     reasonable initial values of peak's parameter and fit it to data. We will
-    use Gaussian. To see it's formula, type: <userinput>s.info ^G</userinput>
+    use Gaussian. 
+    To see it's formula, type: <userinput>info Gaussian</userinput>
     or look for it in the documentation (in <xref linkend="fflist"/>). 
+    By the way, most of commands can be abbreviated, 
+    eg. you can type: <userinput>i Gaussian</userinput>. 
    </para>
    <para>
-    To define peak, type: <userinput>s.add ^G ~60000 ~24.6 ~0.2</userinput>
+    To define peak, type: 
+    <userinput>%p = Gaussian(~60000, ~24.6, ~0.2) -> F</userinput>
+    or
+    <userinput>%p = guess Gaussian</userinput>
     or select 
     <menuchoice><guilabel>Gaussian</guilabel></menuchoice> 
     from the list of functions on toolbar and press 
@@ -203,9 +181,10 @@
     toolbar button.
     There are also other ways to add peak in <acronym>GUI</acronym>,
     try <firstterm>add-peak</firstterm> mode. 
+    These mouse-driven ways give function names like %_1, %_2, etc.
    </para>
    <para>
-    Now let us fit the function. Type: <userinput>f.run</userinput> 
+    Now let us fit the function. Type: <userinput>fit</userinput> 
     or select 
     <menuchoice>
      <guimenu>Fit</guimenu><guimenuitem>Run</guimenuitem>
@@ -213,23 +192,19 @@
     from menu. 
    </para>
    <para>
-    To see position of center, type: <userinput> s.info ^0 </userinput>
-    ('^' stands for function and ^0 for first function) or
-    <userinput> s.info @1 </userinput>
-    ('@' stands for simple-parameter, @0 is the height and @1 is the center).
-    This will be explained <link linkend="sum">later</link> in this manual.
-    In <acronym>GUI</acronym> information about peak is displayed 
-    on status bar, when you move mouse over top of peak.
+    To see peak parameters, type: <userinput> info+ %p</userinput>
+    or (in GUI) move the cursor to the top of the peak 
+    and try out context menu (right button), or use right-hand panel.
    </para>
    <para>
     That is all. To do the same second time, you can write all the commands 
-    to file, eg. to file <filename>nacl01.fit</filename>, and use this script: 
-    <userinput>o.include 'nacl01.fit'</userinput>
+    to file, and use it as script: 
+    <userinput>commands &lt; nacl01.fit</userinput>
     or select 
     <menuchoice>
-     <guimenu>File</guimenu><guimenuitem>Include file</guimenuitem>
+     <guimenu>Session</guimenu><guimenuitem>Execute script</guimenuitem>
     </menuchoice> 
-    from menu, or run program with the name of script: 
+    from menu, or run program with the name of the script: 
     <prompt>bash$ </prompt><userinput>fityk nacl01.fit</userinput>
    </para>
   </section> 
@@ -237,7 +212,14 @@
   <section>
    <title>Invoking fityk </title>
    <para>
-    [TODO]
+    On startup, the program executes a script from the
+    <filename>$HOME/.fityk/init</filename> file.
+    Then the program handles files given as arguments on command line.
+    If the filename has extension ".fit" or the file starts with "# Fityk"
+    string, it is assumed to be a script and executed.
+    Other files are assumed to be a data files and are loaded by the program.
+    There are also other parameters to CLI and GUI versions of the program.
+    Option "-h" gives the full listing.
    </para>
   </section> 
 

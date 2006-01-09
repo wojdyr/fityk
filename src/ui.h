@@ -90,6 +90,7 @@ public:
              { commands.put_command(s, Commands::status_ok); execCommand(s); }
     bool displayHelpTopic(std::string const &topic); 
     int getVerbosity();
+    void process_cmd_line_filename(std::string const& par);
 
 private:
     UserInterface() {}

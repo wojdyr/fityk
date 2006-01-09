@@ -1105,10 +1105,10 @@ bool validate_transformation(string const& str)
     return (bool) result.full;
 }
 
-fp get_transform_expression_value(/*vector<Point> const& points,*/
-                                  string const &s)
+fp get_transform_expression_value(string const &s, Data const* data)
 {
-    vector<Point> const& points = my_data->points();
+    vector<Point> const no_points;
+    vector<Point> const& points = data ? data->points() : no_points;
     assert(code.empty());
     // First compile string...
     parse_info<> result = parse(s.c_str(), DataExpressionG, 

@@ -16,8 +16,8 @@
 
 using namespace std;
 
-Sum::Sum(VariableManager *mgr_) 
-    : replot_needed(true), mgr(*mgr_)
+Sum::Sum(VariableManager *mgr_, Data const* data_) 
+    : mgr(*mgr_), data(data_)
 {
     mgr.register_sum(this);
 }
@@ -80,6 +80,19 @@ void Sum::add_function_to(string const &name, char add_to)
         throw ExecuteError("don't know how to add function to: " + S(add_to));
 }
 
+void Sum::remove_all_functions_from(char rm_from)
+{
+    if (rm_from == 'F') {
+        ff_names.clear();
+        ff_idx.clear();
+    }
+    else if (rm_from == 'Z') {
+        zz_names.clear();
+        zz_idx.clear();
+    }
+    else
+        throw ExecuteError("don't know how to clear : " + S(rm_from));
+}
 
 fp Sum::value(fp x) const
 {
@@ -198,7 +211,7 @@ void Sum::export_as_script (ostream& os) const
 void Sum::export_as_dat (ostream& os) 
 {
     int smooth_limit = 0;
-    int n = my_data->get_n();
+    int n = data->get_n();
     if (n < 2) {
         warn ("At least two data points should be active when"
                 " exporting sum as points");
@@ -208,18 +221,18 @@ void Sum::export_as_dat (ostream& os)
     int k = smooth_limit / n + 1;
     for (int i = 0; i < n - 1; i++) 
         for (int j = 0; j < k; j++) {
-            fp x = ((k - j) * my_data->get_x(i) + j * my_data->get_x(i+1)) / k;
+            fp x = ((k - j) * data->get_x(i) + j * data->get_x(i+1)) / k;
             fp y = value(x);
             os << x << "\t" << y << endl; 
         }
-    fp x = my_data->get_x(n - 1);
+    fp x = data->get_x(n - 1);
     fp y = value(x);
     os << x << "\t" << y << endl; 
 }
 
 void Sum::export_as_peaks(std::ostream& os) const
 {
-    os << "# data file: " << my_data->get_filename() << endl;  
+    os << "# data file: " << data->get_filename() << endl;  
     os << "# Peak Type     Center  Height  Area    FWHM    "
                                         "parameters...\n"; 
     for (vector<int>::const_iterator i=ff_idx.begin(); i != ff_idx.end(); i++){
@@ -242,7 +255,7 @@ void Sum::export_as_xfit (std::ostream& os) const
                                     "   1.000                  0.0000     \r\n";
 
     os << header;
-    string filename = my_data->get_filename();
+    string filename = data->get_filename();
     size_t last_slash = filename.find_last_of("/\\");
     if (last_slash != string::npos) filename = filename.substr(last_slash+1);
     if (filename.size() > 16)
@@ -324,8 +337,4 @@ string Sum::get_formula(bool simplify) const
     }
     return formula;
 }
-
-
-//==================
-Sum *my_sum;
 

@@ -26,6 +26,7 @@
 #include "calc.h"
 #include "var.h"
 #include "datatrans.h"
+#include "logic.h"
 
 ////////////////////////////////////////////////////////////////////////////
 using namespace std;
@@ -697,8 +698,19 @@ fp get_constant_value(string const &s)
         return M_PI;
     else if (s[0] == '{') {
         assert(*(s.end()-1) == '}');
-        const string expr(s.begin()+1, s.end()-1);
-        return get_transform_expression_value(expr);
+        string expr(s.begin()+1, s.end()-1);
+        Data const* data = 0;
+        string::size_type in_pos = s.find(" in ");
+        if (in_pos != string::npos) {
+            int n;
+            expr.resize(in_pos);
+            string in_expr(expr, in_pos);
+            if (!parse(in_expr.c_str(), 
+                       "in" >> lexeme_d['@' >> uint_p[assign_a(n)]]).full)
+                throw ExecuteError("Syntax error in: " + in_expr);
+            data = AL->get_data(n);
+        }
+        return get_transform_expression_value(expr, data);
     }
     else
         return strtod(s.c_str(), 0);

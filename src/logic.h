@@ -9,6 +9,7 @@
 #include "var.h"
 #include "func.h"
 
+class DataWithSum;
 
 class View 
 {
@@ -47,6 +48,7 @@ public:
     }
     void set_items(std::vector<Data*> const &dd, std::vector<Sum*> const &ss) 
                                                     { datas = dd; sums = ss; }
+    void set_dataset(DataWithSum const* ds);
     void fit(int flag=fit_all); 
     void parse_and_set(std::vector<std::string> const& lrbt); 
 protected:
@@ -82,9 +84,7 @@ public:
 class DataWithSum
 {
 public:
-    bool visible_data;
-
-    DataWithSum(VariableManager *mgr, Data* data=0);
+    DataWithSum(VariableManager *mgr, Data* data_=0);
     Data *get_data() const { return data.get(); } 
     Sum *get_sum() const { return sum.get(); }
     void export_as_script (std::ostream& os) const;
@@ -112,8 +112,7 @@ public:
     void dump_all_as_script (std::string const &filename);
 
     void activate_ds(int d);
-    int append_ds(Data *data=0)  { dsds.push_back(new DataWithSum(this, data)); 
-                                   return dsds.size()-1; }
+    int append_ds(Data *data=0);
     void remove_ds(int d);
     void remove_ds(std::vector<int> const &dd) { 
         for (std::vector<int>::const_iterator i=dd.begin(); i != dd.end(); ++i) 
@@ -122,7 +121,6 @@ public:
     int get_ds_count() const { return dsds.size(); }
     DataWithSum* get_ds(int n);
     int get_active_ds_position() const { return active_ds; }
-    DataWithSum* get_active_ds() { return get_ds(active_ds); }
     Data *get_data(int n) { return get_ds(n)->get_data(); }
     Sum *get_sum(int n)   { return get_ds(n)->get_sum();  }
 

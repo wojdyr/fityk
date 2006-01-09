@@ -15,19 +15,23 @@ using namespace std;
 
 ApplicationLogic *AL;
 
-DataWithSum::DataWithSum(VariableManager *mgr, Data *data)
-    : data(data ? data : new Data), sum(new Sum(mgr))  
+DataWithSum::DataWithSum(VariableManager *mgr, Data* data_)
+    : data(data_ ? data_ : new Data), sum(new Sum(mgr, data.get()))  
 {}
 
 void ApplicationLogic::activate_ds(int d)
 {
-    //TODO was_changed=true
     if (d < 0 || d >= size(dsds))
         throw ExecuteError("there is no such dataset: @" + S(d));
     active_ds = d;
-    my_data = get_active_ds()->get_data();
-    my_sum = get_active_ds()->get_sum();
-    view.set_items(vector1(my_data), vector1(my_sum));
+    view.set_dataset(get_ds(active_ds));
+}
+
+int ApplicationLogic::append_ds(Data *data)
+{
+    DataWithSum* ds = new DataWithSum(this, data);
+    dsds.push_back(ds); 
+    return dsds.size()-1; 
 }
 
 void ApplicationLogic::remove_ds(int d)
@@ -261,4 +265,8 @@ void View::parse_and_set(std::vector<std::string> const& lrbt)
     fit(flag);
 }
 
+void View::set_dataset(DataWithSum const* ds) 
+{ 
+    set_items(vector1(ds->get_data()), vector1(ds->get_sum())); 
+}
 

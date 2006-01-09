@@ -11,6 +11,7 @@
 #include "var.h"
 
 class Function;
+class Data;
 
 ///  This class contains description of curve which we are trying to fit 
 ///  to data. This curve is described simply by listing names of functions
@@ -18,12 +19,11 @@ class Function;
 class Sum 
 {
 public:
-    bool replot_needed;
-
-    Sum(VariableManager *mgr_);
+    Sum(VariableManager *mgr_, Data const* data_);
     ~Sum();
     void find_function_indices();
     void add_function_to(std::string const &name, char add_to);
+    void remove_all_functions_from(char rm_from);
     fp value(fp x) const;
     void calculate_sum_value(std::vector<fp> &x, std::vector<fp> &y) const; 
     void calculate_sum_value_deriv(std::vector<fp> &x, std::vector<fp> &y,
@@ -48,9 +48,11 @@ public:
     int get_zz_count() { return zz_idx.size(); }
     std::vector<std::string> const &get_ff_names() const { return ff_names; }
     std::vector<std::string> const &get_zz_names() const { return zz_names; }
+    bool has_any_info() const { return !ff_names.empty() || !zz_names.empty(); }
 
 private:
     VariableManager &mgr;
+    Data const* data;
     std::vector<std::string> ff_names;
     std::vector<std::string> zz_names;
     std::vector<int> ff_idx;
@@ -65,7 +67,6 @@ private:
                                   std::vector<int> &idx);
 };
 
-extern Sum *my_sum;
 
 #endif  
 

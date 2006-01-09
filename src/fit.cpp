@@ -39,13 +39,15 @@ Fit::Fit (char symb, string m)
 
 string Fit::getInfo()
 {
+    //TODO dsds ...
     AL->use_parameters();
     vector<fp> const &pp = AL->get_parameters();
     na = pp.size(); 
     //n_m = number of points - degrees of freedom (parameters)
     int n_m = -na;
-    for (int i = 0; i < 1; i++)  //TODO
-        n_m += AL->get_active_ds()->get_data()->get_n(); 
+    for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
+                                                    i != dsds.end(); ++i) 
+        n_m += (*i)->get_data()->get_n(); 
     return "Current WSSR = " + S(compute_wssr(pp)) 
                 + " (expected: " + S(n_m) + "); SSR = " 
                 + S(compute_wssr(pp, false));
@@ -80,25 +82,25 @@ string Fit::getErrorInfo(bool matrix)
 
 fp Fit::compute_wssr(vector<fp> const &A, bool weigthed)
 {
-    //TODO fitting multiple plots
     evaluations++;
     fp wssr = 0;
-    for (int i = 0; i < 1; ++i) {
-        DataWithSum const *ds = AL->get_active_ds();
-        AL->use_external_parameters(A);
-        wssr += compute_wssr_for_data(ds->get_data(), ds->get_sum(), weigthed);
+    AL->use_external_parameters(A);
+    for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
+                                                    i != dsds.end(); ++i) {
+        wssr += compute_wssr_for_data(*i, weigthed);
     }
     return wssr;
 }
 
-fp Fit::compute_wssr_for_data(Data const *data, Sum const *sum, bool weigthed)
+fp Fit::compute_wssr_for_data(DataWithSum const* ds, bool weigthed)
 {
+    Data const* data = ds->get_data();
     int n = data->get_n();
     vector<fp> xx(n);
     for (int j = 0; j < n; j++) 
         xx[j] = data->get_x(j);
     vector<fp> yy(n, 0.);
-    sum->calculate_sum_value(xx, yy);
+    ds->get_sum()->calculate_sum_value(xx, yy);
     fp wssr = 0;
     for (int j = 0; j < n; j++) {
         fp dy = data->get_y(j) - yy[j];
@@ -111,18 +113,16 @@ fp Fit::compute_wssr_for_data(Data const *data, Sum const *sum, bool weigthed)
 
 //results in alpha and beta 
 void Fit::compute_derivatives(vector<fp> const &A, 
-                                vector<fp>& alpha, vector<fp>& beta)
+                              vector<fp>& alpha, vector<fp>& beta)
 {
     assert (size(A) == na && size(alpha) == na * na && size(beta) == na);
     fill(alpha.begin(), alpha.end(), 0.0);
     fill(beta.begin(), beta.end(), 0.0);
 
     AL->use_external_parameters(A);
-    //TODO fitting multiple plots
-    for (int i = 0; i < 1; i++) { 
-        DataWithSum const *ds = AL->get_active_ds();
-        compute_derivatives_for(ds->get_data(), ds->get_sum(),
-                                alpha, beta);
+    for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
+                                                    i != dsds.end(); ++i) {
+        compute_derivatives_for(*i, alpha, beta);
     }
     // filling second half of alpha[] 
     for (int j = 1; j < na; j++)
@@ -132,9 +132,10 @@ void Fit::compute_derivatives(vector<fp> const &A,
 
 //results in alpha and beta 
 //it computes only half of alpha matrix
-void Fit::compute_derivatives_for(Data const* data, Sum const* sum,
-                                    vector<fp>& alpha, vector<fp>& beta)
+void Fit::compute_derivatives_for(DataWithSum const* ds, 
+                                  vector<fp>& alpha, vector<fp>& beta)
 {
+    Data const* data = ds->get_data();
     int n = data->get_n();
     vector<fp> xx(n);
     for (int j = 0; j < n; j++) 
@@ -142,7 +143,7 @@ void Fit::compute_derivatives_for(Data const* data, Sum const* sum,
     vector<fp> yy(n, 0.);
     const int dyn = na+1;
     vector<fp> dy_da(n*dyn, 0.);
-    sum->calculate_sum_value_deriv(xx, yy, dy_da);
+    ds->get_sum()->calculate_sum_value_deriv(xx, yy, dy_da);
     for (int i = 0; i < n; i++) {
         fp inv_sig = 1.0 / data->get_sigma(i);
         fp dy_sig = (data->get_y(i) - yy[i]) * inv_sig;
@@ -224,22 +225,28 @@ fp Fit::draw_a_from_distribution (int nr, char distribution, fp mult)
     return AL->variation_of_a(nr, dv * mult);
 }
 
-void Fit::fit(bool ini, int max_iter)
+void Fit::fit(int max_iter, vector<DataWithSum*> const& dsds_)
 {
     if (AL->get_parameters().empty()) 
         throw ExecuteError("there are no fittable parameters.");
-    if (ini) {
-        user_interrupt = false;
-        iter_nr = 0;
-        a_orig = AL->get_parameters();
-        na = a_orig.size(); 
-        int rs = random_seed >= 0 ? random_seed : time(0);
-        srand (rs);
-        verbose ("Seed for a sequence of pseudo-random numbers: " + S(rs));
-        init();
-    }
+    if (dsds_.empty())
+        throw ExecuteError("No datasets to fit.");
+    dsds = dsds_;
+    user_interrupt = false;
+    iter_nr = 0;
+    a_orig = AL->get_parameters();
+    na = a_orig.size(); 
+    int rs = random_seed >= 0 ? random_seed : time(0);
+    srand (rs);
+    verbose ("Seed for a sequence of pseudo-random numbers: " + S(rs));
+    init();
+    continue_fit(max_iter);
+}
+
+void Fit::continue_fit(int max_iter)
+{
     //was init() callled ?
-    else if (na != size(AL->get_parameters())) { 
+    if (na != size(AL->get_parameters())) { 
         warn (method + " method should be initialized first. Canceled");
         return;
     }

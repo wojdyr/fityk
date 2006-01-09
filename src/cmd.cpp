@@ -27,7 +27,7 @@ using namespace boost::spirit;
 
 namespace {
 
-bool with_plus;
+bool with_plus, deep_cp;
 string t, t2;
 int tmp_int, tmp_int2, ds_pref;
 double tmp_real, tmp_real2;
@@ -107,6 +107,26 @@ void do_put_function(char const* a, char const*)
     for (vector<string>::const_iterator i = vt.begin(); i != vt.end(); ++i)
         AL->get_sum(ds_pref)->add_function_to(*i, *a);
     outdated_plot=true;  //TODO only if...
+}
+
+void do_fz_assign(char const*, char const*)
+{
+    Sum* sum = AL->get_sum(ds_pref);
+    sum->remove_all_functions_from(t[0]);
+    for (vector<string>::const_iterator i = vt.begin(); i != vt.end(); ++i)
+        sum->add_function_to(*i, t[0]);
+    if (!t2.empty()) {
+        assert(t2 == "F" || t2 == "Z");
+        Sum const* from_sum = AL->get_sum(tmp_int);
+        vector<string> const &names = (t2 == "F" ? from_sum->get_ff_names() 
+                                                 : from_sum->get_zz_names());
+        for (vector<string>::const_iterator i = names.begin(); 
+                                                   i != names.end(); ++i) {
+            sum->add_function_to(deep_cp ? AL->assign_func_copy("", *i) : *i, 
+                                 t[0]);
+        }
+    }
+    outdated_plot=true;  //TODO only if ds_pref == @active
 }
 
 void do_delete(char const*, char const*) 
@@ -232,7 +252,7 @@ void do_print_sum_info(char const* a, char const* b)
 
 void do_print_sum_derivatives_info(char const*, char const*)
 {
-    fp x = get_transform_expression_value(t);
+    fp x = get_transform_expression_value(t, AL->get_data(ds_pref));
     Sum const* sum = AL->get_sum(ds_pref);
     vector<fp> symb = sum->get_symbolic_derivatives(x);
     vector<fp> num = sum->get_numeric_derivatives(x, 1e-4);
@@ -251,8 +271,14 @@ void do_print_func_value(char const*, char const*)
 {
     string m;
     const Function* f = AL->find_function(t);
+    Data const* data = 0;
+    try {
+        data = AL->get_data(ds_pref);
+    } catch (ExecuteError &) {
+        // leave data=0
+    }
     if (f) {
-        fp x = get_transform_expression_value(t2);
+        fp x = get_transform_expression_value(t2, data);
         fp y = f->calculate_value(x);
         m = f->xname + "(" + S(x) + ") = " + S(y);
         if (with_plus) {
@@ -264,11 +290,23 @@ void do_print_func_value(char const*, char const*)
     mesg(m);
 }
 
-void do_print_data_expr(char const* a, char const* b)
+void do_print_data_expr(char const*, char const*)
 {
-    string s = string(a,b);
-    fp t = get_transform_expression_value(s);
-    mesg(S(t));
+    string s;
+    vector<DataWithSum*> v = get_datasets_from_indata();
+    if (v.size() == 1)
+        s = S(get_transform_expression_value(t, v[0]->get_data()));
+    else {
+        map<DataWithSum const*, int> m;
+        for (int i = 0; i < AL->get_ds_count(); ++i)
+            m[AL->get_ds(i)] = i;
+        for (vector<DataWithSum*>::const_iterator i = v.begin(); 
+                i != v.end(); ++i) {
+            fp k = get_transform_expression_value(t, (*i)->get_data());
+            s += "in @" + S(m[*i]) + ": " + S(k);
+        }
+    }
+    mesg(s);
 }
 
 void do_print_func_type(char const* a, char const* b)
@@ -282,7 +320,9 @@ void do_print_func_type(char const* a, char const* b)
 
 void do_import_dataset(char const*, char const*)
 {
-    if (tmp_int == new_dataset) {
+    if (tmp_int == new_dataset
+            && (AL->get_ds_count() != 1 || AL->get_data(0)->has_any_info()
+                || AL->get_sum(0)->has_any_info())) {
         auto_ptr<Data> data(new Data);
         data->load_file(t, 0, vector<int>()); //TODO columns, type
         tmp_int = AL->append_ds(data.release());
@@ -290,6 +330,8 @@ void do_import_dataset(char const*, char const*)
     else {
         //TODO columns, type
         AL->get_data(tmp_int)->load_file(t, 0, vector<int>()); 
+        if (AL->get_ds_count() == 1)
+            AL->view.fit();
     }
     AL->activate_ds(tmp_int);
     outdated_plot=true;  
@@ -300,12 +342,11 @@ void do_export_dataset(char const*, char const*)
     AL->get_data(tmp_int)->export_to_file(t); 
 }
 
-void do_select_data(char const*, char const*)
+void do_append_data(char const*, char const*)
 {
-    if (tmp_int == new_dataset) 
-        tmp_int = AL->append_ds();
-    AL->activate_ds(tmp_int);
-    outdated_plot=true;  //TODO only if...
+    int n = AL->append_ds();
+    AL->activate_ds(n);
+    outdated_plot=true;  
 }
 
 void do_load_data_sum(char const*, char const*)
@@ -322,6 +363,8 @@ void do_load_data_sum(char const*, char const*)
 
 void do_plot(char const*, char const*)
 {
+    if (tmp_int != -1)
+        AL->activate_ds(tmp_int);
     AL->view.parse_and_set(vr);
     getUI()->drawPlot(1, true);
     outdated_plot=false;
@@ -336,7 +379,10 @@ void do_replot(char const*, char const*)
 
 void do_fit(char const*, char const*)
 {
-    my_fit->fit(!with_plus, tmp_int);
+    if (with_plus)
+        my_fit->continue_fit(tmp_int);
+    else
+        my_fit->fit(tmp_int, get_datasets_from_indata());
     outdated_plot=true;  
 }
 
@@ -480,6 +526,22 @@ struct CmdGrammar : public grammar<CmdGrammar>
             = "->" >> ds_prefix >> (ch_p('F')|'Z'|'N')[&do_put_function]
             ;
 
+        fz_assign
+            = ds_prefix >> (ch_p('F')|'Z') [assign_a(t)] 
+              >> ch_p('=') [clear_a(vt)] [assign_a(t2, empty)]
+              >> ("copy(" >> lexeme_d['@' >> uint_p [assign_a(tmp_int)]
+                                      >> '.' >> (ch_p('F')|'Z') [assign_a(t2)]
+                                     ] 
+                    >> ch_p(')') [assign_a(deep_cp, true_)]
+                 |  lexeme_d['@' >> uint_p [assign_a(tmp_int)]
+                             >> '.' >> (ch_p('F')|'Z') [assign_a(t2)]
+                            ] [assign_a(deep_cp, false_)]
+                 | (FunctionLhsG [push_back_a(vt)] 
+                     % ',')
+                 | '0'
+                 ) [&do_fz_assign]
+            ;
+
         in_data
             = eps_p [clear_a(vds)]
             >> !("in" >> (lexeme_d['@' >> uint_p [push_back_a(vds)]
@@ -520,7 +582,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
                                    | filename_str [&do_import_dataset]
                                    )
             | (existing_dataset_nr >> '>' >> filename_str) [&do_export_dataset]
-            | dataset_nr[&do_select_data] //TODO remove
+            | str_p("@+")[&do_append_data] 
             ;
 
         plot_range  //first clear vr if needed 
@@ -539,7 +601,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
             | (FunctionLhsG [assign_a(t)] 
                >> "(" 
                >> no_actions_d[DataExpressionG] [assign_a(t2)]
-               >> ")") [&do_print_func_value] 
+               >> ")" >> in_data) [&do_print_func_value] 
             | FunctionLhsG [&do_print_info]
             | str_p("datasets") [&do_print_info]
             | existing_dataset_nr [&do_print_info]
@@ -555,7 +617,8 @@ struct CmdGrammar : public grammar<CmdGrammar>
                >> ( uint_p [assign_a(tmp_int)]
                   | eps_p [assign_a(tmp_int, one)])
                >> plot_range >> in_data) [&do_print_info]
-            | no_actions_d[DataExpressionG][&do_print_data_expr]
+            | (no_actions_d[DataExpressionG][assign_a(t)] 
+                 >> in_data) [&do_print_data_expr]
             | function_name[&do_print_func_type]
             ;
 
@@ -623,26 +686,27 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         statement 
-            = transform 
-            | assign_var 
-            | (functionname_assign >> "guess" >> guess_arg) [&do_guess]
-            | subst_func_param 
-            | assign_func 
-            | put_function
+            = "info" >> optional_plus >> (info_arg % ',')
             | (str_p("delete")[clear_a(vt)][clear_a(vn)] 
                 >> ( VariableLhsG [push_back_a(vt)]
                    | FunctionLhsG [push_back_a(vt)]
                    | lexeme_d['@'>>uint_p[push_back_a(vn)]]) % ',') [&do_delete]
-            | dataset_handling
-            | "info" >> optional_plus >> (info_arg % ',')
-            | (str_p("plot") [clear_a(vr)] 
-              >> plot_range >> plot_range) [&do_plot]
+            | (str_p("plot") [clear_a(vr)] [assign_a(tmp_int, minus_one)]
+              >> !existing_dataset_nr >> plot_range >> plot_range) [&do_plot]
             | ("fit" >> fit_arg) [&do_fit]
             | ("sleep" >> ureal_p[assign_a(tmp_real)])[&do_sleep]
             | "commands" >> commands_arg
             | str_p("reset") [&do_reset]
             | (str_p("dump") >> '>' >> filename_str)[&do_dump]
             | "set" >> (set_arg % ',')
+            | transform 
+            | assign_var 
+            | (functionname_assign >> "guess" >> guess_arg) [&do_guess]
+            | subst_func_param 
+            | assign_func 
+            | put_function
+            | fz_assign
+            | dataset_handling
             ;
 
         multi 
@@ -652,7 +716,8 @@ struct CmdGrammar : public grammar<CmdGrammar>
 
     rule<ScannerT> transform, assign_var, function_name, assign_func, 
                    function_param, subst_func_param, put_function, 
-                   functionname_assign, put_func_to, in_data, ds_prefix,
+                   functionname_assign, put_func_to, fz_assign, 
+                   in_data, ds_prefix,
                    dataset_handling, filename_str, guess_arg,
                    existing_dataset_nr, dataset_nr, 
                    optional_plus, int_range, commands_arg, set_arg,

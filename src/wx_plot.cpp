@@ -120,14 +120,16 @@ void FPlot::draw_tics (wxDC& dc, View const &v,
     }
 }
 
-fp FPlot::get_max_abs_y (fp (*compute_y)(vector<Point>::const_iterator))
+fp FPlot::get_max_abs_y (fp (*compute_y)(vector<Point>::const_iterator, 
+                                         Sum const*),
+                         vector<Point>::const_iterator first,
+                         vector<Point>::const_iterator last,
+                         Sum const* sum)
 {
-    vector<Point>::const_iterator first = my_data->get_point_at(AL->view.left),
-                                  last = my_data->get_point_at(AL->view.right);
     fp max_abs_y = 0;
     for (vector<Point>::const_iterator i = first; i < last; i++) {
         if (i->is_active) {
-            fp y = fabs(((*compute_y)(i)));
+            fp y = fabs(((*compute_y)(i, sum)));
             if (y > max_abs_y) max_abs_y = y;
         }
     }
@@ -135,8 +137,11 @@ fp FPlot::get_max_abs_y (fp (*compute_y)(vector<Point>::const_iterator))
 }
 
 void FPlot::draw_data (wxDC& dc, 
-                       fp (*compute_y)(vector<Point>::const_iterator),
-                       Data const* data, wxColour const& color,
+                       fp (*compute_y)(vector<Point>::const_iterator, 
+                                       Sum const*),
+                       Data const* data, 
+                       Sum const* sum,
+                       wxColour const& color,
                        int Y_offset)
 {
     Y_offset *= (GetClientSize().GetHeight() / 100);
@@ -158,8 +163,8 @@ void FPlot::draw_data (wxDC& dc,
         dc.SetPen(first->is_active ? activePen : inactivePen);
         if (first > data->points().begin()) {
             X_ = x2X (AL->view.left);
-            int Y_l = y2Y ((*compute_y)(first - 1));
-            int Y_r = y2Y ((*compute_y)(first));
+            int Y_l = y2Y ((*compute_y)(first - 1, sum));
+            int Y_r = y2Y ((*compute_y)(first, sum));
             int X_l = x2X ((first - 1)->x);
             int X_r = x2X (first->x);
             if (X_r == X_l)
@@ -169,7 +174,7 @@ void FPlot::draw_data (wxDC& dc,
         }
         else {
             X_ = x2X(first->x);
-            Y_ = y2Y ((*compute_y)(first));
+            Y_ = y2Y ((*compute_y)(first, sum));
         }
     }
     Y_ -= Y_offset;
@@ -177,7 +182,7 @@ void FPlot::draw_data (wxDC& dc,
     //drawing all points (and lines); main loop
     for (vector<Point>::const_iterator i = first; i < last; i++) {
         int X = x2X(i->x);
-        int Y = y2Y ((*compute_y)(i)) - Y_offset;
+        int Y = y2Y ((*compute_y)(i, sum)) - Y_offset;
         if (X == X_ && Y == Y_) continue;
         if (i->is_active != active) {
             active = i->is_active;
@@ -213,8 +218,8 @@ void FPlot::draw_data (wxDC& dc,
     //the last line segment, toward next point
     if (line_between_points && last < data->points().end()) {
         int X = x2X (AL->view.right);
-        int Y_l = y2Y ((*compute_y)(last - 1));
-        int Y_r = y2Y ((*compute_y)(last));
+        int Y_l = y2Y ((*compute_y)(last - 1, sum));
+        int Y_r = y2Y ((*compute_y)(last, sum));
         int X_l = x2X ((last - 1)->x);
         int X_r = x2X (last->x);
         if (X_r != X_l) {
@@ -302,31 +307,37 @@ void AuxPlot::OnPaint(wxPaintEvent &WXUNUSED(event))
     Draw(dc);
 }
 
-inline fp sum_value(vector<Point>::const_iterator pt)
+inline fp sum_value(vector<Point>::const_iterator pt, Sum const* sum)
 {
-    return my_sum->value(pt->x);
+    return sum->value(pt->x);
 }
 
-fp diff_of_data_for_draw_data (vector<Point>::const_iterator i)
+fp diff_of_data_for_draw_data (vector<Point>::const_iterator i, Sum const* sum)
 {
-    return i->y - sum_value(i);
+    return i->y - sum_value(i, sum);
 }
 
-fp diff_stddev_of_data_for_draw_data (vector<Point>::const_iterator i)
+fp diff_stddev_of_data_for_draw_data (vector<Point>::const_iterator i, 
+                                      Sum const* sum)
 {
-    return (i->y - sum_value(i)) / i->sigma;
+    return (i->y - sum_value(i, sum)) / i->sigma;
 }
 
-fp diff_y_proc_of_data_for_draw_data (vector<Point>::const_iterator i)
+fp diff_y_proc_of_data_for_draw_data (vector<Point>::const_iterator i, 
+                                      Sum const* sum)
 {
-    return i->y ? (i->y - sum_value(i)) / i->y * 100 : 0;
+    return i->y ? (i->y - sum_value(i, sum)) / i->y * 100 : 0;
 }
 
 void AuxPlot::Draw(wxDC &dc)
 {
-    Data const* data = my_data;
-    if (auto_zoom_y)
-        fit_y_zoom();
+    int pos = AL->get_active_ds_position();
+    Data const* data = AL->get_data(pos);
+    Sum const* sum = AL->get_sum(pos);
+    if (auto_zoom_y || fit_y_once) {
+        fit_y_zoom(data, sum);
+        fit_y_once = false;
+    }
     set_scale();
     if (kind == apk_empty || data->is_empty()) 
         return;
@@ -351,11 +362,11 @@ void AuxPlot::Draw(wxDC &dc)
     }
 
     if (kind == apk_diff)
-        draw_data (dc, diff_of_data_for_draw_data, data);
+        draw_data (dc, diff_of_data_for_draw_data, data, sum);
     else if (kind == apk_diff_stddev)
-        draw_data (dc, diff_stddev_of_data_for_draw_data, data);
+        draw_data (dc, diff_stddev_of_data_for_draw_data, data, sum);
     else if (kind == apk_diff_y_proc)
-        draw_data (dc, diff_y_proc_of_data_for_draw_data, data);
+        draw_data (dc, diff_y_proc_of_data_for_draw_data, data, sum);
 }
 
 void AuxPlot::draw_zoom_text(wxDC& dc)
@@ -579,7 +590,8 @@ void AuxPlot::OnKeyDown (wxKeyEvent& event)
 void AuxPlot::OnPopupPlot (wxCommandEvent& event)
 {
     kind = static_cast<Aux_plot_kind_enum>(event.GetId()-ID_aux_popup_plot_0);
-    fit_y_zoom();
+    //fit_y_zoom();
+    fit_y_once = true;
     Refresh(false);
 }
 
@@ -622,19 +634,24 @@ void AuxPlot::OnPopupYZoom (wxCommandEvent& WXUNUSED(event))
 
 void AuxPlot::OnPopupYZoomFit (wxCommandEvent& WXUNUSED(event))
 {
-    fit_y_zoom();
+    //fit_y_zoom();
+    fit_y_once = true;
     Refresh(false);
 }
 
-void AuxPlot::fit_y_zoom()
+void AuxPlot::fit_y_zoom(Data const* data, Sum const* sum)
 {
     if (!is_zoomable())
         return;
     fp y = 0.;
+    vector<Point>::const_iterator first = data->get_point_at(AL->view.left),
+                                  last = data->get_point_at(AL->view.right);
+    if (data->is_empty() || last==first)
+        return;
     switch (kind) { // setting y_zoom
         case apk_diff: 
             {
-            y = get_max_abs_y (diff_of_data_for_draw_data);
+            y = get_max_abs_y(diff_of_data_for_draw_data, first, last, sum);
             y_zoom = fabs (GetClientSize().GetHeight() / 
                                             (2 * y * shared.plot_y_scale));
             fp order = pow (10, floor (log10(y_zoom)));
@@ -642,12 +659,14 @@ void AuxPlot::fit_y_zoom()
             }
             break;
         case apk_diff_stddev:
-            y = get_max_abs_y (diff_stddev_of_data_for_draw_data);
+            y = get_max_abs_y(diff_stddev_of_data_for_draw_data, 
+                              first, last, sum);
             y_zoom_base = GetClientSize().GetHeight() / (2. * y);
             y_zoom = 0.9;
             break;
         case apk_diff_y_proc:
-            y = get_max_abs_y (diff_y_proc_of_data_for_draw_data);
+            y = get_max_abs_y(diff_y_proc_of_data_for_draw_data, 
+                              first, last, sum);
             y_zoom_base = GetClientSize().GetHeight() / (2. * y);
             y_zoom = 0.9;
             break;
@@ -660,7 +679,7 @@ void AuxPlot::OnPopupYZoomAuto (wxCommandEvent& WXUNUSED(event))
 {
     auto_zoom_y = !auto_zoom_y;
     if (auto_zoom_y) {
-        fit_y_zoom();
+        //fit_y_zoom(); -- it is called from Draw
         Refresh(false);
     }
 }

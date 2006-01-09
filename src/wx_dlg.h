@@ -30,7 +30,7 @@ private:
 class FDXLoadDlg : public wxDialog
 {
 public:
-    FDXLoadDlg (wxWindow* parent, wxWindowID id);
+    FDXLoadDlg (wxWindow* parent, wxWindowID id, Data* data);
     std::string get_command_tail();
     std::string get_filename();
     void on_filter_change();
@@ -90,8 +90,9 @@ struct DataTransExample
 class DataEditorDlg : public wxDialog
 {
     friend class DataTable;
+    typedef std::vector<std::pair<int,Data*> > ndnd_type;
 public:
-    DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_);
+    DataEditorDlg (wxWindow* parent, wxWindowID id, ndnd_type const& dd);
     void OnRevert (wxCommandEvent& event);
     void OnSaveAs (wxCommandEvent& event);
     void OnAdd (wxCommandEvent& event);
@@ -109,7 +110,7 @@ public:
     void OnESelected (wxListEvent&) { ESelected(); }
     void ESelected();
     void OnEActivated (wxListEvent& event);
-    void update_data(Data *data_);
+    void update_data(ndnd_type const& dd);
     static const std::vector<DataTransExample>& get_examples() 
                                                     { return examples; }
     static void read_examples(bool reset=false);
@@ -117,7 +118,7 @@ public:
 protected:
     static std::vector<DataTransExample> examples;
     wxGrid *grid;
-    Data *data;
+    ndnd_type ndnd;
     wxStaticText *filename_label, *title_label, *description;
     wxListCtrl *example_list; 
     wxTextCtrl *code;

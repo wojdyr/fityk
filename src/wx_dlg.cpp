@@ -132,7 +132,7 @@ BEGIN_EVENT_TABLE(FDXLoadDlg, wxDialog)
     EVT_CHECKBOX    (ID_DXLOAD_STDDEV_CB, FDXLoadDlg::OnStdDevCheckBox)
 END_EVENT_TABLE()
 
-FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id)
+FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, Data* data)
     : wxDialog(parent, id, "Data load (custom)", 
                wxDefaultPosition, wxSize(-1, 500), 
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER) 
@@ -140,7 +140,7 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id)
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
 
     dir_ctrl = new LoadDataDirCtrl(this);
-    string path = my_data->get_filename();
+    string path = data->get_filename();
     //TODO it segfaults, don't know why
     //dir_ctrl->SetPath(path.c_str());
     top_sizer->Add(dir_ctrl, 1, wxALL|wxEXPAND, 5);
@@ -179,7 +179,6 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id)
 
     append_cb = new wxCheckBox(this, -1, 
                                "Append data from file to already loaded data");
-    append_cb->Enable(!my_data->is_empty());
     top_sizer->Add(append_cb, 0, wxALL, 5);
 
     top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
@@ -402,7 +401,7 @@ void SumHistoryDlg::OnViewSpinCtrlUpdate (wxSpinEvent& event)
 class DataTable: public wxGridTableBase
 {
 public:
-    DataTable(Data *data_, DataEditorDlg *ded_) : wxGridTableBase(), 
+    DataTable(Data const* data_, DataEditorDlg *ded_) : wxGridTableBase(), 
                                             data(data_), ded(ded_) {}
     int GetNumberRows() { return data->points().size(); }
     int GetNumberCols() { return 4; }
@@ -470,7 +469,7 @@ public:
     }
 
 private:
-    Data *data;
+    Data const* data;
     DataEditorDlg *ded;
 };
 
@@ -571,11 +570,11 @@ BEGIN_EVENT_TABLE(DataEditorDlg, wxDialog)
     EVT_LIST_ITEM_ACTIVATED(ID_DE_EXAMPLES, DataEditorDlg::OnEActivated)
 END_EVENT_TABLE()
 
-DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_)
+DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, 
+                              ndnd_type const& dd)
     : wxDialog(parent, id, "Data Editor", 
                wxDefaultPosition, wxSize(500, 500), 
-               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
-      data(0)
+               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
     ProportionalSplitter *splitter = new ProportionalSplitter(this, -1, 0.5);
 
@@ -649,7 +648,7 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, Data *data_)
     right_panel->SetSizerAndFit(right_sizer);
 
     // setting column sizes and a bit of logic
-    update_data(data_);
+    update_data(dd);
     grid->SetEditable(true);
     grid->SetColumnWidth(0, 40);
     grid->SetRowLabelSize(60);
@@ -732,38 +731,64 @@ int DataEditorDlg::get_selected_item()
     return example_list->GetNextItem(-1,wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 }
 
-void DataEditorDlg::update_data(Data *data_)
+void DataEditorDlg::update_data(ndnd_type const& dd)
 {
-    data = data_;
-    string const& filename = data->get_filename();
+    ndnd = dd;
+    string filename;
+    string title;
+    if (dd.size() == 1) {
+        Data const* data = ndnd[0].second;
+        filename = data->get_filename();
+        title = data->get_title();
+        save_as_btn->Enable(true);
+        grid->SetTable(new DataTable(data, this), true, 
+                       wxGrid::wxGridSelectRows);
+        refresh_grid();
+    }
+    else {
+        for (ndnd_type::const_iterator i = ndnd.begin(); i != ndnd.end(); ++i) {
+            string nr = "@" + S(i->first) + ": ";
+            filename += nr + i->second->get_filename() + "\n";
+            title += nr + i->second->get_title() + "\n";
+        }
+        save_as_btn->Enable(false);
+        grid->Show(false);
+    }
     filename_label->SetLabel(filename.c_str());
     revert_btn->Enable(!filename.empty());
-    title_label->SetLabel(data->get_title().c_str());
-    grid->SetTable(new DataTable(data, this), true, wxGrid::wxGridSelectRows);
-    refresh_grid();
+    title_label->SetLabel(title.c_str());
     Show();
 }
 
 void DataEditorDlg::refresh_grid()
 {
-    if (grid->GetNumberRows() != grid->GetTable()->GetNumberRows())
-        grid->SetTable(new DataTable(data, this), true, 
+    if (ndnd.size() != 1)
+        return;
+    if (grid->GetNumberRows() != grid->GetTable()->GetNumberRows()) {
+        grid->SetTable(new DataTable(ndnd[0].second, this), true, 
                        wxGrid::wxGridSelectRows);
+    }
     grid->ForceRefresh();
     grid->AdjustScrollbars();
 }
 
 void DataEditorDlg::OnRevert (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command("@ <'" + data->get_filename() + "'"); //TODO cols etc.
+    string cmd;
+    for (ndnd_type::const_iterator i = ndnd.begin(); i != ndnd.end(); ++i) 
+        cmd += "@" + S(i->first) + " <'" + i->second->get_filename() + "'; "; 
+         //TODO cols etc.
+    exec_command(cmd);
     refresh_grid();
 }
 
 void DataEditorDlg::OnSaveAs (wxCommandEvent& WXUNUSED(event))
 {
-    bool ok = export_data_dlg(this /*GetParent()*/, true);
+    if (ndnd.size() != 1)
+        return;
+    bool ok = export_data_dlg(this, true);
     if (ok) {
-        filename_label->SetLabel(data->get_filename().c_str());
+        filename_label->SetLabel(ndnd[0].second->get_filename().c_str());
     }
 }
 
@@ -1001,7 +1026,7 @@ bool export_data_dlg(wxWindow *parent, bool load_exported)
     dir = fdlg.GetDirectory();
     if (fdlg.ShowModal() == wxID_OK) {
         string path = fdlg.GetPath().c_str();
-        string ds = frame->get_focused_data_str();
+        string ds = frame->get_active_data_str();
         exec_command(ds + " > '" + path + "'");
         if (load_exported)
             exec_command(ds + " <'" + path + "'");

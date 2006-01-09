@@ -205,3 +205,34 @@ void UserInterface::drawPlot (int pri, bool now)
 
 
 int UserInterface::getVerbosity() { return getSettings()->get_e("verbosity"); }
+
+
+bool is_fityk_script(string filename)
+{
+    const char *magic = "# Fityk";
+
+    ifstream f(filename.c_str(), ios::in | ios::binary);
+    if (!f) 
+        return false;
+
+    int n = filename.size();
+    if ((n > 4 && string(filename, n-4) == ".fit")
+            || (n > 6 && string(filename, n-6) == ".fityk"))
+        return true;
+
+    const int magic_len = strlen(magic);
+    char buffer[100];
+    f.read(buffer, magic_len);
+    return !strncmp(magic, buffer, magic_len);
+}
+
+void UserInterface::process_cmd_line_filename(string const& par)
+{
+    if (is_fityk_script(par))
+        getUI()->execScript(par);
+    else {
+        getUI()->execAndLogCmd("@+ <'" + par + "'");
+    }
+}
+
+
