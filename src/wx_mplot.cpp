@@ -92,14 +92,13 @@ MainPlot::MainPlot (wxWindow *parent, PlotShared &shar)
 
 void MainPlot::OnPaint(wxPaintEvent& WXUNUSED(event))
 {
-    vert_line_following_cursor(mat_cancel);//erase XOR lines before repainting
     frame->draw_crosshair(-1, -1); 
-
     wxPaintDC dc(this);
     if (backgroundBrush.Ok())
         dc.SetBackground (backgroundBrush);
     dc.Clear();
     Draw(dc);
+    vert_line_following_cursor(mat_redraw);//draw, if necessary, vertical lines
     frame->update_app_title();
 }
 
@@ -480,7 +479,6 @@ void MainPlot::save_settings(wxConfigBase *cf) const
 void MainPlot::OnLeaveWindow (wxMouseEvent& WXUNUSED(event))
 {
     frame->set_status_text("", sbf_coord);
-    vert_line_following_cursor (mat_cancel);
     frame->draw_crosshair(-1, -1);
 }
 

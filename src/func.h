@@ -33,7 +33,6 @@ public:
     static std::string get_formula(std::string const& type);
     static std::string next_auto_name() { return "_" + S(++unnamed_counter); }
 
-    static bool statics_initialized;
     static std::map<std::string, std::string> default_variables;
     static std::string get_typename_from_formula(std::string const &formula)
      {return strip_string(std::string(formula, 0, formula.find_first_of("(")));}
@@ -102,6 +101,32 @@ class FuncLinear : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(Linear)
 };
 
+class FuncQuadratic : public Function
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(Quadratic)
+};
+
+class FuncCubic : public Function
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(Cubic)
+};
+
+class FuncPolynomial4 : public Function
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(Polynomial4)
+};
+
+class FuncPolynomial5 : public Function
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(Polynomial5)
+};
+
+
+class FuncPolynomial6 : public Function
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(Polynomial6)
+};
+
 class FuncGaussian : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(Gaussian)
@@ -135,6 +160,31 @@ class FuncPearson7 : public Function
     fp center() const { return vv[1]; }
     fp height() const { return vv[0]; }
     fp fwhm() const   { return 2 * fabs(vv[2]); }
+    fp area() const;
+};
+
+class FuncPseudoVoigt : public Function
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(PseudoVoigt)
+    void do_precomputations(std::vector<Variable*> const &variables); 
+    bool get_nonzero_range (fp level, fp &left, fp &right) const;  
+    bool is_peak() const { return true; } 
+    fp center() const { return vv[1]; }
+    fp height() const { return vv[0]; }
+    fp fwhm() const   { return 2 * fabs(vv[2]); }
+    fp area() const { return vv[0] * fabs(vv[2]) 
+                      * ((vv[3] * M_PI) + (1 - vv[3]) * sqrt (M_PI / M_LN2)); }
+};
+
+class FuncVoigt : public Function
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(Voigt)
+    void do_precomputations(std::vector<Variable*> const &variables); 
+    bool get_nonzero_range (fp level, fp &left, fp &right) const;  
+    bool is_peak() const { return true; } 
+    fp center() const { return vv[1]; }
+    fp height() const { return vv[0]; }
+    fp fwhm() const;
     fp area() const;
 };
 

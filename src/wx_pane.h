@@ -187,6 +187,9 @@ public:
     void OnFuncButtonEdit (wxCommandEvent& event);
     void OnFuncButtonChType (wxCommandEvent& event);
     void OnFuncButtonCol (wxCommandEvent& event);
+    void OnVarButtonNew (wxCommandEvent& event);
+    void OnVarButtonDel (wxCommandEvent& event);
+    void OnVarButtonEdit (wxCommandEvent& event);
     void OnFuncFilterChanged (wxCommandEvent& event);
     void OnDataFocusChanged(wxListEvent &event);
     void OnFuncFocusChanged(wxListEvent &event);
@@ -194,8 +197,10 @@ public:
     /// get active dataset number -- if none is focused, return first one (0)
     int get_focused_data() const
                        { int n=dl->GetFocusedItem(); return n==-1 ? 0 : n; }
-    int get_focused_func() const 
-                       { int n=fl->GetFocusedItem(); return n==-1 ? 0 : n; }
+    int get_focused_func() const { int n = fl->GetFocusedItem(); 
+                               return n==-1 && fl->GetItemCount()>0 ? 0 : n; }
+    int get_focused_var() const { int n = vl->GetFocusedItem(); 
+                               return n==-1 && vl->GetItemCount()>0 ? 0 : n; }
     bool is_func_selected(int n) const
                     { return fl->IsSelected(n) || fl->GetFocusedItem() == n; }
     int set_selection(int page) { return nb->SetSelection(page); }
@@ -203,9 +208,10 @@ public:
     std::vector<std::string> get_selected_data() const;
     bool howto_plot_dataset(int n, bool& shadowed, int& offset) const;
     std::vector<std::string> get_selected_func() const;
+    std::vector<std::string> get_selected_vars() const;
 private:
     wxNotebook *nb;
-    wxPanel *data_page;
+    wxPanel *data_page, *func_page, *var_page;
     ListWithColors *dl, *fl, *vl;
     wxChoice *data_look, *filter_ch;
     wxSpinCtrl *shiftup_sc;

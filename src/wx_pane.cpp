@@ -337,6 +337,9 @@ BEGIN_EVENT_TABLE(SideBar, ProportionalSplitter)
     EVT_BUTTON (ID_FP_EDIT, SideBar::OnFuncButtonEdit)
     EVT_BUTTON (ID_FP_CHTYPE, SideBar::OnFuncButtonChType)
     EVT_BUTTON (ID_FP_COL, SideBar::OnFuncButtonCol)
+    EVT_BUTTON (ID_VP_NEW, SideBar::OnVarButtonNew)
+    EVT_BUTTON (ID_VP_DEL, SideBar::OnVarButtonDel)
+    EVT_BUTTON (ID_VP_EDIT, SideBar::OnVarButtonEdit)
     EVT_LIST_ITEM_FOCUSED(ID_FP_LIST, SideBar::OnFuncFocusChanged)
 END_EVENT_TABLE()
 
@@ -395,7 +398,7 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     nb->AddPage(data_page, "data");
 
     //-----  functions page  -----
-    wxPanel *func_page = new wxPanel(nb, -1);
+    func_page = new wxPanel(nb, -1);
     wxBoxSizer *func_sizer = new wxBoxSizer(wxVERTICAL);
 
     wxBoxSizer *func_filter_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -434,7 +437,7 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     nb->AddPage(func_page, "functions");
 
     //-----  variables page  -----
-    wxPanel *var_page = new wxPanel(nb, -1);
+    var_page = new wxPanel(nb, -1);
     wxBoxSizer *var_sizer = new wxBoxSizer(wxVERTICAL);
     vector<pair<string,bool> > vdata = vector4(
                                      pair<string,bool>("Name", true),
@@ -524,7 +527,12 @@ void SideBar::OnFuncFilterChanged (wxCommandEvent& WXUNUSED(event))
 
 void SideBar::OnFuncButtonNew (wxCommandEvent& WXUNUSED(event))
 {
-    //TODO
+    string peak_type = frame->get_peak_type();
+    string formula = Function::get_formula(peak_type);
+    vector<string> varnames = Function::get_varnames_from_formula(formula);
+    string t = "%put_name_here = " + peak_type + "(" 
+                                      + join_vector(varnames, "= , ") + "= )";
+    frame->edit_in_input(t);
 }
 
 void SideBar::OnFuncButtonDel (wxCommandEvent& WXUNUSED(event))
@@ -535,6 +543,8 @@ void SideBar::OnFuncButtonDel (wxCommandEvent& WXUNUSED(event))
 void SideBar::OnFuncButtonEdit (wxCommandEvent& WXUNUSED(event))
 {
     int n = get_focused_func();
+    if (n == -1)
+        return;
     string t= AL->get_function(n)->get_current_definition(AL->get_variables(),
                                                           AL->get_parameters());
     frame->edit_in_input(t);
@@ -542,17 +552,40 @@ void SideBar::OnFuncButtonEdit (wxCommandEvent& WXUNUSED(event))
 
 void SideBar::OnFuncButtonChType (wxCommandEvent& WXUNUSED(event))
 {
+    mesg("Sorry. Changing type of function is not implemented yet.");
 }
 
 void SideBar::OnFuncButtonCol (wxCommandEvent& WXUNUSED(event))
 {
     int n = get_focused_func();
+    if (n == -1)
+        return;
     wxColour col = frame->get_main_plot()->get_func_color(n);
     if (change_color_dlg(col)) {
         frame->get_main_plot()->set_func_color(n, col);
         update_lists();
         frame->refresh_plots(true, false, true);
     }
+}
+
+void SideBar::OnVarButtonNew (wxCommandEvent& WXUNUSED(event))
+{
+    frame->edit_in_input("$put_name_here = ");
+}
+
+void SideBar::OnVarButtonDel (wxCommandEvent& WXUNUSED(event))
+{
+    exec_command("delete " + join_vector(get_selected_vars(), ", "));
+}
+
+void SideBar::OnVarButtonEdit (wxCommandEvent& WXUNUSED(event))
+{
+    int n = get_focused_var();
+    if (n < 0 || n >= size(AL->get_variables()))
+        return;
+    Variable const* var = AL->get_variable(n);
+    string t = var->xname + " = "+ var->get_formula(AL->get_parameters());
+    frame->edit_in_input(t);
 }
 
 void SideBar::update_lists(bool nondata_changed)
@@ -675,13 +708,22 @@ void SideBar::update_lists(bool nondata_changed)
     }
     vl->populate(var_data);
     
-    //-- non-lists
+    //-- enable/disable buttons
     bool not_the_last = get_focused_data()+1 < AL->get_ds_count();
     data_page->FindWindow(ID_DP_CPF)->Enable(not_the_last);
+    bool has_any_funcs = (fl->GetItemCount() > 0);
+    func_page->FindWindow(ID_FP_DEL)->Enable(has_any_funcs);
+    func_page->FindWindow(ID_FP_EDIT)->Enable(has_any_funcs);
+    func_page->FindWindow(ID_FP_CHTYPE)->Enable(has_any_funcs);
+    func_page->FindWindow(ID_FP_COL)->Enable(has_any_funcs);
+    bool has_any_vars = (vl->GetItemCount() > 0);
+    var_page->FindWindow(ID_VP_DEL)->Enable(has_any_vars);
+    var_page->FindWindow(ID_VP_EDIT)->Enable(has_any_vars);
 }
 
 void SideBar::activate_function(int n)
 {
+    fl->Focus(n);
     for (int i = 0; i != fl->GetItemCount(); ++i)
         fl->Select(i, i==n);
     frame->refresh_plots(true, false, true);
@@ -728,12 +770,25 @@ vector<string> SideBar::get_selected_func() const
     vector<string> dd;
     for (int i = fl->GetFirstSelected(); i != -1; i = fl->GetNextSelected(i))
         dd.push_back(AL->get_function(i)->xname);
-    if (dd.empty()) {
+    if (dd.empty() && fl->GetItemCount() > 0) {
         int n = fl->GetFocusedItem();
         dd.push_back(AL->get_function(n == -1 ? 0 : n)->xname);
     }
     return dd;
 }
+
+vector<string> SideBar::get_selected_vars() const
+{
+    vector<string> dd;
+    for (int i = vl->GetFirstSelected(); i != -1; i = vl->GetNextSelected(i))
+        dd.push_back(AL->get_variable(i)->xname);
+    if (dd.empty() && vl->GetItemCount() > 0) {
+        int n = vl->GetFocusedItem();
+        dd.push_back(AL->get_function(n == -1 ? 0 : n)->xname);
+    }
+    return dd;
+}
+
 
 void SideBar::OnFuncFocusChanged(wxListEvent& WXUNUSED(event))
 {
@@ -823,14 +878,14 @@ void ListWithColors::OnRightDown(wxMouseEvent &event)
 void ListWithColors::OnShowColumn(wxCommandEvent &event)
 {
     int n = event.GetId() - ID_DL_CMENU_SHOW_START;
-    int col;
+    int col=0;
     for (int i = 0; i < n; ++i)
         if (columns[i].second)
             ++col;
     //TODO if col==0 take care about images
     bool show = event.IsChecked();
     if (show) {
-        InsertColumn(col, columns[col].first.c_str());
+        InsertColumn(col, columns[n].first.c_str());
         for (int i = 0; i < GetItemCount(); ++i)
             SetItem(i, col, list_data[i*columns.size()+n]);
     }

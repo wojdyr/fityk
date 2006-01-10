@@ -296,6 +296,7 @@ int FApp::OnExit()
 { 
     delete AL; 
     wxConfig::Get()->Write("/FitykVersion", VERSION);
+    //wxConfig::Get()->Write("/FitykVersion", VERSION);
     delete wxConfigBase::Set((wxConfigBase *) NULL);
     return 0;
 }
@@ -405,7 +406,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
                  const long style)
     : wxFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, style), 
       main_pane(0), sidebar(0), status_bar(0), 
-      peak_type_nr(0), toolbar(0), 
+      toolbar(0), 
       print_data(new wxPrintData), page_setup_data(new wxPageSetupData),
 #ifdef __WXMSW__
       help()
@@ -414,6 +415,8 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
            | wxHF_PRINT | wxHF_MERGE_BOOKS)
 #endif
 {
+    peak_type_nr = wxConfig::Get()->Read("/DefaultFunctionType", 7);
+    update_peak_type_list();
     // Load icon and bitmap
     SetIcon (wxICON (fityk));
 
@@ -433,6 +436,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     set_menubar();
 
     toolbar = new FToolBar(this, -1);
+    toolbar->update_peak_type(peak_type_nr, &peak_types);
     SetToolBar(toolbar);
 
     //status bar
@@ -455,6 +459,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
 FFrame::~FFrame() 
 {
     write_recent_data_files();
+    wxConfig::Get()->Write("/DefaultFunctionType", peak_type_nr);
     delete print_data;
     delete page_setup_data;
 }
@@ -462,6 +467,14 @@ FFrame::~FFrame()
 void FFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
 {
     Close(true);
+}
+
+void FFrame::update_peak_type_list()
+{
+    //qqqqqqqq //TODO dynamic changing of type list
+    peak_types = Function::get_all_types();
+    if (peak_type_nr >= size(peak_types))
+        peak_type_nr = 0;
 }
 
 
@@ -606,9 +619,9 @@ void FFrame::set_menubar()
     wxMenu* sum_menu = new wxMenu;
     wxMenu* sum_menu_mode_peak = new wxMenu;
     //qqqqqqqq //TODO dynamic changing of type list
-    vector<string> all_t = Function::get_all_types();
-    for (int i = 0; i < size(all_t); i++)
-        sum_menu_mode_peak->AppendRadioItem(ID_G_M_PEAK_N+i, all_t[i].c_str());
+    for (int i = 0; i < size(peak_types); i++)
+        sum_menu_mode_peak->AppendRadioItem(ID_G_M_PEAK_N+i, 
+                                            peak_types[i].c_str());
     sum_menu->Append (ID_G_M_PEAK, "Function &type", sum_menu_mode_peak);
 /*
     sum_menu->Append (ID_S_EDITOR, "FT &Editor", "Edit function types");
@@ -1195,7 +1208,8 @@ void FFrame::OnModePeak(wxUpdateUIEvent& event)
 void FFrame::OnChangePeakType(wxCommandEvent& event)
 {
     peak_type_nr = event.GetId() - ID_G_M_PEAK_N;
-    if (toolbar) toolbar->update_peak_type();
+    if (toolbar) 
+        toolbar->update_peak_type(peak_type_nr);
 }
 
 void FFrame::OnStripBg(wxCommandEvent& WXUNUSED(event))
@@ -1608,11 +1622,6 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     EnableTool(ID_ft_b_strip, (m == mmd_bg));
     AddSeparator();
     peak_choice = new wxChoice(this, ID_ft_peakchoice); 
-    //qqqqqqqq //TODO dynamic changing of type list
-    vector<string> all_t = Function::get_all_types();
-    for (int i = 0; i < size(all_t); i++)
-        peak_choice->Append(all_t[i].c_str());
-    update_peak_type();
     AddControl (peak_choice);
     AddTool (ID_ft_s_aa, "add", wxBitmap(add_peak_xpm), wxNullBitmap, 
              wxITEM_NORMAL, "auto-add", "Add peak automatically");
@@ -1637,12 +1646,18 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
 
 void FToolBar::OnPeakChoice(wxCommandEvent &event) 
 {
-    if (frame) frame->peak_type_nr = event.GetSelection();
+    if (frame) 
+        frame->peak_type_nr = event.GetSelection();
 }
 
-void FToolBar::update_peak_type() 
+void FToolBar::update_peak_type(int nr, vector<string> const* peak_types) 
 { 
-    peak_choice->SetSelection(frame ? frame->peak_type_nr : 0); 
+    if (peak_types) {
+        peak_choice->Clear();
+        for (int i = 0; i < size(*peak_types); ++i)
+            peak_choice->Append((*peak_types)[i].c_str());
+    }
+    peak_choice->SetSelection(nr); 
 }
 
 //FIXME move these small functions to header file?

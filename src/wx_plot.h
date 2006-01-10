@@ -22,7 +22,8 @@ class MainPlot;
 class View;
 struct f_names_type;
 
-enum Mouse_act_enum  { mat_start, mat_stop, mat_move, mat_cancel };
+enum Mouse_act_enum  { mat_start, mat_stop, mat_move, mat_cancel,
+                       mat_redraw };
 
 enum Aux_plot_kind_enum 
 { 
@@ -48,7 +49,7 @@ public:
                  wxNO_BORDER|wxFULL_REPAINT_ON_RESIZE),
          yUserScale(1.), yLogicalOrigin(0.), 
          shared(shar), mouse_press_X(INVALID), mouse_press_Y(INVALID), 
-         vlfc_prev_x(INVALID)   {}
+         vlfc_prev_x(INVALID), vlfc_prev_x0(INVALID)   {}
          
     ~FPlot() {}
     wxColour const& get_bg_color() const { return backgroundBrush.GetColour(); }
@@ -69,9 +70,9 @@ protected:
     fp yUserScale, yLogicalOrigin; 
     PlotShared &shared;
     int mouse_press_X, mouse_press_Y;
-    int vlfc_prev_x;
+    int vlfc_prev_x, vlfc_prev_x0;
 
-    void draw_dashed_vert_lines (int x1, int x2=INVALID);
+    void draw_dashed_vert_lines (int x1);
     bool vert_line_following_cursor(Mouse_act_enum ma, int x=0, int x0=INVALID);
     void draw_tics (wxDC& dc, View const &v, 
                     int const x_max_tics, int const y_max_tics, 

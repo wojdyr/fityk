@@ -40,17 +40,14 @@ enum {
 
 fp scale_tics_step (fp beg, fp end, int max_tics);
 
-void FPlot::draw_dashed_vert_lines (int x1, int x2)
+void FPlot::draw_dashed_vert_lines (int x1)
 {
-    if (x1 != INVALID || x2 != INVALID) {
+    if (x1 != INVALID) {
         wxClientDC dc(this);
         dc.SetLogicalFunction (wxINVERT);
         dc.SetPen(*wxBLACK_DASHED_PEN);
         int h = GetClientSize().GetHeight();
-        if (x1 != INVALID)
-            dc.DrawLine (x1, 0, x1, h);
-        if (x2 != INVALID)
-            dc.DrawLine (x2, 0, x2, h);
+        dc.DrawLine (x1, 0, x1, h);
     }
 }
 
@@ -64,23 +61,25 @@ void FPlot::draw_crosshair(int X, int Y)
 
 bool FPlot::vert_line_following_cursor (Mouse_act_enum ma, int x, int x0)
 {
-    static int prev_x = INVALID, prev_x0 = INVALID;
-
     if (ma == mat_start) {
         draw_dashed_vert_lines(x0);
-        prev_x0 = x0;
+        vlfc_prev_x0 = x0;
     }
     else {
-        if (prev_x == INVALID) return false;
-        draw_dashed_vert_lines(prev_x); //clear old line
+        if (vlfc_prev_x == INVALID) 
+            return false;
+        draw_dashed_vert_lines(vlfc_prev_x); //clear (or draw again) old line
     }
     if (ma == mat_move || ma == mat_start) {
         draw_dashed_vert_lines(x);
-        prev_x = x;
+        vlfc_prev_x = x;
+    }
+    else if (ma == mat_redraw) {
+        draw_dashed_vert_lines(vlfc_prev_x0);
     }
     else { // mat_stop, mat_cancel:
-        draw_dashed_vert_lines(prev_x0); //clear
-        prev_x = prev_x0 = INVALID;
+        draw_dashed_vert_lines(vlfc_prev_x0); //clear
+        vlfc_prev_x = vlfc_prev_x0 = INVALID;
     }
     return true;
 }
@@ -297,7 +296,6 @@ END_EVENT_TABLE()
 
 void AuxPlot::OnPaint(wxPaintEvent &WXUNUSED(event))
 {
-    vert_line_following_cursor(mat_cancel);//erase XOR lines before repainting
     frame->draw_crosshair(-1, -1); 
     wxPaintDC dc(this);
     dc.SetLogicalFunction (wxCOPY);
@@ -305,6 +303,7 @@ void AuxPlot::OnPaint(wxPaintEvent &WXUNUSED(event))
         dc.SetBackground (backgroundBrush);
     dc.Clear();
     Draw(dc);
+    vert_line_following_cursor(mat_redraw);//draw, if necessary, vertical lines
 }
 
 inline fp sum_value(vector<Point>::const_iterator pt, Sum const* sum)
@@ -384,7 +383,7 @@ void AuxPlot::OnMouseMove(wxMouseEvent &event)
     int X = event.GetX();
     fp x = X2x(X);
     fp y = Y2y (event.GetY()); 
-    vert_line_following_cursor (mat_move, X);
+    vert_line_following_cursor(mat_move, X);
     wxString str;
     str.Printf ("%.3f  [%d]", x, static_cast<int>(y + 0.5));
     frame->set_status_text(str, sbf_coord);
@@ -406,7 +405,6 @@ void AuxPlot::OnMouseMove(wxMouseEvent &event)
 void AuxPlot::OnLeaveWindow (wxMouseEvent& WXUNUSED(event))
 {
     frame->set_status_text("", sbf_coord);
-    vert_line_following_cursor (mat_cancel);
     frame->draw_crosshair(-1, -1);
 }
 

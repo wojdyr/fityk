@@ -132,6 +132,7 @@ public:
     }
     std::vector<fp> const& get_parameters() const { return parameters; }
     std::vector<Variable*> const& get_variables() const { return variables; }
+    Variable const* get_variable(int n) const { return variables[n]; }
 
     std::string assign_func(std::string const &name, 
                             std::string const &function, 

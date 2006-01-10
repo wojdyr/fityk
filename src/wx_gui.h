@@ -48,7 +48,7 @@ class FToolBar : public wxToolBar
 {
 public:
     FToolBar (wxFrame *parent, wxWindowID id); 
-    void update_peak_type(); 
+    void update_peak_type(int nr, std::vector<std::string> const* peak_types=0);
 
     void OnPeakChoice (wxCommandEvent& event);
     void OnChangeMouseMode (wxCommandEvent& event);
@@ -189,6 +189,7 @@ protected:
     FStatusBar *status_bar;
 
     int peak_type_nr;
+    std::vector<std::string> peak_types;
     FToolBar *toolbar;
     ProportionalSplitter *v_splitter;
     wxPrintData *print_data;
@@ -205,6 +206,7 @@ protected:
     void place_plot_and_io_windows(wxWindow *parent);
     void create_io_panel(wxWindow *parent);
     void set_menubar();
+    void update_peak_type_list();
     void read_recent_data_files();
     void write_recent_data_files();
     void add_recent_data_file(std::string const& filename);
