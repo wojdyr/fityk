@@ -11,7 +11,7 @@
 
 * [del] key at data pane should work as close button
 
-* improve Voigt function (there is bug in FWHM, cut-tails, better approx?) 
+* improve Voigt function (cut-tails, better approx?) 
 
 ------------------ 
 

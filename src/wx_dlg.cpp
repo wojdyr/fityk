@@ -479,11 +479,11 @@ static const char *default_examples =
 
 "integrate|useful|Integrate data numerically and adjust std. dev.;"
 " (it gives cumulative area)"
-"|Y[1...] = Y[n-1] + y[n];S = sqrt(max(1,y))|Y\n"
+"|Y[1...] = Y[n-1] + y[n];S = sqrt(max2(1,y))|Y\n"
 
 "differentiate|useful|compute numerical derivative f'(x)"
 "|Y[...-1] = y[n+1]-y[n];X[...-1] = (x[n+1]+x[n])/2;"
-"M=M-1;S = sqrt(max(1,y))|Y\n"
+"M=M-1;S = sqrt(max2(1,y))|Y\n"
 
 "normalize area|useful|divide all Y (and std. dev.) values;"
 "by the current data area; (it gives unit area)"
@@ -495,13 +495,13 @@ static const char *default_examples =
 "S[...-1] = sqrt(s[n]^2+s[n]^2); delete(n%2==1)|Y\n"
 
 "zero negative y|useful|zero the Y value; of points with negative Y"
-"|Y=max(y,0)|Y\n"
+"|Y=max2(y,0)|Y\n"
 
 "clear inactive|useful|delete inactive points"
 "|delete(not a)|Y\n"
 
 "swap axes|example|Swap X and Y axes and adjust std. dev."
-"|Y=x & X=y & S=sqrt(max(1,Y))|N\n"
+"|Y=x & X=y & S=sqrt(max2(1,Y))|N\n"
 
 "generate sinusoid|example|replaces current data with sinusoid"
 "|M=2000; x=n/100; y=sin(x); s=1|N\n"

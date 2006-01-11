@@ -139,6 +139,19 @@ class FuncGaussian : public Function
     fp area() const   { return vv[0] * fabs(vv[2]) * sqrt(M_PI / M_LN2); }
 };
 
+class FuncSplitGaussian : public Function
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(SplitGaussian)
+    void do_precomputations(std::vector<Variable*> const &variables);
+    bool get_nonzero_range (fp level, fp &left, fp &right) const;  
+    bool is_peak() const { return true; } 
+    fp center() const { return vv[1]; }
+    fp height() const { return vv[0]; }
+    fp fwhm() const   { return fabs(vv[2]) + fabs(vv[3]); }
+    fp area() const   { return vv[0] * (fabs(vv[2]) + fabs(vv[3])) 
+                                     * sqrt(M_PI/M_LN2); }
+};
+
 class FuncLorentzian : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(Lorentzian)
@@ -160,6 +173,18 @@ class FuncPearson7 : public Function
     fp center() const { return vv[1]; }
     fp height() const { return vv[0]; }
     fp fwhm() const   { return 2 * fabs(vv[2]); }
+    fp area() const;
+};
+
+class FuncSplitPearson7 : public Function
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(SplitPearson7)
+    void do_precomputations(std::vector<Variable*> const &variables); 
+    bool get_nonzero_range (fp level, fp &left, fp &right) const;  
+    bool is_peak() const { return true; } 
+    fp center() const { return vv[1]; }
+    fp height() const { return vv[0]; }
+    fp fwhm() const   { return fabs(vv[2]) + fabs(vv[3]); }
     fp area() const;
 };
 

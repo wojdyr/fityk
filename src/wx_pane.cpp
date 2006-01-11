@@ -75,7 +75,8 @@ enum {
     ID_DL_CMENU_SHOW_START     ,
     ID_DL_CMENU_SHOW_END = ID_DL_CMENU_SHOW_START+20,
     ID_DL_CMENU_FITCOLS        ,
-    ID_DL_SELECTALL
+    ID_DL_SELECTALL            ,
+    ID_DL_SWITCHINFO
 };
 
 
@@ -307,6 +308,31 @@ void IOPane::edit_in_input(string const& s)
 }
 
 //===============================================================
+//                            ListPlusText
+//===============================================================
+BEGIN_EVENT_TABLE(ListPlusText, ProportionalSplitter)
+    EVT_MENU (ID_DL_SWITCHINFO, ListPlusText::OnSwitchInfo)
+END_EVENT_TABLE()
+
+ListPlusText::ListPlusText(wxWindow *parent, wxWindowID id, wxWindowID list_id,
+                           vector<pair<string,bool> > const& columns_)
+: ProportionalSplitter(parent, id, 0.75) 
+{
+    list = new ListWithColors(this, list_id, columns_);
+    inf = new wxTextCtrl(this, -1, "", wxDefaultPosition, wxDefaultSize,
+                         wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
+    SplitHorizontally(list, inf);
+}
+
+void ListPlusText::OnSwitchInfo(wxCommandEvent &WXUNUSED(event))
+{
+    if (IsSplit())
+        Unsplit(inf);
+    else
+        SplitHorizontally(list, inf);
+}
+
+//===============================================================
 //                            SideBar
 //===============================================================
 
@@ -337,10 +363,11 @@ BEGIN_EVENT_TABLE(SideBar, ProportionalSplitter)
     EVT_BUTTON (ID_FP_EDIT, SideBar::OnFuncButtonEdit)
     EVT_BUTTON (ID_FP_CHTYPE, SideBar::OnFuncButtonChType)
     EVT_BUTTON (ID_FP_COL, SideBar::OnFuncButtonCol)
+    EVT_LIST_ITEM_FOCUSED(ID_FP_LIST, SideBar::OnFuncFocusChanged)
     EVT_BUTTON (ID_VP_NEW, SideBar::OnVarButtonNew)
     EVT_BUTTON (ID_VP_DEL, SideBar::OnVarButtonDel)
     EVT_BUTTON (ID_VP_EDIT, SideBar::OnVarButtonEdit)
-    EVT_LIST_ITEM_FOCUSED(ID_FP_LIST, SideBar::OnFuncFocusChanged)
+    EVT_LIST_ITEM_FOCUSED(ID_VP_LIST, SideBar::OnVarFocusChanged)
 END_EVENT_TABLE()
 
 SideBar::SideBar(wxWindow *parent, wxWindowID id)
@@ -355,12 +382,12 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     //-----  data page  -----
     data_page = new wxPanel(nb, -1);
     wxBoxSizer *data_sizer = new wxBoxSizer(wxVERTICAL);
-    dl = new ListWithColors(data_page, ID_DP_LIST, 
+    d = new ListPlusText(data_page, -1, ID_DP_LIST, 
                             vector4(pair<string,bool>("No", true),
                                     pair<string,bool>("#F+#Z", true),
                                     pair<string,bool>("Name", true),
                                     pair<string,bool>("File", false)));
-    data_sizer->Add(dl, 1, wxEXPAND|wxALL, 1);
+    data_sizer->Add(d, 1, wxEXPAND|wxALL, 1);
 
     wxBoxSizer *data_look_sizer = new wxBoxSizer(wxHORIZONTAL);
     add_bitmap_button(data_page, ID_DP_COL, colorsel_xpm, 
@@ -419,8 +446,8 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     fdata.push_back( pair<string,bool>("Area", false) );
     fdata.push_back( pair<string,bool>("Height", false) );
     fdata.push_back( pair<string,bool>("FWHM", false) );
-    fl = new ListWithColors(func_page, ID_FP_LIST, fdata);
-    func_sizer->Add(fl, 1, wxEXPAND|wxALL, 1);
+    f = new ListPlusText(func_page, -1, ID_FP_LIST, fdata);
+    func_sizer->Add(f, 1, wxEXPAND|wxALL, 1);
     wxBoxSizer *func_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
     add_bitmap_button(func_page, ID_FP_NEW, add_xpm, 
                       "new function", func_buttons_sizer);
@@ -444,8 +471,8 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
                                      pair<string,bool>("#/#", true), 
                                      pair<string,bool>("value", true),
                                      pair<string,bool>("formula", false) );
-    vl = new ListWithColors(var_page, ID_VP_LIST, vdata);
-    var_sizer->Add(vl, 1, wxEXPAND|wxALL, 1);
+    v = new ListPlusText(var_page, -1, ID_VP_LIST, vdata);
+    var_sizer->Add(v, 1, wxEXPAND|wxALL, 1);
     wxBoxSizer *var_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
     add_bitmap_button(var_page, ID_VP_NEW, add_xpm, 
                       "new variable", var_buttons_sizer);
@@ -603,7 +630,7 @@ void SideBar::update_lists(bool nondata_changed)
         data_data.push_back(ds->get_data()->get_filename());
     }
     wxImageList* data_images = 0;
-    if (nondata_changed || AL->get_ds_count() > dl->GetItemCount()) {
+    if (nondata_changed || AL->get_ds_count() > d->list->GetItemCount()) {
         data_images = new wxImageList(16, 16);
         for (int i = 0; i < AL->get_ds_count(); ++i) {
             wxColour const& d_col = mplot->get_data_color(i);
@@ -615,7 +642,7 @@ void SideBar::update_lists(bool nondata_changed)
         }
     }
     int active_ds_pos = AL->get_active_ds_position();
-    dl->populate(data_data, data_images, active_ds_pos);
+    d->list->populate(data_data, data_images, active_ds_pos);
 
     //functions filter
     if (AL->get_ds_count()+1 != filter_ch->GetCount()) {
@@ -675,7 +702,7 @@ void SideBar::update_lists(bool nondata_changed)
             }
         }
     }
-    fl->populate(func_data, func_images, 0);
+    f->list->populate(func_data, func_images, 0);
 
     //variables
     vector<string> var_data;
@@ -706,36 +733,42 @@ void SideBar::update_lists(bool nondata_changed)
         var_data.push_back(S(v->get_value())); //value
         var_data.push_back(v->get_formula(AL->get_parameters()));  //formula
     }
-    vl->populate(var_data);
+    v->list->populate(var_data);
     
     //-- enable/disable buttons
     bool not_the_last = get_focused_data()+1 < AL->get_ds_count();
     data_page->FindWindow(ID_DP_CPF)->Enable(not_the_last);
-    bool has_any_funcs = (fl->GetItemCount() > 0);
+    bool has_any_funcs = (f->list->GetItemCount() > 0);
     func_page->FindWindow(ID_FP_DEL)->Enable(has_any_funcs);
     func_page->FindWindow(ID_FP_EDIT)->Enable(has_any_funcs);
     func_page->FindWindow(ID_FP_CHTYPE)->Enable(has_any_funcs);
     func_page->FindWindow(ID_FP_COL)->Enable(has_any_funcs);
-    bool has_any_vars = (vl->GetItemCount() > 0);
+    bool has_any_vars = (v->list->GetItemCount() > 0);
     var_page->FindWindow(ID_VP_DEL)->Enable(has_any_vars);
     var_page->FindWindow(ID_VP_EDIT)->Enable(has_any_vars);
+
+    update_data_inf();
+    update_func_inf();
+    update_var_inf();
 }
 
 void SideBar::activate_function(int n)
 {
-    fl->Focus(n);
-    for (int i = 0; i != fl->GetItemCount(); ++i)
-        fl->Select(i, i==n);
+    f->list->Focus(n);
+    for (int i = 0; i != f->list->GetItemCount(); ++i)
+        f->list->Select(i, i==n);
     frame->refresh_plots(true, false, true);
+    update_func_inf();
 }
 
 vector<string> SideBar::get_selected_data() const
 {
     vector<string> dd;
-    for (int i = dl->GetFirstSelected(); i != -1; i = dl->GetNextSelected(i))
+    for (int i = d->list->GetFirstSelected(); i != -1; 
+                                           i = d->list->GetNextSelected(i))
         dd.push_back("@" + S(i));
     if (dd.empty()) {
-        int n = dl->GetFocusedItem();
+        int n = d->list->GetFocusedItem();
         dd.push_back("@" + S(n == -1 ? 0 : n));
     }
     return dd;
@@ -743,11 +776,94 @@ vector<string> SideBar::get_selected_data() const
 
 void SideBar::OnDataFocusChanged(wxListEvent& WXUNUSED(event))
 {
-    int n = dl->GetFocusedItem();
+    int n = d->list->GetFocusedItem();
+    if (n < 0)
+        return;
     int length = AL->get_ds_count();
-    if (n >= 0 && length > 1 && AL->get_active_ds_position() != n) 
+    if (length > 1 && AL->get_active_ds_position() != n) 
         exec_command("plot @" + S(n));
     data_page->FindWindow(ID_DP_CPF)->Enable(n+1<length);
+}
+
+void SideBar::update_data_inf()
+{
+    int n = get_focused_data();
+    if (n < 0)
+        return;
+    wxTextCtrl* inf = d->inf;
+    inf->Clear();
+    wxTextAttr defattr = inf->GetDefaultStyle();
+    wxFont font = defattr.GetFont();
+    wxTextAttr boldattr = defattr;
+    font.SetWeight(wxFONTWEIGHT_BOLD);
+    boldattr.SetFont(font);
+
+    inf->SetDefaultStyle(boldattr);
+    inf->AppendText(("@" + S(n) + "\n").c_str());
+    inf->SetDefaultStyle(defattr);
+    inf->AppendText(AL->get_data(n)->getInfo().c_str());
+}
+
+void SideBar::update_func_inf()
+{
+    int n = get_focused_func();
+    if (n < 0)
+        return;
+    wxTextCtrl* inf = f->inf;
+    inf->Clear();
+    wxTextAttr defattr = inf->GetDefaultStyle();
+    wxFont font = defattr.GetFont();
+    wxTextAttr boldattr = defattr;
+    font.SetWeight(wxFONTWEIGHT_BOLD);
+    boldattr.SetFont(font);
+
+    Function const* func = AL->get_function(n);
+    inf->SetDefaultStyle(boldattr);
+    inf->AppendText(func->xname.c_str());
+    inf->SetDefaultStyle(defattr);
+    if (func->is_peak()) {
+        inf->AppendText("\nPeak properties:");
+        inf->AppendText("\nCenter: ");
+        inf->AppendText(S(func->center()).c_str());
+        inf->AppendText("\nArea: ");
+        inf->AppendText(S(func->area()).c_str());
+        inf->AppendText("\nHeight: ");
+        inf->AppendText(S(func->height()).c_str());
+        inf->AppendText("\nFWHM: ");
+        inf->AppendText(S(func->fwhm()).c_str());
+    }
+    vector<string> in;
+    for (int i = 0; i < AL->get_ds_count(); ++i) {
+        if (contains_element(AL->get_sum(i)->get_ff_idx(), n))
+            in.push_back("@" + S(i) + ".F");
+        if (contains_element(AL->get_sum(i)->get_ff_idx(), n))
+            in.push_back("@" + S(i) + ".Z");
+    }
+    if (!in.empty())
+        inf->AppendText(("\nIn: " + join_vector(in, ", ")).c_str());
+}
+
+void SideBar::update_var_inf()
+{
+    int n = get_focused_var();
+    if (n < 0)
+        return;
+    wxTextCtrl* inf = v->inf;
+    inf->Clear();
+    wxTextAttr defattr = inf->GetDefaultStyle();
+    wxFont font = defattr.GetFont();
+    wxTextAttr boldattr = defattr;
+    font.SetWeight(wxFONTWEIGHT_BOLD);
+    boldattr.SetFont(font);
+
+    Variable const* var = AL->get_variable(n);
+    inf->SetDefaultStyle(boldattr);
+    string t = var->xname + " = "+ var->get_formula(AL->get_parameters());
+    inf->AppendText(t.c_str());
+    inf->SetDefaultStyle(defattr);
+    vector<string> in = AL->get_variable_references(var->name);
+    if (!in.empty())
+        inf->AppendText(("\nIn:\n    " + join_vector(in, "\n    ")).c_str());
 }
 
 bool SideBar::howto_plot_dataset(int n, bool& shadowed, int& offset) const
@@ -757,7 +873,7 @@ bool SideBar::howto_plot_dataset(int n, bool& shadowed, int& offset) const
     //                           "draw aside vert. (10px)", 
     //                           "draw aside vert. (30px)" };
     int choice_idx = data_look->GetSelection();
-    bool sel = dl->IsSelected(n) || dl->GetFocusedItem() == n;
+    bool sel = d->list->IsSelected(n) || d->list->GetFocusedItem() == n;
     if (choice_idx == 1 && !sel)
         return false;
     shadowed = (choice_idx == 2 && !sel);
@@ -768,10 +884,11 @@ bool SideBar::howto_plot_dataset(int n, bool& shadowed, int& offset) const
 vector<string> SideBar::get_selected_func() const
 {
     vector<string> dd;
-    for (int i = fl->GetFirstSelected(); i != -1; i = fl->GetNextSelected(i))
+    for (int i = f->list->GetFirstSelected(); i != -1; 
+                                            i = f->list->GetNextSelected(i))
         dd.push_back(AL->get_function(i)->xname);
-    if (dd.empty() && fl->GetItemCount() > 0) {
-        int n = fl->GetFocusedItem();
+    if (dd.empty() && f->list->GetItemCount() > 0) {
+        int n = f->list->GetFocusedItem();
         dd.push_back(AL->get_function(n == -1 ? 0 : n)->xname);
     }
     return dd;
@@ -780,10 +897,11 @@ vector<string> SideBar::get_selected_func() const
 vector<string> SideBar::get_selected_vars() const
 {
     vector<string> dd;
-    for (int i = vl->GetFirstSelected(); i != -1; i = vl->GetNextSelected(i))
+    for (int i = v->list->GetFirstSelected(); i != -1; 
+                                             i = v->list->GetNextSelected(i))
         dd.push_back(AL->get_variable(i)->xname);
-    if (dd.empty() && vl->GetItemCount() > 0) {
-        int n = vl->GetFocusedItem();
+    if (dd.empty() && v->list->GetItemCount() > 0) {
+        int n = v->list->GetFocusedItem();
         dd.push_back(AL->get_function(n == -1 ? 0 : n)->xname);
     }
     return dd;
@@ -793,6 +911,12 @@ vector<string> SideBar::get_selected_vars() const
 void SideBar::OnFuncFocusChanged(wxListEvent& WXUNUSED(event))
 {
     frame->refresh_plots(true, false, true);
+    update_func_inf();
+}
+
+void SideBar::OnVarFocusChanged(wxListEvent& WXUNUSED(event))
+{
+    update_var_inf();
 }
 
 
@@ -872,6 +996,7 @@ void ListWithColors::OnRightDown(wxMouseEvent &event)
 {
     wxMenu popup_menu; 
     popup_menu.Append(ID_DL_SELECTALL, "Select &All");
+    popup_menu.Append(ID_DL_SWITCHINFO, "Show/Hide &Info");
     PopupMenu (&popup_menu, event.GetX(), event.GetY());
 }
 

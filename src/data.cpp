@@ -39,19 +39,18 @@ string get_file_basename(const string &path)
 
 string Data::getInfo () const
 {
-    if (filename.empty()) 
-        return "No file loaded.";
-    else {
-        string s;
-        s = "Data: " + S(p.size()) + " points, " 
-            + S(active_p.size()) + " active.\n"
-            + "Filename: " + filename;
-        if (!title.empty())
-            s += "\nData title: " + title;
-        if (active_p.size() != p.size())
-            s += "\nActive data range: " + range_as_string();
-        return s;
-    }
+    string s;
+    if (p.empty())
+        s = "No data points.";
+    else
+        s = S(p.size()) + " points, " + S(active_p.size()) + " active.";
+    if (!filename.empty())
+        s += "\nFilename: " + filename;
+    if (!title.empty())
+        s += "\nData title: " + title;
+    if (active_p.size() != p.size())
+        s += "\nActive data range: " + range_as_string();
+    return s;
 }
 
 double Data::pdp11_f (char* fl)  //   function that converts:
@@ -68,23 +67,20 @@ double Data::pdp11_f (char* fl)  //   function that converts:
     return (znak==0 ? 1. : -1.) * h * pow(2., (double)unbiased);
 }
 
-char Data::guess_file_type (const string& filename)
+string Data::guess_file_type(string const& filename)
 { //using only filename extension
     if (filename.size() > 4) {
         string file_ext = filename.substr (filename.size() - 4, 4);
         if (file_ext == ".mca"   || file_ext == ".MCA") 
-            return 'm';
+            return "MCA";
         else if (file_ext == ".rit" || file_ext == ".RIT")
-            return 'r';
+            return "RIT";
         else if (file_ext == ".cpi" || file_ext == ".CPI")
-            return 'c';
+            return "CPI";
         else if (file_ext == ".raw" || file_ext == ".RAW")
-            return 's';
-        else 
-            return 'd';
+            return "BrukerRAW";
     }
-    else 
-        return 'd';
+    return "text";
 }
 
 void Data::clear()
@@ -162,51 +158,41 @@ void Data::load_data_sum(vector<Data const*> const& dd)
     post_load();
 }
 
-int Data::load_file (string const& file, int type, vector<int> const& cols,
-                     bool append)
+void Data::load_file (string const& file, string const& type, 
+                     vector<int> const& cols)
 { 
-    if (type == 0) {                  // "detect" file format
-        type = guess_file_type(file);
-    }
+    string const& ft = type.empty() ? guess_file_type(file) // "detect" format
+                                    : type;
     ifstream f (file.c_str(), ios::in | ios::binary);
     if (!f) {
-        warn ("Can't open file: " + file );
-        return -1;
+        throw ExecuteError("Can't open file: " + file);
     }
-    if (append) {
-        filename = "";
-        col_nums.clear();
-    }
-    else {
-        clear(); //removing previous file
-        filename = file;   
-        col_nums = cols;
-    }
+    clear(); //removing previous file
+    filename = file;   
+    col_nums = cols;
 
-    if (type=='d')                            // x y x y ... 
+    if (ft=="text")                         // x y x y ... 
         load_xy_filetype(f, cols);
-    else if (type=='m')                       // .mca
+    else if (ft=="MCA")                     // .mca
         load_mca_filetype(f);
-    else if (type=='r')                       // .rit
+    else if (ft=="RIT")                     // .rit
         load_rit_filetype(f);
-    else if (type=='c')                       // .cpi
+    else if (ft=="CPI")                     // .cpi
         load_cpi_filetype(f);
-    else if (type=='s')                       // .raw
+    else if (ft=="BrukerRAW")               // .raw
         load_siemensbruker_filetype(filename, this);
     else {                                  // other ?
-        warn ("Unknown filetype.");
-        return -1;
+        throw ExecuteError("Unknown filetype.");
     }
     if (p.size() < 5)
         warn ("Only " + S(p.size()) + " data points found in file.");
-    if (!f.eof() && type != 'm') //!=mca; .mca doesn't have to reach EOF
+    if (!f.eof() && ft != "MCA") //!=mca; .mca doesn't have to reach EOF
         warn ("Unexpected char when reading " + S (p.size() + 1) + ". point");
     post_load();
-    return p.size();
 }
 
 
-void Data::load_xy_filetype (ifstream& f, const vector<int>& columns)
+void Data::load_xy_filetype (ifstream& f, vector<int> const& columns)
 {
     /* format  x y \n x y \n x y \n ...
     *           38.834110      361
@@ -214,8 +200,10 @@ void Data::load_xy_filetype (ifstream& f, const vector<int>& columns)
     *           38.911500      352.431
     * delimiters: white spaces and  , : ;
      */
-    assert (columns.empty() || columns.size() == 2 || columns.size() == 3);
-    vector<int> cols = columns.empty() ? vector2<int>(1, 2) : columns;
+    if (columns.size() == 1 || columns.size() > 3)
+        throw ExecuteError("If columns are specified, two or three of them"
+                           " must be given (eg. 1,2,3)");
+    vector<int> const& cols = columns.empty() ? vector2<int>(1, 2) : columns;
     vector<fp> xy;
     int maxc = *max_element (cols.begin(), cols.end());
     int minc = *min_element (cols.begin(), cols.end());

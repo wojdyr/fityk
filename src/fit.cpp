@@ -11,17 +11,16 @@
 #include "sum.h"
 #include "data.h"
 #include "ui.h"
+#include "numfuncs.h"
+#include "settings.h"
 #include "LMfit.h"
 #include "GAfit.h"
 #include "NMfit.h"
 
 using namespace std;
 
-Fit *my_fit;
-FitMethodsContainer *fitMethodsContainer;
-
-Fit::Fit (char symb, string m)  
-    : symbol(symb), method(m), 
+Fit::Fit(string m)  
+    : name(m), 
       default_max_iterations(50), output_one_of(1), random_seed(-1),
       max_evaluations(0), evaluations(0), iter_nr (0), na(0)
 {
@@ -158,20 +157,20 @@ void Fit::compute_derivatives_for(DataWithSum const* ds,
     }   
 }
 
-string Fit::print_matrix (const vector<fp>& vec, int m, int n, char *name)
+string Fit::print_matrix (const vector<fp>& vec, int m, int n, char *mname)
     //m rows, n columns
 { 
     assert (size(vec) == m * n);
     if (m < 1 || n < 1)
         warn ("In `print_matrix': It is not a matrix.");
     ostringstream h;
-    h << name << "={ ";
+    h << mname << "={ ";
     if (m == 1) { // vector 
         for (int i = 0; i < n; i++)
             h << vec[i] << (i < n - 1 ? ", " : " }") ;
     }
     else { //matrix 
-        std::string blanks (strlen (name) + 1, ' ');
+        std::string blanks (strlen (mname) + 1, ' ');
         for (int j = 0; j < m; j++){
             if (j > 0)
                 h << blanks << "  ";
@@ -187,8 +186,8 @@ string Fit::print_matrix (const vector<fp>& vec, int m, int n, char *name)
 bool Fit::post_fit (const std::vector<fp>& aa, fp chi2)
 {
     bool better = (chi2 < wssr_before);
-    string comment = method + (better ? "" : " (worse)");
-    AL->put_new_parameters(aa, method, better);
+    string comment = name + (better ? "" : " (worse)");
+    AL->put_new_parameters(aa, name, better);
     if (better) {
         info ("Better fit found (WSSR = " + S(chi2) + ", was " + S(wssr_before)
                 + ", " + S((chi2 - wssr_before) / wssr_before * 100) + "%).");
@@ -247,7 +246,7 @@ void Fit::continue_fit(int max_iter)
 {
     //was init() callled ?
     if (na != size(AL->get_parameters())) { 
-        warn (method + " method should be initialized first. Canceled");
+        warn (name + " method should be initialized first. Canceled");
         return;
     }
     user_interrupt = false;
@@ -279,99 +278,6 @@ void Fit::iteration_plot(vector<fp> const &A)
 {
     AL->use_external_parameters(A);
     getUI()->drawPlot(3, true);
-}
-
-FitMethodsContainer::FitMethodsContainer()
-{
-    Fit *f = new LMfit;
-    methods.push_back(f); 
-    f = new NMfit;
-    methods.push_back(f); 
-    f = new GAfit;
-    methods.push_back(f); 
-    my_fit = methods[0]; 
-}
-
-FitMethodsContainer::~FitMethodsContainer()
-{
-    for (vector<Fit*>::iterator i = methods.begin(); i != methods.end(); i++)
-        delete *i;
-}
-
-string FitMethodsContainer::list_available_methods()
-{
-    string s = "Available methods: ";
-    for (vector<Fit*>::iterator i = methods.begin(); i != methods.end(); i++)
-        s += S(i == methods.begin() ? " [" : ",  [") + (*i)->symbol + "] " 
-            + (*i)->method;
-    return s;
-}
-
-void FitMethodsContainer::change_method (char c)
-{
-    if (my_fit->symbol == c) {
-        info ("Fitting method already was: " + my_fit->method);
-        return;
-    }
-    for (vector<Fit*>::iterator i = methods.begin(); i != methods.end(); i++)
-        if ((*i)->symbol == c) {
-            my_fit = *i;
-            info ("Fitting method changed to: " + my_fit->method);
-            return;
-        }
-    // if we are here, symbol c was not found in vector methods
-    warn ("Unknown symbol for fitting method: " + S(c));
-    info (list_available_methods());
-}
-
-string FitMethodsContainer::print_current_method()
-{
-    return "Current fitting method: " + my_fit->method + "\n" + 
-                                                list_available_methods();
-}
-
-int FitMethodsContainer::current_method_number()
-{
-    int n = find(methods.begin(), methods.end(), my_fit) - methods.begin();
-    assert (n < size(methods));
-    return n;
-}
-
-static const fp TINY = 1e-12;
-
-fp rand_gauss()
-{
-    static bool is_saved = false;
-    static fp saved;
-    if (!is_saved) {
-        fp rsq, x1, x2;
-        while(1) {
-            x1 = rand_1_1();
-            x2 = rand_1_1();
-            rsq = x1 * x1 + x2 * x2;
-            if (rsq >= TINY && rsq < 1) 
-                break;
-        }
-        fp f = sqrt(-2. * log(rsq) / rsq);
-        saved = x1 * f;
-        is_saved = true;
-        return x2 * f;
-    }
-    else {
-        is_saved = false;
-        return saved;
-    }
-}
-
-fp rand_cauchy()
-{
-    while (1) {
-        fp x1 = rand_1_1(); 
-        fp x2 = rand_1_1();
-        fp rsq = x1 * x1 + x2 * x2;
-        if (rsq >= TINY && rsq < 1 && fabs(x1) >= TINY)
-            return (x2 / x1);
-    }
 }
 
 
@@ -463,6 +369,34 @@ int Fit::reverse_matrix (vector<fp>&A, int n)
     }
     A = A_result;
     return 0;
+}
+
+//-------------------------------------------------------------------
+
+FitMethodsContainer* FitMethodsContainer::instance = 0;
+
+FitMethodsContainer* FitMethodsContainer::getInstance()
+{
+    if (instance == 0)  
+        instance = new FitMethodsContainer; 
+    return instance; 
+}
+
+FitMethodsContainer::FitMethodsContainer()
+{
+    methods.push_back(new LMfit); 
+    methods.push_back(new NMfit); 
+    methods.push_back(new GAfit); 
+}
+
+FitMethodsContainer::~FitMethodsContainer()
+{
+    purge_all_elements(methods);
+}
+
+int FitMethodsContainer::current_method_number() const
+{
+    return getSettings()->get_e("fitting-method");
 }
 
 

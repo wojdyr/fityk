@@ -149,7 +149,6 @@ private:
     DECLARE_EVENT_TABLE()
 };
 
-
 class ListWithColors : public wxListView
 {
 public:
@@ -167,6 +166,19 @@ public:
 private:
     std::vector<std::pair<std::string,bool> > columns;
     std::vector<std::string> list_data;
+};
+
+class ListPlusText : public ProportionalSplitter
+{
+public:
+    ListWithColors *list;
+    wxTextCtrl* inf;
+
+    ListPlusText(wxWindow *parent, wxWindowID id, wxWindowID list_id,
+                 std::vector<std::pair<std::string,bool> > const& columns_);
+
+    void OnSwitchInfo(wxCommandEvent &event);
+    DECLARE_EVENT_TABLE()
 };
 
 
@@ -193,26 +205,30 @@ public:
     void OnFuncFilterChanged (wxCommandEvent& event);
     void OnDataFocusChanged(wxListEvent &event);
     void OnFuncFocusChanged(wxListEvent &event);
+    void OnVarFocusChanged(wxListEvent &event);
     void update_lists(bool nondata_changed=true);
     /// get active dataset number -- if none is focused, return first one (0)
     int get_focused_data() const
-                       { int n=dl->GetFocusedItem(); return n==-1 ? 0 : n; }
-    int get_focused_func() const { int n = fl->GetFocusedItem(); 
-                               return n==-1 && fl->GetItemCount()>0 ? 0 : n; }
-    int get_focused_var() const { int n = vl->GetFocusedItem(); 
-                               return n==-1 && vl->GetItemCount()>0 ? 0 : n; }
-    bool is_func_selected(int n) const
-                    { return fl->IsSelected(n) || fl->GetFocusedItem() == n; }
+                     { int n=d->list->GetFocusedItem(); return n==-1 ? 0 : n; }
+    int get_focused_func() const { int n = f->list->GetFocusedItem(); 
+                           return n==-1 && f->list->GetItemCount()>0 ? 0 : n; }
+    int get_focused_var() const { int n = v->list->GetFocusedItem(); 
+                           return n==-1 && v->list->GetItemCount()>0 ? 0 : n; }
+    bool is_func_selected(int n) const { return f->list->IsSelected(n) 
+                                           || f->list->GetFocusedItem() == n; }
     int set_selection(int page) { return nb->SetSelection(page); }
     void activate_function(int n);
     std::vector<std::string> get_selected_data() const;
     bool howto_plot_dataset(int n, bool& shadowed, int& offset) const;
     std::vector<std::string> get_selected_func() const;
     std::vector<std::string> get_selected_vars() const;
+    void update_data_inf();
+    void update_func_inf();
+    void update_var_inf();
 private:
     wxNotebook *nb;
     wxPanel *data_page, *func_page, *var_page;
-    ListWithColors *dl, *fl, *vl;
+    ListPlusText *d, *f, *v;
     wxChoice *data_look, *filter_ch;
     wxSpinCtrl *shiftup_sc;
 

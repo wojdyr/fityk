@@ -50,13 +50,11 @@ void ApplicationLogic::remove_ds(int d)
 //TODO ? this func should not be neccessary
 void ApplicationLogic::reset_all (bool finish) 
 {
-    delete fitMethodsContainer;
     dsds.clear();
     parameters.clear();
     if (finish)
         return;
     view = View(0, 180, 0, 1e3);
-    fitMethodsContainer = new FitMethodsContainer;
     append_ds();
     activate_ds(0);
 }

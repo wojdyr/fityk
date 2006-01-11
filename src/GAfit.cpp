@@ -5,6 +5,7 @@
 #include "GAfit.h"
 #include "ui.h"
 #include "settings.h"
+#include "numfuncs.h"
 #include <stdlib.h>
 #include <time.h>
 #include <algorithm>
@@ -16,8 +17,8 @@
 
 using namespace std;
 
-GAfit::GAfit ()
-   : Fit ('g', "Genetic Algorithm"),
+GAfit::GAfit()
+   : Fit("Genetic-Algorithms"),
      popsize (100), elitism(0),
      mutation_type('u'), p_mutation(0.1), mutate_all_genes(false), 
      mutation_strength(0.1), crossover_type('u'), p_crossover(0.3),

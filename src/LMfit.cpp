@@ -10,8 +10,8 @@
 
 using namespace std;
 
-LMfit::LMfit () 
-    : Fit ('m', "Levenberg-Marquardt"),
+LMfit::LMfit() 
+    : Fit("Levenberg-Marquardt"),
       lambda_starting_value (0.001),
       lambda_up_factor (10), lambda_down_factor (10),
       stop_rel (1e-4), shake_before (0), shake_type ('u'),
@@ -28,7 +28,7 @@ LMfit::LMfit ()
     */
 }    
     
-LMfit::~LMfit () {}
+LMfit::~LMfit() {}
 
 // WSSR is also called chi2
 fp LMfit::init()   

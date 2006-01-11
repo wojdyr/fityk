@@ -4,6 +4,7 @@
 #include "common.h"
 #include "settings.h"
 #include "ui.h"
+#include <fit.h>
 #include <ctype.h>
 #include <algorithm>
 
@@ -50,6 +51,12 @@ Settings::Settings()
     fpar ["width-correction"] = 1.;
 
     //Fit
+    std::map<char, std::string> fitting_method_enum;
+    vector<Fit*> const& fm = FitMethodsContainer::getInstance()->get_methods();
+    for (int i = 0; i < size(fm); ++i)
+        fitting_method_enum[i] = fm[i]->name;
+    epar.insert (pair<string, EnumString>("fitting-method", 
+                                         EnumString (fitting_method_enum, 0)));
     //TODO
 }
 

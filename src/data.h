@@ -33,13 +33,13 @@ public :
     Data() {}
     ~Data() {}
     std::string getInfo() const;
-    int load_file (std::string const& file, int type, 
-                   std::vector<int> const& cols, bool append=false);
+    void load_file (std::string const& file, std::string const& type, 
+                    std::vector<int> const& cols);
     int load_arrays(std::vector<fp> const& x, std::vector<fp> const& y, 
                    std::vector<fp> const& sigma, std::string const& data_title);
     void load_data_sum(std::vector<Data const*> const& dd);
     void add_point(Point const& pt) { p.push_back(pt); };
-    static char guess_file_type (std::string const& filename);
+    static std::string guess_file_type (std::string const& filename);
     fp get_x(int n) const { return p[active_p[n]].x; }
     fp get_y(int n) const { return p[active_p[n]].y; } 
     fp get_sigma (int n) const { return p[active_p[n]].sigma; }

@@ -29,16 +29,31 @@ struct DataExpressionGrammar : public grammar<DataExpressionGrammar>
   {
     definition(DataExpressionGrammar const& /*self*/);
 
-    rule<ScannerT> rprec1, rprec2, rprec3, rprec4, rprec5, rprec6,  
-                   rbool_or, rbool_and, rbool_not, rbool,
-                   real_constant, real_variable, parameterized_args,
-                   index;
+    rule<ScannerT> rprec1, rbool_or, rbool_and, rbool_not, rbool,
+                   rprec2, rprec3, rprec4, rprec5; 
 
     rule<ScannerT> const& start() const { return rprec1; }
   };
 };
 
 extern DataExpressionGrammar DataExpressionG;
+
+struct DataE2Grammar : public grammar<DataE2Grammar>
+{
+  template <typename ScannerT>
+  struct definition
+  : public grammar_def<rule<ScannerT>, same>
+  {
+    definition(DataE2Grammar const& /*self*/);
+
+    rule<ScannerT> rprec6, real_constant, real_variable, parameterized_args,
+                   index;
+
+    rule<ScannerT> const& start() const { return rprec6; }
+  };
+};
+
+extern DataE2Grammar DataE2G;
 
 struct DataTransformGrammar : public grammar<DataTransformGrammar>
 {

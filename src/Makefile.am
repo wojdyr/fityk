@@ -22,7 +22,7 @@ bin_PROGRAMS = @FITYK@ @CFITYK@
 EXTRA_PROGRAMS = fityk cfityk 
 common_sources = logic.cpp cmd.cpp common.cpp \
 		 var.cpp func.cpp calc.cpp \
-		 data.cpp datatrans.cpp settings.cpp \
+		 data.cpp datatrans.cpp datatrans2.cpp settings.cpp \
 		 ui.cpp GAfit.cpp LMfit.cpp manipul.cpp NMfit.cpp \
 		 sum.cpp fit.cpp voigt.cpp fileroutines.cpp \
 		 numfuncs.cpp
@@ -33,7 +33,7 @@ cfityk_SOURCES = $(common_sources) u_gnuplot.cpp u_main.cpp
 common_ldadd = ##none
 fityk_LDADD = $(common_ldadd) @WX_LIBS_DS@ $(ms_win_res)
 cfityk_LDADD = $(common_ldadd) @READLINE_LIBS@ -lm
-noinst_HEADERS = common.h data.h datatrans.h settings.h \
+noinst_HEADERS = common.h data.h datatrans.h datatrans2.h settings.h \
 		 GAfit.h LMfit.h manipul.h NMfit.h logic.h \
 		 sum.h fit.h ui.h voigt.h fileroutines.h \
 		 u_gnuplot.h \

@@ -38,4 +38,11 @@ fp get_linear_interpolation(std::vector<B_point> &bb, fp x);
 
 fp LnGammaE (fp x); /// log_e of Gamma function
 
+// random number utilities
+inline fp rand_1_1 () { return 2.0 * rand() / RAND_MAX - 1.; }
+inline fp rand_0_1 () { return static_cast<fp>(rand()) / RAND_MAX; }
+inline bool rand_bool () { return rand() < RAND_MAX / 2; }
+fp rand_gauss();
+fp rand_cauchy();
+
 #endif 

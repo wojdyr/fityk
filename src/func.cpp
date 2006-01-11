@@ -85,8 +85,10 @@ Function* Function::factory (string const &name_, string const &type_name,
     FACTORY_FUNC(Polynomial6)
     FACTORY_FUNC(Linear)
     FACTORY_FUNC(Gaussian)
+    FACTORY_FUNC(SplitGaussian)
     FACTORY_FUNC(Lorentzian)
     FACTORY_FUNC(Pearson7)
+    FACTORY_FUNC(SplitPearson7)
     FACTORY_FUNC(PseudoVoigt)
     FACTORY_FUNC(Voigt)
     FACTORY_FUNC(Valente)
@@ -104,8 +106,10 @@ const char* builtin_formulas[] = {
     FuncPolynomial5::formula,
     FuncPolynomial6::formula,
     FuncGaussian::formula,
+    FuncSplitGaussian::formula,
     FuncLorentzian::formula,
     FuncPearson7::formula,
+    FuncSplitPearson7::formula,
     FuncPseudoVoigt::formula,
     FuncVoigt::formula,
     FuncValente::formula,
@@ -436,8 +440,8 @@ DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(vv[0] + x*vv[1] + x*x*vv[2]
 ///////////////////////////////////////////////////////////////////////
 
 const char *FuncGaussian::formula 
-= "Gaussian(height, center, hwhm) = "
-                        "height*exp(-ln(2)*((x-center)/hwhm)^2)"; 
+= "Gaussian(height, center, hwhm1=hwhm, hwhm2=hwhm) = "
+               "height*exp(-ln(2)*((x-center)/hwhm)^2)"; 
 
 void FuncGaussian::do_precomputations(vector<Variable*> const &variables) 
 { 
@@ -471,6 +475,60 @@ bool FuncGaussian::get_nonzero_range (fp level, fp &left, fp &right) const
         fp w = sqrt (log (fabs(vv[0]/level)) / M_LN2) * vv[2]; 
         left = vv[1] - w;             
         right = vv[1] + w;
+    }
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////
+
+const char *FuncSplitGaussian::formula 
+= "SplitGaussian(height, center, hwhm1=hwhm, hwhm2=hwhm) = "
+                   "height*exp(-ln(2)*((x-center)/(x<center?hwhm1:hwhm2))^2)"; 
+
+void FuncSplitGaussian::do_precomputations(vector<Variable*> const &variables) 
+{ 
+    Function::do_precomputations(variables);
+    if (fabs(vv[2]) < EPSILON) 
+        vv[2] = EPSILON; 
+    if (fabs(vv[3]) < EPSILON) 
+        vv[3] = EPSILON; 
+}
+
+DEFINE_FUNC_CALCULATE_VALUE_BEGIN(SplitGaussian)
+    fp hwhm = (x < vv[1] ? vv[2] : vv[3]);
+    fp xa1a2 = (x - vv[1]) / hwhm;
+    fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
+DEFINE_FUNC_CALCULATE_VALUE_END(vv[0] * ex)
+
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_BEGIN(SplitGaussian)
+    fp hwhm = (x < vv[1] ? vv[2] : vv[3]);
+    fp xa1a2 = (x - vv[1]) / hwhm;
+    fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
+    dy_dv[0] = ex;
+    fp dcenter = 2 * M_LN2 * vv[0] * ex * xa1a2 / hwhm;
+    dy_dv[1] = dcenter;
+    if (x < vv[1]) {
+        dy_dv[2] = dcenter * xa1a2;
+        dy_dv[3] = 0;
+    }
+    else {
+        dy_dv[2] = 0;
+        dy_dv[3] = dcenter * xa1a2;
+    }
+    dy_dx = -dcenter;
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(vv[0]*ex)
+
+bool FuncSplitGaussian::get_nonzero_range (fp level, fp &left, fp &right) const
+{  
+    if (level == 0)
+        return false;
+    else if (fabs(level) >= fabs(vv[0]))
+        left = right = 0;
+    else {
+        fp w1 = sqrt (log (fabs(vv[0]/level)) / M_LN2) * vv[2]; 
+        fp w2 = sqrt (log (fabs(vv[0]/level)) / M_LN2) * vv[3]; 
+        left = vv[1] - w1;             
+        right = vv[1] + w2;
     }
     return true;
 }
@@ -531,7 +589,7 @@ void FuncPearson7::do_precomputations(vector<Variable*> const &variables)
         vv[2] = EPSILON; 
     if (vv.size() != 5)
         vv.resize(5);
-    // not checking for vv[3]>0 or even >0.5
+    // not checking for vv[3]>0.5 nor even >0
     vv[4] = pow(2, 1. / vv[3]) - 1;
 }
 
@@ -583,6 +641,84 @@ fp FuncPearson7::area() const
     return vv[0] * 2 * fabs(vv[2])
         * sqrt(M_PI) * g / (2 * sqrt (vv[4]));
     //in f_val_precomputations(): vv[4] = pow (2, 1. / a3) - 1;
+}
+
+///////////////////////////////////////////////////////////////////////
+
+const char *FuncSplitPearson7::formula 
+= "SplitPearson7(height, center, hwhm1=hwhm, hwhm2=hwhm, shape1=2, shape2=2) = "
+    "height/(1+((x-center)/(x<center?hwhm1:hwhm2))^2"
+               "*(2^(1/(x<center?shape1:shape2))-1))^(x<center?shape1:shape2)";
+
+void FuncSplitPearson7::do_precomputations(vector<Variable*> const &variables)
+{ 
+    Function::do_precomputations(variables);
+    if (fabs(vv[2]) < EPSILON) 
+        vv[2] = EPSILON; 
+    if (fabs(vv[3]) < EPSILON) 
+        vv[3] = EPSILON; 
+    if (vv.size() != 8)
+        vv.resize(8);
+    // not checking for vv[3]>0.5 nor even >0
+    vv[6] = pow(2, 1. / vv[4]) - 1;
+    vv[7] = pow(2, 1. / vv[5]) - 1;
+}
+
+DEFINE_FUNC_CALCULATE_VALUE_BEGIN(SplitPearson7)
+    int lr = x < vv[1] ? 0 : 1;
+    fp xa1a2 = (x - vv[1]) / vv[2+lr];
+    fp xa1a2sq = xa1a2 * xa1a2;
+    fp pow_2_1_a3_1 = vv[6+lr]; //pow(2, 1./shape) - 1;
+    fp denom_base = 1 + xa1a2sq * pow_2_1_a3_1;
+    fp inv_denomin = pow(denom_base, - vv[4+lr]);
+DEFINE_FUNC_CALCULATE_VALUE_END(vv[0] * inv_denomin)
+
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_BEGIN(SplitPearson7)
+    int lr = x < vv[1] ? 0 : 1;
+    fp hwhm = vv[2+lr];
+    fp shape = vv[4+lr];
+    fp xa1a2 = (x - vv[1]) / hwhm;
+    fp xa1a2sq = xa1a2 * xa1a2;
+    fp pow_2_1_a3_1 = vv[6+lr]; //pow(2, 1./shape) - 1;
+    fp denom_base = 1 + xa1a2sq * pow_2_1_a3_1;
+    fp inv_denomin = pow (denom_base, -shape);
+    dy_dv[0] = inv_denomin;
+    fp dcenter = 2 * vv[0] * shape * pow_2_1_a3_1 * xa1a2 * inv_denomin /
+                                                      (denom_base * hwhm);
+    dy_dv[1] = dcenter;
+    dy_dv[2] = dy_dv[3] = dy_dv[4] = dy_dv[5] = 0;
+    dy_dv[2+lr] = dcenter * xa1a2;
+    dy_dv[4+lr] = vv[0] * inv_denomin * (M_LN2 * (pow_2_1_a3_1 + 1)
+                           * xa1a2sq / (denom_base * shape) - log(denom_base));
+    dy_dx = -dcenter;
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(vv[0] * inv_denomin)
+
+
+bool FuncSplitPearson7::get_nonzero_range (fp level, fp &left, fp &right) const
+{  
+    if (level == 0)
+        return false;
+    else if (fabs(level) >= fabs(vv[0]))
+        left = right = 0;
+    else {
+        fp t1 = (pow(fabs(vv[0]/level), 1./vv[4]) - 1) / (pow(2, 1./vv[4]) - 1);
+        fp w1 = sqrt(t1) * vv[2];
+        fp t2 = (pow(fabs(vv[0]/level), 1./vv[5]) - 1) / (pow(2, 1./vv[5]) - 1);
+        fp w2 = sqrt(t2) * vv[3];
+        left = vv[1] - w1;             
+        right = vv[1] + w2;
+    }
+    return true;
+}
+
+fp FuncSplitPearson7::area() const
+{
+    if (vv[4] <= 0.5 || vv[5] <= 0.5)
+        return +INF;
+    fp g1 = exp_ (LnGammaE(vv[4] - 0.5) - LnGammaE(vv[4]));
+    fp g2 = exp_ (LnGammaE(vv[5] - 0.5) - LnGammaE(vv[5]));
+    return vv[0] * fabs(vv[2]) * sqrt(M_PI) * g1 / (2 * sqrt (vv[6]))
+         + vv[0] * fabs(vv[3]) * sqrt(M_PI) * g2 / (2 * sqrt (vv[7]));
 }
 
 ///////////////////////////////////////////////////////////////////////

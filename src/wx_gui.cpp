@@ -1007,22 +1007,23 @@ void FFrame::OnSExport       (wxCommandEvent& WXUNUSED(event))
         
 void FFrame::OnFMethodUpdate (wxUpdateUIEvent& event)
 {
-    int method_nr = fitMethodsContainer->current_method_number();
-    GetMenuBar()->Check (ID_F_M + method_nr, true);
+    int n = FitMethodsContainer::getInstance()->current_method_number();
+    GetMenuBar()->Check (ID_F_M + n, true);
     event.Skip();
 }
 
 void FFrame::OnFOneOfMethods (wxCommandEvent& event)
 {
     int m = event.GetId() - ID_F_M;
-    exec_command ("f.method " + S(fitMethodsContainer->symbol(m)));
+    exec_command ("set fitting-method=" 
+                  + FitMethodsContainer::getInstance()->get_method(m)->name);
 }
            
 void FFrame::OnFRun          (wxCommandEvent& WXUNUSED(event))
 {
     int r = wxGetNumberFromUser ("Run fitting method", 
                                  "Max. number of iterations", "Fit->Run", 
-                                 my_fit->default_max_iterations, 0, 9999);
+                                 getFit()->default_max_iterations, 0, 9999);
     if (r != -1)
         exec_command (("fit " + S(r)).c_str());
 }
@@ -1031,7 +1032,7 @@ void FFrame::OnFContinue     (wxCommandEvent& WXUNUSED(event))
 {
     int r = wxGetNumberFromUser ("Continue previous fitting", 
                                  "Max. number of iterations", "Fit->Continue", 
-                                 my_fit->default_max_iterations, 0, 9999);
+                                 getFit()->default_max_iterations, 0, 9999);
     if (r != -1)
         exec_command (("fit +" + S(r)).c_str());
 }

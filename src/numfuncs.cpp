@@ -100,3 +100,41 @@ fp LnGammaE (fp x) //log_e of Gamma function
     return - tmp + log (2.5066282746310005 * s / x);
 }
 
+// random number utilities
+static const fp TINY = 1e-12;
+
+fp rand_gauss()
+{
+    static bool is_saved = false;
+    static fp saved;
+    if (!is_saved) {
+        fp rsq, x1, x2;
+        while(1) {
+            x1 = rand_1_1();
+            x2 = rand_1_1();
+            rsq = x1 * x1 + x2 * x2;
+            if (rsq >= TINY && rsq < 1) 
+                break;
+        }
+        fp f = sqrt(-2. * log(rsq) / rsq);
+        saved = x1 * f;
+        is_saved = true;
+        return x2 * f;
+    }
+    else {
+        is_saved = false;
+        return saved;
+    }
+}
+
+fp rand_cauchy()
+{
+    while (1) {
+        fp x1 = rand_1_1(); 
+        fp x2 = rand_1_1();
+        fp rsq = x1 * x1 + x2 * x2;
+        if (rsq >= TINY && rsq < 1 && fabs(x1) >= TINY)
+            return (x2 / x1);
+    }
+}
+

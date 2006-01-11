@@ -15,11 +15,10 @@ class DataWithSum;
 class Fit //: public DotSet
 {               
 public:
-    const char symbol;
-    const std::string method;
+    std::string const name;
     int default_max_iterations;
 
-    Fit(char symb, std::string m);
+    Fit(std::string m);
     virtual ~Fit() {};
     void fit(int max_iter, std::vector<DataWithSum*> const& dsds_);
     void continue_fit(int max_iter);
@@ -30,7 +29,7 @@ public:
     static int Jordan (std::vector<fp>& A, std::vector<fp>& b, int n); 
     static int reverse_matrix (std::vector<fp>&A, int n);
     static std::string print_matrix (const std::vector<fp>& vec, 
-                                     int m, int n, char *name);//m x n
+                                     int m, int n, char *mname);//m x n
 protected:
     std::vector<DataWithSum*> dsds;
     int output_one_of;
@@ -45,7 +44,7 @@ protected:
     std::map<char, std::string> Distrib_enum;
 
     virtual fp init() = 0; // called before autoiter()
-    virtual int autoiter () = 0;
+    virtual int autoiter() = 0;
     bool common_termination_criteria(int iter);
     fp compute_wssr (std::vector<fp> const &A, bool weigthed=true);
     void compute_derivatives(std::vector<fp> const &A, 
@@ -58,28 +57,25 @@ private:
                                  std::vector<fp>& alpha, std::vector<fp>& beta);
 };
 
+///singleton
 class FitMethodsContainer
 {
 public:
+    static FitMethodsContainer* getInstance();
+    int current_method_number() const;
+    Fit const* get_method(int n) const
+                    { assert(n >= 0 && n<size(methods)); return methods[n]; }
+    std::vector<Fit*> const& get_methods() const { return methods; }
+    Fit* getFit() { return methods[current_method_number()]; }
+private:
+    static FitMethodsContainer* instance;
+    std::vector<Fit*> methods;
+
     FitMethodsContainer();
     ~FitMethodsContainer();
-    std::string list_available_methods();
-    void change_method (char c);
-    std::string print_current_method();
-    int current_method_number();
-    char symbol(int n) { assert(n < size(methods)); return methods[n]->symbol; }
-private:
-    std::vector<Fit*> methods;
 };
 
-inline fp rand_1_1 () { return 2.0 * rand() / RAND_MAX - 1.; }
-inline fp rand_0_1 () { return static_cast<fp>(rand()) / RAND_MAX; }
-inline bool rand_bool () { return rand() < RAND_MAX / 2; }
-fp rand_gauss();
-fp rand_cauchy();
-
-extern Fit *my_fit;
-extern FitMethodsContainer *fitMethodsContainer;
+inline Fit* getFit() { return FitMethodsContainer::getInstance()->getFit(); }
 
 #endif
 

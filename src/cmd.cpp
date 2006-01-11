@@ -17,6 +17,9 @@
 #include <boost/spirit/actor/push_back_actor.hpp>
 #include <boost/spirit/actor/clear_actor.hpp>
 #include <boost/spirit/actor/increment_actor.hpp>
+#include <boost/spirit/utility/chset.hpp>
+#include <boost/spirit/utility/chset_operators.hpp>
+#include <boost/spirit/utility.hpp>
 #include <stdlib.h>
 #include <fstream>
 #include <utility>
@@ -212,9 +215,9 @@ void do_print_info(char const* a, char const* b)
         m = AL->view.str();
     }
     else if (s == "fit")
-        m = my_fit->getInfo();
+        m = getFit()->getInfo();
     else if (s == "errors")
-        m = my_fit->getErrorInfo(with_plus);
+        m = getFit()->getErrorInfo(with_plus);
     else if (s == "commands")
         m = getUI()->getCommands().get_info();
     else if (string(s, 0, 5) == "peaks") {
@@ -324,12 +327,12 @@ void do_import_dataset(char const*, char const*)
             && (AL->get_ds_count() != 1 || AL->get_data(0)->has_any_info()
                 || AL->get_sum(0)->has_any_info())) {
         auto_ptr<Data> data(new Data);
-        data->load_file(t, 0, vector<int>()); //TODO columns, type
+        data->load_file(t, t2, vn); //TODO columns, type
         tmp_int = AL->append_ds(data.release());
     }
     else {
         //TODO columns, type
-        AL->get_data(tmp_int)->load_file(t, 0, vector<int>()); 
+        AL->get_data(tmp_int)->load_file(t, t2, vn); 
         if (AL->get_ds_count() == 1)
             AL->view.fit();
     }
@@ -380,9 +383,9 @@ void do_replot(char const*, char const*)
 void do_fit(char const*, char const*)
 {
     if (with_plus)
-        my_fit->continue_fit(tmp_int);
+        getFit()->continue_fit(tmp_int);
     else
-        my_fit->fit(tmp_int, get_datasets_from_indata());
+        getFit()->fit(tmp_int, get_datasets_from_indata());
     outdated_plot=true;  
 }
 
@@ -435,9 +438,9 @@ void do_exec_file(char const*, char const*)
     getUI()->execScript(t, vpn); 
 }
 
-void do_set(char const* a, char const* b) {getSettings()->setp(t, string(a,b));}
+void do_set(char const*, char const*) { getSettings()->setp(t2, t); }
 
-void do_set_show(char const*, char const*)  { mesg(getSettings()->infop(t)); }
+void do_set_show(char const*, char const*)  { mesg(getSettings()->infop(t2)); }
 
 } //namespace
 
@@ -558,10 +561,10 @@ struct CmdGrammar : public grammar<CmdGrammar>
             | eps_p [assign_a(ds_pref, minus_one)]
             ;
 
-        filename_str
+        compact_str
             = lexeme_d['\'' >> (+~ch_p('\''))[assign_a(t)] 
                        >> '\'']
-                      | (+~space_p) [assign_a(t)]
+            | lexeme_d[+chset<>(anychar_p - chset<>(" \t\n\r;,"))] [assign_a(t)]
             ;
 
         existing_dataset_nr
@@ -575,13 +578,16 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         dataset_handling
-            = dataset_nr >> '<' >> (eps_p[clear_a(vn)]
-                                    >> (lexeme_d['@' >> uint_p [push_back_a(vn)]
-                                                ]
-                                        % '+') [&do_load_data_sum]
-                                   | filename_str [&do_import_dataset]
-                                   )
-            | (existing_dataset_nr >> '>' >> filename_str) [&do_export_dataset]
+            = dataset_nr >> ch_p('<') [clear_a(vn)] 
+              >> ((lexeme_d['@' >> uint_p [push_back_a(vn)]  //sum/duplicate
+                           ] % '+') [&do_load_data_sum]
+                 | (compact_str                              //load from file
+                     >> lexeme_d[!(alpha_p >> *alnum_p)][assign_a(t2)]
+                     >> !(uint_p [push_back_a(vn)]
+                            % ',')
+                   ) [&do_import_dataset]
+                 )
+            | (existing_dataset_nr >> '>' >> compact_str) [&do_export_dataset]
             | str_p("@+")[&do_append_data] 
             ;
 
@@ -659,11 +665,11 @@ struct CmdGrammar : public grammar<CmdGrammar>
         commands_arg
             = eps_p [assign_a(t, empty)] 
               >> optional_plus
-              >> ( (ch_p('>') >> filename_str) [&do_commands_logging] 
+              >> ( (ch_p('>') >> compact_str) [&do_commands_logging] 
                  | (int_range 
-                     >> !(ch_p('>') >> filename_str)) [&do_commands_print]
+                     >> !(ch_p('>') >> compact_str)) [&do_commands_print]
                  | (ch_p('<') [clear_a(vn)]
-                     >> filename_str 
+                     >> compact_str 
                      >> *(int_range[push_back_a(vn, tmp_int)]
                                                  [push_back_a(vn, tmp_int2)])
                    ) [&do_exec_file]
@@ -676,11 +682,8 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         set_arg
-            = (+(lower_p | '-'))[assign_a(t)]
-              >> ('=' >> ('"' >> (*~ch_p('"'))[&do_set]
-                          >> '"'
-                         | (*(alnum_p | '-' | '+' | '.'))[&do_set]
-                         )
+            = (+(lower_p | '-'))[assign_a(t2)]
+              >> ('=' >> compact_str[&do_set]
                  | eps_p[&do_set_show]
                  )
             ;
@@ -697,7 +700,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
             | ("sleep" >> ureal_p[assign_a(tmp_real)])[&do_sleep]
             | "commands" >> commands_arg
             | str_p("reset") [&do_reset]
-            | (str_p("dump") >> '>' >> filename_str)[&do_dump]
+            | (str_p("dump") >> '>' >> compact_str)[&do_dump]
             | "set" >> (set_arg % ',')
             | transform 
             | assign_var 
@@ -718,7 +721,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
                    function_param, subst_func_param, put_function, 
                    functionname_assign, put_func_to, fz_assign, 
                    in_data, ds_prefix,
-                   dataset_handling, filename_str, guess_arg,
+                   dataset_handling, compact_str, guess_arg,
                    existing_dataset_nr, dataset_nr, 
                    optional_plus, int_range, commands_arg, set_arg,
                    plot_range, info_arg, fit_arg, statement, multi;  

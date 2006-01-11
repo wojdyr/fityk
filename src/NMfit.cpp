@@ -11,8 +11,8 @@
 
 using namespace std;
 
-NMfit::NMfit ()
-    :Fit ('s', "Nelder-Mead simplex"), 
+NMfit::NMfit()
+    :Fit ("Nelder-Mead-simplex"), 
      min_rel_diff(0.0001), move_all(false), distrib_type('b'), move_mult(1.)
 {
     default_max_iterations = 500;

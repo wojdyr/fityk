@@ -60,7 +60,7 @@
 // operators: binary +, -, *, /, % , ^  
 // ternary operator:       condition ? expression1 : expression2 
 // 
-//functions: sqrt exp log10 ln sin cos tan atan asin acos abs min max round
+//functions: sqrt exp log10 ln sin cos tan atan asin acos abs min2 max2 round
 // boolean: AND, OR, >, >=, <, <=, = (or ==), != (or <>), TRUE, FALSE, NOT
 //
 //parametrized functions: spline, interpolate //TODO->polyline
@@ -77,12 +77,12 @@
 //     
 //
 // Syntax examples:
-//    set standard deviation as sqrt(max(1,y))
-//                         s = sqrt(max(1,y))
-//         or (the same):  s = sqrt(max(1,y[n]))
-//                    or:  S = sqrt(max(1,y[n]))
-//                    or:  S = sqrt(max(1,Y[n]))
-//                    or:  S = sqrt(max(1,Y))
+//    set standard deviation as sqrt(max2(1,y))
+//                         s = sqrt(max2(1,y))
+//         or (the same):  s = sqrt(max2(1,y[n]))
+//                    or:  S = sqrt(max2(1,y[n]))
+//                    or:  S = sqrt(max2(1,Y[n]))
+//                    or:  S = sqrt(max2(1,Y))
 //
 //    integration:   Y[1...] = Y[n-1] + y[n]  
 //
@@ -123,16 +123,18 @@
 //#define BOOST_SPIRIT_DEBUG
 
 
-#include "datatrans.h"
-#include "common.h"
-#include "data.h"
-#include "var.h"
-#include "numfuncs.h"
-#include "logic.h"
-#include <boost/spirit/core.hpp>
+//#include "datatrans.h"
+#include "datatrans2.h"
+//#include "common.h"
+//#include "data.h"
+//#include "var.h"
+//#include "numfuncs.h"
+//#include "logic.h"
+//#include <boost/spirit/core.hpp>
 
-using namespace std;
-using namespace boost::spirit;
+//using namespace std;
+//using namespace boost::spirit;
+using namespace datatrans;
 
 #ifdef STANDALONE_DATATRANS
 
@@ -185,101 +187,12 @@ int main(int argc, char **argv)
 
 #endif //STANDALONE_DATATRANS
 
-namespace {
-
-bool x_lt(const Point &p1, const Point &p2) { return p1.x < p2.x; }
-bool x_gt(const Point &p1, const Point &p2) { return p1.x > p2.x; }
-bool y_lt(const Point &p1, const Point &p2) { return p1.y < p2.y; }
-bool y_gt(const Point &p1, const Point &p2) { return p1.y > p2.y; }
-bool sigma_lt(const Point &p1, const Point &p2) { return p1.sigma < p2.sigma; }
-bool sigma_gt(const Point &p1, const Point &p2) { return p1.sigma > p2.sigma; }
-bool active_lt(const Point &p1, const Point &p2) 
-                                        { return p1.is_active < p2.is_active; }
-bool active_gt(const Point &p1, const Point &p2) 
-                                        { return p1.is_active > p2.is_active; }
-
-
-// operators used in VM code
-enum DataTransformVMOperator
-{
-    OP_NEG=1,   OP_EXP,   OP_SIN,   OP_COS,  OP_ATAN,  OP_ABS,  OP_ROUND, 
-    OP_TAN/*!*/, OP_ASIN, OP_ACOS,
-    OP_LOG10, OP_LN,  OP_SQRT,  OP_POW,   //these functions can set errno    
-    OP_ADD,   OP_SUB,   OP_MUL,   OP_DIV/*!*/,  OP_MOD,
-    OP_MIN,   OP_MAX,     
-    OP_VAR_X, OP_VAR_Y, OP_VAR_S, OP_VAR_A, 
-    OP_VAR_x, OP_VAR_y, OP_VAR_s, OP_VAR_a, 
-    OP_VAR_n, OP_VAR_M, OP_NUMBER,  
-    OP_OR, OP_AFTER_OR, OP_AND, OP_AFTER_AND, OP_NOT,
-    OP_TERNARY, OP_TERNARY_MID, OP_AFTER_TERNARY, OP_DELETE_COND,
-    OP_GT, OP_GE, OP_LT, OP_LE, OP_EQ, OP_NEQ, OP_NCMP_HACK, 
-    OP_RANGE, OP_INDEX,
-    OP_ASSIGN_X, OP_ASSIGN_Y, OP_ASSIGN_S, OP_ASSIGN_A,
-    OP_DO_ONCE, OP_RESIZE, OP_ORDER, OP_DELETE, OP_BEGIN, OP_END, 
-    OP_SUM, OP_IGNORE, 
-    OP_PARAMETERIZED, OP_PLIST_BEGIN, OP_PLIST_END
-};
-
-// parametrized functions
-enum {
-    PF_INTERPOLATE, PF_SPLINE
-};
-
-//-- functors used in the grammar for putting VM code and data into vectors --
-
-struct push_double
-{
-    void operator()(const double& n) const;
-};
-
-
-struct push_the_double: public push_double
-{
-    push_the_double(double d_) : d(d_) {}
-    void operator()(char const*, char const*) const 
-                                               { push_double::operator()(d); }
-    void operator()(const char) const { push_double::operator()(d); }
-    double d;
-};
-
-struct push_the_var: public push_double
-{
-    void operator()(char const* a, char const* b) const 
-     { push_double::operator()(AL->find_variable(string(a+1,b))->get_value()); }
-};
-
-struct push_op
-{
-    push_op(int op_, int op2_=0) : op(op_), op2(op2_) {}
-    void push() const;
-    void operator()(char const*, char const*) const { push(); }
-    void operator()(char) const { push(); }
-
-    int op, op2;
-};
-
-
-struct parameterized_op
-{
-    parameterized_op(int op_) : op(op_) {}
-
-    void push() const;
-    void operator()(char const*, char const*) const { push(); }
-    void operator()(char) const { push(); }
-
-    int op;
-};
-
-
-} //namespace
-
 //----------------------------  grammar  ----------------------------------
 template <typename ScannerT>
-DataExpressionGrammar::definition<ScannerT>::definition(
-                                          DataExpressionGrammar const& /*self*/)
+DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
 {
     index 
-        =  ch_p('[') >> rprec1 >> ch_p(']')
+        =  ch_p('[') >> DataExpressionG >> ch_p(']')
         |  (!(ch_p('[') >> ']')) [push_op(OP_VAR_n)]
         ;
 
@@ -297,7 +210,7 @@ DataExpressionGrammar::definition<ScannerT>::definition(
         =  ch_p('[') [push_op(OP_PLIST_BEGIN)]
             >> +real_constant 
                 >>  ch_p(']') [push_op(OP_PLIST_END)]
-                    >> '(' >> rprec1 >> ')'
+                    >> '(' >> DataExpressionG >> ')'
         ;
 
     real_variable 
@@ -315,134 +228,43 @@ DataExpressionGrammar::definition<ScannerT>::definition(
 
     rprec6 
         =   real_constant
-        |   '(' >> rprec1 >> ')'
+        |   '(' >> DataExpressionG >> ')'
             // sum will be refactored, see: replace_sums()
         |   (as_lower_d["sum"] [push_op(OP_BEGIN)]
-                >> '(' >> rprec1 >> ')') [push_op(OP_SUM)]
+                >> '(' >> DataExpressionG >> ')') [push_op(OP_SUM)]
         |   (as_lower_d["interpolate"] >> parameterized_args)
                                           [parameterized_op(PF_INTERPOLATE)]
         |   (as_lower_d["spline"] >> parameterized_args)
                                           [parameterized_op(PF_SPLINE)]
-        |   (as_lower_d["sqrt"] >> '(' >> rprec1 >> ')') [push_op(OP_SQRT)] 
-        |   (as_lower_d["exp"] >> '(' >> rprec1 >> ')') [push_op(OP_EXP)] 
-        |   (as_lower_d["log10"] >> '(' >> rprec1 >> ')')[push_op(OP_LOG10)]
-        |   (as_lower_d["ln"] >> '(' >> rprec1 >> ')') [push_op(OP_LN)] 
-        |   (as_lower_d["sin"] >> '(' >> rprec1 >> ')') [push_op(OP_SIN)] 
-        |   (as_lower_d["cos"] >> '(' >> rprec1 >> ')') [push_op(OP_COS)] 
-        |   (as_lower_d["tan"] >> '(' >> rprec1 >> ')') [push_op(OP_TAN)] 
-        |   (as_lower_d["atan"] >> '(' >> rprec1 >> ')') [push_op(OP_ATAN)] 
-        |   (as_lower_d["asin"] >> '(' >> rprec1 >> ')') [push_op(OP_ASIN)] 
-        |   (as_lower_d["acos"] >> '(' >> rprec1 >> ')') [push_op(OP_ACOS)] 
-        |   (as_lower_d["abs"] >> '(' >> rprec1 >> ')') [push_op(OP_ABS)] 
-        |   (as_lower_d["round"] >> '(' >> rprec1 >> ')')[push_op(OP_ROUND)]
-        |   (as_lower_d["min"] >> '(' >> rprec1 >> ',' >> rprec1 >> ')')
-                                                       [push_op(OP_MIN)] 
-        |   (as_lower_d["max"] >> '(' >> rprec1 >> ',' >> rprec1 >> ')')
-                                                       [push_op(OP_MAX)] 
+        |   (as_lower_d["sqrt("] >> DataExpressionG >> ')') [push_op(OP_SQRT)] 
+        |   (as_lower_d["exp("] >> DataExpressionG >> ')') [push_op(OP_EXP)] 
+        |   (as_lower_d["log10("] >> DataExpressionG >> ')')[push_op(OP_LOG10)]
+        |   (as_lower_d["ln("] >> DataExpressionG >> ')') [push_op(OP_LN)] 
+        |   (as_lower_d["sin("] >> DataExpressionG >> ')') [push_op(OP_SIN)] 
+        |   (as_lower_d["cos("] >> DataExpressionG >> ')') [push_op(OP_COS)] 
+        |   (as_lower_d["tan("] >> DataExpressionG >> ')') [push_op(OP_TAN)] 
+        |   (as_lower_d["atan("] >> DataExpressionG >> ')') [push_op(OP_ATAN)] 
+        |   (as_lower_d["asin("] >> DataExpressionG >> ')') [push_op(OP_ASIN)] 
+        |   (as_lower_d["acos("] >> DataExpressionG >> ')') [push_op(OP_ACOS)] 
+        |   (as_lower_d["abs("] >> DataExpressionG >> ')') [push_op(OP_ABS)] 
+        |   (as_lower_d["round("] >> DataExpressionG >> ')')[push_op(OP_ROUND)]
+
+        |   (as_lower_d["min2"] >> '(' >> DataExpressionG >> ',' 
+                                  >> DataExpressionG >> ')') [push_op(OP_MIN)] 
+        |   (as_lower_d["max2"] >> '(' >> DataExpressionG >> ',' 
+                                  >> DataExpressionG >> ')') [push_op(OP_MAX)] 
         |   real_variable   //"s" is checked after "sin" and "sqrt"   
-        ;
-
-    rprec5 
-        =   rprec6
-        |   ('-' >> rprec6) [push_op(OP_NEG)]
-        |   ('+' >> rprec6)
-        ;
-
-    rprec4 
-        =   rprec5 
-            >> *(
-                  ('^' >> rprec5) [push_op(OP_POW)]
-                )
-        ;
-        
-    rprec3 
-        =   rprec4
-            >> *(   ('*' >> rprec4)[push_op(OP_MUL)]
-                |   ('/' >> rprec4)[push_op(OP_DIV)]
-                |   ('%' >> rprec4)[push_op(OP_MOD)]
-                )
-        ;
-
-    rprec2 
-        =   rprec3
-            >> *(   ('+' >> rprec3) [push_op(OP_ADD)]
-                |   ('-' >> rprec3) [push_op(OP_SUB)]
-                )
-        ;
-
-    rbool
-    // a hack for handling 10 < x < 20 
-    // how it works:
-    //  3 < 5.2
-    //    op:    OP_NUMBER(3)    OP_NUMBER(5.2)   OP_LT
-    //    stack:    ... 3         ... 3 5.2      ... 1 5.2
-    //    stack end:    ^                 ^          ^
-    //  3 < 5.2 < 4 (continued previous example)
-    //    op:     OP_AND     OP_NCMP_HACK  OP_NUMBER(4) OP_LT  OP_AFTER_AND
-    //    stack: ... 1 5.2   ... 5.2       ... 5.2 4   ... 0 4     (flag)
-    //    s. end:  ^               ^               ^       ^  
-        = rprec2
-           >> !(( ("<=" >> rprec2) [push_op(OP_LE)]
-                | (">=" >> rprec2) [push_op(OP_GE)]
-                | ((str_p("==")|"=") >> rprec2)  [push_op(OP_EQ)]
-                | ((str_p("!=")|"<>") >> rprec2)  [push_op(OP_NEQ)]
-                | ('<' >> rprec2)  [push_op(OP_LT)]
-                | ('>' >> rprec2)  [push_op(OP_GT)]
-                )
-                >> *( (str_p("<=")[push_op(OP_AND, OP_NCMP_HACK)] 
-                        >> rprec2) [push_op(OP_LE, OP_AFTER_AND)]
-                    | (str_p(">=")[push_op(OP_AND, OP_NCMP_HACK)] 
-                        >> rprec2) [push_op(OP_GE, OP_AFTER_AND)]
-                    | ((str_p("==")|"=")[push_op(OP_AND, OP_NCMP_HACK)] 
-                        >> rprec2) [push_op(OP_EQ, OP_AFTER_AND)]
-                    | ((str_p("!=")|"<>")[push_op(OP_AND, OP_NCMP_HACK)] 
-                        >> rprec2)  [push_op(OP_NEQ, OP_AFTER_AND)]
-                    | (ch_p('<')[push_op(OP_AND, OP_NCMP_HACK)] 
-                        >> rprec2) [push_op(OP_LT, OP_AFTER_AND)]
-                    | (ch_p('>')[push_op(OP_AND, OP_NCMP_HACK)] 
-                        >> rprec2) [push_op(OP_GT, OP_AFTER_AND)]
-                    )
-               )
-        ;
-
-    rbool_not
-        =  (as_lower_d["not"] >> rbool) [push_op(OP_NOT)]
-        |  rbool
-        ;
-
-    rbool_and
-        =  rbool_not
-           >> *(
-                as_lower_d["and"] [push_op(OP_AND)] 
-                >> rbool_not
-               ) [push_op(OP_AFTER_AND)]
-        ;
-
-    rbool_or  
-        =  rbool_and 
-           >> *(
-                as_lower_d["or"] [push_op(OP_OR)] 
-                >> rbool_and
-               ) [push_op(OP_AFTER_OR)]
-        ;  
-
-
-    rprec1
-        =  rbool_or 
-           >> !(ch_p('?') [push_op(OP_TERNARY)] 
-                >> rbool_or 
-                >> ch_p(':') [push_op(OP_TERNARY_MID)] 
-                >> rbool_or
-               ) [push_op(OP_AFTER_TERNARY)]
         ;
 }
 
 // explicit template instantiations 
-template DataExpressionGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(DataExpressionGrammar const&);
+template DataE2Grammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(DataE2Grammar const&);
 
-template DataExpressionGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<no_actions_action_policy<action_policy> > > > >::definition(DataExpressionGrammar const&);
+template DataE2Grammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<no_actions_action_policy<action_policy> > > > >::definition(DataE2Grammar const&);
 
-DataExpressionGrammar DataExpressionG;
+template DataE2Grammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, action_policy> > >::definition(DataE2Grammar const&);
+
+DataE2Grammar DataE2G;
 
 
 template <typename ScannerT>
@@ -514,54 +336,14 @@ template DataTransformGrammar::definition<scanner<char const*, scanner_policies<
 DataTransformGrammar DataTransformG;
 
 
-namespace {
-
-//----------------------  Parameterized Functions -------------------------
-class ParameterizedFunction
-{
-public:
-    ParameterizedFunction() {}
-    virtual ~ParameterizedFunction() {}
-    virtual fp calculate(fp x) = 0;
-};
-
-
-class InterpolateFunction : public ParameterizedFunction
-{
-public:
-    InterpolateFunction(vector<fp> &params) {
-        for (int i=0; i < size(params) - 1; i+=2)
-            bb.push_back(B_point(params[i], params[i+1]));
-    }
-
-    fp calculate(fp x) { return get_linear_interpolation(bb, x); }
-
-private:
-    std::vector<B_point> bb;
-};
-
-
-class SplineFunction : public ParameterizedFunction
-{
-public:
-    SplineFunction(vector<fp> &params) {
-        for (int i=0; i < size(params) - 1; i+=2)
-            bb.push_back(B_point(params[i], params[i+1]));
-        prepare_spline_interpolation(bb);
-    }
-
-    fp calculate(fp x) { return get_spline_interpolation(bb, x); }
-
-private:
-    std::vector<B_point> bb;
-};
+namespace datatrans {
 
 
 //------------------------  Virtual Machine  --------------------------------
 
-static vector<int> code;        //  VM code 
-static vector<double> numbers;  //  VM data 
-static vector<ParameterizedFunction*> parameterized; // also used by VM 
+vector<int> code;        //  VM code 
+vector<double> numbers;  //  VM data 
+vector<ParameterizedFunction*> parameterized; // also used by VM 
 const int stack_size = 8192;  //should be enough, 
                               //there are no checks for stack overflow  
 
@@ -570,10 +352,7 @@ void clear_parse_vecs()
     code.clear();
     numbers.clear();
     //TODO shared_ptr
-    for (vector<ParameterizedFunction*>::iterator i=parameterized.begin();
-            i != parameterized.end(); ++i)
-        delete *i;
-    parameterized.clear();
+    purge_all_elements(parameterized);
 }
 
 // code vector contains not only operators, but also indices that
@@ -1007,49 +786,6 @@ void replace_sums(int M, vector<double>& stack, vector<Point> const& old_points)
         DT_DEBUG_N(" " + S(*i));
     DT_DEBUG("")
 }
-
-void push_double::operator()(const double& n) const
-{
-    code.push_back(OP_NUMBER);
-    code.push_back(size(numbers));
-    numbers.push_back(n);
-}
-
-void push_op::push() const 
-{ 
-    code.push_back(op); 
-    if (op2)
-        code.push_back(op2); 
-}
-
-void parameterized_op::push() const
-{ 
-    DT_DEBUG("PARAMETERIZED " + S(op))  
-    typedef vector<int>::iterator viit;
-    viit first = find(code.begin(), code.end(), OP_PLIST_BEGIN);
-    viit last = find(code.begin(), code.end(), OP_PLIST_END) + 1;
-    vector<fp> params;
-    for (viit i=first; i != last; ++i) 
-        if (*i == OP_NUMBER) 
-            params.push_back(numbers[*++i]);
-    code.erase(first, last);
-    code.push_back(OP_PARAMETERIZED); 
-    code.push_back(size(parameterized));
-    ParameterizedFunction *func = 0;
-    switch (op) {
-        case PF_INTERPOLATE:
-            //TODO shared_ptr
-            func = new InterpolateFunction(params);
-            break;
-        case PF_SPLINE:
-            func = new SplineFunction(params);
-            break;
-        default:
-            assert(0);
-    }
-    parameterized.push_back(func);
-}
-
 
 //-------------------------------------------------------------------------
 
