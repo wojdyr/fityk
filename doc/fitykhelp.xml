@@ -30,19 +30,22 @@
    <para>
     <application>Fityk</application> is a program 
     for nonlinear fitting of analytical functions (especially peak-shaped) 
-    to data (usually experimental data). In other words, for nonlinear peak
-    separation and analysis. 
+    to data (usually experimental data). The shortest description:
+    a peak fitting software. There are also people using it only
+    to display data or to remove baseline from data.
    </para>
    <para>
-    It was developed for analyzing diffraction patterns, but now majority 
-    of users is working with data from other experimental methods, 
-    like chromatography, photoluminescence, infrared or Raman spectroscopy.
+    It is reported to be used in crystallography, 
+    chromatography, photoluminescence, infrared or Raman spectroscopy
+    and other fields. Altough author is ignorant about all these experimental
+    methods but powder diffraction, 
+    he would like to make it useful for as many people as possible.
    </para>
    <para>
     <application>Fityk</application> offers various nonlinear fitting methods, 
-    background subtracting, data transformations, 
+    easy background subtracting and other dataset manipulations, 
     easy placement of peaks and changing peak parameters, 
-    convenient analyzing of series of datasets,
+    support for analyzing series of datasets,
     automation of common tasks with scripts, and much more. 
     The main advantage of the program is a flexibility - parameters
     of peaks can be arbitrarily binded with each other, 
@@ -318,21 +321,20 @@
 
 
  <chapter id="CommandReference">
-  <title>Command reference </title>
+  <title>Reference </title>
   <section id="GeneralSyntax">
    <title>General syntax </title>
-   <para>
-    For instance, <command>f.run</command> is used to start fitting 
-    and <command>f.info</command> to display some informations related 
-    to fitting.
-   </para>
    <para>
     Basically, there is one command is in one line. 
     If, for some reasons, it is more comfortable to place more than one
     command in one line, they can be separated with semicolon (;). 
+   </para>
+   <para>
     Most of the commands can have arguments separated by comma (,), 
-    eg. <command>delete %a, %b, %c</command>. Most of the commands can
-    be shortened: eg. you can type 
+    eg. <command>delete %a, %b, %c</command>. 
+   </para>
+   <para>
+    Most of the commands can be shortened: eg. you can type 
     <command>inf</command> or <command>in</command> or <command>i</command>
     instead of <command>info</command>.
    </para>
@@ -348,54 +350,63 @@
     <title>Storing and loading data </title>
     <para>
      Data are stored in files.  Unfortunately, there are various formats of
-     files with data. Usually we have text files and one line in file
-     corresponds to one data points. Every line should contain at least two
+     files with data. The basic one is text file with every line 
+     corresponding to one data point. The line should contain at least two
      numbers: x and y of point. It can also contain standard deviation of y
      coordinate.  Numbers can be separated by whitespace, commas, colons or
      semicolons. Some lines can contain comments or extra informations. If
      these lines have a hash (#) in first column, they are ignored. In other
-     case, they are usually also ignored. There are also other file types, that
-     can be read: .rit and .mca. In future, the way the special file formats
+     case, they are also ignored (unless they can be read as data point). 
+     There are also other file types, that can be read: .rit, .cpi,
+     Siemens-Bruker.raw and .mca. In future, the way the special file formats
      are handled will be changed.
     </para>
     <para>
      Points are loaded from files using command
     </para>
     <cmdsynopsis>
-     <command>d.load</command> 
-     <arg><replaceable>xcol</replaceable>:<replaceable>ycol</replaceable>
-      <arg>:<replaceable>scol</replaceable></arg>
+     <arg choice="plain"><replaceable>dataslot</replaceable></arg>
+     <command>&lt;</command> 
+     <arg choice="plain"><replaceable>filename</replaceable></arg> 
+     <arg><replaceable>filetype</replaceable></arg>  
+     <arg><replaceable>xcol</replaceable>,<replaceable>ycol</replaceable>
+      <arg>,<replaceable>scol</replaceable></arg>
      </arg> 
-     <arg choice="plain">'<replaceable>filename</replaceable>'</arg> 
     </cmdsynopsis>
     <para>
      where 
+     <replaceable>dataslot</replaceable> 
+     should be replaced with <userinput>@0</userinput>, 
+     unless many datasets are to be used simultanously 
+     (for details see: <xref linkend="multidata"/>),
+     <replaceable>filetype</replaceable> can be omitted (at this moment,
+     due to small number of supported formats, the filetype can be
+     detected automatically),
      <replaceable>xcol</replaceable>, <replaceable>ycol</replaceable>, 
      <replaceable>scol</replaceable>, 
-     are unsigned integers. Note that the name of the file is inside of single
-     quotation marks. If the file is in a normal format (columns with numbers)
+     are unsigned integers. If the filename contains blank characters,
+     semicolon or comma, it should be put inside of single
+     quotation marks. If the file is in a text format (columns with numbers)
      it can be specified which column contains x, y and, optionally, std. dev.
      of y. 
     </para>
     <para>
      Command
      <cmdsynopsis>
-      <command>d.export</command> 
-      <arg choice="plain">'<replaceable>filename</replaceable>'</arg> 
-      <arg>+</arg>
+      <arg choice="plain"><replaceable>dataslot</replaceable></arg>
+      <command>&gt;</command> 
+      <arg choice="plain"><replaceable>filename</replaceable></arg> 
      </cmdsynopsis>
-     can export data to ASCII file, that has 3 columns: x, y 
-     and standard deviation.
+     can export data to 3-column (x, y and standard deviation) ASCII file. 
      Only active points are being exported (see next chapter to learn about 
      active and inactive points).
-     <userinput>+</userinput> will cause, if specified file exist, 
-     appending to the file rather than overwritting.
     </para>
     <para>
      Some information about current data can be obtained using command:
     </para>
     <cmdsynopsis>
-     <command>d.info</command>
+     <command>info</command>
+     <arg choice="plain"><replaceable>dataslot</replaceable></arg>
     </cmdsynopsis>
    </section> 
 
@@ -404,8 +415,9 @@
     <para>
      We often have situation, that only part of data from file is interesting
      for us.  We should be able to exclude selected points from fitting and all
-     computations. It can be done with command <command>d.transform</command> 
-     (which will be explained later)
+     computations. Every point can be either active or inactive.  
+     It can be done with command <command>A=...</command> 
+     (see <xref linkend="transform"/> for details)
      or with <link linkend="mouse">mouse-click in <acronym>GUI</acronym></link>.
      The idea of active and inactive points is simple: 
      only the active ones are subject to fitting and peak-finding, 
@@ -417,7 +429,7 @@
     <title>Standard deviation or weight </title>
     <para>
      When fitting data, we assume that only y coordinate of data is subject to
-     statistical error in measurement. Is is very common assumption. 
+     statistical errors in measurement. It is very common assumption. 
      To see how y standard deviation
      <inlinemediaobject>
       <imageobject><imagedata fileref="fitykhelp_img/sigma.png"/></imageobject>
@@ -444,51 +456,90 @@
      coordinates. Otherwise, it is set to max(sqrt(y), 1.0), 
      Setting std. dev. as a square root of value is common 
      and has theoretical grounds when y is the number of independent events.
+     You can always change standard deviation, eg. make it equal for every
+     point with command: <userinput>S=1</userinput>.
+     See <xref linkend="transform"/> for details.
     </para>
    </section> 
 
    <section id="transform">  
     <title>Data transformations</title>
     <para>
-     In <application>fityk 0.5.0</application> new powerful command 
-     <command>d.transform</command> was introduced. 
-     It's not documented here yet. The best documentation for a while
-     is the extensive comment at the beginning of datatrans.cpp source file.
-     You can see CVS version of the file here:
-     <ulink url="http://cvs.sourceforge.net/viewcvs.py/fityk/fityk/src/datatrans.cpp?only_with_tag=HEAD&amp;view=markup">
-      http://cvs.sourceforge.net/viewcvs.py/fityk/fityk/src/datatrans.cpp?only_with_tag=HEAD&amp;view=markup
-     </ulink>
+     Every data point has four properties: x coordinate, y coordinate,
+     standard deviation of y and active/inactive flag. Lower case 
+     letters x, y, s, a stand for these properties before transformation,
+     and upper case X, Y, S, A for the same properties after transformation.
+     M stands for number of points. You can transform data using assignments.
+     Command <userinput>Y=-y</userinput> will change the sign of y coordinate
+     of every point. You can also apply transformation to selected points:
+     <userinput>X[3]=1.2</userinput> will change point with index 3 
+     (which is 4th point, because first has index 0),
+     and <userinput>X[3...6]=1.2</userinput> will do the same for points with 
+     indices 3, 4, 5, but not 6. <userinput>X[2...]=1.2</userinput>
+     will apply transformation to all point with index 2 and all next points.
+     Most of operations are executed sequentially for points from the first 
+     to the last. n stands for index of currently transformed point.
+     The sequance of commands:
+     <userinput>M=500; x=n/100; y=sin(x)</userinput>
+     will generate sinusoid dataset with 500 points. 
+    </para>
+    <para>
+     Expressions can contain binary operators +, -, *, /, ^,
+     functions sqrt, exp, log10, ln, sin, cos, tan, atan, asin, acos, abs
+     which has obvious meaning, min2 and max2 functions, that take
+     two arguments (eg. max2(3,5) will give 5), function round
+     which gives the closest integer value and ternary ?: operator:
+     <command>
+      <replaceable>condition</replaceable> ? 
+      <replaceable>expression1</replaceable> : 
+      <replaceable>expression2</replaceable>
+     </command>, which performs 
+     <replaceable>expression1</replaceable> if condition is true 
+     and <replaceable>expression2</replaceable> otherwise.
+     Conditions can be built using boolean operators comparisions: 
+     AND, OR, >, >=, &lt;, &lt;=, = (or ==), != (or &lt;>), TRUE, FALSE, NOT.
+    </para>
+    <para>
+     And important note: all operations are performed on real numbers.
+     Two numbers that differ less than epsilon=1e-9 
+     ie. abs(a-b)&lt;epsilon, are considered equal. 
+     Indices are also computed in real number domain, 
+     and then rounded to nearest integer.
+    </para>
+    <para>
+     Transformations can be joined with ampersand (&amp;), eg.
+     <userinput>X=y&amp;Y=x</userinput> swaps axes.
+    </para>
+    <para>
+     Before and after executing transformations, points are always 
+     sorted according to x coordinate. You can change order of points
+     using <command>order=<replaceable>t</replaceable></command>,
+     where <replaceable>t</replaceable> is one of x, y, s, a,
+     or -x, -y, etc.
+     It only has a sense in sequence of transformations joined with &amp;,
+     because after finishing transformation, points will be reordered again.
+    </para>
+    <para>
+     Points can be deleted using following syntax:
+      <command>delete[<replaceable>index-or-range</replaceable>]</command>
+     or 
+      <command>delete(<replaceable>condition</replaceable>)</command>
+    </para>
+    <para>
+     There are two parametrized functions: spline and interpolate.
+     The general syntax is: 
+     <replaceable>parametrizedfunc</replaceable> 
+     [<replaceable>param1</replaceable>, 
+     <replaceable>param2</replaceable>](<replaceable>expression</replaceable>)
+    eg. spline[22.1, 37.9, 48.1, 17.2, 93.0, 20.7](x) will give
+    value in x of cubic spline interpolation through points (22.1, 37.9),
+    (48.1, 17.2), ...
+    Function interpolation is similar, but give polyline interpolation.
+    Spline function is used in manual background substraction in GUI.
     </para>
    </section> 
 
-   <section id="background">  
-    <title>Background and calibration </title>
-    <para>
-     Historically, there were separete commands for dealing with spline
-     background and with calibration. Now all changes to data points are 
-     made using <command>d.transform</command> command, but there is still
-     <firstterm>background mode</firstterm> in <acronym>GUI</acronym>,
-     which helps in manual baseline substraction and generates proper
-     <command>d.transform</command> command to apply the change to the data.
-     Have a look at two useful GUI options related to background mode: 
-     <parameter class="option">background type</parameter>
-     and 
-     <parameter class="option">minimal BG points distance</parameter>. 
-    </para>
-    <para>
-     Sometimes the instrument introduces errors to the x coordinate 
-     of the data points, which can be determined by using a reference sample.
-     Correcting these errors is called here <firstterm>calibration</firstterm>.
-     (See also <link linkend="sum">description of zero-shift</link>.) 
-     Historically, there was a special command for calibration in 
-     <application>fityk</application>, but it was removed to simplify 
-     the program. Now you can change x coordinate of data points using
-     <command>d.transform</command> command, analogically to baseline
-     substraction.
-    </para>
-   </section>
-
-   <section>
+   <section id="multidata">
     <title>Working with many datasets</title>
     <para>
      Let call a set of data that usually comes from one file - a 
