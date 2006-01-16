@@ -19,35 +19,9 @@ class AuxPlot;
 class FPlot;
 class PlotCore;
 class BgManager;
-
-
-/// based on http://wiki.wxpython.org/index.cgi/ProportionalSplitterWindow
-/// it is like wxSplitterWindow, but when resized, both windows are resized
-/// proporionally
-class ProportionalSplitter: public wxSplitterWindow
-{
-public:
-    ProportionalSplitter(wxWindow* parent, 
-                         wxWindowID id=-1, 
-                         float proportion=0.66, // 0. - 1.
-                         const wxSize& size = wxDefaultSize,
-                         long style=wxSP_NOBORDER|wxSP_FULLSASH|wxSP_3DSASH,
-                         const wxString& name = "proportionalSplitterWindow");
-    bool SplitHorizontally(wxWindow* win1, wxWindow* win2, float proportion=-1);
-    bool SplitVertically(wxWindow* win1, wxWindow* win2, float proportion=-1);
-    int GetExpectedSashPosition();
-    void ResetSash();
-    float GetProportion() const { return m_proportion; }
-    void SetProportion(float proportion) {m_proportion=proportion; ResetSash();}
-
-protected:
-    float m_proportion; //0-1
-    bool m_firstpaint;
-
-    void OnReSize(wxSizeEvent& event);
-    void OnSashChanged(wxSplitterEvent &event);
-    void OnPaint(wxPaintEvent &event);
-};
+class FancyRealCtrl;
+class Variable;
+class Function;
 
 
 class InputField : public wxTextCtrl
@@ -210,10 +184,8 @@ public:
     /// get active dataset number -- if none is focused, return first one (0)
     int get_focused_data() const
                      { int n=d->list->GetFocusedItem(); return n==-1 ? 0 : n; }
-    int get_focused_func() const { int n = f->list->GetFocusedItem(); 
-                           return n==-1 && f->list->GetItemCount()>0 ? 0 : n; }
-    int get_focused_var() const { int n = v->list->GetFocusedItem(); 
-                           return n==-1 && v->list->GetItemCount()>0 ? 0 : n; }
+    int get_focused_func() const; 
+    int get_focused_var() const;
     bool is_func_selected(int n) const { return f->list->IsSelected(n) 
                                            || f->list->GetFocusedItem() == n; }
     int set_selection(int page) { return nb->SetSelection(page); }
@@ -225,12 +197,26 @@ public:
     void update_data_inf();
     void update_func_inf();
     void update_var_inf();
+    void update_bottom_panel();
 private:
     wxNotebook *nb;
-    wxPanel *data_page, *func_page, *var_page;
+    wxPanel *data_page, *func_page, *var_page, *bottom_panel;
+    wxFlexGridSizer* bp_sizer;
+    wxStaticText *bp_label;
+    std::vector<FancyRealCtrl*> bp_frc;
+    std::vector<wxStaticText*> bp_statict;
+    std::vector<bool> bp_sig;
     ListPlusText *d, *f, *v;
     wxChoice *data_look, *filter_ch;
     wxSpinCtrl *shiftup_sc;
+
+    void update_data_list(bool nondata_changed);
+    void update_func_list(bool nondata_changed);
+    void update_var_list();
+    void add_variable_to_bottom_panel(Variable const* var, 
+                                      std::string const& tv_name);
+    void clear_bottom_panel();
+    std::vector<bool> make_bottom_panel_sig(Function const* func);
 
     DECLARE_EVENT_TABLE()
 };

@@ -333,7 +333,158 @@ void ListPlusText::OnSwitchInfo(wxCommandEvent &WXUNUSED(event))
 }
 
 //===============================================================
-//                            SideBar
+//                      ValueChangingWidget
+//===============================================================
+
+// first tiny callback class
+
+class ValueChangingWidgetCallback 
+{
+public:
+    virtual ~ValueChangingWidgetCallback() {}
+    virtual void change_value(fp factor) = 0;
+    virtual void on_stop_changing() = 0;
+};
+
+/// small widget used to change value of associated wxTextCtrl with real number
+class ValueChangingWidget : public wxSlider
+{
+public:
+    ValueChangingWidget(wxWindow* parent, wxWindowID id, 
+                        ValueChangingWidgetCallback* cb)
+        : wxSlider(parent, id, 0, -100, 100, wxDefaultPosition, wxSize(60, -1)),
+          callback(cb), timer(this, -1), button(0) {}
+
+    void OnTimer(wxTimerEvent &event);
+
+    void OnThumbTrack(wxScrollEvent &WXUNUSED(event)) { 
+        if (!timer.IsRunning()) {
+            timer.Start(100);
+        }
+    }
+    void OnMouse(wxMouseEvent &event);
+
+private:
+    ValueChangingWidgetCallback *callback;
+    wxTimer timer;
+    char button;
+    
+    DECLARE_EVENT_TABLE()
+};
+
+BEGIN_EVENT_TABLE(ValueChangingWidget, wxSlider)
+    EVT_TIMER(-1, ValueChangingWidget::OnTimer)
+    EVT_MOUSE_EVENTS(ValueChangingWidget::OnMouse)
+    EVT_SCROLL_THUMBTRACK(ValueChangingWidget::OnThumbTrack)
+END_EVENT_TABLE()
+
+void ValueChangingWidget::OnTimer(wxTimerEvent &WXUNUSED(event))
+{
+    if (button == 'l') {
+        callback->change_value(GetValue()*0.001);
+    }
+    else if (button == 'm') {
+        callback->change_value(GetValue()*0.0001);
+    }
+    else if (button == 'r') {
+        callback->change_value(GetValue()*0.00001);
+    }
+    else {
+        assert (button == 0);
+        timer.Stop();
+        SetValue(0);
+        callback->on_stop_changing();
+    }
+}
+
+void ValueChangingWidget::OnMouse(wxMouseEvent &event)
+{
+    if (event.LeftIsDown())
+        button = 'l';
+    else if (event.RightIsDown())
+        button = 'r';
+    else if (event.MiddleIsDown())
+        button = 'm';
+    else
+        button = 0;
+    event.Skip();
+}
+
+//===============================================================
+//                          FancyRealCtrl
+//===============================================================
+
+class FancyRealCtrl : public wxPanel, public ValueChangingWidgetCallback
+{
+public:
+    FancyRealCtrl(wxWindow* parent, wxWindowID id, 
+                  fp value, string const& tc_name);
+    void change_value(fp factor);
+    void on_stop_changing();
+    void OnTextEnter(wxCommandEvent &WXUNUSED(event)) { on_stop_changing(); }
+    void set(fp value, string const& tc_name);
+    DECLARE_EVENT_TABLE()
+private:
+    fp initial_value;
+    std::string name;
+    wxTextCtrl *tc;
+};
+
+BEGIN_EVENT_TABLE(FancyRealCtrl, wxPanel)
+    EVT_TEXT_ENTER(-1, FancyRealCtrl::OnTextEnter)
+END_EVENT_TABLE()
+
+FancyRealCtrl::FancyRealCtrl(wxWindow* parent, wxWindowID id, 
+                             fp value, string const& tc_name)
+    : wxPanel(parent, id), initial_value(value), name(tc_name)
+{
+    wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+    tc = new wxTextCtrl(this, -1, S(value).c_str(), 
+                        wxDefaultPosition, wxDefaultSize,
+                        wxTE_PROCESS_ENTER);
+    tc->SetToolTip(name.c_str());
+    sizer->Add(tc, 1, wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND, 1);
+    ValueChangingWidget *vch = new ValueChangingWidget(this, -1, this);
+    sizer->Add(vch, 0, wxALL|wxALIGN_CENTER_VERTICAL, 1);
+    SetSizer(sizer);
+}
+
+void FancyRealCtrl::set(fp value, string const& tc_name)
+{
+    tc->SetValue(S(value).c_str());
+    if (name != tc_name) {
+        name = tc_name;
+        tc->SetToolTip(name.c_str());
+    }
+}
+
+void FancyRealCtrl::change_value(fp factor)
+{
+    double t;
+    bool ok = tc->GetValue().ToDouble(&t);
+    if (!ok)
+        return;
+    t += fabs(initial_value) * factor;
+    tc->SetValue(S(t).c_str());
+}
+
+void FancyRealCtrl::on_stop_changing()
+{
+    if (tc->GetValue() != S(initial_value)) {
+        double t;
+        bool ok = tc->GetValue().ToDouble(&t);
+        if (ok) {
+            initial_value = t;
+            exec_command(name + " = ~" + tc->GetValue().c_str());
+        }
+        else
+            tc->SetValue(S(initial_value).c_str());
+    }
+}
+
+
+//===============================================================
+//                           SideBar
 //===============================================================
 
 void add_bitmap_button(wxWindow* parent, wxWindowID id, char** xpm,
@@ -343,7 +494,6 @@ void add_bitmap_button(wxWindow* parent, wxWindowID id, char** xpm,
     btn->SetToolTip(tip);
     sizer->Add(btn);
 }
-
 
 BEGIN_EVENT_TABLE(SideBar, ProportionalSplitter)
     EVT_BUTTON (ID_DP_NEW, SideBar::OnDataButtonNew)
@@ -371,7 +521,7 @@ BEGIN_EVENT_TABLE(SideBar, ProportionalSplitter)
 END_EVENT_TABLE()
 
 SideBar::SideBar(wxWindow *parent, wxWindowID id)
-: ProportionalSplitter(parent, id, 0.75) 
+: ProportionalSplitter(parent, id, 0.75)
 {
     //wxPanel *upper = new wxPanel(this, -1);
     //wxBoxSizer *upper_sizer = new wxBoxSizer(wxVERTICAL);
@@ -485,8 +635,18 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     nb->AddPage(var_page, "variables");
 
     //-----
-    wxPanel *bottom = new wxPanel(this, -1);
-    SplitHorizontally(nb, bottom);
+    bottom_panel = new wxPanel(this, -1);
+    wxBoxSizer* bp_topsizer = new wxBoxSizer(wxVERTICAL);
+    bp_label = new wxStaticText(bottom_panel, -1, "", 
+                                wxDefaultPosition, wxDefaultSize, 
+                                wxST_NO_AUTORESIZE|wxALIGN_CENTRE);
+    bp_topsizer->Add(bp_label, 0, wxEXPAND|wxALL, 5);
+    bp_sizer = new wxFlexGridSizer(2, 0, 0);
+    bp_sizer->AddGrowableCol(1, 1);
+    bp_topsizer->Add(bp_sizer, 1, wxEXPAND);
+    bottom_panel->SetSizer(bp_topsizer);
+    bottom_panel->SetAutoLayout(true);
+    SplitHorizontally(nb, bottom_panel);
 }
 
 void SideBar::OnDataButtonNew (wxCommandEvent& WXUNUSED(event))
@@ -617,9 +777,33 @@ void SideBar::OnVarButtonEdit (wxCommandEvent& WXUNUSED(event))
 
 void SideBar::update_lists(bool nondata_changed)
 {
+    update_data_list(nondata_changed);
+    update_func_list(nondata_changed);
+    update_var_list();
+    
+    //-- enable/disable buttons
+    bool not_the_last = get_focused_data()+1 < AL->get_ds_count();
+    data_page->FindWindow(ID_DP_CPF)->Enable(not_the_last);
+    bool has_any_funcs = (f->list->GetItemCount() > 0);
+    func_page->FindWindow(ID_FP_DEL)->Enable(has_any_funcs);
+    func_page->FindWindow(ID_FP_EDIT)->Enable(has_any_funcs);
+    func_page->FindWindow(ID_FP_CHTYPE)->Enable(has_any_funcs);
+    func_page->FindWindow(ID_FP_COL)->Enable(has_any_funcs);
+    bool has_any_vars = (v->list->GetItemCount() > 0);
+    var_page->FindWindow(ID_VP_DEL)->Enable(has_any_vars);
+    var_page->FindWindow(ID_VP_EDIT)->Enable(has_any_vars);
+
+    update_data_inf();
+    update_func_inf();
+    update_var_inf();
+    update_bottom_panel();
+}
+
+void SideBar::update_data_list(bool nondata_changed)
+{
     MainPlot const* mplot = frame->get_main_plot();
     wxColour const& bg_col = mplot->get_bg_color();
-    //data
+
     vector<string> data_data;
     for (int i = 0; i < AL->get_ds_count(); ++i) {
         DataWithSum const* ds = AL->get_ds(i);
@@ -643,6 +827,12 @@ void SideBar::update_lists(bool nondata_changed)
     }
     int active_ds_pos = AL->get_active_ds_position();
     d->list->populate(data_data, data_images, active_ds_pos);
+}
+
+void SideBar::update_func_list(bool nondata_changed)
+{
+    MainPlot const* mplot = frame->get_main_plot();
+    wxColour const& bg_col = mplot->get_bg_color();
 
     //functions filter
     if (AL->get_ds_count()+1 != filter_ch->GetCount()) {
@@ -656,11 +846,13 @@ void SideBar::update_lists(bool nondata_changed)
     static vector<int> func_col_id;
     vector<string> func_data;
     vector<int> new_func_col_id;
+    int active_ds_pos = AL->get_active_ds_position();
     Sum const* sum = AL->get_sum(active_ds_pos);
     Sum const* filter_sum = 0;
     if (filter_ch->GetSelection() > 0)
         filter_sum = AL->get_sum(filter_ch->GetSelection()-1);
-    for (int i = 0; i < size(AL->get_functions()); ++i) {
+    int func_size = AL->get_functions().size();
+    for (int i = 0; i < func_size; ++i) {
         if (filter_sum && !contains_element(filter_sum->get_ff_idx(), i)
                            && !contains_element(filter_sum->get_zz_idx(), i))
             continue;
@@ -702,9 +894,12 @@ void SideBar::update_lists(bool nondata_changed)
             }
         }
     }
-    f->list->populate(func_data, func_images, 0);
+    int active = get_focused_func();
+    f->list->populate(func_data, func_images, active < func_size ? active : 0);
+}
 
-    //variables
+void SideBar::update_var_list()
+{
     vector<string> var_data;
     //  count references first
     vector<Variable*> const& variables = AL->get_variables();
@@ -734,22 +929,26 @@ void SideBar::update_lists(bool nondata_changed)
         var_data.push_back(v->get_formula(AL->get_parameters()));  //formula
     }
     v->list->populate(var_data);
-    
-    //-- enable/disable buttons
-    bool not_the_last = get_focused_data()+1 < AL->get_ds_count();
-    data_page->FindWindow(ID_DP_CPF)->Enable(not_the_last);
-    bool has_any_funcs = (f->list->GetItemCount() > 0);
-    func_page->FindWindow(ID_FP_DEL)->Enable(has_any_funcs);
-    func_page->FindWindow(ID_FP_EDIT)->Enable(has_any_funcs);
-    func_page->FindWindow(ID_FP_CHTYPE)->Enable(has_any_funcs);
-    func_page->FindWindow(ID_FP_COL)->Enable(has_any_funcs);
-    bool has_any_vars = (v->list->GetItemCount() > 0);
-    var_page->FindWindow(ID_VP_DEL)->Enable(has_any_vars);
-    var_page->FindWindow(ID_VP_EDIT)->Enable(has_any_vars);
+}
 
-    update_data_inf();
-    update_func_inf();
-    update_var_inf();
+int SideBar::get_focused_func() const 
+{ 
+    if (AL->get_functions().empty())
+        return -1;
+    else {
+        int n = f->list->GetFocusedItem(); 
+        return n > 0 ? n : 0;
+    }
+}
+
+int SideBar::get_focused_var() const 
+{ 
+    if (AL->get_variables().empty())
+        return -1;
+    else {
+        int n = v->list->GetFocusedItem(); 
+        return n > 0 ? n : 0;
+    }
 }
 
 void SideBar::activate_function(int n)
@@ -759,6 +958,7 @@ void SideBar::activate_function(int n)
         f->list->Select(i, i==n);
     frame->refresh_plots(true, false, true);
     update_func_inf();
+    update_bottom_panel();
 }
 
 vector<string> SideBar::get_selected_data() const
@@ -807,10 +1007,10 @@ void SideBar::update_data_inf()
 void SideBar::update_func_inf()
 {
     int n = get_focused_func();
-    if (n < 0)
-        return;
     wxTextCtrl* inf = f->inf;
     inf->Clear();
+    if (n < 0)
+        return;
     wxTextAttr defattr = inf->GetDefaultStyle();
     wxFont font = defattr.GetFont();
     wxTextAttr boldattr = defattr;
@@ -836,7 +1036,7 @@ void SideBar::update_func_inf()
     for (int i = 0; i < AL->get_ds_count(); ++i) {
         if (contains_element(AL->get_sum(i)->get_ff_idx(), n))
             in.push_back("@" + S(i) + ".F");
-        if (contains_element(AL->get_sum(i)->get_ff_idx(), n))
+        if (contains_element(AL->get_sum(i)->get_zz_idx(), n))
             in.push_back("@" + S(i) + ".Z");
     }
     if (!in.empty())
@@ -864,6 +1064,99 @@ void SideBar::update_var_inf()
     vector<string> in = AL->get_variable_references(var->name);
     if (!in.empty())
         inf->AppendText(("\nIn:\n    " + join_vector(in, "\n    ")).c_str());
+}
+
+void SideBar::add_variable_to_bottom_panel(Variable const* var, 
+                                           string const& tv_name)
+{
+    wxStaticText* name_st = new wxStaticText(bottom_panel, -1, tv_name.c_str());
+    bp_sizer->Add(name_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 1);
+    bp_statict.push_back(name_st);
+    if (var->is_simple()) {
+        FancyRealCtrl *frc = new FancyRealCtrl(bottom_panel, -1,
+                                               var->get_value(), var->xname);
+        bp_sizer->Add(frc, 1, wxALL|wxEXPAND, 1);
+        bp_frc.push_back(frc);
+    }
+    else {
+        string t = var->xname + " = " + var->get_formula(AL->get_parameters());
+        wxStaticText *var_st = new wxStaticText(bottom_panel, -1, t.c_str());
+        bp_sizer->Add(var_st, 1, wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL, 1);
+        bp_statict.push_back(var_st);
+    }
+}
+
+void SideBar::clear_bottom_panel()
+{
+    for (vector<wxStaticText*>::iterator i = bp_statict.begin(); 
+                                                i != bp_statict.end(); ++i)
+        (*i)->Destroy();
+    bp_statict.clear();
+    for (vector<FancyRealCtrl*>::iterator i = bp_frc.begin(); 
+                                                      i != bp_frc.end(); ++i)
+        (*i)->Destroy();
+    bp_frc.clear();
+    bp_label->SetLabel("");
+    bp_sig.clear();
+}
+
+vector<bool> SideBar::make_bottom_panel_sig(Function const* func)
+{
+    vector<bool> sig;
+    for (int i = 0; i < size(func->type_var_names); ++i) {
+        Variable const* var = AL->get_variable(func->get_var_idx()[i]);
+        sig.push_back(var->is_simple());
+    }
+    return sig;
+}
+
+
+void SideBar::update_bottom_panel()
+{
+    int n = get_focused_func();
+    if (n < 0) {
+        clear_bottom_panel();
+        return;
+    }
+    bottom_panel->Freeze();
+    Function const* func = AL->get_function(n);
+    bp_label->SetLabel((func->xname+" : "+func->type_name).c_str());
+    vector<bool> sig = make_bottom_panel_sig(func);
+    if (sig != bp_sig) {
+        clear_bottom_panel();
+        bp_sig = sig;
+        for (int i = 0; i < size(func->type_var_names); ++i) {
+            Variable const* var = AL->get_variable(func->get_var_idx()[i]);
+            add_variable_to_bottom_panel(var, func->type_var_names[i]);
+        }
+        bottom_panel->Fit();
+        int sash_pos = GetClientSize().GetHeight() 
+                                  - bottom_panel->GetSize().GetHeight() - 2;
+        bottom_panel->Layout();
+        bottom_panel->Thaw();
+        if (sash_pos < GetSashPosition())
+            SetSashPosition(max(50, sash_pos));
+    }
+    else {
+        vector<wxStaticText*>::iterator st = bp_statict.begin();
+        vector<FancyRealCtrl*>::iterator frc = bp_frc.begin();
+        for (int i = 0; i < size(func->type_var_names); ++i) {
+            string const& t = func->type_var_names[i];
+            (*st)->SetLabel(t.c_str());
+            ++st;
+            Variable const* var = AL->get_variable(func->get_var_idx()[i]);
+            if (var->is_simple()) {
+                  (*frc)->set(var->get_value(), var->xname);
+                  ++frc;
+            }
+            else {
+                string f = var->xname + " = " 
+                                   + var->get_formula(AL->get_parameters());
+                (*st)->SetLabel(f.c_str());
+                ++st;
+            }
+        }
+    }
 }
 
 bool SideBar::howto_plot_dataset(int n, bool& shadowed, int& offset) const
@@ -912,13 +1205,13 @@ void SideBar::OnFuncFocusChanged(wxListEvent& WXUNUSED(event))
 {
     frame->refresh_plots(true, false, true);
     update_func_inf();
+    update_bottom_panel();
 }
 
 void SideBar::OnVarFocusChanged(wxListEvent& WXUNUSED(event))
 {
     update_var_inf();
 }
-
 
 //===============================================================
 //                            ListWithColors
@@ -1274,89 +1567,5 @@ bool FPrintout::OnPrintPage(int page)
         posY += iround(((*i)->GetClientSize().GetHeight()+space) * actualScale);
     }
     return true;
-}
-
-
-//===============================================================
-//                            ProportionalSplitter
-//===============================================================
-
-ProportionalSplitter::ProportionalSplitter(wxWindow* parent, wxWindowID id, 
-                                           float proportion, const wxSize& size,
-                                           long style, const wxString& name) 
-    : wxSplitterWindow(parent, id, wxDefaultPosition, size, style, name),
-      m_proportion(proportion), m_firstpaint(true)
-{
-    wxASSERT(m_proportion >= 0. && m_proportion <= 1.);
-    SetMinimumPaneSize(20);
-    ResetSash();
-    Connect(GetId(), wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,
-                (wxObjectEventFunction) &ProportionalSplitter::OnSashChanged);
-    Connect(GetId(), wxEVT_SIZE, 
-                     (wxObjectEventFunction) &ProportionalSplitter::OnReSize);
-    //hack to set sizes on first paint event
-    Connect(GetId(), wxEVT_PAINT, 
-                      (wxObjectEventFunction) &ProportionalSplitter::OnPaint);
-}
-
-bool ProportionalSplitter::SplitHorizontally(wxWindow* win1, wxWindow* win2,
-                                             float proportion) 
-{
-    if (proportion >= 0. && proportion <= 1.)
-        m_proportion = proportion;
-    int height = GetClientSize().GetHeight();
-    int h = iround(height * m_proportion);
-    //sometimes there is a strange problem without it (why?)
-    if (h < GetMinimumPaneSize() || h > height-GetMinimumPaneSize())
-        h = 0; 
-    return wxSplitterWindow::SplitHorizontally(win1, win2, h);
-}
-
-bool ProportionalSplitter::SplitVertically(wxWindow* win1, wxWindow* win2,
-                                           float proportion) 
-{
-    if (proportion >= 0. && proportion <= 1.)
-        m_proportion = proportion;
-    int width = GetClientSize().GetWidth();
-    int w = iround(width * m_proportion);
-    if (w < GetMinimumPaneSize() || w > width-GetMinimumPaneSize())
-        w = 0;
-    return wxSplitterWindow::SplitVertically(win1, win2, w);
-}
-
-int ProportionalSplitter::GetExpectedSashPosition()
-{
-    return iround(GetWindowSize() * m_proportion);
-}
-
-void ProportionalSplitter::ResetSash()
-{
-    SetSashPosition(GetExpectedSashPosition());
-}
-
-void ProportionalSplitter::OnReSize(wxSizeEvent& event)
-{
-    // We may need to adjust the sash based on m_proportion.
-    ResetSash();
-    event.Skip();
-}
-
-void ProportionalSplitter::OnSashChanged(wxSplitterEvent &event)
-{
-    // We'll change m_proportion now based on where user dragged the sash.
-    const wxSize& s = GetSize();
-    int t = GetSplitMode() == wxSPLIT_HORIZONTAL ? s.GetHeight() : s.GetWidth();
-    m_proportion = float(GetSashPosition()) / t;
-    event.Skip();
-}
-
-void ProportionalSplitter::OnPaint(wxPaintEvent &event)
-{
-    if (m_firstpaint) {
-        if (GetSashPosition() != GetExpectedSashPosition())
-            ResetSash();
-        m_firstpaint = false;
-    }
-    event.Skip();
 }
 

@@ -1,9 +1,11 @@
-To see individual peaks - select Show->Peaks from main plot popup menu.
+Author of this program is not aware how people use this program. You can describe one use-case and send it (with data) to author. It will help in making the program more convenient for you.
+Try clicking right mouse button at every part of the window. You  will see pop-up menus with useful options.
 There is a mailing list fityk-users. You can find a link at fityk.sf.net.
 You can drag a peak or change its shape with mouse. Just press a mouse button on the peak top (in normal mode).
+There are hints at status bar, that show what action will be performed when clicking with left/right button.
 Pressing space will focus input field.
+Input field stores history. Use up/down arrows to navigate between items.
+If you have any comments, ideas, etc. send it either to mailing-list or directly to author.
 Logging session (File->Log to file) from the beginning can save you a lot of time, especially when program crashes.
-There are a few ways to zoom and unzoom, eg. using left and middle mouse button on auxiliary plot.
-You can easily compare results obtained with different fitting methods using Sum->History dialog.
-If you have any comments, ideas, tips of the day, etc. send it to author.
-Use pop-up menus. You can't do some things without pop-up menus.
+There are various ways to zoom and unzoom, eg. using left and middle mouse button on auxiliary plot.
+Most of the settings of the graphical interface can be saved using "GUI > Save current config" from menu. 

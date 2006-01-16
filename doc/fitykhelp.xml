@@ -26,9 +26,9 @@
  <chapter> 
   <title>Introduction</title> 
   <section>
-   <title>Fityk's purpose</title>
+   <title>What is the program for?</title>
    <para>
-    <application>Fityk</application> is a flexible and portable program 
+    <application>Fityk</application> is a program 
     for nonlinear fitting of analytical functions (especially peak-shaped) 
     to data (usually experimental data). In other words, for nonlinear peak
     separation and analysis. 
@@ -40,7 +40,7 @@
    </para>
    <para>
     <application>Fityk</application> offers various nonlinear fitting methods, 
-    background subtracting, almost any data transformations, 
+    background subtracting, data transformations, 
     easy placement of peaks and changing peak parameters, 
     convenient analyzing of series of datasets,
     automation of common tasks with scripts, and much more. 
@@ -70,8 +70,13 @@
    <title>How to read this manual</title>
    <para>
     After this introduction, read the entire <xref linkend="using"/>.
-    If you are not using <acronym>GUI</acronym>, you will probably
-    need to read <xref linkend="CommandReference"/>.
+    If you are using <acronym>GUI</acronym> you can look at 
+    <ulink url="http://www.unipress.waw.pl/fityk/screenshots.html">
+    screenshots-based tutorial at webpage 
+    </ulink> 
+    and postpone reading
+    <xref linkend="CommandReference"/> until you need to write a script
+    or understand better how the program works.
    </para>
   </section> 
 
@@ -226,40 +231,31 @@
   <section id="gui">
    <title>Graphical interface </title>
    <section>
-    <title>Menu and plots </title>
+    <title>Plots and other windows</title>
     <para>
      The window of <application>fityk</application> program consists 
      of (from the top): menu bar, 
-     toolbar, main plot, auxiliary plot, output window, input field
-     and status bar. The input field allows to type and execute commands in
+     toolbar, main plot, auxiliary plot, output window, input field,
+     status bar and of sidebar at right-hand side. 
+     The input field allows to type and execute commands in
      similar way as it is done in <acronym>CLI</acronym> version. 
-     The output windows shows results. Click the 
-     <mousebutton>right</mousebutton> mouse button on it to
-     see its configuration options.
-    </para>
-    <para>
-     Most of menu commands correspond to commands described in 
-     <xref linkend="CommandReference"/>. 
-     Some of them are simply translated to text
-     strings and executed - you can see it in output window. I hope that menu
-     commands are self-explaining (especially after reading the rest of
-     this manual) - just try them. 
+     The output window (which is configurable through pop-up menu)
+     shows results. Actually all GUI commands are converted into text
+     and visible in output window.
     </para>
     <para>
      The main plot can display
-     data points, functions, phases and/or the sum of all functions. Use pop-up
+     data points, functions and/or the sum of all functions. Use pop-up
      menu (click <mousebutton>right</mousebutton> button on the plot) 
-     to configure it. 
-     <emphasis>Phase</emphasis> is a sum of related functions. The word
-     comes from the crystallographic module, where a phase of investigated 
-     powder is represented by a set of peaks.
+     to configure it. Colors of data points and functions can be changed
+     using sidebar. 
     </para>
     <para>
-     The auxiliary plot can display a difference of data
-     and the sum of functions, the difference divided by standard deviation of
-     data or another plot. It can be controlled by its pop-up menu. I hope
-     having a look at this menu and a minute of experiments will explain
-     possibilities of the auxiliary plot.
+     One of the most useful things which auxiliary plot can display 
+     is the difference between data and the sum of functions. 
+     The plot can be controlled by pop-up menu. I hope
+     quick look at this menu and a minute of experiments will make
+     all possibilities of the auxiliary plot clear.
     </para>
     <para>
      Sometimes it is useful to print effects of our fitting work. Hard copy
@@ -269,8 +265,7 @@
      darker one.
     </para>
     <para>
-     Configuration of GUI (everything that can be changed using pop-up menus 
-     and size of the window) can be saved using 
+     Configuration of GUI (visible windows, colors, etc.) can be saved using 
      <menuchoice>
       <guimenu>GUI</guimenu><guimenuitem>Save current config</guimenuitem>
      </menuchoice>. 
@@ -284,11 +279,11 @@
    </section>
 
    <section id="mouse">
-    <title>Mouse, Modes and Toolbars </title>
+    <title>Mouse usage</title>
     <para>
-     Now it is a time to explain quite complicated mouse usage. The usage of
-     the mouse on menu, dialog windows, input field and output window is
-     intuitive, so the only topic described here will be: how to effectively
+     The usage of the mouse on menu, dialog windows, 
+     input field and output window is
+     intuitive, so the only topic described here is how to effectively
      operate mouse on plots.
     </para>
     <para>
@@ -304,14 +299,14 @@
      On the main plot, meaning of the <mousebutton>left</mousebutton> and
      <mousebutton>right</mousebutton> mouse button depends on current 
      <firstterm>mode</firstterm>, that can be changed using toolbar or menu.  
-     You will see hints on status bar.
+     There are hints on the status bar.
      In normal mode, <mousebutton>left</mousebutton> button is used for
      zooming and <mousebutton>right</mousebutton> invokes pop-up menu.
      The same behaviour can be obtained in any mode by pressing
      <keycap>Ctrl</keycap> (or <keycap>Alt</keycap> or <keycap>Shift</keycap>).
 
      <mousebutton>Middle</mousebutton> 
-     button can be used to select a rectangle, that you want to zoom in. 
+     button can be used to select a rectangle that you want to zoom in. 
      If an operation has two steps, like rectangle zooming (first you 
      press button to select first corner, then you move mouse and release 
      button to select second corner of rectangle),
@@ -327,112 +322,23 @@
   <section id="GeneralSyntax">
    <title>General syntax </title>
    <para>
-    All commands begin with a token 
-    <replaceable>x</replaceable>.<replaceable>xxxxx</replaceable> 
-    (letter-dot-letter). Character before dot denotes what the command 
-    is related to, and the word after dot describes what it does. 
-    Every command can be abbreviated with 
-    <replaceable>x</replaceable>.<replaceable>x</replaceable> 
-    (letter-dot-letter).
-    The letter before dot can be one of:
-   </para>
-   <variablelist>
-    <varlistentry>
-     <term>d </term>
-     <listitem>
-      <para>
-       data related commands
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term>s </term>
-     <listitem>
-      <para>
-       sum related commands
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term>m </term>
-     <listitem>
-      <para>
-       manipulations, various algorithms and computations related commands
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term>f </term>
-     <listitem>
-      <para>
-       fitting related commands
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term>o </term>
-     <listitem>
-      <para>
-       other commands - including scripts, logging to file,
-       plotting etc.
-      </para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term>c </term>
-     <listitem>
-      <para>
-       commands from crystallography/diffraction module
-      </para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-   <para>
     For instance, <command>f.run</command> is used to start fitting 
     and <command>f.info</command> to display some informations related 
     to fitting.
    </para>
    <para>
-    Commands are finished with new line (or by pressing enter 
-    interactively), semicolon (;) or comma (,). Basically, one command is in one
-    line. If, for some reasons, it is more comfortable to place more than one
-    command in one line, they can be separated with semicolon (;). Sequence of
-    commands with the same beginning token can be replaced with one command,
-    which has one common beginning token and tokens of each command separated
-    by commas, eg. 
-   </para>
-   <para>
-    <userinput>
-     s.info ^0, ^1, ^2 
-    </userinput>
+    Basically, there is one command is in one line. 
+    If, for some reasons, it is more comfortable to place more than one
+    command in one line, they can be separated with semicolon (;). 
+    Most of the commands can have arguments separated by comma (,), 
+    eg. <command>delete %a, %b, %c</command>. Most of the commands can
+    be shortened: eg. you can type 
+    <command>inf</command> or <command>in</command> or <command>i</command>
+    instead of <command>info</command>.
    </para>
    <para>
     Symbol '#' starts a comment - everything from
     hash (#) to the end of the line is ignored.
-   </para>
-   <para>
-    There is one command, that has the same syntax in all families of commands.
-    It is <command><replaceable>x</replaceable>.set</command> command, 
-    where <replaceable>x</replaceable> is one of letters described above. 
-    It is used to set or read values of various options. Command
-    <cmdsynopsis>
-     <command><replaceable>x</replaceable>.set</command>
-     <arg><replaceable>option</replaceable></arg>
-    </cmdsynopsis>
-    shows the list of all options and their values 
-    if <replaceable>option</replaceable> is not given, or only value of 
-    <replaceable>option</replaceable>.
-    Command:
-    <cmdsynopsis>
-     <command><replaceable>x</replaceable>.set</command> 
-     <arg choice="plain"><replaceable>option</replaceable></arg> 
-     <arg choice="plain"> = <replaceable>value</replaceable></arg>
-    </cmdsynopsis>
-    is used to set a new value of <replaceable>option</replaceable>. 
-    In <acronym>CLI</acronym> version,
-    <keycap>TAB</keycap> can be used to expand names of options and possible 
-    values.  In <acronym>GUI</acronym> version, 
-    <guimenuitem>Settings</guimenuitem> dialogs can be used.
    </para>
   </section>
 

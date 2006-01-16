@@ -11,15 +11,16 @@
 
 class wxGrid;
 class DataTable;
-
+class ProportionalSplitter;
 
 class FDXLoadDlg;
+class PreviewPlot;
 
 /// helper class used in FDXLoadDlg
 class LoadDataDirCtrl : public wxGenericDirCtrl
 {
 public:
-    LoadDataDirCtrl(FDXLoadDlg* parent);
+    LoadDataDirCtrl(wxWindow* parent, FDXLoadDlg* load_dlg_);
     void OnPathSelectionChanged(wxTreeEvent &event);
     void SetFilterIndex(int n);
     DECLARE_EVENT_TABLE()
@@ -30,19 +31,32 @@ private:
 class FDXLoadDlg : public wxDialog
 {
 public:
-    FDXLoadDlg (wxWindow* parent, wxWindowID id, Data* data);
-    std::string get_command_tail();
-    std::string get_filename();
-    void on_filter_change();
+    FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data);
     void on_path_change();
+    void on_filter_change();
 
 protected:
+    int data_nr;
+    ProportionalSplitter *splitter, *right_splitter;
     LoadDataDirCtrl *dir_ctrl;
-    wxTextCtrl *filename_tc;
+    wxTextCtrl *filename_tc, *text_preview;
     wxSpinCtrl *x_column, *y_column, *s_column;
-    wxPanel *columns_panel;
-    wxCheckBox *std_dev_cb, *append_cb;
+    wxPanel *left_panel, *rupper_panel, *rbottom_panel, *columns_panel;
+    PreviewPlot *plot_preview;
+    wxCheckBox *std_dev_cb, *auto_text_cb, *auto_plot_cb;
+    wxButton *open_here, *open_new;
+
+    std::string get_command_tail();
+    std::string get_filename();
     void OnStdDevCheckBox (wxCommandEvent& event);
+    void OnAutoTextCheckBox (wxCommandEvent& event);
+    void OnAutoPlotCheckBox (wxCommandEvent& event);
+    void OnColumnChanged (wxSpinEvent& event);
+    void OnOpenHere (wxCommandEvent& event);
+    void OnOpenNew (wxCommandEvent& event);
+    void OnClose (wxCommandEvent& event);
+    void update_text_preview();
+    void update_plot_preview();
     DECLARE_EVENT_TABLE()
 };
 

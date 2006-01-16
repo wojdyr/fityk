@@ -4,6 +4,7 @@
 #define FITYK__WX_COMMON__H__
 
 #include "common.h"
+#include <wx/splitter.h>
 
 enum MouseModeEnum { mmd_zoom, mmd_bg, mmd_add, mmd_range, mmd_peak };
 
@@ -65,5 +66,34 @@ enum {
     wxID_DOWN
 };
 #endif
+
+
+/// based on http://wiki.wxpython.org/index.cgi/ProportionalSplitterWindow
+/// it is like wxSplitterWindow, but when resized, both windows are resized
+/// proporionally
+class ProportionalSplitter: public wxSplitterWindow
+{
+public:
+    ProportionalSplitter(wxWindow* parent, 
+                         wxWindowID id=-1, 
+                         float proportion=0.66, // 0. - 1.
+                         const wxSize& size = wxDefaultSize,
+                         long style=wxSP_NOBORDER|wxSP_FULLSASH|wxSP_3DSASH,
+                         const wxString& name = "proportionalSplitterWindow");
+    bool SplitHorizontally(wxWindow* win1, wxWindow* win2, float proportion=-1);
+    bool SplitVertically(wxWindow* win1, wxWindow* win2, float proportion=-1);
+    int GetExpectedSashPosition();
+    void ResetSash();
+    float GetProportion() const { return m_proportion; }
+    void SetProportion(float proportion) {m_proportion=proportion; ResetSash();}
+
+protected:
+    float m_proportion; //0-1
+    bool m_firstpaint;
+
+    void OnReSize(wxSizeEvent& event);
+    void OnSashChanged(wxSplitterEvent &event);
+    void OnPaint(wxPaintEvent &event);
+};
 
 #endif 

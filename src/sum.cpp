@@ -11,7 +11,7 @@
 #include "func.h"
 #include "var.h"
 #include "data.h"  //used in export_as...() methods
-#include "manipul.h" //estimate_peak_parameters() in guess_f()
+#include "guess.h" //estimate_peak_parameters() in guess_f()
 #include "ui.h"
 
 using namespace std;
@@ -240,9 +240,8 @@ void Sum::export_as_peaks(std::ostream& os) const
         os << p->xname << "  " << p->type_name  
            << "  " << p->center() << " " << p->height() << " " << p->area() 
            << " " << p->fwhm() << "  ";
-    std::vector<fp> const &vv = p->get_var_values(); // current variable values
-        for (vector<fp>::const_iterator j = vv.begin(); j != vv.end(); j++) 
-            os << " " << *j;
+        for (int j = 0; j < p->get_vars_count(); ++j) 
+            os << " " << p->get_var_value(j);
         os << endl;
     }
 }
@@ -282,23 +281,22 @@ void Sum::export_to_file (string filename, bool append, char filetype)
         int dot = filename.rfind('.');
         if (dot > 0 && dot < static_cast<int>(filename.length()) - 1) {
             string exten(filename.begin() + dot, filename.end());
-            if (exten == ".dat")
+            if (exten == ".dat" || exten == ".xy")
                 filetype = 'd';
             else if (exten == ".peaks")
                 filetype = 'p';
             else if (exten == ".txt" && filename.size() >= 8 &&
                  filename.substr(filename.size()-8).compare("xfit.txt")==0)
                 filetype = 'x';
-            else {
-                info ("exporting as formula");
-                filetype = 'f';
-            }
+        }
+        if (!filetype) {
+            info ("exporting as formula");
+            filetype = 'f';
         }
     }
     ofstream os(filename.c_str(), ios::out | (append ? ios::app : ios::trunc));
     if (!os) {
-        warn ("Can't open file: " + filename);
-        return;
+        throw ExecuteError("Can't open file: " + filename);
     }
     switch (filetype) {
         case 'f': 
@@ -313,7 +311,6 @@ void Sum::export_to_file (string filename, bool append, char filetype)
         case 'x': 
             export_as_xfit(os);
             break;
-        case 0:
         default:
             warn ("Unknown filetype letter: " + S(filetype));
     }

@@ -102,3 +102,87 @@ bool change_color_dlg(wxColour& col)
 wxMouseEvent dummy_mouse_event;
 wxCommandEvent dummy_cmd_event;
 
+
+//===============================================================
+//                            ProportionalSplitter
+//===============================================================
+
+ProportionalSplitter::ProportionalSplitter(wxWindow* parent, wxWindowID id, 
+                                           float proportion, const wxSize& size,
+                                           long style, const wxString& name) 
+    : wxSplitterWindow(parent, id, wxDefaultPosition, size, style, name),
+      m_proportion(proportion), m_firstpaint(true)
+{
+    wxASSERT(m_proportion >= 0. && m_proportion <= 1.);
+    SetMinimumPaneSize(20);
+    ResetSash();
+    Connect(GetId(), wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,
+                (wxObjectEventFunction) &ProportionalSplitter::OnSashChanged);
+    Connect(GetId(), wxEVT_SIZE, 
+                     (wxObjectEventFunction) &ProportionalSplitter::OnReSize);
+    //hack to set sizes on first paint event
+    Connect(GetId(), wxEVT_PAINT, 
+                      (wxObjectEventFunction) &ProportionalSplitter::OnPaint);
+}
+
+bool ProportionalSplitter::SplitHorizontally(wxWindow* win1, wxWindow* win2,
+                                             float proportion) 
+{
+    if (proportion >= 0. && proportion <= 1.)
+        m_proportion = proportion;
+    int height = GetClientSize().GetHeight();
+    int h = iround(height * m_proportion);
+    //sometimes there is a strange problem without it (why?)
+    if (h < GetMinimumPaneSize() || h > height-GetMinimumPaneSize())
+        h = 0; 
+    return wxSplitterWindow::SplitHorizontally(win1, win2, h);
+}
+
+bool ProportionalSplitter::SplitVertically(wxWindow* win1, wxWindow* win2,
+                                           float proportion) 
+{
+    if (proportion >= 0. && proportion <= 1.)
+        m_proportion = proportion;
+    int width = GetClientSize().GetWidth();
+    int w = iround(width * m_proportion);
+    if (w < GetMinimumPaneSize() || w > width-GetMinimumPaneSize())
+        w = 0;
+    return wxSplitterWindow::SplitVertically(win1, win2, w);
+}
+
+int ProportionalSplitter::GetExpectedSashPosition()
+{
+    return iround(GetWindowSize() * m_proportion);
+}
+
+void ProportionalSplitter::ResetSash()
+{
+    SetSashPosition(GetExpectedSashPosition());
+}
+
+void ProportionalSplitter::OnReSize(wxSizeEvent& event)
+{
+    // We may need to adjust the sash based on m_proportion.
+    ResetSash();
+    event.Skip();
+}
+
+void ProportionalSplitter::OnSashChanged(wxSplitterEvent &event)
+{
+    // We'll change m_proportion now based on where user dragged the sash.
+    const wxSize& s = GetSize();
+    int t = GetSplitMode() == wxSPLIT_HORIZONTAL ? s.GetHeight() : s.GetWidth();
+    m_proportion = float(GetSashPosition()) / t;
+    event.Skip();
+}
+
+void ProportionalSplitter::OnPaint(wxPaintEvent &event)
+{
+    if (m_firstpaint) {
+        if (GetSashPosition() != GetExpectedSashPosition())
+            ResetSash();
+        m_firstpaint = false;
+    }
+    event.Skip();
+}
+

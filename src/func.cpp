@@ -180,6 +180,17 @@ fp Function::calculate_value(fp x) const
     return calc_val_yy[0];
 }
 
+void Function::calculate_values_with_params(vector<fp> const& x, 
+                                            vector<fp> &y,
+                                            vector<fp> const& alt_vv) const
+{
+    vector<fp> backup_vv = vv;
+    for (int i = 0; i < min(size(alt_vv), size(vv)); ++i)
+        const_cast<Function*>(this)->vv[i] = alt_vv[i];
+    calculate_value(x, y);
+    const_cast<Function*>(this)->vv = backup_vv;
+}
+
 string Function::get_info(vector<Variable*> const &variables, 
                           vector<fp> const &parameters, 
                           bool extended) const 
@@ -440,7 +451,7 @@ DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(vv[0] + x*vv[1] + x*x*vv[2]
 ///////////////////////////////////////////////////////////////////////
 
 const char *FuncGaussian::formula 
-= "Gaussian(height, center, hwhm1=hwhm, hwhm2=hwhm) = "
+= "Gaussian(height, center, hwhm) = "
                "height*exp(-ln(2)*((x-center)/hwhm)^2)"; 
 
 void FuncGaussian::do_precomputations(vector<Variable*> const &variables) 
@@ -482,7 +493,7 @@ bool FuncGaussian::get_nonzero_range (fp level, fp &left, fp &right) const
 ///////////////////////////////////////////////////////////////////////
 
 const char *FuncSplitGaussian::formula 
-= "SplitGaussian(height, center, hwhm1=hwhm, hwhm2=hwhm) = "
+= "SplitGaussian(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5) = "
                    "height*exp(-ln(2)*((x-center)/(x<center?hwhm1:hwhm2))^2)"; 
 
 void FuncSplitGaussian::do_precomputations(vector<Variable*> const &variables) 
@@ -646,7 +657,8 @@ fp FuncPearson7::area() const
 ///////////////////////////////////////////////////////////////////////
 
 const char *FuncSplitPearson7::formula 
-= "SplitPearson7(height, center, hwhm1=hwhm, hwhm2=hwhm, shape1=2, shape2=2) = "
+= "SplitPearson7(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5, "
+                                                        "shape1=2, shape2=2) = "
     "height/(1+((x-center)/(x<center?hwhm1:hwhm2))^2"
                "*(2^(1/(x<center?shape1:shape2))-1))^(x<center?shape1:shape2)";
 
@@ -774,7 +786,7 @@ bool FuncPseudoVoigt::get_nonzero_range (fp level, fp &left, fp &right) const
 ///////////////////////////////////////////////////////////////////////
 
 const char *FuncVoigt::formula 
-= "Voigt(height, center, gwidth=hwhm*0.9, shape=0.1) ="
+= "Voigt(height, center, gwidth=fwhm*0.4, shape=0.1) ="
                             " convolution of Gaussian and Lorentzian";
 
 void FuncVoigt::do_precomputations(vector<Variable*> const &variables) 

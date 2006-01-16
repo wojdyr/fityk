@@ -56,8 +56,10 @@ bool is_int (string const& s) {
 void replace_all(string &s, string const &old, string const &new_)
 {
     string::size_type pos = 0; 
-    while ((pos = s.find(old, pos)) != string::npos) 
+    while ((pos = s.find(old, pos)) != string::npos) {
         s.replace(pos, old.size(), new_);
+        pos += new_.size();
+    }
 }
 
 /// replaces all words `old_word' in text `str' with `new_word'

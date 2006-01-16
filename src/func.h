@@ -50,6 +50,10 @@ public:
     virtual void do_precomputations(std::vector<Variable*> const &variables); 
     void erased_parameter(int k);
     fp calculate_value(fp x) const; ///wrapper around array version
+    /// calculate function value assuming function parameters has given values
+    void calculate_values_with_params(std::vector<fp> const& x, 
+                                      std::vector<fp>& y,
+                                      std::vector<fp> const& alt_vv) const; 
     virtual bool get_nonzero_range(fp/*level*/, fp&/*left*/, fp&/*right*/) const
                                                               { return false; }
     void get_nonzero_idx_range(std::vector<fp> const &x, 
@@ -61,7 +65,7 @@ public:
     virtual fp height() const { return 0; }
     virtual fp fwhm() const { return 0; }
     virtual fp area() const { return 0; }
-    std::vector<fp> const& get_var_values() const { return vv; }
+    fp get_var_value(int n) const { assert(n>=0 && n<size(vv)); return vv[n]; }
     std::string get_info(std::vector<Variable*> const &variables, 
                     std::vector<fp> const &parameters, 
                     bool extended=false) const;

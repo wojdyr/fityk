@@ -146,6 +146,8 @@ UserInterface* UserInterface::getInstance()
 
 void UserInterface::outputMessage (int level, const string& s)
 {
+    if (keep_quiet)
+        return;
     OutputStyle style = (level <= 1 ? os_warn : os_normal);
     if (level <= getVerbosity()) {
         showMessage(style, s);

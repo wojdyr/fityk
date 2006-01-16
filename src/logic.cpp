@@ -9,7 +9,7 @@
 #include "sum.h"
 #include "ui.h"
 #include "fit.h"
-#include "manipul.h"
+#include "guess.h"
 
 using namespace std;
 

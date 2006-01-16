@@ -37,7 +37,7 @@ string get_file_basename(const string &path)
 }
 
 
-string Data::getInfo () const
+string Data::getInfo() const
 {
     string s;
     if (p.empty())
@@ -85,12 +85,12 @@ string Data::guess_file_type(string const& filename)
 
 void Data::clear()
 {
-    //gcc2.95 has no `basic_string<...>::clear ()'
-    filename = "";   //removing previos file
+    filename = "";   
     title = "";
+    given_type = "";
+    given_cols.clear();
     p.clear();
     active_p.clear();
-    col_nums.clear();
 }
 
 void Data::post_load()
@@ -159,8 +159,8 @@ void Data::load_data_sum(vector<Data const*> const& dd)
 }
 
 void Data::load_file (string const& file, string const& type, 
-                     vector<int> const& cols)
-{ 
+                     vector<int> const& cols, bool preview)
+{   
     string const& ft = type.empty() ? guess_file_type(file) // "detect" format
                                     : type;
     ifstream f (file.c_str(), ios::in | ios::binary);
@@ -169,7 +169,8 @@ void Data::load_file (string const& file, string const& type,
     }
     clear(); //removing previous file
     filename = file;   
-    col_nums = cols;
+    given_type = type;
+    given_cols = cols;
 
     if (ft=="text")                         // x y x y ... 
         load_xy_filetype(f, cols);
@@ -183,6 +184,10 @@ void Data::load_file (string const& file, string const& type,
         load_siemensbruker_filetype(filename, this);
     else {                                  // other ?
         throw ExecuteError("Unknown filetype.");
+    }
+    if (preview) {
+        recompute_y_bounds();
+        return;
     }
     if (p.size() < 5)
         warn ("Only " + S(p.size()) + " data points found in file.");

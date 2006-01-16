@@ -64,8 +64,8 @@
 // boolean: AND, OR, >, >=, <, <=, = (or ==), != (or <>), TRUE, FALSE, NOT
 //
 //parametrized functions: spline, interpolate //TODO->polyline
-// The general syntax is: pfunc[param1 param2 ...](expression), 
-//  eg. spline[22.1 37.9 48.1 17.2 93.0 20.7](x)
+// The general syntax is: pfunc[param1, param2,...](expression), 
+//  eg. spline[22.1, 37.9, 48.1, 17.2, 93.0, 20.7](x)
 // spline - cubic spline interpolation, parameters are x1, y1, x2, y2, ...
 // interpolate - polyline interpolation, parameters are x1, y1, x2, y2, ...
 //
@@ -208,7 +208,7 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
 
     parameterized_args
         =  ch_p('[') [push_op(OP_PLIST_BEGIN)]
-            >> +real_constant 
+            >> real_constant % ','
                 >>  ch_p(']') [push_op(OP_PLIST_END)]
                     >> '(' >> DataExpressionG >> ')'
         ;

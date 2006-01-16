@@ -20,6 +20,9 @@
 #define _FUNCTION_DEF //(hack?) disable old-style typedef for Function
 #    include <readline/readline.h>
 #    include <readline/history.h>
+#    ifdef Function           // in case in other versions of readline lib 
+#        undef Function       // it it defined anyway, we undef it
+#    endif
 #endif
 #include "ui.h"
 #include "u_gnuplot.h"
@@ -57,14 +60,6 @@ void UserInterface::execCommand(const string& s)
 {
     parse_and_execute(s);
 }
-
-bool UserInterface::displayHelpTopic(const string& s)
-{
-    showMessage(os_normal, "Sorry, help is not implemented in CLI version. "
-                        "You can try to search for '" + s + "' at HTML docs.");
-    return false;
-}
-
 
 //----------------------------------------------------------------- 
 

@@ -60,6 +60,9 @@ public:
 class UserInterface 
 {
 public:
+    /// it's used to disable all messages 
+    bool keep_quiet;
+    
     /// get Singleton class instance
     static UserInterface* getInstance();
 
@@ -87,13 +90,12 @@ public:
 
     void execAndLogCmd(std::string const &s) 
         //TODO status
-             { commands.put_command(s, Commands::status_ok); execCommand(s); }
-    bool displayHelpTopic(std::string const &topic); 
+             { execCommand(s); commands.put_command(s, Commands::status_ok); }
     int getVerbosity();
     void process_cmd_line_filename(std::string const& par);
 
 private:
-    UserInterface() {}
+    UserInterface() : keep_quiet(false) {}
     UserInterface (UserInterface const&); //disable
     UserInterface& operator= (UserInterface const&); //disable
 

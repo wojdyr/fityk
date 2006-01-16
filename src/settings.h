@@ -69,7 +69,7 @@ private:
     std::map <std::string, std::string> spar;
 
     Settings();
-    Settings(const Settings&); //disable
+    Settings(Settings const&); //disable
     Settings& operator= (const Settings&); //disable
     void setp_core(std::string const& k, std::string const& v);
 };

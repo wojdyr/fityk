@@ -173,6 +173,8 @@ public:
     bool display_help_section(const std::string &s);
     void after_cmd_updates();
     std::string get_active_data_str();
+    std::string get_in_dataset();
+    std::string get_in_one_or_all_datasets();
     MainPlot* get_main_plot(); 
     MainPlot const* get_main_plot() const; 
     void update_data_pane(); 
@@ -180,6 +182,7 @@ public:
     SideBar const* get_sidebar() const { return sidebar; }
     void activate_function(int n);
     void update_app_title();
+    void add_recent_data_file(std::string const& filename);
 
 protected:
     ProportionalSplitter *main_pane;
@@ -209,7 +212,6 @@ protected:
     void update_peak_type_list();
     void read_recent_data_files();
     void write_recent_data_files();
-    void add_recent_data_file(std::string const& filename);
 
 DECLARE_EVENT_TABLE()
 };

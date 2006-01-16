@@ -2,7 +2,7 @@
 // $Id$
 
 #include "common.h"
-#include "manipul.h"
+#include "guess.h"
 #include <algorithm>
 #include "data.h"
 #include "sum.h"
@@ -41,7 +41,6 @@ void parse_range(DataWithSum const* ds, std::vector<std::string> const& range,
 
 fp my_y(DataWithSum const* ds, int n, EstConditions const* ec) 
 {
-    //pre: sum->use_param_a_for_value();
     fp x = ds->get_data()->get_x(n);
     fp y = ds->get_data()->get_y(n);
 
@@ -228,7 +227,18 @@ void guess_and_add(DataWithSum* ds,
     parse_range(ds, range, range_from, range_to);
     fp c = 0., h = 0., a = 0., fwhm = 0.;
     EstConditions estc;
-    estc.real_peaks = ds->get_sum()->get_ff_idx();
+    Sum const* sum = ds->get_sum();
+    estc.real_peaks = sum->get_ff_idx();
+    if (!name.empty()) {
+        assert(name[0] == '%');
+        vector<string> const& names = sum->get_ff_names();
+        vector<string>::const_iterator name_idx = find(names.begin(), 
+                                                  names.end(), string(name,1));
+        if (name_idx != names.end()) {
+            int pos = name_idx - names.begin();
+            estc.real_peaks.erase(estc.real_peaks.begin() + pos);
+        }
+    }
     estimate_peak_parameters(ds, range_from, range_to, 
                              &c, &h, &a, &fwhm, &estc);
     vector<string> vars_lhs(vars.size());
@@ -238,8 +248,9 @@ void guess_and_add(DataWithSum* ds,
         vars.push_back("center=~"+S(c));
     if (find(vars_lhs.begin(), vars_lhs.end(), "height") == vars_lhs.end())
         vars.push_back("height=~"+S(h));
-    if (find(vars_lhs.begin(), vars_lhs.end(), "hwhm") == vars_lhs.end())
-        vars.push_back("hwhm=~"+S(fwhm/2));
+    if (find(vars_lhs.begin(), vars_lhs.end(), "fwhm") == vars_lhs.end()
+           && find(vars_lhs.begin(), vars_lhs.end(), "hwhm") == vars_lhs.end())
+        vars.push_back("fwhm=~"+S(fwhm));
     if (find(vars_lhs.begin(), vars_lhs.end(), "area") == vars_lhs.end())
         vars.push_back("area=~"+S(a));
     string real_name = AL->assign_func(name, function, vars);

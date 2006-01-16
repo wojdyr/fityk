@@ -26,16 +26,10 @@ void UserInterface::showMessage (OutputStyle style, const string& s)
     frame->output_text(style, s + "\n");
 }
 
-bool UserInterface::displayHelpTopic(const string& s)
-{
-    return frame->display_help_section(s);
-}
-
 void UserInterface::doDrawPlot(bool now)
 {
         frame->refresh_plots(true, now);
 }
-
 
 void UserInterface::wait (float seconds) 
 {  

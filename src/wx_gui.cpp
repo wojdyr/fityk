@@ -43,7 +43,7 @@
 #include "fit.h"
 #include "data.h"
 #include "sum.h"
-#include "manipul.h"
+#include "guess.h"
 #include "ui.h"
 
 #ifndef __WXMSW__
@@ -555,7 +555,7 @@ void FFrame::read_settings(wxConfigBase *cf)
     SetClientSize(w, h);
     v_splitter->SetProportion(read_double_from_config(cf, "VertSplitProportion",
                                                           0.8));
-    SwitchSideBar(read_bool_from_config(cf, "ShowSideBar", false));
+    SwitchSideBar(read_bool_from_config(cf, "ShowSideBar", true));
     main_pane->SetProportion(read_double_from_config(cf, "MainPaneProportion",
                                                           0.7));
     SwitchIOPane(read_bool_from_config(cf, "ShowIOPane", true));
@@ -868,11 +868,8 @@ void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
 void FFrame::OnDXLoad (wxCommandEvent& WXUNUSED(event))
 {
     int n = AL->get_active_ds_position();
-    FDXLoadDlg dxload_dialog(this, -1, AL->get_data(n));
-    if (dxload_dialog.ShowModal() == wxID_OK) {
-        exec_command("@" +S(n) + " <" + dxload_dialog.get_command_tail());
-        add_recent_data_file(dxload_dialog.get_filename());
-    }
+    FDXLoadDlg dxload_dialog(this, -1, n, AL->get_data(n));
+    dxload_dialog.ShowModal();
 }
 
 void FFrame::OnDRecent (wxCommandEvent& event)
@@ -928,7 +925,13 @@ void FFrame::OnFastDT (wxCommandEvent& event)
     for (vector<DataTransExample>::const_iterator i = examples.begin();
             i != examples.end(); ++i)
         if (i->name == name) {
-            DataEditorDlg::execute_tranform(i->code);
+            vector<string> cmds = split_string(i->code, ';');
+            string code;
+            for (vector<string>::const_iterator i = cmds.begin(); 
+                                                      i != cmds.end(); ++i)
+                if (!strip_string(*i).empty())
+                    code += *i + get_in_one_or_all_datasets()+";";
+            DataEditorDlg::execute_tranform(code);
             return;
         }
 }
@@ -963,12 +966,12 @@ void FFrame::OnSHistory (wxCommandEvent& WXUNUSED(event))
             
 void FFrame::OnSGuess (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command("guess " + frame->get_peak_type());
+    exec_command("guess " + frame->get_peak_type() + get_in_dataset());
 }
 
 void FFrame::OnSPFInfo (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command ("info peaks 3");
+    exec_command ("info peaks 3" + get_in_dataset());
     //TODO animations showing peak positions
 }
         
@@ -986,10 +989,11 @@ void FFrame::OnSVarList (wxCommandEvent& WXUNUSED(event))
            
 void FFrame::OnSExport       (wxCommandEvent& WXUNUSED(event))
 {
-/*
     static int filter_idx = 0;
     static wxString dir = "";
-    wxString name = wxFileName(my_data->get_filename().c_str()).GetName();
+    int pos = AL->get_active_ds_position();
+    string const& filename = AL->get_data(pos)->get_filename();
+    wxString name = wxFileName(filename.c_str()).GetName();
     wxFileDialog fdlg (this, "Export curve to file", dir, name,
                        "parameters of peaks (*.peaks)|*.peaks"
                        "|x y data (*.dat)|*.dat;*.DAT"
@@ -998,10 +1002,10 @@ void FFrame::OnSExport       (wxCommandEvent& WXUNUSED(event))
                        wxSAVE | wxOVERWRITE_PROMPT);
     fdlg.SetFilterIndex(filter_idx);
     if (fdlg.ShowModal() == wxID_OK) 
-        exec_command (("s.export '" + fdlg.GetPath() + "'").c_str());
+        exec_command(get_active_data_str() + ".F > '" 
+                                             + fdlg.GetPath().c_str() + "'");
     filter_idx = fdlg.GetFilterIndex();
     dir = fdlg.GetDirectory();
-*/
 }
            
         
@@ -1121,8 +1125,10 @@ void FFrame::OnODump         (wxCommandEvent& WXUNUSED(event))
     wxFileDialog fdlg (this, "Dump current program state to file as script", 
                                 "", "", "fityk file (*.fit)|*.fit;*.FIT",
                        wxSAVE | wxOVERWRITE_PROMPT);
-    if (fdlg.ShowModal() == wxID_OK) 
-        exec_command (("dump > '" + fdlg.GetPath() + "'").c_str());
+    if (fdlg.ShowModal() == wxID_OK) {
+        //exec_command (("dump > '" + fdlg.GetPath() + "'").c_str());
+        exec_command (("commands[:] > '" + fdlg.GetPath() + "'").c_str());
+    }
 }
          
 void FFrame::OnSetttings    (wxCommandEvent& WXUNUSED(event))
@@ -1509,6 +1515,23 @@ string FFrame::get_active_data_str()
     return "@" + S(AL->get_active_ds_position());
 }
 
+string FFrame::get_in_dataset()
+{
+    return AL->get_ds_count() > 1 ? " in " + get_active_data_str() : string();
+}
+
+string FFrame::get_in_one_or_all_datasets()
+{
+    if (AL->get_ds_count() > 1) {
+        if (get_apply_to_all_ds())
+            return " in @*";
+        else
+            return " in " + get_active_data_str();
+    }
+    else
+        return "";
+}
+
 MainPlot* FFrame::get_main_plot() 
 { 
     return plot_pane->get_plot(); 
@@ -1526,7 +1549,7 @@ void FFrame::update_data_pane()
 
 bool FFrame::get_apply_to_all_ds()
 { 
-    return GetMenuBar()->IsChecked(ID_D_ALLDS); 
+    return AL->get_ds_count() > 1 && GetMenuBar()->IsChecked(ID_D_ALLDS); 
 }
 
 void FFrame::activate_function(int n)
@@ -1549,8 +1572,8 @@ void FFrame::update_app_title()
 //===============================================================
 
 BEGIN_EVENT_TABLE (FToolBar, wxToolBar)
-    EVT_TOOL_RANGE (ID_ft_m_zoom, ID_ft_m_add,  FToolBar::OnChangeMouseMode)
-    EVT_TOOL_RANGE (ID_ft_v_pr, ID_ft_s_aa,        FToolBar::OnClickTool)
+    EVT_TOOL_RANGE (ID_ft_m_zoom, ID_ft_m_add, FToolBar::OnChangeMouseMode)
+    EVT_TOOL_RANGE (ID_ft_v_pr, ID_ft_s_aa, FToolBar::OnClickTool)
     EVT_TOOL (ID_ft_sideb, FToolBar::OnSwitchSideBar)
     EVT_CHOICE (ID_ft_peakchoice, FToolBar::OnPeakChoice)
 END_EVENT_TABLE()
@@ -1632,8 +1655,8 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
              wxITEM_NORMAL, "Start fitting", "Start fitting sum to data");
     AddTool (ID_ft_f_cont, "Continue", wxBitmap(cont_fit_xpm), wxNullBitmap,
              wxITEM_NORMAL, "Continue fitting", "Continue fitting sum to data");
-    AddTool (ID_ft_f_undo, "Continue", wxBitmap(undo_fit_xpm), wxNullBitmap,
-             wxITEM_NORMAL, "Undo fitting", "Previous set of parameters");
+    //AddTool (ID_ft_f_undo, "Undo", wxBitmap(undo_fit_xpm), wxNullBitmap,
+    //         wxITEM_NORMAL, "Undo fitting", "Previous set of parameters");
     AddSeparator();
     //help
     AddTool (ID_H_MANUAL, "Help", wxBitmap(manual_xpm), wxNullBitmap,
@@ -1691,7 +1714,8 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
             exec_command("s.history -1"); 
             break; 
         case ID_ft_s_aa: 
-            exec_command("guess " + frame->get_peak_type());
+            exec_command("guess " + frame->get_peak_type() 
+                         + frame->get_in_dataset());
             break; 
         default: 
             assert(0);

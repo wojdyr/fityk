@@ -1,10 +1,14 @@
-User-visible changes in version 0. .  (2005-  -  ):
+User-visible changes in version 0.7.0pre1  (2006-01-  ):
 * ###########################################################################
   #                      completely changed syntax                          #
   ###########################################################################
 * GUI: dataset/function/variable lists at right-hand panel
-* some features available in previous version are temporarily disabled
-  (powder diffraction part - c.xxx commands, parameters history)
+* new built-in functions: split-Gaussian (a.k.a Bifurcated Gaussian) and others
+* there where many other changes, I don't remember them now
+* some features available in previous version are temporarily disabled:
+     powder diffraction part - c.xxx commands
+     parameters history
+     CLI: TAB-expanding of commands
 
 User-visible changes in version 0.5.1 (2005-07-21):
 * new toolbar icons 

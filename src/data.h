@@ -34,10 +34,11 @@ public :
     ~Data() {}
     std::string getInfo() const;
     void load_file (std::string const& file, std::string const& type, 
-                    std::vector<int> const& cols);
+                    std::vector<int> const& cols, bool preview=false);
     int load_arrays(std::vector<fp> const& x, std::vector<fp> const& y, 
                    std::vector<fp> const& sigma, std::string const& data_title);
     void load_data_sum(std::vector<Data const*> const& dd);
+    void clear();
     void add_point(Point const& pt) { p.push_back(pt); };
     static std::string guess_file_type (std::string const& filename);
     fp get_x(int n) const { return p[active_p[n]].x; }
@@ -66,11 +67,14 @@ public :
     fp get_y_min() const { return p.empty() ? 0 : y_min; }
     fp get_y_max() const { return p.empty() ? 1e3 : y_max; }
     std::vector<Point> const& points() const { return p; }
+    std::string get_given_type() const { return given_type; }
+    std::vector<int> get_given_cols() const { return given_cols; }
 
     std::string title;
 private:
     std::string filename;
-    std::vector<int> col_nums;
+    std::string given_type;
+    std::vector<int> given_cols;
     fp x_step; // 0.0 if not fixed;
     std::vector<Point> p;
     std::vector<int> active_p;
@@ -86,7 +90,6 @@ private:
     void load_mca_filetype (std::ifstream& f);
     void load_rit_filetype (std::ifstream& f);
     void load_cpi_filetype (std::ifstream& f);
-    void clear();
     void post_load();
 };
 

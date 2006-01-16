@@ -10,8 +10,9 @@
 #include "func.h"
 #include "logic.h"
 #include "fit.h"
-#include "manipul.h"
+#include "guess.h"
 #include "settings.h"
+#include "optional_suffix.h"
 #include <boost/spirit/core.hpp>
 #include <boost/spirit/actor/assign_actor.hpp>
 #include <boost/spirit/actor/push_back_actor.hpp>
@@ -327,7 +328,7 @@ void do_import_dataset(char const*, char const*)
             && (AL->get_ds_count() != 1 || AL->get_data(0)->has_any_info()
                 || AL->get_sum(0)->has_any_info())) {
         auto_ptr<Data> data(new Data);
-        data->load_file(t, t2, vn); //TODO columns, type
+        data->load_file(t, t2, vn); 
         tmp_int = AL->append_ds(data.release());
     }
     else {
@@ -429,6 +430,9 @@ void do_commands_print(char const*, char const*)
 void do_reset(char const*, char const*)   { AL->reset_all(); }
 
 void do_dump(char const*, char const*)   { AL->dump_all_as_script(t); }
+
+void do_export_sum(char const*, char const*)   
+   { AL->get_sum(ds_pref)->export_to_file(t, false, 0); }
 
 void do_exec_file(char const*, char const*) 
 { 
@@ -617,8 +621,8 @@ struct CmdGrammar : public grammar<CmdGrammar>
             | (ds_prefix >> str_p("dF") >> '(' 
                >> no_actions_d[DataExpressionG][assign_a(t)] 
                >> ')') [&do_print_sum_derivatives_info]
-            | str_p("fit") [&do_print_info] //TODO in_data?
-            | str_p("errors") [&do_print_info] //TODO in_data?
+            | str_p("fit") [&do_print_info] 
+            | str_p("errors") [&do_print_info] 
             | (str_p("peaks") [clear_a(vr)]
                >> ( uint_p [assign_a(tmp_int)]
                   | eps_p [assign_a(tmp_int, one)])
@@ -635,7 +639,6 @@ struct CmdGrammar : public grammar<CmdGrammar>
                  )
               //TODO >> [only %name, $name, not $name2, ...] 
               >> in_data
-            //TODO [with fitting-method=NM]
             ;
 
         guess_arg
@@ -689,27 +692,30 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         statement 
-            = "info" >> optional_plus >> (info_arg % ',')
-            | (str_p("delete")[clear_a(vt)][clear_a(vn)] 
+            = optional_suffix_p("i","nfo") >> optional_plus >> (info_arg % ',')
+            | (optional_suffix_p("del","ete")[clear_a(vt)][clear_a(vn)] 
                 >> ( VariableLhsG [push_back_a(vt)]
                    | FunctionLhsG [push_back_a(vt)]
                    | lexeme_d['@'>>uint_p[push_back_a(vn)]]) % ',') [&do_delete]
-            | (str_p("plot") [clear_a(vr)] [assign_a(tmp_int, minus_one)]
+            | (optional_suffix_p("p","lot") 
+                                  [clear_a(vr)] [assign_a(tmp_int, minus_one)]
               >> !existing_dataset_nr >> plot_range >> plot_range) [&do_plot]
-            | ("fit" >> fit_arg) [&do_fit]
+            | (optional_suffix_p("f","it") >> fit_arg) [&do_fit]
             | ("sleep" >> ureal_p[assign_a(tmp_real)])[&do_sleep]
-            | "commands" >> commands_arg
+            | optional_suffix_p("c","ommands") >> commands_arg
             | str_p("reset") [&do_reset]
             | (str_p("dump") >> '>' >> compact_str)[&do_dump]
-            | "set" >> (set_arg % ',')
+            | optional_suffix_p("s","et") >> (set_arg % ',')
             | transform 
             | assign_var 
-            | (functionname_assign >> "guess" >> guess_arg) [&do_guess]
+            | (functionname_assign 
+                     >> optional_suffix_p("g","uess") >> guess_arg) [&do_guess]
             | subst_func_param 
             | assign_func 
             | put_function
             | fz_assign
             | dataset_handling
+            | (ds_prefix >> 'F' >> '>' >> compact_str)[&do_export_sum]
             ;
 
         multi 

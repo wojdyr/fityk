@@ -1,4 +1,80 @@
 
+GUI: sidebar, bottom panel -> draw draft of peak when changing peak parameters
+
+internal: UI - two implementations of one class are bad idea  
+	     it must be a base class (virtual?) with derived GUI and CLI
+
+GUI: sidebar: default column widths should be different
+
+GUI: use numeric pad keys (WXK_NUMPAD_*) as shortcuts for changing 
+	function parameters.
+
+GUI: more extensive and configurable (2/3 buttons, size) mouse hints 
+	   (also for aux. plot, etc)
+
+function: EMG (expotentially modified gauss)
+
+GUI: print: if no sum, don't print aux plot
+
+GUI: it should be possible to constrain two parameters of two peak,
+     at least to make them equal.
+
+GUI: easy way to do: F[hwhm]=..., F[shape]=...;
+
+GUI: button 'freeze' on variables pane
+
+cmd: any-command with option=value -- set value of option for this command only
+
+Fitting 
+	settings: GUI, fitting
+	greyed fit-continue menu/button
+	cmd: fit with more options
+	simulated annealing (it can replace LM shake_before option)
+	autoplot option -> fitting tab, checkbox: replot-after-fit-iteration
+
+GUI: menu Functions:
+  Functions > Peak-Find Info -> animation
+  Functions > Multidata P-F Info -> window with list of parameters (Xview-like)
+
+Function: check_parameters_out_of_domain() ?  
+            // eg. in Pearson shape > 0.5 , shape < 1e9
+	    // called from fitting iteration?
+	    // what if parameter is out-of-domain? change? disable function?
+	                                            change and freeze?
+	    // set fit-fix-parameters-times = 5
+	    //simple-var bounds?
+
+DataExpressionG: 
+    %func(DataExpressionG) #OP_FUNC number #eg. Y = y-%peak(x)       
+    F(DataExpressionG)     #OP_CURVE_Y number
+    Z(DataExpressionG)     #OP_CURVE_DX number
+    %peak[area]            #OP_NUMBER
+        - to avoid ambiguity,  '%' should be replaced with 'mod' (?)
+    '&' -> ',' (?)
+    aggregate functions: min, max, sum, avg, stddev, eg.  min(y if 20<x<25)
+      area function?  area(y-F(x) if 20<x<25)    -> (x[n+1]-x[n-1])/2 * t
+    parametrized functions with parameters as expression: spline[x if ...](x)
+      ->step equilibration: X = x[0] + (x[-1]-x[0])/(M-1) * n
+     			  & Y = interpolate[x y](X)
+     			  & S = interpolate[x s](X)
+     			  & A = interpolate[x a](X)
+
+GUI: Data Editor - left/right/top/bottom - magic keywords: user would be
+      asked to select point/range/rectangle in plot
+
+history  (data / sum / view / all)
+
+plot peak-groups: ==> plot (%a+%b+%c)  
+
+different peak-draft for steps (new function category), and other functions
+
+parameter domain ~3[2,14]
+
+internal: are functions recalculate()'d when neccessary? eg.before copy(%f) ?
+
+internal: mark parameters, which are not used in sum calculation, and don't
+          put it into matrix (?)
+
 
 * (GUI) peak positions as an option to any aux. plot 
         (not separate type of aux.p.)
@@ -21,14 +97,12 @@
 * user defined functions 
       - syntax:
         --> define Gaussian(a,pos,width): a*exp(-((x-pos)/width)^2)
-	                    ^^^ any name but 'x' allowed here
+	                   ^^^ any name but 'x' allowed here
 	--> %g = Gaussian(1,$b,~3.4)
       - more sophisticated simplifications of expressions and CSE(!)
       - calculating limits, width, area, etc. for UDF(!)
 
 ------------------ 
-
-* (CODE STYLE) put `const' always behind the type
 
 * (CODE STYLE) propagate errors using exceptions (when suitable) rather 
   than error codes

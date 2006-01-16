@@ -99,6 +99,8 @@ void MainPlot::OnPaint(wxPaintEvent& WXUNUSED(event))
     dc.Clear();
     Draw(dc);
     vert_line_following_cursor(mat_redraw);//draw, if necessary, vertical lines
+    peak_draft(mat_redraw);
+    move_peak(mat_redraw);
     frame->update_app_title();
 }
 
@@ -248,6 +250,8 @@ void MainPlot::draw_peaktops (wxDC& dc, Sum const* sum)
 void MainPlot::draw_peaktop_selection (wxDC& dc, Sum const* sum)
 {
     int n = frame->get_sidebar()->get_focused_func();
+    if (n == -1)
+        return;
     vector<int> const& idx = sum->get_ff_idx();
     vector<int>::const_iterator t = find(idx.begin(), idx.end(), n);
     if (t != idx.end()) {
@@ -552,11 +556,11 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
 {
     if (over_peak == -1) return;
     wxMenu peak_menu; 
-    peak_menu.Append(ID_peak_popup_info, "&Info");
-    //peak_menu.Append(ID_peak_popup_guess, "&Guess");
+    peak_menu.Append(ID_peak_popup_info, "Show &Info");
     peak_menu.Append(ID_peak_popup_del, "&Delete");
-    //peak_menu.AppendSeparator();
-    //TODO? parameters: height, ...
+    peak_menu.Append(ID_peak_popup_guess, "&Guess parameters");
+    peak_menu.Enable(ID_peak_popup_guess, 
+                     AL->get_function(over_peak)->is_peak());
     PopupMenu (&peak_menu, event.GetX(), event.GetY());
 }
 
@@ -574,8 +578,16 @@ void MainPlot::OnPeakDelete(wxCommandEvent &WXUNUSED(event))
 
 void MainPlot::OnPeakGuess(wxCommandEvent &WXUNUSED(event))
 {
-    if (over_peak >= 0)
-        exec_command("guess " + AL->get_function(over_peak)->xname);
+    if (over_peak >= 0) {
+        Function const* p = AL->get_function(over_peak);
+        if (p->is_peak()) {
+            fp ctr = p->center();
+            fp plusmin = max(fabs(p->fwhm()), p->area() / p->height());    
+            exec_command(p->xname + " = guess " + p->type_name + " [" 
+                             + S(ctr-plusmin) + ":" + S(ctr+plusmin) + "]"
+                             + frame->get_in_dataset());
+        }
+    }
 }
 
 bool MainPlot::has_mod_keys(const wxMouseEvent& event)
@@ -710,7 +722,7 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
         string s = f->xname + " " + f->type_name + " ";
         vector<string> const& vn = f->type_var_names;
         for (int i = 0; i < size(vn); ++i)
-            s += " " + vn[i] + "=" + S(f->get_var_values()[i]);
+            s += " " + vn[i] + "=" + S(f->get_var_value(i));
         frame->set_status_text(s.c_str());
         set_mouse_mode(mmd_peak);
     }
@@ -762,13 +774,8 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     else if (button == 1 && mode == mmd_peak) {
         frame->activate_function(over_peak);
         move_peak(mat_start, event);
-        if (AL->get_function(over_peak)->is_peak()) {
-            frame->set_status_text(wxString("Moving peak ") 
-                                   + AL->get_function(over_peak)->xname.c_str()
-                                   + " (press Shift to change width)");
-        }
-        else
-            frame->set_status_text("It is not a peak, it can't be dragged.");
+        frame->set_status_text(("Moving " + AL->get_function(over_peak)->xname 
+                                + "...").c_str());
     }
     else if (button == 3 && mode == mmd_peak) {
         show_peak_menu(event);
@@ -826,10 +833,8 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             fp xmin = X2x (min (event.GetX(), mouse_press_X));
             fp xmax = X2x (max (event.GetX(), mouse_press_X));
             string xmin_x_xmax = "(" + S(xmin) + "< x <" + S(xmax) + ")";
-            if (button == 1)
-                exec_command ("A = a or " + xmin_x_xmax);
-            else //button == 3
-                exec_command ("A = a and not " + xmin_x_xmax);
+            string c = (button == 1 ? "A = a or " : "A = a and not ");
+            exec_command(c + xmin_x_xmax + frame->get_in_one_or_all_datasets());
         }
         frame->set_status_text("");
     }
@@ -843,7 +848,8 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             fp x1 = X2x(mouse_press_X);
             fp x2 = X2x(event.GetX());
             exec_command ("guess " + frame->get_peak_type() 
-                          + " [" + S(min(x1,x2)) + " : " + S(max(x1,x2)) + "]");
+                          + " [" + S(min(x1,x2)) + " : " + S(max(x1,x2)) + "]"
+                          + frame->get_in_dataset());
         }
         vert_line_following_cursor(mat_cancel);
     }
@@ -869,89 +875,109 @@ void MainPlot::OnKeyDown (wxKeyEvent& event)
 }
 
 
-void MainPlot::move_peak (Mouse_act_enum /*ma*/, wxMouseEvent &/*event*/)
+void MainPlot::move_peak (Mouse_act_enum ma, wxMouseEvent &event)
 {
-#if 0
-    static bool started = false;
-    static wxPoint prev(INVALID, INVALID);
-    static fp height, center, hwhm, shape;
-    static bool c_height, c_center, c_hwhm, c_shape; //changable 
-    static Function const *p = 0;
-    static const f_names_type *ft = 0;
+    static wxPoint prev;
+    static int func_nr = -1;
+    static vector<fp> p_values(4,0);
+    static vector<bool> changable(4,false);
     static wxCursor old_cursor = wxNullCursor;
+
+    if (over_peak == -1)
+        return;
+    Function const* p = AL->get_function(over_peak);
+
     if (ma != mat_start) {
-        if (!started) return;
-        draw_peak_draft(x2X(center - my_sum->zero_shift(center)), 
-                        shared.dx2dX(hwhm), y2Y(height),
-                        shape, ft);//clear old
+        if (func_nr != over_peak) 
+            return;
+        draw_xor_peak(p, p_values); //clear old or redraw
     }
-    switch (ma) {
-        case mat_start: {
-            p = AL->get_function(over_peak);
-            ft = p->type_info();
-            if (!p->is_peak()) return;
-            height = p->height();
-            center = p->center();
-            hwhm = p->fwhm() / 2.;
-            shape = p->nv > 3 ? p->get_var_values()[3] : 0;
-  //Variable const *get_var(int n) { return mgr->get_variables()[var_idx[n]]; }
-            c_height = p->get_var(0)->is_simple();
-            c_center = p->get_var(1)->is_simple();
-            c_hwhm = p->get_var(2)->is_simple();
-            c_shape = p->nv > 3 && p->get_var(3)->is_simple();
-            draw_peak_draft(x2X(center - my_sum->zero_shift(center)), 
-                            shared.dx2dX(hwhm), y2Y(height),
-                            shape, ft);
-            prev.x = event.GetX(), prev.y = event.GetY();
-            started = true;
-            old_cursor = GetCursor();
-            SetCursor(wxCURSOR_SIZENWSE);
-            break;
-        }
-        case mat_move: {
-            fp dx = X2x(event.GetX()) - X2x(prev.x);
-            fp dy = Y2y(event.GetY()) - Y2y(prev.y);
-            if (!has_mod_keys(event)) {
-                if (c_center) center += dx;
-                if (c_height) height += dy;
-                frame->set_status_text("[Shift=change width/shape] Ctr:" 
-                                       + wxString(S(center).c_str())
-                                       + " Height:" + S(height).c_str());
+
+    if (ma == mat_redraw)
+        ; //do nothing, already redrawn
+    else if (ma == mat_start) {
+        func_nr = over_peak;
+        vector<int> const& var_idx = p->get_var_idx();
+        for (int i = 0; i < size(p_values); ++i) {
+            if (i < size(var_idx)) {
+                p_values[i] = p->get_var_value(i);
+                Variable const* var = AL->get_variable(i);
+                changable[i] = var->is_simple();
             }
             else {
-                if (c_hwhm) hwhm = fabs(hwhm + dx);
-                if (c_shape) shape *= (1 - 0.05 * (event.GetY() - prev.y)); 
-                frame->set_status_text("Width:" + wxString(S(hwhm*2).c_str())
-                                       + " Shape:" + S(shape).c_str());
+                changable[i] = false;
             }
-            prev.x = event.GetX(), prev.y = event.GetY();
-            draw_peak_draft(x2X(center - my_sum->zero_shift(center)), 
-                            shared.dx2dX(hwhm), y2Y(height), 
-                            shape, ft);
-            break;
         }
-        case mat_stop:
-            change_peak_parameters(vector4(height, center, hwhm, shape));
-            //no break
-        case mat_cancel:
-            started = false;
-            if (old_cursor.Ok()) {
-                SetCursor(old_cursor);
-                old_cursor = wxNullCursor;
-            }
-            break;
-        default: assert(0);
+        draw_xor_peak(p, p_values); 
+        prev.x = event.GetX(), prev.y = event.GetY();
+        old_cursor = GetCursor();
+        SetCursor(wxCURSOR_SIZENWSE);
     }
-#endif
+    else if (ma == mat_move) {
+        bool mod_key =  has_mod_keys(event);
+        string descr = mod_key ? "[shift]" : "(without [shift])";
+        int n = mod_key ? 2 : 0;
+        if (changable[n]) {
+            fp dy = Y2y(event.GetY()) - Y2y(prev.y);
+            p_values[n] += dy;
+            descr += " Y:" + p->type_var_names[n] + "=" + S(p_values[n]);
+        }
+        if (changable[n+1]) {
+            fp dx = X2x(event.GetX()) - X2x(prev.x);
+            p_values[n+1] += dx;
+            descr += " X:" + p->type_var_names[n+1] + "=" + S(p_values[n+1]);
+        }
+
+        frame->set_status_text(descr);
+        prev.x = event.GetX(), prev.y = event.GetY();
+        draw_xor_peak(p, p_values); 
+    }
+    else if (ma == mat_stop || ma == mat_cancel) {
+        func_nr = -1;
+        if (old_cursor.Ok()) {
+            SetCursor(old_cursor);
+            old_cursor = wxNullCursor;
+        }
+        if (ma == mat_stop) {
+            vector<string> cmd;
+            for (int i = 0; i < size(p_values); ++i) {
+                if (changable[i] && p_values[i] != p->get_var_value(i))
+                    cmd.push_back("$"+p->get_var_name(i)+"=~"+S(p_values[i]));
+            }
+            if (!cmd.empty())
+                exec_command(join_vector(cmd, "; "));
+        }
+    }
 }
 
+
+void MainPlot::draw_xor_peak(Function const* func, vector<fp> const& p_values)
+{
+    wxClientDC dc(this);
+    dc.SetLogicalFunction (wxINVERT);
+    dc.SetPen(*wxBLACK_DASHED_PEN);
+
+    int n = GetClientSize().GetWidth();
+    if (n <= 0) 
+        return;
+    vector<fp> xx(n), yy(n, 0);
+    for (int i = 0; i < n; ++i) 
+        xx[i] = X2x(i);
+    func->calculate_values_with_params(xx, yy, p_values);
+    vector<int> YY(n);
+    for (int i = 0; i < n; ++i) 
+        YY[i] = y2Y(yy[i]);
+    for (int i = 1; i < n; i++) 
+        dc.DrawLine (i-1, YY[i-1], i, YY[i]); 
+}
 
 void MainPlot::peak_draft (Mouse_act_enum ma, wxMouseEvent &event)
 {
     static wxPoint prev(INVALID, INVALID);
     if (ma != mat_start) {
-        if (prev.x == INVALID) return;
-        //clear old peak-draft
+        if (prev.x == INVALID) 
+            return;
+        //clear/redraw old peak-draft
         draw_peak_draft(mouse_press_X, abs(mouse_press_X - prev.x), prev.y);
     }
     switch (ma) {
@@ -962,25 +988,30 @@ void MainPlot::peak_draft (Mouse_act_enum ma, wxMouseEvent &event)
             break;
         case mat_stop: 
           {
+            prev.x = prev.y = INVALID;
             fp height = Y2y(event.GetY());
             fp center = X2x(mouse_press_X);
             fp fwhm = fabs(shared.dX2dx(mouse_press_X - event.GetX()));
             fp area = height * 2*fwhm;
+            string F = AL->get_ds_count() > 1 
+                                      ?  frame->get_active_data_str()+".F" 
+                                      : "F";
             exec_command(frame->get_peak_type()  
                          + "(height=~" + S(height) + ", center=~" + S(center) 
                          + ", fwhm=~" + S(fwhm) + ", area=~" + S(area) 
-                         + ") -> F");
-            //no break
+                         + ") -> " + F);
           }
+          break;
         case mat_cancel:
             prev.x = prev.y = INVALID;
+            break;
+        case mat_redraw: //already redrawn
             break;
         default: assert(0);
     }
 }
 
-void MainPlot::draw_peak_draft(int Ctr, int Hwhm, int Y, 
-                               float /*Shape, const f_names_type *f*/)
+void MainPlot::draw_peak_draft(int Ctr, int Hwhm, int Y)
 {
     if (Ctr == INVALID || Hwhm == INVALID || Y == INVALID)
         return;
@@ -990,30 +1021,8 @@ void MainPlot::draw_peak_draft(int Ctr, int Hwhm, int Y,
     int Y0 = y2Y(0);
     dc.DrawLine (Ctr, Y0, Ctr, Y); //vertical line
     dc.DrawLine (Ctr - Hwhm, (Y+Y0)/2, Ctr + Hwhm, (Y+Y0)/2); //horizontal line
-    /*
-    if (f) {
-        vector<fp> hcw =  vector4(Y2y(Y), fp(Ctr), fp(Hwhm), fp(Shape));
-        vector<fp> ini = V_f::get_default_peak_parameters(*f, hcw); 
-        vector<Pag> ini_p(ini.begin(), ini.end());
-        const int n = 40;
-        char type = f->type;
-        V_f *peak = V_f::factory(0, type, ini_p);
-        peak->pre_compute_value_only(vector<fp>(), vector<V_g*>());
-        int pX_=0, pY_=0;
-        for (int i = -n; i <= n; i++) {
-            int X_ = int(Ctr + Hwhm * 5. * i / n); 
-            int Y_ = y2Y(peak->compute(X_, 0));
-            if (i+n != 0)
-                dc.DrawLine(pX_, pY_, X_, Y_); 
-            pX_ = X_;
-            pY_ = Y_;
-        }
-        delete peak;
-    }
-    else */{
-        dc.DrawLine (Ctr, Y, Ctr - 2 * Hwhm, Y0); //left slope
-        dc.DrawLine (Ctr, Y, Ctr + 2 * Hwhm, Y0); //right slope
-    }
+    dc.DrawLine (Ctr, Y, Ctr - 2 * Hwhm, Y0); //left slope
+    dc.DrawLine (Ctr, Y, Ctr + 2 * Hwhm, Y0); //right slope
 }
 
 bool MainPlot::rect_zoom (Mouse_act_enum ma, wxMouseEvent &event) 
@@ -1176,39 +1185,6 @@ void MainPlot::OnZoomAll (wxCommandEvent& WXUNUSED(event))
 }
 
 
-void MainPlot::change_peak_parameters(const vector<fp> &/*peak_hcw*/)
-{
-#if 0
-    vector<string> changes;
-    const V_f *peak = AL->get_function(over_peak);
-    const f_names_type *f = peak->type_info();
-    assert(peak_hcw.size() >= 3);
-    fp height = peak_hcw[0]; 
-    fp center = peak_hcw[1];
-    fp hwhm = peak_hcw[2]; 
-    for (int i = 0; i < f->psize; i++) {
-        string pname = f->pnames[i];
-        fp val = 0;
-        if (i > 2 && size(peak_hcw) > i) val = peak_hcw[i];
-        else if (pname == "height") val = height; 
-        else if (pname == "center") val = center; 
-        else if (pname == "HWHM")   val = hwhm;
-        else if (pname == "FWHM")   val = 2*hwhm;
-        else if (pname.find("width") < pname.size())  val = hwhm; 
-        else continue;
-        Pag pag = peak->get_pag(i);
-        if (pag.is_a() && my_sum->pars()->get_a(pag.a()) != val)
-            changes.push_back("@" + S(pag.a()) + " " + S(val));
-    }
-    if (!changes.empty()) {
-        string cmd = "s.change " + changes[0]; 
-        for (unsigned int i = 1; i < changes.size(); i++)
-            cmd += ", " + changes[i];
-        exec_command (cmd);
-    }
-#endif
-}
-
 
 //===============================================================
 //           BgManager (for interactive background setting
@@ -1303,11 +1279,14 @@ void BgManager::strip_background()
 {
     if (bg.empty())
         return;
-    string pars;
-    for (bg_const_iterator i = bg.begin(); i != bg.end(); i++) 
-        pars += " " + S(i->x) + " " + S(i->y) + " ";
+    vector<fp> pars;
+    for (bg_const_iterator i = bg.begin(); i != bg.end(); i++) {
+        pars.push_back(i->x);
+        pars.push_back(i->y);
+    }
     clear_background();
-    exec_command("Y = y - spline[" + pars + "](x)");
+    exec_command("Y = y - spline[" + join_vector(pars, ", ") + "](x)" 
+                 + frame->get_in_one_or_all_datasets());
     verbose("Background stripped.");
 }
 

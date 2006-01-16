@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef FITYK__MANIPUL__H__
-#define FITYK__MANIPUL__H__
+#ifndef FITYK__GUESS__H__
+#define FITYK__GUESS__H__
 
 // simple "virtual" peak, used for rought estimations, what would happen 
 // if there were a peak with given position, height and FWHM.

@@ -72,6 +72,7 @@ private:
     std::vector<Fit*> methods;
 
     FitMethodsContainer();
+    FitMethodsContainer (FitMethodsContainer const&); //disable
     ~FitMethodsContainer();
 };
 
