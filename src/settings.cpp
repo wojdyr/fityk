@@ -45,8 +45,8 @@ Settings::Settings()
     // Function
     fpar["cut-function-level"] = 0.;
 
-    // Manipul
-    bpar ["cancel-peak-out-of-search"] = true;
+    // guess
+    bpar ["can-cancel-guess"] = true;
     fpar ["height-correction"] = 1.;
     fpar ["width-correction"] = 1.;
 
@@ -167,8 +167,7 @@ string Settings::typep (string const& k) const
     }
     else if (epar.count (k)){
         map<char,string> const& e = epar.find(k)->second.e;
-        return "one of " + S(e.size()) + "choices: " 
-                                   + join_vector(get_map_values(e), ", ");
+        return "one of" + join_vector(get_map_values(e), ", ");
     }
     else if (spar.count (k)){
         return "string (a-zA-Z0-9+-.)";

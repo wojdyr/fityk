@@ -1,6 +1,23 @@
 
 GUI: sidebar, bottom panel -> draw draft of peak when changing peak parameters
 
+DataExpressionG: 
+    %func(DataExpressionG) #OP_FUNC number #eg. Y = y-%peak(x)       
+    F(DataExpressionG)     #OP_CURVE_Y number
+    Z(DataExpressionG)     #OP_CURVE_DX number
+    %peak[area]            #OP_NUMBER
+        - to avoid ambiguity,  '%' should be replaced with 'mod' (?)
+    '&' -> ',' (?)
+    aggregate functions: min, max, sum, avg, stddev, eg.  min(y if 20<x<25)
+      area function?  area(y-F(x) if 20<x<25)    -> (x[n+1]-x[n-1])/2 * t
+    parametrized functions with parameters as expression: spline[x if ...](x)
+      ->step equilibration: X = x[0] + (x[-1]-x[0])/(M-1) * n
+     			  & Y = interpolate[x y](X)
+     			  & S = interpolate[x s](X)
+     			  & A = interpolate[x a](X)
+
+sum() doesn't work in "info sum(x)" or $a={sum(y)}
+
 internal: UI - two implementations of one class are bad idea  
 	     it must be a base class (virtual?) with derived GUI and CLI
 
@@ -43,21 +60,6 @@ Function: check_parameters_out_of_domain() ?
 	                                            change and freeze?
 	    // set fit-fix-parameters-times = 5
 	    //simple-var bounds?
-
-DataExpressionG: 
-    %func(DataExpressionG) #OP_FUNC number #eg. Y = y-%peak(x)       
-    F(DataExpressionG)     #OP_CURVE_Y number
-    Z(DataExpressionG)     #OP_CURVE_DX number
-    %peak[area]            #OP_NUMBER
-        - to avoid ambiguity,  '%' should be replaced with 'mod' (?)
-    '&' -> ',' (?)
-    aggregate functions: min, max, sum, avg, stddev, eg.  min(y if 20<x<25)
-      area function?  area(y-F(x) if 20<x<25)    -> (x[n+1]-x[n-1])/2 * t
-    parametrized functions with parameters as expression: spline[x if ...](x)
-      ->step equilibration: X = x[0] + (x[-1]-x[0])/(M-1) * n
-     			  & Y = interpolate[x y](X)
-     			  & S = interpolate[x s](X)
-     			  & A = interpolate[x a](X)
 
 GUI: Data Editor - left/right/top/bottom - magic keywords: user would be
       asked to select point/range/rectangle in plot

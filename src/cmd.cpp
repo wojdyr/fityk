@@ -215,6 +215,8 @@ void do_print_info(char const* a, char const* b)
     else if (s == "view") {
         m = AL->view.str();
     }
+    else if (s == "set")
+        m = getSettings()->print_usage();
     else if (s == "fit")
         m = getFit()->getInfo();
     else if (s == "errors")
@@ -607,6 +609,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
         info_arg
             = str_p("variables") [&do_print_info]
             | VariableLhsG [&do_print_info]
+            | str_p("types") [&do_print_info]
             | str_p("functions") [&do_print_info]
             | (FunctionLhsG [assign_a(t)] 
                >> "(" 
@@ -622,6 +625,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
                >> no_actions_d[DataExpressionG][assign_a(t)] 
                >> ')') [&do_print_sum_derivatives_info]
             | str_p("fit") [&do_print_info] 
+            | str_p("set") [&do_print_info] 
             | str_p("errors") [&do_print_info] 
             | (str_p("peaks") [clear_a(vr)]
                >> ( uint_p [assign_a(tmp_int)]

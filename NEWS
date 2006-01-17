@@ -8,7 +8,6 @@ User-visible changes in version 0.7.0pre1  (2006-01-  ):
 * some features available in previous version are temporarily disabled:
      powder diffraction part - c.xxx commands
      parameters history
-     CLI: TAB-expanding of commands
 
 User-visible changes in version 0.5.1 (2005-07-21):
 * new toolbar icons 

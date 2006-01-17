@@ -170,7 +170,7 @@ void estimate_peak_parameters(DataWithSum const* ds, fp range_from, fp range_to,
     if (max_y_pos == l_bor || max_y_pos == r_bor - 1) {
         string s = "Estimating peak parameters: peak outside of search scope."
                   " Tried at [" + S(range_from) + " : " + S(range_to) + "]";
-        if (getSettings()->get_b("cancel-peak-out-of-search")) 
+        if (getSettings()->get_b("can-cancel-guess")) 
             throw ExecuteError(s + " Canceled.");
         info (s);
     }

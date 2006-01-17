@@ -1286,7 +1286,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     cancel_poos = new wxCheckBox(page_peakfind, -1, 
                              "cancel peak searching, if the highest point"
                              "\nis near the boundary of the given range");
-    cancel_poos->SetValue(getSettings()->get_b("cancel-peak-out-of-search"));
+    cancel_poos->SetValue(getSettings()->get_b("can-cancel-guess"));
     wxBoxSizer *sizer_pf = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizer_pf_hc = new wxBoxSizer(wxHORIZONTAL);
     sizer_pf_hc->Add(hc_st, 0, wxALL, 5);
@@ -1318,7 +1318,7 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
     m["exit-on-warning"] = exit_cb->GetValue() ? "1" : "0";
     m["height-correction"] = height_correction->GetValue().c_str();
     m["width-correction"] = width_correction->GetValue().c_str();
-    m["cancel-peak-out-of-search"] = cancel_poos->GetValue() ? "1" : "0";
+    m["can-cancel-guess"] = cancel_poos->GetValue() ? "1" : "0";
     vector<string> kk = getSettings()->expanp();
     for (vector<string>::const_iterator i = kk.begin(); i != kk.end(); ++i)
         if (m.count(*i) && m[*i] != getSettings()->getp(*i))
