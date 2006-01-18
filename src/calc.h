@@ -13,13 +13,28 @@ using namespace boost::spirit;
 enum 
 {
     OP_CONSTANT=0,
-    OP_VARIABLE, OP_PUT_VAL, OP_PUT_DERIV,
-    OP_ONE_ARG,
-    OP_NEG,   OP_EXP,   OP_SIN,   OP_COS,  OP_ATAN,  
-    OP_TAN, OP_ASIN, OP_ACOS, OP_LOG10, OP_LN,  OP_SQRT,  
-    OP_TWO_ARG,
-    OP_POW, OP_MUL, OP_DIV, OP_ADD, OP_SUB,
-    OP_END
+    OP_VARIABLE,  // 1
+    OP_PUT_VAL,   // 2
+    OP_PUT_DERIV, // 3
+    OP_ONE_ARG,   // 4
+    OP_NEG,       // 5
+    OP_EXP,       // 6
+    OP_SIN,       // 7
+    OP_COS,       // 8
+    OP_ATAN,      // 9
+    OP_TAN,       //10
+    OP_ASIN,      //11
+    OP_ACOS,      //12
+    OP_LOG10,     //13
+    OP_LN,        //14
+    OP_SQRT,      //15
+    OP_TWO_ARG,   //16
+    OP_POW,       //17
+    OP_MUL,       //18
+    OP_DIV,       //19
+    OP_ADD,       //20
+    OP_SUB,       //21
+    OP_END        //22
 };
 
 

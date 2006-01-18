@@ -148,18 +148,18 @@ std::vector<int> range_vector (int l, int u);
 /// "warning: comparison between signed and unsigned integer expressions"
 /// implicit cast IMHO makes code less clear than "i<size(v)":
 template <typename T>
-inline int size(const std::vector<T>& v) { return static_cast<int>(v.size()); }
+inline int size(std::vector<T> const& v) { return static_cast<int>(v.size()); }
 
 /// Return 0 <= n < a.size()
 template <typename T>
-inline bool is_index (int idx, const std::vector<T>& v) 
+inline bool is_index (int idx, std::vector<T> const& v) 
 { 
     return idx >= 0 && idx < static_cast<int>(v.size()); 
 }
 
 
 template <typename T>
-inline std::string join_vector(const std::vector<T>& v, const std::string& sep)
+inline std::string join_vector(std::vector<T> const& v, std::string const& sep)
 {
     if (v.empty()) 
         return "";
@@ -170,6 +170,16 @@ inline std::string join_vector(const std::vector<T>& v, const std::string& sep)
     return s;
 }
 
+template <typename T1, typename T2>
+inline std::vector<std::string> concat_pairs(std::vector<T1> const& v1, 
+                                             std::vector<T2> const& v2, 
+                                             std::string const& sep="")
+{
+    std::vector<std::string> result;
+    for (int i = 0; i < std::min(size(v1), size(v2)); ++i)
+        result.push_back(S(v1[i]) + sep + S(v2[i]));
+    return result;
+}
 
 /// for vector<T*> - delete object and erase pointer
 template<typename T>

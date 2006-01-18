@@ -906,17 +906,13 @@ void SideBar::update_var_list()
     vector<int> var_vrefs(variables.size(), 0), var_frefs(variables.size(), 0);
     for (vector<Variable*>::const_iterator i = variables.begin();
                                                 i != variables.end(); ++i) {
-        vector<int> const& var_idx = (*i)->get_var_idx(); 
-        for (vector<int>::const_iterator j = var_idx.begin(); 
-                                                    j != var_idx.end(); ++j)
-            var_vrefs[*j]++;
+        for (int j = 0; j != (*i)->get_vars_count(); ++j)
+            var_vrefs[(*i)->get_var_idx(j)]++;
     }
     for (vector<Function*>::const_iterator i = AL->get_functions().begin();
                                          i != AL->get_functions().end(); ++i) {
-        vector<int> const& var_idx = (*i)->get_var_idx(); 
-        for (vector<int>::const_iterator j = var_idx.begin(); 
-                                                    j != var_idx.end(); ++j)
-            var_frefs[*j]++;
+        for (int j = 0; j != (*i)->get_vars_count(); ++j)
+            var_frefs[(*i)->get_var_idx(j)]++;
     }
 
     for (int i = 0; i < size(variables); ++i) {
@@ -1104,7 +1100,7 @@ vector<bool> SideBar::make_bottom_panel_sig(Function const* func)
 {
     vector<bool> sig;
     for (int i = 0; i < size(func->type_var_names); ++i) {
-        Variable const* var = AL->get_variable(func->get_var_idx()[i]);
+        Variable const* var = AL->get_variable(func->get_var_idx(i));
         sig.push_back(var->is_simple());
     }
     return sig;
@@ -1126,7 +1122,7 @@ void SideBar::update_bottom_panel()
         clear_bottom_panel();
         bp_sig = sig;
         for (int i = 0; i < size(func->type_var_names); ++i) {
-            Variable const* var = AL->get_variable(func->get_var_idx()[i]);
+            Variable const* var = AL->get_variable(func->get_var_idx(i));
             add_variable_to_bottom_panel(var, func->type_var_names[i]);
         }
         bottom_panel->Fit();
@@ -1144,7 +1140,7 @@ void SideBar::update_bottom_panel()
             string const& t = func->type_var_names[i];
             (*st)->SetLabel(t.c_str());
             ++st;
-            Variable const* var = AL->get_variable(func->get_var_idx()[i]);
+            Variable const* var = AL->get_variable(func->get_var_idx(i));
             if (var->is_simple()) {
                   (*frc)->set(var->get_value(), var->xname);
                   ++frc;

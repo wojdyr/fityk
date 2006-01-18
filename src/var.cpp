@@ -247,7 +247,6 @@ void Variable::erased_parameter(int k)
             -- i->p;
 }
 
-
 ////////////////////////////////////////////////////////////////////////////
 
 void VariableManager::unregister_sum(Sum const *s)
@@ -411,7 +410,6 @@ string VariableManager::do_assign_variable(Variable* new_var)
     auto_ptr<Variable> var(new_var);
     string var_name = var->name;
     var->set_var_idx(variables);
-    var->tree_to_bytecode();
     int old_pos = find_variable_nr(var->name);
     if (old_pos == -1) {
         var->recalculate(variables, parameters);
@@ -425,9 +423,6 @@ string VariableManager::do_assign_variable(Variable* new_var)
         variables[old_pos] = var.release();
         if (variables[old_pos]->get_max_var_idx() > old_pos) {
             sort_variables();
-            for (vector<Variable*>::iterator i = variables.begin(); 
-                    i != variables.end(); ++i)
-                (*i)->tree_to_bytecode();
         }
         remove_unreferred();
     }
@@ -449,10 +444,9 @@ string VariableManager::assign_variable_copy(string const& name,
     }
     else {
         vector<string> vars;
-        for (vector<int>::const_iterator i = orig->get_var_idx().begin(); 
-                                         i != orig->get_var_idx().end(); ++i) {
-            assert(varmap.count(*i));
-            vars.push_back(varmap.find(*i)->second);
+        for (int i = 0; i != orig->get_vars_count(); ++i) {
+            assert(varmap.count(orig->get_var_idx(i)));
+            vars.push_back(varmap.find(orig->get_var_idx(i))->second);
         }
         vector<OpTree*> new_op_trees;
         for (vector<OpTree*>::const_iterator i = orig->get_op_trees().begin();
@@ -752,10 +746,9 @@ string VariableManager::assign_func_copy(string const &name, string const &orig)
         varmap[i] = new_varname;
     }
     vector<string> varnames;
-    for (vector<int>::const_iterator i = of->get_var_idx().begin(); 
-                                           i != of->get_var_idx().end(); ++i) {
-        assert(varmap.count(*i));
-        varnames.push_back(varmap[*i]);
+    for (int i = 0; i != of->get_vars_count(); ++i) {
+        assert(varmap.count(of->get_var_idx(i)));
+        varnames.push_back(varmap[of->get_var_idx(i)]);
     }
     Function* cf = Function::factory(name, of->type_name, varnames);
     return do_assign_func(cf);

@@ -272,6 +272,31 @@ void do_print_sum_derivatives_info(char const*, char const*)
     mesg(m);
 }
 
+void do_print_debug_info(char const*, char const*)  { 
+    string m;
+    if (t == "idx") {
+        for (int i = 0; i < size(AL->get_functions()); ++i) 
+            m += S(i) + ": " + AL->get_function(i)->get_debug_idx_info() +"\n";
+        for (int i = 0; i < size(AL->get_variables()); ++i) 
+            m += S(i) + ": " + AL->get_variable(i)->get_debug_idx_info() +"\n";
+    }
+    else if (t == "rd") {
+        for (int i = 0; i < size(AL->get_variables()); ++i) {
+            Variable const* var = AL->get_variable(i);
+            m += var->xname + ": ";
+            vector<Variable::ParMult> const& rd 
+                                        = var->get_recursive_derivatives();
+            for (vector<Variable::ParMult>::const_iterator i = rd.begin(); 
+                                                           i != rd.end(); ++i)
+                m += S(i->p) 
+                    + "/" + AL->find_variable_handling_param(i->p)->xname 
+                    + "/" + S(i->mult) + "  ";
+            m += "\n";
+        }
+    }
+    mesg(m);
+}
+
 
 void do_print_func_value(char const*, char const*)
 {
@@ -634,6 +659,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
             | (no_actions_d[DataExpressionG][assign_a(t)] 
                  >> in_data) [&do_print_data_expr]
             | function_name[&do_print_func_type]
+            | "debug" >> compact_str [&do_print_debug_info] 
             ;
 
         fit_arg

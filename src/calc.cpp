@@ -173,14 +173,14 @@ OpTree* do_neg(OpTree *a)
 
 OpTree* do_add(int op, OpTree *a, OpTree *b)
 {
-    if (a->op == 0 && a->val == 0.) { // 0 + t
+    if (a->op == 0 && is_eq(a->val, 0.)) { // 0 + t
         delete a;
         if (op == OP_ADD)
             return b;
         else
             return do_neg(b);
     }
-    else if (b->op == 0 && b->val == 0.) { // t + 0
+    else if (b->op == 0 && is_eq(b->val, 0.)) { // t + 0
         delete b;
         return a;
     }
@@ -226,27 +226,27 @@ OpTree* do_sub(OpTree *a, OpTree *b)
 OpTree* do_multiply(OpTree *a, OpTree *b)
 {
     if ((a->op == 0 && b->op == 0)
-        || (a->op == 0 && a->val == 0.)
-        || (b->op == 0 && b->val == 0.))
+        || (a->op == 0 && is_eq(a->val, 0.))
+        || (b->op == 0 && is_eq(b->val, 0.)))
     {
         double val = a->val * b->val;
         delete a;
         delete b;
         return new OpTree(val);
     }
-    else if (a->op == 0 && a->val == 1.) {
+    else if (a->op == 0 && is_eq(a->val, 1.)) {
         delete a;
         return b;
     }
-    else if (b->op == 0 && b->val == 1.) {
+    else if (b->op == 0 && is_eq(b->val, 1.)) {
         delete b;
         return a;
     }
-    else if (a->op == 0 && a->val == -1.) {
+    else if (a->op == 0 && is_eq(a->val, -1.)) {
         delete a;
         return do_neg(b);
     }
-    else if (b->op == 0 && b->val == -1.) {
+    else if (b->op == 0 && is_eq(b->val, -1.)) {
         delete b;
         return do_neg(a);
     }
@@ -257,19 +257,19 @@ OpTree* do_multiply(OpTree *a, OpTree *b)
 
 OpTree* do_divide(OpTree *a, OpTree *b)
 {
-    if (a->op == 0 && a->val == 0.) {
+    if (a->op == 0 && is_eq(a->val, 0.)) {
         delete a;
         delete b;
         return new OpTree(0.);
     }
-    else if ((a->op == 0 && b->op == 0) || (b->op == 0 && b->val == 0.))
+    else if ((a->op == 0 && b->op == 0) || (b->op == 0 && is_eq(b->val, 0.)))
     {
         double val = a->val / b->val;
         delete a;
         delete b;
         return new OpTree(val);
     }
-    else if (b->op == 0 && b->val == 1.) {
+    else if (b->op == 0 && is_eq(b->val, 1.)) {
         delete b;
         return a;
     }
@@ -402,13 +402,13 @@ OpTree* do_acos(OpTree *a)
 
 OpTree* do_pow(OpTree *a, OpTree *b)
 {
-    if (a->op == 0 && a->val == 0.) {
+    if (a->op == 0 && is_eq(a->val, 0.)) {
         delete a;
         delete b;
         return new OpTree(0.);
     }
     if ((b->op == 0 && is_eq(b->val, 0.)) 
-        || (a->op == 0 && a->val == 1.)) {
+        || (a->op == 0 && is_eq(a->val, 1.))) {
         delete a;
         delete b;
         return new OpTree(1.);
@@ -813,21 +813,35 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
         assert(i->children.size() == 2);
         vector<OpTree*> left = calculate_deriv(i->children.begin(), vars);
         vector<OpTree*> right = calculate_deriv(i->children.begin() + 1, vars);
-        //special cases like a(x)^n are not handeled separately. Should they?
-        for (int k = 0; k < len; ++k) {
-            OpTree *a = left[len],
-                   *b = right[len],
-                   *ap = left[k],
-                   *bp = right[k];
-            //        b(x)            b(x)  b(x) a'(x)
-            //    (a(x)   )'    = a(x)     (---------- + ln(a(x)) b'(x))
-            //                                 a(x)
-            OpTree *pow_a_b = do_pow(a->copy(), b->copy());
-            OpTree *term1 = do_divide(do_multiply(b->copy(), ap), a->copy());
-            OpTree *term2 = do_multiply(do_ln(a->copy()), bp);
-            results[k] = do_multiply(pow_a_b, do_add(term1, term2));
+        // this special case is needed, because in cases like -2^4
+        // there was a problem with logarithm in formula below
+        if (left[len]->op == 0 || right[len]->op == 0) {
+            for (int k = 0; k < len; ++k) {
+                assert(left[k]->op == 0 && right[k]->op == 0);
+                delete left[k];
+                delete right[k];
+                results[k] = new OpTree(0.); 
+            }
+            results[len] = do_pow(left[len], right[len]);
         }
-        results[len] = do_pow(left[len], right[len]);
+        //another special cases like a(x)^n are not handeled separately. 
+        //Should they?
+        else {
+            for (int k = 0; k < len; ++k) {
+                OpTree *a = left[len],
+                       *b = right[len],
+                       *ap = left[k],
+                       *bp = right[k];
+                //        b(x)            b(x)  b(x) a'(x)
+                //    (a(x)   )'    = a(x)     (---------- + ln(a(x)) b'(x))
+                //                                 a(x)
+                OpTree *pow_a_b = do_pow(a->copy(), b->copy());
+                OpTree *term1 = do_divide(do_multiply(b->copy(),ap), a->copy());
+                OpTree *term2 = do_multiply(do_ln(a->copy()), bp);
+                results[k] = do_multiply(pow_a_b, do_add(term1, term2));
+            }
+            results[len] = do_pow(left[len], right[len]);
+        }
     }
 
     else if (i->value.id() == FuncGrammar::termID)

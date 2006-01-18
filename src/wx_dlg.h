@@ -187,7 +187,7 @@ private:
     wxRadioBox *autoplot_rb;
     wxChoice *verbosity_ch;
     wxCheckBox *exit_cb;
-    RealNumberCtrl *height_correction, *width_correction;
+    RealNumberCtrl *cut_func, *height_correction, *width_correction;
     wxCheckBox *cancel_poos;
 };
 

@@ -1250,6 +1250,10 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     nb->AddPage(page_fitting, "fitting");
 
     // page general
+    wxStaticText *cut_st = new wxStaticText(page_general, -1, 
+                                       "f(x) can be assumed 0, if |f(x)|<"); 
+    cut_func = new RealNumberCtrl(page_general, -1, 
+                                  getSettings()->getp("cut-function-level"));
     autoplot_rb = new wxRadioBox(page_general, -1, "auto-refresh plot",
                                  wxDefaultPosition, wxDefaultSize, 
                                  stl2wxArrayString(
@@ -1268,6 +1272,10 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     exit_cb->SetValue(getSettings()->get_b("exit-on-warning"));
 
     wxBoxSizer *sizer_general = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *sizer_general_c = new wxBoxSizer(wxHORIZONTAL);
+    sizer_general_c->Add(cut_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    sizer_general_c->Add(cut_func, 0, wxALL, 5);
+    sizer_general->Add(sizer_general_c, 0);
     sizer_general->Add(autoplot_rb, 0, wxEXPAND|wxALL, 5);
     sizer_general->Add(verbosity_st, 0, wxLEFT|wxRIGHT|wxTOP, 5);
     sizer_general->Add(verbosity_ch, 0, wxEXPAND|wxALL, 5);
@@ -1289,11 +1297,11 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     cancel_poos->SetValue(getSettings()->get_b("can-cancel-guess"));
     wxBoxSizer *sizer_pf = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizer_pf_hc = new wxBoxSizer(wxHORIZONTAL);
-    sizer_pf_hc->Add(hc_st, 0, wxALL, 5);
+    sizer_pf_hc->Add(hc_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     sizer_pf_hc->Add(height_correction, 0, wxALL, 5);
     sizer_pf->Add(sizer_pf_hc, 0);
     wxBoxSizer *sizer_pf_wc = new wxBoxSizer(wxHORIZONTAL);
-    sizer_pf_wc->Add(wc_st, 0, wxALL, 5);
+    sizer_pf_wc->Add(wc_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     sizer_pf_wc->Add(width_correction, 0, wxALL, 5);
     sizer_pf->Add(sizer_pf_wc, 0);
     sizer_pf->Add(cancel_poos, 0, wxALL, 5);
@@ -1313,6 +1321,7 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
 {
     pair_vec result;
     map<string, string> m;
+    m["cut-function-level"] = cut_func->GetValue().c_str();
     m["autoplot"] = autoplot_rb->GetStringSelection().c_str();
     m["verbosity"] = verbosity_ch->GetStringSelection().c_str();
     m["exit-on-warning"] = exit_cb->GetValue() ? "1" : "0";

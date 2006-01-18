@@ -32,14 +32,17 @@ public:
     virtual ~VariableUser() {}
     bool is_dependent_on(int idx, std::vector<Variable*> const &variables)const;
     bool is_directly_dependent_on(int idx);
-    void set_var_idx(std::vector<Variable*> const& variables);
-    std::vector<int> const& get_var_idx() const { return var_idx; }
+    virtual void set_var_idx(std::vector<Variable*> const& variables);
+    int get_var_idx(int n) const 
+             { assert(n >= 0 && n < size(var_idx)); return var_idx[n]; }
     int get_max_var_idx();
     int get_vars_count() const { return varnames.size(); }
     std::string get_var_name(int n) const
              { assert(n >= 0 && n < size(varnames)); return varnames[n]; }
     void substitute_param(int n, std::string const &new_p)
              { assert(n >= 0 && n < size(varnames)); varnames[n] = new_p; }
+    std::string get_debug_idx_info() const { return xname + ": " 
+                   + join_vector(concat_pairs(varnames, var_idx, "/"), " "); }
 protected:
     std::vector<std::string> varnames; // variable names 
     /// var_idx is set after initialization (in derived class)
@@ -47,6 +50,22 @@ protected:
     std::vector<int> var_idx;
 };
 
+/// the variable is either simple-variable and nr is the index in vector
+/// of parameters, or it is not simple, and has nr==-1.
+/// In second case, the value and derivatives are calculated 
+/// in following steps:
+///  0. string is parsed by Spirit parser to Spirit AST representation,
+///     and then expression is simplified and derivates are
+///     calculated using calculate_deriv() function.
+///     It results in struct-OpTree-based trees (for value and all derivatives)
+///     That's before creating the Variable
+///  1  set_var_idx() finds indices of variables in variables vector
+///      (references to variables are kept using names of the variables
+///       is has to be called when indices of referred variables change
+///  1a. tree_to_bytecode() called from Variable::set_var_idx 
+///       takes trees and var_idx and results in bytecode  
+///  3. recalculate() calculates (using run_vm()) value and derivatives
+///     for current parameter value
 class Variable : public VariableUser
 {
     static int unnamed_counter;
@@ -71,8 +90,10 @@ public:
                          bool extended=false) const;
     std::string get_formula(std::vector<fp> const &parameters) const;
     bool is_visible() const { return !hidden; }
-    /// (re-)create bytecode, required after set_var_idx()
+    /// (re-)create bytecode, required after ::set_var_idx()
     void tree_to_bytecode(); 
+    void set_var_idx(std::vector<Variable*> const& variables)
+                 { VariableUser::set_var_idx(variables); tree_to_bytecode(); }
     std::vector<ParMult> const& get_recursive_derivatives() const 
                                             { return recursive_derivatives; }
     bool is_simple() const { return nr != -1; }

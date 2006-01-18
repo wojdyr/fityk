@@ -897,11 +897,10 @@ void MainPlot::move_peak (Mouse_act_enum ma, wxMouseEvent &event)
         ; //do nothing, already redrawn
     else if (ma == mat_start) {
         func_nr = over_peak;
-        vector<int> const& var_idx = p->get_var_idx();
         for (int i = 0; i < size(p_values); ++i) {
-            if (i < size(var_idx)) {
+            if (i < p->get_vars_count()) {
                 p_values[i] = p->get_var_value(i);
-                Variable const* var = AL->get_variable(i);
+                Variable const* var = AL->get_variable(p->get_var_idx(i));
                 changable[i] = var->is_simple();
             }
             else {
