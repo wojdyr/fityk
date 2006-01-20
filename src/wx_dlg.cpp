@@ -623,7 +623,8 @@ public:
             case 3: t = "S";  break;
             default: assert(0);
         }
-        exec_command(t + "[" + S(row)+"]=" + S(value));
+        exec_command(t + "[" + S(row)+"]=" + S(value) 
+                                                  + frame->get_in_dataset());
         if (col == 1) // order of items can be changed
             ded->grid->ForceRefresh();
         ded->rezoom_btn->Enable();
@@ -632,7 +633,8 @@ public:
     void SetValueAsBool(int row, int col, bool value) 
     { 
         assert(col==0); 
-        exec_command("A[" + S(row)+"]=" + (value ?"true":"false")); 
+        exec_command("A[" + S(row)+"]=" + (value?"true":"false") 
+                                                  + frame->get_in_dataset()); 
         ded->rezoom_btn->Enable();
     }
 

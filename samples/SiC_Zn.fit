@@ -1,47 +1,93 @@
-# Fityk 0.5.1
-## this script is an example of crystallography/diffraction module usage  
+# Fityk 0.7.0
+## this script is an example of Pawley method for powder pattern in Fityk
 
- d.load 'SiC_Zn.dat' # Load data file from current directory (SiC+Zn data)
+# it is very complicated, but there is not simpler method to do it
+# at this moment. In future there will be no need to write any equations.
 
- #background was obtained by clicking on plot in "background mode"
- d.t y = y - spline[20.4823 43.3474   28.004 24.3128   31.4412 23.6984   33.7911 36.0138   38.6477 30.5403   49.9335 17.263   65.1888 17.968   79.5965 22.1979  98.9835 23.6079](x)
+@0 < SiC_Zn.dat # Load data file from current directory (SiC+Zn data)
 
- d.t a = x>31 # only data with 2theta greater then 31.0 are active
+# background was obtained by clicking on plot in "background mode"
+Y = y - spline[20.4823,43.3474,  28.004,24.3128,  31.4412,23.6984,  33.7911,36.0138,  38.6477,30.5403,  49.9335,17.263,  65.1888,17.968,  79.5965,22.1979, 98.9835,23.6079](x)
 
- #Used wavelength in known and we do not want to fit it.
- # If you would like to fit wavelength, replace '_' with '~'
- c.w _1.54051 # Cu Ka1
+A = 31 < x < 90 # only data with 2theta greater then 31.0 are active
 
- c.set peak-type = Mod-TCHpV 
+# Used wavelength is known and we do not want to fit it.
+# If you would like to fit wavelength, put '~' before the number
+$lambda = 1.54051 # Cu Ka1
 
- #define phases and initial lattice parameters
- c.add %c ~4.35  #SiC, %0
- c.add %h ~2.66  ~4.92  #Zn, %1
+#initial lattice parameters
+$sic_a = ~4.35 #cubic SiC
+$zn_a = ~2.67; $zn_c = ~4.924 #hexagonal Zn
 
- #defining some peaks (order does not matter)
- c.add %0 (220) # (220) plane of SiC phase
- c.add %1 (002) # (002) plane of Zn phase
- c.add %0 (111)
- c.add %1 (100), %1 (101) # do you remember how comma(,) works?
- c.a %1 (102) # every command can be shortened with x.x (letter-dot-letter)
+# here are well known formulae for peak positions:
+#1/d = sqrt(h^2 + k^2 + l^2) / a # for cubic phase
+#1/d = sqrt(4./3. * (h^2 + k^2 + h*k) / a^2 + l^2 / c^2) # for hexagonal phase
+#peak_center = 2 * asin((1/d) / 2 * lambda) [in RAD, must be converted to DEG]
 
- #after adding a few peaks, it can be a good idea to fit it, to obtain
- #better approximation of lattice parameters
- #f.run 10 
 
- # the rest of peaks
- c.add %1 (103), %1(110), %1(112), %1(200), %1(201), %1(202)
- c.add %0 (311)
+# peak hkl=(220) of SiC
+$c_sic220 = 360/pi * asin(sqrt(2^2+2^2+0) / $sic_a / 2 * $lambda)
+# writting explicitly range in which peak is to be search 
+# is not very convenient, but there is not other way at this moment
+%sic220 = guess PseudoVoigt [58:62] center=$c_sic220
 
- s.add <x ~0 #zero-shift
+# Zn (002) 
+$c_zn002 = 360/pi * asin(sqrt(4/3 * (0+0+0*0) / $zn_a^2 + 2^2/$zn_c^2 ) / 2 * $lambda)
+%zn002 = guess PseudoVoigt [36:38] center=$c_zn002
 
- f.run #running default fitting method (Lev-Mar)
+# SiC (111) 
+$c_sic111 = 360/pi * asin(sqrt(1^2+1^2+1^2) / $sic_a / 2 * $lambda)
+%sic111 = guess PseudoVoigt [35:36] center=$c_sic111
+
+# Zn (100)
+$c_zn100 = 360/pi * asin(sqrt(4/3 * (1^2+0+1*0) / $zn_a^2 + 0/$zn_c^2 ) / 2 * $lambda)
+%zn100 = guess PseudoVoigt [38:40] center=$c_zn100
+
+# Zn (101)
+$c_zn101 = 360/pi * asin(sqrt(4/3 * (1^2+0+1*0) / $zn_a^2 + 1^2/$zn_c^2 ) / 2 * $lambda)
+%zn101 = guess PseudoVoigt [40:45] center=$c_zn101
+
+# Zn (102)
+$c_zn102 = 360/pi * asin(sqrt(4/3 * (1^2+0+1*0) / $zn_a^2 + 2^2/$zn_c^2 ) / 2 * $lambda)
+%zn102 = guess PseudoVoigt [52:56] center=$c_zn102
+
+
+#after adding a few peaks, it can be a good idea to fit it, to obtain
+#better approximation of lattice parameters
+fit 10 
+
+# Zn (103)
+$c_zn103 = 360/pi * asin(sqrt(4/3 * (1^2+0+1*0) / $zn_a^2 + 3^2/$zn_c^2 ) / 2 * $lambda)
+%zn103 = guess PseudoVoigt [68:72] center=$c_zn103
+
+# Zn (110) 
+$c_zn110 = 360/pi * asin(sqrt(4/3 * (1^2+1^2+1*1) / $zn_a^2 + 0^2/$zn_c^2 ) / 2 * $lambda)
+%zn110 = guess PseudoVoigt [68:72] center=$c_zn110
+
+# Zn (112) 
+$c_zn112 = 360/pi * asin(sqrt(4/3 * (1^2+1^2+1*1) / $zn_a^2 + 2^2/$zn_c^2 ) / 2 * $lambda)
+%zn112 = guess PseudoVoigt [80:83] center=$c_zn112
+
+# Zn (200) 
+$c_zn200 = 360/pi * asin(sqrt(4/3 * (2^2+0^2+2*0) / $zn_a^2 + 0^2/$zn_c^2 ) / 2 * $lambda)
+%zn200 = guess PseudoVoigt [83:84] center=$c_zn200
+
+# we constrain width and shape of this small peak (200)
+%zn200[shape] = %zn112[shape]
+%zn200[hwhm] = %zn112[hwhm]
+
+# Zn (201) 
+$c_zn201 = 360/pi * asin(sqrt(4/3 * (2^2+0^2+2*0) / $zn_a^2 + 1^2/$zn_c^2 ) / 2 * $lambda)
+%zn201 = guess PseudoVoigt [85:88] center=$c_zn201
+
+# SiC (311)
+$c_sic311 = 360/pi * asin(sqrt(3^2+1^2+1^2) / $sic_a / 2 * $lambda)
+%sic311 = guess PseudoVoigt [71:73] center=$c_sic311
+
+%zs = Constant(~0.) -> Z #zero-shift
+
+# fit   #running default fitting method (Lev-Mar)
        #'lambda' that you can see in output window is a parameter used by
        # fitting method, not wavelength.
 
- c.info # see refined lattice parameters
- 
- # if you want to zoom, the easiest way is to use left button on auxiliary
- # plot (this plot with difference). To zoom out, use middle button.
- # To see individual peaks, select Show->Peaks from pop-up menu.
 

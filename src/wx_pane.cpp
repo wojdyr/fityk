@@ -670,7 +670,7 @@ void SideBar::OnDataButtonRen (wxCommandEvent& WXUNUSED(event))
                                    "Rename dataset",
                                    old_title);
     if (!s.IsEmpty() && s != old_title)
-        exec_command("@" + S(n) + ".title = \"" + s.c_str() + "\"");
+        exec_command("@" + S(n) + ".title = '" + s.c_str() + "'");
 }
 
 void SideBar::OnDataButtonDel (wxCommandEvent& WXUNUSED(event))
@@ -977,7 +977,7 @@ void SideBar::OnDataFocusChanged(wxListEvent& WXUNUSED(event))
         return;
     int length = AL->get_ds_count();
     if (length > 1 && AL->get_active_ds_position() != n) 
-        exec_command("plot @" + S(n));
+        exec_command("plot @" + S(n) + " ..");
     data_page->FindWindow(ID_DP_CPF)->Enable(n+1<length);
 }
 
@@ -998,6 +998,7 @@ void SideBar::update_data_inf()
     inf->AppendText(("@" + S(n) + "\n").c_str());
     inf->SetDefaultStyle(defattr);
     inf->AppendText(AL->get_data(n)->getInfo().c_str());
+    inf->ShowPosition(0);
 }
 
 void SideBar::update_func_inf()

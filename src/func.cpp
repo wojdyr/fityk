@@ -112,7 +112,7 @@ const char* builtin_formulas[] = {
     FuncSplitPearson7::formula,
     FuncPseudoVoigt::formula,
     FuncVoigt::formula,
-    FuncValente::formula,
+    //FuncValente::formula,
     FuncPielaszekCube::formula
 };
 

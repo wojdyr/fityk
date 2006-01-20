@@ -359,7 +359,6 @@ void do_import_dataset(char const*, char const*)
         tmp_int = AL->append_ds(data.release());
     }
     else {
-        //TODO columns, type
         AL->get_data(tmp_int)->load_file(t, t2, vn); 
         if (AL->get_ds_count() == 1)
             AL->view.fit();
@@ -497,10 +496,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
         static const char *empty = "";
 
         transform 
-            = (ds_prefix >> "title" >> ch_p('=') 
-               >> lexeme_d['"' >> (+~ch_p('"'))[assign_a(t)] 
-                           >> '"'] 
-              ) [&set_data_title]
+            = (ds_prefix >> "title" >> '=' >> compact_str)[&set_data_title]
             | (no_actions_d[DataTransformG] [assign_a(t)] 
                >> in_data) [&do_transform] 
             ;

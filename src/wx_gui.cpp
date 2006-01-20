@@ -1029,7 +1029,7 @@ void FFrame::OnFRun          (wxCommandEvent& WXUNUSED(event))
                                  "Max. number of iterations", "Fit->Run", 
                                  getFit()->default_max_iterations, 0, 9999);
     if (r != -1)
-        exec_command (("fit " + S(r)).c_str());
+        exec_command("fit " + S(r) + get_in_dataset());
 }
         
 void FFrame::OnFContinue     (wxCommandEvent& WXUNUSED(event))
@@ -1038,7 +1038,7 @@ void FFrame::OnFContinue     (wxCommandEvent& WXUNUSED(event))
                                  "Max. number of iterations", "Fit->Continue", 
                                  getFit()->default_max_iterations, 0, 9999);
     if (r != -1)
-        exec_command (("fit +" + S(r)).c_str());
+        exec_command ("fit+ " + S(r) + get_in_dataset());
 }
              
 void FFrame::OnFInfo         (wxCommandEvent& WXUNUSED(event))
@@ -1705,10 +1705,10 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
             frame->plot_pane->get_bg_manager()->strip_background();
             break; 
         case ID_ft_f_run : 
-            exec_command("fit"); 
+            exec_command("fit" + frame->get_in_dataset()); 
             break; 
         case ID_ft_f_cont: 
-            exec_command("fit +"); 
+            exec_command("fit+" + frame->get_in_dataset()); 
             break; 
         case ID_ft_f_undo: 
             exec_command("s.history -1"); 

@@ -1,7 +1,7 @@
 
-GUI: sidebar, bottom panel -> draw draft of peak when changing peak parameters
+* (GUI) sidebar bottom panel -> draw draft of peak when changing peak parameters
 
-DataExpressionG: 
+* DataExpressionG: 
     %func(DataExpressionG) #OP_FUNC number #eg. Y = y-%peak(x)       
     F(DataExpressionG)     #OP_CURVE_Y number
     Z(DataExpressionG)     #OP_CURVE_DX number
@@ -16,67 +16,73 @@ DataExpressionG:
      			  & S = interpolate[x s](X)
      			  & A = interpolate[x a](X)
 
-sum() doesn't work in "info sum(x)" or $a={sum(y)}
+* [BUG] sum() doesn't work in "info sum(x)" or $a={sum(y)}
 
-internal: UI - two implementations of one class are bad idea  
+* [internal] UI - two implementations of one class are bad idea  
 	     it must be a base class (virtual?) with derived GUI and CLI
 
-GUI: sidebar: default column widths should be different
+* (GUI) sidebar: default column widths should be different
 
-GUI: use numeric pad keys (WXK_NUMPAD_*) as shortcuts for changing 
+* (GUI) use numeric pad keys (WXK_NUMPAD_*) as shortcuts for changing 
 	function parameters.
 
-GUI: more extensive and configurable (2/3 buttons, size) mouse hints 
+* (GUI) more extensive and configurable (2/3 buttons, size) mouse hints 
 	   (also for aux. plot, etc)
 
-function: EMG (expotentially modified gauss)
+* function: EMG (expotentially modified gauss)
 
-GUI: print: if no sum, don't print aux plot
+* GUI: print: if no sum, don't print aux plot
 
-GUI: it should be possible to constrain two parameters of two peak,
+* GUI: it should be possible to constrain two parameters of two peak,
      at least to make them equal.
 
-GUI: easy way to do: F[hwhm]=..., F[shape]=...;
+* GUI: easy way to do: F[hwhm]=..., F[shape]=...;
 
-GUI: button 'freeze' on variables pane
+* GUI: button 'freeze' on variables pane
 
-cmd: any-command with option=value -- set value of option for this command only
+* cmd: any-command with option=value 
+         -- set value of option for this command only
 
-Fitting 
+* GUI [BUG] aux. plot - when program is called with script as an argument
+   aux. plot looks strange at the start of the program until it is replotted
+
+* Fitting 
 	settings: GUI, fitting
 	greyed fit-continue menu/button
 	cmd: fit with more options
 	simulated annealing (it can replace LM shake_before option)
 	autoplot option -> fitting tab, checkbox: replot-after-fit-iteration
 
-GUI: menu Functions:
+* GUI: menu Functions:
   Functions > Peak-Find Info -> animation
   Functions > Multidata P-F Info -> window with list of parameters (Xview-like)
 
-Function: check_parameters_out_of_domain() ?  
-            // eg. in Pearson shape > 0.5 , shape < 1e9
-	    // called from fitting iteration?
-	    // what if parameter is out-of-domain? change? disable function?
-	                                            change and freeze?
-	    // set fit-fix-parameters-times = 5
-	    //simple-var bounds?
+* parameter domain ~3[2,14]
 
-GUI: Data Editor - left/right/top/bottom - magic keywords: user would be
-      asked to select point/range/rectangle in plot
+* Function: check_parameters_out_of_domain() ?  
+             eg. in Pearson shape > 0.5 , shape < 1e9
+	     called from fitting iteration?
+	     what if parameter is out-of-domain? change? disable function?
+	                                          change and freeze?
+	     set fit-fix-parameters-times = 5
+	    simple-var bounds?
 
-history  (data / sum / view / all)
+* GUI: Data Editor - left/right/top/bottom - magic keywords: user would be
+       asked to select point/range/rectangle in plot
 
-plot peak-groups: ==> plot (%a+%b+%c)  
+* history  (data / sum / view / all)
 
-different peak-draft for steps (new function category), and other functions
+* cmd/GUI: plot peak-groups: ==> plot (%a+%b+%c)  
 
-parameter domain ~3[2,14]
+* (GUI) different peak-draft for steps (new function category), 
+         and for other functions
 
-internal: are functions recalculate()'d when neccessary? eg.before copy(%f) ?
+* [internal] are functions recalculate()'d when neccessary? eg.before copy(%f)?
 
-internal: mark parameters, which are not used in sum calculation, and don't
-          put it into matrix (?)
+* [internal] mark parameters, which are not used in sum calculation, and don't
+             put it into matrix (?)
 
+* (GUI) where config files should be stored on MS Windows? Registry of file?
 
 * (GUI) peak positions as an option to any aux. plot 
         (not separate type of aux.p.)
@@ -87,9 +93,14 @@ internal: mark parameters, which are not used in sum calculation, and don't
 
 * data tranformations: new functions: randuniform[a b]() randnormal[mu sigma]()
 
-* [del] key at data pane should work as close button
+* key [del] at data pane should work as close button
 
 * improve Voigt function (cut-tails, better approx?) 
+
+* (GUI) vertical scaling using mouse on main plot near to left edge of the plot 
+
+* (GUI) peak dragging -- sensible scaling of parameter changes 
+           (problems with width changing)
 
 ------------------ 
 

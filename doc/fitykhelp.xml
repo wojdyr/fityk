@@ -13,11 +13,10 @@
 <!-- SGML header below-->
 <!-- <!DOCTYPE article  PUBLIC "-//OASIS//DTD DocBook V4.1//EN"> -->
 
-<!-- the first version of this manual was created with LyX -->
 <book lang="en">
  <title>Fityk - User's Manual</title> 
  <bookinfo> 
-  <date>2006-01-07</date>
+  <date>2006-01-19</date>
   <author> 
    <firstname>Marcin</firstname> <surname>Wojdyr</surname>
   </author> 
@@ -72,10 +71,10 @@
   <section>
    <title>How to read this manual</title>
    <para>
-    After this introduction, read the entire <xref linkend="using"/>.
+    After this introduction, read the <xref linkend="getstarted"/>.
     If you are using <acronym>GUI</acronym> you can look at 
     <ulink url="http://www.unipress.waw.pl/fityk/screenshots.html">
-    screenshots-based tutorial at webpage 
+     screenshots-based tutorial at webpage 
     </ulink> 
     and postpone reading
     <xref linkend="CommandReference"/> until you need to write a script
@@ -96,7 +95,8 @@
     the <systemitem class="library">GNU Readline Library</systemitem>, 
     it enables command line editing and command history 
     like in <application>bash</application>.
-    Especially useful is <keycap>TAB</keycap>-expanding. 
+    Especially useful is <keycap>TAB</keycap>-expanding [TODO: tab-expanding
+    works only partially in this version, ie. fityk 0.7.0pre1]. 
     Data and curve fitted to data are visualized with 
     <application>gnuplot</application> program (if it is installed).
    </para>
@@ -107,7 +107,7 @@
     </ulink>
     library. 
     One of the main features of this library is portability. Program can be
-    run on most Unix species with <systemitem class="library">GTK+</systemitem>
+    run on Unix species with <systemitem class="library">GTK+</systemitem>
     (it is developed on Linux) and on MS Windows. There are also people
     using it on MacOS X (have a look at fityk-users mailing list archives
     for details).
@@ -116,7 +116,7 @@
  </chapter>
 
 
- <chapter id="using">
+ <chapter id="getstarted">
   <title>Getting started</title>
 
   <section>
@@ -157,8 +157,9 @@
    </para> 
    <para>
     Now all data points are active.
-    Because only the biggest peak is our interest, the rest of points can be
-    deactivated. Type: <userinput> a = (23.0 &lt; x &lt; 26.0) </userinput>
+    Because only the biggest peak is of our interest, 
+    the rest of points can be deactivated. 
+    Type: <userinput> a = (23.0 &lt; x &lt; 26.0) </userinput>
     or change to <firstterm>range</firstterm> mode (press 
     <guiicon> Data-Range Mode </guiicon>
     button on toolbar) and select range 
@@ -171,7 +172,7 @@
     use Gaussian. 
     To see it's formula, type: <userinput>info Gaussian</userinput>
     or look for it in the documentation (in <xref linkend="flist"/>). 
-    By the way, most of commands can be abbreviated, 
+    By the way, most of the commands can be abbreviated, 
     eg. you can type: <userinput>i Gaussian</userinput>. 
    </para>
    <para>
@@ -189,7 +190,7 @@
     toolbar button.
     There are also other ways to add peak in <acronym>GUI</acronym>,
     try <firstterm>add-peak</firstterm> mode. 
-    These mouse-driven ways give function names like %_1, %_2, etc.
+    These mouse-driven ways give function a name like %_1, %_2, etc.
    </para>
    <para>
     Now let us fit the function. Type: <userinput>fit</userinput> 
@@ -197,7 +198,7 @@
     <menuchoice>
      <guimenu>Fit</guimenu><guimenuitem>Run</guimenuitem>
     </menuchoice> 
-    from menu. 
+    from menu (or press toolbar button). 
    </para>
    <para>
     To see peak parameters, type: <userinput> info+ %p</userinput>
@@ -206,7 +207,9 @@
    </para>
    <para>
     That is all. To do the same second time, you can write all the commands 
-    to file, and use it as script: 
+    to file (you can do it now using command 
+    <command>commands &gt; <replaceable>filename</replaceable></command>),
+    and use it as script: 
     <userinput>commands &lt; nacl01.fit</userinput>
     or select 
     <menuchoice>
@@ -224,8 +227,8 @@
     <filename>$HOME/.fityk/init</filename> file.
     Then the program handles files given as arguments on command line.
     If the filename has extension ".fit" or the file starts with "# Fityk"
-    string, it is assumed to be a script and executed.
-    Other files are assumed to be a data files and are loaded by the program.
+    string, it is assumed to be a script and is executed.
+    Otherwise,  it is assumed to be a data file and is loaded.
     There are also other parameters to CLI and GUI versions of the program.
     Option "-h" gives the full listing.
    </para>
@@ -250,8 +253,9 @@
      The main plot can display
      data points, functions and/or the sum of all functions. Use pop-up
      menu (click <mousebutton>right</mousebutton> button on the plot) 
-     to configure it. Colors of data points and functions can be changed
-     using sidebar. 
+     to configure it. 
+     Some properties of plot (eg. colors of data points) can be changed
+     using the sidebar. 
     </para>
     <para>
      One of the most useful things which auxiliary plot can display 
@@ -359,7 +363,8 @@
      case, they are also ignored (unless they can be read as data point). 
      There are also other file types, that can be read: .rit, .cpi,
      Siemens-Bruker.raw and .mca. In future, the way the special file formats
-     are handled will be changed.
+     are handled will be changed (external library will be used for it,
+     unfortunatelly this library does not exists yet).
     </para>
     <para>
      Points are loaded from files using command
@@ -380,7 +385,7 @@
      unless many datasets are to be used simultanously 
      (for details see: <xref linkend="multidata"/>),
      <replaceable>filetype</replaceable> can be omitted (at this moment,
-     due to small number of supported formats, the filetype can be
+     due to a small number of supported formats, the filetype can be
      detected automatically),
      <replaceable>xcol</replaceable>, <replaceable>ycol</replaceable>, 
      <replaceable>scol</replaceable>, 
@@ -455,7 +460,7 @@
      <link linkend="DataLoad">read from file</link> together with x and y
      coordinates. Otherwise, it is set to max(sqrt(y), 1.0), 
      Setting std. dev. as a square root of value is common 
-     and has theoretical grounds when y is the number of independent events.
+     and has theoretical ground when y is the number of independent events.
      You can always change standard deviation, eg. make it equal for every
      point with command: <userinput>S=1</userinput>.
      See <xref linkend="transform"/> for details.
@@ -473,12 +478,12 @@
      You can transform data using assignments.
      Command <userinput>Y=-y</userinput> will change the sign of y coordinate
      of every point. You can also apply transformation to selected points:
-     <userinput>X[3]=1.2</userinput> will change point with index 3 
+     <userinput>Y[3]=1.2</userinput> will change point with index 3 
      (which is 4th point, because first has index 0),
-     and <userinput>X[3...6]=1.2</userinput> will do the same for points with 
-     indices 3, 4, 5, but not 6. <userinput>X[2...]=1.2</userinput>
+     and <userinput>Y[3...6]=1.2</userinput> will do the same for points with 
+     indices 3, 4, 5, but not 6. <userinput>Y[2...]=1.2</userinput>
      will apply transformation to point with index 2 and all next points.
-     You can guess what <userinput>X[...6]=1.2</userinput> does.
+     You can guess what <userinput>Y[...6]=1.2</userinput> does.
      Most of operations are executed sequentially for points from the first 
      to the last one. n stands for the index of currently transformed point.
      The sequance of commands:
@@ -486,24 +491,43 @@
      will generate the sinusoid dataset with 500 points. 
     </para>
     <para>
-     Expressions can contain binary operators: +, -, *, /, ^,
+     Points are kept sorted according to x coordinate, so changing x coordinate
+     of points will also change the order and indices of points.
+    </para>
+    <para>
+     Expressions can contain 
+     real numbers in normal or scientific format (eg. 1.23e5),
+     constant <constant>pi</constant>,
+     binary operators: +, -, *, /, ^,
      one argument functions:
-     sqrt, exp, log10, ln, sin, cos, tan, atan, asin, acos, abs,
-     round (rounds to the nearest integer),
-     two arguments functions: min2, max2 (eg. max2(3,5) will give 5), 
-     and ternary operator:
-     <command>
+     <function>sqrt</function>, 
+     <function>exp</function>, 
+     <function>log10</function>, 
+     <function>ln</function>, 
+     <function>sin</function>, 
+     <function>cos</function>, 
+     <function>tan</function>, 
+     <function>atan</function>, 
+     <function>asin</function>, 
+     <function>acos</function>, 
+     <function>abs</function>,
+     <function>round</function> (rounds to the nearest integer),
+     two arguments functions: 
+     <function>min2</function>, 
+     <function>max2</function>  
+     (eg. <userinput>max2(3,5)</userinput> will give 5), 
+     and ternary ?: operator: 
       <replaceable>condition</replaceable> ? 
       <replaceable>expression1</replaceable> : 
-      <replaceable>expression2</replaceable>
-     </command>, which performs 
+      <replaceable>expression2</replaceable>, which performs 
      <replaceable>expression1</replaceable> if condition is true 
      and <replaceable>expression2</replaceable> otherwise.
      Conditions can be built using boolean operators comparisions: 
-     AND, OR, >, >=, &lt;, &lt;=, = (or ==), != (or &lt;>), TRUE, FALSE, NOT.
+     AND, OR, NOT, &gt;, &gt;=, &lt;, &lt;=, = (or ==), 
+     != (or &lt;&gt;), TRUE, FALSE.
     </para>
     <para>
-     And important note: all operations are performed on real numbers.
+     Important note: all operations are performed on real numbers.
      Two numbers that differ less than epsilon=1e-9 
      ie. abs(a-b)&lt;epsilon, are considered equal. 
      Indices are also computed in real number domain, 
@@ -552,7 +576,12 @@
      delete(not a) # delete inactive points
 
      X = 4*pi * sin(x/2*pi/180) / 1.54051 # changes x scale (2theta -> Q)
-    </screen>     
+     </screen>     
+    </para>
+    <para>
+     Introduced later in this manual
+     <link linkend="variables">variables</link> also can be used in data
+     transformations, eg. <userinput>Y=y/$foo</userinput>.
     </para>
    </section> 
 
@@ -565,8 +594,9 @@
      If there are more datasets created, it must be explicitly
      written which dataset the command is applied to, eg.
      <userinput>M=500 in @0</userinput>. Datasets have numbers
-     and are referenced by '@' with the number, eg. @3.
-     @* means all datasets, and <userinput>Y=y/10 in @*</userinput>
+     and are referenced by '@' with the number, eg. <userinput>@3</userinput>.
+     <userinput>@*</userinput> means all datasets, 
+     and <userinput>Y=y/10 in @*</userinput>
      will do what is expected to.
     </para>
     <para>
@@ -595,14 +625,14 @@
     <para>
      Each dataset has a title. It does not have to be unique.
      When loading file, a title is automatically created, either 
-     using filename or it is read from the file (it depends on format
+     using filename or it is read from the file (it depends on the format
      of the file).
      It is used for exporting data -- some file formats require it.
      Title can be changed using command 
      <command>
       @<replaceable>n</replaceable>.title=<replaceable>new-title</replaceable>
      </command>. 
-     To see title of dataset, 
+     To see title of the dataset, 
      use <command>info @<replaceable>n</replaceable></command>.
     </para>
    </section> 
@@ -687,7 +717,7 @@
      binded to each parameter.
     </para>
    </section>
-   <section>
+   <section id="variables">
     <title>Variables</title>
     <para>
      Variables in Fityk have names prefixed with dollar ($).
@@ -695,17 +725,31 @@
      <userinput>$foo=~5.3</userinput> 
      or <userinput>$c=3.1</userinput>
      or <userinput>$bar=5*sin($foo)</userinput>.
-     $foo is here a so-called <firstterm>simple variable</firstterm>. 
+     <varname>$foo</varname> is here a so-called 
+     <firstterm>simple variable</firstterm>. 
      It is created by assigning
      to it real number prefixed with ~. The `~' means that value
      assigned to the variable can be changed when fitting sum to data.
      For people familiar with optimization techniques: 
      the number of defined simple variables is the number of dimensions
-     of hyper-space we are looking for optimum in.
-     Variable $c is actually a constant. $bar depends on the value of $foo.
-     When $foo changes, the value of $bar also changes.
+     of space we are looking for optimum in.
+     Variable <varname>$c</varname> 
+     is actually a constant. <varname>$bar</varname> 
+     depends on the value of <varname>$foo</varname>.
+     When <varname>$foo</varname> changes, the value 
+     of <varname>$bar</varname> also changes.
      Compound variables can be build using operators +, -, *, /, ^
-     and functions sqrt, exp, log10, ln, sin, cos, tan, atan, asin, acos.
+     and functions 
+     <function>sqrt</function>, 
+     <function>exp</function>, 
+     <function>log10</function>, 
+     <function>ln</function>, 
+     <function>sin</function>, 
+     <function>cos</function>, 
+     <function>tan</function>, 
+     <function>atan</function>, 
+     <function>asin</function>, 
+     <function>acos</function>. 
     </para>
     <para>
      Every simple parameter has a value and, optionally, domain.  
@@ -716,9 +760,9 @@
      be added soon]
     </para>
     <para>
-     Variables can be used in data tranformations, 
-     eg. <userinput>x[3]=$bar</userinput> and value of data expression
-     can be used in variable definition, but it can be inside of braces,
+     Variables can be used in data tranformations. 
+     Also value of data expression
+     can be used in variable definition, but it must be inside of braces,
      eg. <userinput>$bleh={M}</userinput> 
      or, to create simple variable: <userinput>$bleh=~{M}</userinput>.
     </para>
@@ -735,8 +779,10 @@
     <para>
      It is also possible to define a variable as eg. 
      <userinput>$bleh=~9.1*exp(~2)</userinput>. In this case two simple
-     variables will be created automatically. Automatically created
-     variables are named $_1, $_2, $_3, etc.
+     variables (with values 9.1 and 2) will be created automatically. 
+     Automatically created
+     variables are named <varname>$_1</varname>, <varname>$_2</varname>, 
+     <varname>$_3</varname>, etc.
     </para>
     <para>
      Variables can be deleted using command 
@@ -765,11 +811,11 @@
      number of comma-separated variables in brackets, eg:
      <userinput>%f = Gaussian(~66254., ~24.7, ~0.264)</userinput>
      or
-     <userinput>%f = Gaussian(~66254., $ctr, $b+$c+~0.14)</userinput>.
-     Every expression, which is valid on right hand side of variable
+     <userinput>%f = Gaussian(~66254., $ctr, $b+$c)</userinput>.
+     Every expression, which is valid on the right hand side of variable
      assignment, can be put as a variable.
-     If it is not just a name of variable, an automatic variable is created.
-     In the last example two variables are created.
+     If it is not just a name of a variable, an automatic variable is created.
+     In the last example two variables are created (value 66354 and the sum).
     </para>
     <para>
      The second way is to give named parameters of function, in any order, eg.
@@ -805,12 +851,25 @@
       =-> %f[height]=$h
       =-> info %f
       %f = Pearson7($h, $_5, $_3, $_4)
-      =-> $h = ~60000 # variables are kept by name, this also changes %f
+      =-> $h = ~60000 # variables are kept by name, so this also changes %f
      </screen>
     </para>
     <para>
      Functions can be deleted using command 
      <command>delete <replaceable>%function</replaceable></command>.
+    </para>
+   </section> 
+   <section>
+    <title>Speed of computations</title>
+    <para>
+     With default settings, value of every function is calculated
+     in every point. Functions like Gaussian often have non-neglectible
+     value only in small fraction of all points. To speed up calculation,
+     set option
+     <parameter class="option">cut-function-level</parameter> 
+     to non-zero value. Note, that some functions may not support
+     this optimization at all, and for other approximations are used
+     and the exact value of cut-off level can differ.
     </para>
    </section> 
    <section>
@@ -821,29 +880,33 @@
      It can be seen in <link linkend="sumintro">formula above</link>,
      that the sum consists of functions f<subscript>i</subscript> 
      and z<subscript>i</subscript>. Each dataset has two sets named F and Z.
-     They contain references to functions.
+     They contain names of functions.
      Sum is constructed by telling which functions are in F and which in Z.
     </para>
     <para>
-     In many cases Z can be fogotten. Then fitted curve is a sum of all
+     In many cases Z can be forgotten. Then fitted curve is a sum of all
      functions in F. The functions can be listed with command 
      <command>info F</command>.
     </para>
     <para>
      Command 
-     <command><replaceable>%function -&gt; F</replaceable></command>
+     <command><replaceable>%function</replaceable> -&gt; F</command>
      puts <replaceable>%function</replaceable> into F,
      command 
-     <command><replaceable>%function -&gt; Z</replaceable></command>
+     <command><replaceable>%function</replaceable> -&gt; Z</command>
      puts <replaceable>%function</replaceable> into Z,
      and command 
-     <command><replaceable>%function -&gt; N</replaceable></command>
+     <command><replaceable>%function</replaceable> -&gt; N</command>
      removes <replaceable>%function</replaceable> from F or Z.
      If there is more than one dataset, F, Z and N must be prefixed
      with dataset number, eg.
-     <command><replaceable>%function -&gt; @1.F</replaceable></command>
+     <command>
+      <replaceable>%function</replaceable> -&gt; <replaceable>@1</replaceable>.F
+     </command>
      or
-     <command><replaceable>%function -&gt; @0.N</replaceable></command>.
+     <command>
+      <replaceable>%function</replaceable> -&gt; <replaceable>@0</replaceable>.N
+     </command>.
      Following syntax is also valid:
      <screen>
       # create and add funtion to F
@@ -917,15 +980,15 @@
      <command>info functions</command> lists all defined functions,
      and <command>info variables</command> - all variables.
      <command>info @<replaceable>n</replaceable>.F</command> 
-     and <command>info @.<replaceable>n</replaceable>Z</command> show 
+     and <command>info @<replaceable>n</replaceable>.Z</command> show 
      informations about F and Z, 
-     <command>info @.<replaceable>n</replaceable>formula</command>
+     <command>info @<replaceable>n</replaceable>.formula</command>
      shows mathematic formula of fitted function,
      and 
      <command>
-      info @.<replaceable>n</replaceable> dF(<replaceable>x</replaceable>)
+      info @<replaceable>n</replaceable>.dF(<replaceable>x</replaceable>)
      </command>
-     compares symbolic and numeric defivatives in <replaceable>x</replaceable>
+     compares symbolic and numeric derivatives in <replaceable>x</replaceable>
      (useful only for debugging).
     </para>
    </section> 
@@ -1136,7 +1199,7 @@
      computing first derivatives of functions. For description of L-M method
      see <citetitle pubwork="book">Numerical Recipes</citetitle>, chapter 15.5 
      or Siegmund Brandt <citetitle pubwork="book">Data Analysis</citetitle>,
-     chapter 10.15 (there is a Polish translation of the second). 
+     chapter 10.15 (I've read the Polish translation of the second). 
      In a few words: it combines
      inverse-Hessian method (called Gauss-Newton method?) with steepest descent
      method by introducing lambda factor. When lambda is equal 0, the method is
@@ -1177,15 +1240,6 @@
 
    <section>
     <title>Nelder-Mead downhill simplex method </title>
-    <para>
-     <note>
-      <para>
-       The rest of this chapter is outdated,
-       At this moment default settings of fitting methods can't be changed.
-       It will be fixed as soon as possible.
-      </para>
-     </note>
-    </para>
     <para>
      This time I am quoting chapter 4.8.3, p. 86 of Peter Gans
      <citetitle>
@@ -1228,10 +1282,16 @@
      and <citetitle>Data Analysis</citetitle> (chapter 10.8).
     </para>
     <para>
-     After changing current fitting method to Nelder-Mead simplex, what can be
-     done, as you already know, either using menu or using command
-     <userinput>f.method s</userinput>
-     you have a few options specific to this method, that can be changed. 
+     <note>
+      <para>
+       The rest of this chapter is outdated,
+       At this moment default settings of fitting methods can't be changed.
+       It will be fixed as soon as possible.
+      </para>
+     </note>
+    </para>
+    <para>
+     There are a few options for tuning this method.
      One of those is a stopping criterium 
      <parameter class="option">min-fract-range</parameter>. If value of
      expression 2(M-m)/(M+m), where M and m are values of worst and best
@@ -1324,8 +1384,8 @@
                 # y range will be fitted to contain all data
 
    plot . [:10] # x range will not be changed, y from the lowest point to 10 
-   plot [:] [:] # all data will be showed.   
-   plot         # the same
+   plot [:] [:] # all data will be showed   
+   plot         # all data will be showed   
    plot . .     # nothing changes
      </screen>
     </para>
@@ -1392,11 +1452,7 @@
      [TODO] which is not working at this moment.
     </para>
     <para>
-     Command:
-     <cmdsynopsis>
-      <command>sleep</command> 
-      <arg choice="plain"><replaceable>sec</replaceable></arg>
-     </cmdsynopsis>
+     Command <command>sleep <replaceable>sec</replaceable></command> 
      makes program waiting <replaceable>sec</replaceable> seconds,
      doing nothing. 
     </para>
@@ -1410,314 +1466,36 @@
     </para>
    </section> 
   </section> 
+ </chapter>
 
 
-
-
-  <section id="crystallography">
-   <title>Module for crystallography</title>
+ <chapter id="useandextend">
+  <title>Using and extending </title>
+  <section id="usecases">
+   <title>Use cases</title>
    <para>
-    This module simplifies using <application>fityk</application> 
-    for analyzing diffractograms. User must know approximate unit-cell
-    parameters, and know or guess Miller's indices of reflections.  
-    Widths and shapes of peaks can be independend or angle-depended parameters.
-    The whole pattern is refined. Note, that individual profiles can also 
-    be fitted, but this module is not needed for it.
+    [TODO]
    </para>
+  </section> 
+  <section id="extensions">
+   <title>Extensions</title>
    <para>
-    It is assumed, that x coordinate of data points represent scattering angle
-    &two-theta; and wavelengths are constant.
+    [TODO]
    </para>
-   <para>
-    Everything, what can be done with crystallographic commands, could be done
-    with <command>s.add</command>, <command>s.remove</command>, 
-    <command>s.info</command> and <command>m.findpeak</command> commands, 
-    although it would be very inconvenient.
-   </para>
-   <para>
-    The wavelength can be specified with command:
-    <cmdsynopsis>
-     <command>c.wavelength</command> 
-     <arg choice="plain"><replaceable>lambda</replaceable></arg> 
-     <arg><replaceable>intens</replaceable></arg> 
-    </cmdsynopsis>
-    <replaceable>lambda</replaceable> and <replaceable>intens</replaceable> 
-    are parameters and can be specified as parameters in
-    <command>s.add</command> command. 
-    It practice, two forms are used: _<replaceable>p</replaceable> 
-    (eg. <userinput>_1.93597</userinput>) if wavelength is known 
-    or ~<replaceable>p</replaceable> (eg. <userinput>~0.9</userinput>) 
-    if it should be fitted.
-    <replaceable>intens</replaceable> is a relative intensity of wavelength, 
-    and it matters, when there are two or more wavelengths. 
-    Above command adds a wavelength with
-    its ratio to a set of wavelength. This means, that if you want to define
-    two wavelengths, you should use this command twice, and if you want to
-    change constant wavelength, you must delete previously defined one and add
-    a new one. To delete all defined wavelengths, use command
-    <cmdsynopsis>
-     <command>c.wavelength</command> <arg choice="plain">!</arg> 
-    </cmdsynopsis>
-    and to display informations about them, just type:
-    <cmdsynopsis>
-     <command>c.wavelength</command> 
-    </cmdsynopsis>
-   </para>
-   <para>
-    Now about a few essential options. You must choose a peak-shape, that will
-    model a reflections. To do this, assign proper value to option 
-    <parameter class="option">peak-type</parameter>.
-    You can use <link linkend="gaussian">Gaussian</link>, 
-    <link linkend="lorentzian">Lorentzian</link>, 
-    <link linkend="pearson7">Pearson VII</link>, 
-    <link linkend="psvoigt">pseudo-Voigt</link> or Mod-TCHpV.
-    The last one is also a pseudo-Voigt, but its width and shape parameters are
-    given by following formulae:
-    <informalequation>
-     <mediaobject>
-      <imageobject>
-       <imagedata fileref="fitykhelp_img/modtchpv.png"/>
-      </imageobject>
-      <textobject>
-       <phrase>
-        complicated Mod-TCHpV formula
-       </phrase>
-      </textobject>
-     </mediaobject>  
-    </informalequation>
-
-    Positions (centers) of peaks are determined by Bragg's Law, 
-    and heights (and, therefore, areas) are
-    fitted almost freely - the only constraint is, 
-    that ratio of heights of peaks in one plane is equal to appropriate ratio
-    of wavelength intensities. If you do not use Mod-TCHpV type, width and
-    shape parameters of peak can be:
-    <itemizedlist>
-     <listitem>
-      <para>
-       fitted autonomously for every peak,
-      </para>
-     </listitem>
-     <listitem>
-      <para>
-       equal for peaks in one plane (if there is more than one wavelength used,
-       plane is represented by more than one peak),
-      </para>
-     </listitem>
-     <listitem>
-      <para>
-       equal for all peaks in one phase,
-      </para>
-     </listitem>
-     <listitem>
-      <para>
-       or function of &two-theta;; for width, it is Lowe-Ma formula:
-       <informalequation>
-        <mediaobject>
-         <imageobject>
-          <imagedata fileref="fitykhelp_img/LoweMa.png"/>
-         </imageobject>
-         <textobject>
-          <phrase>
-           H_K^2 = U tan^2 \theta + V tan \theta + W + CT cot^2 \theta 
-          </phrase>
-         </textobject>
-        </mediaobject>  
-       </informalequation>
-       H<subscript>K</subscript> usually means FWHM, 
-       but note that above formula can be also applied to HWHM, by rescaling
-       refinable variables: U'=U/4, V'=V/4, etc.
-       Shape parameter of peak can be modeled by function of peak's position,
-       for pseudo-Voigt peak:
-       <informalequation>
-        <mediaobject>
-         <imageobject>
-          <imagedata fileref="fitykhelp_img/a3psvoigt.png"/>
-         </imageobject>
-         <textobject>
-          <phrase>
-           a_3 = A + B * (2 \theta)
-          </phrase>
-         </textobject>
-        </mediaobject>  
-       </informalequation>
-       and for Pearson peak:
-       <informalequation>
-        <mediaobject>
-         <imageobject>
-          <imagedata fileref="fitykhelp_img/a3pearson.png"/>
-         </imageobject>
-         <textobject>
-          <phrase>
-           a_3 = A + B / (2\theta) + C/(2\theta)^2
-          </phrase>
-         </textobject>
-        </mediaobject>  
-       </informalequation>
-      </para>
-     </listitem>
-    </itemizedlist>
-   </para>
-   <para>
-    You can select one of possibilities listed above using options
-    <parameter class="option">fwhm-constrain</parameter> 
-    and <parameter class="option">shape-constrain</parameter>.
-   </para>
-   <para>
-    Phase is defined by its type and lattice parameters. Command
-    <cmdsynopsis>
-     <command>c.add</command> 
-     <arg choice="plain">%<replaceable>p</replaceable></arg> 
-     <arg choice="plain"><replaceable>param1</replaceable></arg> 
-     <arg rep="repeat"><replaceable>param2</replaceable></arg>
-    </cmdsynopsis>
-    adds a new phase to set of phases in our model. 
-    <replaceable>p</replaceable> is a letter that stands for type of lattice:
-   </para>
-   <itemizedlist>
-    <listitem>
-     <para>
-      <userinput>%c</userinput> - cubic phase,
-     </para>
-    </listitem>
-    <listitem>
-     <para>
-      <userinput>%t</userinput> - tetragonal phase,
-     </para>
-    </listitem>
-    <listitem>
-     <para>
-      <userinput>%o</userinput> - orthorhombic phase,
-     </para>
-    </listitem>
-    <listitem>
-     <para>
-      <userinput>%h</userinput> - hexagonal phase.
-     </para>
-    </listitem>
-   </itemizedlist>
-   <para>
-    Monoclinic and triclinic types are not implemented, 
-    because author of program had no need to use them. You can also display 
-    this list with command:
-    <cmdsynopsis>
-     <command>c.info</command> <arg choice="plain">%</arg> 
-    </cmdsynopsis>
-    Lattice parameters, that follow type of
-    phase, can be specified in the same way as 
-    <replaceable>lambda</replaceable> and <replaceable>intens</replaceable> in
-    <command>c.wavelength</command> command described above. 
-   </para>
-   <para>
-    The last information, which the program needs, is what planes are 
-    visible on diffractogram. It has to be specified using Miller 
-    indices (hkl).  Command
-    <cmdsynopsis>
-     <command>c.add</command> 
-     <arg>%<replaceable>n</replaceable></arg> 
-     <arg choice="plain">(<replaceable>hkl</replaceable>)</arg>
-    </cmdsynopsis>
-    adds appropriate functions, that represent
-    that plane, to the sum of functions. If %<replaceable>n</replaceable> 
-    is omitted, first phase (%0) is assumed. Eg. command 
-    <userinput>c.add %1 (100)</userinput> will add plane (100) 
-    of second defined phase %1. Informations about
-    phases and planes can be viewed with command:
-    <cmdsynopsis>
-     <command>c.info</command> 
-     <arg>%<replaceable>n</replaceable> 
-      <arg>(<replaceable>hkl</replaceable>)</arg>
-     </arg> 
-    </cmdsynopsis>
-    Every plane or the whole phase can be removed from the model using:
-    <cmdsynopsis>
-     <command>c.remove</command> 
-     <arg choice="plain">%<replaceable>n</replaceable> 
-      <arg>(<replaceable>hkl</replaceable>)</arg>
-     </arg> 
-    </cmdsynopsis>
-   </para>
-   <para>
-    The last thing that requires explanation is how initial height, 
-    width and shape parameters of peaks are being found. 
-    It is based on algorithm used in 
-    m.findpeak command.
-    It is also influenced by the same options 
-    as <command>m.findpeak</command>. In case of two or more wavelengths used,
-    this algorithm is a little enhanced. To see, how peaks representing plane
-    will look like, use command:
-    <cmdsynopsis>
-     <command>c.estimate</command> 
-     <arg>%<replaceable>n</replaceable></arg> 
-     <arg choice="plain">(<replaceable>hkl</replaceable>)</arg> 
-     <arg><replaceable>width</replaceable></arg> 
-    </cmdsynopsis>
-    If width is given, it is used instead of value of 
-    <parameter class="option">search-width</parameter> option.
-   </para>
-
-   <section>
-    <title>Example</title>
-    <para>
-     You can find following script and data used by it in 
-     <filename class="directory">samples</filename> directory.
-     <programlisting>
-## this script is an example of crystallography/diffraction module usage
-
- d.load 'SiC_Zn.dat' # Load data file from current directory (SiC+Zn data)
-
- #background was obtained by clicking on plot in "background mode"
- d.background  20.4823 43.3474 , 28.004 24.3128 , 31.4412 23.6984 , 
- d.background  33.7911 36.0138 , 38.6477 30.5403 , 98.9835 23.6079 , 
- d.b 98.9835 23.6079 , 79.5965 22.1979 , 65.1888 17.968 , 49.9335 17.263
-
- d.range [ 31 : ] # only data with 2theta greater then 31.0 are active
-
- #Used wavelength in known and we do not want to fit it.
- # If you would like to fit wavelength, replace '_' with '~'
- c.w _1.54051 # Cu Ka1 
-
- c.set peak-type = Mod-TCHpV 
-
- #define phases and initial lattice parameters
- c.add %c ~4.35  #SiC, %0 
- c.add %h ~2.66  ~4.92  #Zn, %1 
-
- #defining some peaks (order does not matter)
- c.add %0 (220) # (220) plane of SiC phase
- c.add %1 (002) # (002) plane of Zn phase
- c.add %0 (111)
- c.add %1 (100), %1 (101) # do you remember how comma(,) works?
- c.a %1 (102) # every command can be shortened with x.x (letter-dot-letter)
-
- #after adding a few peaks, it can be a good idea to fit it, to obtain
- #better approximation of lattice parameters
- #f.run 10 
-
- # the rest of peaks
- c.add %1 (103), %1(110), %1(112), %1(200), %1(201), %1(202)
- c.add %0 (311)
-
- s.add &lt;x ~0 #zero-shift
-
- f.run # running default fitting method (Lev-Mar)
- #'lambda' that you can see in output window is a parameter used by
- # fitting method, not wavelength.
-
- c.info # see refined lattice parameters
- 
- # if you want to zoom, the easiest way is to use left button on auxiliary
- # plot (this plot with difference). To zoom out, use middle button on it.
- # To see individual peaks, select Show->Peaks from pop-up menu.
-
-     </programlisting>
-    </para>
-   </section> 
   </section> 
  </chapter>
 
  <appendix id="flist">
   <title>List of functions</title>
+  <para>
+   <note>
+    <para>
+     This chapter was not updated.
+     Now parameters of functions have different names.
+     There are also some additional functions.
+    </para>
+   </note>
+  </para>
   <para>
    To simplify equations, following substitution is introduced:
    <informalequation>
@@ -1913,6 +1691,7 @@
    <publishername>WNT</publishername>
    <pubdate>1996</pubdate>
   </biblioentry>
+<!--
   <biblioentry>
    <abbrev>6</abbrev>
    <editor><firstname>R. A.</firstname><surname>Young</surname></editor>
@@ -1926,6 +1705,7 @@
    <title>User's Guide to Program DBWS-9807a</title>
    <pubdate>2000</pubdate>
   </biblioentry>
+-->
  </bibliography>
 
 </book>

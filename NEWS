@@ -4,8 +4,10 @@ User-visible changes in version 0.7.0pre1  (2006-01-  ):
   ###########################################################################
 * GUI: dataset/function/variable lists at right-hand panel
 * new built-in functions: split-Gaussian (a.k.a Bifurcated Gaussian) and others
-* there where many other changes, I don't remember them now
-* some features available in previous version are temporarily disabled:
+* there where many other changes not listed here. More then half of the
+  code was either written from scratch or refactored.
+* some features available in previous version are temporarily disabled,
+  most notably:  
      powder diffraction part - c.xxx commands
      parameters history
 
