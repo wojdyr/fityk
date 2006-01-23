@@ -46,9 +46,7 @@
 #include "guess.h"
 #include "ui.h"
 
-#ifndef __WXMSW__
 #include "img/fityk.xpm"
-#endif
 
 //toolbars icons
 #include "img/active_mode.xpm"
@@ -78,35 +76,6 @@
 #include "img/mouse_l.xpm"
 #include "img/mouse_r.xpm"
 
-
-char* app_name = "fityk"; 
-char* about_html = 
-"<html> <body bgcolor=white text=white>"
- "<table cellspacing=3 cellpadding=4 width=100%>"
-   "<tr bgcolor=#101010 align=center> <td>"
-     "<h1> fityk " VERSION "</h1>"
-     "<h6> powered by " wxVERSION_STRING "<br>"
-          "powered by Boost.Spirit %d.%d.%d</h6>"
-     "<p><font size=-2>$Date$</font></p>"
-   "</td> </tr>"
-   "<tr> <td bgcolor=#73A183>"
-     "<font color=black>"
-      "<b><font size=+1> <p align = center>"
-       "Copyright (C) 2001 - 2005 Marcin Wojdyr"
-      "</font></b><p>"
-      "<font size=-1>"
-       "This program is free software; you can redistribute it "
-       "and/or modify it under the terms of the GNU General Public "
-       "License, version 2, as published by the Free Software Foundation;"
-      "</font> <p>"
-       "Feel free to send comments, questions, patches, bugreports "
-       "and feature requests to author "
-       "or to <i>fityk-users</i> mailing-list."
-      "<p align = center> WWW: <b>fityk.sf.net</b>"
-     "</font> "
-   "</td></tr>"
-"</table></body></html>";
-//in wx2.6.1 the string above can't be too long -- haven't investigated it (MW)
 
 using namespace std;
 FFrame *frame = NULL;
@@ -257,7 +226,7 @@ bool FApp::OnInit(void)
     DataEditorDlg::read_examples();
 
     // Create the main frame window
-    frame = new FFrame(NULL, -1, app_name, wxDEFAULT_FRAME_STYLE);
+    frame = new FFrame(NULL, -1, "fityk", wxDEFAULT_FRAME_STYLE);
 
     frame->plot_pane->set_mouse_mode(mmd_zoom);
 
@@ -596,7 +565,7 @@ void FFrame::set_menubar()
     // Make a menubar
     wxMenu* data_menu = new wxMenu;
     data_menu->Append (ID_D_LOAD, "&Load File\tCtrl-O", "Load data from file");
-    data_menu->Append (ID_D_XLOAD, "&Load File (Custom)\tCtrl-M", 
+    data_menu->Append (ID_D_XLOAD, "Load File (&Custom)\tCtrl-M", 
                                     "Load data from file, with some options");
     this->data_menu_recent = new wxMenu;
     int rf_counter = 1;
@@ -812,24 +781,48 @@ bool FFrame::display_help_section(const string &s)
 
 void FFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
-    wxDialog* dlg = new wxDialog(this, -1, wxString("About..."));
-    wxBoxSizer *topsizer = new wxBoxSizer(wxVERTICAL);
-    wxHtmlWindow *html = new wxHtmlWindow (dlg, -1, 
-                                           wxDefaultPosition, wxSize(400, 160), 
-                                           wxHW_SCROLLBAR_NEVER);
-    html->SetBorders(0);
-    html->SetPage(wxString::Format(about_html, SPIRIT_VERSION / 0x1000,
-                                               SPIRIT_VERSION % 0x1000 / 0x0100,
-                                               SPIRIT_VERSION % 0x0100));
-    html->SetSize (html->GetInternalRepresentation()->GetWidth(), 
-                   html->GetInternalRepresentation()->GetHeight());
-    topsizer->Add (html, 1, wxALL, 10);
-    //topsizer->Add (new wxStaticLine(dlg, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
+
+    wxDialog* dlg = new wxDialog(this, -1, wxString("About Fityk"), 
+                                 wxDefaultPosition, wxSize(350, 400), 
+                                 wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER);
+    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(new wxStaticBitmap(dlg, -1, wxBitmap(fityk_xpm)),
+               0, wxALIGN_CENTER|wxALL, 5);
+    wxStaticText *name = new wxStaticText(dlg, -1, "fityk " VERSION);
+    name->SetFont(wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
+                         wxFONTWEIGHT_BOLD));
+    sizer->Add(name, 0, wxALIGN_CENTER|wxALL, 5); 
+    wxTextCtrl *txt = new wxTextCtrl(dlg, -1, "", 
+                                     wxDefaultPosition, wxDefaultSize, 
+                                     wxTE_MULTILINE|wxTE_RICH2|wxNO_BORDER
+                                     |wxTE_READONLY|wxTE_AUTO_URL);
+    txt->SetBackgroundColour(dlg->GetBackgroundColour());
+    txt->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, wxNullFont,
+                                    wxTEXT_ALIGNMENT_CENTRE));
+    
+    txt->AppendText("A curve fitting and data analysis program\n\n");
+    txt->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, 
+                                    *wxITALIC_FONT));
+    txt->AppendText("powered by " wxVERSION_STRING "\n");
+    txt->AppendText(wxString::Format("powered by Boost.Spirit %d.%d.%d\n", 
+                                       SPIRIT_VERSION / 0x1000,
+                                       SPIRIT_VERSION % 0x1000 / 0x0100,
+                                       SPIRIT_VERSION % 0x0100));
+    txt->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, 
+                                    *wxNORMAL_FONT));
+    txt->AppendText("\nCopyright (C) 2001 - 2006 Marcin Wojdyr\n\n");
+    txt->SetDefaultStyle(wxTextAttr(*wxBLUE));
+    txt->AppendText("http://www.unipress.waw.pl/fityk/\n\n");
+    txt->SetDefaultStyle(wxTextAttr(*wxBLACK));
+    txt->AppendText("This program is free software; you can redistribute it "
+      "and/or modify it under the terms of the GNU General Public "
+      "License, version 2, as published by the Free Software Foundation");
+    sizer->Add (txt, 1, wxALL|wxEXPAND, 5);
+    //sizer->Add (new wxStaticLine(dlg, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
     wxButton *bu_ok = new wxButton (dlg, wxID_OK, "OK");
     bu_ok->SetDefault();
-    topsizer->Add (bu_ok, 0, wxALL|wxEXPAND, 10);
-    dlg->SetSizer(topsizer);
-    topsizer->Fit(dlg);
+    sizer->Add (bu_ok, 0, wxALL|wxEXPAND, 10);
+    dlg->SetSizer(sizer);
     dlg->ShowModal();
     dlg->Destroy();
 }

@@ -1,7 +1,7 @@
 #!/bin/bash 
 # $Id$
 
-version=0.5.2
+version=0.7.0pre1
 WEB="iris:/d2/people/wojdyr/www/fityk2/" 
 WINEXPORT=../wspolne/
 TEMP_DOWNLOAD=$WEB/d/
@@ -100,17 +100,18 @@ elif [ $1 -eq 2 ]; then
  
 
 elif [ $1 -eq 3 ]; then
+ OLD_WXCONFIG=wxgtk-2.4-config
  echo test other wx version
- mv -i $HOME/local $HOME/Local
- echo Testing with version `wx-config --version`
+ #mv -i $HOME/local $HOME/Local
+ echo Testing with version `$OLD_WXCONFIG --version`
  rm -rf $OLDWX_DIR
  mkdir $OLDWX_DIR
  cd $OLDWX_DIR
- ../configure 
+ ../configure --with-wx-config=$OLD_WXCONFIG
  cd src
  make
  ./fityk
- mv -i $HOME/Local $HOME/local
+ #mv -i $HOME/Local $HOME/local
 
 elif [ $1 -eq 4 ]; then
  echo  testing downloading and building CVS version 
@@ -138,7 +139,7 @@ elif [ $1 -eq 5 ]; then
  echo generating html chunks...
  xmlto html fitykhelp_with_idx.xml
  echo sending html chunks...
- scp [^f]*.html $WEB/doc/html/
+ scp *.html $WEB/doc/html/
  cd ..
  echo sending NEWS file...
  scp NEWS $WEB/d/
@@ -176,15 +177,22 @@ elif [ $1 -eq 6 ]; then
  ../configure --build=i686-pc-linux-gnu --host=i586-mingw32msvc \
    --enable-optimization --disable-CLI --with-wx-prefix=$WXMSWINSTALL 
  make
- #
- # wine hhp (HTML Help Compiler)
- # wine InnoSetup 
- #scp $tarball_filename $WINEXPORT
- #echo Tarball was sent to $WINEXPORT 
- #echo Prepare MS Windows setup named $win_setup_filename
- #echo and leave it also in $WINEXPORT
- #read -p "When ready, press Enter..."
- #scp $WINEXPORT/$win_setup_filename .
+ cp -rf ../samples .
+ ALL_WIN_FILES=all_files
+ mkdir $ALL_WIN_FILES $ALL_WIN_FILES/src $ALL_WIN_FILES/doc
+ cp fityk.iss ../fityk.url ../COPYING ../AUTHORS ../TODO ../NEWS $ALL_WIN_FILES
+ cp src/fityk.exe $ALL_WIN_FILES/src
+ cp -r ../samples $ALL_WIN_FILES
+ cp ../doc/fityk_tips.txt $ALL_WIN_FILES/doc
+ if [ -a doc/fitykhelp.htb ]; then
+	 unzip doc/fitykhelp.htb -d $ALL_WIN_FILES/doc
+ else
+	 unzip ../doc/fitykhelp.htb -d $ALL_WIN_FILES/doc
+ fi
+ # i had problems making hhp working under wine
+ echo '"C:\Program Files\HTML Help Workshop\hhc.exe" doc\htmlhelp.hhp' \
+					>$ALL_WIN_FILES/build_help.cmd
+ echo everything is in: `pwd`/$ALL_WIN_FILES
  
 
 elif [ $1 -eq 7 ]; then

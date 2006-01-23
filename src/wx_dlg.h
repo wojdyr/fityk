@@ -13,38 +13,24 @@ class wxGrid;
 class DataTable;
 class ProportionalSplitter;
 
-class FDXLoadDlg;
 class PreviewPlot;
-
-/// helper class used in FDXLoadDlg
-class LoadDataDirCtrl : public wxGenericDirCtrl
-{
-public:
-    LoadDataDirCtrl(wxWindow* parent, FDXLoadDlg* load_dlg_);
-    void OnPathSelectionChanged(wxTreeEvent &event);
-    void SetFilterIndex(int n);
-    DECLARE_EVENT_TABLE()
-private:
-    FDXLoadDlg *load_dlg;
-};
 
 class FDXLoadDlg : public wxDialog
 {
 public:
     FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data);
-    void on_path_change();
-    void on_filter_change();
 
 protected:
     int data_nr;
     ProportionalSplitter *splitter, *right_splitter;
-    LoadDataDirCtrl *dir_ctrl;
+    wxGenericDirCtrl *dir_ctrl;
     wxTextCtrl *filename_tc, *text_preview;
     wxSpinCtrl *x_column, *y_column, *s_column;
     wxPanel *left_panel, *rupper_panel, *rbottom_panel, *columns_panel;
     PreviewPlot *plot_preview;
     wxCheckBox *std_dev_cb, *auto_text_cb, *auto_plot_cb;
     wxButton *open_here, *open_new;
+    bool initialized;
 
     std::string get_command_tail();
     std::string get_filename();
@@ -55,6 +41,9 @@ protected:
     void OnOpenHere (wxCommandEvent& event);
     void OnOpenNew (wxCommandEvent& event);
     void OnClose (wxCommandEvent& event);
+    void on_path_change();
+    void on_filter_change();
+    void OnPathSelectionChanged(wxTreeEvent &WXUNUSED(event)){on_path_change();}
     void update_text_preview();
     void update_plot_preview();
     DECLARE_EVENT_TABLE()
@@ -175,6 +164,8 @@ class RealNumberCtrl : public wxTextCtrl
 public:
     RealNumberCtrl(wxWindow* parent, wxWindowID id, wxString const& value)
         : wxTextCtrl(parent, id, value) {}
+    RealNumberCtrl(wxWindow* parent, wxWindowID id, std::string const& value)
+        : wxTextCtrl(parent, id, value.c_str()) {}
 };
 
 class SettingsDlg : public wxDialog

@@ -24,6 +24,7 @@
 #include <wx/statline.h>
 #include <wx/splitter.h>
 #include <wx/notebook.h>
+#include <wx/file.h>
 #include "common.h"
 #include "wx_dlg.h"
 #include "wx_common.h"
@@ -99,42 +100,6 @@ enum {
 };
 
 
-//=====================   data->LoadFile(Custom) dialog  ==================
-
-// first helper class: LoadDataDirCtrl
-BEGIN_EVENT_TABLE(LoadDataDirCtrl, wxGenericDirCtrl)
-    //EVT_TREE_SEL_CHANGED(wxID_TREECTRL, LoadDataDirCtrl::OnPathSelectionChanged)
-    EVT_TREE_SEL_CHANGED(-1, LoadDataDirCtrl::OnPathSelectionChanged)
-END_EVENT_TABLE()
-
-LoadDataDirCtrl::LoadDataDirCtrl(wxWindow* parent, FDXLoadDlg* load_dlg_)
-    : wxGenericDirCtrl(parent, -1, wxDirDialogDefaultFolderStr,
-                       wxDefaultPosition, wxDefaultSize,
-                       wxDIRCTRL_SHOW_FILTERS,
-                       // multiple wildcards, eg. 
-                       // |*.dat;*.DAT;*.xy;*.XY;*.fio;*.FIO
-                       // are not supported by wxGenericDirCtrl  
-                       "all files (*)|*"
-                       "|ASCII x y files (*)|*" 
-                       "|rit files (*.rit)|*.rit"
-                       "|cpi files (*.cpi)|*.cpi"
-                       "|mca files (*.mca)|*.mca"
-                       "|Siemens/Bruker (*.raw)|*.raw"),
-      load_dlg(load_dlg_)
-{}
-
-void LoadDataDirCtrl::OnPathSelectionChanged(wxTreeEvent &WXUNUSED(event))
-{
-    load_dlg->on_path_change();
-}
-
-void LoadDataDirCtrl::SetFilterIndex(int n)
-{
-    wxGenericDirCtrl::SetFilterIndex(n);
-    load_dlg->on_filter_change();
-}
-
-
 class PreviewPlot : public wxPanel
 {
 public:
@@ -179,13 +144,14 @@ BEGIN_EVENT_TABLE(FDXLoadDlg, wxDialog)
     EVT_BUTTON      (wxID_CLOSE,          FDXLoadDlg::OnClose)
     EVT_BUTTON      (ID_DXLOAD_OPENHERE,  FDXLoadDlg::OnOpenHere)
     EVT_BUTTON      (ID_DXLOAD_OPENNEW,   FDXLoadDlg::OnOpenNew)
+    EVT_TREE_SEL_CHANGED (-1,             FDXLoadDlg::OnPathSelectionChanged)
 END_EVENT_TABLE()
 
 FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     : wxDialog(parent, id, "Data load (custom)", 
                wxDefaultPosition, wxSize(600, 500), 
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
-      data_nr(n)
+      data_nr(n), initialized(false)
 {
 
 
@@ -214,16 +180,31 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     wxBoxSizer *rbottom_sizer = new wxBoxSizer(wxVERTICAL);
 
     // ----- left panel -----
-    dir_ctrl = new LoadDataDirCtrl(left_panel, this);
-    string path = data->get_filename();
-    //FIXME it segfaults, don't know why
-    //dir_ctrl->SetPath(path.c_str());
+    dir_ctrl = new wxGenericDirCtrl(left_panel, -1, wxDirDialogDefaultFolderStr,
+                       wxDefaultPosition, wxDefaultSize,
+// On MSW wxGenericDirCtrl with filteres vanishes 
+#ifndef __WXMSW__
+                       wxDIRCTRL_SHOW_FILTERS,
+#else
+                       0,
+#endif
+                       // multiple wildcards, eg. 
+                       // |*.dat;*.DAT;*.xy;*.XY;*.fio;*.FIO
+                       // are not supported by wxGenericDirCtrl  
+                       "all files (*)|*"
+                       "|ASCII x y files (*)|*" 
+                       "|rit files (*.rit)|*.rit"
+                       "|cpi files (*.cpi)|*.cpi"
+                       "|mca files (*.mca)|*.mca"
+                       "|Siemens/Bruker (*.raw)|*.raw");
     left_sizer->Add(dir_ctrl, 1, wxALL|wxEXPAND, 5);
-
+    string path = data->get_filename();
+    dir_ctrl->SetPath(path.c_str()); 
     filename_tc = new wxTextCtrl (left_panel, -1, path.c_str(), 
                                   wxDefaultPosition, wxDefaultSize,
                                   wxTE_READONLY);
     left_sizer->Add (filename_tc, 0, wxALL|wxEXPAND, 5);
+                                     
 
     //selecting columns
     columns_panel = new wxPanel (left_panel, -1);
@@ -243,7 +224,7 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     h2a_sizer->Add (y_column, 0, wxALL|wxALIGN_LEFT, 5);
     std_dev_cb = new wxCheckBox(columns_panel, ID_DXLOAD_STDDEV_CB, "std.dev.");
     std_dev_cb->SetValue (false);
-    h2a_sizer->Add (std_dev_cb, 0, wxALL|wxALIGN_LEFT, 5);
+    h2a_sizer->Add(std_dev_cb, 0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL,5);
     s_column = new wxSpinCtrl (columns_panel, -1, "3",
                                wxDefaultPosition, wxSize(50, -1), 
                                wxSP_ARROW_KEYS, 1, 99, 3);
@@ -274,8 +255,8 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     left_panel->SetSizerAndFit(left_sizer);
     rupper_panel->SetSizerAndFit(rupper_sizer);
     rbottom_panel->SetSizerAndFit(rbottom_sizer);
-    right_splitter->SplitHorizontally(rupper_panel, rbottom_panel);
     splitter->SplitVertically(left_panel, right_splitter);
+    right_splitter->SplitHorizontally(rupper_panel, rbottom_panel);
     top_sizer->Add(splitter, 1, wxEXPAND);
 
     top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
@@ -288,6 +269,7 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     button_sizer->Add(new wxButton(this, wxID_CLOSE, "&Close"), 
                       0, wxALL, 5);
     top_sizer->Add(button_sizer, 0, wxALL|wxALIGN_CENTER, 0);
+    initialized = true;
     SetSizer(top_sizer);
     on_filter_change();
 }
@@ -336,11 +318,12 @@ void FDXLoadDlg::OnOpenNew (wxCommandEvent& WXUNUSED(event))
 void FDXLoadDlg::update_text_preview()
 {
     static char buffer[65536];
-    fill(buffer, buffer+sizeof(buffer)/sizeof(buffer[0]), 0);
+    int buf_size = sizeof(buffer)/sizeof(buffer[0]);
+    fill(buffer, buffer+buf_size, 0);
     wxString path = dir_ctrl->GetFilePath();
     text_preview->Clear();
     if (wxFileExists(path)) {
-        wxFile(path).Read(buffer, sizeof(buffer)/sizeof(buffer[0])-1);
+        wxFile(path).Read(buffer, buf_size-1);
         text_preview->SetValue(buffer);
     }
 }
@@ -379,6 +362,8 @@ void FDXLoadDlg::on_filter_change()
 
 void FDXLoadDlg::on_path_change()
 {
+    if (!initialized)
+        return;
     wxString path = dir_ctrl->GetFilePath();
     filename_tc->SetValue(path);
     if (dir_ctrl->GetFilterIndex() == 0) { // all files
@@ -1288,14 +1273,13 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     wxStaticText *hc_st = new wxStaticText(page_peakfind, -1, 
                                "factor used to correct detected peak height"); 
     height_correction = new RealNumberCtrl(page_peakfind, -1, 
-                                    getSettings()->getp("height-correction"));
+                                     getSettings()->getp("height-correction"));
     wxStaticText *wc_st = new wxStaticText(page_peakfind, -1, 
                                "factor used to correct detected peak width"); 
     width_correction = new RealNumberCtrl(page_peakfind, -1, 
-                                    getSettings()->getp("width-correction"));
+                                 getSettings()->getp("width-correction"));
     cancel_poos = new wxCheckBox(page_peakfind, -1, 
-                             "cancel peak searching, if the highest point"
-                             "\nis near the boundary of the given range");
+                              "cancel peak guess, if the result is doubtful");
     cancel_poos->SetValue(getSettings()->get_b("can-cancel-guess"));
     wxBoxSizer *sizer_pf = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizer_pf_hc = new wxBoxSizer(wxHORIZONTAL);

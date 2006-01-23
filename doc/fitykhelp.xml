@@ -909,20 +909,19 @@
      </command>.
      Following syntax is also valid:
      <screen>
-      # create and add funtion to F
-      %g = Gaussian(height=~66254., hwhm=~0.264, center=~24.7) -> @0.F
-      # create automatically named funtion and add it to F
-      Gaussian(height=~66254., hwhm=~0.264, center=~24.7) -> @0.F
-      # clear F
-      @0.F = 0
-      # clear F and put three functions in it
-      @0.F = %a, %b, %c
-      # make @1.F the exact (shallow) copy of @0.F
-      @1.F = @0.F
-      # make @1.F a deep copy of @0.F (it means all functions and variables
-      # are duplicated).
-      @1.F = copy(@0.F)
-     </screen>
+  # create and add funtion to F
+  %g = Gaussian(height=~66254., hwhm=~0.264, center=~24.7) -> @0.F
+  # create automatically named funtion and add it to F
+  Gaussian(height=~66254., hwhm=~0.264, center=~24.7) -> @0.F
+  # clear F
+  @0.F = 0
+  # clear F and put three functions in it
+  @0.F = %a, %b, %c
+  # make @1.F the exact (shallow) copy of @0.F
+  @1.F = @0.F
+  # make @1.F a deep copy of @0.F (it means all functions and variables
+  # are duplicated).
+  @1.F = copy(@0.F) </screen>
     </para>
     <para>
      Sum can be exported as data points (.dat), mathematic formula (.formula)
@@ -930,6 +929,21 @@
      <command>F &gt; <replaceable>filename</replaceable></command>, 
      where <replaceable>filename</replaceable> have one of extensions
      listed above.
+    </para>
+    <para>
+     It is often required to keep width or shape of peaks constant
+     for all peaks in dataset. To change variables binded to parameters
+     with given name of all functions in F, use command:
+     <command>
+      F[<replaceable>param</replaceable>]=<replaceable>variable</replaceable>
+     </command>. Examples:
+     <screen>
+  F[hwhm]=$foo # hwhm's of all functions in F that have parameter hwhm will be 
+               # equal $foo. (hwhm means here half-width-at-half-maximum)
+  F[shape]=%_1[shape]  # variable binded to shape of peak %_1 is binded
+                       # also to shapes of all functions in F
+  F[hwhm]=~0.2  # For every function in F a new variable is created and binded 
+                # to parameter hwhm. All these parameters are independent. </screen>
     </para>
    </section> 
    <section id="guess">

@@ -152,6 +152,7 @@ public:
                  std::vector<std::pair<std::string,bool> > const& columns_);
 
     void OnSwitchInfo(wxCommandEvent &event);
+    void split() { SplitHorizontally(list, inf); }
     DECLARE_EVENT_TABLE()
 };
 

@@ -33,7 +33,7 @@ void UserInterface::doDrawPlot(bool now)
 
 void UserInterface::wait (float seconds) 
 {  
-    wxUsleep (static_cast<int>(seconds*1e3)); //wxUsleep takes mili-seconds
+    wxMilliSleep(iround(seconds*1e3)); 
 }
 
 void UserInterface::execCommand(const string& s)

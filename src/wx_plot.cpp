@@ -252,7 +252,10 @@ void FPlot::read_settings(wxConfigBase *cf)
     cf->SetPath("../Colors");
     xAxisPen.SetColour (read_color_from_config(cf, "xAxis", wxColour("WHITE")));
     cf->SetPath("..");
-    ticsFont = read_font_from_config(cf, "ticsFont", *wxSMALL_FONT);
+    ticsFont = read_font_from_config(cf, "ticsFont", 
+                                     wxFont(8, wxFONTFAMILY_DEFAULT, 
+                                            wxFONTSTYLE_NORMAL, 
+                                            wxFONTWEIGHT_NORMAL));
 }
 
 void FPlot::save_settings(wxConfigBase *cf) const

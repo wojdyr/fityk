@@ -927,7 +927,7 @@ void MainPlot::move_peak (Mouse_act_enum ma, wxMouseEvent &event)
             descr += " X:" + p->type_var_names[n+1] + "=" + S(p_values[n+1]);
         }
 
-        frame->set_status_text(descr);
+        frame->set_status_text(descr.c_str());
         prev.x = event.GetX(), prev.y = event.GetY();
         draw_xor_peak(p, p_values); 
     }

@@ -16,6 +16,7 @@
 #include <wx/notebook.h>
 #include <wx/textdlg.h>
 #include <wx/spinctrl.h>
+#include <wx/image.h>
 
 #include "common.h"
 #include "wx_pane.h" 
@@ -321,7 +322,6 @@ ListPlusText::ListPlusText(wxWindow *parent, wxWindowID id, wxWindowID list_id,
     list = new ListWithColors(this, list_id, columns_);
     inf = new wxTextCtrl(this, -1, "", wxDefaultPosition, wxDefaultSize,
                          wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
-    SplitHorizontally(list, inf);
 }
 
 void ListPlusText::OnSwitchInfo(wxCommandEvent &WXUNUSED(event))
@@ -470,7 +470,7 @@ void FancyRealCtrl::change_value(fp factor)
 
 void FancyRealCtrl::on_stop_changing()
 {
-    if (tc->GetValue() != S(initial_value)) {
+    if (tc->GetValue().c_str() != S(initial_value)) {
         double t;
         bool ok = tc->GetValue().ToDouble(&t);
         if (ok) {
@@ -542,12 +542,13 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     wxBoxSizer *data_look_sizer = new wxBoxSizer(wxHORIZONTAL);
     add_bitmap_button(data_page, ID_DP_COL, colorsel_xpm, 
                       "change color", data_look_sizer);
-    wxChar const *choices[] = { "show all datasets", "show only selected", 
-                                "shadow unselected" };
-    int choices_len = sizeof(choices)/sizeof(choices[0]);
+    wxArrayString choices;
+    choices.Add("show all datasets");
+    choices.Add("show only selected");
+    choices.Add("shadow unselected");
     data_look = new wxChoice(data_page, ID_DP_LOOK,
-                             wxDefaultPosition, wxDefaultSize,
-                             wxArrayString(choices_len, choices));
+                             wxDefaultPosition, wxDefaultSize, choices);
+    data_look->Select(0);
     data_look_sizer->Add(data_look, 1, wxEXPAND);
     data_look_sizer->Add(new wxStaticBitmap(data_page, -1, 
                                             wxBitmap(shiftup_xpm)), 
@@ -582,10 +583,10 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     func_filter_sizer->Add(new wxStaticBitmap(func_page, -1, 
                                               wxBitmap(filter_xpm)),
                            0, wxALIGN_CENTER_VERTICAL);
-    wxArrayString filter_choices; 
-    filter_choices.Add("list all functions");
     filter_ch = new wxChoice(func_page, ID_FP_FILTER,
-                             wxDefaultPosition, wxDefaultSize, filter_choices);
+                             wxDefaultPosition, wxDefaultSize, 0, 0);
+    filter_ch->Append("list all functions");
+    filter_ch->Select(0);
     func_filter_sizer->Add(filter_ch, 1, wxEXPAND);
     func_sizer->Add(func_filter_sizer, 0, wxEXPAND);
 
@@ -642,11 +643,14 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
                                 wxST_NO_AUTORESIZE|wxALIGN_CENTRE);
     bp_topsizer->Add(bp_label, 0, wxEXPAND|wxALL, 5);
     bp_sizer = new wxFlexGridSizer(2, 0, 0);
-    bp_sizer->AddGrowableCol(1, 1);
+    bp_sizer->AddGrowableCol(1);
     bp_topsizer->Add(bp_sizer, 1, wxEXPAND);
     bottom_panel->SetSizer(bp_topsizer);
     bottom_panel->SetAutoLayout(true);
     SplitHorizontally(nb, bottom_panel);
+    d->split();
+    f->split();
+    v->split();
 }
 
 void SideBar::OnDataButtonNew (wxCommandEvent& WXUNUSED(event))
@@ -777,6 +781,7 @@ void SideBar::OnVarButtonEdit (wxCommandEvent& WXUNUSED(event))
 
 void SideBar::update_lists(bool nondata_changed)
 {
+    Freeze();
     update_data_list(nondata_changed);
     update_func_list(nondata_changed);
     update_var_list();
@@ -797,6 +802,7 @@ void SideBar::update_lists(bool nondata_changed)
     update_func_inf();
     update_var_inf();
     update_bottom_panel();
+    Thaw();
 }
 
 void SideBar::update_data_list(bool nondata_changed)
@@ -839,7 +845,7 @@ void SideBar::update_func_list(bool nondata_changed)
         while (filter_ch->GetCount() > AL->get_ds_count()+1)
             filter_ch->Delete(filter_ch->GetCount()-1);
         for (int i = filter_ch->GetCount()-1; i < AL->get_ds_count(); ++i)
-            filter_ch->Append("only functions from @" + S(i));
+            filter_ch->Append(("only functions from @" + S(i)).c_str());
     }
 
     //functions
@@ -1130,7 +1136,6 @@ void SideBar::update_bottom_panel()
         int sash_pos = GetClientSize().GetHeight() 
                                   - bottom_panel->GetSize().GetHeight() - 2;
         bottom_panel->Layout();
-        bottom_panel->Thaw();
         if (sash_pos < GetSashPosition())
             SetSashPosition(max(50, sash_pos));
     }
@@ -1154,6 +1159,7 @@ void SideBar::update_bottom_panel()
             }
         }
     }
+    bottom_panel->Thaw();
 }
 
 bool SideBar::howto_plot_dataset(int n, bool& shadowed, int& offset) const
@@ -1302,7 +1308,7 @@ void ListWithColors::OnShowColumn(wxCommandEvent &event)
     if (show) {
         InsertColumn(col, columns[n].first.c_str());
         for (int i = 0; i < GetItemCount(); ++i)
-            SetItem(i, col, list_data[i*columns.size()+n]);
+            SetItem(i, col, list_data[i*columns.size()+n].c_str());
     }
     else
         DeleteColumn(col);

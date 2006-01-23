@@ -27,7 +27,6 @@ Source: TODO; DestDir: {app}
 Source: NEWS; DestDir: {app}
 Source: doc\fityk_tips.txt; DestDir: {app} 
 Source: doc\fitykhelp.chm; DestDir: {app} 
-Source: doc\fitykhelp.htb; DestDir: {app} 
 Source: samples\README; DestDir: {app}\samples\ 
 Source: samples\*.dat; DestDir: {app}\samples\ 
 Source: samples\*.fit; DestDir: {app}\samples\ 

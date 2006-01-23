@@ -1,6 +1,8 @@
 
 * (GUI) sidebar bottom panel -> draw draft of peak when changing peak parameters
 
+* function: EMG (expotentially modified gauss)
+
 * DataExpressionG: 
     %func(DataExpressionG) #OP_FUNC number #eg. Y = y-%peak(x)       
     F(DataExpressionG)     #OP_CURVE_Y number
@@ -15,13 +17,60 @@
      			  & Y = interpolate[x y](X)
      			  & S = interpolate[x s](X)
      			  & A = interpolate[x a](X)
+    [BUG] sum() doesn't work in "info sum(x)" or $a={sum(y)}
 
-* [BUG] sum() doesn't work in "info sum(x)" or $a={sum(y)}
 
-* [internal] UI - two implementations of one class are bad idea  
-	     it must be a base class (virtual?) with derived GUI and CLI
+* data tranformations: new functions: randuniform[a b]() randnormal[mu sigma]()
+
+------------- next release here (?)
+
+* (GUI) possibility to set a default scripts/data directories,
+   to not to have to find it every time the program is loaded.
+
+so i dont have to find it every time 
+  i load the program
 
 * (GUI) sidebar: default column widths should be different
+
+* GUI: print: if no sum, don't print aux plot
+
+* GUI [BUG] aux. plot - when program is called with script as an argument
+   aux. plot looks strange at the start of the program until it is replotted
+
+* (GUI) peak dragging -- sensible scaling of parameter changes 
+           (problems with width changing)
+
+* (WWW) add CasaXPS (www.casaxps.com) to other programs
+    and "kurve" program (?), proFit (mac os x) 
+
+* (F > file) when exporting function/sum as points, it shuld be possible 
+  to set step of these points (s.set export-points-step = 0.?)
+  and to export baseline and each peak as a separately (multicolumn CSV)
+  mixed data/sum export, eg:
+  x, y, abs(y-F(x)), %foo(x), %bar(x) > file #only active points are exported
+                         # F(x) -> number or all functions one by one?
+
+* (Windows only) exporting plots to PostScript file and to metafile(clipboard) 
+
+* (GUI) peak positions as an option to any aux. plot 
+        (not separate type of aux.p.)
+
+* (GUI) new aux. plot type: cumulative chi2 (normalized, ie. cum. chi2 / (N-P))
+
+* (GUI) show function limits when cursor is over peak top
+
+* key [del] at data pane should work as close button
+
+* improve Voigt function (cut-tails, better approx?) 
+
+* (GUI) vertical scaling using mouse on main plot near to left edge of the plot 
+
+* logarithmic scale  
+
+* a reversed x-axis (high on left, low on right) as per XPS convention.
+ (first ask MR what it means?)
+
+------------- next release here (?)
 
 * (GUI) use numeric pad keys (WXK_NUMPAD_*) as shortcuts for changing 
 	function parameters.
@@ -29,9 +78,8 @@
 * (GUI) more extensive and configurable (2/3 buttons, size) mouse hints 
 	   (also for aux. plot, etc)
 
-* function: EMG (expotentially modified gauss)
-
-* GUI: print: if no sum, don't print aux plot
+* [internal] UI - two implementations of one class are bad idea  
+	     it must be a base class (virtual?) with derived GUI and CLI
 
 * GUI: it should be possible to constrain two parameters of two peak,
      at least to make them equal.
@@ -42,9 +90,6 @@
 
 * cmd: any-command with option=value 
          -- set value of option for this command only
-
-* GUI [BUG] aux. plot - when program is called with script as an argument
-   aux. plot looks strange at the start of the program until it is replotted
 
 * Fitting 
 	settings: GUI, fitting
@@ -80,34 +125,16 @@
 * [internal] are functions recalculate()'d when neccessary? eg.before copy(%f)?
 
 * [internal] mark parameters, which are not used in sum calculation, and don't
-             put it into matrix (?)
+             put it into matrix used by gradient methods(?)
 
 * (GUI) where config files should be stored on MS Windows? Registry of file?
-
-* (GUI) peak positions as an option to any aux. plot 
-        (not separate type of aux.p.)
-
-* (GUI) new aux. plot type: cumulative chi2 (normalized, ie. cum. chi2 / (N-P))
-
-* (GUI) show function limits when cursor is over peak top
-
-* data tranformations: new functions: randuniform[a b]() randnormal[mu sigma]()
-
-* key [del] at data pane should work as close button
-
-* improve Voigt function (cut-tails, better approx?) 
-
-* (GUI) vertical scaling using mouse on main plot near to left edge of the plot 
-
-* (GUI) peak dragging -- sensible scaling of parameter changes 
-           (problems with width changing)
 
 ------------------ 
 
 * view with/without background button (like in 0.4.x, requires storing
   background points)
 
-* user defined functions 
+* user defined functions:
       - syntax:
         --> define Gaussian(a,pos,width): a*exp(-((x-pos)/width)^2)
 	                   ^^^ any name but 'x' allowed here
@@ -129,31 +156,25 @@
 
 * problem: fityk can't be compiled with UNICODE-enabled wxWidgets
 
-* (WWW) update screenshots 
-
 * there are problems with refreshing plots and output window when program
   is busy (ie. when running script or fitting). It seems to be platform
   dependent.
 
-* write a good portable .spec (spec is used for building RPM)
+* write a good portable .spec (spec is used for building RPM) (?)
 
 * auto-freezing of peaks at disactivated range
-
-* (GUI) file preview (in grid) in "Load File Custom" dialog 
-  setting initial path to currently loaded file (calling SetPath() 
-  is giving segfault, don't know why) 
-  Perhaps use wxGenericFileDialog instead of wxGenericDirCtrl (?)
-
-* logarithmic scale  
 
 * loading data -- use Difdaf library (when it will be ready) for powder
   diffraction data import.
   other formats (from survey): .jdx JCAMP-DX (www.jcamp.org)
 		         Galactic (GRAMS/32) SPC files (especially multifiles)
+			 Vamas (vms), 
+			 multipart Siemens .raw data files
+			 uxd,udf
 
-* (GUI) one dialog for plot settings. More precise configuration of axis tics.
-  horizontal/vertical peak labels, etc.
-  single ergonomic interface changing colors of everything(?)
+* (GUI) More precise configuration of axis tics.
+  horizontal/vertical peak labels, etc, single dialog for setting
+  all peak label properties and all
 
 * python scripts  -- built-in Python interpreter which allows to extend 
   Fityk using user-written scripts, optional modules, etc. 
@@ -163,15 +184,9 @@
   [IMPORTANT]
 
 * (GUI) stopping fitting interactively (when user don't want to wait longer);
-  use threads?
+  use threads? or wxTimer?
 
 * automatic background substraction - what are good algorithms?
-
-* (F > file) when exporting function/sum as points, it shuld be possible 
-  to set step of these points (s.set export-points-step = 0.?)
-  and to export baseline and each peak as a separately (multicolumn CSV)
-
-* (Windows only) exporting plots to PostScript file and to metafile(clipboard) 
 
 * more sophisticated algorithms for peak detection
 
@@ -197,7 +212,7 @@
   be an option.
 
 * (GUI) "Report Bug" item in Help menu, clickable link in About dialog
-        http://wiki.wxwidgets.org/wiki.pl?Launching_The_Default_Browser
+        (after raising minimal required wxWidgets to 2.6.1)
 
 * investigate LLVM - can it be used for faster calculation of 
   user-defined functions?
