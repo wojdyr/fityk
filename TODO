@@ -3,7 +3,7 @@
 
 * function: EMG (expotentially modified gauss)
 
-* DataExpressionG: 
+* DataExpressionGrammar: 
     %func(DataExpressionG) #OP_FUNC number #eg. Y = y-%peak(x)       
     F(DataExpressionG)     #OP_CURVE_Y number
     Z(DataExpressionG)     #OP_CURVE_DX number
@@ -18,9 +18,11 @@
      			  & S = interpolate[x s](X)
      			  & A = interpolate[x a](X)
     [BUG] sum() doesn't work in "info sum(x)" or $a={sum(y)}
+    new functions: randuniform[a b]() randnormal[mu sigma]()
 
-
-* data tranformations: new functions: randuniform[a b]() randnormal[mu sigma]()
+* mixed data/sum export, eg:
+  x, y, abs(y-F(x)), %foo(x), %bar(x) > file #only active points are exported
+  "*F" expands to all functions in F
 
 ------------- next release here (?)
 
@@ -40,15 +42,9 @@ so i dont have to find it every time
 * (GUI) peak dragging -- sensible scaling of parameter changes 
            (problems with width changing)
 
-* (WWW) add CasaXPS (www.casaxps.com) to other programs
-    and "kurve" program (?), proFit (mac os x) 
-
 * (F > file) when exporting function/sum as points, it shuld be possible 
-  to set step of these points (s.set export-points-step = 0.?)
+  to set step of these points (eg. F [from:to:step] > file
   and to export baseline and each peak as a separately (multicolumn CSV)
-  mixed data/sum export, eg:
-  x, y, abs(y-F(x)), %foo(x), %bar(x) > file #only active points are exported
-                         # F(x) -> number or all functions one by one?
 
 * (Windows only) exporting plots to PostScript file and to metafile(clipboard) 
 
@@ -68,7 +64,6 @@ so i dont have to find it every time
 * logarithmic scale  
 
 * a reversed x-axis (high on left, low on right) as per XPS convention.
- (first ask MR what it means?)
 
 ------------- next release here (?)
 

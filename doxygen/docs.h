@@ -3,7 +3,7 @@
  * \par
  * This is a documentation of source for developers. 
  * If you just want to use the program, see 
- * <a href="http://www.unipress.waw.pl/~wojdyr/fityk/doc/html/index.html">
+ * <a href="http://www.unipress.waw.pl/fityk/doc/html/index.html">
  * user's manual</a>.
  * \par
  * Most of the source doesn't have doxygen comments yet, but I'll be adding
