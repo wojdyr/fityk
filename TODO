@@ -3,6 +3,15 @@
 
 * function: EMG (expotentially modified gauss)
 
+* (GUI) Session>Settings: tab "Directories" with default 
+   scripts/data directories and buttons "Save" and "Clear" with comment:
+   if you do not press "Save", these settings will be forgotten after
+   program restart.
+   In every other tab: "Note: if you want to have these settings
+   after program restart, put proper commands into file $HOME/.fityk/init
+   or equivalent."
+   Tab "Layout" with explaination, that how GUI settings are handled.
+
 * DataExpressionGrammar: 
     %func(DataExpressionG) #OP_FUNC number #eg. Y = y-%peak(x)       
     F(DataExpressionG)     #OP_CURVE_Y number
@@ -25,12 +34,6 @@
   "*F" expands to all functions in F
 
 ------------- next release here (?)
-
-* (GUI) possibility to set a default scripts/data directories,
-   to not to have to find it every time the program is loaded.
-
-so i dont have to find it every time 
-  i load the program
 
 * (GUI) sidebar: default column widths should be different
 
