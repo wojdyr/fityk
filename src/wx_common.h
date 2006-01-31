@@ -56,18 +56,6 @@ extern wxMouseEvent dummy_mouse_event;
 extern wxCommandEvent dummy_cmd_event;
 
 
-// version 2.4 compatibility
-#if !wxCHECK_VERSION(2,5,3)
-enum {
-    wxID_REVERT_TO_SAVED = 15000,
-    wxID_ADD,
-    wxID_REMOVE,
-    wxID_UP,
-    wxID_DOWN
-};
-#endif
-
-
 /// based on http://wiki.wxpython.org/index.cgi/ProportionalSplitterWindow
 /// it is like wxSplitterWindow, but when resized, both windows are resized
 /// proporionally

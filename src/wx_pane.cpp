@@ -1398,6 +1398,8 @@ void OutputWin::append_text (OutputStyle style, const wxString& str)
     //TODO TextCtrl is not refreshed when program is busy
     //I think it used to work with older versions of wx
     //Refresh() and Update() here don't help
+    Refresh(true);
+    Update();
 }
 
 void OutputWin::OnPopupColor (wxCommandEvent& event)

@@ -33,11 +33,6 @@ if test "$enable_optimization" = "yes"; then
 fi
 
 
-dnl use static/dynamic wxWin library
-AC_ARG_ENABLE(sharedwx, 
-[  --disable-shared-wx     link with static version of wxWindows library])
-test -z "$enable_sharedwx" && enable_sharedwx="yes"  
-
 dnl The GNU readline library
 AC_ARG_WITH(readline, 
 [  --without-readline      do not use the GNU readline library for cfityk 
@@ -132,15 +127,6 @@ if test "$enable_GUI" != "no" ; then
     	      equivalent variable and wxWindows version is 2.5.3 or above.
             ])
     fi
-
-    if test "$enable_sharedwx" != "no"; then
-	    WX_LIBS_DS="$WX_LIBS"
-	    dnl AC_MSG_RESULT([Chosen shared version of wxWindows library.])
-    else
-	    WX_LIBS_DS="$WX_LIBS_STATIC"
-	    AC_MSG_RESULT([Chosen static version of wxWindows library.])
-    fi
-
 fi
 
 if test "$enable_CLI" != "no"; then 
@@ -166,7 +152,6 @@ fi
 
 AC_SUBST(FITYK)
 AC_SUBST(CFITYK)
-AC_SUBST(WX_LIBS_DS) 
 AC_SUBST(DOC)
 
 

@@ -11,6 +11,7 @@
 #endif
 
 #include <wx/fontdlg.h>
+#include <wx/statline.h>
 #include <algorithm>
 
 #include "wx_mplot.h"
@@ -33,8 +34,6 @@ enum {
     ID_plot_popup_groups                   ,
     ID_plot_popup_peak                     ,
     ID_plot_popup_plabels                  ,
-    ID_plot_popup_xaxis                    ,
-    ID_plot_popup_tics                     ,
 
     ID_plot_popup_c_background             ,
     ID_plot_popup_c_inactive_data          ,
@@ -45,11 +44,15 @@ enum {
     ID_plot_popup_m_plabel                 ,
     ID_plot_popup_m_plfont                 ,
     ID_plot_popup_m_tfont                  ,
+    ID_plot_popup_axes                     ,
 
     ID_plot_popup_pt_size           = 25210,// and next 10 ,
     ID_peak_popup_info              = 25250,
     ID_peak_popup_del                      ,
     ID_peak_popup_guess                    ,
+
+    ID_CAD_COLOR,
+    ID_CAD_FONT
 };
 
 
@@ -69,7 +72,7 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_MIDDLE_UP (       MainPlot::OnButtonUp)
     EVT_KEY_DOWN   (      MainPlot::OnKeyDown)
     EVT_MENU (ID_plot_popup_za,     MainPlot::OnZoomAll)
-    EVT_MENU_RANGE (ID_plot_popup_data, ID_plot_popup_tics,  
+    EVT_MENU_RANGE (ID_plot_popup_data, ID_plot_popup_plabels,  
                                     MainPlot::OnPopupShowXX)
     EVT_MENU_RANGE (ID_plot_popup_c_background, ID_plot_popup_c_xaxis, 
                                     MainPlot::OnPopupColor)
@@ -79,6 +82,7 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_MENU (ID_plot_popup_m_plabel,MainPlot::OnPeakLabel)
     EVT_MENU (ID_plot_popup_m_plfont,MainPlot::OnPlabelFont)
     EVT_MENU (ID_plot_popup_m_tfont,MainPlot::OnTicsFont)
+    EVT_MENU (ID_plot_popup_axes,   MainPlot::OnConfigureAxes)
     EVT_MENU (ID_peak_popup_info,   MainPlot::OnPeakInfo)
     EVT_MENU (ID_peak_popup_del,    MainPlot::OnPeakDelete)
     EVT_MENU (ID_peak_popup_guess,  MainPlot::OnPeakGuess)
@@ -152,9 +156,10 @@ void MainPlot::Draw(wxDC &dc)
         draw_dataset(dc, focused_data);
     }
 
-    if (tics_visible)
-        draw_tics(dc, AL->view, 7, 7, 4, 4);
-
+    if (xtics_visible)
+        draw_xtics(dc, AL->view);
+    if (ytics_visible)
+        draw_ytics(dc, AL->view);
 
     if (peaks_visible)
         draw_peaks(dc, sum);
@@ -164,6 +169,8 @@ void MainPlot::Draw(wxDC &dc)
         draw_sum(dc, sum);
     if (x_axis_visible) 
         draw_x_axis(dc);
+    if (y_axis_visible) 
+        draw_y_axis(dc);
 
     if (visible_peaktops(mode)) 
         draw_peaktops(dc, sum); 
@@ -186,6 +193,12 @@ void MainPlot::draw_x_axis (wxDC& dc)
 {
     dc.SetPen (xAxisPen);
     dc.DrawLine (0, y2Y(0), GetClientSize().GetWidth(), y2Y(0));
+}
+
+void MainPlot::draw_y_axis (wxDC& dc)
+{
+    dc.SetPen (xAxisPen);
+    dc.DrawLine (x2X(0), 0, x2X(0), GetClientSize().GetHeight());
 }
 
 void MainPlot::draw_sum(wxDC& dc, Sum const* sum)
@@ -442,6 +455,11 @@ void MainPlot::read_settings(wxConfigBase *cf)
     line_between_points = read_bool_from_config(cf,"line_between_points",false);
     plabelFont = read_font_from_config(cf, "plabelFont", *wxNORMAL_FONT);
     plabel_format = cf->Read("plabel_format", "<area>").c_str();
+    x_max_tics = cf->Read("xMaxTics", 7);
+    y_max_tics = cf->Read("yMaxTics", 7);
+    x_tic_size = cf->Read("xTicSize", 4);
+    y_tic_size = cf->Read("yTicSize", 4);
+    x_reversed = read_bool_from_config (cf, "xReversed", false); 
     FPlot::read_settings(cf);
     Refresh();
 }
@@ -453,6 +471,11 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->Write ("line_between_points", line_between_points);
     write_font_to_config (cf, "plabelFont", plabelFont);
     cf->Write("plabel_format", plabel_format.c_str());
+    cf->Write("xMaxTics", x_max_tics);
+    cf->Write("yMaxTics", y_max_tics);
+    cf->Write("xTicSize", x_tic_size);
+    cf->Write("yTicSize", y_tic_size);
+    cf->Write("xReversed", x_reversed);
 
     cf->SetPath("/MainPlot/Colors");
     write_color_to_config (cf, "text_fg", colourTextForeground);//FIXME: what is this for?
@@ -489,13 +512,14 @@ void MainPlot::OnLeaveWindow (wxMouseEvent& WXUNUSED(event))
 void MainPlot::set_scale()
 {
     View const &v = AL->view;
-    shared.xUserScale = GetClientSize().GetWidth() / (v.right - v.left);
-    int H =  GetClientSize().GetHeight();
+    fp x_abs_scale = GetClientSize().GetWidth() / (v.right - v.left);
+    shared.xUserScale = x_reversed ? -x_abs_scale : x_abs_scale;
+    shared.xLogicalOrigin = x_reversed ? v.right : v.left;
+    int H = GetClientSize().GetHeight();
     fp h = v.top - v.bottom;
-    fp label_width = tics_visible && v.bottom <= 0 ?max(v.bottom * H/h + 12, 0.)
-                                                   : 0;
+    fp label_width = xtics_visible && v.bottom <= 0 ? max(v.bottom*H/h + 12, 0.)
+                                                    : 0;
     yUserScale = - (H - label_width) / h;
-    shared.xLogicalOrigin = v.left;
     yLogicalOrigin = v.top;
     shared.plot_y_scale = yUserScale;
 }
@@ -518,10 +542,6 @@ void MainPlot::show_popup_menu (wxMouseEvent &event)
     show_menu->Check (ID_plot_popup_peak, peaks_visible);
     show_menu->AppendCheckItem (ID_plot_popup_plabels, "Peak &labels", "");
     show_menu->Check (ID_plot_popup_plabels, plabels_visible);
-    show_menu->AppendCheckItem (ID_plot_popup_xaxis, "&X axis", "");
-    show_menu->Check (ID_plot_popup_xaxis, x_axis_visible);
-    show_menu->AppendCheckItem (ID_plot_popup_tics, "&Tics", "");
-    show_menu->Check (ID_plot_popup_tics, tics_visible);
     popup_menu.Append (wxNewId(), "&Show", show_menu);
 
     wxMenu *color_menu = new wxMenu;
@@ -548,6 +568,8 @@ void MainPlot::show_popup_menu (wxMouseEvent &event)
                                     wxString::Format ("&%d", i), "");
     size_menu->Check (ID_plot_popup_pt_size + point_radius, true);
     popup_menu.Append (wxNewId(), "Data point si&ze",size_menu);
+
+    popup_menu.Append (ID_plot_popup_axes, "Configure &Axes...");
 
     PopupMenu (&popup_menu, event.GetX(), event.GetY());
 }
@@ -1045,14 +1067,13 @@ bool MainPlot::rect_zoom (Mouse_act_enum ma, wxMouseEvent &event)
     }
     else if (ma == mat_stop) {
         X2 = event.GetX(), Y2 = event.GetY(); 
-        int Xmin = min (X1, X2), Xmax = max (X1, X2);
-        int width = Xmax - Xmin;
-        int Ymin = min (Y1, Y2), Ymax = max (Y1, Y2);
-        int height = Ymax - Ymin;
-        if (width > 5 && height > 5) 
-            frame->change_zoom("[ "+S(X2x(Xmin))+" : "+S(X2x(Xmax))+" ]"
-                               "[ "+S(Y2y(Ymax))+" : "+S(Y2y(Ymin))+" ]"); 
-                                    //Y2y(Ymax) < Y2y(Ymin)
+        fp x1 = X2x(X1);
+        fp x2 = X2x(X2);
+        fp y1 = Y2y(Y1);
+        fp y2 = Y2y(Y2);
+        if (abs(X1-X2) > 5 && abs(Y1-Y2) > 5) 
+            frame->change_zoom("[ "+S(min(x1,x2))+" : "+S(max(x1,x2))+" ]"
+                               "[ "+S(min(y1,y2))+" : "+S(max(y1,y2))+" ]"); 
     }
 
     if (ma == mat_cancel || ma == mat_stop) {
@@ -1085,8 +1106,6 @@ void MainPlot::OnPopupShowXX (wxCommandEvent& event)
         case ID_plot_popup_groups: groups_visible = !groups_visible; break; 
         case ID_plot_popup_peak :  peaks_visible = !peaks_visible;   break;  
         case ID_plot_popup_plabels:plabels_visible = !plabels_visible; break;
-        case ID_plot_popup_xaxis:  x_axis_visible = !x_axis_visible; break; 
-        case ID_plot_popup_tics :  tics_visible = !tics_visible;     break; 
         default: assert(0);
     }
     Refresh(false);
@@ -1177,16 +1196,141 @@ void MainPlot::OnPopupRadius (wxCommandEvent& event)
     Refresh(false);
 }
 
+void MainPlot::OnConfigureAxes (wxCommandEvent& WXUNUSED(event))
+{
+    ConfigureAxesDlg dialog(frame, -1, this);
+    dialog.ShowModal();
+}
 
 void MainPlot::OnZoomAll (wxCommandEvent& WXUNUSED(event))
 {
     frame->OnGViewAll(dummy_cmd_event);
 }
 
+//===============================================================
+//                     ConfigureAxesDlg
+//===============================================================
+
+BEGIN_EVENT_TABLE(ConfigureAxesDlg, wxDialog)
+    EVT_BUTTON(wxID_APPLY, ConfigureAxesDlg::OnApply)
+    EVT_BUTTON(wxID_CLOSE, ConfigureAxesDlg::OnClose)
+    EVT_BUTTON(ID_CAD_COLOR, ConfigureAxesDlg::OnChangeColor)
+    EVT_BUTTON(ID_CAD_FONT, ConfigureAxesDlg::OnChangeFont)
+END_EVENT_TABLE()
+
+ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id, 
+                                   MainPlot* plot_)
+  : wxDialog(parent, id, "Configure Axes"), plot(plot_),
+    color(plot_->xAxisPen.GetColour())
+{
+    wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *sizer1 = new wxBoxSizer(wxHORIZONTAL);
+    wxStaticBoxSizer *xsizer = new wxStaticBoxSizer(wxVERTICAL, this, "X axis");
+    x_show_axis = new wxCheckBox(this, -1, "show axis");
+    x_show_axis->SetValue(plot->x_axis_visible);
+    xsizer->Add(x_show_axis, 0, wxALL, 5);
+    x_show_tics = new wxCheckBox(this, -1, "show tics");
+    x_show_tics->SetValue(plot->xtics_visible);
+    xsizer->Add(x_show_tics, 0, wxALL, 5);
+    wxBoxSizer *xmt_sizer = new wxBoxSizer(wxHORIZONTAL);
+    xmt_sizer->Add(new wxStaticText(this, -1, "max. number of tics"), 
+                  0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
+    x_max_tics = new wxSpinCtrl (this, -1, "7",
+                                 wxDefaultPosition, wxSize(50, -1), 
+                                 wxSP_ARROW_KEYS, 1, 30, 7);
+    x_max_tics->SetValue(plot->x_max_tics);
+    xmt_sizer->Add(x_max_tics, 0, wxALL, 5);
+    xsizer->Add(xmt_sizer);
+    wxBoxSizer *xts_sizer = new wxBoxSizer(wxHORIZONTAL);
+    xts_sizer->Add(new wxStaticText(this, -1, "length of tics"), 
+                  0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
+    x_tics_size = new wxSpinCtrl (this, -1, "4",
+                                  wxDefaultPosition, wxSize(50, -1), 
+                                  wxSP_ARROW_KEYS, -10, 20, 4);
+    x_tics_size->SetValue(plot->x_tic_size);
+    xts_sizer->Add(x_tics_size, 0, wxALL, 5);
+    xsizer->Add(xts_sizer);
+    x_reversed = new wxCheckBox(this, -1, "reversed axis");
+    x_reversed->SetValue(plot->x_reversed);
+    xsizer->Add(x_reversed, 0, wxALL, 5);
+    sizer1->Add(xsizer, 0, wxALL, 5);
+
+    wxStaticBoxSizer *ysizer = new wxStaticBoxSizer(wxVERTICAL, this, "Y axis");
+    y_show_axis = new wxCheckBox(this, -1, "show axis");
+    y_show_axis->SetValue(plot->y_axis_visible);
+    ysizer->Add(y_show_axis, 0, wxALL, 5);
+    y_show_tics = new wxCheckBox(this, -1, "show tics");
+    y_show_tics->SetValue(plot->ytics_visible);
+    ysizer->Add(y_show_tics, 0, wxALL, 5);
+    wxBoxSizer *ymt_sizer = new wxBoxSizer(wxHORIZONTAL);
+    ymt_sizer->Add(new wxStaticText(this, -1, "max. number of tics"), 
+                  0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
+    y_max_tics = new wxSpinCtrl (this, -1, "7",
+                                 wxDefaultPosition, wxSize(50, -1), 
+                                 wxSP_ARROW_KEYS, 1, 30, 7);
+    y_max_tics->SetValue(plot->y_max_tics);
+    ymt_sizer->Add(y_max_tics, 0, wxALL, 5);
+    ysizer->Add(ymt_sizer);
+    wxBoxSizer *yts_sizer = new wxBoxSizer(wxHORIZONTAL);
+    yts_sizer->Add(new wxStaticText(this, -1, "length of tics"), 
+                  0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
+    y_tics_size = new wxSpinCtrl (this, -1, "4",
+                                  wxDefaultPosition, wxSize(50, -1), 
+                                  wxSP_ARROW_KEYS, 1, 20, 4);
+    y_tics_size->SetValue(plot->y_tic_size);
+    yts_sizer->Add(y_tics_size, 0, wxALL, 5);
+    ysizer->Add(yts_sizer);
+    //TODO y_reversed = new wxCheckBox(this, -1, "reversed axis");
+    //y_reversed->SetValue(plot->y_reversed);
+    //ysizer->Add(y_reversed, 0, wxALL, 5);
+    sizer1->Add(ysizer, 0, wxALL, 5);
+
+    top_sizer->Add(sizer1, 0);
+    wxBoxSizer *common_sizer = new wxBoxSizer(wxHORIZONTAL);
+    common_sizer->Add(new wxButton(this, ID_CAD_COLOR, "Change axes color..."),
+                      0, wxALL, 5);
+    common_sizer->Add(new wxButton(this, ID_CAD_FONT, "Change tics font..."),
+                      0, wxALL, 5);
+    top_sizer->Add(common_sizer, 0, wxALIGN_CENTER);
+    top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
+
+    wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
+    button_sizer->Add(new wxButton(this, wxID_APPLY, "&Apply"), 
+                      0, wxALL, 5);
+    button_sizer->Add(new wxButton(this, wxID_CLOSE, "&Close"), 
+                      0, wxALL, 5);
+    top_sizer->Add(button_sizer, 0, wxALL|wxALIGN_CENTER, 0);
+    SetSizerAndFit(top_sizer);
+}
+
+void ConfigureAxesDlg::OnApply (wxCommandEvent& WXUNUSED(event))
+{
+    bool scale_changed = false;
+    plot->xAxisPen.SetColour(color);
+    plot->x_axis_visible = x_show_axis->GetValue();
+    plot->xtics_visible = x_show_tics->GetValue();
+    plot->x_max_tics = x_max_tics->GetValue();
+    plot->x_tic_size = x_tics_size->GetValue();
+    if (plot->x_reversed != x_reversed->GetValue()) {
+        plot->x_reversed = x_reversed->GetValue();
+        scale_changed = true;
+    }
+    plot->y_axis_visible = y_show_axis->GetValue();
+    plot->ytics_visible = y_show_tics->GetValue();
+    plot->y_max_tics = y_max_tics->GetValue();
+    plot->y_tic_size = y_tics_size->GetValue();
+    //TODO plot->y_reversed = y_reversed->GetValue();
+    frame->refresh_plots(true, false, !scale_changed);
+}
+
+void ConfigureAxesDlg::OnChangeFont (wxCommandEvent& WXUNUSED(event)) 
+{ 
+    plot->change_tics_font(); 
+}
 
 
 //===============================================================
-//           BgManager (for interactive background setting
+//           BgManager (for interactive background setting)
 //===============================================================
 
 /*

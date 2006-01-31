@@ -31,7 +31,7 @@ gui_sources = wx_common.cpp wx_dlg.cpp wx_gui.cpp wx_IO.cpp wx_plot.cpp \
 fityk_SOURCES = $(common_sources) $(gui_sources) 
 cfityk_SOURCES = $(common_sources) u_gnuplot.cpp u_main.cpp 
 common_ldadd = ##none
-fityk_LDADD = $(common_ldadd) @WX_LIBS_DS@ $(ms_win_res)
+fityk_LDADD = $(common_ldadd) @WX_LIBS@ $(ms_win_res)
 cfityk_LDADD = $(common_ldadd) @READLINE_LIBS@ -lm
 noinst_HEADERS = common.h data.h datatrans.h datatrans2.h settings.h \
 		 GAfit.h LMfit.h guess.h NMfit.h logic.h \

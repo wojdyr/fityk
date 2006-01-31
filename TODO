@@ -66,8 +66,6 @@
 
 * logarithmic scale  
 
-* a reversed x-axis (high on left, low on right) as per XPS convention.
-
 ------------- next release here (?)
 
 * (GUI) use numeric pad keys (WXK_NUMPAD_*) as shortcuts for changing 
@@ -170,9 +168,8 @@
 			 multipart Siemens .raw data files
 			 uxd,udf
 
-* (GUI) More precise configuration of axis tics.
-  horizontal/vertical peak labels, etc, single dialog for setting
-  all peak label properties and all
+* (GUI) horizontal/vertical peak labels, etc, single dialog (or place at 
+  functin pane) for setting all peak label properties 
 
 * python scripts  -- built-in Python interpreter which allows to extend 
   Fityk using user-written scripts, optional modules, etc. 

@@ -1353,6 +1353,8 @@ void FFrame::scroll_view_horizontally(fp step)
 {
     View const &vw = AL->view;
     fp diff = vw.width() * step;
+    if (plot_pane->get_plot()->get_x_reversed())
+        diff = -diff;
     fp new_left = vw.left + diff; 
     fp new_right = vw.right + diff;
     change_zoom("[" + S(new_left) + " : " + S(new_right) + "] .");

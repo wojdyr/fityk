@@ -4,14 +4,14 @@
 #ifndef FITYK__WX_GUI__H__
 #define FITYK__WX_GUI__H__
 
-#include "common.h"
-#include "wx_common.h"  // Output_style_enum
 #include <list>
 #include <wx/spinctrl.h>
 #include <wx/html/helpctrl.h>
 #ifdef __WXMSW__
 #  include <wx/msw/helpbest.h>
 #endif
+#include "common.h"
+#include "wx_common.h"  // Output_style_enum
 
 class wxCmdLineParser;
 //struct z_names_type;

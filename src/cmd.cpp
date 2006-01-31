@@ -745,7 +745,8 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         multi 
-            = (!(statement % ';') >> !('#' >> *~ch_p('\n'))) [&do_replot];
+            = (!( (!statement) % ';') 
+                    >> !('#' >> *~ch_p('\n'))) [&do_replot];
 
     }
 

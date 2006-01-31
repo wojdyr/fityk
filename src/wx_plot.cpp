@@ -84,15 +84,14 @@ bool FPlot::vert_line_following_cursor (Mouse_act_enum ma, int x, int x0)
     return true;
 }
 
-void FPlot::draw_tics (wxDC& dc, View const &v, 
-                       int const x_max_tics, int const y_max_tics, 
-                       int const x_tic_size, int const y_tic_size)
+
+/// draw x axis tics
+void FPlot::draw_xtics (wxDC& dc, View const &v)
 {
     dc.SetPen (xAxisPen);
     dc.SetFont(ticsFont);
     dc.SetTextForeground(xAxisPen.GetColour());
 
-    // x axis tics
     fp x_tic_step = scale_tics_step(v.left, v.right, x_max_tics);
     for (fp x = x_tic_step * ceil(v.left / x_tic_step); x < v.right; 
             x += x_tic_step) {
@@ -105,11 +104,21 @@ void FPlot::draw_tics (wxDC& dc, View const &v,
         dc.DrawText (label, X - w/2, Y + 1);
     }
 
-    // y axis tics
+}
+
+/// draw y axis tics
+void FPlot::draw_ytics (wxDC& dc, View const &v)
+{
+    dc.SetPen (xAxisPen);
+    dc.SetFont(ticsFont);
+    dc.SetTextForeground(xAxisPen.GetColour());
+
     fp y_tic_step = scale_tics_step(v.bottom, v.top, y_max_tics);
+    int X = 0;
+    if (y_axis_visible && x2X(0) > 0 && x2X(0) < GetClientSize().GetWidth()-10)
+        X = x2X(0);
     for (fp y = y_tic_step * ceil(v.bottom / y_tic_step); y < v.top; 
             y += y_tic_step) {
-        int X = 0;
         int Y = y2Y(y);
         dc.DrawLine (X, Y, X + y_tic_size, Y);
         wxString label = S(y).c_str();
@@ -248,7 +257,9 @@ void FPlot::read_settings(wxConfigBase *cf)
 {
     cf->SetPath("Visible");
     x_axis_visible = read_bool_from_config (cf, "xAxis", true);  
-    tics_visible = read_bool_from_config (cf, "tics", true);
+    y_axis_visible = read_bool_from_config (cf, "yAxis", false);  
+    xtics_visible = read_bool_from_config (cf, "xtics", true);
+    ytics_visible = read_bool_from_config (cf, "ytics", true);
     cf->SetPath("../Colors");
     xAxisPen.SetColour (read_color_from_config(cf, "xAxis", wxColour("WHITE")));
     cf->SetPath("..");
@@ -262,7 +273,9 @@ void FPlot::save_settings(wxConfigBase *cf) const
 {
     cf->SetPath("Visible");
     cf->Write ("xAxis", x_axis_visible);
-    cf->Write ("tics", tics_visible);
+    cf->Write ("yAxis", y_axis_visible);
+    cf->Write ("xtics", xtics_visible);
+    cf->Write ("ytics", ytics_visible);
     cf->SetPath("../Colors");
     write_color_to_config (cf, "xAxis", xAxisPen.GetColour());
     cf->SetPath("..");
@@ -353,14 +366,17 @@ void AuxPlot::Draw(wxDC &dc)
         return;
     }
 
-    //don't draw y axis and y tics
     if (x_axis_visible) {
         dc.DrawLine (0, y2Y(0), GetClientSize().GetWidth(), y2Y(0));
-        if (kind == apk_diff) draw_zoom_text(dc);
+        if (kind == apk_diff) 
+            draw_zoom_text(dc);
     }
-    if (tics_visible) {
+    if (y_axis_visible) {
+        dc.DrawLine (x2X(0), 0, x2X(0), GetClientSize().GetHeight());
+    }
+    if (ytics_visible) {
         View v(0, 0, Y2y(GetClientSize().GetHeight()), Y2y(0));
-        draw_tics(dc, v, 0, 5, 0, 4);
+        draw_ytics(dc, v);
     }
 
     if (kind == apk_diff)
@@ -444,6 +460,8 @@ void AuxPlot::read_settings(wxConfigBase *cf)
     auto_zoom_y = false;
     line_between_points = read_bool_from_config(cf,"line_between_points", true);
     point_radius = cf->Read ("point_radius", 1);
+    y_max_tics = cf->Read("yMaxTics", 5);
+    y_tic_size = cf->Read("yTicSize", 4);
     cf->SetPath("Visible");
     // nothing here now
     cf->SetPath("../Colors");
@@ -468,6 +486,8 @@ void AuxPlot::save_settings(wxConfigBase *cf) const
     cf->Write ("kind", kind); 
     cf->Write ("line_between_points", line_between_points);
     cf->Write ("point_radius", point_radius);
+    cf->Write("yMaxTics", y_max_tics);
+    cf->Write("yTicSize", y_tic_size);
 
     cf->SetPath("Visible");
     // nothing here now
@@ -521,13 +541,14 @@ void AuxPlot::OnLeftUp (wxMouseEvent &event)
 {
     if (mouse_press_X == INVALID)
         return;
-    int xmin = min (event.GetX(), mouse_press_X);
-    int xmax = max (event.GetX(), mouse_press_X);
-    cancel_mouse_left_press();
-
-    if (xmax - xmin < 5) //cancel
+    if (abs(event.GetX() - mouse_press_X) < 5) { //cancel
+        cancel_mouse_left_press();
         return;
-    frame->change_zoom("[" + S(X2x(xmin)) + " : " + S(X2x(xmax)) + "]");
+    }
+    fp x1 = X2x(event.GetX());
+    fp x2 = X2x(mouse_press_X);
+    cancel_mouse_left_press();
+    frame->change_zoom("[" + S(min(x1,x2)) + " : " + S(max(x1,x2)) + "]");
 }
 
 //popup-menu

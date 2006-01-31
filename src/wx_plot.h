@@ -66,7 +66,8 @@ protected:
     wxColour colourTextForeground, colourTextBackground;
     int point_radius;
     bool line_between_points;
-    bool x_axis_visible, tics_visible;
+    bool x_axis_visible, y_axis_visible, xtics_visible, ytics_visible;
+    int x_max_tics, y_max_tics, x_tic_size, y_tic_size;
     fp yUserScale, yLogicalOrigin; 
     PlotShared &shared;
     int mouse_press_X, mouse_press_Y;
@@ -74,9 +75,8 @@ protected:
 
     void draw_dashed_vert_lines (int x1);
     bool vert_line_following_cursor(Mouse_act_enum ma, int x=0, int x0=INVALID);
-    void draw_tics (wxDC& dc, View const &v, 
-                    int const x_max_tics, int const y_max_tics, 
-                    int const x_tic_size, int const y_tic_size);
+    void draw_xtics (wxDC& dc, View const& v);
+    void draw_ytics (wxDC& dc, View const &v);
     fp get_max_abs_y (fp (*compute_y)(std::vector<Point>::const_iterator,
                                       Sum const*),
                          std::vector<Point>::const_iterator first,

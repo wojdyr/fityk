@@ -12,6 +12,7 @@
 /// which can be set by selecting points on Plot
 
 struct t_xy { fp x, y; };
+class Function;
 
 class BgManager
 {
@@ -37,11 +38,12 @@ protected:
 };
 
 
-class Function;
+class ConfigureAxesDlg;
 
 /// main plot, single in application, displays data, fitted peaks etc. 
 class MainPlot : public FPlot, public BgManager
 {
+    friend class ConfigureAxesDlg;
 public:
     MainPlot (wxWindow *parent, PlotShared &shar); 
     ~MainPlot() {}
@@ -62,6 +64,7 @@ public:
     void OnPlabelFont (wxCommandEvent& event);
     void OnTicsFont (wxCommandEvent& WXUNUSED(event)) { change_tics_font(); }
     void OnPopupRadius (wxCommandEvent& event);
+    void OnConfigureAxes (wxCommandEvent& event);
     void OnZoomAll (wxCommandEvent& event);
     void PeakInfo ();
     void OnPeakInfo (wxCommandEvent& WXUNUSED(event)) { PeakInfo(); }
@@ -81,6 +84,7 @@ public:
         { dataColour[n % max_data_pens] = col; }
     void set_func_color(int n, wxColour const& col) 
         { peakPen[n % max_peak_pens].SetColour(col); }
+    bool get_x_reversed() const { return x_reversed; }
 
 private:
     MouseModeEnum basic_mode, 
@@ -90,7 +94,7 @@ private:
     static const int max_data_pens = 32;
     static const int max_radius = 4; //size of data point
     bool peaks_visible, groups_visible, sum_visible, data_visible, 
-         plabels_visible; 
+         plabels_visible, x_reversed; 
     wxFont plabelFont;
     std::string plabel_format;
     std::vector<std::string> plabels;
@@ -102,6 +106,7 @@ private:
     int over_peak;
 
     void draw_x_axis (wxDC& dc);
+    void draw_y_axis (wxDC& dc);
     void draw_background(wxDC& dc); 
     void draw_sum (wxDC& dc, Sum const* sum);
     void draw_groups (wxDC& dc, Sum const* sum);
@@ -126,5 +131,25 @@ private:
 
     DECLARE_EVENT_TABLE()
 };
+
+class ConfigureAxesDlg: public wxDialog
+{
+public:
+    ConfigureAxesDlg(wxWindow* parent, wxWindowID id, MainPlot* plot_);
+    void OnApply (wxCommandEvent& event);
+    void OnClose (wxCommandEvent& event) { OnCancel(event); }
+    void OnChangeColor (wxCommandEvent& WXUNUSED(event)) 
+                                               { change_color_dlg(color); }
+    void OnChangeFont (wxCommandEvent& event); 
+private:
+    MainPlot *plot;
+    wxColour color;
+    wxCheckBox *x_show_axis, *x_show_tics, *x_reversed; 
+    wxSpinCtrl *x_max_tics, *x_tics_size;
+    wxCheckBox *y_show_axis, *y_show_tics, *y_reversed; 
+    wxSpinCtrl *y_max_tics, *y_tics_size;
+    DECLARE_EVENT_TABLE()
+};
+
 
 #endif 
