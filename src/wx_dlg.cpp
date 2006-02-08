@@ -863,7 +863,7 @@ void DataEditorDlg::read_examples(bool reset)
     wxString transform_path = get_user_conffile("transform");
     string t_line;
     if (wxFileExists(transform_path) && !reset) {
-        ifstream f(wx2pchar(transform_path));
+        ifstream f(wx2s(transform_path).c_str());
         while (getline(f, t_line))
             examples.push_back(DataTransExample(t_line));
     }
@@ -1029,7 +1029,7 @@ void DataEditorDlg::OnDown (wxCommandEvent& WXUNUSED(event))
 void DataEditorDlg::OnSave (wxCommandEvent& WXUNUSED(event))
 {
     wxString transform_path = get_user_conffile("transform");
-    ofstream f(wx2pchar(transform_path));
+    ofstream f(wx2s(transform_path).c_str());
     for (vector<DataTransExample>::const_iterator i = examples.begin();
             i != examples.end(); ++i)
         if (i->category != "builtin")

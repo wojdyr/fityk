@@ -1,7 +1,7 @@
 REQUIREMENTS:
 ============
 both CLI and GUI
-  modern c++ compiler (see below)
+  modern c++ compiler (eg. GCC)
 only for CLI (command line interface, cfityk): 
   readline library (optional)
   gnuplot program (for graph output, optional)
@@ -29,7 +29,7 @@ PORTABILITY:
 		 Linux (and probably other unices): 
 		 ----------------------------------
 
-The only wxWidgets port I use is wxGTK. I don't test wxMotif and wxX11.
+The only wxWidgets port I use is wxGTK. 
 Only GCC compiler, versions 3.1 and newer are supported.
 (I test compilation only with one GCC version, it is 3.4 at this moment)
 
@@ -37,15 +37,8 @@ Only GCC compiler, versions 3.1 and newer are supported.
 		                  MS Windows 
 		-----------------------------------------------
 
-Current version is compiled with MinGW.
-Fityk versions <= 3.2 where compiled with the free Borland C++ Compiler 5.5.
+MS Windows executable is compiled with MinGW.
 Windows installer is prepared with Inno Setup (configuration in fityk.iss).
-
-If you would like to try compiler other than GCC/MinGW, here are some 
-outdated tests: 
-Borland C++ 5.5 (bcc32) - OK, tested in 2003.  
-Cygwin - CLI - OK, GUI - ?
-VC++6 - http://sourceforge.net/mailarchive/message.php?msg_id=9217477 
 
 
 				 Mac OS 

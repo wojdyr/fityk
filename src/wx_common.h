@@ -31,12 +31,10 @@ inline wxString pchar2wx(char const* pc)
 inline wxString s2wx(std::string const& s) { return pchar2wx(s.c_str()); }
 
 
-inline char const* wx2pchar(wxString const& w)
+inline std::string wx2s(wxString const& w) 
 { 
-    return (const char*) w.mb_str(wxConvUTF8); 
+    return std::string((const char*) w.mb_str(wxConvUTF8)); 
 }
-
-inline std::string wx2s(wxString const& w) { return wx2pchar(w); }
 
 inline wxArrayString stl2wxArrayString(std::vector<std::string> const& vs)
 {
