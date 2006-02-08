@@ -196,7 +196,7 @@ protected:
     FToolBar *toolbar;
     ProportionalSplitter *v_splitter;
     wxPrintData *print_data;
-    wxPageSetupData* page_setup_data;
+    wxPageSetupDialogData* page_setup_data;
 #ifdef __WXMSW__
     wxBestHelpController help;
 #else
@@ -212,6 +212,7 @@ protected:
     void update_peak_type_list();
     void read_recent_data_files();
     void write_recent_data_files();
+    wxPrintData& get_print_data(); 
 
 DECLARE_EVENT_TABLE()
 };

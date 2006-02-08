@@ -64,7 +64,7 @@
 #include "img/save_data.xpm"
 #include "img/save_script.xpm"
 #include "img/strip_bg.xpm"
-#include "img/undo_fit.xpm"
+//#include "img/undo_fit.xpm"
 #include "img/zoom_all.xpm"
 #include "img/zoom_left.xpm"
 #include "img/zoom_mode.xpm"
@@ -365,8 +365,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
                  const long style)
     : wxFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, style), 
       main_pane(0), sidebar(0), status_bar(0), 
-      toolbar(0), 
-      print_data(new wxPrintData), page_setup_data(new wxPageSetupData),
+      toolbar(0), print_data(0), page_setup_data(0),
 #ifdef __WXMSW__
       help()
 #else
@@ -419,8 +418,10 @@ FFrame::~FFrame()
 {
     write_recent_data_files();
     wxConfig::Get()->Write(wxT("/DefaultFunctionType"), peak_type_nr);
-    delete print_data;
-    delete page_setup_data;
+    if (print_data)
+        delete print_data;
+    if (page_setup_data)
+        delete page_setup_data;
 }
 
 void FFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
@@ -1418,10 +1419,17 @@ public:
     }
 };
 
+wxPrintData& FFrame::get_print_data() 
+{ 
+    if (!print_data) 
+        print_data = new wxPrintData;
+    return *print_data;
+}
+
 void FFrame::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 {
     // Pass two printout objects: for preview, and possible printing.
-    wxPrintDialogData print_dialog_data (*print_data);
+    wxPrintDialogData print_dialog_data(get_print_data());
     wxPrintPreview *preview = new wxPrintPreview (new FPrintout(plot_pane),
                                                   new FPrintout(plot_pane), 
                                                   &print_dialog_data);
@@ -1440,14 +1448,16 @@ void FFrame::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 
 void FFrame::OnPrintSetup(wxCommandEvent& WXUNUSED(event))
 {
-    (*page_setup_data) = *print_data;
+    if (!page_setup_data) 
+        page_setup_data = new wxPageSetupDialogData(get_print_data());
+    else
+        (*page_setup_data) = get_print_data();
 
     wxPageSetupDialog page_setup_dialog(this, page_setup_data);
     page_setup_dialog.ShowModal();
 
-    (*print_data) = page_setup_dialog.GetPageSetupData().GetPrintData();
+    get_print_data() = page_setup_dialog.GetPageSetupData().GetPrintData();
     (*page_setup_data) = page_setup_dialog.GetPageSetupData();
-
 }
 
 void FFrame::OnPrint(wxCommandEvent& WXUNUSED(event))
@@ -1463,12 +1473,12 @@ void FFrame::OnPrint(wxCommandEvent& WXUNUSED(event))
                           wxYES_NO|wxCANCEL|wxICON_QUESTION) 
                 != wxYES)
             return;
-    wxPrintDialogData print_dialog_data (*print_data);
+    wxPrintDialogData print_dialog_data(get_print_data());
     wxPrinter printer (&print_dialog_data);
     FPrintout printout(plot_pane);
     bool r = printer.Print(this, &printout, true);
     if (r) 
-        (*print_data) = printer.GetPrintDialogData().GetPrintData();
+        get_print_data() = printer.GetPrintDialogData().GetPrintData();
     else if (wxPrinter::GetLastError() == wxPRINTER_ERROR)
         wxMessageBox(wxT("There was a problem printing.\nPerhaps your current ")
                      wxT("printer is not set correctly?"), 
