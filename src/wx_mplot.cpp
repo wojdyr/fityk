@@ -1181,7 +1181,8 @@ END_EVENT_TABLE()
 
 ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id, 
                                    MainPlot* plot_)
-  : wxDialog(parent, id, wxT("Configure Axes")), plot(plot_),
+    //explicit conversion of title to wxString() is neccessary
+  : wxDialog(parent, id, wxString(wxT("Configure Axes"))), plot(plot_),
     axis_color(plot_->xAxisPen.GetColour())
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
@@ -1308,7 +1309,8 @@ END_EVENT_TABLE()
 
 ConfigurePLabelsDlg::ConfigurePLabelsDlg(wxWindow* parent, wxWindowID id, 
                                          MainPlot* plot_)
-  : wxDialog(parent, id, wxT("Configure Peak Labels")), plot(plot_),
+    //explicit conversion of title to wxString() is neccessary
+  : wxDialog(parent, id, wxString(wxT("Configure Peak Labels"))), plot(plot_),
     in_onradiolabel(false)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
@@ -1324,7 +1326,8 @@ ConfigurePLabelsDlg::ConfigurePLabelsDlg(wxWindow* parent, wxWindowID id,
     label_radio_choice.push_back("custom");
     label_radio = new wxRadioBox(this, ID_CPL_RADIO, wxT("labels with:"),
                                  wxDefaultPosition, wxDefaultSize, 
-                                 stl2wxArrayString(label_radio_choice));
+                                 stl2wxArrayString(label_radio_choice),
+                                 1, wxRA_SPECIFY_COLS);
     sizer1->Add(label_radio, 0, wxALL|wxEXPAND, 5);
     wxStaticBoxSizer *xsizer = new wxStaticBoxSizer(wxVERTICAL, this, 
                                             wxT("list of replaceable tokens"));

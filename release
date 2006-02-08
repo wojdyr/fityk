@@ -193,7 +193,8 @@ elif [ $1 -eq 6 ]; then
  fi
  # i had problems making hhp working under wine
  echo '"C:\Program Files\HTML Help Workshop\hhc.exe" doc\htmlhelp.hhp' \
-					>$ALL_WIN_FILES/build_help.cmd
+					    >$ALL_WIN_FILES/build_help.cmd
+ echo 'ren doc\htmlhelp.chm fitykhelp.chm' >>$ALL_WIN_FILES/build_help.cmd
  echo everything is in: `pwd`/$ALL_WIN_FILES
  
 
