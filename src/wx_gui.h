@@ -66,7 +66,7 @@ class FStatusBar: public wxStatusBar
 public:
     FStatusBar(wxWindow *parent);
     void OnSize(wxSizeEvent& event);
-    void set_hint(const char *left, const char *right);
+    void set_hint(std::string const& left, std::string const& right);
 private:
     wxStaticBitmap *statbmp1, *statbmp2;
     DECLARE_EVENT_TABLE()
@@ -159,7 +159,7 @@ public:
     void read_settings(wxConfigBase *cf);
     const FToolBar* get_toolbar() const { return toolbar; }
     std::string get_peak_type() const;
-    void set_status_hint(const char *left, const char *right);
+    void set_status_hint(std::string const& left, std::string const& right);
     void output_text(OutputStyle style, const std::string& str);
     void change_zoom(const std::string& s);
     void scroll_view_horizontally(fp step);
@@ -168,8 +168,8 @@ public:
     void draw_crosshair(int X, int Y);
     void focus_input(int key=0);
     void edit_in_input(std::string const& s);
-    void set_status_text(const wxString &text, StatusBarField field=sbf_text) 
-            { if (status_bar) SetStatusText(text, field); }
+    void set_status_text(std::string const& text, StatusBarField field=sbf_text)
+            { if (status_bar) SetStatusText(s2wx(text), field); }
     bool display_help_section(const std::string &s);
     void after_cmd_updates();
     std::string get_active_data_str();

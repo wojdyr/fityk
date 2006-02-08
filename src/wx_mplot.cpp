@@ -29,22 +29,17 @@ using namespace std;
 
 enum {
     ID_plot_popup_za                = 25001, 
-    ID_plot_popup_data              = 25011,
-    ID_plot_popup_sum                      ,
+    ID_plot_popup_sum               = 25011,
     ID_plot_popup_groups                   ,
     ID_plot_popup_peak                     ,
-    ID_plot_popup_plabels                  ,
 
     ID_plot_popup_c_background             ,
     ID_plot_popup_c_inactive_data          ,
     ID_plot_popup_c_sum                    ,
-    ID_plot_popup_c_xaxis                  ,
     ID_plot_popup_c_inv                    ,
 
-    ID_plot_popup_m_plabel                 ,
-    ID_plot_popup_m_plfont                 ,
-    ID_plot_popup_m_tfont                  ,
     ID_plot_popup_axes                     ,
+    ID_plot_popup_plabels                  ,
 
     ID_plot_popup_pt_size           = 25210,// and next 10 ,
     ID_peak_popup_info              = 25250,
@@ -52,7 +47,12 @@ enum {
     ID_peak_popup_guess                    ,
 
     ID_CAD_COLOR,
-    ID_CAD_FONT
+    ID_CAD_FONT,
+
+    ID_CPL_FONT,
+    ID_CPL_SHOW,
+    ID_CPL_RADIO,
+    ID_CPL_TEXT,
 };
 
 
@@ -72,17 +72,15 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_MIDDLE_UP (       MainPlot::OnButtonUp)
     EVT_KEY_DOWN   (      MainPlot::OnKeyDown)
     EVT_MENU (ID_plot_popup_za,     MainPlot::OnZoomAll)
-    EVT_MENU_RANGE (ID_plot_popup_data, ID_plot_popup_plabels,  
+    EVT_MENU_RANGE (ID_plot_popup_sum, ID_plot_popup_peak,  
                                     MainPlot::OnPopupShowXX)
-    EVT_MENU_RANGE (ID_plot_popup_c_background, ID_plot_popup_c_xaxis, 
+    EVT_MENU_RANGE (ID_plot_popup_c_background, ID_plot_popup_c_sum, 
                                     MainPlot::OnPopupColor)
     EVT_MENU_RANGE (ID_plot_popup_pt_size, ID_plot_popup_pt_size + max_radius, 
                                     MainPlot::OnPopupRadius)
     EVT_MENU (ID_plot_popup_c_inv,  MainPlot::OnInvertColors)
-    EVT_MENU (ID_plot_popup_m_plabel,MainPlot::OnPeakLabel)
-    EVT_MENU (ID_plot_popup_m_plfont,MainPlot::OnPlabelFont)
-    EVT_MENU (ID_plot_popup_m_tfont,MainPlot::OnTicsFont)
     EVT_MENU (ID_plot_popup_axes,   MainPlot::OnConfigureAxes)
+    EVT_MENU (ID_plot_popup_plabels,MainPlot::OnConfigurePLabels)
     EVT_MENU (ID_peak_popup_info,   MainPlot::OnPeakInfo)
     EVT_MENU (ID_peak_popup_del,    MainPlot::OnPeakDelete)
     EVT_MENU (ID_peak_popup_guess,  MainPlot::OnPeakGuess)
@@ -146,15 +144,14 @@ void MainPlot::Draw(wxDC &dc)
     if (colourTextBackground.Ok())
         dc.SetTextBackground (colourTextBackground);
 
-    if (data_visible) {
-        for (int i = 0; i < AL->get_ds_count(); i++) {
-            if (i != focused_data) {
-                draw_dataset(dc, i);
-            }
+    //draw datasets
+    for (int i = 0; i < AL->get_ds_count(); i++) {
+        if (i != focused_data) {
+            draw_dataset(dc, i);
         }
-        // focused dataset is drawed at the end (to be at the top)
-        draw_dataset(dc, focused_data);
     }
+    // focused dataset is drawed at the end (to be at the top)
+    draw_dataset(dc, focused_data);
 
     if (xtics_visible)
         draw_xtics(dc, AL->view);
@@ -277,7 +274,6 @@ void MainPlot::draw_peaktop_selection (wxDC& dc, Sum const* sum)
 
 void MainPlot::draw_plabels (wxDC& dc, Sum const* sum)
 {
-    const bool vertical_plabels = false;
     prepare_peak_labels(sum); //TODO re-prepare only when peaks where changed
     dc.SetFont(plabelFont);
     vector<wxRect> previous;
@@ -286,10 +282,12 @@ void MainPlot::draw_plabels (wxDC& dc, Sum const* sum)
         const wxPoint &peaktop = shared.peaktops[k];
         dc.SetTextForeground(peakPen[k % max_peak_pens].GetColour());
 
-        wxString label = plabels[k].c_str();
+        wxString label = s2wx(plabels[k]);
         wxCoord w, h;
-        if (vertical_plabels)
+        if (vertical_plabels) {
             dc.GetTextExtent (label, &h, &w); // w and h swapped
+            h = 0; // Y correction is not needed
+        }
         else
             dc.GetTextExtent (label, &w, &h);
         int X = peaktop.x - w/2;
@@ -418,88 +416,89 @@ void MainPlot::draw_background(wxDC& dc)
 
 void MainPlot::read_settings(wxConfigBase *cf)
 {
-    cf->SetPath("/MainPlot/Colors");
-    colourTextForeground = read_color_from_config (cf, "text_fg", 
-                                                   wxColour("BLACK"));
-    colourTextBackground = read_color_from_config (cf, "text_bg", 
-                                                   wxColour ("LIGHT GREY"));
-    backgroundBrush.SetColour (read_color_from_config (cf, "bg", 
-                                                       wxColour("BLACK")));
+    cf->SetPath(wxT("/MainPlot/Colors"));
+    colourTextForeground = cfg_read_color(cf, wxT("text_fg"), 
+                                                  wxColour(wxT("BLACK")));
+    colourTextBackground = cfg_read_color(cf, wxT("text_bg"), 
+                                                  wxColour (wxT("LIGHT GREY")));
+    backgroundBrush.SetColour (cfg_read_color(cf, wxT("bg"), 
+                                                      wxColour(wxT("BLACK"))));
     for (int i = 0; i < max_data_pens; i++)
-        dataColour[i] = read_color_from_config(cf, ("data/" + S(i)).c_str(),
+        dataColour[i] = cfg_read_color(cf, 
+                                            wxString::Format(wxT("data/%i"), i),
                                                wxColour(0, 255, 0));
     //activeDataPen.SetStyle (wxSOLID);
-    wxColour inactive_data_col = read_color_from_config (cf, "inactive_data",
+    wxColour inactive_data_col = cfg_read_color(cf,wxT("inactive_data"),
                                                       wxColour (128, 128, 128));
     inactiveDataPen.SetColour (inactive_data_col);
-    sumPen.SetColour (read_color_from_config (cf, "sum", wxColour("YELLOW")));
-    bg_pointsPen.SetColour (read_color_from_config(cf, "BgPoints", 
-                                                   wxColour("RED")));
+    sumPen.SetColour(cfg_read_color (cf, wxT("sum"), wxColour(wxT("YELLOW"))));
+    bg_pointsPen.SetColour(cfg_read_color(cf, wxT("BgPoints"), 
+                                                   wxColour(wxT("RED"))));
     for (int i = 0; i < max_group_pens; i++)
-        groupPen[i].SetColour (read_color_from_config(cf, 
-                                                      ("group/" + S(i)).c_str(),
-                                                      wxColour(173, 216, 230)));
+        groupPen[i].SetColour(cfg_read_color(cf, 
+                                         wxString::Format(wxT("group/%i"), i),
+                                             wxColour(173, 216, 230)));
     for (int i = 0; i < max_peak_pens; i++)
-        peakPen[i].SetColour (read_color_from_config (cf, 
-                                                      ("peak/" + S(i)).c_str(),
-                                                      wxColour(255, 0, 0)));
+        peakPen[i].SetColour(cfg_read_color(cf, 
+                                            wxString::Format(wxT("peak/%i"), i),
+                                            wxColour(255, 0, 0)));
                             
-    cf->SetPath("/MainPlot/Visible");
-    peaks_visible = read_bool_from_config (cf, "peaks", true); 
-    plabels_visible = read_bool_from_config (cf, "plabels", false); 
-    groups_visible = read_bool_from_config (cf, "groups", false);  
-    sum_visible = read_bool_from_config (cf, "sum", true);
-    data_visible = read_bool_from_config (cf, "data", true); 
-    cf->SetPath("/MainPlot");
-    point_radius = cf->Read ("point_radius", 1);
-    line_between_points = read_bool_from_config(cf,"line_between_points",false);
-    plabelFont = read_font_from_config(cf, "plabelFont", *wxNORMAL_FONT);
-    plabel_format = cf->Read("plabel_format", "<area>").c_str();
-    x_max_tics = cf->Read("xMaxTics", 7);
-    y_max_tics = cf->Read("yMaxTics", 7);
-    x_tic_size = cf->Read("xTicSize", 4);
-    y_tic_size = cf->Read("yTicSize", 4);
-    x_reversed = read_bool_from_config (cf, "xReversed", false); 
+    cf->SetPath(wxT("/MainPlot/Visible"));
+    peaks_visible = cfg_read_bool(cf, wxT("peaks"), true); 
+    plabels_visible = cfg_read_bool(cf, wxT("plabels"), false); 
+    groups_visible = cfg_read_bool(cf, wxT("groups"), false);  
+    sum_visible = cfg_read_bool(cf, wxT("sum"), true);
+    cf->SetPath(wxT("/MainPlot"));
+    point_radius = cf->Read (wxT("point_radius"), 1);
+    line_between_points = cfg_read_bool(cf,wxT("line_between_points"), false);
+    plabelFont = cfg_read_font(cf, wxT("plabelFont"), *wxNORMAL_FONT);
+    plabel_format = wx2s(cf->Read(wxT("plabel_format"), wxT("<area>")));
+    vertical_plabels = cfg_read_bool(cf, wxT("vertical_plabels"), false);
+    x_max_tics = cf->Read(wxT("xMaxTics"), 7);
+    y_max_tics = cf->Read(wxT("yMaxTics"), 7);
+    x_tic_size = cf->Read(wxT("xTicSize"), 4);
+    y_tic_size = cf->Read(wxT("yTicSize"), 4);
+    x_reversed = cfg_read_bool (cf, wxT("xReversed"), false); 
     FPlot::read_settings(cf);
     Refresh();
 }
 
 void MainPlot::save_settings(wxConfigBase *cf) const
 {
-    cf->SetPath("/MainPlot");
-    cf->Write ("point_radius", point_radius);
-    cf->Write ("line_between_points", line_between_points);
-    write_font_to_config (cf, "plabelFont", plabelFont);
-    cf->Write("plabel_format", plabel_format.c_str());
-    cf->Write("xMaxTics", x_max_tics);
-    cf->Write("yMaxTics", y_max_tics);
-    cf->Write("xTicSize", x_tic_size);
-    cf->Write("yTicSize", y_tic_size);
-    cf->Write("xReversed", x_reversed);
+    cf->SetPath(wxT("/MainPlot"));
+    cf->Write (wxT("point_radius"), point_radius);
+    cf->Write (wxT("line_between_points"), line_between_points);
+    cfg_write_font (cf, wxT("plabelFont"), plabelFont);
+    cf->Write(wxT("plabel_format"), s2wx(plabel_format));
+    cf->Write (wxT("vertical_plabels"), vertical_plabels);
+    cf->Write(wxT("xMaxTics"), x_max_tics);
+    cf->Write(wxT("yMaxTics"), y_max_tics);
+    cf->Write(wxT("xTicSize"), x_tic_size);
+    cf->Write(wxT("yTicSize"), y_tic_size);
+    cf->Write(wxT("xReversed"), x_reversed);
 
-    cf->SetPath("/MainPlot/Colors");
-    write_color_to_config (cf, "text_fg", colourTextForeground);//FIXME: what is this for?
-    write_color_to_config (cf, "text_bg", colourTextBackground); // and this?
-    write_color_to_config (cf, "bg", backgroundBrush.GetColour());
+    cf->SetPath(wxT("/MainPlot/Colors"));
+    cfg_write_color (cf, wxT("text_fg"), colourTextForeground);//FIXME: what is this for?
+    cfg_write_color (cf, wxT("text_bg"), colourTextBackground); // and this?
+    cfg_write_color (cf, wxT("bg"), backgroundBrush.GetColour());
     for (int i = 0; i < max_data_pens; i++)
-        write_color_to_config (cf, ("data/" + S(i)).c_str(), dataColour[i]);
-    write_color_to_config (cf, "inactive_data", inactiveDataPen.GetColour());
-    write_color_to_config (cf, "sum", sumPen.GetColour());
-    write_color_to_config (cf, "BgPoints", bg_pointsPen.GetColour());
+        cfg_write_color(cf, wxString::Format(wxT("data/%i"), i), dataColour[i]);
+    cfg_write_color (cf, wxT("inactive_data"), inactiveDataPen.GetColour());
+    cfg_write_color (cf, wxT("sum"), sumPen.GetColour());
+    cfg_write_color (cf, wxT("BgPoints"), bg_pointsPen.GetColour());
     for (int i = 0; i < max_group_pens; i++)
-        write_color_to_config (cf, ("group/" + S(i)).c_str(), 
-                               groupPen[i].GetColour());
+        cfg_write_color(cf, wxString::Format(wxT("group/%i"), i), 
+                        groupPen[i].GetColour());
     for (int i = 0; i < max_peak_pens; i++)
-        write_color_to_config (cf, ("peak/" + S(i)).c_str(), 
-                               peakPen[i].GetColour());
+        cfg_write_color(cf, wxString::Format(wxT("peak/%i"), i), 
+                        peakPen[i].GetColour());
 
-    cf->SetPath("/MainPlot/Visible");
-    cf->Write ("peaks", peaks_visible);
-    cf->Write ("plabels", plabels_visible);
-    cf->Write ("groups", groups_visible);
-    cf->Write ("sum", sum_visible);
-    cf->Write ("data", data_visible);
-    cf->SetPath("/MainPlot");
+    cf->SetPath(wxT("/MainPlot/Visible"));
+    cf->Write (wxT("peaks"), peaks_visible);
+    cf->Write (wxT("plabels"), plabels_visible);
+    cf->Write (wxT("groups"), groups_visible);
+    cf->Write (wxT("sum"), sum_visible);
+    cf->SetPath(wxT("/MainPlot"));
     FPlot::save_settings(cf);
 }
 
@@ -528,48 +527,39 @@ void MainPlot::show_popup_menu (wxMouseEvent &event)
 {
     wxMenu popup_menu; //("main plot menu");
 
-    popup_menu.Append(ID_plot_popup_za, "Zoom &All");
+    popup_menu.Append(ID_plot_popup_za, wxT("Zoom &All"));
     popup_menu.AppendSeparator();
 
     wxMenu *show_menu = new wxMenu;
-    show_menu->AppendCheckItem (ID_plot_popup_data, "&Data", "");
-    show_menu->Check (ID_plot_popup_data, data_visible);
-    show_menu->AppendCheckItem (ID_plot_popup_sum, "S&um", "");
+    show_menu->AppendCheckItem (ID_plot_popup_sum, wxT("S&um"), wxT(""));
     show_menu->Check (ID_plot_popup_sum, sum_visible);
-    show_menu->AppendCheckItem (ID_plot_popup_groups, "Grouped peaks", "");
-    show_menu->Check (ID_plot_popup_groups, groups_visible);
-    show_menu->AppendCheckItem (ID_plot_popup_peak, "&Peaks", "");
+    //show_menu->AppendCheckItem (ID_plot_popup_groups, 
+    //                            wxT("Grouped peaks"), wxT(""));
+    //show_menu->Check (ID_plot_popup_groups, groups_visible);
+    show_menu->AppendCheckItem (ID_plot_popup_peak, wxT("&Peaks"), wxT(""));
     show_menu->Check (ID_plot_popup_peak, peaks_visible);
-    show_menu->AppendCheckItem (ID_plot_popup_plabels, "Peak &labels", "");
-    show_menu->Check (ID_plot_popup_plabels, plabels_visible);
-    popup_menu.Append (wxNewId(), "&Show", show_menu);
+    popup_menu.Append (wxNewId(), wxT("&Show"), show_menu);
 
     wxMenu *color_menu = new wxMenu;
-    color_menu->Append (ID_plot_popup_c_background, "&Background");
-    color_menu->Append (ID_plot_popup_c_inactive_data, "&Inactive Data");
-    color_menu->Append (ID_plot_popup_c_sum, "&Sum");
-    color_menu->Append (ID_plot_popup_c_xaxis, "&X Axis");
+    color_menu->Append (ID_plot_popup_c_background, wxT("&Background"));
+    color_menu->Append (ID_plot_popup_c_inactive_data, wxT("&Inactive Data"));
+    color_menu->Append (ID_plot_popup_c_sum, wxT("&Sum"));
     color_menu->AppendSeparator(); 
-    color_menu->Append (ID_plot_popup_c_inv, "&Invert colors"); 
-    popup_menu.Append (wxNewId(), "&Color", color_menu);  
-
-    wxMenu *misc_menu = new wxMenu;
-    misc_menu->Append (ID_plot_popup_m_plabel, "Peak &label");
-    misc_menu->Append (ID_plot_popup_m_plfont, "Peak label &font");
-    misc_menu->Append (ID_plot_popup_m_tfont, "&Tics font");
-    popup_menu.Append (wxNewId(), "&Miscellaneous", misc_menu);
+    color_menu->Append (ID_plot_popup_c_inv, wxT("&Invert colors")); 
+    popup_menu.Append (wxNewId(), wxT("&Color"), color_menu);  
 
     wxMenu *size_menu = new wxMenu;
-    size_menu->AppendCheckItem (ID_plot_popup_pt_size, "&Line", "");
+    size_menu->AppendCheckItem (ID_plot_popup_pt_size, wxT("&Line"), wxT(""));
     size_menu->Check (ID_plot_popup_pt_size, line_between_points);
     size_menu->AppendSeparator();
     for (int i = 1; i <= max_radius; i++) 
         size_menu->AppendRadioItem (ID_plot_popup_pt_size + i, 
-                                    wxString::Format ("&%d", i), "");
+                                    wxString::Format (wxT("&%d"), i), wxT(""));
     size_menu->Check (ID_plot_popup_pt_size + point_radius, true);
-    popup_menu.Append (wxNewId(), "Data point si&ze",size_menu);
+    popup_menu.Append (wxNewId(), wxT("Data point si&ze"), size_menu);
 
-    popup_menu.Append (ID_plot_popup_axes, "Configure &Axes...");
+    popup_menu.Append (ID_plot_popup_axes, wxT("Configure &Axes..."));
+    popup_menu.Append (ID_plot_popup_plabels, wxT("Configure Peak &Labels..."));
 
     PopupMenu (&popup_menu, event.GetX(), event.GetY());
 }
@@ -578,9 +568,9 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
 {
     if (over_peak == -1) return;
     wxMenu peak_menu; 
-    peak_menu.Append(ID_peak_popup_info, "Show &Info");
-    peak_menu.Append(ID_peak_popup_del, "&Delete");
-    peak_menu.Append(ID_peak_popup_guess, "&Guess parameters");
+    peak_menu.Append(ID_peak_popup_info, wxT("Show &Info"));
+    peak_menu.Append(ID_peak_popup_del, wxT("&Delete"));
+    peak_menu.Append(ID_peak_popup_guess, wxT("&Guess parameters"));
     peak_menu.Enable(ID_peak_popup_guess, 
                      AL->get_function(over_peak)->is_peak());
     PopupMenu (&peak_menu, event.GetX(), event.GetY());
@@ -684,7 +674,7 @@ void MainPlot::update_mouse_hints()
                     assert(0);
             }
     }
-    frame->set_status_hint(left.c_str(), right.c_str());
+    frame->set_status_hint(left, right);
 }
 
 void MainPlot::OnMouseMove(wxMouseEvent &event)
@@ -695,8 +685,8 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
     fp x = X2x(X);
     fp y = Y2y(Y);
     wxString str;
-    str.Printf ("%.3f  %d", x, static_cast<int>(y + 0.5));
-    frame->set_status_text(str, sbf_coord);
+    str.Printf(wxT("%.3f  %d"), x, static_cast<int>(y + 0.5));
+    frame->set_status_text(wx2s(str), sbf_coord);
 
     if (pressed_mouse_button == 0) {
         if (mode == mmd_range) {
@@ -745,7 +735,7 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
         vector<string> const& vn = f->type_var_names;
         for (int i = 0; i < size(vn); ++i)
             s += " " + vn[i] + "=" + S(f->get_var_value(i));
-        frame->set_status_text(s.c_str());
+        frame->set_status_text(s);
         set_mouse_mode(mmd_peak);
     }
     else { //was over peak, but now is not 
@@ -796,8 +786,8 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     else if (button == 1 && mode == mmd_peak) {
         frame->activate_function(over_peak);
         move_peak(mat_start, event);
-        frame->set_status_text(("Moving " + AL->get_function(over_peak)->xname 
-                                + "...").c_str());
+        frame->set_status_text("Moving " + AL->get_function(over_peak)->xname 
+                                + "...");
     }
     else if (button == 3 && mode == mmd_peak) {
         show_peak_menu(event);
@@ -949,7 +939,7 @@ void MainPlot::move_peak (Mouse_act_enum ma, wxMouseEvent &event)
             descr += " X:" + p->type_var_names[n+1] + "=" + S(p_values[n+1]);
         }
 
-        frame->set_status_text(descr.c_str());
+        frame->set_status_text(descr);
         prev.x = event.GetX(), prev.y = event.GetY();
         draw_xor_peak(p, p_values); 
     }
@@ -1101,11 +1091,9 @@ void MainPlot::draw_rect (int X1, int Y1, int X2, int Y2)
 void MainPlot::OnPopupShowXX (wxCommandEvent& event)
 {
     switch (event.GetId()) {
-        case ID_plot_popup_data :  data_visible = !data_visible;     break; 
         case ID_plot_popup_sum  :  sum_visible = !sum_visible;       break; 
         case ID_plot_popup_groups: groups_visible = !groups_visible; break; 
         case ID_plot_popup_peak :  peaks_visible = !peaks_visible;   break;  
-        case ID_plot_popup_plabels:plabels_visible = !plabels_visible; break;
         default: assert(0);
     }
     Refresh(false);
@@ -1123,8 +1111,6 @@ void MainPlot::OnPopupColor(wxCommandEvent& event)
     }
     else if (n == ID_plot_popup_c_sum)
         pen = &sumPen;
-    else if (n == ID_plot_popup_c_xaxis)
-        pen = &xAxisPen;
     else 
         return;
     wxColour col = brush ? brush->GetColour() : pen->GetColour();
@@ -1155,37 +1141,6 @@ void MainPlot::OnInvertColors (wxCommandEvent& WXUNUSED(event))
     Refresh();
 }
 
-void MainPlot::OnPeakLabel (wxCommandEvent& WXUNUSED(event))
-{
-    const char *msg = "Select format of peak labels.\n"
-                      "Following strings will be substitued by proper values:\n"
-                      "<area> <height> <center> <fwhm> <ib> <n> <ref> <br>.\n"
-                      "<ib> = integral breadth,\n"
-                      "<ref> is useful only when xtallography module is used,\n"
-                      "<br> = break line\n"
-                      "Use option Show->Peak labels to show/hide labels.";
-
-    wxString s = wxGetTextFromUser(msg, "Peak label format", 
-                                   plabel_format.c_str());
-    if (!s.IsEmpty()) {
-        plabel_format = s.c_str();
-        Refresh(false);
-    }
-}
-
-void MainPlot::OnPlabelFont (wxCommandEvent& WXUNUSED(event))
-{
-    wxFontData data;
-    data.SetInitialFont(plabelFont);
-    wxFontDialog dialog(frame, &data);
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        wxFontData retData = dialog.GetFontData();
-        plabelFont = retData.GetChosenFont();
-        Refresh(false);
-    }
-}
-
 void MainPlot::OnPopupRadius (wxCommandEvent& event)
 {
     int nr = event.GetId() - ID_plot_popup_pt_size;
@@ -1199,6 +1154,12 @@ void MainPlot::OnPopupRadius (wxCommandEvent& event)
 void MainPlot::OnConfigureAxes (wxCommandEvent& WXUNUSED(event))
 {
     ConfigureAxesDlg dialog(frame, -1, this);
+    dialog.ShowModal();
+}
+
+void MainPlot::OnConfigurePLabels (wxCommandEvent& WXUNUSED(event))
+{
+    ConfigurePLabelsDlg dialog(frame, -1, this);
     dialog.ShowModal();
 }
 
@@ -1220,84 +1181,88 @@ END_EVENT_TABLE()
 
 ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id, 
                                    MainPlot* plot_)
-  : wxDialog(parent, id, "Configure Axes"), plot(plot_),
-    color(plot_->xAxisPen.GetColour())
+  : wxDialog(parent, id, wxT("Configure Axes")), plot(plot_),
+    axis_color(plot_->xAxisPen.GetColour())
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizer1 = new wxBoxSizer(wxHORIZONTAL);
-    wxStaticBoxSizer *xsizer = new wxStaticBoxSizer(wxVERTICAL, this, "X axis");
-    x_show_axis = new wxCheckBox(this, -1, "show axis");
+    wxStaticBoxSizer *xsizer = new wxStaticBoxSizer(wxVERTICAL, this, 
+                                                    wxT("X axis"));
+    x_show_axis = new wxCheckBox(this, -1, wxT("show axis"));
     x_show_axis->SetValue(plot->x_axis_visible);
     xsizer->Add(x_show_axis, 0, wxALL, 5);
-    x_show_tics = new wxCheckBox(this, -1, "show tics");
+    x_show_tics = new wxCheckBox(this, -1, wxT("show tics"));
     x_show_tics->SetValue(plot->xtics_visible);
     xsizer->Add(x_show_tics, 0, wxALL, 5);
     wxBoxSizer *xmt_sizer = new wxBoxSizer(wxHORIZONTAL);
-    xmt_sizer->Add(new wxStaticText(this, -1, "max. number of tics"), 
+    xmt_sizer->Add(new wxStaticText(this, -1, wxT("max. number of tics")), 
                   0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
-    x_max_tics = new wxSpinCtrl (this, -1, "7",
+    x_max_tics = new wxSpinCtrl (this, -1, wxT("7"),
                                  wxDefaultPosition, wxSize(50, -1), 
                                  wxSP_ARROW_KEYS, 1, 30, 7);
     x_max_tics->SetValue(plot->x_max_tics);
     xmt_sizer->Add(x_max_tics, 0, wxALL, 5);
     xsizer->Add(xmt_sizer);
     wxBoxSizer *xts_sizer = new wxBoxSizer(wxHORIZONTAL);
-    xts_sizer->Add(new wxStaticText(this, -1, "length of tics"), 
+    xts_sizer->Add(new wxStaticText(this, -1, wxT("length of tics")), 
                   0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
-    x_tics_size = new wxSpinCtrl (this, -1, "4",
+    x_tics_size = new wxSpinCtrl (this, -1, wxT("4"),
                                   wxDefaultPosition, wxSize(50, -1), 
                                   wxSP_ARROW_KEYS, -10, 20, 4);
     x_tics_size->SetValue(plot->x_tic_size);
     xts_sizer->Add(x_tics_size, 0, wxALL, 5);
     xsizer->Add(xts_sizer);
-    x_reversed = new wxCheckBox(this, -1, "reversed axis");
+    x_reversed = new wxCheckBox(this, -1, wxT("reversed axis"));
     x_reversed->SetValue(plot->x_reversed);
     xsizer->Add(x_reversed, 0, wxALL, 5);
     sizer1->Add(xsizer, 0, wxALL, 5);
 
-    wxStaticBoxSizer *ysizer = new wxStaticBoxSizer(wxVERTICAL, this, "Y axis");
-    y_show_axis = new wxCheckBox(this, -1, "show axis");
+    wxStaticBoxSizer *ysizer = new wxStaticBoxSizer(wxVERTICAL, this, 
+                                                    wxT("Y axis"));
+    y_show_axis = new wxCheckBox(this, -1, wxT("show axis"));
     y_show_axis->SetValue(plot->y_axis_visible);
     ysizer->Add(y_show_axis, 0, wxALL, 5);
-    y_show_tics = new wxCheckBox(this, -1, "show tics");
+    y_show_tics = new wxCheckBox(this, -1, wxT("show tics"));
     y_show_tics->SetValue(plot->ytics_visible);
     ysizer->Add(y_show_tics, 0, wxALL, 5);
     wxBoxSizer *ymt_sizer = new wxBoxSizer(wxHORIZONTAL);
-    ymt_sizer->Add(new wxStaticText(this, -1, "max. number of tics"), 
+    ymt_sizer->Add(new wxStaticText(this, -1, wxT("max. number of tics")), 
                   0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
-    y_max_tics = new wxSpinCtrl (this, -1, "7",
+    y_max_tics = new wxSpinCtrl (this, -1, wxT("7"),
                                  wxDefaultPosition, wxSize(50, -1), 
                                  wxSP_ARROW_KEYS, 1, 30, 7);
     y_max_tics->SetValue(plot->y_max_tics);
     ymt_sizer->Add(y_max_tics, 0, wxALL, 5);
     ysizer->Add(ymt_sizer);
     wxBoxSizer *yts_sizer = new wxBoxSizer(wxHORIZONTAL);
-    yts_sizer->Add(new wxStaticText(this, -1, "length of tics"), 
+    yts_sizer->Add(new wxStaticText(this, -1, wxT("length of tics")), 
                   0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
-    y_tics_size = new wxSpinCtrl (this, -1, "4",
+    y_tics_size = new wxSpinCtrl (this, -1, wxT("4"),
                                   wxDefaultPosition, wxSize(50, -1), 
                                   wxSP_ARROW_KEYS, 1, 20, 4);
     y_tics_size->SetValue(plot->y_tic_size);
     yts_sizer->Add(y_tics_size, 0, wxALL, 5);
     ysizer->Add(yts_sizer);
-    //TODO y_reversed = new wxCheckBox(this, -1, "reversed axis");
+    //TODO y_reversed = new wxCheckBox(this, -1, wxT("reversed axis"));
     //y_reversed->SetValue(plot->y_reversed);
     //ysizer->Add(y_reversed, 0, wxALL, 5);
     sizer1->Add(ysizer, 0, wxALL, 5);
 
     top_sizer->Add(sizer1, 0);
     wxBoxSizer *common_sizer = new wxBoxSizer(wxHORIZONTAL);
-    common_sizer->Add(new wxButton(this, ID_CAD_COLOR, "Change axes color..."),
+    common_sizer->Add(new wxButton(this, ID_CAD_COLOR, 
+                                   wxT("Change axes color...")),
                       0, wxALL, 5);
-    common_sizer->Add(new wxButton(this, ID_CAD_FONT, "Change tics font..."),
+    common_sizer->Add(new wxButton(this, ID_CAD_FONT, 
+                                   wxT("Change tics font...")),
                       0, wxALL, 5);
     top_sizer->Add(common_sizer, 0, wxALIGN_CENTER);
     top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
 
     wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
-    button_sizer->Add(new wxButton(this, wxID_APPLY, "&Apply"), 
+    button_sizer->Add(new wxButton(this, wxID_APPLY, wxT("&Apply")), 
                       0, wxALL, 5);
-    button_sizer->Add(new wxButton(this, wxID_CLOSE, "&Close"), 
+    button_sizer->Add(new wxButton(this, wxID_CLOSE, wxT("&Close")), 
                       0, wxALL, 5);
     top_sizer->Add(button_sizer, 0, wxALL|wxALIGN_CENTER, 0);
     SetSizerAndFit(top_sizer);
@@ -1306,7 +1271,7 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
 void ConfigureAxesDlg::OnApply (wxCommandEvent& WXUNUSED(event))
 {
     bool scale_changed = false;
-    plot->xAxisPen.SetColour(color);
+    plot->xAxisPen.SetColour(axis_color);
     plot->x_axis_visible = x_show_axis->GetValue();
     plot->xtics_visible = x_show_tics->GetValue();
     plot->x_max_tics = x_max_tics->GetValue();
@@ -1327,6 +1292,134 @@ void ConfigureAxesDlg::OnChangeFont (wxCommandEvent& WXUNUSED(event))
 { 
     plot->change_tics_font(); 
 }
+
+//===============================================================
+//                     ConfigurePLabelsDlg
+//===============================================================
+
+BEGIN_EVENT_TABLE(ConfigurePLabelsDlg, wxDialog)
+    EVT_BUTTON(wxID_APPLY, ConfigurePLabelsDlg::OnApply)
+    EVT_BUTTON(wxID_CLOSE, ConfigurePLabelsDlg::OnClose)
+    EVT_BUTTON(ID_CPL_FONT, ConfigurePLabelsDlg::OnChangeLabelFont)
+    EVT_CHECKBOX(ID_CPL_SHOW, ConfigurePLabelsDlg::OnCheckShowLabel)
+    EVT_TEXT(ID_CPL_TEXT, ConfigurePLabelsDlg::OnChangeLabelText)
+    EVT_RADIOBOX(ID_CPL_RADIO, ConfigurePLabelsDlg::OnRadioLabel)
+END_EVENT_TABLE()
+
+ConfigurePLabelsDlg::ConfigurePLabelsDlg(wxWindow* parent, wxWindowID id, 
+                                         MainPlot* plot_)
+  : wxDialog(parent, id, wxT("Configure Peak Labels")), plot(plot_),
+    in_onradiolabel(false)
+{
+    wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
+    show_plabels = new wxCheckBox(this, ID_CPL_SHOW, wxT("show peak labels"));
+    top_sizer->Add(show_plabels, 0, wxALL, 5);
+    wxBoxSizer *sizer1 = new wxBoxSizer(wxHORIZONTAL);
+    vector<string> label_radio_choice;
+    label_radio_choice.push_back("area");
+    label_radio_choice.push_back("height");
+    label_radio_choice.push_back("center");
+    label_radio_choice.push_back("fwhm");
+    label_radio_choice.push_back("name");
+    label_radio_choice.push_back("custom");
+    label_radio = new wxRadioBox(this, ID_CPL_RADIO, wxT("labels with:"),
+                                 wxDefaultPosition, wxDefaultSize, 
+                                 stl2wxArrayString(label_radio_choice));
+    sizer1->Add(label_radio, 0, wxALL|wxEXPAND, 5);
+    wxStaticBoxSizer *xsizer = new wxStaticBoxSizer(wxVERTICAL, this, 
+                                            wxT("list of replaceable tokens"));
+    xsizer->Add(new wxStaticText(this, -1, wxT("<area>   area of peak\n")
+                                           wxT("<height> height of peak\n")
+                                           wxT("<center> center of peak\n")
+                                           wxT("<fwhm>   FWHM of peak\n")
+                                       wxT("<ib>    integral breadth of peak\n")
+                                           wxT("<name>   name of function\n")
+                                           wxT("<br>     line break\n")),
+                0, wxALL|wxEXPAND, 5);
+    sizer1->Add(xsizer, 0, wxALL, 5);
+    top_sizer->Add(sizer1, 0);
+    label_text = new wxTextCtrl(this, ID_CPL_TEXT, wxT(""));
+    top_sizer->Add(label_text, 0, wxALL|wxEXPAND, 5);
+
+    vertical_rb = new wxRadioBox(this, ID_CPL_RADIO, wxT("label direction"),
+                                 wxDefaultPosition, wxDefaultSize, 
+                                 stl2wxArrayString(vector2(string("horizontal"),
+                                                           string("vertical"))),
+                                 2);
+    top_sizer->Add(vertical_rb, 0, wxALL|wxEXPAND, 5);
+
+    top_sizer->Add(new wxButton(this, ID_CPL_FONT, wxT("Change label font...")),
+                   0, wxALL|wxALIGN_CENTER, 5);
+    top_sizer->Add(new wxStaticText(this, -1, 
+                                   wxT("Labels have the same colors as peaks")),
+                   0, wxALL, 5);
+
+    top_sizer->Add(new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
+
+    wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
+    button_sizer->Add(new wxButton(this, wxID_APPLY, wxT("&Apply")), 
+                      0, wxALL, 5);
+    button_sizer->Add(new wxButton(this, wxID_CLOSE, wxT("&Close")), 
+                      0, wxALL, 5);
+    top_sizer->Add(button_sizer, 0, wxALL|wxALIGN_CENTER, 0);
+    SetSizerAndFit(top_sizer);
+
+    //set initial values
+    show_plabels->SetValue(plot->plabels_visible); 
+    label_text->SetValue(s2wx(plot->plabel_format));
+    vertical_rb->SetSelection(plot->vertical_plabels ? 1 : 0);
+    label_radio->SetStringSelection(wxT("custom"));
+    label_text->Enable(plot->plabels_visible);
+    label_radio->Enable(plot->plabels_visible);
+    vertical_rb->Enable(plot->plabels_visible);
+}
+
+void ConfigurePLabelsDlg::OnChangeLabelText (wxCommandEvent& WXUNUSED(event))
+{
+    // don't change radio if this event is triggered by label_text->SetValue()
+    // from radiobox event handler
+    if (!in_onradiolabel)
+        label_radio->SetStringSelection(wxT("custom"));
+}
+
+void ConfigurePLabelsDlg::OnCheckShowLabel (wxCommandEvent& event)
+{
+    bool checked = event.IsChecked();
+    label_radio->Enable(checked);
+    label_text->Enable(checked);
+    vertical_rb->Enable(checked);
+}
+
+void ConfigurePLabelsDlg::OnRadioLabel (wxCommandEvent& WXUNUSED(event))
+{
+    in_onradiolabel = true;
+    wxString s = label_radio->GetStringSelection();
+    if (s != wxT("custom"))
+        label_text->SetValue(wxT("<") + s + wxT(">"));
+    in_onradiolabel = false;
+}
+
+void ConfigurePLabelsDlg::OnApply (wxCommandEvent& WXUNUSED(event))
+{
+    plot->plabels_visible = show_plabels->GetValue(); 
+    plot->plabel_format = wx2s(label_text->GetValue());
+    plot->vertical_plabels = vertical_rb->GetSelection() != 0;
+    frame->refresh_plots(true, false, true);
+}
+
+void ConfigurePLabelsDlg::OnChangeLabelFont (wxCommandEvent& WXUNUSED(event)) 
+{ 
+    wxFontData data;
+    data.SetInitialFont(plot->plabelFont);
+    wxFontDialog dialog(frame, &data);
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        wxFontData retData = dialog.GetFontData();
+        plot->plabelFont = retData.GetChosenFont();
+        plot->Refresh(false);
+    }
+}
+
 
 
 //===============================================================

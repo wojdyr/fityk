@@ -8,6 +8,7 @@
 #include <wx/spinctrl.h>
 #include <wx/listctrl.h> 
 #include <wx/dirctrl.h>
+#include "wx_common.h"
 
 class wxGrid;
 class DataTable;
@@ -155,7 +156,7 @@ protected:
     DECLARE_EVENT_TABLE()
 };
 
-wxString get_user_conffile(const wxString &filename);
+wxString get_user_conffile(std::string const& filename);
 bool export_data_dlg(wxWindow *parent, bool load_exported=false);
 
 
@@ -165,7 +166,7 @@ public:
     RealNumberCtrl(wxWindow* parent, wxWindowID id, wxString const& value)
         : wxTextCtrl(parent, id, value) {}
     RealNumberCtrl(wxWindow* parent, wxWindowID id, std::string const& value)
-        : wxTextCtrl(parent, id, value.c_str()) {}
+        : wxTextCtrl(parent, id, s2wx(value)) {}
 };
 
 class SettingsDlg : public wxDialog

@@ -140,17 +140,12 @@
 
 ------------------ 
 
-* (CODE STYLE) propagate errors using exceptions (when suitable) rather 
-  than error codes
-
 * (CODE STYLE) use smart pointers: 
   http://www.boost.org/libs/smart_ptr/smart_ptr.htm
   (the library will be distributed in 3rdparty/boost)
 
 * build engine (everything but GUI/CLI interface) as a library
   with documented API.
-
-* problem: fityk can't be compiled with UNICODE-enabled wxWidgets
 
 * there are problems with refreshing plots and output window when program
   is busy (ie. when running script or fitting). It seems to be platform
@@ -168,8 +163,11 @@
 			 multipart Siemens .raw data files
 			 uxd,udf
 
-* (GUI) horizontal/vertical peak labels, etc, single dialog (or place at 
-  functin pane) for setting all peak label properties 
+* (GUI) single dialog for configuring main plot
+  data point size and other properties can be put on data pane
+
+* (GUI, BUG) in Configure axes / peak labels: fonts are changed event
+  if Apply is not pressed
 
 * python scripts  -- built-in Python interpreter which allows to extend 
   Fityk using user-written scripts, optional modules, etc. 

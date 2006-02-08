@@ -148,7 +148,7 @@ BEGIN_EVENT_TABLE(FDXLoadDlg, wxDialog)
 END_EVENT_TABLE()
 
 FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
-    : wxDialog(parent, id, "Data load (custom)", 
+    : wxDialog(parent, id, wxT("Data load (custom)"), 
                wxDefaultPosition, wxSize(600, 500), 
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
       data_nr(n), initialized(false)
@@ -191,16 +191,16 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
                        // multiple wildcards, eg. 
                        // |*.dat;*.DAT;*.xy;*.XY;*.fio;*.FIO
                        // are not supported by wxGenericDirCtrl  
-                       "all files (*)|*"
-                       "|ASCII x y files (*)|*" 
-                       "|rit files (*.rit)|*.rit"
-                       "|cpi files (*.cpi)|*.cpi"
-                       "|mca files (*.mca)|*.mca"
-                       "|Siemens/Bruker (*.raw)|*.raw");
+                       wxT("all files (*)|*"
+                           "|ASCII x y files (*)|*" 
+                           "|rit files (*.rit)|*.rit"
+                           "|cpi files (*.cpi)|*.cpi"
+                           "|mca files (*.mca)|*.mca"
+                           "|Siemens/Bruker (*.raw)|*.raw"));
     left_sizer->Add(dir_ctrl, 1, wxALL|wxEXPAND, 5);
     string path = data->get_filename();
-    dir_ctrl->SetPath(path.c_str()); 
-    filename_tc = new wxTextCtrl (left_panel, -1, path.c_str(), 
+    dir_ctrl->SetPath(s2wx(path)); 
+    filename_tc = new wxTextCtrl (left_panel, -1, s2wx(path), 
                                   wxDefaultPosition, wxDefaultSize,
                                   wxTE_READONLY);
     left_sizer->Add (filename_tc, 0, wxALL|wxEXPAND, 5);
@@ -208,24 +208,26 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
 
     //selecting columns
     columns_panel = new wxPanel (left_panel, -1);
-    wxStaticBox *cbox = new wxStaticBox (columns_panel, -1, "Select columns:");
+    wxStaticBox *cbox = new wxStaticBox(columns_panel, -1, 
+                                        wxT("Select columns:"));
     wxStaticBoxSizer *h2a_sizer = new wxStaticBoxSizer (cbox, wxHORIZONTAL);
-    h2a_sizer->Add (new wxStaticText (columns_panel, -1, "x"), 
+    h2a_sizer->Add (new wxStaticText (columns_panel, -1, wxT("x")), 
                     0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    x_column = new wxSpinCtrl (columns_panel, ID_DXLOAD_COLX, "1", 
+    x_column = new wxSpinCtrl (columns_panel, ID_DXLOAD_COLX, wxT("1"), 
                                wxDefaultPosition, wxSize(50, -1), 
                                wxSP_ARROW_KEYS, 1, 99, 1);
     h2a_sizer->Add (x_column, 0, wxALL|wxALIGN_LEFT, 5);
-    h2a_sizer->Add (new wxStaticText (columns_panel, -1, "y"), 
+    h2a_sizer->Add (new wxStaticText (columns_panel, -1, wxT("y")), 
                     0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    y_column = new wxSpinCtrl (columns_panel, ID_DXLOAD_COLY, "2",
+    y_column = new wxSpinCtrl (columns_panel, ID_DXLOAD_COLY, wxT("2"),
                                wxDefaultPosition, wxSize(50, -1), 
                                wxSP_ARROW_KEYS, 1, 99, 2);
     h2a_sizer->Add (y_column, 0, wxALL|wxALIGN_LEFT, 5);
-    std_dev_cb = new wxCheckBox(columns_panel, ID_DXLOAD_STDDEV_CB, "std.dev.");
+    std_dev_cb = new wxCheckBox(columns_panel, ID_DXLOAD_STDDEV_CB, 
+                                wxT("std.dev."));
     std_dev_cb->SetValue (false);
     h2a_sizer->Add(std_dev_cb, 0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL,5);
-    s_column = new wxSpinCtrl (columns_panel, -1, "3",
+    s_column = new wxSpinCtrl (columns_panel, -1, wxT("3"),
                                wxDefaultPosition, wxSize(50, -1), 
                                wxSP_ARROW_KEYS, 1, 99, 3);
     h2a_sizer->Add (s_column, 0, wxALL|wxALIGN_LEFT, 5);
@@ -234,12 +236,12 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     OnStdDevCheckBox(dummy_cmd_event);
 
     // ----- right upper panel -----
-    text_preview =  new wxTextCtrl(rupper_panel, -1, "", 
+    text_preview =  new wxTextCtrl(rupper_panel, -1, wxT(""), 
                                    wxDefaultPosition, wxDefaultSize,
                                    wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
     rupper_sizer->Add(text_preview, 1, wxEXPAND|wxALL, 5);
     auto_text_cb = new wxCheckBox(rupper_panel, ID_DXLOAD_AUTO_TEXT, 
-                                  "preview first 64kB");
+                                  wxT("preview first 64kB"));
     auto_text_cb->SetValue(true);
     rupper_sizer->Add(auto_text_cb, 0, wxALL, 5);
 
@@ -247,7 +249,7 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     plot_preview = new PreviewPlot(rbottom_panel, -1, this);
     rbottom_sizer->Add(plot_preview, 1, wxEXPAND|wxALL, 5);
     auto_plot_cb = new wxCheckBox(rbottom_panel, ID_DXLOAD_AUTO_PLOT, 
-                                  "plot");
+                                  wxT("plot"));
     auto_plot_cb->SetValue(false);
     rbottom_sizer->Add(auto_plot_cb, 0, wxALL, 5);
 
@@ -262,11 +264,12 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
     wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
     open_here = new wxButton(this, ID_DXLOAD_OPENHERE, 
-                             ("&Replace dataset @"+S(data_nr)).c_str());
-    open_new = new wxButton(this, ID_DXLOAD_OPENNEW, "&Open as new dataset");
+                             s2wx("&Replace dataset @"+S(data_nr)));
+    open_new = new wxButton(this, ID_DXLOAD_OPENNEW, 
+                            wxT("&Open as new dataset"));
     button_sizer->Add(open_here, 0, wxALL, 5);
     button_sizer->Add(open_new, 0, wxALL, 5);
-    button_sizer->Add(new wxButton(this, wxID_CLOSE, "&Close"), 
+    button_sizer->Add(new wxButton(this, wxID_CLOSE, wxT("&Close")), 
                       0, wxALL, 5);
     top_sizer->Add(button_sizer, 0, wxALL|wxALIGN_CENTER, 0);
     initialized = true;
@@ -324,7 +327,7 @@ void FDXLoadDlg::update_text_preview()
     text_preview->Clear();
     if (wxFileExists(path)) {
         wxFile(path).Read(buffer, buf_size-1);
-        text_preview->SetValue(buffer);
+        text_preview->SetValue(pchar2wx(buffer));
     }
 }
 
@@ -338,7 +341,7 @@ void FDXLoadDlg::update_plot_preview()
         }
         getUI()->keep_quiet = true;
         try {
-            plot_preview->data->load_file(dir_ctrl->GetFilePath().c_str(), 
+            plot_preview->data->load_file(wx2s(dir_ctrl->GetFilePath()), 
                                           "", cols, true);
         } catch (ExecuteError&) {
             plot_preview->data->clear();
@@ -368,7 +371,7 @@ void FDXLoadDlg::on_path_change()
     filename_tc->SetValue(path);
     if (dir_ctrl->GetFilterIndex() == 0) { // all files
         bool is_text = !path.IsEmpty() 
-                             && Data::guess_file_type(path.c_str()) == "text"; 
+                             && Data::guess_file_type(wx2s(path)) == "text"; 
         columns_panel->Enable(is_text);
     }
     open_here->Enable(!path.IsEmpty());
@@ -381,7 +384,7 @@ void FDXLoadDlg::on_path_change()
 
 string FDXLoadDlg::get_filename()
 {
-    return filename_tc->GetValue().c_str();
+    return wx2s(filename_tc->GetValue());
 }
 
 string FDXLoadDlg::get_command_tail()
@@ -574,8 +577,12 @@ public:
     bool IsEmptyCell(int WXUNUSED(row), int WXUNUSED(col)) { return false; }
 
     wxString GetValue(int row, int col) 
-        {  return S(col == 0 ? double(GetValueAsBool(row,col))
-                             : GetValueAsDouble(row,col)).c_str(); }
+    {  
+        if (col == 0) 
+            return GetValueAsBool(row,col) ? wxT("1") : wxT("0");
+        else 
+            return wxString::Format(wxT("%f"), GetValueAsDouble(row,col)); 
+    }
 
     void SetValue(int, int, const wxString&) { assert(0); }
 
@@ -623,15 +630,15 @@ public:
         ded->rezoom_btn->Enable();
     }
 
-    wxString GetRowLabelValue(int row) { return S(row).c_str(); }
+    wxString GetRowLabelValue(int row) {return wxString::Format(wxT("%i"),row);}
 
     wxString GetColLabelValue(int col) 
     { 
         switch (col) {
-            case 0: return "active"; 
-            case 1: return "x";      
-            case 2: return "y";      
-            case 3: return "sigma";  
+            case 0: return wxT("active"); 
+            case 1: return wxT("x");      
+            case 2: return wxT("y");      
+            case 3: return wxT("sigma");  
             default: assert(0);
         }
     }
@@ -740,7 +747,7 @@ END_EVENT_TABLE()
 
 DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, 
                               ndnd_type const& dd)
-    : wxDialog(parent, id, "Data Editor", 
+    : wxDialog(parent, id, wxT("Data Editor"), 
                wxDefaultPosition, wxSize(500, 500), 
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
@@ -749,20 +756,20 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id,
     // left side of the dialog
     wxPanel *left_panel = new wxPanel(splitter); 
     wxBoxSizer *left_sizer = new wxBoxSizer(wxVERTICAL);
-    left_sizer->Add(new wxStaticText(left_panel, -1, "Original filename:"));
-    filename_label = new wxStaticText(left_panel, -1, "");
+    left_sizer->Add(new wxStaticText(left_panel, -1,wxT("Original filename:")));
+    filename_label = new wxStaticText(left_panel, -1, wxT(""));
     left_sizer->Add(filename_label, 0, wxADJUST_MINSIZE);
     wxBoxSizer *two_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     revert_btn = new wxButton(left_panel, wxID_REVERT_TO_SAVED, 
-                              "Revert to Saved");
+                              wxT("Revert to Saved"));
     two_btn_sizer->Add(revert_btn, 0, wxALL|wxALIGN_CENTER, 5);
     save_as_btn = new wxButton(left_panel, wxID_SAVEAS, 
-                               "Save &As...");
+                               wxT("Save &As..."));
     two_btn_sizer->Add(save_as_btn, 0, wxALL|wxALIGN_CENTER, 5);
     left_sizer->Add(two_btn_sizer, 0, wxALIGN_CENTER);
-    left_sizer->Add(new wxStaticText(left_panel, -1, "Data title: "),
+    left_sizer->Add(new wxStaticText(left_panel, -1, wxT("Data title: ")),
                     0, wxLEFT|wxRIGHT|wxTOP, 5);
-    title_label = new wxStaticText(left_panel, -1, "");
+    title_label = new wxStaticText(left_panel, -1, wxT(""));
     left_sizer->Add(title_label, 0, wxLEFT|wxRIGHT|wxBOTTOM|wxADJUST_MINSIZE,5);
     grid = new wxGrid(left_panel, ID_DE_GRID, 
                       wxDefaultPosition, wxSize(-1, 350));
@@ -776,41 +783,41 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id,
     example_list = new wxListCtrl(right_panel, ID_DE_EXAMPLES, 
                                   wxDefaultPosition, wxDefaultSize,
                                   wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_HRULES);
-    example_list->InsertColumn(0, "transformation");
-    example_list->InsertColumn(1, "in menu");
+    example_list->InsertColumn(0, wxT("transformation"));
+    example_list->InsertColumn(1, wxT("in menu"));
     example_sizer->Add(example_list, 1, wxEXPAND|wxALL, 5);
     wxBoxSizer *example_button_sizer = new wxBoxSizer(wxVERTICAL);
-    add_btn = new wxButton(right_panel, wxID_ADD, "Add");
+    add_btn = new wxButton(right_panel, wxID_ADD, wxT("Add"));
     example_button_sizer->Add(add_btn, 0, wxALL, 5);
-    remove_btn = new wxButton(right_panel, wxID_REMOVE, "Remove");
+    remove_btn = new wxButton(right_panel, wxID_REMOVE, wxT("Remove"));
     example_button_sizer->Add(remove_btn, 0, wxALL, 5);
-    up_btn = new wxButton(right_panel, wxID_UP, "&Up");
+    up_btn = new wxButton(right_panel, wxID_UP, wxT("&Up"));
     example_button_sizer->Add(up_btn, 0, wxALL, 5);
-    down_btn = new wxButton(right_panel, wxID_DOWN, "&Down");
+    down_btn = new wxButton(right_panel, wxID_DOWN, wxT("&Down"));
     example_button_sizer->Add(down_btn, 0, wxALL, 5);
-    save_btn = new wxButton(right_panel, wxID_SAVE, "&Save");
+    save_btn = new wxButton(right_panel, wxID_SAVE, wxT("&Save"));
     example_button_sizer->Add(save_btn, 0, wxALL, 5);
-    reset_btn = new wxButton(right_panel, ID_DE_RESET, "&Reset");
+    reset_btn = new wxButton(right_panel, ID_DE_RESET, wxT("&Reset"));
     example_button_sizer->Add(reset_btn, 0, wxALL, 5);
     example_sizer->Add(example_button_sizer, 0);
     right_sizer->Add(example_sizer, 0, wxEXPAND);
-    description = new wxStaticText(right_panel, -1, "\n\n\n\n", 
+    description = new wxStaticText(right_panel, -1, wxT("\n\n\n\n"), 
                                    wxDefaultPosition, wxDefaultSize,
                                    wxALIGN_LEFT);
     right_sizer->Add(description, 0, wxEXPAND|wxALL|wxADJUST_MINSIZE, 5);
-    code = new wxTextCtrl(right_panel, ID_DE_CODE, "", 
+    code = new wxTextCtrl(right_panel, ID_DE_CODE, wxT(""), 
                           wxDefaultPosition, wxDefaultSize,
                           wxTE_MULTILINE|wxHSCROLL|wxVSCROLL);
     right_sizer->Add(code, 1, wxEXPAND|wxALL, 5);
     wxBoxSizer *apply_help_sizer = new wxBoxSizer(wxHORIZONTAL);
     apply_help_sizer->Add(1, 1, 1);
-    apply_btn = new wxButton(right_panel, wxID_APPLY, "&Apply");
+    apply_btn = new wxButton(right_panel, wxID_APPLY, wxT("&Apply"));
     apply_help_sizer->Add(apply_btn, 0, wxALIGN_CENTER|wxALL, 5);
     apply_help_sizer->Add(1, 1, 1);
-    rezoom_btn = new wxButton(right_panel, ID_DE_REZOOM, "&Fit Zoom");
+    rezoom_btn = new wxButton(right_panel, ID_DE_REZOOM, wxT("&Fit Zoom"));
     apply_help_sizer->Add(rezoom_btn, 0, wxALIGN_CENTER|wxALL, 5);
     apply_help_sizer->Add(1, 1, 1);
-    help_btn = new wxButton(right_panel, wxID_HELP, "&Help");
+    help_btn = new wxButton(right_panel, wxID_HELP, wxT("&Help"));
     apply_help_sizer->Add(help_btn, 0, wxALIGN_RIGHT|wxALL, 5);
     right_sizer->Add(apply_help_sizer, 0, wxEXPAND);
     right_panel->SetSizerAndFit(right_sizer);
@@ -830,7 +837,7 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id,
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
     top_sizer->Add(splitter, 1, wxEXPAND, 1);
     top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
-    top_sizer->Add(new wxButton(this, wxID_CLOSE, "&Close"), 
+    top_sizer->Add(new wxButton(this, wxID_CLOSE, wxT("&Close")), 
                    0, wxALIGN_CENTER|wxALL, 5);
     SetSizerAndFit(top_sizer);
 
@@ -856,7 +863,7 @@ void DataEditorDlg::read_examples(bool reset)
     wxString transform_path = get_user_conffile("transform");
     string t_line;
     if (wxFileExists(transform_path) && !reset) {
-        ifstream f(transform_path.c_str());
+        ifstream f(wx2pchar(transform_path));
         while (getline(f, t_line))
             examples.push_back(DataTransExample(t_line));
     }
@@ -880,8 +887,8 @@ void DataEditorDlg::initialize_examples(bool reset)
 void DataEditorDlg::insert_example_list_item(int n)
 {
     const DataTransExample& ex = examples[n];
-    example_list->InsertItem(n, ex.name.c_str());
-    example_list->SetItem(n, 1, (ex.in_menu ? "Yes" : "No"));
+    example_list->InsertItem(n, s2wx(ex.name));
+    example_list->SetItem(n, 1, (ex.in_menu ? wxT("Yes") : wxT("No")));
 }
 
 void DataEditorDlg::select_example(int item)
@@ -922,9 +929,9 @@ void DataEditorDlg::update_data(ndnd_type const& dd)
         save_as_btn->Enable(false);
         grid->Show(false);
     }
-    filename_label->SetLabel(filename.c_str());
+    filename_label->SetLabel(s2wx(filename));
     revert_btn->Enable(!filename.empty());
-    title_label->SetLabel(title.c_str());
+    title_label->SetLabel(s2wx(title));
     Show();
 }
 
@@ -962,14 +969,14 @@ void DataEditorDlg::OnSaveAs (wxCommandEvent& WXUNUSED(event))
         return;
     bool ok = export_data_dlg(this, true);
     if (ok) {
-        filename_label->SetLabel(ndnd[0].second->get_filename().c_str());
+        filename_label->SetLabel(s2wx(ndnd[0].second->get_filename()));
     }
 }
 
 void DataEditorDlg::OnAdd (wxCommandEvent& WXUNUSED(event))
 {
     DataTransExample new_example("new", "useful",
-                                 "", code->GetValue().c_str());
+                                 "", wx2s(code->GetValue()));
     ExampleEditorDlg dlg(this, -1, new_example, examples, -1);
     if (dlg.ShowModal() == wxID_OK) {
         int pos = get_selected_item() + 1;
@@ -1022,7 +1029,7 @@ void DataEditorDlg::OnDown (wxCommandEvent& WXUNUSED(event))
 void DataEditorDlg::OnSave (wxCommandEvent& WXUNUSED(event))
 {
     wxString transform_path = get_user_conffile("transform");
-    ofstream f(transform_path.c_str());
+    ofstream f(wx2pchar(transform_path));
     for (vector<DataTransExample>::const_iterator i = examples.begin();
             i != examples.end(); ++i)
         if (i->category != "builtin")
@@ -1036,7 +1043,7 @@ void DataEditorDlg::OnReset (wxCommandEvent& WXUNUSED(event))
 
 void DataEditorDlg::OnApply (wxCommandEvent& WXUNUSED(event))
 {
-    execute_tranform(code->GetValue().Trim().c_str());
+    execute_tranform(wx2s(code->GetValue().Trim()));
     refresh_grid();
     rezoom_btn->Enable();
 }
@@ -1069,7 +1076,7 @@ void DataEditorDlg::CodeText()
     bool check_syntax = true;
     wxString text = code->GetValue().Trim();
     if (check_syntax) {
-        string text = code->GetValue().c_str();
+        string text = wx2s(code->GetValue());
         replace_all(text, "\n", " & ");
         apply_btn->Enable(validate_transformation(text));
     }
@@ -1090,9 +1097,9 @@ void DataEditorDlg::ESelected()
     string desc = ex.description;
     for (int i = count(desc.begin(), desc.end(), '\n') + 1; i < 3; ++i)
         desc += "\n";
-    description->SetLabel(desc.c_str());
+    description->SetLabel(s2wx(desc));
     Layout(); // to resize description
-    code->SetValue(ex.code.c_str());
+    code->SetValue(s2wx(ex.code));
 
     up_btn->Enable(item > 0);
     down_btn->Enable(item < example_list->GetItemCount() - 1);
@@ -1122,35 +1129,35 @@ ExampleEditorDlg::ExampleEditorDlg(wxWindow* parent, wxWindowID id,
                                    DataTransExample& ex_,
                                    const vector<DataTransExample>& examples_,
                                    int pos_)
-    : wxDialog(parent, id, "Example Editor", 
+    : wxDialog(parent, id, wxT("Example Editor"), 
                wxDefaultPosition, wxDefaultSize, 
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
       ex(ex_), examples(examples_), pos(pos_)
 {
-    name_tc = new wxTextCtrl(this, -1, ex.name.c_str());
-    description_tc = new wxTextCtrl(this, -1, ex.description.c_str(),
+    name_tc = new wxTextCtrl(this, -1, s2wx(ex.name));
+    description_tc = new wxTextCtrl(this, -1, s2wx(ex.description),
                                     wxDefaultPosition, wxSize(-1, 80),
                                     wxTE_MULTILINE|wxHSCROLL|wxVSCROLL);
-    wxString choices[] = {"useful", "example", "other"};
-    category_c = new wxComboBox(this, -1, ex.category.c_str(),
+    wxString choices[] = {wxT("useful"), wxT("example"), wxT("other")};
+    category_c = new wxComboBox(this, -1, s2wx(ex.category),
                                 wxDefaultPosition, wxDefaultSize,
                                 3, choices,
                                 wxCB_READONLY);
-    code_tc = new wxTextCtrl(this, -1, ex.code.c_str(), 
+    code_tc = new wxTextCtrl(this, -1, s2wx(ex.code), 
                              wxDefaultPosition, wxSize(-1, 100),
                              wxTE_MULTILINE|wxHSCROLL|wxVSCROLL);
-    inmenu_cb = new wxCheckBox(this, -1, "show item in Data->Fast_DT menu");
+    inmenu_cb = new wxCheckBox(this, -1,wxT("show item in Data->Fast_DT menu"));
     inmenu_cb->SetValue(ex.in_menu);
 
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
     wxFlexGridSizer *flexsizer = new wxFlexGridSizer(2);
-    flexsizer->Add(new wxStaticText(this, -1, "name"), 0, wxALL, 5);
+    flexsizer->Add(new wxStaticText(this, -1, wxT("name")), 0, wxALL, 5);
     flexsizer->Add(name_tc, 0, wxALL|wxEXPAND, 5);
-    flexsizer->Add(new wxStaticText(this, -1, "category"), 0, wxALL, 5);
+    flexsizer->Add(new wxStaticText(this, -1, wxT("category")), 0, wxALL, 5);
     flexsizer->Add(category_c, 0, wxALL|wxEXPAND, 5);
-    flexsizer->Add(new wxStaticText(this, -1, "description"), 0, wxALL, 5);
+    flexsizer->Add(new wxStaticText(this, -1, wxT("description")), 0, wxALL, 5);
     flexsizer->Add(description_tc, 0, wxALL|wxEXPAND, 5);
-    flexsizer->Add(new wxStaticText(this, -1, "code"), 0, wxALL, 5);
+    flexsizer->Add(new wxStaticText(this, -1, wxT("code")), 0, wxALL, 5);
     flexsizer->Add(code_tc, 0, wxALL|wxEXPAND, 5);
     flexsizer->AddGrowableRow(2); // description
     flexsizer->AddGrowableRow(3); // code
@@ -1165,7 +1172,7 @@ ExampleEditorDlg::ExampleEditorDlg(wxWindow* parent, wxWindowID id,
 
 void ExampleEditorDlg::OnOK(wxCommandEvent &event)
 {
-    string new_name = name_tc->GetValue().Trim().c_str();
+    string new_name = wx2s(name_tc->GetValue().Trim());
     for (int i = 0; i < size(examples); ++i) 
             if (i != pos && examples[i].name == new_name) {//name is not unique
                 name_tc->SetFocus();
@@ -1174,33 +1181,34 @@ void ExampleEditorDlg::OnOK(wxCommandEvent &event)
             }
     // we are here -- name is unique
     ex.name = new_name;
-    ex.category = category_c->GetValue().c_str();
-    ex.description = description_tc->GetValue().Trim().c_str();
-    ex.code = code_tc->GetValue().Trim().c_str();
+    ex.category = wx2s(category_c->GetValue());
+    ex.description = wx2s(description_tc->GetValue().Trim());
+    ex.code = wx2s(code_tc->GetValue().Trim());
     ex.in_menu = inmenu_cb->GetValue();
     wxDialog::OnOK(event);
 }
 
 /// get path ~/.fityk/filename and create ~/.fityk/ dir if not exists
-wxString get_user_conffile(const wxString &filename)
+wxString get_user_conffile(string const& filename)
 {
-    wxString fityk_dir = wxGetHomeDir() + wxFILE_SEP_PATH + config_dirname;
+    wxString fityk_dir = wxGetHomeDir() + wxFILE_SEP_PATH 
+                          + pchar2wx(config_dirname);
     if (!wxDirExists(fityk_dir))
         wxMkdir(fityk_dir);
-    return fityk_dir + wxFILE_SEP_PATH + filename;
+    return fityk_dir + wxFILE_SEP_PATH + s2wx(filename);
 }
 
 
 /// show "Export data" dialog
 bool export_data_dlg(wxWindow *parent, bool load_exported)
 {
-    static wxString dir = ".";
-    wxFileDialog fdlg (parent, "Export data to file", dir, "",
-                       "x y data (*.dat, *.xy)|*.dat;*.DAT;*.xy;*.XY",
+    static wxString dir = wxT(".");
+    wxFileDialog fdlg (parent, wxT("Export data to file"), dir, wxT(""),
+                       wxT("x y data (*.dat, *.xy)|*.dat;*.DAT;*.xy;*.XY"),
                        wxSAVE | wxOVERWRITE_PROMPT);
     dir = fdlg.GetDirectory();
     if (fdlg.ShowModal() == wxID_OK) {
-        string path = fdlg.GetPath().c_str();
+        string path = wx2s(fdlg.GetPath());
         string ds = frame->get_active_data_str();
         exec_command(ds + " > '" + path + "'");
         if (load_exported)
@@ -1214,48 +1222,39 @@ bool export_data_dlg(wxWindow *parent, bool load_exported)
 
 //=====================    setttings  dialog    ==================
 
-//small utility
-wxArrayString stl2wxArrayString(vector<string> const& vs)
-{
-    wxArrayString wxas; 
-    for (vector<string>::const_iterator i = vs.begin(); i != vs.end(); ++i)
-        wxas.Add(i->c_str());
-    return wxas;
-}
-
 SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
-    : wxDialog(parent, id, "Settings",
+    : wxDialog(parent, id, wxT("Settings"),
                wxDefaultPosition, wxDefaultSize, 
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER) 
 {
     wxNotebook *nb = new wxNotebook(this, -1);
     wxPanel *page_general = new wxPanel(nb, -1);
-    nb->AddPage(page_general, "general");
+    nb->AddPage(page_general, wxT("general"));
     wxPanel *page_peakfind = new wxPanel(nb, -1);
-    nb->AddPage(page_peakfind, "peak-finding");
+    nb->AddPage(page_peakfind, wxT("peak-finding"));
     wxPanel *page_fitting = new wxPanel(nb, -1);
-    nb->AddPage(page_fitting, "fitting");
+    nb->AddPage(page_fitting, wxT("fitting"));
 
     // page general
     wxStaticText *cut_st = new wxStaticText(page_general, -1, 
-                                       "f(x) can be assumed 0, if |f(x)|<"); 
+                                    wxT("f(x) can be assumed 0, if |f(x)|<")); 
     cut_func = new RealNumberCtrl(page_general, -1, 
                                   getSettings()->getp("cut-function-level"));
-    autoplot_rb = new wxRadioBox(page_general, -1, "auto-refresh plot",
+    autoplot_rb = new wxRadioBox(page_general, -1, wxT("auto-refresh plot"),
                                  wxDefaultPosition, wxDefaultSize, 
                                  stl2wxArrayString(
                                       getSettings()->expand_enum("autoplot")));
-    autoplot_rb->SetStringSelection(getSettings()->getp("autoplot").c_str());
+    autoplot_rb->SetStringSelection(s2wx(getSettings()->getp("autoplot")));
 
     wxStaticText *verbosity_st = new wxStaticText(page_general, -1, 
-                            "verbosity (amount of messages in output pane)");
+                         wxT("verbosity (amount of messages in output pane)"));
     verbosity_ch = new wxChoice(page_general, -1, 
                                 wxDefaultPosition, wxDefaultSize,
                                 stl2wxArrayString(
                                       getSettings()->expand_enum("verbosity")));
-    verbosity_ch->SetStringSelection(getSettings()->getp("verbosity").c_str());
+    verbosity_ch->SetStringSelection(s2wx(getSettings()->getp("verbosity")));
     exit_cb = new wxCheckBox(page_general, -1, 
-                             "quit if error or warning was generated");
+                             wxT("quit if error or warning was generated"));
     exit_cb->SetValue(getSettings()->get_b("exit-on-warning"));
 
     wxBoxSizer *sizer_general = new wxBoxSizer(wxVERTICAL);
@@ -1271,15 +1270,15 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
 
     // page peak-finding
     wxStaticText *hc_st = new wxStaticText(page_peakfind, -1, 
-                               "factor used to correct detected peak height"); 
+                           wxT("factor used to correct detected peak height")); 
     height_correction = new RealNumberCtrl(page_peakfind, -1, 
                                      getSettings()->getp("height-correction"));
     wxStaticText *wc_st = new wxStaticText(page_peakfind, -1, 
-                               "factor used to correct detected peak width"); 
+                            wxT("factor used to correct detected peak width"));
     width_correction = new RealNumberCtrl(page_peakfind, -1, 
                                  getSettings()->getp("width-correction"));
     cancel_poos = new wxCheckBox(page_peakfind, -1, 
-                              "cancel peak guess, if the result is doubtful");
+                          wxT("cancel peak guess, if the result is doubtful"));
     cancel_poos->SetValue(getSettings()->get_b("can-cancel-guess"));
     wxBoxSizer *sizer_pf = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizer_pf_hc = new wxBoxSizer(wxHORIZONTAL);
@@ -1307,12 +1306,12 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
 {
     pair_vec result;
     map<string, string> m;
-    m["cut-function-level"] = cut_func->GetValue().c_str();
-    m["autoplot"] = autoplot_rb->GetStringSelection().c_str();
-    m["verbosity"] = verbosity_ch->GetStringSelection().c_str();
+    m["cut-function-level"] = wx2s(cut_func->GetValue());
+    m["autoplot"] = wx2s(autoplot_rb->GetStringSelection());
+    m["verbosity"] = wx2s(verbosity_ch->GetStringSelection());
     m["exit-on-warning"] = exit_cb->GetValue() ? "1" : "0";
-    m["height-correction"] = height_correction->GetValue().c_str();
-    m["width-correction"] = width_correction->GetValue().c_str();
+    m["height-correction"] = wx2s(height_correction->GetValue());
+    m["width-correction"] = wx2s(width_correction->GetValue());
     m["can-cancel-guess"] = cancel_poos->GetValue() ? "1" : "0";
     vector<string> kk = getSettings()->expanp();
     for (vector<string>::const_iterator i = kk.begin(); i != kk.end(); ++i)

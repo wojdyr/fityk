@@ -44,6 +44,7 @@ class ConfigureAxesDlg;
 class MainPlot : public FPlot, public BgManager
 {
     friend class ConfigureAxesDlg;
+    friend class ConfigurePLabelsDlg;
 public:
     MainPlot (wxWindow *parent, PlotShared &shar); 
     ~MainPlot() {}
@@ -60,11 +61,9 @@ public:
     void OnPopupShowXX (wxCommandEvent& event);
     void OnPopupColor (wxCommandEvent& event);
     void OnInvertColors (wxCommandEvent& event);
-    void OnPeakLabel (wxCommandEvent& event);
-    void OnPlabelFont (wxCommandEvent& event);
-    void OnTicsFont (wxCommandEvent& WXUNUSED(event)) { change_tics_font(); }
     void OnPopupRadius (wxCommandEvent& event);
     void OnConfigureAxes (wxCommandEvent& event);
+    void OnConfigurePLabels (wxCommandEvent& event);
     void OnZoomAll (wxCommandEvent& event);
     void PeakInfo ();
     void OnPeakInfo (wxCommandEvent& WXUNUSED(event)) { PeakInfo(); }
@@ -93,10 +92,11 @@ private:
     static const int max_peak_pens = 32;
     static const int max_data_pens = 32;
     static const int max_radius = 4; //size of data point
-    bool peaks_visible, groups_visible, sum_visible, data_visible, 
+    bool peaks_visible, groups_visible, sum_visible,  
          plabels_visible, x_reversed; 
     wxFont plabelFont;
     std::string plabel_format;
+    bool vertical_plabels;
     std::vector<std::string> plabels;
     wxPen sumPen, bg_pointsPen;
     wxPen groupPen[max_group_pens], peakPen[max_peak_pens];
@@ -139,15 +139,35 @@ public:
     void OnApply (wxCommandEvent& event);
     void OnClose (wxCommandEvent& event) { OnCancel(event); }
     void OnChangeColor (wxCommandEvent& WXUNUSED(event)) 
-                                               { change_color_dlg(color); }
+                                               { change_color_dlg(axis_color); }
     void OnChangeFont (wxCommandEvent& event); 
 private:
     MainPlot *plot;
-    wxColour color;
+    wxColour axis_color;
     wxCheckBox *x_show_axis, *x_show_tics, *x_reversed; 
     wxSpinCtrl *x_max_tics, *x_tics_size;
     wxCheckBox *y_show_axis, *y_show_tics, *y_reversed; 
     wxSpinCtrl *y_max_tics, *y_tics_size;
+    DECLARE_EVENT_TABLE()
+};
+
+
+class ConfigurePLabelsDlg: public wxDialog
+{
+public:
+    ConfigurePLabelsDlg(wxWindow* parent, wxWindowID id, MainPlot* plot_);
+    void OnApply (wxCommandEvent& event);
+    void OnClose (wxCommandEvent& event) { OnCancel(event); }
+    void OnChangeLabelFont (wxCommandEvent& event); 
+    void OnChangeLabelText (wxCommandEvent& event); 
+    void OnCheckShowLabel (wxCommandEvent& event); 
+    void OnRadioLabel (wxCommandEvent& event); 
+private:
+    MainPlot *plot;
+    bool in_onradiolabel;
+    wxCheckBox *show_plabels;
+    wxRadioBox *label_radio, *vertical_rb;
+    wxTextCtrl *label_text;
     DECLARE_EVENT_TABLE()
 };
 

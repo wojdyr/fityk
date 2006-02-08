@@ -5,6 +5,7 @@
 
 #include "common.h"
 #include <wx/splitter.h>
+#include <wx/arrstr.h>
 
 enum MouseModeEnum { mmd_zoom, mmd_bg, mmd_add, mmd_range, mmd_peak };
 
@@ -22,6 +23,30 @@ struct PlotShared
     std::vector<wxPoint> peaktops;
 };
 
+inline wxString pchar2wx(char const* pc)
+{
+    return wxString(pc, wxConvUTF8);
+}
+
+inline wxString s2wx(std::string const& s) { return pchar2wx(s.c_str()); }
+
+
+inline char const* wx2pchar(wxString const& w)
+{ 
+    return (const char*) w.mb_str(wxConvUTF8); 
+}
+
+inline std::string wx2s(wxString const& w) { return wx2pchar(w); }
+
+inline wxArrayString stl2wxArrayString(std::vector<std::string> const& vs)
+{
+    wxArrayString wxas; 
+    for (std::vector<std::string>::const_iterator i = vs.begin(); 
+                                                        i != vs.end(); ++i)
+        wxas.Add(s2wx(*i));
+    return wxas;
+}
+
 
 // only wxString and long types can be read conveniently from wxConfig
 // these functions are defined in plot.cpp
@@ -29,18 +54,18 @@ struct PlotShared
 class wxConfigBase;
 class wxString;
 
-bool read_bool_from_config(wxConfigBase* cf, wxString const& key, bool def_val);
-double read_double_from_config(wxConfigBase* cf, wxString const& key, 
+bool cfg_read_bool(wxConfigBase* cf, wxString const& key, bool def_val);
+double cfg_read_double(wxConfigBase* cf, wxString const& key, 
                                double def_val);
 
-wxColour read_color_from_config(wxConfigBase const* config, wxString const& key,
-                                wxColour const& default_value);
-void write_color_to_config(wxConfigBase* config, const wxString& key,
+wxColour cfg_read_color(wxConfigBase const* config, wxString const& key,
+                        wxColour const& default_value);
+void cfg_write_color(wxConfigBase* config, const wxString& key,
                            const wxColour& value);
 
-wxFont read_font_from_config(wxConfigBase const* config, wxString const& key,
+wxFont cfg_read_font(wxConfigBase const* config, wxString const& key,
                              wxFont const& default_value);
-void write_font_to_config(wxConfigBase* config, wxString const& key,
+void cfg_write_font(wxConfigBase* config, wxString const& key,
                           wxFont const& value);
 
 inline bool should_focus_input(int key)
@@ -66,8 +91,7 @@ public:
                          wxWindowID id=-1, 
                          float proportion=0.66, // 0. - 1.
                          const wxSize& size = wxDefaultSize,
-                         long style=wxSP_NOBORDER|wxSP_FULLSASH|wxSP_3DSASH,
-                         const wxString& name = "proportionalSplitterWindow");
+                         long style=wxSP_NOBORDER|wxSP_FULLSASH|wxSP_3DSASH);
     bool SplitHorizontally(wxWindow* win1, wxWindow* win2, float proportion=-1);
     bool SplitVertically(wxWindow* win1, wxWindow* win2, float proportion=-1);
     int GetExpectedSashPosition();

@@ -123,11 +123,11 @@ string PlotPane::zoom_backward(int n)
 
 void PlotPane::save_settings(wxConfigBase *cf) const
 {
-    cf->SetPath("/PlotPane");
-    cf->Write("PlotPaneProportion", GetProportion());
-    cf->Write("AuxPlotsProportion", aux_split->GetProportion());
-    cf->Write("ShowAuxPane0", aux_visible(0));
-    cf->Write("ShowAuxPane1", aux_visible(1));
+    cf->SetPath(wxT("/PlotPane"));
+    cf->Write(wxT("PlotPaneProportion"), GetProportion());
+    cf->Write(wxT("AuxPlotsProportion"), aux_split->GetProportion());
+    cf->Write(wxT("ShowAuxPane0"), aux_visible(0));
+    cf->Write(wxT("ShowAuxPane1"), aux_visible(1));
     plot->save_settings(cf);
     for (int i = 0; i < 2; ++i)
         aux_plot[i]->save_settings(cf);
@@ -135,12 +135,12 @@ void PlotPane::save_settings(wxConfigBase *cf) const
 
 void PlotPane::read_settings(wxConfigBase *cf)
 {
-    cf->SetPath("/PlotPane");
-    SetProportion(read_double_from_config(cf, "PlotPaneProportion", 0.75));
-    aux_split->SetProportion(read_double_from_config(cf, "AuxPlotsProportion", 
+    cf->SetPath(wxT("/PlotPane"));
+    SetProportion(cfg_read_double(cf, wxT("PlotPaneProportion"), 0.75));
+    aux_split->SetProportion(cfg_read_double(cf, wxT("AuxPlotsProportion"), 
                                                          0.5));
-    show_aux(0, read_bool_from_config(cf, "ShowAuxPane0", true));
-    show_aux(1, read_bool_from_config(cf, "ShowAuxPane1", false));
+    show_aux(0, cfg_read_bool(cf, wxT("ShowAuxPane0"), true));
+    show_aux(1, cfg_read_bool(cf, wxT("ShowAuxPane1"), false));
     plot->read_settings(cf);
     for (int i = 0; i < 2; ++i)
         aux_plot[i]->read_settings(cf);
@@ -275,7 +275,7 @@ IOPane::IOPane(wxWindow *parent, wxWindowID id)
     output_win = new OutputWin (this, -1);
     io_sizer->Add (output_win, 1, wxEXPAND);
 
-    input_field = new InputField (this, -1, "",
+    input_field = new InputField (this, -1, wxT(""),
                             wxDefaultPosition, wxDefaultSize, 
                             wxWANTS_CHARS|wxTE_PROCESS_ENTER|wxTE_PROCESS_TAB);
     io_sizer->Add (input_field, 0, wxEXPAND);
@@ -298,13 +298,13 @@ void IOPane::focus_input(int key)
 { 
     input_field->SetFocus(); 
     if (key != WXK_TAB && key > 0 && key < 256) {
-        input_field->WriteText(wxString(static_cast<char>(key)).Lower());
+        input_field->WriteText(wxString::Format(wxT("%c"), key));
     }
 }
 
 void IOPane::edit_in_input(string const& s) 
 {
-    input_field->WriteText(s.c_str());
+    input_field->WriteText(s2wx(s));
     input_field->SetFocus(); 
 }
 
@@ -320,7 +320,7 @@ ListPlusText::ListPlusText(wxWindow *parent, wxWindowID id, wxWindowID list_id,
 : ProportionalSplitter(parent, id, 0.75) 
 {
     list = new ListWithColors(this, list_id, columns_);
-    inf = new wxTextCtrl(this, -1, "", wxDefaultPosition, wxDefaultSize,
+    inf = new wxTextCtrl(this, -1, wxT(""), wxDefaultPosition, wxDefaultSize,
                          wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
 }
 
@@ -439,10 +439,10 @@ FancyRealCtrl::FancyRealCtrl(wxWindow* parent, wxWindowID id,
     : wxPanel(parent, id), initial_value(value), name(tc_name)
 {
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
-    tc = new wxTextCtrl(this, -1, S(value).c_str(), 
+    tc = new wxTextCtrl(this, -1, s2wx(S(value)), 
                         wxDefaultPosition, wxDefaultSize,
                         wxTE_PROCESS_ENTER);
-    tc->SetToolTip(name.c_str());
+    tc->SetToolTip(s2wx(name));
     sizer->Add(tc, 1, wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND, 1);
     ValueChangingWidget *vch = new ValueChangingWidget(this, -1, this);
     sizer->Add(vch, 0, wxALL|wxALIGN_CENTER_VERTICAL, 1);
@@ -451,10 +451,10 @@ FancyRealCtrl::FancyRealCtrl(wxWindow* parent, wxWindowID id,
 
 void FancyRealCtrl::set(fp value, string const& tc_name)
 {
-    tc->SetValue(S(value).c_str());
+    tc->SetValue(s2wx(S(value)));
     if (name != tc_name) {
         name = tc_name;
-        tc->SetToolTip(name.c_str());
+        tc->SetToolTip(s2wx(name));
     }
 }
 
@@ -465,20 +465,20 @@ void FancyRealCtrl::change_value(fp factor)
     if (!ok)
         return;
     t += fabs(initial_value) * factor;
-    tc->SetValue(S(t).c_str());
+    tc->SetValue(s2wx(S(t)));
 }
 
 void FancyRealCtrl::on_stop_changing()
 {
-    if (tc->GetValue().c_str() != S(initial_value)) {
+    if (wx2s(tc->GetValue()) != S(initial_value)) {
         double t;
         bool ok = tc->GetValue().ToDouble(&t);
         if (ok) {
             initial_value = t;
-            exec_command(name + " = ~" + tc->GetValue().c_str());
+            exec_command(name + " = ~" + wx2s(tc->GetValue()));
         }
         else
-            tc->SetValue(S(initial_value).c_str());
+            tc->SetValue(s2wx(S(initial_value)));
     }
 }
 
@@ -488,7 +488,7 @@ void FancyRealCtrl::on_stop_changing()
 //===============================================================
 
 void add_bitmap_button(wxWindow* parent, wxWindowID id, char** xpm,
-                       char const* tip, wxSizer* sizer)
+                       wxString const& tip, wxSizer* sizer)
 {
     wxBitmapButton *btn = new wxBitmapButton(parent, id, wxBitmap(xpm));
     btn->SetToolTip(tip);
@@ -541,11 +541,12 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
 
     wxBoxSizer *data_look_sizer = new wxBoxSizer(wxHORIZONTAL);
     add_bitmap_button(data_page, ID_DP_COL, colorsel_xpm, 
-                      "change color", data_look_sizer);
+                      wxT("change color"), data_look_sizer);
     wxArrayString choices;
-    choices.Add("show all datasets");
-    choices.Add("show only selected");
-    choices.Add("shadow unselected");
+    choices.Add(wxT("show all datasets"));
+    choices.Add(wxT("show only selected"));
+    choices.Add(wxT("shadow unselected"));
+    choices.Add(wxT("hide all"));
     data_look = new wxChoice(data_page, ID_DP_LOOK,
                              wxDefaultPosition, wxDefaultSize, choices);
     data_look->Select(0);
@@ -553,27 +554,27 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     data_look_sizer->Add(new wxStaticBitmap(data_page, -1, 
                                             wxBitmap(shiftup_xpm)), 
                          0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
-    shiftup_sc = new wxSpinCtrl(data_page, ID_DP_SHIFTUP, "0",
+    shiftup_sc = new wxSpinCtrl(data_page, ID_DP_SHIFTUP, wxT("0"),
                                 wxDefaultPosition, wxSize(40, -1),
                                 wxSP_ARROW_KEYS, 0, 80, 0);
-    shiftup_sc->SetToolTip("shift up in \% of plot Y size");
+    shiftup_sc->SetToolTip(wxT("shift up in \% of plot Y size"));
     data_look_sizer->Add(shiftup_sc, 0, wxEXPAND);
     data_sizer->Add(data_look_sizer, 0, wxEXPAND);
 
     wxBoxSizer *data_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
     add_bitmap_button(data_page, ID_DP_NEW, add_xpm, 
-                      "new data", data_buttons_sizer);
+                      wxT("new data"), data_buttons_sizer);
     add_bitmap_button(data_page, ID_DP_DUP, sum_xpm, 
-                      "duplicate/sum", data_buttons_sizer);
+                      wxT("duplicate/sum"), data_buttons_sizer);
     add_bitmap_button(data_page, ID_DP_REN, rename_xpm, 
-                      "rename", data_buttons_sizer);
+                      wxT("rename"), data_buttons_sizer);
     add_bitmap_button(data_page, ID_DP_DEL, close_xpm, 
-                      "delete", data_buttons_sizer);
+                      wxT("delete"), data_buttons_sizer);
     add_bitmap_button(data_page, ID_DP_CPF, copyfunc_xpm, 
-                      "copy F to next dataset", data_buttons_sizer);
+                      wxT("copy F to next dataset"), data_buttons_sizer);
     data_sizer->Add(data_buttons_sizer, 0, wxEXPAND);
     data_page->SetSizerAndFit(data_sizer);
-    nb->AddPage(data_page, "data");
+    nb->AddPage(data_page, wxT("data"));
 
     //-----  functions page  -----
     func_page = new wxPanel(nb, -1);
@@ -585,7 +586,7 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
                            0, wxALIGN_CENTER_VERTICAL);
     filter_ch = new wxChoice(func_page, ID_FP_FILTER,
                              wxDefaultPosition, wxDefaultSize, 0, 0);
-    filter_ch->Append("list all functions");
+    filter_ch->Append(wxT("list all functions"));
     filter_ch->Select(0);
     func_filter_sizer->Add(filter_ch, 1, wxEXPAND);
     func_sizer->Add(func_filter_sizer, 0, wxEXPAND);
@@ -601,18 +602,18 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     func_sizer->Add(f, 1, wxEXPAND|wxALL, 1);
     wxBoxSizer *func_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
     add_bitmap_button(func_page, ID_FP_NEW, add_xpm, 
-                      "new function", func_buttons_sizer);
+                      wxT("new function"), func_buttons_sizer);
     add_bitmap_button(func_page, ID_FP_DEL, close_xpm, 
-                      "delete", func_buttons_sizer);
+                      wxT("delete"), func_buttons_sizer);
     add_bitmap_button(func_page, ID_FP_EDIT, editf_xpm, 
-                      "edit function", func_buttons_sizer);
+                      wxT("edit function"), func_buttons_sizer);
     add_bitmap_button(func_page, ID_FP_CHTYPE, convert_xpm, 
-                      "change type of function", func_buttons_sizer);
+                      wxT("change type of function"), func_buttons_sizer);
     add_bitmap_button(func_page, ID_FP_COL, colorsel_xpm, 
-                      "change color", func_buttons_sizer);
+                      wxT("change color"), func_buttons_sizer);
     func_sizer->Add(func_buttons_sizer, 0, wxEXPAND);
     func_page->SetSizerAndFit(func_sizer);
-    nb->AddPage(func_page, "functions");
+    nb->AddPage(func_page, wxT("functions"));
 
     //-----  variables page  -----
     var_page = new wxPanel(nb, -1);
@@ -626,19 +627,19 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     var_sizer->Add(v, 1, wxEXPAND|wxALL, 1);
     wxBoxSizer *var_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
     add_bitmap_button(var_page, ID_VP_NEW, add_xpm, 
-                      "new variable", var_buttons_sizer);
+                      wxT("new variable"), var_buttons_sizer);
     add_bitmap_button(var_page, ID_VP_DEL, close_xpm, 
-                      "delete", var_buttons_sizer);
+                      wxT("delete"), var_buttons_sizer);
     add_bitmap_button(var_page, ID_VP_EDIT, editf_xpm, 
-                      "edit variable", var_buttons_sizer);
+                      wxT("edit variable"), var_buttons_sizer);
     var_sizer->Add(var_buttons_sizer, 0, wxEXPAND);
     var_page->SetSizerAndFit(var_sizer);
-    nb->AddPage(var_page, "variables");
+    nb->AddPage(var_page, wxT("variables"));
 
     //-----
     bottom_panel = new wxPanel(this, -1);
     wxBoxSizer* bp_topsizer = new wxBoxSizer(wxVERTICAL);
-    bp_label = new wxStaticText(bottom_panel, -1, "", 
+    bp_label = new wxStaticText(bottom_panel, -1, wxT(""), 
                                 wxDefaultPosition, wxDefaultSize, 
                                 wxST_NO_AUTORESIZE|wxALIGN_CENTRE);
     bp_topsizer->Add(bp_label, 0, wxEXPAND|wxALL, 5);
@@ -667,14 +668,13 @@ void SideBar::OnDataButtonRen (wxCommandEvent& WXUNUSED(event))
 {
     int n = get_focused_data();
     Data *data = AL->get_data(n);
-    wxString old_title = data->get_title().c_str();
+    wxString old_title = s2wx(data->get_title());
 
-    wxString s = wxGetTextFromUser(wxString("New name for dataset @") 
-                                                              + S(n).c_str(), 
-                                   "Rename dataset",
+    wxString s = wxGetTextFromUser(wxT("New name for dataset @") + s2wx(S(n)), 
+                                   wxT("Rename dataset"),
                                    old_title);
     if (!s.IsEmpty() && s != old_title)
-        exec_command("@" + S(n) + ".title = '" + s.c_str() + "'");
+        exec_command("@" + S(n) + ".title = '" + wx2s(s) + "'");
 }
 
 void SideBar::OnDataButtonDel (wxCommandEvent& WXUNUSED(event))
@@ -845,7 +845,7 @@ void SideBar::update_func_list(bool nondata_changed)
         while (filter_ch->GetCount() > AL->get_ds_count()+1)
             filter_ch->Delete(filter_ch->GetCount()-1);
         for (int i = filter_ch->GetCount()-1; i < AL->get_ds_count(); ++i)
-            filter_ch->Append(("only functions from @" + S(i)).c_str());
+            filter_ch->Append(wxString::Format(wxT("only functions from @"),i));
     }
 
     //functions
@@ -1001,9 +1001,9 @@ void SideBar::update_data_inf()
     boldattr.SetFont(font);
 
     inf->SetDefaultStyle(boldattr);
-    inf->AppendText(("@" + S(n) + "\n").c_str());
+    inf->AppendText(s2wx("@" + S(n) + "\n"));
     inf->SetDefaultStyle(defattr);
-    inf->AppendText(AL->get_data(n)->getInfo().c_str());
+    inf->AppendText(s2wx(AL->get_data(n)->getInfo()));
     inf->ShowPosition(0);
 }
 
@@ -1022,18 +1022,14 @@ void SideBar::update_func_inf()
 
     Function const* func = AL->get_function(n);
     inf->SetDefaultStyle(boldattr);
-    inf->AppendText(func->xname.c_str());
+    inf->AppendText(s2wx(func->xname));
     inf->SetDefaultStyle(defattr);
     if (func->is_peak()) {
-        inf->AppendText("\nPeak properties:");
-        inf->AppendText("\nCenter: ");
-        inf->AppendText(S(func->center()).c_str());
-        inf->AppendText("\nArea: ");
-        inf->AppendText(S(func->area()).c_str());
-        inf->AppendText("\nHeight: ");
-        inf->AppendText(S(func->height()).c_str());
-        inf->AppendText("\nFWHM: ");
-        inf->AppendText(S(func->fwhm()).c_str());
+        inf->AppendText(wxT("\nPeak properties:"));
+        inf->AppendText(wxT("\nCenter: ") + s2wx(S(func->center())));
+        inf->AppendText(wxT("\nArea: ") + s2wx(S(func->area())));
+        inf->AppendText(wxT("\nHeight: ") + s2wx(S(func->height())));
+        inf->AppendText(wxT("\nFWHM: ") + s2wx(S(func->fwhm())));
     }
     vector<string> in;
     for (int i = 0; i < AL->get_ds_count(); ++i) {
@@ -1043,7 +1039,7 @@ void SideBar::update_func_inf()
             in.push_back("@" + S(i) + ".Z");
     }
     if (!in.empty())
-        inf->AppendText(("\nIn: " + join_vector(in, ", ")).c_str());
+        inf->AppendText(s2wx("\nIn: " + join_vector(in, ", ")));
 }
 
 void SideBar::update_var_inf()
@@ -1061,18 +1057,18 @@ void SideBar::update_var_inf()
 
     Variable const* var = AL->get_variable(n);
     inf->SetDefaultStyle(boldattr);
-    string t = var->xname + " = "+ var->get_formula(AL->get_parameters());
-    inf->AppendText(t.c_str());
+    string t = var->xname + " = " + var->get_formula(AL->get_parameters());
+    inf->AppendText(s2wx(t));
     inf->SetDefaultStyle(defattr);
     vector<string> in = AL->get_variable_references(var->name);
     if (!in.empty())
-        inf->AppendText(("\nIn:\n    " + join_vector(in, "\n    ")).c_str());
+        inf->AppendText(s2wx("\nIn:\n    " + join_vector(in, "\n    ")));
 }
 
 void SideBar::add_variable_to_bottom_panel(Variable const* var, 
                                            string const& tv_name)
 {
-    wxStaticText* name_st = new wxStaticText(bottom_panel, -1, tv_name.c_str());
+    wxStaticText* name_st = new wxStaticText(bottom_panel, -1, s2wx(tv_name));
     bp_sizer->Add(name_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 1);
     bp_statict.push_back(name_st);
     if (var->is_simple()) {
@@ -1083,7 +1079,7 @@ void SideBar::add_variable_to_bottom_panel(Variable const* var,
     }
     else {
         string t = var->xname + " = " + var->get_formula(AL->get_parameters());
-        wxStaticText *var_st = new wxStaticText(bottom_panel, -1, t.c_str());
+        wxStaticText *var_st = new wxStaticText(bottom_panel, -1, s2wx(t));
         bp_sizer->Add(var_st, 1, wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL, 1);
         bp_statict.push_back(var_st);
     }
@@ -1099,7 +1095,7 @@ void SideBar::clear_bottom_panel()
                                                       i != bp_frc.end(); ++i)
         (*i)->Destroy();
     bp_frc.clear();
-    bp_label->SetLabel("");
+    bp_label->SetLabel(wxT(""));
     bp_sig.clear();
 }
 
@@ -1123,7 +1119,7 @@ void SideBar::update_bottom_panel()
     }
     bottom_panel->Freeze();
     Function const* func = AL->get_function(n);
-    bp_label->SetLabel((func->xname+" : "+func->type_name).c_str());
+    bp_label->SetLabel(s2wx(func->xname + " : " + func->type_name));
     vector<bool> sig = make_bottom_panel_sig(func);
     if (sig != bp_sig) {
         clear_bottom_panel();
@@ -1144,7 +1140,7 @@ void SideBar::update_bottom_panel()
         vector<FancyRealCtrl*>::iterator frc = bp_frc.begin();
         for (int i = 0; i < size(func->type_var_names); ++i) {
             string const& t = func->type_var_names[i];
-            (*st)->SetLabel(t.c_str());
+            (*st)->SetLabel(s2wx(t));
             ++st;
             Variable const* var = AL->get_variable(func->get_var_idx(i));
             if (var->is_simple()) {
@@ -1154,7 +1150,7 @@ void SideBar::update_bottom_panel()
             else {
                 string f = var->xname + " = " 
                                    + var->get_formula(AL->get_parameters());
-                (*st)->SetLabel(f.c_str());
+                (*st)->SetLabel(s2wx(f));
                 ++st;
             }
         }
@@ -1164,13 +1160,13 @@ void SideBar::update_bottom_panel()
 
 bool SideBar::howto_plot_dataset(int n, bool& shadowed, int& offset) const
 {
-    //wxChar const *choices[] = { "show all datasets", "show only selected", 
-    //                           "shadow unselected", 
-    //                           "draw aside vert. (10px)", 
-    //                           "draw aside vert. (30px)" };
+    // choice_idx: 0: "show all datasets" 
+    //             1: "show only selected" 
+    //             2: "shadow unselected" 
+    //             3: "hide all"
     int choice_idx = data_look->GetSelection();
     bool sel = d->list->IsSelected(n) || d->list->GetFocusedItem() == n;
-    if (choice_idx == 1 && !sel)
+    if ((choice_idx == 1 && !sel) || choice_idx == 3)
         return false;
     shadowed = (choice_idx == 2 && !sel);
     offset = n * shiftup_sc->GetValue();
@@ -1238,7 +1234,7 @@ ListWithColors::ListWithColors(wxWindow *parent, wxWindowID id,
 {
     for (int i = 0; i < size(columns); ++i)
         if (columns[i].second)
-            InsertColumn(i, columns[i].first.c_str(), wxLIST_FORMAT_LEFT);
+            InsertColumn(i, s2wx(columns[i].first), wxLIST_FORMAT_LEFT);
 }
 
 void ListWithColors::populate(vector<string> const& data, 
@@ -1255,13 +1251,13 @@ void ListWithColors::populate(vector<string> const& data,
     if (GetItemCount() != length) {
         DeleteAllItems();
         for (int i = 0; i < length; ++i)
-            InsertItem(i, "");
+            InsertItem(i, wxT(""));
     }
     for (int i = 0; i < length; ++i) {
         int c = 0;
         for (int j = 0; j < size(columns); ++j) {
             if (columns[j].second) {
-                SetItem(i, c, data[i*columns.size()+j].c_str(), 
+                SetItem(i, c, s2wx(data[i*columns.size()+j]), 
                               c == 0 ? i : -1);
                 ++c;
             }
@@ -1280,19 +1276,19 @@ void ListWithColors::OnColumnMenu(wxListEvent& WXUNUSED(event))
     wxMenu popup_menu; 
     for (int i = 0; i < size(columns); ++i) {
         popup_menu.AppendCheckItem(ID_DL_CMENU_SHOW_START+i, 
-                                   columns[i].first.c_str());
+                                   s2wx(columns[i].first));
         popup_menu.Check(ID_DL_CMENU_SHOW_START+i, columns[i].second);
     }
     popup_menu.AppendSeparator();
-    popup_menu.Append(ID_DL_CMENU_FITCOLS, "Fit Columns");
+    popup_menu.Append(ID_DL_CMENU_FITCOLS, wxT("Fit Columns"));
     PopupMenu (&popup_menu, 10, 3);
 }
 
 void ListWithColors::OnRightDown(wxMouseEvent &event)
 {
     wxMenu popup_menu; 
-    popup_menu.Append(ID_DL_SELECTALL, "Select &All");
-    popup_menu.Append(ID_DL_SWITCHINFO, "Show/Hide &Info");
+    popup_menu.Append(ID_DL_SELECTALL, wxT("Select &All"));
+    popup_menu.Append(ID_DL_SWITCHINFO, wxT("Show/Hide &Info"));
     PopupMenu (&popup_menu, event.GetX(), event.GetY());
 }
 
@@ -1306,9 +1302,9 @@ void ListWithColors::OnShowColumn(wxCommandEvent &event)
     //TODO if col==0 take care about images
     bool show = event.IsChecked();
     if (show) {
-        InsertColumn(col, columns[n].first.c_str());
+        InsertColumn(col, s2wx(columns[n].first));
         for (int i = 0; i < GetItemCount(); ++i)
-            SetItem(i, col, list_data[i*columns.size()+n].c_str());
+            SetItem(i, col, s2wx(list_data[i*columns.size()+n]));
     }
     else
         DeleteColumn(col);
@@ -1342,32 +1338,32 @@ END_EVENT_TABLE()
 
 OutputWin::OutputWin (wxWindow *parent, wxWindowID id, 
                       const wxPoint& pos, const wxSize& size)
-    : wxTextCtrl(parent, id, "", pos, size,
+    : wxTextCtrl(parent, id, wxT(""), pos, size,
                  wxTE_MULTILINE|wxTE_RICH|wxNO_BORDER|wxTE_READONLY)
 {}
 
 void OutputWin::fancy_dashes() {
     for (int i = 0; i < 16; i++) {
         SetDefaultStyle (wxTextAttr (wxColour(i * 16, i * 16, i * 16)));
-        AppendText ("-");
+        AppendText (wxT("-"));
     }
-    AppendText ("\n");
+    AppendText (wxT("\n"));
 }
 
 void OutputWin::read_settings(wxConfigBase *cf)
 {
-    cf->SetPath("/OutputWin/Colors");
-    text_color[os_normal] = read_color_from_config(cf, "normal", 
+    cf->SetPath(wxT("/OutputWin/Colors"));
+    text_color[os_normal] = cfg_read_color(cf, wxT("normal"), 
                                                       wxColour(150, 150, 150));
-    text_color[os_warn] = read_color_from_config(cf, "warn", 
+    text_color[os_warn] = cfg_read_color(cf, wxT("warn"), 
                                                     wxColour(200, 0, 0));
-    text_color[os_quot] = read_color_from_config(cf, "quot", 
+    text_color[os_quot] = cfg_read_color(cf, wxT("quot"), 
                                                     wxColour(50, 50, 255));
-    text_color[os_input] = read_color_from_config(cf, "input", 
+    text_color[os_input] = cfg_read_color(cf, wxT("input"), 
                                                      wxColour(0, 200, 0));
-    bg_color = read_color_from_config(cf, "bg", wxColour(20, 20, 20));
-    cf->SetPath("/OutputWin");
-    wxFont font = read_font_from_config(cf, "font", wxNullFont);
+    bg_color = cfg_read_color(cf, wxT("bg"), wxColour(20, 20, 20));
+    cf->SetPath(wxT("/OutputWin"));
+    wxFont font = cfg_read_font(cf, wxT("font"), wxNullFont);
     SetDefaultStyle (wxTextAttr(text_color[os_quot], bg_color, font));
 
     // this "if" is needed on GTK 1.2 (I don't know why)
@@ -1380,14 +1376,14 @@ void OutputWin::read_settings(wxConfigBase *cf)
 
 void OutputWin::save_settings(wxConfigBase *cf) const
 {
-    cf->SetPath("/OutputWin/Colors");
-    write_color_to_config (cf, "normal", text_color[os_normal]);  
-    write_color_to_config (cf, "warn", text_color[os_warn]); 
-    write_color_to_config (cf, "quot", text_color[os_quot]); 
-    write_color_to_config (cf, "input", text_color[os_input]); 
-    write_color_to_config (cf, "bg", bg_color); 
-    cf->SetPath("/OutputWin");
-    write_font_to_config (cf, "font", GetDefaultStyle().GetFont());
+    cf->SetPath(wxT("/OutputWin/Colors"));
+    cfg_write_color (cf, wxT("normal"), text_color[os_normal]);  
+    cfg_write_color (cf, wxT("warn"), text_color[os_warn]); 
+    cfg_write_color (cf, wxT("quot"), text_color[os_quot]); 
+    cfg_write_color (cf, wxT("input"), text_color[os_input]); 
+    cfg_write_color (cf, wxT("bg"), bg_color); 
+    cf->SetPath(wxT("/OutputWin"));
+    cfg_write_font (cf, wxT("font"), GetDefaultStyle().GetFont());
 }
 
 void OutputWin::append_text (OutputStyle style, const wxString& str)
@@ -1447,18 +1443,18 @@ void OutputWin::OnPopupClear (wxCommandEvent& WXUNUSED(event))
     
 void OutputWin::OnRightDown (wxMouseEvent& event)
 {
-    wxMenu popup_menu ("output text menu");
+    wxMenu popup_menu (wxT("output text menu"));
 
     wxMenu *color_menu = new wxMenu;
-    color_menu->Append (ID_OUTPUT_C_BG, "&Background");
-    color_menu->Append (ID_OUTPUT_C_IN, "&Input");
-    color_menu->Append (ID_OUTPUT_C_OU, "&Output");
-    color_menu->Append (ID_OUTPUT_C_QT, "&Quotation");
-    color_menu->Append (ID_OUTPUT_C_WR, "&Warning");
-    popup_menu.Append  (ID_OUTPUT_C   , "&Color", color_menu);
+    color_menu->Append (ID_OUTPUT_C_BG, wxT("&Background"));
+    color_menu->Append (ID_OUTPUT_C_IN, wxT("&Input"));
+    color_menu->Append (ID_OUTPUT_C_OU, wxT("&Output"));
+    color_menu->Append (ID_OUTPUT_C_QT, wxT("&Quotation"));
+    color_menu->Append (ID_OUTPUT_C_WR, wxT("&Warning"));
+    popup_menu.Append  (ID_OUTPUT_C   , wxT("&Color"), color_menu);
 
-    popup_menu.Append  (ID_OUTPUT_P_FONT, "&Font");
-    popup_menu.Append  (ID_OUTPUT_P_CLEAR, "Clea&r");
+    popup_menu.Append  (ID_OUTPUT_P_FONT, wxT("&Font"));
+    popup_menu.Append  (ID_OUTPUT_P_CLEAR, wxT("Clea&r"));
 
     PopupMenu (&popup_menu, event.GetX(), event.GetY());
 }
@@ -1490,11 +1486,11 @@ void InputField::OnKeyDown (wxKeyEvent& event)
             wxString s = GetValue().Trim();
             if (s.IsEmpty())
                 return;
-            frame->set_status_text(s);
+            frame->set_status_text(wx2s(s));
             history.insert(++history.begin(), s);
             h_pos = history.begin();
             Clear();
-            exec_command (s.c_str()); //displaying and executing command
+            exec_command(wx2s(s)); //displaying and executing command
             }
             break;
         case WXK_TAB:
@@ -1537,7 +1533,7 @@ void InputField::OnKeyDown (wxKeyEvent& event)
 //===============================================================
 
 FPrintout::FPrintout(const PlotPane *p_pane) 
-    : wxPrintout("fityk printout"), pane(p_pane) 
+    : wxPrintout(wxT("fityk printout")), pane(p_pane) 
 {}
 
 bool FPrintout::OnPrintPage(int page)

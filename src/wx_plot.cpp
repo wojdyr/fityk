@@ -22,16 +22,16 @@
 using namespace std;
 
 enum {
-    ID_aux_popup_plot_0            = 25310,
-    ID_aux_popup_c_background      = 25340,
-    ID_aux_popup_c_active_data            ,
-    ID_aux_popup_c_inactive_data          ,
-    ID_aux_popup_c_axis                   ,
-    ID_aux_popup_color                    ,
-    ID_aux_popup_m_tfont                  ,
-    ID_aux_popup_yz_fit                   ,
-    ID_aux_popup_yz_change                ,
-    ID_aux_popup_yz_auto                  
+    ID_aux_plot0            = 25310,
+    ID_aux_c_background      = 25340,
+    ID_aux_c_active_data            ,
+    ID_aux_c_inactive_data          ,
+    ID_aux_c_axis                   ,
+    ID_aux_color                    ,
+    ID_aux_m_tfont                  ,
+    ID_aux_yz_fit                   ,
+    ID_aux_yz_change                ,
+    ID_aux_yz_auto                  
 };
 
 //===============================================================
@@ -98,7 +98,7 @@ void FPlot::draw_xtics (wxDC& dc, View const &v)
         int X = x2X(x);
         int Y = y2Y(0);
         dc.DrawLine (X, Y, X, Y - x_tic_size);
-        wxString label = S(x).c_str();
+        wxString label = s2wx(S(x));
         wxCoord w, h;
         dc.GetTextExtent (label, &w, &h);
         dc.DrawText (label, X - w/2, Y + 1);
@@ -121,7 +121,7 @@ void FPlot::draw_ytics (wxDC& dc, View const &v)
             y += y_tic_step) {
         int Y = y2Y(y);
         dc.DrawLine (X, Y, X + y_tic_size, Y);
-        wxString label = S(y).c_str();
+        wxString label = s2wx(S(y));
         wxCoord w, h;
         dc.GetTextExtent (label, &w, &h);
         dc.DrawText (label, X + y_tic_size + 1, Y - h/2);
@@ -255,31 +255,32 @@ void FPlot::change_tics_font()
 
 void FPlot::read_settings(wxConfigBase *cf)
 {
-    cf->SetPath("Visible");
-    x_axis_visible = read_bool_from_config (cf, "xAxis", true);  
-    y_axis_visible = read_bool_from_config (cf, "yAxis", false);  
-    xtics_visible = read_bool_from_config (cf, "xtics", true);
-    ytics_visible = read_bool_from_config (cf, "ytics", true);
-    cf->SetPath("../Colors");
-    xAxisPen.SetColour (read_color_from_config(cf, "xAxis", wxColour("WHITE")));
-    cf->SetPath("..");
-    ticsFont = read_font_from_config(cf, "ticsFont", 
-                                     wxFont(8, wxFONTFAMILY_DEFAULT, 
-                                            wxFONTSTYLE_NORMAL, 
-                                            wxFONTWEIGHT_NORMAL));
+    cf->SetPath(wxT("Visible"));
+    x_axis_visible = cfg_read_bool (cf, wxT("xAxis"), true);  
+    y_axis_visible = cfg_read_bool (cf, wxT("yAxis"), false);  
+    xtics_visible = cfg_read_bool (cf, wxT("xtics"), true);
+    ytics_visible = cfg_read_bool (cf, wxT("ytics"), true);
+    cf->SetPath(wxT("../Colors"));
+    xAxisPen.SetColour(cfg_read_color(cf, wxT("xAxis"), 
+                                               wxColour(wxT("WHITE"))));
+    cf->SetPath(wxT(".."));
+    ticsFont = cfg_read_font(cf, wxT("ticsFont"), 
+                             wxFont(8, wxFONTFAMILY_DEFAULT, 
+                                    wxFONTSTYLE_NORMAL, 
+                                    wxFONTWEIGHT_NORMAL));
 }
 
 void FPlot::save_settings(wxConfigBase *cf) const
 {
-    cf->SetPath("Visible");
-    cf->Write ("xAxis", x_axis_visible);
-    cf->Write ("yAxis", y_axis_visible);
-    cf->Write ("xtics", xtics_visible);
-    cf->Write ("ytics", ytics_visible);
-    cf->SetPath("../Colors");
-    write_color_to_config (cf, "xAxis", xAxisPen.GetColour());
-    cf->SetPath("..");
-    write_font_to_config (cf, "ticsFont", ticsFont);
+    cf->SetPath(wxT("Visible"));
+    cf->Write (wxT("xAxis"), x_axis_visible);
+    cf->Write (wxT("yAxis"), y_axis_visible);
+    cf->Write (wxT("xtics"), xtics_visible);
+    cf->Write (wxT("ytics"), ytics_visible);
+    cf->SetPath(wxT("../Colors"));
+    cfg_write_color (cf, wxT("xAxis"), xAxisPen.GetColour());
+    cf->SetPath(wxT(".."));
+    cfg_write_font (cf, wxT("ticsFont"), ticsFont);
 }
 
 
@@ -300,14 +301,12 @@ BEGIN_EVENT_TABLE (AuxPlot, FPlot)
     EVT_RIGHT_DOWN (      AuxPlot::OnRightDown)
     EVT_MIDDLE_DOWN (     AuxPlot::OnMiddleDown)
     EVT_KEY_DOWN   (      AuxPlot::OnKeyDown)
-    EVT_MENU_RANGE (ID_aux_popup_plot_0, ID_aux_popup_plot_0 + 10,
-                                                    AuxPlot::OnPopupPlot)
-    EVT_MENU_RANGE (ID_aux_popup_c_background, ID_aux_popup_color - 1, 
-                                                      AuxPlot::OnPopupColor)
-    EVT_MENU (ID_aux_popup_m_tfont, AuxPlot::OnTicsFont)
-    EVT_MENU (ID_aux_popup_yz_change, AuxPlot::OnPopupYZoom)
-    EVT_MENU (ID_aux_popup_yz_fit, AuxPlot::OnPopupYZoomFit)
-    EVT_MENU (ID_aux_popup_yz_auto, AuxPlot::OnPopupYZoomAuto)
+    EVT_MENU_RANGE (ID_aux_plot0, ID_aux_plot0+10, AuxPlot::OnPopupPlot)
+    EVT_MENU_RANGE (ID_aux_c_background, ID_aux_color-1, AuxPlot::OnPopupColor)
+    EVT_MENU (ID_aux_m_tfont, AuxPlot::OnTicsFont)
+    EVT_MENU (ID_aux_yz_change, AuxPlot::OnPopupYZoom)
+    EVT_MENU (ID_aux_yz_fit, AuxPlot::OnPopupYZoomFit)
+    EVT_MENU (ID_aux_yz_auto, AuxPlot::OnPopupYZoomAuto)
 END_EVENT_TABLE()
 
 void AuxPlot::OnPaint(wxPaintEvent &WXUNUSED(event))
@@ -393,8 +392,8 @@ void AuxPlot::draw_zoom_text(wxDC& dc)
     dc.SetFont(*wxNORMAL_FONT);  
     string s = "x" + S(y_zoom);  
     wxCoord w, h;
-    dc.GetTextExtent (s.c_str(), &w, &h); 
-    dc.DrawText (s.c_str(), dc.MaxX() - w - 2, 2);
+    dc.GetTextExtent (s2wx(s), &w, &h); 
+    dc.DrawText (s2wx(s), dc.MaxX() - w - 2, 2);
 }
 
 void AuxPlot::OnMouseMove(wxMouseEvent &event)
@@ -404,8 +403,8 @@ void AuxPlot::OnMouseMove(wxMouseEvent &event)
     fp y = Y2y (event.GetY()); 
     vert_line_following_cursor(mat_move, X);
     wxString str;
-    str.Printf ("%.3f  [%d]", x, static_cast<int>(y + 0.5));
-    frame->set_status_text(str, sbf_coord);
+    str.Printf(wxT("%.3f  [%d]"), x, static_cast<int>(y + 0.5));
+    frame->set_status_text(wx2s(str), sbf_coord);
     wxCursor new_cursor;
     if (X < move_plot_margin_width)
         new_cursor = wxCURSOR_POINT_LEFT;
@@ -454,49 +453,49 @@ void AuxPlot::set_scale()
  
 void AuxPlot::read_settings(wxConfigBase *cf)
 {
-    wxString path = "/AuxPlot_" + name;
+    wxString path = wxT("/AuxPlot_") + name;
     cf->SetPath(path);
-    kind = static_cast <Aux_plot_kind_enum> (cf->Read ("kind", apk_diff));
+    kind = static_cast <Aux_plot_kind_enum> (cf->Read (wxT("kind"), apk_diff));
     auto_zoom_y = false;
-    line_between_points = read_bool_from_config(cf,"line_between_points", true);
-    point_radius = cf->Read ("point_radius", 1);
-    y_max_tics = cf->Read("yMaxTics", 5);
-    y_tic_size = cf->Read("yTicSize", 4);
-    cf->SetPath("Visible");
+    line_between_points = cfg_read_bool(cf, wxT("line_between_points"), true);
+    point_radius = cf->Read (wxT("point_radius"), 1);
+    y_max_tics = cf->Read(wxT("yMaxTics"), 5);
+    y_tic_size = cf->Read(wxT("yTicSize"), 4);
+    cf->SetPath(wxT("Visible"));
     // nothing here now
-    cf->SetPath("../Colors");
+    cf->SetPath(wxT("../Colors"));
     //backgroundBrush = *wxBLACK_BRUSH;
-    backgroundBrush.SetColour (read_color_from_config (cf, "bg", 
+    backgroundBrush.SetColour (cfg_read_color (cf, wxT("bg"), 
                                                        wxColour(50, 50, 50)));
-    wxColour active_data_col = read_color_from_config (cf, "active_data",
-                                                       wxColour ("GREEN"));
+    wxColour active_data_col = cfg_read_color (cf, wxT("active_data"),
+                                                       wxColour (wxT("GREEN")));
     activeDataPen.SetColour (active_data_col);
     //activeDataPen.SetStyle (wxDOT);
-    wxColour inactive_data_col = read_color_from_config (cf, "inactive_data",
+    wxColour inactive_data_col = cfg_read_color(cf,wxT("inactive_data"),
                                                       wxColour (128, 128, 128));
     inactiveDataPen.SetColour (inactive_data_col);
-    cf->SetPath("..");
+    cf->SetPath(wxT(".."));
     FPlot::read_settings(cf);
     Refresh();
 }
 
 void AuxPlot::save_settings(wxConfigBase *cf) const
 {
-    cf->SetPath("/AuxPlot_" + name);
-    cf->Write ("kind", kind); 
-    cf->Write ("line_between_points", line_between_points);
-    cf->Write ("point_radius", point_radius);
-    cf->Write("yMaxTics", y_max_tics);
-    cf->Write("yTicSize", y_tic_size);
+    cf->SetPath(wxT("/AuxPlot_") + name);
+    cf->Write (wxT("kind"), kind); 
+    cf->Write (wxT("line_between_points"), line_between_points);
+    cf->Write (wxT("point_radius"), point_radius);
+    cf->Write(wxT("yMaxTics"), y_max_tics);
+    cf->Write(wxT("yTicSize"), y_tic_size);
 
-    cf->SetPath("Visible");
+    cf->SetPath(wxT("Visible"));
     // nothing here now
 
-    cf->SetPath("../Colors");
-    write_color_to_config (cf, "bg", backgroundBrush.GetColour()); 
-    write_color_to_config (cf, "active_data", activeDataPen.GetColour());
-    write_color_to_config (cf, "inactive_data", inactiveDataPen.GetColour());
-    cf->SetPath("..");
+    cf->SetPath(wxT("../Colors"));
+    cfg_write_color(cf, wxT("bg"), backgroundBrush.GetColour()); 
+    cfg_write_color(cf, wxT("active_data"), activeDataPen.GetColour());
+    cfg_write_color(cf, wxT("inactive_data"),inactiveDataPen.GetColour());
+    cf->SetPath(wxT(".."));
     FPlot::save_settings(cf);
 }
 
@@ -557,35 +556,35 @@ void AuxPlot::OnRightDown (wxMouseEvent &event)
     if (cancel_mouse_left_press())
         return;
 
-    wxMenu popup_menu ("aux. plot menu");
+    wxMenu popup_menu (wxT("aux. plot menu"));
     //wxMenu *kind_menu = new wxMenu;
-    popup_menu.AppendRadioItem(ID_aux_popup_plot_0 + 0, "&empty", "nothing");
-    popup_menu.AppendRadioItem(ID_aux_popup_plot_0 + 1, "&diff", "y_d - y_s");
-    popup_menu.AppendRadioItem(ID_aux_popup_plot_0 + 2, "&weighted diff", 
-                                "(y_d - y_s) / sigma");
-    popup_menu.AppendRadioItem(ID_aux_popup_plot_0 + 3, "&proc diff", 
-                                "(y_d - y_s) / y_d [%]");
-    popup_menu.AppendRadioItem (ID_aux_popup_plot_0 + 4, "p&eak positions", 
-                                "mark centers of peaks");
-    popup_menu.Check(ID_aux_popup_plot_0 + kind, true);
+    popup_menu.AppendRadioItem(ID_aux_plot0+0, wxT("&empty"), wxT("nothing"));
+    popup_menu.AppendRadioItem(ID_aux_plot0+1, wxT("&diff"), wxT("y_d - y_s"));
+    popup_menu.AppendRadioItem(ID_aux_plot0+2, wxT("&weighted diff"), 
+                               wxT("(y_d - y_s) / sigma"));
+    popup_menu.AppendRadioItem(ID_aux_plot0+3, wxT("&proc diff"), 
+                               wxT("(y_d - y_s) / y_d [%]"));
+    popup_menu.AppendRadioItem(ID_aux_plot0+4, wxT("p&eak positions"), 
+                               wxT("mark centers of peaks"));
+    popup_menu.Check(ID_aux_plot0+kind, true);
     popup_menu.AppendSeparator();
-    popup_menu.Append (ID_aux_popup_yz_fit, "&Fit to window");
-    popup_menu.Enable(ID_aux_popup_yz_fit, is_zoomable());
-    popup_menu.Append (ID_aux_popup_yz_change, "&Change y scale");
-    popup_menu.Enable(ID_aux_popup_yz_change, is_zoomable());
-    popup_menu.AppendCheckItem (ID_aux_popup_yz_auto, "&Auto-fit");
-    popup_menu.Check (ID_aux_popup_yz_auto, auto_zoom_y);
-    popup_menu.Enable(ID_aux_popup_yz_auto, is_zoomable());
+    popup_menu.Append (ID_aux_yz_fit, wxT("&Fit to window"));
+    popup_menu.Enable(ID_aux_yz_fit, is_zoomable());
+    popup_menu.Append (ID_aux_yz_change, wxT("&Change y scale"));
+    popup_menu.Enable(ID_aux_yz_change, is_zoomable());
+    popup_menu.AppendCheckItem (ID_aux_yz_auto, wxT("&Auto-fit"));
+    popup_menu.Check (ID_aux_yz_auto, auto_zoom_y);
+    popup_menu.Enable(ID_aux_yz_auto, is_zoomable());
     popup_menu.AppendSeparator();
     wxMenu *color_menu = new wxMenu;
-    color_menu->Append (ID_aux_popup_c_background, "&Background");
-    color_menu->Append (ID_aux_popup_c_active_data, "&Active Data");
-    color_menu->Append (ID_aux_popup_c_inactive_data, "&Inactive Data");
-    color_menu->Append (ID_aux_popup_c_axis, "&X Axis");
-    popup_menu.Append (ID_aux_popup_color, "&Color", color_menu);
+    color_menu->Append (ID_aux_c_background, wxT("&Background"));
+    color_menu->Append (ID_aux_c_active_data, wxT("&Active Data"));
+    color_menu->Append (ID_aux_c_inactive_data, wxT("&Inactive Data"));
+    color_menu->Append (ID_aux_c_axis, wxT("&X Axis"));
+    popup_menu.Append (ID_aux_color, wxT("&Color"), color_menu);
     wxMenu *misc_menu = new wxMenu;
-    misc_menu->Append (ID_aux_popup_m_tfont, "&Tics font");
-    popup_menu.Append (wxNewId(), "&Miscellaneous", misc_menu);
+    misc_menu->Append (ID_aux_m_tfont, wxT("&Tics font"));
+    popup_menu.Append (wxNewId(), wxT("&Miscellaneous"), misc_menu);
     PopupMenu (&popup_menu, event.GetX(), event.GetY());
 }
 
@@ -611,7 +610,7 @@ void AuxPlot::OnKeyDown (wxKeyEvent& event)
 
 void AuxPlot::OnPopupPlot (wxCommandEvent& event)
 {
-    kind = static_cast<Aux_plot_kind_enum>(event.GetId()-ID_aux_popup_plot_0);
+    kind = static_cast<Aux_plot_kind_enum>(event.GetId()-ID_aux_plot0);
     //fit_y_zoom();
     fit_y_once = true;
     Refresh(false);
@@ -622,15 +621,15 @@ void AuxPlot::OnPopupColor (wxCommandEvent& event)
     wxBrush *brush = 0;
     wxPen *pen = 0;
     int n = event.GetId();
-    if (n == ID_aux_popup_c_background)
+    if (n == ID_aux_c_background)
         brush = &backgroundBrush;
-    else if (n == ID_aux_popup_c_active_data) {
+    else if (n == ID_aux_c_active_data) {
         pen = &activeDataPen;
     }
-    else if (n == ID_aux_popup_c_inactive_data) {
+    else if (n == ID_aux_c_inactive_data) {
         pen = &inactiveDataPen;
     }
-    else if (n == ID_aux_popup_c_axis)
+    else if (n == ID_aux_c_axis)
         pen = &xAxisPen;
     else 
         return;
@@ -646,9 +645,10 @@ void AuxPlot::OnPopupColor (wxCommandEvent& event)
 
 void AuxPlot::OnPopupYZoom (wxCommandEvent& WXUNUSED(event))
 {
-    int r = wxGetNumberFromUser ("Set zoom in y direction [%]", 
-                                 "", "", static_cast<int>(y_zoom * 100 + 0.5), 
-                                 1, 10000000);
+    int r = wxGetNumberFromUser(wxT("Set zoom in y direction [%]"), 
+                                wxT(""), wxT(""), 
+                                static_cast<int>(y_zoom * 100 + 0.5), 
+                                1, 10000000);
     if (r > 0)
         y_zoom = r / 100.;
     Refresh(false);

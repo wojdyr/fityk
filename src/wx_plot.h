@@ -107,7 +107,7 @@ class AuxPlot : public FPlot
 {
 public:
     AuxPlot (wxWindow *parent, PlotShared &shar, std::string name_) 
-        : FPlot (parent, shar), name(name_.c_str()), 
+        : FPlot (parent, shar), name(s2wx(name_)), 
           y_zoom(1.), y_zoom_base(1.), fit_y_once(false) {}
     ~AuxPlot() {}
     void OnPaint(wxPaintEvent &event);

@@ -1,7 +1,9 @@
 #!/bin/bash 
 # $Id$
 
-version=0.7.0pre1
+#TODO: test with unicode
+
+version=0.7.0
 WEB="iris:/d2/people/wojdyr/www/fityk2/" 
 WINEXPORT=../wspolne/
 TEMP_DOWNLOAD=$WEB/d/

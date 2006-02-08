@@ -1,5 +1,7 @@
-User-visible changes in version 0.7.0  (2006-0 -  ):
-* more configurable axes (eg. a reversed x axis option)
+User-visible changes in version 0.7.0  (2006-02-  ):
+* program can be compiled with unicode-enabled wxWidgets
+* GUI: more configurable axes (eg. a reversed x axis option)
+  and peak labels (eg. horizontal/vertical labels)
 
 User-visible changes in version 0.7.0pre1  (2006-01-23):
 * ###########################################################################

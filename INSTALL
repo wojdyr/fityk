@@ -7,8 +7,6 @@ only for CLI (command line interface, cfityk):
   gnuplot program (for graph output, optional)
 only for GUI (graphical user interface, fityk):
   wxWidgets (formerly wxWindows) >= 2.5.3 
-   note: wxWidgets should be compiled without Unicode support (usually 
-         you don't have to worry about it, default compilation is OK).
         
 
 CVS:
