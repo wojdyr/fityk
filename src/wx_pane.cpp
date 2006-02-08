@@ -845,7 +845,8 @@ void SideBar::update_func_list(bool nondata_changed)
         while (filter_ch->GetCount() > AL->get_ds_count()+1)
             filter_ch->Delete(filter_ch->GetCount()-1);
         for (int i = filter_ch->GetCount()-1; i < AL->get_ds_count(); ++i)
-            filter_ch->Append(wxString::Format(wxT("only functions from @"),i));
+            filter_ch->Append(wxString::Format(wxT("only functions from @%i"),
+                                               i));
     }
 
     //functions
