@@ -1,3 +1,6 @@
+User-visible changes in version 0.7.1  (2006-0 -  ):
+* GUI: new aux. plot type: cumulative chi2 
+
 User-visible changes in version 0.7.0  (2006-02-08):
 * program can be compiled with unicode-enabled wxWidgets
 * GUI: more configurable axes (eg. a reversed x axis option)

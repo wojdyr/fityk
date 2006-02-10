@@ -5,6 +5,8 @@
 #include "data.h"
 #include "numfuncs.h"
 
+#include <algorithm>
+
 using namespace std;
 
 vector<B_point>::iterator 

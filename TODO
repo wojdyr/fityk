@@ -1,7 +1,10 @@
 
+* new functions: EMG (expotentially modified gauss)
+                 Doniach-Sunjic
+
 * (GUI) sidebar bottom panel -> draw draft of peak when changing peak parameters
 
-* function: EMG (expotentially modified gauss)
+------------- next release here (?)
 
 * (GUI) Session>Settings: tab "Directories" with default 
    scripts/data directories and buttons "Save" and "Clear" with comment:
@@ -44,6 +47,9 @@
      checkboxes: aux plot 1, aux plot 2, lines between
    default settings: landscape; b-w; if no sum, don't print aux plot
 
+* (Windows only) exporting plots to PostScript file and to metafile(clipboard) 
+                 "Print to PS File", "Copy to Clipboard" options
+
 * GUI [BUG] aux. plot - when program is called with script as an argument
    aux. plot looks strange at the start of the program until it is replotted
 
@@ -53,13 +59,6 @@
 * (F > file) when exporting function/sum as points, it shuld be possible 
   to set step of these points (eg. F [from:to:step] > file
   and to export baseline and each peak as a separately (multicolumn CSV)
-
-* (Windows only) exporting plots to PostScript file and to metafile(clipboard) 
-
-* (GUI) peak positions as an option to any aux. plot 
-        (not separate type of aux.p.)
-
-* (GUI) new aux. plot type: cumulative chi2 (normalized, ie. cum. chi2 / (N-P))
 
 * (GUI) show function limits when cursor is over peak top
 

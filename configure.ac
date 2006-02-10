@@ -5,7 +5,7 @@ AC_CONFIG_SRCDIR([src/voigt.h])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_HEADERS([config.h])
 AC_CANONICAL_TARGET([])
-AM_INIT_AUTOMAKE(fityk, 0.7.0)
+AM_INIT_AUTOMAKE(fityk, 0.7.1)
 AM_MAINTAINER_MODE
 
 dnl What versions of program are to be made 
@@ -154,13 +154,10 @@ AC_SUBST(FITYK)
 AC_SUBST(CFITYK)
 AC_SUBST(DOC)
 
-
-dnl Checks for typedefs, structures, and compiler characteristics.
-dnl AC_TYPE_PID_T
-
-dnl Checks for library functions.
-dnl AC_TYPE_SIGNAL
-dnl AC_CHECK_FUNCS(putenv strtod)
+dnl check for erf function
+AC_CHECK_LIB([m], [erf], [], [AC_MSG_ERROR(
+      [You don't have an erf function(?). 
+       Please inform program developer(s) about this problem.])])
 
 dnl in generated configure script, this line is too late
 test "x$prefix" = xNONE && prefix=$ac_default_prefix

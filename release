@@ -3,7 +3,7 @@
 
 #TODO: test with unicode
 
-version=0.7.0
+version=0.7.1
 WEB="iris:/d2/people/wojdyr/www/fityk2/" 
 WINEXPORT=../wspolne/
 TEMP_DOWNLOAD=$WEB/d/
@@ -17,6 +17,7 @@ CVSTEST_DIR=cvs_test
 GCC2_DIR=gcc295
 OLDWX_DIR=oldwx
 MINGW_DIR=cross_win32
+ALL_WIN_FILES=all_files #inside of $MINGW_DIR
 
 win_setup_filename=fityk-$version-setup.exe
 tarball_filename=fityk-$version.tar.gz
@@ -180,7 +181,6 @@ elif [ $1 -eq 6 ]; then
    --enable-optimization --disable-CLI --with-wx-prefix=$WXMSWINSTALL 
  make
  cp -rf ../samples .
- ALL_WIN_FILES=all_files
  mkdir $ALL_WIN_FILES $ALL_WIN_FILES/src $ALL_WIN_FILES/doc
  cp fityk.iss ../fityk.url ../COPYING ../AUTHORS ../TODO ../NEWS $ALL_WIN_FILES
  cp src/fityk.exe $ALL_WIN_FILES/src
@@ -208,6 +208,7 @@ elif [ $1 -eq 7 ]; then
 elif [ $1 -eq 8 ]; then
  echo  SF release
  echo uploading files...
+ cp -f $MINGW_DIR/$ALL_WIN_FILES/Output/$win_setup_filename .
  curl -v -T $tarball_filename ftp://upload.sourceforge.net/incoming/ 
  curl -v -T $win_setup_filename ftp://upload.sourceforge.net/incoming/ 
  echo now go to:

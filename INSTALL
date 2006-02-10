@@ -31,7 +31,14 @@ PORTABILITY:
 
 The only wxWidgets port I use is wxGTK. 
 Only GCC compiler, versions 3.1 and newer are supported.
-(I test compilation only with one GCC version, it is 3.4 at this moment)
+(I test compilation only with one GCC version, it is 4.0 at this moment)
+
+If you install wxWidgets (wxGTK) from your-Linux-distribution package,
+also "devel" package should be installed (it has name like libwxgtk2.6-dev
+or wxGTK-devel).
+
+!!! If you have wxGTK installed and ./configure && make              !!!
+!!! is not working on your platform, write an e-mail, let me know.   !!!
 
 
 		                  MS Windows 

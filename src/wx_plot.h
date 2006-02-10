@@ -31,7 +31,7 @@ enum Aux_plot_kind_enum
     apk_diff, 
     apk_diff_stddev, 
     apk_diff_y_proc,
-    apk_peak_pos
+    apk_cum_chi2
 };
 
 
@@ -88,7 +88,8 @@ protected:
                     Data const* data, 
                     Sum const* sum, 
                     wxColour const& color = wxNullColour,
-                    int Y_offset = 0);
+                    int Y_offset = 0,
+                    bool cumulative=false);
     void change_tics_font();
     int y2Y (fp y) {  fp t = (y - yLogicalOrigin) * yUserScale;
                       return (fabs(t) < SHRT_MAX ? static_cast<int>(t) 
@@ -123,6 +124,7 @@ public:
     void set_scale();
     bool is_zoomable(); //false if kind is eg. empty or peak-position
     void OnPopupPlot (wxCommandEvent& event);
+    void OnPopupPlotCtr (wxCommandEvent& event);
     void OnPopupColor (wxCommandEvent& event);
     void OnPopupYZoom (wxCommandEvent& event);
     void OnPopupYZoomFit (wxCommandEvent& event);
@@ -134,6 +136,7 @@ public:
 private:
     wxString name;
     Aux_plot_kind_enum kind;
+    bool mark_peak_ctrs;
     fp y_zoom, y_zoom_base;
     bool auto_zoom_y;
     bool fit_y_once;

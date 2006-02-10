@@ -23,14 +23,15 @@ using namespace std;
 
 enum {
     ID_aux_plot0            = 25310,
-    ID_aux_c_background      = 25340,
-    ID_aux_c_active_data            ,
-    ID_aux_c_inactive_data          ,
-    ID_aux_c_axis                   ,
-    ID_aux_color                    ,
-    ID_aux_m_tfont                  ,
-    ID_aux_yz_fit                   ,
-    ID_aux_yz_change                ,
+    ID_aux_plot_ctr         = 25340,
+    ID_aux_c_background            ,
+    ID_aux_c_active_data           ,
+    ID_aux_c_inactive_data         ,
+    ID_aux_c_axis                  ,
+    ID_aux_color                   ,
+    ID_aux_m_tfont                 ,
+    ID_aux_yz_fit                  ,
+    ID_aux_yz_change               ,
     ID_aux_yz_auto                  
 };
 
@@ -150,7 +151,8 @@ void FPlot::draw_data (wxDC& dc,
                        Data const* data, 
                        Sum const* sum,
                        wxColour const& color,
-                       int Y_offset)
+                       int Y_offset,
+                       bool cumulative)
 {
     Y_offset *= (GetClientSize().GetHeight() / 100);
     if (color.Ok())
@@ -163,13 +165,14 @@ void FPlot::draw_data (wxDC& dc,
     vector<Point>::const_iterator first = data->get_point_at(AL->view.left),
                                   last = data->get_point_at(AL->view.right);
     //if (last - first < 0) return;
-    bool active = !first->is_active;//causes pens to be initialized in main loop
+    bool active = first->is_active;
+    dc.SetPen (active ? activePen : inactivePen);
+    dc.SetBrush (active ? activeBrush : inactiveBrush);
     int X_ = 0, Y_ = 0;
     // first line segment -- lines should be drawed towards points 
     //                                                 that are outside of plot 
     if (line_between_points) {
-        dc.SetPen(first->is_active ? activePen : inactivePen);
-        if (first > data->points().begin()) {
+        if (first > data->points().begin() && !cumulative) {
             X_ = x2X (AL->view.left);
             int Y_l = y2Y ((*compute_y)(first - 1, sum));
             int Y_r = y2Y ((*compute_y)(first, sum));
@@ -186,13 +189,27 @@ void FPlot::draw_data (wxDC& dc,
         }
     }
     Y_ -= Y_offset;
+    fp y = 0;
 
     //drawing all points (and lines); main loop
     for (vector<Point>::const_iterator i = first; i < last; i++) {
         int X = x2X(i->x);
-        int Y = y2Y ((*compute_y)(i, sum)) - Y_offset;
-        if (X == X_ && Y == Y_) continue;
+        if (cumulative)
+            y += (*compute_y)(i, sum);
+        else
+            y = (*compute_y)(i, sum);
+        int Y = y2Y(y) - Y_offset;
+        if (X == X_ && Y == Y_) 
+            continue;
         if (i->is_active != active) {
+            //half of line between points should be active and half not.
+            //draw first half here and change X_, Y_; the rest will be drawed
+            //as usually.
+            if (line_between_points) {
+                int X_mid = (X_ + X) / 2, Y_mid = (Y_ + Y) / 2;
+                dc.DrawLine (X_, Y_, X_mid, Y_mid);
+                X_ = X_mid, Y_ = Y_mid;
+            }
             active = i->is_active;
             if (active) {
                 dc.SetPen (activePen);
@@ -201,14 +218,6 @@ void FPlot::draw_data (wxDC& dc,
             else {
                 dc.SetPen (inactivePen);
                 dc.SetBrush (inactiveBrush);
-            }
-            //half of line between points should be active and half not.
-            //draw first half here and change X_, Y_; the rest will be drawed
-            //as usually.
-            if (line_between_points) {
-                int X_mid = (X_ + X) / 2, Y_mid = (Y_ + Y) / 2;
-                dc.DrawLine (X_, Y_, X_mid, Y_mid);
-                X_ = X_mid, Y_ = Y_mid;
             }
         }
         if (point_radius > 1) 
@@ -224,7 +233,7 @@ void FPlot::draw_data (wxDC& dc,
     }
 
     //the last line segment, toward next point
-    if (line_between_points && last < data->points().end()) {
+    if (line_between_points && last < data->points().end() && !cumulative) {
         int X = x2X (AL->view.right);
         int Y_l = y2Y ((*compute_y)(last - 1, sum));
         int Y_r = y2Y ((*compute_y)(last, sum));
@@ -302,6 +311,7 @@ BEGIN_EVENT_TABLE (AuxPlot, FPlot)
     EVT_MIDDLE_DOWN (     AuxPlot::OnMiddleDown)
     EVT_KEY_DOWN   (      AuxPlot::OnKeyDown)
     EVT_MENU_RANGE (ID_aux_plot0, ID_aux_plot0+10, AuxPlot::OnPopupPlot)
+    EVT_MENU (ID_aux_plot_ctr, AuxPlot::OnPopupPlotCtr)
     EVT_MENU_RANGE (ID_aux_c_background, ID_aux_color-1, AuxPlot::OnPopupColor)
     EVT_MENU (ID_aux_m_tfont, AuxPlot::OnTicsFont)
     EVT_MENU (ID_aux_yz_change, AuxPlot::OnPopupYZoom)
@@ -337,6 +347,13 @@ fp diff_stddev_of_data_for_draw_data (vector<Point>::const_iterator i,
     return (i->y - sum_value(i, sum)) / i->sigma;
 }
 
+fp diff_chi2_of_data_for_draw_data (vector<Point>::const_iterator i, 
+                                    Sum const* sum)
+{
+    fp t = (i->y - sum_value(i, sum)) / i->sigma;
+    return t*t;
+}
+
 fp diff_y_proc_of_data_for_draw_data (vector<Point>::const_iterator i, 
                                       Sum const* sum)
 {
@@ -353,17 +370,17 @@ void AuxPlot::Draw(wxDC &dc)
         fit_y_once = false;
     }
     set_scale();
-    if (kind == apk_empty || data->is_empty()) 
-        return;
     dc.SetPen (xAxisPen);
 
-    if (kind == apk_peak_pos) {
+    if (mark_peak_ctrs) {
         int ymax = GetClientSize().GetHeight();
         for (vector<wxPoint>::const_iterator i = shared.peaktops.begin(); 
              i != shared.peaktops.end(); i++) 
             dc.DrawLine(i->x, 0, i->x, ymax);
-        return;
     }
+
+    if (kind == apk_empty || data->is_empty()) 
+        return;
 
     if (x_axis_visible) {
         dc.DrawLine (0, y2Y(0), GetClientSize().GetWidth(), y2Y(0));
@@ -384,6 +401,9 @@ void AuxPlot::Draw(wxDC &dc)
         draw_data (dc, diff_stddev_of_data_for_draw_data, data, sum);
     else if (kind == apk_diff_y_proc)
         draw_data (dc, diff_y_proc_of_data_for_draw_data, data, sum);
+    else if (kind == apk_cum_chi2)
+        draw_data (dc, diff_chi2_of_data_for_draw_data, data, sum,
+                   wxNullColour, 0, true);
 }
 
 void AuxPlot::draw_zoom_text(wxDC& dc)
@@ -429,14 +449,19 @@ void AuxPlot::OnLeaveWindow (wxMouseEvent& WXUNUSED(event))
 bool AuxPlot::is_zoomable()
 {
     return kind == apk_diff || kind == apk_diff_stddev 
-           || kind == apk_diff_y_proc;
+           || kind == apk_diff_y_proc || kind == apk_cum_chi2;
 }
 
 void AuxPlot::set_scale()
 {
+    int h = GetClientSize().GetHeight();
+    if (kind == apk_cum_chi2) {
+        yUserScale = -1. * y_zoom_base * y_zoom;
+        yLogicalOrigin = - h / yUserScale;
+        return;
+    }
     switch (kind) {
         case apk_empty:
-        case apk_peak_pos:
             yUserScale = 1.; //y scale doesn't matter
             break; 
         case apk_diff: 
@@ -446,8 +471,9 @@ void AuxPlot::set_scale()
         case apk_diff_y_proc:
             yUserScale = -1. * y_zoom_base * y_zoom;
             break;
+        default:
+            assert(0);
     }
-    int h = GetClientSize().GetHeight();
     yLogicalOrigin = - h / 2. / yUserScale;
 }
  
@@ -456,6 +482,7 @@ void AuxPlot::read_settings(wxConfigBase *cf)
     wxString path = wxT("/AuxPlot_") + name;
     cf->SetPath(path);
     kind = static_cast <Aux_plot_kind_enum> (cf->Read (wxT("kind"), apk_diff));
+    mark_peak_ctrs = cfg_read_bool (cf, wxT("markCtr"), false);  
     auto_zoom_y = false;
     line_between_points = cfg_read_bool(cf, wxT("line_between_points"), true);
     point_radius = cf->Read (wxT("point_radius"), 1);
@@ -483,6 +510,7 @@ void AuxPlot::save_settings(wxConfigBase *cf) const
 {
     cf->SetPath(wxT("/AuxPlot_") + name);
     cf->Write (wxT("kind"), kind); 
+    cf->Write (wxT("markCtr"), mark_peak_ctrs);
     cf->Write (wxT("line_between_points"), line_between_points);
     cf->Write (wxT("point_radius"), point_radius);
     cf->Write(wxT("yMaxTics"), y_max_tics);
@@ -564,13 +592,17 @@ void AuxPlot::OnRightDown (wxMouseEvent &event)
                                wxT("(y_d - y_s) / sigma"));
     popup_menu.AppendRadioItem(ID_aux_plot0+3, wxT("&proc diff"), 
                                wxT("(y_d - y_s) / y_d [%]"));
-    popup_menu.AppendRadioItem(ID_aux_plot0+4, wxT("p&eak positions"), 
-                               wxT("mark centers of peaks"));
+    popup_menu.AppendRadioItem(ID_aux_plot0+4, wxT("cumul. &chi2"), 
+                               wxT("cumulative chi square"));
     popup_menu.Check(ID_aux_plot0+kind, true);
+    popup_menu.AppendSeparator();
+    popup_menu.AppendCheckItem(ID_aux_plot_ctr, wxT("peak po&sitions"), 
+                               wxT("mark centers of peaks"));
+    popup_menu.Check(ID_aux_plot_ctr, mark_peak_ctrs);
     popup_menu.AppendSeparator();
     popup_menu.Append (ID_aux_yz_fit, wxT("&Fit to window"));
     popup_menu.Enable(ID_aux_yz_fit, is_zoomable());
-    popup_menu.Append (ID_aux_yz_change, wxT("&Change y scale"));
+    popup_menu.Append (ID_aux_yz_change, wxT("Change &y scale"));
     popup_menu.Enable(ID_aux_yz_change, is_zoomable());
     popup_menu.AppendCheckItem (ID_aux_yz_auto, wxT("&Auto-fit"));
     popup_menu.Check (ID_aux_yz_auto, auto_zoom_y);
@@ -613,6 +645,12 @@ void AuxPlot::OnPopupPlot (wxCommandEvent& event)
     kind = static_cast<Aux_plot_kind_enum>(event.GetId()-ID_aux_plot0);
     //fit_y_zoom();
     fit_y_once = true;
+    Refresh(false);
+}
+
+void AuxPlot::OnPopupPlotCtr (wxCommandEvent& event)
+{
+    mark_peak_ctrs = event.IsChecked();
     Refresh(false);
 }
 
@@ -690,6 +728,13 @@ void AuxPlot::fit_y_zoom(Data const* data, Sum const* sum)
             y = get_max_abs_y(diff_y_proc_of_data_for_draw_data, 
                               first, last, sum);
             y_zoom_base = GetClientSize().GetHeight() / (2. * y);
+            y_zoom = 0.9;
+            break;
+        case apk_cum_chi2:
+            y = 0.;
+            for (vector<Point>::const_iterator i = first; i < last; i++) 
+                y += diff_chi2_of_data_for_draw_data(i, sum);
+            y_zoom_base = GetClientSize().GetHeight() / y;
             y_zoom = 0.9;
             break;
         default:
