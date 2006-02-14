@@ -4,51 +4,13 @@
 #ifndef FITYK__WX_DLG__H__
 #define FITYK__WX_DLG__H__
 
-#include <wx/treectrl.h>
 #include <wx/spinctrl.h>
 #include <wx/listctrl.h> 
-#include <wx/dirctrl.h>
 #include "wx_common.h"
 
 class wxGrid;
 class DataTable;
 class ProportionalSplitter;
-
-class PreviewPlot;
-
-class FDXLoadDlg : public wxDialog
-{
-public:
-    FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data);
-
-protected:
-    int data_nr;
-    ProportionalSplitter *splitter, *right_splitter;
-    wxGenericDirCtrl *dir_ctrl;
-    wxTextCtrl *filename_tc, *text_preview;
-    wxSpinCtrl *x_column, *y_column, *s_column;
-    wxPanel *left_panel, *rupper_panel, *rbottom_panel, *columns_panel;
-    PreviewPlot *plot_preview;
-    wxCheckBox *std_dev_cb, *auto_text_cb, *auto_plot_cb;
-    wxButton *open_here, *open_new;
-    bool initialized;
-
-    std::string get_command_tail();
-    std::string get_filename();
-    void OnStdDevCheckBox (wxCommandEvent& event);
-    void OnAutoTextCheckBox (wxCommandEvent& event);
-    void OnAutoPlotCheckBox (wxCommandEvent& event);
-    void OnColumnChanged (wxSpinEvent& event);
-    void OnOpenHere (wxCommandEvent& event);
-    void OnOpenNew (wxCommandEvent& event);
-    void OnClose (wxCommandEvent& event);
-    void on_path_change();
-    void on_filter_change();
-    void OnPathSelectionChanged(wxTreeEvent &WXUNUSED(event)){on_path_change();}
-    void update_text_preview();
-    void update_plot_preview();
-    DECLARE_EVENT_TABLE()
-};
 
 #if 0
 class SumHistoryDlg : public wxDialog
@@ -157,7 +119,6 @@ protected:
 };
 
 wxString get_user_conffile(std::string const& filename);
-bool export_data_dlg(wxWindow *parent, bool load_exported=false);
 
 
 class RealNumberCtrl : public wxTextCtrl

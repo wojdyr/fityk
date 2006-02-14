@@ -111,7 +111,7 @@ fp y_of_data_for_draw_data(vector<Point>::const_iterator i, Sum const* /*sum*/)
     return i->y;
 }
 
-void MainPlot::draw_dataset(wxDC& dc, int n)
+void MainPlot::draw_dataset(wxDC& dc, int n, bool set_pen)
 {
     bool shadowed;
     int offset;
@@ -125,10 +125,15 @@ void MainPlot::draw_dataset(wxDC& dc, int n)
                 (col.Green() + bg_col.Green())/2,
                 (col.Blue() + bg_col.Blue())/2);
     }
-    draw_data(dc, y_of_data_for_draw_data, AL->get_data(n), 0, col, offset);
+    if (set_pen)
+        draw_data(dc, y_of_data_for_draw_data, AL->get_data(n), 0, 
+                  col, wxNullColour, offset);
+    else
+        draw_data(dc, y_of_data_for_draw_data, AL->get_data(n), 0, 
+                  dc.GetPen().GetColour(), dc.GetPen().GetColour(), offset);
 }
 
-void MainPlot::Draw(wxDC &dc)
+void MainPlot::Draw(wxDC &dc, bool monochrome)
 {
     int focused_data = AL->get_active_ds_position();
     Sum const* sum = AL->get_sum(focused_data);
@@ -139,44 +144,43 @@ void MainPlot::Draw(wxDC &dc)
 
     prepare_peaktops(sum);
 
-    if (colourTextForeground.Ok())
-        dc.SetTextForeground (colourTextForeground);
-    if (colourTextBackground.Ok())
-        dc.SetTextBackground (colourTextBackground);
-
+    if (monochrome) {
+        dc.SetPen(*wxBLACK_PEN);
+        dc.SetBrush(*wxBLACK_BRUSH);
+    }
     //draw datasets
     for (int i = 0; i < AL->get_ds_count(); i++) {
         if (i != focused_data) {
-            draw_dataset(dc, i);
+            draw_dataset(dc, i, !monochrome);
         }
     }
     // focused dataset is drawed at the end (to be at the top)
-    draw_dataset(dc, focused_data);
+    draw_dataset(dc, focused_data, !monochrome);
 
     if (xtics_visible)
-        draw_xtics(dc, AL->view);
+        draw_xtics(dc, AL->view, !monochrome);
     if (ytics_visible)
-        draw_ytics(dc, AL->view);
+        draw_ytics(dc, AL->view, !monochrome);
 
     if (peaks_visible)
-        draw_peaks(dc, sum);
+        draw_peaks(dc, sum, !monochrome);
     if (groups_visible)
-        draw_groups(dc, sum);
+        draw_groups(dc, sum, !monochrome);
     if (sum_visible)
-        draw_sum(dc, sum);
+        draw_sum(dc, sum, !monochrome);
     if (x_axis_visible) 
-        draw_x_axis(dc);
+        draw_x_axis(dc, !monochrome);
     if (y_axis_visible) 
-        draw_y_axis(dc);
+        draw_y_axis(dc, !monochrome);
 
-    if (visible_peaktops(mode)) 
+    if (visible_peaktops(mode) && !monochrome) 
         draw_peaktops(dc, sum); 
     if (mode == mmd_bg) {
         draw_background(dc); 
     }
     else {
         if (plabels_visible)
-            draw_plabels(dc, sum);
+            draw_plabels(dc, sum, !monochrome);
     }
 }
 
@@ -186,21 +190,24 @@ bool MainPlot::visible_peaktops(MouseModeEnum mode)
     return (mode == mmd_zoom || mode == mmd_add || mode == mmd_peak);
 }
 
-void MainPlot::draw_x_axis (wxDC& dc)
+void MainPlot::draw_x_axis (wxDC& dc, bool set_pen)
 {
-    dc.SetPen (xAxisPen);
+    if (set_pen)
+        dc.SetPen (xAxisPen);
     dc.DrawLine (0, y2Y(0), GetClientSize().GetWidth(), y2Y(0));
 }
 
-void MainPlot::draw_y_axis (wxDC& dc)
+void MainPlot::draw_y_axis (wxDC& dc, bool set_pen)
 {
-    dc.SetPen (xAxisPen);
+    if (set_pen)
+        dc.SetPen (xAxisPen);
     dc.DrawLine (x2X(0), 0, x2X(0), GetClientSize().GetHeight());
 }
 
-void MainPlot::draw_sum(wxDC& dc, Sum const* sum)
+void MainPlot::draw_sum(wxDC& dc, Sum const* sum, bool set_pen)
 {
-    dc.SetPen(sumPen);
+    if (set_pen)
+        dc.SetPen(sumPen);
     int n = GetClientSize().GetWidth();
     vector<fp> xx(n), yy(n);
     vector<int> YY(n);
@@ -215,11 +222,11 @@ void MainPlot::draw_sum(wxDC& dc, Sum const* sum)
 
 
 //TODO draw groups
-void MainPlot::draw_groups (wxDC& /*dc*/, Sum const*)
+void MainPlot::draw_groups (wxDC& /*dc*/, Sum const*, bool)
 {
 }
 
-void MainPlot::draw_peaks(wxDC& dc, Sum const* sum)
+void MainPlot::draw_peaks(wxDC& dc, Sum const* sum, bool set_pen)
 {
     fp level = 0;
     vector<int> const& idx = sum->get_ff_idx();
@@ -237,7 +244,8 @@ void MainPlot::draw_peaks(wxDC& dc, Sum const* sum)
             from = max(from, x2X(left));
             to = min(to, x2X(right));
         }
-        dc.SetPen (peakPen[k % max_peak_pens]);
+        if (set_pen)
+            dc.SetPen (peakPen[k % max_peak_pens]);
         f->calculate_value(xx, yy);
         for (int i = from; i <= to; ++i) 
             YY[i] = y2Y(yy[i]);
@@ -272,7 +280,7 @@ void MainPlot::draw_peaktop_selection (wxDC& dc, Sum const* sum)
     }
 }
 
-void MainPlot::draw_plabels (wxDC& dc, Sum const* sum)
+void MainPlot::draw_plabels (wxDC& dc, Sum const* sum, bool set_pen)
 {
     prepare_peak_labels(sum); //TODO re-prepare only when peaks where changed
     dc.SetFont(plabelFont);
@@ -280,7 +288,8 @@ void MainPlot::draw_plabels (wxDC& dc, Sum const* sum)
     vector<int> const& idx = sum->get_ff_idx();
     for (int k = 0; k < size(idx); k++) {
         const wxPoint &peaktop = shared.peaktops[k];
-        dc.SetTextForeground(peakPen[k % max_peak_pens].GetColour());
+        if (set_pen)
+            dc.SetTextForeground(peakPen[k % max_peak_pens].GetColour());
 
         wxString label = s2wx(plabels[k]);
         wxCoord w, h;
@@ -395,9 +404,10 @@ void MainPlot::prepare_peak_labels(Sum const* sum)
 }
 
 
-void MainPlot::draw_background(wxDC& dc)
+void MainPlot::draw_background(wxDC& dc, bool set_pen)
 {
-    dc.SetPen (bg_pointsPen);
+    if (set_pen)
+        dc.SetPen (bg_pointsPen);
     dc.SetBrush (*wxTRANSPARENT_BRUSH);
     // bg line
     int X = -1, Y = -1;
@@ -417,10 +427,6 @@ void MainPlot::draw_background(wxDC& dc)
 void MainPlot::read_settings(wxConfigBase *cf)
 {
     cf->SetPath(wxT("/MainPlot/Colors"));
-    colourTextForeground = cfg_read_color(cf, wxT("text_fg"), 
-                                                  wxColour(wxT("BLACK")));
-    colourTextBackground = cfg_read_color(cf, wxT("text_bg"), 
-                                                  wxColour (wxT("LIGHT GREY")));
     backgroundBrush.SetColour (cfg_read_color(cf, wxT("bg"), 
                                                       wxColour(wxT("BLACK"))));
     for (int i = 0; i < max_data_pens; i++)
@@ -478,8 +484,6 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->Write(wxT("xReversed"), x_reversed);
 
     cf->SetPath(wxT("/MainPlot/Colors"));
-    cfg_write_color (cf, wxT("text_fg"), colourTextForeground);//FIXME: what is this for?
-    cfg_write_color (cf, wxT("text_bg"), colourTextBackground); // and this?
     cfg_write_color (cf, wxT("bg"), backgroundBrush.GetColour());
     for (int i = 0; i < max_data_pens; i++)
         cfg_write_color(cf, wxString::Format(wxT("data/%i"), i), dataColour[i]);

@@ -4,7 +4,6 @@
 #ifndef FITYK__WX_PANE__H__
 #define FITYK__WX_PANE__H__
 
-#include <wx/print.h>
 #include <wx/config.h>
 #include <wx/splitter.h>
 #include <wx/listctrl.h>
@@ -106,6 +105,7 @@ public:
     MainPlot* get_plot() { return plot; }
     BgManager* get_bg_manager(); 
     std::vector<FPlot*> const get_visible_plots() const;
+    FPlot* get_plot_n(int n) const; 
     void show_aux(int n, bool show); 
     bool aux_visible(int n) const;
     void draw_crosshair(int X, int Y);
@@ -220,19 +220,6 @@ private:
     std::vector<bool> make_bottom_panel_sig(Function const* func);
 
     DECLARE_EVENT_TABLE()
-};
-
-
-class FPrintout: public wxPrintout
-{
-public:
-    FPrintout(const PlotPane *p_pane);
-    bool HasPage(int page) { return (page == 1); }
-    bool OnPrintPage(int page);
-    void GetPageInfo(int *minPage,int *maxPage,int *selPageFrom,int *selPageTo)
-        { *minPage = *maxPage = *selPageFrom = *selPageTo = 1; }
-private:
-    const PlotPane *pane;
 };
 
 

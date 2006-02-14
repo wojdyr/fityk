@@ -19,10 +19,12 @@ struct f_names_type;
 class ApplicationLogic;
 class FDXLoadDlg;
 class PlotPane;
+class MainPlot;
 class IOPane;
 class SideBar;
 class ProportionalSplitter;
 class DataEditorDlg;
+class PrintManager;
 
 extern std::vector<fp> params4plot;
 
@@ -122,7 +124,7 @@ public:
     void OnODump         (wxCommandEvent& event);         
     void OnSetttings     (wxCommandEvent& event);        
     void OnPrintPreview  (wxCommandEvent& event);
-    void OnPrintSetup    (wxCommandEvent& event);
+    void OnPageSetup    (wxCommandEvent& event);
     void OnPrint         (wxCommandEvent& event);
     void OnChangeMouseMode (wxCommandEvent& event);
     void OnModePeak      (wxUpdateUIEvent& event);
@@ -136,6 +138,7 @@ public:
     void OnGScrollLeft   (wxCommandEvent& event);
     void OnGScrollRight  (wxCommandEvent& event);
     void OnGScrollUp     (wxCommandEvent& event);
+    void OnGExtendH      (wxCommandEvent& event);
     void OnPreviousZoom  (wxCommandEvent& event);
     void OnConfigRead    (wxCommandEvent& event);
     void OnConfigBuiltin (wxCommandEvent& event);
@@ -195,8 +198,7 @@ protected:
     std::vector<std::string> peak_types;
     FToolBar *toolbar;
     ProportionalSplitter *v_splitter;
-    wxPrintData *print_data;
-    wxPageSetupDialogData* page_setup_data;
+    PrintManager* print_mgr;
 #ifdef __WXMSW__
     wxBestHelpController help;
 #else
@@ -212,7 +214,6 @@ protected:
     void update_peak_type_list();
     void read_recent_data_files();
     void write_recent_data_files();
-    wxPrintData& get_print_data(); 
 
 DECLARE_EVENT_TABLE()
 };

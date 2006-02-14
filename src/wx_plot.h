@@ -56,14 +56,13 @@ public:
     void FPlot::draw_crosshair(int X, int Y);
     virtual void save_settings(wxConfigBase *cf) const;
     virtual void read_settings(wxConfigBase *cf);
-    virtual void Draw(wxDC &dc) = 0;
+    virtual void Draw(wxDC &dc, bool monochrome=false) = 0;
 
 protected:
     wxBrush backgroundBrush;
     wxPen activeDataPen, inactiveDataPen;
     wxPen xAxisPen;
     wxFont ticsFont;
-    wxColour colourTextForeground, colourTextBackground;
     int point_radius;
     bool line_between_points;
     bool x_axis_visible, y_axis_visible, xtics_visible, ytics_visible;
@@ -75,8 +74,8 @@ protected:
 
     void draw_dashed_vert_lines (int x1);
     bool vert_line_following_cursor(Mouse_act_enum ma, int x=0, int x0=INVALID);
-    void draw_xtics (wxDC& dc, View const& v);
-    void draw_ytics (wxDC& dc, View const &v);
+    void draw_xtics (wxDC& dc, View const& v, bool set_pen=true);
+    void draw_ytics (wxDC& dc, View const &v, bool set_pen=true);
     fp get_max_abs_y (fp (*compute_y)(std::vector<Point>::const_iterator,
                                       Sum const*),
                          std::vector<Point>::const_iterator first,
@@ -88,6 +87,7 @@ protected:
                     Data const* data, 
                     Sum const* sum, 
                     wxColour const& color = wxNullColour,
+                    wxColour const& inactive_color = wxNullColour,
                     int Y_offset = 0,
                     bool cumulative=false);
     void change_tics_font();
@@ -112,7 +112,7 @@ public:
           y_zoom(1.), y_zoom_base(1.), fit_y_once(false) {}
     ~AuxPlot() {}
     void OnPaint(wxPaintEvent &event);
-    void Draw(wxDC &dc);
+    void Draw(wxDC &dc, bool monochrome=false);
     void OnLeaveWindow (wxMouseEvent& event);
     void OnMouseMove(wxMouseEvent &event);
     void OnLeftDown (wxMouseEvent &event);
@@ -145,7 +145,7 @@ private:
 
     void draw_diff (wxDC& dc, std::vector<Point>::const_iterator first,
                                 std::vector<Point>::const_iterator last);
-    void draw_zoom_text(wxDC& dc);
+    void draw_zoom_text(wxDC& dc, bool set_pen=true);
     void fit_y_zoom(Data const* data, Sum const* sum);
 
     DECLARE_EVENT_TABLE()

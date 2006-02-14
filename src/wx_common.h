@@ -6,6 +6,7 @@
 #include "common.h"
 #include <wx/splitter.h>
 #include <wx/arrstr.h>
+#include <wx/spinctrl.h>
 
 enum MouseModeEnum { mmd_zoom, mmd_bg, mmd_add, mmd_range, mmd_peak };
 
@@ -104,6 +105,17 @@ protected:
     void OnReSize(wxSizeEvent& event);
     void OnSashChanged(wxSplitterEvent &event);
     void OnPaint(wxPaintEvent &event);
+};
+
+class SpinCtrl: public wxSpinCtrl
+{
+public:
+    SpinCtrl(wxWindow* parent, wxWindowID id, int val, 
+             int min, int max, int width=50)
+        : wxSpinCtrl (parent, id, wxString::Format(wxT("%i"), val),
+                      wxDefaultPosition, wxSize(width, -1), 
+                      wxSP_ARROW_KEYS, min, max, val) 
+    {}
 };
 
 #endif 

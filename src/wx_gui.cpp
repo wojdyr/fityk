@@ -38,6 +38,7 @@
 #include "wx_mplot.h"
 #include "wx_gui.h"
 #include "wx_dlg.h"
+#include "wx_fdlg.h"
 #include "wx_pane.h"
 #include "logic.h"
 #include "fit.h"
@@ -113,7 +114,7 @@ enum {
     ID_LOG_WITH_OUTPUT         ,
     ID_O_RESET                 ,
     ID_PRINT                   ,
-    ID_PRINT_SETUP             ,
+    ID_PAGE_SETUP              ,
     ID_PRINT_PREVIEW           ,
     ID_O_INCLUDE               ,
     ID_O_REINCLUDE             ,
@@ -144,6 +145,7 @@ enum {
     ID_G_V_SCROLL_L            ,
     ID_G_V_SCROLL_R            ,
     ID_G_V_SCROLL_U            ,
+    ID_G_V_EXTH                ,
     ID_G_V_ZOOM_PREV           ,
     ID_G_V_ZOOM_PREV_END = ID_G_V_ZOOM_PREV+40 ,
     ID_G_LCONF1                ,
@@ -315,7 +317,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_O_INCLUDE,     FFrame::OnOInclude)    
     EVT_MENU (ID_O_REINCLUDE,   FFrame::OnOReInclude)    
     EVT_MENU (ID_PRINT,         FFrame::OnPrint)
-    EVT_MENU (ID_PRINT_SETUP,   FFrame::OnPrintSetup)
+    EVT_MENU (ID_PAGE_SETUP,    FFrame::OnPageSetup)
     EVT_MENU (ID_PRINT_PREVIEW, FFrame::OnPrintPreview)
     EVT_MENU (ID_O_DUMP,        FFrame::OnODump)    
     EVT_MENU (ID_SESSION_SET,   FFrame::OnSetttings)    
@@ -341,6 +343,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_V_SCROLL_L,  FFrame::OnGScrollLeft)
     EVT_MENU (ID_G_V_SCROLL_R,  FFrame::OnGScrollRight)
     EVT_MENU (ID_G_V_SCROLL_U,  FFrame::OnGScrollUp)
+    EVT_MENU (ID_G_V_EXTH,      FFrame::OnGExtendH)
     EVT_UPDATE_UI (ID_G_V_ZOOM_PREV, FFrame::OnShowMenuZoomPrev)
     EVT_MENU_RANGE (ID_G_V_ZOOM_PREV+1, ID_G_V_ZOOM_PREV_END, 
                                 FFrame::OnPreviousZoom)    
@@ -365,7 +368,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
                  const long style)
     : wxFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, style), 
       main_pane(0), sidebar(0), status_bar(0), 
-      toolbar(0), print_data(0), page_setup_data(0),
+      toolbar(0), 
 #ifdef __WXMSW__
       help()
 #else
@@ -404,6 +407,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     SetSizer(sizer);
     sizer->SetSizeHints(this);
 
+    print_mgr = new PrintManager(plot_pane);
 
     wxFileSystem::AddHandler(new wxZipFSHandler);
     wxImage::AddHandler(new wxPNGHandler);
@@ -418,10 +422,7 @@ FFrame::~FFrame()
 {
     write_recent_data_files();
     wxConfig::Get()->Write(wxT("/DefaultFunctionType"), peak_type_nr);
-    if (print_data)
-        delete print_data;
-    if (page_setup_data)
-        delete page_setup_data;
+    delete print_mgr;
 }
 
 void FFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
@@ -676,6 +677,8 @@ void FFrame::set_menubar()
                       wxT("Scroll view right"));
     gui_menu->Append (ID_G_V_SCROLL_U, wxT("Extend Zoom &Up\tCtrl--"), 
                       wxT("Double vertical range"));
+    gui_menu->Append (ID_G_V_EXTH, wxT("Extend &Horizontally\tCtrl-;"), 
+                      wxT("Extend zoom horizontally"));
 
     wxMenu* gui_menu_zoom_prev = new wxMenu;
     gui_menu->Append(ID_G_V_ZOOM_PREV, wxT("&Previous Zooms"), 
@@ -714,11 +717,11 @@ void FFrame::set_menubar()
     session_menu->Append(ID_O_DUMP, wxT("&Dump to file"), 
                               wxT("Save current program state as script file"));
     session_menu->AppendSeparator();
-    session_menu->Append(ID_PRINT, wxT("&Print...\tCtrl-P"),wxT("Print plots"));
-    session_menu->Append(ID_PRINT_SETUP, wxT("Print Se&tup"),
-                                                wxT("Printer and page setup"));
+    session_menu->Append(ID_PAGE_SETUP, wxT("Page Se&tup..."), 
+                                        wxT("Page setup"));
     session_menu->Append(ID_PRINT_PREVIEW, wxT("Print Pre&view"), 
                                            wxT("Print preview")); 
+    session_menu->Append(ID_PRINT, wxT("&Print...\tCtrl-P"),wxT("Print plots"));
     session_menu->AppendSeparator();
     session_menu->Append (ID_SESSION_SET, wxT("&Settings"),
                                           wxT("Preferences and options"));
@@ -732,7 +735,7 @@ void FFrame::set_menubar()
     help_menu->Append(wxID_ABOUT, wxT("&About..."), wxT("Show about dialog"));
 
     wxMenuBar *menu_bar = new wxMenuBar(wxMENU_TEAROFF);
-    menu_bar->Append (session_menu, wxT("S&ession") );
+    menu_bar->Append (session_menu, wxT("&Session") );
     menu_bar->Append (data_menu, wxT("&Data") );
     menu_bar->Append (sum_menu, wxT("&Functions") );
     menu_bar->Append (fit_menu, wxT("Fi&t") );
@@ -1343,6 +1346,16 @@ void FFrame::OnGScrollUp (wxCommandEvent & WXUNUSED(event))
     change_zoom(". [.:" + S(new_top) + "]");
 }
 
+void FFrame::OnGExtendH (wxCommandEvent & WXUNUSED(event))
+{
+    fp const factor = 0.5;
+    View const &vw = AL->view;
+    fp diff = vw.width() * factor;
+    fp new_left = vw.left - diff; 
+    fp new_right = vw.right + diff;
+    change_zoom("[" + S(new_left) + " : " + S(new_right) + "] .");
+}
+
 
 void FFrame::OnPreviousZoom(wxCommandEvent& event)
 {
@@ -1405,84 +1418,19 @@ void FFrame::OnConfigBuiltin (wxCommandEvent& WXUNUSED(event))
 }
 
 
-class FPreviewFrame : public wxPreviewFrame
-{
-public:
-    FPreviewFrame(wxPrintPreview* preview, wxFrame* parent) 
-        : wxPreviewFrame (preview, parent, wxT("Print Preview"), 
-                          wxDefaultPosition, wxSize(600, 550)) {}
-    void CreateControlBar() { 
-        m_controlBar = new wxPreviewControlBar(m_printPreview, 
-                                        wxPREVIEW_PRINT|wxPREVIEW_ZOOM, this);
-        m_controlBar->CreateButtons();
-        m_controlBar->SetZoomControl(110);
-    }
-};
-
-wxPrintData& FFrame::get_print_data() 
-{ 
-    if (!print_data) 
-        print_data = new wxPrintData;
-    return *print_data;
-}
-
 void FFrame::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 {
-    // Pass two printout objects: for preview, and possible printing.
-    wxPrintDialogData print_dialog_data(get_print_data());
-    wxPrintPreview *preview = new wxPrintPreview (new FPrintout(plot_pane),
-                                                  new FPrintout(plot_pane), 
-                                                  &print_dialog_data);
-    if (!preview->Ok()) {
-        delete preview;
-        wxMessageBox(wxT("There was a problem previewing.\n")
-                     wxT("Perhaps your current printer is not set correctly?"),
-                     wxT("Previewing"), wxOK);
-        return;
-    }
-    FPreviewFrame *frame = new FPreviewFrame (preview, this);
-    frame->Centre(wxBOTH);
-    frame->Initialize();
-    frame->Show(true);
+    print_mgr->printPreview();
 }
 
-void FFrame::OnPrintSetup(wxCommandEvent& WXUNUSED(event))
+void FFrame::OnPageSetup(wxCommandEvent& WXUNUSED(event))
 {
-    if (!page_setup_data) 
-        page_setup_data = new wxPageSetupDialogData(get_print_data());
-    else
-        (*page_setup_data) = get_print_data();
-
-    wxPageSetupDialog page_setup_dialog(this, page_setup_data);
-    page_setup_dialog.ShowModal();
-
-    get_print_data() = page_setup_dialog.GetPageSetupData().GetPrintData();
-    (*page_setup_data) = page_setup_dialog.GetPageSetupData();
+    print_mgr->pageSetup();
 }
 
 void FFrame::OnPrint(wxCommandEvent& WXUNUSED(event))
 {
-    if (!plot_pane->is_background_white())
-        if (wxMessageBox(wxT("Plots will be printed on white background, \n")
-                           wxT("to save ink/toner.\n")
-                           wxT("Now background of your plot on screen\n")
-                           wxT("is not white, so the visiblity of lines ")
-                           wxT("and points\n")
-                           wxT("can be different.\n Do you want to continue?"),
-                          wxT("Are you sure?"), 
-                          wxYES_NO|wxCANCEL|wxICON_QUESTION) 
-                != wxYES)
-            return;
-    wxPrintDialogData print_dialog_data(get_print_data());
-    wxPrinter printer (&print_dialog_data);
-    FPrintout printout(plot_pane);
-    bool r = printer.Print(this, &printout, true);
-    if (r) 
-        get_print_data() = printer.GetPrintDialogData().GetPrintData();
-    else if (wxPrinter::GetLastError() == wxPRINTER_ERROR)
-        wxMessageBox(wxT("There was a problem printing.\nPerhaps your current ")
-                     wxT("printer is not set correctly?"), 
-                     wxT("Printing"), wxOK);
+    print_mgr->print();
 }
 
 string FFrame::get_peak_type() const

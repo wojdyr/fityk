@@ -197,6 +197,16 @@ const std::vector<FPlot*> PlotPane::get_visible_plots() const
     return visible;
 }
 
+FPlot* PlotPane::get_plot_n(int n) const 
+{ 
+    if (n == -1)
+        return plot;
+    else if (n >= 0 && n < 2)
+        return aux_plot[n];
+    else
+        assert(0);
+} 
+
 bool PlotPane::aux_visible(int n) const
 {
     return IsSplit() && (aux_split->GetWindow1() == aux_plot[n]
@@ -1527,47 +1537,5 @@ void InputField::OnKeyDown (wxKeyEvent& event)
         default:
             event.Skip();
     }
-}
-
-//===============================================================
-//                            FPrintout
-//===============================================================
-
-FPrintout::FPrintout(const PlotPane *p_pane) 
-    : wxPrintout(wxT("fityk printout")), pane(p_pane) 
-{}
-
-bool FPrintout::OnPrintPage(int page)
-{
-    if (page != 1) return false;
-    wxDC *dc = GetDC();
-    if (!dc) return false;
-
-    // Set the scale and origin
-    const int space = 20; //vertical space between plots
-    const int marginX = 50, marginY = 50; //page margins
-    //width is the same for all plots
-    int width = pane->plot->GetClientSize().GetWidth(); 
-    vector<FPlot*> vp = pane->get_visible_plots();
-    int height = -space;  //height = sum of all heights + (N-1)*space
-    for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i) 
-        height += (*i)->GetClientSize().GetHeight() + space;
-    int w, h;
-    dc->GetSize(&w, &h);
-    fp scaleX = w / (width + 2.*marginX);
-    fp scaleY = h / (height + 2.*marginY);
-    fp actualScale = min (scaleX, scaleY);
-    dc->SetUserScale (actualScale, actualScale);
-
-    const int posX = iround((w - width * actualScale) / 2.);
-    int posY = iround((h - height * actualScale) / 2.);
-
-    //drawing all visible plots, every at different posY
-    for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i) {
-        dc->SetDeviceOrigin (posX, posY);
-        (*i)->Draw(*dc);
-        posY += iround(((*i)->GetClientSize().GetHeight()+space) * actualScale);
-    }
-    return true;
 }
 

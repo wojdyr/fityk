@@ -27,7 +27,7 @@ common_sources = logic.cpp cmd.cpp common.cpp \
 		 sum.cpp fit.cpp voigt.cpp fileroutines.cpp \
 		 numfuncs.cpp
 gui_sources = wx_common.cpp wx_dlg.cpp wx_gui.cpp wx_IO.cpp wx_plot.cpp \
-	      wx_mplot.cpp wx_pane.cpp 
+	      wx_mplot.cpp wx_pane.cpp wx_fdlg.cpp
 fityk_SOURCES = $(common_sources) $(gui_sources) 
 cfityk_SOURCES = $(common_sources) u_gnuplot.cpp u_main.cpp 
 common_ldadd = ##none
@@ -38,6 +38,7 @@ noinst_HEADERS = common.h data.h datatrans.h datatrans2.h settings.h \
 		 sum.h fit.h ui.h voigt.h fileroutines.h \
 		 u_gnuplot.h \
 		 wx_common.h wx_dlg.h wx_gui.h wx_plot.h wx_mplot.h wx_pane.h \
+		 wx_fdlg.h \
 		 numfuncs.h cmd.h var.h func.h calc.h optional_suffix.h
 
 # -ftemplate-depth-50 is for gcc 2.95 

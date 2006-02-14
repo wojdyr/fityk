@@ -87,11 +87,13 @@ bool FPlot::vert_line_following_cursor (Mouse_act_enum ma, int x, int x0)
 
 
 /// draw x axis tics
-void FPlot::draw_xtics (wxDC& dc, View const &v)
+void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
 {
-    dc.SetPen (xAxisPen);
+    if (set_pen) {
+        dc.SetPen (xAxisPen);
+        dc.SetTextForeground(xAxisPen.GetColour());
+    }
     dc.SetFont(ticsFont);
-    dc.SetTextForeground(xAxisPen.GetColour());
 
     fp x_tic_step = scale_tics_step(v.left, v.right, x_max_tics);
     for (fp x = x_tic_step * ceil(v.left / x_tic_step); x < v.right; 
@@ -100,6 +102,8 @@ void FPlot::draw_xtics (wxDC& dc, View const &v)
         int Y = y2Y(0);
         dc.DrawLine (X, Y, X, Y - x_tic_size);
         wxString label = s2wx(S(x));
+        if (label == wxT("-0"))
+            label = wxT("0");
         wxCoord w, h;
         dc.GetTextExtent (label, &w, &h);
         dc.DrawText (label, X - w/2, Y + 1);
@@ -108,13 +112,17 @@ void FPlot::draw_xtics (wxDC& dc, View const &v)
 }
 
 /// draw y axis tics
-void FPlot::draw_ytics (wxDC& dc, View const &v)
+void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
 {
-    dc.SetPen (xAxisPen);
+    if (set_pen) {
+        dc.SetPen (xAxisPen);
+        dc.SetTextForeground(xAxisPen.GetColour());
+    }
     dc.SetFont(ticsFont);
-    dc.SetTextForeground(xAxisPen.GetColour());
 
     fp y_tic_step = scale_tics_step(v.bottom, v.top, y_max_tics);
+    //if y axis is visible, tics are drawed at the axis, 
+    //otherwise tics are drawed at the left hand edge of the plot
     int X = 0;
     if (y_axis_visible && x2X(0) > 0 && x2X(0) < GetClientSize().GetWidth()-10)
         X = x2X(0);
@@ -123,6 +131,8 @@ void FPlot::draw_ytics (wxDC& dc, View const &v)
         int Y = y2Y(y);
         dc.DrawLine (X, Y, X + y_tic_size, Y);
         wxString label = s2wx(S(y));
+        if (label == wxT("-0"))
+            label = wxT("0");
         wxCoord w, h;
         dc.GetTextExtent (label, &w, &h);
         dc.DrawText (label, X + y_tic_size + 1, Y - h/2);
@@ -150,13 +160,17 @@ void FPlot::draw_data (wxDC& dc,
                                        Sum const*),
                        Data const* data, 
                        Sum const* sum,
-                       wxColour const& color,
+                       wxColour const& color, wxColour const& inactive_color, 
                        int Y_offset,
                        bool cumulative)
 {
     Y_offset *= (GetClientSize().GetHeight() / 100);
+    wxColour old_active_color = activeDataPen.GetColour();
     if (color.Ok())
         activeDataPen.SetColour(color);
+    wxColour old_inactive_color = inactiveDataPen.GetColour();
+    if (inactive_color.Ok()) 
+        inactiveDataPen.SetColour(inactive_color);
     wxPen const& activePen = activeDataPen;
     wxPen const& inactivePen = inactiveDataPen;
     wxBrush const activeBrush(activePen.GetColour(), wxSOLID);
@@ -244,6 +258,8 @@ void FPlot::draw_data (wxDC& dc,
             dc.DrawLine (X_, Y_, X, Y);
         }
     }
+    activeDataPen.SetColour(old_active_color);
+    inactiveDataPen.SetColour(old_inactive_color);
 }
 
 void FPlot::change_tics_font()
@@ -360,7 +376,7 @@ fp diff_y_proc_of_data_for_draw_data (vector<Point>::const_iterator i,
     return i->y ? (i->y - sum_value(i, sum)) / i->y * 100 : 0;
 }
 
-void AuxPlot::Draw(wxDC &dc)
+void AuxPlot::Draw(wxDC &dc, bool monochrome)
 {
     int pos = AL->get_active_ds_position();
     Data const* data = AL->get_data(pos);
@@ -370,7 +386,12 @@ void AuxPlot::Draw(wxDC &dc)
         fit_y_once = false;
     }
     set_scale();
-    dc.SetPen (xAxisPen);
+    if (monochrome) {
+        dc.SetPen(*wxBLACK_PEN);
+        dc.SetBrush(*wxBLACK_BRUSH);
+    }
+    else
+        dc.SetPen (xAxisPen);
 
     if (mark_peak_ctrs) {
         int ymax = GetClientSize().GetHeight();
@@ -385,30 +406,37 @@ void AuxPlot::Draw(wxDC &dc)
     if (x_axis_visible) {
         dc.DrawLine (0, y2Y(0), GetClientSize().GetWidth(), y2Y(0));
         if (kind == apk_diff) 
-            draw_zoom_text(dc);
+            draw_zoom_text(dc, !monochrome);
     }
     if (y_axis_visible) {
         dc.DrawLine (x2X(0), 0, x2X(0), GetClientSize().GetHeight());
     }
     if (ytics_visible) {
         View v(0, 0, Y2y(GetClientSize().GetHeight()), Y2y(0));
-        draw_ytics(dc, v);
+        draw_ytics(dc, v, !monochrome);
     }
 
-    if (kind == apk_diff)
-        draw_data (dc, diff_of_data_for_draw_data, data, sum);
+    fp (*f)(vector<Point>::const_iterator, Sum const*) = 0;
+    bool cummulative = false;
+    if (kind == apk_diff) 
+        f = diff_y_proc_of_data_for_draw_data;
     else if (kind == apk_diff_stddev)
-        draw_data (dc, diff_stddev_of_data_for_draw_data, data, sum);
+        f = diff_stddev_of_data_for_draw_data;
     else if (kind == apk_diff_y_proc)
-        draw_data (dc, diff_y_proc_of_data_for_draw_data, data, sum);
-    else if (kind == apk_cum_chi2)
-        draw_data (dc, diff_chi2_of_data_for_draw_data, data, sum,
-                   wxNullColour, 0, true);
+        f = diff_y_proc_of_data_for_draw_data;
+    else if (kind == apk_cum_chi2) {
+        f = diff_chi2_of_data_for_draw_data;
+        cummulative = true;
+    }
+    wxColour col = monochrome ? dc.GetPen().GetColour() : wxNullColour;
+    draw_data (dc, diff_chi2_of_data_for_draw_data, data, sum,
+               col, col, 0, cummulative);
 }
 
-void AuxPlot::draw_zoom_text(wxDC& dc)
+void AuxPlot::draw_zoom_text(wxDC& dc, bool set_pen)
 {
-    dc.SetTextForeground(xAxisPen.GetColour());
+    if (set_pen)
+        dc.SetTextForeground(xAxisPen.GetColour());
     dc.SetFont(*wxNORMAL_FONT);  
     string s = "x" + S(y_zoom);  
     wxCoord w, h;

@@ -49,7 +49,7 @@ public:
     MainPlot (wxWindow *parent, PlotShared &shar); 
     ~MainPlot() {}
     void OnPaint(wxPaintEvent &event);
-    void Draw(wxDC &dc);
+    void Draw(wxDC &dc, bool monochrome=false);
     void OnLeaveWindow (wxMouseEvent& event);
     void OnMouseMove(wxMouseEvent &event);
     void OnButtonDown (wxMouseEvent &event);
@@ -105,16 +105,16 @@ private:
     bool ctrl;
     int over_peak;
 
-    void draw_x_axis (wxDC& dc);
-    void draw_y_axis (wxDC& dc);
-    void draw_background(wxDC& dc); 
-    void draw_sum (wxDC& dc, Sum const* sum);
-    void draw_groups (wxDC& dc, Sum const* sum);
-    void draw_peaks (wxDC& dc, Sum const* sum);
+    void draw_x_axis (wxDC& dc, bool set_pen=true);
+    void draw_y_axis (wxDC& dc, bool set_pen=true);
+    void draw_background(wxDC& dc, bool set_pen=true); 
+    void draw_sum (wxDC& dc, Sum const* sum, bool set_pen=true);
+    void draw_groups (wxDC& dc, Sum const* sum, bool set_pen=true);
+    void draw_peaks (wxDC& dc, Sum const* sum, bool set_pen=true);
     void draw_peaktops (wxDC& dc, Sum const* sum);
     void draw_peaktop_selection(wxDC& dc, Sum const* sum);
-    void draw_plabels (wxDC& dc, Sum const* sum);
-    void draw_dataset(wxDC& dc, int n);
+    void draw_plabels (wxDC& dc, Sum const* sum, bool set_pen=true);
+    void draw_dataset(wxDC& dc, int n, bool set_pen=true);
     void prepare_peaktops(Sum const* sum);
     void prepare_peak_labels(Sum const* sum);
     void look_for_peaktop (wxMouseEvent& event);

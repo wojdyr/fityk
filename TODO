@@ -4,6 +4,10 @@
 
 * (GUI) sidebar bottom panel -> draw draft of peak when changing peak parameters
 
+* key [del] at data/func/var pane should work as close button
+
+* store printing settings in config file 
+
 ------------- next release here (?)
 
 * (GUI) Session>Settings: tab "Directories" with default 
@@ -40,13 +44,6 @@
 
 * (GUI) sidebar: default column widths should be different
 
-* GUI: printing: 
-   custom "page setup..." dialog instead of current "print setup", with:
-     "Printer setup" button, portrait/landscape,
-     black lines on white bg / current colors on white background
-     checkboxes: aux plot 1, aux plot 2, lines between
-   default settings: landscape; b-w; if no sum, don't print aux plot
-
 * (Windows only) exporting plots to PostScript file and to metafile(clipboard) 
                  "Print to PS File", "Copy to Clipboard" options
 
@@ -61,8 +58,6 @@
   and to export baseline and each peak as a separately (multicolumn CSV)
 
 * (GUI) show function limits when cursor is over peak top
-
-* key [del] at data pane should work as close button
 
 * improve Voigt function (cut-tails, better approx?) 
 
