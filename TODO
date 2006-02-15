@@ -1,4 +1,10 @@
 
+* BUG: data->fast transformations -- problem when more than one dataset
+   is opened
+
+* BUG: program crashes (MS Win 9x) when data contains NaN (as a result
+  of asin(x) x>1) and "Zoom all" is called.
+
 * new functions: EMG (expotentially modified gauss)
                  Doniach-Sunjic
 
