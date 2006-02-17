@@ -1,4 +1,6 @@
 
+* BUG: %peak1[center]=%peak2[center]+2  results in crash (confirmed)
+
 * BUG: data->fast transformations -- problem when more than one dataset
    is opened
 
@@ -25,6 +27,10 @@
    or equivalent."
    Tab "Layout" with explaination, that how GUI settings are handled.
 
+* mixed data/sum export, eg:
+  x, y, abs(y-F(x)), %foo(x), %bar(x) > file #only active points are exported
+  "*F" expands to all functions in F
+
 * DataExpressionGrammar: 
     %func(DataExpressionG) #OP_FUNC number #eg. Y = y-%peak(x)       
     F(DataExpressionG)     #OP_CURVE_Y number
@@ -42,9 +48,9 @@
     [BUG] sum() doesn't work in "info sum(x)" or $a={sum(y)}
     new functions: randuniform[a b]() randnormal[mu sigma]()
 
-* mixed data/sum export, eg:
-  x, y, abs(y-F(x)), %foo(x), %bar(x) > file #only active points are exported
-  "*F" expands to all functions in F
+* (F > file) when exporting function/sum as points, it shuld be possible 
+  to set step of these points (eg. F [from:to:step] > file
+  and to export baseline and each peak as a separately (multicolumn CSV) 
 
 ------------- next release here (?)
 
@@ -58,10 +64,6 @@
 
 * (GUI) peak dragging -- sensible scaling of parameter changes 
            (problems with width changing)
-
-* (F > file) when exporting function/sum as points, it shuld be possible 
-  to set step of these points (eg. F [from:to:step] > file
-  and to export baseline and each peak as a separately (multicolumn CSV)
 
 * (GUI) show function limits when cursor is over peak top
 
