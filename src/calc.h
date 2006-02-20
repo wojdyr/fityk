@@ -55,7 +55,7 @@ struct OpTree
 
     ~OpTree() { delete c1; delete c2; }
     std::string str(const std::vector<std::string> *vars=0); 
-    std::string str_b(bool b=true, const std::vector<std::string> *vars) 
+    std::string str_b(bool b=true, const std::vector<std::string> *vars=0) 
                             { return b ? "(" + str(vars) + ")" : str(vars); } 
     std::string ascii_tree(int width=64, int start=0, 
                            const std::vector<std::string> *vars=0);
