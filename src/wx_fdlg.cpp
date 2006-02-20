@@ -419,9 +419,9 @@ PageSetupDlg::PageSetupDlg(wxWindow *parent, PrintManager *print_mgr)
     h2sizer->Add(scale, 0, wxTOP|wxBOTTOM, 5);
     h2sizer->Add(new wxStaticText(this, -1, wxT("% of page")),
                  0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    keep_ratio = new wxCheckBox(this, -1, wxT("keep width to height ratio"));
-    h2sizer->Add(keep_ratio, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     top_sizer->Add(h2sizer);
+    keep_ratio = new wxCheckBox(this, -1, wxT("keep width to height ratio"));
+    top_sizer->Add(keep_ratio, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     wxString color_choices[] = { wxT("black lines on white background"), 
                                  wxT("colors from plots on white background") };
     colors = new wxRadioBox(this, -1, wxT("Colors"),
@@ -443,8 +443,7 @@ PageSetupDlg::PageSetupDlg(wxWindow *parent, PrintManager *print_mgr)
     top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL), 
                    0, wxALL|wxALIGN_CENTER, 5);
     SetSizerAndFit(top_sizer);
-    orientation->SetSelection(pm->get_print_data().GetOrientation()
-                                                       ==wxPORTRAIT ? 0 : 1);
+    orientation->SetSelection(pm->landscape ? 1 : 0);
     colors->SetSelection(pm->colors ? 1 : 0);
     keep_ratio->SetValue(pm->keep_ratio);
     scale->SetValue(pm->scale);
@@ -468,8 +467,7 @@ PageSetupDlg::PageSetupDlg(wxWindow *parent, PrintManager *print_mgr)
 
 void PageSetupDlg::OnOk(wxCommandEvent& event) 
 {
-    pm->get_print_data().SetOrientation(orientation->GetSelection() == 0 
-                                                ? wxPORTRAIT : wxLANDSCAPE);
+    pm->landscape = (orientation->GetSelection() == 1);
     pm->colors = colors->GetSelection() == 1;
     pm->keep_ratio = keep_ratio->GetValue();
     pm->scale = scale->GetValue();
@@ -565,6 +563,60 @@ public:
 
 //===============================================================
 
+PrintManager::PrintManager(PlotPane const* pane)
+    :  plot_pane(pane), print_data(0), page_setup_data(0) 
+{ 
+    read_settings(wxConfig::Get());
+}
+
+PrintManager::~PrintManager() 
+{
+    save_settings(wxConfig::Get());
+    if (print_data)
+        delete print_data;
+    if (page_setup_data)
+        delete page_setup_data;
+}
+
+void PrintManager::save_settings(wxConfigBase *cf) const
+{
+    cf->Write(wxT("/print/colors"), colors);
+    cf->Write(wxT("/print/scale"), scale);
+    cf->Write(wxT("/print/keepRatio"), keep_ratio);
+    cf->Write(wxT("/print/plotBorders"), plot_borders);
+    for (int i = 0; i < 2; ++i)
+        cf->Write(wxString::Format(wxT("/print/plotAux%i"), i), plot_aux[i]);
+    cf->Write(wxT("/print/landscape"), landscape);
+}
+
+void PrintManager::read_settings(wxConfigBase *cf)
+{
+    colors = cfg_read_bool(cf, wxT("/print/colors"), false);
+    scale = cf->Read(wxT("/print/scale"), 100);
+    keep_ratio = cfg_read_bool(cf, wxT("/print/keepRatio"), false);
+    plot_borders = cfg_read_bool(cf, wxT("/print/plotBorders"), true);
+    for (int i = 0; i < 2; ++i)
+        plot_aux[i] = cfg_read_bool(cf, 
+                          wxString::Format(wxT("/print/plotAux%i"), i), true);
+    landscape = cfg_read_bool(cf, wxT("/print/landscape"), true);
+}
+
+wxPrintData& PrintManager::get_print_data() 
+{
+    if (!print_data) {
+        print_data = new wxPrintData;
+        print_data->SetOrientation(landscape ? wxLANDSCAPE : wxPORTRAIT);
+    }
+    return *print_data;
+}
+
+wxPageSetupDialogData& PrintManager::get_page_data() 
+{
+    if (!page_setup_data)
+        page_setup_data = new wxPageSetupDialogData;
+    return *page_setup_data;
+}
+
 void PrintManager::printPreview()
 {
     // Pass two printout objects: for preview, and possible printing.
@@ -590,6 +642,7 @@ void PrintManager::pageSetup()
     PageSetupDlg dlg(frame, this);
     dlg.ShowModal();
     /*
+     * Old standard wxWidgets "page setup" dlg worked in this way:
     if (!page_setup_data) 
         page_setup_data = new wxPageSetupDialogData(get_print_data());
     else
@@ -624,8 +677,10 @@ void PrintManager::print()
     wxPrinter printer (&print_dialog_data);
     FPrintout printout(this);
     bool r = printer.Print(frame, &printout, true);
-    if (r) 
+    if (r) {
         get_print_data() = printer.GetPrintDialogData().GetPrintData();
+        landscape = (get_print_data().GetOrientation() == wxLANDSCAPE);
+    }
     else if (wxPrinter::GetLastError() == wxPRINTER_ERROR)
         wxMessageBox(wxT("There was a problem printing.\nPerhaps your current ")
                      wxT("printer is not set correctly?"), 

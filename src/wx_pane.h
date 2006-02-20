@@ -21,6 +21,7 @@ class BgManager;
 class FancyRealCtrl;
 class Variable;
 class Function;
+class SideBar;
 
 
 class InputField : public wxTextCtrl
@@ -136,10 +137,13 @@ public:
     void OnShowColumn(wxCommandEvent &event);
     void OnFitColumnWidths(wxCommandEvent &event);
     void OnSelectAll(wxCommandEvent &event);
+    void OnKeyDown (wxKeyEvent& event);
+    void set_side_bar(SideBar* sidebar_) { sidebar=sidebar_; }
     DECLARE_EVENT_TABLE()
 private:
     std::vector<std::pair<std::string,bool> > columns;
     std::vector<std::string> list_data;
+    SideBar *sidebar;
 };
 
 class ListPlusText : public ProportionalSplitter
@@ -164,18 +168,18 @@ public:
     void OnDataButtonNew (wxCommandEvent& event);
     void OnDataButtonDup (wxCommandEvent& event);
     void OnDataButtonRen (wxCommandEvent& event);
-    void OnDataButtonDel (wxCommandEvent& event);
+    void OnDataButtonDel (wxCommandEvent&) { delete_selected_items(); }
     void OnDataButtonCopyF (wxCommandEvent& event);
     void OnDataButtonCol (wxCommandEvent& event);
     void OnDataLookChanged (wxCommandEvent& event);
     void OnDataShiftUpChanged (wxSpinEvent& event);
     void OnFuncButtonNew (wxCommandEvent& event);
-    void OnFuncButtonDel (wxCommandEvent& event);
+    void OnFuncButtonDel (wxCommandEvent&) { delete_selected_items(); }
     void OnFuncButtonEdit (wxCommandEvent& event);
     void OnFuncButtonChType (wxCommandEvent& event);
     void OnFuncButtonCol (wxCommandEvent& event);
     void OnVarButtonNew (wxCommandEvent& event);
-    void OnVarButtonDel (wxCommandEvent& event);
+    void OnVarButtonDel (wxCommandEvent&) { delete_selected_items(); }
     void OnVarButtonEdit (wxCommandEvent& event);
     void OnFuncFilterChanged (wxCommandEvent& event);
     void OnDataFocusChanged(wxListEvent &event);
@@ -199,6 +203,7 @@ public:
     void update_func_inf();
     void update_var_inf();
     void update_bottom_panel();
+    void delete_selected_items();
 private:
     wxNotebook *nb;
     wxPanel *data_page, *func_page, *var_page, *bottom_panel;

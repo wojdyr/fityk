@@ -305,7 +305,7 @@ string VariableManager::assign_variable(string const &name, string const &rhs)
     assert(info.full);
     const_tm_iter_t const &root = info.trees.begin();
     if (root->value.id() == FuncGrammar::variableID
-            && *root->value.begin() == '~') {
+            && *root->value.begin() == '~') { 
         string val_str = string(root->value.begin()+1, root->value.end());
         fp val = get_constant_value(val_str);
         parameters.push_back(val);
@@ -806,8 +806,10 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
                 |  leaf_node_d[lexeme_d['~' >> real_p]]
                 |  leaf_node_d["~{" >> +~ch_p('}') >> '}']
                 | leaf_node_d[str_p("x")] //only in functions
-                | leaf_node_d[FunctionLhsG >> '[' 
-                               >> lexeme_d[alpha_p >> *(alnum_p | '_')] >> ']'] 
+                // using FunctionLhsG causes crash 
+                | leaf_node_d[lexeme_d["%" >> +(alnum_p | '_')] //FunctionLhsG 
+                              >> '[' >> lexeme_d[alpha_p >> *(alnum_p | '_')] 
+                              >> ']'] 
                 ;
 
     exptoken    =  real_const

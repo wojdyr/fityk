@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <fstream>
 #include <utility>
+#include <algorithm>
 #include <limits.h>
 
 using namespace std;
@@ -135,7 +136,12 @@ void do_fz_assign(char const*, char const*)
 
 void do_delete(char const*, char const*) 
 { 
-    AL->remove_ds(vn);
+    if (!vn.empty()) {
+        sort(vn.begin(), vn.end());
+        reverse(vn.begin(), vn.end());
+        for (vector<int>::const_iterator i = vn.begin(); i != vn.end(); ++i) 
+            AL->remove_ds(*i);
+    }
     AL->delete_funcs_and_vars(vt);
     outdated_plot=true;  //TODO only if...
 }

@@ -54,42 +54,22 @@ bool export_data_dlg(wxWindow *parent, bool load_exported=false);
 class PrintManager
 {
 public:
+    bool landscape;
     bool colors;
     int scale;
     bool keep_ratio; 
     bool plot_aux[2], plot_borders;
     PlotPane const* plot_pane;
 
-    PrintManager(PlotPane const* pane) 
-        : colors(false), scale(100), keep_ratio(false), plot_borders(true),
-          plot_pane(pane), print_data(0), page_setup_data(0) 
-    { plot_aux[0]=true; plot_aux[1]=true; }
-
-    ~PrintManager() 
-    {
-        if (print_data)
-            delete print_data;
-        if (page_setup_data)
-            delete page_setup_data;
-    }
-
-    wxPrintData& get_print_data() 
-    {
-        if (!print_data)
-            print_data = new wxPrintData;
-        return *print_data;
-    }
-
-    wxPageSetupDialogData& get_page_data() 
-    {
-        if (!page_setup_data)
-            page_setup_data = new wxPageSetupDialogData;
-        return *page_setup_data;
-    }
-
+    PrintManager(PlotPane const* pane);
+    ~PrintManager();
+    wxPrintData& get_print_data();
+    wxPageSetupDialogData& get_page_data();
     void print();
     void printPreview();
     void pageSetup(); 
+    void save_settings(wxConfigBase *cf) const;
+    void read_settings(wxConfigBase *cf);
 private:
     wxPrintData *print_data;
     wxPageSetupDialogData *page_setup_data;

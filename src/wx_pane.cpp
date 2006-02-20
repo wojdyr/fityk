@@ -547,6 +547,7 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
                                     pair<string,bool>("#F+#Z", true),
                                     pair<string,bool>("Name", true),
                                     pair<string,bool>("File", false)));
+    d->list->set_side_bar(this);
     data_sizer->Add(d, 1, wxEXPAND|wxALL, 1);
 
     wxBoxSizer *data_look_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -609,6 +610,7 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     fdata.push_back( pair<string,bool>("Height", false) );
     fdata.push_back( pair<string,bool>("FWHM", false) );
     f = new ListPlusText(func_page, -1, ID_FP_LIST, fdata);
+    f->list->set_side_bar(this);
     func_sizer->Add(f, 1, wxEXPAND|wxALL, 1);
     wxBoxSizer *func_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
     add_bitmap_button(func_page, ID_FP_NEW, add_xpm, 
@@ -634,6 +636,7 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
                                      pair<string,bool>("value", true),
                                      pair<string,bool>("formula", false) );
     v = new ListPlusText(var_page, -1, ID_VP_LIST, vdata);
+    v->list->set_side_bar(this);
     var_sizer->Add(v, 1, wxEXPAND|wxALL, 1);
     wxBoxSizer *var_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
     add_bitmap_button(var_page, ID_VP_NEW, add_xpm, 
@@ -687,9 +690,20 @@ void SideBar::OnDataButtonRen (wxCommandEvent& WXUNUSED(event))
         exec_command("@" + S(n) + ".title = '" + wx2s(s) + "'");
 }
 
-void SideBar::OnDataButtonDel (wxCommandEvent& WXUNUSED(event))
+void SideBar::delete_selected_items()
 {
-    exec_command("delete " + join_vector(get_selected_data(), ", "));
+    int n = nb->GetSelection();
+    if (n < 0)
+        return;
+    string txt = wx2s(nb->GetPageText(n));
+    if (txt == "data")
+        exec_command("delete " + join_vector(get_selected_data(), ", "));
+    else if (txt == "functions")
+        exec_command("delete " + join_vector(get_selected_func(), ", "));
+    else if (txt == "variables")
+        exec_command("delete " + join_vector(get_selected_vars(), ", "));
+    else
+        assert(0);
 }
 
 void SideBar::OnDataButtonCopyF (wxCommandEvent& WXUNUSED(event))
@@ -736,11 +750,6 @@ void SideBar::OnFuncButtonNew (wxCommandEvent& WXUNUSED(event))
     frame->edit_in_input(t);
 }
 
-void SideBar::OnFuncButtonDel (wxCommandEvent& WXUNUSED(event))
-{
-    exec_command("delete " + join_vector(get_selected_func(), ", "));
-}
-
 void SideBar::OnFuncButtonEdit (wxCommandEvent& WXUNUSED(event))
 {
     int n = get_focused_func();
@@ -772,11 +781,6 @@ void SideBar::OnFuncButtonCol (wxCommandEvent& WXUNUSED(event))
 void SideBar::OnVarButtonNew (wxCommandEvent& WXUNUSED(event))
 {
     frame->edit_in_input("$put_name_here = ");
-}
-
-void SideBar::OnVarButtonDel (wxCommandEvent& WXUNUSED(event))
-{
-    exec_command("delete " + join_vector(get_selected_vars(), ", "));
 }
 
 void SideBar::OnVarButtonEdit (wxCommandEvent& WXUNUSED(event))
@@ -1230,18 +1234,19 @@ void SideBar::OnVarFocusChanged(wxListEvent& WXUNUSED(event))
 BEGIN_EVENT_TABLE(ListWithColors, wxListView)
     EVT_LIST_COL_CLICK(-1, ListWithColors::OnColumnMenu)
     EVT_LIST_COL_RIGHT_CLICK(-1, ListWithColors::OnColumnMenu)
-    EVT_RIGHT_DOWN(              ListWithColors::OnRightDown)
+    EVT_RIGHT_DOWN (ListWithColors::OnRightDown)
     EVT_MENU_RANGE (ID_DL_CMENU_SHOW_START, ID_DL_CMENU_SHOW_END, 
                     ListWithColors::OnShowColumn)
     EVT_MENU (ID_DL_CMENU_FITCOLS, ListWithColors::OnFitColumnWidths)
     EVT_MENU (ID_DL_SELECTALL, ListWithColors::OnSelectAll)
+    EVT_KEY_DOWN (ListWithColors::OnKeyDown)
 END_EVENT_TABLE()
     
 ListWithColors::ListWithColors(wxWindow *parent, wxWindowID id, 
                                vector<pair<string,bool> > const& columns_)
     : wxListView(parent, id, wxDefaultPosition, wxDefaultSize,
                  wxLC_REPORT|wxLC_HRULES|wxLC_VRULES),
-      columns(columns_)
+      columns(columns_), sidebar(0)
 {
     for (int i = 0; i < size(columns); ++i)
         if (columns[i].second)
@@ -1333,6 +1338,18 @@ void ListWithColors::OnSelectAll(wxCommandEvent &WXUNUSED(event))
 {
     for (int i = 0; i < GetItemCount(); ++i)
         Select(i, true);
+}
+
+void ListWithColors::OnKeyDown (wxKeyEvent& event)
+{
+    switch (event.m_keyCode) {
+        case WXK_DELETE:
+            if (sidebar)
+                sidebar->delete_selected_items();
+            break;
+        default:
+            event.Skip();
+    }
 }
 
 //===============================================================

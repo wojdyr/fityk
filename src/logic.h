@@ -114,10 +114,6 @@ public:
     void activate_ds(int d);
     int append_ds(Data *data=0);
     void remove_ds(int d);
-    void remove_ds(std::vector<int> const &dd) { 
-        for (std::vector<int>::const_iterator i=dd.begin(); i != dd.end(); ++i) 
-            remove_ds(*i);
-    }
     int get_ds_count() const { return dsds.size(); }
     DataWithSum* get_ds(int n);
     int get_active_ds_position() const { return active_ds; }
