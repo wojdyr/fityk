@@ -1609,6 +1609,32 @@
    (See also: http://personalpages.umist.ac.uk/staff/Bob.Wells/voigt.html). 
    Is the approximation exact enough for all possible uses of 
    <application>fityk</application> program? 
+   <equation id="emg">
+    <title>Exponentially Modified Gaussian (EMG)</title>
+    <mediaobject>
+     <imageobject>
+      <imagedata fileref="fitykhelp_img/emg.png"/>
+     </imageobject>
+     <textobject>
+      <phrase> 
+       Type in program "info EMG" to see formula.
+      </phrase>
+     </textobject>
+    </mediaobject>  
+   </equation>
+   <equation id="doniachs">
+    <title>Doniach-Sunjic (DoniachSunjic)</title>
+    <mediaobject>
+     <imageobject>
+      <imagedata fileref="fitykhelp_img/doniachs.png"/>
+     </imageobject>
+     <textobject>
+      <phrase> 
+       Type in program "info DoniachSunjic" to see formula.
+      </phrase>
+     </textobject>
+    </mediaobject>  
+   </equation>
    <equation>
     <title>Polynomial5</title>
     <mediaobject>
