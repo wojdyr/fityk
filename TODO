@@ -1,22 +1,8 @@
 
-* BUG: %peak1[center]=%peak2[center]+2  results in crash (confirmed)
-
-* BUG: data->fast transformations -- problem when more than one dataset
-   is opened
-
 * BUG: program crashes (MS Win 9x) when data contains NaN (as a result
   of asin(x) x>1) and "Zoom all" is called.
 
-* new functions: EMG (expotentially modified gauss)
-                 Doniach-Sunjic
-
-* (GUI) sidebar bottom panel -> draw draft of peak when changing peak parameters
-
-* key [del] at data/func/var pane should work as close button
-
-* store printing settings in config file 
-
-------------- next release here (?)
+* logarithmic scale  
 
 * (GUI) Session>Settings: tab "Directories" with default 
    scripts/data directories and buttons "Save" and "Clear" with comment:
@@ -26,6 +12,8 @@
    after program restart, put proper commands into file $HOME/.fityk/init
    or equivalent."
    Tab "Layout" with explaination, that how GUI settings are handled.
+
+------------- next release here (?)
 
 * mixed data/sum export, eg:
   x, y, abs(y-F(x)), %foo(x), %bar(x) > file #only active points are exported
@@ -70,8 +58,6 @@
 * improve Voigt function (cut-tails, better approx?) 
 
 * (GUI) vertical scaling using mouse on main plot near to left edge of the plot 
-
-* logarithmic scale  
 
 ------------- next release here (?)
 
@@ -157,8 +143,6 @@
 * there are problems with refreshing plots and output window when program
   is busy (ie. when running script or fitting). It seems to be platform
   dependent.
-
-* write a good portable .spec (spec is used for building RPM) (?)
 
 * auto-freezing of peaks at disactivated range
 

@@ -97,7 +97,7 @@ dnl use headers from 3rdparty/
 dnl CPPFLAGS="$CPPFLAGS -I\$(top_srcdir)/3rdparty" #doesn't work here(?), 
 dnl or substitutes top_srcdir only in Makefile's(?)
 OLD_CPPFLAGS=$CPPFLAGS
-dnl it's ugly hack, that can cause problems...
+dnl it's an ugly hack, that can cause problems...
 dnl CPPFLAGS is set here only for this test, and it is changed later 
 CPPFLAGS="$CPPFLAGS -I$srcdir/3rdparty"
 
@@ -154,9 +154,12 @@ AC_SUBST(FITYK)
 AC_SUBST(CFITYK)
 AC_SUBST(DOC)
 
-dnl check for erf function
+dnl check for erf and erfc function
 AC_CHECK_LIB([m], [erf], [], [AC_MSG_ERROR(
       [You don't have an erf function(?). 
+       Please inform program developer(s) about this problem.])])
+AC_CHECK_LIB([m], [erfc], [], [AC_MSG_ERROR(
+      [You don't have an erfc function(?). 
        Please inform program developer(s) about this problem.])])
 
 dnl in generated configure script, this line is too late

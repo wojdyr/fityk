@@ -204,6 +204,7 @@ public:
     void update_var_inf();
     void update_bottom_panel();
     void delete_selected_items();
+    void draw_function_draft(FancyRealCtrl const* frc) const;
 private:
     wxNotebook *nb;
     wxPanel *data_page, *func_page, *var_page, *bottom_panel;
@@ -212,6 +213,7 @@ private:
     std::vector<FancyRealCtrl*> bp_frc;
     std::vector<wxStaticText*> bp_statict;
     std::vector<bool> bp_sig;
+    Function const* bp_func;
     ListPlusText *d, *f, *v;
     wxChoice *data_look, *filter_ch;
     wxSpinCtrl *shiftup_sc;

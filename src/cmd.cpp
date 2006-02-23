@@ -357,14 +357,21 @@ void do_print_func_type(char const* a, char const* b)
 
 void do_import_dataset(char const*, char const*)
 {
-    if (tmp_int == new_dataset
-            && (AL->get_ds_count() != 1 || AL->get_data(0)->has_any_info()
-                || AL->get_sum(0)->has_any_info())) {
-        auto_ptr<Data> data(new Data);
-        data->load_file(t, t2, vn); 
-        tmp_int = AL->append_ds(data.release());
+    if (tmp_int == new_dataset) {
+        if (AL->get_ds_count() != 1 || AL->get_data(0)->has_any_info()
+                                    || AL->get_sum(0)->has_any_info()) {
+            // load data into new slot
+            auto_ptr<Data> data(new Data);
+            data->load_file(t, t2, vn); 
+            tmp_int = AL->append_ds(data.release());
+        }
+        else { // there is only one and empty slot -- load data there
+            AL->get_data(-1)->load_file(t, t2, vn); 
+            AL->view.fit();
+            tmp_int = 0;
+        }
     }
-    else {
+    else { // slot number was specified -- load data there
         AL->get_data(tmp_int)->load_file(t, t2, vn); 
         if (AL->get_ds_count() == 1)
             AL->view.fit();

@@ -84,6 +84,7 @@ public:
     void set_func_color(int n, wxColour const& col) 
         { peakPen[n % max_peak_pens].SetColour(col); }
     bool get_x_reversed() const { return x_reversed; }
+    void draw_xor_peak(Function const* func, std::vector<fp> const& p_values);
 
 private:
     MouseModeEnum basic_mode, 
@@ -123,7 +124,6 @@ private:
     void peak_draft (Mouse_act_enum ma, wxMouseEvent &event =dummy_mouse_event);
     void move_peak (Mouse_act_enum ma, wxMouseEvent &event = dummy_mouse_event);
     void draw_peak_draft (int X_mid, int X_hwhm, int Y);
-    void draw_xor_peak(Function const* func, std::vector<fp> const& p_values);
     bool rect_zoom (Mouse_act_enum ma, wxMouseEvent &event = dummy_mouse_event);
     void draw_rect (int X1, int Y1, int X2, int Y2);
     bool has_mod_keys(const wxMouseEvent& event); 

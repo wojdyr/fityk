@@ -59,9 +59,10 @@ public:
     void get_nonzero_idx_range(std::vector<fp> const &x, 
                                int &first, int &last) const;
                            
+    //true if FWHM, height, center and area of the function can be calculated
     virtual bool is_peak() const { return false; } 
     virtual fp center() const { return center_idx==-1 ? 0. : vv[center_idx]; }
-    bool has_center() const { return this->is_peak() || center_idx != -1; }
+    virtual bool has_center() const {return this->is_peak() || center_idx!=-1;}
     virtual fp height() const { return 0; }
     virtual fp fwhm() const { return 0; }
     virtual fp area() const { return 0; }
@@ -215,6 +216,25 @@ class FuncVoigt : public Function
     fp height() const { return vv[0]; }
     fp fwhm() const;
     fp area() const;
+};
+
+class FuncEMG : public Function
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(EMG)
+    void do_precomputations(std::vector<Variable*> const &variables); 
+    bool get_nonzero_range (fp level, fp &left, fp &right) const;  
+    bool is_peak() const { return false; } 
+    bool has_center() const { return true; }
+    fp center() const { return vv[1]; }
+};
+
+class FuncDoniachSunjic : public Function
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(DoniachSunjic)
+    bool get_nonzero_range (fp level, fp &left, fp &right) const;  
+    bool is_peak() const { return false; } 
+    bool has_center() const { return true; }
+    fp center() const { return vv[3]; }
 };
 
 class FuncPielaszekCube : public Function

@@ -750,9 +750,16 @@ void DataEditorDlg::OnReZoom (wxCommandEvent& WXUNUSED(event))
 
 void DataEditorDlg::execute_tranform(string code)
 {
-    replace_all(code, ";", frame->get_in_one_or_all_datasets()+";");
-    replace_all(code, "\n", frame->get_in_one_or_all_datasets()+"; ");
-    exec_command(code + frame->get_in_one_or_all_datasets());
+    replace_all(code, "\n", "; ");
+    vector<string> cmds = split_string(code, ';');
+    string t;
+    for (vector<string>::const_iterator i = cmds.begin(); i != cmds.end(); ++i){
+        if (!strip_string(*i).empty())
+            t += *i + frame->get_in_one_or_all_datasets();
+        if (i+1 != cmds.end())
+            t += ";";
+    }
+    exec_command(t);
 }
 
 void DataEditorDlg::OnHelp (wxCommandEvent& WXUNUSED(event))

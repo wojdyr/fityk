@@ -91,6 +91,8 @@ Function* Function::factory (string const &name_, string const &type_name,
     FACTORY_FUNC(SplitPearson7)
     FACTORY_FUNC(PseudoVoigt)
     FACTORY_FUNC(Voigt)
+    FACTORY_FUNC(EMG)
+    FACTORY_FUNC(DoniachSunjic)
     FACTORY_FUNC(Valente)
     FACTORY_FUNC(PielaszekCube)
     else 
@@ -112,6 +114,8 @@ const char* builtin_formulas[] = {
     FuncSplitPearson7::formula,
     FuncPseudoVoigt::formula,
     FuncVoigt::formula,
+    FuncEMG::formula,
+    FuncDoniachSunjic::formula,
     //FuncValente::formula,
     FuncPielaszekCube::formula
 };
@@ -859,6 +863,98 @@ fp FuncVoigt::area() const
 }
                                                             
 
+///////////////////////////////////////////////////////////////////////
+
+const char *FuncEMG::formula 
+= "EMG(a=height, b=center, c=fwhm*0.4, d=fwhm*0.04) ="
+                " a*c*(2*pi)^0.5/(2*d) * exp((b-x)/d + c^2/(2*d^2))"
+                " * (sign(d) - erf((b-x)/(2^0.5*c) + c/(2^0.5*d)))";
+
+void FuncEMG::do_precomputations(vector<Variable*> const &variables) 
+{ 
+    Function::do_precomputations(variables);
+}
+
+bool FuncEMG::get_nonzero_range(fp/*level*/, fp&/*left*/, fp&/*right*/) const
+    { return false; }
+
+DEFINE_FUNC_CALCULATE_VALUE_BEGIN(EMG)
+    fp a = vv[0];
+    fp bx = vv[1] - x;
+    fp c = vv[2];
+    fp d = vv[3];
+    fp sqrt2 = sqrt(2.);
+    fp fact = a*c*sqrt(2*M_PI)/(2*d);
+    fp ex = exp(bx/d + c*c/(2*d*d));
+    fp erf_arg = bx/(sqrt2*c) + c/(sqrt2*d);
+    fp t = fact * ex * (d >= 0 ? erfc(erf_arg) : -erfc(-erf_arg));
+    //fp t = fact * ex * (d >= 0 ? 1-erf(erf_arg) : -1-erf(erf_arg));
+DEFINE_FUNC_CALCULATE_VALUE_END(t)
+
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_BEGIN(EMG)
+    fp a = vv[0];
+    fp bx = vv[1] - x;
+    fp c = vv[2];
+    fp d = vv[3];
+    fp sqrt2 = sqrt(2.);
+    fp cs2d = c/(sqrt2*d);
+    fp cc = c*sqrt(M_PI/2)/d;
+    fp ex = exp(bx/d + cs2d*cs2d); //==exp((c^2+2bd-2dx) / 2d^2)
+    fp bx2c = bx/(sqrt2*c);
+    fp erf_arg = bx2c + cs2d; //== (c*c+b*d-d*x)/(sqrt2*c*d);
+    //fp er = erf(erf_arg);
+    //fp d_sign = d >= 0 ? 1 : -1;
+    //fp ser = d_sign - er;
+    fp ser = (d >= 0 ? erfc(erf_arg) : -erfc(-erf_arg));
+    fp t = cc * ex * ser;
+    fp eee = exp(erf_arg*erf_arg);
+    dy_dv[0] = t;
+    dy_dv[1] = -a/d * ex / eee + a*t/d;
+    dy_dv[2] = - a/(2*c*d*d*d)*exp(-bx2c*bx2c) 
+                  * (2*d*(c*c-bx*d) - sqrt(2*M_PI)*c*(c*c+d*d) * eee * ser);
+    //dy_dv[3] = a*c/(d*d*d)*ex * (c/eee 
+    //                             - d_sign * (c*cc + sqrt(M_PI/2)*(b+d-x))
+    //                             + sqrt(M_PI/2) * (c*c/d + b+d-x) * er);
+    dy_dv[3] = a*c/(d*d*d)*ex * (c/eee - ser * (c*cc + sqrt(M_PI/2)*(bx+d)));
+    dy_dx = - dy_dv[1];
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(a*t)
+///////////////////////////////////////////////////////////////////////
+
+const char *FuncDoniachSunjic::formula 
+= "DoniachSunjic(h=height, a=0.1, F=1, E=center) ="
+    "h * cos(pi*a/2 + (1-a)*atan((x-E)/F)) / (F^2+(x-E)^2)^((1-a)/2)";
+
+bool FuncDoniachSunjic::get_nonzero_range(fp/*level*/, fp&/*left*/, 
+                                          fp&/*right*/) const
+{ return false; }
+
+DEFINE_FUNC_CALCULATE_VALUE_BEGIN(DoniachSunjic)
+    fp h = vv[0];
+    fp a = vv[1];
+    fp F = vv[2];
+    fp xE = x - vv[3];
+    fp t = h * cos(M_PI*a/2 + (1-a)*atan(xE/F)) / pow(F*F+xE*xE, (1-a)/2);
+DEFINE_FUNC_CALCULATE_VALUE_END(t)
+
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_BEGIN(DoniachSunjic)
+    fp h = vv[0];
+    fp a = vv[1];
+    fp F = vv[2];
+    fp xE = x - vv[3];
+    fp fe2 = F*F+xE*xE;
+    fp ac = 1-a;
+    fp p = pow(fe2, -ac/2);
+    fp at = atan(xE/F);
+    fp cos_arg = M_PI*a/2 + ac*at;
+    fp co = cos(cos_arg);
+    fp si = sin(cos_arg);
+    fp t = co * p;
+    dy_dv[0] = t;
+    dy_dv[1] = h * p * (co/2 * log(fe2) + (at-M_PI/2) * si);
+    dy_dv[2] = h * ac*p/fe2 * (xE*si - F*co);
+    dy_dv[3] = h * ac*p/fe2 * (xE*co + si*F);
+    dy_dx = -dy_dv[3];
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(h*t)
 ///////////////////////////////////////////////////////////////////////
 
 const char *FuncValente::formula 

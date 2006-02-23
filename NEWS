@@ -1,6 +1,8 @@
-User-visible changes in version 0.7.1  (2006-0 -  ):
+User-visible changes in version 0.7.1  (2006-02-23):
+* new functions: EMG (expotentially modified gauss) and Doniach-Sunjic
 * GUI: fixes and improvements in printing
 * GUI: new aux. plot type: cumulative chi2 
+* minor bug fixes
 
 User-visible changes in version 0.7.0  (2006-02-08):
 * program can be compiled with unicode-enabled wxWidgets

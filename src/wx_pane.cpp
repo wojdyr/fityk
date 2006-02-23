@@ -348,10 +348,10 @@ void ListPlusText::OnSwitchInfo(wxCommandEvent &WXUNUSED(event))
 
 // first tiny callback class
 
-class ValueChangingWidgetCallback 
+class ValueChangingHandler 
 {
 public:
-    virtual ~ValueChangingWidgetCallback() {}
+    virtual ~ValueChangingHandler() {}
     virtual void change_value(fp factor) = 0;
     virtual void on_stop_changing() = 0;
 };
@@ -361,7 +361,7 @@ class ValueChangingWidget : public wxSlider
 {
 public:
     ValueChangingWidget(wxWindow* parent, wxWindowID id, 
-                        ValueChangingWidgetCallback* cb)
+                        ValueChangingHandler* cb)
         : wxSlider(parent, id, 0, -100, 100, wxDefaultPosition, wxSize(60, -1)),
           callback(cb), timer(this, -1), button(0) {}
 
@@ -375,7 +375,7 @@ public:
     void OnMouse(wxMouseEvent &event);
 
 private:
-    ValueChangingWidgetCallback *callback;
+    ValueChangingHandler *callback;
     wxTimer timer;
     char button;
     
@@ -424,19 +424,23 @@ void ValueChangingWidget::OnMouse(wxMouseEvent &event)
 //                          FancyRealCtrl
 //===============================================================
 
-class FancyRealCtrl : public wxPanel, public ValueChangingWidgetCallback
+class FancyRealCtrl : public wxPanel, public ValueChangingHandler
 {
 public:
     FancyRealCtrl(wxWindow* parent, wxWindowID id, 
-                  fp value, string const& tc_name);
+                  fp value, string const& tc_name, 
+                  SideBar const* draw_handler_);
     void change_value(fp factor);
     void on_stop_changing();
     void OnTextEnter(wxCommandEvent &WXUNUSED(event)) { on_stop_changing(); }
     void set(fp value, string const& tc_name);
+    fp get_value() const;
+    string get_name() const { return name; }
     DECLARE_EVENT_TABLE()
 private:
     fp initial_value;
     std::string name;
+    SideBar const* draw_handler;
     wxTextCtrl *tc;
 };
 
@@ -445,8 +449,10 @@ BEGIN_EVENT_TABLE(FancyRealCtrl, wxPanel)
 END_EVENT_TABLE()
 
 FancyRealCtrl::FancyRealCtrl(wxWindow* parent, wxWindowID id, 
-                             fp value, string const& tc_name)
-    : wxPanel(parent, id), initial_value(value), name(tc_name)
+                             fp value, string const& tc_name, 
+                             SideBar const* draw_handler_)
+    : wxPanel(parent, id), initial_value(value), name(tc_name),
+      draw_handler(draw_handler_)
 {
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
     tc = new wxTextCtrl(this, -1, s2wx(S(value)), 
@@ -474,8 +480,19 @@ void FancyRealCtrl::change_value(fp factor)
     bool ok = tc->GetValue().ToDouble(&t);
     if (!ok)
         return;
+    if (t != initial_value)
+        draw_handler->draw_function_draft(this);
     t += fabs(initial_value) * factor;
     tc->SetValue(s2wx(S(t)));
+    if (t != initial_value)
+        draw_handler->draw_function_draft(this);
+}
+
+fp FancyRealCtrl::get_value() const
+{
+    double t;
+    bool ok = tc->GetValue().ToDouble(&t);
+    return ok ? t : initial_value;
 }
 
 void FancyRealCtrl::on_stop_changing()
@@ -531,7 +548,7 @@ BEGIN_EVENT_TABLE(SideBar, ProportionalSplitter)
 END_EVENT_TABLE()
 
 SideBar::SideBar(wxWindow *parent, wxWindowID id)
-: ProportionalSplitter(parent, id, 0.75)
+: ProportionalSplitter(parent, id, 0.75), bp_func(0)
 {
     //wxPanel *upper = new wxPanel(this, -1);
     //wxBoxSizer *upper_sizer = new wxBoxSizer(wxVERTICAL);
@@ -1088,7 +1105,8 @@ void SideBar::add_variable_to_bottom_panel(Variable const* var,
     bp_statict.push_back(name_st);
     if (var->is_simple()) {
         FancyRealCtrl *frc = new FancyRealCtrl(bottom_panel, -1,
-                                               var->get_value(), var->xname);
+                                               var->get_value(), var->xname,
+                                               this);
         bp_sizer->Add(frc, 1, wxALL|wxEXPAND, 1);
         bp_frc.push_back(frc);
     }
@@ -1124,24 +1142,35 @@ vector<bool> SideBar::make_bottom_panel_sig(Function const* func)
     return sig;
 }
 
+void SideBar::draw_function_draft(FancyRealCtrl const* frc) const
+{
+    vector<fp> p_values(bp_func->nv);
+    for (int i = 0; i < bp_func->nv; ++i) {
+        string xname = "$" + bp_func->get_var_name(i);
+        p_values[i] = frc->get_name() != xname ? bp_func->get_var_value(i) 
+                                               : frc->get_value();
+    }
+    frame->get_main_plot()->draw_xor_peak(bp_func, p_values);
+}
 
 void SideBar::update_bottom_panel()
 {
     int n = get_focused_func();
     if (n < 0) {
         clear_bottom_panel();
+        bp_func = 0;
         return;
     }
     bottom_panel->Freeze();
-    Function const* func = AL->get_function(n);
-    bp_label->SetLabel(s2wx(func->xname + " : " + func->type_name));
-    vector<bool> sig = make_bottom_panel_sig(func);
+    bp_func = AL->get_function(n);
+    bp_label->SetLabel(s2wx(bp_func->xname + " : " + bp_func->type_name));
+    vector<bool> sig = make_bottom_panel_sig(bp_func);
     if (sig != bp_sig) {
         clear_bottom_panel();
         bp_sig = sig;
-        for (int i = 0; i < size(func->type_var_names); ++i) {
-            Variable const* var = AL->get_variable(func->get_var_idx(i));
-            add_variable_to_bottom_panel(var, func->type_var_names[i]);
+        for (int i = 0; i < bp_func->nv; ++i) {
+            Variable const* var = AL->get_variable(bp_func->get_var_idx(i));
+            add_variable_to_bottom_panel(var, bp_func->type_var_names[i]);
         }
         bottom_panel->Fit();
         int sash_pos = GetClientSize().GetHeight() 
@@ -1153,11 +1182,11 @@ void SideBar::update_bottom_panel()
     else {
         vector<wxStaticText*>::iterator st = bp_statict.begin();
         vector<FancyRealCtrl*>::iterator frc = bp_frc.begin();
-        for (int i = 0; i < size(func->type_var_names); ++i) {
-            string const& t = func->type_var_names[i];
+        for (int i = 0; i < bp_func->nv; ++i) {
+            string const& t = bp_func->type_var_names[i];
             (*st)->SetLabel(s2wx(t));
             ++st;
-            Variable const* var = AL->get_variable(func->get_var_idx(i));
+            Variable const* var = AL->get_variable(bp_func->get_var_idx(i));
             if (var->is_simple()) {
                   (*frc)->set(var->get_value(), var->xname);
                   ++frc;

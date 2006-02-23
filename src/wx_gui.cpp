@@ -928,13 +928,7 @@ void FFrame::OnFastDT (wxCommandEvent& event)
     for (vector<DataTransExample>::const_iterator i = examples.begin();
             i != examples.end(); ++i)
         if (i->name == name) {
-            vector<string> cmds = split_string(i->code, ';');
-            string code;
-            for (vector<string>::const_iterator i = cmds.begin(); 
-                                                      i != cmds.end(); ++i)
-                if (!strip_string(*i).empty())
-                    code += *i + get_in_one_or_all_datasets()+";";
-            DataEditorDlg::execute_tranform(code);
+            DataEditorDlg::execute_tranform(i->code);
             return;
         }
 }

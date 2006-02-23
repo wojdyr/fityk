@@ -841,7 +841,7 @@
      as described in <xref linkend="guess"/>.
     </para>
     <para>
-     You can change the variable binded to any of function parameters
+     You can change variable binded to any of function parameters
      in this way:
      <screen>
       =-> %f = Pearson7(height=~66254., center=~24.7, fwhm=~0.264)
@@ -852,6 +852,7 @@
       =-> info %f
       %f = Pearson7($h, $_5, $_3, $_4)
       =-> $h = ~60000 # variables are kept by name, so this also changes %f
+      =-> %p1[center] = %p2[center] + 3 # keep fixed distance between %p1 and %p2
      </screen>
     </para>
     <para>
