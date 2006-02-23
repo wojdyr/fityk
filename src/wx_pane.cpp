@@ -203,8 +203,10 @@ FPlot* PlotPane::get_plot_n(int n) const
         return plot;
     else if (n >= 0 && n < 2)
         return aux_plot[n];
-    else
+    else {
         assert(0);
+        return 0;
+    }
 } 
 
 bool PlotPane::aux_visible(int n) const
@@ -1198,6 +1200,7 @@ void SideBar::update_bottom_panel()
                 ++st;
             }
         }
+        bottom_panel->Fit();
     }
     bottom_panel->Thaw();
 }
