@@ -419,7 +419,7 @@ void AuxPlot::Draw(wxDC &dc, bool monochrome)
     fp (*f)(vector<Point>::const_iterator, Sum const*) = 0;
     bool cummulative = false;
     if (kind == apk_diff) 
-        f = diff_y_proc_of_data_for_draw_data;
+        f = diff_of_data_for_draw_data;
     else if (kind == apk_diff_stddev)
         f = diff_stddev_of_data_for_draw_data;
     else if (kind == apk_diff_y_proc)
@@ -429,8 +429,7 @@ void AuxPlot::Draw(wxDC &dc, bool monochrome)
         cummulative = true;
     }
     wxColour col = monochrome ? dc.GetPen().GetColour() : wxNullColour;
-    draw_data (dc, diff_chi2_of_data_for_draw_data, data, sum,
-               col, col, 0, cummulative);
+    draw_data (dc, f, data, sum, col, col, 0, cummulative);
 }
 
 void AuxPlot::draw_zoom_text(wxDC& dc, bool set_pen)
