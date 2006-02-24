@@ -1,6 +1,12 @@
 
-* BUG: program crashes (MS Win 9x) when data contains NaN (as a result
+* [BUG] bottom panel of sidebar, layout problems
+
+* [BUG]: program crashes (MS Win 9x) when data contains NaN (as a result
   of asin(x) x>1) and "Zoom all" is called.
+
+* area-based functions (peaks), as alternative to height-based ones
+
+------------- next release here (?)
 
 * logarithmic scale  
 
@@ -13,21 +19,24 @@
    or equivalent."
    Tab "Layout" with explaination, that how GUI settings are handled.
 
-------------- next release here (?)
+* (GUI) data-range mode: if all points are active, left mouse button
+  should "select", not "activate", ie. it should do A = (left<x<right)
 
-* mixed data/sum export, eg:
-  x, y, abs(y-F(x)), %foo(x), %bar(x) > file #only active points are exported
-  "*F" expands to all functions in F
+------------- next release here (?)
 
 * DataExpressionGrammar: 
     %func(DataExpressionG) #OP_FUNC number #eg. Y = y-%peak(x)       
     F(DataExpressionG)     #OP_CURVE_Y number
     Z(DataExpressionG)     #OP_CURVE_DX number
     %peak[area]            #OP_NUMBER
+    numarea (%f, x1, x2, step) #OP_NUMBER
+    # search x for which %f(x)==value, based on rtsafe, NR p. 366
+    # value must be bracketed by x1 and x2
+    findvalue (%f, x1, x2, value) # OP_NUMBER 
         - to avoid ambiguity,  '%' should be replaced with 'mod' (?)
     '&' -> ',' (?)
     aggregate functions: min, max, sum, avg, stddev, eg.  min(y if 20<x<25)
-      area function?  area(y-F(x) if 20<x<25)    -> (x[n+1]-x[n-1])/2 * t
+      area function:  area(y-F(x) if 20<x<25)    -> (x[n+1]-x[n-1])/2 * t
     parametrized functions with parameters as expression: spline[x if ...](x)
       ->step equilibration: X = x[0] + (x[-1]-x[0])/(M-1) * n
      			  & Y = interpolate[x y](X)
@@ -35,6 +44,10 @@
      			  & A = interpolate[x a](X)
     [BUG] sum() doesn't work in "info sum(x)" or $a={sum(y)}
     new functions: randuniform[a b]() randnormal[mu sigma]()
+
+* mixed data/sum export, eg:
+  x, y, abs(y-F(x)), %foo(x), %bar(x) > file #only active points are exported
+  "*F" expands to all functions in F
 
 * (F > file) when exporting function/sum as points, it shuld be possible 
   to set step of these points (eg. F [from:to:step] > file

@@ -369,13 +369,13 @@ bool export_data_dlg(wxWindow *parent, bool load_exported)
 }
 
 //======================================================================
-//                         PageSetupDlg
+//                         PageSetupDialog
 //======================================================================
-BEGIN_EVENT_TABLE(PageSetupDlg, wxDialog)
-    EVT_BUTTON(wxID_OK, PageSetupDlg::OnOk)
+BEGIN_EVENT_TABLE(PageSetupDialog, wxDialog)
+    EVT_BUTTON(wxID_OK, PageSetupDialog::OnOk)
 END_EVENT_TABLE()
 
-PageSetupDlg::PageSetupDlg(wxWindow *parent, PrintManager *print_mgr)
+PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
     : wxDialog(parent, -1, wxT("Page Setup"), 
                wxDefaultPosition, wxDefaultSize, 
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
@@ -465,7 +465,7 @@ PageSetupDlg::PageSetupDlg(wxWindow *parent, PrintManager *print_mgr)
     */
 }
 
-void PageSetupDlg::OnOk(wxCommandEvent& event) 
+void PageSetupDialog::OnOk(wxCommandEvent& event) 
 {
     pm->landscape = (orientation->GetSelection() == 1);
     pm->colors = colors->GetSelection() == 1;
@@ -639,7 +639,7 @@ void PrintManager::printPreview()
 
 void PrintManager::pageSetup()
 {
-    PageSetupDlg dlg(frame, this);
+    PageSetupDialog dlg(frame, this);
     dlg.ShowModal();
     /*
      * Old standard wxWidgets "page setup" dlg worked in this way:
@@ -659,7 +659,7 @@ void PrintManager::pageSetup()
 void PrintManager::print()
 {
     /*
-    if (!plot_pane->is_background_white())
+    f (!plot_pane->is_background_white())
         if (wxMessageBox(wxT("Plots will be printed on white background, \n")
                            wxT("to save ink/toner.\n")
                            wxT("Now background of your plot on screen\n")

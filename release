@@ -20,7 +20,7 @@ MINGW_DIR=cross_win32
 ALL_WIN_FILES=all_files #inside of $MINGW_DIR
 
 win_setup_filename=fityk-$version-setup.exe
-tarball_filename=fityk-$version.tar.gz
+tarball_filename=fityk-$version.tar.bz2
 
 if [ $# -eq 0 ]; then 
  echo Version in this script is set to $version
@@ -70,7 +70,7 @@ elif [ $1 -eq 1 ]; then
  cd $BUILD_DIR
  ../configure --prefix=$HOME/local
  make 
- make dist-gzip
+ make dist-bzip2
  mv $tarball_filename ..
  make install
  echo run samples...

@@ -76,10 +76,10 @@ private:
 };
 
 
-class PageSetupDlg: public wxDialog
+class PageSetupDialog: public wxDialog
 {
 public:
-    PageSetupDlg(wxWindow *parent, PrintManager *print_mgr);
+    PageSetupDialog(wxWindow *parent, PrintManager *print_mgr);
     void OnOk(wxCommandEvent& event);
 protected:
     PrintManager *pm;
