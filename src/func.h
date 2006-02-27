@@ -66,7 +66,8 @@ public:
     virtual fp height() const { return 0; }
     virtual fp fwhm() const { return 0; }
     virtual fp area() const { return 0; }
-    fp get_var_value(int n) const { assert(n>=0 && n<size(vv)); return vv[n]; }
+    fp get_var_value(int n) const 
+             { assert(n>=0 && n<size(vv)); return vv[n]; }
     std::string get_info(std::vector<Variable*> const &variables, 
                     std::vector<fp> const &parameters, 
                     bool extended=false) const;
@@ -84,11 +85,18 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
+// a new class can be derived from class-derived-from-Function,
+// but it should use the first constructor (with formula)
 #define DECLARE_FUNC_OBLIGATORY_METHODS(NAME) \
+    friend class Function;\
+protected:\
+    Func##NAME (std::string const &name, std::vector<std::string> const &vars,\
+                std::string const &formula_) \
+        : Function(name, vars, formula_) {}\
+private:\
     Func##NAME (std::string const &name, std::vector<std::string> const &vars)\
         : Function(name, vars, formula) {}\
     Func##NAME (const Func##NAME&); \
-    friend class Function;\
 public:\
     static const char *formula; \
     void calculate_value(std::vector<fp> const &xx, std::vector<fp> &yy) const;\

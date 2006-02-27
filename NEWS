@@ -1,4 +1,5 @@
 User-visible changes in version 0.7.2  (2006-0 -  ):
+* GUI: "directories" tab in settings dialog 
 
 User-visible changes in version 0.7.1  (2006-02-23):
 * new functions: EMG (expotentially modified gauss) and Doniach-Sunjic

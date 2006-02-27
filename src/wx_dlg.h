@@ -135,6 +135,8 @@ class SettingsDlg : public wxDialog
 public:
     typedef std::vector<std::pair<std::string, std::string> > pair_vec;
     SettingsDlg(wxWindow* parent, const wxWindowID id);
+    void OnChangeButton(wxCommandEvent& event);
+    void OnOK(wxCommandEvent& event);
     pair_vec get_changed_items();
 private:
     wxRadioBox *autoplot_rb;
@@ -142,6 +144,8 @@ private:
     wxCheckBox *exit_cb;
     RealNumberCtrl *cut_func, *height_correction, *width_correction;
     wxCheckBox *cancel_poos;
+    wxTextCtrl *dir_ld_tc, *dir_xs_tc;
+    DECLARE_EVENT_TABLE()
 };
 
 

@@ -88,7 +88,9 @@ enum {
     ID_DE_RESET                    ,
     ID_DE_CODE                     ,
     ID_DE_EXAMPLES                 ,
-    ID_DE_REZOOM
+    ID_DE_REZOOM                   ,
+    ID_SET_LDBUT                   ,
+    ID_SET_XSBUT
 };
 
 
@@ -902,6 +904,12 @@ wxString get_user_conffile(string const& filename)
 
 //=====================    setttings  dialog    ==================
 
+BEGIN_EVENT_TABLE(SettingsDlg, wxDialog)
+    EVT_BUTTON (ID_SET_LDBUT, SettingsDlg::OnChangeButton)
+    EVT_BUTTON (ID_SET_XSBUT, SettingsDlg::OnChangeButton)
+    EVT_BUTTON (wxID_OK, SettingsDlg::OnOK)
+END_EVENT_TABLE()
+    
 SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     : wxDialog(parent, id, wxT("Settings"),
                wxDefaultPosition, wxDefaultSize, 
@@ -914,6 +922,8 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     nb->AddPage(page_peakfind, wxT("peak-finding"));
     wxPanel *page_fitting = new wxPanel(nb, -1);
     nb->AddPage(page_fitting, wxT("fitting"));
+    wxPanel *page_dirs = new wxPanel(nb, -1);
+    nb->AddPage(page_dirs, wxT("directories"));
 
     // page general
     wxStaticText *cut_st = new wxStaticText(page_general, -1, 
@@ -972,14 +982,52 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     sizer_pf->Add(cancel_poos, 0, wxALL, 5);
     page_peakfind->SetSizerAndFit(sizer_pf);
 
+    // page fitting 
     // TODO
 
+    // page directories
+    wxBoxSizer *sizer_dirs = new wxBoxSizer(wxVERTICAL);
+    wxStaticBoxSizer *sizer_dirs_data = new wxStaticBoxSizer(wxHORIZONTAL,
+                     page_dirs, wxT("default directory for load data dialog"));
+    dir_ld_tc = new wxTextCtrl(page_dirs, -1, 
+                           wxConfig::Get()->Read(wxT("/loadDataDir"), wxT("")));
+    sizer_dirs_data->Add(dir_ld_tc, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    sizer_dirs_data->Add(new wxButton(page_dirs, ID_SET_LDBUT, wxT("Change")),
+                         0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    sizer_dirs->Add(sizer_dirs_data, 0, wxEXPAND|wxALL, 5);
+    wxStaticBoxSizer *sizer_dirs_script = new wxStaticBoxSizer(wxHORIZONTAL,
+                page_dirs, wxT("default directory for execute script dialog"));
+    dir_xs_tc = new wxTextCtrl(page_dirs, -1, 
+                         wxConfig::Get()->Read(wxT("/execScriptDir"), wxT("")));
+    sizer_dirs_script->Add(dir_xs_tc, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    sizer_dirs_script->Add(new wxButton(page_dirs, ID_SET_XSBUT, wxT("Change")),
+                           0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    sizer_dirs->Add(sizer_dirs_script, 0, wxEXPAND|wxALL, 5);
+    sizer_dirs->Add(new wxStaticText(page_dirs, -1, 
+                       wxT("Directories given above are used when a dialog\n")
+                       wxT(" is displayed first time after program launch.")),
+                    0, wxALL, 5);
+    page_dirs->SetSizerAndFit(sizer_dirs);
+
+    //finish layout
     wxBoxSizer *top_sizer = new wxBoxSizer (wxVERTICAL);
     top_sizer->Add(nb, 1, wxALL|wxEXPAND, 10);
     top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
     top_sizer->Add (CreateButtonSizer (wxOK|wxCANCEL), 
                     0, wxALL|wxALIGN_CENTER, 5);
     SetSizerAndFit(top_sizer);
+}
+
+void SettingsDlg::OnChangeButton(wxCommandEvent& event)
+{
+    wxTextCtrl *tc = 0;
+    if (event.GetId() == ID_SET_LDBUT)
+        tc = dir_ld_tc;
+    else if (event.GetId() == ID_SET_XSBUT)
+        tc = dir_xs_tc;
+    wxString dir = wxDirSelector("Choose a folder", tc->GetValue());
+    if (!dir.empty())
+        tc->SetValue(dir);
 }
 
 SettingsDlg::pair_vec SettingsDlg::get_changed_items()
@@ -999,4 +1047,20 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
             result.push_back(make_pair(*i, m[*i]));
     return result;
 }
+
+void SettingsDlg::OnOK(wxCommandEvent& event)
+{
+    vector<pair<string, string> > p = get_changed_items();
+    if (!p.empty()) {
+        vector<string> eqs;
+        for (vector<pair<string, string> >::const_iterator i = p.begin();
+                i != p.end(); ++i)
+            eqs.push_back(i->first + "=" + i->second);
+        exec_command ("set " + join_vector(eqs, ", "));
+    }
+    wxConfig::Get()->Write(wxT("/loadDataDir"), dir_ld_tc->GetValue());
+    wxConfig::Get()->Write(wxT("/execScriptDir"), dir_xs_tc->GetValue());
+    wxDialog::OnOK(event);
+}
+
 

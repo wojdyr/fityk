@@ -839,7 +839,7 @@ void FFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 
 void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
 {
-    static wxString dir = wxT("");
+    static wxString dir = wxConfig::Get()->Read(wxT("/loadDataDir"));
     wxFileDialog fdlg (this, wxT("Load data from a file"), dir, wxT(""),
                               wxT("x y files (*.dat, *.xy, *.fio)")
                                       wxT("|*.dat;*.DAT;*.xy;*.XY;*.fio;*.FIO") 
@@ -1102,7 +1102,7 @@ void FFrame::OnO_Reset   (wxCommandEvent& WXUNUSED(event))
         
 void FFrame::OnOInclude      (wxCommandEvent& WXUNUSED(event))
 {
-    static wxString dir = wxT("");
+    static wxString dir = wxConfig::Get()->Read(wxT("/execScriptDir"));
     wxFileDialog fdlg (this, wxT("Execute commands from file"), dir, wxT(""),
                               wxT("fityk file (*.fit)|*.fit;*.FIT|all files|*"),
                               wxOPEN | wxFILE_MUST_EXIST);
@@ -1133,16 +1133,7 @@ void FFrame::OnODump         (wxCommandEvent& WXUNUSED(event))
 void FFrame::OnSetttings    (wxCommandEvent& WXUNUSED(event))
 {
     SettingsDlg *dialog = new SettingsDlg(this, -1);
-    if (dialog->ShowModal() == wxID_OK) {
-        vector<pair<string, string> > p = dialog->get_changed_items();
-        if (!p.empty()) {
-            vector<string> eqs;
-            for (vector<pair<string, string> >::const_iterator i = p.begin();
-                    i != p.end(); ++i)
-                eqs.push_back(i->first + "=" + i->second);
-            exec_command ("set " + join_vector(eqs, ", "));
-        }
-    }
+    dialog->ShowModal();
     dialog->Destroy();
 }
 

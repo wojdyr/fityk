@@ -83,7 +83,6 @@ Function* Function::factory (string const &name_, string const &type_name,
     FACTORY_FUNC(Polynomial4)
     FACTORY_FUNC(Polynomial5)
     FACTORY_FUNC(Polynomial6)
-    FACTORY_FUNC(Linear)
     FACTORY_FUNC(Gaussian)
     FACTORY_FUNC(SplitGaussian)
     FACTORY_FUNC(Lorentzian)
@@ -226,22 +225,22 @@ string Function::get_info(vector<Variable*> const &variables,
 string Function::get_current_definition(vector<Variable*> const &variables,
                                         vector<fp> const &parameters) const
 {
-    vector<string> vv; 
+    vector<string> vs; 
     assert(type_var_names.size() == var_idx.size());
     for (int i = 0; i < size(var_idx); ++i) {
         Variable const* v = variables[var_idx[i]];
         string t = type_var_names[i] + "=" 
                    + (v->is_simple() ? v->get_formula(parameters) : v->xname);
-        vv.push_back(t);
+        vs.push_back(t);
     }
-    return xname + " = " + type_name + "(" + join_vector(vv, ", ") + ")";
+    return xname + " = " + type_name + "(" + join_vector(vs, ", ") + ")";
 }
 
 string Function::get_current_formula(string const& x) const
 {
     string t = type_rhs;
     for (int i = 0; i < size(type_var_names); ++i) 
-        replace_words(t, type_var_names[i], S(vv[i]));
+        replace_words(t, type_var_names[i], S(get_var_value(i)));
     replace_words(t, "x", x);
     return t;
 }
@@ -918,6 +917,7 @@ DEFINE_FUNC_CALCULATE_VALUE_DERIV_BEGIN(EMG)
     dy_dv[3] = a*c/(d*d*d)*ex * (c/eee - ser * (c*cc + sqrt(M_PI/2)*(bx+d)));
     dy_dx = - dy_dv[1];
 DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(a*t)
+
 ///////////////////////////////////////////////////////////////////////
 
 const char *FuncDoniachSunjic::formula 

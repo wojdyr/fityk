@@ -156,9 +156,8 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
 
     //selecting columns
     columns_panel = new wxPanel (left_panel, -1);
-    wxStaticBox *cbox = new wxStaticBox(columns_panel, -1, 
-                                        wxT("Select columns:"));
-    wxStaticBoxSizer *h2a_sizer = new wxStaticBoxSizer (cbox, wxHORIZONTAL);
+    wxStaticBoxSizer *h2a_sizer = new wxStaticBoxSizer(wxHORIZONTAL, 
+                                        columns_panel, wxT("Select columns:"));
     h2a_sizer->Add (new wxStaticText (columns_panel, -1, wxT("x")), 
                     0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     x_column = new wxSpinCtrl (columns_panel, ID_DXLOAD_COLX, wxT("1"), 
@@ -429,8 +428,8 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
                             2, color_choices, 
                             1, wxRA_SPECIFY_COLS);
     top_sizer->Add(colors, 0, wxALL|wxEXPAND, 5);
-    wxStaticBox *box = new wxStaticBox(this, -1, wxT("Optional elements"));
-    wxStaticBoxSizer *boxsizer = new wxStaticBoxSizer (box, wxVERTICAL);
+    wxStaticBoxSizer *boxsizer = new wxStaticBoxSizer(wxVERTICAL, this, 
+                                                      wxT("Optional elements"));
     for (int i = 0; i < 2; ++i) {
         plot_aux[i] = new wxCheckBox(this, -1, 
                                 wxString::Format(wxT("auxiliary plot %i"), i));

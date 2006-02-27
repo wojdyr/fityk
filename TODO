@@ -1,26 +1,27 @@
 
+* [BUG] printing is not working on MS Windows
+
 * [BUG] bottom panel of sidebar, layout problems
 
 * [BUG]: program crashes (MS Win 9x) when data contains NaN (as a result
   of asin(x) x>1) and "Zoom all" is called.
 
-* area-based functions (peaks), as alternative to height-based ones
+* area-based Voigt function
+
+* (DOC) howto add new built-in function 
 
 ------------- next release here (?)
 
 * logarithmic scale  
 
-* (GUI) Session>Settings: tab "Directories" with default 
-   scripts/data directories and buttons "Save" and "Clear" with comment:
-   if you do not press "Save", these settings will be forgotten after
-   program restart.
-   In every other tab: "Note: if you want to have these settings
+* Settings dialog: explainations like: 
+   "Note: if you want to have these settings
    after program restart, put proper commands into file $HOME/.fityk/init
    or equivalent."
-   Tab "Layout" with explaination, that how GUI settings are handled.
+   Tab "Layout" with explaination, how GUI settings are handled.
 
 * (GUI) data-range mode: if all points are active, left mouse button
-  should "select", not "activate", ie. it should do A = (left<x<right)
+  should "select", not "activate", ie. it should do A = (left<x<right)  (?)
 
 ------------- next release here (?)
 
@@ -29,7 +30,7 @@
     F(DataExpressionG)     #OP_CURVE_Y number
     Z(DataExpressionG)     #OP_CURVE_DX number
     %peak[area]            #OP_NUMBER
-    numarea (%f, x1, x2, step) #OP_NUMBER
+    numarea (%f, x1, x2, step) #OP_NUMBER # numarea or quadrature ?
     # search x for which %f(x)==value, based on rtsafe, NR p. 366
     # value must be bracketed by x1 and x2
     findvalue (%f, x1, x2, value) # OP_NUMBER 
@@ -135,6 +136,10 @@
 
 * view with/without background button (like in 0.4.x, requires storing
   background points)
+
+* user defined functions derived from other functions:
+   define GaussianA(area, center, fwhm): \
+      Gaussian(area/fwhm/sqrt(pi*ln(2)), center, fwhm)
 
 * user defined functions:
       - syntax:
