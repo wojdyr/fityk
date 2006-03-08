@@ -1,17 +1,7 @@
 
-* [BUG]: program crashes (MS Win 9x) when data contains NaN (as a result
-  of asin(x) x>1) and "Zoom all" is called.
-
-* (DOC) howto add new built-in function 
+* logarithmic scale  
 
 * (DOC) update list of functions
-
-* [BUG] unconfirmed -- program crashes when trying to add a peak 
-        (Fedora development, GCC 4.1)
-
-------------- next release here (?)
-
-* logarithmic scale  
 
 * Settings dialog: explainations like: 
    "Note: if you want to have these settings
@@ -21,6 +11,12 @@
 
 * (GUI) data-range mode: if all points are active, left mouse button
   should "select", not "activate", ie. it should do A = (left<x<right)  (?)
+
+* [BUG]: program crashes (MS Win 9x) when data contains NaN (as a result
+  of asin(x) x>1) and "Zoom all" is called.
+
+* [BUG] unconfirmed -- program crashes when trying to add a peak 
+        (Fedora development, GCC 4.1)
 
 ------------- next release here (?)
 
@@ -222,4 +218,6 @@
 
 * investigate LLVM - can it be used for faster calculation of 
   user-defined functions?
+
+* [BUG] (GUI) (MS Win) <br> does not work in vertical peak labels 
 

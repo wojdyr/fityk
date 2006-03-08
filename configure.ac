@@ -115,7 +115,7 @@ AC_LANG_POP([C++]) dnl C is faster than C++
 dnl Checks for version specific libraries and headers.
 if test "$enable_GUI" != "no" ; then 
     FITYK=fityk$PROGRAM_EXT 
-    AM_PATH_WXCONFIG(2.5.3, wxWin=1)
+    AM_PATH_WXCONFIG(2.6.0, wxWin=1)
     if test "$wxWin" != 1; then
     	AC_MSG_ERROR([
     	      wxWindows must be installed on your system

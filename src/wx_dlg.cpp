@@ -1025,7 +1025,7 @@ void SettingsDlg::OnChangeButton(wxCommandEvent& event)
         tc = dir_ld_tc;
     else if (event.GetId() == ID_SET_XSBUT)
         tc = dir_xs_tc;
-    wxString dir = wxDirSelector("Choose a folder", tc->GetValue());
+    wxString dir = wxDirSelector(wxT("Choose a folder"), tc->GetValue());
     if (!dir.empty())
         tc->SetValue(dir);
 }

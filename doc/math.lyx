@@ -1,0 +1,342 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass article
+\language english
+\inputencoding auto
+\fontscheme default
+\graphics default
+\paperfontsize 12
+\spacing single 
+\papersize Default
+\paperpackage a4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+
+Equations for fityk help
+\layout Section*
+
+various symbols and equations 
+\layout Standard
+
+
+\begin_inset Formula $2\theta$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula $\sigma$
+\end_inset 
+
+ 
+\layout Standard
+
+
+\begin_inset Formula $w_{i}=1/\sigma_{i}^{2}$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+w_{i}=\frac{1}{\sigma_{i}^{2}}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula $S=\sum_{i}f_{i}$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+S=\sum_{i}f_{i}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula $S(x;\mathbf{a})=\sum_{i}f_{i}(x+z(x;\mathbf{a});\mathbf{a})$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+S(x;\mathbf{a})=\sum_{i}f_{i}(x+z(x;\mathbf{a});\mathbf{a})\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula $z(x;\mathbf{a})=\sum_{j}z_{j}(x;\mathbf{a})$
+\end_inset 
+
+
+\begin_inset Formula \[
+z(x;\mathbf{a})=\sum_{j}z_{j}(x;\mathbf{a})\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+a_{0}\exp\left[-\ln(2)\left(\frac{x-a_{1}}{a_{2}}\right)^{2}\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\chi^{2}(\mathbf{a})=\sum_{i=1}^{N}\left[\frac{y_{i}-y(x_{i};\mathbf{a})}{\sigma_{i}}\right]^{2}=\sum_{i=1}^{N}w_{i}\left[y_{i}-y(x_{i};\mathbf{a})\right]^{2}\]
+
+\end_inset 
+
+
+\layout Section*
+
+f-functions
+\layout Standard
+
+
+\begin_inset Formula \[
+t=\frac{x-a_{1}}{a_{2}}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+y=a_{0}\exp\left[-\ln(2)t^{2}\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+y=\frac{a_{0}}{1+t^{2}}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+y=a_{0}\left[a_{3}\exp\left(-\ln(2)t^{2}\right)+\frac{1-a_{3}}{1+t^{2}}\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+y=\frac{a_{0}}{\left[1+t^{2}\left(2^{\frac{1}{a_{3}}}-1\right)\right]^{a_{3}}}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+y=\frac{a_{0}\int_{-\infty}^{+\infty}\frac{\exp(-t^{2})}{a_{3}^{2}+(\frac{x-a_{1}}{a_{2}}-t)^{2}}dt}{\int_{-\infty}^{+\infty}\frac{\exp(-t^{2})}{a_{3}^{2}+t^{2}}dt}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+y=a_{0}+a_{1}x+a_{2}x^{2}+a_{3}x^{3}+a_{4}x^{4}+a_{5}x^{5}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+y=\frac{ac\sqrt{2\pi}}{2d}\exp\left(\frac{b-x}{d}+\frac{c^{2}}{2d^{2}}\right)\left[\frac{d}{\left|d\right|}-\textrm{erf}\left(\frac{b-x}{\sqrt{2}c}+\frac{c}{\sqrt{2}d}\right)\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+y=\frac{h\left[\frac{\pi a}{2}+(1-a)\arctan\left(\frac{x-E}{F}\right)\right]}{F+(x-E)^{2}}\]
+
+\end_inset 
+
+
+\layout Section*
+
+zero-shifts
+\layout Standard
+
+
+\begin_inset Formula $z=a_{0}$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula $z=a_{0}\cos(x[\textrm{RAD}]/2)$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula $z=a_{0}\sin(x[\textrm{RAD}])$
+\end_inset 
+
+
+\layout Section*
+
+Xtal
+\layout Standard
+
+Mod-TCH pV
+\layout Standard
+
+
+\begin_inset Formula $a_{3}=1.36603q-0.47719q^{2}+0.1116q^{3}$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula $q=\Gamma_{L}/\Gamma$
+\end_inset 
+
+ 
+\layout Standard
+
+
+\begin_inset Formula \[
+\Gamma=(\Gamma_{G}^{5}+2.69269\Gamma_{G}^{4}\Gamma_{L}+2.42843\Gamma_{G}^{3}\Gamma_{L}^{2}+4.47163\Gamma_{G}^{2}\Gamma_{L}^{3}+0.07842\Gamma_{G}\Gamma_{L}^{4}+\Gamma_{L}^{5})^{0.2}=H_{K}=2a_{2}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \begin{eqnarray*}
+\Gamma & = & (\Gamma_{G}^{5}+A\Gamma_{G}^{4}\Gamma_{L}+B\Gamma_{G}^{3}\Gamma_{L}^{2}+C\Gamma_{G}^{2}\Gamma_{L}^{3}+D\Gamma_{G}\Gamma_{L}^{4}+\Gamma_{L}^{5})^{0.2}=H_{K}=2a_{2}\end{eqnarray*}
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+A=2.69269,B=2.42843,C=4.47163,D=0.07842\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula $\Gamma=(\Gamma_{G}^{5}+2.69269\Gamma_{G}^{4}\Gamma_{L}+2.42843\Gamma_{G}^{3}\Gamma_{L}^{2}+4.47163\Gamma_{G}^{2}\Gamma_{L}^{3}+0.07842\Gamma_{G}\Gamma_{L}^{4}+\Gamma_{L}^{5})^{0.2}=H_{K}=2a_{2}$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula $\Gamma_{G}=(U\tan^{2}\theta+V\tan\theta+W+Z/\cos^{2}\theta)^{1/2}$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula $\Gamma_{L}=X\tan\theta+Y/\cos\theta$
+\end_inset 
+
+
+\layout Standard
+
+Pearson:
+\layout Standard
+
+
+\begin_inset Formula $a_{3}=A+B/2\theta+C/(2\theta)^{2}$
+\end_inset 
+
+
+\layout Standard
+
+Pseudo-Voigt:
+\layout Standard
+
+
+\begin_inset Formula $a_{3}=A+B*(2\theta)$
+\end_inset 
+
+
+\layout Standard
+
+Caglioti:
+\layout Standard
+
+
+\begin_inset Formula $(2a_{2})^{2}=H_{K}^{2}=U\tan^{2}\theta+V\tan\theta+W$
+\end_inset 
+
+
+\layout Standard
+
+Lowe-Ma
+\layout Standard
+
+
+\begin_inset Formula $(2a_{2})^{2}=H_{K}^{2}=U\tan^{2}\theta+V\tan\theta+W+CT\cot^{2}\theta$
+\end_inset 
+
+
+\the_end

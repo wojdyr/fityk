@@ -293,11 +293,11 @@ void MainPlot::draw_plabels (wxDC& dc, Sum const* sum, bool set_pen)
         wxString label = s2wx(plabels[k]);
         wxCoord w, h;
         if (vertical_plabels) {
-            dc.GetTextExtent (label, &h, &w); // w and h swapped
+            dc.GetMultiLineTextExtent(label, &h, &w); // w and h swapped
             h = 0; // Y correction is not needed
         }
         else
-            dc.GetTextExtent (label, &w, &h);
+            dc.GetMultiLineTextExtent(label, &w, &h);
         int X = peaktop.x - w/2;
         int Y = peaktop.y - h - 2;
         wxRect rect(X, Y, w, h);
@@ -323,7 +323,7 @@ void MainPlot::draw_plabels (wxDC& dc, Sum const* sum, bool set_pen)
         if (vertical_plabels)
             dc.DrawRotatedText(label, rect.x, rect.y, 90);
         else
-            dc.DrawText(label, rect.x, rect.y);
+            dc.DrawLabel(label, rect, wxALIGN_CENTER|wxALIGN_BOTTOM);
     }
 }
 
