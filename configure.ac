@@ -142,6 +142,7 @@ if test "$enable_CLI" != "no"; then
 
     AC_CHECK_HEADER(unistd.h, [], [AC_MSG_ERROR(
       [You don't have an unistd.h header, that is required to build cfityk.])])
+
 fi
 
 if test "$with_doc" != "no"; then

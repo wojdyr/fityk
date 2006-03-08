@@ -124,8 +124,10 @@ public:
     void OnODump         (wxCommandEvent& event);         
     void OnSetttings     (wxCommandEvent& event);        
     void OnPrintPreview  (wxCommandEvent& event);
-    void OnPageSetup    (wxCommandEvent& event);
+    void OnPageSetup     (wxCommandEvent& event);
     void OnPrint         (wxCommandEvent& event);
+    void OnPrintPSFile   (wxCommandEvent& event);
+    void OnPrintToClipboard (wxCommandEvent& event);
     void OnChangeMouseMode (wxCommandEvent& event);
     void OnModePeak      (wxUpdateUIEvent& event);
     void OnChangePeakType(wxCommandEvent& event);

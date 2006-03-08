@@ -1,6 +1,11 @@
 # $Id$
 
 EXTRA_DIST = fityk.spec fityk.iss fityk.url 
-AUTOMAKE_OPTIONS = dist-zip dist-bzip2 
+AUTOMAKE_OPTIONS = dist-bzip2 
 SUBDIRS = @DOC@ src samples config 3rdparty
+
+dist_icon_DATA = fityk.png
+icondir = $(datadir)/pixmaps
+dist_desktop_DATA = fityk.desktop
+desktopdir = $(datadir)/applications
 

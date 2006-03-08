@@ -66,6 +66,7 @@ public:
     wxPrintData& get_print_data();
     wxPageSetupDialogData& get_page_data();
     void print();
+    void print_to_psfile();
     void printPreview();
     void pageSetup(); 
     void save_settings(wxConfigBase *cf) const;
@@ -84,6 +85,7 @@ public:
 protected:
     PrintManager *pm;
     wxRadioBox *orientation, *colors;
+    wxComboBox *papers;
     wxCheckBox *keep_ratio, *plot_aux[2], *plot_borders;
     wxSpinCtrl *left_margin, *right_margin, *top_margin, *bottom_margin,
                *scale;
@@ -98,10 +100,12 @@ public:
     bool HasPage(int page) { return (page == 1); }
     bool OnPrintPage(int page);
     void GetPageInfo(int *minPage,int *maxPage,int *selPageFrom,int *selPageTo)
-        { *minPage = 0; *maxPage = *selPageFrom = *selPageTo = 1; }
+        { *minPage = *maxPage = *selPageFrom = *selPageTo = 1; }
 private:
     PrintManager const* pm;
 };
+
+void do_print_plots(wxDC *dc, PrintManager const* pm);
 
 #endif
 

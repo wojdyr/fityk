@@ -226,6 +226,18 @@ class FuncVoigt : public Function
     fp area() const;
 };
 
+class FuncVoigtA : public Function
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(VoigtA)
+    void do_precomputations(std::vector<Variable*> const &variables); 
+    bool get_nonzero_range (fp level, fp &left, fp &right) const;  
+    bool is_peak() const { return true; } 
+    fp center() const { return vv[1]; }
+    fp height() const; 
+    fp fwhm() const;
+    fp area() const { return vv[0]; }
+};
+
 class FuncEMG : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(EMG)

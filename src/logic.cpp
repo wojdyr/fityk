@@ -136,7 +136,6 @@ string View::str() const
 
 void View::fit(int flag)
 {
-    //v_was_changed = true;
     if (flag&fit_left || flag&fit_right) {
         fp x_min, x_max;
         get_x_range(x_min, x_max);

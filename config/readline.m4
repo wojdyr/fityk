@@ -19,9 +19,20 @@ AC_DEFUN([READLINE_STUFF],
      done
  
      if test "x$with_readline" = "xyes"; then
-         AC_CHECK_LIB(readline, readline, READLINE_LIBS="-lreadline $gp_tcap",
-                      AC_MSG_ERROR([Can't find -lreadline in a standard path -- specify its location using --with-readline=/path/to/libreadline.a]), 
- 		     ${gp_tcap}) dnl readline
+         AC_CHECK_LIB([readline], [readline], 
+	              [READLINE_LIBS="-lreadline $gp_tcap"],
+                      [AC_MSG_ERROR([
+      Can't find -lreadline in a standard path. 
+      Install GNU readline library or, if it is installed, 
+      specify its location using --with-readline=/path/to/libreadline.a, 
+      or configure fityk with option --without-readline])], 
+ 		      [${gp_tcap}]) dnl readline
+         AC_CHECK_HEADER([readline/readline.h], [], [AC_MSG_ERROR([
+      You don't have headers of the readline library. 
+      Perhaps you have installed run-time part of the readline library 
+      from RPM or another binary package and have not installed development 
+      package, which usually have appendix -dev or -devel.
+      Either install it, or configure fityk with option --without-readline])])
      else
        if test ! -f $with_readline ; then
          if test ! -f ${with_readline}/lib/libreadline.a ; then

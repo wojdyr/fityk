@@ -23,6 +23,10 @@
 #include <wx/splitter.h>
 #include <wx/notebook.h>
 #include <wx/file.h>
+#include <wx/paper.h>
+//TODO
+#include <wx/generic/printps.h>
+#include <wx/generic/prntdlgg.h>
 #include "common.h"
 #include "wx_common.h"
 #include "wx_fdlg.h"
@@ -381,6 +385,26 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
       pm(print_mgr)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
+
+    //paper size
+    wxStaticBoxSizer *sizerp = new wxStaticBoxSizer(wxVERTICAL, this, 
+                                                    wxT("Paper Size"));
+    wxArrayString paper_sizes;
+    int paper_sel = 0;
+    for (size_t i = 0; i < wxThePrintPaperDatabase->GetCount(); ++i) {
+        wxPrintPaperType *papertype = wxThePrintPaperDatabase->Item(i);
+        paper_sizes.Add(papertype->GetName());
+        if (pm->get_print_data().GetPaperId() == papertype->GetId())
+            paper_sel = i;
+    }
+    papers = new  wxComboBox(this, -1, _("Paper Size"), 
+                             wxDefaultPosition, wxDefaultSize, 
+                             paper_sizes, wxCB_READONLY);
+    papers->SetSelection(paper_sel);
+    sizerp->Add(papers, 1, wxALL|wxEXPAND, 5);
+    top_sizer->Add(sizerp, 0, wxALL|wxEXPAND, 5);
+
+    //orientation
     wxString orient_choices[] = { wxT("Portrait"), wxT("Landscape") };
     orientation = new wxRadioBox(this, -1, wxT("Orientation"),
                                  wxDefaultPosition, wxDefaultSize, 
@@ -466,6 +490,16 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
 
 void PageSetupDialog::OnOk(wxCommandEvent& event) 
 {
+    if (papers->GetSelection() != -1) {
+        wxPrintPaperType *ppt 
+                      = wxThePrintPaperDatabase->Item(papers->GetSelection());
+        if (ppt) {
+            pm->get_page_data().SetPaperSize(wxSize(ppt->GetWidth()/10, 
+                                             ppt->GetHeight()/10));
+            pm->get_print_data().SetPaperId(ppt->GetId());
+        }
+    }
+
     pm->landscape = (orientation->GetSelection() == 1);
     pm->colors = colors->GetSelection() == 1;
     pm->keep_ratio = keep_ratio->GetValue();
@@ -489,18 +523,8 @@ void PageSetupDialog::OnOk(wxCommandEvent& event)
 //                    Printing utilities
 //===============================================================
 
-FPrintout::FPrintout(PrintManager const* print_manager) 
-    : wxPrintout(wxT("fityk")), pm(print_manager) 
-{}
-
-bool FPrintout::OnPrintPage(int page)
+void do_print_plots(wxDC *dc, PrintManager const* pm)
 {
-    if (page != 1) 
-        return false;
-    wxDC *dc = GetDC();
-    if (!dc) 
-        return false;
-
     // Set the scale and origin
     const int space = 10; //vertical space between plots
     const int marginX = 50, marginY = 50; //page margins
@@ -541,6 +565,22 @@ bool FPrintout::OnPrintPage(int page)
         dc->DestroyClippingRegion();
         posY += iround((plot_height+space) * scaleY);
     }
+}
+
+//===============================================================
+
+FPrintout::FPrintout(PrintManager const* print_manager) 
+    : wxPrintout(wxT("fityk")), pm(print_manager) 
+{}
+
+bool FPrintout::OnPrintPage(int page)
+{
+    if (page != 1) 
+        return false;
+    wxDC *dc = GetDC();
+    if (!dc) 
+        return false;
+    do_print_plots(dc, pm);
     return true;
 }
 
@@ -657,20 +697,9 @@ void PrintManager::pageSetup()
 
 void PrintManager::print()
 {
-    /*
-    f (!plot_pane->is_background_white())
-        if (wxMessageBox(wxT("Plots will be printed on white background, \n")
-                           wxT("to save ink/toner.\n")
-                           wxT("Now background of your plot on screen\n")
-                           wxT("is not white, so the visiblity of lines ")
-                           wxT("and points\n")
-                           wxT("can be different.\n Do you want to continue?"),
-                          wxT("Are you sure?"), 
-                          wxYES_NO|wxCANCEL|wxICON_QUESTION) 
-                != wxYES)
-            return;
-    */
     wxPrintDialogData print_dialog_data(get_print_data());
+    print_dialog_data.SetFromPage(1);
+    print_dialog_data.SetToPage(1);
     print_dialog_data.EnablePageNumbers(false);
     print_dialog_data.EnableSelection(false);
     wxPrinter printer (&print_dialog_data);
@@ -684,6 +713,26 @@ void PrintManager::print()
         wxMessageBox(wxT("There was a problem printing.\nPerhaps your current ")
                      wxT("printer is not set correctly?"), 
                      wxT("Printing"), wxOK);
+}
+
+
+void PrintManager::print_to_psfile()
+{
+    wxFileDialog dialog(frame, wxT("PostScript file"), wxT(""), wxT(""), 
+                        wxT("*.ps"), wxSAVE | wxOVERWRITE_PROMPT);
+    if (dialog.ShowModal() != wxID_OK) 
+        return;
+    get_print_data().SetPrintMode(wxPRINT_MODE_FILE);
+    get_print_data().SetFilename(dialog.GetPath());
+    wxPrintDialogData print_dialog_data(get_print_data());
+    print_dialog_data.SetFromPage(1);
+    print_dialog_data.SetToPage(1);
+    wxPostScriptPrinter printer (&print_dialog_data);
+    FPrintout printout(this);
+    bool r = printer.Print(frame, &printout, false);
+    if (!r)
+        wxMessageBox(wxT("Can't save plots as a file:\n") + dialog.GetPath(),
+                     wxT("Exporting to PostScript"), wxOK|wxICON_ERROR);
 }
 
 

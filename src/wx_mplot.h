@@ -76,22 +76,22 @@ public:
     void set_mouse_mode(MouseModeEnum m);
     MouseModeEnum get_mouse_mode() const { return mode; }
     wxColour const& get_data_color(int n) const
-        { return dataColour[n % max_data_pens]; }
+        { return dataColour[n % max_data_cols]; }
     wxColour const& get_func_color(int n) const
-        { return peakPen[n % max_peak_pens].GetColour(); }
+        { return peakCol[n % max_peak_cols]; }
     void set_data_color(int n, wxColour const& col) 
-        { dataColour[n % max_data_pens] = col; }
+        { dataColour[n % max_data_cols] = col; }
     void set_func_color(int n, wxColour const& col) 
-        { peakPen[n % max_peak_pens].SetColour(col); }
+        { peakCol[n % max_peak_cols] = col; }
     bool get_x_reversed() const { return x_reversed; }
     void draw_xor_peak(Function const* func, std::vector<fp> const& p_values);
 
 private:
     MouseModeEnum basic_mode, 
                     mode;  //actual mode -- either basic_mode or mmd_peak
-    static const int max_group_pens = 8;
-    static const int max_peak_pens = 32;
-    static const int max_data_pens = 32;
+    static const int max_group_cols = 8;
+    static const int max_peak_cols = 32;
+    static const int max_data_cols = 32;
     static const int max_radius = 4; //size of data point
     bool peaks_visible, groups_visible, sum_visible,  
          plabels_visible, x_reversed; 
@@ -99,9 +99,9 @@ private:
     std::string plabel_format;
     bool vertical_plabels;
     std::vector<std::string> plabels;
-    wxPen sumPen, bg_pointsPen;
-    wxPen groupPen[max_group_pens], peakPen[max_peak_pens];
-    wxColour dataColour[max_data_pens];
+    wxColour sumCol, bg_pointsCol;
+    wxColour groupCol[max_group_cols], peakCol[max_peak_cols];
+    wxColour dataColour[max_data_cols];
     int pressed_mouse_button;
     bool ctrl;
     int over_peak;

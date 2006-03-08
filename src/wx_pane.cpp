@@ -1174,10 +1174,8 @@ void SideBar::update_bottom_panel()
             Variable const* var = AL->get_variable(bp_func->get_var_idx(i));
             add_variable_to_bottom_panel(var, bp_func->type_var_names[i]);
         }
-        bottom_panel->Fit();
-        int sash_pos = GetClientSize().GetHeight() 
-                                  - bottom_panel->GetSize().GetHeight() - 2;
-        bottom_panel->Layout();
+        int sash_pos = GetClientSize().GetHeight() - 3
+                         - bottom_panel->GetSizer()->GetMinSize().GetHeight();
         if (sash_pos < GetSashPosition())
             SetSashPosition(max(50, sash_pos));
     }
@@ -1200,8 +1198,8 @@ void SideBar::update_bottom_panel()
                 ++st;
             }
         }
-        bottom_panel->Fit();
     }
+    bottom_panel->Layout();
     bottom_panel->Thaw();
 }
 
@@ -1315,7 +1313,8 @@ void ListWithColors::populate(vector<string> const& data,
     }
     list_data = data;
     
-    Focus(active);
+    if (active >= 0)
+        Focus(active);
     Thaw();
 }
 

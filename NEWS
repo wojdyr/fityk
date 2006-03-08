@@ -1,4 +1,7 @@
 User-visible changes in version 0.7.2  (2006-0 -  ):
+* area-based Voigt function (VoigtA)
+* GUI, MS Windows only, Session > "Copy to Clipboard" copies plots to clipboard
+* added fityk.desktop file for Linux desktop integration (Niklas Volbers)
 * GUI: "directories" tab in settings dialog 
 
 User-visible changes in version 0.7.1  (2006-02-23):

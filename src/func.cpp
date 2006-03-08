@@ -90,6 +90,7 @@ Function* Function::factory (string const &name_, string const &type_name,
     FACTORY_FUNC(SplitPearson7)
     FACTORY_FUNC(PseudoVoigt)
     FACTORY_FUNC(Voigt)
+    FACTORY_FUNC(VoigtA)
     FACTORY_FUNC(EMG)
     FACTORY_FUNC(DoniachSunjic)
     FACTORY_FUNC(Valente)
@@ -113,6 +114,7 @@ const char* builtin_formulas[] = {
     FuncSplitPearson7::formula,
     FuncPseudoVoigt::formula,
     FuncVoigt::formula,
+    FuncVoigtA::formula,
     FuncEMG::formula,
     FuncDoniachSunjic::formula,
     //FuncValente::formula,
@@ -857,8 +859,79 @@ fp FuncVoigt::fwhm() const
 
 fp FuncVoigt::area() const
 {
-    return fabs(vv[0] * vv[2] * sqrt(M_PI) / humlik(0, fabs(vv[3])));
-                                            //* vv[4];//TODO
+    return vv[0] * fabs(vv[2] * sqrt(M_PI) * vv[4]);
+}
+                                                            
+
+///////////////////////////////////////////////////////////////////////
+
+const char *FuncVoigtA::formula 
+= "VoigtA(area, center, gwidth=fwhm*0.4, shape=0.1) = "
+                            "convolution of Gaussian and Lorentzian";
+
+void FuncVoigtA::do_precomputations(vector<Variable*> const &variables) 
+{ 
+    Function::do_precomputations(variables);
+    if (vv.size() != 6)
+        vv.resize(6);
+    vv[4] = 1. / humlik(0, fabs(vv[3]));
+
+    if (fabs(vv[2]) < EPSILON) 
+        vv[2] = EPSILON; 
+}
+
+DEFINE_FUNC_CALCULATE_VALUE_BEGIN(VoigtA)
+    // humdev/humlik routines require with y (a3 here) parameter >0.
+    float k;
+    fp xa1a2 = (x - vv[1]) / vv[2];
+    k = humlik(xa1a2, fabs(vv[3]));
+DEFINE_FUNC_CALCULATE_VALUE_END(vv[0] / (sqrt(M_PI) * vv[2]) * k)
+
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_BEGIN(VoigtA)
+    // humdev/humlik routines require with y (a3 here) parameter >0.
+    // here fabs(vv[3]) is used, and dy_dv[3] is negated if vv[3]<0.
+    float k;
+    fp xa1a2 = (x-vv[1]) / vv[2];
+    fp f = vv[0] / (sqrt(M_PI) * vv[2]);
+    float l, dkdx, dkdy;
+    humdev(xa1a2, fabs(vv[3]), k, l, dkdx, dkdy);
+    dy_dv[0] = k / (sqrt(M_PI) * vv[2]);
+    fp dcenter = -f * dkdx / vv[2];
+    dy_dv[1] = dcenter;
+    dy_dv[2] = dcenter * xa1a2 - f * k / vv[2];
+    dy_dv[3] = f * dkdy;
+    if (vv[3] < 0)
+        dy_dv[3] = -dy_dv[3];
+    dy_dx = -dcenter;
+DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(f * k)
+
+bool FuncVoigtA::get_nonzero_range (fp level, fp &left, fp &right) const
+{  
+    if (level == 0)
+        return false;
+    else if (fabs(level) >= fabs(vv[0]))
+        left = right = 0;
+    else {
+        //TODO
+        return false; 
+    }
+    return true;
+}
+
+///estimation according to
+///http://en.wikipedia.org/w/index.php?title=Voigt_profile&oldid=29250968
+fp FuncVoigtA::fwhm() const 
+{ 
+    fp gauss_fwhm = 2 * fabs(vv[2]);
+    fp const c0 = 2.0056;
+    fp const c1 = 1.0593;
+    fp phi = vv[3];
+    return gauss_fwhm * (1 - c0*c1 + sqrt(phi*phi + 2*c1*phi + c0*c0*c1*c1));
+}
+
+fp FuncVoigtA::height() const
+{
+    return vv[0] / fabs(vv[2] * sqrt(M_PI) * vv[4]);
 }
                                                             
 

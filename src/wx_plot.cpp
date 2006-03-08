@@ -11,6 +11,7 @@
 #endif
 
 #include <wx/fontdlg.h>
+#include <wx/numdlg.h>
 
 #include "common.h"
 #include "wx_plot.h"
@@ -90,8 +91,8 @@ bool FPlot::vert_line_following_cursor (Mouse_act_enum ma, int x, int x0)
 void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
 {
     if (set_pen) {
-        dc.SetPen (xAxisPen);
-        dc.SetTextForeground(xAxisPen.GetColour());
+        dc.SetPen(wxPen(xAxisCol));
+        dc.SetTextForeground(xAxisCol);
     }
     dc.SetFont(ticsFont);
 
@@ -115,8 +116,8 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
 void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
 {
     if (set_pen) {
-        dc.SetPen (xAxisPen);
-        dc.SetTextForeground(xAxisPen.GetColour());
+        dc.SetPen(wxPen(xAxisCol));
+        dc.SetTextForeground(xAxisCol);
     }
     dc.SetFont(ticsFont);
 
@@ -165,14 +166,9 @@ void FPlot::draw_data (wxDC& dc,
                        bool cumulative)
 {
     Y_offset *= (GetClientSize().GetHeight() / 100);
-    wxColour old_active_color = activeDataPen.GetColour();
-    if (color.Ok())
-        activeDataPen.SetColour(color);
-    wxColour old_inactive_color = inactiveDataPen.GetColour();
-    if (inactive_color.Ok()) 
-        inactiveDataPen.SetColour(inactive_color);
-    wxPen const& activePen = activeDataPen;
-    wxPen const& inactivePen = inactiveDataPen;
+    wxPen const activePen(color.Ok() ? color : activeDataCol);
+    wxPen const inactivePen(inactive_color.Ok() ? inactive_color 
+                                                : inactiveDataCol);
     wxBrush const activeBrush(activePen.GetColour(), wxSOLID);
     wxBrush const inactiveBrush(inactivePen.GetColour(), wxSOLID);
     if (data->is_empty()) return;
@@ -258,22 +254,20 @@ void FPlot::draw_data (wxDC& dc,
             dc.DrawLine (X_, Y_, X, Y);
         }
     }
-    activeDataPen.SetColour(old_active_color);
-    inactiveDataPen.SetColour(old_inactive_color);
 }
 
 void FPlot::change_tics_font()
 {
     wxFontData data;
     data.SetInitialFont(ticsFont);
-    data.SetColour(xAxisPen.GetColour());
+    data.SetColour(xAxisCol);
 
     wxFontDialog dialog(frame, &data);
     if (dialog.ShowModal() == wxID_OK)
     {
         wxFontData retData = dialog.GetFontData();
         ticsFont = retData.GetChosenFont();
-        xAxisPen.SetColour(retData.GetColour());
+        xAxisCol = retData.GetColour();
         Refresh(false);
     }
 }
@@ -286,8 +280,7 @@ void FPlot::read_settings(wxConfigBase *cf)
     xtics_visible = cfg_read_bool (cf, wxT("xtics"), true);
     ytics_visible = cfg_read_bool (cf, wxT("ytics"), true);
     cf->SetPath(wxT("../Colors"));
-    xAxisPen.SetColour(cfg_read_color(cf, wxT("xAxis"), 
-                                               wxColour(wxT("WHITE"))));
+    xAxisCol = cfg_read_color(cf, wxT("xAxis"), wxColour(wxT("WHITE")));
     cf->SetPath(wxT(".."));
     ticsFont = cfg_read_font(cf, wxT("ticsFont"), 
                              wxFont(8, wxFONTFAMILY_DEFAULT, 
@@ -303,7 +296,7 @@ void FPlot::save_settings(wxConfigBase *cf) const
     cf->Write (wxT("xtics"), xtics_visible);
     cf->Write (wxT("ytics"), ytics_visible);
     cf->SetPath(wxT("../Colors"));
-    cfg_write_color (cf, wxT("xAxis"), xAxisPen.GetColour());
+    cfg_write_color (cf, wxT("xAxis"), xAxisCol);
     cf->SetPath(wxT(".."));
     cfg_write_font (cf, wxT("ticsFont"), ticsFont);
 }
@@ -340,8 +333,7 @@ void AuxPlot::OnPaint(wxPaintEvent &WXUNUSED(event))
     frame->draw_crosshair(-1, -1); 
     wxPaintDC dc(this);
     dc.SetLogicalFunction (wxCOPY);
-    if (backgroundBrush.Ok())
-        dc.SetBackground (backgroundBrush);
+    dc.SetBackground(wxBrush(backgroundCol));
     dc.Clear();
     Draw(dc);
     vert_line_following_cursor(mat_redraw);//draw, if necessary, vertical lines
@@ -391,7 +383,7 @@ void AuxPlot::Draw(wxDC &dc, bool monochrome)
         dc.SetBrush(*wxBLACK_BRUSH);
     }
     else
-        dc.SetPen (xAxisPen);
+        dc.SetPen(wxPen(xAxisCol));
 
     if (mark_peak_ctrs) {
         int ymax = GetClientSize().GetHeight();
@@ -435,7 +427,7 @@ void AuxPlot::Draw(wxDC &dc, bool monochrome)
 void AuxPlot::draw_zoom_text(wxDC& dc, bool set_pen)
 {
     if (set_pen)
-        dc.SetTextForeground(xAxisPen.GetColour());
+        dc.SetTextForeground(xAxisCol);
     dc.SetFont(*wxNORMAL_FONT);  
     string s = "x" + S(y_zoom);  
     wxCoord w, h;
@@ -518,16 +510,11 @@ void AuxPlot::read_settings(wxConfigBase *cf)
     cf->SetPath(wxT("Visible"));
     // nothing here now
     cf->SetPath(wxT("../Colors"));
-    //backgroundBrush = *wxBLACK_BRUSH;
-    backgroundBrush.SetColour (cfg_read_color (cf, wxT("bg"), 
-                                                       wxColour(50, 50, 50)));
-    wxColour active_data_col = cfg_read_color (cf, wxT("active_data"),
+    backgroundCol = cfg_read_color (cf, wxT("bg"), wxColour(50, 50, 50));
+    activeDataCol = cfg_read_color (cf, wxT("active_data"),
                                                        wxColour (wxT("GREEN")));
-    activeDataPen.SetColour (active_data_col);
-    //activeDataPen.SetStyle (wxDOT);
-    wxColour inactive_data_col = cfg_read_color(cf,wxT("inactive_data"),
+    inactiveDataCol = cfg_read_color(cf,wxT("inactive_data"),
                                                       wxColour (128, 128, 128));
-    inactiveDataPen.SetColour (inactive_data_col);
     cf->SetPath(wxT(".."));
     FPlot::read_settings(cf);
     Refresh();
@@ -547,9 +534,9 @@ void AuxPlot::save_settings(wxConfigBase *cf) const
     // nothing here now
 
     cf->SetPath(wxT("../Colors"));
-    cfg_write_color(cf, wxT("bg"), backgroundBrush.GetColour()); 
-    cfg_write_color(cf, wxT("active_data"), activeDataPen.GetColour());
-    cfg_write_color(cf, wxT("inactive_data"),inactiveDataPen.GetColour());
+    cfg_write_color(cf, wxT("bg"), backgroundCol); 
+    cfg_write_color(cf, wxT("active_data"), activeDataCol);
+    cfg_write_color(cf, wxT("inactive_data"),inactiveDataCol);
     cf->SetPath(wxT(".."));
     FPlot::save_settings(cf);
 }
@@ -683,27 +670,21 @@ void AuxPlot::OnPopupPlotCtr (wxCommandEvent& event)
 
 void AuxPlot::OnPopupColor (wxCommandEvent& event)
 {
-    wxBrush *brush = 0;
-    wxPen *pen = 0;
+    wxColour *color = 0;
     int n = event.GetId();
     if (n == ID_aux_c_background)
-        brush = &backgroundBrush;
+        color = &backgroundCol;
     else if (n == ID_aux_c_active_data) {
-        pen = &activeDataPen;
+        color = &activeDataCol;
     }
     else if (n == ID_aux_c_inactive_data) {
-        pen = &inactiveDataPen;
+        color = &inactiveDataCol;
     }
     else if (n == ID_aux_c_axis)
-        pen = &xAxisPen;
+        color = &xAxisCol;
     else 
         return;
-    wxColour col = brush ? brush->GetColour() : pen->GetColour();
-    if (change_color_dlg(col)) {
-        if (brush) 
-            brush->SetColour(col);
-        if (pen) 
-            pen->SetColour(col);
+    if (change_color_dlg(*color)) {
         Refresh();
     }
 }

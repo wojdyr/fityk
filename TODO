@@ -1,14 +1,13 @@
 
-* [BUG] printing is not working on MS Windows
-
-* [BUG] bottom panel of sidebar, layout problems
-
 * [BUG]: program crashes (MS Win 9x) when data contains NaN (as a result
   of asin(x) x>1) and "Zoom all" is called.
 
-* area-based Voigt function
-
 * (DOC) howto add new built-in function 
+
+* (DOC) update list of functions
+
+* [BUG] unconfirmed -- program crashes when trying to add a peak 
+        (Fedora development, GCC 4.1)
 
 ------------- next release here (?)
 
@@ -56,10 +55,15 @@
 
 ------------- next release here (?)
 
-* (GUI) sidebar: default column widths should be different
+* (GUI) when printing, everything is first rescaled and rounded(!!!) for
+  plot window at the screen, and then rescaled to the paper size. 
+  This rounding causes visible artefacts at the printout.
+  (wxDC.GetSize instead of plot.GetClientSize() ?)
 
-* (Windows only) exporting plots to PostScript file and to metafile(clipboard) 
-                 "Print to PS File", "Copy to Clipboard" options
+* (GUI) redrawing for many datasets (~100) takes noticable time.
+  Kind of plot buffering (as a bitmap).
+
+* (GUI) sidebar: default column widths should be different
 
 * GUI [BUG] aux. plot - when program is called with script as an argument
    aux. plot looks strange at the start of the program until it is replotted

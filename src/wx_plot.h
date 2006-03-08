@@ -52,16 +52,14 @@ public:
          vlfc_prev_x(INVALID), vlfc_prev_x0(INVALID)   {}
          
     ~FPlot() {}
-    wxColour get_bg_color() const { return backgroundBrush.GetColour(); }
-    void FPlot::draw_crosshair(int X, int Y);
+    wxColour const& get_bg_color() const { return backgroundCol; }
+    void draw_crosshair(int X, int Y);
     virtual void save_settings(wxConfigBase *cf) const;
     virtual void read_settings(wxConfigBase *cf);
     virtual void Draw(wxDC &dc, bool monochrome=false) = 0;
 
 protected:
-    wxBrush backgroundBrush;
-    wxPen activeDataPen, inactiveDataPen;
-    wxPen xAxisPen;
+    wxColour backgroundCol, activeDataCol, inactiveDataCol, xAxisCol;
     wxFont ticsFont;
     int point_radius;
     bool line_between_points;

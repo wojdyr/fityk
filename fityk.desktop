@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=fityk
+Comment=peak fitting and data analysis
+GenericName=fityk
+Icon=fityk
+Exec=fityk %F
+Terminal=False
+StartupNotify=true
+MimeType=application/x-fityk;
+Categories=Application;Science;GTK;

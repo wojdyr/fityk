@@ -157,6 +157,12 @@ int ProportionalSplitter::GetExpectedSashPosition()
     return iround(GetWindowSize() * m_proportion);
 }
 
+void ProportionalSplitter::SetSashPosition(int position)
+{
+    m_proportion = float(position) / GetWindowSize();
+    wxSplitterWindow::SetSashPosition(position);
+}
+
 void ProportionalSplitter::ResetSash()
 {
     SetSashPosition(GetExpectedSashPosition());

@@ -93,15 +93,16 @@ public:
                          long style=wxSP_NOBORDER|wxSP_FULLSASH|wxSP_3DSASH);
     bool SplitHorizontally(wxWindow* win1, wxWindow* win2, float proportion=-1);
     bool SplitVertically(wxWindow* win1, wxWindow* win2, float proportion=-1);
-    int GetExpectedSashPosition();
-    void ResetSash();
     float GetProportion() const { return m_proportion; }
     void SetProportion(float proportion) {m_proportion=proportion; ResetSash();}
+    void SetSashPosition(int position);
 
 protected:
     float m_proportion; //0-1
     bool m_firstpaint;
 
+    void ResetSash();
+    int GetExpectedSashPosition();
     void OnReSize(wxSizeEvent& event);
     void OnSashChanged(wxSplitterEvent &event);
     void OnPaint(wxPaintEvent &event);

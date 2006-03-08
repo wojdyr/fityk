@@ -16,6 +16,7 @@
 #include <wx/filedlg.h>
 #include <wx/valtext.h>
 #include <wx/textdlg.h>
+#include <wx/numdlg.h>
 #if wxUSE_TOOLTIPS
     #include <wx/tooltip.h>
 #endif
@@ -28,9 +29,11 @@
 #include <wx/image.h>
 #include <wx/config.h>
 #include <wx/msgout.h>
+#include <wx/metafile.h>
 #include <algorithm>
 #include <locale.h>
 #include <string.h>
+
 #include <boost/spirit/version.hpp> //SPIRIT_VERSION
 
 #include "common.h"
@@ -77,6 +80,9 @@
 #include "img/mouse_l.xpm"
 #include "img/mouse_r.xpm"
 
+#ifdef __WXMSW__ 
+# define USE_METAFILE 1
+#endif
 
 using namespace std;
 FFrame *frame = NULL;
@@ -113,9 +119,11 @@ enum {
     ID_LOG_STOP                ,
     ID_LOG_WITH_OUTPUT         ,
     ID_O_RESET                 ,
-    ID_PRINT                   ,
     ID_PAGE_SETUP              ,
     ID_PRINT_PREVIEW           ,
+    ID_PRINT                   ,
+    ID_PRINT_PSFILE            ,
+    ID_PRINT_CLIPB             ,
     ID_O_INCLUDE               ,
     ID_O_REINCLUDE             ,
     ID_O_DUMP                  ,
@@ -317,6 +325,8 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_O_INCLUDE,     FFrame::OnOInclude)    
     EVT_MENU (ID_O_REINCLUDE,   FFrame::OnOReInclude)    
     EVT_MENU (ID_PRINT,         FFrame::OnPrint)
+    EVT_MENU (ID_PRINT_PSFILE,  FFrame::OnPrintPSFile)
+    EVT_MENU (ID_PRINT_CLIPB,   FFrame::OnPrintToClipboard)
     EVT_MENU (ID_PAGE_SETUP,    FFrame::OnPageSetup)
     EVT_MENU (ID_PRINT_PREVIEW, FFrame::OnPrintPreview)
     EVT_MENU (ID_O_DUMP,        FFrame::OnODump)    
@@ -700,7 +710,7 @@ void FFrame::set_menubar()
     wxMenu* session_menu = new wxMenu;
     session_menu->Append (ID_O_INCLUDE,   wxT("&Execute script\tCtrl-X"), 
                                            wxT("Execute commands from a file"));
-    session_menu->Append (ID_O_REINCLUDE, wxT("&Re-Execute script"), 
+    session_menu->Append (ID_O_REINCLUDE, wxT("R&e-Execute script"), 
              wxT("Reset & execute commands from the file included last time"));
     session_menu->Enable (ID_O_REINCLUDE, false);
     session_menu->Append (ID_O_RESET, wxT("&Reset"), 
@@ -722,6 +732,19 @@ void FFrame::set_menubar()
     session_menu->Append(ID_PRINT_PREVIEW, wxT("Print Pre&view"), 
                                            wxT("Print preview")); 
     session_menu->Append(ID_PRINT, wxT("&Print...\tCtrl-P"),wxT("Print plots"));
+#if 0
+    //it doesn't work on Windows, because there is no way
+    // to have wxPostScriptPrintNativeData on MSW
+    // see: src/common/prntbase.cpp:
+    //        wxNativePrintFactory::CreatePrintNativeData()
+    //
+    session_menu->Append(ID_PRINT_PSFILE, wxT("Print to PS &File"),
+                         wxT("Export plots to postscript file."));
+#endif
+#ifdef USE_METAFILE
+    session_menu->Append(ID_PRINT_CLIPB, wxT("&Copy to Clipboard"),
+                         wxT("Copy plots to clipboard."));
+#endif
     session_menu->AppendSeparator();
     session_menu->Append (ID_SESSION_SET, wxT("&Settings"),
                                           wxT("Preferences and options"));
@@ -1416,6 +1439,26 @@ void FFrame::OnPageSetup(wxCommandEvent& WXUNUSED(event))
 void FFrame::OnPrint(wxCommandEvent& WXUNUSED(event))
 {
     print_mgr->print();
+}
+
+void FFrame::OnPrintPSFile(wxCommandEvent& WXUNUSED(event))
+{
+    print_mgr->print_to_psfile();
+}
+
+void FFrame::OnPrintToClipboard(wxCommandEvent& WXUNUSED(event))
+{
+#ifdef USE_METAFILE
+    wxMetafileDC dc;   
+    if (dc.Ok()) { 
+        do_print_plots(&dc, print_mgr);
+        wxMetafile *mf = dc.Close(); 
+        if (mf) { 
+            mf->SetClipboard(dc.MaxX() + 10, dc.MaxY() + 10); 
+            delete mf; 
+        } 
+    } 
+#endif
 }
 
 string FFrame::get_peak_type() const

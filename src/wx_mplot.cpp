@@ -96,8 +96,7 @@ void MainPlot::OnPaint(wxPaintEvent& WXUNUSED(event))
 {
     frame->draw_crosshair(-1, -1); 
     wxPaintDC dc(this);
-    if (backgroundBrush.Ok())
-        dc.SetBackground (backgroundBrush);
+    dc.SetBackground(wxBrush(backgroundCol));
     dc.Clear();
     Draw(dc);
     vert_line_following_cursor(mat_redraw);//draw, if necessary, vertical lines
@@ -193,21 +192,21 @@ bool MainPlot::visible_peaktops(MouseModeEnum mode)
 void MainPlot::draw_x_axis (wxDC& dc, bool set_pen)
 {
     if (set_pen)
-        dc.SetPen (xAxisPen);
+        dc.SetPen(wxPen(xAxisCol));
     dc.DrawLine (0, y2Y(0), GetClientSize().GetWidth(), y2Y(0));
 }
 
 void MainPlot::draw_y_axis (wxDC& dc, bool set_pen)
 {
     if (set_pen)
-        dc.SetPen (xAxisPen);
+        dc.SetPen(wxPen(xAxisCol));
     dc.DrawLine (x2X(0), 0, x2X(0), GetClientSize().GetHeight());
 }
 
 void MainPlot::draw_sum(wxDC& dc, Sum const* sum, bool set_pen)
 {
     if (set_pen)
-        dc.SetPen(sumPen);
+        dc.SetPen(wxPen(sumCol));
     int n = GetClientSize().GetWidth();
     vector<fp> xx(n), yy(n);
     vector<int> YY(n);
@@ -245,7 +244,7 @@ void MainPlot::draw_peaks(wxDC& dc, Sum const* sum, bool set_pen)
             to = min(to, x2X(right));
         }
         if (set_pen)
-            dc.SetPen (peakPen[k % max_peak_pens]);
+            dc.SetPen(wxPen(peakCol[k % max_peak_cols]));
         f->calculate_value(xx, yy);
         for (int i = from; i <= to; ++i) 
             YY[i] = y2Y(yy[i]);
@@ -256,7 +255,7 @@ void MainPlot::draw_peaks(wxDC& dc, Sum const* sum, bool set_pen)
 
 void MainPlot::draw_peaktops (wxDC& dc, Sum const* sum)
 {
-    dc.SetPen (xAxisPen);
+    dc.SetPen(wxPen(xAxisCol));
     dc.SetBrush (*wxTRANSPARENT_BRUSH);
     for (vector<wxPoint>::const_iterator i = shared.peaktops.begin(); 
                                            i != shared.peaktops.end(); i++) {
@@ -289,7 +288,7 @@ void MainPlot::draw_plabels (wxDC& dc, Sum const* sum, bool set_pen)
     for (int k = 0; k < size(idx); k++) {
         const wxPoint &peaktop = shared.peaktops[k];
         if (set_pen)
-            dc.SetTextForeground(peakPen[k % max_peak_pens].GetColour());
+            dc.SetTextForeground(peakCol[k % max_peak_cols]);
 
         wxString label = s2wx(plabels[k]);
         wxCoord w, h;
@@ -407,7 +406,7 @@ void MainPlot::prepare_peak_labels(Sum const* sum)
 void MainPlot::draw_background(wxDC& dc, bool set_pen)
 {
     if (set_pen)
-        dc.SetPen (bg_pointsPen);
+        dc.SetPen(wxPen(bg_pointsCol));
     dc.SetBrush (*wxTRANSPARENT_BRUSH);
     // bg line
     int X = -1, Y = -1;
@@ -427,27 +426,21 @@ void MainPlot::draw_background(wxDC& dc, bool set_pen)
 void MainPlot::read_settings(wxConfigBase *cf)
 {
     cf->SetPath(wxT("/MainPlot/Colors"));
-    backgroundBrush.SetColour (cfg_read_color(cf, wxT("bg"), 
-                                                      wxColour(wxT("BLACK"))));
-    for (int i = 0; i < max_data_pens; i++)
+    backgroundCol = cfg_read_color(cf, wxT("bg"), wxColour(wxT("BLACK")));
+    for (int i = 0; i < max_data_cols; i++)
         dataColour[i] = cfg_read_color(cf, 
                                             wxString::Format(wxT("data/%i"), i),
                                                wxColour(0, 255, 0));
-    //activeDataPen.SetStyle (wxSOLID);
-    wxColour inactive_data_col = cfg_read_color(cf,wxT("inactive_data"),
+    inactiveDataCol = cfg_read_color(cf,wxT("inactive_data"),
                                                       wxColour (128, 128, 128));
-    inactiveDataPen.SetColour (inactive_data_col);
-    sumPen.SetColour(cfg_read_color (cf, wxT("sum"), wxColour(wxT("YELLOW"))));
-    bg_pointsPen.SetColour(cfg_read_color(cf, wxT("BgPoints"), 
-                                                   wxColour(wxT("RED"))));
-    for (int i = 0; i < max_group_pens; i++)
-        groupPen[i].SetColour(cfg_read_color(cf, 
-                                         wxString::Format(wxT("group/%i"), i),
-                                             wxColour(173, 216, 230)));
-    for (int i = 0; i < max_peak_pens; i++)
-        peakPen[i].SetColour(cfg_read_color(cf, 
-                                            wxString::Format(wxT("peak/%i"), i),
-                                            wxColour(255, 0, 0)));
+    sumCol = cfg_read_color (cf, wxT("sum"), wxColour(wxT("YELLOW")));
+    bg_pointsCol = cfg_read_color(cf, wxT("BgPoints"), wxColour(wxT("RED")));
+    for (int i = 0; i < max_group_cols; i++)
+        groupCol[i] = cfg_read_color(cf, wxString::Format(wxT("group/%i"), i),
+                                     wxColour(173, 216, 230));
+    for (int i = 0; i < max_peak_cols; i++)
+        peakCol[i] = cfg_read_color(cf, wxString::Format(wxT("peak/%i"), i),
+                                    wxColour(255, 0, 0));
                             
     cf->SetPath(wxT("/MainPlot/Visible"));
     peaks_visible = cfg_read_bool(cf, wxT("peaks"), true); 
@@ -484,18 +477,16 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->Write(wxT("xReversed"), x_reversed);
 
     cf->SetPath(wxT("/MainPlot/Colors"));
-    cfg_write_color (cf, wxT("bg"), backgroundBrush.GetColour());
-    for (int i = 0; i < max_data_pens; i++)
+    cfg_write_color(cf, wxT("bg"), backgroundCol);
+    for (int i = 0; i < max_data_cols; i++)
         cfg_write_color(cf, wxString::Format(wxT("data/%i"), i), dataColour[i]);
-    cfg_write_color (cf, wxT("inactive_data"), inactiveDataPen.GetColour());
-    cfg_write_color (cf, wxT("sum"), sumPen.GetColour());
-    cfg_write_color (cf, wxT("BgPoints"), bg_pointsPen.GetColour());
-    for (int i = 0; i < max_group_pens; i++)
-        cfg_write_color(cf, wxString::Format(wxT("group/%i"), i), 
-                        groupPen[i].GetColour());
-    for (int i = 0; i < max_peak_pens; i++)
-        cfg_write_color(cf, wxString::Format(wxT("peak/%i"), i), 
-                        peakPen[i].GetColour());
+    cfg_write_color (cf, wxT("inactive_data"), inactiveDataCol);
+    cfg_write_color (cf, wxT("sum"), sumCol);
+    cfg_write_color (cf, wxT("BgPoints"), bg_pointsCol);
+    for (int i = 0; i < max_group_cols; i++)
+        cfg_write_color(cf, wxString::Format(wxT("group/%i"), i), groupCol[i]);
+    for (int i = 0; i < max_peak_cols; i++)
+        cfg_write_color(cf, wxString::Format(wxT("peak/%i"), i), peakCol[i]);
 
     cf->SetPath(wxT("/MainPlot/Visible"));
     cf->Write (wxT("peaks"), peaks_visible);
@@ -1007,7 +998,7 @@ void MainPlot::peak_draft (Mouse_act_enum ma, wxMouseEvent &event)
             fp height = Y2y(event.GetY());
             fp center = X2x(mouse_press_X);
             fp fwhm = fabs(shared.dX2dx(mouse_press_X - event.GetX()));
-            fp area = height * 2*fwhm;
+            fp area = height * fwhm;
             string F = AL->get_ds_count() > 1 
                                       ?  frame->get_active_data_str()+".F" 
                                       : "F";
@@ -1106,23 +1097,17 @@ void MainPlot::OnPopupShowXX (wxCommandEvent& event)
 void MainPlot::OnPopupColor(wxCommandEvent& event)
 {
     int n = event.GetId();
-    wxBrush *brush = 0;
-    wxPen *pen = 0;
+    wxColour *color = 0;
     if (n == ID_plot_popup_c_background)
-        brush = &backgroundBrush;
+        color = &backgroundCol;
     else if (n == ID_plot_popup_c_inactive_data) {
-        pen = &inactiveDataPen;
+        color = &inactiveDataCol;
     }
     else if (n == ID_plot_popup_c_sum)
-        pen = &sumPen;
+        color = &sumCol;
     else 
         return;
-    wxColour col = brush ? brush->GetColour() : pen->GetColour();
-    if (change_color_dlg(col)) {
-        if (brush) 
-            brush->SetColour(col);
-        if (pen) 
-            pen->SetColour(col);
+    if (change_color_dlg(*color)) {
         if (n == ID_plot_popup_c_background)
             frame->update_data_pane();
         Refresh();
@@ -1131,16 +1116,16 @@ void MainPlot::OnPopupColor(wxCommandEvent& event)
 
 void MainPlot::OnInvertColors (wxCommandEvent& WXUNUSED(event))
 {
-    backgroundBrush.SetColour (invert_colour (backgroundBrush.GetColour()));
-    for (int i = 0; i < max_data_pens; i++)
+    backgroundCol = invert_colour(backgroundCol);
+    for (int i = 0; i < max_data_cols; i++)
         dataColour[i] = invert_colour(dataColour[i]);
-    inactiveDataPen.SetColour (invert_colour(inactiveDataPen.GetColour()));
-    sumPen.SetColour (invert_colour (sumPen.GetColour()));  
-    xAxisPen.SetColour (invert_colour (xAxisPen.GetColour()));  
-    for (int i = 0; i < max_group_pens; i++)
-        groupPen[i].SetColour (invert_colour (groupPen[i].GetColour()));
-    for (int i = 0; i < max_peak_pens; i++)
-        peakPen[i].SetColour (invert_colour (peakPen[i].GetColour()));
+    inactiveDataCol = invert_colour(inactiveDataCol);
+    sumCol = invert_colour(sumCol); 
+    xAxisCol = invert_colour(xAxisCol);
+    for (int i = 0; i < max_group_cols; i++)
+        groupCol[i] = invert_colour(groupCol[i]);
+    for (int i = 0; i < max_peak_cols; i++)
+        peakCol[i] = invert_colour(peakCol[i]);
     frame->update_data_pane();
     Refresh();
 }
@@ -1187,7 +1172,7 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
                                    MainPlot* plot_)
     //explicit conversion of title to wxString() is neccessary
   : wxDialog(parent, id, wxString(wxT("Configure Axes"))), plot(plot_),
-    axis_color(plot_->xAxisPen.GetColour())
+    axis_color(plot_->xAxisCol)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizer1 = new wxBoxSizer(wxHORIZONTAL);
@@ -1276,7 +1261,7 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
 void ConfigureAxesDlg::OnApply (wxCommandEvent& WXUNUSED(event))
 {
     bool scale_changed = false;
-    plot->xAxisPen.SetColour(axis_color);
+    plot->xAxisCol = axis_color;
     plot->x_axis_visible = x_show_axis->GetValue();
     plot->xtics_visible = x_show_tics->GetValue();
     plot->x_max_tics = x_max_tics->GetValue();
