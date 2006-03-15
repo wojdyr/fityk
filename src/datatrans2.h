@@ -70,7 +70,8 @@ enum DataTransformVMOperator
     OP_ASSIGN_X, OP_ASSIGN_Y, OP_ASSIGN_S, OP_ASSIGN_A,
     OP_DO_ONCE, OP_RESIZE, OP_ORDER, OP_DELETE, OP_BEGIN, OP_END, 
     OP_SUM, OP_IGNORE, 
-    OP_PARAMETERIZED, OP_PLIST_BEGIN, OP_PLIST_END
+    OP_PARAMETERIZED, OP_PLIST_BEGIN, OP_PLIST_END,
+    OP_FUNC, OP_SUM_F, OP_SUM_Z, OP_NUMAREA
 };
 
 // parametrized functions
@@ -108,6 +109,11 @@ struct push_op
     void operator()(char) const { push(); }
 
     int op, op2;
+};
+
+struct push_the_func
+{
+    void operator()(char const* a, char const* b) const;
 };
 
 

@@ -122,7 +122,7 @@ public:
     void OnOReInclude    (wxCommandEvent& event);            
     void OnO_Reset       (wxCommandEvent& event);
     void OnODump         (wxCommandEvent& event);         
-    void OnSetttings     (wxCommandEvent& event);        
+    void OnSettings     (wxCommandEvent& event);        
     void OnPrintPreview  (wxCommandEvent& event);
     void OnPageSetup     (wxCommandEvent& event);
     void OnPrint         (wxCommandEvent& event);

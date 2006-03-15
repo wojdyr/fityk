@@ -485,6 +485,12 @@ void do_set(char const*, char const*) { getSettings()->setp(t2, t); }
 
 void do_set_show(char const*, char const*)  { mesg(getSettings()->infop(t2)); }
 
+void do_define_func(char const* a, char const* b) 
+{ 
+    string s = string(a,b);
+    CompoundFunction::define(s); 
+}
+
 } //namespace
 
 
@@ -519,7 +525,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
                       >> '=' >> no_actions_d[FuncG] [&do_assign_var]
             ;
 
-        function_name
+        type_name
             = lexeme_d[(upper_p >> *alnum_p)] 
             ;
 
@@ -535,7 +541,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
 
         assign_func
             = functionname_assign
-              >> (function_name [assign_a(t2)]
+              >> (type_name [assign_a(t2)]
                   >> str_p("(")[clear_a(vt)] 
                   >> !((no_actions_d[FuncG][push_back_a(vt)] 
                        % ',')
@@ -667,7 +673,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
                >> plot_range >> in_data) [&do_print_info]
             | (no_actions_d[DataExpressionG][assign_a(t)] 
                  >> in_data) [&do_print_data_expr]
-            | function_name[&do_print_func_type]
+            | type_name[&do_print_func_type]
             | "debug" >> compact_str [&do_print_debug_info] 
             ;
 
@@ -682,7 +688,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
 
         guess_arg
             = eps_p [clear_a(vt)] [clear_a(vr)] 
-              >> function_name [assign_a(t2)]
+              >> type_name [assign_a(t2)]
               >> plot_range
               >> !((function_param >> '=' >> no_actions_d[FuncG])
                                                            [push_back_a(vt)]
@@ -730,6 +736,20 @@ struct CmdGrammar : public grammar<CmdGrammar>
                  )
             ;
 
+        define_func
+            = optional_suffix_p("def","ine") 
+              >> (type_name >> '(' 
+                  >> ((function_param >> !('=' >> function_param 
+                                           >> !('*'>>ureal_p))
+                      ) % ',')
+                  >> ')' >> '='
+                  >> ((type_name >> '('
+                       >> (no_actions_d[FuncG]  % ',')
+                       >> ')'
+                      ) % '+')
+                  ) [&do_define_func]
+            ;
+
         statement 
             = optional_suffix_p("i","nfo") >> optional_plus >> (info_arg % ',')
             | (optional_suffix_p("del","ete")[clear_a(vt)][clear_a(vn)] 
@@ -755,6 +775,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
             | fz_assign
             | dataset_handling
             | (ds_prefix >> 'F' >> '>' >> compact_str)[&do_export_sum]
+            | define_func 
             ;
 
         multi 
@@ -763,9 +784,9 @@ struct CmdGrammar : public grammar<CmdGrammar>
 
     }
 
-    rule<ScannerT> transform, assign_var, function_name, assign_func, 
+    rule<ScannerT> transform, assign_var, type_name, assign_func, 
                    function_param, subst_func_param, put_function, 
-                   functionname_assign, put_func_to, fz_assign, 
+                   functionname_assign, put_func_to, fz_assign, define_func,
                    in_data, ds_prefix,
                    dataset_handling, compact_str, guess_arg,
                    existing_dataset_nr, dataset_nr, 

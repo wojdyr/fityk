@@ -1,9 +1,6 @@
 #!/bin/bash 
 # $Id$
 
-#TODO: test with unicode
-#TODO test with gcc-3.3
-
 version=0.7.2
 WEB="iris:/d2/people/wojdyr/www/fityk2/" 
 TEMP_DOWNLOAD=$WEB/d/
@@ -14,7 +11,7 @@ WEB_ANNOUNCE_FILE="index.html"
 
 BUILD_DIR=testbuild
 CVSTEST_DIR=cvs_test
-GCC2_DIR=gcc295
+GCCX_DIR=gccx
 OLDWX_DIR=oldwx
 MINGW_DIR=cross_win32
 ALL_WIN_FILES=all_files #inside of $MINGW_DIR
@@ -28,8 +25,7 @@ if [ $# -eq 0 ]; then
  echo steps:
  echo 0. prepare new version and increase version number 
  echo "1. test if everything compiles after distclean, run samples"
- echo "2. [deleted] test if this release can be compiled with gcc 2.95 "
- echo "   don't forget to commit to cvs"
+ echo "2. test if this release can be compiled with other settings"
  echo "3. test if it compiles with older wxWidgets"
  echo "4. test if CVS version compiles"
  echo 5. put docs on www
@@ -82,24 +78,16 @@ elif [ $1 -eq 1 ]; then
 
 
 elif [ $1 -eq 2 ]; then
- echo  testing compilation with gcc 2.95 
- rm -rf $GCC2_DIR
- mkdir $GCC2_DIR
- cd $GCC2_DIR
- tar xzf ../$tarball_filename
+ echo  testing compilation with gcc 3.3 and --wx-config=/usr/bin/wx-config
+ rm -rf $GCCX_DIR
+ mkdir $GCCX_DIR
+ cd $GCCX_DIR
+ tar xjf ../$tarball_filename
  cd fityk-$version  
- CC=gcc2 CXX=g++2 ./configure 
- cd src
- make cfityk
- make 2>&1 | tee log
- echo
- echo linking fityk can fail-- different wx version
- echo was it trying to link? grep log...
- grep lwx_ log
- echo if it tried to link, it is ok...
- echo is cfityk here, in `pwd`?
- ls -l cfityk
- cd ../../..
+ CC=gcc-3.3 CXX=g++-3.3 ./configure --wx-config=/usr/bin/wx-config
+ make
+ ls -l src/fityk src/cfityk
+ cd ../..
  
 
 elif [ $1 -eq 3 ]; then

@@ -900,9 +900,9 @@ void SideBar::update_func_list(bool nondata_changed)
         func_data.push_back(f->name);
         func_data.push_back(f->type_name);
         func_data.push_back(f->has_center() ? S(f->center()).c_str() : "-");
-        func_data.push_back(f->is_peak() ? S(f->area()).c_str() : "-");
-        func_data.push_back(f->is_peak() ? S(f->height()).c_str() : "-");
-        func_data.push_back(f->is_peak() ? S(f->fwhm()).c_str() : "-");
+        func_data.push_back(f->has_area() ? S(f->area()).c_str() : "-");
+        func_data.push_back(f->has_height() ? S(f->height()).c_str() : "-");
+        func_data.push_back(f->has_fwhm() ? S(f->fwhm()).c_str() : "-");
         vector<int> const& ffi = sum->get_ff_idx();
         vector<int> const& zzi = sum->get_zz_idx();
         vector<int>::const_iterator in_ff = find(ffi.begin(), ffi.end(), i);
@@ -1058,13 +1058,16 @@ void SideBar::update_func_inf()
     inf->SetDefaultStyle(boldattr);
     inf->AppendText(s2wx(func->xname));
     inf->SetDefaultStyle(defattr);
-    if (func->is_peak()) {
-        inf->AppendText(wxT("\nPeak properties:"));
+    if (func->has_center()) 
         inf->AppendText(wxT("\nCenter: ") + s2wx(S(func->center())));
+    if (func->has_area()) 
         inf->AppendText(wxT("\nArea: ") + s2wx(S(func->area())));
+    if (func->has_height()) 
         inf->AppendText(wxT("\nHeight: ") + s2wx(S(func->height())));
+    if (func->has_fwhm()) 
         inf->AppendText(wxT("\nFWHM: ") + s2wx(S(func->fwhm())));
-    }
+    if (func->has_iwidth()) 
+        inf->AppendText(wxT("\nInt. Width: ") + s2wx(S(func->iwidth())));
     vector<string> in;
     for (int i = 0; i < AL->get_ds_count(); ++i) {
         if (contains_element(AL->get_sum(i)->get_ff_idx(), n))
@@ -1074,6 +1077,7 @@ void SideBar::update_func_inf()
     }
     if (!in.empty())
         inf->AppendText(s2wx("\nIn: " + join_vector(in, ", ")));
+    inf->ShowPosition(0);
 }
 
 void SideBar::update_var_inf()
@@ -1097,6 +1101,7 @@ void SideBar::update_var_inf()
     vector<string> in = AL->get_variable_references(var->name);
     if (!in.empty())
         inf->AppendText(s2wx("\nIn:\n    " + join_vector(in, "\n    ")));
+    inf->ShowPosition(0);
 }
 
 void SideBar::add_variable_to_bottom_panel(Variable const* var, 

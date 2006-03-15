@@ -330,7 +330,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_PAGE_SETUP,    FFrame::OnPageSetup)
     EVT_MENU (ID_PRINT_PREVIEW, FFrame::OnPrintPreview)
     EVT_MENU (ID_O_DUMP,        FFrame::OnODump)    
-    EVT_MENU (ID_SESSION_SET,   FFrame::OnSetttings)    
+    EVT_MENU (ID_SESSION_SET,   FFrame::OnSettings)    
 
     EVT_MENU (ID_G_M_ZOOM,      FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_RANGE,     FFrame::OnChangeMouseMode)
@@ -1015,9 +1015,9 @@ void FFrame::OnSExport       (wxCommandEvent& WXUNUSED(event))
     string const& filename = AL->get_data(pos)->get_filename();
     wxString name = wxFileName(s2wx(filename)).GetName();
     wxFileDialog fdlg (this, wxT("Export curve to file"), dir, name,
-                       wxT("parameters of peaks (*.peaks)|*.peaks")
+                       wxT("parameters of functions (*.peaks)|*.peaks")
                        wxT("|x y data (*.dat)|*.dat;*.DAT")
-                       wxT("|XFIT peak listing (*xfit.txt)|*xfit.txt;*XFIT.TXT")
+                    // wxT("|XFIT peak listing (*xfit.txt)|*xfit.txt;*XFIT.TXT")
                        wxT("|mathematic formula (*.formula)|*.formula"),
                        wxSAVE | wxOVERWRITE_PROMPT);
     fdlg.SetFilterIndex(filter_idx);
@@ -1153,7 +1153,7 @@ void FFrame::OnODump         (wxCommandEvent& WXUNUSED(event))
     }
 }
          
-void FFrame::OnSetttings    (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnSettings    (wxCommandEvent& WXUNUSED(event))
 {
     SettingsDlg *dialog = new SettingsDlg(this, -1);
     dialog->ShowModal();

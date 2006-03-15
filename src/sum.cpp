@@ -246,6 +246,7 @@ void Sum::export_as_peaks(std::ostream& os) const
     }
 }
 
+/*
 void Sum::export_as_xfit (std::ostream& os) const
 {
     const char* header = "     File        Peak     Th2        "
@@ -273,6 +274,7 @@ void Sum::export_as_xfit (std::ostream& os) const
         os << line;
     }
 }
+*/
 
 void Sum::export_to_file (string filename, bool append, char filetype) 
 {
@@ -308,9 +310,11 @@ void Sum::export_to_file (string filename, bool append, char filetype)
         case 'p': 
             export_as_peaks(os);
             break;
+/*
         case 'x': 
             export_as_xfit(os);
             break;
+*/
         default:
             warn ("Unknown filetype letter: " + S(filetype));
     }

@@ -212,6 +212,8 @@ void Variable::recalculate(vector<Variable*> const &variables,
           }
       }
   }
+  else if (nr == -2)
+      ;
   else {
       value = parameters[nr];
       if (!derivatives.empty()) {
@@ -249,6 +251,12 @@ void Variable::erased_parameter(int k)
 
 ////////////////////////////////////////////////////////////////////////////
 
+VariableManager::~VariableManager()
+{
+    purge_all_elements(functions);
+    purge_all_elements(variables);
+}
+
 void VariableManager::unregister_sum(Sum const *s)
 { 
     vector<Sum*>::iterator k = find(sums.begin(), sums.end(), s);
@@ -278,7 +286,7 @@ void VariableManager::sort_variables()
 
 /// takes string parsable by FuncGrammar and:
 ///  if the string refers to one variable -- returns its name
-///  else makes variable and returns tis name
+///  else makes variable and returns its name
 string VariableManager::get_or_make_variable(string const& func)
 {
     assert(!func.empty());
@@ -313,9 +321,13 @@ string VariableManager::assign_variable(string const &name, string const &rhs)
         var = new Variable(nonempty_name, nr, auto_del);
     }
     else {
-        vector<string> vars = find_tokens(FuncGrammar::variableID, info);
+        vector<string> vars=find_tokens_in_ptree(FuncGrammar::variableID, info);
         if (find(vars.begin(), vars.end(), "x") != vars.end())
             throw ExecuteError("variable can't depend on x.");
+        for (vector<string>::const_iterator i = vars.begin(); 
+                                                i != vars.end(); i++) 
+            if ((*i)[0]!='~' && (*i)[0]!='{' && (*i)[0]!='$' && (*i)[0]!='%')
+                throw ExecuteError("`" + *i + "' can't be used as variable.");
         vector<OpTree*> op_trees = calculate_deriv(root, vars);
         // ~14.3 -> $var4
         for (vector<string>::iterator i = vars.begin(); i != vars.end(); ++i) {
@@ -699,7 +711,8 @@ string VariableManager::do_assign_func(Function* func)
         if (functions[i]->name == func->name) {
             delete functions[i];
             functions[i] = func;
-            mesg("New function %"+func->name+" replaced the old one.");
+            if (!silent)
+                mesg("New function %" + func->name + " replaced the old one.");
             remove_unreferred();
             found = true;
             break;
@@ -707,7 +720,8 @@ string VariableManager::do_assign_func(Function* func)
     }
     if (!found) {
         functions.push_back(func);
-        info("New function %" + func->name + " was created.");
+        if (!silent)
+            info("New function %" + func->name + " was created.");
     }
     func->do_precomputations(variables);
     return func->name;
@@ -802,14 +816,17 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
                                | '{' >> +~ch_p('}') >> '}' 
                               ];
 
-    variable    =  leaf_node_d[lexeme_d['$' >> +(alnum_p | '_')]]
-                |  leaf_node_d[lexeme_d['~' >> real_p]]
-                |  leaf_node_d["~{" >> +~ch_p('}') >> '}']
-                | leaf_node_d[str_p("x")] //only in functions
+    //"x" only in functions
+    //all expressions but the last are for variables and functions
+    //the last is for function types
+    variable    = leaf_node_d[lexeme_d['$' >> +(alnum_p | '_')]]
+                | leaf_node_d[lexeme_d['~' >> real_p]]
+                | leaf_node_d["~{" >> +~ch_p('}') >> '}']
                 // using FunctionLhsG causes crash 
                 | leaf_node_d[lexeme_d["%" >> +(alnum_p | '_')] //FunctionLhsG 
                               >> '[' >> lexeme_d[alpha_p >> *(alnum_p | '_')] 
                               >> ']'] 
+                | leaf_node_d[lexeme_d[alpha_p >> *(alnum_p | '_')]]
                 ;
 
     exptoken    =  real_const

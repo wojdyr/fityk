@@ -47,7 +47,7 @@ struct DataE2Grammar : public grammar<DataE2Grammar>
     definition(DataE2Grammar const& /*self*/);
 
     rule<ScannerT> rprec6, real_constant, real_variable, parameterized_args,
-                   index;
+                   index, func_or_f_or_z;
 
     rule<ScannerT> const& start() const { return rprec6; }
   };

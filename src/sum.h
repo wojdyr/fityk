@@ -60,7 +60,7 @@ private:
 
     void export_as_dat (std::ostream& os);
     void export_as_peaks(std::ostream& os) const;
-    void export_as_xfit(std::ostream& os) const;
+    //void export_as_xfit(std::ostream& os) const;
     Sum (const Sum&); //disable
     Sum& operator= (Sum&); //disable
     void do_find_function_indices(std::vector<std::string> &names,

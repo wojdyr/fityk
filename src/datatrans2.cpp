@@ -41,8 +41,6 @@ private:
     std::vector<B_point> bb;
 };
 
-//----------------------   
-
 //----------------------   functors   -------------------------
 
 void push_double::operator()(const double& n) const
@@ -85,6 +83,34 @@ void parameterized_op::push() const
             assert(0);
     }
     parameterized.push_back(func);
+}
+
+void push_the_func::operator()(char const* a, char const* b) const
+{ 
+    string t(a, b);
+    if (t[0] == '%') {
+        string fstr = strip_string(string(t, 1, t.find_first_of("(,")-1));
+        int n = AL->find_function_nr(fstr); 
+        if (n == -1)
+            throw ExecuteError("undefined function: %" + fstr);
+        code.push_back(OP_FUNC); 
+        code.push_back(n); 
+    }
+    else {
+        int n = -1;
+        if (t[0] == '@') {
+            int dot = t.find('.');
+            n = strtol(string(t,1,dot).c_str(), 0, 10);
+            t = strip_string(string(t, dot+1));
+        }
+        if (t[0] == 'F')
+            code.push_back(OP_SUM_F); 
+        else if (t[0] == 'Z')
+            code.push_back(OP_SUM_Z); 
+        else
+            assert(0);
+        code.push_back(n); 
+    }
 }
 
 } //namespace

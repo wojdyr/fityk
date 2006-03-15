@@ -125,6 +125,7 @@
 
 //#include "datatrans.h"
 #include "datatrans2.h"
+#include "sum.h"
 //#include "common.h"
 //#include "data.h"
 //#include "var.h"
@@ -226,6 +227,13 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
         |  str_p("M") [push_op(OP_VAR_M)]
         ;
 
+    func_or_f_or_z
+        = FunctionLhsG 
+          | (lexeme_d['@' >> uint_p >> '.']
+            | eps_p 
+            ) >> (ch_p('F')|'Z')
+        ;
+
     rprec6 
         =   real_constant
         |   '(' >> DataExpressionG >> ')'
@@ -253,6 +261,10 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
                                   >> DataExpressionG >> ')') [push_op(OP_MIN)] 
         |   (as_lower_d["max2"] >> '(' >> DataExpressionG >> ',' 
                                   >> DataExpressionG >> ')') [push_op(OP_MAX)] 
+        |   (func_or_f_or_z >> '(' >> DataExpressionG >> ')') [push_the_func()]
+        |   as_lower_d["numarea"] >> '(' >> (func_or_f_or_z >> ',' 
+                >> DataExpressionG >> ',' >> DataExpressionG >> ',' 
+                >> DataExpressionG >> ')')[push_op(OP_NUMAREA)][push_the_func()]
         |   real_variable   //"s" is checked after "sin" and "sqrt"   
         ;
 }
@@ -361,7 +373,9 @@ bool is_operator(vector<int>::iterator i, DataTransformVMOperator op)
 {
     assert(code.begin() <= i && i < code.end());
     return (*i == op && (i != code.begin() 
-                        || *(i-1) != OP_NUMBER && *(i-1) != OP_PARAMETERIZED));
+                        || *(i-1) != OP_NUMBER && *(i-1) != OP_PARAMETERIZED
+                           && *(i-1) != OP_FUNC && *(i-1) != OP_SUM_F
+                           && *(i-1) != OP_SUM_Z));
 }
 
 vector<int>::const_iterator 
@@ -442,6 +456,32 @@ bool execute_code(int n, int &M, vector<double>& stack,
                 break;
             case OP_ROUND:
                 *stackPtr = floor(*stackPtr + 0.5);
+                break;
+
+            case OP_FUNC:
+                i++;
+                *stackPtr = AL->get_function(*i)->calculate_value(*stackPtr);
+                break;
+            case OP_SUM_F:
+                i++;
+                *stackPtr = AL->get_sum(*i)->value(*stackPtr);
+                break;
+            case OP_SUM_Z:
+                i++;
+                *stackPtr = AL->get_sum(*i)->zero_shift(*stackPtr);
+                break;
+            case OP_NUMAREA:
+                i+=2;
+                stackPtr-=2;
+                if (*(i-1) == OP_FUNC) {
+                    *stackPtr = AL->get_function(*i)->numarea(*stackPtr, 
+                                        *(stackPtr+1), iround(*(stackPtr+2)));
+                }
+                else if (*(i-1) == OP_SUM_F) {
+                    *stackPtr = 0.; //TODO
+                }
+                else 
+                    *stackPtr = 0.; 
                 break;
 
             case OP_PARAMETERIZED:
@@ -816,28 +856,23 @@ void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
 
 vector<Point> transform_data(string const& str, vector<Point> const& old_points)
 {
-    assert(code.empty());
+    clear_parse_vecs();
     // First compile string...
     parse_info<> result = parse(str.c_str(), DataTransformG, space_p);
     if (!result.full) {
-        // cleaning
-        clear_parse_vecs();
         throw ExecuteError("Syntax error in data transformation formula.");
     }
     // and then execute compiled code.
     vector<Point> new_points = old_points; //initial values of new_points
     execute_vm_code(old_points, new_points);
-    // cleaning
-    clear_parse_vecs();
     return new_points;
 }
 
 bool validate_transformation(string const& str)
 {
-    assert(code.empty());
+    clear_parse_vecs();
     // First compile string...
     parse_info<> result = parse(str.c_str(), DataTransformG, space_p);
-    clear_parse_vecs();
     return (bool) result.full;
 }
 
@@ -845,7 +880,7 @@ fp get_transform_expression_value(string const &s, Data const* data)
 {
     vector<Point> const no_points;
     vector<Point> const& points = data ? data->points() : no_points;
-    assert(code.empty());
+    clear_parse_vecs();
     // First compile string...
     parse_info<> result = parse(s.c_str(), DataExpressionG, 
                                 space_p);
@@ -854,7 +889,6 @@ fp get_transform_expression_value(string const &s, Data const* data)
     //           OP_VAR_X, OP_VAR_Y, OP_VAR_S, OP_VAR_A,
     // and then execute compiled code.
     if (!result.full) {
-        clear_parse_vecs();
         throw ExecuteError("Syntax error in expression: " + s);
     }
     int M = (int) points.size();
@@ -864,7 +898,6 @@ fp get_transform_expression_value(string const &s, Data const* data)
     // first execute one-time operations: sorting, x[15]=3, etc. 
     // n==M => one-time op.
     bool t = execute_code(M, M, stack, points, fake_new_points, code);
-    clear_parse_vecs();
     if (t) { 
         throw ExecuteError("Expression depends on undefined `n' index: " + s);
     }

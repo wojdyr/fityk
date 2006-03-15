@@ -43,7 +43,7 @@ Settings::Settings()
     bpar["exit-on-warning"] = false;
 
     // Function
-    fpar["cut-function-level"] = 0.;
+    fpar["cut-function-level"] = cut_function_level = 0.;
 
     // guess
     bpar ["can-cancel-guess"] = true;
@@ -98,6 +98,9 @@ void Settings::setp_core(string const& k, string const& v)
         fp d;
         if (istringstream (v) >> d) {
             fpar[k] = d;
+            //optimization
+            if (k == "cut-function-level")
+                cut_function_level = d;
             return;
         }
     }

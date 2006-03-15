@@ -1,4 +1,11 @@
-User-visible changes in version 0.7.2  (2006-0 -  ):
+User-visible changes in version 0.7.3  (2006-03-  ):
+* extended data transformations: numarea(%f, x1, x2, n) gives area integrated
+  numerically (from x1 to x2, n steps), Y = y-%f(x) substracts function from
+  data, 
+* user defined functions derived from other functions, eg:
+   define GaussianA(area, center, fwhm) = Gaussian(area/fwhm/sqrt(pi*ln(2)), center, fwhm)
+
+User-visible changes in version 0.7.2  (2006-03-08):
 * area-based Voigt function (VoigtA)
 * GUI, MS Windows only, Session > "Copy to Clipboard" copies plots to clipboard
 * added fityk.desktop file for Linux desktop integration (Niklas Volbers)

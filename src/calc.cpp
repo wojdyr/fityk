@@ -139,7 +139,7 @@ void do_find_tokens(int tokenID, const_iter_t const &i, vector<string> &vars)
     }
 }
 
-vector<string> find_tokens(int tokenID, const tree_parse_info<> &info)
+vector<string> find_tokens_in_ptree(int tokenID, const tree_parse_info<> &info)
 {
     vector<string> vars;
     const_iter_t const &root = info.trees.begin();

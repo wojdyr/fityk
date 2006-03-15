@@ -1617,10 +1617,10 @@
      Now come back to <filename>src/func.cpp</filename> and write, 
      how to calculate value of the function:
      <screen>
-      DEFINE_FUNC_CALCULATE_VALUE_BEGIN(Foo)
+      FUNC_CALCULATE_VALUE_BEGIN(Foo)
           fp xa1a2 = (x - vv[1]) / vv[2];
           fp inv_denomin = 1. / (1 + xa1a2 * xa1a2);
-      DEFINE_FUNC_CALCULATE_VALUE_END(vv[0] * inv_denomin)
+      FUNC_CALCULATE_VALUE_END(vv[0] * inv_denomin)
      </screen>
      Expression at the end (i.e. vv[0]*inv_denomin) is the calculated value.
      xa1xa2 and inv_denomin are variables introduced to simplify
@@ -1631,7 +1631,7 @@
      Usually it is more difficult do calculate derivatives:
 
      <screen>
-      DEFINE_FUNC_CALCULATE_VALUE_DERIV_BEGIN(Foo)
+      FUNC_CALCULATE_VALUE_DERIV_BEGIN(Foo)
           fp xa1a2 = (x - vv[1]) / vv[2];
           fp inv_denomin = 1. / (1 + xa1a2 * xa1a2);
           dy_dv[0] = inv_denomin;
@@ -1639,7 +1639,7 @@
           dy_dv[1] = dcenter;
           dy_dv[2] = dcenter * xa1a2;
           dy_dx = -dcenter;
-      DEFINE_FUNC_CALCULATE_VALUE_DERIV_END(vv[0] * inv_denomin)
+      FUNC_CALCULATE_VALUE_DERIV_END(vv[0] * inv_denomin)
      </screen>
 
      You must set derivatives 

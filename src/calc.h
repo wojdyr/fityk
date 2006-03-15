@@ -72,7 +72,7 @@ struct OpTree
 };
 
 std::vector<std::string> 
-find_tokens(int tokenID, const tree_parse_info<> &info);
+find_tokens_in_ptree(int tokenID, const tree_parse_info<> &info);
 
 typedef tree_match<char const*>::const_tree_iterator const_tm_iter_t;
 std::vector<OpTree*> calculate_deriv(const_tm_iter_t const &i,

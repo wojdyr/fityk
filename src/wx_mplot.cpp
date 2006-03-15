@@ -371,34 +371,30 @@ void MainPlot::prepare_peak_labels(Sum const* sum)
     for (int k = 0; k < size(idx); k++) {
         Function const *f = AL->get_function(idx[k]);
         string label = plabel_format;
-        if (f->is_peak()) {
-            string::size_type pos = 0; 
-            while ((pos = label.find("<", pos)) != string::npos) {
-                string::size_type right = label.find(">", pos+1); 
-                if (right == string::npos)
-                    break;
-                string tag(label, pos+1, right-pos-1);
-                if (tag == "area")
-                    label.replace(pos, right-pos+1, S(f->area()));
-                else if (tag == "height")
-                    label.replace(pos, right-pos+1, S(f->height()));
-                else if (tag == "center")
-                    label.replace(pos, right-pos+1, S(f->center()));
-                else if (tag == "fwhm")
-                    label.replace(pos, right-pos+1, S(f->fwhm()));
-                else if (tag == "ib")
-                    label.replace(pos, right-pos+1, S(f->area()/f->height()));
-                else if (tag == "name")
-                    label.replace(pos, right-pos+1, f->name);
-                else if (tag == "br")
-                    label.replace(pos, right-pos+1, "\n");
-                else
-                    ++pos;
-            }
-            plabels[k] = label;
+        string::size_type pos = 0; 
+        while ((pos = label.find("<", pos)) != string::npos) {
+            string::size_type right = label.find(">", pos+1); 
+            if (right == string::npos)
+                break;
+            string tag(label, pos+1, right-pos-1);
+            if (tag == "area")
+                label.replace(pos, right-pos+1, S(f->area()));
+            else if (tag == "height")
+                label.replace(pos, right-pos+1, S(f->height()));
+            else if (tag == "center")
+                label.replace(pos, right-pos+1, S(f->center()));
+            else if (tag == "fwhm")
+                label.replace(pos, right-pos+1, S(f->fwhm()));
+            else if (tag == "ib")
+                label.replace(pos, right-pos+1, S(f->area()/f->height()));
+            else if (tag == "name")
+                label.replace(pos, right-pos+1, f->name);
+            else if (tag == "br")
+                label.replace(pos, right-pos+1, "\n");
+            else
+                ++pos;
         }
-        else
-            plabels[k] = "";
+        plabels[k] = label;
     }
 }
 
@@ -567,7 +563,7 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
     peak_menu.Append(ID_peak_popup_del, wxT("&Delete"));
     peak_menu.Append(ID_peak_popup_guess, wxT("&Guess parameters"));
     peak_menu.Enable(ID_peak_popup_guess, 
-                     AL->get_function(over_peak)->is_peak());
+                     AL->get_function(over_peak)->has_center());
     PopupMenu (&peak_menu, event.GetX(), event.GetY());
 }
 
@@ -587,9 +583,9 @@ void MainPlot::OnPeakGuess(wxCommandEvent &WXUNUSED(event))
 {
     if (over_peak >= 0) {
         Function const* p = AL->get_function(over_peak);
-        if (p->is_peak()) {
+        if (p->has_center()) {
             fp ctr = p->center();
-            fp plusmin = max(fabs(p->fwhm()), p->area() / p->height());    
+            fp plusmin = max(fabs(p->fwhm()), p->iwidth());    
             exec_command(p->xname + " = guess " + p->type_name + " [" 
                              + S(ctr-plusmin) + ":" + S(ctr+plusmin) + "]"
                              + frame->get_in_dataset());

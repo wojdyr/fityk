@@ -58,6 +58,8 @@ public:
     std::string set_script() const; 
     /// get value of option as string
     std::string getp(std::string const& k) const;
+    /// for faster access
+    fp get_cut_level() const { return cut_function_level; }
 
 private:
     static Settings* instance;
@@ -67,6 +69,7 @@ private:
     std::map <std::string, IntRange> irpar;
     std::map <std::string, EnumString> epar;
     std::map <std::string, std::string> spar;
+    fp cut_function_level; ///for faster access
 
     Settings();
     Settings(Settings const&); //disable

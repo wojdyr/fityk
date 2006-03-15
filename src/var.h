@@ -52,6 +52,8 @@ protected:
 
 /// the variable is either simple-variable and nr is the index in vector
 /// of parameters, or it is not simple, and has nr==-1.
+/// third special case: nr==-2 - it is kind of mirror variable (such variable
+///        is not recalculated but copied set with copy_recalculated())
 /// In second case, the value and derivatives are calculated 
 /// in following steps:
 ///  0. string is parsed by Spirit parser to Spirit AST representation,
@@ -98,6 +100,8 @@ public:
                                             { return recursive_derivatives; }
     bool is_simple() const { return nr != -1; }
     std::vector<OpTree*> const& get_op_trees() const { return op_trees; }
+    void copy_recalculated(Variable const& v) 
+       {nr=-2; value=v.value; recursive_derivatives=v.recursive_derivatives;}
 
 private:
     int nr; /// -1 unless it's simple "variable"
@@ -119,6 +123,10 @@ private:
 class VariableManager
 {
 public:
+    bool silent;
+
+    VariableManager() : silent(false) {}
+    ~VariableManager();
     void register_sum(Sum *s) { sums.push_back(s); }
     void unregister_sum(Sum const *s);
 
@@ -154,6 +162,9 @@ public:
     std::vector<fp> const& get_parameters() const { return parameters; }
     std::vector<Variable*> const& get_variables() const { return variables; }
     Variable const* get_variable(int n) const { return variables[n]; }
+    //hack used eg. in CompoundFunction, no checks
+    void set_recalculated_variable(int n, Variable const& v) 
+                 { variables[n]->copy_recalculated(v); }
 
     std::string assign_func(std::string const &name, 
                             std::string const &function, 
@@ -184,10 +195,8 @@ public:
 protected:
     std::vector<Sum*> sums;
     std::vector<fp> parameters;
-
     /// sorted, a doesn't depend on b if idx(a)>idx(b)
     std::vector<Variable*> variables; 
-
     std::vector<Function*> functions;
 
     std::string do_assign_func(Function* func);
