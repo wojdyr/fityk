@@ -59,7 +59,7 @@ enum DataTransformVMOperator
     OP_TAN/*!*/, OP_ASIN, OP_ACOS,
     OP_LOG10, OP_LN,  OP_SQRT,  OP_POW,   //these functions can set errno    
     OP_ADD,   OP_SUB,   OP_MUL,   OP_DIV/*!*/,  OP_MOD,
-    OP_MIN,   OP_MAX,     
+    OP_MIN,   OP_MAX, OP_RANDNORM, OP_RANDU,    
     OP_VAR_X, OP_VAR_Y, OP_VAR_S, OP_VAR_A, 
     OP_VAR_x, OP_VAR_y, OP_VAR_s, OP_VAR_a, 
     OP_VAR_n, OP_VAR_M, OP_NUMBER,  
@@ -71,7 +71,7 @@ enum DataTransformVMOperator
     OP_DO_ONCE, OP_RESIZE, OP_ORDER, OP_DELETE, OP_BEGIN, OP_END, 
     OP_SUM, OP_IGNORE, 
     OP_PARAMETERIZED, OP_PLIST_BEGIN, OP_PLIST_END,
-    OP_FUNC, OP_SUM_F, OP_SUM_Z, OP_NUMAREA
+    OP_FUNC, OP_SUM_F, OP_SUM_Z, OP_NUMAREA, OP_FINDX, OP_FIND_EXTR
 };
 
 // parametrized functions
@@ -99,6 +99,11 @@ struct push_the_var: public push_double
 {
     void operator()(char const* a, char const* b) const 
      { push_double::operator()(AL->find_variable(string(a+1,b))->get_value()); }
+};
+
+struct push_the_func_param: public push_double
+{
+    void operator()(char const* a, char const* b) const;
 };
 
 struct push_op

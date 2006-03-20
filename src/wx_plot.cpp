@@ -40,8 +40,6 @@ enum {
 //                FPlot (plot with data and fitted curves) 
 //===============================================================
 
-fp scale_tics_step (fp beg, fp end, int max_tics);
-
 void FPlot::draw_dashed_vert_lines (int x1)
 {
     if (x1 != INVALID) {
@@ -96,20 +94,18 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
     }
     dc.SetFont(ticsFont);
 
-    fp x_tic_step = scale_tics_step(v.left, v.right, x_max_tics);
-    for (fp x = x_tic_step * ceil(v.left / x_tic_step); x < v.right; 
-            x += x_tic_step) {
-        int X = x2X(x);
-        int Y = y2Y(0);
+    vector<fp> x_tics = scale_tics_step(v.left, v.right, x_max_tics);
+    for (vector<fp>::const_iterator i = x_tics.begin(); i != x_tics.end(); ++i){
+        int X = x2X(*i);
+        int Y = y2Y(y_logarithm ? 1 : 0);
         dc.DrawLine (X, Y, X, Y - x_tic_size);
-        wxString label = s2wx(S(x));
+        wxString label = s2wx(S(*i));
         if (label == wxT("-0"))
             label = wxT("0");
         wxCoord w, h;
         dc.GetTextExtent (label, &w, &h);
         dc.DrawText (label, X - w/2, Y + 1);
     }
-
 }
 
 /// draw y axis tics
@@ -121,17 +117,18 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
     }
     dc.SetFont(ticsFont);
 
-    fp y_tic_step = scale_tics_step(v.bottom, v.top, y_max_tics);
+
     //if y axis is visible, tics are drawed at the axis, 
     //otherwise tics are drawed at the left hand edge of the plot
     int X = 0;
     if (y_axis_visible && x2X(0) > 0 && x2X(0) < GetClientSize().GetWidth()-10)
         X = x2X(0);
-    for (fp y = y_tic_step * ceil(v.bottom / y_tic_step); y < v.top; 
-            y += y_tic_step) {
-        int Y = y2Y(y);
+    vector<fp> y_tics = scale_tics_step(v.bottom, v.top, y_max_tics, 
+                                        y_logarithm);
+    for (vector<fp>::const_iterator i = y_tics.begin(); i != y_tics.end(); ++i){
+        int Y = y2Y(*i);
         dc.DrawLine (X, Y, X + y_tic_size, Y);
-        wxString label = s2wx(S(y));
+        wxString label = s2wx(S(*i));
         if (label == wxT("-0"))
             label = wxT("0");
         wxCoord w, h;
@@ -428,11 +425,13 @@ void AuxPlot::draw_zoom_text(wxDC& dc, bool set_pen)
 {
     if (set_pen)
         dc.SetTextForeground(xAxisCol);
-    dc.SetFont(*wxNORMAL_FONT);  
-    string s = "x" + S(y_zoom);  
-    wxCoord w, h;
-    dc.GetTextExtent (s2wx(s), &w, &h); 
-    dc.DrawText (s2wx(s), dc.MaxX() - w - 2, 2);
+    if (shared.plot_y_scale) {
+        dc.SetFont(*wxNORMAL_FONT);  
+        string s = "x" + S(y_zoom);  
+        wxCoord w, h;
+        dc.GetTextExtent (s2wx(s), &w, &h); 
+        dc.DrawText (s2wx(s), dc.MaxX() - w - 2, 2);
+    }
 }
 
 void AuxPlot::OnMouseMove(wxMouseEvent &event)
@@ -484,7 +483,10 @@ void AuxPlot::set_scale()
             yUserScale = 1.; //y scale doesn't matter
             break; 
         case apk_diff: 
-            yUserScale = shared.plot_y_scale * y_zoom;
+            if (shared.plot_y_scale)
+                yUserScale = shared.plot_y_scale * y_zoom;
+            else 
+                yUserScale = y_zoom;
             break;
         case apk_diff_stddev:
         case apk_diff_y_proc:
@@ -720,8 +722,8 @@ void AuxPlot::fit_y_zoom(Data const* data, Sum const* sum)
         case apk_diff: 
             {
             y = get_max_abs_y(diff_of_data_for_draw_data, first, last, sum);
-            y_zoom = fabs (GetClientSize().GetHeight() / 
-                                            (2 * y * shared.plot_y_scale));
+            y_zoom = fabs (GetClientSize().GetHeight() / (2 * y 
+                           * (shared.plot_y_scale ? shared.plot_y_scale : 1.)));
             fp order = pow (10, floor (log10(y_zoom)));
             y_zoom = floor(y_zoom / order) * order;
             }
@@ -754,7 +756,7 @@ void AuxPlot::OnPopupYZoomAuto (wxCommandEvent& WXUNUSED(event))
 {
     auto_zoom_y = !auto_zoom_y;
     if (auto_zoom_y) {
-        //fit_y_zoom(); -- it is called from Draw
+        //fit_y_zoom() is called from Draw
         Refresh(false);
     }
 }
@@ -763,25 +765,53 @@ void AuxPlot::OnPopupYZoomAuto (wxCommandEvent& WXUNUSED(event))
 //                             utilities
 //===============================================================
 
-fp scale_tics_step (fp beg, fp end, int max_tics)
+vector<fp> scale_tics_step (fp beg, fp end, int max_tics, bool log)
 {
+    vector<fp> result;
     if (beg >= end || max_tics <= 0)
-        return +INF;
-    assert (max_tics > 0);
-    fp min_step = (end - beg) / max_tics;
-    fp s = pow(10, floor (log10 (min_step)));
-    // now s < min_step
-    if (s >= min_step)
-        ;
-    else if (s * 2 >= min_step)
-        s *= 2;
-    else if (s * 2.5 >= min_step)
-        s *= 2.5;
-    else if (s * 5 >=  min_step)
-        s *= 5;
-    else
-        s *= 10;
-    return s;
-    //first = s * ceil(beg / s);
+        return result;
+    if (log) {
+        if (beg <= 0)
+            beg = 1e-1;
+        if (end <= beg)
+            end = 2*beg;
+        fp min_logstep = (log10(end/beg)) / max_tics;
+        bool with_2_5 = (min_logstep < log10(2));
+        fp logstep = ceil(min_logstep);
+        fp step0 = pow(10, logstep * ceil(log10(beg) / logstep));
+        if (with_2_5) {
+            if (step0/5. > beg && step0/5. < end)
+                result.push_back(step0);
+            if (step0/2. > beg && step0/2. < end)
+                result.push_back(step0/2.);
+        }
+        for (fp t = step0; t < end; t *= pow(10,logstep)) {
+            result.push_back(t);
+            if (with_2_5) {
+                if (t*2 < end)
+                    result.push_back(t*2);
+                if (t*5 < end)
+                    result.push_back(t*5);
+            }
+        }
+    }
+    else {
+        fp min_step = (end - beg) / max_tics;
+        fp s = pow(10, floor (log10 (min_step)));
+        // now s < min_step
+        if (s >= min_step)
+            ;
+        else if (s * 2 >= min_step)
+            s *= 2;
+        else if (s * 2.5 >= min_step)
+            s *= 2.5;
+        else if (s * 5 >=  min_step)
+            s *= 5;
+        else
+            s *= 10;
+        for (fp t = s * ceil(beg / s); t < end; t += s) 
+            result.push_back(t);
+    }
+    return result;
 }
 

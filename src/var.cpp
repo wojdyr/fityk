@@ -308,7 +308,7 @@ string VariableManager::assign_variable(string const &name, string const &rhs)
 {
     Variable *var = 0;
     bool auto_del = name.empty();
-    string nonempty_name = name.empty() ? Variable::next_auto_name() : name; 
+    string nonempty_name = name.empty() ? next_var_name() : name; 
     tree_parse_info<> info = ast_parse(rhs.c_str(), FuncG, space_p);
     assert(info.full);
     const_tm_iter_t const &root = info.trees.begin();
@@ -680,7 +680,7 @@ vector<string> VariableManager::make_varnames(string const &function,
 {
     vector<string> varnames;
     if (vars.empty())
-        return vars;
+        return varnames;
     vector<string> vv = (vars[0].find('=') == string::npos ? vars
                                            : get_vars_from_kw(function, vars));
     for (int i = 0; i < size(vv); ++i) 
@@ -689,12 +689,14 @@ vector<string> VariableManager::make_varnames(string const &function,
 }
 
 string VariableManager::assign_func(string const &name, string const &function, 
-                                    vector<string> const &vars)
+                                    vector<string> const &vars, bool parse_vars)
 {
     Function *func = 0;
     try {
-        vector<string> varnames = make_varnames(function, vars);
-        func = Function::factory(name, function, varnames);
+        func = Function::factory(name.empty() ? next_func_name() : name, 
+                                 function, 
+                                 parse_vars ? make_varnames(function, vars) 
+                                            : vars);
     } catch (ExecuteError &) {
         remove_unreferred();
         throw;
@@ -730,7 +732,7 @@ string VariableManager::do_assign_func(Function* func)
 string VariableManager::make_var_copy_name(Variable const* v)
 {
     if (v->name[0] == '_') 
-        return Variable::next_auto_name(); 
+        return next_var_name(); 
 
     int vs = v->name.size();
     int appendix = 0;
@@ -764,8 +766,7 @@ string VariableManager::assign_func_copy(string const &name, string const &orig)
         assert(varmap.count(of->get_var_idx(i)));
         varnames.push_back(varmap[of->get_var_idx(i)]);
     }
-    Function* cf = Function::factory(name, of->type_name, varnames);
-    return do_assign_func(cf);
+    return assign_func(name, of->type_name, varnames, false);
 }
 
 void VariableManager::substitute_func_param(string const &name, 
@@ -776,7 +777,7 @@ void VariableManager::substitute_func_param(string const &name,
     if (nr == -1)
         throw ExecuteError("undefined function: %" + name);
     Function* k = functions[nr];
-    k->substitute_param(k->find_param_nr(param), get_or_make_variable(var)); 
+    k->substitute_param(k->get_param_nr(param), get_or_make_variable(var)); 
     k->set_var_idx(variables);
     k->do_precomputations(variables);
     remove_unreferred();
@@ -787,7 +788,7 @@ string VariableManager::get_func_param(string const &name, string const &param)
     Function const* k = find_function(name);
     if (!k)
         throw ExecuteError("undefined function: " + name);
-    return k->get_var_name(k->find_param_nr(param));
+    return k->get_var_name(k->get_param_nr(param));
 }
 
 fp VariableManager::variation_of_a (int n, fp variat) const
@@ -880,6 +881,5 @@ std::string simplify_formula(std::string const &formula)
 FuncGrammar FuncG;
 VariableLhsGrammar VariableLhsG;
 FunctionLhsGrammar  FunctionLhsG;
-int Variable::unnamed_counter = 0;
 
 

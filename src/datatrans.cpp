@@ -205,6 +205,7 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
         |  as_lower_d["true"] [push_the_double(1.)]
         |  as_lower_d["false"] [push_the_double(0.)]
         |  VariableLhsG [push_the_var()]
+        |  (FunctionLhsG >> '[' >> +alnum_p >> ']')[push_the_func_param()]
         ;
 
     parameterized_args
@@ -261,10 +262,20 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
                                   >> DataExpressionG >> ')') [push_op(OP_MIN)] 
         |   (as_lower_d["max2"] >> '(' >> DataExpressionG >> ',' 
                                   >> DataExpressionG >> ')') [push_op(OP_MAX)] 
+        |   (as_lower_d["randnormal"] >> '(' >> DataExpressionG >> ',' 
+                              >> DataExpressionG >> ')') [push_op(OP_RANDNORM)] 
+        |   (as_lower_d["randuniform"] >> '(' >> DataExpressionG >> ',' 
+                              >> DataExpressionG >> ')') [push_op(OP_RANDU)] 
         |   (func_or_f_or_z >> '(' >> DataExpressionG >> ')') [push_the_func()]
         |   as_lower_d["numarea"] >> '(' >> (func_or_f_or_z >> ',' 
                 >> DataExpressionG >> ',' >> DataExpressionG >> ',' 
                 >> DataExpressionG >> ')')[push_op(OP_NUMAREA)][push_the_func()]
+        |   as_lower_d["findx"] >> '(' >> (func_or_f_or_z >> ',' 
+                >> DataExpressionG >> ',' >> DataExpressionG >> ',' 
+                >> DataExpressionG >> ')')[push_op(OP_FINDX)][push_the_func()]
+        |   as_lower_d["extremum"] >> '(' >> (func_or_f_or_z >> ',' 
+                >> DataExpressionG >> ',' >> DataExpressionG >> ')')
+                                      [push_op(OP_FIND_EXTR)][push_the_func()]
         |   real_variable   //"s" is checked after "sin" and "sqrt"   
         ;
 }
@@ -478,10 +489,44 @@ bool execute_code(int n, int &M, vector<double>& stack,
                                         *(stackPtr+1), iround(*(stackPtr+2)));
                 }
                 else if (*(i-1) == OP_SUM_F) {
-                    *stackPtr = 0.; //TODO
+                    *stackPtr = AL->get_sum(*i)->numarea(*stackPtr, 
+                                        *(stackPtr+1), iround(*(stackPtr+2)));
                 }
-                else 
-                    *stackPtr = 0.; 
+                else // OP_SUM_Z
+                    throw ExecuteError("numarea(Z,...) is not implemented."
+                                       "Does anyone need it?"); 
+                break;
+
+            case OP_FINDX:
+                i+=2;
+                stackPtr-=2;
+                if (*(i-1) == OP_FUNC) {
+                    *stackPtr = AL->get_function(*i)->find_x_with_value(
+                                      *stackPtr, *(stackPtr+1), *(stackPtr+2));
+                }
+                else if (*(i-1) == OP_SUM_F) {
+                    throw ExecuteError("findx(F,...) is not implemented. "
+                                       "Does anyone need it?"); 
+                }
+                else // OP_SUM_Z
+                    throw ExecuteError("findx(Z,...) is not implemented. "
+                                       "Does anyone need it?"); 
+                break;
+
+            case OP_FIND_EXTR:
+                i+=2;
+                stackPtr-=1;
+                if (*(i-1) == OP_FUNC) {
+                    *stackPtr = AL->get_function(*i)->find_extremum(*stackPtr,
+                                                                *(stackPtr+1));
+                }
+                else if (*(i-1) == OP_SUM_F) {
+                    throw ExecuteError("extremum(F,...) is not implemented. "
+                                       "Does anyone need it?"); 
+                }
+                else // OP_SUM_Z
+                    throw ExecuteError("extremum(Z,...) is not implemented. "
+                                       "Does anyone need it?"); 
                 break;
 
             case OP_PARAMETERIZED:
@@ -497,6 +542,14 @@ bool execute_code(int n, int &M, vector<double>& stack,
             case OP_MAX:
                 stackPtr--;
                 *stackPtr = max(*stackPtr, *(stackPtr+1));
+                break;
+            case OP_RANDU:
+                stackPtr--;
+                *stackPtr = rand_uniform(*stackPtr, *(stackPtr+1));
+                break;
+            case OP_RANDNORM:
+                stackPtr--;
+                *stackPtr += rand_gauss() * *(stackPtr+1);
                 break;
             case OP_ADD:
                 stackPtr--;

@@ -5,7 +5,6 @@
 #include "fit.h"
 #include <algorithm>
 #include <sstream>
-#include <time.h>
 #include <math.h>
 #include "logic.h"
 #include "sum.h"
@@ -21,12 +20,11 @@ using namespace std;
 
 Fit::Fit(string m)  
     : name(m), 
-      default_max_iterations(50), output_one_of(1), random_seed(-1),
+      default_max_iterations(50), output_one_of(1), 
       max_evaluations(0), evaluations(0), iter_nr (0), na(0)
 {
     /*
     irpar ["output-one-of"] = IntRange (&output_one_of, 1, 999);
-    irpar["pseudo-random-seed"] = IntRange (&random_seed, -1, 999999999);
     ipar["default-max-iterations"] = &default_max_iterations;
     ipar["max-wssr-evaluations"] = &max_evaluations;
     */
@@ -235,9 +233,6 @@ void Fit::fit(int max_iter, vector<DataWithSum*> const& dsds_)
     iter_nr = 0;
     a_orig = AL->get_parameters();
     na = a_orig.size(); 
-    int rs = random_seed >= 0 ? random_seed : time(0);
-    srand (rs);
-    verbose ("Seed for a sequence of pseudo-random numbers: " + S(rs));
     init();
     continue_fit(max_iter);
 }

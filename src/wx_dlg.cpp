@@ -946,6 +946,12 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     exit_cb = new wxCheckBox(page_general, -1, 
                              wxT("quit if error or warning was generated"));
     exit_cb->SetValue(getSettings()->get_b("exit-on-warning"));
+    wxStaticText *seed_st = new wxStaticText(page_general, -1,
+                         wxT("pseudo-random generator seed (0 = time-based)"));
+    seed_sp = new SpinCtrl(page_general, -1, 
+                         getSettings()->get_i("pseudo-random-seed"), 0, 999999,
+                         70);
+
 
     wxBoxSizer *sizer_general = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizer_general_c = new wxBoxSizer(wxHORIZONTAL);
@@ -956,6 +962,11 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     sizer_general->Add(verbosity_st, 0, wxLEFT|wxRIGHT|wxTOP, 5);
     sizer_general->Add(verbosity_ch, 0, wxEXPAND|wxALL, 5);
     sizer_general->Add(exit_cb, 0, wxEXPAND|wxALL, 5);
+    wxBoxSizer *sizer_general_seed = new wxBoxSizer(wxHORIZONTAL);
+    sizer_general_seed->Add(seed_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    sizer_general_seed->Add(seed_sp, 0, wxALL, 5);
+    sizer_general->Add(sizer_general_seed, 0);
+    sizer_general->Add(add_persistence_note(page_general), 0, wxEXPAND|wxALL,5);
     page_general->SetSizerAndFit(sizer_general);
 
     // page peak-finding
@@ -980,6 +991,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     sizer_pf_wc->Add(width_correction, 0, wxALL, 5);
     sizer_pf->Add(sizer_pf_wc, 0);
     sizer_pf->Add(cancel_poos, 0, wxALL, 5);
+    sizer_pf->Add(add_persistence_note(page_peakfind), 0, wxEXPAND|wxALL, 5);
     page_peakfind->SetSizerAndFit(sizer_pf);
 
     // page fitting 
@@ -1004,9 +1016,9 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
                            0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     sizer_dirs->Add(sizer_dirs_script, 0, wxEXPAND|wxALL, 5);
     sizer_dirs->Add(new wxStaticText(page_dirs, -1, 
-                       wxT("Directories given above are used when a dialog\n")
-                       wxT(" is displayed first time after program launch.")),
-                    0, wxALL, 5);
+                 wxT("Directories given above are used when the dialog\n")
+                 wxT(" is displayed first time after launching the program.")),
+                 0, wxALL, 5);
     page_dirs->SetSizerAndFit(sizer_dirs);
 
     //finish layout
@@ -1016,6 +1028,18 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     top_sizer->Add (CreateButtonSizer (wxOK|wxCANCEL), 
                     0, wxALL|wxALIGN_CENTER, 5);
     SetSizerAndFit(top_sizer);
+}
+
+wxSizer* SettingsDlg::add_persistence_note(wxWindow *parent)
+{
+    wxStaticBoxSizer *persistence = new wxStaticBoxSizer(wxHORIZONTAL,
+                                           parent, wxT("persistance note"));
+    persistence->Add(new wxStaticText(parent, -1,
+                       wxT("To have values above remained after restart, ")
+                       wxT("put proper\ncommands into $HOME/.fityk/init ")
+                       wxT("or equivalent file.")),
+                     0, wxALL|wxALIGN_CENTER, 5);
+    return persistence;
 }
 
 void SettingsDlg::OnChangeButton(wxCommandEvent& event)
@@ -1038,6 +1062,7 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
     m["autoplot"] = wx2s(autoplot_rb->GetStringSelection());
     m["verbosity"] = wx2s(verbosity_ch->GetStringSelection());
     m["exit-on-warning"] = exit_cb->GetValue() ? "1" : "0";
+    m["pseudo-random-seed"] = S(seed_sp->GetValue());
     m["height-correction"] = wx2s(height_correction->GetValue());
     m["width-correction"] = wx2s(width_correction->GetValue());
     m["can-cancel-guess"] = cancel_poos->GetValue() ? "1" : "0";

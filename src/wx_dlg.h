@@ -142,9 +142,13 @@ private:
     wxRadioBox *autoplot_rb;
     wxChoice *verbosity_ch;
     wxCheckBox *exit_cb;
+    SpinCtrl *seed_sp;
     RealNumberCtrl *cut_func, *height_correction, *width_correction;
     wxCheckBox *cancel_poos;
     wxTextCtrl *dir_ld_tc, *dir_xs_tc;
+
+    wxSizer* add_persistence_note(wxWindow *parent);
+
     DECLARE_EVENT_TABLE()
 };
 

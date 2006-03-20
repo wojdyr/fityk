@@ -113,6 +113,21 @@ void push_the_func::operator()(char const* a, char const* b) const
     }
 }
 
+void push_the_func_param::operator()(char const* a, char const* b) const 
+{ 
+    string t(a, b);
+    assert(t[0] == '%');
+    int left_b = t.find("(");
+    int right_b = t.find(")");
+    string fstr = strip_string(string(t, 1, left_b-1));
+    string pstr = strip_string(string(t, left_b+1, right_b-left_b-1));
+    AL->get_func_param(fstr, pstr);
+    Function const* k = AL->find_function(fstr);
+    if (!k)
+        throw ExecuteError("undefined function: %" + fstr);
+    push_double::operator()(k->get_param_value(pstr)); 
+}
+
 } //namespace
 
 template <typename ScannerT>

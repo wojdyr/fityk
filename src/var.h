@@ -70,7 +70,6 @@ protected:
 ///     for current parameter value
 class Variable : public VariableUser
 {
-    static int unnamed_counter;
 public:
     bool const auto_delete;
     bool const hidden;
@@ -81,7 +80,6 @@ public:
     Variable(std::string const &name_, std::vector<std::string> const &vars_,
              std::vector<OpTree*> const &op_trees_, 
              bool auto_delete_=false, bool hidden_=false);
-    static std::string next_auto_name() { return "_" + S(++unnamed_counter); }
     void recalculate(std::vector<Variable*> const &variables, 
                      std::vector<fp> const &parameters);
   
@@ -125,7 +123,8 @@ class VariableManager
 public:
     bool silent;
 
-    VariableManager() : silent(false) {}
+    VariableManager() : silent(false), 
+                        var_autoname_counter(0), func_autoname_counter(0) {}
     ~VariableManager();
     void register_sum(Sum *s) { sums.push_back(s); }
     void unregister_sum(Sum const *s);
@@ -168,7 +167,8 @@ public:
 
     std::string assign_func(std::string const &name, 
                             std::string const &function, 
-                            std::vector<std::string> const &vars);
+                            std::vector<std::string> const &vars,
+                            bool parse_vars=true);
     std::string get_func_param(std::string const&name, std::string const&param);
     std::string assign_func_copy(std::string const &name, 
                                  std::string const &orig);
@@ -198,6 +198,8 @@ protected:
     /// sorted, a doesn't depend on b if idx(a)>idx(b)
     std::vector<Variable*> variables; 
     std::vector<Function*> functions;
+    int var_autoname_counter; ///for names for "anonymous" variables
+    int func_autoname_counter; ///for names for "anonymous" functions
 
     std::string do_assign_func(Function* func);
     std::string get_or_make_variable(std::string const& func);
@@ -218,6 +220,8 @@ protected:
     std::string get_var_from_expression(std::string const& expr,
                                         std::vector<std::string> const& vars);
     std::string make_var_copy_name(Variable const* v);
+    std::string next_var_name() { return "_" + S(++var_autoname_counter); }
+    std::string next_func_name() { return "_" + S(++func_autoname_counter); }
 };
 
 

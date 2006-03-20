@@ -454,6 +454,7 @@ void MainPlot::read_settings(wxConfigBase *cf)
     x_tic_size = cf->Read(wxT("xTicSize"), 4);
     y_tic_size = cf->Read(wxT("yTicSize"), 4);
     x_reversed = cfg_read_bool (cf, wxT("xReversed"), false); 
+    y_logarithm = cfg_read_bool (cf, wxT("yLogarithm"), false); 
     FPlot::read_settings(cf);
     Refresh();
 }
@@ -471,6 +472,7 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->Write(wxT("xTicSize"), x_tic_size);
     cf->Write(wxT("yTicSize"), y_tic_size);
     cf->Write(wxT("xReversed"), x_reversed);
+    cf->Write(wxT("yLogarithm"), y_logarithm);
 
     cf->SetPath(wxT("/MainPlot/Colors"));
     cfg_write_color(cf, wxT("bg"), backgroundCol);
@@ -506,12 +508,20 @@ void MainPlot::set_scale()
     shared.xUserScale = x_reversed ? -x_abs_scale : x_abs_scale;
     shared.xLogicalOrigin = x_reversed ? v.right : v.left;
     int H = GetClientSize().GetHeight();
-    fp h = v.top - v.bottom;
-    fp label_width = xtics_visible && v.bottom <= 0 ? max(v.bottom*H/h + 12, 0.)
-                                                    : 0;
-    yUserScale = - (H - label_width) / h;
-    yLogicalOrigin = v.top;
-    shared.plot_y_scale = yUserScale;
+    fp h = 0;
+    if (y_logarithm) {
+        h = log(v.top / max(v.bottom, 1e-1));
+        yLogicalOrigin = log(v.top);
+    }
+    else {
+        h = v.top - v.bottom;
+        yLogicalOrigin = v.top;
+    }
+    fp label_h = 0;
+    if (xtics_visible && v.bottom <= 0) 
+        label_h = max(v.bottom*H/h + 12, 0.);
+    yUserScale = - (H - label_h) / h;
+    shared.plot_y_scale = y_logarithm ? 0 : yUserScale;
 }
  
 void MainPlot::show_popup_menu (wxMouseEvent &event)
@@ -1229,9 +1239,9 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
     y_tics_size->SetValue(plot->y_tic_size);
     yts_sizer->Add(y_tics_size, 0, wxALL, 5);
     ysizer->Add(yts_sizer);
-    //TODO y_reversed = new wxCheckBox(this, -1, wxT("reversed axis"));
-    //y_reversed->SetValue(plot->y_reversed);
-    //ysizer->Add(y_reversed, 0, wxALL, 5);
+    y_logarithm = new wxCheckBox(this, -1, wxT("logarithm scale"));
+    y_logarithm->SetValue(plot->y_logarithm);
+    ysizer->Add(y_logarithm, 0, wxALL, 5);
     sizer1->Add(ysizer, 0, wxALL, 5);
 
     top_sizer->Add(sizer1, 0);
@@ -1270,7 +1280,7 @@ void ConfigureAxesDlg::OnApply (wxCommandEvent& WXUNUSED(event))
     plot->ytics_visible = y_show_tics->GetValue();
     plot->y_max_tics = y_max_tics->GetValue();
     plot->y_tic_size = y_tics_size->GetValue();
-    //TODO plot->y_reversed = y_reversed->GetValue();
+    plot->y_logarithm = y_logarithm->GetValue();
     frame->refresh_plots(true, false, !scale_changed);
 }
 

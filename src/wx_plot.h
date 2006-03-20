@@ -47,7 +47,7 @@ public:
     FPlot (wxWindow *parent, PlotShared &shar)
        : wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize, 
                  wxNO_BORDER|wxFULL_REPAINT_ON_RESIZE),
-         yUserScale(1.), yLogicalOrigin(0.), 
+         y_logarithm(false), yUserScale(1.), yLogicalOrigin(0.), 
          shared(shar), mouse_press_X(INVALID), mouse_press_Y(INVALID), 
          vlfc_prev_x(INVALID), vlfc_prev_x0(INVALID)   {}
          
@@ -64,6 +64,7 @@ protected:
     int point_radius;
     bool line_between_points;
     bool x_axis_visible, y_axis_visible, xtics_visible, ytics_visible;
+    bool y_logarithm;
     int x_max_tics, y_max_tics, x_tic_size, y_tic_size;
     fp yUserScale, yLogicalOrigin; 
     PlotShared &shared;
@@ -89,11 +90,21 @@ protected:
                     int Y_offset = 0,
                     bool cumulative=false);
     void change_tics_font();
-    int y2Y (fp y) {  fp t = (y - yLogicalOrigin) * yUserScale;
-                      return (fabs(t) < SHRT_MAX ? static_cast<int>(t) 
-                                                 : t > 0 ? SHRT_MAX : SHRT_MIN);
-                   }
-    fp Y2y (int Y) { return Y / yUserScale + yLogicalOrigin; }
+    int y2Y (fp y) {  
+        if (y_logarithm) {
+            if (y > 0)
+                y = log(y);
+            else
+                return yUserScale > 0 ? SHRT_MIN : SHRT_MAX;
+        }
+        fp t = (y - yLogicalOrigin) * yUserScale;
+        return (fabs(t) < SHRT_MAX ? static_cast<int>(t) 
+                                   : t > 0 ? SHRT_MAX : SHRT_MIN);
+    }
+    fp Y2y (int Y) { 
+        fp y = Y / yUserScale + yLogicalOrigin;
+        return y_logarithm ? exp(y) : y; 
+    }
     int x2X (fp x) { return shared.x2X(x); }
     fp X2x (int X) { return shared.X2x(X); }
 
@@ -154,7 +165,7 @@ private:
 inline wxColour invert_colour(const wxColour& col)
 { return wxColour(255 - col.Red(), 255 - col.Green(), 255 - col.Blue()); }
 
-fp scale_tics_step (fp beg, fp end, int max_tics);
+std::vector<fp> scale_tics_step (fp beg, fp end, int max_tics, bool log=false);
 
 #endif 
 

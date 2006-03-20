@@ -139,7 +139,7 @@ enum {
     ID_G_M_BG_SUB              ,
     ID_G_M_PEAK                ,
     ID_G_M_PEAK_N              ,
-    ID_G_M_PEAK_N_END = ID_G_M_PEAK_N+100 ,
+    ID_G_M_PEAK_N_END = ID_G_M_PEAK_N+300 ,
     ID_G_SHOW                  ,
     ID_G_S_TOOLBAR             ,
     ID_G_S_STATBAR             ,
@@ -336,7 +336,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_M_RANGE,     FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_BG,        FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_ADD,       FFrame::OnChangeMouseMode)
-    EVT_UPDATE_UI (ID_G_M_PEAK, FFrame::OnModePeak)
+    EVT_UPDATE_UI (ID_G_M_PEAK, FFrame::OnUpdateFuncList)
     EVT_MENU_RANGE (ID_G_M_PEAK_N, ID_G_M_PEAK_N_END, FFrame::OnChangePeakType)
     EVT_MENU (ID_G_M_BG_STRIP,  FFrame::OnStripBg)
     EVT_MENU (ID_G_M_BG_CLEAR,  FFrame::OnClearBg)
@@ -442,10 +442,11 @@ void FFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
 
 void FFrame::update_peak_type_list()
 {
-    //qqqqqqqq //TODO dynamic changing of type list
     peak_types = Function::get_all_types();
     if (peak_type_nr >= size(peak_types))
         peak_type_nr = 0;
+    if (toolbar) 
+        toolbar->update_peak_type(peak_type_nr, &peak_types);
 }
 
 
@@ -591,12 +592,10 @@ void FFrame::set_menubar()
                                                   wxT("Save data to file"));
 
     wxMenu* sum_menu = new wxMenu;
-    wxMenu* sum_menu_mode_peak = new wxMenu;
-    //qqqqqqqq //TODO dynamic changing of type list
-    for (int i = 0; i < size(peak_types); i++)
-        sum_menu_mode_peak->AppendRadioItem(ID_G_M_PEAK_N+i, 
-                                            s2wx(peak_types[i]));
-    sum_menu->Append (ID_G_M_PEAK, wxT("Function &type"), sum_menu_mode_peak);
+    wxMenu* func_type_menu = new wxMenu;
+    sum_menu->Append (ID_G_M_PEAK, wxT("Function &type"), func_type_menu);
+    // the function list is created in OnUpdateFuncList()
+    func_type_menu->AppendRadioItem(ID_G_M_PEAK_N, wxT(""));
 /*
     sum_menu->Append (ID_S_EDITOR, wxT("FT &Editor"), 
                                                    wxT("Edit function types"));
@@ -1220,9 +1219,22 @@ void FFrame::OnChangeMouseMode (wxCommandEvent& event)
     plot_pane->set_mouse_mode(mode);
 }
 
-void FFrame::OnModePeak(wxUpdateUIEvent& event)
+void FFrame::OnUpdateFuncList(wxUpdateUIEvent& event)
 {
-    GetMenuBar()->Check(ID_G_M_PEAK_N + peak_type_nr, true);
+    wxMenu *func_type_menu = 0;
+    GetMenuBar()->FindItem(ID_G_M_PEAK_N, &func_type_menu);
+    assert(func_type_menu);
+    size_t cnt = func_type_menu->GetMenuItemCount();
+    size_t pcnt = peak_types.size();
+    for (size_t i = 0; i < min(pcnt, cnt); i++)
+        if (func_type_menu->GetLabel(ID_G_M_PEAK_N+i).c_str() != peak_types[i])
+            func_type_menu->SetLabel(ID_G_M_PEAK_N+i, s2wx(peak_types[i]));
+    for (size_t i = cnt; i < pcnt; i++)
+        func_type_menu->AppendRadioItem(ID_G_M_PEAK_N+i, s2wx(peak_types[i]));
+    for (size_t i = pcnt; i < cnt; i++)
+        func_type_menu->Destroy(ID_G_M_PEAK_N+i);
+
+    func_type_menu->Check(ID_G_M_PEAK_N + peak_type_nr, true);
     event.Skip();
 }
 
@@ -1502,6 +1514,7 @@ void FFrame::edit_in_input(string const& s)
 void FFrame::after_cmd_updates()
 {
     sidebar->update_lists(false);
+    update_peak_type_list();
 }
 
 string FFrame::get_active_data_str()
@@ -1683,9 +1696,15 @@ void FToolBar::OnPeakChoice(wxCommandEvent &event)
 void FToolBar::update_peak_type(int nr, vector<string> const* peak_types) 
 { 
     if (peak_types) {
-        peak_choice->Clear();
-        for (int i = 0; i < size(*peak_types); ++i)
-            peak_choice->Append(s2wx((*peak_types)[i]));
+        if (peak_types->size() != (size_t) peak_choice->GetCount()) {
+            peak_choice->Clear();
+            for (size_t i = 0; i < peak_types->size(); ++i)
+                peak_choice->Append(s2wx((*peak_types)[i]));
+        }
+        else
+            for (size_t i = 0; i < peak_types->size(); ++i)
+                if (peak_choice->GetString(i).c_str() != (*peak_types)[i])
+                    peak_choice->SetString(i, s2wx((*peak_types)[i]));
     }
     peak_choice->SetSelection(nr); 
 }

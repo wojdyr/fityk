@@ -22,7 +22,7 @@ Settings* Settings::getInstance()
 
 Settings::Settings() 
 {
-    // UserInterface
+    // general
     std::map<char, std::string> verbosity_enum;
     verbosity_enum [0] = "silent";
     verbosity_enum [1] = "only-warnings";
@@ -41,6 +41,9 @@ Settings::Settings()
                                            EnumString (autoplot_enum, 2)));
 
     bpar["exit-on-warning"] = false;
+
+    // 0 -> time-based seed
+    ipar["pseudo-random-seed"] = 0;
 
     // Function
     fpar["cut-function-level"] = cut_function_level = 0.;

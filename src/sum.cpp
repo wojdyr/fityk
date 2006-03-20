@@ -147,7 +147,7 @@ Sum::get_symbolic_derivatives(fp x) const
     vector<fp> xx(1, x);
     vector<fp> yy(1);
     calculate_sum_value_deriv(xx, yy, dy_da);
-    dy_da.resize(n); //throw out last item (dy/dy)
+    dy_da.resize(n); //throw out last item (dy/dx)
     return dy_da;
 }
 
@@ -337,5 +337,15 @@ string Sum::get_formula(bool simplify) const
         formula = simplify_formula(formula);
     }
     return formula;
+}
+
+fp Sum::numarea(fp x1, fp x2, int nsteps) const
+{
+    x1 += zero_shift(x1);
+    x2 += zero_shift(x2);
+    fp a = 0;
+    for (vector<int>::const_iterator i = ff_idx.begin(); i != ff_idx.end(); i++)
+        a += mgr.get_function(*i)->numarea(x1, x2, nsteps);
+    return a;
 }
 

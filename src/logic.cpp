@@ -5,11 +5,14 @@
 #include "logic.h"
 #include <stdio.h>
 #include <fstream>
+#include <time.h>
+#include <stdlib.h>
 #include "data.h"
 #include "sum.h"
 #include "ui.h"
 #include "fit.h"
 #include "guess.h"
+#include "settings.h"
 
 using namespace std;
 
@@ -57,6 +60,11 @@ void ApplicationLogic::reset_all (bool finish)
     view = View(0, 180, 0, 1e3);
     append_ds();
     activate_ds(0);
+
+    int random_seed = getSettings()->get_i("pseudo-random-seed");
+    int rs = random_seed >= 0 ? random_seed : time(0);
+    srand(rs);
+    verbose ("Seed for a sequence of pseudo-random numbers: " + S(rs));
 }
 
 

@@ -96,7 +96,7 @@
     it enables command line editing and command history 
     like in <application>bash</application>.
     Especially useful is <keycap>TAB</keycap>-expanding [TODO: tab-expanding
-    works only partially in this version, ie. fityk 0.7.0pre1]. 
+    works only partially in this version]. 
     Data and curve fitted to data are visualized with 
     <application>gnuplot</application> program (if it is installed).
    </para>

@@ -33,7 +33,6 @@ public:
 protected:
     std::vector<DataWithSum*> dsds;
     int output_one_of;
-    int random_seed;
     int max_evaluations;
     int evaluations;
     int max_iterations; //it is set before calling autoiter()

@@ -36,12 +36,5 @@ private:
     int do_iteration();
 };
 
-inline void Swap (fp &fp1 ,fp &fp2) 
-{
-    fp swaptmp = fp1;
-    fp1 = fp2;
-    fp2 = swaptmp;
-}
-
 #endif
 

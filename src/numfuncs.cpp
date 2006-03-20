@@ -105,6 +105,7 @@ fp LnGammaE (fp x) //log_e of Gamma function
 // random number utilities
 static const fp TINY = 1e-12;
 
+/// normal distribution, mean=0, variance=1
 fp rand_gauss()
 {
     static bool is_saved = false;

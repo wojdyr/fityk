@@ -49,6 +49,7 @@ public:
     std::vector<std::string> const &get_ff_names() const { return ff_names; }
     std::vector<std::string> const &get_zz_names() const { return zz_names; }
     bool has_any_info() const { return !ff_names.empty() || !zz_names.empty(); }
+    fp numarea(fp x1, fp x2, int nsteps) const;
 
 private:
     VariableManager &mgr;

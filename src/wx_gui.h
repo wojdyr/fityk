@@ -129,7 +129,7 @@ public:
     void OnPrintPSFile   (wxCommandEvent& event);
     void OnPrintToClipboard (wxCommandEvent& event);
     void OnChangeMouseMode (wxCommandEvent& event);
-    void OnModePeak      (wxUpdateUIEvent& event);
+    void OnUpdateFuncList(wxUpdateUIEvent& event);
     void OnChangePeakType(wxCommandEvent& event);
     void OnStripBg       (wxCommandEvent& event);
     void OnClearBg       (wxCommandEvent& event);

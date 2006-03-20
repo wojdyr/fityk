@@ -10,7 +10,6 @@ class Settings;
 
 class Function : public VariableUser
 {
-    static int unnamed_counter;
 public:
     struct Multi { 
         int p; int n; fp mult; 
@@ -29,7 +28,6 @@ public:
                              std::vector<std::string> const &vars);
     static std::vector<std::string> get_all_types();
     static std::string get_formula(std::string const& type);
-    static std::string next_auto_name() { return "_" + S(++unnamed_counter); }
 
     static std::string get_typename_from_formula(std::string const &formula)
      {return strip_string(std::string(formula, 0, formula.find_first_of("(")));}
@@ -74,8 +72,12 @@ public:
     std::string get_current_definition(std::vector<Variable*> const &variables, 
                                        std::vector<fp> const &parameters) const;
     std::string get_current_formula(std::string const& x = "x") const;
-    int find_param_nr(std::string const& param) const;
+    int get_param_nr(std::string const& param) const;
+    fp get_param_value(std::string const& param) const;
     fp numarea(fp x1, fp x2, int nsteps) const;
+    fp find_x_with_value(fp x1, fp x2, fp val, 
+                         fp xacc=1e-9, int max_iter=1000) const;
+    fp find_extremum(fp x1, fp x2, fp xacc=1e-9, int max_iter=1000) const;
 protected:
     Settings *settings;
     int const center_idx;
@@ -93,6 +95,7 @@ class CompoundFunction: public Function
     friend class Function;
 private:
     static std::vector<std::string> formulae; 
+    static const int harddef_count = 4;
     
     VariableManager vmgr;
 
@@ -104,7 +107,7 @@ public:
     static void define(std::string const &formula);
     /// removes the definition from formulae
     static void undefine(std::string const &type);
-    static bool is_defined(std::string const &type);
+    static bool is_defined(std::string const &type, bool only_udf=false);
     static std::string const& get_formula(std::string const& type);
     static std::vector<std::string> const& get_formulae() { return formulae; }
 
@@ -122,7 +125,7 @@ public:
     fp fwhm() const;
     bool has_area() const;
     fp area() const;
-    // TODO bool get_nonzero_range(fp level, fp& left, fp&right) const;
+    bool get_nonzero_range(fp level, fp& left, fp& right) const;
 };
 
 //////////////////////////////////////////////////////////////////////////

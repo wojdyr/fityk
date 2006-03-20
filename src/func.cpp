@@ -80,9 +80,7 @@ vector<string> Function::get_varnames_from_formula(string const &formula,
 Function* Function::factory (string const &name_, string const &type_name,
                              vector<string> const &vars) 
 {
-    string name = name_.empty() ? Function::next_auto_name() : name_; 
-    if (name[0] == '%')
-        name = string(name, 1);
+    string name = name_[0] == '%' ? string(name_, 1) : name;
 
 #define FACTORY_FUNC(NAME) \
     if (type_name == #NAME) \
@@ -270,13 +268,36 @@ string Function::get_current_formula(string const& x) const
     return t;
 }
 
-int Function::find_param_nr(std::string const& param) const
+int Function::get_param_nr(string const& param) const
 {
     vector<string>::const_iterator i = find(type_var_names.begin(), 
                                             type_var_names.end(), param);
     if (i == type_var_names.end())
         throw ExecuteError("function " + xname + " has no parameter: " + param);
     return i - type_var_names.begin();
+}
+
+fp Function::get_param_value(string const& param) const
+{
+    if (param.empty())
+        throw ExecuteError("Empty parameter name??");
+    if (islower(param[0]))
+        return get_var_value(get_param_nr(param));
+    else if (param == "Center" && has_center()) {
+        return center();
+    }
+    else if (param == "Height" && has_height()) {
+        return height();
+    }
+    else if (param == "FWHM" && has_fwhm()) {
+        return fwhm();
+    }
+    else if (param == "Area" && has_area()) {
+        return area();
+    }
+    else
+        throw ExecuteError("Function " + xname + " (" + type_name 
+                           + ") has no parameter " + param);
 }
 
 fp Function::numarea(fp x1, fp x2, int nsteps) const
@@ -296,11 +317,128 @@ fp Function::numarea(fp x1, fp x2, int nsteps) const
     return a*h;
 }
 
-int Function::unnamed_counter = 0;
+/// search x in [x1, x2] for which %f(x)==val, 
+/// x1, x2, val: f(x1) <= val <= f(x2) or f(x2) <= val <= f(x1)
+/// bisection + Newton-Raphson
+fp Function::find_x_with_value(fp x1, fp x2, fp val, 
+                               fp xacc, int max_iter) const
+{
+    fp y1 = calculate_value(x1) - val;
+    fp y2 = calculate_value(x2) - val;
+    if (y1 > 0 && y2 > 0 || y1 < 0 && y2 < 0)
+        throw ExecuteError("Value " + S(val) + " is not bracketed by "
+                           + S(x1) + "(" + S(y1+val) + ") and " 
+                           + S(x2) + "(" + S(y2+val) + ").");
+    int n = 0;
+    for (vector<Multi>::const_iterator j = multi.begin(); j != multi.end(); ++j)
+        n = max(j->p + 1, n);
+    vector<fp> dy_da(n+1);
+    if (y1 == 0)
+        return x1;
+    if (y2 == 0)
+        return x2;
+    if (y1 > 0)
+        Swap(x1, x2);
+    fp t = (x1 + x2) / 2.;
+    for (int i = 0; i < max_iter; ++i) {
+        //check if converged
+        if (fabs(x1-x2) < xacc)
+            return (x1+x2) / 2.;
+
+        // calculate f and df
+        calc_val_xx[0] = t;
+        calc_val_yy[0] = 0;
+        dy_da.back() = 0;
+        calculate_value_deriv(calc_val_xx, calc_val_yy, dy_da);
+        fp f = calc_val_yy[0] - val;
+        fp df = dy_da.back();
+
+        // narrow range
+        if (f == 0.)
+            return t;
+        else if (f < 0)
+            x1 = t;
+        else // f > 0
+            x2 = t;
+
+        // select new guess point
+        fp dx = -f/df * 1.02; // 1.02 is to jump to the other side of point
+        if (t+dx > x2 && t+dx > x1 || t+dx < x2 && t+dx < x1  // outside
+                            || i % 20 == 19) {                 // precaution
+            //bisection
+            t = (x1 + x2) / 2.;
+        }
+        else {
+            t += dx;
+        }
+    }
+    throw ExecuteError("The search has not converged in " + S(max_iter) 
+                       + " steps");
+}
+
+/// finds root of derivative, using bisection method
+fp Function::find_extremum(fp x1, fp x2, fp xacc, int max_iter) const
+{
+    int n = 0;
+    for (vector<Multi>::const_iterator j = multi.begin(); j != multi.end(); ++j)
+        n = max(j->p + 1, n);
+    vector<fp> dy_da(n+1);
+
+    // calculate df
+    calc_val_xx[0] = x1;
+    dy_da.back() = 0;
+    calculate_value_deriv(calc_val_xx, calc_val_yy, dy_da);
+    fp y1 = dy_da.back();
+
+    calc_val_xx[0] = x2;
+    dy_da.back() = 0;
+    calculate_value_deriv(calc_val_xx, calc_val_yy, dy_da);
+    fp y2 = dy_da.back();
+
+    if (y1 > 0 && y2 > 0 || y1 < 0 && y2 < 0)
+        throw ExecuteError("Derivatives at " + S(x1) + " and " + S(x2) 
+                           + " have the same sign.");
+    if (y1 == 0)
+        return x1;
+    if (y2 == 0)
+        return x2;
+    if (y1 > 0)
+        Swap(x1, x2);
+    for (int i = 0; i < max_iter; ++i) {
+
+        fp t = (x1 + x2) / 2.;
+
+        // calculate df
+        calc_val_xx[0] = t;
+        dy_da.back() = 0;
+        calculate_value_deriv(calc_val_xx, calc_val_yy, dy_da);
+        fp df = dy_da.back();
+
+        // narrow range
+        if (df == 0.)
+            return t;
+        else if (df < 0)
+            x1 = t;
+        else // df > 0
+            x2 = t;
+
+        //check if converged
+        if (fabs(x1-x2) < xacc)
+            return (x1+x2) / 2.;
+    }
+    throw ExecuteError("The search has not converged in " + S(max_iter) 
+                       + " steps");
+}
 
 ///////////////////////////////////////////////////////////////////////
 
-vector<string> CompoundFunction::formulae; 
+//when changing, change also CompoundFunction::harddef_count
+vector<string> CompoundFunction::formulae = split_string(
+"GaussianA(area, center, fwhm) = Gaussian(area/fwhm/sqrt(pi/ln(2)), center, fwhm)\n"
+"Pearson7A(area, center, fwhm, shape) = Gaussian(area/fwhm/sqrt(pi/ln(2)), center, fwhm)\n"
+"PseudoVoigtA(area, center, fwhm, shape) = Gaussian(area/fwhm/sqrt(pi/ln(2)), center, fwhm)\n"
+"GaussLorentzSum(area, center, fwhm, shape) = Gaussian(area/fwhm/sqrt(pi/ln(2)), center, fwhm)",
+  "\n");
 
 void CompoundFunction::define(std::string const &formula)
 {
@@ -339,26 +477,33 @@ void CompoundFunction::define(std::string const &formula)
                                        + *k);
         }
     }
-    if (is_defined(type))
+    if (is_defined(type, true)) {
         undefine(type);
+    }
+    else if (!Function::get_formula(type).empty()) { //not UDF -> built-in
+        throw ExecuteError("Built-in functions can't be redefined.");
+    }
     formulae.push_back(formula);
 }
 
 void CompoundFunction::undefine(std::string const &type)
 {
-    for (vector<string>::iterator i = formulae.begin(); 
-            i != formulae.end(); ++i)
+    for (vector<string>::iterator i=formulae.begin(); i != formulae.end(); ++i)
         if (get_typename_from_formula(*i) == type) {
+            if (i - formulae.begin() < harddef_count)
+                throw ExecuteError("Built-in compound function "
+                                                    "can't be undefined.");
             formulae.erase(i);
             return;
         }
     throw ExecuteError("Can not undefine function `" + type 
-            + "' which is not defined");
+                        + "' which is not defined");
 }
 
-bool CompoundFunction::is_defined(std::string const &type)
+bool CompoundFunction::is_defined(std::string const &type, bool only_udf)
 {
-    for (vector<string>::const_iterator i = formulae.begin(); 
+    int start = only_udf ? harddef_count : 0; 
+    for (vector<string>::const_iterator i = formulae.begin() + start; 
             i != formulae.end(); ++i)
         if (get_typename_from_formula(*i) == type)
             return true;
@@ -496,6 +641,15 @@ fp CompoundFunction::area() const
         a += ff[i]->area();
     }
     return a;
+}
+
+bool CompoundFunction::get_nonzero_range(fp level, fp& left, fp& right) const
+{ 
+    vector<Function*> const& ff = vmgr.get_functions();
+    if (ff.size() == 1) 
+        return ff[0]->get_nonzero_range(level, left, right);
+    else
+        return false; 
 }
 
 ///////////////////////////////////////////////////////////////////////

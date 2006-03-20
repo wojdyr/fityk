@@ -146,7 +146,7 @@ private:
     wxColour axis_color;
     wxCheckBox *x_show_axis, *x_show_tics, *x_reversed; 
     wxSpinCtrl *x_max_tics, *x_tics_size;
-    wxCheckBox *y_show_axis, *y_show_tics, *y_reversed; 
+    wxCheckBox *y_show_axis, *y_show_tics, *y_logarithm; 
     wxSpinCtrl *y_max_tics, *y_tics_size;
     DECLARE_EVENT_TABLE()
 };
