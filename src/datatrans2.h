@@ -4,12 +4,12 @@
 #ifndef FITYK__DATATRANS2__H__
 #define FITYK__DATATRANS2__H__
 
-// big grammars in Spirit take a lot of time and memory to compile
-// so they must be splitted into separate compilation units
-// that's the only reason why this file is not a part of datatrans.cpp
-// code here was originally part of datatrans.cpp (yes, .cpp)
-//
-// this file is included only by datatrans*.cpp
+/// big grammars in Spirit take a lot of time and memory to compile
+/// so they must be splitted into separate compilation units
+/// that's the only reason why this file is not a part of datatrans.cpp
+/// code here was originally part of datatrans.cpp (yes, .cpp)
+///
+/// this file is included only by datatrans*.cpp
 
 #include "datatrans.h"
 #include "common.h"
@@ -66,7 +66,7 @@ enum DataTransformVMOperator
     OP_OR, OP_AFTER_OR, OP_AND, OP_AFTER_AND, OP_NOT,
     OP_TERNARY, OP_TERNARY_MID, OP_AFTER_TERNARY, OP_DELETE_COND,
     OP_GT, OP_GE, OP_LT, OP_LE, OP_EQ, OP_NEQ, OP_NCMP_HACK, 
-    OP_RANGE, OP_INDEX,
+    OP_RANGE, OP_INDEX, OP_x_IDX,
     OP_ASSIGN_X, OP_ASSIGN_Y, OP_ASSIGN_S, OP_ASSIGN_A,
     OP_DO_ONCE, OP_RESIZE, OP_ORDER, OP_DELETE, OP_BEGIN, OP_END, 
     OP_SUM, OP_IGNORE, 

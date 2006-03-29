@@ -1239,7 +1239,7 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
     y_tics_size->SetValue(plot->y_tic_size);
     yts_sizer->Add(y_tics_size, 0, wxALL, 5);
     ysizer->Add(yts_sizer);
-    y_logarithm = new wxCheckBox(this, -1, wxT("logarithm scale"));
+    y_logarithm = new wxCheckBox(this, -1, wxT("logarithmic scale"));
     y_logarithm->SetValue(plot->y_logarithm);
     ysizer->Add(y_logarithm, 0, wxALL, 5);
     sizer1->Add(ysizer, 0, wxALL, 5);

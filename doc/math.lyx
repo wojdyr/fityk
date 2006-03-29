@@ -128,52 +128,85 @@ a_{0}\exp\left[-\ln(2)\left(\frac{x-a_{1}}{a_{2}}\right)^{2}\right]\]
 f-functions
 \layout Standard
 
+Gaussian
+\layout Standard
+
 
 \begin_inset Formula \[
-t=\frac{x-a_{1}}{a_{2}}\]
+y=a_{0}\exp\left[-\ln(2)\left(\frac{x-a_{1}}{a_{2}}\right)^{2}\right]\]
 
 \end_inset 
 
 
 \layout Standard
 
+GaussianA
+\layout Standard
+
 
 \begin_inset Formula \[
-y=a_{0}\exp\left[-\ln(2)t^{2}\right]\]
+y=\sqrt{\frac{\ln(2)}{\pi}}\frac{a_{0}}{a_{2}}\exp\left[-\ln(2)\left(\frac{x-a_{1}}{a_{2}}\right)^{2}\right]\]
 
 \end_inset 
 
 
 \layout Standard
 
-
+Lorentzian
 \begin_inset Formula \[
-y=\frac{a_{0}}{1+t^{2}}\]
+y=\frac{a_{0}}{1+\left(\frac{x-a_{1}}{a_{2}}\right)^{2}}\]
 
 \end_inset 
 
 
 \layout Standard
 
-
+LorentzianA
 \begin_inset Formula \[
-y=a_{0}\left[a_{3}\exp\left(-\ln(2)t^{2}\right)+\frac{1-a_{3}}{1+t^{2}}\right]\]
+y=\frac{a_{0}}{\pi a_{2}\left[1+\left(\frac{x-a_{1}}{a_{2}}\right)^{2}\right]}\]
 
 \end_inset 
 
 
 \layout Standard
 
-
+PseudoVoigt
 \begin_inset Formula \[
-y=\frac{a_{0}}{\left[1+t^{2}\left(2^{\frac{1}{a_{3}}}-1\right)\right]^{a_{3}}}\]
+y=a_{0}\left[(1-a_{3})\exp\left(-\ln(2)\left(\frac{x-a_{1}}{a_{2}}\right)^{2}\right)+\frac{a_{3}}{1+\left(\frac{x-a_{1}}{a_{2}}\right)^{2}}\right]\]
 
 \end_inset 
 
 
 \layout Standard
 
+GaussianLorentzianSumA
+\begin_inset Formula \[
+y=a_{0}\left[\frac{(1-a_{3})\sqrt{\ln2}}{a_{2}\sqrt{\pi}}\exp\left(-\ln2\left(\frac{x-a_{1}}{a_{2}}\right)^{2}\right)+\frac{a_{3}}{\pi a_{2}\left[1+\left(\frac{x-a_{1}}{a_{2}}\right)^{2}\right]}\right]\]
 
+\end_inset 
+
+
+\layout Standard
+
+Pearson7
+\begin_inset Formula \[
+y=\frac{a_{0}}{\left[1+\left(\frac{x-a_{1}}{a_{2}}\right)^{2}\left(2^{\frac{1}{a_{3}}}-1\right)\right]^{a_{3}}}\]
+
+\end_inset 
+
+
+\layout Standard
+
+Pearson7A
+\begin_inset Formula \[
+y=\frac{a_{0}a_{3}\Gamma(a_{3})\sqrt{\frac{2^{\frac{1}{a_{3}}}-1}{a_{3}}}}{a_{2}\sqrt{\pi a_{3}}\Gamma\left(a_{3}-\frac{1}{2}\right)\left[1+\left(\frac{x-a_{1}}{a_{2}}\right)^{2}\left(2^{\frac{1}{a_{3}}}-1\right)\right]^{a_{3}}}\]
+
+\end_inset 
+
+
+\layout Standard
+
+Voigt
 \begin_inset Formula \[
 y=\frac{a_{0}\int_{-\infty}^{+\infty}\frac{\exp(-t^{2})}{a_{3}^{2}+(\frac{x-a_{1}}{a_{2}}-t)^{2}}dt}{\int_{-\infty}^{+\infty}\frac{\exp(-t^{2})}{a_{3}^{2}+t^{2}}dt}\]
 
@@ -182,7 +215,16 @@ y=\frac{a_{0}\int_{-\infty}^{+\infty}\frac{\exp(-t^{2})}{a_{3}^{2}+(\frac{x-a_{1
 
 \layout Standard
 
+VoigtA
+\begin_inset Formula \[
+y=\frac{a_{0}}{\sqrt{\pi}a_{2}}\int_{-\infty}^{+\infty}\frac{\exp(-t^{2})}{a_{3}^{2}+(\frac{x-a_{1}}{a_{2}}-t)^{2}}dt\]
 
+\end_inset 
+
+
+\layout Standard
+
+Polynomial
 \begin_inset Formula \[
 y=a_{0}+a_{1}x+a_{2}x^{2}+a_{3}x^{3}+a_{4}x^{4}+a_{5}x^{5}\]
 
@@ -191,7 +233,7 @@ y=a_{0}+a_{1}x+a_{2}x^{2}+a_{3}x^{3}+a_{4}x^{4}+a_{5}x^{5}\]
 
 \layout Standard
 
-
+EMG
 \begin_inset Formula \[
 y=\frac{ac\sqrt{2\pi}}{2d}\exp\left(\frac{b-x}{d}+\frac{c^{2}}{2d^{2}}\right)\left[\frac{d}{\left|d\right|}-\textrm{erf}\left(\frac{b-x}{\sqrt{2}c}+\frac{c}{\sqrt{2}d}\right)\right]\]
 
@@ -200,7 +242,7 @@ y=\frac{ac\sqrt{2\pi}}{2d}\exp\left(\frac{b-x}{d}+\frac{c^{2}}{2d^{2}}\right)\le
 
 \layout Standard
 
-
+DoniachSunjic
 \begin_inset Formula \[
 y=\frac{h\left[\frac{\pi a}{2}+(1-a)\arctan\left(\frac{x-E}{F}\right)\right]}{F+(x-E)^{2}}\]
 

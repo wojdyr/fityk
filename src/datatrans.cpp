@@ -72,8 +72,9 @@
 // All computations are performed using real numbers, but using round for
 // comparisions should not be neccessary. Two numbers that differ less
 // than epsilon=1e-9 ie. abs(a-b)<epsilon, are considered equal. 
-// Indices are also computed in real number domain, and then rounded to nearest 
-// integer.
+// Indices are also computed in real number domain, 
+// and if they are not integers, interpolation of two values
+// is taken (i.e of values with indices floor(idx) and ceil(idx) 
 //     
 //
 // Syntax examples:
@@ -190,111 +191,9 @@ int main(int argc, char **argv)
 
 //----------------------------  grammar  ----------------------------------
 template <typename ScannerT>
-DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
-{
-    index 
-        =  ch_p('[') >> DataExpressionG >> ch_p(']')
-        |  (!(ch_p('[') >> ']')) [push_op(OP_VAR_n)]
-        ;
-
-    //--------
-
-    real_constant
-        =  real_p [push_double()] 
-        |  as_lower_d["pi"] [push_the_double(M_PI)]
-        |  as_lower_d["true"] [push_the_double(1.)]
-        |  as_lower_d["false"] [push_the_double(0.)]
-        |  VariableLhsG [push_the_var()]
-        |  (FunctionLhsG >> '[' >> +alnum_p >> ']')[push_the_func_param()]
-        ;
-
-    parameterized_args
-        =  ch_p('[') [push_op(OP_PLIST_BEGIN)]
-            >> real_constant % ','
-                >>  ch_p(']') [push_op(OP_PLIST_END)]
-                    >> '(' >> DataExpressionG >> ')'
-        ;
-
-    real_variable 
-        =  ("x" >> index) [push_op(OP_VAR_x)]
-        |  ("y" >> index) [push_op(OP_VAR_y)]
-        |  ("s" >> index) [push_op(OP_VAR_s)]
-        |  ("a" >> index) [push_op(OP_VAR_a)]
-        |  ("X" >> index) [push_op(OP_VAR_X)]
-        |  ("Y" >> index) [push_op(OP_VAR_Y)]
-        |  ("S" >> index) [push_op(OP_VAR_S)]
-        |  ("A" >> index) [push_op(OP_VAR_A)]
-        |  str_p("n") [push_op(OP_VAR_n)] 
-        |  str_p("M") [push_op(OP_VAR_M)]
-        ;
-
-    func_or_f_or_z
-        = FunctionLhsG 
-          | (lexeme_d['@' >> uint_p >> '.']
-            | eps_p 
-            ) >> (ch_p('F')|'Z')
-        ;
-
-    rprec6 
-        =   real_constant
-        |   '(' >> DataExpressionG >> ')'
-            // sum will be refactored, see: replace_sums()
-        |   (as_lower_d["sum"] [push_op(OP_BEGIN)]
-                >> '(' >> DataExpressionG >> ')') [push_op(OP_SUM)]
-        |   (as_lower_d["interpolate"] >> parameterized_args)
-                                          [parameterized_op(PF_INTERPOLATE)]
-        |   (as_lower_d["spline"] >> parameterized_args)
-                                          [parameterized_op(PF_SPLINE)]
-        |   (as_lower_d["sqrt("] >> DataExpressionG >> ')') [push_op(OP_SQRT)] 
-        |   (as_lower_d["exp("] >> DataExpressionG >> ')') [push_op(OP_EXP)] 
-        |   (as_lower_d["log10("] >> DataExpressionG >> ')')[push_op(OP_LOG10)]
-        |   (as_lower_d["ln("] >> DataExpressionG >> ')') [push_op(OP_LN)] 
-        |   (as_lower_d["sin("] >> DataExpressionG >> ')') [push_op(OP_SIN)] 
-        |   (as_lower_d["cos("] >> DataExpressionG >> ')') [push_op(OP_COS)] 
-        |   (as_lower_d["tan("] >> DataExpressionG >> ')') [push_op(OP_TAN)] 
-        |   (as_lower_d["atan("] >> DataExpressionG >> ')') [push_op(OP_ATAN)] 
-        |   (as_lower_d["asin("] >> DataExpressionG >> ')') [push_op(OP_ASIN)] 
-        |   (as_lower_d["acos("] >> DataExpressionG >> ')') [push_op(OP_ACOS)] 
-        |   (as_lower_d["abs("] >> DataExpressionG >> ')') [push_op(OP_ABS)] 
-        |   (as_lower_d["round("] >> DataExpressionG >> ')')[push_op(OP_ROUND)]
-
-        |   (as_lower_d["min2"] >> '(' >> DataExpressionG >> ',' 
-                                  >> DataExpressionG >> ')') [push_op(OP_MIN)] 
-        |   (as_lower_d["max2"] >> '(' >> DataExpressionG >> ',' 
-                                  >> DataExpressionG >> ')') [push_op(OP_MAX)] 
-        |   (as_lower_d["randnormal"] >> '(' >> DataExpressionG >> ',' 
-                              >> DataExpressionG >> ')') [push_op(OP_RANDNORM)] 
-        |   (as_lower_d["randuniform"] >> '(' >> DataExpressionG >> ',' 
-                              >> DataExpressionG >> ')') [push_op(OP_RANDU)] 
-        |   (func_or_f_or_z >> '(' >> DataExpressionG >> ')') [push_the_func()]
-        |   as_lower_d["numarea"] >> '(' >> (func_or_f_or_z >> ',' 
-                >> DataExpressionG >> ',' >> DataExpressionG >> ',' 
-                >> DataExpressionG >> ')')[push_op(OP_NUMAREA)][push_the_func()]
-        |   as_lower_d["findx"] >> '(' >> (func_or_f_or_z >> ',' 
-                >> DataExpressionG >> ',' >> DataExpressionG >> ',' 
-                >> DataExpressionG >> ')')[push_op(OP_FINDX)][push_the_func()]
-        |   as_lower_d["extremum"] >> '(' >> (func_or_f_or_z >> ',' 
-                >> DataExpressionG >> ',' >> DataExpressionG >> ')')
-                                      [push_op(OP_FIND_EXTR)][push_the_func()]
-        |   real_variable   //"s" is checked after "sin" and "sqrt"   
-        ;
-}
-
-// explicit template instantiations 
-template DataE2Grammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(DataE2Grammar const&);
-
-template DataE2Grammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<no_actions_action_policy<action_policy> > > > >::definition(DataE2Grammar const&);
-
-template DataE2Grammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, action_policy> > >::definition(DataE2Grammar const&);
-
-DataE2Grammar DataE2G;
-
-
-template <typename ScannerT>
 DataTransformGrammar::definition<ScannerT>::definition(
                                           DataTransformGrammar const& /*self*/)
 {
-
     range
         =  '[' >> 
               ( eps_p(int_p >> ']')[push_op(OP_DO_ONCE)] 
@@ -346,9 +245,8 @@ DataTransformGrammar::definition<ScannerT>::definition(
 
     statement 
         = (eps_p[push_op(OP_BEGIN)] >> assignment >> eps_p[push_op(OP_END)])
-                                                             % ch_p('&') 
+                                                             % ch_p(',') 
         ;
-
 }
 
 // explicit template instantiations 
@@ -360,6 +258,20 @@ DataTransformGrammar DataTransformG;
 
 
 namespace datatrans {
+
+fp find_idx_in_sorted(vector<Point> const& pp, fp x)
+{
+    if (x <= pp.front().x)
+        return 0;
+    else if (x >= pp.back().x)
+        return pp.size() - 1;
+    vector<Point>::const_iterator i = lower_bound(pp.begin(), pp.end(), x);
+    assert (i > pp.begin() && i < pp.end());
+    if (is_eq(x, i->x))
+            return i - pp.begin();
+    else
+        return i - pp.begin() - (i->x - x) / (i->x - (i-1)->x);
+}
 
 
 //------------------------  Virtual Machine  --------------------------------
@@ -408,6 +320,19 @@ void skip_to_end(vector<int>::const_iterator &i)
         ++i;
 }
 
+template<typename T>
+fp get_var_with_idx(fp idx, vector<Point> points, T Point::*t)
+{
+    if (idx < 0 && idx > points.size()-1)
+        return 0.;
+    else if (is_eq(idx, iround(idx)))
+        return points[iround(idx)].*t;
+    else {
+        int flo = int(floor(idx));
+        fp fra = idx - flo;
+        return (1-fra) * fp(points[flo].*t) + fra * fp(points[flo+1].*t);
+    }
+}
 
 // Return value: 
 //  if once==true (one-time pass).
@@ -467,6 +392,10 @@ bool execute_code(int n, int &M, vector<double>& stack,
                 break;
             case OP_ROUND:
                 *stackPtr = floor(*stackPtr + 0.5);
+                break;
+
+            case OP_x_IDX:
+                *stackPtr = find_idx_in_sorted(old_points, *stackPtr);
                 break;
 
             case OP_FUNC:
@@ -592,53 +521,29 @@ bool execute_code(int n, int &M, vector<double>& stack,
                 *stackPtr = static_cast<double>(new_points.size());
                 break;
             case OP_VAR_x:
-                {
-                int t = iround(*stackPtr);
-                *stackPtr = t >= 0 && t < M ? old_points[t].x : 0.;
+                *stackPtr = get_var_with_idx(*stackPtr, old_points, &Point::x);
                 break;
-                }
             case OP_VAR_y:
-                {
-                int t = iround(*stackPtr);
-                *stackPtr = t >= 0 && t < M ? old_points[t].y : 0.;
+                *stackPtr = get_var_with_idx(*stackPtr, old_points, &Point::y);
                 break;
-                }
             case OP_VAR_s:
-                {
-                int t = iround(*stackPtr);
-                *stackPtr = t >= 0 && t < M ? old_points[t].sigma : 0.;
+                *stackPtr = get_var_with_idx(*stackPtr, old_points, 
+                                             &Point::sigma);
                 break;
-                }
             case OP_VAR_a:
-                {
-                int t = iround(*stackPtr);
-                *stackPtr = t >= 0 && t < M && old_points[t].is_active ? 1 : 0.;
+                *stackPtr = bool(iround(get_var_with_idx(*stackPtr, old_points, 
+                                                         &Point::is_active)));
                 break;
-                }
             case OP_VAR_X:
-                {
-                int t = iround(*stackPtr);
-                *stackPtr = t >= 0 && t < M ? new_points[t].x : 0.;
-                break;
-                }
+                *stackPtr = get_var_with_idx(*stackPtr, new_points, &Point::x);
             case OP_VAR_Y:
-                {
-                int t = iround(*stackPtr);
-                *stackPtr = t >= 0 && t < M ? new_points[t].y : 0.;
-                break;
-                }
+                *stackPtr = get_var_with_idx(*stackPtr, new_points, &Point::y);
             case OP_VAR_S:
-                {
-                int t = iround(*stackPtr);
-                *stackPtr = t >= 0 && t < M ? new_points[t].sigma : 0.;
-                break;
-                }
+                *stackPtr = get_var_with_idx(*stackPtr, new_points, 
+                                             &Point::sigma);
             case OP_VAR_A:
-                {
-                int t = iround(*stackPtr);
-                *stackPtr = t >= 0 && t < M && new_points[t].is_active ? 1 : 0.;
-                break;
-                }
+                *stackPtr = bool(iround(get_var_with_idx(*stackPtr, new_points, 
+                                                         &Point::is_active)));
 
             //assignment-operators
             case OP_ASSIGN_X:

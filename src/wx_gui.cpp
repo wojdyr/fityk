@@ -382,8 +382,8 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
 #ifdef __WXMSW__
       help()
 #else
-      help(wxHF_TOOLBAR | wxHF_CONTENTS | wxHF_SEARCH | wxHF_BOOKMARKS 
-           | wxHF_PRINT | wxHF_MERGE_BOOKS)
+      help(wxHF_TOOLBAR|wxHF_CONTENTS|wxHF_SEARCH|wxHF_BOOKMARKS|wxHF_PRINT
+           |wxHF_MERGE_BOOKS)
 #endif
 {
     peak_type_nr = wxConfig::Get()->Read(wxT("/DefaultFunctionType"), 7);
@@ -1227,7 +1227,7 @@ void FFrame::OnUpdateFuncList(wxUpdateUIEvent& event)
     size_t cnt = func_type_menu->GetMenuItemCount();
     size_t pcnt = peak_types.size();
     for (size_t i = 0; i < min(pcnt, cnt); i++)
-        if (func_type_menu->GetLabel(ID_G_M_PEAK_N+i).c_str() != peak_types[i])
+        if (func_type_menu->GetLabel(ID_G_M_PEAK_N+i) != s2wx(peak_types[i]))
             func_type_menu->SetLabel(ID_G_M_PEAK_N+i, s2wx(peak_types[i]));
     for (size_t i = cnt; i < pcnt; i++)
         func_type_menu->AppendRadioItem(ID_G_M_PEAK_N+i, s2wx(peak_types[i]));
@@ -1703,7 +1703,7 @@ void FToolBar::update_peak_type(int nr, vector<string> const* peak_types)
         }
         else
             for (size_t i = 0; i < peak_types->size(); ++i)
-                if (peak_choice->GetString(i).c_str() != (*peak_types)[i])
+                if (peak_choice->GetString(i) != s2wx((*peak_types)[i]))
                     peak_choice->SetString(i, s2wx((*peak_types)[i]));
     }
     peak_choice->SetSelection(nr); 

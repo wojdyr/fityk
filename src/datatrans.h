@@ -6,8 +6,6 @@
 
 
 #include <boost/spirit/core.hpp>
-#include <boost/spirit/utility/grammar_def.hpp> 
-
 
 #include "common.h"
 using namespace boost::spirit;
@@ -25,7 +23,6 @@ struct DataExpressionGrammar : public grammar<DataExpressionGrammar>
 {
   template <typename ScannerT>
   struct definition
-  : public grammar_def<rule<ScannerT>, same>
   {
     definition(DataExpressionGrammar const& /*self*/);
 
@@ -38,28 +35,10 @@ struct DataExpressionGrammar : public grammar<DataExpressionGrammar>
 
 extern DataExpressionGrammar DataExpressionG;
 
-struct DataE2Grammar : public grammar<DataE2Grammar>
-{
-  template <typename ScannerT>
-  struct definition
-  : public grammar_def<rule<ScannerT>, same>
-  {
-    definition(DataE2Grammar const& /*self*/);
-
-    rule<ScannerT> rprec6, real_constant, real_variable, parameterized_args,
-                   index, func_or_f_or_z;
-
-    rule<ScannerT> const& start() const { return rprec6; }
-  };
-};
-
-extern DataE2Grammar DataE2G;
-
 struct DataTransformGrammar : public grammar<DataTransformGrammar>
 {
   template <typename ScannerT>
   struct definition
-  : public grammar_def<rule<ScannerT>, same>
   {
     definition(DataTransformGrammar const& /*self*/);
 

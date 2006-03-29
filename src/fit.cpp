@@ -67,7 +67,7 @@ string Fit::getErrorInfo(bool matrix)
         s = "Symetric errors: ";
         for (int i = 0; i < na; i++) {
             fp val = pp[i];
-            s += AL->find_variable_handling_param(i)->xname 
+            s += "\n" + AL->find_variable_handling_param(i)->xname 
                 + "=" + S(val) + "+-" + S(sqrt(alpha[i * na + i]));
         }
     }

@@ -432,12 +432,11 @@ fp Function::find_extremum(fp x1, fp x2, fp xacc, int max_iter) const
 
 ///////////////////////////////////////////////////////////////////////
 
-//when changing, change also CompoundFunction::harddef_count
+// when changing, change also CompoundFunction::harddef_count
 vector<string> CompoundFunction::formulae = split_string(
-"GaussianA(area, center, fwhm) = Gaussian(area/fwhm/sqrt(pi/ln(2)), center, fwhm)\n"
-"Pearson7A(area, center, fwhm, shape) = Gaussian(area/fwhm/sqrt(pi/ln(2)), center, fwhm)\n"
-"PseudoVoigtA(area, center, fwhm, shape) = Gaussian(area/fwhm/sqrt(pi/ln(2)), center, fwhm)\n"
-"GaussLorentzSum(area, center, fwhm, shape) = Gaussian(area/fwhm/sqrt(pi/ln(2)), center, fwhm)",
+"GaussianA(area, center, hwhm) = Gaussian(area/hwhm/sqrt(pi/ln(2)), center, hwhm)\n"
+"LorentzianA(area, center, fwhm) = Lorentzian(area/fwhm/pi, center, fwhm)\n"
+"PseudoVoigtA(area, center, fwhm, shape) = GaussianA(area*(1-shape), center, fwhm) + LorentzianA(area*shape, center, fwhm)",
   "\n");
 
 void CompoundFunction::define(std::string const &formula)

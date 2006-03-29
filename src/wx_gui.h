@@ -202,7 +202,7 @@ protected:
     ProportionalSplitter *v_splitter;
     PrintManager* print_mgr;
 #ifdef __WXMSW__
-    wxBestHelpController help;
+    wxCHMHelpController help;
 #else
     wxHtmlHelpController help; 
 #endif

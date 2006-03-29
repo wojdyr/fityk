@@ -95,7 +95,7 @@ class CompoundFunction: public Function
     friend class Function;
 private:
     static std::vector<std::string> formulae; 
-    static const int harddef_count = 4;
+    static const int harddef_count = 3;
     
     VariableManager vmgr;
 

@@ -1662,30 +1662,10 @@
  <appendix id="flist">
   <title>List of functions</title>
   <para>
-   <note>
-    <para>
-     This chapter was not updated.
-     Now parameters of functions have different names.
-     There are also some additional functions.
-    </para>
-   </note>
-  </para>
-  <para>
-   To simplify equations, following substitution is introduced:
-   <informalequation>
-    <mediaobject>
-     <imageobject>
-      <imagedata fileref="fitykhelp_img/t_xa1a2.png"/>
-     </imageobject>
-     <textobject>
-      <phrase> 
-       t = (x - a1) / a2 
-      </phrase>
-     </textobject>
-    </mediaobject>  
-   </informalequation>
-   where a<subscript>1</subscript> is a position of peak's center 
-   and a<subscript>2</subscript> is a HWHM.
+   The list of all functions can be obtained using 
+   <userinput>i+ types</userinput>. Some formulae here have long parameter
+   names (like "height", "center" and "hwhm") replaced with 
+   a<subscript><replaceable>i</replaceable></subscript>.
 
    <equation id="gaussian">
     <title>Gaussian</title>
@@ -1700,6 +1680,19 @@
      </textobject>
     </mediaobject>  
    </equation>
+   <equation id="gaussiana">
+    <title>GaussianA</title>
+    <mediaobject>
+     <imageobject>
+      <imagedata fileref="fitykhelp_img/gaussiana.png"/>
+     </imageobject>
+     <textobject>
+      <phrase> 
+       Type in program "info GaussianA" to see formula.
+      </phrase>
+     </textobject>
+    </mediaobject>  
+   </equation>
    <equation id="lorentzian">
     <title>Lorentzian</title>
     <mediaobject>
@@ -1709,6 +1702,19 @@
      <textobject>
       <phrase> 
        Type in program "info Lorentzian" to see formula.
+      </phrase>
+     </textobject>
+    </mediaobject>  
+   </equation>
+   <equation id="lorentziana">
+    <title>LorentzianA</title>
+    <mediaobject>
+     <imageobject>
+      <imagedata fileref="fitykhelp_img/lorentziana.png"/>
+     </imageobject>
+     <textobject>
+      <phrase> 
+       Type in program "info LorentzianA" to see formula.
       </phrase>
      </textobject>
     </mediaobject>  
@@ -1739,8 +1745,22 @@
      </textobject>
     </mediaobject>  
    </equation>
+   Pseudo-Voigt is a name for sum of Gaussian and Lorentzian.
    a<subscript>3</subscript> parameters in Pearson VII and Pseudo-Voigt 
    are not related.
+   <equation id="psvoigta">
+    <title>Pseudo-Voigt-Area (PseudoVoigtA)</title>
+    <mediaobject>
+     <imageobject>
+      <imagedata fileref="fitykhelp_img/pseudo_voigta.png"/>
+     </imageobject>
+     <textobject>
+      <phrase> 
+       Type in program "info PseudoVoigtA" to see formula.
+      </phrase>
+     </textobject>
+    </mediaobject>  
+   </equation>
    <equation id="voigt">
     <title>Voigt</title>
     <mediaobject>
@@ -1769,6 +1789,19 @@
    (See also: http://personalpages.umist.ac.uk/staff/Bob.Wells/voigt.html). 
    Is the approximation exact enough for all possible uses of 
    <application>fityk</application> program? 
+   <equation id="voigta">
+    <title>VoigtA</title>
+    <mediaobject>
+     <imageobject>
+      <imagedata fileref="fitykhelp_img/voigta.png"/>
+     </imageobject>
+     <textobject>
+      <phrase> 
+       Type in program "info VoigtA" to see formula.
+      </phrase>
+     </textobject>
+    </mediaobject>  
+   </equation>
    <equation id="emg">
     <title>Exponentially Modified Gaussian (EMG)</title>
     <mediaobject>
@@ -1821,7 +1854,7 @@
    licenses, and it is worth reading, if you have not done it
    before. The program is copyrighted by author, and the license
    itself by <acronym>FSF</acronym>. 
-   Text of license is distributed with program 
+   Text of the license is distributed with the program 
    in file <filename>COPYING</filename>.
   </para>
  </appendix> 
@@ -1829,7 +1862,7 @@
  <appendix>
   <title>About this manual </title>
   <para>
-   This manual is written by author of program in DocBook (XML)
+   This manual is written in DocBook (XML)
    and converted to other formats. All changes, improvements,
    fixes of mistakes, etc. are welcome. 
    The <filename>fitykhelp.xml</filename> file is

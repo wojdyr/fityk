@@ -1,11 +1,12 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-// big grammars in Spirit take a lot of time and memory to compile
-// so they must be splitted into separate compilation units
-// that's the only reason why this file is not a part of datatrans.cpp
+/// big grammars in Spirit take a lot of time and memory to compile
+/// so they must be splitted into separate compilation units
+/// that's the only reason why this file is not a part of datatrans.cpp
 
 #include "datatrans2.h"
+#include "datatrans3.h"
 using namespace datatrans;
 
 namespace datatrans {

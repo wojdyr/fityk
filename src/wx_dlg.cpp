@@ -1036,8 +1036,8 @@ wxSizer* SettingsDlg::add_persistence_note(wxWindow *parent)
                                            parent, wxT("persistance note"));
     persistence->Add(new wxStaticText(parent, -1,
                        wxT("To have values above remained after restart, ")
-                       wxT("put proper\ncommands into $HOME/.fityk/init ")
-                       wxT("or equivalent file.")),
+                       wxT("put proper\ncommands init file:")
+                       + get_user_conffile(startup_commands_filename)),
                      0, wxALL|wxALIGN_CENTER, 5);
     return persistence;
 }
