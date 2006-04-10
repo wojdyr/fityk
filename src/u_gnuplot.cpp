@@ -121,14 +121,24 @@ int GnuPlot::plot()
         }
         if (fflush (gnuplot_pipe) != 0)
             warn("Flushing pipe program-to-gnuplot failed.");
-        for (int i = i_f; i < i_l; i++)
-            fprintf (gnuplot_pipe, 
-                     "%f  %f\n", data->get_x(i), data->get_y(i));
+        bool at_least_one_point = false;
+        for (int i = i_f; i < i_l; i++) {
+            fp x = data->get_x(i);
+            fp y = data->get_y(i);
+            if (is_finite(x) && is_finite(y)) {
+                fprintf(gnuplot_pipe, "%f  %f\n", x, y);
+                at_least_one_point = true;
+            }
+        }
+        if (!at_least_one_point)
+            fprintf(gnuplot_pipe, "0.0  0.0\n");
         fprintf (gnuplot_pipe, "e\n");//gnuplot needs 'e' at the end of data
         if (function_as_points) {
             for (int i = i_f; i < i_l; i++) {
                 fp x = data->get_x(i);
-                fprintf(gnuplot_pipe, "%f  %f\n", x, sum->value(x));
+                fp y = sum->value(x);
+                if (is_finite(x) && is_finite(y))
+                    fprintf(gnuplot_pipe, "%f  %f\n", x, y);
             }
             fprintf(gnuplot_pipe, "e\n");
         }

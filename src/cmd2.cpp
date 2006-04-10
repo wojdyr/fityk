@@ -121,15 +121,6 @@ void do_plot(char const*, char const*)
     outdated_plot=false;
 }
 
-void do_fit(char const*, char const*)
-{
-    if (with_plus)
-        getFit()->continue_fit(tmp_int);
-    else
-        getFit()->fit(tmp_int, get_datasets_from_indata());
-    outdated_plot=true;  
-}
-
 void do_print_info(char const* a, char const* b)
 {
     string s = string(a,b);
@@ -154,16 +145,12 @@ void do_print_info(char const* a, char const* b)
     }
     else if (s[0] == '$') {
         const Variable* v = AL->find_variable(string(s, 1));
-        if (v) {
-            m = v->get_info(AL->get_parameters(), with_plus);
-            if (with_plus) {
-                vector<string> refs = AL->get_variable_references(string(s, 1));
-                if (!refs.empty())
-                    m += "\nreferenced by: " + join_vector(refs, ", ");
-            }
+        m = v->get_info(AL->get_parameters(), with_plus);
+        if (with_plus) {
+            vector<string> refs = AL->get_variable_references(string(s, 1));
+            if (!refs.empty())
+                m += "\nreferenced by: " + join_vector(refs, ", ");
         }
-        else 
-            m = "Undefined variable: " + s;
     }
     else if (s == "functions") {
         if (functions.empty())
@@ -190,8 +177,7 @@ void do_print_info(char const* a, char const* b)
     }
     else if (s[0] == '%') {
         const Function* f = AL->find_function(string(s, 1));
-        m = f ? f->get_info(variables, AL->get_parameters(), with_plus) 
-              : "Undefined function: " + s;
+        m = f->get_info(variables, AL->get_parameters(), with_plus);
     }
     else if (s == "datasets") {
         m = S(AL->get_ds_count()) + " datasets.";
@@ -207,13 +193,13 @@ void do_print_info(char const* a, char const* b)
     }
     else if (s == "set")
         m = getSettings()->print_usage();
-    else if (s == "fit")
-        m = getFit()->getInfo();
-    else if (s == "errors")
-        m = getFit()->getErrorInfo(with_plus);
+    else if (startswith(s, "fit"))
+        m = getFit()->getInfo(get_datasets_from_indata());
+    else if (startswith(s, "errors"))
+        m = getFit()->getErrorInfo(get_datasets_from_indata(), with_plus);
     else if (s == "commands")
         m = getUI()->getCommands().get_info();
-    else if (string(s, 0, 5) == "peaks") {
+    else if (startswith(s, "peaks")) {
         vector<DataWithSum*> v = get_datasets_from_indata();
         for (vector<DataWithSum*>::const_iterator i = v.begin(); 
                                                            i != v.end(); ++i)
@@ -288,32 +274,10 @@ void do_print_debug_info(char const*, char const*)  {
 }
 
 
-void do_print_func_value(char const*, char const*)
-{
-    string m;
-    const Function* f = AL->find_function(t);
-    Data const* data = 0;
-    try {
-        data = AL->get_data(ds_pref);
-    } catch (ExecuteError &) {
-        // leave data=0
-    }
-    if (f) {
-        fp x = get_transform_expression_value(t2, data);
-        fp y = f->calculate_value(x);
-        m = f->xname + "(" + S(x) + ") = " + S(y);
-        if (with_plus) {
-            //TODO? derivatives
-        }
-    }
-    else
-      m = "Undefined function: " + t;
-    mesg(m);
-}
-
 void do_print_data_expr(char const*, char const*)
 {
     string s;
+    //TODO "2+2" case
     vector<DataWithSum*> v = get_datasets_from_indata();
     if (v.size() == 1)
         s = S(get_transform_expression_value(t, v[0]->get_data()));
@@ -324,6 +288,8 @@ void do_print_data_expr(char const*, char const*)
         for (vector<DataWithSum*>::const_iterator i = v.begin(); 
                 i != v.end(); ++i) {
             fp k = get_transform_expression_value(t, (*i)->get_data());
+            if (i != v.begin())
+                s += "\n";
             s += "in @" + S(m[*i]) + ": " + S(k);
         }
     }
@@ -439,43 +405,33 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         | VariableLhsG [&do_print_info]
         | str_p("types") [&do_print_info]
         | str_p("functions") [&do_print_info]
-        | (FunctionLhsG [assign_a(t)] 
-           >> "(" 
-           >> no_actions_d[DataExpressionG] [assign_a(t2)]
-           >> ")" >> in_data) [&do_print_func_value] 
-        | FunctionLhsG [&do_print_info]
         | str_p("datasets") [&do_print_info]
         | str_p("commands") [&do_print_info]
         | str_p("view") [&do_print_info]
-        | ds_prefix >> (ch_p('F')|'Z'|"formula") [&do_print_sum_info]
-        | (ds_prefix >> str_p("dF") >> '(' 
-           >> no_actions_d[DataExpressionG][assign_a(t)] 
-           >> ')') [&do_print_sum_derivatives_info]
-        | existing_dataset_nr [&do_print_info]
-        | str_p("fit") [&do_print_info] 
         | str_p("set") [&do_print_info] 
-        | str_p("errors") [&do_print_info] 
+        | (str_p("fit") >> in_data) [&do_print_info] 
+        | (str_p("errors") >> in_data) [&do_print_info] 
         | (str_p("peaks") [clear_a(vr)]
            >> ( uint_p [assign_a(tmp_int)]
               | eps_p [assign_a(tmp_int, one)])
            >> plot_range >> in_data) [&do_print_info]
         | (no_actions_d[DataExpressionG][assign_a(t)] 
              >> in_data) [&do_print_data_expr]
+        | FunctionLhsG [&do_print_info]
+        | ds_prefix >> (ch_p('F')|'Z'|"formula") [&do_print_sum_info]
+        | (ds_prefix >> str_p("dF") >> '(' 
+           >> no_actions_d[DataExpressionG][assign_a(t)] 
+           >> ')') [&do_print_sum_derivatives_info]
+        | existing_dataset_nr [&do_print_info]
         | type_name[&do_print_func_type]
         | "debug" >> compact_str [&do_print_debug_info] 
         ;
 
-    fit_arg
-        = optional_plus
-          >> ( uint_p[assign_a(tmp_int)]
-             | eps_p[assign_a(tmp_int, minus_one)]
-             )
-          //TODO >> [only %name, $name, not $name2, ...] 
-          >> in_data
-        ;
-
-    guess_arg
-        = eps_p [clear_a(vt)] [clear_a(vr)] 
+    guess
+        = (FunctionLhsG [assign_a(t)] >> '=' 
+          | eps_p [assign_a(t, empty)]
+          )
+          >> optional_suffix_p("g","uess")[clear_a(vt)] [clear_a(vr)] 
           >> type_name [assign_a(t2)]
           >> plot_range
           >> !((function_param >> '=' >> no_actions_d[FuncG])
@@ -489,20 +445,12 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         | eps_p [assign_a(with_plus, false_)] 
         ;
 
-    functionname_assign
-        = (FunctionLhsG [assign_a(t)] >> '=' 
-          | eps_p [assign_a(t, empty)]
-          )
-        ;
-
     statement 
         = optional_suffix_p("i","nfo") >> optional_plus >> (info_arg % ',')
         | (optional_suffix_p("p","lot") 
                               [clear_a(vr)] [assign_a(tmp_int, minus_one)]
           >> !existing_dataset_nr >> plot_range >> plot_range) [&do_plot]
-        | (optional_suffix_p("f","it") >> fit_arg) [&do_fit]
-        | (functionname_assign 
-                 >> optional_suffix_p("g","uess") >> guess_arg) [&do_guess]
+        | guess [&do_guess]
         | (ds_prefix >> "title" >> '=' >> compact_str)[&set_data_title]
         | (ds_prefix >> 'F' >> '>' >> compact_str)[&do_export_sum]
         | dataset_handling

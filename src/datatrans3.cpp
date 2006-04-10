@@ -15,9 +15,9 @@ template <typename ScannerT>
 DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
 {
     index 
-        =  ch_p('[') >> ( (DataExpressionG >> ch_p(']'))
-                        | (ch_p('x') >> '=' >> DataExpressionG >> ch_p(']'))
+        =  ch_p('[') >> ( (ch_p('x') >> '=' >> DataExpressionG >> ch_p(']'))
                                                            [push_op(OP_x_IDX)]
+                        | (DataExpressionG >> ch_p(']'))
                         )
         |  (!(ch_p('[') >> ']')) [push_op(OP_VAR_n)]
         ;

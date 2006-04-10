@@ -60,6 +60,7 @@ public:
     std::string getp(std::string const& k) const;
     /// for faster access
     fp get_cut_level() const { return cut_function_level; }
+    void do_srand();
 
 private:
     static Settings* instance;

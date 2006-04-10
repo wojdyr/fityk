@@ -348,12 +348,11 @@ private:
 // ';' will be replaced by line break
 static const char *default_examples = 
 
-"integrate|useful|Integrate data numerically and adjust std. dev.;"
-" (it gives cumulative area)"
+"accumulate|useful|Accumulate y of data and adjust std. dev."
 "|Y[1...] = Y[n-1] + y[n];S = sqrt(max2(1,y))|Y\n"
 
 "differentiate|useful|compute numerical derivative f'(x)"
-"|Y[...-1] = y[n+1]-y[n];X[...-1] = (x[n+1]+x[n])/2;"
+"|Y[...-1] = (y[n+1]-y[n])/(x[n+1]-x[n]);X[...-1] = (x[n+1]+x[n])/2;"
 "M=M-1;S = sqrt(max2(1,y))|Y\n"
 
 "normalize area|useful|divide all Y (and std. dev.) values;"
@@ -365,6 +364,10 @@ static const char *default_examples =
 "|X[...-1] = (x[n]+x[n+1])/2;Y[...-1] = y[n]+y[n+1];"
 "S[...-1] = sqrt(s[n]^2+s[n]^2); delete(n%2==1)|Y\n"
 
+"equilibrate step|useful|make equal step, keep the number of points"
+"|X = x[0] + n * (x[M-1]-x[0]) / (M-1), Y = y[x=X], S = s[x=X], A = a[x=X]"
+"|Y\n"
+
 "zero negative y|useful|zero the Y value; of points with negative Y"
 "|Y=max2(y,0)|Y\n"
 
@@ -372,7 +375,7 @@ static const char *default_examples =
 "|delete(not a)|Y\n"
 
 "swap axes|example|Swap X and Y axes and adjust std. dev."
-"|Y=x & X=y & S=sqrt(max2(1,Y))|N\n"
+"|Y=x , X=y , S=sqrt(max2(1,Y))|N\n"
 
 "generate sinusoid|example|replaces current data with sinusoid"
 "|M=2000; x=n/100; y=sin(x); s=1|N\n"
@@ -1016,8 +1019,8 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
                            0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     sizer_dirs->Add(sizer_dirs_script, 0, wxEXPAND|wxALL, 5);
     sizer_dirs->Add(new wxStaticText(page_dirs, -1, 
-                 wxT("Directories given above are used when the dialog\n")
-                 wxT(" is displayed first time after launching the program.")),
+                 wxT("Directories given above are used when the dialogs\n")
+                 wxT(" are displayed first time after launching the program.")),
                  0, wxALL, 5);
     page_dirs->SetSizerAndFit(sizer_dirs);
 
@@ -1036,7 +1039,7 @@ wxSizer* SettingsDlg::add_persistence_note(wxWindow *parent)
                                            parent, wxT("persistance note"));
     persistence->Add(new wxStaticText(parent, -1,
                        wxT("To have values above remained after restart, ")
-                       wxT("put proper\ncommands init file:")
+                       wxT("put proper\ncommands into init file:")
                        + get_user_conffile(startup_commands_filename)),
                      0, wxALL|wxALIGN_CENTER, 5);
     return persistence;

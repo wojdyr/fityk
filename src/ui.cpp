@@ -178,7 +178,7 @@ void UserInterface::execScript (const string& filename,
     string s;
     int line_index = 0;
     while (getline (file, s)) 
-        nls.push_back(NumberedLine(line_index++, s));
+        nls.push_back(NumberedLine(++line_index, s));
 
     if (selected_lines.empty())
         exec_nls = nls;

@@ -43,12 +43,11 @@ struct Cmd2Grammar : public grammar<Cmd2Grammar>
     definition(Cmd2Grammar const& self);
 
     rule<ScannerT> transform, type_name, function_param, 
-                   functionname_assign, 
                    in_data, ds_prefix,
-                   dataset_handling, compact_str, guess_arg,
+                   dataset_handling, compact_str, guess,
                    existing_dataset_nr, dataset_nr, 
                    optional_plus, 
-                   plot_range, info_arg, fit_arg, statement;  
+                   plot_range, info_arg, statement;  
 
     rule<ScannerT> const& start() const { return statement; }
   };

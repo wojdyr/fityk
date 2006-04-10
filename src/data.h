@@ -30,7 +30,7 @@ inline bool operator< (const Point& p, const Point& q)
 class Data 
 {
 public :
-    Data() {}
+    Data() : y_min(0.), y_max(1e3) {}
     ~Data() {}
     std::string getInfo() const;
     void load_file (std::string const& file, std::string const& type, 
@@ -64,8 +64,8 @@ public :
     void export_to_file (std::string filename, bool append=false);
     fp get_x_min() { return p.empty() ? 0 : p.front().x; }
     fp get_x_max() { return p.empty() ? 180. : p.back().x; } 
-    fp get_y_min() const { return p.empty() ? 0 : y_min; }
-    fp get_y_max() const { return p.empty() ? 1e3 : y_max; }
+    fp get_y_min() const { return y_min; }
+    fp get_y_max() const { return y_max; }
     std::vector<Point> const& points() const { return p; }
     std::string get_given_type() const { return given_type; }
     std::vector<int> get_given_cols() const { return given_cols; }

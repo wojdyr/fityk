@@ -147,21 +147,16 @@ struct CmdGrammar : public grammar<CmdGrammar>
             = lexeme_d[alpha_p >> *(alnum_p | '_')]
             ;
 
-        functionname_assign
+        assign_func
             = (FunctionLhsG [assign_a(t)] >> '=' 
               | eps_p [assign_a(t, empty)]
               )
-            ;
-
-        assign_func
-            = functionname_assign
               >> (type_name [assign_a(t2)]
                   >> str_p("(")[clear_a(vt)] 
-                  >> !((no_actions_d[FuncG][push_back_a(vt)] 
-                       % ',')
-                      | ((function_param >> "=" >> no_actions_d[FuncG])
+                  >> !(
+                       (!(function_param >> "=") >> no_actions_d[FuncG])
                                                              [push_back_a(vt)] 
-                         % ',')
+                          % ','
                       )
                   >> str_p(")") [&do_assign_func]
                  | str_p("copy(") >> FunctionLhsG [assign_a(t2)] 
@@ -249,7 +244,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
 
     rule<ScannerT> assign_var, type_name, assign_func, 
                    function_param, subst_func_param, put_function, 
-                   functionname_assign, put_func_to, fz_assign, define_func,
+                   put_func_to, fz_assign, define_func,
                    ds_prefix, statement, multi;  
 
     rule<ScannerT> const& start() const { return multi; }

@@ -12,9 +12,6 @@ using namespace std;
 
 volatile bool user_interrupt = false;
 
-const fp INF = 1e99; //almost ininity. floating points limits are about:
-                     // double: 10^+308, float: 10^+38, long double: 10^+4932
-
 const char* fityk_version_line = "# Fityk script. Fityk version: " VERSION;
 
 vector<int> range_vector (int l, int u)
@@ -77,5 +74,36 @@ void replace_words(string &t, string const &old_word, string const &new_word)
         else
             pos++;
     }
+}
+
+/// find matching bracket for (, [ or {, return position in string
+string::size_type 
+find_matching_bracket(string const& formula, string::size_type left_pos)
+{
+    if (left_pos == string::npos)
+        return string::npos;
+    assert(left_pos < formula.size());
+    char opening = formula[left_pos], 
+         closing = 0;
+    if (opening == '(') 
+        closing = ')';
+    else if (opening == '[')
+        closing = ']';
+    else if (opening == '{')
+        closing = '}';
+    else
+        assert(0);
+    size_t pos = left_pos;
+    int open_bracket_counter = 1;
+    while (open_bracket_counter > 0) {
+        ++pos;
+        if (formula[pos] == closing)
+            --open_bracket_counter;
+        else if (formula[pos] == opening)
+            ++open_bracket_counter;
+        assert(formula[pos]);
+    }
+    assert(formula[pos] == closing);
+    return pos;
 }
 

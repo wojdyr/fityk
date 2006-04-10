@@ -45,21 +45,11 @@ Function::Function (string const &name_, vector<string> const &vars,
 /// returns type variable names if !get_eq
 ///      or type variable default values if get_eq
 /// can be used also for eg. Foo(3+$bleh, area/fwhm/sqrt(pi/ln(2)))
-vector<string> Function::get_varnames_from_formula(string const &formula, 
+vector<string> Function::get_varnames_from_formula(string const& formula, 
                                                    bool get_eq)
 {
     int lb = formula.find('(');
-    int open_bracket_counter = 1;
-    int rb = lb;
-    while (open_bracket_counter > 0) {
-        ++rb;
-        char ch = formula[rb];
-        if (ch == ')')
-            --open_bracket_counter;
-        else if (ch == '(')
-            ++open_bracket_counter;
-        assert(ch);
-    }
+    int rb = find_matching_bracket(formula, lb);
     string all_names(formula, lb+1, rb-lb-1);
     vector<string> nd = split_string(all_names, ',');
     vector<string> names, defaults;
@@ -80,7 +70,7 @@ vector<string> Function::get_varnames_from_formula(string const &formula,
 Function* Function::factory (string const &name_, string const &type_name,
                              vector<string> const &vars) 
 {
-    string name = name_[0] == '%' ? string(name_, 1) : name;
+    string name = name_[0] == '%' ? string(name_, 1) : name_;
 
 #define FACTORY_FUNC(NAME) \
     if (type_name == #NAME) \
@@ -245,6 +235,7 @@ string Function::get_info(vector<Variable*> const &variables,
     return s;
 } 
 
+/// return sth like: Linear(a0=$foo, a1=~3.5)
 string Function::get_current_definition(vector<Variable*> const &variables,
                                         vector<fp> const &parameters) const
 {
@@ -435,10 +426,11 @@ fp Function::find_extremum(fp x1, fp x2, fp xacc, int max_iter) const
 // when changing, change also CompoundFunction::harddef_count
 vector<string> CompoundFunction::formulae = split_string(
 "GaussianA(area, center, hwhm) = Gaussian(area/hwhm/sqrt(pi/ln(2)), center, hwhm)\n"
-"LorentzianA(area, center, fwhm) = Lorentzian(area/fwhm/pi, center, fwhm)\n"
-"PseudoVoigtA(area, center, fwhm, shape) = GaussianA(area*(1-shape), center, fwhm) + LorentzianA(area*shape, center, fwhm)",
+"LorentzianA(area, center, hwhm) = Lorentzian(area/hwhm/pi, center, hwhm)\n"
+"PseudoVoigtA(area, center, hwhm, shape) = GaussianA(area*(1-shape), center, hwhm) + LorentzianA(area*shape, center, hwhm)",
   "\n");
 
+//static
 void CompoundFunction::define(std::string const &formula)
 {
     string type = get_typename_from_formula(formula);
@@ -446,19 +438,30 @@ void CompoundFunction::define(std::string const &formula)
     if (contains_element(lhs_vars, "x"))
         throw ExecuteError("x should not be given explicitly as "
                            "function type parameters.");
-    vector<string> rhs_funcs = split_string(get_rhs_from_formula(formula), "+");
-    for (vector<string>::const_iterator i = rhs_funcs.begin(); 
-            i != rhs_funcs.end(); ++i) {
-        string t = get_typename_from_formula(*i);
+
+    //find components of RHS (split sum "A() + B() + ...")
+    string::size_type pos = formula.find('=') + 1, 
+                      rpos = 0;
+    while (pos != string::npos) {
+        rpos = find_matching_bracket(formula, formula.find('(', pos));
+        if (rpos == string::npos)
+            break;
+        string fun = string(formula, pos, rpos-pos+1);
+        pos = formula.find_first_not_of(" +", rpos+1); 
+
+        //check if component function is known
+        string t = get_typename_from_formula(fun);
         string tf = Function::get_formula(t);
         if (tf.empty())
             throw ExecuteError("definition based on undefined function `" 
                                + t + "'");
+        //...and if it has proper number of parameters
         vector<string> tvars = get_varnames_from_formula(tf);
-        vector<string> gvars = get_varnames_from_formula(*i);
+        vector<string> gvars = get_varnames_from_formula(fun);
         if (tvars.size() != gvars.size())
             throw ExecuteError("Function `" + t + "' requires " 
                                           + S(tvars.size()) + " parameters.");
+        // ... and check if these parameters are ok 
         for (vector<string>::const_iterator j = gvars.begin(); 
                                                        j != gvars.end(); ++j){
             tree_parse_info<> info = ast_parse(j->c_str(), FuncG, space_p);
@@ -476,15 +479,17 @@ void CompoundFunction::define(std::string const &formula)
                                        + *k);
         }
     }
+    // and (re-)define the function
     if (is_defined(type, true)) {
         undefine(type);
     }
     else if (!Function::get_formula(type).empty()) { //not UDF -> built-in
         throw ExecuteError("Built-in functions can't be redefined.");
     }
-    formulae.push_back(formula);
+    formulae.push_back(formula); 
 }
 
+//static
 void CompoundFunction::undefine(std::string const &type)
 {
     for (vector<string>::iterator i=formulae.begin(); i != formulae.end(); ++i)
@@ -499,6 +504,7 @@ void CompoundFunction::undefine(std::string const &type)
                         + "' which is not defined");
 }
 
+//static
 bool CompoundFunction::is_defined(std::string const &type, bool only_udf)
 {
     int start = only_udf ? harddef_count : 0; 
@@ -509,6 +515,7 @@ bool CompoundFunction::is_defined(std::string const &type, bool only_udf)
     return false;
 }
 
+//static
 std::string const& CompoundFunction::get_formula(std::string const& type)
 {
     for (vector<string>::const_iterator i = formulae.begin(); 
@@ -524,14 +531,22 @@ CompoundFunction::CompoundFunction(string const &name, string const &type,
 {
     vmgr.silent = true;
     for (int j = 0; j != nv; ++j) 
-        vmgr.assign_variable(varnames[j], "0");//fake vars to be replaced later
-    vector<string> funforms = split_string(Function::type_rhs, "+");
-    for (vector<string>::iterator i=funforms.begin(); i != funforms.end(); ++i){
+        vmgr.assign_variable(varnames[j], "");// mirror variables
+
+    //find components of RHS (split sum "A() + B() + ...")
+    string::size_type pos = 0, rpos = 0;
+    while (pos != string::npos) {
+        rpos = find_matching_bracket(type_rhs, type_rhs.find('(', pos));
+        if (rpos == string::npos)
+            break;
+        string fun = string(type_rhs, pos, rpos-pos+1);
+        pos = type_rhs.find_first_not_of(" +", rpos+1); 
+
         for (int j = 0; j != nv; ++j) {
-            replace_words(*i, type_var_names[j], vmgr.get_variable(j)->xname);
+            replace_words(fun, type_var_names[j], vmgr.get_variable(j)->xname);
         }
-        vector<string> newv = get_varnames_from_formula(*i);
-        vmgr.assign_func("", get_typename_from_formula(*i), newv);
+        vmgr.assign_func("", get_typename_from_formula(fun), 
+                             get_varnames_from_formula(fun));
     }
 }
 
@@ -540,7 +555,7 @@ void CompoundFunction::do_precomputations(vector<Variable*> const &variables_)
     Function::do_precomputations(variables_); 
 
     for (int i = 0; i < nv; ++i) //replace fake variables
-        vmgr.set_recalculated_variable(i, *variables_[get_var_idx(i)]);
+        vmgr.set_mirrored_variable(i, *variables_[get_var_idx(i)]);
     vmgr.use_parameters();
 }
 
@@ -1045,7 +1060,7 @@ bool FuncPearson7::get_nonzero_range (fp level, fp &left, fp &right) const
 fp FuncPearson7::area() const
 {
     if (vv[3] <= 0.5)
-        return +INF;
+        return 0.;
     fp g = exp_ (LnGammaE(vv[3] - 0.5) - LnGammaE(vv[3]));
     return vv[0] * 2 * fabs(vv[2])
         * sqrt(M_PI) * g / (2 * sqrt (vv[4]));
@@ -1124,7 +1139,7 @@ bool FuncSplitPearson7::get_nonzero_range (fp level, fp &left, fp &right) const
 fp FuncSplitPearson7::area() const
 {
     if (vv[4] <= 0.5 || vv[5] <= 0.5)
-        return +INF;
+        return 0.;
     fp g1 = exp_ (LnGammaE(vv[4] - 0.5) - LnGammaE(vv[4]));
     fp g2 = exp_ (LnGammaE(vv[5] - 0.5) - LnGammaE(vv[5]));
     return vv[0] * fabs(vv[2]) * sqrt(M_PI) * g1 / (2 * sqrt (vv[6]))
@@ -1348,10 +1363,9 @@ FUNC_CALCULATE_VALUE_BEGIN(EMG)
     fp bx = vv[1] - x;
     fp c = vv[2];
     fp d = vv[3];
-    fp sqrt2 = sqrt(2.);
     fp fact = a*c*sqrt(2*M_PI)/(2*d);
     fp ex = exp(bx/d + c*c/(2*d*d));
-    fp erf_arg = bx/(sqrt2*c) + c/(sqrt2*d);
+    fp erf_arg = bx/(M_SQRT2*c) + c/(M_SQRT2*d);
     fp t = fact * ex * (d >= 0 ? erfc(erf_arg) : -erfc(-erf_arg));
     //fp t = fact * ex * (d >= 0 ? 1-erf(erf_arg) : -1-erf(erf_arg));
 FUNC_CALCULATE_VALUE_END(t)
@@ -1361,12 +1375,11 @@ FUNC_CALCULATE_VALUE_DERIV_BEGIN(EMG)
     fp bx = vv[1] - x;
     fp c = vv[2];
     fp d = vv[3];
-    fp sqrt2 = sqrt(2.);
-    fp cs2d = c/(sqrt2*d);
+    fp cs2d = c/(M_SQRT2*d);
     fp cc = c*sqrt(M_PI/2)/d;
     fp ex = exp(bx/d + cs2d*cs2d); //==exp((c^2+2bd-2dx) / 2d^2)
-    fp bx2c = bx/(sqrt2*c);
-    fp erf_arg = bx2c + cs2d; //== (c*c+b*d-d*x)/(sqrt2*c*d);
+    fp bx2c = bx/(M_SQRT2*c);
+    fp erf_arg = bx2c + cs2d; //== (c*c+b*d-d*x)/(M_SQRT2*c*d);
     //fp er = erf(erf_arg);
     //fp d_sign = d >= 0 ? 1 : -1;
     //fp ser = d_sign - er;

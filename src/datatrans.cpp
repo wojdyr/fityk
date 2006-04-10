@@ -536,14 +536,18 @@ bool execute_code(int n, int &M, vector<double>& stack,
                 break;
             case OP_VAR_X:
                 *stackPtr = get_var_with_idx(*stackPtr, new_points, &Point::x);
+                break;
             case OP_VAR_Y:
                 *stackPtr = get_var_with_idx(*stackPtr, new_points, &Point::y);
+                break;
             case OP_VAR_S:
                 *stackPtr = get_var_with_idx(*stackPtr, new_points, 
                                              &Point::sigma);
+                break;
             case OP_VAR_A:
                 *stackPtr = bool(iround(get_var_with_idx(*stackPtr, new_points, 
                                                          &Point::is_active)));
+                break;
 
             //assignment-operators
             case OP_ASSIGN_X:
@@ -834,6 +838,13 @@ bool validate_transformation(string const& str)
     return (bool) result.full;
 }
 
+//TODO function which check for point-dependent ops 
+// OP_VAR_n, OP_VAR_x, OP_VAR_y, OP_VAR_s, OP_VAR_a, 
+//           OP_VAR_X, OP_VAR_Y, OP_VAR_S, OP_VAR_A,
+//  -> because  "info 2+2" should work without "in @0"
+// bool is_dependend_on_points(string const &s)
+
+
 fp get_transform_expression_value(string const &s, Data const* data)
 {
     vector<Point> const no_points;
@@ -842,20 +853,16 @@ fp get_transform_expression_value(string const &s, Data const* data)
     // First compile string...
     parse_info<> result = parse(s.c_str(), DataExpressionG, 
                                 space_p);
-    //TODO check for point-dependent ops (?? outside of sum etc.)
-    // OP_VAR_n, OP_VAR_x, OP_VAR_y, OP_VAR_s, OP_VAR_a, 
-    //           OP_VAR_X, OP_VAR_Y, OP_VAR_S, OP_VAR_A,
-    // and then execute compiled code.
     if (!result.full) {
         throw ExecuteError("Syntax error in expression: " + s);
     }
     int M = (int) points.size();
-    vector<Point> fake_new_points(M);
+    vector<Point> new_points = points;
     vector<double> stack(stack_size);
     replace_sums(M, stack, points);
     // first execute one-time operations: sorting, x[15]=3, etc. 
     // n==M => one-time op.
-    bool t = execute_code(M, M, stack, points, fake_new_points, code);
+    bool t = execute_code(M, M, stack, points, new_points, code);
     if (t) { 
         throw ExecuteError("Expression depends on undefined `n' index: " + s);
     }

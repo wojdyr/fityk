@@ -16,7 +16,7 @@
 <book lang="en">
  <title>Fityk - User's Manual</title> 
  <bookinfo> 
-  <date>2006-01-19</date>
+  <date>2006-04-09</date>
   <author> 
    <firstname>Marcin</firstname> <surname>Wojdyr</surname>
   </author> 
@@ -95,8 +95,7 @@
     the <systemitem class="library">GNU Readline Library</systemitem>, 
     it enables command line editing and command history 
     like in <application>bash</application>.
-    Especially useful is <keycap>TAB</keycap>-expanding [TODO: tab-expanding
-    works only partially in this version]. 
+    Especially useful is <keycap>TAB</keycap>-expanding.
     Data and curve fitted to data are visualized with 
     <application>gnuplot</application> program (if it is installed).
    </para>
@@ -516,33 +515,45 @@
      <function>min2</function>, 
      <function>max2</function>  
      (eg. <userinput>max2(3,5)</userinput> will give 5), 
+     <function>randuniform(a, b)</function> 
+     (random number from interval (a, b)),
+     <function>randnormal(mu, sigma)</function> 
+     (random number from normal distribution)
+
      and ternary ?: operator: 
       <replaceable>condition</replaceable> ? 
       <replaceable>expression1</replaceable> : 
       <replaceable>expression2</replaceable>, which performs 
      <replaceable>expression1</replaceable> if condition is true 
      and <replaceable>expression2</replaceable> otherwise.
-     Conditions can be built using boolean operators comparisions: 
-     AND, OR, NOT, &gt;, &gt;=, &lt;, &lt;=, = (or ==), 
+     Conditions can be built using boolean operators and comparisions: 
+     AND, OR, NOT, &gt;, &gt;=, &lt;, &lt;=, ==, 
      != (or &lt;&gt;), TRUE, FALSE.
+    </para>
+    <para>
+     <function><replaceable>t</replaceable>[x=expression]</function>, where
+     <replaceable>t</replaceable>=x,y,s,a,X,Y,S,A
+     gives linear interpolation of <replaceable>t</replaceable> 
+     between two points (or the value of first/last point if given x is outside 
+      of the current data range).
     </para>
     <para>
      Important note: all operations are performed on real numbers.
      Two numbers that differ less than epsilon=1e-9 
      ie. abs(a-b)&lt;epsilon, are considered equal. 
      Indices are also computed in real number domain, 
-     and then rounded to nearest integer.
+     and then rounded to the nearest integer.
     </para>
     <para>
-     Transformations can be joined with ampersand (&amp;), eg.
-     <userinput>X=y&amp;Y=x</userinput> swaps axes.
+     Transformations can be joined with comma (,), eg.
+     <userinput>X=y, Y=x</userinput> swaps axes.
     </para>
     <para>
      Before and after executing transformations, points are always 
      sorted according to x coordinate. You can change order of points
      using <command>order=<replaceable>t</replaceable></command>,
      where <replaceable>t</replaceable> is one of x, y, s, a, -x, -y, -s, -a.
-     It only has a sense in sequence of transformations joined with &amp;,
+     It only has a sense in sequence of transformations joined with comma,
      because after finishing transformation, points will be reordered again.
     </para>
     <para>
@@ -553,14 +564,15 @@
      and created simply by increasing value of M.
     </para>
     <para>
-     There are two parametrized functions: spline and interpolate.
+     There are two parametrized functions: <function>spline</function>
+     and <function>interpolate</function>.
      The general syntax is: 
      <replaceable>parametrizedfunc</replaceable> 
      [<replaceable>param1</replaceable>, 
      <replaceable>param2</replaceable>](<replaceable>expression</replaceable>)
-     eg. spline[22.1, 37.9, 48.1, 17.2, 93.0, 20.7](x) will give
-     value of cubic spline interpolation through points (22.1, 37.9),
-     (48.1, 17.2), ... in x.
+     eg. <userinput>spline[22.1, 37.9, 48.1, 17.2, 93.0, 20.7](x)</userinput> 
+     will give value of cubic spline interpolation through points 
+     (22.1, 37.9), (48.1, 17.2), ... in x.
      Function interpolation is similar, but give polyline interpolation.
      Spline function is used for manual background substraction in GUI.
     </para>
@@ -576,12 +588,76 @@
      delete(not a) # delete inactive points
 
      X = 4*pi * sin(x/2*pi/180) / 1.54051 # changes x scale (2theta -> Q)
+
+     # make equal step, keep the number of points the same
+     X = x[0] + n * (x[M-1]-x[0]) / (M-1),  Y = y[x=X], S = s[x=X], A = a[x=X]
      </screen>     
     </para>
+   </section> 
+
+   <section id="funcindt">
+    <title>Functions and variables in data transformations</title>
     <para>
-     Introduced later in this manual
-     <link linkend="variables">variables</link> also can be used in data
-     transformations, eg. <userinput>Y=y/$foo</userinput>.
+     Informations in this section are not often used in practice.
+     Read it after reading <xref linkend="sum"/>.
+    </para>
+    <para>
+     Variables ($foo) and functions (%bar) can be used in data transformations, 
+     and a current value of data expression can be assigned to variable.
+     Also values of function parameters (eg. %fun[a0]) and pseudo-parameters
+     Center, Height, FWHM and Area (eg. %fun[Area]) can be used.
+     Pseudo-parameters are supported only by functions, which know
+     how to calculate these properties. 
+    </para>
+    <para>
+     Some properties of functions can be calculated using functions
+     <function>numarea</function>, <function>findx</function> 
+     and <function>extremum</function>. 
+    </para>
+    <para>
+     <function>numarea(%f, x1, x2, n)</function> 
+     gives area integrated numerically 
+     from x1 to x2 using trapezoidal rule with n equal steps.
+    </para>
+    <para>
+     <function>findx(%f, x1, x2, y)</function> 
+     finds x in interval (x1, x2) such that 
+     %f(x)=y
+     using bisection method combined with Newton-Raphson method method.
+     It is required that %f(x1) &lt; y &lt; %f(x2).
+    </para>
+    <para>
+     <function>extremum(%f, x1, x2)</function> finds x in interval (x1, x2) 
+     such that 
+     %f'(x)=0 
+     using bisection method.  
+     It is required that %f'(x1) and %f'(x2) have different signs. 
+    </para>
+    <para>
+     A few examples:
+     <screen>     
+      $foo = {y[0]} # data expression can be used in variable assignment
+      Y = y / $foo  # and variables can be used in data transformation
+
+      Y = y - %f(x) # substracts function %f from data
+
+      Y = y - @0.F(x) # substracts all functions in F
+
+      %c = Constant(~0) -> Z  # fit constant zero-shift (it can be caused...
+      fit                # ...by shift in scale of instrument collecting data),
+      X = x + @0.Z(x)  # ...remove it from dataset,
+      del %c           # ...and delete it from sum
+
+      info numarea(%fun, 0, 100, 10000) # shows area of function %fun 
+      info %fun[Area] # it is not always supported
+
+      info %_1(extremum(%_1, 40, 50)) # shows extremum value
+
+      # calculate FWHM numerically, value 50 can be tuned
+      $c = {%f[Center]}
+      i findx(%f, $c, $c+50, %f[Height]/2) - findx(%f, $c, $c-50, %f[Height]/2)
+      i %f[FWHM] # should give almost the same
+     </screen>     
     </para>
    </section> 
 
@@ -811,11 +887,11 @@
      number of comma-separated variables in brackets, eg:
      <userinput>%f = Gaussian(~66254., ~24.7, ~0.264)</userinput>
      or
-     <userinput>%f = Gaussian(~66254., $ctr, $b+$c)</userinput>.
+     <userinput>%f = Gaussian(~6e4, $ctr, $b+$c)</userinput>.
      Every expression, which is valid on the right hand side of variable
      assignment, can be put as a variable.
      If it is not just a name of a variable, an automatic variable is created.
-     In the last example two variables are created (value 66354 and the sum).
+     In the last example two variables are created (value 60000 and the sum).
     </para>
     <para>
      The second way is to give named parameters of function, in any order, eg.
@@ -860,6 +936,32 @@
      <command>delete <replaceable>%function</replaceable></command>.
     </para>
    </section> 
+
+   <section>
+    <title>Used-defined functions (UDF)</title>
+    <para>
+     User-defined function types can be created using command 
+     <command>define</command>, and than used in the same way as built-in
+     function types. The name of new type must start with upper-case
+     letter, contain only letters and digits, 
+     and can't be the same as a name of built-in function.
+    </para>
+    <para>
+     [TODO: i'll write more about it when I finish implementing UDF,
+     for now only definitions based on already defined function works;
+     on the right hand side sum of functions can be written]
+    </para>
+    <para>
+     Examples:
+     <screen>     
+     # area-based Gaussian can be defined as modification of built-in Gaussian
+     define GaussianArea(area, center, hwhm) = Gaussian(area/fwhm/sqrt(pi*ln(2)), center, hwhm) 
+     #TODO sum Gaussian+Lorentzian
+     </screen>     
+    </para>
+   </section> 
+
+
    <section>
     <title>Speed of computations</title>
     <para>
@@ -959,7 +1061,10 @@
      </command>, 
      eg. <userinput>guess Gaussian [22.1:30.5] in @0</userinput>.
      If the range is omitted, the whole dataset will be searched.
-     Name of function is optional.
+     Name of function is optional. Some of parameters can be specified
+     with syntax 
+     <replaceable>parameter</replaceable>=<replaceable>variable</replaceable>,
+     eg. <userinput>guess PseudoVoigt [22.1:30.5] center=$ctr, shape=~0.3 in @0</userinput>.
     </para>
     <para>
      Fityk offers only primitive algorithm for peak-detection. 
@@ -1121,7 +1226,6 @@
     <para>
      <note>
       <para>
-       The rest of this chapter is outdated,
        At this moment default settings of fitting methods can't be changed.
        It will be fixed as soon as possible.
       </para>
@@ -1143,9 +1247,9 @@
     </para>
     <para>
      If you give too small <replaceable>n</replaceable> 
-     to <command>f.run</command> command, and fit is stopped because of
+     to <command>fit</command> command, and fit is stopped because of
      it, not because of convergence, it makes sense to use 
-     <command>f.continue</command> command to process further iterations. 
+     <command>fit+</command> command to process further iterations. 
      [TODO: how to stop fit interactively] 
     </para>
     <para>
@@ -1155,23 +1259,17 @@
      to <parameter class="option">output-one-of</parameter> option. 
     </para>
     <para>
-     Setting <userinput>o.set autoplot = on-fit-iteration</userinput>
+     Setting <userinput>set autoplot = on-fit-iteration</userinput>
      will draw a plot after every iteration, to visualize progress. 
      (see <link linkend="autoplot">
       <parameter class="option">autoplot</parameter></link>)
     </para>
     <para>
-     Command
-     <footnote><para>
-       Syntax of this command will be changed, other
-       error estimates or measures of goodness-of-fit will be added.
-     </para></footnote>
-     :
-     <cmdsynopsis>
-      <command>f.info</command> <group><arg>*</arg><arg>**</arg></group> 
-     </cmdsynopsis>
-     can be used to display <acronym>WSSR</acronym>, 
-     symmetric errors and variance-covariance matrix.
+     Informations about goodness of fit can be displayed using
+     <userinput>info fit</userinput>. To see symmetric errors
+     use <userinput>info errors</userinput>, 
+     and <userinput>info+ errors</userinput> shows also 
+     variance-covariance matrix.
     </para>
     <para>
      Available methods can be mixed together, eg. it is
@@ -1180,21 +1278,6 @@
      Command <command>s.history</command> can
      be useful for trying various methods with different options and/or
      initial parameters and choosing the best solution.
-    </para>
-    <para>
-     Some fitting methods are using random number generator. In some situations
-     one may want to have repeatable and predictable results of fitting, eg.
-     to make a presentation. Seed for a new sequence of pseudo-random
-     numbers is set at the beginning of fitting initialization 
-     (when <command>f.run</command> is called). If value of 
-     <parameter class="option">pseudo-random-seed</parameter> 
-     option is set to -1, the seed is based on system time and sequence of
-     pseudo-random numbers is every time different. In other case, if
-     <parameter class="option">pseudo-random-seed</parameter> option has
-     a non-negative value, this value is used as a seed. Remember, that like
-     all other options, value of 
-     <parameter class="option">pseudo-random-seed</parameter> is independent 
-     for each fitting method.
     </para>
    </section>
 
@@ -1214,7 +1297,7 @@
      computing first derivatives of functions. For description of L-M method
      see <citetitle pubwork="book">Numerical Recipes</citetitle>, chapter 15.5 
      or Siegmund Brandt <citetitle pubwork="book">Data Analysis</citetitle>,
-     chapter 10.15 (I've read the Polish translation of the second). 
+     chapter 10.15. 
      In a few words: it combines
      inverse-Hessian method (called Gauss-Newton method?) with steepest descent
      method by introducing lambda factor. When lambda is equal 0, the method is
@@ -1348,14 +1431,26 @@
    <title>Settings </title>
    <para>
     This chapter is not about GUI settings (things like colors,
-    fonts, etc.).
+    fonts, etc.), but about settings that are common for both CLI and GUI
+    versions.
    </para>
    <para>
     Command <command>info set</command> shows syntax of the set command
     and lists all possible options.
    </para>
    <para>
-    [TODO: this chapter should be expanded...] 
+    Some fitting methods and functions like <function>randnormal</function>
+    in data expressions are using pseudo-random number generator. 
+    In some situations
+    one may want to have repeatable and predictable results of fitting, eg.
+    to make a presentation. Seed for a new sequence of pseudo-random
+    numbers can be set using option
+    <parameter class="option">pseudo-random-seed</parameter>.
+    If it is set to 0, the seed is based on the current time and a sequence of
+    pseudo-random numbers is every time different. 
+   </para>
+   <para>
+    [TODO: the rest of options...] 
    </para>
   </section> 
 
@@ -1393,7 +1488,7 @@
     <para>
      Examples:
      <screen>
-   plot [20.4:50] [10:20] #plot will show x from 20.4 to 50 and y from 10 to 20
+   plot [20.4:50] [10:20] # show x from 20.4 to 50 and y from 10 to 20
 
    plot [20.4:] # x from 20.4 to the end, 
                 # y range will be fitted to contain all data
@@ -1649,6 +1744,10 @@
     <para>
      After compilation of the program check if the derivatives are calculated 
      correctly using command "info dF(x)", eg. i dF(30.1).
+     You can also use <function>numarea</function>, 
+     <function>findx</function> and <function>extremum</function> 
+     (see <xref linkend="funcindt"/> for details) 
+     to verify center, area, height and FWHM properties.
     </para>
     <para>
      Hope this helps.

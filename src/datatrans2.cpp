@@ -118,15 +118,11 @@ void push_the_func_param::operator()(char const* a, char const* b) const
 { 
     string t(a, b);
     assert(t[0] == '%');
-    int left_b = t.find("(");
-    int right_b = t.find(")");
+    int left_b = t.find("[");
+    int right_b = t.find("]");
     string fstr = strip_string(string(t, 1, left_b-1));
     string pstr = strip_string(string(t, left_b+1, right_b-left_b-1));
-    AL->get_func_param(fstr, pstr);
-    Function const* k = AL->find_function(fstr);
-    if (!k)
-        throw ExecuteError("undefined function: %" + fstr);
-    push_double::operator()(k->get_param_value(pstr)); 
+    push_double::operator()(AL->find_function(fstr)->get_param_value(pstr)); 
 }
 
 } //namespace
@@ -177,7 +173,7 @@ DataExpressionGrammar::definition<ScannerT>::definition(
         = rprec2
            >> !(( ("<=" >> rprec2) [push_op(OP_LE)]
                 | (">=" >> rprec2) [push_op(OP_GE)]
-                | ((str_p("==")|"=") >> rprec2)  [push_op(OP_EQ)]
+                | (str_p("==") >> rprec2)  [push_op(OP_EQ)]
                 | ((str_p("!=")|"<>") >> rprec2)  [push_op(OP_NEQ)]
                 | ('<' >> rprec2)  [push_op(OP_LT)]
                 | ('>' >> rprec2)  [push_op(OP_GT)]
@@ -186,7 +182,7 @@ DataExpressionGrammar::definition<ScannerT>::definition(
                         >> rprec2) [push_op(OP_LE, OP_AFTER_AND)]
                     | (str_p(">=")[push_op(OP_AND, OP_NCMP_HACK)] 
                         >> rprec2) [push_op(OP_GE, OP_AFTER_AND)]
-                    | ((str_p("==")|"=")[push_op(OP_AND, OP_NCMP_HACK)] 
+                    | (str_p("==")[push_op(OP_AND, OP_NCMP_HACK)] 
                         >> rprec2) [push_op(OP_EQ, OP_AFTER_AND)]
                     | ((str_p("!=")|"<>")[push_op(OP_AND, OP_NCMP_HACK)] 
                         >> rprec2)  [push_op(OP_NEQ, OP_AFTER_AND)]

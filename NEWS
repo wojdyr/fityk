@@ -1,9 +1,14 @@
-User-visible changes in version 0.7.3  (2006-03-  ):
+User-visible changes in version 0.7.3  (2006-04-1x):
 * extended data transformations: numarea(%f, x1, x2, n) gives area integrated
   numerically (from x1 to x2, n steps), Y = y-%f(x) substracts function from
-  data, 
+  data, findx(%f, x1, x2, y) finds x in (x1, x2) such that %f(x)=y,
+  extremum(%f, x1, x2) finds x in (x1, x2) such that %f'(x)=0,
+  transformations can be joined with ',' (previously '&' was used),
+  randuniform(a, b), randnormal(mu, sigma) generate random numbers,
+  y[x=21] gives y at x=21 using linear interpolation between two points
 * user defined functions derived from other functions, eg:
-   define GaussianA(area, center, fwhm) = Gaussian(area/fwhm/sqrt(pi*ln(2)), center, fwhm)
+   define Ga(area,center,hwhm) = Gaussian(area/fwhm/sqrt(pi*ln(2)),center,hwhm)
+* optional logarithmic scaling of y axis
 
 User-visible changes in version 0.7.2  (2006-03-08):
 * area-based Voigt function (VoigtA)

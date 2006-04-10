@@ -50,6 +50,7 @@ public:
     std::vector<std::string> const &get_zz_names() const { return zz_names; }
     bool has_any_info() const { return !ff_names.empty() || !zz_names.empty(); }
     fp numarea(fp x1, fp x2, int nsteps) const;
+    bool is_dependent_on_var(int idx) const;
 
 private:
     VariableManager &mgr;

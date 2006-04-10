@@ -20,18 +20,19 @@ public:
 
     Fit(std::string m);
     virtual ~Fit() {};
-    void fit(int max_iter, std::vector<DataWithSum*> const& dsds_);
+    void fit(int max_iter, std::vector<DataWithSum*> const& dsds);
     void continue_fit(int max_iter);
-    std::string getInfo();
-    std::string getErrorInfo(bool matrix=false);
+    std::string getInfo(std::vector<DataWithSum*> const& dsds);
+    std::string getErrorInfo(std::vector<DataWithSum*> const& dsds, 
+                             bool matrix=false);
     int get_default_max_iter() { return default_max_iterations; }
     static fp compute_wssr_for_data (DataWithSum const* ds, bool weigthed);
-    static int Jordan (std::vector<fp>& A, std::vector<fp>& b, int n); 
-    static int reverse_matrix (std::vector<fp>&A, int n);
+    static bool Jordan (std::vector<fp>& A, std::vector<fp>& b, int n); 
+    static void reverse_matrix (std::vector<fp>&A, int n);
     static std::string print_matrix (const std::vector<fp>& vec, 
                                      int m, int n, char *mname);//m x n
 protected:
-    std::vector<DataWithSum*> dsds;
+    std::vector<DataWithSum*> datsums;
     int output_one_of;
     int max_evaluations;
     int evaluations;
@@ -39,14 +40,17 @@ protected:
     int iter_nr;
     fp wssr_before;
     std::vector<fp> a_orig;
+    std::vector<bool> par_usage;
     int na; //number of fitted parameters
     std::map<char, std::string> Distrib_enum;
 
     virtual fp init() = 0; // called before autoiter()
     virtual int autoiter() = 0;
     bool common_termination_criteria(int iter);
-    fp compute_wssr (std::vector<fp> const &A, bool weigthed=true);
+    fp compute_wssr(std::vector<fp> const &A, 
+                   std::vector<DataWithSum*> const& dsds, bool weigthed=true);
     void compute_derivatives(std::vector<fp> const &A, 
+                             std::vector<DataWithSum*> const& dsds, 
                              std::vector<fp>& alpha, std::vector<fp>& beta);
     bool post_fit (const std::vector<fp>& aa, fp chi2);
     fp draw_a_from_distribution (int nr, char distribution = 'u', fp mult = 1.);
@@ -54,6 +58,7 @@ protected:
 private:
     void compute_derivatives_for(DataWithSum const *ds, 
                                  std::vector<fp>& alpha, std::vector<fp>& beta);
+    void update_parameters(std::vector<DataWithSum*> const& dss);
 };
 
 ///singleton

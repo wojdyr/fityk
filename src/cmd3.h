@@ -25,7 +25,7 @@ struct Cmd3Grammar : public grammar<Cmd3Grammar>
     definition(Cmd3Grammar const& self);
 
     rule<ScannerT> in_data, optional_plus, compact_str, int_range, 
-                   set_arg, commands_arg, statement;  
+                   set_arg, commands_arg, fit_arg, statement;  
 
     rule<ScannerT> const& start() const { return statement; }
   };

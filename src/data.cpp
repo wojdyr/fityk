@@ -111,8 +111,14 @@ void Data::post_load()
 }
 
 void Data::recompute_y_bounds() {
-    y_min = y_max = p.front().y;
+    bool ini = false;
     for (vector<Point>::iterator i = p.begin(); i != p.end(); i++) {
+        if (!is_finite(i->y))
+            continue;
+        if (!ini) {
+            y_min = y_max = i->y;
+            ini = true;
+        }
         if (i->y < y_min)
             y_min = i->y;
         if (i->y > y_max)

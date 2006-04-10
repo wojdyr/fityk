@@ -26,6 +26,7 @@ bool VariableUser::is_directly_dependent_on(int idx) {
     return count(var_idx.begin(), var_idx.end(), idx);
 }
 
+/// checks if *this depends (directly or indirectly) on variable with index idx
 bool VariableUser::is_dependent_on(int idx, 
                                    vector<Variable*> const &variables) const
 {
@@ -64,16 +65,21 @@ int VariableUser::get_max_var_idx()
 
 
 
+// ctor for simple variables and mirror variables
 Variable::Variable(std::string const &name_, int nr_, 
                    bool auto_delete_, bool hidden_)
     : VariableUser(name_, "$"),
-      auto_delete(auto_delete_), hidden(hidden_), nr(nr_), 
-      recursive_derivatives(1)
+      auto_delete(auto_delete_), hidden(hidden_), nr(nr_) 
 {
-    recursive_derivatives[0].p = nr_;
-    recursive_derivatives[0].mult = 1;
+    if (nr != -2) {
+        ParMult pm;
+        pm.p = nr_;
+        pm.mult = 1;
+        recursive_derivatives.push_back(pm);
+    }
 }
 
+// ctor for compound variables
 Variable::Variable(std::string const &name_, vector<string> const &vars_,
                    vector<OpTree*> const &op_trees_, 
                    bool auto_delete_, bool hidden_)
@@ -105,6 +111,7 @@ string Variable::get_info(vector<fp> const &parameters,
     return s;
 } 
 
+/// executes VM code, what sets this->value and this->derivatives
 void Variable::run_vm(vector<Variable*> const &variables)
 {
     vector<double>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
@@ -213,7 +220,7 @@ void Variable::recalculate(vector<Variable*> const &variables,
       }
   }
   else if (nr == -2)
-      ;
+      ; //do nothing, it must be set with set_mirror()
   else {
       value = parameters[nr];
       if (!derivatives.empty()) {
@@ -291,16 +298,16 @@ string VariableManager::get_or_make_variable(string const& func)
 {
     assert(!func.empty());
     string tmp1, tmp2;
-    if (parse(func.c_str(), VariableLhsG).full)
+    if (parse(func.c_str(), VariableLhsG).full) // $foo
         return string(func, 1);
     else if (parse(func.c_str(), 
-                   FunctionLhsG [assign_a(tmp1)]
+                   FunctionLhsG [assign_a(tmp1)] 
                        >> '[' >> (alpha_p >> *(alnum_p|'_'))[assign_a(tmp2)]
                        >> ']')
-                  .full) {
+                  .full) {                     // %bar[bleh]
         return get_func_param(tmp1, tmp2);
     }
-    else
+    else                                       // anything else
         return assign_variable("", func);
 }
 
@@ -309,11 +316,17 @@ string VariableManager::assign_variable(string const &name, string const &rhs)
     Variable *var = 0;
     bool auto_del = name.empty();
     string nonempty_name = name.empty() ? next_var_name() : name; 
+
+    if (rhs.empty()) {// mirror-variable
+        var = new Variable(nonempty_name, -2, auto_del);
+        return do_assign_variable(var);
+    }
+
     tree_parse_info<> info = ast_parse(rhs.c_str(), FuncG, space_p);
     assert(info.full);
     const_tm_iter_t const &root = info.trees.begin();
     if (root->value.id() == FuncGrammar::variableID
-            && *root->value.begin() == '~') { 
+            && *root->value.begin() == '~') { //simple variable
         string val_str = string(root->value.begin()+1, root->value.end());
         fp val = get_constant_value(val_str);
         parameters.push_back(val);
@@ -429,7 +442,8 @@ string VariableManager::do_assign_variable(Variable* new_var)
     }
     else {
         if (var->is_dependent_on(old_pos, variables)) { //check for loops
-            throw ExecuteError("detected loop in variable dependencies");
+            throw ExecuteError("detected loop in variable dependencies of "
+                               + var->xname);
         }
         delete variables[old_pos];
         variables[old_pos] = var.release();
@@ -535,7 +549,10 @@ int VariableManager::find_function_nr(string const &name) {
 
 const Function* VariableManager::find_function(string const &name) {
     int n = find_function_nr(name);
-    return n == -1 ? 0 : functions[n];
+    if (n == -1)
+        throw ExecuteError("undefined function: " 
+                                       + (name[0]=='%' ? name : "%"+name));
+    return functions[n];
 }
 
 int VariableManager::find_variable_nr(string const &name) {
@@ -547,16 +564,17 @@ int VariableManager::find_variable_nr(string const &name) {
 
 Variable const* VariableManager::find_variable(string const &name) {
     int n = find_variable_nr(name);
-    return n == -1 ? 0 : variables[n];
+    if (n == -1)
+        throw ExecuteError("undefined variable: $" + name);
+    return variables[n];
 }
 
-Variable const* VariableManager::find_variable_handling_param(int p)
+int VariableManager::find_nr_var_handling_param(int p)
 {
     assert(p >= 0 && p < size(parameters));
-    for (vector<Variable*>::const_iterator i = variables.begin(); 
-            i != variables.end(); ++i)
-        if ((*i)->get_nr() == p)
-            return *i;
+    for (size_t i = 0; i < variables.size(); ++i)
+        if (variables[i]->get_nr() == p)
+            return i;
     assert(0);
     return 0;
 }
@@ -681,8 +699,12 @@ vector<string> VariableManager::make_varnames(string const &function,
     vector<string> varnames;
     if (vars.empty())
         return varnames;
-    vector<string> vv = (vars[0].find('=') == string::npos ? vars
-                                           : get_vars_from_kw(function, vars));
+    bool has_eq = (vars[0].find('=') != string::npos);
+    for (vector<string>::const_iterator i = vars.begin(); i != vars.end(); ++i) 
+        if ((i->find('=') != string::npos) != has_eq)
+            throw ExecuteError("Either use keywords for all paramers"
+                               " or for none");
+    vector<string> vv = (!has_eq ? vars : get_vars_from_kw(function, vars));
     for (int i = 0; i < size(vv); ++i) 
         varnames.push_back(get_or_make_variable(vv[i]));
     return varnames;
@@ -786,8 +808,6 @@ void VariableManager::substitute_func_param(string const &name,
 string VariableManager::get_func_param(string const &name, string const &param)
 {
     Function const* k = find_function(name);
-    if (!k)
-        throw ExecuteError("undefined function: " + name);
     return k->get_var_name(k->get_param_nr(param));
 }
 
@@ -805,6 +825,24 @@ fp VariableManager::variation_of_a (int n, fp variat) const
     fp sgm = 0.1;
 
     return ctr + sgm * variat;
+}
+
+string VariableManager::next_var_name() 
+{ 
+    while (1) { 
+        string t = "_" + S(++var_autoname_counter); 
+        if (find_variable_nr(t) == -1) 
+            return t;
+    }
+}
+
+string VariableManager::next_func_name() 
+{ 
+    while (1) { 
+        string t = "_" + S(++func_autoname_counter); 
+        if (find_function_nr(t) == -1) 
+            return t;
+    }
 }
 
 

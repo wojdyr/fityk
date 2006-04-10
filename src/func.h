@@ -71,7 +71,7 @@ public:
                     bool extended=false) const;
     std::string get_current_definition(std::vector<Variable*> const &variables, 
                                        std::vector<fp> const &parameters) const;
-    std::string get_current_formula(std::string const& x = "x") const;
+    virtual std::string get_current_formula(std::string const& x = "x") const;
     int get_param_nr(std::string const& param) const;
     fp get_param_value(std::string const& param) const;
     fp numarea(fp x1, fp x2, int nsteps) const;
@@ -240,7 +240,7 @@ class FuncPearson7 : public Function
     fp height() const { return vv[0]; }
     bool has_fwhm() const { return true; } 
     fp fwhm() const   { return 2 * fabs(vv[2]); }
-    bool has_area() const { return true; } 
+    bool has_area() const { return vv[3] > 0.5; } 
     fp area() const;
 };
 
@@ -254,7 +254,7 @@ class FuncSplitPearson7 : public Function
     fp height() const { return vv[0]; }
     bool has_fwhm() const { return true; } 
     fp fwhm() const   { return fabs(vv[2]) + fabs(vv[3]); }
-    bool has_area() const { return true; } 
+    bool has_area() const { return vv[4] > 0.5 && vv[5] > 0.5; } 
     fp area() const;
 };
 

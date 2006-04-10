@@ -60,11 +60,7 @@ void ApplicationLogic::reset_all (bool finish)
     view = View(0, 180, 0, 1e3);
     append_ds();
     activate_ds(0);
-
-    int random_seed = getSettings()->get_i("pseudo-random-seed");
-    int rs = random_seed >= 0 ? random_seed : time(0);
-    srand(rs);
-    verbose ("Seed for a sequence of pseudo-random numbers: " + S(rs));
+    getSettings()->do_srand();
 }
 
 
@@ -145,7 +141,7 @@ string View::str() const
 void View::fit(int flag)
 {
     if (flag&fit_left || flag&fit_right) {
-        fp x_min, x_max;
+        fp x_min=0, x_max=0;
         get_x_range(x_min, x_max);
         if (x_min == x_max) {
             x_min -= 0.1; 
@@ -159,7 +155,7 @@ void View::fit(int flag)
     }
 
     if (flag&fit_top || flag&fit_bottom) {
-        fp y_min, y_max;
+        fp y_min=0, y_max=0;
         get_y_range(y_min, y_max);
         if (y_min == y_max) {
             y_min -= 0.1; 
@@ -197,7 +193,7 @@ void View::get_y_range(fp &y_min, fp &y_max)
         vector<Point>::const_iterator l = (*i)->get_point_at(right);
         //first we are searching for minimal and max. y in active points
         for (vector<Point>::const_iterator i = f; i < l; i++) {
-            if (i->is_active) {
+            if (i->is_active && is_finite(i->y)) {
                 min_max_set = true;
                 if (i->y > y_max) 
                     y_max = i->y;
@@ -214,6 +210,8 @@ void View::get_y_range(fp &y_min, fp &y_max)
             vector<Point>::const_iterator f = (*i)->get_point_at(left);
             vector<Point>::const_iterator l = (*i)->get_point_at(right);
             for (vector<Point>::const_iterator i = f; i < l; i++) { 
+                if (!is_finite(i->y))
+                    continue;
                 min_max_set = true;
                 if (i->y > y_max) 
                     y_max = i->y;

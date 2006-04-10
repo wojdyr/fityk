@@ -51,8 +51,8 @@ protected:
 };
 
 /// the variable is either simple-variable and nr is the index in vector
-/// of parameters, or it is not simple, and has nr==-1.
-/// third special case: nr==-2 - it is kind of mirror variable (such variable
+/// of parameters, or it is "compound variable" and has nr==-1.
+/// third special case: nr==-2 - it is mirror-variable (such variable
 ///        is not recalculated but copied set with copy_recalculated())
 /// In second case, the value and derivatives are calculated 
 /// in following steps:
@@ -72,7 +72,7 @@ class Variable : public VariableUser
 {
 public:
     bool const auto_delete;
-    bool const hidden;
+    bool const hidden; //not used so far
 
     struct ParMult { int p; fp mult; };
     Variable(const std::string &name_, int nr_, 
@@ -98,11 +98,13 @@ public:
                                             { return recursive_derivatives; }
     bool is_simple() const { return nr != -1; }
     std::vector<OpTree*> const& get_op_trees() const { return op_trees; }
-    void copy_recalculated(Variable const& v) 
+    /// variable with nr=-2 is used as a mirror of another variable,
+    /// it's not updated in recalculate() but only here
+    void set_mirror(Variable const& v) 
        {nr=-2; value=v.value; recursive_derivatives=v.recursive_derivatives;}
 
 private:
-    int nr; /// -1 unless it's simple "variable"
+    int nr; /// see description of this class in .h 
     // these are recalculated every time parameters or variables are changed
     fp value;
     std::vector<fp> derivatives;
@@ -144,7 +146,9 @@ public:
     ///returns -1 if not found or idx in variables if found
     int find_variable_nr(std::string const &name);
     Variable const* find_variable(std::string const &name);
-    Variable const* find_variable_handling_param(int p);
+    int find_nr_var_handling_param(int p);
+    Variable const* find_variable_handling_param(int p)
+                { return variables[find_nr_var_handling_param(p)]; }
 
     /// search for "simple" variable which handles parameter par
     /// returns -1 if not found or idx in variables if found
@@ -154,16 +158,14 @@ public:
     void remove_unreferred();
 
     std::string get_variable_info(std::string const &s, bool extended_print) {
-        Variable const* v = find_variable(s);
-        return v ? v->get_info(parameters, extended_print) 
-                 : "Undefined variable: " + s;
+        return find_variable(s)->get_info(parameters, extended_print);
     }
     std::vector<fp> const& get_parameters() const { return parameters; }
     std::vector<Variable*> const& get_variables() const { return variables; }
     Variable const* get_variable(int n) const { return variables[n]; }
-    //hack used eg. in CompoundFunction, no checks
-    void set_recalculated_variable(int n, Variable const& v) 
-                 { variables[n]->copy_recalculated(v); }
+    /// hack used eg. in CompoundFunction, no checks
+    void set_mirrored_variable(int n, Variable const& v) 
+                                         { variables[n]->set_mirror(v); }
 
     std::string assign_func(std::string const &name, 
                             std::string const &function, 
@@ -220,8 +222,8 @@ protected:
     std::string get_var_from_expression(std::string const& expr,
                                         std::vector<std::string> const& vars);
     std::string make_var_copy_name(Variable const* v);
-    std::string next_var_name() { return "_" + S(++var_autoname_counter); }
-    std::string next_func_name() { return "_" + S(++func_autoname_counter); }
+    std::string next_var_name(); ///generate name for "anonymous" variable
+    std::string next_func_name();///generate name for "anonymous" function
 };
 
 

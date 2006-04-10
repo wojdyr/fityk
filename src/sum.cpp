@@ -49,6 +49,19 @@ void Sum::find_function_indices()
     do_find_function_indices(zz_names, zz_idx);
 }
 
+/// checks if sum depends on variable with index idx
+bool Sum::is_dependent_on_var(int idx) const
+{
+    std::vector<Variable*> const& vv = mgr.get_variables();
+    for (vector<int>::const_iterator i = ff_idx.begin(); i != ff_idx.end(); i++)
+        if (mgr.get_function(*i)->is_dependent_on(idx, vv))
+            return true;
+    for (vector<int>::const_iterator i = zz_idx.begin(); i != zz_idx.end(); i++)
+        if (mgr.get_function(*i)->is_dependent_on(idx, vv))
+            return true;
+    return false;
+}
+
 void Sum::add_function_to(string const &name, char add_to)
 {
     string only_name = !name.empty() && name[0]=='%' ? string(name,1) : name;

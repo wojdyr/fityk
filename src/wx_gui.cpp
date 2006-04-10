@@ -381,7 +381,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
       toolbar(0), 
 #ifdef __WXMSW__
       help()
-#else
+#else //wxHtmlHelpController
       help(wxHF_TOOLBAR|wxHF_CONTENTS|wxHF_SEARCH|wxHF_BOOKMARKS|wxHF_PRINT
            |wxHF_MERGE_BOOKS)
 #endif
@@ -1059,7 +1059,7 @@ void FFrame::OnFContinue     (wxCommandEvent& WXUNUSED(event))
                                 wxT("Fit->Continue"), 
                                 getFit()->default_max_iterations, 0, 9999);
     if (r != -1)
-        exec_command ("fit+ " + S(r) + get_in_dataset());
+        exec_command ("fit+ " + S(r));
 }
              
 void FFrame::OnFInfo         (wxCommandEvent& WXUNUSED(event))
@@ -1733,7 +1733,7 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
             exec_command("fit" + frame->get_in_dataset()); 
             break; 
         case ID_ft_f_cont: 
-            exec_command("fit+" + frame->get_in_dataset()); 
+            exec_command("fit+"); 
             break; 
         case ID_ft_f_undo: 
             exec_command("s.history -1"); 

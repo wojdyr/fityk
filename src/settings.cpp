@@ -4,9 +4,10 @@
 #include "common.h"
 #include "settings.h"
 #include "ui.h"
-#include <fit.h>
+#include "fit.h"
 #include <ctype.h>
 #include <algorithm>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -90,10 +91,12 @@ string Settings::getp(string const& k) const
 
 void Settings::setp_core(string const& k, string const& v)
 {
-    if (ipar.count (k)){
+    if (ipar.count (k)) {
         int d;
         if (istringstream (v) >> d) {
             ipar[k] = d;
+            if (k == "pseudo-random-seed")
+                do_srand();
             return;
         }
     }
@@ -173,7 +176,7 @@ string Settings::typep (string const& k) const
     }
     else if (epar.count (k)){
         map<char,string> const& e = epar.find(k)->second.e;
-        return "one of" + join_vector(get_map_values(e), ", ");
+        return "one of: " + join_vector(get_map_values(e), ", ");
     }
     else if (spar.count (k)){
         return "string (a-zA-Z0-9+-.)";
@@ -247,4 +250,11 @@ string Settings::set_script() const
     return s;
 }
 
+void Settings::do_srand()
+{
+    int random_seed = get_i("pseudo-random-seed");
+    int rs = random_seed >= 0 ? random_seed : time(0);
+    srand(rs);
+    verbose ("Seed for a sequence of pseudo-random numbers: " + S(rs));
+}
 

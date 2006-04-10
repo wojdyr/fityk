@@ -6,6 +6,7 @@
 
 #include <string>
 #include <memory>
+#include <algorithm>
 #include "var.h"
 #include "func.h"
 
@@ -119,6 +120,8 @@ public:
     int get_active_ds_position() const { return active_ds; }
     Data *get_data(int n) { return get_ds(n)->get_data(); }
     Sum *get_sum(int n)   { return get_ds(n)->get_sum();  }
+    bool has_ds(DataWithSum const* p) const 
+                      { return count(dsds.begin(), dsds.end(), p) > 0; }
 
 protected:
     std::vector<DataWithSum*> dsds;

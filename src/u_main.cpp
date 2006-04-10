@@ -28,6 +28,7 @@
 #include "u_gnuplot.h"
 #include "logic.h"
 #include "cmd.h"
+#include "settings.h"
 
 using namespace std;
 
@@ -63,7 +64,9 @@ void UserInterface::execCommand(const string& s)
 
 //----------------------------------------------------------------- 
 
-static const char* prompt = "=-> ";
+namespace {
+
+const char* prompt = "=-> ";
 
 /// returns absolute path to config directory
 string get_config_dir()
@@ -91,8 +94,7 @@ string get_config_dir()
 
 #ifndef NO_READLINE
 
-static char set_kind = 0;
-static const char* set_eq_str;
+string set_eq_str;
 
 
 void read_and_execute_input()
@@ -109,7 +111,7 @@ void read_and_execute_input()
 
 
 char *commands[] = { "info", "plot", "delete", "set", "fit",
-        "commands", "dump", "sleep", "reset", "quit", "guess"
+        "commands", "dump", "sleep", "reset", "quit", "guess", "define"
         };
 
 char *command_generator (const char *text, int state)
@@ -128,25 +130,79 @@ char *command_generator (const char *text, int state)
     return 0;
 }
 
-
-char *set_generator (const char * /*text*/, int /*state*/)
+char *type_generator(const char *text, int state)
 {
-#if 0
     static unsigned int list_index = 0;
     static vector<string> e;
     if (!state) {
-        DotSet *vs = set_class_p (set_kind);
-        if (!vs)
-            return 0;
-        vs->expanp (text, e);
+        e.clear();
+        vector<string> const tt = Function::get_all_types(); 
+        for (vector<string>::const_iterator i = tt.begin(); i != tt.end(); ++i)
+            if (!strncmp(i->c_str(), text, strlen(text)))
+                e.push_back(*i);
         list_index = 0;
     }
     else
         list_index++;
     if (list_index < e.size())
-        return strdup (e[list_index].c_str());
+        return strdup(e[list_index].c_str());
     else
-#endif
+        return 0;
+}
+
+char *function_generator(const char *text, int state)
+{
+    static unsigned int list_index = 0;
+    static vector<string> e;
+    if (!state) {
+        e.clear();
+        vector<Function*> const& ff = AL->get_functions(); 
+        for (vector<Function*>::const_iterator i=ff.begin(); i != ff.end(); ++i)
+            if (!strncmp ((*i)->xname.c_str(), text, strlen(text)))
+                e.push_back((*i)->xname);
+        list_index = 0;
+    }
+    else
+        list_index++;
+    if (list_index < e.size())
+        return strdup(e[list_index].c_str());
+    else
+        return 0;
+}
+
+char *variable_generator(const char *text, int state)
+{
+    static unsigned int list_index = 0;
+    static vector<string> e;
+    if (!state) {
+        e.clear();
+        vector<Variable*> const& vv = AL->get_variables(); 
+        for (vector<Variable*>::const_iterator i=vv.begin(); i != vv.end(); ++i)
+            if (!strncmp ((*i)->name.c_str(), text, strlen(text)))
+                e.push_back((*i)->name);
+        list_index = 0;
+    }
+    else
+        list_index++;
+    if (list_index < e.size())
+        return strdup(e[list_index].c_str());
+    else
+        return 0;
+}
+
+char *set_generator(const char *text, int state)
+{
+    static unsigned int list_index = 0;
+    static vector<string> e;
+    if (!state) {
+        e = getSettings()->expanp(text);
+        list_index = 0;
+    }
+    else
+        list_index++;
+    if (list_index < e.size())
+        return strdup(e[list_index].c_str());
+    else
         return 0;
 }
 
@@ -181,44 +237,65 @@ char *set_eq_generator (const char * /*text*/, int /*state*/)
         return 0;
 }
 
-static bool is_before (int pos, char c)
-{
-    for (char* i = rl_line_buffer; i <= rl_line_buffer + pos; i++)
-        if (*i == c)
-            return true;
-    return false;
-}
-
 char **my_completion (const char *text, int start, int end)
 {
     rl_attempted_completion_over = 1;
-    for (int i = 0; i < start; i++) 
-        if (!isspace (rl_line_buffer[i])) {
-            if (start > i + 3 && !strncmp (rl_line_buffer + i + 1, ".s ", 3)
-                    || start > i + 5 
-                       && !strncmp (rl_line_buffer + i + 1, ".set ", 5)) {
-                set_kind = rl_line_buffer[i];
-                if (!is_before(start, '='))
-                    return rl_completion_matches (text, set_generator);
-                else {
-                    char *f = rl_line_buffer + i + 2;
-                    while (f && !isspace(*f))
-                        ++f;
-                    while (isspace(*f))
-                        ++f;
-                    string s(f, rl_line_buffer + end - f + 1);
-                    set_eq_str = s.c_str();
-                    return rl_completion_matches (text, set_eq_generator);
-                }
+    //find start of the command, and skip blanks
+    int cmd_start = start;
+    while (cmd_start > 0 && rl_line_buffer[cmd_start-1] != ';')
+        --cmd_start;
+    while (isspace(rl_line_buffer[cmd_start])) 
+        ++cmd_start;
+    //command
+    if (cmd_start == start)
+        return rl_completion_matches(text, command_generator);
+    char *ptr = rl_line_buffer+cmd_start;
+    //check if it is after set command
+    if (cmd_start <= start-2 && !strncmp(ptr, "s ", 2)
+            || cmd_start <= start-3 && !strncmp(ptr, "se ", 3) 
+            || cmd_start <= start-4 && !strncmp(ptr, "set ", 4)) {
+        while (*ptr && !isspace(*ptr))
+            ++ptr;
+        ++ptr;
+        char *has_eq = 0;
+        for (char *i = ptr; i <= rl_line_buffer+end; ++i) {
+            if (*i == '=')
+                has_eq = i;
+            else if (*i == ',') {
+                ptr = i+1;
+                has_eq = 0;
             }
-            else if (is_before(end, '\'')) {
-                rl_attempted_completion_over = 0;
-                return 0;
-            }
-            else
-                return 0;
         }
-    return rl_completion_matches (text, command_generator);
+        if (!has_eq)
+            return rl_completion_matches(text, set_generator);
+        else {
+            set_eq_str = strip_string(string(ptr, has_eq));
+            return rl_completion_matches (text, set_eq_generator);
+        }
+    }
+    // FunctionType completion
+    if (cmd_start <= start-2 && !strncmp(ptr, "g ", 2)
+            || cmd_start <= start-3 && !strncmp(ptr, "gu ", 3) 
+            || cmd_start <= start-4 && !strncmp(ptr, "gue ", 4) 
+            || cmd_start <= start-5 && !strncmp(ptr, "gues ", 5) 
+            || cmd_start <= start-6 && !strncmp(ptr, "guess ", 6)) {
+        return rl_completion_matches(text, type_generator);
+    }
+
+    ptr = rl_line_buffer + start - 1;
+    while (ptr > rl_line_buffer && isspace(*ptr)) 
+        --ptr;
+    if (*ptr == '>' || *ptr == '<') { //filename completion
+        rl_attempted_completion_over = 0; 
+        return 0;
+    }
+    // %function completion
+    if (strlen(text) > 0 && text[0] == '%')
+        return rl_completion_matches(text, function_generator);
+    // $variable completion
+    if (start > 0 && rl_line_buffer[start-1] == '$')
+        return rl_completion_matches(text, variable_generator);
+    return 0;
 }
 
 
@@ -305,6 +382,7 @@ void interrupt_handler (int /*signum*/)
     user_interrupt = true;
 }
 
+} // anonymous namespace
 
 int main (int argc, char **argv)
 {

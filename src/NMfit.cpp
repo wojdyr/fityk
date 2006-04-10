@@ -77,7 +77,7 @@ void NMfit::find_best_worst()
 
 int NMfit::autoiter ()
 {
-    wssr_before = compute_wssr(a_orig);
+    wssr_before = compute_wssr(a_orig, datsums);
     info ("WSSR before starting simplex fit: " + S(wssr_before));
     for (int iter = 0; !termination_criteria (iter); iter ++) {
         iteration_plot(best->a);
@@ -177,7 +177,7 @@ bool NMfit::termination_criteria (int iter)
 void NMfit::compute_v (Vertex& v) 
 {
     assert (!v.a.empty()); 
-    v.wssr = compute_wssr(v.a); 
+    v.wssr = compute_wssr(v.a, datsums); 
     v.computed = true;
 }
 

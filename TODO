@@ -1,49 +1,23 @@
 
-* DataExpressionGrammar: 
-    [done] %func(DataExpressionG) #OP_FUNC number #eg. Y = y-%peak(x)       
-    [done] @n.F(DataExpressionG)     
-    [done] @n.Z(DataExpressionG)     
-    [done] numarea (%f, x1, x2, nsteps) #OP_NUMAREA
-    [done] numarea (F, x1, x2, nsteps) #OP_NUMAREA
-    [done] findx(%f, x1, x2, value) # OP_FINDX
-    [done] extremum(%f, x1, x2, value) # OP_FIND_EXTR
-
-    // '&' -> ',' 
-
-    //%func[a0]              #OP_NUMBER
-    //%func[Area]            #OP_NUMBER
-    //new functions: randuniform(a, b) randnormal(mu, sigma)
-
-* // user defined functions derived from other functions:
-        [done] GUI function lists are updated
-	// each VariableManager should have own anon. name scheme and counter
-	// compound functions which can't be changed 
-	[done] GaussianA, 
-	// LorentzianA,
-	// GaussLorentzSumA
-
-// * random seed as global settings (srand called at the program initialization)
-// * Settings dialog: explainations about persistance: 
-// * logarithmic scale  
-
-// * (DOC) update list of functions
-
-// * DataExpressionGrammar and step equilibration: 
-//     t[x=DataExpression], t=x,y,s,a,X,Y,S,A
-//     use linear interpolation between two points or the extreme point if 
-//     outside of current x data range
-
-* now cmd parser is broken, eg. "Gaussian(...) -> F" doesn't work
-
-* samples/test.fit -- test grammars
-
 * [BUG] (MS Win) Help->Manual is not working in 0.7.2
 
 ------------- next release here (0.7.3)
 
+* EMG function: how to calculate it?
+
+* (GUI) grid (in axes option) 
+
+* (GUI) more exact y coordinate at status bar(?)
+
+* define - check for dependency loops(?), check if function can be undefined
+  or redefined
+
+* [BUG] data tranform: -x^2 == x^2
+
 * DataExpressionGrammar and aggregate functions: 
     aggregate functions: min, max, sum, avg, stddev, eg.  min(y if 20<x<25)
       area function:  area(y-F(x) if 20<x<25)    -> (x[n+1]-x[n-1])/2 * t
+      count(condition) -- count points for which condition is true
     [BUG] sum() doesn't work in "info sum(x)" or $a={sum(y)}
 
 * Gamma function in DataExpressionGrammar and FuncGrammar,
@@ -65,9 +39,10 @@
 	  a, x, y, s, sum, all-functions
 	  custom
 
-* (F > file) when exporting function/sum as points, it should be possible 
-  @*.F > file.peaks  -- separated by empty lines (and headers with titles)
-   F  >> file
+* (F > file) when exporting function/sum as parameters or formula: 
+  "@*.F > file.peaks"  -- separated by empty lines (and headers with titles)
+  "F  >> file" append rather then truncate
+  "F+  > file.peaks" export also symmetric errors 
 
 * (GUI) when printing, everything is first rescaled and rounded(!!!) for
   plot window at the screen, and then rescaled to the paper size. 
@@ -90,11 +65,20 @@
 
 * (GUI) show function limits when cursor is over peak top
 
+* here-datasets: 
+    @+ << delimiter 
+    data here
+    ....
+    delimiter
+analogous to here-documents in unix shell
+instructs the program to read x,y(,sigma) data points from the current 
+source until a line containing only delimiter is seen.  
+Here-datasets allow to put script and datasets into the same file.
+
 ------------- next release here (0.7.4)
 
 * info -- more informations about error, confidence limits, etc.
   graphical interface Fit > Info
-  easy way to get (write to file) parameters with errors [IMPORTANT]
 
 * (GUI) redrawing for many datasets (~100) takes noticable time.
   Kind of plot buffering (as a bitmap).
@@ -155,9 +139,6 @@
 * (GUI) different peak-draft for steps (new function category), 
          and for other functions
 
-* [internal] mark parameters, which are not used in sum calculation, and don't
-             put it into matrix used by gradient methods(?)
-
 * (GUI) where config files should be stored on MS Windows? Registry or file?
 
 ------------------ 
@@ -166,6 +147,8 @@
   background points)
 
 * user defined functions:
+      - default parameter values (use it for PseudoVoigtA)
+      - undefine Function and don't allow to redefine it implicitely
       - syntax:
         --> define Gaussian(a,pos,width): a*exp(-((x-pos)/width)^2)
 	                   ^^^ any name but 'x' allowed here

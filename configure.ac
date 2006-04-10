@@ -163,6 +163,9 @@ AC_CHECK_LIB([m], [erfc], [], [AC_MSG_ERROR(
       [You don't have an erfc function(?). 
        Please inform program developer(s) about this problem.])])
 
+AC_CHECK_LIB([m], [finite], [AC_DEFINE([HAVE_FINITE], [1], 
+	                            [Define if finite function is available])])
+
 dnl in generated configure script, this line is too late
 test "x$prefix" = xNONE && prefix=$ac_default_prefix
 

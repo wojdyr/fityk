@@ -776,7 +776,7 @@ vector<fp> scale_tics_step (fp beg, fp end, int max_tics, bool log)
         if (end <= beg)
             end = 2*beg;
         fp min_logstep = (log10(end/beg)) / max_tics;
-        bool with_2_5 = (min_logstep < log10(2));
+        bool with_2_5 = (min_logstep < log10(2.));
         fp logstep = ceil(min_logstep);
         fp step0 = pow(10, logstep * ceil(log10(beg) / logstep));
         if (with_2_5) {

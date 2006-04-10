@@ -51,21 +51,21 @@ fp LMfit::init()
 
     info (print_matrix (a, 1, na, "Initial A"));
     //no need to optimise it (and compute chi2 and derivatives together)
-    chi2 = compute_wssr(a);
-    compute_derivatives(a, alpha, beta);
+    chi2 = compute_wssr(a, datsums);
+    compute_derivatives(a, datsums, alpha, beta);
     return chi2;
 }
 
 int LMfit::autoiter() 
 {
-    wssr_before = (shake_before > 0. ? compute_wssr(a_orig) : chi2);
+    wssr_before = (shake_before > 0. ? compute_wssr(a_orig, datsums) : chi2);
     fp prev_chi2 = chi2;
     verbose("\t === Levenberg-Marquardt method ===");
     info ("Initial values:  lambda=" + S(lambda) + "  WSSR=" + S(chi2));
     verbose ("Max. number of iterations: " + max_iterations);
     if (stop_rel > 0) {
         verbose ("Stopping when relative change of WSSR is "
-                  "second time below " + S (stop_rel * 100.) + "%");
+                  "twice in row below " + S (stop_rel * 100.) + "%");
     }
     bool converged = false;
     int small_change_counter = 0;
@@ -121,7 +121,7 @@ int LMfit::do_iteration()
 #endif /*debug*/
 
     // Matrix solution (Ax=b)  alpha_ * da == beta_
-    if (Jordan (alpha_, beta_, na) < 0)
+    if (!Jordan (alpha_, beta_, na))
         return -1;
 
     // da is in beta_  
@@ -135,12 +135,12 @@ int LMfit::do_iteration()
         beta_[i] = a[i] + beta_[i];   // and now there is new a[] in beta_[] 
     verbose_lazy (print_matrix (beta_, 1, na, "Trying A"));
     //  compute chi2_
-    chi2_ = compute_wssr (beta_);
+    chi2_ = compute_wssr(beta_, datsums);
 
     if (chi2_ < chi2) { // better fitting
         chi2 = chi2_; 
         a = beta_;
-        compute_derivatives(a, alpha, beta);
+        compute_derivatives(a, datsums, alpha, beta);
         lambda /= lambda_down_factor;
         return 1;
     }

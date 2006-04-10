@@ -6,10 +6,7 @@
 
 #include <list>
 #include <wx/spinctrl.h>
-#include <wx/html/helpctrl.h>
-#ifdef __WXMSW__
-#  include <wx/msw/helpbest.h>
-#endif
+#include <wx/help.h>
 #include "common.h"
 #include "wx_common.h"  // Output_style_enum
 
@@ -201,11 +198,7 @@ protected:
     FToolBar *toolbar;
     ProportionalSplitter *v_splitter;
     PrintManager* print_mgr;
-#ifdef __WXMSW__
-    wxCHMHelpController help;
-#else
-    wxHtmlHelpController help; 
-#endif
+    wxHelpController help;
     std::string last_include_path;
     std::list<wxFileName> recent_data_files;
     wxMenu *data_menu_recent, *data_ft_menu;

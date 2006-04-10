@@ -34,7 +34,6 @@ typedef long double fp;
 typedef double fp;  
 #endif
 
-extern const fp INF;
 #define EPSILON 1e-9
 // epsilon=1e-9 is used for comparision of real numbers
 inline bool is_eq(fp a, fp b) { return fabs(a-b) < EPSILON; }
@@ -43,13 +42,24 @@ inline bool is_lt(fp a, fp b) { return a < b - EPSILON; }
 inline bool is_gt(fp a, fp b) { return a > b + EPSILON; }
 inline bool is_le(fp a, fp b) { return a <= b + EPSILON; }
 inline bool is_ge(fp a, fp b) { return a >= b - EPSILON; }
+inline bool is_zero(fp a) { return fabs(a) < EPSILON; }
+
+inline bool is_finite(fp a) 
+#if HAVE_FINITE
+    { return finite(a); }
+#else
+    { return a == a; }
+#endif
 
 
 #ifndef M_PI
-# define M_PI    3.1415926535897932384626433832795029  /* pi */
+# define M_PI    3.1415926535897932384626433832795029  // pi 
 #endif
 #ifndef M_LN2
-# define M_LN2   0.6931471805599453094172321214581766  /* log_e 2 */
+# define M_LN2   0.6931471805599453094172321214581766  // log_e 2 
+#endif
+#ifndef M_SQRT2
+# define M_SQRT2 1.4142135623730950488016887242096981  // sqrt(2) 
 #endif
 
 /** idea of exp_() is taken from gnuplot:
@@ -127,6 +137,14 @@ inline std::string strip_string(std::string const &s) {
     return std::string(s, first, s.find_last_not_of(blank)-first+1);
 }
 
+/// similar to Python string.startswith() method
+inline bool startswith(std::string const& s, std::string const& p) {
+    return p.size() <= s.size() && std::string(s, 0, p.size()) == p; 
+}
+
+std::string::size_type find_matching_bracket(std::string const& formula, 
+                                             std::string::size_type left_pos);
+
 //---------------------------  V E C T O R  --------------------------------
 
 /// Makes 1-element vector
@@ -150,8 +168,8 @@ inline std::vector<T> vector4 (T a, T b, T c, T d) {
     return v; 
 }
 
-/// Make (u-l)-element vector, filled by numbers: l, l+1, ..., u.
-std::vector<int> range_vector (int l, int u);
+/// Make (u-l)-element vector, filled by numbers: l, l+1, ..., u-1.
+std::vector<int> range_vector(int l, int u);
 
 /// Expression like "i<v.size()", where i is int and v is a std::vector gives: 
 /// "warning: comparison between signed and unsigned integer expressions"

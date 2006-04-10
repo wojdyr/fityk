@@ -20,6 +20,7 @@
 #include "logic.h"
 #include "data.h"
 #include "ui.h"
+#include "fit.h"
 #include "settings.h"
 #include "datatrans.h"
 
@@ -71,6 +72,18 @@ void do_exec_file(char const*, char const*)
     getUI()->execScript(t, vpn); 
 }
 
+void do_fit(char const*, char const*)
+{
+    if (with_plus) {
+        if (!vds.empty())
+            throw ExecuteError("No need to specify datasets to continue fit.");
+        getFit()->continue_fit(tmp_int);
+    }
+    else
+        getFit()->fit(tmp_int, get_datasets_from_indata());
+    outdated_plot=true;  
+}
+
 void do_set(char const*, char const*) { getSettings()->setp(t2, t); }
 
 void do_set_show(char const*, char const*)  { mesg(getSettings()->infop(t2)); }
@@ -89,6 +102,7 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
     static const bool true_ = true;
     static const bool false_ = false;
     static const int zero = 0;
+    static const int minus_one = -1;
     static const int int_max = INT_MAX;
     static const char *empty = "";
 
@@ -149,6 +163,19 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
              )
         ;
 
+    fit_arg
+        = optional_plus
+          >> ( uint_p[assign_a(tmp_int)]
+             | eps_p[assign_a(tmp_int, minus_one)]
+             )
+          //TODO >> !("only" >>  (%name | $name)[push_back_a()] 
+          //                                  % ',')
+          //     >> !("not" >>   (%name | $name)[push_back_a()] 
+          //                                  % ',')
+          >> in_data
+        ;
+
+
 
     statement 
         = str_p("reset") [&do_reset]
@@ -157,6 +184,7 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
         | (no_actions_d[DataTransformG][assign_a(t)] >> in_data)[&do_transform]
         | optional_suffix_p("s","et") >> (set_arg % ',')
         | optional_suffix_p("c","ommands") >> commands_arg
+        | (optional_suffix_p("f","it") >> fit_arg) [&do_fit]
         ;
 }
 
