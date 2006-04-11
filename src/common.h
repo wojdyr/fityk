@@ -119,7 +119,7 @@ void replace_words(std::string &t, std::string const &old_word,
 template<typename T>
 std::vector<std::string> split_string(std::string const &s, T delim) {
     std::vector<std::string> v;
-    unsigned int start_pos = 0, pos=0;
+    std::string::size_type start_pos = 0, pos=0;
     while (pos != std::string::npos) {
         pos = s.find_first_of(delim, start_pos);
         v.push_back(std::string(s, start_pos, pos-start_pos));
