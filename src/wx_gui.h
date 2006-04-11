@@ -7,6 +7,7 @@
 #include <list>
 #include <wx/spinctrl.h>
 #include <wx/help.h>
+#include <wx/filename.h>
 #include "common.h"
 #include "wx_common.h"  // Output_style_enum
 

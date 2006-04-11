@@ -12,6 +12,7 @@
 
 #include <wx/fontdlg.h>
 #include <wx/numdlg.h>
+#include <wx/confbase.h>
 
 #include "common.h"
 #include "wx_plot.h"
