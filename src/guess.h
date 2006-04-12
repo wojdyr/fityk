@@ -4,14 +4,14 @@
 #ifndef FITYK__GUESS__H__
 #define FITYK__GUESS__H__
 
-// simple "virtual" peak, used for rought estimations, what would happen 
-// if there were a peak with given position, height and FWHM.
-// It has shape:     ___         ;
-//                  /   \        ;
-//                 /     \       ;
-//
+/// simple "virtual" peak, used for rought estimations of what would happen 
+/// if there was a peak with the given position, height and FWHM.
 class VirtPeak 
 { 
+// It has shape:                 
+//                   ____         
+//                  /    \       
+//                 /      \     
 public:
     VirtPeak() {}
     VirtPeak(fp center_, fp height_, fp fwhm_) 
@@ -22,8 +22,8 @@ private:
 };
 
 
-// struct used for passing peak-estimation conditions 
-// to e.g. Manipul::estimate_peak_parameters() 
+/// used for passing peak-estimation conditions 
+/// to e.g. Manipul::estimate_peak_parameters() 
 struct EstConditions
 {
     //it says: imagine that only following peaks exist ...

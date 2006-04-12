@@ -15,6 +15,7 @@
 
 using namespace boost::spirit;
 
+/// a part of data expression grammar
 struct DataE2Grammar : public grammar<DataE2Grammar>
 {
   template <typename ScannerT>

@@ -11,7 +11,7 @@
 
 class DataWithSum;
 
-//     generic fit class interface
+///   interface of fitting method and implementation of common functions
 class Fit //: public DotSet
 {               
 public:
@@ -61,7 +61,7 @@ private:
     void update_parameters(std::vector<DataWithSum*> const& dss);
 };
 
-///singleton
+/// singleton, gives access to fitting methods, enables swithing between them
 class FitMethodsContainer
 {
 public:

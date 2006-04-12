@@ -12,6 +12,9 @@
 
 class DataWithSum;
 
+/// manages view, i.e. x and y intervals visible currently to the user 
+/// can set view using string like "[20:][-100:1000]" 
+/// most difficult part here is finding an automatic view for given data and sum
 class View 
 {
 public:
@@ -60,6 +63,7 @@ protected:
 };
 
 
+/// not used now
 class Domain 
 { 
     bool set, ctr_set;
@@ -81,7 +85,7 @@ public:
 };
 
 
-
+/// keeps Data and its Sum
 class DataWithSum
 {
 public:
@@ -98,6 +102,7 @@ private:
 };
 
 
+/// keeps all functions, variables, parameters, datasets with sums and View
 class ApplicationLogic : public VariableManager
 {
 public:

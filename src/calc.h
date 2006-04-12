@@ -8,8 +8,8 @@
 #include <boost/spirit/tree/ast.hpp>
 using namespace boost::spirit;
 
-// used for functions and variables
-// there is a different set of opcodes for data transformation
+/// used for functions and variables
+/// there is a different set of opcodes for data transformation
 enum 
 {
     OP_CONSTANT=0,
@@ -38,11 +38,12 @@ enum
 };
 
 
+/// Node in abstract syntax tree (AST)
 struct OpTree
 {
-    int op;   // op < 0: variable (n=-op-1)
-              // op == 0: constant
-              // op > 0: operator
+    int op;   /// op < 0: variable (n=-op-1)
+              /// op == 0: constant
+              /// op > 0: operator
     OpTree *c1, 
            *c2;
     fp val;

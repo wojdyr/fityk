@@ -13,19 +13,21 @@ struct IntRange
     IntRange(int v_, int l_, int u_) : v(v_), l(l_), u(u_) {}
 };
 
-struct EnumString
-{
-    std::map<char, std::string> const e;
-    char v;
-    EnumString (std::map<char,std::string> const& e_, char v_): e(e_), v(v_) {}
-};
-
 /// it stores all setting - variables of various types with names, 
 /// such as lambda-starting-value (used in LMfit class)
 /// singleton
 class Settings 
 {
 public:
+    /// value of "select one from a list of strings" option 
+    struct EnumString
+    {
+        std::map<char, std::string> const e;
+        char v;
+        EnumString(std::map<char,std::string> const& e_, char v_)
+            : e(e_), v(v_) {}
+    };
+
     /// get Singleton class instance
     static Settings* getInstance();
 

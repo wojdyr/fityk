@@ -24,6 +24,7 @@ using namespace boost::spirit;
 
 namespace datatrans {
 
+/// used in data expressions, a base class for eg. SplineFunction
 class ParameterizedFunction
 {
 public:
@@ -52,7 +53,7 @@ inline bool active_lt(const Point &p1, const Point &p2)
 inline bool active_gt(const Point &p1, const Point &p2) 
                                         { return p1.is_active > p2.is_active; }
 
-// operators used in VM code
+/// operators used in VM code
 enum DataTransformVMOperator
 {
     OP_NEG=1,   OP_EXP,   OP_SIN,   OP_COS,  OP_ATAN,  OP_ABS,  OP_ROUND, 
@@ -74,7 +75,7 @@ enum DataTransformVMOperator
     OP_FUNC, OP_SUM_F, OP_SUM_Z, OP_NUMAREA, OP_FINDX, OP_FIND_EXTR
 };
 
-// parametrized functions
+/// parametrized functions
 enum {
     PF_INTERPOLATE, PF_SPLINE
 };

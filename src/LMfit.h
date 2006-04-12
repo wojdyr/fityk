@@ -9,10 +9,7 @@
 #include <string>
 #include "fit.h"
 
-/*     this class contains Levenberg-Marquardt method
- */
-
-
+///           Levenberg-Marquardt method
 class LMfit : public Fit
 {
 public:

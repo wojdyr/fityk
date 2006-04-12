@@ -35,6 +35,7 @@ namespace cmdgram {
 }
 
 
+/// a part of command grammar
 struct Cmd2Grammar : public grammar<Cmd2Grammar>
 {
   template <typename ScannerT>

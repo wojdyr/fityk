@@ -1,18 +1,15 @@
 
-* [BUG] (MS Win) Help->Manual is not working in 0.7.2
-
-------------- next release here (0.7.3)
-
-* EMG function: how to calculate it?
+* EMG function: how to calculate it? Now there are some problems with
+  this function. There must be smarter way to implement it...
 
 * (GUI) grid (in axes option) 
 
-* (GUI) more exact y coordinate at status bar(?)
+* (GUI) more exact (or customizable) y coordinate at status bar
 
 * define - check for dependency loops(?), check if function can be undefined
   or redefined
 
-* [BUG] data tranform: -x^2 == x^2
+* [BUG] data tranform: -x^2 == x^2. And the same in functions.
 
 * DataExpressionGrammar and aggregate functions: 
     aggregate functions: min, max, sum, avg, stddev, eg.  min(y if 20<x<25)
@@ -49,19 +46,8 @@
   This rounding causes visible artefacts at the printout.
   (wxDC.GetSize instead of plot.GetClientSize() ?)
 
-* cmd: any-command with option=value 
+* cmd: with option=value[, option2=value2 ...] command
          -- set value of option for this command only
-
-* (GUI) data-range mode: if all points are active, left mouse button
-  should "select", not "activate", ie. it should do A = (left<x<right)  (?)
-
-* [BUG]: program crashes (MS Win 9x) when data contains NaN (as a result
-  of asin(x) x>1) and "Zoom all" is called.
-
-
-* (GUI) peak dragging -- sensible scaling of parameter changes 
-           (problems with width changing)
- 	(bug?) now it matters in which point exactly you catch the peak
 
 * (GUI) show function limits when cursor is over peak top
 
@@ -75,17 +61,47 @@ instructs the program to read x,y(,sigma) data points from the current
 source until a line containing only delimiter is seen.  
 Here-datasets allow to put script and datasets into the same file.
 
+* (GUI) "Report Bug" item in Help menu, clickable link in About dialog
+        (after raising minimal required wxWidgets to 2.6.1)
+	link to "On-line tutorial" and the tutorial itself
+
+* (GUI) sidebar: default column widths should be different
+
+* [BUG]: program crashes (MS Win 9x) when data contains NaN (as a result
+  of asin(x) x>1) and "Zoom all" is called.
+
 ------------- next release here (0.7.4)
 
-* info -- more informations about error, confidence limits, etc.
-  graphical interface Fit > Info
+* (GUI) peak dragging -- sensible scaling of parameter changes 
+           (problems with width changing)
+ 	(bug?) now it matters in which point exactly you catch the peak
+
+* user defined functions:
+      - default parameter values (use it for PseudoVoigtA)
+      - undefine Function and don't allow to redefine it implicitely
+      - syntax:
+        --> define Gaussian(a,pos,width): a*exp(-((x-pos)/width)^2)
+	                   ^^^ any name but 'x' allowed here
+      - more sophisticated simplifications of expressions and CSE(!)
+      - calculating limits, width, area, etc. for UDF(!)
+
+------------------ next release here 0.7.5
+
+* history (data / sum / view / all) 
+   i don't exactly know how to implement it yet
 
 * (GUI) redrawing for many datasets (~100) takes noticable time.
   Kind of plot buffering (as a bitmap).
 
-* (GUI) vertical scaling using mouse on main plot near to left edge of the plot 
+------------------ next release here 0.7.6
 
-* (GUI) sidebar: default column widths should be different
+* (GUI) data-range mode: if all points are active, left mouse button
+  should "select", not "activate", ie. it should do A = (left<x<right)  (?)
+
+* info -- more informations about error, confidence limits, etc.
+  graphical interface Fit > Info
+
+* (GUI) vertical scaling using mouse on main plot near to left edge of the plot 
 
 * GUI [BUG] aux. plot - when program is called with script as an argument
    aux. plot looks strange at the start of the program until it is replotted
@@ -119,7 +135,7 @@ Here-datasets allow to put script and datasets into the same file.
   Functions > Peak-Find Info -> animation
   Functions > Multidata P-F Info -> window with list of parameters (Xview-like)
 
-* parameter domain ~3[2,14]
+* simple-variable domain ~3[2,14]
 
 * Function: check_parameters_out_of_domain() ?  
              eg. in Pearson shape > 0.5 , shape < 1e9
@@ -132,8 +148,6 @@ Here-datasets allow to put script and datasets into the same file.
 * GUI: Data Editor - left/right/top/bottom - magic keywords: user would be
        asked to select point/range/rectangle in plot
 
-* history  (data / sum / view / all)
-
 * cmd/GUI: plot peak-groups: ==> plot (%a+%b+%c)  
 
 * (GUI) different peak-draft for steps (new function category), 
@@ -141,23 +155,10 @@ Here-datasets allow to put script and datasets into the same file.
 
 * (GUI) where config files should be stored on MS Windows? Registry or file?
 
------------------- 
-
 * view with/without background button (like in 0.4.x, requires storing
   background points)
 
-* user defined functions:
-      - default parameter values (use it for PseudoVoigtA)
-      - undefine Function and don't allow to redefine it implicitely
-      - syntax:
-        --> define Gaussian(a,pos,width): a*exp(-((x-pos)/width)^2)
-	                   ^^^ any name but 'x' allowed here
-      - more sophisticated simplifications of expressions and CSE(!)
-      - calculating limits, width, area, etc. for UDF(!)
-
------------------- 
-
-* (CODE STYLE) use smart pointers: 
+* (INTERNAL) use smart pointers: 
   http://www.boost.org/libs/smart_ptr/smart_ptr.htm
   (the library will be distributed in 3rdparty/boost)
 
@@ -179,8 +180,8 @@ Here-datasets allow to put script and datasets into the same file.
 			 uxd,udf
   perhaps OPJ with liborigin and XLS with another library
 
-* (GUI) single dialog for configuring main plot
-  data point size and other properties can be put on data pane
+* (GUI) single dialog for configuring main plot(?)
+  data point size and other properties can be put on data pane(?)
 
 * (GUI, BUG) in Configure axes / peak labels: fonts are changed event
   if Apply is not pressed
@@ -215,10 +216,6 @@ Here-datasets allow to put script and datasets into the same file.
 
 * Now only '.' is supported as a decimal separator. ',' should also
   be an option.
-
-* (GUI) "Report Bug" item in Help menu, clickable link in About dialog
-        (after raising minimal required wxWidgets to 2.6.1)
-	link to "On-line tutorial" and the tutorial itself
 
 * investigate LLVM - can it be used for faster calculation of 
   user-defined functions?

@@ -5,7 +5,7 @@ AC_CONFIG_SRCDIR([src/voigt.h])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_HEADERS([config.h])
 AC_CANONICAL_TARGET([])
-AM_INIT_AUTOMAKE(fityk, 0.7.3)
+AM_INIT_AUTOMAKE(fityk, 0.7.4)
 AM_MAINTAINER_MODE
 
 dnl What versions of program are to be made 

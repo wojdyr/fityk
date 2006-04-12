@@ -17,6 +17,7 @@
 
 using namespace boost::spirit;
 
+/// a part of command grammar
 struct Cmd3Grammar : public grammar<Cmd3Grammar>
 {
   template <typename ScannerT>

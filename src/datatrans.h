@@ -19,6 +19,7 @@ bool validate_transformation(std::string const& str);
 fp get_transform_expression_value(std::string const &s, Data const* data);
 
 
+/// a part of data expression grammar
 struct DataExpressionGrammar : public grammar<DataExpressionGrammar>
 {
   template <typename ScannerT>
@@ -35,6 +36,7 @@ struct DataExpressionGrammar : public grammar<DataExpressionGrammar>
 
 extern DataExpressionGrammar DataExpressionG;
 
+/// data transformation grammar
 struct DataTransformGrammar : public grammar<DataTransformGrammar>
 {
   template <typename ScannerT>

@@ -7,9 +7,7 @@
 #include "common.h"
 #include "fit.h"
 
-/*     this class contains genetic algorithm for fitting
- */
-
+/// Individual in Genetic Algorithms (i.e. candidate solutions)
 struct Individual 
 { 
     std::vector<fp> g; 
@@ -19,6 +17,7 @@ struct Individual
     Individual () : g(), raw_score(0) {}
 };
 
+/// Genetic Algorithm method
 class GAfit : public Fit
 {
 public:

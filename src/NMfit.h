@@ -8,10 +8,7 @@
 #include "common.h"
 #include "fit.h"
 
-/*     this class contains Nelder-Mead simplex method
- *     description of method: Numerical Recipes, www.nr.com
- */
-
+/// Vertex used in Nelder-Mead method 
 struct Vertex
 {
     std::vector<fp> a;
@@ -23,6 +20,7 @@ struct Vertex
     Vertex (std::vector<fp>& a_) : a(a_), computed(false) {}
 };
 
+///              Nelder-Mead simplex method
 class NMfit : public Fit
 {
 public:

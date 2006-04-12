@@ -9,7 +9,7 @@
 #include "common.h"
 
 
-/// data points
+/// data point
 struct Point 
 {
     fp x, y, sigma;
@@ -27,6 +27,7 @@ inline bool operator< (const Point& p, const Point& q)
 { return p.x < q.x; }
     
 
+/// dataset
 class Data 
 {
 public :

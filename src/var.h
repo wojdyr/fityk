@@ -227,6 +227,7 @@ protected:
 };
 
 
+/// grammar for parsing "$variable_name_here"
 struct VariableLhsGrammar : public grammar<VariableLhsGrammar>
 {
   template <typename ScannerT>
@@ -243,6 +244,7 @@ struct VariableLhsGrammar : public grammar<VariableLhsGrammar>
 
 extern VariableLhsGrammar  VariableLhsG;
 
+/// grammar for parsing "%function_name_here"
 struct FunctionLhsGrammar : public grammar<FunctionLhsGrammar>
 {
   template <typename ScannerT>
@@ -259,6 +261,7 @@ struct FunctionLhsGrammar : public grammar<FunctionLhsGrammar>
 
 extern FunctionLhsGrammar  FunctionLhsG;
 
+/// grammar for parsing mathematic expressions (eg. variable right hand side)
 struct FuncGrammar : public grammar<FuncGrammar>
 {
     static const int real_constID = 1;
