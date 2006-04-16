@@ -1,15 +1,13 @@
 
-* EMG function: how to calculate it? Now there are some problems with
-  this function. There must be smarter way to implement it...
+// * define - check for dependencies before undefining function
+//  "undefine Function", don't allow to redefine it implicitely
 
-* (GUI) grid (in axes option) 
+// * cmd: with option=value[, option2=value2 ...] command
+//          -- set value of option for this command only
 
-* (GUI) more exact (or customizable) y coordinate at status bar
+// * (GUI) show function limits when cursor is over peak top
 
-* define - check for dependency loops(?), check if function can be undefined
-  or redefined
-
-* [BUG] data tranform: -x^2 == x^2. And the same in functions.
+// * [BUG] data tranform: -x^2 == x^2. And the same in functions.
 
 * DataExpressionGrammar and aggregate functions: 
     aggregate functions: min, max, sum, avg, stddev, eg.  min(y if 20<x<25)
@@ -18,7 +16,18 @@
     [BUG] sum() doesn't work in "info sum(x)" or $a={sum(y)}
 
 * Gamma function in DataExpressionGrammar and FuncGrammar,
-  and PearsonA (built-in) compound function 
+  and PearsonA (built-in) compound function.
+  First must have digamma function (to calculate derivative of gamma)
+
+* here-datasets: 
+    @+ << delimiter 
+    data here
+    ....
+    delimiter
+analogous to here-documents in unix shell
+instructs the program to read x,y(,sigma) data points from the current 
+source until a line containing only delimiter is seen.  
+Here-datasets allow to put script and datasets into the same file.
 
 * mixed data/sum export, eg:
   @n (x, y, abs(y-F(x)), %foo(x), %bar(x)) > file 
@@ -46,29 +55,19 @@
   This rounding causes visible artefacts at the printout.
   (wxDC.GetSize instead of plot.GetClientSize() ?)
 
-* cmd: with option=value[, option2=value2 ...] command
-         -- set value of option for this command only
-
-* (GUI) show function limits when cursor is over peak top
-
-* here-datasets: 
-    @+ << delimiter 
-    data here
-    ....
-    delimiter
-analogous to here-documents in unix shell
-instructs the program to read x,y(,sigma) data points from the current 
-source until a line containing only delimiter is seen.  
-Here-datasets allow to put script and datasets into the same file.
-
-* (GUI) "Report Bug" item in Help menu, clickable link in About dialog
-        (after raising minimal required wxWidgets to 2.6.1)
-	link to "On-line tutorial" and the tutorial itself
+* link to "On-line tutorial" and the tutorial itself(!)
 
 * (GUI) sidebar: default column widths should be different
 
+* [BUG] (sometimes?) automatic variables are not deleted automatically
+
 * [BUG]: program crashes (MS Win 9x) when data contains NaN (as a result
   of asin(x) x>1) and "Zoom all" is called.
+
+* status of executed commands (now info commands displays fake statistics)
+
+* EMG function: how to calculate it? Now there are some problems with
+  this function. There must be smarter way to implement it...
 
 ------------- next release here (0.7.4)
 
@@ -78,7 +77,6 @@ Here-datasets allow to put script and datasets into the same file.
 
 * user defined functions:
       - default parameter values (use it for PseudoVoigtA)
-      - undefine Function and don't allow to redefine it implicitely
       - syntax:
         --> define Gaussian(a,pos,width): a*exp(-((x-pos)/width)^2)
 	                   ^^^ any name but 'x' allowed here
@@ -87,19 +85,44 @@ Here-datasets allow to put script and datasets into the same file.
 
 ------------------ next release here 0.7.5
 
+* settings: fitting options
+
+* greyed fit-continue menu/button
+
+* simple-variable domain ~3[2:14]
+
 * history (data / sum / view / all) 
    i don't exactly know how to implement it yet
+
+* implement command "dump", which also embeds data in script
 
 * (GUI) redrawing for many datasets (~100) takes noticable time.
   Kind of plot buffering (as a bitmap).
 
 ------------------ next release here 0.7.6
 
+* build engine (everything but GUI/CLI interface) as a library
+  with more or less documented API.
+
+------------------ next release here 0.8.0
+
+* python scripts  -- built-in Python interpreter which allows to extend 
+  Fityk using user-written scripts, optional modules, etc. 
+  [IMPORTANT]
+
+* rewrite crystallographic part in python
+  [IMPORTANT]
+
 * (GUI) data-range mode: if all points are active, left mouse button
   should "select", not "activate", ie. it should do A = (left<x<right)  (?)
 
 * info -- more informations about error, confidence limits, etc.
   graphical interface Fit > Info
+
+* (GUI) Configurable status bar:
+	  more extensive and configurable (2/3 buttons, size) mouse hints 
+		   (also for aux. plot, etc)
+	  more exact (or customizable) y coordinate at status bar
 
 * (GUI) vertical scaling using mouse on main plot near to left edge of the plot 
 
@@ -111,12 +134,6 @@ Here-datasets allow to put script and datasets into the same file.
 * (GUI) use numeric pad keys (WXK_NUMPAD_*) as shortcuts for changing 
 	function parameters.
 
-* (GUI) more extensive and configurable (2/3 buttons, size) mouse hints 
-	   (also for aux. plot, etc)
-
-* [internal] UI - two implementations of one class are bad idea  
-	     it must be a base class (virtual?) with derived GUI and CLI
-
 * GUI: it should be possible to constrain two parameters of two peak,
      at least to make them equal.
 
@@ -125,17 +142,13 @@ Here-datasets allow to put script and datasets into the same file.
 * GUI: button 'freeze' on variables pane
 
 * Fitting 
-	settings: GUI, fitting
-	greyed fit-continue menu/button
-	cmd: fit with more options
 	simulated annealing (it can replace LM shake_before option)
+	perhaps also BFGS, conjugate gradients methods
 	autoplot option -> fitting tab, checkbox: replot-after-fit-iteration
 
 * GUI: menu Functions:
   Functions > Peak-Find Info -> animation
   Functions > Multidata P-F Info -> window with list of parameters (Xview-like)
-
-* simple-variable domain ~3[2,14]
 
 * Function: check_parameters_out_of_domain() ?  
              eg. in Pearson shape > 0.5 , shape < 1e9
@@ -162,9 +175,6 @@ Here-datasets allow to put script and datasets into the same file.
   http://www.boost.org/libs/smart_ptr/smart_ptr.htm
   (the library will be distributed in 3rdparty/boost)
 
-* build engine (everything but GUI/CLI interface) as a library
-  with documented API.
-
 * there are problems with refreshing plots and output window when program
   is busy (ie. when running script or fitting). It seems to be platform
   dependent.
@@ -185,13 +195,6 @@ Here-datasets allow to put script and datasets into the same file.
 
 * (GUI, BUG) in Configure axes / peak labels: fonts are changed event
   if Apply is not pressed
-
-* python scripts  -- built-in Python interpreter which allows to extend 
-  Fityk using user-written scripts, optional modules, etc. 
-  [IMPORTANT]
-
-* rewrite crystallographic part in python
-  [IMPORTANT]
 
 * (GUI) stopping fitting interactively (when user don't want to wait longer);
   use threads? or wxTimer?

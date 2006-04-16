@@ -33,9 +33,7 @@ but it can be used to fit analytical functions to any kind of data.
 
 %build
 export LDFLAGS="-s"
-# export CXX="c++2"
-# wx library is often not installed or too old. Link statically with it.
-%configure --disable-shared-wx 
+%configure 
 make 
 
 %install

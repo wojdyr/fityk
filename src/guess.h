@@ -8,10 +8,10 @@
 /// if there was a peak with the given position, height and FWHM.
 class VirtPeak 
 { 
-// It has shape:                 
-//                   ____         
-//                  /    \       
-//                 /      \     
+// It has shape:               ; 
+//                   ____      ;  
+//                  /    \     ; 
+//                 /      \    ;
 public:
     VirtPeak() {}
     VirtPeak(fp center_, fp height_, fp fwhm_) 

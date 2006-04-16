@@ -93,15 +93,6 @@ private:
 class CompoundFunction: public Function
 {
     friend class Function;
-private:
-    static std::vector<std::string> formulae; 
-    static const int harddef_count = 3;
-    
-    VariableManager vmgr;
-
-    CompoundFunction(std::string const &name, std::string const &type,
-                     std::vector<std::string> const &vars);
-    CompoundFunction (const CompoundFunction&); //disable
 public:
     /// checks partially the definition and puts formula into formulae
     static void define(std::string const &formula);
@@ -126,6 +117,19 @@ public:
     bool has_area() const;
     fp area() const;
     bool get_nonzero_range(fp level, fp& left, fp& right) const;
+private:
+    static std::vector<std::string> formulae; 
+    static const int harddef_count = 3;
+    
+    VariableManager vmgr;
+
+    CompoundFunction(std::string const &name, std::string const &type,
+                     std::vector<std::string> const &vars);
+    CompoundFunction (const CompoundFunction&); //disable
+    static void check_rhs_function(std::string const &fun,
+                                   std::vector<std::string> const& lhs_vars);
+    static 
+    std::vector<std::string> get_rhs_components(std::string const &formula);
 };
 
 //////////////////////////////////////////////////////////////////////////

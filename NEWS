@@ -1,3 +1,6 @@
+User-visible changes in version 0.7.4  (2006-0 -  ):
+* GUI: optional grid in main plot (see axes configuration dialog) 
+
 User-visible changes in version 0.7.3  (2006-04-11):
 * extended data transformations: numarea(%f, x1, x2, n) gives area integrated
   numerically (from x1 to x2, n steps), Y = y-%f(x) substracts function from

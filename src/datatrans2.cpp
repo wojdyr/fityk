@@ -132,16 +132,15 @@ DataExpressionGrammar::definition<ScannerT>::definition(
                                           DataExpressionGrammar const& /*self*/)
 {
     rprec5 
-        =   DataE2G
-        |   ('-' >> DataE2G) [push_op(OP_NEG)]
-        |   ('+' >> DataE2G)
+        =   DataE2G 
+            >> *(
+                  ('^' >> DataE2G) [push_op(OP_POW)]
+                )
         ;
 
-    rprec4 
-        =   rprec5 
-            >> *(
-                  ('^' >> rprec5) [push_op(OP_POW)]
-                )
+    rprec4
+        =   ('-' >> rprec5) [push_op(OP_NEG)]
+        |   (!ch_p('+') >> rprec5)
         ;
         
     rprec3 

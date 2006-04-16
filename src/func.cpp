@@ -431,15 +431,42 @@ vector<string> CompoundFunction::formulae = split_string(
   "\n");
 
 //static
-void CompoundFunction::define(std::string const &formula)
+///check for errors in function at RHS
+void CompoundFunction::check_rhs_function(std::string const& fun, 
+                                          vector<string> const& lhs_vars)
 {
-    string type = get_typename_from_formula(formula);
-    vector<string> lhs_vars = get_varnames_from_formula(formula);
-    if (contains_element(lhs_vars, "x"))
-        throw ExecuteError("x should not be given explicitly as "
-                           "function type parameters.");
+    //check if component function is known
+    string t = get_typename_from_formula(fun);
+    string tf = Function::get_formula(t);
+    if (tf.empty())
+        throw ExecuteError("definition based on undefined function `" + t +"'");
+    //...and if it has proper number of parameters
+    vector<string> tvars = get_varnames_from_formula(tf);
+    vector<string> gvars = get_varnames_from_formula(fun);
+    if (tvars.size() != gvars.size())
+        throw ExecuteError("Function `" + t + "' requires " 
+                                      + S(tvars.size()) + " parameters.");
+    // ... and check if these parameters are ok 
+    for (vector<string>::const_iterator j=gvars.begin(); j != gvars.end(); ++j){
+        tree_parse_info<> info = ast_parse(j->c_str(), FuncG, space_p);
+        assert(info.full);
+        vector<string> vars=find_tokens_in_ptree(FuncGrammar::variableID, info);
+        if (contains_element(vars, "x"))
+            throw ExecuteError("variable can not depend on x.");
+        for (vector<string>::const_iterator k = vars.begin(); 
+                                                        k != vars.end(); ++k)
+            if ((*k)[0] != '~' && (*k)[0] != '{' && (*k)[0] != '$' 
+                    && (*k)[0] != '%' && !contains_element(lhs_vars, *k))
+                throw ExecuteError("Improper variable given in parameter " 
+                                + S(k-vars.begin()+1) + " of "+ t + ": " + *k);
+    }
+}
 
-    //find components of RHS (split sum "A() + B() + ...")
+//static
+/// find components of RHS (split sum "A() + B() + ...")
+vector<string> CompoundFunction::get_rhs_components(string const &formula)
+{
+    vector<string> result;
     string::size_type pos = formula.find('=') + 1, 
                       rpos = 0;
     while (pos != string::npos) {
@@ -448,40 +475,27 @@ void CompoundFunction::define(std::string const &formula)
             break;
         string fun = string(formula, pos, rpos-pos+1);
         pos = formula.find_first_not_of(" +", rpos+1); 
-
-        //check if component function is known
-        string t = get_typename_from_formula(fun);
-        string tf = Function::get_formula(t);
-        if (tf.empty())
-            throw ExecuteError("definition based on undefined function `" 
-                               + t + "'");
-        //...and if it has proper number of parameters
-        vector<string> tvars = get_varnames_from_formula(tf);
-        vector<string> gvars = get_varnames_from_formula(fun);
-        if (tvars.size() != gvars.size())
-            throw ExecuteError("Function `" + t + "' requires " 
-                                          + S(tvars.size()) + " parameters.");
-        // ... and check if these parameters are ok 
-        for (vector<string>::const_iterator j = gvars.begin(); 
-                                                       j != gvars.end(); ++j){
-            tree_parse_info<> info = ast_parse(j->c_str(), FuncG, space_p);
-            assert(info.full);
-            vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID,
-                                                       info);
-            if (contains_element(vars, "x"))
-                throw ExecuteError("variable can not depend on x.");
-            for (vector<string>::const_iterator k = vars.begin(); 
-                                                    k != vars.end(); ++k)
-                if ((*k)[0] != '~' && (*k)[0] != '{' && (*k)[0] != '$' 
-                        && (*k)[0] != '%' && !contains_element(lhs_vars, *k))
-                    throw ExecuteError("Improper variable given in parameter " 
-                                       + S(k-vars.begin()+1) + " of "+ t + ": "
-                                       + *k);
-        }
+        result.push_back(fun);
     }
-    // and (re-)define the function
-    if (is_defined(type, true)) {
-        undefine(type);
+    return result;
+}
+
+//static
+void CompoundFunction::define(std::string const &formula)
+{
+    string type = get_typename_from_formula(formula);
+    vector<string> lhs_vars = get_varnames_from_formula(formula);
+    if (contains_element(lhs_vars, "x"))
+        throw ExecuteError("x should not be given explicitly as "
+                           "function type parameters.");
+    vector<string> rf = get_rhs_components(formula);
+    for (vector<string>::const_iterator i = rf.begin(); i != rf.end(); ++i) 
+        check_rhs_function(*i, lhs_vars);
+    if (is_defined(type, true)) { //defined, but can be undefined
+        //don't undefine function implicitely
+        //undefine(type);
+        throw ExecuteError("Function `" + type + "'is already defined. "
+                           "You can try to undefine it.");
     }
     else if (!Function::get_formula(type).empty()) { //not UDF -> built-in
         throw ExecuteError("Built-in functions can't be redefined.");
@@ -497,6 +511,21 @@ void CompoundFunction::undefine(std::string const &type)
             if (i - formulae.begin() < harddef_count)
                 throw ExecuteError("Built-in compound function "
                                                     "can't be undefined.");
+            //check if other definitions depend on it
+            for (vector<string>::const_iterator j = formulae.begin(); 
+                                                  j != formulae.end(); ++j) {
+                vector<string> rf = get_rhs_components(*j);
+                for (vector<string>::const_iterator k = rf.begin();
+                                                          k != rf.end(); ++k) {
+                    if (get_typename_from_formula(*k) == type)
+                        throw ExecuteError("Can not undefine function `" + type 
+                                            + "', because function `" 
+                                            + get_typename_from_formula(*j)
+                                            + "' depends on it.");
+                }
+            }
+
+
             formulae.erase(i);
             return;
         }
@@ -531,22 +560,15 @@ CompoundFunction::CompoundFunction(string const &name, string const &type,
 {
     vmgr.silent = true;
     for (int j = 0; j != nv; ++j) 
-        vmgr.assign_variable(varnames[j], "");// mirror variables
+        vmgr.assign_variable(varnames[j], ""); // mirror variables
 
-    //find components of RHS (split sum "A() + B() + ...")
-    string::size_type pos = 0, rpos = 0;
-    while (pos != string::npos) {
-        rpos = find_matching_bracket(type_rhs, type_rhs.find('(', pos));
-        if (rpos == string::npos)
-            break;
-        string fun = string(type_rhs, pos, rpos-pos+1);
-        pos = type_rhs.find_first_not_of(" +", rpos+1); 
-
+    vector<string> rf = get_rhs_components(type_formula);
+    for (vector<string>::iterator i = rf.begin(); i != rf.end(); ++i) {
         for (int j = 0; j != nv; ++j) {
-            replace_words(fun, type_var_names[j], vmgr.get_variable(j)->xname);
+            replace_words(*i, type_var_names[j], vmgr.get_variable(j)->xname);
         }
-        vmgr.assign_func("", get_typename_from_formula(fun), 
-                             get_varnames_from_formula(fun));
+        vmgr.assign_func("", get_typename_from_formula(*i), 
+                             get_varnames_from_formula(*i));
     }
 }
 

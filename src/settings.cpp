@@ -258,3 +258,19 @@ void Settings::do_srand()
     verbose ("Seed for a sequence of pseudo-random numbers: " + S(rs));
 }
 
+void Settings::set_temporary(std::string const& k, std::string const& v)
+{
+    old_values.push_back(make_pair(k, getp(k)));
+    setp_core(k, v);
+}
+
+void Settings::clear_temporary()
+{
+    while(!old_values.empty()) {
+        setp_core(old_values.back().first, old_values.back().second);
+        old_values.pop_back();
+    }
+}
+
+
+

@@ -41,14 +41,20 @@ enum {
 //                FPlot (plot with data and fitted curves) 
 //===============================================================
 
-void FPlot::draw_dashed_vert_lines (int x1)
+void FPlot::draw_dashed_vert_line(int X, int style)
 {
-    if (x1 != INVALID) {
+    if (X != INT_MIN) {
         wxClientDC dc(this);
         dc.SetLogicalFunction (wxINVERT);
-        dc.SetPen(*wxBLACK_DASHED_PEN);
+        if (style == wxSHORT_DASH)
+            dc.SetPen(*wxBLACK_DASHED_PEN);
+        else {
+            wxPen pen = *wxBLACK_DASHED_PEN;
+            pen.SetStyle(style);
+            dc.SetPen(pen);
+        }
         int h = GetClientSize().GetHeight();
-        dc.DrawLine (x1, 0, x1, h);
+        dc.DrawLine (X, 0, X, h);
     }
 }
 
@@ -63,28 +69,39 @@ void FPlot::draw_crosshair(int X, int Y)
 bool FPlot::vert_line_following_cursor (Mouse_act_enum ma, int x, int x0)
 {
     if (ma == mat_start) {
-        draw_dashed_vert_lines(x0);
+        draw_dashed_vert_line(x0);
         vlfc_prev_x0 = x0;
     }
     else {
-        if (vlfc_prev_x == INVALID) 
+        if (vlfc_prev_x == INT_MIN) 
             return false;
-        draw_dashed_vert_lines(vlfc_prev_x); //clear (or draw again) old line
+        draw_dashed_vert_line(vlfc_prev_x); //clear (or draw again) old line
     }
     if (ma == mat_move || ma == mat_start) {
-        draw_dashed_vert_lines(x);
+        draw_dashed_vert_line(x);
         vlfc_prev_x = x;
     }
     else if (ma == mat_redraw) {
-        draw_dashed_vert_lines(vlfc_prev_x0);
+        draw_dashed_vert_line(vlfc_prev_x0);
     }
     else { // mat_stop, mat_cancel:
-        draw_dashed_vert_lines(vlfc_prev_x0); //clear
-        vlfc_prev_x = vlfc_prev_x0 = INVALID;
+        draw_dashed_vert_line(vlfc_prev_x0); //clear
+        vlfc_prev_x = vlfc_prev_x0 = INT_MIN;
     }
     return true;
 }
 
+void draw_line_with_style(wxDC& dc, int style, 
+                          wxCoord X1, wxCoord Y1, wxCoord X2, wxCoord Y2)
+{
+    wxPen pen = dc.GetPen();
+    int old_style = pen.GetStyle();
+    pen.SetStyle(style);
+    dc.SetPen(pen);
+    dc.DrawLine (X1, Y1, X2, Y2);
+    pen.SetStyle(old_style);
+    dc.SetPen(pen);
+}
 
 /// draw x axis tics
 void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
@@ -100,6 +117,8 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
         int X = x2X(*i);
         int Y = y2Y(y_logarithm ? 1 : 0);
         dc.DrawLine (X, Y, X, Y - x_tic_size);
+        if (x_grid) 
+            draw_line_with_style(dc, wxDOT, X,0, X,GetClientSize().GetWidth());
         wxString label = s2wx(S(*i));
         if (label == wxT("-0"))
             label = wxT("0");
@@ -129,6 +148,8 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
     for (vector<fp>::const_iterator i = y_tics.begin(); i != y_tics.end(); ++i){
         int Y = y2Y(*i);
         dc.DrawLine (X, Y, X + y_tic_size, Y);
+        if (y_grid) 
+            draw_line_with_style(dc, wxDOT, 0,Y, GetClientSize().GetHeight(),Y);
         wxString label = s2wx(S(*i));
         if (label == wxT("-0"))
             label = wxT("0");
@@ -277,6 +298,8 @@ void FPlot::read_settings(wxConfigBase *cf)
     y_axis_visible = cfg_read_bool (cf, wxT("yAxis"), false);  
     xtics_visible = cfg_read_bool (cf, wxT("xtics"), true);
     ytics_visible = cfg_read_bool (cf, wxT("ytics"), true);
+    x_grid = cfg_read_bool (cf, wxT("xgrid"), false);
+    y_grid = cfg_read_bool (cf, wxT("ygrid"), false);
     cf->SetPath(wxT("../Colors"));
     xAxisCol = cfg_read_color(cf, wxT("xAxis"), wxColour(wxT("WHITE")));
     cf->SetPath(wxT(".."));
@@ -293,6 +316,8 @@ void FPlot::save_settings(wxConfigBase *cf) const
     cf->Write (wxT("yAxis"), y_axis_visible);
     cf->Write (wxT("xtics"), xtics_visible);
     cf->Write (wxT("ytics"), ytics_visible);
+    cf->Write (wxT("xgrid"), x_grid);
+    cf->Write (wxT("ygrid"), y_grid);
     cf->SetPath(wxT("../Colors"));
     cfg_write_color (cf, wxT("xAxis"), xAxisCol);
     cf->SetPath(wxT(".."));
@@ -568,10 +593,10 @@ void AuxPlot::OnLeftDown (wxMouseEvent &event)
 
 bool AuxPlot::cancel_mouse_left_press()
 {
-    if (mouse_press_X != INVALID) {
+    if (mouse_press_X != INT_MIN) {
         vert_line_following_cursor(mat_cancel);
         ReleaseMouse();
-        mouse_press_X = INVALID;
+        mouse_press_X = INT_MIN;
         cursor = wxCURSOR_CROSS;
         SetCursor(wxCURSOR_CROSS);  
         frame->set_status_text(""); 
@@ -583,7 +608,7 @@ bool AuxPlot::cancel_mouse_left_press()
 
 void AuxPlot::OnLeftUp (wxMouseEvent &event)
 {
-    if (mouse_press_X == INVALID)
+    if (mouse_press_X == INT_MIN)
         return;
     if (abs(event.GetX() - mouse_press_X) < 5) { //cancel
         cancel_mouse_left_press();

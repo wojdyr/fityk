@@ -4,6 +4,7 @@
 #ifndef FITYK__SETTINGS__H__
 #define FITYK__SETTINGS__H__
 #include <map>
+#include <utility>
 #include "common.h"
 
 struct IntRange 
@@ -48,6 +49,8 @@ public:
 
     /// set value of option (string v is parsed according to option type)
     void setp (std::string const& k, std::string const& v);
+    void set_temporary(std::string const& k, std::string const& v);
+    void clear_temporary();
     /// get info about option k
     std::string infop (std::string const& k);
     /// get text information about type of option k
@@ -73,6 +76,7 @@ private:
     std::map <std::string, EnumString> epar;
     std::map <std::string, std::string> spar;
     fp cut_function_level; ///for faster access
+    std::vector<std::pair<std::string, std::string> > old_values;
 
     Settings();
     Settings(Settings const&); //disable

@@ -105,6 +105,7 @@ private:
     int pressed_mouse_button;
     bool ctrl;
     int over_peak;
+    int limit1, limit2;
 
     void draw_x_axis (wxDC& dc, bool set_pen=true);
     void draw_y_axis (wxDC& dc, bool set_pen=true);
@@ -144,9 +145,9 @@ public:
 private:
     MainPlot *plot;
     wxColour axis_color;
-    wxCheckBox *x_show_axis, *x_show_tics, *x_reversed; 
+    wxCheckBox *x_show_axis, *x_show_tics, *x_show_grid, *x_reversed; 
     wxSpinCtrl *x_max_tics, *x_tics_size;
-    wxCheckBox *y_show_axis, *y_show_tics, *y_logarithm; 
+    wxCheckBox *y_show_axis, *y_show_tics, *y_show_grid, *y_logarithm; 
     wxSpinCtrl *y_max_tics, *y_tics_size;
     DECLARE_EVENT_TABLE()
 };

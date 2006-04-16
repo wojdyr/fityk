@@ -5,6 +5,8 @@
 #include <boost/spirit/actor/assign_actor.hpp>
 #include <boost/spirit/actor/push_back_actor.hpp>
 #include <boost/spirit/actor/clear_actor.hpp>
+#include <boost/spirit/utility/chset.hpp>
+//#include <boost/spirit/utility/chset_operators.hpp>
 #include <stdlib.h>
 #include <utility>
 #include <algorithm>
@@ -18,6 +20,7 @@
 #include "sum.h"
 #include "func.h"
 #include "logic.h"
+#include "settings.h"
 #include "optional_suffix.h"
 
 using namespace std;
@@ -108,12 +111,30 @@ void do_define_func(char const* a, char const* b)
     CompoundFunction::define(s); 
 }
 
+void do_undefine_func(char const*, char const*) 
+{ 
+    for (vector<string>::const_iterator i = vt.begin(); i != vt.end(); ++i) 
+        CompoundFunction::undefine(*i); 
+}
+
+
 void do_replot(char const*, char const*) 
 { 
     if (outdated_plot)
         getUI()->drawPlot(2); 
     outdated_plot=false;
 }
+
+void do_temporary_set(char const*, char const*)
+{
+    getSettings()->set_temporary(t2, t);
+}
+
+void do_temporary_unset(char const*, char const*)
+{
+    getSettings()->clear_temporary();
+}
+
 
 } //namespace
 
@@ -133,6 +154,12 @@ struct CmdGrammar : public grammar<CmdGrammar>
         static const bool false_ = false;
         static const int minus_one = -1;
         static const char *empty = "";
+
+        compact_str
+            = lexeme_d['\'' >> (+~ch_p('\''))[assign_a(t)] 
+                       >> '\'']
+            | lexeme_d[+chset<>(anychar_p - chset<>(" \t\n\r;,"))] [assign_a(t)]
+            ;
 
         assign_var 
             = VariableLhsG [assign_a(t)]
@@ -221,8 +248,16 @@ struct CmdGrammar : public grammar<CmdGrammar>
                   ) [&do_define_func]
             ;
 
+        temporary_set 
+            = optional_suffix_p("w","ith") 
+              >> ((+(lower_p | '-'))[assign_a(t2)]
+                  >> '=' >> compact_str[&do_temporary_set]
+                 ) % ','
+            ;
+
         statement 
-            = (optional_suffix_p("del","ete")[clear_a(vt)][clear_a(vn)] 
+            = !temporary_set >>
+            ( (optional_suffix_p("del","ete")[clear_a(vt)][clear_a(vn)] 
                 >> ( VariableLhsG [push_back_a(vt)]
                    | FunctionLhsG [push_back_a(vt)]
                    | lexeme_d['@'>>uint_p[push_back_a(vn)]]) % ',') [&do_delete]
@@ -232,8 +267,12 @@ struct CmdGrammar : public grammar<CmdGrammar>
             | put_function
             | fz_assign
             | define_func 
+            | (optional_suffix_p("undef","ine")[clear_a(vt)] 
+               >> type_name[push_back_a(vt)] 
+                  % ',')[&do_undefine_func]
             | cmd2G
             | cmd3G
+            ) [&do_temporary_unset]
             ;
 
         multi 
@@ -245,7 +284,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
     rule<ScannerT> assign_var, type_name, assign_func, 
                    function_param, subst_func_param, put_function, 
                    put_func_to, fz_assign, define_func,
-                   ds_prefix, statement, multi;  
+                   ds_prefix, compact_str, temporary_set, statement, multi;  
 
     rule<ScannerT> const& start() const { return multi; }
   };

@@ -53,6 +53,8 @@ if [ $1 -eq 0 ]; then
  echo now the version in this script is: $version
  echo and configure.ac contains:
  grep AM_INIT_AUTOMAKE configure.ac
+ echo and doc/fitykhelp.xml:
+ grep '<title>Fityk' doc/fitykhelp.xml
 
 
 

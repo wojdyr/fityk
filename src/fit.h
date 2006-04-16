@@ -12,7 +12,7 @@
 class DataWithSum;
 
 ///   interface of fitting method and implementation of common functions
-class Fit //: public DotSet
+class Fit 
 {               
 public:
     std::string const name;

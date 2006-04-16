@@ -748,66 +748,61 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
     else if (i->value.id() == FuncGrammar::exptokenID)
     {
         vector<OpTree*> arg = calculate_deriv(i->children.begin(), vars);
-        if (s == "-")
-            for (int k = 0; k < len+1; ++k) 
-                results[k] = do_neg(arg[k]);
-        else {
-            OpTree* (* do_op)(OpTree *) = 0;
-            OpTree* der = 0;
-            OpTree* larg = arg.back()->copy();
-            if (s == "sqrt") {
-                der = do_divide(new OpTree(0.5), do_sqrt(larg));
-                do_op = do_sqrt;
-            }
-            else if (s == "exp") {
-                der = do_exp(larg);
-                do_op = do_exp;
-            }
-            else if (s == "log10") {
-                OpTree *ln_10 = do_ln(new OpTree(10.));
-                der = do_oneover(do_multiply(larg, ln_10));
-                do_op = do_log10;
-            }
-            else if (s == "ln") {
-                der = do_oneover(larg);
-                do_op = do_ln;
-            }
-            else if (s == "sin") {
-                der = do_cos(larg);
-                do_op = do_sin;
-            }
-            else if (s == "cos") {
-                der = do_neg(do_sin(larg));
-                do_op = do_cos;
-            }
-            else if (s == "tan") {
-                der = do_oneover(do_sqr(do_cos(larg)));
-                do_op = do_tan;
-            }
-            else if (s == "atan") {
-                der = do_oneover(do_add(new OpTree(1.), do_sqr(larg)));
-                do_op = do_atan;
-            }
-            else if (s == "asin") {
-                OpTree *root_arg = do_sub(new OpTree(1.), do_sqr(larg));
-                der = do_oneover(do_sqrt(root_arg));
-                do_op = do_asin;
-            }
-            else if (s == "acos") {
-                OpTree *root_arg = do_sub(new OpTree(1.), do_sqr(larg));
-                der = do_divide(new OpTree(-1.), do_sqrt(root_arg));
-                do_op = do_acos;
-            }
-            else
-                assert(0);
-            for (int k = 0; k < len; ++k) 
-                results[k] = do_multiply(der->copy(), arg[k]);
-            delete der;
-            results[len] = (*do_op)(arg[len]);
+        OpTree* (* do_op)(OpTree *) = 0;
+        OpTree* der = 0;
+        OpTree* larg = arg.back()->copy();
+        if (s == "sqrt") {
+            der = do_divide(new OpTree(0.5), do_sqrt(larg));
+            do_op = do_sqrt;
         }
+        else if (s == "exp") {
+            der = do_exp(larg);
+            do_op = do_exp;
+        }
+        else if (s == "log10") {
+            OpTree *ln_10 = do_ln(new OpTree(10.));
+            der = do_oneover(do_multiply(larg, ln_10));
+            do_op = do_log10;
+        }
+        else if (s == "ln") {
+            der = do_oneover(larg);
+            do_op = do_ln;
+        }
+        else if (s == "sin") {
+            der = do_cos(larg);
+            do_op = do_sin;
+        }
+        else if (s == "cos") {
+            der = do_neg(do_sin(larg));
+            do_op = do_cos;
+        }
+        else if (s == "tan") {
+            der = do_oneover(do_sqr(do_cos(larg)));
+            do_op = do_tan;
+        }
+        else if (s == "atan") {
+            der = do_oneover(do_add(new OpTree(1.), do_sqr(larg)));
+            do_op = do_atan;
+        }
+        else if (s == "asin") {
+            OpTree *root_arg = do_sub(new OpTree(1.), do_sqr(larg));
+            der = do_oneover(do_sqrt(root_arg));
+            do_op = do_asin;
+        }
+        else if (s == "acos") {
+            OpTree *root_arg = do_sub(new OpTree(1.), do_sqr(larg));
+            der = do_divide(new OpTree(-1.), do_sqrt(root_arg));
+            do_op = do_acos;
+        }
+        else
+            assert(0);
+        for (int k = 0; k < len; ++k) 
+            results[k] = do_multiply(der->copy(), arg[k]);
+        delete der;
+        results[len] = (*do_op)(arg[len]);
     }
 
-    else if (i->value.id() == FuncGrammar::factorID)
+    else if (i->value.id() == FuncGrammar::signargID)
     {
         assert(s == "^");
         assert(i->children.size() == 2);
@@ -815,7 +810,7 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
         vector<OpTree*> right = calculate_deriv(i->children.begin() + 1, vars);
         // this special case is needed, because in cases like -2^4
         // there was a problem with logarithm in formula below
-        if (left[len]->op == 0 || right[len]->op == 0) {
+        if (left[len]->op == 0 && right[len]->op == 0) {
             for (int k = 0; k < len; ++k) {
                 assert(left[k]->op == 0 && right[k]->op == 0);
                 delete left[k];
@@ -842,6 +837,14 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
             }
             results[len] = do_pow(left[len], right[len]);
         }
+    }
+
+    else if (i->value.id() == FuncGrammar::factorID)
+    {
+        assert (s == "-");
+        vector<OpTree*> arg = calculate_deriv(i->children.begin(), vars);
+        for (int k = 0; k < len+1; ++k) 
+            results[k] = do_neg(arg[k]);
     }
 
     else if (i->value.id() == FuncGrammar::termID)

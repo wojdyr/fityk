@@ -29,6 +29,7 @@ extern std::vector<fp> params4plot;
 //status bar fields
 enum StatusBarField { sbf_text, sbf_hint1, sbf_hint2, sbf_coord, sbf_max };  
 
+/// Fityk-GUI "main loop"
 class FApp: public wxApp
 {
 public:
@@ -44,6 +45,7 @@ private:
 
 DECLARE_APP(FApp)
 
+/// Toolbar bar in Fityk
 class FToolBar : public wxToolBar
 {
 public:
@@ -61,6 +63,7 @@ private:
     DECLARE_EVENT_TABLE()
 };
 
+/// Status bar in Fityk
 class FStatusBar: public wxStatusBar 
 {
 public:
@@ -72,8 +75,19 @@ private:
     DECLARE_EVENT_TABLE()
 };
 
+/// dialog Help->About
+class AboutDlg : public wxDialog
+{
+public:
+    AboutDlg(wxWindow* parent);
+    void OnTextURL(wxTextUrlEvent& event);
+private:
+    wxTextCtrl *txt;
+    DECLARE_EVENT_TABLE()
+};
 
-// Define a new frame
+
+/// Fityk-GUI main window
 class FFrame: public wxFrame
 {
     friend class FToolBar;
@@ -87,6 +101,7 @@ public:
     void OnShowHelp (wxCommandEvent& event);
     void OnTipOfTheDay (wxCommandEvent& event);
     void OnAbout (wxCommandEvent& event);
+    void OnContact (wxCommandEvent& event);
     void OnQuit (wxCommandEvent& event);
 
     void OnDLoad         (wxCommandEvent& event);   

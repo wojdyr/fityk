@@ -141,6 +141,12 @@ del @2
 @1.F = copy(@0.F)
 @1.Z = copy(@0.Z)
 
+#test variable rhs syntax parsing
+$t1 = 3
+$t2 = -$t1
+$t3 = $t1+(-$t2^2)
+$t4=sin($t1)^2+(-cos($t1))^2
+
 define Bleh(area, center, fwhm, shape) = GaussianA(area*(1-shape), center, fwhm) + LorentzianA(area*shape, center, fwhm+0.2)
 %bleh = Bleh(~123., 30, ~4, ~0.5)
 define Bleh(a) = Linear(0, a)

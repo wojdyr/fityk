@@ -23,6 +23,7 @@
 #include "sum.h"
 #include "func.h"
 #include "ui.h"
+#include "settings.h"
 
 using namespace std;
 
@@ -89,12 +90,14 @@ END_EVENT_TABLE()
 MainPlot::MainPlot (wxWindow *parent, PlotShared &shar) 
     : FPlot (parent, shar), BgManager(shar),
       basic_mode(mmd_zoom), mode(mmd_zoom), 
-      pressed_mouse_button(0), ctrl(false), over_peak(-1)
+      pressed_mouse_button(0), ctrl(false), over_peak(-1),
+      limit1(INT_MIN), limit2(INT_MIN)
 { }
 
 void MainPlot::OnPaint(wxPaintEvent& WXUNUSED(event))
 {
     frame->draw_crosshair(-1, -1); 
+    limit1 = limit2 = INT_MIN;
     wxPaintDC dc(this);
     dc.SetBackground(wxBrush(backgroundCol));
     dc.Clear();
@@ -729,6 +732,7 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
     if (over_peak == nearest) return;
 
     //if we are here, over_peak != nearest; changing cursor and statusbar text
+    // and show limits
     over_peak = nearest;
     if (nearest != -1) {
         Function const* f = AL->get_function(over_peak);
@@ -738,10 +742,23 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
             s += " " + vn[i] + "=" + S(f->get_var_value(i));
         frame->set_status_text(s);
         set_mouse_mode(mmd_peak);
+        fp x1=0., x2=0.;
+        bool r = f->get_nonzero_range(getSettings()->get_cut_level(), x1, x2);
+        if (r) {
+            limit1 = x2X(x1);
+            limit2 = x2X(x2);
+            draw_dashed_vert_line(limit1, wxDOT_DASH);
+            draw_dashed_vert_line(limit2, wxDOT_DASH);
+        }
+        else 
+            limit1 = limit2 = INT_MIN;
     }
     else { //was over peak, but now is not 
         frame->set_status_text("");
         set_mouse_mode(basic_mode);
+        draw_dashed_vert_line(limit1, wxDOT_DASH);
+        draw_dashed_vert_line(limit2, wxDOT_DASH);
+        limit1 = limit2 = INT_MIN;
     }
 }
 
@@ -752,7 +769,7 @@ void MainPlot::cancel_mouse_press()
         move_peak(mat_cancel);
         peak_draft (mat_cancel);
         vert_line_following_cursor (mat_cancel);
-        mouse_press_X = mouse_press_Y = INVALID;
+        mouse_press_X = mouse_press_Y = INT_MIN;
         pressed_mouse_button = 0;
         frame->set_status_text("");
         update_mouse_hints();
@@ -985,9 +1002,9 @@ void MainPlot::draw_xor_peak(Function const* func, vector<fp> const& p_values)
 
 void MainPlot::peak_draft (Mouse_act_enum ma, wxMouseEvent &event)
 {
-    static wxPoint prev(INVALID, INVALID);
+    static wxPoint prev(INT_MIN, INT_MIN);
     if (ma != mat_start) {
-        if (prev.x == INVALID) 
+        if (prev.x == INT_MIN) 
             return;
         //clear/redraw old peak-draft
         draw_peak_draft(mouse_press_X, abs(mouse_press_X - prev.x), prev.y);
@@ -1000,7 +1017,7 @@ void MainPlot::peak_draft (Mouse_act_enum ma, wxMouseEvent &event)
             break;
         case mat_stop: 
           {
-            prev.x = prev.y = INVALID;
+            prev.x = prev.y = INT_MIN;
             fp height = Y2y(event.GetY());
             fp center = X2x(mouse_press_X);
             fp fwhm = fabs(shared.dX2dx(mouse_press_X - event.GetX()));
@@ -1015,7 +1032,7 @@ void MainPlot::peak_draft (Mouse_act_enum ma, wxMouseEvent &event)
           }
           break;
         case mat_cancel:
-            prev.x = prev.y = INVALID;
+            prev.x = prev.y = INT_MIN;
             break;
         case mat_redraw: //already redrawn
             break;
@@ -1025,7 +1042,7 @@ void MainPlot::peak_draft (Mouse_act_enum ma, wxMouseEvent &event)
 
 void MainPlot::draw_peak_draft(int Ctr, int Hwhm, int Y)
 {
-    if (Ctr == INVALID || Hwhm == INVALID || Y == INVALID)
+    if (Ctr == INT_MIN || Hwhm == INT_MIN || Y == INT_MIN)
         return;
     wxClientDC dc(this);
     dc.SetLogicalFunction (wxINVERT);
@@ -1039,7 +1056,7 @@ void MainPlot::draw_peak_draft(int Ctr, int Hwhm, int Y)
 
 bool MainPlot::rect_zoom (Mouse_act_enum ma, wxMouseEvent &event) 
 {
-    static int X1 = INVALID, Y1 = INVALID, X2 = INVALID, Y2 = INVALID;
+    static int X1 = INT_MIN, Y1 = INT_MIN, X2 = INT_MIN, Y2 = INT_MIN;
 
     if (ma == mat_start) {
         X1 = X2 = event.GetX(), Y1 = Y2 = event.GetY(); 
@@ -1048,7 +1065,7 @@ bool MainPlot::rect_zoom (Mouse_act_enum ma, wxMouseEvent &event)
         return true;
     }
     else {
-        if (X1 == INVALID || Y1 == INVALID) return false;
+        if (X1 == INT_MIN || Y1 == INT_MIN) return false;
         draw_rect (X1, Y1, X2, Y2); //clear old rectangle
     }
 
@@ -1068,7 +1085,7 @@ bool MainPlot::rect_zoom (Mouse_act_enum ma, wxMouseEvent &event)
     }
 
     if (ma == mat_cancel || ma == mat_stop) {
-        X1 = Y1 = X2 = Y2 = INVALID;
+        X1 = Y1 = X2 = Y2 = INT_MIN;
         ReleaseMouse();
     }
     return true;
@@ -1076,7 +1093,7 @@ bool MainPlot::rect_zoom (Mouse_act_enum ma, wxMouseEvent &event)
 
 void MainPlot::draw_rect (int X1, int Y1, int X2, int Y2)
 {
-    if (X1 == INVALID || Y1 == INVALID || X2 == INVALID || Y2 == INVALID) 
+    if (X1 == INT_MIN || Y1 == INT_MIN || X2 == INT_MIN || Y2 == INT_MIN) 
         return;
     wxClientDC dc(this);
     dc.SetLogicalFunction (wxINVERT);
@@ -1190,6 +1207,9 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
     x_show_tics = new wxCheckBox(this, -1, wxT("show tics"));
     x_show_tics->SetValue(plot->xtics_visible);
     xsizer->Add(x_show_tics, 0, wxALL, 5);
+    x_show_grid = new wxCheckBox(this, -1, wxT("show grid"));
+    x_show_grid->SetValue(plot->x_grid);
+    xsizer->Add(x_show_grid, 0, wxALL, 5);
     wxBoxSizer *xmt_sizer = new wxBoxSizer(wxHORIZONTAL);
     xmt_sizer->Add(new wxStaticText(this, -1, wxT("max. number of tics")), 
                   0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
@@ -1221,6 +1241,9 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
     y_show_tics = new wxCheckBox(this, -1, wxT("show tics"));
     y_show_tics->SetValue(plot->ytics_visible);
     ysizer->Add(y_show_tics, 0, wxALL, 5);
+    y_show_grid = new wxCheckBox(this, -1, wxT("show grid"));
+    y_show_grid->SetValue(plot->y_grid);
+    ysizer->Add(y_show_grid, 0, wxALL, 5);
     wxBoxSizer *ymt_sizer = new wxBoxSizer(wxHORIZONTAL);
     ymt_sizer->Add(new wxStaticText(this, -1, wxT("max. number of tics")), 
                   0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
@@ -1270,6 +1293,7 @@ void ConfigureAxesDlg::OnApply (wxCommandEvent& WXUNUSED(event))
     plot->xAxisCol = axis_color;
     plot->x_axis_visible = x_show_axis->GetValue();
     plot->xtics_visible = x_show_tics->GetValue();
+    plot->x_grid = x_show_grid->GetValue();
     plot->x_max_tics = x_max_tics->GetValue();
     plot->x_tic_size = x_tics_size->GetValue();
     if (plot->x_reversed != x_reversed->GetValue()) {
@@ -1278,6 +1302,7 @@ void ConfigureAxesDlg::OnApply (wxCommandEvent& WXUNUSED(event))
     }
     plot->y_axis_visible = y_show_axis->GetValue();
     plot->ytics_visible = y_show_tics->GetValue();
+    plot->y_grid = y_show_grid->GetValue();
     plot->y_max_tics = y_max_tics->GetValue();
     plot->y_tic_size = y_tics_size->GetValue();
     plot->y_logarithm = y_logarithm->GetValue();

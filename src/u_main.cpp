@@ -13,6 +13,7 @@
 #include <fstream>
 #include <ctype.h>
 #include <time.h>
+#include <string.h>
 #include <unistd.h>
 #include <signal.h>
 #include <locale.h>
@@ -206,34 +207,19 @@ char *set_generator(const char *text, int state)
         return 0;
 }
 
-char *set_eq_generator (const char * /*text*/, int /*state*/)
+char *set_eq_generator (const char *text, int state)
 {
-#if 0
     static unsigned int list_index = 0;
     static vector<string> e;
     if (!state) {
-        DotSet *vs = set_class_p (set_kind);
-        if (!vs)
-            return 0;
-        char *p = strchr (set_eq_str, '=');
-        while (isspace(*set_eq_str))
-            set_eq_str++;
-        char *b_eq = p - 1;
-        while (b_eq && isspace(*b_eq))
-            b_eq--;
-        char *a_eq = p + 1;
-        while (a_eq && isspace(*a_eq))
-            a_eq++;
-        vs->expand_enum (string (set_eq_str, b_eq - set_eq_str + 1), 
-                                                            string (a_eq), e);
+        e = getSettings()->expand_enum(set_eq_str, text);
         list_index = 0;
     }
     else
         list_index++;
     if (list_index < e.size())
-        return strdup (e[list_index].c_str());
+        return strdup(e[list_index].c_str());
     else
-#endif
         return 0;
 }
 
@@ -253,7 +239,11 @@ char **my_completion (const char *text, int start, int end)
     //check if it is after set command
     if (cmd_start <= start-2 && !strncmp(ptr, "s ", 2)
             || cmd_start <= start-3 && !strncmp(ptr, "se ", 3) 
-            || cmd_start <= start-4 && !strncmp(ptr, "set ", 4)) {
+            || cmd_start <= start-4 && !strncmp(ptr, "set ", 4)
+            || cmd_start <= start-2 && !strncmp(ptr, "w ", 2)
+            || cmd_start <= start-3 && !strncmp(ptr, "wi ", 3) 
+            || cmd_start <= start-4 && !strncmp(ptr, "wit ", 4)
+            || cmd_start <= start-5 && !strncmp(ptr, "with ", 5)) {
         while (*ptr && !isspace(*ptr))
             ++ptr;
         ++ptr;
@@ -278,7 +268,10 @@ char **my_completion (const char *text, int start, int end)
             || cmd_start <= start-3 && !strncmp(ptr, "gu ", 3) 
             || cmd_start <= start-4 && !strncmp(ptr, "gue ", 4) 
             || cmd_start <= start-5 && !strncmp(ptr, "gues ", 5) 
-            || cmd_start <= start-6 && !strncmp(ptr, "guess ", 6)) {
+            || cmd_start <= start-6 && !strncmp(ptr, "guess ", 6)
+            || cmd_start <= start-3 && rl_line_buffer[cmd_start] == '%'
+               && strchr(rl_line_buffer+cmd_start, '=')
+               && !strchr(rl_line_buffer+cmd_start, '(')) {
         return rl_completion_matches(text, type_generator);
     }
 

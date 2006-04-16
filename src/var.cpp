@@ -876,13 +876,16 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
                                           | "atan" | "asin" | "acos"
                                           ] ]
                    >>  inner_node_d[ch_p('(') >> expression >> ')']
-                |  (root_node_d[ch_p('-')] >> exptoken)
                 |  variable
                 ;
 
-    factor      =  exptoken >>
+    signarg     =  exptoken >>
                    *(  (root_node_d[ch_p('^')] >> exptoken)
                     );
+
+    factor      =  root_node_d[ch_p('-')] >> signarg
+                |  discard_node_d[!ch_p('+')] >> signarg
+                ;
 
     term        =  factor >>
                    *(  (root_node_d[ch_p('*')] >> factor)

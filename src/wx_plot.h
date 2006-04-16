@@ -4,16 +4,12 @@
 #ifndef FITYK__WX_PLOT__H__
 #define FITYK__WX_PLOT__H__
 
-#define INVALID -1234565 //i know it is ugly 
-
 #include <map>
 #include <limits.h>
 #include "wx_common.h" // MouseModeEnum
 
-// wxFULL_REPAINT_ON_RESIZE is defined only in wxWidgets >= 2.5
-#ifndef wxFULL_REPAINT_ON_RESIZE
-    #define wxFULL_REPAINT_ON_RESIZE 0
-#endif 
+// INT_MIN, given as coordinate, is invalid value, means "cancel drawing"
+
 
 class wxConfigBase;
 
@@ -34,6 +30,8 @@ enum Aux_plot_kind_enum
     apk_cum_chi2
 };
 
+void draw_line_with_style(wxDC& dc, int style, 
+                          wxCoord X1, wxCoord Y1, wxCoord X2, wxCoord Y2);
 
 // convention here: lowercase coordinates of point are real values,
 // and uppercase ones are coordinates of point on screen (integers).
@@ -48,8 +46,8 @@ public:
        : wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize, 
                  wxNO_BORDER|wxFULL_REPAINT_ON_RESIZE),
          y_logarithm(false), yUserScale(1.), yLogicalOrigin(0.), 
-         shared(shar), mouse_press_X(INVALID), mouse_press_Y(INVALID), 
-         vlfc_prev_x(INVALID), vlfc_prev_x0(INVALID)   {}
+         shared(shar), mouse_press_X(INT_MIN), mouse_press_Y(INT_MIN), 
+         vlfc_prev_x(INT_MIN), vlfc_prev_x0(INT_MIN)   {}
          
     ~FPlot() {}
     wxColour const& get_bg_color() const { return backgroundCol; }
@@ -65,14 +63,15 @@ protected:
     bool line_between_points;
     bool x_axis_visible, y_axis_visible, xtics_visible, ytics_visible;
     bool y_logarithm;
+    bool x_grid, y_grid;
     int x_max_tics, y_max_tics, x_tic_size, y_tic_size;
     fp yUserScale, yLogicalOrigin; 
     PlotShared &shared;
     int mouse_press_X, mouse_press_Y;
-    int vlfc_prev_x, vlfc_prev_x0;
+    int vlfc_prev_x, vlfc_prev_x0; //vertical lines following cursor
 
-    void draw_dashed_vert_lines (int x1);
-    bool vert_line_following_cursor(Mouse_act_enum ma, int x=0, int x0=INVALID);
+    void draw_dashed_vert_line(int X, int style=wxSHORT_DASH);
+    bool vert_line_following_cursor(Mouse_act_enum ma, int x=0, int x0=INT_MIN);
     void draw_xtics (wxDC& dc, View const& v, bool set_pen=true);
     void draw_ytics (wxDC& dc, View const &v, bool set_pen=true);
     fp get_max_abs_y (fp (*compute_y)(std::vector<Point>::const_iterator,

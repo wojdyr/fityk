@@ -14,7 +14,7 @@
 <!-- <!DOCTYPE article  PUBLIC "-//OASIS//DTD DocBook V4.1//EN"> -->
 
 <book lang="en">
- <title>Fityk - User's Manual</title> 
+ <title>Fityk 0.7.4 - User's Manual</title> 
  <bookinfo> 
   <date>2006-04-09</date>
   <author> 
@@ -945,6 +945,8 @@
      function types. The name of new type must start with upper-case
      letter, contain only letters and digits, 
      and can't be the same as a name of built-in function.
+     Defined functions can be undefined using command 
+     <command>undefine</command>.
     </para>
     <para>
      [TODO: i'll write more about it when I finish implementing UDF,
@@ -957,6 +959,7 @@
      # area-based Gaussian can be defined as modification of built-in Gaussian
      define GaussianArea(area, center, hwhm) = Gaussian(area/fwhm/sqrt(pi*ln(2)), center, hwhm) 
      #TODO sum Gaussian+Lorentzian
+     undefine GaussianArea
      </screen>     
     </para>
    </section> 
@@ -1436,7 +1439,18 @@
    </para>
    <para>
     Command <command>info set</command> shows syntax of the set command
-    and lists all possible options.
+    and lists all possible options. 
+    <command>set <replaceable>option</replaceable></command> 
+    shows current value of <replaceable>option</replaceable>, 
+    and set 
+    <command>
+     <replaceable>option</replaceable> = <replaceable>value</replaceable>
+    </command>
+    changes it. It's also possible to change value of option only for
+    one command by prepending the command with 
+    <command>with
+     <replaceable>option</replaceable> = <replaceable>value</replaceable>
+    </command>. Examples at the end of this chapter should make it clearer.
    </para>
    <para>
     Some fitting methods and functions like <function>randnormal</function>
@@ -1451,6 +1465,16 @@
    </para>
    <para>
     [TODO: the rest of options...] 
+   </para>
+   <para>
+    Examples:
+    <screen>
+     set fitting-method  # show info
+     set fitting-method = Nelder-Mead-simplex # change default method
+     set verbosity = verbose
+     with fitting-method = Levenberg-Marquardt fit 10 
+     with fitting-method=Levenberg-Marquardt, verbosity=only-warnings fit 10
+    </screen>
    </para>
   </section> 
 

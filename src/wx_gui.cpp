@@ -17,6 +17,7 @@
 #include <wx/valtext.h>
 #include <wx/textdlg.h>
 #include <wx/numdlg.h>
+#include <wx/utils.h>
 #if wxUSE_TOOLTIPS
     #include <wx/tooltip.h>
 #endif
@@ -46,8 +47,6 @@
 #include "logic.h"
 #include "fit.h"
 #include "data.h"
-#include "sum.h"
-#include "guess.h"
 #include "ui.h"
 
 #include "img/fityk.xpm"
@@ -92,6 +91,7 @@ enum {
     ID_QUIT            = 24001 ,
     ID_H_MANUAL                ,
     ID_H_TIP                   ,
+    ID_H_CONTACT               ,
     ID_D_LOAD                  ,
     ID_D_XLOAD                 ,
     ID_D_RECENT                , //and next ones
@@ -365,11 +365,9 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
 
     EVT_MENU (ID_H_MANUAL,      FFrame::OnShowHelp)
     EVT_MENU (ID_H_TIP,         FFrame::OnTipOfTheDay)
+    EVT_MENU (ID_H_CONTACT,     FFrame::OnContact)
     EVT_MENU (wxID_ABOUT,       FFrame::OnAbout)
     EVT_MENU (ID_QUIT,          FFrame::OnQuit)
-
-//  EVT_SASH_DRAGGED_RANGE (ID_WINDOW_TOP1, ID_WINDOW_BOTTOM, 
-//                            FFrame::OnSashDrag)
 END_EVENT_TABLE()
 
 
@@ -754,6 +752,8 @@ void FFrame::set_menubar()
     help_menu->Append(ID_H_MANUAL, wxT("&Manual\tF1"), wxT("User's Manual"));
     help_menu->Append(ID_H_TIP, wxT("&Tip of the day"), 
                       wxT("Show tip of the day"));
+    help_menu->Append(ID_H_CONTACT, wxT("&Report bug (on-line)"), 
+                      wxT("Feedback is always appreciated."));
     help_menu->Append(wxID_ABOUT, wxT("&About..."), wxT("Show about dialog"));
 
     wxMenuBar *menu_bar = new wxMenuBar(wxMENU_TEAROFF);
@@ -811,52 +811,18 @@ bool FFrame::display_help_section(const string &s)
 
 void FFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
-
-    wxDialog* dlg = new wxDialog(this, -1, wxT("About Fityk"), 
-                                 wxDefaultPosition, wxSize(350, 400), 
-                                 wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER);
-    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-    sizer->Add(new wxStaticBitmap(dlg, -1, wxBitmap(fityk_xpm)),
-               0, wxALIGN_CENTER|wxALL, 5);
-    wxStaticText *name = new wxStaticText(dlg, -1, 
-                                          wxT("fityk ") + pchar2wx(VERSION));
-    name->SetFont(wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
-                         wxFONTWEIGHT_BOLD));
-    sizer->Add(name, 0, wxALIGN_CENTER|wxALL, 5); 
-    wxTextCtrl *txt = new wxTextCtrl(dlg, -1, wxT(""), 
-                                     wxDefaultPosition, wxDefaultSize, 
-                                     wxTE_MULTILINE|wxTE_RICH2|wxNO_BORDER
-                                     |wxTE_READONLY|wxTE_AUTO_URL);
-    txt->SetBackgroundColour(dlg->GetBackgroundColour());
-    txt->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, wxNullFont,
-                                    wxTEXT_ALIGNMENT_CENTRE));
-    
-    txt->AppendText(wxT("A curve fitting and data analysis program\n\n"));
-    txt->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, 
-                                    *wxITALIC_FONT));
-    txt->AppendText(wxT("powered by ") wxVERSION_STRING wxT("\n"));
-    txt->AppendText(wxString::Format(wxT("powered by Boost.Spirit %d.%d.%d\n"), 
-                                       SPIRIT_VERSION / 0x1000,
-                                       SPIRIT_VERSION % 0x1000 / 0x0100,
-                                       SPIRIT_VERSION % 0x0100));
-    txt->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, 
-                                    *wxNORMAL_FONT));
-    txt->AppendText(wxT("\nCopyright (C) 2001 - 2006 Marcin Wojdyr\n\n"));
-    txt->SetDefaultStyle(wxTextAttr(*wxBLUE));
-    txt->AppendText(wxT("http://www.unipress.waw.pl/fityk/\n\n"));
-    txt->SetDefaultStyle(wxTextAttr(*wxBLACK));
-    txt->AppendText(wxT("This program is free software; ")
-      wxT("you can redistribute it ")
-      wxT("and/or modify it under the terms of the GNU General Public ")
-      wxT("License, version 2, as published by the Free Software Foundation"));
-    sizer->Add (txt, 1, wxALL|wxEXPAND, 5);
-    //sizer->Add (new wxStaticLine(dlg, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
-    wxButton *bu_ok = new wxButton (dlg, wxID_OK, wxT("OK"));
-    bu_ok->SetDefault();
-    sizer->Add (bu_ok, 0, wxALL|wxEXPAND, 10);
-    dlg->SetSizer(sizer);
+    AboutDlg* dlg = new AboutDlg(this);
     dlg->ShowModal();
     dlg->Destroy();
+}
+
+void FFrame::OnContact(wxCommandEvent& WXUNUSED(event))
+{
+    wxString url = wxT("http://www.unipress.waw.pl/fityk/contact.html");
+    bool r = wxLaunchDefaultBrowser(url);
+    if (!r)
+        wxMessageBox(wxT("Read instructions at:\n") + url,
+                     wxT("feedback"), wxOK|wxICON_INFORMATION);
 }
 
 void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
@@ -1818,6 +1784,71 @@ void FStatusBar::set_hint(string const& left, string const& right)
     wxString space = wxT("    "); //TODO more sophisticated solution 
     SetStatusText(space + s2wx(left),  sbf_hint1);
     SetStatusText(space + s2wx(right), sbf_hint2);
+}
+
+//===============================================================
+//                         AboutDlg   
+//===============================================================
+
+BEGIN_EVENT_TABLE (AboutDlg, wxDialog)
+    EVT_TEXT_URL (wxID_ANY, AboutDlg::OnTextURL)
+END_EVENT_TABLE()
+
+AboutDlg::AboutDlg(wxWindow* parent)
+    : wxDialog(parent, -1, wxT("About Fityk"), wxDefaultPosition, 
+               wxSize(350,400), wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
+{
+    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(new wxStaticBitmap(this, -1, wxBitmap(fityk_xpm)),
+               0, wxALIGN_CENTER|wxALL, 5);
+    wxStaticText *name = new wxStaticText(this, -1, 
+                                          wxT("fityk ") + pchar2wx(VERSION));
+    name->SetFont(wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
+                         wxFONTWEIGHT_BOLD));
+    sizer->Add(name, 0, wxALIGN_CENTER|wxALL, 5); 
+    txt = new wxTextCtrl(this, -1, wxT(""), wxDefaultPosition, wxDefaultSize, 
+                         wxTE_MULTILINE|wxTE_RICH2|wxNO_BORDER
+                             |wxTE_READONLY|wxTE_AUTO_URL);
+    txt->SetBackgroundColour(GetBackgroundColour());
+    txt->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, wxNullFont,
+                                    wxTEXT_ALIGNMENT_CENTRE));
+    
+    txt->AppendText(wxT("A curve fitting and data analysis program\n\n"));
+    txt->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, 
+                                    *wxITALIC_FONT));
+    txt->AppendText(wxT("powered by ") wxVERSION_STRING wxT("\n"));
+    txt->AppendText(wxString::Format(wxT("powered by Boost.Spirit %d.%d.%d\n"), 
+                                       SPIRIT_VERSION / 0x1000,
+                                       SPIRIT_VERSION % 0x1000 / 0x0100,
+                                       SPIRIT_VERSION % 0x0100));
+    txt->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, 
+                                    *wxNORMAL_FONT));
+    txt->AppendText(wxT("\nCopyright (C) 2001 - 2006 Marcin Wojdyr\n\n"));
+    txt->SetDefaultStyle(wxTextAttr(*wxBLUE));
+    txt->AppendText(wxT("http://www.unipress.waw.pl/fityk/\n\n"));
+    txt->SetDefaultStyle(wxTextAttr(*wxBLACK));
+    txt->AppendText(wxT("This program is free software; ")
+      wxT("you can redistribute it ")
+      wxT("and/or modify it under the terms of the GNU General Public ")
+      wxT("License, version 2, as published by the Free Software Foundation"));
+    sizer->Add (txt, 1, wxALL|wxEXPAND, 5);
+    //sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
+    wxButton *bu_ok = new wxButton (this, wxID_OK, wxT("OK"));
+    bu_ok->SetDefault();
+    sizer->Add (bu_ok, 0, wxALL|wxEXPAND, 10);
+    SetSizer(sizer);
+}
+
+void AboutDlg::OnTextURL(wxTextUrlEvent& event) 
+{
+    if (!event.GetMouseEvent().LeftDown()) {
+        event.Skip();
+        return;
+    }
+    long start = event.GetURLStart(),
+         end = event.GetURLEnd();
+    wxString url = txt->GetValue().Mid(start, end - start);
+    wxLaunchDefaultBrowser(url);
 }
 
 
