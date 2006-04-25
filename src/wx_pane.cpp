@@ -328,7 +328,7 @@ BEGIN_EVENT_TABLE(ListPlusText, ProportionalSplitter)
 END_EVENT_TABLE()
 
 ListPlusText::ListPlusText(wxWindow *parent, wxWindowID id, wxWindowID list_id,
-                           vector<pair<string,bool> > const& columns_)
+                           vector<pair<string,int> > const& columns_)
 : ProportionalSplitter(parent, id, 0.75) 
 {
     list = new ListWithColors(this, list_id, columns_);
@@ -562,10 +562,10 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     data_page = new wxPanel(nb, -1);
     wxBoxSizer *data_sizer = new wxBoxSizer(wxVERTICAL);
     d = new ListPlusText(data_page, -1, ID_DP_LIST, 
-                            vector4(pair<string,bool>("No", true),
-                                    pair<string,bool>("#F+#Z", true),
-                                    pair<string,bool>("Name", true),
-                                    pair<string,bool>("File", false)));
+                            vector4(pair<string,int>("No", 43),
+                                    pair<string,int>("#F+#Z", 43),
+                                    pair<string,int>("Name", 108),
+                                    pair<string,int>("File", 0)));
     d->list->set_side_bar(this);
     data_sizer->Add(d, 1, wxEXPAND|wxALL, 1);
 
@@ -621,13 +621,13 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     func_filter_sizer->Add(filter_ch, 1, wxEXPAND);
     func_sizer->Add(func_filter_sizer, 0, wxEXPAND);
 
-    vector<pair<string,bool> > fdata;
-    fdata.push_back( pair<string,bool>("Name", true) );
-    fdata.push_back( pair<string,bool>("Type", true) );
-    fdata.push_back( pair<string,bool>("Center", true) );
-    fdata.push_back( pair<string,bool>("Area", false) );
-    fdata.push_back( pair<string,bool>("Height", false) );
-    fdata.push_back( pair<string,bool>("FWHM", false) );
+    vector<pair<string,int> > fdata;
+    fdata.push_back( pair<string,int>("Name", 54) );
+    fdata.push_back( pair<string,int>("Type", 80) );
+    fdata.push_back( pair<string,int>("Center", 60) );
+    fdata.push_back( pair<string,int>("Area", 0) );
+    fdata.push_back( pair<string,int>("Height", 0) );
+    fdata.push_back( pair<string,int>("FWHM", 0) );
     f = new ListPlusText(func_page, -1, ID_FP_LIST, fdata);
     f->list->set_side_bar(this);
     func_sizer->Add(f, 1, wxEXPAND|wxALL, 1);
@@ -649,11 +649,11 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     //-----  variables page  -----
     var_page = new wxPanel(nb, -1);
     wxBoxSizer *var_sizer = new wxBoxSizer(wxVERTICAL);
-    vector<pair<string,bool> > vdata = vector4(
-                                     pair<string,bool>("Name", true),
-                                     pair<string,bool>("#/#", true), 
-                                     pair<string,bool>("value", true),
-                                     pair<string,bool>("formula", false) );
+    vector<pair<string,int> > vdata = vector4(
+                                     pair<string,int>("Name", 52),
+                                     pair<string,int>("#/#", 72), 
+                                     pair<string,int>("value", 70),
+                                     pair<string,int>("formula", 0) );
     v = new ListPlusText(var_page, -1, ID_VP_LIST, vdata);
     v->list->set_side_bar(this);
     var_sizer->Add(v, 1, wxEXPAND|wxALL, 1);
@@ -1278,14 +1278,15 @@ BEGIN_EVENT_TABLE(ListWithColors, wxListView)
 END_EVENT_TABLE()
     
 ListWithColors::ListWithColors(wxWindow *parent, wxWindowID id, 
-                               vector<pair<string,bool> > const& columns_)
+                               vector<pair<string,int> > const& columns_)
     : wxListView(parent, id, wxDefaultPosition, wxDefaultSize,
                  wxLC_REPORT|wxLC_HRULES|wxLC_VRULES),
       columns(columns_), sidebar(0)
 {
     for (int i = 0; i < size(columns); ++i)
-        if (columns[i].second)
-            InsertColumn(i, s2wx(columns[i].first), wxLIST_FORMAT_LEFT);
+        if (columns[i].second != 0)
+            InsertColumn(i, s2wx(columns[i].first), wxLIST_FORMAT_LEFT,
+                         columns[i].second);
 }
 
 void ListWithColors::populate(vector<string> const& data, 

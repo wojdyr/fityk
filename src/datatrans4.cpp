@@ -14,12 +14,14 @@ template <typename ScannerT>
 DataExprFunGrammar::definition<ScannerT>::definition(
                                             DataExprFunGrammar const& /*self*/)
 {
+#ifndef STANDALONE_DATATRANS
     func_or_f_or_z
         = FunctionLhsG 
           | (lexeme_d['@' >> uint_p >> '.']
             | eps_p 
             ) >> (ch_p('F')|'Z')
         ;
+#endif //not STANDALONE_DATATRANS
 
     dfunc
         =   (as_lower_d["sqrt("] >> DataExpressionG >> ')') [push_op(OP_SQRT)] 
@@ -36,13 +38,14 @@ DataExprFunGrammar::definition<ScannerT>::definition(
         |   (as_lower_d["round("] >> DataExpressionG >> ')')[push_op(OP_ROUND)]
 
         |   (as_lower_d["min2"] >> '(' >> DataExpressionG >> ',' 
-                                  >> DataExpressionG >> ')') [push_op(OP_MIN)] 
+                                  >> DataExpressionG >> ')') [push_op(OP_MIN2)] 
         |   (as_lower_d["max2"] >> '(' >> DataExpressionG >> ',' 
-                                  >> DataExpressionG >> ')') [push_op(OP_MAX)] 
+                                  >> DataExpressionG >> ')') [push_op(OP_MAX2)] 
         |   (as_lower_d["randnormal"] >> '(' >> DataExpressionG >> ',' 
                               >> DataExpressionG >> ')') [push_op(OP_RANDNORM)] 
         |   (as_lower_d["randuniform"] >> '(' >> DataExpressionG >> ',' 
                               >> DataExpressionG >> ')') [push_op(OP_RANDU)] 
+#ifndef STANDALONE_DATATRANS
         |   (func_or_f_or_z >> '(' >> DataExpressionG >> ')') [push_the_func()]
         |   as_lower_d["numarea"] >> '(' >> (func_or_f_or_z >> ',' 
                 >> DataExpressionG >> ',' >> DataExpressionG >> ',' 
@@ -53,6 +56,7 @@ DataExprFunGrammar::definition<ScannerT>::definition(
         |   as_lower_d["extremum"] >> '(' >> (func_or_f_or_z >> ',' 
                 >> DataExpressionG >> ',' >> DataExpressionG >> ')')
                                       [push_op(OP_FIND_EXTR)][push_the_func()]
+#endif //not STANDALONE_DATATRANS
         ;
 }
 

@@ -357,8 +357,8 @@ static const char *default_examples =
 
 "normalize area|useful|divide all Y (and std. dev.) values;"
 "by the current data area; (it gives unit area)"
-"|S = s / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0);" 
-"Y = y / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0)|Y\n" 
+"|Y = y/darea(y), S = s / darea(y)" 
+"|Y\n" 
 
 "reduce 2x|useful|join every two adjacent points"
 "|X[...-1] = (x[n]+x[n+1])/2;Y[...-1] = y[n]+y[n+1];"

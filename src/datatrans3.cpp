@@ -29,8 +29,10 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
         |  as_lower_d["pi"] [push_the_double(M_PI)]
         |  as_lower_d["true"] [push_the_double(1.)]
         |  as_lower_d["false"] [push_the_double(0.)]
+#ifndef STANDALONE_DATATRANS
         |  VariableLhsG [push_the_var()]
         |  (FunctionLhsG >> '[' >> +alnum_p >> ']')[push_the_func_param()]
+#endif //not STANDALONE_DATATRANS
         ;
 
     parameterized_args
@@ -53,12 +55,29 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
         |  str_p("M") [push_op(OP_VAR_M)]
         ;
 
+    aggregate_arg
+        = '(' >> DataExpressionG 
+          >> !(str_p("if") [push_op(OP_AGCONDITION)]
+               >> DataExpressionG)
+          >> ch_p(')') [push_op(OP_END_AGGREGATE)]
+        ;
+
     rprec6 
         =   real_constant
         |   '(' >> DataExpressionG >> ')'
             // sum will be refactored, see: replace_sums()
-        |   (as_lower_d["sum"] [push_op(OP_BEGIN)]
-                >> '(' >> DataExpressionG >> ')') [push_op(OP_SUM)]
+        |   as_lower_d["sum"] [push_op(OP_AGSUM)]
+            >> aggregate_arg
+        |   as_lower_d["min"] [push_op(OP_AGMIN)]
+            >> aggregate_arg
+        |   as_lower_d["max"] [push_op(OP_AGMAX)]
+            >> aggregate_arg
+        |   as_lower_d["avg"] [push_op(OP_AGAVG)]
+            >> aggregate_arg
+        |   as_lower_d["stddev"] [push_op(OP_AGSTDDEV)]
+            >> aggregate_arg
+        |   as_lower_d["darea"] [push_op(OP_AGAREA)]
+            >> aggregate_arg
         |   (as_lower_d["interpolate"] >> parameterized_args)
                                           [parameterized_op(PF_INTERPOLATE)]
         |   (as_lower_d["spline"] >> parameterized_args)

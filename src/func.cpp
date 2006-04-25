@@ -21,15 +21,14 @@ std::vector<fp> Function::calc_val_yy(1);
 
 Function::Function (string const &name_, vector<string> const &vars,
                     string const &formula_)
-    : VariableUser(name_, "%", vars), type_formula(formula_),
+    : VariableUser(name_, "%", vars), 
+      type_formula(formula_),
       type_name(get_typename_from_formula(formula_)),
       type_var_names(get_varnames_from_formula(formula_)),
       type_rhs(get_rhs_from_formula(formula_)),
-      nv(vars.size()), settings(getSettings()), 
-      center_idx(contains_element(type_var_names, "center") 
-                 ? find(type_var_names.begin(), type_var_names.end(), "center")
-                                                      - type_var_names.begin()
-                 : -1),
+      nv(vars.size()), 
+      settings(getSettings()), 
+      center_idx(find_center_in_typevars()),
       vv(vars.size())
 {
     // parsing formula (above) for every instance of the class is not effective 
@@ -66,6 +65,16 @@ vector<string> Function::get_varnames_from_formula(string const& formula,
     }
     return get_eq ? defaults : names;
 }
+
+int Function::find_center_in_typevars() const
+{
+      if (contains_element(type_var_names, "center"))
+          return find(type_var_names.begin(), type_var_names.end(), "center")
+                                                      - type_var_names.begin();
+      else
+          return -1;
+}
+
 
 Function* Function::factory (string const &name_, string const &type_name,
                              vector<string> const &vars) 

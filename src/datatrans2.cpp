@@ -86,6 +86,7 @@ void parameterized_op::push() const
     parameterized.push_back(func);
 }
 
+#ifndef STANDALONE_DATATRANS
 void push_the_func::operator()(char const* a, char const* b) const
 { 
     string t(a, b);
@@ -124,6 +125,7 @@ void push_the_func_param::operator()(char const* a, char const* b) const
     string pstr = strip_string(string(t, left_b+1, right_b-left_b-1));
     push_double::operator()(AL->find_function(fstr)->get_param_value(pstr)); 
 }
+#endif //not STANDALONE_DATATRANS
 
 } //namespace
 

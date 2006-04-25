@@ -9,25 +9,21 @@
 
 // * [BUG] data tranform: -x^2 == x^2. And the same in functions.
 
-* DataExpressionGrammar and aggregate functions: 
-    aggregate functions: min, max, sum, avg, stddev, eg.  min(y if 20<x<25)
-      area function:  area(y-F(x) if 20<x<25)    -> (x[n+1]-x[n-1])/2 * t
-      count(condition) -- count points for which condition is true
-    [BUG] sum() doesn't work in "info sum(x)" or $a={sum(y)}
+//* DataExpressionGrammar and aggregate functions: 
+//    aggregate functions: min, max, sum, eg.  min(y if 20<x<25)
+//      darea function:  darea(y-F(x) if 20<x<25)    -> (x[n+1]-x[n-1])/2 * t
+//    [BUG] sum() doesn't work in "info sum(x)" or $a={sum(y)}
+   avg, stddev
 
 * Gamma function in DataExpressionGrammar and FuncGrammar,
   and PearsonA (built-in) compound function.
   First must have digamma function (to calculate derivative of gamma)
 
-* here-datasets: 
-    @+ << delimiter 
-    data here
-    ....
-    delimiter
-analogous to here-documents in unix shell
-instructs the program to read x,y(,sigma) data points from the current 
-source until a line containing only delimiter is seen.  
-Here-datasets allow to put script and datasets into the same file.
+* Command parse-and-execute flow:
+   * parse_and_execute() should return status rather than throw exceptions
+   * log status of executed commands 
+     (now info commands displays fake statistics)
+   * info commands[n:m] //instead of commands[n:m]
 
 * mixed data/sum export, eg:
   @n (x, y, abs(y-F(x)), %foo(x), %bar(x)) > file 
@@ -57,19 +53,19 @@ Here-datasets allow to put script and datasets into the same file.
 
 * link to "On-line tutorial" and the tutorial itself(!)
 
-* (GUI) sidebar: default column widths should be different
-
 * [BUG] (sometimes?) automatic variables are not deleted automatically
 
 * [BUG]: program crashes (MS Win 9x) when data contains NaN (as a result
   of asin(x) x>1) and "Zoom all" is called.
 
-* status of executed commands (now info commands displays fake statistics)
-
 * EMG function: how to calculate it? Now there are some problems with
   this function. There must be smarter way to implement it...
 
 ------------- next release here (0.7.4)
+
+* Should y=0 be visible when doing plot [] [] ? 
+  Perhaps one (which?) of "plot . []" and "plot . [:]" should show y=0,
+  the other one not?
 
 * (GUI) peak dragging -- sensible scaling of parameter changes 
            (problems with width changing)
@@ -94,7 +90,8 @@ Here-datasets allow to put script and datasets into the same file.
 * history (data / sum / view / all) 
    i don't exactly know how to implement it yet
 
-* implement command "dump", which also embeds data in script
+* implement command "dump", which also embeds data in script using
+   M=..., x[0]=.., y[0]=.., s[0]=..., a[0]=.., x[1]=..,...
 
 * (GUI) redrawing for many datasets (~100) takes noticable time.
   Kind of plot buffering (as a bitmap).
@@ -112,6 +109,8 @@ Here-datasets allow to put script and datasets into the same file.
 
 * rewrite crystallographic part in python
   [IMPORTANT]
+
+------------------ next release here 
 
 * (GUI) data-range mode: if all points are active, left mouse button
   should "select", not "activate", ie. it should do A = (left<x<right)  (?)

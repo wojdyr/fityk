@@ -60,7 +60,7 @@ enum DataTransformVMOperator
     OP_TAN/*!*/, OP_ASIN, OP_ACOS,
     OP_LOG10, OP_LN,  OP_SQRT,  OP_POW,   //these functions can set errno    
     OP_ADD,   OP_SUB,   OP_MUL,   OP_DIV/*!*/,  OP_MOD,
-    OP_MIN,   OP_MAX, OP_RANDNORM, OP_RANDU,    
+    OP_MIN2,   OP_MAX2, OP_RANDNORM, OP_RANDU,    
     OP_VAR_X, OP_VAR_Y, OP_VAR_S, OP_VAR_A, 
     OP_VAR_x, OP_VAR_y, OP_VAR_s, OP_VAR_a, 
     OP_VAR_n, OP_VAR_M, OP_NUMBER,  
@@ -70,7 +70,8 @@ enum DataTransformVMOperator
     OP_RANGE, OP_INDEX, OP_x_IDX,
     OP_ASSIGN_X, OP_ASSIGN_Y, OP_ASSIGN_S, OP_ASSIGN_A,
     OP_DO_ONCE, OP_RESIZE, OP_ORDER, OP_DELETE, OP_BEGIN, OP_END, 
-    OP_SUM, OP_IGNORE, 
+    OP_END_AGGREGATE, OP_AGCONDITION, 
+    OP_AGSUM, OP_AGMIN, OP_AGMAX, OP_AGAREA, OP_AGAVG, OP_AGSTDDEV,
     OP_PARAMETERIZED, OP_PLIST_BEGIN, OP_PLIST_END,
     OP_FUNC, OP_SUM_F, OP_SUM_Z, OP_NUMAREA, OP_FINDX, OP_FIND_EXTR
 };
@@ -96,6 +97,7 @@ struct push_the_double: public push_double
     double d;
 };
 
+#ifndef STANDALONE_DATATRANS
 struct push_the_var: public push_double
 {
     void operator()(char const* a, char const* b) const 
@@ -107,6 +109,13 @@ struct push_the_func_param: public push_double
     void operator()(char const* a, char const* b) const;
 };
 
+struct push_the_func
+{
+    void operator()(char const* a, char const* b) const;
+};
+
+#endif //not STANDALONE_DATATRANS
+
 struct push_op
 {
     push_op(int op_, int op2_=0) : op(op_), op2(op2_) {}
@@ -116,12 +125,6 @@ struct push_op
 
     int op, op2;
 };
-
-struct push_the_func
-{
-    void operator()(char const* a, char const* b) const;
-};
-
 
 struct parameterized_op
 {

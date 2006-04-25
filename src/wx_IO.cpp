@@ -55,7 +55,7 @@ void UserInterface::execCommand(const string& s)
         frame->Close(true);
     }
     frame->after_cmd_updates();
-    frame->refresh_plots(false, true);
+    //frame->refresh_plots(false, true);
 }
 
 
