@@ -1,3 +1,5 @@
+[ TODO list and tentative development plan ]
+[ // = done, but not tested                ]
 
 // * define - check for dependencies before undefining function
 //  "undefine Function", don't allow to redefine it implicitely
@@ -11,9 +13,16 @@
 
 //* DataExpressionGrammar and aggregate functions: 
 //    aggregate functions: min, max, sum, eg.  min(y if 20<x<25)
+//                         avg, stddev
 //      darea function:  darea(y-F(x) if 20<x<25)    -> (x[n+1]-x[n-1])/2 * t
 //    [BUG] sum() doesn't work in "info sum(x)" or $a={sum(y)}
-   avg, stddev
+
+* [BUG] "info S", "info X" give some results, 
+  info SplitGaussian gives syntax error
+
+* document Split* functions.
+
+* CLI: tab expansion: info
 
 * Gamma function in DataExpressionGrammar and FuncGrammar,
   and PearsonA (built-in) compound function.
@@ -63,9 +72,16 @@
 
 ------------- next release here (0.7.4)
 
+* [GUI] remove/unremove background button 
+  (like in 0.4.x, requires storing of background points, and will have
+  undefined bahaviour
+  when other data tranformations were done between remove and unremove).
+
 * Should y=0 be visible when doing plot [] [] ? 
   Perhaps one (which?) of "plot . []" and "plot . [:]" should show y=0,
-  the other one not?
+  the other one not? what about plot . [:30]?
+   -> by default, auto-scaling does not include x/y=0, unless it's
+      in, say, 20% plot margin. "[:]" is an exception and includes 0.
 
 * (GUI) peak dragging -- sensible scaling of parameter changes 
            (problems with width changing)
@@ -166,9 +182,6 @@
          and for other functions
 
 * (GUI) where config files should be stored on MS Windows? Registry or file?
-
-* view with/without background button (like in 0.4.x, requires storing
-  background points)
 
 * (INTERNAL) use smart pointers: 
   http://www.boost.org/libs/smart_ptr/smart_ptr.htm

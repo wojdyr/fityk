@@ -35,7 +35,7 @@ public:
 
 
 extern vector<int> code;        //  VM code 
-extern vector<double> numbers;  //  VM data 
+extern vector<fp> numbers;  //  VM data 
 extern vector<ParameterizedFunction*> parameterized; // also used by VM 
 extern const int stack_size;  //should be enough, 
                               //there are no checks for stack overflow  

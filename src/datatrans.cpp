@@ -277,7 +277,7 @@ fp find_idx_in_sorted(vector<Point> const& pp, fp x)
 //------------------------  Virtual Machine  --------------------------------
 
 vector<int> code;        //  VM code 
-vector<double> numbers;  //  VM data (numeric values)
+vector<fp> numbers;  //  VM data (numeric values)
 vector<ParameterizedFunction*> parameterized; // also used by VM 
 const int stack_size = 8192;  //should be enough, 
                               //there are no checks for stack overflow  
@@ -342,7 +342,7 @@ fp get_var_with_idx(fp idx, vector<Point> points, T Point::*t)
 //   true means: delete this point.
 // n: index of point
 // M: number of all points (==new_points.size())
-bool execute_code(int n, int &M, vector<double>& stack,
+bool execute_code(int n, int &M, vector<fp>& stack,
                   vector<Point> const& old_points, vector<Point>& new_points,
                   vector<int> const& code)  
 {
@@ -350,7 +350,7 @@ bool execute_code(int n, int &M, vector<double>& stack,
     assert(M == size(new_points));
     bool once = (n == M);
     bool return_value=false; 
-    vector<double>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
+    vector<fp>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
     for (vector<int>::const_iterator i=code.begin(); i != code.end(); i++) {
         DT_DEBUG("NOW op " + S(*i))
         switch (*i) {
@@ -517,11 +517,11 @@ bool execute_code(int n, int &M, vector<double>& stack,
                 break;
             case OP_VAR_n:
                 stackPtr++;
-                *stackPtr = static_cast<double>(n);
+                *stackPtr = static_cast<fp>(n);
                 break;
             case OP_VAR_M:
                 stackPtr++;
-                *stackPtr = static_cast<double>(new_points.size());
+                *stackPtr = static_cast<fp>(new_points.size());
                 break;
             case OP_VAR_x:
                 *stackPtr = get_var_with_idx(*stackPtr, old_points, &Point::x);
@@ -747,16 +747,18 @@ bool execute_code(int n, int &M, vector<double>& stack,
 void replace_aggregates(int M, vector<Point> const& old_points,
                         vector<int>& code, vector<int>::iterator cb)
 {
-    vector<double> stack(stack_size);
+    vector<fp> stack(stack_size);
     for (vector<int>::iterator i = cb; i != code.end(); ++i) {
         if (is_operator(i, OP_AGMIN) || is_operator(i, OP_AGMAX)
-                || is_operator(i, OP_AGSUM) || is_operator(i, OP_AGAREA)) {
+                || is_operator(i, OP_AGSUM) || is_operator(i, OP_AGAREA)
+                || is_operator(i, OP_AGAVG) || is_operator(i, OP_AGSTDDEV)) {
             int op = *i;
             vector<int>::iterator const start = i;
             DT_DEBUG("code before replace:" + join_vector(code, " "));
             replace_aggregates(M, old_points, code, start+1);
-            double result = 0.;
-            bool ini = false;
+            fp result = 0.;
+            fp mean = 0.; //needed for OP_AGSTDDEV
+            int counter = 0;
             vector<Point> fake_new_points(M);
             ++i;
             while (!is_operator(i, OP_AGCONDITION) 
@@ -776,22 +778,19 @@ void replace_aggregates(int M, vector<Point> const& old_points,
                     if (is_eq(stack.front(), 0))
                         continue;
                 }
+                ++counter;
                 execute_code(n, M, stack, old_points, fake_new_points, acode);
                 if (op == OP_AGSUM)
                     result += stack.front();
                 else if (op == OP_AGMIN) {
-                    if (!ini) {
+                    if (counter == 1) 
                         result = stack.front();
-                        ini = true;
-                    }
                     else if (result > stack.front())
                         result = stack.front();
                 }
                 else if (op == OP_AGMAX) {
-                    if (!ini) {
+                    if (counter == 1) 
                         result = stack.front();
-                        ini = true;
-                    }
                     else if (result < stack.front())
                         result = stack.front();
                 }
@@ -801,15 +800,21 @@ void replace_aggregates(int M, vector<Point> const& old_points,
                     result += stack.front() * dx;
                 }
                 else if (op == OP_AGAVG) {
-                    //TODO
+                    result += (stack.front() - result) / counter;
                 }
                 else if (op == OP_AGSTDDEV) {
-                    //TODO
+                    // see: http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+                    fp x = stack.front();
+                    fp delta = x - mean;
+                    mean += delta / counter;
+                    result += delta * (x - mean);
                 }
                 else
                     assert(0);
                 DT_DEBUG("n=" + S(n) + " stack.front() = " + S(stack.front()));
             }
+            if (op == OP_AGSTDDEV) 
+                result = sqrt(result / (counter - 1));
             *start = OP_NUMBER;
             *(start+1) = size(numbers);
             numbers.push_back(result);
@@ -825,7 +830,7 @@ void replace_aggregates(int M, vector<Point> const& old_points,
 
 void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
 {
-    vector<double> stack(stack_size);
+    vector<fp> stack(stack_size);
     int M = (int) new_points.size();
     replace_aggregates(M, old_points, code, code.begin());
     // first execute one-time operations: sorting, x[15]=3, etc. 
@@ -889,7 +894,7 @@ fp get_transform_expression_value(string const &s, Data const* data)
     }
     int M = (int) points.size();
     vector<Point> new_points = points;
-    vector<double> stack(stack_size);
+    vector<fp> stack(stack_size);
     replace_aggregates(M, points, code, code.begin());
     // first execute one-time operations: sorting, x[15]=3, etc. 
     // n==M => one-time op.
