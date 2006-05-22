@@ -36,7 +36,7 @@ void UserInterface::wait (float seconds)
     wxMilliSleep(iround(seconds*1e3)); 
 }
 
-void UserInterface::execCommand(const string& s)
+Commands::Status UserInterface::execCommand(const string& s)
 {
     //FIXME should I limit number of displayed lines?
     //const int max_lines_in_output_win = 1000;
@@ -48,14 +48,15 @@ void UserInterface::execCommand(const string& s)
     else
         frame->set_status_text(s);
     wxBusyCursor wait;
+    Commands::Status r;
     try {
-        parse_and_execute(s);
+        r = parse_and_execute(s);
     }
     catch(ExitRequestedException) {
         frame->Close(true);
     }
     frame->after_cmd_updates();
-    //frame->refresh_plots(false, true);
+    return r;
 }
 
 

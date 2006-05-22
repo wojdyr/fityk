@@ -56,6 +56,8 @@ vector<DataWithSum*> get_datasets_from_indata()
     return result;
 }
 
+IntRangeGrammar  IntRangeG;
+
 } //namespace cmdgram
 
 using namespace cmdgram;
@@ -320,6 +322,13 @@ void set_data_title(char const*, char const*)  {
     AL->get_data(ds_pref)->title = t; 
 }
 
+void do_list_commands(char const*, char const*)
+{
+    vector<string> cc 
+        = getUI()->getCommands().get_commands(tmp_int, tmp_int2, with_plus);
+    mesg(join_vector(cc, "\n"));
+}
+
 } //namespace
 
 template <typename ScannerT>
@@ -360,7 +369,7 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         ;
 
     type_name
-        = lexeme_d[(upper_p >> *alnum_p)] 
+        = lexeme_d[(upper_p >> +alnum_p)] 
         ;
 
     function_param
@@ -406,7 +415,8 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         | str_p("types") [&do_print_info]
         | str_p("functions") [&do_print_info]
         | str_p("datasets") [&do_print_info]
-        | str_p("commands") [&do_print_info]
+        | (str_p("commands") >> IntRangeG) [&do_list_commands] 
+        | str_p("commands") [&do_print_info] 
         | str_p("view") [&do_print_info]
         | str_p("set") [&do_print_info] 
         | (str_p("fit") >> in_data) [&do_print_info] 
@@ -415,6 +425,7 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
            >> ( uint_p [assign_a(tmp_int)]
               | eps_p [assign_a(tmp_int, one)])
            >> plot_range >> in_data) [&do_print_info]
+        | type_name[&do_print_func_type]
         | (no_actions_d[DataExpressionG][assign_a(t)] 
              >> in_data) [&do_print_data_expr]
         | FunctionLhsG [&do_print_info]
@@ -423,8 +434,8 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
            >> no_actions_d[DataExpressionG][assign_a(t)] 
            >> ')') [&do_print_sum_derivatives_info]
         | existing_dataset_nr [&do_print_info]
-        | type_name[&do_print_func_type]
         | "debug" >> compact_str [&do_print_debug_info] 
+        | eps_p [&do_print_info] 
         ;
 
     guess

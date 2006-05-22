@@ -7,8 +7,9 @@
 
 
 #include "common.h"
+#include "ui.h"
 
-void parse_and_execute(std::string const& str);
+Commands::Status parse_and_execute(std::string const& str);
 
 
 #endif 

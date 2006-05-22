@@ -1,5 +1,5 @@
 [ TODO list and tentative development plan ]
-[ // = done, but not tested                ]
+[ // = done, but not tested/documented     ]
 
 // * define - check for dependencies before undefining function
 //  "undefine Function", don't allow to redefine it implicitely
@@ -17,26 +17,26 @@
 //      darea function:  darea(y-F(x) if 20<x<25)    -> (x[n+1]-x[n-1])/2 * t
 //    [BUG] sum() doesn't work in "info sum(x)" or $a={sum(y)}
 
-* [BUG] "info S", "info X" give some results, 
-  info SplitGaussian gives syntax error
+// * [BUG] "info S", "info X" give some results, 
+//  info SplitGaussian gives syntax error
 
 * document Split* functions.
 
-* CLI: tab expansion: info
+// * CLI: tab expansion: info
 
 * Gamma function in DataExpressionGrammar and FuncGrammar,
   and PearsonA (built-in) compound function.
   First must have digamma function (to calculate derivative of gamma)
 
-* Command parse-and-execute flow:
-   * parse_and_execute() should return status rather than throw exceptions
-   * log status of executed commands 
-     (now info commands displays fake statistics)
-   * info commands[n:m] //instead of commands[n:m]
+// * Command parse-and-execute flow:
+//   * parse_and_execute() should return status rather than throw exceptions
+//   * log status of executed commands 
+//     (now info commands displays fake statistics)
+//   * info commands[n:m] //instead of commands[n:m]
 
 * mixed data/sum export, eg:
   @n (x, y, abs(y-F(x)), %foo(x), %bar(x)) > file 
-  @ (x, y, s, a) >> file 
+  @n (x, y, s, a) >> file 
   @* (x, y, s, a) >> file 
   only active points are exported, unless a is in export list
   "*F" expands to all functions in F
@@ -86,6 +86,9 @@
 * (GUI) peak dragging -- sensible scaling of parameter changes 
            (problems with width changing)
  	(bug?) now it matters in which point exactly you catch the peak
+
+* (GUI) auxiliary plot - option "reverse", that shows difference
+  between sum and data (not between data and sum).
 
 * user defined functions:
       - default parameter values (use it for PseudoVoigtA)
@@ -172,6 +175,7 @@
 	                                          change and freeze?
 	     set fit-fix-parameters-times = 5
 	    simple-var bounds?
+	    ? $$simple = ~{min2(max2($simple, -1e9), 1e9)}
 
 * GUI: Data Editor - left/right/top/bottom - magic keywords: user would be
        asked to select point/range/rectangle in plot

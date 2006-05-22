@@ -89,8 +89,7 @@ public:
     { execScript(filename, std::vector<std::pair<int,int> >()); }
 
     void execAndLogCmd(std::string const &s) 
-        //TODO status
-             { execCommand(s); commands.put_command(s, Commands::status_ok); }
+             { commands.put_command(s, execCommand(s)); }
     int getVerbosity();
     void process_cmd_line_filename(std::string const& par);
 
@@ -105,7 +104,7 @@ private:
 
     /// Execute command(s) from string; different definition for GUI and CLI.
     /// It can finish the program (eg. if s=="quit").
-    void execCommand (std::string const &s);
+    Commands::Status execCommand (std::string const &s);
 
     static UserInterface* instance;
     Commands commands;

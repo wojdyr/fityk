@@ -167,7 +167,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         type_name
-            = lexeme_d[(upper_p >> *alnum_p)] 
+            = lexeme_d[(upper_p >> +alnum_p)] 
             ;
 
         function_param
@@ -291,20 +291,23 @@ struct CmdGrammar : public grammar<CmdGrammar>
 } cmdG;
 
 
-void parse_and_execute(string const& str)
+Commands::Status parse_and_execute(string const& str)
 {
     if (strip_string(str) == "quit")
         throw ExitRequestedException();
     try {
         parse_info<> result = parse(str.c_str(), no_actions_d[cmdG], space_p);
         if (result.full) {
-            parse_info<> result = parse(str.c_str(), cmdG, space_p);
+            parse(str.c_str(), cmdG, space_p);
+            return Commands::status_ok;
         }
         else {
             warn("Syntax error.");
+            return Commands::status_syntax_error;
         }
     } catch (ExecuteError &e) {
         warn(string("Error: ") + e.what());
+        return Commands::status_execute_error;
     }
 }
 

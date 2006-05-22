@@ -66,9 +66,10 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
         =   real_constant
         |   '(' >> DataExpressionG >> ')'
             // sum will be refactored, see: replace_sums()
+        |   DataExprFunG
         |   as_lower_d["sum"] [push_op(OP_AGSUM)]
             >> aggregate_arg
-        |   as_lower_d["min"] [push_op(OP_AGMIN)]
+        |   as_lower_d["min"] [push_op(OP_AGMIN)] //"min" is after "min2"
             >> aggregate_arg
         |   as_lower_d["max"] [push_op(OP_AGMAX)]
             >> aggregate_arg
@@ -82,7 +83,6 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
                                           [parameterized_op(PF_INTERPOLATE)]
         |   (as_lower_d["spline"] >> parameterized_args)
                                           [parameterized_op(PF_SPLINE)]
-        |   DataExprFunG
         |   real_variable   //"s" is checked after "sin" and "sqrt"   
         ;
 }

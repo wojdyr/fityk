@@ -42,6 +42,10 @@ void Commands::put_output_message(string const& s)
 
 vector<string> Commands::get_commands(int from, int to, bool with_status) const
 {
+    if (from < 0)
+        from += cmds.size();
+    if (to < 0)
+        to += cmds.size();
     vector<string> r;
     if (!cmds.empty())
         for (int i = max(from, 0); i < min(to, size(cmds)); ++i) {
@@ -195,6 +199,8 @@ void UserInterface::execScript (const string& filename,
         if (i->txt.length() == 0)
             continue;
         showMessage (os_quot, S(i->nr) + "> " + i->txt); 
+        // result of parse_and_execute here is neglected. Errors in script
+        // don't change status of command, which executes script
         parse_and_execute(i->txt);
     }
 }

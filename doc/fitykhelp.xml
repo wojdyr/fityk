@@ -943,7 +943,7 @@
      User-defined function types can be created using command 
      <command>define</command>, and than used in the same way as built-in
      function types. The name of new type must start with upper-case
-     letter, contain only letters and digits, 
+     letter, contain only letters and digits, have at least two characters
      and can't be the same as a name of built-in function.
      Defined functions can be undefined using command 
      <command>undefine</command>.
@@ -958,7 +958,8 @@
      <screen>     
      # area-based Gaussian can be defined as modification of built-in Gaussian
      define GaussianArea(area, center, hwhm) = Gaussian(area/fwhm/sqrt(pi*ln(2)), center, hwhm) 
-     #TODO sum Gaussian+Lorentzian
+     # sum of Gaussian and Lorentzian -- it's already defined as PseudoVoigt
+     define GaussianLorentzianSum(height, center, hwhm, shape) = Gaussian(height*(1-shape), center, hwhm) + Lorentzian(height*shape, center, hwhm)
      undefine GaussianArea
      </screen>     
     </para>

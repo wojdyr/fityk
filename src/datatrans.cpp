@@ -138,12 +138,14 @@
 //using namespace boost::spirit;
 using namespace datatrans;
 
+//#include "ui.h"
+//#define DT_DEBUG(x) mesg(x);
+
 #ifdef STANDALONE_DATATRANS
 
 #include <iostream>  
 bool dt_verbose = false;
 #define DT_DEBUG(x) if (dt_verbose) std::cout << (x) << std::endl;
-#define DT_DEBUG_N(x) if (dt_verbose) std::cout << (x); 
 //-------------------------  Main program  ---------------------------------
 #include <string.h>
 
@@ -184,10 +186,12 @@ int main(int argc, char **argv)
 
 #else 
 
+#  ifndef DT_DEBUG
 #    define DT_DEBUG(x) ;
-#    define DT_DEBUG_N(x) ;
+#  endif
 
 #endif //STANDALONE_DATATRANS
+
 
 //----------------------------  grammar  ----------------------------------
 template <typename ScannerT>
@@ -259,6 +263,56 @@ DataTransformGrammar DataTransformG;
 
 namespace datatrans {
 
+// code vector contains not only operators, but also indices that
+// points locations in numbers or parameterized vectors
+bool is_any_operator(vector<int>::const_iterator i)
+{
+    assert(code.begin() <= i && i < code.end());
+    return i == code.begin() 
+                        || *(i-1) != OP_NUMBER && *(i-1) != OP_PARAMETERIZED
+                           && *(i-1) != OP_FUNC && *(i-1) != OP_SUM_F
+                           && *(i-1) != OP_SUM_Z;
+}
+
+/// debuging utility
+#define OP_(x) \
+    if (op == OP_##x) return #x;
+string dt_op(int op)
+{
+    OP_(NEG)   OP_(EXP)   OP_(SIN)   OP_(COS)  OP_(ATAN)  OP_(ABS)  OP_(ROUND) 
+    OP_(TAN) OP_(ASIN) OP_(ACOS)
+    OP_(LOG10) OP_(LN)  OP_(SQRT)  OP_(POW)  
+    OP_(ADD)   OP_(SUB)   OP_(MUL)   OP_(DIV)  OP_(MOD)
+    OP_(MIN2)   OP_(MAX2) OP_(RANDNORM) OP_(RANDU)    
+    OP_(VAR_X) OP_(VAR_Y) OP_(VAR_S) OP_(VAR_A) 
+    OP_(VAR_x) OP_(VAR_y) OP_(VAR_s) OP_(VAR_a) 
+    OP_(VAR_n) OP_(VAR_M) OP_(NUMBER)  
+    OP_(OR) OP_(AFTER_OR) OP_(AND) OP_(AFTER_AND) OP_(NOT)
+    OP_(TERNARY) OP_(TERNARY_MID) OP_(AFTER_TERNARY) OP_(DELETE_COND)
+    OP_(GT) OP_(GE) OP_(LT) OP_(LE) OP_(EQ) OP_(NEQ) OP_(NCMP_HACK) 
+    OP_(RANGE) OP_(INDEX) OP_(x_IDX)
+    OP_(ASSIGN_X) OP_(ASSIGN_Y) OP_(ASSIGN_S) OP_(ASSIGN_A)
+    OP_(DO_ONCE) OP_(RESIZE) OP_(ORDER) OP_(DELETE) OP_(BEGIN) OP_(END) 
+    OP_(END_AGGREGATE) OP_(AGCONDITION) 
+    OP_(AGSUM) OP_(AGMIN) OP_(AGMAX) OP_(AGAREA) OP_(AGAVG) OP_(AGSTDDEV)
+    OP_(PARAMETERIZED) OP_(PLIST_BEGIN) OP_(PLIST_END)
+    OP_(FUNC) OP_(SUM_F) OP_(SUM_Z) OP_(NUMAREA) OP_(FINDX) OP_(FIND_EXTR)
+    return S(op);
+};
+
+/// debuging utility
+string dt_ops(vector<int> const& code)
+{
+    string r;
+    for (std::vector<int>::const_iterator i=code.begin(); i != code.end(); ++i) 
+        if (is_any_operator(i))
+            r += dt_op(*i) + " ";
+        else
+            r += "[" + S(*i) + "] ";
+    return r;
+}
+
+
 fp find_idx_in_sorted(vector<Point> const& pp, fp x)
 {
     if (x <= pp.front().x)
@@ -290,15 +344,10 @@ void clear_parse_vecs()
     purge_all_elements(parameterized);
 }
 
-// code vector contains not only operators, but also indices that
-// points locations in numbers or parameterized vectors
 bool is_operator(vector<int>::const_iterator i, DataTransformVMOperator op)
 {
     assert(code.begin() <= i && i < code.end());
-    return (*i == op && (i != code.begin() 
-                        || *(i-1) != OP_NUMBER && *(i-1) != OP_PARAMETERIZED
-                           && *(i-1) != OP_FUNC && *(i-1) != OP_SUM_F
-                           && *(i-1) != OP_SUM_Z));
+    return *i == op && is_any_operator(i);
 }
 
 vector<int>::const_iterator 
@@ -323,7 +372,7 @@ void skip_to_end(vector<int>::const_iterator &i)
 template<typename T>
 fp get_var_with_idx(fp idx, vector<Point> points, T Point::*t)
 {
-    if (idx < 0 && idx > points.size()-1)
+    if (idx < 0 || idx > points.size()-1)
         return 0.;
     else if (is_eq(idx, iround(idx)))
         return points[iround(idx)].*t;
@@ -352,7 +401,7 @@ bool execute_code(int n, int &M, vector<fp>& stack,
     bool return_value=false; 
     vector<fp>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
     for (vector<int>::const_iterator i=code.begin(); i != code.end(); i++) {
-        DT_DEBUG("NOW op " + S(*i))
+        DT_DEBUG("op " + dt_op(*i))
         switch (*i) {
             //unary-operators
             case OP_NEG:
@@ -743,7 +792,7 @@ bool execute_code(int n, int &M, vector<fp>& stack,
     return return_value;
 }
 
-/// change  AGSUM X ... X END_AGGREGATE  to  NUMBER INDEX IGNORE ... IGNORE 
+/// change  AGSUM X ... X END_AGGREGATE  to  NUMBER INDEX 
 void replace_aggregates(int M, vector<Point> const& old_points,
                         vector<int>& code, vector<int>::iterator cb)
 {
@@ -754,7 +803,7 @@ void replace_aggregates(int M, vector<Point> const& old_points,
                 || is_operator(i, OP_AGAVG) || is_operator(i, OP_AGSTDDEV)) {
             int op = *i;
             vector<int>::iterator const start = i;
-            DT_DEBUG("code before replace:" + join_vector(code, " "));
+            DT_DEBUG("code before replace: " + dt_ops(code));
             replace_aggregates(M, old_points, code, start+1);
             fp result = 0.;
             fp mean = 0.; //needed for OP_AGSTDDEV
@@ -820,7 +869,7 @@ void replace_aggregates(int M, vector<Point> const& old_points,
             numbers.push_back(result);
             code.erase(start+2, i+1);
             i = start+1;
-            DT_DEBUG("code after replace:" + join_vector(code, " "));
+            DT_DEBUG("code after replace: " + dt_ops(code));
         }
     }
 }

@@ -58,9 +58,9 @@ void UserInterface::wait (float seconds)
     nanosleep(&ts, 0);
 }
 
-void UserInterface::execCommand(const string& s)
+Commands::Status UserInterface::execCommand(const string& s)
 {
-    parse_and_execute(s);
+    return parse_and_execute(s);
 }
 
 //----------------------------------------------------------------- 
@@ -115,6 +115,11 @@ char *commands[] = { "info", "plot", "delete", "set", "fit",
         "commands", "dump", "sleep", "reset", "quit", "guess", "define"
         };
 
+char *after_info[] = { "variables", "types", "functions", "datasets",
+         "commands", "view", "set", "fit", "errors", "peaks", 
+         "F", "Z", "formula", "dF"
+        };
+
 char *command_generator (const char *text, int state)
 {
     static unsigned int list_index = 0;
@@ -150,6 +155,47 @@ char *type_generator(const char *text, int state)
     else
         return 0;
 }
+
+char *type_or_guess_generator(const char *text, int state)
+{
+    static bool give_guess = false;
+    const char *guess = "guess";
+    if (!state) 
+        give_guess = true;
+    char *r = type_generator(text, state);
+    if (!r && give_guess) {
+        give_guess = false;
+        if (strncmp (guess, text, strlen(text)) == 0)
+            return strdup(guess);
+    }
+    return r;
+}
+
+char *info_generator(const char *text, int state)
+{
+    static unsigned int list_index = 0;
+    static vector<string> e;
+    if (!state) {
+        e.clear();
+        vector<string> const tt = Function::get_all_types(); 
+        for (vector<string>::const_iterator i = tt.begin(); i != tt.end(); ++i)
+            if (!strncmp(i->c_str(), text, strlen(text)))
+                e.push_back(*i);
+        for (size_t i = 0; i < sizeof(after_info) / sizeof(char*); ++i) {
+            char *name = after_info[i];
+            if (strncmp (name, text, strlen(text)) == 0)
+                e.push_back(name);
+        }
+        list_index = 0;
+    }
+    else
+        list_index++;
+    if (list_index < e.size())
+        return strdup(e[list_index].c_str());
+    else
+        return 0;
+}
+
 
 char *function_generator(const char *text, int state)
 {
@@ -236,7 +282,7 @@ char **my_completion (const char *text, int start, int end)
     if (cmd_start == start)
         return rl_completion_matches(text, command_generator);
     char *ptr = rl_line_buffer+cmd_start;
-    //check if it is after set command
+    //check if it is after set command or after with
     if (cmd_start <= start-2 && !strncmp(ptr, "s ", 2)
             || cmd_start <= start-3 && !strncmp(ptr, "se ", 3) 
             || cmd_start <= start-4 && !strncmp(ptr, "set ", 4)
@@ -268,11 +314,29 @@ char **my_completion (const char *text, int start, int end)
             || cmd_start <= start-3 && !strncmp(ptr, "gu ", 3) 
             || cmd_start <= start-4 && !strncmp(ptr, "gue ", 4) 
             || cmd_start <= start-5 && !strncmp(ptr, "gues ", 5) 
-            || cmd_start <= start-6 && !strncmp(ptr, "guess ", 6)
-            || cmd_start <= start-3 && rl_line_buffer[cmd_start] == '%'
+            || cmd_start <= start-6 && !strncmp(ptr, "guess ", 6)) {
+        return rl_completion_matches(text, type_generator);
+    }
+    // FunctionType or "guess" completion
+    if (cmd_start <= start-3 && rl_line_buffer[cmd_start] == '%'
                && strchr(rl_line_buffer+cmd_start, '=')
                && !strchr(rl_line_buffer+cmd_start, '(')) {
-        return rl_completion_matches(text, type_generator);
+        return rl_completion_matches(text, type_or_guess_generator);
+    }
+
+    // %function completion
+    if (strlen(text) > 0 && text[0] == '%')
+        return rl_completion_matches(text, function_generator);
+    // $variable completion
+    if (start > 0 && rl_line_buffer[start-1] == '$')
+        return rl_completion_matches(text, variable_generator);
+
+    // info completion
+    if (cmd_start <= start-2 && !strncmp(ptr, "i ", 2)
+            || cmd_start <= start-3 && !strncmp(ptr, "in ", 3) 
+            || cmd_start <= start-4 && !strncmp(ptr, "inf ", 4) 
+            || cmd_start <= start-5 && !strncmp(ptr, "info ", 5)) {
+        return rl_completion_matches(text, info_generator);
     }
 
     ptr = rl_line_buffer + start - 1;
@@ -282,12 +346,7 @@ char **my_completion (const char *text, int start, int end)
         rl_attempted_completion_over = 0; 
         return 0;
     }
-    // %function completion
-    if (strlen(text) > 0 && text[0] == '%')
-        return rl_completion_matches(text, function_generator);
-    // $variable completion
-    if (start > 0 && rl_line_buffer[start-1] == '$')
-        return rl_completion_matches(text, variable_generator);
+
     return 0;
 }
 

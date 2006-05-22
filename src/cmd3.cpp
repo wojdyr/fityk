@@ -9,7 +9,6 @@
 #include <boost/spirit/actor/assign_actor.hpp>
 #include <boost/spirit/actor/push_back_actor.hpp>
 #include <boost/spirit/actor/clear_actor.hpp>
-#include <boost/spirit/actor/increment_actor.hpp>
 #include <boost/spirit/utility/chset.hpp>
 #include <boost/spirit/utility/chset_operators.hpp>
 #include <boost/spirit/utility.hpp>
@@ -53,15 +52,11 @@ void do_commands_print(char const*, char const*)
     vector<string> cc 
         = getUI()->getCommands().get_commands(tmp_int, tmp_int2, with_plus);
     string text = join_vector(cc, "\n");
-    if (t.empty())
-        mesg(text);
-    else {
-        ofstream f;
-        f.open(t.c_str(), ios::app);
-        if (!f) 
-            throw ExecuteError("Can't open file for writing: " + t);
-        f << text << endl;
-    }
+    ofstream f;
+    f.open(t.c_str(), ios::app);
+    if (!f) 
+        throw ExecuteError("Can't open file for writing: " + t);
+    f << text << endl;
 }
 
 void do_exec_file(char const*, char const*) 
@@ -101,9 +96,7 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
     //Subject: [Spirit-general] Re: weird assign_a(x,y) problem
     static const bool true_ = true;
     static const bool false_ = false;
-    static const int zero = 0;
     static const int minus_one = -1;
-    static const int int_max = INT_MAX;
     static const char *empty = "";
 
 
@@ -128,29 +121,14 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
         | lexeme_d[+chset<>(anychar_p - chset<>(" \t\n\r;,"))] [assign_a(t)]
         ;
 
-    int_range
-        = '[' >> (int_p[assign_a(tmp_int)] 
-                 | eps_p[assign_a(tmp_int, zero)]
-                 )
-              >> (':'
-                  >> (int_p[assign_a(tmp_int2)] 
-                     | eps_p[assign_a(tmp_int2, int_max)]
-                     )
-                  >> ']'
-                 | ch_p(']')[assign_a(tmp_int2, tmp_int)]
-                        [increment_a(tmp_int2)] //see assign_a error above
-                 )  
-        ;
-
     commands_arg
         = eps_p [assign_a(t, empty)] 
           >> optional_plus
           >> ( (ch_p('>') >> compact_str) [&do_commands_logging] 
-             | (int_range 
-                 >> !(ch_p('>') >> compact_str)) [&do_commands_print]
+             | (IntRangeG >> ch_p('>') >> compact_str) [&do_commands_print]
              | (ch_p('<') [clear_a(vn)]
                  >> compact_str 
-                 >> *(int_range[push_back_a(vn, tmp_int)]
+                 >> *(IntRangeG[push_back_a(vn, tmp_int)]
                                              [push_back_a(vn, tmp_int2)])
                ) [&do_exec_file]
              ) 

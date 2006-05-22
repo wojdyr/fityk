@@ -13,6 +13,7 @@
 
 #include "common.h"
 #include <boost/spirit/core.hpp>
+#include <boost/spirit/actor/increment_actor.hpp>
 
 
 using namespace boost::spirit;
@@ -20,17 +21,49 @@ class DataWithSum;
 
 namespace cmdgram {
 
-    extern bool with_plus, deep_cp;
-    extern std::string t, t2;
-    extern int tmp_int, tmp_int2, ds_pref;
-    extern double tmp_real, tmp_real2;
-    extern std::vector<std::string> vt, vr;
-    extern std::vector<int> vn, vds;
-    extern const int new_dataset;
-    extern const int all_datasets;
-    extern bool outdated_plot;
+extern bool with_plus, deep_cp;
+extern std::string t, t2;
+extern int tmp_int, tmp_int2, ds_pref;
+extern double tmp_real, tmp_real2;
+extern std::vector<std::string> vt, vr;
+extern std::vector<int> vn, vds;
+extern const int new_dataset;
+extern const int all_datasets;
+extern bool outdated_plot;
 
-    std::vector<DataWithSum*> get_datasets_from_indata();
+std::vector<DataWithSum*> get_datasets_from_indata();
+
+/// a part of command grammar 
+struct IntRangeGrammar : public grammar<IntRangeGrammar>
+{
+    template <typename ScannerT>
+    struct definition
+    {
+      definition(IntRangeGrammar const& /*self*/)
+      {
+          static const int zero = 0;
+          static const int int_max = INT_MAX;
+
+          t 
+          = '[' >> (int_p[assign_a(tmp_int)] 
+                   | eps_p[assign_a(tmp_int, zero)]
+                   )
+                >> (':'
+                    >> (int_p[assign_a(tmp_int2)] 
+                       | eps_p[assign_a(tmp_int2, int_max)]
+                       )
+                    >> ']'
+                   | ch_p(']')[assign_a(tmp_int2, tmp_int)]
+                          [increment_a(tmp_int2)] //see assign_a error above
+                   )  
+          ;
+      }
+      rule<ScannerT> t;
+      rule<ScannerT> const& start() const { return t; }
+    };
+};
+
+extern IntRangeGrammar  IntRangeG;
 
 }
 

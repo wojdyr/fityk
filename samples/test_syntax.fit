@@ -90,6 +90,14 @@ i peaks [10:40] in @0
 i peaks 1 [10:40] in @0
 i ((3+5) * (2.1+pi) * exp(5)/cos(ln(3)))^2 in @0
 i GaussianA, Gaussian, Linear
+i SplitGaussian
+i formula
+i min(y), max(s)
+i min(y if 20<x<25)
+i sum(y-y[0])
+i avg(y*y), stddev(y if y > avg(y))
+i darea(y-@0.F(x) if 15<x<20)
+
 
 info+ variables
 i+ $a, $_1
@@ -149,12 +157,13 @@ $t4=sin($t1)^2+(-cos($t1))^2
 
 define Bleh(area, center, fwhm, shape) = GaussianA(area*(1-shape), center, fwhm) + LorentzianA(area*shape, center, fwhm+0.2)
 %bleh = Bleh(~123., 30, ~4, ~0.5)
+undefine Bleh
 define Bleh(a) = Linear(0, a)
 %bleh = Bleh(~{pi})
 i+ Bleh, %bleh
 del %bleh
-commands[2:5]
-commands[8]
+info commands[2:5]
+info commands[8]
 #commands > filename
 #commands+ > filename
 commands > /dev/null
