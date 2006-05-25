@@ -116,7 +116,7 @@ char *commands[] = { "info", "plot", "delete", "set", "fit",
         };
 
 char *after_info[] = { "variables", "types", "functions", "datasets",
-         "commands", "view", "set", "fit", "errors", "peaks", 
+         "commands", "view", "set", "fit", "errors", "guess", 
          "F", "Z", "formula", "dF"
         };
 

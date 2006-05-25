@@ -19,7 +19,7 @@ using namespace std;
 ApplicationLogic *AL;
 
 DataWithSum::DataWithSum(VariableManager *mgr, Data* data_)
-    : data(data_ ? data_ : new Data), sum(new Sum(mgr, data.get()))  
+    : data(data_ ? data_ : new Data), sum(new Sum(mgr))  
 {}
 
 void ApplicationLogic::activate_ds(int d)
@@ -103,7 +103,9 @@ void PlotCore::export_as_script(std::ostream& os) const
     }
     if (active_data != size(datasets) - 1)
         os << "d.activate ::" << active_data << " # set active" << endl; 
-    sum->export_as_script(os);
+    TODO @n.F
+    os << join_vector(sum->get_ff_names(), ", ") << " -> @x.F" << endl;
+    os << join_vector(sum->get_zz_names(), ", ") << " -> @x.Z" << endl;
     os << endl;
 }
 #endif

@@ -10,14 +10,13 @@
 #include "sum.h"
 #include "func.h"
 #include "var.h"
-#include "data.h"  //used in export_as...() methods
 #include "guess.h" //estimate_peak_parameters() in guess_f()
 #include "ui.h"
 
 using namespace std;
 
-Sum::Sum(VariableManager *mgr_, Data const* data_) 
-    : mgr(*mgr_), data(data_)
+Sum::Sum(VariableManager *mgr_) 
+    : mgr(*mgr_)
 {
     mgr.register_sum(this);
 }
@@ -211,126 +210,29 @@ fp Sum::approx_max(fp x_min, fp x_max)
     return y_max;
 }
 
-void Sum::export_as_script (ostream& os) const
-{
-    os << "### sum exported as script -- begin" << endl;
-    //TODO @n.
-    os << join_vector(ff_names, ", ") << " -> F" << endl;
-    os << join_vector(zz_names, ", ") << " -> Z" << endl;
-    os << "### end of exported sum" << endl;
-}
 
-
-void Sum::export_as_dat (ostream& os) 
+string Sum::get_peak_parameters(vector<fp> const& errors) const
 {
-    int smooth_limit = 0;
-    int n = data->get_n();
-    if (n < 2) {
-        warn ("At least two data points should be active when"
-                " exporting sum as points");
-        return;
-    }
-    mgr.use_parameters();
-    int k = smooth_limit / n + 1;
-    for (int i = 0; i < n - 1; i++) 
-        for (int j = 0; j < k; j++) {
-            fp x = ((k - j) * data->get_x(i) + j * data->get_x(i+1)) / k;
-            fp y = value(x);
-            os << x << "\t" << y << endl; 
-        }
-    fp x = data->get_x(n - 1);
-    fp y = value(x);
-    os << x << "\t" << y << endl; 
-}
-
-void Sum::export_as_peaks(std::ostream& os) const
-{
-    os << "# data file: " << data->get_filename() << endl;  
-    os << "# Peak Type     Center  Height  Area    FWHM    "
-                                        "parameters...\n"; 
+    string s;
+    s += "# Peak Type     Center  Height  Area    FWHM    parameters...\n"; 
     for (vector<int>::const_iterator i=ff_idx.begin(); i != ff_idx.end(); i++){
         Function const* p = mgr.get_function(*i);
-        os << p->xname << "  " << p->type_name  
-           << "  " << p->center() << " " << p->height() << " " << p->area() 
-           << " " << p->fwhm() << "  ";
-        for (int j = 0; j < p->get_vars_count(); ++j) 
-            os << " " << p->get_var_value(j);
-        os << endl;
-    }
-}
-
-/*
-void Sum::export_as_xfit (std::ostream& os) const
-{
-    const char* header = "     File        Peak     Th2        "
-                            "Code      Constr      Area        Err     \r\n";
-    const char *line_template = "                PV                @       "
-                                    "   1.000                  0.0000     \r\n";
-
-    os << header;
-    string filename = data->get_filename();
-    size_t last_slash = filename.find_last_of("/\\");
-    if (last_slash != string::npos) filename = filename.substr(last_slash+1);
-    if (filename.size() > 16)
-        filename = filename.substr(filename.size() - 16, 16); 
-    for (vector<int>::const_iterator i=ff_idx.begin(); i != ff_idx.end(); i++){
-        Function const* p = mgr.get_function(*i);
-        if (!p->is_peak()) 
-            continue;
-        string line = line_template;
-        if (i == ff_idx.begin()) 
-            line.replace (0, filename.size(), filename);
-        string ctr = S(p->center());
-        line.replace (23, ctr.size(), ctr);
-        string area = S(p->area());
-        line.replace (56, area.size(), area);
-        os << line;
-    }
-}
-*/
-
-void Sum::export_to_file (string filename, bool append, char filetype) 
-{
-    if (!filetype) {
-        //guessing filetype
-        int dot = filename.rfind('.');
-        if (dot > 0 && dot < static_cast<int>(filename.length()) - 1) {
-            string exten(filename.begin() + dot, filename.end());
-            if (exten == ".dat" || exten == ".xy")
-                filetype = 'd';
-            else if (exten == ".peaks")
-                filetype = 'p';
-            else if (exten == ".txt" && filename.size() >= 8 &&
-                 filename.substr(filename.size()-8).compare("xfit.txt")==0)
-                filetype = 'x';
+        s += p->xname + "  " + p->type_name  
+            + "  "+ S(p->center()) + " " + S(p->height()) + " " + S(p->area())
+            + " " + S(p->fwhm()) + "  ";
+        for (int j = 0; j < p->get_vars_count(); ++j) {
+            s += " " + S(p->get_var_value(j));
+            if (!errors.empty()) {
+                Variable const* var = mgr.get_variable(p->get_var_idx(j));
+                if (var->is_simple())
+                    s += " +/- " + S(errors[var->get_nr()]);
+                else
+                    s += " +/- ?";
+            }
         }
-        if (!filetype) {
-            info ("exporting as formula");
-            filetype = 'f';
-        }
+        s += "\n";
     }
-    ofstream os(filename.c_str(), ios::out | (append ? ios::app : ios::trunc));
-    if (!os) {
-        throw ExecuteError("Can't open file: " + filename);
-    }
-    switch (filetype) {
-        case 'f': 
-            os << get_formula() << endl;
-            break;
-        case 'd': 
-            export_as_dat(os);
-            break;
-        case 'p': 
-            export_as_peaks(os);
-            break;
-/*
-        case 'x': 
-            export_as_xfit(os);
-            break;
-*/
-        default:
-            warn ("Unknown filetype letter: " + S(filetype));
-    }
+    return s;
 }
 
 

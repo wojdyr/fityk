@@ -25,6 +25,8 @@ public:
     std::string getInfo(std::vector<DataWithSum*> const& dsds);
     std::string getErrorInfo(std::vector<DataWithSum*> const& dsds, 
                              bool matrix=false);
+    std::vector<fp> get_covariance_matrix(std::vector<DataWithSum*> const&dsds);
+    std::vector<fp> get_symmetric_errors(std::vector<DataWithSum*> const& dsds);
     int get_default_max_iter() { return default_max_iterations; }
     static fp compute_wssr_for_data (DataWithSum const* ds, bool weigthed);
     static bool Jordan (std::vector<fp>& A, std::vector<fp>& b, int n); 

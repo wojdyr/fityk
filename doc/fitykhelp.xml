@@ -1099,7 +1099,7 @@
      command. Using <command>info+</command> instead of <command>info</command>
      sometimes displays more datailed informations.
      Command 
-     <command>info peaks <replaceable>range</replaceable></command>
+     <command>info guess <replaceable>range</replaceable></command>
      will show, where the <command>guess</command> command would find the peak.
      <command>info functions</command> lists all defined functions,
      and <command>info variables</command> - all variables.

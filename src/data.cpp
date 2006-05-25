@@ -523,7 +523,9 @@ vector<Point>::const_iterator Data::get_point_at(fp x) const
     return lower_bound (p.begin(), p.end(), Point(x));
 }
 
-void Data::export_to_file (string filename, bool append) 
+void Data::export_to_file(string filename, vector<string> const& vt, 
+                          vector<string> const& ff_names,
+                          bool append) 
 {
     ofstream os(filename.c_str(), ios::out | (append ? ios::app : ios::trunc));
     if (!os) {
@@ -531,9 +533,39 @@ void Data::export_to_file (string filename, bool append)
         return;
     }
     os << "# " << title << endl;
-    os << "# x\ty\tsigma\t#exported by fityk " VERSION << endl;
-    for (int i = 0; i < get_n(); i++)
-        os << get_x(i) << "\t" << get_y(i) << "\t" << get_sigma(i) << endl;
+    if (vt.empty()) 
+        os << "# x\ty\tsigma";
+    else
+        os << join_vector(vt, "\t");
+    os << "\t#exported by fityk " VERSION << endl;
+    if (vt.empty()) {
+        for (int i = 0; i < get_n(); i++) {
+            os << get_x(i) << "\t" << get_y(i) << "\t" << get_sigma(i) << endl;
+        }
+    }
+    else {
+        vector<vector<fp> > r;
+        bool only_active = !contains_element(vt, "a");
+        for (vector<string>::const_iterator i=vt.begin(); i != vt.end(); ++i) 
+            if (startswith(*i, "*F")) {
+                string tail = string(*i, 2);
+                for (vector<string>::const_iterator j = ff_names.begin(); 
+                        j != ff_names.end(); ++j){
+                    string t = "%" + *j + tail;
+                    r.push_back(get_all_point_expressions(t, this,only_active));
+                }
+            }
+            else
+                r.push_back(get_all_point_expressions(*i, this, only_active));
+        for (size_t i = 0; i != r[0].size(); ++i) {
+            for (size_t j = 0; j != vt.size(); ++j) {
+                if (j != 0)
+                    os << '\t';
+                os << r[j][i]; 
+            }
+            os << '\n';
+        }
+    }
 }
 
 

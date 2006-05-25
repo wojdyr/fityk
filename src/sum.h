@@ -19,7 +19,7 @@ class Data;
 class Sum 
 {
 public:
-    Sum(VariableManager *mgr_, Data const* data_);
+    Sum(VariableManager *mgr_);
     ~Sum();
     void find_function_indices();
     void add_function_to(std::string const &name, char add_to);
@@ -37,8 +37,7 @@ public:
     fp approx_max(fp x_min, fp x_max);
     std::string general_info() const;
     std::string get_formula(bool simplify=false) const;
-    void export_to_file (std::string filename, bool append, char filetype);
-    void export_as_script (std::ostream& os) const;
+    std::string get_peak_parameters(std::vector<fp> const& errors) const;
     std::vector<fp> get_symbolic_derivatives(fp x) const;
     std::vector<fp> get_numeric_derivatives(fp x, fp numerical_h) const;
     fp zero_shift (fp x) const;
@@ -54,15 +53,11 @@ public:
 
 private:
     VariableManager &mgr;
-    Data const* data;
     std::vector<std::string> ff_names;
     std::vector<std::string> zz_names;
     std::vector<int> ff_idx;
     std::vector<int> zz_idx;
 
-    void export_as_dat (std::ostream& os);
-    void export_as_peaks(std::ostream& os) const;
-    //void export_as_xfit(std::ostream& os) const;
     Sum (const Sum&); //disable
     Sum& operator= (Sum&); //disable
     void do_find_function_indices(std::vector<std::string> &names,

@@ -62,7 +62,9 @@ public :
     fp get_y_at (fp x) const;
     //return points at x (if any) or (usually) after it.
     std::vector<Point>::const_iterator get_point_at(fp x) const;
-    void export_to_file (std::string filename, bool append=false);
+    void export_to_file(std::string filename, std::vector<std::string>const &vt,
+                        std::vector<std::string> const& ff_names,
+                        bool append=false);
     fp get_x_min() { return p.empty() ? 0 : p.front().x; }
     fp get_x_max() { return p.empty() ? 180. : p.back().x; } 
     fp get_y_min() const { return y_min; }

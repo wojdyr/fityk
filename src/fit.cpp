@@ -49,7 +49,7 @@ string Fit::getInfo(vector<DataWithSum*> const& dsds)
                 + S(compute_wssr(pp, dsds, false));
 }
 
-string Fit::getErrorInfo(vector<DataWithSum*> const& dsds, bool matrix)
+vector<fp> Fit::get_covariance_matrix(vector<DataWithSum*> const& dsds)
 {
     vector<fp> const &pp = AL->get_parameters();
     update_parameters(dsds);
@@ -63,6 +63,22 @@ string Fit::getErrorInfo(vector<DataWithSum*> const& dsds, bool matrix)
     reverse_matrix(alpha, na);
     for (vector<fp>::iterator i = alpha.begin(); i != alpha.end(); i++)
         (*i) *= 2;//FIXME: is it right? (S.Brandt, Analiza danych (10.17.4))
+    return alpha;
+}
+
+vector<fp> Fit::get_symmetric_errors(vector<DataWithSum*> const& dsds)
+{
+    vector<fp> alpha = getFit()->get_covariance_matrix(dsds);
+    vector<fp> errors(na);
+    for (int i = 0; i < na; ++i)
+        errors[i] = sqrt(alpha[i*na + i]); 
+    return errors;
+}
+
+string Fit::getErrorInfo(vector<DataWithSum*> const& dsds, bool matrix)
+{
+    vector<fp> alpha = get_covariance_matrix(dsds);
+    vector<fp> const &pp = AL->get_parameters();
     string s;
     s = "Symmetric errors: ";
     for (int i = 0; i < na; i++) {

@@ -11,6 +11,7 @@
 #include <boost/spirit/actor/clear_actor.hpp>
 #include <boost/spirit/utility/chset.hpp>
 #include <boost/spirit/utility/chset_operators.hpp>
+#include <math.h>
 
 #include "cmd2.h"
 #include "optional_suffix.h"
@@ -92,7 +93,8 @@ void do_import_dataset(char const*, char const*)
 
 void do_export_dataset(char const*, char const*)
 {
-    AL->get_data(tmp_int)->export_to_file(t); 
+    vector<string> const& ff_names = AL->get_sum(tmp_int)->get_ff_names();
+    AL->get_data(tmp_int)->export_to_file(t, vt, ff_names); 
 }
 
 void do_append_data(char const*, char const*)
@@ -201,7 +203,7 @@ void do_print_info(char const* a, char const* b)
         m = getFit()->getErrorInfo(get_datasets_from_indata(), with_plus);
     else if (s == "commands")
         m = getUI()->getCommands().get_info();
-    else if (startswith(s, "peaks")) {
+    else if (startswith(s, "guess")) {
         vector<DataWithSum*> v = get_datasets_from_indata();
         for (vector<DataWithSum*>::const_iterator i = v.begin(); 
                                                            i != v.end(); ++i)
@@ -316,7 +318,28 @@ void do_guess(char const*, char const*)
 }
 
 void do_export_sum(char const*, char const*)   
-   { AL->get_sum(ds_pref)->export_to_file(t, false, 0); }
+{ 
+    vector<DataWithSum*> v = get_datasets_from_indata();
+    ofstream os(t.c_str(), ios::out | ios::trunc);
+    if (!os) 
+        throw ExecuteError("Can't open file: " + t);
+    os << "# exported by fityk " VERSION << endl;
+    if (t2 == "peaks") {
+        vector<fp> errors;
+        if (with_plus) 
+            errors = getFit()->get_symmetric_errors(v);
+        for (vector<DataWithSum*>::const_iterator i=v.begin(); i!=v.end(); ++i){
+            os << "# " << (*i)->get_data()->get_title() << endl;
+            os << (*i)->get_sum()->get_peak_parameters(errors);
+        }
+    }
+    else if (t2 == "formula") {
+        for (vector<DataWithSum*>::const_iterator i=v.begin(); i!=v.end(); ++i){
+            os << "# " << (*i)->get_data()->get_title() << endl;
+            os << (*i)->get_sum()->get_formula(with_plus);
+        }
+    }
+}
 
 void set_data_title(char const*, char const*)  { 
     AL->get_data(ds_pref)->title = t; 
@@ -354,6 +377,14 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
                      | str_p("@*") [push_back_a(vds, all_datasets)]
                      )
             )
+        ;
+
+    ds_multiprefix
+        = eps_p [clear_a(vds)]
+        >> (lexeme_d['@' >> uint_p [push_back_a(vds)]
+            >> '.']
+           | str_p("@*.") [push_back_a(vds, all_datasets)]
+           )
         ;
 
     ds_prefix
@@ -396,7 +427,13 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
                         % ',')
                ) [&do_import_dataset]
              )
-        | (existing_dataset_nr >> '>' >> compact_str) [&do_export_dataset]
+        | (existing_dataset_nr [clear_a(vt)]
+           >> !('(' >> ((DataExpressionG
+                        | ("*F(" >> DataExpressionG >> ")")
+                        ) [push_back_a(vt)] 
+                        % ',')
+                >> ')')
+           >> '>' >> compact_str) [&do_export_dataset]
         | str_p("@+")[&do_append_data] 
         ;
 
@@ -421,7 +458,7 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         | str_p("set") [&do_print_info] 
         | (str_p("fit") >> in_data) [&do_print_info] 
         | (str_p("errors") >> in_data) [&do_print_info] 
-        | (str_p("peaks") [clear_a(vr)]
+        | (str_p("guess") [clear_a(vr)]
            >> ( uint_p [assign_a(tmp_int)]
               | eps_p [assign_a(tmp_int, one)])
            >> plot_range >> in_data) [&do_print_info]
@@ -463,7 +500,8 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
           >> !existing_dataset_nr >> plot_range >> plot_range) [&do_plot]
         | guess [&do_guess]
         | (ds_prefix >> "title" >> '=' >> compact_str)[&set_data_title]
-        | (ds_prefix >> 'F' >> '>' >> compact_str)[&do_export_sum]
+        | ds_multiprefix >> (str_p("peaks")|"formula")[assign_a(t2)] 
+          >> optional_plus >> '>' >> compact_str [&do_export_sum]
         | dataset_handling
         ;
 }

@@ -914,6 +914,8 @@ std::string simplify_formula(std::string const &formula)
     vector<string> vars(1, "x");
     vector<OpTree*> results = calculate_deriv(root, vars);
     string simplified = results.back()->str(&vars);
+    // simplied formula has $x instead of x
+    replace_all(simplified, "$x", "x");
     purge_all_elements(results);
     return simplified;
 }

@@ -34,12 +34,10 @@
 //     (now info commands displays fake statistics)
 //   * info commands[n:m] //instead of commands[n:m]
 
-* mixed data/sum export, eg:
-  @n (x, y, abs(y-F(x)), %foo(x), %bar(x)) > file 
-  @n (x, y, s, a) >> file 
-  @* (x, y, s, a) >> file 
-  only active points are exported, unless a is in export list
-  "*F" expands to all functions in F
+//* mixed data/sum export, eg:
+  // @n (x, y, abs(y-F(x)), %foo(x), %bar(x)) > file 
+  // only active points are exported, unless "a" is in export list
+  //"*F(...)" expands to all functions in F, ie. to %a(...), %b(...)
 
 * (GUI) point export dialog, radiobox:
 	  x, y
@@ -50,15 +48,13 @@
 	  a, x, y, s, sum, all-functions
 	  custom
 
-* (F > file) when exporting function/sum as parameters or formula: 
-  "@*.F > file.peaks"  -- separated by empty lines (and headers with titles)
-  "F  >> file" append rather then truncate
-  "F+  > file.peaks" export also symmetric errors 
-
-* (GUI) when printing, everything is first rescaled and rounded(!!!) for
-  plot window at the screen, and then rescaled to the paper size. 
-  This rounding causes visible artefacts at the printout.
-  (wxDC.GetSize instead of plot.GetClientSize() ?)
+// * (F > file) when exporting function/sum as parameters or formula: 
+//    "@*.F > file.peaks"  -- separated by empty lines (and headers with titles)
+//    "F+  > file.peaks" export also symmetric errors 
+//  --- new syntax ---
+//    @0.peaks > file
+//    @0.peaks+ > file
+//    @0.formula > file
 
 * link to "On-line tutorial" and the tutorial itself(!)
 
@@ -133,6 +129,13 @@
 
 * (GUI) data-range mode: if all points are active, left mouse button
   should "select", not "activate", ie. it should do A = (left<x<right)  (?)
+
+* (GUI) when printing, everything is first rescaled and rounded(!!!) for
+  plot window at the screen, and then rescaled to the paper size. 
+  This rounding causes visible artefacts at the printout.
+  (wxDC.GetSize instead of plot.GetClientSize() ?)
+
+* exporting sum and data: "F  >> file" append (not truncate) to file
 
 * info -- more informations about error, confidence limits, etc.
   graphical interface Fit > Info

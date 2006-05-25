@@ -398,7 +398,7 @@ bool execute_code(int n, int &M, vector<fp>& stack,
     DT_DEBUG("executing code; n=" + S(n) + " M=" + S(M))
     assert(M == size(new_points));
     bool once = (n == M);
-    bool return_value=false; 
+    bool return_value = false; 
     vector<fp>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
     for (vector<int>::const_iterator i=code.begin(); i != code.end(); i++) {
         DT_DEBUG("op " + dt_op(*i))
@@ -935,23 +935,43 @@ fp get_transform_expression_value(string const &s, Data const* data)
     vector<Point> const no_points;
     vector<Point> const& points = data ? data->points() : no_points;
     clear_parse_vecs();
-    // First compile string...
-    parse_info<> result = parse(s.c_str(), DataExpressionG, 
-                                space_p);
-    if (!result.full) {
+    // First compile string... puts result into code etc.
+    parse_info<> result = parse(s.c_str(), DataExpressionG, space_p);
+    if (!result.full) 
         throw ExecuteError("Syntax error in expression: " + s);
-    }
     int M = (int) points.size();
     vector<Point> new_points = points;
     vector<fp> stack(stack_size);
     replace_aggregates(M, points, code, code.begin());
-    // first execute one-time operations: sorting, x[15]=3, etc. 
     // n==M => one-time op.
     bool t = execute_code(M, M, stack, points, new_points, code);
-    if (t) { 
+    if (t)  
         throw ExecuteError("Expression depends on undefined `n' index: " + s);
-    }
     return stack.front();
 }
+
+vector<fp> get_all_point_expressions(string const &s, Data const* data,
+                                     bool only_active)
+{
+    vector<fp> values;
+    vector<Point> const& points = data->points();
+    clear_parse_vecs();
+    // First compile string... puts result into code etc.
+    parse_info<> result = parse(s.c_str(), DataExpressionG, space_p);
+    if (!result.full) 
+        throw ExecuteError("Syntax error in expression: " + s);
+    int M = (int) points.size();
+    vector<Point> new_points = points;
+    vector<fp> stack(stack_size);
+    replace_aggregates(M, points, code, code.begin());
+    for (int i = 0; i < M; ++i) {
+        if (only_active && !points[i].is_active)
+            continue;
+        execute_code(i, M, stack, points, new_points, code);
+        values.push_back(stack.front());
+    }
+    return values;
+}
+
 
 

@@ -107,7 +107,8 @@ enum {
     ID_S_PFINFO                ,
     ID_S_FUNCLIST              ,
     ID_S_VARLIST               ,
-    ID_S_EXPORT                ,
+    ID_S_EXPORTP               ,
+    ID_S_EXPORTF               ,
     ID_F_METHOD                ,
     ID_F_RUN                   ,
     ID_F_CONTINUE              ,
@@ -309,7 +310,8 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_S_PFINFO,      FFrame::OnSPFInfo)   
     EVT_MENU (ID_S_FUNCLIST,    FFrame::OnSFuncList)    
     EVT_MENU (ID_S_VARLIST,     FFrame::OnSVarList)  
-    EVT_MENU (ID_S_EXPORT,      FFrame::OnSExport)   
+    EVT_MENU (ID_S_EXPORTP,     FFrame::OnSExport)   
+    EVT_MENU (ID_S_EXPORTF,     FFrame::OnSExport)   
 
     EVT_UPDATE_UI (ID_F_METHOD, FFrame::OnFMethodUpdate)
     EVT_MENU_RANGE (ID_F_M+0, ID_F_M_END, FFrame::OnFOneOfMethods)    
@@ -607,8 +609,10 @@ void FFrame::set_menubar()
                                 wxT("Open `Functions' tab on right-hand pane"));
     sum_menu->Append (ID_S_VARLIST, wxT("&Variable List"),
                                 wxT("Open `Variables' tab on right-hand pane"));
-    sum_menu->Append (ID_S_EXPORT, wxT("&Export"), 
-                                           wxT("Export fitted curve to file"));
+    sum_menu->Append (ID_S_EXPORTP, wxT("&Export Peaks"), 
+                                    wxT("Export function parameters to file"));
+    sum_menu->Append (ID_S_EXPORTF, wxT("&Export Formula"), 
+                                    wxT("Export mathematic formula to file"));
 
     wxMenu* fit_menu = new wxMenu;
     wxMenu* fit_method_menu = new wxMenu;
@@ -956,7 +960,7 @@ void FFrame::OnSGuess (wxCommandEvent& WXUNUSED(event))
 
 void FFrame::OnSPFInfo (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command ("info peaks 3" + get_in_dataset());
+    exec_command ("info guess 3" + get_in_dataset());
     //TODO animations showing peak positions
 }
         
@@ -972,24 +976,22 @@ void FFrame::OnSVarList (wxCommandEvent& WXUNUSED(event))
     sidebar->set_selection(2);
 }
            
-void FFrame::OnSExport       (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnSExport (wxCommandEvent& event)
 {
-    static int filter_idx = 0;
+    bool as_peaks = (event.GetId() == ID_S_EXPORTP);
     static wxString dir = wxT("");
     int pos = AL->get_active_ds_position();
     string const& filename = AL->get_data(pos)->get_filename();
     wxString name = wxFileName(s2wx(filename)).GetName();
     wxFileDialog fdlg (this, wxT("Export curve to file"), dir, name,
-                       wxT("parameters of functions (*.peaks)|*.peaks")
-                       wxT("|x y data (*.dat)|*.dat;*.DAT")
-                    // wxT("|XFIT peak listing (*xfit.txt)|*xfit.txt;*XFIT.TXT")
-                       wxT("|mathematic formula (*.formula)|*.formula"),
+                       (as_peaks 
+                            ? wxT("parameters of functions (*.peaks)|*.peaks")
+                            : wxT("mathematic formula (*.formula)|*.formula"))
+                        + wxString(wxT("|all files|*")),
                        wxSAVE | wxOVERWRITE_PROMPT);
-    fdlg.SetFilterIndex(filter_idx);
     if (fdlg.ShowModal() == wxID_OK) 
-        exec_command(get_active_data_str() + ".F > '" 
-                                             + wx2s(fdlg.GetPath()) + "'");
-    filter_idx = fdlg.GetFilterIndex();
+        exec_command(get_active_data_str() + (as_peaks ? ".peaks" : ".formula")
+                     + " > '" + wx2s(fdlg.GetPath()) + "'");
     dir = fdlg.GetDirectory();
 }
            

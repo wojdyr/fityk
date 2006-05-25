@@ -77,7 +77,7 @@ struct Cmd2Grammar : public grammar<Cmd2Grammar>
     definition(Cmd2Grammar const& self);
 
     rule<ScannerT> transform, type_name, function_param, 
-                   in_data, ds_prefix,
+                   in_data, ds_prefix, ds_multiprefix,
                    dataset_handling, compact_str, guess,
                    existing_dataset_nr, dataset_nr, 
                    optional_plus, 
