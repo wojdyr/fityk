@@ -22,8 +22,11 @@ public:
     void add_background_point(fp x, fp y);
     void rm_background_point(fp x);
     void clear_background();
+    void forget_background() { clear_background(); bg_backup.clear(); }
     void strip_background();
-    bool bg_empty() const { return bg.empty(); }
+    void undo_strip_background();
+    bool can_strip() const { return !bg.empty(); }
+    bool can_undo() const { return !bg_backup.empty(); }
     void set_spline_bg(bool s) { spline_bg=s; recompute_bgline(); }
 protected:
     PlotShared &x_calc;
@@ -31,8 +34,9 @@ protected:
     bool spline_bg;
     typedef std::vector<B_point>::iterator bg_iterator;
     typedef std::vector<B_point>::const_iterator bg_const_iterator;
-    std::vector<B_point> bg;
+    std::vector<B_point> bg, bg_backup;
     std::vector<t_xy> bgline;
+    std::string cmd_tail;
 
     void recompute_bgline();
 };

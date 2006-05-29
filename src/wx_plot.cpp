@@ -26,6 +26,7 @@ using namespace std;
 enum {
     ID_aux_plot0            = 25310,
     ID_aux_plot_ctr         = 25340,
+    ID_aux_revd                    ,
     ID_aux_c_background            ,
     ID_aux_c_active_data           ,
     ID_aux_c_inactive_data         ,
@@ -344,6 +345,7 @@ BEGIN_EVENT_TABLE (AuxPlot, FPlot)
     EVT_KEY_DOWN   (      AuxPlot::OnKeyDown)
     EVT_MENU_RANGE (ID_aux_plot0, ID_aux_plot0+10, AuxPlot::OnPopupPlot)
     EVT_MENU (ID_aux_plot_ctr, AuxPlot::OnPopupPlotCtr)
+    EVT_MENU (ID_aux_revd, AuxPlot::OnPopupReversedDiff)
     EVT_MENU_RANGE (ID_aux_c_background, ID_aux_color-1, AuxPlot::OnPopupColor)
     EVT_MENU (ID_aux_m_tfont, AuxPlot::OnTicsFont)
     EVT_MENU (ID_aux_yz_change, AuxPlot::OnPopupYZoom)
@@ -372,10 +374,21 @@ fp diff_of_data_for_draw_data (vector<Point>::const_iterator i, Sum const* sum)
     return i->y - sum_value(i, sum);
 }
 
+fp rdiff_of_data_for_draw_data (vector<Point>::const_iterator i, Sum const* sum)
+{
+    return sum_value(i, sum) - i->y;
+}
+
 fp diff_stddev_of_data_for_draw_data (vector<Point>::const_iterator i, 
                                       Sum const* sum)
 {
     return (i->y - sum_value(i, sum)) / i->sigma;
+}
+
+fp rdiff_stddev_of_data_for_draw_data (vector<Point>::const_iterator i, 
+                                       Sum const* sum)
+{
+    return (sum_value(i, sum) - i->y) / i->sigma;
 }
 
 fp diff_chi2_of_data_for_draw_data (vector<Point>::const_iterator i, 
@@ -389,6 +402,12 @@ fp diff_y_proc_of_data_for_draw_data (vector<Point>::const_iterator i,
                                       Sum const* sum)
 {
     return i->y ? (i->y - sum_value(i, sum)) / i->y * 100 : 0;
+}
+
+fp rdiff_y_proc_of_data_for_draw_data (vector<Point>::const_iterator i, 
+                                       Sum const* sum)
+{
+    return i->y ? (sum_value(i, sum) - i->y) / i->y * 100 : 0;
 }
 
 void AuxPlot::Draw(wxDC &dc, bool monochrome)
@@ -434,11 +453,14 @@ void AuxPlot::Draw(wxDC &dc, bool monochrome)
     fp (*f)(vector<Point>::const_iterator, Sum const*) = 0;
     bool cummulative = false;
     if (kind == apk_diff) 
-        f = diff_of_data_for_draw_data;
+        f = reversed_diff ? rdiff_of_data_for_draw_data 
+                          : diff_of_data_for_draw_data;
     else if (kind == apk_diff_stddev)
-        f = diff_stddev_of_data_for_draw_data;
+        f = reversed_diff ? rdiff_stddev_of_data_for_draw_data 
+                          : diff_stddev_of_data_for_draw_data;
     else if (kind == apk_diff_y_proc)
-        f = diff_y_proc_of_data_for_draw_data;
+        f = reversed_diff ? rdiff_y_proc_of_data_for_draw_data
+                          : diff_y_proc_of_data_for_draw_data;
     else if (kind == apk_cum_chi2) {
         f = diff_chi2_of_data_for_draw_data;
         cummulative = true;
@@ -530,6 +552,7 @@ void AuxPlot::read_settings(wxConfigBase *cf)
     cf->SetPath(path);
     kind = static_cast <Aux_plot_kind_enum> (cf->Read (wxT("kind"), apk_diff));
     mark_peak_ctrs = cfg_read_bool (cf, wxT("markCtr"), false);  
+    reversed_diff = cfg_read_bool (cf, wxT("reversedDiff"), false);  
     auto_zoom_y = false;
     line_between_points = cfg_read_bool(cf, wxT("line_between_points"), true);
     point_radius = cf->Read (wxT("point_radius"), 1);
@@ -553,6 +576,7 @@ void AuxPlot::save_settings(wxConfigBase *cf) const
     cf->SetPath(wxT("/AuxPlot_") + name);
     cf->Write (wxT("kind"), kind); 
     cf->Write (wxT("markCtr"), mark_peak_ctrs);
+    cf->Write (wxT("reversedDiff"), reversed_diff);
     cf->Write (wxT("line_between_points"), line_between_points);
     cf->Write (wxT("point_radius"), point_radius);
     cf->Write(wxT("yMaxTics"), y_max_tics);
@@ -638,7 +662,11 @@ void AuxPlot::OnRightDown (wxMouseEvent &event)
                                wxT("cumulative chi square"));
     popup_menu.Check(ID_aux_plot0+kind, true);
     popup_menu.AppendSeparator();
-    popup_menu.AppendCheckItem(ID_aux_plot_ctr, wxT("peak po&sitions"), 
+    popup_menu.AppendCheckItem(ID_aux_revd, wxT("reversed diff"), 
+                               wxT(""));
+    popup_menu.Check(ID_aux_revd, reversed_diff);
+    popup_menu.AppendSeparator();
+    popup_menu.AppendCheckItem(ID_aux_plot_ctr, wxT("show peak po&sitions"), 
                                wxT("mark centers of peaks"));
     popup_menu.Check(ID_aux_plot_ctr, mark_peak_ctrs);
     popup_menu.AppendSeparator();
@@ -693,6 +721,12 @@ void AuxPlot::OnPopupPlot (wxCommandEvent& event)
 void AuxPlot::OnPopupPlotCtr (wxCommandEvent& event)
 {
     mark_peak_ctrs = event.IsChecked();
+    Refresh(false);
+}
+
+void AuxPlot::OnPopupReversedDiff (wxCommandEvent& event)
+{
+    reversed_diff = event.IsChecked();
     Refresh(false);
 }
 

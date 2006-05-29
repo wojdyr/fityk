@@ -336,7 +336,7 @@ void do_export_sum(char const*, char const*)
     else if (t2 == "formula") {
         for (vector<DataWithSum*>::const_iterator i=v.begin(); i!=v.end(); ++i){
             os << "# " << (*i)->get_data()->get_title() << endl;
-            os << (*i)->get_sum()->get_formula(with_plus);
+            os << (*i)->get_sum()->get_formula(!with_plus);
         }
     }
 }
@@ -452,7 +452,7 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         | str_p("types") [&do_print_info]
         | str_p("functions") [&do_print_info]
         | str_p("datasets") [&do_print_info]
-        | (str_p("commands") >> IntRangeG) [&do_list_commands] 
+        | (str_p("commands") >> optional_plus >> IntRangeG) [&do_list_commands] 
         | str_p("commands") [&do_print_info] 
         | str_p("view") [&do_print_info]
         | str_p("set") [&do_print_info] 

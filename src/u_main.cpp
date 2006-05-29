@@ -332,10 +332,14 @@ char **my_completion (const char *text, int start, int end)
         return rl_completion_matches(text, variable_generator);
 
     // info completion
-    if (cmd_start <= start-2 && !strncmp(ptr, "i ", 2)
-            || cmd_start <= start-3 && !strncmp(ptr, "in ", 3) 
-            || cmd_start <= start-4 && !strncmp(ptr, "inf ", 4) 
-            || cmd_start <= start-5 && !strncmp(ptr, "info ", 5)) {
+    if (cmd_start <= start-2 && (!strncmp(ptr, "i ", 2) 
+                                 || !strncmp(ptr, "i+", 2))
+            || cmd_start <= start-3 && (!strncmp(ptr, "in ", 3) 
+                                        || !strncmp(ptr, "in+", 3))
+            || cmd_start <= start-4 && (!strncmp(ptr, "inf ", 4) 
+                                        || !strncmp(ptr, "inf+", 4))
+            || cmd_start <= start-5 && (!strncmp(ptr, "info ", 5)
+                                        || !strncmp(ptr, "info+", 5))) {
         return rl_completion_matches(text, info_generator);
     }
 

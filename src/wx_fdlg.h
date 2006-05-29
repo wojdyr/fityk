@@ -48,7 +48,26 @@ protected:
     DECLARE_EVENT_TABLE()
 };
 
+
 bool export_data_dlg(wxWindow *parent, bool load_exported=false);
+
+class DataExportDlg : public wxDialog
+{
+public:
+    DataExportDlg(wxWindow* parent, wxWindowID id, std::string const& ds);
+    void OnRadioChanged(wxCommandEvent&) { on_widget_change(); }
+    void OnInactiveChanged(wxCommandEvent&) { on_widget_change(); }
+    void OnTextChanged(wxCommandEvent&);
+    void OnOk(wxCommandEvent& event);
+    void on_widget_change();
+    std::string get_columns() { return wx2s(text->GetValue()); }
+protected:
+    wxRadioBox *rb;
+    wxCheckBox *inactive_cb;
+    wxTextCtrl *text;
+    wxArrayString cv;
+    DECLARE_EVENT_TABLE()
+};
 
 
 class PrintManager

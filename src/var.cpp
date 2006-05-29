@@ -101,9 +101,9 @@ string Variable::get_info(vector<fp> const &parameters,
                           bool extended) const 
 { 
     string s = xname + " = "+ get_formula(parameters) + " = " + S(value);
+    if (auto_delete)
+        s += "  [auto]";
     if (extended && nr == -1) {
-        if (auto_delete)
-            s += "  [auto]";
         for (unsigned int i = 0; i < varnames.size(); ++i)
             s += "\nd(" + xname + ")/d($" + varnames[i] + "): " 
                     + op_trees[i]->str(&varnames) + " == " + S(derivatives[i]);

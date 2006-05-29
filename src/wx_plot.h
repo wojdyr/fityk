@@ -133,6 +133,7 @@ public:
     bool is_zoomable(); //false if kind is eg. empty or peak-position
     void OnPopupPlot (wxCommandEvent& event);
     void OnPopupPlotCtr (wxCommandEvent& event);
+    void OnPopupReversedDiff (wxCommandEvent& event);
     void OnPopupColor (wxCommandEvent& event);
     void OnPopupYZoom (wxCommandEvent& event);
     void OnPopupYZoomFit (wxCommandEvent& event);
@@ -145,6 +146,7 @@ private:
     wxString name;
     Aux_plot_kind_enum kind;
     bool mark_peak_ctrs;
+    bool reversed_diff;
     fp y_zoom, y_zoom_base;
     bool auto_zoom_y;
     bool fit_y_once;

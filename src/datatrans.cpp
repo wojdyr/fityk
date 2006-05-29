@@ -918,9 +918,15 @@ vector<Point> transform_data(string const& str, vector<Point> const& old_points)
 bool validate_transformation(string const& str)
 {
     clear_parse_vecs();
-    // First compile string...
     parse_info<> result = parse(str.c_str(), DataTransformG, space_p);
     return (bool) result.full;
+}
+
+bool validate_data_expression(string const& str)
+{
+    clear_parse_vecs();
+    parse_info<> result = parse(str.c_str(), DataExpressionG, space_p);
+    return (bool) result.full; 
 }
 
 //TODO function which check for point-dependent ops 

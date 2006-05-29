@@ -144,7 +144,9 @@ public:
     void OnChangeMouseMode (wxCommandEvent& event);
     void OnUpdateFuncList(wxUpdateUIEvent& event);
     void OnChangePeakType(wxCommandEvent& event);
+    void OnGMBgUpdate    (wxUpdateUIEvent& event);
     void OnStripBg       (wxCommandEvent& event);
+    void OnUndoBg        (wxCommandEvent& event);
     void OnClearBg       (wxCommandEvent& event);
     void OnSplineBg      (wxCommandEvent& event);
     void GViewAll();

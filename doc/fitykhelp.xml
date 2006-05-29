@@ -1786,6 +1786,7 @@
  <appendix id="flist">
   <title>List of functions</title>
   <para>
+
    The list of all functions can be obtained using 
    <userinput>i+ types</userinput>. Some formulae here have long parameter
    names (like "height", "center" and "hwhm") replaced with 
@@ -1804,6 +1805,21 @@
      </textobject>
     </mediaobject>  
    </equation>
+
+   <equation id="splitgaussian">
+    <title>SplitGaussian</title>
+    <mediaobject>
+     <imageobject>
+      <imagedata fileref="fitykhelp_img/splitgaussian.png"/>
+     </imageobject>
+     <textobject>
+      <phrase> 
+       Type in program "info SplitGaussian" to see formula.
+      </phrase>
+     </textobject>
+    </mediaobject>  
+   </equation>
+
    <equation id="gaussiana">
     <title>GaussianA</title>
     <mediaobject>
@@ -1817,6 +1833,7 @@
      </textobject>
     </mediaobject>  
    </equation>
+
    <equation id="lorentzian">
     <title>Lorentzian</title>
     <mediaobject>
@@ -1830,6 +1847,7 @@
      </textobject>
     </mediaobject>  
    </equation>
+
    <equation id="lorentziana">
     <title>LorentzianA</title>
     <mediaobject>
@@ -1843,6 +1861,7 @@
      </textobject>
     </mediaobject>  
    </equation>
+
    <equation id="pearson7">
     <title>Pearson VII (Pearson7)</title>
     <mediaobject>
@@ -1856,6 +1875,21 @@
      </textobject>
     </mediaobject>  
    </equation>
+
+   <equation id="splitpearson7">
+    <title>Split-Pearson-VII (SplitPearson7)</title>
+    <mediaobject>
+     <imageobject>
+      <imagedata fileref="fitykhelp_img/splitpearson7.png"/>
+     </imageobject>
+     <textobject>
+      <phrase> 
+       Type in program "info SplitPearson7" to see formula.
+      </phrase>
+     </textobject>
+    </mediaobject>  
+   </equation>
+
    <equation id="psvoigt">
     <title>Pseudo-Voigt (PseudoVoigt)</title>
     <mediaobject>
@@ -1872,6 +1906,7 @@
    Pseudo-Voigt is a name for sum of Gaussian and Lorentzian.
    a<subscript>3</subscript> parameters in Pearson VII and Pseudo-Voigt 
    are not related.
+
    <equation id="psvoigta">
     <title>Pseudo-Voigt-Area (PseudoVoigtA)</title>
     <mediaobject>
@@ -1885,6 +1920,7 @@
      </textobject>
     </mediaobject>  
    </equation>
+
    <equation id="voigt">
     <title>Voigt</title>
     <mediaobject>
@@ -1903,7 +1939,7 @@
    a<subscript>1</subscript> = center,
    a<subscript>2</subscript> is proportional to the Gaussian width, and
    a<subscript>3</subscript> is proportional to the ratio of Lorentzian 
-   and Gaussian widths. And t is just a variable of integration.  
+   and Gaussian widths. 
    Voigt is computed according to R.J.Wells, 
    <citetitle pubwork="article">
     Rapid approximation to the Voigt/Faddeeva function and its derivatives
@@ -1913,6 +1949,7 @@
    (See also: http://personalpages.umist.ac.uk/staff/Bob.Wells/voigt.html). 
    Is the approximation exact enough for all possible uses of 
    <application>fityk</application> program? 
+
    <equation id="voigta">
     <title>VoigtA</title>
     <mediaobject>
@@ -1926,6 +1963,7 @@
      </textobject>
     </mediaobject>  
    </equation>
+
    <equation id="emg">
     <title>Exponentially Modified Gaussian (EMG)</title>
     <mediaobject>
@@ -1939,6 +1977,7 @@
      </textobject>
     </mediaobject>  
    </equation>
+
    <equation id="doniachs">
     <title>Doniach-Sunjic (DoniachSunjic)</title>
     <mediaobject>
@@ -1952,6 +1991,7 @@
      </textobject>
     </mediaobject>  
    </equation>
+
    <equation>
     <title>Polynomial5</title>
     <mediaobject>
@@ -1965,6 +2005,7 @@
      </textobject>
     </mediaobject>  
    </equation>
+
   </para>
  </appendix>
 

@@ -17,6 +17,7 @@ std::vector<Point> transform_data(std::string const& str,
                                   std::vector<Point> const& old_points);
 
 bool validate_transformation(std::string const& str); 
+bool validate_data_expression(std::string const& str);
 fp get_transform_expression_value(std::string const &s, Data const* data);
 std::vector<fp> get_all_point_expressions(std::string const &s, 
                                           Data const* data,

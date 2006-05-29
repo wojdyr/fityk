@@ -1,7 +1,7 @@
 #!/bin/bash 
 # $Id$
 
-version=0.7.3
+version=0.7.4
 WEB="iris:/d2/people/wojdyr/www/fityk2/" 
 TEMP_DOWNLOAD=$WEB/d/
 SF_NEW_RELEASE="https://sourceforge.net/project/admin/newrelease.php?package_id=80864&group_id=79434"

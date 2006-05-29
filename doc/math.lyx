@@ -140,6 +140,17 @@ y=a_{0}\exp\left[-\ln(2)\left(\frac{x-a_{1}}{a_{2}}\right)^{2}\right]\]
 
 \layout Standard
 
+SplitGaussian
+\begin_inset Formula \[
+y(x;a_{0},a_{1},a_{2},a_{3})=\begin{cases}
+\textrm{Gaussian}(x;a_{0},a_{1},a_{2}) & x\leq a_{1}\\
+\textrm{Gaussian}(x;a_{0},a_{1},a_{3}) & x>a_{1}\end{cases}\]
+
+\end_inset 
+
+
+\layout Standard
+
 GaussianA
 \layout Standard
 
@@ -191,6 +202,17 @@ y=a_{0}\left[\frac{(1-a_{3})\sqrt{\ln2}}{a_{2}\sqrt{\pi}}\exp\left(-\ln2\left(\f
 Pearson7
 \begin_inset Formula \[
 y=\frac{a_{0}}{\left[1+\left(\frac{x-a_{1}}{a_{2}}\right)^{2}\left(2^{\frac{1}{a_{3}}}-1\right)\right]^{a_{3}}}\]
+
+\end_inset 
+
+
+\layout Standard
+
+SplitPearson7
+\begin_inset Formula \[
+y(x;a_{0},a_{1},a_{2},a_{3},a_{4},a_{5})=\begin{cases}
+\textrm{Pearson7}(x;a_{0},a_{1},a_{2},a_{4}) & x\leq a_{1}\\
+\textrm{Pearson7}(x;a_{0},a_{1},a_{3},a_{5}) & x>a_{1}\end{cases}\]
 
 \end_inset 
 

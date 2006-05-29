@@ -109,6 +109,7 @@ enum {
     ID_S_VARLIST               ,
     ID_S_EXPORTP               ,
     ID_S_EXPORTF               ,
+    ID_S_EXPORTD               ,
     ID_F_METHOD                ,
     ID_F_RUN                   ,
     ID_F_CONTINUE              ,
@@ -135,6 +136,7 @@ enum {
     ID_G_M_BG                  ,
     ID_G_M_ADD                 ,
     ID_G_M_BG_STRIP            ,
+    ID_G_M_BG_UNDO             ,
     ID_G_M_BG_CLEAR            ,
     ID_G_M_BG_SPLINE           ,
     ID_G_M_BG_SUB              ,
@@ -312,6 +314,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_S_VARLIST,     FFrame::OnSVarList)  
     EVT_MENU (ID_S_EXPORTP,     FFrame::OnSExport)   
     EVT_MENU (ID_S_EXPORTF,     FFrame::OnSExport)   
+    EVT_MENU (ID_S_EXPORTD,     FFrame::OnDExport)   
 
     EVT_UPDATE_UI (ID_F_METHOD, FFrame::OnFMethodUpdate)
     EVT_MENU_RANGE (ID_F_M+0, ID_F_M_END, FFrame::OnFOneOfMethods)    
@@ -340,7 +343,9 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_M_ADD,       FFrame::OnChangeMouseMode)
     EVT_UPDATE_UI (ID_G_M_PEAK, FFrame::OnUpdateFuncList)
     EVT_MENU_RANGE (ID_G_M_PEAK_N, ID_G_M_PEAK_N_END, FFrame::OnChangePeakType)
+    EVT_UPDATE_UI(ID_G_M_BG_SUB,FFrame::OnGMBgUpdate)
     EVT_MENU (ID_G_M_BG_STRIP,  FFrame::OnStripBg)
+    EVT_MENU (ID_G_M_BG_UNDO,   FFrame::OnUndoBg)
     EVT_MENU (ID_G_M_BG_CLEAR,  FFrame::OnClearBg)
     EVT_MENU (ID_G_M_BG_SPLINE, FFrame::OnSplineBg)
     EVT_UPDATE_UI (ID_G_SHOW,   FFrame::OnGuiShowUpdate)
@@ -605,14 +610,18 @@ void FFrame::set_menubar()
     sum_menu->Append (ID_S_GUESS, wxT("&Guess Peak"),wxT("Guess and add peak"));
     sum_menu->Append (ID_S_PFINFO, wxT("Peak-Find &Info"), 
                                 wxT("Show where guessed peak would be placed"));
-    sum_menu->Append (ID_S_FUNCLIST, wxT("&Function List"),
+    sum_menu->AppendSeparator();
+    sum_menu->Append (ID_S_FUNCLIST, wxT("Show &Function List"),
                                 wxT("Open `Functions' tab on right-hand pane"));
-    sum_menu->Append (ID_S_VARLIST, wxT("&Variable List"),
+    sum_menu->Append (ID_S_VARLIST, wxT("Show &Variable List"),
                                 wxT("Open `Variables' tab on right-hand pane"));
-    sum_menu->Append (ID_S_EXPORTP, wxT("&Export Peaks"), 
+    sum_menu->AppendSeparator();
+    sum_menu->Append (ID_S_EXPORTP, wxT("&Export Peak Parameters"), 
                                     wxT("Export function parameters to file"));
     sum_menu->Append (ID_S_EXPORTF, wxT("&Export Formula"), 
                                     wxT("Export mathematic formula to file"));
+    sum_menu->Append (ID_S_EXPORTD, wxT("&Export Points"), 
+                                    wxT("Export as points in TSV file"));
 
     wxMenu* fit_menu = new wxMenu;
     wxMenu* fit_method_menu = new wxMenu;
@@ -645,8 +654,11 @@ void FFrame::set_menubar()
     wxMenu* baseline_menu = new wxMenu;
     baseline_menu->Append (ID_G_M_BG_STRIP, wxT("&Strip baseline"), 
                            wxT("Subtract selected baseline from data"));
-    baseline_menu->Append (ID_G_M_BG_CLEAR, wxT("&Clear baseline"), 
-                           wxT("Clear baseline points"));
+    baseline_menu->Append (ID_G_M_BG_UNDO, wxT("&Undo strip baseline"), 
+                           wxT("Subtract selected baseline from data"));
+    baseline_menu->Append (ID_G_M_BG_CLEAR, wxT("&Clear/forget baseline"), 
+                           wxT("Clear baseline points, disable undo"));
+    baseline_menu->AppendSeparator();
     baseline_menu->AppendCheckItem(ID_G_M_BG_SPLINE, 
                                    wxT("&Spline interpolation"), 
                                    wxT("Cubic spline interpolation of points"));
@@ -1129,27 +1141,27 @@ void FFrame::OnSettings    (wxCommandEvent& WXUNUSED(event))
 
 void FFrame::OnChangeMouseMode (wxCommandEvent& event)
 {
-    const MainPlot* plot = plot_pane->get_plot();
-    if (plot->get_mouse_mode() == mmd_bg && !plot->bg_empty()) {
-        int r = wxMessageBox(wxT("You have selected the baseline,"
-                             wxT(" but have not\n"))
-                             wxT("stripped it. Do you want to change data\n")
-                             wxT("and strip selected baseline?\n") 
-                             wxT("If you want to stay in background mode,\n")
-                             wxT("press Cancel."),
-                             wxT("Want to strip background?"), 
-                             wxICON_QUESTION|wxYES_NO|wxCANCEL);
-        if (r == wxYES)
-            plot_pane->get_bg_manager()->strip_background();
-        else if (r == wxNO)
-            plot_pane->get_bg_manager()->clear_background();
-        else { //wxCANCEL
-            GetMenuBar()->Check(ID_G_M_BG, true);
-            if (toolbar) 
-                toolbar->ToggleTool(ID_ft_m_bg, true);
-            return;
-        }
-    }
+    //const MainPlot* plot = plot_pane->get_plot();
+    //if (plot->get_mouse_mode() == mmd_bg && plot->can_strip()) {
+    //    int r = wxMessageBox(wxT("You have selected the baseline,"
+    //                         wxT(" but have not\n"))
+    //                         wxT("stripped it. Do you want to change data\n")
+    //                         wxT("and strip selected baseline?\n") 
+    //                         wxT("If you want to stay in background mode,\n")
+    //                         wxT("press Cancel."),
+    //                         wxT("Want to strip background?"), 
+    //                         wxICON_QUESTION|wxYES_NO|wxCANCEL);
+    //    if (r == wxYES)
+    //        plot_pane->get_bg_manager()->strip_background();
+    //    else if (r == wxNO)
+    //        plot_pane->get_bg_manager()->clear_background();
+    //    else { //wxCANCEL
+    //        GetMenuBar()->Check(ID_G_M_BG, true);
+    //        if (toolbar) 
+    //            toolbar->ToggleTool(ID_ft_m_bg, true);
+    //        return;
+    //    }
+    //}
     MouseModeEnum mode = mmd_zoom;
     switch (event.GetId()) {
         case ID_G_M_ZOOM:   
@@ -1213,14 +1225,28 @@ void FFrame::OnChangePeakType(wxCommandEvent& event)
         toolbar->update_peak_type(peak_type_nr);
 }
 
+void FFrame::OnGMBgUpdate(wxUpdateUIEvent& event)
+{
+    BgManager* bgm = plot_pane->get_bg_manager();
+    GetMenuBar()->Enable(ID_G_M_BG_STRIP, bgm->can_strip());
+    GetMenuBar()->Enable(ID_G_M_BG_UNDO, bgm->can_undo());
+    GetMenuBar()->Enable(ID_G_M_BG_CLEAR, bgm->can_strip() || bgm->can_undo());
+    event.Skip();
+}
+
 void FFrame::OnStripBg(wxCommandEvent& WXUNUSED(event))
 {
     plot_pane->get_bg_manager()->strip_background();
 }
 
+void FFrame::OnUndoBg(wxCommandEvent& WXUNUSED(event))
+{
+    plot_pane->get_bg_manager()->undo_strip_background();
+}
+
 void FFrame::OnClearBg(wxCommandEvent& WXUNUSED(event))
 {
-    plot_pane->get_bg_manager()->clear_background();
+    plot_pane->get_bg_manager()->forget_background();
     refresh_plots(true, false, true);
 }
 
@@ -1483,6 +1509,10 @@ void FFrame::after_cmd_updates()
 {
     sidebar->update_lists(false);
     update_peak_type_list();
+    if (toolbar) {
+        toolbar->ToggleTool(ID_ft_b_strip, 
+                            plot_pane->get_bg_manager()->can_undo());
+    }
 }
 
 string FFrame::get_active_data_str()
@@ -1625,9 +1655,9 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     AddSeparator();
     //background
     AddTool(ID_ft_b_strip, wxT("Strip Bg"), 
-            wxBitmap(strip_bg_xpm), wxNullBitmap,  
-            wxITEM_NORMAL, wxT("Strip background"),
-            wxT("Remove selected background from data"));
+            wxBitmap(strip_bg_xpm), wxNullBitmap,  wxITEM_CHECK, 
+            wxT("Strip background"),
+            wxT("(Un)Remove selected background from data"));
     EnableTool(ID_ft_b_strip, (m == mmd_bg));
     AddSeparator();
     peak_choice = new wxChoice(this, ID_ft_peakchoice); 
@@ -1695,7 +1725,10 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
             frame->OnPreviousZoom(dummy_cmd_event);
             break;
         case ID_ft_b_strip: 
-            frame->plot_pane->get_bg_manager()->strip_background();
+            if (event.IsChecked())
+                frame->plot_pane->get_bg_manager()->strip_background();
+            else
+                frame->plot_pane->get_bg_manager()->undo_strip_background();
             break; 
         case ID_ft_f_run : 
             exec_command("fit" + frame->get_in_dataset()); 

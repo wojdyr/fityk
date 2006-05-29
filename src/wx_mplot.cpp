@@ -404,7 +404,7 @@ void MainPlot::prepare_peak_labels(Sum const* sum)
 
 void MainPlot::draw_background(wxDC& dc, bool set_pen)
 {
-    if (set_pen)
+    if (set_pen) 
         dc.SetPen(wxPen(bg_pointsCol));
     dc.SetBrush (*wxTRANSPARENT_BRUSH);
     // bg line
@@ -419,6 +419,7 @@ void MainPlot::draw_background(wxDC& dc, bool set_pen)
     // bg points (circles)
     for (bg_const_iterator i = bg.begin(); i != bg.end(); i++) {
         dc.DrawCircle(x2X(i->x), y2Y(i->y), 3);
+        dc.DrawCircle(x2X(i->x), y2Y(i->y), 4);
     }
 }
 
@@ -1507,6 +1508,21 @@ void auto_background (int n, fp p1, bool is_proc1, fp p2, bool is_proc2)
 
 void BgManager::add_background_point(fp x, fp y)
 {
+    if (!bg_backup.empty()) {
+        int r = wxMessageBox(wxT("The old background has been removed\n")
+                             wxT("and now you start to create a new one.\n")
+                             wxT("It will make impossible to undo\n")
+                             wxT("removing the old background.\n\n")
+                             wxT("Use GUI->Mode->Baseline Handling->Clear...\n")
+                             wxT("to forget the old background explicitly.\n\n")
+                             wxT("Continue?"),
+                             wxT("Do you want to start a new background?"),
+                             wxICON_QUESTION|wxYES_NO);
+        if (r == wxYES)
+            bg_backup.clear();
+        else
+            return;
+    }
     rm_background_point(x);
     B_point t(x, y);
     bg_iterator l = lower_bound(bg.begin(), bg.end(), t);
@@ -1531,7 +1547,8 @@ void BgManager::clear_background()
     int n = bg.size();
     bg.clear();
     recompute_bgline();
-    verbose (S(n) + " background points deleted.");
+    if (n != 0)
+        verbose (S(n) + " background points deleted.");
 }
 
 void BgManager::strip_background()
@@ -1543,10 +1560,23 @@ void BgManager::strip_background()
         pars.push_back(i->x);
         pars.push_back(i->y);
     }
+    bg_backup = bg;
+    cmd_tail = (spline_bg ? "spline[" : "interpolate[") 
+               + join_vector(pars, ", ") + "](x)" 
+               + frame->get_in_one_or_all_datasets();
     clear_background();
-    exec_command("Y = y - spline[" + join_vector(pars, ", ") + "](x)" 
-                 + frame->get_in_one_or_all_datasets());
+    exec_command("Y = y - " + cmd_tail);
     verbose("Background stripped.");
+}
+
+void BgManager::undo_strip_background()
+{
+    if (bg_backup.empty())
+        return;
+    bg = bg_backup;
+    bg_backup.clear();
+    recompute_bgline();
+    exec_command("Y = y + " + cmd_tail);
 }
 
 void BgManager::recompute_bgline()

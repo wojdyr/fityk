@@ -36,6 +36,7 @@
 #include "data.h"
 #include "sum.h"
 #include "ui.h"
+#include "datatrans.h"
 
 
 using namespace std;
@@ -48,7 +49,10 @@ enum {
     ID_DXLOAD_AUTO_TEXT           ,
     ID_DXLOAD_AUTO_PLOT           ,
     ID_DXLOAD_OPENHERE            ,
-    ID_DXLOAD_OPENNEW               
+    ID_DXLOAD_OPENNEW             ,
+    ID_DED_RADIO                  ,
+    ID_DED_INACT_CB               ,
+    ID_DED_TEXT                   
 };
 
 
@@ -355,20 +359,141 @@ string FDXLoadDlg::get_command_tail()
 bool export_data_dlg(wxWindow *parent, bool load_exported)
 {
     static wxString dir = wxT(".");
+    string columns = "";
+    string ds = frame->get_active_data_str();
+    if (!load_exported) {
+        DataExportDlg ded(parent, -1, ds);
+        if (ded.ShowModal() != wxID_OK)
+            return false;
+        columns = " (" + ded.get_columns() + ")";
+    }
     wxFileDialog fdlg (parent, wxT("Export data to file"), dir, wxT(""),
                        wxT("x y data (*.dat, *.xy)|*.dat;*.DAT;*.xy;*.XY"),
                        wxSAVE | wxOVERWRITE_PROMPT);
     dir = fdlg.GetDirectory();
     if (fdlg.ShowModal() == wxID_OK) {
         string path = wx2s(fdlg.GetPath());
-        string ds = frame->get_active_data_str();
-        exec_command(ds + " > '" + path + "'");
+        exec_command(ds + columns + " > '" + path + "'");
         if (load_exported)
-            exec_command(ds + " <'" + path + "'");
+            exec_command(ds + " < '" + path + "'");
         return true;
     }
     else
         return false;
+}
+//======================================================================
+//                         DataExportDlg
+//======================================================================
+BEGIN_EVENT_TABLE(DataExportDlg, wxDialog)
+    EVT_BUTTON(wxID_OK, DataExportDlg::OnOk)
+    EVT_RADIOBOX(ID_DED_RADIO, DataExportDlg::OnRadioChanged)
+    EVT_CHECKBOX(ID_DED_INACT_CB, DataExportDlg::OnInactiveChanged)
+    EVT_TEXT(ID_DED_TEXT, DataExportDlg::OnTextChanged)
+END_EVENT_TABLE()
+
+DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id, 
+                             std::string const& ds)
+    : wxDialog(parent, id, wxT("Export data/functions as points"), 
+               wxDefaultPosition, wxSize(600, 500), 
+               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
+{
+    wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
+    wxStaticText *st1 = new wxStaticText(this, -1, 
+                                         wxT("       Step 1: Select columns"));
+    top_sizer->Add(st1, 0, wxTOP|wxLEFT|wxRIGHT, 5);
+    wxStaticText *st2 = new wxStaticText(this, -1, 
+                                         wxT("       Step 2: Choose a file"));
+    st2->Enable(false);
+    top_sizer->Add(st2, 0, wxALL, 5);
+    wxArrayString choices;
+    choices.Add(wxT("x, y"));
+    cv.Add(wxT("x, y"));
+    choices.Add(wxT("x, y, sigma"));
+    cv.Add(wxT("x, y, s"));
+    choices.Add(wxT("x, sum"));
+    cv.Add(wxT("x, ") + s2wx(ds) + wxT(".F(x)"));
+    choices.Add(wxT("x, sum, zero shift"));
+    cv.Add(wxT("x, ") + s2wx(ds) + wxT(".F(x), ") + s2wx(ds) + wxT(".Z(x)"));
+    choices.Add(wxT("x, y, sigma, sum"));
+    cv.Add(wxT("x, y, s, ") + s2wx(ds) + wxT(".F(x)"));
+    choices.Add(wxT("x, y, sigma, sum, all functions..."));
+    cv.Add(wxT("x, y, s, ") + s2wx(ds) + wxT(".F(x), *F(x)"));
+    choices.Add(wxT("x, y, sigma, sum, residual"));
+    cv.Add(wxT("x, y, s, ") + s2wx(ds) + wxT(".F(x), y-") + s2wx(ds) 
+            + wxT(".F(x)"));
+    choices.Add(wxT("x, y, sigma, weighted residual"));
+    cv.Add(wxT("x, y, s, (y-") + s2wx(ds) + wxT(".F(x))/s"));
+    choices.Add(wxT("custom"));
+    rb = new wxRadioBox(this, ID_DED_RADIO, wxT("exported columns"),
+                        wxDefaultPosition, wxDefaultSize, choices,
+                        2, wxRA_SPECIFY_COLS);
+    top_sizer->Add(rb, 0, wxALL|wxEXPAND, 5);
+    inactive_cb = new wxCheckBox(this, ID_DED_INACT_CB, 
+                                 wxT("export also inactive points"));
+    top_sizer->Add(inactive_cb, 0, wxALL, 5);
+    text = new wxTextCtrl(this, ID_DED_TEXT, wxT(""));
+    top_sizer->Add(text, 0, wxEXPAND|wxALL, 5);
+    top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
+    top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL), 
+                   0, wxALL|wxALIGN_CENTER, 5);
+    SetSizerAndFit(top_sizer);
+    //read settings
+    wxString t = wxConfig::Get()->Read(wxT("/exportDataCols"), wxT("x, y, s"));
+    for (size_t i = 0; i < cv.GetCount(); ++i) {
+        if (t == cv[i]) {
+            rb->SetSelection(i);
+            inactive_cb->SetValue(false);
+            on_widget_change();
+            return;
+        }
+        else if (t == cv[i]+wxT(", a")) {
+            rb->SetSelection(i);
+            inactive_cb->SetValue(true);
+            on_widget_change();
+            return;
+        }
+    }
+    rb->SetSelection(cv.GetCount());
+    text->SetValue(t);
+    text->MarkDirty();
+}
+
+void DataExportDlg::on_widget_change()
+{
+    int n = rb->GetSelection();
+    bool is_custom = (n == (int) cv.GetCount());
+    if (!is_custom) {
+        text->SetValue(cv[n] + (inactive_cb->GetValue() ? wxT(", a"):wxT("")));
+        FindWindow(wxID_OK)->Enable(true);
+    }
+    text->Enable(is_custom);
+    inactive_cb->Enable(!is_custom);
+}
+
+void DataExportDlg::OnTextChanged(wxCommandEvent&) 
+{ 
+    if (!text->IsModified())
+        return;
+    vector<string> cols = split_string(wx2s(text->GetValue()), ",");
+    bool has_a = false;
+    bool parsable = true;
+    for (vector<string>::const_iterator i = cols.begin(); i != cols.end(); ++i){
+        string t = strip_string(*i);
+        if (t == "a")
+            has_a = true;
+        if (!(startswith(t, "*F(") && *(t.end()-1) == ')' 
+                    && validate_data_expression(string(t, 3, t.size()-4))
+              || validate_data_expression(t)))
+            parsable = false;
+    }
+    FindWindow(wxID_OK)->Enable(parsable);
+    inactive_cb->SetValue(has_a);
+}
+
+void DataExportDlg::OnOk(wxCommandEvent& event) 
+{
+    wxConfig::Get()->Write(wxT("/exportDataCols"), text->GetValue());
+    event.Skip();
 }
 
 //======================================================================
