@@ -122,6 +122,7 @@ public:
     void OnSExport       (wxCommandEvent& event);           
 
     void OnFMethodUpdate (wxUpdateUIEvent& event);           
+    void OnFContinueUpdate (wxUpdateUIEvent& event);           
     void OnFOneOfMethods (wxCommandEvent& event);
     void OnFRun          (wxCommandEvent& event);        
     void OnFContinue     (wxCommandEvent& event);             
@@ -180,7 +181,7 @@ public:
     const FToolBar* get_toolbar() const { return toolbar; }
     std::string get_peak_type() const;
     void set_status_hint(std::string const& left, std::string const& right);
-    void output_text(OutputStyle style, const std::string& str);
+    void output_text(OutputStyle style, std::string const& str);
     void change_zoom(const std::string& s);
     void scroll_view_horizontally(fp step);
     void refresh_plots(bool refresh=true, bool update=false, 
@@ -190,8 +191,9 @@ public:
     void edit_in_input(std::string const& s);
     void set_status_text(std::string const& text, StatusBarField field=sbf_text)
             { if (status_bar) SetStatusText(s2wx(text), field); }
-    bool display_help_section(const std::string &s);
+    bool display_help_section(std::string const& s);
     void after_cmd_updates();
+    void update_toolbar();
     std::string get_active_data_str();
     std::string get_in_dataset();
     std::string get_in_one_or_all_datasets();

@@ -8,6 +8,7 @@
 #include "ui.h"
 #include "func.h"
 #include "sum.h"
+#include "numfuncs.h"
 #include <stdlib.h>
 #include <boost/spirit/core.hpp>
 #include <algorithm>
@@ -150,6 +151,12 @@ void Variable::run_vm(vector<Variable*> const &variables)
                 break;
             case OP_ACOS:
                 *stackPtr = acos(*stackPtr); 
+                break;
+            case OP_LGAMMA:
+                *stackPtr = lgammafn(*stackPtr); 
+                break;
+            case OP_DIGAMMA:
+                *stackPtr = digamma(*stackPtr); 
                 break;
 
             //binary operators
@@ -874,6 +881,7 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
                                           | "exp" | "log10" | "ln" 
                                           | "sin" | "cos" | "tan" 
                                           | "atan" | "asin" | "acos"
+                                          | "lgamma"
                                           ] ]
                    >>  inner_node_d[ch_p('(') >> expression >> ')']
                 |  variable

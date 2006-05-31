@@ -1,6 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
+// it contains also declarations of functions from nmath.cpp
+
 #ifndef FITYK__NUMFUNCS__H__
 #define FITYK__NUMFUNCS__H__
 
@@ -36,7 +38,10 @@ void prepare_spline_interpolation (std::vector<B_point> &bb);
 fp get_spline_interpolation(std::vector<B_point> &bb, fp x);
 fp get_linear_interpolation(std::vector<B_point> &bb, fp x);
 
-fp LnGammaE (fp x); /// log_e of Gamma function
+//fp LnGammaE (fp x); /// log_e of Gamma function
+double digamma(double x);//in nmath.cpp
+double gammafn(double x);//in nmath.cpp
+double lgammafn(double x);//in nmath.cpp
 
 // random number utilities
 inline fp rand_1_1() { return 2.0 * rand() / RAND_MAX - 1.; }

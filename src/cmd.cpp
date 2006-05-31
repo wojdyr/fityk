@@ -237,8 +237,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
         define_func
             = optional_suffix_p("def","ine") 
               >> (type_name >> '(' 
-                  >> ((function_param >> !('=' >> function_param 
-                                           >> !('*'>>ureal_p))
+                  >> ((function_param >> !('=' >> no_actions_d[FuncG])
                       ) % ',')
                   >> ')' >> '='
                   >> ((type_name >> '('

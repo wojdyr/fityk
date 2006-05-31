@@ -165,6 +165,8 @@ AC_CHECK_LIB([m], [erfc], [], [AC_MSG_ERROR(
 
 AC_CHECK_LIB([m], [finite], [AC_DEFINE([HAVE_FINITE], [1], 
 	                            [Define if finite function is available])])
+AC_CHECK_LIB([m], [isnan], [AC_DEFINE([HAVE_ISNAN], [1], 
+	                            [Define if isnan function is available])])
 
 dnl in generated configure script, this line is too late
 test "x$prefix" = xNONE && prefix=$ac_default_prefix

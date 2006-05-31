@@ -433,10 +433,12 @@ fp Function::find_extremum(fp x1, fp x2, fp xacc, int max_iter) const
 ///////////////////////////////////////////////////////////////////////
 
 // when changing, change also CompoundFunction::harddef_count
+// TODO default values for shape
 vector<string> CompoundFunction::formulae = split_string(
 "GaussianA(area, center, hwhm) = Gaussian(area/hwhm/sqrt(pi/ln(2)), center, hwhm)\n"
 "LorentzianA(area, center, hwhm) = Lorentzian(area/hwhm/pi, center, hwhm)\n"
-"PseudoVoigtA(area, center, hwhm, shape) = GaussianA(area*(1-shape), center, hwhm) + LorentzianA(area*shape, center, hwhm)",
+"Pearson7A(area, center, hwhm, shape=2) = Pearson7(area/(hwhm*exp(lgamma(shape-0.5)-lgamma(shape))*sqrt(pi/(2^(1/shape)-1))), center, hwhm, shape)\n"
+"PseudoVoigtA(area, center, hwhm, shape=0.5) = GaussianA(area*(1-shape), center, hwhm) + LorentzianA(area*shape, center, hwhm)",
   "\n");
 
 //static
@@ -476,7 +478,7 @@ void CompoundFunction::check_rhs_function(std::string const& fun,
 vector<string> CompoundFunction::get_rhs_components(string const &formula)
 {
     vector<string> result;
-    string::size_type pos = formula.find('=') + 1, 
+    string::size_type pos = formula.rfind('=') + 1, 
                       rpos = 0;
     while (pos != string::npos) {
         rpos = find_matching_bracket(formula, formula.find('(', pos));
@@ -1092,7 +1094,7 @@ fp FuncPearson7::area() const
 {
     if (vv[3] <= 0.5)
         return 0.;
-    fp g = exp_ (LnGammaE(vv[3] - 0.5) - LnGammaE(vv[3]));
+    fp g = exp(lgammafn(vv[3] - 0.5) - lgammafn(vv[3]));
     return vv[0] * 2 * fabs(vv[2])
         * sqrt(M_PI) * g / (2 * sqrt (vv[4]));
     //in f_val_precomputations(): vv[4] = pow (2, 1. / a3) - 1;
@@ -1171,8 +1173,8 @@ fp FuncSplitPearson7::area() const
 {
     if (vv[4] <= 0.5 || vv[5] <= 0.5)
         return 0.;
-    fp g1 = exp_ (LnGammaE(vv[4] - 0.5) - LnGammaE(vv[4]));
-    fp g2 = exp_ (LnGammaE(vv[5] - 0.5) - LnGammaE(vv[5]));
+    fp g1 = exp(lgammafn(vv[4] - 0.5) - lgammafn(vv[4]));
+    fp g2 = exp(lgammafn(vv[5] - 0.5) - lgammafn(vv[5]));
     return vv[0] * fabs(vv[2]) * sqrt(M_PI) * g1 / (2 * sqrt (vv[6]))
          + vv[0] * fabs(vv[3]) * sqrt(M_PI) * g2 / (2 * sqrt (vv[7]));
 }

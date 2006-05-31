@@ -1,64 +1,10 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
-// * define - check for dependencies before undefining function
-//  "undefine Function", don't allow to redefine it implicitely
-
-// * cmd: with option=value[, option2=value2 ...] command
-//          -- set value of option for this command only
-
-// * (GUI) show function limits when cursor is over peak top
-
-// * [BUG] data tranform: -x^2 == x^2. And the same in functions.
-
-//* DataExpressionGrammar and aggregate functions: 
-//    aggregate functions: min, max, sum, eg.  min(y if 20<x<25)
-//                         avg, stddev
-//      darea function:  darea(y-F(x) if 20<x<25)    -> (x[n+1]-x[n-1])/2 * t
-//    [BUG] sum() doesn't work in "info sum(x)" or $a={sum(y)}
-
-// * [BUG] "info S", "info X" give some results, 
-//  info SplitGaussian gives syntax error
-
-// * document Split* functions.
-
-// * CLI: tab expansion: info
-
-// * Command parse-and-execute flow:
-//   * parse_and_execute() should return status rather than throw exceptions
-//   * log status of executed commands 
-//   * info commands[n:m] //instead of commands[n:m]
-
-//* mixed data/sum export, eg:
-  // @n (x, y, abs(y-F(x)), %foo(x), %bar(x)) > file 
-  // only active points are exported, unless "a" is in export list
-  //"*F(...)" expands to all functions in F, ie. to %a(...), %b(...)
-
-// * (GUI) point export dialog 
-
-// * (F > file) when exporting function/sum as parameters or formula: 
-//    "@*.peaks > file.peaks"  -- separated by headers with titles
-//  --- new syntax ---
-//    @0.peaks > file # 
-//    @0.peaks+ > file # with errors
-//    @0.formula > file  #simplified
-//    @0.formula+ > file #not simplified
-
-// * (GUI) auxiliary plot - option "reverse", that shows difference
-//   between sum and data (not between data and sum).
-
-// * [GUI] undo remove background 
-
 * link to "On-line tutorial" and the tutorial itself(!)
 
 * EMG function: how to calculate it? Now there are some problems with
   this function. There must be smarter way to implement it...
-
-* Gamma function in DataExpressionGrammar and FuncGrammar,
-  and PearsonA (built-in) compound function.
-  First must have digamma function (to calculate derivative of gamma)
-
-------------- next release here (0.7.4)
 
 * Should y=0 be visible when doing plot [] [] ? 
   Perhaps one (which?) of "plot . []" and "plot . [:]" should show y=0,
@@ -71,7 +17,7 @@
  	(bug?) now it matters in which point exactly you catch the peak
 
 * user defined functions:
-      - default parameter values (use it for PseudoVoigtA)
+      - default parameter values can take any expression...
       - syntax:
         --> define Gaussian(a,pos,width): a*exp(-((x-pos)/width)^2)
 	                   ^^^ any name but 'x' allowed here
@@ -79,10 +25,15 @@
       - calculating limits, width, area, etc. for UDF(!)
 
 ------------------ next release here 0.7.5
+* use info for exports:
+  - "info" can be redirected to file in every case
+  - "... >> file" appends to file
+  - replace exporting @x.peaks, @x.formula and commands[] 
+    with info ... > filename
+     - what about @*.formula, what about data titles in headers
+  - (?) "info @n () > file"
 
 * settings: fitting options
-
-* greyed fit-continue menu/button
 
 * simple-variable domain ~3[2:14]
 
@@ -121,8 +72,6 @@
   plot window at the screen, and then rescaled to the paper size. 
   This rounding causes visible artefacts at the printout.
   (wxDC.GetSize instead of plot.GetClientSize() ?)
-
-* exporting sum and data: "F  >> file" append (not truncate) to file
 
 * info -- more informations about error, confidence limits, etc.
   graphical interface Fit > Info

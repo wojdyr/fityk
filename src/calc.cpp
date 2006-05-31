@@ -27,6 +27,7 @@
 #include "var.h"
 #include "datatrans.h"
 #include "logic.h"
+#include "numfuncs.h"
 
 ////////////////////////////////////////////////////////////////////////////
 using namespace std;
@@ -63,6 +64,8 @@ string OpTree::str(const vector<string> *vars)
         case OP_TAN:  return "tan(" + c1->str(vars) + ")";
         case OP_ASIN: return "asin("+ c1->str(vars) + ")";
         case OP_ACOS: return "acos("+ c1->str(vars) + ")";
+        case OP_LGAMMA: return "lgamma("+ c1->str(vars) + ")";
+        case OP_DIGAMMA: return "digamma("+ c1->str(vars) + ")";
         case OP_LOG10:return "log10("+c1->str(vars) + ")";
         case OP_LN:   return "ln("  + c1->str(vars) + ")";
         case OP_SQRT: return "sqrt("+ c1->str(vars) + ")";
@@ -398,6 +401,28 @@ OpTree* do_acos(OpTree *a)
     }
     else
         return new OpTree(OP_ACOS, simplify_terms(a));
+}
+
+OpTree* do_lgamma(OpTree *a)
+{
+    if (a->op == 0) {
+        double val = lgammafn(a->val);
+        delete a;
+        return new OpTree(val);
+    }
+    else
+        return new OpTree(OP_LGAMMA, simplify_terms(a));
+}
+
+OpTree* do_digamma(OpTree *a)
+{
+    if (a->op == 0) {
+        double val = lgammafn(a->val);
+        delete a;
+        return new OpTree(val);
+    }
+    else
+        return new OpTree(OP_DIGAMMA, simplify_terms(a));
 }
 
 OpTree* do_pow(OpTree *a, OpTree *b)
@@ -793,6 +818,10 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
             OpTree *root_arg = do_sub(new OpTree(1.), do_sqr(larg));
             der = do_divide(new OpTree(-1.), do_sqrt(root_arg));
             do_op = do_acos;
+        }
+        else if (s == "lgamma") {
+            der = do_digamma(larg);
+            do_op = do_lgamma;
         }
         else
             assert(0);

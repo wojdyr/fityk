@@ -1518,8 +1518,10 @@ void BgManager::add_background_point(fp x, fp y)
                              wxT("Continue?"),
                              wxT("Do you want to start a new background?"),
                              wxICON_QUESTION|wxYES_NO);
-        if (r == wxYES)
+        if (r == wxYES) {
             bg_backup.clear();
+            frame->update_toolbar();
+        }
         else
             return;
     }

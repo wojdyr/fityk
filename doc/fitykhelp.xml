@@ -339,7 +339,8 @@
    <para>
     Most of the commands can be shortened: eg. you can type 
     <command>inf</command> or <command>in</command> or <command>i</command>
-    instead of <command>info</command>.
+    instead of <command>info</command>. See <xref linkend="shortenings"/>
+    for details.
    </para>
    <para>
     Symbol '#' starts a comment - everything from
@@ -350,7 +351,7 @@
   <section>
    <title>Data from experiment </title>
    <section id="DataLoad">
-    <title>Storing and loading data </title>
+    <title>Loading data </title>
     <para>
      Data are stored in files.  Unfortunately, there are various formats of
      files with data. The basic one is text file with every line 
@@ -393,17 +394,6 @@
      quotation marks. If the file is in a text format (columns with numbers)
      it can be specified which column contains x, y and, optionally, std. dev.
      of y. 
-    </para>
-    <para>
-     Command
-     <cmdsynopsis>
-      <arg choice="plain"><replaceable>dataslot</replaceable></arg>
-      <command>&gt;</command> 
-      <arg choice="plain"><replaceable>filename</replaceable></arg> 
-     </cmdsynopsis>
-     can export data to 3-column (x, y and standard deviation) ASCII file. 
-     Only active points are being exported (see next chapter to learn about 
-     active and inactive points).
     </para>
     <para>
      Some information about current data can be obtained using command:
@@ -490,6 +480,11 @@
      will generate the sinusoid dataset with 500 points. 
     </para>
     <para>
+     If you have more than one dataset, you have to specify explicitely
+     which dataset transformation applies to. See
+     <xref linkend="multidata"/> for details.
+    </para>
+    <para>
      Points are kept sorted according to x coordinate, so changing x coordinate
      of points will also change the order and indices of points.
     </para>
@@ -509,6 +504,8 @@
      <function>atan</function>, 
      <function>asin</function>, 
      <function>acos</function>, 
+     <function>gamma</function>, 
+     <function>lgamma</function> (=ln(|gamma|)), 
      <function>abs</function>,
      <function>round</function> (rounds to the nearest integer),
      two arguments functions: 
@@ -529,6 +526,10 @@
      Conditions can be built using boolean operators and comparisions: 
      AND, OR, NOT, &gt;, &gt;=, &lt;, &lt;=, ==, 
      != (or &lt;&gt;), TRUE, FALSE.
+    </para>
+    <para>
+     Value of a data expression can be shown using command 
+     <command>info</command>, see examples at the end of this section.
     </para>
     <para>
      <function><replaceable>t</replaceable>[x=expression]</function>, where
@@ -577,6 +578,37 @@
      Spline function is used for manual background substraction in GUI.
     </para>
     <para>
+     There are also aggragate functions: 
+     <function>min</function>, <function>max</function>, 
+     <function>sum</function>, <function>avg</function>, 
+     <function>stddev</function>, <function>darea</function>. 
+     They have two forms. In the simpler one:
+     <replaceable>aggragatefunc</replaceable> 
+     (<replaceable>expression</replaceable>), the value of expression
+     in brackets is calculated for all points. <function>min</function>
+     gives the smallest value, <function>max</function> the largest,
+     <function>sum</function>, <function>avg</function> and
+     <function>stddev</function> give the sum of all values, arithmetic mean
+     and standard deviation, respectively. True value in data expression
+     is represented numerically by 1., and false by 0, 
+     so <function>sum</function> can be also used to count points
+     that fulfill given criterium.
+    </para>
+    <para>
+     <function>darea</function> gives the sum of expressions calculated
+     using formula: t*(x[n+1]-x[n-1])/2, where t is the value of expression
+     in brackets. <userinput>darea(x)</userinput> gives 
+     the area under interpolated data points, 
+     and can be used to normalize area.
+    </para>
+    <para>
+     The second form: 
+     <replaceable>aggragatefunc</replaceable> 
+     (<replaceable>expression</replaceable> 
+     if <replaceable>condition</replaceable>) takes into account only points
+     for which condition is true.
+    </para>
+    <para>
      A few examples:
      <screen>     
      Y[1...] = Y[n-1] + y[n] # integrate
@@ -591,6 +623,17 @@
 
      # make equal step, keep the number of points the same
      X = x[0] + n * (x[M-1]-x[0]) / (M-1),  Y = y[x=X], S = s[x=X], A = a[x=X]
+
+     # fityk can be used as a simple calculator
+     i 2+2 #4
+     i sin(pi/4)+cos(pi/4) #1.41421
+     i gamma(10) #362880
+
+     # examples of aggregate functions
+     i max(y) # the largest y value
+     i sum(y>avg(y)) # the number of points which have y value greater than arithmetic mean
+     Y = y / darea(y) # normalize data area
+     i darea(y-F(x) if 20&lt;x&lt;25)
      </screen>     
     </para>
    </section> 
@@ -703,13 +746,41 @@
      When loading file, a title is automatically created, either 
      using filename or it is read from the file (it depends on the format
      of the file).
-     It is used for exporting data -- some file formats require it.
+     It is used for exporting data -- some file formats require it 
+     (at this moment such formats are not supported).
      Title can be changed using command 
      <command>
       @<replaceable>n</replaceable>.title=<replaceable>new-title</replaceable>
      </command>. 
      To see title of the dataset, 
      use <command>info @<replaceable>n</replaceable></command>.
+    </para>
+   </section> 
+   <section id="dexport">
+    <title>Exporting data</title>
+    <para>
+     Command
+     <cmdsynopsis>
+      <arg choice="plain"><replaceable>dataslot</replaceable></arg>
+      <command>(<replaceable>expression</replaceable>, ...)
+      &gt;</command> 
+      <arg choice="plain"><replaceable>filename</replaceable></arg> 
+     </cmdsynopsis>
+     can export data to ASCII TSV (tab separated values) file. 
+     To export data in 3-column (x, y and standard deviation) format, use
+     <userinput>@<replaceable>n</replaceable> (x, y, s) > <replaceable>file</replaceable></userinput>.
+     If <userinput>a</userinput> is not listed in the list of columns,
+     like in this example, only active points are exported.
+    </para>
+    <para>
+     All expressions that can be used on right hand side of data transformations
+     can be used in column list, eg.
+     <userinput>@0 (n+1, x, y, @0.F(x), y-@0.F(x), @0.Z(x), %foo(x), a, sin(pi*x)+y^2) > bar.tsv</userinput>. 
+     [To make it easier to export all functions
+     in F separately, there is an exception in syntax: "*F(x)" is replaced 
+     with all functions in sum of the exported dataset, 
+     eg. with "%_1(x) %_2(x) %_3(x)". Now I think it's not a good idea and
+     i'm going to remove it. If you find it useful, let me know.]
     </para>
    </section> 
   </section> 
@@ -825,7 +896,9 @@
      <function>tan</function>, 
      <function>atan</function>, 
      <function>asin</function>, 
-     <function>acos</function>. 
+     <function>acos</function>, 
+     <function>lgamma</function>. Note that this is a subset of functions
+     used in <link linkend="transform">data transformations</link>.
     </para>
     <para>
      Every simple parameter has a value and, optionally, domain.  
@@ -1031,11 +1104,18 @@
   @1.F = copy(@0.F) </screen>
     </para>
     <para>
-     Sum can be exported as data points (.dat), mathematic formula (.formula)
-     or peak parameters (.peaks) using command:
-     <command>F &gt; <replaceable>filename</replaceable></command>, 
-     where <replaceable>filename</replaceable> have one of extensions
-     listed above.
+     Sum can be exported as data points, using syntax described in
+     <xref linkend="dexport"/>,  or as mathematic formula,
+     using command <command>@<replaceable>n</replaceable>.formula &gt; <replaceable>filename</replaceable></command>. Some primitive simplifications
+     are applied to the formula. To prevent it, put plus sign (+)
+     after ".formula".
+     Peak parameters can be exported using command
+     <command>@<replaceable>n</replaceable>.peaks &gt; <replaceable>filename</replaceable></command>. Put plus sign (+) after ".peaks" to export also 
+     symmetric errors of the parameters. "@*" will export formulea or parameters
+     used in all datasets to the same file. [I think I'll change the syntax 
+     described in this paragraph, but I'm not sure yet.]
+    </para>
+    <para>
     </para>
     <para>
      It is often required to keep width or shape of peaks constant
@@ -1557,13 +1637,25 @@
      All commands given during program execution are stored in memory.
      They can be listed using command:
      <command>
-      commands [<replaceable>n</replaceable>:<replaceable>m</replaceable>]
+      info commands [<replaceable>n</replaceable>:<replaceable>m</replaceable>]
      </command> 
      or written to file: 
      <command>
       commands [<replaceable>n</replaceable>:<replaceable>m</replaceable>]
       &gt; <replaceable>filename</replaceable>
-     </command>.
+     </command>. 
+     To put all commands executed so far during the session into 
+     file <filename>foo.fit</filename> type 
+     <userinput>commands[:] > foo.fit</userinput>.
+     With plus sign (+) (ie.
+     <command>
+      info commands+ [<replaceable>n</replaceable>:<replaceable>m</replaceable>]
+     </command> 
+     and
+     <command>
+      commands+ [<replaceable>n</replaceable>:<replaceable>m</replaceable>]
+      &gt; <replaceable>filename</replaceable>)
+     </command> informations about exit status of commands will be added. 
     </para>
     <para>
      To log commands to file, when they are executed, use:
@@ -1592,7 +1684,8 @@
      doing nothing. 
     </para>
     <para>
-     Command <command>quit</command> works as expected.
+     Command <command>quit</command> works as expected. 
+     If this command is found in script it closes the program as well.
     </para>
     <para>
      If option <parameter class="option">exit-on-warning</parameter> 
@@ -1890,6 +1983,20 @@
     </mediaobject>  
    </equation>
 
+   <equation id="pearson7a">
+    <title>Pearson-VII-Area (Pearson7A)</title>
+    <mediaobject>
+     <imageobject>
+      <imagedata fileref="fitykhelp_img/pearson7a.png"/>
+     </imageobject>
+     <textobject>
+      <phrase> 
+       Type in program "info Pearson7A" to see formula.
+      </phrase>
+     </textobject>
+    </mediaobject>  
+   </equation>
+
    <equation id="psvoigt">
     <title>Pseudo-Voigt (PseudoVoigt)</title>
     <mediaobject>
@@ -2006,6 +2113,29 @@
     </mediaobject>  
    </equation>
 
+  </para>
+ </appendix>
+
+ <appendix id="shortenings">
+  <title>Command shortenings</title>
+  <para>
+   Pipe symbol (|) shows the minimal length of the command. "def|ine" means
+   that the shortest version is "def", but "defi", "defin" and "define" 
+   are also valid and mean exactly the same. 
+   Arguments of "info" command can not be shortened,
+   ie. you must write "i fit", not "i f". Commands which can't be shortened
+   are not listed here.
+   <simplelist>
+    <member><command>c|ommands</command></member> 
+    <member><command>def|ine  </command></member> 
+    <member><command>f|it     </command></member> 
+    <member><command>g|uess   </command></member> 
+    <member><command>i|nfo    </command></member> 
+    <member><command>p|lot    </command></member> 
+    <member><command>s|et     </command></member> 
+    <member><command>undef|ine</command></member> 
+    <member><command>w|ith    </command></member> 
+   </simplelist>
   </para>
  </appendix>
 

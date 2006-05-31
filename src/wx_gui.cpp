@@ -319,7 +319,8 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_UPDATE_UI (ID_F_METHOD, FFrame::OnFMethodUpdate)
     EVT_MENU_RANGE (ID_F_M+0, ID_F_M_END, FFrame::OnFOneOfMethods)    
     EVT_MENU (ID_F_RUN,         FFrame::OnFRun)    
-    EVT_MENU (ID_F_CONTINUE,    FFrame::OnFContinue)    
+    EVT_UPDATE_UI (ID_F_CONTINUE, FFrame::OnFContinueUpdate)    
+    EVT_MENU (ID_F_CONTINUE,    FFrame::OnFContinue)
     EVT_MENU (ID_F_INFO,        FFrame::OnFInfo)    
 
     EVT_UPDATE_UI (ID_SESSION_LOG, FFrame::OnLogUpdate)    
@@ -1015,6 +1016,14 @@ void FFrame::OnFMethodUpdate (wxUpdateUIEvent& event)
     event.Skip();
 }
 
+void FFrame::OnFContinueUpdate (wxUpdateUIEvent& event)
+{
+    int pos = AL->get_active_ds_position();
+    GetMenuBar()->Enable (ID_F_CONTINUE, 
+                  contains_element(getFit()->get_datsums(), AL->get_ds(pos)));
+    event.Skip();
+}
+
 void FFrame::OnFOneOfMethods (wxCommandEvent& event)
 {
     int m = event.GetId() - ID_F_M;
@@ -1261,6 +1270,7 @@ void FFrame::SwitchToolbar(bool show)
     if (show && !GetToolBar()) {
         toolbar = new FToolBar(this, -1);
         SetToolBar(toolbar);
+        update_toolbar();
     }
     else if (!show && GetToolBar()){
         SetToolBar(0);
@@ -1509,10 +1519,18 @@ void FFrame::after_cmd_updates()
 {
     sidebar->update_lists(false);
     update_peak_type_list();
-    if (toolbar) {
-        toolbar->ToggleTool(ID_ft_b_strip, 
-                            plot_pane->get_bg_manager()->can_undo());
-    }
+    update_toolbar();
+}
+
+void FFrame::update_toolbar()
+{
+    if (!toolbar) 
+        return;
+    toolbar->ToggleTool(ID_ft_b_strip, plot_pane->get_bg_manager()->can_undo());
+    int pos = AL->get_active_ds_position();
+    toolbar->EnableTool(ID_ft_f_cont, 
+                  contains_element(getFit()->get_datsums(), AL->get_ds(pos)));
+    toolbar->EnableTool(ID_ft_v_pr, !plot_pane->get_zoom_hist().empty());
 }
 
 string FFrame::get_active_data_str()

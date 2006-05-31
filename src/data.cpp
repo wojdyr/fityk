@@ -533,37 +533,33 @@ void Data::export_to_file(string filename, vector<string> const& vt,
         return;
     }
     os << "# " << title << endl;
-    if (vt.empty()) 
-        os << "# x\ty\tsigma";
-    else
-        os << join_vector(vt, "\t");
-    os << "\t#exported by fityk " VERSION << endl;
+    vector<string> cols;
     if (vt.empty()) {
-        for (int i = 0; i < get_n(); i++) {
-            os << get_x(i) << "\t" << get_y(i) << "\t" << get_sigma(i) << endl;
-        }
+        cols.push_back("x");
+        cols.push_back("y");
+        cols.push_back("sigma");
     }
     else {
-        vector<vector<fp> > r;
-        bool only_active = !contains_element(vt, "a");
         for (vector<string>::const_iterator i=vt.begin(); i != vt.end(); ++i) 
             if (startswith(*i, "*F")) {
-                string tail = string(*i, 2);
                 for (vector<string>::const_iterator j = ff_names.begin(); 
-                        j != ff_names.end(); ++j){
-                    string t = "%" + *j + tail;
-                    r.push_back(get_all_point_expressions(t, this,only_active));
-                }
+                                                    j != ff_names.end(); ++j)
+                    cols.push_back("%" + *j + string(*i, 2));
             }
             else
-                r.push_back(get_all_point_expressions(*i, this, only_active));
-        for (size_t i = 0; i != r[0].size(); ++i) {
-            for (size_t j = 0; j != vt.size(); ++j) {
-                if (j != 0)
-                    os << '\t';
-                os << r[j][i]; 
-            }
-            os << '\n';
+                cols.push_back(*i);
+    }
+    os << join_vector(cols, "\t") << "\t#exported by fityk " VERSION << endl;
+
+    vector<vector<fp> > r;
+    bool only_active = !contains_element(vt, "a");
+    for (vector<string>::const_iterator i = cols.begin(); i != cols.end(); ++i) 
+        r.push_back(get_all_point_expressions(*i, this, only_active));
+
+    size_t nc = cols.size();
+    for (size_t i = 0; i != r[0].size(); ++i) {
+        for (size_t j = 0; j != nc; ++j) {
+            os << r[j][i] << (j < nc-1 ? '\t' : '\n'); 
         }
     }
 }

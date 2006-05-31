@@ -410,6 +410,12 @@ bool execute_code(int n, int &M, vector<fp>& stack,
             case OP_SQRT:
                 *stackPtr = sqrt(*stackPtr);
                 break;
+            case OP_GAMMA:
+                *stackPtr = gammafn(*stackPtr);
+                break;
+            case OP_LGAMMA:
+                *stackPtr = lgammafn(*stackPtr);
+                break;
             case OP_EXP:
                 *stackPtr = exp(*stackPtr);
                 break;

@@ -122,7 +122,7 @@ public:
     bool get_nonzero_range(fp level, fp& left, fp& right) const;
 private:
     static std::vector<std::string> formulae; 
-    static const int harddef_count = 3;
+    static const int harddef_count = 4;
     
     VariableManager vmgr;
 

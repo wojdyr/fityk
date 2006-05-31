@@ -26,7 +26,7 @@ common_sources = logic.cpp cmd3.cpp cmd2.cpp cmd.cpp common.cpp \
 		 datatrans4.cpp \
 		 settings.cpp ui.cpp GAfit.cpp LMfit.cpp guess.cpp NMfit.cpp \
 		 sum.cpp fit.cpp voigt.cpp fileroutines.cpp \
-		 numfuncs.cpp
+		 numfuncs.cpp nmath.cpp
 gui_sources = wx_common.cpp wx_dlg.cpp wx_gui.cpp wx_IO.cpp wx_plot.cpp \
 	      wx_mplot.cpp wx_pane.cpp wx_fdlg.cpp
 fityk_SOURCES = $(common_sources) $(gui_sources) 

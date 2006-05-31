@@ -25,6 +25,8 @@ DataExprFunGrammar::definition<ScannerT>::definition(
 
     dfunc
         =   (as_lower_d["sqrt("] >> DataExpressionG >> ')') [push_op(OP_SQRT)] 
+        |   (as_lower_d["gamma("] >> DataExpressionG >> ')')[push_op(OP_GAMMA)] 
+        |   (as_lower_d["lgamma("] >> DataExpressionG >>')')[push_op(OP_LGAMMA)]
         |   (as_lower_d["exp("] >> DataExpressionG >> ')') [push_op(OP_EXP)] 
         |   (as_lower_d["log10("] >> DataExpressionG >> ')')[push_op(OP_LOG10)]
         |   (as_lower_d["ln("] >> DataExpressionG >> ')') [push_op(OP_LN)] 

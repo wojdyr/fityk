@@ -57,9 +57,10 @@ inline bool active_gt(const Point &p1, const Point &p2)
 enum DataTransformVMOperator
 {
     OP_NEG=1,   OP_EXP,   OP_SIN,   OP_COS,  OP_ATAN,  OP_ABS,  OP_ROUND, 
-    OP_TAN/*!*/, OP_ASIN, OP_ACOS,
-    OP_LOG10, OP_LN,  OP_SQRT,  OP_POW,   //these functions can set errno    
-    OP_ADD,   OP_SUB,   OP_MUL,   OP_DIV/*!*/,  OP_MOD,
+    OP_TAN, OP_ASIN, OP_ACOS,
+    OP_LOG10, OP_LN,  OP_SQRT,  OP_POW,   
+    OP_GAMMA, OP_LGAMMA,
+    OP_ADD,   OP_SUB,   OP_MUL,   OP_DIV,  OP_MOD,
     OP_MIN2,   OP_MAX2, OP_RANDNORM, OP_RANDU,    
     OP_VAR_X, OP_VAR_Y, OP_VAR_S, OP_VAR_A, 
     OP_VAR_x, OP_VAR_y, OP_VAR_s, OP_VAR_a, 

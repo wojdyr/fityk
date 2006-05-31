@@ -1,5 +1,18 @@
 User-visible changes in version 0.7.4  (2006-0 -  ):
+* improved data and sum export
 * GUI: optional grid in main plot (see axes configuration dialog) 
+* defined function types can be undefined using "undefine Function" syntax
+* with option=value[, option2=value2 ...] command ...
+  sets value of options for this command only
+* GUI: if cut-function-level is set, function limits are shown when cursor 
+  is over peak top
+* aggregate functions in data expressions: min, max, sum, avg, stddev, darea 
+  eg. min(y if 20<x<25)
+* "commands[n:m]" replaced with "info commands[n:m]"
+* GUI: option "reverse" in auxiliary plot 
+* GUI: background removing can be undone (like in version 0.4)
+* gamma function for data transformations and variables.
+* built-in area-based Pearson VII function.
 
 User-visible changes in version 0.7.3  (2006-04-11):
 * extended data transformations: numarea(%f, x1, x2, n) gives area integrated

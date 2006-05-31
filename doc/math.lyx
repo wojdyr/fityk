@@ -221,7 +221,7 @@ y(x;a_{0},a_{1},a_{2},a_{3},a_{4},a_{5})=\begin{cases}
 
 Pearson7A
 \begin_inset Formula \[
-y=\frac{a_{0}a_{3}\Gamma(a_{3})\sqrt{\frac{2^{\frac{1}{a_{3}}}-1}{a_{3}}}}{a_{2}\sqrt{\pi a_{3}}\Gamma\left(a_{3}-\frac{1}{2}\right)\left[1+\left(\frac{x-a_{1}}{a_{2}}\right)^{2}\left(2^{\frac{1}{a_{3}}}-1\right)\right]^{a_{3}}}\]
+y=\frac{a_{0}\Gamma(a_{3})\sqrt{2^{\frac{1}{a_{3}}}-1}}{a_{2}\Gamma(a_{3}-\frac{1}{2})\sqrt{\pi}\left[1+\left(\frac{x-a_{1}}{a_{2}}\right)^{2}\left(2^{\frac{1}{a_{3}}}-1\right)\right]^{a_{3}}}\]
 
 \end_inset 
 

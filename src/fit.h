@@ -28,6 +28,7 @@ public:
     std::vector<fp> get_covariance_matrix(std::vector<DataWithSum*> const&dsds);
     std::vector<fp> get_symmetric_errors(std::vector<DataWithSum*> const& dsds);
     int get_default_max_iter() { return default_max_iterations; }
+    std::vector<DataWithSum*> const& get_datsums() const { return datsums; }
     static fp compute_wssr_for_data (DataWithSum const* ds, bool weigthed);
     static bool Jordan (std::vector<fp>& A, std::vector<fp>& b, int n); 
     static void reverse_matrix (std::vector<fp>&A, int n);

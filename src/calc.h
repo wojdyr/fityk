@@ -28,13 +28,15 @@ enum
     OP_LOG10,     //13
     OP_LN,        //14
     OP_SQRT,      //15
-    OP_TWO_ARG,   //16
-    OP_POW,       //17
-    OP_MUL,       //18
-    OP_DIV,       //19
-    OP_ADD,       //20
-    OP_SUB,       //21
-    OP_END        //22
+    OP_LGAMMA,    //16
+    OP_DIGAMMA,   //17
+    OP_TWO_ARG,   //18
+    OP_POW,       //19
+    OP_MUL,       //20
+    OP_DIV,       //21
+    OP_ADD,       //22
+    OP_SUB,       //23
+    OP_END        //24
 };
 
 
