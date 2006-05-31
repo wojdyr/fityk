@@ -1,4 +1,4 @@
-User-visible changes in version 0.7.4  (2006-0 -  ):
+User-visible changes in version 0.7.4  (2006-05-31):
 * improved data and sum export
 * GUI: optional grid in main plot (see axes configuration dialog) 
 * defined function types can be undefined using "undefine Function" syntax

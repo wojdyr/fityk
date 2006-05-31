@@ -537,7 +537,7 @@ void Data::export_to_file(string filename, vector<string> const& vt,
     if (vt.empty()) {
         cols.push_back("x");
         cols.push_back("y");
-        cols.push_back("sigma");
+        cols.push_back("s");
     }
     else {
         for (vector<string>::const_iterator i=vt.begin(); i != vt.end(); ++i) 
