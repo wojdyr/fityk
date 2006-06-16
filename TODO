@@ -3,6 +3,8 @@
 
 * link to "On-line tutorial" and the tutorial itself(!)
 
+* an easy way to change colors of all datasets, eg. using colorramp 
+
 * EMG function: how to calculate it? Now there are some problems with
   this function. There must be smarter way to implement it...
 
@@ -32,6 +34,7 @@
     with info ... > filename
      - what about @*.formula, what about data titles in headers
   - (?) "info @n () > file"
+       should display ... [1234 lines more] rather than everything
 
 * settings: fitting options
 

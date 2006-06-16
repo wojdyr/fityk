@@ -7,6 +7,7 @@ if OS_WIN32
 fityk_LDFLAGS = -mwindows 
 ms_win_res = winres.o
 # windres has "--include-dir" instead of "-I" 
+# [update: now windres accepts also -I, so this sed thing in not necessary]
 $(ms_win_res): winres.rc img/fityk.ico 
 	$(RC) -o $@ `echo $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS)\
 			    @WX_CPPFLAGS@ \

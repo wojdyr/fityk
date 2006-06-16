@@ -34,6 +34,7 @@
 #include <algorithm>
 #include <locale.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <boost/spirit/version.hpp> //SPIRIT_VERSION
 
@@ -192,8 +193,10 @@ static const wxCmdLineEntryDesc cmdLineDesc[] = {
           wxT("output version information and exit"), wxCMD_LINE_VAL_NONE, 0 },
     { wxCMD_LINE_OPTION, wxT("c"),wxT("cmd"), wxT("script passed in as string"),
                                                    wxCMD_LINE_VAL_STRING, 0 },
-    { wxCMD_LINE_SWITCH, wxT("I"), wxT("--no-init"), 
+    { wxCMD_LINE_SWITCH, wxT("I"), wxT("no-init"), 
           wxT("don't process $HOME/.fityk/init file"), wxCMD_LINE_VAL_NONE, 0 },
+    { wxCMD_LINE_SWITCH, wxT("r"), wxT("reorder"), 
+          wxT("reorder data (50.xy before 100.xy)"), wxCMD_LINE_VAL_NONE, 0 },
     { wxCMD_LINE_PARAM,  0, 0, wxT("script or data file"),wxCMD_LINE_VAL_STRING,
                         wxCMD_LINE_PARAM_OPTIONAL|wxCMD_LINE_PARAM_MULTIPLE },
     { wxCMD_LINE_NONE, 0, 0, 0,  wxCMD_LINE_VAL_NONE, 0 }
@@ -279,6 +282,34 @@ int FApp::OnExit()
     return 0;
 }
 
+namespace {
+
+struct less_filename : public binary_function<string, string, bool> {
+    int n;
+    less_filename(int n_) : n(n_) {}
+    bool operator()(string x, string y) 
+    { 
+        if (isdigit(x[n]) && isdigit(y[n])) {
+            string xc(x, n), yc(y, n);
+            return strtod(xc.c_str(), 0) < strtod(yc.c_str(), 0);
+        }
+        else
+            return x < y;
+    }
+};
+
+int find_common_prefix_length(vector<string> const& p)
+{
+    assert(p.size() > 1);
+    for (size_t n = 0; n < p.begin()->size(); ++n)
+        for (vector<string>::const_iterator i = p.begin()+1; i != p.end(); ++i) 
+            if (n >= i->size() || (*i)[n] != (*p.begin())[n])
+                return n;
+    return p.begin()->size();
+}
+
+} // anonymous namespace
+
 /// parse and execute command line switches and arguments
 void FApp::process_argv(wxCmdLineParser &cmdLineParser)
 {
@@ -286,9 +317,14 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
     if (cmdLineParser.Found(wxT("c"), &cmd))
         getUI()->execAndLogCmd(wx2s(cmd));
     //the rest of parameters/arguments are scripts and/or data files
-    for (unsigned int i = 0; i < cmdLineParser.GetParamCount(); i++) {
-        getUI()->process_cmd_line_filename(wx2s(cmdLineParser.GetParam(i)));
+    vector<string> p;
+    for (unsigned int i = 0; i < cmdLineParser.GetParamCount(); i++) 
+        p.push_back(wx2s(cmdLineParser.GetParam(i)));
+    if (cmdLineParser.Found(wxT("r")) && p.size() > 1) {
+        sort(p.begin(), p.end(), less_filename(find_common_prefix_length(p)));
     }
+    for (vector<string>::const_iterator i = p.begin(); i != p.end(); ++i) 
+        getUI()->process_cmd_line_filename(*i);
     if (AL->get_ds_count() > 1)
         frame->SwitchSideBar(true);
 }
