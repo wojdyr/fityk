@@ -3,6 +3,14 @@
 
 * link to "On-line tutorial" and the tutorial itself(!)
 
+* user defined functions:
+      - default parameter values can take any expression...
+      - syntax:
+        --> define Gaussian(a,pos,width): a*exp(-((x-pos)/width)^2)
+	                   ^^^ any name but 'x' allowed here
+      - more sophisticated simplifications of expressions and CSE(!)
+      - calculating limits, width, area, etc. for UDF(!)
+
 * an easy way to change colors of all datasets, eg. using colorramp 
 
 * EMG function: how to calculate it? Now there are some problems with
@@ -17,14 +25,6 @@
 * (GUI) peak dragging -- sensible scaling of parameter changes 
            (problems with width changing)
  	(bug?) now it matters in which point exactly you catch the peak
-
-* user defined functions:
-      - default parameter values can take any expression...
-      - syntax:
-        --> define Gaussian(a,pos,width): a*exp(-((x-pos)/width)^2)
-	                   ^^^ any name but 'x' allowed here
-      - more sophisticated simplifications of expressions and CSE(!)
-      - calculating limits, width, area, etc. for UDF(!)
 
 ------------------ next release here 0.7.5
 * use info for exports:

@@ -219,7 +219,7 @@ class FuncSplitGaussian : public Function
     bool has_fwhm() const { return true; } 
     fp fwhm() const   { return fabs(vv[2]) + fabs(vv[3]); }
     bool has_area() const { return true; } 
-    fp area() const   { return vv[0] * (fabs(vv[2]) + fabs(vv[3])) 
+    fp area() const   { return vv[0] * (fabs(vv[2]) + fabs(vv[3])) / 2.
                                      * sqrt(M_PI/M_LN2); }
 };
 
