@@ -464,17 +464,33 @@ int main (int argc, char **argv)
             cout << "fityk version " VERSION "\n";
             return 0;
         }
-        else if (!strcmp(argv[i], "-c") || !strcmp(argv[i], "--cmd")) {
-            argv[i] = 0;
-            ++i;
-            if (i+1 < argc) {
-                script_string = argv[i];
+        else if (startswith(argv[i], "-c") || startswith(argv[i], "--cmd")) {
+            if (!strcmp(argv[i], "-c") || !strcmp(argv[i], "--cmd")) {
+                argv[i] = 0;
+                ++i;
+                if (i < argc) {
+                    script_string = argv[i];
+                    argv[i] = 0;
+                }
+                else {
+                    cerr << "Option " << argv[i] << " requires parameter\n";
+                    return 1;
+                }
+            }
+            else if (startswith(argv[i], "-c")) {
+                script_string = string(argv[i] + 2);
                 argv[i] = 0;
             }
-            else {
-                cerr << "Option -c requires parameter\n";
-                return 1;
+            else if (startswith(argv[i], "--cmd")) {
+                if (argv[i][5] != '=') {
+                    cerr << "Unknown option: " << argv[i] << "\n";
+                    return 1;
+                }
+                script_string = string(argv[i] + 6);
+                argv[i] = 0;
             }
+            else
+                assert(0);
         }
         else if (!strcmp(argv[i], "-I") || !strcmp(argv[i], "--no-init")) {
             argv[i] = 0;
