@@ -1184,7 +1184,7 @@ fp FuncSplitPearson7::area() const
 const char *FuncPseudoVoigt::formula 
 = "PseudoVoigt(height, center, hwhm, shape=0.5) = "
                         "height*((1-shape)*exp(-ln(2)*((x-center)/hwhm)^2)"
-                                 "+shape/(1+((x-center)/hwhm)^2)"; 
+                                 "+shape/(1+((x-center)/hwhm)^2))"; 
 
 void FuncPseudoVoigt::do_precomputations(vector<Variable*> const &variables) 
 { 
