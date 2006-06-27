@@ -64,56 +64,10 @@ int VariableUser::get_max_var_idx()
        return *max_element(var_idx.begin(), var_idx.end());
 }
 
-
-
-// ctor for simple variables and mirror variables
-Variable::Variable(std::string const &name_, int nr_, 
-                   bool auto_delete_, bool hidden_)
-    : VariableUser(name_, "$"),
-      auto_delete(auto_delete_), hidden(hidden_), nr(nr_) 
-{
-    if (nr != -2) {
-        ParMult pm;
-        pm.p = nr_;
-        pm.mult = 1;
-        recursive_derivatives.push_back(pm);
-    }
-}
-
-// ctor for compound variables
-Variable::Variable(std::string const &name_, vector<string> const &vars_,
-                   vector<OpTree*> const &op_trees_, 
-                   bool auto_delete_, bool hidden_)
-    : VariableUser(name_, "$", vars_),
-      auto_delete(auto_delete_), hidden(hidden_), nr(-1), 
-      derivatives(vars_.size()),
-      op_trees(op_trees_) 
-{
-}
-
-
-string Variable::get_formula(vector<fp> const &parameters) const
-{
-    return nr == -1 ? op_trees.back()->str(&varnames) 
-                    : "~" + S(parameters[nr]);
-}
-
-string Variable::get_info(vector<fp> const &parameters, 
-                          bool extended) const 
-{ 
-    string s = xname + " = "+ get_formula(parameters) + " = " + S(value);
-    if (auto_delete)
-        s += "  [auto]";
-    if (extended && nr == -1) {
-        for (unsigned int i = 0; i < varnames.size(); ++i)
-            s += "\nd(" + xname + ")/d($" + varnames[i] + "): " 
-                    + op_trees[i]->str(&varnames) + " == " + S(derivatives[i]);
-    }
-    return s;
-} 
+////////////////////////////////////////////////////////////////////////////
 
 /// executes VM code, what sets this->value and this->derivatives
-void Variable::run_vm(vector<Variable*> const &variables)
+void AnyFormula::run_vm(vector<Variable*> const &variables)
 {
     vector<double>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
     for (vector<int>::const_iterator i = vmcode.begin(); i!=vmcode.end(); i++) {
@@ -211,11 +165,82 @@ void Variable::run_vm(vector<Variable*> const &variables)
     assert(stackPtr == stack.begin() - 1);
 }
 
+void AnyFormula::tree_to_bytecode(vector<int> const& var_idx)
+{
+    assert(var_idx.size() + 1 == op_trees.size()); 
+    int n = var_idx.size();
+    vmcode.clear();
+    vmdata.clear();
+    add_calc_bytecode(op_trees.back(), var_idx, vmcode, vmdata);
+    vmcode.push_back(OP_PUT_VAL);
+    for (int i = 0; i < n; ++i) {
+        add_calc_bytecode(op_trees[i], var_idx, vmcode, vmdata);
+        vmcode.push_back(OP_PUT_DERIV);
+        vmcode.push_back(i);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+
+// ctor for simple variables and mirror variables
+Variable::Variable(std::string const &name_, int nr_, 
+                   bool auto_delete_, bool hidden_)
+    : VariableUser(name_, "$"),
+      auto_delete(auto_delete_), hidden(hidden_), nr(nr_),
+      af(value, derivatives)
+{
+    if (nr != -2) {
+        ParMult pm;
+        pm.p = nr_;
+        pm.mult = 1;
+        recursive_derivatives.push_back(pm);
+    }
+}
+
+// ctor for compound variables
+Variable::Variable(std::string const &name_, vector<string> const &vars_,
+                   vector<OpTree*> const &op_trees_, 
+                   bool auto_delete_, bool hidden_)
+    : VariableUser(name_, "$", vars_),
+      auto_delete(auto_delete_), hidden(hidden_), nr(-1), 
+      derivatives(vars_.size()),
+      af(op_trees_, value, derivatives) 
+{
+}
+
+void Variable::set_var_idx(vector<Variable*> const& variables)
+{
+    VariableUser::set_var_idx(variables); 
+    if (nr == -1)
+        af.tree_to_bytecode(var_idx); 
+}
+
+
+string Variable::get_formula(vector<fp> const &parameters) const
+{
+    return nr == -1 ? get_op_trees().back()->str(&varnames) 
+                    : "~" + S(parameters[nr]);
+}
+
+string Variable::get_info(vector<fp> const &parameters, bool extended) const 
+{ 
+    string s = xname + " = " + get_formula(parameters) + " = " + S(value);
+    if (auto_delete)
+        s += "  [auto]";
+    if (extended && nr == -1) {
+        for (unsigned int i = 0; i < varnames.size(); ++i)
+            s += "\nd(" + xname + ")/d($" + varnames[i] + "): " 
+              + get_op_trees()[i]->str(&varnames) + " == " + S(derivatives[i]);
+    }
+    return s;
+} 
+
 void Variable::recalculate(vector<Variable*> const &variables, 
                            vector<fp> const &parameters)
 {
   if (nr == -1) {
-      run_vm(variables);
+      af.run_vm(variables);
       recursive_derivatives.clear();
       for (int i = 0; i < size(derivatives); ++i) {
           Variable *v = variables[var_idx[i]];
@@ -234,23 +259,6 @@ void Variable::recalculate(vector<Variable*> const &variables,
           derivatives.clear();
       }
   }
-}
-
-void Variable::tree_to_bytecode()
-{
-    if (nr == -1) {
-        assert(var_idx.size() + 1 == op_trees.size()); 
-        int n = var_idx.size();
-        vmcode.clear();
-        vmdata.clear();
-        add_calc_bytecode(op_trees.back(), var_idx, vmcode, vmdata);
-        vmcode.push_back(OP_PUT_VAL);
-        for (int i = 0; i < n; ++i) {
-            add_calc_bytecode(op_trees[i], var_idx, vmcode, vmdata);
-            vmcode.push_back(OP_PUT_DERIV);
-            vmcode.push_back(i);
-        }
-    }
 }
 
 void Variable::erased_parameter(int k)

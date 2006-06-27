@@ -121,7 +121,7 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
         if (x_grid) 
             draw_line_with_style(dc, wxDOT, X,0, X,GetClientSize().GetWidth());
         wxString label = s2wx(S(*i));
-        if (label == wxT("-0"))
+        if (label == wxT("-0")) 
             label = wxT("0");
         wxCoord w, h;
         dc.GetTextExtent (label, &w, &h);
@@ -154,6 +154,8 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
         wxString label = s2wx(S(*i));
         if (label == wxT("-0"))
             label = wxT("0");
+        if (x_axis_visible && label == wxT("0")) 
+            continue;
         wxCoord w, h;
         dc.GetTextExtent (label, &w, &h);
         dc.DrawText (label, X + y_tic_size + 1, Y - h/2);

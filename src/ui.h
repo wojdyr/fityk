@@ -88,8 +88,8 @@ public:
     void execScript (std::string const &filename) 
     { execScript(filename, std::vector<std::pair<int,int> >()); }
 
-    void execAndLogCmd(std::string const &s) 
-             { commands.put_command(s, execCommand(s)); }
+    Commands::Status execAndLogCmd(std::string const &s) 
+     {Commands::Status r=execCommand(s); commands.put_command(s, r); return r;}
     int getVerbosity();
     void process_cmd_line_filename(std::string const& par);
 
@@ -118,7 +118,8 @@ extern const char* config_dirname;
 inline UserInterface* getUI() { return UserInterface::getInstance(); }
 
 /// execute command(s) from string
-inline void exec_command (std::string const &s) { getUI()->execAndLogCmd(s); }
+inline Commands::Status exec_command (std::string const &s) 
+                                        { return getUI()->execAndLogCmd(s); }
 
 
 // small utilities for outputing messages to active UI.

@@ -40,8 +40,6 @@ typedef parse_tree_match_t::const_tree_iterator const_iter_t;
 
 ////////////////////////////////////////////////////////////////////////////
 
-////////////////////////////////////////////////////////////////////////////
-
 
 OpTree::OpTree(int n, OpTree *arg1) : op(n), c1(arg1), c2(0), val(0.) 
                               { assert(OP_ONE_ARG < n && n < OP_TWO_ARG); }

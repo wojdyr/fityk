@@ -60,15 +60,38 @@ vector<fp> Fit::get_covariance_matrix(vector<DataWithSum*> const& dsds)
         if (!par_usage[i]) {     // corresponding unused parameters
             alpha[i*na + i] = 1.;
         }
+    //sometimes some parameters are unused, although formally are "used". 
+    //E.g. SplitGaussian with center < min(active x) will have hwhm1 unused
+    //Anyway, if i'th column/row in alpha are only zeros, we must
+    //do something about it -- symmetric error is undefined 
+    vector<int> undefined;
+    for (int i = 0; i < na; ++i) {
+        bool has_nonzero = false;
+        for (int j = 0; j < na; j++)                     
+            if (alpha[na*i+j] != 0.) {
+                has_nonzero = true;
+                break;
+            }
+        if (!has_nonzero) {
+            undefined.push_back(i);
+            alpha[i*na + i] = 1.;
+        }
+    }
+
     reverse_matrix(alpha, na);
+
+    for (vector<int>::const_iterator i = undefined.begin(); 
+            i != undefined.end(); ++i)
+        alpha[(*i)*na + (*i)] = 0.; 
+
     for (vector<fp>::iterator i = alpha.begin(); i != alpha.end(); i++)
-        (*i) *= 2;//FIXME: is it right? (S.Brandt, Analiza danych (10.17.4))
+        (*i) *= 2; //FIXME: is it right? (S.Brandt, Analiza danych (10.17.4))
     return alpha;
 }
 
 vector<fp> Fit::get_symmetric_errors(vector<DataWithSum*> const& dsds)
 {
-    vector<fp> alpha = getFit()->get_covariance_matrix(dsds);
+    vector<fp> alpha = get_covariance_matrix(dsds);
     vector<fp> errors(na);
     for (int i = 0; i < na; ++i)
         errors[i] = sqrt(alpha[i*na + i]); 
@@ -83,12 +106,14 @@ string Fit::getErrorInfo(vector<DataWithSum*> const& dsds, bool matrix)
     s = "Symmetric errors: ";
     for (int i = 0; i < na; i++) {
         if (par_usage[i]) {
+            fp err = sqrt(alpha[i*na + i]);
             s += "\n" + AL->find_variable_handling_param(i)->xname 
-                + "=" + S(pp[i]) + "+-" + S(sqrt(alpha[i*na + i]));
+                + " = " + S(pp[i]) 
+                + " +- " + (err == 0. ? string("??") : S(err));
         }
     }
     if (matrix) {
-        s += "\nConvariance matrix\n    ";
+        s += "\nCovariance matrix\n    ";
         for (int i = 0; i < na; ++i)
             if (par_usage[i])
                 s += "\t" + AL->find_variable_handling_param(i)->xname;
@@ -347,17 +372,13 @@ void Fit::iteration_plot(vector<fp> const &A)
 bool Fit::Jordan(vector<fp>& A, vector<fp>& b, int n) 
 {
     assert (size(A) == n*n && size(b) == n);
-//#define DISABLE_PIVOTING   /*don't do it*/
-
-#ifndef DISABLE_PIVOTING
-    int maxnr;
-    fp amax;
-#endif
+//#define DISABLE_PIVOTING   //don't do it
     for (int i = 0; i < n; i++) {
 #ifndef DISABLE_PIVOTING 
-        amax = 0; maxnr = -1;                           // looking for a pivot
-        for (int j = i; j < n; j++)                     // element
-            if (fabs (A[n*j+i]) > amax){
+        fp amax = 0;                    // looking for a pivot element
+        int maxnr = -1;  
+        for (int j = i; j < n; j++)                     
+            if (fabs (A[n*j+i]) > amax) {
                 maxnr = j;
                 amax = fabs (A[n * j + i]);
             }

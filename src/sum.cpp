@@ -133,7 +133,13 @@ void Sum::calculate_sum_value(vector<fp> &x, vector<fp> &y) const
         mgr.get_function(*i)->calculate_value(x, y);
 }
 
-// x is changed to x+Z
+// returns y values in y
+//         x is changed to x+Z
+//         and matrix in dy_da:
+// [ dy/da_1 (x_1)  dy/da_2 (x_1)  ...  dy/da_na (x_1)  dy/dx (x_1) ]
+// [ dy/da_1 (x_2)  dy/da_2 (x_2)  ...  dy/da_na (x_2)  dy/dx (x_2) ]
+// [ ...                                                            ]
+// [ dy/da_1 (x_n)  dy/da_2 (x_n)  ...  dy/da_na (x_n)  dy/dx (x_n) ]
 void Sum::calculate_sum_value_deriv(vector<fp> &x, vector<fp> &y,
                                     vector<fp> &dy_da) const
 {

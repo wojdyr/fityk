@@ -1,8 +1,6 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
-* link to "On-line tutorial" and the tutorial itself(!)
-
 * user defined functions:
       - default parameter values can take any expression...
       - syntax:
@@ -10,8 +8,19 @@
 	                   ^^^ any name but 'x' allowed here
       - more sophisticated simplifications of expressions and CSE(!)
       - calculating limits, width, area, etc. for UDF(!)
+      - f(x) = a1*(a2/x)^3*exp(-(((a2/x)-a3)/a4)^2)
+         (Maxwell-Boltzmann velocity (flux) distribution
+	  for Wolfgang Christen)
+
+* "info" can be redirected to file in every case
+   ("info ... >> file" appends to file, with '>' it truncates file)
+
+* settings: fitting options
 
 * an easy way to change colors of all datasets, eg. using colorramp 
+
+* link to "On-line tutorial" and the tutorial itself(!)
+   perhaps screencast (eg. using Wink)
 
 * EMG function: how to calculate it? Now there are some problems with
   this function. There must be smarter way to implement it...
@@ -28,15 +37,11 @@
 
 ------------------ next release here 0.7.5
 * use info for exports:
-  - "info" can be redirected to file in every case
-  - "... >> file" appends to file
   - replace exporting @x.peaks, @x.formula and commands[] 
     with info ... > filename
      - what about @*.formula, what about data titles in headers
   - (?) "info @n () > file"
        should display ... [1234 lines more] rather than everything
-
-* settings: fitting options
 
 * simple-variable domain ~3[2:14]
 

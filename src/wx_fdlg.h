@@ -70,6 +70,24 @@ protected:
 };
 
 
+class ScriptDebugDlg : public wxDialog
+{
+public:
+    ScriptDebugDlg(wxWindow* parent, wxWindowID id);
+    void OpenFile();
+    void OnOpenFile(wxCommandEvent&) { OpenFile(); }
+    void OnExecSelected(wxCommandEvent&);
+    void OnClose(wxCommandEvent& event) { OnCancel(event); }
+    wxString get_list_item(int i);
+protected:
+    wxToolBar *tb;
+    wxListView *list;
+
+    void add_line(int n, std::string const& line);
+    DECLARE_EVENT_TABLE()
+};
+
+
 class PrintManager
 {
 public:

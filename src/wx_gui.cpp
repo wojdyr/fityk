@@ -129,6 +129,7 @@ enum {
     ID_PRINT_CLIPB             ,
     ID_O_INCLUDE               ,
     ID_O_REINCLUDE             ,
+    ID_S_DEBUGGER              ,
     ID_O_DUMP                  ,
     ID_SESSION_SET             ,
     ID_G_MODE                  ,
@@ -366,6 +367,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_O_RESET,       FFrame::OnO_Reset)    
     EVT_MENU (ID_O_INCLUDE,     FFrame::OnOInclude)    
     EVT_MENU (ID_O_REINCLUDE,   FFrame::OnOReInclude)    
+    EVT_MENU (ID_S_DEBUGGER,    FFrame::OnSDebugger)    
     EVT_MENU (ID_PRINT,         FFrame::OnPrint)
     EVT_MENU (ID_PRINT_PSFILE,  FFrame::OnPrintPSFile)
     EVT_MENU (ID_PRINT_CLIPB,   FFrame::OnPrintToClipboard)
@@ -762,6 +764,8 @@ void FFrame::set_menubar()
                                            wxT("Execute commands from a file"));
     session_menu->Append (ID_O_REINCLUDE, wxT("R&e-Execute script"), 
              wxT("Reset & execute commands from the file included last time"));
+    session_menu->Append (ID_S_DEBUGGER, wxT("Script debu&gger..."), 
+                                       wxT("Show script editor and debugger"));
     session_menu->Enable (ID_O_REINCLUDE, false);
     session_menu->Append (ID_O_RESET, wxT("&Reset"), 
                                       wxT("Reset current session"));
@@ -1164,6 +1168,12 @@ void FFrame::OnOInclude      (wxCommandEvent& WXUNUSED(event))
 void FFrame::OnOReInclude    (wxCommandEvent& WXUNUSED(event))
 {
     exec_command ("reset; commands < '" + last_include_path + "'");
+}
+
+void FFrame::OnSDebugger(wxCommandEvent&)
+{
+    ScriptDebugDlg dlg(this, -1);
+    dlg.ShowModal();
 }
             
 void FFrame::OnODump         (wxCommandEvent& WXUNUSED(event))

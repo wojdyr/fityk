@@ -38,6 +38,9 @@
 #include "ui.h"
 #include "datatrans.h"
 
+#include "img/open.xpm"
+#include "img/exec_selected.xpm"
+#include "img/close.xpm"
 
 using namespace std;
 
@@ -52,7 +55,12 @@ enum {
     ID_DXLOAD_OPENNEW             ,
     ID_DED_RADIO                  ,
     ID_DED_INACT_CB               ,
-    ID_DED_TEXT                   
+    ID_DED_TEXT                   ,
+
+    ID_SE_OPEN                    ,
+    ID_SE_EXECSEL                 ,
+    ID_SE_CLOSE                   
+
 };
 
 
@@ -154,9 +162,10 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
                            "|mca files (*.mca)|*.mca"
                            "|Siemens/Bruker (*.raw)|*.raw"));
     left_sizer->Add(dir_ctrl, 1, wxALL|wxEXPAND, 5);
-    string path = data->get_filename();
-    dir_ctrl->SetPath(s2wx(path)); 
-    filename_tc = new wxTextCtrl (left_panel, -1, s2wx(path), 
+    wxFileName path = s2wx(data->get_filename());
+    path.Normalize();
+    dir_ctrl->SetPath(path.GetFullPath()); 
+    filename_tc = new wxTextCtrl (left_panel, -1, wxT(""), 
                                   wxDefaultPosition, wxDefaultSize,
                                   wxTE_READONLY);
     left_sizer->Add (filename_tc, 0, wxALL|wxEXPAND, 5);
@@ -494,6 +503,110 @@ void DataExportDlg::OnOk(wxCommandEvent& event)
 {
     wxConfig::Get()->Write(wxT("/exportDataCols"), text->GetValue());
     event.Skip();
+}
+
+
+//======================================================================
+//                         ScriptDebugDlg
+//======================================================================
+BEGIN_EVENT_TABLE(ScriptDebugDlg, wxDialog)
+    EVT_TOOL(ID_SE_OPEN, ScriptDebugDlg::OnOpenFile)
+    EVT_TOOL(ID_SE_EXECSEL, ScriptDebugDlg::OnExecSelected)
+    EVT_TOOL(ID_SE_CLOSE, ScriptDebugDlg::OnClose)
+END_EVENT_TABLE()
+
+ScriptDebugDlg::ScriptDebugDlg(wxWindow* parent, wxWindowID id)
+    : wxDialog(parent, id, wxT("(not working yet) Script Editor and Debugger"), 
+               wxDefaultPosition, wxSize(600, 500), 
+               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
+{
+    wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
+    tb = new wxToolBar(this, -1, wxDefaultPosition, wxDefaultSize, 
+                       wxTB_HORIZONTAL | wxNO_BORDER);
+    tb->SetToolBitmapSize(wxSize(24, 24));
+    tb->AddTool(ID_SE_OPEN, wxT("Open"), wxBitmap(open_xpm), wxNullBitmap,
+                wxITEM_NORMAL, wxT("Open File"), wxT("Open script file"));
+    tb->AddSeparator();
+    tb->AddTool(ID_SE_EXECSEL, wxT("Execute"), 
+                wxBitmap(exec_selected_xpm), wxNullBitmap,
+                wxITEM_NORMAL, wxT("Execute selected"), 
+                wxT("Execute selected lines"));
+    tb->AddSeparator();
+    //TODO Save as, Step, Execute selected, Edit, ?Reorder, 
+    //Run untill error, Reset Program, Close
+    tb->AddTool(ID_SE_CLOSE, wxT("Close"), wxBitmap(close_xpm), wxNullBitmap,
+                wxITEM_NORMAL, wxT("Exit debugger"), wxT("Close debugger"));
+    tb->Realize();
+    top_sizer->Add(tb, 0, wxEXPAND); 
+    list = new wxListView(this, -1, 
+                          wxDefaultPosition, wxDefaultSize,
+                          wxLC_REPORT|wxLC_HRULES|wxLC_VRULES);
+    list->InsertColumn(0, wxT("No"));
+    list->InsertColumn(1, wxT("Text"));
+    //TODO last execution status column (ok, warning, error)
+    top_sizer->Add(list, 1, wxALL|wxEXPAND, 0);
+    //TODO editor
+    SetSizer(top_sizer);
+}
+
+void ScriptDebugDlg::OpenFile()
+{
+    wxFileDialog dialog(this, wxT("open script file"), wxT(""), wxT(""), 
+                        wxT("fityk scripts (*.fit)|*.fit|all files|*"), 
+                        wxOPEN | wxFILE_MUST_EXIST);
+    if (dialog.ShowModal() != wxID_OK) 
+        return;
+    string path = wx2s(dialog.GetPath());
+    ifstream f(path.c_str());
+    if (!f) 
+        return;
+    list->DeleteAllItems();
+    string line;
+    int n = 0;
+    while (getline(f, line)) {
+        add_line(++n, line);
+    }
+    list->InsertItem(list->GetItemCount(), wxT("+"));
+}
+
+void ScriptDebugDlg::add_line(int n, string const& line)
+{
+    int pos = list->GetItemCount();
+    list->InsertItem(pos, s2wx(n == -1 ? S("...") : S(n)));
+    string::size_type sep = line.find(';');
+    string::size_type hash = line.find('#');
+    string head, tail;
+    if (sep != string::npos && (hash == string::npos || sep < hash)) {
+        head = string(line, 0, sep+1);
+        tail = string(line, sep+1);
+    }
+    else
+        head = line;
+    
+    list->SetItem(pos, 1, s2wx(head));
+    //TODO categories: comment, syntax error, info, plot, ok
+    string::size_type nb = head.find_first_not_of(" \r\n\t");
+    bool is_comment = (nb == string::npos || head[nb] == '#');
+    if (is_comment) 
+        list->SetItemTextColour(pos, *wxLIGHT_GREY);
+    if (!tail.empty())
+        add_line(-1, tail);
+}
+
+void ScriptDebugDlg::OnExecSelected(wxCommandEvent&)
+{
+    for (long i=list->GetFirstSelected(); i!=-1; i=list->GetNextSelected(i)) {
+        exec_command(wx2s(get_list_item(i)));
+    }
+}
+
+wxString ScriptDebugDlg::get_list_item(int i)
+{
+    wxListItem info;
+    info.SetId(i);
+    info.SetColumn(1);
+    list->GetItem(info);
+    return info.GetText();
 }
 
 //======================================================================

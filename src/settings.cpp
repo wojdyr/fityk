@@ -60,7 +60,7 @@ Settings::Settings()
     for (int i = 0; i < size(fm); ++i)
         fitting_method_enum[i] = fm[i]->name;
     epar.insert (pair<string, EnumString>("fitting-method", 
-                                         EnumString (fitting_method_enum, 0)));
+                                          EnumString(fitting_method_enum, 0)));
     //TODO
 }
 

@@ -134,6 +134,7 @@ public:
     void OnLogWithOutput (wxCommandEvent& event);        
     void OnOInclude      (wxCommandEvent& event);            
     void OnOReInclude    (wxCommandEvent& event);            
+    void OnSDebugger     (wxCommandEvent& event);            
     void OnO_Reset       (wxCommandEvent& event);
     void OnODump         (wxCommandEvent& event);         
     void OnSettings     (wxCommandEvent& event);        

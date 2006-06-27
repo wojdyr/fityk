@@ -1778,7 +1778,8 @@
      or recognized parameter * real number.
     </para>
     <para>
-     In file src/func.h start writting definition of your class:
+     In file <filename>src/bfunc.h</filename> start writting definition 
+     of your class:
      <screen>
       class FuncFoo : public Function
       {
@@ -1792,7 +1793,7 @@
      void do_precomputations(std::vector&lt;Variable*&gt; const &amp;variables);
      </screen>
      and provide proper definition of this method 
-     in <filename>src/func.cpp</filename>.
+     in <filename>src/bfunc.cpp</filename>.
     </para>
     <para>
      If you want to optimize calculation of your function by neglecting
@@ -1827,7 +1828,7 @@
      </screen>
     </para>
     <para>
-     Now come back to <filename>src/func.cpp</filename> and write, 
+     Write in <filename>src/bfunc.cpp</filename>
      how to calculate value of the function:
      <screen>
       FUNC_CALCULATE_VALUE_BEGIN(Foo)

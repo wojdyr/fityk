@@ -50,6 +50,32 @@ protected:
     std::vector<int> var_idx;
 };
 
+
+class AnyFormula
+{
+public:
+    AnyFormula(fp &value_, std::vector<fp>& derivatives_) 
+        : value(value_), derivatives(derivatives_) {}
+    AnyFormula(std::vector<OpTree*> const &op_trees_, 
+               fp &value_, std::vector<fp>& derivatives_) 
+        : value(value_), derivatives(derivatives_), op_trees(op_trees_) {}
+    /// (re-)create bytecode, required after ::set_var_idx()
+    void tree_to_bytecode(std::vector<int> const& var_idx); 
+    void run_vm(std::vector<Variable*> const &variables); 
+    std::vector<OpTree*> const& get_op_trees() const { return op_trees; }
+
+private:
+    // these are recalculated every time parameters or variables are changed
+    fp &value; 
+    std::vector<fp> &derivatives; 
+
+    // these are set on initialization and never changed
+    std::vector<OpTree*> op_trees; 
+    std::vector<int> vmcode; //OP_PUT_DERIV, OP_PUT_VAL, OP_VAR, etc. 
+    std::vector<fp> vmdata; 
+};
+
+
 /// the variable is either simple-variable and nr is the index in vector
 /// of parameters, or it is "compound variable" and has nr==-1.
 /// third special case: nr==-2 - it is mirror-variable (such variable
@@ -90,14 +116,12 @@ public:
                          bool extended=false) const;
     std::string get_formula(std::vector<fp> const &parameters) const;
     bool is_visible() const { return !hidden; }
-    /// (re-)create bytecode, required after ::set_var_idx()
-    void tree_to_bytecode(); 
-    void set_var_idx(std::vector<Variable*> const& variables)
-                 { VariableUser::set_var_idx(variables); tree_to_bytecode(); }
+    void set_var_idx(std::vector<Variable*> const& variables);
     std::vector<ParMult> const& get_recursive_derivatives() const 
                                             { return recursive_derivatives; }
     bool is_simple() const { return nr != -1; }
-    std::vector<OpTree*> const& get_op_trees() const { return op_trees; }
+    std::vector<OpTree*> const& get_op_trees() const 
+                                                { return af.get_op_trees(); }
     /// variable with nr=-2 is used as a mirror of another variable,
     /// it's not updated in recalculate() but only here
     void set_mirror(Variable const& v) 
@@ -105,17 +129,10 @@ public:
 
 private:
     int nr; /// see description of this class in .h 
-    // these are recalculated every time parameters or variables are changed
-    fp value;
-    std::vector<fp> derivatives;
+    fp value; 
+    std::vector<fp> derivatives; 
     std::vector<ParMult> recursive_derivatives;
-  
-    // these are set on initialization and never changed
-    std::vector<OpTree*> op_trees; 
-    std::vector<int> vmcode; //OP_PUT_DERIV, OP_PUT_VAL, OP_NUMBER, OP_VAR
-    std::vector<fp> vmdata;
-
-    void run_vm(std::vector<Variable*> const &variables);
+    AnyFormula af;
 };
 
 
