@@ -18,10 +18,6 @@ public:
     fp init(); // called before do_iteration()/autoiter()
     int autoiter ();
 private:
-    fp lambda_starting_value;
-    fp lambda_up_factor;
-    fp lambda_down_factor;
-    fp stop_rel;
     fp shake_before;
     char shake_type;
     std::vector<fp> alpha, alpha_;            // matrices

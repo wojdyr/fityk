@@ -4,6 +4,7 @@
 #include "common.h"
 #include "LMfit.h"
 #include "ui.h"
+#include "settings.h"
 #include <math.h>
 #include <vector>
 #include <algorithm>
@@ -12,16 +13,10 @@ using namespace std;
 
 LMfit::LMfit() 
     : Fit("Levenberg-Marquardt"),
-      lambda_starting_value (0.001),
-      lambda_up_factor (10), lambda_down_factor (10),
-      stop_rel (1e-4), shake_before (0), shake_type ('u'),
+      shake_before (0), shake_type ('u'),
       alpha(0), alpha_(0), beta(0), beta_(0)
 {
     /*
-    fpar ["lambda-starting-value"] = &lambda_starting_value;
-    fpar ["lambda-up-factor"] = &lambda_up_factor;
-    fpar ["lambda-down-factor"] = &lambda_down_factor;
-    fpar ["stop-rel-change"] = &stop_rel;
     fpar ["shake-before"] = &shake_before;
     epar.insert(pair<string, Enum_string>("shake-type", 
                                Enum_string (Distrib_enum, &shake_type)));
@@ -41,7 +36,8 @@ fp LMfit::init()
         warn ("No data points. What should I fit ?");
         return -1;
     }
-    lambda = lambda_starting_value;
+    lambda = getSettings()->get_f("lm-lambda-start");
+    //TODO what to do with this shake?
     if (shake_before > 0.) {
         for (int i = 0; i < na; i++) 
             a[i] = draw_a_from_distribution (i, shake_type, shake_before);
@@ -63,6 +59,7 @@ int LMfit::autoiter()
     verbose("\t === Levenberg-Marquardt method ===");
     info ("Initial values:  lambda=" + S(lambda) + "  WSSR=" + S(chi2));
     verbose ("Max. number of iterations: " + max_iterations);
+    fp stop_rel = getSettings()->get_f("lm-stop-rel-change");
     if (stop_rel > 0) {
         verbose ("Stopping when relative change of WSSR is "
                   "twice in row below " + S (stop_rel * 100.) + "%");
@@ -141,11 +138,11 @@ int LMfit::do_iteration()
         chi2 = chi2_; 
         a = beta_;
         compute_derivatives(a, datsums, alpha, beta);
-        lambda /= lambda_down_factor;
+        lambda /= getSettings()->get_f("lm-lambda-down-factor");
         return 1;
     }
     else {// worse fitting
-        lambda *= lambda_up_factor;
+        lambda *= getSettings()->get_f("lm-lambda-up-factor");
         return 0;
     }
 }    

@@ -61,6 +61,11 @@ Settings::Settings()
         fitting_method_enum[i] = fm[i]->name;
     epar.insert (pair<string, EnumString>("fitting-method", 
                                           EnumString(fitting_method_enum, 0)));
+
+    fpar ["lm-lambda-start"] = 0.001;
+    fpar ["lm-lambda-up-factor"] = 10;
+    fpar ["lm-lambda-down-factor"] = 10;
+    fpar ["lm-stop-rel-change"] = 1e-4;
     //TODO
 }
 

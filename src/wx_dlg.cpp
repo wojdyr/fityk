@@ -912,6 +912,19 @@ BEGIN_EVENT_TABLE(SettingsDlg, wxDialog)
     EVT_BUTTON (ID_SET_XSBUT, SettingsDlg::OnChangeButton)
     EVT_BUTTON (wxID_OK, SettingsDlg::OnOK)
 END_EVENT_TABLE()
+
+RealNumberCtrl *addRealNumberCtrl(wxWindow *parent, wxString const& label,
+                                  string const& value, wxSizer *sizer)
+{
+    wxStaticText *st = new wxStaticText(parent, -1, label);
+    RealNumberCtrl *ctrl = new RealNumberCtrl(parent, -1, value);
+    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
+    hsizer->Add(st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    hsizer->Add(ctrl, 0, wxALL, 5);
+    sizer->Add(hsizer, 0, wxEXPAND);
+    return ctrl;
+}
+                                  
     
 SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     : wxDialog(parent, id, wxT("Settings"),
@@ -923,7 +936,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     nb->AddPage(page_general, wxT("general"));
     wxPanel *page_peakfind = new wxPanel(nb, -1);
     nb->AddPage(page_peakfind, wxT("peak-finding"));
-    wxPanel *page_fitting = new wxPanel(nb, -1);
+    wxNotebook *page_fitting = new wxNotebook(nb, -1);
     nb->AddPage(page_fitting, wxT("fitting"));
     wxPanel *page_dirs = new wxPanel(nb, -1);
     nb->AddPage(page_dirs, wxT("directories"));
@@ -968,7 +981,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     wxBoxSizer *sizer_general_seed = new wxBoxSizer(wxHORIZONTAL);
     sizer_general_seed->Add(seed_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     sizer_general_seed->Add(seed_sp, 0, wxALL, 5);
-    sizer_general->Add(sizer_general_seed, 0);
+    sizer_general->Add(sizer_general_seed, 0, wxEXPAND);
     sizer_general->Add(add_persistence_note(page_general), 0, wxEXPAND|wxALL,5);
     page_general->SetSizerAndFit(sizer_general);
 
@@ -998,6 +1011,20 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     page_peakfind->SetSizerAndFit(sizer_pf);
 
     // page fitting 
+    wxPanel *page_fit_common = new wxPanel(page_fitting, -1);
+    page_fitting->AddPage(page_fit_common, wxT("common"));
+    wxPanel *page_fit_LM = new wxPanel(page_fitting, -1);
+    page_fitting->AddPage(page_fit_LM, wxT("Lev-Mar"));
+    wxPanel *page_fit_NM = new wxPanel(page_fitting, -1);
+    page_fitting->AddPage(page_fit_NM, wxT("Nelder-Mead"));
+    wxPanel *page_fit_GA = new wxPanel(page_fitting, -1);
+    page_fitting->AddPage(page_fit_GA, wxT("GA"));
+
+    wxBoxSizer *sizer_fcmn = new wxBoxSizer(wxVERTICAL);
+    wxStaticBoxSizer *sizer_fcstop = new wxStaticBoxSizer(wxHORIZONTAL,
+                                page_fit_common, wxT("termination criteria"));
+    sizer_fcmn->Add(sizer_fcstop, 0, wxEXPAND|wxALL, 5);
+    page_fit_common->SetSizerAndFit(sizer_fcmn);
     // TODO
 
     // page directories
@@ -1020,8 +1047,8 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     sizer_dirs->Add(sizer_dirs_script, 0, wxEXPAND|wxALL, 5);
     sizer_dirs->Add(new wxStaticText(page_dirs, -1, 
                  wxT("Directories given above are used when the dialogs\n")
-                 wxT(" are displayed first time after launching the program.")),
-                 0, wxALL, 5);
+                 wxT("are displayed first time after launching the program.")),
+                 0, wxALL|wxEXPAND, 5);
     page_dirs->SetSizerAndFit(sizer_dirs);
 
     //finish layout
