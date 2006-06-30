@@ -19,15 +19,8 @@
 using namespace std;
 
 Fit::Fit(string m)  
-    : name(m), 
-      default_max_iterations(50), output_one_of(1), 
-      max_evaluations(0), evaluations(0), iter_nr (0), na(0)
+    : name(m), evaluations(0), iter_nr (0), na(0)
 {
-    /*
-    irpar ["output-one-of"] = IntRange (&output_one_of, 1, 999);
-    ipar["default-max-iterations"] = &default_max_iterations;
-    ipar["max-wssr-evaluations"] = &max_evaluations;
-    */
     Distrib_enum ['u'] = "uniform";
     Distrib_enum ['g'] = "gauss";
     Distrib_enum ['l'] = "lorentz";
@@ -287,7 +280,7 @@ void Fit::fit(int max_iter, vector<DataWithSum*> const& dsds)
     evaluations = 0;
     user_interrupt = false;
     init(); //method specific init
-    max_iterations = max_iter >= 0 ? max_iter : default_max_iterations;
+    max_iterations = max_iter;
     autoiter();
 }
 
@@ -302,7 +295,7 @@ void Fit::continue_fit(int max_iter)
     //a_orig = AL->get_parameters();  //should it be also updated?
     user_interrupt = false;
     evaluations = 0;
-    max_iterations = max_iter >= 0 ? max_iter : default_max_iterations;
+    max_iterations = max_iter;
     autoiter();
 }
 
@@ -343,6 +336,7 @@ bool Fit::common_termination_criteria(int iter)
         info("Maximum iteration number reached.");
         stop = true;
     }
+    int max_evaluations = getSettings()->get_i("max-wssr-evaluations");
     if (max_evaluations > 0 && evaluations >= max_evaluations) {
         info("Maximum evaluations number reached.");
         stop = true;

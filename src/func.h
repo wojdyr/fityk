@@ -151,6 +151,10 @@ private:
     CustomFunction(std::string const &name, std::string const &type,
                    std::vector<std::string> const &vars);
     CustomFunction (const CustomFunction&); //disable
+    //AnyFormula af;
+    //////TODO -initialization
+    //AnyFormula(std::vector<OpTree*> const &op_trees_, 
+    //           fp &value_, std::vector<fp>& derivatives_) 
 };
 
 #endif 

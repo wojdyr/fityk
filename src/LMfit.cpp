@@ -74,8 +74,7 @@ int LMfit::autoiter()
         }
         if (result == 1) { //better fit
             fp d = prev_chi2 - chi2;
-            if (iter % output_one_of == 0)
-                info ("#" + S(iter_nr) + ":  WSSR=" + S(chi2) 
+            info ("#" + S(iter_nr) + ":  WSSR=" + S(chi2) 
                         + "  lambda=" + S(lambda) + "  d(WSSR)=" +  S(-d) 
                         + "  (" + S (d / prev_chi2 * 100) + "%)");  
             if (d / prev_chi2 < stop_rel || chi2 == 0) { //another termination

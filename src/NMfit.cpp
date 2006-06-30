@@ -15,7 +15,6 @@ NMfit::NMfit()
     :Fit ("Nelder-Mead-simplex"), 
      min_rel_diff(0.0001), move_all(false), distrib_type('b'), move_mult(1.)
 {
-    default_max_iterations = 500;
     /*
     fpar["min-fract-range"] = &min_rel_diff;
     bpar["move-all"] = &move_all;
@@ -144,8 +143,7 @@ void NMfit::compute_coord_sum()
 
 bool NMfit::termination_criteria (int iter)
 {
-    if (iter % output_one_of == 0) 
-        info ("#" + S(iter_nr) + " (ev:" + S(evaluations) + "): best:" 
+    info ("#" + S(iter_nr) + " (ev:" + S(evaluations) + "): best:" 
                 + S(best->wssr) + " worst:" + S(worst->wssr) + ", " 
                 + S(s_worst->wssr) + " [V * |" + S(volume_factor) + "|]");
     bool stop = false;

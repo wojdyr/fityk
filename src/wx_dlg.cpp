@@ -963,7 +963,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
                              wxT("quit if error or warning was generated"));
     exit_cb->SetValue(getSettings()->get_b("exit-on-warning"));
     wxStaticText *seed_st = new wxStaticText(page_general, -1,
-                         wxT("pseudo-random generator seed (0 = time-based)"));
+                        wxT("pseudo-random generator seed (0 = time-based)"));
     seed_sp = new SpinCtrl(page_general, -1, 
                          getSettings()->get_i("pseudo-random-seed"), 0, 999999,
                          70);
@@ -979,10 +979,10 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     sizer_general->Add(verbosity_ch, 0, wxEXPAND|wxALL, 5);
     sizer_general->Add(exit_cb, 0, wxEXPAND|wxALL, 5);
     wxBoxSizer *sizer_general_seed = new wxBoxSizer(wxHORIZONTAL);
-    sizer_general_seed->Add(seed_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    sizer_general_seed->Add(seed_sp, 0, wxALL, 5);
+    sizer_general_seed->Add(seed_st, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    sizer_general_seed->Add(seed_sp, 0, wxTOP|wxBOTTOM|wxRIGHT, 5);
     sizer_general->Add(sizer_general_seed, 0, wxEXPAND);
-    sizer_general->Add(add_persistence_note(page_general), 0, wxEXPAND|wxALL,5);
+    add_persistence_note(page_general, sizer_general);
     page_general->SetSizerAndFit(sizer_general);
 
     // page peak-finding
@@ -1007,7 +1007,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     sizer_pf_wc->Add(width_correction, 0, wxALL, 5);
     sizer_pf->Add(sizer_pf_wc, 0);
     sizer_pf->Add(cancel_poos, 0, wxALL, 5);
-    sizer_pf->Add(add_persistence_note(page_peakfind), 0, wxEXPAND|wxALL, 5);
+    add_persistence_note(page_peakfind, sizer_pf);
     page_peakfind->SetSizerAndFit(sizer_pf);
 
     // page fitting 
@@ -1020,11 +1020,45 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     wxPanel *page_fit_GA = new wxPanel(page_fitting, -1);
     page_fitting->AddPage(page_fit_GA, wxT("GA"));
 
+    // sub-page common
     wxBoxSizer *sizer_fcmn = new wxBoxSizer(wxVERTICAL);
     wxStaticBoxSizer *sizer_fcstop = new wxStaticBoxSizer(wxHORIZONTAL,
                                 page_fit_common, wxT("termination criteria"));
+    wxStaticText *mwssre_st = new wxStaticText(page_fit_common, -1,
+                                               wxT("max. WSSR evaluations"));
+    mwssre_sp = new SpinCtrl(page_fit_common, -1, 
+                       getSettings()->get_i("max-wssr-evaluations"), 0, 999999,
+                       70);
+    sizer_fcstop->Add(mwssre_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    sizer_fcstop->Add(mwssre_sp, 0, wxALL, 5);
     sizer_fcmn->Add(sizer_fcstop, 0, wxEXPAND|wxALL, 5);
+    add_persistence_note(page_fit_common, sizer_fcmn);
     page_fit_common->SetSizerAndFit(sizer_fcmn);
+
+    // sub-page Lev-Mar
+    wxBoxSizer *sizer_flm = new wxBoxSizer(wxVERTICAL);
+    wxStaticBoxSizer *sizer_flmlambda = new wxStaticBoxSizer(wxVERTICAL,
+                                page_fit_LM, wxT("lambda parameter"));
+    lm_lambda_ini = addRealNumberCtrl(page_fit_LM, wxT("initial value"), 
+                      getSettings()->getp("lm-lambda-start"), sizer_flmlambda);
+    lm_lambda_up = addRealNumberCtrl(page_fit_LM, wxT("increasing factor"), 
+                 getSettings()->getp("lm-lambda-up-factor"), sizer_flmlambda);
+    lm_lambda_down = addRealNumberCtrl(page_fit_LM, wxT("decreasing factor"), 
+                getSettings()->getp("lm-lambda-down-factor"), sizer_flmlambda);
+    sizer_flm->Add(sizer_flmlambda, 0, wxEXPAND|wxALL, 5);
+    wxStaticBoxSizer *sizer_flmstop = new wxStaticBoxSizer(wxHORIZONTAL,
+                                page_fit_LM, wxT("termination criteria"));
+    lm_stop = addRealNumberCtrl(page_fit_LM, wxT("WSSR relative change <"), 
+                     getSettings()->getp("lm-stop-rel-change"), sizer_flmstop);
+    sizer_flm->Add(sizer_flmstop, 0, wxEXPAND|wxALL, 5);
+    add_persistence_note(page_fit_LM, sizer_flm);
+    page_fit_LM->SetSizerAndFit(sizer_flm);
+
+    
+    // sub-page N-M
+    // TODO
+    
+    // sub-page GA
     // TODO
 
     // page directories
@@ -1060,7 +1094,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     SetSizerAndFit(top_sizer);
 }
 
-wxSizer* SettingsDlg::add_persistence_note(wxWindow *parent)
+void SettingsDlg::add_persistence_note(wxWindow *parent, wxSizer *sizer)
 {
     wxStaticBoxSizer *persistence = new wxStaticBoxSizer(wxHORIZONTAL,
                                            parent, wxT("persistance note"));
@@ -1069,7 +1103,8 @@ wxSizer* SettingsDlg::add_persistence_note(wxWindow *parent)
                        wxT("put proper\ncommands into init file:")
                        + get_user_conffile(startup_commands_filename)),
                      0, wxALL|wxALIGN_CENTER, 5);
-    return persistence;
+    sizer->AddStretchSpacer();
+    sizer->Add(persistence, 0, wxEXPAND|wxALL, 5);
 }
 
 void SettingsDlg::OnChangeButton(wxCommandEvent& event)
@@ -1096,6 +1131,11 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
     m["height-correction"] = wx2s(height_correction->GetValue());
     m["width-correction"] = wx2s(width_correction->GetValue());
     m["can-cancel-guess"] = cancel_poos->GetValue() ? "1" : "0";
+    m["max-wssr-evaluations"] = S(mwssre_sp->GetValue());
+    m["lm-lambda-start"] = wx2s(lm_lambda_ini->GetValue());
+    m["lm-lambda-up-factor"] = wx2s(lm_lambda_up->GetValue());
+    m["lm-lambda-down-factor"] = wx2s(lm_lambda_down->GetValue());
+    m["lm-stop-rel-change"] = wx2s(lm_stop->GetValue());
     vector<string> kk = getSettings()->expanp();
     for (vector<string>::const_iterator i = kk.begin(); i != kk.end(); ++i)
         if (m.count(*i) && m[*i] != getSettings()->getp(*i))

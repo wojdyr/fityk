@@ -62,10 +62,17 @@ Settings::Settings()
     epar.insert (pair<string, EnumString>("fitting-method", 
                                           EnumString(fitting_method_enum, 0)));
 
-    fpar ["lm-lambda-start"] = 0.001;
-    fpar ["lm-lambda-up-factor"] = 10;
-    fpar ["lm-lambda-down-factor"] = 10;
-    fpar ["lm-stop-rel-change"] = 1e-4;
+    //  - common
+    ipar["max-wssr-evaluations"] = 1000;
+
+    //  - Lev-Mar
+    fpar["lm-lambda-start"] = 0.001;
+    fpar["lm-lambda-up-factor"] = 10;
+    fpar["lm-lambda-down-factor"] = 10;
+    fpar["lm-stop-rel-change"] = 1e-4;
+    //  - Nelder-Mead
+    //TODO
+    //  - Genetic Algorithms
     //TODO
 }
 

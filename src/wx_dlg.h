@@ -142,12 +142,14 @@ private:
     wxRadioBox *autoplot_rb;
     wxChoice *verbosity_ch;
     wxCheckBox *exit_cb;
-    SpinCtrl *seed_sp;
-    RealNumberCtrl *cut_func, *height_correction, *width_correction;
+    SpinCtrl *seed_sp, *mwssre_sp;
+    RealNumberCtrl *cut_func, *height_correction, *width_correction,
+                   *lm_lambda_ini, *lm_lambda_up, *lm_lambda_down,
+                   *lm_stop;
     wxCheckBox *cancel_poos;
     wxTextCtrl *dir_ld_tc, *dir_xs_tc;
 
-    wxSizer* add_persistence_note(wxWindow *parent);
+    void add_persistence_note(wxWindow *parent, wxSizer *sizer);
 
     DECLARE_EVENT_TABLE()
 };

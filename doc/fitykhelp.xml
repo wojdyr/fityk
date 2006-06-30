@@ -1368,15 +1368,6 @@
    <section>
     <title>Levenberg-Marquardt </title>
     <para>
-     <note>
-      <para>
-       The rest of this chapter is outdated,
-       At this moment default settings of fitting methods can't be changed.
-       It will be fixed as soon as possible.
-      </para>
-     </note>
-    </para>
-    <para>
      It is a standard of nonlinear least-squares routines. It involves
      computing first derivatives of functions. For description of L-M method
      see <citetitle pubwork="book">Numerical Recipes</citetitle>, chapter 15.5 
@@ -1389,20 +1380,28 @@
      vector is rotated toward the direction of steepest descent and the length
      of the shift vector decreases. (The shift vector is a vector that is added
      to the parameter vector.) If the better fit is found in iteration, lambda
-     is decreased - it is divided by value of 
-     <parameter class="option">lambda-down-factor</parameter> option 
-     (default: 10). Otherwise, lambda is multiplied by value of 
-     <parameter class="option">lambda-up-factor</parameter> (default: 10). 
-     You can also change a value of 
-     <parameter class="option">lambda-starting-value</parameter> option. 
+     is decreased - it is divided by the value of 
+     <parameter class="option">lm-lambda-down-factor</parameter> option 
+     (default: 10). Otherwise, lambda is multiplied by the value of 
+     <parameter class="option">lm-lambda-up-factor</parameter> (default: 10). 
+     Initial lambda value is equal to
+     <parameter class="option">lm-lambda-start</parameter> (default: 0.0001). 
     </para>
     <para>
      Marquardt method has one stopping criterium apart from common stopping
      criteria. If it happens two times in sequence, that relative 
      progress in value of objective function (<acronym>WSSR</acronym>) 
      is smaller then value of 
-     <parameter class="option">stop-rel-change</parameter> option,
-     fit is considered to be converged and is stopped. </para>
+     <parameter class="option">lm-stop-rel-change</parameter> option,
+     fit is considered to be converged and is stopped. 
+    </para>
+    <para>
+     <note>
+      <para>
+       The rest of this chapter is outdated.
+      </para>
+     </note>
+    </para>
     <para>
      L-M method finds a minimum quickly. The question is, if it is the
      global minimum.  It can be a good idea to add a small random vector to

@@ -11,8 +11,10 @@ only for GUI (graphical user interface, fityk):
 
 CVS:
 ===
-To compile source code from CVS, automake and autoconf are needed.
-Just run ./autogen.sh before ./configure. You may need to tune autogen.sh.
+To compile source code from CVS, automake (>=1.8) and autoconf are needed.
+Run ./autogen.sh before ./configure. You may need to tune autogen.sh.
+If you don't have wxWidgets installed, put wxwin.m4 file (it can be
+found in wxWidgets tarball) into fityk/config/.
 
 There are additional tools needed to run make in doc/ subdirectory
 (to convert XML DocBook document to HTML). If you don't want to bother 
@@ -21,7 +23,9 @@ subdirectory. Manual and tips won't be installed then.
 
 Fityk uses Boost::Spirit. (Only some header files are needed, in fityk tarballs 
 these files are put in 3rdparty/ directory). When using CVS, install 
-either whole Boost library or only Spirit (http://spirit.sf.net).
+either the whole Boost library or only Spirit (http://spirit.sf.net).
+Or just copy it from fityk tarball (fityk-x.x.x/3rdparty/boost) to the same
+location in the source downloaded from CVS.
 
 
 PORTABILITY:

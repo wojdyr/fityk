@@ -621,7 +621,7 @@ void FFrame::set_menubar()
          i != recent_data_files.end() && rf_counter < 16; i++, rf_counter++) 
         data_menu_recent->Append(ID_D_RECENT + rf_counter, 
                                  i->GetFullName(), i->GetFullPath());
-    data_menu->Append(ID_D_RECENT, wxT("Recent &Files"), data_menu_recent); 
+    data_menu->Append(ID_D_RECENT, wxT("&Recent Files"), data_menu_recent); 
     data_menu->AppendSeparator();
 
     data_menu->Append (ID_D_EDITOR, wxT("&Editor\tCtrl-E"), 
@@ -1076,7 +1076,7 @@ void FFrame::OnFRun          (wxCommandEvent& WXUNUSED(event))
     int r = wxGetNumberFromUser(wxT("Run fitting method"), 
                                 wxT("Max. number of iterations"), 
                                 wxT("Fit->Run"), 
-                                getFit()->default_max_iterations, 0, 9999);
+                                0, 0, 9999);
     if (r != -1)
         exec_command("fit " + S(r) + get_in_dataset());
 }
@@ -1086,7 +1086,7 @@ void FFrame::OnFContinue     (wxCommandEvent& WXUNUSED(event))
     int r = wxGetNumberFromUser(wxT("Continue previous fitting"), 
                                 wxT("Max. number of iterations"), 
                                 wxT("Fit->Continue"), 
-                                getFit()->default_max_iterations, 0, 9999);
+                                0, 0, 9999);
     if (r != -1)
         exec_command ("fit+ " + S(r));
 }

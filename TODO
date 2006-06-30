@@ -15,7 +15,9 @@
 * "info" can be redirected to file in every case
    ("info ... >> file" appends to file, with '>' it truncates file)
 
-* settings: fitting options
+* un-strip background: append proper 'in @n' (not the one used for strip),
+  
+* settings: fitting - update docs
 
 * an easy way to change colors of all datasets, eg. using colorramp 
 
@@ -35,6 +37,11 @@
            (problems with width changing)
  	(bug?) now it matters in which point exactly you catch the peak
 
+* (GUI) new Fit->Run/Continue dialog (one dialog with max. WSSR evaluations,
+  max. iterations, continue checkbox, OK/Cancel)
+
+* (GUI) finish script debugger dialog
+
 ------------------ next release here 0.7.5
 * use info for exports:
   - replace exporting @x.peaks, @x.formula and commands[] 
@@ -43,13 +50,22 @@
   - (?) "info @n () > file"
        should display ... [1234 lines more] rather than everything
 
+* GUI: data range mode: special mode to dis-activate points below 
+  given level or polyline
+
 * simple-variable domain ~3[2:14]
+
+* settings: Nelder-Mead and GA fitting options, 
+  a way to "shake" parameters for L-M, constrained L-M option
 
 * history (data / sum / view / all) 
    i don't exactly know how to implement it yet
 
 * implement command "dump", which also embeds data in script using
    M=..., x[0]=.., y[0]=.., s[0]=..., a[0]=.., x[1]=..,...
+
+* BUG: "reset" doesn't deletes functions and variables, it should also
+  replot in GUI and reset automatic func/var counter.
 
 * (GUI) redrawing for many datasets (~100) takes noticable time.
   Kind of plot buffering (as a bitmap).

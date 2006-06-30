@@ -30,7 +30,6 @@ GAfit::GAfit()
      pop(0), opop(0),
      best_indiv(0)
 {
-    default_max_iterations = 200;
     /*
     irpar["population-size"] = IntRange (&popsize, 2, 9999);
     irpar["steady-size"] = IntRange (&elitism, 0, 9999);
@@ -477,8 +476,7 @@ bool GAfit::termination_criteria_and_print_info (int iter)
         generations_sum += i->generation;
     }
     fp std_dev = sq_sum > 0 ? sqrt (sq_sum / pop->size()) : 0;
-    if (iter % output_one_of == 0)
-        info ("Population #" + S(iter_nr) + ": best " + S(min) 
+    info ("Population #" + S(iter_nr) + ": best " + S(min) 
                 + ", avg " + S(avg) + ", worst " + S(tmp_max) 
                 + ", std dev. " + S(std_dev));
     if (!log_file.empty()) {
