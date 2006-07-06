@@ -8,7 +8,7 @@
 	                   ^^^ any name but 'x' allowed here
       - more sophisticated simplifications of expressions and CSE(!)
       - calculating limits, width, area, etc. for UDF(!)
-      - f(x) = a1*(a2/x)^3*exp(-(((a2/x)-a3)/a4)^2)
+      - f(x) = a1*(a2/x)^3*exp(-(((a2/x)-a3)/a4)^2) / x 
          (Maxwell-Boltzmann velocity (flux) distribution
 	  for Wolfgang Christen)
 
@@ -41,6 +41,10 @@
   max. iterations, continue checkbox, OK/Cancel)
 
 * (GUI) finish script debugger dialog
+
+* (GUI) peak-tops should be visible also in range-mode
+
+* (GUI) added peak should be activeted
 
 ------------------ next release here 0.7.5
 * use info for exports:
