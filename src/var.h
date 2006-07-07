@@ -9,6 +9,7 @@
 using namespace boost::spirit;
 
 #include "common.h"
+#include "calc.h"
 
 
 struct OpTree;
@@ -48,31 +49,6 @@ protected:
     /// var_idx is set after initialization (in derived class)
     /// and modified after variable removal or change
     std::vector<int> var_idx;
-};
-
-
-class AnyFormula
-{
-public:
-    AnyFormula(fp &value_, std::vector<fp>& derivatives_) 
-        : value(value_), derivatives(derivatives_) {}
-    AnyFormula(std::vector<OpTree*> const &op_trees_, 
-               fp &value_, std::vector<fp>& derivatives_) 
-        : value(value_), derivatives(derivatives_), op_trees(op_trees_) {}
-    /// (re-)create bytecode, required after ::set_var_idx()
-    void tree_to_bytecode(std::vector<int> const& var_idx); 
-    void run_vm(std::vector<Variable*> const &variables); 
-    std::vector<OpTree*> const& get_op_trees() const { return op_trees; }
-
-private:
-    // these are recalculated every time parameters or variables are changed
-    fp &value; 
-    std::vector<fp> &derivatives; 
-
-    // these are set on initialization and never changed
-    std::vector<OpTree*> op_trees; 
-    std::vector<int> vmcode; //OP_PUT_DERIV, OP_PUT_VAL, OP_VAR, etc. 
-    std::vector<fp> vmdata; 
 };
 
 

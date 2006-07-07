@@ -263,17 +263,6 @@ DataTransformGrammar DataTransformG;
 
 namespace datatrans {
 
-// code vector contains not only operators, but also indices that
-// points locations in numbers or parameterized vectors
-bool is_any_operator(vector<int>::const_iterator i)
-{
-    assert(code.begin() <= i && i < code.end());
-    return i == code.begin() 
-                        || *(i-1) != OP_NUMBER && *(i-1) != OP_PARAMETERIZED
-                           && *(i-1) != OP_FUNC && *(i-1) != OP_SUM_F
-                           && *(i-1) != OP_SUM_Z;
-}
-
 /// debuging utility
 #define OP_(x) \
     if (op == OP_##x) return #x;
@@ -305,7 +294,7 @@ string dt_ops(vector<int> const& code)
 {
     string r;
     for (std::vector<int>::const_iterator i=code.begin(); i != code.end(); ++i) 
-        if (is_any_operator(i))
+        if (*i < 0)
             r += dt_op(*i) + " ";
         else
             r += "[" + S(*i) + "] ";
@@ -344,12 +333,6 @@ void clear_parse_vecs()
     purge_all_elements(parameterized);
 }
 
-bool is_operator(vector<int>::const_iterator i, DataTransformVMOperator op)
-{
-    assert(code.begin() <= i && i < code.end());
-    return *i == op && is_any_operator(i);
-}
-
 vector<int>::const_iterator 
 skip_code(vector<int>::const_iterator i, int start_op, int finish_op)
 {
@@ -365,7 +348,7 @@ skip_code(vector<int>::const_iterator i, int start_op, int finish_op)
 void skip_to_end(vector<int>::const_iterator &i)
 {
     DT_DEBUG("SKIPing")
-    while (!is_operator(i, OP_END))
+    while (*i != OP_END)
         ++i;
 }
 
@@ -804,9 +787,8 @@ void replace_aggregates(int M, vector<Point> const& old_points,
 {
     vector<fp> stack(stack_size);
     for (vector<int>::iterator i = cb; i != code.end(); ++i) {
-        if (is_operator(i, OP_AGMIN) || is_operator(i, OP_AGMAX)
-                || is_operator(i, OP_AGSUM) || is_operator(i, OP_AGAREA)
-                || is_operator(i, OP_AGAVG) || is_operator(i, OP_AGSTDDEV)) {
+        if (*i == OP_AGMIN || *i == OP_AGMAX || *i == OP_AGSUM 
+                || *i == OP_AGAREA || *i == OP_AGAVG || *i == OP_AGSTDDEV) {
             int op = *i;
             vector<int>::iterator const start = i;
             DT_DEBUG("code before replace: " + dt_ops(code));
@@ -816,14 +798,13 @@ void replace_aggregates(int M, vector<Point> const& old_points,
             int counter = 0;
             vector<Point> fake_new_points(M);
             ++i;
-            while (!is_operator(i, OP_AGCONDITION) 
-                   && !is_operator(i, OP_END_AGGREGATE))
+            while (*i != OP_AGCONDITION && *i != OP_END_AGGREGATE)
                 ++i;
             vector<int> acode(start+1, i);
             vector<int> ccode;
             if (*i == OP_AGCONDITION) {
                 vector<int>::iterator const start_cond = i;
-                while (!is_operator(i, OP_END_AGGREGATE))
+                while (*i != OP_END_AGGREGATE)
                     ++i;
                 ccode = vector<int>(start_cond+1, i);
             }

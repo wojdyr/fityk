@@ -8,6 +8,7 @@
 #include "ui.h"
 #include "settings.h"
 #include "calc.h"
+#include "ast.h"
 
 #include <memory>
 #include <ctype.h>
@@ -104,8 +105,13 @@ Function* Function::factory (string const &name_, string const &type_name,
     FACTORY_FUNC(DoniachSunjic)
     FACTORY_FUNC(Valente)
     FACTORY_FUNC(PielaszekCube)
-    else if (CompoundFunction::is_defined(type_name))
-        return new CompoundFunction(name, type_name, vars);
+    else if (UdfContainer::is_defined(type_name)) {
+        UdfContainer::UDF const* udf = UdfContainer::get_udf(type_name);
+        if (udf->is_compound)
+            return new CompoundFunction(name, type_name, vars);
+        else 
+            return new CustomFunction(name, type_name, vars, udf->op_trees);
+    }
     else 
         throw ExecuteError("Undefined type of function: " + type_name);
 }
@@ -138,9 +144,10 @@ vector<string> Function::get_all_types()
     int nb = sizeof(builtin_formulas)/sizeof(builtin_formulas[0]);
     for (int i = 0; i < nb; ++i)
         types.push_back(get_typename_from_formula(builtin_formulas[i]));
-    vector<string> const& cff = CompoundFunction::get_formulae();
-    for (vector<string>::const_iterator i = cff.begin(); i != cff.end(); ++i)
-        types.push_back(get_typename_from_formula(*i));
+    vector<UdfContainer::UDF> const& uff = UdfContainer::get_udfs();
+    for (vector<UdfContainer::UDF>::const_iterator i = uff.begin(); 
+                                                        i != uff.end(); ++i)
+        types.push_back(i->name);
     return types;
 }
 
@@ -150,10 +157,9 @@ string Function::get_formula(string const& type)
     for (int i = 0; i < nb; ++i)
         if (get_typename_from_formula(builtin_formulas[i]) == type)
             return builtin_formulas[i];
-    vector<string> const& cff = CompoundFunction::get_formulae();
-    for (vector<string>::const_iterator i = cff.begin(); i != cff.end(); ++i)
-        if (get_typename_from_formula(*i) == type)
-            return *i;
+    UdfContainer::UDF const* udf = UdfContainer::get_udf(type);
+    if (udf)
+        return udf->formula;
     return "";
 }
 
@@ -432,28 +438,130 @@ fp Function::find_extremum(fp x1, fp x2, fp xacc, int max_iter) const
 
 ///////////////////////////////////////////////////////////////////////
 
-// when changing, change also CompoundFunction::harddef_count
-// TODO default values for shape
-vector<string> CompoundFunction::formulae = split_string(
+namespace UdfContainer {
+
+vector<UDF> udfs; 
+
+void initialize_udfs()
+{
+    // TODO default values for shape
+    vector<string> formulae = split_string(
 "GaussianA(area, center, hwhm) = Gaussian(area/hwhm/sqrt(pi/ln(2)), center, hwhm)\n"
 "LorentzianA(area, center, hwhm) = Lorentzian(area/hwhm/pi, center, hwhm)\n"
 "Pearson7A(area, center, hwhm, shape=2) = Pearson7(area/(hwhm*exp(lgamma(shape-0.5)-lgamma(shape))*sqrt(pi/(2^(1/shape)-1))), center, hwhm, shape)\n"
 "PseudoVoigtA(area, center, hwhm, shape=0.5) = GaussianA(area*(1-shape), center, hwhm) + LorentzianA(area*shape, center, hwhm)",
   "\n");
+    udfs.clear();
+    for (vector<string>::const_iterator i = formulae.begin(); 
+                                                    i != formulae.end(); ++i)
+        udfs.push_back(UDF(*i, true));
+}
 
-//static
+bool is_compounded(string const& formula)
+{
+    string::size_type t = formula.rfind('=');
+    assert(t != string::npos);
+    t = formula.find_first_not_of(" \t\r\n", t+1);
+    assert(t != string::npos);
+    return isupper(formula[t]);
+}
+
+vector<OpTree*> make_op_trees(string const& formula)
+{
+    string rhs = Function::get_rhs_from_formula(formula);
+    tree_parse_info<> info = ast_parse(rhs.c_str(), FuncG, space_p);
+    assert(info.full);
+    vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID, info);
+    vector<string> lhs_vars = Function::get_varnames_from_formula(formula);
+    lhs_vars.push_back("x");
+    for (vector<string>::const_iterator i = vars.begin(); i != vars.end(); i++) 
+        if (find(lhs_vars.begin(), lhs_vars.end(), *i) == lhs_vars.end())
+            throw ExecuteError("variable `" + *i 
+                                           + "' only at the right hand side.");
+    vector<OpTree*> op_trees = calculate_deriv(info.trees.begin(), lhs_vars);
+    return op_trees;
+}
+
+void define(std::string const &formula)
+{
+    string type = Function::get_typename_from_formula(formula);
+    vector<string> lhs_vars = Function::get_varnames_from_formula(formula);
+    for (vector<string>::const_iterator i = lhs_vars.begin(); 
+                                                    i != lhs_vars.end(); i++) {
+        if (*i == "x")
+            throw ExecuteError("x should not be given explicitly as "
+                               "function type parameters.");
+        else if (!islower((*i)[0]))
+            throw ExecuteError("Improper variable: " + *i);
+    }
+    if (is_compounded(formula)) {
+        vector<string> rf = get_cpd_rhs_components(formula);
+        for (vector<string>::const_iterator i = rf.begin(); i != rf.end(); ++i) 
+            check_cpd_rhs_function(*i, lhs_vars);
+    } 
+    else {
+        //nothing ?
+    }
+    if (is_defined(type) && !get_udf(type)->is_builtin) { 
+        //defined, but can be undefined; don't undefine function implicitely
+        throw ExecuteError("Function `" + type + "' is already defined. "
+                           "You can try to undefine it.");
+    }
+    else if (!Function::get_formula(type).empty()) { //not UDF -> built-in
+        throw ExecuteError("Built-in functions can't be redefined.");
+    }
+    udfs.push_back(UDF(formula));
+}
+
+void undefine(std::string const &type)
+{
+    for (vector<UDF>::iterator i = udfs.begin(); i != udfs.end(); ++i)
+        if (i->name == type) {
+            if (i->is_builtin)
+                throw ExecuteError("Built-in compound function "
+                                                    "can't be undefined.");
+            //check if other definitions depend on it
+            for (vector<UDF>::const_iterator j = udfs.begin(); 
+                                                  j != udfs.end(); ++j) {
+                if (!j->is_builtin)
+                    continue;
+                vector<string> rf = get_cpd_rhs_components(j->formula);
+                for (vector<string>::const_iterator k = rf.begin();
+                                                          k != rf.end(); ++k) {
+                    if (Function::get_typename_from_formula(*k) == type)
+                        throw ExecuteError("Can not undefine function `" + type 
+                                            + "', because function `" + j->name
+                                            + "' depends on it.");
+                }
+            }
+            udfs.erase(i);
+            return;
+        }
+    throw ExecuteError("Can not undefine function `" + type 
+                        + "' which is not defined");
+}
+
+UDF const* get_udf(std::string const &type)
+{
+    for (vector<UDF>::const_iterator i = udfs.begin(); i != udfs.end(); ++i)
+        if (i->name == type)
+            return &(*i);
+    return 0;
+}
+
+
 ///check for errors in function at RHS
-void CompoundFunction::check_rhs_function(std::string const& fun, 
+void check_cpd_rhs_function(std::string const& fun, 
                                           vector<string> const& lhs_vars)
 {
     //check if component function is known
-    string t = get_typename_from_formula(fun);
+    string t = Function::get_typename_from_formula(fun);
     string tf = Function::get_formula(t);
     if (tf.empty())
         throw ExecuteError("definition based on undefined function `" + t +"'");
     //...and if it has proper number of parameters
-    vector<string> tvars = get_varnames_from_formula(tf);
-    vector<string> gvars = get_varnames_from_formula(fun);
+    vector<string> tvars = Function::get_varnames_from_formula(tf);
+    vector<string> gvars = Function::get_varnames_from_formula(fun);
     if (tvars.size() != gvars.size())
         throw ExecuteError("Function `" + t + "' requires " 
                                       + S(tvars.size()) + " parameters.");
@@ -473,9 +581,8 @@ void CompoundFunction::check_rhs_function(std::string const& fun,
     }
 }
 
-//static
 /// find components of RHS (split sum "A() + B() + ...")
-vector<string> CompoundFunction::get_rhs_components(string const &formula)
+vector<string> get_cpd_rhs_components(string const &formula)
 {
     vector<string> result;
     string::size_type pos = formula.rfind('=') + 1, 
@@ -491,79 +598,9 @@ vector<string> CompoundFunction::get_rhs_components(string const &formula)
     return result;
 }
 
-//static
-void CompoundFunction::define(std::string const &formula)
-{
-    string type = get_typename_from_formula(formula);
-    vector<string> lhs_vars = get_varnames_from_formula(formula);
-    if (contains_element(lhs_vars, "x"))
-        throw ExecuteError("x should not be given explicitly as "
-                           "function type parameters.");
-    vector<string> rf = get_rhs_components(formula);
-    for (vector<string>::const_iterator i = rf.begin(); i != rf.end(); ++i) 
-        check_rhs_function(*i, lhs_vars);
-    if (is_defined(type, true)) { //defined, but can be undefined
-        //don't undefine function implicitely
-        //undefine(type);
-        throw ExecuteError("Function `" + type + "'is already defined. "
-                           "You can try to undefine it.");
-    }
-    else if (!Function::get_formula(type).empty()) { //not UDF -> built-in
-        throw ExecuteError("Built-in functions can't be redefined.");
-    }
-    formulae.push_back(formula); 
-}
+} // namespace UdfContainer
 
-//static
-void CompoundFunction::undefine(std::string const &type)
-{
-    for (vector<string>::iterator i=formulae.begin(); i != formulae.end(); ++i)
-        if (get_typename_from_formula(*i) == type) {
-            if (i - formulae.begin() < harddef_count)
-                throw ExecuteError("Built-in compound function "
-                                                    "can't be undefined.");
-            //check if other definitions depend on it
-            for (vector<string>::const_iterator j = formulae.begin(); 
-                                                  j != formulae.end(); ++j) {
-                vector<string> rf = get_rhs_components(*j);
-                for (vector<string>::const_iterator k = rf.begin();
-                                                          k != rf.end(); ++k) {
-                    if (get_typename_from_formula(*k) == type)
-                        throw ExecuteError("Can not undefine function `" + type 
-                                            + "', because function `" 
-                                            + get_typename_from_formula(*j)
-                                            + "' depends on it.");
-                }
-            }
-
-
-            formulae.erase(i);
-            return;
-        }
-    throw ExecuteError("Can not undefine function `" + type 
-                        + "' which is not defined");
-}
-
-//static
-bool CompoundFunction::is_defined(std::string const &type, bool only_udf)
-{
-    int start = only_udf ? harddef_count : 0; 
-    for (vector<string>::const_iterator i = formulae.begin() + start; 
-            i != formulae.end(); ++i)
-        if (get_typename_from_formula(*i) == type)
-            return true;
-    return false;
-}
-
-//static
-std::string const& CompoundFunction::get_formula(std::string const& type)
-{
-    for (vector<string>::const_iterator i = formulae.begin(); 
-            i != formulae.end(); ++i)
-        if (get_typename_from_formula(*i) == type) 
-            return *i;
-    throw ExecuteError("Function `" + type + "' is not defined.");
-}
+///////////////////////////////////////////////////////////////////////
 
 CompoundFunction::CompoundFunction(string const &name, string const &type,
                                    vector<string> const &vars)
@@ -573,7 +610,7 @@ CompoundFunction::CompoundFunction(string const &name, string const &type,
     for (int j = 0; j != nv; ++j) 
         vmgr.assign_variable(varnames[j], ""); // mirror variables
 
-    vector<string> rf = get_rhs_components(type_formula);
+    vector<string> rf = UdfContainer::get_cpd_rhs_components(type_formula);
     for (vector<string>::iterator i = rf.begin(); i != rf.end(); ++i) {
         for (int j = 0; j != nv; ++j) {
             replace_words(*i, type_var_names[j], vmgr.get_variable(j)->xname);
@@ -635,7 +672,7 @@ bool CompoundFunction::has_center() const
     return true;
 }
 
-/// if consists of >1 functions, if centers are in the same place
+/// if consists of >1 functions and centers are in the same place
 ///  height is a sum of heights
 bool CompoundFunction::has_height() const
 {
@@ -701,29 +738,64 @@ bool CompoundFunction::get_nonzero_range(fp level, fp& left, fp& right) const
 
 ///////////////////////////////////////////////////////////////////////
 
-CustomFunction::CustomFunction(std::string const &name, std::string const &type,
-                               std::vector<std::string> const &vars) 
-    : Function(name, vars, get_formula(type)) 
+CustomFunction::CustomFunction(string const &name, string const &type,
+                               vector<string> const &vars, 
+                               vector<OpTree*> const& op_trees)
+    : Function(name, vars, get_formula(type)),
+      derivatives(nv+1),
+      afo(op_trees, value, derivatives) 
 {
-    //TODO prepare VM code 
 }
+
+
+void CustomFunction::set_var_idx(vector<Variable*> const& variables)
+{
+    VariableUser::set_var_idx(variables);
+    afo.tree_to_bytecode(var_idx);
+}
+
 
 void CustomFunction::do_precomputations(vector<Variable*> const &variables_)
 { 
     Function::do_precomputations(variables_); 
+    afo.prepare_optimized_codes(variables_);
+    //TODO optimize VM code
 }
 
 void CustomFunction::calculate_value(vector<fp> const &xx, 
                                      vector<fp> &yy) const
 {
-    //TODO run VM
+    //int first, last; 
+    //get_nonzero_idx_range(xx, first, last); 
+    //for (int i = first; i < last; ++i) {
+    for (size_t i = 0; i < xx.size(); ++i) {
+        yy[i] += afo.run_vm_val(xx[i]); 
+    }
 }
 
 void CustomFunction::calculate_value_deriv(vector<fp> const &xx, 
                                            vector<fp> &yy, vector<fp> &dy_da,
                                            bool in_dx) const
 {
-    //TODO run VM
+    int dyn = dy_da.size() / xx.size();
+    for (size_t i = 0; i < yy.size(); ++i) {
+        afo.run_vm_der(xx[i]); 
+
+        if (!in_dx) { 
+            yy[i] += value; 
+            for (vector<Multi>::const_iterator j = multi.begin(); 
+                    j != multi.end(); ++j) 
+                dy_da[dyn*i+j->p] += derivatives[j->n] * j->mult;
+            dy_da[dyn*i+dyn-1] += derivatives.back();
+        }
+        else {  
+            for (vector<Multi>::const_iterator j = multi.begin(); 
+                    j != multi.end(); ++j) 
+                dy_da[dyn*i+j->p] += dy_da[dyn*i+dyn-1] 
+                                       * derivatives[j->n] * j->mult;
+        }
+    }
 }
+
 
 

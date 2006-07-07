@@ -13,6 +13,7 @@
 #include "fit.h"
 #include "guess.h"
 #include "settings.h"
+#include "func.h"
 
 using namespace std;
 
@@ -61,6 +62,7 @@ void ApplicationLogic::reset_all (bool finish)
     append_ds();
     activate_ds(0);
     getSettings()->do_srand();
+    UdfContainer::initialize_udfs();
 }
 
 

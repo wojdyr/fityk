@@ -22,7 +22,7 @@ endif  #OS_WIN32
 bin_PROGRAMS = @FITYK@ @CFITYK@ 
 EXTRA_PROGRAMS = fityk cfityk 
 common_sources = logic.cpp cmd3.cpp cmd2.cpp cmd.cpp common.cpp \
-		 var.cpp func.cpp bfunc.cpp calc.cpp \
+		 var.cpp func.cpp bfunc.cpp calc.cpp ast.cpp \
 		 data.cpp datatrans.cpp datatrans2.cpp datatrans3.cpp \
 		 datatrans4.cpp \
 		 settings.cpp ui.cpp GAfit.cpp LMfit.cpp guess.cpp NMfit.cpp \
@@ -43,7 +43,7 @@ noinst_HEADERS = common.h data.h datatrans.h datatrans2.h datatrans3.h \
 		 wx_common.h wx_dlg.h wx_gui.h wx_plot.h wx_mplot.h wx_pane.h \
 		 wx_fdlg.h \
 		 numfuncs.h cmd.h cmd2.h cmd3.h var.h func.h bfunc.h calc.h \
-		 optional_suffix.h
+		 ast.h optional_suffix.h
 
 # -ftemplate-depth-50 is for gcc 2.95 
 AM_CXXFLAGS = -Wall -ftemplate-depth-50 

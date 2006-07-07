@@ -274,6 +274,10 @@ void do_print_debug_info(char const*, char const*)  {
             m += "\n";
         }
     }
+    else if (t.size() > 0 && t[0] == '%') {
+        Function const* f = AL->find_function(t);
+        m = f->get_bytecode();
+    }
     mesg(m);
 }
 

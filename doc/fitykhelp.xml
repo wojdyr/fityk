@@ -1308,26 +1308,15 @@
      Genetic-Algorithms.
     </para>
     <para>
-     <note>
-      <para>
-       At this moment default settings of fitting methods can't be changed.
-       It will be fixed as soon as possible.
-      </para>
-     </note>
-    </para>
-    <para>
      All non-linear fitting methods are iterative, and there are two common
-     stopping criteria. The first is the number of iterations. 
-     If it is not specified with command, value of option 
-     <parameter class="option">default-max-iterations</parameter> is used.  
-     And the second is the number of evaluations of objective function 
-     (<acronym>WSSR</acronym>), specified by value of option 
-     <parameter class="option">max-wssr-evaluations</parameter>. 
+     stopping criteria. The first is the number of iterations and can be 
+     specified after <userinput>fit</userinput> command. 
+     The second is the number of evaluations of objective function 
+     (<acronym>WSSR</acronym>), specified by the value of option 
+     <parameter class="option">max-wssr-evaluations</parameter> (0=unlimited). 
      It is approximately proportional to time of computations, because most of
      time in fitting process is taken by evaluating <acronym>WSSR</acronym>. 
      There are also other criteria, different for each method. 
-     Note that values of all options, even those common for
-     all methods, are set separately for every method. 
     </para>
     <para>
      If you give too small <replaceable>n</replaceable> 
@@ -1335,12 +1324,6 @@
      it, not because of convergence, it makes sense to use 
      <command>fit+</command> command to process further iterations. 
      [TODO: how to stop fit interactively] 
-    </para>
-    <para>
-     When fit is running, each iteration outputs some informations. If they are
-     scrolling too fast, you can reduce it <replaceable>n</replaceable> times 
-     by assigning <replaceable>n</replaceable> 
-     to <parameter class="option">output-one-of</parameter> option. 
     </para>
     <para>
      Setting <userinput>set autoplot = on-fit-iteration</userinput>
@@ -1395,13 +1378,7 @@
      <parameter class="option">lm-stop-rel-change</parameter> option,
      fit is considered to be converged and is stopped. 
     </para>
-    <para>
-     <note>
-      <para>
-       The rest of this chapter is outdated.
-      </para>
-     </note>
-    </para>
+    <!--
     <para>
      L-M method finds a minimum quickly. The question is, if it is the
      global minimum.  It can be a good idea to add a small random vector to
@@ -1417,6 +1394,7 @@
      <parameter class="option">shake-before</parameter> option and width of
      parameter's domain.
     </para>
+    -->
    </section>
 
    <section>

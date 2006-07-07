@@ -56,7 +56,7 @@ inline bool active_gt(const Point &p1, const Point &p2)
 /// operators used in VM code
 enum DataTransformVMOperator
 {
-    OP_NEG=1,   OP_EXP,   OP_SIN,   OP_COS,  OP_ATAN,  OP_ABS,  OP_ROUND, 
+    OP_NEG=-200,   OP_EXP,   OP_SIN,   OP_COS,  OP_ATAN,  OP_ABS,  OP_ROUND, 
     OP_TAN, OP_ASIN, OP_ACOS,
     OP_LOG10, OP_LN,  OP_SQRT,  OP_POW,   
     OP_GAMMA, OP_LGAMMA,

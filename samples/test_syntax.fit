@@ -17,6 +17,8 @@ set verbosity = very-verbose
 # ... and then issue as many commands as possible, checking for sytax errors
 
 # predefined data transformations
+M=500
+x=n/100
 M=500; x=n/100; y=sin(x); s=1 
 Y[1...] = Y[n-1] + y[n];S = sqrt(max2(1,y))
 Y[...-1] = (y[n+1]-y[n])/(x[n+1]-x[n]);X[...-1] = (x[n+1]+x[n])/2

@@ -5,6 +5,7 @@
 #include "common.h"
 //#include "datatrans.h"
 #include "calc.h"
+#include "ast.h"
 #include "ui.h"
 #include "func.h"
 #include "sum.h"
@@ -16,10 +17,6 @@
 
 using namespace std;
 using namespace boost::spirit;
-
-const int stack_size = 8192;  //should be enough, 
-                              //there are no checks for stack overflow  
-vector<double> stack(stack_size);
 
 
 
@@ -62,122 +59,6 @@ int VariableUser::get_max_var_idx()
         return -1; 
     else
        return *max_element(var_idx.begin(), var_idx.end());
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-/// executes VM code, what sets this->value and this->derivatives
-void AnyFormula::run_vm(vector<Variable*> const &variables)
-{
-    vector<double>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
-    for (vector<int>::const_iterator i = vmcode.begin(); i!=vmcode.end(); i++) {
-        switch (*i) {
-            //unary operators
-            case OP_NEG:
-                *stackPtr = - *stackPtr;
-                break;
-            case OP_SQRT:
-                *stackPtr = sqrt(*stackPtr);
-                break;
-            case OP_EXP:
-                *stackPtr = exp(*stackPtr);
-                break;
-            case OP_LOG10:
-                *stackPtr = log10(*stackPtr); 
-                break;
-            case OP_LN:
-                *stackPtr = log(*stackPtr); 
-                break;
-            case OP_SIN:
-                *stackPtr = sin(*stackPtr);
-                break;
-            case OP_COS:
-                *stackPtr = cos(*stackPtr);
-                break;
-            case OP_TAN:
-                *stackPtr = tan(*stackPtr); 
-                break;
-            case OP_ATAN:
-                *stackPtr = atan(*stackPtr); 
-                break;
-            case OP_ASIN:
-                *stackPtr = asin(*stackPtr); 
-                break;
-            case OP_ACOS:
-                *stackPtr = acos(*stackPtr); 
-                break;
-            case OP_LGAMMA:
-                *stackPtr = lgammafn(*stackPtr); 
-                break;
-            case OP_DIGAMMA:
-                *stackPtr = digamma(*stackPtr); 
-                break;
-
-            //binary operators
-            case OP_ADD:
-                stackPtr--;
-                *stackPtr += *(stackPtr+1);
-                break;
-            case OP_SUB:
-                stackPtr--;
-                *stackPtr -= *(stackPtr+1);
-                break;
-            case OP_MUL:
-                stackPtr--;
-                *stackPtr *= *(stackPtr+1);
-                break;
-            case OP_DIV:
-                stackPtr--;
-                *stackPtr /= *(stackPtr+1);
-                break;
-            case OP_POW:
-                stackPtr--;
-                *stackPtr = pow(*stackPtr, *(stackPtr+1));
-                break;
-
-            // putting-number-to-stack-operators
-            // stack overflow not checked
-            case OP_CONSTANT:
-                stackPtr++;
-                i++;
-                *stackPtr = vmdata[*i];
-                break;
-            case OP_VARIABLE:
-                stackPtr++;
-                i++;
-                *stackPtr = variables[*i]->get_value();
-                break;
-            //assignment-operators
-            case OP_PUT_VAL:
-                value = *stackPtr;
-                stackPtr--; 
-                break;
-            case OP_PUT_DERIV:
-                i++;
-                derivatives[*i] = *stackPtr;
-                stackPtr--; 
-                break;
-
-            default:
-                assert(0); //("Unknown operator in VM code: " + S(*i))
-        }
-    }
-    assert(stackPtr == stack.begin() - 1);
-}
-
-void AnyFormula::tree_to_bytecode(vector<int> const& var_idx)
-{
-    assert(var_idx.size() + 1 == op_trees.size()); 
-    int n = var_idx.size();
-    vmcode.clear();
-    vmdata.clear();
-    add_calc_bytecode(op_trees.back(), var_idx, vmcode, vmdata);
-    vmcode.push_back(OP_PUT_VAL);
-    for (int i = 0; i < n; ++i) {
-        add_calc_bytecode(op_trees[i], var_idx, vmcode, vmdata);
-        vmcode.push_back(OP_PUT_DERIV);
-        vmcode.push_back(i);
-    }
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -921,7 +802,7 @@ template FuncGrammar::definition<scanner<char const*, scanner_policies<skipper_i
 
 
 /// small but slow utility function 
-/// uses calculate_deriv() to simplify formulea
+/// uses calculate_deriv() to simplify formulae
 std::string simplify_formula(std::string const &formula)
 {
     tree_parse_info<> info = ast_parse(formula.c_str(), FuncG, space_p);

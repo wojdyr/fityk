@@ -3,9 +3,9 @@
 
 * user defined functions:
       - default parameter values can take any expression...
-      - syntax:
-        --> define Gaussian(a,pos,width): a*exp(-((x-pos)/width)^2)
-	                   ^^^ any name but 'x' allowed here
+      // - syntax:
+      //   --> define Gaussian(a,pos,width): a*exp(-((x-pos)/width)^2)
+      //                  ^^^ any name but 'x' allowed here
       - more sophisticated simplifications of expressions and CSE(!)
       - calculating limits, width, area, etc. for UDF(!)
       - f(x) = a1*(a2/x)^3*exp(-(((a2/x)-a3)/a4)^2) / x 
@@ -46,6 +46,10 @@
 
 * (GUI) added peak should be activeted
 
+* (GUI) spin-control for history of input field
+
+* (GUI) access to pop-up menus (plots, output window) from menubar
+
 ------------------ next release here 0.7.5
 * use info for exports:
   - replace exporting @x.peaks, @x.formula and commands[] 
@@ -55,12 +59,14 @@
        should display ... [1234 lines more] rather than everything
 
 * GUI: data range mode: special mode to dis-activate points below 
-  given level or polyline
+  given level or polyline; or (dis)activate with rectangle
 
 * simple-variable domain ~3[2:14]
 
 * settings: Nelder-Mead and GA fitting options, 
-  a way to "shake" parameters for L-M, constrained L-M option
+  a way to "shake" parameters for L-M
+  constrained L-M option
+  maximum lambda as stopping criterium for LM
 
 * history (data / sum / view / all) 
    i don't exactly know how to implement it yet
@@ -108,6 +114,8 @@
 	  more extensive and configurable (2/3 buttons, size) mouse hints 
 		   (also for aux. plot, etc)
 	  more exact (or customizable) y coordinate at status bar
+	  [^] (Shift) in status line hints; pressing Shift should update
+	  hints
 
 * (GUI) vertical scaling using mouse on main plot near to left edge of the plot 
 

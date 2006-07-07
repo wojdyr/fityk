@@ -108,13 +108,13 @@ void do_delete(char const*, char const*)
 void do_define_func(char const* a, char const* b) 
 { 
     string s = string(a,b);
-    CompoundFunction::define(s); 
+    UdfContainer::define(s); 
 }
 
 void do_undefine_func(char const*, char const*) 
 { 
     for (vector<string>::const_iterator i = vt.begin(); i != vt.end(); ++i) 
-        CompoundFunction::undefine(*i); 
+        UdfContainer::undefine(*i); 
 }
 
 
@@ -240,11 +240,13 @@ struct CmdGrammar : public grammar<CmdGrammar>
                   >> ((function_param >> !('=' >> no_actions_d[FuncG])
                       ) % ',')
                   >> ')' >> '='
-                  >> ((type_name >> '('
-                       >> (no_actions_d[FuncG]  % ',')
-                       >> ')'
+                  >> (((type_name >> '('  // CompoundFunction
+                      >> (no_actions_d[FuncG]  % ',')
+                      >> ')'
                       ) % '+')
-                  ) [&do_define_func]
+                     | no_actions_d[FuncG] //Custom Function
+                     )
+              ) [&do_define_func]
             ;
 
         temporary_set 

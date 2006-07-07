@@ -11,9 +11,11 @@ class Settings;
 class Function : public VariableUser
 {
 public:
-    struct Multi { 
+    struct Multi 
+    { 
         int p; int n; fp mult; 
-        Multi(int n_, Variable::ParMult const&pm): p(pm.p),n(n_),mult(pm.mult){}
+        Multi(int n_, Variable::ParMult const& pm)
+            : p(pm.p), n(n_), mult(pm.mult) {}
     };
     std::string const type_formula; //eg. Gaussian(a,b,c) = a*(...)
     std::string const type_name;
@@ -78,6 +80,7 @@ public:
     fp find_x_with_value(fp x1, fp x2, fp val, 
                          fp xacc=1e-9, int max_iter=1000) const;
     fp find_extremum(fp x1, fp x2, fp xacc=1e-9, int max_iter=1000) const;
+    virtual std::string get_bytecode() const { return "No bytecode"; }
 protected:
     Settings *settings;
     int const center_idx;
@@ -92,18 +95,49 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
+namespace UdfContainer
+{
+    bool is_compounded(std::string const& formula);
+    std::vector<OpTree*> make_op_trees(std::string const& formula);
+
+    struct UDF
+    {
+        std::string name; 
+        std::string formula; //full definition
+        bool is_compound;
+        bool is_builtin;
+        std::vector<OpTree*> op_trees; 
+
+        UDF(std::string const& formula_, bool is_builtin_=false)
+            : name(Function::get_typename_from_formula(formula_)), 
+              formula(formula_),
+              is_compound(is_compounded(formula_)), 
+              is_builtin(is_builtin_)
+            { if (!is_compound) op_trees = make_op_trees(formula); }
+    };
+
+    extern std::vector<UDF> udfs; 
+    
+    void initialize_udfs();
+    /// checks partially the definition and puts formula into udfs
+    void define(std::string const &formula);
+    /// removes the definition from udfs
+    void undefine(std::string const &type);
+    UDF const* get_udf(std::string const &type);
+    inline bool is_defined(std::string const &type) { return get_udf(type); }
+    inline std::vector<UDF> const& get_udfs() { return udfs; }
+
+    void check_cpd_rhs_function(std::string const &fun,
+                                   std::vector<std::string> const& lhs_vars);
+    std::vector<std::string> get_cpd_rhs_components(std::string const &formula);
+}
+
+
 /// Function which definition is based on other function(s)
 class CompoundFunction: public Function
 {
     friend class Function;
 public:
-    /// checks partially the definition and puts formula into formulae
-    static void define(std::string const &formula);
-    /// removes the definition from formulae
-    static void undefine(std::string const &type);
-    static bool is_defined(std::string const &type, bool only_udf=false);
-    static std::string const& get_formula(std::string const& type);
-    static std::vector<std::string> const& get_formulae() { return formulae; }
 
     void do_precomputations(std::vector<Variable*> const &variables_);
     void calculate_value(std::vector<fp> const &xx, std::vector<fp> &yy) const;
@@ -121,18 +155,11 @@ public:
     fp area() const;
     bool get_nonzero_range(fp level, fp& left, fp& right) const;
 private:
-    static std::vector<std::string> formulae; 
-    static const int harddef_count = 4;
-    
     VariableManager vmgr;
 
     CompoundFunction(std::string const &name, std::string const &type,
                      std::vector<std::string> const &vars);
     CompoundFunction (const CompoundFunction&); //disable
-    static void check_rhs_function(std::string const &fun,
-                                   std::vector<std::string> const& lhs_vars);
-    static 
-    std::vector<std::string> get_rhs_components(std::string const &formula);
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -147,14 +174,16 @@ public:
     void calculate_value_deriv(std::vector<fp> const &xx, 
                                std::vector<fp> &yy, std::vector<fp> &dy_da,
                                bool in_dx=false) const;
+    void set_var_idx(std::vector<Variable*> const& variables);
+    virtual std::string get_bytecode() const { return afo.get_vmcode_info(); }
 private:
     CustomFunction(std::string const &name, std::string const &type,
-                   std::vector<std::string> const &vars);
+                   std::vector<std::string> const &vars,
+                   std::vector<OpTree*> const& op_trees);
     CustomFunction (const CustomFunction&); //disable
-    //AnyFormula af;
-    //////TODO -initialization
-    //AnyFormula(std::vector<OpTree*> const &op_trees_, 
-    //           fp &value_, std::vector<fp>& derivatives_) 
+    fp value; 
+    std::vector<fp> derivatives; 
+    AnyFormulaO afo;
 };
 
 #endif 
