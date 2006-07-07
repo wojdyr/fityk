@@ -33,12 +33,16 @@ public:
                const wxSize& size = wxDefaultSize,
                long style = 0)
     : wxTextCtrl(parent, id, value, pos, size, style), 
-      history(1), h_pos(history.begin()) {} 
+      history(1), h_pos(history.begin()), spin_button(0) {} 
+    void set_spin_button(wxSpinButton *sb) { spin_button = sb; }
+    void history_up();
+    void history_down();
 protected:
     void OnKeyDown (wxKeyEvent& event);
 
     std::list<wxString> history;
     std::list<wxString>::iterator h_pos;
+    wxSpinButton *spin_button;
 
     DECLARE_EVENT_TABLE()
 };
@@ -80,9 +84,12 @@ public:
     void focus_output() { output_win->SetFocus(); }
     void show_fancy_dashes() { output_win->fancy_dashes(); }
     void edit_in_input(std::string const& s);
+    void OnSpinButtonUp(wxSpinEvent &) { input_field->history_up(); }
+    void OnSpinButtonDown(wxSpinEvent &) { input_field->history_down(); }
 private:
     OutputWin *output_win;
     InputField *input_field;
+    wxSpinButton *spin_button;
 
     DECLARE_EVENT_TABLE()
 };

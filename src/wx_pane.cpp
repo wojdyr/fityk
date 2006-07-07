@@ -53,6 +53,7 @@ enum {
     ID_OUTPUT_C                ,
     ID_OUTPUT_P_FONT           ,
     ID_OUTPUT_P_CLEAR          ,
+    ID_SPINBUTTON              ,
     ID_DP_LIST                 ,
     ID_DP_LOOK                 ,
     ID_DP_SHIFTUP              ,
@@ -277,6 +278,8 @@ void PlotPane::do_draw_crosshair(int X, int Y)
 //===============================================================
 
 BEGIN_EVENT_TABLE(IOPane, wxPanel)
+    EVT_SPIN_UP(ID_SPINBUTTON, IOPane::OnSpinButtonUp)
+    EVT_SPIN_DOWN(ID_SPINBUTTON, IOPane::OnSpinButtonDown)
 END_EVENT_TABLE()
 
 IOPane::IOPane(wxWindow *parent, wxWindowID id)
@@ -290,7 +293,16 @@ IOPane::IOPane(wxWindow *parent, wxWindowID id)
     input_field = new InputField (this, -1, wxT(""),
                             wxDefaultPosition, wxDefaultSize, 
                             wxWANTS_CHARS|wxTE_PROCESS_ENTER|wxTE_PROCESS_TAB);
-    io_sizer->Add (input_field, 0, wxEXPAND);
+    spin_button = new wxSpinButton(this, ID_SPINBUTTON, 
+                                   wxDefaultPosition, wxDefaultSize,
+                                   wxSP_VERTICAL|wxSP_ARROW_KEYS|wxNO_BORDER);
+    spin_button->SetRange(0, 0); 
+    spin_button->SetValue(0); 
+    input_field->set_spin_button(spin_button); 
+    wxBoxSizer *io_h_sizer = new wxBoxSizer(wxHORIZONTAL);
+    io_h_sizer->Add(input_field, 1);
+    io_h_sizer->Add(spin_button, 0);
+    io_sizer->Add (io_h_sizer, 0, wxEXPAND);
 
     SetSizer(io_sizer);
     io_sizer->SetSizeHints(this);
@@ -1557,6 +1569,11 @@ void InputField::OnKeyDown (wxKeyEvent& event)
             Clear();
             exec_command(wx2s(s)); //displaying and executing command
             }
+            if (spin_button) {
+                spin_button->SetRange(0, history.size() - 1);
+                spin_button->SetValue(0);
+            }
+            SetFocus();
             break;
         case WXK_TAB:
             {
@@ -1566,30 +1583,53 @@ void InputField::OnKeyDown (wxKeyEvent& event)
             break;
         case WXK_UP:
         case WXK_NUMPAD_UP:
-            if (h_pos == --history.end())
-                return;
-            ++h_pos;
-            SetValue(*h_pos);
+            history_up();
+            if (spin_button)
+                spin_button->SetValue(spin_button->GetValue()+1);
+            SetFocus();
             break;
         case WXK_DOWN:
         case WXK_NUMPAD_DOWN:
-            if (h_pos == history.begin())
-                return;
-            --h_pos;
-            SetValue(*h_pos);
+            history_down();
+            if (spin_button)
+                spin_button->SetValue(spin_button->GetValue()-1);
+            SetFocus();
             break;
         case WXK_PAGEUP:
         case WXK_NUMPAD_PAGEUP:
             h_pos == --history.end();
             SetValue(*h_pos);
+            if (spin_button)
+                spin_button->SetValue(spin_button->GetMax());
+            SetFocus();
             break;
         case WXK_PAGEDOWN:
         case WXK_NUMPAD_PAGEDOWN:
             h_pos == history.begin();
             SetValue(*h_pos);
+            if (spin_button)
+                spin_button->SetValue(spin_button->GetMin());
+            SetFocus();
             break;
         default:
             event.Skip();
     }
 }
+
+void InputField::history_up()
+{
+    if (h_pos == --history.end())
+        return;
+    ++h_pos;
+    SetValue(*h_pos);
+}
+
+void InputField::history_down()
+{
+    if (h_pos == history.begin())
+        return;
+    --h_pos;
+    SetValue(*h_pos);
+}
+
 
