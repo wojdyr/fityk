@@ -28,6 +28,7 @@ public:
     std::vector<fp> get_symmetric_errors(std::vector<DataWithSum*> const& dsds);
     std::vector<DataWithSum*> const& get_datsums() const { return datsums; }
     static fp compute_wssr_for_data (DataWithSum const* ds, bool weigthed);
+    static fp compute_r_squared_for_data(DataWithSum const* ds) ;
     static bool Jordan (std::vector<fp>& A, std::vector<fp>& b, int n); 
     static void reverse_matrix (std::vector<fp>&A, int n);
     static std::string print_matrix (const std::vector<fp>& vec, 
@@ -48,6 +49,7 @@ protected:
     bool common_termination_criteria(int iter);
     fp compute_wssr(std::vector<fp> const &A, 
                    std::vector<DataWithSum*> const& dsds, bool weigthed=true);
+    fp compute_r_squared(std::vector<fp> const &A, std::vector<DataWithSum*> const& dsds) ;
     void compute_derivatives(std::vector<fp> const &A, 
                              std::vector<DataWithSum*> const& dsds, 
                              std::vector<fp>& alpha, std::vector<fp>& beta);

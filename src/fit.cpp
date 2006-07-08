@@ -39,7 +39,9 @@ string Fit::getInfo(vector<DataWithSum*> const& dsds)
     n_m -= count(par_usage.begin(), par_usage.end(), true);
     return "Current WSSR = " + S(compute_wssr(pp, dsds)) 
                 + " (expected: " + S(n_m) + "); SSR = " 
-                + S(compute_wssr(pp, dsds, false));
+                + S(compute_wssr(pp, dsds, false))
+		+ "; R-squared = " 
+		+ S(compute_r_squared(pp, dsds)) ;
 }
 
 vector<fp> Fit::get_covariance_matrix(vector<DataWithSum*> const& dsds)
@@ -153,6 +155,45 @@ fp Fit::compute_wssr_for_data(DataWithSum const* ds, bool weigthed)
         wssr += dy * dy;
     }  
     return wssr;
+}
+
+fp Fit::compute_r_squared(vector<fp> const &A, vector<DataWithSum*> const& dsds)
+{
+    evaluations++;
+    fp r_squared = 0;
+    AL->use_external_parameters(A);
+    for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
+                                                    i != dsds.end(); ++i) {
+        r_squared += compute_r_squared_for_data(*i);
+    }
+    return r_squared ;
+}
+
+fp Fit::compute_r_squared_for_data(DataWithSum const* ds)
+{
+    Data const* data = ds->get_data();
+    int n = data->get_n();
+    vector<fp> xx(n);
+    for (int j = 0; j < n; j++) 
+        xx[j] = data->get_x(j);
+    vector<fp> yy(n, 0.);
+    ds->get_sum()->calculate_sum_value(xx, yy);
+    fp mean = 0;
+    fp ssr_curve = 0 ; // Sum of squares of distances between fitted curve and data
+    fp ssr_mean = 0 ;  // Sum of squares of distances between mean and data
+    for (int j = 0; j < n; j++) {
+        mean += data->get_y(j) ;
+        fp dy = data->get_y(j) - yy[j];	
+	ssr_curve += dy * dy ;
+    }
+    mean = mean / (fp) n ;	// Mean computed here.
+
+    for (int j = 0 ; j < n ; j++) {
+	fp dy = data->get_y(j) - mean ;
+	ssr_mean += dy * dy ;
+	}
+
+    return ( 1 - (ssr_curve/ssr_mean) ); // R^2 as defined.
 }
 
 //results in alpha and beta 
