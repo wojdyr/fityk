@@ -113,7 +113,6 @@ enum {
     ID_S_EXPORTD               ,
     ID_F_METHOD                ,
     ID_F_RUN                   ,
-    ID_F_CONTINUE              ,
     ID_F_INFO                  ,
     ID_F_M                     , 
     ID_F_M_END = ID_F_M+10     , 
@@ -152,6 +151,10 @@ enum {
     ID_G_S_A1                  ,
     ID_G_S_A2                  ,
     ID_G_S_IO                  ,
+    ID_G_C_MAIN                ,
+    ID_G_C_A1                  ,
+    ID_G_C_A2                  ,
+    ID_G_C_OUTPUT              ,
     ID_G_CROSSHAIR             ,
     ID_G_V_ALL                 ,
     ID_G_V_VERT                ,
@@ -356,8 +359,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_UPDATE_UI (ID_F_METHOD, FFrame::OnFMethodUpdate)
     EVT_MENU_RANGE (ID_F_M+0, ID_F_M_END, FFrame::OnFOneOfMethods)    
     EVT_MENU (ID_F_RUN,         FFrame::OnFRun)    
-    EVT_UPDATE_UI (ID_F_CONTINUE, FFrame::OnFContinueUpdate)    
-    EVT_MENU (ID_F_CONTINUE,    FFrame::OnFContinue)
     EVT_MENU (ID_F_INFO,        FFrame::OnFInfo)    
 
     EVT_UPDATE_UI (ID_SESSION_LOG, FFrame::OnLogUpdate)    
@@ -393,6 +394,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_S_IO,        FFrame::OnSwitchIOPane)
     EVT_MENU (ID_G_S_TOOLBAR,   FFrame::OnSwitchToolbar)
     EVT_MENU (ID_G_S_STATBAR,   FFrame::OnSwitchStatbar)
+    EVT_MENU_RANGE (ID_G_C_MAIN, ID_G_C_OUTPUT, FFrame::OnShowPopupMenu)
     EVT_MENU (ID_G_CROSSHAIR,   FFrame::OnSwitchCrosshair)
     EVT_MENU (ID_G_V_ALL,       FFrame::OnGViewAll)
     EVT_MENU (ID_G_V_VERT,      FFrame::OnGFitHeight)
@@ -670,13 +672,10 @@ void FFrame::set_menubar()
                                   wxT("slow but simple and reliable method"));
     fit_method_menu->AppendRadioItem (ID_F_M+2, wxT("&Genetic Algorithm"), 
                                                 wxT("almost AI"));
-    fit_menu->Append (ID_F_METHOD, wxT("&Method"), fit_method_menu, 
-                                        wxT("It influences commands below"));
+    fit_menu->Append (ID_F_METHOD, wxT("&Method"), fit_method_menu, wxT(""));
     fit_menu->AppendSeparator();
-    fit_menu->Append (ID_F_RUN, wxT("&Run\tCtrl-R"), 
-                                             wxT("Start fitting sum to data"));
-    fit_menu->Append (ID_F_CONTINUE, wxT("&Continue\tCtrl-T"), 
-                                                     wxT("Continue fitting"));
+    fit_menu->Append (ID_F_RUN, wxT("&Run...\tCtrl-R"), 
+                                             wxT("Fit sum to data"));
     fit_menu->Append (ID_F_INFO, wxT("&Info"), wxT("Info about current fit")); 
 
     wxMenu* gui_menu = new wxMenu;
@@ -707,6 +706,7 @@ void FFrame::set_menubar()
     gui_menu_mode->Enable(ID_G_M_BG_SUB, false);
     gui_menu->Append(ID_G_MODE, wxT("&Mode"), gui_menu_mode);
     gui_menu->AppendSeparator();
+
     wxMenu* gui_menu_show = new wxMenu;
     gui_menu_show->AppendCheckItem (ID_G_S_TOOLBAR, wxT("&Toolbar"), 
                                     wxT("Show/hide toolbar"));
@@ -719,13 +719,25 @@ void FFrame::set_menubar()
     gui_menu_show->AppendCheckItem (ID_G_S_A1, wxT("&Auxiliary Plot 1"), 
                                     wxT("Show/hide auxiliary plot I"));  
     gui_menu_show->Check(ID_G_S_A1, true);
-    gui_menu_show->AppendCheckItem (ID_G_S_A2, wxT("&Auxiliary Plot 2"), 
+    gui_menu_show->AppendCheckItem (ID_G_S_A2, wxT("A&uxiliary Plot 2"), 
                                     wxT("Show/hide auxiliary plot II"));  
     gui_menu_show->Check(ID_G_S_A2, false);
     gui_menu_show->AppendCheckItem (ID_G_S_IO, wxT("&Input/Output Text Pane"), 
                                     wxT("Show/hide text input/output"));  
     gui_menu_show->Check(ID_G_S_IO, true);
     gui_menu->Append(ID_G_SHOW, wxT("S&how"), gui_menu_show);
+
+    wxMenu* gui_menu_config = new wxMenu;
+    gui_menu_config->Append(ID_G_C_MAIN, wxT("&Main Plot"), 
+                            wxT("Show main plot pop-up menu"));
+    gui_menu_config->Append(ID_G_C_A1, wxT("&Auxliliary Plot 1"), 
+                            wxT("Show aux. plot 1 pop-up menu"));
+    gui_menu_config->Append(ID_G_C_A2, wxT("A&uxliliary Plot 2"), 
+                            wxT("Show aux. plot 2 pop-up menu"));
+    gui_menu_config->Append(ID_G_C_OUTPUT, wxT("&Output Window"), 
+                            wxT("Show output window pop-up menu"));
+    gui_menu->Append(-1, wxT("Confi&gure"), gui_menu_config);
+
     gui_menu->AppendCheckItem(ID_G_CROSSHAIR, wxT("&Crosshair Cursor"), 
                                               wxT("Show crosshair cursor"));
     gui_menu->AppendSeparator();
@@ -1056,14 +1068,6 @@ void FFrame::OnFMethodUpdate (wxUpdateUIEvent& event)
     event.Skip();
 }
 
-void FFrame::OnFContinueUpdate (wxUpdateUIEvent& event)
-{
-    int pos = AL->get_active_ds_position();
-    GetMenuBar()->Enable (ID_F_CONTINUE, 
-                  contains_element(getFit()->get_datsums(), AL->get_ds(pos)));
-    event.Skip();
-}
-
 void FFrame::OnFOneOfMethods (wxCommandEvent& event)
 {
     int m = event.GetId() - ID_F_M;
@@ -1071,26 +1075,11 @@ void FFrame::OnFOneOfMethods (wxCommandEvent& event)
                   + FitMethodsContainer::getInstance()->get_method(m)->name);
 }
            
-void FFrame::OnFRun          (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnFRun (wxCommandEvent& WXUNUSED(event))
 {
-    int r = wxGetNumberFromUser(wxT("Run fitting method"), 
-                                wxT("Max. number of iterations"), 
-                                wxT("Fit->Run"), 
-                                0, 0, 9999);
-    if (r != -1)
-        exec_command("fit " + S(r) + get_in_dataset());
+    FitRunDlg(this, -1, true).ShowModal();
 }
         
-void FFrame::OnFContinue     (wxCommandEvent& WXUNUSED(event))
-{
-    int r = wxGetNumberFromUser(wxT("Continue previous fitting"), 
-                                wxT("Max. number of iterations"), 
-                                wxT("Fit->Continue"), 
-                                0, 0, 9999);
-    if (r != -1)
-        exec_command ("fit+ " + S(r));
-}
-             
 void FFrame::OnFInfo         (wxCommandEvent& WXUNUSED(event))
 {
     exec_command ("info fit");
@@ -1375,6 +1364,19 @@ void FFrame::SwitchIOPane (bool show)
     //if (toolbar) toolbar->ToggleTool(ID_ft_..., show);
 }
 
+void FFrame::OnShowPopupMenu(wxCommandEvent& ev) 
+{
+    wxMouseEvent me(wxEVT_RIGHT_DOWN);
+    me.m_x = wxGetMousePosition().x;
+    me.m_y = 5;
+    if (ev.GetId() == ID_G_C_MAIN)
+        plot_pane->get_plot()->show_popup_menu(me);
+    else if (ev.GetId() == ID_G_C_OUTPUT)
+        io_pane->show_popup_menu(me);
+    else
+        plot_pane->get_aux_plot(ev.GetId() - ID_G_C_A1)->OnRightDown(me);
+}
+
 void FFrame::SwitchCrosshair (bool show)
 {
     plot_pane->crosshair_cursor = show;
@@ -1573,9 +1575,8 @@ void FFrame::update_toolbar()
     if (!toolbar) 
         return;
     toolbar->ToggleTool(ID_ft_b_strip, plot_pane->get_bg_manager()->can_undo());
-    int pos = AL->get_active_ds_position();
-    toolbar->EnableTool(ID_ft_f_cont, 
-                  contains_element(getFit()->get_datsums(), AL->get_ds(pos)));
+    //DataWithSum const* ds = AL->get_ds(AL->get_active_ds_position());
+    toolbar->EnableTool(ID_ft_f_cont, getFit()->is_initialized());
     toolbar->EnableTool(ID_ft_v_pr, !plot_pane->get_zoom_hist().empty());
 }
 

@@ -83,6 +83,7 @@ public:
     void focus_input(int key);
     void focus_output() { output_win->SetFocus(); }
     void show_fancy_dashes() { output_win->fancy_dashes(); }
+    void show_popup_menu(wxMouseEvent& ev) { output_win->OnRightDown(ev); }
     void edit_in_input(std::string const& s);
     void OnSpinButtonUp(wxSpinEvent &) { input_field->history_up(); }
     void OnSpinButtonDown(wxSpinEvent &) { input_field->history_down(); }
@@ -114,6 +115,8 @@ public:
     BgManager* get_bg_manager(); 
     std::vector<FPlot*> const get_visible_plots() const;
     FPlot* get_plot_n(int n) const; 
+    AuxPlot* get_aux_plot(int n) const 
+                     { assert(n>=0 && n<2); return aux_plot[n]; }
     void show_aux(int n, bool show); 
     bool aux_visible(int n) const;
     void draw_crosshair(int X, int Y);

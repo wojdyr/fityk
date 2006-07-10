@@ -122,6 +122,7 @@ public:
     void remove_ds(int d);
     int get_ds_count() const { return dsds.size(); }
     DataWithSum* get_ds(int n);
+    std::vector<DataWithSum*> const& get_dsds() const { return dsds; }
     int get_active_ds_position() const { return active_ds; }
     Data *get_data(int n) { return get_ds(n)->get_data(); }
     Sum *get_sum(int n)   { return get_ds(n)->get_sum();  }

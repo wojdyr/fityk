@@ -202,13 +202,10 @@ FPlot* PlotPane::get_plot_n(int n) const
 { 
     if (n == -1)
         return plot;
-    else if (n >= 0 && n < 2)
-        return aux_plot[n];
-    else {
-        assert(0);
-        return 0;
-    }
-} 
+    else
+        return get_aux_plot(n);
+}
+
 
 bool PlotPane::aux_visible(int n) const
 {

@@ -37,6 +37,7 @@
 #include "ui.h"
 #include "settings.h"
 #include "datatrans.h" 
+#include "logic.h"
 
 #if 0
 //bitmaps for buttons
@@ -1155,6 +1156,120 @@ void SettingsDlg::OnOK(wxCommandEvent& event)
     }
     wxConfig::Get()->Write(wxT("/loadDataDir"), dir_ld_tc->GetValue());
     wxConfig::Get()->Write(wxT("/execScriptDir"), dir_xs_tc->GetValue());
+    wxDialog::OnOK(event);
+}
+
+
+//=====================    fit->run  dialog    ==================
+
+BEGIN_EVENT_TABLE(FitRunDlg, wxDialog)
+    EVT_BUTTON (wxID_OK, FitRunDlg::OnOK)
+    EVT_SPINCTRL (-1, FitRunDlg::OnSpinEvent)
+    EVT_CHOICE (-1, FitRunDlg::OnChangeDsOrMethod)
+    EVT_RADIOBOX (-1, FitRunDlg::OnChangeDsOrMethod)
+END_EVENT_TABLE()
+
+FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
+    : wxDialog(parent, id, wxT("fit functions to data"),
+               wxDefaultPosition, wxDefaultSize, 
+               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER) 
+{
+    wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
+    wxArrayString ds_choices;
+    ds_choices.Add(wxT("active dataset ") + s2wx(frame->get_active_data_str()));
+    ds_choices.Add(wxT("all datasets"));
+    ds_rb = new wxRadioBox(this, -1, wxT("fit..."), 
+                           wxDefaultPosition, wxDefaultSize,
+                           ds_choices, 1, wxRA_SPECIFY_COLS);
+    if (AL->get_ds_count() == 1)
+        ds_rb->Enable(1, false);
+    top_sizer->Add(ds_rb, 0, wxALL|wxEXPAND, 5);
+    wxBoxSizer *method_sizer = new wxBoxSizer(wxHORIZONTAL);
+    method_sizer->Add(new wxStaticText(this, -1, wxT("method:")), 
+                      0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    wxArrayString m_choices;
+    m_choices.Add(wxT("Levenberg-Marquardt")); 
+    m_choices.Add(wxT("Nelder-Mead simplex"));
+    m_choices.Add(wxT("Genetic Algorithm")); 
+    method_c = new wxChoice(this, -1, wxDefaultPosition, wxDefaultSize,
+                            m_choices);
+    int method_nr = FitMethodsContainer::getInstance()->current_method_number();
+    method_c->SetSelection(method_nr);
+    method_sizer->Add(method_c, 0, wxALL, 5);
+    top_sizer->Add(method_sizer, 0);
+
+    wxFlexGridSizer *max_sizer = new wxFlexGridSizer(2, 3, 0, 0);
+    max_sizer->Add(new wxStaticText(this, -1, wxT("max. iterations")),
+                   0, wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT, 5);
+    maxiter_sc = new SpinCtrl(this, -1, 0, 0, 999999, 70);
+    max_sizer->Add(maxiter_sc, 0, wxALL, 5);
+    nomaxiter_st = new wxStaticText(this, -1, wxT("(unlimited)"));
+    max_sizer->Add(nomaxiter_st, 0, wxRIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    max_sizer->Add(new wxStaticText(this, -1, wxT("max. WSSR evaluations")),
+                   0, wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT, 5);
+    int default_max_eval = getSettings()->get_i("max-wssr-evaluations"); 
+    maxeval_sc = new SpinCtrl(this, -1, default_max_eval, 0, 999999, 70);
+    max_sizer->Add(maxeval_sc, 0, wxALL, 5);
+    nomaxeval_st = new wxStaticText(this, -1, wxT("(unlimited)"));
+    max_sizer->Add(nomaxeval_st, 0, wxALIGN_CENTER_VERTICAL, 0);
+    top_sizer->Add(max_sizer, 0);
+    
+    initialize_cb = new wxCheckBox(this, -1, wxT("initialize method"));
+    initialize_cb->SetValue(initialize);
+    top_sizer->Add(initialize_cb, 0, wxALL, 5);
+    top_sizer->Add(new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
+    top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL), 
+                   0, wxALL|wxALIGN_CENTER, 5);
+    SetSizerAndFit(top_sizer);
+    update_allow_continue();
+    update_unlimited();
+}
+
+void FitRunDlg::update_allow_continue()
+{
+    initialize_cb->SetValue(true);
+    bool is_initialized;
+    int m_sel = method_c->GetSelection();
+    ::Fit const* f = FitMethodsContainer::getInstance()->get_method(m_sel);
+    if (ds_rb->GetSelection() == 0) {
+        DataWithSum const* ds = AL->get_ds(AL->get_active_ds_position());
+        is_initialized = f->is_initialized(ds);
+    }
+    else {
+        is_initialized = f->is_initialized(AL->get_dsds());
+    }
+    initialize_cb->Enable(is_initialized);
+}
+
+void FitRunDlg::update_unlimited()
+{
+    nomaxeval_st->Show(maxeval_sc->GetValue() == 0);
+    nomaxiter_st->Show(maxiter_sc->GetValue() == 0);
+}
+
+void FitRunDlg::OnOK(wxCommandEvent& event)
+{
+    string cmd;
+    FitMethodsContainer* fc = FitMethodsContainer::getInstance();
+    int m = method_c->GetSelection();
+    if (m != fc->current_method_number())
+        cmd += "with fitting-method=" + fc->get_method(m)->name + " ";
+    int max_eval = maxeval_sc->GetValue();
+    if (max_eval != getSettings()->get_i("max-wssr-evaluations")) 
+        cmd += (cmd.empty() ? "with" : ",") 
+                + string(" max-wssr-evaluations=") + S(max_eval) + " ";
+    bool ini = initialize_cb->GetValue();
+    cmd +=  ini ? "fit " : "fit+ ";
+    int max_iter = maxiter_sc->GetValue();
+    if (max_iter > 0)
+        cmd += S(max_iter);
+    if (ini) {
+        if (ds_rb->GetSelection() == 0)
+            cmd += frame->get_in_dataset();
+        else
+            cmd += " in @*";
+    }
+    exec_command(cmd);
     wxDialog::OnOK(event);
 }
 

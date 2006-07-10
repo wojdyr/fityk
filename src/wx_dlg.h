@@ -154,6 +154,24 @@ private:
     DECLARE_EVENT_TABLE()
 };
 
+class FitRunDlg : public wxDialog
+{
+public:
+    FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize);
+    void OnOK(wxCommandEvent& event);
+    void OnSpinEvent(wxSpinEvent &) { update_unlimited(); }
+    void OnChangeDsOrMethod(wxCommandEvent&) { update_allow_continue(); }
+private:
+    wxRadioBox* ds_rb;
+    wxChoice* method_c;
+    wxCheckBox* initialize_cb;
+    SpinCtrl *maxiter_sc, *maxeval_sc;
+    wxStaticText *nomaxeval_st, *nomaxiter_st;
+
+    void update_unlimited();
+    void update_allow_continue();
+    DECLARE_EVENT_TABLE()
+};
 
 #endif
 

@@ -537,12 +537,20 @@ string VariableManager::get_var_from_expression(string const& expr,
     return "";
 }
 
+//TODO any expression can be given as default value  
+//     no $/~ in tvalue, but can be in vars
+//     0. (1st try)
+//     1. fwhm, hwhm, center, height, area -> known_vars 
+//     2. vars given on command line -> known_vars (can override former)
+//     3. checking if tvalue can be evaluated 
+//           if no $variables (nor ~1.23) -> simple variable
+//           if there are variables -> compound variable
 string VariableManager::get_variable_from_kw(string const& function,
                                              string const& tname, 
                                              string const& tvalue, 
                                              vector<string> const& vars)
 {
-    // variables given in vars
+    // (1st try) variables given in vars
     for (vector<string>::const_iterator k = vars.begin(); 
                                                 k != vars.end(); ++k) {
         string::size_type eq = k->find('=');
@@ -551,17 +559,17 @@ string VariableManager::get_variable_from_kw(string const& function,
         if (name == tname) 
             return string(*k, eq+1);
     }
-    // numeric values defined in function type definitions
+    // (2nd try) numeric values defined in function type definitions
     if (is_double(tvalue)) {
         return "~" + tvalue;
     }
-    // `keyword*real_number' values defined in function type definitions
+    // (3rd) `keyword*real_number' values defined in function type definitions
     string r;
     if (!tvalue.empty()) 
         r = get_var_from_expression(tvalue, vars);
     if (!r.empty())
         return r;
-    // special case: hwhm=fwhm*0.5
+    // (4th try) special case: hwhm=fwhm*0.5
     if (tname == "hwhm")
         r = get_var_from_expression("fwhm*0.5", vars);
     if (!r.empty())

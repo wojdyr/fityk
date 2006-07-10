@@ -122,10 +122,8 @@ public:
     void OnSExport       (wxCommandEvent& event);           
 
     void OnFMethodUpdate (wxUpdateUIEvent& event);           
-    void OnFContinueUpdate (wxUpdateUIEvent& event);           
     void OnFOneOfMethods (wxCommandEvent& event);
     void OnFRun          (wxCommandEvent& event);        
-    void OnFContinue     (wxCommandEvent& event);             
     void OnFInfo         (wxCommandEvent& event);         
 
     void OnLogUpdate     (wxUpdateUIEvent& event);        
@@ -173,6 +171,7 @@ public:
     void SwitchStatbar(bool show);
     void OnSwitchStatbar(wxCommandEvent& ev) {SwitchStatbar(ev.IsChecked());}
     void SwitchCrosshair(bool show);
+    void OnShowPopupMenu(wxCommandEvent& ev);
     void OnSwitchCrosshair(wxCommandEvent& ev){SwitchCrosshair(ev.IsChecked());}
     void OnShowMenuZoomPrev(wxUpdateUIEvent& event);
     void save_all_settings(wxConfigBase *cf) const;

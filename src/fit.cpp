@@ -333,7 +333,7 @@ void Fit::continue_fit(int max_iter)
         if (!AL->has_ds(*i))
             throw ExecuteError(name + " method should be initialized first.");
     update_parameters(datsums);
-    //a_orig = AL->get_parameters();  //should it be also updated?
+    a_orig = AL->get_parameters();  //should it be also updated?
     user_interrupt = false;
     evaluations = 0;
     max_iterations = max_iter;

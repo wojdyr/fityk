@@ -12,10 +12,13 @@
          (Maxwell-Boltzmann velocity (flux) distribution
 	  for Wolfgang Christen)
 
+// * (GUI) new Fit->Run dialog (one dialog with max. WSSR evaluations,
+//   max. iterations, continue checkbox, OK/Cancel)
+
 * "info" can be redirected to file in every case
    ("info ... >> file" appends to file, with '>' it truncates file)
 
-* un-strip background: append proper 'in @n' (not the one used for strip),
+* ?? un-strip background: append proper 'in @n' (not the one used for strip),
   
 * settings: fitting - update docs
 
@@ -37,16 +40,17 @@
            (problems with width changing)
  	(bug?) now it matters in which point exactly you catch the peak
 
-* (GUI) new Fit->Run/Continue dialog (one dialog with max. WSSR evaluations,
-  max. iterations, continue checkbox, OK/Cancel)
-
 * (GUI) finish script debugger dialog
 
 * (GUI) peak-tops should be visible also in range-mode
 
 * (GUI) added peak should be activeted
 
-* (GUI) access to pop-up menus (plots, output window) from menubar
+// * (GUI) access to pop-up menus (plots, output window) from menubar
+
+* command "$_3 = ~0.151686" should not change "auto" flag of $_3 
+
+* fitting:  maximum lambda as stopping criterium for LM
 
 ------------------ next release here 0.7.5
 * use info for exports:
@@ -64,7 +68,6 @@
 * settings: Nelder-Mead and GA fitting options, 
   a way to "shake" parameters for L-M
   constrained L-M option
-  maximum lambda as stopping criterium for LM
 
 * history (data / sum / view / all) 
    i don't exactly know how to implement it yet

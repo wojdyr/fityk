@@ -89,6 +89,7 @@ public:
         { peakCol[n % max_peak_cols] = col; }
     bool get_x_reversed() const { return x_reversed; }
     void draw_xor_peak(Function const* func, std::vector<fp> const& p_values);
+    void show_popup_menu(wxMouseEvent &event);
 
 private:
     MouseModeEnum basic_mode, 
@@ -124,7 +125,6 @@ private:
     void prepare_peaktops(Sum const* sum);
     void prepare_peak_labels(Sum const* sum);
     void look_for_peaktop (wxMouseEvent& event);
-    void show_popup_menu (wxMouseEvent &event);
     void show_peak_menu (wxMouseEvent &event);
     void peak_draft (Mouse_act_enum ma, wxMouseEvent &event =dummy_mouse_event);
     void move_peak (Mouse_act_enum ma, wxMouseEvent &event = dummy_mouse_event);
