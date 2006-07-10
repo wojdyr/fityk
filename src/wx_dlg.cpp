@@ -1047,10 +1047,12 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     lm_lambda_down = addRealNumberCtrl(page_fit_LM, wxT("decreasing factor"), 
                 getSettings()->getp("lm-lambda-down-factor"), sizer_flmlambda);
     sizer_flm->Add(sizer_flmlambda, 0, wxEXPAND|wxALL, 5);
-    wxStaticBoxSizer *sizer_flmstop = new wxStaticBoxSizer(wxHORIZONTAL,
+    wxStaticBoxSizer *sizer_flmstop = new wxStaticBoxSizer(wxVERTICAL,
                                 page_fit_LM, wxT("termination criteria"));
     lm_stop = addRealNumberCtrl(page_fit_LM, wxT("WSSR relative change <"), 
                      getSettings()->getp("lm-stop-rel-change"), sizer_flmstop);
+    lm_max_lambda = addRealNumberCtrl(page_fit_LM, wxT("max. value of lambda"),
+                     getSettings()->getp("lm-max-lambda"), sizer_flmstop);
     sizer_flm->Add(sizer_flmstop, 0, wxEXPAND|wxALL, 5);
     add_persistence_note(page_fit_LM, sizer_flm);
     page_fit_LM->SetSizerAndFit(sizer_flm);
@@ -1137,6 +1139,7 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
     m["lm-lambda-up-factor"] = wx2s(lm_lambda_up->GetValue());
     m["lm-lambda-down-factor"] = wx2s(lm_lambda_down->GetValue());
     m["lm-stop-rel-change"] = wx2s(lm_stop->GetValue());
+    m["lm-max-lambda"] = wx2s(lm_max_lambda->GetValue());
     vector<string> kk = getSettings()->expanp();
     for (vector<string>::const_iterator i = kk.begin(); i != kk.end(); ++i)
         if (m.count(*i) && m[*i] != getSettings()->getp(*i))

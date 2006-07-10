@@ -70,6 +70,7 @@ Settings::Settings()
     fpar["lm-lambda-up-factor"] = 10;
     fpar["lm-lambda-down-factor"] = 10;
     fpar["lm-stop-rel-change"] = 1e-4;
+    fpar["lm-max-lambda"] = 1e+15;
     //  - Nelder-Mead
     //TODO
     //  - Genetic Algorithms

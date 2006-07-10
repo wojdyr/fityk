@@ -24,10 +24,10 @@ struct Vertex
 class NMfit : public Fit
 {
 public:
-    NMfit ();
-    ~NMfit ();
+    NMfit();
+    ~NMfit();
     fp init(); // called before autoiter()
-    int autoiter ();
+    void autoiter();
 private:
     int iteration;
     std::vector<Vertex> vertices;

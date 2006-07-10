@@ -13,10 +13,10 @@
 class LMfit : public Fit
 {
 public:
-    LMfit ();
-    ~LMfit ();
+    LMfit();
+    ~LMfit();
     fp init(); // called before do_iteration()/autoiter()
-    int autoiter ();
+    void autoiter();
 private:
     fp shake_before;
     char shake_type;
@@ -26,7 +26,7 @@ private:
     fp chi2 , chi2_;
     fp lambda;
 
-    int do_iteration();
+    bool do_iteration();
 };
 
 #endif

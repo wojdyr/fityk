@@ -49,7 +49,7 @@ protected:
     std::map<char, std::string> Distrib_enum;
 
     virtual fp init() = 0; // called before autoiter()
-    virtual int autoiter() = 0;
+    virtual void autoiter() = 0;
     bool common_termination_criteria(int iter);
     fp compute_wssr(std::vector<fp> const &A, 
                    std::vector<DataWithSum*> const& dsds, bool weigthed=true);

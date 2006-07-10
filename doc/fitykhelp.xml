@@ -1371,12 +1371,17 @@
      <parameter class="option">lm-lambda-start</parameter> (default: 0.0001). 
     </para>
     <para>
-     Marquardt method has one stopping criterium apart from common stopping
+     Marquardt method has two stopping criteria apart from common stopping
      criteria. If it happens two times in sequence, that relative 
      progress in value of objective function (<acronym>WSSR</acronym>) 
      is smaller then value of 
      <parameter class="option">lm-stop-rel-change</parameter> option,
      fit is considered to be converged and is stopped. 
+     And if lambda is greater than the value of 
+     <parameter class="option">lm-max-lambda</parameter> option 
+     (default: 10^15),
+     what happens usually when due to limited numerical precision 
+     WSSR is not changing anymore, fitting is also stopped.
     </para>
     <!--
     <para>

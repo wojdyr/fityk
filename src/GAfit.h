@@ -24,7 +24,7 @@ public:
     GAfit ();
     ~GAfit ();
     fp init(); // called before autoiter()
-    int autoiter ();
+    void autoiter();
 private:
     int popsize;
     int elitism; // = 0, 1, ... popsize

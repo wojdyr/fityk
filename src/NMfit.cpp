@@ -74,7 +74,7 @@ void NMfit::find_best_worst()
     }
 }
 
-int NMfit::autoiter ()
+void NMfit::autoiter()
 {
     wssr_before = compute_wssr(a_orig, datsums);
     info ("WSSR before starting simplex fit: " + S(wssr_before));
@@ -85,7 +85,6 @@ int NMfit::autoiter ()
         find_best_worst();
     }
     post_fit (best->a, best->wssr);
-    return 0;
 }
 
 void NMfit::change_simplex()

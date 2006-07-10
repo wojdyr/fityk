@@ -52,7 +52,7 @@ fp LMfit::init()
     return chi2;
 }
 
-int LMfit::autoiter() 
+void LMfit::autoiter() 
 {
     wssr_before = (shake_before > 0. ? compute_wssr(a_orig, datsums) : chi2);
     fp prev_chi2 = chi2;
@@ -60,28 +60,24 @@ int LMfit::autoiter()
     info ("Initial values:  lambda=" + S(lambda) + "  WSSR=" + S(chi2));
     verbose ("Max. number of iterations: " + max_iterations);
     fp stop_rel = getSettings()->get_f("lm-stop-rel-change");
+    fp max_lambda = getSettings()->get_f("lm-max-lambda");
     if (stop_rel > 0) {
         verbose ("Stopping when relative change of WSSR is "
                   "twice in row below " + S (stop_rel * 100.) + "%");
     }
-    bool converged = false;
     int small_change_counter = 0;
     for (int iter = 0; !common_termination_criteria(iter); iter++) {
-        int result = do_iteration();
-        if (result < 0) {
-            warn ("Error when processing iteration " + S(iter+1) + ".");
-            return result;
-        }
-        if (result == 1) { //better fit
+        bool better_fit = do_iteration();
+        if (better_fit) { 
             fp d = prev_chi2 - chi2;
             info ("#" + S(iter_nr) + ":  WSSR=" + S(chi2) 
                         + "  lambda=" + S(lambda) + "  d(WSSR)=" +  S(-d) 
                         + "  (" + S (d / prev_chi2 * 100) + "%)");  
-            if (d / prev_chi2 < stop_rel || chi2 == 0) { //another termination
-                small_change_counter++;                  // criterium:
-                if (small_change_counter >= 2 || chi2 == 0) { //second time
-                    info("Fit converged.");              // neglectable change 
-                    converged = true;                    // of chi2; or chi2==0
+            // another termination criterium: neglectable change of chi2
+            if (d / prev_chi2 < stop_rel || chi2 == 0) { 
+                small_change_counter++;
+                if (small_change_counter >= 2 || chi2 == 0) {
+                    info("Fit converged.");
                     break;
                 }
             }
@@ -90,22 +86,23 @@ int LMfit::autoiter()
             prev_chi2 = chi2;
             iteration_plot(a);
         }
-        else { // result == 0, worse fit
-            info ("#" + S(iter_nr) + ": (WSSR=" + S(chi2_) 
-                    + ")  lambda=" + S(lambda));
+        else { // no better fit
+            info("#"+S(iter_nr)+": (WSSR="+S(chi2_)+")  lambda="+S(lambda));
+            if (lambda > max_lambda) { // another termination criterium
+                info("In L-M method: lambda=" + S(lambda) + " > " 
+                        + S(max_lambda) + ", stopped.");
+                break;
+            }
         }
     }
     post_fit (a, chi2);
-    return 1;
 }
 
-int LMfit::do_iteration()
+bool LMfit::do_iteration()
     //pre: init() callled
 {
-    if (na < 1) {
-        warn ("What am I to fit ?");
-        return -1;
-    }
+    if (na < 1) 
+        throw ExecuteError("No parameters to fit.");
     iter_nr++;
     alpha_ = alpha;
     for (int j = 0; j < na; j++) 
@@ -118,7 +115,7 @@ int LMfit::do_iteration()
 
     // Matrix solution (Ax=b)  alpha_ * da == beta_
     if (!Jordan (alpha_, beta_, na))
-        return -1;
+        throw ExecuteError("Error when processing iteration " + S(iter_nr));
 
     // da is in beta_  
     if (getUI()->getVerbosity() >= 4) {
@@ -138,11 +135,11 @@ int LMfit::do_iteration()
         a = beta_;
         compute_derivatives(a, datsums, alpha, beta);
         lambda /= getSettings()->get_f("lm-lambda-down-factor");
-        return 1;
+        return true;
     }
     else {// worse fitting
         lambda *= getSettings()->get_f("lm-lambda-up-factor");
-        return 0;
+        return false;
     }
 }    
 

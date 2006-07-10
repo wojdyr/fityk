@@ -50,7 +50,7 @@
 
 * command "$_3 = ~0.151686" should not change "auto" flag of $_3 
 
-* fitting:  maximum lambda as stopping criterium for LM
+// * fitting:  maximum lambda as stopping criterium for LM
 
 ------------------ next release here 0.7.5
 * use info for exports:

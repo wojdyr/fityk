@@ -93,7 +93,7 @@ fp GAfit::init()
     return 0;
 }
 
-int GAfit::autoiter()
+void GAfit::autoiter()
 {
     wssr_before = compute_wssr(a_orig, datsums);
     info ("WSSR before starting GA: " + S(wssr_before));
@@ -111,7 +111,6 @@ int GAfit::autoiter()
         post_selection();
     }
     post_fit (best_indiv.g, best_indiv.raw_score);
-    return 0;
 }
 
 void GAfit::log_ga_options()
