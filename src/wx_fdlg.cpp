@@ -33,6 +33,7 @@
 #include "wx_gui.h"
 #include "wx_pane.h"
 #include "wx_plot.h"
+#include "wx_mplot.h"
 #include "data.h"
 #include "sum.h"
 #include "ui.h"
@@ -769,10 +770,10 @@ void do_print_plots(wxDC *dc, PrintManager const* pm)
     //width is the same for all plots
     int width = pm->plot_pane->GetClientSize().GetWidth(); 
     vector<FPlot*> vp; 
-    vp.push_back(pm->plot_pane->get_plot_n(-1));
+    vp.push_back(pm->plot_pane->get_plot());
     for (int i = 0; i < 2; ++i)
         if (pm->plot_pane->aux_visible(i) && pm->plot_aux[i])
-            vp.push_back(pm->plot_pane->get_plot_n(i));
+            vp.push_back(pm->plot_pane->get_aux_plot(i));
     int height = -space;  //height = sum of all heights + (N-1)*space
     for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i) 
         height += (*i)->GetClientSize().GetHeight() + space;
@@ -840,7 +841,7 @@ public:
 
 //===============================================================
 
-PrintManager::PrintManager(PlotPane const* pane)
+PrintManager::PrintManager(PlotPane* pane)
     :  plot_pane(pane), print_data(0), page_setup_data(0) 
 { 
     read_settings(wxConfig::Get());

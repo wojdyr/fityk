@@ -1373,8 +1373,8 @@
     <para>
      Marquardt method has two stopping criteria apart from common stopping
      criteria. If it happens two times in sequence, that relative 
-     progress in value of objective function (<acronym>WSSR</acronym>) 
-     is smaller then value of 
+     change of the value of objective function (<acronym>WSSR</acronym>) 
+     is smaller then the value of 
      <parameter class="option">lm-stop-rel-change</parameter> option,
      fit is considered to be converged and is stopped. 
      And if lambda is greater than the value of 

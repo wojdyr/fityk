@@ -198,15 +198,6 @@ const std::vector<FPlot*> PlotPane::get_visible_plots() const
     return visible;
 }
 
-FPlot* PlotPane::get_plot_n(int n) const 
-{ 
-    if (n == -1)
-        return plot;
-    else
-        return get_aux_plot(n);
-}
-
-
 bool PlotPane::aux_visible(int n) const
 {
     return IsSplit() && (aux_split->GetWindow1() == aux_plot[n]
@@ -559,7 +550,7 @@ BEGIN_EVENT_TABLE(SideBar, ProportionalSplitter)
 END_EVENT_TABLE()
 
 SideBar::SideBar(wxWindow *parent, wxWindowID id)
-: ProportionalSplitter(parent, id, 0.75), bp_func(0)
+: ProportionalSplitter(parent, id, 0.75), bp_func(0), active_function(-1)
 {
     //wxPanel *upper = new wxPanel(this, -1);
     //wxBoxSizer *upper_sizer = new wxBoxSizer(wxVERTICAL);
@@ -780,11 +771,10 @@ void SideBar::OnFuncButtonNew (wxCommandEvent& WXUNUSED(event))
 
 void SideBar::OnFuncButtonEdit (wxCommandEvent& WXUNUSED(event))
 {
-    int n = get_focused_func();
-    if (n == -1)
+    if (!bp_func)
         return;
-    string t= AL->get_function(n)->get_current_definition(AL->get_variables(),
-                                                          AL->get_parameters());
+    string t = bp_func->get_current_definition(AL->get_variables(), 
+                                               AL->get_parameters());
     frame->edit_in_input(t);
 }
 
@@ -795,12 +785,11 @@ void SideBar::OnFuncButtonChType (wxCommandEvent& WXUNUSED(event))
 
 void SideBar::OnFuncButtonCol (wxCommandEvent& WXUNUSED(event))
 {
-    int n = get_focused_func();
-    if (n == -1)
+    if (active_function == -1)
         return;
-    wxColour col = frame->get_main_plot()->get_func_color(n);
+    wxColour col = frame->get_main_plot()->get_func_color(active_function);
     if (change_color_dlg(col)) {
-        frame->get_main_plot()->set_func_color(n, col);
+        frame->get_main_plot()->set_func_color(active_function, col);
         update_lists();
         frame->refresh_plots(true, false, true);
     }
@@ -893,6 +882,7 @@ void SideBar::update_func_list(bool nondata_changed)
 
     //functions
     static vector<int> func_col_id;
+    static int old_func_size;
     vector<string> func_data;
     vector<int> new_func_col_id;
     int active_ds_pos = AL->get_active_ds_position();
@@ -901,10 +891,27 @@ void SideBar::update_func_list(bool nondata_changed)
     if (filter_ch->GetSelection() > 0)
         filter_sum = AL->get_sum(filter_ch->GetSelection()-1);
     int func_size = AL->get_functions().size();
+    if (active_function == -1)
+        active_function = func_size - 1;
+    else {
+        if (active_function >= func_size || 
+                AL->get_function(active_function) != bp_func)
+            active_function = AL->find_function_nr(active_function_name);
+        if (active_function == -1 || func_size == old_func_size+1)
+            active_function = func_size - 1;
+    }
+    if (active_function != -1)
+        active_function_name = AL->get_function(active_function)->name;
+    else
+        active_function_name = "";
+
+    int pos = -1;
     for (int i = 0; i < func_size; ++i) {
         if (filter_sum && !contains_element(filter_sum->get_ff_idx(), i)
                            && !contains_element(filter_sum->get_zz_idx(), i))
             continue;
+        if (i == active_function)
+            pos = new_func_col_id.size();
         Function const* f = AL->get_function(i);
         func_data.push_back(f->name);
         func_data.push_back(f->type_name);
@@ -943,8 +950,8 @@ void SideBar::update_func_list(bool nondata_changed)
             }
         }
     }
-    int active = get_focused_func();
-    f->list->populate(func_data, func_images, active < func_size ? active : 0);
+    old_func_size = func_size;
+    f->list->populate(func_data, func_images, pos);
 }
 
 void SideBar::update_var_list()
@@ -976,16 +983,6 @@ void SideBar::update_var_list()
     v->list->populate(var_data);
 }
 
-int SideBar::get_focused_func() const 
-{ 
-    if (AL->get_functions().empty())
-        return -1;
-    else {
-        int n = f->list->GetFocusedItem(); 
-        return n > 0 ? n : 0;
-    }
-}
-
 int SideBar::get_focused_var() const 
 { 
     if (AL->get_variables().empty())
@@ -998,9 +995,22 @@ int SideBar::get_focused_var() const
 
 void SideBar::activate_function(int n)
 {
-    f->list->Focus(n);
+    active_function = n;
+    do_activate_function();
+    int pos = n;
+    if (filter_ch->GetSelection() > 0)
+        pos = f->list->FindItem(-1, s2wx(active_function_name));
+    f->list->Focus(pos);
     for (int i = 0; i != f->list->GetItemCount(); ++i)
-        f->list->Select(i, i==n);
+        f->list->Select(i, i==pos);
+}
+
+void SideBar::do_activate_function()
+{
+    if (active_function != -1)
+        active_function_name = AL->get_function(active_function)->name;
+    else
+        active_function_name = "";
     frame->refresh_plots(true, false, true);
     update_func_inf();
     update_bottom_panel();
@@ -1052,10 +1062,9 @@ void SideBar::update_data_inf()
 
 void SideBar::update_func_inf()
 {
-    int n = get_focused_func();
     wxTextCtrl* inf = f->inf;
     inf->Clear();
-    if (n < 0)
+    if (active_function < 0)
         return;
     wxTextAttr defattr = inf->GetDefaultStyle();
     wxFont font = defattr.GetFont();
@@ -1063,7 +1072,7 @@ void SideBar::update_func_inf()
     font.SetWeight(wxFONTWEIGHT_BOLD);
     boldattr.SetFont(font);
 
-    Function const* func = AL->get_function(n);
+    Function const* func = AL->get_function(active_function);
     inf->SetDefaultStyle(boldattr);
     inf->AppendText(s2wx(func->xname));
     inf->SetDefaultStyle(defattr);
@@ -1079,9 +1088,9 @@ void SideBar::update_func_inf()
         inf->AppendText(wxT("\nInt. Width: ") + s2wx(S(func->iwidth())));
     vector<string> in;
     for (int i = 0; i < AL->get_ds_count(); ++i) {
-        if (contains_element(AL->get_sum(i)->get_ff_idx(), n))
+        if (contains_element(AL->get_sum(i)->get_ff_idx(), active_function))
             in.push_back("@" + S(i) + ".F");
-        if (contains_element(AL->get_sum(i)->get_zz_idx(), n))
+        if (contains_element(AL->get_sum(i)->get_zz_idx(), active_function))
             in.push_back("@" + S(i) + ".Z");
     }
     if (!in.empty())
@@ -1171,14 +1180,13 @@ void SideBar::draw_function_draft(FancyRealCtrl const* frc) const
 
 void SideBar::update_bottom_panel()
 {
-    int n = get_focused_func();
-    if (n < 0) {
+    if (active_function < 0) {
         clear_bottom_panel();
         bp_func = 0;
         return;
     }
     bottom_panel->Freeze();
-    bp_func = AL->get_function(n);
+    bp_func = AL->get_function(active_function);
     bp_label->SetLabel(s2wx(bp_func->xname + " : " + bp_func->type_name));
     vector<bool> sig = make_bottom_panel_sig(bp_func);
     if (sig != bp_sig) {
@@ -1261,9 +1269,14 @@ vector<string> SideBar::get_selected_vars() const
 
 void SideBar::OnFuncFocusChanged(wxListEvent& WXUNUSED(event))
 {
-    frame->refresh_plots(true, false, true);
-    update_func_inf();
-    update_bottom_panel();
+    int n = f->list->GetFocusedItem(); 
+    if (n == -1)
+        active_function = -1;
+    else {
+        string name = wx2s(f->list->GetItemText(n));
+        active_function = AL->find_function_nr(name);
+    }
+    do_activate_function();
 }
 
 void SideBar::OnVarFocusChanged(wxListEvent& WXUNUSED(event))

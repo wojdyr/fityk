@@ -96,9 +96,9 @@ public:
     int scale;
     bool keep_ratio; 
     bool plot_aux[2], plot_borders;
-    PlotPane const* plot_pane;
+    PlotPane* plot_pane;
 
-    PrintManager(PlotPane const* pane);
+    PrintManager(PlotPane* pane);
     ~PrintManager();
     wxPrintData& get_print_data();
     wxPageSetupDialogData& get_page_data();

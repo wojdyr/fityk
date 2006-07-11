@@ -44,13 +44,15 @@
 
 * (GUI) peak-tops should be visible also in range-mode
 
-* (GUI) added peak should be activeted
+// * (GUI) added peak should be activeted
 
 // * (GUI) access to pop-up menus (plots, output window) from menubar
 
 * command "$_3 = ~0.151686" should not change "auto" flag of $_3 
 
 // * fitting:  maximum lambda as stopping criterium for LM
+
+* [BUG] "fit; delete %foo; fit+" causes crash
 
 ------------------ next release here 0.7.5
 * use info for exports:
@@ -139,6 +141,7 @@
 	simulated annealing (it can replace LM shake_before option)
 	perhaps also BFGS, conjugate gradients methods
 	autoplot option -> fitting tab, checkbox: replot-after-fit-iteration
+	                   perhaps also in Fit->Run dialog
 
 * GUI: menu Functions:
   Functions > Peak-Find Info -> animation

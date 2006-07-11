@@ -269,7 +269,7 @@ void MainPlot::draw_peaktops (wxDC& dc, Sum const* sum)
 
 void MainPlot::draw_peaktop_selection (wxDC& dc, Sum const* sum)
 {
-    int n = frame->get_sidebar()->get_focused_func();
+    int n = frame->get_sidebar()->get_active_function();
     if (n == -1)
         return;
     vector<int> const& idx = sum->get_ff_idx();

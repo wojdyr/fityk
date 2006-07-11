@@ -114,7 +114,6 @@ public:
     MainPlot* get_plot() { return plot; }
     BgManager* get_bg_manager(); 
     std::vector<FPlot*> const get_visible_plots() const;
-    FPlot* get_plot_n(int n) const; 
     AuxPlot* get_aux_plot(int n) const 
                      { assert(n>=0 && n<2); return aux_plot[n]; }
     void show_aux(int n, bool show); 
@@ -199,7 +198,7 @@ public:
     /// get active dataset number -- if none is focused, return first one (0)
     int get_focused_data() const
                      { int n=d->list->GetFocusedItem(); return n==-1 ? 0 : n; }
-    int get_focused_func() const; 
+    int get_active_function() const { return active_function; }
     int get_focused_var() const;
     bool is_func_selected(int n) const { return f->list->IsSelected(n) 
                                            || f->list->GetFocusedItem() == n; }
@@ -227,6 +226,8 @@ private:
     ListPlusText *d, *f, *v;
     wxChoice *data_look, *filter_ch;
     wxSpinCtrl *shiftup_sc;
+    int active_function;
+    std::string active_function_name;
 
     void update_data_list(bool nondata_changed);
     void update_func_list(bool nondata_changed);
@@ -235,6 +236,7 @@ private:
                                       std::string const& tv_name);
     void clear_bottom_panel();
     std::vector<bool> make_bottom_panel_sig(Function const* func);
+    void do_activate_function();
 
     DECLARE_EVENT_TABLE()
 };
