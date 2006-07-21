@@ -74,6 +74,7 @@ inline bool should_focus_input(int key)
 }
 
 bool change_color_dlg(wxColour& col);
+void add_apply_close_buttons(wxWindow *parent, wxSizer *top_sizer);
 
 //dummy events -- useful when calling event handler functions
 extern wxMouseEvent dummy_mouse_event;

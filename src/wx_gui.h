@@ -202,6 +202,7 @@ public:
     void update_data_pane(); 
     bool get_apply_to_all_ds();
     SideBar const* get_sidebar() const { return sidebar; }
+    //SideBar* get_sidebar() { return sidebar; }
     void activate_function(int n);
     void update_app_title();
     void add_recent_data_file(std::string const& filename);

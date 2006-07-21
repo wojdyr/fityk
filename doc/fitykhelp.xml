@@ -230,6 +230,15 @@
     Otherwise,  it is assumed to be a data file and is loaded.
     There are also other parameters to CLI and GUI versions of the program.
     Option "-h" gives the full listing.
+    <screen>     
+     wojdyr@ubu:~/fityk/src$ ./fityk --help
+     Usage: fityk [-h] [-V] [-c &lt;str&gt;] [-I] [-r] [script or data file...]
+      -h, --help            show this help message
+      -V, --version         output version information and exit
+      -c, --cmd=&lt;str&gt;       script passed in as string
+      -I, --no-init         don't process $HOME/.fityk/init file
+      -r, --reorder         reorder data (50.xy before 100.xy)
+    </screen>     
    </para>
   </section> 
 

@@ -11,7 +11,6 @@
 #endif
 
 #include <wx/fontdlg.h>
-#include <wx/statline.h>
 #include <algorithm>
 
 #include "wx_mplot.h"
@@ -1277,14 +1276,7 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
                                    wxT("Change tics font...")),
                       0, wxALL, 5);
     top_sizer->Add(common_sizer, 0, wxALIGN_CENTER);
-    top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
-
-    wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
-    button_sizer->Add(new wxButton(this, wxID_APPLY, wxT("&Apply")), 
-                      0, wxALL, 5);
-    button_sizer->Add(new wxButton(this, wxID_CLOSE, wxT("&Close")), 
-                      0, wxALL, 5);
-    top_sizer->Add(button_sizer, 0, wxALL|wxALIGN_CENTER, 0);
+    add_apply_close_buttons(this, top_sizer);
     SetSizerAndFit(top_sizer);
 }
 
@@ -1378,14 +1370,7 @@ ConfigurePLabelsDlg::ConfigurePLabelsDlg(wxWindow* parent, wxWindowID id,
                                    wxT("Labels have the same colors as peaks")),
                    0, wxALL, 5);
 
-    top_sizer->Add(new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
-
-    wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
-    button_sizer->Add(new wxButton(this, wxID_APPLY, wxT("&Apply")), 
-                      0, wxALL, 5);
-    button_sizer->Add(new wxButton(this, wxID_CLOSE, wxT("&Close")), 
-                      0, wxALL, 5);
-    top_sizer->Add(button_sizer, 0, wxALL|wxALIGN_CENTER, 0);
+    add_apply_close_buttons(this, top_sizer);
     SetSizerAndFit(top_sizer);
 
     //set initial values

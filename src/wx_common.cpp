@@ -12,6 +12,7 @@
 
 #include <wx/config.h>
 #include <wx/colordlg.h>
+#include <wx/statline.h>
 
 #include "common.h"
 #include "wx_common.h"
@@ -98,6 +99,15 @@ bool change_color_dlg(wxColour& col)
     }
     else
         return false;
+}
+
+void add_apply_close_buttons(wxWindow *parent, wxSizer *top_sizer)
+{
+    top_sizer->Add(new wxStaticLine(parent, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
+    wxBoxSizer *s = new wxBoxSizer(wxHORIZONTAL);
+    s->Add(new wxButton(parent, wxID_APPLY, wxT("&Apply")), 0, wxALL, 5);
+    s->Add(new wxButton(parent, wxID_CLOSE, wxT("&Close")), 0, wxALL, 5);
+    top_sizer->Add(s, 0, wxALL|wxALIGN_CENTER, 0);
 }
 
 //dummy events declared in wx_common.h

@@ -1,13 +1,19 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
+// * an easy way to change colors of all datasets, eg. using colorramp 
+
+* optimize data transformations (all-points operations):
+   calculate max. stack size (ss) from bytecode
+   alloc stack for all points (M*ss)
+   change how code execution works: all points should be handled at once
+
 * user defined functions:
       - default parameter values can take any expression...
       // - syntax:
       //   --> define Gaussian(a,pos,width): a*exp(-((x-pos)/width)^2)
       //                  ^^^ any name but 'x' allowed here
       - more sophisticated simplifications of expressions and CSE(!)
-      - calculating limits, width, area, etc. for UDF(!)
       - f(x) = a1*(a2/x)^3*exp(-(((a2/x)-a3)/a4)^2) / x 
          (Maxwell-Boltzmann velocity (flux) distribution
 	  for Wolfgang Christen)
@@ -18,11 +24,31 @@
 * "info" can be redirected to file in every case
    ("info ... >> file" appends to file, with '>' it truncates file)
 
-* ?? un-strip background: append proper 'in @n' (not the one used for strip),
-  
-* settings: fitting - update docs
+* (GUI) peak-tops should be visible also in range-mode
 
-* an easy way to change colors of all datasets, eg. using colorramp 
+// * (GUI) added peak should be activeted
+
+// * (GUI) access to pop-up menus (plots, output window) from menubar
+
+* command "$_3 = ~0.151686" should not change "auto" flag of $_3 
+  perhaps all variables starting with "_" should be removed
+  when not used anymore?
+
+// * fitting:  maximum lambda as stopping criterium for LM
+
+* [BUG] "fit; delete %foo; fit+" causes crash
+
+------------------ next release here 0.7.5
+* ?? un-strip background: append proper 'in @n' (not the one used for strip),
+
+* (GUI) finish script debugger dialog
+
+* (GUI) peak dragging -- sensible scaling of parameter changes 
+           (problems with width changing)
+ 	(bug?) now it matters in which point exactly you catch the peak
+
+* user defined functions:
+      - calculating limits, width, area, etc. for UDF(!)
 
 * link to "On-line tutorial" and the tutorial itself(!)
    perhaps screencast (eg. using Wink)
@@ -36,25 +62,6 @@
    -> by default, auto-scaling does not include x/y=0, unless it's
       in, say, 20% plot margin. "[:]" is an exception and includes 0.
 
-* (GUI) peak dragging -- sensible scaling of parameter changes 
-           (problems with width changing)
- 	(bug?) now it matters in which point exactly you catch the peak
-
-* (GUI) finish script debugger dialog
-
-* (GUI) peak-tops should be visible also in range-mode
-
-// * (GUI) added peak should be activeted
-
-// * (GUI) access to pop-up menus (plots, output window) from menubar
-
-* command "$_3 = ~0.151686" should not change "auto" flag of $_3 
-
-// * fitting:  maximum lambda as stopping criterium for LM
-
-* [BUG] "fit; delete %foo; fit+" causes crash
-
------------------- next release here 0.7.5
 * use info for exports:
   - replace exporting @x.peaks, @x.formula and commands[] 
     with info ... > filename

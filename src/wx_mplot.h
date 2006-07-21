@@ -96,7 +96,7 @@ private:
                     mode;  //actual mode -- either basic_mode or mmd_peak
     static const int max_group_cols = 8;
     static const int max_peak_cols = 32;
-    static const int max_data_cols = 32;
+    static const int max_data_cols = 64;
     static const int max_radius = 4; //size of data point
     bool peaks_visible, groups_visible, sum_visible,  
          plabels_visible, x_reversed; 
