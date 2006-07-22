@@ -43,7 +43,7 @@
 //    M=..., 
 //    order=...
 // and assignments T[k]=..., if these statements are joined with other 
-// assignments using '&', they are executed first, before iteration over all
+// assignments using ',', they are executed first, before iteration over all
 // indices.
 //
 //        M=length (eg. M=M+5 or M=100) changes number of points: 
@@ -87,8 +87,8 @@
 //
 //    integration:   Y[1...] = Y[n-1] + y[n]  
 //
-//    swaping x and y axes: y=x & x=y & s=sqrt(Y) 
-//                      or: y=x & x=y & s=sqrt(x)
+//    swaping x and y axes: y=x , x=y , s=sqrt(Y) 
+//                      or: y=x , x=y , s=sqrt(x)
 //
 //    smoothing: Y[1...-1] = (y[n-1] + y[n+1])/2  
 //
@@ -352,8 +352,15 @@ void skip_to_end(vector<int>::const_iterator &i)
         ++i;
 }
 
+vector<int>::const_iterator find_end(vector<int>::const_iterator i)
+{
+    while (*i != OP_END)
+        ++i;
+    return i;
+}
+
 template<typename T>
-fp get_var_with_idx(fp idx, vector<Point> points, T Point::*t)
+fp get_var_with_idx(fp idx, vector<Point> const& points, T Point::*t)
 {
     if (idx < 0 || idx > points.size()-1)
         return 0.;
@@ -372,7 +379,8 @@ fp get_var_with_idx(fp idx, vector<Point> points, T Point::*t)
 //   true means: it is neccessary to call this function for every point.
 //  if iterative pass:
 //   true means: delete this point.
-// n: index of point
+// n: index of point; //     special value: n==M: one-time operations
+//     n(==M) can be changed in OP_INDEX 
 // M: number of all points (==new_points.size())
 bool execute_code(int n, int &M, vector<fp>& stack,
                   vector<Point> const& old_points, vector<Point>& new_points,
@@ -383,81 +391,89 @@ bool execute_code(int n, int &M, vector<fp>& stack,
     bool once = (n == M);
     bool return_value = false; 
     vector<fp>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
+
+#define STACK_OP  
+#define STACK_OFFSET_CHANGE(ch) stackPtr+=(ch);
+
     for (vector<int>::const_iterator i=code.begin(); i != code.end(); i++) {
+//---8<--- START OF DT COMMON BLOCK --------------------------------------
         DT_DEBUG("op " + dt_op(*i))
         switch (*i) {
             //unary-operators
             case OP_NEG:
-                *stackPtr = - *stackPtr;
+                STACK_OP *stackPtr = - *stackPtr;
                 break;
             case OP_SQRT:
-                *stackPtr = sqrt(*stackPtr);
+                STACK_OP *stackPtr = sqrt(*stackPtr);
                 break;
             case OP_GAMMA:
-                *stackPtr = gammafn(*stackPtr);
+                STACK_OP *stackPtr = gammafn(*stackPtr);
                 break;
             case OP_LGAMMA:
-                *stackPtr = lgammafn(*stackPtr);
+                STACK_OP *stackPtr = lgammafn(*stackPtr);
                 break;
             case OP_EXP:
-                *stackPtr = exp(*stackPtr);
+                STACK_OP *stackPtr = exp(*stackPtr);
                 break;
             case OP_LOG10:
-                *stackPtr = log10(*stackPtr); 
+                STACK_OP *stackPtr = log10(*stackPtr); 
                 break;
             case OP_LN:
-                *stackPtr = log(*stackPtr); 
+                STACK_OP *stackPtr = log(*stackPtr); 
                 break;
             case OP_SIN:
-                *stackPtr = sin(*stackPtr);
+                STACK_OP *stackPtr = sin(*stackPtr);
                 break;
             case OP_COS:
-                *stackPtr = cos(*stackPtr);
+                STACK_OP *stackPtr = cos(*stackPtr);
                 break;
             case OP_TAN:
-                *stackPtr = tan(*stackPtr); 
+                STACK_OP *stackPtr = tan(*stackPtr); 
                 break;
             case OP_ATAN:
-                *stackPtr = atan(*stackPtr); 
+                STACK_OP *stackPtr = atan(*stackPtr); 
                 break;
             case OP_ASIN:
-                *stackPtr = asin(*stackPtr); 
+                STACK_OP *stackPtr = asin(*stackPtr); 
                 break;
             case OP_ACOS:
-                *stackPtr = acos(*stackPtr); 
+                STACK_OP *stackPtr = acos(*stackPtr); 
                 break;
             case OP_ABS:
-                *stackPtr = fabs(*stackPtr);
+                STACK_OP *stackPtr = fabs(*stackPtr);
                 break;
             case OP_ROUND:
-                *stackPtr = floor(*stackPtr + 0.5);
+                STACK_OP *stackPtr = floor(*stackPtr + 0.5);
                 break;
 
             case OP_x_IDX:
-                *stackPtr = find_idx_in_sorted(old_points, *stackPtr);
+                STACK_OP *stackPtr = find_idx_in_sorted(old_points, *stackPtr);
                 break;
 
 #ifndef STANDALONE_DATATRANS
             case OP_FUNC:
                 i++;
+                STACK_OP 
                 *stackPtr = AL->get_function(*i)->calculate_value(*stackPtr);
                 break;
             case OP_SUM_F:
                 i++;
-                *stackPtr = AL->get_sum(*i)->value(*stackPtr);
+                STACK_OP *stackPtr = AL->get_sum(*i)->value(*stackPtr);
                 break;
             case OP_SUM_Z:
                 i++;
-                *stackPtr = AL->get_sum(*i)->zero_shift(*stackPtr);
+                STACK_OP *stackPtr = AL->get_sum(*i)->zero_shift(*stackPtr);
                 break;
             case OP_NUMAREA:
-                i+=2;
-                stackPtr-=2;
+                i += 2;
+                STACK_OFFSET_CHANGE(-2)
                 if (*(i-1) == OP_FUNC) {
+                    STACK_OP
                     *stackPtr = AL->get_function(*i)->numarea(*stackPtr, 
                                         *(stackPtr+1), iround(*(stackPtr+2)));
                 }
                 else if (*(i-1) == OP_SUM_F) {
+                    STACK_OP
                     *stackPtr = AL->get_sum(*i)->numarea(*stackPtr, 
                                         *(stackPtr+1), iround(*(stackPtr+2)));
                 }
@@ -467,9 +483,10 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 break;
 
             case OP_FINDX:
-                i+=2;
-                stackPtr-=2;
+                i += 2;
+                STACK_OFFSET_CHANGE(-2)
                 if (*(i-1) == OP_FUNC) {
+                    STACK_OP
                     *stackPtr = AL->get_function(*i)->find_x_with_value(
                                       *stackPtr, *(stackPtr+1), *(stackPtr+2));
                 }
@@ -483,9 +500,10 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 break;
 
             case OP_FIND_EXTR:
-                i+=2;
-                stackPtr-=1;
+                i += 2;
+                STACK_OFFSET_CHANGE(-1)
                 if (*(i-1) == OP_FUNC) {
+                    STACK_OP
                     *stackPtr = AL->get_function(*i)->find_extremum(*stackPtr,
                                                                 *(stackPtr+1));
                 }
@@ -501,114 +519,160 @@ bool execute_code(int n, int &M, vector<fp>& stack,
 
             case OP_PARAMETERIZED:
                 i++;
-                *stackPtr = parameterized[*i]->calculate(*stackPtr);
+                STACK_OP *stackPtr = parameterized[*i]->calculate(*stackPtr);
                 break;
 
             //binary-operators
             case OP_MIN2:
-                stackPtr--;
-                *stackPtr = min(*stackPtr, *(stackPtr+1));
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = min(*stackPtr, *(stackPtr+1));
                 break;
             case OP_MAX2:
-                stackPtr--;
-                *stackPtr = max(*stackPtr, *(stackPtr+1));
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = max(*stackPtr, *(stackPtr+1));
                 break;
             case OP_RANDU:
-                stackPtr--;
-                *stackPtr = rand_uniform(*stackPtr, *(stackPtr+1));
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = rand_uniform(*stackPtr, *(stackPtr+1));
                 break;
             case OP_RANDNORM:
-                stackPtr--;
-                *stackPtr += rand_gauss() * *(stackPtr+1);
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr += rand_gauss() * *(stackPtr+1);
                 break;
             case OP_ADD:
-                stackPtr--;
-                *stackPtr += *(stackPtr+1);
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr += *(stackPtr+1);
                 break;
             case OP_SUB:
-                stackPtr--;
-                *stackPtr -= *(stackPtr+1);
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr -= *(stackPtr+1);
                 break;
             case OP_MUL:
-                stackPtr--;
-                *stackPtr *= *(stackPtr+1);
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr *= *(stackPtr+1);
                 break;
             case OP_DIV:
-                stackPtr--;
-                *stackPtr /= *(stackPtr+1);
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr /= *(stackPtr+1);
                 break;
             case OP_MOD:
-                stackPtr--;
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP
                 *stackPtr -= floor(*stackPtr / *(stackPtr+1)) * *(stackPtr+1);
                 break;
             case OP_POW:
-                stackPtr--;
-                *stackPtr = pow(*stackPtr, *(stackPtr+1));
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = pow(*stackPtr, *(stackPtr+1));
                 break;
 
+            // comparisions
+            case OP_LT:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = is_lt(*stackPtr, *(stackPtr+1));
+                break;
+            case OP_GT:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = is_gt(*stackPtr, *(stackPtr+1));
+                break;
+            case OP_LE:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = is_le(*stackPtr, *(stackPtr+1));
+                break;
+            case OP_GE:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = is_ge(*stackPtr, *(stackPtr+1));
+                break;
+            case OP_EQ:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = is_eq(*stackPtr, *(stackPtr+1));
+                break;
+            case OP_NEQ:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = is_neq(*stackPtr, *(stackPtr+1));
+                break;
+
+                // next comparision hack, see rbool rule for more...
+            case OP_NCMP_HACK:
+                STACK_OFFSET_CHANGE(+1)
+                // put number that is accidentally in unused part of the stack
+                STACK_OP *stackPtr = *(stackPtr+1); 
+                break;
+            
             // putting-number-to-stack-operators
             // stack overflow not checked
             case OP_NUMBER:
-                stackPtr++;
+                STACK_OFFSET_CHANGE(+1)
                 i++;
-                *stackPtr = numbers[*i];
+                STACK_OP *stackPtr = numbers[*i];
                 break;
             case OP_VAR_n:
-                stackPtr++;
-                *stackPtr = static_cast<fp>(n);
+                STACK_OFFSET_CHANGE(+1)
+                STACK_OP *stackPtr = static_cast<fp>(n);
                 break;
             case OP_VAR_M:
-                stackPtr++;
-                *stackPtr = static_cast<fp>(new_points.size());
+                STACK_OFFSET_CHANGE(+1)
+                STACK_OP *stackPtr = static_cast<fp>(new_points.size());
                 break;
             case OP_VAR_x:
+                STACK_OP
                 *stackPtr = get_var_with_idx(*stackPtr, old_points, &Point::x);
                 break;
             case OP_VAR_y:
+                STACK_OP
                 *stackPtr = get_var_with_idx(*stackPtr, old_points, &Point::y);
                 break;
             case OP_VAR_s:
+                STACK_OP
                 *stackPtr = get_var_with_idx(*stackPtr, old_points, 
                                              &Point::sigma);
                 break;
             case OP_VAR_a:
+                STACK_OP
                 *stackPtr = bool(iround(get_var_with_idx(*stackPtr, old_points, 
                                                          &Point::is_active)));
                 break;
             case OP_VAR_X:
+                STACK_OP
                 *stackPtr = get_var_with_idx(*stackPtr, new_points, &Point::x);
                 break;
             case OP_VAR_Y:
+                STACK_OP
                 *stackPtr = get_var_with_idx(*stackPtr, new_points, &Point::y);
                 break;
             case OP_VAR_S:
+                STACK_OP
                 *stackPtr = get_var_with_idx(*stackPtr, new_points, 
                                              &Point::sigma);
                 break;
             case OP_VAR_A:
+                STACK_OP
                 *stackPtr = bool(iround(get_var_with_idx(*stackPtr, new_points, 
                                                          &Point::is_active)));
                 break;
 
             //assignment-operators
             case OP_ASSIGN_X:
-                new_points[n].x = *stackPtr;
-                stackPtr--; 
+                STACK_OP new_points[n].x = *stackPtr;
+                STACK_OFFSET_CHANGE(-1)
                 break;
             case OP_ASSIGN_Y:
-                new_points[n].y = *stackPtr;
-                stackPtr--; 
+                STACK_OP new_points[n].y = *stackPtr;
+                STACK_OFFSET_CHANGE(-1)
                 break;
             case OP_ASSIGN_S:
-                new_points[n].sigma = *stackPtr;
-                stackPtr--; 
+                STACK_OP new_points[n].sigma = *stackPtr;
+                STACK_OFFSET_CHANGE(-1)
                 break;
             case OP_ASSIGN_A:
-                new_points[n].is_active = is_neq(*stackPtr, 0.);
-                stackPtr--; 
+                STACK_OP new_points[n].is_active = is_neq(*stackPtr, 0.);
+                STACK_OFFSET_CHANGE(-1)
                 break;
 
             // logical; can skip part of VM code !
+            case OP_NOT:
+                STACK_OP *stackPtr = is_eq(*stackPtr, 0.);
+                break;
+//---8<--- END OF DT COMMON BLOCK --------------------------------------
             case OP_AND:
                 if (is_neq(*stackPtr, 0))    //return second
                     stackPtr--; 
@@ -621,10 +685,6 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                     i = skip_code(i, OP_OR, OP_AFTER_OR);
                 else              // return second
                     stackPtr--; 
-                break;
-
-            case OP_NOT:
-                *stackPtr = is_eq(*stackPtr, 0.);
                 break;
 
             case OP_TERNARY:
@@ -643,43 +703,11 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 break;
 
             case OP_DELETE_COND:
-                if (*stackPtr)
+                if (!is_zero(*stackPtr))
                     return_value = true;
                 stackPtr--;
                 break;
 
-            // comparisions
-            case OP_LT:
-                stackPtr--;
-                *stackPtr = is_lt(*stackPtr, *(stackPtr+1));
-                break;
-            case OP_GT:
-                stackPtr--;
-                *stackPtr = is_gt(*stackPtr, *(stackPtr+1));
-                break;
-            case OP_LE:
-                stackPtr--;
-                *stackPtr = is_le(*stackPtr, *(stackPtr+1));
-                break;
-            case OP_GE:
-                stackPtr--;
-                *stackPtr = is_ge(*stackPtr, *(stackPtr+1));
-                break;
-            case OP_EQ:
-                stackPtr--;
-                *stackPtr = is_eq(*stackPtr, *(stackPtr+1));
-                break;
-            case OP_NEQ:
-                stackPtr--;
-                *stackPtr = is_neq(*stackPtr, *(stackPtr+1));
-                break;
-
-                // next comparision hack, see rbool rule for more...
-            case OP_NCMP_HACK:
-                stackPtr++;                // put number, that is accidentally 
-                *stackPtr = *(stackPtr+1); // in unused part of the stack
-                break;
-            
             //transformation condition 
             case OP_INDEX:
                 assert(once);  //x[n]= or delete[n]
@@ -781,6 +809,383 @@ bool execute_code(int n, int &M, vector<fp>& stack,
     return return_value;
 }
 
+// not tested !!!!!!
+// this function could be used for optimization of data transformations
+// but optimization is not neccessary (?)
+void multipoint_execute_code(int M, vector<fp>& stack, 
+                  vector<Point> const& old_points, vector<Point>& new_points,
+                  vector<int> const& code)  
+{
+    DT_DEBUG("executing code (multipoint),  M=" + S(M))
+    assert(M == size(new_points));
+    int offset = -1; //stack offset, will be ++'ed first
+    vector<vector<int>::const_iterator> skips(M, code.begin());
+
+#undef STACK_OP
+#define STACK_OP \
+    for (vector<fp>::iterator stackPtr = stack.begin() + M * offset; \
+                                stackPtr!=stack.end(); stackPtr=stack.end()) \
+        for (int n = 0; n < M; ++n, ++stackPtr) \
+          //  if (i >= skips[n])
+
+#undef STACK_OFFSET_CHANGE
+#define STACK_OFFSET_CHANGE(ch) \
+    offset += (ch);
+
+    for (vector<int>::const_iterator i=code.begin(); i != code.end(); i++) {
+        if (size(stack) < (offset+2) * M)
+            stack.resize((offset+2) * M);
+// the exact copy ...
+//---8<--- START OF DT COMMON BLOCK --------------------------------------
+        DT_DEBUG("op " + dt_op(*i))
+        switch (*i) {
+            //unary-operators
+            case OP_NEG:
+                STACK_OP *stackPtr = - *stackPtr;
+                break;
+            case OP_SQRT:
+                STACK_OP *stackPtr = sqrt(*stackPtr);
+                break;
+            case OP_GAMMA:
+                STACK_OP *stackPtr = gammafn(*stackPtr);
+                break;
+            case OP_LGAMMA:
+                STACK_OP *stackPtr = lgammafn(*stackPtr);
+                break;
+            case OP_EXP:
+                STACK_OP *stackPtr = exp(*stackPtr);
+                break;
+            case OP_LOG10:
+                STACK_OP *stackPtr = log10(*stackPtr); 
+                break;
+            case OP_LN:
+                STACK_OP *stackPtr = log(*stackPtr); 
+                break;
+            case OP_SIN:
+                STACK_OP *stackPtr = sin(*stackPtr);
+                break;
+            case OP_COS:
+                STACK_OP *stackPtr = cos(*stackPtr);
+                break;
+            case OP_TAN:
+                STACK_OP *stackPtr = tan(*stackPtr); 
+                break;
+            case OP_ATAN:
+                STACK_OP *stackPtr = atan(*stackPtr); 
+                break;
+            case OP_ASIN:
+                STACK_OP *stackPtr = asin(*stackPtr); 
+                break;
+            case OP_ACOS:
+                STACK_OP *stackPtr = acos(*stackPtr); 
+                break;
+            case OP_ABS:
+                STACK_OP *stackPtr = fabs(*stackPtr);
+                break;
+            case OP_ROUND:
+                STACK_OP *stackPtr = floor(*stackPtr + 0.5);
+                break;
+
+            case OP_x_IDX:
+                STACK_OP *stackPtr = find_idx_in_sorted(old_points, *stackPtr);
+                break;
+
+#ifndef STANDALONE_DATATRANS
+            case OP_FUNC:
+                i++;
+                STACK_OP 
+                *stackPtr = AL->get_function(*i)->calculate_value(*stackPtr);
+                break;
+            case OP_SUM_F:
+                i++;
+                STACK_OP *stackPtr = AL->get_sum(*i)->value(*stackPtr);
+                break;
+            case OP_SUM_Z:
+                i++;
+                STACK_OP *stackPtr = AL->get_sum(*i)->zero_shift(*stackPtr);
+                break;
+            case OP_NUMAREA:
+                i += 2;
+                STACK_OFFSET_CHANGE(-2)
+                if (*(i-1) == OP_FUNC) {
+                    STACK_OP
+                    *stackPtr = AL->get_function(*i)->numarea(*stackPtr, 
+                                        *(stackPtr+1), iround(*(stackPtr+2)));
+                }
+                else if (*(i-1) == OP_SUM_F) {
+                    STACK_OP
+                    *stackPtr = AL->get_sum(*i)->numarea(*stackPtr, 
+                                        *(stackPtr+1), iround(*(stackPtr+2)));
+                }
+                else // OP_SUM_Z
+                    throw ExecuteError("numarea(Z,...) is not implemented."
+                                       "Does anyone need it?"); 
+                break;
+
+            case OP_FINDX:
+                i += 2;
+                STACK_OFFSET_CHANGE(-2)
+                if (*(i-1) == OP_FUNC) {
+                    STACK_OP
+                    *stackPtr = AL->get_function(*i)->find_x_with_value(
+                                      *stackPtr, *(stackPtr+1), *(stackPtr+2));
+                }
+                else if (*(i-1) == OP_SUM_F) {
+                    throw ExecuteError("findx(F,...) is not implemented. "
+                                       "Does anyone need it?"); 
+                }
+                else // OP_SUM_Z
+                    throw ExecuteError("findx(Z,...) is not implemented. "
+                                       "Does anyone need it?"); 
+                break;
+
+            case OP_FIND_EXTR:
+                i += 2;
+                STACK_OFFSET_CHANGE(-1)
+                if (*(i-1) == OP_FUNC) {
+                    STACK_OP
+                    *stackPtr = AL->get_function(*i)->find_extremum(*stackPtr,
+                                                                *(stackPtr+1));
+                }
+                else if (*(i-1) == OP_SUM_F) {
+                    throw ExecuteError("extremum(F,...) is not implemented. "
+                                       "Does anyone need it?"); 
+                }
+                else // OP_SUM_Z
+                    throw ExecuteError("extremum(Z,...) is not implemented. "
+                                       "Does anyone need it?"); 
+                break;
+#endif //not STANDALONE_DATATRANS
+
+            case OP_PARAMETERIZED:
+                i++;
+                STACK_OP *stackPtr = parameterized[*i]->calculate(*stackPtr);
+                break;
+
+            //binary-operators
+            case OP_MIN2:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = min(*stackPtr, *(stackPtr+1));
+                break;
+            case OP_MAX2:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = max(*stackPtr, *(stackPtr+1));
+                break;
+            case OP_RANDU:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = rand_uniform(*stackPtr, *(stackPtr+1));
+                break;
+            case OP_RANDNORM:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr += rand_gauss() * *(stackPtr+1);
+                break;
+            case OP_ADD:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr += *(stackPtr+1);
+                break;
+            case OP_SUB:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr -= *(stackPtr+1);
+                break;
+            case OP_MUL:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr *= *(stackPtr+1);
+                break;
+            case OP_DIV:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr /= *(stackPtr+1);
+                break;
+            case OP_MOD:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP
+                *stackPtr -= floor(*stackPtr / *(stackPtr+1)) * *(stackPtr+1);
+                break;
+            case OP_POW:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = pow(*stackPtr, *(stackPtr+1));
+                break;
+
+            // comparisions
+            case OP_LT:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = is_lt(*stackPtr, *(stackPtr+1));
+                break;
+            case OP_GT:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = is_gt(*stackPtr, *(stackPtr+1));
+                break;
+            case OP_LE:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = is_le(*stackPtr, *(stackPtr+1));
+                break;
+            case OP_GE:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = is_ge(*stackPtr, *(stackPtr+1));
+                break;
+            case OP_EQ:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = is_eq(*stackPtr, *(stackPtr+1));
+                break;
+            case OP_NEQ:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = is_neq(*stackPtr, *(stackPtr+1));
+                break;
+
+                // next comparision hack, see rbool rule for more...
+            case OP_NCMP_HACK:
+                STACK_OFFSET_CHANGE(+1)
+                // put number that is accidentally in unused part of the stack
+                STACK_OP *stackPtr = *(stackPtr+1); 
+                break;
+            
+            // putting-number-to-stack-operators
+            // stack overflow not checked
+            case OP_NUMBER:
+                STACK_OFFSET_CHANGE(+1)
+                i++;
+                STACK_OP *stackPtr = numbers[*i];
+                break;
+            case OP_VAR_n:
+                STACK_OFFSET_CHANGE(+1)
+                STACK_OP *stackPtr = static_cast<fp>(n);
+                break;
+            case OP_VAR_M:
+                STACK_OFFSET_CHANGE(+1)
+                STACK_OP *stackPtr = static_cast<fp>(new_points.size());
+                break;
+            case OP_VAR_x:
+                STACK_OP
+                *stackPtr = get_var_with_idx(*stackPtr, old_points, &Point::x);
+                break;
+            case OP_VAR_y:
+                STACK_OP
+                *stackPtr = get_var_with_idx(*stackPtr, old_points, &Point::y);
+                break;
+            case OP_VAR_s:
+                STACK_OP
+                *stackPtr = get_var_with_idx(*stackPtr, old_points, 
+                                             &Point::sigma);
+                break;
+            case OP_VAR_a:
+                STACK_OP
+                *stackPtr = bool(iround(get_var_with_idx(*stackPtr, old_points, 
+                                                         &Point::is_active)));
+                break;
+            case OP_VAR_X:
+                STACK_OP
+                *stackPtr = get_var_with_idx(*stackPtr, new_points, &Point::x);
+                break;
+            case OP_VAR_Y:
+                STACK_OP
+                *stackPtr = get_var_with_idx(*stackPtr, new_points, &Point::y);
+                break;
+            case OP_VAR_S:
+                STACK_OP
+                *stackPtr = get_var_with_idx(*stackPtr, new_points, 
+                                             &Point::sigma);
+                break;
+            case OP_VAR_A:
+                STACK_OP
+                *stackPtr = bool(iround(get_var_with_idx(*stackPtr, new_points, 
+                                                         &Point::is_active)));
+                break;
+
+            //assignment-operators
+            case OP_ASSIGN_X:
+                STACK_OP new_points[n].x = *stackPtr;
+                STACK_OFFSET_CHANGE(-1)
+                break;
+            case OP_ASSIGN_Y:
+                STACK_OP new_points[n].y = *stackPtr;
+                STACK_OFFSET_CHANGE(-1)
+                break;
+            case OP_ASSIGN_S:
+                STACK_OP new_points[n].sigma = *stackPtr;
+                STACK_OFFSET_CHANGE(-1)
+                break;
+            case OP_ASSIGN_A:
+                STACK_OP new_points[n].is_active = is_neq(*stackPtr, 0.);
+                STACK_OFFSET_CHANGE(-1)
+                break;
+
+            // logical; can skip part of VM code !
+            case OP_NOT:
+                STACK_OP *stackPtr = is_eq(*stackPtr, 0.);
+                break;
+//---8<--- END OF DT COMMON BLOCK --------------------------------------
+            case OP_AND:
+                STACK_OP 
+                if (is_zero(*stackPtr))    
+                    skips[n] = skip_code(i, OP_AND, OP_AFTER_AND) + 1;
+                STACK_OFFSET_CHANGE(-1)
+                break;
+
+            case OP_OR:
+                STACK_OP 
+                if (!is_zero(*stackPtr))   
+                    skips[n] = skip_code(i, OP_OR, OP_AFTER_OR) + 1;
+                STACK_OFFSET_CHANGE(-1)
+                break;
+
+            case OP_TERNARY:
+                STACK_OP
+                if (is_zero(*stackPtr)) 
+                    skips[n] = skip_code(i, OP_TERNARY, OP_TERNARY_MID) + 1;
+                STACK_OFFSET_CHANGE(-1)
+                break;
+            case OP_TERNARY_MID:
+                //if we are here, condition was true. Skip.
+                STACK_OP
+                skips[n] = skip_code(i, OP_TERNARY_MID, OP_AFTER_TERNARY) + 1;
+                break;
+
+            case OP_AFTER_AND: //do nothing
+            case OP_AFTER_OR:
+            case OP_AFTER_TERNARY:
+                break;
+
+            case OP_DELETE_COND:
+                for (int n = M-1; n >= 0; --n)
+                    if (!is_zero(stack[n + M * offset]))
+                        new_points.erase(new_points.begin() + n);
+                offset--;
+                break;
+
+            //transformation condition 
+            case OP_RANGE: 
+              {
+                //x[i...j]= or delete[i...j]
+                STACK_OP 
+                {
+                int right = iround(*stackPtr); //Last In First Out
+                if (right <= 0)
+                    right += M;
+                int left = iround(*(stackPtr-1));
+                stackPtr-=2;
+                if (left < 0)
+                    left += M;
+                assert (*(i+1) != OP_DELETE);
+                //if n not in [i...j] then skip to prevent OP_ASSIGN_.
+                bool n_between = (left <= n && n < right);
+                if (!n_between) 
+                    skips[n] = find_end(i) + 1; 
+                }
+                break;
+              }
+            case OP_BEGIN:
+                if (*(i+1) == OP_DO_ONCE)
+                    skip_to_end(i);
+                break;
+            case OP_END: //nothing -- it is used only for skipping assignment
+                break;
+            default:
+                DT_DEBUG("Unknown operator in VM code: " + S(*i))
+                assert(0);
+        }
+    }
+}
+
+
 /// change  AGSUM X ... X END_AGGREGATE  to  NUMBER INDEX 
 void replace_aggregates(int M, vector<Point> const& old_points,
                         vector<int>& code, vector<int>::iterator cb)
@@ -800,8 +1205,8 @@ void replace_aggregates(int M, vector<Point> const& old_points,
             ++i;
             while (*i != OP_AGCONDITION && *i != OP_END_AGGREGATE)
                 ++i;
-            vector<int> acode(start+1, i);
-            vector<int> ccode;
+            vector<int> acode(start+1, i); //code for aggragate function
+            vector<int> ccode; //code for condition, empty if no condition
             if (*i == OP_AGCONDITION) {
                 vector<int>::iterator const start_cond = i;
                 while (*i != OP_END_AGGREGATE)
@@ -874,6 +1279,7 @@ void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
     bool t = execute_code(M, M, stack, old_points, new_points, code);
     if (!t) 
         return;
+#if 1
     vector<int> to_be_deleted;
     for (int n = 0; n != M; n++) {
         bool r = execute_code(n, M, stack, old_points, new_points, code);
@@ -884,6 +1290,9 @@ void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
         for (vector<int>::const_iterator i = to_be_deleted.end() - 1; 
                                              i >= to_be_deleted.begin(); --i)
             new_points.erase(new_points.begin() + *i);
+#else
+    //multipoint_execute_code(M, stack, old_points, new_points, code);
+#endif
 }
 
 } //namespace

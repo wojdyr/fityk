@@ -3,11 +3,6 @@
 
 // * an easy way to change colors of all datasets, eg. using colorramp 
 
-* optimize data transformations (all-points operations):
-   calculate max. stack size (ss) from bytecode
-   alloc stack for all points (M*ss)
-   change how code execution works: all points should be handled at once
-
 * user defined functions:
       - default parameter values can take any expression...
       // - syntax:
