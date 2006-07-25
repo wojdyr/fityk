@@ -85,7 +85,7 @@ bool FPlot::vert_line_following_cursor (Mouse_act_enum ma, int x, int x0)
     else if (ma == mat_redraw) {
         draw_dashed_vert_line(vlfc_prev_x0);
     }
-    else { // mat_stop, mat_cancel:
+    else { // mat_stop
         draw_dashed_vert_line(vlfc_prev_x0); //clear
         vlfc_prev_x = vlfc_prev_x0 = INT_MIN;
     }
@@ -620,7 +620,7 @@ void AuxPlot::OnLeftDown (wxMouseEvent &event)
 bool AuxPlot::cancel_mouse_left_press()
 {
     if (mouse_press_X != INT_MIN) {
-        vert_line_following_cursor(mat_cancel);
+        vert_line_following_cursor(mat_stop);
         ReleaseMouse();
         mouse_press_X = INT_MIN;
         cursor = wxCURSOR_CROSS;

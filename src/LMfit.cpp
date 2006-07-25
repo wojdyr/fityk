@@ -13,8 +13,7 @@ using namespace std;
 
 LMfit::LMfit() 
     : Fit("Levenberg-Marquardt"),
-      shake_before (0), shake_type ('u'),
-      alpha(0), alpha_(0), beta(0), beta_(0)
+      shake_before (0), shake_type ('u')
 {
     /*
     fpar ["shake-before"] = &shake_before;
@@ -32,7 +31,7 @@ fp LMfit::init()
     alpha_.resize (na*na);
     beta.resize (na);
     beta_.resize (na);
-    if (na < 1 ) {
+    if (na < 1) {
         warn ("No data points. What should I fit ?");
         return -1;
     }

@@ -46,7 +46,7 @@ public:
        : wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize, 
                  wxNO_BORDER|wxFULL_REPAINT_ON_RESIZE),
          y_logarithm(false), yUserScale(1.), yLogicalOrigin(0.), 
-         shared(shar), mouse_press_X(INT_MIN), mouse_press_Y(INT_MIN), 
+         shared(shar), mouse_press_X(INT_MIN), mouse_press_Y(INT_MIN),
          vlfc_prev_x(INT_MIN), vlfc_prev_x0(INT_MIN)   {}
          
     ~FPlot() {}

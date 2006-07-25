@@ -52,6 +52,30 @@ protected:
 };
 
 
+
+/// not used now
+class Domain 
+{ 
+    bool set, ctr_set;
+    fp ctr, sigma; 
+
+public:
+    Domain () : set(false), ctr_set(false) {}
+    Domain (fp sigm) : set(true), ctr_set(false), sigma(sigm) {}
+    Domain (fp c, fp sigm) : set(true), ctr_set(true), ctr(c), sigma(sigm) {}
+    //Domain (pre_Domain &p) : set(p.set), ctr_set(p.ctr_set),//used in parser.y
+    //                         ctr(p.ctr), sigma(p.sigma) {}
+    bool is_set() const { return set; }
+    bool is_ctr_set() const { return ctr_set; }
+    fp Ctr() const { assert(set && ctr_set); return ctr; }
+    fp Sigma() const { assert(set); return sigma; }
+    std::string str() const 
+        { return set ? "[" + (ctr_set ? S(ctr) : S()) 
+                                         + " +- " + S(sigma) + "]" : S(""); }
+};
+
+
+
 /// the variable is either simple-variable and nr is the index in vector
 /// of parameters, or it is "compound variable" and has nr==-1.
 /// third special case: nr==-2 - it is mirror-variable (such variable
@@ -74,14 +98,11 @@ class Variable : public VariableUser
 {
 public:
     bool const auto_delete;
-    bool const hidden; //not used so far
 
     struct ParMult { int p; fp mult; };
-    Variable(const std::string &name_, int nr_, 
-             bool auto_delete_=false, bool hidden_=false);
+    Variable(const std::string &name_, int nr_);
     Variable(std::string const &name_, std::vector<std::string> const &vars_,
-             std::vector<OpTree*> const &op_trees_, 
-             bool auto_delete_=false, bool hidden_=false);
+             std::vector<OpTree*> const &op_trees_);
     void recalculate(std::vector<Variable*> const &variables, 
                      std::vector<fp> const &parameters);
   
@@ -91,7 +112,7 @@ public:
     std::string get_info(std::vector<fp> const &parameters, 
                          bool extended=false) const;
     std::string get_formula(std::vector<fp> const &parameters) const;
-    bool is_visible() const { return !hidden; }
+    bool is_visible() const { return true; } //for future use
     void set_var_idx(std::vector<Variable*> const& variables);
     std::vector<ParMult> const& get_recursive_derivatives() const 
                                             { return recursive_derivatives; }
@@ -208,12 +229,6 @@ protected:
                                           std::vector<std::string> const &vars);
     std::vector<std::string> get_vars_from_kw(std::string const &function,
                                          std::vector<std::string> const &vars);
-    std::string get_variable_from_kw(std::string const& function,
-                                     std::string const& tname, 
-                                     std::string const& tvalue, 
-                                     std::vector<std::string> const& vars);
-    std::string get_var_from_expression(std::string const& expr,
-                                        std::vector<std::string> const& vars);
     std::string make_var_copy_name(Variable const* v);
     std::string next_var_name(); ///generate name for "anonymous" variable
     std::string next_func_name();///generate name for "anonymous" function

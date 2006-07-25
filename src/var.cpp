@@ -3,7 +3,7 @@
 
 #include "var.h"
 #include "common.h"
-//#include "datatrans.h"
+#include "datatrans.h"
 #include "calc.h"
 #include "ast.h"
 #include "ui.h"
@@ -65,11 +65,10 @@ int VariableUser::get_max_var_idx()
 
 
 // ctor for simple variables and mirror variables
-Variable::Variable(std::string const &name_, int nr_, 
-                   bool auto_delete_, bool hidden_)
-    : VariableUser(name_, "$"),
-      auto_delete(auto_delete_), hidden(hidden_), nr(nr_),
-      af(value, derivatives)
+Variable::Variable(std::string const &name_, int nr_)
+    : VariableUser(name_, "$"), 
+      auto_delete(!name_.empty() && name_[0] == '_'),
+      nr(nr_), af(value, derivatives)
 {
     if (nr != -2) {
         ParMult pm;
@@ -81,11 +80,10 @@ Variable::Variable(std::string const &name_, int nr_,
 
 // ctor for compound variables
 Variable::Variable(std::string const &name_, vector<string> const &vars_,
-                   vector<OpTree*> const &op_trees_, 
-                   bool auto_delete_, bool hidden_)
-    : VariableUser(name_, "$", vars_),
-      auto_delete(auto_delete_), hidden(hidden_), nr(-1), 
-      derivatives(vars_.size()),
+                   vector<OpTree*> const &op_trees_)
+    : VariableUser(name_, "$", vars_), 
+      auto_delete(!name_.empty() && name_[0] == '_'),
+      nr(-1), derivatives(vars_.size()),
       af(op_trees_, value, derivatives) 
 {
 }
@@ -198,7 +196,8 @@ string VariableManager::get_or_make_variable(string const& func)
         return string(func, 1);
     else if (parse(func.c_str(), 
                    FunctionLhsG [assign_a(tmp1)] 
-                       >> '[' >> (alpha_p >> *(alnum_p|'_'))[assign_a(tmp2)]
+                       >> '[' >> 
+                        lexeme_d[alpha_p >> *(alnum_p|'_')][assign_a(tmp2)]
                        >> ']')
                   .full) {                     // %bar[bleh]
         return get_func_param(tmp1, tmp2);
@@ -210,11 +209,10 @@ string VariableManager::get_or_make_variable(string const& func)
 string VariableManager::assign_variable(string const &name, string const &rhs)
 {
     Variable *var = 0;
-    bool auto_del = name.empty();
     string nonempty_name = name.empty() ? next_var_name() : name; 
 
     if (rhs.empty()) {// mirror-variable
-        var = new Variable(nonempty_name, -2, auto_del);
+        var = new Variable(nonempty_name, -2);
         return do_assign_variable(var);
     }
 
@@ -227,11 +225,11 @@ string VariableManager::assign_variable(string const &name, string const &rhs)
         fp val = get_constant_value(val_str);
         parameters.push_back(val);
         int nr = parameters.size() - 1;
-        var = new Variable(nonempty_name, nr, auto_del);
+        var = new Variable(nonempty_name, nr);
     }
     else {
         vector<string> vars=find_tokens_in_ptree(FuncGrammar::variableID, info);
-        if (find(vars.begin(), vars.end(), "x") != vars.end())
+        if (contains_element(vars, "x"))
             throw ExecuteError("variable can't depend on x.");
         for (vector<string>::const_iterator i = vars.begin(); 
                                                 i != vars.end(); i++) 
@@ -242,7 +240,7 @@ string VariableManager::assign_variable(string const &name, string const &rhs)
         for (vector<string>::iterator i = vars.begin(); i != vars.end(); ++i) {
             *i = get_or_make_variable(*i);
         }
-        var = new Variable(nonempty_name, vars, op_trees, auto_del);
+        var = new Variable(nonempty_name, vars, op_trees);
     }
     return do_assign_variable(var);
 }
@@ -253,8 +251,7 @@ bool VariableManager::is_variable_referred(int i,
 {
     for (int j = i+1; j < size(variables); ++j) {
         if (variables[j]->is_directly_dependent_on(i) 
-            && find(ignore_vars.begin(), ignore_vars.end(), variables[j]->name) 
-               == ignore_vars.end()) {
+                    && !contains_element(ignore_vars, variables[j]->name)) {
             if (first_referrer)
                 *first_referrer = variables[j]->xname;
             return true;
@@ -362,7 +359,7 @@ string VariableManager::assign_variable_copy(string const& name,
         fp val = orig->get_value();
         parameters.push_back(val);
         int nr = parameters.size() - 1;
-        var = new Variable(name, nr, orig->auto_delete);
+        var = new Variable(name, nr);
     }
     else {
         vector<string> vars;
@@ -374,7 +371,7 @@ string VariableManager::assign_variable_copy(string const& name,
         for (vector<OpTree*>::const_iterator i = orig->get_op_trees().begin();
                                           i != orig->get_op_trees().end(); ++i) 
             new_op_trees.push_back((*i)->copy());
-        var = new Variable(name, vars, new_op_trees, orig->auto_delete);
+        var = new Variable(name, vars, new_op_trees);
     }
     return do_assign_variable(var);
 }
@@ -508,76 +505,20 @@ void VariableManager::put_new_parameters(vector<fp> const &aa,
     use_parameters();
 }
 
-string VariableManager::get_var_from_expression(string const& expr,
-                                                vector<string> const& vars)
+namespace {
+
+inline 
+string strip_tilde_variable(string s)
 {
-    // `keyword*real_number' values defined in function type definitions
-    string::size_type ax = expr.find('*');
-    bool has_mult = (ax != string::npos);
-    string dname = has_mult ? string(expr, 0, ax) : expr;
-    for (vector<string>::const_iterator k = vars.begin(); k != vars.end(); ++k){
-        string::size_type eq = k->find('=');
-        string name = string(*k, 0, eq);
-        if (name == dname) {
-            string value = string(*k, eq+1);
-            if (has_mult) {
-                string multip = string(expr, ax+1);
-                // change "~1.2 * 2.5" to "~3.0"
-                if (value[0] == '~' && is_double(string(value,1)))
-                    return "~" + S(strtod(value.c_str()+1, 0) 
-                                    * strtod(multip.c_str(), 0));
-                else
-                    return value + "*" + multip;
-            }
-            else {
-                return value;
-            }
-        }
+    string::size_type pos = 0; 
+    while ((pos = s.find('~', pos)) != string::npos) {
+        s.erase(pos, 1);
+        //TODO erase domain [a:b] after value
     }
-    return "";
+    return s;
 }
 
-//TODO any expression can be given as default value  
-//     no $/~ in tvalue, but can be in vars
-//     0. (1st try)
-//     1. fwhm, hwhm, center, height, area -> known_vars 
-//     2. vars given on command line -> known_vars (can override former)
-//     3. checking if tvalue can be evaluated 
-//           if no $variables (nor ~1.23) -> simple variable
-//           if there are variables -> compound variable
-string VariableManager::get_variable_from_kw(string const& function,
-                                             string const& tname, 
-                                             string const& tvalue, 
-                                             vector<string> const& vars)
-{
-    // (1st try) variables given in vars
-    for (vector<string>::const_iterator k = vars.begin(); 
-                                                k != vars.end(); ++k) {
-        string::size_type eq = k->find('=');
-        assert(eq != string::npos);
-        string name = string(*k, 0, eq);
-        if (name == tname) 
-            return string(*k, eq+1);
-    }
-    // (2nd try) numeric values defined in function type definitions
-    if (is_double(tvalue)) {
-        return "~" + tvalue;
-    }
-    // (3rd) `keyword*real_number' values defined in function type definitions
-    string r;
-    if (!tvalue.empty()) 
-        r = get_var_from_expression(tvalue, vars);
-    if (!r.empty())
-        return r;
-    // (4th try) special case: hwhm=fwhm*0.5
-    if (tname == "hwhm")
-        r = get_var_from_expression("fwhm*0.5", vars);
-    if (!r.empty())
-        return r;
-
-    throw ExecuteError("Can't create function " + function
-                           + " because " + tname + " is unknown.");
-}
+} //anonymous namespace
 
 vector<string> VariableManager::get_vars_from_kw(string const &function,
                                                  vector<string> const &vars)
@@ -590,9 +531,48 @@ vector<string> VariableManager::get_vars_from_kw(string const &function,
     vector<string> tvalues 
         = Function::get_varnames_from_formula(formula, true);
     int n = tnames.size();
+    size_t vsize = vars.size();
+    vector<string> vars_names(vsize), vars_rhs(vsize);
+    for (size_t i = 0; i < vsize; ++i) {
+        string::size_type eq = vars[i].find('=');
+        assert(eq != string::npos);
+        vars_names[i] = string(vars[i], 0, eq);
+        vars_rhs[i] = string(vars[i], eq+1);
+    }
     vector<string> vv(n);
     for (int i = 0; i < n; ++i) {
-        vv[i] = get_variable_from_kw(function, tnames[i], tvalues[i], vars);
+        string const& tname = tnames[i];
+        // (1st try) variables given in vars
+        int tname_idx = index_of_element(vars_names, tname);
+        if (tname_idx != -1) {
+            vv[i] = vars_rhs[tname_idx];
+            continue;
+        }
+        // (2nd try) use default parameter value
+        if (!tvalues[i].empty()) {
+            for (size_t j = 0; j < vsize; ++j)
+                replace_words(tvalues[i], vars_names[j], vars_rhs[j]);
+            try {
+                fp v = get_transform_expression_value(
+                                      strip_tilde_variable(tvalues[i]), 0);
+                vv[i] = "~" + S(v);
+                continue;
+            } 
+            catch (ExecuteError &e) {} //nothing
+        }
+        // (3rd try) name
+        else if (tname == "hwhm") {
+            int fwhm_idx = index_of_element(vars_names, "fwhm");
+            if (fwhm_idx != -1) {
+                fp v = get_transform_expression_value("0.5*" 
+                               + strip_tilde_variable(vars_rhs[fwhm_idx]), 0);
+                vv[i] = "~" + S(v);
+                continue;
+            }
+        }
+
+        throw ExecuteError("Can't create function " + function
+                               + " because " + tname + " is unknown.");
     }
     return vv;
 }
@@ -606,7 +586,7 @@ vector<string> VariableManager::make_varnames(string const &function,
     bool has_eq = (vars[0].find('=') != string::npos);
     for (vector<string>::const_iterator i = vars.begin(); i != vars.end(); ++i) 
         if ((i->find('=') != string::npos) != has_eq)
-            throw ExecuteError("Either use keywords for all paramers"
+            throw ExecuteError("Either use keywords for all parameters"
                                " or for none");
     vector<string> vv = (!has_eq ? vars : get_vars_from_kw(function, vars));
     for (int i = 0; i < size(vv); ++i) 
@@ -660,6 +640,7 @@ string VariableManager::make_var_copy_name(Variable const* v)
     if (v->name[0] == '_') 
         return next_var_name(); 
 
+    //for other names append "01" or increase the last two digits in name
     int vs = v->name.size();
     int appendix = 0;
     string core = v->name;

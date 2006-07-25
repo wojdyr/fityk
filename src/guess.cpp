@@ -244,14 +244,14 @@ void guess_and_add(DataWithSum* ds,
     vector<string> vars_lhs(vars.size());
     for (int i = 0; i < size(vars); ++i)
         vars_lhs[i] = string(vars[i], 0, vars[i].find('='));
-    if (find(vars_lhs.begin(), vars_lhs.end(), "center") == vars_lhs.end())
+    if (!contains_element(vars_lhs, "center"))
         vars.push_back("center=~"+S(c));
-    if (find(vars_lhs.begin(), vars_lhs.end(), "height") == vars_lhs.end())
+    if (!contains_element(vars_lhs, "height"))
         vars.push_back("height=~"+S(h));
-    if (find(vars_lhs.begin(), vars_lhs.end(), "fwhm") == vars_lhs.end()
-           && find(vars_lhs.begin(), vars_lhs.end(), "hwhm") == vars_lhs.end())
+    if (!contains_element(vars_lhs, "fwhm") 
+            && !contains_element(vars_lhs, "hwhm"))
         vars.push_back("fwhm=~"+S(fwhm));
-    if (find(vars_lhs.begin(), vars_lhs.end(), "area") == vars_lhs.end())
+    if (!contains_element(vars_lhs, "area"))
         vars.push_back("area=~"+S(a));
     string real_name = AL->assign_func(name, function, vars);
     ds->get_sum()->add_function_to(real_name, 'F');

@@ -232,6 +232,17 @@ bool contains_element(std::vector<T> const& vec, T2 const& t)
     return (find(vec.begin(), vec.end(), t) != vec.end());
 }
 
+/// return first index of value, or -1 if not found
+template<typename T, typename T2>
+int index_of_element(std::vector<T> const& vec, T2 const& t)
+{
+    typename std::vector<T>::const_iterator p = find(vec.begin(), vec.end(), t);
+    if (p != vec.end())
+        return p - vec.begin();
+    else
+        return -1;
+}
+
 //---------------------------  M A P  --------------------------------
 template<typename T1, typename T2>
 std::vector<T2> get_map_keys(std::map<T1,T2> const& m)

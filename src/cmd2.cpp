@@ -29,7 +29,9 @@ using namespace std;
 namespace cmdgram {
 
 bool with_plus, deep_cp;
-string t, t2;
+string t, t2, output_redir;
+string prepared_info;
+bool info_append;
 int tmp_int, tmp_int2, ds_pref;
 double tmp_real, tmp_real2;
 vector<string> vt, vr;
@@ -125,6 +127,20 @@ void do_plot(char const*, char const*)
     outdated_plot=false;
 }
 
+void do_output_info(char const*, char const*)
+{
+    prepared_info = strip_string(prepared_info);
+    if (output_redir.empty())
+        mesg(prepared_info);
+    else {
+        ofstream os(output_redir.c_str(), 
+                    ios::out | (info_append ? ios::app : ios::trunc));
+        if (!os) 
+            throw ExecuteError("Can't open file: " + output_redir);
+        os << prepared_info << endl;
+    }
+}
+
 void do_print_info(char const* a, char const* b)
 {
     string s = string(a,b);
@@ -209,7 +225,7 @@ void do_print_info(char const* a, char const* b)
                                                            i != v.end(); ++i)
             m += print_multiple_peakfind(*i, tmp_int, vr);
     }
-    mesg(m);
+    prepared_info += "\n" + m;
 }
 
 void do_print_sum_info(char const* a, char const* b)
@@ -233,12 +249,12 @@ void do_print_sum_info(char const* a, char const* b)
     else if (s == "formula") {
         m = sum->get_formula(!with_plus);
     }
-    mesg(m);
+    prepared_info += "\n" + m;
 }
 
 void do_print_sum_derivatives_info(char const*, char const*)
 {
-    fp x = get_transform_expression_value(t, AL->get_data(ds_pref));
+    fp x = get_transform_expression_value(t2, AL->get_data(ds_pref));
     Sum const* sum = AL->get_sum(ds_pref);
     vector<fp> symb = sum->get_symbolic_derivatives(x);
     vector<fp> num = sum->get_numeric_derivatives(x, 1e-4);
@@ -249,7 +265,7 @@ void do_print_sum_derivatives_info(char const*, char const*)
             m += "\ndF / d " + AL->find_variable_handling_param(i)->xname 
                 + " = (symb.) " + S(symb[i]) + " = (num.) " + S(num[i]);
     }
-    mesg(m);
+    prepared_info += "\n" + m;
 }
 
 void do_print_debug_info(char const*, char const*)  { 
@@ -288,20 +304,20 @@ void do_print_data_expr(char const*, char const*)
     //TODO "2+2" case
     vector<DataWithSum*> v = get_datasets_from_indata();
     if (v.size() == 1)
-        s = S(get_transform_expression_value(t, v[0]->get_data()));
+        s = S(get_transform_expression_value(t2, v[0]->get_data()));
     else {
         map<DataWithSum const*, int> m;
         for (int i = 0; i < AL->get_ds_count(); ++i)
             m[AL->get_ds(i)] = i;
         for (vector<DataWithSum*>::const_iterator i = v.begin(); 
                 i != v.end(); ++i) {
-            fp k = get_transform_expression_value(t, (*i)->get_data());
+            fp k = get_transform_expression_value(t2, (*i)->get_data());
             if (i != v.begin())
                 s += "\n";
             s += "in @" + S(m[*i]) + ": " + S(k);
         }
     }
-    mesg(s);
+    prepared_info += "\n" + s;
 }
 
 void do_print_func_type(char const* a, char const* b)
@@ -310,7 +326,7 @@ void do_print_func_type(char const* a, char const* b)
     string m = Function::get_formula(s);
     if (m.empty())
         m = "Undefined function type: " + s;
-    mesg(m);
+    prepared_info += "\n" + m;
 }
 
 void do_guess(char const*, char const*)
@@ -353,7 +369,7 @@ void do_list_commands(char const*, char const*)
 {
     vector<string> cc 
         = getUI()->getCommands().get_commands(tmp_int, tmp_int2, with_plus);
-    mesg(join_vector(cc, "\n"));
+    prepared_info += "\n" + join_vector(cc, "\n");
 }
 
 } //namespace
@@ -467,15 +483,15 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
               | eps_p [assign_a(tmp_int, one)])
            >> plot_range >> in_data) [&do_print_info]
         | type_name[&do_print_func_type]
-        | (no_actions_d[DataExpressionG][assign_a(t)] 
+        | (no_actions_d[DataExpressionG][assign_a(t2)] 
              >> in_data) [&do_print_data_expr]
         | FunctionLhsG [&do_print_info]
         | ds_prefix >> (ch_p('F')|'Z'|"formula") [&do_print_sum_info]
         | (ds_prefix >> str_p("dF") >> '(' 
-           >> no_actions_d[DataExpressionG][assign_a(t)] 
+           >> no_actions_d[DataExpressionG][assign_a(t2)] 
            >> ')') [&do_print_sum_derivatives_info]
         | existing_dataset_nr [&do_print_info]
-        | "debug" >> compact_str [&do_print_debug_info] 
+        | "debug" >> compact_str [&do_print_debug_info] //don't use with redir
         | eps_p [&do_print_info] 
         ;
 
@@ -498,7 +514,15 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         ;
 
     statement 
-        = optional_suffix_p("i","nfo") >> optional_plus >> (info_arg % ',')
+        = (optional_suffix_p("i","nfo") [assign_a(output_redir, empty)]
+                                        [assign_a(prepared_info, empty)]
+           >> optional_plus >> (info_arg % ',')
+           >> !( ( str_p(">>") [assign_a(info_append, true_)]
+                 | str_p(">") [assign_a(info_append, false_)]
+                 )
+                >> compact_str [assign_a(output_redir, t)]
+               )
+          ) [&do_output_info]
         | (optional_suffix_p("p","lot") 
                               [clear_a(vr)] [assign_a(tmp_int, minus_one)]
           >> !existing_dataset_nr >> plot_range >> plot_range) [&do_plot]

@@ -60,14 +60,15 @@ void replace_all(string &s, string const &old, string const &new_)
 }
 
 /// replaces all words `old_word' in text `str' with `new_word'
-///  word `foo' is in: "4*foo+1" but not in "foobar" nor in "_foo"
+///  word `foo' is in: "4*foo+1" but not in: "foobar", "_foo", "$foo"
 void replace_words(string &t, string const &old_word, string const &new_word)
 {
     string::size_type pos = 0;
     while ((pos=t.find(old_word, pos)) != string::npos) {
         int k = old_word.size();
-        if ((pos == 0 || !(isalnum(t[pos-1]) || t[pos-1]=='_'))
-                && (pos+k==t.size() || !(isalnum(t[pos+k]) || t[pos+k]=='_'))) {
+        if ((pos == 0 
+                || !(isalnum(t[pos-1]) || t[pos-1]=='_' || t[pos-1]=='$'))
+              && (pos+k==t.size() || !(isalnum(t[pos+k]) || t[pos+k]=='_'))) {
             t.replace(pos, k, new_word);
             pos += new_word.size();
         }

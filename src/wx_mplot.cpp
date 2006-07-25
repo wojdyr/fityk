@@ -89,8 +89,8 @@ END_EVENT_TABLE()
 MainPlot::MainPlot (wxWindow *parent, PlotShared &shar) 
     : FPlot (parent, shar), BgManager(shar),
       basic_mode(mmd_zoom), mode(mmd_zoom), 
-      pressed_mouse_button(0), ctrl(false), over_peak(-1),
-      limit1(INT_MIN), limit2(INT_MIN)
+      pressed_mouse_button(0), ctrl_on_down(false), shift_on_down(false),
+      over_peak(-1), limit1(INT_MIN), limit2(INT_MIN)
 { }
 
 void MainPlot::OnPaint(wxPaintEvent& WXUNUSED(event))
@@ -606,24 +606,20 @@ void MainPlot::OnPeakGuess(wxCommandEvent &WXUNUSED(event))
     }
 }
 
-bool MainPlot::has_mod_keys(const wxMouseEvent& event)
-{
-    return (event.AltDown() || event.ControlDown() || event.ShiftDown());
-}
-
 
 // mouse usage
 //
 //  Simple Rules:
 //   1. When one button is down, pressing other button cancels action 
-//   2. Releasing / keeping down / pressing Ctrl/Alt/Shift keys, when you keep 
+//   2. Releasing / keeping down / pressing Ctrl/Alt keys, when you keep 
 //     mouse button down makes no difference.
-//   3. Ctrl, Alt and Shift buttons are equivalent. 
+//   3. Ctrl and Alt buttons are equivalent. 
 //  ----------------------------------
 //  Usage:
 //   Left/Right Button (no Ctrl)   -- mode dependent  
 //   Ctrl + Left/Right Button      -- the same as Left/Right in normal mode 
 //   Middle Button                 -- rectangle zoom 
+//   Shift sometimes makes a difference
 
 void MainPlot::set_mouse_mode(MouseModeEnum m)
 {
@@ -694,20 +690,20 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
 
     if (pressed_mouse_button == 0) {
         if (mode == mmd_range) {
-            if (!ctrl)
-                vert_line_following_cursor (mat_move, event.GetX());
+            if (!ctrl_on_down)
+                vert_line_following_cursor(mat_move, event.GetX());
             else
-                vert_line_following_cursor (mat_cancel);
+                vert_line_following_cursor(mat_stop);
         }
         if (visible_peaktops(mode)) 
             look_for_peaktop (event);
         frame->draw_crosshair(X, Y);
     }
     else {
-        vert_line_following_cursor (mat_move, event.GetX());
+        vert_line_following_cursor(mat_move, event.GetX());
         move_peak(mat_move, event);
-        peak_draft (mat_move, event);
-        rect_zoom (mat_move, event);
+        peak_draft(mat_move, event.GetX(), event.GetY());
+        draw_temporary_rect(mat_move, event.GetX(), event.GetY());
     }
 }
 
@@ -765,10 +761,10 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
 void MainPlot::cancel_mouse_press()
 {
     if (pressed_mouse_button) {
-        rect_zoom (mat_cancel); 
-        move_peak(mat_cancel);
-        peak_draft (mat_cancel);
-        vert_line_following_cursor (mat_cancel);
+        draw_temporary_rect(mat_stop); 
+        move_peak(mat_cancel); //TODO don't use mat_cancel
+        peak_draft(mat_stop);
+        vert_line_following_cursor(mat_stop);
         mouse_press_X = mouse_press_Y = INT_MIN;
         pressed_mouse_button = 0;
         frame->set_status_text("");
@@ -787,17 +783,18 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     frame->draw_crosshair(-1, -1);
     int button = event.GetButton();
     pressed_mouse_button = button;
-    ctrl = has_mod_keys(event);
+    ctrl_on_down = (event.AltDown() || event.ControlDown());
+    shift_on_down = event.ShiftDown();
     mouse_press_X = event.GetX();
     mouse_press_Y = event.GetY();
     fp x = X2x (event.GetX());
     fp y = Y2y (event.GetY());
-    if (button == 1 && (ctrl || mode == mmd_zoom) || button == 2) {
-        rect_zoom (mat_start, event);
+    if (button == 1 && (ctrl_on_down || mode == mmd_zoom) || button == 2) {
+        draw_temporary_rect(mat_start, event.GetX(), event.GetY());
         SetCursor(wxCURSOR_MAGNIFIER);  
         frame->set_status_text("Select second corner to zoom...");
     }
-    else if (button == 3 && (ctrl || mode == mmd_zoom)) {
+    else if (button == 3 && (ctrl_on_down || mode == mmd_zoom)) {
         show_popup_menu (event);
         cancel_mouse_press();
     }
@@ -820,7 +817,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         Refresh(false);
     }
     else if (button == 1 && mode == mmd_add) {
-        peak_draft (mat_start, event);
+        peak_draft (mat_start, event.GetX(), event.GetY());
         SetCursor(wxCURSOR_SIZING);
         frame->set_status_text("Add drawed peak...");
     }
@@ -830,10 +827,20 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         frame->set_status_text("Select range to add a peak in it..."); 
     }
     else if (button != 2 && mode == mmd_range) {
-        vert_line_following_cursor(mat_start, mouse_press_X+1, mouse_press_X);
-        SetCursor(wxCURSOR_SIZEWE);
-        frame->set_status_text(button==1 ? "Select data range to activate..."
-                                       : "Select data range to disactivate...");
+        string status_info;
+        if (shift_on_down) {
+            SetCursor(wxCURSOR_SIZENWSE);
+            draw_temporary_rect(mat_start, event.GetX(), event.GetY());
+            status_info = "Select data in rectangle to ";
+        }
+        else {
+            SetCursor(wxCURSOR_SIZEWE);
+            vert_line_following_cursor(mat_start, mouse_press_X+1, 
+                                                           mouse_press_X);
+            status_info = "Select data range to ";
+        }
+        frame->set_status_text(status_info + (button==1 ?  "activate..."
+                                                        : "disactivate..."));
     }
     update_mouse_hints();
 }
@@ -846,42 +853,74 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         pressed_mouse_button = 0;
         return;
     }
-    int dist_x = abs(event.GetX() - mouse_press_X);  
-    int dist_y = abs(event.GetY() - mouse_press_Y);  
+    int dist_X = abs(event.GetX() - mouse_press_X);  
+    int dist_Y = abs(event.GetY() - mouse_press_Y);  
     // if Down and Up events are at the same position -> cancel
-    if (button == 1 && (ctrl || mode == mmd_zoom) || button == 2) {
-        rect_zoom(dist_x + dist_y < 10 ? mat_cancel: mat_stop, event);
+    if (button == 1 && (ctrl_on_down || mode == mmd_zoom) || button == 2) {
+        draw_temporary_rect(mat_stop);
+        if (dist_X + dist_Y >= 10) {
+            fp x1 = X2x(mouse_press_X);
+            fp x2 = X2x(event.GetX());
+            fp y1 = Y2y(mouse_press_Y);
+            fp y2 = Y2y(event.GetY());
+            frame->change_zoom("[ "+S(min(x1,x2))+" : "+S(max(x1,x2))+" ]"
+                               "[ "+S(min(y1,y2))+" : "+S(max(y1,y2))+" ]");
+        }
         frame->set_status_text("");
     }
     else if (mode == mmd_peak && button == 1) {
-        move_peak(dist_x + dist_y < 2 ? mat_cancel: mat_stop, event);
+        //TODO don't use mat_cancel
+        move_peak(dist_X + dist_Y < 2 ? mat_cancel: mat_stop, event);
         frame->set_status_text("");
     }
     else if (mode == mmd_range && button != 2) {
-        vert_line_following_cursor(mat_cancel);
-        if (dist_x >= 5) { 
+        vert_line_following_cursor(mat_stop);
+        draw_temporary_rect(mat_stop);
+        string c = (button == 1 ? "A = a or " : "A = a and not ");
+        if (!shift_on_down && dist_X >= 5) { 
             fp xmin = X2x (min (event.GetX(), mouse_press_X));
             fp xmax = X2x (max (event.GetX(), mouse_press_X));
-            string xmin_x_xmax = "(" + S(xmin) + "< x <" + S(xmax) + ")";
-            string c = (button == 1 ? "A = a or " : "A = a and not ");
-            exec_command(c + xmin_x_xmax + frame->get_in_one_or_all_datasets());
+            string cond = "(" + S(xmin) + "< x <" + S(xmax) + ")";
+            exec_command(c + cond + frame->get_in_one_or_all_datasets());
+        }
+        else if (shift_on_down && dist_X + dist_Y >= 10) {
+            fp x1 = X2x(mouse_press_X);
+            fp x2 = X2x(event.GetX());
+            fp y1 = Y2y(mouse_press_Y);
+            fp y2 = Y2y(event.GetY());
+            string cond = "(" + S(min(x1,x2)) + " < x < " + S(max(x1,x2)) 
+                   + " and " + S(min(y1,y2)) + " < y < " + S(max(y1,y2)) + ")";
+            exec_command(c + cond + frame->get_in_one_or_all_datasets());
         }
         frame->set_status_text("");
     }
     else if (mode == mmd_add && button == 1) {
         frame->set_status_text("");
-        peak_draft (dist_x + dist_y < 5 ? mat_cancel: mat_stop, event);
+        peak_draft(mat_stop, event.GetX(), event.GetY());
+        if (dist_X + dist_Y >= 5) {
+            fp height = Y2y(event.GetY());
+            fp center = X2x(mouse_press_X);
+            fp fwhm = fabs(shared.dX2dx(mouse_press_X - event.GetX()));
+            fp area = height * fwhm;
+            string F = AL->get_ds_count() > 1 
+                                      ?  frame->get_active_data_str()+".F" 
+                                      : "F";
+            exec_command(frame->get_peak_type()  
+                         + "(height=~" + S(height) + ", center=~" + S(center) 
+                         + ", fwhm=~" + S(fwhm) + ", area=~" + S(area) 
+                         + ") -> " + F);
+          }
     }
     else if (mode == mmd_add && button == 3) {
         frame->set_status_text("");
-        if (dist_x >= 5) { 
+        if (dist_X >= 5) { 
             fp x1 = X2x(mouse_press_X);
             fp x2 = X2x(event.GetX());
             exec_command ("guess " + frame->get_peak_type() 
                           + " [" + S(min(x1,x2)) + " : " + S(max(x1,x2)) + "]"
                           + frame->get_in_dataset());
         }
-        vert_line_following_cursor(mat_cancel);
+        vert_line_following_cursor(mat_stop);
     }
     else {
         ;// nothing - action done in OnButtonDown()
@@ -907,6 +946,7 @@ void MainPlot::OnKeyDown (wxKeyEvent& event)
 
 void MainPlot::move_peak (Mouse_act_enum ma, wxMouseEvent &event)
 {
+    //TODO don't use mat_cancel, peak moving and this method will be refactored 
     static wxPoint prev;
     static int func_nr = -1;
     static vector<fp> p_values(4,0);
@@ -943,7 +983,7 @@ void MainPlot::move_peak (Mouse_act_enum ma, wxMouseEvent &event)
         SetCursor(wxCURSOR_SIZENWSE);
     }
     else if (ma == mat_move) {
-        bool mod_key =  has_mod_keys(event);
+        bool mod_key =  event.ShiftDown();
         string descr = mod_key ? "[shift]" : "(without [shift])";
         int n = mod_key ? 2 : 0;
         if (changable[n]) {
@@ -1000,7 +1040,7 @@ void MainPlot::draw_xor_peak(Function const* func, vector<fp> const& p_values)
         dc.DrawLine (i-1, YY[i-1], i, YY[i]); 
 }
 
-void MainPlot::peak_draft (Mouse_act_enum ma, wxMouseEvent &event)
+void MainPlot::peak_draft(Mouse_act_enum ma, int X_, int Y_)
 {
     static wxPoint prev(INT_MIN, INT_MIN);
     if (ma != mat_start) {
@@ -1012,26 +1052,10 @@ void MainPlot::peak_draft (Mouse_act_enum ma, wxMouseEvent &event)
     switch (ma) {
         case mat_start:
         case mat_move:
-            prev.x = event.GetX(), prev.y = event.GetY();
+            prev.x = X_, prev.y = Y_;
             draw_peak_draft(mouse_press_X, abs(mouse_press_X-prev.x), prev.y);
             break;
         case mat_stop: 
-          {
-            prev.x = prev.y = INT_MIN;
-            fp height = Y2y(event.GetY());
-            fp center = X2x(mouse_press_X);
-            fp fwhm = fabs(shared.dX2dx(mouse_press_X - event.GetX()));
-            fp area = height * fwhm;
-            string F = AL->get_ds_count() > 1 
-                                      ?  frame->get_active_data_str()+".F" 
-                                      : "F";
-            exec_command(frame->get_peak_type()  
-                         + "(height=~" + S(height) + ", center=~" + S(center) 
-                         + ", fwhm=~" + S(fwhm) + ", area=~" + S(area) 
-                         + ") -> " + F);
-          }
-          break;
-        case mat_cancel:
             prev.x = prev.y = INT_MIN;
             break;
         case mat_redraw: //already redrawn
@@ -1054,41 +1078,34 @@ void MainPlot::draw_peak_draft(int Ctr, int Hwhm, int Y)
     dc.DrawLine (Ctr, Y, Ctr + 2 * Hwhm, Y0); //right slope
 }
 
-bool MainPlot::rect_zoom (Mouse_act_enum ma, wxMouseEvent &event) 
+void MainPlot::draw_temporary_rect(Mouse_act_enum ma, int X_, int Y_) 
 {
     static int X1 = INT_MIN, Y1 = INT_MIN, X2 = INT_MIN, Y2 = INT_MIN;
 
-    if (ma == mat_start) {
-        X1 = X2 = event.GetX(), Y1 = Y2 = event.GetY(); 
-        draw_rect (X1, Y1, X2, Y2);
-        CaptureMouse();
-        return true;
+    if (ma != mat_start && X1 == INT_MIN) 
+        return;
+    switch (ma) {
+        case mat_start:
+            X1 = X2 = X_; 
+            Y1 = Y2 = Y_; 
+            draw_rect (X1, Y1, X2, Y2);
+            CaptureMouse();
+            break;
+        case mat_move:
+            draw_rect (X1, Y1, X2, Y2); //clear old rectangle
+            X2 = X_; 
+            Y2 = Y_; 
+            draw_rect (X1, Y1, X2, Y2);
+            break;
+        case mat_stop:
+            draw_rect (X1, Y1, X2, Y2); //clear old rectangle
+            X1 = INT_MIN;
+            ReleaseMouse();
+            break;
+        case mat_redraw: //unused
+        case mat_cancel: //unused
+            break;
     }
-    else {
-        if (X1 == INT_MIN || Y1 == INT_MIN) return false;
-        draw_rect (X1, Y1, X2, Y2); //clear old rectangle
-    }
-
-    if (ma == mat_move) {
-        X2 = event.GetX(), Y2 = event.GetY(); 
-        draw_rect (X1, Y1, X2, Y2);
-    }
-    else if (ma == mat_stop) {
-        X2 = event.GetX(), Y2 = event.GetY(); 
-        fp x1 = X2x(X1);
-        fp x2 = X2x(X2);
-        fp y1 = Y2y(Y1);
-        fp y2 = Y2y(Y2);
-        if (abs(X1-X2) > 5 && abs(Y1-Y2) > 5) 
-            frame->change_zoom("[ "+S(min(x1,x2))+" : "+S(max(x1,x2))+" ]"
-                               "[ "+S(min(y1,y2))+" : "+S(max(y1,y2))+" ]"); 
-    }
-
-    if (ma == mat_cancel || ma == mat_stop) {
-        X1 = Y1 = X2 = Y2 = INT_MIN;
-        ReleaseMouse();
-    }
-    return true;
 }
 
 void MainPlot::draw_rect (int X1, int Y1, int X2, int Y2)

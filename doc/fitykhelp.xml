@@ -273,13 +273,6 @@
      all possibilities of the auxiliary plot clear.
     </para>
     <para>
-     Sometimes it is useful to print effects of our fitting work. Hard copy
-     will contain plots visible on the screen, scaled to fit the page. The only
-     difference is that backgrounds of plots will be white (to not waste
-     toner/ink). So it may be necessary to change color of axis or data to
-     darker one.
-    </para>
-    <para>
      Configuration of GUI (visible windows, colors, etc.) can be saved using 
      <menuchoice>
       <guimenu>GUI</guimenu><guimenuitem>Save current config</guimenuitem>
@@ -318,7 +311,7 @@
      In normal mode, <mousebutton>left</mousebutton> button is used for
      zooming and <mousebutton>right</mousebutton> invokes pop-up menu.
      The same behaviour can be obtained in any mode by pressing
-     <keycap>Ctrl</keycap> (or <keycap>Alt</keycap> or <keycap>Shift</keycap>).
+     <keycap>Ctrl</keycap> (or <keycap>Alt</keycap>.).
 
      <mousebutton>Middle</mousebutton> 
      button can be used to select a rectangle that you want to zoom in. 

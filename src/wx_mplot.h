@@ -108,7 +108,8 @@ private:
     wxColour groupCol[max_group_cols], peakCol[max_peak_cols];
     wxColour dataColour[max_data_cols];
     int pressed_mouse_button;
-    bool ctrl;
+    bool ctrl_on_down;
+    bool shift_on_down;
     int over_peak;
     int limit1, limit2;
 
@@ -126,12 +127,11 @@ private:
     void prepare_peak_labels(Sum const* sum);
     void look_for_peaktop (wxMouseEvent& event);
     void show_peak_menu (wxMouseEvent &event);
-    void peak_draft (Mouse_act_enum ma, wxMouseEvent &event =dummy_mouse_event);
+    void peak_draft (Mouse_act_enum ma, int X_=0, int Y_=0);
     void move_peak (Mouse_act_enum ma, wxMouseEvent &event = dummy_mouse_event);
     void draw_peak_draft (int X_mid, int X_hwhm, int Y);
-    bool rect_zoom (Mouse_act_enum ma, wxMouseEvent &event = dummy_mouse_event);
+    void draw_temporary_rect(Mouse_act_enum ma, int X_=0, int Y_=0);
     void draw_rect (int X1, int Y1, int X2, int Y2);
-    bool has_mod_keys(const wxMouseEvent& event); 
     bool visible_peaktops(MouseModeEnum mode);
 
     DECLARE_EVENT_TABLE()

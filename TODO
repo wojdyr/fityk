@@ -1,10 +1,12 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
+// * GUI: data range mode: with [Shift] (dis)activate with rectangle
+
 // * an easy way to change colors of all datasets, eg. using colorramp 
 
 * user defined functions:
-      - default parameter values can take any expression...
+      // - default parameter values can take any expression...
       // - syntax:
       //   --> define Gaussian(a,pos,width): a*exp(-((x-pos)/width)^2)
       //                  ^^^ any name but 'x' allowed here
@@ -16,8 +18,8 @@
 // * (GUI) new Fit->Run dialog (one dialog with max. WSSR evaluations,
 //   max. iterations, continue checkbox, OK/Cancel)
 
-* "info" can be redirected to file in every case
-   ("info ... >> file" appends to file, with '>' it truncates file)
+//* "info" can be redirected to file in every case
+//   ("info ... >> file" appends to file, with '>' it truncates file)
 
 * (GUI) peak-tops should be visible also in range-mode
 
@@ -25,25 +27,25 @@
 
 // * (GUI) access to pop-up menus (plots, output window) from menubar
 
-* command "$_3 = ~0.151686" should not change "auto" flag of $_3 
-  perhaps all variables starting with "_" should be removed
-  when not used anymore?
+// * all variables starting with "_" are auto-deleted when not used anymore
+
+* simple-variable domain ~3[2:14]
 
 // * fitting:  maximum lambda as stopping criterium for LM
 
-* [BUG] "fit; delete %foo; fit+" causes crash
+// * [BUG] "fit; delete %foo; fit+" causes crash
 
 ------------------ next release here 0.7.5
-* ?? un-strip background: append proper 'in @n' (not the one used for strip),
-
-* (GUI) finish script debugger dialog
-
 * (GUI) peak dragging -- sensible scaling of parameter changes 
            (problems with width changing)
  	(bug?) now it matters in which point exactly you catch the peak
 
 * user defined functions:
       - calculating limits, width, area, etc. for UDF(!)
+
+* ?? un-strip background: append proper 'in @n' (not the one used for strip),
+
+* (GUI) finish script debugger dialog
 
 * link to "On-line tutorial" and the tutorial itself(!)
    perhaps screencast (eg. using Wink)
@@ -64,16 +66,11 @@
   - (?) "info @n () > file"
        should display ... [1234 lines more] rather than everything
 
-* GUI: data range mode: special mode to dis-activate points below 
-  given level or polyline; or (dis)activate with rectangle
-
-* simple-variable domain ~3[2:14]
-
 * settings: Nelder-Mead and GA fitting options, 
   a way to "shake" parameters for L-M
   constrained L-M option
 
-* history (data / sum / view / all) 
+* history (data / sum / view / all) [IMPORTANT]
    i don't exactly know how to implement it yet
 
 * implement command "dump", which also embeds data in script using
@@ -89,6 +86,8 @@
 
 * build engine (everything but GUI/CLI interface) as a library
   with more or less documented API.
+
+* CVS -> Subversion transition
 
 ------------------ next release here 0.8.0
 

@@ -63,28 +63,6 @@ protected:
 };
 
 
-/// not used now
-class Domain 
-{ 
-    bool set, ctr_set;
-    fp ctr, sigma; 
-
-public:
-    Domain () : set(false), ctr_set(false) {}
-    Domain (fp sigm) : set(true), ctr_set(false), sigma(sigm) {}
-    Domain (fp c, fp sigm) : set(true), ctr_set(true), ctr(c), sigma(sigm) {}
-    //Domain (pre_Domain &p) : set(p.set), ctr_set(p.ctr_set),//used in parser.y
-    //                         ctr(p.ctr), sigma(p.sigma) {}
-    bool is_set() const { return set; }
-    bool is_ctr_set() const { return ctr_set; }
-    fp Ctr() const { assert(set && ctr_set); return ctr; }
-    fp Sigma() const { assert(set); return sigma; }
-    std::string str() const 
-        { return set ? "[" + (ctr_set ? S(ctr) : S()) 
-                                         + " +- " + S(sigma) + "]" : S(""); }
-};
-
-
 /// keeps Data and its Sum
 class DataWithSum
 {

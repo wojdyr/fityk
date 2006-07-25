@@ -159,7 +159,6 @@ fp Fit::compute_wssr_for_data(DataWithSum const* ds, bool weigthed)
 
 fp Fit::compute_r_squared(vector<fp> const &A, vector<DataWithSum*> const& dsds)
 {
-    evaluations++;
     fp r_squared = 0;
     AL->use_external_parameters(A);
     for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
@@ -179,21 +178,21 @@ fp Fit::compute_r_squared_for_data(DataWithSum const* ds)
     vector<fp> yy(n, 0.);
     ds->get_sum()->calculate_sum_value(xx, yy);
     fp mean = 0;
-    fp ssr_curve = 0 ; // Sum of squares of distances between fitted curve and data
+    fp ssr_curve = 0; // Sum of squares of dist. between fitted curve and data
     fp ssr_mean = 0 ;  // Sum of squares of distances between mean and data
     for (int j = 0; j < n; j++) {
         mean += data->get_y(j) ;
-        fp dy = data->get_y(j) - yy[j];	
-	ssr_curve += dy * dy ;
+        fp dy = data->get_y(j) - yy[j]; 
+        ssr_curve += dy * dy ;
     }
-    mean = mean / (fp) n ;	// Mean computed here.
+    mean = mean / n;    // Mean computed here.
 
     for (int j = 0 ; j < n ; j++) {
-	fp dy = data->get_y(j) - mean ;
-	ssr_mean += dy * dy ;
-	}
+        fp dy = data->get_y(j) - mean;
+        ssr_mean += dy * dy;
+    }
 
-    return ( 1 - (ssr_curve/ssr_mean) ); // R^2 as defined.
+    return 1 - (ssr_curve/ssr_mean); // R^2 as defined.
 }
 
 //results in alpha and beta 
@@ -330,7 +329,7 @@ void Fit::continue_fit(int max_iter)
 {
     for (vector<DataWithSum*>::const_iterator i = datsums.begin(); 
                                                       i != datsums.end(); ++i) 
-        if (!AL->has_ds(*i))
+        if (!AL->has_ds(*i) || na != size(AL->get_parameters()))
             throw ExecuteError(name + " method should be initialized first.");
     update_parameters(datsums);
     a_orig = AL->get_parameters();  //should it be also updated?
@@ -402,8 +401,8 @@ void Fit::iteration_plot(vector<fp> const &A)
 /// Function returns vector x[] in b[], and 1-matrix in A[].
 /// return value: true=OK, false=singular matrix
 ///   with special exception: 
-//     if i'th row, i'th column and i'th element in b all contains zeros,
-//     it's just ignored, 
+///     if i'th row, i'th column and i'th element in b all contains zeros,
+///     it's just ignored, 
 bool Fit::Jordan(vector<fp>& A, vector<fp>& b, int n) 
 {
     assert (size(A) == n*n && size(b) == n);
