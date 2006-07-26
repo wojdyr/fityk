@@ -52,28 +52,28 @@ protected:
 };
 
 
-
-/// not used now
+/// domain of variable, used _only_ for randomization of the variable
 class Domain 
 { 
-    bool set, ctr_set;
+    bool ok, ctr_set;
     fp ctr, sigma; 
 
 public:
-    Domain () : set(false), ctr_set(false) {}
-    Domain (fp sigm) : set(true), ctr_set(false), sigma(sigm) {}
-    Domain (fp c, fp sigm) : set(true), ctr_set(true), ctr(c), sigma(sigm) {}
-    //Domain (pre_Domain &p) : set(p.set), ctr_set(p.ctr_set),//used in parser.y
-    //                         ctr(p.ctr), sigma(p.sigma) {}
-    bool is_set() const { return set; }
+    Domain() : ok(false), ctr_set(false) {}
+    bool is_set() const { return ok; }
     bool is_ctr_set() const { return ctr_set; }
-    fp Ctr() const { assert(set && ctr_set); return ctr; }
-    fp Sigma() const { assert(set); return sigma; }
+    fp get_ctr() const { assert(ok && ctr_set); return ctr; }
+    fp get_sigma() const { assert(ok); return sigma; }
+    void set(fp c, fp s) { ok=true; ctr_set=true; ctr=c; sigma=s; }
+    void set_sigma(fp s) { ok=true; sigma=s; }
     std::string str() const 
-        { return set ? "[" + (ctr_set ? S(ctr) : S()) 
-                                         + " +- " + S(sigma) + "]" : S(""); }
+    {
+        if (ok)
+            return "[" + (ctr_set ? S(ctr) : S()) + " +- " + S(sigma) + "]";
+        else
+            return std::string();
+    }
 };
-
 
 
 /// the variable is either simple-variable and nr is the index in vector
@@ -98,6 +98,7 @@ class Variable : public VariableUser
 {
 public:
     bool const auto_delete;
+    Domain domain;
 
     struct ParMult { int p; fp mult; };
     Variable(const std::string &name_, int nr_);

@@ -11,6 +11,7 @@
 #include "sum.h"
 #include "numfuncs.h"
 #include <stdlib.h>
+#include <ctype.h>
 #include <boost/spirit/core.hpp>
 #include <algorithm>
 #include <memory>
@@ -67,9 +68,10 @@ int VariableUser::get_max_var_idx()
 // ctor for simple variables and mirror variables
 Variable::Variable(std::string const &name_, int nr_)
     : VariableUser(name_, "$"), 
-      auto_delete(!name_.empty() && name_[0] == '_'),
+      auto_delete(name_[0] == '_'),
       nr(nr_), af(value, derivatives)
 {
+    assert(!name_.empty());
     if (nr != -2) {
         ParMult pm;
         pm.p = nr_;
@@ -82,10 +84,11 @@ Variable::Variable(std::string const &name_, int nr_)
 Variable::Variable(std::string const &name_, vector<string> const &vars_,
                    vector<OpTree*> const &op_trees_)
     : VariableUser(name_, "$", vars_), 
-      auto_delete(!name_.empty() && name_[0] == '_'),
+      auto_delete(name_[0] == '_'),
       nr(-1), derivatives(vars_.size()),
       af(op_trees_, value, derivatives) 
 {
+    assert(!name_.empty());
 }
 
 void Variable::set_var_idx(vector<Variable*> const& variables)
@@ -105,6 +108,8 @@ string Variable::get_formula(vector<fp> const &parameters) const
 string Variable::get_info(vector<fp> const &parameters, bool extended) const 
 { 
     string s = xname + " = " + get_formula(parameters) + " = " + S(value);
+    if (domain.is_set())
+        s += domain.str();
     if (auto_delete)
         s += "  [auto]";
     if (extended && nr == -1) {
@@ -206,6 +211,63 @@ string VariableManager::get_or_make_variable(string const& func)
         return assign_variable("", func);
 }
 
+
+namespace {
+
+void parse_and_set_domain(Variable *var, string const& domain_str)
+{
+    string::size_type lb = domain_str.find('[');
+    string::size_type pm = domain_str.find("+-");
+    string::size_type rb = domain_str.find(']');
+    string ctr_str = strip_string(string(domain_str, lb+1, pm-(lb+1)));
+    string sigma_str(domain_str, pm+2, rb-(pm+2));
+    fp sigma = strtod(sigma_str.c_str(), 0);
+    if (!ctr_str.empty()) {
+        fp ctr = strtod(ctr_str.c_str(), 0);
+        var->domain.set(ctr, sigma);
+    }
+    else
+        var->domain.set_sigma(sigma);
+}
+
+string::size_type skip_variable_value(string const& s, string::size_type pos)
+{
+    string::size_type new_pos;
+    if (s[pos] == '{') 
+        new_pos = s.find('}', pos) + 1;
+    else {
+        char const* s_c = s.c_str();
+        char *endptr;
+        strtod(s_c+pos, &endptr);
+        new_pos = endptr - s_c;
+    }
+    while (new_pos < s.size() && isspace(s[new_pos]))
+        ++new_pos;
+    return new_pos;
+}
+
+inline 
+string strip_tilde_variable(string s)
+{
+    string::size_type pos = 0; 
+    while ((pos = s.find('~', pos)) != string::npos) {
+        s.erase(pos, 1);
+        assert(pos < s.size());
+        pos = skip_variable_value(s, pos);
+        if (pos < s.size()) {
+            if (s[pos] == '[') {
+                string::size_type right_b = s.find(']', pos);
+                assert(right_b != string::npos);
+                s.erase(pos, right_b-pos+1);
+            }
+        }
+    }
+    return s;
+}
+
+} //anonymous namespace
+
+
 string VariableManager::assign_variable(string const &name, string const &rhs)
 {
     Variable *var = 0;
@@ -222,10 +284,18 @@ string VariableManager::assign_variable(string const &name, string const &rhs)
     if (root->value.id() == FuncGrammar::variableID
             && *root->value.begin() == '~') { //simple variable
         string val_str = string(root->value.begin()+1, root->value.end());
+        string domain_str;
+        string::size_type pos = skip_variable_value(val_str, 0);
+        if (pos < val_str.size() && val_str[pos] == '[') {
+            domain_str = string(val_str, pos);
+            val_str.erase(pos);
+        }
         fp val = get_constant_value(val_str);
         parameters.push_back(val);
         int nr = parameters.size() - 1;
         var = new Variable(nonempty_name, nr);
+        if (!domain_str.empty()) 
+            parse_and_set_domain(var, domain_str);
     }
     else {
         vector<string> vars=find_tokens_in_ptree(FuncGrammar::variableID, info);
@@ -505,21 +575,6 @@ void VariableManager::put_new_parameters(vector<fp> const &aa,
     use_parameters();
 }
 
-namespace {
-
-inline 
-string strip_tilde_variable(string s)
-{
-    string::size_type pos = 0; 
-    while ((pos = s.find('~', pos)) != string::npos) {
-        s.erase(pos, 1);
-        //TODO erase domain [a:b] after value
-    }
-    return s;
-}
-
-} //anonymous namespace
-
 vector<string> VariableManager::get_vars_from_kw(string const &function,
                                                  vector<string> const &vars)
 {
@@ -699,16 +754,9 @@ string VariableManager::get_func_param(string const &name, string const &param)
 fp VariableManager::variation_of_a (int n, fp variat) const
 {
     assert (0 <= n && n < size(get_parameters()));
-    //TODO domain
-#if 0
-    const Domain& dom = get_domain(n);
-    fp ctr = dom.is_ctr_set() ? dom.Ctr() : parameters[n];
-    fp sgm = dom.is_set() ? dom.Sigma() 
-                          : my_sum->get_def_rel_domain_width() * ctr;
-#endif
-    fp ctr = parameters[n];
-    fp sgm = 0.1;
-
+    Domain const& dom = get_variable(n)->domain;
+    fp ctr = dom.is_ctr_set() ? dom.get_ctr() : parameters[n];
+    fp sgm = dom.is_set() ? dom.get_sigma() : 0.5 * ctr;
     return ctr + sgm * variat;
 }
 
@@ -744,7 +792,8 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
     //all expressions but the last are for variables and functions
     //the last is for function types
     variable    = leaf_node_d[lexeme_d['$' >> +(alnum_p | '_')]]
-                | leaf_node_d[lexeme_d['~' >> real_p]]
+                | leaf_node_d[lexeme_d['~' >> real_p] 
+                              >> !('[' >> !real_p >> "+-" >> real_p >> ']')]
                 | leaf_node_d["~{" >> +~ch_p('}') >> '}']
                 // using FunctionLhsG causes crash 
                 | leaf_node_d[lexeme_d["%" >> +(alnum_p | '_')] //FunctionLhsG 
