@@ -9,6 +9,7 @@
 #include "logic.h"
 #include "ui.h"
 #include "settings.h"
+#include "datatrans.h"
 
 using namespace std;
 
@@ -255,6 +256,43 @@ void guess_and_add(DataWithSum* ds,
         vars.push_back("area=~"+S(a));
     string real_name = AL->assign_func(name, function, vars);
     ds->get_sum()->add_function_to(real_name, 'F');
+}
+
+bool is_parameter_guessable(string const& name)
+{
+    return name == "center" || name == "height" || name == "fwhm"
+        || name == "area" || name == "hwhm";
+}
+
+bool is_function_guessable(string const& formula, bool check_defvalue)
+{
+    int lb = formula.find('(');
+    int rb = find_matching_bracket(formula, lb);
+    string all_names(formula, lb+1, rb-lb-1);
+    vector<string> nd = split_string(all_names, ',');
+    
+    for (vector<string>::const_iterator i = nd.begin(); i != nd.end(); ++i) {
+        string::size_type eq = i->find('=');
+        if (eq == string::npos) {
+            if (!is_parameter_guessable(strip_string(*i)))
+                return false;
+        }
+        else if (check_defvalue 
+                 &&!is_parameter_guessable(strip_string(string(*i, 0, eq)))) {
+            string defvalue(*i, eq+1);
+            replace_words(defvalue, "center", "1");
+            replace_words(defvalue, "height", "1");
+            replace_words(defvalue, "fwhm", "1");
+            replace_words(defvalue, "area", "1");
+            try {
+                get_transform_expression_value(defvalue, 0);
+            } 
+            catch (ExecuteError &e) {
+                return false;
+            } 
+        }
+    }
+    return true;
 }
 
 

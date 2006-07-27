@@ -765,10 +765,10 @@ void SideBar::OnDataButtonCol (wxCommandEvent& WXUNUSED(event))
 void SideBar::OnDataColorsChanged(GradientDlg *gd)
 {
     vector<int> selected;
-    for (int i = d->list->GetFirstSelected(); i != -1; 
-                                              i = d->list->GetNextSelected(i)) {
+    for (int i = d->list->GetFirstSelected(), c = 0; i != -1; 
+                                        i = d->list->GetNextSelected(i), ++c) {
         selected.push_back(i);
-        wxColour col = gd->get_value(i / (d->list->GetSelectedItemCount()-1.));
+        wxColour col = gd->get_value(c / (d->list->GetSelectedItemCount()-1.));
         frame->get_main_plot()->set_data_color(i, col);
     }
     update_lists();

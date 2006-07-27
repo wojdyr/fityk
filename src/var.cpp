@@ -109,7 +109,7 @@ string Variable::get_info(vector<fp> const &parameters, bool extended) const
 { 
     string s = xname + " = " + get_formula(parameters) + " = " + S(value);
     if (domain.is_set())
-        s += domain.str();
+        s += "  " + domain.str();
     if (auto_delete)
         s += "  [auto]";
     if (extended && nr == -1) {
@@ -794,7 +794,8 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
     variable    = leaf_node_d[lexeme_d['$' >> +(alnum_p | '_')]]
                 | leaf_node_d[lexeme_d['~' >> real_p] 
                               >> !('[' >> !real_p >> "+-" >> real_p >> ']')]
-                | leaf_node_d["~{" >> +~ch_p('}') >> '}']
+                | leaf_node_d["~{" >> +~ch_p('}') >> '}'
+                              >> !('[' >> !real_p >> "+-" >> real_p >> ']')]
                 // using FunctionLhsG causes crash 
                 | leaf_node_d[lexeme_d["%" >> +(alnum_p | '_')] //FunctionLhsG 
                               >> '[' >> lexeme_d[alpha_p >> *(alnum_p | '_')] 

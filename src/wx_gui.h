@@ -194,6 +194,7 @@ public:
     bool display_help_section(std::string const& s);
     void after_cmd_updates();
     void update_toolbar();
+    void update_autoadd_enabled();
     std::string get_active_data_str();
     std::string get_in_dataset();
     std::string get_in_one_or_all_datasets();

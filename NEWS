@@ -1,4 +1,14 @@
-User-visible changes in version 0.7.5  (2006-0 -  ):
+User-visible changes in version 0.7.5  (2006-07-2 ):
+* user defined functions (UDF) 
+* GUI: gradient dialog for changing color of many datasets at once
+* GUI: new Fit->Run dialog
+* So-called domain of simple-variables can be specified ($a = ~3.5 [3 +- 2]),
+  it is used only for randomization of the variable by some fitting methods.
+* "info" can be redirected to file using "info ... > filename" syntax 
+   to truncate the file and "info ... >> file" to appends to the file
+* variables with names starting with "_" are auto-deleted when not used
+* parameters of Lev-Mar methods can be changed (it was disabled in 0.7.0)
+* GUI: pressing Shift in data range mode allows (dis)activate data in rectangle
 * r-squared shown in "info fit" output (Emmanuel Lamprecht)
 * a few bug fixes
 

@@ -151,6 +151,18 @@ vector<string> Function::get_all_types()
     return types;
 }
 
+string Function::get_formula(int n)
+{
+    int nb = sizeof(builtin_formulas)/sizeof(builtin_formulas[0]);
+    if (n < nb)
+        return builtin_formulas[n];
+    UdfContainer::UDF const* udf = UdfContainer::get_udf(n - nb);
+    if (udf)
+        return udf->formula;
+    else
+        return "";
+}
+
 string Function::get_formula(string const& type)
 {
     int nb = sizeof(builtin_formulas)/sizeof(builtin_formulas[0]);
@@ -444,7 +456,6 @@ vector<UDF> udfs;
 
 void initialize_udfs()
 {
-    // TODO default values for shape
     vector<string> formulae = split_string(
 "GaussianA(area, center, hwhm) = Gaussian(area/hwhm/sqrt(pi/ln(2)), center, hwhm)\n"
 "LorentzianA(area, center, hwhm) = Lorentzian(area/hwhm/pi, center, hwhm)\n"

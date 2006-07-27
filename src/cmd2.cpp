@@ -270,13 +270,13 @@ void do_print_sum_derivatives_info(char const*, char const*)
 
 void do_print_debug_info(char const*, char const*)  { 
     string m;
-    if (t == "idx") {
+    if (t == "idx") {   // show varnames and var_idx from VariableUser
         for (int i = 0; i < size(AL->get_functions()); ++i) 
             m += S(i) + ": " + AL->get_function(i)->get_debug_idx_info() +"\n";
         for (int i = 0; i < size(AL->get_variables()); ++i) 
             m += S(i) + ": " + AL->get_variable(i)->get_debug_idx_info() +"\n";
     }
-    else if (t == "rd") {
+    else if (t == "rd") { // show values of derivatives for all variables
         for (int i = 0; i < size(AL->get_variables()); ++i) {
             Variable const* var = AL->get_variable(i);
             m += var->xname + ": ";
@@ -290,7 +290,7 @@ void do_print_debug_info(char const*, char const*)  {
             m += "\n";
         }
     }
-    else if (t.size() > 0 && t[0] == '%') {
+    else if (t.size() > 0 && t[0] == '%') { // show bytecode
         Function const* f = AL->find_function(t);
         m = f->get_bytecode();
     }

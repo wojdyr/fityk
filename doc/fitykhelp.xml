@@ -16,7 +16,7 @@
 <book lang="en">
  <title>Fityk 0.7.5 - User's Manual</title> 
  <bookinfo> 
-  <date>2006-07-09</date>
+  <date>2006-07-26</date>
   <author> 
    <firstname>Marcin</firstname> <surname>Wojdyr</surname>
   </author> 
@@ -938,6 +938,21 @@
     <para>
      Variables can be deleted using command 
      <command>delete <replaceable>$variable</replaceable></command>.
+    </para>
+    <para>
+     Some fitting algorithms need to randomize parameters of fitted function
+     (i. e. simple variables). For this purpose, 
+     the simple variable can have specified <firstterm>domain</firstterm>.
+     Note that the domain does not imply any constraints on the value
+     the variable can have. It is only a hint for fitting methods like
+     Nelder-Mead simplex or Genetic Algorithms. Read descriptions
+     of these methods to know how the domain is used. The syntax is following:
+     <screen>
+      $a = ~12.3 [11 +- 5] # center and width of the domain is given
+
+      $b = ~12.3 [ +- 5] # if the center of the domain is not specified, 
+                         # current value of the variable is used
+     </screen>
     </para>
    </section>
    <section>

@@ -49,6 +49,7 @@
 #include "fit.h"
 #include "data.h"
 #include "ui.h"
+#include "guess.h"
 
 #include "img/fityk.xpm"
 
@@ -1267,6 +1268,7 @@ void FFrame::OnChangePeakType(wxCommandEvent& event)
     peak_type_nr = event.GetId() - ID_G_M_PEAK_N;
     if (toolbar) 
         toolbar->update_peak_type(peak_type_nr);
+    update_autoadd_enabled();
 }
 
 void FFrame::OnGMBgUpdate(wxUpdateUIEvent& event)
@@ -1572,12 +1574,24 @@ void FFrame::after_cmd_updates()
 
 void FFrame::update_toolbar()
 {
+    update_autoadd_enabled();
     if (!toolbar) 
         return;
     toolbar->ToggleTool(ID_ft_b_strip, plot_pane->get_bg_manager()->can_undo());
     //DataWithSum const* ds = AL->get_ds(AL->get_active_ds_position());
     toolbar->EnableTool(ID_ft_f_cont, getFit()->is_initialized());
     toolbar->EnableTool(ID_ft_v_pr, !plot_pane->get_zoom_hist().empty());
+}
+
+void FFrame::update_autoadd_enabled()
+{
+    static int old_nr = -1; //this is for optimization, if nr is the same, ...
+    bool diff = (peak_type_nr != old_nr); //... default values are not parsed
+    bool enable = AL->get_data(AL->get_active_ds_position())->get_n() > 2
+          && is_function_guessable(Function::get_formula(peak_type_nr), diff);
+    GetMenuBar()->Enable(ID_S_GUESS, enable);
+    if (toolbar)
+        toolbar->EnableTool(ID_ft_s_aa, enable);
 }
 
 string FFrame::get_active_data_str()
@@ -1754,6 +1768,7 @@ void FToolBar::OnPeakChoice(wxCommandEvent &event)
 {
     if (frame) 
         frame->peak_type_nr = event.GetSelection();
+    frame->update_autoadd_enabled();
 }
 
 void FToolBar::update_peak_type(int nr, vector<string> const* peak_types) 

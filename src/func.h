@@ -29,6 +29,7 @@ public:
                              std::string const &type_name,
                              std::vector<std::string> const &vars);
     static std::vector<std::string> get_all_types();
+    static std::string get_formula(int n);
     static std::string get_formula(std::string const& type);
 
     static std::string get_typename_from_formula(std::string const &formula)
@@ -123,6 +124,7 @@ namespace UdfContainer
     void define(std::string const &formula);
     /// removes the definition from udfs
     void undefine(std::string const &type);
+    inline UDF const* get_udf(size_t n) {return n < udfs.size() ? &udfs[n] : 0;}
     UDF const* get_udf(std::string const &type);
     inline bool is_defined(std::string const &type) { return get_udf(type); }
     inline std::vector<UDF> const& get_udfs() { return udfs; }
