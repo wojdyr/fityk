@@ -31,6 +31,7 @@ public:
     static std::vector<std::string> get_all_types();
     static std::string get_formula(int n);
     static std::string get_formula(std::string const& type);
+    static bool is_builtin(int n);
 
     static std::string get_typename_from_formula(std::string const &formula)
      {return strip_string(std::string(formula, 0, formula.find_first_of("(")));}
@@ -131,6 +132,8 @@ namespace UdfContainer
 
     void check_cpd_rhs_function(std::string const &fun,
                                    std::vector<std::string> const& lhs_vars);
+    void check_fudf_rhs(std::string const& formula, 
+                        std::vector<std::string> const& lhs_vars);
     std::vector<std::string> get_cpd_rhs_components(std::string const &formula);
 }
 

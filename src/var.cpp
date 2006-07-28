@@ -613,7 +613,7 @@ vector<string> VariableManager::get_vars_from_kw(string const &function,
                 vv[i] = "~" + S(v);
                 continue;
             } 
-            catch (ExecuteError &e) {} //nothing
+            catch (ExecuteError &) {} //nothing
         }
         // (3rd try) name
         else if (tname == "hwhm") {

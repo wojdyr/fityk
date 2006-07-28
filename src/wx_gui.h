@@ -115,6 +115,7 @@ public:
 
     void OnSEditor       (wxCommandEvent& event);            
     void OnSHistory      (wxCommandEvent& event);            
+    void OnDefinitionMgr (wxCommandEvent&);         
     void OnSGuess        (wxCommandEvent& event);         
     void OnSPFInfo       (wxCommandEvent& event);         
     void OnSFuncList     (wxCommandEvent& event);        

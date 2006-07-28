@@ -778,46 +778,6 @@ FUNC_CALCULATE_VALUE_DERIV_BEGIN(DoniachSunjic)
 FUNC_CALCULATE_VALUE_DERIV_END(h*t)
 ///////////////////////////////////////////////////////////////////////
 
-const char *FuncValente::formula 
-= "Valente(amp=height, a=7.6, b=7.6, c=center, d=-6.9, n=0) ="
-"amp*exp(-((exp(a)-exp(b)) * (x-c) + sqrt((exp(a)+exp(b))^2 * (x-c)^2" 
-                    "+ 4*exp(d)))^exp(n))";
-
-FUNC_CALCULATE_VALUE_BEGIN(Valente)
-fp amp=vv[0], a=vv[1], b=vv[2], c=vv[3], d=vv[4], n=vv[5];
-fp xc = x-c;
-fp a_b = exp(a)-exp(b);
-fp apb = exp(a)+exp(b);
-fp base = (a_b * xc + sqrt(apb*apb * xc*xc + 4*exp(d)));
-fp t = exp(-pow(base,exp(n)));
-FUNC_CALCULATE_VALUE_END(amp*t)
-
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(Valente)
-fp amp=vv[0], a=vv[1], b=vv[2], c=vv[3], d=vv[4], n=vv[5];
-fp xc = x-c;
-fp a_b = exp(a)-exp(b);
-fp apb = exp(a)+exp(b);
-fp base = (a_b * xc + sqrt(apb*apb * xc*xc + 4*exp(d)));
-fp t = exp(-pow(base,exp(n)));
-dy_dv[0] = t;
-dy_dv[1] = amp*t*(-(exp(a+n)*(-c+x)*pow(sqrt(4*exp(d)+pow(exp(a)+exp(
-b),2)*pow(c-x,2))+(exp(a)-exp(b))*(-c+x),-1+exp(n))*(1+((exp(a)+exp(
-b))*(-c+x))/sqrt(4*exp(d)+pow(exp(a)+exp(b),2)*pow(x-c,2)))));
-dy_dv[2] = amp*t*(-(exp(b+n)*(-c+x)*pow(sqrt(4*exp(d)+pow(exp(a)+exp(
-b),2)*pow(x-c,2))+(exp(a)-exp(b))*(-c+x),-1+exp(n))*(-1+((exp(a)+exp(
-b))*(-c+x))/sqrt(4*exp(d)+pow(exp(a)+exp(b),2)*pow(c-x,2)))));
-dy_dv[3] = amp*t*(-(exp(n)*(-exp(a)+exp(b)+(pow(exp(a)+exp(b),2)*(c-
-x))/sqrt(4*exp(d)+pow(exp(a)+exp(b),2)*pow(c-x,2)))*pow(sqrt(4*exp(d)+
-pow(exp(a)+exp(b),2)*pow(c-x,2))+(exp(a)-exp(b))*(-c+x),-1+exp(n))));
-dy_dv[4] = amp*t*((-2*exp(d+n)*pow(sqrt(4*exp(d)+pow(exp(a)+exp(
-b),2)*pow(x-c,2))+(exp(a)-exp(b))*(-c+x),-1+exp(n)))/sqrt(4*exp(d)+
-pow(exp(a)+exp(b),2)*pow(x-c,2)));
-dy_dv[5] = amp*t*(-(exp(n)*pow(sqrt(4*exp(d)+pow(exp(a)+exp(b),2)*pow(c-x,2))+
-(exp(a)-exp(b))*(-c+x),exp(n))*log(sqrt(4*exp(d)+pow(exp(a)+exp(
-b),2)*pow(c-x,2))+(exp(a)-exp(b))*(-c+x))));
-dy_dx = - dy_dv[3];
-FUNC_CALCULATE_VALUE_DERIV_END(amp*t)
-///////////////////////////////////////////////////////////////////////
 
 const char *FuncPielaszekCube::formula 
 = "PielaszekCube(a=height*0.016, center, r=300, s=150) = ..."; 

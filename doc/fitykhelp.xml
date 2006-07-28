@@ -219,7 +219,7 @@
    </para>
   </section> 
 
-  <section>
+  <section id="invoking">
    <title>Invoking fityk </title>
    <para>
     On startup, the program executes a script from the
@@ -1039,17 +1039,60 @@
      <command>undefine</command>.
     </para>
     <para>
-     [TODO: i'll write more about it when I finish implementing UDF,
-     for now only definitions based on already defined function works;
-     on the right hand side sum of functions can be written]
+     The name of UDF should be followed by parameters in brackets 
+     (see examples). Names of parameters should contain only 
+     lowercase alphanumeric characters and underscore (_), and start
+     with lowercase letter. The name "x" is reserved, don't put it
+     into parameter list, 
+     just use it on the left hand side of the definition.
+    </para>
+    <para>
+     Each parameter can have specified default value.
+     To allow adding peak with command <command>guess</command>,
+     default value is given as an expression which can be calculated
+     for known "height", "center", "fwhm" and "area".
+     If the name itself is one of the following: "height", "center", "fwhm, 
+     "area" or "hwhm", default value is deduced (in case of "hwhm" it is
+     "fwhm/2").
+    </para>
+    <para>
+     UDFs can be defined either giving full formula, 
+     or as a sum or modification of already defined functions.
+     Hopefully examples below will make the syntax clear. 
+    </para>
+    <para>
+     How it works (you can skip this paragraph): formula is parsed, 
+     derivatives of the formula are calculated symbolically,
+     all expressions are simplified (but there is a lot of space for 
+     optimization here), bytecode is created for kind of virtual machine,
+     and when fitting, the VM calculates value of the function
+     and derivatives in every point. Common Subexpression Elimination
+     is not implemented yet, I suppose it will noticably speed up UDFs.
+    </para>
+    <para>
+     Hint: use <filename>init</filename> file for often used definitions.
+     See <xref linkend="invoking"/> for details.
     </para>
     <para>
      Examples:
      <screen>     
+     # first how some built-in functions could be defined
+     define MyGaussian(height, center, hwhm) = height*exp(-ln(2)*((x-center)/hwhm)^2)
+     define MyLorentzian(height, center, hwhm) = height/(1+((x-center)/hwhm)^2)
+     define MyCubic(a0=height,a1=0, a2=0, a3=0) = a0 + a1*x + a2*x^2 + a3*x^3
+
+     # supersonic beam arrival time distribution
+     define SuBeArTiDi(c, s, v0, dv) = c*(s/x)^3*exp(-(((s/x)-v0)/dv)^2)/x
+     
+
      # area-based Gaussian can be defined as modification of built-in Gaussian
+     # (it's the same as built-in GaussianA function)
      define GaussianArea(area, center, hwhm) = Gaussian(area/fwhm/sqrt(pi*ln(2)), center, hwhm) 
+
      # sum of Gaussian and Lorentzian -- it's already defined as PseudoVoigt
-     define GaussianLorentzianSum(height, center, hwhm, shape) = Gaussian(height*(1-shape), center, hwhm) + Lorentzian(height*shape, center, hwhm)
+     define GLSum(height, center, hwhm, shape) = Gaussian(height*(1-shape), center, hwhm) + Lorentzian(height*shape, center, hwhm)
+
+     # to change definition of UDF, first undefine previous definition
      undefine GaussianArea
      </screen>     
     </para>

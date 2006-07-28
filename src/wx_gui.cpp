@@ -105,6 +105,7 @@ enum {
     ID_D_EXPORT                ,
     ID_S_EDITOR                ,
     ID_S_HISTORY               ,
+    ID_DEFMGR                  ,
     ID_S_GUESS                 ,
     ID_S_PFINFO                ,
     ID_S_FUNCLIST              ,
@@ -349,6 +350,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
 
     EVT_MENU (ID_S_EDITOR,      FFrame::OnSEditor)    
     EVT_MENU (ID_S_HISTORY,     FFrame::OnSHistory)  
+    EVT_MENU (ID_DEFMGR,        FFrame::OnDefinitionMgr)   
     EVT_MENU (ID_S_GUESS,       FFrame::OnSGuess)   
     EVT_MENU (ID_S_PFINFO,      FFrame::OnSPFInfo)   
     EVT_MENU (ID_S_FUNCLIST,    FFrame::OnSFuncList)    
@@ -649,6 +651,8 @@ void FFrame::set_menubar()
     sum_menu->Append (ID_S_HISTORY, "&History\tCtrl-H", 
                             wxT("Go back or forward in change history"));      
 */
+    sum_menu->Append (ID_DEFMGR, wxT("&Definition Manager"),
+                      wxT("Add or modify funtion types"));
     sum_menu->Append (ID_S_GUESS, wxT("&Guess Peak"),wxT("Guess and add peak"));
     sum_menu->Append (ID_S_PFINFO, wxT("Peak-Find &Info"), 
                                 wxT("Show where guessed peak would be placed"));
@@ -1019,6 +1023,14 @@ void FFrame::OnSHistory (wxCommandEvent& WXUNUSED(event))
 */
 }
             
+void FFrame::OnDefinitionMgr(wxCommandEvent&)
+{
+    DefinitionMgrDlg* dlg = new DefinitionMgrDlg(this);
+    if (dlg->ShowModal() == wxID_OK)
+        exec_command(dlg->get_command());
+    dlg->Destroy();
+}
+
 void FFrame::OnSGuess (wxCommandEvent& WXUNUSED(event))
 {
     exec_command("guess " + frame->get_peak_type() + get_in_dataset());

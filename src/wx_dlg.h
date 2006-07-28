@@ -6,6 +6,7 @@
 
 #include <wx/spinctrl.h>
 #include <wx/listctrl.h> 
+#include <wx/grid.h> 
 #include "wx_common.h"
 
 class wxGrid;
@@ -172,6 +173,45 @@ private:
     void update_allow_continue();
     DECLARE_EVENT_TABLE()
 };
+
+class DefinitionMgrDlg : public wxDialog
+{
+public:
+    struct FunctionDefinitonElems
+    {
+        std::string name;
+        std::vector<std::string> parameters;
+        std::vector<std::string> defvalues;
+        std::string rhs;
+        bool builtin;
+    };
+
+    DefinitionMgrDlg(wxWindow* parent);
+    void OnFunctionChanged(wxCommandEvent &) { select_function(); }
+    void OnEndCellEdit(wxGridEvent &event);
+    void OnNameChanged(wxCommandEvent &);
+    void OnDefChanged(wxCommandEvent &);
+    void OnAddButton(wxCommandEvent &);
+    void OnRemoveButton(wxCommandEvent &);
+    std::string get_command();
+
+private:
+    int selected;
+    wxListBox *lb;
+    wxTextCtrl *name_tc, *def_tc;
+    wxStaticText *name_comment_st, *def_label_st;
+    wxGrid *par_g;
+    wxButton *add_btn, *remove_btn;
+    std::vector<FunctionDefinitonElems> orig, modified;
+
+    void select_function(bool init=false);
+    void fill_function_list();
+    bool check_definition();
+    bool is_name_in_modified(std::string const& name);
+
+    DECLARE_EVENT_TABLE()
+};
+
 
 #endif
 

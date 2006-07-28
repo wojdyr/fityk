@@ -1,14 +1,7 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
-* user defined functions:
-      // - default parameter values can take any expression...
-      // - syntax:
-      //   --> define Gaussian(a,pos,width): a*exp(-((x-pos)/width)^2)
-      //                  ^^^ any name but 'x' allowed here
-      - f(x) = a1*(a2/x)^3*exp(-(((a2/x)-a3)/a4)^2) / x 
-         (Maxwell-Boltzmann velocity (flux) distribution
-	  for Wolfgang Christen)
+* GUI: Definition Manager Dialog
 
 ------------------ next release here 0.7.5
 * history (data / sum / view / all) [IMPORTANT]

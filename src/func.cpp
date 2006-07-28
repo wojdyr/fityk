@@ -103,7 +103,6 @@ Function* Function::factory (string const &name_, string const &type_name,
     FACTORY_FUNC(VoigtA)
     FACTORY_FUNC(EMG)
     FACTORY_FUNC(DoniachSunjic)
-    FACTORY_FUNC(Valente)
     FACTORY_FUNC(PielaszekCube)
     else if (UdfContainer::is_defined(type_name)) {
         UdfContainer::UDF const* udf = UdfContainer::get_udf(type_name);
@@ -134,7 +133,6 @@ const char* builtin_formulas[] = {
     FuncVoigtA::formula,
     FuncEMG::formula,
     FuncDoniachSunjic::formula,
-    //FuncValente::formula,
     FuncPielaszekCube::formula
 };
 
@@ -153,6 +151,7 @@ vector<string> Function::get_all_types()
 
 string Function::get_formula(int n)
 {
+    assert (n >= 0);
     int nb = sizeof(builtin_formulas)/sizeof(builtin_formulas[0]);
     if (n < nb)
         return builtin_formulas[n];
@@ -173,6 +172,13 @@ string Function::get_formula(string const& type)
     if (udf)
         return udf->formula;
     return "";
+}
+
+bool Function::is_builtin(int n)
+{
+    int nb = sizeof(builtin_formulas)/sizeof(builtin_formulas[0]);
+    assert (n >= 0 && n < nb + size(UdfContainer::udfs));
+    return n < nb || UdfContainer::udfs[n-nb].is_builtin;
 }
 
 void Function::do_precomputations(vector<Variable*> const &variables)
@@ -493,6 +499,23 @@ vector<OpTree*> make_op_trees(string const& formula)
     return op_trees;
 }
 
+void check_fudf_rhs(string const& formula, vector<string> const& lhs_vars)
+{
+    tree_parse_info<> info = ast_parse(formula.c_str(), FuncG, space_p);
+    if (!info.full)
+        throw ExecuteError("Syntax error in formula");
+    vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID, info);
+    for (vector<string>::const_iterator i = vars.begin(); i != vars.end(); ++i)
+        if (*i != "x" && !contains_element(lhs_vars, *i)) {
+            throw ExecuteError("Unexpected parameter in formula: " + *i);
+        }
+    for (vector<string>::const_iterator i = lhs_vars.begin(); 
+                                                    i != lhs_vars.end(); ++i)
+        if (!contains_element(vars, *i)) {
+            throw ExecuteError("Unused parameter in formula: " + *i);
+        }
+}
+
 void define(std::string const &formula)
 {
     string type = Function::get_typename_from_formula(formula);
@@ -511,7 +534,7 @@ void define(std::string const &formula)
             check_cpd_rhs_function(*i, lhs_vars);
     } 
     else {
-        //nothing ?
+        check_fudf_rhs(Function::get_rhs_from_formula(formula), lhs_vars);
     }
     if (is_defined(type) && !get_udf(type)->is_builtin) { 
         //defined, but can be undefined; don't undefine function implicitely

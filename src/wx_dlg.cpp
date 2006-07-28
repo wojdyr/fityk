@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <utility>
 #include <map>
+#include <ctype.h>
 #include <wx/valtext.h>
 #include <wx/bmpbuttn.h>
 #include <wx/grid.h>
@@ -38,6 +39,7 @@
 #include "settings.h"
 #include "datatrans.h" 
 #include "logic.h"
+#include "func.h"
 
 #if 0
 //bitmaps for buttons
@@ -91,7 +93,10 @@ enum {
     ID_DE_EXAMPLES                 ,
     ID_DE_REZOOM                   ,
     ID_SET_LDBUT                   ,
-    ID_SET_XSBUT
+    ID_SET_XSBUT                   ,
+
+    ID_DMD_NAME                    ,
+    ID_DMD_DEF                     
 };
 
 
@@ -1274,6 +1279,279 @@ void FitRunDlg::OnOK(wxCommandEvent& event)
     }
     exec_command(cmd);
     wxDialog::OnOK(event);
+}
+
+//=====================    Definition  Manager  dialog    ==================
+
+BEGIN_EVENT_TABLE(DefinitionMgrDlg, wxDialog)
+    EVT_LISTBOX(-1, DefinitionMgrDlg::OnFunctionChanged)
+    EVT_GRID_CMD_CELL_CHANGE(-1, DefinitionMgrDlg::OnEndCellEdit)
+    EVT_TEXT(ID_DMD_NAME, DefinitionMgrDlg::OnNameChanged)
+    EVT_TEXT(ID_DMD_DEF, DefinitionMgrDlg::OnDefChanged)
+    EVT_BUTTON(wxID_ADD, DefinitionMgrDlg::OnAddButton)
+    EVT_BUTTON(wxID_REMOVE, DefinitionMgrDlg::OnRemoveButton)
+END_EVENT_TABLE()
+
+DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
+    : wxDialog(parent, -1, wxT("Function Definition Manager"),
+               wxDefaultPosition, wxSize(600, 500), 
+               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
+      selected(0)
+{
+    wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *lb_sizer = new wxBoxSizer(wxVERTICAL);
+    lb = new wxListBox(this, -1, wxDefaultPosition, wxDefaultSize,
+                       0, 0, wxLB_SINGLE);
+    lb_sizer->Add(lb, 1, wxEXPAND|wxALL, 5);
+    add_btn = new wxButton(this, wxID_ADD, wxT("Add"));
+    lb_sizer->Add(add_btn, 0, wxALL|wxALIGN_CENTER, 5);
+    hsizer->Add(lb_sizer, 0, wxEXPAND);
+    wxBoxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *name_sizer = new wxBoxSizer(wxHORIZONTAL);
+    name_sizer->Add(new wxStaticText(this, -1, wxT("Name:")),
+                    0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    name_tc = new wxTextCtrl(this, ID_DMD_NAME, wxT(""), 
+                             wxDefaultPosition, wxSize(200, -1));
+    name_sizer->Add(name_tc, 1, wxALL, 5);
+    name_comment_st = new wxStaticText(this, -1, wxT(""));
+    name_sizer->Add(name_comment_st, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    vsizer->Add(name_sizer);
+    remove_btn = new wxButton(this, wxID_REMOVE, wxT("Remove"));
+    vsizer->Add(remove_btn, 0, wxALIGN_RIGHT|wxALL, 5);
+
+    vsizer->Add(new wxStaticText(this, -1, 
+                    wxT("Parameters ('center', 'height', 'fwhm' and 'area'\n")
+                    wxT("can be used in default values; don't put 'x' here)")), 
+                0, wxALL, 5);
+
+    par_g = new wxGrid(this, -1, wxDefaultPosition, wxDefaultSize);
+    par_g->CreateGrid(1, 2);
+    par_g->SetColSize(0, 120);
+    par_g->SetColLabelValue(0, wxT("name"));
+    par_g->SetColSize(1, 240);
+    par_g->SetColLabelValue(1, wxT("default value"));
+    par_g->SetDefaultRowSize(20, true);
+    par_g->SetColLabelSize(20);
+    par_g->SetRowLabelSize(0);
+    par_g->EnableDragRowSize(false);
+    par_g->SetLabelFont(*wxNORMAL_FONT);
+    vsizer->Add(par_g, 1, wxALL|wxEXPAND, 5);
+    def_label_st = new wxStaticText(this, -1, wxT("definition:"));
+    vsizer->Add(def_label_st, 0, wxEXPAND|wxLEFT|wxTOP, 5);
+    def_tc = new wxTextCtrl(this, ID_DMD_DEF, wxT(""), 
+                            wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+    vsizer->Add(def_tc, 1, wxALL|wxEXPAND, 5);
+
+
+    hsizer->Add(vsizer, 1, wxEXPAND);
+    top_sizer->Add(hsizer, 1, wxEXPAND);
+    
+    top_sizer->Add(new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
+    top_sizer->Add(CreateButtonSizer (wxOK|wxCANCEL), 
+                   0, wxALL|wxALIGN_CENTER, 5);
+    fill_function_list();
+    lb->SetSelection(selected);
+    select_function(true);
+
+    SetSizer(top_sizer);
+}
+
+void DefinitionMgrDlg::fill_function_list()
+{
+    vector<string> const& types = Function::get_all_types();
+    orig.resize(types.size());
+    lb->Clear();
+    for (size_t i = 0; i != types.size(); ++i) {
+        string formula = Function::get_formula(i);
+        FunctionDefinitonElems fde;
+        fde.name = types[i];
+        fde.parameters = Function::get_varnames_from_formula(formula, false);
+        fde.defvalues = Function::get_varnames_from_formula(formula, true);
+        fde.rhs = Function::get_rhs_from_formula(formula);
+        fde.builtin = Function::is_builtin(i);
+        orig[i] = fde;
+        lb->Append(s2wx(fde.name));
+    }
+    modified = orig;
+}
+
+bool DefinitionMgrDlg::check_definition()
+{
+    FunctionDefinitonElems const& fde = modified[selected];
+    if (!fde.builtin) {
+        vector<string> lhs_vars(fde.parameters.size()); 
+        for (size_t i = 0; i < fde.parameters.size(); ++i)
+            lhs_vars[i] = fde.parameters[i];
+        try {
+            UdfContainer::check_fudf_rhs(wx2s(def_tc->GetValue()), lhs_vars);
+        }
+        catch (ExecuteError &e) {
+            wxString what = s2wx(string(e.what()));
+            def_label_st->SetLabel(wxT("definition: (error: ") + what + ")");
+            return false;
+        }
+    }
+    def_label_st->SetLabel(wxT("definition:"));
+    return true;
+}
+
+void DefinitionMgrDlg::select_function(bool init)
+{
+    int n = lb->GetSelection();
+    if (!init && n == selected)
+        return;
+    if (n == wxNOT_FOUND) {
+        lb->SetSelection(selected);
+        return;
+    }
+
+    FunctionDefinitonElems& prev = modified[selected];
+    if (!init && !prev.builtin) {
+        // check if changed values are correct
+        if (!name_comment_st->GetLabel().IsEmpty()) {
+            lb->SetSelection(selected);
+            name_tc->SetFocus();
+            return;
+        }
+        else if (!check_definition()) {
+            lb->SetSelection(selected);
+            def_tc->SetFocus();
+            return;
+        }
+        else {
+            if (prev.name != wx2s(name_tc->GetValue())) {
+                prev.name = wx2s(name_tc->GetValue());
+                lb->SetString(selected, name_tc->GetValue());
+            }
+            //TODO check parameters
+            if (prev.rhs != wx2s(def_tc->GetValue())) {
+                prev.rhs = wx2s(def_tc->GetValue());
+            }
+        }
+    }
+
+    selected = n;
+    FunctionDefinitonElems const& fde = modified[n];
+    name_tc->SetValue(s2wx(fde.name));
+    int row_diff = fde.parameters.size() + 1 - par_g->GetNumberRows();
+    par_g->BeginBatch();
+    if (row_diff > 0)
+        par_g->AppendRows(row_diff);
+    else if (row_diff < 0)
+        par_g->DeleteRows(0, -row_diff);
+    for (size_t i = 0; i != fde.parameters.size(); ++i) {
+        par_g->SetCellValue(i, 0, s2wx(fde.parameters[i]));
+        par_g->SetCellValue(i, 1, s2wx(fde.defvalues[i]));
+    }
+    if (!fde.builtin) {
+        par_g->SetCellValue(fde.parameters.size(), 0, wxT(""));
+        par_g->SetCellValue(fde.parameters.size(), 1, wxT(""));
+    }
+    else {
+        par_g->DeleteRows(fde.parameters.size(), 1);
+    }
+    par_g->EndBatch();
+    def_tc->SetValue(s2wx(fde.rhs));
+    name_tc->SetEditable(!fde.builtin);
+    par_g->EnableEditing(!fde.builtin);
+    def_tc->SetEditable(!fde.builtin);
+    remove_btn->Enable(!fde.builtin);
+}
+
+std::string DefinitionMgrDlg::get_command()
+{
+    return "";
+}
+
+
+void DefinitionMgrDlg::OnEndCellEdit(wxGridEvent &event)
+{
+    FunctionDefinitonElems const& fde = modified[selected];
+    int row = event.GetRow();
+    bool new_row = (row >= size(fde.parameters));
+    int col = event.GetCol();
+    string new_val = wx2s(par_g->GetCellValue(row, col));
+    if (col == 0) {
+        //check
+        //append/delete
+    }
+    else {
+        assert (col == 1);
+        if (1) {
+            par_g->SetCellValue(row, col, 
+                                new_row ? S() : s2wx(fde.defvalues[row]));
+        }
+    }
+}
+
+namespace {
+bool valid_name_chars(char const* name)
+{
+    while (*++name)
+        if (!isalnum(*name))
+            return false;
+    return true;
+}
+} //anonymous namespace
+
+bool DefinitionMgrDlg::is_name_in_modified(string const& name)
+{
+    for (size_t i = 0; i != modified.size(); ++i)
+        if (modified[i].name == name)
+            return true;
+    return false;
+}
+
+void DefinitionMgrDlg::OnNameChanged(wxCommandEvent &)
+{
+    if (modified[selected].builtin) {
+        name_comment_st->SetLabel(wxT("[built-in, not editable]"));
+        return;
+    }
+    string name = strip_string(wx2s(name_tc->GetValue()));
+    if (!name.empty())
+        name[0] = toupper(name[0]);
+    if (name.size() < 2)
+        name_comment_st->SetLabel(wxT("too short!"));
+    else if (!isalpha(name[0]))
+        name_comment_st->SetLabel(wxT("should start with letter!"));
+    else if (!valid_name_chars(name.c_str()))
+        name_comment_st->SetLabel(wxT("invalid character!"));
+    else if (name != modified[selected].name && is_name_in_modified(name))
+        name_comment_st->SetLabel(wxT("already used!"));
+    else
+        name_comment_st->SetLabel(wxT(""));
+}
+
+void DefinitionMgrDlg::OnDefChanged(wxCommandEvent &)
+{
+    check_definition();
+}
+
+void DefinitionMgrDlg::OnAddButton(wxCommandEvent &)
+{
+    if (!check_definition())
+        return;
+    FunctionDefinitonElems fde;
+    fde.builtin = false;
+    modified.push_back(fde);
+    lb->Append(wxT(""));
+    lb->SetSelection(lb->GetCount() - 1);
+    select_function();
+    name_tc->SetFocus();
+}
+
+
+void DefinitionMgrDlg::OnRemoveButton(wxCommandEvent &)
+{
+    int n = selected;
+    if (modified[n].builtin)
+        return;
+    lb->SetSelection(0);
+    select_function(true);
+    modified.erase(modified.begin() + n);
+    lb->Delete(n);
 }
 
 
