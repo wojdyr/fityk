@@ -193,32 +193,27 @@ void FPlot::draw_data (wxDC& dc,
                                                 : inactiveDataCol);
     wxBrush const activeBrush(activePen.GetColour(), wxSOLID);
     wxBrush const inactiveBrush(inactivePen.GetColour(), wxSOLID);
-    if (data->is_empty()) return;
+    if (data->is_empty()) 
+        return;
     vector<Point>::const_iterator first = data->get_point_at(AL->view.left),
                                   last = data->get_point_at(AL->view.right);
     //if (last - first < 0) return;
     bool active = first->is_active;
     dc.SetPen (active ? activePen : inactivePen);
     dc.SetBrush (active ? activeBrush : inactiveBrush);
-    int X_ = 0, Y_ = 0;
+    int X_ = INT_MIN, Y_ = INT_MIN;
     // first line segment -- lines should be drawed towards points 
     //                                                 that are outside of plot 
-    if (line_between_points) {
-        if (first > data->points().begin() && !cumulative) {
-            X_ = x2X (AL->view.left);
-            int Y_l = y2Y ((*compute_y)(first - 1, sum));
-            int Y_r = y2Y ((*compute_y)(first, sum));
-            int X_l = x2X ((first - 1)->x);
-            int X_r = x2X (first->x);
-            if (X_r == X_l)
-                Y_ = Y_r;
-            else
-                Y_ = Y_l + (Y_r - Y_l) * (X_ - X_l) / (X_r - X_l);
-        }
-        else {
-            X_ = x2X(first->x);
-            Y_ = y2Y ((*compute_y)(first, sum));
-        }
+    if (line_between_points && first > data->points().begin() && !cumulative) {
+        X_ = x2X (AL->view.left);
+        int Y_l = y2Y ((*compute_y)(first - 1, sum));
+        int Y_r = y2Y ((*compute_y)(first, sum));
+        int X_l = x2X ((first - 1)->x);
+        int X_r = x2X (first->x);
+        if (X_r == X_l)
+            Y_ = Y_r;
+        else
+            Y_ = Y_l + (Y_r - Y_l) * (X_ - X_l) / (X_r - X_l);
     }
     Y_ -= Y_offset;
     fp y = 0;
@@ -233,6 +228,7 @@ void FPlot::draw_data (wxDC& dc,
         int Y = y2Y(y) - Y_offset;
         if (X == X_ && Y == Y_) 
             continue;
+
         if (i->is_active != active) {
             //half of line between points should be active and half not.
             //draw first half here and change X_, Y_; the rest will be drawed
@@ -252,10 +248,12 @@ void FPlot::draw_data (wxDC& dc,
                 dc.SetBrush (inactiveBrush);
             }
         }
+
         if (point_radius > 1) 
             dc.DrawCircle (X, Y, point_radius - 1);
         if (line_between_points) {
-            dc.DrawLine (X_, Y_, X, Y);
+            if (X_ != INT_MIN)
+                dc.DrawLine (X_, Y_, X, Y);
             X_ = X, Y_ = Y;
         }
         else {//no line_between_points
