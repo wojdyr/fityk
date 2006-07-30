@@ -1404,7 +1404,7 @@ bool DefinitionMgrDlg::check_definition()
         }
         catch (ExecuteError &e) {
             wxString what = s2wx(string(e.what()));
-            def_label_st->SetLabel(wxT("definition: (error: ") + what + ")");
+            def_label_st->SetLabel(wxT("definition: (error: ")+what+wxT(")"));
             add_btn->Enable(false);
             FindWindow(wxID_OK)->Enable(false);
             return false;

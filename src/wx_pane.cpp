@@ -1376,7 +1376,9 @@ END_EVENT_TABLE()
 
 GradientDlg::GradientDlg(wxWindow *parent, wxWindowID id, 
                          wxColour const& first_col, wxColour const& last_col)
-    : wxDialog(parent, id, wxT("Select color gradient")) 
+    : wxDialog(parent, id, wxT("Select color gradient"), 
+               wxDefaultPosition, wxDefaultSize, 
+               wxDEFAULT_DIALOG_STYLE/*|wxRESIZE_BORDER*/)
 {
     wxBoxSizer* top_sizer = new wxBoxSizer(wxVERTICAL);
 
