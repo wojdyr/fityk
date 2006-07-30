@@ -1,4 +1,5 @@
-User-visible changes in version 0.7.5  (2006-07-2 ):
+User-visible changes in version 0.7.5  (2006-07-31):
+* GUI: Definition Manager dialog
 * user defined functions (UDF) 
 * GUI: gradient dialog for changing color of many datasets at once
 * GUI: new Fit->Run dialog

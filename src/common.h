@@ -35,7 +35,7 @@ typedef double fp;
 #endif
 
 #define EPSILON 1e-9
-// epsilon=1e-9 is used for comparision of real numbers
+// epsilon is used for comparision of real numbers
 inline bool is_eq(fp a, fp b) { return fabs(a-b) < EPSILON; }
 inline bool is_neq(fp a, fp b) { return fabs(a-b) > EPSILON; }
 inline bool is_lt(fp a, fp b) { return a < b - EPSILON; }

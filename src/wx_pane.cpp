@@ -466,6 +466,7 @@ FancyRealCtrl::FancyRealCtrl(wxWindow* parent, wxWindowID id,
     ValueChangingWidget *vch = new ValueChangingWidget(this, -1, this);
     sizer->Add(vch, 0, wxALL|wxALIGN_CENTER_VERTICAL, 1);
     SetSizer(sizer);
+    sizer->SetSizeHints(this);
 }
 
 void FancyRealCtrl::set(fp value, string const& tc_name)

@@ -31,7 +31,7 @@ public:
     static std::vector<std::string> get_all_types();
     static std::string get_formula(int n);
     static std::string get_formula(std::string const& type);
-    static bool is_builtin(int n);
+    static int is_builtin(int n);
 
     static std::string get_typename_from_formula(std::string const &formula)
      {return strip_string(std::string(formula, 0, formula.find_first_of("(")));}
@@ -80,8 +80,8 @@ public:
     fp get_param_value(std::string const& param) const;
     fp numarea(fp x1, fp x2, int nsteps) const;
     fp find_x_with_value(fp x1, fp x2, fp val, 
-                         fp xacc=1e-9, int max_iter=1000) const;
-    fp find_extremum(fp x1, fp x2, fp xacc=1e-9, int max_iter=1000) const;
+                         fp xacc=EPSILON, int max_iter=1000) const;
+    fp find_extremum(fp x1, fp x2, fp xacc=EPSILON, int max_iter=1000) const;
     virtual std::string get_bytecode() const { return "No bytecode"; }
 protected:
     Settings *settings;

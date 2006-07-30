@@ -183,7 +183,9 @@ public:
         std::vector<std::string> parameters;
         std::vector<std::string> defvalues;
         std::string rhs;
-        bool builtin;
+        int builtin;
+
+        std::string get_full_definition() const;
     };
 
     DefinitionMgrDlg(wxWindow* parent);
@@ -193,6 +195,7 @@ public:
     void OnDefChanged(wxCommandEvent &);
     void OnAddButton(wxCommandEvent &);
     void OnRemoveButton(wxCommandEvent &);
+    void OnOk(wxCommandEvent &event);
     std::string get_command();
 
 private:
@@ -208,6 +211,7 @@ private:
     void fill_function_list();
     bool check_definition();
     bool is_name_in_modified(std::string const& name);
+    bool save_changes();
 
     DECLARE_EVENT_TABLE()
 };

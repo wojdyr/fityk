@@ -103,7 +103,7 @@ fp LnGammaE (fp x) //log_e of Gamma function
 }
 
 // random number utilities
-static const fp TINY = 1e-12;
+static const fp TINY = 1e-12; //only for rand_gauss() and rand_cauchy()
 
 /// normal distribution, mean=0, variance=1
 fp rand_gauss()

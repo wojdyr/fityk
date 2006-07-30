@@ -1964,6 +1964,7 @@ AboutDlg::AboutDlg(wxWindow* parent)
     bu_ok->SetDefault();
     sizer->Add (bu_ok, 0, wxALL|wxEXPAND, 10);
     SetSizer(sizer);
+    sizer->SetSizeHints(this);
 }
 
 void AboutDlg::OnTextURL(wxTextUrlEvent& event) 

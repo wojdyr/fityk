@@ -169,7 +169,7 @@
     would have to worry about, so now we only have to define peak with 
     reasonable initial values of peak's parameter and fit it to data. We will
     use Gaussian. 
-    To see it's formula, type: <userinput>info Gaussian</userinput>
+    To see its formula, type: <userinput>info Gaussian</userinput>
     or look for it in the documentation (in <xref linkend="flist"/>). 
     By the way, most of the commands can be abbreviated, 
     eg. you can type: <userinput>i Gaussian</userinput>. 
@@ -626,6 +626,9 @@
      # make equal step, keep the number of points the same
      X = x[0] + n * (x[M-1]-x[0]) / (M-1),  Y = y[x=X], S = s[x=X], A = a[x=X]
 
+     # take the first 2000 points, avarage them and substract this as background
+     Y = y - avg(y if n&lt;2000)
+
      # fityk can be used as a simple calculator
      i 2+2 #4
      i sin(pi/4)+cos(pi/4) #1.41421
@@ -918,8 +921,8 @@
      or, to create simple variable: <userinput>$bleh=~{M}</userinput>.
     </para>
     <para>
-     Sometimes it is useful to freeze variable, ie. to prevent it's
-     changes in fitting. There is no special syntax for it, 
+     Sometimes it is useful to freeze variable, ie. to prevent it from
+     changing while fitting. There is no special syntax for it, 
      but it can be done using data expressions in this way:
      <screen>
       $a = ~12.3 # $a is fittable
@@ -958,7 +961,7 @@
    <section>
     <title>Function types and functions</title>
     <para>
-     Let's go back to functions. Function types have names that start
+     Let us go back to functions. Function types have names that start
      with upper case letter, eg. Linear or Voigt. Functions 
      (ie. function instances) have names prefixed with percent,
      eg. %func. Every function has a type and variables binded to its
@@ -1034,7 +1037,7 @@
      <command>define</command>, and than used in the same way as built-in
      function types. The name of new type must start with upper-case
      letter, contain only letters and digits, have at least two characters
-     and can't be the same as a name of built-in function.
+     and can not be the same as a name of built-in function.
      Defined functions can be undefined using command 
      <command>undefine</command>.
     </para>
@@ -1042,9 +1045,9 @@
      The name of UDF should be followed by parameters in brackets 
      (see examples). Names of parameters should contain only 
      lowercase alphanumeric characters and underscore (_), and start
-     with lowercase letter. The name "x" is reserved, don't put it
+     with lowercase letter. The name "x" is reserved, do not put it
      into parameter list, 
-     just use it on the left hand side of the definition.
+     just use it on the right hand side of the definition.
     </para>
     <para>
      Each parameter can have specified default value.
@@ -1086,10 +1089,10 @@
      
 
      # area-based Gaussian can be defined as modification of built-in Gaussian
-     # (it's the same as built-in GaussianA function)
+     # (it is the same as built-in GaussianA function)
      define GaussianArea(area, center, hwhm) = Gaussian(area/fwhm/sqrt(pi*ln(2)), center, hwhm) 
 
-     # sum of Gaussian and Lorentzian -- it's already defined as PseudoVoigt
+     # sum of Gaussian and Lorentzian -- it is already defined as PseudoVoigt
      define GLSum(height, center, hwhm, shape) = Gaussian(height*(1-shape), center, hwhm) + Lorentzian(height*shape, center, hwhm)
 
      # to change definition of UDF, first undefine previous definition
@@ -1569,7 +1572,7 @@
     <command>
      <replaceable>option</replaceable> = <replaceable>value</replaceable>
     </command>
-    changes it. It's also possible to change value of option only for
+    changes it. It is also possible to change value of option only for
     one command by prepending the command with 
     <command>with
      <replaceable>option</replaceable> = <replaceable>value</replaceable>
@@ -1667,7 +1670,21 @@
      If you are using GUI, most of informations can be displayed 
      with mouse clicks. Otherwise, you can use <command>info</command>
      command. Using <command>info+</command> instead of <command>info</command>
-     sometimes displays more datailed informations.
+     sometimes displays more datailed information.
+    </para>
+    <para>
+     The output of <command>info</command> can be redirected to file
+     using 
+     <command>
+      info <replaceable>args</replaceable> &gt; 
+      <replaceable>filename</replaceable>
+     </command>
+     syntax to truncate the file or
+     <command>
+      info <replaceable>args</replaceable> &gt;&gt;
+      <replaceable>filename</replaceable>
+     </command>
+     to appends to the file.
     </para>
     <para>
      [TODO: list of all info arguments]
@@ -1767,7 +1784,7 @@
     </para>
     <para>
      The name of your function should start with uppercase letter and contain
-     only letters and digits.  Let's add function Foo with formula: 
+     only letters and digits.  Let us add function Foo with formula: 
      Foo(height, center, hwhm) = height/(1+((x-center)/hwhm)^2).
      C++ class representing Foo will be named FuncFoo.
     </para>
@@ -1912,7 +1929,7 @@
     </para>
     <para>
      Hope this helps.
-     Don't hesistate to change this description or ask questions 
+     Do not hesistate to change this description or ask questions 
      if you have any.
     </para>
    </section>
@@ -2166,7 +2183,7 @@
    that the shortest version is "def", but "defi", "defin" and "define" 
    are also valid and mean exactly the same. 
    Arguments of "info" command can not be shortened,
-   ie. you must write "i fit", not "i f". Commands which can't be shortened
+   ie. you must write "i fit", not "i f". Commands which can not be shortened
    are not listed here.
    <simplelist>
     <member><command>c|ommands</command></member> 

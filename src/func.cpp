@@ -174,11 +174,17 @@ string Function::get_formula(string const& type)
     return "";
 }
 
-bool Function::is_builtin(int n)
+/// returns: 2 if built-in, in C++, 1 if buit-in UDF, 0 if defined by user
+int Function::is_builtin(int n)
 {
     int nb = sizeof(builtin_formulas)/sizeof(builtin_formulas[0]);
     assert (n >= 0 && n < nb + size(UdfContainer::udfs));
-    return n < nb || UdfContainer::udfs[n-nb].is_builtin;
+    if (n < nb)
+        return 2;
+    else if (UdfContainer::udfs[n-nb].is_builtin)
+        return 1;
+    else
+        return 0;
 }
 
 void Function::do_precomputations(vector<Variable*> const &variables)
@@ -501,6 +507,8 @@ vector<OpTree*> make_op_trees(string const& formula)
 
 void check_fudf_rhs(string const& formula, vector<string> const& lhs_vars)
 {
+    if (formula.empty())
+        throw ExecuteError("No formula");
     tree_parse_info<> info = ast_parse(formula.c_str(), FuncG, space_p);
     if (!info.full)
         throw ExecuteError("Syntax error in formula");

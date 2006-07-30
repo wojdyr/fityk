@@ -1,9 +1,11 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
-* GUI: Definition Manager Dialog
+* small (eg. 1e-14) values of parameters are not handled properly.
+   - check if changing EPSILON (in src/common.h) helps, 
+   - if yes, make EPSILON an option when in configure script
+   - if no, ???
 
------------------- next release here 0.7.5
 * history (data / sum / view / all) [IMPORTANT]
    i don't exactly know how to implement it yet
 
@@ -90,6 +92,7 @@
 * (GUI) Configurable status bar:
 	  more extensive and configurable (2/3 buttons, size) mouse hints 
 		   (also for aux. plot, etc)
+          should it be possible to display any f(x,y)? eg. d (=0.5/2sin(x/2))
 	  more exact (or customizable) y coordinate at status bar
 	  Shift/Ctrl in status line hints; pressing Shift should update hints
 

@@ -264,6 +264,21 @@ bool is_parameter_guessable(string const& name)
         || name == "area" || name == "hwhm";
 }
 
+bool is_defvalue_guessable(string defvalue)
+{
+    replace_words(defvalue, "center", "1");
+    replace_words(defvalue, "height", "1");
+    replace_words(defvalue, "fwhm", "1");
+    replace_words(defvalue, "area", "1");
+    try {
+        get_transform_expression_value(defvalue, 0);
+    } 
+    catch (ExecuteError &e) {
+        return false;
+    } 
+    return true;
+}
+
 bool is_function_guessable(string const& formula, bool check_defvalue)
 {
     int lb = formula.find('(');
@@ -273,23 +288,14 @@ bool is_function_guessable(string const& formula, bool check_defvalue)
     
     for (vector<string>::const_iterator i = nd.begin(); i != nd.end(); ++i) {
         string::size_type eq = i->find('=');
-        if (eq == string::npos) {
+        if (eq == string::npos) { //no defvalue
             if (!is_parameter_guessable(strip_string(*i)))
                 return false;
         }
         else if (check_defvalue 
-                 &&!is_parameter_guessable(strip_string(string(*i, 0, eq)))) {
-            string defvalue(*i, eq+1);
-            replace_words(defvalue, "center", "1");
-            replace_words(defvalue, "height", "1");
-            replace_words(defvalue, "fwhm", "1");
-            replace_words(defvalue, "area", "1");
-            try {
-                get_transform_expression_value(defvalue, 0);
-            } 
-            catch (ExecuteError &e) {
+                 && !is_parameter_guessable(strip_string(string(*i, 0, eq)))
+                 && !is_defvalue_guessable(string(*i, eq+1))) {
                 return false;
-            } 
         }
     }
     return true;

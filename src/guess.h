@@ -48,6 +48,7 @@ void guess_and_add(DataWithSum* ds,
 
 bool is_function_guessable(std::string const& formula, 
                            bool check_defvalue=true);
+bool is_defvalue_guessable(std::string defvalue);
 
 #endif
 

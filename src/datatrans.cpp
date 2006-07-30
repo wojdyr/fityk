@@ -71,7 +71,7 @@
 //
 // All computations are performed using real numbers, but using round for
 // comparisions should not be neccessary. Two numbers that differ less
-// than epsilon=1e-9 ie. abs(a-b)<epsilon, are considered equal. 
+// than EPSILON (see: common.h) ie. abs(a-b)<EPSILON, are considered equal. 
 // Indices are also computed in real number domain, 
 // and if they are not integers, interpolation of two values
 // is taken (i.e of values with indices floor(idx) and ceil(idx) 
@@ -322,7 +322,7 @@ fp find_idx_in_sorted(vector<Point> const& pp, fp x)
 vector<int> code;        //  VM code 
 vector<fp> numbers;  //  VM data (numeric values)
 vector<ParameterizedFunction*> parameterized; // also used by VM 
-const int stack_size = 8192;  //should be enough, 
+const int stack_size = 128;  //should be enough, 
                               //there are no checks for stack overflow  
 
 void clear_parse_vecs()
@@ -1325,15 +1325,26 @@ bool validate_data_expression(string const& str)
     return (bool) result.full; 
 }
 
-//TODO function which check for point-dependent ops 
-// OP_VAR_n, OP_VAR_x, OP_VAR_y, OP_VAR_s, OP_VAR_a, 
-//           OP_VAR_X, OP_VAR_Y, OP_VAR_S, OP_VAR_A,
-//  -> because  "info 2+2" should work without "in @0"
-// bool is_dependend_on_points(string const &s)
+bool is_data_dependent_code(vector<int> const& code)
+{
+    for (vector<int>::const_iterator i = code.begin(); i != code.end(); ++i) 
+        if (*i >= OP_VAR_FIRST_OP && *i <= OP_VAR_LAST_OP
+                || *i == OP_END_AGGREGATE)
+            return true;
+    return false;
+}
+
+bool is_data_dependent_expression(string const& s)
+{
+    if (!validate_data_expression(s))
+        return false;
+    return is_data_dependent_code(code);
+}
 
 
 fp get_transform_expression_value(string const &s, Data const* data)
 {
+    static vector<fp> stack(stack_size);
     vector<Point> const no_points;
     vector<Point> const& points = data ? data->points() : no_points;
     clear_parse_vecs();
@@ -1341,9 +1352,10 @@ fp get_transform_expression_value(string const &s, Data const* data)
     parse_info<> result = parse(s.c_str(), DataExpressionG, space_p);
     if (!result.full) 
         throw ExecuteError("Syntax error in expression: " + s);
+    if (!data && is_data_dependent_code(code))
+        throw ExecuteError("Expression depends on data points: " + s);
     int M = (int) points.size();
     vector<Point> new_points = points;
-    vector<fp> stack(stack_size);
     replace_aggregates(M, points, code, code.begin());
     // n==M => one-time op.
     bool t = execute_code(M, M, stack, points, new_points, code);
