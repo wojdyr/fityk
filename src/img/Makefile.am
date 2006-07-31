@@ -18,11 +18,13 @@ copyfunc.xpm \
 down_arrow.xpm \
 edit_data.xpm \
 editf.xpm \
+exec_selected.xpm \
 filter.xpm \
 fityk.xpm \
 manual.xpm \
 mouse_l.xpm \
 mouse_r.xpm \
+open.xpm \
 open_data_custom.xpm \
 open_data.xpm \
 rename.xpm \
