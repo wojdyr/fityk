@@ -88,11 +88,11 @@ public:
     /// used for randomly drawing parameter values, in fitting methods like GA
     fp default_relative_domain_width;
 
-    ApplicationLogic() :default_relative_domain_width(0.1)
-                        { reset_all(); }
+    ApplicationLogic() : default_relative_domain_width(0.1) { start_app(); }
 
-    ~ApplicationLogic() { reset_all(true); }
-    void reset_all (bool finish=false); 
+    ~ApplicationLogic() { stop_app(); }
+    void start_app();
+    void stop_app();
     void dump_all_as_script (std::string const &filename);
 
     void activate_ds(int d);

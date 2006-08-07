@@ -230,6 +230,7 @@ protected:
     std::string make_var_copy_name(Variable const* v);
     std::string next_var_name(); ///generate name for "anonymous" variable
     std::string next_func_name();///generate name for "anonymous" function
+    void do_reset();
 };
 
 

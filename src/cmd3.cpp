@@ -35,9 +35,10 @@ void do_transform(char const*, char const*)  {
     outdated_plot=true; 
 }
 
-void do_reset(char const*, char const*)   { AL->reset_all(); }
+void do_reset(char const*, char const*)  
+    { AL->stop_app(); AL->start_app(); outdated_plot=true; }
 
-void do_dump(char const*, char const*)   { AL->dump_all_as_script(t); }
+void do_dump(char const*, char const*)  { AL->dump_all_as_script(t); }
 
 void do_commands_logging(char const*, char const*)
 {

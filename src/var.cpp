@@ -791,6 +791,18 @@ string VariableManager::next_func_name()
     }
 }
 
+void VariableManager::do_reset()
+{
+    var_autoname_counter = 0;
+    func_autoname_counter = 0;
+    purge_all_elements(functions);
+    purge_all_elements(variables);
+    parameters.clear();
+    //don't delete sums, they should unregister itself
+    for (vector<Sum*>::iterator i = sums.begin(); i != sums.end(); ++i)
+        (*i)->find_function_indices();
+}
+
 
 template <typename ScannerT>
 FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)

@@ -1138,11 +1138,11 @@ void SideBar::update_func_inf()
 
 void SideBar::update_var_inf()
 {
+    wxTextCtrl* inf = v->inf;
+    inf->Clear();
     int n = get_focused_var();
     if (n < 0)
         return;
-    wxTextCtrl* inf = v->inf;
-    inf->Clear();
     wxTextAttr defattr = inf->GetDefaultStyle();
     wxFont font = defattr.GetFont();
     wxTextAttr boldattr = defattr;

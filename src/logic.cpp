@@ -50,14 +50,14 @@ void ApplicationLogic::remove_ds(int d)
         activate_ds( d==size(dsds) ? d-1 : d );
 }
 
-
-//TODO ? this func should not be neccessary
-void ApplicationLogic::reset_all (bool finish) 
+void ApplicationLogic::stop_app()
 {
     dsds.clear();
-    parameters.clear();
-    if (finish)
-        return;
+    VariableManager::do_reset();
+}
+
+void ApplicationLogic::start_app()
+{
     view = View(0, 180, 0, 1e3);
     append_ds();
     activate_ds(0);
@@ -80,31 +80,9 @@ void ApplicationLogic::dump_all_as_script(string const &filename)
     params->export_as_script(os);
     os << endl;
 
-    for (int i = 0; i != size(cores); i++) {
-        if (cores.size() > 1) 
-            os << endl << "### core of plot #" << i << endl;
-        if (i != 0)
-            os << "d.activate *::" << endl; 
-        cores[i]->export_as_script(os);
-        os << endl;
-    }
-    if (active_core != size(cores) - 1)
-        os << "d.activate " << active_core << ":: # set active" << endl; 
-    os << "plot " << my_core->view.str() << endl;
+    os << "plot " << view.str() << endl;
 
 
-
-void PlotCore::export_as_script(std::ostream& os) const
-{
-    for (int i = 0; i != size(datasets); i++) {
-        os << "#dataset " << i << endl;
-        if (i != 0)
-            os << "d.activate ::*" << endl;
-        datasets[i]->export_as_script(os);
-        os << endl;
-    }
-    if (active_data != size(datasets) - 1)
-        os << "d.activate ::" << active_data << " # set active" << endl; 
     TODO @n.F
     os << join_vector(sum->get_ff_names(), ", ") << " -> @x.F" << endl;
     os << join_vector(sum->get_zz_names(), ", ") << " -> @x.Z" << endl;
