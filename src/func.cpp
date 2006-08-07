@@ -42,29 +42,41 @@ Function::Function (string const &name_, vector<string> const &vars,
                            + S(type_var_names.size()) + " parameters.");
 }
 
-/// returns type variable names if !get_eq
-///      or type variable default values if get_eq
+/// returns type variable names 
 /// can be used also for eg. Foo(3+$bleh, area/fwhm/sqrt(pi/ln(2)))
-vector<string> Function::get_varnames_from_formula(string const& formula, 
-                                                   bool get_eq)
+vector<string> Function::get_varnames_from_formula(string const& formula)
 {
     int lb = formula.find('(');
     int rb = find_matching_bracket(formula, lb);
     string all_names(formula, lb+1, rb-lb-1);
     vector<string> nd = split_string(all_names, ',');
-    vector<string> names, defaults;
+    vector<string> names;
     for (vector<string>::const_iterator i = nd.begin(); i != nd.end(); ++i) {
         string::size_type eq = i->find('=');
-        if (eq == string::npos) {
+        if (eq == string::npos) 
             names.push_back(strip_string(*i));
-            defaults.push_back(string());
-        }
-        else {
+        else 
             names.push_back(strip_string(string(*i, 0, eq)));
-            defaults.push_back(strip_string(string(*i, eq+1)));
-        }
     }
-    return get_eq ? defaults : names;
+    return names;
+}
+
+/// returns type variable default values 
+vector<string> Function::get_defvalues_from_formula(string const& formula)
+{
+    int lb = formula.find('(');
+    int rb = find_matching_bracket(formula, lb);
+    string all_names(formula, lb+1, rb-lb-1);
+    vector<string> nd = split_string(all_names, ',');
+    vector<string> defaults;
+    for (vector<string>::const_iterator i = nd.begin(); i != nd.end(); ++i) {
+        string::size_type eq = i->find('=');
+        if (eq == string::npos) 
+            defaults.push_back(string());
+        else 
+            defaults.push_back(strip_string(string(*i, eq+1)));
+    }
+    return defaults;
 }
 
 int Function::find_center_in_typevars() const
@@ -164,7 +176,7 @@ string Function::get_formula(int n)
 
 string Function::get_formula(string const& type)
 {
-    int nb = sizeof(builtin_formulas)/sizeof(builtin_formulas[0]);
+    int nb = sizeof(builtin_formulas) / sizeof(builtin_formulas[0]);
     for (int i = 0; i < nb; ++i)
         if (get_typename_from_formula(builtin_formulas[i]) == type)
             return builtin_formulas[i];
@@ -199,6 +211,7 @@ void Function::do_precomputations(vector<Variable*> const &variables)
                 j != pm.end(); ++j)
             multi.push_back(Multi(i, *j));
     }
+    this->more_precomputations();
 }
 
 void Function::erased_parameter(int k)
@@ -238,10 +251,13 @@ void Function::calculate_values_with_params(vector<fp> const& x,
                                             vector<fp> const& alt_vv) const
 {
     vector<fp> backup_vv = vv;
-    for (int i = 0; i < min(size(alt_vv), size(vv)); ++i)
-        const_cast<Function*>(this)->vv[i] = alt_vv[i];
+    Function* this_ = const_cast<Function*>(this);
+    for (int i = 0; i < min(size(alt_vv), size(vv)); ++i) 
+        this_->vv[i] = alt_vv[i];
+    this_->precomputations_for_alternative_vv();
     calculate_value(x, y);
-    const_cast<Function*>(this)->vv = backup_vv;
+    this_->vv = backup_vv;
+    this_->more_precomputations();
 }
 
 string Function::get_info(vector<Variable*> const &variables, 
@@ -662,12 +678,29 @@ CompoundFunction::CompoundFunction(string const &name, string const &type,
     }
 }
 
-void CompoundFunction::do_precomputations(vector<Variable*> const &variables_)
-{ 
-    Function::do_precomputations(variables_); 
+void CompoundFunction::set_var_idx(vector<Variable*> const& variables)
+{
+    VariableUser::set_var_idx(variables);
+    for (int i = 0; i < nv; ++i) 
+        vmgr.get_variable(i)->set_original(variables[get_var_idx(i)]);
+}
 
-    for (int i = 0; i < nv; ++i) //replace fake variables
-        vmgr.set_mirrored_variable(i, *variables_[get_var_idx(i)]);
+/// vv was changed, but not variables, mirror variables in vmgr must be frozen
+void CompoundFunction::precomputations_for_alternative_vv()
+{ 
+    vector<Variable const*> backup(nv);
+    for (int i = 0; i < nv; ++i) {
+        //prevent change in use_parameters()
+        backup[i] = vmgr.get_variable(i)->freeze_original(vv[i]);
+    }
+    vmgr.use_parameters();
+    for (int i = 0; i < nv; ++i) {
+        vmgr.get_variable(i)->set_original(backup[i]);
+    }
+}
+
+void CompoundFunction::more_precomputations()
+{ 
     vmgr.use_parameters();
 }
 
@@ -793,15 +826,13 @@ CustomFunction::CustomFunction(string const &name, string const &type,
 void CustomFunction::set_var_idx(vector<Variable*> const& variables)
 {
     VariableUser::set_var_idx(variables);
-    afo.tree_to_bytecode(var_idx);
+    afo.tree_to_bytecode(var_idx.size());
 }
 
 
-void CustomFunction::do_precomputations(vector<Variable*> const &variables_)
+void CustomFunction::more_precomputations()
 { 
-    Function::do_precomputations(variables_); 
-    afo.prepare_optimized_codes(variables_);
-    //TODO optimize VM code
+    afo.prepare_optimized_codes(vv);
 }
 
 void CustomFunction::calculate_value(vector<fp> const &xx, 

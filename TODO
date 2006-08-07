@@ -1,23 +1,18 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
-* small (eg. 1e-14) values of parameters are not handled properly.
-   - check if changing EPSILON (in src/common.h) helps, 
-   - if yes, make EPSILON an option when in configure script
-   - if no, ???
-
-* history (data / sum / view / all) [IMPORTANT]
-   i don't exactly know how to implement it yet
-
-* (GUI) peak dragging -- sensible scaling of parameter changes 
-           (problems with width changing)
- 	(bug?) now it matters in which point exactly you catch the peak
-
 * implement command "dump", which also embeds data in script using
    M=..., x[0]=.., y[0]=.., s[0]=..., a[0]=.., x[1]=..,...
 
 * BUG: "reset" doesn't deletes functions and variables, it should also
   replot in GUI and reset automatic func/var counter.
+
+* history (data / sum / view / all) [IMPORTANT]
+   i don't exactly know how to implement it yet
+
+* small (eg. 1e-14) values of parameters are not handled properly.
+   - make EPSILON an option when in configure script
+   - warning if variable is set value: 0 < |value| < EPSILON
 
 * user defined functions:
       - more sophisticated simplifications of expressions and CSE(!)
@@ -37,11 +32,8 @@
 * EMG function: how to calculate it? Now there are some problems with
   this function. There must be smarter way to implement it...
 
-* Should y=0 be visible when doing plot [] [] ? 
-  Perhaps one (which?) of "plot . []" and "plot . [:]" should show y=0,
-  the other one not? what about plot . [:30]?
-   -> by default, auto-scaling does not include x/y=0, unless it's
-      in, say, 20% plot margin. "[:]" is an exception and includes 0.
+* auto-scaling should not include x/y=0, unless it's
+  in, say, 20% plot margin. "[:]" is an exception and includes 0.
 
 * use info for exports:
   - replace exporting @x.peaks, @x.formula and commands[] 
@@ -56,6 +48,12 @@
 
 * (GUI) redrawing for many datasets (~100) takes noticable time.
   Kind of plot buffering (as a bitmap).
+
+* function default parameters should handle "slope" and "intercept" values,
+  guess should add slope/intercept calculated by linear fit
+  perhaps also "avgy" (average y)
+  add-peak mode should draw a line rather than peak if function has
+	  "linear" parameter names/defvalues.
 
 ------------------ next release here 0.7.6
 
@@ -176,13 +174,16 @@
 
 * fitting: it should be separated even more from the rest of the program.
   Perhaps it fitting functions should be in extern library (COOOL,
-  GAUL, WNLIB, netlib, OOL.sf.net
+  GAUL, WNLIB, netlib, OOL.sf.net, levmar)
   are there any other such libraries? 
   I haven't investigated the possibility of using mentioned libs yet. 
-  Links: http://coool.mines.edu/ http://gaul.sourceforge.net/, 
-  http://www.willnaylor.com/wnlib.html,
-  http://sal.jyu.fi/B/3/index.shtml, http://coin-or.org,
-  http://www-unix.mcs.anl.gov/otc/Guide/faq/nonlinear-programming-faq.html) 
+  Links: 
+  http://coool.mines.edu/ 
+  http://gaul.sourceforge.net/, 
+  http://www.willnaylor.com/wnlib.html
+  http://sal.jyu.fi/B/3/index.shtml, http://coin-or.org
+  http://www-unix.mcs.anl.gov/otc/Guide/faq/nonlinear-programming-faq.html 
+  http://www.ics.forth.gr/~lourakis/levmar/
 
 * fitting: robust fit - other error distributions then Gaussian, 
   eg. Lorenzian...; so called 'maximum-likelihood method' -- using Poisson

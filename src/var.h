@@ -79,7 +79,7 @@ public:
 /// the variable is either simple-variable and nr is the index in vector
 /// of parameters, or it is "compound variable" and has nr==-1.
 /// third special case: nr==-2 - it is mirror-variable (such variable
-///        is not recalculated but copied set with copy_recalculated())
+///        is not recalculated but copied)
 /// In second case, the value and derivatives are calculated 
 /// in following steps:
 ///  0. string is parsed by Spirit parser to Spirit AST representation,
@@ -120,10 +120,8 @@ public:
     bool is_simple() const { return nr != -1; }
     std::vector<OpTree*> const& get_op_trees() const 
                                                 { return af.get_op_trees(); }
-    /// variable with nr=-2 is used as a mirror of another variable,
-    /// it's not updated in recalculate() but only here
-    void set_mirror(Variable const& v) 
-       {nr=-2; value=v.value; recursive_derivatives=v.recursive_derivatives;}
+    void set_original(Variable const* orig) { assert(nr==-2); original=orig; }
+    Variable const* freeze_original(fp val);
 
 private:
     int nr; /// see description of this class in .h 
@@ -131,6 +129,7 @@ private:
     std::vector<fp> derivatives; 
     std::vector<ParMult> recursive_derivatives;
     AnyFormula af;
+    Variable const* original;
 };
 
 
@@ -178,9 +177,7 @@ public:
     std::vector<fp> const& get_parameters() const { return parameters; }
     std::vector<Variable*> const& get_variables() const { return variables; }
     Variable const* get_variable(int n) const { return variables[n]; }
-    /// hack used eg. in CompoundFunction, no checks
-    void set_mirrored_variable(int n, Variable const& v) 
-                                         { variables[n]->set_mirror(v); }
+    Variable* get_variable(int n) { return variables[n]; }
 
     std::string assign_func(std::string const &name, 
                             std::string const &function, 

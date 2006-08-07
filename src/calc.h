@@ -42,16 +42,16 @@ public:
     AnyFormulaO(std::vector<OpTree*> const &op_trees_, 
                fp &value_, std::vector<fp>& derivatives_) 
         : AnyFormula(op_trees_, value_, derivatives_) {}
-    void tree_to_bytecode(std::vector<int> const& var_idx); 
-    void prepare_optimized_codes(std::vector<Variable*> const &variables);
+    void tree_to_bytecode(size_t var_idx_size); 
+    void prepare_optimized_codes(std::vector<fp> const& vv);
     fp run_vm_val(fp x) const;
-    void run_vm_der(fp x) const { run_vm(vmcode_der, x); }
+    void run_vm_der(fp x) const;
     std::string get_vmcode_info() const;
 private:
     int vmdata_size;
     std::vector<int> vmcode_val;
     std::vector<int> vmcode_der;
-    void run_vm(std::vector<int> const& code, fp x) const;
+    void run_vm(); //disable
 };
 
 #endif

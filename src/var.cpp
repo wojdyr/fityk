@@ -69,7 +69,7 @@ int VariableUser::get_max_var_idx()
 Variable::Variable(std::string const &name_, int nr_)
     : VariableUser(name_, "$"), 
       auto_delete(name_[0] == '_'),
-      nr(nr_), af(value, derivatives)
+      nr(nr_), af(value, derivatives), original(0)
 {
     assert(!name_.empty());
     if (nr != -2) {
@@ -86,7 +86,7 @@ Variable::Variable(std::string const &name_, vector<string> const &vars_,
     : VariableUser(name_, "$", vars_), 
       auto_delete(name_[0] == '_'),
       nr(-1), derivatives(vars_.size()),
-      af(op_trees_, value, derivatives) 
+      af(op_trees_, value, derivatives), original(0)
 {
     assert(!name_.empty());
 }
@@ -101,6 +101,7 @@ void Variable::set_var_idx(vector<Variable*> const& variables)
 
 string Variable::get_formula(vector<fp> const &parameters) const
 {
+    assert(nr >= -1);
     return nr == -1 ? get_op_trees().back()->str(&varnames) 
                     : "~" + S(parameters[nr]);
 }
@@ -123,26 +124,31 @@ string Variable::get_info(vector<fp> const &parameters, bool extended) const
 void Variable::recalculate(vector<Variable*> const &variables, 
                            vector<fp> const &parameters)
 {
-  if (nr == -1) {
-      af.run_vm(variables);
-      recursive_derivatives.clear();
-      for (int i = 0; i < size(derivatives); ++i) {
-          Variable *v = variables[var_idx[i]];
-          vector<ParMult> const &pm = v->get_recursive_derivatives();
-          for (vector<ParMult>::const_iterator j=pm.begin(); j!=pm.end(); ++j) {
-              recursive_derivatives.push_back(*j);
-              recursive_derivatives.back().mult *= derivatives[i];
-          }
-      }
-  }
-  else if (nr == -2)
-      ; //do nothing, it must be set with set_mirror()
-  else {
+    if (nr >= 0) {
       value = parameters[nr];
-      if (!derivatives.empty()) {
-          derivatives.clear();
+      assert(derivatives.empty());
+    }
+    else if (nr == -1) {
+        af.run_vm(variables);
+        recursive_derivatives.clear();
+        for (int i = 0; i < size(derivatives); ++i) {
+            Variable *v = variables[var_idx[i]];
+            vector<ParMult> const &pm = v->get_recursive_derivatives();
+            for (vector<ParMult>::const_iterator j = pm.begin(); 
+                    j != pm.end(); ++j) {
+                recursive_derivatives.push_back(*j);
+                recursive_derivatives.back().mult *= derivatives[i];
+            }
+        }
+  }
+  else if (nr == -2) {
+      if (original) {
+          value = original->value; 
+          recursive_derivatives = original->recursive_derivatives;
       }
   }
+  else 
+      assert(0);
 }
 
 void Variable::erased_parameter(int k)
@@ -153,6 +159,15 @@ void Variable::erased_parameter(int k)
                                         i != recursive_derivatives.end(); ++i)
         if (i->p > k)
             -- i->p;
+}
+
+Variable const* Variable::freeze_original(fp val) 
+{
+    assert(nr == -2);
+    Variable const* old = original;
+    original = 0;
+    value = val; 
+    return old;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -581,10 +596,8 @@ vector<string> VariableManager::get_vars_from_kw(string const &function,
     string formula = Function::get_formula(function);
     if (formula.empty())
         throw ExecuteError("Undefined type of function: " + function);
-    vector<string> tnames 
-        = Function::get_varnames_from_formula(formula, false);
-    vector<string> tvalues 
-        = Function::get_varnames_from_formula(formula, true);
+    vector<string> tnames = Function::get_varnames_from_formula(formula);
+    vector<string> tvalues = Function::get_defvalues_from_formula(formula);
     int n = tnames.size();
     size_t vsize = vars.size();
     vector<string> vars_names(vsize), vars_rhs(vsize);

@@ -1,3 +1,6 @@
+User-visible changes in version 0.7.6  (2006-  -  ):
+* GUI: fixed peak dragging
+
 User-visible changes in version 0.7.5  (2006-07-31):
 * GUI: Definition Manager dialog
 * user defined functions (UDF) 

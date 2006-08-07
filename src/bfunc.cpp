@@ -209,9 +209,8 @@ const char *FuncGaussian::formula
 = "Gaussian(height, center, hwhm) = "
                "height*exp(-ln(2)*((x-center)/hwhm)^2)"; 
 
-void FuncGaussian::do_precomputations(vector<Variable*> const &variables) 
+void FuncGaussian::more_precomputations() 
 { 
-    Function::do_precomputations(variables);
     if (fabs(vv[2]) < EPSILON) 
         vv[2] = EPSILON; 
 }
@@ -251,9 +250,8 @@ const char *FuncSplitGaussian::formula
 = "SplitGaussian(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5) = "
                    "height*exp(-ln(2)*((x-center)/(x<center?hwhm1:hwhm2))^2)"; 
 
-void FuncSplitGaussian::do_precomputations(vector<Variable*> const &variables) 
+void FuncSplitGaussian::more_precomputations() 
 { 
-    Function::do_precomputations(variables);
     if (fabs(vv[2]) < EPSILON) 
         vv[2] = EPSILON; 
     if (fabs(vv[3]) < EPSILON) 
@@ -306,9 +304,8 @@ const char *FuncLorentzian::formula
                         "height/(1+((x-center)/hwhm)^2)"; 
 
 
-void FuncLorentzian::do_precomputations(vector<Variable*> const &variables)
+void FuncLorentzian::more_precomputations()
 { 
-    Function::do_precomputations(variables);
     if (fabs(vv[2]) < EPSILON) 
         vv[2] = EPSILON; 
 }
@@ -348,9 +345,8 @@ const char *FuncPearson7::formula
 = "Pearson7(height, center, hwhm, shape=2) = "
                    "height/(1+((x-center)/hwhm)^2*(2^(1/shape)-1))^shape"; 
 
-void FuncPearson7::do_precomputations(vector<Variable*> const &variables)
+void FuncPearson7::more_precomputations()
 { 
-    Function::do_precomputations(variables);
     if (fabs(vv[2]) < EPSILON) 
         vv[2] = EPSILON; 
     if (vv.size() != 5)
@@ -417,9 +413,8 @@ const char *FuncSplitPearson7::formula
     "height/(1+((x-center)/(x<center?hwhm1:hwhm2))^2"
                "*(2^(1/(x<center?shape1:shape2))-1))^(x<center?shape1:shape2)";
 
-void FuncSplitPearson7::do_precomputations(vector<Variable*> const &variables)
+void FuncSplitPearson7::more_precomputations()
 { 
-    Function::do_precomputations(variables);
     if (fabs(vv[2]) < EPSILON) 
         vv[2] = EPSILON; 
     if (fabs(vv[3]) < EPSILON) 
@@ -495,9 +490,8 @@ const char *FuncPseudoVoigt::formula
                         "height*((1-shape)*exp(-ln(2)*((x-center)/hwhm)^2)"
                                  "+shape/(1+((x-center)/hwhm)^2))"; 
 
-void FuncPseudoVoigt::do_precomputations(vector<Variable*> const &variables) 
+void FuncPseudoVoigt::more_precomputations() 
 { 
-    Function::do_precomputations(variables);
     if (fabs(vv[2]) < EPSILON) 
         vv[2] = EPSILON; 
 }
@@ -544,9 +538,8 @@ const char *FuncVoigt::formula
 = "Voigt(height, center, gwidth=fwhm*0.4, shape=0.1) ="
                             " convolution of Gaussian and Lorentzian";
 
-void FuncVoigt::do_precomputations(vector<Variable*> const &variables) 
+void FuncVoigt::more_precomputations() 
 { 
-    Function::do_precomputations(variables);
     if (vv.size() != 6)
         vv.resize(6);
     float k, l, dkdx, dkdy;
@@ -619,9 +612,8 @@ const char *FuncVoigtA::formula
 = "VoigtA(area, center, gwidth=fwhm*0.4, shape=0.1) = "
                             "convolution of Gaussian and Lorentzian";
 
-void FuncVoigtA::do_precomputations(vector<Variable*> const &variables) 
+void FuncVoigtA::more_precomputations() 
 { 
-    Function::do_precomputations(variables);
     if (vv.size() != 6)
         vv.resize(6);
     vv[4] = 1. / humlik(0, fabs(vv[3]));
@@ -692,9 +684,8 @@ const char *FuncEMG::formula
                 " a*c*(2*pi)^0.5/(2*d) * exp((b-x)/d + c^2/(2*d^2))"
                 " * (sign(d) - erf((b-x)/(2^0.5*c) + c/(2^0.5*d)))";
 
-void FuncEMG::do_precomputations(vector<Variable*> const &variables) 
+void FuncEMG::more_precomputations() 
 { 
-    Function::do_precomputations(variables);
 }
 
 bool FuncEMG::get_nonzero_range(fp/*level*/, fp&/*left*/, fp&/*right*/) const

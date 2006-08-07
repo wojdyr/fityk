@@ -439,6 +439,8 @@ public:
     void set(fp value, string const& tc_name);
     fp get_value() const;
     string get_name() const { return name; }
+    void set_temporary_value(fp value) { tc->SetValue(s2wx(S(value))); }
+
     DECLARE_EVENT_TABLE()
 private:
     fp initial_value;
@@ -466,7 +468,6 @@ FancyRealCtrl::FancyRealCtrl(wxWindow* parent, wxWindowID id,
     ValueChangingWidget *vch = new ValueChangingWidget(this, -1, this);
     sizer->Add(vch, 0, wxALL|wxALIGN_CENTER_VERTICAL, 1);
     SetSizer(sizer);
-    sizer->SetSizeHints(this);
 }
 
 void FancyRealCtrl::set(fp value, string const& tc_name)
@@ -1177,6 +1178,7 @@ void SideBar::add_variable_to_bottom_panel(Variable const* var,
         wxStaticText *var_st = new wxStaticText(bottom_panel, -1, s2wx(t));
         bp_sizer->Add(var_st, 1, wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL, 1);
         bp_statict.push_back(var_st);
+        bp_frc.push_back(0);
     }
 }
 
@@ -1188,7 +1190,8 @@ void SideBar::clear_bottom_panel()
     bp_statict.clear();
     for (vector<FancyRealCtrl*>::iterator i = bp_frc.begin(); 
                                                       i != bp_frc.end(); ++i)
-        (*i)->Destroy();
+        if (*i)
+            (*i)->Destroy();
     bp_frc.clear();
     bp_label->SetLabel(wxT(""));
     bp_sig.clear();
@@ -1215,6 +1218,12 @@ void SideBar::draw_function_draft(FancyRealCtrl const* frc) const
     frame->get_main_plot()->draw_xor_peak(bp_func, p_values);
 }
 
+void SideBar::change_bp_parameter_value(int idx, fp value)
+{
+    if (idx < size(bp_frc)) 
+        bp_frc[idx]->set_temporary_value(value); 
+}
+
 void SideBar::update_bottom_panel()
 {
     if (active_function < 0) {
@@ -1224,7 +1233,9 @@ void SideBar::update_bottom_panel()
     }
     bottom_panel->Freeze();
     bp_func = AL->get_function(active_function);
-    bp_label->SetLabel(s2wx(bp_func->xname + " : " + bp_func->type_name));
+    wxString new_label = s2wx(bp_func->xname + " : " + bp_func->type_name);
+    if (bp_label->GetLabel() != new_label)
+        bp_label->SetLabel(new_label);
     vector<bool> sig = make_bottom_panel_sig(bp_func);
     if (sig != bp_sig) {
         clear_bottom_panel();
@@ -1240,17 +1251,16 @@ void SideBar::update_bottom_panel()
     }
     else {
         vector<wxStaticText*>::iterator st = bp_statict.begin();
-        vector<FancyRealCtrl*>::iterator frc = bp_frc.begin();
         for (int i = 0; i < bp_func->nv; ++i) {
             string const& t = bp_func->type_var_names[i];
             (*st)->SetLabel(s2wx(t));
             ++st;
             Variable const* var = AL->get_variable(bp_func->get_var_idx(i));
             if (var->is_simple()) {
-                  (*frc)->set(var->get_value(), var->xname);
-                  ++frc;
+                bp_frc[i]->set(var->get_value(), var->xname);
             }
             else {
+                assert (bp_frc[i] == 0);
                 string f = var->xname + " = " 
                                    + var->get_formula(AL->get_parameters());
                 (*st)->SetLabel(s2wx(f));

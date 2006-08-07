@@ -225,14 +225,16 @@ void AnyFormula::tree_to_bytecode(vector<int> const& var_idx)
 
 ////////////////////////////////////////////////////////////////////////////
 
-void AnyFormulaO::tree_to_bytecode(vector<int> const& var_idx) 
+void AnyFormulaO::tree_to_bytecode(size_t var_idx_size) 
 {
-    assert(var_idx.size() + 2 == op_trees.size()); 
-    AnyFormula::tree_to_bytecode(var_idx);
+    assert(var_idx_size + 2 == op_trees.size()); 
+    // we put function's parameter index rather than variable index after 
+    //  OP_VARIABLE, it is handled in this way in prepare_optimized_codes()
+    AnyFormula::tree_to_bytecode(range_vector(0, var_idx_size));
     vmdata_size = vmdata.size();
 }
 
-void AnyFormulaO::prepare_optimized_codes(vector<Variable*> const &variables)
+void AnyFormulaO::prepare_optimized_codes(vector<fp> const& vv)
 {
     vmdata.resize(vmdata_size);
     vmcode_der = vmcode;
@@ -244,7 +246,7 @@ void AnyFormulaO::prepare_optimized_codes(vector<Variable*> const &variables)
         else if (*i == OP_VARIABLE) {
             *i = OP_CONSTANT;
             ++i;
-            fp value = variables[*i]->get_value();
+            fp value = vv[*i]; //see AnyFormulaO::tree_to_bytecode()
             int data_idx = -1;
             for (size_t j = 0; j != vmdata.size(); ++j)
                 if (vmdata[j] == value) {
@@ -265,10 +267,11 @@ void AnyFormulaO::prepare_optimized_codes(vector<Variable*> const &variables)
     vmcode_val = vector<int>(vmcode_der.begin(), value_it);
 }
 
-void AnyFormulaO::run_vm(vector<int> const& code, fp x) const
+void AnyFormulaO::run_vm_der(fp x) const
 {
     vector<double>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
-    for (vector<int>::const_iterator i = code.begin(); i != code.end(); i++) {
+    for (vector<int>::const_iterator i = vmcode_der.begin(); 
+                                             i != vmcode_der.end(); i++) {
         if (*i == OP_X) {
             stackPtr++;
             *stackPtr = x;

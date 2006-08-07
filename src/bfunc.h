@@ -65,7 +65,7 @@ class FuncPolynomial6 : public Function
 class FuncGaussian : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(Gaussian)
-    void do_precomputations(std::vector<Variable*> const &variables);
+    void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;  
     fp center() const { return vv[1]; }
     bool has_height() const { return true; } 
@@ -79,7 +79,7 @@ class FuncGaussian : public Function
 class FuncSplitGaussian : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(SplitGaussian)
-    void do_precomputations(std::vector<Variable*> const &variables);
+    void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;  
     fp center() const { return vv[1]; }
     bool has_height() const { return true; } 
@@ -94,7 +94,7 @@ class FuncSplitGaussian : public Function
 class FuncLorentzian : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(Lorentzian)
-    void do_precomputations(std::vector<Variable*> const &variables);
+    void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;  
     fp center() const { return vv[1]; }
     bool has_height() const { return true; } 
@@ -108,7 +108,7 @@ class FuncLorentzian : public Function
 class FuncPearson7 : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(Pearson7)
-    void do_precomputations(std::vector<Variable*> const &variables); 
+    void more_precomputations(); 
     bool get_nonzero_range (fp level, fp &left, fp &right) const;  
     fp center() const { return vv[1]; }
     bool has_height() const { return true; } 
@@ -122,7 +122,7 @@ class FuncPearson7 : public Function
 class FuncSplitPearson7 : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(SplitPearson7)
-    void do_precomputations(std::vector<Variable*> const &variables); 
+    void more_precomputations(); 
     bool get_nonzero_range (fp level, fp &left, fp &right) const;  
     fp center() const { return vv[1]; }
     bool has_height() const { return true; } 
@@ -136,7 +136,7 @@ class FuncSplitPearson7 : public Function
 class FuncPseudoVoigt : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(PseudoVoigt)
-    void do_precomputations(std::vector<Variable*> const &variables); 
+    void more_precomputations(); 
     bool get_nonzero_range (fp level, fp &left, fp &right) const;  
     fp center() const { return vv[1]; }
     bool has_height() const { return true; } 
@@ -151,7 +151,7 @@ class FuncPseudoVoigt : public Function
 class FuncVoigt : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(Voigt)
-    void do_precomputations(std::vector<Variable*> const &variables); 
+    void more_precomputations(); 
     bool get_nonzero_range (fp level, fp &left, fp &right) const;  
     fp center() const { return vv[1]; }
     bool has_height() const { return true; } 
@@ -165,7 +165,7 @@ class FuncVoigt : public Function
 class FuncVoigtA : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(VoigtA)
-    void do_precomputations(std::vector<Variable*> const &variables); 
+    void more_precomputations(); 
     bool get_nonzero_range (fp level, fp &left, fp &right) const;  
     fp center() const { return vv[1]; }
     bool has_height() const { return true; } 
@@ -179,7 +179,7 @@ class FuncVoigtA : public Function
 class FuncEMG : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(EMG)
-    void do_precomputations(std::vector<Variable*> const &variables); 
+    void more_precomputations(); 
     bool get_nonzero_range (fp level, fp &left, fp &right) const;  
     bool has_center() const { return true; }
     fp center() const { return vv[1]; }

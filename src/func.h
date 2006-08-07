@@ -38,7 +38,9 @@ public:
     static std::string get_rhs_from_formula(std::string const &formula)
      { return strip_string(std::string(formula, formula.rfind('=')+1)); }
     static std::vector<std::string> 
-      get_varnames_from_formula(std::string const &formula, bool get_eq=false);
+      get_varnames_from_formula(std::string const& formula);
+    static std::vector<std::string> 
+      get_defvalues_from_formula(std::string const& formula);
 
     virtual void calculate_value(std::vector<fp> const &x, 
                                  std::vector<fp> &y) const = 0; 
@@ -46,13 +48,14 @@ public:
                                        std::vector<fp> &y, 
                                        std::vector<fp> &dy_da,
                                        bool in_dx=false) const  = 0; 
-    virtual void do_precomputations(std::vector<Variable*> const &variables); 
+    void do_precomputations(std::vector<Variable*> const &variables); 
+    virtual void more_precomputations() {}
     void erased_parameter(int k);
     fp calculate_value(fp x) const; ///wrapper around array version
     /// calculate function value assuming function parameters has given values
-    void calculate_values_with_params(std::vector<fp> const& x, 
-                                      std::vector<fp>& y,
-                                      std::vector<fp> const& alt_vv) const; 
+    virtual void calculate_values_with_params(std::vector<fp> const& x, 
+                                              std::vector<fp>& y,
+                                          std::vector<fp> const& alt_vv) const; 
     virtual bool get_nonzero_range(fp/*level*/, fp&/*left*/, fp&/*right*/) const
                                                               { return false; }
     void get_nonzero_idx_range(std::vector<fp> const &x, 
@@ -70,6 +73,7 @@ public:
     fp iwidth() const { fp h=this->height(); return h ? this->area()/h : 0.; }
     fp get_var_value(int n) const 
              { assert(n>=0 && n<size(vv)); return vv[n]; }
+    std::vector<fp> get_var_values() const  { return vv; }
     std::string get_info(std::vector<Variable*> const &variables, 
                     std::vector<fp> const &parameters, 
                     bool extended=false) const;
@@ -83,6 +87,8 @@ public:
                          fp xacc=EPSILON, int max_iter=1000) const;
     fp find_extremum(fp x1, fp x2, fp xacc=EPSILON, int max_iter=1000) const;
     virtual std::string get_bytecode() const { return "No bytecode"; }
+    virtual void precomputations_for_alternative_vv() 
+                                            { this->more_precomputations(); }
 protected:
     Settings *settings;
     int const center_idx;
@@ -144,7 +150,7 @@ class CompoundFunction: public Function
     friend class Function;
 public:
 
-    void do_precomputations(std::vector<Variable*> const &variables_);
+    void more_precomputations();
     void calculate_value(std::vector<fp> const &xx, std::vector<fp> &yy) const;
     void calculate_value_deriv(std::vector<fp> const &xx, 
                                std::vector<fp> &yy, std::vector<fp> &dy_da,
@@ -159,6 +165,8 @@ public:
     bool has_area() const;
     fp area() const;
     bool get_nonzero_range(fp level, fp& left, fp& right) const;
+    void precomputations_for_alternative_vv();
+    void set_var_idx(std::vector<Variable*> const& variables);
 private:
     VariableManager vmgr;
 
@@ -174,7 +182,7 @@ class CustomFunction: public Function
 {
     friend class Function;
 public:
-    void do_precomputations(std::vector<Variable*> const &variables_);
+    void more_precomputations();
     void calculate_value(std::vector<fp> const &xx, std::vector<fp> &yy) const;
     void calculate_value_deriv(std::vector<fp> const &xx, 
                                std::vector<fp> &yy, std::vector<fp> &dy_da,

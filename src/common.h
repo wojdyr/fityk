@@ -34,7 +34,10 @@ typedef long double fp;
 typedef double fp;  
 #endif
 
-#define EPSILON 1e-9
+#ifndef EPSILON
+# define EPSILON 1e-9
+#endif
+
 // epsilon is used for comparision of real numbers
 inline bool is_eq(fp a, fp b) { return fabs(a-b) < EPSILON; }
 inline bool is_neq(fp a, fp b) { return fabs(a-b) > EPSILON; }

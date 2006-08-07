@@ -56,6 +56,150 @@ enum {
 };
 
 
+//---------------------- FunctionMouseDrag --------------------------------
+
+void FunctionMouseDrag::Drag::change_value(fp x, fp dx, int dX)
+{
+    if (how == no_drag || dx == 0. || dX == 0)
+        return;
+    if (how == relative_value) {
+        if (ini_x == 0.) {
+            ini_x = x - dx;
+            if (is_zero(ini_x))
+                ini_x += dx;
+        }
+        //value += dx * fabs(value / x) * multiplier;
+        value = x / ini_x * ini_value;
+    }
+    else if (how == absolute_value)
+        value += dx * multiplier;
+    else if (how == absolute_pixels)
+        value += dX * multiplier;
+    else
+        assert(0);
+}
+
+void FunctionMouseDrag::Drag::set(Function const* p, int idx,
+                                  drag_type how_, fp multiplier_)
+{
+    Variable const* var = AL->get_variable(p->get_var_idx(idx));
+    if (!var->is_simple()) {
+        how = no_drag;
+        return;
+    }
+    how = how_;
+    parameter_idx = idx;
+    parameter_name = p->type_var_names[idx];
+    variable_name = p->get_var_name(idx);
+    value = ini_value = p->get_var_value(idx);
+    multiplier = multiplier_;
+    ini_x = 0.;
+}
+
+
+void FunctionMouseDrag::start(Function const* p, int X, int Y, fp x, fp y)
+{
+    drag_x.parameter_name = drag_y.parameter_name 
+        = drag_shift_x.parameter_name = drag_shift_y.parameter_name = "-";
+    set_defined_drags();
+    if (drag_x.how == no_drag)
+        bind_parameter_to_drag(drag_x, "center", p, absolute_value);
+    if (drag_y.how == no_drag)
+        bind_parameter_to_drag(drag_y, "height", p, absolute_value)
+        || bind_parameter_to_drag(drag_y, "area", p, relative_value);
+    if (drag_shift_x.how == no_drag)
+        bind_parameter_to_drag(drag_shift_x, "hwhm", p, absolute_value, 0.5)
+        || bind_parameter_to_drag(drag_shift_x, "fwhm", p, absolute_value, 0.5);
+
+    values = p->get_var_values();
+    status = "Move to change: " + drag_x.parameter_name + "/" 
+        + drag_y.parameter_name + ", with [Shift]: " 
+        + drag_shift_x.parameter_name + "/" + drag_shift_y.parameter_name;
+
+    pX = X;
+    pY = Y;
+    px = x;
+    py = y;
+}
+
+void FunctionMouseDrag::set_defined_drags()
+{
+    drag_x.how = no_drag;
+    drag_y.how = no_drag;
+    drag_shift_x.how = no_drag;
+    drag_shift_y.how = no_drag;
+}
+
+bool FunctionMouseDrag::bind_parameter_to_drag(Drag &drag, string const& name,
+                                              Function const* p, drag_type how,
+                                              fp multiplier)
+{
+    // search for Function(..., height, ...)
+    int idx = index_of_element(p->type_var_names, name);
+    if (idx != -1) {
+        drag.set(p, idx, how, multiplier);
+        return true;
+    }
+
+    vector<string> defvalues 
+        = Function::get_defvalues_from_formula(p->type_formula);
+
+    // search for Function(..., foo=height, ...)
+    idx = index_of_element(defvalues, name);
+    if (idx != -1) {
+        drag.set(p, idx, how, multiplier);
+        return true;
+    }
+
+    // search for Function(..., foo=height*..., ...)
+    for (vector<string>::const_iterator i = defvalues.begin(); 
+                                                i != defvalues.end(); ++i)
+        if (startswith(*i, name+"*")) {
+            drag.set(p, i - defvalues.begin(), how, multiplier);
+            return true;
+        }
+    return false;
+}
+
+void FunctionMouseDrag::move(bool shift, int X, int Y, fp x, fp y)
+{
+    SideBar *sib = frame->get_sidebar();
+
+    Drag &hor = shift ? drag_shift_x : drag_x;
+    hor.change_value(x, x - px, X - pX);
+    if (hor.how != no_drag) {
+        values[hor.parameter_idx] = hor.value;
+        sib->change_bp_parameter_value(hor.parameter_idx, hor.value);
+        sidebar_dirty = true;
+    }
+    pX = X;
+    px = x;
+
+    Drag &vert = shift ? drag_shift_y : drag_y;
+    vert.change_value(y, y - py, Y - pY);
+    if (vert.how != no_drag) {
+        values[vert.parameter_idx] = vert.value;
+        sib->change_bp_parameter_value(vert.parameter_idx, vert.value);
+        sidebar_dirty = true;
+    }
+    pY = Y;
+    py = y;
+}
+
+void FunctionMouseDrag::stop()
+{
+    if (sidebar_dirty) { 
+        frame->get_sidebar()->update_bottom_panel();
+        sidebar_dirty = false;
+    } 
+}
+
+string FunctionMouseDrag::get_cmd() const
+{
+    return drag_x.get_cmd() + drag_y.get_cmd() + drag_shift_x.get_cmd()
+        + drag_shift_y.get_cmd();
+}
+
 //===============================================================
 //                MainPlot (plot with data and fitted curves) 
 //===============================================================
@@ -103,7 +247,7 @@ void MainPlot::OnPaint(wxPaintEvent& WXUNUSED(event))
     Draw(dc);
     vert_line_following_cursor(mat_redraw);//draw, if necessary, vertical lines
     peak_draft(mat_redraw);
-    move_peak(mat_redraw);
+    draw_moving_peak(mat_redraw);
     frame->update_app_title();
 }
 
@@ -626,7 +770,8 @@ void MainPlot::set_mouse_mode(MouseModeEnum m)
 {
     if (pressed_mouse_button) cancel_mouse_press();
     MouseModeEnum old = mode;
-    if (m != mmd_peak) basic_mode = m;
+    if (m != mmd_peak) 
+        basic_mode = m;
     mode = m;
     update_mouse_hints();
     if (old != mode && (old == mmd_bg || mode == mmd_bg 
@@ -702,7 +847,8 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
     }
     else {
         vert_line_following_cursor(mat_move, event.GetX());
-        move_peak(mat_move, event);
+        draw_moving_peak(mat_move, event.GetX(), event.GetY(),
+                         event.ShiftDown());
         peak_draft(mat_move, event.GetX(), event.GetY());
         draw_temporary_rect(mat_move, event.GetX(), event.GetY());
     }
@@ -763,7 +909,7 @@ void MainPlot::cancel_mouse_press()
 {
     if (pressed_mouse_button) {
         draw_temporary_rect(mat_stop); 
-        move_peak(mat_cancel); //TODO don't use mat_cancel
+        draw_moving_peak(mat_stop); 
         peak_draft(mat_stop);
         vert_line_following_cursor(mat_stop);
         mouse_press_X = mouse_press_Y = INT_MIN;
@@ -801,7 +947,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     }
     else if (button == 1 && mode == mmd_peak) {
         frame->activate_function(over_peak);
-        move_peak(mat_start, event);
+        draw_moving_peak(mat_start, event.GetX(), event.GetY());
         frame->set_status_text("Moving " + AL->get_function(over_peak)->xname 
                                 + "...");
     }
@@ -840,7 +986,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
                                                            mouse_press_X);
             status_info = "Select data range to ";
         }
-        frame->set_status_text(status_info + (button==1 ?  "activate..."
+        frame->set_status_text(status_info + (button==1 ? "activate..."
                                                         : "disactivate..."));
     }
     update_mouse_hints();
@@ -870,8 +1016,12 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         frame->set_status_text("");
     }
     else if (mode == mmd_peak && button == 1) {
-        //TODO don't use mat_cancel
-        move_peak(dist_X + dist_Y < 2 ? mat_cancel: mat_stop, event);
+        if (dist_X + dist_Y >= 2) {
+            string cmd = fmd.get_cmd();
+            if (!cmd.empty())
+                exec_command(cmd);
+        }
+        draw_moving_peak(mat_stop);
         frame->set_status_text("");
     }
     else if (mode == mmd_range && button != 2) {
@@ -945,79 +1095,50 @@ void MainPlot::OnKeyDown (wxKeyEvent& event)
 }
 
 
-void MainPlot::move_peak (Mouse_act_enum ma, wxMouseEvent &event)
+bool MainPlot::draw_moving_peak(MouseActEnum ma, int X, int Y, bool shift)
 {
-    //TODO don't use mat_cancel, peak moving and this method will be refactored 
-    static wxPoint prev;
-    static int func_nr = -1;
-    static vector<fp> p_values(4,0);
-    static vector<bool> changable(4,false);
+    static int prevX=INT_MIN, prevY=INT_MIN;
     static wxCursor old_cursor = wxNullCursor;
+    static int func_nr = -1;
 
     if (over_peak == -1)
-        return;
+        return false;
+
     Function const* p = AL->get_function(over_peak);
 
     if (ma != mat_start) {
         if (func_nr != over_peak) 
-            return;
-        draw_xor_peak(p, p_values); //clear old or redraw
+            return false;
+        draw_xor_peak(p, fmd.get_values()); //clear old or redraw
     }
 
     if (ma == mat_redraw)
         ; //do nothing, already redrawn
     else if (ma == mat_start) {
         func_nr = over_peak;
-        for (int i = 0; i < size(p_values); ++i) {
-            if (i < p->get_vars_count()) {
-                p_values[i] = p->get_var_value(i);
-                Variable const* var = AL->get_variable(p->get_var_idx(i));
-                changable[i] = var->is_simple();
-            }
-            else {
-                changable[i] = false;
-            }
-        }
-        draw_xor_peak(p, p_values); 
-        prev.x = event.GetX(), prev.y = event.GetY();
+        fmd.start(p, X, Y, X2x(X), Y2y(Y));
+        draw_xor_peak(p, fmd.get_values()); 
+        prevX = X;
+        prevY = Y;
         old_cursor = GetCursor();
         SetCursor(wxCURSOR_SIZENWSE);
     }
     else if (ma == mat_move) {
-        bool mod_key =  event.ShiftDown();
-        string descr = mod_key ? "[shift]" : "(without [shift])";
-        int n = mod_key ? 2 : 0;
-        if (changable[n]) {
-            fp dy = Y2y(event.GetY()) - Y2y(prev.y);
-            p_values[n] += dy;
-            descr += " Y:" + p->type_var_names[n] + "=" + S(p_values[n]);
-        }
-        if (changable[n+1]) {
-            fp dx = X2x(event.GetX()) - X2x(prev.x);
-            p_values[n+1] += dx;
-            descr += " X:" + p->type_var_names[n+1] + "=" + S(p_values[n+1]);
-        }
-
-        frame->set_status_text(descr);
-        prev.x = event.GetX(), prev.y = event.GetY();
-        draw_xor_peak(p, p_values); 
+        fmd.move(shift, X, Y, X2x(X), Y2y(Y));
+        frame->set_status_text(fmd.get_status());
+        draw_xor_peak(p, fmd.get_values()); 
+        prevX = X;
+        prevY = Y;
     }
-    else if (ma == mat_stop || ma == mat_cancel) {
+    else if (ma == mat_stop) {
         func_nr = -1;
         if (old_cursor.Ok()) {
             SetCursor(old_cursor);
             old_cursor = wxNullCursor;
         }
-        if (ma == mat_stop) {
-            vector<string> cmd;
-            for (int i = 0; i < size(p_values); ++i) {
-                if (changable[i] && p_values[i] != p->get_var_value(i))
-                    cmd.push_back("$"+p->get_var_name(i)+"=~"+S(p_values[i]));
-            }
-            if (!cmd.empty())
-                exec_command(join_vector(cmd, "; "));
-        }
+        fmd.stop();
     }
+    return true;
 }
 
 
@@ -1041,7 +1162,7 @@ void MainPlot::draw_xor_peak(Function const* func, vector<fp> const& p_values)
         dc.DrawLine (i-1, YY[i-1], i, YY[i]); 
 }
 
-void MainPlot::peak_draft(Mouse_act_enum ma, int X_, int Y_)
+void MainPlot::peak_draft(MouseActEnum ma, int X_, int Y_)
 {
     static wxPoint prev(INT_MIN, INT_MIN);
     if (ma != mat_start) {
@@ -1079,7 +1200,7 @@ void MainPlot::draw_peak_draft(int Ctr, int Hwhm, int Y)
     dc.DrawLine (Ctr, Y, Ctr + 2 * Hwhm, Y0); //right slope
 }
 
-void MainPlot::draw_temporary_rect(Mouse_act_enum ma, int X_, int Y_) 
+void MainPlot::draw_temporary_rect(MouseActEnum ma, int X_, int Y_) 
 {
     static int X1 = INT_MIN, Y1 = INT_MIN, X2 = INT_MIN, Y2 = INT_MIN;
 
@@ -1104,7 +1225,6 @@ void MainPlot::draw_temporary_rect(Mouse_act_enum ma, int X_, int Y_)
             ReleaseMouse();
             break;
         case mat_redraw: //unused
-        case mat_cancel: //unused
             break;
     }
 }

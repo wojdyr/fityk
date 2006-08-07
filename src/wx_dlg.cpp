@@ -1381,8 +1381,8 @@ void DefinitionMgrDlg::fill_function_list()
         string formula = Function::get_formula(i);
         FunctionDefinitonElems fde;
         fde.name = types[i];
-        fde.parameters = Function::get_varnames_from_formula(formula, false);
-        fde.defvalues = Function::get_varnames_from_formula(formula, true);
+        fde.parameters = Function::get_varnames_from_formula(formula);
+        fde.defvalues = Function::get_defvalues_from_formula(formula);
         fde.rhs = Function::get_rhs_from_formula(formula);
         fde.builtin = Function::is_builtin(i);
         orig[i] = fde;

@@ -44,6 +44,64 @@ protected:
 
 class ConfigureAxesDlg;
 
+/// utility used in MainPlot for dragging function
+class FunctionMouseDrag
+{
+public:
+    enum drag_type { 
+        no_drag, 
+        relative_value, //eg. for area
+        absolute_value,  //eg. for width
+        absolute_pixels 
+    };
+
+    class Drag 
+    {
+    public:
+        drag_type how;
+        int parameter_idx;
+        std::string parameter_name;
+        std::string variable_name; /// name of variable that are to be changed 
+        fp value; /// current value of parameter
+        fp ini_value; /// initial value of parameter
+        fp multiplier; /// increases or decreases changing rate
+        fp ini_x;
+
+        Drag() : how(no_drag) {}
+        void set(Function const* p, int idx, drag_type how_, fp multiplier_);
+        void change_value(fp x, fp dx, int dX);
+        std::string get_cmd() const {
+            return how != no_drag && value != ini_value ?
+                "$" + variable_name + " = ~" + S(value) + "; " : "";
+        }
+    };
+
+    FunctionMouseDrag() : sidebar_dirty(false) {}
+    void start(Function const* p, int X, int Y, fp x, fp y);
+    void move(bool shift, int X, int Y, fp x, fp y);
+    void stop();
+    std::vector<fp> const& get_values() const { return values; }
+    std::string const& get_status() const { return status; }
+    std::string get_cmd() const;
+
+private:
+    Drag drag_x; ///for horizontal dragging (x axis)
+    Drag drag_y; /// y axis
+    Drag drag_shift_x; ///x with [shift]
+    Drag drag_shift_y; ///y with [shift]
+    fp px, py;
+    int pX, pY;
+    std::vector<fp> values;
+    std::string status;
+    bool sidebar_dirty;
+
+    void set_defined_drags();
+    bool bind_parameter_to_drag(Drag &drag, std::string const& name,
+                          Function const* p, drag_type how, fp multiplier=1.);
+    void set_drag(Drag &drag, Function const* p, int idx,
+                  drag_type how, fp multiplier=1.);
+};
+
 /// main plot, single in application, displays data, fitted peaks etc. 
 class MainPlot : public FPlot, public BgManager
 {
@@ -93,11 +151,11 @@ public:
 
 private:
     MouseModeEnum basic_mode, 
-                    mode;  //actual mode -- either basic_mode or mmd_peak
+                  mode;  ///actual mode -- either basic_mode or mmd_peak
     static const int max_group_cols = 8;
     static const int max_peak_cols = 32;
     static const int max_data_cols = 64;
-    static const int max_radius = 4; //size of data point
+    static const int max_radius = 4; ///size of data point
     bool peaks_visible, groups_visible, sum_visible,  
          plabels_visible, x_reversed; 
     wxFont plabelFont;
@@ -110,8 +168,9 @@ private:
     int pressed_mouse_button;
     bool ctrl_on_down;
     bool shift_on_down;
-    int over_peak;
-    int limit1, limit2;
+    int over_peak; /// the cursor is over peaktop of this peak
+    int limit1, limit2; /// for drawing function limits (vertical lines)
+    FunctionMouseDrag fmd; //for function dragging
 
     void draw_x_axis (wxDC& dc, bool set_pen=true);
     void draw_y_axis (wxDC& dc, bool set_pen=true);
@@ -127,10 +186,10 @@ private:
     void prepare_peak_labels(Sum const* sum);
     void look_for_peaktop (wxMouseEvent& event);
     void show_peak_menu (wxMouseEvent &event);
-    void peak_draft (Mouse_act_enum ma, int X_=0, int Y_=0);
-    void move_peak (Mouse_act_enum ma, wxMouseEvent &event = dummy_mouse_event);
+    void peak_draft (MouseActEnum ma, int X_=0, int Y_=0);
+    bool draw_moving_peak(MouseActEnum ma, int X=0, int Y=0, bool shift=false);
     void draw_peak_draft (int X_mid, int X_hwhm, int Y);
-    void draw_temporary_rect(Mouse_act_enum ma, int X_=0, int Y_=0);
+    void draw_temporary_rect(MouseActEnum ma, int X_=0, int Y_=0);
     void draw_rect (int X1, int Y1, int X2, int Y2);
     bool visible_peaktops(MouseModeEnum mode);
 

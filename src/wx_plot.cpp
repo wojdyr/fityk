@@ -67,7 +67,7 @@ void FPlot::draw_crosshair(int X, int Y)
     dc.CrossHair(X, Y);
 }
 
-bool FPlot::vert_line_following_cursor (Mouse_act_enum ma, int x, int x0)
+bool FPlot::vert_line_following_cursor (MouseActEnum ma, int x, int x0)
 {
     if (ma == mat_start) {
         draw_dashed_vert_line(x0);

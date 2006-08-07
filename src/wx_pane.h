@@ -216,6 +216,7 @@ public:
     void update_bottom_panel();
     void delete_selected_items();
     void draw_function_draft(FancyRealCtrl const* frc) const;
+    void change_bp_parameter_value(int idx, fp value);
 private:
     wxNotebook *nb;
     wxPanel *data_page, *func_page, *var_page, *bottom_panel;

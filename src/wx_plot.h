@@ -18,8 +18,7 @@ class MainPlot;
 class View;
 struct f_names_type;
 
-enum Mouse_act_enum  { mat_start, mat_stop, mat_move, mat_cancel,
-                       mat_redraw };
+enum MouseActEnum  { mat_start, mat_stop, mat_move, mat_redraw };
 
 enum Aux_plot_kind_enum 
 { 
@@ -71,7 +70,7 @@ protected:
     int vlfc_prev_x, vlfc_prev_x0; //vertical lines following cursor
 
     void draw_dashed_vert_line(int X, int style=wxSHORT_DASH);
-    bool vert_line_following_cursor(Mouse_act_enum ma, int x=0, int x0=INT_MIN);
+    bool vert_line_following_cursor(MouseActEnum ma, int x=0, int x0=INT_MIN);
     void draw_xtics (wxDC& dc, View const& v, bool set_pen=true);
     void draw_ytics (wxDC& dc, View const &v, bool set_pen=true);
     fp get_max_abs_y (fp (*compute_y)(std::vector<Point>::const_iterator,
