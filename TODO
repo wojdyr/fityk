@@ -1,36 +1,18 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
-* implement command "dump", which also embeds data in script using
-   M=..., x[0]=.., y[0]=.., s[0]=..., a[0]=.., x[1]=..,...
+// * BUG: "reset" doesn't deletes functions and variables, it should also
+//   replot in GUI and reset automatic func/var counter.
 
-* BUG: "reset" doesn't deletes functions and variables, it should also
-  replot in GUI and reset automatic func/var counter.
+//* implement command "dump", which also embeds data in script using
+//   M=..., x[0]=.., y[0]=.., s[0]=..., a[0]=.., x[1]=..,...
 
 * history (data / sum / view / all) [IMPORTANT]
    i don't exactly know how to implement it yet
 
-* small (eg. 1e-14) values of parameters are not handled properly.
-   - make EPSILON an option when in configure script
-   - warning if variable is set value: 0 < |value| < EPSILON
-
-* user defined functions:
-      - more sophisticated simplifications of expressions and CSE(!)
-      - calculating limits, width, area, etc. for UDF(!)
-
 * settings: default relative domain width
 
-* ?? un-strip background: append proper 'in @n' (not the one used for strip),
-
 * GUI?: when loading many datasets from command line, set view to show all
-
-* (GUI) finish script debugger dialog
-
-* link to "On-line tutorial" and the tutorial itself(!)
-   perhaps screencast (eg. using Wink)
-
-* EMG function: how to calculate it? Now there are some problems with
-  this function. There must be smarter way to implement it...
 
 * auto-scaling should not include x/y=0, unless it's
   in, say, 20% plot margin. "[:]" is an exception and includes 0.
@@ -41,6 +23,27 @@
      - what about @*.formula, what about data titles in headers
   - (?) "info @n () > file"
        should display ... [1234 lines more] rather than everything
+
+------------------------
+
+* small (eg. 1e-14) values of parameters are not handled properly.
+   - make EPSILON an option when in configure script
+   - warning if variable is set value: 0 < |value| < EPSILON
+
+* user defined functions:
+      - more sophisticated simplifications of expressions and CSE(!)
+      - calculating limits, width, area, etc. for UDF(!)
+
+* un-strip background: what to do if active dataset is different than the one
+  the background was removed for.
+
+* (GUI) finish script debugger dialog
+
+* link to "On-line tutorial" and the tutorial itself(!)
+   perhaps screencast (eg. using Wink)
+
+* EMG function: how to calculate it? Now there are some problems with
+  this function. There must be smarter way to implement it...
 
 * settings: Nelder-Mead and GA fitting options, 
   a way to "shake" parameters for L-M
