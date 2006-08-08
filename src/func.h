@@ -4,6 +4,7 @@
 #define FITYK__FUNC__H__
 
 #include <map>
+#include "mgr.h"
 #include "var.h"
 
 class Settings;
@@ -77,8 +78,11 @@ public:
     std::string get_info(std::vector<Variable*> const &variables, 
                     std::vector<fp> const &parameters, 
                     bool extended=false) const;
-    std::string get_current_definition(std::vector<Variable*> const &variables, 
+    std::string get_basic_assignment() const;
+    std::string get_current_assignment(std::vector<Variable*> const &variables, 
                                        std::vector<fp> const &parameters) const;
+    bool has_outdated_type() const 
+        { return type_formula != Function::get_formula(type_name); }
     virtual std::string get_current_formula(std::string const& x = "x") const;
     int get_param_nr(std::string const& param) const;
     fp get_param_value(std::string const& param) const;

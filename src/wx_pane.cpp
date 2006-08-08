@@ -27,6 +27,7 @@
 #include "logic.h" 
 #include "ui.h" 
 #include "sum.h" 
+#include "func.h" 
 
 #include "img/add.xpm"
 #include "img/sum.xpm"
@@ -811,7 +812,7 @@ void SideBar::OnFuncButtonEdit (wxCommandEvent& WXUNUSED(event))
 {
     if (!bp_func)
         return;
-    string t = bp_func->get_current_definition(AL->get_variables(), 
+    string t = bp_func->get_current_assignment(AL->get_variables(), 
                                                AL->get_parameters());
     frame->edit_in_input(t);
 }
@@ -883,8 +884,8 @@ void SideBar::update_data_list(bool nondata_changed)
     for (int i = 0; i < AL->get_ds_count(); ++i) {
         DataWithSum const* ds = AL->get_ds(i);
         data_data.push_back(S(i));
-        data_data.push_back(S(ds->get_sum()->get_ff_count()) 
-                        + "+" + S(ds->get_sum()->get_zz_count()));
+        data_data.push_back(S(ds->get_sum()->get_ff_names().size()) 
+                        + "+" + S(ds->get_sum()->get_zz_names().size()));
         data_data.push_back(ds->get_data()->get_title());
         data_data.push_back(ds->get_data()->get_filename());
     }

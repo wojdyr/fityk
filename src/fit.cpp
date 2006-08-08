@@ -12,6 +12,7 @@
 #include "ui.h"
 #include "numfuncs.h"
 #include "settings.h"
+#include "var.h"
 #include "LMfit.h"
 #include "GAfit.h"
 #include "NMfit.h"

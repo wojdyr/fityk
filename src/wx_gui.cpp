@@ -50,6 +50,7 @@
 #include "data.h"
 #include "ui.h"
 #include "guess.h"
+#include "func.h"
 
 #include "img/fityk.xpm"
 

@@ -23,6 +23,8 @@
 #include "settings.h"
 #include "datatrans.h"
 #include "guess.h"
+#include "var.h"
+#include "func.h"
 
 using namespace std;
 

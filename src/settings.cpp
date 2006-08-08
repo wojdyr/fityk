@@ -252,11 +252,14 @@ string Settings::print_usage() const
     return s;
 }
 
+/// it doesn't set autoplot and verbosity options
 string Settings::set_script() const
 {
     vector<string> e = expanp();
     string s;
     for (vector<string>::const_iterator i = e.begin(); i != e.end(); i++) {
+        if (*i == "autoplot" || *i == "verbosity")
+            continue;
         string v = getp(*i);
         s += "set " + *i + " = " + (v.empty() ? "\"\"" : v) + "\n";
     }

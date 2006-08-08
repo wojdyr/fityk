@@ -8,10 +8,10 @@
 #include <utility>
 #include <memory>
 #include "common.h"
-#include "var.h"
 
 class Function;
 class Data;
+class VariableManager;
 
 ///  This class contains description of curve which we are trying to fit 
 ///  to data. This curve is described simply by listing names of functions
@@ -43,8 +43,6 @@ public:
     fp zero_shift (fp x) const;
     std::vector<int> const& get_ff_idx() const { return ff_idx; }
     std::vector<int> const& get_zz_idx() const { return zz_idx; }
-    int get_ff_count() { return ff_idx.size(); }
-    int get_zz_count() { return zz_idx.size(); }
     std::vector<std::string> const &get_ff_names() const { return ff_names; }
     std::vector<std::string> const &get_zz_names() const { return zz_names; }
     bool has_any_info() const { return !ff_names.empty() || !zz_names.empty(); }

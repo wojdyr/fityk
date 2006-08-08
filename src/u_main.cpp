@@ -30,6 +30,7 @@
 #include "logic.h"
 #include "cmd.h"
 #include "settings.h"
+#include "func.h"
 
 using namespace std;
 

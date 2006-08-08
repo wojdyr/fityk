@@ -8,6 +8,7 @@
 #include "sum.h"
 #include "logic.h"
 #include "ui.h"
+#include "func.h"
 #include "settings.h"
 #include "datatrans.h"
 

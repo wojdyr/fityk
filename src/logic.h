@@ -7,8 +7,8 @@
 #include <string>
 #include <memory>
 #include <algorithm>
-#include "var.h"
-#include "func.h"
+#include "mgr.h"
+//#include "func.h"
 
 class DataWithSum;
 
@@ -70,7 +70,6 @@ public:
     DataWithSum(VariableManager *mgr, Data* data_=0);
     Data *get_data() const { return data.get(); } 
     Sum *get_sum() const { return sum.get(); }
-    void export_as_script (std::ostream& os) const;
 
 private:
     std::auto_ptr<Data> data;

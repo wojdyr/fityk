@@ -205,9 +205,29 @@ inline std::vector<std::string> concat_pairs(std::vector<T1> const& v1,
                                              std::vector<T2> const& v2, 
                                              std::string const& sep="")
 {
-    std::vector<std::string> result;
-    for (int i = 0; i < std::min(size(v1), size(v2)); ++i)
+    std::vector<std::string> result(std::min(v1.size(), v2.size()));
+    for (size_t i = 0; i < result.size(); ++i)
         result.push_back(S(v1[i]) + sep + S(v2[i]));
+    return result;
+}
+
+template <typename T>
+inline std::vector<std::string> concat_pairs(std::string const& s1, 
+                                             std::vector<T> const& v2) 
+{
+    std::vector<std::string> result(v2.size());
+    for (size_t i = 0; i != v2.size(); ++i)
+        result[i] = s1 + S(v2[i]);
+    return result;
+}
+
+template <typename T>
+inline std::vector<std::string> concat_pairs(std::vector<T> const& v1, 
+                                             std::string const& s2) 
+{
+    std::vector<std::string> result(v1.size());
+    for (size_t i = 0; i != v1.size(); ++i)
+        result[i] = S(v1[i]) + s2;
     return result;
 }
 

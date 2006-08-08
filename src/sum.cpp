@@ -10,6 +10,7 @@
 #include "sum.h"
 #include "func.h"
 #include "var.h"
+#include "mgr.h"
 #include "guess.h" //estimate_peak_parameters() in guess_f()
 #include "ui.h"
 

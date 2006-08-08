@@ -264,11 +264,7 @@ string Function::get_info(vector<Variable*> const &variables,
                           vector<fp> const &parameters, 
                           bool extended) const 
 { 
-    vector<string> xvarnames; 
-    for (vector<int>::const_iterator i = var_idx.begin(); 
-            i != var_idx.end(); ++i)
-        xvarnames.push_back(variables[*i]->xname);
-    string s = xname+" = "+type_name+ "(" + join_vector(xvarnames, ", ") + ")";
+    string s = get_basic_assignment();
     if (extended) {
         s += "\n" + type_formula;
         for (int i = 0; i < size(var_idx); ++i)
@@ -290,8 +286,18 @@ string Function::get_info(vector<Variable*> const &variables,
     return s;
 } 
 
+/// return sth like: Linear($foo, $_2)
+string Function::get_basic_assignment() const
+{
+    vector<string> xvarnames; 
+    for (vector<string>::const_iterator i = varnames.begin(); 
+            i != varnames.end(); ++i)
+        xvarnames.push_back("$" + *i);
+    return xname + " = " + type_name+ "(" + join_vector(xvarnames, ", ") + ")";
+}
+
 /// return sth like: Linear(a0=$foo, a1=~3.5)
-string Function::get_current_definition(vector<Variable*> const &variables,
+string Function::get_current_assignment(vector<Variable*> const &variables,
                                         vector<fp> const &parameters) const
 {
     vector<string> vs; 

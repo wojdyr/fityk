@@ -15,6 +15,7 @@
 #include "common.h"
 #include "data.h"
 #include "var.h"
+#include "func.h"
 #include "numfuncs.h"
 #include "logic.h"
 #include <boost/spirit/core.hpp>

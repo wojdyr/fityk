@@ -198,7 +198,8 @@ void UserInterface::execScript (const string& filename,
                                                     i != exec_nls.end(); i++) {
         if (i->txt.length() == 0)
             continue;
-        showMessage (os_quot, S(i->nr) + "> " + i->txt); 
+        if (getVerbosity() > 1)
+            showMessage (os_quot, S(i->nr) + "> " + i->txt); 
         // result of parse_and_execute here is neglected. Errors in script
         // don't change status of command, which executes script
         parse_and_execute(i->txt);

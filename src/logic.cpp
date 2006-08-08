@@ -13,6 +13,7 @@
 #include "fit.h"
 #include "guess.h"
 #include "settings.h"
+#include "mgr.h"
 #include "func.h"
 
 using namespace std;
@@ -73,24 +74,68 @@ void ApplicationLogic::dump_all_as_script(string const &filename)
         warn ("Can't open file: " + filename);
         return;
     }
-    os << fityk_version_line << endl;
-    os << "####### Dump time: " << time_now() << endl << endl;
-    //TODO dump_all_as_script
-#if 0
-    params->export_as_script(os);
+    os << fityk_version_line << "## dumped at: " << time_now() << endl;
+    os << "set verbosity = only-warnings #the rest of the file is not shown\n"; 
+    os << "set autoplot = never\n";
+    os << "reset\n";
+    os << "# ------------  settings  ------------\n";
+    os << getSettings()->set_script() << endl;
+    os << "# ------------  variables and functions  ------------\n";
+    for (vector<Variable*>::const_iterator i = variables.begin();
+            i != variables.end(); ++i)
+        os << (*i)->xname << " = " << (*i)->get_formula(parameters) << endl;
     os << endl;
-
-    os << "plot " << view.str() << endl;
-
-
-    TODO @n.F
-    os << join_vector(sum->get_ff_names(), ", ") << " -> @x.F" << endl;
-    os << join_vector(sum->get_zz_names(), ", ") << " -> @x.Z" << endl;
+    vector<UdfContainer::UDF> const& udfs = UdfContainer::get_udfs();
+    for (vector<UdfContainer::UDF>::const_iterator i = udfs.begin();
+            i != udfs.end(); ++i)
+        if (!i->is_builtin)
+            os << "define " << i->formula << endl;
     os << endl;
-}
-#endif
+    for (vector<Function*>::const_iterator i = functions.begin();
+            i != functions.end(); ++i) {
+        if ((*i)->has_outdated_type()) {
+            string new_formula = Function::get_formula((*i)->type_name);
+            if (!new_formula.empty())
+                os << "undefine " << (*i)->type_name << endl;
+            os << "define " << (*i)->type_formula << endl;
+            os << (*i)->get_basic_assignment() << endl;
+            os << "undefine " << (*i)->type_name << endl;
+            if (!new_formula.empty())
+                os << "define " << new_formula << endl;
+        }
+        else
+            os << (*i)->get_basic_assignment() << endl;
+    }
     os << endl;
-    os << endl << "####### End of dump " << endl; 
+    os << "# ------------  datasets and sums  ------------\n";
+    for (int i = 0; i != get_ds_count(); ++i) {
+        Data const* data = get_data(i);
+        if (i != 0)
+            os << "@+\n";
+        if (!data->get_title().empty())
+            os << "@" << i << ".title = '" << data->get_title() << "'\n";
+        int m = data->points().size();
+        os << "M=" << m << " in @" << i << endl;
+        for (int j = 0; j != m; ++j) {
+            Point const& p = data->points()[j];
+            os << "X[" << j << "]=" << p.x << ", Y[" << j << "]=" << p.y 
+                << ", S[" << j << "]=" << p.sigma 
+                << ", A[" << j << "]=" << (p.is_active ? 1 : 0) 
+                << " in @" << i << endl;
+        }
+        os << endl;
+        Sum const* sum = get_sum(i);
+        if (!sum->get_ff_names().empty())
+            os << join_vector(concat_pairs("%", sum->get_ff_names()), ", ") 
+                << " -> @" << i << ".F" << endl;
+        if (!sum->get_zz_names().empty())
+            os << join_vector(concat_pairs("%", sum->get_zz_names()), ", ") 
+                << " -> @" << i << ".Z" << endl;
+        os << endl;
+    }
+    os << "plot @" << active_ds << " " << view.str() << endl;
+    os << "set autoplot = " << getSettings()->getp("autoplot") << endl;
+    os << "set verbosity = " << getSettings()->getp("verbosity") << endl;
 }
 
 
@@ -254,4 +299,5 @@ void View::set_dataset(DataWithSum const* ds)
 { 
     set_items(vector1(ds->get_data()), vector1(ds->get_sum())); 
 }
+
 
