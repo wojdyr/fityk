@@ -48,6 +48,7 @@
 #include "logic.h"
 #include "fit.h"
 #include "data.h"
+#include "datatrans.h" //for statusbar
 #include "ui.h"
 #include "guess.h"
 #include "func.h"
@@ -158,6 +159,7 @@ enum {
     ID_G_C_A1                  ,
     ID_G_C_A2                  ,
     ID_G_C_OUTPUT              ,
+    ID_G_C_SB                  ,
     ID_G_CROSSHAIR             ,
     ID_G_V_ALL                 ,
     ID_G_V_VERT                ,
@@ -399,6 +401,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_S_TOOLBAR,   FFrame::OnSwitchToolbar)
     EVT_MENU (ID_G_S_STATBAR,   FFrame::OnSwitchStatbar)
     EVT_MENU_RANGE (ID_G_C_MAIN, ID_G_C_OUTPUT, FFrame::OnShowPopupMenu)
+    EVT_MENU (ID_G_C_SB,        FFrame::OnConfigureStatusBar)
     EVT_MENU (ID_G_CROSSHAIR,   FFrame::OnSwitchCrosshair)
     EVT_MENU (ID_G_V_ALL,       FFrame::OnGViewAll)
     EVT_MENU (ID_G_V_VERT,      FFrame::OnGFitHeight)
@@ -742,6 +745,8 @@ void FFrame::set_menubar()
                             wxT("Show aux. plot 2 pop-up menu"));
     gui_menu_config->Append(ID_G_C_OUTPUT, wxT("&Output Window"), 
                             wxT("Show output window pop-up menu"));
+    gui_menu_config->Append(ID_G_C_SB, wxT("&Status Bar"), 
+                            wxT("Configure Status Bar"));
     gui_menu->Append(-1, wxT("Confi&gure"), gui_menu_config);
 
     gui_menu->AppendCheckItem(ID_G_CROSSHAIR, wxT("&Crosshair Cursor"), 
@@ -1392,6 +1397,15 @@ void FFrame::OnShowPopupMenu(wxCommandEvent& ev)
         plot_pane->get_aux_plot(ev.GetId() - ID_G_C_A1)->OnRightDown(me);
 }
 
+void FFrame::OnConfigureStatusBar(wxCommandEvent&) 
+{
+    if (!status_bar)
+        return;
+    ConfStatBarDlg *dialog = new ConfStatBarDlg(this, -1, status_bar);
+    dialog->ShowModal();
+    dialog->Destroy();
+}
+
 void FFrame::SwitchCrosshair (bool show)
 {
     plot_pane->crosshair_cursor = show;
@@ -1549,6 +1563,12 @@ void FFrame::set_status_hint(string const& left, string const& right)
 {
     if (status_bar)
         status_bar->set_hint(left, right);  
+}
+
+void FFrame::set_status_coord_info(fp x, fp y, bool aux)
+{
+    if (status_bar)
+        status_bar->set_coord_info(x, y, aux);  
 }
 
 void FFrame::output_text(OutputStyle style, const string& str)
@@ -1887,16 +1907,24 @@ END_EVENT_TABLE()
 FStatusBar::FStatusBar(wxWindow *parent)
         : wxStatusBar(parent, -1), statbmp2(0)
 {
-    int widths[sbf_max] = { -1, 100, 100, 120 };
-    SetFieldsCount (sbf_max, widths);
+    widths[sbf_text] = -1;
+    widths[sbf_hint1] = 100;
+    widths[sbf_hint2] = 100;
+    widths[sbf_coord] = 120;
+    SetFieldsCount(sbf_max, widths);
     SetMinHeight(15);
     statbmp1 = new wxStaticBitmap(this, -1, wxIcon(mouse_l_xpm));
     statbmp2 = new wxStaticBitmap(this, -1, wxIcon(mouse_r_xpm));
+    fmt_main = "%.3f  %.0f";
+    fmt_aux = "%.3f  [%.0f]";
 }
 
-void FStatusBar::OnSize(wxSizeEvent& event)
+void FStatusBar::move_bitmaps()
 {
-    if (!statbmp2) return; 
+    if (!statbmp2) 
+        return; 
+    statbmp1->Show(widths[sbf_hint1] > 20);
+    statbmp2->Show(widths[sbf_hint2] > 20);
     wxRect rect;
     GetFieldRect(sbf_hint1, rect);
     wxSize size = statbmp1->GetSize();
@@ -1904,14 +1932,120 @@ void FStatusBar::OnSize(wxSizeEvent& event)
     statbmp1->Move(rect.x + 1, bmp_y);
     GetFieldRect(sbf_hint2, rect);
     statbmp2->Move(rect.x + 1, bmp_y);
-    event.Skip();
 }
 
 void FStatusBar::set_hint(string const& left, string const& right)
 {
-    wxString space = wxT("    "); //TODO more sophisticated solution 
+    wxString space = (widths[sbf_hint1] > 20 ? wxT("    ") : wxT("")); 
     SetStatusText(space + s2wx(left),  sbf_hint1);
     SetStatusText(space + s2wx(right), sbf_hint2);
+}
+
+void FStatusBar::set_widths(int hint, int coord)
+{
+    widths[sbf_hint1] = hint;
+    widths[sbf_hint2] = hint;
+    widths[sbf_coord] = coord;
+    SetStatusWidths(sbf_max, widths);
+    move_bitmaps();
+}
+
+void FStatusBar::set_coord_info(fp x, fp y, bool aux)
+{
+    wxString str;
+    fp val = 0;
+    if (!extra_value.empty())
+        val = get_value_for_point(e_code, e_numbers, Point(x, y));
+    int r = str.Printf(s2wx(aux ? fmt_aux : fmt_main), x, y, val);
+    SetStatusText(r > 0 ? str : wxString(),  sbf_coord);
+}
+
+bool FStatusBar::set_extra_value(string const& s)
+{
+    if (!get_dt_code(s, e_code, e_numbers))
+        return false;
+    extra_value = s;
+    return true;
+}
+
+//===============================================================
+//                     ConfStatBarDlg
+//===============================================================
+
+namespace {
+wxString avoid_proc_n(wxString s)
+{
+    s.Replace(wxT("%n"), wxT("%N"));
+    return s;
+}
+
+wxBoxSizer *get_labeled_control_sizer(wxWindow *parent, wxString const& label,
+                                      wxWindow *control, bool expand=0)
+{
+    wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(new wxStaticText(parent, -1, label),
+               0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
+    sizer->Add(control, expand, wxALL, 5);
+    return sizer;
+}
+
+} // anonymous namespace
+
+
+BEGIN_EVENT_TABLE(ConfStatBarDlg, wxDialog)
+    EVT_BUTTON(wxID_APPLY, ConfStatBarDlg::OnApply)
+    EVT_BUTTON(wxID_CLOSE, ConfStatBarDlg::OnClose)
+END_EVENT_TABLE()
+
+ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
+    //explicit conversion of title to wxString() is neccessary
+  : wxDialog(parent, id, wxString(wxT("Configure Status Bar")),
+             wxDefaultPosition, wxDefaultSize, 
+             wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
+    sb(sb_)
+{
+    wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
+
+    wxStaticBoxSizer *w_sizer  = new wxStaticBoxSizer(wxVERTICAL, this, 
+                                                      wxT("field widths"));
+    whint_sc = new SpinCtrl(this, -1, sb->get_hint_width(), 0, 200, 50);
+    w_sizer->Add(get_labeled_control_sizer(this, wxT("mouse hints: "), 
+                                           whint_sc));
+
+    width_sc = new SpinCtrl(this, -1, sb->get_coord_width(), 0, 400, 50);
+    w_sizer->Add(get_labeled_control_sizer(this, wxT("cursor position info: "),
+                                           width_sc));
+    top_sizer->Add(w_sizer, 0, wxALL|wxEXPAND, 5);
+
+    wxStaticBoxSizer *f_sizer  = new wxStaticBoxSizer(wxVERTICAL, this, 
+                                       wxT("format of cursor position info"));
+    fm_tc = new wxTextCtrl(this, -1, s2wx(sb->fmt_main));
+    f_sizer->Add(get_labeled_control_sizer(this, 
+                               wxT("at main plot: "), fm_tc, 1),
+                   0, wxEXPAND);
+
+    fa_tc = new wxTextCtrl(this, -1, s2wx(sb->fmt_aux));
+    f_sizer->Add(get_labeled_control_sizer(this, 
+                               wxT("at auxiliary plot: "), fa_tc, 1),
+                   0, wxEXPAND);
+    ff_tc = new wxTextCtrl(this, -1, s2wx(sb->get_extra_value()));
+    f_sizer->Add(get_labeled_control_sizer(this, wxT("use 3 values: x, y,"), 
+                                           ff_tc, 1),
+                   0, wxEXPAND);
+    top_sizer->Add(f_sizer, 0, wxALL|wxEXPAND, 5);
+
+    add_apply_close_buttons(this, top_sizer);
+    SetSizerAndFit(top_sizer);
+}
+
+void ConfStatBarDlg::OnApply (wxCommandEvent& WXUNUSED(event))
+{
+    sb->set_widths(whint_sc->GetValue(), width_sc->GetValue());
+    sb->fmt_main = wx2s(avoid_proc_n(fm_tc->GetValue()));
+    sb->fmt_aux = wx2s(avoid_proc_n(fa_tc->GetValue()));
+    bool r = sb->set_extra_value(wx2s(ff_tc->GetValue()));
+    if (!r)
+        ff_tc->SetSelection(-1, -1);
 }
 
 //===============================================================

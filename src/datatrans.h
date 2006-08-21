@@ -23,6 +23,10 @@ fp get_transform_expression_value(std::string const &s, Data const* data);
 std::vector<fp> get_all_point_expressions(std::string const &s, 
                                           Data const* data,
                                           bool only_active=true);
+bool get_dt_code(std::string const& s, 
+                 std::vector<int>& code_, std::vector<fp>& numbers_);
+fp get_value_for_point(std::vector<int> const& code_, 
+                       std::vector<fp> const& numbers_, Point const& p);
 
 
 /// a part of data expression grammar

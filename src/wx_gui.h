@@ -67,13 +67,44 @@ private:
 class FStatusBar: public wxStatusBar 
 {
 public:
+    std::string fmt_main, fmt_aux;
+
     FStatusBar(wxWindow *parent);
-    void OnSize(wxSizeEvent& event);
+    void OnSize(wxSizeEvent& event) { move_bitmaps(); event.Skip(); }
+    void move_bitmaps();
     void set_hint(std::string const& left, std::string const& right);
+    int get_coord_width() const { return m_statusWidths[sbf_coord]; }
+    int get_hint_width() const { return m_statusWidths[sbf_hint1]; }
+    void set_widths(int hint, int coord);
+    void set_hint_width(int w);
+    void set_coord_info(fp x, fp y, bool aux=false);
+    bool set_extra_value(std::string const& s);
+    std::string const& get_extra_value() const { return extra_value; }
+
 private:
+    int widths[4]; //4==sbf_max
+    std::string extra_value;
+    std::vector<int> e_code;
+    std::vector<fp> e_numbers;
     wxStaticBitmap *statbmp1, *statbmp2;
     DECLARE_EVENT_TABLE()
 };
+
+/// Status bar configuration dialog
+class ConfStatBarDlg: public wxDialog
+{
+public:
+    ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_);
+    void OnApply (wxCommandEvent& event);
+    void OnClose (wxCommandEvent& event) { OnCancel(event); }
+private:
+    FStatusBar *sb;
+    SpinCtrl *width_sc, *whint_sc;
+    wxTextCtrl *fm_tc, *fa_tc, *ff_tc;
+    DECLARE_EVENT_TABLE()
+};
+
+
 
 /// dialog Help->About
 class AboutDlg : public wxDialog
@@ -173,6 +204,7 @@ public:
     void OnSwitchStatbar(wxCommandEvent& ev) {SwitchStatbar(ev.IsChecked());}
     void SwitchCrosshair(bool show);
     void OnShowPopupMenu(wxCommandEvent& ev);
+    void OnConfigureStatusBar(wxCommandEvent&);
     void OnSwitchCrosshair(wxCommandEvent& ev){SwitchCrosshair(ev.IsChecked());}
     void OnShowMenuZoomPrev(wxUpdateUIEvent& event);
     void save_all_settings(wxConfigBase *cf) const;
@@ -182,6 +214,7 @@ public:
     const FToolBar* get_toolbar() const { return toolbar; }
     std::string get_peak_type() const;
     void set_status_hint(std::string const& left, std::string const& right);
+    void set_status_coord_info(fp x, fp y, bool aux=false);
     void output_text(OutputStyle style, std::string const& str);
     void change_zoom(const std::string& s);
     void scroll_view_horizontally(fp step);

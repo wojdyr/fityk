@@ -1,5 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
-// $Id $
+// $Id$
 
 #ifndef FITYK__WX_FDLG__H__
 #define FITYK__WX_FDLG__H__

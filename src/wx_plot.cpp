@@ -485,12 +485,8 @@ void AuxPlot::draw_zoom_text(wxDC& dc, bool set_pen)
 void AuxPlot::OnMouseMove(wxMouseEvent &event)
 {
     int X = event.GetX();
-    fp x = X2x(X);
-    fp y = Y2y (event.GetY()); 
     vert_line_following_cursor(mat_move, X);
-    wxString str;
-    str.Printf(wxT("%.3f  [%d]"), x, static_cast<int>(y + 0.5));
-    frame->set_status_text(wx2s(str), sbf_coord);
+    frame->set_status_coord_info(X2x(X), Y2y(event.GetY()), true);
     wxCursor new_cursor;
     if (X < move_plot_margin_width)
         new_cursor = wxCURSOR_POINT_LEFT;

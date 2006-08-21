@@ -1336,7 +1336,7 @@ bool is_data_dependent_code(vector<int> const& code)
 
 bool is_data_dependent_expression(string const& s)
 {
-    if (!validate_data_expression(s))
+    if (!validate_data_expression(s)) //it fills `code'
         return false;
     return is_data_dependent_code(code);
 }
@@ -1361,6 +1361,36 @@ fp get_transform_expression_value(string const &s, Data const* data)
     bool t = execute_code(M, M, stack, points, new_points, code);
     if (t)  
         throw ExecuteError("Expression depends on undefined `n' index: " + s);
+    return stack.front();
+}
+
+bool get_dt_code(string const& s, vector<int>& code_, vector<fp>& numbers_)
+{
+    clear_parse_vecs();
+    // First compile string... puts result into code etc.
+    parse_info<> result = parse(s.c_str(), DataExpressionG, space_p);
+    if (!result.full) 
+        return false;
+    for (vector<int>::iterator i = code.begin(); i != code.end(); ++i) 
+        if (*i == OP_PARAMETERIZED 
+                || *i == OP_AGMIN || *i == OP_AGMAX || *i == OP_AGSUM 
+                || *i == OP_AGAREA || *i == OP_AGAVG || *i == OP_AGSTDDEV) 
+            return false;
+    code_ = code;
+    numbers_ = numbers;
+    return true;
+}
+
+fp get_value_for_point(vector<int> const& code_, vector<fp> const& numbers_,
+                       Point const& p)
+{
+    static vector<fp> stack(stack_size);
+    static vector<Point> points(1); 
+    static vector<Point> new_points(1); 
+    numbers = numbers_;
+    points[0] = new_points[0] = p;
+    int M = 1;
+    execute_code(0, M, stack, points, new_points, code_);
     return stack.front();
 }
 

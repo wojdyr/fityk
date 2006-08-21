@@ -828,11 +828,7 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
     //display coords in status bar 
     int X = event.GetX();
     int Y = event.GetY();
-    fp x = X2x(X);
-    fp y = Y2y(Y);
-    wxString str;
-    str.Printf(wxT("%.3f  %d"), x, static_cast<int>(y + 0.5));
-    frame->set_status_text(wx2s(str), sbf_coord);
+    frame->set_status_coord_info(X2x(X), Y2y(Y));
 
     if (pressed_mouse_button == 0) {
         if (mode == mmd_range) {

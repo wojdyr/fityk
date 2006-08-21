@@ -7,7 +7,10 @@
 //* implement command "dump", which also embeds data in script using
 //   M=..., x[0]=.., y[0]=.., s[0]=..., a[0]=.., x[1]=..,...
 
-* history (data / sum / view / all) [IMPORTANT]
+// * (GUI) Configuration of status bar:
+     todo: read/save settingins
+
+* ? history (data / sum / view / all) [IMPORTANT]
    i don't exactly know how to implement it yet
 
 * settings: default relative domain width
@@ -23,6 +26,8 @@
      - what about @*.formula, what about data titles in headers
   - (?) "info @n () > file"
        should display ... [1234 lines more] rather than everything
+
+* add link to http://paida.sourceforge.net/ (another plotting/fitting prog)
 
 ------------------------
 
@@ -76,6 +81,12 @@
 
 ------------------ next release here 
 
+* clean up verbosity levels of messages. There should be 6 kind of messages:
+  debug, vinfo (more verbose info), info, rinfo (explicitely requested info),
+  warning, error
+  and 7 levels of verbosity: debug, verbose, normal, terse, only-warnings,
+  only-errors, silent
+
 * [BUG]: program crashes (MS Win 9x) when data contains NaN (as a result
   of asin(x) x>1) and "Zoom all" is called.
 
@@ -89,13 +100,6 @@
 
 * info -- more informations about error, confidence limits, etc.
   graphical interface Fit > Info
-
-* (GUI) Configurable status bar:
-	  more extensive and configurable (2/3 buttons, size) mouse hints 
-		   (also for aux. plot, etc)
-          should it be possible to display any f(x,y)? eg. d (=0.5/2sin(x/2))
-	  more exact (or customizable) y coordinate at status bar
-	  Shift/Ctrl in status line hints; pressing Shift should update hints
 
 * (GUI) vertical scaling using mouse on main plot near to left edge of the plot 
 
