@@ -50,7 +50,7 @@ string OpTree::str(const vector<string> *vars)
 {
     if (op < 0) {
         int v_nr = -op-1;
-        return vars->empty() ? "var"+S(v_nr) : "$"+(*vars)[v_nr];
+        return vars->empty() ? "var"+S(v_nr) : (*vars)[v_nr];
     }
     switch (op) {
         case 0:       return S(val);
@@ -127,6 +127,7 @@ OpTree* OpTree::copy() const
 
 ////////////////////////////////////////////////////////////////////////////
 
+namespace {
 void do_find_tokens(int tokenID, const_iter_t const &i, vector<string> &vars)
 {
     for (const_iter_t j = i->children.begin(); j != i->children.end(); ++j) {
@@ -139,6 +140,7 @@ void do_find_tokens(int tokenID, const_iter_t const &i, vector<string> &vars)
             do_find_tokens(tokenID, j, vars);
     }
 }
+} // anonymous namespace
 
 vector<string> find_tokens_in_ptree(int tokenID, const tree_parse_info<> &info)
 {
@@ -920,4 +922,21 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
     return results;
 }
 
+
+/// debug utility, shows symbolic derivatives of given formula
+string get_derivatives_str(string const &formula)
+{
+    string s;
+    tree_parse_info<> info = ast_parse(formula.c_str(), FuncG, space_p);
+    if (!info.full)
+        throw ExecuteError("Can't parse formula: " + formula);
+    const_tm_iter_t const &root = info.trees.begin();
+    vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID, info);
+    vector<OpTree*> results = calculate_deriv(root, vars);
+    s = "f(" + join_vector(vars, ", ") + ") = " + results.back()->str(&vars);
+    for (size_t i = 0; i != vars.size(); ++i)
+        s += "\ndf / d " + vars[i] + " = " + results[i]->str(&vars);
+    purge_all_elements(results);
+    return s;
+}
 

@@ -82,6 +82,7 @@ typedef tree_match<char const*>::const_tree_iterator const_tm_iter_t;
 std::vector<OpTree*> calculate_deriv(const_tm_iter_t const &i,
                                      std::vector<std::string> const &vars);
 fp get_constant_value(std::string const &s);
+std::string get_derivatives_str(std::string const &formula);
 
 #endif
 

@@ -10,6 +10,8 @@
 // * (GUI) Configuration of status bar:
      todo: read/save settingins
 
+* add description of "info der" to manual, and list all info arguments 
+
 * ? history (data / sum / view / all) [IMPORTANT]
    i don't exactly know how to implement it yet
 
@@ -26,8 +28,6 @@
      - what about @*.formula, what about data titles in headers
   - (?) "info @n () > file"
        should display ... [1234 lines more] rather than everything
-
-* add link to http://paida.sourceforge.net/ (another plotting/fitting prog)
 
 ------------------------
 

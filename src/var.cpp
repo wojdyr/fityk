@@ -96,7 +96,8 @@ void Variable::set_var_idx(vector<Variable*> const& variables)
 string Variable::get_formula(vector<fp> const &parameters) const
 {
     assert(nr >= -1);
-    return nr == -1 ? get_op_trees().back()->str(&varnames) 
+    vector<string> vn = concat_pairs("$", varnames);
+    return nr == -1 ? get_op_trees().back()->str(&vn) 
                     : "~" + S(parameters[nr]);
 }
 
@@ -108,9 +109,10 @@ string Variable::get_info(vector<fp> const &parameters, bool extended) const
     if (auto_delete)
         s += "  [auto]";
     if (extended && nr == -1) {
+        vector<string> vn = concat_pairs("$", varnames);
         for (unsigned int i = 0; i < varnames.size(); ++i)
             s += "\nd(" + xname + ")/d($" + varnames[i] + "): " 
-              + get_op_trees()[i]->str(&varnames) + " == " + S(derivatives[i]);
+              + get_op_trees()[i]->str(&vn) + " == " + S(derivatives[i]);
     }
     return s;
 } 
@@ -238,8 +240,6 @@ std::string simplify_formula(std::string const &formula)
     vector<string> vars(1, "x");
     vector<OpTree*> results = calculate_deriv(root, vars);
     string simplified = results.back()->str(&vars);
-    // simplied formula has $x instead of x
-    replace_all(simplified, "$x", "x");
     purge_all_elements(results);
     return simplified;
 }

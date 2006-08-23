@@ -25,6 +25,7 @@
 #include "guess.h"
 #include "var.h"
 #include "func.h"
+#include "ast.h"
 
 using namespace std;
 
@@ -270,6 +271,12 @@ void do_print_sum_derivatives_info(char const*, char const*)
     prepared_info += "\n" + m;
 }
 
+void do_print_deriv(char const* a, char const* b)
+{
+    string s = string(a, b);
+    prepared_info += "\n" + get_derivatives_str(s);
+}
+
 void do_print_debug_info(char const*, char const*)  { 
     string m;
     if (t == "idx") {   // show varnames and var_idx from VariableUser
@@ -496,7 +503,9 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
            >> no_actions_d[DataExpressionG][assign_a(t2)] 
            >> ')') [&do_print_sum_derivatives_info]
         | existing_dataset_nr [&do_print_info]
-        | "debug" >> compact_str [&do_print_debug_info] //don't use with redir
+        | "debug" >> compact_str [&do_print_debug_info] //no output_redir
+        | "der " >> (+chset<>(anychar_p - chset<>(" \t\n\r;,"))) 
+                                                            [&do_print_deriv]
         | eps_p [&do_print_info] 
         ;
 
