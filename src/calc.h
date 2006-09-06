@@ -22,6 +22,8 @@ public:
     void tree_to_bytecode(std::vector<int> const& var_idx); 
     void run_vm(std::vector<Variable*> const &variables) const; 
     std::vector<OpTree*> const& get_op_trees() const { return op_trees; }
+    /// check for the simplest case, just constant number
+    bool is_constant() const;
 
 protected:
     // these are recalculated every time parameters or variables are changed

@@ -223,6 +223,11 @@ void AnyFormula::tree_to_bytecode(vector<int> const& var_idx)
     }
 }
 
+bool AnyFormula::is_constant() const 
+{ 
+    return op_trees.back()->op == 0; 
+}
+
 ////////////////////////////////////////////////////////////////////////////
 
 void AnyFormulaO::tree_to_bytecode(size_t var_idx_size) 

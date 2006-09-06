@@ -118,6 +118,7 @@ public:
     std::vector<ParMult> const& get_recursive_derivatives() const 
                                             { return recursive_derivatives; }
     bool is_simple() const { return nr != -1; }
+    bool is_constant() const { return nr == -1 && af.is_constant(); }
     std::vector<OpTree*> const& get_op_trees() const 
                                                 { return af.get_op_trees(); }
     void set_original(Variable const* orig) { assert(nr==-2); original=orig; }

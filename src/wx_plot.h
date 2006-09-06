@@ -60,7 +60,8 @@ protected:
     wxFont ticsFont;
     int point_radius;
     bool line_between_points;
-    bool x_axis_visible, y_axis_visible, xtics_visible, ytics_visible;
+    bool x_axis_visible, y_axis_visible, xtics_visible, ytics_visible,
+         xminor_tics_visible, yminor_tics_visible;
     bool y_logarithm;
     bool x_grid, y_grid;
     int x_max_tics, y_max_tics, x_tic_size, y_tic_size;
@@ -165,7 +166,8 @@ private:
 inline wxColour invert_colour(const wxColour& col)
 { return wxColour(255 - col.Red(), 255 - col.Green(), 255 - col.Blue()); }
 
-std::vector<fp> scale_tics_step (fp beg, fp end, int max_tics, bool log=false);
+std::vector<fp> scale_tics_step (fp beg, fp end, int max_tics, 
+                                 std::vector<fp> &minors, bool log=false);
 
 #endif 
 

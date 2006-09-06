@@ -1341,6 +1341,9 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
     x_show_tics = new wxCheckBox(this, -1, wxT("show tics"));
     x_show_tics->SetValue(plot->xtics_visible);
     xsizer->Add(x_show_tics, 0, wxALL, 5);
+    x_show_minor_tics = new wxCheckBox(this, -1, wxT("show minor tics"));
+    x_show_minor_tics->SetValue(plot->xminor_tics_visible);
+    xsizer->Add(x_show_minor_tics, 0, wxALL, 5);
     x_show_grid = new wxCheckBox(this, -1, wxT("show grid"));
     x_show_grid->SetValue(plot->x_grid);
     xsizer->Add(x_show_grid, 0, wxALL, 5);
@@ -1375,6 +1378,9 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
     y_show_tics = new wxCheckBox(this, -1, wxT("show tics"));
     y_show_tics->SetValue(plot->ytics_visible);
     ysizer->Add(y_show_tics, 0, wxALL, 5);
+    y_show_minor_tics = new wxCheckBox(this, -1, wxT("show minor tics"));
+    y_show_minor_tics->SetValue(plot->yminor_tics_visible);
+    ysizer->Add(y_show_minor_tics, 0, wxALL, 5);
     y_show_grid = new wxCheckBox(this, -1, wxT("show grid"));
     y_show_grid->SetValue(plot->y_grid);
     ysizer->Add(y_show_grid, 0, wxALL, 5);
@@ -1420,6 +1426,7 @@ void ConfigureAxesDlg::OnApply (wxCommandEvent& WXUNUSED(event))
     plot->xAxisCol = axis_color;
     plot->x_axis_visible = x_show_axis->GetValue();
     plot->xtics_visible = x_show_tics->GetValue();
+    plot->xminor_tics_visible = x_show_minor_tics->GetValue();
     plot->x_grid = x_show_grid->GetValue();
     plot->x_max_tics = x_max_tics->GetValue();
     plot->x_tic_size = x_tics_size->GetValue();
@@ -1428,7 +1435,7 @@ void ConfigureAxesDlg::OnApply (wxCommandEvent& WXUNUSED(event))
         scale_changed = true;
     }
     plot->y_axis_visible = y_show_axis->GetValue();
-    plot->ytics_visible = y_show_tics->GetValue();
+    plot->yminor_tics_visible = y_show_minor_tics->GetValue();
     plot->y_grid = y_show_grid->GetValue();
     plot->y_max_tics = y_max_tics->GetValue();
     plot->y_tic_size = y_tics_size->GetValue();

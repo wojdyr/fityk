@@ -42,6 +42,8 @@
 #include "img/copyfunc.xpm"
 #include "img/unused.xpm"
 #include "img/zshift.xpm"
+#include "img/lock.xpm"
+#include "img/lock_open.xpm"
 
 using namespace std;
 
@@ -432,33 +434,38 @@ class FancyRealCtrl : public wxPanel, public ValueChangingHandler
 {
 public:
     FancyRealCtrl(wxWindow* parent, wxWindowID id, 
-                  fp value, string const& tc_name, 
+                  fp value, string const& tc_name, bool locked_,
                   SideBar const* draw_handler_);
     void change_value(fp factor);
     void on_stop_changing();
     void OnTextEnter(wxCommandEvent &WXUNUSED(event)) { on_stop_changing(); }
+    void OnLockButton(wxCommandEvent&) { toggle_lock(); }
     void set(fp value, string const& tc_name);
     fp get_value() const;
     string get_name() const { return name; }
     void set_temporary_value(fp value) { tc->SetValue(s2wx(S(value))); }
+    void toggle_lock(); 
 
     DECLARE_EVENT_TABLE()
 private:
     fp initial_value;
     std::string name;
+    bool locked;
     SideBar const* draw_handler;
     wxTextCtrl *tc;
+    wxBitmapButton *lock_btn;
 };
 
 BEGIN_EVENT_TABLE(FancyRealCtrl, wxPanel)
     EVT_TEXT_ENTER(-1, FancyRealCtrl::OnTextEnter)
+    EVT_BUTTON(-1, FancyRealCtrl::OnLockButton)
 END_EVENT_TABLE()
 
 FancyRealCtrl::FancyRealCtrl(wxWindow* parent, wxWindowID id, 
-                             fp value, string const& tc_name, 
+                             fp value, string const& tc_name, bool locked_,
                              SideBar const* draw_handler_)
-    : wxPanel(parent, id), initial_value(value), name(tc_name),
-      draw_handler(draw_handler_)
+    : wxPanel(parent, id), initial_value(value), name(tc_name), 
+      locked(locked_), draw_handler(draw_handler_)
 {
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
     tc = new wxTextCtrl(this, -1, s2wx(S(value)), 
@@ -466,6 +473,11 @@ FancyRealCtrl::FancyRealCtrl(wxWindow* parent, wxWindowID id,
                         wxTE_PROCESS_ENTER);
     tc->SetToolTip(s2wx(name));
     sizer->Add(tc, 1, wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND, 1);
+    lock_btn = new wxBitmapButton(this, -1, 
+                                  wxBitmap(locked ? lock_xpm : lock_open_xpm),
+                                  wxDefaultPosition, wxDefaultSize,
+                                  wxNO_BORDER);
+    sizer->Add(lock_btn, 0, wxALL|wxALIGN_CENTER_VERTICAL, 0);
     ValueChangingWidget *vch = new ValueChangingWidget(this, -1, this);
     sizer->Add(vch, 0, wxALL|wxALIGN_CENTER_VERTICAL, 1);
     SetSizer(sizer);
@@ -513,6 +525,15 @@ void FancyRealCtrl::on_stop_changing()
         else
             tc->SetValue(s2wx(S(initial_value)));
     }
+}
+
+void FancyRealCtrl::toggle_lock()
+{
+    locked = !locked;
+    lock_btn->SetBitmapLabel(wxBitmap(locked ? lock_xpm : lock_open_xpm));
+    //TODO check make_bottom_panel_sig
+    //TODO
+         //   exec_command(name + " = ~" + wx2s(tc->GetValue()));
 }
 
 
@@ -1167,10 +1188,10 @@ void SideBar::add_variable_to_bottom_panel(Variable const* var,
     wxStaticText* name_st = new wxStaticText(bottom_panel, -1, s2wx(tv_name));
     bp_sizer->Add(name_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 1);
     bp_statict.push_back(name_st);
-    if (var->is_simple()) {
+    if (var->is_simple() || var->is_constant()) {
         FancyRealCtrl *frc = new FancyRealCtrl(bottom_panel, -1,
                                                var->get_value(), var->xname,
-                                               this);
+                                               !var->is_simple(), this);
         bp_sizer->Add(frc, 1, wxALL|wxEXPAND, 1);
         bp_frc.push_back(frc);
     }
@@ -1203,7 +1224,7 @@ vector<bool> SideBar::make_bottom_panel_sig(Function const* func)
     vector<bool> sig;
     for (int i = 0; i < size(func->type_var_names); ++i) {
         Variable const* var = AL->get_variable(func->get_var_idx(i));
-        sig.push_back(var->is_simple());
+        sig.push_back(var->is_simple() || var->is_constant());
     }
     return sig;
 }

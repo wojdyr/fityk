@@ -208,9 +208,11 @@ public:
 private:
     MainPlot *plot;
     wxColour axis_color;
-    wxCheckBox *x_show_axis, *x_show_tics, *x_show_grid, *x_reversed; 
+    wxCheckBox *x_show_axis, *x_show_tics, *x_show_minor_tics, 
+               *x_show_grid, *x_reversed; 
+    wxCheckBox *y_show_axis, *y_show_tics, *y_show_minor_tics, 
+               *y_show_grid, *y_logarithm; 
     wxSpinCtrl *x_max_tics, *x_tics_size;
-    wxCheckBox *y_show_axis, *y_show_tics, *y_show_grid, *y_logarithm; 
     wxSpinCtrl *y_max_tics, *y_tics_size;
     DECLARE_EVENT_TABLE()
 };
