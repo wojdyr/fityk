@@ -20,6 +20,7 @@ enum
     OP_ONE_ARG,   
     OP_NEG = OP_ONE_ARG,       
     OP_EXP,       
+    OP_ERF,
     OP_SIN,       
     OP_COS,       
     OP_ATAN,      

@@ -1,7 +1,21 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
-* BUG: program crashes when exporting formulae for some peaks (eg. Voigt)
+// * BUG: program crashes when exporting formulae for some peaks (eg. Voigt)
+
+* investigate slow fitting of multiple datasets (H2O_D2O_RIXS.fit)
+  (bug: plot preview doesn't work with data from Markus;
+   add file format: text with first line containing title, if columns
+   are specified get title from y column, in GUI Load-Custom checkbox "header")
+
+* (GUI) finish script debugger dialog
+
+// * erf for variables/functions/datatrans
+
+// * (GUI) "locking" or "freezing" of function's parameters at the bottom 
+//   panel on the sidebar (small padlock icons next to parameter values).
+
+// * (GUI) minor tics
 
 // * BUG: "reset" doesn't deletes functions and variables, it should also
 //   replot in GUI and reset automatic func/var counter.
@@ -12,7 +26,7 @@
 // * (GUI) Configuration of status bar:
      todo: read/save settingins
 
-* add description of "info der" to manual, and list all info arguments 
+// * add description of "info der" to manual; list all info arguments in manual
 
 * ? history (data / sum / view / all) [IMPORTANT]
    i don't exactly know how to implement it yet
@@ -43,8 +57,6 @@
 
 * un-strip background: what to do if active dataset is different than the one
   the background was removed for.
-
-* (GUI) finish script debugger dialog
 
 * link to "On-line tutorial" and the tutorial itself(!)
    perhaps screencast (eg. using Wink)
@@ -82,6 +94,9 @@
   [IMPORTANT]
 
 ------------------ next release here 
+
+* (GUI) plot horizontal/vertical lines (X/Y | pos=2.34 | 100%)
+     can be used to show theoretical peak positions in XRD
 
 * clean up verbosity levels of messages. There should be 6 kind of messages:
   debug, vinfo (more verbose info), info, rinfo (explicitely requested info),

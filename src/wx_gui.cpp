@@ -1066,7 +1066,8 @@ void FFrame::OnSExport (wxCommandEvent& event)
     static wxString dir = wxT("");
     int pos = AL->get_active_ds_position();
     string const& filename = AL->get_data(pos)->get_filename();
-    wxString name = wxFileName(s2wx(filename)).GetName();
+    wxString name = wxFileName(s2wx(filename)).GetName()
+                                + (as_peaks ? wxT(".peaks") : wxT(".formula"));
     wxFileDialog fdlg (this, wxT("Export curve to file"), dir, name,
                        (as_peaks 
                             ? wxT("parameters of functions (*.peaks)|*.peaks")

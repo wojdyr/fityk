@@ -314,8 +314,15 @@ string Function::get_current_assignment(vector<Variable*> const &variables,
 string Function::get_current_formula(string const& x) const
 {
     string t = type_rhs;
-    for (int i = 0; i < size(type_var_names); ++i) 
-        replace_words(t, type_var_names[i], S(get_var_value(i)));
+    if (contains_element(t, '#')) {
+        vector<fp> values(vv.begin(), vv.begin() + nv);
+        t = type_name + "(" + join_vector(values, ", ") + ")";
+    }
+    else {
+        for (size_t i = 0; i < type_var_names.size(); ++i) 
+            replace_words(t, type_var_names[i], S(get_var_value(i)));
+    }
+
     replace_words(t, "x", x);
     return t;
 }

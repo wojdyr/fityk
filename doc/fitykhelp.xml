@@ -506,6 +506,7 @@
      <function>atan</function>, 
      <function>asin</function>, 
      <function>acos</function>, 
+     <function>erf</function>, 
      <function>gamma</function>, 
      <function>lgamma</function> (=ln(|gamma|)), 
      <function>abs</function>,
@@ -902,6 +903,7 @@
      <function>atan</function>, 
      <function>asin</function>, 
      <function>acos</function>, 
+     <function>erf</function>, 
      <function>lgamma</function>. Note that this is a subset of functions
      used in <link linkend="transform">data transformations</link>.
     </para>
@@ -1687,7 +1689,39 @@
      to appends to the file.
     </para>
     <para>
-     [TODO: list of all info arguments]
+     The following arguments are recognized:
+     <simplelist>
+      <member>variables</member>
+      <member><replaceable>$variable_name</replaceable></member>
+      <member>types</member>
+      <member><replaceable>TypeName</replaceable></member>
+      <member>functions</member>
+      <member><replaceable>%function_name</replaceable></member>
+      <member>datasets</member>
+      <member><replaceable>@dataset_number</replaceable></member>
+      <member>commands</member>
+      <member>commands [n:m]</member>
+      <member>view</member>
+      <member>set</member>
+      <member>fit [in @<replaceable>n</replaceable>]</member>
+      <member>errors [in @<replaceable>n</replaceable>]</member>
+      <member>guess [k] [x-range] [in @<replaceable>n</replaceable>]</member>
+      <member><replaceable>data-expression</replaceable> [in @<replaceable>n</replaceable>]</member>
+      <member>[@<replaceable>n</replaceable>.]F</member>
+      <member>[@<replaceable>n</replaceable>.]Z</member>
+      <member>[@<replaceable>n</replaceable>.]formula</member>
+      <member>[@<replaceable>n</replaceable>.]dF(<replaceable>data-expression</replaceable>)</member>
+      <member>der <replaceable>mathematic-function</replaceable></member>
+     </simplelist>
+    </para>
+    <para>
+     <command>info der</command> shows derivatives of given function.
+     <screen>     
+      =-> info der sin(a) + 3*exp(b/a)
+      f(a, b) = sin(a)+3*exp(b/a)
+      df / d a = cos(a)-3*exp(b/a)*b/a^2
+      df / d b = 3*exp(b/a)/a
+     </screen>     
     </para>
    </section>
    <section>

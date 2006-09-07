@@ -22,7 +22,7 @@ public:
     std::string const type_name;
     std::vector<std::string> const type_var_names;
     std::string const type_rhs;
-    int const nv;
+    int const nv; /// number of variables
 
     Function(std::string const &name_, std::vector<std::string> const &vars,
              std::string const &formula_);

@@ -148,6 +148,11 @@ inline bool startswith(std::string const& s, std::string const& p) {
 std::string::size_type find_matching_bracket(std::string const& formula, 
                                              std::string::size_type left_pos);
 
+template<typename T, typename T2>
+bool contains_element(std::basic_string<T> const& str, T2 const& t)
+{
+    return (str.find(t) != std::basic_string<T>::npos);
+}
 //---------------------------  V E C T O R  --------------------------------
 
 /// Makes 1-element vector

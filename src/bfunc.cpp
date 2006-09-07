@@ -248,7 +248,7 @@ bool FuncGaussian::get_nonzero_range (fp level, fp &left, fp &right) const
 
 const char *FuncSplitGaussian::formula 
 = "SplitGaussian(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5) = "
-                   "height*exp(-ln(2)*((x-center)/(x<center?hwhm1:hwhm2))^2)"; 
+                   "height*exp(-ln(2)*((x-center)/(x<center?hwhm1:hwhm2))^2)#"; 
 
 void FuncSplitGaussian::more_precomputations() 
 { 
@@ -411,7 +411,7 @@ const char *FuncSplitPearson7::formula
 = "SplitPearson7(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5, "
                                                         "shape1=2, shape2=2) = "
     "height/(1+((x-center)/(x<center?hwhm1:hwhm2))^2"
-               "*(2^(1/(x<center?shape1:shape2))-1))^(x<center?shape1:shape2)";
+              "*(2^(1/(x<center?shape1:shape2))-1))^(x<center?shape1:shape2)#";
 
 void FuncSplitPearson7::more_precomputations()
 { 
@@ -536,7 +536,7 @@ bool FuncPseudoVoigt::get_nonzero_range (fp level, fp &left, fp &right) const
 
 const char *FuncVoigt::formula 
 = "Voigt(height, center, gwidth=fwhm*0.4, shape=0.1) ="
-                            " convolution of Gaussian and Lorentzian";
+                            " convolution of Gaussian and Lorentzian #";
 
 void FuncVoigt::more_precomputations() 
 { 
@@ -610,7 +610,7 @@ fp FuncVoigt::area() const
 
 const char *FuncVoigtA::formula 
 = "VoigtA(area, center, gwidth=fwhm*0.4, shape=0.1) = "
-                            "convolution of Gaussian and Lorentzian";
+                            "convolution of Gaussian and Lorentzian #";
 
 void FuncVoigtA::more_precomputations() 
 { 
@@ -771,7 +771,7 @@ FUNC_CALCULATE_VALUE_DERIV_END(h*t)
 
 
 const char *FuncPielaszekCube::formula 
-= "PielaszekCube(a=height*0.016, center, r=300, s=150) = ..."; 
+= "PielaszekCube(a=height*0.016, center, r=300, s=150) = ...#"; 
 
 
 FUNC_CALCULATE_VALUE_BEGIN(PielaszekCube)

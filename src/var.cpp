@@ -196,7 +196,7 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
     exptoken    =  real_const
                 |  inner_node_d[ch_p('(') >> expression >> ')']
                 |  root_node_d[ as_lower_d[ str_p("sqrt") 
-                                          | "exp" | "log10" | "ln" 
+                                          | "exp" | "erf" | "log10" | "ln" 
                                           | "sin" | "cos" | "tan" 
                                           | "atan" | "asin" | "acos"
                                           | "lgamma"
@@ -230,7 +230,7 @@ template FuncGrammar::definition<scanner<char const*, scanner_policies<skipper_i
 template FuncGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<no_actions_action_policy<action_policy> > > > >::definition(FuncGrammar const&);
 
 
-/// small but slow utility function 
+/// small and slow utility function 
 /// uses calculate_deriv() to simplify formulae
 std::string simplify_formula(std::string const &formula)
 {

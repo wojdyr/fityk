@@ -439,12 +439,13 @@ public:
     void change_value(fp factor);
     void on_stop_changing();
     void OnTextEnter(wxCommandEvent &WXUNUSED(event)) { on_stop_changing(); }
-    void OnLockButton(wxCommandEvent&) { toggle_lock(); }
+    void OnLockButton(wxCommandEvent&) { toggle_lock(true); }
     void set(fp value, string const& tc_name);
     fp get_value() const;
     string get_name() const { return name; }
+    bool get_locked() const { return locked; }
     void set_temporary_value(fp value) { tc->SetValue(s2wx(S(value))); }
-    void toggle_lock(); 
+    void toggle_lock(bool exec); 
 
     DECLARE_EVENT_TABLE()
 private:
@@ -454,6 +455,8 @@ private:
     SideBar const* draw_handler;
     wxTextCtrl *tc;
     wxBitmapButton *lock_btn;
+
+    wxBitmap get_lock_bitmap() const;
 };
 
 BEGIN_EVENT_TABLE(FancyRealCtrl, wxPanel)
@@ -473,8 +476,7 @@ FancyRealCtrl::FancyRealCtrl(wxWindow* parent, wxWindowID id,
                         wxTE_PROCESS_ENTER);
     tc->SetToolTip(s2wx(name));
     sizer->Add(tc, 1, wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND, 1);
-    lock_btn = new wxBitmapButton(this, -1, 
-                                  wxBitmap(locked ? lock_xpm : lock_open_xpm),
+    lock_btn = new wxBitmapButton(this, -1, get_lock_bitmap(),
                                   wxDefaultPosition, wxDefaultSize,
                                   wxNO_BORDER);
     sizer->Add(lock_btn, 0, wxALL|wxALIGN_CENTER_VERTICAL, 0);
@@ -527,13 +529,17 @@ void FancyRealCtrl::on_stop_changing()
     }
 }
 
-void FancyRealCtrl::toggle_lock()
+void FancyRealCtrl::toggle_lock(bool exec)
 {
     locked = !locked;
-    lock_btn->SetBitmapLabel(wxBitmap(locked ? lock_xpm : lock_open_xpm));
-    //TODO check make_bottom_panel_sig
-    //TODO
-         //   exec_command(name + " = ~" + wx2s(tc->GetValue()));
+    lock_btn->SetBitmapLabel(get_lock_bitmap());
+    if (exec)
+        exec_command(name + " = " + (locked ? "{" : "~{") + name + "}");
+}
+
+wxBitmap FancyRealCtrl::get_lock_bitmap() const
+{
+    return wxBitmap(locked ? lock_xpm : lock_open_xpm);
 }
 
 
@@ -1278,8 +1284,10 @@ void SideBar::update_bottom_panel()
             (*st)->SetLabel(s2wx(t));
             ++st;
             Variable const* var = AL->get_variable(bp_func->get_var_idx(i));
-            if (var->is_simple()) {
+            if (var->is_simple() || var->is_constant()) {
                 bp_frc[i]->set(var->get_value(), var->xname);
+                if (bp_frc[i]->get_locked() != !var->is_simple())
+                    bp_frc[i]->toggle_lock(false);
             }
             else {
                 assert (bp_frc[i] == 0);

@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <ctype.h>
 #include "common.h"
 #include "sum.h"
 #include "func.h"
@@ -256,7 +257,16 @@ string Sum::get_formula(bool simplify) const
         formula += (i==ff_idx.begin() ? "" : "+") 
                    + mgr.get_function(*i)->get_current_formula(x); 
     if (simplify) {
-        formula = simplify_formula(formula);
+        // check if formula has not-expanded-functions, like Voigt(2,3,4,5)
+        bool has_upper = false;
+        for (size_t i = 0; i < formula.size(); ++i)
+            if (isupper(formula[i])) {
+                has_upper = true;
+                break;
+            }
+        // the simplify_formula() is not working with not-expanded-functions
+        if (!has_upper) 
+            formula = simplify_formula(formula);
     }
     return formula;
 }
