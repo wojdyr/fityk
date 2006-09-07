@@ -1578,7 +1578,7 @@ void ConfigurePLabelsDlg::OnChangeLabelFont (wxCommandEvent& WXUNUSED(event))
 
 /*
 // outdated
-void auto_background (int n, fp p1, bool is_proc1, fp p2, bool is_proc2)
+void auto_background (int n, fp p1, bool is_perc1, fp p2, bool is_perc2)
 {
     //FIXME: Do you know any good algorithm, that can extract background
     //       from data?
@@ -1593,7 +1593,7 @@ void auto_background (int n, fp p1, bool is_proc1, fp p2, bool is_proc2)
             v[k - l] = p[k].orig_y;
         sort (v.begin(), v.end());
         int y_avg_beg = 0, y_avg_end = v.size();
-        if (is_proc1) {
+        if (is_perc1) {
             p1 = min (max (p1, 0.), 100.);
             y_avg_beg = static_cast<int>(v.size() * p1 / 100); 
         }
@@ -1602,7 +1602,7 @@ void auto_background (int n, fp p1, bool is_proc1, fp p2, bool is_proc2)
             if (y_avg_beg == size(v))
                 y_avg_beg--;
         }
-        if (is_proc2) {
+        if (is_perc2) {
             p2 = min (max (p2, 0.), 100.);
             y_avg_end = y_avg_beg + static_cast<int>(v.size() * p2 / 100);
         }

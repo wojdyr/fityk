@@ -418,13 +418,13 @@ fp diff_chi2_of_data_for_draw_data (vector<Point>::const_iterator i,
     return t*t;
 }
 
-fp diff_y_proc_of_data_for_draw_data (vector<Point>::const_iterator i, 
+fp diff_y_perc_of_data_for_draw_data (vector<Point>::const_iterator i, 
                                       Sum const* sum)
 {
     return i->y ? (i->y - sum_value(i, sum)) / i->y * 100 : 0;
 }
 
-fp rdiff_y_proc_of_data_for_draw_data (vector<Point>::const_iterator i, 
+fp rdiff_y_perc_of_data_for_draw_data (vector<Point>::const_iterator i, 
                                        Sum const* sum)
 {
     return i->y ? (sum_value(i, sum) - i->y) / i->y * 100 : 0;
@@ -478,9 +478,9 @@ void AuxPlot::Draw(wxDC &dc, bool monochrome)
     else if (kind == apk_diff_stddev)
         f = reversed_diff ? rdiff_stddev_of_data_for_draw_data 
                           : diff_stddev_of_data_for_draw_data;
-    else if (kind == apk_diff_y_proc)
-        f = reversed_diff ? rdiff_y_proc_of_data_for_draw_data
-                          : diff_y_proc_of_data_for_draw_data;
+    else if (kind == apk_diff_y_perc)
+        f = reversed_diff ? rdiff_y_perc_of_data_for_draw_data
+                          : diff_y_perc_of_data_for_draw_data;
     else if (kind == apk_cum_chi2) {
         f = diff_chi2_of_data_for_draw_data;
         cummulative = true;
@@ -531,7 +531,7 @@ void AuxPlot::OnLeaveWindow (wxMouseEvent& WXUNUSED(event))
 bool AuxPlot::is_zoomable()
 {
     return kind == apk_diff || kind == apk_diff_stddev 
-           || kind == apk_diff_y_proc || kind == apk_cum_chi2;
+           || kind == apk_diff_y_perc || kind == apk_cum_chi2;
 }
 
 void AuxPlot::set_scale()
@@ -553,7 +553,7 @@ void AuxPlot::set_scale()
                 yUserScale = y_zoom;
             break;
         case apk_diff_stddev:
-        case apk_diff_y_proc:
+        case apk_diff_y_perc:
             yUserScale = -1. * y_zoom_base * y_zoom;
             break;
         default:
@@ -810,8 +810,8 @@ void AuxPlot::fit_y_zoom(Data const* data, Sum const* sum)
             y_zoom_base = GetClientSize().GetHeight() / (2. * y);
             y_zoom = 0.9;
             break;
-        case apk_diff_y_proc:
-            y = get_max_abs_y(diff_y_proc_of_data_for_draw_data, 
+        case apk_diff_y_perc:
+            y = get_max_abs_y(diff_y_perc_of_data_for_draw_data, 
                               first, last, sum);
             y_zoom_base = GetClientSize().GetHeight() / (2. * y);
             y_zoom = 0.9;

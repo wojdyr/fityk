@@ -9,6 +9,7 @@
 #include "ui.h"
 #include "func.h"
 #include "sum.h"
+#include "settings.h"
 
 #include <stdlib.h>
 #include <ctype.h>
@@ -621,7 +622,8 @@ fp VariableManager::variation_of_a (int n, fp variat) const
     assert (0 <= n && n < size(get_parameters()));
     Domain const& dom = get_variable(n)->domain;
     fp ctr = dom.is_ctr_set() ? dom.get_ctr() : parameters[n];
-    fp sgm = dom.is_set() ? dom.get_sigma() : 0.5 * ctr;
+    fp sgm = dom.is_set() ? dom.get_sigma() 
+                : ctr * getSettings()->get_f("variable-domain-percent") / 100.;
     return ctr + sgm * variat;
 }
 

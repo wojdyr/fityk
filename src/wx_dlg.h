@@ -145,7 +145,7 @@ private:
     wxCheckBox *exit_cb;
     SpinCtrl *seed_sp, *mwssre_sp;
     RealNumberCtrl *cut_func, *height_correction, *width_correction,
-                   *lm_lambda_ini, *lm_lambda_up, *lm_lambda_down,
+                   *domain_p, *lm_lambda_ini, *lm_lambda_up, *lm_lambda_down,
                    *lm_stop, *lm_max_lambda;
     wxCheckBox *cancel_poos;
     wxTextCtrl *dir_ld_tc, *dir_xs_tc;

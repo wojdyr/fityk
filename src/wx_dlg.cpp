@@ -921,13 +921,18 @@ BEGIN_EVENT_TABLE(SettingsDlg, wxDialog)
 END_EVENT_TABLE()
 
 RealNumberCtrl *addRealNumberCtrl(wxWindow *parent, wxString const& label,
-                                  string const& value, wxSizer *sizer)
+                                  string const& value, wxSizer *sizer,
+                                  wxString const& label_after=wxString())
 {
     wxStaticText *st = new wxStaticText(parent, -1, label);
     RealNumberCtrl *ctrl = new RealNumberCtrl(parent, -1, value);
     wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
     hsizer->Add(st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     hsizer->Add(ctrl, 0, wxALL, 5);
+    if (!label_after.IsEmpty()) {
+        wxStaticText *sta = new wxStaticText(parent, -1, label_after);
+        hsizer->Add(sta, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    }
     sizer->Add(hsizer, 0, wxEXPAND);
     return ctrl;
 }
@@ -1039,6 +1044,11 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     sizer_fcstop->Add(mwssre_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     sizer_fcstop->Add(mwssre_sp, 0, wxALL, 5);
     sizer_fcmn->Add(sizer_fcstop, 0, wxEXPAND|wxALL, 5);
+    domain_p = addRealNumberCtrl(page_fit_common, 
+                                 wxT("default domain of variable is +/-"), 
+                                 getSettings()->getp("variable-domain-percent"),
+                                 sizer_fcmn,
+                                 wxT("%"));
     add_persistence_note(page_fit_common, sizer_fcmn);
     page_fit_common->SetSizerAndFit(sizer_fcmn);
 
@@ -1141,6 +1151,7 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
     m["width-correction"] = wx2s(width_correction->GetValue());
     m["can-cancel-guess"] = cancel_poos->GetValue() ? "1" : "0";
     m["max-wssr-evaluations"] = S(mwssre_sp->GetValue());
+    m["variable-domain-percent"] = wx2s(domain_p->GetValue());
     m["lm-lambda-start"] = wx2s(lm_lambda_ini->GetValue());
     m["lm-lambda-up-factor"] = wx2s(lm_lambda_up->GetValue());
     m["lm-lambda-down-factor"] = wx2s(lm_lambda_down->GetValue());

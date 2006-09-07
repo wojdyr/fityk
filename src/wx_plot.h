@@ -25,7 +25,7 @@ enum Aux_plot_kind_enum
     apk_empty, 
     apk_diff, 
     apk_diff_stddev, 
-    apk_diff_y_proc,
+    apk_diff_y_perc,
     apk_cum_chi2
 };
 

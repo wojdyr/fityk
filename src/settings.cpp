@@ -64,6 +64,7 @@ Settings::Settings()
 
     //  - common
     ipar["max-wssr-evaluations"] = 1000;
+    fpar["variable-domain-percent"] = 30.;
 
     //  - Lev-Mar
     fpar["lm-lambda-start"] = 0.001;
