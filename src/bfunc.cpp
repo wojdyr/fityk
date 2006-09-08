@@ -69,7 +69,7 @@ void Func##NAME::calculate_value_deriv(vector<fp> const &xx, \
 ///////////////////////////////////////////////////////////////////////
 
 const char *FuncConstant::formula 
-= "Constant(a=height) = a"; 
+= "Constant(a=avgy) = a"; 
 
 void FuncConstant::calculate_value(vector<fp> const&/*xx*/, vector<fp>&yy) const
 {
@@ -109,7 +109,7 @@ FUNC_CALCULATE_VALUE_DERIV_END(vv[0] + x*vv[1])
 ///////////////////////////////////////////////////////////////////////
 
 const char *FuncQuadratic::formula 
-= "Quadratic(a0=height,a1=0, a2=0) = a0 + a1*x + a2*x^2"; 
+= "Quadratic(a0=avgy, a1=0, a2=0) = a0 + a1*x + a2*x^2"; 
 
 
 FUNC_CALCULATE_VALUE(Quadratic, vv[0] + x*vv[1] + x*x*vv[2])
@@ -124,7 +124,7 @@ FUNC_CALCULATE_VALUE_DERIV_END(vv[0] + x*vv[1] + x*x*vv[2])
 ///////////////////////////////////////////////////////////////////////
 
 const char *FuncCubic::formula 
-= "Cubic(a0=height,a1=0, a2=0, a3=0) = a0 + a1*x + a2*x^2 + a3*x^3"; 
+= "Cubic(a0=avgy, a1=0, a2=0, a3=0) = a0 + a1*x + a2*x^2 + a3*x^3"; 
 
 
 FUNC_CALCULATE_VALUE(Cubic, vv[0] + x*vv[1] + x*x*vv[2] + x*x*x*vv[3])
@@ -140,7 +140,7 @@ FUNC_CALCULATE_VALUE_DERIV_END(vv[0] + x*vv[1] + x*x*vv[2] + x*x*x*vv[3])
 ///////////////////////////////////////////////////////////////////////
 
 const char *FuncPolynomial4::formula 
-= "Polynomial4(a0=height,a1=0, a2=0, a3=0, a4=0) = "
+= "Polynomial4(a0=avgy, a1=0, a2=0, a3=0, a4=0) = "
                                  "a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4"; 
 
 
@@ -160,7 +160,7 @@ FUNC_CALCULATE_VALUE_DERIV_END(vv[0] + x*vv[1] + x*x*vv[2] + x*x*x*vv[3]
 ///////////////////////////////////////////////////////////////////////
 
 const char *FuncPolynomial5::formula 
-= "Polynomial5(a0=height,a1=0, a2=0, a3=0, a4=0, a5=0) = "
+= "Polynomial5(a0=avgy, a1=0, a2=0, a3=0, a4=0, a5=0) = "
                              "a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5"; 
 
 
@@ -181,7 +181,7 @@ FUNC_CALCULATE_VALUE_DERIV_END(vv[0] + x*vv[1] + x*x*vv[2]
 ///////////////////////////////////////////////////////////////////////
 
 const char *FuncPolynomial6::formula 
-= "Polynomial6(a0=height,a1=0, a2=0, a3=0, a4=0, a5=0, a6=0) = "
+= "Polynomial6(a0=avgy, a1=0, a2=0, a3=0, a4=0, a5=0, a6=0) = "
                      "a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5 + a6*x^6"; 
 
 

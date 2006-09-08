@@ -106,7 +106,9 @@ void FunctionMouseDrag::start(Function const* p, int X, int Y, fp x, fp y)
         bind_parameter_to_drag(drag_x, "center", p, absolute_value);
     if (drag_y.how == no_drag)
         bind_parameter_to_drag(drag_y, "height", p, absolute_value)
-        || bind_parameter_to_drag(drag_y, "area", p, relative_value);
+        || bind_parameter_to_drag(drag_y, "area", p, relative_value)
+        || bind_parameter_to_drag(drag_y, "avgy", p, absolute_value)
+        || bind_parameter_to_drag(drag_y, "intercept", p, relative_value);
     if (drag_shift_x.how == no_drag)
         bind_parameter_to_drag(drag_shift_x, "hwhm", p, absolute_value, 0.5)
         || bind_parameter_to_drag(drag_shift_x, "fwhm", p, absolute_value, 0.5);
@@ -247,7 +249,7 @@ void MainPlot::OnPaint(wxPaintEvent& WXUNUSED(event))
     Draw(dc);
     vert_line_following_cursor(mat_redraw);//draw, if necessary, vertical lines
     peak_draft(mat_redraw);
-    draw_moving_peak(mat_redraw);
+    draw_moving_func(mat_redraw);
     frame->update_app_title();
 }
 
@@ -843,7 +845,7 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
     }
     else {
         vert_line_following_cursor(mat_move, event.GetX());
-        draw_moving_peak(mat_move, event.GetX(), event.GetY(),
+        draw_moving_func(mat_move, event.GetX(), event.GetY(),
                          event.ShiftDown());
         peak_draft(mat_move, event.GetX(), event.GetY());
         draw_temporary_rect(mat_move, event.GetX(), event.GetY());
@@ -905,7 +907,7 @@ void MainPlot::cancel_mouse_press()
 {
     if (pressed_mouse_button) {
         draw_temporary_rect(mat_stop); 
-        draw_moving_peak(mat_stop); 
+        draw_moving_func(mat_stop); 
         peak_draft(mat_stop);
         vert_line_following_cursor(mat_stop);
         mouse_press_X = mouse_press_Y = INT_MIN;
@@ -943,7 +945,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     }
     else if (button == 1 && mode == mmd_peak) {
         frame->activate_function(over_peak);
-        draw_moving_peak(mat_start, event.GetX(), event.GetY());
+        draw_moving_func(mat_start, event.GetX(), event.GetY());
         frame->set_status_text("Moving " + AL->get_function(over_peak)->xname 
                                 + "...");
     }
@@ -1019,7 +1021,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             if (!cmd.empty())
                 exec_command(cmd);
         }
-        draw_moving_peak(mat_stop);
+        draw_moving_func(mat_stop);
         frame->set_status_text("");
     }
     else if (mode == mmd_range && button != 2) {
@@ -1046,19 +1048,26 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     else if (mode == mmd_add && button == 1) {
         frame->set_status_text("");
         peak_draft(mat_stop, event.GetX(), event.GetY());
-        if (dist_X + dist_Y >= 5) {
-            fp height = Y2y(event.GetY());
-            fp center = X2x(mouse_press_X);
-            fp fwhm = fabs(shared.dX2dx(mouse_press_X - event.GetX()));
-            fp area = height * fwhm;
-            string F = AL->get_ds_count() > 1 
-                                      ?  frame->get_active_data_str()+".F" 
-                                      : "F";
+        string F = AL->get_ds_count() > 1 ?  frame->get_active_data_str()+".F" 
+                                          : "F";
+        if (func_draft_kind == fk_linear) {
+            fp y = Y2y(event.GetY());
             exec_command(frame->get_peak_type()  
+                         + "(slope=~" + S(0) + ", intercept=~" + S(y) 
+                         + ", avgy=~" + S(y) + ") -> " + F);
+        }
+        else {
+            if (dist_X + dist_Y >= 5) {
+                fp height = Y2y(event.GetY());
+                fp center = X2x(mouse_press_X);
+                fp fwhm = fabs(shared.dX2dx(mouse_press_X - event.GetX()));
+                fp area = height * fwhm;
+                exec_command(frame->get_peak_type()  
                          + "(height=~" + S(height) + ", center=~" + S(center) 
                          + ", fwhm=~" + S(fwhm) + ", area=~" + S(area) 
                          + ") -> " + F);
-          }
+            }
+        }
     }
     else if (mode == mmd_add && button == 3) {
         frame->set_status_text("");
@@ -1093,7 +1102,7 @@ void MainPlot::OnKeyDown (wxKeyEvent& event)
 }
 
 
-bool MainPlot::draw_moving_peak(MouseActEnum ma, int X, int Y, bool shift)
+bool MainPlot::draw_moving_func(MouseActEnum ma, int X, int Y, bool shift)
 {
     static int prevX=INT_MIN, prevY=INT_MIN;
     static wxCursor old_cursor = wxNullCursor;
@@ -1193,7 +1202,6 @@ void MainPlot::draw_peak_draft(int Ctr, int Hwhm, int Y)
     dc.SetPen(*wxBLACK_DASHED_PEN);
     int Y0 = y2Y(0);
     if (func_draft_kind == fk_linear) {
-        //TODO f(Ctr)=Y, 
         dc.DrawLine (0, Y, GetClientSize().GetWidth(), Y); 
     }
     else {

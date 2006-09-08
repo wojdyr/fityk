@@ -1345,7 +1345,8 @@ DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
     vsizer->Add(remove_btn, 0, wxALIGN_RIGHT|wxALL, 5);
 
     vsizer->Add(new wxStaticText(this, -1, 
-                    wxT("Parameters ('center', 'height', 'fwhm' and 'area'\n")
+                    wxT("Parameters ('center', 'height', 'fwhm', 'area' ")
+                    wxT("or 'slope',\n'intercept', 'avgy' ")
                     wxT("can be used in default values; don't put 'x' here)")), 
                 0, wxALL, 5);
 

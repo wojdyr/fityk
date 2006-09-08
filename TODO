@@ -33,6 +33,10 @@
 
 // * settings: default relative domain width
 
+// * function default parameters: "slope", "intercept", "avgy",
+//   for linear-like rather than peak-like functions;  guess for linear-like 
+//   function calculates (not weighted) linear regression of data
+
 * change 'dump' in GUI
 
 * GUI?: when loading many datasets from command line, set view to show all
@@ -73,12 +77,6 @@
 
 * (GUI) redrawing for many datasets (~100) takes noticable time.
   Kind of plot buffering (as a bitmap).
-
-* function default parameters should handle "slope" and "intercept" values,
-  guess should add slope/intercept calculated by linear fit
-  perhaps also "avgy" (average y)
-  add-peak mode should draw a line rather than peak if function has
-	  "linear" parameter names/defvalues.
 
 ------------------ next release here 0.7.6
 

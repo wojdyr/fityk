@@ -189,7 +189,7 @@ private:
     void look_for_peaktop (wxMouseEvent& event);
     void show_peak_menu (wxMouseEvent &event);
     void peak_draft (MouseActEnum ma, int X_=0, int Y_=0);
-    bool draw_moving_peak(MouseActEnum ma, int X=0, int Y=0, bool shift=false);
+    bool draw_moving_func(MouseActEnum ma, int X=0, int Y=0, bool shift=false);
     void draw_peak_draft (int X_mid, int X_hwhm, int Y);
     void draw_temporary_rect(MouseActEnum ma, int X_=0, int Y_=0);
     void draw_rect (int X1, int Y1, int X2, int Y2);
