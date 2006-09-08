@@ -6,6 +6,7 @@
 
 #include "wx_plot.h"
 #include "numfuncs.h" // B_point definition
+#include "guess.h" // enum FunctionKind 
 
 
 /// it cares about visualization of spline / polyline background 
@@ -171,6 +172,7 @@ private:
     int over_peak; /// the cursor is over peaktop of this peak
     int limit1, limit2; /// for drawing function limits (vertical lines)
     FunctionMouseDrag fmd; //for function dragging
+    FunctionKind func_draft_kind; // for function adding (with drawing draft)
 
     void draw_x_axis (wxDC& dc, bool set_pen=true);
     void draw_y_axis (wxDC& dc, bool set_pen=true);

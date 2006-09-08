@@ -1597,7 +1597,8 @@ void DefinitionMgrDlg::OnEndCellEdit(wxGridEvent &event)
         if (new_row)
             par_g->SetCellValue(row, col, wxT(""));
         else {
-            if (is_defvalue_guessable(new_val)) {
+            if (is_defvalue_guessable(new_val, fk_linear)
+                    || is_defvalue_guessable(new_val, fk_peak)) {
                 fde.defvalues[row] = new_val;
             }
             else {

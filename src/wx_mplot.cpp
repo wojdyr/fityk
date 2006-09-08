@@ -960,6 +960,8 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         Refresh(false);
     }
     else if (button == 1 && mode == mmd_add) {
+        func_draft_kind 
+            = get_function_kind(Function::get_formula(frame->get_peak_type()));
         peak_draft (mat_start, event.GetX(), event.GetY());
         SetCursor(wxCURSOR_SIZING);
         frame->set_status_text("Add drawed peak...");
@@ -1190,10 +1192,16 @@ void MainPlot::draw_peak_draft(int Ctr, int Hwhm, int Y)
     dc.SetLogicalFunction (wxINVERT);
     dc.SetPen(*wxBLACK_DASHED_PEN);
     int Y0 = y2Y(0);
-    dc.DrawLine (Ctr, Y0, Ctr, Y); //vertical line
-    dc.DrawLine (Ctr - Hwhm, (Y+Y0)/2, Ctr + Hwhm, (Y+Y0)/2); //horizontal line
-    dc.DrawLine (Ctr, Y, Ctr - 2 * Hwhm, Y0); //left slope
-    dc.DrawLine (Ctr, Y, Ctr + 2 * Hwhm, Y0); //right slope
+    if (func_draft_kind == fk_linear) {
+        //TODO f(Ctr)=Y, 
+        dc.DrawLine (0, Y, GetClientSize().GetWidth(), Y); 
+    }
+    else {
+        dc.DrawLine (Ctr, Y0, Ctr, Y); //vertical line
+        dc.DrawLine (Ctr - Hwhm, (Y+Y0)/2, Ctr + Hwhm, (Y+Y0)/2); //horizontal
+        dc.DrawLine (Ctr, Y, Ctr - 2 * Hwhm, Y0); //left slope
+        dc.DrawLine (Ctr, Y, Ctr + 2 * Hwhm, Y0); //right slope
+    }
 }
 
 void MainPlot::draw_temporary_rect(MouseActEnum ma, int X_, int Y_) 

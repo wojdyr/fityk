@@ -1,9 +1,11 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
+#include <algorithm>
+#include <ctype.h>
+
 #include "common.h"
 #include "guess.h"
-#include <algorithm>
 #include "data.h"
 #include "sum.h"
 #include "logic.h"
@@ -13,19 +15,6 @@
 #include "datatrans.h"
 
 using namespace std;
-
-fp VirtPeak::get_approx_y(fp x) const
-{
-    if (fabs(x - center) < fwhm) {
-        fp dist_in_fwhm = fabs((x - center) / fwhm);
-        if (dist_in_fwhm < 0.5)
-            return height;
-        else // 0.5 < dist_in_fwhm < 1.0
-            return height * 2. * (1. - dist_in_fwhm);
-    }
-    else
-        return 0;
-}
 
 namespace {
 
@@ -49,9 +38,6 @@ fp my_y(DataWithSum const* ds, int n, EstConditions const* ec)
     if (!ec)
         return y - ds->get_sum()->value(x);
 
-    for (vector<VirtPeak>::const_iterator i = ec->virtual_peaks.begin();
-                                             i != ec->virtual_peaks.end(); i++)
-        y -= i->get_approx_y(x);
     for (vector<int>::const_iterator i = ec->real_peaks.begin();
                                              i != ec->real_peaks.end(); i++)
         y -= AL->get_functions()[*i]->calculate_value(x); 
@@ -150,6 +136,22 @@ void parse_range(DataWithSum const* ds, vector<string> const& range,
         range_to = strtod(ri.c_str(), 0);
 }
 
+void estimate_any_parameters(DataWithSum const* ds, fp range_from, fp range_to,
+                             int &l_bor, int &r_bor)
+{
+    AL->use_parameters();
+    if (ds->get_data()->get_n() <= 0) 
+        throw ExecuteError("No active data.");
+
+    l_bor = max (ds->get_data()->get_lower_bound_ac (range_from), 0);
+    r_bor = min (ds->get_data()->get_upper_bound_ac (range_to), 
+                     ds->get_data()->get_n() - 1);
+    if (l_bor >= r_bor)
+        throw ExecuteError("Searching peak outside of data points range. "
+                           "Abandoned. Tried at [" + S(range_from) + " : " 
+                           + S(range_to) + "]");
+}
+
 } // anonymous namespace
 
 
@@ -157,17 +159,8 @@ void estimate_peak_parameters(DataWithSum const* ds, fp range_from, fp range_to,
                               fp *center, fp *height, fp *area, fp *fwhm,
                               EstConditions const* ec) 
 {
-    AL->use_parameters();
-    if (ds->get_data()->get_n() <= 0) 
-        throw ExecuteError("No active data.");
-
-    int l_bor = max (ds->get_data()->get_lower_bound_ac (range_from), 0);
-    int r_bor = min (ds->get_data()->get_upper_bound_ac (range_to), 
-                     ds->get_data()->get_n() - 1);
-    if (l_bor >= r_bor)
-        throw ExecuteError("Searching peak outside of data points range. "
-                           "Abandoned. Tried at [" + S(range_from) + " : " 
-                           + S(range_to) + "]");
+    int l_bor, r_bor;
+    estimate_any_parameters(ds, range_from, range_to, l_bor, r_bor);
     int max_y_pos = max_data_y_pos(ds, l_bor, r_bor, ec);
     if (max_y_pos == l_bor || max_y_pos == r_bor - 1) {
         string s = "Estimating peak parameters: peak outside of search scope."
@@ -189,37 +182,114 @@ void estimate_peak_parameters(DataWithSum const* ds, fp range_from, fp range_to,
         //FIXME: how to find peak borders?  t * FWHM would be better? t=??
 }
 
-string print_simple_estimate(DataWithSum const* ds,
-                             fp range_from, fp range_to) 
+void estimate_linear_parameters(DataWithSum const* ds, 
+                                fp range_from, fp range_to,
+                                fp *slope, fp *intercept, fp *avgy,
+                                EstConditions const* ec) 
 {
-    fp c = 0, h = 0, a = 0, fwhm = 0;
-    estimate_peak_parameters(ds, range_from, range_to, &c, &h, &a, &fwhm); 
-    return "Peak center: " + S(c) 
-            + " (searched in [" + S(range_from) + ":" + S(range_to) + "])" 
-            + " height: " + S(h) + ", area: " + S(a) + ", FWHM: " + S(fwhm);
+    int l_bor, r_bor;
+    estimate_any_parameters(ds, range_from, range_to, l_bor, r_bor);
+
+    fp sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0;
+    for (int i = l_bor; i < r_bor; i++) {
+        fp x = ds->get_data()->get_x(i);
+        fp y = my_y(ds, i, ec);
+        sx += x;
+        sy += y;
+        sxx += x*x;
+        syy += y*y;
+        sxy += x*y;
+    }
+    int n = r_bor - l_bor;
+    *slope = (n * sxy - sx * sy) / (n * sxx - sx * sx);
+    *intercept = (sy - (*slope) * sx) / n;
+    *avgy = sy / n;
 }
 
-string print_multiple_peakfind(DataWithSum const* ds,
-                               int n, vector<string> const& range) 
+
+string get_guess_info(DataWithSum const* ds, vector<string> const& range) 
 {
+    string s;
     fp range_from, range_to;
     parse_range(ds, range, range_from, range_to);
-    string s;
     EstConditions estc;
     estc.real_peaks = ds->get_sum()->get_ff_idx();
-    for (int i = 1; i <= n; i++) {
-        fp c = 0., h = 0., a = 0., fwhm = 0.;
-        estimate_peak_parameters(ds, range_from, range_to, 
-                                 &c, &h, &a, &fwhm, &estc);
-        estc.virtual_peaks.push_back(VirtPeak(c, h, fwhm));
-        if (h == 0.) 
-            break;
-        s += S(i != 1 ? "\n" : "") + "Peak #" + S(i) + " - center: " + S(c) 
-            + ", height: " + S(h) + ", area: " + S(a) + ", FWHM: " + S(fwhm);
-    }
+    
+    fp c = 0., h = 0., a = 0., fwhm = 0.;
+    estimate_peak_parameters(ds, range_from, range_to, 
+                             &c, &h, &a, &fwhm, &estc);
+    if (h != 0.) 
+        s += "center: " + S(c) + ", height: " + S(h) + ", area: " + S(a) 
+            + ", FWHM: " + S(fwhm) + "\n";
+    fp slope = 0, intercept = 0, avgy = 0;
+    estimate_linear_parameters(ds, range_from, range_to, 
+                               &slope, &intercept, &avgy, &estc);
+    s += "slope: " + S(slope) + ", intercept: " + S(intercept) 
+        + ", avg-y: " + S(avgy);
     return s;
 }
 
+namespace {
+
+FunctionKind get_defvalue_kind(std::string const& d)
+{
+    static vector<string> linear_p(3), peak_p(4); 
+    static bool initialized = false;
+    if (!initialized) {
+        linear_p[0] = "intercept";
+        linear_p[1] = "slope";
+        linear_p[2] = "avgy";
+        peak_p[0] = "center";
+        peak_p[1] = "height";
+        peak_p[2] = "area";
+        peak_p[3] = "fwhm";
+        initialized = true;
+    }
+    if (contains_element(linear_p, d))
+        return fk_linear;
+    else if (contains_element(peak_p, d))
+        return fk_peak;
+    else 
+        return fk_unknown;
+}
+
+} // anonymous namespace
+
+FunctionKind get_function_kind(std::string const& formula)
+{
+    vector<string> vars = Function::get_varnames_from_formula(formula);
+    for (vector<string>::const_iterator i = vars.begin(); i != vars.end(); ++i){
+        FunctionKind k = get_defvalue_kind(*i);
+        if (k != fk_unknown)
+            return k;
+    }
+    vector<string> defv = Function::get_defvalues_from_formula(formula);
+    for (vector<string>::const_iterator i = defv.begin(); i != defv.end(); ++i){
+        int start = -1;
+        for (size_t j = 0; j < i->size(); ++j) {
+            char c = (*i)[j];
+            if (start == -1) {
+                if (isalpha(c))
+                    start = j;
+            }
+            else {
+                if (!isalnum(c) && c != '_') {
+                    FunctionKind k 
+                        = get_defvalue_kind(string(*i, start, j-start));
+                    if (k != fk_unknown)
+                        return k;
+                    start = -1;
+                }
+            }
+        }
+        if (start != -1) {
+            FunctionKind k = get_defvalue_kind(string(*i, start));
+            if (k != fk_unknown)
+                return k;
+        }
+    }
+    return fk_unknown;
+}
 
 void guess_and_add(DataWithSum* ds, 
                    string const& name, string const& function,
@@ -227,9 +297,9 @@ void guess_and_add(DataWithSum* ds,
 {
     fp range_from, range_to;
     parse_range(ds, range, range_from, range_to);
-    fp c = 0., h = 0., a = 0., fwhm = 0.;
     EstConditions estc;
     Sum const* sum = ds->get_sum();
+    // prepare a list of considered peaks
     estc.real_peaks = sum->get_ff_idx();
     if (!name.empty()) {
         assert(name[0] == '%');
@@ -241,36 +311,64 @@ void guess_and_add(DataWithSum* ds,
             estc.real_peaks.erase(estc.real_peaks.begin() + pos);
         }
     }
-    estimate_peak_parameters(ds, range_from, range_to, 
-                             &c, &h, &a, &fwhm, &estc);
+    // variables given explicitely by user (usually none)
     vector<string> vars_lhs(vars.size());
     for (int i = 0; i < size(vars); ++i)
         vars_lhs[i] = string(vars[i], 0, vars[i].find('='));
-    if (!contains_element(vars_lhs, "center"))
-        vars.push_back("center=~"+S(c));
-    if (!contains_element(vars_lhs, "height"))
-        vars.push_back("height=~"+S(h));
-    if (!contains_element(vars_lhs, "fwhm") 
-            && !contains_element(vars_lhs, "hwhm"))
-        vars.push_back("fwhm=~"+S(fwhm));
-    if (!contains_element(vars_lhs, "area"))
-        vars.push_back("area=~"+S(a));
+
+    FunctionKind k = get_function_kind(Function::get_formula(function));
+    if (k == fk_peak) {
+        fp c = 0., h = 0., a = 0., fwhm = 0.;
+        estimate_peak_parameters(ds, range_from, range_to, 
+                                 &c, &h, &a, &fwhm, &estc);
+        if (!contains_element(vars_lhs, "center"))
+            vars.push_back("center=~"+S(c));
+        if (!contains_element(vars_lhs, "height"))
+            vars.push_back("height=~"+S(h));
+        if (!contains_element(vars_lhs, "fwhm") 
+                && !contains_element(vars_lhs, "hwhm"))
+            vars.push_back("fwhm=~"+S(fwhm));
+        if (!contains_element(vars_lhs, "area"))
+            vars.push_back("area=~"+S(a));
+    }
+    else if (k == fk_linear) {
+        fp slope, intercept, avgy;
+        estimate_linear_parameters(ds, range_from, range_to, 
+                                   &slope, &intercept, &avgy, &estc);
+        if (!contains_element(vars_lhs, "slope"))
+            vars.push_back("slope=~"+S(slope));
+        if (!contains_element(vars_lhs, "intercept"))
+            vars.push_back("intercept=~"+S(intercept));
+        if (!contains_element(vars_lhs, "avgy"))
+            vars.push_back("avgy=~"+S(avgy));
+    }
+
     string real_name = AL->assign_func(name, function, vars);
     ds->get_sum()->add_function_to(real_name, 'F');
 }
 
-bool is_parameter_guessable(string const& name)
+bool is_parameter_guessable(string const& name, FunctionKind k)
 {
-    return name == "center" || name == "height" || name == "fwhm"
-        || name == "area" || name == "hwhm";
+    if (k == fk_linear)
+        return name == "slope" || name == "intercept" || name == "avgy";
+    else
+        return name == "center" || name == "height" || name == "fwhm"
+            || name == "area" || name == "hwhm";
 }
 
-bool is_defvalue_guessable(string defvalue)
+bool is_defvalue_guessable(string defvalue, FunctionKind k)
 {
-    replace_words(defvalue, "center", "1");
-    replace_words(defvalue, "height", "1");
-    replace_words(defvalue, "fwhm", "1");
-    replace_words(defvalue, "area", "1");
+    if (k == fk_linear) {
+        replace_words(defvalue, "slope", "1");
+        replace_words(defvalue, "intercept", "1");
+        replace_words(defvalue, "avgy", "1");
+    }
+    else {
+        replace_words(defvalue, "center", "1");
+        replace_words(defvalue, "height", "1");
+        replace_words(defvalue, "fwhm", "1");
+        replace_words(defvalue, "area", "1");
+    }
     try {
         get_transform_expression_value(defvalue, 0);
     } 
@@ -282,6 +380,7 @@ bool is_defvalue_guessable(string defvalue)
 
 bool is_function_guessable(string const& formula, bool check_defvalue)
 {
+    FunctionKind k = get_function_kind(formula);
     int lb = formula.find('(');
     int rb = find_matching_bracket(formula, lb);
     string all_names(formula, lb+1, rb-lb-1);
@@ -290,12 +389,12 @@ bool is_function_guessable(string const& formula, bool check_defvalue)
     for (vector<string>::const_iterator i = nd.begin(); i != nd.end(); ++i) {
         string::size_type eq = i->find('=');
         if (eq == string::npos) { //no defvalue
-            if (!is_parameter_guessable(strip_string(*i)))
+            if (!is_parameter_guessable(strip_string(*i), k))
                 return false;
         }
         else if (check_defvalue 
-                 && !is_parameter_guessable(strip_string(string(*i, 0, eq)))
-                 && !is_defvalue_guessable(string(*i, eq+1))) {
+                 && !is_parameter_guessable(strip_string(string(*i, 0, eq)), k)
+                 && !is_defvalue_guessable(string(*i, eq+1), k)) {
                 return false;
         }
     }

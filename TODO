@@ -31,12 +31,15 @@
 * ? history (data / sum / view / all) [IMPORTANT]
    i don't exactly know how to implement it yet
 
-* settings: default relative domain width
+// * settings: default relative domain width
+
+* change 'dump' in GUI
 
 * GUI?: when loading many datasets from command line, set view to show all
 
 * auto-scaling should not include x/y=0, unless it's
   in, say, 20% plot margin. "[:]" is an exception and includes 0.
+  GUI: "Auto-zooms shows y=0"
 
 * use info for exports:
   - replace exporting @x.peaks, @x.formula and commands[] 

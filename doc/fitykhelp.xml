@@ -912,8 +912,6 @@
      Domain is used only by fitting algorithms, 
      which need to randomly initialize or change variables. 
      Genetic Algorithms are a good example.
-     [TODO: setting domain is not implemented at this moment, but will
-     be added soon]
     </para>
     <para>
      Variables can be used in data tranformations. 
@@ -958,6 +956,10 @@
       $b = ~12.3 [ +- 5] # if the center of the domain is not specified, 
                          # current value of the variable is used
      </screen>
+     If the domain is not specified, the value of 
+     <parameter class="option">variable-domain-percent</parameter>
+     option is used 
+     (domain is +/- value-of-variable * value-of-the-option / 100)
     </para>
    </section>
    <section>
@@ -1705,7 +1707,7 @@
       <member>set</member>
       <member>fit [in @<replaceable>n</replaceable>]</member>
       <member>errors [in @<replaceable>n</replaceable>]</member>
-      <member>guess [k] [x-range] [in @<replaceable>n</replaceable>]</member>
+      <member>guess [x-range] [in @<replaceable>n</replaceable>]</member>
       <member><replaceable>data-expression</replaceable> [in @<replaceable>n</replaceable>]</member>
       <member>[@<replaceable>n</replaceable>.]F</member>
       <member>[@<replaceable>n</replaceable>.]Z</member>

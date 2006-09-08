@@ -95,7 +95,7 @@ void FuncConstant::calculate_value_deriv(vector<fp> const &xx,
 ///////////////////////////////////////////////////////////////////////
 
 const char *FuncLinear::formula 
-= "Linear(a0=height,a1=0) = a0 + a1 * x"; 
+= "Linear(a0=intercept,a1=slope) = a0 + a1 * x"; 
 
 
 FUNC_CALCULATE_VALUE(Linear, vv[0] + x*vv[1])

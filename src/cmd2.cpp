@@ -226,7 +226,7 @@ void do_print_info(char const* a, char const* b)
         vector<DataWithSum*> v = get_datasets_from_indata();
         for (vector<DataWithSum*>::const_iterator i = v.begin(); 
                                                            i != v.end(); ++i)
-            m += print_multiple_peakfind(*i, tmp_int, vr);
+            m += get_guess_info(*i, vr);
     }
     prepared_info += "\n" + m;
 }
@@ -396,7 +396,6 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
     static const bool true_ = true;
     static const bool false_ = false;
     static const int minus_one = -1;
-    static const int one = 1;
     static const char *dot = ".";
     static const char *empty = "";
 
@@ -491,8 +490,6 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         | (str_p("fit") >> in_data) [&do_print_info] 
         | (str_p("errors") >> in_data) [&do_print_info] 
         | (str_p("guess") [clear_a(vr)]
-           >> ( uint_p [assign_a(tmp_int)]
-              | eps_p [assign_a(tmp_int, one)])
            >> plot_range >> in_data) [&do_print_info]
         | type_name[&do_print_func_type]
         | (no_actions_d[DataExpressionG][assign_a(t2)] 

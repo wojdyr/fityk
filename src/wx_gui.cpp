@@ -1044,7 +1044,7 @@ void FFrame::OnSGuess (wxCommandEvent& WXUNUSED(event))
 
 void FFrame::OnSPFInfo (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command ("info guess 3" + get_in_dataset());
+    exec_command ("info guess" + get_in_dataset());
     //TODO animations showing peak positions
 }
         
