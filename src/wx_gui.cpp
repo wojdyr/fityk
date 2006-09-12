@@ -161,6 +161,7 @@ enum {
     ID_G_C_OUTPUT              ,
     ID_G_C_SB                  ,
     ID_G_CROSSHAIR             ,
+    ID_G_FULLSCRN              ,
     ID_G_V_ALL                 ,
     ID_G_V_VERT                ,
     ID_G_V_SCROLL_L            ,
@@ -403,6 +404,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU_RANGE (ID_G_C_MAIN, ID_G_C_OUTPUT, FFrame::OnShowPopupMenu)
     EVT_MENU (ID_G_C_SB,        FFrame::OnConfigureStatusBar)
     EVT_MENU (ID_G_CROSSHAIR,   FFrame::OnSwitchCrosshair)
+    EVT_MENU (ID_G_FULLSCRN,   FFrame::OnSwitchFullScreen)
     EVT_MENU (ID_G_V_ALL,       FFrame::OnGViewAll)
     EVT_MENU (ID_G_V_VERT,      FFrame::OnGFitHeight)
     EVT_MENU (ID_G_V_SCROLL_L,  FFrame::OnGScrollLeft)
@@ -751,6 +753,8 @@ void FFrame::set_menubar()
 
     gui_menu->AppendCheckItem(ID_G_CROSSHAIR, wxT("&Crosshair Cursor"), 
                                               wxT("Show crosshair cursor"));
+    gui_menu->AppendCheckItem(ID_G_FULLSCRN, wxT("&Full Screen\tF11"), 
+                                              wxT("Switch full screen"));
     gui_menu->AppendSeparator();
     gui_menu->Append (ID_G_V_ALL, wxT("Zoom &All\tCtrl-A"), 
                                   wxT("View whole data"));
@@ -1075,7 +1079,8 @@ void FFrame::OnSExport (wxCommandEvent& event)
                         + wxString(wxT("|all files|*")),
                        wxSAVE | wxOVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) 
-        exec_command(get_active_data_str() + (as_peaks ? ".peaks" : ".formula")
+        exec_command(string("info ") + (as_peaks ? "peaks" : "formula")
+                     + " in " +  get_active_data_str() + 
                      + " > '" + wx2s(fdlg.GetPath()) + "'");
     dir = fdlg.GetDirectory();
 }
@@ -1411,6 +1416,12 @@ void FFrame::SwitchCrosshair (bool show)
 {
     plot_pane->crosshair_cursor = show;
     GetMenuBar()->Check(ID_G_CROSSHAIR, show);
+}
+
+void FFrame::OnSwitchFullScreen(wxCommandEvent& event)
+{
+    ShowFullScreen(event.IsChecked(), 
+          wxFULLSCREEN_NOMENUBAR|wxFULLSCREEN_NOBORDER|wxFULLSCREEN_NOCAPTION);
 }
 
 void FFrame::OnGuiShowUpdate (wxUpdateUIEvent& event)

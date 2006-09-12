@@ -415,6 +415,9 @@ bool execute_code(int n, int &M, vector<fp>& stack,
             case OP_EXP:
                 STACK_OP *stackPtr = exp(*stackPtr);
                 break;
+            case OP_ERFC:
+                STACK_OP *stackPtr = erfc(*stackPtr);
+                break;
             case OP_ERF:
                 STACK_OP *stackPtr = erf(*stackPtr);
                 break;
@@ -857,6 +860,9 @@ void multipoint_execute_code(int M, vector<fp>& stack,
                 break;
             case OP_EXP:
                 STACK_OP *stackPtr = exp(*stackPtr);
+                break;
+            case OP_ERFC:
+                STACK_OP *stackPtr = erfc(*stackPtr);
                 break;
             case OP_ERF:
                 STACK_OP *stackPtr = erf(*stackPtr);

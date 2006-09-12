@@ -114,6 +114,9 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
             case OP_EXP:
                 *stackPtr = exp(*stackPtr);
                 break;
+            case OP_ERFC:
+                *stackPtr = erfc(*stackPtr);
+                break;
             case OP_ERF:
                 *stackPtr = erf(*stackPtr);
                 break;

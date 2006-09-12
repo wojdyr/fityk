@@ -23,17 +23,18 @@ protected:
     int data_nr;
     ProportionalSplitter *splitter, *right_splitter;
     wxGenericDirCtrl *dir_ctrl;
-    wxTextCtrl *filename_tc, *text_preview;
+    wxTextCtrl *filename_tc, *title_tc, *text_preview;
     wxSpinCtrl *x_column, *y_column, *s_column;
     wxPanel *left_panel, *rupper_panel, *rbottom_panel, *columns_panel;
     PreviewPlot *plot_preview;
-    wxCheckBox *std_dev_cb, *auto_text_cb, *auto_plot_cb;
+    wxCheckBox *std_dev_cb, *htitle_cb, *auto_text_cb, *auto_plot_cb;
     wxButton *open_here, *open_new;
     bool initialized;
 
-    std::string get_command_tail();
+    std::string get_command_tail(int data_nr);
     std::string get_filename();
     void OnStdDevCheckBox (wxCommandEvent& event);
+    void OnHTitleCheckBox (wxCommandEvent& event);
     void OnAutoTextCheckBox (wxCommandEvent& event);
     void OnAutoPlotCheckBox (wxCommandEvent& event);
     void OnColumnChanged (wxSpinEvent& event);
@@ -42,9 +43,11 @@ protected:
     void OnClose (wxCommandEvent& event);
     void on_path_change();
     void on_filter_change();
-    void OnPathSelectionChanged(wxTreeEvent &WXUNUSED(event)){on_path_change();}
+    void enable_text_options(bool is_text);
+    void OnPathSelectionChanged(wxTreeEvent&) { on_path_change(); }
     void update_text_preview();
     void update_plot_preview();
+    void update_title_from_file();
     DECLARE_EVENT_TABLE()
 };
 

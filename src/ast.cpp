@@ -56,6 +56,7 @@ string OpTree::str(const vector<string> *vars)
         case 0:       return S(val);
         case OP_NEG:  return "-" + c1->str_b(c1->op >= OP_POW, vars);
         case OP_EXP:  return "exp(" + c1->str(vars) + ")";
+        case OP_ERFC: return "erfc(" + c1->str(vars) + ")";
         case OP_ERF:  return "erf(" + c1->str(vars) + ")";
         case OP_SIN:  return "sin(" + c1->str(vars) + ")";
         case OP_COS:  return "cos(" + c1->str(vars) + ")";
@@ -93,6 +94,7 @@ string OpTree::ascii_tree(int width, int start, const vector<string> *vars)
             case 0:       node = S(val); break;
             case OP_NEG:  node = "NEG";  break;
             case OP_EXP:  node = "EXP";  break;
+            case OP_ERFC: node = "ERFC"; break;
             case OP_ERF:  node = "ERF";  break;
             case OP_SIN:  node = "SIN";  break;
             case OP_COS:  node = "COS";  break;
@@ -315,6 +317,17 @@ OpTree* do_erf(OpTree *a)
     }
     else
         return new OpTree(OP_ERF, simplify_terms(a));
+}
+
+OpTree* do_erfc(OpTree *a)
+{
+    if (a->op == 0) {
+        double val = erfc(a->val);
+        delete a;
+        return new OpTree(val);
+    }
+    else
+        return new OpTree(OP_ERFC, simplify_terms(a));
 }
 
 OpTree* do_sqrt(OpTree *a)
@@ -797,8 +810,14 @@ vector<OpTree*> calculate_deriv(const_iter_t const &i,
             der = do_exp(larg);
             do_op = do_exp;
         }
+        else if (s == "erfc") {
+            // d/dz erfc(z) = -2/sqrt(pi) * exp(-z^2) 
+            der = do_multiply(do_exp(do_neg(do_sqr(larg))), 
+                              new OpTree(-2/sqrt(M_PI)));
+            do_op = do_erfc;
+        }
         else if (s == "erf") {
-            // d/dz erf(z) = exp(-z^2) * 2/sqrt(pi)
+            // d/dz erf(z) =  2/sqrt(pi) * exp(-z^2) 
             der = do_multiply(do_exp(do_neg(do_sqr(larg))), 
                               new OpTree(2/sqrt(M_PI)));
             do_op = do_erf;

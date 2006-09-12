@@ -178,15 +178,17 @@ void Data::load_file (string const& file, string const& type,
     given_type = type;
     given_cols = cols;
 
-    if (ft=="text")                         // x y x y ... 
+    if (ft == "text")                         // x y x y ... 
         load_xy_filetype(f, cols);
-    else if (ft=="MCA")                     // .mca
+    else if (ft == "htext")                   // header\n x y x y ... 
+        load_header_xy_filetype(f, cols);
+    else if (ft == "MCA")                     // .mca
         load_mca_filetype(f);
-    else if (ft=="RIT")                     // .rit
+    else if (ft == "RIT")                     // .rit
         load_rit_filetype(f);
-    else if (ft=="CPI")                     // .cpi
+    else if (ft == "CPI")                     // .cpi
         load_cpi_filetype(f);
-    else if (ft=="BrukerRAW")               // .raw
+    else if (ft == "BrukerRAW")               // .raw
         load_siemensbruker_filetype(filename, this);
     else {                                  // other ?
         throw ExecuteError("Unknown filetype.");
@@ -265,6 +267,22 @@ void Data::load_xy_filetype (ifstream& f, vector<int> const& columns)
                 + " lines.");
     sort(p.begin(), p.end());
     x_step = find_step();
+}
+
+/// read first line as file's title, and than run load_xy_filetype()
+void Data::load_header_xy_filetype(ifstream& f, vector<int> const& columns)
+{
+    string s;
+    getline(f, s);
+    if (columns.size() > 1) {
+        int col = columns[1] - 1;
+        vector<string> v = split_string(s, " \t");
+        if (size(v) > col) 
+            title = v[col];
+    }
+    else
+        title = strip_string(s);
+    load_xy_filetype(f, columns);
 }
 
 void Data::load_mca_filetype (ifstream& f) 

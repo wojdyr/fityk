@@ -195,8 +195,8 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
 
     exptoken    =  real_const
                 |  inner_node_d[ch_p('(') >> expression >> ')']
-                |  root_node_d[ as_lower_d[ str_p("sqrt") 
-                                          | "exp" | "erf" | "log10" | "ln" 
+                |  root_node_d[ as_lower_d[ str_p("sqrt") | "exp" 
+                                          | "erfc" | "erf" | "log10" | "ln" 
                                           | "sin" | "cos" | "tan" 
                                           | "atan" | "asin" | "acos"
                                           | "lgamma"

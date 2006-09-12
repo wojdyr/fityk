@@ -220,6 +220,23 @@ void do_print_info(char const* a, char const* b)
         m = getFit()->getInfo(get_datasets_from_indata());
     else if (startswith(s, "errors"))
         m = getFit()->getErrorInfo(get_datasets_from_indata(), with_plus);
+    else if (startswith(s, "peaks")) {
+        vector<fp> errors;
+        vector<DataWithSum*> v = get_datasets_from_indata();
+        if (with_plus) 
+            errors = getFit()->get_symmetric_errors(v);
+        for (vector<DataWithSum*>::const_iterator i=v.begin(); i!=v.end(); ++i){
+            m += "# " + (*i)->get_data()->get_title() + "\n";
+            m += (*i)->get_sum()->get_peak_parameters(errors) + "\n";
+        }
+    }
+    else if (startswith(s, "formula")) {
+        vector<DataWithSum*> v = get_datasets_from_indata();
+        for (vector<DataWithSum*>::const_iterator i=v.begin(); i!=v.end(); ++i){
+            m += "# " + (*i)->get_data()->get_title() + "\n";
+            m += (*i)->get_sum()->get_formula(!with_plus) + "\n";
+        }
+    }
     else if (s == "commands")
         m = getUI()->getCommands().get_info();
     else if (startswith(s, "guess")) {
@@ -236,21 +253,14 @@ void do_print_sum_info(char const* a, char const* b)
     string s = string(a,b);
     string m;
     Sum const* sum = AL->get_sum(ds_pref);
-    if (s == "F" || s == "Z") {
-        m = s + ": "; 
-        vector<int> const &idx = (s == "F" ? sum->get_ff_idx() 
-                                           : sum->get_zz_idx());
-        for (vector<int>::const_iterator i = idx.begin(); i != idx.end(); ++i){
-            Function const* f = AL->get_function(*i);
-            if (with_plus)
-                m += "\n" 
-                    + f->get_info(AL->get_variables(), AL->get_parameters());
-            else
-                m += f->xname + " ";
-        }
-    }
-    else if (s == "formula") {
-        m = sum->get_formula(!with_plus);
+    m = s + ": "; 
+    vector<int> const &idx = (s == "F" ? sum->get_ff_idx() : sum->get_zz_idx());
+    for (vector<int>::const_iterator i = idx.begin(); i != idx.end(); ++i){
+        Function const* f = AL->get_function(*i);
+        if (with_plus)
+            m += "\n" + f->get_info(AL->get_variables(), AL->get_parameters());
+        else
+            m += f->xname + " ";
     }
     prepared_info += "\n" + m;
 }
@@ -347,30 +357,6 @@ void do_guess(char const*, char const*)
     for (vector<DataWithSum*>::const_iterator i = v.begin(); i != v.end(); ++i)
         guess_and_add(*i, t, t2, vr, vt);
     outdated_plot=true;  
-}
-
-void do_export_sum(char const*, char const*)   
-{ 
-    vector<DataWithSum*> v = get_datasets_from_indata();
-    ofstream os(t.c_str(), ios::out | ios::trunc);
-    if (!os) 
-        throw ExecuteError("Can't open file: " + t);
-    os << "# exported by fityk " VERSION << endl;
-    if (t2 == "peaks") {
-        vector<fp> errors;
-        if (with_plus) 
-            errors = getFit()->get_symmetric_errors(v);
-        for (vector<DataWithSum*>::const_iterator i=v.begin(); i!=v.end(); ++i){
-            os << "# " << (*i)->get_data()->get_title() << endl;
-            os << (*i)->get_sum()->get_peak_parameters(errors);
-        }
-    }
-    else if (t2 == "formula") {
-        for (vector<DataWithSum*>::const_iterator i=v.begin(); i!=v.end(); ++i){
-            os << "# " << (*i)->get_data()->get_title() << endl;
-            os << (*i)->get_sum()->get_formula(!with_plus);
-        }
-    }
 }
 
 void set_data_title(char const*, char const*)  { 
@@ -489,20 +475,21 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         | str_p("set") [&do_print_info] 
         | (str_p("fit") >> in_data) [&do_print_info] 
         | (str_p("errors") >> in_data) [&do_print_info] 
+        | (str_p("peaks") >> in_data) [&do_print_info]
+        | (str_p("formula") >> in_data) [&do_print_info]
         | (str_p("guess") [clear_a(vr)]
            >> plot_range >> in_data) [&do_print_info]
         | type_name[&do_print_func_type]
         | (no_actions_d[DataExpressionG][assign_a(t2)] 
              >> in_data) [&do_print_data_expr]
         | FunctionLhsG [&do_print_info]
-        | ds_prefix >> (ch_p('F')|'Z'|"formula") [&do_print_sum_info]
+        | ds_prefix >> (ch_p('F')|'Z') [&do_print_sum_info]
         | (ds_prefix >> str_p("dF") >> '(' 
            >> no_actions_d[DataExpressionG][assign_a(t2)] 
            >> ')') [&do_print_sum_derivatives_info]
         | existing_dataset_nr [&do_print_info]
         | "debug" >> compact_str [&do_print_debug_info] //no output_redir
-        | "der " >> (+chset<>(anychar_p - chset<>(" \t\n\r;,"))) 
-                                                            [&do_print_deriv]
+        | "der " >> (+chset<>(anychar_p - chset<>(" \t\n\r;,#"))) [&do_print_deriv]
         | eps_p [&do_print_info] 
         ;
 
@@ -539,8 +526,6 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
           >> !existing_dataset_nr >> plot_range >> plot_range) [&do_plot]
         | guess [&do_guess]
         | (ds_prefix >> "title" >> '=' >> compact_str)[&set_data_title]
-        | ds_multiprefix >> (str_p("peaks")|"formula")[assign_a(t2)] 
-          >> optional_plus >> '>' >> compact_str [&do_export_sum]
         | dataset_handling
         ;
 }

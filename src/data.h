@@ -90,6 +90,7 @@ private:
     static double pdp11_f (char* fl);  
     fp find_step();
     void load_xy_filetype (std::ifstream& f, std::vector<int> const& cols);
+    void load_header_xy_filetype(std::ifstream& f, std::vector<int>const& cols);
     void load_mca_filetype (std::ifstream& f);
     void load_rit_filetype (std::ifstream& f);
     void load_cpi_filetype (std::ifstream& f);

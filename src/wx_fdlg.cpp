@@ -38,6 +38,7 @@
 #include "sum.h"
 #include "ui.h"
 #include "datatrans.h"
+#include "logic.h"
 
 #include "img/open.xpm"
 #include "img/exec_selected.xpm"
@@ -50,6 +51,7 @@ enum {
     ID_DXLOAD_STDDEV_CB     =28000,
     ID_DXLOAD_COLX                ,
     ID_DXLOAD_COLY                ,
+    ID_DXLOAD_HTITLE              ,
     ID_DXLOAD_AUTO_TEXT           ,
     ID_DXLOAD_AUTO_PLOT           ,
     ID_DXLOAD_OPENHERE            ,
@@ -68,12 +70,21 @@ enum {
 class PreviewPlot : public wxPanel
 {
 public:
+    auto_ptr<Data> data;
+
     PreviewPlot(wxWindow* parent, wxWindowID id, FDXLoadDlg* dlg_)
         : wxPanel(parent, id), data(new Data), dlg(dlg_) {}
     void OnPaint(wxPaintEvent &event);
-    auto_ptr<Data> data;
+
 private:
     FDXLoadDlg* dlg;
+    fp xScale, yScale;
+    int H;
+    int getX(fp x) { return iround(x * xScale); }
+    int getY(fp y) { return H - iround(y * yScale); }
+    void prepare_scaling(wxDC &dc);
+    void draw_scale(wxDC &dc);
+
     DECLARE_EVENT_TABLE()
 };
 
@@ -89,19 +100,65 @@ void PreviewPlot::OnPaint(wxPaintEvent &WXUNUSED(event))
     dc.Clear();
     if (data->is_empty())
         return;
-    fp dx = data->get_x_max() - data->get_x_min();
-    fp dy = data->get_y_max() - data->get_y_min();
-    fp xScale = GetClientSize().GetWidth() / dx;
-    int h = GetClientSize().GetHeight();
-    fp yScale = h / dy;
+    prepare_scaling(dc);
+    draw_scale(dc);
+
     vector<Point> const& pp = data->points();
     dc.SetPen(*wxGREEN_PEN);
     for (vector<Point>::const_iterator i = pp.begin(); i != pp.end(); ++i)
-        dc.DrawPoint(int(i->x * xScale), h - int(i->y*yScale) - 1);
+        dc.DrawPoint(int(i->x * xScale), H - int(i->y * yScale));
 }
+
+void PreviewPlot::prepare_scaling(wxDC &dc)
+{
+    fp const margin = 0.1;
+    fp dx = data->get_x_max() - data->get_x_min();
+    fp dy = data->get_y_max() - data->get_y_min();
+    int W = GetClientSize().GetWidth();
+    H = GetClientSize().GetHeight();
+    xScale = (1 - 2 * margin) *  W / dx;
+    yScale = (1 - 2 * margin) * H / dy;
+    dc.SetDeviceOrigin(-iround(data->get_x_min() * xScale - margin * W),  
+                       iround(data->get_y_min() * yScale - margin * H));
+}
+
+void PreviewPlot::draw_scale(wxDC &dc)
+{
+    dc.SetPen(*wxWHITE_PEN);
+    dc.SetTextForeground(*wxWHITE);
+    dc.SetFont(*wxSMALL_FONT);  
+    vector<fp> minors;
+    vector<fp> tics 
+        = scale_tics_step(data->get_x_min(), data->get_x_max(), 4, minors);
+    for (vector<fp>::const_iterator i = tics.begin(); i != tics.end(); ++i) {
+        int X = getX(*i);
+        wxString label = s2wx(S(*i));
+        if (label == wxT("-0")) 
+            label = wxT("0");
+        wxCoord tw, th;
+        dc.GetTextExtent (label, &tw, &th);
+        int Y = dc.DeviceToLogicalY(H - th - 2);
+        dc.DrawText (label, X - tw/2, Y + 1);
+        dc.DrawLine (X, Y, X, Y - 4);
+    }
+
+    tics = scale_tics_step(data->get_y_min(), data->get_y_max(), 4, minors);
+    for (vector<fp>::const_iterator i = tics.begin(); i != tics.end(); ++i){
+        int Y = getY(*i);
+        wxString label = s2wx(S(*i));
+        if (label == wxT("-0")) 
+            label = wxT("0");
+        wxCoord tw, th;
+        dc.GetTextExtent (label, &tw, &th);
+        dc.DrawText (label, dc.DeviceToLogicalX(5), Y - th/2);
+        dc.DrawLine (dc.DeviceToLogicalX(0), Y, dc.DeviceToLogicalX(4), Y);
+    }
+}
+
 
 BEGIN_EVENT_TABLE(FDXLoadDlg, wxDialog)
     EVT_CHECKBOX    (ID_DXLOAD_STDDEV_CB, FDXLoadDlg::OnStdDevCheckBox)
+    EVT_CHECKBOX    (ID_DXLOAD_HTITLE,    FDXLoadDlg::OnHTitleCheckBox)
     EVT_CHECKBOX    (ID_DXLOAD_AUTO_TEXT, FDXLoadDlg::OnAutoTextCheckBox)
     EVT_CHECKBOX    (ID_DXLOAD_AUTO_PLOT, FDXLoadDlg::OnAutoPlotCheckBox)
     EVT_SPINCTRL    (ID_DXLOAD_COLX,      FDXLoadDlg::OnColumnChanged)
@@ -172,7 +229,7 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     left_sizer->Add (filename_tc, 0, wxALL|wxEXPAND, 5);
                                      
 
-    //selecting columns
+    // selecting columns
     columns_panel = new wxPanel (left_panel, -1);
     wxStaticBoxSizer *h2a_sizer = new wxStaticBoxSizer(wxHORIZONTAL, 
                                         columns_panel, wxT("Select columns:"));
@@ -196,9 +253,18 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
                                wxDefaultPosition, wxSize(50, -1), 
                                wxSP_ARROW_KEYS, 1, 99, 3);
     h2a_sizer->Add (s_column, 0, wxALL|wxALIGN_LEFT, 5);
-    columns_panel->SetSizerAndFit(h2a_sizer);
+    columns_panel->SetSizer(h2a_sizer);
     left_sizer->Add (columns_panel, 0, wxALL|wxEXPAND, 5);
     OnStdDevCheckBox(dummy_cmd_event);
+
+    wxStaticBoxSizer *dt_sizer = new wxStaticBoxSizer(wxVERTICAL, 
+                                    left_panel, wxT("Data title (optional):"));
+    htitle_cb = new wxCheckBox(left_panel, ID_DXLOAD_HTITLE, 
+                               wxT("get from 1st line"));
+    dt_sizer->Add(htitle_cb, 0, wxALL, 5);
+    title_tc = new wxTextCtrl(left_panel, -1, wxT(""));
+    dt_sizer->Add(title_tc, 0, wxALL|wxEXPAND, 5);
+    left_sizer->Add (dt_sizer, 0, wxALL|wxEXPAND, 5);
 
     // ----- right upper panel -----
     text_preview =  new wxTextCtrl(rupper_panel, -1, wxT(""), 
@@ -206,8 +272,8 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
                                    wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
     rupper_sizer->Add(text_preview, 1, wxEXPAND|wxALL, 5);
     auto_text_cb = new wxCheckBox(rupper_panel, ID_DXLOAD_AUTO_TEXT, 
-                                  wxT("preview first 64kB"));
-    auto_text_cb->SetValue(true);
+                                  wxT("view the first 64kB of file as text"));
+    auto_text_cb->SetValue(false);
     rupper_sizer->Add(auto_text_cb, 0, wxALL, 5);
 
     // ----- right bottom panel -----
@@ -247,6 +313,33 @@ void FDXLoadDlg::OnStdDevCheckBox (wxCommandEvent& WXUNUSED(event))
     s_column->Enable(std_dev_cb->GetValue());
 }
 
+void FDXLoadDlg::OnHTitleCheckBox (wxCommandEvent& event)
+{
+    if (event.IsChecked()) 
+        update_title_from_file();
+    title_tc->Enable(!event.IsChecked());
+}
+
+void FDXLoadDlg::update_title_from_file()
+{
+    assert (htitle_cb->GetValue());
+    wxString title;
+    ifstream f(dir_ctrl->GetFilePath().fn_str());
+    if (f) {
+        string s;
+        getline(f, s);
+        if (columns_panel->IsEnabled()) {
+            int col = y_column->GetValue() - 1;
+            vector<string> v = split_string(s, " \t");
+            if (size(v) > col) 
+                title = s2wx(v[col]);
+        }
+        else
+            title = s2wx(s).Trim();
+    }
+    title_tc->SetValue(title);
+}
+
 void FDXLoadDlg::OnAutoTextCheckBox (wxCommandEvent& event)
 {
     if (event.IsChecked())
@@ -264,6 +357,8 @@ void FDXLoadDlg::OnColumnChanged (wxSpinEvent& WXUNUSED(event))
 {
     if (auto_plot_cb->GetValue()) 
         update_plot_preview();
+    if (htitle_cb->GetValue()) 
+        update_title_from_file();
 }
 
 void FDXLoadDlg::OnClose (wxCommandEvent& event)
@@ -273,13 +368,13 @@ void FDXLoadDlg::OnClose (wxCommandEvent& event)
 
 void FDXLoadDlg::OnOpenHere (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command("@" + S(data_nr) + " <" + get_command_tail());
+    exec_command("@" + S(data_nr) + " <" + get_command_tail(data_nr));
     frame->add_recent_data_file(get_filename());
 }
 
 void FDXLoadDlg::OnOpenNew (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command("@+ <" + get_command_tail());
+    exec_command("@+ <" + get_command_tail(AL->get_ds_count()));
     frame->add_recent_data_file(get_filename());
 }
 
@@ -322,10 +417,19 @@ void FDXLoadDlg::update_plot_preview()
 void FDXLoadDlg::on_filter_change()
 {
     int idx = dir_ctrl->GetFilterIndex();
-    if (idx == 0) // all files
-        on_path_change();
-    else
-        columns_panel->Enable(idx == 1); // enable if ASCII 
+    wxString path = dir_ctrl->GetFilePath();
+    bool is_text = (idx == 0 && !path.IsEmpty() 
+                             && Data::guess_file_type(wx2s(path)) == "text")
+                    || idx == 1; 
+    enable_text_options(is_text);
+}
+
+void FDXLoadDlg::enable_text_options(bool is_text)
+{
+    columns_panel->Enable(is_text);
+    htitle_cb->Enable(is_text);
+    if (!is_text && htitle_cb->IsChecked())
+        htitle_cb->SetValue(false);
 }
 
 void FDXLoadDlg::on_path_change()
@@ -337,7 +441,7 @@ void FDXLoadDlg::on_path_change()
     if (dir_ctrl->GetFilterIndex() == 0) { // all files
         bool is_text = !path.IsEmpty() 
                              && Data::guess_file_type(wx2s(path)) == "text"; 
-        columns_panel->Enable(is_text);
+        enable_text_options(is_text);
     }
     open_here->Enable(!path.IsEmpty());
     open_new->Enable(!path.IsEmpty());
@@ -345,6 +449,8 @@ void FDXLoadDlg::on_path_change()
         update_text_preview();
     if (auto_plot_cb->GetValue()) 
         update_plot_preview();
+    if (htitle_cb->GetValue()) 
+        update_title_from_file();
 }
 
 string FDXLoadDlg::get_filename()
@@ -352,7 +458,7 @@ string FDXLoadDlg::get_filename()
     return wx2s(filename_tc->GetValue());
 }
 
-string FDXLoadDlg::get_command_tail()
+string FDXLoadDlg::get_command_tail(int data_nr)
 {
     string cols;
     if (columns_panel->IsEnabled()) { // a:b[:c]
@@ -360,7 +466,16 @@ string FDXLoadDlg::get_command_tail()
         if (std_dev_cb->GetValue())
             cols += S(",") + S(s_column->GetValue());
     }
-    return "'" + get_filename() + "'" + cols;
+    string filetype;
+    if (htitle_cb->IsChecked())
+        filetype = " htext";
+    string title_cmd;
+    if (title_tc->IsEnabled()) {
+        wxString t = title_tc->GetValue().Trim();
+        if (!t.IsEmpty())
+            title_cmd = "; @" + S(data_nr) + ".title = '" + wx2s(t) + "'";
+    }
+    return "'" + get_filename() + "'" + filetype + cols + title_cmd;
 }
 
 

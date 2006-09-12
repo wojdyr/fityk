@@ -206,6 +206,7 @@ public:
     void OnShowPopupMenu(wxCommandEvent& ev);
     void OnConfigureStatusBar(wxCommandEvent&);
     void OnSwitchCrosshair(wxCommandEvent& ev){SwitchCrosshair(ev.IsChecked());}
+    void OnSwitchFullScreen(wxCommandEvent& event);
     void OnShowMenuZoomPrev(wxUpdateUIEvent& event);
     void save_all_settings(wxConfigBase *cf) const;
     void save_settings(wxConfigBase *cf) const;
