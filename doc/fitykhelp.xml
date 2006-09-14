@@ -9,6 +9,7 @@
     </inlinemediaobject> 
   ">
 ]>
+<!-- $Id$ -->
 <!-- XML header above -->
 <!-- SGML header below-->
 <!-- <!DOCTYPE article  PUBLIC "-//OASIS//DTD DocBook V4.1//EN"> -->
@@ -29,32 +30,32 @@
    <para>
     <application>Fityk</application> is a program 
     for nonlinear fitting of analytical functions (especially peak-shaped) 
-    to data (usually experimental data). The shortest description:
-    peak fitting software. There are also people using it only
-    to display data or to remove baseline from data.
+    to data (usually experimental data). The most concise description:
+    peak fitting software. There are also people using it 
+    to remove the baseline from data, or to display data only.
    </para>
    <para>
-    It is reported to be used in crystallography, 
-    chromatography, photoluminescence, infrared and Raman spectroscopy
-    and other fields. Although author is ignorant about all these experimental
-    methods but powder diffraction, 
-    he would like to make it useful for as many people as possible.
+    It is reportedly used in crystallography, 
+    chromatography, photoluminescence and photoelectron spectroscopy, infrared and Raman spectroscopy,
+    to name but a few. Although the author has a general understanding only of experimental
+    methods other than powder diffraction, 
+    he would like to make it useful to as many people as possible.
    </para>
    <para>
     <application>Fityk</application> offers various nonlinear fitting methods, 
-    easy background subtracting and other dataset manipulations, 
-    easy placement of peaks and changing peak parameters, 
-    support for analyzing series of datasets,
+    simple background subtraction and other manipulations to the dataset, 
+    easy placement of peaks and changing of peak parameters, 
+    support for analysis of series of datasets,
     automation of common tasks with scripts, and much more. 
-    The main advantage of the program is a flexibility - parameters
-    of peaks can be arbitrarily binded with each other, 
-    eg. width of the peak can be an independent variable, 
-    can be the same as the width of the other peak 
-    or can be given by complicated - common for all peaks - formula.
+    The main advantage of the program is flexibility - parameters
+    of peaks can be arbitrarily bound to each other, 
+    e.g. the width of a peak can be an independent variable, 
+    the same as the width of another peak, 
+    or can be given by complex (and general for all peaks) formula.
    </para> 
    <para>
     <application>Fityk</application> is free software; you can redistribute 
-    and modify it under the terms of <acronym>GPL</acronym>, version 2. 
+    and modify it under the terms of the <acronym>GPL</acronym>, version 2. 
     See <xref linkend="license"/> for details. 
     You can download the latest version of <application>fityk</application> from
     <ulink url="http://www.unipress.waw.pl/fityk">
@@ -64,7 +65,7 @@
     <ulink url="http://fityk.sf.net/">
      http://fityk.sf.net 
     </ulink>.
-    To contact author, visit the same page. 
+    To contact the author, visit the same page. 
    </para> 
   </section>
 
@@ -72,43 +73,43 @@
    <title>How to read this manual</title>
    <para>
     After this introduction, read the <xref linkend="getstarted"/>.
-    If you are using <acronym>GUI</acronym> you can look at 
+    If you are using the <acronym>GUI</acronym> versionyou can look at the
     <ulink url="http://www.unipress.waw.pl/fityk/screenshots.html">
-     screenshots-based tutorial at webpage 
+     screenshots-based tutorial at this webpage 
     </ulink> 
     and postpone reading
     <xref linkend="CommandReference"/> until you need to write a script
-    or understand better how the program works.
+    or understand in more detail how the program works.
    </para>
   </section> 
 
   <section>
    <title><acronym>GUI</acronym> vs <acronym>CLI</acronym></title>
    <para>
-    The program comes in two versions: <acronym>GUI</acronym> (Graphical User
+    The program comes in two versions: the <acronym>GUI</acronym> (Graphical User
     Interface) version - more comfortable for most users,
-    and <acronym>CLI</acronym> (Command Line Interface) version 
+    and the <acronym>CLI</acronym> (Command Line Interface) version 
     (named <command>cfityk</command> to differentiate, Unix only).
    </para>
    <para>
-    If <acronym>CLI</acronym> version is compiled with 
+    If the <acronym>CLI</acronym> version was compiled with 
     the <systemitem class="library">GNU Readline Library</systemitem>, 
-    it enables command line editing and command history 
-    like in <application>bash</application>.
+    command line editing and command history 
+    as per <application>bash</application> will be available.
     Especially useful is <keycap>TAB</keycap>-expanding.
-    Data and curve fitted to data are visualized with 
-    <application>gnuplot</application> program (if it is installed).
+    Data and curves fitted to data are visualized with 
+    <application>gnuplot</application> (if it is installed).
    </para>
    <para>
-    <acronym>GUI</acronym> version is written using 
+    The <acronym>GUI</acronym> version is written using the
     <ulink url="http://www.wxwidgets.org">
      <systemitem class="library">wxWidgets</systemitem> 
     </ulink>
     library. 
-    One of the main features of this library is portability. Program can be
-    run on Unix species with <systemitem class="library">GTK+</systemitem>
-    (it is developed on Linux) and on MS Windows. There are also people
-    using it on MacOS X (have a look at fityk-users mailing list archives
+    and can be run on Unix species 
+    with <systemitem class="library">GTK+</systemitem>
+    and on MS Windows. There are also people
+    using it on MacOS X (have a look at the fityk-users mailing list archives
     for details).
    </para>
   </section> 
@@ -122,42 +123,42 @@
    <title>The minimal example</title>
    <para>
     Let us analyze a diffraction pattern of NaCl. Our goal is to determine the
-    position of the center of the highest peak. It is needed for calculating
-    pressure, under which the sample was measured, but the further processing
-    does not matter in our example.
+    position of the center of the highest peak. It is needed for calculating the
+    pressure under which the sample was measured, but this later detail in the processing
+    is irrelevent for the time being.
    </para>
    <para>
-    Data file used in this example is distributed with the program and 
-    can be found in <filename class="directory">samples</filename> directory. 
+    The data file used in this example is distributed with the program and 
+    can be found in the <filename class="directory">samples</filename> directory. 
    </para>
    <para>
     First load data from file <filename>nacl01.dat</filename>. 
-    You can do it by typing <userinput>@0 &lt; nacl01.dat</userinput> 
-    in <acronym>CLI</acronym> version (or in <acronym>GUI</acronym> version 
+    You can do this by typing <userinput>@0 &lt; nacl01.dat</userinput> 
+    in the <acronym>CLI</acronym> version (or in the <acronym>GUI</acronym> version 
     in the input box - at the bottom, just above the status bar). 
-    In <acronym>GUI</acronym>, you can select
+    In the <acronym>GUI</acronym>, you can also select
     <menuchoice>
      <guimenu>Data</guimenu><guimenuitem>Load File</guimenuitem>
     </menuchoice> 
-    from menu and choose proper file, instead. 
+    from the menu and choose the appropriate file. 
    </para> 
    <para>
-    If you use GUI, you can zoom in the biggest peak 
+    If you use the GUI, you can zoom-in to the biggest peak 
     using <mousebutton>left</mousebutton> mouse button on the auxiliary plot
-    (the plot below main plot). 
-    To zoom out, press <guiicon>View whole</guiicon> toolbar button.
+    (the plot below the main plot). 
+    To zoom out, press the <guiicon>View whole</guiicon> toolbar button.
     Other ways of zooming are described in <xref linkend="mouse"/>. 
     If you want the data to be drawn with 
-    bigger points or line, or if you want to change color of line or background,
+    larger points or a line, or if you want to change the color of the line or background,
     press <mousebutton>right</mousebutton> mouse button on the main plot
     and use <guimenu>Data point size</guimenu> or <guimenu>Color</guimenu>
-    menu from pop-up menu. To change color of data points, use right-hand
+    menu from the pop-up menu. To change the color of data points, use the right-hand
     panel.
    </para> 
    <para>
     Now all data points are active.
-    Because only the biggest peak is of our interest, 
-    the rest of points can be deactivated. 
+    Because only the biggest peak is of interest for the sake of this example, 
+    the remaining points can be deactivated. 
     Type: <userinput> a = (23.0 &lt; x &lt; 26.0) </userinput>
     or change to <firstterm>range</firstterm> mode (press 
     <guiicon> Data-Range Mode </guiicon>
@@ -165,14 +166,14 @@
     to be deactivated with <mousebutton>right</mousebutton> mouse button.
    </para>
    <para>
-    We see that our data has no background, we
-    would have to worry about, so now we only have to define peak with 
-    reasonable initial values of peak's parameter and fit it to data. We will
+    As our example data has no background
+    to worry about, our next step is to define a peak with 
+    reasonable initial values and fit it to the data. We will
     use Gaussian. 
     To see its formula, type: <userinput>info Gaussian</userinput>
     or look for it in the documentation (in <xref linkend="flist"/>). 
-    By the way, most of the commands can be abbreviated, 
-    eg. you can type: <userinput>i Gaussian</userinput>. 
+    Incidentally, most of the commands can be abbreviated, 
+    e.g. you can type: <userinput>i Gaussian</userinput>. 
    </para>
    <para>
     To define peak, type: 
@@ -181,14 +182,14 @@
     <userinput>%p = guess Gaussian</userinput>
     or select 
     <menuchoice><guilabel>Gaussian</guilabel></menuchoice> 
-    from the list of functions on toolbar and press 
+    from the list of functions on the toolbar and press the
     <guiicon>
      auto-add 
      <!-- <inlinegraphic fileref="../src/img/clickadd.xpm"> -->
     </guiicon> 
     toolbar button.
-    There are also other ways to add peak in <acronym>GUI</acronym>,
-    try <firstterm>add-peak</firstterm> mode. 
+    There are also other ways to add peak in <acronym>GUI</acronym>
+    such as <firstterm>add-peak</firstterm> mode. 
     These mouse-driven ways give function a name like %_1, %_2, etc.
    </para>
    <para>
@@ -197,15 +198,22 @@
     <menuchoice>
      <guimenu>Fit</guimenu><guimenuitem>Run</guimenuitem>
     </menuchoice> 
-    from menu (or press toolbar button). 
+    from the menu (or press the toolbar button). 
    </para>
    <para>
-    To see peak parameters, type: <userinput> info+ %p</userinput>
-    or (in GUI) move the cursor to the top of the peak 
-    and try out context menu (right button), or use right-hand panel.
+    When fitting, 
+    the weighted sum of squared residuals (see <xref linkend="nonlinear"/>)
+    is being minimized. 
+    Note that the default <link linkend="weights">weights of points</link> 
+    are not equal. 
    </para>
    <para>
-    That is all. To do the same second time, you can write all the commands 
+    To see the peak parameters, type: <userinput> info+ %p</userinput>
+    or (in the GUI) move the cursor to the top of the peak 
+    and try out the context menu (right button), or use the right-hand panel.
+   </para>
+   <para>
+    That's it! To do the same a second time (for example to a similar data set) you can write all the commands 
     to file (you can do it now using command 
     <command>commands &gt; <replaceable>filename</replaceable></command>),
     and use it as script: 
@@ -224,11 +232,11 @@
    <para>
     On startup, the program executes a script from the
     <filename>$HOME/.fityk/init</filename> file.
-    Then the program handles files given as arguments on command line.
-    If the filename has extension ".fit" or the file starts with "# Fityk"
+    Following this, the program reads files given as arguments on the command line.
+    If the filename has extension ".fit" or the file begins with a "# Fityk"
     string, it is assumed to be a script and is executed.
-    Otherwise,  it is assumed to be a data file and is loaded.
-    There are also other parameters to CLI and GUI versions of the program.
+    Otherwise,  it is assumed to be a data file and is loaded normally.
+    There are also other parameters to the CLI and GUI versions of the program.
     Option "-h" gives the full listing.
     <screen>     
      wojdyr@ubu:~/fityk/src$ ./fityk --help
@@ -247,42 +255,42 @@
    <section>
     <title>Plots and other windows</title>
     <para>
-     The window of <application>fityk</application> program consists 
+     The GUI window of <application>fityk</application> consists 
      of (from the top): menu bar, 
      toolbar, main plot, auxiliary plot, output window, input field,
      status bar and of sidebar at right-hand side. 
-     The input field allows to type and execute commands in
-     similar way as it is done in <acronym>CLI</acronym> version. 
-     The output window (which is configurable through pop-up menu)
-     shows results. Actually all GUI commands are converted into text
-     and visible in output window.
+     The input field allows you to type and execute commands in a
+     similar way as is done in the <acronym>CLI</acronym> version. 
+     The output window (which is configurable through a pop-up menu)
+     shows the results. Incidentally, all GUI commands are converted into text
+     and are visible in the output window, providing a simple way to learn the syntax.
     </para>
     <para>
      The main plot can display
-     data points, functions and/or the sum of all functions. Use pop-up
+     data points, functions and/or the sum of all functions. Use the pop-up
      menu (click <mousebutton>right</mousebutton> button on the plot) 
      to configure it. 
-     Some properties of plot (eg. colors of data points) can be changed
+     Some properties of the plot (e.g. colors of data points) can be changed
      using the sidebar. 
     </para>
     <para>
-     One of the most useful things which auxiliary plot can display 
-     is the difference between data and the sum of functions. 
-     The plot can be controlled by pop-up menu. I hope
-     quick look at this menu and a minute of experiments will make
-     all possibilities of the auxiliary plot clear.
+     One of the most useful things which can be displayed by the auxiliary plot 
+     is the difference between the data and the sum of functions. 
+     (also controlled by a pop-up menu). Hopefully, a 
+     quick look at this menu and a minute or two's worth of experiments will show
+     the potential of this auxiliary plot.
     </para>
     <para>
-     Configuration of GUI (visible windows, colors, etc.) can be saved using 
+     Configuration of the GUI (visible windows, colors, etc.) can be saved using 
      <menuchoice>
       <guimenu>GUI</guimenu><guimenuitem>Save current config</guimenuitem>
      </menuchoice>. 
      Two different configurations can be saved, 
-     what allows easy changing of colors
-     for printing. On Unix platform, these configurations are stored 
-     in file in user's home directory. 
-     On Windows - they are stored in registry (perhaps in future they will 
-     be also stored in file).
+     which allows easy changing of colors
+     for printing. On Unix platforms, these configurations are stored 
+     in a file in the user's home directory. 
+     On Windows - they are stored in the registry (perhaps in the future they will 
+     also be stored in a file).
     </para>
    </section>
 
@@ -290,35 +298,36 @@
     <title>Mouse usage</title>
     <para>
      The usage of the mouse on menu, dialog windows, 
-     input field and output window is
-     intuitive, so the only topic described here is how to effectively
-     operate mouse on plots.
+     input field and output window is (hopefully)
+     intuitive, so the only remaining topic to be discussed here is how to effectively
+     use the mouse on plots.
     </para>
     <para>
      Let us start with the auxiliary plot. 
-     <mousebutton>Right</mousebutton> button displays pop-up menu, 
-     with <mousebutton>left</mousebutton> 
-     button you can select range to be displayed - range on x axis. 
-     Clicking with <mousebutton>middle</mousebutton> button (or with 
-     <mousebutton>left</mousebutton> button and pressed <keycap>Shift</keycap>)
-     will zoom it out and display all data. 
+     The <mousebutton>right</mousebutton> button displays a pop-up menu with 
+     a range of options, 
+     while the <mousebutton>left</mousebutton> allows you to 
+     select the range to be displayed on the x-axis. 
+     Clicking with the <mousebutton>middle</mousebutton> button (or with 
+     <mousebutton>left</mousebutton> button and <keycap>Shift</keycap> pressed simultaneously)
+     will zoom out to display all data. 
     </para>
     <para>
-     On the main plot, meaning of the <mousebutton>left</mousebutton> and
+     On the main plot, the meaning of the <mousebutton>left</mousebutton> and
      <mousebutton>right</mousebutton> mouse button depends on current 
-     <firstterm>mode</firstterm>, that can be changed using toolbar or menu.  
+     <firstterm>mode</firstterm> (selected using either the toolbar or menu).  
      There are hints on the status bar.
-     In normal mode, <mousebutton>left</mousebutton> button is used for
-     zooming and <mousebutton>right</mousebutton> invokes pop-up menu.
+     In normal mode, the <mousebutton>left</mousebutton> button is used for
+     zooming and the <mousebutton>right</mousebutton> invokes the pop-up menu.
      The same behaviour can be obtained in any mode by pressing
      <keycap>Ctrl</keycap> (or <keycap>Alt</keycap>.).
 
-     <mousebutton>Middle</mousebutton> 
-     button can be used to select a rectangle that you want to zoom in. 
-     If an operation has two steps, like rectangle zooming (first you 
-     press button to select first corner, then you move mouse and release 
-     button to select second corner of rectangle),
-     you can cancel it by pressing another button when first one is pressed.
+     The <mousebutton>middle</mousebutton> 
+     button can be used to select a rectangle that you want to zoom in to. 
+     If an operation has two steps, such as rectangle zooming (i.e. first you 
+     press a button to select the first corner, then move the mouse and release 
+     the button to select the second corner of the rectangle),
+     this can be cancelled by pressing another button when the first one is pressed.
     </para>
    </section> 
   </section> 
@@ -330,22 +339,22 @@
   <section id="GeneralSyntax">
    <title>General syntax </title>
    <para>
-    Basically, there is one command is in one line. 
-    If, for some reasons, it is more comfortable to place more than one
-    command in one line, they can be separated with semicolon (;). 
+    Basically, there is one command per line. 
+    If for some reason it is more comfortable to place more than one
+    command on one line, they can be separated with a semicolon (;). 
    </para>
    <para>
-    Most of the commands can have arguments separated by comma (,), 
-    eg. <command>delete %a, %b, %c</command>. 
+    Most of the commands can have arguments separated by a comma (,), 
+    e.g. <command>delete %a, %b, %c</command>. 
    </para>
    <para>
-    Most of the commands can be shortened: eg. you can type 
+    Most of the commands can be shortened: e.g. you can type 
     <command>inf</command> or <command>in</command> or <command>i</command>
     instead of <command>info</command>. See <xref linkend="shortenings"/>
     for details.
    </para>
    <para>
-    Symbol '#' starts a comment - everything from
+    The symbol '#' starts a comment - everything from the
     hash (#) to the end of the line is ignored.
    </para>
   </section>
@@ -356,20 +365,20 @@
     <title>Loading data </title>
     <para>
      Data are stored in files.  Unfortunately, there are various formats of
-     files with data. The basic one is text file with every line 
+     files with data. The basic one is a text file with every line 
      corresponding to one data point. The line should contain at least two
-     numbers: x and y of point. It can also contain standard deviation of y
+     numbers: x and y of the point. It can also contain the standard deviation of the y
      coordinate.  Numbers can be separated by whitespace, commas, colons or
      semicolons. Some lines can contain comments or extra informations. If
-     these lines have a hash (#) in first column, they are ignored. In other
-     case, they are also ignored (unless they can be read as data point). 
-     There are also other file types, that can be read: .rit, .cpi,
-     Siemens-Bruker.raw and .mca. In future, the way the special file formats
+     these lines have a hash (#) in the first column, they are ignored. In other
+     case, they are also ignored (unless they can be read as a data point). 
+     Specific file types that can also be read currently include: .rit, .cpi,
+     Siemens-Bruker .raw and .mca. In future, the way the special file formats
      are handled will be changed (external library will be used for it,
-     unfortunatelly this library does not exists yet).
+     unfortunatelly this library does not yet exist).
     </para>
     <para>
-     Points are loaded from files using command
+     Points are loaded from files using the command
     </para>
     <cmdsynopsis>
      <arg choice="plain"><replaceable>dataslot</replaceable></arg>
@@ -384,7 +393,7 @@
      where 
      <replaceable>dataslot</replaceable> 
      should be replaced with <userinput>@0</userinput>, 
-     unless many datasets are to be used simultanously 
+     unless many datasets are to be used simultaneously 
      (for details see: <xref linkend="multidata"/>),
      <replaceable>filetype</replaceable> can be omitted (at this moment,
      due to a small number of supported formats, the filetype can be
@@ -392,13 +401,13 @@
      <replaceable>xcol</replaceable>, <replaceable>ycol</replaceable>, 
      <replaceable>scol</replaceable>, 
      are unsigned integers. If the filename contains blank characters,
-     semicolon or comma, it should be put inside of single
+     a semicolon or comma, it should be put inside single
      quotation marks. If the file is in a text format (columns with numbers)
-     it can be specified which column contains x, y and, optionally, std. dev.
+     it can be specified which column contains x, y, and (optionally) std. dev.
      of y. 
     </para>
     <para>
-     Some information about current data can be obtained using command:
+     Information about the current data can be obtained by using the command:
     </para>
     <cmdsynopsis>
      <command>info</command>
@@ -409,29 +418,29 @@
    <section>
     <title>Active and inactive points</title>
     <para>
-     We often have situation, that only part of data from file is interesting
-     for us.  We should be able to exclude selected points from fitting and all
+     We often have the situation that only a part of the data from a file is of interest.
+     We should be able to exclude selected points from fitting and all
      computations. Every point can be either active or inactive.  
-     It can be done with command <command>A=...</command> 
+     This can be done with the command <command>A=...</command> 
      (see <xref linkend="transform"/> for details)
-     or with <link linkend="mouse">mouse-click in <acronym>GUI</acronym></link>.
+     or with a <link linkend="mouse">mouse-click in the <acronym>GUI</acronym></link>.
      The idea of active and inactive points is simple: 
      only the active ones are subject to fitting and peak-finding, 
      inactive ones are neglected in these cases. 
     </para>
    </section> 
 
-   <section>
-    <title>Standard deviation or weight </title>
+   <section id="weights">
+    <title>Standard deviation (or weight) </title>
     <para>
-     When fitting data, we assume that only y coordinate of data is subject to
-     statistical errors in measurement. It is very common assumption. 
-     To see how y standard deviation
+     When fitting data, we assume that only the y coordinate is subject to
+     statistical errors in measurement. This is a common assumption. 
+     To see how the y standard deviation
      <inlinemediaobject>
       <imageobject><imagedata fileref="fitykhelp_img/sigma.png"/></imageobject>
       <textobject><phrase>sigma</phrase></textobject>
      </inlinemediaobject>  
-     influences fitting (optimization), look at
+     influences fitting (optimization), look at the
      weighted sum of squared residuals formula in <xref linkend="nonlinear"/>. 
      We can also think about weights of points -
      every point has a weight assigned, that is equal 
@@ -448,11 +457,11 @@
     </para>
     <para>
      Standard deviation of points can be 
-     <link linkend="DataLoad">read from file</link> together with x and y
+     <link linkend="DataLoad">read from file</link> together with the x and y
      coordinates. Otherwise, it is set to max(sqrt(y), 1.0), 
-     Setting std. dev. as a square root of value is common 
+     Setting std. dev. as a square root of the value is common 
      and has theoretical ground when y is the number of independent events.
-     You can always change standard deviation, eg. make it equal for every
+     You can always change standard deviation, e.g. make it equal for every
      point with command: <userinput>S=1</userinput>.
      See <xref linkend="transform"/> for details.
     </para>
@@ -466,14 +475,14 @@
      letters x, y, s, a stand for these properties before transformation,
      and upper case X, Y, S, A for the same properties after transformation.
      M stands for the number of points. 
-     You can transform data using assignments.
-     Command <userinput>Y=-y</userinput> will change the sign of y coordinate
+     Data can be transformed using assignments.
+     Command <userinput>Y=-y</userinput> will change the sign of the y coordinate
      of every point. You can also apply transformation to selected points:
      <userinput>Y[3]=1.2</userinput> will change point with index 3 
      (which is 4th point, because first has index 0),
      and <userinput>Y[3...6]=1.2</userinput> will do the same for points with 
      indices 3, 4, 5, but not 6. <userinput>Y[2...]=1.2</userinput>
-     will apply transformation to point with index 2 and all next points.
+     will apply the transformation to points with index 2 and above.
      You can guess what <userinput>Y[...6]=1.2</userinput> does.
      Most of operations are executed sequentially for points from the first 
      to the last one. n stands for the index of currently transformed point.
@@ -482,17 +491,17 @@
      will generate the sinusoid dataset with 500 points. 
     </para>
     <para>
-     If you have more than one dataset, you have to specify explicitely
+     If you have more than one dataset, you have to specify explicitly
      which dataset transformation applies to. See
      <xref linkend="multidata"/> for details.
     </para>
     <para>
-     Points are kept sorted according to x coordinate, so changing x coordinate
+     Note that points are kept sorted according to their x coordinate, so changing x coordinate
      of points will also change the order and indices of points.
     </para>
     <para>
      Expressions can contain 
-     real numbers in normal or scientific format (eg. 1.23e5),
+     real numbers in normal or scientific format (e.g. 1.23e5),
      constant <constant>pi</constant>,
      binary operators: +, -, *, /, ^,
      one argument functions:
@@ -506,15 +515,16 @@
      <function>atan</function>, 
      <function>asin</function>, 
      <function>acos</function>, 
-     <function>erf</function>, 
+     <function>erf</function>,
+     <function>erfc</function>,
      <function>gamma</function>, 
      <function>lgamma</function> (=ln(|gamma|)), 
      <function>abs</function>,
      <function>round</function> (rounds to the nearest integer),
-     two arguments functions: 
+     two argument functions: 
      <function>min2</function>, 
      <function>max2</function>  
-     (eg. <userinput>max2(3,5)</userinput> will give 5), 
+     (e.g. <userinput>max2(3,5)</userinput> will give 5), 
      <function>randuniform(a, b)</function> 
      (random number from interval (a, b)),
      <function>randnormal(mu, sigma)</function> 
@@ -531,37 +541,37 @@
      != (or &lt;&gt;), TRUE, FALSE.
     </para>
     <para>
-     Value of a data expression can be shown using command 
+     The value of a data expression can be shown using the command 
      <command>info</command>, see examples at the end of this section.
     </para>
     <para>
      <function><replaceable>t</replaceable>[x=expression]</function>, where
      <replaceable>t</replaceable>=x,y,s,a,X,Y,S,A
-     gives linear interpolation of <replaceable>t</replaceable> 
-     between two points (or the value of first/last point if given x is outside 
-      of the current data range).
+     gives a linear interpolation of <replaceable>t</replaceable> 
+     between two points (or the value of first/last point if the given x is outside 
+      the current data range).
     </para>
     <para>
      Important note: all operations are performed on real numbers.
      Two numbers that differ less than epsilon=1e-9 
-     ie. abs(a-b)&lt;epsilon, are considered equal. 
+     i.e. abs(a-b)&lt;epsilon, are considered equal. 
      Indices are also computed in real number domain, 
      and then rounded to the nearest integer.
     </para>
     <para>
-     Transformations can be joined with comma (,), eg.
+     Transformations can be joined with comma (,), e.g.
      <userinput>X=y, Y=x</userinput> swaps axes.
     </para>
     <para>
      Before and after executing transformations, points are always 
-     sorted according to x coordinate. You can change order of points
+     sorted according to their x coordinate. You can change the order of points
      using <command>order=<replaceable>t</replaceable></command>,
      where <replaceable>t</replaceable> is one of x, y, s, a, -x, -y, -s, -a.
-     It only has a sense in sequence of transformations joined with comma,
-     because after finishing transformation, points will be reordered again.
+     Clearly, this only makes sense for a sequence of transformations (joined with comma)
+     as after finishing each transformation, points will be reordered again.
     </para>
     <para>
-     Points can be deleted using following syntax:
+     Points can be deleted using the following syntax:
      <command>delete[<replaceable>index-or-range</replaceable>]</command>
      or 
      <command>delete(<replaceable>condition</replaceable>)</command>
@@ -574,11 +584,11 @@
      <replaceable>parametrizedfunc</replaceable> 
      [<replaceable>param1</replaceable>, 
      <replaceable>param2</replaceable>](<replaceable>expression</replaceable>)
-     eg. <userinput>spline[22.1, 37.9, 48.1, 17.2, 93.0, 20.7](x)</userinput> 
-     will give value of cubic spline interpolation through points 
+     e.g. <userinput>spline[22.1, 37.9, 48.1, 17.2, 93.0, 20.7](x)</userinput> 
+     will give the value of a cubic spline interpolation through points 
      (22.1, 37.9), (48.1, 17.2), ... in x.
-     Function interpolation is similar, but give polyline interpolation.
-     Spline function is used for manual background substraction in GUI.
+     Function interpolation is similar, but gives a polyline interpolation.
+     Spline function is used for manual background substraction via the GUI.
     </para>
     <para>
      There are also aggragate functions: 
@@ -595,21 +605,21 @@
      and standard deviation, respectively. True value in data expression
      is represented numerically by 1., and false by 0, 
      so <function>sum</function> can be also used to count points
-     that fulfill given criterium.
+     that fulfil given criteria.
     </para>
     <para>
      <function>darea</function> gives the sum of expressions calculated
-     using formula: t*(x[n+1]-x[n-1])/2, where t is the value of expression
-     in brackets. <userinput>darea(x)</userinput> gives 
+     using formulae: t*(x[n+1]-x[n-1])/2, where t is the value of the expression
+     in brackets. <userinput>darea(y)</userinput> gives 
      the area under interpolated data points, 
-     and can be used to normalize area.
+     and can be used to normalize the area.
     </para>
     <para>
      The second form: 
      <replaceable>aggragatefunc</replaceable> 
      (<replaceable>expression</replaceable> 
      if <replaceable>condition</replaceable>) takes into account only points
-     for which condition is true.
+     for which the condition is true.
     </para>
     <para>
      A few examples:
@@ -627,10 +637,10 @@
      # make equal step, keep the number of points the same
      X = x[0] + n * (x[M-1]-x[0]) / (M-1),  Y = y[x=X], S = s[x=X], A = a[x=X]
 
-     # take the first 2000 points, avarage them and substract this as background
+     # take the first 2000 points, average them and substract as background
      Y = y - avg(y if n&lt;2000)
 
-     # fityk can be used as a simple calculator
+     # fityk can also be used as a simple calculator
      i 2+2 #4
      i sin(pi/4)+cos(pi/4) #1.41421
      i gamma(10) #362880
@@ -645,16 +655,16 @@
    </section> 
 
    <section id="funcindt">
-    <title>Functions and variables in data transformations</title>
+    <title>Functions and variables in data transformation</title>
     <para>
      Informations in this section are not often used in practice.
      Read it after reading <xref linkend="sum"/>.
     </para>
     <para>
      Variables ($foo) and functions (%bar) can be used in data transformations, 
-     and a current value of data expression can be assigned to variable.
-     Also values of function parameters (eg. %fun[a0]) and pseudo-parameters
-     Center, Height, FWHM and Area (eg. %fun[Area]) can be used.
+     and a current value of data expression can be assigned to the variable.
+     Values of the function parameters (e.g. %fun[a0]) and pseudo-parameters
+     Center, Height, FWHM and Area (e.g. %fun[Area]) can also be used.
      Pseudo-parameters are supported only by functions, which know
      how to calculate these properties. 
     </para>
@@ -672,15 +682,15 @@
      <function>findx(%f, x1, x2, y)</function> 
      finds x in interval (x1, x2) such that 
      %f(x)=y
-     using bisection method combined with Newton-Raphson method method.
-     It is required that %f(x1) &lt; y &lt; %f(x2).
+     using bisection method combined with Newton-Raphson method.
+     It is a requirement that %f(x1) &lt; y &lt; %f(x2).
     </para>
     <para>
      <function>extremum(%f, x1, x2)</function> finds x in interval (x1, x2) 
      such that 
      %f'(x)=0 
      using bisection method.  
-     It is required that %f'(x1) and %f'(x2) have different signs. 
+     It is a requirement that %f'(x1) and %f'(x2) have different signs. 
     </para>
     <para>
      A few examples:
@@ -692,8 +702,8 @@
 
       Y = y - @0.F(x) # substracts all functions in F
 
-      %c = Constant(~0) -> Z  # fit constant zero-shift (it can be caused...
-      fit                # ...by shift in scale of instrument collecting data),
+      %c = Constant(~0) -> Z  # fit constant zero-shift (this can be caused...
+      fit                # ...by a shift in scale of the instrument collecting data),
       X = x + @0.Z(x)  # ...remove it from dataset,
       del %c           # ...and delete it from sum
 
@@ -705,24 +715,23 @@
       # calculate FWHM numerically, value 50 can be tuned
       $c = {%f[Center]}
       i findx(%f, $c, $c+50, %f[Height]/2) - findx(%f, $c, $c-50, %f[Height]/2)
-      i %f[FWHM] # should give almost the same
+      i %f[FWHM] # should give almost the same.
      </screen>     
     </para>
    </section> 
 
    <section id="multidata">
-    <title>Working with many datasets</title>
+    <title>Working with multiple datasets</title>
     <para>
-     Let call a set of data that usually comes from one file - a 
+     Let us call a set of data that usually comes from one file - a 
      <firstterm>dataset</firstterm>. 
-     All operations described above assume that only one dataset.
+     All operations described above assume only one dataset.
      If there are more datasets created, it must be explicitly
-     written which dataset the command is applied to, eg.
+     stated which dataset the command is being applied to, e.g.
      <userinput>M=500 in @0</userinput>. Datasets have numbers
-     and are referenced by '@' with the number, eg. <userinput>@3</userinput>.
+     and are referenced by '@' with the number, e.g. <userinput>@3</userinput>.
      <userinput>@*</userinput> means all datasets, 
-     and <userinput>Y=y/10 in @*</userinput>
-     will do what is expected to.
+     (e.g. <userinput>Y=y/10 in @*</userinput>).
     </para>
     <para>
      Command
@@ -737,28 +746,26 @@
      </cmdsynopsis>
      will load dataset to new slot. Using @+ increases the number of datasets,
      and command <command>delete @<replaceable>n</replaceable></command>
-     decreases it. It is also possible to duplicate dataset (command
+     decreases it. It is also possible to duplicate a dataset (using the command
      <command>@+ &lt; @<replaceable>n</replaceable></command>)
-     or create new dataset as a sum of two or more existing ones 
+     or to create new dataset as a sum of two or more existing sets 
      (command <command>@+ &lt; @<replaceable>n</replaceable> +
       @<replaceable>m</replaceable> + ...</command>).
     </para>
     <para>
-     Each dataset has a separate <link linkend="sum">sum</link>, ie. a model
-     that can be fitted to the data. It is explained in the next chapter.
+     Each dataset has a separate <link linkend="sum">sum</link>, i.e. a model
+     that can be fitted to the data. This is explained in the next chapter.
     </para>
     <para>
-     Each dataset has a title. It does not have to be unique.
+     Each dataset also has a title (it does not have to be unique, however).
      When loading file, a title is automatically created, either 
-     using filename or it is read from the file (it depends on the format
+     using the filename or by reading it from the file (depending on the format
      of the file).
-     It is used for exporting data -- some file formats require it 
-     (at this moment such formats are not supported).
-     Title can be changed using command 
+     Titles can be changed using the command 
      <command>
       @<replaceable>n</replaceable>.title=<replaceable>new-title</replaceable>
      </command>. 
-     To see title of the dataset, 
+     To see the current title of the dataset, 
      use <command>info @<replaceable>n</replaceable></command>.
     </para>
    </section> 
@@ -772,21 +779,21 @@
       &gt;</command> 
       <arg choice="plain"><replaceable>filename</replaceable></arg> 
      </cmdsynopsis>
-     can export data to ASCII TSV (tab separated values) file. 
-     To export data in 3-column (x, y and standard deviation) format, use
+     can export data to an ASCII TSV (tab separated values) file. 
+     To export data in a 3-column (x, y and standard deviation) format, use
      <userinput>@<replaceable>n</replaceable> (x, y, s) > <replaceable>file</replaceable></userinput>.
      If <userinput>a</userinput> is not listed in the list of columns,
-     like in this example, only active points are exported.
+     such as in this example, only the active points are exported.
     </para>
     <para>
-     All expressions that can be used on right hand side of data transformations
-     can be used in column list, eg.
+     All expressions that can be used on the right-hand side of data transformations
+     can also be used in the column list, e.g.
      <userinput>@0 (n+1, x, y, @0.F(x), y-@0.F(x), @0.Z(x), %foo(x), a, sin(pi*x)+y^2) > bar.tsv</userinput>. 
      [To make it easier to export all functions
-     in F separately, there is an exception in syntax: "*F(x)" is replaced 
+     in F separately, there is an exception in the syntax: "*F(x)" is replaced 
      with all functions in sum of the exported dataset, 
-     eg. with "%_1(x) %_2(x) %_3(x)". Now I think it's not a good idea and
-     i'm going to remove it. If you find it useful, let me know.]
+     e.g. with "%_1(x) %_2(x) %_3(x)". This is most likely not a good idea and
+     will probably be removed in a future version. If you find it useful, let the author know.]
     </para>
    </section> 
   </section> 
@@ -797,9 +804,9 @@
    <section id="sumintro">
     <title>Sum - Introduction</title>
     <para>
-     The sum of functions S - curve that is fitted to data - is itself a
-     function. The value of the whole sum is computed as a sum of functions,
-     like Gaussians or polynomials, and can be given by formula:
+     The sum of functions S (the curve that is fitted to the data) is itself a
+     function. The value of the whole sum is computed as a sum of the functions,
+     like Gaussians or polynomials, and can be given by the formula:
      <inlineequation>
       <inlinemediaobject>
        <imageobject>
@@ -848,7 +855,7 @@
     </para>
     <para>
      Now we will have a closer look at f<subscript>i</subscript> functions. 
-     Every function f<subscript>i</subscript> has a type chosen from 
+     Every function f<subscript>i</subscript> has a type chosen from the
      function types available in the program. The same is true about
      functions z<subscript>i</subscript>.
      One of these types is the
@@ -865,34 +872,34 @@
        </textobject>
       </mediaobject>  
      </informalequation>
-     There are three parameters of Gaussian. These parameters does not
+     There are three parameters of Gaussian. These parameters do not
      depend on x. There must be one <firstterm>variable</firstterm> 
-     binded to each parameter.
+     bound to each parameter.
     </para>
    </section>
    <section id="variables">
     <title>Variables</title>
     <para>
-     Variables in Fityk have names prefixed with dollar ($).
-     Variable is created by assigning a value to it, eg.
+     Variables in Fityk have names prefixed with the dollar symbol ($).
+     A variable is created by assigning a value to it, e.g.
      <userinput>$foo=~5.3</userinput> 
      or <userinput>$c=3.1</userinput>
      or <userinput>$bar=5*sin($foo)</userinput>.
      <varname>$foo</varname> is here a so-called 
      <firstterm>simple variable</firstterm>. 
      It is created by assigning
-     to it real number prefixed with ~. The `~' means that value
-     assigned to the variable can be changed when fitting sum to data.
+     to it real number prefixed with ~. The `~' means that the value
+     assigned to the variable can be changed when fitting the sum of the functions to the data.
      For people familiar with optimization techniques: 
      the number of defined simple variables is the number of dimensions
-     of space we are looking for optimum in.
-     Variable <varname>$c</varname> 
+     of space we are looking for the optimum in.
+     In the above example, the variable <varname>$c</varname> 
      is actually a constant. <varname>$bar</varname> 
      depends on the value of <varname>$foo</varname>.
      When <varname>$foo</varname> changes, the value 
      of <varname>$bar</varname> also changes.
      Compound variables can be build using operators +, -, *, /, ^
-     and functions 
+     and the functions 
      <function>sqrt</function>, 
      <function>exp</function>, 
      <function>log10</function>, 
@@ -903,25 +910,29 @@
      <function>atan</function>, 
      <function>asin</function>, 
      <function>acos</function>, 
-     <function>erf</function>, 
-     <function>lgamma</function>. Note that this is a subset of functions
+     <function>erf</function>,
+     <function>erfc</function>,
+     <function>lgamma</function>. Note that this is a subset of the functions
      used in <link linkend="transform">data transformations</link>.
     </para>
     <para>
      Every simple parameter has a value and, optionally, domain.  
-     Domain is used only by fitting algorithms, 
+     The domain is used only by the fitting algorithms 
      which need to randomly initialize or change variables. 
      Genetic Algorithms are a good example.
     </para>
     <para>
-     Variables can be used in data tranformations. 
-     Also value of data expression
-     can be used in variable definition, but it must be inside of braces,
-     eg. <userinput>$bleh={M}</userinput> 
-     or, to create simple variable: <userinput>$bleh=~{M}</userinput>.
+     Variables can be used in data tranformations, 
+     e.g. <userinput>Y=y/$a</userinput>.
     </para>
     <para>
-     Sometimes it is useful to freeze variable, ie. to prevent it from
+     The value of the data expression
+     can be used in the variable definition, but it must be inside braces,
+     e.g. <userinput>$bleh={M}</userinput> 
+     or, to create a simple variable: <userinput>$bleh=~{M}</userinput>.
+    </para>
+    <para>
+     Sometimes it is useful to freeze a variable, i.e. to prevent it from
      changing while fitting. There is no special syntax for it, 
      but it can be done using data expressions in this way:
      <screen>
@@ -931,34 +942,34 @@
      </screen>
     </para>
     <para>
-     It is also possible to define a variable as eg. 
+     It is also possible to define a variable as e.g. 
      <userinput>$bleh=~9.1*exp(~2)</userinput>. In this case two simple
      variables (with values 9.1 and 2) will be created automatically. 
      Automatically created
      variables are named <varname>$_1</varname>, <varname>$_2</varname>, 
-     <varname>$_3</varname>, etc.
+     <varname>$_3</varname>, and so on.
     </para>
     <para>
-     Variables can be deleted using command 
+     Variables can be deleted using the command 
      <command>delete <replaceable>$variable</replaceable></command>.
     </para>
     <para>
-     Some fitting algorithms need to randomize parameters of fitted function
-     (i. e. simple variables). For this purpose, 
-     the simple variable can have specified <firstterm>domain</firstterm>.
+     Some fitting algorithms need to randomize the parameters of the fitted function
+     (i.e. simple variables). For this purpose, 
+     the simple variable can have a specified <firstterm>domain</firstterm>.
      Note that the domain does not imply any constraints on the value
-     the variable can have. It is only a hint for fitting methods like
-     Nelder-Mead simplex or Genetic Algorithms. Read descriptions
-     of these methods to know how the domain is used. The syntax is following:
+     the variable can have -- it is only a hint for fitting methods such as the
+     Nelder-Mead simplex or Genetic Algorithms. Further information on how the domain is used in
+     these methods is contained in the appropriate fitting description. The syntax is as follows:
      <screen>
       $a = ~12.3 [11 +- 5] # center and width of the domain is given
 
       $b = ~12.3 [ +- 5] # if the center of the domain is not specified, 
                          # current value of the variable is used
      </screen>
-     If the domain is not specified, the value of 
+     If the domain is not specified, the value of
      <parameter class="option">variable-domain-percent</parameter>
-     option is used 
+     option is used
      (domain is +/- value-of-variable * value-of-the-option / 100)
     </para>
    </section>
@@ -966,32 +977,32 @@
     <title>Function types and functions</title>
     <para>
      Let us go back to functions. Function types have names that start
-     with upper case letter, eg. Linear or Voigt. Functions 
-     (ie. function instances) have names prefixed with percent,
-     eg. %func. Every function has a type and variables binded to its
+     with upper case letter, e.g. Linear or Voigt. Functions 
+     (i.e. function instances) have names prefixed with a percent symbol,
+     e.g. %func. Every function has a type and variables bound to its
      parameters. 
     </para>
     <para>
-     To see list of available function types, use command 
+     To see a list of available function types, use the command 
      <command>info types</command>. 
-     You can also use command
+     You can also use the command
      <command>info <replaceable>typename</replaceable></command>, 
-     eg. <userinput>info Pearson7</userinput> to see parameter names,
-     default values and formula.
+     e.g. <userinput>info Pearson7</userinput> to see the names of the parameters,
+     default values and formulae.
     </para>
     <para>
-     Function can be created by giving type and a proper
-     number of comma-separated variables in brackets, eg:
+     Functions can be created by giving the type and the correct
+     number of comma-separated variables in brackets, e.g.
      <userinput>%f = Gaussian(~66254., ~24.7, ~0.264)</userinput>
      or
      <userinput>%f = Gaussian(~6e4, $ctr, $b+$c)</userinput>.
-     Every expression, which is valid on the right hand side of variable
-     assignment, can be put as a variable.
-     If it is not just a name of a variable, an automatic variable is created.
+     Every expression which is valid on the right-hand side of a variable
+     assignment, can also be used as a variable.
+     If it is not simply a name of a variable, an automatic variable is created.
      In the last example two variables are created (value 60000 and the sum).
     </para>
     <para>
-     The second way is to give named parameters of function, in any order, eg.
+     The second way is to give named parameters of a function, in any order, e.g.
      <userinput>%f = Gaussian(height=~66254., hwhm=~0.264, center=~24.7)
      </userinput>
      Function types can can have specified default values for
@@ -999,23 +1010,23 @@
      <userinput>
      %f = Pearson7(height=~66254., center=~24.7, fwhm=~0.264)
      </userinput>,
-     although shape parameter of Pearson7 is not given.
+     although the shape parameter of Pearson7 is not given.
     </para>
     <para>
-     A deep copy of function (ie. all variables it dependends on
-     are copied) can be made using command 
+     A deep copy of function (i.e. all variables that it depends on
+     are also copied) can be made using the command 
      <command>
       <replaceable>%function</replaceable>
       =copy(<replaceable>%anotherfunction</replaceable>)
      </command>
     </para>
     <para>
-     Functions can be also created with command <command>guess</command>,
+     Functions can be also created with the command <command>guess</command>,
      as described in <xref linkend="guess"/>.
     </para>
     <para>
-     You can change variable binded to any of function parameters
-     in this way:
+     You can change a variable bound to any of the function parameters
+     in this manner:
      <screen>
       =-> %f = Pearson7(height=~66254., center=~24.7, fwhm=~0.264)
       New function %f was created.
@@ -1029,55 +1040,55 @@
      </screen>
     </para>
     <para>
-     Functions can be deleted using command 
+     Functions can be deleted using the command 
      <command>delete <replaceable>%function</replaceable></command>.
     </para>
    </section> 
 
-   <section>
+   <section id="udf">
     <title>Used-defined functions (UDF)</title>
     <para>
      User-defined function types can be created using command 
-     <command>define</command>, and than used in the same way as built-in
-     function types. The name of new type must start with upper-case
+     <command>define</command>, and then used in the same way as built-in
+     functions. The name of new type must start with an upper-case
      letter, contain only letters and digits, have at least two characters
-     and can not be the same as a name of built-in function.
+     and must not be the same as the name of built-in function.
      Defined functions can be undefined using command 
      <command>undefine</command>.
     </para>
     <para>
-     The name of UDF should be followed by parameters in brackets 
+     The name of a UDF should be followed by parameters in brackets 
      (see examples). Names of parameters should contain only 
-     lowercase alphanumeric characters and underscore (_), and start
+     lower-case alphanumeric characters and the underscore (_), and start
      with lowercase letter. The name "x" is reserved, do not put it
      into parameter list, 
-     just use it on the right hand side of the definition.
+     just use it on the right-hand side of the definition.
     </para>
     <para>
-     Each parameter can have specified default value.
-     To allow adding peak with command <command>guess</command>,
-     default value is given as an expression which can be calculated
-     for known "height", "center", "fwhm" and "area".
+     Each parameter can have a specified default value.
+     To allow adding a peak with the command <command>guess</command>,
+     the default value is given as an expression which can then be calculated
+     for a known "height", "center", "fwhm" and "area".
      If the name itself is one of the following: "height", "center", "fwhm, 
      "area" or "hwhm", default value is deduced (in case of "hwhm" it is
      "fwhm/2").
     </para>
     <para>
-     UDFs can be defined either giving full formula, 
+     UDFs can be defined either by giving a full formula, 
      or as a sum or modification of already defined functions.
-     Hopefully examples below will make the syntax clear. 
+     Hopefully the examples below will make the syntax clear. 
     </para>
     <para>
-     How it works (you can skip this paragraph): formula is parsed, 
+     How it works (you can skip this paragraph): the formula is parsed, 
      derivatives of the formula are calculated symbolically,
      all expressions are simplified (but there is a lot of space for 
-     optimization here), bytecode is created for kind of virtual machine,
-     and when fitting, the VM calculates value of the function
-     and derivatives in every point. Common Subexpression Elimination
-     is not implemented yet, I suppose it will noticably speed up UDFs.
+     optimization here), bytecode is created for a kind of virtual machine,
+     and when fitting, the VM calculates the value of the function
+     and derivatives for every point. Common Subexpression Elimination
+     is not implemented yet, I suppose it will noticeably speed up UDFs.
     </para>
     <para>
-     Hint: use <filename>init</filename> file for often used definitions.
+     Hint: use the <filename>init</filename> file for often-used definitions.
      See <xref linkend="invoking"/> for details.
     </para>
     <para>
@@ -1096,7 +1107,7 @@
      # (it is the same as built-in GaussianA function)
      define GaussianArea(area, center, hwhm) = Gaussian(area/fwhm/sqrt(pi*ln(2)), center, hwhm) 
 
-     # sum of Gaussian and Lorentzian -- it is already defined as PseudoVoigt
+     # sum of Gaussian and Lorentzian (also known as PseudoVoigt)
      define GLSum(height, center, hwhm, shape) = Gaussian(height*(1-shape), center, hwhm) + Lorentzian(height*shape, center, hwhm)
 
      # to change definition of UDF, first undefine previous definition
@@ -1109,30 +1120,33 @@
    <section>
     <title>Speed of computations</title>
     <para>
-     With default settings, value of every function is calculated
-     in every point. Functions like Gaussian often have non-neglectible
-     value only in small fraction of all points. To speed up calculation,
-     set option
+     With default settings, the value of every function is calculated
+     at every point. Functions such as Gaussian often have non-neglectible
+     values only in a small fraction of all points. To speed up the calculation,
+     set the option
      <parameter class="option">cut-function-level</parameter> 
-     to non-zero value. Note, that some functions may not support
-     this optimization at all, and for other approximations are used
-     and the exact value of cut-off level can differ.
+     to a non-zero value. For each function the range with values
+     greater than
+     <parameter class="option">cut-function-level</parameter> 
+     will be estimated, and all values outside of this range are
+     considered to be equal zero.
+     Note that not all functions support this optimization.
     </para>
    </section> 
    <section>
     <title>Sum, F and Z</title>
     <para>
-     As it was already written, each dataset has a separate sum. ie. a model
+     As already discussed, each dataset has a separate sum. i.e. a model
      that can be fitted to the data. 
-     It can be seen in <link linkend="sumintro">formula above</link>,
-     that the sum consists of functions f<subscript>i</subscript> 
-     and z<subscript>i</subscript>. Each dataset has two sets named F and Z.
-     They contain names of functions.
-     Sum is constructed by telling which functions are in F and which in Z.
+     As can be seen from the <link linkend="sumintro">formula above</link>,
+     the sum consists of functions f<subscript>i</subscript> 
+     and z<subscript>i</subscript>. Each dataset has two sets named F and Z,
+     containing the names of the functions.
+     The sum is constructed by specifying which functions are in F and which in Z.
     </para>
     <para>
-     In many cases Z can be forgotten. Then fitted curve is a sum of all
-     functions in F. The functions can be listed with command 
+     In many cases Z can safely be ignored. The fitted curve is thus the sum of all
+     functions in F. These functions can be listed with  
      <command>info F</command>.
     </para>
     <para>
@@ -1146,7 +1160,7 @@
      <command><replaceable>%function</replaceable> -&gt; N</command>
      removes <replaceable>%function</replaceable> from F or Z.
      If there is more than one dataset, F, Z and N must be prefixed
-     with dataset number, eg.
+     with the dataset number, e.g.
      <command>
       <replaceable>%function</replaceable> -&gt; <replaceable>@1</replaceable>.F
      </command>
@@ -1154,7 +1168,7 @@
      <command>
       <replaceable>%function</replaceable> -&gt; <replaceable>@0</replaceable>.N
      </command>.
-     Following syntax is also valid:
+     The following syntax is also valid:
      <screen>
   # create and add funtion to F
   %g = Gaussian(height=~66254., hwhm=~0.264, center=~24.7) -> @0.F
@@ -1166,101 +1180,100 @@
   @0.F = %a, %b, %c
   # make @1.F the exact (shallow) copy of @0.F
   @1.F = @0.F
-  # make @1.F a deep copy of @0.F (it means all functions and variables
+  # make @1.F a deep copy of @0.F (all functions and variables
   # are duplicated).
   @1.F = copy(@0.F) </screen>
     </para>
     <para>
-     Sum can be exported as data points, using syntax described in
-     <xref linkend="dexport"/>,  or as mathematic formula,
-     using command <command>@<replaceable>n</replaceable>.formula &gt; <replaceable>filename</replaceable></command>. Some primitive simplifications
+     The sum can be exported as data points, using the syntax described in
+     <xref linkend="dexport"/>,  or as mathematical formulae,
+     using the command <command>info formula in @<replaceable>n</replaceable> &gt; <replaceable>filename</replaceable></command>. Some primitive simplifications
      are applied to the formula. To prevent it, put plus sign (+)
-     after ".formula".
-     Peak parameters can be exported using command
-     <command>@<replaceable>n</replaceable>.peaks &gt; <replaceable>filename</replaceable></command>. Put plus sign (+) after ".peaks" to export also 
-     symmetric errors of the parameters. "@*" will export formulea or parameters
-     used in all datasets to the same file. [I think I'll change the syntax 
-     described in this paragraph, but I'm not sure yet.]
+     after "info".
+     Peak parameters can be exported using the command
+     <command>info peaks in @<replaceable>n</replaceable> &gt; <replaceable>filename</replaceable></command>. Put the plus sign (+) after "info" to also export 
+     symmetric errors of the parameters. "@*" will export formulae or parameters
+     used in all datasets to the same file. 
     </para>
     <para>
     </para>
     <para>
-     It is often required to keep width or shape of peaks constant
-     for all peaks in dataset. To change variables binded to parameters
-     with given name of all functions in F, use command:
+     It is often required to keep the width or shape of peaks constant
+     for all peaks in the dataset. To change the variables bound to parameters
+     with a given name for all functions in F, use the command:
      <command>
       F[<replaceable>param</replaceable>]=<replaceable>variable</replaceable>
      </command>. Examples:
      <screen>
   F[hwhm]=$foo # hwhm's of all functions in F that have parameter hwhm will be 
-               # equal $foo. (hwhm means here half-width-at-half-maximum)
-  F[shape]=%_1[shape]  # variable binded to shape of peak %_1 is binded
+               # equal to $foo. (hwhm here means half-width-at-half-maximum)
+  F[shape]=%_1[shape]  # variable bound to shape of peak %_1 is bound
                        # also to shapes of all functions in F
-  F[hwhm]=~0.2  # For every function in F a new variable is created and binded 
-                # to parameter hwhm. All these parameters are independent. </screen>
+  F[hwhm]=~0.2  # For every function in F a new variable is created and bound 
+                # to parameter hwhm. All parameters are independent. </screen>
     </para>
    </section> 
    <section id="guess">
     <title>Guessing peak location </title>
     <para>
-     It is possible to guess peak location and add it to F with command:
+     It is possible to guess peak location and add it to F with the command:
      <command>
       <replaceable>%name</replaceable> =
       guess <replaceable>PeakType</replaceable>
       [<replaceable>x1</replaceable>:<replaceable>x2</replaceable>]
       in @<replaceable>n</replaceable>
      </command>, 
-     eg. <userinput>guess Gaussian [22.1:30.5] in @0</userinput>.
+     e.g. <userinput>guess Gaussian [22.1:30.5] in @0</userinput>.
      If the range is omitted, the whole dataset will be searched.
-     Name of function is optional. Some of parameters can be specified
+     Name of the function is optional. Some of parameters can be specified
      with syntax 
      <replaceable>parameter</replaceable>=<replaceable>variable</replaceable>,
-     eg. <userinput>guess PseudoVoigt [22.1:30.5] center=$ctr, shape=~0.3 in @0</userinput>.
+     e.g. <userinput>guess PseudoVoigt [22.1:30.5] center=$ctr, shape=~0.3 in @0</userinput>.
     </para>
     <para>
-     Fityk offers only primitive algorithm for peak-detection. 
-     It looks for highest point in given range, and than tries to find out 
-     width of peak. 
+     Fityk offers only a primitive algorithm for peak-detection. 
+     It looks for the highest point in a given range, and than tries to find the 
+     width of the peak. 
     </para>
     <para>
      If the highest point is found near the boundary
      of the given range, it is very probable that it is not the peak top,
      and, if <link linkend="settings">the option</link> 
      <parameter class="option">can-cancel-guess</parameter> 
-     is set true, the guess is canceled.
+     is set to true, the guess is cancelled.
     </para>
     <para>
      There are two real-number options related to <command>guess</command>: 
      <parameter class="option">height-correction</parameter> and 
      <parameter class="option">width-correction</parameter>. 
-     Default value of them is 1.
+     The default value of them is 1.
      The guessed height and width are multiplied by the values of these
      options respectively.
     </para>
    </section> 
    <section>
-    <title>Displaying informations </title>
+    <title>Displaying information </title>
     <para>
-     If you are using GUI, most of informations can be displayed 
-     with mouse clicks. Otherwise, you can use <command>info</command>
+     If you are using the GUI, most of the available information can be displayed 
+     with mouse clicks. Alternatively, you can use the <command>info</command>
      command. Using <command>info+</command> instead of <command>info</command>
-     sometimes displays more datailed informations.
+     sometimes displays more verbose information.
      Command 
      <command>info guess <replaceable>range</replaceable></command>
-     will show, where the <command>guess</command> command would find the peak.
+     will show where the <command>guess</command> command would find a peak, if it were run.
      <command>info functions</command> lists all defined functions,
-     and <command>info variables</command> - all variables.
+     and <command>info variables</command>, all variables.
      <command>info @<replaceable>n</replaceable>.F</command> 
      and <command>info @<replaceable>n</replaceable>.Z</command> show 
-     informations about F and Z, 
-     <command>info @<replaceable>n</replaceable>.formula</command>
-     shows mathematic formula of fitted function,
+     information about F and Z, 
+     <command>info formula in @<replaceable>n</replaceable></command>
+     shows the mathematical formulae of the fitted functions,
      and 
      <command>
       info @<replaceable>n</replaceable>.dF(<replaceable>x</replaceable>)
      </command>
-     compares symbolic and numeric derivatives in <replaceable>x</replaceable>
-     (useful only for debugging).
+     compares the symbolic and numerical derivatives in <replaceable>x</replaceable>
+     (useful for debugging).
     </para>
    </section> 
   </section>
@@ -1271,8 +1284,8 @@
     <title>Nonlinear optimization </title>
     <para>
      This is the core. We have a set of observations (data points), 
-     and we want to fit a <firstterm>model</firstterm> (sum of functions), 
-     that depends on adjustable parameters, to observations. 
+     to which we want to fit a <firstterm>model</firstterm> (or sum of functions) 
+     that depends on adjustable parameters. 
      Let me quote <citetitle pubwork="book">Numerical Recipes</citetitle>, 
      chapter 15.0, page 656 (if you do not know the book, visit 
      <ulink url="http://www.nr.com">http://www.nr.com </ulink>):
@@ -1306,8 +1319,8 @@
      </para>
     </blockquote>
     <para>
-     Our function of merit is <acronym>WSSR</acronym> - weighted sum of
-     squared residuals, called also chi-square:
+     Our function of merit is <acronym>WSSR</acronym> - the weighted sum of
+     squared residuals, also called chi-square:
      <informalequation>
       <mediaobject>
        <imageobject>
@@ -1327,7 +1340,7 @@
        </textobject>
       </mediaobject>  
      </informalequation>
-     Weights can be are based on standard deviations, 
+     Weights are based on standard deviations, 
      <inlineequation>
       <inlinemediaobject>
        <imageobject>
@@ -1339,14 +1352,14 @@
       </inlinemediaobject>  
      </inlineequation>.
      You can learn why squares of residuals are
-     minimized eg. from chapter 15.1 of 
+     minimized e.g. from chapter 15.1 of 
      <citetitle pubwork="book">Numerical Recipes</citetitle>. So we
      are looking for a global minimum of chi<superscript>2</superscript>. 
-     This large field of numerical research - looking for minimum or maximum -
+     This field of numerical research (looking for a minimum or maximum)
      is usually called optimization; it is non-linear and global optimization. 
      <application>Fityk</application> implements
      three very different optimization methods. All are well-known and
-     described in many book. 
+     described in many standard textbooks. 
     </para>
    </section>
 
@@ -1360,16 +1373,16 @@
       <arg><replaceable>number-of-iterations</replaceable></arg> 
       <arg>in <replaceable>@n, ...</replaceable></arg> 
      </cmdsynopsis>
-     Plus (+) means that fitting method is not initialized. It is used
-     to continue previous fitting. 
+     The plus sign (+) prevents initialization of the fitting method.
+     It is used to continue the previous fitting where it left off. 
 
      All non-linear fitting methods are iterative. 
      <replaceable>number-of-iterations</replaceable> 
      is the maximum number of iterations. There are also other 
-     stopping criteria, so the number of executed iterations can be smaller.
+     stopping criteria, so that the number of executed iterations can be smaller.
     </para>
     <para>
-     Fitting methods can be set using set command:
+     Fitting methods can be set using the set command:
      <command>set fitting-method = <replaceable>method</replaceable></command>,
      where method is one of: Levenberg-Marquardt, Nelder-Mead-simplex,
      Genetic-Algorithms.
@@ -1377,8 +1390,8 @@
     <para>
      All non-linear fitting methods are iterative, and there are two common
      stopping criteria. The first is the number of iterations and can be 
-     specified after <userinput>fit</userinput> command. 
-     The second is the number of evaluations of objective function 
+     specified after the <userinput>fit</userinput> command. 
+     The second is the number of evaluations of the objective function 
      (<acronym>WSSR</acronym>), specified by the value of option 
      <parameter class="option">max-wssr-evaluations</parameter> (0=unlimited). 
      It is approximately proportional to time of computations, because most of
@@ -1399,16 +1412,16 @@
       <parameter class="option">autoplot</parameter></link>)
     </para>
     <para>
-     Informations about goodness of fit can be displayed using
+     Information about goodness-of-fit can be displayed using
      <userinput>info fit</userinput>. To see symmetric errors
      use <userinput>info errors</userinput>, 
-     and <userinput>info+ errors</userinput> shows also 
+     and <userinput>info+ errors</userinput> additionally shows the  
      variance-covariance matrix.
     </para>
     <para>
-     Available methods can be mixed together, eg. it is
-     sensible to obtain initial parameter estimates using simplex method,
-     and than fit it using Levenberg-Marquard method. 
+     Available methods can be mixed together, e.g. it is
+     sensible to obtain initial parameter estimates using the Simplex method,
+     and then fit it using Levenberg-Marquardt. 
      Command <command>s.history</command> can
      be useful for trying various methods with different options and/or
      initial parameters and choosing the best solution.
@@ -1418,37 +1431,38 @@
    <section>
     <title>Levenberg-Marquardt </title>
     <para>
-     It is a standard of nonlinear least-squares routines. It involves
-     computing first derivatives of functions. For description of L-M method
+     This is a standard nonlinear least-squares routine, and involves
+     computing the first derivatives of functions. 
+     For a description of the L-M method
      see <citetitle pubwork="book">Numerical Recipes</citetitle>, chapter 15.5 
      or Siegmund Brandt <citetitle pubwork="book">Data Analysis</citetitle>,
      chapter 10.15. 
-     In a few words: it combines
-     inverse-Hessian method (called Gauss-Newton method?) with steepest descent
-     method by introducing lambda factor. When lambda is equal 0, the method is
-     equivalent to inverse-Hessian method. When lambda increases, the shift
+     Essentially, it combines an
+     inverse-Hessian method with a steepest descent
+     method by introducing a lambda factor. When lambda is equal to 0, the method is
+     equivalent to the inverse-Hessian method. When lambda increases, the shift
      vector is rotated toward the direction of steepest descent and the length
      of the shift vector decreases. (The shift vector is a vector that is added
-     to the parameter vector.) If the better fit is found in iteration, lambda
+     to the parameter vector.) If a better fit is found on iteration, lambda
      is decreased - it is divided by the value of 
      <parameter class="option">lm-lambda-down-factor</parameter> option 
      (default: 10). Otherwise, lambda is multiplied by the value of 
      <parameter class="option">lm-lambda-up-factor</parameter> (default: 10). 
-     Initial lambda value is equal to
+     The initial lambda value is equal to
      <parameter class="option">lm-lambda-start</parameter> (default: 0.0001). 
     </para>
     <para>
-     Marquardt method has two stopping criteria apart from common stopping
-     criteria. If it happens two times in sequence, that relative 
-     change of the value of objective function (<acronym>WSSR</acronym>) 
-     is smaller then the value of 
-     <parameter class="option">lm-stop-rel-change</parameter> option,
-     fit is considered to be converged and is stopped. 
-     And if lambda is greater than the value of 
+     The Marquardt method has two stopping criteria other than the common 
+     criteria. If it happens twice in sequence, that the relative 
+     change of the value of the objective function (<acronym>WSSR</acronym>) 
+     is smaller then the value of the 
+     <parameter class="option">lm-stop-rel-change</parameter> option, the
+     fit is considered to have converged and is stopped. 
+     Additionally, if lambda is greater than the value of the 
      <parameter class="option">lm-max-lambda</parameter> option 
      (default: 10^15),
-     what happens usually when due to limited numerical precision 
-     WSSR is not changing anymore, fitting is also stopped.
+     - usually when due to limited numerical precision 
+     WSSR is no longer changing, the fitting is also stopped.
     </para>
     <!--
     <para>
@@ -1472,7 +1486,7 @@
    <section>
     <title>Nelder-Mead downhill simplex method </title>
     <para>
-     This time I am quoting chapter 4.8.3, p. 86 of Peter Gans
+     To quote chapter 4.8.3, p. 86 of Peter Gans
      <citetitle>
       Data Fitting in the Chemical Sciences by the Method of Least Squares 
      </citetitle> 
@@ -1516,37 +1530,37 @@
      <note>
       <para>
        The rest of this chapter is outdated,
-       At this moment default settings of fitting methods can't be changed.
-       It will be fixed as soon as possible.
+       At this moment default settings of the fitting methods can't be changed.
+       This will be fixed as soon as possible.
       </para>
      </note>
     </para>
     <para>
      There are a few options for tuning this method.
-     One of those is a stopping criterium 
-     <parameter class="option">min-fract-range</parameter>. If value of
-     expression 2(M-m)/(M+m), where M and m are values of worst and best
+     One of these is a stopping criterium 
+     <parameter class="option">min-fract-range</parameter>. If the value of the
+     expression 2(M-m)/(M+m), where M and m are the values of the worst and best
      vertices respectively (values of objective functions of vertices, to be
-     precise), is smaller then value of 
+     precise!), is smaller then the value of 
      <parameter class="option">min-fract-range</parameter> option, fitting is
-     stopped. In other words, it is stopped if all vertices are at almost the
+     stopped. In other words, fitting is stopped if all vertices are almost at the
      same level.
     </para>
     <para id="distribtype">
-     The rest of options is related to initialization of simplex. Before
-     starting iterations, we have to chose set of points in space of
-     parameters, called vertices.  Unless option 
+     The remaining options are related to initialization of the simplex. Before
+     starting iterations, we have to choose a set of points in space of the 
+     parameters, called vertices.  Unless the option 
      <parameter class="option">move-all</parameter> is set, one of these
      points will be the current point - values that parameters have at this
      moment. All but this one are drawn as follows: each parameter of each
-     vertex is drawn separately. It is drawn from distribution, that has center
-     in center of domain of parameter, and width proportional to both width of
-     domain and value of <parameter class="option">move-multiplier</parameter> 
-     parameter.  Distribution type can be set using option 
+     vertex is drawn separately. It is drawn from a distribution that has its center
+     in the center of the domain of the parameter, and a width proportional to both width of
+     the domain and value of the <parameter class="option">move-multiplier</parameter> 
+     parameter.  Distribution type can be set using the option 
      <parameter class="option">distrib-type</parameter> as one
-     of: uniform, Gaussian, Lorentzian and bound. The last one causes value of
-     parameter to be either greatest or smallest value in domain of parameter 
-     - one of two bounds of domain 
+     of: uniform, Gaussian, Lorentzian and bound. The last one causes the value of the
+     parameter to be either the greatest or smallest value in the domain of the parameter 
+     - one of two bounds of the domain 
      (assuming that <parameter class="option">move-multiplier</parameter>
      is equal 1).
     </para>
@@ -1565,33 +1579,33 @@
    <para>
     This chapter is not about GUI settings (things like colors,
     fonts, etc.), but about settings that are common for both CLI and GUI
-    versions.
+    version.
    </para>
    <para>
-    Command <command>info set</command> shows syntax of the set command
+    Command <command>info set</command> shows the syntax of the set command
     and lists all possible options. 
     <command>set <replaceable>option</replaceable></command> 
-    shows current value of <replaceable>option</replaceable>, 
+    shows the current value of the <replaceable>option</replaceable>, 
     and set 
     <command>
      <replaceable>option</replaceable> = <replaceable>value</replaceable>
     </command>
-    changes it. It is also possible to change value of option only for
-    one command by prepending the command with 
+    changes it. It is also possible to change the value of the option for 
+    one command only by prepending the command with 
     <command>with
      <replaceable>option</replaceable> = <replaceable>value</replaceable>
-    </command>. Examples at the end of this chapter should make it clearer.
+    </command>. The examples at the end of this chapter should clarify this.
    </para>
    <para>
-    Some fitting methods and functions like <function>randnormal</function>
-    in data expressions are using pseudo-random number generator. 
+    Some fitting methods and functions, such as <function>randnormal</function>
+    in data expressions use a pseudo-random number generator. 
     In some situations
-    one may want to have repeatable and predictable results of fitting, eg.
+    one may want to have repeatable and predictable results of the fitting, e.g.
     to make a presentation. Seed for a new sequence of pseudo-random
-    numbers can be set using option
+    numbers can be set using the option
     <parameter class="option">pseudo-random-seed</parameter>.
     If it is set to 0, the seed is based on the current time and a sequence of
-    pseudo-random numbers is every time different. 
+    pseudo-random numbers is different each time. 
    </para>
    <para>
     [TODO: the rest of options...] 
@@ -1613,13 +1627,13 @@
    <section>
     <title>plot: viewing data</title>
     <para>
-     In GUI version there is hardly ever need to use this command directly.
+     In the GUI version there is hardly ever a need to use this command directly.
     </para>
     <para>
-     Command <command>plot</command> controls visualization of data 
+     The command <command>plot</command> controls visualization of data 
      and the sum.
-     It is used to plot given area - in <acronym>GUI</acronym> it is plotted
-     in program's main window, in <acronym>CLI</acronym> popular program 
+     It is used to plot a given area - in <acronym>GUI</acronym> it is plotted
+     in the program's main window, in <acronym>CLI</acronym> the popular program 
      <application>gnuplot</application> is used, if available. 
      <cmdsynopsis>
       <command>plot</command> 
@@ -1637,7 +1651,7 @@
      <cmdsynopsis>
       <arg choice="plain">.</arg>
      </cmdsynopsis>
-     The second is just a dot (.), and it remains appropriate range not changed.
+     The second is just a dot (.), and it implies that the appropriate range is not to be changed.
     </para>
     <para>
      Examples:
@@ -1645,21 +1659,21 @@
    plot [20.4:50] [10:20] # show x from 20.4 to 50 and y from 10 to 20
 
    plot [20.4:] # x from 20.4 to the end, 
-                # y range will be fitted to contain all data
+                # y range will be adjusted to encompass all data
 
    plot . [:10] # x range will not be changed, y from the lowest point to 10 
-   plot [:] [:] # all data will be showed   
-   plot         # all data will be showed   
+   plot [:] [:] # all data will be shown   
+   plot         # all data will be shown   
    plot . .     # nothing changes
      </screen>
     </para>
 
     <para id="autoplot">
-     Value of option <parameter class="option">autoplot</parameter> changes 
-     automatic plotting behaviour. By default, plot is refreshed automatically 
+     The value of the option <parameter class="option">autoplot</parameter> changes the
+     automatic plotting behaviour. By default, the plot is refreshed automatically 
      after changing the data or the sum of functions.  
-     It is also possible to visualize every iteration of fitting method by
-     replotting peaks after every iteration.
+     It is also possible to visualize each iteration of the fitting method by
+     replotting the peaks after every iteration.
     </para>
    </section>
    <section>
@@ -1668,13 +1682,13 @@
      First, there is an option 
      <parameter class="option">verbosity</parameter>
      (not related to command <command>info</command>)
-     which decides about amount of messages displayed when executing commands.
+     which sets the amount of messages displayed when executing commands.
     </para>
     <para>
-     If you are using GUI, most of informations can be displayed 
-     with mouse clicks. Otherwise, you can use <command>info</command>
-     command. Using <command>info+</command> instead of <command>info</command>
-     sometimes displays more datailed information.
+     If you are using the GUI, most information can be displayed 
+     with mouse clicks. Alternatively, you can use the <command>info</command>
+     command. Using the <command>info+</command> instead of <command>info</command>
+     sometimes displays more detailed information.
     </para>
     <para>
      The output of <command>info</command> can be redirected to file
@@ -1688,7 +1702,7 @@
       info <replaceable>args</replaceable> &gt;&gt;
       <replaceable>filename</replaceable>
      </command>
-     to appends to the file.
+     to append to the file.
     </para>
     <para>
      The following arguments are recognized:
@@ -1707,30 +1721,31 @@
       <member>set</member>
       <member>fit [in @<replaceable>n</replaceable>]</member>
       <member>errors [in @<replaceable>n</replaceable>]</member>
+      <member>formula [in @<replaceable>n</replaceable>]</member>
+      <member>peaks [in @<replaceable>n</replaceable>]</member>
       <member>guess [x-range] [in @<replaceable>n</replaceable>]</member>
       <member><replaceable>data-expression</replaceable> [in @<replaceable>n</replaceable>]</member>
       <member>[@<replaceable>n</replaceable>.]F</member>
       <member>[@<replaceable>n</replaceable>.]Z</member>
-      <member>[@<replaceable>n</replaceable>.]formula</member>
       <member>[@<replaceable>n</replaceable>.]dF(<replaceable>data-expression</replaceable>)</member>
       <member>der <replaceable>mathematic-function</replaceable></member>
      </simplelist>
     </para>
     <para>
      <command>info der</command> shows derivatives of given function.
-     <screen>     
+     <screen>
       =-> info der sin(a) + 3*exp(b/a)
       f(a, b) = sin(a)+3*exp(b/a)
       df / d a = cos(a)-3*exp(b/a)*b/a^2
       df / d b = 3*exp(b/a)/a
-     </screen>     
+     </screen>
     </para>
    </section>
    <section>
     <title>commands, dump, sleep, reset, quit</title>
     <para>
      All commands given during program execution are stored in memory.
-     They can be listed using command:
+     They can be listed using the command:
      <command>
       info commands [<replaceable>n</replaceable>:<replaceable>m</replaceable>]
      </command> 
@@ -1739,10 +1754,10 @@
       commands [<replaceable>n</replaceable>:<replaceable>m</replaceable>]
       &gt; <replaceable>filename</replaceable>
      </command>. 
-     To put all commands executed so far during the session into 
-     file <filename>foo.fit</filename> type 
+     To put all commands executed so far during the session into the 
+     file <filename>foo.fit</filename>, type 
      <userinput>commands[:] > foo.fit</userinput>.
-     With plus sign (+) (ie.
+     With the plus sign (+) (i.e.
      <command>
       info commands+ [<replaceable>n</replaceable>:<replaceable>m</replaceable>]
      </command> 
@@ -1750,20 +1765,20 @@
      <command>
       commands+ [<replaceable>n</replaceable>:<replaceable>m</replaceable>]
       &gt; <replaceable>filename</replaceable>)
-     </command> informations about exit status of commands will be added. 
+     </command> information about the exit status of each command will be added. 
     </para>
     <para>
-     To log commands to file, when they are executed, use:
+     To log commands to a file when they are executed, use:
      <command>
       commands &gt; <replaceable>filename</replaceable>
-     </command> or, to log also output:
+     </command> or, to log also the output:
      <command>
       commands+ &gt; <replaceable>filename</replaceable>
      </command>.
      To stop logging, use: <command> commands &gt; /dev/null </command>.
     </para>
     <para>
-     Scripts can be executed using command:
+     Scripts can be executed using the command:
      <command>
       commands &lt; <replaceable>filename</replaceable>
      </command>.
@@ -1775,17 +1790,17 @@
     </para>
     <para>
      Command <command>sleep <replaceable>sec</replaceable></command> 
-     makes program waiting <replaceable>sec</replaceable> seconds,
-     doing nothing. 
+     makes the program wait <replaceable>sec</replaceable> seconds,
+     before continuing. 
     </para>
     <para>
-     Command <command>quit</command> works as expected. 
-     If this command is found in script it closes the program as well.
+     The command <command>quit</command> works as expected. 
+     If this command is found in a script it will close the program as well.
     </para>
     <para>
-     If option <parameter class="option">exit-on-warning</parameter> 
-     is set, any warning will close the program. It ensures, that no warnings
-     can be overlooked.
+     If the option <parameter class="option">exit-on-warning</parameter> 
+     is set, any warning will also close the program. 
+     This ensures that no warnings can be overlooked.
     </para>
    </section> 
   </section> 
@@ -1803,15 +1818,15 @@
   <section id="extensions">
    <title>Extensions</title>
    <section>
-    <title>How to add own built-in function</title>
+    <title>How to add your own built-in function</title>
     <para>
-     To add built-in function, you have to change the source of the program
-     and compile it. Users who want to do it should be able to compile
-     the program from source and know basics of C, C++ or another programming
+     To add a built-in function, you have to change the source of the program
+     and then recompile it. Users who want to do this should be able to compile
+     the program from source and know the basics of C, C++ or another programming
      language.
     </para>
     <para>
-     The description here is not complete. You something is not clear,
+     The description that follows is not complete. If something is not clear,
      you can always send me e-mail, etc.
     </para>
     <para>
@@ -1820,19 +1835,19 @@
     </para>
     <para>
      The name of your function should start with uppercase letter and contain
-     only letters and digits.  Let us add function Foo with formula: 
+     only letters and digits.  Let us add function Foo with the formula: 
      Foo(height, center, hwhm) = height/(1+((x-center)/hwhm)^2).
      C++ class representing Foo will be named FuncFoo.
     </para>
     <para>
-     In src/func.cpp find a list of functions: 
+     In src/func.cpp you will find a list of functions: 
      <screen>     
        ...
        FACTORY_FUNC(Polynomial6)
        FACTORY_FUNC(Gaussian)
        ...
       </screen>     
-     and add:
+     Now, add:
      <screen>     
        FACTORY_FUNC(Foo)
       </screen>     
@@ -1844,12 +1859,12 @@
        FuncGaussian::formula,
        ...
       </screen>     
-     and add line
+     and add the line
      <screen>     
       FuncFoo::formula,
      </screen>     
      Note that in the second list
-     all items but the last one are followed by comma.
+     all items but the last are followed by comma.
     </para>
     <para>
      Write the function formula in the same file in this way:
@@ -1857,87 +1872,76 @@
       const char *FuncFoo::formula
       = "Foo(height, center, hwhm) = height/(1+((x-center)/hwhm)^2)";
      </screen>     
-     For built-in functions, only the left hand side of the formula is parsed.
-     I.e. expression "Foo(height, center, hwhm)" is analysed by the program
-     and has to have a valid syntax. 
-     Parameter names: "height", "area", "center", "fwhm" and "hwhm" 
-     are recognized.
-     hwhm is half width at half maxium, and fwhm is full width at half maxium.
-     If you want to be able to add function with command guess, you must provide
-     default values for all parameters with other names, e.g.:
-     SplitPearson7(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5, shape1=2, shape2=2). 
-     Type "i+ types" for other examples. 
-     Now syntax for giving default values is very limited. 
-     It can be a real number 
-     or one of the recognized parameter names (but hwhm) 
-     or recognized parameter * real number.
+     The syntax of the formula is the same as that of 
+     the <link linkend="udf">UDF</link>, but 
+     for built-in functions only the left hand side of the formula is parsed.
     </para>
     <para>
-     In file <filename>src/bfunc.h</filename> start writting definition 
+     In the file <filename>src/bfunc.h</filename> you can now begin writing the definition 
      of your class:
      <screen>
       class FuncFoo : public Function
       {
           DECLARE_FUNC_OBLIGATORY_METHODS(Foo)
      </screen>
-     If you want to make some calculations every time parameters of function
+     If you want to make some calculations every time parameters of the function
      are changed, you can do it in method do_precomputations.
-     This possibility is provided for calculating calculating expressions,
-     which does not depend on x. Write the declaration here:
+     This possibility is provided for calculating expressions,
+     which do not depend on x. Write the declaration here:
      <screen>
      void do_precomputations(std::vector&lt;Variable*&gt; const &amp;variables);
      </screen>
-     and provide proper definition of this method 
+     and provide a proper definition of this method 
      in <filename>src/bfunc.cpp</filename>.
     </para>
     <para>
-     If you want to optimize calculation of your function by neglecting
-     its value outside of give range 
+     If you want to optimize the calculation of your function by neglecting
+     its value outside of a given range 
      (see option <parameter class="option">cut-function-level</parameter> 
      in the program),
-     you will need method:
+     you will need to use the method:
      <screen>
       bool get_nonzero_range (fp level, fp &amp;left, fp &amp;right) const;
      </screen>
-     This method takes the level, below which the value of the function
-     can be approximated by zero, and should set left and right variable
+     This method takes the level below which the value of the function
+     can be approximated by zero, and should set the left and right variables
      to proper values of x, 
      such that if x&lt;left or x&gt;right than |f(x)|&lt;level. 
      If the function sets left and right, it should return true.
     </para>
     <para>
      If your function does not have a "center" parameter, and there is a 
-     center-like point, where you want the peak top to be drawn, write:
+     center-like point where you want the peak top to be drawn, write:
      <screen>
       bool has_center() const { return true; }
       fp center() const { return vv[1]; }
      </screen>
-     In the second line, between return and semicolon, there is an expression
-     for x coordinate of peak top; vv[0] is the first parameter of function,
+     In the second line, between return and the semicolon, there is an expression
+     for the x coordinate of peak top; vv[0] is the first parameter of function,
      vv[1] is the second, etc.
     </para>
     <para>
-     Finally close the definition of the class with:
+     Finally, close the definition of the class with:
      <screen>
       };
      </screen>
     </para>
     <para>
      Write in <filename>src/bfunc.cpp</filename>
-     how to calculate value of the function:
+     how to calculate the value of the function:
      <screen>
       FUNC_CALCULATE_VALUE_BEGIN(Foo)
           fp xa1a2 = (x - vv[1]) / vv[2];
           fp inv_denomin = 1. / (1 + xa1a2 * xa1a2);
       FUNC_CALCULATE_VALUE_END(vv[0] * inv_denomin)
      </screen>
-     Expression at the end (i.e. vv[0]*inv_denomin) is the calculated value.
-     xa1xa2 and inv_denomin are variables introduced to simplify
-     expression. Note "fp" (you can also use "double") at the beginning
-     and semicolon at the end of both lines. Meaning of vv was 
-     already explained.
+     The expression at the end (i.e. vv[0]*inv_denomin) is the calculated value.
+     xa1xa2 and inv_denomin are variables introduced to simplify the
+     expression. Note the "fp" (you can also use "double") at the beginning
+     and semicolon at the end of both lines. The meaning of vv has  
+     already been explained.
 
-     Usually it is more difficult do calculate derivatives:
+     Usually it is more difficult to calculate derivatives:
 
      <screen>
       FUNC_CALCULATE_VALUE_DERIV_BEGIN(Foo)
@@ -1957,7 +1961,7 @@
     </para>
     <para>
      After compilation of the program check if the derivatives are calculated 
-     correctly using command "info dF(x)", eg. i dF(30.1).
+     correctly using command "info dF(x)", e.g. i dF(30.1).
      You can also use <function>numarea</function>, 
      <function>findx</function> and <function>extremum</function> 
      (see <xref linkend="funcindt"/> for details) 
@@ -1989,7 +1993,7 @@
      </imageobject>
      <textobject>
       <phrase> 
-       Type in program "info Gaussian" to see formula.
+       Type in program "info Gaussian" to see the formula.
       </phrase>
      </textobject>
     </mediaobject>  
@@ -2003,7 +2007,7 @@
      </imageobject>
      <textobject>
       <phrase> 
-       Type in program "info SplitGaussian" to see formula.
+       Type in program "info SplitGaussian" to see the formula.
       </phrase>
      </textobject>
     </mediaobject>  
@@ -2017,7 +2021,7 @@
      </imageobject>
      <textobject>
       <phrase> 
-       Type in program "info GaussianA" to see formula.
+       Type in program "info GaussianA" to see the formula.
       </phrase>
      </textobject>
     </mediaobject>  
@@ -2031,7 +2035,7 @@
      </imageobject>
      <textobject>
       <phrase> 
-       Type in program "info Lorentzian" to see formula.
+       Type in program "info Lorentzian" to see the formula.
       </phrase>
      </textobject>
     </mediaobject>  
@@ -2045,7 +2049,7 @@
      </imageobject>
      <textobject>
       <phrase> 
-       Type in program "info LorentzianA" to see formula.
+       Type in program "info LorentzianA" to see the formula.
       </phrase>
      </textobject>
     </mediaobject>  
@@ -2059,7 +2063,7 @@
      </imageobject>
      <textobject>
       <phrase> 
-       Type in program "info Pearson7" to see formula.
+       Type in program "info Pearson7" to see the formula.
       </phrase>
      </textobject>
     </mediaobject>  
@@ -2073,7 +2077,7 @@
      </imageobject>
      <textobject>
       <phrase> 
-       Type in program "info SplitPearson7" to see formula.
+       Type in program "info SplitPearson7" to see the formula.
       </phrase>
      </textobject>
     </mediaobject>  
@@ -2087,7 +2091,7 @@
      </imageobject>
      <textobject>
       <phrase> 
-       Type in program "info Pearson7A" to see formula.
+       Type in program "info Pearson7A" to see the formula.
       </phrase>
      </textobject>
     </mediaobject>  
@@ -2101,12 +2105,12 @@
      </imageobject>
      <textobject>
       <phrase> 
-       Type in program "info PseudoVoigt" to see formula.
+       Type in program "info PseudoVoigt" to see the formula.
       </phrase>
      </textobject>
     </mediaobject>  
    </equation>
-   Pseudo-Voigt is a name for sum of Gaussian and Lorentzian.
+   Pseudo-Voigt is a name given to the sum of Gaussian and Lorentzian.
    a<subscript>3</subscript> parameters in Pearson VII and Pseudo-Voigt 
    are not related.
 
@@ -2118,7 +2122,7 @@
      </imageobject>
      <textobject>
       <phrase> 
-       Type in program "info PseudoVoigtA" to see formula.
+       Type in program "info PseudoVoigtA" to see the formula.
       </phrase>
      </textobject>
     </mediaobject>  
@@ -2132,12 +2136,12 @@
      </imageobject>
      <textobject>
       <phrase> 
-       Type in program "info Voigt" to see formula.
+       Type in program "info Voigt" to see the formula.
       </phrase>
      </textobject>
     </mediaobject>  
    </equation>
-   Voigt function is a convolution of Gaussian and Lorentzian functions.
+   The Voigt function is a convolution of Gaussian and Lorentzian functions.
    a<subscript>0</subscript> = heigth,
    a<subscript>1</subscript> = center,
    a<subscript>2</subscript> is proportional to the Gaussian width, and
@@ -2149,7 +2153,7 @@
    </citetitle>, 
    Journal of Quantitative Spectroscopy &amp; Radiative Transfer 
    62 (1999) 29-48.
-   (See also: http://personalpages.umist.ac.uk/staff/Bob.Wells/voigt.html). 
+   (See also: http://www.atm.ox.ac.uk/user/wells/voigt.html).
    Is the approximation exact enough for all possible uses of 
    <application>fityk</application> program? 
 
@@ -2161,7 +2165,7 @@
      </imageobject>
      <textobject>
       <phrase> 
-       Type in program "info VoigtA" to see formula.
+       Type in program "info VoigtA" to see the formula.
       </phrase>
      </textobject>
     </mediaobject>  
@@ -2175,7 +2179,7 @@
      </imageobject>
      <textobject>
       <phrase> 
-       Type in program "info EMG" to see formula.
+       Type in program "info EMG" to see the formula.
       </phrase>
      </textobject>
     </mediaobject>  
@@ -2189,7 +2193,7 @@
      </imageobject>
      <textobject>
       <phrase> 
-       Type in program "info DoniachSunjic" to see formula.
+       Type in program "info DoniachSunjic" to see the formula.
       </phrase>
      </textobject>
     </mediaobject>  
@@ -2203,7 +2207,7 @@
      </imageobject>
      <textobject>
       <phrase> 
-       Type in program "info Polynomial5" to see formula.
+       Type in program "info Polynomial5" to see the formula.
       </phrase>
      </textobject>
     </mediaobject>  
@@ -2215,11 +2219,11 @@
  <appendix id="shortenings">
   <title>Command shortenings</title>
   <para>
-   Pipe symbol (|) shows the minimal length of the command. "def|ine" means
+   The pipe symbol (|) shows the minimum length of the command. "def|ine" means
    that the shortest version is "def", but "defi", "defin" and "define" 
    are also valid and mean exactly the same. 
    Arguments of "info" command can not be shortened,
-   ie. you must write "i fit", not "i f". Commands which can not be shortened
+   i.e. you must write "i fit", not "i f". Commands which cannot be shortened
    are not listed here.
    <simplelist>
     <member><command>c|ommands</command></member> 
@@ -2241,12 +2245,12 @@
    <application>Fityk</application> is free software; you can redistribute
    and modify it under terms of GNU General Public License,
    version 2. There is no warranty. 
-   <acronym>GPL</acronym> is one of most popular
-   licenses, and it is worth reading, if you have not done it
-   before. The program is copyrighted by author, and the license
-   itself by <acronym>FSF</acronym>. 
+   <acronym>GPL</acronym> is one of the most popular
+   licenses, and it is worth reading if you have not done so
+   before. The program is copyrighted by the author, and the license
+   itself by the <acronym>FSF</acronym>. 
    Text of the license is distributed with the program 
-   in file <filename>COPYING</filename>.
+   in the file <filename>COPYING</filename>.
   </para>
  </appendix> 
 
@@ -2257,7 +2261,7 @@
    and converted to other formats. All changes, improvements,
    fixes of mistakes, etc. are welcome. 
    The <filename>fitykhelp.xml</filename> file is
-   distributed with program sources, and can be modified with any
+   distributed with the program sources, and can be modified with any
    text editor. 
   </para>
  </appendix> 

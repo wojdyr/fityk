@@ -124,6 +124,7 @@ enum {
     ID_LOG_START               ,
     ID_LOG_STOP                ,
     ID_LOG_WITH_OUTPUT         ,
+    ID_LOG_DUMP                ,
     ID_O_RESET                 ,
     ID_PAGE_SETUP              ,
     ID_PRINT_PREVIEW           ,
@@ -372,6 +373,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_LOG_START,     FFrame::OnLogStart)
     EVT_MENU (ID_LOG_STOP,      FFrame::OnLogStop)
     EVT_MENU (ID_LOG_WITH_OUTPUT, FFrame::OnLogWithOutput)
+    EVT_MENU (ID_LOG_DUMP,      FFrame::OnLogDump)
     EVT_MENU (ID_O_RESET,       FFrame::OnO_Reset)    
     EVT_MENU (ID_O_INCLUDE,     FFrame::OnOInclude)    
     EVT_MENU (ID_O_REINCLUDE,   FFrame::OnOReInclude)    
@@ -804,6 +806,9 @@ void FFrame::set_menubar()
                                           wxT("Finish logging to file"));
     session_log_menu->AppendCheckItem(ID_LOG_WITH_OUTPUT,wxT("Log also output"),
                           wxT("output can be included in logfile as comments"));
+    session_log_menu->AppendSeparator();
+    session_log_menu->Append(ID_LOG_DUMP, wxT("History Dump"),
+                            wxT("Save all commands executed so far to file"));
     session_menu->Append(ID_SESSION_LOG, wxT("&Logging"), session_log_menu);
     session_menu->Append(ID_O_DUMP, wxT("&Dump to file"), 
                               wxT("Save current program state as script file"));
@@ -1155,6 +1160,16 @@ void FFrame::OnLogWithOutput (wxCommandEvent& event)
         exec_command("commands+ > " + logfile);
 }
 
+void FFrame::OnLogDump (wxCommandEvent&)
+{
+    wxFileDialog fdlg(this, wxT("Dump all commands executed so far to file"),
+                      wxT(""), wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
+                      wxSAVE | wxOVERWRITE_PROMPT);
+    if (fdlg.ShowModal() == wxID_OK) {
+        exec_command("commands[:] > '" + wx2s(fdlg.GetPath()) + "'");
+    }
+}
+         
 void FFrame::OnO_Reset   (wxCommandEvent& WXUNUSED(event))
 {
     int r = wxMessageBox(wxT("Do you really want to reset current session \n")
@@ -1196,8 +1211,8 @@ void FFrame::OnODump         (wxCommandEvent& WXUNUSED(event))
                       wxT(""), wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
                       wxSAVE | wxOVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
-        //exec_command (("dump > '" + fdlg.GetPath() + "'").c_str());
-        exec_command("commands[:] > '" + wx2s(fdlg.GetPath()) + "'");
+        exec_command (("dump > '" + fdlg.GetPath() + "'").c_str());
+        //exec_command("commands[:] > '" + wx2s(fdlg.GetPath()) + "'");
     }
 }
          

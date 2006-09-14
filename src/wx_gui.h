@@ -162,6 +162,7 @@ public:
     void OnLogStart      (wxCommandEvent& event);        
     void OnLogStop       (wxCommandEvent& event);        
     void OnLogWithOutput (wxCommandEvent& event);        
+    void OnLogDump       (wxCommandEvent& event);        
     void OnOInclude      (wxCommandEvent& event);            
     void OnOReInclude    (wxCommandEvent& event);            
     void OnSDebugger     (wxCommandEvent& event);            

@@ -1,16 +1,25 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
-// * BUG: program crashes when exporting formulae for some peaks (eg. Voigt)
+// * apply changes to the manual sent by Michael Richardson
+
+* (GUI) read/save settingins of status bar
 
 * investigate slow fitting of multiple datasets (H2O_D2O_RIXS.fit)
-  (bug: plot preview doesn't work with data from Markus;
-   add file format: text with first line containing title, if columns
-   are specified get title from y column, in GUI Load-Custom checkbox "header")
+  (bug: plot preview doesn't work with data from Markus)
 
 * (GUI) finish script debugger dialog
 
-// * erf for variables/functions/datatrans
+// * GUI: full-screen mode (F11)
+
+// *  replace exporting @x.peaks, @x.formula with info ... > filename
+
+// * BUG: program crashes when exporting formulae for some peaks (eg. Voigt)
+
+// * new text file-format: first line containing title, if columns
+//   are specified get title from y column, in GUI Load-Custom checkbox "header"
+
+// * erf/erfc for variables/functions/datatrans
 
 // * (GUI) "locking" or "freezing" of function's parameters at the bottom 
 //   panel on the sidebar (small padlock icons next to parameter values).
@@ -23,13 +32,9 @@
 //* implement command "dump", which also embeds data in script using
 //   M=..., x[0]=.., y[0]=.., s[0]=..., a[0]=.., x[1]=..,...
 
-// * (GUI) Configuration of status bar:
-     todo: read/save settingins
+// * (GUI) Configuration of status bar
 
 // * add description of "info der" to manual; list all info arguments in manual
-
-* ? history (data / sum / view / all) [IMPORTANT]
-   i don't exactly know how to implement it yet
 
 // * settings: default relative domain width
 
@@ -37,7 +42,12 @@
 //   for linear-like rather than peak-like functions;  guess for linear-like 
 //   function calculates (not weighted) linear regression of data
 
-* change 'dump' in GUI
+// * change 'dump' in GUI
+
+------------------------
+
+* ? history (data / sum / view / all) [IMPORTANT]
+   i don't exactly know how to implement it yet
 
 * GUI?: when loading many datasets from command line, set view to show all
 
@@ -45,14 +55,8 @@
   in, say, 20% plot margin. "[:]" is an exception and includes 0.
   GUI: "Auto-zooms shows y=0"
 
-* use info for exports:
-  - replace exporting @x.peaks, @x.formula and commands[] 
-    with info ... > filename
-     - what about @*.formula, what about data titles in headers
-  - (?) "info @n () > file"
+* (?)exporting data with info "info @n () [range] > file"
        should display ... [1234 lines more] rather than everything
-
-------------------------
 
 * small (eg. 1e-14) values of parameters are not handled properly.
    - make EPSILON an option when in configure script
@@ -111,7 +115,7 @@
 * (GUI) data-range mode: if all points are active, left mouse button
   should "select", not "activate", ie. it should do A = (left<x<right)  (?)
 
-* (GUI) when printing, everything is first rescaled and rounded(!!!) for
+* (GUI) when printing, everything is first rescaled and rounded(!) for
   plot window at the screen, and then rescaled to the paper size. 
   This rounding causes visible artefacts at the printout.
   (wxDC.GetSize instead of plot.GetClientSize() ?)
@@ -160,7 +164,7 @@
 
 * cmd/GUI: plot peak-groups: ==> plot (%a+%b+%c)  
 
-* (GUI) different peak-draft for steps (new function category), 
+* (GUI) different peak-draft for sigmoids/steps (new function category), 
          and for other functions
 
 * (GUI) where config files should be stored on MS Windows? Registry or file?
