@@ -1,48 +1,10 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
-// * apply changes to the manual sent by Michael Richardson
-
-* (GUI) read/save settingins of status bar
-
 * investigate slow fitting of multiple datasets (H2O_D2O_RIXS.fit)
   (bug: plot preview doesn't work with data from Markus)
 
 * (GUI) finish script debugger dialog
-
-// * GUI: full-screen mode (F11)
-
-// *  replace exporting @x.peaks, @x.formula with info ... > filename
-
-// * BUG: program crashes when exporting formulae for some peaks (eg. Voigt)
-
-// * new text file-format: first line containing title, if columns
-//   are specified get title from y column, in GUI Load-Custom checkbox "header"
-
-// * erf/erfc for variables/functions/datatrans
-
-// * (GUI) "locking" or "freezing" of function's parameters at the bottom 
-//   panel on the sidebar (small padlock icons next to parameter values).
-
-// * (GUI) minor tics
-
-// * BUG: "reset" doesn't deletes functions and variables, it should also
-//   replot in GUI and reset automatic func/var counter.
-
-//* implement command "dump", which also embeds data in script using
-//   M=..., x[0]=.., y[0]=.., s[0]=..., a[0]=.., x[1]=..,...
-
-// * (GUI) Configuration of status bar
-
-// * add description of "info der" to manual; list all info arguments in manual
-
-// * settings: default relative domain width
-
-// * function default parameters: "slope", "intercept", "avgy",
-//   for linear-like rather than peak-like functions;  guess for linear-like 
-//   function calculates (not weighted) linear regression of data
-
-// * change 'dump' in GUI
 
 ------------------------
 
@@ -51,6 +13,8 @@
 
 * GUI?: when loading many datasets from command line, set view to show all
 
+* exporting gnuplot compatible formulae ('^'->'**', 1/2 -> 1./2),
+  when option formula-export-gnuplot-style (?) is set
 * auto-scaling should not include x/y=0, unless it's
   in, say, 20% plot margin. "[:]" is an exception and includes 0.
   GUI: "Auto-zooms shows y=0"
@@ -61,6 +25,8 @@
 * small (eg. 1e-14) values of parameters are not handled properly.
    - make EPSILON an option when in configure script
    - warning if variable is set value: 0 < |value| < EPSILON
+
+* formula simplifications: "3/x" is changed to more complex "3*1/x"
 
 * user defined functions:
       - more sophisticated simplifications of expressions and CSE(!)

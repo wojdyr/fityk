@@ -1,5 +1,14 @@
-User-visible changes in version 0.7.6  (2006-  -  ):
-* GUI: fixed peak dragging
+User-visible changes in version 0.7.6  (2006-09-  ):
+* changes to the manual sent by Michael Richardson
+* erf and erfc functions can be used in data transformations and UDFs
+* command "dump" works now
+* changed syntax for exporing function parameters and formulae
+  (info peaks in @0 > filename; info formula in @0 > filename) 
+* guess command supports now not only "peaks", but also "linear" functions
+* GUI: improved peak dragging, full-screen mode (F11), configurable status bar,
+  minor tics on plot axes, function parameters can be locked (frozen) using
+  buttons at sidebar, improved "Data->Load File (custom)" dialog
+* a bunch of other improvements, bugs fixes and optimizations
 
 User-visible changes in version 0.7.5  (2006-07-31):
 * GUI: Definition Manager dialog

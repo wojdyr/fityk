@@ -252,11 +252,11 @@ bool FApp::OnInit(void)
     // Create the main frame window
     frame = new FFrame(NULL, -1, wxT("fityk"), wxDEFAULT_FRAME_STYLE);
 
-    frame->plot_pane->set_mouse_mode(mmd_zoom);
-
     wxConfigBase *cf = new wxConfig(wxT(""), wxT(""), conf_filename, wxT(""), 
                                     wxCONFIG_USE_LOCAL_FILE);
     frame->read_all_settings(cf);
+
+    frame->plot_pane->set_mouse_mode(mmd_zoom);
 
     frame->Show(true);
 
@@ -566,6 +566,7 @@ void FFrame::read_all_settings(wxConfigBase *cf)
     read_settings(cf);
     plot_pane->read_settings(cf);
     io_pane->read_settings(cf);
+    status_bar->read_settings(cf);
     //sidebar->read_settings(cf);
     sidebar->update_lists();
 }
@@ -597,6 +598,7 @@ void FFrame::save_all_settings(wxConfigBase *cf) const
     save_settings(cf);
     plot_pane->save_settings(cf);
     io_pane->save_settings(cf);
+    status_bar->save_settings(cf);
     //sidebar->save_settings(cf);
 }
 
@@ -845,7 +847,7 @@ void FFrame::set_menubar()
                       wxT("Feedback is always appreciated."));
     help_menu->Append(wxID_ABOUT, wxT("&About..."), wxT("Show about dialog"));
 
-    wxMenuBar *menu_bar = new wxMenuBar(wxMENU_TEAROFF);
+    wxMenuBar *menu_bar = new wxMenuBar();
     menu_bar->Append (session_menu, wxT("&Session") );
     menu_bar->Append (data_menu, wxT("&Data") );
     menu_bar->Append (sum_menu, wxT("&Functions") );
@@ -1934,16 +1936,36 @@ END_EVENT_TABLE()
 FStatusBar::FStatusBar(wxWindow *parent)
         : wxStatusBar(parent, -1), statbmp2(0)
 {
-    widths[sbf_text] = -1;
-    widths[sbf_hint1] = 100;
-    widths[sbf_hint2] = 100;
-    widths[sbf_coord] = 120;
-    SetFieldsCount(sbf_max, widths);
     SetMinHeight(15);
     statbmp1 = new wxStaticBitmap(this, -1, wxIcon(mouse_l_xpm));
     statbmp2 = new wxStaticBitmap(this, -1, wxIcon(mouse_r_xpm));
-    fmt_main = "%.3f  %.0f";
-    fmt_aux = "%.3f  [%.0f]";
+}
+
+void FStatusBar::save_settings(wxConfigBase *cf) const
+{
+    cf->SetPath(wxT("/StatusBar"));
+    cf->Write(wxT("textWidth"), widths[sbf_text]);
+    cf->Write(wxT("hint1Width"), widths[sbf_hint1]);
+    cf->Write(wxT("hint2Width"), widths[sbf_hint2]);
+    cf->Write(wxT("coordWidth"), widths[sbf_coord]);
+    cf->Write(wxT("mainFmt"), fmt_main);
+    cf->Write(wxT("auxFmt"), fmt_aux);
+    cf->Write(wxT("extraValue"), extra_value);
+}
+
+void FStatusBar::read_settings(wxConfigBase *cf)
+{
+    cf->SetPath(wxT("/StatusBar"));
+    widths[sbf_text] = cf->Read(wxT("textWidth"), -1);
+    widths[sbf_hint1] = cf->Read(wxT("hint1Width"), 100);
+    widths[sbf_hint2] = cf->Read(wxT("hint2Width"), 100);
+    widths[sbf_coord] = cf->Read(wxT("coordWidth"), 120);
+    fmt_main = cf->Read(wxT("mainFmt"), wxT("%.3f  %.0f"));
+    fmt_aux = cf->Read(wxT("auxFmt"), wxT("%.3f  [%.0f]"));
+    wxString ev = cf->Read(wxT("extraValue"), wxT(""));
+    if (!ev.IsEmpty())
+        set_extra_value(wx2s(ev));
+    SetFieldsCount(sbf_max, widths);
 }
 
 void FStatusBar::move_bitmaps()
@@ -1981,9 +2003,9 @@ void FStatusBar::set_coord_info(fp x, fp y, bool aux)
 {
     wxString str;
     fp val = 0;
-    if (!extra_value.empty())
+    if (!extra_value.IsEmpty())
         val = get_value_for_point(e_code, e_numbers, Point(x, y));
-    int r = str.Printf(s2wx(aux ? fmt_aux : fmt_main), x, y, val);
+    int r = str.Printf((aux ? fmt_aux : fmt_main), x, y, val);
     SetStatusText(r > 0 ? str : wxString(),  sbf_coord);
 }
 
@@ -1991,7 +2013,7 @@ bool FStatusBar::set_extra_value(string const& s)
 {
     if (!get_dt_code(s, e_code, e_numbers))
         return false;
-    extra_value = s;
+    extra_value = s2wx(s);
     return true;
 }
 
@@ -2045,20 +2067,22 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
     top_sizer->Add(w_sizer, 0, wxALL|wxEXPAND, 5);
 
     wxStaticBoxSizer *f_sizer  = new wxStaticBoxSizer(wxVERTICAL, this, 
-                                       wxT("format of cursor position info"));
-    fm_tc = new wxTextCtrl(this, -1, s2wx(sb->fmt_main));
+                                   wxT("cursor position info"));
+    fm_tc = new wxTextCtrl(this, -1, sb->fmt_main);
+    f_sizer->Add(new wxStaticText(this, -1, 
+                      wxT("format of printf function:")), wxALL, 5);
     f_sizer->Add(get_labeled_control_sizer(this, 
-                               wxT("at main plot: "), fm_tc, 1),
+                               wxT("at main plot "), fm_tc, 1),
                    0, wxEXPAND);
 
-    fa_tc = new wxTextCtrl(this, -1, s2wx(sb->fmt_aux));
+    fa_tc = new wxTextCtrl(this, -1, sb->fmt_aux);
     f_sizer->Add(get_labeled_control_sizer(this, 
-                               wxT("at auxiliary plot: "), fa_tc, 1),
+                               wxT("at auxiliary plot "), fa_tc, 1),
                    0, wxEXPAND);
-    ff_tc = new wxTextCtrl(this, -1, s2wx(sb->get_extra_value()));
-    f_sizer->Add(get_labeled_control_sizer(this, wxT("use 3 values: x, y,"), 
-                                           ff_tc, 1),
-                   0, wxEXPAND);
+    ff_tc = new wxTextCtrl(this, -1, sb->get_extra_value());
+    f_sizer->Add(get_labeled_control_sizer(this, 
+                                   wxT("3 values are used: x, y,"), ff_tc, 1),
+                 0, wxEXPAND);
     top_sizer->Add(f_sizer, 0, wxALL|wxEXPAND, 5);
 
     add_apply_close_buttons(this, top_sizer);
@@ -2068,8 +2092,8 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
 void ConfStatBarDlg::OnApply (wxCommandEvent& WXUNUSED(event))
 {
     sb->set_widths(whint_sc->GetValue(), width_sc->GetValue());
-    sb->fmt_main = wx2s(avoid_proc_n(fm_tc->GetValue()));
-    sb->fmt_aux = wx2s(avoid_proc_n(fa_tc->GetValue()));
+    sb->fmt_main = avoid_proc_n(fm_tc->GetValue());
+    sb->fmt_aux = avoid_proc_n(fa_tc->GetValue());
     bool r = sb->set_extra_value(wx2s(ff_tc->GetValue()));
     if (!r)
         ff_tc->SetSelection(-1, -1);
@@ -2095,7 +2119,7 @@ AboutDlg::AboutDlg(wxWindow* parent)
     name->SetFont(wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
                          wxFONTWEIGHT_BOLD));
     sizer->Add(name, 0, wxALIGN_CENTER|wxALL, 5); 
-    txt = new wxTextCtrl(this, -1, wxT(""), wxDefaultPosition, wxDefaultSize, 
+    txt = new wxTextCtrl(this, -1, wxT(""), wxDefaultPosition, wxSize(350,250), 
                          wxTE_MULTILINE|wxTE_RICH2|wxNO_BORDER
                              |wxTE_READONLY|wxTE_AUTO_URL);
     txt->SetBackgroundColour(GetBackgroundColour());
@@ -2120,13 +2144,12 @@ AboutDlg::AboutDlg(wxWindow* parent)
       wxT("you can redistribute it ")
       wxT("and/or modify it under the terms of the GNU General Public ")
       wxT("License, version 2, as published by the Free Software Foundation"));
-    sizer->Add (txt, 1, wxALL|wxEXPAND, 5);
+    sizer->Add (txt, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
     //sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
     wxButton *bu_ok = new wxButton (this, wxID_OK, wxT("OK"));
     bu_ok->SetDefault();
     sizer->Add (bu_ok, 0, wxALL|wxEXPAND, 10);
-    SetSizer(sizer);
-    //sizer->SetSizeHints(this);
+    SetSizerAndFit(sizer);
 }
 
 void AboutDlg::OnTextURL(wxTextUrlEvent& event) 

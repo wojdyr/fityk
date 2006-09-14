@@ -395,9 +395,9 @@
      should be replaced with <userinput>@0</userinput>, 
      unless many datasets are to be used simultaneously 
      (for details see: <xref linkend="multidata"/>),
-     <replaceable>filetype</replaceable> can be omitted (at this moment,
-     due to a small number of supported formats, the filetype can be
-     detected automatically),
+     <replaceable>filetype</replaceable> usually can be omitted 
+     (in most of the cases the filetype can be detected automatically,
+     all supported filetypes are listed at the end of this section),
      <replaceable>xcol</replaceable>, <replaceable>ycol</replaceable>, 
      <replaceable>scol</replaceable>, 
      are unsigned integers. If the filename contains blank characters,
@@ -405,7 +405,9 @@
      quotation marks. If the file is in a text format (columns with numbers)
      it can be specified which column contains x, y, and (optionally) std. dev.
      of y. 
+     The list of <replaceable>filetype</replaceable> can be one of the following:
     </para>
+
     <para>
      Information about the current data can be obtained by using the command:
     </para>
@@ -413,6 +415,40 @@
      <command>info</command>
      <arg choice="plain"><replaceable>dataslot</replaceable></arg>
     </cmdsynopsis>
+
+    <variablelist><title>Supported filetypes</title>
+     <varlistentry><term>text</term>
+      <listitem><para>ASCII format, at least two numbers in each line
+      </para></listitem> 
+     </varlistentry>
+
+     <varlistentry><term>htext</term>
+      <listitem><para>Similar to text, but the first line contains title
+      </para></listitem> 
+     </varlistentry>
+
+     <varlistentry><term>MCA</term>
+      <listitem><para>Spectral data stored by Canberra MCA systems
+      </para></listitem> 
+     </varlistentry>
+
+     <varlistentry><term>RIT</term>
+      <listitem><para>RIT format used by DBWS 
+        (the program for Rietveld analysis)
+      </para></listitem> 
+     </varlistentry>
+
+     <varlistentry><term>CPI</term>
+      <listitem><para>Sietronics Sieray CPI format
+      </para></listitem> 
+     </varlistentry>
+
+     <varlistentry><term>BrukerRAW</term>
+      <listitem><para>Simens-Bruker RAW format (version 2)
+      </para></listitem> 
+     </varlistentry>
+    </variablelist>
+
    </section> 
 
    <section>

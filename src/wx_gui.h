@@ -67,7 +67,7 @@ private:
 class FStatusBar: public wxStatusBar 
 {
 public:
-    std::string fmt_main, fmt_aux;
+    wxString fmt_main, fmt_aux;
 
     FStatusBar(wxWindow *parent);
     void OnSize(wxSizeEvent& event) { move_bitmaps(); event.Skip(); }
@@ -79,11 +79,13 @@ public:
     void set_hint_width(int w);
     void set_coord_info(fp x, fp y, bool aux=false);
     bool set_extra_value(std::string const& s);
-    std::string const& get_extra_value() const { return extra_value; }
+    wxString const& get_extra_value() const { return extra_value; }
+    void save_settings(wxConfigBase *cf) const;
+    void read_settings(wxConfigBase *cf);
 
 private:
     int widths[4]; //4==sbf_max
-    std::string extra_value;
+    wxString extra_value;
     std::vector<int> e_code;
     std::vector<fp> e_numbers;
     wxStaticBitmap *statbmp1, *statbmp2;
