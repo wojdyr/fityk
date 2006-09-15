@@ -1216,7 +1216,7 @@ void FFrame::OnODump         (wxCommandEvent& WXUNUSED(event))
                       wxT(""), wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
                       wxSAVE | wxOVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
-        exec_command (("dump > '" + fdlg.GetPath() + "'").c_str());
+        exec_command("dump > '" + wx2s(fdlg.GetPath()) + "'");
         //exec_command("commands[:] > '" + wx2s(fdlg.GetPath()) + "'");
     }
 }
