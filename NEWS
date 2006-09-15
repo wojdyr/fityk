@@ -1,4 +1,4 @@
-User-visible changes in version 0.7.6  (2006-09-  ):
+User-visible changes in version 0.7.6  (2006-09-15):
 * changes to the manual sent by Michael Richardson
 * erf and erfc functions can be used in data transformations and UDFs
 * command "dump" works now

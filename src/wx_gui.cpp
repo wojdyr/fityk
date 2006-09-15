@@ -1201,10 +1201,13 @@ void FFrame::OnOReInclude    (wxCommandEvent& WXUNUSED(event))
     exec_command ("reset; commands < '" + last_include_path + "'");
 }
 
-void FFrame::OnSDebugger(wxCommandEvent&)
+void FFrame::show_debugger(bool show)
 {
-    ScriptDebugDlg dlg(this, -1);
-    dlg.ShowModal();
+    static ScriptDebugDlg *dlg = 0;
+    if (show && !dlg)
+        dlg = new ScriptDebugDlg(this, -1);
+    if (dlg)
+        dlg->Show(true);
 }
             
 void FFrame::OnODump         (wxCommandEvent& WXUNUSED(event))

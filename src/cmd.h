@@ -5,10 +5,10 @@
 #define FITYK_CMD__H__
 
 
-
 #include "common.h"
 #include "ui.h"
 
+bool check_command_syntax(std::string const& str);
 Commands::Status parse_and_execute(std::string const& str);
 
 

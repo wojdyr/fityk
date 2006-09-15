@@ -18,9 +18,12 @@ copyfunc.xpm \
 down_arrow.xpm \
 edit_data.xpm \
 editf.xpm \
+exec_down.xpm \
 exec_selected.xpm \
 filter.xpm \
 fityk.xpm \
+lock.xpm \
+lock_open.xpm \
 manual.xpm \
 mouse_l.xpm \
 mouse_r.xpm \
@@ -31,6 +34,8 @@ rename.xpm \
 right_pane.xpm \
 run_fit.xpm \
 run_script.xpm \
+save.xpm \
+save_as.xpm \
 save_data.xpm \
 save_script.xpm \
 shiftup.xpm \

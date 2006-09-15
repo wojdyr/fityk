@@ -224,22 +224,23 @@ void Fit::compute_derivatives_for(DataWithSum const* ds,
     Data const* data = ds->get_data();
     int n = data->get_n();
     vector<fp> xx(n);
-    for (int j = 0; j < n; j++) 
+    for (int j = 0; j < n; ++j) 
         xx[j] = data->get_x(j);
     vector<fp> yy(n, 0.);
     const int dyn = na+1;
     vector<fp> dy_da(n*dyn, 0.);
     ds->get_sum()->calculate_sum_value_deriv(xx, yy, dy_da);
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i != n; i++) {
         fp inv_sig = 1.0 / data->get_sigma(i);
         fp dy_sig = (data->get_y(i) - yy[i]) * inv_sig;
-        vector<fp>::iterator t = dy_da.begin() + i*dyn;
-        for (vector<fp>::iterator j = t; j != t+na; j++) 
-            *j *= inv_sig;
-        for (int j = 0; j < na; j++) {
-            for (int k = 0; k <= j; k++)    //half of alpha[]
-                alpha[na * j + k] += *(t+j) * *(t+k);
-            beta[j] += dy_sig * *(t+j); 
+        vector<fp>::iterator const t = dy_da.begin() + i*dyn;
+        for (int j = 0; j != na; ++j) {
+            if (par_usage[j]) {
+                *(t+j) *= inv_sig;
+                for (int k = 0; k <= j; ++k)    //half of alpha[]
+                    alpha[na * j + k] += *(t+j) * *(t+k);
+                beta[j] += dy_sig * *(t+j); 
+            }
         }
     }   
 }

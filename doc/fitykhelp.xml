@@ -2300,6 +2300,11 @@
    distributed with the program sources, and can be modified with any
    text editor. 
   </para>
+  <para>
+   The author would like to thank people who have helped to improve this
+   manual (in chronological order): Stan Gierlotka, Jaap Folmer, 
+   Michael Richardson.
+  </para>
  </appendix> 
 
  <bibliography> 

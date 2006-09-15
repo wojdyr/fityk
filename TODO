@@ -1,13 +1,6 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
-* investigate slow fitting of multiple datasets (H2O_D2O_RIXS.fit)
-  (bug: plot preview doesn't work with data from Markus)
-
-* (GUI) finish script debugger dialog
-
-------------------------
-
 * ? history (data / sum / view / all) [IMPORTANT]
    i don't exactly know how to implement it yet
 
@@ -47,6 +40,9 @@
 
 * (GUI) redrawing for many datasets (~100) takes noticable time.
   Kind of plot buffering (as a bitmap).
+
+* (GUI) finish script debugger dialog -- add command editing, inserting
+  and deleting commands, and changing the order of command
 
 ------------------ next release here 0.7.6
 

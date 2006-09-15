@@ -23,6 +23,7 @@
 #include <wx/splitter.h>
 #include <wx/notebook.h>
 #include <wx/file.h>
+#include <wx/timer.h>
 #include <wx/paper.h>
 //TODO
 #include <wx/generic/printps.h>
@@ -39,9 +40,13 @@
 #include "ui.h"
 #include "datatrans.h"
 #include "logic.h"
+#include "cmd.h"
 
 #include "img/open.xpm"
 #include "img/exec_selected.xpm"
+#include "img/exec_down.xpm"
+#include "img/save.xpm"
+#include "img/save_as.xpm"
 #include "img/close.xpm"
 
 using namespace std;
@@ -62,6 +67,9 @@ enum {
 
     ID_SE_OPEN                    ,
     ID_SE_EXECSEL                 ,
+    ID_SE_EXECDOWN                ,
+    ID_SE_SAVE                    ,
+    ID_SE_SAVE_AS                 ,
     ID_SE_CLOSE                   
 
 };
@@ -628,6 +636,7 @@ void DataExportDlg::OnOk(wxCommandEvent& event)
 BEGIN_EVENT_TABLE(ScriptDebugDlg, wxDialog)
     EVT_TOOL(ID_SE_OPEN, ScriptDebugDlg::OnOpenFile)
     EVT_TOOL(ID_SE_EXECSEL, ScriptDebugDlg::OnExecSelected)
+    EVT_TOOL(ID_SE_EXECDOWN, ScriptDebugDlg::OnExecDown)
     EVT_TOOL(ID_SE_CLOSE, ScriptDebugDlg::OnClose)
 END_EVENT_TABLE()
 
@@ -647,9 +656,20 @@ ScriptDebugDlg::ScriptDebugDlg(wxWindow* parent, wxWindowID id)
                 wxBitmap(exec_selected_xpm), wxNullBitmap,
                 wxITEM_NORMAL, wxT("Execute selected"), 
                 wxT("Execute selected lines"));
+    tb->AddTool(ID_SE_EXECDOWN, wxT("Execute"), 
+                wxBitmap(exec_down_xpm), wxNullBitmap,
+                wxITEM_NORMAL, wxT("Execute selected and select next"), 
+                wxT("Execute selected lines"));
     tb->AddSeparator();
-    //TODO Save as, Step, Execute selected, Edit, ?Reorder, 
-    //Run untill error, Reset Program, Close
+    tb->AddTool(ID_SE_SAVE, wxT("Save"), wxBitmap(save_xpm), wxNullBitmap,
+                wxITEM_NORMAL, wxT("Save"), 
+                wxT("Save to file"));
+    tb->AddTool(ID_SE_SAVE_AS, wxT("Save as"), 
+                wxBitmap(save_as_xpm), wxNullBitmap,
+                wxITEM_NORMAL, wxT("Save as..."), 
+                wxT("Save a copy to file"));
+    tb->AddSeparator();
+    //TODO Edit, Move up, Move down
     tb->AddTool(ID_SE_CLOSE, wxT("Close"), wxBitmap(close_xpm), wxNullBitmap,
                 wxITEM_NORMAL, wxT("Exit debugger"), wxT("Close debugger"));
     tb->Realize();
@@ -659,10 +679,16 @@ ScriptDebugDlg::ScriptDebugDlg(wxWindow* parent, wxWindowID id)
                           wxLC_REPORT|wxLC_HRULES|wxLC_VRULES);
     list->InsertColumn(0, wxT("No"));
     list->InsertColumn(1, wxT("Text"));
+    list->InsertColumn(2, wxT("Exec. time"));
+    list->SetColumnWidth(0, 40);
+    list->SetColumnWidth(1, 430);
+    list->SetColumnWidth(2, 100);
+
     //TODO last execution status column (ok, warning, error)
     top_sizer->Add(list, 1, wxALL|wxEXPAND, 0);
     //TODO editor
-    SetSizer(top_sizer);
+    SetSizerAndFit(top_sizer);
+    SetSize(600, 500);
 }
 
 void ScriptDebugDlg::OpenFile()
@@ -705,15 +731,46 @@ void ScriptDebugDlg::add_line(int n, string const& line)
     bool is_comment = (nb == string::npos || head[nb] == '#');
     if (is_comment) 
         list->SetItemTextColour(pos, *wxLIGHT_GREY);
+    else if (!check_command_syntax(head))
+        list->SetItemBackgroundColour(pos, *wxRED);
     if (!tail.empty())
         add_line(-1, tail);
+}
+
+void ScriptDebugDlg::exec_line(int n)
+{
+    wxStartTimer();
+    Commands::Status r = exec_command(wx2s(get_list_item(n)));
+    long millisec = wxGetElapsedTime();
+    if (r == Commands::status_ok) {
+        list->SetItem(n, 2, wxString::Format(wxT("%.2f"), millisec/1000.));
+    }
+    else {
+        list->SetItem(n, 2, wxT("ERROR"));
+    }
 }
 
 void ScriptDebugDlg::OnExecSelected(wxCommandEvent&)
 {
     for (long i=list->GetFirstSelected(); i!=-1; i=list->GetNextSelected(i)) {
-        exec_command(wx2s(get_list_item(i)));
+        exec_line(i);
     }
+}
+
+void ScriptDebugDlg::OnExecDown(wxCommandEvent&)
+{
+    long last = -1;
+    for (long i=list->GetFirstSelected(); i!=-1; i=list->GetNextSelected(i)) {
+        exec_line(i);
+        last = i;
+    }
+    if (last == -1)
+        return;
+    ++last;
+    for (long i = 0; i < list->GetItemCount(); ++i)
+        list->Select(i, i == last);
+    if (last < list->GetItemCount())
+        list->Focus(last);
 }
 
 wxString ScriptDebugDlg::get_list_item(int i)

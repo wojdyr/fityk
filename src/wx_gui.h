@@ -167,7 +167,8 @@ public:
     void OnLogDump       (wxCommandEvent& event);        
     void OnOInclude      (wxCommandEvent& event);            
     void OnOReInclude    (wxCommandEvent& event);            
-    void OnSDebugger     (wxCommandEvent& event);            
+    void OnSDebugger     (wxCommandEvent&) { show_debugger(true); }            
+    void show_debugger (bool show);
     void OnO_Reset       (wxCommandEvent& event);
     void OnODump         (wxCommandEvent& event);         
     void OnSettings     (wxCommandEvent& event);        

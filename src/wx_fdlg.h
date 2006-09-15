@@ -80,8 +80,10 @@ public:
     void OpenFile();
     void OnOpenFile(wxCommandEvent&) { OpenFile(); }
     void OnExecSelected(wxCommandEvent&);
+    void OnExecDown(wxCommandEvent&);
     void OnClose(wxCommandEvent& event) { OnCancel(event); }
     wxString get_list_item(int i);
+    void exec_line(int n);
 protected:
     wxToolBar *tb;
     wxListView *list;

@@ -292,6 +292,14 @@ struct CmdGrammar : public grammar<CmdGrammar>
 } cmdG;
 
 
+bool check_command_syntax(string const& str)
+{
+    if (strip_string(str) == "quit")
+        return true;
+    parse_info<> result = parse(str.c_str(), no_actions_d[cmdG], space_p);
+    return result.full;
+}
+
 Commands::Status parse_and_execute(string const& str)
 {
     if (strip_string(str) == "quit")

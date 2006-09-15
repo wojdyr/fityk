@@ -8,6 +8,7 @@ SF_NEW_RELEASE="https://sourceforge.net/project/admin/newrelease.php?package_id=
 SF_ADMIN_PAGE="https://sourceforge.net/project/admin/?group_id=79434"
 WEB_ANNOUNCE_DIR=$WEB
 WEB_ANNOUNCE_FILE="index.html"
+WEB_DOWNLOAD_FILE="download.html"
 
 BUILD_DIR=testbuild
 CVSTEST_DIR=cvs_test
@@ -214,6 +215,12 @@ elif [ $1 -eq 9 ]; then
  sleep 2
  vi $WEB_ANNOUNCE_FILE
  scp $WEB_ANNOUNCE_FILE $WEB_ANNOUNCE_DIR
+
+ echo links from download page, prepare for vim editing...
+ scp $WEB_ANNOUNCE_DIR/$WEB_DOWNLOAD_FILE .
+ sleep 2
+ vi $WEB_DOWNLOAD_FILE
+ scp $WEB_DOWNLOAD_FILE $WEB_ANNOUNCE_DIR
  
  
 elif [ $1 -eq 10 ]; then

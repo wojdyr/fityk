@@ -761,7 +761,8 @@ void SideBar::OnDataButtonCopyF (wxCommandEvent& WXUNUSED(event))
     int n = get_focused_data();
     if (n+1 < AL->get_ds_count())
         exec_command("@" + S(n+1) + ".F=copy(@" + S(n) + ".F); "
-                     "@" + S(n+1) + ".Z=copy(@" + S(n) + ".Z)");
+                     "@" + S(n+1) + ".Z=copy(@" + S(n) + ".Z); "
+                     "plot @" + S(n+1));
 }
 
 void SideBar::OnDataButtonCol (wxCommandEvent& WXUNUSED(event))
