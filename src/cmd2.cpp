@@ -396,14 +396,6 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
             )
         ;
 
-    ds_multiprefix
-        = eps_p [clear_a(vds)]
-        >> (lexeme_d['@' >> uint_p [push_back_a(vds)]
-            >> '.']
-           | str_p("@*.") [push_back_a(vds, all_datasets)]
-           )
-        ;
-
     ds_prefix
         = lexeme_d['@' >> uint_p [assign_a(ds_pref)] 
            >> '.']
@@ -413,7 +405,11 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
     compact_str
         = lexeme_d['\'' >> (+~ch_p('\''))[assign_a(t)] 
                    >> '\'']
-        | lexeme_d[+chset<>(anychar_p - chset<>(" \t\n\r;,"))] [assign_a(t)]
+        | lexeme_d[+chset<>(anychar_p - chset<>(" \t\n\r;,#"))] [assign_a(t)]
+        ;
+
+    any_string
+        = +chset<>(anychar_p - chset<>(";,#"))
         ;
 
     type_name
@@ -473,10 +469,11 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         | str_p("commands") [&do_print_info] 
         | str_p("view") [&do_print_info]
         | str_p("set") [&do_print_info] 
-        | (str_p("fit") >> in_data) [&do_print_info] 
-        | (str_p("errors") >> in_data) [&do_print_info] 
-        | (str_p("peaks") >> in_data) [&do_print_info]
-        | (str_p("formula") >> in_data) [&do_print_info]
+        | ((str_p("fit") 
+            | "errors"
+            | "peaks"
+            | "formula"
+                    ) >> in_data) [&do_print_info] 
         | (str_p("guess") [clear_a(vr)]
            >> plot_range >> in_data) [&do_print_info]
         | type_name[&do_print_func_type]
@@ -489,7 +486,7 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
            >> ')') [&do_print_sum_derivatives_info]
         | existing_dataset_nr [&do_print_info]
         | "debug" >> compact_str [&do_print_debug_info] //no output_redir
-        | "der " >> (+chset<>(anychar_p - chset<>(" \t\n\r;,#"))) [&do_print_deriv]
+        | "der " >> any_string  [&do_print_deriv]
         | eps_p [&do_print_info] 
         ;
 

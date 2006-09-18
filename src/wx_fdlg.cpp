@@ -739,9 +739,9 @@ void ScriptDebugDlg::add_line(int n, string const& line)
 
 void ScriptDebugDlg::exec_line(int n)
 {
-    wxStartTimer();
+    wxStopWatch sw;
     Commands::Status r = exec_command(wx2s(get_list_item(n)));
-    long millisec = wxGetElapsedTime();
+    long millisec = sw.Time();
     if (r == Commands::status_ok) {
         list->SetItem(n, 2, wxString::Format(wxT("%.2f"), millisec/1000.));
     }

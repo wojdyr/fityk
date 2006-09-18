@@ -298,7 +298,7 @@ void FPlot::change_tics_font()
     data.SetInitialFont(ticsFont);
     data.SetColour(xAxisCol);
 
-    wxFontDialog dialog(frame, &data);
+    wxFontDialog dialog(frame, data);
     if (dialog.ShowModal() == wxID_OK)
     {
         wxFontData retData = dialog.GetFontData();
@@ -316,7 +316,7 @@ void FPlot::read_settings(wxConfigBase *cf)
     xtics_visible = cfg_read_bool (cf, wxT("xtics"), true);
     ytics_visible = cfg_read_bool (cf, wxT("ytics"), true);
     xminor_tics_visible = cfg_read_bool (cf, wxT("xMinorTics"), true);
-    yminor_tics_visible = cfg_read_bool (cf, wxT("yMinorTics"), true);
+    yminor_tics_visible = cfg_read_bool (cf, wxT("yMinorTics"), false);
     x_grid = cfg_read_bool (cf, wxT("xgrid"), false);
     y_grid = cfg_read_bool (cf, wxT("ygrid"), false);
     cf->SetPath(wxT("../Colors"));

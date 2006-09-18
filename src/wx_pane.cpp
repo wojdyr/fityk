@@ -1771,7 +1771,7 @@ void OutputWin::OnPopupFont (wxCommandEvent& WXUNUSED(event))
 {
     wxFontData data; 
     data.SetInitialFont (GetDefaultStyle().GetFont());
-    wxFontDialog dlg (frame, &data);
+    wxFontDialog dlg (frame, data);
     int r = dlg.ShowModal();
     if (r == wxID_OK) {
         wxFont f = dlg.GetFontData().GetChosenFont();

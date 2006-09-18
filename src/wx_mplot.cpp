@@ -1577,7 +1577,7 @@ void ConfigurePLabelsDlg::OnChangeLabelFont (wxCommandEvent& WXUNUSED(event))
 { 
     wxFontData data;
     data.SetInitialFont(plot->plabelFont);
-    wxFontDialog dialog(frame, &data);
+    wxFontDialog dialog(frame, data);
     if (dialog.ShowModal() == wxID_OK)
     {
         wxFontData retData = dialog.GetFontData();

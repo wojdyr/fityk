@@ -1348,7 +1348,7 @@ DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
         wxT("Parameters (don't put 'x' here).\n")
         wxT("Default values of functions can be given in terms of:\n")
         wxT("- if it looks like peak: 'center', 'height', 'fwhm', 'area'\n")
-        wxT("- if it looks like linear: or 'slope',\n'intercept', 'avgy'.")),
+        wxT("- if it looks like linear: or 'slope', 'intercept', 'avgy'.")),
                 0, wxALL, 5);
 
     par_g = new wxGrid(this, -1, wxDefaultPosition, wxDefaultSize);
