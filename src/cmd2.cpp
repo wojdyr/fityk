@@ -460,15 +460,15 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         ;
     
     info_arg
-        = str_p("variables") [&do_print_info]
-        | VariableLhsG [&do_print_info]
-        | str_p("types") [&do_print_info]
-        | str_p("functions") [&do_print_info]
-        | str_p("datasets") [&do_print_info]
-        | (str_p("commands") >> optional_plus >> IntRangeG) [&do_list_commands] 
-        | str_p("commands") [&do_print_info] 
-        | str_p("view") [&do_print_info]
-        | str_p("set") [&do_print_info] 
+        = (str_p("commands") >> optional_plus >> IntRangeG) [&do_list_commands] 
+        |  ( str_p("variables") 
+           | VariableLhsG 
+           | str_p("types") 
+           | str_p("functions") 
+           | str_p("datasets") 
+           | str_p("commands") 
+           | str_p("view") 
+           | str_p("set")) [&do_print_info] 
         | ((str_p("fit") 
             | "errors"
             | "peaks"

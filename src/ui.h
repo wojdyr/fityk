@@ -92,6 +92,8 @@ public:
      {Commands::Status r=execCommand(s); commands.put_command(s, r); return r;}
     int getVerbosity();
     void process_cmd_line_filename(std::string const& par);
+    /// refresh the screen if needed, for use during time-consuming tasks
+    void refresh(); 
 
 private:
     UserInterface() : keep_quiet(false) {}

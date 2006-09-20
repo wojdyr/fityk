@@ -28,12 +28,17 @@ void UserInterface::showMessage (OutputStyle style, const string& s)
 
 void UserInterface::doDrawPlot(bool now)
 {
-        frame->refresh_plots(true, now);
+        frame->refresh_plots(now);
 }
 
 void UserInterface::wait (float seconds) 
 {  
     wxMilliSleep(iround(seconds*1e3)); 
+}
+
+void UserInterface::refresh()
+{
+    wxSafeYield();
 }
 
 Commands::Status UserInterface::execCommand(const string& s)
@@ -57,5 +62,4 @@ Commands::Status UserInterface::execCommand(const string& s)
     frame->after_cmd_updates();
     return r;
 }
-
 

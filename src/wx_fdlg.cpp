@@ -972,7 +972,7 @@ void do_print_plots(wxDC *dc, PrintManager const* pm)
         }
         int plot_height = (*i)->GetClientSize().GetHeight();
         dc->SetClippingRegion(0, 0, width, plot_height);
-        (*i)->Draw(*dc, !pm->colors);
+        (*i)->draw(*dc, !pm->colors);
         dc->DestroyClippingRegion();
         posY += iround((plot_height+space) * scaleY);
     }

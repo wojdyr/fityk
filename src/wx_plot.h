@@ -37,13 +37,35 @@ void draw_line_with_style(wxDC& dc, int style,
 // eg. x2X() - convert point x coordinate to pixel position on screen 
 //
 
+
+class BufferedPanel : public wxPanel
+{
+public:
+    BufferedPanel(wxWindow *parent)
+       : wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize, 
+                 wxNO_BORDER|wxFULL_REPAINT_ON_RESIZE) {}
+    void refresh(bool now=false);
+    void buffered_draw();
+    virtual void draw(wxDC &dc, bool monochrome=false) = 0;
+
+protected:
+    wxColour backgroundCol;
+
+private:
+    wxMemoryDC memory_dc;
+    wxBitmap buffer;
+
+    bool resize_buffer(wxDC &dc);
+    void clear_and_draw();
+};
+
+
 /// This class has no instances, MainPlot and AuxPlot are derived from it
-class FPlot : public wxPanel
+class FPlot : public BufferedPanel //wxPanel
 {
 public:
     FPlot (wxWindow *parent, PlotShared &shar)
-       : wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize, 
-                 wxNO_BORDER|wxFULL_REPAINT_ON_RESIZE),
+       : BufferedPanel(parent),
          y_logarithm(false), yUserScale(1.), yLogicalOrigin(0.), 
          shared(shar), mouse_press_X(INT_MIN), mouse_press_Y(INT_MIN),
          vlfc_prev_x(INT_MIN), vlfc_prev_x0(INT_MIN)   {}
@@ -53,10 +75,9 @@ public:
     void draw_crosshair(int X, int Y);
     virtual void save_settings(wxConfigBase *cf) const;
     virtual void read_settings(wxConfigBase *cf);
-    virtual void Draw(wxDC &dc, bool monochrome=false) = 0;
 
 protected:
-    wxColour backgroundCol, activeDataCol, inactiveDataCol, xAxisCol;
+    wxColour activeDataCol, inactiveDataCol, xAxisCol;
     wxFont ticsFont;
     int point_radius;
     bool line_between_points;
@@ -120,7 +141,7 @@ public:
           y_zoom(1.), y_zoom_base(1.), fit_y_once(false) {}
     ~AuxPlot() {}
     void OnPaint(wxPaintEvent &event);
-    void Draw(wxDC &dc, bool monochrome=false);
+    void draw(wxDC &dc, bool monochrome=false);
     void OnLeaveWindow (wxMouseEvent& event);
     void OnMouseMove(wxMouseEvent &event);
     void OnLeftDown (wxMouseEvent &event);

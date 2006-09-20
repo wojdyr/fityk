@@ -151,23 +151,16 @@ void PlotPane::read_settings(wxConfigBase *cf)
         aux_plot[i]->read_settings(cf);
 }
 
-void PlotPane::refresh_plots(bool refresh, bool update, bool only_main)
+void PlotPane::refresh_plots(bool now, bool only_main)
 {
     if (only_main) {
-        if (refresh)
-            plot->Refresh(false);
-        if (update) 
-            plot->Update();
+        plot->refresh(now);
         return;
     }
     // not only main
     vector<FPlot*> vp = get_visible_plots();
-    for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i) {
-        if (refresh)
-            (*i)->Refresh(false);
-        if (update) 
-            (*i)->Update();
-    }
+    for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i) 
+        (*i)->refresh(now);
 }
 
 void PlotPane::set_mouse_mode(MouseModeEnum m) 
@@ -776,7 +769,7 @@ void SideBar::OnDataButtonCol (wxCommandEvent& WXUNUSED(event))
         if (change_color_dlg(col)) {
             frame->get_main_plot()->set_data_color(n, col);
             update_lists();
-            frame->refresh_plots(true, false, true);
+            frame->refresh_plots(false, true);
         }
     }
     else {//sel_size > 1
@@ -803,7 +796,7 @@ void SideBar::OnDataColorsChanged(GradientDlg *gd)
         frame->get_main_plot()->set_data_color(i, col);
     }
     update_lists();
-    frame->refresh_plots(true, false, true);
+    frame->refresh_plots(false, true);
     for (vector<int>::const_iterator i = selected.begin(); 
             i != selected.end(); ++i) 
     for (int i = 0; i != d->list->GetItemCount(); ++i)
@@ -813,12 +806,12 @@ void SideBar::OnDataColorsChanged(GradientDlg *gd)
 
 void SideBar::OnDataLookChanged (wxCommandEvent& WXUNUSED(event))
 {
-    frame->refresh_plots(true, false, true);
+    frame->refresh_plots(false, true);
 }
 
 void SideBar::OnDataShiftUpChanged (wxSpinEvent& WXUNUSED(event))
 {
-    frame->refresh_plots(true, false, true);
+    frame->refresh_plots(false, true);
 }
 
 void SideBar::OnFuncFilterChanged (wxCommandEvent& WXUNUSED(event))
@@ -858,7 +851,7 @@ void SideBar::OnFuncButtonCol (wxCommandEvent& WXUNUSED(event))
     if (change_color_dlg(col)) {
         frame->get_main_plot()->set_func_color(active_function, col);
         update_lists();
-        frame->refresh_plots(true, false, true);
+        frame->refresh_plots(false, true);
     }
 }
 
@@ -1078,7 +1071,7 @@ void SideBar::do_activate_function()
         active_function_name = AL->get_function(active_function)->name;
     else
         active_function_name = "";
-    frame->refresh_plots(true, false, true);
+    frame->refresh_plots(false, true);
     update_func_inf();
     update_bottom_panel();
 }
@@ -1737,11 +1730,6 @@ void OutputWin::append_text (OutputStyle style, const wxString& str)
     SetDefaultStyle (wxTextAttr (text_color[style]));
     AppendText (str);
     ShowPosition(GetLastPosition());
-    //TODO TextCtrl is not refreshed when program is busy
-    //I think it used to work with older versions of wx
-    //Refresh() and Update() here don't help
-    Refresh(true);
-    Update();
 }
 
 void OutputWin::OnPopupColor (wxCommandEvent& event)

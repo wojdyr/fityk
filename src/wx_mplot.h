@@ -112,7 +112,7 @@ public:
     MainPlot (wxWindow *parent, PlotShared &shar); 
     ~MainPlot() {}
     void OnPaint(wxPaintEvent &event);
-    void Draw(wxDC &dc, bool monochrome=false);
+    void draw(wxDC &dc, bool monochrome=false);
     void OnLeaveWindow (wxMouseEvent& event);
     void OnMouseMove(wxMouseEvent &event);
     void OnButtonDown (wxMouseEvent &event);

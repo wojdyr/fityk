@@ -369,6 +369,7 @@ void Fit::update_parameters(vector<DataWithSum*> const& dsds)
 bool Fit::common_termination_criteria(int iter)
 {
     bool stop = false;
+    getUI()->refresh();
     if (user_interrupt) {
         user_interrupt = false;
         info ("Fitting stopped manually.");

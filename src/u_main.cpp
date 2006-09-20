@@ -59,6 +59,10 @@ void UserInterface::wait (float seconds)
     nanosleep(&ts, 0);
 }
 
+void UserInterface::refresh()
+{
+}
+
 Commands::Status UserInterface::execCommand(const string& s)
 {
     return parse_and_execute(s);
@@ -512,16 +516,16 @@ int main (int argc, char **argv)
         }
     }
 
-    //then string given with -c is executed
-    if (!script_string.empty())
-        getUI()->execAndLogCmd(script_string);
-    //the rest of parameters/arguments are scripts and/or data files
-    for (int i = 1; i < argc; ++i) {
-        if (argv[i])
-            getUI()->process_cmd_line_filename(argv[i]);
-    }
-
     try {
+        //then string given with -c is executed
+        if (!script_string.empty())
+            getUI()->execAndLogCmd(script_string);
+        //the rest of parameters/arguments are scripts and/or data files
+        for (int i = 1; i < argc; ++i) {
+            if (argv[i])
+                getUI()->process_cmd_line_filename(argv[i]);
+        }
+
         // the version of main_loop() depends on NO_READLINE  
         main_loop(); 
     } 

@@ -223,8 +223,7 @@ public:
     void output_text(OutputStyle style, std::string const& str);
     void change_zoom(const std::string& s);
     void scroll_view_horizontally(fp step);
-    void refresh_plots(bool refresh=true, bool update=false, 
-                       bool only_main=false);
+    void refresh_plots(bool update=false, bool only_main=false);
     void draw_crosshair(int X, int Y);
     void focus_input(int key=0);
     void edit_in_input(std::string const& s);

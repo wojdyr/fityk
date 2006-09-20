@@ -39,6 +39,49 @@ enum {
 };
 
 //===============================================================
+//                       BufferedPanel
+//===============================================================
+
+void BufferedPanel::refresh(bool now)
+{
+    clear_and_draw();
+    Refresh(false);
+    if (now) 
+        Update();
+}
+
+bool BufferedPanel::resize_buffer(wxDC &dc)
+{
+    wxCoord w, h;
+    dc.GetSize(&w, &h);
+    if (!buffer.Ok()
+            || w != buffer.GetWidth() || h != buffer.GetHeight()) {
+        memory_dc.SelectObject(wxNullBitmap);
+        buffer = wxBitmap(w, h);
+        memory_dc.SelectObject(buffer);
+        return true;
+    }
+    return false;
+}
+
+void BufferedPanel::clear_and_draw()
+{
+    memory_dc.SetLogicalFunction(wxCOPY);
+    memory_dc.SetBackground(wxBrush(backgroundCol));
+    memory_dc.Clear();
+    draw(memory_dc);
+}
+
+/// called from wxPaint event handler
+void BufferedPanel::buffered_draw()
+{
+    wxPaintDC dc(this);
+    if (resize_buffer(dc)) 
+        clear_and_draw();
+    dc.Blit(0, 0, buffer.GetWidth(), buffer.GetHeight(), &memory_dc, 0, 0);
+}
+
+//===============================================================
 //                FPlot (plot with data and fitted curves) 
 //===============================================================
 
@@ -304,7 +347,7 @@ void FPlot::change_tics_font()
         wxFontData retData = dialog.GetFontData();
         ticsFont = retData.GetChosenFont();
         xAxisCol = retData.GetColour();
-        Refresh(false);
+        refresh(false);
     }
 }
 
@@ -376,11 +419,12 @@ END_EVENT_TABLE()
 void AuxPlot::OnPaint(wxPaintEvent &WXUNUSED(event))
 {
     frame->draw_crosshair(-1, -1); 
-    wxPaintDC dc(this);
-    dc.SetLogicalFunction (wxCOPY);
-    dc.SetBackground(wxBrush(backgroundCol));
-    dc.Clear();
-    Draw(dc);
+    //wxPaintDC dc(this);
+    //dc.SetLogicalFunction (wxCOPY);
+    //dc.SetBackground(wxBrush(backgroundCol));
+    //dc.Clear();
+    //draw(dc);
+    buffered_draw();
     vert_line_following_cursor(mat_redraw);//draw, if necessary, vertical lines
 }
 
@@ -430,7 +474,7 @@ fp rdiff_y_perc_of_data_for_draw_data (vector<Point>::const_iterator i,
     return i->y ? (sum_value(i, sum) - i->y) / i->y * 100 : 0;
 }
 
-void AuxPlot::Draw(wxDC &dc, bool monochrome)
+void AuxPlot::draw(wxDC &dc, bool monochrome)
 {
     int pos = AL->get_active_ds_position();
     Data const* data = AL->get_data(pos);
@@ -584,7 +628,7 @@ void AuxPlot::read_settings(wxConfigBase *cf)
                                                       wxColour (128, 128, 128));
     cf->SetPath(wxT(".."));
     FPlot::read_settings(cf);
-    Refresh();
+    refresh();
 }
 
 void AuxPlot::save_settings(wxConfigBase *cf) const
@@ -731,19 +775,19 @@ void AuxPlot::OnPopupPlot (wxCommandEvent& event)
     kind = static_cast<Aux_plot_kind_enum>(event.GetId()-ID_aux_plot0);
     //fit_y_zoom();
     fit_y_once = true;
-    Refresh(false);
+    refresh(false);
 }
 
 void AuxPlot::OnPopupPlotCtr (wxCommandEvent& event)
 {
     mark_peak_ctrs = event.IsChecked();
-    Refresh(false);
+    refresh(false);
 }
 
 void AuxPlot::OnPopupReversedDiff (wxCommandEvent& event)
 {
     reversed_diff = event.IsChecked();
-    Refresh(false);
+    refresh(false);
 }
 
 void AuxPlot::OnPopupColor (wxCommandEvent& event)
@@ -763,7 +807,7 @@ void AuxPlot::OnPopupColor (wxCommandEvent& event)
     else 
         return;
     if (change_color_dlg(*color)) {
-        Refresh();
+        refresh();
     }
 }
 
@@ -775,14 +819,14 @@ void AuxPlot::OnPopupYZoom (wxCommandEvent& WXUNUSED(event))
                                 1, 10000000);
     if (r > 0)
         y_zoom = r / 100.;
-    Refresh(false);
+    refresh(false);
 }
 
 void AuxPlot::OnPopupYZoomFit (wxCommandEvent& WXUNUSED(event))
 {
     //fit_y_zoom();
     fit_y_once = true;
-    Refresh(false);
+    refresh(false);
 }
 
 void AuxPlot::fit_y_zoom(Data const* data, Sum const* sum)
@@ -832,8 +876,8 @@ void AuxPlot::OnPopupYZoomAuto (wxCommandEvent& WXUNUSED(event))
 {
     auto_zoom_y = !auto_zoom_y;
     if (auto_zoom_y) {
-        //fit_y_zoom() is called from Draw
-        Refresh(false);
+        //fit_y_zoom() is called from draw
+        refresh(false);
     }
 }
 

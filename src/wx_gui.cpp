@@ -1337,13 +1337,13 @@ void FFrame::OnUndoBg(wxCommandEvent& WXUNUSED(event))
 void FFrame::OnClearBg(wxCommandEvent& WXUNUSED(event))
 {
     plot_pane->get_bg_manager()->forget_background();
-    refresh_plots(true, false, true);
+    refresh_plots(false, true);
 }
 
 void FFrame::OnSplineBg(wxCommandEvent& event)
 {
     plot_pane->get_bg_manager()->set_spline_bg(event.IsChecked());
-    refresh_plots(true, false, true);
+    refresh_plots(false, true);
 }
 
 void FFrame::SwitchToolbar(bool show)
@@ -1608,9 +1608,9 @@ void FFrame::output_text(OutputStyle style, const string& str)
     io_pane->append_text(style, s2wx(str));
 }
 
-void FFrame::refresh_plots(bool refresh, bool update, bool only_main)
+void FFrame::refresh_plots(bool now, bool only_main)
 {
-    plot_pane->refresh_plots(refresh, update, only_main);
+    plot_pane->refresh_plots(now, only_main);
 }
 
 void FFrame::draw_crosshair(int X, int Y)
