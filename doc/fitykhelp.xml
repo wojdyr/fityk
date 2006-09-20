@@ -1168,6 +1168,16 @@
      considered to be equal zero.
      Note that not all functions support this optimization.
     </para>
+    <para>
+     If you have a number of loaded dataset, and the functions in different
+     datasets do not share parameters, it is faster to fit the datasets
+     sequentially (<userinput>fit @0; fit @1; ...</userinput>) 
+     then parallelly (<userinput>fit @*</userinput>).
+    </para>
+    <para>
+     Each defined simple-variable slows down the fitting, although
+     this is often neglectable.
+    </para>
    </section> 
    <section>
     <title>Sum, F and Z</title>

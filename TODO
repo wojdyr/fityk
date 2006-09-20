@@ -1,13 +1,34 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
+* there are problems with refreshing plots and output window when program
+  is busy (ie. when running script or fitting). It seems to be platform
+  dependent.
+   --> tested solution: wxSafeYield()
+
+* (GUI) redrawing for many datasets (~100) takes noticable time.
+  Kind of plot buffering (as a bitmap).
+
+
 * ? history (data / sum / view / all) [IMPORTANT]
    i don't exactly know how to implement it yet
 
+* GUI: sidebar, function's parameter values - do something when value
+  is changed (by typing) and Enter is _not_ pressed.
+
+* GUI: Function Definition Manager layout: "Remove" button takes too 
+  much space; perhaps "change name" button
+
+* GUI: some problems with "Copy F to next dataset" button
+  
 * GUI?: when loading many datasets from command line, set view to show all
+
+* should it work? "$foo = {y[0]}" (it was working, now gives syntax error:
+  Error: Syntax error in expression: y[0]in@0)
 
 * exporting gnuplot compatible formulae ('^'->'**', 1/2 -> 1./2),
   when option formula-export-gnuplot-style (?) is set
+
 * auto-scaling should not include x/y=0, unless it's
   in, say, 20% plot margin. "[:]" is an exception and includes 0.
   GUI: "Auto-zooms shows y=0"
@@ -28,9 +49,6 @@
 * un-strip background: what to do if active dataset is different than the one
   the background was removed for.
 
-* link to "On-line tutorial" and the tutorial itself(!)
-   perhaps screencast (eg. using Wink)
-
 * EMG function: how to calculate it? Now there are some problems with
   this function. There must be smarter way to implement it...
 
@@ -38,11 +56,12 @@
   a way to "shake" parameters for L-M
   constrained L-M option
 
-* (GUI) redrawing for many datasets (~100) takes noticable time.
-  Kind of plot buffering (as a bitmap).
-
 * (GUI) finish script debugger dialog -- add command editing, inserting
   and deleting commands, and changing the order of command
+
+* GUI: Function Definition Manager -- information about "auto-add":
+	  The initial parameters can/can't be guessed using peak search 
+	  / linear regression
 
 ------------------ next release here 0.7.6
 
@@ -134,10 +153,6 @@
 * (INTERNAL) use smart pointers: 
   http://www.boost.org/libs/smart_ptr/smart_ptr.htm
   (the library will be distributed in 3rdparty/boost)
-
-* there are problems with refreshing plots and output window when program
-  is busy (ie. when running script or fitting). It seems to be platform
-  dependent.
 
 * auto-freezing of peaks at disactivated range
 

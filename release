@@ -127,6 +127,7 @@ elif [ $1 -eq 5 ]; then
  echo destination: $WEB
  echo sending fitykhelp.html fitykhelp.xml ...
  cd doc/ 
+ xmlto html-nochunks fitykhelp.xml
  scp fitykhelp.html fitykhelp.xml $WEB/doc/
  echo sending fitykhelp_img ...
  scp -r fitykhelp_img/ $WEB/doc/
@@ -203,7 +204,7 @@ elif [ $1 -eq 8 ]; then
  [ ! -e $win_setup_filename ] && echo "File not found: $win_setup_filename" \
                                                                        && exit
  curl -v -T $tarball_filename ftp://upload.sourceforge.net/incoming/ 
- #curl -v -T $win_setup_filename ftp://upload.sourceforge.net/incoming/ 
+ curl -v -T $win_setup_filename ftp://upload.sourceforge.net/incoming/ 
  echo now go to:
  echo $SF_NEW_RELEASE
  echo and add release named: $version
@@ -237,8 +238,8 @@ elif [ $1 -eq 11 ]; then
  rm -rf $OLDWX_DIR
  make clean
  #./autogen.sh
- ./configure --enable-debug
- make
+ #./configure --enable-debug
+ #make
  
 else
  echo unexpected step number: $1
