@@ -27,29 +27,28 @@ $zn_a = ~2.67; $zn_c = ~4.924 #hexagonal Zn
 
 # peak hkl=(220) of SiC
 $c_sic220 = 360/pi * asin(sqrt(2^2+2^2+0) / $sic_a / 2 * $lambda)
-# writting explicitly range in which peak is to be search 
-# is not very convenient, but there is not other way at this moment
-%sic220 = guess PseudoVoigt [58:62] center=$c_sic220
+set guess-at-center-pm = 1
+%sic220 = guess PseudoVoigt center=$c_sic220
 
 # Zn (002) 
 $c_zn002 = 360/pi * asin(sqrt(4/3 * (0+0+0*0) / $zn_a^2 + 2^2/$zn_c^2 ) / 2 * $lambda)
-%zn002 = guess PseudoVoigt [36:38] center=$c_zn002
+%zn002 = guess PseudoVoigt center=$c_zn002
 
 # SiC (111) 
 $c_sic111 = 360/pi * asin(sqrt(1^2+1^2+1^2) / $sic_a / 2 * $lambda)
-%sic111 = guess PseudoVoigt [35:36] center=$c_sic111
+%sic111 = guess PseudoVoigt center=$c_sic111
 
 # Zn (100)
 $c_zn100 = 360/pi * asin(sqrt(4/3 * (1^2+0+1*0) / $zn_a^2 + 0/$zn_c^2 ) / 2 * $lambda)
-%zn100 = guess PseudoVoigt [38:40] center=$c_zn100
+%zn100 = guess PseudoVoigt center=$c_zn100
 
 # Zn (101)
 $c_zn101 = 360/pi * asin(sqrt(4/3 * (1^2+0+1*0) / $zn_a^2 + 1^2/$zn_c^2 ) / 2 * $lambda)
-%zn101 = guess PseudoVoigt [40:45] center=$c_zn101
+%zn101 = guess PseudoVoigt center=$c_zn101
 
 # Zn (102)
 $c_zn102 = 360/pi * asin(sqrt(4/3 * (1^2+0+1*0) / $zn_a^2 + 2^2/$zn_c^2 ) / 2 * $lambda)
-%zn102 = guess PseudoVoigt [52:56] center=$c_zn102
+%zn102 = guess PseudoVoigt center=$c_zn102
 
 
 #after adding a few peaks, it can be a good idea to fit it, to obtain
@@ -58,19 +57,19 @@ fit 10
 
 # Zn (103)
 $c_zn103 = 360/pi * asin(sqrt(4/3 * (1^2+0+1*0) / $zn_a^2 + 3^2/$zn_c^2 ) / 2 * $lambda)
-%zn103 = guess PseudoVoigt [68:72] center=$c_zn103
+%zn103 = guess PseudoVoigt center=$c_zn103
 
 # Zn (110) 
 $c_zn110 = 360/pi * asin(sqrt(4/3 * (1^2+1^2+1*1) / $zn_a^2 + 0^2/$zn_c^2 ) / 2 * $lambda)
-%zn110 = guess PseudoVoigt [68:72] center=$c_zn110
+%zn110 = guess PseudoVoigt center=$c_zn110
 
 # Zn (112) 
 $c_zn112 = 360/pi * asin(sqrt(4/3 * (1^2+1^2+1*1) / $zn_a^2 + 2^2/$zn_c^2 ) / 2 * $lambda)
-%zn112 = guess PseudoVoigt [80:83] center=$c_zn112
+%zn112 = guess PseudoVoigt center=$c_zn112
 
 # Zn (200) 
 $c_zn200 = 360/pi * asin(sqrt(4/3 * (2^2+0^2+2*0) / $zn_a^2 + 0^2/$zn_c^2 ) / 2 * $lambda)
-%zn200 = guess PseudoVoigt [83:84] center=$c_zn200
+%zn200 = guess PseudoVoigt center=$c_zn200
 
 # we constrain width and shape of this small peak (200)
 %zn200[shape] = %zn112[shape]
@@ -78,11 +77,11 @@ $c_zn200 = 360/pi * asin(sqrt(4/3 * (2^2+0^2+2*0) / $zn_a^2 + 0^2/$zn_c^2 ) / 2 
 
 # Zn (201) 
 $c_zn201 = 360/pi * asin(sqrt(4/3 * (2^2+0^2+2*0) / $zn_a^2 + 1^2/$zn_c^2 ) / 2 * $lambda)
-%zn201 = guess PseudoVoigt [85:88] center=$c_zn201
+%zn201 = guess PseudoVoigt center=$c_zn201
 
 # SiC (311)
 $c_sic311 = 360/pi * asin(sqrt(3^2+1^2+1^2) / $sic_a / 2 * $lambda)
-%sic311 = guess PseudoVoigt [71:73] center=$c_sic311
+%sic311 = guess PseudoVoigt center=$c_sic311
 
 %zs = Constant(~0.) -> Z #zero-shift
 

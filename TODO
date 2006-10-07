@@ -1,25 +1,41 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
-* there are problems with refreshing plots and output window when program
-  is busy (ie. when running script or fitting). It seems to be platform
-  dependent.
-   --> tested solution: wxSafeYield()
+// * there are problems with refreshing plots and output window when program
+//   is busy (ie. when running script or fitting). It seems to be platform
+//   dependent.
+//    --> tested solution: wxSafeYield()
 
-* (GUI) redrawing for many datasets (~100) takes noticable time.
-  Kind of plot buffering (as a bitmap).
+// * (GUI) redrawing for many datasets (~100) takes noticable time.
+//   Kind of plot buffering (as a bitmap).
 
+// * %sic220 = guess PseudoVoigt [58:62] center=$c_sic220
+//    the range should not be necessary
+//      -> option guess-plus-minus = float
+      docs
+      syntax test
+      fix SiCZn sample
+
+* GUI: function color changing problem
 
 * ? history (data / sum / view / all) [IMPORTANT]
-   i don't exactly know how to implement it yet
+   i don't know how to implement it yet
+    view -> as is
+    data -> append/delete/transform: store changed dataset number(s) and old datasets
+    funcs/vars/params ->
+    defs -> 
 
 * GUI: sidebar, function's parameter values - do something when value
   is changed (by typing) and Enter is _not_ pressed.
 
 * GUI: Function Definition Manager layout: "Remove" button takes too 
   much space; perhaps "change name" button
+  information about "auto-add":
+    The initial parameters can/can't be guessed using peak search 
+       / linear regression
 
 * GUI: some problems with "Copy F to next dataset" button
+       Copy Z only if necessary (if not @n.Z = @m.Z = 0)
   
 * GUI?: when loading many datasets from command line, set view to show all
 
@@ -59,9 +75,12 @@
 * (GUI) finish script debugger dialog -- add command editing, inserting
   and deleting commands, and changing the order of command
 
-* GUI: Function Definition Manager -- information about "auto-add":
-	  The initial parameters can/can't be guessed using peak search 
-	  / linear regression
+* syntax enhancements: @0.F[3] should access 4th function in @0.F
+                       ? "%a.hwhm" should mean the same as "%a[hwhm]"
+		       @0.F[2] should
+		       ? "info @*.F[0].area, @*.F[0].center"
+		       info @0.filename, @0.title
+
 
 ------------------ next release here 0.7.6
 

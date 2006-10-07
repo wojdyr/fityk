@@ -72,7 +72,7 @@ void LMfit::autoiter()
             info ("#" + S(iter_nr) + ":  WSSR=" + S(chi2) 
                         + "  lambda=" + S(lambda) + "  d(WSSR)=" +  S(-d) 
                         + "  (" + S (d / prev_chi2 * 100) + "%)");  
-            // another termination criterium: neglectable change of chi2
+            // another termination criterium: negligible change of chi2
             if (d / prev_chi2 < stop_rel || chi2 == 0) { 
                 small_change_counter++;
                 if (small_change_counter >= 2 || chi2 == 0) {

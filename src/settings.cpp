@@ -53,6 +53,7 @@ Settings::Settings()
     bpar ["can-cancel-guess"] = true;
     fpar ["height-correction"] = 1.;
     fpar ["width-correction"] = 1.;
+    fpar ["guess-at-center-pm"] = 1.;
 
     //Fit
     std::map<char, std::string> fitting_method_enum;

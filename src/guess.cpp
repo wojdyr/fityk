@@ -295,8 +295,6 @@ void guess_and_add(DataWithSum* ds,
                    string const& name, string const& function,
                    vector<string> const& range, vector<string> vars)
 {
-    fp range_from, range_to;
-    parse_range(ds, range, range_from, range_to);
     EstConditions estc;
     Sum const* sum = ds->get_sum();
     // prepare a list of considered peaks
@@ -315,6 +313,26 @@ void guess_and_add(DataWithSum* ds,
     vector<string> vars_lhs(vars.size());
     for (int i = 0; i < size(vars); ++i)
         vars_lhs[i] = string(vars[i], 0, vars[i].find('='));
+
+    // get range
+    fp range_from, range_to;
+
+    // handle a special case with implicit range:
+    //  %peak = guess Gaussian center=$peak_center
+    if (range[0].empty() && range[1].empty() 
+            && contains_element(vars_lhs, "center")) {
+        int ci = find(vars_lhs.begin(), vars_lhs.end(), "center") 
+            - vars_lhs.begin();
+        string ctr_str = string(vars[ci], vars[ci].find('=') + 1); 
+        replace_all(ctr_str, "~", "");
+        fp center = get_transform_expression_value(ctr_str, 0);
+        fp delta = getSettings()->get_f("guess-at-center-pm");
+        range_from = center - delta;
+        range_to = center + delta;
+    }
+    else
+        parse_range(ds, range, range_from, range_to);
+
 
     FunctionKind k = get_function_kind(Function::get_formula(function));
     if (k == fk_peak) {
