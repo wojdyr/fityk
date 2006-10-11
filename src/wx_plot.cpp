@@ -329,7 +329,7 @@ void FPlot::draw_data (wxDC& dc,
         int X_l = x2X ((last - 1)->x);
         int X_r = x2X (last->x);
         if (X_r != X_l) {
-            int Y = Y_l + (Y_r - Y_l) * (X_ - X_l) / (X_r - X_l) - Y_offset;
+            int Y = Y_l + (Y_r - Y_l) * (X - X_l) / (X_r - X_l) - Y_offset;
             dc.DrawLine (X_, Y_, X, Y);
         }
     }

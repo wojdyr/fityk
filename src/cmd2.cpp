@@ -335,7 +335,10 @@ void do_print_data_expr(char const*, char const*)
                 fp k = get_transform_expression_value(t2, (*i)->get_data());
                 if (i != v.begin())
                     s += "\n";
-                s += "in @" + S(m[*i]) + ": " + S(k);
+                s += "in @" + S(m[*i]); 
+                if (with_plus)
+                    s += " " + (*i)->get_data()->get_title();
+                s += ": " + S(k);
             }
         }
     }
