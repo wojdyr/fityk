@@ -920,13 +920,13 @@ void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
 {
     static wxString dir = wxConfig::Get()->Read(wxT("/loadDataDir"));
     wxFileDialog fdlg (this, wxT("Load data from a file"), dir, wxT(""),
-                              wxT("x y files (*.dat, *.xy, *.fio)")
+                              wxT("all files (*)|*")
+                              wxT("|x y files (*.dat, *.xy, *.fio)")
                                       wxT("|*.dat;*.DAT;*.xy;*.XY;*.fio;*.FIO") 
                               wxT("|rit files (*.rit)|*.rit;*.RIT")
                               wxT("|cpi files (*.cpi)|*.cpi;*.CPI")
                               wxT("|mca files (*.mca)|*.mca;*.MCA")
-                              wxT("|Siemens/Bruker (*.raw)|*.raw;*.RAW")
-                              wxT("|all files (*)|*"),
+                              wxT("|Siemens/Bruker (*.raw)|*.raw;*.RAW"),
                               wxOPEN | wxFILE_MUST_EXIST | wxMULTIPLE);
     if (fdlg.ShowModal() == wxID_OK) {
         wxArrayString paths;
@@ -1073,8 +1073,8 @@ void FFrame::OnSVarList (wxCommandEvent& WXUNUSED(event))
            
 void FFrame::OnSExport (wxCommandEvent& event)
 {
-    bool as_peaks = (event.GetId() == ID_S_EXPORTP);
     static wxString dir = wxT("");
+    bool as_peaks = (event.GetId() == ID_S_EXPORTP);
     int pos = AL->get_active_ds_position();
     string const& filename = AL->get_data(pos)->get_filename();
     wxString name = wxFileName(s2wx(filename)).GetName()
@@ -1135,7 +1135,8 @@ void FFrame::OnLogUpdate (wxUpdateUIEvent& event)
 
 void FFrame::OnLogStart (wxCommandEvent& WXUNUSED(event))
 {
-    wxFileDialog fdlg (this, wxT("Log to file"), wxT(""), wxT(""),
+    static wxString dir = wxT("");
+    wxFileDialog fdlg (this, wxT("Log to file"), dir, wxT(""),
                        wxT("Fityk script file (*.fit)|*.fit;*.FIT")
                        wxT("|All files |*"),
                        wxSAVE);
@@ -1146,6 +1147,7 @@ void FFrame::OnLogStart (wxCommandEvent& WXUNUSED(event))
         string plus = GetMenuBar()->IsChecked(ID_LOG_WITH_OUTPUT) ? "+" : "";
         exec_command("commands" + plus + " > '" + wx2s(fdlg.GetPath()) + "'");
     }
+    dir = fdlg.GetDirectory();
 }
 
 void FFrame::OnLogStop (wxCommandEvent& WXUNUSED(event))
@@ -1164,12 +1166,14 @@ void FFrame::OnLogWithOutput (wxCommandEvent& event)
 
 void FFrame::OnLogDump (wxCommandEvent&)
 {
+    static wxString dir = wxT("");
     wxFileDialog fdlg(this, wxT("Dump all commands executed so far to file"),
-                      wxT(""), wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
+                      dir, wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
                       wxSAVE | wxOVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
         exec_command("commands[:] > '" + wx2s(fdlg.GetPath()) + "'");
     }
+    dir = fdlg.GetDirectory();
 }
          
 void FFrame::OnO_Reset   (wxCommandEvent& WXUNUSED(event))
@@ -1212,13 +1216,15 @@ void FFrame::show_debugger(bool show)
             
 void FFrame::OnODump         (wxCommandEvent& WXUNUSED(event))
 {
+    static wxString dir = wxT("");
     wxFileDialog fdlg(this, wxT("Dump current program state to file as script"),
-                      wxT(""), wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
+                      dir, wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
                       wxSAVE | wxOVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
         exec_command("dump > '" + wx2s(fdlg.GetPath()) + "'");
         //exec_command("commands[:] > '" + wx2s(fdlg.GetPath()) + "'");
     }
+    dir = fdlg.GetDirectory();
 }
          
 void FFrame::OnSettings    (wxCommandEvent& WXUNUSED(event))

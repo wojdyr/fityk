@@ -1277,6 +1277,12 @@
      e.g. <userinput>guess PseudoVoigt [22.1:30.5] center=$ctr, shape=~0.3 in @0</userinput>.
     </para>
     <para>
+     As an exception, if the range is omitted and the parameter 
+     <parameter>center</parameter> is given, the peak is searched around
+     the <parameter>center</parameter>, +/- value of the option
+     <parameter class="option">guess-at-center-pm</parameter>.
+    </para>
+    <para>
      Fityk offers only a primitive algorithm for peak-detection. 
      It looks for the highest point in a given range, and than tries to find the 
      width of the peak. 

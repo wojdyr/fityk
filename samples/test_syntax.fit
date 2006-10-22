@@ -59,6 +59,8 @@ Y = randnormal(y, s)  #noise
 plot @0
 sleep 0.3
 
+%p = guess Lorentzian center=~21.1
+del %p
 guess Gaussian
 %lo = guess SplitGaussian [38:]
 plot @0

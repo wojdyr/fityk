@@ -12,18 +12,40 @@
 // * %sic220 = guess PseudoVoigt [58:62] center=$c_sic220
 //    the range should not be necessary
 //      -> option guess-plus-minus = float
-      docs
-      syntax test
       fix SiCZn sample
+
+* GUI: changing data point size and line separately for each dataset,
+   controls/buttons on the sidebar
+
+* GUI: custom data load problem - when using default file: =-> @0 <'' 1,5
 
 * GUI: function color changing problem
 
-* ? history (data / sum / view / all) [IMPORTANT]
-   i don't know how to implement it yet
-    view -> as is
-    data -> append/delete/transform: store changed dataset number(s) and old datasets
-    funcs/vars/params ->
-    defs -> 
+* GUI: export/log default directory in Settings->Dirs
+
+* plot - there should be a way to zoom to show all datasets
+
+* ? history (commands undo n; c redo n) [IMPORTANT]
+    view -> not handled
+    HistoryStep := CmdString  HistoryItem+
+    HistoryItem: 
+    insert-dataset   number
+    delete-dataset   number, Data
+    transform-data   number, Data
+    F-changed        number, old F
+    Z-changed        number, old Z
+    function-added   name 
+    function-del     name pos rhs-with-var-names
+    function-change  name pos rhs-with-var-names
+    c-var-added      name 
+    c-var-del        name pos rhs-with-var-names
+    c-var-change     name pos rhs-with-var-names
+    s-var-added      name
+    s-var-del        name pos nr value
+    parameter-change parameter-vector
+    redefine         name, old_def/none
+
+    option: history-size int=10
 
 * GUI: sidebar, function's parameter values - do something when value
   is changed (by typing) and Enter is _not_ pressed.
@@ -43,7 +65,7 @@
   Error: Syntax error in expression: y[0]in@0)
 
 * exporting gnuplot compatible formulae ('^'->'**', 1/2 -> 1./2),
-  when option formula-export-gnuplot-style (?) is set
+  when option formula-export-style == gnuplot
 
 * auto-scaling should not include x/y=0, unless it's
   in, say, 20% plot margin. "[:]" is an exception and includes 0.
@@ -81,8 +103,9 @@
 		       ? "info @*.F[0].area, @*.F[0].center"
 		       info @0.filename, @0.title
 
+* unused variables should not slow down fitting
 
------------------- next release here 0.7.6
+------------------ next release here 0.7.7
 
 * build engine (everything but GUI/CLI interface) as a library
   with more or less documented API.
