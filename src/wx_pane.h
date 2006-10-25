@@ -328,7 +328,7 @@ public:
                   wxCommandEventHandler(GradientDlgWithApply::OnClose)); 
     }
     void OnApply(wxCommandEvent &) { (callee->*callback)(this); }
-    void OnClose(wxCommandEvent &event) { OnCancel(event); }
+    void OnClose(wxCommandEvent&) { close_it(this); }
 private:
     calleeT *callee;
     void (calleeT::*callback)(GradientDlg *);

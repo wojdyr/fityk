@@ -81,7 +81,7 @@ public:
     void OnOpenFile(wxCommandEvent&) { OpenFile(); }
     void OnExecSelected(wxCommandEvent&);
     void OnExecDown(wxCommandEvent&);
-    void OnClose(wxCommandEvent& event) { OnCancel(event); }
+    void OnClose(wxCommandEvent&) { close_it(this); }
     wxString get_list_item(int i);
     void exec_line(int n);
 protected:

@@ -203,9 +203,8 @@ class ConfigureAxesDlg: public wxDialog
 public:
     ConfigureAxesDlg(wxWindow* parent, wxWindowID id, MainPlot* plot_);
     void OnApply (wxCommandEvent& event);
-    void OnClose (wxCommandEvent& event) { OnCancel(event); }
-    void OnChangeColor (wxCommandEvent& WXUNUSED(event)) 
-                                               { change_color_dlg(axis_color); }
+    void OnClose (wxCommandEvent&) { close_it(this); }
+    void OnChangeColor (wxCommandEvent&) { change_color_dlg(axis_color); }
     void OnChangeFont (wxCommandEvent& event); 
 private:
     MainPlot *plot;
@@ -225,7 +224,7 @@ class ConfigurePLabelsDlg: public wxDialog
 public:
     ConfigurePLabelsDlg(wxWindow* parent, wxWindowID id, MainPlot* plot_);
     void OnApply (wxCommandEvent& event);
-    void OnClose (wxCommandEvent& event) { OnCancel(event); }
+    void OnClose (wxCommandEvent&) { close_it(this); }
     void OnChangeLabelFont (wxCommandEvent& event); 
     void OnChangeLabelText (wxCommandEvent& event); 
     void OnCheckShowLabel (wxCommandEvent& event); 

@@ -98,7 +98,7 @@ class ConfStatBarDlg: public wxDialog
 public:
     ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_);
     void OnApply (wxCommandEvent& event);
-    void OnClose (wxCommandEvent& event) { OnCancel(event); }
+    void OnClose (wxCommandEvent&) { close_it(this); }
 private:
     FStatusBar *sb;
     SpinCtrl *width_sc, *whint_sc;

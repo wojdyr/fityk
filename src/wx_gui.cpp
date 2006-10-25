@@ -654,7 +654,7 @@ void FFrame::set_menubar()
     wxMenu* func_type_menu = new wxMenu;
     sum_menu->Append (ID_G_M_PEAK, wxT("Function &type"), func_type_menu);
     // the function list is created in OnUpdateFuncList()
-    func_type_menu->AppendRadioItem(ID_G_M_PEAK_N, wxT(""));
+    func_type_menu->AppendRadioItem(ID_G_M_PEAK_N, wxT(" "));
 /*
     sum_menu->Append (ID_S_EDITOR, wxT("FT &Editor"), 
                                                    wxT("Edit function types"));

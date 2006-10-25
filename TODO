@@ -17,8 +17,6 @@
 * GUI: changing data point size and line separately for each dataset,
    controls/buttons on the sidebar
 
-* GUI: custom data load problem - when using default file: =-> @0 <'' 1,5
-
 * GUI: function color changing problem
 
 * GUI: export/log default directory in Settings->Dirs

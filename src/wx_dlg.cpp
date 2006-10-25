@@ -779,9 +779,9 @@ void DataEditorDlg::OnHelp (wxCommandEvent& WXUNUSED(event))
     frame->display_help_section("Data transformations");
 }
 
-void DataEditorDlg::OnClose (wxCommandEvent& event)
+void DataEditorDlg::OnClose (wxCommandEvent&)
 {
-    OnCancel(event);
+    close_it(this);
 }
 
 void DataEditorDlg::CodeText()
@@ -883,7 +883,7 @@ ExampleEditorDlg::ExampleEditorDlg(wxWindow* parent, wxWindowID id,
     Centre();
 }
 
-void ExampleEditorDlg::OnOK(wxCommandEvent &event)
+void ExampleEditorDlg::OnOK(wxCommandEvent &)
 {
     string new_name = wx2s(name_tc->GetValue().Trim());
     for (int i = 0; i < size(examples); ++i) 
@@ -898,7 +898,7 @@ void ExampleEditorDlg::OnOK(wxCommandEvent &event)
     ex.description = wx2s(description_tc->GetValue().Trim());
     ex.code = wx2s(code_tc->GetValue().Trim());
     ex.in_menu = inmenu_cb->GetValue();
-    wxDialog::OnOK(event);
+    close_it(this, wxID_OK);
 }
 
 /// get path ~/.fityk/filename and create ~/.fityk/ dir if not exists
@@ -1164,7 +1164,7 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
     return result;
 }
 
-void SettingsDlg::OnOK(wxCommandEvent& event)
+void SettingsDlg::OnOK(wxCommandEvent&)
 {
     vector<pair<string, string> > p = get_changed_items();
     if (!p.empty()) {
@@ -1176,7 +1176,7 @@ void SettingsDlg::OnOK(wxCommandEvent& event)
     }
     wxConfig::Get()->Write(wxT("/loadDataDir"), dir_ld_tc->GetValue());
     wxConfig::Get()->Write(wxT("/execScriptDir"), dir_xs_tc->GetValue());
-    wxDialog::OnOK(event);
+    close_it(this, wxID_OK);
 }
 
 
@@ -1267,7 +1267,7 @@ void FitRunDlg::update_unlimited()
     nomaxiter_st->Show(maxiter_sc->GetValue() == 0);
 }
 
-void FitRunDlg::OnOK(wxCommandEvent& event)
+void FitRunDlg::OnOK(wxCommandEvent&)
 {
     string cmd;
     FitMethodsContainer* fc = FitMethodsContainer::getInstance();
@@ -1290,7 +1290,7 @@ void FitRunDlg::OnOK(wxCommandEvent& event)
             cmd += " in @*";
     }
     exec_command(cmd);
-    wxDialog::OnOK(event);
+    close_it(this, wxID_OK);
 }
 
 //=====================    Definition  Manager  dialog    ==================
@@ -1682,9 +1682,9 @@ void DefinitionMgrDlg::OnRemoveButton(wxCommandEvent &)
     lb->Delete(n);
 }
 
-void DefinitionMgrDlg::OnOk(wxCommandEvent& event)
+void DefinitionMgrDlg::OnOk(wxCommandEvent&)
 {
     if (save_changes())
-        wxDialog::OnOK(event);
+        close_it(this, wxID_OK);
 }
 

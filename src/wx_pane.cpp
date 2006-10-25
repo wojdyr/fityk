@@ -17,6 +17,7 @@
 #include <wx/textdlg.h>
 #include <wx/spinctrl.h>
 #include <wx/image.h>
+#include <wx/imaglist.h>
 
 #include "common.h"
 #include "wx_pane.h" 

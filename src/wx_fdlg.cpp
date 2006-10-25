@@ -231,7 +231,7 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     wxFileName path = s2wx(data->get_filename());
     path.Normalize();
     dir_ctrl->SetPath(path.GetFullPath()); 
-    filename_tc = new wxTextCtrl (left_panel, -1, wxT(""), 
+    filename_tc = new wxTextCtrl (left_panel, -1, path.GetFullPath(), 
                                   wxDefaultPosition, wxDefaultSize,
                                   wxTE_READONLY);
     left_sizer->Add (filename_tc, 0, wxALL|wxEXPAND, 5);
@@ -369,9 +369,9 @@ void FDXLoadDlg::OnColumnChanged (wxSpinEvent& WXUNUSED(event))
         update_title_from_file();
 }
 
-void FDXLoadDlg::OnClose (wxCommandEvent& event)
+void FDXLoadDlg::OnClose (wxCommandEvent&)
 {
-    OnCancel(event);
+    close_it(this);
 }
 
 void FDXLoadDlg::OnOpenHere (wxCommandEvent& WXUNUSED(event))
@@ -899,7 +899,7 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
     */
 }
 
-void PageSetupDialog::OnOk(wxCommandEvent& event) 
+void PageSetupDialog::OnOk(wxCommandEvent&) 
 {
     if (papers->GetSelection() != -1) {
         wxPrintPaperType *ppt 
@@ -926,7 +926,7 @@ void PageSetupDialog::OnOk(wxCommandEvent& event)
     pm->get_page_data().GetMarginBottomRight().y = bottom_margin->GetValue();
     */
 
-    wxDialog::OnOK(event);
+    close_it(this, wxID_OK);
 }
 
 

@@ -66,6 +66,8 @@ bool BufferedPanel::resize_buffer(wxDC &dc)
 
 void BufferedPanel::clear_and_draw()
 {
+    if (!buffer.Ok())
+        return;
     memory_dc.SetLogicalFunction(wxCOPY);
     memory_dc.SetBackground(wxBrush(backgroundCol));
     memory_dc.Clear();

@@ -120,4 +120,17 @@ public:
     {}
 };
 
+/// introduced because OnOK and OnCancel were removed
+/// when wx-2.6 compatibility is dropped, it will be replaced with 
+/// wxSetEscapeId for Cancel and perhaps with wxSetAffirmativeId for OK.
+inline void close_it(wxDialog* dlg, int id=wxID_CANCEL)
+{
+    if (dlg->IsModal())
+        dlg->EndModal(id);
+    else {
+        dlg->SetReturnCode(id);
+        dlg->Show(false);
+    }
+}
+
 #endif 
