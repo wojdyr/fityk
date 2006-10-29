@@ -118,6 +118,9 @@ enum {
     ID_F_METHOD                ,
     ID_F_RUN                   ,
     ID_F_INFO                  ,
+    ID_F_UNDO                  ,
+    ID_F_REDO                  ,
+    ID_F_HISTORY               ,
     ID_F_M                     , 
     ID_F_M_END = ID_F_M+10     , 
     ID_SESSION_LOG             ,
@@ -368,6 +371,9 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU_RANGE (ID_F_M+0, ID_F_M_END, FFrame::OnFOneOfMethods)    
     EVT_MENU (ID_F_RUN,         FFrame::OnFRun)    
     EVT_MENU (ID_F_INFO,        FFrame::OnFInfo)    
+    EVT_MENU (ID_F_UNDO,        FFrame::OnFUndo)    
+    EVT_MENU (ID_F_REDO,        FFrame::OnFRedo)    
+    EVT_MENU (ID_F_HISTORY,     FFrame::OnFHistory)    
 
     EVT_UPDATE_UI (ID_SESSION_LOG, FFrame::OnLogUpdate)    
     EVT_MENU (ID_LOG_START,     FFrame::OnLogStart)
@@ -655,12 +661,6 @@ void FFrame::set_menubar()
     sum_menu->Append (ID_G_M_PEAK, wxT("Function &type"), func_type_menu);
     // the function list is created in OnUpdateFuncList()
     func_type_menu->AppendRadioItem(ID_G_M_PEAK_N, wxT(" "));
-/*
-    sum_menu->Append (ID_S_EDITOR, wxT("FT &Editor"), 
-                                                   wxT("Edit function types"));
-    sum_menu->Append (ID_S_HISTORY, "&History\tCtrl-H", 
-                            wxT("Go back or forward in change history"));      
-*/
     sum_menu->Append (ID_DEFMGR, wxT("&Definition Manager"),
                       wxT("Add or modify funtion types"));
     sum_menu->Append (ID_S_GUESS, wxT("&Guess Peak"),wxT("Guess and add peak"));
@@ -692,6 +692,13 @@ void FFrame::set_menubar()
     fit_menu->Append (ID_F_RUN, wxT("&Run...\tCtrl-R"), 
                                              wxT("Fit sum to data"));
     fit_menu->Append (ID_F_INFO, wxT("&Info"), wxT("Info about current fit")); 
+    fit_menu->AppendSeparator();
+    fit_menu->Append (ID_F_UNDO, wxT("&Undo"), 
+                            wxT("Undo change of parameter")); 
+    fit_menu->Append (ID_F_REDO, wxT("R&edo"), 
+                            wxT("Redo change of parameter")); 
+    fit_menu->Append (ID_F_HISTORY, wxT("&Parameter History"), 
+                            wxT("Go back or forward in parameter history")); 
 
     wxMenu* gui_menu = new wxMenu;
     wxMenu* gui_menu_mode = new wxMenu;
@@ -1097,6 +1104,13 @@ void FFrame::OnFMethodUpdate (wxUpdateUIEvent& event)
 {
     int n = FitMethodsContainer::getInstance()->current_method_number();
     GetMenuBar()->Check (ID_F_M + n, true);
+    // to make it simpler, history menu items are also updated here
+    GetMenuBar()->Enable(ID_F_UNDO, 
+            FitMethodsContainer::getInstance()->has_param_history_rel_item(-1));
+    GetMenuBar()->Enable(ID_F_REDO, 
+            FitMethodsContainer::getInstance()->has_param_history_rel_item(1));
+    GetMenuBar()->Enable(ID_F_HISTORY, 
+            FitMethodsContainer::getInstance()->get_param_history_size() != 0);
     event.Skip();
 }
 
@@ -1112,9 +1126,24 @@ void FFrame::OnFRun (wxCommandEvent& WXUNUSED(event))
     FitRunDlg(this, -1, true).ShowModal();
 }
         
-void FFrame::OnFInfo         (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnFInfo (wxCommandEvent&)
 {
     exec_command ("info fit");
+}
+         
+void FFrame::OnFUndo (wxCommandEvent&)
+{
+    exec_command ("fit undo");
+}
+         
+void FFrame::OnFRedo (wxCommandEvent&)
+{
+    exec_command ("fit redo");
+}
+         
+void FFrame::OnFHistory (wxCommandEvent&)
+{
+    //TODO
 }
          
 void FFrame::OnLogUpdate (wxUpdateUIEvent& event)        

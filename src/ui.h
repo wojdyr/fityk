@@ -10,6 +10,7 @@
 
 class wxString;
 struct NumberedLine;
+class Data;
 
 /// used for storing commands and logging commands to file
 class Commands 
@@ -17,17 +18,16 @@ class Commands
 public:
     static const int max_cmd = 1024;
     enum Status { status_ok, status_execute_error, status_syntax_error };
+
     struct Cmd
     {
         std::string cmd;
         Status status;
+
         Cmd(std::string const& c, Status s) : cmd(c), status(s) {}
-        std::string str() const { 
-            return cmd + " #>" + (status == status_ok ? "OK" 
-                           : (status == status_execute_error ? "Runtime Error"
-                               : "Syntax Error" )); }
+        std::string str() const;
     };
-  
+
     Commands() : command_counter(0) {}
     void put_command(std::string const& s, Status s);
     void put_output_message(std::string const& s); 
@@ -37,7 +37,7 @@ public:
                                      return cmds[n].status; }
     std::vector<std::string> get_commands(int from, int to, 
                                           bool with_status) const;
-    std::string get_info() const;
+    std::string get_info(bool extended) const;
     void start_logging(std::string const& filename, bool with_output);
     void stop_logging();
     std::string get_log_file() const { return log_filename; }
@@ -88,8 +88,7 @@ public:
     void execScript (std::string const &filename) 
     { execScript(filename, std::vector<std::pair<int,int> >()); }
 
-    Commands::Status execAndLogCmd(std::string const &s) 
-     {Commands::Status r=execCommand(s); commands.put_command(s, r); return r;}
+    Commands::Status execAndLogCmd(std::string const &c);
     int getVerbosity();
     void process_cmd_line_filename(std::string const& par);
     /// refresh the screen if needed, for use during time-consuming tasks

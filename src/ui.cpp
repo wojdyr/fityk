@@ -15,12 +15,23 @@ using namespace std;
 const char* config_dirname = ".fityk";
 const char* startup_commands_filename = "init";
 
+string Commands::Cmd::str() const 
+{ 
+    string s = cmd + " #>";
+    if (status == status_ok)
+        s += "OK";
+    else if (status == status_execute_error) 
+        s += "Runtime Error";
+    else //status_syntax_error
+        s += "Syntax Error"; 
+    return s;
+}
 
-void Commands::put_command(string const& c, Status s)
+void Commands::put_command(string const &c, Commands::Status r)
 {
     if (strip_string(c).empty())
         return;
-    cmds.push_back(Cmd(c, s));
+    cmds.push_back(Cmd(c, r));
     ++command_counter;
     if (!log_filename.empty())  
         log << " " << c << endl; 
@@ -68,7 +79,7 @@ int Commands::count_commands_with_status(Status st) const
     return cnt;
 }
 
-string Commands::get_info() const
+string Commands::get_info(bool extended) const
 {
     string s = S(command_counter) + " commands since the start of the program,";
     if (command_counter == size(cmds))
@@ -86,6 +97,9 @@ string Commands::get_info() const
     else
         s += S("\nCommands (") + (log_with_output ? "with" : "without") 
             + " output) are logged to file: " + log_filename;
+    if (extended) {
+        // no extended info for now
+    }
     return s;
 }
 
@@ -147,6 +161,12 @@ UserInterface* UserInterface::getInstance()
     return instance; // address of sole instance
 }
 
+Commands::Status UserInterface::execAndLogCmd(string const &c)
+{
+    Commands::Status r = execCommand(c); 
+    commands.put_command(c, r); 
+    return r;
+}
 
 void UserInterface::outputMessage (int level, const string& s)
 {

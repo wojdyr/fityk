@@ -116,6 +116,8 @@ void ApplicationLogic::dump_all_as_script(string const &filename)
             os << "@" << i << ".title = '" << data->get_title() << "'\n";
         int m = data->points().size();
         os << "M=" << m << " in @" << i << endl;
+        os << "X=" << data->get_x_max() << " in @" << i 
+            << " # =max(x), prevents sorting." << endl;
         for (int j = 0; j != m; ++j) {
             Point const& p = data->points()[j];
             os << "X[" << j << "]=" << p.x << ", Y[" << j << "]=" << p.y 

@@ -274,21 +274,19 @@ string Fit::print_matrix (const vector<fp>& vec, int m, int n, char *mname)
 bool Fit::post_fit (const std::vector<fp>& aa, fp chi2)
 {
     bool better = (chi2 < wssr_before);
-    string comment = name + (better ? "" : " (worse)");
-    AL->put_new_parameters(aa, name, better);
     if (better) {
+        FitMethodsContainer::getInstance()->push_param_history(aa);
+        AL->put_new_parameters(aa);
         info ("Better fit found (WSSR = " + S(chi2) + ", was " + S(wssr_before)
                 + ", " + S((chi2 - wssr_before) / wssr_before * 100) + "%).");
-        return true;
     }
     else {
-        if (chi2 > wssr_before) {
-            info ("Better fit NOT found (WSSR = " + S(chi2)
+        info ("Better fit NOT found (WSSR = " + S(chi2)
                     + ", was " + S(wssr_before) + ").\nParameters NOT changed");
-        }
+        AL->use_parameters();
         iteration_plot(a_orig); //reverting to old plot
-        return false;
     }
+    return better;
 }
 
 fp Fit::draw_a_from_distribution (int nr, char distribution, fp mult)
@@ -318,6 +316,7 @@ void Fit::fit(int max_iter, vector<DataWithSum*> const& dsds)
     update_parameters(dsds);
     datsums = dsds;
     a_orig = AL->get_parameters();
+    FitMethodsContainer::getInstance()->push_param_history(a_orig);
     iter_nr = 0;
     evaluations = 0;
     user_interrupt = false;
@@ -491,6 +490,7 @@ FitMethodsContainer* FitMethodsContainer::getInstance()
 }
 
 FitMethodsContainer::FitMethodsContainer()
+    
 {
     methods.push_back(new LMfit); 
     methods.push_back(new NMfit); 
@@ -505,6 +505,46 @@ FitMethodsContainer::~FitMethodsContainer()
 int FitMethodsContainer::current_method_number() const
 {
     return getSettings()->get_e("fitting-method");
+}
+
+void ParameterHistoryMgr::load_param_history(int item_nr, bool relative)
+{
+    if (relative)
+        item_nr += param_hist_ptr;
+    else if (item_nr < 0)
+        item_nr += param_history.size();
+    if (item_nr < 0 || item_nr >= size(param_history))
+        throw ExecuteError("There is no parameter history item #" 
+                            + S(item_nr) + ".");
+    if (param_hist_ptr == size(param_history) - 1) {
+        bool r = push_param_history(AL->get_parameters());
+        if (r && relative)
+            ++item_nr;
+    }
+    AL->put_new_parameters(param_history[item_nr]);
+    param_hist_ptr = item_nr;
+}
+
+bool ParameterHistoryMgr::push_param_history(vector<fp> const& aa) 
+{ 
+    param_hist_ptr = param_history.size() - 1;
+    if (param_history.empty() || param_history.back() != aa) {
+        param_history.push_back(aa); 
+        ++param_hist_ptr;
+        return true;
+    }
+    else
+        return false;
+}
+
+
+std::string ParameterHistoryMgr::param_history_info() const
+{
+    string s = "Parameter history contains " + S(param_history.size()) 
+        + " items.";
+    if (!param_history.empty())
+        s += " Now at #" + S(param_hist_ptr);
+    return s;
 }
 
 

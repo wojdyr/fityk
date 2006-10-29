@@ -14,9 +14,9 @@ struct Point
 {
     fp x, y, sigma;
     bool is_active;
-    Point () : x(0), y(0), sigma(0), is_active(true) {}
-    Point (fp x_) : x(x_), y(0), sigma(0), is_active(true) {}
-    Point (fp x_, fp y_) : x(x_), y(y_), sigma (0), is_active(true) {}
+    Point () : x(0), y(0), sigma(1), is_active(true) {}
+    Point (fp x_) : x(x_), y(0), sigma(1), is_active(true) {}
+    Point (fp x_, fp y_) : x(x_), y(y_), sigma(1), is_active(true) {}
     Point (fp x_, fp y_, fp sigma_) : x(x_), y(y_), sigma(sigma_), 
                                       is_active(true) {}
     std::string str() { return "(" + S(x) + "; " + S(y) + "; " + S(sigma) 
@@ -31,6 +31,8 @@ inline bool operator< (const Point& p, const Point& q)
 class Data 
 {
 public :
+    std::string title;
+
     Data() : y_min(0.), y_max(1e3) {}
     ~Data() {}
     std::string getInfo() const;
@@ -65,15 +67,13 @@ public :
     void export_to_file(std::string filename, std::vector<std::string>const &vt,
                         std::vector<std::string> const& ff_names,
                         bool append=false);
-    fp get_x_min() { return p.empty() ? 0 : p.front().x; }
-    fp get_x_max() { return p.empty() ? 180. : p.back().x; } 
+    fp get_x_min() const { return p.empty() ? 0 : p.front().x; }
+    fp get_x_max() const { return p.empty() ? 180. : p.back().x; } 
     fp get_y_min() const { return y_min; }
     fp get_y_max() const { return y_max; }
     std::vector<Point> const& points() const { return p; }
     std::string get_given_type() const { return given_type; }
     std::vector<int> get_given_cols() const { return given_cols; }
-
-    std::string title;
 private:
     std::string filename;
     std::string given_type;

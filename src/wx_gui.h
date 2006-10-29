@@ -159,6 +159,9 @@ public:
     void OnFOneOfMethods (wxCommandEvent& event);
     void OnFRun          (wxCommandEvent& event);        
     void OnFInfo         (wxCommandEvent& event);         
+    void OnFUndo         (wxCommandEvent& event);         
+    void OnFRedo         (wxCommandEvent& event);         
+    void OnFHistory      (wxCommandEvent& event);         
 
     void OnLogUpdate     (wxUpdateUIEvent& event);        
     void OnLogStart      (wxCommandEvent& event);        

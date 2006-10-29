@@ -153,8 +153,18 @@ string VariableManager::assign_variable(string const &name, string const &rhs)
             val_str.erase(pos);
         }
         fp val = get_constant_value(val_str);
-        parameters.push_back(val);
-        int nr = parameters.size() - 1;
+        int nr;
+
+        // avoid changing order of parameters in case of "$_1 = ~1.23"
+        int old_pos = find_variable_nr(name);
+        if (old_pos != -1 && variables[old_pos]->is_simple()) {
+            nr = variables[old_pos]->get_nr();
+            parameters[nr] = val; //variable at old_pos will be deleted soon
+        }
+        else {
+            nr = parameters.size();
+            parameters.push_back(val);
+        }
         var = new Variable(nonempty_name, nr);
         if (!domain_str.empty()) 
             parse_and_set_domain(var, domain_str);
@@ -433,13 +443,10 @@ void VariableManager::use_external_parameters(vector<fp> const &ext_param)
         (*i)->do_precomputations(variables);
 }
 
-void VariableManager::put_new_parameters(vector<fp> const &aa, 
-                                         string const &/*method*/,
-                                         bool change)
+void VariableManager::put_new_parameters(vector<fp> const &aa)
 {
-    //TODO history
-    if (change)
-        parameters = aa;
+    for (size_t i = 0; i < min(aa.size(), parameters.size()); ++i)
+        parameters[i] = aa[i];
     use_parameters();
 }
 

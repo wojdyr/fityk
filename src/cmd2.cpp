@@ -216,6 +216,8 @@ void do_print_info(char const* a, char const* b)
     }
     else if (s == "set")
         m = getSettings()->print_usage();
+    else if (startswith(s, "fit-history"))
+        m = FitMethodsContainer::getInstance()->param_history_info();
     else if (startswith(s, "fit"))
         m = getFit()->getInfo(get_datasets_from_indata());
     else if (startswith(s, "errors"))
@@ -238,7 +240,7 @@ void do_print_info(char const* a, char const* b)
         }
     }
     else if (s == "commands")
-        m = getUI()->getCommands().get_info();
+        m = getUI()->getCommands().get_info(with_plus);
     else if (startswith(s, "guess")) {
         vector<DataWithSum*> v = get_datasets_from_indata();
         for (vector<DataWithSum*>::const_iterator i = v.begin(); 
@@ -463,7 +465,7 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         ;
     
     info_arg
-        = (str_p("commands") >> optional_plus >> IntRangeG) [&do_list_commands] 
+        = (str_p("commands") >> IntRangeG) [&do_list_commands] 
         |  ( str_p("variables") 
            | VariableLhsG 
            | str_p("types") 
@@ -472,7 +474,8 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
            | str_p("commands") 
            | str_p("view") 
            | str_p("set")) [&do_print_info] 
-        | ((str_p("fit") 
+        | ((str_p("fit-history") 
+            | "fit"
             | "errors"
             | "peaks"
             | "formula"

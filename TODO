@@ -23,27 +23,13 @@
 
 * plot - there should be a way to zoom to show all datasets
 
-* ? history (commands undo n; c redo n) [IMPORTANT]
-    view -> not handled
-    HistoryStep := CmdString  HistoryItem+
-    HistoryItem: 
-    insert-dataset   number
-    delete-dataset   number, Data
-    transform-data   number, Data
-    F-changed        number, old F
-    Z-changed        number, old Z
-    function-added   name 
-    function-del     name pos rhs-with-var-names
-    function-change  name pos rhs-with-var-names
-    c-var-added      name 
-    c-var-del        name pos rhs-with-var-names
-    c-var-change     name pos rhs-with-var-names
-    s-var-added      name
-    s-var-del        name pos nr value
-    parameter-change parameter-vector
-    redefine         name, old_def/none
-
-    option: history-size int=10
+* parameters history 
+   // fit history n, fit history clear, fit undo, fit redo, info fit-history
+   GUI: Fit->History 
+   when loading shorter parameter vector, 
+     the missing items should be unchanged rather than zeroed.
+   docs
+   test_syntax.fit
 
 * GUI: sidebar, function's parameter values - do something when value
   is changed (by typing) and Enter is _not_ pressed.

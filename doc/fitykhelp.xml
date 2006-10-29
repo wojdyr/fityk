@@ -213,7 +213,8 @@
     and try out the context menu (right button), or use the right-hand panel.
    </para>
    <para>
-    That's it! To do the same a second time (for example to a similar data set) you can write all the commands 
+    That's it! To do the same a second time (for example to a similar data set)
+    you can write all the commands 
     to file (you can do it now using command 
     <command>commands &gt; <replaceable>filename</replaceable></command>),
     and use it as script: 
@@ -1803,21 +1804,17 @@
      </command> 
      or written to file: 
      <command>
-      commands [<replaceable>n</replaceable>:<replaceable>m</replaceable>]
+      info commands [<replaceable>n</replaceable>:<replaceable>m</replaceable>]
       &gt; <replaceable>filename</replaceable>
      </command>. 
      To put all commands executed so far during the session into the 
      file <filename>foo.fit</filename>, type 
-     <userinput>commands[:] > foo.fit</userinput>.
+     <userinput>info commands[:] > foo.fit</userinput>.
      With the plus sign (+) (i.e.
      <command>
-      info commands+ [<replaceable>n</replaceable>:<replaceable>m</replaceable>]
+      info+ commands [<replaceable>n</replaceable>:<replaceable>m</replaceable>]
      </command> 
-     and
-     <command>
-      commands+ [<replaceable>n</replaceable>:<replaceable>m</replaceable>]
-      &gt; <replaceable>filename</replaceable>)
-     </command> information about the exit status of each command will be added. 
+     ) information about the exit status of each command will be added. 
     </para>
     <para>
      To log commands to a file when they are executed, use:
@@ -1838,7 +1835,8 @@
     <para>
      There is also a command
      <command>dump &gt; <replaceable>filename</replaceable></command>,
-     [TODO] which is not working at this moment.
+     which writes the current state of the program 
+     together with all datasets to a single .fit file.
     </para>
     <para>
      Command <command>sleep <replaceable>sec</replaceable></command> 

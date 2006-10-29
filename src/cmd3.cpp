@@ -80,6 +80,30 @@ void do_fit(char const*, char const*)
     outdated_plot=true;  
 }
 
+void do_load_fit_history(int n)
+{
+    FitMethodsContainer::getInstance()->load_param_history(n);
+    outdated_plot=true;  
+}
+
+void do_clear_fit_history(char const*, char const*)
+{
+    FitMethodsContainer::getInstance()->clear_param_history();
+}
+
+void do_undo_fit(char const*, char const*)
+{
+    FitMethodsContainer::getInstance()->load_param_history(-1, true);
+    outdated_plot=true;  
+}
+
+void do_redo_fit(char const*, char const*)
+{
+    FitMethodsContainer::getInstance()->load_param_history(+1, true);
+    outdated_plot=true;  
+}
+
+
 void do_set(char const*, char const*) { getSettings()->setp(t2, t); }
 
 void do_set_show(char const*, char const*)  { mesg(getSettings()->infop(t2)); }
@@ -163,7 +187,15 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
         | (no_actions_d[DataTransformG][assign_a(t)] >> in_data)[&do_transform]
         | optional_suffix_p("s","et") >> (set_arg % ',')
         | optional_suffix_p("c","ommands") >> commands_arg
-        | (optional_suffix_p("f","it") >> fit_arg) [&do_fit]
+        | optional_suffix_p("f","it") 
+          >> (optional_suffix_p("h","istory") 
+               >> (int_p [&do_load_fit_history]
+                  | optional_suffix_p("c","lear") [&do_clear_fit_history]
+                  )
+             | optional_suffix_p("u","ndo") [&do_undo_fit] 
+             | optional_suffix_p("r","edo") [&do_redo_fit] 
+             | fit_arg [&do_fit]
+             )
         ;
 }
 

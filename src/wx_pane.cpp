@@ -933,13 +933,10 @@ void SideBar::update_func_list(bool nondata_changed)
     wxColour const& bg_col = mplot->get_bg_color();
 
     //functions filter
-    if (AL->get_ds_count()+1 != filter_ch->GetCount()) {
-        while (filter_ch->GetCount() > AL->get_ds_count()+1)
-            filter_ch->Delete(filter_ch->GetCount()-1);
-        for (int i = filter_ch->GetCount()-1; i < AL->get_ds_count(); ++i)
-            filter_ch->Append(wxString::Format(wxT("only functions from @%i"),
-                                               i));
-    }
+    while ((int) filter_ch->GetCount() > AL->get_ds_count() + 1)
+        filter_ch->Delete(filter_ch->GetCount()-1);
+    for (int i = filter_ch->GetCount() - 1; i < AL->get_ds_count(); ++i)
+        filter_ch->Append(wxString::Format(wxT("only functions from @%i"), i));
 
     //functions
     static vector<int> func_col_id;

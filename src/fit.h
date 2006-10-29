@@ -66,8 +66,26 @@ private:
     void update_parameters(std::vector<DataWithSum*> const& dss);
 };
 
+/// handles parameter history
+class ParameterHistoryMgr
+{
+public:
+    ParameterHistoryMgr() : param_hist_ptr(0) {}
+    bool push_param_history(std::vector<fp> const& aa);
+    void clear_param_history() { param_history.clear(); param_hist_ptr = 0; }
+    int get_param_history_size() { return param_history.size(); }
+    void load_param_history(int item_nr, bool relative=false);
+    bool has_param_history_rel_item(int rel_nr) const 
+        { return is_index(param_hist_ptr + rel_nr, param_history); }
+    std::string param_history_info() const;
+private:
+    std::vector<std::vector<fp> > param_history;
+    int param_hist_ptr;
+};
+
 /// singleton, gives access to fitting methods, enables swithing between them
-class FitMethodsContainer
+/// also stores parameter history
+class FitMethodsContainer : public ParameterHistoryMgr
 {
 public:
     static FitMethodsContainer* getInstance();
@@ -76,6 +94,7 @@ public:
                     { assert(n >= 0 && n<size(methods)); return methods[n]; }
     std::vector<Fit*> const& get_methods() const { return methods; }
     Fit* getFit() { return methods[current_method_number()]; }
+
 private:
     static FitMethodsContainer* instance;
     std::vector<Fit*> methods;

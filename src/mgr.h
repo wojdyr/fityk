@@ -75,8 +75,7 @@ public:
     /// do precomputations for all functions
     void use_parameters(); 
     void use_external_parameters(std::vector<fp> const &ext_param);
-    void put_new_parameters(std::vector<fp> const &aa, std::string const&method,
-                            bool change=true);
+    void put_new_parameters(std::vector<fp> const &aa);
     fp variation_of_a(int n, fp variat) const;
     std::vector<std::string> get_variable_references(std::string const &name);
 
