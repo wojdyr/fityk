@@ -73,11 +73,13 @@ public:
     ParameterHistoryMgr() : param_hist_ptr(0) {}
     bool push_param_history(std::vector<fp> const& aa);
     void clear_param_history() { param_history.clear(); param_hist_ptr = 0; }
-    int get_param_history_size() { return param_history.size(); }
+    int get_param_history_size() const { return param_history.size(); }
     void load_param_history(int item_nr, bool relative=false);
     bool has_param_history_rel_item(int rel_nr) const 
         { return is_index(param_hist_ptr + rel_nr, param_history); }
     std::string param_history_info() const;
+    std::vector<fp> const& get_item(int n) const { return param_history[n]; }
+    int get_active_nr() const { return param_hist_ptr; }
 private:
     std::vector<std::vector<fp> > param_history;
     int param_hist_ptr;

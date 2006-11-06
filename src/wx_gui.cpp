@@ -106,7 +106,6 @@ enum {
     ID_D_ALLDS                 ,
     ID_D_EXPORT                ,
     ID_S_EDITOR                ,
-    ID_S_HISTORY               ,
     ID_DEFMGR                  ,
     ID_S_GUESS                 ,
     ID_S_PFINFO                ,
@@ -357,7 +356,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_D_EXPORT,      FFrame::OnDExport) 
 
     EVT_MENU (ID_S_EDITOR,      FFrame::OnSEditor)    
-    EVT_MENU (ID_S_HISTORY,     FFrame::OnSHistory)  
     EVT_MENU (ID_DEFMGR,        FFrame::OnDefinitionMgr)   
     EVT_MENU (ID_S_GUESS,       FFrame::OnSGuess)   
     EVT_MENU (ID_S_PFINFO,      FFrame::OnSPFInfo)   
@@ -1033,20 +1031,6 @@ void FFrame::OnSEditor (wxCommandEvent& WXUNUSED(event))
 {
 }
  
-void FFrame::OnSHistory (wxCommandEvent& WXUNUSED(event))
-{
-/*
-    if (my_sum->pars()->count_a() == 0) {
-        wxMessageBox ("no parameters -- no history", "no history",
-                      wxOK|wxICON_ERROR);
-        return;
-    }
-    SumHistoryDlg *dialog = new SumHistoryDlg (this, -1);
-    dialog->ShowModal();
-    dialog->Destroy();
-*/
-}
-            
 void FFrame::OnDefinitionMgr(wxCommandEvent&)
 {
     DefinitionMgrDlg* dlg = new DefinitionMgrDlg(this);
@@ -1143,8 +1127,11 @@ void FFrame::OnFRedo (wxCommandEvent&)
          
 void FFrame::OnFHistory (wxCommandEvent&)
 {
-    //TODO
+    SumHistoryDlg *dialog = new SumHistoryDlg(this, -1);
+    dialog->ShowModal();
+    dialog->Destroy();
 }
+            
          
 void FFrame::OnLogUpdate (wxUpdateUIEvent& event)        
 {

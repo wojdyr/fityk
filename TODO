@@ -14,6 +14,12 @@
 //      -> option guess-plus-minus = float
       fix SiCZn sample
 
+* parameters history 
+   // fit history n, fit history clear, fit undo, fit redo, info fit-history
+   GUI: Fit->History 
+   docs
+   test_syntax.fit
+
 * GUI: changing data point size and line separately for each dataset,
    controls/buttons on the sidebar
 
@@ -23,13 +29,11 @@
 
 * plot - there should be a way to zoom to show all datasets
 
-* parameters history 
-   // fit history n, fit history clear, fit undo, fit redo, info fit-history
-   GUI: Fit->History 
-   when loading shorter parameter vector, 
-     the missing items should be unchanged rather than zeroed.
-   docs
-   test_syntax.fit
+* data load, ascii: column 0 should mean "line number".
+
+* GUI: custom data load: explicit info (or setting) about sigma,
+     read from file / =1 / sqrt() / custom (any data transformation)
+    wxTextCtrl with path should be shown disabled (it's read-only)
 
 * GUI: sidebar, function's parameter values - do something when value
   is changed (by typing) and Enter is _not_ pressed.
@@ -88,6 +92,9 @@
 		       info @0.filename, @0.title
 
 * unused variables should not slow down fitting
+
+* make this somehow work:
+  y[n]=y[n]-spline[x[1], y[1], x[5], y[5], x[325], y[325]](x)
 
 ------------------ next release here 0.7.7
 

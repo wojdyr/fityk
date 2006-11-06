@@ -42,11 +42,9 @@
 #include "func.h"
 #include "guess.h"
 
-#if 0
 //bitmaps for buttons
 #include "img/up_arrow.xpm"
 #include "img/down_arrow.xpm"
-#endif
 
 using namespace std;
 
@@ -85,7 +83,6 @@ enum {
     ID_SHIST_LC                    ,
     ID_SHIST_UP                    ,
     ID_SHIST_DOWN                  ,
-    ID_SHIST_TSAV                  ,
     ID_SHIST_CWSSR                 ,
     ID_SHIST_V              = 26300, // and next 2
     ID_DE_GRID              = 26310,
@@ -101,23 +98,22 @@ enum {
 };
 
 
-#if 0
 //=====================   data->history dialog  ==================
 
 BEGIN_EVENT_TABLE(SumHistoryDlg, wxDialog)
     EVT_BUTTON      (ID_SHIST_UP,     SumHistoryDlg::OnUpButton)
     EVT_BUTTON      (ID_SHIST_DOWN,   SumHistoryDlg::OnDownButton)
-    EVT_BUTTON      (ID_SHIST_TSAV,   SumHistoryDlg::OnToggleSavedButton)
     EVT_BUTTON      (ID_SHIST_CWSSR,  SumHistoryDlg::OnComputeWssrButton)
     EVT_LIST_ITEM_SELECTED  (ID_SHIST_LC, SumHistoryDlg::OnSelectedItem)
     EVT_LIST_ITEM_ACTIVATED (ID_SHIST_LC, SumHistoryDlg::OnActivatedItem)
     EVT_SPINCTRL    (ID_SHIST_V+0,    SumHistoryDlg::OnViewSpinCtrlUpdate)
     EVT_SPINCTRL    (ID_SHIST_V+1,    SumHistoryDlg::OnViewSpinCtrlUpdate)
     EVT_SPINCTRL    (ID_SHIST_V+2,    SumHistoryDlg::OnViewSpinCtrlUpdate)
+    EVT_BUTTON      (wxID_CLOSE,      SumHistoryDlg::OnClose)
 END_EVENT_TABLE()
 
 SumHistoryDlg::SumHistoryDlg (wxWindow* parent, wxWindowID id)
-    : wxDialog(parent, id, "Parameters History", 
+    : wxDialog(parent, id, wxT("Parameters History"), 
                wxDefaultPosition, wxDefaultSize, 
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER), 
       lc(0)
@@ -139,22 +135,18 @@ SumHistoryDlg::SumHistoryDlg (wxWindow* parent, wxWindowID id)
     top_sizer->Add (hsizer, 1, wxEXPAND);
 
     wxBoxSizer *buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
-    buttons_sizer->Add (new wxButton (this, ID_SHIST_TSAV, "Toggle saved"), 
-                        0, wxALL, 5);
-    buttons_sizer->Add (10, 10, 1);
-    compute_wssr_button = new wxButton (this, ID_SHIST_CWSSR,"Compute WSSRs");
+    compute_wssr_button = new wxButton (this, ID_SHIST_CWSSR, 
+                                        wxT("Compute WSSRs"));
     buttons_sizer->Add (compute_wssr_button, 0, wxALL, 5);
     buttons_sizer->Add (10, 10, 1);
-    buttons_sizer->Add (new wxStaticText (this, -1, "View @:"), 
+    buttons_sizer->Add (new wxStaticText(this, -1, wxT("View parameters:")), 
                         0, wxALL|wxALIGN_CENTER, 5);
-    for (int i = 0; i < 3; i++)
-        buttons_sizer->Add (new wxSpinCtrl (this, ID_SHIST_V + i, 
-                                            S(view[i]).c_str(),
-                                            wxDefaultPosition, wxSize(40, -1),
-                                            wxSP_ARROW_KEYS, 0, view_max),
+    for (int i = 0; i < 4; i++)
+        buttons_sizer->Add (new SpinCtrl(this, ID_SHIST_V + i, view[i],
+                                         0, view_max, 40),
                             0, wxALL, 5);
     buttons_sizer->Add (10, 10, 1);
-    buttons_sizer->Add (new wxButton (this, wxID_CANCEL, "Close"), 
+    buttons_sizer->Add (new wxButton (this, wxID_CLOSE, wxT("&Close")), 
                         0, wxALL, 5);
     top_sizer->Add (buttons_sizer, 0, wxALIGN_CENTER);
 
@@ -167,65 +159,67 @@ SumHistoryDlg::SumHistoryDlg (wxWindow* parent, wxWindowID id)
 void SumHistoryDlg::initialize_lc()
 {
     assert (lc == 0);
-    view_max = my_sum->pars()->count_a() - 1;
+    view_max = AL->get_parameters().size() - 1;
     assert (view_max != -1);
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 4; i++)
         view[i] = min (i, view_max);
     lc = new wxListCtrl (this, ID_SHIST_LC, 
                          wxDefaultPosition, wxSize(450, 250), 
                          wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_HRULES|wxLC_VRULES
                              |wxSIMPLE_BORDER);
-    lc->InsertColumn(0, "Saved");
-    lc->InsertColumn(1, "No.");
-    lc->InsertColumn(2, "Changed by");
-    lc->InsertColumn(3, "WSSR");
-    for (int i = 0; i < 3; i++)
-        lc->InsertColumn(4 + i, ("@" + S(view[i])).c_str()); 
+    lc->InsertColumn(0, wxT("No."));
+    lc->InsertColumn(1, wxT("parameters"));
+    lc->InsertColumn(2, wxT("WSSR"));
+    for (int i = 0; i < 4; i++)
+        lc->InsertColumn(3 + i, wxString::Format(wxT("par. %i"), view[i])); 
 
-    for (int i = 0; i != my_sum->pars()->history_size(); ++i) {
-        const HistoryItem& item = my_sum->pars()->history_item(i);
-        lc->InsertItem(i, item.saved ? "   *   " : "       ");
-        lc->SetItem (i, 1, ("  " + S(i+1) + "  ").c_str());
-        lc->SetItem (i, 2, item.comment.c_str());
-        lc->SetItem (i, 3, "      ?      ");
-        for (int j = 0; j < 3; j++)
-            lc->SetItem (i, 4 + j, S(item.a[view[j]]).c_str());
+    FitMethodsContainer const* fmc = FitMethodsContainer::getInstance();
+    for (int i = 0; i != fmc->get_param_history_size(); ++i) {
+        add_item_to_lc(i, fmc->get_item(i));
     }
-    for (int i = 0; i < 7; i++)
+    for (int i = 0; i < 3+4; i++)
         lc->SetColumnWidth(i, wxLIST_AUTOSIZE);
+}
+
+void SumHistoryDlg::add_item_to_lc(int pos, vector<fp> const& item)
+{
+    lc->InsertItem(pos, wxString::Format(wxT("  %i  "), pos));
+    lc->SetItem (pos, 1, wxString::Format(wxT("%i"), item.size()));
+    lc->SetItem (pos, 2, wxT("      ?      "));
+    for (int j = 0; j < 4; j++) {
+        int n = view[j];
+        if (n < item.size())
+            lc->SetItem(pos, 3 + j, wxString::Format(wxT("%g"), item[n]));
+    }
 }
 
 void SumHistoryDlg::update_selection()
 {
-    int index = my_sum->pars()->history_position();
+    FitMethodsContainer const* fmc = FitMethodsContainer::getInstance();
+    int index = fmc->get_active_nr();
     lc->SetItemState (index, wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED, 
                              wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED);
     up_arrow->Enable (index != 0);
-    down_arrow->Enable (index != my_sum->pars()->history_size() - 1);
+    down_arrow->Enable (index != fmc->get_param_history_size() - 1);
 }
 
 void SumHistoryDlg::OnUpButton       (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command ("s.history -1");
+    exec_command ("fit undo");
+    //TODO check if a new item was added to the list
+    //add_item_to_lc()
     update_selection();
 }
 
 void SumHistoryDlg::OnDownButton     (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command ("s.history +1");
+    exec_command ("fit redo");
     update_selection();
-}
-
-void SumHistoryDlg::OnToggleSavedButton (wxCommandEvent& WXUNUSED(event))
-{
-    exec_command ("s.history *");
-    int idx = my_sum->pars()->history_position();
-    lc->SetItemText (idx, my_sum->pars()->history_item(idx).saved ? "   *   " 
-                                                          : "       ");
 }
 
 void SumHistoryDlg::OnComputeWssrButton (wxCommandEvent& WXUNUSED(event))
 {
+    /* TODO
     for (int i = 0; i != my_sum->pars()->history_size(); ++i) {
         const HistoryItem& item = my_sum->pars()->history_item(i);
         my_sum->use_param_a_for_value (item.a);
@@ -234,7 +228,9 @@ void SumHistoryDlg::OnComputeWssrButton (wxCommandEvent& WXUNUSED(event))
     }
     lc->SetColumnWidth(3, wxLIST_AUTOSIZE);
     compute_wssr_button->Enable(false);
+    */
 }
+
 void SumHistoryDlg::OnSelectedItem (wxListEvent& WXUNUSED(event))
 {
     update_selection();
@@ -243,29 +239,32 @@ void SumHistoryDlg::OnSelectedItem (wxListEvent& WXUNUSED(event))
 void SumHistoryDlg::OnActivatedItem (wxListEvent& event)
 {
     int n = event.GetIndex();
-    exec_command ("s.history " + S(n+1));
+    exec_command ("fit history " + S(n));
     update_selection();
 }
 
 void SumHistoryDlg::OnViewSpinCtrlUpdate (wxSpinEvent& event) 
 {
     int v = event.GetId() - ID_SHIST_V;
-    assert (0 <= v && v < 3);
+    assert (0 <= v && v < 4);
     int n = event.GetPosition();
     assert (0 <= n && n <= view_max);
     view[v] = n;
     //update header in wxListCtrl
     wxListItem li;
     li.SetMask (wxLIST_MASK_TEXT);
-    li.SetText (("@" + S(view[v])).c_str());
-    lc->SetColumn(4 + v, li); 
+    li.SetText(wxString::Format(wxT("par. %i"), n));
+    lc->SetColumn(3 + v, li); 
     //update data in wxListCtrl
-    for (int i = 0; i != my_sum->pars()->history_size(); ++i) {
-        const HistoryItem& item = my_sum->pars()->history_item(i);
-        lc->SetItem (i, 4 + v, S(item.a[view[v]]).c_str());
+    FitMethodsContainer const* fmc = FitMethodsContainer::getInstance();
+    for (int i = 0; i != fmc->get_param_history_size(); ++i) {
+        vector<fp> const& item = fmc->get_item(i);
+        wxString s = wxT("");
+        if (n < item.size())
+            s.Format(wxT("%g"), item[n]);
+        lc->SetItem(i, 3 + v, s);
     }
 }
-#endif
 
 
 //=====================   data->editor dialog  ==================
@@ -284,7 +283,7 @@ public:
         if (col == 0) 
             return GetValueAsBool(row,col) ? wxT("1") : wxT("0");
         else 
-            return wxString::Format(wxT("%f"), GetValueAsDouble(row,col)); 
+            return wxString::Format(wxT("%g"), GetValueAsDouble(row,col)); 
     }
 
     void SetValue(int, int, const wxString&) { assert(0); }

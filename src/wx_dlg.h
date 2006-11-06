@@ -13,29 +13,28 @@ class wxGrid;
 class DataTable;
 class ProportionalSplitter;
 
-#if 0
 class SumHistoryDlg : public wxDialog
 {
 public:
     SumHistoryDlg (wxWindow* parent, wxWindowID id);
     void OnUpButton           (wxCommandEvent& event);
     void OnDownButton         (wxCommandEvent& event);
-    void OnToggleSavedButton  (wxCommandEvent& event);
     void OnComputeWssrButton  (wxCommandEvent& event);
     void OnSelectedItem       (wxListEvent&    event);
     void OnActivatedItem      (wxListEvent&    event); 
     void OnViewSpinCtrlUpdate (wxSpinEvent&    event); 
+    void OnClose (wxCommandEvent& ) { close_it(this); }
 protected:
-    int view[3], view_max;
+    int view[4], view_max;
     wxListCtrl *lc;
     wxBitmapButton *up_arrow, *down_arrow;
     wxButton *compute_wssr_button;
 
     void initialize_lc();
     void update_selection();
+    void add_item_to_lc(int pos, std::vector<fp> const& item);
     DECLARE_EVENT_TABLE()
 };
-#endif
 
 struct DataTransExample
 {
