@@ -32,6 +32,8 @@ public:
     std::vector<fp> get_symmetric_errors(std::vector<DataWithSum*> const& dsds);
     std::vector<DataWithSum*> const& get_datsums() const { return datsums; }
     static fp compute_wssr_for_data (DataWithSum const* ds, bool weigthed);
+    static fp do_compute_wssr(std::vector<fp> const &A, 
+                   std::vector<DataWithSum*> const& dsds, bool weigthed);
     static fp compute_r_squared_for_data(DataWithSum const* ds) ;
     static bool Jordan (std::vector<fp>& A, std::vector<fp>& b, int n); 
     static void reverse_matrix (std::vector<fp>&A, int n);
@@ -52,7 +54,8 @@ protected:
     virtual void autoiter() = 0;
     bool common_termination_criteria(int iter);
     fp compute_wssr(std::vector<fp> const &A, 
-                   std::vector<DataWithSum*> const& dsds, bool weigthed=true);
+                    std::vector<DataWithSum*> const& dsds, bool weigthed=true)
+        { ++evaluations; return do_compute_wssr(A, dsds, weigthed); }
     fp compute_r_squared(std::vector<fp> const &A, std::vector<DataWithSum*> const& dsds) ;
     void compute_derivatives(std::vector<fp> const &A, 
                              std::vector<DataWithSum*> const& dsds, 
@@ -77,12 +80,13 @@ public:
     void load_param_history(int item_nr, bool relative=false);
     bool has_param_history_rel_item(int rel_nr) const 
         { return is_index(param_hist_ptr + rel_nr, param_history); }
+    bool can_undo() const; 
     std::string param_history_info() const;
     std::vector<fp> const& get_item(int n) const { return param_history[n]; }
     int get_active_nr() const { return param_hist_ptr; }
 private:
-    std::vector<std::vector<fp> > param_history;
-    int param_hist_ptr;
+    std::vector<std::vector<fp> > param_history; /// old parameter vectors
+    int param_hist_ptr; /// points to the current/last parameter vector
 };
 
 /// singleton, gives access to fitting methods, enables swithing between them

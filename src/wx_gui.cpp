@@ -120,6 +120,7 @@ enum {
     ID_F_UNDO                  ,
     ID_F_REDO                  ,
     ID_F_HISTORY               ,
+    ID_F_CLEARH                ,
     ID_F_M                     , 
     ID_F_M_END = ID_F_M+10     , 
     ID_SESSION_LOG             ,
@@ -150,7 +151,7 @@ enum {
     ID_G_M_BG_SUB              ,
     ID_G_M_PEAK                ,
     ID_G_M_PEAK_N              ,
-    ID_G_M_PEAK_N_END = ID_G_M_PEAK_N+300 ,
+    ID_G_M_PEAK_N_END = ID_G_M_PEAK_N+300,
     ID_G_SHOW                  ,
     ID_G_S_TOOLBAR             ,
     ID_G_S_STATBAR             ,
@@ -372,6 +373,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_F_UNDO,        FFrame::OnFUndo)    
     EVT_MENU (ID_F_REDO,        FFrame::OnFRedo)    
     EVT_MENU (ID_F_HISTORY,     FFrame::OnFHistory)    
+    EVT_MENU (ID_F_CLEARH,      FFrame::OnFClearH)
 
     EVT_UPDATE_UI (ID_SESSION_LOG, FFrame::OnLogUpdate)    
     EVT_MENU (ID_LOG_START,     FFrame::OnLogStart)
@@ -697,6 +699,8 @@ void FFrame::set_menubar()
                             wxT("Redo change of parameter")); 
     fit_menu->Append (ID_F_HISTORY, wxT("&Parameter History"), 
                             wxT("Go back or forward in parameter history")); 
+    fit_menu->Append (ID_F_CLEARH, wxT("&Clear History"), 
+                            wxT("Clear parameter history")); 
 
     wxMenu* gui_menu = new wxMenu;
     wxMenu* gui_menu_mode = new wxMenu;
@@ -1086,15 +1090,14 @@ void FFrame::OnSExport (wxCommandEvent& event)
         
 void FFrame::OnFMethodUpdate (wxUpdateUIEvent& event)
 {
-    int n = FitMethodsContainer::getInstance()->current_method_number();
+    FitMethodsContainer const* fmc = FitMethodsContainer::getInstance();
+    int n = fmc->current_method_number();
     GetMenuBar()->Check (ID_F_M + n, true);
     // to make it simpler, history menu items are also updated here
-    GetMenuBar()->Enable(ID_F_UNDO, 
-            FitMethodsContainer::getInstance()->has_param_history_rel_item(-1));
-    GetMenuBar()->Enable(ID_F_REDO, 
-            FitMethodsContainer::getInstance()->has_param_history_rel_item(1));
-    GetMenuBar()->Enable(ID_F_HISTORY, 
-            FitMethodsContainer::getInstance()->get_param_history_size() != 0);
+    GetMenuBar()->Enable(ID_F_UNDO, fmc->can_undo());
+    GetMenuBar()->Enable(ID_F_REDO, fmc->has_param_history_rel_item(1));
+    GetMenuBar()->Enable(ID_F_HISTORY, fmc->get_param_history_size() != 0);
+    GetMenuBar()->Enable(ID_F_CLEARH, fmc->get_param_history_size() != 0);
     event.Skip();
 }
 
@@ -1132,6 +1135,11 @@ void FFrame::OnFHistory (wxCommandEvent&)
     dialog->Destroy();
 }
             
+void FFrame::OnFClearH (wxCommandEvent&)
+{
+    exec_command ("fit history clear");
+}
+         
          
 void FFrame::OnLogUpdate (wxUpdateUIEvent& event)        
 {

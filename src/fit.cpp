@@ -126,10 +126,9 @@ string Fit::getErrorInfo(vector<DataWithSum*> const& dsds, bool matrix)
     return s;
 }
 
-fp Fit::compute_wssr(vector<fp> const &A, vector<DataWithSum*> const& dsds,
-                     bool weigthed)
+fp Fit::do_compute_wssr(vector<fp> const &A, vector<DataWithSum*> const& dsds,
+                        bool weigthed)
 {
-    evaluations++;
     fp wssr = 0;
     AL->use_external_parameters(A);
     for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
@@ -507,8 +506,18 @@ int FitMethodsContainer::current_method_number() const
     return getSettings()->get_e("fitting-method");
 }
 
+/// loads vector of parameters from the history
+/// "relative" is used for undo/redo commands
+/// if history is not empty and current parameters are different from 
+///     the ones pointed by param_hist_ptr (but have the same size), 
+///     load_param_history(-1, true), i.e undo, will load the parameters 
+///     pointed by param_hist_ptr
 void ParameterHistoryMgr::load_param_history(int item_nr, bool relative)
 {
+    if (item_nr == -1 && relative && !param_history.empty() //undo
+         && param_history[param_hist_ptr].size() == AL->get_parameters().size()
+         && param_history[param_hist_ptr] != AL->get_parameters()) 
+        item_nr = 0; // load parameters from param_hist_ptr
     if (relative)
         item_nr += param_hist_ptr;
     else if (item_nr < 0)
@@ -516,13 +525,14 @@ void ParameterHistoryMgr::load_param_history(int item_nr, bool relative)
     if (item_nr < 0 || item_nr >= size(param_history))
         throw ExecuteError("There is no parameter history item #" 
                             + S(item_nr) + ".");
-    if (param_hist_ptr == size(param_history) - 1) {
-        bool r = push_param_history(AL->get_parameters());
-        if (r && relative)
-            ++item_nr;
-    }
     AL->put_new_parameters(param_history[item_nr]);
     param_hist_ptr = item_nr;
+}
+
+bool ParameterHistoryMgr::can_undo() const 
+{ 
+    return !param_history.empty() 
+        && (param_hist_ptr > 0 || param_history[0] != AL->get_parameters()); 
 }
 
 bool ParameterHistoryMgr::push_param_history(vector<fp> const& aa) 

@@ -84,7 +84,7 @@ enum {
     ID_SHIST_UP                    ,
     ID_SHIST_DOWN                  ,
     ID_SHIST_CWSSR                 ,
-    ID_SHIST_V              = 26300, // and next 2
+    ID_SHIST_V              = 26300, // and next 3
     ID_DE_GRID              = 26310,
     ID_DE_RESET                    ,
     ID_DE_CODE                     ,
@@ -109,6 +109,7 @@ BEGIN_EVENT_TABLE(SumHistoryDlg, wxDialog)
     EVT_SPINCTRL    (ID_SHIST_V+0,    SumHistoryDlg::OnViewSpinCtrlUpdate)
     EVT_SPINCTRL    (ID_SHIST_V+1,    SumHistoryDlg::OnViewSpinCtrlUpdate)
     EVT_SPINCTRL    (ID_SHIST_V+2,    SumHistoryDlg::OnViewSpinCtrlUpdate)
+    EVT_SPINCTRL    (ID_SHIST_V+3,    SumHistoryDlg::OnViewSpinCtrlUpdate)
     EVT_BUTTON      (wxID_CLOSE,      SumHistoryDlg::OnClose)
 END_EVENT_TABLE()
 
@@ -188,7 +189,7 @@ void SumHistoryDlg::add_item_to_lc(int pos, vector<fp> const& item)
     lc->SetItem (pos, 2, wxT("      ?      "));
     for (int j = 0; j < 4; j++) {
         int n = view[j];
-        if (n < item.size())
+        if (n < size(item))
             lc->SetItem(pos, 3 + j, wxString::Format(wxT("%g"), item[n]));
     }
 }
@@ -206,29 +207,38 @@ void SumHistoryDlg::update_selection()
 void SumHistoryDlg::OnUpButton       (wxCommandEvent& WXUNUSED(event))
 {
     exec_command ("fit undo");
-    //TODO check if a new item was added to the list
-    //add_item_to_lc()
+
+    // undo can cause adding new item to the history
+    FitMethodsContainer const* fmc = FitMethodsContainer::getInstance();
+    int ps = fmc->get_param_history_size();
+    if (lc->GetItemCount() == ps - 1)
+        add_item_to_lc(ps - 1, fmc->get_item(ps - 1));
+    assert(lc->GetItemCount() == ps);
+
     update_selection();
 }
 
-void SumHistoryDlg::OnDownButton     (wxCommandEvent& WXUNUSED(event))
+void SumHistoryDlg::OnDownButton (wxCommandEvent&)
 {
     exec_command ("fit redo");
     update_selection();
 }
 
-void SumHistoryDlg::OnComputeWssrButton (wxCommandEvent& WXUNUSED(event))
+void SumHistoryDlg::OnComputeWssrButton (wxCommandEvent&)
 {
-    /* TODO
-    for (int i = 0; i != my_sum->pars()->history_size(); ++i) {
-        const HistoryItem& item = my_sum->pars()->history_item(i);
-        my_sum->use_param_a_for_value (item.a);
-        fp wssr = Fit::compute_wssr_for_data (my_data, my_sum, true);
-        lc->SetItem (i, 3, S(wssr).c_str());
+    FitMethodsContainer const* fmc = FitMethodsContainer::getInstance();
+    vector<fp> const orig = AL->get_parameters();
+    vector<DataWithSum*> dsds;
+    dsds.push_back(AL->get_ds(AL->get_active_ds_position()));
+        //TODO dsds = AL->get_dsds() if ...
+    for (int i = 0; i != fmc->get_param_history_size(); ++i) {
+        vector<fp> const& item = fmc->get_item(i);
+        if (item.size() == orig.size()) {
+            fp wssr = Fit::do_compute_wssr(item, dsds, true);
+            lc->SetItem(i, 2, wxString::Format(wxT("%g"), wssr));
+        }
     }
-    lc->SetColumnWidth(3, wxLIST_AUTOSIZE);
-    compute_wssr_button->Enable(false);
-    */
+    lc->SetColumnWidth(2, wxLIST_AUTOSIZE);
 }
 
 void SumHistoryDlg::OnSelectedItem (wxListEvent& WXUNUSED(event))
@@ -259,9 +269,8 @@ void SumHistoryDlg::OnViewSpinCtrlUpdate (wxSpinEvent& event)
     FitMethodsContainer const* fmc = FitMethodsContainer::getInstance();
     for (int i = 0; i != fmc->get_param_history_size(); ++i) {
         vector<fp> const& item = fmc->get_item(i);
-        wxString s = wxT("");
-        if (n < item.size())
-            s.Format(wxT("%g"), item[n]);
+        wxString s = n < size(item) ? wxString::Format(wxT("%g"), item[n]) 
+                                    : wxString();
         lc->SetItem(i, 3 + v, s);
     }
 }
@@ -1249,6 +1258,7 @@ void FitRunDlg::update_allow_continue()
     initialize_cb->SetValue(true);
     bool is_initialized;
     int m_sel = method_c->GetSelection();
+    //use "::Fit", because Fit is also a method of wxDialog
     ::Fit const* f = FitMethodsContainer::getInstance()->get_method(m_sel);
     if (ds_rb->GetSelection() == 0) {
         DataWithSum const* ds = AL->get_ds(AL->get_active_ds_position());

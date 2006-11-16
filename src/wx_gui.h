@@ -161,6 +161,7 @@ public:
     void OnFUndo         (wxCommandEvent& event);         
     void OnFRedo         (wxCommandEvent& event);         
     void OnFHistory      (wxCommandEvent& event);         
+    void OnFClearH       (wxCommandEvent& event);         
 
     void OnLogUpdate     (wxUpdateUIEvent& event);        
     void OnLogStart      (wxCommandEvent& event);        
