@@ -39,6 +39,7 @@ save_as.xpm \
 save_data.xpm \
 save_script.xpm \
 shiftup.xpm \
+dpsize.xpm \
 strip_bg.xpm \
 sum.xpm \
 undo_fit.xpm \

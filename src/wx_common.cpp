@@ -169,6 +169,8 @@ int ProportionalSplitter::GetExpectedSashPosition()
 
 void ProportionalSplitter::SetSashPosition(int position)
 {
+    if (position < 0 || position > GetWindowSize())
+        return;
     m_proportion = float(position) / GetWindowSize();
     wxSplitterWindow::SetSashPosition(position);
 }
@@ -190,7 +192,9 @@ void ProportionalSplitter::OnSashChanged(wxSplitterEvent &event)
     // We'll change m_proportion now based on where user dragged the sash.
     const wxSize& s = GetSize();
     int t = GetSplitMode() == wxSPLIT_HORIZONTAL ? s.GetHeight() : s.GetWidth();
-    m_proportion = float(GetSashPosition()) / t;
+    float prop = float(GetSashPosition()) / t;
+    if (prop >= 0. && prop <= 1.)
+        m_proportion = prop;
     event.Skip();
 }
 

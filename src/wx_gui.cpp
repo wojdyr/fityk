@@ -266,6 +266,8 @@ bool FApp::OnInit(void)
     // it does not work earlier, problems with OutputWin colors (wxGTK gtk1.2)
     frame->io_pane->read_settings(cf);
     frame->io_pane->show_fancy_dashes();
+    // sash inside wxNoteBook can have wrong position (eg. wxGTK 2.7.1)
+    frame->sidebar->read_settings(cf);
     delete cf;
 
     SetTopWindow(frame);
@@ -573,7 +575,7 @@ void FFrame::read_all_settings(wxConfigBase *cf)
     plot_pane->read_settings(cf);
     io_pane->read_settings(cf);
     status_bar->read_settings(cf);
-    //sidebar->read_settings(cf);
+    sidebar->read_settings(cf);
     sidebar->update_lists();
 }
 
@@ -605,7 +607,7 @@ void FFrame::save_all_settings(wxConfigBase *cf) const
     plot_pane->save_settings(cf);
     io_pane->save_settings(cf);
     status_bar->save_settings(cf);
-    //sidebar->save_settings(cf);
+    sidebar->save_settings(cf);
 }
 
 void FFrame::save_settings(wxConfigBase *cf) const
@@ -1068,7 +1070,7 @@ void FFrame::OnSVarList (wxCommandEvent& WXUNUSED(event))
            
 void FFrame::OnSExport (wxCommandEvent& event)
 {
-    static wxString dir = wxT("");
+    static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
     bool as_peaks = (event.GetId() == ID_S_EXPORTP);
     int pos = AL->get_active_ds_position();
     string const& filename = AL->get_data(pos)->get_filename();
@@ -1159,7 +1161,7 @@ void FFrame::OnLogUpdate (wxUpdateUIEvent& event)
 
 void FFrame::OnLogStart (wxCommandEvent& WXUNUSED(event))
 {
-    static wxString dir = wxT("");
+    static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
     wxFileDialog fdlg (this, wxT("Log to file"), dir, wxT(""),
                        wxT("Fityk script file (*.fit)|*.fit;*.FIT")
                        wxT("|All files |*"),
@@ -1190,7 +1192,7 @@ void FFrame::OnLogWithOutput (wxCommandEvent& event)
 
 void FFrame::OnLogDump (wxCommandEvent&)
 {
-    static wxString dir = wxT("");
+    static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
     wxFileDialog fdlg(this, wxT("Dump all commands executed so far to file"),
                       dir, wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
                       wxSAVE | wxOVERWRITE_PROMPT);
@@ -1240,7 +1242,7 @@ void FFrame::show_debugger(bool show)
             
 void FFrame::OnODump         (wxCommandEvent& WXUNUSED(event))
 {
-    static wxString dir = wxT("");
+    static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
     wxFileDialog fdlg(this, wxT("Dump current program state to file as script"),
                       dir, wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
                       wxSAVE | wxOVERWRITE_PROMPT);
@@ -1471,7 +1473,7 @@ void FFrame::SwitchCrosshair (bool show)
 void FFrame::OnSwitchFullScreen(wxCommandEvent& event)
 {
     ShowFullScreen(event.IsChecked(), 
-          wxFULLSCREEN_NOMENUBAR|wxFULLSCREEN_NOBORDER|wxFULLSCREEN_NOCAPTION);
+              wxFULLSCREEN_NOBORDER|wxFULLSCREEN_NOCAPTION);
 }
 
 void FFrame::OnGuiShowUpdate (wxUpdateUIEvent& event)

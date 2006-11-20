@@ -92,6 +92,7 @@ enum {
     ID_DE_REZOOM                   ,
     ID_SET_LDBUT                   ,
     ID_SET_XSBUT                   ,
+    ID_SET_EXBUT                   ,
 
     ID_DMD_NAME                    ,
     ID_DMD_DEF                     
@@ -925,6 +926,7 @@ wxString get_user_conffile(string const& filename)
 BEGIN_EVENT_TABLE(SettingsDlg, wxDialog)
     EVT_BUTTON (ID_SET_LDBUT, SettingsDlg::OnChangeButton)
     EVT_BUTTON (ID_SET_XSBUT, SettingsDlg::OnChangeButton)
+    EVT_BUTTON (ID_SET_EXBUT, SettingsDlg::OnChangeButton)
     EVT_BUTTON (wxID_OK, SettingsDlg::OnOK)
 END_EVENT_TABLE()
 
@@ -1098,6 +1100,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     sizer_dirs_data->Add(new wxButton(page_dirs, ID_SET_LDBUT, wxT("Change")),
                          0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     sizer_dirs->Add(sizer_dirs_data, 0, wxEXPAND|wxALL, 5);
+
     wxStaticBoxSizer *sizer_dirs_script = new wxStaticBoxSizer(wxHORIZONTAL,
                 page_dirs, wxT("default directory for execute script dialog"));
     dir_xs_tc = new wxTextCtrl(page_dirs, -1, 
@@ -1106,6 +1109,16 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     sizer_dirs_script->Add(new wxButton(page_dirs, ID_SET_XSBUT, wxT("Change")),
                            0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     sizer_dirs->Add(sizer_dirs_script, 0, wxEXPAND|wxALL, 5);
+
+    wxStaticBoxSizer *sizer_dirs_export = new wxStaticBoxSizer(wxHORIZONTAL,
+                page_dirs, wxT("default directory for save/export dialogs"));
+    dir_ex_tc = new wxTextCtrl(page_dirs, -1, 
+                         wxConfig::Get()->Read(wxT("/exportDir"), wxT("")));
+    sizer_dirs_export->Add(dir_ex_tc, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    sizer_dirs_export->Add(new wxButton(page_dirs, ID_SET_EXBUT, wxT("Change")),
+                           0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    sizer_dirs->Add(sizer_dirs_export, 0, wxEXPAND|wxALL, 5);
+
     sizer_dirs->Add(new wxStaticText(page_dirs, -1, 
                  wxT("Directories given above are used when the dialogs\n")
                  wxT("are displayed first time after launching the program.")),
@@ -1141,6 +1154,8 @@ void SettingsDlg::OnChangeButton(wxCommandEvent& event)
         tc = dir_ld_tc;
     else if (event.GetId() == ID_SET_XSBUT)
         tc = dir_xs_tc;
+    else if (event.GetId() == ID_SET_EXBUT)
+        tc = dir_ex_tc;
     wxString dir = wxDirSelector(wxT("Choose a folder"), tc->GetValue());
     if (!dir.empty())
         tc->SetValue(dir);
@@ -1184,6 +1199,7 @@ void SettingsDlg::OnOK(wxCommandEvent&)
     }
     wxConfig::Get()->Write(wxT("/loadDataDir"), dir_ld_tc->GetValue());
     wxConfig::Get()->Write(wxT("/execScriptDir"), dir_xs_tc->GetValue());
+    wxConfig::Get()->Write(wxT("/exportDir"), dir_ex_tc->GetValue());
     close_it(this, wxID_OK);
 }
 

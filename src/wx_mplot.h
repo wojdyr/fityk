@@ -144,6 +144,10 @@ public:
         { return peakCol[n % max_peak_cols]; }
     void set_data_color(int n, wxColour const& col) 
         { dataColour[n % max_data_cols] = col; }
+    void set_data_point_size(int /*n*/, int r) { point_radius = r; }
+    void set_data_with_line(int /*n*/, bool b) { line_between_points = b; }
+    int get_data_point_size(int /*n*/) const { return point_radius; }
+    bool get_data_with_line(int /*n*/) const { return line_between_points; }
     void set_func_color(int n, wxColour const& col) 
         { peakCol[n % max_peak_cols] = col; }
     bool get_x_reversed() const { return x_reversed; }

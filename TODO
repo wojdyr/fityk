@@ -16,20 +16,20 @@
 
 * parameters history 
    // fit history n, fit history clear, fit undo, fit redo, info fit-history
-   GUI: Fit->History 
+   //GUI: Fit->History 
    docs
    test_syntax.fit
 
-* GUI: changing data point size and line separately for each dataset,
-   controls/buttons on the sidebar
+// * GUI: export/log default directory in Settings->Dirs
+
+// * GUI: changing data point size:   controls/buttons on the sidebar
 
 * GUI: function color changing problem
-
-* GUI: export/log default directory in Settings->Dirs
 
 * plot - there should be a way to zoom to show all datasets
 
 * data load, ascii: column 0 should mean "line number".
+                    optimize, loading many datafiles is slow
 
 * GUI: custom data load: explicit info (or setting) about sigma,
      read from file / =1 / sqrt() / custom (any data transformation)
@@ -49,8 +49,7 @@
   
 * GUI?: when loading many datasets from command line, set view to show all
 
-* should it work? "$foo = {y[0]}" (it was working, now gives syntax error:
-  Error: Syntax error in expression: y[0]in@0)
+* BUG: "$foo = {y[0]}" is not working now
 
 * exporting gnuplot compatible formulae ('^'->'**', 1/2 -> 1./2),
   when option formula-export-style == gnuplot
@@ -62,21 +61,11 @@
 * (?)exporting data with info "info @n () [range] > file"
        should display ... [1234 lines more] rather than everything
 
-* small (eg. 1e-14) values of parameters are not handled properly.
-   - make EPSILON an option when in configure script
-   - warning if variable is set value: 0 < |value| < EPSILON
-
 * formula simplifications: "3/x" is changed to more complex "3*1/x"
 
 * user defined functions:
       - more sophisticated simplifications of expressions and CSE(!)
       - calculating limits, width, area, etc. for UDF(!)
-
-* un-strip background: what to do if active dataset is different than the one
-  the background was removed for.
-
-* EMG function: how to calculate it? Now there are some problems with
-  this function. There must be smarter way to implement it...
 
 * settings: Nelder-Mead and GA fitting options, 
   a way to "shake" parameters for L-M
@@ -114,6 +103,16 @@
 
 ------------------ next release here 
 
+* small (eg. 1e-14) values of parameters are not handled properly.
+   - make EPSILON an option when in configure script
+   - warning if variable is set value: 0 < |value| < EPSILON
+
+* un-strip background: what to do if active dataset is different than the one
+  the background was removed for.
+
+* EMG function: how to calculate it? Now there are some problems with
+  this function. There must be smarter way to implement it...
+
 * (GUI) plot horizontal/vertical lines (X/Y | pos=2.34 | 100%)
      can be used to show theoretical peak positions in XRD
 
@@ -133,6 +132,8 @@
   plot window at the screen, and then rescaled to the paper size. 
   This rounding causes visible artefacts at the printout.
   (wxDC.GetSize instead of plot.GetClientSize() ?)
+
+* ? GUI: changing data point size and line separately for each dataset,
 
 * info -- more informations about error, confidence limits, etc.
   graphical interface Fit > Info

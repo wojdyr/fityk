@@ -553,7 +553,7 @@ void AuxPlot::OnMouseMove(wxMouseEvent &event)
     int X = event.GetX();
     vert_line_following_cursor(mat_move, X);
     frame->set_status_coord_info(X2x(X), Y2y(event.GetY()), true);
-    wxCursor new_cursor;
+    int new_cursor;
     if (X < move_plot_margin_width)
         new_cursor = wxCURSOR_POINT_LEFT;
     else if (X > GetClientSize().GetWidth() - move_plot_margin_width)
@@ -562,9 +562,9 @@ void AuxPlot::OnMouseMove(wxMouseEvent &event)
         frame->draw_crosshair(X, -1);
         new_cursor = wxCURSOR_CROSS;
     }
-    if (new_cursor != cursor) {
-        cursor = new_cursor;
-        SetCursor (new_cursor);
+    if (new_cursor != cursor_id) {
+        cursor_id = new_cursor;
+        SetCursor(wxCursor(new_cursor));
     }
 }
 
@@ -671,7 +671,7 @@ void AuxPlot::OnLeftDown (wxMouseEvent &event)
     else {
         mouse_press_X = X;
         vert_line_following_cursor(mat_start, mouse_press_X+1, mouse_press_X);
-        SetCursor(wxCURSOR_SIZEWE);  
+        SetCursor(wxCursor(wxCURSOR_SIZEWE));  
         frame->set_status_text("Select x range and release button to zoom..."); 
         CaptureMouse();
     }
@@ -683,8 +683,8 @@ bool AuxPlot::cancel_mouse_left_press()
         vert_line_following_cursor(mat_stop);
         ReleaseMouse();
         mouse_press_X = INT_MIN;
-        cursor = wxCURSOR_CROSS;
-        SetCursor(wxCURSOR_CROSS);  
+        cursor_id = wxCURSOR_CROSS;
+        SetCursor(wxCursor(wxCURSOR_CROSS));  
         frame->set_status_text(""); 
         return true;
     }

@@ -172,14 +172,16 @@ void estimate_peak_parameters(DataWithSum const* ds, fp range_from, fp range_to,
     fp h = my_y(ds, max_y_pos, ec);
     if (height) 
         *height = h * getSettings()->get_f("height-correction");
+    fp center_ = ds->get_data()->get_x(max_y_pos);
     if (center)
-        *center = ds->get_data()->get_x(max_y_pos);
-    if (fwhm)
-        *fwhm = compute_data_fwhm(ds, l_bor, max_y_pos, r_bor, 0.5, ec) 
+        *center = center_;
+    fp fwhm_ = compute_data_fwhm(ds, l_bor, max_y_pos, r_bor, 0.5, ec) 
                                     * getSettings()->get_f("width-correction");
+    if (fwhm)
+        *fwhm = fwhm_;
+    estimate_any_parameters(ds, center_-2*fwhm_, center_+2*fwhm_, l_bor, r_bor);
     if (area) 
         *area = data_area(ds, l_bor, r_bor, ec); 
-        //FIXME: how to find peak borders?  t * FWHM would be better? t=??
 }
 
 void estimate_linear_parameters(DataWithSum const* ds, 

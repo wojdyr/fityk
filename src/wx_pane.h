@@ -166,7 +166,7 @@ public:
                  std::vector<std::pair<std::string,int> > const& columns_);
 
     void OnSwitchInfo(wxCommandEvent &event);
-    void split() { SplitHorizontally(list, inf); }
+    void split(fp prop) { SplitHorizontally(list, inf, prop); }
     DECLARE_EVENT_TABLE()
 };
 
@@ -183,6 +183,8 @@ public:
     void OnDataButtonCol (wxCommandEvent& event);
     void OnDataColorsChanged(GradientDlg *gd);
     void OnDataLookChanged (wxCommandEvent& event);
+    void OnDataPSizeChanged (wxSpinEvent& event);
+    void OnDataPLineChanged (wxCommandEvent& event);
     void OnDataShiftUpChanged (wxSpinEvent& event);
     void OnFuncButtonNew (wxCommandEvent& event);
     void OnFuncButtonDel (wxCommandEvent&) { delete_selected_items(); }
@@ -196,6 +198,8 @@ public:
     void OnDataFocusChanged(wxListEvent &event);
     void OnFuncFocusChanged(wxListEvent &event);
     void OnVarFocusChanged(wxListEvent &event);
+    void read_settings(wxConfigBase *cf);
+    void save_settings(wxConfigBase *cf) const;
     void update_lists(bool nondata_changed=true);
     /// get active dataset number -- if none is focused, return first one (0)
     int get_focused_data() const
@@ -228,7 +232,8 @@ private:
     Function const* bp_func;
     ListPlusText *d, *f, *v;
     wxChoice *data_look, *filter_ch;
-    wxSpinCtrl *shiftup_sc;
+    wxSpinCtrl *shiftup_sc, *dpsize_sc;
+    wxCheckBox *dpline_cb;
     int active_function;
     std::string active_function_name;
 

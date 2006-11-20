@@ -147,7 +147,7 @@ private:
                    *domain_p, *lm_lambda_ini, *lm_lambda_up, *lm_lambda_down,
                    *lm_stop, *lm_max_lambda;
     wxCheckBox *cancel_poos;
-    wxTextCtrl *dir_ld_tc, *dir_xs_tc;
+    wxTextCtrl *dir_ld_tc, *dir_xs_tc, *dir_ex_tc;
 
     void add_persistence_note(wxWindow *parent, wxSizer *sizer);
 

@@ -171,7 +171,7 @@ private:
     fp y_zoom, y_zoom_base;
     bool auto_zoom_y;
     bool fit_y_once;
-    wxCursor cursor;
+    int cursor_id;
     static const int move_plot_margin_width = 20;
 
     void draw_diff (wxDC& dc, std::vector<Point>::const_iterator first,

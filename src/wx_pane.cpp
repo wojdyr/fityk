@@ -38,6 +38,7 @@
 #include "img/editf.xpm"
 #include "img/filter.xpm"
 #include "img/shiftup.xpm"
+#include "img/dpsize.xpm"
 #include "img/convert.xpm"
 #include "img/color.xpm"
 #include "img/copyfunc.xpm"
@@ -60,6 +61,8 @@ enum {
     ID_SPINBUTTON              ,
     ID_DP_LIST                 ,
     ID_DP_LOOK                 ,
+    ID_DP_PSIZE                ,
+    ID_DP_PLINE                ,
     ID_DP_SHIFTUP              ,
     ID_DP_NEW                  ,
     ID_DP_DUP                  ,
@@ -346,7 +349,7 @@ void ListPlusText::OnSwitchInfo(wxCommandEvent &WXUNUSED(event))
 //                      ValueChangingWidget
 //===============================================================
 
-// first tiny callback class
+// tiny callback class
 
 class ValueChangingHandler 
 {
@@ -557,6 +560,8 @@ BEGIN_EVENT_TABLE(SideBar, ProportionalSplitter)
     EVT_BUTTON (ID_DP_CPF, SideBar::OnDataButtonCopyF)
     EVT_BUTTON (ID_DP_COL, SideBar::OnDataButtonCol)
     EVT_CHOICE (ID_DP_LOOK, SideBar::OnDataLookChanged)
+    EVT_SPINCTRL (ID_DP_PSIZE, SideBar::OnDataPSizeChanged)
+    EVT_CHECKBOX (ID_DP_PLINE, SideBar::OnDataPLineChanged)
     EVT_SPINCTRL (ID_DP_SHIFTUP, SideBar::OnDataShiftUpChanged)
     EVT_LIST_ITEM_SELECTED(ID_DP_LIST, SideBar::OnDataFocusChanged)
     EVT_LIST_ITEM_DESELECTED(ID_DP_LIST, SideBar::OnDataFocusChanged)
@@ -582,6 +587,8 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     nb = new wxNotebook(this, -1);
     //upper_sizer->Add(nb, 1, wxEXPAND);
     //upper->SetSizerAndFit(upper_sizer);
+    bottom_panel = new wxPanel(this, -1);
+    SplitHorizontally(nb, bottom_panel);
 
     //-----  data page  -----
     data_page = new wxPanel(nb, -1);
@@ -595,8 +602,6 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     data_sizer->Add(d, 1, wxEXPAND|wxALL, 1);
 
     wxBoxSizer *data_look_sizer = new wxBoxSizer(wxHORIZONTAL);
-    add_bitmap_button(data_page, ID_DP_COL, colorsel_xpm, 
-                      wxT("change color"), data_look_sizer);
     wxArrayString choices;
     choices.Add(wxT("show all datasets"));
     choices.Add(wxT("show only selected"));
@@ -606,27 +611,41 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
                              wxDefaultPosition, wxDefaultSize, choices);
     data_look->Select(0);
     data_look_sizer->Add(data_look, 1, wxEXPAND);
-    data_look_sizer->Add(new wxStaticBitmap(data_page, -1, 
-                                            wxBitmap(shiftup_xpm)), 
-                         0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
-    shiftup_sc = new wxSpinCtrl(data_page, ID_DP_SHIFTUP, wxT("0"),
-                                wxDefaultPosition, wxSize(40, -1),
-                                wxSP_ARROW_KEYS, 0, 80, 0);
-    shiftup_sc->SetToolTip(wxT("shift up in \% of plot Y size"));
-    data_look_sizer->Add(shiftup_sc, 0, wxEXPAND);
     data_sizer->Add(data_look_sizer, 0, wxEXPAND);
 
+    wxBoxSizer *data_spin_sizer = new wxBoxSizer(wxHORIZONTAL);
+    // point-size spin button
+    data_spin_sizer->Add(new wxStaticBitmap(data_page, -1, 
+                                            wxBitmap(dpsize_xpm)), 
+                         0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
+    dpsize_sc = new SpinCtrl(data_page, ID_DP_PSIZE, 1, 1, 8, 40);
+    dpsize_sc->SetToolTip(wxT("data point size"));
+    data_spin_sizer->Add(dpsize_sc, 0);
+    // line between points
+    dpline_cb = new wxCheckBox(data_page, ID_DP_PLINE, wxT("line"));
+    data_spin_sizer->Add(dpline_cb, 0);
+    // shift-up spin button
+    data_spin_sizer->Add(new wxStaticBitmap(data_page, -1, 
+                                            wxBitmap(shiftup_xpm)), 
+                         0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
+    shiftup_sc = new SpinCtrl(data_page, ID_DP_SHIFTUP, 0, 0, 80, 40);
+    shiftup_sc->SetToolTip(wxT("shift up in \% of plot Y size"));
+    data_spin_sizer->Add(shiftup_sc, 0);
+    data_sizer->Add(data_spin_sizer, 0, wxEXPAND);
+
     wxBoxSizer *data_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
+    add_bitmap_button(data_page, ID_DP_COL, colorsel_xpm, 
+                      wxT("change color"), data_buttons_sizer);
     add_bitmap_button(data_page, ID_DP_NEW, add_xpm, 
                       wxT("new data"), data_buttons_sizer);
     add_bitmap_button(data_page, ID_DP_DUP, sum_xpm, 
                       wxT("duplicate/sum"), data_buttons_sizer);
+    add_bitmap_button(data_page, ID_DP_CPF, copyfunc_xpm, 
+                      wxT("copy F to next dataset"), data_buttons_sizer);
     add_bitmap_button(data_page, ID_DP_REN, rename_xpm, 
                       wxT("rename"), data_buttons_sizer);
     add_bitmap_button(data_page, ID_DP_DEL, close_xpm, 
                       wxT("delete"), data_buttons_sizer);
-    add_bitmap_button(data_page, ID_DP_CPF, copyfunc_xpm, 
-                      wxT("copy F to next dataset"), data_buttons_sizer);
     data_sizer->Add(data_buttons_sizer, 0, wxEXPAND);
     data_page->SetSizerAndFit(data_sizer);
     nb->AddPage(data_page, wxT("data"));
@@ -694,7 +713,6 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     nb->AddPage(var_page, wxT("variables"));
 
     //-----
-    bottom_panel = new wxPanel(this, -1);
     wxBoxSizer* bp_topsizer = new wxBoxSizer(wxVERTICAL);
     bp_label = new wxStaticText(bottom_panel, -1, wxT(""), 
                                 wxDefaultPosition, wxDefaultSize, 
@@ -705,10 +723,6 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     bp_topsizer->Add(bp_sizer, 1, wxEXPAND);
     bottom_panel->SetSizer(bp_topsizer);
     bottom_panel->SetAutoLayout(true);
-    SplitHorizontally(nb, bottom_panel);
-    d->split();
-    f->split();
-    v->split();
 }
 
 void SideBar::OnDataButtonNew (wxCommandEvent& WXUNUSED(event))
@@ -815,6 +829,22 @@ void SideBar::OnDataShiftUpChanged (wxSpinEvent& WXUNUSED(event))
     frame->refresh_plots(false, true);
 }
 
+void SideBar::OnDataPSizeChanged (wxSpinEvent& event)
+{
+    //for (int i = d->list->GetFirstSelected(); i != -1; 
+    //                                       i = d->list->GetNextSelected(i))
+    //    frame->get_main_plot()->set_data_point_size(i, event.GetPosition());
+    // now it is set globally
+    frame->get_main_plot()->set_data_point_size(0, event.GetPosition());
+    frame->refresh_plots(false, true);
+}
+
+void SideBar::OnDataPLineChanged (wxCommandEvent& event)
+{
+    frame->get_main_plot()->set_data_with_line(0, event.IsChecked());
+    frame->refresh_plots(false, true);
+}
+
 void SideBar::OnFuncFilterChanged (wxCommandEvent& WXUNUSED(event))
 {
     update_lists(false);
@@ -871,6 +901,19 @@ void SideBar::OnVarButtonEdit (wxCommandEvent& WXUNUSED(event))
     frame->edit_in_input(t);
 }
 
+void SideBar::read_settings(wxConfigBase *cf)
+{
+    cf->SetPath(wxT("/SideBar"));
+    d->split(cfg_read_double(cf, wxT("dataProportion"), 0.75));
+    f->split(cfg_read_double(cf, wxT("funcProportion"), 0.75));
+    v->split(cfg_read_double(cf, wxT("varProportion"), 0.75));
+}
+
+void SideBar::save_settings(wxConfigBase *cf) const
+{
+    cf->SetPath(wxT("/SideBar"));
+}
+
 void SideBar::update_lists(bool nondata_changed)
 {
     Freeze();
@@ -889,6 +932,11 @@ void SideBar::update_lists(bool nondata_changed)
     bool has_any_vars = (v->list->GetItemCount() > 0);
     var_page->FindWindow(ID_VP_DEL)->Enable(has_any_vars);
     var_page->FindWindow(ID_VP_EDIT)->Enable(has_any_vars);
+
+    int n = get_focused_data();
+    dpline_cb->SetValue(frame->get_main_plot()->get_data_with_line(n));
+    dpsize_sc->SetValue(frame->get_main_plot()->get_data_point_size(n));
+
 
     update_data_inf();
     update_func_inf();
@@ -1352,7 +1400,6 @@ void SideBar::OnVarFocusChanged(wxListEvent& WXUNUSED(event))
 {
     update_var_inf();
 }
-
 
 
 //===============================================================

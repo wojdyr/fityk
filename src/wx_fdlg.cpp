@@ -491,7 +491,7 @@ string FDXLoadDlg::get_command_tail(int data_nr)
 /// show "Export data" dialog
 bool export_data_dlg(wxWindow *parent, bool load_exported)
 {
-    static wxString dir = wxT("");
+    static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
     string columns = "";
     string ds = frame->get_active_data_str();
     if (!load_exported) {
