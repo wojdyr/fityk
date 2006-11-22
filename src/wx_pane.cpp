@@ -876,11 +876,16 @@ void SideBar::OnFuncButtonChType (wxCommandEvent& WXUNUSED(event))
 
 void SideBar::OnFuncButtonCol (wxCommandEvent& WXUNUSED(event))
 {
-    if (active_function == -1)
+    vector<int> const& ffi 
+        = AL->get_sum(AL->get_active_ds_position())->get_ff_idx();
+    vector<int>::const_iterator in_ff = find(ffi.begin(), ffi.end(), 
+                                                         active_function);
+    if (in_ff == ffi.end())
         return;
-    wxColour col = frame->get_main_plot()->get_func_color(active_function);
+    int color_id = in_ff - ffi.begin();
+    wxColour col = frame->get_main_plot()->get_func_color(color_id);
     if (change_color_dlg(col)) {
-        frame->get_main_plot()->set_func_color(active_function, col);
+        frame->get_main_plot()->set_func_color(color_id, col);
         update_lists();
         frame->refresh_plots(false, true);
     }
@@ -1028,12 +1033,12 @@ void SideBar::update_func_list(bool nondata_changed)
         vector<int> const& ffi = sum->get_ff_idx();
         vector<int> const& zzi = sum->get_zz_idx();
         vector<int>::const_iterator in_ff = find(ffi.begin(), ffi.end(), i);
-        int col_id = -2;
+        int color_id = -2;
         if (in_ff != ffi.end())
-            col_id = in_ff - ffi.begin();
+            color_id = in_ff - ffi.begin();
         else if (find(zzi.begin(), zzi.end(), i) != zzi.end())
-            col_id = -1;
-        new_func_col_id.push_back(col_id);
+            color_id = -1;
+        new_func_col_id.push_back(color_id);
     }
     wxImageList* func_images = 0;
     if (nondata_changed || func_col_id != new_func_col_id) {

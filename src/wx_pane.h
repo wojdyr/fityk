@@ -228,8 +228,8 @@ private:
     wxStaticText *bp_label;
     std::vector<FancyRealCtrl*> bp_frc;
     std::vector<wxStaticText*> bp_statict;
-    std::vector<bool> bp_sig;
-    Function const* bp_func;
+    std::vector<bool> bp_sig; /// bottom panel "signature" (widget order)
+    Function const* bp_func; ///bottom panel function
     ListPlusText *d, *f, *v;
     wxChoice *data_look, *filter_ch;
     wxSpinCtrl *shiftup_sc, *dpsize_sc;

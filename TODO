@@ -24,7 +24,7 @@
 
 // * GUI: changing data point size:   controls/buttons on the sidebar
 
-* GUI: function color changing problem
+// * GUI: function color changing problem
 
 * plot - there should be a way to zoom to show all datasets
 
@@ -69,7 +69,6 @@
 
 * settings: Nelder-Mead and GA fitting options, 
   a way to "shake" parameters for L-M
-  constrained L-M option
 
 * (GUI) finish script debugger dialog -- add command editing, inserting
   and deleting commands, and changing the order of command
