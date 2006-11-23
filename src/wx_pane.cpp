@@ -427,6 +427,23 @@ void ValueChangingWidget::OnMouse(wxMouseEvent &event)
 //                          FancyRealCtrl
 //===============================================================
 
+class KFTextCtrl : public wxTextCtrl
+{
+public:
+    KFTextCtrl(wxWindow* parent, wxWindowID id, wxString const& value) 
+        : wxTextCtrl(parent, id, value, wxDefaultPosition, wxDefaultSize,
+                     wxTE_PROCESS_ENTER) 
+    {}
+    void OnKillFocus(wxFocusEvent&) 
+        { wxCommandEvent ev(wxEVT_COMMAND_TEXT_ENTER); ProcessEvent(ev); }
+    DECLARE_EVENT_TABLE()
+};
+
+BEGIN_EVENT_TABLE(KFTextCtrl, wxTextCtrl)
+    EVT_KILL_FOCUS(KFTextCtrl::OnKillFocus)
+END_EVENT_TABLE()
+
+
 class FancyRealCtrl : public wxPanel, public ValueChangingHandler
 {
 public:
@@ -435,7 +452,7 @@ public:
                   SideBar const* draw_handler_);
     void change_value(fp factor);
     void on_stop_changing();
-    void OnTextEnter(wxCommandEvent &WXUNUSED(event)) { on_stop_changing(); }
+    void OnTextEnter(wxCommandEvent &) { on_stop_changing(); }
     void OnLockButton(wxCommandEvent&) { toggle_lock(true); }
     void set(fp value, string const& tc_name);
     fp get_value() const;
@@ -450,7 +467,7 @@ private:
     std::string name;
     bool locked;
     SideBar const* draw_handler;
-    wxTextCtrl *tc;
+    KFTextCtrl *tc;
     wxBitmapButton *lock_btn;
 
     wxBitmap get_lock_bitmap() const;
@@ -468,9 +485,7 @@ FancyRealCtrl::FancyRealCtrl(wxWindow* parent, wxWindowID id,
       locked(locked_), draw_handler(draw_handler_)
 {
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
-    tc = new wxTextCtrl(this, -1, s2wx(S(value)), 
-                        wxDefaultPosition, wxDefaultSize,
-                        wxTE_PROCESS_ENTER);
+    tc = new KFTextCtrl(this, -1, s2wx(S(value))); 
     tc->SetToolTip(s2wx(name));
     sizer->Add(tc, 1, wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND, 1);
     lock_btn = new wxBitmapButton(this, -1, get_lock_bitmap(),
@@ -485,6 +500,7 @@ FancyRealCtrl::FancyRealCtrl(wxWindow* parent, wxWindowID id,
 void FancyRealCtrl::set(fp value, string const& tc_name)
 {
     tc->SetValue(s2wx(S(value)));
+    initial_value = value;
     if (name != tc_name) {
         name = tc_name;
         tc->SetToolTip(s2wx(name));

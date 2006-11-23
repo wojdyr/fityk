@@ -26,6 +26,9 @@
 
 // * GUI: function color changing problem
 
+// * GUI: sidebar, function's parameter values - do something when value
+//   is changed (by typing) and Enter is _not_ pressed.
+
 * plot - there should be a way to zoom to show all datasets
 
 * data load, ascii: column 0 should mean "line number".
@@ -34,9 +37,6 @@
 * GUI: custom data load: explicit info (or setting) about sigma,
      read from file / =1 / sqrt() / custom (any data transformation)
     wxTextCtrl with path should be shown disabled (it's read-only)
-
-* GUI: sidebar, function's parameter values - do something when value
-  is changed (by typing) and Enter is _not_ pressed.
 
 * GUI: Function Definition Manager layout: "Remove" button takes too 
   much space; perhaps "change name" button

@@ -179,7 +179,7 @@ void estimate_peak_parameters(DataWithSum const* ds, fp range_from, fp range_to,
                                     * getSettings()->get_f("width-correction");
     if (fwhm)
         *fwhm = fwhm_;
-    estimate_any_parameters(ds, center_-2*fwhm_, center_+2*fwhm_, l_bor, r_bor);
+    estimate_any_parameters(ds, center_-fwhm_, center_+fwhm_, l_bor, r_bor);
     if (area) 
         *area = data_area(ds, l_bor, r_bor, ec); 
 }
