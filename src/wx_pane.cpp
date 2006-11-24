@@ -427,23 +427,6 @@ void ValueChangingWidget::OnMouse(wxMouseEvent &event)
 //                          FancyRealCtrl
 //===============================================================
 
-class KFTextCtrl : public wxTextCtrl
-{
-public:
-    KFTextCtrl(wxWindow* parent, wxWindowID id, wxString const& value) 
-        : wxTextCtrl(parent, id, value, wxDefaultPosition, wxDefaultSize,
-                     wxTE_PROCESS_ENTER) 
-    {}
-    void OnKillFocus(wxFocusEvent&) 
-        { wxCommandEvent ev(wxEVT_COMMAND_TEXT_ENTER); ProcessEvent(ev); }
-    DECLARE_EVENT_TABLE()
-};
-
-BEGIN_EVENT_TABLE(KFTextCtrl, wxTextCtrl)
-    EVT_KILL_FOCUS(KFTextCtrl::OnKillFocus)
-END_EVENT_TABLE()
-
-
 class FancyRealCtrl : public wxPanel, public ValueChangingHandler
 {
 public:
@@ -783,10 +766,15 @@ void SideBar::delete_selected_items()
 void SideBar::OnDataButtonCopyF (wxCommandEvent& WXUNUSED(event))
 {
     int n = get_focused_data();
-    if (n+1 < AL->get_ds_count())
-        exec_command("@" + S(n+1) + ".F=copy(@" + S(n) + ".F); "
-                     "@" + S(n+1) + ".Z=copy(@" + S(n) + ".Z); "
-                     "plot @" + S(n+1));
+    if (n+1 >= AL->get_ds_count())
+        return;
+    d->list->Focus(n+1);
+    DataFocusChanged();
+    string cmd = "@" + S(n+1) + ".F=copy(@" + S(n) + ".F)";
+    if (!AL->get_sum(n)->get_zz_names().empty() 
+            || !AL->get_sum(n+1)->get_zz_names().empty())
+        cmd += "; @" + S(n+1) + ".Z=copy(@" + S(n) + ".Z)";
+    exec_command(cmd);
 }
 
 void SideBar::OnDataButtonCol (wxCommandEvent& WXUNUSED(event))
@@ -1156,7 +1144,7 @@ vector<string> SideBar::get_selected_data() const
     return dd;
 }
 
-void SideBar::OnDataFocusChanged(wxListEvent& WXUNUSED(event))
+void SideBar::DataFocusChanged()
 {
     int n = d->list->GetFocusedItem();
     if (n < 0)

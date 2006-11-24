@@ -220,16 +220,15 @@ void Data::load_xy_filetype (ifstream& f, vector<int> const& columns)
     vector<fp> xy;
     int maxc = *max_element (cols.begin(), cols.end());
     int minc = *min_element (cols.begin(), cols.end());
-    if (minc < 1) {
-        warn ("Invalid column number: " + S(minc) 
-                + ". (First column is 1, column number has to be positive)");
+    if (minc < 0) {
+        warn ("Invalid (negative) column number: " + S(minc));
         return;
     }
     int not_enough_cols = 0, non_data_lines = 0, non_data_blocks = 0;
     bool prev_empty = false;
     //TODO: optimize loop below
-    //most of time (?) is spent in getline() in get_one_line_with_numbers()
-    while (get_one_line_with_numbers(f, xy)) {
+    //most of time (?) is spent in getline() in read_line_and_get_all_numbers()
+    while (read_line_and_get_all_numbers(f, xy)) {
         if (xy.empty()) {
             non_data_lines++;
             if (!prev_empty) {
@@ -246,17 +245,17 @@ void Data::load_xy_filetype (ifstream& f, vector<int> const& columns)
             continue;
         }
 
-        fp x = xy[cols[0] - 1];
-        fp y = xy[cols[1] - 1];
+        fp x = cols[0] == 0 ? p.size() : xy[cols[0] - 1];
+        fp y = cols[1] == 0 ? p.size() : xy[cols[1] - 1];
         if (cols.size() == 2)
             p.push_back (Point (x, y));
         else {// cols.size() == 3
-            fp sig = xy[cols[2] - 1];
-            if (sig <= 0) 
+            fp sig = cols[2] == 0 ? p.size() : xy[cols[2] - 1];
+            if (sig > 0) 
+                p.push_back (Point (x, y, sig));
+            else
                 warn ("Point " + S(p.size()) + " has sigma = " + S(sig) 
                         + ". Point canceled.");
-            else
-                p.push_back (Point (x, y, sig));
         }
     }
     if (non_data_lines > 0)
@@ -374,7 +373,7 @@ void Data::load_rit_filetype (ifstream& f)
     */
 
     vector<fp> num;
-    bool r = get_one_line_with_numbers(f, num);
+    bool r = read_line_and_get_all_numbers(f, num);
     if (!r || num.size() < 2 ){
         warn ("Bad format in \"header\" of .rit file");
         return;
@@ -382,7 +381,7 @@ void Data::load_rit_filetype (ifstream& f)
     fp xmin = num[0];
     x_step = static_cast<int>(num[1] * 1e4) / 1e4; //only 4 digits after '.'
     vector<fp> ys;
-    while (get_one_line_with_numbers(f, ys)) {
+    while (read_line_and_get_all_numbers(f, ys)) {
         if (ys.size() == 0)
             warn ("Error when trying to read " + S (p.size() + 1) + ". point. " 
                     "Ignoring line.");
@@ -408,7 +407,6 @@ fp Data::get_y_at (fp x) const
 void Data::transform(const string &s) 
 {
     p = transform_data(s, p);
-    //TODO history
     sort(p.begin(), p.end());
     update_active_p();
 }
@@ -501,7 +499,7 @@ fp Data::find_step()
         return 0.;
 }
         
-int Data::get_one_line_with_numbers(istream &is, vector<fp>& result_numbers) 
+int Data::read_line_and_get_all_numbers(istream &is, vector<fp>& result_numbers)
 {
     // returns number of numbers in line
     result_numbers.clear();

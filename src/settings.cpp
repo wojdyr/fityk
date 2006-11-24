@@ -46,6 +46,11 @@ Settings::Settings()
     // 0 -> time-based seed
     ipar["pseudo-random-seed"] = 0;
 
+    std::map<char, std::string> sum_export_style_enum;
+    sum_export_style_enum [0] = "normal";
+    sum_export_style_enum [1] = "gnuplot";
+    epar.insert (pair<string, EnumString> ("formula-export-style", 
+                                       EnumString (sum_export_style_enum, 0)));
     // Function
     fpar["cut-function-level"] = cut_function_level = 0.;
 

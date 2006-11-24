@@ -255,17 +255,18 @@ FunctionKind get_defvalue_kind(std::string const& d)
         return fk_unknown;
 }
 
-} // anonymous namespace
-
-FunctionKind get_function_kind(std::string const& formula)
+FunctionKind get_function_kind_from_varnames(vector<string> const& vars)
 {
-    vector<string> vars = Function::get_varnames_from_formula(formula);
     for (vector<string>::const_iterator i = vars.begin(); i != vars.end(); ++i){
         FunctionKind k = get_defvalue_kind(*i);
         if (k != fk_unknown)
             return k;
     }
-    vector<string> defv = Function::get_defvalues_from_formula(formula);
+    return fk_unknown;
+}
+
+FunctionKind get_function_kind_from_defvalues(vector<string> const& defv)
+{
     for (vector<string>::const_iterator i = defv.begin(); i != defv.end(); ++i){
         int start = -1;
         for (size_t j = 0; j < i->size(); ++j) {
@@ -291,6 +292,18 @@ FunctionKind get_function_kind(std::string const& formula)
         }
     }
     return fk_unknown;
+}
+
+} // anonymous namespace
+
+FunctionKind get_function_kind(string const& formula)
+{
+    vector<string> vars = Function::get_varnames_from_formula(formula);
+    FunctionKind k = get_function_kind_from_varnames(vars);
+    if (k != fk_unknown)
+        return k;
+    vector<string> defv = Function::get_defvalues_from_formula(formula);
+    return get_function_kind_from_defvalues(defv);
 }
 
 void guess_and_add(DataWithSum* ds, 
@@ -371,9 +384,11 @@ bool is_parameter_guessable(string const& name, FunctionKind k)
 {
     if (k == fk_linear)
         return name == "slope" || name == "intercept" || name == "avgy";
-    else
+    else if (k == fk_peak)
         return name == "center" || name == "height" || name == "fwhm"
             || name == "area" || name == "hwhm";
+    else 
+        return false;
 }
 
 bool is_defvalue_guessable(string defvalue, FunctionKind k)
@@ -383,7 +398,7 @@ bool is_defvalue_guessable(string defvalue, FunctionKind k)
         replace_words(defvalue, "intercept", "1");
         replace_words(defvalue, "avgy", "1");
     }
-    else {
+    else if (k == fk_peak) {
         replace_words(defvalue, "center", "1");
         replace_words(defvalue, "height", "1");
         replace_words(defvalue, "fwhm", "1");
@@ -400,12 +415,13 @@ bool is_defvalue_guessable(string defvalue, FunctionKind k)
 
 bool is_function_guessable(string const& formula, bool check_defvalue)
 {
-    FunctionKind k = get_function_kind(formula);
     int lb = formula.find('(');
     int rb = find_matching_bracket(formula, lb);
     string all_names(formula, lb+1, rb-lb-1);
     vector<string> nd = split_string(all_names, ',');
-    
+
+    FunctionKind k = get_function_kind(formula);
+    vector<string> vars, defv;
     for (vector<string>::const_iterator i = nd.begin(); i != nd.end(); ++i) {
         string::size_type eq = i->find('=');
         if (eq == string::npos) { //no defvalue
@@ -420,5 +436,22 @@ bool is_function_guessable(string const& formula, bool check_defvalue)
     }
     return true;
 }
+
+bool is_function_guessable(vector<string> const& vars, 
+                           vector<string> const& defv,
+                           FunctionKind* fk)
+{
+    FunctionKind k = get_function_kind_from_varnames(vars);
+    if (k == fk_unknown)
+        k = get_function_kind_from_defvalues(defv);
+    for (size_t i = 0; i != vars.size(); ++i) 
+        if (!is_parameter_guessable(vars[i], k)
+                             && !is_defvalue_guessable(defv[i], k)) 
+                return false;
+    if (fk)
+        *fk = k;
+    return true;
+}
+
 
 

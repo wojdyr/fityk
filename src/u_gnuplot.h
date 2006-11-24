@@ -17,7 +17,6 @@ public:
     static char path_to_gnuplot[] ; 
 
 private:
-    int smooth_limit; 
     FILE *gnuplot_pipe;
 
     void fork_and_make_pipe ();

@@ -244,7 +244,7 @@ string Sum::get_peak_parameters(vector<fp> const& errors) const
 }
 
 
-string Sum::get_formula(bool simplify) const
+string Sum::get_formula(bool simplify, bool gnuplot) const
 {
     if (ff_names.empty())
         return "0";
@@ -268,8 +268,26 @@ string Sum::get_formula(bool simplify) const
         if (!has_upper) 
             formula = simplify_formula(formula);
     }
+    if (gnuplot) { //gnuplot format is a bit different
+        replace_all(formula, "^", "**");
+        replace_words(formula, "ln", "log");
+        // avoid integer division (1/2 == 0)
+        string::size_type pos = 0; 
+        while ((pos = formula.find('/', pos)) != string::npos) {
+            ++pos;
+            if (!isdigit(formula[pos]))
+                continue;
+            while (pos < formula.length() && isdigit(formula[pos]))
+                ++pos;
+            if (pos == formula.length())
+                formula += ".";
+            else if (pos != '.')
+                formula.insert(pos, ".");
+        }
+    }
     return formula;
 }
+
 
 fp Sum::numarea(fp x1, fp x2, int nsteps) const
 {

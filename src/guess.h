@@ -29,6 +29,11 @@ void guess_and_add(DataWithSum* ds,
 
 bool is_function_guessable(std::string const& formula, 
                            bool check_defvalue=true);
+
+bool is_function_guessable(std::vector<std::string> const& vars, 
+                           std::vector<std::string> const& defv,
+                           FunctionKind* fk);
+
 bool is_defvalue_guessable(std::string defvalue, FunctionKind k);
 FunctionKind get_function_kind(std::string const& formula);
 

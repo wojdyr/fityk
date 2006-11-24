@@ -989,7 +989,13 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     seed_sp = new SpinCtrl(page_general, -1, 
                          getSettings()->get_i("pseudo-random-seed"), 0, 999999,
                          70);
-
+    wxStaticText *export_f_st = new wxStaticText(page_general, -1, 
+                         wxT("style of formula export"));
+    export_f_ch = new wxChoice(page_general, -1, 
+                               wxDefaultPosition, wxDefaultSize,
+        stl2wxArrayString(getSettings()->expand_enum("formula-export-style")));
+    export_f_ch->SetStringSelection(
+                            s2wx(getSettings()->getp("formula-export-style")));
 
     wxBoxSizer *sizer_general = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizer_general_c = new wxBoxSizer(wxHORIZONTAL);
@@ -1004,6 +1010,10 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     sizer_general_seed->Add(seed_st, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     sizer_general_seed->Add(seed_sp, 0, wxTOP|wxBOTTOM|wxRIGHT, 5);
     sizer_general->Add(sizer_general_seed, 0, wxEXPAND);
+    wxBoxSizer *sizer_efs = new wxBoxSizer(wxHORIZONTAL);
+    sizer_efs->Add(export_f_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    sizer_efs->Add(export_f_ch, 1, wxALL, 5);
+    sizer_general->Add(sizer_efs, 0, wxEXPAND);
     add_persistence_note(page_general, sizer_general);
     page_general->SetSizerAndFit(sizer_general);
 
@@ -1170,6 +1180,7 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
     m["verbosity"] = wx2s(verbosity_ch->GetStringSelection());
     m["exit-on-warning"] = exit_cb->GetValue() ? "1" : "0";
     m["pseudo-random-seed"] = S(seed_sp->GetValue());
+    m["formula-export-style"] = wx2s(export_f_ch->GetStringSelection());
     m["height-correction"] = wx2s(height_correction->GetValue());
     m["width-correction"] = wx2s(width_correction->GetValue());
     m["can-cancel-guess"] = cancel_poos->GetValue() ? "1" : "0";
@@ -1360,20 +1371,24 @@ DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
     wxBoxSizer *name_sizer = new wxBoxSizer(wxHORIZONTAL);
     name_sizer->Add(new wxStaticText(this, -1, wxT("Name:")),
                     0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    wxBoxSizer *namev_sizer = new wxBoxSizer(wxVERTICAL);
     name_tc = new wxTextCtrl(this, ID_DMD_NAME, wxT(""), 
                              wxDefaultPosition, wxSize(200, -1));
-    name_sizer->Add(name_tc, 1, wxALL, 5);
+    namev_sizer->Add(name_tc, 1, wxALL, 5);
     name_comment_st = new wxStaticText(this, -1, wxT(""));
-    name_sizer->Add(name_comment_st, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-    vsizer->Add(name_sizer);
+    namev_sizer->Add(name_comment_st, 0, wxALIGN_LEFT|wxALL, 1);
+    name_sizer->Add(namev_sizer, 0, wxEXPAND);
+    name_sizer->AddSpacer(20);
     remove_btn = new wxButton(this, wxID_REMOVE, wxT("Remove"));
-    vsizer->Add(remove_btn, 0, wxALIGN_RIGHT|wxALL, 5);
+    name_sizer->Add(remove_btn, 0, wxALIGN_RIGHT|wxALL, 5);
+    vsizer->Add(name_sizer, 0, wxEXPAND);
+    vsizer->AddSpacer(5);
 
     vsizer->Add(new wxStaticText(this, -1, 
         wxT("Parameters (don't put 'x' here).\n")
         wxT("Default values of functions can be given in terms of:\n")
         wxT("- if it looks like peak: 'center', 'height', 'fwhm', 'area'\n")
-        wxT("- if it looks like linear: or 'slope', 'intercept', 'avgy'.")),
+        wxT("- if it looks like linear: 'slope', 'intercept', 'avgy'.")),
                 0, wxALL, 5);
 
     par_g = new wxGrid(this, -1, wxDefaultPosition, wxDefaultSize);
@@ -1388,6 +1403,10 @@ DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
     par_g->EnableDragRowSize(false);
     par_g->SetLabelFont(*wxNORMAL_FONT);
     vsizer->Add(par_g, 1, wxALL|wxEXPAND, 5);
+    guess_label_st = new wxStaticText(this, -1, wxT(""),
+                                      wxDefaultPosition, wxDefaultSize, 
+                                      wxST_NO_AUTORESIZE|wxALIGN_RIGHT);
+    vsizer->Add(guess_label_st, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 5);
     def_label_st = new wxStaticText(this, -1, wxT("definition:"),
                     wxDefaultPosition, wxDefaultSize, wxST_NO_AUTORESIZE);
     vsizer->Add(def_label_st, 0, wxEXPAND|wxALL, 5);
@@ -1453,6 +1472,21 @@ bool DefinitionMgrDlg::check_definition()
     add_btn->Enable(true);
     FindWindow(wxID_OK)->Enable(true);
     return true;
+}
+
+void DefinitionMgrDlg::update_guess_comment()
+{
+    FunctionDefinitonElems const& fde = modified[selected];
+    FunctionKind fk;
+    bool r = is_function_guessable(fde.parameters, fde.defvalues, &fk);
+    if (!r)
+        guess_label_st->SetLabel(wxT("The function can not be guessed."));
+    else if (fk == fk_peak)
+        guess_label_st->SetLabel(wxT("The function can be guessed as peak."));
+    else if (fk == fk_linear)
+        guess_label_st->SetLabel(wxT("The function can be guessed as linear."));
+    else 
+        guess_label_st->SetLabel(wxT(""));
 }
 
 bool DefinitionMgrDlg::save_changes()
@@ -1526,6 +1560,7 @@ void DefinitionMgrDlg::select_function(bool init)
     par_g->EnableEditing(!fde.builtin);
     def_tc->SetEditable(!fde.builtin);
     remove_btn->Enable(!fde.builtin);
+    update_guess_comment();
 }
 
 std::string DefinitionMgrDlg::get_command()
@@ -1594,6 +1629,7 @@ void DefinitionMgrDlg::OnEndCellEdit(wxGridEvent &event)
                 fde.defvalues.erase(fde.defvalues.begin() + row);
                 par_g->DeleteRows(row);
                 check_definition();
+                update_guess_comment();
             }
         }
         else if (new_row) { //added parameter
@@ -1603,6 +1639,7 @@ void DefinitionMgrDlg::OnEndCellEdit(wxGridEvent &event)
                 fde.defvalues.push_back("");
                 par_g->AppendRows(1);
                 check_definition();
+                update_guess_comment();
             }
             else {
                 par_g->SetCellValue(row, col, wxT(""));
@@ -1627,6 +1664,7 @@ void DefinitionMgrDlg::OnEndCellEdit(wxGridEvent &event)
             if (is_defvalue_guessable(new_val, fk_linear)
                     || is_defvalue_guessable(new_val, fk_peak)) {
                 fde.defvalues[row] = new_val;
+                update_guess_comment();
             }
             else {
                 par_g->SetCellValue(row, col, s2wx(fde.defvalues[row]));

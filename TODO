@@ -29,60 +29,44 @@
 // * GUI: sidebar, function's parameter values - do something when value
 //   is changed (by typing) and Enter is _not_ pressed.
 
-* plot - there should be a way to zoom to show all datasets
+// * data load, ascii: column 0 should mean "line number".
 
-* data load, ascii: column 0 should mean "line number".
-                    optimize, loading many datafiles is slow
+// * GUI: custom data load: explicit info (or setting) about sigma,
+//      read from file / =1 / sqrt() / custom (any data transformation)
+//      wxTextCtrl with path should be shown disabled 
+//      column 0 means 0-based "line number"
 
-* GUI: custom data load: explicit info (or setting) about sigma,
-     read from file / =1 / sqrt() / custom (any data transformation)
-    wxTextCtrl with path should be shown disabled (it's read-only)
+// * GUI: Function Definition Manager layout: "Remove" button takes too 
+//   much space
+//   information about "auto-add":
+//   The initial parameters can/can't be guessed using peak search 
+//      / linear regression
 
-* GUI: Function Definition Manager layout: "Remove" button takes too 
-  much space; perhaps "change name" button
-  information about "auto-add":
-    The initial parameters can/can't be guessed using peak search 
-       / linear regression
-
-* GUI: some problems with "Copy F to next dataset" button
-       Copy Z only if necessary (if not @n.Z = @m.Z = 0)
+// * GUI: some problems with "Copy F to next dataset" button
+//        Copy Z only if necessary (if not @n.Z = @m.Z = 0)
   
-* GUI?: when loading many datasets from command line, set view to show all
+// * exporting gnuplot compatible formulae ('^'->'**', 1/2 -> 1./2),
+//   when option formula-export-style == gnuplot
+    docs
+
+* settings: Nelder-Mead 
 
 * BUG: "$foo = {y[0]}" is not working now
 
-* exporting gnuplot compatible formulae ('^'->'**', 1/2 -> 1./2),
-  when option formula-export-style == gnuplot
+* make this somehow work:
+  y[n]=y[n]-spline[x[1], y[1], x[5], y[5], x[325], y[325]](x)
 
 * auto-scaling should not include x/y=0, unless it's
   in, say, 20% plot margin. "[:]" is an exception and includes 0.
   GUI: "Auto-zooms shows y=0"
-
-* (?)exporting data with info "info @n () [range] > file"
-       should display ... [1234 lines more] rather than everything
-
-* formula simplifications: "3/x" is changed to more complex "3*1/x"
-
-* user defined functions:
-      - more sophisticated simplifications of expressions and CSE(!)
-      - calculating limits, width, area, etc. for UDF(!)
-
-* settings: Nelder-Mead and GA fitting options, 
-  a way to "shake" parameters for L-M
-
-* (GUI) finish script debugger dialog -- add command editing, inserting
-  and deleting commands, and changing the order of command
+* plot - there should be a way to zoom to show all datasets
+* GUI?: when loading many datasets from command line, set view to show all
 
 * syntax enhancements: @0.F[3] should access 4th function in @0.F
                        ? "%a.hwhm" should mean the same as "%a[hwhm]"
 		       @0.F[2] should
 		       ? "info @*.F[0].area, @*.F[0].center"
 		       info @0.filename, @0.title
-
-* unused variables should not slow down fitting
-
-* make this somehow work:
-  y[n]=y[n]-spline[x[1], y[1], x[5], y[5], x[325], y[325]](x)
 
 ------------------ next release here 0.7.7
 
@@ -101,6 +85,23 @@
   [IMPORTANT]
 
 ------------------ next release here 
+
+* formula simplifications: "3/x" is changed to more complex "3*1/x"
+
+* (GUI) finish script debugger dialog -- add command editing, inserting
+  and deleting commands, and changing the order of command
+
+* (?)exporting data with info "info @n () [range] > file"
+       should display ... [1234 lines more] rather than everything
+
+* unused variables should not slow down fitting
+
+* user defined functions:
+      - more sophisticated simplifications of expressions and CSE(!)
+      - calculating limits, width, area, etc. for UDF(!)
+
+* GA fitting options, 
+  a way to "shake" parameters for L-M
 
 * small (eg. 1e-14) values of parameters are not handled properly.
    - make EPSILON an option when in configure script
@@ -133,6 +134,8 @@
   (wxDC.GetSize instead of plot.GetClientSize() ?)
 
 * ? GUI: changing data point size and line separately for each dataset,
+
+* data load, ascii: optimize, loading many datafiles is slow
 
 * info -- more informations about error, confidence limits, etc.
   graphical interface Fit > Info

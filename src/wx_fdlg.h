@@ -23,11 +23,13 @@ protected:
     int data_nr;
     ProportionalSplitter *splitter, *right_splitter;
     wxGenericDirCtrl *dir_ctrl;
-    wxTextCtrl *filename_tc, *title_tc, *text_preview;
+    KFTextCtrl *filename_tc; 
+    wxTextCtrl *title_tc, *text_preview;
     wxSpinCtrl *x_column, *y_column, *s_column;
     wxPanel *left_panel, *rupper_panel, *rbottom_panel, *columns_panel;
     PreviewPlot *plot_preview;
-    wxCheckBox *std_dev_cb, *htitle_cb, *auto_text_cb, *auto_plot_cb;
+    wxCheckBox *std_dev_cb, *sd_sqrt_cb, *htitle_cb, *auto_text_cb, 
+               *auto_plot_cb;
     wxButton *open_here, *open_new;
     bool initialized;
 
@@ -45,6 +47,7 @@ protected:
     void on_filter_change();
     void enable_text_options(bool is_text);
     void OnPathSelectionChanged(wxTreeEvent&) { on_path_change(); }
+    void OnPathTextChanged(wxCommandEvent&);
     void update_text_preview();
     void update_plot_preview();
     void update_title_from_file();

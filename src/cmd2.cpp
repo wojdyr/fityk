@@ -236,7 +236,8 @@ void do_print_info(char const* a, char const* b)
         vector<DataWithSum*> v = get_datasets_from_indata();
         for (vector<DataWithSum*>::const_iterator i=v.begin(); i!=v.end(); ++i){
             m += "# " + (*i)->get_data()->get_title() + "\n";
-            m += (*i)->get_sum()->get_formula(!with_plus) + "\n";
+            bool gnuplot = getSettings()->get_e("formula-export-style") == 1;
+            m += (*i)->get_sum()->get_formula(!with_plus, gnuplot) + "\n";
         }
     }
     else if (s == "commands")

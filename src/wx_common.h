@@ -120,6 +120,18 @@ public:
     {}
 };
 
+/// wxTextCtrl which sends wxEVT_COMMAND_TEXT_ENTER when loses the focus
+class KFTextCtrl : public wxTextCtrl
+{
+public:
+    KFTextCtrl(wxWindow* parent, wxWindowID id, wxString const& value) 
+        : wxTextCtrl(parent, id, value, wxDefaultPosition, wxDefaultSize,
+                     wxTE_PROCESS_ENTER) {}
+    void OnKillFocus(wxFocusEvent&);
+    DECLARE_EVENT_TABLE()
+};
+
+
 /// introduced because OnOK and OnCancel were removed
 /// when wx-2.6 compatibility is dropped, it will be replaced with 
 /// wxSetEscapeId for Cancel and perhaps with wxSetAffirmativeId for OK.

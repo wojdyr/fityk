@@ -25,6 +25,7 @@
 #include <wx/file.h>
 #include <wx/timer.h>
 #include <wx/paper.h>
+#include <wx/filefn.h>
 //TODO
 #include <wx/generic/printps.h>
 #include <wx/generic/prntdlgg.h>
@@ -56,11 +57,13 @@ enum {
     ID_DXLOAD_STDDEV_CB     =28000,
     ID_DXLOAD_COLX                ,
     ID_DXLOAD_COLY                ,
+    ID_DXLOAD_SDS                 ,
     ID_DXLOAD_HTITLE              ,
     ID_DXLOAD_AUTO_TEXT           ,
     ID_DXLOAD_AUTO_PLOT           ,
     ID_DXLOAD_OPENHERE            ,
     ID_DXLOAD_OPENNEW             ,
+    ID_DXLOAD_FN                  ,
     ID_DED_RADIO                  ,
     ID_DED_INACT_CB               ,
     ID_DED_TEXT                   ,
@@ -175,6 +178,7 @@ BEGIN_EVENT_TABLE(FDXLoadDlg, wxDialog)
     EVT_BUTTON      (ID_DXLOAD_OPENHERE,  FDXLoadDlg::OnOpenHere)
     EVT_BUTTON      (ID_DXLOAD_OPENNEW,   FDXLoadDlg::OnOpenNew)
     EVT_TREE_SEL_CHANGED (-1,             FDXLoadDlg::OnPathSelectionChanged)
+    EVT_TEXT_ENTER(ID_DXLOAD_FN,          FDXLoadDlg::OnPathTextChanged)
 END_EVENT_TABLE()
 
 FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
@@ -231,39 +235,35 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     wxFileName path = s2wx(data->get_filename());
     path.Normalize();
     dir_ctrl->SetPath(path.GetFullPath()); 
-    filename_tc = new wxTextCtrl (left_panel, -1, path.GetFullPath(), 
-                                  wxDefaultPosition, wxDefaultSize,
-                                  wxTE_READONLY);
+    filename_tc = new KFTextCtrl(left_panel, ID_DXLOAD_FN, path.GetFullPath());
     left_sizer->Add (filename_tc, 0, wxALL|wxEXPAND, 5);
                                      
 
     // selecting columns
     columns_panel = new wxPanel (left_panel, -1);
     wxStaticBoxSizer *h2a_sizer = new wxStaticBoxSizer(wxHORIZONTAL, 
-                                        columns_panel, wxT("Select columns:"));
+                    columns_panel, wxT("Select columns (0 for point index):"));
     h2a_sizer->Add (new wxStaticText (columns_panel, -1, wxT("x")), 
                     0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    x_column = new wxSpinCtrl (columns_panel, ID_DXLOAD_COLX, wxT("1"), 
-                               wxDefaultPosition, wxSize(50, -1), 
-                               wxSP_ARROW_KEYS, 1, 99, 1);
+    x_column = new SpinCtrl (columns_panel, ID_DXLOAD_COLX, 1, 0, 99, 50);
     h2a_sizer->Add (x_column, 0, wxALL|wxALIGN_LEFT, 5);
     h2a_sizer->Add (new wxStaticText (columns_panel, -1, wxT("y")), 
                     0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    y_column = new wxSpinCtrl (columns_panel, ID_DXLOAD_COLY, wxT("2"),
-                               wxDefaultPosition, wxSize(50, -1), 
-                               wxSP_ARROW_KEYS, 1, 99, 2);
+    y_column = new SpinCtrl (columns_panel, ID_DXLOAD_COLY, 2, 0, 99, 50);
     h2a_sizer->Add (y_column, 0, wxALL|wxALIGN_LEFT, 5);
     std_dev_cb = new wxCheckBox(columns_panel, ID_DXLOAD_STDDEV_CB, 
                                 wxT("std.dev."));
     std_dev_cb->SetValue (false);
     h2a_sizer->Add(std_dev_cb, 0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL,5);
-    s_column = new wxSpinCtrl (columns_panel, -1, wxT("3"),
-                               wxDefaultPosition, wxSize(50, -1), 
-                               wxSP_ARROW_KEYS, 1, 99, 3);
+    s_column = new SpinCtrl (columns_panel, -1, 3, 1, 99, 50);
     h2a_sizer->Add (s_column, 0, wxALL|wxALIGN_LEFT, 5);
     columns_panel->SetSizer(h2a_sizer);
     left_sizer->Add (columns_panel, 0, wxALL|wxEXPAND, 5);
-    OnStdDevCheckBox(dummy_cmd_event);
+
+    sd_sqrt_cb = new wxCheckBox(left_panel, ID_DXLOAD_SDS, 
+                                wxT("set std. dev. as max(sqrt(y), 1.0)"));
+    sd_sqrt_cb->SetValue(true);
+    left_sizer->Add (sd_sqrt_cb, 0, wxALL|wxEXPAND, 5);
 
     wxStaticBoxSizer *dt_sizer = new wxStaticBoxSizer(wxVERTICAL, 
                                     left_panel, wxT("Data title (optional):"));
@@ -273,6 +273,8 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     title_tc = new wxTextCtrl(left_panel, -1, wxT(""));
     dt_sizer->Add(title_tc, 0, wxALL|wxEXPAND, 5);
     left_sizer->Add (dt_sizer, 0, wxALL|wxEXPAND, 5);
+
+    OnStdDevCheckBox(dummy_cmd_event);
 
     // ----- right upper panel -----
     text_preview =  new wxTextCtrl(rupper_panel, -1, wxT(""), 
@@ -316,9 +318,11 @@ FDXLoadDlg::FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     on_filter_change();
 }
 
-void FDXLoadDlg::OnStdDevCheckBox (wxCommandEvent& WXUNUSED(event))
+void FDXLoadDlg::OnStdDevCheckBox (wxCommandEvent&)
 {
-    s_column->Enable(std_dev_cb->GetValue());
+    bool v = std_dev_cb->GetValue();
+    s_column->Enable(v);
+    sd_sqrt_cb->Enable(!v);
 }
 
 void FDXLoadDlg::OnHTitleCheckBox (wxCommandEvent& event)
@@ -382,7 +386,11 @@ void FDXLoadDlg::OnOpenHere (wxCommandEvent& WXUNUSED(event))
 
 void FDXLoadDlg::OnOpenNew (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command("@+ <" + get_command_tail(AL->get_ds_count()));
+    int d_nr = AL->get_ds_count();
+    if (d_nr == 1 && !AL->get_data(0)->has_any_info() 
+            && !AL->get_sum(0)->has_any_info()) 
+        d_nr = 0; // special case, @+ will not add new data slot
+    exec_command("@+ <" + get_command_tail(d_nr));
     frame->add_recent_data_file(get_filename());
 }
 
@@ -438,6 +446,7 @@ void FDXLoadDlg::enable_text_options(bool is_text)
     htitle_cb->Enable(is_text);
     if (!is_text && htitle_cb->IsChecked())
         htitle_cb->SetValue(false);
+    sd_sqrt_cb->Enable(!(is_text  && std_dev_cb->GetValue()));
 }
 
 void FDXLoadDlg::on_path_change()
@@ -461,12 +470,23 @@ void FDXLoadDlg::on_path_change()
         update_title_from_file();
 }
 
+void FDXLoadDlg::OnPathTextChanged(wxCommandEvent&)
+{
+    wxString path = filename_tc->GetValue().Trim();
+    if (wxDirExists(path) || wxFileExists(path)) {
+        dir_ctrl->SetPath(path);
+        on_path_change();
+    }
+    else
+        filename_tc->SetValue(dir_ctrl->GetFilePath());
+}
+
 string FDXLoadDlg::get_filename()
 {
     return wx2s(filename_tc->GetValue());
 }
 
-string FDXLoadDlg::get_command_tail(int data_nr)
+string FDXLoadDlg::get_command_tail(int d_nr)
 {
     string cols;
     if (columns_panel->IsEnabled()) { // a:b[:c]
@@ -477,13 +497,16 @@ string FDXLoadDlg::get_command_tail(int data_nr)
     string filetype;
     if (htitle_cb->IsChecked())
         filetype = " htext";
-    string title_cmd;
+    string add_cmd;
+    if (!sd_sqrt_cb->GetValue() 
+            && !(columns_panel->IsEnabled() && std_dev_cb->GetValue()))
+        add_cmd += "; S=1 in @" + S(d_nr);
     if (title_tc->IsEnabled()) {
         wxString t = title_tc->GetValue().Trim();
         if (!t.IsEmpty())
-            title_cmd = "; @" + S(data_nr) + ".title = '" + wx2s(t) + "'";
+            add_cmd += "; @" + S(d_nr) + ".title = '" + wx2s(t) + "'";
     }
-    return "'" + get_filename() + "'" + filetype + cols + title_cmd;
+    return "'" + get_filename() + "'" + filetype + cols + add_cmd;
 }
 
 

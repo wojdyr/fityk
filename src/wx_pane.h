@@ -195,7 +195,8 @@ public:
     void OnVarButtonDel (wxCommandEvent&) { delete_selected_items(); }
     void OnVarButtonEdit (wxCommandEvent& event);
     void OnFuncFilterChanged (wxCommandEvent& event);
-    void OnDataFocusChanged(wxListEvent &event);
+    void OnDataFocusChanged(wxListEvent &) { DataFocusChanged(); }
+    void DataFocusChanged();
     void OnFuncFocusChanged(wxListEvent &event);
     void OnVarFocusChanged(wxListEvent &event);
     void read_settings(wxConfigBase *cf);

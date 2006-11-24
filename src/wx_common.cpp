@@ -208,3 +208,17 @@ void ProportionalSplitter::OnPaint(wxPaintEvent &event)
     event.Skip();
 }
 
+
+
+//                            KFTextCtrl
+void KFTextCtrl::OnKillFocus(wxFocusEvent&) 
+{ 
+    wxCommandEvent ev(wxEVT_COMMAND_TEXT_ENTER, GetId()); 
+    ProcessEvent(ev); 
+}
+
+BEGIN_EVENT_TABLE(KFTextCtrl, wxTextCtrl)
+    EVT_KILL_FOCUS(KFTextCtrl::OnKillFocus)
+END_EVENT_TABLE()
+
+

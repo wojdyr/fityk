@@ -85,8 +85,8 @@ private:
 
     Data (Data&); //disable
     bool get_seq_num (std::istream &is, fp *num);
-    int get_one_line_with_numbers (std::istream &is, 
-                                    std::vector<fp>& result_numbers);
+    int read_line_and_get_all_numbers(std::istream &is, 
+                                      std::vector<fp>& result_numbers);
     static double pdp11_f (char* fl);  
     fp find_step();
     void load_xy_filetype (std::ifstream& f, std::vector<int> const& cols);

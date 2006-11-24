@@ -23,7 +23,6 @@ using namespace std;
 char GnuPlot::path_to_gnuplot[]="gnuplot";
 
 GnuPlot::GnuPlot()
-    : smooth_limit(0)
 {
     fork_and_make_pipe ();
 }
@@ -99,55 +98,36 @@ int GnuPlot::plot()
     Sum const* sum = ds->get_sum();
     if (!gnuplot_pipe_ok())
         return -1;
-    string yfun = ds->get_sum()->get_formula();
-    //gnuplot format is a bit different
-    replace_all(yfun, "^", "**");
-    replace_words(yfun, "ln", "log");
-    very_verbose("Plotting function: " + yfun); 
     // Send commands through the pipe to gnuplot
     int i_f = data->get_lower_bound_ac (AL->view.left);
     int i_l = data->get_upper_bound_ac (AL->view.right);
-    if (i_l - i_f > 0) { //plot data & sum
-        bool function_as_points = (i_l - i_f > smooth_limit);
-        string plot_string = "plot "+ AL->view.str() 
-            + " \'-\' title \"data\", ";
-        if (function_as_points) {
-            plot_string += " '-' title \"sum\" with line\n ";
-            fprintf (gnuplot_pipe, plot_string.c_str());
-        }
-        else {
-            plot_string += yfun + " title \"sum\"\n ";
-            fprintf (gnuplot_pipe, plot_string.c_str());
-        }
-        if (fflush (gnuplot_pipe) != 0)
-            warn("Flushing pipe program-to-gnuplot failed.");
-        bool at_least_one_point = false;
-        for (int i = i_f; i < i_l; i++) {
-            fp x = data->get_x(i);
-            fp y = data->get_y(i);
-            if (is_finite(x) && is_finite(y)) {
-                fprintf(gnuplot_pipe, "%f  %f\n", x, y);
-                at_least_one_point = true;
-            }
-        }
-        if (!at_least_one_point)
-            fprintf(gnuplot_pipe, "0.0  0.0\n");
-        fprintf (gnuplot_pipe, "e\n");//gnuplot needs 'e' at the end of data
-        if (function_as_points) {
-            for (int i = i_f; i < i_l; i++) {
-                fp x = data->get_x(i);
-                fp y = sum->value(x);
-                if (is_finite(x) && is_finite(y))
-                    fprintf(gnuplot_pipe, "%f  %f\n", x, y);
-            }
-            fprintf(gnuplot_pipe, "e\n");
+    if (i_l - i_f <= 0) 
+        return 0;
+    string plot_string = "plot "+ AL->view.str() 
+        + " \'-\' title \"data\", ";
+    plot_string += " '-' title \"sum\" with line\n ";
+    fprintf (gnuplot_pipe, plot_string.c_str());
+    if (fflush (gnuplot_pipe) != 0)
+        warn("Flushing pipe program-to-gnuplot failed.");
+    bool at_least_one_point = false;
+    for (int i = i_f; i < i_l; i++) {
+        fp x = data->get_x(i);
+        fp y = data->get_y(i);
+        if (is_finite(x) && is_finite(y)) {
+            fprintf(gnuplot_pipe, "%f  %f\n", x, y);
+            at_least_one_point = true;
         }
     }
-    else { // plot only sum
-        string plot_string =  "plot " + AL->view.str() + " " + yfun 
-            + " title \"function\"\n";
-        fprintf (gnuplot_pipe, plot_string.c_str());
+    if (!at_least_one_point)
+        fprintf(gnuplot_pipe, "0.0  0.0\n");
+    fprintf (gnuplot_pipe, "e\n");//gnuplot needs 'e' at the end of data
+    for (int i = i_f; i < i_l; i++) {
+        fp x = data->get_x(i);
+        fp y = sum->value(x);
+        if (is_finite(x) && is_finite(y))
+            fprintf(gnuplot_pipe, "%f  %f\n", x, y);
     }
+    fprintf(gnuplot_pipe, "e\n");
     fflush(gnuplot_pipe);
     return 0;
 }

@@ -405,7 +405,8 @@
      a semicolon or comma, it should be put inside single
      quotation marks. If the file is in a text format (columns with numbers)
      it can be specified which column contains x, y, and (optionally) std. dev.
-     of y. 
+     of y. A column number of 0 generates a number increasing (from zero) 
+     with each point.
      The list of <replaceable>filetype</replaceable> can be one of the following:
     </para>
 

@@ -23,8 +23,8 @@ public:
     /// value of "select one from a list of strings" option 
     struct EnumString
     {
-        std::map<char, std::string> const e;
-        char v;
+        std::map<char, std::string> const e; //all possible values
+        char v; /// selected value
         EnumString(std::map<char,std::string> const& e_, char v_)
             : e(e_), v(v_) {}
     };

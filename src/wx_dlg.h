@@ -140,7 +140,7 @@ public:
     pair_vec get_changed_items();
 private:
     wxRadioBox *autoplot_rb;
-    wxChoice *verbosity_ch;
+    wxChoice *verbosity_ch, *export_f_ch;
     wxCheckBox *exit_cb;
     SpinCtrl *seed_sp, *mwssre_sp;
     RealNumberCtrl *cut_func, *height_correction, *width_correction,
@@ -201,7 +201,7 @@ private:
     int selected;
     wxListBox *lb;
     wxTextCtrl *name_tc, *def_tc;
-    wxStaticText *name_comment_st, *def_label_st;
+    wxStaticText *name_comment_st, *guess_label_st, *def_label_st;
     wxGrid *par_g;
     wxButton *add_btn, *remove_btn;
     std::vector<FunctionDefinitonElems> orig, modified;
@@ -209,6 +209,7 @@ private:
     void select_function(bool init=false);
     void fill_function_list();
     bool check_definition();
+    void update_guess_comment();
     bool is_name_in_modified(std::string const& name);
     bool save_changes();
 
