@@ -22,10 +22,6 @@ using namespace std;
 Fit::Fit(string m)  
     : name(m), evaluations(0), iter_nr (0), na(0)
 {
-    Distrib_enum ['u'] = "uniform";
-    Distrib_enum ['g'] = "gauss";
-    Distrib_enum ['l'] = "lorentz";
-    Distrib_enum ['b'] = "bound";
 }
 
 string Fit::getInfo(vector<DataWithSum*> const& dsds)

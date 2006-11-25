@@ -77,7 +77,7 @@ public:
     void ESelected();
     void OnEActivated (wxListEvent& event);
     void update_data(ndnd_type const& dd);
-    static const std::vector<DataTransExample>& get_examples() 
+    static std::vector<DataTransExample> const& get_examples() 
                                                     { return examples; }
     static void read_examples(bool reset=false);
     static void execute_tranform(std::string code);
@@ -140,13 +140,14 @@ public:
     pair_vec get_changed_items();
 private:
     wxRadioBox *autoplot_rb;
-    wxChoice *verbosity_ch, *export_f_ch;
+    wxChoice *verbosity_ch, *export_f_ch, *nm_distrib;
     wxCheckBox *exit_cb;
     SpinCtrl *seed_sp, *mwssre_sp;
     RealNumberCtrl *cut_func, *height_correction, *width_correction,
                    *domain_p, *lm_lambda_ini, *lm_lambda_up, *lm_lambda_down,
-                   *lm_stop, *lm_max_lambda;
-    wxCheckBox *cancel_poos;
+                   *lm_stop, *lm_max_lambda,
+                   *nm_convergence, *nm_move_factor;
+    wxCheckBox *cancel_poos, *nm_move_all;
     wxTextCtrl *dir_ld_tc, *dir_xs_tc, *dir_ex_tc;
 
     void add_persistence_note(wxWindow *parent, wxSizer *sizer);

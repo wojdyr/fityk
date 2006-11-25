@@ -1,40 +1,37 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#include "common.h"
-#include "NMfit.h"
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
 #include <vector>
-#include <ui.h>
+
+#include "common.h"
+#include "NMfit.h"
+#include "ui.h"
+#include "settings.h"
 
 using namespace std;
 
 NMfit::NMfit()
-    :Fit ("Nelder-Mead-simplex"), 
-     min_rel_diff(0.0001), move_all(false), distrib_type('b'), move_mult(1.)
+    :Fit ("Nelder-Mead-simplex") 
 {
-    /*
-    fpar["min-fract-range"] = &min_rel_diff;
-    bpar["move-all"] = &move_all;
-    epar.insert(pair<string, Enum_string>("distrib-type", 
-                               Enum_string (Distrib_enum, &distrib_type)));
-    fpar["move-multiplier"] = &move_mult;
-    */
 }
 
 NMfit::~NMfit() {}
 
 fp NMfit::init()
 {
+    bool move_all = getSettings()->get_b("move-all"); 
+    char distrib = getSettings()->get_e("nm-distribution"); 
+    fp factor = getSettings()->get_f("nm-move-factor");
+
     // 1. all n+1 vertices are the same
     Vertex v(a_orig);
     vertices = vector<Vertex> (na + 1, v);
     // 2. na of na+1 vertices has one coordinate changed; computing WSSR
     for (int i = 0; i < na; i++) {
-        vertices[i + 1].a[i] = draw_a_from_distribution (i, distrib_type, 
-                                                                    move_mult);
+        vertices[i + 1].a[i] = draw_a_from_distribution(i, distrib, factor);
         if (move_all) {
             fp d2 = (vertices[i + 1].a[i] - vertices[0].a[i]) / 2;
             for (vector<Vertex>::iterator j = vertices.begin(); 
@@ -76,9 +73,10 @@ void NMfit::find_best_worst()
 
 void NMfit::autoiter()
 {
+    fp convergence = getSettings()->get_f("nm-convergence");
     wssr_before = compute_wssr(a_orig, datsums);
     info ("WSSR before starting simplex fit: " + S(wssr_before));
-    for (int iter = 0; !termination_criteria (iter); iter ++) {
+    for (int iter = 0; !termination_criteria(iter, convergence); ++iter) {
         iteration_plot(best->a);
         iter_nr++;
         change_simplex();
@@ -140,7 +138,7 @@ void NMfit::compute_coord_sum()
             coord_sum[i] += j->a[i];
 }
 
-bool NMfit::termination_criteria (int iter)
+bool NMfit::termination_criteria(int iter, fp convergence)
 {
     info ("#" + S(iter_nr) + " (ev:" + S(evaluations) + "): best:" 
                 + S(best->wssr) + " worst:" + S(worst->wssr) + ", " 
@@ -163,7 +161,7 @@ bool NMfit::termination_criteria (int iter)
         stop=true;
     fp r_diff = 2 * (worst->wssr - best->wssr) 
                                         / (best->wssr + worst->wssr + EPSILON);
-    if (r_diff < min_rel_diff) {
+    if (r_diff < convergence) {
         info ("Relative difference between worst and best vertex is only "
                 + S(r_diff) + ". Stop");
         stop = true;

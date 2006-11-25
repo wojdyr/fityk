@@ -82,6 +82,8 @@ private:
     Settings(Settings const&); //disable
     Settings& operator= (const Settings&); //disable
     void setp_core(std::string const& k, std::string const& v);
+    void insert_enum(std::string const& name, 
+                     std::map<char,std::string> const& e, char value);
 };
 
 int Settings::get_i(std::string const& k) { 

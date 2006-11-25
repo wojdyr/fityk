@@ -991,7 +991,7 @@
      Variables can be deleted using the command 
      <command>delete <replaceable>$variable</replaceable></command>.
     </para>
-    <para>
+    <para id="domain">
      Some fitting algorithms need to randomize the parameters of the fitted function
      (i.e. simple variables). For this purpose, 
      the simple variable can have a specified <firstterm>domain</firstterm>.
@@ -1581,41 +1581,34 @@
      and <citetitle>Data Analysis</citetitle> (chapter 10.8).
     </para>
     <para>
-     <note>
-      <para>
-       The rest of this chapter is outdated,
-       At this moment default settings of the fitting methods can't be changed.
-       This will be fixed as soon as possible.
-      </para>
-     </note>
-    </para>
-    <para>
      There are a few options for tuning this method.
      One of these is a stopping criterium 
-     <parameter class="option">min-fract-range</parameter>. If the value of the
+     <parameter class="option">nm-convergence</parameter>. If the value of the
      expression 2(M-m)/(M+m), where M and m are the values of the worst and best
      vertices respectively (values of objective functions of vertices, to be
      precise!), is smaller then the value of 
-     <parameter class="option">min-fract-range</parameter> option, fitting is
-     stopped. In other words, fitting is stopped if all vertices are almost at the
-     same level.
+     <parameter class="option">nm-convergence</parameter> option, fitting is
+     stopped. In other words, fitting is stopped if all vertices are almost 
+     at the same level.
     </para>
     <para id="distribtype">
      The remaining options are related to initialization of the simplex. Before
      starting iterations, we have to choose a set of points in space of the 
      parameters, called vertices.  Unless the option 
-     <parameter class="option">move-all</parameter> is set, one of these
+     <parameter class="option">nm-move-all</parameter> is set, one of these
      points will be the current point - values that parameters have at this
      moment. All but this one are drawn as follows: each parameter of each
-     vertex is drawn separately. It is drawn from a distribution that has its center
-     in the center of the domain of the parameter, and a width proportional to both width of
-     the domain and value of the <parameter class="option">move-multiplier</parameter> 
-     parameter.  Distribution type can be set using the option 
-     <parameter class="option">distrib-type</parameter> as one
-     of: uniform, Gaussian, Lorentzian and bound. The last one causes the value of the
-     parameter to be either the greatest or smallest value in the domain of the parameter 
+     vertex is drawn separately. It is drawn from a distribution that has 
+     its center in the center of the <link linkend="domain">domain</link> 
+     of the parameter, and a width proportional to both width of the domain 
+     and value of the <parameter class="option">nm-move-factor</parameter> 
+     parameter.  Distribution shape can be set using the option 
+     <parameter class="option">nm-distribution</parameter> as one
+     of: uniform, gaussian, lorentzian and bound. 
+     The last one causes the value of the parameter to be either 
+     the greatest or smallest value in the domain of the parameter 
      - one of two bounds of the domain 
-     (assuming that <parameter class="option">move-multiplier</parameter>
+     (assuming that <parameter class="option">nm-move-factor</parameter>
      is equal 1).
     </para>
    </section>

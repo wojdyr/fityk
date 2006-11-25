@@ -20,37 +20,40 @@ Settings* Settings::getInstance()
     return instance; // address of sole instance
 }
 
+/// small utility used only in constructor
+void Settings::insert_enum(string const& name, 
+                           map<char,string> const& e, char value)
+{
+    epar.insert(pair<string, EnumString> (name, EnumString(e, value)));
+}
 
 Settings::Settings() 
 {
     // general
-    std::map<char, std::string> verbosity_enum;
+    map<char, string> verbosity_enum;
     verbosity_enum [0] = "silent";
     verbosity_enum [1] = "only-warnings";
     verbosity_enum [2] = "rather-quiet";
     verbosity_enum [3] = "normal";
     verbosity_enum [4] = "verbose";
     verbosity_enum [5] = "very-verbose";
-    epar.insert (pair<string, EnumString> ("verbosity", 
-                                           EnumString (verbosity_enum, 3)));
+    insert_enum("verbosity", verbosity_enum, 3);
 
-    std::map<char, std::string> autoplot_enum;
+    map<char, string> autoplot_enum;
     autoplot_enum [1] = "never";
     autoplot_enum [2] = "on-plot-change";
     autoplot_enum [3] = "on-fit-iteration";
-    epar.insert (pair<string, EnumString> ("autoplot", 
-                                           EnumString (autoplot_enum, 2)));
+    insert_enum("autoplot", autoplot_enum, 2);
 
     bpar["exit-on-warning"] = false;
 
     // 0 -> time-based seed
     ipar["pseudo-random-seed"] = 0;
 
-    std::map<char, std::string> sum_export_style_enum;
+    map<char, string> sum_export_style_enum;
     sum_export_style_enum [0] = "normal";
     sum_export_style_enum [1] = "gnuplot";
-    epar.insert (pair<string, EnumString> ("formula-export-style", 
-                                       EnumString (sum_export_style_enum, 0)));
+    insert_enum("formula-export-style", sum_export_style_enum, 0);
     // Function
     fpar["cut-function-level"] = cut_function_level = 0.;
 
@@ -61,12 +64,11 @@ Settings::Settings()
     fpar ["guess-at-center-pm"] = 1.;
 
     //Fit
-    std::map<char, std::string> fitting_method_enum;
+    map<char, string> fitting_method_enum;
     vector<Fit*> const& fm = FitMethodsContainer::getInstance()->get_methods();
     for (int i = 0; i < size(fm); ++i)
         fitting_method_enum[i] = fm[i]->name;
-    epar.insert (pair<string, EnumString>("fitting-method", 
-                                          EnumString(fitting_method_enum, 0)));
+    insert_enum("fitting-method", fitting_method_enum, 0);
 
     //  - common
     ipar["max-wssr-evaluations"] = 1000;
@@ -78,8 +80,20 @@ Settings::Settings()
     fpar["lm-lambda-down-factor"] = 10;
     fpar["lm-stop-rel-change"] = 1e-4;
     fpar["lm-max-lambda"] = 1e+15;
+
     //  - Nelder-Mead
-    //TODO
+    fpar["nm-convergence"] = 0.0001;
+    bpar["nm-move-all"] = false;
+
+    map<char, string> distrib_enum; 
+    distrib_enum ['u'] = "uniform";
+    distrib_enum ['g'] = "gauss";
+    distrib_enum ['l'] = "lorentz";
+    distrib_enum ['b'] = "bound";
+    insert_enum("nm-distribution", distrib_enum, 'b');
+
+    fpar["nm-move-factor"] = 1;
+
     //  - Genetic Algorithms
     //TODO
 }

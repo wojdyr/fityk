@@ -930,6 +930,8 @@ BEGIN_EVENT_TABLE(SettingsDlg, wxDialog)
     EVT_BUTTON (wxID_OK, SettingsDlg::OnOK)
 END_EVENT_TABLE()
 
+namespace {
+
 RealNumberCtrl *addRealNumberCtrl(wxWindow *parent, wxString const& label,
                                   string const& value, wxSizer *sizer,
                                   wxString const& label_after=wxString())
@@ -946,7 +948,34 @@ RealNumberCtrl *addRealNumberCtrl(wxWindow *parent, wxString const& label,
     sizer->Add(hsizer, 0, wxEXPAND);
     return ctrl;
 }
-                                  
+
+wxCheckBox *addCheckbox(wxWindow *parent, wxString const& label, 
+                        bool value, wxSizer *sizer)
+{
+    wxCheckBox *ctrl = new wxCheckBox(parent, -1, label);
+    ctrl->SetValue(value);
+    if (sizer)
+        sizer->Add(ctrl, 0, wxEXPAND);
+    return ctrl;
+}
+                              
+wxChoice *addEnumSetting(wxWindow *parent, wxString const& label, 
+                         string const& option, wxSizer* sizer)
+{
+    wxBoxSizer *siz = new wxBoxSizer(wxHORIZONTAL);
+    wxStaticText *st = new wxStaticText(parent, -1, label);
+    siz->Add(st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    wxChoice *ctrl = new wxChoice(parent, -1, 
+                                  wxDefaultPosition, wxDefaultSize,
+                                  stl2wxArrayString(
+                                      getSettings()->expand_enum(option)));
+    ctrl->SetStringSelection(s2wx(getSettings()->getp(option)));
+    siz->Add(ctrl, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    sizer->Add(siz, 0, wxEXPAND);
+    return ctrl;
+}
+
+} //anonymous namespace
     
 SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     : wxDialog(parent, id, wxT("Settings"),
@@ -981,9 +1010,10 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
                                 stl2wxArrayString(
                                       getSettings()->expand_enum("verbosity")));
     verbosity_ch->SetStringSelection(s2wx(getSettings()->getp("verbosity")));
-    exit_cb = new wxCheckBox(page_general, -1, 
-                             wxT("quit if error or warning was generated"));
-    exit_cb->SetValue(getSettings()->get_b("exit-on-warning"));
+    exit_cb = addCheckbox(page_general, 
+                          wxT("quit if error or warning was generated"),
+                          getSettings()->get_b("exit-on-warning"),
+                          0);
     wxStaticText *seed_st = new wxStaticText(page_general, -1,
                         wxT("pseudo-random generator seed (0 = time-based)"));
     seed_sp = new SpinCtrl(page_general, -1, 
@@ -1026,9 +1056,9 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
                             wxT("factor used to correct detected peak width"));
     width_correction = new RealNumberCtrl(page_peakfind, -1, 
                                  getSettings()->getp("width-correction"));
-    cancel_poos = new wxCheckBox(page_peakfind, -1, 
-                          wxT("cancel peak guess, if the result is doubtful"));
-    cancel_poos->SetValue(getSettings()->get_b("can-cancel-guess"));
+    cancel_poos = addCheckbox(page_peakfind, 
+                          wxT("cancel peak guess, if the result is doubtful"),
+                          getSettings()->get_b("can-cancel-guess"), 0);
     wxBoxSizer *sizer_pf = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizer_pf_hc = new wxBoxSizer(wxHORIZONTAL);
     sizer_pf_hc->Add(hc_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
@@ -1095,7 +1125,29 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
 
     
     // sub-page N-M
-    // TODO
+    wxBoxSizer *sizer_fnm = new wxBoxSizer(wxVERTICAL);
+
+    wxStaticBoxSizer *sizer_fnmini = new wxStaticBoxSizer(wxVERTICAL,
+                              page_fit_NM, wxT("simplex initialization"));
+
+    nm_move_all = addCheckbox(page_fit_NM, 
+                           wxT("randomize all vertices (otherwise on is left)"),
+                           getSettings()->get_b("nm-move-all"), sizer_fnmini);
+    nm_distrib = addEnumSetting(page_fit_NM, wxT("distribution type"), 
+                                "nm-distribution", sizer_fnmini);
+    nm_move_factor = addRealNumberCtrl(page_fit_NM, 
+                         wxT("factor by which domain is expanded"), 
+                         getSettings()->getp("nm-move-factor"), sizer_fnmini);
+    sizer_fnm->Add(sizer_fnmini, 0, wxEXPAND|wxALL, 5);
+
+    wxStaticBoxSizer *sizer_fnmstop = new wxStaticBoxSizer(wxVERTICAL,
+                                page_fit_NM, wxT("termination criteria"));
+    nm_convergence = addRealNumberCtrl(page_fit_NM, 
+                         wxT("worst and best relative difference"), 
+                         getSettings()->getp("nm-convergence"), sizer_fnmstop);
+    sizer_fnm->Add(sizer_fnmstop, 0, wxEXPAND|wxALL, 5);
+    add_persistence_note(page_fit_NM, sizer_fnm);
+    page_fit_NM->SetSizerAndFit(sizer_fnm);
     
     // sub-page GA
     // TODO
@@ -1191,6 +1243,10 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
     m["lm-lambda-down-factor"] = wx2s(lm_lambda_down->GetValue());
     m["lm-stop-rel-change"] = wx2s(lm_stop->GetValue());
     m["lm-max-lambda"] = wx2s(lm_max_lambda->GetValue());
+    m["nm-move-all"] = nm_move_all->GetValue() ? "1" : "0";
+    m["nm-distribution"] = wx2s(nm_distrib->GetStringSelection());
+    m["nm-move-factor"] = wx2s(nm_move_factor->GetValue());
+    m["nm-convergence"] = wx2s(nm_convergence->GetValue());
     vector<string> kk = getSettings()->expanp();
     for (vector<string>::const_iterator i = kk.begin(); i != kk.end(); ++i)
         if (m.count(*i) && m[*i] != getSettings()->getp(*i))

@@ -47,8 +47,7 @@ protected:
     fp wssr_before;
     std::vector<fp> a_orig;
     std::vector<bool> par_usage;
-    int na; //number of fitted parameters
-    std::map<char, std::string> Distrib_enum;
+    int na; ///number of fitted parameters
 
     virtual fp init() = 0; // called before autoiter()
     virtual void autoiter() = 0;

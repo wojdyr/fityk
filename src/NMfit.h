@@ -33,17 +33,13 @@ private:
     std::vector<Vertex> vertices;
     std::vector<Vertex>::iterator best, s_worst /*second worst*/, worst;
     std::vector<fp> coord_sum;
-    fp min_rel_diff;
-    bool move_all; 
-    char distrib_type;
-    fp move_mult;
     fp volume_factor;
 
     void find_best_worst();
     void change_simplex();
     fp try_new_worst (fp f);
     void compute_coord_sum();
-    bool termination_criteria (int iter);
+    bool termination_criteria (int iter, fp convergence);
     void compute_v (Vertex& v); 
 };
 
