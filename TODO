@@ -51,10 +51,10 @@
 
 // * settings: Nelder-Mead 
 
-* BUG: "$foo = {y[0]}" is not working now
+// * make this work:
+//  y[n]=y[n]-spline[x[1], y[1], x[5], y[5], x[325], y[325]](x)
 
-* make this somehow work:
-  y[n]=y[n]-spline[x[1], y[1], x[5], y[5], x[325], y[325]](x)
+* BUG: "$foo = {y[0]}" is not working now
 
 * auto-scaling should not include x/y=0, unless it's
   in, say, 20% plot margin. "[:]" is an exception and includes 0.

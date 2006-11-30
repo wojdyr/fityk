@@ -284,7 +284,7 @@ string dt_op(int op)
     OP_(DO_ONCE) OP_(RESIZE) OP_(ORDER) OP_(DELETE) OP_(BEGIN) OP_(END) 
     OP_(END_AGGREGATE) OP_(AGCONDITION) 
     OP_(AGSUM) OP_(AGMIN) OP_(AGMAX) OP_(AGAREA) OP_(AGAVG) OP_(AGSTDDEV)
-    OP_(PARAMETERIZED) OP_(PLIST_BEGIN) OP_(PLIST_END)
+    OP_(PARAMETERIZED) OP_(PLIST_BEGIN) OP_(PLIST_SEP) OP_(PLIST_END)
     OP_(FUNC) OP_(SUM_F) OP_(SUM_Z) OP_(NUMAREA) OP_(FINDX) OP_(FIND_EXTR)
     return S(op);
 };
@@ -1285,6 +1285,9 @@ void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
 {
     vector<fp> stack(stack_size);
     int M = (int) new_points.size();
+    for (vector<ParameterizedFunction*>::iterator i = parameterized.begin();
+            i != parameterized.end(); ++i)
+        (*i)->prepare_parameters(old_points);
     replace_aggregates(M, old_points, code, code.begin());
     // first execute one-time operations: sorting, x[15]=3, etc. 
     // n==M => one-time op.
@@ -1353,26 +1356,32 @@ bool is_data_dependent_expression(string const& s)
     return is_data_dependent_code(code);
 }
 
-
 fp get_transform_expression_value(string const &s, Data const* data)
 {
-    static vector<fp> stack(stack_size);
-    vector<Point> const no_points;
-    vector<Point> const& points = data ? data->points() : no_points;
     clear_parse_vecs();
     // First compile string... puts result into code etc.
     parse_info<> result = parse(s.c_str(), DataExpressionG, space_p);
     if (!result.full) 
         throw ExecuteError("Syntax error in expression: " + s);
+    vector<Point> const no_points;
     if (!data && is_data_dependent_code(code))
         throw ExecuteError("Expression depends on data points: " + s);
+    return get_transform_expr_value(code, data ? data->points() : no_points);
+}
+
+fp get_transform_expr_value(vector<int>& code_, vector<Point> const& points)
+{
+    static vector<fp> stack(stack_size);
     int M = (int) points.size();
     vector<Point> new_points = points;
-    replace_aggregates(M, points, code, code.begin());
+    for (vector<int>::const_iterator i = code_.begin(); i != code_.end(); ++i) 
+        if (*i == OP_PARAMETERIZED) 
+            parameterized[*(i+1)]->prepare_parameters(points);
+    replace_aggregates(M, points, code_, code_.begin());
     // n==M => one-time op.
-    bool t = execute_code(M, M, stack, points, new_points, code);
+    bool t = execute_code(M, M, stack, points, new_points, code_);
     if (t)  
-        throw ExecuteError("Expression depends on undefined `n' index: " + s);
+        throw ExecuteError("Expression depends on undefined `n' index.");
     return stack.front();
 }
 
@@ -1419,6 +1428,9 @@ vector<fp> get_all_point_expressions(string const &s, Data const* data,
     int M = (int) points.size();
     vector<Point> new_points = points;
     vector<fp> stack(stack_size);
+    for (vector<ParameterizedFunction*>::iterator i = parameterized.begin();
+            i != parameterized.end(); ++i)
+        (*i)->prepare_parameters(points);
     replace_aggregates(M, points, code, code.begin());
     for (int i = 0; i < M; ++i) {
         if (only_active && !points[i].is_active)

@@ -37,7 +37,7 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
 
     parameterized_args
         =  ch_p('[') [push_op(OP_PLIST_BEGIN)]
-            >> real_constant % ','
+            >> DataExpressionG % ch_p(',')[push_op(OP_PLIST_SEP)]
                 >>  ch_p(']') [push_op(OP_PLIST_END)]
                     >> '(' >> DataExpressionG >> ')'
         ;
@@ -65,8 +65,8 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
     rprec6 
         =   real_constant
         |   '(' >> DataExpressionG >> ')'
-            // sum will be refactored, see: replace_sums()
         |   DataExprFunG
+            // `aggregate functions' will be refactored in replace_aggregates()
         |   as_lower_d["sum"] [push_op(OP_AGSUM)]
             >> aggregate_arg
         |   as_lower_d["min"] [push_op(OP_AGMIN)] //"min" is after "min2"

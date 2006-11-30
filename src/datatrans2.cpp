@@ -11,12 +11,28 @@ using namespace datatrans;
 
 namespace datatrans {
 
+void ParameterizedFunction::prepare_parameters(vector<Point> const& points)
+{
+    for (map<int, vector<int> >::const_iterator i = pcodes.begin(); 
+            i != pcodes.end(); ++i) {
+        vector<int> code_ = i->second;
+        fp v = get_transform_expr_value(code_, points);
+        assert(is_index(i->first, params));
+        params[i->first] = v;
+    }
+    do_prepare();
+}
+
 //----------------------  Parameterized Functions -------------------------
 class InterpolateFunction : public ParameterizedFunction
 {
 public:
-    InterpolateFunction(vector<fp> &params) {
-        for (int i=0; i < size(params) - 1; i+=2)
+    InterpolateFunction(vector<fp> const& params_, 
+                        map<int, vector<int> > const& pcodes_) 
+        : ParameterizedFunction(params_, pcodes_) {}
+
+    void do_prepare() {
+        for (size_t i = 0; i < params.size() - 1; i += 2)
             bb.push_back(B_point(params[i], params[i+1]));
     }
 
@@ -30,8 +46,12 @@ private:
 class SplineFunction : public ParameterizedFunction
 {
 public:
-    SplineFunction(vector<fp> &params) {
-        for (int i=0; i < size(params) - 1; i+=2)
+    SplineFunction(vector<fp> const& params_, 
+                   map<int, vector<int> > const& pcodes_) 
+        : ParameterizedFunction(params_, pcodes_) {}
+
+    void do_prepare() {
+        for (size_t i = 0; i < params.size() - 1; i += 2)
             bb.push_back(B_point(params[i], params[i+1]));
         prepare_spline_interpolation(bb);
     }
@@ -64,10 +84,24 @@ void parameterized_op::push() const
     typedef vector<int>::iterator viit;
     viit first = find(code.begin(), code.end(), OP_PLIST_BEGIN);
     viit last = find(code.begin(), code.end(), OP_PLIST_END) + 1;
+    if (find(first+1, last, OP_PLIST_BEGIN) != last)
+        throw ExecuteError("Parametrized functions can not be nested.");
     vector<fp> params;
-    for (viit i=first; i != last; ++i) 
-        if (*i == OP_NUMBER) 
-            params.push_back(numbers[*++i]);
+    map<int, vector<int> > pcodes; //codes for parameters of eg. spline
+    viit start = first+1;
+    while (start != last) {
+        viit finish = find(start, last, OP_PLIST_SEP);
+        if (finish == last) 
+            finish = last-1; // at OP_PLIST_END
+        if (finish == start+3 && *start == OP_NUMBER) { //the most common case
+            params.push_back(numbers[*(start+1)]);
+        }
+        else {
+            pcodes[params.size()] = vector<int>(start, finish);
+            params.push_back(0.); //placeholder
+        }
+        start = finish+1;
+    }
     code.erase(first, last);
     code.push_back(OP_PARAMETERIZED); 
     code.push_back(size(parameterized));
@@ -75,10 +109,10 @@ void parameterized_op::push() const
     switch (op) {
         case PF_INTERPOLATE:
             //TODO shared_ptr
-            func = new InterpolateFunction(params);
+            func = new InterpolateFunction(params, pcodes);
             break;
         case PF_SPLINE:
-            func = new SplineFunction(params);
+            func = new SplineFunction(params, pcodes);
             break;
         default:
             assert(0);

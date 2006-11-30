@@ -29,9 +29,16 @@ namespace datatrans {
 class ParameterizedFunction
 {
 public:
-    ParameterizedFunction() {}
+    ParameterizedFunction(std::vector<fp> const& params_, 
+                          std::map<int, std::vector<int> > const& pcodes_) 
+        : params(params_), pcodes(pcodes_) {}
     virtual ~ParameterizedFunction() {}
     virtual fp calculate(fp x) = 0;
+    void prepare_parameters(std::vector<Point> const& points);
+    virtual void do_prepare() = 0;
+protected:
+    std::vector<fp> params;
+    std::map<int, std::vector<int> > pcodes;
 };
 
 
@@ -75,7 +82,7 @@ enum DataTransformVMOperator
     OP_DO_ONCE, OP_RESIZE, OP_ORDER, OP_DELETE, OP_BEGIN, OP_END, 
     OP_END_AGGREGATE, OP_AGCONDITION, 
     OP_AGSUM, OP_AGMIN, OP_AGMAX, OP_AGAREA, OP_AGAVG, OP_AGSTDDEV,
-    OP_PARAMETERIZED, OP_PLIST_BEGIN, OP_PLIST_END,
+    OP_PARAMETERIZED, OP_PLIST_BEGIN, OP_PLIST_SEP, OP_PLIST_END,
     OP_FUNC, OP_SUM_F, OP_SUM_Z, OP_NUMAREA, OP_FINDX, OP_FIND_EXTR
 };
 

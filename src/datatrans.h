@@ -20,6 +20,8 @@ bool validate_transformation(std::string const& str);
 bool validate_data_expression(std::string const& str);
 bool is_data_dependent_expression(std::string const& s);
 fp get_transform_expression_value(std::string const &s, Data const* data);
+fp get_transform_expr_value(std::vector<int>& code_, 
+                            std::vector<Point> const& points);
 std::vector<fp> get_all_point_expressions(std::string const &s, 
                                           Data const* data,
                                           bool only_active=true);
