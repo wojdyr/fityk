@@ -54,7 +54,18 @@
 // * make this work:
 //  y[n]=y[n]-spline[x[1], y[1], x[5], y[5], x[325], y[325]](x)
 
-* BUG: "$foo = {y[0]}" is not working now
+// * BUG: "$foo = {y[0]}" is not working now
+//   multiple dataset syntax: {y[0] in @1}
+
+* syntax enhancements: 
+//   info @0.filename, @0.title
+   @0.F[3] should access 4th function in @0.F; the same with Z
+   @0.F[-1] -> the last one
+
+* syntax changes: 
+//   replace %a[hwhm] with %a.hwhm; @n.F[hwhm] with @n.F.hwhm 
+   replace %f -> F with F += %f; %f -> N with F -= %f;
+//   deleted %f = ... -> F
 
 * auto-scaling should not include x/y=0, unless it's
   in, say, 20% plot margin. "[:]" is an exception and includes 0.
@@ -62,18 +73,23 @@
 * plot - there should be a way to zoom to show all datasets
 * GUI?: when loading many datasets from command line, set view to show all
 
-* syntax enhancements: @0.F[3] should access 4th function in @0.F
-                       ? "%a.hwhm" should mean the same as "%a[hwhm]"
-		       @0.F[2] should
-		       ? "info @*.F[0].area, @*.F[0].center"
-		       info @0.filename, @0.title
-
 ------------------ next release here 0.7.7
+* clean up verbosity levels of messages. There should be 6 kind of messages:
+  debug, vinfo (more verbose info), info, rinfo (explicitely requested info),
+  warning, error
+  and 7 levels of verbosity: debug, verbose, normal, terse, only-warnings,
+  only-errors, silent
 
 * build engine (everything but GUI/CLI interface) as a library
   with more or less documented API.
+    tentative basic API: 
+      int dataset_count();
+      string info(string const& s);
+      Command::Status execute(string const& s);
+      typedef void message_handler_func(OutputStyle style, string const& s);
+      void message_handler(message_handler_func);
 
-* CVS -> Subversion transition
+* ? CVS -> Subversion transition
 
 ------------------ next release here 0.8.0
 
@@ -85,6 +101,8 @@
   [IMPORTANT]
 
 ------------------ next release here 
+
+* (GUI) error bars for data
 
 * formula simplifications: "3/x" is changed to more complex "3*1/x"
 
@@ -115,12 +133,6 @@
 
 * (GUI) plot horizontal/vertical lines (X/Y | pos=2.34 | 100%)
      can be used to show theoretical peak positions in XRD
-
-* clean up verbosity levels of messages. There should be 6 kind of messages:
-  debug, vinfo (more verbose info), info, rinfo (explicitely requested info),
-  warning, error
-  and 7 levels of verbosity: debug, verbose, normal, terse, only-warnings,
-  only-errors, silent
 
 * [BUG]: program crashes (MS Win 9x) when data contains NaN (as a result
   of asin(x) x>1) and "Zoom all" is called.
@@ -238,4 +250,6 @@
   user-defined functions?
 
 * [BUG] (GUI) (MS Win) <br> does not work in vertical peak labels 
+
+* exporting formulae in MathML (when option formula-export-style == mathml)
 

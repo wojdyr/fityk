@@ -209,7 +209,13 @@ void do_print_info(char const* a, char const* b)
                 m += "\n@" + S(i) + ": " + AL->get_data(i)->get_title();
     }
     else if (s[0] == '@') {
-        m = AL->get_data(tmp_int)->getInfo();
+        Data const* data = AL->get_data(tmp_int);
+        if (s.find(".title") != string::npos)
+            m = data->get_title();
+        else if (s.find(".filename") != string::npos)
+            m = data->get_filename();
+        else
+            m = data->getInfo();
     }
     else if (s == "view") {
         m = AL->view.str();
@@ -249,6 +255,19 @@ void do_print_info(char const* a, char const* b)
             m += get_guess_info(*i, vr);
     }
     prepared_info += "\n" + m;
+}
+
+void do_print_func(char const*, char const*)
+{
+    Sum const* sum = AL->get_sum(ds_pref);
+    vector<string> const &names = (t2 == "F" ? sum->get_ff_names() 
+                                             : sum->get_zz_names());
+    if (tmp_int < 0)
+        tmp_int += names.size();
+    if (is_index(tmp_int, names))
+        prepared_info += "\n" + names[tmp_int];
+    else
+        prepared_info += "\nNot found.";
 }
 
 void do_print_sum_info(char const* a, char const* b)
@@ -487,11 +506,15 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         | (no_actions_d[DataExpressionG][assign_a(t2)] 
              >> in_data) [&do_print_data_expr]
         | FunctionLhsG [&do_print_info]
-        | ds_prefix >> (ch_p('F')|'Z') [&do_print_sum_info]
+        | ds_prefix >> (str_p("F")|"Z")[assign_a(t2)] 
+          >> ( ('[' >> int_p [assign_a(tmp_int)] >> ']') [&do_print_func] 
+             | eps_p [&do_print_sum_info]
+             )
         | (ds_prefix >> str_p("dF") >> '(' 
            >> no_actions_d[DataExpressionG][assign_a(t2)] 
            >> ')') [&do_print_sum_derivatives_info]
-        | existing_dataset_nr [&do_print_info]
+        | (existing_dataset_nr 
+                >> (str_p(".filename") | ".title" | eps_p)) [&do_print_info]
         | "debug" >> compact_str [&do_print_debug_info] //no output_redir
         | "der " >> any_string  [&do_print_deriv]
         | eps_p [&do_print_info] 

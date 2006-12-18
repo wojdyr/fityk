@@ -108,18 +108,18 @@ struct push_the_double: public push_double
 };
 
 #ifndef STANDALONE_DATATRANS
-struct push_the_var: public push_double
+struct push_var: public push_double
 {
     void operator()(char const* a, char const* b) const 
      { push_double::operator()(AL->find_variable(string(a+1,b))->get_value()); }
 };
 
-struct push_the_func_param: public push_double
+struct push_func_param: public push_double
 {
     void operator()(char const* a, char const* b) const;
 };
 
-struct push_the_func
+struct push_func
 {
     void operator()(char const* a, char const* b) const;
 };

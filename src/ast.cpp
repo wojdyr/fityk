@@ -751,16 +751,21 @@ fp get_constant_value(string const &s)
         assert(*(s.end()-1) == '}');
         string expr(s.begin()+1, s.end()-1);
         Data const* data = 0;
-        string::size_type in_pos = s.find(" in ");
-        if (in_pos != string::npos) {
+        string::size_type in_pos = expr.find(" in ");
+        if (in_pos != string::npos && in_pos+4 < expr.size()) {
+            string in_expr(expr, in_pos+4);
             int n;
-            expr.resize(in_pos);
-            string in_expr(expr, in_pos);
-            if (!parse(in_expr.c_str(), 
-                       "in" >> lexeme_d['@' >> uint_p[assign_a(n)]]).full)
-                throw ExecuteError("Syntax error in: " + in_expr);
-            data = AL->get_data(n);
+            if (parse(in_expr.c_str(), 
+                      *ch_p(' ') >> '@' >> uint_p[assign_a(n)] >> *ch_p(' ')
+                     ).full) {
+                data = AL->get_data(n);
+                expr.resize(in_pos);
+            }
+            else
+                throw ExecuteError("Syntax error near: `" + in_expr + "'");
         }
+        else if (AL->get_ds_count() == 1)
+            data = AL->get_data(0);
         return get_transform_expression_value(expr, data);
     }
     else

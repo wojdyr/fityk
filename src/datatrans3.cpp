@@ -30,8 +30,8 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
         |  as_lower_d["true"] [push_the_double(1.)]
         |  as_lower_d["false"] [push_the_double(0.)]
 #ifndef STANDALONE_DATATRANS
-        |  VariableLhsG [push_the_var()]
-        |  (FunctionLhsG >> '[' >> +alnum_p >> ']')[push_the_func_param()]
+        |  VariableLhsG [push_var()]
+        |  (FunctionLhsG >> lexeme_d['.' >> +(alnum_p|'_')])[push_func_param()]
 #endif //not STANDALONE_DATATRANS
         ;
 

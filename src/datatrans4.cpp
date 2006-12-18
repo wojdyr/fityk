@@ -50,16 +50,16 @@ DataExprFunGrammar::definition<ScannerT>::definition(
         |   (as_lower_d["randuniform"] >> '(' >> DataExpressionG >> ',' 
                               >> DataExpressionG >> ')') [push_op(OP_RANDU)] 
 #ifndef STANDALONE_DATATRANS
-        |   (func_or_f_or_z >> '(' >> DataExpressionG >> ')') [push_the_func()]
+        |   (func_or_f_or_z >> '(' >> DataExpressionG >> ')') [push_func()]
         |   as_lower_d["numarea"] >> '(' >> (func_or_f_or_z >> ',' 
                 >> DataExpressionG >> ',' >> DataExpressionG >> ',' 
-                >> DataExpressionG >> ')')[push_op(OP_NUMAREA)][push_the_func()]
+                >> DataExpressionG >> ')') [push_op(OP_NUMAREA)] [push_func()]
         |   as_lower_d["findx"] >> '(' >> (func_or_f_or_z >> ',' 
                 >> DataExpressionG >> ',' >> DataExpressionG >> ',' 
-                >> DataExpressionG >> ')')[push_op(OP_FINDX)][push_the_func()]
+                >> DataExpressionG >> ')') [push_op(OP_FINDX)] [push_func()]
         |   as_lower_d["extremum"] >> '(' >> (func_or_f_or_z >> ',' 
                 >> DataExpressionG >> ',' >> DataExpressionG >> ')')
-                                      [push_op(OP_FIND_EXTR)][push_the_func()]
+                                      [push_op(OP_FIND_EXTR)] [push_func()]
 #endif //not STANDALONE_DATATRANS
         ;
 }

@@ -121,7 +121,7 @@ void parameterized_op::push() const
 }
 
 #ifndef STANDALONE_DATATRANS
-void push_the_func::operator()(char const* a, char const* b) const
+void push_func::operator()(char const* a, char const* b) const
 { 
     string t(a, b);
     if (t[0] == '%') {
@@ -149,14 +149,13 @@ void push_the_func::operator()(char const* a, char const* b) const
     }
 }
 
-void push_the_func_param::operator()(char const* a, char const* b) const 
+void push_func_param::operator()(char const* a, char const* b) const 
 { 
     string t(a, b);
     assert(t[0] == '%');
-    int left_b = t.find("[");
-    int right_b = t.find("]");
-    string fstr = strip_string(string(t, 1, left_b-1));
-    string pstr = strip_string(string(t, left_b+1, right_b-left_b-1));
+    int dot = t.find(".");
+    string fstr = strip_string(string(t, 1, dot-1));
+    string pstr = strip_string(string(t, dot+1));
     push_double::operator()(AL->find_function(fstr)->get_param_value(pstr)); 
 }
 #endif //not STANDALONE_DATATRANS

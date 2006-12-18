@@ -13,6 +13,13 @@
  * <a href="http://cvs.sourceforge.net/viewcvs.py/fityk/fityk/TODO?view=markup">
  * TODO</a> file.
  * \par
+ * Fityk is using Boost::Spirit for parsing commands and data transformations.
+ * The grammar of commands is in cmd* files. Unfortunatelly, it was necessary
+ * to split grammar into several files. Otherwise, compilation would require
+ * gigabytes of memory. Some grammar rules are repeated in two or more files.
+ * Data transformation grammar can be found in datatrans* files.
+ *
+ * \par
  * Marcin Wojdyr
  */
 

@@ -1363,9 +1363,10 @@ fp get_transform_expression_value(string const &s, Data const* data)
     parse_info<> result = parse(s.c_str(), DataExpressionG, space_p);
     if (!result.full) 
         throw ExecuteError("Syntax error in expression: " + s);
-    vector<Point> const no_points;
     if (!data && is_data_dependent_code(code))
-        throw ExecuteError("Expression depends on data points: " + s);
+        throw ExecuteError("Dataset is not specified and the expression "
+                           "depends on it: " + s);
+    vector<Point> const no_points;
     return get_transform_expr_value(code, data ? data->points() : no_points);
 }
 

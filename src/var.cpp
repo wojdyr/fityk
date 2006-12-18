@@ -175,7 +175,7 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
     //  Start grammar definition
     real_const  =  leaf_node_d[   real_p 
                                |  as_lower_d[str_p("pi")] 
-                               | '{' >> +~ch_p('}') >> '}' 
+                               |  '{' >> lexeme_d[+~ch_p('}') >> '}'] 
                               ];
 
     //"x" only in functions
@@ -184,7 +184,7 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
     variable    = leaf_node_d[lexeme_d['$' >> +(alnum_p | '_')]]
                 | leaf_node_d[lexeme_d['~' >> real_p] 
                               >> !('[' >> !real_p >> "+-" >> real_p >> ']')]
-                | leaf_node_d["~{" >> +~ch_p('}') >> '}'
+                | leaf_node_d["~{" >> lexeme_d[+~ch_p('}') >> '}']
                               >> !('[' >> !real_p >> "+-" >> real_p >> ']')]
                 // using FunctionLhsG causes crash 
                 | leaf_node_d[lexeme_d["%" >> +(alnum_p | '_')] //FunctionLhsG 

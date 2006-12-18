@@ -132,10 +132,3 @@ int GnuPlot::plot()
     return 0;
 }
 
-void GnuPlot::raw_command(char *command) 
-{
-    fprintf (gnuplot_pipe, "%s\n", command);
-    fflush(gnuplot_pipe);
-}
-
-

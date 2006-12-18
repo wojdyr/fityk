@@ -39,14 +39,12 @@ void do_assign_var(char const* a, char const* b)
 void do_assign_func(char const*, char const*)
 {
     t = AL->assign_func(t, t2, vt);
-    vt = vector1(t); //for do_put_function()
     outdated_plot=true;  //TODO only if function in @active
 }
 
 void do_assign_func_copy(char const*, char const*)
 {
     t = AL->assign_func_copy(t, t2);
-    vt = vector1(t); //for do_put_function()
     outdated_plot=true;  //TODO only if function in @active
 }
 
@@ -66,12 +64,21 @@ void do_subst_func_param(char const* a, char const* b)
     outdated_plot=true;  //TODO only if...
 }
 
-void do_put_function(char const* a, char const*)
+void do_get_func_by_idx(char const* a, char const*)
 {
+    Sum const* sum = AL->get_sum(ds_pref);
+    assert (*a == 'F' || *a == 'Z');
+    std::vector<std::string> const& names = (*a == F ? sum->get_ff_names()
+                                                     : sum->get_zz_names());
+    int idx = (tmp_int >= 0 : tmp_int : tmp_int + names.size());
+    if (!is_index(idx, names))
+        throw ExecuteError("There is no item with index " + S(tmp_int));
+    t = names[idx];
+}
+
     for (vector<string>::const_iterator i = vt.begin(); i != vt.end(); ++i)
         AL->get_sum(ds_pref)->add_function_to(*i, *a);
     outdated_plot=true;  //TODO only if...
-}
 
 void do_fz_assign(char const*, char const*)
 {
@@ -174,6 +181,56 @@ struct CmdGrammar : public grammar<CmdGrammar>
             = lexeme_d[alpha_p >> *(alnum_p | '_')]
             ;
 
+        subst_func_param
+            = (ds_prefix >> (ch_p('F')|'Z')[assign_a(t)]
+              | FunctionLhsG [assign_a(t)]
+              )
+              >> "." >> function_param [assign_a(t2)]
+              >> "=" >> no_actions_d[FuncG] [&do_subst_func_param]
+            ;
+
+        func_id 
+            = FunctionLhsG [assign_a(t)]
+            | ds_prefix >> ((str_p("F[")|"Z[") >> int_p[assign_a(tmp_int)] 
+              >> ch_p(']')) [&do_get_func_by_idx]
+            ;
+
+        new_func_rhs  //assigns function name to `t'
+            =  func_id 
+            | (type_name [assign_a(t2)]
+                  >> str_p("(") [clear_a(vt)] 
+                  >> !(
+                       (!(function_param >> "=") >> no_actions_d[FuncG])
+                                                             [push_back_a(vt)] 
+                          % ','
+                      )
+                  >> str_p(")") [&do_assign_func]
+            | "copy(" >> func_id >> str_p(")") [&do_assign_func_copy]
+            ;
+
+        assign_func
+            = FunctionLhsG [assign_a(t)] >> '=' >> new_func_rhs
+            ;
+
+        assign_fz 
+            = ds_prefix [assign_a(, ds_pref)] 
+              >> (str_p("F")|"Z") [assign_a()] 
+              >> ( str_p("+=") [assign_a(with_plus, true_)]
+                 | str_p("=") [assign_a(with_plus, false_)] 
+                 ) 
+              >> (('0' //nothing
+                  | ds_prefix >> "copy(" >> (str_p("F")|"Z") [&add_fz_copy] 
+                    >> ")"
+                  | ds_prefix >> (str_p("F")|"Z") [&add_fz_links]
+                  | new_func_rhs [push_back_a(t, vr)] 
+                  )  % '+') [&do_assign_fz]
+            ;
+
+        remove_from_fz
+            = ds_prefix >> ((ch_p('F')|'Z') >>  "-=" >> func_id) 
+                                                         [&do_remove_from_fz]
+            ;
+/*
         assign_func
             = (FunctionLhsG [assign_a(t)] >> '=' 
               | eps_p [assign_a(t, empty)]
@@ -189,29 +246,15 @@ struct CmdGrammar : public grammar<CmdGrammar>
                  | str_p("copy(") >> FunctionLhsG [assign_a(t2)] 
                    >> str_p(")") [&do_assign_func_copy]
                  )
-              >> !put_func_to
-            ;
-
-        subst_func_param
-            = (ds_prefix >> (ch_p('F')|'Z')[assign_a(t)]
-              | FunctionLhsG [assign_a(t)]
-              )
-              >> "[" >> function_param [assign_a(t2)]
-              >> "]" >> "="
-              >> no_actions_d[FuncG][&do_subst_func_param]
             ;
 
         put_function
             = FunctionLhsG[clear_a(vt)] [push_back_a(vt)] 
               >> *("," >> FunctionLhsG [push_back_a(vt)])
-              >> put_func_to
+              >> "->" >> ds_prefix >> (ch_p('F')|'Z'|'N')[&do_put_function]
             ;
 
-        put_func_to
-            = "->" >> ds_prefix >> (ch_p('F')|'Z'|'N')[&do_put_function]
-            ;
-
-        fz_assign
+        assign_fz
             = ds_prefix >> (ch_p('F')|'Z') [assign_a(t)] 
               >> ch_p('=') [clear_a(vt)] [assign_a(t2, empty)]
               >> ("copy(" >> lexeme_d['@' >> uint_p [assign_a(tmp_int)]
@@ -226,6 +269,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
                  | '0'
                  ) [&do_fz_assign]
             ;
+*/
 
         ds_prefix
             = lexeme_d['@' >> uint_p [assign_a(ds_pref)] 
@@ -266,7 +310,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
             | subst_func_param 
             | assign_func 
             | put_function
-            | fz_assign
+            | assign_fz
             | define_func 
             | (optional_suffix_p("undef","ine")[clear_a(vt)] 
                >> type_name[push_back_a(vt)] 
@@ -282,9 +326,9 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
     }
 
-    rule<ScannerT> assign_var, type_name, assign_func, 
+    rule<ScannerT> assign_var, type_name, func_id, assign_func, 
                    function_param, subst_func_param, put_function, 
-                   put_func_to, fz_assign, define_func,
+                   assign_fz, define_func,
                    ds_prefix, compact_str, temporary_set, statement, multi;  
 
     rule<ScannerT> const& start() const { return multi; }

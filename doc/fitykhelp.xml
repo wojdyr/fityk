@@ -889,7 +889,8 @@
        </textobject>
       </inlinemediaobject>  
      </inlineequation>
-     . Note that the same z(x) is used in all functions.
+     . Note that the same <firstterm>x-correction</firstterm> z(x) 
+     is used in all functions f<subscript>i</subscript>.
     </para>
     <para>
      Now we will have a closer look at f<subscript>i</subscript> functions. 
@@ -1193,8 +1194,9 @@
      The sum is constructed by specifying which functions are in F and which in Z.
     </para>
     <para>
-     In many cases Z can safely be ignored. The fitted curve is thus the sum of all
-     functions in F. These functions can be listed with  
+     In many cases <firstterm>x-correction</firstterm> Z can safely be ignored.
+     The fitted curve is thus the sum of all functions in F. These functions
+     can be listed with  
      <command>info F</command>.
     </para>
     <para>

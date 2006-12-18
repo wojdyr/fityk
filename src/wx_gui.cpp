@@ -1774,7 +1774,7 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     AddRadioTool(ID_ft_m_range, wxT("Range"), 
                  wxBitmap(active_mode_xpm), wxNullBitmap, 
                  wxT("Data-Range Mode"), 
-                 wxT("Use mouse for activating and disactivating data")); 
+                 wxT("Use mouse for activating and disactivating data (try also with [Shift])")); 
     ToggleTool(ID_ft_m_range, m == mmd_range);
     AddRadioTool(ID_ft_m_bg, wxT("Background"), 
                  wxBitmap(bg_mode_xpm), wxNullBitmap, 

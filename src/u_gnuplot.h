@@ -13,7 +13,6 @@ public:
     GnuPlot();
     ~GnuPlot();
     int plot();
-    void raw_command(char *command);// no syntax checking
     static char path_to_gnuplot[] ; 
 
 private:
