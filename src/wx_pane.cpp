@@ -622,8 +622,9 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     data_spin_sizer->Add(dpsize_sc, 0);
     // line between points
     dpline_cb = new wxCheckBox(data_page, ID_DP_PLINE, wxT("line"));
-    data_spin_sizer->Add(dpline_cb, 0);
+    data_spin_sizer->Add(dpline_cb, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
     // shift-up spin button
+    data_spin_sizer->AddStretchSpacer();
     data_spin_sizer->Add(new wxStaticBitmap(data_page, -1, 
                                             wxBitmap(shiftup_xpm)), 
                          0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);

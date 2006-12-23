@@ -1053,9 +1053,9 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
                                           : "F";
         if (func_draft_kind == fk_linear) {
             fp y = Y2y(event.GetY());
-            exec_command(frame->get_peak_type()  
+            exec_command(F + " += " + frame->get_peak_type()  
                          + "(slope=~" + S(0) + ", intercept=~" + S(y) 
-                         + ", avgy=~" + S(y) + ") -> " + F);
+                         + ", avgy=~" + S(y) + ")");
         }
         else {
             if (dist_X + dist_Y >= 5) {
@@ -1063,10 +1063,9 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
                 fp center = X2x(mouse_press_X);
                 fp fwhm = fabs(shared.dX2dx(mouse_press_X - event.GetX()));
                 fp area = height * fwhm;
-                exec_command(frame->get_peak_type()  
+                exec_command(F + " += " + frame->get_peak_type()  
                          + "(height=~" + S(height) + ", center=~" + S(center) 
-                         + ", fwhm=~" + S(fwhm) + ", area=~" + S(area) 
-                         + ") -> " + F);
+                         + ", fwhm=~" + S(fwhm) + ", area=~" + S(area) + ")");
             }
         }
     }

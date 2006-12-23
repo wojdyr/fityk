@@ -172,6 +172,8 @@ define Bleh(a) = Linear(0, a)
 %bleh = Bleh(~{pi})
 i+ Bleh, %bleh
 del %bleh
+#TODO def Foo(a,b,c)= ....formula...
+
 info commands[2:5]
 info commands[8]
 info commands+[8]

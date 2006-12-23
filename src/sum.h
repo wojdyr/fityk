@@ -23,6 +23,7 @@ public:
     ~Sum();
     void find_function_indices();
     void add_function_to(std::string const &name, char add_to);
+    void remove_function_from(std::string const &name, char add_to);
     void remove_all_functions_from(char rm_from);
     fp value(fp x) const;
     void calculate_sum_value(std::vector<fp> &x, std::vector<fp> &y) const; 
@@ -45,6 +46,10 @@ public:
     std::vector<int> const& get_zz_idx() const { return zz_idx; }
     std::vector<std::string> const &get_ff_names() const { return ff_names; }
     std::vector<std::string> const &get_zz_names() const { return zz_names; }
+    std::vector<std::string> const &get_names(char c) const 
+        { assert(c=='F' || c=='Z'); return (c == 'F' ? ff_names : zz_names); }
+    std::vector<int> const &get_indices(char c) const 
+        { assert(c=='F' || c=='Z'); return (c == 'F' ? ff_idx : zz_idx); }
     bool has_any_info() const { return !ff_names.empty() || !zz_names.empty(); }
     fp numarea(fp x1, fp x2, int nsteps) const;
     bool is_dependent_on_var(int idx) const;

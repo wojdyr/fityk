@@ -32,7 +32,7 @@ using namespace std;
 namespace cmdgram {
 
 bool with_plus, deep_cp;
-string t, t2, output_redir;
+string t, t2, t3, output_redir;
 string prepared_info;
 bool info_append;
 int tmp_int, tmp_int2, ds_pref;
@@ -259,9 +259,7 @@ void do_print_info(char const* a, char const* b)
 
 void do_print_func(char const*, char const*)
 {
-    Sum const* sum = AL->get_sum(ds_pref);
-    vector<string> const &names = (t2 == "F" ? sum->get_ff_names() 
-                                             : sum->get_zz_names());
+    vector<string> const &names = AL->get_sum(ds_pref)->get_names(t2[0]);
     if (tmp_int < 0)
         tmp_int += names.size();
     if (is_index(tmp_int, names))
@@ -270,14 +268,11 @@ void do_print_func(char const*, char const*)
         prepared_info += "\nNot found.";
 }
 
-void do_print_sum_info(char const* a, char const* b)
+void do_print_sum_info(char const*, char const*)
 {
-    string s = string(a,b);
-    string m;
-    Sum const* sum = AL->get_sum(ds_pref);
-    m = s + ": "; 
-    vector<int> const &idx = (s == "F" ? sum->get_ff_idx() : sum->get_zz_idx());
-    for (vector<int>::const_iterator i = idx.begin(); i != idx.end(); ++i){
+    string m = t2 + ": "; 
+    vector<int> const &idx = AL->get_sum(ds_pref)->get_indices(t2[0]);
+    for (vector<int>::const_iterator i = idx.begin(); i != idx.end(); ++i) {
         Function const* f = AL->get_function(*i);
         if (with_plus)
             m += "\n" + f->get_info(AL->get_variables(), AL->get_parameters());

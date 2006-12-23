@@ -38,23 +38,21 @@ void do_assign_var(char const* a, char const* b)
 
 void do_assign_func(char const*, char const*)
 {
-    t = AL->assign_func(t, t2, vt);
+    t = AL->assign_func(t2, t, vt);
     outdated_plot=true;  //TODO only if function in @active
 }
 
 void do_assign_func_copy(char const*, char const*)
 {
-    t = AL->assign_func_copy(t, t2);
+    t = AL->assign_func_copy(t2, t);
     outdated_plot=true;  //TODO only if function in @active
 }
 
 
 void do_subst_func_param(char const* a, char const* b)
 {
-    if (t == "F" || t == "Z") {
-        Sum const* sum = AL->get_sum(ds_pref);
-        vector<string> const &names = (t == "F" ? sum->get_ff_names() 
-                                                : sum->get_zz_names());
+    if (t == "F" || t == "Z") { 
+        vector<string> const &names = AL->get_sum(ds_pref)->get_names(t[0]);
         for (vector<string>::const_iterator i = names.begin(); 
                                                    i != names.end(); ++i)
             AL->substitute_func_param(*i, t2, string(a,b));
@@ -66,37 +64,41 @@ void do_subst_func_param(char const* a, char const* b)
 
 void do_get_func_by_idx(char const* a, char const*)
 {
-    Sum const* sum = AL->get_sum(ds_pref);
-    assert (*a == 'F' || *a == 'Z');
-    std::vector<std::string> const& names = (*a == F ? sum->get_ff_names()
-                                                     : sum->get_zz_names());
-    int idx = (tmp_int >= 0 : tmp_int : tmp_int + names.size());
+    vector<string> const &names = AL->get_sum(ds_pref)->get_names(*a);
+    int idx = (tmp_int >= 0 ? tmp_int : tmp_int + names.size());
     if (!is_index(idx, names))
         throw ExecuteError("There is no item with index " + S(tmp_int));
     t = names[idx];
 }
 
-    for (vector<string>::const_iterator i = vt.begin(); i != vt.end(); ++i)
-        AL->get_sum(ds_pref)->add_function_to(*i, *a);
-    outdated_plot=true;  //TODO only if...
-
-void do_fz_assign(char const*, char const*)
+void do_assign_fz(char const*, char const*) 
 {
-    Sum* sum = AL->get_sum(ds_pref);
-    sum->remove_all_functions_from(t[0]);
-    for (vector<string>::const_iterator i = vt.begin(); i != vt.end(); ++i)
-        sum->add_function_to(*i, t[0]);
-    if (!t2.empty()) {
-        assert(t2 == "F" || t2 == "Z");
-        Sum const* from_sum = AL->get_sum(tmp_int);
-        vector<string> const &names = (t2 == "F" ? from_sum->get_ff_names() 
-                                                 : from_sum->get_zz_names());
-        for (vector<string>::const_iterator i = names.begin(); 
-                                                   i != names.end(); ++i) {
-            sum->add_function_to(deep_cp ? AL->assign_func_copy("", *i) : *i, 
-                                 t[0]);
-        }
-    }
+    Sum* sum = AL->get_sum(tmp_int2);
+    assert(t3 == "F" || t3 == "Z");
+    if (!with_plus)
+        sum->remove_all_functions_from(t3[0]);
+    for (vector<string>::const_iterator i = vr.begin(); i != vr.end(); ++i)
+        sum->add_function_to(*i, t3[0]);
+    outdated_plot=true;  //TODO only if ds_pref == @active
+}
+
+void add_fz_copy(char const* a, char const*)
+{
+    vector<string> const &names = AL->get_sum(ds_pref)->get_names(*a);
+    for (vector<string>::const_iterator i=names.begin(); i != names.end(); ++i)
+        vr.push_back(AL->assign_func_copy("", *i));
+}
+
+void add_fz_links(char const* a, char const*)
+{
+    vector<string> const &names = AL->get_sum(ds_pref)->get_names(*a);
+    vr.insert(vr.end(), names.begin(), names.end());
+}
+
+void do_remove_from_fz(char const* a, char const*)
+{
+    assert(*a == 'F' || *a == 'Z');
+    AL->get_sum(ds_pref)->remove_function_from(t, *a);
     outdated_plot=true;  //TODO only if ds_pref == @active
 }
 
@@ -182,22 +184,22 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         subst_func_param
-            = (ds_prefix >> (ch_p('F')|'Z')[assign_a(t)]
+            = (ds_prefix >> (str_p("F")|"Z")[assign_a(t)]
               | FunctionLhsG [assign_a(t)]
               )
               >> "." >> function_param [assign_a(t2)]
               >> "=" >> no_actions_d[FuncG] [&do_subst_func_param]
             ;
 
-        func_id 
+        func_id  // stores the function name in `t'
             = FunctionLhsG [assign_a(t)]
             | ds_prefix >> ((str_p("F[")|"Z[") >> int_p[assign_a(tmp_int)] 
               >> ch_p(']')) [&do_get_func_by_idx]
             ;
 
         new_func_rhs  //assigns function name to `t'
-            =  func_id 
-            | (type_name [assign_a(t2)]
+            = func_id 
+            | type_name [assign_a(t)] 
                   >> str_p("(") [clear_a(vt)] 
                   >> !(
                        (!(function_param >> "=") >> no_actions_d[FuncG])
@@ -209,20 +211,21 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         assign_func
-            = FunctionLhsG [assign_a(t)] >> '=' >> new_func_rhs
+            = FunctionLhsG [assign_a(t2)] >> '=' >> new_func_rhs
             ;
 
         assign_fz 
-            = ds_prefix [assign_a(, ds_pref)] 
-              >> (str_p("F")|"Z") [assign_a()] 
+            = ds_prefix [assign_a(tmp_int2, ds_pref)] 
+              >> (str_p("F")|"Z") [assign_a(t3)] 
               >> ( str_p("+=") [assign_a(with_plus, true_)]
                  | str_p("=") [assign_a(with_plus, false_)] 
-                 ) 
+                 ) [clear_a(vr)]
               >> (('0' //nothing
-                  | ds_prefix >> "copy(" >> (str_p("F")|"Z") [&add_fz_copy] 
+                  | "copy(" >> ds_prefix >> (str_p("F")|"Z") [&add_fz_copy] 
                     >> ")"
                   | ds_prefix >> (str_p("F")|"Z") [&add_fz_links]
-                  | new_func_rhs [push_back_a(t, vr)] 
+                  | eps_p [assign_a(t2, empty)]
+                    >> new_func_rhs [push_back_a(vr, t)] 
                   )  % '+') [&do_assign_fz]
             ;
 
@@ -230,47 +233,6 @@ struct CmdGrammar : public grammar<CmdGrammar>
             = ds_prefix >> ((ch_p('F')|'Z') >>  "-=" >> func_id) 
                                                          [&do_remove_from_fz]
             ;
-/*
-        assign_func
-            = (FunctionLhsG [assign_a(t)] >> '=' 
-              | eps_p [assign_a(t, empty)]
-              )
-              >> (type_name [assign_a(t2)]
-                  >> str_p("(")[clear_a(vt)] 
-                  >> !(
-                       (!(function_param >> "=") >> no_actions_d[FuncG])
-                                                             [push_back_a(vt)] 
-                          % ','
-                      )
-                  >> str_p(")") [&do_assign_func]
-                 | str_p("copy(") >> FunctionLhsG [assign_a(t2)] 
-                   >> str_p(")") [&do_assign_func_copy]
-                 )
-            ;
-
-        put_function
-            = FunctionLhsG[clear_a(vt)] [push_back_a(vt)] 
-              >> *("," >> FunctionLhsG [push_back_a(vt)])
-              >> "->" >> ds_prefix >> (ch_p('F')|'Z'|'N')[&do_put_function]
-            ;
-
-        assign_fz
-            = ds_prefix >> (ch_p('F')|'Z') [assign_a(t)] 
-              >> ch_p('=') [clear_a(vt)] [assign_a(t2, empty)]
-              >> ("copy(" >> lexeme_d['@' >> uint_p [assign_a(tmp_int)]
-                                      >> '.' >> (ch_p('F')|'Z') [assign_a(t2)]
-                                     ] 
-                    >> ch_p(')') [assign_a(deep_cp, true_)]
-                 |  lexeme_d['@' >> uint_p [assign_a(tmp_int)]
-                             >> '.' >> (ch_p('F')|'Z') [assign_a(t2)]
-                            ] [assign_a(deep_cp, false_)]
-                 | (FunctionLhsG [push_back_a(vt)] 
-                     % ',')
-                 | '0'
-                 ) [&do_fz_assign]
-            ;
-*/
-
         ds_prefix
             = lexeme_d['@' >> uint_p [assign_a(ds_pref)] 
                >> '.']
@@ -309,8 +271,8 @@ struct CmdGrammar : public grammar<CmdGrammar>
             | assign_var 
             | subst_func_param 
             | assign_func 
-            | put_function
             | assign_fz
+            | remove_from_fz
             | define_func 
             | (optional_suffix_p("undef","ine")[clear_a(vt)] 
                >> type_name[push_back_a(vt)] 
@@ -326,9 +288,9 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
     }
 
-    rule<ScannerT> assign_var, type_name, func_id, assign_func, 
-                   function_param, subst_func_param, put_function, 
-                   assign_fz, define_func,
+    rule<ScannerT> assign_var, type_name, func_id, new_func_rhs, assign_func, 
+                   function_param, subst_func_param, 
+                   assign_fz, remove_from_fz, define_func,
                    ds_prefix, compact_str, temporary_set, statement, multi;  
 
     rule<ScannerT> const& start() const { return multi; }

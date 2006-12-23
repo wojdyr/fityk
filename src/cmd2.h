@@ -22,7 +22,7 @@ class DataWithSum;
 namespace cmdgram {
 
 extern bool with_plus, deep_cp;
-extern std::string t, t2;
+extern std::string t, t2, t3;
 extern int tmp_int, tmp_int2, ds_pref;
 extern double tmp_real, tmp_real2;
 extern std::vector<std::string> vt, vr;

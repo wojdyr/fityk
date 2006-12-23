@@ -63,23 +63,47 @@ bool Sum::is_dependent_on_var(int idx) const
     return false;
 }
 
-void Sum::add_function_to(string const &name, char add_to)
+void Sum::remove_all_functions_from(char rm_from)
+{
+    assert(rm_from == 'F' || rm_from == 'Z');
+    if (rm_from == 'F') {
+        ff_names.clear();
+        ff_idx.clear();
+    }
+    else { // (rm_from == 'Z') 
+        zz_names.clear();
+        zz_idx.clear();
+    }
+}
+
+void Sum::remove_function_from(string const &name, char rm_from)
 {
     string only_name = !name.empty() && name[0]=='%' ? string(name,1) : name;
     // first remove function if it is already in ff or zz
-    for (int i = 0; i < size(ff_names); ++i)
-        if (ff_names[i] == only_name) {
-            ff_names.erase(ff_names.begin() + i);
-            ff_idx.erase(ff_idx.begin() + i);
-        }
-    for (int i = 0; i < size(zz_names); ++i)
-        if (zz_names[i] == only_name) {
-            zz_names.erase(zz_names.begin() + i);
-            zz_idx.erase(zz_idx.begin() + i);
-        }
+    int idx = index_of_element(get_names(rm_from), only_name);
+    if (idx == -1)
+        throw ExecuteError("function %" + only_name + " is not in " + rm_from);
+    if (rm_from == 'F') {
+        ff_names.erase(ff_names.begin() + idx);
+        ff_idx.erase(ff_idx.begin() + idx);
+    }
+    else { // (rm_from == 'Z') 
+        zz_names.erase(zz_names.begin() + idx);
+        zz_idx.erase(zz_idx.begin() + idx);
+    }
+}
+
+void Sum::add_function_to(string const &name, char add_to)
+{
+    assert(add_to == 'F' || add_to == 'Z');
+    string only_name = !name.empty() && name[0]=='%' ? string(name,1) : name;
     int idx = mgr.find_function_nr(only_name);
     if (idx == -1)
         throw ExecuteError("function %" + only_name + " not found.");
+    if (contains_element(get_names(add_to), only_name)) {
+        mesg("function %" + only_name + " already in " + add_to + ".");
+        return;
+    }
     if (add_to == 'F') {
         ff_names.push_back(only_name);
         ff_idx.push_back(idx);
@@ -88,24 +112,6 @@ void Sum::add_function_to(string const &name, char add_to)
         zz_names.push_back(only_name);
         zz_idx.push_back(idx);
     }
-    else if (add_to == 'N')
-        ;
-    else
-        throw ExecuteError("don't know how to add function to: " + S(add_to));
-}
-
-void Sum::remove_all_functions_from(char rm_from)
-{
-    if (rm_from == 'F') {
-        ff_names.clear();
-        ff_idx.clear();
-    }
-    else if (rm_from == 'Z') {
-        zz_names.clear();
-        zz_idx.clear();
-    }
-    else
-        throw ExecuteError("don't know how to clear : " + S(rm_from));
 }
 
 fp Sum::value(fp x) const

@@ -107,7 +107,8 @@
 * formula simplifications: "3/x" is changed to more complex "3*1/x"
 
 * (GUI) finish script debugger dialog -- add command editing, inserting
-  and deleting commands, and changing the order of command
+  and deleting commands, and changing the order of command.
+  "Edit init file" from menu.
 
 * (?)exporting data with info "info @n () [range] > file"
        should display ... [1234 lines more] rather than everything

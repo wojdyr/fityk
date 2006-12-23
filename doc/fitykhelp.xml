@@ -232,8 +232,10 @@
    <title>Invoking fityk </title>
    <para>
     On startup, the program executes a script from the
-    <filename>$HOME/.fityk/init</filename> file.
-    Following this, the program reads files given as arguments on the command line.
+    <filename>$HOME/.fityk/init</filename> file (on MS Windows XP:
+    <filename>C:\Documents and Settings\USERNAME\.fityk\init</filename>).
+    Following this, the program reads files given as arguments 
+    on the command line.
     If the filename has extension ".fit" or the file begins with a "# Fityk"
     string, it is assumed to be a script and is executed.
     Otherwise,  it is assumed to be a data file and is loaded normally.
