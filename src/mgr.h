@@ -46,6 +46,9 @@ public:
 
     /// remove unreffered variables and parameters
     void remove_unreferred();
+    /// remove unreffered functions
+    void auto_remove_functions();
+    bool is_function_referred(int n) const;
 
     std::string get_variable_info(std::string const &s, bool extended_print);
     std::vector<fp> const& get_parameters() const { return parameters; }

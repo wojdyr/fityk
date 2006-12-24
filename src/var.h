@@ -31,6 +31,7 @@ public:
               std::vector<std::string> const &vars = std::vector<std::string>())
         : name(name_), prefix(prefix_), xname(prefix_+name), varnames(vars) {}
     virtual ~VariableUser() {}
+    bool is_auto_delete() const { return name.size() > 0 && name[0] == '_'; }
     bool is_dependent_on(int idx, std::vector<Variable*> const &variables)const;
     bool is_directly_dependent_on(int idx);
     virtual void set_var_idx(std::vector<Variable*> const& variables);
@@ -97,7 +98,6 @@ public:
 class Variable : public VariableUser
 {
 public:
-    bool const auto_delete;
     Domain domain;
 
     struct ParMult { int p; fp mult; };

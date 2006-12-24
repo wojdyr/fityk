@@ -1480,9 +1480,10 @@
      Available methods can be mixed together, e.g. it is
      sensible to obtain initial parameter estimates using the Simplex method,
      and then fit it using Levenberg-Marquardt. 
-     Command <command>s.history</command> can
-     be useful for trying various methods with different options and/or
-     initial parameters and choosing the best solution.
+    </para>
+    <para>
+     Values of all parameters are stored before and after fitting... TODO
+
     </para>
    </section>
 

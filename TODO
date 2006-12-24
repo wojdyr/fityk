@@ -1,77 +1,32 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
-// * there are problems with refreshing plots and output window when program
-//   is busy (ie. when running script or fitting). It seems to be platform
-//   dependent.
-//    --> tested solution: wxSafeYield()
+test_syntax.fit:
+    %sic220 = guess PseudoVoigt [58:62] center=$c_sic220
+    option guess-plus-minus = float
 
-// * (GUI) redrawing for many datasets (~100) takes noticable time.
-//   Kind of plot buffering (as a bitmap).
+fix SiCZn sample
 
-// * %sic220 = guess PseudoVoigt [58:62] center=$c_sic220
-//    the range should not be necessary
-//      -> option guess-plus-minus = float
-      fix SiCZn sample
-
-* parameters history 
-   // fit history n, fit history clear, fit undo, fit redo, info fit-history
-   //GUI: Fit->History 
-   docs
-   test_syntax.fit
-
-// * GUI: export/log default directory in Settings->Dirs
-
-// * GUI: changing data point size:   controls/buttons on the sidebar
-
-// * GUI: function color changing problem
-
-// * GUI: sidebar, function's parameter values - do something when value
-//   is changed (by typing) and Enter is _not_ pressed.
-
-// * data load, ascii: column 0 should mean "line number".
-
-// * GUI: custom data load: explicit info (or setting) about sigma,
-//      read from file / =1 / sqrt() / custom (any data transformation)
-//      wxTextCtrl with path should be shown disabled 
-//      column 0 means 0-based "line number"
-
-// * GUI: Function Definition Manager layout: "Remove" button takes too 
-//   much space
-//   information about "auto-add":
-//   The initial parameters can/can't be guessed using peak search 
-//      / linear regression
-
-// * GUI: some problems with "Copy F to next dataset" button
-//        Copy Z only if necessary (if not @n.Z = @m.Z = 0)
-  
-// * exporting gnuplot compatible formulae ('^'->'**', 1/2 -> 1./2),
-//   when option formula-export-style == gnuplot
-    docs
-
-// * settings: Nelder-Mead 
-
-// * make this work:
-//  y[n]=y[n]-spline[x[1], y[1], x[5], y[5], x[325], y[325]](x)
-
-// * BUG: "$foo = {y[0]}" is not working now
-//   multiple dataset syntax: {y[0] in @1}
-
-* syntax enhancements: 
-//   info @0.filename, @0.title
-   @0.F[3] should access 4th function in @0.F; the same with Z
-   @0.F[-1] -> the last one
-
-* syntax changes: 
-//   replace %a[hwhm] with %a.hwhm; @n.F[hwhm] with @n.F.hwhm 
-   replace %f -> F with F += %f; %f -> N with F -= %f;
-//   deleted %f = ... -> F
+docs & NEWS & test_syntax.fit
+   parameters history (fit history n, fit history clear, fit undo, fit redo, 
+   info fit-history)
+   option formula-export-style == gnuplot (exporting gnuplot compatible 
+    formulae)
+   syntax changes: 
+      added: info @0.filename, @0.title
+      added: @0.F[3] should access 4th function in @0.F; the same with Z
+      replace %a[hwhm] with %a.hwhm; @n.F[hwhm] with @n.F.hwhm 
+      replace %f -> F with F += %f; %f -> N with F -= %f;
+      deleted %f = ... -> F
+      multiple dataset syntax in data expressions: {y[0] in @1}
 
 * auto-scaling should not include x/y=0, unless it's
   in, say, 20% plot margin. "[:]" is an exception and includes 0.
   GUI: "Auto-zooms shows y=0"
 * plot - there should be a way to zoom to show all datasets
 * GUI?: when loading many datasets from command line, set view to show all
+
+test on amd64
 
 ------------------ next release here 0.7.7
 * clean up verbosity levels of messages. There should be 6 kind of messages:

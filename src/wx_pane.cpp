@@ -769,6 +769,8 @@ void SideBar::OnDataButtonCopyF (wxCommandEvent& WXUNUSED(event))
     int n = get_focused_data();
     if (n+1 >= AL->get_ds_count())
         return;
+    d->list->Select(n, false);
+    d->list->Select(n+1, true);
     d->list->Focus(n+1);
     DataFocusChanged();
     string cmd = "@" + S(n+1) + ".F=copy(@" + S(n) + ".F)";

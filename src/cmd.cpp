@@ -79,6 +79,8 @@ void do_assign_fz(char const*, char const*)
         sum->remove_all_functions_from(t3[0]);
     for (vector<string>::const_iterator i = vr.begin(); i != vr.end(); ++i)
         sum->add_function_to(*i, t3[0]);
+    if (!with_plus)
+        AL->auto_remove_functions();
     outdated_plot=true;  //TODO only if ds_pref == @active
 }
 
@@ -99,6 +101,7 @@ void do_remove_from_fz(char const* a, char const*)
 {
     assert(*a == 'F' || *a == 'Z');
     AL->get_sum(ds_pref)->remove_function_from(t, *a);
+    AL->auto_remove_functions();
     outdated_plot=true;  //TODO only if ds_pref == @active
 }
 

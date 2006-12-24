@@ -62,7 +62,6 @@ int VariableUser::get_max_var_idx()
 // ctor for simple variables and mirror variables
 Variable::Variable(std::string const &name_, int nr_)
     : VariableUser(name_, "$"), 
-      auto_delete(name_[0] == '_'),
       nr(nr_), af(value, derivatives), original(0)
 {
     assert(!name_.empty());
@@ -78,7 +77,6 @@ Variable::Variable(std::string const &name_, int nr_)
 Variable::Variable(std::string const &name_, vector<string> const &vars_,
                    vector<OpTree*> const &op_trees_)
     : VariableUser(name_, "$", vars_), 
-      auto_delete(name_[0] == '_'),
       nr(-1), derivatives(vars_.size()),
       af(op_trees_, value, derivatives), original(0)
 {
@@ -106,7 +104,7 @@ string Variable::get_info(vector<fp> const &parameters, bool extended) const
     string s = xname + " = " + get_formula(parameters) + " = " + S(value);
     if (domain.is_set())
         s += "  " + domain.str();
-    if (auto_delete)
+    if (is_auto_delete())
         s += "  [auto]";
     if (extended && nr == -1) {
         vector<string> vn = concat_pairs("$", varnames);

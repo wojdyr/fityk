@@ -262,8 +262,9 @@ void do_print_func(char const*, char const*)
     vector<string> const &names = AL->get_sum(ds_pref)->get_names(t2[0]);
     if (tmp_int < 0)
         tmp_int += names.size();
-    if (is_index(tmp_int, names))
-        prepared_info += "\n" + names[tmp_int];
+    if (is_index(tmp_int, names)) 
+        prepared_info += "\n" + AL->find_function(names[tmp_int])
+            ->get_info(AL->get_variables(), AL->get_parameters(), with_plus);
     else
         prepared_info += "\nNot found.";
 }

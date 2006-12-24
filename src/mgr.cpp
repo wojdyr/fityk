@@ -229,7 +229,7 @@ void VariableManager::remove_unreferred()
 {
     // remove auto-delete marked variables, which are not referred by others
     for (int i = variables.size()-1; i >= 0; --i)
-        if (variables[i]->auto_delete) {
+        if (variables[i]->is_auto_delete()) {
             if (!is_variable_referred(i)) {
                 delete variables[i];
                 variables.erase(variables.begin() + i);
@@ -243,7 +243,7 @@ void VariableManager::remove_unreferred()
             i != functions.end(); ++i) {
         (*i)->set_var_idx(variables);
     }
-    // remove unreffered parameters
+    // remove unreferred parameters
     for (int i = size(parameters)-1; i >= 0; --i) {
         bool del=true;
         for (int j = 0; j < size(variables); ++j)
@@ -363,6 +363,31 @@ void VariableManager::delete_funcs(vector<string> const &names)
         (*i)->find_function_indices();
 }
 
+bool VariableManager::is_function_referred(int n) const
+{
+    for (vector<Sum*>::const_iterator i = sums.begin(); i != sums.end(); ++i) {
+        if (contains_element((*i)->get_ff_idx(), n)
+                || contains_element((*i)->get_zz_idx(), n))
+            return true;
+    }
+    return false;
+}
+
+void VariableManager::auto_remove_functions()
+{
+    int func_size = functions.size();
+    for (int i = func_size - 1; i >= 0; --i)
+        if (functions[i]->is_auto_delete() && !is_function_referred(i)) {
+            delete functions[i];
+            functions.erase(functions.begin() + i);
+        }
+    if (func_size != size(functions)) {
+        remove_unreferred();
+        for (vector<Sum*>::iterator i = sums.begin(); i != sums.end(); ++i)
+            (*i)->find_function_indices();
+    }
+}
+
 void VariableManager::delete_funcs_and_vars(vector<string> const &xnames)
 {
     vector<string> vars, funcs;
@@ -380,7 +405,8 @@ void VariableManager::delete_funcs_and_vars(vector<string> const &xnames)
 }
 
 
-int VariableManager::find_function_nr(string const &name) {
+int VariableManager::find_function_nr(string const &name) 
+{
     string only_name = !name.empty() && name[0]=='%' ? string(name,1) : name;
     for (int i = 0; i < size(functions); ++i)
         if (functions[i]->name == only_name)
@@ -388,7 +414,8 @@ int VariableManager::find_function_nr(string const &name) {
     return -1;
 }
 
-const Function* VariableManager::find_function(string const &name) {
+const Function* VariableManager::find_function(string const &name) 
+{
     int n = find_function_nr(name);
     if (n == -1)
         throw ExecuteError("undefined function: " 
@@ -396,14 +423,16 @@ const Function* VariableManager::find_function(string const &name) {
     return functions[n];
 }
 
-int VariableManager::find_variable_nr(string const &name) {
+int VariableManager::find_variable_nr(string const &name) 
+{
     for (int i = 0; i < size(variables); ++i)
         if (variables[i]->name == name)
             return i;
     return -1;
 }
 
-Variable const* VariableManager::find_variable(string const &name) {
+Variable const* VariableManager::find_variable(string const &name) 
+{
     int n = find_variable_nr(name);
     if (n == -1)
         throw ExecuteError("undefined variable: $" + name);
