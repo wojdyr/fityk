@@ -1,24 +1,11 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
-test_syntax.fit:
-    %sic220 = guess PseudoVoigt [58:62] center=$c_sic220
-    option guess-plus-minus = float
+* GUI: definition manager: 
+   - add support for sum of functions
+   - upper-case parameter names should be make lower case, rather than vanish
 
-fix SiCZn sample
-
-docs & NEWS & test_syntax.fit
-   parameters history (fit history n, fit history clear, fit undo, fit redo, 
-   info fit-history)
-   option formula-export-style == gnuplot (exporting gnuplot compatible 
-    formulae)
-   syntax changes: 
-      added: info @0.filename, @0.title
-      added: @0.F[3] should access 4th function in @0.F; the same with Z
-      replace %a[hwhm] with %a.hwhm; @n.F[hwhm] with @n.F.hwhm 
-      replace %f -> F with F += %f; %f -> N with F -= %f;
-      deleted %f = ... -> F
-      multiple dataset syntax in data expressions: {y[0] in @1}
+* voigt(x,y) function for data transformations and variable definitions
 
 * auto-scaling should not include x/y=0, unless it's
   in, say, 20% plot margin. "[:]" is an exception and includes 0.
@@ -26,14 +13,13 @@ docs & NEWS & test_syntax.fit
 * plot - there should be a way to zoom to show all datasets
 * GUI?: when loading many datasets from command line, set view to show all
 
-test on amd64
-
------------------- next release here 0.7.7
 * clean up verbosity levels of messages. There should be 6 kind of messages:
-  debug, vinfo (more verbose info), info, rinfo (explicitely requested info),
-  warning, error
-  and 7 levels of verbosity: debug, verbose, normal, terse, only-warnings,
-  only-errors, silent
+  debug, vinfo (more verbose info), info, warning, 
+  rinfo (explicitely requested info), error
+  and levels of verbosity: debug, verbose, normal, terse (warnings), 
+    quiet (rinfo+errors)
+
+------------------ perhaps release here 0.7.8
 
 * build engine (everything but GUI/CLI interface) as a library
   with more or less documented API.
@@ -48,6 +34,7 @@ test on amd64
 
 ------------------ next release here 0.8.0
 
+* GUI: change focus from pane to input field when proper keys are pressed.
 * python scripts  -- built-in Python interpreter which allows to extend 
   Fityk using user-written scripts, optional modules, etc. 
   [IMPORTANT]

@@ -7,9 +7,11 @@
 #include <wx/config.h>
 #include <wx/splitter.h>
 #include <wx/listctrl.h>
+#include <wx/notebook.h>
 #include <list>
 #include <utility>
 #include "wx_common.h"  //for MouseModeEnum, OutputStyle
+
 
 class PlotPane;
 class IOPane;

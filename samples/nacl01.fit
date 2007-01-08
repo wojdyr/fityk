@@ -8,7 +8,7 @@ a = (23.0 < x < 26.0)  # disactivate data outside of (23.0,26.0) range.
 %p = Gaussian(~60000, ~24.6, ~0.2) # define function %p with type Gaussian
                                    # and fittable parameters 
 
-%p -> F # add function %p to curve, which will be fitted to data
+F += %p  # add function %p to curve, which will be fitted to data
 
 fit # and fit using default fitting method with default settings
 

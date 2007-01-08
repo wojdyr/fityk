@@ -177,7 +177,7 @@
    </para>
    <para>
     To define peak, type: 
-    <userinput>%p = Gaussian(~60000, ~24.6, ~0.2) -> F</userinput>
+    <userinput>%p = Gaussian(~60000, ~24.6, ~0.2); F = %p </userinput>
     or
     <userinput>%p = guess Gaussian</userinput>
     or select 
@@ -703,8 +703,8 @@
     <para>
      Variables ($foo) and functions (%bar) can be used in data transformations, 
      and a current value of data expression can be assigned to the variable.
-     Values of the function parameters (e.g. %fun[a0]) and pseudo-parameters
-     Center, Height, FWHM and Area (e.g. %fun[Area]) can also be used.
+     Values of the function parameters (e.g. %fun.a0) and pseudo-parameters
+     Center, Height, FWHM and Area (e.g. %fun.Area) can also be used.
      Pseudo-parameters are supported only by functions, which know
      how to calculate these properties. 
     </para>
@@ -736,26 +736,27 @@
      A few examples:
      <screen>     
       $foo = {y[0]} # data expression can be used in variable assignment
+      $foo2 = {y[0] in @0}  # dataset can be given if necessary
       Y = y / $foo  # and variables can be used in data transformation
 
       Y = y - %f(x) # substracts function %f from data
 
       Y = y - @0.F(x) # substracts all functions in F
 
-      %c = Constant(~0) -> Z  # fit constant zero-shift (this can be caused...
+      Z += Constant(~0)  # fit constant x-correction (this can be caused...
       fit                # ...by a shift in scale of the instrument collecting data),
-      X = x + @0.Z(x)  # ...remove it from dataset,
-      del %c           # ...and delete it from sum
+      X = x + @0.Z(x)  # ...remove it from the dataset,
+      Z = 0            # ...and clear the x-correction in the sum
 
       info numarea(%fun, 0, 100, 10000) # shows area of function %fun 
-      info %fun[Area] # it is not always supported
+      info %fun.Area  # it is not always supported
 
       info %_1(extremum(%_1, 40, 50)) # shows extremum value
 
       # calculate FWHM numerically, value 50 can be tuned
-      $c = {%f[Center]}
-      i findx(%f, $c, $c+50, %f[Height]/2) - findx(%f, $c, $c-50, %f[Height]/2)
-      i %f[FWHM] # should give almost the same.
+      $c = {%f.Center}
+      i findx(%f, $c, $c+50, %f.Height/2) - findx(%f, $c, $c-50, %f.Height/2)
+      i %f.FWHM # should give almost the same.
      </screen>     
     </para>
    </section> 
@@ -1071,13 +1072,13 @@
      <screen>
       =-> %f = Pearson7(height=~66254., center=~24.7, fwhm=~0.264)
       New function %f was created.
-      =-> %f[center]=~24.8
+      =-> %f.center=~24.8
       =-> $h = ~66254
-      =-> %f[height]=$h
+      =-> %f.height=$h
       =-> info %f
       %f = Pearson7($h, $_5, $_3, $_4)
       =-> $h = ~60000 # variables are kept by name, so this also changes %f
-      =-> %p1[center] = %p2[center] + 3 # keep fixed distance between %p1 and %p2
+      =-> %p1.center = %p2.center + 3 # keep fixed distance between %p1 and %p2
      </screen>
     </para>
     <para>
@@ -1116,7 +1117,12 @@
     </para>
     <para>
      UDFs can be defined either by giving a full formula, 
-     or as a sum or modification of already defined functions.
+     or as a sum of already defined functions, with possible 
+     <firstterm>re-parametrization</firstterm>
+     (see GaussianArea and GLSum below for the example of the latter).
+     When giving a full formula, right-hand side of the equality sign
+     is similar to the <link linkend="variables">definiton of variable</link>,
+     but the formula can also depend on <firstterm>x</firstterm>.
      Hopefully the examples below will make the syntax clear. 
     </para>
     <para>
@@ -1198,38 +1204,39 @@
     <para>
      In many cases <firstterm>x-correction</firstterm> Z can safely be ignored.
      The fitted curve is thus the sum of all functions in F. These functions
-     can be listed with  
-     <command>info F</command>.
+     can be listed with <command>info F</command>.
     </para>
     <para>
      Command 
-     <command><replaceable>%function</replaceable> -&gt; F</command>
+     <command>F += <replaceable>%function</replaceable></command>
      puts <replaceable>%function</replaceable> into F,
      command 
-     <command><replaceable>%function</replaceable> -&gt; Z</command>
-     puts <replaceable>%function</replaceable> into Z,
-     and command 
-     <command><replaceable>%function</replaceable> -&gt; N</command>
-     removes <replaceable>%function</replaceable> from F or Z.
-     If there is more than one dataset, F, Z and N must be prefixed
-     with the dataset number, e.g.
+     <command>Z += <replaceable>%function</replaceable></command>
+     puts <replaceable>%function</replaceable> into Z.
+     To remove <replaceable>%function</replaceable> from F (or Z) either
+     do <command>F -= <replaceable>%function</replaceable></command>
+     or delete <replaceable>%function</replaceable> 
+     (<command>del <replaceable>%function</replaceable></command>).
+     If there is more than one dataset, F and Z must be prefixed
+     with the dataset number (e.g.
      <command>
-      <replaceable>%function</replaceable> -&gt; <replaceable>@1</replaceable>.F
-     </command>
-     or
-     <command>
-      <replaceable>%function</replaceable> -&gt; <replaceable>@0</replaceable>.N
-     </command>.
+      <replaceable>@1</replaceable>.F += <replaceable>%function</replaceable> 
+     </command>).
      The following syntax is also valid:
      <screen>
   # create and add funtion to F
-  %g = Gaussian(height=~66254., hwhm=~0.264, center=~24.7) -> @0.F
+  %g = Gaussian(height=~66254., hwhm=~0.264, center=~24.7)
+  @0.F += %g
   # create automatically named funtion and add it to F
-  Gaussian(height=~66254., hwhm=~0.264, center=~24.7) -> @0.F
+  @0.F += Gaussian(height=~66254., hwhm=~0.264, center=~24.7)
   # clear F
   @0.F = 0
   # clear F and put three functions in it
-  @0.F = %a, %b, %c
+  @0.F = %a + %b + %c
+  # show info about the first and the last function in @0.F
+  info @0.F[0], @0.F[-1]
+  # the same as %bcp = copy(%b)
+  %bcp = copy(@0.F[1])
   # make @1.F the exact (shallow) copy of @0.F
   @1.F = @0.F
   # make @1.F a deep copy of @0.F (all functions and variables
@@ -1238,10 +1245,15 @@
     </para>
     <para>
      The sum can be exported as data points, using the syntax described in
-     <xref linkend="dexport"/>,  or as mathematical formulae,
-     using the command <command>info formula in @<replaceable>n</replaceable> &gt; <replaceable>filename</replaceable></command>. Some primitive simplifications
-     are applied to the formula. To prevent it, put plus sign (+)
-     after "info".
+     <xref linkend="dexport"/>,  or as mathematical formulae, using the command 
+     <command>info formula in @<replaceable>n</replaceable> &gt; <replaceable>filename</replaceable></command>. 
+     Some primitive simplifications are applied to the formula. To prevent it,
+     put plus sign (+) after "info". The style of the formula output,
+     governed by the 
+     <parameter class="option">formula-export-style</parameter> option,
+     can be either "normal" (exp(-x^2)) or "gnuplot" (exp(-x**2)).
+    </para>
+    <para>
      Peak parameters can be exported using the command
      <command>info peaks in @<replaceable>n</replaceable> &gt; <replaceable>filename</replaceable></command>. Put the plus sign (+) after "info" to also export 
      symmetric errors of the parameters. "@*" will export formulae or parameters
@@ -1254,15 +1266,15 @@
      for all peaks in the dataset. To change the variables bound to parameters
      with a given name for all functions in F, use the command:
      <command>
-      F[<replaceable>param</replaceable>]=<replaceable>variable</replaceable>
+      F.<replaceable>param</replaceable>=<replaceable>variable</replaceable>
      </command>. Examples:
      <screen>
-  F[hwhm]=$foo # hwhm's of all functions in F that have parameter hwhm will be 
-               # equal to $foo. (hwhm here means half-width-at-half-maximum)
-  F[shape]=%_1[shape]  # variable bound to shape of peak %_1 is bound
-                       # also to shapes of all functions in F
-  F[hwhm]=~0.2  # For every function in F a new variable is created and bound 
-                # to parameter hwhm. All parameters are independent. </screen>
+  F.hwhm=$foo # hwhm's of all functions in F that have parameter hwhm will be 
+              # equal to $foo. (hwhm here means half-width-at-half-maximum)
+  F.shape=%_1.shape  # variable bound to shape of peak %_1 is bound
+                     # also to shapes of all functions in F
+  F.hwhm=~0.2  # For every function in F a new variable is created and bound 
+               # to parameter hwhm. All parameters are independent. </screen>
     </para>
    </section> 
    <section id="guess">
@@ -1312,27 +1324,63 @@
    <section>
     <title>Displaying information </title>
     <para>
-     If you are using the GUI, most of the available information can be displayed 
-     with mouse clicks. Alternatively, you can use the <command>info</command>
-     command. Using <command>info+</command> instead of <command>info</command>
-     sometimes displays more verbose information.
-     Command 
-     <command>info guess <replaceable>range</replaceable></command>
-     will show where the <command>guess</command> command would find a peak, if it were run.
-     <command>info functions</command> lists all defined functions,
-     and <command>info variables</command>, all variables.
-     <command>info @<replaceable>n</replaceable>.F</command> 
-     and <command>info @<replaceable>n</replaceable>.Z</command> show 
-     information about F and Z, 
-     <command>info formula in @<replaceable>n</replaceable></command>
-     shows the mathematical formulae of the fitted functions,
-     and 
-     <command>
-      info @<replaceable>n</replaceable>.dF(<replaceable>x</replaceable>)
-     </command>
-     compares the symbolic and numerical derivatives in <replaceable>x</replaceable>
-     (useful for debugging).
+     If you are using the GUI, most of the available information can be
+     displayed with mouse clicks. Alternatively, you can use the
+     <command>info</command> command.  Using <command>info+</command> instead
+     of <command>info</command> sometimes displays more verbose information.
     </para>
+
+    <variablelist>
+     <varlistentry>
+      <term>info guess <replaceable>range</replaceable></term>
+      <listitem><para>
+       shows where the <command>guess</command> command would find a peak. 
+      </para></listitem> 
+     </varlistentry>
+
+     <varlistentry>
+      <term>info functions</term>
+      <listitem><para>
+       lists all defined functions
+      </para></listitem> 
+     </varlistentry>
+
+     <varlistentry>
+      <term>info variables</term>
+      <listitem><para>
+       lists all defined variables
+      </para></listitem> 
+     </varlistentry>
+
+     <varlistentry>
+      <term>info @<replaceable>n</replaceable>.F</term>
+      <listitem><para>
+       shows information about F
+      </para></listitem> 
+     </varlistentry>
+
+     <varlistentry>
+      <term>info @<replaceable>n</replaceable>.Z</term>
+      <listitem><para>
+       shows information about Z
+      </para></listitem> 
+     </varlistentry>
+
+     <varlistentry>
+      <term>info formula in @<replaceable>n</replaceable></term>
+      <listitem><para>
+        shows the mathematical formulae of the fitted functions, 
+      </para></listitem> 
+     </varlistentry>
+
+     <varlistentry>
+      <term>info @<replaceable>n</replaceable>.dF(<replaceable>x</replaceable>)</term>
+      <listitem><para>
+        compares the symbolic and numerical derivatives in
+        <replaceable>x</replaceable> (useful for debugging).
+      </para></listitem> 
+     </varlistentry>
+    </variablelist>
    </section> 
   </section>
 
@@ -1482,9 +1530,46 @@
      and then fit it using Levenberg-Marquardt. 
     </para>
     <para>
-     Values of all parameters are stored before and after fitting... TODO
-
+     Values of all parameters are stored before and after fitting (if they
+     changed). This enables simple undo/redo functionality. 
+     If in the meantime some functions or variables where added or removed,
+     the program can still load the old parameters, but the result can be
+     unexpected. The following history-related commands are provided:
     </para>
+    <variablelist>
+     <varlistentry>
+      <term>fit undo</term>
+      <listitem><para>
+        move back to the previous parameters. Can be used to revert 
+        the <command>fit</command> command.
+      </para></listitem> 
+     </varlistentry>
+     <varlistentry>
+      <term>fit redo</term>
+      <listitem><para>
+        move forward in the parameter history
+      </para></listitem> 
+     </varlistentry>
+     <varlistentry>
+      <term>info fit-history</term>
+      <listitem><para>
+        show number of items in the history
+      </para></listitem> 
+     </varlistentry>
+     <varlistentry>
+      <term>fit history <replaceable>n</replaceable></term>
+      <listitem><para>
+        load the <replaceable>n</replaceable>-th set of parameters from history
+      </para></listitem> 
+     </varlistentry>
+     <varlistentry>
+      <term>fit history clear</term>
+      <listitem><para>
+        clear the history
+      </para></listitem> 
+     </varlistentry>
+    </variablelist>
+
    </section>
 
    <section>
@@ -1766,12 +1851,15 @@
       <member>functions</member>
       <member><replaceable>%function_name</replaceable></member>
       <member>datasets</member>
-      <member><replaceable>@dataset_number</replaceable></member>
+      <member>@<replaceable>n</replaceable></member>
+      <member>@<replaceable>n</replaceable>.title</member>
+      <member>@<replaceable>n</replaceable>.filename</member>
       <member>commands</member>
       <member>commands [n:m]</member>
       <member>view</member>
       <member>set</member>
       <member>fit [in @<replaceable>n</replaceable>]</member>
+      <member>fit-history</member>
       <member>errors [in @<replaceable>n</replaceable>]</member>
       <member>formula [in @<replaceable>n</replaceable>]</member>
       <member>peaks [in @<replaceable>n</replaceable>]</member>

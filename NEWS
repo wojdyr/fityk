@@ -1,11 +1,16 @@
-User-visible changes in version 0.7.7  (2006-  -  ):
+User-visible changes in version 0.7.7  (2007-01-08):
 * fixed GCC 4.1 compilation problem 
 * GUI: plot buffering (as a bitmap); disabling menu, toolbar, etc. when fitting
 * new option guess-at-center-pm (float), used by "guess Type center=$variable"
 * ascii data loading: column number of 0 generates a number increasing 
   with each point
-* 
-
+* parameters history ("fit undo", "fit redo", and related commands)
+* syntax changes: "%a[hwhm]" replaced with "%a.hwhm" 
+                  "@n.F[hwhm]" replaced with "@n.F.hwhm"
+                  "%f -> F" replaced with "F += %f"
+		  "%f -> N" replaced with "F -= %f"
+                  the dataset can be specified in data expression: {y[0] in @1}
+                  @0.F[3] means 4th function in @0.F (the same with Z)
 
 
 User-visible changes in version 0.7.6  (2006-09-15):
