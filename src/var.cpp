@@ -185,9 +185,11 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
                 | leaf_node_d["~{" >> lexeme_d[+~ch_p('}') >> '}']
                               >> !('[' >> !real_p >> "+-" >> real_p >> ']')]
                 // using FunctionLhsG causes crash 
-                | leaf_node_d[lexeme_d["%" >> +(alnum_p | '_')] //FunctionLhsG 
-                              >> '[' >> lexeme_d[alpha_p >> *(alnum_p | '_')] 
-                              >> ']'] 
+                | leaf_node_d[(lexeme_d["%" >> +(alnum_p | '_')] //FunctionLhsG 
+                              | !lexeme_d['@' >> uint_p >> '.'] 
+                                >> (str_p("F[")|"Z[") >> int_p >> ch_p(']') 
+                              )
+                              >> '.' >> lexeme_d[alpha_p >> *(alnum_p | '_')]] 
                 | leaf_node_d[lexeme_d[alpha_p >> *(alnum_p | '_')]]
                 ;
 

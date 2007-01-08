@@ -60,7 +60,6 @@ public:
                             std::string const &function, 
                             std::vector<std::string> const &vars,
                             bool parse_vars=true);
-    std::string get_func_param(std::string const&name, std::string const&param);
     std::string assign_func_copy(std::string const &name, 
                                  std::string const &orig);
     void substitute_func_param(std::string const &name, 

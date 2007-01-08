@@ -64,6 +64,7 @@ void do_subst_func_param(char const* a, char const* b)
 
 void do_get_func_by_idx(char const* a, char const*)
 {
+    //TODO replace it with ApplicationLogic::find_function_any()
     vector<string> const &names = AL->get_sum(ds_pref)->get_names(*a);
     int idx = (tmp_int >= 0 ? tmp_int : tmp_int + names.size());
     if (!is_index(idx, names))
@@ -187,8 +188,8 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         subst_func_param
-            = (ds_prefix >> (str_p("F")|"Z")[assign_a(t)]
-              | FunctionLhsG [assign_a(t)]
+            = ( func_id 
+              | ds_prefix >> (str_p("F")|"Z") [assign_a(t)]
               )
               >> "." >> function_param [assign_a(t2)]
               >> "=" >> no_actions_d[FuncG] [&do_subst_func_param]
@@ -201,8 +202,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         new_func_rhs  //assigns function name to `t'
-            = func_id 
-            | type_name [assign_a(t)] 
+            = type_name [assign_a(t)] 
                   >> str_p("(") [clear_a(vt)] 
                   >> !(
                        (!(function_param >> "=") >> no_actions_d[FuncG])
@@ -228,7 +228,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
                     >> ")"
                   | ds_prefix >> (str_p("F")|"Z") [&add_fz_links]
                   | eps_p [assign_a(t2, empty)]
-                    >> new_func_rhs [push_back_a(vr, t)] 
+                    >> (func_id | new_func_rhs) [push_back_a(vr, t)] 
                   )  % '+') [&do_assign_fz]
             ;
 
@@ -269,7 +269,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
             = !temporary_set >>
             ( (optional_suffix_p("del","ete")[clear_a(vt)][clear_a(vn)] 
                 >> ( VariableLhsG [push_back_a(vt)]
-                   | FunctionLhsG [push_back_a(vt)]
+                   | func_id [push_back_a(vt, t)]
                    | lexeme_d['@'>>uint_p[push_back_a(vn)]]) % ',') [&do_delete]
             | assign_var 
             | subst_func_param 

@@ -121,8 +121,8 @@ char *commands[] = { "info", "plot", "delete", "set", "fit",
         };
 
 char *after_info[] = { "variables", "types", "functions", "datasets",
-         "commands", "view", "set", "fit", "errors", "guess", 
-         "F", "Z", "formula", "dF"
+         "commands", "view", "set", "fit", "fit-history", "errors", "formula",
+         "peaks", "guess", "F", "Z", "formula", "dF"
         };
 
 char *command_generator (const char *text, int state)

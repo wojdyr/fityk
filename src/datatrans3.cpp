@@ -31,7 +31,13 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
         |  as_lower_d["false"] [push_the_double(0.)]
 #ifndef STANDALONE_DATATRANS
         |  VariableLhsG [push_var()]
-        |  (FunctionLhsG >> lexeme_d['.' >> +(alnum_p|'_')])[push_func_param()]
+        |  ((FunctionLhsG 
+            | !lexeme_d['@' >> uint_p >> '.']
+              >> ((str_p("F[")|"Z[") >> int_p >> ch_p(']')) 
+            )
+            >> lexeme_d['.' >> +(alnum_p|'_')])[push_func_param()]
+
+
 #endif //not STANDALONE_DATATRANS
         ;
 

@@ -85,6 +85,8 @@ public:
         { return type_formula != Function::get_formula(type_name); }
     virtual std::string get_current_formula(std::string const& x = "x") const;
     int get_param_nr(std::string const& param) const;
+    std::string get_param_varname(std::string const& param) const
+                                { return get_var_name(get_param_nr(param)); }
     fp get_param_value(std::string const& param) const;
     fp numarea(fp x1, fp x2, int nsteps) const;
     fp find_x_with_value(fp x1, fp x2, fp val, 

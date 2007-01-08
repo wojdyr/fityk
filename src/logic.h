@@ -105,6 +105,7 @@ public:
     Sum *get_sum(int n)   { return get_ds(n)->get_sum();  }
     bool has_ds(DataWithSum const* p) const 
                       { return count(dsds.begin(), dsds.end(), p) > 0; }
+    const Function* find_function_any(std::string const &fstr);
 
 protected:
     std::vector<DataWithSum*> dsds;

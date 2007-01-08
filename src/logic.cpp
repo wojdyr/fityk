@@ -7,6 +7,7 @@
 #include <fstream>
 #include <time.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "data.h"
 #include "sum.h"
 #include "ui.h"
@@ -49,6 +50,26 @@ void ApplicationLogic::remove_ds(int d)
         append_ds();
     if (active_ds == d)
         activate_ds( d==size(dsds) ? d-1 : d );
+}
+
+const Function* ApplicationLogic::find_function_any(string const &fstr) 
+{
+    if (fstr.empty())
+        return 0;
+    if (fstr[0] == '%' || islower(fstr[0]))
+        return VariableManager::find_function(fstr);
+    int pos = 0;
+    int pref = -1;
+    if (fstr[0] == '@') {
+        pos = fstr.find(".") + 1;
+        pref = strtol(fstr.c_str()+1, 0, 10);
+    }
+    vector<string> const &names = get_sum(pref)->get_names(fstr[pos]);
+    int idx_ = strtol(fstr.c_str()+pos+2, 0, 10);
+    int idx = (idx_ >= 0 ? idx_ : idx_ + names.size());
+    if (!is_index(idx, names))
+        throw ExecuteError("There is no item with index " + S(idx_));
+    return VariableManager::find_function(names[idx]);
 }
 
 void ApplicationLogic::stop_app()

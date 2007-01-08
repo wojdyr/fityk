@@ -48,18 +48,6 @@ void do_commands_logging(char const*, char const*)
         getUI()->startLog(t, with_plus);
 }
 
-void do_commands_print(char const*, char const*)
-{
-    vector<string> cc 
-        = getUI()->getCommands().get_commands(tmp_int, tmp_int2, with_plus);
-    string text = join_vector(cc, "\n");
-    ofstream f;
-    f.open(t.c_str(), ios::app);
-    if (!f) 
-        throw ExecuteError("Can't open file for writing: " + t);
-    f << text << endl;
-}
-
 void do_exec_file(char const*, char const*) 
 { 
     vector<pair<int,int> > vpn;
@@ -150,7 +138,6 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
         = eps_p [assign_a(t, empty)] 
           >> optional_plus
           >> ( (ch_p('>') >> compact_str) [&do_commands_logging] 
-             | (IntRangeG >> ch_p('>') >> compact_str) [&do_commands_print]
              | (ch_p('<') [clear_a(vn)]
                  >> compact_str 
                  >> *(IntRangeG[push_back_a(vn, tmp_int)]

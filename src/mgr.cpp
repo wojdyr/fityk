@@ -10,6 +10,7 @@
 #include "func.h"
 #include "sum.h"
 #include "settings.h"
+#include "logic.h" //VariableManager::get_or_make_variable() handles @0.F[1].a
 
 #include <stdlib.h>
 #include <ctype.h>
@@ -62,12 +63,14 @@ string VariableManager::get_or_make_variable(string const& func)
     if (parse(func.c_str(), VariableLhsG).full) // $foo
         return string(func, 1);
     else if (parse(func.c_str(), 
-                   FunctionLhsG [assign_a(tmp1)] 
-                       >> '[' >> 
-                        lexeme_d[alpha_p >> *(alnum_p|'_')][assign_a(tmp2)]
-                       >> ']')
-                  .full) {                     // %bar[bleh]
-        return get_func_param(tmp1, tmp2);
+                   (FunctionLhsG 
+                   | !lexeme_d['@' >> uint_p >> '.'] 
+                     >> (str_p("F[")|"Z[") >> int_p >> ch_p(']') 
+                   ) [assign_a(tmp1)] 
+                   >> '.' >> 
+                   lexeme_d[alpha_p >> *(alnum_p|'_')][assign_a(tmp2)]
+                  ).full) {                     // %bar.bleh
+        return AL->find_function_any(tmp1)->get_param_varname(tmp2);
     }
     else                                       // anything else
         return assign_variable("", func);
@@ -175,7 +178,10 @@ string VariableManager::assign_variable(string const &name, string const &rhs)
             throw ExecuteError("variable can't depend on x.");
         for (vector<string>::const_iterator i = vars.begin(); 
                                                 i != vars.end(); i++) 
-            if ((*i)[0]!='~' && (*i)[0]!='{' && (*i)[0]!='$' && (*i)[0]!='%')
+            if ((*i)[0]!='~' && (*i)[0]!='{' && (*i)[0]!='$' && (*i)[0]!='%'
+                && (*i)[0]!='@' 
+                && (((*i)[0]!='F' && (*i)[0]!='Z')
+                                        || i->size() < 2 || (*i)[1]!='['))
                 throw ExecuteError("`" + *i + "' can't be used as variable.");
         vector<OpTree*> op_trees = calculate_deriv(root, vars);
         // ~14.3 -> $var4
@@ -645,12 +651,6 @@ void VariableManager::substitute_func_param(string const &name,
     k->set_var_idx(variables);
     k->do_precomputations(variables);
     remove_unreferred();
-}
-
-string VariableManager::get_func_param(string const &name, string const &param)
-{
-    Function const* k = find_function(name);
-    return k->get_var_name(k->get_param_nr(param));
 }
 
 fp VariableManager::variation_of_a (int n, fp variat) const
