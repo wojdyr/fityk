@@ -2171,7 +2171,7 @@ AboutDlg::AboutDlg(wxWindow* parent)
                                        SPIRIT_VERSION % 0x0100));
     txt->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, 
                                     *wxNORMAL_FONT));
-    txt->AppendText(wxT("\nCopyright (C) 2001 - 2006 Marcin Wojdyr\n\n"));
+    txt->AppendText(wxT("\nCopyright (C) 2001 - 2007 Marcin Wojdyr\n\n"));
     txt->SetDefaultStyle(wxTextAttr(*wxBLUE));
     txt->AppendText(wxT("http://www.unipress.waw.pl/fityk/\n\n"));
     txt->SetDefaultStyle(wxTextAttr(*wxBLACK));

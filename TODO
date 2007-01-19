@@ -1,6 +1,11 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
+* BUG, GUI, MS Windows only: commands "@+ <" and "@0 <" executed from script
+  give error: "Couldn't retrieve information about list control item 1."
+
+* BUG: problem with default parameters of functions (reported by WANG)
+
 * GUI: definition manager: 
    - add support for sum of functions
    - upper-case parameter names should be make lower case, rather than vanish
