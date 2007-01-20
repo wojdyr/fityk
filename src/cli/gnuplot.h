@@ -3,9 +3,9 @@
 
 #ifndef FITYK__GNUPLOT__H__
 #define FITYK__GNUPLOT__H__
-#include "common.h"
 #include <stdio.h>
 #include <vector>
+#include "../common.h"
 
 class GnuPlot
 {

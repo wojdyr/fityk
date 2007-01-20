@@ -80,6 +80,7 @@ fi
 
 dnl Checks for programs.
 AC_PROG_CXX
+AC_PROG_RANLIB  
 
 dnl Checks for common header files.
 AC_HEADER_STDC
@@ -171,7 +172,7 @@ AC_CHECK_LIB([m], [isnan], [AC_DEFINE([HAVE_ISNAN], [1],
 dnl in generated configure script, this line is too late
 test "x$prefix" = xNONE && prefix=$ac_default_prefix
 
-AC_CONFIG_FILES([Makefile fityk.spec fityk.iss src/Makefile src/img/Makefile doc/Makefile doc/fitykhelp_img/Makefile samples/Makefile config/Makefile 3rdparty/Makefile])
+AC_CONFIG_FILES([Makefile fityk.spec fityk.iss src/Makefile src/wxgui/Makefile src/cli/Makefile src/wxgui/img/Makefile doc/Makefile doc/fitykhelp_img/Makefile samples/Makefile config/Makefile 3rdparty/Makefile])
 AC_OUTPUT
 
 

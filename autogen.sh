@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# I'm using automake 1.9.6 and autoconf 2.59
+# I'm using automake 1.9.6 and autoconf 2.60
 
 set -x
 

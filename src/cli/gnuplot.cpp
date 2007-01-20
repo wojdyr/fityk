@@ -3,8 +3,6 @@
 
 // CLI-only file
 
-#include "common.h"
-#include "u_gnuplot.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -13,10 +11,13 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <errno.h>
-#include "data.h"
-#include "sum.h"
-#include "logic.h"
-#include "ui.h"
+
+#include "u_gnuplot.h"
+#include "../common.h"
+#include "../data.h"
+#include "../sum.h"
+#include "../logic.h"
+#include "../ui.h"
 
 using namespace std;
 

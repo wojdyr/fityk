@@ -6,7 +6,6 @@
 // and part of UserInterface implementation (CLI-specific)
 
             
-#include "common.h"
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,12 +24,13 @@
 #        undef Function       // it it defined anyway, we undef it
 #    endif
 #endif
-#include "ui.h"
-#include "u_gnuplot.h"
-#include "logic.h"
-#include "cmd.h"
-#include "settings.h"
-#include "func.h"
+#include "../common.h"
+#include "../ui.h"
+#include "../logic.h"
+#include "../cmd.h"
+#include "../settings.h"
+#include "../func.h"
+#include "gnuplot.h"
 
 using namespace std;
 
