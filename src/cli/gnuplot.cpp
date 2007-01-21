@@ -12,7 +12,7 @@
 #include <signal.h>
 #include <errno.h>
 
-#include "u_gnuplot.h"
+#include "gnuplot.h"
 #include "../common.h"
 #include "../data.h"
 #include "../sum.h"

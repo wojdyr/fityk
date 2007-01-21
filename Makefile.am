@@ -1,5 +1,6 @@
 # $Id$
 
+ACLOCAL_AMFLAGS = -I config
 EXTRA_DIST = fityk.spec fityk.iss fityk.url 
 AUTOMAKE_OPTIONS = dist-bzip2 
 SUBDIRS = @DOC@ src samples config 3rdparty

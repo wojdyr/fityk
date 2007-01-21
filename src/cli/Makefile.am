@@ -3,7 +3,7 @@
 bin_PROGRAMS = @CFITYK@ 
 EXTRA_PROGRAMS = cfityk 
 
-cfityk_SOURCES = u_gnuplot.cpp u_main.cpp u_gnuplot.h 
+cfityk_SOURCES = gnuplot.cpp main.cpp gnuplot.h 
 
 cfityk_LDADD = ../libfityk.a @READLINE_LIBS@ -lm
 

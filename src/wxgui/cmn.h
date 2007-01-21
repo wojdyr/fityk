@@ -1,7 +1,7 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
-#ifndef FITYK__WX_COMMON__H__
-#define FITYK__WX_COMMON__H__
+#ifndef FITYK__WX_CMN__H__
+#define FITYK__WX_CMN__H__
 
 #include "common.h"
 #include <wx/splitter.h>
