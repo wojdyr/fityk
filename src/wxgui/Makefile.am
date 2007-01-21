@@ -24,10 +24,9 @@ fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 		listptxt.cpp listptxt.h pane.cpp pane.h \
 		dataedit.cpp dataedit.h defmgr.cpp defmgr.h \
 		setdlg.cpp setdlg.h print.cpp print.h sdebug.cpp sdebug.h \
+		dload.cpp dload.h \
 		wx_dlg.cpp wx_gui.cpp wx_IO.cpp wx_plot.cpp \
-		wx_mplot.cpp wx_fdlg.cpp \
-		wx_dlg.h wx_gui.h wx_plot.h wx_mplot.h \
-		wx_fdlg.h 
+		wx_mplot.cpp wx_dlg.h wx_gui.h wx_plot.h wx_mplot.h 
 
 
 AM_CPPFLAGS = @WX_CPPFLAGS@ 

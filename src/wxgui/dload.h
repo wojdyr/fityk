@@ -1,13 +1,15 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-#ifndef FITYK__WX_FDLG__H__
-#define FITYK__WX_FDLG__H__
+#ifndef FITYK__WX_DLOAD__H__
+#define FITYK__WX_DLOAD__H__
 
 #include <wx/treectrl.h>
 #include <wx/spinctrl.h>
 #include <wx/dirctrl.h>
-#include "cmn.h"
+#include "cmn.h" //ProportionalSplitter, KFTextCtrl, ...
+
+class Data;
 
 class PreviewPlot;
 

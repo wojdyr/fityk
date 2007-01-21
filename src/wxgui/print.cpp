@@ -14,6 +14,9 @@
 #include <vector>
 #include <wx/paper.h>
 #include <wx/statline.h>
+//TODO
+#include <wx/generic/printps.h>
+#include <wx/generic/prntdlgg.h>
 
 #include "print.h"
 #include "cmn.h" 

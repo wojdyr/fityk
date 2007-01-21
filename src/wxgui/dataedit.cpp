@@ -15,7 +15,7 @@
 
 #include "dataedit.h"
 #include "wx_gui.h"
-#include "wx_fdlg.h" //export_data_dlg()
+#include "wx_dlg.h" //export_data_dlg()
 #include "../data.h" // Data, Point
 #include "../ui.h"  //exec_command()
 #include "../datatrans.h" //validate_transformation()

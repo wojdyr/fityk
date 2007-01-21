@@ -12,38 +12,21 @@
 #include <wx/wx.h>
 #endif
 
-#include <istream>
 #include <fstream>
-#include <sstream>
-#include <algorithm>
-#include <utility>
-#include <map>
-#include <wx/bmpbuttn.h>
+#include <vector>
 #include <wx/statline.h>
-#include <wx/splitter.h>
-#include <wx/notebook.h>
 #include <wx/file.h>
-#include <wx/timer.h>
-#include <wx/filefn.h>
-//TODO
-#include <wx/generic/printps.h>
-#include <wx/generic/prntdlgg.h>
-#include "common.h"
-#include "wx_common.h"
-#include "wx_fdlg.h"
-#include "wx_gui.h"
-#include "pane.h"
-#include "wx_plot.h"
-#include "wx_mplot.h"
-#include "data.h"
-#include "sum.h"
-#include "ui.h"
-#include "datatrans.h"
-#include "logic.h"
-#include "cmd.h"
+#include <wx/filename.h>
+
+#include "dload.h" 
+#include "wx_gui.h"  // frame->add_recent_data_file(get_filename()
+#include "wx_plot.h" // scale_tics_step()
+#include "../data.h"
+#include "../ui.h" //exec_command(), getUI()
+#include "../logic.h"
+#include "../common.h" //iround
 
 using namespace std;
-
 
 enum {
     ID_DXLOAD_STDDEV_CB     =28000,
@@ -73,10 +56,10 @@ public:
 
 private:
     DLoadDlg* dlg;
-    fp xScale, yScale;
+    double xScale, yScale;
     int H;
-    int getX(fp x) { return iround(x * xScale); }
-    int getY(fp y) { return H - iround(y * yScale); }
+    int getX(double x) { return iround(x * xScale); }
+    int getY(double y) { return H - iround(y * yScale); }
     void prepare_scaling(wxDC &dc);
     void draw_scale(wxDC &dc);
 
@@ -106,9 +89,9 @@ void PreviewPlot::OnPaint(wxPaintEvent &WXUNUSED(event))
 
 void PreviewPlot::prepare_scaling(wxDC &dc)
 {
-    fp const margin = 0.1;
-    fp dx = data->get_x_max() - data->get_x_min();
-    fp dy = data->get_y_max() - data->get_y_min();
+    double const margin = 0.1;
+    double dx = data->get_x_max() - data->get_x_min();
+    double dy = data->get_y_max() - data->get_y_min();
     int W = GetClientSize().GetWidth();
     H = GetClientSize().GetHeight();
     xScale = (1 - 2 * margin) *  W / dx;
@@ -122,10 +105,10 @@ void PreviewPlot::draw_scale(wxDC &dc)
     dc.SetPen(*wxWHITE_PEN);
     dc.SetTextForeground(*wxWHITE);
     dc.SetFont(*wxSMALL_FONT);  
-    vector<fp> minors;
-    vector<fp> tics 
+    vector<double> minors;
+    vector<double> tics 
         = scale_tics_step(data->get_x_min(), data->get_x_max(), 4, minors);
-    for (vector<fp>::const_iterator i = tics.begin(); i != tics.end(); ++i) {
+    for (vector<double>::const_iterator i = tics.begin(); i != tics.end(); ++i){
         int X = getX(*i);
         wxString label = s2wx(S(*i));
         if (label == wxT("-0")) 
@@ -138,7 +121,7 @@ void PreviewPlot::draw_scale(wxDC &dc)
     }
 
     tics = scale_tics_step(data->get_y_min(), data->get_y_max(), 4, minors);
-    for (vector<fp>::const_iterator i = tics.begin(); i != tics.end(); ++i){
+    for (vector<double>::const_iterator i = tics.begin(); i != tics.end(); ++i){
         int Y = getY(*i);
         wxString label = s2wx(S(*i));
         if (label == wxT("-0")) 
@@ -371,8 +354,7 @@ void DLoadDlg::OnOpenHere (wxCommandEvent& WXUNUSED(event))
 void DLoadDlg::OnOpenNew (wxCommandEvent& WXUNUSED(event))
 {
     int d_nr = AL->get_ds_count();
-    if (d_nr == 1 && !AL->get_data(0)->has_any_info() 
-            && !AL->get_sum(0)->has_any_info()) 
+    if (d_nr == 1 && !AL->get_ds(0)->has_any_info())
         d_nr = 0; // special case, @+ will not add new data slot
     exec_command("@+ <" + get_command_tail(d_nr));
     frame->add_recent_data_file(get_filename());

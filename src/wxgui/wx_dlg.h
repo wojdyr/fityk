@@ -73,5 +73,17 @@ protected:
 };
 
 
+/// dialog Help->About
+class AboutDlg : public wxDialog
+{
+public:
+    AboutDlg(wxWindow* parent);
+    void OnTextURL(wxTextUrlEvent& event);
+private:
+    wxTextCtrl *txt;
+    DECLARE_EVENT_TABLE()
+};
+
+
 #endif
 
