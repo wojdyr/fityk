@@ -15,6 +15,7 @@
 
 #include "gradient.h"
 #include "cmn.h" //SpinCtrl, change_color_dlg, add_apply_close_buttons, iround
+#include "../common.h" //iround()
 
 using namespace std;
 

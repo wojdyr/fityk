@@ -14,8 +14,10 @@
 #include <wx/colordlg.h>
 #include <wx/statline.h>
 
-#include "common.h"
-#include "wx_common.h"
+#include "cmn.h"
+#include "../common.h" //iround()
+
+using namespace std;
 
 bool cfg_read_bool(wxConfigBase *cf, const wxString& key, bool def_val)
 { 
@@ -220,5 +222,16 @@ void KFTextCtrl::OnKillFocus(wxFocusEvent&)
 BEGIN_EVENT_TABLE(KFTextCtrl, wxTextCtrl)
     EVT_KILL_FOCUS(KFTextCtrl::OnKillFocus)
 END_EVENT_TABLE()
+
+
+/// get path ~/.fityk/filename and create ~/.fityk/ dir if not exists
+wxString get_user_conffile(string const& filename)
+{
+    // hardcoded: const char* config_dirname = ".fityk";
+    wxString fityk_dir = wxGetHomeDir() + wxFILE_SEP_PATH + wxT(".fityk");
+    if (!wxDirExists(fityk_dir))
+        wxMkdir(fityk_dir);
+    return fityk_dir + wxFILE_SEP_PATH + s2wx(filename);
+}
 
 

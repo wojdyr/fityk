@@ -3,7 +3,7 @@
 #ifndef FITYK__WX_CMN__H__
 #define FITYK__WX_CMN__H__
 
-#include "../common.h"
+#include <vector>
 #include <wx/splitter.h>
 #include <wx/arrstr.h>
 #include <wx/spinctrl.h>
@@ -13,14 +13,15 @@ enum MouseModeEnum { mmd_zoom, mmd_bg, mmd_add, mmd_range, mmd_peak };
 struct PlotShared
 {
     PlotShared() : xUserScale(1.), xLogicalOrigin(0.), plot_y_scale(1e3) {}
-    int x2X (fp x) {return static_cast<int>((x - xLogicalOrigin) * xUserScale);}
-    fp X2x (int X) { return X / xUserScale + xLogicalOrigin; }
-    int dx2dX (fp dx) { return static_cast<int>(dx * xUserScale); }
-    fp dX2dx (int dX) { return dX / xUserScale; }
+    int x2X (double x) 
+        { return static_cast<int>((x - xLogicalOrigin) * xUserScale); }
+    double X2x (int X) { return X / xUserScale + xLogicalOrigin; }
+    int dx2dX (double dx) { return static_cast<int>(dx * xUserScale); }
+    double dX2dx (int dX) { return dX / xUserScale; }
 
-    fp xUserScale, xLogicalOrigin; 
-    std::vector<std::vector<fp> > buf;
-    fp plot_y_scale;
+    double xUserScale, xLogicalOrigin; 
+    std::vector<std::vector<double> > buf;
+    double plot_y_scale;
     std::vector<wxPoint> peaktops;
 };
 
@@ -130,6 +131,9 @@ public:
     void OnKillFocus(wxFocusEvent&);
     DECLARE_EVENT_TABLE()
 };
+
+/// get path ~/.fityk/filename and create ~/.fityk/ dir if not exists
+wxString get_user_conffile(std::string const& filename);
 
 
 /// introduced because OnOK and OnCancel were removed

@@ -15,7 +15,7 @@
 #include "ui.h"
 #include "wx_plot.h"
 #include "wx_gui.h"
-#include "wx_pane.h"
+#include "pane.h"
 #include "logic.h"
 #include "cmd.h"
 

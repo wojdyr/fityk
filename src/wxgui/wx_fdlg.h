@@ -7,17 +7,14 @@
 #include <wx/treectrl.h>
 #include <wx/spinctrl.h>
 #include <wx/dirctrl.h>
-#include <wx/print.h>
-#include "wx_common.h"
-
+#include "cmn.h"
 
 class PreviewPlot;
-class PlotPane;
 
-class FDXLoadDlg : public wxDialog
+class DLoadDlg : public wxDialog
 {
 public:
-    FDXLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data);
+    DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data);
 
 protected:
     int data_nr;
@@ -54,103 +51,6 @@ protected:
     DECLARE_EVENT_TABLE()
 };
 
-
-bool export_data_dlg(wxWindow *parent, bool load_exported=false);
-
-class DataExportDlg : public wxDialog
-{
-public:
-    DataExportDlg(wxWindow* parent, wxWindowID id, std::string const& ds);
-    void OnRadioChanged(wxCommandEvent&) { on_widget_change(); }
-    void OnInactiveChanged(wxCommandEvent&) { on_widget_change(); }
-    void OnTextChanged(wxCommandEvent&);
-    void OnOk(wxCommandEvent& event);
-    void on_widget_change();
-    std::string get_columns() { return wx2s(text->GetValue()); }
-protected:
-    wxRadioBox *rb;
-    wxCheckBox *inactive_cb;
-    wxTextCtrl *text;
-    wxArrayString cv;
-    DECLARE_EVENT_TABLE()
-};
-
-
-class ScriptDebugDlg : public wxDialog
-{
-public:
-    ScriptDebugDlg(wxWindow* parent, wxWindowID id);
-    void OpenFile();
-    void OnOpenFile(wxCommandEvent&) { OpenFile(); }
-    void OnExecSelected(wxCommandEvent&);
-    void OnExecDown(wxCommandEvent&);
-    void OnClose(wxCommandEvent&) { close_it(this); }
-    wxString get_list_item(int i);
-    void exec_line(int n);
-protected:
-    wxToolBar *tb;
-    wxListView *list;
-
-    void add_line(int n, std::string const& line);
-    DECLARE_EVENT_TABLE()
-};
-
-
-class PrintManager
-{
-public:
-    bool landscape;
-    bool colors;
-    int scale;
-    bool keep_ratio; 
-    bool plot_aux[2], plot_borders;
-    PlotPane* plot_pane;
-
-    PrintManager(PlotPane* pane);
-    ~PrintManager();
-    wxPrintData& get_print_data();
-    wxPageSetupDialogData& get_page_data();
-    void print();
-    void print_to_psfile();
-    void printPreview();
-    void pageSetup(); 
-    void save_settings(wxConfigBase *cf) const;
-    void read_settings(wxConfigBase *cf);
-private:
-    wxPrintData *print_data;
-    wxPageSetupDialogData *page_setup_data;
-};
-
-
-class PageSetupDialog: public wxDialog
-{
-public:
-    PageSetupDialog(wxWindow *parent, PrintManager *print_mgr);
-    void OnOk(wxCommandEvent& event);
-protected:
-    PrintManager *pm;
-    wxRadioBox *orientation, *colors;
-    wxComboBox *papers;
-    wxCheckBox *keep_ratio, *plot_aux[2], *plot_borders;
-    wxSpinCtrl *left_margin, *right_margin, *top_margin, *bottom_margin,
-               *scale;
-    DECLARE_EVENT_TABLE()
-};
-
-
-class FPrintout: public wxPrintout
-{
-public:
-    FPrintout(PrintManager const* print_manager);
-    bool HasPage(int page) { return (page == 1); }
-    bool OnPrintPage(int page);
-    void GetPageInfo(int *minPage,int *maxPage,int *selPageFrom,int *selPageTo)
-        { *minPage = *maxPage = *selPageFrom = *selPageTo = 1; }
-private:
-    PrintManager const* pm;
-};
-
-void do_print_plots(wxDC *dc, PrintManager const* pm);
 
 #endif
 

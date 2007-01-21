@@ -14,17 +14,13 @@
 #include <wx/textdlg.h>
 #include <wx/image.h>
 
-#include "wx_pane.h" 
-
-#include "common.h"
+#include "pane.h" 
 #include "wx_gui.h" 
 #include "wx_plot.h" 
 #include "wx_mplot.h" 
-#include "data.h" 
-#include "logic.h" 
-#include "ui.h" 
-#include "sum.h" 
-#include "func.h" 
+#include "../common.h"
+#include "../logic.h" 
+#include "../ui.h" 
 
 using namespace std;
 

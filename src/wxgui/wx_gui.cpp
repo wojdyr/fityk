@@ -44,7 +44,7 @@
 #include "wx_gui.h"
 #include "wx_dlg.h"
 #include "wx_fdlg.h"
-#include "wx_pane.h"
+#include "pane.h"
 #include "logic.h"
 #include "fit.h"
 #include "data.h"

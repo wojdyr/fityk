@@ -5,26 +5,20 @@
 #define FITYK__WX_PANE__H__
 
 #include <wx/config.h>
-#include <wx/splitter.h>
-#include <wx/listctrl.h>
-#include <wx/notebook.h>
+#include <wx/spinctrl.h>
 #include <list>
-#include <utility>
-#include "cmn.h"  //for MouseModeEnum, OutputStyle
-
+#include <vector>
+#include <assert.h>
+#include "cmn.h"  //for MouseModeEnum, OutputStyle, PlotShared, 
+                  //    ProportionalSplitter
+#include "../common.h" // OutputStyle
 
 class PlotPane;
 class IOPane;
 class MainPlot;
 class AuxPlot;
 class FPlot;
-class PlotCore;
 class BgManager;
-class FancyRealCtrl;
-class Variable;
-class Function;
-class SideBar;
-class GradientDlg;
 
 
 class InputField : public wxTextCtrl

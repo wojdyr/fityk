@@ -16,7 +16,7 @@
 #include "wx_mplot.h"
 #include "wx_gui.h"
 #include "wx_dlg.h"
-#include "wx_pane.h"
+#include "pane.h"
 #include "data.h"
 #include "logic.h"
 #include "sum.h"
