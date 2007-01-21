@@ -21,8 +21,9 @@
 #include "print.h"
 #include "cmn.h" 
 #include "pane.h" 
-#include "wx_plot.h" 
-#include "wx_mplot.h" 
+#include "plot.h" 
+#include "mplot.h" 
+#include "aplot.h" 
 
 using namespace std;
 

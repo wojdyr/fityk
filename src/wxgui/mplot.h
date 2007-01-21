@@ -4,7 +4,7 @@
 #ifndef FITYK__WX_MPLOT__H__
 #define FITYK__WX_MPLOT__H__
 
-#include "wx_plot.h"
+#include "plot.h"
 #include "../numfuncs.h" // B_point definition
 #include "../guess.h" // enum FunctionKind 
 

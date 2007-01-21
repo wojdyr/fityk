@@ -18,8 +18,8 @@
 #include "listptxt.h"
 #include "gradient.h"
 #include "cmn.h" //SpinCtrl, ProportionalSplitter, change_color_dlg, ...
-#include "wx_gui.h" //frame
-#include "wx_mplot.h" 
+#include "gui.h" //frame
+#include "mplot.h" 
 #include "../common.h" //vector4, join_vector, S(), ...
 #include "../ui.h" 
 #include "../logic.h"

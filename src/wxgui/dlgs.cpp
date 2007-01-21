@@ -12,39 +12,19 @@
 #include <wx/wx.h>
 #endif
 
-#include <istream>
-#include <fstream>
-#include <sstream>
-#include <algorithm>
-#include <utility>
-#include <map>
-#include <ctype.h>
-#include <wx/valtext.h>
-#include <wx/bmpbuttn.h>
-#include <wx/grid.h>
 #include <wx/statline.h>
-#include <wx/splitter.h>
-#include <wx/notebook.h>
-#include <wx/file.h>
-#include "common.h"
-#include "wx_dlg.h"
-#include "dload.h"
-#include "wx_common.h"
-#include "pane.h"
-#include "wx_gui.h"
-#include "data.h"
-#include "sum.h"
-#include "fit.h"
-#include "ui.h"
-#include "settings.h"
-#include "datatrans.h" 
-#include "logic.h"
-#include "func.h"
-#include "guess.h"
 
-//bitmaps for buttons
+#include "dlgs.h"
+#include "gui.h"
+#include "../fit.h"
+#include "../ui.h"
+#include "../settings.h"
+#include "../datatrans.h" 
+#include "../logic.h"
+
 #include "img/up_arrow.xpm"
 #include "img/down_arrow.xpm"
+#include "img/fityk.xpm"
 
 using namespace std;
 
@@ -55,6 +35,11 @@ enum {
     ID_SHIST_DOWN                  ,
     ID_SHIST_CWSSR                 ,
     ID_SHIST_V                     , // and next 3
+    ID_SHIST_V_   = ID_SHIST_V + 10,
+
+    ID_DED_RADIO                   ,
+    ID_DED_INACT_CB                ,
+    ID_DED_TEXT                   
 };
 
 
@@ -142,7 +127,7 @@ void SumHistoryDlg::initialize_lc()
         lc->SetColumnWidth(i, wxLIST_AUTOSIZE);
 }
 
-void SumHistoryDlg::add_item_to_lc(int pos, vector<fp> const& item)
+void SumHistoryDlg::add_item_to_lc(int pos, vector<double> const& item)
 {
     lc->InsertItem(pos, wxString::Format(wxT("  %i  "), pos));
     lc->SetItem (pos, 1, wxString::Format(wxT("%i"), item.size()));
@@ -187,14 +172,14 @@ void SumHistoryDlg::OnDownButton (wxCommandEvent&)
 void SumHistoryDlg::OnComputeWssrButton (wxCommandEvent&)
 {
     FitMethodsContainer const* fmc = FitMethodsContainer::getInstance();
-    vector<fp> const orig = AL->get_parameters();
+    vector<double> const orig = AL->get_parameters();
     vector<DataWithSum*> dsds;
     dsds.push_back(AL->get_ds(AL->get_active_ds_position()));
         //TODO dsds = AL->get_dsds() if ...
     for (int i = 0; i != fmc->get_param_history_size(); ++i) {
-        vector<fp> const& item = fmc->get_item(i);
+        vector<double> const& item = fmc->get_item(i);
         if (item.size() == orig.size()) {
-            fp wssr = Fit::do_compute_wssr(item, dsds, true);
+            double wssr = Fit::do_compute_wssr(item, dsds, true);
             lc->SetItem(i, 2, wxString::Format(wxT("%g"), wssr));
         }
     }
@@ -228,7 +213,7 @@ void SumHistoryDlg::OnViewSpinCtrlUpdate (wxSpinEvent& event)
     //update data in wxListCtrl
     FitMethodsContainer const* fmc = FitMethodsContainer::getInstance();
     for (int i = 0; i != fmc->get_param_history_size(); ++i) {
-        vector<fp> const& item = fmc->get_item(i);
+        vector<double> const& item = fmc->get_item(i);
         wxString s = n < size(item) ? wxString::Format(wxT("%g"), item[n]) 
                                     : wxString();
         lc->SetItem(i, 3 + v, s);

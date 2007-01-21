@@ -15,9 +15,10 @@
 #include <wx/image.h>
 
 #include "pane.h" 
-#include "wx_gui.h" 
-#include "wx_plot.h" 
-#include "wx_mplot.h" 
+#include "gui.h" 
+#include "plot.h" 
+#include "mplot.h" 
+#include "aplot.h" 
 #include "../common.h"
 #include "../logic.h" 
 #include "../ui.h" 

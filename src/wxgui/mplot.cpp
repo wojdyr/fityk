@@ -1,7 +1,6 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
-// wxwindows headers, see wxwindows samples for description
 #include <wx/wxprec.h>
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -13,16 +12,18 @@
 #include <wx/fontdlg.h>
 #include <algorithm>
 
-#include "wx_mplot.h"
-#include "wx_gui.h"
-#include "wx_dlg.h"
-#include "pane.h"
-#include "data.h"
-#include "logic.h"
-#include "sum.h"
-#include "func.h"
-#include "ui.h"
-#include "settings.h"
+#include "mplot.h"
+#include "gui.h"
+#include "sidebar.h"
+//#include "dlgs.h"
+//#include "pane.h"
+#include "../data.h" 
+#include "../logic.h"
+#include "../sum.h"
+#include "../var.h"
+#include "../func.h"
+#include "../ui.h"
+#include "../settings.h"
 
 using namespace std;
 

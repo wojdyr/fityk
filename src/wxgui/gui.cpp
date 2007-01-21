@@ -10,7 +10,6 @@
 #include <wx/wx.h>
 #endif
 
-
 #include <wx/laywin.h>
 #include <wx/splitter.h>
 #include <wx/filedlg.h>
@@ -38,23 +37,29 @@
 
 #include <boost/spirit/version.hpp> //SPIRIT_VERSION
 
-#include "common.h"
-#include "wx_plot.h"
-#include "wx_mplot.h"
-#include "wx_gui.h"
-#include "wx_dlg.h"
+#include "gui.h"
+#include "plot.h"
+#include "mplot.h"
+#include "aplot.h"
+#include "dlgs.h"
 #include "dload.h"
 #include "pane.h"
-#include "logic.h"
-#include "fit.h"
-#include "data.h"
-#include "datatrans.h" //for statusbar
-#include "ui.h"
-#include "guess.h"
-#include "func.h"
+#include "sidebar.h"
+#include "print.h"
+#include "dataedit.h"
+#include "defmgr.h"
+#include "sdebug.h"
+#include "setdlg.h"
+#include "../common.h"
+#include "../logic.h"
+#include "../fit.h"
+#include "../data.h"
+#include "../datatrans.h" //for statusbar
+#include "../ui.h"
+#include "../guess.h"
+#include "../func.h"
 
 #include "img/fityk.xpm"
-
 //toolbars icons
 #include "img/active_mode.xpm"
 #include "img/addpeak_mode.xpm"
@@ -961,8 +966,8 @@ void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
 void FFrame::OnDXLoad (wxCommandEvent& WXUNUSED(event))
 {
     int n = AL->get_active_ds_position();
-    FDXLoadDlg dxload_dialog(this, -1, n, AL->get_data(n));
-    dxload_dialog.ShowModal();
+    DLoadDlg dload_dialog(this, -1, n, AL->get_data(n));
+    dload_dialog.ShowModal();
 }
 
 void FFrame::OnDRecent (wxCommandEvent& event)

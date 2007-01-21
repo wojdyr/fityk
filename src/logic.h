@@ -70,6 +70,7 @@ public:
     DataWithSum(VariableManager *mgr, Data* data_=0);
     Data *get_data() const { return data.get(); } 
     Sum *get_sum() const { return sum.get(); }
+    bool has_any_info() const;
 
 private:
     std::auto_ptr<Data> data;

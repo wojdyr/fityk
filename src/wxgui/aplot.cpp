@@ -2,7 +2,7 @@
 // $Id$
 
 /// In this file:
-///  
+///  Auxiliary Plot, for displaying residuals, peak positions, etc. (AuxPlot)
 
 #include <wx/wxprec.h>
 #ifdef __BORLANDC__
@@ -11,8 +11,13 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/numdlg.h>
 
 #include "aplot.h"
+#include "gui.h"
+#include "../sum.h"
+#include "../data.h"
+#include "../logic.h"
 
 using namespace std;
 
@@ -66,48 +71,50 @@ void AuxPlot::OnPaint(wxPaintEvent &WXUNUSED(event))
     vert_line_following_cursor(mat_redraw);//draw, if necessary, vertical lines
 }
 
-inline fp sum_value(vector<Point>::const_iterator pt, Sum const* sum)
+inline double sum_value(vector<Point>::const_iterator pt, Sum const* sum)
 {
     return sum->value(pt->x);
 }
 
-fp diff_of_data_for_draw_data (vector<Point>::const_iterator i, Sum const* sum)
+double diff_of_data_for_draw_data (vector<Point>::const_iterator i, 
+                                   Sum const* sum)
 {
     return i->y - sum_value(i, sum);
 }
 
-fp rdiff_of_data_for_draw_data (vector<Point>::const_iterator i, Sum const* sum)
+double rdiff_of_data_for_draw_data (vector<Point>::const_iterator i, 
+                                    Sum const* sum)
 {
     return sum_value(i, sum) - i->y;
 }
 
-fp diff_stddev_of_data_for_draw_data (vector<Point>::const_iterator i, 
-                                      Sum const* sum)
+double diff_stddev_of_data_for_draw_data (vector<Point>::const_iterator i, 
+                                          Sum const* sum)
 {
     return (i->y - sum_value(i, sum)) / i->sigma;
 }
 
-fp rdiff_stddev_of_data_for_draw_data (vector<Point>::const_iterator i, 
-                                       Sum const* sum)
+double rdiff_stddev_of_data_for_draw_data (vector<Point>::const_iterator i, 
+                                           Sum const* sum)
 {
     return (sum_value(i, sum) - i->y) / i->sigma;
 }
 
-fp diff_chi2_of_data_for_draw_data (vector<Point>::const_iterator i, 
-                                    Sum const* sum)
+double diff_chi2_of_data_for_draw_data (vector<Point>::const_iterator i, 
+                                        Sum const* sum)
 {
-    fp t = (i->y - sum_value(i, sum)) / i->sigma;
+    double t = (i->y - sum_value(i, sum)) / i->sigma;
     return t*t;
 }
 
-fp diff_y_perc_of_data_for_draw_data (vector<Point>::const_iterator i, 
-                                      Sum const* sum)
+double diff_y_perc_of_data_for_draw_data (vector<Point>::const_iterator i, 
+                                          Sum const* sum)
 {
     return i->y ? (i->y - sum_value(i, sum)) / i->y * 100 : 0;
 }
 
-fp rdiff_y_perc_of_data_for_draw_data (vector<Point>::const_iterator i, 
-                                       Sum const* sum)
+double rdiff_y_perc_of_data_for_draw_data (vector<Point>::const_iterator i, 
+                                           Sum const* sum)
 {
     return i->y ? (sum_value(i, sum) - i->y) / i->y * 100 : 0;
 }

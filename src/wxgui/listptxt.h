@@ -7,6 +7,8 @@
 #include <vector>
 #include <string>
 
+#include "cmn.h" //ProportionalSplitter
+
 class SideBar;
 
 class ListWithColors : public wxListView

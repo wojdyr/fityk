@@ -4,7 +4,16 @@
 #ifndef FITYK__WX_APLOT__H__
 #define FITYK__WX_APLOT__H__
 
+#include "plot.h"
 
+enum Aux_plot_kind_enum 
+{ 
+    apk_empty, 
+    apk_diff, 
+    apk_diff_stddev, 
+    apk_diff_y_perc,
+    apk_cum_chi2
+};
 
 //Auxiliary plot, usually shows residuals or peak positions
 class AuxPlot : public FPlot
@@ -42,7 +51,7 @@ private:
     Aux_plot_kind_enum kind;
     bool mark_peak_ctrs;
     bool reversed_diff;
-    fp y_zoom, y_zoom_base;
+    double y_zoom, y_zoom_base;
     bool auto_zoom_y;
     bool fit_y_once;
     int cursor_id;

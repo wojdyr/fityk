@@ -25,6 +25,11 @@ DataWithSum::DataWithSum(VariableManager *mgr, Data* data_)
     : data(data_ ? data_ : new Data), sum(new Sum(mgr))  
 {}
 
+bool DataWithSum::has_any_info() const
+{
+    return get_data()->has_any_info() || get_sum()->has_any_info(); 
+}
+
 void ApplicationLogic::activate_ds(int d)
 {
     if (d < 0 || d >= size(dsds))

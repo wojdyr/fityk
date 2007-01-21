@@ -4,9 +4,11 @@
 #ifndef FITYK__WX_DLG__H__
 #define FITYK__WX_DLG__H__
 
+#include <vector>
 #include <wx/spinctrl.h>
 #include <wx/listctrl.h> 
-//#include "wx_common.h"
+
+#include "cmn.h"
 
 class SumHistoryDlg : public wxDialog
 {
@@ -27,7 +29,7 @@ protected:
 
     void initialize_lc();
     void update_selection();
-    void add_item_to_lc(int pos, std::vector<fp> const& item);
+    void add_item_to_lc(int pos, std::vector<double> const& item);
     DECLARE_EVENT_TABLE()
 };
 

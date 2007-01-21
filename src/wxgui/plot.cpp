@@ -1,6 +1,9 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
 
+/// In this file:
+///  FPlot, the base class for MainPlot and AuxPlot 
+
 #include <wx/wxprec.h>
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -13,12 +16,12 @@
 #include <wx/numdlg.h>
 #include <wx/confbase.h>
 
-#include "common.h"
-#include "wx_plot.h"
-#include "wx_gui.h"
-#include "data.h"
-#include "sum.h"
-#include "logic.h" 
+#include "plot.h"
+//#include "common.h"
+//#include "wx_gui.h"
+#include "../data.h"
+//#include "sum.h"
+#include "../logic.h" 
 
 using namespace std;
 
@@ -142,10 +145,12 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
     }
     dc.SetFont(ticsFont);
 
-    vector<fp> minors;
-    vector<fp> x_tics = scale_tics_step(v.left, v.right, x_max_tics, minors);
+    vector<double> minors;
+    vector<double> x_tics = scale_tics_step(v.left, v.right, x_max_tics, 
+                                            minors);
     int Y = y2Y(y_logarithm ? 1 : 0);
-    for (vector<fp>::const_iterator i = x_tics.begin(); i != x_tics.end(); ++i){
+    for (vector<double>::const_iterator i = x_tics.begin(); 
+                                                    i != x_tics.end(); ++i) {
         int X = x2X(*i);
         dc.DrawLine (X, Y, X, Y - x_tic_size);
         if (x_grid) 
@@ -159,7 +164,7 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
     }
     //draw minor tics
     if (xminor_tics_visible)
-        for (vector<fp>::const_iterator i = minors.begin(); 
+        for (vector<double>::const_iterator i = minors.begin(); 
                                                     i != minors.end(); ++i) {
             int X = x2X(*i);
             dc.DrawLine (X, Y, X, Y - x_tic_size);
@@ -181,10 +186,11 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
     int X = 0;
     if (y_axis_visible && x2X(0) > 0 && x2X(0) < GetClientSize().GetWidth()-10)
         X = x2X(0);
-    vector<fp> minors;
-    vector<fp> y_tics = scale_tics_step(v.bottom, v.top, y_max_tics, 
-                                        minors, y_logarithm);
-    for (vector<fp>::const_iterator i = y_tics.begin(); i != y_tics.end(); ++i){
+    vector<double> minors;
+    vector<double> y_tics = scale_tics_step(v.bottom, v.top, y_max_tics, 
+                                            minors, y_logarithm);
+    for (vector<double>::const_iterator i = y_tics.begin(); 
+                                                    i != y_tics.end(); ++i) {
         int Y = y2Y(*i);
         dc.DrawLine (X, Y, X + y_tic_size, Y);
         if (y_grid) 
@@ -200,23 +206,23 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
     }
     //draw minor tics
     if (yminor_tics_visible)
-        for (vector<fp>::const_iterator i = minors.begin(); 
+        for (vector<double>::const_iterator i = minors.begin(); 
                                                     i != minors.end(); ++i) {
             int Y = y2Y(*i);
             dc.DrawLine (X, Y, X + y_tic_size, Y);
         }
 }
 
-fp FPlot::get_max_abs_y (fp (*compute_y)(vector<Point>::const_iterator, 
-                                         Sum const*),
+double FPlot::get_max_abs_y (double (*compute_y)(vector<Point>::const_iterator, 
+                                                 Sum const*),
                          vector<Point>::const_iterator first,
                          vector<Point>::const_iterator last,
                          Sum const* sum)
 {
-    fp max_abs_y = 0;
+    double max_abs_y = 0;
     for (vector<Point>::const_iterator i = first; i < last; i++) {
         if (i->is_active) {
-            fp y = fabs(((*compute_y)(i, sum)));
+            double y = fabs(((*compute_y)(i, sum)));
             if (y > max_abs_y) max_abs_y = y;
         }
     }
@@ -224,8 +230,8 @@ fp FPlot::get_max_abs_y (fp (*compute_y)(vector<Point>::const_iterator,
 }
 
 void FPlot::draw_data (wxDC& dc, 
-                       fp (*compute_y)(vector<Point>::const_iterator, 
-                                       Sum const*),
+                       double (*compute_y)(vector<Point>::const_iterator, 
+                                           Sum const*),
                        Data const* data, 
                        Sum const* sum,
                        wxColour const& color, wxColour const& inactive_color, 
@@ -261,7 +267,7 @@ void FPlot::draw_data (wxDC& dc,
             Y_ = Y_l + (Y_r - Y_l) * (X_ - X_l) / (X_r - X_l);
     }
     Y_ -= Y_offset;
-    fp y = 0;
+    double y = 0;
 
     //drawing all points (and lines); main loop
     for (vector<Point>::const_iterator i = first; i < last; i++) {
@@ -327,7 +333,7 @@ void FPlot::change_tics_font()
     data.SetInitialFont(ticsFont);
     data.SetColour(xAxisCol);
 
-    wxFontDialog dialog(frame, data);
+    wxFontDialog dialog(0, data);
     if (dialog.ShowModal() == wxID_OK)
     {
         wxFontData retData = dialog.GetFontData();
@@ -384,10 +390,10 @@ END_EVENT_TABLE()
 //===============================================================
 
 /// returns major and minor tics positions
-vector<fp> scale_tics_step (fp beg, fp end, int max_tics, 
-                            vector<fp> &minors, bool log)
+vector<double> scale_tics_step (double beg, double end, int max_tics, 
+                                vector<double> &minors, bool log)
 {
-    vector<fp> result;
+    vector<double> result;
     minors.clear();
     if (beg >= end || max_tics <= 0)
         return result;
@@ -396,12 +402,12 @@ vector<fp> scale_tics_step (fp beg, fp end, int max_tics,
             beg = 1e-1;
         if (end <= beg)
             end = 2*beg;
-        fp min_logstep = (log10(end/beg)) / max_tics;
+        double min_logstep = (log10(end/beg)) / max_tics;
         bool with_2_5 = (min_logstep < log10(2.));
-        fp logstep = ceil(min_logstep);
-        fp step0 = pow(10, logstep * ceil(log10(beg) / logstep));
+        double logstep = ceil(min_logstep);
+        double step0 = pow(10, logstep * ceil(log10(beg) / logstep));
         for (int i = 2; i <= 9; ++i) {
-            fp v = step0/10. * i;
+            double v = step0/10. * i;
             if (v > beg && v < end) {
                 if (with_2_5 && (i == 2 || i == 5))
                     result.push_back(v);
@@ -409,10 +415,10 @@ vector<fp> scale_tics_step (fp beg, fp end, int max_tics,
                     minors.push_back(v);
             }
         }
-        for (fp t = step0; t < end; t *= pow(10,logstep)) {
+        for (double t = step0; t < end; t *= pow(10,logstep)) {
             result.push_back(t);
             for (int i = 2; i <= 9; ++i) {
-                fp v = t * i;
+                double v = t * i;
                 if (v > beg && v < end)
                     if (with_2_5 && (i == 2 || i == 5))
                         result.push_back(v);
@@ -422,8 +428,8 @@ vector<fp> scale_tics_step (fp beg, fp end, int max_tics,
         }
     }
     else {
-        fp min_step = (end - beg) / max_tics;
-        fp s = pow(10, floor (log10 (min_step)));
+        double min_step = (end - beg) / max_tics;
+        double s = pow(10, floor (log10 (min_step)));
         int minor_div = 5; //ratio of major-step to minor-step
         // now s <= min_step
         if (s >= min_step)
@@ -438,16 +444,16 @@ vector<fp> scale_tics_step (fp beg, fp end, int max_tics,
             s *= 5;
         else
             s *= 10;
-        fp t = s * ceil(beg / s);
+        double t = s * ceil(beg / s);
         for (int i = 1; i < minor_div; ++i) {
-            fp v = t - s * i / minor_div;
+            double v = t - s * i / minor_div;
             if (v > beg && v < end)
                 minors.push_back(v);
         }
         for (; t < end; t += s) {
             result.push_back(t);
             for (int i = 1; i < minor_div; ++i) {
-                fp v = t + s * i / minor_div;
+                double v = t + s * i / minor_div;
                 if (v < end)
                     minors.push_back(v);
             }

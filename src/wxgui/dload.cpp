@@ -19,8 +19,8 @@
 #include <wx/filename.h>
 
 #include "dload.h" 
-#include "wx_gui.h"  // frame->add_recent_data_file(get_filename()
-#include "wx_plot.h" // scale_tics_step()
+#include "gui.h"  // frame->add_recent_data_file(get_filename()
+#include "plot.h" // scale_tics_step()
 #include "../data.h"
 #include "../ui.h" //exec_command(), getUI()
 #include "../logic.h"
@@ -38,10 +38,7 @@ enum {
     ID_DXLOAD_AUTO_PLOT           ,
     ID_DXLOAD_OPENHERE            ,
     ID_DXLOAD_OPENNEW             ,
-    ID_DXLOAD_FN                  ,
-    ID_DED_RADIO                  ,
-    ID_DED_INACT_CB               ,
-    ID_DED_TEXT                   
+    ID_DXLOAD_FN                  
 };
 
 

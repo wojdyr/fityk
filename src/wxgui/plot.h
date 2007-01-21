@@ -4,30 +4,20 @@
 #ifndef FITYK__WX_PLOT__H__
 #define FITYK__WX_PLOT__H__
 
-#include <map>
 #include <limits.h>
-#include "cmn.h" // MouseModeEnum
+#include <vector>
+#include <wx/config.h>
+#include "cmn.h" // PlotShared
 
 // INT_MIN, given as coordinate, is invalid value, means "cancel drawing"
 
 
-class wxConfigBase;
-
 struct Point;
-class MainPlot;
+class Sum;
+class Data;
 class View;
-struct f_names_type;
 
 enum MouseActEnum  { mat_start, mat_stop, mat_move, mat_redraw };
-
-enum Aux_plot_kind_enum 
-{ 
-    apk_empty, 
-    apk_diff, 
-    apk_diff_stddev, 
-    apk_diff_y_perc,
-    apk_cum_chi2
-};
 
 void draw_line_with_style(wxDC& dc, int style, 
                           wxCoord X1, wxCoord Y1, wxCoord X2, wxCoord Y2);
@@ -86,7 +76,7 @@ protected:
     bool y_logarithm;
     bool x_grid, y_grid;
     int x_max_tics, y_max_tics, x_tic_size, y_tic_size;
-    fp yUserScale, yLogicalOrigin; 
+    double yUserScale, yLogicalOrigin; 
     PlotShared &shared;
     int mouse_press_X, mouse_press_Y;
     int vlfc_prev_x, vlfc_prev_x0; //vertical lines following cursor
@@ -95,14 +85,14 @@ protected:
     bool vert_line_following_cursor(MouseActEnum ma, int x=0, int x0=INT_MIN);
     void draw_xtics (wxDC& dc, View const& v, bool set_pen=true);
     void draw_ytics (wxDC& dc, View const &v, bool set_pen=true);
-    fp get_max_abs_y (fp (*compute_y)(std::vector<Point>::const_iterator,
-                                      Sum const*),
+    double get_max_abs_y(double (*compute_y)(std::vector<Point>::const_iterator,
+                                             Sum const*),
                          std::vector<Point>::const_iterator first,
                          std::vector<Point>::const_iterator last,
                          Sum const* sum);
     void draw_data (wxDC& dc, 
-                    fp (*compute_y)(std::vector<Point>::const_iterator, 
-                                    Sum const*),
+                    double (*compute_y)(std::vector<Point>::const_iterator, 
+                                        Sum const*),
                     Data const* data, 
                     Sum const* sum, 
                     wxColour const& color = wxNullColour,
@@ -110,23 +100,23 @@ protected:
                     int Y_offset = 0,
                     bool cumulative=false);
     void change_tics_font();
-    int y2Y (fp y) {  
+    int y2Y (double y) {  
         if (y_logarithm) {
             if (y > 0)
                 y = log(y);
             else
                 return yUserScale > 0 ? SHRT_MIN : SHRT_MAX;
         }
-        fp t = (y - yLogicalOrigin) * yUserScale;
+        double t = (y - yLogicalOrigin) * yUserScale;
         return (fabs(t) < SHRT_MAX ? static_cast<int>(t) 
                                    : t > 0 ? SHRT_MAX : SHRT_MIN);
     }
-    fp Y2y (int Y) { 
-        fp y = Y / yUserScale + yLogicalOrigin;
+    double Y2y (int Y) { 
+        double y = Y / yUserScale + yLogicalOrigin;
         return y_logarithm ? exp(y) : y; 
     }
-    int x2X (fp x) { return shared.x2X(x); }
-    fp X2x (int X) { return shared.X2x(X); }
+    int x2X (double x) { return shared.x2X(x); }
+    double X2x (int X) { return shared.X2x(X); }
 
     DECLARE_EVENT_TABLE()
 };
@@ -136,8 +126,8 @@ protected:
 inline wxColour invert_colour(const wxColour& col)
 { return wxColour(255 - col.Red(), 255 - col.Green(), 255 - col.Blue()); }
 
-std::vector<fp> scale_tics_step (fp beg, fp end, int max_tics, 
-                                 std::vector<fp> &minors, bool log=false);
+std::vector<double> scale_tics_step (double beg, double end, int max_tics, 
+                                 std::vector<double> &minors, bool log=false);
 
 #endif 
 

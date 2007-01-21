@@ -11,13 +11,9 @@
 #include <wx/wx.h>
 #endif
 
-#include "common.h"
-#include "ui.h"
-#include "wx_plot.h"
-#include "wx_gui.h"
-#include "pane.h"
-#include "logic.h"
-#include "cmd.h"
+#include "../ui.h"
+#include "gui.h"
+#include "../cmd.h"
 
 using namespace std;
 
@@ -58,6 +54,7 @@ Commands::Status UserInterface::execCommand(const string& s)
     }
     catch(ExitRequestedException) {
         frame->Close(true);
+        return Commands::status_ok;
     }
     frame->after_cmd_updates();
     return r;
