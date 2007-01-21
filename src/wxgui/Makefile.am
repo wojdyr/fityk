@@ -20,9 +20,11 @@ else
 INCLUDES = -DHELP_DIR=\"$(pkgdatadir)\"
 endif  #OS_WIN32
 
-fityk_SOURCES = wx_common.cpp wx_dlg.cpp wx_gui.cpp wx_IO.cpp wx_plot.cpp \
+fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
+		listptxt.cpp listptxt.h \
+		wx_dlg.cpp wx_gui.cpp wx_IO.cpp wx_plot.cpp \
 		wx_mplot.cpp wx_pane.cpp wx_fdlg.cpp \
-		wx_common.h wx_dlg.h wx_gui.h wx_plot.h wx_mplot.h wx_pane.h \
+		wx_dlg.h wx_gui.h wx_plot.h wx_mplot.h wx_pane.h \
 		wx_fdlg.h 
 
 

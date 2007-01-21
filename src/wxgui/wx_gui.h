@@ -8,8 +8,8 @@
 #include <wx/spinctrl.h>
 #include <wx/help.h>
 #include <wx/filename.h>
-#include "common.h"
-#include "wx_common.h"  // Output_style_enum
+#include "cmn.h"  // Output_style_enum
+#include "../common.h" //s2wx
 
 class wxCmdLineParser;
 //struct z_names_type;

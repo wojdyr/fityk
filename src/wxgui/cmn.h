@@ -3,7 +3,7 @@
 #ifndef FITYK__WX_CMN__H__
 #define FITYK__WX_CMN__H__
 
-#include "common.h"
+#include "../common.h"
 #include <wx/splitter.h>
 #include <wx/arrstr.h>
 #include <wx/spinctrl.h>

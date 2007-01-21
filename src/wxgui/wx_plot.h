@@ -6,7 +6,7 @@
 
 #include <map>
 #include <limits.h>
-#include "wx_common.h" // MouseModeEnum
+#include "cmn.h" // MouseModeEnum
 
 // INT_MIN, given as coordinate, is invalid value, means "cancel drawing"
 
