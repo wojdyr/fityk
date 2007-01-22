@@ -35,8 +35,6 @@
       typedef void message_handler_func(OutputStyle style, string const& s);
       void message_handler(message_handler_func);
 
-* ? CVS -> Subversion transition
-
 ------------------ next release here 0.8.0
 
 * GUI: change focus from pane to input field when proper keys are pressed.

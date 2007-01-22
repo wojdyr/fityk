@@ -28,7 +28,7 @@ std::vector<fp> get_all_point_expressions(std::string const &s,
 bool get_dt_code(std::string const& s, 
                  std::vector<int>& code_, std::vector<fp>& numbers_);
 fp get_value_for_point(std::vector<int> const& code_, 
-                       std::vector<fp> const& numbers_, Point const& p);
+                       std::vector<fp> const& numbers_, fp x, fp y);
 
 
 /// a part of data expression grammar

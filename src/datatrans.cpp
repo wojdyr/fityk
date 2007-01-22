@@ -1404,13 +1404,13 @@ bool get_dt_code(string const& s, vector<int>& code_, vector<fp>& numbers_)
 }
 
 fp get_value_for_point(vector<int> const& code_, vector<fp> const& numbers_,
-                       Point const& p)
+                       fp x, fp y)
 {
     static vector<fp> stack(stack_size);
     static vector<Point> points(1); 
     static vector<Point> new_points(1); 
     numbers = numbers_;
-    points[0] = new_points[0] = p;
+    points[0] = new_points[0] = Point(x, y);
     int M = 1;
     execute_code(0, M, stack, points, new_points, code_);
     return stack.front();

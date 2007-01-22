@@ -13,6 +13,7 @@
 #endif
 
 #include <wx/statline.h>
+#include <boost/spirit/version.hpp> //SPIRIT_VERSION for AboutDlg
 
 #include "dlgs.h"
 #include "gui.h"
