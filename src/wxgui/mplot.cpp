@@ -15,8 +15,6 @@
 #include "mplot.h"
 #include "gui.h"
 #include "sidebar.h"
-//#include "dlgs.h"
-//#include "pane.h"
 #include "../data.h" 
 #include "../logic.h"
 #include "../sum.h"
@@ -1358,12 +1356,13 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
     x_show_tics = new wxCheckBox(this, -1, wxT("show tics"));
     x_show_tics->SetValue(plot->xtics_visible);
     xsizer->Add(x_show_tics, 0, wxALL, 5);
+    wxBoxSizer* xsizer_t = new wxBoxSizer(wxVERTICAL);
     x_show_minor_tics = new wxCheckBox(this, -1, wxT("show minor tics"));
     x_show_minor_tics->SetValue(plot->xminor_tics_visible);
-    xsizer->Add(x_show_minor_tics, 0, wxALL, 5);
+    xsizer_t->Add(x_show_minor_tics, 0, wxALL, 5);
     x_show_grid = new wxCheckBox(this, -1, wxT("show grid"));
     x_show_grid->SetValue(plot->x_grid);
-    xsizer->Add(x_show_grid, 0, wxALL, 5);
+    xsizer_t->Add(x_show_grid, 0, wxALL, 5);
     wxBoxSizer *xmt_sizer = new wxBoxSizer(wxHORIZONTAL);
     xmt_sizer->Add(new wxStaticText(this, -1, wxT("max. number of tics")), 
                   0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
@@ -1372,7 +1371,7 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
                                  wxSP_ARROW_KEYS, 1, 30, 7);
     x_max_tics->SetValue(plot->x_max_tics);
     xmt_sizer->Add(x_max_tics, 0, wxALL, 5);
-    xsizer->Add(xmt_sizer);
+    xsizer_t->Add(xmt_sizer);
     wxBoxSizer *xts_sizer = new wxBoxSizer(wxHORIZONTAL);
     xts_sizer->Add(new wxStaticText(this, -1, wxT("length of tics")), 
                   0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
@@ -1381,7 +1380,8 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
                                   wxSP_ARROW_KEYS, -10, 20, 4);
     x_tics_size->SetValue(plot->x_tic_size);
     xts_sizer->Add(x_tics_size, 0, wxALL, 5);
-    xsizer->Add(xts_sizer);
+    xsizer_t->Add(xts_sizer);
+    xsizer->Add(xsizer_t, 0, wxLEFT, 15);
     x_reversed = new wxCheckBox(this, -1, wxT("reversed axis"));
     x_reversed->SetValue(plot->x_reversed);
     xsizer->Add(x_reversed, 0, wxALL, 5);
@@ -1395,12 +1395,13 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
     y_show_tics = new wxCheckBox(this, -1, wxT("show tics"));
     y_show_tics->SetValue(plot->ytics_visible);
     ysizer->Add(y_show_tics, 0, wxALL, 5);
+    wxBoxSizer* ysizer_t = new wxBoxSizer(wxVERTICAL);
     y_show_minor_tics = new wxCheckBox(this, -1, wxT("show minor tics"));
     y_show_minor_tics->SetValue(plot->yminor_tics_visible);
-    ysizer->Add(y_show_minor_tics, 0, wxALL, 5);
+    ysizer_t->Add(y_show_minor_tics, 0, wxALL, 5);
     y_show_grid = new wxCheckBox(this, -1, wxT("show grid"));
     y_show_grid->SetValue(plot->y_grid);
-    ysizer->Add(y_show_grid, 0, wxALL, 5);
+    ysizer_t->Add(y_show_grid, 0, wxALL, 5);
     wxBoxSizer *ymt_sizer = new wxBoxSizer(wxHORIZONTAL);
     ymt_sizer->Add(new wxStaticText(this, -1, wxT("max. number of tics")), 
                   0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
@@ -1409,7 +1410,7 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
                                  wxSP_ARROW_KEYS, 1, 30, 7);
     y_max_tics->SetValue(plot->y_max_tics);
     ymt_sizer->Add(y_max_tics, 0, wxALL, 5);
-    ysizer->Add(ymt_sizer);
+    ysizer_t->Add(ymt_sizer);
     wxBoxSizer *yts_sizer = new wxBoxSizer(wxHORIZONTAL);
     yts_sizer->Add(new wxStaticText(this, -1, wxT("length of tics")), 
                   0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
@@ -1418,7 +1419,8 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
                                   wxSP_ARROW_KEYS, 1, 20, 4);
     y_tics_size->SetValue(plot->y_tic_size);
     yts_sizer->Add(y_tics_size, 0, wxALL, 5);
-    ysizer->Add(yts_sizer);
+    ysizer_t->Add(yts_sizer);
+    ysizer->Add(ysizer_t, 0, wxLEFT, 15);
     y_logarithm = new wxCheckBox(this, -1, wxT("logarithmic scale"));
     y_logarithm->SetValue(plot->y_logarithm);
     ysizer->Add(y_logarithm, 0, wxALL, 5);
@@ -1452,6 +1454,7 @@ void ConfigureAxesDlg::OnApply (wxCommandEvent& WXUNUSED(event))
         scale_changed = true;
     }
     plot->y_axis_visible = y_show_axis->GetValue();
+    plot->ytics_visible = y_show_tics->GetValue();
     plot->yminor_tics_visible = y_show_minor_tics->GetValue();
     plot->y_grid = y_show_grid->GetValue();
     plot->y_max_tics = y_max_tics->GetValue();

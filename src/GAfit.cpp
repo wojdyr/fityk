@@ -115,7 +115,7 @@ void GAfit::autoiter()
 
 void GAfit::log_ga_options()
 {
-    ofstream os(log_file.c_str(), ios::app);
+    ofstream os(log_file.c_str(), ios::out | ios::app);
     if (!os) {
         warn ("Can't open file for appending: " + log_file);
         return;
@@ -479,7 +479,7 @@ bool GAfit::termination_criteria_and_print_info (int iter)
                 + ", avg " + S(avg) + ", worst " + S(tmp_max) 
                 + ", std dev. " + S(std_dev));
     if (!log_file.empty()) {
-        ofstream os(log_file.c_str(), ios::app);
+        ofstream os(log_file.c_str(), ios::out | ios::app);
         if (os) {
             os << iter_nr << "  " << evaluations << "  " 
                << min << "  " << avg << "  " << tmp_max << "  " << std_dev 

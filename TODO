@@ -6,6 +6,12 @@
 
 * BUG: problem with default parameters of functions (reported by WANG)
 
+* // BUG: minor logging issue (c+ >log2.fit) [done?]
+  //        problem with logging on MSW (solved?)
+
+* data transformation?: transform(sum_points_with_dx, 1e-9) in @0
+             or         @0 < @0.sum_points_with_dx(1e-9)  
+
 * GUI: definition manager: 
    - add support for sum of functions
    - upper-case parameter names should be make lower case, rather than vanish
@@ -15,7 +21,7 @@
 * auto-scaling should not include x/y=0, unless it's
   in, say, 20% plot margin. "[:]" is an exception and includes 0.
   GUI: "Auto-zooms shows y=0"
-* plot - there should be a way to zoom to show all datasets
+* plot - there should be a way to zoom to show all datasets (plot @* [])
 * GUI?: when loading many datasets from command line, set view to show all
 
 * clean up verbosity levels of messages. There should be 6 kind of messages:
@@ -50,6 +56,8 @@
 * (GUI) error bars for data
 
 * formula simplifications: "3/x" is changed to more complex "3*1/x"
+
+* BUG, parsing problem: "i $a*$a" => Syntax error; "i 0+$a*$a" => OK
 
 * (GUI) finish script debugger dialog -- add command editing, inserting
   and deleting commands, and changing the order of command.

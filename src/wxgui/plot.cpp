@@ -153,14 +153,17 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
                                                     i != x_tics.end(); ++i) {
         int X = x2X(*i);
         dc.DrawLine (X, Y, X, Y - x_tic_size);
-        if (x_grid) 
-            draw_line_with_style(dc, wxDOT, X,0, X,GetClientSize().GetHeight());
         wxString label = s2wx(S(*i));
         if (label == wxT("-0")) 
             label = wxT("0");
         wxCoord w, h;
         dc.GetTextExtent (label, &w, &h);
         dc.DrawText (label, X - w/2, Y + 1);
+        if (x_grid) {
+            draw_line_with_style(dc, wxDOT, X,0, X,Y);
+            draw_line_with_style(dc, wxDOT, X, Y+1+h, 
+                                            X, GetClientSize().GetHeight());
+        }
     }
     //draw minor tics
     if (xminor_tics_visible)
@@ -193,8 +196,6 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
                                                     i != y_tics.end(); ++i) {
         int Y = y2Y(*i);
         dc.DrawLine (X, Y, X + y_tic_size, Y);
-        if (y_grid) 
-            draw_line_with_style(dc, wxDOT, 0,Y, GetClientSize().GetWidth(),Y);
         wxString label = s2wx(S(*i));
         if (label == wxT("-0"))
             label = wxT("0");
@@ -203,6 +204,11 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
         wxCoord w, h;
         dc.GetTextExtent (label, &w, &h);
         dc.DrawText (label, X + y_tic_size + 1, Y - h/2);
+        if (y_grid) {
+            draw_line_with_style(dc, wxDOT, 0,Y, X,Y);
+            draw_line_with_style(dc, wxDOT, X + y_tic_size + 1 + w + 1, Y,
+                                            GetClientSize().GetWidth(), Y);
+        }
     }
     //draw minor tics
     if (yminor_tics_visible)

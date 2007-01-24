@@ -117,22 +117,23 @@ void Commands::start_logging(string const& filename, bool with_output)
     }
     else {
         stop_logging();
-        log_filename = filename;
-        log_with_output = with_output;
-        log.open(filename.c_str(), ios::app);
+        log.open(filename.c_str(), ios::out | ios::app);
         if (!log) 
             throw ExecuteError("Can't open file for writing: " + filename);
         log << fityk_version_line << endl;
         log << "### AT "<< time_now() << "### START LOGGING ";
+        log_with_output = false; //don't put info() below into log 
         if (with_output) {
-            info ("Logging input and output to file: " + filename);
             log << "INPUT AND OUTPUT";
+            info ("Logging input and output to file: " + filename);
         }
         else {
-            info ("Logging input to file: " + filename);
             log << "INPUT";
+            info ("Logging input to file: " + filename);
         }
         log << " TO THIS FILE (" << filename << ")\n";
+        log_with_output = with_output;
+        log_filename = filename;
     }
 }
 
