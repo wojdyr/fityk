@@ -56,7 +56,8 @@ class FPlot : public BufferedPanel //wxPanel
 public:
     FPlot (wxWindow *parent, PlotShared &shar)
        : BufferedPanel(parent),
-         y_logarithm(false), yUserScale(1.), yLogicalOrigin(0.), 
+         draw_sigma(false), y_logarithm(false), 
+         yUserScale(1.), yLogicalOrigin(0.), 
          shared(shar), mouse_press_X(INT_MIN), mouse_press_Y(INT_MIN),
          vlfc_prev_x(INT_MIN), vlfc_prev_x0(INT_MIN)   {}
          
@@ -71,6 +72,7 @@ protected:
     wxFont ticsFont;
     int point_radius;
     bool line_between_points;
+    bool draw_sigma;
     bool x_axis_visible, y_axis_visible, xtics_visible, ytics_visible,
          xminor_tics_visible, yminor_tics_visible;
     bool y_logarithm;

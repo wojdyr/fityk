@@ -317,6 +317,11 @@ void FPlot::draw_data (wxDC& dc,
             if (point_radius == 1)
                 dc.DrawPoint (X, Y);
         }
+
+        if (draw_sigma) {
+            dc.DrawLine (X, y2Y(y - i->sigma) - Y_offset,
+                         X, y2Y(y + i->sigma) - Y_offset);
+        }
     }
 
     //the last line segment, toward next point

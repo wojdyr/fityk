@@ -146,6 +146,7 @@ public:
         { dataColour[n % max_data_cols] = col; }
     void set_data_point_size(int /*n*/, int r) { point_radius = r; }
     void set_data_with_line(int /*n*/, bool b) { line_between_points = b; }
+    void set_data_with_sigma(int /*n*/, bool b) { draw_sigma = b; }
     int get_data_point_size(int /*n*/) const { return point_radius; }
     bool get_data_with_line(int /*n*/) const { return line_between_points; }
     void set_func_color(int n, wxColour const& col) 
@@ -162,7 +163,7 @@ private:
     static const int max_data_cols = 64;
     static const int max_radius = 4; ///size of data point
     bool peaks_visible, groups_visible, sum_visible,  
-         plabels_visible, x_reversed; 
+         plabels_visible, x_reversed;  
     wxFont plabelFont;
     std::string plabel_format;
     bool vertical_plabels;

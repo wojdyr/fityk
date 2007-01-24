@@ -50,6 +50,7 @@ enum {
     ID_DP_LOOK                 ,
     ID_DP_PSIZE                ,
     ID_DP_PLINE                ,
+    ID_DP_PS                   ,
     ID_DP_SHIFTUP              ,
     ID_DP_NEW                  ,
     ID_DP_DUP                  ,
@@ -92,6 +93,7 @@ BEGIN_EVENT_TABLE(SideBar, ProportionalSplitter)
     EVT_CHOICE (ID_DP_LOOK, SideBar::OnDataLookChanged)
     EVT_SPINCTRL (ID_DP_PSIZE, SideBar::OnDataPSizeChanged)
     EVT_CHECKBOX (ID_DP_PLINE, SideBar::OnDataPLineChanged)
+    EVT_CHECKBOX (ID_DP_PS,    SideBar::OnDataPSChanged)
     EVT_SPINCTRL (ID_DP_SHIFTUP, SideBar::OnDataShiftUpChanged)
     EVT_LIST_ITEM_SELECTED(ID_DP_LIST, SideBar::OnDataFocusChanged)
     EVT_LIST_ITEM_DESELECTED(ID_DP_LIST, SideBar::OnDataFocusChanged)
@@ -153,7 +155,12 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     data_spin_sizer->Add(dpsize_sc, 0);
     // line between points
     dpline_cb = new wxCheckBox(data_page, ID_DP_PLINE, wxT("line"));
+    dpline_cb->SetToolTip(wxT("line between data points"));
     data_spin_sizer->Add(dpline_cb, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
+    // line between points
+    dpsigma_cb = new wxCheckBox(data_page, ID_DP_PS, wxT("s"));
+    dpsigma_cb->SetToolTip(wxT("show std. dev. of y (sigma)"));
+    data_spin_sizer->Add(dpsigma_cb, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
     // shift-up spin button
     data_spin_sizer->AddStretchSpacer();
     data_spin_sizer->Add(new wxStaticBitmap(data_page, -1, 
@@ -381,6 +388,12 @@ void SideBar::OnDataPSizeChanged (wxSpinEvent& event)
 void SideBar::OnDataPLineChanged (wxCommandEvent& event)
 {
     frame->get_main_plot()->set_data_with_line(0, event.IsChecked());
+    frame->refresh_plots(false, true);
+}
+
+void SideBar::OnDataPSChanged (wxCommandEvent& event)
+{
+    frame->get_main_plot()->set_data_with_sigma(0, event.IsChecked());
     frame->refresh_plots(false, true);
 }
 

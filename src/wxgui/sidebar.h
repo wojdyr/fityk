@@ -33,6 +33,7 @@ public:
     void OnDataLookChanged (wxCommandEvent& event);
     void OnDataPSizeChanged (wxSpinEvent& event);
     void OnDataPLineChanged (wxCommandEvent& event);
+    void OnDataPSChanged (wxCommandEvent& event);
     void OnDataShiftUpChanged (wxSpinEvent& event);
     void OnFuncButtonNew (wxCommandEvent& event);
     void OnFuncButtonDel (wxCommandEvent&) { delete_selected_items(); }
@@ -80,7 +81,7 @@ private:
     ListPlusText *d, *f, *v;
     wxChoice *data_look, *filter_ch;
     wxSpinCtrl *shiftup_sc, *dpsize_sc;
-    wxCheckBox *dpline_cb;
+    wxCheckBox *dpline_cb, *dpsigma_cb;
     int active_function;
     std::string active_function_name;
 

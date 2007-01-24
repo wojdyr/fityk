@@ -1,6 +1,10 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
+* !!! BUG: data load: sigma is _not_ set as sqrt(y)
+
+// * (GUI) error bars for data
+
 * BUG, GUI, MS Windows only: commands "@+ <" and "@0 <" executed from script
   give error: "Couldn't retrieve information about list control item 1."
 
@@ -52,8 +56,6 @@
   [IMPORTANT]
 
 ------------------ next release here 
-
-* (GUI) error bars for data
 
 * formula simplifications: "3/x" is changed to more complex "3*1/x"
 

@@ -596,6 +596,7 @@ void MainPlot::read_settings(wxConfigBase *cf)
     cf->SetPath(wxT("/MainPlot"));
     point_radius = cf->Read (wxT("point_radius"), 1);
     line_between_points = cfg_read_bool(cf,wxT("line_between_points"), false);
+    draw_sigma = cfg_read_bool(cf,wxT("draw_sigma"), false);
     plabelFont = cfg_read_font(cf, wxT("plabelFont"), *wxNORMAL_FONT);
     plabel_format = wx2s(cf->Read(wxT("plabel_format"), wxT("<area>")));
     vertical_plabels = cfg_read_bool(cf, wxT("vertical_plabels"), false);
@@ -614,6 +615,7 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->SetPath(wxT("/MainPlot"));
     cf->Write (wxT("point_radius"), point_radius);
     cf->Write (wxT("line_between_points"), line_between_points);
+    cf->Write (wxT("draw_sigma"), draw_sigma);
     cfg_write_font (cf, wxT("plabelFont"), plabelFont);
     cf->Write(wxT("plabel_format"), s2wx(plabel_format));
     cf->Write (wxT("vertical_plabels"), vertical_plabels);

@@ -248,11 +248,11 @@ void Data::load_xy_filetype (ifstream& f, vector<int> const& columns)
         fp x = cols[0] == 0 ? p.size() : xy[cols[0] - 1];
         fp y = cols[1] == 0 ? p.size() : xy[cols[1] - 1];
         if (cols.size() == 2)
-            p.push_back (Point (x, y));
+            p.push_back (Point(x, y));
         else {// cols.size() == 3
             fp sig = cols[2] == 0 ? p.size() : xy[cols[2] - 1];
             if (sig > 0) 
-                p.push_back (Point (x, y, sig));
+                p.push_back (Point(x, y, sig));
             else
                 warn ("Point " + S(p.size()) + " has sigma = " + S(sig) 
                         + ". Point canceled.");
