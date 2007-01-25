@@ -11,7 +11,6 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
-//#include <wx/spinctrl.h>
 #include <fstream>
 
 #include "sdebug.h"
@@ -33,7 +32,8 @@ enum {
     ID_SE_EXECDOWN              ,
     ID_SE_SAVE                  ,
     ID_SE_SAVE_AS               ,
-    ID_SE_CLOSE                 
+    ID_SE_CLOSE                 ,
+    ID_SE_NB              
 };
 
 
@@ -41,11 +41,14 @@ BEGIN_EVENT_TABLE(ScriptDebugDlg, wxDialog)
     EVT_TOOL(ID_SE_OPEN, ScriptDebugDlg::OnOpenFile)
     EVT_TOOL(ID_SE_EXECSEL, ScriptDebugDlg::OnExecSelected)
     EVT_TOOL(ID_SE_EXECDOWN, ScriptDebugDlg::OnExecDown)
+    EVT_TOOL(ID_SE_SAVE, ScriptDebugDlg::OnSave)
+    EVT_TOOL(ID_SE_SAVE_AS, ScriptDebugDlg::OnSaveAs)
     EVT_TOOL(ID_SE_CLOSE, ScriptDebugDlg::OnClose)
+    EVT_NOTEBOOK_PAGE_CHANGED(ID_SE_NB, ScriptDebugDlg::OnPageChange)
 END_EVENT_TABLE()
 
 ScriptDebugDlg::ScriptDebugDlg(wxWindow* parent, wxWindowID id)
-    : wxDialog(parent, id, wxT("(not working yet) Script Editor and Debugger"), 
+    : wxDialog(parent, id, wxT("unnamed"), 
                wxDefaultPosition, wxSize(600, 500), 
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
@@ -73,12 +76,13 @@ ScriptDebugDlg::ScriptDebugDlg(wxWindow* parent, wxWindowID id)
                 wxITEM_NORMAL, wxT("Save as..."), 
                 wxT("Save a copy to file"));
     tb->AddSeparator();
-    //TODO Edit, Move up, Move down
     tb->AddTool(ID_SE_CLOSE, wxT("Close"), wxBitmap(close_xpm), wxNullBitmap,
                 wxITEM_NORMAL, wxT("Exit debugger"), wxT("Close debugger"));
     tb->Realize();
     top_sizer->Add(tb, 0, wxEXPAND); 
-    list = new wxListView(this, -1, 
+    wxNotebook *nb = new wxNotebook(this, ID_SE_NB);
+
+    list = new wxListView(nb, -1, 
                           wxDefaultPosition, wxDefaultSize,
                           wxLC_REPORT|wxLC_HRULES|wxLC_VRULES);
     list->InsertColumn(0, wxT("No"));
@@ -88,31 +92,58 @@ ScriptDebugDlg::ScriptDebugDlg(wxWindow* parent, wxWindowID id)
     list->SetColumnWidth(1, 430);
     list->SetColumnWidth(2, 100);
 
-    //TODO last execution status column (ok, warning, error)
-    top_sizer->Add(list, 1, wxALL|wxEXPAND, 0);
-    //TODO editor
+    txt = new wxTextCtrl(nb, -1, wxT(""), wxDefaultPosition, wxDefaultSize,
+                         wxTE_MULTILINE|wxTE_RICH);
+
+    nb->AddPage(list, wxT("view"));
+    nb->AddPage(txt, wxT("edit"));
+    top_sizer->Add(nb, 1, wxALL|wxEXPAND, 0);
     SetSizerAndFit(top_sizer);
     SetSize(600, 500);
 }
 
 void ScriptDebugDlg::OpenFile()
 {
-    wxFileDialog dialog(this, wxT("open script file"), wxT(""), wxT(""), 
+    wxFileDialog dialog(this, wxT("open script file"), dir, wxT(""), 
                         wxT("fityk scripts (*.fit)|*.fit|all files|*"), 
                         wxOPEN | wxFILE_MUST_EXIST);
-    if (dialog.ShowModal() != wxID_OK) 
-        return;
-    string path = wx2s(dialog.GetPath());
-    ifstream f(path.c_str());
-    if (!f) 
-        return;
-    list->DeleteAllItems();
-    string line;
-    int n = 0;
-    while (getline(f, line)) {
-        add_line(++n, line);
+    if (dialog.ShowModal() == wxID_OK) {
+        bool r = txt->LoadFile(dialog.GetPath());
+        if (r) {
+            path = wx2s(dialog.GetPath());
+            SetTitle(path);
+            make_list_from_txt();
+        }
     }
-    list->InsertItem(list->GetItemCount(), wxT("+"));
+    dir = dialog.GetDirectory();
+}
+
+void ScriptDebugDlg::make_list_from_txt()
+{
+    list->DeleteAllItems();
+    for (int i = 0; i != txt->GetNumberOfLines(); ++i) {
+        string line = wx2s(txt->GetLineText(i));
+        // there is a bug in wxTextCtrl::GetLineText(),
+        // empty line gives "\n"+next line
+        if (!line.empty() && line[0] == '\n') // wx bug 
+            line = wxT("");
+        add_line(i+1, wx2s(line));
+    }
+}
+
+void ScriptDebugDlg::OnSaveAs(wxCommandEvent&)
+{
+    wxFileDialog dialog(this, wxT("save script as..."), dir, wxT(""), 
+                        wxT("fityk scripts (*.fit)|*.fit|all files|*"), 
+                        wxSAVE | wxOVERWRITE_PROMPT);
+    if (dialog.ShowModal() == wxID_OK) 
+        save_file(wx2s(dialog.GetPath()));
+    dir = dialog.GetDirectory();
+}
+
+void ScriptDebugDlg::save_file(string const& save_path)
+{
+    //TODO
 }
 
 void ScriptDebugDlg::add_line(int n, string const& line)
@@ -157,6 +188,7 @@ void ScriptDebugDlg::exec_line(int n)
 
 void ScriptDebugDlg::OnExecSelected(wxCommandEvent&)
 {
+    //TODO if edit/view
     for (long i=list->GetFirstSelected(); i!=-1; i=list->GetNextSelected(i)) {
         exec_line(i);
     }
@@ -164,6 +196,7 @@ void ScriptDebugDlg::OnExecSelected(wxCommandEvent&)
 
 void ScriptDebugDlg::OnExecDown(wxCommandEvent&)
 {
+    //TODO if edit/view
     long last = -1;
     for (long i=list->GetFirstSelected(); i!=-1; i=list->GetNextSelected(i)) {
         exec_line(i);
@@ -185,5 +218,23 @@ wxString ScriptDebugDlg::get_list_item(int i)
     info.SetColumn(1);
     list->GetItem(info);
     return info.GetText();
+}
+
+void ScriptDebugDlg::OnPageChange(wxNotebookEvent& event)
+{
+    int old_sel = event.GetOldSelection();
+    if (old_sel == 0) {
+        long line = list->GetFirstSelected();
+        if (line >= 0)
+            txt->SetInsertionPoint(txt->XYToPosition(0, line));
+    }
+    else if (old_sel == 1){
+        long x, y;
+        txt->PositionToXY(txt->GetInsertionPoint(), &x, &y);
+        make_list_from_txt();
+        list->Select(y);
+        list->Focus(y);
+        list->SetFocus();
+    }
 }
 

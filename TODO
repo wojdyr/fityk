@@ -2,6 +2,9 @@
 [ // = done, but not tested/documented     ]
 
 * !!! BUG: data load: sigma is _not_ set as sqrt(y)
+* option default-sigma with possible values: one , sqrt
+
+* !!!!! BUG: problem with simple loading data points, see data/ble
 
 // * (GUI) error bars for data
 
@@ -15,6 +18,9 @@
 
 * data transformation?: transform(sum_points_with_dx, 1e-9) in @0
              or         @0 < @0.sum_points_with_dx(1e-9)  
+	     also @x.histogram(nbins)
+	          @x.histogram(start, bin_length)
+		  @x.fft()
 
 * GUI: definition manager: 
    - add support for sum of functions
