@@ -33,10 +33,12 @@
 using namespace std;
 using namespace boost::spirit;
 
-typedef char const*         iterator_t;
-typedef tree_match<iterator_t> parse_tree_match_t;
-typedef parse_tree_match_t::tree_iterator iter_t;
-typedef parse_tree_match_t::const_tree_iterator const_iter_t;
+//typedef char const*         iterator_t;
+//typedef tree_match<iterator_t> parse_tree_match_t;
+//typedef parse_tree_match_t::tree_iterator iter_t;
+//typedef parse_tree_match_t::const_tree_iterator const_iter_t;
+//typedef tree_match<char const*>::const_tree_iterator const_iter_t;
+//typedef tree_match<char const*>::const_tree_iterator const_tm_iter_t;
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -132,9 +134,9 @@ OpTree* OpTree::copy() const
 ////////////////////////////////////////////////////////////////////////////
 
 namespace {
-void do_find_tokens(int tokenID, const_iter_t const &i, vector<string> &vars)
+void do_find_tokens(int tokenID, const_tm_iter_t const &i, vector<string> &vars)
 {
-    for (const_iter_t j = i->children.begin(); j != i->children.end(); ++j) {
+    for (const_tm_iter_t j = i->children.begin(); j != i->children.end(); ++j) {
         if (j->value.id() == tokenID) {
             string v(j->value.begin(), j->value.end());
             if (find(vars.begin(), vars.end(), v) == vars.end())
@@ -149,7 +151,7 @@ void do_find_tokens(int tokenID, const_iter_t const &i, vector<string> &vars)
 vector<string> find_tokens_in_ptree(int tokenID, const tree_parse_info<> &info)
 {
     vector<string> vars;
-    const_iter_t const &root = info.trees.begin();
+    const_tm_iter_t const &root = info.trees.begin();
     if (root->value.id() == tokenID) 
         vars.push_back(string(root->value.begin(), root->value.end()));
     else
@@ -774,7 +776,7 @@ fp get_constant_value(string const &s)
 
 /// returns array of trees, 
 /// first n=vars.size() derivatives and the last tree for value
-vector<OpTree*> calculate_deriv(const_iter_t const &i,
+vector<OpTree*> calculate_deriv(const_tm_iter_t const &i,
                                 vector<string> const &vars)
 {
     int len = vars.size();

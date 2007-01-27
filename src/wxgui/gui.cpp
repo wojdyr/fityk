@@ -138,6 +138,7 @@ enum {
     ID_S_DEBUGGER              ,
     ID_O_DUMP                  ,
     ID_SESSION_SET             ,
+    ID_SESSION_EI              ,
     ID_G_MODE                  ,
     ID_G_M_ZOOM                ,
     ID_G_M_RANGE               ,
@@ -392,6 +393,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_PRINT_PREVIEW, FFrame::OnPrintPreview)
     EVT_MENU (ID_O_DUMP,        FFrame::OnODump)    
     EVT_MENU (ID_SESSION_SET,   FFrame::OnSettings)    
+    EVT_MENU (ID_SESSION_EI,    FFrame::OnEditInit)    
 
     EVT_MENU (ID_G_M_ZOOM,      FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_RANGE,     FFrame::OnChangeMouseMode)
@@ -499,7 +501,7 @@ FFrame::~FFrame()
     delete print_mgr;
 }
 
-void FFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
+void FFrame::OnQuit(wxCommandEvent&)
 {
     Close(true);
 }
@@ -805,7 +807,7 @@ void FFrame::set_menubar()
                                            wxT("Execute commands from a file"));
     session_menu->Append (ID_O_REINCLUDE, wxT("R&e-Execute script"), 
              wxT("Reset & execute commands from the file included last time"));
-    session_menu->Append (ID_S_DEBUGGER, wxT("Script debu&gger..."), 
+    session_menu->Append (ID_S_DEBUGGER, wxT("Script debu&gger"), 
                                        wxT("Show script editor and debugger"));
     session_menu->Enable (ID_O_REINCLUDE, false);
     session_menu->Append (ID_O_RESET, wxT("&Reset"), 
@@ -846,6 +848,8 @@ void FFrame::set_menubar()
     session_menu->AppendSeparator();
     session_menu->Append (ID_SESSION_SET, wxT("&Settings"),
                                           wxT("Preferences and options"));
+    session_menu->Append (ID_SESSION_EI, wxT("Edit &Init File"),
+                             wxT("Edit script executed when program starts"));
     session_menu->AppendSeparator();
     session_menu->Append(ID_QUIT, wxT("&Quit"), wxT("Exit the program"));
 
@@ -887,7 +891,7 @@ void FFrame::OnShowMenuZoomPrev(wxUpdateUIEvent& event)
 }
            
 
-void FFrame::OnTipOfTheDay(wxCommandEvent& WXUNUSED(event))
+void FFrame::OnTipOfTheDay(wxCommandEvent&)
 {
     string tip_file = "fityk_tips.txt";
     string tip_path = get_full_path_of_help_file(tip_file); 
@@ -900,7 +904,7 @@ void FFrame::OnTipOfTheDay(wxCommandEvent& WXUNUSED(event))
     wxConfig::Get()->Write(wxT("/TipOfTheDay/idx"), idx); 
 }
 
-void FFrame::OnShowHelp(wxCommandEvent& WXUNUSED(event))
+void FFrame::OnShowHelp(wxCommandEvent&)
 {
         help.DisplayContents();
 }
@@ -910,14 +914,14 @@ bool FFrame::display_help_section(const string &s)
     return help.DisplaySection(s2wx(s));
 }
 
-void FFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
+void FFrame::OnAbout(wxCommandEvent&)
 {
     AboutDlg* dlg = new AboutDlg(this);
     dlg->ShowModal();
     dlg->Destroy();
 }
 
-void FFrame::OnContact(wxCommandEvent& WXUNUSED(event))
+void FFrame::OnContact(wxCommandEvent&)
 {
     wxString url = wxT("http://www.unipress.waw.pl/fityk/contact.html");
     bool r = wxLaunchDefaultBrowser(url);
@@ -926,7 +930,7 @@ void FFrame::OnContact(wxCommandEvent& WXUNUSED(event))
                      wxT("feedback"), wxOK|wxICON_INFORMATION);
 }
 
-void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnDLoad (wxCommandEvent&)
 {
     static wxString dir = wxConfig::Get()->Read(wxT("/loadDataDir"));
     wxFileDialog fdlg (this, wxT("Load data from a file"), dir, wxT(""),
@@ -957,7 +961,7 @@ void FFrame::OnDLoad (wxCommandEvent& WXUNUSED(event))
     dir = fdlg.GetDirectory();
 }
 
-void FFrame::OnDXLoad (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnDXLoad (wxCommandEvent&)
 {
     int n = AL->get_active_ds_position();
     DLoadDlg dload_dialog(this, -1, n, AL->get_data(n));
@@ -971,7 +975,7 @@ void FFrame::OnDRecent (wxCommandEvent& event)
     add_recent_data_file(s);
 }
 
-void FFrame::OnDEditor (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnDEditor (wxCommandEvent&)
 {
     vector<pair<int,Data*> > dd;
     if (get_apply_to_all_ds()) {
@@ -1027,12 +1031,12 @@ void FFrame::OnAllDatasetsUpdate (wxUpdateUIEvent& event)
     event.Enable(AL->get_ds_count() > 1);
 }
 
-void FFrame::OnDExport (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnDExport (wxCommandEvent&)
 {
     export_data_dlg(this);
 }
 
-void FFrame::OnSEditor (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnSEditor (wxCommandEvent&)
 {
 }
  
@@ -1044,24 +1048,24 @@ void FFrame::OnDefinitionMgr(wxCommandEvent&)
     dlg->Destroy();
 }
 
-void FFrame::OnSGuess (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnSGuess (wxCommandEvent&)
 {
     exec_command("guess " + frame->get_peak_type() + get_in_dataset());
 }
 
-void FFrame::OnSPFInfo (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnSPFInfo (wxCommandEvent&)
 {
     exec_command ("info guess" + get_in_dataset());
     //TODO animations showing peak positions
 }
         
-void FFrame::OnSFuncList (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnSFuncList (wxCommandEvent&)
 {
     SwitchSideBar(true);
     sidebar->set_selection(1);
 }
          
-void FFrame::OnSVarList (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnSVarList (wxCommandEvent&)
 {
     SwitchSideBar(true);
     sidebar->set_selection(2);
@@ -1109,7 +1113,7 @@ void FFrame::OnFOneOfMethods (wxCommandEvent& event)
                   + FitMethodsContainer::getInstance()->get_method(m)->name);
 }
            
-void FFrame::OnFRun (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnFRun (wxCommandEvent&)
 {
     FitRunDlg(this, -1, true).ShowModal();
 }
@@ -1158,7 +1162,7 @@ void FFrame::OnLogUpdate (wxUpdateUIEvent& event)
     event.Skip();
 }
 
-void FFrame::OnLogStart (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnLogStart (wxCommandEvent&)
 {
     static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
     wxFileDialog fdlg (this, wxT("Log to file"), dir, wxT(""),
@@ -1175,7 +1179,7 @@ void FFrame::OnLogStart (wxCommandEvent& WXUNUSED(event))
     dir = fdlg.GetDirectory();
 }
 
-void FFrame::OnLogStop (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnLogStop (wxCommandEvent&)
 {
     exec_command("commands > /dev/null");
 }
@@ -1201,7 +1205,7 @@ void FFrame::OnLogDump (wxCommandEvent&)
     dir = fdlg.GetDirectory();
 }
          
-void FFrame::OnO_Reset   (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnO_Reset (wxCommandEvent&)
 {
     int r = wxMessageBox(wxT("Do you really want to reset current session \n")
                       wxT("and lose everything you have done in this session?"),
@@ -1211,7 +1215,7 @@ void FFrame::OnO_Reset   (wxCommandEvent& WXUNUSED(event))
         exec_command ("reset");
 }
         
-void FFrame::OnOInclude      (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnOInclude (wxCommandEvent&)
 {
     static wxString dir = wxConfig::Get()->Read(wxT("/execScriptDir"));
     wxFileDialog fdlg (this, wxT("Execute commands from file"), dir, wxT(""),
@@ -1225,21 +1229,26 @@ void FFrame::OnOInclude      (wxCommandEvent& WXUNUSED(event))
     dir = fdlg.GetDirectory();
 }
             
-void FFrame::OnOReInclude    (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnOReInclude (wxCommandEvent&)
 {
     exec_command ("reset; commands < '" + last_include_path + "'");
 }
 
-void FFrame::show_debugger(bool show)
+void FFrame::show_debugger(wxString const& path)
 {
     static ScriptDebugDlg *dlg = 0;
-    if (show && !dlg)
+    if (!dlg) 
         dlg = new ScriptDebugDlg(this, -1);
-    if (dlg)
-        dlg->Show(true);
+    if (path.IsEmpty()) {
+        if (dlg->get_path().IsEmpty())
+            dlg->OpenFile(this);
+    }
+    else
+        dlg->do_open_file(path);
+    dlg->Show(true);
 }
             
-void FFrame::OnODump         (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnODump (wxCommandEvent&)
 {
     static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
     wxFileDialog fdlg(this, wxT("Dump current program state to file as script"),
@@ -1252,11 +1261,17 @@ void FFrame::OnODump         (wxCommandEvent& WXUNUSED(event))
     dir = fdlg.GetDirectory();
 }
          
-void FFrame::OnSettings    (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnSettings (wxCommandEvent&)
 {
     SettingsDlg *dialog = new SettingsDlg(this, -1);
     dialog->ShowModal();
     dialog->Destroy();
+}
+
+void FFrame::OnEditInit (wxCommandEvent&)
+{
+    wxString startup_file = get_user_conffile(startup_commands_filename);
+    show_debugger(startup_file);
 }
 
 void FFrame::OnChangeMouseMode (wxCommandEvent& event)
@@ -1355,17 +1370,17 @@ void FFrame::OnGMBgUpdate(wxUpdateUIEvent& event)
     event.Skip();
 }
 
-void FFrame::OnStripBg(wxCommandEvent& WXUNUSED(event))
+void FFrame::OnStripBg(wxCommandEvent&)
 {
     plot_pane->get_bg_manager()->strip_background();
 }
 
-void FFrame::OnUndoBg(wxCommandEvent& WXUNUSED(event))
+void FFrame::OnUndoBg(wxCommandEvent&)
 {
     plot_pane->get_bg_manager()->undo_strip_background();
 }
 
-void FFrame::OnClearBg(wxCommandEvent& WXUNUSED(event))
+void FFrame::OnClearBg(wxCommandEvent&)
 {
     plot_pane->get_bg_manager()->forget_background();
     refresh_plots(false, true);
@@ -1488,29 +1503,29 @@ void FFrame::GViewAll()
     change_zoom("[]");
 }
 
-void FFrame::OnGFitHeight (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnGFitHeight (wxCommandEvent&)
 {
     change_zoom(". []");
 }
 
-void FFrame::OnGScrollLeft (wxCommandEvent & WXUNUSED(event))
+void FFrame::OnGScrollLeft (wxCommandEvent&)
 {
     scroll_view_horizontally(-0.5);
 }
 
-void FFrame::OnGScrollRight (wxCommandEvent & WXUNUSED(event))
+void FFrame::OnGScrollRight (wxCommandEvent&)
 {
     scroll_view_horizontally(+0.5);
 }
 
-void FFrame::OnGScrollUp (wxCommandEvent & WXUNUSED(event))
+void FFrame::OnGScrollUp (wxCommandEvent&)
 {
     fp const factor = 2.;
     fp new_top = AL->view.bottom + factor * AL->view.height(); 
     change_zoom(". [.:" + S(new_top) + "]");
 }
 
-void FFrame::OnGExtendH (wxCommandEvent & WXUNUSED(event))
+void FFrame::OnGExtendH (wxCommandEvent&)
 {
     fp const factor = 0.5;
     View const &vw = AL->view;
@@ -1568,7 +1583,7 @@ void FFrame::OnConfigRead (wxCommandEvent& event)
     delete config;
 }
 
-void FFrame::OnConfigBuiltin (wxCommandEvent& WXUNUSED(event))
+void FFrame::OnConfigBuiltin (wxCommandEvent&)
 {
     // fake config file
     wxString name = pchar2wx(config_dirname) + wxFILE_SEP_PATH
@@ -1582,27 +1597,27 @@ void FFrame::OnConfigBuiltin (wxCommandEvent& WXUNUSED(event))
 }
 
 
-void FFrame::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
+void FFrame::OnPrintPreview(wxCommandEvent&)
 {
     print_mgr->printPreview();
 }
 
-void FFrame::OnPageSetup(wxCommandEvent& WXUNUSED(event))
+void FFrame::OnPageSetup(wxCommandEvent&)
 {
     print_mgr->pageSetup();
 }
 
-void FFrame::OnPrint(wxCommandEvent& WXUNUSED(event))
+void FFrame::OnPrint(wxCommandEvent&)
 {
     print_mgr->print();
 }
 
-void FFrame::OnPrintPSFile(wxCommandEvent& WXUNUSED(event))
+void FFrame::OnPrintPSFile(wxCommandEvent&)
 {
     print_mgr->print_to_psfile();
 }
 
-void FFrame::OnPrintToClipboard(wxCommandEvent& WXUNUSED(event))
+void FFrame::OnPrintToClipboard(wxCommandEvent&)
 {
 #ifdef USE_METAFILE
     wxMetafileDC dc;   

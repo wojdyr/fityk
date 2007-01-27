@@ -11,26 +11,32 @@ class ScriptDebugDlg : public wxDialog
 {
 public:
     ScriptDebugDlg(wxWindow* parent, wxWindowID id);
-    void OpenFile();
-    void OnOpenFile(wxCommandEvent&) { OpenFile(); }
-    void OnSave(wxCommandEvent&) { save_file(path); }
+    void OpenFile(wxWindow *parent);
+    void OnOpenFile(wxCommandEvent&) { OpenFile(this); }
+    bool do_open_file(wxString const& path_);
+    void OnSave(wxCommandEvent&);
     void OnSaveAs(wxCommandEvent&);
-    void OnExecSelected(wxCommandEvent&);
+    void OnExecSelected(wxCommandEvent&) { ExecSelected(); }
+    int ExecSelected();
     void OnExecDown(wxCommandEvent&);
     void OnClose(wxCommandEvent&) { close_it(this); }
     void OnPageChange(wxNotebookEvent& event);
+    void OnTextChange(wxCommandEvent&);
     wxString get_list_item(int i);
     void exec_line(int n);
-    void save_file(std::string const& path);
+    void save_file(wxString const& path);
+    wxString const& get_path() const { return path; }
 protected:
     wxToolBar *tb;
+    wxNotebook *nb;
     wxListView *list;
     wxTextCtrl *txt;
     wxString dir;
-    std::string path;
+    wxString path;
 
     void add_line(int n, std::string const& line);
     void make_list_from_txt();
+    void set_title();
     DECLARE_EVENT_TABLE()
 };
 

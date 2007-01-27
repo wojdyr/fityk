@@ -112,17 +112,18 @@ public:
     void OnLogDump       (wxCommandEvent& event);        
     void OnOInclude      (wxCommandEvent& event);            
     void OnOReInclude    (wxCommandEvent& event);            
-    void OnSDebugger     (wxCommandEvent&) { show_debugger(true); }            
-    void show_debugger (bool show);
-    void OnO_Reset       (wxCommandEvent& event);
-    void OnODump         (wxCommandEvent& event);         
-    void OnSettings     (wxCommandEvent& event);        
-    void OnPrintPreview  (wxCommandEvent& event);
-    void OnPageSetup     (wxCommandEvent& event);
-    void OnPrint         (wxCommandEvent& event);
-    void OnPrintPSFile   (wxCommandEvent& event);
-    void OnPrintToClipboard (wxCommandEvent& event);
-    void OnChangeMouseMode (wxCommandEvent& event);
+    void OnSDebugger     (wxCommandEvent&) { show_debugger(); } 
+    void show_debugger (wxString const& path=wxT(""));
+    void OnO_Reset       (wxCommandEvent&);
+    void OnODump         (wxCommandEvent&);         
+    void OnSettings      (wxCommandEvent&);        
+    void OnEditInit      (wxCommandEvent&);        
+    void OnPrintPreview  (wxCommandEvent&);
+    void OnPageSetup     (wxCommandEvent&);
+    void OnPrint         (wxCommandEvent&);
+    void OnPrintPSFile   (wxCommandEvent&);
+    void OnPrintToClipboard (wxCommandEvent&);
+    void OnChangeMouseMode (wxCommandEvent&);
     void OnUpdateFuncList(wxUpdateUIEvent& event);
     void OnChangePeakType(wxCommandEvent& event);
     void OnGMBgUpdate    (wxUpdateUIEvent& event);
@@ -131,7 +132,7 @@ public:
     void OnClearBg       (wxCommandEvent& event);
     void OnSplineBg      (wxCommandEvent& event);
     void GViewAll();
-    void OnGViewAll      (wxCommandEvent& WXUNUSED(event)) { GViewAll(); }
+    void OnGViewAll      (wxCommandEvent&) { GViewAll(); }
     void OnGFitHeight    (wxCommandEvent& event);
     void OnGScrollLeft   (wxCommandEvent& event);
     void OnGScrollRight  (wxCommandEvent& event);
