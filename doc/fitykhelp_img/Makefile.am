@@ -6,4 +6,4 @@ EXTRA_DIST = 2theta.png a3pearson.png a3psvoigt.png chi2.png \
 	     pearson7a.png polynom5.png pseudo_voigt.png pseudo_voigta.png \
 	     sigma.png splitgaussian.png splitpearson7.png \
 	     sum_f.png sum_f_x_z.png voigt.png voigta.png\
-	     w_1_sigma.png z_x_a.png emg.png doniachs.png
+	     w_1_sigma.png z_x_a.png emg.png doniachs.png voigt2.png

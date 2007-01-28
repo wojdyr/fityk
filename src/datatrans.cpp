@@ -127,6 +127,7 @@
 //#include "datatrans.h"
 #include "datatrans2.h"
 #include "sum.h"
+#include "voigt.h"
 //#include "common.h"
 //#include "data.h"
 //#include "var.h"
@@ -271,6 +272,7 @@ string dt_op(int op)
     OP_(NEG)   OP_(EXP)   OP_(SIN)   OP_(COS)  OP_(ATAN)  OP_(ABS)  OP_(ROUND) 
     OP_(TAN) OP_(ASIN) OP_(ACOS)
     OP_(LOG10) OP_(LN)  OP_(SQRT)  OP_(POW)  
+    OP_(GAMMA) OP_(LGAMMA) OP_(VOIGT)
     OP_(ADD)   OP_(SUB)   OP_(MUL)   OP_(DIV)  OP_(MOD)
     OP_(MIN2)   OP_(MAX2) OP_(RANDNORM) OP_(RANDU)    
     OP_(VAR_X) OP_(VAR_Y) OP_(VAR_S) OP_(VAR_A) 
@@ -570,6 +572,11 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 STACK_OFFSET_CHANGE(-1)
                 STACK_OP *stackPtr = pow(*stackPtr, *(stackPtr+1));
                 break;
+            case OP_VOIGT:
+                STACK_OFFSET_CHANGE(-1)
+                STACK_OP *stackPtr = humlik(*stackPtr, *(stackPtr+1)) 
+                                                               / sqrt(M_PI);
+                break;
 
             // comparisions
             case OP_LT:
@@ -815,6 +822,7 @@ bool execute_code(int n, int &M, vector<fp>& stack,
     return return_value;
 }
 
+#if 0
 // not tested !!!!!!
 // this function could be used for optimization of data transformations
 // but optimization is not neccessary (?)
@@ -1196,6 +1204,7 @@ void multipoint_execute_code(int M, vector<fp>& stack,
         }
     }
 }
+#endif
 
 
 /// change  AGSUM X ... X END_AGGREGATE  to  NUMBER INDEX 

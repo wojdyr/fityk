@@ -39,6 +39,9 @@ enum
     OP_DIV,       
     OP_ADD,       
     OP_SUB,       
+    OP_VOIGT,   
+    OP_DVOIGT_DX,   
+    OP_DVOIGT_DY,   
     OP_END        
 };
 

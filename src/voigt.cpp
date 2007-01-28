@@ -8,17 +8,17 @@
 #include <math.h>
 #include "voigt.h"
 
-//     To calculate the Faddeeva function 
-//     and partial derivatives of the Voigt function for y>=0  
-//     (from http://www.atm.ox.ac.uk/user/wells/voigt.html)
+///     To calculate the Faddeeva function 
+///     and partial derivatives of the Voigt function for y>=0  
+///     (from http://www.atm.ox.ac.uk/user/wells/voigt.html)
+/// arguments:
+///  x, y - Faddeeva/Voigt function arguments 
+///  k - voigt              -- output 
+///  l - Imaginary part     -- output
+///  dkdx - dVoigt/dx       -- output
+///  dkdy - dVoigt/dy       -- output
 void humdev(const float x, const float y, 
             float &k, float &l, float &dkdx, float &dkdy)
-        // arguments:
-        //  x, y - Faddeeva/Voigt function arguments 
-        //  k - voigt              -- output 
-        //  l - Imaginary part     -- output
-        //  dkdx - dVoigt/dx       -- output
-        //  dkdy - dVoigt/dy       -- output
 {
     static const float c[6] = { 1.0117281,     -0.75197147,      0.012557727, 
                                 0.010022008,   -2.4206814e-4,    5.0084806e-7 };
@@ -235,12 +235,12 @@ void humdev(const float x, const float y,
 
 
 
-//   To calculate the Faddeeva function with relative error less than 10^(-4).
-//     (from http://www.atm.ox.ac.uk/user/wells/voigt.html)
+///   To calculate the Faddeeva function with relative error less than 10^(-4).
+///     (from http://www.atm.ox.ac.uk/user/wells/voigt.html)
+/// arguments:
+///  x, y - Faddeeva/Voigt function arguments 
+/// return value -- voigt
 float humlik(const float x, const float y) 
-        // arguments:
-        //  x, y - Faddeeva/Voigt function arguments 
-        //  return value -- voigt
 {
 
     static const float c[6] = { 1.0117281,     -0.75197147,      0.012557727, 

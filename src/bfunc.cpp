@@ -698,7 +698,8 @@ FUNC_CALCULATE_VALUE_BEGIN(EMG)
     fp d = vv[3];
     fp fact = a*c*sqrt(2*M_PI)/(2*d);
     fp ex = exp(bx/d + c*c/(2*d*d));
-    fp erf_arg = bx/(M_SQRT2*c) + c/(M_SQRT2*d);
+    //fp erf_arg = bx/(M_SQRT2*c) + c/(M_SQRT2*d);
+    fp erf_arg = (bx/c + c/d) / M_SQRT2;
     fp t = fact * ex * (d >= 0 ? erfc(erf_arg) : -erfc(-erf_arg));
     //fp t = fact * ex * (d >= 0 ? 1-erf(erf_arg) : -1-erf(erf_arg));
 FUNC_CALCULATE_VALUE_END(t)

@@ -28,6 +28,7 @@
 #include "datatrans.h"
 #include "logic.h"
 #include "numfuncs.h"
+#include "voigt.h"
 
 ////////////////////////////////////////////////////////////////////////////
 using namespace std;
@@ -71,6 +72,11 @@ string OpTree::str(const vector<string> *vars)
         case OP_LOG10:return "log10("+c1->str(vars) + ")";
         case OP_LN:   return "ln("  + c1->str(vars) + ")";
         case OP_SQRT: return "sqrt("+ c1->str(vars) + ")";
+        case OP_VOIGT: return "voigt("+ c1->str(vars) +","+ c2->str(vars) +")";
+        case OP_DVOIGT_DX: return "dvoigt_dx("+ c1->str(vars) 
+                                                   + "," + c2->str(vars) + ")";
+        case OP_DVOIGT_DY: return "dvoigt_dy("+ c1->str(vars) 
+                                                   + "," + c2->str(vars) + ")";
         case OP_POW:  return c1->str_b(c1->op >= OP_POW, vars) 
                              + "^" + c2->str_b(c2->op >= OP_POW, vars);
         case OP_ADD:  return c1->str(vars) + "+" + c2->str(vars);
@@ -485,6 +491,39 @@ OpTree* do_pow(OpTree *a, OpTree *b)
     }
 }
 
+OpTree* do_voigt(OpTree *a, OpTree *b)
+{
+    if (a->op == 0 && b->op == 0) {
+        double val = humlik(a->val, b->val) / sqrt(M_PI);
+        delete a;
+        return new OpTree(val);
+    }
+    else
+        return new OpTree(OP_VOIGT, simplify_terms(a), simplify_terms(b));
+}
+
+OpTree* do_dvoigt_dx(OpTree *a, OpTree *b)
+{
+    if (a->op == 0 && b->op == 0) {
+        double val = humdev_dkdx(a->val, b->val) / sqrt(M_PI);
+        delete a;
+        return new OpTree(val);
+    }
+    else
+        return new OpTree(OP_DVOIGT_DX, simplify_terms(a), simplify_terms(b));
+}
+
+OpTree* do_dvoigt_dy(OpTree *a, OpTree *b)
+{
+    if (a->op == 0 && b->op == 0) {
+        double val = humdev_dkdy(a->val, b->val) / sqrt(M_PI);
+        delete a;
+        return new OpTree(val);
+    }
+    else
+        return new OpTree(OP_DVOIGT_DY, simplify_terms(a), simplify_terms(b));
+}
+
 ////////////////////////////////////////////////////////////////////////////
 
 struct MultFactor
@@ -805,75 +844,98 @@ vector<OpTree*> calculate_deriv(const_tm_iter_t const &i,
 
     else if (i->value.id() == FuncGrammar::exptokenID)
     {
-        vector<OpTree*> arg = calculate_deriv(i->children.begin(), vars);
-        OpTree* (* do_op)(OpTree *) = 0;
-        OpTree* der = 0;
-        OpTree* larg = arg.back()->copy();
-        if (s == "sqrt") {
-            der = do_divide(new OpTree(0.5), do_sqrt(larg));
-            do_op = do_sqrt;
+        if (i->children.size() == 1) {
+            vector<OpTree*> arg = calculate_deriv(i->children.begin(), vars);
+            OpTree* (* do_op)(OpTree *) = 0;
+            OpTree* der = 0;
+            OpTree* larg = arg.back()->copy();
+            if (s == "sqrt") {
+                der = do_divide(new OpTree(0.5), do_sqrt(larg));
+                do_op = do_sqrt;
+            }
+            else if (s == "exp") {
+                der = do_exp(larg);
+                do_op = do_exp;
+            }
+            else if (s == "erfc") {
+                // d/dz erfc(z) = -2/sqrt(pi) * exp(-z^2) 
+                der = do_multiply(do_exp(do_neg(do_sqr(larg))), 
+                                  new OpTree(-2/sqrt(M_PI)));
+                do_op = do_erfc;
+            }
+            else if (s == "erf") {
+                // d/dz erf(z) =  2/sqrt(pi) * exp(-z^2) 
+                der = do_multiply(do_exp(do_neg(do_sqr(larg))), 
+                                  new OpTree(2/sqrt(M_PI)));
+                do_op = do_erf;
+            }
+            else if (s == "log10") {
+                OpTree *ln_10 = do_ln(new OpTree(10.));
+                der = do_oneover(do_multiply(larg, ln_10));
+                do_op = do_log10;
+            }
+            else if (s == "ln") {
+                der = do_oneover(larg);
+                do_op = do_ln;
+            }
+            else if (s == "sin") {
+                der = do_cos(larg);
+                do_op = do_sin;
+            }
+            else if (s == "cos") {
+                der = do_neg(do_sin(larg));
+                do_op = do_cos;
+            }
+            else if (s == "tan") {
+                der = do_oneover(do_sqr(do_cos(larg)));
+                do_op = do_tan;
+            }
+            else if (s == "atan") {
+                der = do_oneover(do_add(new OpTree(1.), do_sqr(larg)));
+                do_op = do_atan;
+            }
+            else if (s == "asin") {
+                OpTree *root_arg = do_sub(new OpTree(1.), do_sqr(larg));
+                der = do_oneover(do_sqrt(root_arg));
+                do_op = do_asin;
+            }
+            else if (s == "acos") {
+                OpTree *root_arg = do_sub(new OpTree(1.), do_sqr(larg));
+                der = do_divide(new OpTree(-1.), do_sqrt(root_arg));
+                do_op = do_acos;
+            }
+            else if (s == "lgamma") {
+                der = do_digamma(larg);
+                do_op = do_lgamma;
+            }
+            else
+                assert(0);
+            for (int k = 0; k < len; ++k) 
+                results[k] = do_multiply(der->copy(), arg[k]);
+            delete der;
+            results[len] = (*do_op)(arg[len]);
         }
-        else if (s == "exp") {
-            der = do_exp(larg);
-            do_op = do_exp;
-        }
-        else if (s == "erfc") {
-            // d/dz erfc(z) = -2/sqrt(pi) * exp(-z^2) 
-            der = do_multiply(do_exp(do_neg(do_sqr(larg))), 
-                              new OpTree(-2/sqrt(M_PI)));
-            do_op = do_erfc;
-        }
-        else if (s == "erf") {
-            // d/dz erf(z) =  2/sqrt(pi) * exp(-z^2) 
-            der = do_multiply(do_exp(do_neg(do_sqr(larg))), 
-                              new OpTree(2/sqrt(M_PI)));
-            do_op = do_erf;
-        }
-        else if (s == "log10") {
-            OpTree *ln_10 = do_ln(new OpTree(10.));
-            der = do_oneover(do_multiply(larg, ln_10));
-            do_op = do_log10;
-        }
-        else if (s == "ln") {
-            der = do_oneover(larg);
-            do_op = do_ln;
-        }
-        else if (s == "sin") {
-            der = do_cos(larg);
-            do_op = do_sin;
-        }
-        else if (s == "cos") {
-            der = do_neg(do_sin(larg));
-            do_op = do_cos;
-        }
-        else if (s == "tan") {
-            der = do_oneover(do_sqr(do_cos(larg)));
-            do_op = do_tan;
-        }
-        else if (s == "atan") {
-            der = do_oneover(do_add(new OpTree(1.), do_sqr(larg)));
-            do_op = do_atan;
-        }
-        else if (s == "asin") {
-            OpTree *root_arg = do_sub(new OpTree(1.), do_sqr(larg));
-            der = do_oneover(do_sqrt(root_arg));
-            do_op = do_asin;
-        }
-        else if (s == "acos") {
-            OpTree *root_arg = do_sub(new OpTree(1.), do_sqr(larg));
-            der = do_divide(new OpTree(-1.), do_sqrt(root_arg));
-            do_op = do_acos;
-        }
-        else if (s == "lgamma") {
-            der = do_digamma(larg);
-            do_op = do_lgamma;
+        else if (i->children.size() == 2) {
+            vector<OpTree*> 
+                left = calculate_deriv(i->children.begin(), vars),
+                right = calculate_deriv(i->children.begin() + 1, vars);
+            OpTree *d1=0, *d2=0;
+            if (s == "voigt") {
+                d1 = do_dvoigt_dx(left[len]->copy(), right[len]->copy());
+                d2 = do_dvoigt_dy(left[len]->copy(), right[len]->copy());
+                for (int k = 0; k < len; ++k) {
+                    results[k] = do_add(do_multiply(d1->copy(), left[k]),
+                                        do_multiply(d2->copy(), right[k]));
+                }
+                results[len] = do_voigt(left[len], right[len]);
+            }
+            else
+                assert(0);
+            delete d1;
+            delete d2;
         }
         else
             assert(0);
-        for (int k = 0; k < len; ++k) 
-            results[k] = do_multiply(der->copy(), arg[k]);
-        delete der;
-        results[len] = (*do_op)(arg[len]);
     }
 
     else if (i->value.id() == FuncGrammar::signargID)

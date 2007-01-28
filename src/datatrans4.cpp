@@ -51,6 +51,8 @@ DataExprFunGrammar::definition<ScannerT>::definition(
                               >> DataExpressionG >> ')') [push_op(OP_RANDNORM)] 
         |   (as_lower_d["randuniform"] >> '(' >> DataExpressionG >> ',' 
                               >> DataExpressionG >> ')') [push_op(OP_RANDU)] 
+        |   (as_lower_d["voigt"] >> '(' >> DataExpressionG >> ',' 
+                              >> DataExpressionG >> ')') [push_op(OP_VOIGT)] 
 #ifndef STANDALONE_DATATRANS
         |   (func_or_f_or_z >> '(' >> DataExpressionG >> ')') [push_func()]
         |   as_lower_d["numarea"] >> '(' >> (func_or_f_or_z >> ',' 

@@ -78,7 +78,7 @@ struct Cmd2Grammar : public grammar<Cmd2Grammar>
 
     rule<ScannerT> transform, type_name, function_param, 
                    in_data, ds_prefix, 
-                   dataset_handling, compact_str, any_string, guess,
+                   dataset_handling, compact_str, guess,
                    existing_dataset_nr, dataset_nr, 
                    optional_plus, 
                    plot_range, info_arg, statement;  

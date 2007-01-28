@@ -17,7 +17,7 @@
 <book lang="en">
  <title>Fityk 0.7.7 - User's Manual</title> 
  <bookinfo> 
-  <date>2006-09-25</date>
+  <date>2007-01-27</date>
   <author> 
    <firstname>Marcin</firstname> <surname>Wojdyr</surname>
   </author> 
@@ -568,7 +568,8 @@
      <function>randuniform(a, b)</function> 
      (random number from interval (a, b)),
      <function>randnormal(mu, sigma)</function> 
-     (random number from normal distribution)
+     (random number from normal distribution),
+     <function>voigt(a, b)</function> (see below)
 
      and ternary ?: operator: 
       <replaceable>condition</replaceable> ? 
@@ -579,6 +580,13 @@
      Conditions can be built using boolean operators and comparisions: 
      AND, OR, NOT, &gt;, &gt;=, &lt;, &lt;=, ==, 
      != (or &lt;&gt;), TRUE, FALSE.
+    </para>
+    <para>
+     The <function>voigt</function> function above has formula:
+     <inlinemediaobject>
+      <imageobject><imagedata fileref="fitykhelp_img/voigt2.png"/></imageobject>
+      <textobject><phrase>K(x,y)=y/pi * integral...</phrase></textobject>
+     </inlinemediaobject>  
     </para>
     <para>
      The value of a data expression can be shown using the command 
@@ -954,7 +962,9 @@
      <function>acos</function>, 
      <function>erf</function>,
      <function>erfc</function>,
-     <function>lgamma</function>. Note that this is a subset of the functions
+     <function>lgamma</function>,
+     <function>voigt</function>. 
+     This is a subset of the functions
      used in <link linkend="transform">data transformations</link>.
     </para>
     <para>

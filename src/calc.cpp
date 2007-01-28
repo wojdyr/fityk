@@ -5,6 +5,7 @@
 #include "ast.h"
 #include "var.h"
 #include "numfuncs.h"
+#include "voigt.h"
 
 using namespace std;
 
@@ -69,6 +70,9 @@ string ast_op(int op)
     OP_(SQRT)
     OP_(LGAMMA)
     OP_(DIGAMMA)
+    OP_(VOIGT)
+    OP_(DVOIGT_DX)
+    OP_(DVOIGT_DY)
     OP_(POW)
     OP_(MUL)
     OP_(DIV)
@@ -171,6 +175,18 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
             case OP_POW:
                 stackPtr--;
                 *stackPtr = pow(*stackPtr, *(stackPtr+1));
+                break;
+            case OP_VOIGT:
+                stackPtr--;
+                *stackPtr = humlik(*stackPtr, *(stackPtr+1)) / sqrt(M_PI); 
+                break;
+            case OP_DVOIGT_DX:
+                stackPtr--;
+                *stackPtr = humdev_dkdx(*stackPtr, *(stackPtr+1)) / sqrt(M_PI); 
+                break;
+            case OP_DVOIGT_DY:
+                stackPtr--;
+                *stackPtr = humdev_dkdy(*stackPtr, *(stackPtr+1)) / sqrt(M_PI); 
                 break;
 
             // putting-number-to-stack-operators

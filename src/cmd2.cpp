@@ -429,10 +429,6 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         | lexeme_d[+chset<>(anychar_p - chset<>(" \t\n\r;,#"))] [assign_a(t)]
         ;
 
-    any_string
-        = +chset<>(anychar_p - chset<>(";,#"))
-        ;
-
     type_name
         = lexeme_d[(upper_p >> +alnum_p)] 
         ;
@@ -511,8 +507,10 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
            >> ')') [&do_print_sum_derivatives_info]
         | (existing_dataset_nr 
                 >> (str_p(".filename") | ".title" | eps_p)) [&do_print_info]
-        | "debug" >> compact_str [&do_print_debug_info] //no output_redir
-        | "der " >> any_string  [&do_print_deriv]
+        | "debug " >> compact_str [&do_print_debug_info] //no output_redir
+        // this will eat also ',', because voigt(x,y) needs it
+        // unfortunatelly "i der x^2, sin(x)" is made impossible
+        | "der " >> (+chset<>(anychar_p - chset<>(";#"))) [&do_print_deriv]
         | eps_p [&do_print_info] 
         ;
 

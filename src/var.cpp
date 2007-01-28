@@ -202,6 +202,9 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
                                           | "lgamma"
                                           ] ]
                    >>  inner_node_d[ch_p('(') >> expression >> ')']
+                | root_node_d[ as_lower_d["voigt"] ]
+                  >>  inner_node_d[ch_p('(') >> expression >> ','] 
+                  >>  discard_last_node_d[expression >> ')']
                 |  variable
                 ;
 

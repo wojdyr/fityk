@@ -2,7 +2,7 @@
 [ // = done, but not tested/documented     ]
 
 * !!! BUG: data load: sigma is _not_ set as sqrt(y)
-* option default-sigma with possible values: one , sqrt
+* option data-default-sigma with possible values: one , sqrt
 
 * !!!!! BUG: problem with simple loading data points, see data/ble
 
@@ -31,7 +31,7 @@
    - add support for sum of functions
    - upper-case parameter names should be make lower case, rather than vanish
 
-* voigt(x,y) function for data transformations and variable definitions
+// * voigt(x,y) function for data transformations and variable definitions
 
 * auto-scaling should not include x/y=0, unless it's
   in, say, 20% plot margin. "[:]" is an exception and includes 0.
@@ -132,7 +132,8 @@
 * GUI [BUG] aux. plot - when program is called with script as an argument
    aux. plot looks strange at the start of the program until it is replotted
 
-* improve Voigt function (cut-tails, better approx?) 
+* improve Voigt function (cut-tails, better approx) 
+  eg. http://portal.acm.org/citation.cfm?doid=77626.77629
 
 * (GUI) use numeric pad keys (WXK_NUMPAD_*) as shortcuts for changing 
 	function parameters.
