@@ -12,6 +12,7 @@
 #include <wx/wx.h>
 #endif
 #include <wx/statline.h>
+//#include <wx/msgdlg.h>
 
 #include "defmgr.h"
 #include "cmn.h" //s2wx, wx2s, close_it
@@ -315,7 +316,14 @@ void DefinitionMgrDlg::OnEndCellEdit(wxGridEvent &event)
     assert(row <= size(fde.parameters));
     bool new_row = (row == size(fde.parameters));
     int col = event.GetCol();
-    string new_val = wx2s(par_g->GetCellValue(row, col));
+    wxString new_val_ = par_g->GetCellValue(row, col);
+    if (new_val_.Lower() != new_val_) {
+        new_val_.MakeLower();
+        wxMessageBox(wxT("Parameter names should be lower case."), 
+                     wxT(""), wxOK|wxICON_INFORMATION, this);
+        par_g->SetCellValue(row, col, new_val_);
+    }
+    string new_val = wx2s(new_val_);
     if (col == 0) {
         if (new_val.empty()) {
             if (!new_row) { //erased parameter

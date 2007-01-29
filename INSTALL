@@ -3,7 +3,7 @@ REQUIREMENTS:
 both CLI and GUI
   modern c++ compiler (eg. GCC)
 only for CLI (command line interface, cfityk): 
-  readline library (optional)
+  readline library >= 4.2 (optional)
   gnuplot program (for graph output, optional)
 only for GUI (graphical user interface, fityk):
   wxWidgets (formerly wxWindows) >= 2.6.1 
