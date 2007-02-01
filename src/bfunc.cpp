@@ -211,8 +211,8 @@ const char *FuncGaussian::formula
 
 void FuncGaussian::more_precomputations() 
 { 
-    if (fabs(vv[2]) < EPSILON) 
-        vv[2] = EPSILON; 
+    if (fabs(vv[2]) < epsilon) 
+        vv[2] = epsilon; 
 }
 
 FUNC_CALCULATE_VALUE_BEGIN(Gaussian)
@@ -252,10 +252,10 @@ const char *FuncSplitGaussian::formula
 
 void FuncSplitGaussian::more_precomputations() 
 { 
-    if (fabs(vv[2]) < EPSILON) 
-        vv[2] = EPSILON; 
-    if (fabs(vv[3]) < EPSILON) 
-        vv[3] = EPSILON; 
+    if (fabs(vv[2]) < epsilon) 
+        vv[2] = epsilon; 
+    if (fabs(vv[3]) < epsilon) 
+        vv[3] = epsilon; 
 }
 
 FUNC_CALCULATE_VALUE_BEGIN(SplitGaussian)
@@ -306,8 +306,8 @@ const char *FuncLorentzian::formula
 
 void FuncLorentzian::more_precomputations()
 { 
-    if (fabs(vv[2]) < EPSILON) 
-        vv[2] = EPSILON; 
+    if (fabs(vv[2]) < epsilon) 
+        vv[2] = epsilon; 
 }
 
 FUNC_CALCULATE_VALUE_BEGIN(Lorentzian)
@@ -347,8 +347,8 @@ const char *FuncPearson7::formula
 
 void FuncPearson7::more_precomputations()
 { 
-    if (fabs(vv[2]) < EPSILON) 
-        vv[2] = EPSILON; 
+    if (fabs(vv[2]) < epsilon) 
+        vv[2] = epsilon; 
     if (vv.size() != 5)
         vv.resize(5);
     // not checking for vv[3]>0.5 nor even >0
@@ -415,10 +415,10 @@ const char *FuncSplitPearson7::formula
 
 void FuncSplitPearson7::more_precomputations()
 { 
-    if (fabs(vv[2]) < EPSILON) 
-        vv[2] = EPSILON; 
-    if (fabs(vv[3]) < EPSILON) 
-        vv[3] = EPSILON; 
+    if (fabs(vv[2]) < epsilon) 
+        vv[2] = epsilon; 
+    if (fabs(vv[3]) < epsilon) 
+        vv[3] = epsilon; 
     if (vv.size() != 8)
         vv.resize(8);
     // not checking for vv[3]>0.5 nor even >0
@@ -492,8 +492,8 @@ const char *FuncPseudoVoigt::formula
 
 void FuncPseudoVoigt::more_precomputations() 
 { 
-    if (fabs(vv[2]) < EPSILON) 
-        vv[2] = EPSILON; 
+    if (fabs(vv[2]) < epsilon) 
+        vv[2] = epsilon; 
 }
 
 FUNC_CALCULATE_VALUE_BEGIN(PseudoVoigt)
@@ -547,8 +547,8 @@ void FuncVoigt::more_precomputations()
     vv[4] = 1. / k;
     vv[5] = dkdy / k;
 
-    if (fabs(vv[2]) < EPSILON) 
-        vv[2] = EPSILON; 
+    if (fabs(vv[2]) < epsilon) 
+        vv[2] = epsilon; 
 }
 
 FUNC_CALCULATE_VALUE_BEGIN(Voigt)
@@ -618,8 +618,8 @@ void FuncVoigtA::more_precomputations()
         vv.resize(6);
     vv[4] = 1. / humlik(0, fabs(vv[3]));
 
-    if (fabs(vv[2]) < EPSILON) 
-        vv[2] = EPSILON; 
+    if (fabs(vv[2]) < epsilon) 
+        vv[2] = epsilon; 
 }
 
 FUNC_CALCULATE_VALUE_BEGIN(VoigtA)

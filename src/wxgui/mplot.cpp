@@ -1638,7 +1638,7 @@ void auto_background (int n, fp p1, bool is_perc1, fp p2, bool is_perc2)
             y_avg_end = v.size();
         if (y_avg_beg >= y_avg_end) {
             if (y_avg_beg >= size(v))
-                y_avg_beg = v.size() - 1;;
+                y_avg_beg = v.size() - 1;
             y_avg_end = y_avg_beg + 1;
         }
         int counter = 0;

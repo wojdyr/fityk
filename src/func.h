@@ -89,9 +89,8 @@ public:
                                 { return get_var_name(get_param_nr(param)); }
     fp get_param_value(std::string const& param) const;
     fp numarea(fp x1, fp x2, int nsteps) const;
-    fp find_x_with_value(fp x1, fp x2, fp val, 
-                         fp xacc=EPSILON, int max_iter=1000) const;
-    fp find_extremum(fp x1, fp x2, fp xacc=EPSILON, int max_iter=1000) const;
+    fp find_x_with_value(fp x1, fp x2, fp val, int max_iter=1000) const;
+    fp find_extremum(fp x1, fp x2, int max_iter=1000) const;
     virtual std::string get_bytecode() const { return "No bytecode"; }
     virtual void precomputations_for_alternative_vv() 
                                             { this->more_precomputations(); }

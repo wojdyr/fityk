@@ -159,8 +159,11 @@ bool NMfit::termination_criteria(int iter, fp convergence)
     //checking stop conditions
     if (common_termination_criteria(iter))
         stop=true;
-    fp r_diff = 2 * (worst->wssr - best->wssr) 
-                                        / (best->wssr + worst->wssr + EPSILON);
+    if (is_zero(worst->wssr)) {
+        info ("All vertices have WSSR < epsilon=" + S(epsilon));
+        return true;
+    }
+    fp r_diff = 2 * (worst->wssr - best->wssr) / (best->wssr + worst->wssr);
     if (r_diff < convergence) {
         info ("Relative difference between worst and best vertex is only "
                 + S(r_diff) + ". Stop");

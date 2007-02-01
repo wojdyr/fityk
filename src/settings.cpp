@@ -11,6 +11,8 @@
 
 using namespace std;
 
+fp epsilon = 1e-9; // declared in common.h
+
 //this is a part of Singleton design pattern
 Settings* Settings::instance = 0;
 Settings* Settings::getInstance()
@@ -46,6 +48,8 @@ Settings::Settings()
     insert_enum("autoplot", autoplot_enum, 2);
 
     bpar["exit-on-warning"] = false;
+
+    fpar["epsilon"] = epsilon;
 
     // 0 -> time-based seed
     ipar["pseudo-random-seed"] = 0;
@@ -141,6 +145,12 @@ void Settings::setp_core(string const& k, string const& v)
             //optimization
             if (k == "cut-function-level")
                 cut_function_level = d;
+            else if (k == "epsilon") {
+                if (d <= 0.) {
+                    throw ExecuteError("Value of epsilon must be positive.");
+                }
+                epsilon = d;
+            }
             return;
         }
     }

@@ -23,6 +23,7 @@
 #include <cmath>
 
 #include "common.h"
+#include "ui.h"
 #include "ast.h"
 #include "var.h"
 #include "datatrans.h"
@@ -188,7 +189,13 @@ OpTree* do_neg(OpTree *a)
 
 OpTree* do_add(int op, OpTree *a, OpTree *b)
 {
-    if (a->op == 0 && is_eq(a->val, 0.)) { // 0 + t
+    if (a->op == 0 && b->op == 0) { // p + q
+        double val = (op == OP_ADD ? a->val + b->val : a->val - b->val);
+        delete a;
+        delete b;
+        return new OpTree(val);
+    }
+    else if (a->op == 0 && is_eq(a->val, 0.)) { // 0 + t
         delete a;
         if (op == OP_ADD)
             return b;
@@ -198,12 +205,6 @@ OpTree* do_add(int op, OpTree *a, OpTree *b)
     else if (b->op == 0 && is_eq(b->val, 0.)) { // t + 0
         delete b;
         return a;
-    }
-    else if (a->op == 0 && b->op == 0) { // p + q
-        double val = (op == OP_ADD ? a->val + b->val : a->val - b->val);
-        delete a;
-        delete b;
-        return new OpTree(val);
     }
     else if (b->op == OP_NEG) { // t + -u
         OpTree *t = b->remove_c1();
@@ -240,30 +241,41 @@ OpTree* do_sub(OpTree *a, OpTree *b)
 
 OpTree* do_multiply(OpTree *a, OpTree *b)
 {
-    if ((a->op == 0 && b->op == 0)
-        || (a->op == 0 && is_eq(a->val, 0.))
-        || (b->op == 0 && is_eq(b->val, 0.)))
+    if (a->op == 0 && b->op == 0)  // const * const
     {
         double val = a->val * b->val;
         delete a;
         delete b;
         return new OpTree(val);
     }
-    else if (a->op == 0 && is_eq(a->val, 1.)) {
+    else if ((a->op == 0 && is_eq(a->val, 0.))   // 0 * ...
+             || (b->op == 0 && is_eq(b->val, 0.))) // ... * 0
+    {
+        delete a;
+        delete b;
+        return new OpTree(0.);
+    }
+    else if (a->op == 0 && is_eq(a->val, 1.)) {  // 1 * ...
         delete a;
         return b;
     }
-    else if (b->op == 0 && is_eq(b->val, 1.)) {
+    else if (b->op == 0 && is_eq(b->val, 1.)) {  // ... * 1
         delete b;
         return a;
     }
-    else if (a->op == 0 && is_eq(a->val, -1.)) {
+    else if (a->op == 0 && is_eq(a->val, -1.)) { // -1 * ...
         delete a;
         return do_neg(b);
     }
-    else if (b->op == 0 && is_eq(b->val, -1.)) {
+    else if (b->op == 0 && is_eq(b->val, -1.)) { // ... * -1 
         delete b;
         return do_neg(a);
+    }
+    // const1 * (const2 / ...)
+    else if (a->op == 0 && b->op == OP_DIV && b->c1->op == 0) { 
+        b->c1->val *= a->val;
+        delete a;
+        return b;
     }
     else {
         return new OpTree(OP_MUL, a, b);
@@ -272,17 +284,18 @@ OpTree* do_multiply(OpTree *a, OpTree *b)
 
 OpTree* do_divide(OpTree *a, OpTree *b)
 {
-    if (a->op == 0 && is_eq(a->val, 0.)) {
-        delete a;
-        delete b;
-        return new OpTree(0.);
-    }
-    else if ((a->op == 0 && b->op == 0) || (b->op == 0 && is_eq(b->val, 0.)))
+    //no check for division by zero
+    if (a->op == 0 && b->op == 0)
     {
         double val = a->val / b->val;
         delete a;
         delete b;
         return new OpTree(val);
+    }
+    else if (a->op == 0 && is_eq(a->val, 0.)) {
+        delete a;
+        delete b;
+        return new OpTree(0.);
     }
     else if (b->op == 0 && is_eq(b->val, 1.)) {
         delete b;
@@ -461,12 +474,18 @@ OpTree* do_digamma(OpTree *a)
 
 OpTree* do_pow(OpTree *a, OpTree *b)
 {
-    if (a->op == 0 && is_eq(a->val, 0.)) {
+    if (a->op == 0 && b->op == 0) {
+        double val = pow(a->val, b->val);
+        delete a;
+        delete b;
+        return new OpTree(val);
+    }
+    else if (a->op == 0 && is_eq(a->val, 0.)) {
         delete a;
         delete b;
         return new OpTree(0.);
     }
-    if ((b->op == 0 && is_eq(b->val, 0.)) 
+    else if ((b->op == 0 && is_eq(b->val, 0.)) 
         || (a->op == 0 && is_eq(a->val, 1.))) {
         delete a;
         delete b;
@@ -479,12 +498,6 @@ OpTree* do_pow(OpTree *a, OpTree *b)
     else if (b->op == 0 && is_eq(b->val, -1.)) {
         delete b;
         return do_oneover(a);
-    }
-    if (a->op == 0 && b->op == 0) {
-        double val = pow(a->val, b->val);
-        delete a;
-        delete b;
-        return new OpTree(val);
     }
     else {
         return new OpTree(OP_POW, a, simplify_terms(b));
@@ -684,50 +697,57 @@ void get_terms(OpTree *a, double multiplier, vector<MultTerm> &v)
     if (a->op == OP_MUL || a->op == OP_DIV || a->op == OP_SQRT 
             || a->op == OP_POW)
         a = simplify_factors(a);
-    if (a->op == OP_ADD) {
+
+    if (a->op == OP_ADD) {  // p + q
         get_terms(a->c1, multiplier, v);
         get_terms(a->c2, multiplier, v);
+        a->c1 = a->c2 = 0;
+        delete a;
     }
-    else if (a->op == OP_SUB) {
+    else if (a->op == OP_SUB) {  // p - q
         get_terms(a->c1, multiplier, v);
         get_terms(a->c2, -multiplier, v);
+        a->c1 = a->c2 = 0;
+        delete a;
     }
-    else if (a->op == OP_NEG) {
+    else if (a->op == OP_NEG) {  // - p
         get_terms(a->c1, -multiplier, v);
+        a->c1 = a->c2 = 0;
+        delete a;
     }
-    else if (a->op == OP_MUL && a->c1->op == 0) {
+    else if (a->op == OP_MUL && a->c1->op == 0) { // const * p
         get_terms(a->c2, multiplier*(a->c1->val), v);
+        a->c2 = 0;
+        delete a;
     }
-    else if (a->op == OP_DIV && a->c1->op == 0 && !is_eq(a->c1->val,1.)) {
+         // const / p for const != 1 (to avoid loop)
+    else if (a->op == OP_DIV && a->c1->op == 0 && a->c1->val != 1.) {
         get_terms(do_oneover(a->c2), multiplier*(a->c1->val), v);
+        a->c2 = 0;
+        delete a;
     }
-    else {
-        bool found = false;
-        if (a->op == 0)
-
-        for (vector<MultTerm>::iterator i = v.begin(); i != v.end(); ++i) 
-            if (i->t && *i->t == *a) {
-                i->k += multiplier;
-                found = true;
-                break;
-            }
-            else if (a->op == 0 && i->t && i->t->op == 0) {
+    else { // a can't be splitted
+        for (vector<MultTerm>::iterator i = v.begin(); i != v.end(); ++i) {
+            if (a->op == 0 && i->t && i->t->op == 0) {// number (not the first)
                 i->k += multiplier * a->val;
-                found = true;
-                break;
+                delete a;
+                return;
             }
-        if (!found) {
-            if (a->op == 0)
-                v.push_back(MultTerm(new OpTree(1.), multiplier * a->val));
-            else {
-                v.push_back(MultTerm(a, multiplier));
-                return; //don't delete a
+            if (i->t && *i->t == *a) { //token already in v
+                i->k += multiplier;
+                delete a;
+                return;
             }
         }
+        // we are here -- no first token of its kind
+        if (a->op == 0) { //add number
+            v.push_back(MultTerm(new OpTree(1.), multiplier * a->val));
+            delete a;
+        }
+        else {           // add token
+            v.push_back(MultTerm(a, multiplier));
+        }
     }
-    //we are here -- MultTerm(a,...) not created
-    a->c1 = a->c2 = 0;
-    delete a;
 }
 
 OpTree* simplify_terms(OpTree *a)
@@ -735,6 +755,11 @@ OpTree* simplify_terms(OpTree *a)
     // not handled:
     //        (x+y) * (x-y) == x^2 - y^2 
     //        (x+/-y)^2 == x^2 +/- 2xy + y^2
+    if (a->op == OP_MUL || a->op == OP_DIV || a->op == OP_SQRT 
+            || a->op == OP_POW)
+        return simplify_factors(a);
+    else if (!(a->op == OP_ADD || a->op == OP_SUB || a->op == OP_NEG))
+        return a;
 #ifdef DEBUG_SIMPLIFY
     cout << "simplify_terms() [<] " << a->str() << endl;
 #endif
@@ -809,8 +834,13 @@ fp get_constant_value(string const &s)
             data = AL->get_data(0);
         return get_transform_expression_value(expr, data);
     }
-    else
-        return strtod(s.c_str(), 0);
+    else {
+        fp val = strtod(s.c_str(), 0);
+        if (val != 0. && fabs(val) < epsilon)
+            warn("Warning: Numeric literal 0 < |" + s + "| < epsilon=" 
+                    + S(epsilon) + ".");
+        return val;
+    }
 }
 
 /// returns array of trees, 

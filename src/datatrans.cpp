@@ -71,7 +71,7 @@
 //
 // All computations are performed using real numbers, but using round for
 // comparisions should not be neccessary. Two numbers that differ less
-// than EPSILON (see: common.h) ie. abs(a-b)<EPSILON, are considered equal. 
+// than epsilon (see: common.h) ie. abs(a-b)<epsilon, are considered equal. 
 // Indices are also computed in real number domain, 
 // and if they are not integers, interpolation of two values
 // is taken (i.e of values with indices floor(idx) and ceil(idx) 
@@ -364,7 +364,7 @@ vector<int>::const_iterator find_end(vector<int>::const_iterator i)
 template<typename T>
 fp get_var_with_idx(fp idx, vector<Point> const& points, T Point::*t)
 {
-    if (idx < 0 || idx > points.size()-1)
+    if (idx < 0 || idx+1 > points.size())
         return 0.;
     else if (is_eq(idx, iround(idx)))
         return points[iround(idx)].*t;

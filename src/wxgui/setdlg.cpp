@@ -99,32 +99,45 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     nb->AddPage(page_dirs, wxT("directories"));
 
     // page general
-    wxStaticText *cut_st = new wxStaticText(page_general, -1, 
-                                    wxT("f(x) can be assumed 0, if |f(x)|<")); 
-    cut_func = new RealNumberCtrl(page_general, -1, 
-                                  getSettings()->getp("cut-function-level"));
+    wxBoxSizer *sizer_general = new wxBoxSizer(wxVERTICAL);
+
+    cut_func = addRealNumberCtrl(page_general, 
+                                 wxT("f(x) can be assumed 0, if |f(x)|<"),
+                                 getSettings()->getp("cut-function-level"),
+                                 sizer_general);
+
     autoplot_rb = new wxRadioBox(page_general, -1, wxT("auto-refresh plot"),
                                  wxDefaultPosition, wxDefaultSize, 
                                  stl2wxArrayString(
                                       getSettings()->expand_enum("autoplot")));
     autoplot_rb->SetStringSelection(s2wx(getSettings()->getp("autoplot")));
+    sizer_general->Add(autoplot_rb, 0, wxEXPAND|wxALL, 5);
 
     wxStaticText *verbosity_st = new wxStaticText(page_general, -1, 
                          wxT("verbosity (amount of messages in output pane)"));
+    sizer_general->Add(verbosity_st, 0, wxLEFT|wxRIGHT|wxTOP, 5);
     verbosity_ch = new wxChoice(page_general, -1, 
                                 wxDefaultPosition, wxDefaultSize,
                                 stl2wxArrayString(
                                       getSettings()->expand_enum("verbosity")));
     verbosity_ch->SetStringSelection(s2wx(getSettings()->getp("verbosity")));
+    sizer_general->Add(verbosity_ch, 0, wxEXPAND|wxALL, 5);
     exit_cb = addCheckbox(page_general, 
                           wxT("quit if error or warning was generated"),
                           getSettings()->get_b("exit-on-warning"),
                           0);
+    sizer_general->Add(exit_cb, 0, wxEXPAND|wxALL, 5);
+
     wxStaticText *seed_st = new wxStaticText(page_general, -1,
                         wxT("pseudo-random generator seed (0 = time-based)"));
     seed_sp = new SpinCtrl(page_general, -1, 
                          getSettings()->get_i("pseudo-random-seed"), 0, 999999,
                          70);
+    wxBoxSizer *sizer_general_seed = new wxBoxSizer(wxHORIZONTAL);
+    sizer_general_seed->Add(seed_st, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    sizer_general_seed->Add(seed_sp, 0, wxTOP|wxBOTTOM|wxRIGHT, 5);
+    sizer_general->Add(sizer_general_seed, 0, wxEXPAND);
+
     wxStaticText *export_f_st = new wxStaticText(page_general, -1, 
                          wxT("style of formula export"));
     export_f_ch = new wxChoice(page_general, -1, 
@@ -132,24 +145,15 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
         stl2wxArrayString(getSettings()->expand_enum("formula-export-style")));
     export_f_ch->SetStringSelection(
                             s2wx(getSettings()->getp("formula-export-style")));
-
-    wxBoxSizer *sizer_general = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *sizer_general_c = new wxBoxSizer(wxHORIZONTAL);
-    sizer_general_c->Add(cut_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    sizer_general_c->Add(cut_func, 0, wxALL, 5);
-    sizer_general->Add(sizer_general_c, 0);
-    sizer_general->Add(autoplot_rb, 0, wxEXPAND|wxALL, 5);
-    sizer_general->Add(verbosity_st, 0, wxLEFT|wxRIGHT|wxTOP, 5);
-    sizer_general->Add(verbosity_ch, 0, wxEXPAND|wxALL, 5);
-    sizer_general->Add(exit_cb, 0, wxEXPAND|wxALL, 5);
-    wxBoxSizer *sizer_general_seed = new wxBoxSizer(wxHORIZONTAL);
-    sizer_general_seed->Add(seed_st, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    sizer_general_seed->Add(seed_sp, 0, wxTOP|wxBOTTOM|wxRIGHT, 5);
-    sizer_general->Add(sizer_general_seed, 0, wxEXPAND);
     wxBoxSizer *sizer_efs = new wxBoxSizer(wxHORIZONTAL);
     sizer_efs->Add(export_f_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     sizer_efs->Add(export_f_ch, 1, wxALL, 5);
     sizer_general->Add(sizer_efs, 0, wxEXPAND);
+
+    eps_rc = addRealNumberCtrl(page_general, 
+                               wxT("epsilon for floating-point comparison"),
+                               getSettings()->getp("epsilon"),
+                               sizer_general);
     add_persistence_note(page_general, sizer_general);
     page_general->SetSizerAndFit(sizer_general);
 
@@ -339,6 +343,7 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
     m["exit-on-warning"] = exit_cb->GetValue() ? "1" : "0";
     m["pseudo-random-seed"] = S(seed_sp->GetValue());
     m["formula-export-style"] = wx2s(export_f_ch->GetStringSelection());
+    m["epsilon"] = wx2s(eps_rc->GetValue());
     m["height-correction"] = wx2s(height_correction->GetValue());
     m["width-correction"] = wx2s(width_correction->GetValue());
     m["can-cancel-guess"] = cancel_poos->GetValue() ? "1" : "0";

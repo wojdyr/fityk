@@ -42,7 +42,7 @@ int ApplicationLogic::append_ds(Data *data)
 {
     DataWithSum* ds = new DataWithSum(this, data);
     dsds.push_back(ds); 
-    return dsds.size()-1; 
+    return dsds.size() - 1; 
 }
 
 void ApplicationLogic::remove_ds(int d)

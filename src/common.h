@@ -34,18 +34,17 @@ typedef long double fp;
 typedef double fp;  
 #endif
 
-#ifndef EPSILON
-# define EPSILON 1e-9
-#endif
+/// epsilon is used for comparision of real numbers
+/// defined in settings.cpp; it can be changed in Settings 
+extern fp epsilon;
 
-// epsilon is used for comparision of real numbers
-inline bool is_eq(fp a, fp b) { return fabs(a-b) < EPSILON; }
-inline bool is_neq(fp a, fp b) { return fabs(a-b) > EPSILON; }
-inline bool is_lt(fp a, fp b) { return a < b - EPSILON; }
-inline bool is_gt(fp a, fp b) { return a > b + EPSILON; }
-inline bool is_le(fp a, fp b) { return a <= b + EPSILON; }
-inline bool is_ge(fp a, fp b) { return a >= b - EPSILON; }
-inline bool is_zero(fp a) { return fabs(a) < EPSILON; }
+inline bool is_eq(fp a, fp b) { return fabs(a-b) <= epsilon; }
+inline bool is_neq(fp a, fp b) { return fabs(a-b) > epsilon; }
+inline bool is_lt(fp a, fp b) { return a < b - epsilon; }
+inline bool is_gt(fp a, fp b) { return a > b + epsilon; }
+inline bool is_le(fp a, fp b) { return a <= b + epsilon; }
+inline bool is_ge(fp a, fp b) { return a >= b - epsilon; }
+inline bool is_zero(fp a) { return fabs(a) <= epsilon; }
 
 inline bool is_finite(fp a) 
 #if HAVE_FINITE

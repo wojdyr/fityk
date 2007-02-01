@@ -33,7 +33,7 @@ public:
         : ParameterizedFunction(params_, pcodes_) {}
 
     void do_prepare() {
-        for (size_t i = 0; i < params.size() - 1; i += 2)
+        for (int i = 0; i < size(params) - 1; i += 2)
             bb.push_back(B_point(params[i], params[i+1]));
     }
 
@@ -52,7 +52,7 @@ public:
         : ParameterizedFunction(params_, pcodes_) {}
 
     void do_prepare() {
-        for (size_t i = 0; i < params.size() - 1; i += 2)
+        for (int i = 0; i < size(params) - 1; i += 2)
             bb.push_back(B_point(params[i], params[i+1]));
         prepare_spline_interpolation(bb);
     }

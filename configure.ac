@@ -25,7 +25,7 @@ AC_ARG_ENABLE(optimization,
 
 dnl Checks for -enable-debug/optimization options
 if test "$enable_debug" = "yes"; then 
-	CXXFLAGS="-g -O0 -fno-inline -W $CXXFLAGS"
+	CXXFLAGS="-g -O0 -fno-inline -W -Wall $CXXFLAGS"
 fi
 if test "$enable_optimization" = "yes"; then 
 	CPPFLAGS="-DNDEBUG $CPPFLAGS"

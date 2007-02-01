@@ -318,15 +318,15 @@ void GAfit::roulette_wheel_selection(vector<int>& next)
 {
     vector<unsigned int> roulette(pop->size()); //preparing roulette
     unsigned int t = 0;
-    for (unsigned int i = 0; i < pop->size() - 1; i++) {
+    for (int i = 0; i < size(*pop) - 1; i++) {
         t += static_cast<unsigned int>
-            ((*pop)[i].norm_score * RAND_MAX / pop->size());
+            ((*pop)[i].norm_score * RAND_MAX / size(*pop));
         roulette[i] = t;
     }                                 
-    roulette[pop->size() - 1] = RAND_MAX; //end of preparing roulette
+    roulette[size(*pop) - 1] = RAND_MAX; //end of preparing roulette
     for (vector<int>::iterator i = next.begin(); i != next.end(); i++) 
         *i = lower_bound (roulette.begin(), roulette.end(), 
-                          static_cast<unsigned int>(rand())) - roulette.begin();
+                         static_cast<unsigned int>(rand())) - roulette.begin();
 }
 
 void GAfit::tournament_selection(vector<int>& next)
@@ -441,7 +441,7 @@ fp GAfit::max_in_window ()
     assert (window_size <= hist_len);
     if (window_size > 0) {
         if (rank_scoring)
-            return pop->size() - 1;
+            return size(*pop) - 1;
         else 
             return *max_element (max_raw_history.begin(), 
                                  max_raw_history.begin() + window_size);

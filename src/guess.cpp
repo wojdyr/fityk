@@ -113,7 +113,7 @@ fp compute_data_fwhm(DataWithSum const* ds,
         }
     }
     fp fwhm = ds->get_data()->get_x(r) - ds->get_data()->get_x(l);
-    return max (fwhm, EPSILON);
+    return max (fwhm, epsilon);
 }
 
 void parse_range(DataWithSum const* ds, vector<string> const& range,

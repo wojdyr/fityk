@@ -43,11 +43,22 @@
     function parameters.
 
 
+* small (eg. 1e-14) values of parameters are not handled properly.
+//    - make EPSILON an option in the program (set epsilon = ...)
+//    - warning if variable is set value: 0 < |value| < EPSILON
+//    - GUI 
+      - doc
+
 * data transformation?: transform(sum_points_with_dx, 1e-9) in @0
              or         @0 < @0.merge_dx(1e-9)  
 	     also @x.histogram(nbins)
 	          @x.histogram(start, bin_length)
 		  @x.fft()
+
+* check if errors (info errors) are the same like in other popular programs
+  (there are some doubts about it)
+
+* add to builtin functions ExpDecay(a=0, t=1) = a*exp(-x/t)
 
 ------------------ release 0.7.8
 
@@ -77,12 +88,6 @@
   [IMPORTANT]
 
 ------------------ release 0.8.1
-
-* small (eg. 1e-14) values of parameters are not handled properly.
-   - make EPSILON an option when in configure script
-   - warning if variable is set value: 0 < |value| < EPSILON
-
-* formula simplifications: "3/x" is changed to more complex "3*1/x"
 
 * BUG, parsing problem: "i $a*$a" => Syntax error; "i 0+$a*$a" => OK
 

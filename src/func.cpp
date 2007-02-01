@@ -379,8 +379,7 @@ fp Function::numarea(fp x1, fp x2, int nsteps) const
 /// search x in [x1, x2] for which %f(x)==val, 
 /// x1, x2, val: f(x1) <= val <= f(x2) or f(x2) <= val <= f(x1)
 /// bisection + Newton-Raphson
-fp Function::find_x_with_value(fp x1, fp x2, fp val, 
-                               fp xacc, int max_iter) const
+fp Function::find_x_with_value(fp x1, fp x2, fp val, int max_iter) const
 {
     fp y1 = calculate_value(x1) - val;
     fp y2 = calculate_value(x2) - val;
@@ -401,7 +400,7 @@ fp Function::find_x_with_value(fp x1, fp x2, fp val,
     fp t = (x1 + x2) / 2.;
     for (int i = 0; i < max_iter; ++i) {
         //check if converged
-        if (fabs(x1-x2) < xacc)
+        if (is_eq(x1, x2))
             return (x1+x2) / 2.;
 
         // calculate f and df
@@ -436,7 +435,7 @@ fp Function::find_x_with_value(fp x1, fp x2, fp val,
 }
 
 /// finds root of derivative, using bisection method
-fp Function::find_extremum(fp x1, fp x2, fp xacc, int max_iter) const
+fp Function::find_extremum(fp x1, fp x2, int max_iter) const
 {
     int n = 0;
     for (vector<Multi>::const_iterator j = multi.begin(); j != multi.end(); ++j)
@@ -482,7 +481,7 @@ fp Function::find_extremum(fp x1, fp x2, fp xacc, int max_iter) const
             x2 = t;
 
         //check if converged
-        if (fabs(x1-x2) < xacc)
+        if (is_eq(x1, x2))
             return (x1+x2) / 2.;
     }
     throw ExecuteError("The search has not converged in " + S(max_iter) 
