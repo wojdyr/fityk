@@ -11,7 +11,7 @@
 
 using namespace std;
 
-fp epsilon = 1e-9; // declared in common.h
+fp epsilon = 1e-12; // declared in common.h
 
 //this is a part of Singleton design pattern
 Settings* Settings::instance = 0;
@@ -50,6 +50,11 @@ Settings::Settings()
     bpar["exit-on-warning"] = false;
 
     fpar["epsilon"] = epsilon;
+
+    map<char, string> data_sigma_enum;
+    data_sigma_enum ['s'] = "sqrt";
+    data_sigma_enum ['1'] = "one";
+    insert_enum("data-default-sigma", data_sigma_enum, 's');
 
     // 0 -> time-based seed
     ipar["pseudo-random-seed"] = 0;

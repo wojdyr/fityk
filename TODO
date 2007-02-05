@@ -1,12 +1,8 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
-* !!! BUG: data load: sigma is _not_ set as sqrt(y)
-* option data-default-sigma with possible values: one , sqrt
-
-* !!!!! BUG: problem with simple loading data points, see data/ble
-
-// * (GUI) error bars for data
+//* - option data-default-sigma with possible values: (one , sqrt). Docs.
+//    - GUI
 
 * BUG, GUI, MS Windows only: commands "@+ <" and "@0 <" executed from script
   give error: "Couldn't retrieve information about list control item 1."
@@ -16,15 +12,8 @@
 * // BUG: minor logging issue (c+ >log2.fit) [done?]
   //        problem with logging on MSW (solved?)
 
-// * (GUI) finish script debugger dialog
-
-// * (GUI) "Edit init file" from menu, which will edit .init file
-
-
 * GUI: definition manager: 
    - add support for sum of functions
-
-// * voigt(x,y) function for data transformations and variable definitions
 
 * auto-scaling should not include x/y=0, unless it's
   in, say, 20% plot margin. "[:]" is an exception and includes 0.
@@ -32,22 +21,16 @@
 * plot - there should be a way to zoom to show all datasets (plot @* [])
 * GUI?: when loading many datasets from command line, set view to show all
 
-* GUI: Fitting 
-	autoplot option -> fitting tab, checkbox: replot-after-fit-iteration
-	                   perhaps also in Fit->Run dialog
+//* GUI: autoplot option -> fitting tab, checkbox: replot-after-fit-iteration
+
+* GUI: autoplot option also in Fit->Run dialog
 
 * GUI: keyboard support:
     change focus from pane to input field when proper keys are pressed.
     [Enter] on input-field-spin-control should also work
-    use numeric pad keys (WXK_NUMPAD_*) as shortcuts for changing 
-    function parameters.
+    option (in GUI menu): use numeric pad keys (WXK_NUMPAD_*) as shortcuts 
+    for changing function parameters.
 
-
-* small (eg. 1e-14) values of parameters are not handled properly.
-//    - make EPSILON an option in the program (set epsilon = ...)
-//    - warning if variable is set value: 0 < |value| < EPSILON
-//    - GUI 
-      - doc
 
 * data transformation?: transform(sum_points_with_dx, 1e-9) in @0
              or         @0 < @0.merge_dx(1e-9)  
@@ -106,6 +89,10 @@
   for all functions (F[hwhm]=...; F[shape]=...) or independent.
   buttons should be active only when it's possible
    should also affect graphical peak adding (all 3 ways)
+
+* GUI: logarithmic x scale
+
+* @n.wssr, @n.ssr, @n.dof (degrees of freedom)
 
 ------------------ 
 

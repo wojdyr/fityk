@@ -79,6 +79,7 @@ private:
     std::string given_type;
     std::vector<int> given_cols;
     fp x_step; // 0.0 if not fixed;
+    bool sigma_from_file;
     std::vector<Point> p;
     std::vector<int> active_p;
     fp y_min, y_max;

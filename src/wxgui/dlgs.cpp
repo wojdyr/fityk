@@ -279,6 +279,14 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
     initialize_cb = new wxCheckBox(this, -1, wxT("initialize method"));
     initialize_cb->SetValue(initialize);
     top_sizer->Add(initialize_cb, 0, wxALL, 5);
+
+    bool autop = (getSettings()->getp("autoplot") == "on-fit-iteration");
+    autoplot_cb = new wxCheckBox(this, -1, 
+                                 wxT("refresh plot after each iteration"));
+    autoplot_cb->SetValue(autop); 
+    top_sizer->Add(autoplot_cb, 0, wxALL, 5);
+
+
     top_sizer->Add(new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
     top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL), 
                    0, wxALL|wxALIGN_CENTER, 5);
@@ -317,21 +325,33 @@ void FitRunDlg::OnOK(wxCommandEvent&)
     int m = method_c->GetSelection();
     if (m != fc->current_method_number())
         cmd += "with fitting-method=" + fc->get_method(m)->name + " ";
+
+    bool autop = (getSettings()->getp("autoplot") == "on-fit-iteration");
+    if (autoplot_cb->GetValue() != autop) {
+        cmd += string(cmd.empty() ? "with" : ",") + " autoplot=";
+        cmd += (autoplot_cb->GetValue() ? "on-fit-iteration " 
+                                        : "on-plot-change ");
+    }
+
     int max_eval = maxeval_sc->GetValue();
     if (max_eval != getSettings()->get_i("max-wssr-evaluations")) 
         cmd += (cmd.empty() ? "with" : ",") 
                 + string(" max-wssr-evaluations=") + S(max_eval) + " ";
+
     bool ini = initialize_cb->GetValue();
     cmd +=  ini ? "fit " : "fit+ ";
+
     int max_iter = maxiter_sc->GetValue();
     if (max_iter > 0)
         cmd += S(max_iter);
+
     if (ini) {
         if (ds_rb->GetSelection() == 0)
             cmd += frame->get_in_dataset();
         else
             cmd += " in @*";
     }
+
     exec_command(cmd);
     close_it(this, wxID_OK);
 }

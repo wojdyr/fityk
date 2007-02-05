@@ -24,6 +24,7 @@
 #include "../data.h"
 #include "../ui.h" //exec_command(), getUI()
 #include "../logic.h"
+#include "../settings.h"
 #include "../common.h" //iround
 
 using namespace std;
@@ -224,9 +225,10 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     columns_panel->SetSizer(h2a_sizer);
     left_sizer->Add (columns_panel, 0, wxALL|wxEXPAND, 5);
 
+    bool def_set_sqrt = (getSettings()->getp("data-default-sigma") == "sqrt");
     sd_sqrt_cb = new wxCheckBox(left_panel, ID_DXLOAD_SDS, 
                                 wxT("set std. dev. as max(sqrt(y), 1.0)"));
-    sd_sqrt_cb->SetValue(true);
+    sd_sqrt_cb->SetValue(def_set_sqrt);
     left_sizer->Add (sd_sqrt_cb, 0, wxALL|wxEXPAND, 5);
 
     wxStaticBoxSizer *dt_sizer = new wxStaticBoxSizer(wxVERTICAL, 
@@ -344,7 +346,7 @@ void DLoadDlg::OnClose (wxCommandEvent&)
 
 void DLoadDlg::OnOpenHere (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command("@" + S(data_nr) + " <" + get_command_tail(data_nr));
+    exec_command(get_command("@" + S(data_nr), data_nr));
     frame->add_recent_data_file(get_filename());
 }
 
@@ -353,7 +355,7 @@ void DLoadDlg::OnOpenNew (wxCommandEvent& WXUNUSED(event))
     int d_nr = AL->get_ds_count();
     if (d_nr == 1 && !AL->get_ds(0)->has_any_info())
         d_nr = 0; // special case, @+ will not add new data slot
-    exec_command("@+ <" + get_command_tail(d_nr));
+    exec_command(get_command("@+", d_nr));
     frame->add_recent_data_file(get_filename());
 }
 
@@ -449,26 +451,39 @@ string DLoadDlg::get_filename()
     return wx2s(filename_tc->GetValue());
 }
 
-string DLoadDlg::get_command_tail(int d_nr)
+string DLoadDlg::get_command(string const& ds, int d_nr)
 {
+    string cmd;
+
     string cols;
     if (columns_panel->IsEnabled()) { // a:b[:c]
         cols = " " + S(x_column->GetValue()) + "," + S(y_column->GetValue());
         if (std_dev_cb->GetValue())
             cols += S(",") + S(s_column->GetValue());
     }
+
     string filetype;
     if (htitle_cb->IsChecked())
         filetype = " htext";
-    string add_cmd;
-    if (!sd_sqrt_cb->GetValue() 
-            && !(columns_panel->IsEnabled() && std_dev_cb->GetValue()))
-        add_cmd += "; S=1 in @" + S(d_nr);
+
+    bool def_set_sqrt = (getSettings()->getp("data-default-sigma") == "sqrt");
+    bool set_sqrt = sd_sqrt_cb->GetValue();
+    bool sigma_in_file = (columns_panel->IsEnabled() && std_dev_cb->GetValue());
+    if (!sigma_in_file && set_sqrt != def_set_sqrt) {
+        if (set_sqrt)
+            cmd = "with data-default-sigma=sqrt ";
+        else
+            cmd = "with data-default-sigma=one ";
+    }
+
+    cmd += ds + " < '" + get_filename() + "'" + filetype + cols;
+
     if (title_tc->IsEnabled()) {
         wxString t = title_tc->GetValue().Trim();
         if (!t.IsEmpty())
-            add_cmd += "; @" + S(d_nr) + ".title = '" + wx2s(t) + "'";
+            cmd += "; @" + S(d_nr) + ".title = '" + wx2s(t) + "'";
     }
-    return "'" + get_filename() + "'" + filetype + cols + add_cmd;
+
+    return cmd;
 }
 

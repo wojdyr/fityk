@@ -61,7 +61,7 @@ wxCheckBox *addCheckbox(wxWindow *parent, wxString const& label,
     wxCheckBox *ctrl = new wxCheckBox(parent, -1, label);
     ctrl->SetValue(value);
     if (sizer)
-        sizer->Add(ctrl, 0, wxEXPAND);
+        sizer->Add(ctrl, 0, wxEXPAND|wxALL, 5);
     return ctrl;
 }
                               
@@ -101,32 +101,20 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     // page general
     wxBoxSizer *sizer_general = new wxBoxSizer(wxVERTICAL);
 
+    sigma_ch = addEnumSetting(page_general, wxT("default std. dev. of data y:"),
+                              "data-default-sigma", sizer_general);
     cut_func = addRealNumberCtrl(page_general, 
                                  wxT("f(x) can be assumed 0, if |f(x)|<"),
                                  getSettings()->getp("cut-function-level"),
                                  sizer_general);
 
-    autoplot_rb = new wxRadioBox(page_general, -1, wxT("auto-refresh plot"),
-                                 wxDefaultPosition, wxDefaultSize, 
-                                 stl2wxArrayString(
-                                      getSettings()->expand_enum("autoplot")));
-    autoplot_rb->SetStringSelection(s2wx(getSettings()->getp("autoplot")));
-    sizer_general->Add(autoplot_rb, 0, wxEXPAND|wxALL, 5);
-
-    wxStaticText *verbosity_st = new wxStaticText(page_general, -1, 
-                         wxT("verbosity (amount of messages in output pane)"));
-    sizer_general->Add(verbosity_st, 0, wxLEFT|wxRIGHT|wxTOP, 5);
-    verbosity_ch = new wxChoice(page_general, -1, 
-                                wxDefaultPosition, wxDefaultSize,
-                                stl2wxArrayString(
-                                      getSettings()->expand_enum("verbosity")));
-    verbosity_ch->SetStringSelection(s2wx(getSettings()->getp("verbosity")));
-    sizer_general->Add(verbosity_ch, 0, wxEXPAND|wxALL, 5);
+    verbosity_ch = addEnumSetting(page_general, 
+                                  wxT("verbosity (in output pane)"), 
+                                  "verbosity", sizer_general);
     exit_cb = addCheckbox(page_general, 
                           wxT("quit if error or warning was generated"),
                           getSettings()->get_b("exit-on-warning"),
-                          0);
-    sizer_general->Add(exit_cb, 0, wxEXPAND|wxALL, 5);
+                          sizer_general);
 
     wxStaticText *seed_st = new wxStaticText(page_general, -1,
                         wxT("pseudo-random generator seed (0 = time-based)"));
@@ -138,17 +126,8 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     sizer_general_seed->Add(seed_sp, 0, wxTOP|wxBOTTOM|wxRIGHT, 5);
     sizer_general->Add(sizer_general_seed, 0, wxEXPAND);
 
-    wxStaticText *export_f_st = new wxStaticText(page_general, -1, 
-                         wxT("style of formula export"));
-    export_f_ch = new wxChoice(page_general, -1, 
-                               wxDefaultPosition, wxDefaultSize,
-        stl2wxArrayString(getSettings()->expand_enum("formula-export-style")));
-    export_f_ch->SetStringSelection(
-                            s2wx(getSettings()->getp("formula-export-style")));
-    wxBoxSizer *sizer_efs = new wxBoxSizer(wxHORIZONTAL);
-    sizer_efs->Add(export_f_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    sizer_efs->Add(export_f_ch, 1, wxALL, 5);
-    sizer_general->Add(sizer_efs, 0, wxEXPAND);
+    export_f_ch = addEnumSetting(page_general, wxT("style of formula export"), 
+                                "formula-export-style", sizer_general);
 
     eps_rc = addRealNumberCtrl(page_general, 
                                wxT("epsilon for floating-point comparison"),
@@ -158,27 +137,28 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     page_general->SetSizerAndFit(sizer_general);
 
     // page peak-finding
-    wxStaticText *hc_st = new wxStaticText(page_peakfind, -1, 
-                           wxT("factor used to correct detected peak height")); 
-    height_correction = new RealNumberCtrl(page_peakfind, -1, 
-                                     getSettings()->getp("height-correction"));
-    wxStaticText *wc_st = new wxStaticText(page_peakfind, -1, 
-                            wxT("factor used to correct detected peak width"));
-    width_correction = new RealNumberCtrl(page_peakfind, -1, 
-                                 getSettings()->getp("width-correction"));
+    wxBoxSizer *sizer_pf = new wxBoxSizer(wxVERTICAL);
+
+    eps_rc = addRealNumberCtrl(page_general, 
+                               wxT("epsilon for floating-point comparison"),
+                               getSettings()->getp("epsilon"),
+                               sizer_general);
+
+    height_correction = addRealNumberCtrl(page_peakfind, 
+                           wxT("factor used to correct detected peak height"),
+                           getSettings()->getp("height-correction"),
+                           sizer_pf);
+    width_correction = addRealNumberCtrl(page_peakfind, 
+                           wxT("factor used to correct detected peak width"),
+                           getSettings()->getp("width-correction"),
+                           sizer_pf);
+
     cancel_poos = addCheckbox(page_peakfind, 
                           wxT("cancel peak guess, if the result is doubtful"),
-                          getSettings()->get_b("can-cancel-guess"), 0);
-    wxBoxSizer *sizer_pf = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *sizer_pf_hc = new wxBoxSizer(wxHORIZONTAL);
-    sizer_pf_hc->Add(hc_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    sizer_pf_hc->Add(height_correction, 0, wxALL, 5);
-    sizer_pf->Add(sizer_pf_hc, 0);
-    wxBoxSizer *sizer_pf_wc = new wxBoxSizer(wxHORIZONTAL);
-    sizer_pf_wc->Add(wc_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    sizer_pf_wc->Add(width_correction, 0, wxALL, 5);
-    sizer_pf->Add(sizer_pf_wc, 0);
-    sizer_pf->Add(cancel_poos, 0, wxALL, 5);
+                          getSettings()->get_b("can-cancel-guess"), 
+                          sizer_pf);
+    //sizer_pf->Add(cancel_poos, 0, wxALL, 5);
+
     add_persistence_note(page_peakfind, sizer_pf);
     page_peakfind->SetSizerAndFit(sizer_pf);
 
@@ -209,6 +189,12 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
                                  getSettings()->getp("variable-domain-percent"),
                                  sizer_fcmn,
                                  wxT("%"));
+
+    bool autop = (getSettings()->getp("autoplot") == "on-fit-iteration");
+    autoplot_cb = addCheckbox(page_fit_common,  
+                              wxT("refresh plot after each iteration"),
+                              autop, sizer_fcmn);
+
     add_persistence_note(page_fit_common, sizer_fcmn);
     page_fit_common->SetSizerAndFit(sizer_fcmn);
 
@@ -337,8 +323,8 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
 {
     pair_vec result;
     map<string, string> m;
+    m["data-default-sigma"] = wx2s(sigma_ch->GetStringSelection());
     m["cut-function-level"] = wx2s(cut_func->GetValue());
-    m["autoplot"] = wx2s(autoplot_rb->GetStringSelection());
     m["verbosity"] = wx2s(verbosity_ch->GetStringSelection());
     m["exit-on-warning"] = exit_cb->GetValue() ? "1" : "0";
     m["pseudo-random-seed"] = S(seed_sp->GetValue());
@@ -349,6 +335,8 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
     m["can-cancel-guess"] = cancel_poos->GetValue() ? "1" : "0";
     m["max-wssr-evaluations"] = S(mwssre_sp->GetValue());
     m["variable-domain-percent"] = wx2s(domain_p->GetValue());
+    m["autoplot"] = autoplot_cb->GetValue() ? "on-fit-iteration" 
+                                            : "on-plot-change";
     m["lm-lambda-start"] = wx2s(lm_lambda_ini->GetValue());
     m["lm-lambda-up-factor"] = wx2s(lm_lambda_up->GetValue());
     m["lm-lambda-down-factor"] = wx2s(lm_lambda_down->GetValue());

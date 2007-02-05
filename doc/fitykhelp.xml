@@ -498,7 +498,9 @@
     <para>
      Standard deviation of points can be 
      <link linkend="DataLoad">read from file</link> together with the x and y
-     coordinates. Otherwise, it is set to max(sqrt(y), 1.0), 
+     coordinates. Otherwise, it is set either to max(sqrt(y), 1.0)
+     or to 1, depending on the value of 
+     <parameter class="option">data-default-sigma</parameter> option.
      Setting std. dev. as a square root of the value is common 
      and has theoretical ground when y is the number of independent events.
      You can always change standard deviation, e.g. make it equal for every
@@ -601,8 +603,11 @@
     </para>
     <para>
      Important note: all operations are performed on real numbers.
-     Two numbers that differ less than epsilon=1e-9 
-     i.e. abs(a-b)&lt;epsilon, are considered equal. 
+     Two numbers that differ less than 
+     <link linkend="epsilon">
+     <parameter class="option">epsilon</parameter></link>
+     i.e. abs(a-b)&lt;<parameter class="option">epsilon</parameter>, 
+     are considered equal. 
      Indices are also computed in real number domain, 
      and then rounded to the nearest integer.
     </para>
@@ -1174,7 +1179,7 @@
    </section> 
 
 
-   <section>
+   <section id="speed">
     <title>Speed of computations</title>
     <para>
      With default settings, the value of every function is calculated
@@ -1253,7 +1258,7 @@
   # are duplicated).
   @1.F = copy(@0.F) </screen>
     </para>
-    <para>
+    <para id="formula_export_style">
      The sum can be exported as data points, using the syntax described in
      <xref linkend="dexport"/>,  or as mathematical formulae, using the command 
      <command>info formula in @<replaceable>n</replaceable> &gt; <replaceable>filename</replaceable></command>. 
@@ -1479,7 +1484,7 @@
     </para>
    </section>
 
-   <section>
+   <section id="fitting_cmd">
     <title>Fitting related commands </title>
     <para>
      To fit sum to data, use command
@@ -1582,7 +1587,7 @@
 
    </section>
 
-   <section>
+   <section id="levmar">
     <title>Levenberg-Marquardt </title>
     <para>
      This is a standard nonlinear least-squares routine, and involves
@@ -1637,7 +1642,7 @@
     -->
    </section>
 
-   <section>
+   <section id="nelder">
     <title>Nelder-Mead downhill simplex method </title>
     <para>
      To quote chapter 4.8.3, p. 86 of Peter Gans
@@ -1743,20 +1748,144 @@
      <replaceable>option</replaceable> = <replaceable>value</replaceable>
     </command>. The examples at the end of this chapter should clarify this.
    </para>
-   <para>
-    Some fitting methods and functions, such as <function>randnormal</function>
-    in data expressions use a pseudo-random number generator. 
-    In some situations
-    one may want to have repeatable and predictable results of the fitting, e.g.
-    to make a presentation. Seed for a new sequence of pseudo-random
-    numbers can be set using the option
-    <parameter class="option">pseudo-random-seed</parameter>.
-    If it is set to 0, the seed is based on the current time and a sequence of
-    pseudo-random numbers is different each time. 
-   </para>
-   <para>
-    [TODO: the rest of options...] 
-   </para>
+
+   <variablelist>
+    <varlistentry>
+     <term>autoplot</term>
+     <listitem><para>
+       See <xref linkend="autoplot"/>.
+     </para></listitem> 
+    </varlistentry>
+
+    <varlistentry>
+     <term>can-cancel-guess</term>
+     <listitem><para>
+       See <xref linkend="guess"/>.
+     </para></listitem> 
+    </varlistentry>
+
+    <varlistentry>
+     <term>cut-function-level</term>
+     <listitem><para>
+       See <xref linkend="speed"/>.
+     </para></listitem> 
+    </varlistentry>
+
+    <varlistentry>
+     <term>data-default-sigma</term>
+     <listitem><para>
+       See <xref linkend="weights"/>.
+     </para></listitem> 
+    </varlistentry>
+
+    <varlistentry id="epsilon">
+     <term>epsilon</term>
+     <listitem><para>
+       It is used for floating-point comparison: 
+       a and b are considered equal when 
+       |a-b|&lt;<parameter class="option">epsilon</parameter>. 
+       You may want to decrease it when you work with very small values,
+       like 10^-10. 
+     </para></listitem> 
+    </varlistentry>
+
+    <varlistentry>
+     <term>exit-on-warning</term>
+     <listitem><para>
+       If the option <parameter class="option">exit-on-warning</parameter> 
+       is set, any warning will also close the program. 
+       This ensures that no warnings can be overlooked.
+     </para></listitem> 
+    </varlistentry>
+
+    <varlistentry>
+     <term>fitting-method</term>
+     <listitem><para>
+       See <xref linkend="fitting_cmd"/>.
+     </para></listitem> 
+    </varlistentry>
+
+    <varlistentry>
+     <term>formula-export-style</term>
+     <listitem><para>
+       See <xref linkend="formula_export_style"/>.
+     </para></listitem> 
+    </varlistentry>
+
+    <varlistentry>
+     <term>guess-at-center-pm</term>
+     <listitem><para>
+       See <xref linkend="guess"/>.
+     </para></listitem> 
+    </varlistentry>
+
+    <varlistentry>
+     <term>height-correction</term>
+     <listitem><para>
+       See <xref linkend="guess"/>.
+     </para></listitem> 
+    </varlistentry>
+
+    <varlistentry>
+     <term>lm-*</term>
+     <listitem><para>
+       Setting to tune <link linkend="levmar">Levenberg-Marquardt</link> 
+       fitting method. 
+     </para></listitem> 
+    </varlistentry>
+
+    <varlistentry>
+     <term>max-wssr-evaluations</term>
+     <listitem><para>
+       See <xref linkend="fitting_cmd"/>.
+     </para></listitem> 
+    </varlistentry>
+
+    <varlistentry>
+     <term>nm-*</term>
+     <listitem><para>
+       Setting to tune 
+       <link linkend="nelder">Nelder-Mead downhill simplex</link> 
+       fitting method. 
+     </para></listitem> 
+    </varlistentry>
+
+    <varlistentry>
+     <term>pseudo-random-seed</term>
+     <listitem><para>
+       Some fitting methods and functions, such as 
+       <function>randnormal</function> in data expressions use a pseudo-random
+       number generator.  In some situations one may want to have repeatable
+       and predictable results of the fitting, e.g.  to make a presentation.
+       Seed for a new sequence of pseudo-random numbers can be set using the
+       option <parameter class="option">pseudo-random-seed</parameter>.  If it
+       is set to 0, the seed is based on the current time and a sequence of
+       pseudo-random numbers is different each time. 
+     </para></listitem> 
+    </varlistentry>
+
+    <varlistentry>
+     <term>variable-domain-percent</term>
+     <listitem><para>
+       See <xref linkend="domain"/>.
+     </para></listitem> 
+    </varlistentry>
+
+    <varlistentry>
+     <term>verbosity</term>
+     <listitem><para>
+       TODO
+     </para></listitem> 
+    </varlistentry>
+
+    <varlistentry>
+     <term>width-correction</term>
+     <listitem><para>
+       See <xref linkend="guess"/>.
+     </para></listitem> 
+    </varlistentry>
+
+   </variablelist>
    <para>
     Examples:
     <screen>
@@ -1816,9 +1945,9 @@
     </para>
 
     <para id="autoplot">
-     The value of the option <parameter class="option">autoplot</parameter> changes the
-     automatic plotting behaviour. By default, the plot is refreshed automatically 
-     after changing the data or the sum of functions.  
+     The value of the option <parameter class="option">autoplot</parameter> 
+     changes the automatic plotting behaviour. By default, the plot is
+     refreshed automatically after changing the data or the sum of functions.
      It is also possible to visualize each iteration of the fitting method by
      replotting the peaks after every iteration.
     </para>
@@ -1943,11 +2072,6 @@
     <para>
      The command <command>quit</command> works as expected. 
      If this command is found in a script it will close the program as well.
-    </para>
-    <para>
-     If the option <parameter class="option">exit-on-warning</parameter> 
-     is set, any warning will also close the program. 
-     This ensures that no warnings can be overlooked.
     </para>
    </section> 
   </section> 

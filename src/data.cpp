@@ -7,6 +7,7 @@
 #include "ui.h"
 #include "numfuncs.h"
 #include "datatrans.h" 
+#include "settings.h" 
 
 #include <math.h>
 #include <string.h>
@@ -91,19 +92,30 @@ void Data::clear()
     given_cols.clear();
     p.clear();
     active_p.clear();
+    sigma_from_file = false;
 }
 
 void Data::post_load()
 {
     if (p.empty())
         return;
-    if (!p[0].sigma) {
-        for (vector<Point>::iterator i = p.begin(); i < p.end(); i++) 
-            i->sigma = i->y > 1. ? sqrt (i->y) : 1.;
-        info(S(p.size()) + " points. No explicit std. dev. Set as sqrt(y)");
+    string inf = S(p.size()) + " points.";
+    if (!sigma_from_file) {
+        int dds = getSettings()->get_e("data-default-sigma");
+        if (dds == 's') {
+            for (vector<Point>::iterator i = p.begin(); i < p.end(); i++) 
+                i->sigma = i->y > 1. ? sqrt (i->y) : 1.;
+            inf += " No explicit std. dev. Set as sqrt(y)";
+        }
+        else if (dds == '1') {
+            for (vector<Point>::iterator i = p.begin(); i < p.end(); i++) 
+                i->sigma = 1.; 
+            inf += " No explicit std. dev. Set as equal 1.";
+        }
+        else
+            assert(0);
     }
-    else
-        info(S(p.size()) + " points.");
+    info(inf);
     if (title.empty())
         title = get_file_basename(filename);
     update_active_p();
@@ -213,11 +225,12 @@ void Data::load_xy_filetype (ifstream& f, vector<int> const& columns)
     *           38.911500      352.431
     * delimiters: white spaces and  , : ;
      */
-    if (columns.size() == 1 || columns.size() > 3)
+    if (columns.size() == 1 || columns.size() > 3) //0, 2, or 3 columns allowed
         throw ExecuteError("If columns are specified, two or three of them"
                            " must be given (eg. 1,2,3)");
     vector<int> const& cols = columns.empty() ? vector2<int>(1, 2) : columns;
     vector<fp> xy;
+    sigma_from_file = (columns.size() == 3);
     int maxc = *max_element (cols.begin(), cols.end());
     int minc = *min_element (cols.begin(), cols.end());
     if (minc < 0) {

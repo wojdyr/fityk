@@ -1,3 +1,9 @@
+User-visible changes in version 0.7.8  (2007-02-  ):
+* GUI: error bars for data
+* voigt(x,y) function for data transformations and variable definitions
+* new option in settings, epsilon, used for floating point comparision.
+* GUI: script debugger dialog was finished; "Edit init file" was added to menu
+
 User-visible changes in version 0.7.7  (2007-01-08):
 * fixed GCC 4.1 compilation problem 
 * GUI: plot buffering (as a bitmap); disabling menu, toolbar, etc. when fitting

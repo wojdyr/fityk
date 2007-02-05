@@ -44,7 +44,7 @@ public:
 private:
     wxRadioBox* ds_rb;
     wxChoice* method_c;
-    wxCheckBox* initialize_cb;
+    wxCheckBox* initialize_cb, *autoplot_cb;
     SpinCtrl *maxiter_sc, *maxeval_sc;
     wxStaticText *nomaxeval_st, *nomaxiter_st;
 

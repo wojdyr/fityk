@@ -32,7 +32,7 @@ protected:
     wxButton *open_here, *open_new;
     bool initialized;
 
-    std::string get_command_tail(int data_nr);
+    std::string get_command(std::string const& ds, int d_nr);
     std::string get_filename();
     void OnStdDevCheckBox (wxCommandEvent& event);
     void OnHTitleCheckBox (wxCommandEvent& event);
