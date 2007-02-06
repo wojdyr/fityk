@@ -3,6 +3,8 @@ User-visible changes in version 0.7.8  (2007-02-  ):
 * voigt(x,y) function for data transformations and variable definitions
 * new option in settings, epsilon, used for floating point comparision.
 * GUI: script debugger dialog was finished; "Edit init file" was added to menu
+* option data-default-sigma with possible values: one, sqrt.
+* several bug fixes (see SVN log for more details)
 
 User-visible changes in version 0.7.7  (2007-01-08):
 * fixed GCC 4.1 compilation problem 

@@ -152,7 +152,7 @@ bool DefinitionMgrDlg::check_definition()
         for (size_t i = 0; i < fde.parameters.size(); ++i)
             lhs_vars[i] = fde.parameters[i];
         try {
-            UdfContainer::check_fudf_rhs(value, lhs_vars);
+            UdfContainer::check_rhs(value, lhs_vars);
         }
         catch (ExecuteError &e) {
             wxString what = s2wx(string(e.what()));

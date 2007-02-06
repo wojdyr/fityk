@@ -544,9 +544,7 @@ vector<string> VariableManager::make_varnames(string const &function,
                                               vector<string> const &vars) 
 {
     vector<string> varnames;
-    if (vars.empty())
-        return varnames;
-    bool has_eq = (vars[0].find('=') != string::npos);
+    bool has_eq = (vars.empty() || vars[0].find('=') != string::npos);
     for (vector<string>::const_iterator i = vars.begin(); i != vars.end(); ++i) 
         if ((i->find('=') != string::npos) != has_eq)
             throw ExecuteError("Either use keywords for all parameters"

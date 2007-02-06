@@ -83,14 +83,17 @@ void do_import_dataset(char const*, char const*)
         }
         else { // there is only one and empty slot -- load data there
             AL->get_data(-1)->load_file(t, t2, vn); 
+            AL->view.set_datasets(vector1(AL->get_ds(0)));
             AL->view.fit();
             tmp_int = 0;
         }
     }
     else { // slot number was specified -- load data there
         AL->get_data(tmp_int)->load_file(t, t2, vn); 
-        if (AL->get_ds_count() == 1)
+        if (AL->get_ds_count() == 1) {
+            AL->view.set_datasets(vector1(AL->get_ds(0)));
             AL->view.fit();
+        }
     }
     AL->activate_ds(tmp_int);
     outdated_plot=true;  
@@ -116,18 +119,27 @@ void do_load_data_sum(char const*, char const*)
         dd.push_back(AL->get_data(*i));
     if (tmp_int == new_dataset) 
         tmp_int = AL->append_ds();
-    AL->get_data(tmp_int)->load_data_sum(dd);
+    AL->get_data(tmp_int)->load_data_sum(dd, t);
     AL->activate_ds(tmp_int);
     outdated_plot=true;  
 }
 
 void do_plot(char const*, char const*)
 {
-    if (tmp_int != -1)
-        AL->activate_ds(tmp_int);
+    if (vds.size() == 1 && vds[0] >= 0)
+        AL->activate_ds(vds[0]);
+    vector<DataWithSum*> dsds = get_datasets_from_indata();
+    //move active ds to the front
+    DataWithSum* ads = AL->get_ds(AL->get_active_ds_position());
+    vector<DataWithSum*>::iterator pos = find(dsds.begin(), dsds.end(), ads);
+    if (pos != dsds.end() && pos != dsds.begin()) {
+        *pos = dsds[0];
+        dsds[0] = ads;
+    }
+    AL->view.set_datasets(dsds);
     AL->view.parse_and_set(vr);
     getUI()->drawPlot(1, true);
-    outdated_plot=false;
+    outdated_plot = false;
 }
 
 void do_output_info(char const*, char const*)
@@ -448,15 +460,15 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         ;
 
     dataset_handling
-        = dataset_nr >> ch_p('<') [clear_a(vn)] 
-          >> ((lexeme_d['@' >> uint_p [push_back_a(vn)]  //sum/duplicate
-                       ] % '+') [&do_load_data_sum]
-             | (compact_str                              //load from file
-                 >> lexeme_d[!(alpha_p >> *alnum_p)][assign_a(t2)]
-                 >> !(uint_p [push_back_a(vn)]
-                        % ',')
-               ) [&do_import_dataset]
-             )
+        = (dataset_nr >> ch_p('<') >> compact_str //load from file
+           >> lexeme_d[!(alpha_p >> *alnum_p)] [assign_a(t2)] [clear_a(vn)]
+           >> !(uint_p [push_back_a(vn)] 
+                % ',')
+          ) [&do_import_dataset]
+        | dataset_nr >> ch_p('=') [clear_a(vn)] [assign_a(t, empty)] //sum/dup
+          >> !(lexeme_d[lower_p >> +(alnum_p | '-' | '_')] [assign_a(t)])
+          >> (lexeme_d['@' >> uint_p [push_back_a(vn)]  
+                                           ] % '+') [&do_load_data_sum]
         | (existing_dataset_nr [clear_a(vt)]
            >> !('(' >> ((DataExpressionG
                         | ("*F(" >> DataExpressionG >> ")")
@@ -542,9 +554,8 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
                 >> compact_str [assign_a(output_redir, t)]
                )
           ) [&do_output_info]
-        | (optional_suffix_p("p","lot") 
-                              [clear_a(vr)] [assign_a(tmp_int, minus_one)]
-          >> !existing_dataset_nr >> plot_range >> plot_range) [&do_plot]
+        | (optional_suffix_p("p","lot") [clear_a(vr)] 
+           >> plot_range >> plot_range >> in_data) [&do_plot]
         | guess [&do_guess]
         | (ds_prefix >> "title" >> '=' >> compact_str)[&set_data_title]
         | dataset_handling

@@ -500,7 +500,8 @@ void initialize_udfs()
 "GaussianA(area, center, hwhm) = Gaussian(area/hwhm/sqrt(pi/ln(2)), center, hwhm)\n"
 "LorentzianA(area, center, hwhm) = Lorentzian(area/hwhm/pi, center, hwhm)\n"
 "Pearson7A(area, center, hwhm, shape=2) = Pearson7(area/(hwhm*exp(lgamma(shape-0.5)-lgamma(shape))*sqrt(pi/(2^(1/shape)-1))), center, hwhm, shape)\n"
-"PseudoVoigtA(area, center, hwhm, shape=0.5) = GaussianA(area*(1-shape), center, hwhm) + LorentzianA(area*shape, center, hwhm)",
+"PseudoVoigtA(area, center, hwhm, shape=0.5) = GaussianA(area*(1-shape), center, hwhm) + LorentzianA(area*shape, center, hwhm)\n"
+"ExpDecay(a=0, t=1) = a*exp(-x/t)",
   "\n");
     udfs.clear();
     for (vector<string>::const_iterator i = formulae.begin(); 
@@ -533,11 +534,11 @@ vector<OpTree*> make_op_trees(string const& formula)
     return op_trees;
 }
 
-void check_fudf_rhs(string const& formula, vector<string> const& lhs_vars)
+void check_fudf_rhs(string const& rhs, vector<string> const& lhs_vars)
 {
-    if (formula.empty())
+    if (rhs.empty())
         throw ExecuteError("No formula");
-    tree_parse_info<> info = ast_parse(formula.c_str(), FuncG, space_p);
+    tree_parse_info<> info = ast_parse(rhs.c_str(), FuncG, space_p);
     if (!info.full)
         throw ExecuteError("Syntax error in formula");
     vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID, info);
@@ -552,6 +553,25 @@ void check_fudf_rhs(string const& formula, vector<string> const& lhs_vars)
         }
 }
 
+void check_rhs(string const& rhs, vector<string> const& lhs_vars)
+{
+    string::size_type t = rhs.find_first_not_of(" \t\r\n");
+    if (t != string::npos && isupper(rhs[t])) { //compound
+        parse_info<> info = parse(rhs.c_str(), 
+                               ((lexeme_d[(upper_p >> +alnum_p)] >> '('  
+                                 >> (no_actions_d[FuncG]  % ',') >> ')') % '+'),
+                               space_p);
+        if (!info.full)
+            throw ExecuteError("Syntax error in compound formula.");
+        vector<string> rf = get_cpd_rhs_components(rhs, false);
+        for (vector<string>::const_iterator i = rf.begin(); i != rf.end(); ++i) 
+            check_cpd_rhs_function(*i, lhs_vars);
+    } 
+    else { //udf, not compound
+        check_fudf_rhs(rhs, lhs_vars);
+    }
+}
+
 void define(std::string const &formula)
 {
     string type = Function::get_typename_from_formula(formula);
@@ -564,14 +584,7 @@ void define(std::string const &formula)
         else if (!islower((*i)[0]))
             throw ExecuteError("Improper variable: " + *i);
     }
-    if (is_compounded(formula)) {
-        vector<string> rf = get_cpd_rhs_components(formula);
-        for (vector<string>::const_iterator i = rf.begin(); i != rf.end(); ++i) 
-            check_cpd_rhs_function(*i, lhs_vars);
-    } 
-    else {
-        check_fudf_rhs(Function::get_rhs_from_formula(formula), lhs_vars);
-    }
+    check_rhs(Function::get_rhs_from_formula(formula), lhs_vars);
     if (is_defined(type) && !get_udf(type)->is_builtin) { 
         //defined, but can be undefined; don't undefine function implicitely
         throw ExecuteError("Function `" + type + "' is already defined. "
@@ -595,7 +608,7 @@ void undefine(std::string const &type)
                                                   j != udfs.end(); ++j) {
                 if (!j->is_builtin)
                     continue;
-                vector<string> rf = get_cpd_rhs_components(j->formula);
+                vector<string> rf = get_cpd_rhs_components(j->formula, true);
                 for (vector<string>::const_iterator k = rf.begin();
                                                           k != rf.end(); ++k) {
                     if (Function::get_typename_from_formula(*k) == type)
@@ -647,15 +660,15 @@ void check_cpd_rhs_function(std::string const& fun,
             if ((*k)[0] != '~' && (*k)[0] != '{' && (*k)[0] != '$' 
                     && (*k)[0] != '%' && !contains_element(lhs_vars, *k))
                 throw ExecuteError("Improper variable given in parameter " 
-                                + S(k-vars.begin()+1) + " of "+ t + ": " + *k);
+                              + S(j-gvars.begin()+1) + " of "+ t + ": " + *k);
     }
 }
 
 /// find components of RHS (split sum "A() + B() + ...")
-vector<string> get_cpd_rhs_components(string const &formula)
+vector<string> get_cpd_rhs_components(string const &formula, bool full)
 {
     vector<string> result;
-    string::size_type pos = formula.rfind('=') + 1, 
+    string::size_type pos = (full ? formula.rfind('=') + 1 : 0), 
                       rpos = 0;
     while (pos != string::npos) {
         rpos = find_matching_bracket(formula, formula.find('(', pos));
@@ -680,7 +693,7 @@ CompoundFunction::CompoundFunction(string const &name, string const &type,
     for (int j = 0; j != nv; ++j) 
         vmgr.assign_variable(varnames[j], ""); // mirror variables
 
-    vector<string> rf = UdfContainer::get_cpd_rhs_components(type_formula);
+    vector<string> rf = UdfContainer::get_cpd_rhs_components(type_formula,true);
     for (vector<string>::iterator i = rf.begin(); i != rf.end(); ++i) {
         for (int j = 0; j != nv; ++j) {
             replace_words(*i, type_var_names[j], vmgr.get_variable(j)->xname);

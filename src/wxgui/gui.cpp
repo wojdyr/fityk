@@ -1541,13 +1541,13 @@ void FFrame::OnPreviousZoom(wxCommandEvent& event)
     int id = event.GetId();
     string s = plot_pane->zoom_backward(id ? id - ID_G_V_ZOOM_PREV : 1);
     if (s.size()) 
-        exec_command("plot " + s);
+        exec_command("plot " + s + " in " + get_active_data_str());
 }
 
 void FFrame::change_zoom(const string& s)
 {
     plot_pane->zoom_forward();
-    string cmd = "plot " + s;
+    string cmd = "plot " + s + " in " + sidebar->get_datasets_str();
     exec_command(cmd);
 }
 

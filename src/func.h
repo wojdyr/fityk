@@ -143,9 +143,12 @@ namespace UdfContainer
 
     void check_cpd_rhs_function(std::string const &fun,
                                    std::vector<std::string> const& lhs_vars);
-    void check_fudf_rhs(std::string const& formula, 
+    void check_fudf_rhs(std::string const& rhs, 
                         std::vector<std::string> const& lhs_vars);
-    std::vector<std::string> get_cpd_rhs_components(std::string const &formula);
+    std::vector<std::string> get_cpd_rhs_components(std::string const &formula,
+                                                    bool full);
+    void check_rhs(std::string const& rhs, 
+                   std::vector<std::string> const& lhs_vars);
 }
 
 

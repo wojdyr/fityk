@@ -35,7 +35,6 @@ void ApplicationLogic::activate_ds(int d)
     if (d < 0 || d >= size(dsds))
         throw ExecuteError("there is no such dataset: @" + S(d));
     active_ds = d;
-    view.set_dataset(get_ds(active_ds));
 }
 
 int ApplicationLogic::append_ds(Data *data)
@@ -227,20 +226,22 @@ void View::fit(int flag)
 
 void View::get_x_range(fp &x_min, fp &x_max)
 {
-        if (datas.empty()) 
-            throw ExecuteError("Can't find x-y axes ranges for plot");
-        x_min = datas.front()->get_x_min();
-        x_max = datas.front()->get_x_max();
-        for (vector<Data*>::const_iterator i = datas.begin()+1; 
-                i != datas.end(); ++i) {
-            x_min = min(x_min, (*i)->get_x_min());
-            x_max = max(x_max, (*i)->get_x_max());
-        }
+    if (datas.empty()) 
+        throw ExecuteError("Can't find x-y axes ranges for plot");
+    x_min = datas.front()->get_x_min();
+    x_max = datas.front()->get_x_max();
+    for (vector<Data*>::const_iterator i = datas.begin()+1; 
+            i != datas.end(); ++i) {
+        x_min = min(x_min, (*i)->get_x_min());
+        x_max = max(x_max, (*i)->get_x_max());
+    }
 }
 
 void View::get_y_range(fp &y_min, fp &y_max)
 {
-    y_min = y_max = 0;
+    if (datas.empty()) 
+        throw ExecuteError("Can't find x-y axes ranges for plot");
+    y_min = y_max = (datas.front()->get_n() > 0 ? datas.front()->get_y(0) : 0);
     bool min_max_set = false;
     for (vector<Data*>::const_iterator i = datas.begin(); i != datas.end();
             ++i) {
@@ -284,6 +285,12 @@ void View::get_y_range(fp &y_min, fp &y_max)
             y_max = sum_y_max;
         }
     }
+    // include or not zero
+    const fp show_zero_factor = 0.1;
+    if (y_min > 0 && y_max - y_min > show_zero_factor * y_max)
+        y_min = 0;
+    else if (y_max < 0 && y_max - y_min > show_zero_factor * fabs(y_min))
+        y_max = 0;
 }
 
 void View::parse_and_set(std::vector<std::string> const& lrbt) 
@@ -323,9 +330,15 @@ void View::parse_and_set(std::vector<std::string> const& lrbt)
     fit(flag);
 }
 
-void View::set_dataset(DataWithSum const* ds) 
-{ 
-    set_items(vector1(ds->get_data()), vector1(ds->get_sum())); 
+void View::set_datasets(vector<DataWithSum*> const& dd) 
+{
+    assert(!dd.empty());
+    datas.clear();
+    sums.clear();
+    for (vector<DataWithSum*>::const_iterator i = dd.begin(); 
+                                                        i != dd.end(); ++i) 
+        datas.push_back((*i)->get_data());
+    sums.push_back(dd.front()->get_sum());
 }
 
 

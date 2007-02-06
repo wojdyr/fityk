@@ -92,7 +92,7 @@ void Data::clear()
     given_cols.clear();
     p.clear();
     active_p.clear();
-    sigma_from_file = false;
+    has_sigma = false;
 }
 
 void Data::post_load()
@@ -100,7 +100,7 @@ void Data::post_load()
     if (p.empty())
         return;
     string inf = S(p.size()) + " points.";
-    if (!sigma_from_file) {
+    if (!has_sigma) {
         int dds = getSettings()->get_e("data-default-sigma");
         if (dds == 's') {
             for (vector<Point>::iterator i = p.begin(); i < p.end(); i++) 
@@ -149,29 +149,83 @@ int Data::load_arrays(const vector<fp> &x, const vector<fp> &y,
     if (sigma.empty()) 
         for (size_t i = 0; i < size; ++i)
             p.push_back (Point (x[i], y[i]));
-    else
+    else {
         for (size_t i = 0; i < size; ++i)
             p.push_back (Point (x[i], y[i], sigma[i]));
+        has_sigma = true;
+    }
     sort(p.begin(), p.end());
     x_step = find_step();
     post_load();
     return p.size();
 }
 
-void Data::load_data_sum(vector<Data const*> const& dd)
+namespace {
+
+void apply_operation(vector<Point> &pp, string const& op)
+{
+    assert (!pp.empty());
+    assert (!op.empty());
+    if (op == "sum_same_x" || op == "avg_same_x") {
+        bool avg = (op == "avg_same_x");
+        int count_same = 1;
+        fp x0;
+        for (int i = pp.size() - 2; i >= 0; --i) {
+            if (count_same == 1)
+                x0 = pp[i+1].x;
+            if (is_eq(pp[i].x, x0)) {
+                pp[i].x += pp[i+1].x;
+                pp[i].y += pp[i+1].y;
+                pp[i].sigma += pp[i+1].sigma;
+                pp[i].is_active = pp[i].is_active || pp[i+1].is_active;
+                pp.erase(pp.begin() + i+1);
+                count_same++;
+                if (i > 0)
+                    continue;
+            }
+            if (count_same > 1) {
+                pp[i+1].x /= count_same;
+                if (avg) {
+                    pp[i+1].y /= count_same;
+                    pp[i+1].sigma /= count_same;
+                }
+                count_same = 1;
+            }
+        }
+    }
+    else if (op == "fft") {
+        throw ExecuteError("Fourier Transform not implemented yet");
+    }
+    else if (op == "ifft") {
+        throw ExecuteError("Inverse FFT not implemented yet");
+    }
+    else
+        throw ExecuteError("Unknown dataset operation: " + op);
+}
+
+} // anonymous namespace
+
+void Data::load_data_sum(vector<Data const*> const& dd, string const& op)
 {
     assert(!dd.empty());
-    clear();
-    title = dd[0]->get_title();
+    // dd can contain this, we can't change p or title in-place.
+    std::vector<Point> new_p;
+    string new_title = dd[0]->get_title();
     for (vector<Data const*>::const_iterator i = dd.begin()+1; 
                                                           i != dd.end(); ++i)
-        title += " + " + (*i)->get_title();
+        new_title += " + " + (*i)->get_title();
     for (vector<Data const*>::const_iterator i = dd.begin(); 
                                                           i != dd.end(); ++i) {
         vector<Point> const& points = (*i)->points();
-        p.insert(p.end(), points.begin(), points.end());
+        new_p.insert(new_p.end(), points.begin(), points.end());
     }
-    sort(p.begin(), p.end());
+    sort(new_p.begin(), new_p.end());
+    if (!new_p.empty() && !op.empty())
+        apply_operation(new_p, op);
+    clear();
+    title = new_title;
+    p = new_p;
+    has_sigma = true;
     x_step = find_step();
     post_load();
 }
@@ -230,7 +284,7 @@ void Data::load_xy_filetype (ifstream& f, vector<int> const& columns)
                            " must be given (eg. 1,2,3)");
     vector<int> const& cols = columns.empty() ? vector2<int>(1, 2) : columns;
     vector<fp> xy;
-    sigma_from_file = (columns.size() == 3);
+    has_sigma = (columns.size() == 3);
     int maxc = *max_element (cols.begin(), cols.end());
     int minc = *min_element (cols.begin(), cols.end());
     if (minc < 0) {

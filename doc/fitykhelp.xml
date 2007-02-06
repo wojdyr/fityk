@@ -705,6 +705,33 @@
      i darea(y-F(x) if 20&lt;x&lt;25)
      </screen>     
     </para>
+    <para id="datasetop">
+     There is also another kind of transformations, 
+     <firstterm>dataset tranformations</firstterm>, which operate whole
+     dataset, not single points. The syntax (for one dataset) is: 
+     <command>@0 = <replaceable>dstransformation</replaceable> @0</command>,
+     where <replaceable>dstransformation</replaceable> can be one of:
+    </para>
+    <variablelist>
+     <varlistentry>
+      <term>sum_same_x</term>
+      <listitem><para>
+        Merges points which distance in x is smaller than 
+        <link linkend="epsilon">
+         <parameter class="option">epsilon</parameter></link>. 
+        x of a merged point is the average, 
+        and y and sigma are sums of components.
+      </para></listitem> 
+     </varlistentry>
+     <varlistentry>
+      <term>avg_same_x</term>
+      <listitem><para>
+        The same as sum_same_x, but y and sigma of a merged point
+        is set as an average of components.
+      </para></listitem> 
+     </varlistentry>
+    </variablelist>
+
    </section> 
 
    <section id="funcindt">
@@ -787,7 +814,7 @@
      <userinput>@*</userinput> means all datasets, 
      (e.g. <userinput>Y=y/10 in @*</userinput>).
     </para>
-    <para>
+    <para id="datadup">
      Command
      <cmdsynopsis>
       <arg choice="plain">@+</arg>
@@ -801,10 +828,14 @@
      will load dataset to new slot. Using @+ increases the number of datasets,
      and command <command>delete @<replaceable>n</replaceable></command>
      decreases it. It is also possible to duplicate a dataset (using the command
-     <command>@+ &lt; @<replaceable>n</replaceable></command>)
+     <command>@+ = @<replaceable>n</replaceable></command>)
      or to create new dataset as a sum of two or more existing sets 
-     (command <command>@+ &lt; @<replaceable>n</replaceable> +
+     (command <command>@+ = @<replaceable>n</replaceable> +
       @<replaceable>m</replaceable> + ...</command>).
+     All these commands are also possible with existing slots 
+     (e.g. <userinput>@1 = @0 + @1</userinput>). 
+     <link linkend="datasetop">Dataset transformations</link> 
+     can be specified after '=' sign.
     </para>
     <para>
      Each dataset has a separate <link linkend="sum">sum</link>, i.e. a model
@@ -1916,6 +1947,7 @@
       <arg><replaceable>xrange</replaceable>
        <arg><replaceable>yrange</replaceable></arg>
       </arg> 
+      <arg>in @<replaceable>n</replaceable></arg> 
      </cmdsynopsis>
      <replaceable>xrange</replaceable> and <replaceable>yrange</replaceable>
      have one of two following syntaxes:

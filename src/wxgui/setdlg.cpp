@@ -139,11 +139,6 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     // page peak-finding
     wxBoxSizer *sizer_pf = new wxBoxSizer(wxVERTICAL);
 
-    eps_rc = addRealNumberCtrl(page_general, 
-                               wxT("epsilon for floating-point comparison"),
-                               getSettings()->getp("epsilon"),
-                               sizer_general);
-
     height_correction = addRealNumberCtrl(page_peakfind, 
                            wxT("factor used to correct detected peak height"),
                            getSettings()->getp("height-correction"),

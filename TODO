@@ -1,29 +1,16 @@
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
-//* - option data-default-sigma with possible values: (one , sqrt). Docs.
-//    - GUI
-
 * BUG, GUI, MS Windows only: commands "@+ <" and "@0 <" executed from script
   give error: "Couldn't retrieve information about list control item 1."
-
-* BUG: problem with default parameters of functions (reported by WANG)
 
 * // BUG: minor logging issue (c+ >log2.fit) [done?]
   //        problem with logging on MSW (solved?)
 
-* GUI: definition manager: 
-   - add support for sum of functions
+// * auto-scaling should not include x/y=0, unless it's
 
-* auto-scaling should not include x/y=0, unless it's
-  in, say, 20% plot margin. "[:]" is an exception and includes 0.
-  GUI: "Auto-zooms shows y=0"
 * plot - there should be a way to zoom to show all datasets (plot @* [])
 * GUI?: when loading many datasets from command line, set view to show all
-
-//* GUI: autoplot option -> fitting tab, checkbox: replot-after-fit-iteration
-
-* GUI: autoplot option also in Fit->Run dialog
 
 * GUI: keyboard support:
     change focus from pane to input field when proper keys are pressed.
@@ -31,17 +18,17 @@
     option (in GUI menu): use numeric pad keys (WXK_NUMPAD_*) as shortcuts 
     for changing function parameters.
 
+// * syntax changed for dataset sum, was: @+ < @0 + @1; is: @+ = @0 + @1;
+//   added operations (sum_same_x and avg_same_x), eg. @+ = sum_same_x @0 + @1
 
-* data transformation?: transform(sum_points_with_dx, 1e-9) in @0
-             or         @0 < @0.merge_dx(1e-9)  
-	     also @x.histogram(nbins)
-	          @x.histogram(start, bin_length)
-		  @x.fft()
+* "Merge points" in data menu
 
 * check if errors (info errors) are the same like in other popular programs
   (there are some doubts about it)
 
-* add to builtin functions ExpDecay(a=0, t=1) = a*exp(-x/t)
+* CSS for html manual
+
+* //ExpDecay
 
 ------------------ release 0.7.8
 

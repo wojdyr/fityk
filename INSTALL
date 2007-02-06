@@ -7,10 +7,12 @@ only for CLI (command line interface, cfityk):
   gnuplot program (for graph output, optional)
 only for GUI (graphical user interface, fityk):
   wxWidgets (formerly wxWindows) >= 2.6.1 
+
+Compilation of some files with "g++ -O2" can use up to 300-400 MB RAM.
         
 +-- NOTE -----------------------------------------------------------------+
 | Uninstallation of the program installed from source is easy:            |
-| either do "make uninstall" or manually remove all files:                  |
+| either do "make uninstall" or manually remove all files:                |
 | cd /usr/local/ # or whatever --prefix you used                          |
 | rm -r bin/fityk bin/cfityk share/fityk/ man/man1/fityk.1                |
 +-------------------------------------------------------------------------+

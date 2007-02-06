@@ -270,7 +270,7 @@ void SideBar::OnDataButtonNew (wxCommandEvent& WXUNUSED(event))
 
 void SideBar::OnDataButtonDup (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command("@+ < " + join_vector(get_selected_data(), " + "));
+    exec_command("@+ = " + join_vector(get_selected_data(), " + "));
 }
 
 void SideBar::OnDataButtonRen (wxCommandEvent& WXUNUSED(event))
@@ -710,8 +710,16 @@ void SideBar::DataFocusChanged()
         return;
     int length = AL->get_ds_count();
     if (length > 1 && AL->get_active_ds_position() != n) 
-        exec_command("plot @" + S(n) + " ..");
+        exec_command("plot .. in @" + S(n));
     data_page->FindWindow(ID_DP_CPF)->Enable(n+1<length);
+}
+
+string SideBar::get_datasets_str()
+{
+    if (data_look->GetSelection() == 0)
+        return "@*";
+    else
+        return frame->get_active_data_str();
 }
 
 void SideBar::update_data_inf()

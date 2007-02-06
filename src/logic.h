@@ -50,9 +50,7 @@ public:
         if (flag&change_top) top=t;
         if (flag&change_bottom) bottom=b;
     }
-    void set_items(std::vector<Data*> const &dd, std::vector<Sum*> const &ss) 
-                                                    { datas = dd; sums = ss; }
-    void set_dataset(DataWithSum const* ds);
+    void set_datasets(std::vector<DataWithSum*> const& dd);
     void fit(int flag=fit_all); 
     void parse_and_set(std::vector<std::string> const& lrbt); 
 protected:

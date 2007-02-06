@@ -1,0 +1,26 @@
+
+body, th, td { 
+	font: 0.9em, sans-serif;
+}
+
+code, tt  { 
+	font-family: "lucida typewriter", lucidatypewriter, monospace; 
+}
+
+pre { 
+	color: #00008b;
+	font-family: "lucida typewriter", lucidatypewriter,
+	monospace;
+	font-size: 90%; 
+}
+
+.variablelist dl dd p {
+	margin-top: 0pt;
+}
+
+/*
+.command {
+	font-weight: normal;
+	background-color: #ccf;
+}
+*/

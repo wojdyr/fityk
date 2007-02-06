@@ -348,7 +348,6 @@ void guess_and_add(DataWithSum* ds,
     else
         parse_range(ds, range, range_from, range_to);
 
-
     FunctionKind k = get_function_kind(Function::get_formula(function));
     if (k == fk_peak) {
         fp c = 0., h = 0., a = 0., fwhm = 0.;

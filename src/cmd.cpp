@@ -324,6 +324,7 @@ Commands::Status parse_and_execute(string const& str)
             return Commands::status_syntax_error;
         }
     } catch (ExecuteError &e) {
+        getSettings()->clear_temporary();
         warn(string("Error: ") + e.what());
         return Commands::status_execute_error;
     }
