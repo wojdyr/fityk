@@ -43,6 +43,7 @@ public:
     static std::vector<std::string> 
       get_defvalues_from_formula(std::string const& formula);
 
+    /// calculate value at x[i] and _add_ the result to y[i] (for each i)
     virtual void calculate_value(std::vector<fp> const &x, 
                                  std::vector<fp> &y) const = 0; 
     virtual void calculate_value_deriv(std::vector<fp> const &x, 

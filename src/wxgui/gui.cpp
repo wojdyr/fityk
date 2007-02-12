@@ -250,7 +250,7 @@ bool FApp::OnInit(void)
                                         wxCONFIG_USE_LOCAL_FILE);
     wxConfig::Set(config);
 
-    DataEditorDlg::read_examples();
+    DataEditorDlg::read_transforms();
 
     // Create the main frame window
     frame = new FFrame(NULL, -1, wxT("fityk"), wxDEFAULT_FRAME_STYLE);
@@ -341,8 +341,12 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
     }
     for (vector<string>::const_iterator i = p.begin(); i != p.end(); ++i) 
         getUI()->process_cmd_line_filename(*i);
-    if (AL->get_ds_count() > 1)
+    if (AL->get_ds_count() > 1) {
         frame->SwitchSideBar(true);
+        // zoom to show all loaded datafiles
+        AL->view.set_datasets(AL->get_dsds()); 
+        AL->view.fit();
+    }
 }
 
 
@@ -992,16 +996,16 @@ void FFrame::OnDEditor (wxCommandEvent&)
 
 void FFrame::OnFastDTUpdate (wxUpdateUIEvent& event)
 {
-    const vector<DataTransExample> &all = DataEditorDlg::get_examples();
-    vector<DataTransExample> examples;
-    for (vector<DataTransExample>::const_iterator i = all.begin(); 
+    const vector<DataTransform> &all = DataEditorDlg::get_transforms();
+    vector<DataTransform> transforms;
+    for (vector<DataTransform>::const_iterator i = all.begin(); 
             i != all.end(); ++i)
         if (i->in_menu)
-            examples.push_back(*i);
+            transforms.push_back(*i);
     int menu_len = data_ft_menu->GetMenuItemCount();
-    for (int i = 0; i < size(examples); ++i) {
+    for (int i = 0; i < size(transforms); ++i) {
         int id = ID_D_FDT+i+1;
-        wxString name = s2wx(examples[i].name);
+        wxString name = s2wx(transforms[i].name);
         if (i >= menu_len)
             data_ft_menu->Append(id, name);
         else if (data_ft_menu->GetLabel(id) == name)
@@ -1009,7 +1013,7 @@ void FFrame::OnFastDTUpdate (wxUpdateUIEvent& event)
         else
             data_ft_menu->SetLabel(id, name);
     }
-    for (int i = size(examples); i < menu_len; ++i) 
+    for (int i = size(transforms); i < menu_len; ++i) 
         data_ft_menu->Delete(ID_D_FDT+i+1);
     event.Skip();
 }
@@ -1017,9 +1021,9 @@ void FFrame::OnFastDTUpdate (wxUpdateUIEvent& event)
 void FFrame::OnFastDT (wxCommandEvent& event)
 {
     string name = wx2s(GetMenuBar()->GetLabel(event.GetId()));
-    const vector<DataTransExample> &examples = DataEditorDlg::get_examples();
-    for (vector<DataTransExample>::const_iterator i = examples.begin();
-            i != examples.end(); ++i)
+    const vector<DataTransform> &transforms = DataEditorDlg::get_transforms();
+    for (vector<DataTransform>::const_iterator i = transforms.begin();
+            i != transforms.end(); ++i)
         if (i->name == name) {
             DataEditorDlg::execute_tranform(i->code);
             return;
@@ -1928,7 +1932,7 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
             exec_command("fit+"); 
             break; 
         case ID_ft_f_undo: 
-            exec_command("s.history -1"); 
+            exec_command("fit undo"); 
             break; 
         case ID_ft_s_aa: 
             exec_command("guess " + frame->get_peak_type() 

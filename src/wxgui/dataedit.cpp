@@ -115,7 +115,7 @@ private:
 
 
 // ';' will be replaced by line break
-static const char *default_examples = 
+static const char *default_transforms = 
 
 "accumulate|useful|Accumulate y of data and adjust std. dev."
 "|Y[1...] = Y[n-1] + y[n];S = sqrt(max2(1,y))|Y\n"
@@ -162,7 +162,7 @@ static const char *default_examples =
 "|X = 4*pi * sin(x/2*pi/180) / 1.54051|N\n"
 ;
 
-DataTransExample::DataTransExample(string line)
+DataTransform::DataTransform(string line)
      : in_menu(false) 
 {
     replace_all(line, ";", "\n");
@@ -186,7 +186,7 @@ DataTransExample::DataTransExample(string line)
     }
 }
 
-string DataTransExample::as_fileline() const
+string DataTransform::as_fileline() const
 {
     string s = name + "|" + category + "|" + description + "|" + code 
                + "|" + (in_menu ? "Y" : "N");
@@ -247,28 +247,28 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id,
     // right side of the dialog
     wxPanel *right_panel = new wxPanel(splitter); 
     wxBoxSizer *right_sizer = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *example_sizer = new wxBoxSizer(wxHORIZONTAL);
-    example_list = new wxListCtrl(right_panel, ID_DE_EXAMPLES, 
+    wxBoxSizer *trans_sizer = new wxBoxSizer(wxHORIZONTAL);
+    trans_list = new wxListCtrl(right_panel, ID_DE_EXAMPLES, 
                                   wxDefaultPosition, wxDefaultSize,
                                   wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_HRULES);
-    example_list->InsertColumn(0, wxT("transformation"));
-    example_list->InsertColumn(1, wxT("in menu"));
-    example_sizer->Add(example_list, 1, wxEXPAND|wxALL, 5);
-    wxBoxSizer *example_button_sizer = new wxBoxSizer(wxVERTICAL);
+    trans_list->InsertColumn(0, wxT("transformation"));
+    trans_list->InsertColumn(1, wxT("in menu"));
+    trans_sizer->Add(trans_list, 1, wxEXPAND|wxALL, 5);
+    wxBoxSizer *trans_button_sizer = new wxBoxSizer(wxVERTICAL);
     add_btn = new wxButton(right_panel, wxID_ADD, wxT("Add"));
-    example_button_sizer->Add(add_btn, 0, wxALL, 5);
+    trans_button_sizer->Add(add_btn, 0, wxALL, 5);
     remove_btn = new wxButton(right_panel, wxID_REMOVE, wxT("Remove"));
-    example_button_sizer->Add(remove_btn, 0, wxALL, 5);
+    trans_button_sizer->Add(remove_btn, 0, wxALL, 5);
     up_btn = new wxButton(right_panel, wxID_UP, wxT("&Up"));
-    example_button_sizer->Add(up_btn, 0, wxALL, 5);
+    trans_button_sizer->Add(up_btn, 0, wxALL, 5);
     down_btn = new wxButton(right_panel, wxID_DOWN, wxT("&Down"));
-    example_button_sizer->Add(down_btn, 0, wxALL, 5);
+    trans_button_sizer->Add(down_btn, 0, wxALL, 5);
     save_btn = new wxButton(right_panel, wxID_SAVE, wxT("&Save"));
-    example_button_sizer->Add(save_btn, 0, wxALL, 5);
+    trans_button_sizer->Add(save_btn, 0, wxALL, 5);
     reset_btn = new wxButton(right_panel, ID_DE_RESET, wxT("&Reset"));
-    example_button_sizer->Add(reset_btn, 0, wxALL, 5);
-    example_sizer->Add(example_button_sizer, 0);
-    right_sizer->Add(example_sizer, 0, wxEXPAND);
+    trans_button_sizer->Add(reset_btn, 0, wxALL, 5);
+    trans_sizer->Add(trans_button_sizer, 0);
+    right_sizer->Add(trans_sizer, 0, wxEXPAND);
     description = new wxStaticText(right_panel, -1, wxT("\n\n\n\n"), 
                                    wxDefaultPosition, wxDefaultSize,
                                    wxALIGN_LEFT);
@@ -295,9 +295,9 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id,
     grid->SetEditable(true);
     grid->SetColumnWidth(0, 40);
     grid->SetRowLabelSize(60);
-    initialize_examples();
+    initialize_transforms();
     for (int i = 0; i < 2; i++)
-        example_list->SetColumnWidth(i, wxLIST_AUTOSIZE);
+        trans_list->SetColumnWidth(i, wxLIST_AUTOSIZE);
     apply_btn->Enable(false);
 
     // finishing layout
@@ -316,13 +316,13 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id,
     Centre();
 }
 
-std::vector<DataTransExample> DataEditorDlg::examples;
+std::vector<DataTransform> DataEditorDlg::transforms;
 
-void DataEditorDlg::read_examples(bool reset)
+void DataEditorDlg::read_transforms(bool reset)
 {
-    examples.clear();
+    transforms.clear();
     // this item should be always present
-    examples.push_back(DataTransExample("custom", "builtin", 
+    transforms.push_back(DataTransform("custom", "builtin", 
                                         "Custom transformation.\n"
                                         "You can type eg. Y=log10(y).\n"
                                         "See Help for details.",
@@ -333,37 +333,37 @@ void DataEditorDlg::read_examples(bool reset)
     if (wxFileExists(transform_path) && !reset) {
         ifstream f(wx2s(transform_path).c_str());
         while (getline(f, t_line))
-            examples.push_back(DataTransExample(t_line));
+            transforms.push_back(DataTransform(t_line));
     }
     else {
-        istringstream f(default_examples);
+        istringstream f(default_transforms);
         while (getline(f, t_line))
-            examples.push_back(DataTransExample(t_line));
+            transforms.push_back(DataTransform(t_line));
     }
 }
 
-void DataEditorDlg::initialize_examples(bool reset)
+void DataEditorDlg::initialize_transforms(bool reset)
 {
     if (reset)
-        read_examples(reset);
-    example_list->DeleteAllItems();
-    for (int i = 0; i < size(examples); ++i) 
-        insert_example_list_item(i);
-    select_example(0);
+        read_transforms(reset);
+    trans_list->DeleteAllItems();
+    for (int i = 0; i < size(transforms); ++i) 
+        insert_trans_list_item(i);
+    select_transform(0);
 }
 
-void DataEditorDlg::insert_example_list_item(int n)
+void DataEditorDlg::insert_trans_list_item(int n)
 {
-    const DataTransExample& ex = examples[n];
-    example_list->InsertItem(n, s2wx(ex.name));
-    example_list->SetItem(n, 1, (ex.in_menu ? wxT("Yes") : wxT("No")));
+    const DataTransform& ex = transforms[n];
+    trans_list->InsertItem(n, s2wx(ex.name));
+    trans_list->SetItem(n, 1, (ex.in_menu ? wxT("Yes") : wxT("No")));
 }
 
-void DataEditorDlg::select_example(int item)
+void DataEditorDlg::select_transform(int item)
 {
-    if (item >= example_list->GetItemCount())
+    if (item >= trans_list->GetItemCount())
         return;
-    example_list->SetItemState (item, 
+    trans_list->SetItemState (item, 
                                 wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED,
                                 wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED);
     // ESelected();
@@ -371,7 +371,7 @@ void DataEditorDlg::select_example(int item)
 
 int DataEditorDlg::get_selected_item()
 {
-    return example_list->GetNextItem(-1,wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    return trans_list->GetNextItem(-1,wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 }
 
 void DataEditorDlg::update_data(ndnd_type const& dd)
@@ -443,25 +443,25 @@ void DataEditorDlg::OnSaveAs (wxCommandEvent& WXUNUSED(event))
 
 void DataEditorDlg::OnAdd (wxCommandEvent& WXUNUSED(event))
 {
-    DataTransExample new_example("new", "useful",
+    DataTransform new_transform("new", "useful",
                                  "", wx2s(code->GetValue()));
-    ExampleEditorDlg dlg(this, -1, new_example, examples, -1);
+    TransEditorDlg dlg(this, -1, new_transform, transforms, -1);
     if (dlg.ShowModal() == wxID_OK) {
         int pos = get_selected_item() + 1;
-        examples.insert(examples.begin() + pos, new_example);
-        insert_example_list_item(pos);
-        select_example(pos);
+        transforms.insert(transforms.begin() + pos, new_transform);
+        insert_trans_list_item(pos);
+        select_transform(pos);
     }
 }
 
 void DataEditorDlg::OnRemove (wxCommandEvent& WXUNUSED(event))
 {
     int item = get_selected_item();
-    if (item == -1 || examples[item].category == "builtin")
+    if (item == -1 || transforms[item].category == "builtin")
         return;
-    examples.erase(examples.begin() + item);
-    example_list->DeleteItem(item);
-    select_example(item > 0 ? item-1 : 0);
+    transforms.erase(transforms.begin() + item);
+    trans_list->DeleteItem(item);
+    select_transform(item > 0 ? item-1 : 0);
 }
 
 void DataEditorDlg::OnUp (wxCommandEvent& WXUNUSED(event))
@@ -470,11 +470,11 @@ void DataEditorDlg::OnUp (wxCommandEvent& WXUNUSED(event))
     if (item == 0)
         return;
     // swap item-1 and item
-    DataTransExample ex = examples[item-1];
-    examples.erase(examples.begin() + item - 1);
-    example_list->DeleteItem(item-1);
-    examples.insert(examples.begin() + item, ex);
-    insert_example_list_item(item);
+    DataTransform ex = transforms[item-1];
+    transforms.erase(transforms.begin() + item - 1);
+    trans_list->DeleteItem(item-1);
+    transforms.insert(transforms.begin() + item, ex);
+    insert_trans_list_item(item);
     up_btn->Enable(item-1 > 0);
     down_btn->Enable(true);
 }
@@ -482,31 +482,31 @@ void DataEditorDlg::OnUp (wxCommandEvent& WXUNUSED(event))
 void DataEditorDlg::OnDown (wxCommandEvent& WXUNUSED(event))
 {
     int item = get_selected_item();
-    if (item >= size(examples) - 1)
+    if (item >= size(transforms) - 1)
         return;
     // swap item+1 and item
-    DataTransExample ex = examples[item+1];
-    examples.erase(examples.begin() + item + 1);
-    example_list->DeleteItem(item+1);
-    examples.insert(examples.begin() + item, ex);
-    insert_example_list_item(item);
+    DataTransform ex = transforms[item+1];
+    transforms.erase(transforms.begin() + item + 1);
+    trans_list->DeleteItem(item+1);
+    transforms.insert(transforms.begin() + item, ex);
+    insert_trans_list_item(item);
     up_btn->Enable(true);
-    down_btn->Enable(item+1 < example_list->GetItemCount() - 1);
+    down_btn->Enable(item+1 < trans_list->GetItemCount() - 1);
 }
 
 void DataEditorDlg::OnSave (wxCommandEvent& WXUNUSED(event))
 {
     wxString transform_path = get_user_conffile("transform");
     ofstream f(wx2s(transform_path).c_str());
-    for (vector<DataTransExample>::const_iterator i = examples.begin();
-            i != examples.end(); ++i)
+    for (vector<DataTransform>::const_iterator i = transforms.begin();
+            i != transforms.end(); ++i)
         if (i->category != "builtin")
             f << i->as_fileline() << endl;
 }
 
 void DataEditorDlg::OnReset (wxCommandEvent& WXUNUSED(event))
 {
-    initialize_examples(true);
+    initialize_transforms(true);
 }
 
 void DataEditorDlg::OnApply (wxCommandEvent& WXUNUSED(event))
@@ -564,10 +564,10 @@ void DataEditorDlg::ESelected()
     int item = get_selected_item();
     if (item == -1) {
         item = 0;
-        select_example(0);
+        select_transform(0);
         return;
     }
-    const DataTransExample& ex = examples[item];
+    const DataTransform& ex = transforms[item];
     // to avoid frequent resizing, description should have >= 3 lines
     string desc = ex.description;
     for (int i = count(desc.begin(), desc.end(), '\n') + 1; i < 3; ++i)
@@ -577,7 +577,7 @@ void DataEditorDlg::ESelected()
     code->SetValue(s2wx(ex.code));
 
     up_btn->Enable(item > 0);
-    down_btn->Enable(item < example_list->GetItemCount() - 1);
+    down_btn->Enable(item < trans_list->GetItemCount() - 1);
     remove_btn->Enable(ex.category != "builtin");
     CodeText();
 }
@@ -585,29 +585,29 @@ void DataEditorDlg::ESelected()
 void DataEditorDlg::OnEActivated (wxListEvent& event)
 {
     int n = event.GetIndex();
-    if (examples[n].category == "builtin")
+    if (transforms[n].category == "builtin")
         return;
-    ExampleEditorDlg dlg(this, -1, examples[n], examples, n);
+    TransEditorDlg dlg(this, -1, transforms[n], transforms, n);
     if (dlg.ShowModal() == wxID_OK) {
-        example_list->DeleteItem(n);
-        insert_example_list_item(n);
-        select_example(n);
+        trans_list->DeleteItem(n);
+        insert_trans_list_item(n);
+        select_transform(n);
     }
 }
 
 
-BEGIN_EVENT_TABLE(ExampleEditorDlg, wxDialog)
-    EVT_BUTTON  (wxID_OK,    ExampleEditorDlg::OnOK)
+BEGIN_EVENT_TABLE(TransEditorDlg, wxDialog)
+    EVT_BUTTON  (wxID_OK,    TransEditorDlg::OnOK)
 END_EVENT_TABLE()
 
-ExampleEditorDlg::ExampleEditorDlg(wxWindow* parent, wxWindowID id, 
-                                   DataTransExample& ex_,
-                                   const vector<DataTransExample>& examples_,
+TransEditorDlg::TransEditorDlg(wxWindow* parent, wxWindowID id, 
+                                   DataTransform& ex_,
+                                   const vector<DataTransform>& transforms_,
                                    int pos_)
-    : wxDialog(parent, id, wxT("Example Editor"), 
+    : wxDialog(parent, id, wxT("Transformation Editor"), 
                wxDefaultPosition, wxDefaultSize, 
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
-      ex(ex_), examples(examples_), pos(pos_)
+      ex(ex_), transforms(transforms_), pos(pos_)
 {
     name_tc = new wxTextCtrl(this, -1, s2wx(ex.name));
     description_tc = new wxTextCtrl(this, -1, s2wx(ex.description),
@@ -645,11 +645,11 @@ ExampleEditorDlg::ExampleEditorDlg(wxWindow* parent, wxWindowID id,
     Centre();
 }
 
-void ExampleEditorDlg::OnOK(wxCommandEvent &)
+void TransEditorDlg::OnOK(wxCommandEvent &)
 {
     string new_name = wx2s(name_tc->GetValue().Trim());
-    for (int i = 0; i < size(examples); ++i) 
-            if (i != pos && examples[i].name == new_name) {//name is not unique
+    for (int i = 0; i < size(transforms); ++i) 
+            if (i != pos && transforms[i].name == new_name) {//name not unique
                 name_tc->SetFocus();
                 name_tc->SetSelection(-1, -1);
                 return;

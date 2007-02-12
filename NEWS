@@ -1,9 +1,10 @@
 User-visible changes in version 0.7.8  (2007-02-  ):
 * GUI: error bars for data
 * voigt(x,y) function for data transformations and variable definitions
-* new option in settings, epsilon, used for floating point comparision.
+* new option in settings "epsilon" used for floating point comparision.
 * GUI: script debugger dialog was finished; "Edit init file" was added to menu
 * option data-default-sigma with possible values: one, sqrt.
+* plot command: dataset can be specified using "in @n", like in other commands
 * several bug fixes (see SVN log for more details)
 
 User-visible changes in version 0.7.7  (2007-01-08):

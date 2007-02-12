@@ -20,3 +20,9 @@ fitykhelp.htb: fitykhelp.xml
 fitykhelp.html: fitykhelp.xml 
 	xmlto -m $(srcdir)/hh-mod.xsl html-nochunks $(srcdir)/fitykhelp.xml 
 
+# Apache FOP in needed, setting JAVA_HOME may be necessary
+#JAVA_HOME=/usr/lib/j2re1.5-sun
+fitykhelp.pdf: fitykhelp.xml fo.xsl
+	xmlto -m fo.xsl fo $(srcdir)/fitykhelp.xml
+	fop fitykhelp.fo fitykhelp.pdf
+

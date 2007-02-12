@@ -330,6 +330,8 @@ void View::parse_and_set(std::vector<std::string> const& lrbt)
     fit(flag);
 }
 
+//TODO set_datasets() is should not be public, datasets 
+// should be always passed by fit() and parse_and_set()
 void View::set_datasets(vector<DataWithSum*> const& dd) 
 {
     assert(!dd.empty());

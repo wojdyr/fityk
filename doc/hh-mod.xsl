@@ -5,6 +5,8 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
 
+  <xsl:param name="html.stylesheet" select="'html.css'"/>
+
   <!-- no entry for root element in ToC - expanded ToC as a default -->
   <xsl:param name="htmlhelp.hhc.show.root" select="0" />
 

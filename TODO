@@ -9,8 +9,11 @@
 
 // * auto-scaling should not include x/y=0, unless it's
 
-* plot - there should be a way to zoom to show all datasets (plot @* [])
-* GUI?: when loading many datasets from command line, set view to show all
+// * plot - a way to zoom to show all datasets (plot [] in @*)
+
+* GUI [BUG] aux. plot - when program is called with script as an argument
+   aux. plot looks strange at the start of the program until it is replotted
+   when it's called with data files as arguments, aux. plot is initially empty
 
 * GUI: keyboard support:
     change focus from pane to input field when proper keys are pressed.
@@ -26,9 +29,15 @@
 * check if errors (info errors) are the same like in other popular programs
   (there are some doubts about it)
 
-* CSS for html manual
+// * CSS for html manual
 
-* //ExpDecay
+// * ExpDecay
+
+* GUI: range-mode: give an explaination when user tries to activate points
+  when all are active
+
+*  check this: "Executing something like 'Y=y/darea(y)' from the command 
+   line or from the script does not refresh the plot window."
 
 ------------------ release 0.7.8
 
@@ -110,9 +119,6 @@
 * (GUI) plot horizontal/vertical lines (X/Y | pos=2.34 | 100%)
      can be used to show theoretical peak positions in XRD
 
-* (GUI) data-range mode: if all points are active, left mouse button
-  should "select", not "activate", ie. it should do A = (left<x<right)  (?)
-
 * ? GUI: changing data point size and line separately for each dataset,
 
 * data load, ascii: optimize, loading many datafiles is slow
@@ -121,9 +127,6 @@
   graphical interface Fit > Info
 
 * (GUI) vertical scaling using mouse on main plot near to left edge of the plot 
-
-* GUI [BUG] aux. plot - when program is called with script as an argument
-   aux. plot looks strange at the start of the program until it is replotted
 
 * improve Voigt function (cut-tails, better approx.) 
   eg. http://portal.acm.org/citation.cfm?doid=77626.77629

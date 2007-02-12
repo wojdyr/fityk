@@ -58,13 +58,9 @@
     and modify it under the terms of the <acronym>GPL</acronym>, version 2. 
     See <xref linkend="license"/> for details. 
     You can download the latest version of <application>fityk</application> from
-    <ulink url="http://www.unipress.waw.pl/fityk">
-     http://www.unipress.waw.pl/fityk 
-    </ulink>.
+    <ulink url="http://www.unipress.waw.pl/fityk">http://www.unipress.waw.pl/fityk</ulink>.
     or
-    <ulink url="http://fityk.sf.net/">
-     http://fityk.sf.net 
-    </ulink>.
+    <ulink url="http://fityk.sf.net/">http://fityk.sf.net</ulink>.
     To contact the author, visit the same page. 
    </para> 
   </section>
@@ -72,22 +68,31 @@
   <section>
    <title>How to read this manual</title>
    <para>
-    After this introduction, read the <xref linkend="getstarted"/>.
-    If you are using the <acronym>GUI</acronym> versionyou can look at the
+    After this introduction, you may read the <xref linkend="getstarted"/>.
+    If you are using the <acronym>GUI</acronym> version you can look at the
     <ulink url="http://www.unipress.waw.pl/fityk/screenshots.html">
-     screenshots-based tutorial at this webpage 
+     screenshots-based tutorial 
     </ulink> 
     and postpone reading
-    <xref linkend="CommandReference"/> until you need to write a script
+    <xref linkend="CommandReference"/> until you need to write a script,
+    put constraints on variables, add user-defined function 
     or understand in more detail how the program works.
+   </para>
+   <para>
+    In case you are not familiar with the term 
+    <firstterm>weighted sum of squared residuals</firstterm>
+    or you are not sure how it is weighted, have a look at 
+    <xref linkend="nonlinear"/>. It is your responsibility to set correctly
+    <link linkend="weights">standard deviations</link> of y's of points, 
+    otherwise you will get wrong results.
    </para>
   </section> 
 
   <section>
    <title><acronym>GUI</acronym> vs <acronym>CLI</acronym></title>
    <para>
-    The program comes in two versions: the <acronym>GUI</acronym> (Graphical User
-    Interface) version - more comfortable for most users,
+    The program comes in two versions: the <acronym>GUI</acronym> 
+    (Graphical User Interface) version - more comfortable for most users,
     and the <acronym>CLI</acronym> (Command Line Interface) version 
     (named <command>cfityk</command> to differentiate, Unix only).
    </para>
@@ -414,10 +419,11 @@
 
     <para>
      Information about the current data can be obtained by using the command:
+     <command>info <replaceable>dataslot</replaceable></command>
     </para>
     <cmdsynopsis>
-     <command>info</command>
-     <arg choice="plain"><replaceable>dataslot</replaceable></arg>
+     <command></command>
+     <arg choice="plain"></arg>
     </cmdsynopsis>
 
     <variablelist><title>Supported filetypes</title>
@@ -707,7 +713,7 @@
     </para>
     <para id="datasetop">
      There is also another kind of transformations, 
-     <firstterm>dataset tranformations</firstterm>, which operate whole
+     <firstterm>dataset tranformations</firstterm>, which operate on a whole
      dataset, not single points. The syntax (for one dataset) is: 
      <command>@0 = <replaceable>dstransformation</replaceable> @0</command>,
      where <replaceable>dstransformation</replaceable> can be one of:
@@ -754,19 +760,19 @@
      and <function>extremum</function>. 
     </para>
     <para>
-     <function>numarea(%f, x1, x2, n)</function> 
+     <userinput>numarea(%f, x1, x2, n)</userinput> 
      gives area integrated numerically 
      from x1 to x2 using trapezoidal rule with n equal steps.
     </para>
     <para>
-     <function>findx(%f, x1, x2, y)</function> 
+     <userinput>findx(%f, x1, x2, y)</userinput> 
      finds x in interval (x1, x2) such that 
      %f(x)=y
      using bisection method combined with Newton-Raphson method.
      It is a requirement that %f(x1) &lt; y &lt; %f(x2).
     </para>
     <para>
-     <function>extremum(%f, x1, x2)</function> finds x in interval (x1, x2) 
+     <userinput>extremum(%f, x1, x2)</userinput> finds x in interval (x1, x2) 
      such that 
      %f'(x)=0 
      using bisection method.  
@@ -815,7 +821,16 @@
      (e.g. <userinput>Y=y/10 in @*</userinput>).
     </para>
     <para id="datadup">
-     Command
+     To load dataset from file, use one of commands:
+     <cmdsynopsis>
+      <arg choice="plain">@<replaceable>n</replaceable></arg>
+      <command>&lt;</command> 
+      <arg choice="plain"><replaceable>filename</replaceable></arg> 
+      <arg><replaceable>filetype</replaceable></arg>  
+      <arg><replaceable>xcol</replaceable>,<replaceable>ycol</replaceable>
+       <arg>,<replaceable>scol</replaceable></arg>
+      </arg> 
+     </cmdsynopsis>
      <cmdsynopsis>
       <arg choice="plain">@+</arg>
       <command>&lt;</command> 
@@ -825,17 +840,36 @@
        <arg>,<replaceable>scol</replaceable></arg>
       </arg> 
      </cmdsynopsis>
-     will load dataset to new slot. Using @+ increases the number of datasets,
+     The first one uses existing data slot and the second one creates 
+     a new slot. 
+     Using @+ increases the number of datasets,
      and command <command>delete @<replaceable>n</replaceable></command>
-     decreases it. It is also possible to duplicate a dataset (using the command
-     <command>@+ = @<replaceable>n</replaceable></command>)
-     or to create new dataset as a sum of two or more existing sets 
-     (command <command>@+ = @<replaceable>n</replaceable> +
-      @<replaceable>m</replaceable> + ...</command>).
-     All these commands are also possible with existing slots 
-     (e.g. <userinput>@1 = @0 + @1</userinput>). 
-     <link linkend="datasetop">Dataset transformations</link> 
-     can be specified after '=' sign.
+     decreases it. 
+    </para>
+    <para>
+     Command
+     <cmdsynopsis>
+      <arg choice="plain">@<replaceable>n</replaceable></arg>
+      <command>=</command> 
+      <arg><replaceable>dataset_transformation</replaceable></arg>  
+      <arg choice="plain">@<replaceable>m</replaceable></arg> 
+      <arg> + @<replaceable>k</replaceable><arg> + ...</arg></arg> 
+     </cmdsynopsis>
+     where @<replaceable>n</replaceable> can be replaced with 
+     <userinput>@+</userinput> can be used to duplicate 
+     a dataset (<command>@+ = @<replaceable>n</replaceable></command>),
+     to create new dataset as a sum of two or more existing sets 
+     (<command>@+ = @<replaceable>n</replaceable> +
+      @<replaceable>m</replaceable> + ...</command>),
+     to perform 
+     <link linkend="datasetop">dataset transformations</link> 
+     (<command>@n = <replaceable>dataset_transformation</replaceable>
+      @<replaceable>n</replaceable></command>), etc.
+     A sum of datasets contains all points from all component datasets.
+     If you want to merge points with the same x value, use 
+     one of dataset transformations: 
+     <command>@+ = sum_same_x @<replaceable>n</replaceable> +
+            @<replaceable>m</replaceable> + ...</command>.
     </para>
     <para>
      Each dataset has a separate <link linkend="sum">sum</link>, i.e. a model
@@ -1187,24 +1221,25 @@
     <para>
      Examples:
      <screen>     
-     # first how some built-in functions could be defined
-     define MyGaussian(height, center, hwhm) = height*exp(-ln(2)*((x-center)/hwhm)^2)
-     define MyLorentzian(height, center, hwhm) = height/(1+((x-center)/hwhm)^2)
-     define MyCubic(a0=height,a1=0, a2=0, a3=0) = a0 + a1*x + a2*x^2 + a3*x^3
+  # first how some built-in functions could be defined
+  define MyGaussian(height, center, hwhm) = height*exp(-ln(2)*((x-center)/hwhm)^2)
+  define MyLorentzian(height, center, hwhm) = height/(1+((x-center)/hwhm)^2)
+  define MyCubic(a0=height,a1=0, a2=0, a3=0) = a0 + a1*x + a2*x^2 + a3*x^3
 
-     # supersonic beam arrival time distribution
-     define SuBeArTiDi(c, s, v0, dv) = c*(s/x)^3*exp(-(((s/x)-v0)/dv)^2)/x
-     
+  # supersonic beam arrival time distribution
+  define SuBeArTiDi(c, s, v0, dv) = c*(s/x)^3*exp(-(((s/x)-v0)/dv)^2)/x
+  
 
-     # area-based Gaussian can be defined as modification of built-in Gaussian
-     # (it is the same as built-in GaussianA function)
-     define GaussianArea(area, center, hwhm) = Gaussian(area/fwhm/sqrt(pi*ln(2)), center, hwhm) 
+  # area-based Gaussian can be defined as modification of built-in Gaussian
+  # (it is the same as built-in GaussianA function)
+  define GaussianArea(area, center, hwhm) = Gaussian(area/fwhm/sqrt(pi*ln(2)), center, hwhm) 
 
-     # sum of Gaussian and Lorentzian (also known as PseudoVoigt)
-     define GLSum(height, center, hwhm, shape) = Gaussian(height*(1-shape), center, hwhm) + Lorentzian(height*shape, center, hwhm)
+  # sum of Gaussian and Lorentzian, a.k.a PseudoVoigt (should be in one line)
+  define GLSum(height, center, hwhm, shape) = Gaussian(height*(1-shape), center, hwhm) 
+  + Lorentzian(height*shape, center, hwhm)
 
-     # to change definition of UDF, first undefine previous definition
-     undefine GaussianArea
+  # to change definition of UDF, first undefine previous definition
+  undefine GaussianArea
      </screen>     
     </para>
    </section> 
@@ -1440,7 +1475,7 @@
      that depends on adjustable parameters. 
      Let me quote <citetitle pubwork="book">Numerical Recipes</citetitle>, 
      chapter 15.0, page 656 (if you do not know the book, visit 
-     <ulink url="http://www.nr.com">http://www.nr.com </ulink>):
+     <ulink url="http://www.nr.com">http://www.nr.com</ulink>):
     </para>
     <blockquote>
      <para>
@@ -1759,11 +1794,13 @@
 
   <section id="settings">
    <title>Settings </title>
-   <para>
-    This chapter is not about GUI settings (things like colors,
-    fonts, etc.), but about settings that are common for both CLI and GUI
-    version.
-   </para>
+   <note>
+    <para>
+     This chapter is not about GUI settings (things like colors,
+     fonts, etc.), but about settings that are common for both CLI and GUI
+     version.
+    </para>
+   </note>
    <para>
     Command <command>info set</command> shows the syntax of the set command
     and lists all possible options. 

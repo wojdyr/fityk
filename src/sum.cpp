@@ -133,7 +133,7 @@ fp Sum::zero_shift(fp x) const
 
 void Sum::calculate_sum_value(vector<fp> &x, vector<fp> &y) const
 {
-    // add zero-shift to x
+    // add x-correction to x
     for (vector<int>::const_iterator i = zz_idx.begin(); i != zz_idx.end(); i++)
         mgr.get_function(*i)->calculate_value(x, x);
     // add y-value to y
@@ -155,7 +155,7 @@ void Sum::calculate_sum_value_deriv(vector<fp> &x, vector<fp> &y,
     if (x.empty())
         return;
     fill (dy_da.begin(), dy_da.end(), 0);
-    // add zero-shift to x
+    // add x-correction to x
     for (vector<int>::const_iterator i = zz_idx.begin(); i != zz_idx.end(); i++)
         mgr.get_function(*i)->calculate_value(x, x);
     // calculate value and derivatives

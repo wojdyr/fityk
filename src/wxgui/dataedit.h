@@ -9,7 +9,7 @@
 
 class Data;
 
-struct DataTransExample
+struct DataTransform
 {
     std::string name;
     std::string category;
@@ -17,12 +17,12 @@ struct DataTransExample
     std::string code;
     bool in_menu;
 
-    DataTransExample(const std::string& name_, const std::string& category_, 
+    DataTransform(const std::string& name_, const std::string& category_, 
                      const std::string& description_, const std::string& code_,
                      bool in_menu_=false)
         : name(name_), category(category_), description(description_),
           code(code_), in_menu(in_menu_) {}
-   DataTransExample(std::string line);
+   DataTransform(std::string line);
    std::string as_fileline() const;
 };
 
@@ -51,39 +51,39 @@ public:
     void ESelected();
     void OnEActivated (wxListEvent& event);
     void update_data(ndnd_type const& dd);
-    static std::vector<DataTransExample> const& get_examples() 
-                                                    { return examples; }
-    static void read_examples(bool reset=false);
+    static std::vector<DataTransform> const& get_transforms() 
+                                                    { return transforms; }
+    static void read_transforms(bool reset=false);
     static void execute_tranform(std::string code);
 protected:
-    static std::vector<DataTransExample> examples;
+    static std::vector<DataTransform> transforms;
     wxGrid *grid;
     ndnd_type ndnd;
     wxStaticText *filename_label, *title_label, *description;
-    wxListCtrl *example_list; 
+    wxListCtrl *trans_list; 
     wxTextCtrl *code;
     wxButton *revert_btn, *save_as_btn, *apply_btn, *rezoom_btn, *help_btn,
              *add_btn, *remove_btn, *up_btn, *down_btn, 
              *save_btn, *reset_btn;
 
-    void initialize_examples(bool reset=false);
+    void initialize_transforms(bool reset=false);
     int get_selected_item();
-    void insert_example_list_item(int n);
-    void select_example(int item);
+    void insert_trans_list_item(int n);
+    void select_transform(int item);
     void refresh_grid();
     DECLARE_EVENT_TABLE()
 };
 
 
-class ExampleEditorDlg : public wxDialog
+class TransEditorDlg : public wxDialog
 {
 public:
-    ExampleEditorDlg(wxWindow* parent, wxWindowID id, DataTransExample& ex_,
-                     const std::vector<DataTransExample>& examples_, int pos_);
+    TransEditorDlg(wxWindow* parent, wxWindowID id, DataTransform& ex_,
+                   const std::vector<DataTransform>& transforms_, int pos_);
     void OnOK(wxCommandEvent &event);
 protected:
-    DataTransExample& ex;
-    const std::vector<DataTransExample>& examples;
+    DataTransform& ex;
+    const std::vector<DataTransform>& transforms;
     int pos;
     wxTextCtrl *name_tc, *description_tc, *code_tc;
     wxComboBox *category_c;
