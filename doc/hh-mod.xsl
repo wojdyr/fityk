@@ -16,5 +16,9 @@
 	                 select="'http://fityk.sourceforge.net'" />
   <xsl:param name="htmlhelp.button.jump1.title" select="'Fityk HomePage'" />
 
+  <xsl:template match="phrase[@role = 'math']">
+    <xsl:call-template name="inline.italicseq"/>
+  </xsl:template>  
+
 </xsl:stylesheet>
 

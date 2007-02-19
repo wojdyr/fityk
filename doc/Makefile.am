@@ -2,7 +2,7 @@
 
 dist_pkgdata_DATA = fityk_tips.txt fitykhelp.htb 
 dist_man_MANS = fityk.1
-EXTRA_DIST = fitykhelp.xml hh-mod.xsl fitykhelp.html html.css
+EXTRA_DIST = fitykhelp.xml hh-mod.xsl fitykhelp.html html.css fo.xsl
 SUBDIRS = fitykhelp_img
 
 all: fitykhelp.htb fitykhelp.html
@@ -22,7 +22,11 @@ fitykhelp.html: fitykhelp.xml
 
 # Apache FOP in needed, setting JAVA_HOME may be necessary
 #JAVA_HOME=/usr/lib/j2re1.5-sun
+# sed is used to make the images smaller in pdf (recommended :))
+# pdftk is used to get rid of 2nd and 3rd page (optional :))
 fitykhelp.pdf: fitykhelp.xml fo.xsl
-	xmlto -m fo.xsl fo $(srcdir)/fitykhelp.xml
-	fop fitykhelp.fo fitykhelp.pdf
+	sed -e 's/\.png"\/>/\.png" scale="66.66"\/>/g' fitykhelp.xml >fitykhelp_.xml
+	xmlto -m $(srcdir)/fo.xsl fo $(srcdir)/fitykhelp_.xml
+	fop fitykhelp_.fo fitykhelp_.pdf
+	pdftk fitykhelp_.pdf cat 1 4-end output fitykhelp.pdf
 

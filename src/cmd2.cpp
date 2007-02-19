@@ -164,6 +164,9 @@ void do_print_info(char const* a, char const* b)
     vector<Function*> const &functions = AL->get_functions(); 
     if (s.empty())
         m = "info about what?";
+    else if (s == "version") {
+        m = VERSION;
+    }
     else if (s == "variables") {
         if (variables.empty())
             m = "No variables found.";
@@ -490,7 +493,8 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
     
     info_arg
         = (str_p("commands") >> IntRangeG) [&do_list_commands] 
-        |  ( str_p("variables") 
+        |  ( str_p("version") 
+           | str_p("variables") 
            | VariableLhsG 
            | str_p("types") 
            | str_p("functions") 

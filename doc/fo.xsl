@@ -4,7 +4,7 @@
 	<xsl:param name="paper.type" select="'A4'"/> 
 
 	<xsl:attribute-set name="monospace.verbatim.properties"
-	                 use-attribute-sets="verbatim.properties">
+			 use-attribute-sets="verbatim.properties">
 	  <xsl:attribute name="font-family">
 	    <xsl:value-of select="$monospace.font.family"/>
 	  </xsl:attribute>
@@ -18,7 +18,12 @@
 	</xsl:attribute-set>
 
 	<xsl:param name="admon.textlabel" select="0"></xsl:param>
-	<xsl:param name="admon.graphics" select="0"></xsl:param>
+	<xsl:param name="admon.graphics" select="1"></xsl:param>
+	<xsl:param name="admon.graphics.path">fitykhelp_img/</xsl:param>
+
+	<xsl:template match="*" mode="admon.graphic.width">
+	  <xsl:text>12pt</xsl:text>
+	</xsl:template>
 
 	<xsl:attribute-set name="component.title.properties">
 	  <xsl:attribute name="font-size">
@@ -50,4 +55,17 @@
 
 	<xsl:param name="headers.on.blank.pages" select="0"></xsl:param>
 
+
+	<xsl:param name="generate.toc">
+	book	toc, title
+	</xsl:param>
+
+        <xsl:template match="phrase[@role = 'math']">
+          <xsl:call-template name="inline.italicseq"/>
+        </xsl:template>  
+	<xsl:param name="body.start.indent">2pc</xsl:param>
+<!-- without blank lines below (yes, blank lines), FOP may show errors -->
+
+
 </xsl:stylesheet>
+

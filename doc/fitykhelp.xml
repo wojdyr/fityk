@@ -16,13 +16,6 @@
 
 <book lang="en">
  <title>Fityk 0.7.8 - User's Manual</title> 
- <bookinfo> 
-  <date>2007-01-27</date>
-  <edition>$Revision:$, last modification: $Date:$</edition>
-  <author> 
-   <firstname>Marcin</firstname> <surname>Wojdyr</surname>
-  </author> 
- </bookinfo>
 
  <chapter> 
   <title>Introduction</title> 
@@ -61,7 +54,7 @@
     You can download the latest version of <application>fityk</application> from
     <ulink url="http://www.unipress.waw.pl/fityk">http://www.unipress.waw.pl/fityk</ulink>.
     or
-    <ulink url="http://fityk.sf.net/">http://fityk.sf.net</ulink>.
+    <ulink url="http://fityk.sf.net">http://fityk.sf.net</ulink>.
     To contact the author, visit the same page. 
    </para> 
   </section>
@@ -210,9 +203,13 @@
     When fitting, 
     the weighted sum of squared residuals (see <xref linkend="nonlinear"/>)
     is being minimized. 
-    Note that the default <link linkend="weights">weights of points</link> 
-    are not equal. 
    </para>
+   <note>
+    <para>
+     The default <link linkend="weights">weights of points</link> 
+     are not equal. 
+    </para>
+   </note>
    <para>
     To see the peak parameters, type: <userinput> info+ %p</userinput>
     or (in the GUI) move the cursor to the top of the peak 
@@ -544,10 +541,13 @@
      which dataset transformation applies to. See
      <xref linkend="multidata"/> for details.
     </para>
-    <para>
-     Note that points are kept sorted according to their x coordinate, so changing x coordinate
-     of points will also change the order and indices of points.
-    </para>
+    <note>
+     <para>
+      Points are kept sorted according to their x coordinate, 
+      so changing x coordinate of points 
+      will also change the order and indices of points.
+     </para>
+    </note>
     <para>
      Expressions can contain 
      real numbers in normal or scientific format (e.g. 1.23e5),
@@ -608,8 +608,12 @@
      between two points (or the value of first/last point if the given x is outside 
       the current data range).
     </para>
+    <note>
+     <para>
+      All operations are performed on real numbers.
+     </para>
+    </note>
     <para>
-     Important note: all operations are performed on real numbers.
      Two numbers that differ less than 
      <link linkend="epsilon">
      <parameter class="option">epsilon</parameter></link>
@@ -848,7 +852,7 @@
      decreases it. 
     </para>
     <para>
-     Command
+     The syntax
      <cmdsynopsis>
       <arg choice="plain">@<replaceable>n</replaceable></arg>
       <command>=</command> 
@@ -856,8 +860,14 @@
       <arg choice="plain">@<replaceable>m</replaceable></arg> 
       <arg> + @<replaceable>k</replaceable><arg> + ...</arg></arg> 
      </cmdsynopsis>
-     where @<replaceable>n</replaceable> can be replaced with 
-     <userinput>@+</userinput> can be used to duplicate 
+     <cmdsynopsis>
+      <arg choice="plain">@+</arg>
+      <command>=</command> 
+      <arg><replaceable>dataset_transformation</replaceable></arg>  
+      <arg choice="plain">@<replaceable>m</replaceable></arg> 
+      <arg> + @<replaceable>k</replaceable><arg> + ...</arg></arg> 
+     </cmdsynopsis>
+     can be used to duplicate 
      a dataset (<command>@+ = @<replaceable>n</replaceable></command>),
      to create new dataset as a sum of two or more existing sets 
      (<command>@+ = @<replaceable>n</replaceable> +
@@ -939,7 +949,8 @@
        </textobject>
       </inlinemediaobject>  
      </inlineequation>, 
-     where f<subscript>i</subscript> is a function of x, and
+     where <phrase role="math">f<subscript>i</subscript></phrase>
+     is a function of <phrase role="math">x</phrase>, and
      depends on a vector of parameters a. This vector contains all
      fitted parameters. 
      Because we often have the situation, that the error 
@@ -1077,13 +1088,14 @@
      <command>delete <replaceable>$variable</replaceable></command>.
     </para>
     <para id="domain">
-     Some fitting algorithms need to randomize the parameters of the fitted function
-     (i.e. simple variables). For this purpose, 
+     Some fitting algorithms need to randomize the parameters of the fitted 
+     function (i.e. simple variables). For this purpose, 
      the simple variable can have a specified <firstterm>domain</firstterm>.
      Note that the domain does not imply any constraints on the value
      the variable can have -- it is only a hint for fitting methods such as the
-     Nelder-Mead simplex or Genetic Algorithms. Further information on how the domain is used in
-     these methods is contained in the appropriate fitting description. The syntax is as follows:
+     Nelder-Mead simplex or Genetic Algorithms. Further information on how 
+     the domain is used in these methods is contained in the appropriate 
+     fitting description. The syntax is as follows:
      <screen>
       $a = ~12.3 [11 +- 5] # center and width of the domain is given
 
@@ -2078,6 +2090,7 @@
       <member>[@<replaceable>n</replaceable>.]Z</member>
       <member>[@<replaceable>n</replaceable>.]dF(<replaceable>data-expression</replaceable>)</member>
       <member>der <replaceable>mathematic-function</replaceable></member>
+      <member>version</member>
      </simplelist>
     </para>
     <para>
@@ -2586,10 +2599,6 @@
    <application>Fityk</application> is free software; you can redistribute
    and modify it under terms of GNU General Public License,
    version 2. There is no warranty. 
-   <acronym>GPL</acronym> is one of the most popular
-   licenses, and it is worth reading if you have not done so
-   before. The program is copyrighted by the author, and the license
-   itself by the <acronym>FSF</acronym>. 
    Text of the license is distributed with the program 
    in the file <filename>COPYING</filename>.
   </para>
@@ -2598,17 +2607,22 @@
  <appendix>
   <title>About this manual </title>
   <para>
-   This manual is written in DocBook (XML)
-   and converted to other formats. All changes, improvements,
-   fixes of mistakes, etc. are welcome. 
-   The <filename>fitykhelp.xml</filename> file is
-   distributed with the program sources, and can be modified with any
-   text editor. 
+   This manual is written in DocBook (XML) and converted to other formats. 
+   The <filename>fitykhelp.xml</filename> file is distributed 
+   with the program sources, and can be modified with any text editor. 
+   All changes, improvements, corrections, etc. are welcome 
+   (send it to Marcin Wojdyr, see the program's webpage for contact details).
   </para>
   <para>
    The author would like to thank people who have helped to improve this
    manual (in chronological order): Stan Gierlotka, Jaap Folmer, 
    Michael Richardson.
+  </para>
+  <para>
+   This version of the manual is produced from 
+   <filename>fitykhelp.xml</filename>
+   $Revision$, 
+   last modification: $Date$.
   </para>
  </appendix> 
 

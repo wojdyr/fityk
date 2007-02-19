@@ -1,5 +1,17 @@
+$Id$
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
+
+// * auto-scaling should not include x/y=0, unless it's
+
+// * plot - a way to zoom to show all datasets (plot [] in @*)
+
+// * syntax changed for dataset sum, was: @+ < @0 + @1; is: @+ = @0 + @1;
+//   added operations (sum_same_x and avg_same_x), eg. @+ = sum_same_x @0 + @1
+
+// * implement "info version"
+
+// * ExpDecay
 
 * BUG, GUI, MS Windows only: commands "@+ <" and "@0 <" executed from script
   give error: "Couldn't retrieve information about list control item 1."
@@ -7,13 +19,9 @@
 * // BUG: minor logging issue (c+ >log2.fit) [done?]
   //        problem with logging on MSW (solved?)
 
-// * auto-scaling should not include x/y=0, unless it's
-
-// * plot - a way to zoom to show all datasets (plot [] in @*)
-
-* GUI [BUG] aux. plot - when program is called with script as an argument
-   aux. plot looks strange at the start of the program until it is replotted
-   when it's called with data files as arguments, aux. plot is initially empty
+// * GUI [BUG] aux. plot - when program is called with script as an argument
+//   aux. plot looks strange at the start of the program until it is replotted
+//   when it's called with data files as arguments, aux. plot is initially empty
 
 * GUI: keyboard support:
     change focus from pane to input field when proper keys are pressed.
@@ -21,31 +29,31 @@
     option (in GUI menu): use numeric pad keys (WXK_NUMPAD_*) as shortcuts 
     for changing function parameters.
 
-// * syntax changed for dataset sum, was: @+ < @0 + @1; is: @+ = @0 + @1;
-//   added operations (sum_same_x and avg_same_x), eg. @+ = sum_same_x @0 + @1
-
-* "Merge points" in data menu
+* GUI: "Merge points" in data menu
 
 * check if errors (info errors) are the same like in other popular programs
   (there are some doubts about it)
 
-// * CSS for html manual
-
-// * ExpDecay
-
 * GUI: range-mode: give an explaination when user tries to activate points
   when all are active
 
-*  check this: "Executing something like 'Y=y/darea(y)' from the command 
+* GUI: check this: "Executing something like 'Y=y/darea(y)' from the command 
    line or from the script does not refresh the plot window."
 
------------------- release 0.7.8
+* bug: cfityk -c "info 2+3; quit"    -> syntax error
+
+* cfityk -q -> not enter into interactive mode
+  if argument starts with "=->", interpret it as command
+    use case: cfityk -q *.rdf "=-> i min(x if y > 0) in @*" 
 
 * clean up verbosity levels of messages. There should be 6 kind of messages:
   debug, vinfo (more verbose info), info, warning, 
   rinfo (explicitely requested info), error
+    or: dinfo vinfo sinfo winfo rinfo einfo?
   and levels of verbosity: debug, verbose, normal, terse (warnings), 
     quiet (rinfo+errors)
+
+------------------ release 0.7.8
 
 * build engine (everything but GUI/CLI interface) as a dynamic library
   with more or less documented API (in fityk.h).
@@ -53,15 +61,18 @@
       int dataset_count();
       string info(string const& s);
       Command::Status execute(string const& s);
+      load_data(int slot, 
+                vec double x, vec double y, vec double sigma, string title);
+     callbacks:
       typedef void message_handler_func(OutputStyle style, string const& s);
       void message_handler(message_handler_func);
   GUI and CLI interfaces will use more than this API.
 
+* python interface to the library
+
 ------------------ release 0.8.0
 
-* python scripts  -- built-in Python interpreter which allows to extend 
-  Fityk using user-written scripts, optional modules, etc. 
-  [IMPORTANT]
+* embedding python scripts 
 
 * rewrite crystallographic part in python
   [IMPORTANT]

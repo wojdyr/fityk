@@ -19,30 +19,7 @@ class MainPlot;
 class AuxPlot;
 class FPlot;
 class BgManager;
-
-
-class InputField : public wxTextCtrl
-{
-public:
-    InputField(wxWindow *parent, wxWindowID id,
-               const wxString& value = wxEmptyString,
-               const wxPoint& pos = wxDefaultPosition,
-               const wxSize& size = wxDefaultSize,
-               long style = 0)
-    : wxTextCtrl(parent, id, value, pos, size, style), 
-      history(1), h_pos(history.begin()), spin_button(0) {} 
-    void set_spin_button(wxSpinButton *sb) { spin_button = sb; }
-    void history_up();
-    void history_down();
-protected:
-    void OnKeyDown (wxKeyEvent& event);
-
-    std::list<wxString> history;
-    std::list<wxString>::iterator h_pos;
-    wxSpinButton *spin_button;
-
-    DECLARE_EVENT_TABLE()
-};
+class InputLine;
 
 
 class OutputWin : public wxTextCtrl
@@ -78,18 +55,13 @@ public:
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
     void focus_input(int key);
-    void focus_output() { output_win->SetFocus(); }
     void show_fancy_dashes() { output_win->fancy_dashes(); }
     void show_popup_menu(wxMouseEvent& ev) { output_win->OnRightDown(ev); }
     void edit_in_input(std::string const& s);
-    void OnSpinButtonUp(wxSpinEvent &) { input_field->history_up(); }
-    void OnSpinButtonDown(wxSpinEvent &) { input_field->history_down(); }
+    void OnInputLine(wxString const& s);
 private:
     OutputWin *output_win;
-    InputField *input_field;
-    wxSpinButton *spin_button;
-
-    DECLARE_EVENT_TABLE()
+    InputLine *input_field;
 };
 
 
@@ -116,6 +88,7 @@ public:
     void show_aux(int n, bool show); 
     bool aux_visible(int n) const;
     void draw_crosshair(int X, int Y);
+    void set_shared_scale();
 
     bool crosshair_cursor;
 private:

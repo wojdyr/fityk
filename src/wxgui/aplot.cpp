@@ -187,7 +187,7 @@ void AuxPlot::draw_zoom_text(wxDC& dc, bool set_pen)
         string s = "x" + S(y_zoom);  
         wxCoord w, h;
         dc.GetTextExtent (s2wx(s), &w, &h); 
-        dc.DrawText (s2wx(s), dc.MaxX() - w - 2, 2);
+        dc.DrawText (s2wx(s), GetClientSize().GetWidth() - w - 2, 2);
     }
 }
 
@@ -225,6 +225,7 @@ bool AuxPlot::is_zoomable()
 
 void AuxPlot::set_scale()
 {
+    frame->set_shared_scale();
     int h = GetClientSize().GetHeight();
     if (kind == apk_cum_chi2) {
         yUserScale = -1. * y_zoom_base * y_zoom;

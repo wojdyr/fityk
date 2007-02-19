@@ -96,6 +96,7 @@ fi re
 fit history clear 
 
 
+info version
 info variables
 i $a, $_11
 inf types

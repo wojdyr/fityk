@@ -21,6 +21,7 @@ INCLUDES = -DHELP_DIR=\"$(pkgdatadir)\"
 endif  #OS_WIN32
 
 fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
+		inputline.cpp inputline.h callback.h \
 		listptxt.cpp listptxt.h dload.cpp dload.h \
 		statbar.cpp statbar.h pane.cpp pane.h sidebar.cpp sidebar.h \
 		dataedit.cpp dataedit.h defmgr.cpp defmgr.h \
@@ -37,3 +38,5 @@ fityk_LDADD = ../libfityk.a @WX_LIBS@ $(ms_win_res)
 bin_PROGRAMS = @FITYK@ 
 EXTRA_PROGRAMS = fityk 
 
+inputline: sample_inputline.cpp inputline.cpp inputline.h callback.h
+	`wx-config --cxx` `wx-config --cxxflags` -g -Wall -W -O0 -o $@ $< inputline.cpp `wx-config --libs`

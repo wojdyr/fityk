@@ -19,6 +19,7 @@
 #include "plot.h" 
 #include "mplot.h" 
 #include "aplot.h" 
+#include "inputline.h" 
 #include "../common.h"
 #include "../logic.h" 
 #include "../ui.h" 
@@ -33,8 +34,7 @@ enum {
     ID_OUTPUT_C_WR             ,
     ID_OUTPUT_C                ,
     ID_OUTPUT_P_FONT           ,
-    ID_OUTPUT_P_CLEAR          ,
-    ID_SPINBUTTON              
+    ID_OUTPUT_P_CLEAR          
 };
 
 
@@ -209,37 +209,25 @@ void PlotPane::do_draw_crosshair(int X, int Y)
             aux_plot[i]->draw_crosshair(X, -1);
 }
 
+void PlotPane::set_shared_scale()
+{
+    plot->set_scale();
+}
 
 //===============================================================
 //                            IOPane
 //===============================================================
 
-BEGIN_EVENT_TABLE(IOPane, wxPanel)
-    EVT_SPIN_UP(ID_SPINBUTTON, IOPane::OnSpinButtonUp)
-    EVT_SPIN_DOWN(ID_SPINBUTTON, IOPane::OnSpinButtonDown)
-END_EVENT_TABLE()
-
 IOPane::IOPane(wxWindow *parent, wxWindowID id)
-    : wxPanel(parent, id), output_win(0), input_field(0)
+    : wxPanel(parent, id)
 {
     wxBoxSizer *io_sizer = new wxBoxSizer (wxVERTICAL);
 
+    input_field = new InputLine(this, -1, 
+                make_callback<wxString const&>().V1(this, &IOPane::OnInputLine));
     output_win = new OutputWin (this, -1);
     io_sizer->Add (output_win, 1, wxEXPAND);
-
-    input_field = new InputField (this, -1, wxT(""),
-                            wxDefaultPosition, wxDefaultSize, 
-                            wxWANTS_CHARS|wxTE_PROCESS_ENTER|wxTE_PROCESS_TAB);
-    spin_button = new wxSpinButton(this, ID_SPINBUTTON, 
-                                   wxDefaultPosition, wxDefaultSize,
-                                   wxSP_VERTICAL|wxSP_ARROW_KEYS|wxNO_BORDER);
-    spin_button->SetRange(0, 0); 
-    spin_button->SetValue(0); 
-    input_field->set_spin_button(spin_button); 
-    wxBoxSizer *io_h_sizer = new wxBoxSizer(wxHORIZONTAL);
-    io_h_sizer->Add(input_field, 1);
-    io_h_sizer->Add(spin_button, 0);
-    io_sizer->Add (io_h_sizer, 0, wxEXPAND);
+    io_sizer->Add (input_field, 0, wxEXPAND);
 
     SetSizer(io_sizer);
     io_sizer->SetSizeHints(this);
@@ -259,14 +247,20 @@ void IOPane::focus_input(int key)
 { 
     input_field->SetFocus(); 
     if (key != WXK_TAB && key > 0 && key < 256) {
-        input_field->WriteText(wxString::Format(wxT("%c"), key));
+        //TODO input_field->WriteText(wxString::Format(wxT("%c"), key));
     }
 }
 
 void IOPane::edit_in_input(string const& s) 
 {
-    input_field->WriteText(s2wx(s));
+    input_field->SetValue(s2wx(s));
     input_field->SetFocus(); 
+}
+
+void IOPane::OnInputLine(wxString const& s)
+{
+    frame->set_status_text(wx2s(s));
+    exec_command(wx2s(s)); //displaying and executing command
 }
 
 //===============================================================
@@ -408,91 +402,4 @@ void OutputWin::OnKeyDown (wxKeyEvent& event)
     else
         event.Skip();
 }
-
-//===============================================================
-//                            input field
-//===============================================================
-
-BEGIN_EVENT_TABLE(InputField, wxTextCtrl)
-    EVT_KEY_DOWN (InputField::OnKeyDown)
-END_EVENT_TABLE()
-
-void InputField::OnKeyDown (wxKeyEvent& event)
-{
-    switch (event.m_keyCode) {
-        case WXK_RETURN:
-        case WXK_NUMPAD_ENTER:
-            {
-            wxString s = GetValue().Trim();
-            if (s.IsEmpty())
-                return;
-            frame->set_status_text(wx2s(s));
-            history.insert(++history.begin(), s);
-            h_pos = history.begin();
-            Clear();
-            exec_command(wx2s(s)); //displaying and executing command
-            }
-            if (spin_button) {
-                spin_button->SetRange(0, history.size() - 1);
-                spin_button->SetValue(0);
-            }
-            SetFocus();
-            break;
-        case WXK_TAB:
-            {
-            IOPane *parent = static_cast<IOPane*>(GetParent());//to not use RTTI
-            parent->focus_output();
-            }
-            break;
-        case WXK_UP:
-        case WXK_NUMPAD_UP:
-            history_up();
-            if (spin_button)
-                spin_button->SetValue(spin_button->GetValue()+1);
-            SetFocus();
-            break;
-        case WXK_DOWN:
-        case WXK_NUMPAD_DOWN:
-            history_down();
-            if (spin_button)
-                spin_button->SetValue(spin_button->GetValue()-1);
-            SetFocus();
-            break;
-        case WXK_PAGEUP:
-        case WXK_NUMPAD_PAGEUP:
-            h_pos == --history.end();
-            SetValue(*h_pos);
-            if (spin_button)
-                spin_button->SetValue(spin_button->GetMax());
-            SetFocus();
-            break;
-        case WXK_PAGEDOWN:
-        case WXK_NUMPAD_PAGEDOWN:
-            h_pos == history.begin();
-            SetValue(*h_pos);
-            if (spin_button)
-                spin_button->SetValue(spin_button->GetMin());
-            SetFocus();
-            break;
-        default:
-            event.Skip();
-    }
-}
-
-void InputField::history_up()
-{
-    if (h_pos == --history.end())
-        return;
-    ++h_pos;
-    SetValue(*h_pos);
-}
-
-void InputField::history_down()
-{
-    if (h_pos == history.begin())
-        return;
-    --h_pos;
-    SetValue(*h_pos);
-}
-
 

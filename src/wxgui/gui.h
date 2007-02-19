@@ -171,6 +171,7 @@ public:
     void scroll_view_horizontally(fp step);
     void refresh_plots(bool update=false, bool only_main=false);
     void draw_crosshair(int X, int Y);
+    void set_shared_scale();
     void focus_input(int key=0);
     void edit_in_input(std::string const& s);
     void set_status_text(std::string const& text, StatusBarField field=sbf_text)

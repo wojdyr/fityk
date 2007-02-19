@@ -46,8 +46,8 @@ div.note .title {
 }
 
 div.note { 
-	padding-left: 55px; 
-	background:url(fitykhelp_img/bulb.png) .8em .8em no-repeat;
+	padding-left: 46px; 
+	background:url(fitykhelp_img/note.png) .8em .8em no-repeat;
 }
 
 em.parameter code {
