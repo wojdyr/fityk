@@ -133,8 +133,9 @@ bool ScriptDebugDlg::do_open_file(wxString const& path_)
     if (wxFileExists(path_)) 
         r = txt->LoadFile(path_);
     else
-        txt->ChangeValue(wxT(""));
-    txt->SetModified(r ? false : true); //new file -> modified
+        txt->Clear();
+    if (!r)
+        txt->MarkDirty(); //new file -> modified
     path = path_;
     set_title();
     make_list_from_txt();
