@@ -479,20 +479,19 @@ void SideBar::update_lists(bool nondata_changed)
     
     //-- enable/disable buttons
     bool not_the_last = get_focused_data()+1 < AL->get_ds_count();
-    data_page->FindWindow(ID_DP_CPF)->Enable(not_the_last);
+    wxWindow::FindWindowById(ID_DP_CPF, data_page)->Enable(not_the_last);
     bool has_any_funcs = (f->list->GetItemCount() > 0);
-    func_page->FindWindow(ID_FP_DEL)->Enable(has_any_funcs);
-    func_page->FindWindow(ID_FP_EDIT)->Enable(has_any_funcs);
-    func_page->FindWindow(ID_FP_CHTYPE)->Enable(has_any_funcs);
-    func_page->FindWindow(ID_FP_COL)->Enable(has_any_funcs);
+    wxWindow::FindWindowById(ID_FP_DEL, func_page)->Enable(has_any_funcs);
+    wxWindow::FindWindowById(ID_FP_EDIT, func_page)->Enable(has_any_funcs);
+    wxWindow::FindWindowById(ID_FP_CHTYPE, func_page)->Enable(has_any_funcs);
+    wxWindow::FindWindowById(ID_FP_COL, func_page)->Enable(has_any_funcs);
     bool has_any_vars = (v->list->GetItemCount() > 0);
-    var_page->FindWindow(ID_VP_DEL)->Enable(has_any_vars);
-    var_page->FindWindow(ID_VP_EDIT)->Enable(has_any_vars);
+    wxWindow::FindWindowById(ID_VP_DEL, var_page)->Enable(has_any_vars);
+    wxWindow::FindWindowById(ID_VP_EDIT, var_page)->Enable(has_any_vars);
 
     int n = get_focused_data();
     dpline_cb->SetValue(frame->get_main_plot()->get_data_with_line(n));
     dpsize_sc->SetValue(frame->get_main_plot()->get_data_point_size(n));
-
 
     update_data_inf();
     update_func_inf();
