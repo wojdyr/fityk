@@ -96,7 +96,7 @@ fp GAfit::init()
 void GAfit::autoiter()
 {
     wssr_before = compute_wssr(a_orig, datsums);
-    info ("WSSR before starting GA: " + S(wssr_before));
+    msg ("WSSR before starting GA: " + S(wssr_before));
     assert (pop && opop); 
     if (elitism >= popsize) {
         warn ("hmm, now elitism >= popsize, setting elitism = 1");
@@ -475,7 +475,7 @@ bool GAfit::termination_criteria_and_print_info (int iter)
         generations_sum += i->generation;
     }
     fp std_dev = sq_sum > 0 ? sqrt (sq_sum / pop->size()) : 0;
-    info ("Population #" + S(iter_nr) + ": best " + S(min) 
+    msg ("Population #" + S(iter_nr) + ": best " + S(min) 
                 + ", avg " + S(avg) + ", worst " + S(tmp_max) 
                 + ", std dev. " + S(std_dev));
     if (!log_file.empty()) {
@@ -499,16 +499,16 @@ bool GAfit::termination_criteria_and_print_info (int iter)
     if (common_termination_criteria(iter)) 
         stop = true;
     if (std_dev < std_dev_stop * avg) {
-        info ("Standard deviation of results is small enough to stop");
+        msg ("Standard deviation of results is small enough to stop");
         stop = true;
     }
     if (iter_with_no_progresss_stop > 0
           && no_progress_iters >= iter_with_no_progresss_stop) {
-        info ("No progress in " + S(no_progress_iters) + " iterations. Stop");
+        msg ("No progress in " + S(no_progress_iters) + " iterations. Stop");
         stop = true;
     }
     if (min <= wssr_stop) {
-        info ("WSSR is small enough to stop");
+        msg ("WSSR is small enough to stop");
         stop = true;
     }
     return stop;

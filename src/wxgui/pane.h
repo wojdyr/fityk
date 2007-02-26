@@ -33,10 +33,10 @@ public:
     void OnPopupColor  (wxCommandEvent& event);       
     void OnPopupFont   (wxCommandEvent& event);  
     void OnPopupClear  (wxCommandEvent& event); 
-    void OnKeyDown     (wxKeyEvent& event);
+    void OnKeyDown (wxKeyEvent& event);
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
-    void fancy_dashes();
+    void show_fancy_dashes();
 
 private:
     wxColour text_color[4]; 
@@ -50,16 +50,8 @@ class IOPane : public wxPanel
 {
 public:
     IOPane(wxWindow *parent, wxWindowID id=-1);
-    void append_text (OutputStyle style, const wxString& str) 
-                                      { output_win->append_text(style, str); }
-    void save_settings(wxConfigBase *cf) const;
-    void read_settings(wxConfigBase *cf);
-    void focus_input(int key);
-    void show_fancy_dashes() { output_win->fancy_dashes(); }
-    void show_popup_menu(wxMouseEvent& ev) { output_win->OnRightDown(ev); }
     void edit_in_input(std::string const& s);
     void OnInputLine(wxString const& s);
-private:
     OutputWin *output_win;
     InputLine *input_field;
 };

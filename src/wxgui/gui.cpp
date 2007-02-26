@@ -49,6 +49,7 @@
 #include "sdebug.h"
 #include "setdlg.h"
 #include "statbar.h"
+#include "inputline.h"
 #include "../common.h"
 #include "../logic.h"
 #include "../fit.h"
@@ -103,8 +104,8 @@ enum {
     ID_D_FDT                   ,
     ID_D_FDT_END = ID_D_FDT+50 ,
     ID_D_ALLDS                 ,
+    ID_D_MERGE                 ,
     ID_D_EXPORT                ,
-    ID_S_EDITOR                ,
     ID_DEFMGR                  ,
     ID_S_GUESS                 ,
     ID_S_PFINFO                ,
@@ -264,8 +265,8 @@ bool FApp::OnInit(void)
     frame->Show(true);
 
     // it does not work earlier, problems with OutputWin colors (wxGTK gtk1.2)
-    frame->io_pane->read_settings(cf);
-    frame->io_pane->show_fancy_dashes();
+    frame->io_pane->output_win->read_settings(cf);
+    frame->io_pane->output_win->show_fancy_dashes();
     // sash inside wxNoteBook can have wrong position (eg. wxGTK 2.7.1)
     frame->sidebar->read_settings(cf);
     delete cf;
@@ -360,9 +361,9 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_UPDATE_UI (ID_D_FDT,    FFrame::OnFastDTUpdate)
     EVT_MENU_RANGE (ID_D_FDT+1, ID_D_FDT_END, FFrame::OnFastDT)
     EVT_UPDATE_UI (ID_D_ALLDS,  FFrame::OnAllDatasetsUpdate) 
+    EVT_MENU (ID_D_MERGE,       FFrame::OnDMerge)
     EVT_MENU (ID_D_EXPORT,      FFrame::OnDExport) 
 
-    EVT_MENU (ID_S_EDITOR,      FFrame::OnSEditor)    
     EVT_MENU (ID_DEFMGR,        FFrame::OnDefinitionMgr)   
     EVT_MENU (ID_S_GUESS,       FFrame::OnSGuess)   
     EVT_MENU (ID_S_PFINFO,      FFrame::OnSPFInfo)   
@@ -495,7 +496,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     string help_path = get_full_path_of_help_file(help_file); 
     string help_path_no_exten = help_path.substr(0, help_path.size() - 4);
     help.Initialize(s2wx(help_path_no_exten));
-    focus_input();
+    io_pane->SetFocus();
 }
 
 FFrame::~FFrame() 
@@ -578,7 +579,7 @@ void FFrame::read_all_settings(wxConfigBase *cf)
 {
     read_settings(cf);
     plot_pane->read_settings(cf);
-    io_pane->read_settings(cf);
+    io_pane->output_win->read_settings(cf);
     status_bar->read_settings(cf);
     sidebar->read_settings(cf);
     sidebar->update_lists();
@@ -610,7 +611,7 @@ void FFrame::save_all_settings(wxConfigBase *cf) const
     cf->Write(wxT("/FitykVersion"), pchar2wx(VERSION));
     save_settings(cf);
     plot_pane->save_settings(cf);
-    io_pane->save_settings(cf);
+    io_pane->output_win->save_settings(cf);
     status_bar->save_settings(cf);
     sidebar->save_settings(cf);
 }
@@ -659,6 +660,9 @@ void FFrame::set_menubar()
                                  wxT("Quick data transformations"));
     data_menu->AppendCheckItem (ID_D_ALLDS, wxT("Apply to &All Datasets"), 
                             wxT("Apply data transformations to all datasets."));
+    data_menu->AppendSeparator();
+    data_menu->Append (ID_D_MERGE, wxT("&Merge Points..."), 
+                                        wxT("Reduce the number of points"));
     data_menu->AppendSeparator();
     data_menu->Append (ID_D_EXPORT, wxT("&Export\tCtrl-S"), 
                                                   wxT("Save data to file"));
@@ -1035,15 +1039,19 @@ void FFrame::OnAllDatasetsUpdate (wxUpdateUIEvent& event)
     event.Enable(AL->get_ds_count() > 1);
 }
 
+void FFrame::OnDMerge (wxCommandEvent&)
+{
+    MergePointsDlg *dlg = new MergePointsDlg(this);
+    if (dlg->ShowModal() == wxID_OK)
+        exec_command(dlg->get_command());
+    dlg->Destroy();
+}
+
 void FFrame::OnDExport (wxCommandEvent&)
 {
     export_data_dlg(this);
 }
 
-void FFrame::OnSEditor (wxCommandEvent&)
-{
-}
- 
 void FFrame::OnDefinitionMgr(wxCommandEvent&)
 {
     DefinitionMgrDlg* dlg = new DefinitionMgrDlg(this);
@@ -1468,7 +1476,7 @@ void FFrame::OnShowPopupMenu(wxCommandEvent& ev)
     if (ev.GetId() == ID_G_C_MAIN)
         plot_pane->get_plot()->show_popup_menu(me);
     else if (ev.GetId() == ID_G_C_OUTPUT)
-        io_pane->show_popup_menu(me);
+        io_pane->output_win->OnRightDown(me);
     else
         plot_pane->get_aux_plot(ev.GetId() - ID_G_C_A1)->OnRightDown(me);
 }
@@ -1655,7 +1663,7 @@ void FFrame::set_status_coord_info(fp x, fp y, bool aux)
 
 void FFrame::output_text(OutputStyle style, const string& str)
 {
-    io_pane->append_text(style, s2wx(str));
+    io_pane->output_win->append_text(style, s2wx(str));
 }
 
 void FFrame::refresh_plots(bool now, bool only_main)
@@ -1673,9 +1681,12 @@ void FFrame::set_shared_scale()
     plot_pane->set_shared_scale();
 }
 
-void FFrame::focus_input(int key)
+void FFrame::focus_input(wxKeyEvent& event)
 {
-    io_pane->focus_input(key);
+    if (should_focus_input(event.GetKeyCode())) 
+        io_pane->input_field->RedirectKeyPress(event);
+    else
+        event.Skip();
 } 
 
 void FFrame::edit_in_input(string const& s)

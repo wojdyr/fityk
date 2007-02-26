@@ -272,11 +272,11 @@ bool Fit::post_fit (const std::vector<fp>& aa, fp chi2)
     if (better) {
         FitMethodsContainer::getInstance()->push_param_history(aa);
         AL->put_new_parameters(aa);
-        info ("Better fit found (WSSR = " + S(chi2) + ", was " + S(wssr_before)
+        msg ("Better fit found (WSSR = " + S(chi2) + ", was " + S(wssr_before)
                 + ", " + S((chi2 - wssr_before) / wssr_before * 100) + "%).");
     }
     else {
-        info ("Better fit NOT found (WSSR = " + S(chi2)
+        msg ("Better fit NOT found (WSSR = " + S(chi2)
                     + ", was " + S(wssr_before) + ").\nParameters NOT changed");
         AL->use_parameters();
         iteration_plot(a_orig); //reverting to old plot
@@ -366,16 +366,16 @@ bool Fit::common_termination_criteria(int iter)
     getUI()->refresh();
     if (user_interrupt) {
         user_interrupt = false;
-        info ("Fitting stopped manually.");
+        msg ("Fitting stopped manually.");
         stop = true;
     }
     if (max_iterations >= 0 && iter >= max_iterations) {
-        info("Maximum iteration number reached.");
+        msg("Maximum iteration number reached.");
         stop = true;
     }
     int max_evaluations = getSettings()->get_i("max-wssr-evaluations");
     if (max_evaluations > 0 && evaluations >= max_evaluations) {
-        info("Maximum evaluations number reached.");
+        msg("Maximum evaluations number reached.");
         stop = true;
     }
     return stop;
@@ -419,10 +419,10 @@ bool Fit::Jordan(vector<fp>& A, vector<fp>& b, int n)
             // If not, warn and return
             for (int j = i; j < n; j++)
                 if (A[n * i + j] || b[i]) {
-                    verbose (print_matrix(A, n, n, "A"));
-                    info (print_matrix(b, 1, n, "b"));
+                    vmsg (print_matrix(A, n, n, "A"));
+                    msg (print_matrix(b, 1, n, "b"));
                     warn ("Inside Jordan elimination: singular matrix.");
-                    verbose ("Column " + S(i) + " is zeroed.");
+                    vmsg ("Column " + S(i) + " is zeroed.");
                     return false;
                 }
             continue; // x[i]=b[i], b[i]==0

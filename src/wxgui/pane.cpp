@@ -224,31 +224,13 @@ IOPane::IOPane(wxWindow *parent, wxWindowID id)
     wxBoxSizer *io_sizer = new wxBoxSizer (wxVERTICAL);
 
     input_field = new InputLine(this, -1, 
-                make_callback<wxString const&>().V1(this, &IOPane::OnInputLine));
+              make_callback<wxString const&>().V1(this, &IOPane::OnInputLine));
     output_win = new OutputWin (this, -1);
     io_sizer->Add (output_win, 1, wxEXPAND);
     io_sizer->Add (input_field, 0, wxEXPAND);
 
     SetSizer(io_sizer);
     io_sizer->SetSizeHints(this);
-}
-
-void IOPane::save_settings(wxConfigBase *cf) const
-{
-    output_win->save_settings(cf);
-}
-
-void IOPane::read_settings(wxConfigBase *cf)
-{
-    output_win->read_settings(cf);
-}
-
-void IOPane::focus_input(int key) 
-{ 
-    input_field->SetFocus(); 
-    if (key != WXK_TAB && key > 0 && key < 256) {
-        //TODO input_field->WriteText(wxString::Format(wxT("%c"), key));
-    }
 }
 
 void IOPane::edit_in_input(string const& s) 
@@ -281,7 +263,7 @@ OutputWin::OutputWin (wxWindow *parent, wxWindowID id,
                  wxTE_MULTILINE|wxTE_RICH|wxNO_BORDER|wxTE_READONLY)
 {}
 
-void OutputWin::fancy_dashes() {
+void OutputWin::show_fancy_dashes() {
     for (int i = 0; i < 16; i++) {
         SetDefaultStyle (wxTextAttr (wxColour(i * 16, i * 16, i * 16)));
         AppendText (wxT("-"));
@@ -371,7 +353,7 @@ void OutputWin::OnPopupFont (wxCommandEvent& WXUNUSED(event))
 void OutputWin::OnPopupClear (wxCommandEvent& WXUNUSED(event))
 {
     Clear();
-    fancy_dashes();
+    show_fancy_dashes();
 }
 
     
@@ -395,11 +377,6 @@ void OutputWin::OnRightDown (wxMouseEvent& event)
 
 void OutputWin::OnKeyDown (wxKeyEvent& event)
 {
-    if (should_focus_input(event.GetKeyCode())) {
-        IOPane *parent = static_cast<IOPane*>(GetParent()); //to not use RTTI
-        parent->focus_input(event.GetKeyCode());
-    }
-    else
-        event.Skip();
+    frame->focus_input(event);
 }
 

@@ -46,6 +46,7 @@ Frame::Frame() : wxFrame(0, wxID_ANY, wxT("InputLine sample"))
     sizer->Add(m_input, 0, wxEXPAND);
     sizer->Add(m_output, 1, wxEXPAND);
     SetSizerAndFit(sizer);
+    m_input->SetFocus();
 }
 
 // link with:

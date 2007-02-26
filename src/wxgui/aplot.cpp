@@ -410,7 +410,7 @@ void AuxPlot::OnKeyDown (wxKeyEvent& event)
     }
     else if (should_focus_input(event.GetKeyCode())) {
         cancel_mouse_left_press();
-        frame->focus_input(event.GetKeyCode());
+        frame->focus_input(event);
     }
     else
         event.Skip();

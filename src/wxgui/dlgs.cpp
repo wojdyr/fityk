@@ -2,7 +2,8 @@
 // $Id$
 
 /// In this file:
-///  small dialogs:  SumHistoryDlg, FitRunDlg, DataExportDlg, AboutDlg
+///  small dialogs:  SumHistoryDlg, FitRunDlg, DataExportDlg, AboutDlg,
+///                  MergePointsDlg
 
 #include <wx/wxprec.h>
 #ifdef __BORLANDC__
@@ -17,11 +18,13 @@
 
 #include "dlgs.h"
 #include "gui.h"
+#include "listptxt.h"
 #include "../fit.h"
 #include "../ui.h"
 #include "../settings.h"
 #include "../datatrans.h" 
 #include "../logic.h"
+#include "../data.h"
 
 #include "img/up_arrow.xpm"
 #include "img/down_arrow.xpm"
@@ -440,6 +443,7 @@ DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id,
     top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL), 
                    0, wxALL|wxALIGN_CENTER, 5);
     SetSizerAndFit(top_sizer);
+
     //read settings
     wxString t = wxConfig::Get()->Read(wxT("/exportDataCols"), wxT("x, y, s"));
     for (size_t i = 0; i < cv.GetCount(); ++i) {
@@ -563,6 +567,101 @@ void AboutDlg::OnTextURL(wxTextUrlEvent& event)
          end = event.GetURLEnd();
     wxString url = txt->GetValue().Mid(start, end - start);
     wxLaunchDefaultBrowser(url);
+}
+
+
+//===============================================================
+//                         MergePointsDlg
+//===============================================================
+
+BEGIN_EVENT_TABLE (MergePointsDlg, wxDialog)
+    EVT_LIST_ITEM_SELECTED(-1, MergePointsDlg::OnDataSelChanged)
+    EVT_LIST_ITEM_DESELECTED(-1, MergePointsDlg::OnDataSelChanged)
+    EVT_CHECKBOX(-1, MergePointsDlg::OnCheckBox)
+END_EVENT_TABLE()
+
+MergePointsDlg::MergePointsDlg(wxWindow* parent, wxWindowID id)
+    : wxDialog(parent, id, wxT("Merge data points"),
+               wxDefaultPosition, wxDefaultSize, 
+               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER) 
+{
+    wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
+    d = new DataListPlusText(this, -1, -1, 
+                         vector3(pair<string,int>("No", 50),
+                                 pair<string,int>("Name", 200),
+                                 pair<string,int>("File", 0)));
+    d->split(0.6);
+    d->update_data_list(true, false);
+    update_info();
+    top_sizer->Add(d, 1, wxEXPAND|wxALL, 1);
+    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL); 
+    dx_cb = new wxCheckBox(this, -1, wxT("merge points with |x1-x2|<"));
+    dx_cb->SetValue(true);
+    hsizer->Add(dx_cb, 0, wxALIGN_CENTER_VERTICAL);
+    dx_val = new RealNumberCtrl(this, -1, getSettings()->getp("epsilon"));
+    hsizer->Add(dx_val, 0);
+    top_sizer->Add(hsizer, 0, wxALL, 5);
+    y_rb = new wxRadioBox(this, -1, wxT("set y as ..."), 
+                          wxDefaultPosition, wxDefaultSize, 
+                          make_wxArrStr(wxT("sum"), wxT("avg")),
+                          1, wxRA_SPECIFY_ROWS);
+    top_sizer->Add(y_rb, 0, wxEXPAND|wxALL, 5);
+    active_ds = AL->get_active_ds_position();
+    wxString this_ds = wxString::Format(wxT("dataset @%d"), active_ds);
+    output_rb = new wxRadioBox(this, -1, wxT("output to ..."), 
+                               wxDefaultPosition, wxDefaultSize, 
+                               make_wxArrStr(this_ds, wxT("new dataset")),
+                               1, wxRA_SPECIFY_ROWS);
+    top_sizer->Add(output_rb, 0, wxEXPAND|wxALL, 5);
+    top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
+    top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL), 
+                   0, wxALL|wxALIGN_CENTER, 5);
+    SetSizerAndFit(top_sizer);
+}
+
+void MergePointsDlg::update_info()
+{
+    int i = d->list->GetFirstSelected();
+    if (i == -1) {
+        d->inf->Clear();
+        //TODO disable OK button
+        return;
+    }
+    Data const* data = AL->get_data(i);
+    fp x_min = data->get_x_min();
+    fp x_max = data->get_x_max();
+    int n = data->points().size();
+    wxString dstr = wxString::Format(wxT("@%d"), i);
+    bool only_one = true;
+    while ((i = d->list->GetNextSelected(i)) != -1) {
+        only_one = false;
+        data = AL->get_data(i);
+        if (data->get_x_min() < x_min)
+            x_min = data->get_x_min();
+        if (data->get_x_max() > x_max)
+            x_max = data->get_x_max();
+        n += data->points().size();
+        dstr += wxString::Format(wxT(" @%d"), i);
+    }
+    wxString s = wxString::Format(wxT("%i data points from: "), n) + dstr;
+    s += wxString::Format(wxT("\nx in range (%g, %g)"), x_min, x_max);
+    if (only_one && data->get_x_step() != 0.)
+        s += wxString::Format(wxT("\nfixed step: %g"), data->get_x_step());
+    else
+        s += wxString::Format(wxT("\naverage step: %g"), (x_max-x_min) / (n-1));
+    d->inf->SetValue(s);
+}
+
+string MergePointsDlg::get_command()
+{
+    string s;
+    if (dx_cb->GetValue())
+        s += "with epsilon=" + wx2s(dx_val->GetValue()) + " ";
+    s += (output_rb->GetSelection() == 0 ? "@"+S(active_ds) : S("@+")) + " = ";
+    if (dx_cb->GetValue())
+        s += y_rb->GetSelection() == 0 ? "sum_same_x " : "avg_same_x ";
+    s += join_vector(d->get_selected_data(), " + ");
+    return s;
 }
 
 

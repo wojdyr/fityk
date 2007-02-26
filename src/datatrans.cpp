@@ -140,7 +140,7 @@
 using namespace datatrans;
 
 //#include "ui.h"
-//#define DT_DEBUG(x) mesg(x);
+//#define DT_DEBUG(x) msg(x);
 
 #ifdef STANDALONE_DATATRANS
 

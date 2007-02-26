@@ -581,7 +581,7 @@ string VariableManager::do_assign_func(Function* func)
             delete functions[i];
             functions[i] = func;
             if (!silent)
-                mesg("New function %" + func->name + " replaced the old one.");
+                msg("New function %" + func->name + " replaced the old one.");
             remove_unreferred();
             found = true;
             break;
@@ -590,7 +590,7 @@ string VariableManager::do_assign_func(Function* func)
     if (!found) {
         functions.push_back(func);
         if (!silent)
-            info("New function %" + func->name + " was created.");
+            msg("New function %" + func->name + " was created.");
     }
     func->do_precomputations(variables);
     return func->name;

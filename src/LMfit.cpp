@@ -44,7 +44,7 @@ fp LMfit::init()
     else
         a = a_orig; 
 
-    info (print_matrix (a, 1, na, "Initial A"));
+    vmsg (print_matrix (a, 1, na, "Initial A"));
     //no need to optimise it (and compute chi2 and derivatives together)
     chi2 = compute_wssr(a, datsums);
     compute_derivatives(a, datsums, alpha, beta);
@@ -55,13 +55,13 @@ void LMfit::autoiter()
 {
     wssr_before = (shake_before > 0. ? compute_wssr(a_orig, datsums) : chi2);
     fp prev_chi2 = chi2;
-    verbose("\t === Levenberg-Marquardt method ===");
-    info ("Initial values:  lambda=" + S(lambda) + "  WSSR=" + S(chi2));
-    verbose ("Max. number of iterations: " + max_iterations);
+    vmsg("\t === Levenberg-Marquardt method ===");
+    msg ("Initial values:  lambda=" + S(lambda) + "  WSSR=" + S(chi2));
+    vmsg ("Max. number of iterations: " + max_iterations);
     fp stop_rel = getSettings()->get_f("lm-stop-rel-change");
     fp max_lambda = getSettings()->get_f("lm-max-lambda");
     if (stop_rel > 0) {
-        verbose ("Stopping when relative change of WSSR is "
+        vmsg ("Will stop when relative change of WSSR is "
                   "twice in row below " + S (stop_rel * 100.) + "%");
     }
     int small_change_counter = 0;
@@ -69,14 +69,14 @@ void LMfit::autoiter()
         bool better_fit = do_iteration();
         if (better_fit) { 
             fp d = prev_chi2 - chi2;
-            info ("#" + S(iter_nr) + ":  WSSR=" + S(chi2) 
+            msg ("#" + S(iter_nr) + ":  WSSR=" + S(chi2) 
                         + "  lambda=" + S(lambda) + "  d(WSSR)=" +  S(-d) 
                         + "  (" + S (d / prev_chi2 * 100) + "%)");  
             // another termination criterium: negligible change of chi2
             if (d / prev_chi2 < stop_rel || chi2 == 0) { 
                 small_change_counter++;
                 if (small_change_counter >= 2 || chi2 == 0) {
-                    info("Fit converged.");
+                    msg("Fit converged.");
                     break;
                 }
             }
@@ -86,9 +86,9 @@ void LMfit::autoiter()
             iteration_plot(a);
         }
         else { // no better fit
-            info("#"+S(iter_nr)+": (WSSR="+S(chi2_)+")  lambda="+S(lambda));
+            msg("#"+S(iter_nr)+": (WSSR="+S(chi2_)+")  lambda="+S(lambda));
             if (lambda > max_lambda) { // another termination criterium
-                info("In L-M method: lambda=" + S(lambda) + " > " 
+                msg("In L-M method: lambda=" + S(lambda) + " > " 
                         + S(max_lambda) + ", stopped.");
                 break;
             }
@@ -107,25 +107,23 @@ bool LMfit::do_iteration()
     for (int j = 0; j < na; j++) 
         alpha_[na * j + j] *= (1.0 + lambda);
     beta_ = beta;
-#ifdef debug
-    info (print_matrix (beta_, 1, na, "beta"));
-    info (print_matrix (alpha_, na, na, "alpha'"));
-#endif /*debug*/
+    vvmsg (print_matrix (beta_, 1, na, "beta"));
+    vvmsg (print_matrix (alpha_, na, na, "alpha'"));
 
     // Matrix solution (Ax=b)  alpha_ * da == beta_
     if (!Jordan (alpha_, beta_, na))
         throw ExecuteError("Error when processing iteration " + S(iter_nr));
 
     // da is in beta_  
-    if (getUI()->getVerbosity() >= 4) {
+    if (getUI()->getVerbosity() >= 1) {
         vector<fp> rel (na);
         for (int q = 0; q < na; q++)
             rel[q] = beta_[q] / a[q] * 100;
-        verbose (print_matrix (rel, 1, na, "delta(A)/A[%]"));
+        vmsg (print_matrix (rel, 1, na, "delta(A)/A[%]"));
     }
     for (int i = 0; i < na; i++) 
         beta_[i] = a[i] + beta_[i];   // and now there is new a[] in beta_[] 
-    verbose_lazy (print_matrix (beta_, 1, na, "Trying A"));
+    vmsg (print_matrix (beta_, 1, na, "Trying A"));
     //  compute chi2_
     chi2_ = compute_wssr(beta_, datsums);
 

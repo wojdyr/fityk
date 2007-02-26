@@ -101,7 +101,7 @@ void Sum::add_function_to(string const &name, char add_to)
     if (idx == -1)
         throw ExecuteError("function %" + only_name + " not found.");
     if (contains_element(get_names(add_to), only_name)) {
-        mesg("function %" + only_name + " already in " + add_to + ".");
+        msg("function %" + only_name + " already in " + add_to + ".");
         return;
     }
     if (add_to == 'F') {

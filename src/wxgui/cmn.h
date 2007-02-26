@@ -47,6 +47,40 @@ inline wxArrayString stl2wxArrayString(std::vector<std::string> const& vs)
     return wxas;
 }
 
+inline wxArrayString make_wxArrStr(wxString const& s1) 
+{ 
+    wxArrayString a(1, s1);
+    return a;
+} 
+
+inline wxArrayString make_wxArrStr(wxString const& s1, wxString const& s2) 
+{ 
+    wxArrayString a(1, s1);
+    a.Add(s2);
+    return a;
+} 
+
+inline wxArrayString make_wxArrStr(wxString const& s1, wxString const& s2, 
+                                   wxString const& s3) 
+{ 
+    wxArrayString a(1, s1);
+    a.Add(s2);
+    a.Add(s3);
+    return a;
+} 
+
+/// wxTextCtrl for real number input, will be enhanced 
+class RealNumberCtrl : public wxTextCtrl
+{
+public:
+    RealNumberCtrl(wxWindow* parent, wxWindowID id, wxString const& value)
+        : wxTextCtrl(parent, id, value) {}
+    RealNumberCtrl(wxWindow* parent, wxWindowID id, std::string const& value)
+        : wxTextCtrl(parent, id, s2wx(value)) {}
+    RealNumberCtrl(wxWindow* parent, wxWindowID id, double value)
+        : wxTextCtrl(parent, id, wxString::Format(wxT("%g"), value)) {}
+};
+
 
 // only wxString and long types can be read conveniently from wxConfig
 // these functions are defined in plot.cpp
@@ -55,8 +89,7 @@ class wxConfigBase;
 class wxString;
 
 bool cfg_read_bool(wxConfigBase* cf, wxString const& key, bool def_val);
-double cfg_read_double(wxConfigBase* cf, wxString const& key, 
-                               double def_val);
+double cfg_read_double(wxConfigBase* cf, wxString const& key, double def_val);
 
 wxColour cfg_read_color(wxConfigBase const* config, wxString const& key,
                         wxColour const& default_value);
@@ -70,7 +103,7 @@ void cfg_write_font(wxConfigBase* config, wxString const& key,
 
 inline bool should_focus_input(int key)
 {
-    return key == ' ' || key == WXK_TAB || (key >= 'A' && key <= 'Z')
+    return key == ' ' || (key >= 'A' && key <= 'Z')
         || key == '%' || key == '$' || key == '@' || key == '#';
 }
 

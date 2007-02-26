@@ -7,20 +7,9 @@
 #include <vector>
 #include <string>
 #include <utility>
-#include "cmn.h" //s2wx
+#include "cmn.h" //s2wx, RealNumberCtrl
 
 class SpinCtrl;
-
-
-class RealNumberCtrl : public wxTextCtrl
-{
-public:
-    RealNumberCtrl(wxWindow* parent, wxWindowID id, wxString const& value)
-        : wxTextCtrl(parent, id, value) {}
-    RealNumberCtrl(wxWindow* parent, wxWindowID id, std::string const& value)
-        : wxTextCtrl(parent, id, s2wx(value)) {}
-};
-
 
 class SettingsDlg : public wxDialog
 {

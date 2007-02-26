@@ -146,7 +146,7 @@ void do_output_info(char const*, char const*)
 {
     prepared_info = strip_string(prepared_info);
     if (output_redir.empty())
-        mesg(prepared_info);
+        rmsg(prepared_info);
     else {
         ofstream os(output_redir.c_str(), 
                     ios::out | (info_append ? ios::app : ios::trunc));
@@ -320,7 +320,8 @@ void do_print_deriv(char const* a, char const* b)
     prepared_info += "\n" + get_derivatives_str(s);
 }
 
-void do_print_debug_info(char const*, char const*)  { 
+void do_print_debug_info(char const*, char const*)  
+{ 
     string m;
     if (t == "idx") {   // show varnames and var_idx from VariableUser
         for (int i = 0; i < size(AL->get_functions()); ++i) 
@@ -346,7 +347,7 @@ void do_print_debug_info(char const*, char const*)  {
         Function const* f = AL->find_function(t);
         m = f->get_bytecode();
     }
-    mesg(m);
+    rmsg(m);
 }
 
 

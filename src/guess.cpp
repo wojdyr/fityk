@@ -167,7 +167,7 @@ void estimate_peak_parameters(DataWithSum const* ds, fp range_from, fp range_to,
                   " Tried at [" + S(range_from) + " : " + S(range_to) + "]";
         if (getSettings()->get_b("can-cancel-guess")) 
             throw ExecuteError(s + " Canceled.");
-        info (s);
+        msg (s);
     }
     fp h = my_y(ds, max_y_pos, ec);
     if (height) 

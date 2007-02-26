@@ -118,6 +118,8 @@ void do_delete(char const*, char const*)
     outdated_plot=true;  //TODO only if...
 }
 
+void do_quit(char const*, char const*) { throw ExitRequestedException(); }
+
 void do_define_func(char const* a, char const* b) 
 { 
     string s = string(a,b);
@@ -266,23 +268,25 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         statement 
-            = !temporary_set >>
-            ( (optional_suffix_p("del","ete")[clear_a(vt)][clear_a(vn)] 
-                >> ( VariableLhsG [push_back_a(vt)]
-                   | func_id [push_back_a(vt, t)]
-                   | lexeme_d['@'>>uint_p[push_back_a(vn)]]) % ',') [&do_delete]
-            | assign_var 
-            | subst_func_param 
-            | assign_func 
-            | assign_fz
-            | remove_from_fz
-            | define_func 
-            | (optional_suffix_p("undef","ine")[clear_a(vt)] 
-               >> type_name[push_back_a(vt)] 
-                  % ',')[&do_undefine_func]
-            | cmd2G
-            | cmd3G
-            ) [&do_temporary_unset]
+            = !temporary_set 
+            >> ( (optional_suffix_p("del","ete")[clear_a(vt)][clear_a(vn)] 
+                  >> ( VariableLhsG [push_back_a(vt)]
+                     | func_id [push_back_a(vt, t)]
+                     | lexeme_d['@' >> uint_p[push_back_a(vn)]]) % ',') 
+                                                                 [&do_delete]
+               | str_p("quit") [&do_quit]
+               | assign_var 
+               | subst_func_param 
+               | assign_func 
+               | assign_fz
+               | remove_from_fz
+               | define_func 
+               | (optional_suffix_p("undef","ine")[clear_a(vt)] 
+                  >> type_name[push_back_a(vt)] 
+                     % ',')[&do_undefine_func]
+               | cmd2G
+               | cmd3G
+               ) [&do_temporary_unset]
             ;
 
         multi 
@@ -303,16 +307,11 @@ struct CmdGrammar : public grammar<CmdGrammar>
 
 bool check_command_syntax(string const& str)
 {
-    if (strip_string(str) == "quit")
-        return true;
-    parse_info<> result = parse(str.c_str(), no_actions_d[cmdG], space_p);
-    return result.full;
+    return parse(str.c_str(), no_actions_d[cmdG], space_p).full;
 }
 
 Commands::Status parse_and_execute(string const& str)
 {
-    if (strip_string(str) == "quit")
-        throw ExitRequestedException();
     try {
         parse_info<> result = parse(str.c_str(), no_actions_d[cmdG], space_p);
         if (result.full) {

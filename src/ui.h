@@ -71,7 +71,7 @@ public:
     void drawPlot(int pri=0, bool now=false);
 
     /// sent message - to user input and to log file (if logging is on)
-    void outputMessage (int level, std::string const &s);
+    void outputMessage (OutputStyle style, std::string const &s);
 
     /// Wait and disable UI for ... seconds. Different for GUI and CLI.
     void wait(float seconds); 
@@ -123,22 +123,27 @@ inline Commands::Status exec_command (std::string const &s)
                                         { return getUI()->execAndLogCmd(s); }
 
 
-// small utilities for outputing messages to active UI.
-/// the smaller level - more important message 
-inline void gmessage (int level, std::string const &str) 
-                                    { getUI()->outputMessage(level, str); }
-//
-/// Send warning to UI. Message priority: 1 (lower - more important)
-inline void warn(std::string const &s) { gmessage (1, s); }
-/// Send message to UI. Message priority: 2 (lower - more important)
-inline void mesg(std::string const &s) { gmessage(2, s); }
-/// Send information to UI. Message priority: 3 (lower - more important)
-inline void info(std::string const &s) { gmessage (3, s); }
-/// Send verbose message to UI. Message priority: 4 (lower - more important)
-inline void verbose(std::string const &s) { gmessage (4, s); }
-/// Send very verbose message to UI. Message priority: 5 (the least important)
-inline void very_verbose(std::string const &s) { gmessage (5, s); }
-/// The same as verbose(), but string is evaluated only when needed.
-#define verbose_lazy(x)   if(getUI()->getVerbosity() >= 4)  verbose((x));  
+/// Send warning to UI. 
+inline void warn(std::string const &s) { getUI()->outputMessage(os_warn, s); }
+
+/// Send implicitely requested message to UI. 
+inline void rmsg(std::string const &s) { getUI()->outputMessage(os_normal, s); }
+
+/// Send message to UI. 
+inline void msg(std::string const &s) 
+{ 
+    if (getUI()->getVerbosity() >= 0)
+         getUI()->outputMessage(os_normal, s); 
+}
+
+/// Send verbose message to UI. The argument is evaluated only when needed.
+#define vmsg(x)   \
+    if (getUI()->getVerbosity() > 0)  \
+        getUI()->outputMessage(os_normal, (x));  
+
+/// Send debug message to UI. The argument is evaluated only when needed.
+#define vvmsg(x)   \
+    if (getUI()->getVerbosity() > 1)  \
+        getUI()->outputMessage(os_normal, (x));  
 
 #endif 

@@ -1,7 +1,7 @@
 // Purpose: input line with history (wxTextCtrl+wxSpinButton)
 // Copyright: (c) 2007 Marcin Wojdyr 
 // Licence: wxWidgets licence 
-// $Id:$
+// $Id$
 
 /// Input line with history (wxTextCtrl+wxSpinButton). 
 /// Supported keybindings:
@@ -56,13 +56,13 @@ protected:
 class InputLineButton : public wxSpinButton
 {
 public:
-    InputLineButton(wxWindow *parent, wxObject *kbd_handler)
+    InputLineButton(wxWindow *parent, InputLine *kbd)
         : wxSpinButton(parent, wxID_ANY, 
                        wxDefaultPosition, wxDefaultSize,
                        wxSP_VERTICAL|wxSP_ARROW_KEYS|wxNO_BORDER),
-          m_kbd(kbd_handler) {}
+          m_kbd(kbd) {}
 protected:
-    wxObject *m_kbd;
+    InputLine *m_kbd;
     void OnKeyDown (wxKeyEvent& event);
     DECLARE_EVENT_TABLE()
 };
@@ -113,9 +113,10 @@ void InputLineText::OnKeyDown (wxKeyEvent& event)
             Clear();
             }
             break;
-        case WXK_TAB:
-            Navigate();
-            break;
+        // to process WXK_TAB, you need to uncomment wxTE_PROCESS_TAB
+        //case WXK_TAB:
+        //    Navigate();
+        //    break;
         case WXK_UP:
         case WXK_NUMPAD_UP:
             par->HistoryMove(-1, true);
@@ -146,15 +147,14 @@ END_EVENT_TABLE()
 // redirect key-down event to wxTextCtrl
 void InputLineButton::OnKeyDown(wxKeyEvent& event)
 {
-    event.SetEventObject(m_kbd);
-    ProcessEvent(event); 
+    m_kbd->RedirectKeyPress(event);
+    event.Skip();
 }
 
 //-----------------------------------------------------------------------
 
 BEGIN_EVENT_TABLE(InputLine, wxPanel)
-    EVT_SPIN_UP(-1, InputLine::OnSpinButtonUp)
-    EVT_SPIN_DOWN(-1, InputLine::OnSpinButtonDown)
+    EVT_SPIN(-1, InputLine::OnSpinButton)
 END_EVENT_TABLE()
 
 InputLine::InputLine(wxWindow *parent, wxWindowID id, 
@@ -162,9 +162,9 @@ InputLine::InputLine(wxWindow *parent, wxWindowID id,
     : wxPanel(parent, id), m_hpos(0), m_receiver(receiver)
 {
     m_text = new InputLineText(this, wxID_ANY, wxT(""),
-                            wxDefaultPosition, wxDefaultSize, 
-                            wxWANTS_CHARS|wxTE_PROCESS_ENTER|wxTE_PROCESS_TAB);
-    m_button = new InputLineButton(this, m_text);
+                       wxDefaultPosition, wxDefaultSize, 
+                       wxWANTS_CHARS|wxTE_PROCESS_ENTER /*|wxTE_PROCESS_TAB*/);
+    m_button = new InputLineButton(this, this);
     m_button->SetRange(0, 0); 
     m_button->SetValue(0); 
     wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -172,6 +172,13 @@ InputLine::InputLine(wxWindow *parent, wxWindowID id,
     sizer->Add(m_button, 0, wxEXPAND);
     SetSizerAndFit(sizer);
     m_history.Add(wxT(""));
+}
+
+void InputLine::RedirectKeyPress(wxKeyEvent& event)
+{
+    m_text->SetFocus();
+    m_text->SetInsertionPointEnd();
+    m_text->EmulateKeyPress(event);
 }
 
 void InputLine::HistoryMove(int n, bool relative)
@@ -192,12 +199,6 @@ void InputLine::HistoryMove(int n, bool relative)
     m_text->SetInsertionPointEnd();
 }
 
-
-void InputLine::SetValue(const wxString& value) 
-{ 
-    m_text->SetValue(value); 
-}
-
 void InputLine::OnInputLine(const wxString& line) 
 { 
     m_history.Last() = line;
@@ -210,6 +211,5 @@ void InputLine::OnInputLine(const wxString& line)
     m_receiver(line); 
     m_text->SetFocus();
 }
-
 
 

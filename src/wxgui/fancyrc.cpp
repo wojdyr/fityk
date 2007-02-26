@@ -34,10 +34,9 @@ wxString double2wxstr(double v) { return wxString::Format(wxT("%g"), v); }
 class ValueChangingWidget : public wxSlider
 {
 public:
-    ValueChangingWidget(wxWindow* parent, wxWindowID id, 
-                        ValueChangingHandler* cb)
+    ValueChangingWidget(wxWindow* parent, wxWindowID id, FancyRealCtrl* frc_)
         : wxSlider(parent, id, 0, -100, 100, wxDefaultPosition, wxSize(60, -1)),
-          callback(cb), timer(this, -1), button(0) {}
+          frc(frc_), timer(this, -1), button(0) {}
 
     void OnTimer(wxTimerEvent &event);
 
@@ -49,7 +48,7 @@ public:
     void OnMouse(wxMouseEvent &event);
 
 private:
-    ValueChangingHandler *callback;
+    FancyRealCtrl *frc;
     wxTimer timer;
     char button;
     
@@ -65,19 +64,19 @@ END_EVENT_TABLE()
 void ValueChangingWidget::OnTimer(wxTimerEvent &WXUNUSED(event))
 {
     if (button == 'l') {
-        callback->change_value(GetValue()*0.001);
+        frc->change_value(GetValue()*0.001);
     }
     else if (button == 'm') {
-        callback->change_value(GetValue()*0.0001);
+        frc->change_value(GetValue()*0.0001);
     }
     else if (button == 'r') {
-        callback->change_value(GetValue()*0.00001);
+        frc->change_value(GetValue()*0.00001);
     }
     else {
         assert (button == 0);
         timer.Stop();
         SetValue(0);
-        callback->on_stop_changing();
+        frc->on_stop_changing();
     }
 }
 
@@ -117,7 +116,7 @@ FancyRealCtrl::FancyRealCtrl(wxWindow* parent, wxWindowID id,
                                   wxDefaultPosition, wxDefaultSize,
                                   wxNO_BORDER);
     sizer->Add(lock_btn, 0, wxALL|wxALIGN_CENTER_VERTICAL, 0);
-    ValueChangingWidget *vch = new ValueChangingWidget(this, -1, this);
+    vch = new ValueChangingWidget(this, -1, this);
     sizer->Add(vch, 0, wxALL|wxALIGN_CENTER_VERTICAL, 1);
     SetSizer(sizer);
 }
@@ -178,6 +177,13 @@ void FancyRealCtrl::toggle_lock(bool exec)
     lock_btn->SetBitmapLabel(get_lock_bitmap());
     if (exec)
         exec_command(name + " = " + (locked ? "{" : "~{") + name + "}");
+}
+
+void FancyRealCtrl::connect_to_onkeydown(wxObjectEventFunction function, 
+                                         wxEvtHandler* sink)
+{
+    lock_btn->Connect(wxID_ANY, wxEVT_KEY_DOWN, function, 0, sink);
+    vch->Connect(wxID_ANY, wxEVT_KEY_DOWN, function, 0, sink);
 }
 
 wxBitmap FancyRealCtrl::get_lock_bitmap() const

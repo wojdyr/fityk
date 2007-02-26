@@ -11,7 +11,7 @@
 
 void load_siemensbruker_filetype (std::string filename, Data *data)
 {
-	info("entered SiemensBruker loading: "+ filename);
+	vmsg("entered SiemensBruker loading: "+ filename);
 
 	float biggest=0, smallest=99999, average=0;
   	char ctest[140];

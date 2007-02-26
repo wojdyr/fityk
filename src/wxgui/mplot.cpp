@@ -976,6 +976,21 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         frame->set_status_text("Select range to add a peak in it..."); 
     }
     else if (button != 2 && mode == mmd_range) {
+        if (button == 1) {
+            Data const* data = AL->get_data(AL->get_active_ds_position());
+            if (!data->is_empty() && data->get_n() == size(data->points())) {
+                wxMessageBox(
+                 wxT("You pressed the left mouse button in data-range mode,")
+                 wxT("\nbut all data points are already active.")
+                 wxT("\n\nYou can see mouse hints at the status bar: the left")
+                 wxT("\nbutton activates, and the right disactivates points.")
+                 wxT("\n\nExtra hint: to activate/disactivate points in")
+                 wxT("a rectangle,\npress Shift"), 
+                             wxT("How to use mouse..."),
+                             wxOK|wxICON_INFORMATION);
+                return;
+            }
+        }
         string status_info;
         if (shift_on_down) {
             SetCursor(wxCURSOR_SIZENWSE);
@@ -1096,7 +1111,7 @@ void MainPlot::OnKeyDown (wxKeyEvent& event)
     }
     else if (should_focus_input(event.GetKeyCode())) {
         cancel_mouse_press(); 
-        frame->focus_input(event.GetKeyCode());
+        frame->focus_input(event);
     }
     else
         event.Skip();
@@ -1687,7 +1702,7 @@ void BgManager::rm_background_point (fp x)
     bg_iterator u = upper_bound (bg.begin(), bg.end(), B_point(x+dx, 0));
     if (u > l) {
         bg.erase(l, u);
-        verbose (S(u - l) + " background points removed.");
+        vmsg (S(u - l) + " background points removed.");
         recompute_bgline();
     }
 }
@@ -1698,7 +1713,7 @@ void BgManager::clear_background()
     bg.clear();
     recompute_bgline();
     if (n != 0)
-        verbose (S(n) + " background points deleted.");
+        vmsg (S(n) + " background points deleted.");
 }
 
 void BgManager::strip_background()
@@ -1716,7 +1731,7 @@ void BgManager::strip_background()
                + frame->get_in_one_or_all_datasets();
     clear_background();
     exec_command("Y = y - " + cmd_tail);
-    verbose("Background stripped.");
+    vmsg("Background stripped.");
 }
 
 void BgManager::undo_strip_background()

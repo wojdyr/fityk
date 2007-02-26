@@ -86,9 +86,9 @@ public:
     void OnFastDT        (wxCommandEvent& event);
     void OnFastDTUpdate  (wxUpdateUIEvent& event);           
     void OnAllDatasetsUpdate (wxUpdateUIEvent& event);           
-    void OnDExport       (wxCommandEvent& event);
+    void OnDMerge        (wxCommandEvent&);
+    void OnDExport       (wxCommandEvent&);
 
-    void OnSEditor       (wxCommandEvent& event);            
     void OnDefinitionMgr (wxCommandEvent&);         
     void OnSGuess        (wxCommandEvent& event);         
     void OnSPFInfo       (wxCommandEvent& event);         
@@ -172,7 +172,7 @@ public:
     void refresh_plots(bool update=false, bool only_main=false);
     void draw_crosshair(int X, int Y);
     void set_shared_scale();
-    void focus_input(int key=0);
+    void focus_input(wxKeyEvent& event);
     void edit_in_input(std::string const& s);
     void set_status_text(std::string const& text, StatusBarField field=sbf_text)
             { if (status_bar) SetStatusText(s2wx(text), field); }

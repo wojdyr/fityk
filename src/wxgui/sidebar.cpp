@@ -37,7 +37,6 @@
 #include "img/shiftup.xpm"
 #include "img/dpsize.xpm"
 #include "img/convert.xpm"
-#include "img/color.xpm"
 #include "img/copyfunc.xpm"
 #include "img/unused.xpm"
 #include "img/zshift.xpm"
@@ -125,11 +124,11 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     //-----  data page  -----
     data_page = new wxPanel(nb, -1);
     wxBoxSizer *data_sizer = new wxBoxSizer(wxVERTICAL);
-    d = new ListPlusText(data_page, -1, ID_DP_LIST, 
-                            vector4(pair<string,int>("No", 43),
-                                    pair<string,int>("#F+#Z", 43),
-                                    pair<string,int>("Name", 108),
-                                    pair<string,int>("File", 0)));
+    d = new DataListPlusText(data_page, -1, ID_DP_LIST, 
+                                vector4(pair<string,int>("No", 43),
+                                        pair<string,int>("#F+#Z", 43),
+                                        pair<string,int>("Name", 108),
+                                        pair<string,int>("File", 0)));
     d->list->set_side_bar(this);
     data_sizer->Add(d, 1, wxEXPAND|wxALL, 1);
 
@@ -270,7 +269,7 @@ void SideBar::OnDataButtonNew (wxCommandEvent& WXUNUSED(event))
 
 void SideBar::OnDataButtonDup (wxCommandEvent& WXUNUSED(event))
 {
-    exec_command("@+ = " + join_vector(get_selected_data(), " + "));
+    exec_command("@+ = " + join_vector(d->get_selected_data(), " + "));
 }
 
 void SideBar::OnDataButtonRen (wxCommandEvent& WXUNUSED(event))
@@ -294,7 +293,7 @@ void SideBar::delete_selected_items()
         return;
     string txt = wx2s(nb->GetPageText(n));
     if (txt == "data")
-        exec_command("delete " + join_vector(get_selected_data(), ", "));
+        exec_command("delete " + join_vector(d->get_selected_data(), ", "));
     else if (txt == "functions")
         exec_command("delete " + join_vector(get_selected_func(), ", "));
     else if (txt == "variables")
@@ -334,7 +333,7 @@ void SideBar::OnDataButtonCol (wxCommandEvent& WXUNUSED(event))
         }
     }
     else {//sel_size > 1
-        vector<string> sel = SideBar::get_selected_data();
+        vector<string> sel = d->get_selected_data();
         int first_sel = d->list->GetFirstSelected();
         int last_sel = 0;
         for (int i = first_sel; i != -1; i = d->list->GetNextSelected(i))
@@ -423,7 +422,7 @@ void SideBar::OnFuncButtonEdit (wxCommandEvent& WXUNUSED(event))
 
 void SideBar::OnFuncButtonChType (wxCommandEvent& WXUNUSED(event))
 {
-    mesg("Sorry. Changing type of function is not implemented yet.");
+    warn("Sorry. Changing type of function is not implemented yet.");
 }
 
 void SideBar::OnFuncButtonCol (wxCommandEvent& WXUNUSED(event))
@@ -474,7 +473,7 @@ void SideBar::save_settings(wxConfigBase *cf) const
 void SideBar::update_lists(bool nondata_changed)
 {
     Freeze();
-    update_data_list(nondata_changed);
+    d->update_data_list(nondata_changed, true);
     update_func_list(nondata_changed);
     update_var_list();
     
@@ -502,35 +501,6 @@ void SideBar::update_lists(bool nondata_changed)
     Thaw();
 }
 
-void SideBar::update_data_list(bool nondata_changed)
-{
-    MainPlot const* mplot = frame->get_main_plot();
-    wxColour const& bg_col = mplot->get_bg_color();
-
-    vector<string> data_data;
-    for (int i = 0; i < AL->get_ds_count(); ++i) {
-        DataWithSum const* ds = AL->get_ds(i);
-        data_data.push_back(S(i));
-        data_data.push_back(S(ds->get_sum()->get_ff_names().size()) 
-                        + "+" + S(ds->get_sum()->get_zz_names().size()));
-        data_data.push_back(ds->get_data()->get_title());
-        data_data.push_back(ds->get_data()->get_filename());
-    }
-    wxImageList* data_images = 0;
-    if (nondata_changed || AL->get_ds_count() > d->list->GetItemCount()) {
-        data_images = new wxImageList(16, 16);
-        for (int i = 0; i < AL->get_ds_count(); ++i) {
-            wxColour const& d_col = mplot->get_data_color(i);
-            wxImage image(color_xpm);
-            image.Replace(0, 0, 0, bg_col.Red(), bg_col.Green(), bg_col.Blue());
-            image.Replace(255, 255, 255,  
-                          d_col.Red(), d_col.Green(), d_col.Blue());
-            data_images->Add(wxBitmap(image));
-        }
-    }
-    int active_ds_pos = AL->get_active_ds_position();
-    d->list->populate(data_data, data_images, active_ds_pos);
-}
 
 void SideBar::update_func_list(bool nondata_changed)
 {
@@ -602,15 +572,9 @@ void SideBar::update_func_list(bool nondata_changed)
                 func_images->Add(wxBitmap(unused_xpm));
             else if (*i == -1)
                 func_images->Add(wxBitmap(zshift_xpm));
-            else {
-                wxColour const& d_col = mplot->get_func_color(*i);
-                wxImage image(color_xpm);
-                image.Replace(0, 0, 0, 
-                              bg_col.Red(), bg_col.Green(), bg_col.Blue());
-                image.Replace(255, 255, 255,  
-                              d_col.Red(), d_col.Green(), d_col.Blue());
-                func_images->Add(wxBitmap(image));
-            }
+            else 
+                func_images->Add(make_color_bitmap16(mplot->get_func_color(*i), 
+                                                     bg_col));
         }
     }
     old_func_size = func_size;
@@ -688,19 +652,6 @@ void SideBar::do_activate_function()
     frame->refresh_plots(false, true);
     update_func_inf();
     update_bottom_panel();
-}
-
-vector<string> SideBar::get_selected_data() const
-{
-    vector<string> dd;
-    for (int i = d->list->GetFirstSelected(); i != -1; 
-                                           i = d->list->GetNextSelected(i))
-        dd.push_back("@" + S(i));
-    if (dd.empty()) {
-        int n = d->list->GetFocusedItem();
-        dd.push_back("@" + S(n == -1 ? 0 : n));
-    }
-    return dd;
 }
 
 void SideBar::DataFocusChanged()
@@ -814,6 +765,7 @@ void SideBar::add_variable_to_bottom_panel(Variable const* var,
         FancyRealCtrl *frc = new FancyRealCtrl(bottom_panel, -1,
                                                var->get_value(), var->xname,
                                                !var->is_simple(), this);
+        frc->connect_to_onkeydown(wxKeyEventHandler(FFrame::focus_input), frame);
         bp_sizer->Add(frc, 1, wxALL|wxEXPAND, 1);
         bp_frc.push_back(frc);
     }

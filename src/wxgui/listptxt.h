@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 
+#include "img/color.xpm"
 #include "cmn.h" //ProportionalSplitter
 
 class SideBar;
@@ -46,5 +47,24 @@ public:
     void split(double prop) { SplitHorizontally(list, inf, prop); }
     DECLARE_EVENT_TABLE()
 };
+
+class DataListPlusText : public ListPlusText
+{
+public:
+    DataListPlusText(wxWindow *parent, wxWindowID id, wxWindowID list_id,
+                 std::vector<std::pair<std::string,int> > const& columns_)
+        : ListPlusText(parent, id, list_id, columns_) {}
+    void update_data_list(bool nondata_changed, bool with_stats);
+    std::vector<std::string> get_selected_data() const;
+};
+
+inline
+wxBitmap make_color_bitmap16(wxColour const& col, wxColour const& bg)
+{
+    wxImage image(color_xpm);
+    image.Replace(0, 0, 0, bg.Red(), bg.Green(), bg.Blue());
+    image.Replace(255, 255, 255, col.Red(), col.Green(), col.Blue());
+    return wxBitmap(image);
+}
 
 #endif

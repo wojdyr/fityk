@@ -76,7 +76,7 @@
     In case you are not familiar with the term 
     <firstterm>weighted sum of squared residuals</firstterm>
     or you are not sure how it is weighted, have a look at 
-    <xref linkend="nonlinear"/>. It is your responsibility to set correctly
+    <xref linkend="nonlinear"/>. Remember that you must set correctly
     <link linkend="weights">standard deviations</link> of y's of points, 
     otherwise you will get wrong results.
    </para>
@@ -897,6 +897,10 @@
      </command>. 
      To see the current title of the dataset, 
      use <command>info @<replaceable>n</replaceable></command>.
+    </para>
+    <para>
+     It is possible to show values of a data expression calculated for each
+     dataset. Example: <userinput>i+ avg(y) in @*</userinput>.
     </para>
    </section> 
    <section id="dexport">
@@ -1955,7 +1959,7 @@
     <varlistentry>
      <term>verbosity</term>
      <listitem><para>
-       TODO
+       Possible values: quiet, normal, verbose, debug.
      </para></listitem> 
     </varlistentry>
 

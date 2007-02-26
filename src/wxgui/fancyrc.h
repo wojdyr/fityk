@@ -9,17 +9,7 @@
 class SideBar;
 class KFTextCtrl;
 
-/// tiny callback class
-class ValueChangingHandler 
-{
-public:
-    virtual ~ValueChangingHandler() {}
-    virtual void change_value(double factor) = 0;
-    virtual void on_stop_changing() = 0;
-};
-
-
-class FancyRealCtrl : public wxPanel, public ValueChangingHandler
+class FancyRealCtrl : public wxPanel
 {
 public:
     FancyRealCtrl(wxWindow* parent, wxWindowID id, 
@@ -35,6 +25,8 @@ public:
     bool get_locked() const { return locked; }
     void set_temporary_value(double value); 
     void toggle_lock(bool exec); 
+    void connect_to_onkeydown(wxObjectEventFunction function, 
+                              wxEvtHandler* sink);
 
     DECLARE_EVENT_TABLE()
 private:
@@ -44,6 +36,7 @@ private:
     SideBar const* draw_handler;
     KFTextCtrl *tc;
     wxBitmapButton *lock_btn;
+    wxWindow *vch; //ValueChangingWidget
 
     wxBitmap get_lock_bitmap() const;
 };

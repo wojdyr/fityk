@@ -33,13 +33,11 @@ Settings::Settings()
 {
     // general
     map<char, string> verbosity_enum;
-    verbosity_enum [0] = "silent";
-    verbosity_enum [1] = "only-warnings";
-    verbosity_enum [2] = "rather-quiet";
-    verbosity_enum [3] = "normal";
-    verbosity_enum [4] = "verbose";
-    verbosity_enum [5] = "very-verbose";
-    insert_enum("verbosity", verbosity_enum, 3);
+    verbosity_enum [-1]= "quiet";
+    verbosity_enum [0] = "normal";
+    verbosity_enum [1] = "verbose";
+    verbosity_enum [2] = "debug";
+    insert_enum("verbosity", verbosity_enum, 0);
 
     map<char, string> autoplot_enum;
     autoplot_enum [1] = "never";
@@ -199,10 +197,10 @@ void Settings::setp (string const& k, string const& v)
 {
     string sp = getp(k);
     if (sp == v)
-        info ("Option '" + k + "' already has value: " + v);
+        msg ("Option '" + k + "' already has value: " + v);
     else {
         setp_core (k, v);
-        info ("Value for '" + k + "' changed from '" + sp + "' to '" + v + "'");
+        msg ("Value for '" + k + "' changed from '" + sp + "' to '" + v + "'");
     }
 }
 
@@ -307,7 +305,7 @@ void Settings::do_srand()
     int random_seed = get_i("pseudo-random-seed");
     int rs = random_seed >= 0 ? random_seed : time(0);
     srand(rs);
-    verbose ("Seed for a sequence of pseudo-random numbers: " + S(rs));
+    vmsg ("Seed for a sequence of pseudo-random numbers: " + S(rs));
 }
 
 void Settings::set_temporary(std::string const& k, std::string const& v)

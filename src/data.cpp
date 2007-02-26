@@ -115,7 +115,7 @@ void Data::post_load()
         else
             assert(0);
     }
-    info(inf);
+    msg(inf);
     if (title.empty())
         title = get_file_basename(filename);
     update_active_p();
@@ -182,6 +182,8 @@ void apply_operation(vector<Point> &pp, string const& op)
                 count_same++;
                 if (i > 0)
                     continue;
+                else
+                    i = -1; // to change pp[0]
             }
             if (count_same > 1) {
                 pp[i+1].x /= count_same;
@@ -211,6 +213,7 @@ void Data::load_data_sum(vector<Data const*> const& dd, string const& op)
     // dd can contain this, we can't change p or title in-place.
     std::vector<Point> new_p;
     string new_title = dd[0]->get_title();
+    string new_filename = dd.size() == 1 ? dd[0]->get_filename() : "";
     for (vector<Data const*>::const_iterator i = dd.begin()+1; 
                                                           i != dd.end(); ++i)
         new_title += " + " + (*i)->get_title();
@@ -222,8 +225,10 @@ void Data::load_data_sum(vector<Data const*> const& dd, string const& op)
     sort(new_p.begin(), new_p.end());
     if (!new_p.empty() && !op.empty())
         apply_operation(new_p, op);
+        // data should be sorted after apply_operation()
     clear();
     title = new_title;
+    filename = new_filename;
     p = new_p;
     has_sigma = true;
     x_step = find_step();
@@ -326,7 +331,7 @@ void Data::load_xy_filetype (ifstream& f, vector<int> const& columns)
         }
     }
     if (non_data_lines > 0)
-        info (S(non_data_lines) +" (not empty and not `#...') non-data lines "
+        msg (S(non_data_lines) +" (not empty and not `#...') non-data lines "
                 "in " + S(non_data_blocks) + " blocks.");
     if (not_enough_cols > 0)
         warn ("Less than " + S(maxc) + " numbers in " + S(not_enough_cols) 

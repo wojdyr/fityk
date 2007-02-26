@@ -15,6 +15,7 @@
 class GradientDlg;
 class FancyRealCtrl;
 class ListPlusText;
+class DataListPlusText;
 class Function;
 class Variable;
 
@@ -79,14 +80,14 @@ private:
     std::vector<wxStaticText*> bp_statict;
     std::vector<bool> bp_sig; /// bottom panel "signature" (widget order)
     Function const* bp_func; ///bottom panel function
-    ListPlusText *d, *f, *v;
+    DataListPlusText *d; 
+    ListPlusText *f, *v;
     wxChoice *data_look, *filter_ch;
     wxSpinCtrl *shiftup_sc, *dpsize_sc;
     wxCheckBox *dpline_cb, *dpsigma_cb;
     int active_function;
     std::string active_function_name;
 
-    void update_data_list(bool nondata_changed);
     void update_func_list(bool nondata_changed);
     void update_var_list();
     void add_variable_to_bottom_panel(Variable const* var, 

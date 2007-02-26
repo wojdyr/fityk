@@ -125,11 +125,11 @@ void Commands::start_logging(string const& filename, bool with_output)
         log_with_output = false; //don't put info() below into log 
         if (with_output) {
             log << "INPUT AND OUTPUT";
-            info ("Logging input and output to file: " + filename);
+            msg ("Logging input and output to file: " + filename);
         }
         else {
             log << "INPUT";
-            info ("Logging input to file: " + filename);
+            msg ("Logging input to file: " + filename);
         }
         log << " TO THIS FILE (" << filename << ")\n";
         log_with_output = with_output;
@@ -169,15 +169,12 @@ Commands::Status UserInterface::execAndLogCmd(string const &c)
     return r;
 }
 
-void UserInterface::outputMessage (int level, const string& s)
+void UserInterface::outputMessage (OutputStyle style, const string& s)
 {
     if (keep_quiet)
         return;
-    OutputStyle style = (level <= 1 ? os_warn : os_normal);
-    if (level <= getVerbosity()) {
-        showMessage(style, s);
-        commands.put_output_message(s);
-    }
+    showMessage(style, s);
+    commands.put_output_message(s);
     if (style == os_warn && getSettings()->get_b("exit-on-warning")) {
         showMessage(os_normal, "Warning -> exiting program.");
         throw ExitRequestedException();
@@ -219,7 +216,7 @@ void UserInterface::execScript (const string& filename,
                                                     i != exec_nls.end(); i++) {
         if (i->txt.length() == 0)
             continue;
-        if (getVerbosity() > 1)
+        if (getVerbosity() >= 0)
             showMessage (os_quot, S(i->nr) + "> " + i->txt); 
         // result of parse_and_execute here is neglected. Errors in script
         // don't change status of command, which executes script

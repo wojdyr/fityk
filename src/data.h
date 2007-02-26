@@ -51,7 +51,7 @@ public :
     int get_n () const { return active_p.size(); }
     bool is_empty() const { return p.empty(); }
     bool has_any_info() const { return !is_empty() || !get_title().empty(); }
-    fp get_x_step() const { return x_step; }
+    fp get_x_step() const { return x_step; } /// 0.0 if not fixed
     void transform(const std::string &s);
     void update_active_p();
     //int auto_range (fp y_level, fp x_margin);

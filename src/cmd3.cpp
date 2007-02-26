@@ -94,7 +94,7 @@ void do_redo_fit(char const*, char const*)
 
 void do_set(char const*, char const*) { getSettings()->setp(t2, t); }
 
-void do_set_show(char const*, char const*)  { mesg(getSettings()->infop(t2)); }
+void do_set_show(char const*, char const*)  { rmsg(getSettings()->infop(t2)); }
 
 void do_sleep(char const*, char const*) { getUI()->wait(tmp_real); }
 

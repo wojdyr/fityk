@@ -75,7 +75,7 @@ void NMfit::autoiter()
 {
     fp convergence = getSettings()->get_f("nm-convergence");
     wssr_before = compute_wssr(a_orig, datsums);
-    info ("WSSR before starting simplex fit: " + S(wssr_before));
+    msg ("WSSR before starting simplex fit: " + S(wssr_before));
     for (int iter = 0; !termination_criteria(iter, convergence); ++iter) {
         iteration_plot(best->a);
         iter_nr++;
@@ -140,12 +140,12 @@ void NMfit::compute_coord_sum()
 
 bool NMfit::termination_criteria(int iter, fp convergence)
 {
-    info ("#" + S(iter_nr) + " (ev:" + S(evaluations) + "): best:" 
+    msg ("#" + S(iter_nr) + " (ev:" + S(evaluations) + "): best:" 
                 + S(best->wssr) + " worst:" + S(worst->wssr) + ", " 
                 + S(s_worst->wssr) + " [V * |" + S(volume_factor) + "|]");
     bool stop = false;
     if (volume_factor == 1. && iter != 0) {
-        info ("Simplex got stuck.");
+        msg ("Simplex got stuck.");
         stop = true;
     }
     volume_factor = 1.;
@@ -154,18 +154,18 @@ bool NMfit::termination_criteria(int iter, fp convergence)
     string s = "WSSR:";
     for (vector<Vertex>::iterator i = vertices.begin(); i!=vertices.end(); i++)
         s += " " + S(i->wssr);
-    info (s);
+    msg (s);
 *DEBUG - END*/
     //checking stop conditions
     if (common_termination_criteria(iter))
         stop=true;
     if (is_zero(worst->wssr)) {
-        info ("All vertices have WSSR < epsilon=" + S(epsilon));
+        msg ("All vertices have WSSR < epsilon=" + S(epsilon));
         return true;
     }
     fp r_diff = 2 * (worst->wssr - best->wssr) / (best->wssr + worst->wssr);
     if (r_diff < convergence) {
-        info ("Relative difference between worst and best vertex is only "
+        msg ("Relative difference between worst and best vertex is only "
                 + S(r_diff) + ". Stop");
         stop = true;
     }

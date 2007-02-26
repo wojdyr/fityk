@@ -15,8 +15,13 @@
 #include <wx/imaglist.h>
 #include "listptxt.h"
 #include "cmn.h" //SpinCtrl, ProportionalSplitter
-#include "../common.h" // s2wx
 #include "sidebar.h" //SideBar::delete_selected_items()
+#include "gui.h" // frame->focus_input() and used in update_data_list()
+#include "mplot.h" // used in update_data_list()
+#include "../common.h" // s2wx
+#include "../logic.h" // used in update_data_list()
+#include "../sum.h" // used in update_data_list()
+#include "../data.h" // used in update_data_list()
 
 using namespace std;
 
@@ -151,7 +156,7 @@ void ListWithColors::OnKeyDown (wxKeyEvent& event)
                 sidebar->delete_selected_items();
             break;
         default:
-            event.Skip();
+            frame->focus_input(event);
     }
 }
 
@@ -179,4 +184,47 @@ void ListPlusText::OnSwitchInfo(wxCommandEvent &WXUNUSED(event))
     else
         SplitHorizontally(list, inf);
 }
+
+
+//===============================================================
+
+void DataListPlusText::update_data_list(bool nondata_changed, bool with_stats)
+{
+    MainPlot const* mplot = frame->get_main_plot();
+    wxColour const& bg_col = mplot->get_bg_color();
+
+    vector<string> data_data;
+    for (int i = 0; i < AL->get_ds_count(); ++i) {
+        DataWithSum const* ds = AL->get_ds(i);
+        data_data.push_back(S(i));
+        if (with_stats)
+            data_data.push_back(S(ds->get_sum()->get_ff_names().size()) 
+                            + "+" + S(ds->get_sum()->get_zz_names().size()));
+        data_data.push_back(ds->get_data()->get_title());
+        data_data.push_back(ds->get_data()->get_filename());
+    }
+    wxImageList* data_images = 0;
+    if (nondata_changed || AL->get_ds_count() > list->GetItemCount()) {
+        data_images = new wxImageList(16, 16);
+        for (int i = 0; i < AL->get_ds_count(); ++i) 
+            data_images->Add(make_color_bitmap16(mplot->get_data_color(i), 
+                                                 bg_col));
+    }
+    int active_ds_pos = AL->get_active_ds_position();
+    list->populate(data_data, data_images, active_ds_pos);
+}
+
+
+vector<string> DataListPlusText::get_selected_data() const
+{
+    vector<string> dd;
+    for (int i=list->GetFirstSelected(); i != -1; i = list->GetNextSelected(i))
+        dd.push_back("@" + S(i));
+    if (dd.empty()) {
+        int n = list->GetFocusedItem();
+        dd.push_back("@" + S(n == -1 ? 0 : n));
+    }
+    return dd;
+}
+
 
