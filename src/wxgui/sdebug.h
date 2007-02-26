@@ -5,6 +5,7 @@
 #define FITYK__WX_SDEBUG__H__
 
 #include <wx/notebook.h>
+#include <wx/listctrl.h>
 #include "cmn.h" //close_it()
 
 class ScriptDebugDlg : public wxDialog

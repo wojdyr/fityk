@@ -15,7 +15,7 @@
 
 #include "dataedit.h"
 #include "gui.h"
-#include "dlgs.h" //export_data_dlg()
+#include "dialogs.h" //export_data_dlg()
 #include "../data.h" // Data, Point
 #include "../ui.h"  //exec_command()
 #include "../datatrans.h" //validate_transformation()

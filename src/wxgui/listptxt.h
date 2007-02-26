@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <string>
+#include <wx/listctrl.h>
 
 #include "img/color.xpm"
 #include "cmn.h" //ProportionalSplitter

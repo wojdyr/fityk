@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <wx/grid.h>
+#include <wx/listctrl.h>
 
 class Data;
 

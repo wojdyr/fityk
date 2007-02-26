@@ -16,7 +16,7 @@
 #include <wx/statline.h>
 #include <boost/spirit/version.hpp> //SPIRIT_VERSION for AboutDlg
 
-#include "dlgs.h"
+#include "dialogs.h"
 #include "gui.h"
 #include "listptxt.h"
 #include "../fit.h"

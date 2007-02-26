@@ -7,6 +7,7 @@
 #include <wx/notebook.h>
 #include <wx/spinctrl.h>
 #include <wx/config.h>
+#include <wx/listctrl.h>
 #include <vector>
 #include <string>
 
