@@ -150,8 +150,8 @@ void ScriptDebugDlg::make_list_from_txt()
         // there is a bug in wxTextCtrl::GetLineText(),
         // empty line gives "\n"+next line
         if (!line.empty() && line[0] == '\n') // wx bug 
-            line = wxT("");
-        add_line(i+1, wx2s(line));
+            line = "";
+        add_line(i+1, line);
     }
 }
 
@@ -169,7 +169,7 @@ void ScriptDebugDlg::OnSaveAs(wxCommandEvent&)
                         wxT("fityk scripts (*.fit)|*.fit|all files|*"), 
                         wxSAVE | wxOVERWRITE_PROMPT);
     if (dialog.ShowModal() == wxID_OK) 
-        save_file(wx2s(dialog.GetPath()));
+        save_file(dialog.GetPath());
     dir = dialog.GetDirectory();
 }
 
@@ -187,7 +187,7 @@ void ScriptDebugDlg::add_line(int n, string const& line)
 {
     int pos = list->GetItemCount();
     list->InsertItem(pos, n == -1 ? wxString(wxT("...")) 
-                                  : wxString::Format("%i", n));
+                                  : wxString::Format(wxT("%i"), n));
     string::size_type sep = line.find(';');
     string::size_type hash = line.find('#');
     string head, tail;
@@ -327,7 +327,8 @@ void ScriptDebugDlg::OnPageChange(wxNotebookEvent& event)
 
 void ScriptDebugDlg::OnTextChange(wxCommandEvent&)
 {
-    if (GetTitle().EndsWith(" *") != txt->IsModified())
+    //if (GetTitle().EndsWith(" *") != txt->IsModified())  //wx2.8
+    if ((GetTitle().Right(2) == wxT(" *")) != txt->IsModified())
         set_title();
 #if 0
     tb->EnableTool(wxID_UNDO, txt->CanUndo());
