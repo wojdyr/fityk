@@ -985,7 +985,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
                  wxT("\n\nYou can see mouse hints at the status bar: the left")
                  wxT("\nbutton activates, and the right disactivates points.")
                  wxT("\n\nExtra hint: to activate/disactivate points in")
-                 wxT("a rectangle,\npress Shift"), 
+                 wxT(" a rectangle,\npress Shift"), 
                              wxT("How to use mouse..."),
                              wxOK|wxICON_INFORMATION);
                 return;

@@ -876,6 +876,8 @@ bool SideBar::howto_plot_dataset(int n, bool& shadowed, int& offset) const
     //             2: "shadow unselected" 
     //             3: "hide all"
     int choice_idx = data_look->GetSelection();
+    if (n >= d->list->GetItemCount())
+        d->update_data_list(true, true);
     bool sel = d->list->IsSelected(n) || d->list->GetFocusedItem() == n;
     if ((choice_idx == 1 && !sel) || choice_idx == 3)
         return false;

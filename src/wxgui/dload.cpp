@@ -301,21 +301,10 @@ void DLoadDlg::OnHTitleCheckBox (wxCommandEvent& event)
 void DLoadDlg::update_title_from_file()
 {
     assert (htitle_cb->GetValue());
-    wxString title;
     ifstream f(dir_ctrl->GetFilePath().fn_str());
-    if (f) {
-        string s;
-        getline(f, s);
-        if (columns_panel->IsEnabled()) {
-            int col = y_column->GetValue() - 1;
-            vector<string> v = split_string(s, " \t");
-            if (size(v) > col) 
-                title = s2wx(v[col]);
-        }
-        else
-            title = s2wx(s).Trim();
-    }
-    title_tc->SetValue(title);
+    int col = columns_panel->IsEnabled() ? y_column->GetValue() : 0;
+    string title = Data::read_one_line_as_title(f, col);
+    title_tc->SetValue(s2wx(title));
 }
 
 void DLoadDlg::OnAutoTextCheckBox (wxCommandEvent& event)

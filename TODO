@@ -18,8 +18,7 @@ $Id$
 
 // * GUI [BUG] aux. plot - scaling problem
 
-* BUG, GUI, MS Windows only: commands "@+ <" and "@0 <" executed from script
-  give error: "Couldn't retrieve information about list control item 1."
+// * BUG, GUI, MS Windows only error: "Couldn't retrieve information about..."
 
 * // BUG: minor logging issue (c+ >log2.fit) [done?]
   //        problem with logging on MSW (solved?)

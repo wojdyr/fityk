@@ -340,19 +340,26 @@ void Data::load_xy_filetype (ifstream& f, vector<int> const& columns)
     x_step = find_step();
 }
 
+string Data::read_one_line_as_title(ifstream& f, int column)
+{
+    if (!f)
+        return "";
+    string s;
+    getline(f, s);
+    --column;
+    if (column >= 0) {
+        vector<string> v = split_string(s, " \t");
+        if (column < size(v)) 
+            return v[column];
+    }
+    return strip_string(s);
+}
+
 /// read first line as file's title, and than run load_xy_filetype()
 void Data::load_header_xy_filetype(ifstream& f, vector<int> const& columns)
 {
-    string s;
-    getline(f, s);
-    if (columns.size() > 1) {
-        int col = columns[1] - 1;
-        vector<string> v = split_string(s, " \t");
-        if (size(v) > col) 
-            title = v[col];
-    }
-    else
-        title = strip_string(s);
+    int title_col = columns.size() > 1 ? columns[1] : 0;
+    title = Data::read_one_line_as_title(f, title_col);
     load_xy_filetype(f, columns);
 }
 
