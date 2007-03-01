@@ -1,4 +1,4 @@
-# Fityk 0.7.0
+# Fityk 0.7.8
 ## this script is an example of Pawley method for powder pattern in Fityk
 
 # it is very complicated, but there is not simpler method to do it
@@ -72,8 +72,8 @@ $c_zn200 = 360/pi * asin(sqrt(4/3 * (2^2+0^2+2*0) / $zn_a^2 + 0^2/$zn_c^2 ) / 2 
 %zn200 = guess PseudoVoigt center=$c_zn200
 
 # we constrain width and shape of this small peak (200)
-%zn200[shape] = %zn112[shape]
-%zn200[hwhm] = %zn112[hwhm]
+%zn200.shape = %zn112.shape
+%zn200.hwhm = %zn112.hwhm
 
 # Zn (201) 
 $c_zn201 = 360/pi * asin(sqrt(4/3 * (2^2+0^2+2*0) / $zn_a^2 + 1^2/$zn_c^2 ) / 2 * $lambda)
@@ -83,7 +83,7 @@ $c_zn201 = 360/pi * asin(sqrt(4/3 * (2^2+0^2+2*0) / $zn_a^2 + 1^2/$zn_c^2 ) / 2 
 $c_sic311 = 360/pi * asin(sqrt(3^2+1^2+1^2) / $sic_a / 2 * $lambda)
 %sic311 = guess PseudoVoigt center=$c_sic311
 
-%zs = Constant(~0.) -> Z #zero-shift
+Z = Constant(~0.) #zero-shift
 
 # fit   #running default fitting method (Lev-Mar)
        #'lambda' that you can see in output window is a parameter used by

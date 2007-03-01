@@ -1,4 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
+// Licence: GNU General Public License version 2
 // $Id$
 
 /// In this file:
@@ -375,7 +376,7 @@ bool export_data_dlg(wxWindow *parent, bool load_exported)
     }
     wxFileDialog fdlg (parent, wxT("Export data to file"), dir, wxT(""),
                        wxT("x y data (*.dat, *.xy)|*.dat;*.DAT;*.xy;*.XY"),
-                       wxSAVE | wxOVERWRITE_PROMPT);
+                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     dir = fdlg.GetDirectory();
     if (fdlg.ShowModal() == wxID_OK) {
         string path = wx2s(fdlg.GetPath());

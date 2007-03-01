@@ -1,4 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
+// Licence: GNU General Public License version 2
 // $Id$
 
 #ifndef FITYK__MGR__H__

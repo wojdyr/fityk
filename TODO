@@ -20,21 +20,19 @@ $Id$
 
 // * BUG, GUI, MS Windows only error: "Couldn't retrieve information about..."
 
-* // BUG: minor logging issue (c+ >log2.fit) [done?]
-  //        problem with logging on MSW (solved?)
-
 // * GUI: "Merge points" dialog
-
-* GUI: Windows: check this: 
-   "Executing something like 'Y=y/darea(y)' from the command 
-   line or from the script does not refresh the plot window."
-
-* check if errors (info errors) are the same like in other popular programs
-  (there are some doubts about it)
 
 // * bug: cfityk -c "info 2+3; quit"    -> syntax error
 
 //* clean up verbosity levels of messages. 
+
+// * calculation of covariance matrix is corrected
+
+?// * BUG: MSW: minor logging issue (c+ >log2.fit)
+
+* BUG, GUI, MSW: Ctrl-C in output window doesn't work (focus moved to input)
+
+* add new syntax changes to test_syntax.fit
 
 ------------------ release 0.7.8
 

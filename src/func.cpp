@@ -1,4 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
+// Licence: GNU General Public License version 2
 // $Id$
 
 #include "common.h"
@@ -164,7 +165,7 @@ vector<string> Function::get_all_types()
 string Function::get_formula(int n)
 {
     assert (n >= 0);
-    int nb = sizeof(builtin_formulas)/sizeof(builtin_formulas[0]);
+    int nb = sizeof(builtin_formulas) / sizeof(builtin_formulas[0]);
     if (n < nb)
         return builtin_formulas[n];
     UdfContainer::UDF const* udf = UdfContainer::get_udf(n - nb);
@@ -189,7 +190,7 @@ string Function::get_formula(string const& type)
 /// returns: 2 if built-in, in C++, 1 if buit-in UDF, 0 if defined by user
 int Function::is_builtin(int n)
 {
-    int nb = sizeof(builtin_formulas)/sizeof(builtin_formulas[0]);
+    int nb = sizeof(builtin_formulas) / sizeof(builtin_formulas[0]);
     assert (n >= 0 && n < nb + size(UdfContainer::udfs));
     if (n < nb)
         return 2;

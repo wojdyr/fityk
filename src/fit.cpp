@@ -1,4 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
+// Licence: GNU General Public License version 2
 // $Id$
 
 #include "common.h"
@@ -28,17 +29,18 @@ string Fit::getInfo(vector<DataWithSum*> const& dsds)
 {
     vector<fp> const &pp = AL->get_parameters();
     update_parameters(dsds);
-    //n_m = number of points - degrees of freedom (parameters)
-    int n_m = 0;
+    //dof = degrees of freedom = (number of points - number of parameters) 
+    int dof = 0;
     for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
                                                     i != dsds.end(); ++i) 
-        n_m += (*i)->get_data()->get_n(); 
-    n_m -= count(par_usage.begin(), par_usage.end(), true);
-    return "Current WSSR = " + S(compute_wssr(pp, dsds)) 
-                + " (expected: " + S(n_m) + "); SSR = " 
-                + S(compute_wssr(pp, dsds, false))
-		+ "; R-squared = " 
-		+ S(compute_r_squared(pp, dsds)) ;
+        dof += (*i)->get_data()->get_n(); 
+    dof -= count(par_usage.begin(), par_usage.end(), true);
+    fp wssr = compute_wssr(pp, dsds);
+    return "WSSR = " + S(wssr) 
+           + ";  DoF = " + S(dof) 
+           + ";  WSSR/DoF = " + S(wssr/dof) 
+           + ";  SSR = " + S(compute_wssr(pp, dsds, false))
+           + ";  R-squared = " + S(compute_r_squared(pp, dsds)) ;
 }
 
 vector<fp> Fit::get_covariance_matrix(vector<DataWithSum*> const& dsds)
@@ -56,7 +58,7 @@ vector<fp> Fit::get_covariance_matrix(vector<DataWithSum*> const& dsds)
     //E.g. SplitGaussian with center < min(active x) will have hwhm1 unused
     //Anyway, if i'th column/row in alpha are only zeros, we must
     //do something about it -- symmetric error is undefined 
-    vector<int> undefined;
+    vector<int> undef;
     for (int i = 0; i < na; ++i) {
         bool has_nonzero = false;
         for (int j = 0; j < na; j++)                     
@@ -65,19 +67,16 @@ vector<fp> Fit::get_covariance_matrix(vector<DataWithSum*> const& dsds)
                 break;
             }
         if (!has_nonzero) {
-            undefined.push_back(i);
+            undef.push_back(i);
             alpha[i*na + i] = 1.;
         }
     }
 
     reverse_matrix(alpha, na);
 
-    for (vector<int>::const_iterator i = undefined.begin(); 
-            i != undefined.end(); ++i)
+    for (vector<int>::const_iterator i = undef.begin(); i != undef.end(); ++i)
         alpha[(*i)*na + (*i)] = 0.; 
 
-    for (vector<fp>::iterator i = alpha.begin(); i != alpha.end(); i++)
-        (*i) *= 2; //FIXME: is it right? (S.Brandt, Analiza danych (10.17.4))
     return alpha;
 }
 

@@ -1,4 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
+// Licence: GNU General Public License version 2
 // $Id$
 
 /// In this file:
@@ -376,7 +377,7 @@ void PrintManager::print()
 void PrintManager::print_to_psfile()
 {
     wxFileDialog dialog(0, wxT("PostScript file"), wxT(""), wxT(""), 
-                        wxT("*.ps"), wxSAVE | wxOVERWRITE_PROMPT);
+                        wxT("*.ps"), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (dialog.ShowModal() != wxID_OK) 
         return;
     get_print_data().SetPrintMode(wxPRINT_MODE_FILE);

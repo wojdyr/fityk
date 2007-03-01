@@ -1,4 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
+// Licence: GNU General Public License version 2
 // $Id$
 
 // wxwindows headers, see wxwindows samples for description
@@ -949,7 +950,7 @@ void FFrame::OnDLoad (wxCommandEvent&)
                               wxT("|cpi files (*.cpi)|*.cpi;*.CPI")
                               wxT("|mca files (*.mca)|*.mca;*.MCA")
                               wxT("|Siemens/Bruker (*.raw)|*.raw;*.RAW"),
-                              wxOPEN | wxFILE_MUST_EXIST | wxMULTIPLE);
+                              wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
     if (fdlg.ShowModal() == wxID_OK) {
         wxArrayString paths;
         fdlg.GetPaths(paths);
@@ -1096,7 +1097,7 @@ void FFrame::OnSExport (wxCommandEvent& event)
                             ? wxT("parameters of functions (*.peaks)|*.peaks")
                             : wxT("mathematic formula (*.formula)|*.formula"))
                         + wxString(wxT("|all files|*")),
-                       wxSAVE | wxOVERWRITE_PROMPT);
+                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) 
         exec_command(string("info ") + (as_peaks ? "peaks" : "formula")
                      + " in " +  get_active_data_str() + 
@@ -1180,7 +1181,7 @@ void FFrame::OnLogStart (wxCommandEvent&)
     wxFileDialog fdlg (this, wxT("Log to file"), dir, wxT(""),
                        wxT("Fityk script file (*.fit)|*.fit;*.FIT")
                        wxT("|All files |*"),
-                       wxSAVE);
+                       wxFD_SAVE);
     string const& logfile = getUI()->getCommands().get_log_file();
     if (!logfile.empty())
         fdlg.SetPath(s2wx(logfile));
@@ -1210,7 +1211,7 @@ void FFrame::OnLogDump (wxCommandEvent&)
     static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
     wxFileDialog fdlg(this, wxT("Dump all commands executed so far to file"),
                       dir, wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
-                      wxSAVE | wxOVERWRITE_PROMPT);
+                      wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
         exec_command("commands[:] > '" + wx2s(fdlg.GetPath()) + "'");
     }
@@ -1232,7 +1233,7 @@ void FFrame::OnOInclude (wxCommandEvent&)
     static wxString dir = wxConfig::Get()->Read(wxT("/execScriptDir"));
     wxFileDialog fdlg (this, wxT("Execute commands from file"), dir, wxT(""),
                               wxT("fityk file (*.fit)|*.fit;*.FIT|all files|*"),
-                              wxOPEN | wxFILE_MUST_EXIST);
+                              wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (fdlg.ShowModal() == wxID_OK) {
         exec_command("commands < '" + wx2s(fdlg.GetPath()) + "'");
         last_include_path = wx2s(fdlg.GetPath());
@@ -1265,7 +1266,7 @@ void FFrame::OnODump (wxCommandEvent&)
     static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
     wxFileDialog fdlg(this, wxT("Dump current program state to file as script"),
                       dir, wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
-                      wxSAVE | wxOVERWRITE_PROMPT);
+                      wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
         exec_command("dump > '" + wx2s(fdlg.GetPath()) + "'");
         //exec_command("commands[:] > '" + wx2s(fdlg.GetPath()) + "'");

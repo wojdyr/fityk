@@ -1,4 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
+// Licence: GNU General Public License version 2
 // $Id$
 
 /// In this file:
@@ -121,7 +122,7 @@ void ScriptDebugDlg::OpenFile(wxWindow *parent)
 {
     wxFileDialog dialog(parent, wxT("open script file"), dir, wxT(""), 
                         wxT("fityk scripts (*.fit)|*.fit|all files|*"), 
-                        wxOPEN /*| wxFILE_MUST_EXIST*/);
+                        wxFD_OPEN /*| wxFD_FILE_MUST_EXIST*/);
     if (dialog.ShowModal() == wxID_OK) 
         do_open_file(dialog.GetPath());
     dir = dialog.GetDirectory();
@@ -167,7 +168,7 @@ void ScriptDebugDlg::OnSaveAs(wxCommandEvent&)
 {
     wxFileDialog dialog(this, wxT("save script as..."), dir, wxT(""), 
                         wxT("fityk scripts (*.fit)|*.fit|all files|*"), 
-                        wxSAVE | wxOVERWRITE_PROMPT);
+                        wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (dialog.ShowModal() == wxID_OK) 
         save_file(dialog.GetPath());
     dir = dialog.GetDirectory();

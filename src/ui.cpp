@@ -1,4 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
+// Licence: GNU General Public License version 2
 // $Id$
 
 #include "common.h"
@@ -117,6 +118,7 @@ void Commands::start_logging(string const& filename, bool with_output)
     }
     else {
         stop_logging();
+        log.clear();
         log.open(filename.c_str(), ios::out | ios::app);
         if (!log) 
             throw ExecuteError("Can't open file for writing: " + filename);

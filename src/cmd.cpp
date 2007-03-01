@@ -1,4 +1,5 @@
 // This file is part of fityk program. Copyright (C) 2005 Marcin Wojdyr
+// Licence: GNU General Public License version 2
 // $Id$
 
 #include <boost/spirit/core.hpp>

@@ -1,4 +1,5 @@
 // This file is part of fityk program. Copyright (C) 2003 Stefan Krumm  
+// Licence: GNU General Public License version 2
 
 
 #ifndef FITYK__FILEROUTINES__H__

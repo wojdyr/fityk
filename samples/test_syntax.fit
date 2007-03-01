@@ -1,4 +1,4 @@
-# Fityk 0.7.4
+# Fityk 0.7.8
 
 ### syntax testing
 ### this script doesn't assume location of any other files (ie. no data files
@@ -11,7 +11,7 @@
 set exit-on-warning = 1
 set autoplot = never
 set pseudo-random-seed = 174924
-set verbosity = very-verbose
+set verbosity = verbose
 
 
 # ... and then issue as many commands as possible, checking for sytax errors
@@ -43,7 +43,7 @@ del @0
 M = 400 in @1
 X=n/M*3*pi in @1
 Y=sin(x) in @1
-plot @1
+plot in @1
 sleep 0.3
 M = 800 in @0
 X = 10 + n/M*90 in @0
@@ -55,16 +55,16 @@ $height=1901; $center=75.313; $hwhm=0.5; $shape=2.4
 Y = y + $height/(1+((x-$center)/$hwhm)^2*(2^(1/$shape)-1))^$shape #Pearson VII
 S = sqrt(max2(1, y))
 Y = randnormal(y, s)  #noise
-plot @0
+plot in @0
 sleep 0.3
 
 %p = guess Lorentzian center=~75
-plot @0
+plot in @0
 sleep 0.2
 del %p
 guess Gaussian
 %lo = guess SplitGaussian [38:]
-plot @0
+plot in @0
 sleep 0.3
 %lo = guess LorentzianA [38:44]
 %pe = Pearson7(height=~1901, center=~75.313, hwhm=~1/2, shape=2.4) 
@@ -178,11 +178,11 @@ p . .
 plot . [:1000]
 plo [:50]
 pl [40:] .
-plo @0 [:50]
+plo [:50] in @0 
 
-@+ < @0
+@+ = @0
 @+
-@2 < @0 + @1
+@2 = @0 + @1
 del @2
 @1.F = copy(@0.F)
 @1.Z = copy(@0.Z)

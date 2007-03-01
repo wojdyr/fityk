@@ -1,4 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
+// Licence: GNU General Public License version 2
 // $Id$
 #ifndef FITYK__WX_CMN__H__
 #define FITYK__WX_CMN__H__
@@ -114,6 +115,14 @@ void add_apply_close_buttons(wxWindow *parent, wxSizer *top_sizer);
 extern wxMouseEvent dummy_mouse_event;
 extern wxCommandEvent dummy_cmd_event;
 
+#if !wxCHECK_VERSION(2,7,0)
+# define wxFD_OPEN wxOPEN
+# define wxFD_SAVE wxSAVE
+# define wxFD_OVERWRITE_PROMPT wxOVERWRITE_PROMPT
+# define wxFD_FILE_MUST_EXIST wxFILE_MUST_EXIST
+# define wxFD_MULTIPLE wxMULTIPLE
+# define wxFD_CHANGE_DIR wxCHANGE_DIR
+#endif
 
 /// based on http://wiki.wxpython.org/index.cgi/ProportionalSplitterWindow
 /// it is like wxSplitterWindow, but when resized, both windows are resized
@@ -125,7 +134,11 @@ public:
                          wxWindowID id=-1, 
                          float proportion=0.66, // 0. - 1.
                          const wxSize& size = wxDefaultSize,
+#if wxCHECK_VERSION(2, 8, 0)
+                         long style=wxSP_NOBORDER|wxSP_3DSASH);
+#else
                          long style=wxSP_NOBORDER|wxSP_FULLSASH|wxSP_3DSASH);
+#endif
     bool SplitHorizontally(wxWindow* win1, wxWindow* win2, float proportion=-1);
     bool SplitVertically(wxWindow* win1, wxWindow* win2, float proportion=-1);
     float GetProportion() const { return m_proportion; }

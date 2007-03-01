@@ -511,6 +511,12 @@
      point with command: <userinput>S=1</userinput>.
      See <xref linkend="transform"/> for details.
     </para>
+    <note>
+     <para>
+      You can <emphasis>not</emphasis> set data errors (standard deviations) 
+      as <firstterm>unknown</firstterm>.
+     </para>
+    </note>
    </section> 
 
    <section id="transform">  
@@ -1565,6 +1571,25 @@
      three very different optimization methods. All are well-known and
      described in many standard textbooks. 
     </para>
+    <para>
+     The standard deviations of the best-fit parameters are given by the square
+     root of the corresponding diagonal elements of the covariance matrix.
+     The covariance matrix is based on standard deviations of data points.
+     Formulae can be found e.g. in <citetitle>
+      <ulink url="http://www.gnu.org/software/gsl/manual/">GSL Manual</ulink>
+     </citetitle>, chapter 
+     <citetitle pubwork="chapter">Linear regression. Overview</citetitle>
+     (weighted data version).
+    </para>
+    <note>
+     <para>
+      Some programs scale errors with square root of reduced 
+      chi<superscript>2</superscript> (i.e. with sqrt(WSSR/DoF), where
+      DoF is the number of degrees of freedom, 
+      i.e. the number of active data points minus the number of parameters). 
+      Fityk is <emphasis>not</emphasis> doing this.
+     </para>
+    </note>
    </section>
 
    <section id="fitting_cmd">
