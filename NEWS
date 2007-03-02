@@ -1,13 +1,21 @@
 $Id$
 
-User-visible changes in version 0.7.8  (2007-02-  ):
+User-visible changes in version 0.7.8  (2007-03-02):
+* syntax changed for dataset sum (was: @+ < @0 + @1; is: @+ = @0 + @1)
+* introduced dataset operations sum_same_x and avg_same_x, 
+  eg. "@+ = sum_same_x @0 + @1" (in GUI: Data > Merge points)
+* command "info version"
+* changed options to "set verbosity"
 * GUI: error bars for data
 * voigt(x,y) function for data transformations and variable definitions
 * new option in settings "epsilon" used for floating point comparision.
 * GUI: script debugger dialog was finished; "Edit init file" was added to menu
 * option data-default-sigma with possible values: one, sqrt.
-* plot command: dataset can be specified using "in @n", like in other commands
-* several bug fixes (see SVN log for more details)
+* plot command: dataset can be specified using "in @n" or "in @*", 
+  default view may not contain y=0, if it's far enough from data points
+* corrected calculation of covariance matrix (new C_ij = old C_ij / 2)
+* several bug fixes (most of them reported by Wolfgang Christen)
+
 
 User-visible changes in version 0.7.7  (2007-01-08):
 * fixed GCC 4.1 compilation problem 

@@ -1684,7 +1684,7 @@ void FFrame::set_shared_scale()
 
 void FFrame::focus_input(wxKeyEvent& event)
 {
-    if (should_focus_input(event.GetKeyCode())) 
+    if (should_focus_input(event)) 
         io_pane->input_field->RedirectKeyPress(event);
     else
         event.Skip();

@@ -129,15 +129,21 @@ void do_plot(char const*, char const*)
 {
     if (vds.size() == 1 && vds[0] >= 0)
         AL->activate_ds(vds[0]);
-    vector<DataWithSum*> dsds = get_datasets_from_indata();
-    //move active ds to the front
-    DataWithSum* ads = AL->get_ds(AL->get_active_ds_position());
-    vector<DataWithSum*>::iterator pos = find(dsds.begin(), dsds.end(), ads);
-    if (pos != dsds.end() && pos != dsds.begin()) {
-        *pos = dsds[0];
-        dsds[0] = ads;
+    bool need_ds = false;
+    for (vector<string>::const_iterator i = vr.begin(); i != vr.end(); ++i)
+        if (i->empty())
+            need_ds = true;
+    if (need_ds) {
+        vector<DataWithSum*> dsds = get_datasets_from_indata();
+        //move active ds to the front
+        DataWithSum* ads = AL->get_ds(AL->get_active_ds_position());
+        vector<DataWithSum*>::iterator pos = find(dsds.begin(),dsds.end(), ads);
+        if (pos != dsds.end() && pos != dsds.begin()) {
+            *pos = dsds[0];
+            dsds[0] = ads;
+        }
+        AL->view.set_datasets(dsds);
     }
-    AL->view.set_datasets(dsds);
     AL->view.parse_and_set(vr);
     getUI()->drawPlot(1, true);
     outdated_plot = false;

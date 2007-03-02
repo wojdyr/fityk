@@ -2,40 +2,6 @@ $Id$
 [ TODO list and tentative development plan ]
 [ // = done, but not tested/documented     ]
 
-// * auto-scaling should not include x/y=0, unless it's
-
-// * plot - a way to zoom to show all datasets (plot [] in @*)
-
-// * syntax changed for dataset sum, was: @+ < @0 + @1; is: @+ = @0 + @1;
-//   added operations (sum_same_x and avg_same_x), eg. @+ = sum_same_x @0 + @1
-
-// * implement "info version"
-
-// * ExpDecay
-
-// * GUI: range-mode: give an explaination when user tries to activate points
-//   when all are active
-
-// * GUI [BUG] aux. plot - scaling problem
-
-// * BUG, GUI, MS Windows only error: "Couldn't retrieve information about..."
-
-// * GUI: "Merge points" dialog
-
-// * bug: cfityk -c "info 2+3; quit"    -> syntax error
-
-//* clean up verbosity levels of messages. 
-
-// * calculation of covariance matrix is corrected
-
-?// * BUG: MSW: minor logging issue (c+ >log2.fit)
-
-* BUG, GUI, MSW: Ctrl-C in output window doesn't work (focus moved to input)
-
-* add new syntax changes to test_syntax.fit
-
------------------- release 0.7.8
-
 * build engine (everything but GUI/CLI interface) as a dynamic library
   with more or less documented API (in fityk.h).
     tentative basic API: 

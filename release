@@ -125,8 +125,11 @@ elif [ $1 -eq 4 ]; then
 elif [ $1 -eq 5 ]; then
  echo  putting docs on www   
  echo destination: $WEB
- echo sending fitykhelp.html fitykhelp.xml ...
  cd doc/ 
+ echo "preparing and sending PDF manual..."
+ JAVA_HOME=/usr/lib/j2re1.5-sun make fitykhelp.pdf
+ scp fitykhelp.pdf $WEB/doc/
+ echo sending fitykhelp.html fitykhelp.xml ...
  xmlto html-nochunks fitykhelp.xml
  scp fitykhelp.html fitykhelp.xml $WEB/doc/
  echo sending fitykhelp_img ...

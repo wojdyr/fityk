@@ -20,9 +20,6 @@ public:
     /// to change focus and redirect keyboard input to text input
     void RedirectKeyPress(wxKeyEvent& event);
     void SetValue(const wxString& value) { m_text->SetValue(value); }
-    // functions below are used internally
-    void OnInputLine(const wxString& line);
-    void HistoryMove(int n, bool relative);
 protected:
     wxTextCtrl *m_text;
     wxSpinButton *m_button;
@@ -32,6 +29,11 @@ protected:
 
     void OnSpinButton(wxSpinEvent &event) 
         { HistoryMove(m_history.GetCount() - 1 - event.GetPosition(), false); }
+    void OnInputLine(const wxString& line);
+    void HistoryMove(int n, bool relative);
+    void OnKeyDownAtText (wxKeyEvent& event);
+    void OnKeyDownAtSpinButton (wxKeyEvent& event);
+    wxSize DoGetBestSize() const;
 
     DECLARE_EVENT_TABLE()
 };

@@ -102,11 +102,7 @@ wxFont cfg_read_font(wxConfigBase const* config, wxString const& key,
 void cfg_write_font(wxConfigBase* config, wxString const& key,
                           wxFont const& value);
 
-inline bool should_focus_input(int key)
-{
-    return key == ' ' || (key >= 'A' && key <= 'Z')
-        || key == '%' || key == '$' || key == '@' || key == '#';
-}
+bool should_focus_input(wxKeyEvent& event);
 
 bool change_color_dlg(wxColour& col);
 void add_apply_close_buttons(wxWindow *parent, wxSizer *top_sizer);

@@ -130,7 +130,7 @@ i avg(y*y), stddev(y if y > avg(y))
 i darea(y-@0.F(x) if 15<x<20)
 
 
-info+ variables
+info+ version, variables
 i+ $a, $_11
 inf+ types
 i+ functions
@@ -178,20 +178,26 @@ p . .
 plot . [:1000]
 plo [:50]
 pl [40:] .
+plo [] in @* 
 plo [:50] in @0 
 
 @+ = @0
 @+
 @2 = @0 + @1
 del @2
+@+ = avg_same_x @0 + @1
+delete @2
 @1.F = copy(@0.F)
 @1.Z = copy(@0.Z)
+with epsilon=0.1 @1 = sum_same_x @1
+
 
 #test variable rhs syntax parsing
 $t1 = 3
 $t2 = -$t1
 $t3 = $t1+(-$t2^2)
 $t4=sin($t1)^2+(-cos($t1))^2
+$t5=voigt($t4, ~3)
 
 define Bleh(area, center, fwhm, shape) = GaussianA(area*(1-shape), center, fwhm) + LorentzianA(area*shape, center, fwhm+0.2)
 %bleh = Bleh(~123., 30, ~4, ~0.5)
@@ -244,7 +250,13 @@ set nm-move-all = 0
 set nm-move-factor = 1
 set variable-domain-percent = 30
 set width-correction = 1
-
+set epsilon = 1e-12
+set data-default-sigma=one
+set data-default-sigma=sqrt
+set verbosity = debug
+set verbosity = normal
+set verbosity = quiet
+set verbosity = verbose
 
 set exit-on-warning = 0
 reset

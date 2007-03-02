@@ -11,9 +11,11 @@
 #include <wx/wx.h>
 #endif
 
+#include <ctype.h>
 #include <wx/config.h>
 #include <wx/colordlg.h>
 #include <wx/statline.h>
+#include <wx/msgdlg.h>
 
 #include "cmn.h"
 #include "../common.h" //iround()
@@ -235,4 +237,12 @@ wxString get_user_conffile(string const& filename)
     return fityk_dir + wxFILE_SEP_PATH + s2wx(filename);
 }
 
+
+bool should_focus_input(wxKeyEvent& event)
+{
+    if (event.AltDown() || event.ControlDown() || event.CmdDown())
+        return false;
+    int c = event.GetKeyCode();
+    return c < 128 && (c == ' ' || isalnum(c) || ispunct(c));
+}
 

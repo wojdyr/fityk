@@ -32,146 +32,40 @@
 #include "inputline.h"
 
 
-
-class InputLineText : public wxTextCtrl
-{
-public:
-    InputLineText(InputLine *parent, 
-                  wxWindowID winid = wxID_ANY,
-                  const wxString& value = wxEmptyString,
-                  const wxPoint& pos = wxDefaultPosition,
-                  const wxSize& size = wxDefaultSize,
-                  long style = 0)
-    : wxTextCtrl(parent, winid, value, pos, size, style),
-      par(parent) {} 
-protected:
-    void OnKeyDown (wxKeyEvent& event);
-    InputLine *par;
-
-    DECLARE_EVENT_TABLE()
-};
-
-//-----------------------------------------------------------------------
-
-class InputLineButton : public wxSpinButton
-{
-public:
-    InputLineButton(wxWindow *parent, InputLine *kbd)
-        : wxSpinButton(parent, wxID_ANY, 
-                       wxDefaultPosition, wxDefaultSize,
-                       wxSP_VERTICAL|wxSP_ARROW_KEYS|wxNO_BORDER),
-          m_kbd(kbd) {}
-protected:
-    InputLine *m_kbd;
-    void OnKeyDown (wxKeyEvent& event);
-    DECLARE_EVENT_TABLE()
-};
-
-
-//-----------------------------------------------------------------------
-
-BEGIN_EVENT_TABLE(InputLineText, wxTextCtrl)
-    EVT_KEY_DOWN (InputLineText::OnKeyDown)
-END_EVENT_TABLE()
-
-void InputLineText::OnKeyDown (wxKeyEvent& event)
-{
-    if (event.ControlDown()) {
-        switch (event.m_keyCode) {
-            case 'A':
-                SetInsertionPoint(0);
-                return;
-            case 'E':
-                SetInsertionPointEnd();
-                return;
-            case 'P':
-                par->HistoryMove(-1, true);
-                return;
-            case 'N':
-                par->HistoryMove(+1, true);
-                return;
-            case 'K':
-                SetSelection(GetInsertionPoint(), GetLastPosition());
-                Cut();
-                return;
-            case 'U':
-                SetSelection(0, GetInsertionPoint());
-                Cut();
-                return;
-            case 'Y':
-                Paste();
-                return;
-        }
-    }
-    switch (event.m_keyCode) {
-        case WXK_RETURN:
-        case WXK_NUMPAD_ENTER:
-            {
-            wxString s = GetValue().Trim();
-            if (!s.IsEmpty())
-                par->OnInputLine(s);
-            Clear();
-            }
-            break;
-        // to process WXK_TAB, you need to uncomment wxTE_PROCESS_TAB
-        //case WXK_TAB:
-        //    Navigate();
-        //    break;
-        case WXK_UP:
-        case WXK_NUMPAD_UP:
-            par->HistoryMove(-1, true);
-            break;
-        case WXK_DOWN:
-        case WXK_NUMPAD_DOWN:
-            par->HistoryMove(+1, true);
-            break;
-        case WXK_PAGEUP:
-        case WXK_NUMPAD_PAGEUP:
-            par->HistoryMove(0, false);
-            break;
-        case WXK_PAGEDOWN:
-        case WXK_NUMPAD_PAGEDOWN:
-            par->HistoryMove(-1, false);
-            break;
-        default:
-            event.Skip();
-    }
-}
-
-//-----------------------------------------------------------------------
-
-BEGIN_EVENT_TABLE(InputLineButton, wxSpinButton)
-    EVT_KEY_DOWN (InputLineButton::OnKeyDown)
-END_EVENT_TABLE()
-
-// redirect key-down event to wxTextCtrl
-void InputLineButton::OnKeyDown(wxKeyEvent& event)
-{
-    m_kbd->RedirectKeyPress(event);
-    event.Skip();
-}
-
-//-----------------------------------------------------------------------
-
 BEGIN_EVENT_TABLE(InputLine, wxPanel)
     EVT_SPIN(-1, InputLine::OnSpinButton)
+    //KEY_DOWN events from wxTextCtrl and wxSpinButtonare Connect()-ed
 END_EVENT_TABLE()
 
 InputLine::InputLine(wxWindow *parent, wxWindowID id, 
                      V1Callback<wxString const&> const& receiver)
     : wxPanel(parent, id), m_hpos(0), m_receiver(receiver)
 {
-    m_text = new InputLineText(this, wxID_ANY, wxT(""),
+    m_text = new wxTextCtrl(this, wxID_ANY, wxT(""),
                        wxDefaultPosition, wxDefaultSize, 
                        wxWANTS_CHARS|wxTE_PROCESS_ENTER /*|wxTE_PROCESS_TAB*/);
-    m_button = new InputLineButton(this, this);
+    m_button = new wxSpinButton(this, wxID_ANY, 
+                                wxDefaultPosition, wxDefaultSize,
+                                wxSP_VERTICAL|wxSP_ARROW_KEYS|wxNO_BORDER),
     m_button->SetRange(0, 0); 
     m_button->SetValue(0); 
     wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(m_text, 1, wxEXPAND);
     sizer->Add(m_button, 0, wxEXPAND);
-    SetSizerAndFit(sizer);
+    SetInitialSize(wxSize(-1, m_text->GetEffectiveMinSize().y));
+    SetSizer(sizer);
     m_history.Add(wxT(""));
+    m_text->Connect(wxID_ANY, wxEVT_KEY_DOWN, 
+                    wxKeyEventHandler(InputLine::OnKeyDownAtText), 
+                    0, this);
+    m_button->Connect(wxID_ANY, wxEVT_KEY_DOWN, 
+                      wxKeyEventHandler(InputLine::OnKeyDownAtSpinButton), 
+                      0, this);
+}
+
+wxSize InputLine::DoGetBestSize() const
+{
+    return wxSize(wxPanel::DoGetBestSize().x, m_text->GetEffectiveMinSize().y);
 }
 
 void InputLine::RedirectKeyPress(wxKeyEvent& event)
@@ -212,4 +106,74 @@ void InputLine::OnInputLine(const wxString& line)
     m_text->SetFocus();
 }
 
+void InputLine::OnKeyDownAtText (wxKeyEvent& event)
+{
+    if (event.ControlDown()) {
+        switch (event.m_keyCode) {
+            case 'A':
+                m_text->SetInsertionPoint(0);
+                return;
+            case 'E':
+                m_text->SetInsertionPointEnd();
+                return;
+            case 'P':
+                HistoryMove(-1, true);
+                return;
+            case 'N':
+                HistoryMove(+1, true);
+                return;
+            case 'K':
+                m_text->SetSelection(m_text->GetInsertionPoint(), 
+                                     m_text->GetLastPosition());
+                m_text->Cut();
+                return;
+            case 'U':
+                m_text->SetSelection(0, m_text->GetInsertionPoint());
+                m_text->Cut();
+                return;
+            case 'Y':
+                m_text->Paste();
+                return;
+        }
+    }
+    switch (event.m_keyCode) {
+        case WXK_RETURN:
+        case WXK_NUMPAD_ENTER:
+            {
+            wxString s = m_text->GetValue().Trim();
+            if (!s.IsEmpty())
+                OnInputLine(s);
+            m_text->Clear();
+            }
+            break;
+        // to process WXK_TAB, you need to uncomment wxTE_PROCESS_TAB
+        //case WXK_TAB:
+        //    Navigate();
+        //    break;
+        case WXK_UP:
+        case WXK_NUMPAD_UP:
+            HistoryMove(-1, true);
+            break;
+        case WXK_DOWN:
+        case WXK_NUMPAD_DOWN:
+            HistoryMove(+1, true);
+            break;
+        case WXK_PAGEUP:
+        case WXK_NUMPAD_PAGEUP:
+            HistoryMove(0, false);
+            break;
+        case WXK_PAGEDOWN:
+        case WXK_NUMPAD_PAGEDOWN:
+            HistoryMove(-1, false);
+            break;
+        default:
+            event.Skip();
+    }
+}
+
+void InputLine::OnKeyDownAtSpinButton(wxKeyEvent& event)
+{
+    RedirectKeyPress(event);
+    event.Skip();
+}
 
