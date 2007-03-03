@@ -38,8 +38,8 @@ Name: {group}\Fityk Manual; Filename: {app}\fitykhelp.chm; WorkingDir: {app}; Fl
 Name: "{group}\Fityk Web Site"; Filename: {app}\fityk.url
 Name: {group}\Uninstall Fityk; Filename: {uninstallexe}
 Name: {group}\Fityk; Filename: {app}\fityk.exe; WorkingDir: {app}; IconFilename: {app}\fityk.exe; IconIndex: 0
-Name: {userdesktop}\Fityk; Filename: {app}\fityk.exe; WorkingDir: {app}\samples\; Tasks: desktopicon
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\Fityk"; Filename: {app}\fityk.exe; Tasks: quicklaunchicon
+Name: {userdesktop}\Fityk; Filename: {app}\fityk.exe; WorkingDir: {app}; Tasks: desktopicon
+Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\Fityk"; Filename: {app}\fityk.exe; WorkingDir: {app}; Tasks: quicklaunchicon
 
 
 [Tasks]

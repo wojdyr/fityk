@@ -52,8 +52,8 @@ InputLine::InputLine(wxWindow *parent, wxWindowID id,
     wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(m_text, 1, wxEXPAND);
     sizer->Add(m_button, 0, wxEXPAND);
-    SetInitialSize(wxSize(-1, m_text->GetEffectiveMinSize().y));
     SetSizer(sizer);
+    SetMinSize(wxSize(-1, m_text->GetBestSize().y));
     m_history.Add(wxT(""));
     m_text->Connect(wxID_ANY, wxEVT_KEY_DOWN, 
                     wxKeyEventHandler(InputLine::OnKeyDownAtText), 
@@ -65,7 +65,7 @@ InputLine::InputLine(wxWindow *parent, wxWindowID id,
 
 wxSize InputLine::DoGetBestSize() const
 {
-    return wxSize(wxPanel::DoGetBestSize().x, m_text->GetEffectiveMinSize().y);
+    return wxSize(wxPanel::DoGetBestSize().x, m_text->GetMinSize().y);
 }
 
 void InputLine::RedirectKeyPress(wxKeyEvent& event)

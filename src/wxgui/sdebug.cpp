@@ -146,14 +146,11 @@ bool ScriptDebugDlg::do_open_file(wxString const& path_)
 void ScriptDebugDlg::make_list_from_txt()
 {
     list->DeleteAllItems();
-    for (int i = 0; i != txt->GetNumberOfLines(); ++i) {
-        string line = wx2s(txt->GetLineText(i));
-        // there is a bug in wxTextCtrl::GetLineText(),
-        // empty line gives "\n"+next line
-        if (!line.empty() && line[0] == '\n') // wx bug 
-            line = "";
-        add_line(i+1, line);
-    }
+    // there is at least one bug in wxTextCtrl::GetLineText()
+    // (empty line gives "\n"+next line) so we don't use it
+    vector<string> lines = split_string(wx2s(txt->GetValue()), "\n");
+    for (size_t i = 0; i != lines.size(); ++i) 
+        add_line(i+1, lines[i]);
 }
 
 void ScriptDebugDlg::OnSave(wxCommandEvent& event)
@@ -229,11 +226,13 @@ void ScriptDebugDlg::exec_line(int n)
     }
     Commands::Status r = exec_command(wx2s(line));
     long millisec = sw.Time();
-    if (r == Commands::status_ok) {
-        list->SetItem(n, 2, wxString::Format(wxT("%.2f"), millisec/1000.));
-    }
-    else {
-        list->SetItem(n, 2, wxT("ERROR"));
+    if (nb->GetSelection() == 0) { //view tab
+        if (r == Commands::status_ok) {
+            list->SetItem(n, 2, wxString::Format(wxT("%.2f"), millisec/1000.));
+        }
+        else {
+            list->SetItem(n, 2, wxT("ERROR"));
+        }
     }
 }
 
@@ -296,6 +295,7 @@ wxString ScriptDebugDlg::get_list_item(int i)
     wxListItem info;
     info.SetId(i);
     info.SetColumn(1);
+    info.SetMask(wxLIST_MASK_TEXT);
     list->GetItem(info);
     return info.GetText();
 }
