@@ -5,14 +5,14 @@ $Id$
 * build engine (everything but GUI/CLI interface) as a dynamic library
   with more or less documented API (in fityk.h).
     tentative basic API: 
-      int dataset_count();
-      string info(string const& s);
+      int get_dataset_count();
+      string get_info(string const& s);
       Command::Status execute(string const& s);
       load_data(int slot, 
                 vec double x, vec double y, vec double sigma, string title);
      callbacks:
       typedef void message_handler_func(OutputStyle style, string const& s);
-      void message_handler(message_handler_func);
+      void set_message_handler(message_handler_func);
   GUI and CLI interfaces will use more than this API.
 
 * python interface to the library
@@ -49,7 +49,7 @@ $Id$
 
 * GUI: logarithmic x scale
 
-* @n.wssr, @n.ssr, @n.dof (degrees of freedom)
+* @n.wssr, @n.ssr, @n.dof (degrees of freedom), @n.rwssr
 
 * file paths: _EXECUTED_SCRIPT_DIR_[/\:] should be replaced with
    cwd or dir of executed script
@@ -90,6 +90,7 @@ $Id$
 
 * EMG function: how to calculate it? Now there are some problems with
   this function. There must be smarter way to implement it...
+  perhaps using gsl_sf_log_erfc
 
 * (GUI) plot horizontal/vertical lines (X/Y | pos=2.34 | 100%)
      can be used to show theoretical peak positions in XRD

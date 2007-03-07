@@ -56,13 +56,15 @@ AC_DEFUN([READLINE_STUFF],
      dnl some libreadline-compatibile libraries (like libedit) also
      dnl don't have it. We don't support them.
      AC_CHECK_DECLS([rl_completion_matches], [], [AC_MSG_ERROR([ 
-     Although you seem to have a readline-compatible library, 
-     it is either old GNU readline <= 4.1 (XX century),
-     or readline-compatible library, like libedit, but it's not compatible
-     enough with readline >= 4.2.
+     Although you seem to have a readline-compatible library, it is either 
+     old GNU readline <= 4.1 (XX century), or readline-compatible library, 
+     like libedit, but it's not compatible enough with readline >= 4.2.
          Either install libreadline >= 4.2, 
-            or configure fityk with option --without-readline])],
-                   [#include <readline/readline.h>]) 
+         or configure fityk with option --without-readline])],
+     [
+      #include <stdio.h> 
+      #include <readline/readline.h>
+     ]) 
  else
      AC_DEFINE(NO_READLINE, 1,
         [Define if you do not want to use or do not have readline library.])

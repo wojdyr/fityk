@@ -23,7 +23,7 @@ NMfit::~NMfit() {}
 
 fp NMfit::init()
 {
-    bool move_all = getSettings()->get_b("move-all"); 
+    bool move_all = getSettings()->get_b("nm-move-all"); 
     char distrib = getSettings()->get_e("nm-distribution"); 
     fp factor = getSettings()->get_f("nm-move-factor");
 

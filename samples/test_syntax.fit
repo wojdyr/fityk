@@ -74,6 +74,8 @@ dele %pe
 F += Pearson7(~2000, ~75, ~0.6, ~2) 
 fit 2 in @0
 fit+ 15
+with fitting-method=Nelder-Mead-simplex fit 10
+with fitting-method=Genetic-Algorithms fit 10
 %fun = copy(%_1)
 i+ %ble, %lo
 $a = %ble.shape

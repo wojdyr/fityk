@@ -49,6 +49,3 @@ Frame::Frame() : wxFrame(0, wxID_ANY, wxT("InputLine sample"))
     m_input->SetFocus();
 }
 
-// link with:
-//  g++ -g -W -O2 -o inputline sample_inputline.o inputline.o `wx-config --libs`
-
