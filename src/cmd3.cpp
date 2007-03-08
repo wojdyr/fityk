@@ -44,9 +44,9 @@ void do_dump(char const*, char const*)  { AL->dump_all_as_script(t); }
 void do_commands_logging(char const*, char const*)
 {
     if (t == "/dev/null")
-        getUI()->stopLog();
+        getUI()->stop_log();
     else
-        getUI()->startLog(t, with_plus);
+        getUI()->start_log(t, with_plus);
 }
 
 void do_exec_file(char const*, char const*) 
@@ -54,7 +54,7 @@ void do_exec_file(char const*, char const*)
     vector<pair<int,int> > vpn;
     for (int i = 0; i < size(vn); i+=2)
         vpn.push_back(make_pair(vn[i],vn[i+1]));
-    getUI()->execScript(t, vpn); 
+    getUI()->exec_script(t, vpn); 
 }
 
 void do_fit(char const*, char const*)

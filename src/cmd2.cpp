@@ -145,7 +145,7 @@ void do_plot(char const*, char const*)
         AL->view.set_datasets(dsds);
     }
     AL->view.parse_and_set(vr);
-    getUI()->drawPlot(1, true);
+    getUI()->draw_plot(1, true);
     outdated_plot = false;
 }
 
@@ -269,7 +269,7 @@ void do_print_info(char const* a, char const* b)
         }
     }
     else if (s == "commands")
-        m = getUI()->getCommands().get_info(with_plus);
+        m = getUI()->get_commands().get_info(with_plus);
     else if (startswith(s, "guess")) {
         vector<DataWithSum*> v = get_datasets_from_indata();
         for (vector<DataWithSum*>::const_iterator i = v.begin(); 
@@ -410,7 +410,7 @@ void set_data_title(char const*, char const*)  {
 void do_list_commands(char const*, char const*)
 {
     vector<string> cc 
-        = getUI()->getCommands().get_commands(tmp_int, tmp_int2, with_plus);
+        = getUI()->get_commands().get_commands(tmp_int, tmp_int2, with_plus);
     prepared_info += "\n" + join_vector(cc, "\n");
 }
 

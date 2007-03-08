@@ -164,21 +164,21 @@ UserInterface* UserInterface::getInstance()
     return instance; // address of sole instance
 }
 
-Commands::Status UserInterface::execAndLogCmd(string const &c)
+Commands::Status UserInterface::exec_and_log(string const &c)
 {
-    Commands::Status r = execCommand(c); 
+    Commands::Status r = this->exec_command(c); 
     commands.put_command(c, r); 
     return r;
 }
 
-void UserInterface::outputMessage (OutputStyle style, const string& s)
+void UserInterface::output_message (OutputStyle style, const string& s)
 {
     if (keep_quiet)
         return;
-    showMessage(style, s);
+    show_message(style, s);
     commands.put_output_message(s);
     if (style == os_warn && getSettings()->get_b("exit-on-warning")) {
-        showMessage(os_normal, "Warning -> exiting program.");
+        show_message(os_normal, "Warning -> exiting program.");
         throw ExitRequestedException();
     }
 }
@@ -186,7 +186,7 @@ void UserInterface::outputMessage (OutputStyle style, const string& s)
 
 /// items in selected_lines are ranges (first, after-last).
 /// if selected_lines are empty - all lines from file are executed
-void UserInterface::execScript (const string& filename, 
+void UserInterface::exec_script (const string& filename, 
                                 const vector<pair<int,int> >& selected_lines)
 {
     ifstream file (filename.c_str(), ios::in);
@@ -218,23 +218,28 @@ void UserInterface::execScript (const string& filename,
                                                     i != exec_nls.end(); i++) {
         if (i->txt.length() == 0)
             continue;
-        if (getVerbosity() >= 0)
-            showMessage (os_quot, S(i->nr) + "> " + i->txt); 
+        if (get_verbosity() >= 0)
+            show_message (os_quot, S(i->nr) + "> " + i->txt); 
         // result of parse_and_execute here is neglected. Errors in script
         // don't change status of command, which executes script
         parse_and_execute(i->txt);
     }
 }
 
-void UserInterface::drawPlot (int pri, bool now)
+void UserInterface::draw_plot (int pri, bool now)
 {
     if (pri <= getSettings()->get_e("autoplot")) 
-        doDrawPlot(now);
+        do_draw_plot(now);
 }
 
 
-int UserInterface::getVerbosity() { return getSettings()->get_e("verbosity"); }
+int UserInterface::get_verbosity() { return getSettings()->get_e("verbosity"); }
 
+
+Commands::Status UserInterface::exec_command (std::string const &s)
+{ 
+    return m_exec_command ? (*m_exec_command)(s) : parse_and_execute(s); 
+}
 
 bool is_fityk_script(string filename)
 {
@@ -258,9 +263,9 @@ bool is_fityk_script(string filename)
 void UserInterface::process_cmd_line_filename(string const& par)
 {
     if (is_fityk_script(par))
-        getUI()->execScript(par);
+        getUI()->exec_script(par);
     else {
-        getUI()->execAndLogCmd("@+ <'" + par + "'");
+        getUI()->exec_and_log("@+ <'" + par + "'");
     }
 }
 

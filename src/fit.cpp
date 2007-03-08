@@ -383,7 +383,7 @@ bool Fit::common_termination_criteria(int iter)
 void Fit::iteration_plot(vector<fp> const &A)
 {
     AL->use_external_parameters(A);
-    getUI()->drawPlot(3, true);
+    getUI()->draw_plot(3, true);
 }
 
 

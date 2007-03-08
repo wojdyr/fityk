@@ -116,7 +116,7 @@ bool LMfit::do_iteration()
         throw ExecuteError("Error when processing iteration " + S(iter_nr));
 
     // da is in beta_  
-    if (getUI()->getVerbosity() >= 1) {
+    if (getUI()->get_verbosity() >= 1) {
         vector<fp> rel (na);
         for (int q = 0; q < na; q++)
             rel[q] = beta_[q] / a[q] * 100;

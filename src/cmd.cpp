@@ -137,7 +137,7 @@ void do_undefine_func(char const*, char const*)
 void do_replot(char const*, char const*) 
 { 
     if (outdated_plot)
-        getUI()->drawPlot(2); 
+        getUI()->draw_plot(2); 
     outdated_plot=false;
 }
 

@@ -50,35 +50,26 @@ using namespace std;
 
 //------ UserInterface - implementation of CLI specific methods ------
 
-void UserInterface::showMessage (OutputStyle style, const string& s)
+void cli_show_message (OutputStyle style, const string& s)
 {
     if (style == os_warn)
         cout << '\a';
     cout << s << endl;
 }
 
-void UserInterface::doDrawPlot (bool /*now*/)
+void cli_do_draw_plot (bool /*now*/)
 {
     static GnuPlot my_gnuplot;
     my_gnuplot.plot();
 }
 
-void UserInterface::wait (float seconds) 
+void cli_wait(float seconds) 
 {
     seconds = fabs(seconds);
     timespec ts;
     ts.tv_sec = static_cast<int>(seconds);
     ts.tv_nsec = static_cast<int>((seconds - ts.tv_sec) * 1e9);
     nanosleep(&ts, 0);
-}
-
-void UserInterface::refresh()
-{
-}
-
-Commands::Status UserInterface::execCommand(const string& s)
-{
-    return parse_and_execute(s);
 }
 
 //----------------------------------------------------------------- 
@@ -125,7 +116,7 @@ void read_and_execute_input()
         add_history (line);
     string s = line;
     free ((void*) line);
-    getUI()->execAndLogCmd(s);
+    getUI()->exec_and_log(s);
 }
 
 
@@ -465,6 +456,11 @@ int main (int argc, char **argv)
     if (signal (SIGINT, interrupt_handler) == SIG_IGN) 
         signal (SIGINT, SIG_IGN);
 
+    // set callbacks
+    getUI()->set_show_message(cli_show_message);
+    getUI()->set_do_draw_plot(cli_do_draw_plot);
+    getUI()->set_wait(cli_wait);
+
     // process command-line arguments
     bool exec_init_file = true;
     string script_string;
@@ -524,7 +520,7 @@ int main (int argc, char **argv)
         string init_file = get_config_dir() + startup_commands_filename;
         if (access(init_file.c_str(), R_OK) == 0) {
             cerr << " -- reading init file: " << init_file << " --\n";
-            getUI()->execScript(init_file);
+            getUI()->exec_script(init_file);
             cerr << " -- end of init file --" << endl;
         }
     }
@@ -532,7 +528,7 @@ int main (int argc, char **argv)
     try {
         //then string given with -c is executed
         if (!script_string.empty())
-            getUI()->execAndLogCmd(script_string);
+            getUI()->exec_and_log(script_string);
         //the rest of parameters/arguments are scripts and/or data files
         for (int i = 1; i < argc; ++i) {
             if (argv[i])

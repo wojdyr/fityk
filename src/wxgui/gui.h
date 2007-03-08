@@ -111,12 +111,12 @@ public:
     void OnLogStop       (wxCommandEvent& event);        
     void OnLogWithOutput (wxCommandEvent& event);        
     void OnLogDump       (wxCommandEvent& event);        
-    void OnOInclude      (wxCommandEvent& event);            
-    void OnOReInclude    (wxCommandEvent& event);            
-    void OnSDebugger     (wxCommandEvent&) { show_debugger(); } 
+    void OnInclude      (wxCommandEvent& event);            
+    void OnReInclude    (wxCommandEvent& event);            
+    void OnDebugger     (wxCommandEvent&) { show_debugger(); } 
     void show_debugger (wxString const& path=wxT(""));
-    void OnO_Reset       (wxCommandEvent&);
-    void OnODump         (wxCommandEvent&);         
+    void OnReset       (wxCommandEvent&);
+    void OnDump         (wxCommandEvent&);         
     void OnSettings      (wxCommandEvent&);        
     void OnEditInit      (wxCommandEvent&);        
     void OnPrintPreview  (wxCommandEvent&);

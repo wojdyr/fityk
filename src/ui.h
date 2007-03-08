@@ -55,9 +55,7 @@ public:
 };
 
 /// A Singleton class.
-/// Some methods (plot, plotNow, wait, execCommand, showMessage) 
-/// are different and defined separatly for GUI and CLI versions.
-/// The program is always linked only with one version of each method.
+/// it has callbacks that can be set by user interface
 class UserInterface 
 {
 public:
@@ -69,44 +67,68 @@ public:
 
     /// Update plot if pri<=auto_plot.   If !now, update can be delayed
     /// Different definition for GUI and CLI
-    void drawPlot(int pri=0, bool now=false);
+    void draw_plot(int pri=0, bool now=false);
 
     /// sent message - to user input and to log file (if logging is on)
-    void outputMessage (OutputStyle style, std::string const &s);
+    void output_message (OutputStyle style, std::string const &s);
 
-    /// Wait and disable UI for ... seconds. Different for GUI and CLI.
-    void wait(float seconds); 
-
-    void startLog (std::string const &filename, bool with_output)
+    void start_log (std::string const &filename, bool with_output)
                             { commands.start_logging(filename, with_output); }
-    void stopLog() { commands.stop_logging(); }
-    Commands const& getCommands() const { return commands; }
+    void stop_log() { commands.stop_logging(); }
+    Commands const& get_commands() const { return commands; }
 
     /// Excute all commands (or these from specified lines) from file. 
     /// In other words, run a script (.fit).
-    void execScript (std::string const &filename, 
+    void exec_script (std::string const &filename, 
                      std::vector<std::pair<int,int> > const &selected_lines);
-    void execScript (std::string const &filename) 
-    { execScript(filename, std::vector<std::pair<int,int> >()); }
+    void exec_script (std::string const &filename) 
+    { exec_script(filename, std::vector<std::pair<int,int> >()); }
 
-    Commands::Status execAndLogCmd(std::string const &c);
-    int getVerbosity();
+    Commands::Status exec_and_log(std::string const &c);
+    int get_verbosity();
     void process_cmd_line_filename(std::string const& par);
+
+    // callbacks
+    typedef void t_do_draw_plot(bool now);
+    void set_do_draw_plot(t_do_draw_plot *func) { m_do_draw_plot = func; }
+
+    typedef void t_show_message(OutputStyle style, std::string const& s);
+    void set_show_message(t_show_message *func) { m_show_message = func; }
+
+    typedef Commands::Status t_exec_command (std::string const &s);
+    void set_exec_command(t_exec_command *func) { m_exec_command = func; }
+
+    typedef void t_refresh();
+    void set_refresh(t_refresh *func) { m_refresh = func; }
     /// refresh the screen if needed, for use during time-consuming tasks
-    void refresh(); 
+    void refresh() { if (m_refresh) (*m_refresh)(); } 
+
+    typedef void t_wait(float seconds); 
+    void set_wait(t_wait *func) { m_wait = func; }
+    /// Wait and disable UI for ... seconds. 
+    void wait(float seconds) { if (m_wait) (*m_wait)(seconds); }
 
 private:
-    UserInterface() : keep_quiet(false) {}
+    t_show_message *m_show_message;
+    t_do_draw_plot *m_do_draw_plot;
+    t_exec_command *m_exec_command;
+    t_refresh *m_refresh;
+    t_wait *m_wait;
+
+    UserInterface() : keep_quiet(false), m_show_message(0), m_do_draw_plot(0), 
+                      m_exec_command(0), m_refresh(0), m_wait(0) {}
     UserInterface (UserInterface const&); //disable
     UserInterface& operator= (UserInterface const&); //disable
 
-    void doDrawPlot(bool now=false);
-    /// show message to user; different definition for GUI and CLI
-    void showMessage (OutputStyle style, std::string const& s);
+    void do_draw_plot(bool now=false) 
+        { if (m_do_draw_plot) (*m_do_draw_plot)(now); }
+    /// show message to user
+    void show_message (OutputStyle style, std::string const& s)
+        { if (m_show_message) (*m_show_message)(style, s); }
 
-    /// Execute command(s) from string; different definition for GUI and CLI.
+    /// Execute command(s) from string
     /// It can finish the program (eg. if s=="quit").
-    Commands::Status execCommand (std::string const &s);
+    Commands::Status exec_command (std::string const &s);
 
     static UserInterface* instance;
     Commands commands;
@@ -121,30 +143,30 @@ inline UserInterface* getUI() { return UserInterface::getInstance(); }
 
 /// execute command(s) from string
 inline Commands::Status exec_command (std::string const &s) 
-                                        { return getUI()->execAndLogCmd(s); }
+                                        { return getUI()->exec_and_log(s); }
 
 
 /// Send warning to UI. 
-inline void warn(std::string const &s) { getUI()->outputMessage(os_warn, s); }
+inline void warn(std::string const &s) { getUI()->output_message(os_warn, s); }
 
 /// Send implicitely requested message to UI. 
-inline void rmsg(std::string const &s) { getUI()->outputMessage(os_normal, s); }
+inline void rmsg(std::string const &s) { getUI()->output_message(os_normal, s);}
 
 /// Send message to UI. 
 inline void msg(std::string const &s) 
 { 
-    if (getUI()->getVerbosity() >= 0)
-         getUI()->outputMessage(os_normal, s); 
+    if (getUI()->get_verbosity() >= 0)
+         getUI()->output_message(os_normal, s); 
 }
 
 /// Send verbose message to UI. The argument is evaluated only when needed.
 #define vmsg(x)   \
-    if (getUI()->getVerbosity() > 0)  \
-        getUI()->outputMessage(os_normal, (x));  
+    if (getUI()->get_verbosity() > 0)  \
+        getUI()->output_message(os_normal, (x));  
 
 /// Send debug message to UI. The argument is evaluated only when needed.
 #define vvmsg(x)   \
-    if (getUI()->getVerbosity() > 1)  \
-        getUI()->outputMessage(os_normal, (x));  
+    if (getUI()->get_verbosity() > 1)  \
+        getUI()->output_message(os_normal, (x));  
 
 #endif 

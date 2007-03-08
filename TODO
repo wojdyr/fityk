@@ -3,19 +3,10 @@ $Id$
 [ // = done, but not tested/documented     ]
 
 * build engine (everything but GUI/CLI interface) as a dynamic library
-  with more or less documented API (in fityk.h).
-    tentative basic API: 
-      int get_dataset_count();
-      string get_info(string const& s);
-      Command::Status execute(string const& s);
-      load_data(int slot, 
-                vec double x, vec double y, vec double sigma, string title);
-     callbacks:
-      typedef void message_handler_func(OutputStyle style, string const& s);
-      void set_message_handler(message_handler_func);
-  GUI and CLI interfaces will use more than this API.
+  with minimal, documented, C++ API.
+  GUI and CLI interfaces will not use this API.
 
-* python interface to the library
+* python interface to the library (only to the API)
 
 ------------------ release 0.8.0
 
@@ -74,6 +65,10 @@ $Id$
 
 ------------------ 
 
+* GUI: wxWidgets file dialog can't be customized, and there is no
+  wxFileDialog-like widget (there is a wxGenericDirCtrl, but it doesn't look 
+  good). Such a widget would be very useful in fityk. 
+  
 * [Infrastructure] Set up BuildBot or similar system for build tests
 
 * GUI: transparent icons, but still embedded in code. (either second xpm file
@@ -139,7 +134,7 @@ $Id$
   diffraction data import.
   other formats (from survey): .jdx JCAMP-DX (www.jcamp.org)
 		         Galactic (GRAMS/32) SPC files (especially multifiles)
-			 Vamas (vms), 
+			 Vamas (vms), VAMAS ISO (it it the same?)
 			 multipart Siemens .raw data files
 			 uxd,udf
   perhaps OPJ with liborigin and XLS with another library
@@ -163,7 +158,7 @@ $Id$
 
 * fitting: it should be separated even more from the rest of the program.
   Perhaps it fitting functions should be in extern library (COOOL,
-  GAUL, WNLIB, netlib, OOL.sf.net, levmar)
+  GAUL, WNLIB, netlib, OOL.sf.net, levmar, GSL)
   are there any other such libraries? 
   I haven't investigated the possibility of using mentioned libs yet. 
   Links: 
