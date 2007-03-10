@@ -4,6 +4,7 @@
 #ifndef FITYK__WX_CMN__H__
 #define FITYK__WX_CMN__H__
 
+#include <string>
 #include <vector>
 #include <wx/splitter.h>
 #include <wx/arrstr.h>

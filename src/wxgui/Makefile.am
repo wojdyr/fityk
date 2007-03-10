@@ -33,10 +33,11 @@ fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 AM_CPPFLAGS = @WX_CPPFLAGS@ 
 AM_CXXFLAGS = -Wall @WX_CXXFLAGS_ONLY@ 
 
-fityk_LDADD = ../libfityk.a @WX_LIBS@ $(ms_win_res)
+fityk_LDADD = ../libfityk.la @WX_LIBS@ $(ms_win_res)
 
 bin_PROGRAMS = @FITYK@ 
 EXTRA_PROGRAMS = fityk 
 
 inputline: sample_inputline.cpp inputline.cpp inputline.h callback.h
 	`wx-config --cxx` `wx-config --cxxflags` -g -Wall -W -O0 -o $@ $< inputline.cpp `wx-config --libs`
+

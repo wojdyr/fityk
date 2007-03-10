@@ -5,6 +5,7 @@
 #ifndef FITYK__WX_DEFMGR__H__
 #define FITYK__WX_DEFMGR__H__
 
+#include <string>
 #include <vector>
 #include <wx/grid.h> 
 //#include "wx_common.h"

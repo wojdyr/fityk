@@ -5,6 +5,7 @@
 #ifndef FITYK__WX_DATAEDIT__H__
 #define FITYK__WX_DATAEDIT__H__
 
+#include <string>
 #include <vector>
 #include <wx/grid.h>
 #include <wx/listctrl.h>

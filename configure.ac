@@ -81,7 +81,7 @@ fi
 
 dnl Checks for programs.
 AC_PROG_CXX
-AC_PROG_RANLIB  
+AC_PROG_LIBTOOL
 
 dnl Checks for common header files.
 AC_HEADER_STDC

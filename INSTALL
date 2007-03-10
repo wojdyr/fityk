@@ -1,3 +1,4 @@
+
 REQUIREMENTS:
 ============
 both CLI and GUI
@@ -15,6 +16,7 @@ Compilation of some files with "g++ -O2" can use up to 300-400 MB RAM.
 | either do "make uninstall" or manually remove all files:                |
 | cd /usr/local/ # or whatever --prefix you used                          |
 | rm -r bin/fityk bin/cfityk share/fityk/ man/man1/fityk.1                |
+|  [ now there is more files installed, eg. libfityk.so* ]                |
 +-------------------------------------------------------------------------+
 
 
@@ -45,7 +47,7 @@ PORTABILITY:
 
 The only wxWidgets port I test on Linux is wxGTK. 
 wxMotif and wxX11 are _not_ supported.
-Only GCC compiler, versions 3.1 and newer are supported.
+Only GCC compiler, versions 3.3 and newer are supported.
 (I usually test compilation with all GCC versions, that are included
 in the latest stable Ubuntu distro)
 
@@ -53,14 +55,11 @@ If you have wxWidgets (wxGTK) installed from package for your Linux distro,
 also "devel" package should be installed (it has name like libwxgtk2.6-dev
 or wxGTK-devel).
 
-!!! If you have wxGTK installed and ./configure && make                 !!!
-!!! is not working on your platform, write me an e-mail, let me know.   !!!
-
-
 		                  MS Windows 
 		-----------------------------------------------
 
-MS Windows executable is compiled with MinGW.
+MS Windows executable is compiled with MinGW. You may figure out more details
+from `release' file.
 Windows installer is prepared with Inno Setup (configuration in fityk.iss).
 
 
@@ -69,11 +68,23 @@ Windows installer is prepared with Inno Setup (configuration in fityk.iss).
 I don't have Mac, but fityk was reported to run under Mac OS X.
 See fityk-users mailing list for details.
 
----------------------------------------------------------------------------
-------- the rest of the file contains generic instructions that come ------
------------------------- with GNU automake tool ---------------------------
----------------------------------------------------------------------------
 
+
+###########################################################################
+#       the rest of the file contains generic instructions that come      #
+#                        with GNU automake tool                           #
+###########################################################################
+
+
+
+Installation Instructions
+*************************
+
+Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2004, 2005 Free
+Software Foundation, Inc.
+
+This file is free documentation; the Free Software Foundation gives
+unlimited permission to copy, distribute and modify it.
 
 Basic Installation
 ==================
@@ -170,16 +181,16 @@ for another architecture.
 Installation Names
 ==================
 
-By default, `make install' will install the package's files in
-`/usr/local/bin', `/usr/local/man', etc.  You can specify an
-installation prefix other than `/usr/local' by giving `configure' the
-option `--prefix=PREFIX'.
+By default, `make install' installs the package's commands under
+`/usr/local/bin', include files under `/usr/local/include', etc.  You
+can specify an installation prefix other than `/usr/local' by giving
+`configure' the option `--prefix=PREFIX'.
 
    You can specify separate installation prefixes for
 architecture-specific files and architecture-independent files.  If you
-give `configure' the option `--exec-prefix=PREFIX', the package will
-use PREFIX as the prefix for installing programs and libraries.
-Documentation and other data files will still use the regular prefix.
+pass the option `--exec-prefix=PREFIX' to `configure', the package uses
+PREFIX as the prefix for installing programs and libraries.
+Documentation and other data files still use the regular prefix.
 
    In addition, if you use an unusual directory layout you can give
 options like `--bindir=DIR' to specify different values for particular
@@ -227,7 +238,7 @@ where SYSTEM can have one of these forms:
 need to know the machine type.
 
    If you are _building_ compiler tools for cross-compiling, you should
-use the `--target=TYPE' option to select the type of system they will
+use the option `--target=TYPE' to select the type of system they will
 produce code for.
 
    If you want to _use_ a cross compiler, that generates code for a

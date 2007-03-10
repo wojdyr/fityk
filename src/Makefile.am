@@ -1,9 +1,13 @@
 # $Id$
 SUBDIRS = . cli wxgui 
 
-noinst_LIBRARIES = libfityk.a
+#noinst_LIBRARIES = libfityk.a
+lib_LTLIBRARIES = libfityk.la
 
-libfityk_a_SOURCES = logic.cpp cmd3.cpp cmd2.cpp cmd.cpp common.cpp \
+libfityk_la_LDFLAGS = -version-info 0:0:0
+
+
+libfityk_la_SOURCES = logic.cpp cmd3.cpp cmd2.cpp cmd.cpp common.cpp \
 		 var.cpp mgr.cpp func.cpp bfunc.cpp calc.cpp ast.cpp \
 		 data.cpp datatrans.cpp datatrans2.cpp datatrans3.cpp \
 		 datatrans4.cpp \

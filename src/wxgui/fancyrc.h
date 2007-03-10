@@ -18,8 +18,6 @@ public:
                   SideBar const* draw_handler_);
     void change_value(double factor);
     void on_stop_changing();
-    void OnTextEnter(wxCommandEvent &) { on_stop_changing(); }
-    void OnLockButton(wxCommandEvent&) { toggle_lock(true); }
     void set(double value, std::string const& tc_name);
     double get_value() const;
     std::string get_name() const { return name; }
@@ -28,8 +26,6 @@ public:
     void toggle_lock(bool exec); 
     void connect_to_onkeydown(wxObjectEventFunction function, 
                               wxEvtHandler* sink);
-
-    DECLARE_EVENT_TABLE()
 private:
     double initial_value;
     std::string name;
@@ -40,6 +36,10 @@ private:
     wxWindow *vch; //ValueChangingWidget
 
     wxBitmap get_lock_bitmap() const;
+    void OnTextEnter(wxCommandEvent &) { on_stop_changing(); }
+    void OnLockButton(wxCommandEvent&) { toggle_lock(true); }
+
+    DECLARE_EVENT_TABLE()
 };
 
 #endif
