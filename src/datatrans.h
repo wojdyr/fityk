@@ -9,9 +9,10 @@
 #include <boost/spirit/core.hpp>
 
 #include "common.h"
+#include "data.h" //Point
+
 using namespace boost::spirit;
 
-struct Point;
 class Data;
 
 std::vector<Point> transform_data(std::string const& str, 

@@ -9,11 +9,10 @@
 #include <vector>
 #include <wx/config.h>
 #include "cmn.h" // PlotShared
+#include "../data.h" //Point
 
 // INT_MIN, given as coordinate, is invalid value, means "cancel drawing"
 
-
-struct Point;
 class Sum;
 class Data;
 class View;

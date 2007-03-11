@@ -305,21 +305,6 @@ string dt_ops(vector<int> const& code)
 }
 
 
-fp find_idx_in_sorted(vector<Point> const& pp, fp x)
-{
-    if (x <= pp.front().x)
-        return 0;
-    else if (x >= pp.back().x)
-        return pp.size() - 1;
-    vector<Point>::const_iterator i = lower_bound(pp.begin(), pp.end(), x);
-    assert (i > pp.begin() && i < pp.end());
-    if (is_eq(x, i->x))
-            return i - pp.begin();
-    else
-        return i - pp.begin() - (i->x - x) / (i->x - (i-1)->x);
-}
-
-
 //------------------------  Virtual Machine  --------------------------------
 
 vector<int> code;        //  VM code 
@@ -374,6 +359,24 @@ fp get_var_with_idx(fp idx, vector<Point> const& points, T Point::*t)
         fp fra = idx - flo;
         return (1-fra) * fp(points[flo].*t) + fra * fp(points[flo+1].*t);
     }
+}
+
+/// returns floating-point "index" of x in sorted vec of points
+fp find_idx_in_sorted(vector<Point> const& pp, fp x)
+{
+    if (pp.empty())
+        return 0;
+    else if (x <= pp.front().x)
+        return 0;
+    else if (x >= pp.back().x)
+        return pp.size() - 1;
+    vector<Point>::const_iterator i = lower_bound(pp.begin(), pp.end(), 
+                                                  Point(x, 0));
+    assert (i > pp.begin() && i < pp.end());
+    if (is_eq(x, i->x))
+            return i - pp.begin();
+    else
+        return i - pp.begin() - (i->x - x) / (i->x - (i-1)->x);
 }
 
 

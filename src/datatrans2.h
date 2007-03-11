@@ -19,6 +19,7 @@
 #include "func.h"
 #include "numfuncs.h"
 #include "logic.h"
+#include "fityk.h"
 #include <boost/spirit/core.hpp>
 
 using namespace std;

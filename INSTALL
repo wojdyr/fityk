@@ -11,12 +11,10 @@ only for GUI (graphical user interface, fityk):
 
 Compilation of some files with "g++ -O2" can use up to 300-400 MB RAM.
         
-+-- NOTE -----------------------------------------------------------------+
++-- HOW TO UNINSTALL------------------------------------------------------+
 | Uninstallation of the program installed from source is easy:            |
-| either do "make uninstall" or manually remove all files:                |
-| cd /usr/local/ # or whatever --prefix you used                          |
-| rm -r bin/fityk bin/cfityk share/fityk/ man/man1/fityk.1                |
-|  [ now there is more files installed, eg. libfityk.so* ]                |
+| either do "make uninstall" or manually find and remove all files, e.g.: |
+| find /usr/local/ -name \*fityk\* -exec rm -r \{} \;                     |
 +-------------------------------------------------------------------------+
 
 

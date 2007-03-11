@@ -9,24 +9,16 @@
 #include <fstream>
 #include "common.h"
 
+#include "fityk.h" // struct Point
+using fityk::Point;
 
-/// data point
-struct Point 
-{
-    fp x, y, sigma;
-    bool is_active;
-    Point () : x(0), y(0), sigma(1), is_active(true) {}
-    Point (fp x_) : x(x_), y(0), sigma(1), is_active(true) {}
-    Point (fp x_, fp y_) : x(x_), y(y_), sigma(1), is_active(true) {}
-    Point (fp x_, fp y_, fp sigma_) : x(x_), y(y_), sigma(sigma_), 
-                                      is_active(true) {}
-    std::string str() { return "(" + S(x) + "; " + S(y) + "; " + S(sigma) 
-                               + (is_active ? ")*" : ") "); }
-};
 
-inline bool operator< (const Point& p, const Point& q) 
-{ return p.x < q.x; }
-    
+namespace fityk // operator< has to be in the same namespace
+{ 
+inline bool operator< (Point const& p, Point const& q) { return p.x < q.x; }
+}
+using fityk::operator<;
+
 
 /// dataset
 class Data 

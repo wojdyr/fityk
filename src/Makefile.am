@@ -13,14 +13,14 @@ libfityk_la_SOURCES = logic.cpp cmd3.cpp cmd2.cpp cmd.cpp common.cpp \
 		 datatrans4.cpp \
 		 settings.cpp ui.cpp GAfit.cpp LMfit.cpp guess.cpp NMfit.cpp \
 		 sum.cpp fit.cpp voigt.cpp fileroutines.cpp \
-		 numfuncs.cpp nmath.cpp
-
-noinst_HEADERS = common.h data.h datatrans.h datatrans2.h datatrans3.h \
+		 numfuncs.cpp nmath.cpp fityk.cpp \
+		 \
+                 common.h data.h datatrans.h datatrans2.h datatrans3.h \
 		 datatrans4.h \
 		 settings.h GAfit.h LMfit.h guess.h NMfit.h logic.h \
 		 sum.h fit.h ui.h voigt.h fileroutines.h \
 		 numfuncs.h cmd.h cmd2.h cmd3.h var.h mgr.h func.h bfunc.h \
 		 calc.h ast.h optional_suffix.h
 
-
+include_HEADERS = fityk.h
 

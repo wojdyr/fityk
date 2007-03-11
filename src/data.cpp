@@ -39,6 +39,14 @@ string get_file_basename(const string &path)
 }
 
 
+Point::Point() : x(0), y(0), sigma(1), is_active(true) {}
+Point::Point(fp x_, fp y_) : x(x_), y(y_), sigma(1), is_active(true) {}
+Point::Point(fp x_, fp y_, fp sigma_) : x(x_), y(y_), sigma(sigma_), 
+                                        is_active(true) {}
+std::string Point::str() { return "(" + S(x) + "; " + S(y) + "; " + S(sigma) 
+                               + (is_active ? ")*" : ") "); }
+
+
 string Data::getInfo() const
 {
     string s;
@@ -601,7 +609,7 @@ int Data::read_line_and_get_all_numbers(istream &is, vector<fp>& result_numbers)
 int Data::get_lower_bound_ac (fp x) const
 {
     //pre: p.x is sorted, active_p is sorted
-    int pit = lower_bound (p.begin(), p.end(), Point(x)) - p.begin();
+    int pit = lower_bound (p.begin(), p.end(), Point(x,0)) - p.begin();
     return lower_bound (active_p.begin(), active_p.end(), pit) 
         - active_p.begin();
 }
@@ -609,14 +617,14 @@ int Data::get_lower_bound_ac (fp x) const
 int Data::get_upper_bound_ac (fp x) const
 {
     //pre: p.x is sorted, active_p is sorted
-    int pit = upper_bound (p.begin(), p.end(), Point(x)) - p.begin();
+    int pit = upper_bound (p.begin(), p.end(), Point(x,0)) - p.begin();
     return upper_bound (active_p.begin(), active_p.end(), pit) 
         - active_p.begin();
 }
 
 vector<Point>::const_iterator Data::get_point_at(fp x) const
 {
-    return lower_bound (p.begin(), p.end(), Point(x));
+    return lower_bound (p.begin(), p.end(), Point(x,0));
 }
 
 void Data::export_to_file(string filename, vector<string> const& vt, 
@@ -659,5 +667,4 @@ void Data::export_to_file(string filename, vector<string> const& vt,
         }
     }
 }
-
 
