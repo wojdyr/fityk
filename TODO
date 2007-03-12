@@ -1,21 +1,53 @@
 $Id$
-[ TODO list and tentative development plan ]
-[ // = done, but not tested/documented     ]
+
+-------  Ideas for people, who would like to contribute:  -----------
+
+- GUI/wxWidgets: file dialog in wxWidgets can't be customized, and there is no
+  widget like GtkFileChooserWidget in gtk+. Implement such a widget, that
+  will use GtkFileChooserWidget on GTK, perhaps also native implementation
+  on other platforms, and a generic implementation, which can be based
+  on generic wxFileDialog implementation.
+
+- add import for new file formats or prepare a x-y data file reading
+  library. Files requested by users include: .jdx JCAMP-DX (www.jcamp.org),
+  Galactic (GRAMS/32) SPC files (especially multifiles), VAMAS ISO,
+  multipart Siemens .raw data files and more. 
+  The code to read popular powder diffraction data formats can be borrowed
+  (with necessery modifications) from various open-source projects,
+  i'm not sure how it's in other fields.
+  Maintaining such a library could be quite rewarding, there are at least
+  2-3 open-source project inclined to use it, the library would automatically
+  go into a few popular Linux distributions, etc.
+
+- if you have some expertise in nonlinear optimization methods, it's possible
+  to do what Gnu Scientific Library seems to plan: put a few least-squares
+  fitting methods with similar interface into one library. 
+  It can be part of fityk, a separate library or a part of GSL.
+
+- write a function to calculate a Voigt/Faddeeva function, based on one 
+  (or more) of papers published about it. I mean here an approximation more 
+  exact that the standard Humlicek one. GSL would probably also accept
+  such a function in C.
+  http://sources.redhat.com/ml/gsl-discuss/2004-q4/msg00061.html
+
+- anything else
+
+---------------------------------------------------------------------
+---------- TODO list and tentative development plan  ----------------
 
 * build engine (everything but GUI/CLI interface) as a dynamic library
-  with minimal, documented, C++ API.
-  GUI and CLI interfaces will not use this API.
+  with minimal, documented, C++ API. [almost done]
 
 * python interface to the library (only to the API)
 
------------------- release 0.8.0
+------------------> release 0.8.0 (2007-03-2x)
 
 * embedding python scripts 
 
 * rewrite crystallographic part in python
   [IMPORTANT]
 
------------------- release 0.8.1
+------------------> release 0.8.1
 
 * cfityk: -q -> not enter into interactive mode
           if argument starts with "=->", interpret it as command
@@ -186,3 +218,5 @@ $Id$
 * [BUG]: program crashes (MS Win 9x) when data contains NaN (as a result
   of asin(x) x>1) and "Zoom all" is called.
 
+Legend:
+// = done, but not tested/documented  
