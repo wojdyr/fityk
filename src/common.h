@@ -310,7 +310,8 @@ enum OutputStyle  { os_normal, os_warn, os_quot, os_input };
 class ExecuteError : public std::runtime_error 
 {
 public:
-    ExecuteError(const std::string& msg) : runtime_error(msg) {}
+    static std::string last_error;
+    ExecuteError(const std::string& msg) : runtime_error(msg) {last_error=msg;}
 };
 
 /// exception thrown to finish the program

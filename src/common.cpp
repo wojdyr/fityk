@@ -109,3 +109,4 @@ find_matching_bracket(string const& formula, string::size_type left_pos)
     return pos;
 }
 
+std::string ExecuteError::last_error;

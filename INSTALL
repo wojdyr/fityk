@@ -10,6 +10,8 @@ only for GUI (graphical user interface, fityk):
   wxWidgets (formerly wxWindows) >= 2.6.1 
 
 Compilation of some files with "g++ -O2" can use up to 300-400 MB RAM.
+
+To enable/disable shared/static libraries, use proper flags with ./configure.
         
 +-- HOW TO UNINSTALL------------------------------------------------------+
 | Uninstallation of the program installed from source is easy:            |

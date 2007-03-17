@@ -4,6 +4,7 @@
 
 /// implementation of public API of libfityk, declared in fityk.h
 
+#include <cassert>
 #include "fityk.h"
 #include "common.h"
 #include "ui.h"
@@ -23,6 +24,14 @@ void message_handler(OutputStyle style, std::string const& s)
         (*simple_message_handler)(s);
 }
 
+void check_valid_dataset(int dataset)
+{
+    assert(dataset >= 0);
+    assert(dataset < AL->get_ds_count());
+}
+
+Commands::Status last_exec_status = Commands::status_ok;
+
 } //anonymous namespace
 
 namespace fityk
@@ -30,9 +39,21 @@ namespace fityk
 
 bool execute(std::string const& s)
 {
-    return exec_command(s) == Commands::status_ok;
+    last_exec_status = exec_command(s); 
+    return last_exec_status == Commands::status_ok;
 }
 
+string get_execute_error()
+{
+    if (last_exec_status == Commands::status_ok)
+        return "";
+    else if (last_exec_status == Commands::status_syntax_error)
+        return "Syntax error";
+    else if (last_exec_status == Commands::status_execute_error)
+        return ExecuteError::last_error;
+    else
+        assert(0);
+}
 
 string get_info(string const& s, bool full)
 {
@@ -50,6 +71,10 @@ double get_sum_value(double x, int dataset)
     return 0;
 }
 
+vector<double> get_sum_vector(vector<double> const& x, int dataset)
+{
+}
+
 double get_parameter(std::string const& name, double *error)
 {
     //TODO
@@ -65,8 +90,13 @@ void load_data(int dataset,
     //TODO
 }
 
+void add_point(double x, double y, double sigma, int dataset)
+{
+}
+
 vector<Point> const& get_data(int dataset)
 {
+    check_valid_dataset(dataset);
     return AL->get_data(dataset)->points();
 }
 
@@ -81,6 +111,23 @@ void redir_messages(FILE *stream)
 {
     //TODO
 }
+
+double get_wssr(int dataset)
+{
+}
+
+double get_ssr(int dataset)
+{
+}
+
+double get_rsquared(int dataset)
+{
+}
+
+int get_dof(int dataset)
+{
+}
+
 
 } //namespace fityk
 

@@ -35,6 +35,9 @@ $Id$
 ---------------------------------------------------------------------
 ---------- TODO list and tentative development plan  ----------------
 
+* GUI/BUG: "@+ < file" with "show only selected" shows two datasets
+           and similar problem with delete + "show only selected"
+
 * build engine (everything but GUI/CLI interface) as a dynamic library
   with minimal, documented, C++ API. [almost done]
 

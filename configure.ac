@@ -81,6 +81,7 @@ fi
 
 dnl Checks for programs.
 AC_PROG_CXX
+AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
 
 dnl Checks for common header files.

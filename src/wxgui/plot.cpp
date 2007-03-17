@@ -145,11 +145,19 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
         dc.SetTextForeground(xAxisCol);
     }
     dc.SetFont(ticsFont);
+    // get tics text height
+    wxCoord h;
+    dc.GetTextExtent(wxT("1234567890"), 0, &h);
 
     vector<double> minors;
     vector<double> x_tics = scale_tics_step(v.left, v.right, x_max_tics, 
                                             minors);
-    int Y = y2Y(y_logarithm ? 1 : 0);
+
+    //if x axis is visible tics are drawed at the axis, 
+    //otherwise tics are drawed at the bottom edge of the plot
+    int Y = GetClientSize().GetHeight() - h;
+    if (x_axis_visible && !y_logarithm && y2Y(0) >= 0 && y2Y(0) < Y)
+        Y = y2Y(0);
     for (vector<double>::const_iterator i = x_tics.begin(); 
                                                     i != x_tics.end(); ++i) {
         int X = x2X(*i);
@@ -157,8 +165,8 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
         wxString label = s2wx(S(*i));
         if (label == wxT("-0")) 
             label = wxT("0");
-        wxCoord w, h;
-        dc.GetTextExtent (label, &w, &h);
+        wxCoord w;
+        dc.GetTextExtent (label, &w, 0);
         dc.DrawText (label, X - w/2, Y + 1);
         if (x_grid) {
             draw_line_with_style(dc, wxDOT, X,0, X,Y);

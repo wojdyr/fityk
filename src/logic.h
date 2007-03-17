@@ -51,7 +51,9 @@ public:
         if (flag&change_top) top=t;
         if (flag&change_bottom) bottom=b;
     }
+    /// set datasets that are to be used in fit()
     void set_datasets(std::vector<DataWithSum*> const& dd);
+    /// fit specified edges to the data range 
     void fit(int flag=fit_all); 
     void parse_and_set(std::vector<std::string> const& lrbt); 
 protected:

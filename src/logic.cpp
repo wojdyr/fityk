@@ -280,13 +280,16 @@ void View::get_y_range(fp &y_min, fp &y_max)
 
     for (vector<Sum*>::const_iterator i = sums.begin(); i != sums.end(); ++i) {
         Sum *sum = *i;
+        if (!sum->has_any_info())
+            continue;
         // estimated sum maximum
         fp sum_y_max = sum->approx_max(left, right);
-        if (sum_y_max > y_max) {
+        if (sum_y_max > y_max) 
             y_max = sum_y_max;
-        }
+        if (sum_y_max < y_min) 
+            y_min = sum_y_max;
     }
-    // include or not zero
+    // include or not include zero
     const fp show_zero_factor = 0.1;
     if (y_min > 0 && y_max - y_min > show_zero_factor * y_max)
         y_min = 0;
