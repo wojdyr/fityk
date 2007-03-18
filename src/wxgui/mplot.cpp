@@ -239,7 +239,7 @@ MainPlot::MainPlot (wxWindow *parent, PlotShared &shar)
       over_peak(-1), limit1(INT_MIN), limit2(INT_MIN)
 { }
 
-void MainPlot::OnPaint(wxPaintEvent& WXUNUSED(event))
+void MainPlot::OnPaint(wxPaintEvent&)
 {
     frame->draw_crosshair(-1, -1); 
     limit1 = limit2 = INT_MIN;
@@ -648,7 +648,7 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     FPlot::save_settings(cf);
 }
 
-void MainPlot::OnLeaveWindow (wxMouseEvent& WXUNUSED(event))
+void MainPlot::OnLeaveWindow (wxMouseEvent&)
 {
     frame->set_status_text("", sbf_coord);
     frame->draw_crosshair(-1, -1);
@@ -736,13 +736,13 @@ void MainPlot::PeakInfo()
         exec_command("info+ " + AL->get_function(over_peak)->xname);
 }
 
-void MainPlot::OnPeakDelete(wxCommandEvent &WXUNUSED(event))
+void MainPlot::OnPeakDelete(wxCommandEvent&)
 {
     if (over_peak >= 0)
         exec_command("delete " + AL->get_function(over_peak)->xname);
 }
 
-void MainPlot::OnPeakGuess(wxCommandEvent &WXUNUSED(event))
+void MainPlot::OnPeakGuess(wxCommandEvent&)
 {
     if (over_peak >= 0) {
         Function const* p = AL->get_function(over_peak);
@@ -1304,7 +1304,7 @@ void MainPlot::OnPopupColor(wxCommandEvent& event)
     }
 }
 
-void MainPlot::OnInvertColors (wxCommandEvent& WXUNUSED(event))
+void MainPlot::OnInvertColors (wxCommandEvent&)
 {
     backgroundCol = invert_colour(backgroundCol);
     for (int i = 0; i < max_data_cols; i++)
@@ -1330,19 +1330,19 @@ void MainPlot::OnPopupRadius (wxCommandEvent& event)
     refresh(false);
 }
 
-void MainPlot::OnConfigureAxes (wxCommandEvent& WXUNUSED(event))
+void MainPlot::OnConfigureAxes (wxCommandEvent&)
 {
     ConfigureAxesDlg dialog(frame, -1, this);
     dialog.ShowModal();
 }
 
-void MainPlot::OnConfigurePLabels (wxCommandEvent& WXUNUSED(event))
+void MainPlot::OnConfigurePLabels (wxCommandEvent&)
 {
     ConfigurePLabelsDlg dialog(frame, -1, this);
     dialog.ShowModal();
 }
 
-void MainPlot::OnZoomAll (wxCommandEvent& WXUNUSED(event))
+void MainPlot::OnZoomAll (wxCommandEvent&)
 {
     frame->OnGViewAll(dummy_cmd_event);
 }
@@ -1457,7 +1457,7 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
     SetSizerAndFit(top_sizer);
 }
 
-void ConfigureAxesDlg::OnApply (wxCommandEvent& WXUNUSED(event))
+void ConfigureAxesDlg::OnApply (wxCommandEvent&)
 {
     bool scale_changed = false;
     plot->xAxisCol = axis_color;
@@ -1481,7 +1481,7 @@ void ConfigureAxesDlg::OnApply (wxCommandEvent& WXUNUSED(event))
     frame->refresh_plots(false, !scale_changed);
 }
 
-void ConfigureAxesDlg::OnChangeFont (wxCommandEvent& WXUNUSED(event)) 
+void ConfigureAxesDlg::OnChangeFont (wxCommandEvent&) 
 { 
     plot->change_tics_font(); 
 }
@@ -1562,7 +1562,7 @@ ConfigurePLabelsDlg::ConfigurePLabelsDlg(wxWindow* parent, wxWindowID id,
     vertical_rb->Enable(plot->plabels_visible);
 }
 
-void ConfigurePLabelsDlg::OnChangeLabelText (wxCommandEvent& WXUNUSED(event))
+void ConfigurePLabelsDlg::OnChangeLabelText (wxCommandEvent&)
 {
     // don't change radio if this event is triggered by label_text->SetValue()
     // from radiobox event handler
@@ -1578,7 +1578,7 @@ void ConfigurePLabelsDlg::OnCheckShowLabel (wxCommandEvent& event)
     vertical_rb->Enable(checked);
 }
 
-void ConfigurePLabelsDlg::OnRadioLabel (wxCommandEvent& WXUNUSED(event))
+void ConfigurePLabelsDlg::OnRadioLabel (wxCommandEvent&)
 {
     in_onradiolabel = true;
     wxString s = label_radio->GetStringSelection();
@@ -1587,7 +1587,7 @@ void ConfigurePLabelsDlg::OnRadioLabel (wxCommandEvent& WXUNUSED(event))
     in_onradiolabel = false;
 }
 
-void ConfigurePLabelsDlg::OnApply (wxCommandEvent& WXUNUSED(event))
+void ConfigurePLabelsDlg::OnApply (wxCommandEvent&)
 {
     plot->plabels_visible = show_plabels->GetValue(); 
     plot->plabel_format = wx2s(label_text->GetValue());
@@ -1595,7 +1595,7 @@ void ConfigurePLabelsDlg::OnApply (wxCommandEvent& WXUNUSED(event))
     frame->refresh_plots(false, true);
 }
 
-void ConfigurePLabelsDlg::OnChangeLabelFont (wxCommandEvent& WXUNUSED(event)) 
+void ConfigurePLabelsDlg::OnChangeLabelFont (wxCommandEvent&) 
 { 
     wxFontData data;
     data.SetInitialFont(plot->plabelFont);

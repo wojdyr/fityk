@@ -25,16 +25,23 @@ Fit::Fit(string m)
 {
 }
 
-string Fit::getInfo(vector<DataWithSum*> const& dsds)
+/// dof = degrees of freedom = (number of points - number of parameters) 
+int Fit::get_dof(vector<DataWithSum*> const& dsds)
 {
-    vector<fp> const &pp = AL->get_parameters();
     update_parameters(dsds);
-    //dof = degrees of freedom = (number of points - number of parameters) 
     int dof = 0;
     for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
                                                     i != dsds.end(); ++i) 
         dof += (*i)->get_data()->get_n(); 
     dof -= count(par_usage.begin(), par_usage.end(), true);
+    return dof;
+}
+
+string Fit::getInfo(vector<DataWithSum*> const& dsds)
+{
+    vector<fp> const &pp = AL->get_parameters();
+    int dof = get_dof(dsds);
+    update_parameters(dsds);
     fp wssr = compute_wssr(pp, dsds);
     return "WSSR = " + S(wssr) 
            + ";  DoF = " + S(dof) 

@@ -1,8 +1,7 @@
 # $Id$
 SUBDIRS = . cli wxgui 
 
-#noinst_LIBRARIES = libfityk.a
-lib_LTLIBRARIES = libfityk.la
+lib_LTLIBRARIES = libfityk.la 
 
 libfityk_la_LDFLAGS = -version-info 0:0:0
 
@@ -23,4 +22,7 @@ libfityk_la_SOURCES = logic.cpp cmd3.cpp cmd2.cpp cmd.cpp common.cpp \
 		 calc.h ast.h optional_suffix.h
 
 include_HEADERS = fityk.h
+
+#fityk_wrap.cpp: fityk.i fityk.h
+#	swig -c++ -python -o $@ $<
 

@@ -311,14 +311,20 @@ bool check_command_syntax(string const& str)
     return parse(str.c_str(), no_actions_d[cmdG], space_p).full;
 }
 
+bool parse_and_execute_e(string const& str)
+{
+    parse_info<> result = parse(str.c_str(), no_actions_d[cmdG], space_p);
+    if (result.full) 
+        parse(str.c_str(), cmdG, space_p);
+    return result.full;
+}
+
 Commands::Status parse_and_execute(string const& str)
 {
     try {
-        parse_info<> result = parse(str.c_str(), no_actions_d[cmdG], space_p);
-        if (result.full) {
-            parse(str.c_str(), cmdG, space_p);
+        bool r = parse_and_execute_e(str);
+        if (r) 
             return Commands::status_ok;
-        }
         else {
             warn("Syntax error.");
             return Commands::status_syntax_error;
@@ -328,6 +334,21 @@ Commands::Status parse_and_execute(string const& str)
         warn(string("Error: ") + e.what());
         return Commands::status_execute_error;
     }
+}
+
+string get_info_string(string const& s, bool full)
+{
+    cmdgram::no_info_output = true;
+    try {
+        bool r = parse_and_execute_e((full ? "info+ " : "info ") + s);
+        if (!r)
+            throw ExecuteError("Syntax error in info argument");
+    } catch (ExecuteError &) {
+        cmdgram::no_info_output = false;
+        throw;
+    }
+    cmdgram::no_info_output = false;
+    return cmdgram::prepared_info;
 }
 
 

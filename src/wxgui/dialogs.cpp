@@ -154,7 +154,7 @@ void SumHistoryDlg::update_selection()
     down_arrow->Enable (index != fmc->get_param_history_size() - 1);
 }
 
-void SumHistoryDlg::OnUpButton       (wxCommandEvent& WXUNUSED(event))
+void SumHistoryDlg::OnUpButton (wxCommandEvent&)
 {
     exec_command ("fit undo");
 
@@ -191,7 +191,7 @@ void SumHistoryDlg::OnComputeWssrButton (wxCommandEvent&)
     lc->SetColumnWidth(2, wxLIST_AUTOSIZE);
 }
 
-void SumHistoryDlg::OnSelectedItem (wxListEvent& WXUNUSED(event))
+void SumHistoryDlg::OnSelectedItem (wxListEvent&)
 {
     update_selection();
 }

@@ -23,8 +23,10 @@
 #include <map>
 #include <math.h>
 #include <assert.h>
-#include <stdexcept>
 
+#include "fityk.h" //ExecuteError
+using fityk::ExecuteError;
+using fityk::ExitRequestedException;
 
 //--------------------------  N U M E R I C  --------------------------------
 
@@ -305,17 +307,6 @@ extern const std::string help_filename;
 std::string time_now ();
 
 enum OutputStyle  { os_normal, os_warn, os_quot, os_input };
-
-/// exception thrown at run-time (when executing parsed command)
-class ExecuteError : public std::runtime_error 
-{
-public:
-    static std::string last_error;
-    ExecuteError(const std::string& msg) : runtime_error(msg) {last_error=msg;}
-};
-
-/// exception thrown to finish the program
-struct ExitRequestedException : std::exception {};
 
 
 

@@ -40,9 +40,9 @@ string get_file_basename(const string &path)
 
 
 Point::Point() : x(0), y(0), sigma(1), is_active(true) {}
-Point::Point(fp x_, fp y_) : x(x_), y(y_), sigma(1), is_active(true) {}
-Point::Point(fp x_, fp y_, fp sigma_) : x(x_), y(y_), sigma(sigma_), 
-                                        is_active(true) {}
+Point::Point(double x_, double y_) : x(x_), y(y_), sigma(1), is_active(true) {}
+Point::Point(double x_, double y_, fp sigma_) : x(x_), y(y_), sigma(sigma_), 
+                                                is_active(true) {}
 std::string Point::str() { return "(" + S(x) + "; " + S(y) + "; " + S(sigma) 
                                + (is_active ? ")*" : ") "); }
 
@@ -242,6 +242,35 @@ void Data::load_data_sum(vector<Data const*> const& dd, string const& op)
     has_sigma = true;
     x_step = find_step();
     post_load();
+}
+
+void Data::add_one_point(double x, double y, double sigma)
+{
+    Point pt(x, y, sigma);
+    vector<Point>::iterator a = upper_bound(p.begin(), p.end(), pt);
+    int idx = a - p.begin();
+    p.insert(a, pt);
+    active_p.insert(upper_bound(active_p.begin(), active_p.end(), idx), idx);
+    if (pt.y < y_min)
+        y_min = pt.y;
+    if (pt.y > y_max)
+        y_max = pt.y;
+    // (fast) x_step update
+    if (p.size() < 2)
+        x_step = 0.;
+    else if (p.size() == 2)
+        x_step = p[1].x - p[0].x;
+    else if (x_step != 0) {
+        //TODO use tiny_relat_diff
+        fp max_diff = 1e-4 * fabs(x_step);
+        if (idx == 0 && fabs((p[1].x - p[0].x) - x_step) < max_diff)
+            ; //nothing, the same step
+        else if (idx == size(p) - 1 
+                        && fabs((p[idx].x - p[idx-1].x) - x_step) < max_diff)
+            ; //nothing, the same step
+        else
+            x_step = 0.;
+    }
 }
 
 void Data::load_file (string const& file, string const& type, 
@@ -570,9 +599,11 @@ string Data::range_as_string () const
 ///check for fixed step
 fp Data::find_step() 
 {
-    const fp tiny_relat_diff=0.01;
-    if (p.size() <= 2)
-        return 0;
+    const fp tiny_relat_diff = 1e-4;
+    if (p.size() < 2)
+        return 0.;
+    else if (p.size() == 2)
+        return p[1].x - p[0].x;
     fp min_step, max_step, step;
     min_step = max_step = p[1].x - p[0].x;
     for (vector<Point>::iterator i = p.begin() + 2; i < p.end(); i++) {

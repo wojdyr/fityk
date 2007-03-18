@@ -263,17 +263,17 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     bottom_panel->SetAutoLayout(true);
 }
 
-void SideBar::OnDataButtonNew (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnDataButtonNew (wxCommandEvent&)
 {
     exec_command("@+");
 }
 
-void SideBar::OnDataButtonDup (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnDataButtonDup (wxCommandEvent&)
 {
     exec_command("@+ = " + join_vector(d->get_selected_data(), " + "));
 }
 
-void SideBar::OnDataButtonRen (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnDataButtonRen (wxCommandEvent&)
 {
     int n = get_focused_data();
     Data *data = AL->get_data(n);
@@ -303,7 +303,7 @@ void SideBar::delete_selected_items()
         assert(0);
 }
 
-void SideBar::OnDataButtonCopyF (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnDataButtonCopyF (wxCommandEvent&)
 {
     int n = get_focused_data();
     if (n+1 >= AL->get_ds_count())
@@ -319,7 +319,7 @@ void SideBar::OnDataButtonCopyF (wxCommandEvent& WXUNUSED(event))
     exec_command(cmd);
 }
 
-void SideBar::OnDataButtonCol (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnDataButtonCol (wxCommandEvent&)
 {
     int sel_size = d->list->GetSelectedItemCount();
     if (sel_size == 0)
@@ -365,12 +365,12 @@ void SideBar::OnDataColorsChanged(GradientDlg *gd)
 }
 
 
-void SideBar::OnDataLookChanged (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnDataLookChanged (wxCommandEvent&)
 {
     frame->refresh_plots(false, true);
 }
 
-void SideBar::OnDataShiftUpChanged (wxSpinEvent& WXUNUSED(event))
+void SideBar::OnDataShiftUpChanged (wxSpinEvent&)
 {
     frame->refresh_plots(false, true);
 }
@@ -397,12 +397,12 @@ void SideBar::OnDataPSChanged (wxCommandEvent& event)
     frame->refresh_plots(false, true);
 }
 
-void SideBar::OnFuncFilterChanged (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnFuncFilterChanged (wxCommandEvent&)
 {
     update_lists(false);
 }
 
-void SideBar::OnFuncButtonNew (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnFuncButtonNew (wxCommandEvent&)
 {
     string peak_type = frame->get_peak_type();
     string formula = Function::get_formula(peak_type);
@@ -412,7 +412,7 @@ void SideBar::OnFuncButtonNew (wxCommandEvent& WXUNUSED(event))
     frame->edit_in_input(t);
 }
 
-void SideBar::OnFuncButtonEdit (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnFuncButtonEdit (wxCommandEvent&)
 {
     if (!bp_func)
         return;
@@ -421,12 +421,12 @@ void SideBar::OnFuncButtonEdit (wxCommandEvent& WXUNUSED(event))
     frame->edit_in_input(t);
 }
 
-void SideBar::OnFuncButtonChType (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnFuncButtonChType (wxCommandEvent&)
 {
     warn("Sorry. Changing type of function is not implemented yet.");
 }
 
-void SideBar::OnFuncButtonCol (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnFuncButtonCol (wxCommandEvent&)
 {
     vector<int> const& ffi 
         = AL->get_sum(AL->get_active_ds_position())->get_ff_idx();
@@ -443,12 +443,12 @@ void SideBar::OnFuncButtonCol (wxCommandEvent& WXUNUSED(event))
     }
 }
 
-void SideBar::OnVarButtonNew (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnVarButtonNew (wxCommandEvent&)
 {
     frame->edit_in_input("$put_name_here = ");
 }
 
-void SideBar::OnVarButtonEdit (wxCommandEvent& WXUNUSED(event))
+void SideBar::OnVarButtonEdit (wxCommandEvent&)
 {
     int n = get_focused_var();
     if (n < 0 || n >= size(AL->get_variables()))
@@ -914,7 +914,7 @@ vector<string> SideBar::get_selected_vars() const
 }
 
 
-void SideBar::OnFuncFocusChanged(wxListEvent& WXUNUSED(event))
+void SideBar::OnFuncFocusChanged(wxListEvent&)
 {
     int n = f->list->GetFocusedItem(); 
     if (n == -1)
@@ -926,7 +926,7 @@ void SideBar::OnFuncFocusChanged(wxListEvent& WXUNUSED(event))
     do_activate_function();
 }
 
-void SideBar::OnVarFocusChanged(wxListEvent& WXUNUSED(event))
+void SideBar::OnVarFocusChanged(wxListEvent&)
 {
     update_var_inf();
 }

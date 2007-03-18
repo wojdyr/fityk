@@ -117,7 +117,7 @@ public:
     void OnLeaveWindow (wxMouseEvent& event);
     void OnMouseMove(wxMouseEvent &event);
     void OnButtonDown (wxMouseEvent &event);
-    void OnLeftDClick (wxMouseEvent& WXUNUSED(event)) { PeakInfo(); }
+    void OnLeftDClick (wxMouseEvent&) { PeakInfo(); }
     void OnButtonUp (wxMouseEvent &event);
     void OnKeyDown (wxKeyEvent& event);
     void set_scale();
@@ -130,7 +130,7 @@ public:
     void OnConfigurePLabels (wxCommandEvent& event);
     void OnZoomAll (wxCommandEvent& event);
     void PeakInfo ();
-    void OnPeakInfo (wxCommandEvent& WXUNUSED(event)) { PeakInfo(); }
+    void OnPeakInfo (wxCommandEvent&) { PeakInfo(); }
     void OnPeakDelete (wxCommandEvent& event);
     void OnPeakGuess(wxCommandEvent &event);
     void cancel_mouse_press();

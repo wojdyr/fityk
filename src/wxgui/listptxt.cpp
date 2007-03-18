@@ -96,7 +96,7 @@ void ListWithColors::populate(vector<string> const& data,
     Thaw();
 }
 
-void ListWithColors::OnColumnMenu(wxListEvent& WXUNUSED(event))
+void ListWithColors::OnColumnMenu(wxListEvent&)
 {
     wxMenu popup_menu; 
     for (size_t i = 0; i < columns.size(); ++i) {
@@ -137,13 +137,13 @@ void ListWithColors::OnShowColumn(wxCommandEvent &event)
     Refresh();
 }
 
-void ListWithColors::OnFitColumnWidths(wxCommandEvent &WXUNUSED(event))
+void ListWithColors::OnFitColumnWidths(wxCommandEvent&)
 {
     for (int i = 0; i < GetColumnCount(); ++i)
         SetColumnWidth(i, wxLIST_AUTOSIZE);
 }
 
-void ListWithColors::OnSelectAll(wxCommandEvent &WXUNUSED(event))
+void ListWithColors::OnSelectAll(wxCommandEvent&)
 {
     for (int i = 0; i < GetItemCount(); ++i)
         Select(i, true);
@@ -178,7 +178,7 @@ ListPlusText::ListPlusText(wxWindow *parent, wxWindowID id, wxWindowID list_id,
                          wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
 }
 
-void ListPlusText::OnSwitchInfo(wxCommandEvent &WXUNUSED(event))
+void ListPlusText::OnSwitchInfo(wxCommandEvent&)
 {
     if (IsSplit())
         Unsplit(inf);

@@ -11,9 +11,26 @@
 
 #include <string>
 #include <vector>
+#include <cstdio>
+#include <stdexcept>
 
+/// \par
+/// Public C++ API of libfityk is defined in namespace fityk, in file fityk.h
+/// \par 
+/// If you use it in your program, you may contact fityk developers 
+/// (see the webpage for contact info) to let them know about it,
+/// or to request more functions in the API.
 namespace fityk
 {
+
+/// exception thrown at run-time (when executing parsed command)
+struct ExecuteError : public std::runtime_error 
+{
+    ExecuteError(const std::string& msg) : runtime_error(msg) {}
+};
+
+/// exception thrown to finish the program (on command "quit")
+struct ExitRequestedException : std::exception {};
 
 /// data point
 struct Point 
@@ -26,69 +43,93 @@ struct Point
     Point(double x_, double y_, double sigma_);
     std::string str();
 };
+inline bool operator< (Point const& p, Point const& q) { return p.x < q.x; }
 
+/// @name execute fityk commands or change data
+// @{
+/// \brief execute command; 
+/// returns false on syntax error, throws exception on execution error
+bool execute(std::string const& s) throw(ExecuteError, ExitRequestedException);
 
 /// execute command; returns false on error
-bool execute(std::string const& s);
-
-/// if execute() returns false, this can give error message
-std::string get_execute_error();
-
-/// return output of "info ..." or "info+ ..." command
-std::string get_info(std::string const& s, bool full=false);
-
-/// returns number of datasets n, always n >= 1
-int get_dataset_count();
-
-/// returns the value of the model (i.e. sum of function) for a given dataset
-/// at x
-double get_sum_value(double x, int dataset=0);
-
-/// multiple point version of the get_sum_value() 
-std::vector<double> get_sum_vector(std::vector<double> const& x, int dataset=0);
-
-/// returns the value of a parameter (given as "$foo" or "%func.height")
-/// optionally standard error can be returned. If the parameter is
-/// a compound-parameter, error is set to -1
-double get_parameter(std::string const& name, double *error=0);
+bool safe_execute(std::string const& s) throw(ExitRequestedException);
 
 /// load data
 void load_data(int dataset, 
                std::vector<double> const& x, 
                std::vector<double> const& y, 
                std::vector<double> const& sigma, 
-               std::string const& title="");
+               std::string const& title="")  throw(ExecuteError);
 
 /// add one data point to dataset
-void add_point(double x, double y, double sigma, int dataset=0);
+void add_point(double x, double y, double sigma, int dataset=0)
+                                                 throw(ExecuteError);
 
-/// get data points
-std::vector<Point> const& get_data(int dataset);
+// @}
 
-// handling output: general approach - callback
+/// @name handling text output 
+// @{
 typedef void t_show_message(std::string const& s);
-/// set show message callback
+/// general approach: set show message callback; cancels redir_messages()
 void set_show_message(t_show_message *func);
 
-/// handling output: redirect it to ... (e.g. stdout or stderr)
-void redir_messages(FILE *stream);
+/// redirect output to ... (e.g. stdout or stderr); cancels set_show_message()
+void redir_messages(std::FILE *stream);
+
+// @}
 
 
-// ---  fit statistics  ---
+/// @name get data and informations 
+// @{
+/// return output of "info ..." or "info+ ..." command
+std::string get_info(std::string const& s, bool full=false) throw(ExecuteError);
 
-const int all_ds=-1; /// all datasets
+/// returns number of datasets n, always n >= 1
+int get_dataset_count();
+
+/// get data points
+std::vector<Point> const& get_data(int dataset)  throw(ExecuteError);
+
+/// \brief returns the value of the model (i.e. sum of function) 
+/// for a given dataset at x
+double get_sum_value(double x, int dataset=0)  throw(ExecuteError);
+
+/// multiple point version of the get_sum_value() 
+std::vector<double> get_sum_vector(std::vector<double> const& x, int dataset=0)
+                                                        throw(ExecuteError);
+
+/// returns the value of a variable (given as "$foo" or "%func.height")
+double get_variable_value(std::string const& name)  throw(ExecuteError);
+
+/// \brief returns the number of parameter hold by the variable
+/// (-1 for a compound-variable). Useful with get_covariance_matrix()
+int get_variable_nr(std::string const& name)  throw(ExecuteError);
+
+// @}
+
+/// @name get fit statistics    
+// @{
+
+/// constant used to get statistics for all datasets fitted together
+const int all_ds=-1; 
 
 /// get WSSR for given dataset or for all datasets
-double get_wssr(int dataset=all_ds);
+double get_wssr(int dataset=all_ds)  throw(ExecuteError);
 
 /// get SSR for given dataset or for all datasets
-double get_ssr(int dataset=all_ds);
+double get_ssr(int dataset=all_ds)  throw(ExecuteError);
 
 /// get R-squared for given dataset or for all datasets
-double get_rsquared(int dataset=all_ds);
+double get_rsquared(int dataset=all_ds)  throw(ExecuteError);
 
 /// get number of degrees-of-freedom for given dataset or for all datasets
-int get_dof(int dataset=all_ds);
+int get_dof(int dataset=all_ds)  throw(ExecuteError);
+
+/// \brief get covariance matrix (for given dataset or for all datasets)
+/// get_variable_nr() can be used to connect variables with parameter positions
+std::vector<std::vector<double> > get_covariance_matrix(int dataset=all_ds)  
+                                                         throw(ExecuteError);
+// @}
 
 } // namespace
 

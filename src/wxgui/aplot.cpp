@@ -60,7 +60,7 @@ BEGIN_EVENT_TABLE (AuxPlot, FPlot)
     EVT_MENU (ID_aux_yz_auto, AuxPlot::OnPopupYZoomAuto)
 END_EVENT_TABLE()
 
-void AuxPlot::OnPaint(wxPaintEvent &WXUNUSED(event))
+void AuxPlot::OnPaint(wxPaintEvent&)
 {
     frame->draw_crosshair(-1, -1); 
     //wxPaintDC dc(this);
@@ -212,7 +212,7 @@ void AuxPlot::OnMouseMove(wxMouseEvent &event)
     }
 }
 
-void AuxPlot::OnLeaveWindow (wxMouseEvent& WXUNUSED(event))
+void AuxPlot::OnLeaveWindow (wxMouseEvent&)
 {
     frame->set_status_text("", sbf_coord);
     frame->draw_crosshair(-1, -1);
@@ -397,7 +397,7 @@ void AuxPlot::OnRightDown (wxMouseEvent &event)
     PopupMenu (&popup_menu, event.GetX(), event.GetY());
 }
 
-void AuxPlot::OnMiddleDown (wxMouseEvent& WXUNUSED(event))
+void AuxPlot::OnMiddleDown (wxMouseEvent&)
 {
     if (cancel_mouse_left_press())
         return;
@@ -458,7 +458,7 @@ void AuxPlot::OnPopupColor (wxCommandEvent& event)
     }
 }
 
-void AuxPlot::OnPopupYZoom (wxCommandEvent& WXUNUSED(event))
+void AuxPlot::OnPopupYZoom (wxCommandEvent&)
 {
     int r = wxGetNumberFromUser(wxT("Set zoom in y direction [%]"), 
                                 wxT(""), wxT(""), 
@@ -469,7 +469,7 @@ void AuxPlot::OnPopupYZoom (wxCommandEvent& WXUNUSED(event))
     refresh(false);
 }
 
-void AuxPlot::OnPopupYZoomFit (wxCommandEvent& WXUNUSED(event))
+void AuxPlot::OnPopupYZoomFit (wxCommandEvent&)
 {
     //fit_y_zoom();
     fit_y_once = true;
@@ -519,7 +519,7 @@ void AuxPlot::fit_y_zoom(Data const* data, Sum const* sum)
     }
 }
 
-void AuxPlot::OnPopupYZoomAuto (wxCommandEvent& WXUNUSED(event))
+void AuxPlot::OnPopupYZoomAuto (wxCommandEvent&)
 {
     auto_zoom_y = !auto_zoom_y;
     if (auto_zoom_y) {

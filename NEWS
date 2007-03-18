@@ -1,5 +1,10 @@
 $Id$
 
+User-visible changes in version 0.8.0  (2007-03-  ):
+* libfityk (fityk library) if introduced. About half of the fityk source code 
+  goes into the library; the rest is GUI and CLI.
+* 
+
 User-visible changes in version 0.7.8  (2007-03-02):
 * syntax changed for dataset sum (was: @+ < @0 + @1; is: @+ = @0 + @1)
 * introduced dataset operations sum_same_x and avg_same_x, 

@@ -27,6 +27,7 @@ public:
     bool is_initialized(std::vector<DataWithSum*> const& dsds) const
                                                     { return dsds == datsums; }
     std::string getInfo(std::vector<DataWithSum*> const& dsds);
+    int get_dof(std::vector<DataWithSum*> const& dsds);
     std::string getErrorInfo(std::vector<DataWithSum*> const& dsds, 
                              bool matrix=false);
     std::vector<fp> get_covariance_matrix(std::vector<DataWithSum*> const&dsds);
@@ -56,7 +57,8 @@ protected:
     fp compute_wssr(std::vector<fp> const &A, 
                     std::vector<DataWithSum*> const& dsds, bool weigthed=true)
         { ++evaluations; return do_compute_wssr(A, dsds, weigthed); }
-    fp compute_r_squared(std::vector<fp> const &A, std::vector<DataWithSum*> const& dsds) ;
+    fp compute_r_squared(std::vector<fp> const &A, 
+                         std::vector<DataWithSum*> const& dsds) ;
     void compute_derivatives(std::vector<fp> const &A, 
                              std::vector<DataWithSum*> const& dsds, 
                              std::vector<fp>& alpha, std::vector<fp>& beta);

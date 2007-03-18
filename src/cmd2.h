@@ -31,6 +31,8 @@ extern std::vector<int> vn, vds;
 extern const int new_dataset;
 extern const int all_datasets;
 extern bool outdated_plot;
+extern bool no_info_output;
+extern std::string prepared_info;
 
 std::vector<DataWithSum*> get_datasets_from_indata();
 

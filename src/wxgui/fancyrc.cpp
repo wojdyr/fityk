@@ -41,7 +41,7 @@ public:
 
     void OnTimer(wxTimerEvent &event);
 
-    void OnThumbTrack(wxScrollEvent &WXUNUSED(event)) { 
+    void OnThumbTrack(wxScrollEvent&) { 
         if (!timer.IsRunning()) {
             timer.Start(100);
         }
@@ -62,7 +62,7 @@ BEGIN_EVENT_TABLE(ValueChangingWidget, wxSlider)
     EVT_SCROLL_THUMBTRACK(ValueChangingWidget::OnThumbTrack)
 END_EVENT_TABLE()
 
-void ValueChangingWidget::OnTimer(wxTimerEvent &WXUNUSED(event))
+void ValueChangingWidget::OnTimer(wxTimerEvent&)
 {
     if (button == 'l') {
         frc->change_value(GetValue()*0.001);

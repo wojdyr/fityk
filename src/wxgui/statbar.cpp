@@ -188,7 +188,7 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
     SetSizerAndFit(top_sizer);
 }
 
-void ConfStatBarDlg::OnApply (wxCommandEvent& WXUNUSED(event))
+void ConfStatBarDlg::OnApply (wxCommandEvent&)
 {
     sb->set_widths(whint_sc->GetValue(), width_sc->GetValue());
     sb->fmt_main = avoid_proc_n(fm_tc->GetValue());

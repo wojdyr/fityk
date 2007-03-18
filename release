@@ -141,12 +141,12 @@ elif [ $1 -eq 5 ]; then
  cd ..
  echo sending NEWS file...
  scp NEWS $WEB/d/
- #echo generating doxygen docs...
- #cd doxygen/
- #doxygen
- #echo sending doxygen docs... 
- #scp -r html/ $WEB/doxygen/
- #cd ..
+ echo generating doxygen docs...
+ cd doxygen/
+ doxygen
+ echo sending doxygen docs... 
+ scp -r html/ $WEB/doxygen/
+ cd ..
  
  
  

@@ -69,7 +69,7 @@ BEGIN_EVENT_TABLE (PreviewPlot, wxPanel)
     EVT_PAINT (PreviewPlot::OnPaint)
 END_EVENT_TABLE()
 
-void PreviewPlot::OnPaint(wxPaintEvent &WXUNUSED(event))
+void PreviewPlot::OnPaint(wxPaintEvent&)
 {
     wxPaintDC dc(this);
     dc.SetLogicalFunction(wxCOPY);
@@ -316,12 +316,12 @@ void DLoadDlg::OnAutoTextCheckBox (wxCommandEvent& event)
         text_preview->Clear();
 }
 
-void DLoadDlg::OnAutoPlotCheckBox (wxCommandEvent& WXUNUSED(event))
+void DLoadDlg::OnAutoPlotCheckBox (wxCommandEvent&)
 {
     update_plot_preview();
 }
 
-void DLoadDlg::OnColumnChanged (wxSpinEvent& WXUNUSED(event))
+void DLoadDlg::OnColumnChanged (wxSpinEvent&)
 {
     if (auto_plot_cb->GetValue()) 
         update_plot_preview();
@@ -334,13 +334,13 @@ void DLoadDlg::OnClose (wxCommandEvent&)
     close_it(this);
 }
 
-void DLoadDlg::OnOpenHere (wxCommandEvent& WXUNUSED(event))
+void DLoadDlg::OnOpenHere (wxCommandEvent&)
 {
     exec_command(get_command("@" + S(data_nr), data_nr));
     frame->add_recent_data_file(get_filename());
 }
 
-void DLoadDlg::OnOpenNew (wxCommandEvent& WXUNUSED(event))
+void DLoadDlg::OnOpenNew (wxCommandEvent&)
 {
     int d_nr = AL->get_ds_count();
     if (d_nr == 1 && !AL->get_ds(0)->has_any_info())

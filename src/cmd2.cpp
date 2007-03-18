@@ -43,6 +43,7 @@ vector<int> vn, vds;
 const int new_dataset = -1;
 const int all_datasets = -2;
 bool outdated_plot = false;
+bool no_info_output = false;
 
 
 vector<DataWithSum*> get_datasets_from_indata()
@@ -68,7 +69,6 @@ IntRangeGrammar  IntRangeG;
 } //namespace cmdgram
 
 using namespace cmdgram;
-
 
 namespace {
 
@@ -152,6 +152,8 @@ void do_plot(char const*, char const*)
 void do_output_info(char const*, char const*)
 {
     prepared_info = strip_string(prepared_info);
+    if (no_info_output)
+        return;
     if (output_redir.empty())
         rmsg(prepared_info);
     else {

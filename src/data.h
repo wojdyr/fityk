@@ -11,12 +11,6 @@
 
 #include "fityk.h" // struct Point
 using fityk::Point;
-
-
-namespace fityk // operator< has to be in the same namespace
-{ 
-inline bool operator< (Point const& p, Point const& q) { return p.x < q.x; }
-}
 using fityk::operator<;
 
 
@@ -36,7 +30,8 @@ public :
     void load_data_sum(std::vector<Data const*> const& dd, 
                        std::string const& op);
     void clear();
-    void add_point(Point const& pt) { p.push_back(pt); };
+    void add_point(Point const& pt) { p.push_back(pt); }; //don't use it
+    void add_one_point(double x, double y, double sigma);
     static std::string guess_file_type (std::string const& filename);
     fp get_x(int n) const { return p[active_p[n]].x; }
     fp get_y(int n) const { return p[active_p[n]].y; } 

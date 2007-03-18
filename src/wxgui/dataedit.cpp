@@ -40,7 +40,7 @@ public:
                                             data(data_), ded(ded_) {}
     int GetNumberRows() { return data->points().size(); }
     int GetNumberCols() { return 4; }
-    bool IsEmptyCell(int WXUNUSED(row), int WXUNUSED(col)) { return false; }
+    bool IsEmptyCell(int /*row*/, int /*col*/) { return false; }
 
     wxString GetValue(int row, int col) 
     {  
@@ -52,7 +52,7 @@ public:
 
     void SetValue(int, int, const wxString&) { assert(0); }
 
-    wxString GetTypeName(int WXUNUSED(row), int col)
+    wxString GetTypeName(int /*row*/, int col)
         { return col == 0 ? wxGRID_VALUE_BOOL : wxGRID_VALUE_FLOAT; }
 
     bool CanGetValueAs(int row, int col, const wxString& typeName)
@@ -416,7 +416,7 @@ void DataEditorDlg::refresh_grid()
     grid->AdjustScrollbars();
 }
 
-void DataEditorDlg::OnRevert (wxCommandEvent& WXUNUSED(event))
+void DataEditorDlg::OnRevert (wxCommandEvent&)
 {
     string cmd;
     for (ndnd_type::const_iterator i = ndnd.begin(); i != ndnd.end(); ++i) {
@@ -432,7 +432,7 @@ void DataEditorDlg::OnRevert (wxCommandEvent& WXUNUSED(event))
     refresh_grid();
 }
 
-void DataEditorDlg::OnSaveAs (wxCommandEvent& WXUNUSED(event))
+void DataEditorDlg::OnSaveAs (wxCommandEvent&)
 {
     if (ndnd.size() != 1)
         return;
@@ -442,7 +442,7 @@ void DataEditorDlg::OnSaveAs (wxCommandEvent& WXUNUSED(event))
     }
 }
 
-void DataEditorDlg::OnAdd (wxCommandEvent& WXUNUSED(event))
+void DataEditorDlg::OnAdd (wxCommandEvent&)
 {
     DataTransform new_transform("new", "useful",
                                  "", wx2s(code->GetValue()));
@@ -455,7 +455,7 @@ void DataEditorDlg::OnAdd (wxCommandEvent& WXUNUSED(event))
     }
 }
 
-void DataEditorDlg::OnRemove (wxCommandEvent& WXUNUSED(event))
+void DataEditorDlg::OnRemove (wxCommandEvent&)
 {
     int item = get_selected_item();
     if (item == -1 || transforms[item].category == "builtin")
@@ -465,7 +465,7 @@ void DataEditorDlg::OnRemove (wxCommandEvent& WXUNUSED(event))
     select_transform(item > 0 ? item-1 : 0);
 }
 
-void DataEditorDlg::OnUp (wxCommandEvent& WXUNUSED(event))
+void DataEditorDlg::OnUp (wxCommandEvent&)
 {
     int item = get_selected_item();
     if (item == 0)
@@ -480,7 +480,7 @@ void DataEditorDlg::OnUp (wxCommandEvent& WXUNUSED(event))
     down_btn->Enable(true);
 }
 
-void DataEditorDlg::OnDown (wxCommandEvent& WXUNUSED(event))
+void DataEditorDlg::OnDown (wxCommandEvent&)
 {
     int item = get_selected_item();
     if (item >= size(transforms) - 1)
@@ -495,7 +495,7 @@ void DataEditorDlg::OnDown (wxCommandEvent& WXUNUSED(event))
     down_btn->Enable(item+1 < trans_list->GetItemCount() - 1);
 }
 
-void DataEditorDlg::OnSave (wxCommandEvent& WXUNUSED(event))
+void DataEditorDlg::OnSave (wxCommandEvent&)
 {
     wxString transform_path = get_user_conffile("transform");
     ofstream f(wx2s(transform_path).c_str());
@@ -505,19 +505,19 @@ void DataEditorDlg::OnSave (wxCommandEvent& WXUNUSED(event))
             f << i->as_fileline() << endl;
 }
 
-void DataEditorDlg::OnReset (wxCommandEvent& WXUNUSED(event))
+void DataEditorDlg::OnReset (wxCommandEvent&)
 {
     initialize_transforms(true);
 }
 
-void DataEditorDlg::OnApply (wxCommandEvent& WXUNUSED(event))
+void DataEditorDlg::OnApply (wxCommandEvent&)
 {
     execute_tranform(wx2s(code->GetValue().Trim()));
     refresh_grid();
     rezoom_btn->Enable();
 }
 
-void DataEditorDlg::OnReZoom (wxCommandEvent& WXUNUSED(event))
+void DataEditorDlg::OnReZoom (wxCommandEvent&)
 {
     frame->GViewAll();
     rezoom_btn->Enable(false);
@@ -537,7 +537,7 @@ void DataEditorDlg::execute_tranform(string code)
     exec_command(t);
 }
 
-void DataEditorDlg::OnHelp (wxCommandEvent& WXUNUSED(event))
+void DataEditorDlg::OnHelp (wxCommandEvent&)
 {
     frame->display_help_section("Data transformations");
 }

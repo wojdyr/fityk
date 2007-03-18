@@ -338,7 +338,7 @@ void OutputWin::OnPopupColor (wxCommandEvent& event)
     }
 }
 
-void OutputWin::OnPopupFont (wxCommandEvent& WXUNUSED(event))
+void OutputWin::OnPopupFont (wxCommandEvent&)
 {
     wxFontData data; 
     data.SetInitialFont (GetDefaultStyle().GetFont());
@@ -351,7 +351,7 @@ void OutputWin::OnPopupFont (wxCommandEvent& WXUNUSED(event))
     }
 }
 
-void OutputWin::OnPopupClear (wxCommandEvent& WXUNUSED(event))
+void OutputWin::OnPopupClear (wxCommandEvent&)
 {
     Clear();
     show_fancy_dashes();
