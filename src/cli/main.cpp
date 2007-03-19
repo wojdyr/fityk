@@ -431,7 +431,7 @@ bool main_loop()
         cout << prompt;
         if (!getline(cin, s))
             break;
-        getUI()->execAndLogCmd(s);
+        getUI()->exec_and_log(s);
     }
     cout << endl;
     return true;

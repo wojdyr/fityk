@@ -35,19 +35,9 @@ $Id$
 ---------------------------------------------------------------------
 ---------- TODO list and tentative development plan  ----------------
 
-* build engine (everything but GUI/CLI interface) as a dynamic library
-  with minimal, documented, C++ API. [almost done]
+* embedding python scripts [IMPORTANT]
 
-* python interface to the library (only to the API)
-
-------------------> release 0.8.0 (2007-03-2x)
-
-* embedding python scripts 
-
-* rewrite crystallographic part in python
-  [IMPORTANT]
-
-------------------> release 0.8.1
+* rewrite crystallographic part in python [IMPORTANT]
 
 * cfityk: -q -> not enter into interactive mode
           if argument starts with "=->", interpret it as command

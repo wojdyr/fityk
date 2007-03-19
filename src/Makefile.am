@@ -3,7 +3,7 @@ SUBDIRS = . cli wxgui
 
 lib_LTLIBRARIES = libfityk.la 
 
-libfityk_la_LDFLAGS = -version-info 0:0:0
+libfityk_la_LDFLAGS = @LIBRARY_VERSION_FLAG@
 libfityk_la_CPPFLAGS = @CPPFLAGS_3RDPARTY@ 
 
 

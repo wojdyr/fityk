@@ -2,6 +2,8 @@ dnl $Id$
 dnl Process this file with autoconf to produce a configure script.
 
 AC_INIT([fityk], [0.8.0])
+LIBRARY_VERSION_FLAG="-version-info 0:0:0"
+
 AC_CONFIG_SRCDIR([src/voigt.h])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_HEADERS([config.h])
@@ -160,6 +162,7 @@ AC_SUBST(CFITYK)
 AC_SUBST(DOC)
 AC_SUBST(PYBINDINGDIR)
 AC_SUBST(CPPFLAGS_3RDPARTY)
+AC_SUBST(LIBRARY_VERSION_FLAG)
 
 dnl check for erf and erfc function
 AC_CHECK_LIB([m], [erf], [], [AC_MSG_ERROR(

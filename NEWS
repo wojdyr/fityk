@@ -1,9 +1,11 @@
 $Id$
 
-User-visible changes in version 0.8.0  (2007-03-  ):
+User-visible changes in version 0.8.0  (2007-03-19):
 * libfityk (fityk library) if introduced. About half of the fityk source code 
   goes into the library; the rest is GUI and CLI.
-* 
+  The library has minimal public well-documented C++ API.
+* experimental(!) python bindings to the library are prepared using SWIG
+* bug fixes, of course
 
 User-visible changes in version 0.7.8  (2007-03-02):
 * syntax changed for dataset sum (was: @+ < @0 + @1; is: @+ = @0 + @1)
