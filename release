@@ -1,7 +1,7 @@
 #!/bin/bash 
 # $Id$
 
-version=0.7.8
+version=0.8.0
 WEB="iris.unipress.waw.pl:/d2/people/wojdyr/www/fityk2/" 
 TEMP_DOWNLOAD=$WEB/d/
 SF_NEW_RELEASE="https://sourceforge.net/project/admin/newrelease.php?package_id=80864&group_id=79434"
@@ -48,12 +48,12 @@ echo -n '===>'
 
 if [ $1 -eq 0 ]; then
  echo increase version number in configure.ac
- echo "please do it!  See the line with AM_INIT_AUTOMAKE(fityk, x.y.z)"
+ echo "please do it!  See the line with AC_INIT(fityk, x.y.z)"
  echo "and the line with version=x.x.x in this release script"
  echo
  echo now the version in this script is: $version
  echo and configure.ac contains:
- grep AM_INIT_AUTOMAKE configure.ac
+ grep AC_INIT configure.ac
  echo and doc/fitykhelp.xml:
  grep '<title>Fityk' doc/fitykhelp.xml
 

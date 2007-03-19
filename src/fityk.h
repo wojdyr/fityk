@@ -45,6 +45,12 @@ struct Point
 };
 inline bool operator< (Point const& p, Point const& q) { return p.x < q.x; }
 
+/// @name initialization
+// @{
+/// call this function once, before any other functions are called
+void initialize();
+// @}
+
 /// @name execute fityk commands or change data
 // @{
 /// \brief execute command; 
@@ -88,7 +94,7 @@ std::string get_info(std::string const& s, bool full=false) throw(ExecuteError);
 int get_dataset_count();
 
 /// get data points
-std::vector<Point> const& get_data(int dataset)  throw(ExecuteError);
+std::vector<Point> const& get_data(int dataset=0)  throw(ExecuteError);
 
 /// \brief returns the value of the model (i.e. sum of function) 
 /// for a given dataset at x

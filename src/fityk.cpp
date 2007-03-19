@@ -6,6 +6,7 @@
 
 #include <cassert>
 #include <cctype>
+#include <locale.h>
 #include "fityk.h"
 #include "common.h"
 #include "ui.h"
@@ -63,6 +64,14 @@ double get_wssr_or_ssr(int dataset, bool weigthed)
 
 namespace fityk
 {
+
+void initialize()
+{
+    assert (AL == 0);
+    setlocale(LC_NUMERIC, "C");
+    AL = new ApplicationLogic; 
+}
+
 
 bool execute(string const& s)  throw(ExecuteError, ExitRequestedException)
 {

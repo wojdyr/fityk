@@ -15,11 +15,11 @@
 <!-- <!DOCTYPE article  PUBLIC "-//OASIS//DTD DocBook V4.1//EN"> -->
 
 <book lang="en">
- <title>Fityk 0.7.8 - User's Manual</title> 
+ <title>Fityk 0.8.0 - User's Manual</title> 
 
- <chapter> 
+ <chapter id="intro"> 
   <title>Introduction</title> 
-  <section>
+  <section id="whatfor">
    <title>What is the program for?</title>
    <para>
     <application>Fityk</application> is a program 
@@ -59,7 +59,7 @@
    </para> 
   </section>
 
-  <section>
+  <section id="howtoread">
    <title>How to read this manual</title>
    <para>
     After this introduction, you may read the <xref linkend="getstarted"/>.
@@ -82,7 +82,7 @@
    </para>
   </section> 
 
-  <section>
+  <section id="gui_cli">
    <title><acronym>GUI</acronym> vs <acronym>CLI</acronym></title>
    <para>
     The program comes in two versions: the <acronym>GUI</acronym> 
@@ -118,7 +118,7 @@
  <chapter id="getstarted">
   <title>Getting started</title>
 
-  <section>
+  <section id="minimal">
    <title>The minimal example</title>
    <para>
     Let us analyze a diffraction pattern of NaCl. Our goal is to determine the
@@ -258,7 +258,7 @@
 
   <section id="gui">
    <title>Graphical interface </title>
-   <section>
+   <section id="plots">
     <title>Plots and other windows</title>
     <para>
      The GUI window of <application>fityk</application> consists 
@@ -365,7 +365,7 @@
    </para>
   </section>
 
-  <section>
+  <section id="data">
    <title>Data from experiment </title>
    <section id="DataLoad">
     <title>Loading data </title>
@@ -459,7 +459,7 @@
 
    </section> 
 
-   <section>
+   <section id="inactive">
     <title>Active and inactive points</title>
     <para>
      We often have the situation that only a part of the data from a file is of interest.
@@ -1118,7 +1118,7 @@
      (domain is +/- value-of-variable * value-of-the-option / 100)
     </para>
    </section>
-   <section>
+   <section id="functions">
     <title>Function types and functions</title>
     <para>
      Let us go back to functions. Function types have names that start
@@ -1294,7 +1294,7 @@
      this is often negligible.
     </para>
    </section> 
-   <section>
+   <section id="fz">
     <title>Sum, F and Z</title>
     <para>
      As already discussed, each dataset has a separate sum. i.e. a model
@@ -1425,13 +1425,17 @@
      options respectively.
     </para>
    </section> 
-   <section>
+   <section id="sum_info">
     <title>Displaying information </title>
     <para>
      If you are using the GUI, most of the available information can be
      displayed with mouse clicks. Alternatively, you can use the
      <command>info</command> command.  Using <command>info+</command> instead
      of <command>info</command> sometimes displays more verbose information.
+    </para>
+    <para>
+     Below is the list of arguments of <command>info+</command> related
+     to this chapter. The full list is in <xref linkend="info"/>
     </para>
 
     <variablelist>
@@ -1488,7 +1492,7 @@
    </section> 
   </section>
 
-  <section>
+  <section id="fit">
    <title>Fitting </title>
    <section id="nonlinear">
     <title>Nonlinear optimization </title>
@@ -1826,7 +1830,7 @@
     </para>
    </section>
 
-   <section>
+   <section id="ga">
     <title>Genetic Algorithms</title>
     <para>
      [TODO]
@@ -2008,9 +2012,9 @@
    </para>
   </section> 
 
-  <section>
+  <section id="other">
    <title>Other commands </title>
-   <section>
+   <section id="plot">
     <title>plot: viewing data</title>
     <para>
      In the GUI version there is hardly ever a need to use this command directly.
@@ -2063,7 +2067,7 @@
      replotting the peaks after every iteration.
     </para>
    </section>
-   <section>
+   <section id="info">
     <title>info: show informations</title>
     <para>
      First, there is an option 
@@ -2132,7 +2136,7 @@
      </screen>
     </para>
    </section>
-   <section>
+   <section id="misc">
     <title>commands, dump, sleep, reset, quit</title>
     <para>
      All commands given during program execution are stored in memory.
@@ -2200,7 +2204,7 @@
   </section> 
   <section id="extensions">
    <title>Extensions</title>
-   <section>
+   <section id="add_bfunc">
     <title>How to add your own built-in function</title>
     <para>
      To add a built-in function, you have to change the source of the program
@@ -2582,7 +2586,7 @@
     </mediaobject>  
    </equation>
 
-   <equation>
+   <equation id="poly5">
     <title>Polynomial5</title>
     <mediaobject>
      <imageobject>
@@ -2633,19 +2637,17 @@
   </para>
  </appendix> 
 
- <appendix>
+ <appendix id="about">
   <title>About this manual </title>
   <para>
    This manual is written in DocBook (XML) and converted to other formats. 
    The <filename>fitykhelp.xml</filename> file is distributed 
    with the program sources, and can be modified with any text editor. 
-   All changes, improvements, corrections, etc. are welcome 
-   (send it to Marcin Wojdyr, see the program's webpage for contact details).
+   All changes, improvements, corrections, etc. are welcome.
   </para>
   <para>
-   The author would like to thank people who have helped to improve this
-   manual (in chronological order): Stan Gierlotka, Jaap Folmer, 
-   Michael Richardson.
+   Following people have contributed to this manual (in chronological order):
+   Marcin Wojdyr (maintainer), Stan Gierlotka, Jaap Folmer, Michael Richardson.
   </para>
   <para>
    This version of the manual is produced from 
@@ -2655,7 +2657,7 @@
   </para>
  </appendix> 
 
- <bibliography> 
+ <bibliography id="biblio"> 
   <biblioentry> 
    <abbrev>1</abbrev>
    <authorgroup>

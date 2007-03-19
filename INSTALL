@@ -11,8 +11,6 @@ only for GUI (graphical user interface, fityk):
 
 Compilation of some files with "g++ -O2" can use up to 300-400 MB RAM.
 
-To enable/disable shared/static libraries, use proper flags with ./configure.
-        
 +-- HOW TO UNINSTALL------------------------------------------------------+
 | Uninstallation of the program installed from source is easy:            |
 | either do "make uninstall" or manually find and remove all files, e.g.: |
@@ -69,6 +67,18 @@ I don't have Mac, but fityk was reported to run under Mac OS X.
 See fityk-users mailing list for details.
 
 
+CONFIGURATION OPTIONS:
+======================
+For debugging:
+./configure CXXFLAGS="-g -O0 -fno-inline -W -Wall" --enable-static
+
+For optimized version (without any assertions):
+./configure CPPFLAGS="-DNDEBUG" CXXFLAGS="-O3" LDFLAGS="-s"
+
+To build python bindings, use --enable-python option.
+
+./configure --help shows more options, but most of them are useless.
+        
 
 ###########################################################################
 #       the rest of the file contains generic instructions that come      #

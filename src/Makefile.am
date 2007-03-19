@@ -4,6 +4,7 @@ SUBDIRS = . cli wxgui
 lib_LTLIBRARIES = libfityk.la 
 
 libfityk_la_LDFLAGS = -version-info 0:0:0
+libfityk_la_CPPFLAGS = @CPPFLAGS_3RDPARTY@ 
 
 
 libfityk_la_SOURCES = logic.cpp cmd3.cpp cmd2.cpp cmd.cpp common.cpp \

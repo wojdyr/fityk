@@ -30,8 +30,8 @@ fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 		dialogs.cpp dialogs.h gui.cpp gui.h 
 
 
-AM_CPPFLAGS = @WX_CPPFLAGS@ 
-AM_CXXFLAGS = -Wall @WX_CXXFLAGS_ONLY@ 
+fityk_CPPFLAGS = @WX_CPPFLAGS@ @CPPFLAGS_3RDPARTY@ 
+fityk_CXXFLAGS = @WX_CXXFLAGS_ONLY@ 
 
 fityk_LDADD = ../libfityk.la @WX_LIBS@ $(ms_win_res)
 

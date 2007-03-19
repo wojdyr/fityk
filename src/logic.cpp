@@ -20,7 +20,7 @@
 
 using namespace std;
 
-ApplicationLogic *AL;
+ApplicationLogic *AL = 0;
 
 DataWithSum::DataWithSum(VariableManager *mgr, Data* data_)
     : data(data_ ? data_ : new Data), sum(new Sum(mgr))  

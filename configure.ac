@@ -1,38 +1,25 @@
 dnl $Id$
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT
+AC_INIT([fityk], [0.8.0])
 AC_CONFIG_SRCDIR([src/voigt.h])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_HEADERS([config.h])
 AC_CANONICAL_TARGET([])
-AM_INIT_AUTOMAKE(fityk, 0.7.8)
+AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
 
 dnl What versions of program are to be made 
 AC_ARG_ENABLE(GUI, 
 [  --disable-GUI           do not build GUI version of program])
 test -z "$enable_GUI" && enable_GUI="yes"  
+
 AC_ARG_ENABLE(CLI, 
 [  --disable-CLI           do not build CLI version of program])
 test -z "$enable_CLI" && enable_CLI="yes"  
 
-dnl normal/debug/optimize flags
-AC_ARG_ENABLE(debug, 
-[  --enable-debug          debug flags, no optimization       ])
-AC_ARG_ENABLE(optimization, 
-[  --enable-optimization   all optimizations, no debug info])
-
-dnl Checks for -enable-debug/optimization options
-if test "$enable_debug" = "yes"; then 
-	CXXFLAGS="-g -O0 -fno-inline -W -Wall $CXXFLAGS"
-fi
-if test "$enable_optimization" = "yes"; then 
-	CPPFLAGS="-DNDEBUG $CPPFLAGS"
-	CXXFLAGS="-O3 $CXXFLAGS"
-	LDFLAGS="-s $LDFLAGS"
-fi
-
+AC_ARG_ENABLE(python, 
+[  --enable-python         build python bindings to libfityk])
 
 dnl The GNU readline library
 AC_ARG_WITH(readline, 
@@ -111,7 +98,9 @@ AC_CHECK_HEADER([boost/spirit/core.hpp], [], [AC_MSG_ERROR(
  ])])
 
 dnl see comments above...
-CPPFLAGS="$OLD_CPPFLAGS -I\$(top_srcdir)/3rdparty"
+CPPFLAGS=$OLD_CPPFLAGS
+
+CPPFLAGS_3RDPARTY="-I\$(top_srcdir)/3rdparty"
 
 AC_LANG_POP([C++]) dnl C is faster than C++
 
@@ -154,9 +143,23 @@ else
     DOC=
 fi
 
+if test "$enable_python" = "yes"; then 
+    AM_PATH_PYTHON(2.3)
+    AC_PYTHON_DEVEL
+    AC_PROG_SWIG(1.3.17)
+    SWIG="$SWIG -c++"
+    AC_SUBST([SWIG_PYTHON_OPT],[-python])
+    AC_SUBST([SWIG_PYTHON_CPPFLAGS],[$PYTHON_CPPFLAGS])
+    PYBINDINGDIR=python
+else
+    PYBINDINGDIR=
+fi
+
 AC_SUBST(FITYK)
 AC_SUBST(CFITYK)
 AC_SUBST(DOC)
+AC_SUBST(PYBINDINGDIR)
+AC_SUBST(CPPFLAGS_3RDPARTY)
 
 dnl check for erf and erfc function
 AC_CHECK_LIB([m], [erf], [], [AC_MSG_ERROR(
@@ -174,7 +177,7 @@ AC_CHECK_LIB([m], [isnan], [AC_DEFINE([HAVE_ISNAN], [1],
 dnl in generated configure script, this line is too late
 test "x$prefix" = xNONE && prefix=$ac_default_prefix
 
-AC_CONFIG_FILES([Makefile fityk.spec fityk.iss src/Makefile src/wxgui/Makefile src/cli/Makefile src/wxgui/img/Makefile doc/Makefile doc/fitykhelp_img/Makefile samples/Makefile config/Makefile 3rdparty/Makefile])
+AC_CONFIG_FILES([Makefile fityk.spec fityk.iss src/Makefile src/wxgui/Makefile src/cli/Makefile src/wxgui/img/Makefile doc/Makefile doc/fitykhelp_img/Makefile samples/Makefile config/Makefile 3rdparty/Makefile python/Makefile])
 AC_OUTPUT
 
 
