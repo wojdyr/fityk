@@ -591,14 +591,25 @@ bool FuncVoigt::get_nonzero_range (fp level, fp &left, fp &right) const
 }
 
 ///estimation according to
-///http://en.wikipedia.org/w/index.php?title=Voigt_profile&oldid=29250968
+/// http://en.wikipedia.org/w/index.php?title=Voigt_profile&oldid=115518205
+///
+/// a2 = sqrt(2) * sigma
+/// a3 = gamma / (sqrt(2) * sigma)
+///  
+/// sigma = a2 / sqrt(2) 
+/// gamma = a2 * a3
+/// 
+
 fp FuncVoigt::fwhm() const 
 { 
-    fp gauss_fwhm = 2 * fabs(vv[2]);
-    fp const c0 = 2.0056;
-    fp const c1 = 1.0593;
-    fp phi = vv[3];
-    return gauss_fwhm * (1 - c0*c1 + sqrt(phi*phi + 2*c1*phi + c0*c0*c1*c1));
+    fp sigma = fabs(vv[2]) / M_SQRT2;
+    fp gamma = fabs(vv[2]) * vv[3];
+
+    fp fG = 2 * sigma * sqrt(2 * M_LN2);
+    fp fL = 2 * gamma;
+
+    fp fV = 0.5346 * fL + sqrt(0.2166 * fL * fL + fG * fG);
+    return fV;
 }
 
 fp FuncVoigt::area() const

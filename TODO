@@ -1,6 +1,6 @@
 $Id$
 
-If you can write a C++ code and would like to help in development of fityk, but
+If you know C++ and would like to help in development of fityk, but
 you don't know were to start, there is a list of ideas at the end of this file.
 
 ---------- TODO list and tentative development plan  ----------------
@@ -9,33 +9,39 @@ Legend:
 
 // * GUI: custom-open dialog should remember columns
 
-* BUG: "plot . []" sometimes doesn't work as expected if x axis is not visible
-
-* BUG: after message in data-range mode, mouse press is not cancelled
-
-* embedding python scripts or other plugin-like solution  [IMPORTANT]
-
-* rewrite crystallographic part in python [IMPORTANT]
-
-* the API should be designed as Fityk class, rather than namespace,
-  to enable multiple instances of the class. It involves making the whole
-  library thread-safe.
+// * info+ version: compiler, date, compilation flags, boost::spirit version 
 
 * the way to specify columns of data file from command line (foo.xy:1:5 ?)
-
-* GUI: logarithmic x scale
-       perhaps also reversed y scale 
 
 * cfityk: -q -> not enter into interactive mode
           if argument starts with "=->", interpret it as command
             use case: cfityk -q *.rdf "=-> i min(x if y > 0) in @*" 
 
-* GUI: button 'lock/unlock' on variables pane
+* GUI: the name of config file passed as cmd line parameter
 
-* BUG, parsing problem: "i $a*$a" => Syntax error; "i 0+$a*$a" => OK
+* BUG: "plot . []" sometimes doesn't work as expected if x axis is not visible
+
+* BUG: after message in data-range mode, mouse press is not cancelled
+
+* the API should be designed as Fityk class, rather than namespace,
+  to enable multiple instances of the class. It involves making the whole
+  library thread-safe.
+
+* GUI: logarithmic x scale
+       perhaps also reversed y scale 
 
 * GUI/BUG: "@+ < file" with "show only selected" shows two datasets
            and similar problem with delete + "show only selected"
+
+* the way to output wG and wL of Voigt function
+
+------------------> 0.8.1 
+
+* embedding python scripts or other plugin-like solution  [IMPORTANT]
+
+* rewrite crystallographic part in python [IMPORTANT]
+
+* BUG, parsing problem: "i $a*$a" => Syntax error; "i 0+$a*$a" => OK
 
 * (?)exporting data with info "info @n () [range] > file"
   if not redirected, should display ... [1234 lines more] rather than all lines
@@ -50,8 +56,8 @@ Legend:
   buttons should be active only when it's possible
    should also affect graphical peak adding (all 3 ways)
 
-* file paths: _EXECUTED_SCRIPT_DIR_[/\:] should be replaced with
-   cwd or dir of executed script
+* file paths: "_EXECUTED_SCRIPT_DIR_/" should be replaced with
+   cwd or dir of executed script + path separator
 
 * GUI: in script editor, "info ...> file" should be marked differently
   than not redirected info 
@@ -59,8 +65,6 @@ Legend:
 
 * GUI: menu and script editor: "create macro", 2-click access to scripts
    in .fityk/macro directory
-
-* info+ version: compiler, date, compilation flags, boost::spirit version 
 
 ------------------ 
 
@@ -72,6 +76,8 @@ Legend:
 * unused variables should not slow down fitting
 
 ------------------ 
+
+* GUI: button '(un)lock' on variables pane [waiting for wx-toggle-bitmap-button]
 
 * GUI: wxWidgets file dialog can't be customized, and there is no
   wxFileDialog-like widget (there is a wxGenericDirCtrl, but it doesn't look 
@@ -150,7 +156,7 @@ Legend:
 * (GUI) single dialog for configuring main plot (and also aux. plots) (?)
   data point size and other properties can be put on data pane(?)
 
-* (GUI, BUG) in Configure axes / peak labels: fonts are changed event
+* (GUI, BUG) in Configure axes / peak labels: fonts are changed even
   if Apply is not pressed
 
 * automatic background substraction - what are good algorithms?

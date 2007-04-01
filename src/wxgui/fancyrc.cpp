@@ -1,5 +1,6 @@
-// This file is part of fityk program. Copyright (C) Marcin Wojdyr
-// Licence: GNU General Public License version 2
+// Purpose: FancyRealCtrl (numeric wxTextCtrl + wxSlider + "lock" button)
+// Copyright: (c) 2007 Marcin Wojdyr 
+// Licence: wxWidgets licence 
 // $Id$
 
 /// In this file:

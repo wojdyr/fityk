@@ -28,6 +28,13 @@
 #include "func.h"
 #include "ast.h"
 
+#ifndef CONFIGURE_BUILD
+# define CONFIGURE_BUILD "UNKNOWN"
+#endif
+#ifndef CONFIGURE_ARGS
+# define CONFIGURE_ARGS "UNKNOWN"
+#endif
+
 using namespace std;
 
 namespace cmdgram {
@@ -174,7 +181,24 @@ void do_print_info(char const* a, char const* b)
     if (s.empty())
         m = "info about what?";
     else if (s == "version") {
-        m = VERSION;
+        if (with_plus) {
+            m = "Version: " VERSION 
+                "\nBuild system type: " CONFIGURE_BUILD
+                "\nConfigured with: " CONFIGURE_ARGS
+#ifdef __GNUC__
+                "\nCompiler: GCC"
+#endif
+#ifdef __VERSION__
+                "\nCompiler version: " __VERSION__ 
+#endif
+                "\nCompilation date: " __DATE__ 
+                "\nBoost.Spirit version: " + S(SPIRIT_VERSION / 0x1000) 
+                                + "." + S(SPIRIT_VERSION % 0x1000 / 0x0100)
+                                + "." + S(SPIRIT_VERSION % 0x0100);
+ 
+        }
+        else
+            m = VERSION;
     }
     else if (s == "variables") {
         if (variables.empty())

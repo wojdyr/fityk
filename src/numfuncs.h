@@ -7,6 +7,7 @@
 #ifndef FITYK__NUMFUNCS__H__
 #define FITYK__NUMFUNCS__H__
 
+#include <stdlib.h>
 #include "common.h"
 
 
