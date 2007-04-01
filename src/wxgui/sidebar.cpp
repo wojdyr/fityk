@@ -763,9 +763,16 @@ void SideBar::add_variable_to_bottom_panel(Variable const* var,
     bp_statict.push_back(name_st);
     if (var->is_simple() || var->is_constant()) {
         FancyRealCtrl *frc = new FancyRealCtrl(bottom_panel, -1,
-                                               var->get_value(), var->xname,
-                                               !var->is_simple(), this);
-        frc->connect_to_onkeydown(wxKeyEventHandler(FFrame::focus_input), frame);
+                                               var->get_value(), 
+                                               s2wx(var->xname),
+                                               !var->is_simple(), 
+                            make_callback<FancyRealCtrl const*>().V1(this, 
+                                            &SideBar::on_changing_frc_value),
+                            make_callback<FancyRealCtrl const*>().V1(this, 
+                                            &SideBar::on_changed_frc_value),
+                            make_callback<FancyRealCtrl const*>().V1(this, 
+                                            &SideBar::on_toggled_frc_lock));
+        frc->ConnectToOnKeyDown(wxKeyEventHandler(FFrame::focus_input), frame);
         bp_sizer->Add(frc, 1, wxALL|wxEXPAND, 1);
         bp_frc.push_back(frc);
     }
@@ -776,6 +783,29 @@ void SideBar::add_variable_to_bottom_panel(Variable const* var,
         bp_statict.push_back(var_st);
         bp_frc.push_back(0);
     }
+}
+
+/// draw function draft with XOR
+void SideBar::on_changing_frc_value(FancyRealCtrl const* frc)
+{
+    vector<fp> p_values(bp_func->nv);
+    for (int i = 0; i < bp_func->nv; ++i) {
+        string xname = "$" + bp_func->get_var_name(i);
+        p_values[i] = wx2s(frc->GetTip()) != xname ? bp_func->get_var_value(i) 
+                                                   : frc->GetValue();
+    }
+    frame->get_main_plot()->draw_xor_peak(bp_func, p_values);
+}
+
+void SideBar::on_changed_frc_value(FancyRealCtrl const* frc)
+{
+    exec_command(wx2s(frc->GetTip()) + " = ~" + wx2s(frc->GetValueStr()));
+}
+
+void SideBar::on_toggled_frc_lock(FancyRealCtrl const* frc)
+{
+    string vname = wx2s(frc->GetTip());
+    exec_command(vname + " = " + (frc->IsLocked() ? "{" : "~{") + vname + "}");
 }
 
 void SideBar::clear_bottom_panel()
@@ -803,21 +833,10 @@ vector<bool> SideBar::make_bottom_panel_sig(Function const* func)
     return sig;
 }
 
-void SideBar::draw_function_draft(FancyRealCtrl const* frc) const
-{
-    vector<fp> p_values(bp_func->nv);
-    for (int i = 0; i < bp_func->nv; ++i) {
-        string xname = "$" + bp_func->get_var_name(i);
-        p_values[i] = frc->get_name() != xname ? bp_func->get_var_value(i) 
-                                               : frc->get_value();
-    }
-    frame->get_main_plot()->draw_xor_peak(bp_func, p_values);
-}
-
 void SideBar::change_bp_parameter_value(int idx, double value)
 {
     if (idx < (int)bp_frc.size()) 
-        bp_frc[idx]->set_temporary_value(value); 
+        bp_frc[idx]->SetTemporaryValue(value); 
 }
 
 void SideBar::update_bottom_panel()
@@ -853,9 +872,10 @@ void SideBar::update_bottom_panel()
             ++st;
             Variable const* var = AL->get_variable(bp_func->get_var_idx(i));
             if (var->is_simple() || var->is_constant()) {
-                bp_frc[i]->set(var->get_value(), var->xname);
-                if (bp_frc[i]->get_locked() != !var->is_simple())
-                    bp_frc[i]->toggle_lock(false);
+                bp_frc[i]->SetValue(var->get_value());
+                bp_frc[i]->SetTip(s2wx(var->xname));
+                if (bp_frc[i]->IsLocked() != !var->is_simple())
+                    bp_frc[i]->ToggleLock();
             }
             else {
                 assert (bp_frc[i] == 0);

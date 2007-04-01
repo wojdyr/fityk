@@ -5,39 +5,62 @@
 #ifndef FITYK__WX_FANCYRC__H__
 #define FITYK__WX_FANCYRC__H__
 
-#include <string>
+#include <wx/tooltip.h>
+#include <math.h>
+
+#include "callback.h"
 
 class SideBar;
-class KFTextCtrl;
+class ValueChangingWidget;
 
 class FancyRealCtrl : public wxPanel
 {
 public:
     FancyRealCtrl(wxWindow* parent, wxWindowID id, 
-                  double value, std::string const& tc_name, bool locked_,
-                  SideBar const* draw_handler_);
-    void change_value(double factor);
-    void on_stop_changing();
-    void set(double value, std::string const& tc_name);
-    double get_value() const;
-    std::string get_name() const { return name; }
-    bool get_locked() const { return locked; }
-    void set_temporary_value(double value); 
-    void toggle_lock(bool exec); 
-    void connect_to_onkeydown(wxObjectEventFunction function, 
+                  double value, wxString const& tip, bool locked_,
+                  V1Callback<FancyRealCtrl const*> const& changing_value_cb,
+                  V1Callback<FancyRealCtrl const*> const& changed_value_cb,
+                  V1Callback<FancyRealCtrl const*> const& toggled_lock_cb);
+
+    /// calls changing_value_callback
+    void AddValue(double term);
+    void ChangeValue(double factor) { AddValue(fabs(initial_value)*factor); }
+    /// calls changed_value_callback
+    void OnStopChanging();
+
+    double GetValue() const;
+    wxString GetValueStr() const { return tc->GetValue(); }
+    /// changes only value in text-ctrl
+    void SetTemporaryValue(double value); 
+    void SetValue(double v) { SetTemporaryValue(v); initial_value = v; }
+
+
+    void SetTip(wxString const& tt) { tc->SetToolTip(tt); }
+    wxString GetTip() const { return tc->GetToolTip()->GetTip(); }
+
+    void ToggleLock(); 
+    bool IsLocked() const { return locked; }
+
+    /// redirects OnKeyDown events from lock button and slider
+    void ConnectToOnKeyDown(wxObjectEventFunction function, 
                               wxEvtHandler* sink);
+
 private:
     double initial_value;
-    std::string name;
     bool locked;
-    SideBar const* draw_handler;
-    KFTextCtrl *tc;
+    wxTextCtrl *tc;
     wxBitmapButton *lock_btn;
-    wxWindow *vch; //ValueChangingWidget
+    ValueChangingWidget *vch; 
 
-    wxBitmap get_lock_bitmap() const;
-    void OnTextEnter(wxCommandEvent &) { on_stop_changing(); }
-    void OnLockButton(wxCommandEvent&) { toggle_lock(true); }
+    //callbacks
+    V1Callback<FancyRealCtrl const*> changing_value_callback;
+    V1Callback<FancyRealCtrl const*> changed_value_callback;
+    V1Callback<FancyRealCtrl const*> toggled_lock_callback;
+
+    wxBitmap GetLockBitmap() const;
+    void OnLockButton(wxCommandEvent&) 
+                                { ToggleLock(); toggled_lock_callback(this); }
+    void OnTextEnter(wxCommandEvent &) { OnStopChanging(); }
 
     DECLARE_EVENT_TABLE()
 };

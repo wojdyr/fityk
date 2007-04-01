@@ -17,23 +17,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <locale.h>
-
-#ifndef NO_READLINE
-    // readline library headers can have old-style typedefs like:
-    // typedef int Function ();
-    // it would clash with class Function in fityk
-    //  anti-Function workaround #1: works with libreadline >= 4.2
-#   define _FUNCTION_DEF 
-    //  anti-Function workaround #2 (should work always), part 1
-#   define Function Function_Bn4MtsgO3fQXM4Ag4z
-
-#   include <readline/readline.h>
-#   include <readline/history.h>
-
-#   ifdef Function     
-#       undef Function // anti-Function workaround #2, part 2   
-#   endif
-#endif //no NO_READLINE
+// readline header will be included later, unless NO_READLINE is defined
 
 #include "../common.h"
 #include "../ui.h"
@@ -42,8 +26,6 @@
 #include "../settings.h"
 #include "../func.h"
 #include "gnuplot.h"
-
-//TODO support for libedit (MacOs X, etc.)
 
 using namespace std;
 
@@ -103,6 +85,24 @@ string get_config_dir()
 
 
 #ifndef NO_READLINE
+
+    // readline library headers can have old-style typedefs like:
+    // typedef int Function ();
+    // it would clash with class Function in fityk
+    //  anti-Function workaround #1: works with libreadline >= 4.2
+#   define _FUNCTION_DEF 
+    //  anti-Function workaround #2 (should work always), part 1
+#   define Function Function_Bn4MtsgO3fQXM4Ag4z
+
+#   include <readline/readline.h>
+#   include <readline/history.h>
+
+#   ifdef Function     
+#       undef Function // anti-Function workaround #2, part 2   
+#   endif
+
+//TODO support for libedit (MacOs X, etc.)
+
 
 string set_eq_str;
 

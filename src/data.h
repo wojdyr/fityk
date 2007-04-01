@@ -66,8 +66,8 @@ public :
     static std::string read_one_line_as_title(std::ifstream& f, int column=0);
 private:
     std::string filename;
-    std::string given_type;
-    std::vector<int> given_cols;
+    std::string given_type; // filetype explicitely given when loading the file
+    std::vector<int> given_cols; /// columns given when loading the file
     fp x_step; // 0.0 if not fixed;
     bool has_sigma;
     std::vector<Point> p;

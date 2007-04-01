@@ -25,13 +25,12 @@ AC_ARG_ENABLE(python,
 
 dnl The GNU readline library
 AC_ARG_WITH(readline, 
-[  --without-readline      do not use the GNU readline library for cfityk 
-  --with-readline=PATH    Specify the location of readline])
+[  --without-readline      do not use the GNU readline library for cfityk])
 test -z "$with_readline" && with_readline="yes"  
 
 dnl don't run make in docs/
 AC_ARG_WITH(doc,
-	    [  --without-doc           do not build and install documentation]) 
+[  --without-doc           do not build and install documentation]) 
 test -z "$with_doc" && with_doc="yes"  
 
 AM_OPTIONS_WXCONFIG

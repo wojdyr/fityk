@@ -39,14 +39,6 @@ string get_file_basename(const string &path)
 }
 
 
-Point::Point() : x(0), y(0), sigma(1), is_active(true) {}
-Point::Point(double x_, double y_) : x(x_), y(y_), sigma(1), is_active(true) {}
-Point::Point(double x_, double y_, fp sigma_) : x(x_), y(y_), sigma(sigma_), 
-                                                is_active(true) {}
-std::string Point::str() { return "(" + S(x) + "; " + S(y) + "; " + S(sigma) 
-                               + (is_active ? ")*" : ") "); }
-
-
 string Data::getInfo() const
 {
     string s;

@@ -60,14 +60,39 @@ double get_wssr_or_ssr(int dataset, bool weigthed)
 }
 
 
+vector<DataWithSum*> get_datasets_(int dataset)
+{
+    vector<DataWithSum*> dd;
+    if (dataset == fityk::all_ds) {
+        for (int i = 0; i < AL->get_ds_count(); ++i)
+            dd.push_back(AL->get_ds(i));
+    }
+    else {
+        check_valid_dataset(dataset);
+        dd.push_back(AL->get_ds(dataset));
+    }
+    return dd;
+}
+
 } //anonymous namespace
 
 namespace fityk
 {
 
+Point::Point() : x(0), y(0), sigma(1), is_active(true) {}
+Point::Point(double x_, double y_) : x(x_), y(y_), sigma(1), is_active(true) {}
+Point::Point(double x_, double y_, fp sigma_) : x(x_), y(y_), sigma(sigma_), 
+                                                is_active(true) {}
+std::string Point::str() { return "(" + S(x) + "; " + S(y) + "; " + S(sigma) 
+                               + (is_active ? ")*" : ") "); }
+
+
 void initialize()
 {
-    assert (AL == 0);
+    if (AL != 0) {
+        AL->stop_app();
+        AL->start_app();
+    }
     setlocale(LC_NUMERIC, "C");
     AL = new ApplicationLogic; 
 }
@@ -171,7 +196,7 @@ void set_show_message(t_show_message *func)
     getUI()->set_show_message(message_handler); 
 }
 
-void redir_messages(FILE *stream)
+void redir_messages(std::FILE *stream)
 {
     message_sink = stream;
     getUI()->set_show_message(message_redir); 
@@ -199,20 +224,6 @@ double get_rsquared(int dataset)  throw(ExecuteError)
         check_valid_dataset(dataset);
         return Fit::compute_r_squared_for_data(AL->get_ds(dataset));
     }
-}
-
-vector<DataWithSum*> get_datasets_(int dataset)
-{
-    vector<DataWithSum*> dd;
-    if (dataset == fityk::all_ds) {
-        for (int i = 0; i < AL->get_ds_count(); ++i)
-            dd.push_back(AL->get_ds(i));
-    }
-    else {
-        check_valid_dataset(dataset);
-        dd.push_back(AL->get_ds(dataset));
-    }
-    return dd;
 }
 
 int get_dof(int dataset)  throw(ExecuteError)

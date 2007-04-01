@@ -456,14 +456,14 @@ void MainPlot::draw_plabels (wxDC& dc, Sum const* sum, bool set_pen)
         // perhaps more sophisticated algorithm for automatic label placement
         // should be used
         const int mrg = 0; //margin around label, can be negative
-        int counter = 0;
+        int counter = 0; // the number of different placements checked
         vector<wxRect>::const_iterator i = previous.begin();
         while (i != previous.end() && counter < 10) {
-            //if not intersection 
             if (i->x > rect.GetRight()+mrg || rect.x > i->GetRight()+mrg
                 || i->y > rect.GetBottom()+mrg || rect.y > i->GetBottom()+mrg) 
+                //there is no intersection 
                 ++i;
-            else { // intersects -- try upper rectangle
+            else { // intersection -- try upper rectangle
                 rect.SetY(i->y - h - 2); 
                 i = previous.begin(); //and check for intersections with all...
                 ++counter;

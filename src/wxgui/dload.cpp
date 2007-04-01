@@ -219,12 +219,20 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     h2a_sizer->Add (y_column, 0, wxALL|wxALIGN_LEFT, 5);
     std_dev_cb = new wxCheckBox(columns_panel, ID_DXLOAD_STDDEV_CB, 
                                 wxT("std.dev."));
-    std_dev_cb->SetValue (false);
+    std_dev_cb->SetValue(false);
     h2a_sizer->Add(std_dev_cb, 0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL,5);
-    s_column = new SpinCtrl (columns_panel, -1, 3, 1, 99, 50);
-    h2a_sizer->Add (s_column, 0, wxALL|wxALIGN_LEFT, 5);
+    s_column = new SpinCtrl(columns_panel, -1, 3, 1, 99, 50);
+    h2a_sizer->Add(s_column, 0, wxALL|wxALIGN_LEFT, 5);
     columns_panel->SetSizer(h2a_sizer);
     left_sizer->Add (columns_panel, 0, wxALL|wxEXPAND, 5);
+    if (data->get_given_cols().size() > 1) {
+        x_column->SetValue(data->get_given_cols()[0]);
+        y_column->SetValue(data->get_given_cols()[1]);
+        if (data->get_given_cols().size() > 2) {
+            std_dev_cb->SetValue(true);
+            s_column->SetValue(data->get_given_cols()[2]);
+        }
+    }
 
     bool def_set_sqrt = (getSettings()->getp("data-default-sigma") == "sqrt");
     sd_sqrt_cb = new wxCheckBox(left_panel, ID_DXLOAD_SDS, 
@@ -241,7 +249,7 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     dt_sizer->Add(title_tc, 0, wxALL|wxEXPAND, 5);
     left_sizer->Add (dt_sizer, 0, wxALL|wxEXPAND, 5);
 
-    OnStdDevCheckBox(dummy_cmd_event);
+    StdDevCheckBoxChanged();
 
     // ----- right upper panel -----
     text_preview =  new wxTextCtrl(rupper_panel, -1, wxT(""), 
@@ -285,7 +293,7 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     on_filter_change();
 }
 
-void DLoadDlg::OnStdDevCheckBox (wxCommandEvent&)
+void DLoadDlg::StdDevCheckBoxChanged()
 {
     bool v = std_dev_cb->GetValue();
     s_column->Enable(v);

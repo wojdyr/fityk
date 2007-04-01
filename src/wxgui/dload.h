@@ -35,7 +35,8 @@ protected:
 
     std::string get_command(std::string const& ds, int d_nr);
     std::string get_filename();
-    void OnStdDevCheckBox (wxCommandEvent& event);
+    void StdDevCheckBoxChanged();
+    void OnStdDevCheckBox(wxCommandEvent&) { StdDevCheckBoxChanged(); }
     void OnHTitleCheckBox (wxCommandEvent& event);
     void OnAutoTextCheckBox (wxCommandEvent& event);
     void OnAutoPlotCheckBox (wxCommandEvent& event);

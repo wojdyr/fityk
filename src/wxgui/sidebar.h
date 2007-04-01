@@ -97,6 +97,9 @@ private:
     void clear_bottom_panel();
     std::vector<bool> make_bottom_panel_sig(Function const* func);
     void do_activate_function();
+    void on_changing_frc_value(FancyRealCtrl const* frc);
+    void on_changed_frc_value(FancyRealCtrl const* frc);
+    void on_toggled_frc_lock(FancyRealCtrl const* frc);
 
     DECLARE_EVENT_TABLE()
 };

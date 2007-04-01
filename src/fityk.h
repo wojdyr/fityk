@@ -20,6 +20,16 @@
 /// If you use it in your program, you may contact fityk developers 
 /// (see the webpage for contact info) to let them know about it,
 /// or to request more functions in the API.
+/// \par
+/// \b TODO 
+/// - SyntaxError exception
+/// - make execute() return void and throw SyntaxError on syntax error
+/// - get_info() should also throw SyntaxError on syntax error
+/// - get_variable_value() is not working now (?)
+/// - find out how to make bindings to set_show_message() and redir_messages()
+///   in SWIG
+/// - are there any other functions with bugs?
+
 namespace fityk
 {
 
@@ -47,12 +57,15 @@ inline bool operator< (Point const& p, Point const& q) { return p.x < q.x; }
 
 /// @name initialization
 // @{
+
 /// call this function once, before any other functions are called
 void initialize();
+
 // @}
 
 /// @name execute fityk commands or change data
 // @{
+
 /// \brief execute command; 
 /// returns false on syntax error, throws exception on execution error
 bool execute(std::string const& s) throw(ExecuteError, ExitRequestedException);
@@ -75,6 +88,7 @@ void add_point(double x, double y, double sigma, int dataset=0)
 
 /// @name handling text output 
 // @{
+
 typedef void t_show_message(std::string const& s);
 /// general approach: set show message callback; cancels redir_messages()
 void set_show_message(t_show_message *func);
@@ -87,6 +101,7 @@ void redir_messages(std::FILE *stream);
 
 /// @name get data and informations 
 // @{
+
 /// return output of "info ..." or "info+ ..." command
 std::string get_info(std::string const& s, bool full=false) throw(ExecuteError);
 
