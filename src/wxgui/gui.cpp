@@ -691,11 +691,61 @@ void FFrame::save_settings(wxConfigBase *cf) const
 
 void FFrame::set_menubar()
 {
-    // Make a menubar
+    wxMenu* session_menu = new wxMenu;
+    session_menu->Append (ID_O_INCLUDE,   wxT("&Execute script\tCtrl-X"), 
+                                           wxT("Execute commands from a file"));
+    session_menu->Append (ID_O_REINCLUDE, wxT("R&e-Execute script"), 
+             wxT("Reset & execute commands from the file included last time"));
+    session_menu->Append (ID_S_DEBUGGER, wxT("Script debu&gger"), 
+                                       wxT("Show script editor and debugger"));
+    session_menu->Enable (ID_O_REINCLUDE, false);
+    session_menu->Append (ID_O_RESET, wxT("&Reset"), 
+                                      wxT("Reset current session"));
+    session_menu->AppendSeparator();
+    wxMenu *session_log_menu = new wxMenu;
+    session_log_menu->Append(ID_LOG_START, wxT("Choose log file"), 
+                            wxT("Start logging to file (it produces script)"));
+    session_log_menu->Append(ID_LOG_STOP, wxT("Stop logging"),
+                                          wxT("Finish logging to file"));
+    session_log_menu->AppendCheckItem(ID_LOG_WITH_OUTPUT,wxT("Log also output"),
+                          wxT("output can be included in logfile as comments"));
+    session_log_menu->AppendSeparator();
+    session_log_menu->Append(ID_LOG_DUMP, wxT("History Dump"),
+                            wxT("Save all commands executed so far to file"));
+    session_menu->Append(ID_SESSION_LOG, wxT("&Logging"), session_log_menu);
+    session_menu->Append(ID_O_DUMP, wxT("&Dump to file"), 
+                              wxT("Save current program state as script file"));
+    session_menu->AppendSeparator();
+    session_menu->Append(ID_PAGE_SETUP, wxT("Page Se&tup..."), 
+                                        wxT("Page setup"));
+    session_menu->Append(ID_PRINT_PREVIEW, wxT("Print Pre&view"), 
+                                           wxT("Print preview")); 
+    session_menu->Append(ID_PRINT, wxT("&Print...\tCtrl-P"),wxT("Print plots"));
+#if 0
+    //it doesn't work on Windows, because there is no way
+    // to have wxPostScriptPrintNativeData on MSW
+    // see: src/common/prntbase.cpp:
+    //        wxNativePrintFactory::CreatePrintNativeData()
+    //
+    session_menu->Append(ID_PRINT_PSFILE, wxT("Print to PS &File"),
+                         wxT("Export plots to postscript file."));
+#endif
+#ifdef USE_METAFILE
+    session_menu->Append(ID_PRINT_CLIPB, wxT("&Copy to Clipboard"),
+                         wxT("Copy plots to clipboard."));
+#endif
+    session_menu->AppendSeparator();
+    session_menu->Append (ID_SESSION_SET, wxT("&Settings"),
+                                          wxT("Preferences and options"));
+    session_menu->Append (ID_SESSION_EI, wxT("Edit &Init File"),
+                             wxT("Edit script executed when program starts"));
+    session_menu->AppendSeparator();
+    session_menu->Append(ID_QUIT, wxT("&Quit"), wxT("Exit the program"));
+
     wxMenu* data_menu = new wxMenu;
-    data_menu->Append (ID_D_LOAD, wxT("&Load File\tCtrl-O"), 
+    data_menu->Append (ID_D_LOAD, wxT("&Quick Load File\tCtrl-O"), 
                                                  wxT("Load data from file"));
-    data_menu->Append (ID_D_XLOAD, wxT("Load File (&Custom)\tCtrl-M"), 
+    data_menu->Append (ID_D_XLOAD, wxT("&Load File\tCtrl-M"), 
                                wxT("Load data from file, with some options"));
     this->data_menu_recent = new wxMenu;
     int rf_counter = 1;
@@ -862,57 +912,6 @@ void FFrame::set_menubar()
     gui_menu_sconfig->Append(ID_G_SCONF2, wxT("as alternative"),
                  wxT("Save current configuration to alternative config file"));
     gui_menu->Append(ID_G_SCONF, wxT("&Save current config"), gui_menu_sconfig);
-
-    wxMenu* session_menu = new wxMenu;
-    session_menu->Append (ID_O_INCLUDE,   wxT("&Execute script\tCtrl-X"), 
-                                           wxT("Execute commands from a file"));
-    session_menu->Append (ID_O_REINCLUDE, wxT("R&e-Execute script"), 
-             wxT("Reset & execute commands from the file included last time"));
-    session_menu->Append (ID_S_DEBUGGER, wxT("Script debu&gger"), 
-                                       wxT("Show script editor and debugger"));
-    session_menu->Enable (ID_O_REINCLUDE, false);
-    session_menu->Append (ID_O_RESET, wxT("&Reset"), 
-                                      wxT("Reset current session"));
-    session_menu->AppendSeparator();
-    wxMenu *session_log_menu = new wxMenu;
-    session_log_menu->Append(ID_LOG_START, wxT("Choose log file"), 
-                            wxT("Start logging to file (it produces script)"));
-    session_log_menu->Append(ID_LOG_STOP, wxT("Stop logging"),
-                                          wxT("Finish logging to file"));
-    session_log_menu->AppendCheckItem(ID_LOG_WITH_OUTPUT,wxT("Log also output"),
-                          wxT("output can be included in logfile as comments"));
-    session_log_menu->AppendSeparator();
-    session_log_menu->Append(ID_LOG_DUMP, wxT("History Dump"),
-                            wxT("Save all commands executed so far to file"));
-    session_menu->Append(ID_SESSION_LOG, wxT("&Logging"), session_log_menu);
-    session_menu->Append(ID_O_DUMP, wxT("&Dump to file"), 
-                              wxT("Save current program state as script file"));
-    session_menu->AppendSeparator();
-    session_menu->Append(ID_PAGE_SETUP, wxT("Page Se&tup..."), 
-                                        wxT("Page setup"));
-    session_menu->Append(ID_PRINT_PREVIEW, wxT("Print Pre&view"), 
-                                           wxT("Print preview")); 
-    session_menu->Append(ID_PRINT, wxT("&Print...\tCtrl-P"),wxT("Print plots"));
-#if 0
-    //it doesn't work on Windows, because there is no way
-    // to have wxPostScriptPrintNativeData on MSW
-    // see: src/common/prntbase.cpp:
-    //        wxNativePrintFactory::CreatePrintNativeData()
-    //
-    session_menu->Append(ID_PRINT_PSFILE, wxT("Print to PS &File"),
-                         wxT("Export plots to postscript file."));
-#endif
-#ifdef USE_METAFILE
-    session_menu->Append(ID_PRINT_CLIPB, wxT("&Copy to Clipboard"),
-                         wxT("Copy plots to clipboard."));
-#endif
-    session_menu->AppendSeparator();
-    session_menu->Append (ID_SESSION_SET, wxT("&Settings"),
-                                          wxT("Preferences and options"));
-    session_menu->Append (ID_SESSION_EI, wxT("Edit &Init File"),
-                             wxT("Edit script executed when program starts"));
-    session_menu->AppendSeparator();
-    session_menu->Append(ID_QUIT, wxT("&Quit"), wxT("Exit the program"));
 
     wxMenu *help_menu = new wxMenu;
     help_menu->Append(ID_H_MANUAL, wxT("&Manual\tF1"), wxT("User's Manual"));

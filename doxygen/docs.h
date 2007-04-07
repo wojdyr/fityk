@@ -48,6 +48,15 @@
  * Note, that UDF bytecode is executed n times more than $variable bytecode,
  * where n is the number of data points, and usually n >> 1.
  * 
+ * \par
+ * reusability
  *
+ * There are small pieces of code (1 or a few files) designed to be reusable. 
+ * They can have more liberal licence than GPL.
+ *
+ * - GUI input line, see: http://wxforum.shadonet.com/viewtopic.php?t=13005
+ * - GUI FancyRealCtrl, see: http://wxforum.shadonet.com/viewtopic.php?t=13471
+ * - optional-suffix-parser for Boost.Spirit in src/optional_suffix.h
+ *   see also: http://article.gmane.org/gmane.comp.parsers.spirit.general/7797
  */
 

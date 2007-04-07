@@ -980,6 +980,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         if (button == 1) {
             Data const* data = AL->get_data(AL->get_active_ds_position());
             if (!data->is_empty() && data->get_n() == size(data->points())) {
+                cancel_mouse_press();
                 wxMessageBox(
                  wxT("You pressed the left mouse button in data-range mode,")
                  wxT("\nbut all data points are already active.")

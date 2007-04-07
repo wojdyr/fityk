@@ -12,6 +12,7 @@
 
 #include <math.h>
 #include <string.h>
+#include <stdlib.h>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
@@ -265,24 +266,58 @@ void Data::add_one_point(double x, double y, double sigma)
     }
 }
 
+
+void Data::open_filename_with_columns(string const& file, ifstream& f)
+{
+    // ../data/foo.dat/1,8 -> ../data/foo.dat cols: 1,8
+    string::size_type a = file.find_last_not_of(",0123456789");
+    if (a == string::npos || file[a] != '/') 
+        return;
+    string fn(file, 0, a);
+    vector<string> cols_s = split_string(string(file,a+1), ',');
+    if (cols_s.size() != 2 && cols_s.size() != 3)
+        return;
+    vector<int> cols_i;
+    for (vector<string>::const_iterator i = cols_s.begin(); 
+                                                    i != cols_s.end(); ++i) {
+        if (i->empty())
+            return;
+        int n = strtol(i->c_str(), 0, 10);
+        cols_i.push_back(n);
+    }
+    f.clear();
+    f.open(fn.c_str(), ios::in | ios::binary);
+    if (!f) 
+        throw ExecuteError("Can't open file: " + fn);
+    clear(); //removing previous file
+    filename = fn;   
+    given_cols = cols_i;
+}
+
+
 void Data::load_file (string const& file, string const& type, 
                      vector<int> const& cols, bool preview)
 {   
     string const& ft = type.empty() ? guess_file_type(file) // "detect" format
                                     : type;
     ifstream f (file.c_str(), ios::in | ios::binary);
+    if (f) {
+        clear(); //removing previous file
+        filename = file;   
+        given_cols = cols;
+    }
+    else if (cols.empty()) {
+        open_filename_with_columns(file, f);
+    }
     if (!f) {
         throw ExecuteError("Can't open file: " + file);
     }
-    clear(); //removing previous file
-    filename = file;   
     given_type = type;
-    given_cols = cols;
 
     if (ft == "text")                         // x y x y ... 
-        load_xy_filetype(f, cols);
+        load_xy_filetype(f, given_cols);
     else if (ft == "htext")                   // header\n x y x y ... 
-        load_header_xy_filetype(f, cols);
+        load_header_xy_filetype(f, given_cols);
     else if (ft == "MCA")                     // .mca
         load_mca_filetype(f);
     else if (ft == "RIT")                     // .rit

@@ -262,7 +262,9 @@ bool is_fityk_script(string filename)
 
 void UserInterface::process_cmd_line_filename(string const& par)
 {
-    if (is_fityk_script(par))
+    if (startswith(par, "=->"))
+        getUI()->exec_and_log(string(par, 3));
+    else if (is_fityk_script(par))
         getUI()->exec_script(par);
     else {
         getUI()->exec_and_log("@+ <'" + par + "'");

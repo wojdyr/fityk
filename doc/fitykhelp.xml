@@ -1,21 +1,13 @@
 <?xml version="1.0"?>
 <!DOCTYPE book PUBLIC '-//OASIS//DTD DocBook XML V4.2//EN' 
-              'http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd'
-[
-<!ENTITY two-theta "
-    <inlinemediaobject>
-     <imageobject><imagedata fileref='fitykhelp_img/2theta.png'/></imageobject>
-     <textobject><phrase>2theta</phrase></textobject>
-    </inlinemediaobject> 
-  ">
-]>
+              'http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd'>
 <!-- $Id$ -->
 <!-- XML header above -->
 <!-- SGML header below-->
 <!-- <!DOCTYPE article  PUBLIC "-//OASIS//DTD DocBook V4.1//EN"> -->
 
 <book lang="en">
- <title>Fityk 0.8.0 - User's Manual</title> 
+ <title>Fityk 0.8.1 - User's Manual</title> 
 
  <chapter id="intro"> 
   <title>Introduction</title> 
@@ -29,10 +21,10 @@
     to remove the baseline from data, or to display data only.
    </para>
    <para>
-    It is reportedly used in crystallography, 
-    chromatography, photoluminescence and photoelectron spectroscopy, infrared and Raman spectroscopy,
-    to name but a few. Although the author has a general understanding only of experimental
-    methods other than powder diffraction, 
+    It is reportedly used in crystallography, chromatography, photoluminescence
+    and photoelectron spectroscopy, infrared and Raman spectroscopy,
+    to name but a few. Although the author has a general understanding only 
+    of experimental methods other than powder diffraction, 
     he would like to make it useful to as many people as possible.
    </para>
    <para>
@@ -53,8 +45,7 @@
     See <xref linkend="license"/> for details. 
     You can download the latest version of <application>fityk</application> from
     <ulink url="http://www.unipress.waw.pl/fityk">http://www.unipress.waw.pl/fityk</ulink>.
-    or
-    <ulink url="http://fityk.sf.net">http://fityk.sf.net</ulink>.
+    or <ulink url="http://fityk.sf.net">http://fityk.sf.net</ulink>.
     To contact the author, visit the same page. 
    </para> 
   </section>
@@ -66,7 +57,7 @@
     If you are using the <acronym>GUI</acronym> version you can look at the
     <ulink url="http://www.unipress.waw.pl/fityk/screenshots.html">
      screenshots-based tutorial 
-    </ulink> 
+    </ulink> (in preparation)
     and postpone reading
     <xref linkend="CommandReference"/> until you need to write a script,
     put constraints on variables, add user-defined function 
@@ -104,12 +95,10 @@
     <ulink url="http://www.wxwidgets.org">
      <systemitem class="library">wxWidgets</systemitem> 
     </ulink>
-    library. 
-    and can be run on Unix species 
+    library  and can be run on Unix species 
     with <systemitem class="library">GTK+</systemitem>
-    and on MS Windows. There are also people
-    using it on MacOS X (have a look at the fityk-users mailing list archives
-    for details).
+    and on MS Windows. There are also people using it on MacOS X 
+    (have a look at the fityk-users mailing list archives for details).
    </para>
   </section> 
  </chapter>
@@ -123,18 +112,18 @@
    <para>
     Let us analyze a diffraction pattern of NaCl. Our goal is to determine the
     position of the center of the highest peak. It is needed for calculating the
-    pressure under which the sample was measured, but this later detail in the processing
-    is irrelevent for the time being.
+    pressure under which the sample was measured, but this later detail in the 
+    processing is irrelevent for the time being.
    </para>
    <para>
-    The data file used in this example is distributed with the program and 
-    can be found in the <filename class="directory">samples</filename> directory. 
+    The data file used in this example is distributed with the program and can 
+    be found in the <filename class="directory">samples</filename> directory. 
    </para>
    <para>
     First load data from file <filename>nacl01.dat</filename>. 
     You can do this by typing <userinput>@0 &lt; nacl01.dat</userinput> 
-    in the <acronym>CLI</acronym> version (or in the <acronym>GUI</acronym> version 
-    in the input box - at the bottom, just above the status bar). 
+    in the <acronym>CLI</acronym> version (or in the <acronym>GUI</acronym> 
+    version in the input box - at the bottom, just above the status bar). 
     In the <acronym>GUI</acronym>, you can also select
     <menuchoice>
      <guimenu>Data</guimenu><guimenuitem>Load File</guimenuitem>
@@ -147,12 +136,12 @@
     (the plot below the main plot). 
     To zoom out, press the <guiicon>View whole</guiicon> toolbar button.
     Other ways of zooming are described in <xref linkend="mouse"/>. 
-    If you want the data to be drawn with 
-    larger points or a line, or if you want to change the color of the line or background,
+    If you want the data to be drawn with larger points or a line, 
+    or if you want to change the color of the line or background,
     press <mousebutton>right</mousebutton> mouse button on the main plot
     and use <guimenu>Data point size</guimenu> or <guimenu>Color</guimenu>
-    menu from the pop-up menu. To change the color of data points, use the right-hand
-    panel.
+    menu from the pop-up menu. To change the color of data points, 
+    use the right-hand panel.
    </para> 
    <para>
     Now all data points are active.
@@ -240,8 +229,10 @@
     Following this, the program reads files given as arguments 
     on the command line.
     If the filename has extension ".fit" or the file begins with a "# Fityk"
-    string, it is assumed to be a script and is executed.
+    string, it is assumed to be a script and is executed. 
     Otherwise,  it is assumed to be a data file and is loaded normally.
+    As an exception, if the argument starts with "=->", string 
+    following "=->" is regarded as a command and executed.
     There are also other parameters to the CLI and GUI versions of the program.
     Option "-h" gives the full listing.
     <screen>     
@@ -252,6 +243,23 @@
       -c, --cmd=&lt;str&gt;       script passed in as string
       -I, --no-init         don't process $HOME/.fityk/init file
       -r, --reorder         reorder data (50.xy before 100.xy)
+    </screen>     
+    The example of non-interactive using CLI version on Linux:
+    <screen>     
+    wojdyr@ubu:~/foo$ cfityk -h
+    Usage: cfityk [-h] [-V] [-c &lt;str&gt;] [script or data file...]
+      -h, --help            show this help message
+      -V, --version         output version information and exit
+      -c, --cmd=&lt;str&gt;       script passed in as string
+      -I, --no-init         don't process $HOME/.fityk/init file
+      -q, --quit            don't enter interactive shell
+    wojdyr@ubu:~/foo$ ls *.rdf
+    dat_a.rdf  dat_r.rdf  out.rdf
+    wojdyr@ubu:~/foo$ cfityk -q -I "=-&gt; set verbosity=quiet, autoplot=never" \
+    &gt; *.rdf "=-&gt; i+ min(x if y &gt; 0) in @*"
+    in @0 dat_a: 1.8875
+    in @1 dat_r: 1.5105
+    in @2 out: 1.8305
     </screen>     
    </para>
   </section> 
@@ -282,8 +290,8 @@
     <para>
      One of the most useful things which can be displayed by the auxiliary plot 
      is the difference between the data and the sum of functions. 
-     (also controlled by a pop-up menu). Hopefully, a 
-     quick look at this menu and a minute or two's worth of experiments will show
+     (also controlled by a pop-up menu). Hopefully, a quick look at this menu 
+     and a minute or two's worth of experiments will show
      the potential of this auxiliary plot.
     </para>
     <para>
@@ -293,10 +301,9 @@
      </menuchoice>. 
      Two different configurations can be saved, 
      which allows easy changing of colors
-     for printing. On Unix platforms, these configurations are stored 
-     in a file in the user's home directory. 
-     On Windows - they are stored in the registry (perhaps in the future they will 
-     also be stored in a file).
+     for printing. On Unix platforms, these configurations are stored in a file
+     in the user's home directory. On Windows - they are stored in the registry
+     (perhaps in the future they will also be stored in a file).
     </para>
    </section>
 

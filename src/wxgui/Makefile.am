@@ -6,7 +6,7 @@ EXTRA_DIST = winres.rc
 
 # tested only on MinGW 
 if OS_WIN32
-fityk_LDFLAGS = -mwindows 
+AM_LDFLAGS = -mwindows 
 ms_win_res = winres.o
 # windres has "--include-dir" instead of "-I" 
 # [update: now windres accepts also -I, so this sed thing in not necessary]
@@ -20,7 +20,7 @@ else
 INCLUDES = -DHELP_DIR=\"$(pkgdatadir)\"
 endif  #OS_WIN32
 
-fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
+AM_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 		inputline.cpp inputline.h callback.h \
 		listptxt.cpp listptxt.h dload.cpp dload.h \
 		statbar.cpp statbar.h pane.cpp pane.h sidebar.cpp sidebar.h \
@@ -30,10 +30,10 @@ fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 		dialogs.cpp dialogs.h gui.cpp gui.h 
 
 
-fityk_CPPFLAGS = @WX_CPPFLAGS@ @CPPFLAGS_3RDPARTY@ 
-fityk_CXXFLAGS = @WX_CXXFLAGS_ONLY@ 
+AM_CPPFLAGS = @WX_CPPFLAGS@ @CPPFLAGS_3RDPARTY@ 
+AM_CXXFLAGS = @WX_CXXFLAGS_ONLY@ 
 
-fityk_LDADD = ../libfityk.la @WX_LIBS@ $(ms_win_res)
+AM_LDADD = ../libfityk.la @WX_LIBS@ $(ms_win_res)
 
 bin_PROGRAMS = @FITYK@ 
 EXTRA_PROGRAMS = fityk 

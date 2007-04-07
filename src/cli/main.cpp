@@ -463,6 +463,7 @@ int main (int argc, char **argv)
 
     // process command-line arguments
     bool exec_init_file = true;
+    bool quit = true;
     string script_string;
     for (int i = 1; i < argc; ++i) {
         if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
@@ -471,7 +472,8 @@ int main (int argc, char **argv)
               "  -h, --help            show this help message\n"
               "  -V, --version         output version information and exit\n"
               "  -c, --cmd=<str>       script passed in as string\n"
-              "  -I, --no-init         don't process $HOME/.fityk/init file\n";
+              "  -I, --no-init         don't process $HOME/.fityk/init file\n"
+              "  -q, --quit            don't enter interactive shell\n";
             return 0;
         }
         else if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--version")) {
@@ -510,6 +512,10 @@ int main (int argc, char **argv)
             argv[i] = 0;
             exec_init_file = false;
         }
+        else if (!strcmp(argv[i], "-q") || !strcmp(argv[i], "--quit")) {
+            argv[i] = 0;
+            quit = true;
+        }
     }
 
     AL = new ApplicationLogic;
@@ -536,7 +542,8 @@ int main (int argc, char **argv)
         }
 
         // the version of main_loop() depends on NO_READLINE  
-        main_loop(); 
+        if (!quit)
+            main_loop(); 
     } 
     catch(ExitRequestedException) {
         cerr << "\nbye...\n";

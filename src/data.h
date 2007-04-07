@@ -86,6 +86,7 @@ private:
     void load_rit_filetype (std::ifstream& f);
     void load_cpi_filetype (std::ifstream& f);
     void post_load();
+    void open_filename_with_columns(std::string const& file, std::ifstream& f);
 };
 
 #endif
