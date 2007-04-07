@@ -226,13 +226,24 @@
     On startup, the program executes a script from the
     <filename>$HOME/.fityk/init</filename> file (on MS Windows XP:
     <filename>C:\Documents and Settings\USERNAME\.fityk\init</filename>).
-    Following this, the program reads files given as arguments 
-    on the command line.
-    If the filename has extension ".fit" or the file begins with a "# Fityk"
-    string, it is assumed to be a script and is executed. 
-    Otherwise,  it is assumed to be a data file and is loaded normally.
-    As an exception, if the argument starts with "=->", string 
-    following "=->" is regarded as a command and executed.
+    Following this, the program executes command passed with --cmd option,
+    if given, and processes command line arguments:
+    <itemizedlist>
+     <listitem><para>
+       if the argument starts with "=->", string following =-> 
+       is regarded as a command and executed
+       (otherwise, it is regarded as a filename).
+     </para></listitem>
+     <listitem><para>
+       if the filename has extension ".fit" or the file begins with a "# Fityk"
+       string, it is assumed to be a script and is executed. 
+     </para></listitem>
+     <listitem><para>
+       otherwise, it is assumed to be a data file and is loaded.
+       It is possible to specify columns in data file in this way:
+       <userinput>file.xy/1,4</userinput>
+     </para></listitem>
+    </itemizedlist>
     There are also other parameters to the CLI and GUI versions of the program.
     Option "-h" gives the full listing.
     <screen>     

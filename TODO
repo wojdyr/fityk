@@ -21,9 +21,14 @@ Legend:
 
 // * BUG: after message in data-range mode, mouse press is not cancelled
 
+// * the way to output wG and wL of Voigt function
+
 * GUI/Windows: move configs from registry to file?
 
-* GUI: the name of config file passed as cmd line parameter
+* GUI: named-configs in ~/.fityk/named-configs dir
+	       Save current config > as ...
+	       Load other config > built-in, ..., 
+  the name of config file passed as cmd line parameter
 
 * BUG: "plot . []" sometimes doesn't work as expected if x axis is not visible
 
@@ -33,11 +38,7 @@ Legend:
 * GUI/BUG: "@+ < file" with "show only selected" shows two datasets
            and similar problem with delete + "show only selected"
 
-* the way to output wG and wL of Voigt function
-
 * XPS Shirley background removing
-
-* fix API bugs (TODO from fityk.h)
 
 * file paths: "_EXECUTED_SCRIPT_DIR_/" should be replaced with
    cwd or dir of executed script + path separator

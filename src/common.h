@@ -256,6 +256,7 @@ void purge_all_elements(std::vector<T*> &vec)
     vec.clear();
 }
 
+/// check if vector (first arg) contains given element (second arg)
 template<typename T, typename T2>
 bool contains_element(std::vector<T> const& vec, T2 const& t)
 {

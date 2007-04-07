@@ -22,13 +22,8 @@
 /// or to request more functions in the API.
 /// \par
 /// \b TODO 
-/// - SyntaxError exception
-/// - make execute() return void and throw SyntaxError on syntax error
-/// - get_info() should also throw SyntaxError on syntax error
-/// - get_variable_value() is not working now (?)
 /// - find out how to make bindings to set_show_message() and redir_messages()
 ///   in SWIG
-/// - are there any other functions with bugs?
 
 namespace fityk
 {
@@ -38,6 +33,10 @@ struct ExecuteError : public std::runtime_error
 {
     ExecuteError(const std::string& msg) : runtime_error(msg) {}
 };
+
+/// syntax error exception, used only in public API
+struct SyntaxError : public std::exception {};
+
 
 /// exception thrown to finish the program (on command "quit")
 struct ExitRequestedException : std::exception {};
@@ -66,9 +65,9 @@ void initialize();
 /// @name execute fityk commands or change data
 // @{
 
-/// \brief execute command; 
-/// returns false on syntax error, throws exception on execution error
-bool execute(std::string const& s) throw(ExecuteError, ExitRequestedException);
+/// execute command; throws exception on error 
+void execute(std::string const& s) throw(SyntaxError, ExecuteError, 
+                                         ExitRequestedException);
 
 /// execute command; returns false on error
 bool safe_execute(std::string const& s) throw(ExitRequestedException);
@@ -103,7 +102,8 @@ void redir_messages(std::FILE *stream);
 // @{
 
 /// return output of "info ..." or "info+ ..." command
-std::string get_info(std::string const& s, bool full=false) throw(ExecuteError);
+std::string get_info(std::string const& s, bool full=false) 
+                                            throw(SyntaxError, ExecuteError);
 
 /// returns number of datasets n, always n >= 1
 int get_dataset_count();

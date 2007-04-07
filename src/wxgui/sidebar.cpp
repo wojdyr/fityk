@@ -719,6 +719,8 @@ void SideBar::update_func_inf()
         inf->AppendText(wxT("\nFWHM: ") + s2wx(S(func->fwhm())));
     if (func->has_iwidth()) 
         inf->AppendText(wxT("\nInt. Width: ") + s2wx(S(func->iwidth())));
+    if (func->has_other_props()) 
+        inf->AppendText(wxT("\n") + s2wx(func->other_props_str()));
     vector<string> in;
     for (int i = 0; i < AL->get_ds_count(); ++i) {
         if (contains_element(AL->get_sum(i)->get_ff_idx(), active_function))

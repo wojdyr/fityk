@@ -74,6 +74,16 @@ public:
     virtual fp area() const { return 0; }
     bool has_iwidth() const { return this->has_area() && this->has_height(); }
     fp iwidth() const { fp h=this->height(); return h ? this->area()/h : 0.; }
+    virtual std::vector<std::string> get_other_prop_names() const
+                                    { return std::vector<std::string>(); }
+    /// has function other properties (e.g. like Lorentzian-FWHM of Voigt)
+    bool has_other_props() const { return !get_other_prop_names().empty(); } 
+    /// check if has "other" property named `name' defined
+    bool has_other_prop(std::string const& name);
+    /// get other property, first check with has_other_prop
+    virtual fp other_prop(std::string const&) const { return 0; }
+    /// return ready-to-display string with all other properties 
+    std::string other_props_str() const;
     fp get_var_value(int n) const 
              { assert(n>=0 && n<size(vv)); return vv[n]; }
     std::vector<fp> get_var_values() const  { return vv; }

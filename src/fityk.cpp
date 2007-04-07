@@ -98,9 +98,12 @@ void initialize()
 }
 
 
-bool execute(string const& s)  throw(ExecuteError, ExitRequestedException)
+void execute(string const& s)  throw(SyntaxError, ExecuteError, 
+                                     ExitRequestedException)
 {
-    return parse_and_execute_e(s);
+    bool r = parse_and_execute_e(s);
+    if (!r)
+        throw SyntaxError();
 }
 
 bool safe_execute(string const& s)  throw(ExitRequestedException)
@@ -108,9 +111,16 @@ bool safe_execute(string const& s)  throw(ExitRequestedException)
     return exec_command(s) == Commands::status_ok; 
 }
 
-string get_info(string const& s, bool full)  throw(ExecuteError)
+string get_info(string const& s, bool full)  throw(SyntaxError, ExecuteError)
 {
-    return get_info_string(s, full);
+    try {
+        return get_info_string(s, full);
+    } catch (ExecuteError& e) {
+        if (startswith(e.what(), "Syntax error"))
+            throw SyntaxError();
+        else
+            throw;
+    }
 }
 
 int get_dataset_count()
@@ -159,7 +169,7 @@ double get_variable_value(string const& name)  throw(ExecuteError)
         return AL->find_variable(string(name, 1))->get_value();
     else if (name[0] == '%' && name.find('.') < name.size() - 1) {
         string::size_type pos = name.find('.');
-        Function const* f = AL->find_function(string(1, pos-1));
+        Function const* f = AL->find_function(string(name, 1, pos-1));
         return f->get_param_value(string(name, pos+1));
     }
     else

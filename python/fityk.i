@@ -25,10 +25,14 @@ namespace std {
 
 %include "fityk.h"
 
-%extend fityk::ExecuteError {
-        const char* __str__() {
-                return $self->what();
-        }
+%extend fityk::ExecuteError 
+{
+        const char* __str__() { return $self->what(); }
+};
+
+%extend fityk::SyntaxError 
+{
+        const char* __str__() { return ""; }
 };
 
 

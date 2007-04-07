@@ -617,6 +617,24 @@ fp FuncVoigt::area() const
     return vv[0] * fabs(vv[2] * sqrt(M_PI) * vv[4]);
 }
                                                             
+vector<string> FuncVoigt::get_other_prop_names() const
+{
+    return vector2(string("GaussianFWHM"), string("LorentzianFWHM"));
+}
+
+fp FuncVoigt::other_prop(string const& name) const
+{
+    if (name == "GaussianFWHM") {
+        fp sigma = fabs(vv[2]) / M_SQRT2;
+        return 2 * sigma * sqrt(2 * M_LN2);
+    }
+    else if (name == "LorentzianFWHM") {
+        fp gamma = fabs(vv[2]) * vv[3];
+        return 2 * gamma;
+    }
+    else 
+        return 0.;
+}
 
 ///////////////////////////////////////////////////////////////////////
 

@@ -261,6 +261,20 @@ void Function::calculate_values_with_params(vector<fp> const& x,
     this_->more_precomputations();
 }
 
+bool Function::has_other_prop(std::string const& name)
+{
+    return contains_element(get_other_prop_names(), name);
+}
+
+std::string Function::other_props_str() const
+{
+    string r;
+    vector<string> v = get_other_prop_names();
+    for (vector<string>::const_iterator i = v.begin(); i != v.end(); ++i)
+        r += (i == v.begin() ? "" : "\n") + *i + ": " + S(other_prop(*i));
+    return r;
+}
+
 string Function::get_info(vector<Variable*> const &variables, 
                           vector<fp> const &parameters, 
                           bool extended) const 
@@ -283,6 +297,8 @@ string Function::get_info(vector<Variable*> const &variables,
         if (this->has_area()) 
             if (!contains_element(type_var_names, string("area")))
                 s += "\nArea: " + S(area());
+        if (this->has_other_props()) 
+            s += "\n" + other_props_str();
     }
     return s;
 } 

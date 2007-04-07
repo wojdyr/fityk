@@ -1,5 +1,5 @@
 # $Id$
-SUBDIRS = . cli wxgui 
+SUBDIRS = . @SRCSUBDIRS@
 
 lib_LTLIBRARIES = libfityk.la 
 

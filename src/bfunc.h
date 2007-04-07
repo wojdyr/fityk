@@ -161,6 +161,8 @@ class FuncVoigt : public Function
     fp fwhm() const;
     bool has_area() const { return true; } 
     fp area() const;
+    std::vector<std::string> get_other_prop_names() const;
+    fp other_prop(std::string const& name) const;
 };
 
 class FuncVoigtA : public Function
