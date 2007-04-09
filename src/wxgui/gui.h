@@ -31,7 +31,7 @@ class FStatusBar;
 class FApp: public wxApp
 {
 public:
-    wxString conf_filename, alt_conf_filename;
+    wxString conf_filename, alt_conf_filename, conf_prefix;
 
     bool OnInit(void);
     int OnExit();
@@ -142,7 +142,10 @@ public:
     void OnPreviousZoom  (wxCommandEvent& event);
     void OnConfigRead    (wxCommandEvent& event);
     void OnConfigBuiltin (wxCommandEvent& event);
+    void OnUpdateLConfMenu (wxUpdateUIEvent& event);
+    void OnConfigX (wxCommandEvent& event);
     void OnConfigSave    (wxCommandEvent& event);
+    void OnConfigSaveAs  (wxCommandEvent&);
     void OnGuiShowUpdate (wxUpdateUIEvent& event);
     void SwitchSideBar(bool show);
     void OnSwitchSideBar(wxCommandEvent& ev) {SwitchSideBar(ev.IsChecked());}
@@ -159,6 +162,8 @@ public:
     void OnSwitchCrosshair(wxCommandEvent& ev){SwitchCrosshair(ev.IsChecked());}
     void OnSwitchFullScreen(wxCommandEvent& event);
     void OnShowMenuZoomPrev(wxUpdateUIEvent& event);
+    void save_config_as(wxString const& name);
+    void read_config(wxString const& name);
     void save_all_settings(wxConfigBase *cf) const;
     void save_settings(wxConfigBase *cf) const;
     void read_all_settings(wxConfigBase *cf);

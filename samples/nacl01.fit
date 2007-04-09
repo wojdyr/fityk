@@ -1,7 +1,7 @@
 # Fityk 0.7.8
 ### the minimal example
 
-@0 < 'nacl01.dat'  # load data from file
+@0 < '_EXECUTED_SCRIPT_DIR_/nacl01.dat'  # load data from file 
 
 a = (23.0 < x < 26.0)  # disactivate data outside of (23.0,26.0) range.
 

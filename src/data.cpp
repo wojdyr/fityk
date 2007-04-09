@@ -298,8 +298,6 @@ void Data::open_filename_with_columns(string const& file, ifstream& f)
 void Data::load_file (string const& file, string const& type, 
                      vector<int> const& cols, bool preview)
 {   
-    string const& ft = type.empty() ? guess_file_type(file) // "detect" format
-                                    : type;
     ifstream f (file.c_str(), ios::in | ios::binary);
     if (f) {
         clear(); //removing previous file
@@ -314,6 +312,8 @@ void Data::load_file (string const& file, string const& type,
     }
     given_type = type;
 
+    // guess format if not given
+    string const& ft = type.empty() ? guess_file_type(filename) : type;
     if (ft == "text")                         // x y x y ... 
         load_xy_filetype(f, given_cols);
     else if (ft == "htext")                   // header\n x y x y ... 

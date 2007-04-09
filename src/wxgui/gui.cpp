@@ -29,8 +29,10 @@
 #include <wx/printdlg.h>
 #include <wx/image.h>
 #include <wx/config.h>
+#include <wx/fileconf.h>
 #include <wx/msgout.h>
 #include <wx/metafile.h>
+#include <wx/dir.h>
 #include <algorithm>
 #include <locale.h>
 #include <string.h>
@@ -179,10 +181,14 @@ enum {
     ID_G_V_ZOOM_PREV_END = ID_G_V_ZOOM_PREV+40 ,
     ID_G_LCONF1                ,
     ID_G_LCONF2                ,
+    ID_G_LCONF                 ,
     ID_G_LCONFB                ,
+    ID_G_LCONF_X               ,
+    ID_G_LCONF_X_END = ID_G_LCONF_X+20,
     ID_G_SCONF                 ,
     ID_G_SCONF1                ,
     ID_G_SCONF2                ,
+    ID_G_SCONFAS               ,
 
     ID_ft_m_zoom               ,
     ID_ft_m_range              ,
@@ -210,6 +216,8 @@ static const wxCmdLineEntryDesc cmdLineDesc[] = {
           wxT("output version information and exit"), wxCMD_LINE_VAL_NONE, 0 },
     { wxCMD_LINE_OPTION, wxT("c"),wxT("cmd"), wxT("script passed in as string"),
                                                    wxCMD_LINE_VAL_STRING, 0 },
+    { wxCMD_LINE_OPTION, wxT("g"),wxT("config"), 
+               wxT("choose GUI configuration"), wxCMD_LINE_VAL_STRING, 0 },
     { wxCMD_LINE_SWITCH, wxT("I"), wxT("no-init"), 
           wxT("don't process $HOME/.fityk/init file"), wxCMD_LINE_VAL_NONE, 0 },
     { wxCMD_LINE_SWITCH, wxT("r"), wxT("reorder"), 
@@ -296,12 +304,23 @@ bool FApp::OnInit(void)
     wxToolTip::SetDelay (500);
 #endif
     wxConfig::DontCreateOnDemand();
-    wxString pre = pchar2wx(config_dirname) + wxFILE_SEP_PATH;
-    conf_filename = pre + wxT("config");
-    alt_conf_filename = pre + wxT("alt-config");
-    wxConfigBase *config = new wxConfig(wxT(""), wxT(""), 
-                                        pre+wxT("wxoptions"), wxT(""), 
-                                        wxCONFIG_USE_LOCAL_FILE);
+    wxString prefix = pchar2wx(config_dirname) + wxFILE_SEP_PATH;
+    // default config name
+    conf_filename = prefix + wxT("config");
+    // alternative config name
+    alt_conf_filename = prefix + wxT("alt-config");
+
+    wxConfig *config = new wxConfig(wxT(""), wxT(""), 
+                                    prefix + wxT("wxoptions"), wxT(""), 
+                                    wxCONFIG_USE_LOCAL_FILE);
+    // prefix of names of other config files
+    conf_prefix = prefix + wxT("configs") + wxFILE_SEP_PATH;
+
+    get_user_conffile(""); //create .fityk directory, if it doesn't exists
+    wxString config_dir = wxGetHomeDir() + wxFILE_SEP_PATH + conf_prefix;
+    if (!wxDirExists(config_dir))
+        wxMkdir(config_dir);
+
     wxConfig::Set(config);
 
     DataEditorDlg::read_transforms();
@@ -309,8 +328,13 @@ bool FApp::OnInit(void)
     // Create the main frame window
     frame = new FFrame(NULL, -1, wxT("fityk"), wxDEFAULT_FRAME_STYLE);
 
-    wxConfigBase *cf = new wxConfig(wxT(""), wxT(""), conf_filename, wxT(""), 
-                                    wxCONFIG_USE_LOCAL_FILE);
+    wxString ini_config;
+    if (cmdLineParser.Found(wxT("g"), &ini_config))
+        ini_config = conf_prefix + ini_config;
+    else
+        ini_config = conf_filename;
+    wxConfig *cf = new wxConfig(wxT(""), wxT(""), ini_config, wxT(""), 
+                                wxCONFIG_USE_LOCAL_FILE);
     frame->read_all_settings(cf);
 
     frame->plot_pane->set_mouse_mode(mmd_zoom);
@@ -348,7 +372,7 @@ int FApp::OnExit()
 { 
     delete AL; 
     wxConfig::Get()->Write(wxT("/FitykVersion"), pchar2wx(VERSION));
-    delete wxConfigBase::Set((wxConfigBase *) NULL);
+    delete wxConfig::Set((wxConfig *) NULL);
     return 0;
 }
 
@@ -486,8 +510,11 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_LCONF1,      FFrame::OnConfigRead)
     EVT_MENU (ID_G_LCONF2,      FFrame::OnConfigRead)
     EVT_MENU (ID_G_LCONFB,      FFrame::OnConfigBuiltin)
+    EVT_UPDATE_UI (ID_G_LCONFB, FFrame::OnUpdateLConfMenu)
+    EVT_MENU_RANGE (ID_G_LCONF_X, ID_G_LCONF_X_END, FFrame::OnConfigX)
     EVT_MENU (ID_G_SCONF1,      FFrame::OnConfigSave)
     EVT_MENU (ID_G_SCONF2,      FFrame::OnConfigSave)
+    EVT_MENU (ID_G_SCONFAS,     FFrame::OnConfigSaveAs)
 
     EVT_MENU (ID_H_MANUAL,      FFrame::OnShowHelp)
     EVT_MENU (ID_H_TIP,         FFrame::OnTipOfTheDay)
@@ -904,13 +931,18 @@ void FFrame::set_menubar()
                                             wxT("Default configuration file"));
     gui_menu->Append(ID_G_LCONF2, wxT("Load &alt. config"), 
                                         wxT("Alternative configuration file"));
-    gui_menu->Append(ID_G_LCONFB, wxT("Load &built-in config"), 
+    wxMenu* gui_menu_lconfig = new wxMenu;
+    gui_menu_lconfig->Append(ID_G_LCONFB, wxT("&built-in"), 
                                                wxT("Built-in configuration"));
+    gui_menu_lconfig->AppendSeparator();
+    gui_menu->Append(ID_G_LCONF, wxT("&Load config..."), gui_menu_lconfig);
     wxMenu* gui_menu_sconfig = new wxMenu;
     gui_menu_sconfig->Append(ID_G_SCONF1, wxT("as default"), 
                      wxT("Save current configuration to default config file"));
     gui_menu_sconfig->Append(ID_G_SCONF2, wxT("as alternative"),
                  wxT("Save current configuration to alternative config file"));
+    gui_menu_sconfig->Append(ID_G_SCONFAS, wxT("as ..."),
+                 wxT("Save current configuration to other config file"));
     gui_menu->Append(ID_G_SCONF, wxT("&Save current config"), gui_menu_sconfig);
 
     wxMenu *help_menu = new wxMenu;
@@ -1631,8 +1663,27 @@ void FFrame::OnConfigSave (wxCommandEvent& event)
 {
     wxString name = (event.GetId() == ID_G_SCONF1 ?  wxGetApp().conf_filename 
                                                : wxGetApp().alt_conf_filename);
-    wxConfigBase *config =  new wxConfig(wxT(""), wxT(""), name, wxT(""), 
-                                         wxCONFIG_USE_LOCAL_FILE);
+    save_config_as(name);
+}
+
+void FFrame::OnConfigSaveAs (wxCommandEvent&)
+{
+    wxString const& prefix = wxGetApp().conf_prefix;
+    wxString config_dir = wxGetHomeDir() + wxFILE_SEP_PATH + prefix;
+    wxString txt = wxGetTextFromUser(wxT("Give the config name.\n") 
+                                      wxT("This will be the filename")
+                                      wxT(" in directory:\n") + config_dir,
+                                     wxT("config name"), 
+                                     wxT("other"));
+    if (txt.IsEmpty())
+        return;
+    save_config_as(prefix+txt);
+}
+
+void FFrame::save_config_as(wxString const& name)
+{
+    wxFileConfig *config = new wxFileConfig(wxT(""), wxT(""), name, wxT(""), 
+                                            wxCONFIG_USE_LOCAL_FILE);
     save_all_settings(config);
     delete config;
 }
@@ -1641,8 +1692,13 @@ void FFrame::OnConfigRead (wxCommandEvent& event)
 {
     wxString name = (event.GetId() == ID_G_LCONF1 ? wxGetApp().conf_filename 
                                                : wxGetApp().alt_conf_filename);
-    wxConfigBase *config = new wxConfig(wxT(""), wxT(""), name, wxT(""), 
-                                        wxCONFIG_USE_LOCAL_FILE);
+    read_config(name);
+}
+
+void FFrame::read_config(wxString const& name)
+{
+    wxFileConfig *config = new wxFileConfig(wxT(""), wxT(""), name, wxT(""), 
+                                            wxCONFIG_USE_LOCAL_FILE);
     read_all_settings(config);
     delete config;
 }
@@ -1652,12 +1708,49 @@ void FFrame::OnConfigBuiltin (wxCommandEvent&)
     // fake config file
     wxString name = pchar2wx(config_dirname) + wxFILE_SEP_PATH
                                                   +wxT("builtin-config");
-    wxConfigBase *config = new wxConfig(wxT(""), wxT(""), name, wxT(""), 
+    wxConfig *config = new wxConfig(wxT(""), wxT(""), name, wxT(""), 
                                         wxCONFIG_USE_LOCAL_FILE);
     if (config->GetNumberOfEntries(true))
         config->DeleteAll();
     read_all_settings(config);
     delete config;
+}
+
+void FFrame::OnUpdateLConfMenu (wxUpdateUIEvent& event)
+{
+    // delete old menu items
+    wxMenu *menu = GetMenuBar()->FindItem(ID_G_LCONF)->GetSubMenu(); 
+    while (menu->GetMenuItemCount() > 2) //clear 
+        menu->Delete(menu->GetMenuItems().GetLast()->GetData());
+
+    // prepare listing config directory
+    wxString config_dir = wxGetHomeDir() + wxFILE_SEP_PATH 
+                          + wxGetApp().conf_prefix;
+    wxDir dir(config_dir);
+    if (!dir.IsOpened())
+        return;
+
+    // add new menu items
+    wxString filename;     
+    int j = 0;
+    bool cont = dir.GetFirst(&filename, wxT(""), wxDIR_FILES|wxDIR_HIDDEN);
+    while (cont && j < 15) { 
+        menu->Append(ID_G_LCONF_X + j, filename);
+        ++j;
+        cont = dir.GetNext(&filename); 
+    }
+
+    event.Skip();
+}
+
+
+void FFrame::OnConfigX (wxCommandEvent& event)
+{
+    wxMenu *menu = GetMenuBar()->FindItem(ID_G_LCONF)->GetSubMenu(); 
+    wxString name = menu->GetLabel(event.GetId());
+    if (name.IsEmpty())
+        return;
+    read_config(wxGetApp().conf_prefix + name);
 }
 
 

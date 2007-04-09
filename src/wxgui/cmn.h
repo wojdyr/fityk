@@ -22,7 +22,6 @@ struct PlotShared
     double dX2dx (int dX) { return dX / xUserScale; }
 
     double xUserScale, xLogicalOrigin; 
-    std::vector<std::vector<double> > buf;
     double plot_y_scale;
     std::vector<wxPoint> peaktops;
 };

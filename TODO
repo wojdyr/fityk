@@ -23,12 +23,14 @@ Legend:
 
 // * the way to output wG and wL of Voigt function
 
-* GUI/Windows: move configs from registry to file?
+?// * GUI/Windows: move configs from registry to file?
 
-* GUI: named-configs in ~/.fityk/named-configs dir
-	       Save current config > as ...
-	       Load other config > built-in, ..., 
-  the name of config file passed as cmd line parameter
+// * GUI: named-configs in ~/.fityk/named-configs dir
+
+// *  the name of config file passed as cmd line parameter
+
+// * file paths: "_EXECUTED_SCRIPT_DIR_/" should be replaced (only in scripts) 
+//   with dir of executed script + path separator; update samples
 
 * BUG: "plot . []" sometimes doesn't work as expected if x axis is not visible
 
@@ -39,9 +41,6 @@ Legend:
            and similar problem with delete + "show only selected"
 
 * XPS Shirley background removing
-
-* file paths: "_EXECUTED_SCRIPT_DIR_/" should be replaced with
-   cwd or dir of executed script + path separator
 
 ------------------> 0.8.1 
 
@@ -69,8 +68,6 @@ Legend:
 * GUI: in script editor, "info ...> file" should be marked differently
   than not redirected info 
   paths of files to be read should be checked 
-
------------------- 
 
 * GUI: when printing, everything is first rescaled and rounded(!) for
   plot window at the screen, and then rescaled to the paper size. 

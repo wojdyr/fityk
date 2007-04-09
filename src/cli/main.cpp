@@ -463,7 +463,7 @@ int main (int argc, char **argv)
 
     // process command-line arguments
     bool exec_init_file = true;
-    bool quit = true;
+    bool quit = false;
     string script_string;
     for (int i = 1; i < argc; ++i) {
         if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {

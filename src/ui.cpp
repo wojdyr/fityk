@@ -183,6 +183,25 @@ void UserInterface::output_message (OutputStyle style, const string& s)
     }
 }
 
+// copy from data.cpp
+// filename utils
+#if defined(_WIN32) || defined(WIN32) || defined(__NT__) || defined(__WIN32__) || defined(__OS2__)
+#define FILE_SEP_PATH '\\'
+#elif defined(__MAC__) || defined(__APPLE__) || defined(macintosh)
+#define FILE_SEP_PATH ':'
+#else
+#define FILE_SEP_PATH '/'
+#endif
+
+static
+string get_directory(string const& filename)
+{
+    string::size_type i = filename.rfind(FILE_SEP_PATH);
+    if (i == string::npos)
+        return "";
+    else
+        return string(filename, 0, i+1);
+}
 
 /// items in selected_lines are ranges (first, after-last).
 /// if selected_lines are empty - all lines from file are executed
@@ -199,10 +218,13 @@ void UserInterface::exec_script (const string& filename,
                          exec_nls; //lines to execute (in order of execution)
 
     //fill nls for easier manipulation of file lines
+    string dir = get_directory(filename);
     string s;
     int line_index = 0;
-    while (getline (file, s)) 
+    while (getline (file, s)) {
+        replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);
         nls.push_back(NumberedLine(++line_index, s));
+    }
 
     if (selected_lines.empty())
         exec_nls = nls;

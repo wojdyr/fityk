@@ -29,8 +29,7 @@ bool cfg_read_bool(wxConfigBase *cf, const wxString& key, bool def_val)
     return b; 
 }
 
-double cfg_read_double(wxConfigBase *cf, const wxString& key, 
-                               double def_val)
+double cfg_read_double(wxConfigBase *cf, const wxString& key, double def_val)
 { 
     double d; 
     cf->Read(key, &d, def_val); 

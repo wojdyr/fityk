@@ -252,6 +252,7 @@
       -h, --help            show this help message
       -V, --version         output version information and exit
       -c, --cmd=&lt;str&gt;       script passed in as string
+      -g, --config=&lt;str&gt;    choose GUI configuration
       -I, --no-init         don't process $HOME/.fityk/init file
       -r, --reorder         reorder data (50.xy before 100.xy)
     </screen>     
