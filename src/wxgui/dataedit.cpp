@@ -227,7 +227,7 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id,
     wxBoxSizer *left_sizer = new wxBoxSizer(wxVERTICAL);
     left_sizer->Add(new wxStaticText(left_panel, -1,wxT("Original filename:")));
     filename_label = new wxStaticText(left_panel, -1, wxT(""));
-    left_sizer->Add(filename_label, 0, wxADJUST_MINSIZE);
+    left_sizer->Add(filename_label, 0);
     wxBoxSizer *two_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     revert_btn = new wxButton(left_panel, wxID_REVERT_TO_SAVED, 
                               wxT("Revert to Saved"));
@@ -239,7 +239,7 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id,
     left_sizer->Add(new wxStaticText(left_panel, -1, wxT("Data title: ")),
                     0, wxLEFT|wxRIGHT|wxTOP, 5);
     title_label = new wxStaticText(left_panel, -1, wxT(""));
-    left_sizer->Add(title_label, 0, wxLEFT|wxRIGHT|wxBOTTOM|wxADJUST_MINSIZE,5);
+    left_sizer->Add(title_label, 0, wxLEFT|wxRIGHT|wxBOTTOM, 5);
     grid = new wxGrid(left_panel, ID_DE_GRID, 
                       wxDefaultPosition, wxSize(-1, 350));
     left_sizer->Add(grid, 1, wxEXPAND);
@@ -273,7 +273,7 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id,
     description = new wxStaticText(right_panel, -1, wxT("\n\n\n\n"), 
                                    wxDefaultPosition, wxDefaultSize,
                                    wxALIGN_LEFT);
-    right_sizer->Add(description, 0, wxEXPAND|wxALL|wxADJUST_MINSIZE, 5);
+    right_sizer->Add(description, 0, wxEXPAND|wxALL, 5);
     code = new wxTextCtrl(right_panel, ID_DE_CODE, wxT(""), 
                           wxDefaultPosition, wxDefaultSize,
                           wxTE_MULTILINE|wxHSCROLL|wxVSCROLL);

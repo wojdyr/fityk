@@ -35,6 +35,7 @@ protected:
     wxTextCtrl *txt;
     wxString dir;
     wxString path;
+    std::string script_dir;
 
     void add_line(int n, std::string const& line);
     void make_list_from_txt();

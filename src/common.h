@@ -293,6 +293,22 @@ std::vector<T2> get_map_values(std::map<T1,T2> const& m)
     return result;
 }
 
+//----------------  filename utils  -------------------------------------
+#if defined(_WIN32) || defined(WIN32) || defined(__NT__) || defined(__WIN32__) || defined(__OS2__)
+#define PATH_COMPONENT_SEP '\\'
+#elif defined(__MAC__) || defined(__APPLE__) || defined(macintosh)
+//Mac OS <= 9
+#define PATH_COMPONENT_SEP ':'  
+#else
+#define PATH_COMPONENT_SEP '/'
+#endif
+
+inline std::string get_directory(std::string const& filename)
+{
+    std::string::size_type i = filename.rfind(PATH_COMPONENT_SEP);
+    return i==std::string::npos ? std::string() : std::string(filename, 0, i+1);
+}
+
 
 //-------------------- M I S C E L A N O U S ------------------------------
 

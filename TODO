@@ -30,15 +30,15 @@ Legend:
 // *  the name of config file passed as cmd line parameter
 
 // * file paths: "_EXECUTED_SCRIPT_DIR_/" should be replaced (only in scripts) 
-//   with dir of executed script + path separator; update samples
+//   with dir of executed script + path separator
+//   GUI: support for _EXECUTED_SCRIPT_DIR_ in ScriptDebugger
 
 * BUG: "plot . []" sometimes doesn't work as expected if x axis is not visible
 
+* GUI: fit run dialog should be hidden before fitting starts
+
 * GUI: logarithmic x scale
        perhaps also reversed y scale 
-
-* GUI/BUG: "@+ < file" with "show only selected" shows two datasets
-           and similar problem with delete + "show only selected"
 
 * XPS Shirley background removing
 
@@ -216,6 +216,7 @@ Legend:
   will use GtkFileChooserWidget on GTK, perhaps also native implementation
   on other platforms, and a generic implementation, which can be based
   on generic wxFileDialog implementation.
+  [Assigned to GSOC student]
 
 - add import for new file formats or prepare a x-y data file reading
   library. Files requested by users include: .jdx JCAMP-DX (www.jcamp.org),
@@ -227,6 +228,7 @@ Legend:
   Maintaining such a library could be quite rewarding, there are at least
   2-3 open-source project inclined to use it, the library would automatically
   go into a few popular Linux distributions, etc.
+  [Assigned to GSOC student]
 
 - if you have some expertise in nonlinear optimization methods, it's possible
   to do what Gnu Scientific Library seems to plan: put a few least-squares

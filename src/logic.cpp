@@ -154,14 +154,16 @@ void ApplicationLogic::dump_all_as_script(string const &filename)
         os << endl;
         Sum const* sum = get_sum(i);
         if (!sum->get_ff_names().empty())
-            os << join_vector(concat_pairs("%", sum->get_ff_names()), ", ") 
-                << " -> @" << i << ".F" << endl;
+            os << "@" << i << ".F = " 
+                << join_vector(concat_pairs("%", sum->get_ff_names()), " + ") 
+                << endl;
         if (!sum->get_zz_names().empty())
-            os << join_vector(concat_pairs("%", sum->get_zz_names()), ", ") 
-                << " -> @" << i << ".Z" << endl;
+            os << "@" << i << ".Z = " 
+                << join_vector(concat_pairs("%", sum->get_zz_names()), " + ") 
+                << endl;
         os << endl;
     }
-    os << "plot @" << active_ds << " " << view.str() << endl;
+    os << "plot " << view.str() << " in @" << active_ds << endl;
     os << "set autoplot = " << getSettings()->getp("autoplot") << endl;
     os << "set verbosity = " << getSettings()->getp("verbosity") << endl;
 }

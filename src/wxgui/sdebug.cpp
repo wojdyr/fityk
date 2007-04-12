@@ -138,6 +138,7 @@ bool ScriptDebugDlg::do_open_file(wxString const& path_)
     if (!r)
         txt->MarkDirty(); //new file -> modified
     path = path_;
+    script_dir = get_directory(wx2s(path));
     set_title();
     make_list_from_txt();
     return r;
@@ -148,6 +149,7 @@ void ScriptDebugDlg::make_list_from_txt()
     list->DeleteAllItems();
     // there is at least one bug in wxTextCtrl::GetLineText()
     // (empty line gives "\n"+next line) so we don't use it
+    // the bug was fixed on 2007-04-09
     vector<string> lines = split_string(wx2s(txt->GetValue()), "\n");
     for (size_t i = 0; i != lines.size(); ++i) 
         add_line(i+1, lines[i]);
@@ -176,6 +178,7 @@ void ScriptDebugDlg::save_file(wxString const& save_path)
     bool r = txt->SaveFile(save_path);
     if (r) {
         path = save_path;
+        script_dir = get_directory(wx2s(path));
         txt->DiscardEdits();
         set_title();
     }
@@ -219,12 +222,14 @@ void ScriptDebugDlg::exec_line(int n)
         line = get_list_item(n);
     else if (nb->GetSelection() == 1) { //edit tab
         line = txt->GetLineText(n);
-        // there is a bug in wxTextCtrl::GetLineText(),
+        // there was a bug in wxTextCtrl::GetLineText(),
         // empty line gives "\n"+next line
         if (!line.empty() && line[0] == '\n') // wx bug 
             line = wxT("");
     }
-    Commands::Status r = exec_command(wx2s(line));
+    string s = wx2s(line);
+    replace_all(s, "_EXECUTED_SCRIPT_DIR_/", script_dir);
+    Commands::Status r = exec_command(s);
     long millisec = sw.Time();
     if (nb->GetSelection() == 0) { //view tab
         if (r == Commands::status_ok) {

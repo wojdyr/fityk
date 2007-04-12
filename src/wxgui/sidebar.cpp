@@ -266,11 +266,13 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
 void SideBar::OnDataButtonNew (wxCommandEvent&)
 {
     exec_command("@+");
+    frame->refresh_plots(false, true);
 }
 
 void SideBar::OnDataButtonDup (wxCommandEvent&)
 {
     exec_command("@+ = " + join_vector(d->get_selected_data(), " + "));
+    frame->refresh_plots(false, true);
 }
 
 void SideBar::OnDataButtonRen (wxCommandEvent&)
@@ -293,8 +295,10 @@ void SideBar::delete_selected_items()
     if (n < 0)
         return;
     string txt = wx2s(nb->GetPageText(n));
-    if (txt == "data")
+    if (txt == "data") {
         exec_command("delete " + join_vector(d->get_selected_data(), ", "));
+        frame->refresh_plots(false, true);
+    }
     else if (txt == "functions")
         exec_command("delete " + join_vector(get_selected_func(), ", "));
     else if (txt == "variables")
