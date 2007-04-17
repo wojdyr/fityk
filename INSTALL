@@ -18,26 +18,6 @@ Compilation of some files with "g++ -O2" can use up to 300-400 MB RAM.
 +-------------------------------------------------------------------------+
 
 
-Subversion repository:
-===
-To compile source code from Subversion, automake and autoconf are needed.
-Run ./autogen.sh instead of ./configure. See the file autogen.sh for details.
-
-If you don't want to compile GUI, you still must have at least wxwin.m4 file 
-from wxWidgets (you can copy it from wxWidgets tarball into fityk/config/).
-
-There are additional tools needed to run make in doc/ subdirectory
-(to convert XML DocBook document to HTML). If you don't want to bother 
-with it, either use --without-doc configure option or run `make' only in src/ 
-subdirectory. Manual and tips won't be installed then. 
-
-Fityk uses Boost::Spirit. Only some header files are needed, in fityk tarballs 
-these files are put in 3rdparty/ directory. When using Subversion, install 
-either the whole Boost library or only Spirit (http://spirit.sf.net).
-Or just copy it from fityk tarball (fityk-x.x.x/3rdparty/boost) to the same
-location in the source downloaded from Subversion.
-
-
 PORTABILITY:
 ===========
 		 Linux (and probably other unices): 
@@ -79,6 +59,29 @@ To build python bindings, use --enable-python option.
 
 ./configure --help shows more options, but most of them are useless.
         
+
+
+SUBVERSION:
+===========
+To compile source code from Subversion, automake, autoconf and libtool are 
+needed.  Run ./autogen.sh instead of ./configure. See the file autogen.sh 
+for details.
+
+If you don't want to compile GUI, you still must have at least wxwin.m4 file 
+from wxWidgets (you can copy it from wxWidgets tarball into fityk/config/).
+
+There are additional tools needed to run make in doc/ subdirectory
+(to convert XML DocBook document to HTML). If you don't want to bother 
+with it, either use --without-doc configure option or run `make' only in src/ 
+subdirectory. Manual and tips won't be installed then. 
+
+Fityk uses Boost::Spirit. Only some header files are needed, in fityk tarballs 
+these files are put in 3rdparty/ directory. When using Subversion, install 
+either the whole Boost library or only Spirit (http://spirit.sf.net).
+Or just copy it from fityk tarball (fityk-x.x.x/3rdparty/boost) to the same
+location in the source downloaded from Subversion.
+
+
 
 ###########################################################################
 #       the rest of the file contains generic instructions that come      #

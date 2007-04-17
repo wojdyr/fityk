@@ -16,6 +16,8 @@
 #include <limits.h>
 #include <errno.h>
 
+#include "common.h"	// for trunc and M_PI
+
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif

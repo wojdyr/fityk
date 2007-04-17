@@ -191,12 +191,12 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
                        // multiple wildcards, eg. 
                        // |*.dat;*.DAT;*.xy;*.XY;*.fio;*.FIO
                        // are not supported by wxGenericDirCtrl  
-                       wxT("all files (*)|*"
-                           "|ASCII x y files (*)|*" 
-                           "|rit files (*.rit)|*.rit"
-                           "|cpi files (*.cpi)|*.cpi"
-                           "|mca files (*.mca)|*.mca"
-                           "|Siemens/Bruker (*.raw)|*.raw"));
+                       wxT("all files (*)|*")
+                       wxT("|ASCII x y files (*)|*" )
+                       wxT("|rit files (*.rit)|*.rit")
+                       wxT("|cpi files (*.cpi)|*.cpi")
+                       wxT("|mca files (*.mca)|*.mca")
+                       wxT("|Siemens/Bruker (*.raw)|*.raw"));
     left_sizer->Add(dir_ctrl, 1, wxALL|wxEXPAND, 5);
     wxFileName path = s2wx(data->get_filename());
     path.Normalize();

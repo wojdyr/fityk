@@ -9,6 +9,7 @@
 #include <ctype.h>
 #include <algorithm>
 #include <stdlib.h>
+#include <ctime> //time() 
 
 using namespace std;
 

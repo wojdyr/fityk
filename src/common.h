@@ -90,6 +90,13 @@ inline void Swap(T& fp1 ,T& fp2)
     fp2 = swaptmp;
 }
 
+#ifndef __GNUC__
+        //TODO implement erf and erfc
+	inline float erfc(float f) { return 0.5f; }
+	inline float erf(float f) { return 0.5f; }
+	inline float trunc(float f) { return (float) (int) f; }
+#endif	// !__GNUC__
+
 
 //---------------------------  S T R I N G  --------------------------------
 

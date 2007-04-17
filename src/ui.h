@@ -30,7 +30,7 @@ public:
     };
 
     Commands() : command_counter(0) {}
-    void put_command(std::string const& s, Status s);
+    void put_command(std::string const& c, Status s);
     void put_output_message(std::string const& s); 
     std::string get_command(int n) const { assert(is_index(n, cmds));
                                            return cmds[n].cmd; }

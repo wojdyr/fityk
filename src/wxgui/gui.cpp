@@ -88,10 +88,6 @@
 #include "img/zoom_up.xpm"
 #include "img/zoom_vert.xpm"
 
-#ifdef __WXMSW__ 
-# define USE_METAFILE 1
-#endif
-
 using namespace std;
 FFrame *frame = NULL;
 
@@ -637,7 +633,8 @@ void FFrame::add_recent_data_file(string const& filename)
     recent_data_files.remove(fn);
     recent_data_files.push_front(fn);
     int id_new = 0;
-    for (wxMenuItemList::Node *i = mlist.GetFirst(); i; i = i->GetNext()) 
+	for (wxMenuItemList::compatibility_iterator i = mlist.GetFirst(); i; 
+                                                            i = i->GetNext()) 
         if (i->GetData()->GetHelp() == fn.GetFullPath()) {
             id_new = i->GetData()->GetId();
             data_menu_recent->Delete(i->GetData());
@@ -757,7 +754,7 @@ void FFrame::set_menubar()
     session_menu->Append(ID_PRINT_PSFILE, wxT("Print to PS &File"),
                          wxT("Export plots to postscript file."));
 #endif
-#ifdef USE_METAFILE
+#ifdef wxUSE_METAFILE
     session_menu->Append(ID_PRINT_CLIPB, wxT("&Copy to Clipboard"),
                          wxT("Copy plots to clipboard."));
 #endif
@@ -1776,7 +1773,7 @@ void FFrame::OnPrintPSFile(wxCommandEvent&)
 
 void FFrame::OnPrintToClipboard(wxCommandEvent&)
 {
-#ifdef USE_METAFILE
+#ifdef wxUSE_METAFILE
     wxMetafileDC dc;   
     if (dc.Ok()) { 
         do_print_plots(&dc, print_mgr);
