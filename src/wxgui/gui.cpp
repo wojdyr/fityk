@@ -754,7 +754,7 @@ void FFrame::set_menubar()
     session_menu->Append(ID_PRINT_PSFILE, wxT("Print to PS &File"),
                          wxT("Export plots to postscript file."));
 #endif
-#ifdef wxUSE_METAFILE
+#if wxUSE_METAFILE
     session_menu->Append(ID_PRINT_CLIPB, wxT("&Copy to Clipboard"),
                          wxT("Copy plots to clipboard."));
 #endif
@@ -1773,7 +1773,7 @@ void FFrame::OnPrintPSFile(wxCommandEvent&)
 
 void FFrame::OnPrintToClipboard(wxCommandEvent&)
 {
-#ifdef wxUSE_METAFILE
+#if wxUSE_METAFILE
     wxMetafileDC dc;   
     if (dc.Ok()) { 
         do_print_plots(&dc, print_mgr);
