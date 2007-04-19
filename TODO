@@ -44,8 +44,6 @@ Legend:
 
 * move fityk_tips.txt from doc/ to src/wxgui/...
 
-* perhaps foo.xy:1,5 would be better than foo.xy/1,5?
-
 ------------------> 0.8.1 
 
 * the API should be designed as Fityk class, rather than namespace,

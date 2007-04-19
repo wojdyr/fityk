@@ -1,5 +1,6 @@
 $Id$
 User-visible changes in version 0.8.1  (2007-0 -  ):
+* bug fixes
 
 User-visible changes in version 0.8.0  (2007-03-19):
 * libfityk (fityk library) if introduced. About half of the fityk source code 

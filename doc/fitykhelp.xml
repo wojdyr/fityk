@@ -241,7 +241,7 @@
      <listitem><para>
        otherwise, it is assumed to be a data file and is loaded.
        It is possible to specify columns in data file in this way:
-       <userinput>file.xy/1,4</userinput>
+       <userinput>file.xy:1,4</userinput>
      </para></listitem>
     </itemizedlist>
     There are also other parameters to the CLI and GUI versions of the program.

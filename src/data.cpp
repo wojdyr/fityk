@@ -269,9 +269,9 @@ void Data::add_one_point(double x, double y, double sigma)
 
 void Data::open_filename_with_columns(string const& file, ifstream& f)
 {
-    // ../data/foo.dat/1,8 -> ../data/foo.dat cols: 1,8
+    // ../data/foo.dat:1,8 -> ../data/foo.dat cols: 1,8
     string::size_type a = file.find_last_not_of(",0123456789");
-    if (a == string::npos || file[a] != '/') 
+    if (a == string::npos || file[a] != ':') 
         return;
     string fn(file, 0, a);
     vector<string> cols_s = split_string(string(file,a+1), ',');
