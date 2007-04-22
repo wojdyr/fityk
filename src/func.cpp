@@ -400,7 +400,7 @@ fp Function::find_x_with_value(fp x1, fp x2, fp val, int max_iter) const
 {
     fp y1 = calculate_value(x1) - val;
     fp y2 = calculate_value(x2) - val;
-    if (y1 > 0 && y2 > 0 || y1 < 0 && y2 < 0)
+    if ((y1 > 0 && y2 > 0) || (y1 < 0 && y2 < 0))
         throw ExecuteError("Value " + S(val) + " is not bracketed by "
                            + S(x1) + "(" + S(y1+val) + ") and " 
                            + S(x2) + "(" + S(y2+val) + ").");
@@ -438,7 +438,7 @@ fp Function::find_x_with_value(fp x1, fp x2, fp val, int max_iter) const
 
         // select new guess point
         fp dx = -f/df * 1.02; // 1.02 is to jump to the other side of point
-        if (t+dx > x2 && t+dx > x1 || t+dx < x2 && t+dx < x1  // outside
+        if ((t+dx > x2 && t+dx > x1) || (t+dx < x2 && t+dx < x1)  // outside
                             || i % 20 == 19) {                 // precaution
             //bisection
             t = (x1 + x2) / 2.;
@@ -470,7 +470,7 @@ fp Function::find_extremum(fp x1, fp x2, int max_iter) const
     calculate_value_deriv(calc_val_xx, calc_val_yy, dy_da);
     fp y2 = dy_da.back();
 
-    if (y1 > 0 && y2 > 0 || y1 < 0 && y2 < 0)
+    if ((y1 > 0 && y2 > 0) || (y1 < 0 && y2 < 0))
         throw ExecuteError("Derivatives at " + S(x1) + " and " + S(x2) 
                            + " have the same sign.");
     if (y1 == 0)
@@ -783,7 +783,7 @@ bool CompoundFunction::has_center() const
     vector<Function*> const& ff = vmgr.get_functions();
     for (size_t i = 0; i < ff.size(); ++i) {
         if (!ff[i]->has_center()
-                || i > 0 && ff[i-1]->center() != ff[i]->center())
+                || (i > 0 && ff[i-1]->center() != ff[i]->center()))
             return false;
     }
     return true;
@@ -798,7 +798,7 @@ bool CompoundFunction::has_height() const
         return ff[0]->has_center();
     for (size_t i = 0; i < ff.size(); ++i) {
         if (!ff[i]->has_center() || !ff[i]->has_height()
-                || i > 0 && ff[i-1]->center() != ff[i]->center())
+                || (i > 0 && ff[i-1]->center() != ff[i]->center()))
             return false;
     }
     return true;

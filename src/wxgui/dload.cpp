@@ -44,17 +44,17 @@ enum {
 };
 
 
-class PreviewPlot : public wxPanel
+class PreviewPlot : public BufferedPanel
 {
 public:
     auto_ptr<Data> data;
 
-    PreviewPlot(wxWindow* parent, wxWindowID id, DLoadDlg* dlg_)
-        : wxPanel(parent, id), data(new Data), dlg(dlg_) {}
+    PreviewPlot(wxWindow* parent)
+        : BufferedPanel(parent), data(new Data) { backgroundCol = *wxBLACK; }
     void OnPaint(wxPaintEvent &event);
+    void draw(wxDC &dc, bool);
 
 private:
-    DLoadDlg* dlg;
     double xScale, yScale;
     int H;
     int getX(double x) { return iround(x * xScale); }
@@ -71,15 +71,15 @@ END_EVENT_TABLE()
 
 void PreviewPlot::OnPaint(wxPaintEvent&)
 {
-    wxPaintDC dc(this);
-    dc.SetLogicalFunction(wxCOPY);
-    dc.SetBackground(*wxBLACK_BRUSH);
-    dc.Clear();
+    buffered_draw();
+}
+
+void PreviewPlot::draw(wxDC &dc, bool)
+{
     if (data->is_empty())
         return;
     prepare_scaling(dc);
     draw_scale(dc);
-
     vector<Point> const& pp = data->points();
     dc.SetPen(*wxGREEN_PEN);
     for (vector<Point>::const_iterator i = pp.begin(); i != pp.end(); ++i)
@@ -262,7 +262,7 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     rupper_sizer->Add(auto_text_cb, 0, wxALL, 5);
 
     // ----- right bottom panel -----
-    plot_preview = new PreviewPlot(rbottom_panel, -1, this);
+    plot_preview = new PreviewPlot(rbottom_panel);
     rbottom_sizer->Add(plot_preview, 1, wxEXPAND|wxALL, 5);
     auto_plot_cb = new wxCheckBox(rbottom_panel, ID_DXLOAD_AUTO_PLOT, 
                                   wxT("plot"));

@@ -33,18 +33,19 @@ Legend:
 //   with dir of executed script + path separator
 //   GUI: support for _EXECUTED_SCRIPT_DIR_ in ScriptDebugger
 
+// * GUI: logarithmic x scale and reversed y scale 
+
+------------------> 0.8.1 
+
 * BUG: "plot . []" sometimes doesn't work as expected if x axis is not visible
 
 * GUI: fit run dialog should be hidden before fitting starts
-
-* GUI: logarithmic x scale
-       perhaps also reversed y scale 
 
 * XPS Shirley background removing
 
 * move fityk_tips.txt from doc/ to src/wxgui/...
 
-------------------> 0.8.1 
+* add one example image to menu item
 
 * the API should be designed as Fityk class, rather than namespace,
   to enable multiple instances of the class. It involves making the whole
@@ -77,6 +78,10 @@ Legend:
   (wxDC.GetSize instead of plot.GetClientSize() ?)
 
 * unused variables should not slow down fitting
+
+* sorting lists at sidebar - by clicking on column header, 
+  use case: sort functions by centers
+  involves refactoring ListWithColors::populate()
 
 ------------------ 
 

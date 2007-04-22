@@ -10,8 +10,7 @@
 #include <list>
 #include <vector>
 #include <assert.h>
-#include "cmn.h"  //for MouseModeEnum, OutputStyle, PlotShared, 
-                  //    ProportionalSplitter
+#include "cmn.h"  //for MouseModeEnum, ProportionalSplitter
 #include "../common.h" // OutputStyle
 
 class PlotPane;
@@ -81,11 +80,9 @@ public:
     void show_aux(int n, bool show); 
     bool aux_visible(int n) const;
     void draw_crosshair(int X, int Y);
-    void set_shared_scale();
 
     bool crosshair_cursor;
 private:
-    PlotShared plot_shared;
     MainPlot *plot;
     ProportionalSplitter *aux_split;
     AuxPlot *aux_plot[2];

@@ -232,8 +232,8 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_MENU (ID_peak_popup_guess,  MainPlot::OnPeakGuess)
 END_EVENT_TABLE()
 
-MainPlot::MainPlot (wxWindow *parent, PlotShared &shar) 
-    : FPlot (parent, shar), BgManager(shar),
+MainPlot::MainPlot (wxWindow *parent) 
+    : FPlot(parent), BgManager(xs),
       basic_mode(mmd_zoom), mode(mmd_zoom), 
       pressed_mouse_button(0), ctrl_on_down(false), shift_on_down(false),
       over_peak(-1), limit1(INT_MIN), limit2(INT_MIN)
@@ -243,10 +243,6 @@ void MainPlot::OnPaint(wxPaintEvent&)
 {
     frame->draw_crosshair(-1, -1); 
     limit1 = limit2 = INT_MIN;
-    //wxPaintDC dc(this);
-    //dc.SetBackground(wxBrush(backgroundCol));
-    //dc.Clear();
-    //draw(dc);
     buffered_draw();
     vert_line_following_cursor(mat_redraw);//draw, if necessary, vertical lines
     peak_draft(mat_redraw);
@@ -343,14 +339,16 @@ void MainPlot::draw_x_axis (wxDC& dc, bool set_pen)
 {
     if (set_pen)
         dc.SetPen(wxPen(xAxisCol));
-    dc.DrawLine (0, y2Y(0), GetClientSize().GetWidth(), y2Y(0));
+    int Y0 = ys.px(0.);
+    dc.DrawLine (0, Y0, GetClientSize().GetWidth(), Y0);
 }
 
 void MainPlot::draw_y_axis (wxDC& dc, bool set_pen)
 {
     if (set_pen)
         dc.SetPen(wxPen(xAxisCol));
-    dc.DrawLine (x2X(0), 0, x2X(0), GetClientSize().GetHeight());
+    int X0 = xs.px(0.);
+    dc.DrawLine (X0, 0, X0, GetClientSize().GetHeight());
 }
 
 void MainPlot::draw_sum(wxDC& dc, Sum const* sum, bool set_pen)
@@ -361,10 +359,10 @@ void MainPlot::draw_sum(wxDC& dc, Sum const* sum, bool set_pen)
     vector<fp> xx(n), yy(n);
     vector<int> YY(n);
     for (int i = 0; i < n; ++i) 
-        xx[i] = X2x(i);
+        xx[i] = xs.val(i);
     sum->calculate_sum_value(xx, yy);
     for (int i = 0; i < n; ++i) 
-        YY[i] = y2Y(yy[i]);
+        YY[i] = ys.px(yy[i]);
     for (int i = 1; i < n; i++) 
         dc.DrawLine (i-1, YY[i-1], i, YY[i]); 
 }
@@ -383,21 +381,21 @@ void MainPlot::draw_peaks(wxDC& dc, Sum const* sum, bool set_pen)
     vector<fp> xx(n), yy(n);
     vector<int> YY(n);
     for (int i = 0; i < n; ++i) 
-        xx[i] = X2x(i);
+        xx[i] = xs.val(i);
     for (int k = 0; k < size(idx); k++) {
         fill(yy.begin(), yy.end(), 0.);
         Function const* f = AL->get_function(idx[k]);
         int from=0, to=n-1;
         fp left, right;
         if (f->get_nonzero_range(level, left, right)) {
-            from = max(from, x2X(left));
-            to = min(to, x2X(right));
+            from = max(from, xs.px(left));
+            to = min(to, xs.px(right));
         }
         if (set_pen)
             dc.SetPen(wxPen(peakCol[k % max_peak_cols]));
         f->calculate_value(xx, yy);
         for (int i = from; i <= to; ++i) 
-            YY[i] = y2Y(yy[i]);
+            YY[i] = ys.px(yy[i]);
         for (int i = from+1; i <= to; i++) 
             dc.DrawLine (i-1, YY[i-1], i, YY[i]); 
     }
@@ -407,8 +405,8 @@ void MainPlot::draw_peaktops (wxDC& dc, Sum const* sum)
 {
     dc.SetPen(wxPen(xAxisCol));
     dc.SetBrush (*wxTRANSPARENT_BRUSH);
-    for (vector<wxPoint>::const_iterator i = shared.peaktops.begin(); 
-                                           i != shared.peaktops.end(); i++) {
+    for (vector<wxPoint>::const_iterator i = special_points.begin(); 
+                                           i != special_points.end(); i++) {
         dc.DrawRectangle (i->x - 1, i->y - 1, 3, 3);
     }
     draw_peaktop_selection(dc, sum);
@@ -422,7 +420,7 @@ void MainPlot::draw_peaktop_selection (wxDC& dc, Sum const* sum)
     vector<int> const& idx = sum->get_ff_idx();
     vector<int>::const_iterator t = find(idx.begin(), idx.end(), n);
     if (t != idx.end()) {
-        wxPoint const&p = shared.peaktops[t-idx.begin()];
+        wxPoint const&p = special_points[t-idx.begin()];
         dc.SetLogicalFunction (wxINVERT);
         dc.SetPen(*wxBLACK_PEN);
         dc.DrawCircle(p.x, p.y, 4);
@@ -436,7 +434,7 @@ void MainPlot::draw_plabels (wxDC& dc, Sum const* sum, bool set_pen)
     vector<wxRect> previous;
     vector<int> const& idx = sum->get_ff_idx();
     for (int k = 0; k < size(idx); k++) {
-        const wxPoint &peaktop = shared.peaktops[k];
+        const wxPoint &peaktop = special_points[k];
         if (set_pen)
             dc.SetTextForeground(peakCol[k % max_peak_cols]);
 
@@ -488,28 +486,28 @@ static bool operator< (const wxPoint& a, const wxPoint& b)
 void MainPlot::prepare_peaktops(Sum const* sum)
 {
     int H =  GetClientSize().GetHeight();
-    int Y0 = y2Y(0);
+    int Y0 = ys.px(0);
     vector<int> const& idx = sum->get_ff_idx();
     int n = idx.size();
-    shared.peaktops.resize(n);
+    special_points.resize(n);
     for (int k = 0; k < n; k++) {
         Function const *f = AL->get_function(idx[k]);
         fp x;
         int X, Y;
         if (f->has_center()) {
             x = f->center();
-            X = x2X (x - sum->zero_shift(x));
+            X = xs.px (x - sum->zero_shift(x));
         }
         else {
             X = k * 10;
-            x = X2x(X);
+            x = xs.val(X);
             x += sum->zero_shift(x);
         }
         //FIXME: check if these zero_shift()'s above are needed
-        Y = y2Y(f->calculate_value(x));
+        Y = ys.px(f->calculate_value(x));
         if (Y < 0 || Y > H) 
             Y = Y0;
-        shared.peaktops[k] = wxPoint(X, Y);
+        special_points[k] = wxPoint(X, Y);
     }
 }
 
@@ -558,15 +556,15 @@ void MainPlot::draw_background(wxDC& dc, bool set_pen)
     int X = -1, Y = -1;
     for (vector<t_xy>::const_iterator i=bgline.begin(); i != bgline.end(); i++){
         int X_ = X, Y_ = Y;
-        X = x2X(i->x);
-        Y = y2Y(i->y);
+        X = xs.px(i->x);
+        Y = ys.px(i->y);
         if (X_ >= 0 && (X != X_ || Y != Y_)) 
             dc.DrawLine (X_, Y_, X, Y); 
     }
     // bg points (circles)
     for (bg_const_iterator i = bg.begin(); i != bg.end(); i++) {
-        dc.DrawCircle(x2X(i->x), y2Y(i->y), 3);
-        dc.DrawCircle(x2X(i->x), y2Y(i->y), 4);
+        dc.DrawCircle(xs.px(i->x), ys.px(i->y), 3);
+        dc.DrawCircle(xs.px(i->x), ys.px(i->y), 4);
     }
 }
 
@@ -605,8 +603,10 @@ void MainPlot::read_settings(wxConfigBase *cf)
     y_max_tics = cf->Read(wxT("yMaxTics"), 7);
     x_tic_size = cf->Read(wxT("xTicSize"), 4);
     y_tic_size = cf->Read(wxT("yTicSize"), 4);
-    x_reversed = cfg_read_bool (cf, wxT("xReversed"), false); 
-    y_logarithm = cfg_read_bool (cf, wxT("yLogarithm"), false); 
+    xs.reversed = cfg_read_bool (cf, wxT("xReversed"), false); 
+    ys.reversed = cfg_read_bool (cf, wxT("yReversed"), false); 
+    xs.logarithm = cfg_read_bool (cf, wxT("xLogarithm"), false); 
+    ys.logarithm = cfg_read_bool (cf, wxT("yLogarithm"), false); 
     FPlot::read_settings(cf);
     refresh();
 }
@@ -624,8 +624,10 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->Write(wxT("yMaxTics"), y_max_tics);
     cf->Write(wxT("xTicSize"), x_tic_size);
     cf->Write(wxT("yTicSize"), y_tic_size);
-    cf->Write(wxT("xReversed"), x_reversed);
-    cf->Write(wxT("yLogarithm"), y_logarithm);
+    cf->Write(wxT("xReversed"), xs.reversed);
+    cf->Write(wxT("yReversed"), ys.reversed);
+    cf->Write(wxT("xLogarithm"), xs.logarithm);
+    cf->Write(wxT("yLogarithm"), ys.logarithm);
 
     cf->SetPath(wxT("/MainPlot/Colors"));
     cfg_write_color(cf, wxT("bg"), backgroundCol);
@@ -654,29 +656,6 @@ void MainPlot::OnLeaveWindow (wxMouseEvent&)
     frame->draw_crosshair(-1, -1);
 }
 
-void MainPlot::set_scale()
-{
-    View const &v = AL->view;
-    fp x_abs_scale = GetClientSize().GetWidth() / (v.right - v.left);
-    shared.xUserScale = x_reversed ? -x_abs_scale : x_abs_scale;
-    shared.xLogicalOrigin = x_reversed ? v.right : v.left;
-    int H = GetClientSize().GetHeight();
-    fp h = 0;
-    if (y_logarithm) {
-        h = log(v.top / max(v.bottom, 1e-1));
-        yLogicalOrigin = log(v.top);
-    }
-    else {
-        h = v.top - v.bottom;
-        yLogicalOrigin = v.top;
-    }
-    fp label_h = 0;
-    if (xtics_visible && v.bottom <= 0) 
-        label_h = max(v.bottom*H/h + 12, 0.);
-    yUserScale = - (H - label_h) / h;
-    shared.plot_y_scale = y_logarithm ? 0 : yUserScale;
-}
- 
 void MainPlot::show_popup_menu (wxMouseEvent &event)
 {
     wxMenu popup_menu; //("main plot menu");
@@ -833,7 +812,7 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
     //display coords in status bar 
     int X = event.GetX();
     int Y = event.GetY();
-    frame->set_status_coord_info(X2x(X), Y2y(Y));
+    frame->set_status_coord_info(xs.val(X), ys.val(Y));
 
     if (pressed_mouse_button == 0) {
         if (mode == mmd_range) {
@@ -857,23 +836,16 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
 
 void MainPlot::look_for_peaktop (wxMouseEvent& event)
 {
-    // searching the closest peak-top and distance from it, d = dx + dy < 10 
     int focused_data = AL->get_active_ds_position();
     Sum const* sum = AL->get_sum(focused_data);
     vector<int> const& idx = sum->get_ff_idx();
-    int min_dist = 10;
-    int nearest = -1;
-    if (shared.peaktops.size() != idx.size()) 
+    if (special_points.size() != idx.size()) 
         refresh(false);
-    for (vector<wxPoint>::const_iterator i = shared.peaktops.begin(); 
-         i != shared.peaktops.end(); i++) {
-        int d = abs(event.GetX() - i->x) + abs(event.GetY() - i->y);
-        if (d < min_dist) {
-            min_dist = d;
-            nearest = idx[i - shared.peaktops.begin()];
-        }
-    }
-    if (over_peak == nearest) return;
+    int n = get_special_point_at_pointer(event);
+    int nearest = n == -1 ? -1 : idx[n];
+
+    if (over_peak == nearest) 
+        return;
 
     //if we are here, over_peak != nearest; changing cursor and statusbar text
     // and show limits
@@ -889,8 +861,8 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
         fp x1=0., x2=0.;
         bool r = f->get_nonzero_range(getSettings()->get_cut_level(), x1, x2);
         if (r) {
-            limit1 = x2X(x1);
-            limit2 = x2X(x2);
+            limit1 = xs.px(x1);
+            limit2 = xs.px(x2);
             draw_dashed_vert_line(limit1, wxDOT_DASH);
             draw_dashed_vert_line(limit2, wxDOT_DASH);
         }
@@ -935,8 +907,8 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     shift_on_down = event.ShiftDown();
     mouse_press_X = event.GetX();
     mouse_press_Y = event.GetY();
-    fp x = X2x (event.GetX());
-    fp y = Y2y (event.GetY());
+    fp x = xs.val (event.GetX());
+    fp y = ys.val (event.GetY());
     if (button == 1 && (ctrl_on_down || mode == mmd_zoom) || button == 2) {
         draw_temporary_rect(mat_start, event.GetX(), event.GetY());
         SetCursor(wxCURSOR_MAGNIFIER);  
@@ -1025,10 +997,10 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     if (button == 1 && (ctrl_on_down || mode == mmd_zoom) || button == 2) {
         draw_temporary_rect(mat_stop);
         if (dist_X + dist_Y >= 10) {
-            fp x1 = X2x(mouse_press_X);
-            fp x2 = X2x(event.GetX());
-            fp y1 = Y2y(mouse_press_Y);
-            fp y2 = Y2y(event.GetY());
+            fp x1 = xs.val(mouse_press_X);
+            fp x2 = xs.val(event.GetX());
+            fp y1 = ys.val(mouse_press_Y);
+            fp y2 = ys.val(event.GetY());
             frame->change_zoom("[ "+S(min(x1,x2))+" : "+S(max(x1,x2))+" ]"
                                "[ "+S(min(y1,y2))+" : "+S(max(y1,y2))+" ]");
         }
@@ -1048,16 +1020,16 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         draw_temporary_rect(mat_stop);
         string c = (button == 1 ? "A = a or " : "A = a and not ");
         if (!shift_on_down && dist_X >= 5) { 
-            fp xmin = X2x (min (event.GetX(), mouse_press_X));
-            fp xmax = X2x (max (event.GetX(), mouse_press_X));
+            fp xmin = xs.val (min (event.GetX(), mouse_press_X));
+            fp xmax = xs.val (max (event.GetX(), mouse_press_X));
             string cond = "(" + S(xmin) + "< x <" + S(xmax) + ")";
             exec_command(c + cond + frame->get_in_one_or_all_datasets());
         }
         else if (shift_on_down && dist_X + dist_Y >= 10) {
-            fp x1 = X2x(mouse_press_X);
-            fp x2 = X2x(event.GetX());
-            fp y1 = Y2y(mouse_press_Y);
-            fp y2 = Y2y(event.GetY());
+            fp x1 = xs.val(mouse_press_X);
+            fp x2 = xs.val(event.GetX());
+            fp y1 = ys.val(mouse_press_Y);
+            fp y2 = ys.val(event.GetY());
             string cond = "(" + S(min(x1,x2)) + " < x < " + S(max(x1,x2)) 
                    + " and " + S(min(y1,y2)) + " < y < " + S(max(y1,y2)) + ")";
             exec_command(c + cond + frame->get_in_one_or_all_datasets());
@@ -1070,16 +1042,16 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         string F = AL->get_ds_count() > 1 ?  frame->get_active_data_str()+".F" 
                                           : "F";
         if (func_draft_kind == fk_linear) {
-            fp y = Y2y(event.GetY());
+            fp y = ys.val(event.GetY());
             exec_command(F + " += " + frame->get_peak_type()  
                          + "(slope=~" + S(0) + ", intercept=~" + S(y) 
                          + ", avgy=~" + S(y) + ")");
         }
         else {
             if (dist_X + dist_Y >= 5) {
-                fp height = Y2y(event.GetY());
-                fp center = X2x(mouse_press_X);
-                fp fwhm = fabs(shared.dX2dx(mouse_press_X - event.GetX()));
+                fp height = ys.val(event.GetY());
+                fp center = xs.val(mouse_press_X);
+                fp fwhm = fabs(center - xs.val(event.GetX()));
                 fp area = height * fwhm;
                 exec_command(F + " += " + frame->get_peak_type()  
                          + "(height=~" + S(height) + ", center=~" + S(center) 
@@ -1090,8 +1062,8 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     else if (mode == mmd_add && button == 3) {
         frame->set_status_text("");
         if (dist_X >= 5) { 
-            fp x1 = X2x(mouse_press_X);
-            fp x2 = X2x(event.GetX());
+            fp x1 = xs.val(mouse_press_X);
+            fp x2 = xs.val(event.GetX());
             exec_command ("guess " + frame->get_peak_type() 
                           + " [" + S(min(x1,x2)) + " : " + S(max(x1,x2)) + "]"
                           + frame->get_in_dataset());
@@ -1141,7 +1113,7 @@ bool MainPlot::draw_moving_func(MouseActEnum ma, int X, int Y, bool shift)
         ; //do nothing, already redrawn
     else if (ma == mat_start) {
         func_nr = over_peak;
-        fmd.start(p, X, Y, X2x(X), Y2y(Y));
+        fmd.start(p, X, Y, xs.val(X), ys.val(Y));
         draw_xor_peak(p, fmd.get_values()); 
         prevX = X;
         prevY = Y;
@@ -1149,7 +1121,7 @@ bool MainPlot::draw_moving_func(MouseActEnum ma, int X, int Y, bool shift)
         SetCursor(wxCURSOR_SIZENWSE);
     }
     else if (ma == mat_move) {
-        fmd.move(shift, X, Y, X2x(X), Y2y(Y));
+        fmd.move(shift, X, Y, xs.val(X), ys.val(Y));
         frame->set_status_text(fmd.get_status());
         draw_xor_peak(p, fmd.get_values()); 
         prevX = X;
@@ -1178,11 +1150,11 @@ void MainPlot::draw_xor_peak(Function const* func, vector<fp> const& p_values)
         return;
     vector<fp> xx(n), yy(n, 0);
     for (int i = 0; i < n; ++i) 
-        xx[i] = X2x(i);
+        xx[i] = xs.val(i);
     func->calculate_values_with_params(xx, yy, p_values);
     vector<int> YY(n);
     for (int i = 0; i < n; ++i) 
-        YY[i] = y2Y(yy[i]);
+        YY[i] = ys.px(yy[i]);
     for (int i = 1; i < n; i++) 
         dc.DrawLine (i-1, YY[i-1], i, YY[i]); 
 }
@@ -1218,7 +1190,7 @@ void MainPlot::draw_peak_draft(int Ctr, int Hwhm, int Y)
     wxClientDC dc(this);
     dc.SetLogicalFunction (wxINVERT);
     dc.SetPen(*wxBLACK_DASHED_PEN);
-    int Y0 = y2Y(0);
+    int Y0 = ys.px(0);
     if (func_draft_kind == fk_linear) {
         dc.DrawLine (0, Y, GetClientSize().GetWidth(), Y); 
     }
@@ -1401,9 +1373,12 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
     xts_sizer->Add(x_tics_size, 0, wxALL, 5);
     xsizer_t->Add(xts_sizer);
     xsizer->Add(xsizer_t, 0, wxLEFT, 15);
-    x_reversed = new wxCheckBox(this, -1, wxT("reversed axis"));
-    x_reversed->SetValue(plot->x_reversed);
-    xsizer->Add(x_reversed, 0, wxALL, 5);
+    x_reversed_cb = new wxCheckBox(this, -1, wxT("reversed axis"));
+    x_reversed_cb->SetValue(plot->xs.reversed);
+    xsizer->Add(x_reversed_cb, 0, wxALL, 5);
+    x_logarithm_cb = new wxCheckBox(this, -1, wxT("logarithmic scale"));
+    x_logarithm_cb->SetValue(plot->xs.logarithm);
+    xsizer->Add(x_logarithm_cb, 0, wxALL, 5);
     sizer1->Add(xsizer, 0, wxALL, 5);
 
     wxStaticBoxSizer *ysizer = new wxStaticBoxSizer(wxVERTICAL, this, 
@@ -1440,9 +1415,12 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
     yts_sizer->Add(y_tics_size, 0, wxALL, 5);
     ysizer_t->Add(yts_sizer);
     ysizer->Add(ysizer_t, 0, wxLEFT, 15);
-    y_logarithm = new wxCheckBox(this, -1, wxT("logarithmic scale"));
-    y_logarithm->SetValue(plot->y_logarithm);
-    ysizer->Add(y_logarithm, 0, wxALL, 5);
+    y_reversed_cb = new wxCheckBox(this, -1, wxT("reversed axis"));
+    y_reversed_cb->SetValue(plot->ys.reversed);
+    ysizer->Add(y_reversed_cb, 0, wxALL, 5);
+    y_logarithm_cb = new wxCheckBox(this, -1, wxT("logarithmic scale"));
+    y_logarithm_cb->SetValue(plot->ys.logarithm);
+    ysizer->Add(y_logarithm_cb, 0, wxALL, 5);
     sizer1->Add(ysizer, 0, wxALL, 5);
 
     top_sizer->Add(sizer1, 0);
@@ -1468,8 +1446,12 @@ void ConfigureAxesDlg::OnApply (wxCommandEvent&)
     plot->x_grid = x_show_grid->GetValue();
     plot->x_max_tics = x_max_tics->GetValue();
     plot->x_tic_size = x_tics_size->GetValue();
-    if (plot->x_reversed != x_reversed->GetValue()) {
-        plot->x_reversed = x_reversed->GetValue();
+    if (plot->xs.reversed != x_reversed_cb->GetValue()) {
+        plot->xs.reversed = x_reversed_cb->GetValue();
+        scale_changed = true;
+    }
+    if (plot->xs.logarithm != x_logarithm_cb->GetValue()) {
+        plot->xs.logarithm = x_logarithm_cb->GetValue();
         scale_changed = true;
     }
     plot->y_axis_visible = y_show_axis->GetValue();
@@ -1478,7 +1460,8 @@ void ConfigureAxesDlg::OnApply (wxCommandEvent&)
     plot->y_grid = y_show_grid->GetValue();
     plot->y_max_tics = y_max_tics->GetValue();
     plot->y_tic_size = y_tics_size->GetValue();
-    plot->y_logarithm = y_logarithm->GetValue();
+    plot->ys.reversed = y_reversed_cb->GetValue();
+    plot->ys.logarithm = y_logarithm_cb->GetValue();
     frame->refresh_plots(false, !scale_changed);
 }
 
@@ -1699,9 +1682,16 @@ void BgManager::add_background_point(fp x, fp y)
 
 void BgManager::rm_background_point (fp x)
 {
-    fp dx = x_calc.dX2dx(min_dist);
-    bg_iterator l = lower_bound(bg.begin(), bg.end(), B_point(x-dx, 0));
-    bg_iterator u = upper_bound (bg.begin(), bg.end(), B_point(x+dx, 0));
+    int X = x_scale.px(x);
+    fp lower = x_scale.val(X - min_dist);
+    fp upper = x_scale.val(X + min_dist);
+    if (lower > upper) {
+        fp tmp = lower;
+        lower = upper;
+        upper = tmp;
+    }
+    bg_iterator l = lower_bound(bg.begin(), bg.end(), B_point(lower, 0));
+    bg_iterator u = upper_bound (bg.begin(), bg.end(), B_point(upper, 0));
     if (u > l) {
         bg.erase(l, u);
         vmsg (S(u - l) + " background points removed.");

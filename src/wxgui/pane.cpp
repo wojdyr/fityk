@@ -48,14 +48,14 @@ END_EVENT_TABLE()
 
 PlotPane::PlotPane(wxWindow *parent, wxWindowID id)
     : ProportionalSplitter(parent, id, 0.75), 
-      crosshair_cursor(false), plot_shared() 
+      crosshair_cursor(false)
 {
-    plot = new MainPlot(this, plot_shared);
+    plot = new MainPlot(this);
     aux_split = new ProportionalSplitter(this, -1, 0.5);
     SplitHorizontally(plot, aux_split);
 
-    aux_plot[0] = new AuxPlot(aux_split, plot_shared, "0");
-    aux_plot[1] = new AuxPlot(aux_split, plot_shared, "1");
+    aux_plot[0] = new AuxPlot(aux_split, plot, wxT("0"));
+    aux_plot[1] = new AuxPlot(aux_split, plot, wxT("1"));
     aux_plot[1]->Show(false);
     aux_split->Initialize(aux_plot[0]);
 }
@@ -208,11 +208,6 @@ void PlotPane::do_draw_crosshair(int X, int Y)
     for (int i = 0; i < 2; ++i)
         if (aux_visible(i))
             aux_plot[i]->draw_crosshair(X, -1);
-}
-
-void PlotPane::set_shared_scale()
-{
-    plot->set_scale();
 }
 
 //===============================================================

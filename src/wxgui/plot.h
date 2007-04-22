@@ -8,7 +8,6 @@
 #include <limits.h>
 #include <vector>
 #include <wx/config.h>
-#include "cmn.h" // PlotShared
 #include "../data.h" //Point
 
 // INT_MIN, given as coordinate, is invalid value, means "cancel drawing"
@@ -24,8 +23,6 @@ void draw_line_with_style(wxDC& dc, int style,
 
 // convention here: lowercase coordinates of point are real values,
 // and uppercase ones are coordinates of point on screen (integers).
-// eg. x2X() - convert point x coordinate to pixel position on screen 
-//
 
 
 class BufferedPanel : public wxPanel
@@ -50,24 +47,69 @@ private:
 };
 
 
-/// This class has no instances, MainPlot and AuxPlot are derived from it
-class FPlot : public BufferedPanel //wxPanel
+/// convertion between pixels and logical values
+class Scale
 {
 public:
-    FPlot (wxWindow *parent, PlotShared &shar)
+    double scale, origin; 
+    bool logarithm, reversed;
+
+    Scale() : scale(1.), origin(0.), logarithm(false), reversed(false) {}
+
+    /// value -> pixel
+    int px(double val) const 
+    {
+        if (logarithm) {
+            if (val <= 0)
+                return inf_px(scale);
+            val = log(val);
+        }
+        double t = (val - origin) * scale;
+        return fabs(t) < SHRT_MAX ? static_cast<int>(t) : inf_px(t);
+    }
+
+    /// pixel -> value
+    double val(int px) const
+    { 
+        fp a = px / scale + origin; 
+        return logarithm ? exp(a) : a; 
+    }
+
+    // set scale using minimum and maximum logical values and width/height 
+    // of the screen in pixels.
+    // In case of y scale, where pixel=0 is at the top, m and M are switched 
+    void set(fp m, fp M, int pixels);
+
+private:
+    static int inf_px(float t) { return t > 0 ? SHRT_MAX : SHRT_MIN; }
+};
+
+
+
+/// This class has no instances, MainPlot and AuxPlot are derived from it
+class FPlot : public BufferedPanel 
+{
+public:
+    FPlot (wxWindow *parent)
        : BufferedPanel(parent),
-         draw_sigma(false), y_logarithm(false), 
-         yUserScale(1.), yLogicalOrigin(0.), 
-         shared(shar), mouse_press_X(INT_MIN), mouse_press_Y(INT_MIN),
+         draw_sigma(false), 
+         mouse_press_X(INT_MIN), mouse_press_Y(INT_MIN),
          vlfc_prev_x(INT_MIN), vlfc_prev_x0(INT_MIN)   {}
          
     ~FPlot() {}
     wxColour const& get_bg_color() const { return backgroundCol; }
     void draw_crosshair(int X, int Y);
+    void set_scale();
+    int get_special_point_at_pointer(wxMouseEvent& event);
+    std::vector<wxPoint> const& get_special_points() const
+                                                { return special_points; }
+    Scale const& get_x_scale() const { return xs; }
+    Scale const& get_y_scale() const { return ys; }
     virtual void save_settings(wxConfigBase *cf) const;
     virtual void read_settings(wxConfigBase *cf);
 
 protected:
+    Scale xs, ys;
     wxColour activeDataCol, inactiveDataCol, xAxisCol;
     wxFont ticsFont;
     int point_radius;
@@ -75,13 +117,11 @@ protected:
     bool draw_sigma;
     bool x_axis_visible, y_axis_visible, xtics_visible, ytics_visible,
          xminor_tics_visible, yminor_tics_visible;
-    bool y_logarithm;
     bool x_grid, y_grid;
     int x_max_tics, y_max_tics, x_tic_size, y_tic_size;
-    double yUserScale, yLogicalOrigin; 
-    PlotShared &shared;
     int mouse_press_X, mouse_press_Y;
     int vlfc_prev_x, vlfc_prev_x0; //vertical lines following cursor
+    std::vector<wxPoint> special_points; //used to mark positions of peak tops
 
     void draw_dashed_vert_line(int X, int style=wxSHORT_DASH);
     bool vert_line_following_cursor(MouseActEnum ma, int x=0, int x0=INT_MIN);
@@ -102,23 +142,6 @@ protected:
                     int Y_offset = 0,
                     bool cumulative=false);
     void change_tics_font();
-    int y2Y (double y) {  
-        if (y_logarithm) {
-            if (y > 0)
-                y = log(y);
-            else
-                return yUserScale > 0 ? SHRT_MIN : SHRT_MAX;
-        }
-        double t = (y - yLogicalOrigin) * yUserScale;
-        return (fabs(t) < SHRT_MAX ? static_cast<int>(t) 
-                                   : t > 0 ? SHRT_MAX : SHRT_MIN);
-    }
-    double Y2y (int Y) { 
-        double y = Y / yUserScale + yLogicalOrigin;
-        return y_logarithm ? exp(y) : y; 
-    }
-    int x2X (double x) { return shared.x2X(x); }
-    double X2x (int X) { return shared.X2x(X); }
 
     DECLARE_EVENT_TABLE()
 };

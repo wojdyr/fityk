@@ -20,8 +20,8 @@ enum Aux_plot_kind_enum
 class AuxPlot : public FPlot
 {
 public:
-    AuxPlot (wxWindow *parent, PlotShared &shar, std::string name_) 
-        : FPlot (parent, shar), name(s2wx(name_)), 
+    AuxPlot(wxWindow *parent, FPlot *master_, wxString const& name_) 
+        : FPlot(parent), master(master_), name(name_), 
           y_zoom(1.), y_zoom_base(1.), fit_y_once(false) {}
     ~AuxPlot() {}
     void OnPaint(wxPaintEvent &event);
@@ -48,6 +48,7 @@ public:
     void read_settings(wxConfigBase *cf);
 
 private:
+    FPlot* master;
     wxString name;
     Aux_plot_kind_enum kind;
     bool mark_peak_ctrs;

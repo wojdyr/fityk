@@ -85,7 +85,7 @@ void ApplicationLogic::stop_app()
 
 void ApplicationLogic::start_app()
 {
-    view = View(0, 180, 0, 1e3);
+    view = View(0, 180, -50, 1e3);
     append_ds();
     activate_ds(0);
     getSettings()->do_srand();

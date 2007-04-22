@@ -63,11 +63,6 @@ END_EVENT_TABLE()
 void AuxPlot::OnPaint(wxPaintEvent&)
 {
     frame->draw_crosshair(-1, -1); 
-    //wxPaintDC dc(this);
-    //dc.SetLogicalFunction (wxCOPY);
-    //dc.SetBackground(wxBrush(backgroundCol));
-    //dc.Clear();
-    //draw(dc);
     buffered_draw();
     vert_line_following_cursor(mat_redraw);//draw, if necessary, vertical lines
 }
@@ -139,8 +134,8 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
 
     if (mark_peak_ctrs) {
         int ymax = GetClientSize().GetHeight();
-        for (vector<wxPoint>::const_iterator i = shared.peaktops.begin(); 
-             i != shared.peaktops.end(); i++) 
+        std::vector<wxPoint> const& t = master->get_special_points();
+        for (vector<wxPoint>::const_iterator i = t.begin(); i != t.end(); i++) 
             dc.DrawLine(i->x, 0, i->x, ymax);
     }
 
@@ -148,15 +143,17 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
         return;
 
     if (x_axis_visible) {
-        dc.DrawLine (0, y2Y(0), GetClientSize().GetWidth(), y2Y(0));
+        int Y0 = ys.px(0.);
+        dc.DrawLine (0, Y0, GetClientSize().GetWidth(), Y0);
         if (kind == apk_diff) 
             draw_zoom_text(dc, !monochrome);
     }
     if (y_axis_visible) {
-        dc.DrawLine (x2X(0), 0, x2X(0), GetClientSize().GetHeight());
+        int X0 = xs.px(0.);
+        dc.DrawLine (X0, 0, X0, GetClientSize().GetHeight());
     }
     if (ytics_visible) {
-        View v(0, 0, Y2y(GetClientSize().GetHeight()), Y2y(0));
+        View v(0, 0, ys.val(GetClientSize().GetHeight()), ys.val(0));
         draw_ytics(dc, v, !monochrome);
     }
 
@@ -179,24 +176,26 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
     draw_data (dc, f, data, sum, col, col, 0, cummulative);
 }
 
+/// print zoom info - how it compares to zoom of the master plot (e.g. "x3"), 
+/// it makes sense only for apk_diff plot, when master plot is not logarithmic
 void AuxPlot::draw_zoom_text(wxDC& dc, bool set_pen)
 {
+    if (master->get_y_scale().logarithm) 
+        return;
     if (set_pen)
         dc.SetTextForeground(xAxisCol);
-    if (shared.plot_y_scale) {
-        dc.SetFont(*wxNORMAL_FONT);  
-        string s = "x" + S(y_zoom);  
-        wxCoord w, h;
-        dc.GetTextExtent (s2wx(s), &w, &h); 
-        dc.DrawText (s2wx(s), GetClientSize().GetWidth() - w - 2, 2);
-    }
+    dc.SetFont(*wxNORMAL_FONT);  
+    string s = "x" + S(y_zoom);  
+    wxCoord w, h;
+    dc.GetTextExtent (s2wx(s), &w, &h); 
+    dc.DrawText (s2wx(s), GetClientSize().GetWidth() - w - 2, 2);
 }
 
 void AuxPlot::OnMouseMove(wxMouseEvent &event)
 {
     int X = event.GetX();
     vert_line_following_cursor(mat_move, X);
-    frame->set_status_coord_info(X2x(X), Y2y(event.GetY()), true);
+    frame->set_status_coord_info(xs.val(X), ys.val(event.GetY()), true);
     int new_cursor;
     if (X < move_plot_margin_width)
         new_cursor = wxCURSOR_POINT_LEFT;
@@ -226,31 +225,33 @@ bool AuxPlot::is_zoomable()
 
 void AuxPlot::set_scale()
 {
-    frame->set_shared_scale();
+    master->set_scale();
+    xs = master->get_x_scale();
+
     int h = GetClientSize().GetHeight();
     if (kind == apk_cum_chi2) {
-        yUserScale = -1. * y_zoom_base * y_zoom;
-        yLogicalOrigin = - h / yUserScale;
+        ys.scale = -1. * y_zoom_base * y_zoom;
+        ys.origin = - h / ys.scale;
         return;
     }
     switch (kind) {
         case apk_empty:
-            yUserScale = 1.; //y scale doesn't matter
+            ys.scale = 1.; //y scale doesn't matter
             break; 
         case apk_diff: 
-            if (shared.plot_y_scale)
-                yUserScale = shared.plot_y_scale * y_zoom;
-            else 
-                yUserScale = y_zoom;
+            if (master->get_y_scale().logarithm)
+                ys.scale = y_zoom;
+            else
+                ys.scale = master->get_y_scale().scale * y_zoom;
             break;
         case apk_diff_stddev:
         case apk_diff_y_perc:
-            yUserScale = -1. * y_zoom_base * y_zoom;
+            ys.scale = -1. * y_zoom_base * y_zoom;
             break;
         default:
             assert(0);
     }
-    yLogicalOrigin = - h / 2. / yUserScale;
+    ys.origin = - h / 2. / ys.scale;
 }
  
 void AuxPlot::read_settings(wxConfigBase *cf)
@@ -345,8 +346,8 @@ void AuxPlot::OnLeftUp (wxMouseEvent &event)
         cancel_mouse_left_press();
         return;
     }
-    fp x1 = X2x(event.GetX());
-    fp x2 = X2x(mouse_press_X);
+    fp x1 = xs.val(event.GetX());
+    fp x2 = xs.val(mouse_press_X);
     cancel_mouse_left_press();
     frame->change_zoom("[" + S(min(x1,x2)) + " : " + S(max(x1,x2)) + "]");
 }
@@ -489,8 +490,9 @@ void AuxPlot::fit_y_zoom(Data const* data, Sum const* sum)
         case apk_diff: 
             {
             y = get_max_abs_y(diff_of_data_for_draw_data, first, last, sum);
+            Scale const& mys = master->get_y_scale();
             y_zoom = fabs (GetClientSize().GetHeight() / (2 * y 
-                           * (shared.plot_y_scale ? shared.plot_y_scale : 1.)));
+                                           * (mys.logarithm ? 1 : mys.scale)));
             fp order = pow (10, floor (log10(y_zoom)));
             y_zoom = floor(y_zoom / order) * order;
             }

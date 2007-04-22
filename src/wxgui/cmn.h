@@ -12,19 +12,6 @@
 
 enum MouseModeEnum { mmd_zoom, mmd_bg, mmd_add, mmd_range, mmd_peak };
 
-struct PlotShared
-{
-    PlotShared() : xUserScale(1.), xLogicalOrigin(0.), plot_y_scale(1e3) {}
-    int x2X (double x) 
-        { return static_cast<int>((x - xLogicalOrigin) * xUserScale); }
-    double X2x (int X) { return X / xUserScale + xLogicalOrigin; }
-    int dx2dX (double dx) { return static_cast<int>(dx * xUserScale); }
-    double dX2dx (int dX) { return dX / xUserScale; }
-
-    double xUserScale, xLogicalOrigin; 
-    double plot_y_scale;
-    std::vector<wxPoint> peaktops;
-};
 
 inline wxString pchar2wx(char const* pc)
 {

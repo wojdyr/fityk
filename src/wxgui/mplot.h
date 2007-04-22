@@ -6,6 +6,7 @@
 #define FITYK__WX_MPLOT__H__
 
 #include "plot.h"
+#include "cmn.h"
 #include "../numfuncs.h" // B_point definition
 #include "../guess.h" // enum FunctionKind 
 
@@ -19,7 +20,7 @@ class Function;
 class BgManager
 {
 public:
-    BgManager(PlotShared &x_calc_) : x_calc(x_calc_), min_dist(8), 
+    BgManager(Scale const& x_scale_) : x_scale(x_scale_), min_dist(8), 
                                      spline_bg(true) {}
     void add_background_point(fp x, fp y);
     void rm_background_point(fp x);
@@ -31,7 +32,7 @@ public:
     bool can_undo() const { return !bg_backup.empty(); }
     void set_spline_bg(bool s) { spline_bg=s; recompute_bgline(); }
 protected:
-    PlotShared &x_calc;
+    Scale const& x_scale;
     int min_dist; //minimal distance in X between bg points
     bool spline_bg;
     typedef std::vector<B_point>::iterator bg_iterator;
@@ -110,7 +111,7 @@ class MainPlot : public FPlot, public BgManager
     friend class ConfigureAxesDlg;
     friend class ConfigurePLabelsDlg;
 public:
-    MainPlot (wxWindow *parent, PlotShared &shar); 
+    MainPlot(wxWindow *parent); 
     ~MainPlot() {}
     void OnPaint(wxPaintEvent &event);
     void draw(wxDC &dc, bool monochrome=false);
@@ -120,7 +121,6 @@ public:
     void OnLeftDClick (wxMouseEvent&) { PeakInfo(); }
     void OnButtonUp (wxMouseEvent &event);
     void OnKeyDown (wxKeyEvent& event);
-    void set_scale();
 
     void OnPopupShowXX (wxCommandEvent& event);
     void OnPopupColor (wxCommandEvent& event);
@@ -216,9 +216,9 @@ private:
     MainPlot *plot;
     wxColour axis_color;
     wxCheckBox *x_show_axis, *x_show_tics, *x_show_minor_tics, 
-               *x_show_grid, *x_reversed; 
+               *x_show_grid, *x_reversed_cb, *x_logarithm_cb; 
     wxCheckBox *y_show_axis, *y_show_tics, *y_show_minor_tics, 
-               *y_show_grid, *y_logarithm; 
+               *y_show_grid, *y_reversed_cb, *y_logarithm_cb; 
     wxSpinCtrl *x_max_tics, *x_tics_size;
     wxSpinCtrl *y_max_tics, *y_tics_size;
     DECLARE_EVENT_TABLE()

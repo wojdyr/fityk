@@ -18,13 +18,25 @@
 #include <wx/confbase.h>
 
 #include "plot.h"
-//#include "common.h"
-//#include "wx_gui.h"
+#include "cmn.h" 
 #include "../data.h"
-//#include "sum.h"
 #include "../logic.h" 
 
 using namespace std;
+
+void Scale::set(fp m, fp M, int pixels)
+{
+    fp h = 0;
+    if (logarithm) {
+        M = log(max(M, 1e-1));
+        m = log(max(m, 1e-1));
+    }
+    h = M - m;
+    origin = reversed ? M : m;
+    if (h == 0)
+        h = 0.1;
+    scale = pixels / (reversed ? -h : h);
+}
 
 //===============================================================
 //                       BufferedPanel
@@ -151,16 +163,16 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
 
     vector<double> minors;
     vector<double> x_tics = scale_tics_step(v.left, v.right, x_max_tics, 
-                                            minors);
+                                            minors, xs.logarithm);
 
     //if x axis is visible tics are drawed at the axis, 
     //otherwise tics are drawed at the bottom edge of the plot
     int Y = GetClientSize().GetHeight() - h;
-    if (x_axis_visible && !y_logarithm && y2Y(0) >= 0 && y2Y(0) < Y)
-        Y = y2Y(0);
+    if (x_axis_visible && !ys.logarithm && ys.px(0) >= 0 && ys.px(0) < Y)
+        Y = ys.px(0);
     for (vector<double>::const_iterator i = x_tics.begin(); 
                                                     i != x_tics.end(); ++i) {
-        int X = x2X(*i);
+        int X = xs.px(*i);
         dc.DrawLine (X, Y, X, Y - x_tic_size);
         wxString label = s2wx(S(*i));
         if (label == wxT("-0")) 
@@ -178,7 +190,7 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
     if (xminor_tics_visible)
         for (vector<double>::const_iterator i = minors.begin(); 
                                                     i != minors.end(); ++i) {
-            int X = x2X(*i);
+            int X = xs.px(*i);
             dc.DrawLine (X, Y, X, Y - x_tic_size);
         }
 }
@@ -196,14 +208,15 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
     //if y axis is visible, tics are drawed at the axis, 
     //otherwise tics are drawed at the left hand edge of the plot
     int X = 0;
-    if (y_axis_visible && x2X(0) > 0 && x2X(0) < GetClientSize().GetWidth()-10)
-        X = x2X(0);
+    if (y_axis_visible && xs.px(0) > 0 
+            && xs.px(0) < GetClientSize().GetWidth()-10)
+        X = xs.px(0);
     vector<double> minors;
     vector<double> y_tics = scale_tics_step(v.bottom, v.top, y_max_tics, 
-                                            minors, y_logarithm);
+                                            minors, ys.logarithm);
     for (vector<double>::const_iterator i = y_tics.begin(); 
                                                     i != y_tics.end(); ++i) {
-        int Y = y2Y(*i);
+        int Y = ys.px(*i);
         dc.DrawLine (X, Y, X + y_tic_size, Y);
         wxString label = s2wx(S(*i));
         if (label == wxT("-0"))
@@ -223,7 +236,7 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
     if (yminor_tics_visible)
         for (vector<double>::const_iterator i = minors.begin(); 
                                                     i != minors.end(); ++i) {
-            int Y = y2Y(*i);
+            int Y = ys.px(*i);
             dc.DrawLine (X, Y, X + y_tic_size, Y);
         }
 }
@@ -271,11 +284,11 @@ void FPlot::draw_data (wxDC& dc,
     // first line segment -- lines should be drawed towards points 
     //                                                 that are outside of plot 
     if (line_between_points && first > data->points().begin() && !cumulative) {
-        X_ = x2X (AL->view.left);
-        int Y_l = y2Y ((*compute_y)(first - 1, sum));
-        int Y_r = y2Y ((*compute_y)(first, sum));
-        int X_l = x2X ((first - 1)->x);
-        int X_r = x2X (first->x);
+        X_ = xs.px (AL->view.left);
+        int Y_l = ys.px ((*compute_y)(first - 1, sum));
+        int Y_r = ys.px ((*compute_y)(first, sum));
+        int X_l = xs.px ((first - 1)->x);
+        int X_r = xs.px (first->x);
         if (X_r == X_l)
             Y_ = Y_r;
         else
@@ -286,12 +299,12 @@ void FPlot::draw_data (wxDC& dc,
 
     //drawing all points (and lines); main loop
     for (vector<Point>::const_iterator i = first; i < last; i++) {
-        int X = x2X(i->x);
+        int X = xs.px(i->x);
         if (cumulative)
             y += (*compute_y)(i, sum);
         else
             y = (*compute_y)(i, sum);
-        int Y = y2Y(y) - Y_offset;
+        int Y = ys.px(y) - Y_offset;
         if (X == X_ && Y == Y_) 
             continue;
 
@@ -328,18 +341,18 @@ void FPlot::draw_data (wxDC& dc,
         }
 
         if (draw_sigma) {
-            dc.DrawLine (X, y2Y(y - i->sigma) - Y_offset,
-                         X, y2Y(y + i->sigma) - Y_offset);
+            dc.DrawLine (X, ys.px(y - i->sigma) - Y_offset,
+                         X, ys.px(y + i->sigma) - Y_offset);
         }
     }
 
     //the last line segment, toward next point
     if (line_between_points && last < data->points().end() && !cumulative) {
-        int X = x2X (AL->view.right);
-        int Y_l = y2Y ((*compute_y)(last - 1, sum));
-        int Y_r = y2Y ((*compute_y)(last, sum));
-        int X_l = x2X ((last - 1)->x);
-        int X_r = x2X (last->x);
+        int X = xs.px (AL->view.right);
+        int Y_l = ys.px ((*compute_y)(last - 1, sum));
+        int Y_r = ys.px ((*compute_y)(last, sum));
+        int X_l = xs.px ((last - 1)->x);
+        int X_r = xs.px (last->x);
         if (X_r != X_l) {
             int Y = Y_l + (Y_r - Y_l) * (X - X_l) / (X_r - X_l) - Y_offset;
             dc.DrawLine (X_, Y_, X, Y);
@@ -361,6 +374,29 @@ void FPlot::change_tics_font()
         xAxisCol = retData.GetColour();
         refresh(false);
     }
+}
+
+void FPlot::set_scale()
+{
+    View const &v = AL->view;
+    xs.set(v.left, v.right, GetClientSize().GetWidth());
+    ys.set(v.top, v.bottom, GetClientSize().GetHeight());
+}
+
+int FPlot::get_special_point_at_pointer(wxMouseEvent& event)
+{
+    // searching the closest peak-top and distance from it, d = dx + dy < 10 
+    int nearest = -1;
+    int min_dist = 10;
+    for (vector<wxPoint>::const_iterator i = special_points.begin(); 
+                                             i != special_points.end(); i++) {
+        int d = abs(event.GetX() - i->x) + abs(event.GetY() - i->y);
+        if (d < min_dist) {
+            min_dist = d;
+            nearest = i - special_points.begin();
+        }
+    }
+    return nearest;
 }
 
 void FPlot::read_settings(wxConfigBase *cf)

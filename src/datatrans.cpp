@@ -1356,7 +1356,7 @@ bool validate_data_expression(string const& str)
 bool is_data_dependent_code(vector<int> const& code)
 {
     for (vector<int>::const_iterator i = code.begin(); i != code.end(); ++i) 
-        if (*i >= OP_VAR_FIRST_OP && *i <= OP_VAR_LAST_OP
+        if ((*i >= OP_VAR_FIRST_OP && *i <= OP_VAR_LAST_OP)
                 || *i == OP_END_AGGREGATE)
             return true;
     return false;

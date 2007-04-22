@@ -22,8 +22,9 @@ public:
     virtual ~Fit() {};
     void fit(int max_iter, std::vector<DataWithSum*> const& dsds);
     void continue_fit(int max_iter);
-    bool is_initialized(DataWithSum const* ds=0) const
-     { return !ds && !datsums.empty() || datsums.size()==1 && ds==datsums[0]; }
+    bool is_initialized() const { return !datsums.empty(); }
+    bool is_initialized(DataWithSum const* ds) const 
+                          { return datsums.size() == 1 && ds == datsums[0]; }
     bool is_initialized(std::vector<DataWithSum*> const& dsds) const
                                                     { return dsds == datsums; }
     std::string getInfo(std::vector<DataWithSum*> const& dsds);

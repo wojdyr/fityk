@@ -1818,11 +1818,6 @@ void FFrame::draw_crosshair(int X, int Y)
     plot_pane->draw_crosshair(X, Y);
 }
 
-void FFrame::set_shared_scale()
-{
-    plot_pane->set_shared_scale();
-}
-
 void FFrame::focus_input(wxKeyEvent& event)
 {
     if (should_focus_input(event)) 
