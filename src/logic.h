@@ -9,7 +9,6 @@
 #include <memory>
 #include <algorithm>
 #include "mgr.h"
-//#include "func.h"
 
 class DataWithSum;
 

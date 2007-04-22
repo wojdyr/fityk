@@ -33,6 +33,7 @@
 #include <wx/msgout.h>
 #include <wx/metafile.h>
 #include <wx/dir.h>
+#include <wx/mstream.h>
 #include <algorithm>
 #include <locale.h>
 #include <string.h>
@@ -88,12 +89,13 @@
 #include "img/zoom_up.xpm"
 #include "img/zoom_vert.xpm"
 
+#include "img/book16.h"
+
 using namespace std;
 FFrame *frame = NULL;
 
 enum {
-    ID_QUIT            = 24001 ,
-    ID_H_MANUAL                ,
+    ID_H_MANUAL        = 24001 ,
     ID_H_TIP                   ,
     ID_H_CONTACT               ,
     ID_D_LOAD                  ,
@@ -130,8 +132,6 @@ enum {
     ID_LOG_DUMP                ,
     ID_O_RESET                 ,
     ID_PAGE_SETUP              ,
-    ID_PRINT_PREVIEW           ,
-    ID_PRINT                   ,
     ID_PRINT_PSFILE            ,
     ID_PRINT_CLIPB             ,
     ID_O_INCLUDE               ,
@@ -294,6 +294,9 @@ bool FApp::OnInit(void)
 
     AL = new ApplicationLogic; 
 
+    wxFileSystem::AddHandler(new wxZipFSHandler);
+    wxImage::AddHandler(new wxPNGHandler);
+
     //global settings
 #if wxUSE_TOOLTIPS
     wxToolTip::Enable (true);
@@ -424,6 +427,26 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
 }
 
 
+// from http://www.wxwidgets.org/wiki/index.php/Embedding_PNG_Images
+wxBitmap GetBitmapFromMemory_(const unsigned char *data, int length) 
+{
+    wxMemoryInputStream is(data, length);
+    return wxBitmap(wxImage(is, wxBITMAP_TYPE_PNG));
+}
+
+#define GET_BMP(name) \
+            GetBitmapFromMemory_(name##_png, sizeof(name##_png))
+
+
+void append_mi(wxMenu* menu, int id, wxBitmap const& bitmap,
+               const wxString& text="", const wxString& helpString="")
+{
+    wxMenuItem *item = new wxMenuItem(menu, id, text, helpString);
+#if wxUSE_OWNER_DRAWN || defined(__WXGTK__)
+    item->SetBitmap(bitmap);
+#endif
+    menu->Append(item);
+}
 
 
 BEGIN_EVENT_TABLE(FFrame, wxFrame)
@@ -464,11 +487,11 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_O_INCLUDE,     FFrame::OnInclude)    
     EVT_MENU (ID_O_REINCLUDE,   FFrame::OnReInclude)    
     EVT_MENU (ID_S_DEBUGGER,    FFrame::OnDebugger)    
-    EVT_MENU (ID_PRINT,         FFrame::OnPrint)
+    EVT_MENU (wxID_PRINT,         FFrame::OnPrint)
     EVT_MENU (ID_PRINT_PSFILE,  FFrame::OnPrintPSFile)
     EVT_MENU (ID_PRINT_CLIPB,   FFrame::OnPrintToClipboard)
     EVT_MENU (ID_PAGE_SETUP,    FFrame::OnPageSetup)
-    EVT_MENU (ID_PRINT_PREVIEW, FFrame::OnPrintPreview)
+    EVT_MENU (wxID_PREVIEW,     FFrame::OnPrintPreview)
     EVT_MENU (ID_O_DUMP,        FFrame::OnDump)    
     EVT_MENU (ID_SESSION_SET,   FFrame::OnSettings)    
     EVT_MENU (ID_SESSION_EI,    FFrame::OnEditInit)    
@@ -516,7 +539,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_H_TIP,         FFrame::OnTipOfTheDay)
     EVT_MENU (ID_H_CONTACT,     FFrame::OnContact)
     EVT_MENU (wxID_ABOUT,       FFrame::OnAbout)
-    EVT_MENU (ID_QUIT,          FFrame::OnQuit)
+    EVT_MENU (wxID_EXIT,        FFrame::OnQuit)
 END_EVENT_TABLE()
 
 
@@ -566,8 +589,6 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
 
     print_mgr = new PrintManager(plot_pane);
 
-    wxFileSystem::AddHandler(new wxZipFSHandler);
-    wxImage::AddHandler(new wxPNGHandler);
     string help_file = "fitykhelp.htb";
     string help_path = get_full_path_of_help_file(help_file); 
     string help_path_no_exten = help_path.substr(0, help_path.size() - 4);
@@ -742,9 +763,9 @@ void FFrame::set_menubar()
     session_menu->AppendSeparator();
     session_menu->Append(ID_PAGE_SETUP, wxT("Page Se&tup..."), 
                                         wxT("Page setup"));
-    session_menu->Append(ID_PRINT_PREVIEW, wxT("Print Pre&view"), 
-                                           wxT("Print preview")); 
-    session_menu->Append(ID_PRINT, wxT("&Print...\tCtrl-P"),wxT("Print plots"));
+    session_menu->Append(wxID_PREVIEW, wxT("Print previe&w")); 
+    session_menu->Append(wxID_PRINT, wxT("&Print...\tCtrl-P"),
+                         wxT("Print plots"));
 #if 0
     //it doesn't work on Windows, because there is no way
     // to have wxPostScriptPrintNativeData on MSW
@@ -764,7 +785,7 @@ void FFrame::set_menubar()
     session_menu->Append (ID_SESSION_EI, wxT("Edit &Init File"),
                              wxT("Edit script executed when program starts"));
     session_menu->AppendSeparator();
-    session_menu->Append(ID_QUIT, wxT("&Quit"), wxT("Exit the program"));
+    session_menu->Append(wxID_EXIT, wxT("&Quit"));
 
     wxMenu* data_menu = new wxMenu;
     data_menu->Append (ID_D_LOAD, wxT("&Quick Load File\tCtrl-O"), 
@@ -943,7 +964,10 @@ void FFrame::set_menubar()
     gui_menu->Append(ID_G_SCONF, wxT("&Save current config"), gui_menu_sconfig);
 
     wxMenu *help_menu = new wxMenu;
-    help_menu->Append(ID_H_MANUAL, wxT("&Manual\tF1"), wxT("User's Manual"));
+
+
+    append_mi(help_menu, ID_H_MANUAL, GET_BMP(book16), wxT("&Manual\tF1"), 
+              wxT("User's Manual"));
     help_menu->Append(ID_H_TIP, wxT("&Tip of the day"), 
                       wxT("Show tip of the day"));
     help_menu->Append(ID_H_CONTACT, wxT("&Report bug (on-line)"), 

@@ -73,7 +73,7 @@ from wxWidgets (you can copy it from wxWidgets tarball into fityk/config/).
 There are additional tools needed to run make in doc/ subdirectory
 (to convert XML DocBook document to HTML). If you don't want to bother 
 with it, either use --without-doc configure option or run `make' only in src/ 
-subdirectory. Manual and tips won't be installed then. 
+subdirectory. Manual won't be installed then. 
 
 Fityk uses Boost::Spirit. Only some header files are needed, in fityk tarballs 
 these files are put in 3rdparty/ directory. When using Subversion, install 

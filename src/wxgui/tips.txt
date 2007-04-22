@@ -1,12 +1,12 @@
 If the program crashes, or you found a bug, please report it! 
 Try clicking right mouse button at every part of the window. You  will see pop-up menus with useful options.
-Author of this program is not aware how people use this program. You can describe one use-case and send it (with data) to author. It will help in making the program more convenient for you.
-There is a mailing list fityk-users. You can find a link at fityk.sf.net.
+Author of this program is not aware how people use this program. You can describe one use-case in FitykWiki. It will help in making the program more convenient for you.
 You can drag a peak or change its shape with mouse. Just press a mouse button on the peak top (in normal mode).
 There are hints at status bar, that show what action will be performed when clicking with left/right button.
 It is often possible to start typing a command in input field without clicking at the field. Just press Space or start typing.
 Input field stores history. Use up/down arrows to navigate between items.
 If you have any comments, ideas, etc. send it either to mailing-list or directly to author.
-Logging session (File->Log to file) from the beginning can save you a lot of time, especially when program crashes.
+If you execute the same commands more then once, you can put them into a script. 
+Your session can be logged (File->Log to file). You can put the logging command into init script, so it will be launched every time you start the program.
 There are various ways to zoom and unzoom, eg. using left and middle mouse button on auxiliary plot.
 Most of the settings of the graphical interface can be saved using "GUI > Save current config" from menu. 

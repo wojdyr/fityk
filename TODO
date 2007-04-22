@@ -43,10 +43,6 @@ Legend:
 
 * XPS Shirley background removing
 
-* move fityk_tips.txt from doc/ to src/wxgui/...
-
-* add one example image to menu item
-
 * the API should be designed as Fityk class, rather than namespace,
   to enable multiple instances of the class. It involves making the whole
   library thread-safe.
@@ -83,6 +79,9 @@ Legend:
   use case: sort functions by centers
   involves refactoring ListWithColors::populate()
 
+* GUI: default view is too wide from the left in when logarithmic scale is on,
+  because view margin is always 5%, and this is handled by libfityk
+
 ------------------ 
 
 * GUI: script editor: button to change directories in absolute filenames
@@ -98,7 +97,8 @@ Legend:
   
 * [Infrastructure] Set up BuildBot or similar system for build tests
 
-* GUI: icons: switch from xpm to png icons (with alpha channel)
+* GUI: use icons with alpha channel 
+       http://www.wxwidgets.org/wiki/index.php/Embedding_PNG_Images
 
 * GUI: menu file icons (16x15 or 16x16?)
 

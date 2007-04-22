@@ -53,5 +53,8 @@ zoom_right.xpm \
 zoom_up.xpm \
 zoom_vert.xpm \
 zshift.xpm \
+ \
+book16.h \
+ \
 fityk.ico 
 
