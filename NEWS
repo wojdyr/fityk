@@ -1,5 +1,12 @@
 $Id$
-User-visible changes in version 0.8.1  (2007-0 -  ):
+User-visible changes in version 0.8.1  (2007-04-23):
+* extended version info can be shown by "info+ version"
+* displaying Gaussian-FWHM and Lorentzian-FWHM of Voigt function
+* GUI, MS Windows: configuration is now stored in files, not in registry
+* GUI: support for any numbers of config files. 
+* changes in command-line parameters
+* "_EXECUTED_SCRIPT_DIR_/" in scripts is replaced with the script directory
+* GUI: logarithmic x scale and reversed y scale 
 * bug fixes
 
 User-visible changes in version 0.8.0  (2007-03-19):

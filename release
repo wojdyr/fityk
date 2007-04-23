@@ -175,12 +175,13 @@ elif [ $1 -eq 6 ]; then
  ../configure --build=i686-pc-linux-gnu --host=i586-mingw32msvc \
    CXXFLAGS="-O3" LDFLAGS="-s" --disable-CLI --with-wx-prefix=$WXMSWINSTALL 
  make
+ rm -rf ../samples/tmp*
  cp -rf ../samples .
  mkdir $ALL_WIN_FILES $ALL_WIN_FILES/src $ALL_WIN_FILES/doc
  cp fityk.iss ../fityk.url ../COPYING ../AUTHORS ../TODO ../NEWS $ALL_WIN_FILES
  cp src/wxgui/fityk.exe $ALL_WIN_FILES/src
  cp -r ../samples $ALL_WIN_FILES
- cp ../doc/fityk_tips.txt $ALL_WIN_FILES/doc
+ cp ../src/wxgui/tips.txt $ALL_WIN_FILES/src
  if [ -a doc/fitykhelp.htb ]; then
 	 unzip doc/fitykhelp.htb -d $ALL_WIN_FILES/doc
  else

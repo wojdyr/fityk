@@ -91,6 +91,11 @@
 
 #include "img/book16.h"
 
+// I have wxUSE_METAFILE=1 on wxGTK-2.6.1, which was probably a bug
+#if wxUSE_METAFILE && defined(__WXGTK__)
+#undef wxUSE_METAFILE
+#endif
+
 using namespace std;
 FFrame *frame = NULL;
 
@@ -439,7 +444,7 @@ wxBitmap GetBitmapFromMemory_(const unsigned char *data, int length)
 
 
 void append_mi(wxMenu* menu, int id, wxBitmap const& bitmap,
-               const wxString& text="", const wxString& helpString="")
+               const wxString& text=wxT(""), const wxString& helpString=wxT(""))
 {
     wxMenuItem *item = new wxMenuItem(menu, id, text, helpString);
 #if wxUSE_OWNER_DRAWN || defined(__WXGTK__)

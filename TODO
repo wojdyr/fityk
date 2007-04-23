@@ -7,36 +7,6 @@ you don't know were to start, there is a list of ideas at the end of this file.
 Legend:
 // = done, but not tested/documented  
 
-// * GUI: custom-open dialog should remember columns
-
-// * info+ version: compiler, date, compilation flags, boost::spirit version 
-
-// * GUI: open data / custom open data menu items -> quick open data / open data
-
-// * the way to specify columns of data file from command line (foo.xy/1,5)
-
-// * cfityk: -q -> not enter into interactive mode
-//           if argument starts with "=->", interpret it as command
-//             use case: cfityk -q *.rdf "=-> i min(x if y > 0) in @*" 
-
-// * BUG: after message in data-range mode, mouse press is not cancelled
-
-// * the way to output wG and wL of Voigt function
-
-?// * GUI/Windows: move configs from registry to file?
-
-// * GUI: named-configs in ~/.fityk/named-configs dir
-
-// *  the name of config file passed as cmd line parameter
-
-// * file paths: "_EXECUTED_SCRIPT_DIR_/" should be replaced (only in scripts) 
-//   with dir of executed script + path separator
-//   GUI: support for _EXECUTED_SCRIPT_DIR_ in ScriptDebugger
-
-// * GUI: logarithmic x scale and reversed y scale 
-
-------------------> 0.8.1 
-
 * BUG: "plot . []" sometimes doesn't work as expected if x axis is not visible
 
 * GUI: fit run dialog should be hidden before fitting starts

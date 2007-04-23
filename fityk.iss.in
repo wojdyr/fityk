@@ -25,7 +25,7 @@ Source: COPYING; DestDir: {app}
 Source: AUTHORS; DestDir: {app} 
 Source: TODO; DestDir: {app} 
 Source: NEWS; DestDir: {app}
-Source: doc\fityk_tips.txt; DestDir: {app} 
+Source: src\tips.txt; DestDir: {app} 
 Source: doc\fitykhelp.chm; DestDir: {app} 
 Source: samples\README; DestDir: {app}\samples\ 
 Source: samples\*.dat; DestDir: {app}\samples\ 
