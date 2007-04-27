@@ -1011,7 +1011,7 @@ void FFrame::OnShowMenuZoomPrev(wxUpdateUIEvent& event)
 
 void FFrame::OnTipOfTheDay(wxCommandEvent&)
 {
-    string tip_file = "fityk_tips.txt";
+    string tip_file = "tips.txt";
     string tip_path = get_full_path_of_help_file(tip_file); 
     int idx = wxConfig::Get()->Read(wxT("/TipOfTheDay/idx"), 0L); 
     wxTipProvider *tipProvider = wxCreateFileTipProvider(s2wx(tip_path), idx);
