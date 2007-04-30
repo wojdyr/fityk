@@ -3,29 +3,22 @@
 # You are welcome to become a maintainer of binary fityk package for your 
 # favourite Linux distribution.
 
+Name:           fityk
 Summary:        A program for fitting and analyzing data.
-Name:           @PACKAGE@
 Version:        @VERSION@
-Release:        1
-Group:          Applications/Engineering
+Release:        1%{?dist}
 License:        GPL
-Vendor:         Marcin Wojdyr 
+Group:          Applications/Engineering
 URL:            http://www.unipress.waw.pl/fityk/
-Source:         http://downloads.sourceforge.net/fityk/%{name}-%{version}.tar.bz2
-BuildRoot:      /tmp/%{name}-%{version}-root
-BuildRequires:  wxGTK-devel
-Requires:       wxGTK
-# - it also requires readline library
+Source0:        %{name}-%{version}.tar.bz2
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
+BuildRequires:  wxGTK-devel readline-devel 
+Requires:       wxGTK readline
 # - it does NOT require boost library, because it uses only header files
 #   from boost, and these headers are distributed in fityk tarball.
-# - gnuplot may be useful, but it is not required, and majority of users
+
+# - gnuplot is recommended, but it is not required, and majority of users
 #   will never use it anyway.
-
-#is this necessary?
-Prefix: /usr
-
-#is this necessary?
-%define                 _datadir        %{_prefix}/share/fityk
 
 %description
 Fityk is a program for nonlinear fitting of analytical functions 
@@ -36,27 +29,35 @@ Can be also used for visualization of x-y data only.
 %setup -q
 
 %build
-export LDFLAGS="-s"
-%configure 
+%configure LDFLAGS="-s"
 make 
 
 %install
-rm -rf $RPM_BUILD_ROOT
-%makeinstall 
+rm -fr %{buildroot}
+# In Fedora %makeinstall macro should not be used 
+make DESTDIR=%{buildroot} install
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -fr %{buildroot}
+
+%post
+update-desktop-database
+#update-mime-database %{_datadir}/mime
+/sbin/ldconfig
+
+%postun
+update-desktop-database
+#update-mime-database %{_datadir}/mime
+/sbin/ldconfig
 
 %files
-%defattr(644,root,root,755)
-%doc AUTHORS ChangeLog COPYING INSTALL NEWS README TODO 
-# *.xml *.xsl *.html?
-%attr(755,root,root) %{_bindir}/fityk 
-%attr(755,root,root) %{_bindir}/cfityk 
-%{_datadir}
+%defattr(-,root,root)
+%doc AUTHORS ChangeLog COPYING INSTALL NEWS README TODO doc/*.html doc/*.css samples
+%{_bindir}/*
+%{_datadir}/%{name}/*
+%{_datadir}/applications/%{name}.desktop
+%{_datadir}/pixmaps/%{name}.png
 %{_libdir}/*
 %{_includedir}/*
 %{_mandir}/man1/*
-# there are also other files you may want to install, e.g. fityk.desktop,
-# fityk.png
 
