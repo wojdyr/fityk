@@ -4,21 +4,19 @@
 # favourite Linux distribution.
 
 Name:           fityk
-Summary:        A program for fitting and analyzing data.
+Summary:        A program for fitting and analyzing data
 Version:        @VERSION@
 Release:        1%{?dist}
 License:        GPL
 Group:          Applications/Engineering
 URL:            http://www.unipress.waw.pl/fityk/
-Source0:        %{name}-%{version}.tar.bz2
+Source0:        http://download.sourceforge.net/fityk/%{name}-%{version}.tar.bz2
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires:  wxGTK-devel readline-devel 
 Requires:       wxGTK readline
-# - it does NOT require boost library, because it uses only header files
+# * it does NOT require boost library, because it uses only header files
 #   from boost, and these headers are distributed in fityk tarball.
-
-# - gnuplot is recommended, but it is not required, and majority of users
-#   will never use it anyway.
+# * gnuplot is recommended, but the program can work without it
 
 %description
 Fityk is a program for nonlinear fitting of analytical functions 
@@ -52,12 +50,19 @@ update-desktop-database
 
 %files
 %defattr(-,root,root)
-%doc AUTHORS ChangeLog COPYING INSTALL NEWS README TODO doc/*.html doc/*.css samples
+%doc AUTHORS ChangeLog COPYING INSTALL NEWS README TODO 
+# FIXME: Makefile* files from samples/ should not be included
+%doc samples/ 
+# FIXME: fitykhelp.html will look for images in fitykhelp_img/ , 
+#  so fitykhelp_img/*.png files should be put into subdirectory,
+#  but Makefile* files should not be included
+%doc doc/*.html doc/*.css doc/fitykhelp_img/
 %{_bindir}/*
-%{_datadir}/%{name}/*
+%{_datadir}/%{name}/
 %{_datadir}/applications/%{name}.desktop
 %{_datadir}/pixmaps/%{name}.png
 %{_libdir}/*
 %{_includedir}/*
 %{_mandir}/man1/*
+
 
