@@ -12,24 +12,22 @@
 
 void load_siemensbruker_filetype (std::string filename, Data *data)
 {
-	vmsg("entered SiemensBruker loading: "+ filename);
-
 	float biggest=0, smallest=99999, average=0;
   	char ctest[140];
 
 	FILE *stream;
   	stream=fopen(filename.c_str(),"rb");
 	if(!stream)
-	  warn("Bad luck! Couldn't open the file: " + filename);
+	  throw ExecuteError("Bad luck! Couldn't open the file: " + filename);
 
 	// let's have a look at the first bytes.
 	// Siemens files tell us something there...
 	frstr(0,6,stream,ctest);
 	if((strncmp("RAW2",ctest,4)!=0) &&  (strncmp("RAW1.0",ctest,5)!=0) &&  (strncmp("RAW ",ctest,4)!=0)){
 	    if(strncmp("RAW_1",ctest,5)==0)
-	         warn("This looks like a STOE raw file.\nSelect STOE from the file options menu and try again, please!");
+	         throw ExecuteError("This looks like a STOE raw file.");
 	    else
-	         warn("This is not a valid SIEMENS DIFFRAC AT RAW-file!\nTry another, please!");
+	         throw ExecuteError("This is not a valid SIEMENS DIFFRAC AT RAW-file!");
    	}
 	else{
 		if(strncmp("RAW2",ctest,4)==0){

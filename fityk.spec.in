@@ -1,68 +1,104 @@
-# may not work
+# $Id$
+# may not work in your distribution -- feedback is appreciated
 
 # You are welcome to become a maintainer of binary fityk package for your 
 # favourite Linux distribution.
 
+# This spec will make two RPMS: fityk and fityk-devel. fityk-devel is very 
+# small, so it may be better to make one RPM instead. There are different
+# policies in Linux distributions. I made it like this, because it's easier
+# to merge than split.
+# 
+# You may find another fityk spec files at: 
+#  http://svn.rpmforge.net/svn/trunk/rpms/fityk/
+#  ...
+#  
+
+Summary:        Tool for fitting and analyzing data
 Name:           fityk
-Summary:        A program for fitting and analyzing data
 Version:        @VERSION@
-Release:        1%{?dist}
+#Release:        1%{?dist}
+Release:        1
 License:        GPL
 Group:          Applications/Engineering
 URL:            http://www.unipress.waw.pl/fityk/
 Source0:        http://download.sourceforge.net/fityk/%{name}-%{version}.tar.bz2
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildRequires:  wxGTK-devel readline-devel 
-Requires:       wxGTK readline
-# * it does NOT require boost library, because it uses only header files
-#   from boost, and these headers are distributed in fityk tarball.
-# * gnuplot is recommended, but the program can work without it
+BuildRequires:  gcc-c++, desktop-file-utils
+BuildRequires:  wxGTK-devel >= 2.6.1, readline-devel 
+Requires:       wxGTK >= 2.6.1, readline
+### it does NOT require boost library, because it uses only header files
+### from boost, and these headers are distributed in fityk tarball.
+#Requires: boost-devel
+### gnuplot is recommended, but not required
+#Requires: gnuplot
 
 %description
 Fityk is a program for nonlinear fitting of analytical functions 
 (especially peak-shaped) to data (usually experimental data).
-Can be also used for visualization of x-y data only.
+It can be also used for visualization of x-y data only.
+
+%package devel
+Summary: Header files, libraries and development documentation for %{name}.
+Group: Development/Libraries
+Requires: %{name} = %{version}-%{release}
+
+%description devel
+This package contains the header files, static libraries and development
+documentation for %{name}. If you like to develop programs using %{name}, 
+you will need to install %{name}-devel.
 
 %prep
 %setup -q
 
 %build
 %configure LDFLAGS="-s"
-make 
+### If you don't like Rpath, uncomment these sed lines
+### http://fedoraproject.org/wiki/Packaging/Guidelines#Rpath
+#sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
+#sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
+make %{?_smp_mflags}
 
 %install
-rm -fr %{buildroot}
-# In Fedora %makeinstall macro should not be used 
-make DESTDIR=%{buildroot} install
+%{__rm} -rf %{buildroot}
+%{__make} install DESTDIR="%{buildroot}" 
+
+### we don't need .la files
+%{__rm} -f %{buildroot}/%{_libdir}/*.la
+
+### Clean up docs
+%{__rm} -f samples/Makefile* doc/fitykhelp_img/Makefile*
+
+### there is a bug in fityk 0.8.1. It will be fixed upstream in the next release
+%{__mv} -f %{buildroot}/%{_datadir}/%{name}/tips.txt %{buildroot}/%{_datadir}/%{name}/fityk_tips.txt
 
 %clean
-rm -fr %{buildroot}
+%{__rm} -rf %{buildroot}
 
 %post
 update-desktop-database
-#update-mime-database %{_datadir}/mime
-/sbin/ldconfig
+#update-mime-database %{_datadir}/mime >/dev/null
+/sbin/ldconfig 2>/dev/null
 
 %postun
 update-desktop-database
-#update-mime-database %{_datadir}/mime
-/sbin/ldconfig
+#update-mime-database %{_datadir}/mime >/dev/null
+/sbin/ldconfig 2>/dev/null
 
 %files
 %defattr(-,root,root)
 %doc AUTHORS ChangeLog COPYING INSTALL NEWS README TODO 
-# FIXME: Makefile* files from samples/ should not be included
-%doc samples/ 
-# FIXME: fitykhelp.html will look for images in fitykhelp_img/ , 
-#  so fitykhelp_img/*.png files should be put into subdirectory,
-#  but Makefile* files should not be included
-%doc doc/*.html doc/*.css doc/fitykhelp_img/
+%doc samples/ doc/*.html doc/*.css doc/fitykhelp_img/
+%doc %{_mandir}/man1/*
 %{_bindir}/*
 %{_datadir}/%{name}/
-%{_datadir}/applications/%{name}.desktop
-%{_datadir}/pixmaps/%{name}.png
-%{_libdir}/*
-%{_includedir}/*
-%{_mandir}/man1/*
+%{_datadir}/applications/fityk.desktop
+%{_datadir}/pixmaps/fityk.png
+%{_libdir}/*.so.*
+#%{_datadir}/icons/*
 
+%files devel
+%defattr(-,root,root)
+%{_includedir}/*
+%{_libdir}/*.so
 

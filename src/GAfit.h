@@ -22,8 +22,8 @@ struct Individual
 class GAfit : public Fit
 {
 public:
-    GAfit ();
-    ~GAfit ();
+    GAfit(Fityk* F);
+    ~GAfit();
     fp init(); // called before autoiter()
     void autoiter();
 private:
@@ -47,7 +47,6 @@ private:
     std::vector<Individual> pop1, pop2, *pop, *opop;
     int iteration;
     Individual best_indiv;
-    std::string log_file;
     fp tmp_max;
     std::map<char, std::string> Crossover_enum;
     std::map<char, std::string> Selection_enum;
@@ -81,7 +80,6 @@ private:
     void print_post_fit_info (fp wssr_before);
     void autoplot_in_autoiter();
     void compute_wssr_for_ind (std::vector<Individual>::iterator ind);
-    void log_ga_options(); 
 }; 
 
 #endif 

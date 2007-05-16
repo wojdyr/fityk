@@ -9,13 +9,13 @@
 
 #include "common.h"
 #include "NMfit.h"
-#include "ui.h"
+#include "logic.h"
 #include "settings.h"
 
 using namespace std;
 
-NMfit::NMfit()
-    :Fit ("Nelder-Mead-simplex") 
+NMfit::NMfit(Fityk* F)
+    : Fit(F, "Nelder-Mead-simplex") 
 {
 }
 
@@ -23,9 +23,9 @@ NMfit::~NMfit() {}
 
 fp NMfit::init()
 {
-    bool move_all = getSettings()->get_b("nm-move-all"); 
-    char distrib = getSettings()->get_e("nm-distribution"); 
-    fp factor = getSettings()->get_f("nm-move-factor");
+    bool move_all = F->get_settings()->get_b("nm-move-all"); 
+    char distrib = F->get_settings()->get_e("nm-distribution"); 
+    fp factor = F->get_settings()->get_f("nm-move-factor");
 
     // 1. all n+1 vertices are the same
     Vertex v(a_orig);
@@ -74,9 +74,9 @@ void NMfit::find_best_worst()
 
 void NMfit::autoiter()
 {
-    fp convergence = getSettings()->get_f("nm-convergence");
+    fp convergence = F->get_settings()->get_f("nm-convergence");
     wssr_before = compute_wssr(a_orig, datsums);
-    msg ("WSSR before starting simplex fit: " + S(wssr_before));
+    F->msg ("WSSR before starting simplex fit: " + S(wssr_before));
     for (int iter = 0; !termination_criteria(iter, convergence); ++iter) {
         iteration_plot(best->a);
         iter_nr++;
@@ -141,12 +141,12 @@ void NMfit::compute_coord_sum()
 
 bool NMfit::termination_criteria(int iter, fp convergence)
 {
-    msg ("#" + S(iter_nr) + " (ev:" + S(evaluations) + "): best:" 
+    F->msg ("#" + S(iter_nr) + " (ev:" + S(evaluations) + "): best:" 
                 + S(best->wssr) + " worst:" + S(worst->wssr) + ", " 
                 + S(s_worst->wssr) + " [V * |" + S(volume_factor) + "|]");
     bool stop = false;
     if (volume_factor == 1. && iter != 0) {
-        msg ("Simplex got stuck.");
+        F->msg ("Simplex got stuck.");
         stop = true;
     }
     volume_factor = 1.;
@@ -155,18 +155,18 @@ bool NMfit::termination_criteria(int iter, fp convergence)
     string s = "WSSR:";
     for (vector<Vertex>::iterator i = vertices.begin(); i!=vertices.end(); i++)
         s += " " + S(i->wssr);
-    msg (s);
+    F->msg (s);
 *DEBUG - END*/
     //checking stop conditions
     if (common_termination_criteria(iter))
         stop=true;
     if (is_zero(worst->wssr)) {
-        msg ("All vertices have WSSR < epsilon=" + S(epsilon));
+        F->msg ("All vertices have WSSR < epsilon=" + S(epsilon));
         return true;
     }
     fp r_diff = 2 * (worst->wssr - best->wssr) / (best->wssr + worst->wssr);
     if (r_diff < convergence) {
-        msg ("Relative difference between worst and best vertex is only "
+        F->msg ("Relative difference between worst and best vertex is only "
                 + S(r_diff) + ". Stop");
         stop = true;
     }

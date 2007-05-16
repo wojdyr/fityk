@@ -19,14 +19,14 @@ using namespace std;
 
 namespace {
 
-fp my_y (DataWithSum const* ds, int n, EstConditions const* ec=0);
+fp my_y (DataWithSum const* ds, int n, EstConditions const* ec);
 fp data_area (DataWithSum const* ds, int from, int to, 
-              EstConditions const* ec=0);
+              EstConditions const* ec);
 int max_data_y_pos (DataWithSum const* ds, int from, int to, 
-                    EstConditions const* ec=0);
+                    EstConditions const* ec);
 fp compute_data_fwhm (DataWithSum const* ds, 
                       int from, int max_pos, int to, fp level,
-                      EstConditions const* ec=0);
+                      EstConditions const* ec);
 void parse_range(DataWithSum const* ds, std::vector<std::string> const& range, 
                  fp& range_from, fp& range_to);
 
@@ -166,18 +166,18 @@ void estimate_peak_parameters(DataWithSum const* ds, fp range_from, fp range_to,
     if (max_y_pos == l_bor || max_y_pos == r_bor - 1) {
         string s = "Estimating peak parameters: peak outside of search scope."
                   " Tried at [" + S(range_from) + " : " + S(range_to) + "]";
-        if (getSettings()->get_b("can-cancel-guess")) 
+        if (AL->get_settings()->get_b("can-cancel-guess")) 
             throw ExecuteError(s + " Canceled.");
-        msg (s);
+        AL->msg(s);
     }
     fp h = my_y(ds, max_y_pos, ec);
     if (height) 
-        *height = h * getSettings()->get_f("height-correction");
+        *height = h * AL->get_settings()->get_f("height-correction");
     fp center_ = ds->get_data()->get_x(max_y_pos);
     if (center)
         *center = center_;
     fp fwhm_ = compute_data_fwhm(ds, l_bor, max_y_pos, r_bor, 0.5, ec) 
-                                    * getSettings()->get_f("width-correction");
+                               * AL->get_settings()->get_f("width-correction");
     if (fwhm)
         *fwhm = fwhm_;
     estimate_any_parameters(ds, center_-fwhm_, center_+fwhm_, l_bor, r_bor);
@@ -342,7 +342,7 @@ void guess_and_add(DataWithSum* ds,
         string ctr_str = string(vars[ci], vars[ci].find('=') + 1); 
         replace_all(ctr_str, "~", "");
         fp center = get_transform_expression_value(ctr_str, 0);
-        fp delta = getSettings()->get_f("guess-at-center-pm");
+        fp delta = AL->get_settings()->get_f("guess-at-center-pm");
         range_from = center - delta;
         range_to = center + delta;
     }

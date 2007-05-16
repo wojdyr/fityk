@@ -265,13 +265,13 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
 
 void SideBar::OnDataButtonNew (wxCommandEvent&)
 {
-    exec_command("@+");
+    AL->exec("@+");
     frame->refresh_plots(false, true);
 }
 
 void SideBar::OnDataButtonDup (wxCommandEvent&)
 {
-    exec_command("@+ = " + join_vector(d->get_selected_data(), " + "));
+    AL->exec("@+ = " + join_vector(d->get_selected_data(), " + "));
     frame->refresh_plots(false, true);
 }
 
@@ -286,7 +286,7 @@ void SideBar::OnDataButtonRen (wxCommandEvent&)
                          wxT("Rename dataset"),
                          old_title);
     if (!s.IsEmpty() && s != old_title)
-        exec_command("@" + S(n) + ".title = '" + wx2s(s) + "'");
+        AL->exec("@" + S(n) + ".title = '" + wx2s(s) + "'");
 }
 
 void SideBar::delete_selected_items()
@@ -296,13 +296,13 @@ void SideBar::delete_selected_items()
         return;
     string txt = wx2s(nb->GetPageText(n));
     if (txt == "data") {
-        exec_command("delete " + join_vector(d->get_selected_data(), ", "));
+        AL->exec("delete " + join_vector(d->get_selected_data(), ", "));
         frame->refresh_plots(false, true);
     }
     else if (txt == "functions")
-        exec_command("delete " + join_vector(get_selected_func(), ", "));
+        AL->exec("delete " + join_vector(get_selected_func(), ", "));
     else if (txt == "variables")
-        exec_command("delete " + join_vector(get_selected_vars(), ", "));
+        AL->exec("delete " + join_vector(get_selected_vars(), ", "));
     else
         assert(0);
 }
@@ -320,7 +320,7 @@ void SideBar::OnDataButtonCopyF (wxCommandEvent&)
     if (!AL->get_sum(n)->get_zz_names().empty() 
             || !AL->get_sum(n+1)->get_zz_names().empty())
         cmd += "; @" + S(n+1) + ".Z=copy(@" + S(n) + ".Z)";
-    exec_command(cmd);
+    AL->exec(cmd);
 }
 
 void SideBar::OnDataButtonCol (wxCommandEvent&)
@@ -427,7 +427,7 @@ void SideBar::OnFuncButtonEdit (wxCommandEvent&)
 
 void SideBar::OnFuncButtonChType (wxCommandEvent&)
 {
-    warn("Sorry. Changing type of function is not implemented yet.");
+    AL->warn("Sorry. Changing type of function is not implemented yet.");
 }
 
 void SideBar::OnFuncButtonCol (wxCommandEvent&)
@@ -665,7 +665,7 @@ void SideBar::DataFocusChanged()
         return;
     int length = AL->get_ds_count();
     if (length > 1 && AL->get_active_ds_position() != n) 
-        exec_command("plot .. in @" + S(n));
+        AL->exec("plot .. in @" + S(n));
     data_page->FindWindow(ID_DP_CPF)->Enable(n+1<length);
 }
 
@@ -805,13 +805,13 @@ void SideBar::on_changing_frc_value(FancyRealCtrl const* frc)
 
 void SideBar::on_changed_frc_value(FancyRealCtrl const* frc)
 {
-    exec_command(wx2s(frc->GetTip()) + " = ~" + wx2s(frc->GetValueStr()));
+    AL->exec(wx2s(frc->GetTip()) + " = ~" + wx2s(frc->GetValueStr()));
 }
 
 void SideBar::on_toggled_frc_lock(FancyRealCtrl const* frc)
 {
     string vname = wx2s(frc->GetTip());
-    exec_command(vname + " = " + (frc->IsLocked() ? "{" : "~{") + vname + "}");
+    AL->exec(vname + " = " + (frc->IsLocked() ? "{" : "~{") + vname + "}");
 }
 
 void SideBar::clear_bottom_panel()

@@ -20,10 +20,8 @@
 
 using namespace std;
 
-ApplicationLogic *AL = 0;
-
-DataWithSum::DataWithSum(VariableManager *mgr, Data* data_)
-    : data(data_ ? data_ : new Data), sum(new Sum(mgr))  
+DataWithSum::DataWithSum(Fityk *F, Data* data_)
+    : data(data_ ? data_ : new Data(F)), sum(new Sum(F))  
 {}
 
 bool DataWithSum::has_any_info() const
@@ -31,21 +29,46 @@ bool DataWithSum::has_any_info() const
     return get_data()->has_any_info() || get_sum()->has_any_info(); 
 }
 
-void ApplicationLogic::activate_ds(int d)
+
+Fityk::Fityk()
+    : VariableManager(this),
+      default_relative_domain_width(0.1)
+{
+    ui = new UserInterface(this);
+    fit_container = new FitMethodsContainer(this);
+    // Settings ctor is using FitMethodsContainer 
+    settings = new Settings(this);
+    view = View(0, 180, -50, 1e3);
+    append_ds();
+    activate_ds(0);
+    get_settings()->do_srand();
+    UdfContainer::initialize_udfs();
+}
+
+Fityk::~Fityk() 
+{
+    dsds.clear();
+    VariableManager::do_reset();
+    delete fit_container;
+    delete settings;
+    delete ui;
+}
+
+void Fityk::activate_ds(int d)
 {
     if (d < 0 || d >= size(dsds))
         throw ExecuteError("there is no such dataset: @" + S(d));
     active_ds = d;
 }
 
-int ApplicationLogic::append_ds(Data *data)
+int Fityk::append_ds(Data *data)
 {
     DataWithSum* ds = new DataWithSum(this, data);
     dsds.push_back(ds); 
     return dsds.size() - 1; 
 }
 
-void ApplicationLogic::remove_ds(int d)
+void Fityk::remove_ds(int d)
 {
     if (d < 0 || d >= size(dsds))
         throw ExecuteError("there is no such dataset: @" + S(d));
@@ -57,43 +80,33 @@ void ApplicationLogic::remove_ds(int d)
         activate_ds( d==size(dsds) ? d-1 : d );
 }
 
-const Function* ApplicationLogic::find_function_any(string const &fstr) 
+const Function* Fityk::find_function_any(string const &fstr) const
 {
     if (fstr.empty())
         return 0;
+    return VariableManager::find_function(find_function_name(fstr));
+}
+
+string Fityk::find_function_name(string const &fstr) const
+{
     if (fstr[0] == '%' || islower(fstr[0]))
-        return VariableManager::find_function(fstr);
+        return fstr;
     int pos = 0;
     int pref = -1;
     if (fstr[0] == '@') {
         pos = fstr.find(".") + 1;
         pref = strtol(fstr.c_str()+1, 0, 10);
     }
-    vector<string> const &names = get_sum(pref)->get_names(fstr[pos]);
+    vector<string> const &names = get_ds(pref)->get_sum()->get_names(fstr[pos]);
     int idx_ = strtol(fstr.c_str()+pos+2, 0, 10);
     int idx = (idx_ >= 0 ? idx_ : idx_ + names.size());
     if (!is_index(idx, names))
         throw ExecuteError("There is no item with index " + S(idx_));
-    return VariableManager::find_function(names[idx]);
-}
-
-void ApplicationLogic::stop_app()
-{
-    dsds.clear();
-    VariableManager::do_reset();
-}
-
-void ApplicationLogic::start_app()
-{
-    view = View(0, 180, -50, 1e3);
-    append_ds();
-    activate_ds(0);
-    getSettings()->do_srand();
-    UdfContainer::initialize_udfs();
+    return names[idx];
 }
 
 
-void ApplicationLogic::dump_all_as_script(string const &filename)
+void Fityk::dump_all_as_script(string const &filename)
 {
     ofstream os(filename.c_str(), ios::out);
     if (!os) {
@@ -105,7 +118,7 @@ void ApplicationLogic::dump_all_as_script(string const &filename)
     os << "set autoplot = never\n";
     os << "reset\n";
     os << "# ------------  settings  ------------\n";
-    os << getSettings()->set_script() << endl;
+    os << get_settings()->set_script() << endl;
     os << "# ------------  variables and functions  ------------\n";
     for (vector<Variable*>::const_iterator i = variables.begin();
             i != variables.end(); ++i)
@@ -164,22 +177,65 @@ void ApplicationLogic::dump_all_as_script(string const &filename)
         os << endl;
     }
     os << "plot " << view.str() << " in @" << active_ds << endl;
-    os << "set autoplot = " << getSettings()->getp("autoplot") << endl;
-    os << "set verbosity = " << getSettings()->getp("verbosity") << endl;
+    os << "set autoplot = " << get_settings()->getp("autoplot") << endl;
+    os << "set verbosity = " << get_settings()->getp("verbosity") << endl;
 }
 
 
-DataWithSum* ApplicationLogic::get_ds(int n)
+int Fityk::check_ds_number(int n) const
 {
     if (n == -1) {
         if (get_ds_count() == 1)
-            return dsds[0];
+            return 0;
         else
             throw ExecuteError("Dataset must be specified.");
     }
     if (n < 0 || n >= get_ds_count())
         throw ExecuteError("There is no dataset @" + S(n));
-    return dsds[n];
+    return n;
+}
+
+/// Send warning to UI. 
+void Fityk::warn(std::string const &s) const
+{ 
+    get_ui()->output_message(os_warn, s); 
+}
+
+/// Send implicitely requested message to UI. 
+void Fityk::rmsg(std::string const &s) const
+{ 
+    get_ui()->output_message(os_normal, s);
+}
+
+/// Send message to UI. 
+void Fityk::msg(std::string const &s) const
+{ 
+    if (get_ui()->get_verbosity() >= 0)
+         get_ui()->output_message(os_normal, s); 
+}
+
+/// Send verbose message to UI. 
+void Fityk::vmsg(std::string const &s) const
+{ 
+    if (get_ui()->get_verbosity() >= 0)
+         get_ui()->output_message(os_normal, s); 
+}
+
+int Fityk::get_verbosity() const 
+{ 
+    return settings->get_e("verbosity"); 
+}
+
+/// execute command(s) from string
+Commands::Status Fityk::exec(std::string const &s) 
+{ 
+    return get_ui()->exec_and_log(s); 
+}
+
+Fit* Fityk::get_fit() 
+{ 
+    int nr = get_settings()->get_e("fitting-method");
+    return get_fit_container()->get_method(nr); 
 }
 
 //==================================================================
@@ -349,4 +405,5 @@ void View::set_datasets(vector<DataWithSum*> const& dd)
     sums.push_back(dd.front()->get_sum());
 }
 
+Fityk* AL;
 

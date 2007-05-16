@@ -2,11 +2,6 @@
 // Licence: GNU General Public License version 2
 // $Id$
 
-#include "common.h"
-#include "GAfit.h"
-#include "ui.h"
-#include "settings.h"
-#include "numfuncs.h"
 #include <stdlib.h>
 #include <time.h>
 #include <algorithm>
@@ -15,11 +10,17 @@
 #include <sstream>
 #include <math.h>
 
+#include "common.h"
+#include "GAfit.h"
+#include "logic.h"
+#include "settings.h"
+#include "numfuncs.h"
+
 
 using namespace std;
 
-GAfit::GAfit()
-   : Fit("Genetic-Algorithms"),
+GAfit::GAfit(Fityk* F)
+   : Fit(F, "Genetic-Algorithms"),
      popsize (100), elitism(0),
      mutation_type('u'), p_mutation(0.1), mutate_all_genes(false), 
      mutation_strength(0.1), crossover_type('u'), p_crossover(0.3),
@@ -68,7 +69,6 @@ GAfit::GAfit()
     ipar["iterations-with-no-progresss-stop"] = &iter_with_no_progresss_stop;
     fpar["wssr-stop"] = &wssr_stop;
     irpar["autoplot-indiv-nr"] = IntRange(&autoplot_indiv_nr, -1, 999999999);
-    spar["GA-log-file"] = &log_file;
     */
 }
 
@@ -89,18 +89,16 @@ fp GAfit::init()
             best = i;
     }
     best_indiv = *best;
-    if (!log_file.empty())
-        log_ga_options();
     return 0;
 }
 
 void GAfit::autoiter()
 {
     wssr_before = compute_wssr(a_orig, datsums);
-    msg ("WSSR before starting GA: " + S(wssr_before));
+    F->msg ("WSSR before starting GA: " + S(wssr_before));
     assert (pop && opop); 
     if (elitism >= popsize) {
-        warn ("hmm, now elitism >= popsize, setting elitism = 1");
+        F->warn ("hmm, now elitism >= popsize, setting elitism = 1");
         elitism = 1;
     }
     for (int iter = 0; !termination_criteria_and_print_info(iter); iter++) {
@@ -112,22 +110,6 @@ void GAfit::autoiter()
         post_selection();
     }
     post_fit (best_indiv.g, best_indiv.raw_score);
-}
-
-void GAfit::log_ga_options()
-{
-    ofstream os(log_file.c_str(), ios::out | ios::app);
-    if (!os) {
-        warn ("Can't open file for appending: " + log_file);
-        return;
-    }
-    os << "####### Current time: " << time_now() << endl;
-    istringstream iss(getSettings()->set_script());
-    string s;
-    while (getline (iss, s)) 
-        os << "# " << s << endl;
-    os << endl << "# generation evaluations best avg worst std-dev avg-age"
-        << endl;
 }
 
 void GAfit::compute_wssr_for_ind (vector<Individual>::iterator ind)
@@ -189,8 +171,8 @@ void GAfit::crossover()
                     guaranteed_avarage_crossover (i, i2);
                     break;
                 default:
-                    warn ("No such crossover-type: " + S(crossover_type)
-                            + ". Setting to 'u'");
+                    F->warn ("No such crossover-type: " + S(crossover_type)
+                             + ". Setting to 'u'");
                     crossover_type = 'u';
                     uniform_crossover (i, i2);
                     break;
@@ -272,8 +254,8 @@ void GAfit::pre_selection()
             deterministic_sampling_selection(next);
             break;
         default:
-            warn ("No such selection-type: " + S((char)selection_type)
-                    + ". Setting to 'r'");
+            F->warn ("No such selection-type: " + S((char)selection_type)
+                     + ". Setting to 'r'");
             selection_type = 'r';
             pre_selection ();
             return;
@@ -476,17 +458,9 @@ bool GAfit::termination_criteria_and_print_info (int iter)
         generations_sum += i->generation;
     }
     fp std_dev = sq_sum > 0 ? sqrt (sq_sum / pop->size()) : 0;
-    msg ("Population #" + S(iter_nr) + ": best " + S(min) 
+    F->msg("Population #" + S(iter_nr) + ": best " + S(min) 
                 + ", avg " + S(avg) + ", worst " + S(tmp_max) 
                 + ", std dev. " + S(std_dev));
-    if (!log_file.empty()) {
-        ofstream os(log_file.c_str(), ios::out | ios::app);
-        if (os) {
-            os << iter_nr << "  " << evaluations << "  " 
-               << min << "  " << avg << "  " << tmp_max << "  " << std_dev 
-               << "  " << iter_nr - generations_sum / pop->size() << endl;
-        }
-    }
     if (min < best_indiv.raw_score) {
         best_indiv = *ibest;
         no_progress_iters = 0;
@@ -500,16 +474,16 @@ bool GAfit::termination_criteria_and_print_info (int iter)
     if (common_termination_criteria(iter)) 
         stop = true;
     if (std_dev < std_dev_stop * avg) {
-        msg ("Standard deviation of results is small enough to stop");
+        F->msg("Standard deviation of results is small enough to stop");
         stop = true;
     }
     if (iter_with_no_progresss_stop > 0
           && no_progress_iters >= iter_with_no_progresss_stop) {
-        msg ("No progress in " + S(no_progress_iters) + " iterations. Stop");
+        F->msg("No progress in " + S(no_progress_iters) + " iterations. Stop");
         stop = true;
     }
     if (min <= wssr_stop) {
-        msg ("WSSR is small enough to stop");
+        F->msg("WSSR is small enough to stop");
         stop = true;
     }
     return stop;

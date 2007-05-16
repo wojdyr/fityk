@@ -14,12 +14,12 @@
 #include "var.h"
 #include "mgr.h"
 #include "guess.h" //estimate_peak_parameters() in guess_f()
-#include "ui.h"
+#include "logic.h"
 
 using namespace std;
 
-Sum::Sum(VariableManager *mgr_) 
-    : mgr(*mgr_)
+Sum::Sum(Fityk *F_) 
+    : F(F_), mgr(*F_)
 {
     mgr.register_sum(this);
 }
@@ -102,7 +102,7 @@ void Sum::add_function_to(string const &name, char add_to)
     if (idx == -1)
         throw ExecuteError("function %" + only_name + " not found.");
     if (contains_element(get_names(add_to), only_name)) {
-        msg("function %" + only_name + " already in " + add_to + ".");
+        F->msg("function %" + only_name + " already in " + add_to + ".");
         return;
     }
     if (add_to == 'F') {

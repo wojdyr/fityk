@@ -20,8 +20,8 @@
 
 using namespace std;
 
-Fit::Fit(string m)  
-    : name(m), evaluations(0), iter_nr (0), na(0)
+Fit::Fit(Fityk *F_, string const& m)  
+    : name(m), F(F_), evaluations(0), iter_nr (0), na(0)
 {
 }
 
@@ -39,7 +39,7 @@ int Fit::get_dof(vector<DataWithSum*> const& dsds)
 
 string Fit::getInfo(vector<DataWithSum*> const& dsds)
 {
-    vector<fp> const &pp = AL->get_parameters();
+    vector<fp> const &pp = F->get_parameters();
     int dof = get_dof(dsds);
     update_parameters(dsds);
     fp wssr = compute_wssr(pp, dsds);
@@ -52,7 +52,7 @@ string Fit::getInfo(vector<DataWithSum*> const& dsds)
 
 vector<fp> Fit::get_covariance_matrix(vector<DataWithSum*> const& dsds)
 {
-    vector<fp> const &pp = AL->get_parameters();
+    vector<fp> const &pp = F->get_parameters();
     update_parameters(dsds);
 
     vector<fp> alpha(na*na), beta(na);
@@ -99,13 +99,13 @@ vector<fp> Fit::get_symmetric_errors(vector<DataWithSum*> const& dsds)
 string Fit::getErrorInfo(vector<DataWithSum*> const& dsds, bool matrix)
 {
     vector<fp> alpha = get_covariance_matrix(dsds);
-    vector<fp> const &pp = AL->get_parameters();
+    vector<fp> const &pp = F->get_parameters();
     string s;
     s = "Symmetric errors: ";
     for (int i = 0; i < na; i++) {
         if (par_usage[i]) {
             fp err = sqrt(alpha[i*na + i]);
-            s += "\n" + AL->find_variable_handling_param(i)->xname 
+            s += "\n" + F->find_variable_handling_param(i)->xname 
                 + " = " + S(pp[i]) 
                 + " +- " + (err == 0. ? string("??") : S(err));
         }
@@ -114,10 +114,10 @@ string Fit::getErrorInfo(vector<DataWithSum*> const& dsds, bool matrix)
         s += "\nCovariance matrix\n    ";
         for (int i = 0; i < na; ++i)
             if (par_usage[i])
-                s += "\t" + AL->find_variable_handling_param(i)->xname;
+                s += "\t" + F->find_variable_handling_param(i)->xname;
         for (int i = 0; i < na; ++i) {
             if (par_usage[i]) {
-                s += "\n" + AL->find_variable_handling_param(i)->xname;
+                s += "\n" + F->find_variable_handling_param(i)->xname;
                 for (int j = 0; j < na; ++j) {
                     if (par_usage[j])
                         s += "\t" + S(alpha[na*i + j]);
@@ -132,7 +132,7 @@ fp Fit::do_compute_wssr(vector<fp> const &A, vector<DataWithSum*> const& dsds,
                         bool weigthed)
 {
     fp wssr = 0;
-    AL->use_external_parameters(A);
+    F->use_external_parameters(A); //that's the only side-effect
     for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
                                                     i != dsds.end(); ++i) {
         wssr += compute_wssr_for_data(*i, weigthed);
@@ -140,6 +140,7 @@ fp Fit::do_compute_wssr(vector<fp> const &A, vector<DataWithSum*> const& dsds,
     return wssr;
 }
 
+//static
 fp Fit::compute_wssr_for_data(DataWithSum const* ds, bool weigthed)
 {
     Data const* data = ds->get_data();
@@ -162,7 +163,7 @@ fp Fit::compute_wssr_for_data(DataWithSum const* ds, bool weigthed)
 fp Fit::compute_r_squared(vector<fp> const &A, vector<DataWithSum*> const& dsds)
 {
     fp r_squared = 0;
-    AL->use_external_parameters(A);
+    F->use_external_parameters(A);
     for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
                                                     i != dsds.end(); ++i) {
         r_squared += compute_r_squared_for_data(*i);
@@ -170,6 +171,7 @@ fp Fit::compute_r_squared(vector<fp> const &A, vector<DataWithSum*> const& dsds)
     return r_squared ;
 }
 
+//static
 fp Fit::compute_r_squared_for_data(DataWithSum const* ds)
 {
     Data const* data = ds->get_data();
@@ -206,7 +208,7 @@ void Fit::compute_derivatives(vector<fp> const &A,
     fill(alpha.begin(), alpha.end(), 0.0);
     fill(beta.begin(), beta.end(), 0.0);
 
-    AL->use_external_parameters(A);
+    F->use_external_parameters(A);
     for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
                                                     i != dsds.end(); ++i) {
         compute_derivatives_for(*i, alpha, beta);
@@ -249,9 +251,11 @@ void Fit::compute_derivatives_for(DataWithSum const* ds,
 string Fit::print_matrix (const vector<fp>& vec, int m, int n, char *mname)
     //m rows, n columns
 { 
+    if (F->get_verbosity() <= 0)  //optimization (?)
+        return "";
     assert (size(vec) == m * n);
     if (m < 1 || n < 1)
-        warn ("In `print_matrix': It is not a matrix.");
+        throw ExecuteError("In `print_matrix': It is not a matrix.");
     ostringstream h;
     h << mname << "={ ";
     if (m == 1) { // vector 
@@ -276,15 +280,16 @@ bool Fit::post_fit (const std::vector<fp>& aa, fp chi2)
 {
     bool better = (chi2 < wssr_before);
     if (better) {
-        FitMethodsContainer::getInstance()->push_param_history(aa);
-        AL->put_new_parameters(aa);
-        msg ("Better fit found (WSSR = " + S(chi2) + ", was " + S(wssr_before)
-                + ", " + S((chi2 - wssr_before) / wssr_before * 100) + "%).");
+        F->get_fit_container()->push_param_history(aa);
+        F->put_new_parameters(aa);
+        F->msg ("Better fit found (WSSR = " + S(chi2) 
+                 + ", was " + S(wssr_before)
+                 + ", " + S((chi2 - wssr_before) / wssr_before * 100) + "%).");
     }
     else {
-        msg ("Better fit NOT found (WSSR = " + S(chi2)
+        F->msg ("Better fit NOT found (WSSR = " + S(chi2)
                     + ", was " + S(wssr_before) + ").\nParameters NOT changed");
-        AL->use_parameters();
+        F->use_parameters();
         iteration_plot(a_orig); //reverting to old plot
     }
     return better;
@@ -308,7 +313,7 @@ fp Fit::draw_a_from_distribution (int nr, char distribution, fp mult)
             dv = rand_1_1();
             break;
     }
-    return AL->variation_of_a(nr, dv * mult);
+    return F->variation_of_a(nr, dv * mult);
 }
 
 /// initialize and run fitting procedure for not more than max_iter iterations
@@ -316,8 +321,8 @@ void Fit::fit(int max_iter, vector<DataWithSum*> const& dsds)
 {
     update_parameters(dsds);
     datsums = dsds;
-    a_orig = AL->get_parameters();
-    FitMethodsContainer::getInstance()->push_param_history(a_orig);
+    a_orig = F->get_parameters();
+    F->get_fit_container()->push_param_history(a_orig);
     iter_nr = 0;
     evaluations = 0;
     user_interrupt = false;
@@ -331,10 +336,10 @@ void Fit::continue_fit(int max_iter)
 {
     for (vector<DataWithSum*>::const_iterator i = datsums.begin(); 
                                                       i != datsums.end(); ++i) 
-        if (!AL->has_ds(*i) || na != size(AL->get_parameters()))
+        if (!F->has_ds(*i) || na != size(F->get_parameters()))
             throw ExecuteError(name + " method should be initialized first.");
     update_parameters(datsums);
-    a_orig = AL->get_parameters();  //should it be also updated?
+    a_orig = F->get_parameters();  //should it be also updated?
     user_interrupt = false;
     evaluations = 0;
     max_iterations = max_iter;
@@ -343,23 +348,23 @@ void Fit::continue_fit(int max_iter)
 
 void Fit::update_parameters(vector<DataWithSum*> const& dsds)
 {
-    if (AL->get_parameters().empty()) 
+    if (F->get_parameters().empty()) 
         throw ExecuteError("there are no fittable parameters.");
     if (dsds.empty())
         throw ExecuteError("No datasets to fit.");
 
-    na = AL->get_parameters().size(); 
+    na = F->get_parameters().size(); 
 
     par_usage = vector<bool>(na, false);
     for (int idx = 0; idx < na; ++idx) {
-        int var_idx = AL->find_nr_var_handling_param(idx);
+        int var_idx = F->find_nr_var_handling_param(idx);
         for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
                                                         i != dsds.end(); ++i) {
             if ((*i)->get_sum()->is_dependent_on_var(var_idx)) {
                 par_usage[idx] = true;
                 break; //go to next idx
             }
-            //verbose(AL->find_variable_handling_param(idx)->xname 
+            //vmsg(F->find_variable_handling_param(idx)->xname 
             //        + " is not in chi2.");
         }
     }
@@ -369,19 +374,19 @@ void Fit::update_parameters(vector<DataWithSum*> const& dsds)
 bool Fit::common_termination_criteria(int iter)
 {
     bool stop = false;
-    getUI()->refresh();
+    F->get_ui()->refresh();
     if (user_interrupt) {
         user_interrupt = false;
-        msg ("Fitting stopped manually.");
+        F->msg ("Fitting stopped manually.");
         stop = true;
     }
     if (max_iterations >= 0 && iter >= max_iterations) {
-        msg("Maximum iteration number reached.");
+        F->msg("Maximum iteration number reached.");
         stop = true;
     }
-    int max_evaluations = getSettings()->get_i("max-wssr-evaluations");
+    int max_evaluations = F->get_settings()->get_i("max-wssr-evaluations");
     if (max_evaluations > 0 && evaluations >= max_evaluations) {
-        msg("Maximum evaluations number reached.");
+        F->msg("Maximum evaluations number reached.");
         stop = true;
     }
     return stop;
@@ -389,8 +394,8 @@ bool Fit::common_termination_criteria(int iter)
 
 void Fit::iteration_plot(vector<fp> const &A)
 {
-    AL->use_external_parameters(A);
-    getUI()->draw_plot(3, true);
+    F->use_external_parameters(A);
+    F->get_ui()->draw_plot(3, true);
 }
 
 
@@ -406,12 +411,10 @@ void Fit::iteration_plot(vector<fp> const &A)
 ///   with special exception: 
 ///     if i'th row, i'th column and i'th element in b all contains zeros,
 ///     it's just ignored, 
-bool Fit::Jordan(vector<fp>& A, vector<fp>& b, int n) 
+void Fit::Jordan(vector<fp>& A, vector<fp>& b, int n) 
 {
     assert (size(A) == n*n && size(b) == n);
-//#define DISABLE_PIVOTING   //don't do it
     for (int i = 0; i < n; i++) {
-#ifndef DISABLE_PIVOTING 
         fp amax = 0;                    // looking for a pivot element
         int maxnr = -1;  
         for (int j = i; j < n; j++)                     
@@ -420,16 +423,15 @@ bool Fit::Jordan(vector<fp>& A, vector<fp>& b, int n)
                 amax = fabs (A[n * j + i]);
             }
         if (maxnr == -1) {    // singular matrix
-            // it's not part of Jordan's method. i-th column has only zeros. 
+            // i-th column has only zeros. 
             // If it's the same about i-th row, and b[i]==0, let x[i]==0. 
-            // If not, warn and return
             for (int j = i; j < n; j++)
                 if (A[n * i + j] || b[i]) {
-                    vmsg (print_matrix(A, n, n, "A"));
-                    msg (print_matrix(b, 1, n, "b"));
-                    warn ("Inside Jordan elimination: singular matrix.");
-                    vmsg ("Column " + S(i) + " is zeroed.");
-                    return false;
+                    F->vmsg (print_matrix(A, n, n, "A"));
+                    F->msg (print_matrix(b, 1, n, "b"));
+                    throw ExecuteError("In iteration " + S(iter_nr)
+                                       + ": trying to reverse singular matrix."
+                                        " Column " + S(i) + " is zeroed.");
                 }
             continue; // x[i]=b[i], b[i]==0
         }
@@ -438,13 +440,6 @@ bool Fit::Jordan(vector<fp>& A, vector<fp>& b, int n)
                 Swap (A[n*maxnr+j], A[n*i+j]);
             Swap (b[i], b[maxnr]);
         }
-#else
-        if (A[i*n+i] == 0) {
-            warn ("Inside Jordan elimination method with "
-                    "_disabled_ pivoting: 0 on diagonal row=column=" + S(i));
-            return false;
-        }
-#endif
         register fp foo = 1.0 / A[i*n+i];
         for (int j = i; j < n; j++)
             A[i*n+j] *= foo;
@@ -457,7 +452,6 @@ bool Fit::Jordan(vector<fp>& A, vector<fp>& b, int n)
                 b[k] -= b[i] * foo;
             }
     }
-    return true;
 }
 
 /// A - matrix n x n; returns A^(-1) in A
@@ -470,9 +464,7 @@ void Fit::reverse_matrix (vector<fp>&A, int n)
         vector<fp> A_copy = A;      
         vector<fp> v(n, 0);
         v[i] = 1;
-        bool r = Jordan(A_copy, v, n);
-        if (!r)
-            throw ExecuteError("Trying to reverse singular matrix.");
+        Jordan(A_copy, v, n);
         for (int j = 0; j < n; j++) 
             A_result[j * n + i] = v[j];
     }
@@ -481,31 +473,18 @@ void Fit::reverse_matrix (vector<fp>&A, int n)
 
 //-------------------------------------------------------------------
 
-FitMethodsContainer* FitMethodsContainer::instance = 0;
-
-FitMethodsContainer* FitMethodsContainer::getInstance()
-{
-    if (instance == 0)  
-        instance = new FitMethodsContainer; 
-    return instance; 
-}
-
-FitMethodsContainer::FitMethodsContainer()
+FitMethodsContainer::FitMethodsContainer(Fityk *F)
+    : ParameterHistoryMgr(F)
     
 {
-    methods.push_back(new LMfit); 
-    methods.push_back(new NMfit); 
-    methods.push_back(new GAfit); 
+    methods.push_back(new LMfit(F)); 
+    methods.push_back(new NMfit(F)); 
+    methods.push_back(new GAfit(F)); 
 }
 
 FitMethodsContainer::~FitMethodsContainer()
 {
     purge_all_elements(methods);
-}
-
-int FitMethodsContainer::current_method_number() const
-{
-    return getSettings()->get_e("fitting-method");
 }
 
 /// loads vector of parameters from the history
@@ -517,8 +496,8 @@ int FitMethodsContainer::current_method_number() const
 void ParameterHistoryMgr::load_param_history(int item_nr, bool relative)
 {
     if (item_nr == -1 && relative && !param_history.empty() //undo
-         && param_history[param_hist_ptr].size() == AL->get_parameters().size()
-         && param_history[param_hist_ptr] != AL->get_parameters()) 
+         && param_history[param_hist_ptr].size() == F->get_parameters().size()
+         && param_history[param_hist_ptr] != F->get_parameters()) 
         item_nr = 0; // load parameters from param_hist_ptr
     if (relative)
         item_nr += param_hist_ptr;
@@ -527,14 +506,14 @@ void ParameterHistoryMgr::load_param_history(int item_nr, bool relative)
     if (item_nr < 0 || item_nr >= size(param_history))
         throw ExecuteError("There is no parameter history item #" 
                             + S(item_nr) + ".");
-    AL->put_new_parameters(param_history[item_nr]);
+    F->put_new_parameters(param_history[item_nr]);
     param_hist_ptr = item_nr;
 }
 
 bool ParameterHistoryMgr::can_undo() const 
 { 
     return !param_history.empty() 
-        && (param_hist_ptr > 0 || param_history[0] != AL->get_parameters()); 
+        && (param_hist_ptr > 0 || param_history[0] != F->get_parameters()); 
 }
 
 bool ParameterHistoryMgr::push_param_history(vector<fp> const& aa) 

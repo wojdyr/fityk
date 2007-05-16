@@ -5,7 +5,6 @@
 #include "common.h"
 #include "ui.h"
 #include "settings.h"
-#include <fstream>
 #include <string>
 #include <iostream>
 #include "logic.h"
@@ -38,7 +37,7 @@ void Commands::put_command(string const &c, Commands::Status r)
         log << " " << c << endl; 
 }
 
-void Commands::put_output_message(string const& s)
+void Commands::put_output_message(string const& s) const
 {
     if (!log_filename.empty() && log_with_output) {
         // insert "# " at the beginning of string and before every new line
@@ -105,7 +104,8 @@ string Commands::get_info(bool extended) const
 }
 
 
-void Commands::start_logging(string const& filename, bool with_output)
+void Commands::start_logging(string const& filename, bool with_output,
+                             Fityk const* F)
 {
     if (filename.empty())
        stop_logging(); 
@@ -127,11 +127,11 @@ void Commands::start_logging(string const& filename, bool with_output)
         log_with_output = false; //don't put info() below into log 
         if (with_output) {
             log << "INPUT AND OUTPUT";
-            msg ("Logging input and output to file: " + filename);
+            F->msg("Logging input and output to file: " + filename);
         }
         else {
             log << "INPUT";
-            msg ("Logging input to file: " + filename);
+            F->msg("Logging input to file: " + filename);
         }
         log << " TO THIS FILE (" << filename << ")\n";
         log_with_output = with_output;
@@ -154,16 +154,6 @@ struct NumberedLine
     NumberedLine(int nr_, string txt_) : nr(nr_), txt(txt_) {}
 };
 
-
-//this is a part of Singleton design pattern
-UserInterface* UserInterface::instance = 0; 
-UserInterface* UserInterface::getInstance() 
-{
-    if (instance == 0)  // is it the first call?
-        instance = new UserInterface; // create sole instance
-    return instance; // address of sole instance
-}
-
 Commands::Status UserInterface::exec_and_log(string const &c)
 {
     Commands::Status r = this->exec_command(c); 
@@ -171,13 +161,13 @@ Commands::Status UserInterface::exec_and_log(string const &c)
     return r;
 }
 
-void UserInterface::output_message (OutputStyle style, const string& s)
+void UserInterface::output_message (OutputStyle style, const string& s) const
 {
     if (keep_quiet)
         return;
     show_message(style, s);
     commands.put_output_message(s);
-    if (style == os_warn && getSettings()->get_b("exit-on-warning")) {
+    if (style == os_warn && F->get_settings()->get_b("exit-on-warning")) {
         show_message(os_normal, "Warning -> exiting program.");
         throw ExitRequestedException();
     }
@@ -185,12 +175,12 @@ void UserInterface::output_message (OutputStyle style, const string& s)
 
 /// items in selected_lines are ranges (first, after-last).
 /// if selected_lines are empty - all lines from file are executed
-void UserInterface::exec_script (const string& filename, 
+void UserInterface::exec_script(const string& filename, 
                                 const vector<pair<int,int> >& selected_lines)
 {
-    ifstream file (filename.c_str(), ios::in);
+    ifstream file(filename.c_str(), ios::in);
     if (!file) {
-        warn ("Can't open file: " + filename);
+        F->warn("Can't open file: " + filename);
         return;
     }
 
@@ -230,12 +220,13 @@ void UserInterface::exec_script (const string& filename,
 
 void UserInterface::draw_plot (int pri, bool now)
 {
-    if (pri <= getSettings()->get_e("autoplot")) 
+    if (pri <= F->get_settings()->get_e("autoplot")) 
         do_draw_plot(now);
 }
 
 
-int UserInterface::get_verbosity() { return getSettings()->get_e("verbosity"); }
+int UserInterface::get_verbosity() const
+                           { return F->get_settings()->get_e("verbosity"); }
 
 
 Commands::Status UserInterface::exec_command (std::string const &s)
@@ -265,11 +256,11 @@ bool is_fityk_script(string filename)
 void UserInterface::process_cmd_line_filename(string const& par)
 {
     if (startswith(par, "=->"))
-        getUI()->exec_and_log(string(par, 3));
+        exec_and_log(string(par, 3));
     else if (is_fityk_script(par))
-        getUI()->exec_script(par);
+        exec_script(par);
     else {
-        getUI()->exec_and_log("@+ <'" + par + "'");
+        exec_and_log("@+ <'" + par + "'");
     }
 }
 

@@ -37,16 +37,20 @@ void do_transform(char const*, char const*)  {
 }
 
 void do_reset(char const*, char const*)  
-    { AL->stop_app(); AL->start_app(); outdated_plot=true; }
+{ 
+    delete AL; 
+    AL = new Fityk; 
+    outdated_plot=true; 
+}
 
 void do_dump(char const*, char const*)  { AL->dump_all_as_script(t); }
 
 void do_commands_logging(char const*, char const*)
 {
     if (t == "/dev/null")
-        getUI()->stop_log();
+        AL->get_ui()->stop_log();
     else
-        getUI()->start_log(t, with_plus);
+        AL->get_ui()->start_log(t, with_plus);
 }
 
 void do_exec_file(char const*, char const*) 
@@ -54,7 +58,7 @@ void do_exec_file(char const*, char const*)
     vector<pair<int,int> > vpn;
     for (int i = 0; i < size(vn); i+=2)
         vpn.push_back(make_pair(vn[i],vn[i+1]));
-    getUI()->exec_script(t, vpn); 
+    AL->get_ui()->exec_script(t, vpn); 
 }
 
 void do_fit(char const*, char const*)
@@ -62,42 +66,43 @@ void do_fit(char const*, char const*)
     if (with_plus) {
         if (!vds.empty())
             throw ExecuteError("No need to specify datasets to continue fit.");
-        getFit()->continue_fit(tmp_int);
+        AL->get_fit()->continue_fit(tmp_int);
     }
     else
-        getFit()->fit(tmp_int, get_datasets_from_indata());
+        AL->get_fit()->fit(tmp_int, get_datasets_from_indata());
     outdated_plot=true;  
 }
 
 void do_load_fit_history(int n)
 {
-    FitMethodsContainer::getInstance()->load_param_history(n);
+    AL->get_fit_container()->load_param_history(n);
     outdated_plot=true;  
 }
 
 void do_clear_fit_history(char const*, char const*)
 {
-    FitMethodsContainer::getInstance()->clear_param_history();
+    AL->get_fit_container()->clear_param_history();
 }
 
 void do_undo_fit(char const*, char const*)
 {
-    FitMethodsContainer::getInstance()->load_param_history(-1, true);
+    AL->get_fit_container()->load_param_history(-1, true);
     outdated_plot=true;  
 }
 
 void do_redo_fit(char const*, char const*)
 {
-    FitMethodsContainer::getInstance()->load_param_history(+1, true);
+    AL->get_fit_container()->load_param_history(+1, true);
     outdated_plot=true;  
 }
 
 
-void do_set(char const*, char const*) { getSettings()->setp(t2, t); }
+void do_set(char const*, char const*) { AL->get_settings()->setp(t2, t); }
 
-void do_set_show(char const*, char const*)  { rmsg(getSettings()->infop(t2)); }
+void do_set_show(char const*, char const*)  
+                                   { AL->rmsg(AL->get_settings()->infop(t2)); }
 
-void do_sleep(char const*, char const*) { getUI()->wait(tmp_real); }
+void do_sleep(char const*, char const*) { AL->get_ui()->wait(tmp_real); }
 
 } //namespace
 

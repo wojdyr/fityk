@@ -54,8 +54,8 @@ void GnuPlot::fork_and_make_pipe ()
         //putenv("PAGER="); //putenv() - POSIX, not ANSI
         execlp (path_to_gnuplot, path_to_gnuplot, /*"-",*/NULL);
         // if we are here, sth went wrong
-        warn("Problem encountered when trying to run `" 
-                + S(path_to_gnuplot) + "'.");
+        AL->warn("Problem encountered when trying to run `" 
+                 + S(path_to_gnuplot) + "'.");
         exit(0);
     }
     else {
@@ -110,7 +110,7 @@ int GnuPlot::plot()
     plot_string += " '-' title \"sum\" with line\n ";
     fprintf (gnuplot_pipe, plot_string.c_str());
     if (fflush (gnuplot_pipe) != 0)
-        warn("Flushing pipe program-to-gnuplot failed.");
+        AL->warn("Flushing pipe program-to-gnuplot failed.");
     bool at_least_one_point = false;
     for (int i = i_f; i < i_l; i++) {
         fp x = data->get_x(i);

@@ -89,12 +89,10 @@ std::string Point::str() { return "(" + S(x) + "; " + S(y) + "; " + S(sigma)
 
 void initialize()
 {
-    if (AL != 0) {
-        AL->stop_app();
-        AL->start_app();
-    }
     setlocale(LC_NUMERIC, "C");
-    AL = new ApplicationLogic; 
+    if (AL != 0) 
+        delete AL;
+    AL = new Fityk; 
 }
 
 
@@ -108,7 +106,7 @@ void execute(string const& s)  throw(SyntaxError, ExecuteError,
 
 bool safe_execute(string const& s)  throw(ExitRequestedException)
 {
-    return exec_command(s) == Commands::status_ok; 
+    return AL->exec(s) == Commands::status_ok; 
 }
 
 string get_info(string const& s, bool full)  throw(SyntaxError, ExecuteError)
@@ -203,13 +201,13 @@ vector<Point> const& get_data(int dataset)  throw(ExecuteError)
 void set_show_message(t_show_message *func)
 { 
     simple_message_handler = func;
-    getUI()->set_show_message(message_handler); 
+    AL->get_ui()->set_show_message(message_handler); 
 }
 
 void redir_messages(std::FILE *stream)
 {
     message_sink = stream;
-    getUI()->set_show_message(message_redir); 
+    AL->get_ui()->set_show_message(message_redir); 
 }
 
 double get_wssr(int dataset)  throw(ExecuteError)
@@ -238,12 +236,12 @@ double get_rsquared(int dataset)  throw(ExecuteError)
 
 int get_dof(int dataset)  throw(ExecuteError)
 {
-    return getFit()->get_dof(get_datasets_(dataset));
+    return AL->get_fit()->get_dof(get_datasets_(dataset));
 }
 
 vector<vector<double> > get_covariance_matrix(int dataset) throw(ExecuteError)
 {
-    vector<double> c = getFit()->get_covariance_matrix(get_datasets_(dataset));
+    vector<double> c = AL->get_fit()->get_covariance_matrix(get_datasets_(dataset));
     //reshape
     size_t na = AL->get_parameters().size(); 
     assert(c.size() == na * na);

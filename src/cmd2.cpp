@@ -85,7 +85,7 @@ void do_import_dataset(char const*, char const*)
         if (AL->get_ds_count() != 1 || AL->get_data(0)->has_any_info()
                                     || AL->get_sum(0)->has_any_info()) {
             // load data into new slot
-            auto_ptr<Data> data(new Data);
+            auto_ptr<Data> data(new Data(AL));
             data->load_file(t, t2, vn); 
             tmp_int = AL->append_ds(data.release());
         }
@@ -152,7 +152,7 @@ void do_plot(char const*, char const*)
         AL->view.set_datasets(dsds);
     }
     AL->view.parse_and_set(vr);
-    getUI()->draw_plot(1, true);
+    AL->get_ui()->draw_plot(1, true);
     outdated_plot = false;
 }
 
@@ -162,7 +162,7 @@ void do_output_info(char const*, char const*)
     if (no_info_output)
         return;
     if (output_redir.empty())
-        rmsg(prepared_info);
+        AL->rmsg(prepared_info);
     else {
         ofstream os(output_redir.c_str(), 
                     ios::out | (info_append ? ios::app : ios::trunc));
@@ -269,18 +269,18 @@ void do_print_info(char const* a, char const* b)
         m = AL->view.str();
     }
     else if (s == "set")
-        m = getSettings()->print_usage();
+        m = AL->get_settings()->print_usage();
     else if (startswith(s, "fit-history"))
-        m = FitMethodsContainer::getInstance()->param_history_info();
+        m = AL->get_fit_container()->param_history_info();
     else if (startswith(s, "fit"))
-        m = getFit()->getInfo(get_datasets_from_indata());
+        m = AL->get_fit()->getInfo(get_datasets_from_indata());
     else if (startswith(s, "errors"))
-        m = getFit()->getErrorInfo(get_datasets_from_indata(), with_plus);
+        m = AL->get_fit()->getErrorInfo(get_datasets_from_indata(), with_plus);
     else if (startswith(s, "peaks")) {
         vector<fp> errors;
         vector<DataWithSum*> v = get_datasets_from_indata();
         if (with_plus) 
-            errors = getFit()->get_symmetric_errors(v);
+            errors = AL->get_fit()->get_symmetric_errors(v);
         for (vector<DataWithSum*>::const_iterator i=v.begin(); i!=v.end(); ++i){
             m += "# " + (*i)->get_data()->get_title() + "\n";
             m += (*i)->get_sum()->get_peak_parameters(errors) + "\n";
@@ -290,12 +290,12 @@ void do_print_info(char const* a, char const* b)
         vector<DataWithSum*> v = get_datasets_from_indata();
         for (vector<DataWithSum*>::const_iterator i=v.begin(); i!=v.end(); ++i){
             m += "# " + (*i)->get_data()->get_title() + "\n";
-            bool gnuplot = getSettings()->get_e("formula-export-style") == 1;
+            bool gnuplot = AL->get_settings()->get_e("formula-export-style")==1;
             m += (*i)->get_sum()->get_formula(!with_plus, gnuplot) + "\n";
         }
     }
     else if (s == "commands")
-        m = getUI()->get_commands().get_info(with_plus);
+        m = AL->get_ui()->get_commands().get_info(with_plus);
     else if (startswith(s, "guess")) {
         vector<DataWithSum*> v = get_datasets_from_indata();
         for (vector<DataWithSum*>::const_iterator i = v.begin(); 
@@ -380,7 +380,7 @@ void do_print_debug_info(char const*, char const*)
         Function const* f = AL->find_function(t);
         m = f->get_bytecode();
     }
-    rmsg(m);
+    AL->rmsg(m);
 }
 
 
@@ -436,7 +436,7 @@ void set_data_title(char const*, char const*)  {
 void do_list_commands(char const*, char const*)
 {
     vector<string> cc 
-        = getUI()->get_commands().get_commands(tmp_int, tmp_int2, with_plus);
+      = AL->get_ui()->get_commands().get_commands(tmp_int, tmp_int2, with_plus);
     prepared_info += "\n" + join_vector(cc, "\n");
 }
 

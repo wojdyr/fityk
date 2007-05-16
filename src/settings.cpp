@@ -4,7 +4,7 @@
 
 #include "common.h"
 #include "settings.h"
-#include "ui.h"
+#include "logic.h"
 #include "fit.h"
 #include <ctype.h>
 #include <algorithm>
@@ -15,15 +15,6 @@ using namespace std;
 
 fp epsilon = 1e-12; // declared in common.h
 
-//this is a part of Singleton design pattern
-Settings* Settings::instance = 0;
-Settings* Settings::getInstance()
-{
-    if (instance == 0)  // is it the first call?
-        instance = new Settings; // create sole instance
-    return instance; // address of sole instance
-}
-
 /// small utility used only in constructor
 void Settings::insert_enum(string const& name, 
                            map<char,string> const& e, char value)
@@ -31,7 +22,8 @@ void Settings::insert_enum(string const& name,
     epar.insert(pair<string, EnumString> (name, EnumString(e, value)));
 }
 
-Settings::Settings() 
+Settings::Settings(Fityk const* F_) 
+    : F(F_)
 {
     // general
     map<char, string> verbosity_enum;
@@ -74,7 +66,7 @@ Settings::Settings()
 
     //Fit
     map<char, string> fitting_method_enum;
-    vector<Fit*> const& fm = FitMethodsContainer::getInstance()->get_methods();
+    vector<Fit*> const& fm = F->get_fit_container()->get_methods();
     for (int i = 0; i < size(fm); ++i)
         fitting_method_enum[i] = fm[i]->name;
     insert_enum("fitting-method", fitting_method_enum, 0);
@@ -199,10 +191,10 @@ void Settings::setp (string const& k, string const& v)
 {
     string sp = getp(k);
     if (sp == v)
-        msg ("Option '" + k + "' already has value: " + v);
+        F->msg("Option '" + k + "' already has value: " + v);
     else {
         setp_core (k, v);
-        msg ("Value for '" + k + "' changed from '" + sp + "' to '" + v + "'");
+        F->msg("Value for '" + k + "' changed from '" + sp + "' to '" + v+"'");
     }
 }
 
@@ -307,7 +299,7 @@ void Settings::do_srand()
     int random_seed = get_i("pseudo-random-seed");
     int rs = random_seed >= 0 ? random_seed : time(0);
     srand(rs);
-    vmsg ("Seed for a sequence of pseudo-random numbers: " + S(rs));
+    F->vmsg("Seed for a sequence of pseudo-random numbers: " + S(rs));
 }
 
 void Settings::set_temporary(std::string const& k, std::string const& v)

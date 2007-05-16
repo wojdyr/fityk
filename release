@@ -148,7 +148,14 @@ elif [ $1 -eq 5 ]; then
  scp -r html/ $WEB/doxygen/
  cd ..
  
- 
+# testing mac compilation
+# using MacOsX almost-working cross-compiler from 
+#  http://biolpc22.york.ac.uk/pub/linux-mac-cross/
+# PATH=$PATH:/opt/mac/bin 
+# prepare wx
+# ../configure --enable-debug --prefix=/home/wojdyr/local/  --host=i686-apple-darwin8 
+# and fityk
+# ...
  
 elif [ $1 -eq 6 ]; then
  echo Building MS Windows version

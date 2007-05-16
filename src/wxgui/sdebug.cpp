@@ -16,7 +16,7 @@
 
 #include "sdebug.h"
 #include "../cmd.h" //check_command_syntax()
-#include "../ui.h" // Commands::Status
+#include "../logic.h" 
 
 #include "img/open.xpm"
 #include "img/exec_selected.xpm"
@@ -229,7 +229,7 @@ void ScriptDebugDlg::exec_line(int n)
     }
     string s = wx2s(line);
     replace_all(s, "_EXECUTED_SCRIPT_DIR_/", script_dir);
-    Commands::Status r = exec_command(s);
+    Commands::Status r = AL->exec(s);
     long millisec = sw.Time();
     if (nb->GetSelection() == 0) { //view tab
         if (r == Commands::status_ok) {

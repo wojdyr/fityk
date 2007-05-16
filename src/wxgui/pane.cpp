@@ -238,7 +238,7 @@ void IOPane::edit_in_input(string const& s)
 void IOPane::OnInputLine(wxString const& s)
 {
     frame->set_status_text(wx2s(s));
-    exec_command(wx2s(s)); //displaying and executing command
+    AL->exec(wx2s(s)); //displaying and executing command
 }
 
 //===============================================================

@@ -18,7 +18,8 @@
 
 #include "setdlg.h"
 #include "../settings.h" 
-#include "../ui.h"  //exec_command(), startup_commands_filename
+#include "../ui.h"  //startup_commands_filename
+#include "../logic.h"  //AL
 
 using namespace std;
 
@@ -75,8 +76,8 @@ wxChoice *addEnumSetting(wxWindow *parent, wxString const& label,
     wxChoice *ctrl = new wxChoice(parent, -1, 
                                   wxDefaultPosition, wxDefaultSize,
                                   stl2wxArrayString(
-                                      getSettings()->expand_enum(option)));
-    ctrl->SetStringSelection(s2wx(getSettings()->getp(option)));
+                                      AL->get_settings()->expand_enum(option)));
+    ctrl->SetStringSelection(s2wx(AL->get_settings()->getp(option)));
     siz->Add(ctrl, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     sizer->Add(siz, 0, wxEXPAND);
     return ctrl;
@@ -89,6 +90,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
                wxDefaultPosition, wxDefaultSize, 
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER) 
 {
+    Settings const* settings = AL->get_settings();
     wxNotebook *nb = new wxNotebook(this, -1);
     wxPanel *page_general = new wxPanel(nb, -1);
     nb->AddPage(page_general, wxT("general"));
@@ -106,7 +108,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
                               "data-default-sigma", sizer_general);
     cut_func = addRealNumberCtrl(page_general, 
                                  wxT("f(x) can be assumed 0, if |f(x)|<"),
-                                 getSettings()->getp("cut-function-level"),
+                                 settings->getp("cut-function-level"),
                                  sizer_general);
 
     verbosity_ch = addEnumSetting(page_general, 
@@ -114,13 +116,13 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
                                   "verbosity", sizer_general);
     exit_cb = addCheckbox(page_general, 
                           wxT("quit if error or warning was generated"),
-                          getSettings()->get_b("exit-on-warning"),
+                          settings->get_b("exit-on-warning"),
                           sizer_general);
 
     wxStaticText *seed_st = new wxStaticText(page_general, -1,
                         wxT("pseudo-random generator seed (0 = time-based)"));
     seed_sp = new SpinCtrl(page_general, -1, 
-                         getSettings()->get_i("pseudo-random-seed"), 0, 999999,
+                         settings->get_i("pseudo-random-seed"), 0, 999999,
                          70);
     wxBoxSizer *sizer_general_seed = new wxBoxSizer(wxHORIZONTAL);
     sizer_general_seed->Add(seed_st, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
@@ -132,7 +134,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
 
     eps_rc = addRealNumberCtrl(page_general, 
                                wxT("epsilon for floating-point comparison"),
-                               getSettings()->getp("epsilon"),
+                               settings->getp("epsilon"),
                                sizer_general);
     add_persistence_note(page_general, sizer_general);
     page_general->SetSizerAndFit(sizer_general);
@@ -142,16 +144,16 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
 
     height_correction = addRealNumberCtrl(page_peakfind, 
                            wxT("factor used to correct detected peak height"),
-                           getSettings()->getp("height-correction"),
+                           settings->getp("height-correction"),
                            sizer_pf);
     width_correction = addRealNumberCtrl(page_peakfind, 
                            wxT("factor used to correct detected peak width"),
-                           getSettings()->getp("width-correction"),
+                           settings->getp("width-correction"),
                            sizer_pf);
 
     cancel_poos = addCheckbox(page_peakfind, 
                           wxT("cancel peak guess, if the result is doubtful"),
-                          getSettings()->get_b("can-cancel-guess"), 
+                          settings->get_b("can-cancel-guess"), 
                           sizer_pf);
     //sizer_pf->Add(cancel_poos, 0, wxALL, 5);
 
@@ -175,18 +177,18 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     wxStaticText *mwssre_st = new wxStaticText(page_fit_common, -1,
                                                wxT("max. WSSR evaluations"));
     mwssre_sp = new SpinCtrl(page_fit_common, -1, 
-                       getSettings()->get_i("max-wssr-evaluations"), 0, 999999,
+                       settings->get_i("max-wssr-evaluations"), 0, 999999,
                        70);
     sizer_fcstop->Add(mwssre_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     sizer_fcstop->Add(mwssre_sp, 0, wxALL, 5);
     sizer_fcmn->Add(sizer_fcstop, 0, wxEXPAND|wxALL, 5);
     domain_p = addRealNumberCtrl(page_fit_common, 
                                  wxT("default domain of variable is +/-"), 
-                                 getSettings()->getp("variable-domain-percent"),
+                                 settings->getp("variable-domain-percent"),
                                  sizer_fcmn,
                                  wxT("%"));
 
-    bool autop = (getSettings()->getp("autoplot") == "on-fit-iteration");
+    bool autop = (settings->getp("autoplot") == "on-fit-iteration");
     autoplot_cb = addCheckbox(page_fit_common,  
                               wxT("refresh plot after each iteration"),
                               autop, sizer_fcmn);
@@ -199,18 +201,18 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     wxStaticBoxSizer *sizer_flmlambda = new wxStaticBoxSizer(wxVERTICAL,
                                 page_fit_LM, wxT("lambda parameter"));
     lm_lambda_ini = addRealNumberCtrl(page_fit_LM, wxT("initial value"), 
-                      getSettings()->getp("lm-lambda-start"), sizer_flmlambda);
+                      settings->getp("lm-lambda-start"), sizer_flmlambda);
     lm_lambda_up = addRealNumberCtrl(page_fit_LM, wxT("increasing factor"), 
-                 getSettings()->getp("lm-lambda-up-factor"), sizer_flmlambda);
+                 settings->getp("lm-lambda-up-factor"), sizer_flmlambda);
     lm_lambda_down = addRealNumberCtrl(page_fit_LM, wxT("decreasing factor"), 
-                getSettings()->getp("lm-lambda-down-factor"), sizer_flmlambda);
+                settings->getp("lm-lambda-down-factor"), sizer_flmlambda);
     sizer_flm->Add(sizer_flmlambda, 0, wxEXPAND|wxALL, 5);
     wxStaticBoxSizer *sizer_flmstop = new wxStaticBoxSizer(wxVERTICAL,
                                 page_fit_LM, wxT("termination criteria"));
     lm_stop = addRealNumberCtrl(page_fit_LM, wxT("WSSR relative change <"), 
-                     getSettings()->getp("lm-stop-rel-change"), sizer_flmstop);
+                     settings->getp("lm-stop-rel-change"), sizer_flmstop);
     lm_max_lambda = addRealNumberCtrl(page_fit_LM, wxT("max. value of lambda"),
-                     getSettings()->getp("lm-max-lambda"), sizer_flmstop);
+                     settings->getp("lm-max-lambda"), sizer_flmstop);
     sizer_flm->Add(sizer_flmstop, 0, wxEXPAND|wxALL, 5);
     add_persistence_note(page_fit_LM, sizer_flm);
     page_fit_LM->SetSizerAndFit(sizer_flm);
@@ -224,19 +226,19 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
 
     nm_move_all = addCheckbox(page_fit_NM, 
                            wxT("randomize all vertices (otherwise on is left)"),
-                           getSettings()->get_b("nm-move-all"), sizer_fnmini);
+                           settings->get_b("nm-move-all"), sizer_fnmini);
     nm_distrib = addEnumSetting(page_fit_NM, wxT("distribution type"), 
                                 "nm-distribution", sizer_fnmini);
     nm_move_factor = addRealNumberCtrl(page_fit_NM, 
                          wxT("factor by which domain is expanded"), 
-                         getSettings()->getp("nm-move-factor"), sizer_fnmini);
+                         settings->getp("nm-move-factor"), sizer_fnmini);
     sizer_fnm->Add(sizer_fnmini, 0, wxEXPAND|wxALL, 5);
 
     wxStaticBoxSizer *sizer_fnmstop = new wxStaticBoxSizer(wxVERTICAL,
                                 page_fit_NM, wxT("termination criteria"));
     nm_convergence = addRealNumberCtrl(page_fit_NM, 
                          wxT("worst and best relative difference"), 
-                         getSettings()->getp("nm-convergence"), sizer_fnmstop);
+                         settings->getp("nm-convergence"), sizer_fnmstop);
     sizer_fnm->Add(sizer_fnmstop, 0, wxEXPAND|wxALL, 5);
     add_persistence_note(page_fit_NM, sizer_fnm);
     page_fit_NM->SetSizerAndFit(sizer_fnm);
@@ -342,9 +344,9 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
     m["nm-distribution"] = wx2s(nm_distrib->GetStringSelection());
     m["nm-move-factor"] = wx2s(nm_move_factor->GetValue());
     m["nm-convergence"] = wx2s(nm_convergence->GetValue());
-    vector<string> kk = getSettings()->expanp();
+    vector<string> kk = AL->get_settings()->expanp();
     for (vector<string>::const_iterator i = kk.begin(); i != kk.end(); ++i)
-        if (m.count(*i) && m[*i] != getSettings()->getp(*i))
+        if (m.count(*i) && m[*i] != AL->get_settings()->getp(*i))
             result.push_back(make_pair(*i, m[*i]));
     return result;
 }
@@ -357,7 +359,7 @@ void SettingsDlg::OnOK(wxCommandEvent&)
         for (vector<pair<string, string> >::const_iterator i = p.begin();
                 i != p.end(); ++i)
             eqs.push_back(i->first + "=" + i->second);
-        exec_command ("set " + join_vector(eqs, ", "));
+        AL->exec("set " + join_vector(eqs, ", "));
     }
     wxConfig::Get()->Write(wxT("/loadDataDir"), dir_ld_tc->GetValue());
     wxConfig::Get()->Write(wxT("/execScriptDir"), dir_xs_tc->GetValue());

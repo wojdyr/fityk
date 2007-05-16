@@ -25,7 +25,7 @@ struct Vertex
 class NMfit : public Fit
 {
 public:
-    NMfit();
+    NMfit(Fityk* F);
     ~NMfit();
     fp init(); // called before autoiter()
     void autoiter();

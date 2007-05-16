@@ -712,13 +712,13 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
 void MainPlot::PeakInfo()
 {
     if (over_peak >= 0)
-        exec_command("info+ " + AL->get_function(over_peak)->xname);
+        AL->exec("info+ " + AL->get_function(over_peak)->xname);
 }
 
 void MainPlot::OnPeakDelete(wxCommandEvent&)
 {
     if (over_peak >= 0)
-        exec_command("delete " + AL->get_function(over_peak)->xname);
+        AL->exec("delete " + AL->get_function(over_peak)->xname);
 }
 
 void MainPlot::OnPeakGuess(wxCommandEvent&)
@@ -728,7 +728,7 @@ void MainPlot::OnPeakGuess(wxCommandEvent&)
         if (p->has_center()) {
             fp ctr = p->center();
             fp plusmin = max(fabs(p->fwhm()), p->iwidth());    
-            exec_command(p->xname + " = guess " + p->type_name + " [" 
+            AL->exec(p->xname + " = guess " + p->type_name + " [" 
                              + S(ctr-plusmin) + ":" + S(ctr+plusmin) + "]"
                              + frame->get_in_dataset());
         }
@@ -859,7 +859,8 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
         frame->set_status_text(s);
         set_mouse_mode(mmd_peak);
         fp x1=0., x2=0.;
-        bool r = f->get_nonzero_range(getSettings()->get_cut_level(), x1, x2);
+        bool r = f->get_nonzero_range(AL->get_settings()->get_cut_level(), 
+                                      x1, x2);
         if (r) {
             limit1 = xs.px(x1);
             limit2 = xs.px(x2);
@@ -1001,8 +1002,10 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             fp x2 = xs.val(event.GetX());
             fp y1 = ys.val(mouse_press_Y);
             fp y2 = ys.val(event.GetY());
-            frame->change_zoom("[ "+S(min(x1,x2))+" : "+S(max(x1,x2))+" ]"
-                               "[ "+S(min(y1,y2))+" : "+S(max(y1,y2))+" ]");
+            frame->change_zoom("[ " + S(min(x1,x2)) + " : " 
+                                                    + S(max(x1,x2)) + " ]"
+                               "[ " + S(min(y1,y2), 12) + " : " 
+                                                    + S(max(y1,y2), 12) + " ]");
         }
         frame->set_status_text("");
     }
@@ -1010,7 +1013,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         if (dist_X + dist_Y >= 2) {
             string cmd = fmd.get_cmd();
             if (!cmd.empty())
-                exec_command(cmd);
+                AL->exec(cmd);
         }
         draw_moving_func(mat_stop);
         frame->set_status_text("");
@@ -1023,7 +1026,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             fp xmin = xs.val (min (event.GetX(), mouse_press_X));
             fp xmax = xs.val (max (event.GetX(), mouse_press_X));
             string cond = "(" + S(xmin) + "< x <" + S(xmax) + ")";
-            exec_command(c + cond + frame->get_in_one_or_all_datasets());
+            AL->exec(c + cond + frame->get_in_one_or_all_datasets());
         }
         else if (shift_on_down && dist_X + dist_Y >= 10) {
             fp x1 = xs.val(mouse_press_X);
@@ -1032,7 +1035,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             fp y2 = ys.val(event.GetY());
             string cond = "(" + S(min(x1,x2)) + " < x < " + S(max(x1,x2)) 
                    + " and " + S(min(y1,y2)) + " < y < " + S(max(y1,y2)) + ")";
-            exec_command(c + cond + frame->get_in_one_or_all_datasets());
+            AL->exec(c + cond + frame->get_in_one_or_all_datasets());
         }
         frame->set_status_text("");
     }
@@ -1043,7 +1046,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
                                           : "F";
         if (func_draft_kind == fk_linear) {
             fp y = ys.val(event.GetY());
-            exec_command(F + " += " + frame->get_peak_type()  
+            AL->exec(F + " += " + frame->get_peak_type()  
                          + "(slope=~" + S(0) + ", intercept=~" + S(y) 
                          + ", avgy=~" + S(y) + ")");
         }
@@ -1053,7 +1056,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
                 fp center = xs.val(mouse_press_X);
                 fp fwhm = fabs(center - xs.val(event.GetX()));
                 fp area = height * fwhm;
-                exec_command(F + " += " + frame->get_peak_type()  
+                AL->exec(F + " += " + frame->get_peak_type()  
                          + "(height=~" + S(height) + ", center=~" + S(center) 
                          + ", fwhm=~" + S(fwhm) + ", area=~" + S(area) + ")");
             }
@@ -1064,7 +1067,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         if (dist_X >= 5) { 
             fp x1 = xs.val(mouse_press_X);
             fp x2 = xs.val(event.GetX());
-            exec_command ("guess " + frame->get_peak_type() 
+            AL->exec("guess " + frame->get_peak_type() 
                           + " [" + S(min(x1,x2)) + " : " + S(max(x1,x2)) + "]"
                           + frame->get_in_dataset());
         }
@@ -1685,16 +1688,13 @@ void BgManager::rm_background_point (fp x)
     int X = x_scale.px(x);
     fp lower = x_scale.val(X - min_dist);
     fp upper = x_scale.val(X + min_dist);
-    if (lower > upper) {
-        fp tmp = lower;
-        lower = upper;
-        upper = tmp;
-    }
+    if (lower > upper) 
+        Swap(lower, upper);
     bg_iterator l = lower_bound(bg.begin(), bg.end(), B_point(lower, 0));
     bg_iterator u = upper_bound (bg.begin(), bg.end(), B_point(upper, 0));
     if (u > l) {
         bg.erase(l, u);
-        vmsg (S(u - l) + " background points removed.");
+        AL->vmsg (S(u - l) + " background points removed.");
         recompute_bgline();
     }
 }
@@ -1705,7 +1705,7 @@ void BgManager::clear_background()
     bg.clear();
     recompute_bgline();
     if (n != 0)
-        vmsg (S(n) + " background points deleted.");
+        AL->vmsg (S(n) + " background points deleted.");
 }
 
 void BgManager::strip_background()
@@ -1722,8 +1722,8 @@ void BgManager::strip_background()
                + join_vector(pars, ", ") + "](x)" 
                + frame->get_in_one_or_all_datasets();
     clear_background();
-    exec_command("Y = y - " + cmd_tail);
-    vmsg("Background stripped.");
+    AL->exec("Y = y - " + cmd_tail);
+    AL->vmsg("Background stripped.");
 }
 
 void BgManager::undo_strip_background()
@@ -1733,7 +1733,7 @@ void BgManager::undo_strip_background()
     bg = bg_backup;
     bg_backup.clear();
     recompute_bgline();
-    exec_command("Y = y + " + cmd_tail);
+    AL->exec("Y = y + " + cmd_tail);
 }
 
 void BgManager::recompute_bgline()

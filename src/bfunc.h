@@ -11,18 +11,22 @@
 #define DECLARE_FUNC_OBLIGATORY_METHODS(NAME) \
     friend class Function;\
 protected:\
-    Func##NAME (std::string const &name, std::vector<std::string> const &vars,\
+    Func##NAME (Fityk const* F, \
+                std::string const &name, \
+                std::vector<std::string> const &vars, \
                 std::string const &formula_) \
-        : Function(name, vars, formula_) {}\
+        : Function(F, name, vars, formula_) {} \
 private:\
-    Func##NAME (std::string const &name, std::vector<std::string> const &vars)\
-        : Function(name, vars, formula) {}\
+    Func##NAME (Fityk const* F, \
+                std::string const &name, \
+                std::vector<std::string> const &vars) \
+        : Function(F, name, vars, formula) {} \
     Func##NAME (const Func##NAME&); \
 public:\
     static const char *formula; \
     void calculate_value(std::vector<fp> const &xx, std::vector<fp> &yy) const;\
     void calculate_value_deriv(std::vector<fp> const &xx, \
-                               std::vector<fp> &yy, std::vector<fp> &dy_da,\
+                               std::vector<fp> &yy, std::vector<fp> &dy_da, \
                                bool in_dx=false) const; 
 
 //////////////////////////////////////////////////////////////////////////

@@ -8,10 +8,12 @@
 #include "common.h"
 #include <vector>
 #include <utility>
+#include <fstream>
 
 class wxString;
 struct NumberedLine;
 class Data;
+class Fityk;
 
 /// used for storing commands and logging commands to file
 class Commands 
@@ -31,7 +33,7 @@ public:
 
     Commands() : command_counter(0) {}
     void put_command(std::string const& c, Status s);
-    void put_output_message(std::string const& s); 
+    void put_output_message(std::string const& s) const; 
     std::string get_command(int n) const { assert(is_index(n, cmds));
                                            return cmds[n].cmd; }
     Status get_status(int n) const { assert(is_index(n, cmds)); 
@@ -39,7 +41,8 @@ public:
     std::vector<std::string> get_commands(int from, int to, 
                                           bool with_status) const;
     std::string get_info(bool extended) const;
-    void start_logging(std::string const& filename, bool with_output);
+    void start_logging(std::string const& filename, bool with_output, 
+                       Fityk const* F);
     void stop_logging();
     std::string get_log_file() const { return log_filename; }
     bool get_log_with_output() const { return log_with_output; }
@@ -48,44 +51,45 @@ public:
     int command_counter; //!=cmds.size() if max_cmd was exceeded
     std::vector<Cmd> cmds;
     std::string log_filename;
-    std::ofstream log;
+    mutable std::ofstream log;
     bool log_with_output;
 
     int count_commands_with_status(Status st) const;
 };
 
-/// A Singleton class.
+/// commands, messages and plot refreshing
 /// it has callbacks that can be set by user interface
 class UserInterface 
 {
 public:
     /// it's used to disable all messages 
     bool keep_quiet;
-    
-    /// get Singleton class instance
-    static UserInterface* getInstance();
 
+    UserInterface(Fityk const* F_) 
+        : keep_quiet(false), F(F_), m_show_message(0), m_do_draw_plot(0), 
+          m_exec_command(0), m_refresh(0), m_wait(0) {}
+    
     /// Update plot if pri<=auto_plot.   If !now, update can be delayed
     /// Different definition for GUI and CLI
     void draw_plot(int pri=0, bool now=false);
 
     /// sent message - to user input and to log file (if logging is on)
-    void output_message (OutputStyle style, std::string const &s);
+    void output_message (OutputStyle style, std::string const &s) const;
 
     void start_log (std::string const &filename, bool with_output)
-                            { commands.start_logging(filename, with_output); }
+                    { commands.start_logging(filename, with_output, F); }
     void stop_log() { commands.stop_logging(); }
     Commands const& get_commands() const { return commands; }
 
     /// Excute all commands (or these from specified lines) from file. 
     /// In other words, run a script (.fit).
     void exec_script (std::string const &filename, 
-                     std::vector<std::pair<int,int> > const &selected_lines);
+                      std::vector<std::pair<int,int> > const &selected_lines);
     void exec_script (std::string const &filename) 
-    { exec_script(filename, std::vector<std::pair<int,int> >()); }
+        { exec_script(filename, std::vector<std::pair<int,int> >()); }
 
     Commands::Status exec_and_log(std::string const &c);
-    int get_verbosity();
+    int get_verbosity() const;
     void process_cmd_line_filename(std::string const& par);
 
     // callbacks
@@ -109,28 +113,26 @@ public:
     void wait(float seconds) { if (m_wait) (*m_wait)(seconds); }
 
 private:
+    Fityk const* F;
     t_show_message *m_show_message;
     t_do_draw_plot *m_do_draw_plot;
     t_exec_command *m_exec_command;
     t_refresh *m_refresh;
     t_wait *m_wait;
 
-    UserInterface() : keep_quiet(false), m_show_message(0), m_do_draw_plot(0), 
-                      m_exec_command(0), m_refresh(0), m_wait(0) {}
     UserInterface (UserInterface const&); //disable
     UserInterface& operator= (UserInterface const&); //disable
 
     void do_draw_plot(bool now=false) 
         { if (m_do_draw_plot) (*m_do_draw_plot)(now); }
     /// show message to user
-    void show_message (OutputStyle style, std::string const& s)
+    void show_message (OutputStyle style, std::string const& s) const
         { if (m_show_message) (*m_show_message)(style, s); }
 
     /// Execute command(s) from string
     /// It can finish the program (eg. if s=="quit").
     Commands::Status exec_command (std::string const &s);
 
-    static UserInterface* instance;
     Commands commands;
 };
 
@@ -139,34 +141,5 @@ private:
 extern const char* startup_commands_filename;
 extern const char* config_dirname;
 
-inline UserInterface* getUI() { return UserInterface::getInstance(); }
-
-/// execute command(s) from string
-inline Commands::Status exec_command (std::string const &s) 
-                                        { return getUI()->exec_and_log(s); }
-
-
-/// Send warning to UI. 
-inline void warn(std::string const &s) { getUI()->output_message(os_warn, s); }
-
-/// Send implicitely requested message to UI. 
-inline void rmsg(std::string const &s) { getUI()->output_message(os_normal, s);}
-
-/// Send message to UI. 
-inline void msg(std::string const &s) 
-{ 
-    if (getUI()->get_verbosity() >= 0)
-         getUI()->output_message(os_normal, s); 
-}
-
-/// Send verbose message to UI. The argument is evaluated only when needed.
-#define vmsg(x)   \
-    if (getUI()->get_verbosity() > 0)  \
-        getUI()->output_message(os_normal, (x));  
-
-/// Send debug message to UI. The argument is evaluated only when needed.
-#define vvmsg(x)   \
-    if (getUI()->get_verbosity() > 1)  \
-        getUI()->output_message(os_normal, (x));  
 
 #endif 

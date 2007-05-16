@@ -7,17 +7,57 @@ you don't know were to start, there is a list of ideas at the end of this file.
 Legend:
 // = done, but not tested/documented  
 
-* BUG: "plot . []" sometimes doesn't work as expected if x axis is not visible
+* making libfityk thread-safe:
+   passing around Fityk* F
+   remove all `AL'
+   remove static class members and global variables
+
+* GUI, command line: multiple y cols in one file: str.log:0,5/6/7 or 0,5-7
+
+* dataset title should contain also cols, if explicitely given 
+
+* code cleanup: use Swap or swap ?
+
+* install icon (install -m644 -D fityk.png %{_datadir}/icons/fityk.png)
+
+* add --disable-rpath option to configure (using popular lib-link.m4 file)
+  [it seems to be not trivial and will be probably abandoned]
+
+* make SVG icon, mv fityk.png fityk-32.png 
+
+* update and add fityk.xml mime specification (for .fit and .xy) to the tarball.
+  http://www.gnome.org/learn/admin-guide/latest/mimetypes-source-xml.html
+
+* the API should be designed as FitykAPI class, rather than namespace,
+  to enable multiple instances of the class. 
+
+* GUI: default view is too wide from the left in when logarithmic scale is on,
+  because view margin is always 5%, and this is handled by libfityk
+
+* BUG: "plot . []" sometimes doesn't work as expected if x axis is not visible.
+
+* BUG: sometimes there is a number like 8.765432e-19 instead of 0 on y axis
 
 * GUI: fit run dialog should be hidden before fitting starts
 
+* GUI: when printing, everything is first rescaled and rounded(!) for
+  plot window at the screen, and then rescaled to the paper size. 
+  This rounding causes visible artefacts at the printout.
+  (wxDC.GetSize instead of plot.GetClientSize() ?)
+
+* sorting lists at sidebar - by clicking on column header, 
+  use case: sort functions by centers
+  involves refactoring ListWithColors::populate()
+
+* (GUI) stopping fitting interactively (when user doesn't want to wait longer);
+  "stop" bitmap button? in right left corner? 
+
 * XPS Shirley background removing
 
-* the API should be designed as Fityk class, rather than namespace,
-  to enable multiple instances of the class. It involves making the whole
-  library thread-safe.
+--------------> 0.8.2
 
 * embedding python scripts or other plugin-like solution  [IMPORTANT]
+  perhaps IPC instead of embedded scripting language?
 
 * rewrite crystallographic part in python [IMPORTANT]
 
@@ -25,9 +65,6 @@ Legend:
 
 * (?)exporting data with info "info @n () [range] > file"
   if not redirected, should display ... [1234 lines more] rather than all lines
-
-* (GUI) stopping fitting interactively (when user doesn't want to wait longer);
-  use threads? or wxTimer?
 
 * GUI: buttons on sidebar>functions that make hwhm and shape equal
   for all functions (F[hwhm]=...; F[shape]=...) or independent.
@@ -38,26 +75,11 @@ Legend:
   than not redirected info 
   paths of files to be read should be checked 
 
-* GUI: when printing, everything is first rescaled and rounded(!) for
-  plot window at the screen, and then rescaled to the paper size. 
-  This rounding causes visible artefacts at the printout.
-  (wxDC.GetSize instead of plot.GetClientSize() ?)
-
 * unused variables should not slow down fitting
-
-* sorting lists at sidebar - by clicking on column header, 
-  use case: sort functions by centers
-  involves refactoring ListWithColors::populate()
-
-* GUI: default view is too wide from the left in when logarithmic scale is on,
-  because view margin is always 5%, and this is handled by libfityk
 
 ------------------ 
 
 * GUI: script editor: button to change directories in absolute filenames
-
-* GUI: menu and script editor: "create macro", 2-click access to scripts
-   in .fityk/macro directory
 
 * GUI: button '(un)lock' on variables pane [waiting for wx-toggle-bitmap-button]
 
@@ -70,7 +92,7 @@ Legend:
 * GUI: use icons with alpha channel 
        http://www.wxwidgets.org/wiki/index.php/Embedding_PNG_Images
 
-* GUI: menu file icons (16x15 or 16x16?)
+* GUI: menu file icons (16x15 or 16x16?, only GTK or also MSW?)
 
 * user defined functions:
       - more sophisticated simplifications of expressions and CSE(!)

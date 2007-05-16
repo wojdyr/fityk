@@ -8,6 +8,7 @@
 #include "var.h"
 #include "ui.h"
 #include "settings.h"
+#include "logic.h"
 #include "calc.h"
 #include "ast.h"
 
@@ -21,7 +22,9 @@ using namespace boost::spirit;
 std::vector<fp> Function::calc_val_xx(1); 
 std::vector<fp> Function::calc_val_yy(1);
 
-Function::Function (string const &name_, vector<string> const &vars,
+Function::Function (Fityk const* F_,
+                    string const &name_, 
+                    vector<string> const &vars,
                     string const &formula_)
     : VariableUser(name_, "%", vars), 
       type_formula(formula_),
@@ -29,7 +32,7 @@ Function::Function (string const &name_, vector<string> const &vars,
       type_var_names(get_varnames_from_formula(formula_)),
       type_rhs(get_rhs_from_formula(formula_)),
       nv(vars.size()), 
-      settings(getSettings()), 
+      F(F_), 
       center_idx(find_center_in_typevars()),
       vv(vars.size())
 {
@@ -90,14 +93,15 @@ int Function::find_center_in_typevars() const
 }
 
 
-Function* Function::factory (string const &name_, string const &type_name,
+Function* Function::factory (Fityk const* F,
+                             string const &name_, string const &type_name,
                              vector<string> const &vars) 
 {
     string name = name_[0] == '%' ? string(name_, 1) : name_;
 
 #define FACTORY_FUNC(NAME) \
     if (type_name == #NAME) \
-        return new Func##NAME(name, vars);
+        return new Func##NAME(F, name, vars);
 
     FACTORY_FUNC(Constant)
     FACTORY_FUNC(Linear)
@@ -120,9 +124,10 @@ Function* Function::factory (string const &name_, string const &type_name,
     else if (UdfContainer::is_defined(type_name)) {
         UdfContainer::UDF const* udf = UdfContainer::get_udf(type_name);
         if (udf->is_compound)
-            return new CompoundFunction(name, type_name, vars);
+            return new CompoundFunction(F, name, type_name, vars);
         else 
-            return new CustomFunction(name, type_name, vars, udf->op_trees);
+            return new CustomFunction(F, name, type_name, vars, 
+                                      udf->op_trees);
     }
     else 
         throw ExecuteError("Undefined type of function: " + type_name);
@@ -228,7 +233,7 @@ void Function::get_nonzero_idx_range(std::vector<fp> const &xx,
 {
     //precondition: xx is sorted
     fp left, right;
-    bool r = get_nonzero_range(settings->get_cut_level(), left, right);
+    bool r = get_nonzero_range(F->get_settings()->get_cut_level(), left, right);
     if (r) {
         first = lower_bound(xx.begin(), xx.end(), left) - xx.begin(); 
         last = upper_bound(xx.begin(), xx.end(), right) - xx.begin(); 
@@ -702,9 +707,12 @@ vector<string> get_cpd_rhs_components(string const &formula, bool full)
 
 ///////////////////////////////////////////////////////////////////////
 
-CompoundFunction::CompoundFunction(string const &name, string const &type,
+CompoundFunction::CompoundFunction(Fityk const* F,
+                                   string const &name, 
+                                   string const &type,
                                    vector<string> const &vars)
-    : Function(name, vars, get_formula(type)) 
+    : Function(F, name, vars, get_formula(type)),
+      vmgr(F)
 {
     vmgr.silent = true;
     for (int j = 0; j != nv; ++j) 
@@ -855,10 +863,12 @@ bool CompoundFunction::get_nonzero_range(fp level, fp& left, fp& right) const
 
 ///////////////////////////////////////////////////////////////////////
 
-CustomFunction::CustomFunction(string const &name, string const &type,
+CustomFunction::CustomFunction(Fityk const* F,
+                               string const &name, 
+                               string const &type,
                                vector<string> const &vars, 
                                vector<OpTree*> const& op_trees)
-    : Function(name, vars, get_formula(type)),
+    : Function(F, name, vars, get_formula(type)),
       derivatives(nv+1),
       afo(op_trees, value, derivatives) 
 {

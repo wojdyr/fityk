@@ -8,6 +8,8 @@
 #include <utility>
 #include "common.h"
 
+class Fityk;
+
 struct IntRange 
 {
     int v, l, u;
@@ -17,7 +19,6 @@ struct IntRange
 
 /// it stores all setting - variables of various types with names, 
 /// such as lambda-starting-value (used in LMfit class)
-/// singleton
 class Settings 
 {
 public:
@@ -30,22 +31,20 @@ public:
             : e(e_), v(v_) {}
     };
 
-    /// get Singleton class instance
-    static Settings* getInstance();
-
+    Settings(Fityk const* F_);
     /// get value of integer option
-    inline int get_i(std::string const& k);
+    inline int get_i(std::string const& k) const;
     /// get value of real (floating-point) option
-    fp get_f(std::string const& k) 
+    fp get_f(std::string const& k) const
                   { assert(fpar.count(k)); return fpar.find(k)->second; }
     /// get value of boolean option
-    bool get_b(std::string const& k) 
+    bool get_b(std::string const& k) const
                   { assert(bpar.count(k)); return bpar.find(k)->second; }
     /// get value of string-enumeration option
-    char get_e(std::string const& k) 
+    char get_e(std::string const& k) const
                   { assert(epar.count(k)); return epar.find(k)->second.v; }
     /// get value of string option
-    std::string get_s(std::string const& k) 
+    std::string get_s(std::string const& k) const
                   { assert(spar.count(k)); return spar.find(k)->second; }
 
     /// set value of option (string v is parsed according to option type)
@@ -69,7 +68,7 @@ public:
     void do_srand();
 
 private:
-    static Settings* instance;
+    Fityk const* F;
     std::map <std::string, int> ipar;
     std::map <std::string, fp> fpar;
     std::map <std::string, bool> bpar;
@@ -79,7 +78,6 @@ private:
     fp cut_function_level; ///for faster access
     std::vector<std::pair<std::string, std::string> > old_values;
 
-    Settings();
     Settings(Settings const&); //disable
     Settings& operator= (const Settings&); //disable
     void setp_core(std::string const& k, std::string const& v);
@@ -87,7 +85,7 @@ private:
                      std::map<char,std::string> const& e, char value);
 };
 
-int Settings::get_i(std::string const& k) { 
+int Settings::get_i(std::string const& k) const { 
     std::map <std::string, int>::const_iterator t = ipar.find(k);
     if (t != ipar.end())
         return t->second;
@@ -96,8 +94,6 @@ int Settings::get_i(std::string const& k) {
         return irpar.find(k)->second.v; 
     }
 }
-
-inline Settings* getSettings() { return Settings::getInstance(); }
 
 #endif
 

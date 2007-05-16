@@ -23,8 +23,7 @@
 #include "gui.h"  // frame->add_recent_data_file(get_filename()
 #include "plot.h" // scale_tics_step()
 #include "../data.h"
-#include "../ui.h" //exec_command(), getUI()
-#include "../logic.h"
+#include "../logic.h" 
 #include "../settings.h"
 #include "../common.h" //iround
 
@@ -50,7 +49,8 @@ public:
     auto_ptr<Data> data;
 
     PreviewPlot(wxWindow* parent)
-        : BufferedPanel(parent), data(new Data) { backgroundCol = *wxBLACK; }
+        : BufferedPanel(parent), data(new Data(AL)) 
+                  { backgroundCol = *wxBLACK; }
     void OnPaint(wxPaintEvent &event);
     void draw(wxDC &dc, bool);
 
@@ -183,11 +183,11 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     dir_ctrl = new wxGenericDirCtrl(left_panel, -1, wxDirDialogDefaultFolderStr,
                        wxDefaultPosition, wxDefaultSize,
 // On MSW wxGenericDirCtrl with filteres vanishes 
-#ifndef __WXMSW__
-                       wxDIRCTRL_SHOW_FILTERS,
-#else
+//#ifndef __WXMSW__
+//                       wxDIRCTRL_SHOW_FILTERS,
+//#else
                        0,
-#endif
+//#endif
                        // multiple wildcards, eg. 
                        // |*.dat;*.DAT;*.xy;*.XY;*.fio;*.FIO
                        // are not supported by wxGenericDirCtrl  
@@ -234,10 +234,10 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
         }
     }
 
-    bool def_set_sqrt = (getSettings()->getp("data-default-sigma") == "sqrt");
+    bool def_sqrt = (AL->get_settings()->getp("data-default-sigma") == "sqrt");
     sd_sqrt_cb = new wxCheckBox(left_panel, ID_DXLOAD_SDS, 
                                 wxT("set std. dev. as max(sqrt(y), 1.0)"));
-    sd_sqrt_cb->SetValue(def_set_sqrt);
+    sd_sqrt_cb->SetValue(def_sqrt);
     left_sizer->Add (sd_sqrt_cb, 0, wxALL|wxEXPAND, 5);
 
     wxStaticBoxSizer *dt_sizer = new wxStaticBoxSizer(wxVERTICAL, 
@@ -344,7 +344,7 @@ void DLoadDlg::OnClose (wxCommandEvent&)
 
 void DLoadDlg::OnOpenHere (wxCommandEvent&)
 {
-    exec_command(get_command("@" + S(data_nr), data_nr));
+    AL->exec(get_command("@" + S(data_nr), data_nr));
     frame->add_recent_data_file(get_filename());
 }
 
@@ -353,7 +353,7 @@ void DLoadDlg::OnOpenNew (wxCommandEvent&)
     int d_nr = AL->get_ds_count();
     if (d_nr == 1 && !AL->get_ds(0)->has_any_info())
         d_nr = 0; // special case, @+ will not add new data slot
-    exec_command(get_command("@+", d_nr));
+    AL->exec(get_command("@+", d_nr));
     frame->add_recent_data_file(get_filename());
 }
 
@@ -378,14 +378,14 @@ void DLoadDlg::update_plot_preview()
             cols.push_back(x_column->GetValue());
             cols.push_back(y_column->GetValue());
         }
-        getUI()->keep_quiet = true;
+        AL->get_ui()->keep_quiet = true;
         try {
             plot_preview->data->load_file(wx2s(dir_ctrl->GetFilePath()), 
                                           "", cols, true);
         } catch (ExecuteError&) {
             plot_preview->data->clear();
         }
-        getUI()->keep_quiet = false;
+        AL->get_ui()->keep_quiet = false;
     }
     else {
         plot_preview->data->clear();
@@ -464,10 +464,10 @@ string DLoadDlg::get_command(string const& ds, int d_nr)
     if (htitle_cb->IsChecked())
         filetype = " htext";
 
-    bool def_set_sqrt = (getSettings()->getp("data-default-sigma") == "sqrt");
+    bool def_sqrt = (AL->get_settings()->getp("data-default-sigma") == "sqrt");
     bool set_sqrt = sd_sqrt_cb->GetValue();
     bool sigma_in_file = (columns_panel->IsEnabled() && std_dev_cb->GetValue());
-    if (!sigma_in_file && set_sqrt != def_set_sqrt) {
+    if (!sigma_in_file && set_sqrt != def_sqrt) {
         if (set_sqrt)
             cmd = "with data-default-sigma=sqrt ";
         else

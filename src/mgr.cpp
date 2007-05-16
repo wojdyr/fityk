@@ -71,7 +71,7 @@ string VariableManager::get_or_make_variable(string const& func)
                    >> '.' >> 
                    lexeme_d[alpha_p >> *(alnum_p|'_')][assign_a(tmp2)]
                   ).full) {                     // %bar.bleh
-        return AL->find_function_any(tmp1)->get_param_varname(tmp2);
+        return F->find_function_any(tmp1)->get_param_varname(tmp2);
     }
     else                                       // anything else
         return assign_variable("", func);
@@ -412,7 +412,7 @@ void VariableManager::delete_funcs_and_vars(vector<string> const &xnames)
 }
 
 
-int VariableManager::find_function_nr(string const &name) 
+int VariableManager::find_function_nr(string const &name) const
 {
     string only_name = !name.empty() && name[0]=='%' ? string(name,1) : name;
     for (int i = 0; i < size(functions); ++i)
@@ -421,7 +421,7 @@ int VariableManager::find_function_nr(string const &name)
     return -1;
 }
 
-const Function* VariableManager::find_function(string const &name) 
+const Function* VariableManager::find_function(string const &name) const
 {
     int n = find_function_nr(name);
     if (n == -1)
@@ -561,7 +561,8 @@ string VariableManager::assign_func(string const &name, string const &function,
 {
     Function *func = 0;
     try {
-        func = Function::factory(name.empty() ? next_func_name() : name, 
+        func = Function::factory(F,
+                                 name.empty() ? next_func_name() : name, 
                                  function, 
                                  parse_vars ? make_varnames(function, vars) 
                                             : vars);
@@ -582,7 +583,7 @@ string VariableManager::do_assign_func(Function* func)
             delete functions[i];
             functions[i] = func;
             if (!silent)
-                msg("New function %" + func->name + " replaced the old one.");
+                F->msg("New function %" + func->name +" replaced the old one.");
             remove_unreferred();
             found = true;
             break;
@@ -591,7 +592,7 @@ string VariableManager::do_assign_func(Function* func)
     if (!found) {
         functions.push_back(func);
         if (!silent)
-            msg("New function %" + func->name + " was created.");
+            F->msg("New function %" + func->name + " was created.");
     }
     func->do_precomputations(variables);
     return func->name;
@@ -658,7 +659,7 @@ fp VariableManager::variation_of_a (int n, fp variat) const
     Domain const& dom = get_variable(n)->domain;
     fp ctr = dom.is_ctr_set() ? dom.get_ctr() : parameters[n];
     fp sgm = dom.is_set() ? dom.get_sigma() 
-                : ctr * getSettings()->get_f("variable-domain-percent") / 100.;
+            : ctr * F->get_settings()->get_f("variable-domain-percent") / 100.;
     return ctr + sgm * variat;
 }
 
@@ -680,6 +681,7 @@ string VariableManager::next_func_name()
     }
 }
 
+//TODO: remove it, use dtor+ctor
 void VariableManager::do_reset()
 {
     var_autoname_counter = 0;

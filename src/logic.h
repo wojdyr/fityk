@@ -9,8 +9,15 @@
 #include <memory>
 #include <algorithm>
 #include "mgr.h"
+#include "ui.h" //Commands::Status
+
 
 class DataWithSum;
+class Settings;
+class Fityk;
+class UserInterface;
+class FitMethodsContainer;
+class Fit;
 
 /// manages view, i.e. x and y intervals visible currently to the user 
 /// can set view using string like "[20:][-100:1000]" 
@@ -67,7 +74,7 @@ protected:
 class DataWithSum
 {
 public:
-    DataWithSum(VariableManager *mgr, Data* data_=0);
+    DataWithSum(Fityk *F, Data* data_=0);
     Data *get_data() const { return data.get(); } 
     Sum *get_sum() const { return sum.get(); }
     bool has_any_info() const;
@@ -81,39 +88,71 @@ private:
 
 
 /// keeps all functions, variables, parameters, datasets with sums and View
-class ApplicationLogic : public VariableManager
+class Fityk : public VariableManager
 {
 public:
     View view;
     /// used for randomly drawing parameter values, in fitting methods like GA
     fp default_relative_domain_width;
 
-    ApplicationLogic() : default_relative_domain_width(0.1) { start_app(); }
-
-    ~ApplicationLogic() { stop_app(); }
-    void start_app();
-    void stop_app();
+    Fityk();
+    ~Fityk();
     void dump_all_as_script (std::string const &filename);
 
     void activate_ds(int d);
     int append_ds(Data *data=0);
     void remove_ds(int d);
     int get_ds_count() const { return dsds.size(); }
-    DataWithSum* get_ds(int n);
+    DataWithSum* get_ds(int n) { return dsds[check_ds_number(n)]; }
+    DataWithSum const* get_ds(int n) const { return dsds[check_ds_number(n)]; }
     std::vector<DataWithSum*> const& get_dsds() const { return dsds; }
     int get_active_ds_position() const { return active_ds; }
     Data *get_data(int n) { return get_ds(n)->get_data(); }
-    Sum *get_sum(int n)   { return get_ds(n)->get_sum();  }
+    Sum *get_sum(int n)   { return get_ds(n)->get_sum(); }
     bool has_ds(DataWithSum const* p) const 
                       { return count(dsds.begin(), dsds.end(), p) > 0; }
-    const Function* find_function_any(std::string const &fstr);
+    std::string find_function_name(std::string const &fstr) const;
+    const Function* find_function_any(std::string const &fstr) const;
+
+    Settings const* get_settings() const { return settings; }
+    Settings* get_settings() { return settings; }
+
+    UserInterface const* get_ui() const { return ui; }
+    UserInterface* get_ui() { return ui; }
+
+    FitMethodsContainer const* get_fit_container() const {return fit_container;}
+    FitMethodsContainer* get_fit_container() { return fit_container; }
+    Fit* get_fit(); 
+
+    /// Send warning to UI. 
+    void warn(std::string const &s) const;
+
+    /// Send implicitely requested message to UI. 
+    void rmsg(std::string const &s) const;
+
+    /// Send message to UI. 
+    void msg(std::string const &s) const; 
+
+    /// Send verbose message to UI. 
+    void vmsg(std::string const &s) const;
+
+    int get_verbosity() const;
+
+    /// execute command(s) from string
+    Commands::Status exec(std::string const &s);
 
 protected:
     std::vector<DataWithSum*> dsds;
     int active_ds;
+    Settings* settings;
+    UserInterface* ui;
+    FitMethodsContainer* fit_container;
+
+private:
+    /// verify that n is the valid number for get_ds() and return n 
+    int check_ds_number(int n) const;
 };
 
-
-extern ApplicationLogic *AL;
+extern Fityk* AL;
 
 #endif 

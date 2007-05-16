@@ -18,7 +18,7 @@
 #include "gui.h"
 #include "dialogs.h" //export_data_dlg()
 #include "../data.h" // Data, Point
-#include "../ui.h"  //exec_command()
+#include "../logic.h"  
 #include "../datatrans.h" //validate_transformation()
 
 using namespace std;
@@ -81,8 +81,7 @@ public:
             case 3: t = "S";  break;
             default: assert(0);
         }
-        exec_command(t + "[" + S(row)+"]=" + S(value) 
-                                                  + frame->get_in_dataset());
+        AL->exec(t + "[" + S(row)+"]=" + S(value) + frame->get_in_dataset());
         if (col == 1) // order of items can be changed
             ded->grid->ForceRefresh();
         ded->rezoom_btn->Enable();
@@ -91,7 +90,7 @@ public:
     void SetValueAsBool(int row, int col, bool value) 
     { 
         assert(col==0); 
-        exec_command("A[" + S(row)+"]=" + (value?"true":"false") 
+        AL->exec("A[" + S(row)+"]=" + (value?"true":"false") 
                                                   + frame->get_in_dataset()); 
         ded->rezoom_btn->Enable();
     }
@@ -428,7 +427,7 @@ void DataEditorDlg::OnRevert (wxCommandEvent&)
     }
     if (cmd.empty())
         return;
-    exec_command(cmd);
+    AL->exec(cmd);
     refresh_grid();
 }
 
@@ -534,7 +533,7 @@ void DataEditorDlg::execute_tranform(string code)
         if (i+1 != cmds.end())
             t += ";";
     }
-    exec_command(t);
+    AL->exec(t);
 }
 
 void DataEditorDlg::OnHelp (wxCommandEvent&)

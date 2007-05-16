@@ -5,10 +5,11 @@
 #include "common.h"
 #include "data.h" 
 #include "fileroutines.h"
-#include "ui.h"
+//#include "ui.h"
 #include "numfuncs.h"
 #include "datatrans.h" 
 #include "settings.h" 
+#include "logic.h" 
 
 #include <math.h>
 #include <string.h>
@@ -103,7 +104,7 @@ void Data::post_load()
         return;
     string inf = S(p.size()) + " points.";
     if (!has_sigma) {
-        int dds = getSettings()->get_e("data-default-sigma");
+        int dds = F->get_settings()->get_e("data-default-sigma");
         if (dds == 's') {
             for (vector<Point>::iterator i = p.begin(); i < p.end(); i++) 
                 i->sigma = i->y > 1. ? sqrt (i->y) : 1.;
@@ -117,7 +118,7 @@ void Data::post_load()
         else
             assert(0);
     }
-    msg(inf);
+    F->msg(inf);
     if (title.empty())
         title = get_file_basename(filename);
     update_active_p();
@@ -334,9 +335,9 @@ void Data::load_file (string const& file, string const& type,
         return;
     }
     if (p.size() < 5)
-        warn ("Only " + S(p.size()) + " data points found in file.");
+        F->warn("Only " + S(p.size()) + " data points found in file.");
     if (!f.eof() && ft != "MCA") //!=mca; .mca doesn't have to reach EOF
-        warn ("Unexpected char when reading " + S (p.size() + 1) + ". point");
+        F->warn("Unexpected char when reading " + S (p.size() + 1) + ". point");
     post_load();
 }
 
@@ -358,7 +359,7 @@ void Data::load_xy_filetype (ifstream& f, vector<int> const& columns)
     int maxc = *max_element (cols.begin(), cols.end());
     int minc = *min_element (cols.begin(), cols.end());
     if (minc < 0) {
-        warn ("Invalid (negative) column number: " + S(minc));
+        F->warn ("Invalid (negative) column number: " + S(minc));
         return;
     }
     int not_enough_cols = 0, non_data_lines = 0, non_data_blocks = 0;
@@ -391,16 +392,16 @@ void Data::load_xy_filetype (ifstream& f, vector<int> const& columns)
             if (sig > 0) 
                 p.push_back (Point(x, y, sig));
             else
-                warn ("Point " + S(p.size()) + " has sigma = " + S(sig) 
-                        + ". Point canceled.");
+                F->warn ("Point " + S(p.size()) + " has sigma = " + S(sig) 
+                         + ". Point canceled.");
         }
     }
     if (non_data_lines > 0)
-        msg (S(non_data_lines) +" (not empty and not `#...') non-data lines "
+        F->msg(S(non_data_lines) +" (not empty and not `#...') non-data lines "
                 "in " + S(non_data_blocks) + " blocks.");
     if (not_enough_cols > 0)
-        warn ("Less than " + S(maxc) + " numbers in " + S(not_enough_cols) 
-                + " lines.");
+        F->warn("Less than " + S(maxc) + " numbers in " + S(not_enough_cols) 
+                 + " lines.");
     sort(p.begin(), p.end());
     x_step = find_step();
 }
@@ -438,7 +439,7 @@ void Data::load_mca_filetype (ifstream& f)
             || *reinterpret_cast<ui2b*>(all_data+34) != 4
             || *reinterpret_cast<ui2b*>(all_data+36) != 2048
             || *reinterpret_cast<ui2b*>(all_data+38) != 1) {
-        warn ("file format different than expected: "+ filename);
+        F->warn ("file format different than expected: "+ filename);
         return;
     }
 
@@ -483,7 +484,7 @@ void Data::load_cpi_filetype (ifstream& f)
     string s;
     getline (f, s);
     if (s.substr(0, header.size()).compare (header) != 0){
-        warn ("No \"" + header + "\" header found.");
+        F->warn ("No \"" + header + "\" header found.");
         return;
     }
     getline (f, s);//xmin
@@ -519,7 +520,7 @@ void Data::load_rit_filetype (ifstream& f)
     vector<fp> num;
     bool r = read_line_and_get_all_numbers(f, num);
     if (!r || num.size() < 2 ){
-        warn ("Bad format in \"header\" of .rit file");
+        F->warn ("Bad format in \"header\" of .rit file");
         return;
     }
     fp xmin = num[0];
@@ -527,8 +528,8 @@ void Data::load_rit_filetype (ifstream& f)
     vector<fp> ys;
     while (read_line_and_get_all_numbers(f, ys)) {
         if (ys.size() == 0)
-            warn ("Error when trying to read " + S (p.size() + 1) + ". point. " 
-                    "Ignoring line.");
+            F->warn("Error when trying to read " + S (p.size() + 1) 
+                     + ". point. Ignoring line.");
         for (vector<fp>::iterator i = ys.begin(); i != ys.end(); i++) {
             fp x = xmin + p.size() * x_step;
             p.push_back (Point(x, *i));
@@ -571,7 +572,7 @@ int Data::auto_range (fp y_level, fp x_margin)
 {
     // pre: p.x sorted
     if (p.empty()) {
-        warn("No points loaded.");
+        F->warn("No points loaded.");
         return -1;
     }
     bool state = (p.begin()->y >= y_level);
@@ -603,7 +604,7 @@ int Data::auto_range (fp y_level, fp x_margin)
 string Data::range_as_string () const 
 {
     if (active_p.empty()) {
-        warn ("File not loaded or all points inactive.");
+        F->warn ("File not loaded or all points inactive.");
         return "[]";
     }
     vector<Point>::const_iterator old_p = p.begin() + active_p[0];
@@ -691,7 +692,7 @@ void Data::export_to_file(string filename, vector<string> const& vt,
 {
     ofstream os(filename.c_str(), ios::out | (append ? ios::app : ios::trunc));
     if (!os) {
-        warn ("Can't open file: " + filename);
+        F->warn("Can't open file: " + filename);
         return;
     }
     os << "# " << title << endl;

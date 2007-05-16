@@ -137,18 +137,18 @@ void do_undefine_func(char const*, char const*)
 void do_replot(char const*, char const*) 
 { 
     if (outdated_plot)
-        getUI()->draw_plot(2); 
+        AL->get_ui()->draw_plot(2); 
     outdated_plot=false;
 }
 
 void do_temporary_set(char const*, char const*)
 {
-    getSettings()->set_temporary(t2, t);
+    AL->get_settings()->set_temporary(t2, t);
 }
 
 void do_temporary_unset(char const*, char const*)
 {
-    getSettings()->clear_temporary();
+    AL->get_settings()->clear_temporary();
 }
 
 
@@ -326,12 +326,12 @@ Commands::Status parse_and_execute(string const& str)
         if (r) 
             return Commands::status_ok;
         else {
-            warn("Syntax error.");
+            AL->warn("Syntax error.");
             return Commands::status_syntax_error;
         }
     } catch (ExecuteError &e) {
-        getSettings()->clear_temporary();
-        warn(string("Error: ") + e.what());
+        AL->get_settings()->clear_temporary();
+        AL->warn(string("Error: ") + e.what());
         return Commands::status_execute_error;
     }
 }

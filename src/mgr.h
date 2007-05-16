@@ -9,6 +9,8 @@
 
 class Variable;
 class Function;
+class Fityk;
+class Sum;
 
 /// keeps all functions and variables
 class VariableManager
@@ -16,7 +18,7 @@ class VariableManager
 public:
     bool silent;
 
-    VariableManager() : silent(false), 
+    VariableManager(Fityk const* F_) : silent(false), F(F_), 
                         var_autoname_counter(0), func_autoname_counter(0) {}
     ~VariableManager();
     void register_sum(Sum *s) { sums.push_back(s); }
@@ -69,8 +71,8 @@ public:
     void delete_funcs(std::vector<std::string> const &names);
     void delete_funcs_and_vars(std::vector<std::string> const &xnames);
     ///returns -1 if not found or idx in variables if found
-    int find_function_nr(std::string const &name);
-    Function const* find_function(std::string const &name);
+    int find_function_nr(std::string const &name) const;
+    Function const* find_function(std::string const &name) const;
     std::vector<Function*> const& get_functions() const { return functions; }
     Function const* get_function(int n) const { return functions[n]; }
 
@@ -83,6 +85,7 @@ public:
     std::vector<std::string> get_variable_references(std::string const &name);
 
 protected:
+    Fityk const* F;
     std::vector<Sum*> sums;
     std::vector<fp> parameters;
     /// sorted, a doesn't depend on b if idx(a)>idx(b)

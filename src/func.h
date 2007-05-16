@@ -8,7 +8,7 @@
 #include "mgr.h"
 #include "var.h"
 
-class Settings;
+class Fityk;
 
 class Function : public VariableUser
 {
@@ -25,9 +25,12 @@ public:
     std::string const type_rhs;
     int const nv; /// number of variables
 
-    Function(std::string const &name_, std::vector<std::string> const &vars,
+    Function(Fityk const* F_,
+             std::string const &name_, 
+             std::vector<std::string> const &vars,
              std::string const &formula_);
-    static Function* factory(std::string const &name_, 
+    static Function* factory(Fityk const* F,
+                             std::string const &name_, 
                              std::string const &type_name,
                              std::vector<std::string> const &vars);
     static std::vector<std::string> get_all_types();
@@ -107,7 +110,7 @@ public:
     virtual void precomputations_for_alternative_vv() 
                                             { this->more_precomputations(); }
 protected:
-    Settings *settings;
+    Fityk const* F;
     int const center_idx;
     std::vector<fp> vv; /// current variable values
     std::vector<Multi> multi;
@@ -190,7 +193,9 @@ public:
 private:
     VariableManager vmgr;
 
-    CompoundFunction(std::string const &name, std::string const &type,
+    CompoundFunction(Fityk const* F, 
+                     std::string const &name, 
+                     std::string const &type,
                      std::vector<std::string> const &vars);
     CompoundFunction (const CompoundFunction&); //disable
 };
@@ -210,10 +215,12 @@ public:
     void set_var_idx(std::vector<Variable*> const& variables);
     std::string get_bytecode() const { return afo.get_vmcode_info(); }
 private:
-    CustomFunction(std::string const &name, std::string const &type,
+    CustomFunction(Fityk const* F,
+                   std::string const &name, 
+                   std::string const &type,
                    std::vector<std::string> const &vars,
                    std::vector<OpTree*> const& op_trees);
-    CustomFunction (const CustomFunction&); //disable
+    CustomFunction(const CustomFunction&); //disable
     fp value; 
     std::vector<fp> derivatives; 
     AnyFormulaO afo;

@@ -838,7 +838,7 @@ fp get_constant_value(string const &s)
     else {
         fp val = strtod(s.c_str(), 0);
         if (val != 0. && fabs(val) < epsilon)
-            warn("Warning: Numeric literal 0 < |" + s + "| < epsilon=" 
+            AL->warn("Warning: Numeric literal 0 < |" + s + "| < epsilon=" 
                     + S(epsilon) + ".");
         return val;
     }

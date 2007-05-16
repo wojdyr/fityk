@@ -116,7 +116,7 @@ void read_and_execute_input()
         add_history (line);
     string s = line;
     free ((void*) line);
-    getUI()->exec_and_log(s);
+    AL->get_ui()->exec_and_log(s);
 }
 
 
@@ -251,7 +251,7 @@ char *set_generator(const char *text, int state)
     static unsigned int list_index = 0;
     static vector<string> e;
     if (!state) {
-        e = getSettings()->expanp(text);
+        e = AL->get_settings()->expanp(text);
         list_index = 0;
     }
     else
@@ -267,7 +267,7 @@ char *set_eq_generator (const char *text, int state)
     static unsigned int list_index = 0;
     static vector<string> e;
     if (!state) {
-        e = getSettings()->expand_enum(set_eq_str, text);
+        e = AL->get_settings()->expand_enum(set_eq_str, text);
         list_index = 0;
     }
     else
@@ -431,7 +431,7 @@ bool main_loop()
         cout << prompt;
         if (!getline(cin, s))
             break;
-        getUI()->exec_and_log(s);
+        AL->get_ui()->exec_and_log(s);
     }
     cout << endl;
     return true;
@@ -455,11 +455,6 @@ int main (int argc, char **argv)
     // setting ^C handler
     if (signal (SIGINT, interrupt_handler) == SIG_IGN) 
         signal (SIGINT, SIG_IGN);
-
-    // set callbacks
-    getUI()->set_show_message(cli_show_message);
-    getUI()->set_do_draw_plot(cli_do_draw_plot);
-    getUI()->set_wait(cli_wait);
 
     // process command-line arguments
     bool exec_init_file = true;
@@ -518,15 +513,19 @@ int main (int argc, char **argv)
         }
     }
 
-    AL = new ApplicationLogic;
+    AL = new Fityk;
 
+    // set callbacks
+    AL->get_ui()->set_show_message(cli_show_message);
+    AL->get_ui()->set_do_draw_plot(cli_do_draw_plot);
+    AL->get_ui()->set_wait(cli_wait);
 
     if (exec_init_file) {
         // file with initial commands is executed first (if exists)
         string init_file = get_config_dir() + startup_commands_filename;
         if (access(init_file.c_str(), R_OK) == 0) {
             cerr << " -- reading init file: " << init_file << " --\n";
-            getUI()->exec_script(init_file);
+            AL->get_ui()->exec_script(init_file);
             cerr << " -- end of init file --" << endl;
         }
     }
@@ -534,11 +533,11 @@ int main (int argc, char **argv)
     try {
         //then string given with -c is executed
         if (!script_string.empty())
-            getUI()->exec_and_log(script_string);
+            AL->get_ui()->exec_and_log(script_string);
         //the rest of parameters/arguments are scripts and/or data files
         for (int i = 1; i < argc; ++i) {
             if (argv[i])
-                getUI()->process_cmd_line_filename(argv[i]);
+                AL->get_ui()->process_cmd_line_filename(argv[i]);
         }
 
         // the version of main_loop() depends on NO_READLINE  

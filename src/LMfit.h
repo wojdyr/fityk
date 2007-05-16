@@ -14,7 +14,7 @@
 class LMfit : public Fit
 {
 public:
-    LMfit();
+    LMfit(Fityk* F);
     ~LMfit();
     fp init(); // called before do_iteration()/autoiter()
     void autoiter();
