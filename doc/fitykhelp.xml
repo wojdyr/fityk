@@ -394,7 +394,7 @@
      corresponding to one data point. The line should contain at least two
      numbers: x and y of the point. It can also contain the standard deviation of the y
      coordinate.  Numbers can be separated by whitespace, commas, colons or
-     semicolons. Some lines can contain comments or extra informations. If
+     semicolons. Some lines can contain comments or extra information. If
      these lines have a hash (#) in the first column, they are ignored. In other
      case, they are also ignored (unless they can be read as a data point). 
      Specific file types that can also be read currently include: .rit, .cpi,
@@ -773,7 +773,7 @@
    <section id="funcindt">
     <title>Functions and variables in data transformation</title>
     <para>
-     Informations in this section are not often used in practice.
+     information in this section are not often used in practice.
      Read it after reading <xref linkend="sum"/>.
     </para>
     <para>
@@ -1210,7 +1210,7 @@
    </section> 
 
    <section id="udf">
-    <title>Used-defined functions (UDF)</title>
+    <title>User-defined functions (UDF)</title>
     <para>
      User-defined function types can be created using command 
      <command>define</command>, and then used in the same way as built-in
@@ -2087,7 +2087,7 @@
     </para>
    </section>
    <section id="info">
-    <title>info: show informations</title>
+    <title>info: show information</title>
     <para>
      First, there is an option 
      <parameter class="option">verbosity</parameter>
