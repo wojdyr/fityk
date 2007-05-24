@@ -63,7 +63,7 @@ PlotPane::PlotPane(wxWindow *parent, wxWindowID id)
 void PlotPane::zoom_forward()
 {
     const int max_length_of_zoom_history = 10;
-    zoom_hist.push_back(AL->view.str());
+    zoom_hist.push_back(ftk->view.str());
     if (size(zoom_hist) > max_length_of_zoom_history)
         zoom_hist.erase(zoom_hist.begin());
 }
@@ -238,7 +238,7 @@ void IOPane::edit_in_input(string const& s)
 void IOPane::OnInputLine(wxString const& s)
 {
     frame->set_status_text(wx2s(s));
-    AL->exec(wx2s(s)); //displaying and executing command
+    ftk->exec(wx2s(s)); //displaying and executing command
 }
 
 //===============================================================

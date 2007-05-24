@@ -82,7 +82,7 @@ void FunctionMouseDrag::Drag::change_value(fp x, fp dx, int dX)
 void FunctionMouseDrag::Drag::set(Function const* p, int idx,
                                   drag_type how_, fp multiplier_)
 {
-    Variable const* var = AL->get_variable(p->get_var_idx(idx));
+    Variable const* var = ftk->get_variable(p->get_var_idx(idx));
     if (!var->is_simple()) {
         how = no_drag;
         return;
@@ -270,17 +270,17 @@ void MainPlot::draw_dataset(wxDC& dc, int n, bool set_pen)
                 (col.Blue() + bg_col.Blue())/2);
     }
     if (set_pen)
-        draw_data(dc, y_of_data_for_draw_data, AL->get_data(n), 0, 
+        draw_data(dc, y_of_data_for_draw_data, ftk->get_data(n), 0, 
                   col, wxNullColour, offset);
     else
-        draw_data(dc, y_of_data_for_draw_data, AL->get_data(n), 0, 
+        draw_data(dc, y_of_data_for_draw_data, ftk->get_data(n), 0, 
                   dc.GetPen().GetColour(), dc.GetPen().GetColour(), offset);
 }
 
 void MainPlot::draw(wxDC &dc, bool monochrome)
 {
-    int focused_data = AL->get_active_ds_position();
-    Sum const* sum = AL->get_sum(focused_data);
+    int focused_data = ftk->get_active_ds_position();
+    Sum const* sum = ftk->get_sum(focused_data);
 
     set_scale();
 
@@ -293,7 +293,7 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
         dc.SetBrush(*wxBLACK_BRUSH);
     }
     //draw datasets
-    for (int i = 0; i < AL->get_ds_count(); i++) {
+    for (int i = 0; i < ftk->get_ds_count(); i++) {
         if (i != focused_data) {
             draw_dataset(dc, i, !monochrome);
         }
@@ -302,9 +302,9 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
     draw_dataset(dc, focused_data, !monochrome);
 
     if (xtics_visible)
-        draw_xtics(dc, AL->view, !monochrome);
+        draw_xtics(dc, ftk->view, !monochrome);
     if (ytics_visible)
-        draw_ytics(dc, AL->view, !monochrome);
+        draw_ytics(dc, ftk->view, !monochrome);
 
     if (peaks_visible)
         draw_peaks(dc, sum, !monochrome);
@@ -384,7 +384,7 @@ void MainPlot::draw_peaks(wxDC& dc, Sum const* sum, bool set_pen)
         xx[i] = xs.val(i);
     for (int k = 0; k < size(idx); k++) {
         fill(yy.begin(), yy.end(), 0.);
-        Function const* f = AL->get_function(idx[k]);
+        Function const* f = ftk->get_function(idx[k]);
         int from=0, to=n-1;
         fp left, right;
         if (f->get_nonzero_range(level, left, right)) {
@@ -491,7 +491,7 @@ void MainPlot::prepare_peaktops(Sum const* sum)
     int n = idx.size();
     special_points.resize(n);
     for (int k = 0; k < n; k++) {
-        Function const *f = AL->get_function(idx[k]);
+        Function const *f = ftk->get_function(idx[k]);
         fp x;
         int X, Y;
         if (f->has_center()) {
@@ -517,7 +517,7 @@ void MainPlot::prepare_peak_labels(Sum const* sum)
     vector<int> const& idx = sum->get_ff_idx();
     plabels.resize(idx.size());
     for (int k = 0; k < size(idx); k++) {
-        Function const *f = AL->get_function(idx[k]);
+        Function const *f = ftk->get_function(idx[k]);
         string label = plabel_format;
         string::size_type pos = 0; 
         while ((pos = label.find("<", pos)) != string::npos) {
@@ -705,30 +705,30 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
     peak_menu.Append(ID_peak_popup_del, wxT("&Delete"));
     peak_menu.Append(ID_peak_popup_guess, wxT("&Guess parameters"));
     peak_menu.Enable(ID_peak_popup_guess, 
-                     AL->get_function(over_peak)->has_center());
+                     ftk->get_function(over_peak)->has_center());
     PopupMenu (&peak_menu, event.GetX(), event.GetY());
 }
 
 void MainPlot::PeakInfo()
 {
     if (over_peak >= 0)
-        AL->exec("info+ " + AL->get_function(over_peak)->xname);
+        ftk->exec("info+ " + ftk->get_function(over_peak)->xname);
 }
 
 void MainPlot::OnPeakDelete(wxCommandEvent&)
 {
     if (over_peak >= 0)
-        AL->exec("delete " + AL->get_function(over_peak)->xname);
+        ftk->exec("delete " + ftk->get_function(over_peak)->xname);
 }
 
 void MainPlot::OnPeakGuess(wxCommandEvent&)
 {
     if (over_peak >= 0) {
-        Function const* p = AL->get_function(over_peak);
+        Function const* p = ftk->get_function(over_peak);
         if (p->has_center()) {
             fp ctr = p->center();
             fp plusmin = max(fabs(p->fwhm()), p->iwidth());    
-            AL->exec(p->xname + " = guess " + p->type_name + " [" 
+            ftk->exec(p->xname + " = guess " + p->type_name + " [" 
                              + S(ctr-plusmin) + ":" + S(ctr+plusmin) + "]"
                              + frame->get_in_dataset());
         }
@@ -836,8 +836,8 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
 
 void MainPlot::look_for_peaktop (wxMouseEvent& event)
 {
-    int focused_data = AL->get_active_ds_position();
-    Sum const* sum = AL->get_sum(focused_data);
+    int focused_data = ftk->get_active_ds_position();
+    Sum const* sum = ftk->get_sum(focused_data);
     vector<int> const& idx = sum->get_ff_idx();
     if (special_points.size() != idx.size()) 
         refresh(false);
@@ -851,7 +851,7 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
     // and show limits
     over_peak = nearest;
     if (nearest != -1) {
-        Function const* f = AL->get_function(over_peak);
+        Function const* f = ftk->get_function(over_peak);
         string s = f->xname + " " + f->type_name + " ";
         vector<string> const& vn = f->type_var_names;
         for (int i = 0; i < size(vn); ++i)
@@ -859,7 +859,7 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
         frame->set_status_text(s);
         set_mouse_mode(mmd_peak);
         fp x1=0., x2=0.;
-        bool r = f->get_nonzero_range(AL->get_settings()->get_cut_level(), 
+        bool r = f->get_nonzero_range(ftk->get_settings()->get_cut_level(), 
                                       x1, x2);
         if (r) {
             limit1 = xs.px(x1);
@@ -922,7 +922,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     else if (button == 1 && mode == mmd_peak) {
         frame->activate_function(over_peak);
         draw_moving_func(mat_start, event.GetX(), event.GetY());
-        frame->set_status_text("Moving " + AL->get_function(over_peak)->xname 
+        frame->set_status_text("Moving " + ftk->get_function(over_peak)->xname 
                                 + "...");
     }
     else if (button == 3 && mode == mmd_peak) {
@@ -951,7 +951,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     }
     else if (button != 2 && mode == mmd_range) {
         if (button == 1) {
-            Data const* data = AL->get_data(AL->get_active_ds_position());
+            Data const* data = ftk->get_data(ftk->get_active_ds_position());
             if (!data->is_empty() && data->get_n() == size(data->points())) {
                 cancel_mouse_press();
                 wxMessageBox(
@@ -1013,7 +1013,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         if (dist_X + dist_Y >= 2) {
             string cmd = fmd.get_cmd();
             if (!cmd.empty())
-                AL->exec(cmd);
+                ftk->exec(cmd);
         }
         draw_moving_func(mat_stop);
         frame->set_status_text("");
@@ -1026,7 +1026,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             fp xmin = xs.val (min (event.GetX(), mouse_press_X));
             fp xmax = xs.val (max (event.GetX(), mouse_press_X));
             string cond = "(" + S(xmin) + "< x <" + S(xmax) + ")";
-            AL->exec(c + cond + frame->get_in_one_or_all_datasets());
+            ftk->exec(c + cond + frame->get_in_one_or_all_datasets());
         }
         else if (shift_on_down && dist_X + dist_Y >= 10) {
             fp x1 = xs.val(mouse_press_X);
@@ -1035,18 +1035,18 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             fp y2 = ys.val(event.GetY());
             string cond = "(" + S(min(x1,x2)) + " < x < " + S(max(x1,x2)) 
                    + " and " + S(min(y1,y2)) + " < y < " + S(max(y1,y2)) + ")";
-            AL->exec(c + cond + frame->get_in_one_or_all_datasets());
+            ftk->exec(c + cond + frame->get_in_one_or_all_datasets());
         }
         frame->set_status_text("");
     }
     else if (mode == mmd_add && button == 1) {
         frame->set_status_text("");
         peak_draft(mat_stop, event.GetX(), event.GetY());
-        string F = AL->get_ds_count() > 1 ?  frame->get_active_data_str()+".F" 
+        string F = ftk->get_ds_count() > 1 ?  frame->get_active_data_str()+".F" 
                                           : "F";
         if (func_draft_kind == fk_linear) {
             fp y = ys.val(event.GetY());
-            AL->exec(F + " += " + frame->get_peak_type()  
+            ftk->exec(F + " += " + frame->get_peak_type()  
                          + "(slope=~" + S(0) + ", intercept=~" + S(y) 
                          + ", avgy=~" + S(y) + ")");
         }
@@ -1056,7 +1056,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
                 fp center = xs.val(mouse_press_X);
                 fp fwhm = fabs(center - xs.val(event.GetX()));
                 fp area = height * fwhm;
-                AL->exec(F + " += " + frame->get_peak_type()  
+                ftk->exec(F + " += " + frame->get_peak_type()  
                          + "(height=~" + S(height) + ", center=~" + S(center) 
                          + ", fwhm=~" + S(fwhm) + ", area=~" + S(area) + ")");
             }
@@ -1067,7 +1067,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         if (dist_X >= 5) { 
             fp x1 = xs.val(mouse_press_X);
             fp x2 = xs.val(event.GetX());
-            AL->exec("guess " + frame->get_peak_type() 
+            ftk->exec("guess " + frame->get_peak_type() 
                           + " [" + S(min(x1,x2)) + " : " + S(max(x1,x2)) + "]"
                           + frame->get_in_dataset());
         }
@@ -1104,7 +1104,7 @@ bool MainPlot::draw_moving_func(MouseActEnum ma, int X, int Y, bool shift)
     if (over_peak == -1)
         return false;
 
-    Function const* p = AL->get_function(over_peak);
+    Function const* p = ftk->get_function(over_peak);
 
     if (ma != mat_start) {
         if (func_nr != over_peak) 
@@ -1694,7 +1694,7 @@ void BgManager::rm_background_point (fp x)
     bg_iterator u = upper_bound (bg.begin(), bg.end(), B_point(upper, 0));
     if (u > l) {
         bg.erase(l, u);
-        AL->vmsg (S(u - l) + " background points removed.");
+        ftk->vmsg (S(u - l) + " background points removed.");
         recompute_bgline();
     }
 }
@@ -1705,7 +1705,7 @@ void BgManager::clear_background()
     bg.clear();
     recompute_bgline();
     if (n != 0)
-        AL->vmsg (S(n) + " background points deleted.");
+        ftk->vmsg (S(n) + " background points deleted.");
 }
 
 void BgManager::strip_background()
@@ -1722,8 +1722,8 @@ void BgManager::strip_background()
                + join_vector(pars, ", ") + "](x)" 
                + frame->get_in_one_or_all_datasets();
     clear_background();
-    AL->exec("Y = y - " + cmd_tail);
-    AL->vmsg("Background stripped.");
+    ftk->exec("Y = y - " + cmd_tail);
+    ftk->vmsg("Background stripped.");
 }
 
 void BgManager::undo_strip_background()
@@ -1733,13 +1733,13 @@ void BgManager::undo_strip_background()
     bg = bg_backup;
     bg_backup.clear();
     recompute_bgline();
-    AL->exec("Y = y + " + cmd_tail);
+    ftk->exec("Y = y + " + cmd_tail);
 }
 
 void BgManager::recompute_bgline()
 {
-    int focused_data = AL->get_active_ds_position();
-    const std::vector<Point>& p = AL->get_data(focused_data)->points();
+    int focused_data = ftk->get_active_ds_position();
+    const std::vector<Point>& p = ftk->get_data(focused_data)->points();
     bgline.resize(p.size());
     if (spline_bg) 
         prepare_spline_interpolation(bg);

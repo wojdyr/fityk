@@ -27,6 +27,10 @@ class DataEditorDlg;
 class PrintManager;
 class FStatusBar;
 
+class Fityk;
+extern Fityk *ftk;
+
+
 /// Fityk-GUI "main loop"
 class FApp: public wxApp
 {
@@ -75,7 +79,6 @@ public:
     //void OnSize (wxSizeEvent& event);
 
     void OnShowHelp (wxCommandEvent& event);
-    void OnTipOfTheDay (wxCommandEvent& event);
     void OnAbout (wxCommandEvent& event);
     void OnContact (wxCommandEvent& event);
     void OnQuit (wxCommandEvent& event);

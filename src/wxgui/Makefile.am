@@ -2,7 +2,6 @@
 
 SUBDIRS = img 
 bin_PROGRAMS = fityk 
-dist_pkgdata_DATA = tips.txt 
 
 EXTRA_DIST = winres.rc 
 

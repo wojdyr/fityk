@@ -188,7 +188,6 @@ elif [ $1 -eq 6 ]; then
  cp fityk.iss ../fityk.url ../COPYING ../AUTHORS ../TODO ../NEWS $ALL_WIN_FILES
  cp src/wxgui/fityk.exe $ALL_WIN_FILES/src
  cp -r ../samples $ALL_WIN_FILES
- cp ../src/wxgui/tips.txt $ALL_WIN_FILES/src
  if [ -a doc/fitykhelp.htb ]; then
 	 unzip doc/fitykhelp.htb -d $ALL_WIN_FILES/doc
  else

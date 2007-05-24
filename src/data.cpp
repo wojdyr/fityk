@@ -50,6 +50,8 @@ string Data::getInfo() const
         s = S(p.size()) + " points, " + S(active_p.size()) + " active.";
     if (!filename.empty())
         s += "\nFilename: " + filename;
+    if (!given_cols.empty())
+        s += "\nColumns: " + join_vector(given_cols, ", ");
     if (!title.empty())
         s += "\nData title: " + title;
     if (active_p.size() != p.size())
@@ -119,8 +121,11 @@ void Data::post_load()
             assert(0);
     }
     F->msg(inf);
-    if (title.empty())
+    if (title.empty()) {
         title = get_file_basename(filename);
+        if (given_cols.size() >= 2)
+            title += ":" + S(given_cols[0]) + "," + S(given_cols[1]);
+    }
     update_active_p();
     recompute_y_bounds();
 }

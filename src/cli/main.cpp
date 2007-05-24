@@ -29,6 +29,7 @@
 
 using namespace std;
 
+Fityk* ftk = 0;
 
 //------ UserInterface - implementation of CLI specific methods ------
 
@@ -116,7 +117,7 @@ void read_and_execute_input()
         add_history (line);
     string s = line;
     free ((void*) line);
-    AL->get_ui()->exec_and_log(s);
+    ftk->get_ui()->exec_and_log(s);
 }
 
 
@@ -212,7 +213,7 @@ char *function_generator(const char *text, int state)
     static vector<string> e;
     if (!state) {
         e.clear();
-        vector<Function*> const& ff = AL->get_functions(); 
+        vector<Function*> const& ff = ftk->get_functions(); 
         for (vector<Function*>::const_iterator i=ff.begin(); i != ff.end(); ++i)
             if (!strncmp ((*i)->xname.c_str(), text, strlen(text)))
                 e.push_back((*i)->xname);
@@ -232,7 +233,7 @@ char *variable_generator(const char *text, int state)
     static vector<string> e;
     if (!state) {
         e.clear();
-        vector<Variable*> const& vv = AL->get_variables(); 
+        vector<Variable*> const& vv = ftk->get_variables(); 
         for (vector<Variable*>::const_iterator i=vv.begin(); i != vv.end(); ++i)
             if (!strncmp ((*i)->name.c_str(), text, strlen(text)))
                 e.push_back((*i)->name);
@@ -251,7 +252,7 @@ char *set_generator(const char *text, int state)
     static unsigned int list_index = 0;
     static vector<string> e;
     if (!state) {
-        e = AL->get_settings()->expanp(text);
+        e = ftk->get_settings()->expanp(text);
         list_index = 0;
     }
     else
@@ -267,7 +268,7 @@ char *set_eq_generator (const char *text, int state)
     static unsigned int list_index = 0;
     static vector<string> e;
     if (!state) {
-        e = AL->get_settings()->expand_enum(set_eq_str, text);
+        e = ftk->get_settings()->expand_enum(set_eq_str, text);
         list_index = 0;
     }
     else
@@ -431,7 +432,7 @@ bool main_loop()
         cout << prompt;
         if (!getline(cin, s))
             break;
-        AL->get_ui()->exec_and_log(s);
+        ftk->get_ui()->exec_and_log(s);
     }
     cout << endl;
     return true;
@@ -513,19 +514,19 @@ int main (int argc, char **argv)
         }
     }
 
-    AL = new Fityk;
+    ftk = new Fityk;
 
     // set callbacks
-    AL->get_ui()->set_show_message(cli_show_message);
-    AL->get_ui()->set_do_draw_plot(cli_do_draw_plot);
-    AL->get_ui()->set_wait(cli_wait);
+    ftk->get_ui()->set_show_message(cli_show_message);
+    ftk->get_ui()->set_do_draw_plot(cli_do_draw_plot);
+    ftk->get_ui()->set_wait(cli_wait);
 
     if (exec_init_file) {
         // file with initial commands is executed first (if exists)
         string init_file = get_config_dir() + startup_commands_filename;
         if (access(init_file.c_str(), R_OK) == 0) {
             cerr << " -- reading init file: " << init_file << " --\n";
-            AL->get_ui()->exec_script(init_file);
+            ftk->get_ui()->exec_script(init_file);
             cerr << " -- end of init file --" << endl;
         }
     }
@@ -533,11 +534,11 @@ int main (int argc, char **argv)
     try {
         //then string given with -c is executed
         if (!script_string.empty())
-            AL->get_ui()->exec_and_log(script_string);
+            ftk->get_ui()->exec_and_log(script_string);
         //the rest of parameters/arguments are scripts and/or data files
         for (int i = 1; i < argc; ++i) {
             if (argv[i])
-                AL->get_ui()->process_cmd_line_filename(argv[i]);
+                ftk->get_ui()->process_cmd_line_filename(argv[i]);
         }
 
         // the version of main_loop() depends on NO_READLINE  

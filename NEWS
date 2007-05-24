@@ -1,4 +1,8 @@
 $Id$
+
+User-visible changes in version 0.8.2  (2007-  -  ):
+* "Tip of the day" removed (tips.txt deleted). 
+
 User-visible changes in version 0.8.1  (2007-04-23):
 * extended version info can be shown by "info+ version"
 * displaying Gaussian-FWHM and Lorentzian-FWHM of Voigt function

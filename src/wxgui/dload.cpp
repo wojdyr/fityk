@@ -49,7 +49,7 @@ public:
     auto_ptr<Data> data;
 
     PreviewPlot(wxWindow* parent)
-        : BufferedPanel(parent), data(new Data(AL)) 
+        : BufferedPanel(parent), data(new Data(ftk)) 
                   { backgroundCol = *wxBLACK; }
     void OnPaint(wxPaintEvent &event);
     void draw(wxDC &dc, bool);
@@ -234,7 +234,7 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
         }
     }
 
-    bool def_sqrt = (AL->get_settings()->getp("data-default-sigma") == "sqrt");
+    bool def_sqrt = (ftk->get_settings()->getp("data-default-sigma") == "sqrt");
     sd_sqrt_cb = new wxCheckBox(left_panel, ID_DXLOAD_SDS, 
                                 wxT("set std. dev. as max(sqrt(y), 1.0)"));
     sd_sqrt_cb->SetValue(def_sqrt);
@@ -344,16 +344,16 @@ void DLoadDlg::OnClose (wxCommandEvent&)
 
 void DLoadDlg::OnOpenHere (wxCommandEvent&)
 {
-    AL->exec(get_command("@" + S(data_nr), data_nr));
+    ftk->exec(get_command("@" + S(data_nr), data_nr));
     frame->add_recent_data_file(get_filename());
 }
 
 void DLoadDlg::OnOpenNew (wxCommandEvent&)
 {
-    int d_nr = AL->get_ds_count();
-    if (d_nr == 1 && !AL->get_ds(0)->has_any_info())
+    int d_nr = ftk->get_ds_count();
+    if (d_nr == 1 && !ftk->get_ds(0)->has_any_info())
         d_nr = 0; // special case, @+ will not add new data slot
-    AL->exec(get_command("@+", d_nr));
+    ftk->exec(get_command("@+", d_nr));
     frame->add_recent_data_file(get_filename());
 }
 
@@ -378,14 +378,14 @@ void DLoadDlg::update_plot_preview()
             cols.push_back(x_column->GetValue());
             cols.push_back(y_column->GetValue());
         }
-        AL->get_ui()->keep_quiet = true;
+        ftk->get_ui()->keep_quiet = true;
         try {
             plot_preview->data->load_file(wx2s(dir_ctrl->GetFilePath()), 
                                           "", cols, true);
         } catch (ExecuteError&) {
             plot_preview->data->clear();
         }
-        AL->get_ui()->keep_quiet = false;
+        ftk->get_ui()->keep_quiet = false;
     }
     else {
         plot_preview->data->clear();
@@ -464,7 +464,7 @@ string DLoadDlg::get_command(string const& ds, int d_nr)
     if (htitle_cb->IsChecked())
         filetype = " htext";
 
-    bool def_sqrt = (AL->get_settings()->getp("data-default-sigma") == "sqrt");
+    bool def_sqrt = (ftk->get_settings()->getp("data-default-sigma") == "sqrt");
     bool set_sqrt = sd_sqrt_cb->GetValue();
     bool sigma_in_file = (columns_panel->IsEnabled() && std_dev_cb->GetValue());
     if (!sigma_in_file && set_sqrt != def_sqrt) {

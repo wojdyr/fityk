@@ -22,7 +22,6 @@
     #include <wx/tooltip.h>
 #endif
 #include <wx/cmdline.h> 
-#include <wx/tipdlg.h>
 #include <wx/statline.h>
 #include <wx/html/htmlwin.h>
 #include <wx/fs_zip.h>
@@ -98,10 +97,10 @@
 
 using namespace std;
 FFrame *frame = NULL;
+Fityk *ftk = NULL;
 
 enum {
     ID_H_MANUAL        = 24001 ,
-    ID_H_TIP                   ,
     ID_H_CONTACT               ,
     ID_D_LOAD                  ,
     ID_D_XLOAD                 ,
@@ -291,14 +290,14 @@ bool FApp::OnInit(void)
         return false; //false = exit the application
     } //the rest of options will be processed in process_argv()
 
-    AL = new Fityk; 
+    ftk = new Fityk; 
 
     // set callbacks
-    AL->get_ui()->set_show_message(gui_show_message);
-    AL->get_ui()->set_do_draw_plot(gui_do_draw_plot);
-    AL->get_ui()->set_wait(gui_wait);
-    AL->get_ui()->set_refresh(gui_refresh);
-    AL->get_ui()->set_exec_command(gui_exec_command);
+    ftk->get_ui()->set_show_message(gui_show_message);
+    ftk->get_ui()->set_do_draw_plot(gui_do_draw_plot);
+    ftk->get_ui()->set_wait(gui_wait);
+    ftk->get_ui()->set_refresh(gui_refresh);
+    ftk->get_ui()->set_exec_command(gui_exec_command);
 
     wxFileSystem::AddHandler(new wxZipFSHandler);
     wxImage::AddHandler(new wxPNGHandler);
@@ -359,15 +358,12 @@ bool FApp::OnInit(void)
         // run initial commands (from ~/.fityk/init file)
         wxString startup_file = get_user_conffile(startup_commands_filename);
         if (wxFileExists(startup_file)) {
-            AL->get_ui()->exec_script(wx2s(startup_file));
+            ftk->get_ui()->exec_script(wx2s(startup_file));
         }
     }
 
     process_argv(cmdLineParser);
 
-    wxString conf_path = wxT("/TipOfTheDay/ShowAtStartup");
-    if (cfg_read_bool(wxConfig::Get(), conf_path, true)) 
-        frame->OnTipOfTheDay(dummy_cmd_event);
     frame->after_cmd_updates();
     return true;
 }
@@ -375,7 +371,7 @@ bool FApp::OnInit(void)
 
 int FApp::OnExit()
 { 
-    delete AL; 
+    delete ftk; 
     wxConfig::Get()->Write(wxT("/FitykVersion"), pchar2wx(VERSION));
     delete wxConfig::Set((wxConfig *) NULL);
     return 0;
@@ -414,7 +410,7 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
 {
     wxString cmd;
     if (cmdLineParser.Found(wxT("c"), &cmd))
-        AL->get_ui()->exec_and_log(wx2s(cmd));
+        ftk->get_ui()->exec_and_log(wx2s(cmd));
     //the rest of parameters/arguments are scripts and/or data files
     vector<string> p;
     for (unsigned int i = 0; i < cmdLineParser.GetParamCount(); i++) 
@@ -423,12 +419,12 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
         sort(p.begin(), p.end(), less_filename(find_common_prefix_length(p)));
     }
     for (vector<string>::const_iterator i = p.begin(); i != p.end(); ++i) 
-        AL->get_ui()->process_cmd_line_filename(*i);
-    if (AL->get_ds_count() > 1) {
+        ftk->get_ui()->process_cmd_line_filename(*i);
+    if (ftk->get_ds_count() > 1) {
         frame->SwitchSideBar(true);
         // zoom to show all loaded datafiles
-        AL->view.set_datasets(AL->get_dsds()); 
-        AL->view.fit();
+        ftk->view.set_datasets(ftk->get_dsds()); 
+        ftk->view.fit();
     }
 }
 
@@ -542,7 +538,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_SCONFAS,     FFrame::OnConfigSaveAs)
 
     EVT_MENU (ID_H_MANUAL,      FFrame::OnShowHelp)
-    EVT_MENU (ID_H_TIP,         FFrame::OnTipOfTheDay)
     EVT_MENU (ID_H_CONTACT,     FFrame::OnContact)
     EVT_MENU (wxID_ABOUT,       FFrame::OnAbout)
     EVT_MENU (wxID_EXIT,        FFrame::OnQuit)
@@ -974,8 +969,6 @@ void FFrame::set_menubar()
 
     append_mi(help_menu, ID_H_MANUAL, GET_BMP(book16), wxT("&Manual\tF1"), 
               wxT("User's Manual"));
-    help_menu->Append(ID_H_TIP, wxT("&Tip of the day"), 
-                      wxT("Show tip of the day"));
     help_menu->Append(ID_H_CONTACT, wxT("&Report bug (on-line)"), 
                       wxT("Feedback is always appreciated."));
     help_menu->Append(wxID_ABOUT, wxT("&About..."), wxT("Show about dialog"));
@@ -1009,19 +1002,6 @@ void FFrame::OnShowMenuZoomPrev(wxUpdateUIEvent& event)
     event.Skip();
 }
            
-
-void FFrame::OnTipOfTheDay(wxCommandEvent&)
-{
-    string tip_file = "tips.txt";
-    string tip_path = get_full_path_of_help_file(tip_file); 
-    int idx = wxConfig::Get()->Read(wxT("/TipOfTheDay/idx"), 0L); 
-    wxTipProvider *tipProvider = wxCreateFileTipProvider(s2wx(tip_path), idx);
-    bool showAtStartup = wxShowTip(this, tipProvider);
-    idx = tipProvider->GetCurrentTip();
-    delete tipProvider;
-    wxConfig::Get()->Write(wxT("/TipOfTheDay/ShowAtStartup"), showAtStartup); 
-    wxConfig::Get()->Write(wxT("/TipOfTheDay/idx"), idx); 
-}
 
 void FFrame::OnShowHelp(wxCommandEvent&)
 {
@@ -1073,7 +1053,7 @@ void FFrame::OnDLoad (wxCommandEvent&)
                 cmd += " ; @+ <'" + wx2s(paths[i]) + "'"; 
             add_recent_data_file(wx2s(paths[i]));
         }
-        AL->exec(cmd);
+        ftk->exec(cmd);
         if (count > 1)
             SwitchSideBar(true);
     }
@@ -1082,15 +1062,15 @@ void FFrame::OnDLoad (wxCommandEvent&)
 
 void FFrame::OnDXLoad (wxCommandEvent&)
 {
-    int n = AL->get_active_ds_position();
-    DLoadDlg dload_dialog(this, -1, n, AL->get_data(n));
+    int n = ftk->get_active_ds_position();
+    DLoadDlg dload_dialog(this, -1, n, ftk->get_data(n));
     dload_dialog.ShowModal();
 }
 
 void FFrame::OnDRecent (wxCommandEvent& event)
 {
     string s = wx2s(GetMenuBar()->GetHelpString(event.GetId()));
-    AL->exec(get_active_data_str() + " <'" + s + "'");
+    ftk->exec(get_active_data_str() + " <'" + s + "'");
     add_recent_data_file(s);
 }
 
@@ -1098,12 +1078,12 @@ void FFrame::OnDEditor (wxCommandEvent&)
 {
     vector<pair<int,Data*> > dd;
     if (get_apply_to_all_ds()) {
-        for (int i = 0; i < AL->get_ds_count(); ++i) 
-            dd.push_back(make_pair(i, AL->get_data(i)));
+        for (int i = 0; i < ftk->get_ds_count(); ++i) 
+            dd.push_back(make_pair(i, ftk->get_data(i)));
     }
     else {
-        int p = AL->get_active_ds_position();
-        dd.push_back(make_pair(p, AL->get_data(p)));
+        int p = ftk->get_active_ds_position();
+        dd.push_back(make_pair(p, ftk->get_data(p)));
     }
     DataEditorDlg data_editor(this, -1, dd);
     data_editor.ShowModal();
@@ -1147,14 +1127,14 @@ void FFrame::OnFastDT (wxCommandEvent& event)
 
 void FFrame::OnAllDatasetsUpdate (wxUpdateUIEvent& event)
 {
-    event.Enable(AL->get_ds_count() > 1);
+    event.Enable(ftk->get_ds_count() > 1);
 }
 
 void FFrame::OnDMerge (wxCommandEvent&)
 {
     MergePointsDlg *dlg = new MergePointsDlg(this);
     if (dlg->ShowModal() == wxID_OK)
-        AL->exec(dlg->get_command());
+        ftk->exec(dlg->get_command());
     dlg->Destroy();
 }
 
@@ -1167,18 +1147,18 @@ void FFrame::OnDefinitionMgr(wxCommandEvent&)
 {
     DefinitionMgrDlg* dlg = new DefinitionMgrDlg(this);
     if (dlg->ShowModal() == wxID_OK)
-        AL->exec(dlg->get_command());
+        ftk->exec(dlg->get_command());
     dlg->Destroy();
 }
 
 void FFrame::OnSGuess (wxCommandEvent&)
 {
-    AL->exec("guess " + frame->get_peak_type() + get_in_dataset());
+    ftk->exec("guess " + frame->get_peak_type() + get_in_dataset());
 }
 
 void FFrame::OnSPFInfo (wxCommandEvent&)
 {
-    AL->exec("info guess" + get_in_dataset());
+    ftk->exec("info guess" + get_in_dataset());
     //TODO animations showing peak positions
 }
         
@@ -1198,8 +1178,8 @@ void FFrame::OnSExport (wxCommandEvent& event)
 {
     static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
     bool as_peaks = (event.GetId() == ID_S_EXPORTP);
-    int pos = AL->get_active_ds_position();
-    string const& filename = AL->get_data(pos)->get_filename();
+    int pos = ftk->get_active_ds_position();
+    string const& filename = ftk->get_data(pos)->get_filename();
     wxString name = wxFileName(s2wx(filename)).GetName()
                                 + (as_peaks ? wxT(".peaks") : wxT(".formula"));
     wxFileDialog fdlg (this, wxT("Export curve to file"), dir, name,
@@ -1209,7 +1189,7 @@ void FFrame::OnSExport (wxCommandEvent& event)
                         + wxString(wxT("|all files|*")),
                        wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) 
-        AL->exec(string("info ") + (as_peaks ? "peaks" : "formula")
+        ftk->exec(string("info ") + (as_peaks ? "peaks" : "formula")
                      + " in " +  get_active_data_str() + 
                      + " > '" + wx2s(fdlg.GetPath()) + "'");
     dir = fdlg.GetDirectory();
@@ -1218,8 +1198,8 @@ void FFrame::OnSExport (wxCommandEvent& event)
         
 void FFrame::OnFMethodUpdate (wxUpdateUIEvent& event)
 {
-    FitMethodsContainer const* fmc = AL->get_fit_container();
-    int n = AL->get_settings()->get_e("fitting-method");
+    FitMethodsContainer const* fmc = ftk->get_fit_container();
+    int n = ftk->get_settings()->get_e("fitting-method");
     GetMenuBar()->Check (ID_F_M + n, true);
     // to make it simpler, history menu items are also updated here
     GetMenuBar()->Enable(ID_F_UNDO, fmc->can_undo());
@@ -1232,8 +1212,8 @@ void FFrame::OnFMethodUpdate (wxUpdateUIEvent& event)
 void FFrame::OnFOneOfMethods (wxCommandEvent& event)
 {
     int m = event.GetId() - ID_F_M;
-    AL->exec("set fitting-method=" 
-             + AL->get_fit_container()->get_method(m)->name);
+    ftk->exec("set fitting-method=" 
+             + ftk->get_fit_container()->get_method(m)->name);
 }
            
 void FFrame::OnFRun (wxCommandEvent&)
@@ -1243,17 +1223,17 @@ void FFrame::OnFRun (wxCommandEvent&)
         
 void FFrame::OnFInfo (wxCommandEvent&)
 {
-    AL->exec("info fit");
+    ftk->exec("info fit");
 }
          
 void FFrame::OnFUndo (wxCommandEvent&)
 {
-    AL->exec("fit undo");
+    ftk->exec("fit undo");
 }
          
 void FFrame::OnFRedo (wxCommandEvent&)
 {
-    AL->exec("fit redo");
+    ftk->exec("fit redo");
 }
          
 void FFrame::OnFHistory (wxCommandEvent&)
@@ -1265,13 +1245,13 @@ void FFrame::OnFHistory (wxCommandEvent&)
             
 void FFrame::OnFClearH (wxCommandEvent&)
 {
-    AL->exec("fit history clear");
+    ftk->exec("fit history clear");
 }
          
          
 void FFrame::OnLogUpdate (wxUpdateUIEvent& event)        
 {
-    string const& logfile = AL->get_ui()->get_commands().get_log_file();
+    string const& logfile = ftk->get_ui()->get_commands().get_log_file();
     if (logfile.empty()) {
         GetMenuBar()->Enable(ID_LOG_START, true);
         GetMenuBar()->Enable(ID_LOG_STOP, false);
@@ -1280,7 +1260,7 @@ void FFrame::OnLogUpdate (wxUpdateUIEvent& event)
         GetMenuBar()->Enable(ID_LOG_START, false);
         GetMenuBar()->Enable(ID_LOG_STOP, true);
         GetMenuBar()->Check(ID_LOG_WITH_OUTPUT, 
-                            AL->get_ui()->get_commands().get_log_with_output());
+                          ftk->get_ui()->get_commands().get_log_with_output());
     }
     event.Skip();
 }
@@ -1292,28 +1272,28 @@ void FFrame::OnLogStart (wxCommandEvent&)
                        wxT("Fityk script file (*.fit)|*.fit;*.FIT")
                        wxT("|All files |*"),
                        wxFD_SAVE);
-    string const& logfile = AL->get_ui()->get_commands().get_log_file();
+    string const& logfile = ftk->get_ui()->get_commands().get_log_file();
     if (!logfile.empty())
         fdlg.SetPath(s2wx(logfile));
     if (fdlg.ShowModal() == wxID_OK) {
         string plus = GetMenuBar()->IsChecked(ID_LOG_WITH_OUTPUT) ? "+" : "";
-        AL->exec("commands" + plus + " > '" + wx2s(fdlg.GetPath()) + "'");
+        ftk->exec("commands" + plus + " > '" + wx2s(fdlg.GetPath()) + "'");
     }
     dir = fdlg.GetDirectory();
 }
 
 void FFrame::OnLogStop (wxCommandEvent&)
 {
-    AL->exec("commands > /dev/null");
+    ftk->exec("commands > /dev/null");
 }
 
 void FFrame::OnLogWithOutput (wxCommandEvent& event)
 {
     bool checked = event.IsChecked();
     GetMenuBar()->Check(ID_LOG_WITH_OUTPUT, checked);
-    string const& logfile = AL->get_ui()->get_commands().get_log_file();
+    string const& logfile = ftk->get_ui()->get_commands().get_log_file();
     if (!logfile.empty())
-        AL->exec("commands+ > " + logfile);
+        ftk->exec("commands+ > " + logfile);
 }
 
 void FFrame::OnLogDump (wxCommandEvent&)
@@ -1323,7 +1303,7 @@ void FFrame::OnLogDump (wxCommandEvent&)
                       dir, wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
-        AL->exec("commands[:] > '" + wx2s(fdlg.GetPath()) + "'");
+        ftk->exec("commands[:] > '" + wx2s(fdlg.GetPath()) + "'");
     }
     dir = fdlg.GetDirectory();
 }
@@ -1335,7 +1315,7 @@ void FFrame::OnReset (wxCommandEvent&)
                          wxT("Are you sure?"), 
                          wxYES_NO | wxCANCEL | wxCENTRE | wxICON_QUESTION);
     if (r == wxYES)
-        AL->exec("reset");
+        ftk->exec("reset");
 }
         
 void FFrame::OnInclude (wxCommandEvent&)
@@ -1345,7 +1325,7 @@ void FFrame::OnInclude (wxCommandEvent&)
                               wxT("fityk file (*.fit)|*.fit;*.FIT|all files|*"),
                               wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (fdlg.ShowModal() == wxID_OK) {
-        AL->exec("commands < '" + wx2s(fdlg.GetPath()) + "'");
+        ftk->exec("commands < '" + wx2s(fdlg.GetPath()) + "'");
         last_include_path = wx2s(fdlg.GetPath());
         GetMenuBar()->Enable(ID_O_REINCLUDE, true);
     }
@@ -1354,7 +1334,7 @@ void FFrame::OnInclude (wxCommandEvent&)
             
 void FFrame::OnReInclude (wxCommandEvent&)
 {
-    AL->exec("reset; commands < '" + last_include_path + "'");
+    ftk->exec("reset; commands < '" + last_include_path + "'");
 }
 
 void FFrame::show_debugger(wxString const& path)
@@ -1378,8 +1358,8 @@ void FFrame::OnDump (wxCommandEvent&)
                       dir, wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
-        AL->exec("dump > '" + wx2s(fdlg.GetPath()) + "'");
-        //AL->exec("commands[:] > '" + wx2s(fdlg.GetPath()) + "'");
+        ftk->exec("dump > '" + wx2s(fdlg.GetPath()) + "'");
+        //ftk->exec("commands[:] > '" + wx2s(fdlg.GetPath()) + "'");
     }
     dir = fdlg.GetDirectory();
 }
@@ -1644,14 +1624,14 @@ void FFrame::OnGScrollRight (wxCommandEvent&)
 void FFrame::OnGScrollUp (wxCommandEvent&)
 {
     fp const factor = 2.;
-    fp new_top = AL->view.bottom + factor * AL->view.height(); 
+    fp new_top = ftk->view.bottom + factor * ftk->view.height(); 
     change_zoom(". [.:" + S(new_top, 12) + "]");
 }
 
 void FFrame::OnGExtendH (wxCommandEvent&)
 {
     fp const factor = 0.5;
-    View const &vw = AL->view;
+    View const &vw = ftk->view;
     fp diff = vw.width() * factor;
     fp new_left = vw.left - diff; 
     fp new_right = vw.right + diff;
@@ -1664,19 +1644,19 @@ void FFrame::OnPreviousZoom(wxCommandEvent& event)
     int id = event.GetId();
     string s = plot_pane->zoom_backward(id ? id - ID_G_V_ZOOM_PREV : 1);
     if (s.size()) 
-        AL->exec("plot " + s + " in " + get_active_data_str());
+        ftk->exec("plot " + s + " in " + get_active_data_str());
 }
 
 void FFrame::change_zoom(const string& s)
 {
     plot_pane->zoom_forward();
     string cmd = "plot " + s + " in " + sidebar->get_datasets_str();
-    AL->exec(cmd);
+    ftk->exec(cmd);
 }
 
 void FFrame::scroll_view_horizontally(fp step)
 {
-    View const &vw = AL->view;
+    View const &vw = ftk->view;
     fp diff = vw.width() * step;
     if (plot_pane->get_plot()->get_x_reversed())
         diff = -diff;
@@ -1876,8 +1856,8 @@ void FFrame::update_toolbar()
     if (!toolbar) 
         return;
     toolbar->ToggleTool(ID_ft_b_strip, plot_pane->get_bg_manager()->can_undo());
-    //DataWithSum const* ds = AL->get_ds(AL->get_active_ds_position());
-    toolbar->EnableTool(ID_ft_f_cont, AL->get_fit()->is_initialized());
+    //DataWithSum const* ds = ftk->get_ds(ftk->get_active_ds_position());
+    toolbar->EnableTool(ID_ft_f_cont, ftk->get_fit()->is_initialized());
     toolbar->EnableTool(ID_ft_v_pr, !plot_pane->get_zoom_hist().empty());
 }
 
@@ -1885,7 +1865,7 @@ void FFrame::update_autoadd_enabled()
 {
     static int old_nr = -1; //this is for optimization, if nr is the same, ...
     bool diff = (peak_type_nr != old_nr); //... default values are not parsed
-    bool enable = AL->get_data(AL->get_active_ds_position())->get_n() > 2
+    bool enable = ftk->get_data(ftk->get_active_ds_position())->get_n() > 2
           && is_function_guessable(Function::get_formula(peak_type_nr), diff);
     GetMenuBar()->Enable(ID_S_GUESS, enable);
     if (toolbar)
@@ -1894,17 +1874,17 @@ void FFrame::update_autoadd_enabled()
 
 string FFrame::get_active_data_str()
 {
-    return "@" + S(AL->get_active_ds_position());
+    return "@" + S(ftk->get_active_ds_position());
 }
 
 string FFrame::get_in_dataset()
 {
-    return AL->get_ds_count() > 1 ? " in " + get_active_data_str() : string();
+    return ftk->get_ds_count() > 1 ? " in " + get_active_data_str() : string();
 }
 
 string FFrame::get_in_one_or_all_datasets()
 {
-    if (AL->get_ds_count() > 1) {
+    if (ftk->get_ds_count() > 1) {
         if (get_apply_to_all_ds())
             return " in @*";
         else
@@ -1931,7 +1911,7 @@ void FFrame::update_data_pane()
 
 bool FFrame::get_apply_to_all_ds()
 { 
-    return AL->get_ds_count() > 1 && GetMenuBar()->IsChecked(ID_D_ALLDS); 
+    return ftk->get_ds_count() > 1 && GetMenuBar()->IsChecked(ID_D_ALLDS); 
 }
 
 void FFrame::activate_function(int n)
@@ -1942,8 +1922,8 @@ void FFrame::activate_function(int n)
 void FFrame::update_app_title()
 {
     string title = "fityk";
-    int pos = AL->get_active_ds_position();
-    string const& filename = AL->get_data(pos)->get_filename();
+    int pos = ftk->get_active_ds_position();
+    string const& filename = ftk->get_data(pos)->get_filename();
     if (!filename.empty())
         title += " - " + filename;
     SetTitle(s2wx(title));
@@ -2109,16 +2089,16 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
                 frame->plot_pane->get_bg_manager()->undo_strip_background();
             break; 
         case ID_ft_f_run : 
-            AL->exec("fit" + frame->get_in_dataset()); 
+            ftk->exec("fit" + frame->get_in_dataset()); 
             break; 
         case ID_ft_f_cont: 
-            AL->exec("fit+"); 
+            ftk->exec("fit+"); 
             break; 
         case ID_ft_f_undo: 
-            AL->exec("fit undo"); 
+            ftk->exec("fit undo"); 
             break; 
         case ID_ft_s_aa: 
-            AL->exec("guess " + frame->get_peak_type() 
+            ftk->exec("guess " + frame->get_peak_type() 
                          + frame->get_in_dataset());
             break; 
         default: 

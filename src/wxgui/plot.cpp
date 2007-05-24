@@ -19,6 +19,7 @@
 
 #include "plot.h"
 #include "cmn.h" 
+#include "gui.h" //ftk
 #include "../data.h"
 #include "../logic.h" 
 
@@ -274,8 +275,8 @@ void FPlot::draw_data (wxDC& dc,
     wxBrush const inactiveBrush(inactivePen.GetColour(), wxSOLID);
     if (data->is_empty()) 
         return;
-    vector<Point>::const_iterator first = data->get_point_at(AL->view.left),
-                                  last = data->get_point_at(AL->view.right);
+    vector<Point>::const_iterator first = data->get_point_at(ftk->view.left),
+                                  last = data->get_point_at(ftk->view.right);
     //if (last - first < 0) return;
     bool active = first->is_active;
     dc.SetPen (active ? activePen : inactivePen);
@@ -284,7 +285,7 @@ void FPlot::draw_data (wxDC& dc,
     // first line segment -- lines should be drawed towards points 
     //                                                 that are outside of plot 
     if (line_between_points && first > data->points().begin() && !cumulative) {
-        X_ = xs.px (AL->view.left);
+        X_ = xs.px (ftk->view.left);
         int Y_l = ys.px ((*compute_y)(first - 1, sum));
         int Y_r = ys.px ((*compute_y)(first, sum));
         int X_l = xs.px ((first - 1)->x);
@@ -348,7 +349,7 @@ void FPlot::draw_data (wxDC& dc,
 
     //the last line segment, toward next point
     if (line_between_points && last < data->points().end() && !cumulative) {
-        int X = xs.px (AL->view.right);
+        int X = xs.px (ftk->view.right);
         int Y_l = ys.px ((*compute_y)(last - 1, sum));
         int Y_r = ys.px ((*compute_y)(last, sum));
         int X_l = xs.px ((last - 1)->x);
@@ -378,7 +379,7 @@ void FPlot::change_tics_font()
 
 void FPlot::set_scale()
 {
-    View const &v = AL->view;
+    View const &v = ftk->view;
     xs.set(v.left, v.right, GetClientSize().GetWidth());
     ys.set(v.top, v.bottom, GetClientSize().GetHeight());
 }

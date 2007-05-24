@@ -81,7 +81,7 @@ public:
             case 3: t = "S";  break;
             default: assert(0);
         }
-        AL->exec(t + "[" + S(row)+"]=" + S(value) + frame->get_in_dataset());
+        ftk->exec(t + "[" + S(row)+"]=" + S(value) + frame->get_in_dataset());
         if (col == 1) // order of items can be changed
             ded->grid->ForceRefresh();
         ded->rezoom_btn->Enable();
@@ -90,7 +90,7 @@ public:
     void SetValueAsBool(int row, int col, bool value) 
     { 
         assert(col==0); 
-        AL->exec("A[" + S(row)+"]=" + (value?"true":"false") 
+        ftk->exec("A[" + S(row)+"]=" + (value?"true":"false") 
                                                   + frame->get_in_dataset()); 
         ded->rezoom_btn->Enable();
     }
@@ -427,7 +427,7 @@ void DataEditorDlg::OnRevert (wxCommandEvent&)
     }
     if (cmd.empty())
         return;
-    AL->exec(cmd);
+    ftk->exec(cmd);
     refresh_grid();
 }
 
@@ -533,7 +533,7 @@ void DataEditorDlg::execute_tranform(string code)
         if (i+1 != cmds.end())
             t += ";";
     }
-    AL->exec(t);
+    ftk->exec(t);
 }
 
 void DataEditorDlg::OnHelp (wxCommandEvent&)

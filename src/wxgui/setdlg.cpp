@@ -19,7 +19,8 @@
 #include "setdlg.h"
 #include "../settings.h" 
 #include "../ui.h"  //startup_commands_filename
-#include "../logic.h"  //AL
+#include "../logic.h"  
+#include "gui.h"  //ftk
 
 using namespace std;
 
@@ -76,8 +77,8 @@ wxChoice *addEnumSetting(wxWindow *parent, wxString const& label,
     wxChoice *ctrl = new wxChoice(parent, -1, 
                                   wxDefaultPosition, wxDefaultSize,
                                   stl2wxArrayString(
-                                      AL->get_settings()->expand_enum(option)));
-    ctrl->SetStringSelection(s2wx(AL->get_settings()->getp(option)));
+                                    ftk->get_settings()->expand_enum(option)));
+    ctrl->SetStringSelection(s2wx(ftk->get_settings()->getp(option)));
     siz->Add(ctrl, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     sizer->Add(siz, 0, wxEXPAND);
     return ctrl;
@@ -90,7 +91,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
                wxDefaultPosition, wxDefaultSize, 
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER) 
 {
-    Settings const* settings = AL->get_settings();
+    Settings const* settings = ftk->get_settings();
     wxNotebook *nb = new wxNotebook(this, -1);
     wxPanel *page_general = new wxPanel(nb, -1);
     nb->AddPage(page_general, wxT("general"));
@@ -344,9 +345,9 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
     m["nm-distribution"] = wx2s(nm_distrib->GetStringSelection());
     m["nm-move-factor"] = wx2s(nm_move_factor->GetValue());
     m["nm-convergence"] = wx2s(nm_convergence->GetValue());
-    vector<string> kk = AL->get_settings()->expanp();
+    vector<string> kk = ftk->get_settings()->expanp();
     for (vector<string>::const_iterator i = kk.begin(); i != kk.end(); ++i)
-        if (m.count(*i) && m[*i] != AL->get_settings()->getp(*i))
+        if (m.count(*i) && m[*i] != ftk->get_settings()->getp(*i))
             result.push_back(make_pair(*i, m[*i]));
     return result;
 }
@@ -359,7 +360,7 @@ void SettingsDlg::OnOK(wxCommandEvent&)
         for (vector<pair<string, string> >::const_iterator i = p.begin();
                 i != p.end(); ++i)
             eqs.push_back(i->first + "=" + i->second);
-        AL->exec("set " + join_vector(eqs, ", "));
+        ftk->exec("set " + join_vector(eqs, ", "));
     }
     wxConfig::Get()->Write(wxT("/loadDataDir"), dir_ld_tc->GetValue());
     wxConfig::Get()->Write(wxT("/execScriptDir"), dir_xs_tc->GetValue());

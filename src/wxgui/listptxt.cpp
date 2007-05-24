@@ -195,8 +195,8 @@ void DataListPlusText::update_data_list(bool nondata_changed, bool with_stats)
     wxColour const& bg_col = mplot->get_bg_color();
 
     vector<string> data_data;
-    for (int i = 0; i < AL->get_ds_count(); ++i) {
-        DataWithSum const* ds = AL->get_ds(i);
+    for (int i = 0; i < ftk->get_ds_count(); ++i) {
+        DataWithSum const* ds = ftk->get_ds(i);
         data_data.push_back(S(i));
         if (with_stats)
             data_data.push_back(S(ds->get_sum()->get_ff_names().size()) 
@@ -205,13 +205,13 @@ void DataListPlusText::update_data_list(bool nondata_changed, bool with_stats)
         data_data.push_back(ds->get_data()->get_filename());
     }
     wxImageList* data_images = 0;
-    if (nondata_changed || AL->get_ds_count() > list->GetItemCount()) {
+    if (nondata_changed || ftk->get_ds_count() > list->GetItemCount()) {
         data_images = new wxImageList(16, 16);
-        for (int i = 0; i < AL->get_ds_count(); ++i) 
+        for (int i = 0; i < ftk->get_ds_count(); ++i) 
             data_images->Add(make_color_bitmap16(mplot->get_data_color(i), 
                                                  bg_col));
     }
-    int active_ds_pos = AL->get_active_ds_position();
+    int active_ds_pos = ftk->get_active_ds_position();
     list->populate(data_data, data_images, active_ds_pos);
 }
 

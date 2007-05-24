@@ -117,9 +117,9 @@ double rdiff_y_perc_of_data_for_draw_data (vector<Point>::const_iterator i,
 
 void AuxPlot::draw(wxDC &dc, bool monochrome)
 {
-    int pos = AL->get_active_ds_position();
-    Data const* data = AL->get_data(pos);
-    Sum const* sum = AL->get_sum(pos);
+    int pos = ftk->get_active_ds_position();
+    Data const* data = ftk->get_data(pos);
+    Sum const* sum = ftk->get_sum(pos);
     if (auto_zoom_y || fit_y_once) {
         fit_y_zoom(data, sum);
         fit_y_once = false;
@@ -482,8 +482,8 @@ void AuxPlot::fit_y_zoom(Data const* data, Sum const* sum)
     if (!is_zoomable())
         return;
     fp y = 0.;
-    vector<Point>::const_iterator first = data->get_point_at(AL->view.left),
-                                  last = data->get_point_at(AL->view.right);
+    vector<Point>::const_iterator first = data->get_point_at(ftk->view.left),
+                                  last = data->get_point_at(ftk->view.right);
     if (data->is_empty() || last==first)
         return;
     switch (kind) { // setting y_zoom

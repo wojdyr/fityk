@@ -43,6 +43,7 @@ Fityk::Fityk()
     activate_ds(0);
     get_settings()->do_srand();
     UdfContainer::initialize_udfs();
+    AL = this;
 }
 
 Fityk::~Fityk() 
@@ -405,5 +406,8 @@ void View::set_datasets(vector<DataWithSum*> const& dd)
     sums.push_back(dd.front()->get_sum());
 }
 
-Fityk* AL;
+// the use of this global variable in libfityk will be eliminated,
+// because it's not thread safe. 
+Fityk* AL = 0;
+
 

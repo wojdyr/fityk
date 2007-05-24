@@ -22,6 +22,8 @@
 
 using namespace std;
 
+extern Fityk* ftk;
+
 char GnuPlot::path_to_gnuplot[]="gnuplot";
 
 GnuPlot::GnuPlot()
@@ -54,7 +56,7 @@ void GnuPlot::fork_and_make_pipe ()
         //putenv("PAGER="); //putenv() - POSIX, not ANSI
         execlp (path_to_gnuplot, path_to_gnuplot, /*"-",*/NULL);
         // if we are here, sth went wrong
-        AL->warn("Problem encountered when trying to run `" 
+        ftk->warn("Problem encountered when trying to run `" 
                  + S(path_to_gnuplot) + "'.");
         exit(0);
     }
@@ -95,22 +97,22 @@ bool GnuPlot::gnuplot_pipe_ok()
 int GnuPlot::plot() 
 {
     // plot only active data with sum
-    DataWithSum const* ds = AL->get_ds(AL->get_active_ds_position());
+    DataWithSum const* ds = ftk->get_ds(ftk->get_active_ds_position());
     Data const* data = ds->get_data();
     Sum const* sum = ds->get_sum();
     if (!gnuplot_pipe_ok())
         return -1;
     // Send commands through the pipe to gnuplot
-    int i_f = data->get_lower_bound_ac (AL->view.left);
-    int i_l = data->get_upper_bound_ac (AL->view.right);
+    int i_f = data->get_lower_bound_ac (ftk->view.left);
+    int i_l = data->get_upper_bound_ac (ftk->view.right);
     if (i_l - i_f <= 0) 
         return 0;
-    string plot_string = "plot "+ AL->view.str() 
+    string plot_string = "plot "+ ftk->view.str() 
         + " \'-\' title \"data\", ";
     plot_string += " '-' title \"sum\" with line\n ";
     fprintf (gnuplot_pipe, plot_string.c_str());
     if (fflush (gnuplot_pipe) != 0)
-        AL->warn("Flushing pipe program-to-gnuplot failed.");
+        ftk->warn("Flushing pipe program-to-gnuplot failed.");
     bool at_least_one_point = false;
     for (int i = i_f; i < i_l; i++) {
         fp x = data->get_x(i);

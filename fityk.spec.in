@@ -69,9 +69,6 @@ make %{?_smp_mflags}
 ### Clean up docs
 %{__rm} -f samples/Makefile* doc/fitykhelp_img/Makefile*
 
-### there is a bug in fityk 0.8.1. It will be fixed upstream in the next release
-%{__mv} -f %{buildroot}/%{_datadir}/%{name}/tips.txt %{buildroot}/%{_datadir}/%{name}/fityk_tips.txt
-
 %clean
 %{__rm} -rf %{buildroot}
 
