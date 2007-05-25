@@ -239,6 +239,39 @@ Fit* Fityk::get_fit()
     return get_fit_container()->get_method(nr); 
 }
 
+void Fityk::import_dataset(int slot, string const& filename, 
+                            string const& type, vector<int> const& cols)
+{
+    const int new_dataset = -1;
+    if (slot == new_dataset) {
+        vector<string> next_files;
+        if (this->get_ds_count() != 1 || this->get_data(0)->has_any_info()
+                                    || this->get_sum(0)->has_any_info()) {
+            // load data into new slot
+            auto_ptr<Data> data(new Data(this));
+            next_files = data->load_file(filename, type, cols); 
+            slot = this->append_ds(data.release());
+        }
+        else { // there is only one and empty slot -- load data there
+            next_files = this->get_data(-1)->load_file(filename, type, cols); 
+            this->view.set_datasets(vector1(this->get_ds(0)));
+            this->view.fit();
+            slot = 0;
+        }
+        for (vector<string>::const_iterator i = next_files.begin(); 
+                                            i != next_files.end(); ++i) 
+            this->import_dataset(new_dataset, *i, type, cols);
+    }
+    else { // slot number was specified -- load data there
+        this->get_data(slot)->load_file(filename, type, cols); 
+        if (this->get_ds_count() == 1) {
+            this->view.set_datasets(vector1(this->get_ds(0)));
+            this->view.fit();
+        }
+    }
+    this->activate_ds(slot);
+}
+
 //==================================================================
 
 

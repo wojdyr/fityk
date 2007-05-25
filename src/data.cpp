@@ -41,7 +41,7 @@ string get_file_basename(const string &path)
 }
 
 
-string Data::getInfo() const
+string Data::get_info() const
 {
     string s;
     if (p.empty())
@@ -272,23 +272,62 @@ void Data::add_one_point(double x, double y, double sigma)
     }
 }
 
-
-void Data::open_filename_with_columns(string const& file, ifstream& f)
+namespace {
+vector<int> parse_int_range(string const& s)
 {
+    vector<int> values;
+    vector<string> t = split_string(s, "/");
+    for (vector<string>::const_iterator i = t.begin(); i != t.end(); ++i) {
+        vector<string> a = split_string(*i, "-");
+        if (a.size() == 1 && !a[0].empty()) {
+            int n = strtol(a[0].c_str(), 0, 10);
+            values.push_back(n);
+        }
+        else if (a.size() >= 2 && !a[0].empty() && !a[1].empty()) {
+            int m = strtol(a[0].c_str(), 0, 10);
+            int n = strtol(a[1].c_str(), 0, 10);
+            if (abs(m-n) > 99) // too much..., take only the first one
+                values.push_back(n);
+            else
+                for (int j = min(m,n); j <= max(m,n); ++j)
+                    values.push_back(j);
+        }
+    }
+    return values;
+}
+} //anonymous namespace
+
+vector<string> Data::open_filename_with_columns(string const& file, ifstream& f)
+{
+    vector<string> next_files;
     // ../data/foo.dat:1,8 -> ../data/foo.dat cols: 1,8
-    string::size_type a = file.find_last_not_of(",0123456789");
+    // in y column multiple values (2/3/4) or ranges are allowed (foo.dat:1,2-5)
+    string::size_type a = file.find_last_not_of(",0123456789-/");
     if (a == string::npos || file[a] != ':') 
-        return;
+        return next_files;
     string fn(file, 0, a);
     vector<string> cols_s = split_string(string(file,a+1), ',');
-    if (cols_s.size() != 2 && cols_s.size() != 3)
-        return;
+    if (cols_s.size() < 2 || cols_s.size() > 3)
+        return next_files;
     vector<int> cols_i;
-    for (vector<string>::const_iterator i = cols_s.begin(); 
-                                                    i != cols_s.end(); ++i) {
-        if (i->empty())
-            return;
-        int n = strtol(i->c_str(), 0, 10);
+    vector<int> yy;
+    for (size_t i = 0; i != cols_s.size(); ++i) {
+        int n;
+        if (cols_s[i].empty())
+            return next_files;
+        if (cols_s[i].find_first_of("/-") != string::npos) {
+            if (i == 1 && isdigit(cols_s[i][0])) { //column y
+                yy = parse_int_range(cols_s[i]);
+                if (yy.empty())
+                    return next_files;
+                n = yy[0];
+                yy.erase(yy.begin());
+            }
+            else // "-" is not accepted in other columns
+                return next_files;
+        }
+        else
+            n = strtol(cols_s[i].c_str(), 0, 10);
         cols_i.push_back(n);
     }
     f.clear();
@@ -298,12 +337,18 @@ void Data::open_filename_with_columns(string const& file, ifstream& f)
     clear(); //removing previous file
     filename = fn;   
     given_cols = cols_i;
+    for (vector<int>::const_iterator i = yy.begin(); i != yy.end(); ++i) {
+        cols_i[1] = *i;
+        next_files.push_back(fn + ":" + join_vector(cols_i, ","));
+    }
+    return next_files;
 }
 
 
-void Data::load_file (string const& file, string const& type, 
-                     vector<int> const& cols, bool preview)
+vector<string> Data::load_file (string const& file, string const& type, 
+                                vector<int> const& cols, bool preview)
 {   
+    vector<string> next_files;
     ifstream f (file.c_str(), ios::in | ios::binary);
     if (f) {
         clear(); //removing previous file
@@ -311,7 +356,7 @@ void Data::load_file (string const& file, string const& type,
         given_cols = cols;
     }
     else if (cols.empty()) {
-        open_filename_with_columns(file, f);
+        next_files = open_filename_with_columns(file, f);
     }
     if (!f) {
         throw ExecuteError("Can't open file: " + file);
@@ -337,13 +382,14 @@ void Data::load_file (string const& file, string const& type,
     }
     if (preview) {
         recompute_y_bounds();
-        return;
+        return next_files;
     }
     if (p.size() < 5)
         F->warn("Only " + S(p.size()) + " data points found in file.");
     if (!f.eof() && ft != "MCA") //!=mca; .mca doesn't have to reach EOF
         F->warn("Unexpected char when reading " + S (p.size() + 1) + ". point");
     post_load();
+    return next_files;
 }
 
 

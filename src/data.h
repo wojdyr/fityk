@@ -23,9 +23,13 @@ public :
 
     Data(Fityk const* F_) : F(F_), y_min(0.), y_max(1e3) {}
     ~Data() {}
-    std::string getInfo() const;
-    void load_file (std::string const& file, std::string const& type, 
-                    std::vector<int> const& cols, bool preview=false);
+    std::string get_info() const;
+
+    ///load data from file, return next filenames if `file' stands for sequance
+    std::vector<std::string> 
+    load_file (std::string const& file, std::string const& type, 
+               std::vector<int> const& cols, bool preview=false);
+
     int load_arrays(std::vector<fp> const& x, std::vector<fp> const& y, 
                    std::vector<fp> const& sigma, std::string const& data_title);
     void load_data_sum(std::vector<Data const*> const& dd, 
@@ -88,7 +92,10 @@ private:
     void load_rit_filetype (std::ifstream& f);
     void load_cpi_filetype (std::ifstream& f);
     void post_load();
-    void open_filename_with_columns(std::string const& file, std::ifstream& f);
+    /// open file with columns embedded into filename (foo.xy:1,2), 
+    // returns next files, if `file' stands for a sequance
+    std::vector<std::string> 
+    open_filename_with_columns(std::string const& file, std::ifstream& f);
 };
 
 #endif

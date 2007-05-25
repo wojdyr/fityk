@@ -12,8 +12,6 @@ Legend:
 * making libfityk thread-safe (pass around Fityk* F, remove all `AL',
    remove static class members and global variables)
 
-* GUI, command line: multiple y cols in one file: str.log:0,5/6/7 or 0,5-7
-
 * code cleanup: use Swap or swap ?
 
 * install icon (install -m644 -D fityk.png %{_datadir}/icons/fityk.png)

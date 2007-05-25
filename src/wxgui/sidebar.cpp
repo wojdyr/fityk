@@ -693,7 +693,7 @@ void SideBar::update_data_inf()
     inf->SetDefaultStyle(boldattr);
     inf->AppendText(s2wx("@" + S(n) + "\n"));
     inf->SetDefaultStyle(defattr);
-    inf->AppendText(s2wx(ftk->get_data(n)->getInfo()));
+    inf->AppendText(s2wx(ftk->get_data(n)->get_info()));
     inf->ShowPosition(0);
 }
 

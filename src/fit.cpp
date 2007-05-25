@@ -37,7 +37,7 @@ int Fit::get_dof(vector<DataWithSum*> const& dsds)
     return dof;
 }
 
-string Fit::getInfo(vector<DataWithSum*> const& dsds)
+string Fit::get_info(vector<DataWithSum*> const& dsds)
 {
     vector<fp> const &pp = F->get_parameters();
     int dof = get_dof(dsds);

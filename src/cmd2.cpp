@@ -81,29 +81,7 @@ namespace {
 
 void do_import_dataset(char const*, char const*)
 {
-    if (tmp_int == new_dataset) {
-        if (AL->get_ds_count() != 1 || AL->get_data(0)->has_any_info()
-                                    || AL->get_sum(0)->has_any_info()) {
-            // load data into new slot
-            auto_ptr<Data> data(new Data(AL));
-            data->load_file(t, t2, vn); 
-            tmp_int = AL->append_ds(data.release());
-        }
-        else { // there is only one and empty slot -- load data there
-            AL->get_data(-1)->load_file(t, t2, vn); 
-            AL->view.set_datasets(vector1(AL->get_ds(0)));
-            AL->view.fit();
-            tmp_int = 0;
-        }
-    }
-    else { // slot number was specified -- load data there
-        AL->get_data(tmp_int)->load_file(t, t2, vn); 
-        if (AL->get_ds_count() == 1) {
-            AL->view.set_datasets(vector1(AL->get_ds(0)));
-            AL->view.fit();
-        }
-    }
-    AL->activate_ds(tmp_int);
+    AL->import_dataset(tmp_int, t, t2, vn);
     outdated_plot=true;  
 }
 
@@ -263,7 +241,7 @@ void do_print_info(char const* a, char const* b)
         else if (s.find(".filename") != string::npos)
             m = data->get_filename();
         else
-            m = data->getInfo();
+            m = data->get_info();
     }
     else if (s == "view") {
         m = AL->view.str();
@@ -273,7 +251,7 @@ void do_print_info(char const* a, char const* b)
     else if (startswith(s, "fit-history"))
         m = AL->get_fit_container()->param_history_info();
     else if (startswith(s, "fit"))
-        m = AL->get_fit()->getInfo(get_datasets_from_indata());
+        m = AL->get_fit()->get_info(get_datasets_from_indata());
     else if (startswith(s, "errors"))
         m = AL->get_fit()->getErrorInfo(get_datasets_from_indata(), with_plus);
     else if (startswith(s, "peaks")) {

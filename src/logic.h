@@ -141,6 +141,10 @@ public:
     /// execute command(s) from string
     Commands::Status exec(std::string const &s);
 
+    /// import dataset (or multiple datasets, in special cases)
+    void import_dataset(int slot, std::string const& filename, 
+                        std::string const& type, std::vector<int> const& cols);
+
 protected:
     std::vector<DataWithSum*> dsds;
     int active_ds;

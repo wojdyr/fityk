@@ -1,6 +1,7 @@
 $Id$
 
 User-visible changes in version 0.8.2  (2007-  -  ):
+* reading multiple y columns from data file: "@+ < foo.xy:0,5/6/7" (or :0,5-7)
 * "Tip of the day" removed (tips.txt deleted). 
 
 User-visible changes in version 0.8.1  (2007-04-23):
