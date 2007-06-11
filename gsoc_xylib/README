@@ -1,0 +1,41 @@
+	CONTENT
+============	
+PURPOSE
+SUPPORTED FORMATS
+FILES
+USAGE
+============
+
+
+
+PURPOSE
+============
+xylib aims to be a common X-Y data format reading library by providing a set of unified and user-friendly APIs to accomplish such a task. Many point data processing applications will be able to use this library to get a wider range of data file format support.
+
+SUPPORTED FORMATS
+============
+X-Y plain text format: .txt, .asc
+Siemens/Bruker uxd v1: .uxd
+Diffrac-AT raw v2, v3: .raw
+
+FILES
+============
+xylib.h 
+xylib.cpp 
+	Implementation of the xylib functions and classes.
+	
+testmain.h
+testmain.cpp
+	A simple test program to test the lib. Tested sample files are located in the directory ./test
+	
+test/
+	Directory containing the original sample files. They are categorized into different sub-directories according to their types. For more detailed info (like where they are from), see the README file in each sub-directory.
+	
+out/
+	Directory containing the exported X-Y plain text files. They are organized as the same way as files in test/. For example, "test/uxd/sample3.uxd" will be exported to "out/uxd/sample3.uxd_tr.txt".
+
+	
+USAGE
+============
+To run the test program, just change current directory to here and "make", "./testmain" is the executable.
+To use xylib in your program, see how "testmain.cpp" and "testmain.h" do. Note that all classes, variables, functions are in the namespace "xylib".
