@@ -57,11 +57,18 @@ int main(int argc, char* argv[])
         }
     }
 
+    if (in_file.empty() || out_file.empty() || ft.empty())
+    {
+        usage(argv[0]);
+        return -1;
+    }
+
     XY_Data data;
     try
     {
         XYlib::load_file(in_file, data, ft);
         data.export_xy_file(out_file);
+        const << in_file << "has been exported to " << out_file << endl;
     }
     catch (const runtime_error e)
     {
