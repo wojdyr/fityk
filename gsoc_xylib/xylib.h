@@ -123,6 +123,10 @@ private:
     // SIEMENS/BRUKER uxd format
     static void load_uxd_file(std::ifstream& f, XY_Data& data, std::vector<int> const& columns);
 
+    // DIFFRAC-AT Raw Data file format: v1
+    static void load_diffracat_v1_raw_file(std::ifstream& f, XY_Data& data, 
+        unsigned range = 0);
+
     // DIFFRAC-AT Raw Data file format: v2 and v3
     static void load_diffracat_v2_raw_file(std::ifstream& f, XY_Data& data, 
         unsigned range = 0);

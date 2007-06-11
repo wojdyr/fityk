@@ -18,5 +18,6 @@ void load_export(const std::vector<std::string>& fnames,
 
 void test_xy_file();
 void test_uxd_file();
+void test_diffracat_v1_raw_file();
 void test_diffracat_v2_raw_file();
-
+void usage(char* prog_name);

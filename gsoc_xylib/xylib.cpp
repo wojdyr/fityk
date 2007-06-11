@@ -43,6 +43,8 @@ void XYlib::load_file(std::string const& file, XY_Data& data, std::string const&
         load_xy_file(f, data, col);
     else if (ft == "uxd")
         load_uxd_file(f, data, col);
+    else if (ft == "diffracat_v1_raw")
+        load_diffracat_v1_raw_file(f, data);
     else if (ft == "diffracat_v2_raw")
         load_diffracat_v2_raw_file(f, data);
     else {                                  // other ?
@@ -159,6 +161,74 @@ void XYlib::load_uxd_file(ifstream& f, XY_Data& data, vector<int> const& columns
 }
 
 
+// SIEMENS/BRUKER version 2 and version 3 raw file
+void XYlib::load_diffracat_v1_raw_file(std::ifstream& f, XY_Data& data, 
+                                       unsigned range /*= 0*/)
+{
+    // TODO: check whether this is Diffract-At v1 format (move the verify code to another funciton)
+    char buf[256];
+
+    f.clear();
+
+    // get file header
+    f.seekg(0);
+    f.read(buf, 3);
+
+    if (f.rdstate() & ios::failbit) 
+    {
+        throw XY_Error("error when reading filehead");
+    }
+
+    if (0 != strncmp(buf, "RAW", 3))
+    {
+        throw XY_Error("file is not Diffrac-at v1 file");
+    }
+
+    // get the max range index
+    unsigned max_range_idx;
+    f.seekg(152);
+    f.read(reinterpret_cast<char*>(&max_range_idx), sizeof(max_range_idx));
+    
+    if (range > max_range_idx)
+    {
+        throw XY_Error(string("file does not have range") + S(range));
+    }
+
+    unsigned cur_range = 0;
+    unsigned cur_range_offset = 0, cur_range_steps;
+    float start_x, step_size;
+
+    // skip the previous ranges
+    while (cur_range < range) 
+    {
+        f.seekg(cur_range_offset + 4);
+        f.read(reinterpret_cast<char*>(&cur_range_steps), sizeof(cur_range_steps));
+        cur_range_offset += (39 + cur_range_steps) * 4;
+    }
+    
+    // get step count of specified range
+    f.seekg(cur_range_offset + 4);
+    f.read(reinterpret_cast<char*>(&cur_range_steps), sizeof(cur_range_steps));
+
+    // get start_x (2-theta) and step_size
+    f.seekg(cur_range_offset + 12);
+    f.read(reinterpret_cast<char*>(&step_size), sizeof(step_size));
+    f.seekg(cur_range_offset + 24);
+    f.read(reinterpret_cast<char*>(&start_x), sizeof(start_x));
+
+    // get data
+    float x, y;
+    for (int i=0; i<cur_range_steps; ++i)
+    {
+        f.seekg(cur_range_offset + 156 + i * 4);
+        f.read(reinterpret_cast<char*>(&y), sizeof(y));
+        x = start_x + i * step_size;
+        data.push_point(XY_Point(x, y));
+    }
+}
+
+
+// SIEMENS/BRUKER version 2 and version 3 raw file
 void XYlib::load_diffracat_v2_raw_file(std::ifstream& f, XY_Data& data, 
                                 unsigned range /*= 0*/)
 {
