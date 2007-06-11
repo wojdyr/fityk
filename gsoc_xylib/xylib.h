@@ -87,7 +87,7 @@ public:
         of << "x\ty\tsigma" << std::endl;
         for (int i=0; i<n; ++i )
         {
-            of << setfill(' ') << setprecision(5) << setw(7) << 
+            of << setfill(' ') << setiosflags(ios::fixed) << setprecision(5) << setw(7) << 
                 p[i].x << "\t" << setprecision(8) << setw(10) << p[i].y << "\t";
             if (has_sigma)
             {
