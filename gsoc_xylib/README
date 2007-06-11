@@ -15,8 +15,8 @@ xylib aims to be a common X-Y data format reading library by providing a set of 
 SUPPORTED FORMATS
 ============
 X-Y plain text format: .txt, .asc
-Siemens/Bruker uxd v1: .uxd
-Diffrac-AT raw v2, v3: .raw
+Siemens/Bruker uxd: .uxd
+Diffrac-AT raw v1, v2 & v3: .raw
 
 FILES
 ============
