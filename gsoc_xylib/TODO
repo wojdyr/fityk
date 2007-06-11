@@ -1,0 +1,8 @@
+TODO:
+* make the text file reading more flexible. 	
+	e.g. headers can be skipped and columes can be specified
+	use boost::regex to process the text files
+	
+* do some error-preventation in case that files are of wrong format
+
+	
