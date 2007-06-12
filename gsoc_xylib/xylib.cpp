@@ -6,7 +6,7 @@
 #include "xylib.h"
 #include "common.h"
 #include <algorithm>
-//#include <boost/regex.hpp>
+#include <boost/regex.hpp>
 
 using namespace std;
 
@@ -47,6 +47,8 @@ void XYlib::load_file(std::string const& file, XY_Data& data, std::string const&
         load_diffracat_v1_raw_file(f, data);
     else if (ft == "diffracat_v2_raw")
         load_diffracat_v2_raw_file(f, data);
+    else if (ft == "rigaku_dat")
+        load_rigaku_dat_file(f, data);
     else {                                  // other ?
         throw XY_Error("Unknown filetype.");
     }
@@ -176,7 +178,7 @@ void XYlib::load_diffracat_v1_raw_file(std::ifstream& f, XY_Data& data,
 
     if (f.rdstate() & ios::failbit) 
     {
-        throw XY_Error("error when reading filehead");
+        throw XY_Error("error when reading file head");
     }
 
     if (0 != strncmp(buf, "RAW", 3))
@@ -218,7 +220,7 @@ void XYlib::load_diffracat_v1_raw_file(std::ifstream& f, XY_Data& data,
 
     // get data
     float x, y;
-    for (int i=0; i<cur_range_steps; ++i)
+    for (unsigned i=0; i<cur_range_steps; ++i)
     {
         f.seekg(cur_range_offset + 156 + i * 4);
         f.read(reinterpret_cast<char*>(&y), sizeof(y));
@@ -313,6 +315,97 @@ void XYlib::load_diffracat_v2_raw_file(std::ifstream& f, XY_Data& data,
 }
 
 
+void XYlib::load_rigaku_dat_file(std::ifstream& f, XY_Data& data,
+                          unsigned range /*= 0*/)
+{
+    // for details of this format, see docs/formats.
+
+    using namespace boost;
+    
+    unsigned range_cnt = 0, cur_range = 0;
+    fp x_start = 0, x_step = 0;
+    string line;
+
+    // verify with magic number: first line must start with "*TYPE"
+    if (!(getline(f, line) && line.substr(0, 5) == "*TYPE"))
+    {
+        throw XY_Error("error when checking file format");
+    }
+
+    cmatch what;
+    regex range_cnt_ptn("[*]GROUP_COUNT\\s*=\\s*(\\d*)\\s*");
+    regex range_idx_ptn("[*]GROUP\\s*=\\s*(\\d*)\\s*");
+
+    while (getline(f, line))
+    {
+        if (regex_match(line.c_str(), what, range_cnt_ptn))
+        {
+            range_cnt = atoi(what[1].first);
+            if (range >= range_cnt)
+            {
+                throw XY_Error(string("file does not have range") + S(range));
+            }
+            continue;
+        }
+
+        // skip the previous ranges before specified
+        while (cur_range < range)
+        {
+            while (getline(f, line))
+            {
+                if (line.substr(0, 4) == "*END")
+                {
+                    ++cur_range;
+                    break;
+                }
+            }
+        }
+        
+        if (cur_range == range && range_cnt != 0)
+            break;
+    }
+
+    // this code block is separated from the above "while" for efficiency consideration
+    regex x_start_ptn("[*]START\\s*=\\s*(\\d*[.]?\\d*)\\s*");
+    regex x_step_ptn("[*]STEP\\s*=\\s*(\\d*[.]?\\d*)\\s*");
+    while (getline(f, line))
+    {
+        if (regex_match(line.c_str(), what, x_start_ptn))
+        {
+            x_start = string_to_fp(what[1].first);
+            continue;
+        }
+
+        if (regex_match(line.c_str(), what, x_step_ptn))
+        {
+            x_step = string_to_fp(what[1].first);
+            break;
+        }
+    }
+
+    // also for efficiency consideration
+    vector<fp> y_one_line(4);
+    int y_count_line;
+    int y_idx = 0;
+    while (getline(f, line))
+    {
+        if (line.substr(0, 6) == "*COUNT")
+        {
+            // Y data starts
+            while (read_line_and_get_all_numbers(f, y_one_line))
+            {
+                y_count_line = y_one_line.size();
+                for (int i=0; i<y_count_line; ++i)
+                {
+                    data.push_point(
+                        XY_Point(x_start + y_idx * x_step, y_one_line[i]));
+                    ++y_idx;
+                }
+            }
+        }
+    }
+}
+
 // helper functions
 //////////////////////////////////////////////////////////////////////////
 
@@ -404,3 +497,14 @@ void xylib::XYlib::set_file_info(const std::string& ftype, XY_FileInfo* pfi)
         // to be completed, or try to change the interface to do such things?
     }
 }
+
+
+// change a std::string to fp
+fp xylib::XYlib::string_to_fp(const std::string& str)
+{
+    fp ret;
+    istringstream is(str);
+    is >> ret;
+    return ret;
+}
+

@@ -1,0 +1,58 @@
+All sample file can be found in ./test/$file_format$/
+
+###################################################################
+* ASCII plain text format: (added later)
+Name in prog: text
+Extension name: txt
+Format details: ...
+
+###################################################################
+* Siemens/Bruker Diffrac-AT UXD File: (added later)
+Name in prog: uxd
+Extension name: uxd
+Format details: ...
+
+###################################################################
+* Siemens/Bruker Diffrac-AT Raw File: (added later)
+Name in prog: diffracat_v1_raw/diffracat_v2_raw
+Extension name: raw
+v1:
+v2, v3:
+
+###################################################################
+* Rigaku dat File:
+	Data file used in the Japanese X-ray instrument manufacturer Rigaku Inc.
+Name in prog: rigaku_dat	
+Extension name: dat
+Format details: This format is readable in ASCII. 
+It has a file header indicating some file-scope parameters.
+It can contain multiple groups/ranges of data, and each group has its own group header. Each group head containing some parameters ("*START", "*STOP" and "*STEP" included) and a data body begins after "*COUNT=XXX"). 
+Here is some fragment from the sample file. ("#xxx" is comments I added, and "..." means some lines are omitted here)
+
+# file header
+*TYPE           =  Raw
+*CLASS          =  Standard measurement
+...
+*GROUP_COUNT    =  2
+...
+
+# group 0 header
+*BEGIN
+*GROUP          =  0
+...
+*START          =  10.0000    
+*STOP           =  103.1200  
+*STEP           =  0.0200 
+...
+*COUNT          =  4657
+# data in group 0
+ 1048, 1162, 1108, 1163
+ 1071, 1057, 1055, 973
+# group 0 end
+*END
+
+# repeat group segment if extra group(s) exist
+...
+# end of file
+*EOF
+

@@ -84,7 +84,7 @@ public:
         }
         int n = p.size();
         of << "total count:" << n << std::endl << std::endl;
-        of << "x\ty\tsigma" << std::endl;
+        of << "x\t\ty\t\tsigma" << std::endl;
         for (int i=0; i<n; ++i )
         {
             of << setfill(' ') << setiosflags(ios::fixed) << setprecision(5) << setw(7) << 
@@ -130,13 +130,18 @@ private:
     // DIFFRAC-AT Raw Data file format: v2 and v3
     static void load_diffracat_v2_raw_file(std::ifstream& f, XY_Data& data, 
         unsigned range = 0);
+
+    // Rigaku .dat file format
+    static void load_rigaku_dat_file(std::ifstream& f, XY_Data& data,
+        unsigned range = 0);
     
 
     static int read_line_and_get_all_numbers(std::istream &is, 
         std::vector<fp>& result_numbers);
     static std::string guess_ftype(std::string const fname, std::istream& is, XY_FileInfo* pfi = NULL);
     // set XY_FileInfo structrue
-    void set_file_info(const std::string& ftype, XY_FileInfo* pfi);
+    static void set_file_info(const std::string& ftype, XY_FileInfo* pfi);
+    static fp string_to_fp(const std::string& str);
 };
 
 }

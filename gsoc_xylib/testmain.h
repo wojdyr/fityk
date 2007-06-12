@@ -20,4 +20,5 @@ void test_xy_file();
 void test_uxd_file();
 void test_diffracat_v1_raw_file();
 void test_diffracat_v2_raw_file();
+void test_rigaku_dat_file();
 void usage(char* prog_name);

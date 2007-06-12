@@ -6,6 +6,7 @@
 #include "testmain.h"
 #include "common.h"
 #include <string.h>
+#include <iomanip>
 
 using namespace std;
 using namespace xylib;
@@ -30,8 +31,9 @@ int main(int argc, char* argv[])
             test_xy_file();
             test_uxd_file();
             test_diffracat_v2_raw_file();
-            */
             test_diffracat_v1_raw_file();
+            */
+            test_rigaku_dat_file();
             return 0;
         }
         // user specifying mode
@@ -68,7 +70,7 @@ int main(int argc, char* argv[])
     {
         XYlib::load_file(in_file, data, ft);
         data.export_xy_file(out_file);
-        const << in_file << "has been exported to " << out_file << endl;
+        cout << in_file << "has been exported to " << out_file << endl;
     }
     catch (const runtime_error e)
     {
@@ -123,6 +125,15 @@ void test_diffracat_v2_raw_file()
     load_export(fnames, "diffracat_v2_raw");
 }
 
+// test file at: test/regaku_dat
+void test_rigaku_dat_file()
+{
+    vector<string> fnames;
+    for (int i=1; i<7; ++i)
+        fnames.push_back(string("sample") + S(i) + "r.dat");
+
+    load_export(fnames, "rigaku_dat");
+}
 
 // helper functions
 //////////////////////////////////////////////////////////////////////////
@@ -163,9 +174,15 @@ void usage(char* prog_name)
 {
     cout << "usage:" << endl;
     //cout << "\t" << prog_name << "[-a] [-i in_file -o out_file -t file_type]" << endl;
-    cout << "\t" << "testmain " << "[-a] [-i in_file -o out_file -t file_type]" << endl;
-    cout << "\t\t-a: auto test using the existing test files." << endl;
-    cout << "\t\t-i: input file path." << endl;
-    cout << "\t\t-o: output file path." << endl;
-    cout << "\t\t-t: format type of the input file." << endl;
+    cout << "" << "testmain " << "[-a] [-i in_file -o out_file -t file_type]" << endl;
+    cout << "\t-a: auto test using the existing test files." << endl;
+    cout << "\t-i: input file path." << endl;
+    cout << "\t-o: output file path." << endl;
+    cout << "\t-t: format type of the input file. Supported formats:" << endl;
+
+    cout << "\t\t" << "text             " << ": the ascii plain text format" << endl;
+    cout << "\t\t" << "uxd              " << ": Siemens/Bruker Diffrac-AT UXD File" << endl;
+    cout << "\t\t" << "diffracat_v1_raw " << ": Siemens/Bruker Diffrac-AT Raw File v1" << endl;
+    cout << "\t\t" << "diffracat_v2_raw " << ": Siemens/Bruker Diffrac-AT Raw File v2/v3" << endl;
+    cout << "\t\t" << "rigaku_dat       " << ": Rigaku dat File" << endl;
 }
