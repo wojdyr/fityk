@@ -26,124 +26,142 @@ typedef double fp;
 #include <sstream>
 #include <iomanip>
 
+
 namespace xylib
 {
 
 
-class XY_FileInfo
-{
-public:
-    std::string ext_name;
-    std::string type_desc;
-    std::string version;
-};
 
-
-class XY_Point
-{
-public:
-    fp x, y, sig;
-    XY_Point(fp x_, fp y_, fp sig_ = 0) : x(x_), y(y_), sig(sig_) {};
-};
-
-
-
-class XY_Error :
-    public std::runtime_error
-{
-public:
-    XY_Error(const std::string& msg) : std::runtime_error(msg) {};
-};
-
-
-class XY_Data
-{
-public:
-    bool has_sigma;
-
-    // methods
-    //////////////////////////////////////////////////////////////////////////
-    XY_Data() : has_sigma(false) {};
-    
-    int get_point_count() {return p.size();}
-    fp get_x(const int i) {return p[i].x;}
-    fp get_y(const int i) {return p[i].y;}
-    fp get_sigma(const int i) {return p[i].sig;}
-    void set_has_sigma(bool has_sigma_) {has_sigma = has_sigma_;}
-
-    void push_point(const XY_Point pt) {p.push_back(pt);}
-    void clear() {p.clear();}
-
-    void export_xy_file(const std::string& fname)
+    class XY_FileInfo
     {
-        using namespace std;
-        std::ofstream of(fname.c_str());
-        if (!of) 
+    public:
+        std::string ext_name;
+        std::string type_desc;
+        std::string version;
+    };
+
+
+    class XY_Point
+    {
+    public:
+        fp x, y, sig;
+        XY_Point(fp x_, fp y_, fp sig_ = 0) : x(x_), y(y_), sig(sig_) {};
+    };
+
+
+
+    class XY_Error :
+        public std::runtime_error
+    {
+    public:
+        XY_Error(const std::string& msg) : std::runtime_error(msg) {};
+    };
+
+
+    class XY_Data
+    {
+    public:
+        bool has_sigma;
+
+        // methods
+        //////////////////////////////////////////////////////////////////////////
+        XY_Data() : has_sigma(false) {};
+        
+        int get_point_count() {return p.size();}
+        fp get_x(const int i) {return p[i].x;}
+        fp get_y(const int i) {return p[i].y;}
+        fp get_sigma(const int i) {return p[i].sig;}
+        void set_has_sigma(bool has_sigma_) {has_sigma = has_sigma_;}
+
+        void push_point(const XY_Point pt) {p.push_back(pt);}
+        void clear() {p.clear();}
+
+        void export_xy_file(const std::string& fname)
         {
-            throw XY_Error("can't create file " + fname + " to output");
-        }
-        int n = p.size();
-        of << "total count:" << n << std::endl << std::endl;
-        of << "x\t\ty\t\tsigma" << std::endl;
-        for (int i=0; i<n; ++i )
-        {
-            of << setfill(' ') << setiosflags(ios::fixed) << setprecision(5) << setw(7) << 
-                p[i].x << "\t" << setprecision(8) << setw(10) << p[i].y << "\t";
-            if (has_sigma)
+            using namespace std;
+            std::ofstream of(fname.c_str());
+            if (!of) 
             {
-                of << p[i].sig;
+                throw XY_Error("can't create file " + fname + " to output");
             }
-            of << std::endl;
+            int n = p.size();
+            of << "total count:" << n << std::endl << std::endl;
+            of << "x\t\ty\t\tsigma" << std::endl;
+            for (int i=0; i<n; ++i )
+            {
+                of << setfill(' ') << setiosflags(ios::fixed) << setprecision(5) << setw(7) << 
+                    p[i].x << "\t" << setprecision(8) << setw(10) << p[i].y << "\t";
+                if (has_sigma)
+                {
+                    of << p[i].sig;
+                }
+                of << std::endl;
+            }
         }
-    }
 
-private:
-    std::vector<XY_Point> p;
-};
-
-
-class XYlib
-{
-public:
-    // attributes
-    //////////////////////////////////////////////////////////////////////////
+    private:
+        std::vector<XY_Point> p;
+    };
 
 
-    // methods
-    //////////////////////////////////////////////////////////////////////////
-    XYlib(void);
-    ~XYlib(void);
+    class XYlib
+    {
+    public:
+        // attributes
+        //////////////////////////////////////////////////////////////////////////
 
-    static void load_file(std::string const& fname, XY_Data& data, std::string const& type = "");
 
-private:
-    // plain text file with data columns
-    static void load_xy_file(std::ifstream& f, XY_Data& data, std::vector<int> const& columns);
+        // methods
+        //////////////////////////////////////////////////////////////////////////
+        XYlib(void);
+        ~XYlib(void);
 
-    // SIEMENS/BRUKER uxd format
-    static void load_uxd_file(std::ifstream& f, XY_Data& data, std::vector<int> const& columns);
+        static void load_file(std::string const& fname, XY_Data& data, std::string const& type = "");
 
-    // DIFFRAC-AT Raw Data file format: v1
-    static void load_diffracat_v1_raw_file(std::ifstream& f, XY_Data& data, 
-        unsigned range = 0);
+    private:
+        // plain text file with data columns
+        static void load_xy_file(std::ifstream& f, XY_Data& data, std::vector<int> const& columns);
 
-    // DIFFRAC-AT Raw Data file format: v2 and v3
-    static void load_diffracat_v2_raw_file(std::ifstream& f, XY_Data& data, 
-        unsigned range = 0);
+        // SIEMENS/BRUKER uxd format
+        static void load_uxd_file(std::ifstream& f, XY_Data& data, std::vector<int> const& columns);
 
-    // Rigaku .dat file format
-    static void load_rigaku_dat_file(std::ifstream& f, XY_Data& data,
-        unsigned range = 0);
-    
+        // DIFFRAC-AT Raw Data file format: v1
+        static void load_diffracat_v1_raw_file(std::ifstream& f, XY_Data& data, 
+            unsigned range = 0);
 
-    static int read_line_and_get_all_numbers(std::istream &is, 
-        std::vector<fp>& result_numbers);
-    static std::string guess_ftype(std::string const fname, std::istream& is, XY_FileInfo* pfi = NULL);
-    // set XY_FileInfo structrue
-    static void set_file_info(const std::string& ftype, XY_FileInfo* pfi);
-    static fp string_to_fp(const std::string& str);
-};
+        // DIFFRAC-AT Raw Data file format: v2 and v3
+        static void load_diffracat_v2_raw_file(std::ifstream& f, XY_Data& data, 
+            unsigned range = 0);
 
-}
+        // Rigaku .dat file format
+        static void load_rigaku_dat_file(std::ifstream& f, XY_Data& data,
+            unsigned range = 0);
+
+        // vamas_iso14976 file
+        static void load_vamas_file(std::ifstream& f, XY_Data& data,
+            unsigned range = 0);
+        
+
+        static int read_line_and_get_all_numbers(std::istream &is, 
+            std::vector<fp>& result_numbers);
+        static std::string guess_ftype(std::string const fname, std::istream& is, XY_FileInfo* pfi = NULL);
+        // set XY_FileInfo structrue
+        static void set_file_info(const std::string& ftype, XY_FileInfo* pfi);
+        static fp string_to_fp(const std::string& str);
+        static int string_to_int(const std::string& str);
+        static int read_line_int(std::ifstream& is);
+        static fp read_line_fp(std::ifstream& is);
+
+        static int find_exp_mode_value(const char *string);
+        static int find_technique_value(const char *string);
+        static int find_scan_mode_value(const char *string);
+
+        static std::string trim(const std::string &str);
+        static void skip_lines(std::ifstream &f, const int count);
+
+        static void vamas_read_blk(std::ifstream &f, XY_Data& data, bool skip = false);
+    };
+
+} // end of namespace xylib
 
 #endif //#ifndef XYLIB__API__H__

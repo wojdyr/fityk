@@ -56,3 +56,10 @@ Here is some fragment from the sample file. ("#xxx" is comments I added, and "..
 # end of file
 *EOF
 
+###################################################################
+* ISO14976 VAMAS Surface Chemical Analysis Standard Data Transfer Format File: (added later)
+Name in prog: vamas_iso14976
+Extension name: vms
+See the following paper for details of this file format:
+1. W.A. Dench, L. B. Hazell and M. P. Seah, VAMAS Surface Chemical Analysis Standard Data Transfer Format with Skeleton Decoding Programs, published on Surface and Interface Analysis, 13(1988)63-122 or National Physics Laboratory Report DMA(A)164 July 1988
+2. The ISO standard (iso14976)

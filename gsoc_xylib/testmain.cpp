@@ -27,13 +27,15 @@ int main(int argc, char* argv[])
         // auto test mode
         if (0 == strncmp("-a", argv[i], 2))
         {
-            /*
+/*
             test_xy_file();
             test_uxd_file();
             test_diffracat_v2_raw_file();
             test_diffracat_v1_raw_file();
-            */
             test_rigaku_dat_file();
+*/
+            test_vamas_file();
+
             return 0;
         }
         // user specifying mode
@@ -135,6 +137,50 @@ void test_rigaku_dat_file()
     load_export(fnames, "rigaku_dat");
 }
 
+// test file at: test/vamas_iso14976
+void test_vamas_file()
+{
+    vector<string> fnames;
+    //fnames.push_back("mjr9_116a.vms");
+    fnames.push_back("fomblin_y.vms");
+/*
+    fnames.push_back("gpbn.vms");
+    fnames.push_back("gpbp.vms");
+    fnames.push_back("gsbn.vms");
+    fnames.push_back("gsbp.vms");
+    fnames.push_back("pbn.vms");
+    fnames.push_back("pbp.vms");
+    fnames.push_back("PIBPBN.VMS");
+    fnames.push_back("PIBPBP.VMS");
+    fnames.push_back("PIBSBN.VMS");
+    fnames.push_back("PIBSBP.VMS");
+    fnames.push_back("pkn.vms");
+    fnames.push_back("pkp.vms");
+*/
+    fnames.push_back("PMMAPBN.VMS");
+    fnames.push_back("PMMAPBP.VMS");
+    fnames.push_back("PMMASBN.VMS");
+    fnames.push_back("PMMASBP.VMS");
+    fnames.push_back("PVAPBN.VMS");
+    fnames.push_back("PVAPBP.VMS");
+    fnames.push_back("PVASBN.VMS");
+    fnames.push_back("PVASBP.VMS");
+    fnames.push_back("PVCPBN.VMS");
+    fnames.push_back("PVCPBP.VMS");
+    fnames.push_back("PVCSBN.VMS");
+    fnames.push_back("PVCSBP.VMS");
+    fnames.push_back("README.TXT");
+    fnames.push_back("sPBn.vms");
+    fnames.push_back("spbp.vms");
+    fnames.push_back("ssbn.vms");
+    fnames.push_back("ssbp.vms");
+    fnames.push_back("tbbn.vms");
+    fnames.push_back("tbbp.vms");
+
+
+    load_export(fnames, "vamas_iso14976");
+}
+
 // helper functions
 //////////////////////////////////////////////////////////////////////////
 
@@ -185,4 +231,6 @@ void usage(char* prog_name)
     cout << "\t\t" << "diffracat_v1_raw " << ": Siemens/Bruker Diffrac-AT Raw File v1" << endl;
     cout << "\t\t" << "diffracat_v2_raw " << ": Siemens/Bruker Diffrac-AT Raw File v2/v3" << endl;
     cout << "\t\t" << "rigaku_dat       " << ": Rigaku dat File" << endl;
+    cout << "\t\t" << "vamas_iso14976   " << 
+        ": ISO14976 VAMAS Surface Chemical Analysis Standard Data Transfer Format File" << endl;
 }

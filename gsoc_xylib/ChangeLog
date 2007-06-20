@@ -3,3 +3,7 @@
 * Added file format support: "Rigaku dat file". Tried to use Boost::regex to handle this text-based data file. Although this is not necessary in this case, maybe it will simplify the code in my opinion.
 * Added the "file_type" strings to usage function
 
+3:37 2007-6-21 GMT+8 version 309
+* Added file format support: "vamas-iso14976 file". However, the MAPPING mode file (which is a 2-ary function, (x,y)->z) is not handled. 
+* To simplify the code, add several helper functions. e.g. read_line_int()
+

@@ -13,6 +13,13 @@ using namespace std;
 namespace xylib
 {
 
+// params needed by vamas_read_blk(), too boring if passed as function args
+int include[41], inclusion_list[41];
+int block_future_upgrade_entries;
+int exp_future_upgrade_entries;
+int exp_mode, scan_mode, exp_variables;
+
+
 XYlib::XYlib(void)
 {
 }
@@ -49,6 +56,8 @@ void XYlib::load_file(std::string const& file, XY_Data& data, std::string const&
         load_diffracat_v2_raw_file(f, data);
     else if (ft == "rigaku_dat")
         load_rigaku_dat_file(f, data);
+    else if (ft == "vamas_iso14976")
+        load_vamas_file(f, data);
     else {                                  // other ?
         throw XY_Error("Unknown filetype.");
     }
@@ -278,7 +287,7 @@ void XYlib::load_diffracat_v2_raw_file(std::ifstream& f, XY_Data& data,
     // read the specified range data
     //////////////////////////////////////////////////////////////////////////
     unsigned short step_count;
-    float step_size, start_x;
+    float x_step, x_start;
 
     // range header length
     f.seekg(cur_range_start);
@@ -290,7 +299,7 @@ void XYlib::load_diffracat_v2_raw_file(std::ifstream& f, XY_Data& data,
     
     // step size
     f.seekg(cur_range_start + 12);
-    f.read(reinterpret_cast<char*>(&step_size), sizeof(step_size));
+    f.read(reinterpret_cast<char*>(&x_step), sizeof(x_step));
 
     // according to data format specification, here these 24B is of FORTRAN type "6R4"
     // starting axes position for range
@@ -301,7 +310,7 @@ void XYlib::load_diffracat_v2_raw_file(std::ifstream& f, XY_Data& data,
         f.seekg(cur_range_start + 16 + i * 4);
         f.read(reinterpret_cast<char*>(&ff[i]), sizeof(ff[i]));
     }
-    start_x = ff[0];
+    x_start = ff[0];
 
     // get the x-y data points
     float x, y;
@@ -309,7 +318,7 @@ void XYlib::load_diffracat_v2_raw_file(std::ifstream& f, XY_Data& data,
     {
         f.seekg(cur_range_start + cur_header_len + i * sizeof(y));
         f.read(reinterpret_cast<char*>(&y), sizeof(y));
-        x = start_x + i * step_size;
+        x = x_start + i * x_step;
         data.push_point(XY_Point(x, y));
     }
 }
@@ -343,7 +352,7 @@ void XYlib::load_rigaku_dat_file(std::ifstream& f, XY_Data& data,
             range_cnt = atoi(what[1].first);
             if (range >= range_cnt)
             {
-                throw XY_Error(string("file does not have range") + S(range));
+                throw XY_Error(S("file does not have range") + S(range));
             }
             continue;
         }
@@ -406,8 +415,280 @@ void XYlib::load_rigaku_dat_file(std::ifstream& f, XY_Data& data,
     }
 }
 
+
+// load the vamas_iso14976 file
+void XYlib::load_vamas_file(std::ifstream& f, XY_Data& data,
+                                 unsigned range /*= 0*/)
+{
+    // for details of this format, see docs/formats.
+    /** For description of the format see
+    W.A. Dench, L. B. Hazell and M. P. Seah,
+    VAMAS Surface Chemical Analysis Standard Data Transfer Format
+    with Skeleton Decoding Programs.
+    Surface and Interface Analysis, 13(1988)63-122
+    or National Physics Laboratory Report DMA(A)164 July 1988 */
+    
+    int total_regions, blk_cnt;
+
+
+    string line;
+    int n, n2;  // n2 is "entries_in_inclusion_list"
+
+    // verify the file format
+    string magic = "VAMAS Surface Chemical Analysis Standard Data Transfer Format 1988 May 4";
+    if (!(getline(f, line) && trim(line) == magic)) 
+    {
+        throw XY_Error("file is not in vamas_iso14976 format");
+    }
+
+    // skip "institution id" etc, 4 items
+    skip_lines(f, 4);
+
+    // comment lines, n is nr of lines
+    n = read_line_int(f);
+    skip_lines(f, n);
+    
+    // experiment mode
+    getline(f, line);
+    line = trim(line);
+    exp_mode = find_exp_mode_value(line.c_str());
+
+    // scan_mode
+    getline(f, line); 
+    line = trim(line);
+    scan_mode = find_scan_mode_value(line.c_str());
+
+    // Experiment mode is MAP, MAPD, NORM, or SDP
+    if ((exp_mode < 3) ||
+        (exp_mode == 5) ||
+        (exp_mode == 6))	
+    {
+        total_regions = read_line_int(f);
+    }
+
+    // experiment mode is MAP or MAPD
+    if (exp_mode < 3)
+    {
+        int i = read_line_int(f);	// number of analysis positions
+        i = read_line_int(f);	    // number of discrete x coordinates available in full map
+        i = read_line_int(f);	    // number of discrete y coordinates available in full map
+    };
+
+    // experimental variables
+    exp_variables = read_line_int(f);
+    for (int i = 1; i <= exp_variables; ++i)
+    {
+        getline(f, line);   // experimental labels
+        getline(f, line);   // experimental units
+    }
+
+    /* n2 indicates the number of lines below */
+    n2 = read_line_int(f);	// number of entries in parameter inclusion or exclusion list
+    long d = (n2 > 0 ? 0 : 1);
+    for (int i = 1; i <= 40; ++i)
+    {
+        inclusion_list[i] = d;
+        include[i] = 1;
+    }
+    d = (d ? 0 : 1);
+    n2 = (n2 < 0) ? -n2 : n2;
+    for (int i = 1; i <= n2; ++i)
+    {
+        int e = read_line_int(f);
+        inclusion_list[e] = d;
+    }
+    
+    // number of manually entered items in blk
+    n = read_line_int(f);
+    skip_lines(f, n);
+
+    // number of future upgrade experiment entries
+    n = exp_future_upgrade_entries = read_line_int(f);
+    skip_lines(f, n);
+
+    // number of future upgrade block entries
+    n = block_future_upgrade_entries = read_line_int(f);
+    skip_lines(f, n);
+
+    // handle the blocks
+    blk_cnt = read_line_int(f);
+    if (range < 0 || range >= blk_cnt)
+    {
+        throw XY_Error(S("file does not have range") + S(range));
+    }
+
+    for (int e = 1; e <= 40; ++e)
+    {
+        include[e] = inclusion_list[e];
+    }
+
+    // skip the previews blocks
+    for (int i = 0; i < range; ++i)
+    {
+        vamas_read_blk(f, data, true);
+    }
+    
+    vamas_read_blk(f, data);
+}
+
 // helper functions
 //////////////////////////////////////////////////////////////////////////
+
+// read one blk, used by load_vamas_file()
+void XYlib::vamas_read_blk(ifstream &f, XY_Data& data, bool skip_flg /* = false */)
+{
+    string line;
+    int n;
+    int corresponding_var, tech;
+    fp x_start, x_step;
+    int pt_cnt;          // number of points
+
+    skip_lines(f, 2);   // block headers
+    
+    // all block header lines
+    for (int i = 1; i <= 40; ++i)
+    {
+        if (include[i])
+        {
+            switch (i)
+            {
+            case 8:     // block comments
+                n = read_line_int(f);
+                skip_lines(f, n);
+                break;
+
+            case 9:     // get tech
+                getline(f, line);
+                line = trim(line);
+                tech = find_technique_value(line.c_str());
+                break;
+
+            case 10:    // additional lines iff exp_mode is MAP or MAPDP
+                if (exp_mode < 3)
+                {
+                    skip_lines(f, 2); 
+                }
+                break;
+
+            case 11:    // values of exp_variables
+                skip_lines(f, exp_variables);
+                break;
+
+            case 13:    
+                // additional lines iff exp_mode is MAPDP, MAPSVDP, SDP, SDPSV
+                // or tech = FABMS, FABMS eneergy spec, SIMS, sims energy spec, SNMS, SNMSenergy spec or ISS
+                if ((exp_mode == 2) ||
+                    (exp_mode == 4) ||
+                    (exp_mode == 6) ||
+                    (exp_mode == 7) ||
+                    (tech > 4 && tech < 12))
+                {
+                    skip_lines(f, 3);
+                }
+                break;
+
+            case 16:    // analysis source beam width X and Y
+                skip_lines(f, 2);
+                break;
+
+            case 17:
+                // additional lines iff exp_mode is MAP,MAPDP,MAPSV,MAPSVDP or SEM
+                if (exp_mode < 5 || exp_mode == 8)
+                {
+                    skip_lines(f, 2);
+                }
+                break;
+
+            case 18:    // MAPPING mode, get args here
+                // NOTICE: in MAPPING mode, every (x, y) is mapped to the "ordinate values" in the block body
+                // so, this is a 2 z=f(x,y)
+                // What should we do in fityk??
+                if (exp_mode == 3 ||
+                    exp_mode == 4 ||
+                    exp_mode == 8)	// MAPSV,MAPSVDP or SEM
+                {
+                    throw XY_Error("do not support MAPPING mode now");
+                    //skip_lines(f, 6);
+                }
+                break;
+
+            case 23:
+                if (1 == tech)
+                {
+                    skip_lines(f, 1);
+                }
+                break;
+
+            case 27:    // 2 lines: analysis width X & Y
+            case 28:    // 2 lines: analyser axis take off "polar angle" & "azimuth"
+            case 30:    // 2 lines: "transition or charge state label" & "charge of detected particle"
+                skip_lines(f, 2);
+                break;
+
+            case 31:    // REGULAR mode, get x_start & x_step
+                if (1 == scan_mode)     // 'REGULAR' mode
+                {
+                    skip_lines(f, 2);   // abscissa label & units
+                    getline(f, line);
+                    x_start = string_to_fp(line);
+                    getline(f, line);
+                    x_step = string_to_fp(line);
+                }
+                break;
+
+            case 32:
+                corresponding_var = read_line_int(f);
+                skip_lines(f, 2 * corresponding_var);   // 2 lines per corresponding_var
+                break;
+
+            case 37:
+                if ((tech < 5 || tech > 11)	// AES2,AES1,EDX,ELS,UPS,XPS or XRF
+                    &&
+                    (exp_mode == 2 ||
+                    exp_mode == 4 ||
+                    exp_mode == 6 ||
+                    exp_mode == 7))	// MAPDP,MAPSVDP,SDP or SDPSV
+                {   // block params: sputtering source energy,beam current, 
+                    // width X, width Y, polar angle of incidence, azimuth, mode
+                    skip_lines(f, 7);
+                }
+                break;
+
+            case 38:
+                skip_lines(f, 2);
+                break;
+
+            case 40:    // 3 lines per param: additional numerical parameter label, units, value
+                n = read_line_int(f);
+                skip_lines(f, 3 * n);
+                break;
+
+            default:    // simply read one line, which we do not care
+                getline(f, line);
+                break;
+            } // switch
+        } // if
+    } // for
+
+    skip_lines(f, block_future_upgrade_entries);
+    pt_cnt = read_line_int(f);
+    skip_lines(f, 2 * corresponding_var);   // min & max ordinate
+    
+    if (skip_flg)
+    {
+        // if skip_flg is set, y will not be added to data
+        skip_lines(f, pt_cnt);
+        return;
+    }
+
+    fp y;
+    for (int c = 0; c < pt_cnt; ++c)
+    {
+        y = read_line_fp(f);
+        data.push_point(XY_Point(x_start + c * x_step, y));
+    }
+}
+
 
 // guess an unknown file format type. may be expanded by deciding the file 
 // type according to the first lines of file
@@ -481,6 +762,7 @@ int XYlib::read_line_and_get_all_numbers(istream &is, vector<fp>& result_numbers
     return !is.eof();
 }
 
+
 }
 
 
@@ -498,13 +780,107 @@ void xylib::XYlib::set_file_info(const std::string& ftype, XY_FileInfo* pfi)
     }
 }
 
+int xylib::XYlib::read_line_int(std::ifstream& is)
+{
+    string str;
+    int ret;
+    getline(is, str);
+    return string_to_int(str);
+}
 
-// change a std::string to fp
-fp xylib::XYlib::string_to_fp(const std::string& str)
+
+fp xylib::XYlib::read_line_fp(std::ifstream& is)
+{
+    string str;
+    fp ret;
+    getline(is, str);
+    return string_to_fp(str);
+}
+
+// convert a std::string to fp
+fp xylib::XYlib::string_to_fp(const std::string &str)
 {
     fp ret;
     istringstream is(str);
     is >> ret;
     return ret;
+}
+
+
+// convert a std::string to int
+int xylib::XYlib::string_to_int(const std::string &str)
+{
+    int ret;
+    istringstream is(str);
+    is >> ret;
+    return ret;
+}
+
+// trim the string 
+std::string xylib::XYlib::trim(const string &str)
+{
+    basic_string <char>::size_type first, last;
+    first = str.find_first_not_of(" \r\n\t");
+    last = str.find_last_not_of(" \r\n\t");
+    return str.substr(first, last - first + 1);
+}
+
+// skip "count" lines in f
+void xylib::XYlib::skip_lines(ifstream &f, const int count)
+{
+    string line;
+    for (int i = 0; i < count; ++i)
+    {
+        if (!getline(f, line))
+        {
+            throw XY_Error("unexpected end of file");
+        }
+    }
+}
+
+// following 3 functions are used by load_vamas_file()
+int xylib::XYlib::find_exp_mode_value(const char *string)
+{
+    int i;
+    static char *name[] =
+    {
+        "MAP","MAPDP","MAPSV","MAPSVDP","NORM","SDP","SDPSV","SEM","NOEXP"
+    };
+
+    int k = sizeof(name) / sizeof(name[0]);
+    i = 0;
+    while ((i < k) && strcmp(string, name[i++]));
+    if (i == k)
+        i = -1;// Not found
+    return i;
+}
+
+int xylib::XYlib::find_technique_value(const char *string)
+{
+    int i;
+    static char *name[] =
+    {
+        "AES diff","AES dir","EDX","ELS","FABMS",
+        "FABMS energy spec","ISS","SIMS","SIMS energy spec","SNMS",
+        "SNMS energy spec","UPS","XPS","XRF"
+    };
+    int k = sizeof(name) / sizeof(name[0]);
+    i = 0;
+    while ((i < k) && strcmp(string, name[i++]));
+    if (i == k)
+        i = -1;// Not found
+    return i;
+}
+
+int xylib::XYlib::find_scan_mode_value(const char *string)
+{
+    int i;
+    static char *name[] = {"REGULAR","IRREGULAR","MAPPING"};
+    int k = sizeof(name) / sizeof(name[0]);
+    i = 0;
+    while ((i < k) && strcmp(string, name[i++]));
+    if (i == k)
+        i = -1;// Not found
+    return i;
 }
 
