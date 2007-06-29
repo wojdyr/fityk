@@ -158,8 +158,17 @@ namespace xylib
 
         static std::string trim(const std::string &str);
         static void skip_lines(std::ifstream &f, const int count);
+        static void le_to_host(void *p, unsigned len);
 
-        static void vamas_read_blk(std::ifstream &f, XY_Data& data, bool skip = false);
+        static void vamas_read_blk(std::ifstream &f, 
+                                   XY_Data& data, 
+                                   const std::vector<bool> &include,
+                                   bool skip_flg = false, 
+                                   int block_future_upgrade_entries = 0,
+                                   int exp_future_upgrade_entries = 0,
+                                   int exp_mode = 0, 
+                                   int scan_mode = 0, 
+                                   int exp_variables = 0);
     };
 
 } // end of namespace xylib

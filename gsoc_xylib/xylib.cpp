@@ -6,19 +6,14 @@
 #include "xylib.h"
 #include "common.h"
 #include <algorithm>
+#include <boost/detail/endian.hpp>
+#include <boost/cstdint.hpp>
 #include <boost/regex.hpp>
 
 using namespace std;
 
 namespace xylib
 {
-
-// params needed by vamas_read_blk(), too boring if passed as function args
-int include[41], inclusion_list[41];
-int block_future_upgrade_entries;
-int exp_future_upgrade_entries;
-int exp_mode, scan_mode, exp_variables;
-
 
 XYlib::XYlib(void)
 {
@@ -172,10 +167,12 @@ void XYlib::load_uxd_file(ifstream& f, XY_Data& data, vector<int> const& columns
 }
 
 
-// SIEMENS/BRUKER version 2 and version 3 raw file
+// SIEMENS/BRUKER version 1 raw file
 void XYlib::load_diffracat_v1_raw_file(std::ifstream& f, XY_Data& data, 
                                        unsigned range /*= 0*/)
 {
+    using namespace boost;
+
     // TODO: check whether this is Diffract-At v1 format (move the verify code to another funciton)
     char buf[256];
 
@@ -196,9 +193,10 @@ void XYlib::load_diffracat_v1_raw_file(std::ifstream& f, XY_Data& data,
     }
 
     // get the max range index
-    unsigned max_range_idx;
+    uint32_t max_range_idx;
     f.seekg(152);
     f.read(reinterpret_cast<char*>(&max_range_idx), sizeof(max_range_idx));
+    le_to_host(&max_range_idx, sizeof(max_range_idx));
     
     if (range > max_range_idx)
     {
@@ -206,7 +204,8 @@ void XYlib::load_diffracat_v1_raw_file(std::ifstream& f, XY_Data& data,
     }
 
     unsigned cur_range = 0;
-    unsigned cur_range_offset = 0, cur_range_steps;
+    unsigned cur_range_offset = 0;
+    uint32_t cur_range_steps;
     float start_x, step_size;
 
     // skip the previous ranges
@@ -214,18 +213,23 @@ void XYlib::load_diffracat_v1_raw_file(std::ifstream& f, XY_Data& data,
     {
         f.seekg(cur_range_offset + 4);
         f.read(reinterpret_cast<char*>(&cur_range_steps), sizeof(cur_range_steps));
+        le_to_host(&cur_range_steps, sizeof(cur_range_steps));
+
         cur_range_offset += (39 + cur_range_steps) * 4;
     }
     
     // get step count of specified range
     f.seekg(cur_range_offset + 4);
     f.read(reinterpret_cast<char*>(&cur_range_steps), sizeof(cur_range_steps));
+    le_to_host(&cur_range_steps, sizeof(cur_range_steps));
 
     // get start_x (2-theta) and step_size
     f.seekg(cur_range_offset + 12);
     f.read(reinterpret_cast<char*>(&step_size), sizeof(step_size));
+    le_to_host(&cur_range_offset, sizeof(cur_range_offset));
     f.seekg(cur_range_offset + 24);
     f.read(reinterpret_cast<char*>(&start_x), sizeof(start_x));
+    le_to_host(&start_x, sizeof(start_x));
 
     // get data
     float x, y;
@@ -233,6 +237,7 @@ void XYlib::load_diffracat_v1_raw_file(std::ifstream& f, XY_Data& data,
     {
         f.seekg(cur_range_offset + 156 + i * 4);
         f.read(reinterpret_cast<char*>(&y), sizeof(y));
+        le_to_host(&y, sizeof(y));
         x = start_x + i * step_size;
         data.push_point(XY_Point(x, y));
     }
@@ -429,8 +434,6 @@ void XYlib::load_vamas_file(std::ifstream& f, XY_Data& data,
     or National Physics Laboratory Report DMA(A)164 July 1988 */
     
     int total_regions, blk_cnt;
-
-
     string line;
     int n, n2;  // n2 is "entries_in_inclusion_list"
 
@@ -451,12 +454,12 @@ void XYlib::load_vamas_file(std::ifstream& f, XY_Data& data,
     // experiment mode
     getline(f, line);
     line = trim(line);
-    exp_mode = find_exp_mode_value(line.c_str());
+    int exp_mode = find_exp_mode_value(line.c_str());
 
     // scan_mode
     getline(f, line); 
     line = trim(line);
-    scan_mode = find_scan_mode_value(line.c_str());
+    int scan_mode = find_scan_mode_value(line.c_str());
 
     // Experiment mode is MAP, MAPD, NORM, or SDP
     if ((exp_mode < 3) ||
@@ -475,7 +478,7 @@ void XYlib::load_vamas_file(std::ifstream& f, XY_Data& data,
     };
 
     // experimental variables
-    exp_variables = read_line_int(f);
+    int exp_variables = read_line_int(f);
     for (int i = 1; i <= exp_variables; ++i)
     {
         getline(f, line);   // experimental labels
@@ -484,18 +487,17 @@ void XYlib::load_vamas_file(std::ifstream& f, XY_Data& data,
 
     /* n2 indicates the number of lines below */
     n2 = read_line_int(f);	// number of entries in parameter inclusion or exclusion list
-    long d = (n2 > 0 ? 0 : 1);
-    for (int i = 1; i <= 40; ++i)
-    {
-        inclusion_list[i] = d;
-        include[i] = 1;
-    }
-    d = (d ? 0 : 1);
+    bool d = (n2 <= 0);
+
+    // a complete blk contains 40 parts. include[i] indicates if the i-th part is included 
+    vector<bool> include(41, d);  
+
+    d = !d;
     n2 = (n2 < 0) ? -n2 : n2;
     for (int i = 1; i <= n2; ++i)
     {
         int e = read_line_int(f);
-        inclusion_list[e] = d;
+        include[e] = d;
     }
     
     // number of manually entered items in blk
@@ -503,12 +505,12 @@ void XYlib::load_vamas_file(std::ifstream& f, XY_Data& data,
     skip_lines(f, n);
 
     // number of future upgrade experiment entries
-    n = exp_future_upgrade_entries = read_line_int(f);
-    skip_lines(f, n);
+    int exp_future_upgrade_entries = read_line_int(f);
+    skip_lines(f, exp_future_upgrade_entries);
 
     // number of future upgrade block entries
-    n = block_future_upgrade_entries = read_line_int(f);
-    skip_lines(f, n);
+    int block_future_upgrade_entries = read_line_int(f);
+    skip_lines(f, block_future_upgrade_entries);
 
     // handle the blocks
     blk_cnt = read_line_int(f);
@@ -517,25 +519,34 @@ void XYlib::load_vamas_file(std::ifstream& f, XY_Data& data,
         throw XY_Error(S("file does not have range") + S(range));
     }
 
-    for (int e = 1; e <= 40; ++e)
-    {
-        include[e] = inclusion_list[e];
-    }
-
     // skip the previews blocks
-    for (int i = 0; i < range; ++i)
+    for (unsigned i = 0; i < range; ++i)
     {
-        vamas_read_blk(f, data, true);
+        vamas_read_blk(f, data, include, true);
     }
     
-    vamas_read_blk(f, data);
+    vamas_read_blk(f, 
+        data, include, false, 
+        block_future_upgrade_entries,
+        exp_future_upgrade_entries,
+        exp_mode, 
+        scan_mode, 
+        exp_variables);
 }
 
 // helper functions
 //////////////////////////////////////////////////////////////////////////
 
 // read one blk, used by load_vamas_file()
-void XYlib::vamas_read_blk(ifstream &f, XY_Data& data, bool skip_flg /* = false */)
+void XYlib::vamas_read_blk(std::ifstream &f, 
+                           XY_Data& data, 
+                           const std::vector<bool> &include,
+                           bool skip_flg /* = false */, 
+                           int block_future_upgrade_entries /* = 0 */,
+                           int exp_future_upgrade_entries /* = 0 */,
+                           int exp_mode /* = 0 */, 
+                           int scan_mode /* = 0 */, 
+                           int exp_variables /* = 0 */)
 {
     string line;
     int n;
@@ -676,7 +687,7 @@ void XYlib::vamas_read_blk(ifstream &f, XY_Data& data, bool skip_flg /* = false 
     
     if (skip_flg)
     {
-        // if skip_flg is set, y will not be added to data
+        // if skip_flg is set, point will not be added to data
         skip_lines(f, pt_cnt);
         return;
     }
@@ -783,7 +794,6 @@ void xylib::XYlib::set_file_info(const std::string& ftype, XY_FileInfo* pfi)
 int xylib::XYlib::read_line_int(std::ifstream& is)
 {
     string str;
-    int ret;
     getline(is, str);
     return string_to_int(str);
 }
@@ -792,7 +802,6 @@ int xylib::XYlib::read_line_int(std::ifstream& is)
 fp xylib::XYlib::read_line_fp(std::ifstream& is)
 {
     string str;
-    fp ret;
     getline(is, str);
     return string_to_fp(str);
 }
@@ -838,26 +847,37 @@ void xylib::XYlib::skip_lines(ifstream &f, const int count)
     }
 }
 
+
+//////////////////////////////////////////////////////////////////////////
 // following 3 functions are used by load_vamas_file()
+
+// get the index number of "exp_mode"
 int xylib::XYlib::find_exp_mode_value(const char *string)
 {
-    int i;
     static char *name[] =
     {
         "MAP","MAPDP","MAPSV","MAPSVDP","NORM","SDP","SDPSV","SEM","NOEXP"
     };
 
     int k = sizeof(name) / sizeof(name[0]);
-    i = 0;
-    while ((i < k) && strcmp(string, name[i++]));
+
+    int i = 0;
+    while ((i < k) && strcmp(string, name[i++]))
+    {
+        continue;
+    }
+
     if (i == k)
-        i = -1;// Not found
+    {
+        i = -1;
+    }
+    
     return i;
 }
 
+// get the index number of "technique_mode"
 int xylib::XYlib::find_technique_value(const char *string)
 {
-    int i;
     static char *name[] =
     {
         "AES diff","AES dir","EDX","ELS","FABMS",
@@ -865,22 +885,104 @@ int xylib::XYlib::find_technique_value(const char *string)
         "SNMS energy spec","UPS","XPS","XRF"
     };
     int k = sizeof(name) / sizeof(name[0]);
-    i = 0;
-    while ((i < k) && strcmp(string, name[i++]));
+    int i = 0;
+    while ((i < k) && strcmp(string, name[i++]))
+    {
+        continue;
+    }
+
     if (i == k)
+    {
         i = -1;// Not found
+    }
+
     return i;
 }
 
+// get the index number of "scan_mode"
 int xylib::XYlib::find_scan_mode_value(const char *string)
 {
-    int i;
     static char *name[] = {"REGULAR","IRREGULAR","MAPPING"};
     int k = sizeof(name) / sizeof(name[0]);
-    i = 0;
-    while ((i < k) && strcmp(string, name[i++]));
+    int i = 0;
+    while ((i < k) && strcmp(string, name[i++]))
+    {
+        continue;
+    }
+
     if (i == k)
+    {
         i = -1;// Not found
+    }
+
     return i;
+}
+
+// change the byte-order from "little endian" to host endian
+// p: pointer to the data
+// len: length of the data type, should be 1, 2, 4
+void xylib::XYlib::le_to_host(void *p, unsigned len)
+{
+    /*
+    for more info, see "endian" and "pdp-11" items in wikipedia
+    www.wikipedia.org
+    */
+    if ((len != 1) && (len != 2) && (len != 4))
+    {
+        throw XY_Error("len should be 1, 2, 4");
+    }
+
+# if defined(BOOST_LITTLE_ENDIAN)
+    // nothing need to do
+    return;
+# else   // BIG_ENDIAN or PDP_ENDIAN
+    // store the old values
+    uint8_t byte0, byte1, byte2, byte3;
+    switch (len)
+    {
+    case 1:
+        break;
+    case 2:
+        byte0 = (reinterpretcast<uint8_t*>(p))[0];
+        byte1 = (reinterpretcast<uint8_t*>(p))[1];
+    case 4:
+        byte2 = (reinterpretcast<uint8_t*>(p))[2];
+        byte3 = (reinterpretcast<uint8_t*>(p))[3];
+        break;
+    default:
+        break;
+    }
+#  if defined(BOOST_BIG_ENDIAN)
+    switch (len)
+    {
+    case 1:
+        break;
+    case 2:
+        (reinterpretcast<uint8_t*>(p))[0] = byte1;
+        (reinterpretcast<uint8_t*>(p))[1] = byte0;
+        break;
+    case 4:
+        (reinterpretcast<uint8_t*>(p))[0] = byte3;
+        (reinterpretcast<uint8_t*>(p))[1] = byte2;
+        (reinterpretcast<uint8_t*>(p))[2] = byte1;
+        (reinterpretcast<uint8_t*>(p))[3] = byte0;
+    }
+#  elif defined(BOOST_PDP_ENDIAN)  // PDP_ENDIAN
+    // 16-bit word are stored in little_endian
+    // 32-bit word are stored in middle_endian: the most significant "half" (16-bits) followed by 
+    // the less significant half (as if big-endian) but with each half stored in little-endian format
+    switch (len)
+    {
+    case 1:
+    case 2:
+        break;
+    case 4:
+        (reinterpretcast<uint8_t*>(p))[0] = byte2;
+        (reinterpretcast<uint8_t*>(p))[1] = byte3;
+        (reinterpretcast<uint8_t*>(p))[2] = byte0;
+        (reinterpretcast<uint8_t*>(p))[3] = byte1;
+    }
+#  endif
+# endif
 }
 

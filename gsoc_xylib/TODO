@@ -14,3 +14,5 @@ TODO:
 	use boost::regex to process the text files
 	
 * Do some error-preventation in case that files are in wrong format
+
+* Rewrite the whole API framework

@@ -31,11 +31,13 @@ int main(int argc, char* argv[])
             test_xy_file();
             test_uxd_file();
             test_diffracat_v2_raw_file();
-            test_diffracat_v1_raw_file();
-            test_rigaku_dat_file();
 */
-            test_vamas_file();
+            test_diffracat_v1_raw_file();
+/*
+            test_rigaku_dat_file();
 
+            test_vamas_file();
+*/
             return 0;
         }
         // user specifying mode
@@ -169,7 +171,6 @@ void test_vamas_file()
     fnames.push_back("PVCPBP.VMS");
     fnames.push_back("PVCSBN.VMS");
     fnames.push_back("PVCSBP.VMS");
-    fnames.push_back("README.TXT");
     fnames.push_back("sPBn.vms");
     fnames.push_back("spbp.vms");
     fnames.push_back("ssbn.vms");
