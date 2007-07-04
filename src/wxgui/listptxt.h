@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <wx/listctrl.h>
+#include <wx/bitmap.h>
 #include <wx/image.h>
 
 #include "img/color.xpm"

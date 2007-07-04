@@ -17,6 +17,15 @@
 #include <wx/statline.h>
 #include <wx/msgdlg.h>
 
+#ifdef __WXMAC__
+# include <wx/version.h>
+# if wxCHECK_VERSION(2, 8, 0)
+#  include <wx/stdpaths.h>
+# else
+#  error "wxWidgets 2.8 or later is required on Mac OSX"
+# endif
+#endif
+
 #include "cmn.h"
 #include "../common.h" //iround()
 
@@ -229,8 +238,12 @@ END_EVENT_TABLE()
 /// get path ~/.fityk/filename and create ~/.fityk/ dir if not exists
 wxString get_user_conffile(string const& filename)
 {
+#ifdef __WXMAC__
+    wxString fityk_dir = wxStandardPaths::Get().GetUserDataDir();
+#else
     // hardcoded: const char* config_dirname = ".fityk";
     wxString fityk_dir = wxGetHomeDir() + wxFILE_SEP_PATH + wxT(".fityk");
+#endif
     if (!wxDirExists(fityk_dir))
         wxMkdir(fityk_dir);
     return fityk_dir + wxFILE_SEP_PATH + s2wx(filename);

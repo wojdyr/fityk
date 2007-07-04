@@ -87,8 +87,7 @@ public:
     void OnDXLoad        (wxCommandEvent& event);   
     void OnDRecent       (wxCommandEvent& event);
     void OnDEditor       (wxCommandEvent& event);
-    void OnFastDT        (wxCommandEvent& event);
-    void OnFastDTUpdate  (wxUpdateUIEvent& event);           
+    void OnFastDT        (wxCommandEvent& event);       
     void OnAllDatasetsUpdate (wxUpdateUIEvent& event);           
     void OnDMerge        (wxCommandEvent&);
     void OnDExport       (wxCommandEvent&);
@@ -128,7 +127,6 @@ public:
     void OnPrintPSFile   (wxCommandEvent&);
     void OnPrintToClipboard (wxCommandEvent&);
     void OnChangeMouseMode (wxCommandEvent&);
-    void OnUpdateFuncList(wxUpdateUIEvent& event);
     void OnChangePeakType(wxCommandEvent& event);
     void OnGMBgUpdate    (wxUpdateUIEvent& event);
     void OnStripBg       (wxCommandEvent& event);
@@ -164,7 +162,6 @@ public:
     void OnConfigureStatusBar(wxCommandEvent&);
     void OnSwitchCrosshair(wxCommandEvent& ev){SwitchCrosshair(ev.IsChecked());}
     void OnSwitchFullScreen(wxCommandEvent& event);
-    void OnShowMenuZoomPrev(wxUpdateUIEvent& event);
     void save_config_as(wxString const& name);
     void read_config(wxString const& name);
     void save_all_settings(wxConfigBase *cf) const;
@@ -200,6 +197,9 @@ public:
     void activate_function(int n);
     void update_app_title();
     void add_recent_data_file(std::string const& filename);
+    void update_menu_functions();
+    void update_menu_fast_tranforms();
+    void update_menu_previous_zooms();
 
 protected:
     ProportionalSplitter *main_pane;
@@ -216,7 +216,7 @@ protected:
     wxHelpController help;
     std::string last_include_path;
     std::list<wxFileName> recent_data_files;
-    wxMenu *data_menu_recent, *data_ft_menu;
+    wxMenu *data_menu_recent, *data_ft_menu, *func_type_menu;
 
     void place_plot_and_io_windows(wxWindow *parent);
     void create_io_panel(wxWindow *parent);

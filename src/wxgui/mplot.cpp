@@ -904,7 +904,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     frame->draw_crosshair(-1, -1);
     int button = event.GetButton();
     pressed_mouse_button = button;
-    ctrl_on_down = (event.AltDown() || event.ControlDown());
+    ctrl_on_down = (event.AltDown() || event.CmdDown());
     shift_on_down = event.ShiftDown();
     mouse_press_X = event.GetX();
     mouse_press_Y = event.GetY();

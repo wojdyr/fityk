@@ -33,6 +33,16 @@
 #include <wx/metafile.h>
 #include <wx/dir.h>
 #include <wx/mstream.h>
+
+#ifdef __WXMAC__
+# include <wx/version.h>
+# if wxCHECK_VERSION(2, 8, 0)
+#  include <wx/stdpaths.h>
+# else
+#  error "wxWidgets 2.8 or later is required on Mac OSX"
+# endif
+#endif
+
 #include <algorithm>
 #include <locale.h>
 #include <string.h>
@@ -276,6 +286,10 @@ Commands::Status gui_exec_command(const string& s)
 
 bool FApp::OnInit(void)
 {
+#ifdef __WXMAC__
+    SetAppName(wxT("Fityk"));
+#endif
+
     setlocale(LC_NUMERIC, "C");
 
     // if options can be parsed
@@ -307,8 +321,15 @@ bool FApp::OnInit(void)
     wxToolTip::Enable (true);
     wxToolTip::SetDelay (500);
 #endif
+    wxString prefix;
     wxConfig::DontCreateOnDemand();
-    wxString prefix = pchar2wx(config_dirname) + wxFILE_SEP_PATH;
+#ifdef __WXMAC__
+    prefix = wxStandardPaths::Get().GetUserConfigDir() + wxFILE_SEP_PATH
+                                    + wxT("org.pl.waw.unipress.fityk.");
+#else
+    prefix = pchar2wx(config_dirname) + wxFILE_SEP_PATH;
+#endif
+
     // default config name
     conf_filename = prefix + wxT("config");
     // alternative config name
@@ -321,7 +342,12 @@ bool FApp::OnInit(void)
     conf_prefix = prefix + wxT("configs") + wxFILE_SEP_PATH;
 
     get_user_conffile(""); //create .fityk directory, if it doesn't exists
-    wxString config_dir = wxGetHomeDir() + wxFILE_SEP_PATH + conf_prefix;
+    wxString config_dir;
+#ifdef __WXMAC__
+    config_dir = conf_prefix;
+#else
+    config_dir = wxGetHomeDir() + wxFILE_SEP_PATH + conf_prefix;
+#endif
     if (!wxDirExists(config_dir))
         wxMkdir(config_dir);
 
@@ -456,7 +482,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_D_XLOAD,       FFrame::OnDXLoad)   
     EVT_MENU_RANGE (ID_D_RECENT+1, ID_D_RECENT_END, FFrame::OnDRecent)
     EVT_MENU (ID_D_EDITOR,      FFrame::OnDEditor)
-    EVT_UPDATE_UI (ID_D_FDT,    FFrame::OnFastDTUpdate)
     EVT_MENU_RANGE (ID_D_FDT+1, ID_D_FDT_END, FFrame::OnFastDT)
     EVT_UPDATE_UI (ID_D_ALLDS,  FFrame::OnAllDatasetsUpdate) 
     EVT_MENU (ID_D_MERGE,       FFrame::OnDMerge)
@@ -502,7 +527,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_M_RANGE,     FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_BG,        FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_ADD,       FFrame::OnChangeMouseMode)
-    EVT_UPDATE_UI (ID_G_M_PEAK, FFrame::OnUpdateFuncList)
     EVT_MENU_RANGE (ID_G_M_PEAK_N, ID_G_M_PEAK_N_END, FFrame::OnChangePeakType)
     EVT_UPDATE_UI(ID_G_M_BG_SUB,FFrame::OnGMBgUpdate)
     EVT_MENU (ID_G_M_BG_STRIP,  FFrame::OnStripBg)
@@ -525,7 +549,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_V_SCROLL_R,  FFrame::OnGScrollRight)
     EVT_MENU (ID_G_V_SCROLL_U,  FFrame::OnGScrollUp)
     EVT_MENU (ID_G_V_EXTH,      FFrame::OnGExtendH)
-    EVT_UPDATE_UI (ID_G_V_ZOOM_PREV, FFrame::OnShowMenuZoomPrev)
     EVT_MENU_RANGE (ID_G_V_ZOOM_PREV+1, ID_G_V_ZOOM_PREV_END, 
                                 FFrame::OnPreviousZoom)    
     EVT_MENU (ID_G_LCONF1,      FFrame::OnConfigRead)
@@ -594,6 +617,8 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     string help_path = get_full_path_of_help_file(help_file); 
     string help_path_no_exten = help_path.substr(0, help_path.size() - 4);
     help.Initialize(s2wx(help_path_no_exten));
+    update_menu_functions();
+    update_menu_fast_tranforms();
     io_pane->SetFocus();
 }
 
@@ -817,10 +842,9 @@ void FFrame::set_menubar()
                                                   wxT("Save data to file"));
 
     wxMenu* sum_menu = new wxMenu;
-    wxMenu* func_type_menu = new wxMenu;
+    func_type_menu = new wxMenu;
     sum_menu->Append (ID_G_M_PEAK, wxT("Function &type"), func_type_menu);
-    // the function list is created in OnUpdateFuncList()
-    func_type_menu->AppendRadioItem(ID_G_M_PEAK_N, wxT(" "));
+    // the function list is created in update_menu_functions()
     sum_menu->Append (ID_DEFMGR, wxT("&Definition Manager"),
                       wxT("Add or modify funtion types"));
     sum_menu->Append (ID_S_GUESS, wxT("&Guess Peak"),wxT("Guess and add peak"));
@@ -986,7 +1010,7 @@ void FFrame::set_menubar()
 
 
     //construct GUI->Previous Zooms menu
-void FFrame::OnShowMenuZoomPrev(wxUpdateUIEvent& event)
+void FFrame::update_menu_previous_zooms()
 {
     static vector<string> old_zoom_hist;
     const vector<string> &zoom_hist = plot_pane->get_zoom_hist();
@@ -999,7 +1023,6 @@ void FFrame::OnShowMenuZoomPrev(wxUpdateUIEvent& event)
     for (int i = last, j = 1; i >= 0 && i > last - 10; i--, j++) 
         menu->Append(ID_G_V_ZOOM_PREV + j, s2wx(zoom_hist[i]));
     old_zoom_hist = zoom_hist;
-    event.Skip();
 }
            
 
@@ -1015,7 +1038,7 @@ bool FFrame::display_help_section(const string &s)
 
 void FFrame::OnAbout(wxCommandEvent&)
 {
-    AboutDlg* dlg = new AboutDlg(this);
+    AboutDlg* dlg = new AboutDlg(this);    
     dlg->ShowModal();
     dlg->Destroy();
 }
@@ -1089,7 +1112,7 @@ void FFrame::OnDEditor (wxCommandEvent&)
     data_editor.ShowModal();
 }
 
-void FFrame::OnFastDTUpdate (wxUpdateUIEvent& event)
+void FFrame::update_menu_fast_tranforms ()
 {
     const vector<DataTransform> &all = DataEditorDlg::get_transforms();
     vector<DataTransform> transforms;
@@ -1110,7 +1133,6 @@ void FFrame::OnFastDTUpdate (wxUpdateUIEvent& event)
     }
     for (int i = size(transforms); i < menu_len; ++i) 
         data_ft_menu->Delete(ID_D_FDT+i+1);
-    event.Skip();
 }
 
 void FFrame::OnFastDT (wxCommandEvent& event)
@@ -1437,12 +1459,9 @@ void FFrame::OnChangeMouseMode (wxCommandEvent& event)
     plot_pane->set_mouse_mode(mode);
 }
 
-void FFrame::OnUpdateFuncList(wxUpdateUIEvent& event)
+void FFrame::update_menu_functions()
 {
-    wxMenu *func_type_menu = 0;
-    GetMenuBar()->FindItem(ID_G_M_PEAK_N, &func_type_menu);
-    assert(func_type_menu);
-    size_t cnt = func_type_menu->GetMenuItemCount();
+    size_t cnt = this->func_type_menu->GetMenuItemCount();
     size_t pcnt = peak_types.size();
     for (size_t i = 0; i < min(pcnt, cnt); i++)
         if (func_type_menu->GetLabel(ID_G_M_PEAK_N+i) != s2wx(peak_types[i]))
@@ -1453,7 +1472,7 @@ void FFrame::OnUpdateFuncList(wxUpdateUIEvent& event)
         func_type_menu->Destroy(ID_G_M_PEAK_N+i);
 
     func_type_menu->Check(ID_G_M_PEAK_N + peak_type_nr, true);
-    event.Skip();
+    func_type_menu->UpdateUI();
 }
 
 void FFrame::OnChangePeakType(wxCommandEvent& event)
@@ -1675,8 +1694,13 @@ void FFrame::OnConfigSave (wxCommandEvent& event)
 
 void FFrame::OnConfigSaveAs (wxCommandEvent&)
 {
+    wxString config_dir;
     wxString const& prefix = wxGetApp().conf_prefix;
-    wxString config_dir = wxGetHomeDir() + wxFILE_SEP_PATH + prefix;
+#ifdef __WXMAC__
+    config_dir = wxGetApp().conf_prefix;
+#else
+    config_dir = wxGetHomeDir() + wxFILE_SEP_PATH + prefix;
+#endif
     wxString txt = wxGetTextFromUser(wxT("Give the config name.\n") 
                                       wxT("This will be the filename")
                                       wxT(" in directory:\n") + config_dir,
@@ -1713,8 +1737,16 @@ void FFrame::read_config(wxString const& name)
 void FFrame::OnConfigBuiltin (wxCommandEvent&)
 {
     // fake config file
-    wxString name = pchar2wx(config_dirname) + wxFILE_SEP_PATH
+    wxString name;
+
+#ifdef __WXMAC__
+    name = wxStandardPaths::Get().GetUserConfigDir() + wxFILE_SEP_PATH
+                            + wxT("/org.pl.waw.unipress.fityk.builtin-config");
+#else
+    name = pchar2wx(config_dirname) + wxFILE_SEP_PATH
                                                   +wxT("builtin-config");
+#endif
+
     wxConfig *config = new wxConfig(wxT(""), wxT(""), name, wxT(""), 
                                         wxCONFIG_USE_LOCAL_FILE);
     if (config->GetNumberOfEntries(true))
@@ -1731,8 +1763,13 @@ void FFrame::OnUpdateLConfMenu (wxUpdateUIEvent& event)
         menu->Delete(menu->GetMenuItems().GetLast()->GetData());
 
     // prepare listing config directory
-    wxString config_dir = wxGetHomeDir() + wxFILE_SEP_PATH 
+    wxString config_dir;
+#ifdef __WXMAC__
+    config_dir =  get_user_conffile("configs");
+#else
+    config_dir = wxGetHomeDir() + wxFILE_SEP_PATH 
                           + wxGetApp().conf_prefix;
+#endif
     wxDir dir(config_dir);
     if (!dir.IsOpened())
         return;
@@ -1847,6 +1884,8 @@ void FFrame::after_cmd_updates()
 {
     sidebar->update_lists(false);
     update_peak_type_list();
+    update_menu_functions();
+    update_menu_previous_zooms();
     update_toolbar();
 }
 
@@ -2113,6 +2152,10 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
 
 string get_full_path_of_help_file (const string &name)
 {
+#ifdef __WXMAC__
+    return wx2s(wxStandardPaths::Get().GetResourcesDir() + wxFILE_SEP_PATH)
+                                 + name;
+#else
     // filename --> path and filename
     // if there is no `name' file in HELP_DIR, we are trying a few other dirs
     wxString exedir = wxPathOnly(wxGetApp().argv[0]);
@@ -2139,6 +2182,7 @@ string get_full_path_of_help_file (const string &name)
         }
     }
     return name;
+#endif
 }
 
 

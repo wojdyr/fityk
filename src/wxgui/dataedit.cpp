@@ -400,7 +400,6 @@ void DataEditorDlg::update_data(ndnd_type const& dd)
     filename_label->SetLabel(s2wx(filename));
     revert_btn->Enable(!filename.empty());
     title_label->SetLabel(s2wx(title));
-    Show();
 }
 
 void DataEditorDlg::refresh_grid()
@@ -451,6 +450,9 @@ void DataEditorDlg::OnAdd (wxCommandEvent&)
         transforms.insert(transforms.begin() + pos, new_transform);
         insert_trans_list_item(pos);
         select_transform(pos);
+
+        FFrame *fframe = static_cast<FFrame *>(GetParent());
+        fframe->update_menu_fast_tranforms();
     }
 }
 
