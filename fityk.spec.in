@@ -5,9 +5,9 @@
 # favourite Linux distribution.
 
 # This spec will make two RPMS: fityk and fityk-devel. fityk-devel is very 
-# small, so it may be better to make one RPM instead. There are different
-# policies in Linux distributions. I made it like this, because it's easier
-# to merge than split.
+# small, so it may be better to make one RPM instead. OTOH, according to Fedora 
+# policy, devel packages should be separated, whatever size it has.
+# I made two packages, because it's easier to merge than split.
 # 
 # You may find another fityk spec files at: 
 #  http://svn.rpmforge.net/svn/trunk/rpms/fityk/
@@ -52,7 +52,6 @@ you will need to install %{name}-devel.
 %setup -q
 
 %build
-%configure LDFLAGS="-s"
 ### If you don't like Rpath, uncomment these sed lines
 ### http://fedoraproject.org/wiki/Packaging/Guidelines#Rpath
 #sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
@@ -61,6 +60,8 @@ make %{?_smp_mflags}
 
 %install
 %{__rm} -rf %{buildroot}
+### install -p can be useful to keep timestamps
+#%{__make} install DESTDIR="%{buildroot}" INSTALL="%{__install} -p"
 %{__make} install DESTDIR="%{buildroot}" 
 
 ### we don't need .la files
@@ -84,7 +85,7 @@ update-desktop-database
 
 %files
 %defattr(-,root,root)
-%doc AUTHORS ChangeLog COPYING INSTALL NEWS README TODO 
+%doc AUTHORS COPYING NEWS TODO 
 %doc samples/ doc/*.html doc/*.css doc/fitykhelp_img/
 %doc %{_mandir}/man1/*
 %{_bindir}/*

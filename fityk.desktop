@@ -9,4 +9,4 @@ Exec=fityk %F
 Terminal=false
 StartupNotify=true
 MimeType=application/x-fityk;
-Categories=Office;Science;GTK;
+Categories=Science;Office;DataVisualization;GTK;

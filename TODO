@@ -9,8 +9,12 @@ Legend:
 
 // * dataset title should contain also cols, if explicitely given 
 
-* making libfityk thread-safe (pass around Fityk* F, remove all `AL',
-   remove static class members and global variables)
+* GUI: remember data show choice ("show only selected", etc.) in settings
+
+* GUI: zoom all/vertically: if "show only sel" etc. and multiple selections,
+   zoom to show all selected datasets
+
+* refactor guess.cpp to be thread-safe
 
 * code cleanup: use Swap or swap ?
 
@@ -50,7 +54,16 @@ Legend:
 
 * XPS Shirley background removing
 
+* convex hull background 
+
+* check if open-data plot preview still works 
+
+* check compilation with wxMac 
+
 --------------> 0.8.2
+
+* making libfityk thread-safe (pass around Fityk* F, remove all `AL',
+   remove static class members and global variables)
 
 * embedding python scripts or other plugin-like solution  [IMPORTANT]
   perhaps IPC instead of embedded scripting language?

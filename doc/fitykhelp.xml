@@ -2277,16 +2277,6 @@
      all items but the last are followed by comma.
     </para>
     <para>
-     Write the function formula in the same file in this way:
-     <screen>     
-      const char *FuncFoo::formula
-      = "Foo(height, center, hwhm) = height/(1+((x-center)/hwhm)^2)";
-     </screen>     
-     The syntax of the formula is the same as that of 
-     the <link linkend="udf">UDF</link>, but 
-     for built-in functions only the left hand side of the formula is parsed.
-    </para>
-    <para>
      In the file <filename>src/bfunc.h</filename> you can now begin writing the definition 
      of your class:
      <screen>
@@ -2337,8 +2327,21 @@
      </screen>
     </para>
     <para>
-     Write in <filename>src/bfunc.cpp</filename>
-     how to calculate the value of the function:
+     Now go to file <filename>src/bfunc.cpp</filename>.
+    </para>
+    <para>
+     Write the function formula in this way:
+     <screen>     
+      const char *FuncFoo::formula
+      = "Foo(height, center, hwhm) = height/(1+((x-center)/hwhm)^2)";
+     </screen>     
+     The syntax of the formula is the similar as that of 
+     the <link linkend="udf">UDF</link>, but 
+     for built-in functions only the left hand side of the formula is parsed.
+     The right hand side is for documentation only.
+    </para>
+    <para>
+     Write how to calculate the value of the function:
      <screen>
       FUNC_CALCULATE_VALUE_BEGIN(Foo)
           fp xa1a2 = (x - vv[1]) / vv[2];
@@ -2370,6 +2373,11 @@
      and dy_dx. In the last brackets there is a value of the function again.
     </para>
     <para>
+     If you declared <function>do_precomputations</function> or 
+     <function>get_nonzero_range</function> methods,
+     do not forget to write definitions for them.
+    </para>
+    <para>
      After compilation of the program check if the derivatives are calculated 
      correctly using command "info dF(x)", e.g. i dF(30.1).
      You can also use <function>numarea</function>, 
@@ -2380,7 +2388,8 @@
     <para>
      Hope this helps.
      Do not hesistate to change this description or ask questions 
-     if you have any.
+     if you have any. Consider sharing your function with other users (using
+     FitykWiki or mailing list).
     </para>
    </section>
   </section> 

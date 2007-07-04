@@ -172,7 +172,19 @@ elif [ $1 -eq 6 ]; then
  #        --enable-optimise --prefix=$WXMSWINSTALL \
  #        --without-regex --without-expat --without-odbc \
  #        --without-opengl --without-libjpeg --without-libtiff 
- #      # last 2 lines are not neccessary, but fityk is not using these features
+
+ #        --disable-html --disable-stc --disable-intl --disable-protocols \
+ #        --disable-sockets --disable-ole --disable-ipc --disable-apple_ieee \
+ #        --disable-arcstream --disable-backtrace --disable-datetime \
+ #        --disable-debugreport --disable-dialupman  --disable-tarstream \
+ #        --disable-sound --disable-mediactrl --disable-url --disable-variant \
+ #        --disable-aui --disable-xrc --disable-docview \
+ #	  --disable-logdialog --disable-animatectrl --disable-calendar \
+ #	  --disable-datepick --disable-tipwindow --disable-popupwin \
+ #	  --disable-splash --disable-textdlg --disable-tipdlg \
+ #        --disable-wizarddlg  --disable-miniframe --disable-joystick \
+ #        --disable-gif  --disable-pcx --disable-tga --disable-iff \
+ #        --disable-pnm
  #      # and we don't have to build it.
  #      make; make install
  #
