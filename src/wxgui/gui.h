@@ -13,7 +13,6 @@
 #include "../common.h" //s2wx
 #include "statbar.h" // StatusBarField
 
-class wxCmdLineParser;
 //struct z_names_type;
 struct f_names_type;
 class ApplicationLogic;
@@ -30,22 +29,6 @@ class FStatusBar;
 class Fityk;
 extern Fityk *ftk;
 
-
-/// Fityk-GUI "main loop"
-class FApp: public wxApp
-{
-public:
-    wxString conf_filename, alt_conf_filename, conf_prefix;
-
-    bool OnInit(void);
-    int OnExit();
-
-private:
-    bool is_fityk_script(std::string filename);
-    void process_argv(wxCmdLineParser &cmdLineParser);
-};
-
-DECLARE_APP(FApp)
 
 /// Toolbar bar in Fityk
 class FToolBar : public wxToolBar

@@ -26,7 +26,7 @@ fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 		dataedit.cpp dataedit.h defmgr.cpp defmgr.h \
 		setdlg.cpp setdlg.h print.cpp print.h sdebug.cpp sdebug.h \
 		plot.cpp plot.h aplot.cpp aplot.h mplot.cpp mplot.h \
-		dialogs.cpp dialogs.h gui.cpp gui.h 
+		dialogs.cpp dialogs.h gui.cpp gui.h app.cpp app.h
 
 AM_CPPFLAGS = @WX_CPPFLAGS@ @CPPFLAGS_3RDPARTY@ $(HELP_DEF)
 AM_CXXFLAGS = @WX_CXXFLAGS_ONLY@ 
