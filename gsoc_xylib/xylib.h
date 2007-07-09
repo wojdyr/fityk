@@ -1,5 +1,5 @@
 // XYlib library is a xy data reading library, aiming to read variaty of xy 
-// data formats.
+// data formats. This file includes the basic classes
 // Licence: GNU General Public License version 2
 // $Id: xylib.h $
 
@@ -13,13 +13,15 @@
 
 
 #ifdef FP_IS_LDOUBLE
-typedef long double fp;  
+typedef long doule fp;  
 #else
 typedef double fp;  
 #endif
 
+#include "common.h"
 #include <string>
 #include <vector>
+#include <map>
 #include <cstdio>
 #include <stdexcept>
 #include <fstream>
@@ -30,147 +32,228 @@ typedef double fp;
 namespace xylib
 {
 
+/*
+   supported file types are:
+*/
+enum xy_ftype {
+    FT_UNKNOWN,
+    FT_TEXT,
+    FT_UXD,
+    FT_RIGAKU,
+    FT_BR_RAW1,
+    FT_BR_RAW23,
+    FT_VAMAS,
+    FT_NUM,     // always at bottom to get the number of the types
+};
+
+extern const std::string g_ftype[FT_NUM], g_desc[FT_NUM];
+
+//////////////////////////////////////////////////////////////////////////
+// The class to describe the errors/exceptions in xylib
+class XY_Error :
+    public std::runtime_error
+{
+public:
+    XY_Error(const std::string& msg) : std::runtime_error(msg) {};
+};
 
 
-    class XY_FileInfo
-    {
-    public:
-        std::string ext_name;
-        std::string type_desc;
-        std::string version;
-    };
+//////////////////////////////////////////////////////////////////////////
+// The class for holding a range/block of x-y data
+class Range
+{
+public:
+    Range(bool fixed_step_ = false) : fixed_step(fixed_step_) {} 
+    virtual ~Range() {};
+
+    ////////////////////////////////////////////////////////////////////////////////// 
+    // reading functions
+
+    // use y to get the size, because in the fixed-step case x is not used
+    unsigned get_pt_count() const { return y.size(); }
+
+    // n must be a valid index, zero-based
+    virtual fp get_x(unsigned n) const;
+    fp get_y(unsigned n) const; 
+
+    // whether this range of data is in "fixed step"
+    bool has_fixed_step() { return fixed_step; }
+
+    // std. dev. is optional
+    virtual bool has_y_stddev(unsigned n) const;
+    virtual fp get_y_stddev(unsigned n) const;
+
+    // basic support for range-level meta-data
+    bool has_meta_key(const std::string &key) const;
+    bool has_meta() const { return (0 != meta_map.size()); }
+    std::vector<std::string> get_all_meta_keys() const;
+    const std::string& get_meta(std::string const& key) const; 
+    
+    // add a <key, val> pair of meta-data to DataSet
+    void add_meta(const std::string &key, const std::string &val);
+
+    void export_xy_file(const std::string &fname) const;
+    void export_xy_file(std::ofstream &of) const;
+
+    //////////////////////////////////////////////////////////////////////////////////
+    // writing functions    
+    virtual void add_pt(fp x_, fp py_, fp stddev); 
+    virtual void add_pt(fp x_, fp py_); 
+
+protected:
+    bool fixed_step;
+    std::vector<fp> x;
+    std::vector<fp> y;
+    std::vector<fp> y_stddev;
+    std::vector<bool> y_has_stddev;
+    std::map<std::string, std::string> meta_map;
+
+    void check_idx(unsigned n, const std::string &name) const;
+};
 
 
-    class XY_Point
-    {
-    public:
-        fp x, y, sig;
-        XY_Point(fp x_, fp y_, fp sig_ = 0) : x(x_), y(y_), sig(sig_) {};
-    };
+class FixedStepRange : public Range 
+{
+public:
+    FixedStepRange(fp x_start_ = 0, fp x_step_ = 0) 
+        : Range(true), x_start(x_start_), x_step(x_step_)
+    {}
+    virtual ~FixedStepRange() {}
+
+    fp get_x_start() const { return x_start; }
+    fp get_x_step() const { return x_step; }
+    fp get_x(unsigned n) const { check_idx(n, "point_x"); return x_start + n * x_step; }
+
+    void add_y(fp y_); 
+    void add_y(fp y_, fp stddev_); 
+    
+    void set_x_step(fp x_step_) { x_step = x_step_; }
+    void set_x_start(fp x_start_) { x_start = x_start_; }
+
+protected:
+    fp x_start, x_step;
+};  // end of FixedStepDataSet
 
 
+// abstract base class for x-y data in one file, may consist of one or more range(s) of x-y data
+class DataSet
+{
+public:
+    DataSet(const std::string &filename_, xy_ftype ftype_ = FT_UNKNOWN)
+        : filename(filename_), p_ifs(NULL), ftype(ftype_) {}
+    virtual ~DataSet();
 
-    class XY_Error :
-        public std::runtime_error
-    {
-    public:
-        XY_Error(const std::string& msg) : std::runtime_error(msg) {};
-    };
+    // access the ranges in this file
+    unsigned get_range_cnt() const { return ranges.size(); }
+    const Range& get_range(unsigned i) const;
+
+    // getters of some attributes associate to files 
+    const std::string& get_filetype() const { return g_ftype[ftype]; };
+    const std::string& get_filename() const { return filename; }
+    // return a detailed description of current file type
+    const std::string& get_filetype_desc() const { return g_desc[ftype]; }; 
+
+    // basic support for file-level meta-data, common variables shared in the ranges in the file
+    bool has_meta_key(const std::string &key) const;
+    bool has_meta() const { return (0 != meta_map.size()); }
+    std::vector<std::string> get_all_meta_keys() const;
+    const std::string& get_meta(std::string const& key) const; 
+
+    // check file to see whether it is the expected format, according to the "magic number"
+    virtual bool is_filetype() const = 0;
+
+    // input/output data from/to file
+    virtual void load_data() = 0;
+    virtual void load_metainfo() {}
+    virtual void export_xy_file(const std::string& fname) const; 
+
+    // add a <key, val> pair of meta-data to DataSet
+    void add_meta(const std::string &key, const std::string &val);
+
+protected:
+    xy_ftype ftype;
+    std::string filename;
+    // use "Range*" to support polymorphism, but the memory management will be more complicated 
+    std::vector<Range*> ranges; 
+    // use a std::map to store the key/val pair
+    std::map<std::string, std::string> meta_map;
+    std::ifstream *p_ifs;
+
+    // used by load_data to perform some common operations
+    virtual void init(); 
+#if 0
+    // a generic function which can parse UXD-like text files
+    void DataSet::parse_fixedstep_file(
+        const std::string &first_rg_key,
+        const std::string &last_rg_key,
+        const std::string &meta_sep = "=:",
+        const std::string &data_sep = ",; \t\r\n",
+        const std::string &cmt_start = ";#",
+        const std::string &data_start_tag = "");
+    
+    void parse_range(
+        std::vector<std::string> &lines, 
+        FixedStepRange *p_rg,
+        const std::string &data_start_tag);
+#endif
+}; // end of DataSet
+
+#include "ds_brucker_raw_v1.h"
+#include "ds_brucker_raw_v23.h"
+#include "ds_rigaku_dat.h"
+#include "ds_text.h"
+#include "ds_uxd.h"
+#include "ds_vamas.h"
+
+//////////////////////////////////////////////////////////////////////////
+// namespace scope "global functions" 
+
+// get a non-abstract DataSet ptr according to the given "filetype"
+// if "filetype" is not given, auto-detection is used to decide the file type
+DataSet* getNewDataSet(const std::string &filename, xy_ftype filetype = FT_UNKNOWN);
+xy_ftype guess_file_type(const std::string &filename);
 
 
-    class XY_Data
-    {
-    public:
-        bool has_sigma;
+// sub namespace to hold the utility functions
+// move the original XY_Lib static member functions (such as string_to_int etc.) here
+namespace util 
+{
+/*
+    std::string guess_file_type(const std::string &filename);
+    int string_to_int(const string &str);
+*/
+    boost::uint32_t read_uint32_le(std::ifstream &f, unsigned offset);
+    boost::uint16_t read_uint16_le(std::ifstream &f, unsigned offset);
+    float read_flt_le(std::ifstream &f, unsigned offset);
+    std::string read_string(std::ifstream &f, unsigned offset, unsigned len);
+    void le_to_host(void *p, unsigned len);
 
-        // methods
-        //////////////////////////////////////////////////////////////////////////
-        XY_Data() : has_sigma(false) {};
+    // convert a float number to string. if 2nd param is true, return "undefined"
+    std::string my_flt_to_string(float num, float undef);
+
+    void rm_space(std::string &str);
+    std::string str_trim(const std::string &str, std::string ws = " \r\n\t");
+    void parse_line(const std::string &line, const std::string &sep, 
+        std::string &key, std::string &val);
+    bool str_startwith(const std::string &str_src, const std::string &ss);
+    fp string_to_fp(const std::string &str);
+    int string_to_int(const std::string &str);
+
+    int read_line_and_get_all_numbers(std::istream &is, 
+        std::vector<fp>& result_numbers);
+
+    void skip_lines(std::ifstream &f, const int count);
+    int read_line_int(std::ifstream& is);
+    fp read_line_fp(std::ifstream& is);
+
+    int get_array_idx(const std::string *array, 
+        unsigned size,
+        const std::string &find_str);
         
-        int get_point_count() {return p.size();}
-        fp get_x(const int i) {return p[i].x;}
-        fp get_y(const int i) {return p[i].y;}
-        fp get_sigma(const int i) {return p[i].sig;}
-        void set_has_sigma(bool has_sigma_) {has_sigma = has_sigma_;}
-
-        void push_point(const XY_Point pt) {p.push_back(pt);}
-        void clear() {p.clear();}
-
-        void export_xy_file(const std::string& fname)
-        {
-            using namespace std;
-            std::ofstream of(fname.c_str());
-            if (!of) 
-            {
-                throw XY_Error("can't create file " + fname + " to output");
-            }
-            int n = p.size();
-            of << "total count:" << n << std::endl << std::endl;
-            of << "x\t\ty\t\tsigma" << std::endl;
-            for (int i=0; i<n; ++i )
-            {
-                of << setfill(' ') << setiosflags(ios::fixed) << setprecision(5) << setw(7) << 
-                    p[i].x << "\t" << setprecision(8) << setw(10) << p[i].y << "\t";
-                if (has_sigma)
-                {
-                    of << p[i].sig;
-                }
-                of << std::endl;
-            }
-        }
-
-    private:
-        std::vector<XY_Point> p;
-    };
-
-
-    class XYlib
-    {
-    public:
-        // attributes
-        //////////////////////////////////////////////////////////////////////////
-
-
-        // methods
-        //////////////////////////////////////////////////////////////////////////
-        XYlib(void);
-        ~XYlib(void);
-
-        static void load_file(std::string const& fname, XY_Data& data, std::string const& type = "");
-
-    private:
-        // plain text file with data columns
-        static void load_xy_file(std::ifstream& f, XY_Data& data, std::vector<int> const& columns);
-
-        // SIEMENS/BRUKER uxd format
-        static void load_uxd_file(std::ifstream& f, XY_Data& data, std::vector<int> const& columns);
-
-        // DIFFRAC-AT Raw Data file format: v1
-        static void load_diffracat_v1_raw_file(std::ifstream& f, XY_Data& data, 
-            unsigned range = 0);
-
-        // DIFFRAC-AT Raw Data file format: v2 and v3
-        static void load_diffracat_v2_raw_file(std::ifstream& f, XY_Data& data, 
-            unsigned range = 0);
-
-        // Rigaku .dat file format
-        static void load_rigaku_dat_file(std::ifstream& f, XY_Data& data,
-            unsigned range = 0);
-
-        // vamas_iso14976 file
-        static void load_vamas_file(std::ifstream& f, XY_Data& data,
-            unsigned range = 0);
-        
-
-        static int read_line_and_get_all_numbers(std::istream &is, 
-            std::vector<fp>& result_numbers);
-        static std::string guess_ftype(std::string const fname, std::istream& is, XY_FileInfo* pfi = NULL);
-        // set XY_FileInfo structrue
-        static void set_file_info(const std::string& ftype, XY_FileInfo* pfi);
-        static fp string_to_fp(const std::string& str);
-        static int string_to_int(const std::string& str);
-        static int read_line_int(std::ifstream& is);
-        static fp read_line_fp(std::ifstream& is);
-
-        static int find_exp_mode_value(const char *string);
-        static int find_technique_value(const char *string);
-        static int find_scan_mode_value(const char *string);
-
-        static std::string trim(const std::string &str);
-        static void skip_lines(std::ifstream &f, const int count);
-        static void le_to_host(void *p, unsigned len);
-
-        static void vamas_read_blk(std::ifstream &f, 
-                                   XY_Data& data, 
-                                   const std::vector<bool> &include,
-                                   bool skip_flg = false, 
-                                   int block_future_upgrade_entries = 0,
-                                   int exp_future_upgrade_entries = 0,
-                                   int exp_mode = 0, 
-                                   int scan_mode = 0, 
-                                   int exp_variables = 0);
-    };
+    
+} // end of namespace util
 
 } // end of namespace xylib
 
-#endif //#ifndef XYLIB__API__H__
+
+#endif //ifndef XYLIB__API__H__

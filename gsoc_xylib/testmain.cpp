@@ -12,6 +12,19 @@ using namespace std;
 using namespace xylib;
 
 
+// p: a ptr to a Range or a DataSet, depending on is_range
+template <typename T>
+void output_meta(T *pds)
+{
+    if (pds->has_meta()) {
+        cout << "meta-key" << "\t" << "meta_val" << endl;
+        vector<string> meta_keys = pds->get_all_meta_keys();
+        for (vector<string>::iterator it = meta_keys.begin(); it != meta_keys.end(); ++it) {
+            cout << *it << "\t" << pds->get_meta(*it) << endl;
+        }
+    }
+}
+
 int main(int argc, char* argv[])
 {
     string in_file, out_file, ft;
@@ -28,16 +41,62 @@ int main(int argc, char* argv[])
         if (0 == strncmp("-a", argv[i], 2))
         {
 /*
-            test_xy_file();
-            test_uxd_file();
-            test_diffracat_v2_raw_file();
+            using namespace xylib::util;
+            string ss = "  dgkey   =    good    ";
+            cout << ss << endl;
+            trim_space(ss);
+            cout << ss << endl;
+            string strk, strv;
+            parse_line(ss, "=", strk, strv);
 */
-            test_diffracat_v1_raw_file();
-/*
-            test_rigaku_dat_file();
 
-            test_vamas_file();
-*/
+            // test the meta-info access methods
+            DataSet *pds = NULL;
+            try {
+//                pds = getNewDataSet("test/diffracat_v1_raw/sample2.raw");
+//                pds = getNewDataSet("test/diffracat_v2_raw/CORKLZ20.RAW", FT_BR_RAW23);
+//                pds = getNewDataSet("test/uxd/sample1.uxd", FT_UXD);
+//                pds = getNewDataSet("test/text/xy_text.txt", FT_TEXT);
+//                pds = getNewDataSet("test/rigaku_dat/sample5r.dat", FT_RIGAKU);
+                pds = getNewDataSet("test/vamas_iso14976/pbn.vms", FT_VAMAS);
+
+                cout << "ftype:" << pds->get_filetype() << endl;
+                cout << "ftype:" << pds->get_filetype_desc() << endl;
+
+#if 0
+                pds = new BruckerV1RawDataSet("test/diffracat_v1_raw/sample2.raw");
+                pds->load_data(true);
+#endif
+                // output the file-scope meta
+                output_meta(pds);
+                
+                unsigned num = pds->get_range_cnt();
+                cout << num << " ranges in total" << endl;
+                pds->export_xy_file("./xy.txt");
+                for (unsigned i = 0; i < num; ++i) {
+                    const Range& range = pds->get_range(i);
+                    cout << "===============================================" << endl;
+                    cout << "* range " << i << endl;
+                    // output the range-scope meta-info
+                    output_meta(&range);
+                    cout << "this range has " << range.get_pt_count() << " points.\n";
+#if 0
+                    for (unsigned j = 0; j < range.get_pt_count(); ++j) {
+                        cout << j << " " << range.get_x(j) << " ";
+                        cout << range.get_y(j) << endl;
+                    }
+#endif
+                }
+                cout << "done!" << endl;
+
+            } catch (const runtime_error e) {
+                cerr << e.what() << endl;
+            }
+
+            if (pds) {
+                delete pds;
+            }
+
             return 0;
         }
         // user specifying mode
@@ -69,152 +128,8 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    XY_Data data;
-    try
-    {
-        XYlib::load_file(in_file, data, ft);
-        data.export_xy_file(out_file);
-        cout << in_file << "has been exported to " << out_file << endl;
-    }
-    catch (const runtime_error e)
-    {
-        cerr << e.what() << endl;
-    }
 	return 0;
 } 
-
-
-// test files at: test/text
-void test_xy_file()
-{
-    vector<string> fnames;
-    fnames.push_back("xy_text.TXt");
-    fnames.push_back("with_sigma.txt"); // sigma has not been read, modify later
-    
-    load_export(fnames, "text");
-}
-
-
-// test files at: test/uxd
-void test_uxd_file()
-{
-    vector<string> fnames;
-    for (int i=1; i<7; ++i)
-        fnames.push_back(string("sample") + S(i) + ".uxd");
-
-    fnames.push_back("synchro.uxd"); 
-
-    load_export(fnames, "uxd");
-}
-
-
-// test files at: test/diffracat_v1_raw
-void test_diffracat_v1_raw_file()
-{
-    vector<string> fnames;
-    
-    for (int i=2; i<7; ++i)
-        fnames.push_back(string("sample") + S(i) + ".raw");
-
-    load_export(fnames, "diffracat_v1_raw");
-}
-
-// test files at: test/diffracat_v2_raw
-void test_diffracat_v2_raw_file()
-{
-    vector<string> fnames;
-    fnames.push_back("QTZQUIN.RAW"); 
-    fnames.push_back("CORKLZ20.RAW"); 
-
-    load_export(fnames, "diffracat_v2_raw");
-}
-
-// test file at: test/regaku_dat
-void test_rigaku_dat_file()
-{
-    vector<string> fnames;
-    for (int i=1; i<7; ++i)
-        fnames.push_back(string("sample") + S(i) + "r.dat");
-
-    load_export(fnames, "rigaku_dat");
-}
-
-// test file at: test/vamas_iso14976
-void test_vamas_file()
-{
-    vector<string> fnames;
-    //fnames.push_back("mjr9_116a.vms");
-    fnames.push_back("fomblin_y.vms");
-/*
-    fnames.push_back("gpbn.vms");
-    fnames.push_back("gpbp.vms");
-    fnames.push_back("gsbn.vms");
-    fnames.push_back("gsbp.vms");
-    fnames.push_back("pbn.vms");
-    fnames.push_back("pbp.vms");
-    fnames.push_back("PIBPBN.VMS");
-    fnames.push_back("PIBPBP.VMS");
-    fnames.push_back("PIBSBN.VMS");
-    fnames.push_back("PIBSBP.VMS");
-    fnames.push_back("pkn.vms");
-    fnames.push_back("pkp.vms");
-*/
-    fnames.push_back("PMMAPBN.VMS");
-    fnames.push_back("PMMAPBP.VMS");
-    fnames.push_back("PMMASBN.VMS");
-    fnames.push_back("PMMASBP.VMS");
-    fnames.push_back("PVAPBN.VMS");
-    fnames.push_back("PVAPBP.VMS");
-    fnames.push_back("PVASBN.VMS");
-    fnames.push_back("PVASBP.VMS");
-    fnames.push_back("PVCPBN.VMS");
-    fnames.push_back("PVCPBP.VMS");
-    fnames.push_back("PVCSBN.VMS");
-    fnames.push_back("PVCSBP.VMS");
-    fnames.push_back("sPBn.vms");
-    fnames.push_back("spbp.vms");
-    fnames.push_back("ssbn.vms");
-    fnames.push_back("ssbp.vms");
-    fnames.push_back("tbbn.vms");
-    fnames.push_back("tbbp.vms");
-
-
-    load_export(fnames, "vamas_iso14976");
-}
-
-// helper functions
-//////////////////////////////////////////////////////////////////////////
-
-// load and export
-void load_export(const std::vector<std::string>& fnames,
-                 const std::string& ftype
-                 )
-{
-    XY_Data data;
-
-    vector<string>::const_iterator it;
-    string src_base = TEST_DIR + ftype + PATH_SEP;
-    string out_base = OUT_DIR + ftype + PATH_SEP;
-    string src, out;
-
-    for (it = fnames.begin(); it != fnames.end(); ++it)
-    {
-        src = src_base + *it;
-        out = out_base + *it + "_tr.txt";
-        try
-        {
-            XYlib::load_file(src, data, ftype);
-            data.export_xy_file(out);
-        }
-        catch (const runtime_error e)
-        {
-            cerr << e.what() << endl;
-            continue;
-        }
-        
-        cout << src << " has been exported to " << out << endl;
-    }
-}
 
 
 void usage(char* prog_name)

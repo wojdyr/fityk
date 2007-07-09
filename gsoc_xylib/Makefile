@@ -1,20 +1,21 @@
-OBJS = xylib.o testmain.o
-CC = g++
+CC = gcc
+XX = g++
 CFLAGS = -Wall -O -g
+TARGET = testmain
 
-# NOTE: these paths may need to be changed
-BOOST_PATH = /usr/include/boost
-BOOST_REGEX_LIB = /usr/lib64/libboost_regex.a
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+%.o:%.cpp
+	$(XX) $(CFLAGS) -c $< -o $@
+
+SOURCES = $(wildcard *.c *.cpp)
+OBJS = $(patsubst %.c,%.o,$(patsubst %.cpp,%.o,$(SOURCES)))
 
 all : $(OBJS)
-	$(CC) $(OBJS) -o testmain  $(BOOST_REGEX_LIB)
+	 $(XX) $(OBJS) -o $(TARGET)
 
-xylib.o : xylib.cpp xylib.h
-	$(CC) $(CFLAGS) -I $(BOOST_PATH) -c xylib.cpp -o xylib.o $(BOOST_REGEX_LIB)
-	#g++ xylib.o testmain.o -o testmain  /usr/lib64/libboost_regex.a
-
-testmain.o : testmain.cpp testmain.h
-	$(CC) $(CFLAGS) -c testmain.cpp -o testmain.o
+	 chmod a+x $(TARGET)
 
 clean:
 	rm -rf *.o testmain

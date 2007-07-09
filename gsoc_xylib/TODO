@@ -1,18 +1,15 @@
 TODO:
+* Finish generic function to handle the UXD-like files
+
+* Detect file format by file contant (magic number), in case some types share one extension name. For example, Brucker v1 and v2 Raw File both use ".raw" as extension name.
+
 * Add more format types of course
 
 * Change the mechanism of unknown file format detection: 
 	1. by the file extension name
 	2. by previewing the first lines of the file content to find the format-specified strings. And checking this of every format can be written as independent functions which can be used to verify the correctness when user calls load_file with a specified file_type.
-	
-* Is there a better way to manage the file types? Currently string is used, but this may cause inconsistency problem. I think the form of (type_id, description, type_name, version, etc), which like a DB table, may be better. type_name may omitted if we define easy readable integer constant, like  XYlib::DIFFRAC_AT_RAW_V2V3.
-
-* The lib api may need to change for the variety of file formats: e.g. sigma, (x,y,z), multi-range data etc.
 
 * Make the text file reading more flexible. 	
 	e.g. headers can be skipped and columns can be specified
 	use boost::regex to process the text files
-	
-* Do some error-preventation in case that files are in wrong format
 
-* Rewrite the whole API framework

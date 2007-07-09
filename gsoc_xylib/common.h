@@ -13,6 +13,10 @@ typedef double fp;
 
 #include <string>
 #include <vector>
+#include <sstream>
+#include <fstream>
+#include <boost/detail/endian.hpp>
+#include <boost/cstdint.hpp>
 
 
 //---------------------------  S T R I N G  --------------------------------
