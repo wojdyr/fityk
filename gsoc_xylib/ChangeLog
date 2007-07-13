@@ -12,10 +12,12 @@
 * Change existing code to handle the "endian issue" and the "fixed-size int data type issue".
 For the 1st issue, use endian.hpp to determine the endian of the machine, then exchange the bytes manually if necessary. For the 2nd issue, use fixed-size data types defined in <boost/cstdint.hpp> instead of raw types.
 
-3:11 2007-7-10 GMT+8 version 311
+3:11 2007-7-10 GMT+8 version 314
 * Reorganized all of the code into a new OO framework, make the code much more clear
 * Separated code of the non-abstract classes for specific filetypes into different files, in case that xylib.cpp & xylib.h are too long and too complex
 * Re-write a lot of code: simplify the code of reading Brucker Raw format v1 and v2v3
 * Use an enum xy_ftype to describe file type to unify the file types, to get the file types and type descriptions
 * Write a generic function to handle the UXD-like files (e.g, rigaku_dat files), not finished
 
+13:55 2007-7-13 GMT+8 version 315
+* re-implement the VAMAS reading function for license and mantainability considerations. Besides, many file-scope/range-scope meta variables are read

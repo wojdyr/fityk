@@ -6,16 +6,19 @@
 #ifndef BRUCKER_RAW_V23_H
 #define BRUCKER_RAW_V23_H
 
-class BruckerV23RawDataSet : public DataSet
-{
-public:
-    BruckerV23RawDataSet(const std::string &filename)
-        : DataSet(filename, FT_BR_RAW23) {}
+#include "xylib.h"
 
-    // implement the interfaces specified by DataSet
-    bool is_filetype() const;
-    void load_data();
-}; 
+namespace xylib {
+    class BruckerV23RawDataSet : public DataSet
+    {
+    public:
+        BruckerV23RawDataSet(const std::string &filename)
+            : DataSet(filename, FT_BR_RAW23) {}
 
+        // implement the interfaces specified by DataSet
+        bool is_filetype() const;
+        void load_data();
+    }; 
+}
 #endif // #ifndef BRUCKER_RAW_V23_H
 

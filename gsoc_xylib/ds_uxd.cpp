@@ -2,7 +2,7 @@
 // Licence: GNU General Public License version 2
 // $Id: UxdDataSet.h $
 
-#include "xylib.h"
+#include "ds_uxd.h"
 #include "common.h"
 
 using namespace std;

@@ -140,7 +140,12 @@ class DataSet
 {
 public:
     DataSet(const std::string &filename_, xy_ftype ftype_ = FT_UNKNOWN)
-        : filename(filename_), p_ifs(NULL), ftype(ftype_) {}
+        : filename(filename_) 
+    {
+        p_ifs = NULL;       // move here to avoid gcc complaining
+        ftype = ftype_;
+    }
+    
     virtual ~DataSet();
 
     // access the ranges in this file
@@ -198,12 +203,6 @@ protected:
 #endif
 }; // end of DataSet
 
-#include "ds_brucker_raw_v1.h"
-#include "ds_brucker_raw_v23.h"
-#include "ds_rigaku_dat.h"
-#include "ds_text.h"
-#include "ds_uxd.h"
-#include "ds_vamas.h"
 
 //////////////////////////////////////////////////////////////////////////
 // namespace scope "global functions" 
@@ -222,8 +221,8 @@ namespace util
     std::string guess_file_type(const std::string &filename);
     int string_to_int(const string &str);
 */
-    boost::uint32_t read_uint32_le(std::ifstream &f, unsigned offset);
-    boost::uint16_t read_uint16_le(std::ifstream &f, unsigned offset);
+    unsigned read_uint32_le(std::ifstream &f, unsigned offset);
+    unsigned read_uint16_le(std::ifstream &f, unsigned offset);
     float read_flt_le(std::ifstream &f, unsigned offset);
     std::string read_string(std::ifstream &f, unsigned offset, unsigned len);
     void le_to_host(void *p, unsigned len);
@@ -245,7 +244,9 @@ namespace util
     void skip_lines(std::ifstream &f, const int count);
     int read_line_int(std::ifstream& is);
     fp read_line_fp(std::ifstream& is);
+    std::string read_line(std::ifstream& is);
 
+    // not used by any other functions
     int get_array_idx(const std::string *array, 
         unsigned size,
         const std::string &find_str);

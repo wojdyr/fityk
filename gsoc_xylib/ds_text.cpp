@@ -2,7 +2,7 @@
 // Licence: GNU General Public License version 2
 // $Id: TextDataSet.h $
 
-#include "xylib.h"
+#include "ds_text.h"
 #include "common.h"
 
 using namespace std;

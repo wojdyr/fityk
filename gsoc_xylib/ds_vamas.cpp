@@ -2,7 +2,7 @@
 // Licence: GNU General Public License version 2
 // $Id: VamasDataSet.h $
 
-#include "xylib.h"
+#include "ds_vamas.h"
 #include "common.h"
 
 using namespace std;
@@ -29,293 +29,243 @@ void VamasDataSet::load_data()
     init();
     ifstream &f = *p_ifs;
 
-    unsigned total_regions, blk_cnt;
-    string line;
-    int n, n2;  // n2 is "entries_in_inclusion_list"
+    int n;
 
-    // skip "institution id" etc, 4 items
-    skip_lines(f, 4);
+    skip_lines(f, 1);   // magic number: "VAMAS Sur..."
+    add_meta("institution identifier", read_line(f));
+    add_meta("institution model identifier", read_line(f));
+    add_meta("operator identifier", read_line(f));
+    add_meta("experiment identifier", read_line(f));
 
-    // comment lines, n is nr of lines
+    // skip comment lines, n is number of lines
     n = read_line_int(f);
     skip_lines(f, n);
-    
-    // experiment mode
-    getline(f, line);
-    line = str_trim(line);
-    int exp_mode = find_exp_mode_value(line);
 
-    // scan_mode
-    getline(f, line); 
-    line = str_trim(line);
-    int scan_mode = find_scan_mode_value(line);
+    exp_mode = str_trim(read_line(f));
+    scan_mode = str_trim(read_line(f));
 
-    // Experiment mode is MAP, MAPD, NORM, or SDP
-    if ((exp_mode < 3) ||
-        (exp_mode == 5) ||
-        (exp_mode == 6))	
-    {
-        total_regions = read_line_int(f);
+    // some exp_mode specific file-scope meta-info
+    if (("MAP" == exp_mode) || ("MAPD" == exp_mode) ||
+        ("NORM" == exp_mode) || ("SDP" == exp_mode)) {
+        add_meta("number of spectral regions", read_line(f));
     }
-
-    // experiment mode is MAP or MAPD
-    if (exp_mode < 3)
-    {
-        int i = read_line_int(f);	// number of analysis positions
-        i = read_line_int(f);	    // number of discrete x coordinates available in full map
-        i = read_line_int(f);	    // number of discrete y coordinates available in full map
-    };
+    if (("MAP" == exp_mode) || ("MAPD" == exp_mode)) {
+        add_meta("number of analysis positions", read_line(f));
+        add_meta("number of discrete x coordinates available in full map", 
+            read_line(f));
+        add_meta("number of discrete y coordinates available in full map", 
+            read_line(f));
+    }
 
     // experimental variables
-    int exp_variables = read_line_int(f);
-    for (int i = 1; i <= exp_variables; ++i)
-    {
-        getline(f, line);   // experimental labels
-        getline(f, line);   // experimental units
+    exp_var_cnt = read_line_int(f);
+    for (int i = 1; i <= exp_var_cnt; ++i) {
+        add_meta("experimental variable label" + S(i), read_line(f));
+        add_meta("experimental variable unit" + S(i), read_line(f));
     }
 
-    /* n2 indicates the number of lines below */
-    n2 = read_line_int(f);	// number of entries in parameter inclusion or exclusion list
-    bool d = (n2 <= 0);
-
-    // a complete blk contains 40 parts. include[i] indicates if the i-th part is included 
-    vector<bool> include(41, d);  
-
-    d = !d;
-    n2 = (n2 < 0) ? -n2 : n2;
-    for (int i = 1; i <= n2; ++i)
-    {
-        int e = read_line_int(f);
-        include[e] = d;
+    n = read_line_int(f);	// # of entries in inclusion or exclusion list
+    bool d = (n > 0);
+    for (int i = 0; i < 40; ++i) {
+        include[i] = !d;
     }
-    
-    // number of manually entered items in blk
+    n = (d ? n : -n);
+    for (int i = 0; i < n; ++i) {
+        int idx = read_line_int(f) - 1;
+        include[idx] = d;
+    }
+
+    // # of manually entered items in blk
     n = read_line_int(f);
     skip_lines(f, n);
 
-    // number of future upgrade experiment entries
-    int exp_future_upgrade_entries = read_line_int(f);
-    skip_lines(f, exp_future_upgrade_entries);
+    exp_fue = read_line_int(f);
+    skip_lines(f, exp_fue);
 
-    // number of future upgrade block entries
-    int block_future_upgrade_entries = read_line_int(f);
-    skip_lines(f, block_future_upgrade_entries);
+    blk_fue = read_line_int(f);
+    skip_lines(f, blk_fue);
 
     // handle the blocks
-    blk_cnt = read_line_int(f);
-    for (unsigned i = 0; i < blk_cnt; ++i) {
+    int blk_cnt = read_line_int(f);
+    for (int i = 0; i < blk_cnt; ++i) {
         FixedStepRange *p_rg = new FixedStepRange;
-        vamas_read_blk(f, 
-            p_rg, include, false, 
-            block_future_upgrade_entries,
-            exp_future_upgrade_entries,
-            exp_mode, 
-            scan_mode, 
-            exp_variables);
+        vamas_read_blk(p_rg);
         ranges.push_back(p_rg);
     }
 }
 
 
-
-
 // read one blk, used by load_vamas_file()
-void VamasDataSet::vamas_read_blk(std::ifstream &f, 
-                           FixedStepRange *p_rg,
-                           const std::vector<bool> &include,
-                           bool skip_flg /* = false */, 
-                           int block_future_upgrade_entries /* = 0 */,
-                           int exp_future_upgrade_entries /* = 0 */,
-                           int exp_mode /* = 0 */, 
-                           int scan_mode /* = 0 */, 
-                           int exp_variables /* = 0 */)
+void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
 {
-    string line;
-    int n;
-    int corresponding_var, tech;
-    fp x_start, x_step;
-    int pt_cnt;          // number of points
-
-    skip_lines(f, 2);   // block headers
+    ifstream &f = *p_ifs;
+    int cor_var = 0;    // # of corresponding variables
     
-    // all block header lines
-    for (int i = 1; i <= 40; ++i)
-    {
-        if (include[i])
-        {
-            switch (i)
-            {
-            case 8:     // block comments
-                n = read_line_int(f);
-                skip_lines(f, n);
-                break;
+    p_rg->add_meta("block id", read_line(f));
+    p_rg->add_meta("sample identifier", read_line(f));
 
-            case 9:     // get tech
-                getline(f, line);
-                line = str_trim(line);
-                tech = find_technique_value(line);
-                break;
+    read_meta_line(0, p_rg, "year");
+    read_meta_line(1, p_rg, "month");
+    read_meta_line(2, p_rg, "day");
+    read_meta_line(3, p_rg, "hour");
+    read_meta_line(4, p_rg, "minite");
+    read_meta_line(5, p_rg, "second");
+    read_meta_line(6, p_rg, "no. of hours in advanced GMT");
 
-            case 10:    // additional lines iff exp_mode is MAP or MAPDP
-                if (exp_mode < 3)
-                {
-                    skip_lines(f, 2); 
-                }
-                break;
-
-            case 11:    // values of exp_variables
-                skip_lines(f, exp_variables);
-                break;
-
-            case 13:    
-                // additional lines iff exp_mode is MAPDP, MAPSVDP, SDP, SDPSV
-                // or tech = FABMS, FABMS eneergy spec, SIMS, sims energy spec, SNMS, SNMSenergy spec or ISS
-                if ((exp_mode == 2) ||
-                    (exp_mode == 4) ||
-                    (exp_mode == 6) ||
-                    (exp_mode == 7) ||
-                    (tech > 4 && tech < 12))
-                {
-                    skip_lines(f, 3);
-                }
-                break;
-
-            case 16:    // analysis source beam width X and Y
-                skip_lines(f, 2);
-                break;
-
-            case 17:
-                // additional lines iff exp_mode is MAP,MAPDP,MAPSV,MAPSVDP or SEM
-                if (exp_mode < 5 || exp_mode == 8)
-                {
-                    skip_lines(f, 2);
-                }
-                break;
-
-            case 18:    // MAPPING mode, get args here
-                // NOTICE: in MAPPING mode, every (x, y) is mapped to the "ordinate values" in the block body
-                // so, this is a 2 z=f(x,y)
-                // What should we do in fityk??
-                if (exp_mode == 3 ||
-                    exp_mode == 4 ||
-                    exp_mode == 8)	// MAPSV,MAPSVDP or SEM
-                {
-                    throw XY_Error("do not support MAPPING mode now");
-                    //skip_lines(f, 6);
-                }
-                break;
-
-            case 23:
-                if (1 == tech)
-                {
-                    skip_lines(f, 1);
-                }
-                break;
-
-            case 27:    // 2 lines: analysis width X & Y
-            case 28:    // 2 lines: analyser axis take off "polar angle" & "azimuth"
-            case 30:    // 2 lines: "transition or charge state label" & "charge of detected particle"
-                skip_lines(f, 2);
-                break;
-
-            case 31:    // REGULAR mode, get x_start & x_step
-                if (1 == scan_mode)     // 'REGULAR' mode
-                {
-                    skip_lines(f, 2);   // abscissa label & units
-                    getline(f, line);
-                    x_start = string_to_fp(line);
-                    getline(f, line);
-                    x_step = string_to_fp(line);
-                }
-                break;
-
-            case 32:
-                corresponding_var = read_line_int(f);
-                skip_lines(f, 2 * corresponding_var);   // 2 lines per corresponding_var
-                break;
-
-            case 37:
-                if ((tech < 5 || tech > 11)	// AES2,AES1,EDX,ELS,UPS,XPS or XRF
-                    &&
-                    (exp_mode == 2 ||
-                    exp_mode == 4 ||
-                    exp_mode == 6 ||
-                    exp_mode == 7))	// MAPDP,MAPSVDP,SDP or SDPSV
-                {   // block params: sputtering source energy,beam current, 
-                    // width X, width Y, polar angle of incidence, azimuth, mode
-                    skip_lines(f, 7);
-                }
-                break;
-
-            case 38:
-                skip_lines(f, 2);
-                break;
-
-            case 40:    // 3 lines per param: additional numerical parameter label, units, value
-                n = read_line_int(f);
-                skip_lines(f, 3 * n);
-                break;
-
-            default:    // simply read one line, which we do not care
-                getline(f, line);
-                break;
-            } // switch
-        } // if
-    } // for
-
-    skip_lines(f, block_future_upgrade_entries);
-    pt_cnt = read_line_int(f);
-    skip_lines(f, 2 * corresponding_var);   // min & max ordinate
-    
-    if (skip_flg)
-    {
-        // if skip_flg is set, point will not be added to data
-        skip_lines(f, pt_cnt);
-        return;
+    if (include[7]) {   // skip comments on this blk
+        int cmt_lines = read_line_int(f);
+        skip_lines(f, cmt_lines);
     }
 
-    p_rg->set_x_start(x_start);
-    p_rg->set_x_step(x_step);
+    read_meta_line(8, p_rg, "tech");
+    string tech = p_rg->get_meta("tech");
+
+    if (include[9]) {
+        if (("MAP" == exp_mode) || ("MAPDP" == exp_mode)) {
+            p_rg->add_meta("x coordinate", read_line(f));
+            p_rg->add_meta("y coordinate", read_line(f));
+        }
+    }
+
+    if (include[10]) {
+        for (int i = 0; i < exp_var_cnt; ++i) {
+            p_rg->add_meta("experimental variable value" + S(i), read_line(f));
+        }
+    }
+
+    read_meta_line(11, p_rg, "analysis source label");
+
+    if (include[12]) {
+        if (("MAPDP" == exp_mode) || ("MAPSVDP" == exp_mode) || 
+            ("SDP" == exp_mode) || ("SDPSV" == exp_mode) || ("SNMS energy spec" == tech) ||
+            ("FABMS" == tech) || ("FABMS energy spec" == tech) || ("ISS" == tech) ||
+            ("SIMS" == tech) || ("SIMS energy spec" == tech) || ("SNMS" == tech)) {
+            p_rg->add_meta("sputtering ion oratom atomic number", read_line(f));
+            p_rg->add_meta("number of atoms in sputtering ion or atom particle", read_line(f));
+            p_rg->add_meta("sputtering ion or atom charge sign and number", read_line(f));            
+        }
+    }
+
+    read_meta_line(13, p_rg, "analysis source characteristic energy");
+    read_meta_line(14, p_rg, "analysis source strength");
+
+    if (include[15]) {
+        p_rg->add_meta("analysis source beam width x", read_line(f));
+        p_rg->add_meta("analysis source beam width y", read_line(f));
+    }
+
+    if (include[16]) {
+        if (("MAP" == exp_mode) || ("MAPDP" == exp_mode) || ("MAPSV" == exp_mode) ||
+            ("MAPSVDP" == exp_mode) || ("SEM" == exp_mode)) {
+            p_rg->add_meta("field of view x", read_line(f));
+            p_rg->add_meta("field of view y", read_line(f));
+        }
+    }
+
+    if (include[17]) {
+        if (("MAPSV" == exp_mode) || ("MAPSV" == exp_mode) || ("MAPSVDP" == exp_mode)) {
+            throw XY_Error("do not support MAPPING mode now");
+            //skip_lines(f, 6);
+        }
+    }
+
+    read_meta_line(18, p_rg, "analysis source polar angle of incidence");
+    read_meta_line(19, p_rg, "analysis source azimuth");
+    read_meta_line(20, p_rg, "analyser mode");
+    read_meta_line(21, p_rg, "analyser pass energy or retard ratio or mass resolution");
+
+    if (include[22]) {
+        if ("AES diff" == tech) {
+            p_rg->add_meta("differential width", read_line(f));
+        }
+    }
+
+    read_meta_line(23, p_rg, "magnification of analyser transfer lens");
+    read_meta_line(24, p_rg, "analyser work function or acceptance energy of atom or ion");
+    read_meta_line(25, p_rg, "target bias");
+
+    if (include[26]) {
+        p_rg->add_meta("analysis width x", read_line(f));
+        p_rg->add_meta("analysis width y", read_line(f));
+    }
+
+    if (include[27]) {
+        p_rg->add_meta("analyser axis take off polar angle", read_line(f));
+        p_rg->add_meta("analyser axis take off azimuth", read_line(f));
+    }
+
+    read_meta_line(28, p_rg, "species label");
+
+    if (include[29]) {
+        p_rg->add_meta("transition or charge state label", read_line(f));
+        p_rg->add_meta("charge of detected particle", read_line(f));
+    }
+
+    if (include[30]) {
+        if ("REGULAR" == scan_mode) {
+            p_rg->add_meta("abscissa label", read_line(f));            
+            p_rg->add_meta("abscissa units", read_line(f));  
+            p_rg->set_x_start(read_line_fp(f));
+            p_rg->set_x_step(read_line_fp(f));
+        }
+    }
+
+    if (include[31]) {
+        cor_var = read_line_int(f);
+        skip_lines(f, 2 * cor_var);   // 2 lines per corresponding_var
+    }
     
+    read_meta_line(32, p_rg, "signal mode");
+    read_meta_line(33, p_rg, "signal collection time");
+    read_meta_line(34, p_rg, "# of scans to compile this blk");
+    read_meta_line(35, p_rg, "signal time correction");
+
+    if (include[36]) {
+        if (("AES1" == tech || "AES2" == tech || "EDX" == tech || "ELS" == tech || "UPS" == tech || 
+            "XPS" == tech || "XRF" == tech) &&
+            ("MAPDP" == exp_mode || "MAPSVDP" == exp_mode || "SDP" == exp_mode || "SDPSV" == exp_mode)) {
+            skip_lines(f, 7);
+        }
+    }
+
+    if (include[37]) {
+        p_rg->add_meta("sample normal polar angle of tilt", read_line(f));
+        p_rg->add_meta("sample normal polar tilt azimuth", read_line(f));
+    }
+
+    read_meta_line(38, p_rg, "sample rotate angle");
+    
+    if (include[39]) {
+        int n = read_line_int(f);   // # of additional numeric parameters
+        for (int i = 0; i < n; ++i) {
+            // 3 items in every loop: param_label, param_unit, param_value
+            string param_label = read_line(f);
+            string param_unit = read_line(f);
+            p_rg->add_meta(param_label, read_line(f) + param_unit);
+        }
+    }
+
+    skip_lines(f, blk_fue);
+    int cur_blk_steps = read_line_int(f);
+    skip_lines(f, 2 * cor_var);   // min & max ordinate
+
     fp y;
-    for (int c = 0; c < pt_cnt; ++c)
-    {
+    for (int i = 0; i < cur_blk_steps; ++i) {
         y = read_line_fp(f);
         p_rg->add_y(y);
     }
+
 }
 
 
-int VamasDataSet::find_exp_mode_value(const std::string &str)
+// a simple wrapper to simplify the code
+void VamasDataSet::read_meta_line(int idx, FixedStepRange *p_rg, string meta_key)
 {
-    const static string exp_mode[] = {
-        "MAP","MAPDP","MAPSV","MAPSVDP","NORM",
-        "SDP","SDPSV","SEM","NOEXP",
-    };
+    ifstream &f = *p_ifs;
 
-    return get_array_idx(exp_mode, 9, str);
-}
-
-
-int VamasDataSet::find_technique_value(const std::string &str)
-{
-    const static string tech_mode[] = {
-        "AES diff","AES dir","EDX","ELS","FABMS",
-        "FABMS energy spec","ISS","SIMS","SIMS energy spec","SNMS",
-        "SNMS energy spec","UPS","XPS","XRF"
-    };
-
-    return get_array_idx(tech_mode, 14, str);
-}
-
-
-int VamasDataSet::find_scan_mode_value(const std::string &str)
-{
-    const static string scan_mode[] = {
-        "REGULAR","IRREGULAR","MAPPING",
-    };
-
-    return get_array_idx(scan_mode, 3, str);
+    if (include[idx]) {
+        p_rg->add_meta(meta_key, read_line(f));
+    }
 }
 
 } // end of namespace xylib

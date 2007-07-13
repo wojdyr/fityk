@@ -2,7 +2,7 @@
 // Licence: GNU General Public License version 2
 // $Id: BruckerV23RawDataSet.h $
 
-#include "xylib.h"
+#include "ds_brucker_raw_v23.h"
 #include "common.h"
 
 using namespace std;
@@ -39,21 +39,21 @@ void BruckerV23RawDataSet::load_data()
     add_meta("INTENSITY_RATIO", S(read_flt_le(f, 198)));
     add_meta("TOTAL_SAMPLE_RUNTIME_IN_SEC", S(read_flt_le(f, 210)));
 
-    uint16_t range_cnt = read_uint16_le(f, 4);
+    unsigned range_cnt = read_uint16_le(f, 4);
 
-    uint16_t cur_range_offset = 256;    // 1st range offset
-    for (uint16_t cur_range = 0; cur_range < range_cnt; ++cur_range) {
-        uint16_t cur_header_len = read_uint16_le(f, cur_range_offset);
+    unsigned cur_range_offset = 256;    // 1st range offset
+    for (unsigned cur_range = 0; cur_range < range_cnt; ++cur_range) {
+        unsigned cur_header_len = read_uint16_le(f, cur_range_offset);
         float x_start = read_flt_le(f, cur_range_offset + 16);
         float x_step = read_flt_le(f, cur_range_offset + 12);
-        uint16_t cur_range_steps = read_uint16_le(f, cur_range_offset + 2);
+        unsigned cur_range_steps = read_uint16_le(f, cur_range_offset + 2);
 
         FixedStepRange* p_rg = new FixedStepRange(x_start, x_step);
         // add the range-scope meta-info here
         p_rg->add_meta("SEC_PER_STEP", S(read_flt_le(f, cur_range_offset + 8)));
         p_rg->add_meta("TEMP_IN_K", S(read_uint16_le(f, cur_range_offset + 46)));
 
-        for(uint16_t i = 0; i < cur_range_steps; ++i) {
+        for(unsigned i = 0; i < cur_range_steps; ++i) {
             float y = read_flt_le(f, cur_range_offset + cur_header_len + i * 4);
             p_rg->add_y(y);
         }

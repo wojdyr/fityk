@@ -5,20 +5,22 @@
 
 #ifndef UXD_DATASET_H
 #define UXD_DATASET_H
+#include "xylib.h"
 
-class UxdDataSet : public DataSet
-{
-public:
-    UxdDataSet(const std::string &filename)
-        : DataSet(filename, FT_UXD) {}
+namespace xylib {
+    class UxdDataSet : public DataSet
+    {
+    public:
+        UxdDataSet(const std::string &filename)
+            : DataSet(filename, FT_UXD) {}
 
-    // implement the interfaces specified by DataSet
-    bool is_filetype() const;
-    void load_data();
-    
-protected:
-    void parse_range(std::vector<std::string> &lines, FixedStepRange *p_rg);
-}; 
-
+        // implement the interfaces specified by DataSet
+        bool is_filetype() const;
+        void load_data();
+        
+    protected:
+        void parse_range(std::vector<std::string> &lines, FixedStepRange *p_rg);
+    }; 
+}
 #endif // #ifndef UXD_DATASET_H
 

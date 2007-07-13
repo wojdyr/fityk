@@ -20,7 +20,7 @@ void output_meta(T *pds)
         cout << "meta-key" << "\t" << "meta_val" << endl;
         vector<string> meta_keys = pds->get_all_meta_keys();
         for (vector<string>::iterator it = meta_keys.begin(); it != meta_keys.end(); ++it) {
-            cout << *it << "\t" << pds->get_meta(*it) << endl;
+            cout << *it << ":\t" << pds->get_meta(*it) << endl;
         }
     }
 }

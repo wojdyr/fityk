@@ -5,6 +5,13 @@
 
 #include "xylib.h"
 #include "common.h"
+#include "ds_brucker_raw_v1.h"
+#include "ds_brucker_raw_v23.h"
+#include "ds_rigaku_dat.h"
+#include "ds_text.h"
+#include "ds_uxd.h"
+#include "ds_vamas.h"
+
 #include <algorithm>
 #include <boost/detail/endian.hpp>
 #include <boost/cstdint.hpp>
@@ -39,7 +46,7 @@ const string g_desc[] = {
 //////////////////////////////////////////////////////////////////////////
 // member functions of Class Range
 
-void Range::check_idx(unsigned n, const std::string &name) const
+void Range::check_idx(unsigned n, const string &name) const
 {
     if (n >= get_pt_count()) {
         throw XY_Error("no " + name + " in this range with such index");
@@ -139,7 +146,7 @@ vector<string> Range::get_all_meta_keys() const
     return keys;
 }
 
-bool Range::has_meta_key(const std::string &key) const
+bool Range::has_meta_key(const string &key) const
 {
     map<string, string>::const_iterator it = meta_map.find(key);
     return (it != meta_map.end());
@@ -224,7 +231,7 @@ vector<string> DataSet::get_all_meta_keys() const
     return keys;
 }
 
-bool DataSet::has_meta_key(const std::string &key) const
+bool DataSet::has_meta_key(const string &key) const
 {
     map<string, string>::const_iterator it = meta_map.find(key);
     return (it != meta_map.end());
@@ -265,18 +272,20 @@ void DataSet::init()
     if (!is_filetype()) {
         throw XY_Error("file is not the expected " + get_filetype() + " format");
     }
+
+    p_ifs->seekg(0);    // reset the ifstream, as if no lines have been read
 }
 
 #if 0
 void DataSet::parse_fixedstep_file(
-    const std::string &first_rg_key,
-    const std::string &last_rg_key,
-    const std::string &x_start_key,
-    const std::string &x_step_key,
-    const std::string &meta_sep /* = "=:" */,
-    const std::string &data_sep /* = ",; \t\r\n" */,
-    const std::string &cmt_start /* = ";#" */,
-    const std::string &data_start_tag /* = "" */)
+    const string &first_rg_key,
+    const string &last_rg_key,
+    const string &x_start_key,
+    const string &x_step_key,
+    const string &meta_sep /* = "=:" */,
+    const string &data_sep /* = ",; \t\r\n" */,
+    const string &cmt_start /* = ";#" */,
+    const string &data_start_tag /* = "" */)
 {
     /* format example: (words in square brackets are my notes)
     ; comments          [";" is specified by cmt_start]
@@ -331,12 +340,12 @@ void DataSet::parse_fixedstep_file(
 }
 
 // first consider the data_start_tag, then last_rg_key to determine the data start
-void DataSet::parse_range(std::ifstream &f, 
+void DataSet::parse_range(ifstream &f, 
     FixedStepRange *p_rg,
-    const std::string &x_start_key,
-    const std::string &x_step_key,
-    const std::string &data_start_tag,
-    const std::string &last_rg_key)
+    const string &x_start_key,
+    const string &x_step_key,
+    const string &data_start_tag,
+    const string &last_rg_key)
 {
     fp x_start, x_step = 0;
     string line, key, val;
@@ -437,7 +446,7 @@ void get_rg_lines(ifstream &f, vector<string> rg_lines)
 }
 */
 
-DataSet* getNewDataSet(const std::string &filename, xy_ftype filetype /* = FT_UNKNOWN */)
+DataSet* getNewDataSet(const string &filename, xy_ftype filetype /* = FT_UNKNOWN */)
 {
     DataSet *pd = NULL;
     xy_ftype ft = (FT_UNKNOWN == filetype) ? guess_file_type(filename) : filetype;
@@ -496,11 +505,11 @@ xy_ftype guess_file_type(const string &fname)
 }
 
 //////////////////////////////////////////////////////////////////////////
-// the functions in the util
+// the functions in xylib::util, which are only used internally
 namespace util{
     // read a 32-bit, little-endian form int from f,
     // return equivalent int in host endianess
-    uint32_t read_uint32_le(ifstream &f, unsigned offset)
+    unsigned read_uint32_le(ifstream &f, unsigned offset)
     {
         uint32_t val;
         f.seekg(offset);
@@ -509,7 +518,7 @@ namespace util{
         return val;
     }
 
-    uint16_t read_uint16_le(ifstream &f, unsigned offset)
+    unsigned read_uint16_le(ifstream &f, unsigned offset)
     {
         uint16_t val;
         f.seekg(offset);
@@ -530,7 +539,7 @@ namespace util{
 
 
     // the same as above, but read a float
-    std::string read_string(ifstream &f, unsigned offset, unsigned len) 
+    string read_string(ifstream &f, unsigned offset, unsigned len) 
     {
         static char buf[65536];
         f.seekg(offset);
@@ -540,7 +549,7 @@ namespace util{
     }
 
     // remove all space chars in str, not used now
-    void rm_spaces(std::string &str)
+    void rm_spaces(string &str)
     {
         string ll(str);
         str.clear();
@@ -558,7 +567,7 @@ namespace util{
 
 
     // trim the string 
-    std::string str_trim(const string &str, string ws /* = " \r\n\t" */)
+    string str_trim(const string &str, string ws /* = " \r\n\t" */)
     {
         string::size_type first, last;
         first = str.find_first_not_of(ws);
@@ -569,8 +578,8 @@ namespace util{
 
     // parse a line. First skip the space chars, then get the separated key and val
     // e.g. after calling parse_line("a =  2.6", "=", key, val), key=='a' and val=='2.6'
-    void parse_line(const std::string &line, const std::string &sep, 
-        std::string &key, std::string &val)
+    void parse_line(const string &line, const string &sep, 
+        string &key, string &val)
     {
         string line2(line);
         string::size_type len1 = line2.find_first_of(sep);
@@ -584,15 +593,15 @@ namespace util{
 
     
     // decide whether str_src starts with ss
-    bool str_startwith(const std::string &str_src, const std::string &ss)
+    bool str_startwith(const string &str_src, const string &ss)
     {
         string sub = str_src.substr(0, ss.size());
         return (sub == ss);
     }
 
 
-    // convert a std::string to fp
-    fp string_to_fp(const std::string &str)
+    // convert a string to fp
+    fp string_to_fp(const string &str)
     {
         fp ret;
         istringstream is(str);
@@ -601,8 +610,8 @@ namespace util{
     }
     
 
-    // convert a std::string to int
-    int string_to_int(const std::string &str)
+    // convert a string to int
+    int string_to_int(const string &str)
     {
         int ret;
         istringstream is(str);
@@ -723,27 +732,38 @@ namespace util{
         }
     }
 
-
-    int read_line_int(std::ifstream& is)
+    int read_line_int(ifstream& is)
     {
         string str;
-        getline(is, str);
+        if (!getline(is, str)) {
+            throw xylib::XY_Error("unexpected end of file");
+        }
         return string_to_int(str);
     }
 
-
-    fp read_line_fp(std::ifstream& is)
+    fp read_line_fp(ifstream& is)
     {
         string str;
-        getline(is, str);
+        if (!getline(is, str)) {
+            throw xylib::XY_Error("unexpected end of file");
+        }
         return string_to_fp(str);
+    }
+
+    // read a line and return it as a string
+    string read_line(ifstream& is) {
+        string line;
+        if (!getline(is, line)) {
+            throw xylib::XY_Error("unexpected end of file");
+        }
+        return line;
     }
 
 
     // get the index of find_str in array. return -1 if not exists
-    int get_array_idx(const std::string *array, 
+    int get_array_idx(const string *array, 
         unsigned size,
-        const std::string &find_str)
+        const string &find_str)
     {
         const string *pos = find(array, array + size, find_str);
         if (array + size == pos) {

@@ -2,7 +2,7 @@
 // Licence: GNU General Public License version 2
 // $Id: RigakuDataSet.h $
 
-#include "xylib.h"
+#include "ds_rigaku_dat.h"
 #include "common.h"
 
 using namespace std;

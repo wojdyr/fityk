@@ -5,18 +5,20 @@
 
 #ifndef TEXT_DATASET_H
 #define TEXT_DATASET_H
+#include "xylib.h"
 
-class TextDataSet : public DataSet
-{
-public:
-    TextDataSet(const std::string &filename)
-        : DataSet(filename, FT_TEXT) {}
+namespace xylib {
+    class TextDataSet : public DataSet
+    {
+    public:
+        TextDataSet(const std::string &filename)
+            : DataSet(filename, FT_TEXT) {}
 
-    // implement the interfaces specified by DataSet
-    bool is_filetype() const;
-    void load_data();
-    
-}; 
-
+        // implement the interfaces specified by DataSet
+        bool is_filetype() const;
+        void load_data();
+        
+    }; 
+}
 #endif // #ifndef TEXT_DATASET_H
 

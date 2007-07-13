@@ -2,7 +2,7 @@
 // Licence: GNU General Public License version 2
 // $Id: __MY_FILE_ID__ $
 
-#include "xylib.h"
+#include "ds_brucker_raw_v1.h"
 #include "common.h"
 
 using namespace std;
@@ -34,18 +34,18 @@ void BruckerV1RawDataSet::load_data()
     init();
     ifstream &f = *p_ifs;
 
-    uint32_t max_range_idx = read_uint32_le(f, 152);
+    unsigned max_range_idx = read_uint32_le(f, 152);
     
     unsigned cur_range_offset = 0;
-    uint32_t cur_range_idx = 0;
+    unsigned cur_range_idx = 0;
     while (cur_range_idx <= max_range_idx) {
-        uint32_t cur_range_steps = read_uint32_le(f, cur_range_offset + 4);
+        unsigned cur_range_steps = read_uint32_le(f, cur_range_offset + 4);
         float x_start = read_flt_le(f, cur_range_offset + 24);
         float x_step = read_flt_le(f, cur_range_offset + 12);
 
         FixedStepRange* p_rg = new FixedStepRange(x_start, x_step);
 
-        // add the range scope meta-info
+        // add the range-scope meta-info
         p_rg->add_meta("MEASUREMENT_TIME_PER_STEP", S(read_flt_le(f, cur_range_offset + 8)));
         p_rg->add_meta("SCAN_MODE", S(read_uint32_le(f, cur_range_offset + 16)));
         p_rg->add_meta("THETA_START",

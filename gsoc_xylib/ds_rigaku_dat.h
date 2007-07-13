@@ -5,22 +5,22 @@
 
 #ifndef RIGAKU_DATASET
 #define RIGAKU_DATASET
+#include "xylib.h"
 
-class RigakuDataSet : public DataSet
-{
-public:
-    RigakuDataSet(const std::string &filename)
-        : DataSet(filename, FT_RIGAKU) {}
+namespace xylib {
+    class RigakuDataSet : public DataSet
+    {
+    public:
+        RigakuDataSet(const std::string &filename)
+            : DataSet(filename, FT_RIGAKU) {}
 
-    // implement the interfaces specified by DataSet
-    
-    
-    bool is_filetype() const;
-    void load_data();
+        // implement the interfaces specified by DataSet
+        bool is_filetype() const;
+        void load_data();
 
-protected:
-    void parse_range();
-}; 
-
+    protected:
+        void parse_range();
+    }; 
+}
 #endif // #ifndef RIGAKU_DATASET
 

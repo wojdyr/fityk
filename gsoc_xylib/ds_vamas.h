@@ -5,33 +5,39 @@
 
 #ifndef VAMAS_DATASET
 #define VAMAS_DATASET
+#include "xylib.h"
 
-class VamasDataSet : public DataSet
-{
-public:
-    VamasDataSet(const std::string &filename)
-        : DataSet(filename, FT_VAMAS) {}
+namespace xylib {
+    class VamasDataSet : public DataSet
+    {
+    public:
+        VamasDataSet(const std::string &filename)
+            : DataSet(filename, FT_VAMAS), include(40, false) {}
 
-    // implement the interfaces specified by DataSet
-    bool is_filetype() const;
-    void load_data();
+        // implement the interfaces specified by DataSet
+        bool is_filetype() const;
+        void load_data();
 
-protected:
-    void vamas_read_blk(std::ifstream &f, 
-                           FixedStepRange *p_rg,
-                           const std::vector<bool> &include,
-                           bool skip_flg = false, 
-                           int block_future_upgrade_entries = 0,
-                           int exp_future_upgrade_entries = 0,
-                           int exp_mode = 0, 
-                           int scan_mode = 0, 
-                           int exp_variables = 0);
+    protected:
+        void vamas_read_blk(FixedStepRange *p_rg);
 
-    int find_exp_mode_value(const std::string &str);
-    int find_technique_value(const std::string &str);
-    int find_scan_mode_value(const std::string &str);
-    
-}; 
+        void read_meta_line(int idx, FixedStepRange *p_rg, std::string meta_key);
 
+        // data members
+        //////////////////////////////////////////////////////
+        
+        // a complete blk/range contains 40 parts. 
+        // include[i] indicates if the i-th part (0-based) is included 
+        std::vector<bool> include;
+
+        int blk_fue;            // number of future upgrade experiment entries
+        int exp_fue;            // number of future upgrade block entries
+        std::string exp_mode;   // experimental mode
+        std::string scan_mode;  // scan mode
+        int exp_var_cnt;        // count of experimental variables
+        
+       
+    }; 
+}
 #endif // #ifndef BRUCKER_RAW_V23_H
 
