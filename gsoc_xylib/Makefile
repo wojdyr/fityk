@@ -1,6 +1,6 @@
 CC = gcc
 XX = g++
-CFLAGS = -Wall -O -g
+CFLAGS = -Wall -W -O -g
 TARGET = testmain
 
 %.o: %.c

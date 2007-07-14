@@ -6,8 +6,6 @@
 #include "common.h"
 
 using namespace std;
-using namespace boost;
-using namespace xylib;
 using namespace xylib::util;
 
 namespace xylib {

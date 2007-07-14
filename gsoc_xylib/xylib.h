@@ -22,10 +22,8 @@ typedef double fp;
 #include <string>
 #include <vector>
 #include <map>
-#include <cstdio>
 #include <stdexcept>
 #include <fstream>
-#include <sstream>
 #include <iomanip>
 
 

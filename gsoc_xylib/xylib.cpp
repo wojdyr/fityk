@@ -17,9 +17,7 @@
 #include <boost/cstdint.hpp>
 
 using namespace std;
-using namespace xylib;
-using namespace util;
-
+using namespace xylib::util;
 using namespace boost;
 
 namespace xylib {
