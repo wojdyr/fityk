@@ -437,8 +437,8 @@ void Fit::Jordan(vector<fp>& A, vector<fp>& b, int n)
         }
         if (maxnr != i) {                            // interchanging rows
             for (int j=i; j<n; j++)
-                Swap (A[n*maxnr+j], A[n*i+j]);
-            Swap (b[i], b[maxnr]);
+                swap (A[n*maxnr+j], A[n*i+j]);
+            swap (b[i], b[maxnr]);
         }
         register fp foo = 1.0 / A[i*n+i];
         for (int j = i; j < n; j++)

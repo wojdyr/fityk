@@ -14,6 +14,8 @@
 #include <wx/cmdline.h> 
 #include <wx/config.h>
 #include <wx/fs_zip.h>
+#include <wx/fileconf.h>
+#include <wx/stdpaths.h>
 #if wxUSE_TOOLTIPS
     #include <wx/tooltip.h>
 #endif
@@ -135,50 +137,52 @@ bool FApp::OnInit(void)
     wxToolTip::Enable (true);
     wxToolTip::SetDelay (500);
 #endif
-    wxString prefix;
+
+    //create user data directory, if it doesn't exists
+    wxString fityk_dir = wxStandardPaths::Get().GetUserDataDir();
+    if (!wxDirExists(fityk_dir))
+        wxMkdir(fityk_dir);
+
     wxConfig::DontCreateOnDemand();
+    //prefix for wxConfig. It can be wxFileConfig or wxRegConfig,
+    // so the prefix on MSW can't be absolute
+    // On Unix - it is compatible with get_user_conffile()
+    // On MSW - not compatible, but it uses registry, so it doesn't matter
 #ifdef __WXMAC__
-    prefix = wxStandardPaths::Get().GetUserConfigDir() + wxFILE_SEP_PATH
-                                    + wxT("org.pl.waw.unipress.fityk.");
+    wxString prefix = wxStandardPaths::Get().GetUserConfigDir() 
+                         + wxFILE_SEP_PATH + wxT("pl.waw.unipress.fityk.");
 #else
-    prefix = pchar2wx(config_dirname) + wxFILE_SEP_PATH;
+    wxString prefix = pchar2wx(config_dirname) + wxFILE_SEP_PATH;
 #endif
 
-    // default config name
+    // set default and alternative config names
     conf_filename = prefix + wxT("config");
-    // alternative config name
     alt_conf_filename = prefix + wxT("alt-config");
 
+    // set config file for options automatically saved
+    // it will be accessed only via wxConfig::Get()
     wxConfig *config = new wxConfig(wxT(""), wxT(""), 
                                     prefix + wxT("wxoptions"), wxT(""), 
                                     wxCONFIG_USE_LOCAL_FILE);
-    // prefix of names of other config files
-    conf_prefix = prefix + wxT("configs") + wxFILE_SEP_PATH;
+    wxConfig::Set(config); 
 
-    get_user_conffile(""); //create .fityk directory, if it doesn't exists
-    wxString config_dir;
-#ifdef __WXMAC__
-    config_dir = conf_prefix;
-#else
-    config_dir = wxGetHomeDir() + wxFILE_SEP_PATH + conf_prefix;
-#endif
+    config_dir = get_user_conffile("configs") + wxFILE_SEP_PATH;
     if (!wxDirExists(config_dir))
         wxMkdir(config_dir);
-
-    wxConfig::Set(config);
 
     DataEditorDlg::read_transforms();
 
     // Create the main frame window
     frame = new FFrame(NULL, -1, wxT("fityk"), wxDEFAULT_FRAME_STYLE);
 
-    wxString ini_config;
-    if (cmdLineParser.Found(wxT("g"), &ini_config))
-        ini_config = conf_prefix + ini_config;
+    wxConfigBase *cf;
+    wxString g_config;
+    if (cmdLineParser.Found(wxT("g"), &g_config))
+        cf = new wxFileConfig(wxT(""), wxT(""), config_dir + g_config, 
+                              wxT(""), wxCONFIG_USE_LOCAL_FILE);
     else
-        ini_config = conf_filename;
-    wxConfig *cf = new wxConfig(wxT(""), wxT(""), ini_config, wxT(""), 
-                                wxCONFIG_USE_LOCAL_FILE);
+        cf = new wxConfig(wxT(""), wxT(""), conf_filename, wxT(""), 
+                                    wxCONFIG_USE_LOCAL_FILE);
     frame->read_all_settings(cf);
 
     frame->plot_pane->set_mouse_mode(mmd_zoom);
@@ -272,6 +276,7 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
 #    define HELP_DIR "."
 #endif
 
+//TODO when wx>=2.8 -> use GetResourcesDir() on all platforms
 string get_full_path_of_help_file (const string &name)
 {
 #ifdef __WXMAC__

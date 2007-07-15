@@ -418,7 +418,7 @@ fp Function::find_x_with_value(fp x1, fp x2, fp val, int max_iter) const
     if (y2 == 0)
         return x2;
     if (y1 > 0)
-        Swap(x1, x2);
+        swap(x1, x2);
     fp t = (x1 + x2) / 2.;
     for (int i = 0; i < max_iter; ++i) {
         //check if converged
@@ -483,7 +483,7 @@ fp Function::find_extremum(fp x1, fp x2, int max_iter) const
     if (y2 == 0)
         return x2;
     if (y1 > 0)
-        Swap(x1, x2);
+        swap(x1, x2);
     for (int i = 0; i < max_iter; ++i) {
 
         fp t = (x1 + x2) / 2.;

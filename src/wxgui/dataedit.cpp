@@ -554,7 +554,8 @@ void DataEditorDlg::CodeText()
     wxString text = code->GetValue().Trim();
     if (check_syntax) {
         string text = wx2s(code->GetValue());
-        replace_all(text, "\n", " & ");
+        replace_all(text, "\n", " , ");
+        // 'text' is not identical with the final command (, instead of ;)
         apply_btn->Enable(validate_transformation(text));
     }
     else

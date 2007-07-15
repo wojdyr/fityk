@@ -141,7 +141,6 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     choices.Add(wxT("hide all"));
     data_look = new wxChoice(data_page, ID_DP_LOOK,
                              wxDefaultPosition, wxDefaultSize, choices);
-    data_look->Select(0);
     data_look_sizer->Add(data_look, 1, wxEXPAND);
     data_sizer->Add(data_look_sizer, 0, wxEXPAND);
 
@@ -468,11 +467,16 @@ void SideBar::read_settings(wxConfigBase *cf)
     d->split(cfg_read_double(cf, wxT("dataProportion"), 0.75));
     f->split(cfg_read_double(cf, wxT("funcProportion"), 0.75));
     v->split(cfg_read_double(cf, wxT("varProportion"), 0.75));
+    data_look->Select(cf->Read(wxT("dataLook"), 0L));
 }
 
 void SideBar::save_settings(wxConfigBase *cf) const
 {
     cf->SetPath(wxT("/SideBar"));
+    cf->Write(wxT("dataProportion"), d->GetProportion());
+    cf->Write(wxT("funcProportion"), f->GetProportion());
+    cf->Write(wxT("varProportion"), v->GetProportion());
+    cf->Write(wxT("dataLook"), data_look->GetSelection());
 }
 
 void SideBar::update_lists(bool nondata_changed)

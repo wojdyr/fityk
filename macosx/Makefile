@@ -1,4 +1,4 @@
-# This makefile assembles Fityk.app from its constiutent parts.  Run "make" to
+# This makefile assembles fityk.app from its constiutent parts.  Run "make" to
 # build the application bundle or "make dmg" to create a disk image for
 # distribution.
 #
@@ -10,17 +10,17 @@ fityk_help := ../doc/fitykhelp.htb
 version := $(shell sed -n 's/^AC_INIT(.*, \[\(.*\)\])$$/\1/p' ../configure.ac)
 
 
-Fityk.app: $(fityk) $(fityk_help) Info.plist
-	-mkdir Fityk.app
-	-mkdir Fityk.app/Contents
-	-mkdir Fityk.app/Contents/MacOS
-	-mkdir Fityk.app/Contents/Resources
-	echo -n 'APPL????' > Fityk.app/Contents/PkgInfo
-	cp Info.plist Fityk.app/Contents
-	cp $(fityk) Fityk.app/Contents/MacOS/Fityk
-	strip Fityk.app/Contents/MacOS/Fityk 
-	cp fityk.icns Fityk.app/Contents/Resources
-	cp $(fityk_help) Fityk.app/Contents/Resources
+fityk.app: $(fityk) $(fityk_help) Info.plist
+	-mkdir fityk.app
+	-mkdir fityk.app/Contents
+	-mkdir fityk.app/Contents/MacOS
+	-mkdir fityk.app/Contents/Resources
+	echo -n 'APPL????' > fityk.app/Contents/PkgInfo
+	cp Info.plist fityk.app/Contents
+	cp $(fityk) fityk.app/Contents/MacOS/fityk
+	strip fityk.app/Contents/MacOS/fityk 
+	cp fityk.icns fityk.app/Contents/Resources
+	cp $(fityk_help) fityk.app/Contents/Resources
 
 ../src/wxgui/fityk:
 	@echo
@@ -31,11 +31,11 @@ Fityk.app: $(fityk) $(fityk_help) Info.plist
 Info.plist:
 	sed -e 's/=V/$(version)/g' < Info.plist.in > Info.plist
 
-dmg: Fityk.app
-	hdiutil create -srcfolder Fityk.app Fityk.dmg
+dmg: fityk.app
+	hdiutil create -srcfolder fityk.app fityk.dmg
 
 clean:
-	rm -rf Info.plist Fityk.app Fityk.dmg
+	rm -rf Info.plist fityk.app fityk.dmg
 
 distclean: clean
 	@

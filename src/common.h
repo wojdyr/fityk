@@ -81,15 +81,6 @@ inline bool is_finite(fp a)
 /// Round real to integer.
 inline int iround(fp d) { return static_cast<int>(floor(d+0.5)); }
 
-// swap two variables
-template<typename T>
-inline void Swap(T& fp1 ,T& fp2) 
-{
-    T swaptmp = fp1;
-    fp1 = fp2;
-    fp2 = swaptmp;
-}
-
 #ifndef __GNUC__
         //TODO implement erf and erfc
 	inline float erfc(float f) { return 0.5f; }

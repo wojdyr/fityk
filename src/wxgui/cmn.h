@@ -98,6 +98,7 @@ void add_apply_close_buttons(wxWindow *parent, wxSizer *top_sizer);
 extern wxMouseEvent dummy_mouse_event;
 extern wxCommandEvent dummy_cmd_event;
 
+//TODO when wx>=2.8 -> delete
 #if !wxCHECK_VERSION(2,7,0)
 # define wxFD_OPEN wxOPEN
 # define wxFD_SAVE wxSAVE
@@ -117,6 +118,7 @@ public:
                          wxWindowID id=-1, 
                          float proportion=0.66, // 0. - 1.
                          const wxSize& size = wxDefaultSize,
+//TODO when wx>=2.8 -> delete
 #if wxCHECK_VERSION(2, 8, 0)
                          long style=wxSP_NOBORDER|wxSP_3DSASH);
 #else

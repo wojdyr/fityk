@@ -484,7 +484,7 @@ vector<double> scale_tics_step (double beg, double end, int max_tics,
             }
         }
     }
-    else {
+    else { // !log
         double min_step = (end - beg) / max_tics;
         double s = pow(10, floor (log10 (min_step)));
         int minor_div = 5; //ratio of major-step to minor-step
@@ -501,17 +501,16 @@ vector<double> scale_tics_step (double beg, double end, int max_tics,
             s *= 5;
         else
             s *= 10;
-        double t = s * ceil(beg / s);
-        for (int i = 1; i < minor_div; ++i) {
-            double v = t - s * i / minor_div;
-            if (v > beg && v < end)
-                minors.push_back(v);
-        }
-        for (; t < end; t += s) {
-            result.push_back(t);
+        for (double t = s * ceil(beg / s); t < end; t += s) {
+            if (t > beg) {
+                // make sure that 0 is not displayed as e.g. -2.7893e-17 
+                if (is_zero(t))
+                    t = 0.;
+                result.push_back(t);
+            }
             for (int i = 1; i < minor_div; ++i) {
                 double v = t + s * i / minor_div;
-                if (v < end)
+                if (v > beg && v < end)
                     minors.push_back(v);
             }
         }

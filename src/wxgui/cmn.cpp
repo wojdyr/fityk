@@ -16,7 +16,9 @@
 #include <wx/colordlg.h>
 #include <wx/statline.h>
 #include <wx/msgdlg.h>
+#include <wx/stdpaths.h>
 
+//TODO when wx>=2.8 -> delete
 #ifdef __WXMAC__
 # include <wx/version.h>
 # if wxCHECK_VERSION(2, 8, 0)
@@ -48,17 +50,18 @@ double cfg_read_double(wxConfigBase *cf, const wxString& key, double def_val)
 wxColour cfg_read_color(const wxConfigBase *config, const wxString& key,
                         const wxColour& default_value)
 {
-    return wxColour (config->Read (key + wxT("/Red"), default_value.Red()), 
-                     config->Read (key + wxT("/Green"), default_value.Green()), 
-                     config->Read (key + wxT("/Blue"), default_value.Blue()));
+    return wxColour(
+             config->Read (key + wxT("/Red"), (int) default_value.Red()),
+             config->Read (key + wxT("/Green"), (int) default_value.Green()), 
+             config->Read (key + wxT("/Blue"), (int) default_value.Blue()));
 }
 
 void cfg_write_color(wxConfigBase *config, const wxString& key,
                            const wxColour& value)
 {
-    config->Write (key + wxT("/Red"), value.Red());
-    config->Write (key + wxT("/Green"), value.Green());
-    config->Write (key + wxT("/Blue"), value.Blue());
+    config->Write (key + wxT("/Red"), (int) value.Red());
+    config->Write (key + wxT("/Green"), (int) value.Green());
+    config->Write (key + wxT("/Blue"), (int) value.Blue());
 }
 
 wxFont cfg_read_font(wxConfigBase const *config, wxString const& key,
@@ -235,18 +238,11 @@ BEGIN_EVENT_TABLE(KFTextCtrl, wxTextCtrl)
 END_EVENT_TABLE()
 
 
-/// get path ~/.fityk/filename and create ~/.fityk/ dir if not exists
+/// get path ~/.fityk/filename or equivalent on other platforms
 wxString get_user_conffile(string const& filename)
 {
-#ifdef __WXMAC__
-    wxString fityk_dir = wxStandardPaths::Get().GetUserDataDir();
-#else
-    // hardcoded: const char* config_dirname = ".fityk";
-    wxString fityk_dir = wxGetHomeDir() + wxFILE_SEP_PATH + wxT(".fityk");
-#endif
-    if (!wxDirExists(fityk_dir))
-        wxMkdir(fityk_dir);
-    return fityk_dir + wxFILE_SEP_PATH + s2wx(filename);
+    return wxStandardPaths::Get().GetUserDataDir() 
+                                   + wxFILE_SEP_PATH + s2wx(filename);
 }
 
 

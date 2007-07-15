@@ -13,7 +13,12 @@ class wxCmdLineParser;
 class FApp: public wxApp
 {
 public:
-    wxString conf_filename, alt_conf_filename, conf_prefix;
+    // default config name
+    wxString conf_filename; 
+    // alternative config name
+    wxString alt_conf_filename; 
+    // directory for (named by user) config files
+    wxString config_dir;
 
     bool OnInit(void);
     int OnExit();

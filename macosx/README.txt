@@ -17,7 +17,12 @@ Building Fityk for OS X
         --disable-dependency-tracking
     $ make
 
-3. Build and test Fityk.app
+3. Build and test fityk.app
     $ cd macosx
     $ make
-    $ open Fityk.app
+    $ open fityk.app
+
+--
+Written by Ken McIvor <mcivor@iit.edu>
+You can also ask questions on fityk-users mailing list (subscribe first).
+

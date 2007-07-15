@@ -1450,21 +1450,15 @@ void FFrame::OnConfigSave (wxCommandEvent& event)
 
 void FFrame::OnConfigSaveAs (wxCommandEvent&)
 {
-    wxString config_dir;
-    wxString const& prefix = wxGetApp().conf_prefix;
-#ifdef __WXMAC__
-    config_dir = wxGetApp().conf_prefix;
-#else
-    config_dir = wxGetHomeDir() + wxFILE_SEP_PATH + prefix;
-#endif
-    wxString txt = wxGetTextFromUser(wxT("Give the config name.\n") 
-                                      wxT("This will be the filename")
-                                      wxT(" in directory:\n") + config_dir,
-                                     wxT("config name"), 
-                                     wxT("other"));
-    if (txt.IsEmpty())
-        return;
-    save_config_as(prefix+txt);
+    wxString const& dir = wxGetApp().config_dir;
+    wxString txt = wxGetTextFromUser(
+                      wxT("Choose config name.\n") 
+                        wxT("This will be the name of file in directory:\n") 
+                        + dir,
+                      wxT("config name"), 
+                      wxT("other"));
+    if (!txt.IsEmpty())
+        save_config_as(dir+txt);
 }
 
 void FFrame::save_config_as(wxString const& name)
@@ -1492,19 +1486,12 @@ void FFrame::read_config(wxString const& name)
 
 void FFrame::OnConfigBuiltin (wxCommandEvent&)
 {
-    // fake config file
-    wxString name;
-
-#ifdef __WXMAC__
-    name = wxStandardPaths::Get().GetUserConfigDir() + wxFILE_SEP_PATH
-                            + wxT("/org.pl.waw.unipress.fityk.builtin-config");
-#else
-    name = pchar2wx(config_dirname) + wxFILE_SEP_PATH
-                                                  +wxT("builtin-config");
-#endif
-
+    // using fake config file, that does not exists, will get us default values
+    // the file is not created when we only do reading
+    wxString name = wxT("fake_d6DyY30KeMn9a3EyoM");
     wxConfig *config = new wxConfig(wxT(""), wxT(""), name, wxT(""), 
                                         wxCONFIG_USE_LOCAL_FILE);
+    // just in case -- if the config was found, delete everything
     if (config->GetNumberOfEntries(true))
         config->DeleteAll();
     read_all_settings(config);
@@ -1519,14 +1506,7 @@ void FFrame::OnUpdateLConfMenu (wxUpdateUIEvent& event)
         menu->Delete(menu->GetMenuItems().GetLast()->GetData());
 
     // prepare listing config directory
-    wxString config_dir;
-#ifdef __WXMAC__
-    config_dir =  get_user_conffile("configs");
-#else
-    config_dir = wxGetHomeDir() + wxFILE_SEP_PATH 
-                          + wxGetApp().conf_prefix;
-#endif
-    wxDir dir(config_dir);
+    wxDir dir(wxGetApp().config_dir);
     if (!dir.IsOpened())
         return;
 
@@ -1548,9 +1528,8 @@ void FFrame::OnConfigX (wxCommandEvent& event)
 {
     wxMenu *menu = GetMenuBar()->FindItem(ID_G_LCONF)->GetSubMenu(); 
     wxString name = menu->GetLabel(event.GetId());
-    if (name.IsEmpty())
-        return;
-    read_config(wxGetApp().conf_prefix + name);
+    if (!name.IsEmpty())
+        read_config(wxGetApp().config_dir + name);
 }
 
 

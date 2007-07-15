@@ -1689,7 +1689,7 @@ void BgManager::rm_background_point (fp x)
     fp lower = x_scale.val(X - min_dist);
     fp upper = x_scale.val(X + min_dist);
     if (lower > upper) 
-        Swap(lower, upper);
+        swap(lower, upper);
     bg_iterator l = lower_bound(bg.begin(), bg.end(), B_point(lower, 0));
     bg_iterator u = upper_bound (bg.begin(), bg.end(), B_point(upper, 0));
     if (u > l) {
