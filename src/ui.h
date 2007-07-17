@@ -119,6 +119,7 @@ private:
     t_exec_command *m_exec_command;
     t_refresh *m_refresh;
     t_wait *m_wait;
+    Commands commands;
 
     UserInterface (UserInterface const&); //disable
     UserInterface& operator= (UserInterface const&); //disable
@@ -132,8 +133,6 @@ private:
     /// Execute command(s) from string
     /// It can finish the program (eg. if s=="quit").
     Commands::Status exec_command (std::string const &s);
-
-    Commands commands;
 };
 
 

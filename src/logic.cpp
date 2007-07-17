@@ -35,6 +35,18 @@ Fityk::Fityk()
       default_relative_domain_width(0.1)
 {
     ui = new UserInterface(this);
+    initialize();
+    AL = this;
+}
+
+Fityk::~Fityk() 
+{
+    destroy();
+    delete ui;
+}
+
+void Fityk::initialize()
+{
     fit_container = new FitMethodsContainer(this);
     // Settings ctor is using FitMethodsContainer 
     settings = new Settings(this);
@@ -43,16 +55,27 @@ Fityk::Fityk()
     activate_ds(0);
     get_settings()->do_srand();
     UdfContainer::initialize_udfs();
-    AL = this;
 }
 
-Fityk::~Fityk() 
+void Fityk::destroy()
 {
     dsds.clear();
     VariableManager::do_reset();
     delete fit_container;
     delete settings;
-    delete ui;
+}
+
+// reset everything but UserInterface (and related settings)
+void Fityk::reset()
+{
+    string verbosity = get_settings()->getp("verbosity");
+    string autoplot = get_settings()->getp("autoplot");
+    destroy();
+    ui->keep_quiet = true;
+    initialize();
+    get_settings()->setp("verbosity", verbosity);
+    get_settings()->setp("autoplot", autoplot);
+    ui->keep_quiet = false;
 }
 
 void Fityk::activate_ds(int d)
@@ -115,7 +138,7 @@ void Fityk::dump_all_as_script(string const &filename)
         return;
     }
     os << fityk_version_line << "## dumped at: " << time_now() << endl;
-    os << "set verbosity = only-warnings #the rest of the file is not shown\n"; 
+    os << "set verbosity = quiet #the rest of the file is not shown\n"; 
     os << "set autoplot = never\n";
     os << "reset\n";
     os << "# ------------  settings  ------------\n";

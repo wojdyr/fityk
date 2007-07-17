@@ -38,8 +38,7 @@ void do_transform(char const*, char const*)  {
 
 void do_reset(char const*, char const*)  
 { 
-    delete AL; 
-    AL = new Fityk; 
+    AL->reset();
     outdated_plot=true; 
 }
 

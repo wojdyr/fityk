@@ -97,6 +97,8 @@ public:
 
     Fityk();
     ~Fityk();
+    /// reset everything but UserInterface (and related settings)
+    void reset();
     void dump_all_as_script (std::string const &filename);
 
     void activate_ds(int d);
@@ -151,6 +153,9 @@ protected:
     Settings* settings;
     UserInterface* ui;
     FitMethodsContainer* fit_container;
+
+    void initialize();
+    void destroy();
 
 private:
     /// verify that n is the valid number for get_ds() and return n 

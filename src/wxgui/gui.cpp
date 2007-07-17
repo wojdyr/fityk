@@ -461,7 +461,7 @@ void FFrame::read_all_settings(wxConfigBase *cf)
     plot_pane->read_settings(cf);
     io_pane->output_win->read_settings(cf);
     status_bar->read_settings(cf);
-    sidebar->read_settings(cf);
+    sidebar->read_settings(cf); 
     sidebar->update_lists();
 }
 
