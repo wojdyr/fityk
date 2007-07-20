@@ -6,6 +6,7 @@
 #ifndef VAMAS_DATASET
 #define VAMAS_DATASET
 #include "xylib.h"
+#include "util.h"
 
 namespace xylib {
     class VamasDataSet : public DataSet

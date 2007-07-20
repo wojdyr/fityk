@@ -6,6 +6,7 @@
 #ifndef TEXT_DATASET_H
 #define TEXT_DATASET_H
 #include "xylib.h"
+#include "util.h"
 
 namespace xylib {
     class TextDataSet : public DataSet

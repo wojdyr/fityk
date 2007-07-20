@@ -203,8 +203,8 @@ void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
         if ("REGULAR" == scan_mode) {
             p_rg->add_meta("abscissa label", read_line(f));            
             p_rg->add_meta("abscissa units", read_line(f));  
-            p_rg->set_x_start(read_line_fp(f));
-            p_rg->set_x_step(read_line_fp(f));
+            p_rg->set_x_start(read_line_double(f));
+            p_rg->set_x_step(read_line_double(f));
         }
     }
 
@@ -247,9 +247,9 @@ void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
     int cur_blk_steps = read_line_int(f);
     skip_lines(f, 2 * cor_var);   // min & max ordinate
 
-    fp y;
+    double y;
     for (int i = 0; i < cur_blk_steps; ++i) {
-        y = read_line_fp(f);
+        y = read_line_double(f);
         p_rg->add_y(y);
     }
 

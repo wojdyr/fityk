@@ -4,6 +4,7 @@
 // $Id: testmain.h $
 
 #include "xylib.h"
+#include "util.h"
 #include <vector>
 #include <iostream>
 #include <cstdlib>

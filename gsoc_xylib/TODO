@@ -1,9 +1,15 @@
 TODO:
-* Finish generic function to handle the UXD-like files
+
+* complete the testmain code
 
 * Detect file format by file contant (magic number), in case some types share one extension name. For example, Brucker v1 and v2 Raw File both use ".raw" as extension name.
 
-* Add more format types of course
+* Add more format types, of course
+
+
+
+////////////////////////////////////////////////////////////////////
+* Finish generic function to handle the UXD-like files, done!
 
 * Change the mechanism of unknown file format detection: 
 	1. by the file extension name
@@ -12,4 +18,3 @@ TODO:
 * Make the text file reading more flexible. 	
 	e.g. headers can be skipped and columns can be specified
 	use boost::regex to process the text files
-

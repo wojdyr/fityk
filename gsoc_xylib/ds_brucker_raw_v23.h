@@ -7,6 +7,7 @@
 #define BRUCKER_RAW_V23_H
 
 #include "xylib.h"
+#include "util.h"
 
 namespace xylib {
     class BruckerV23RawDataSet : public DataSet

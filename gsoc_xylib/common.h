@@ -2,15 +2,6 @@
 #define XYLIB__COMMON__H__
 
 
-// switches
-//////////////////////////////////////////////////////////////////////////
-/// favourite floating point type 
-#ifdef FP_IS_LDOUBLE
-typedef long double fp;  
-#else
-typedef double fp;  
-#endif
-
 #include <string>
 #include <vector>
 #include <sstream>

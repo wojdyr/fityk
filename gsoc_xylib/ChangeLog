@@ -21,3 +21,10 @@ For the 1st issue, use endian.hpp to determine the endian of the machine, then e
 
 13:55 2007-7-13 GMT+8 version 315
 * re-implement the VAMAS reading function for license and mantainability considerations. Besides, many file-scope/range-scope meta variables are read
+
+3:32 2007-7-21 GMT+8 version 317
+* changed the existing code following Marcin's advice (fp, left-hand & right-hand, put xylib::util into separated files, etc..)
+* added meta-info exporting in export_to_xy() with an optional param to determine whether export meta-info together with the xy data
+* new format support: Philips_udf format
+* Used a class "UxdLikeDataSet" to  present all UXD-like formats (so far, they are UXD, Rigaku_dat and Philips_udf format).
+* Re-wrote code of the UXD format parsing and Rigaku_dat format parsing with UxdLikeDataSet

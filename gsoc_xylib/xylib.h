@@ -13,7 +13,7 @@
 
 
 #ifdef FP_IS_LDOUBLE
-typedef long doule fp;  
+typedef long doule double;  
 #else
 typedef double fp;  
 #endif
@@ -41,6 +41,7 @@ enum xy_ftype {
     FT_BR_RAW1,
     FT_BR_RAW23,
     FT_VAMAS,
+    FT_UDF,
     FT_NUM,     // always at bottom to get the number of the types
 };
 
@@ -71,15 +72,15 @@ public:
     unsigned get_pt_count() const { return y.size(); }
 
     // n must be a valid index, zero-based
-    virtual fp get_x(unsigned n) const;
-    fp get_y(unsigned n) const; 
+    virtual double get_x(unsigned n) const;
+    double get_y(unsigned n) const; 
 
     // whether this range of data is in "fixed step"
     bool has_fixed_step() { return fixed_step; }
 
     // std. dev. is optional
     virtual bool has_y_stddev(unsigned n) const;
-    virtual fp get_y_stddev(unsigned n) const;
+    virtual double get_y_stddev(unsigned n) const;
 
     // basic support for range-level meta-data
     bool has_meta_key(const std::string &key) const;
@@ -95,14 +96,14 @@ public:
 
     //////////////////////////////////////////////////////////////////////////////////
     // writing functions    
-    virtual void add_pt(fp x_, fp py_, fp stddev); 
-    virtual void add_pt(fp x_, fp py_); 
+    virtual void add_pt(double x_, double py_, double stddev); 
+    virtual void add_pt(double x_, double py_); 
 
 protected:
     bool fixed_step;
-    std::vector<fp> x;
-    std::vector<fp> y;
-    std::vector<fp> y_stddev;
+    std::vector<double> x;
+    std::vector<double> y;
+    std::vector<double> y_stddev;
     std::vector<bool> y_has_stddev;
     std::map<std::string, std::string> meta_map;
 
@@ -113,23 +114,23 @@ protected:
 class FixedStepRange : public Range 
 {
 public:
-    FixedStepRange(fp x_start_ = 0, fp x_step_ = 0) 
+    FixedStepRange(double x_start_ = 0, double x_step_ = 0) 
         : Range(true), x_start(x_start_), x_step(x_step_)
     {}
     virtual ~FixedStepRange() {}
 
-    fp get_x_start() const { return x_start; }
-    fp get_x_step() const { return x_step; }
-    fp get_x(unsigned n) const { check_idx(n, "point_x"); return x_start + n * x_step; }
+    double get_x_start() const { return x_start; }
+    double get_x_step() const { return x_step; }
+    double get_x(unsigned n) const { check_idx(n, "point_x"); return x_start + n * x_step; }
 
-    void add_y(fp y_); 
-    void add_y(fp y_, fp stddev_); 
+    void add_y(double y_); 
+    void add_y(double y_, double stddev_); 
     
-    void set_x_step(fp x_step_) { x_step = x_step_; }
-    void set_x_start(fp x_start_) { x_start = x_start_; }
+    void set_x_step(double x_step_) { x_step = x_step_; }
+    void set_x_start(double x_start_) { x_start = x_start_; }
 
 protected:
-    fp x_start, x_step;
+    double x_start, x_step;
 };  // end of FixedStepDataSet
 
 
@@ -167,8 +168,8 @@ public:
 
     // input/output data from/to file
     virtual void load_data() = 0;
-    virtual void load_metainfo() {}
-    virtual void export_xy_file(const std::string& fname) const; 
+    virtual void export_xy_file(const std::string &fname, 
+        bool with_meta = true, const std::string &cmt_str = ";") const; 
 
     // add a <key, val> pair of meta-data to DataSet
     void add_meta(const std::string &key, const std::string &val);
@@ -184,22 +185,29 @@ protected:
 
     // used by load_data to perform some common operations
     virtual void init(); 
-#if 0
-    // a generic function which can parse UXD-like text files
-    void DataSet::parse_fixedstep_file(
-        const std::string &first_rg_key,
-        const std::string &last_rg_key,
-        const std::string &meta_sep = "=:",
-        const std::string &data_sep = ",; \t\r\n",
-        const std::string &cmt_start = ";#",
-        const std::string &data_start_tag = "");
-    
-    void parse_range(
-        std::vector<std::string> &lines, 
-        FixedStepRange *p_rg,
-        const std::string &data_start_tag);
-#endif
 }; // end of DataSet
+
+
+enum line_type {LT_COMMENT, LT_KEYVALUE, LT_EMPTY, LT_XYDATA, LT_UNKNOWN};
+
+// the generic class to handle all UXD-like dataset
+class UxdLikeDataSet : public DataSet
+{
+    public:
+        UxdLikeDataSet(const std::string &filename, xy_ftype filetype)
+            :  DataSet(filename, filetype) {}
+        
+    protected:
+        line_type get_line_type(const std::string &line);
+        bool skip_invalid_lines(std::ifstream &f);
+        
+        static std::string rg_start_tag;
+        static std::string x_start_key;
+        static std::string x_step_key;
+        static std::string meta_sep;
+        static std::string data_sep;
+        static std::string cmt_start;
+};
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -209,50 +217,28 @@ protected:
 // if "filetype" is not given, auto-detection is used to decide the file type
 DataSet* getNewDataSet(const std::string &filename, xy_ftype filetype = FT_UNKNOWN);
 xy_ftype guess_file_type(const std::string &filename);
+xy_ftype string_to_ftype(const std::string &ftype_name);
 
 
-// sub namespace to hold the utility functions
-// move the original XY_Lib static member functions (such as string_to_int etc.) here
-namespace util 
+// output the meta-info to ostream os
+// p: a ptr to a Range or a DataSet, depending on is_range
+template <typename T>
+void output_meta(std::ostream &os, T *pds, const std::string &cmt_str)
 {
-/*
-    std::string guess_file_type(const std::string &filename);
-    int string_to_int(const string &str);
-*/
-    unsigned read_uint32_le(std::ifstream &f, unsigned offset);
-    unsigned read_uint16_le(std::ifstream &f, unsigned offset);
-    float read_flt_le(std::ifstream &f, unsigned offset);
-    std::string read_string(std::ifstream &f, unsigned offset, unsigned len);
-    void le_to_host(void *p, unsigned len);
+    using namespace std;
+	if(pds->has_meta()){
+		os << cmt_str << "meta-key" << "\t" << "meta_val" << endl;
+		vector<string> meta_keys = pds->get_all_meta_keys();
+		vector<string>::iterator it = meta_keys.begin();
+		for(; it != meta_keys.end(); ++it){
+			os << cmt_str << *it << ":\t" << pds->get_meta(*it) << endl;
+		}
+	}
+}
 
-    // convert a float number to string. if 2nd param is true, return "undefined"
-    std::string my_flt_to_string(float num, float undef);
-
-    void rm_space(std::string &str);
-    std::string str_trim(const std::string &str, std::string ws = " \r\n\t");
-    void parse_line(const std::string &line, const std::string &sep, 
-        std::string &key, std::string &val);
-    bool str_startwith(const std::string &str_src, const std::string &ss);
-    fp string_to_fp(const std::string &str);
-    int string_to_int(const std::string &str);
-
-    int read_line_and_get_all_numbers(std::istream &is, 
-        std::vector<fp>& result_numbers);
-
-    void skip_lines(std::ifstream &f, const int count);
-    int read_line_int(std::ifstream& is);
-    fp read_line_fp(std::ifstream& is);
-    std::string read_line(std::ifstream& is);
-
-    // not used by any other functions
-    int get_array_idx(const std::string *array, 
-        unsigned size,
-        const std::string &find_str);
-        
-    
-} // end of namespace util
 
 } // end of namespace xylib
 
 
 #endif //ifndef XYLIB__API__H__
+

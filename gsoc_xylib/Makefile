@@ -1,5 +1,5 @@
 CC = gcc
-XX = g++
+CXX = g++
 CFLAGS = -Wall -W -O -g
 TARGET = testmain
 
@@ -7,15 +7,13 @@ TARGET = testmain
 	$(CC) $(CFLAGS) -c $< -o $@
 
 %.o:%.cpp
-	$(XX) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CFLAGS) -c $< -o $@
 
 SOURCES = $(wildcard *.c *.cpp)
 OBJS = $(patsubst %.c,%.o,$(patsubst %.cpp,%.o,$(SOURCES)))
 
 all : $(OBJS)
-	 $(XX) $(OBJS) -o $(TARGET)
-
-	 chmod a+x $(TARGET)
+	 $(CXX) $(OBJS) -o $(TARGET)
 
 clean:
 	rm -rf *.o testmain

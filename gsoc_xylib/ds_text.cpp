@@ -31,7 +31,7 @@ void TextDataSet::load_data()
 
     Range* p_rg = new Range;
 
-    vector<fp> xy;
+    vector<double> xy;
     while (read_line_and_get_all_numbers(f, xy)) {
         if (xy.empty()) {
             continue;
@@ -41,12 +41,12 @@ void TextDataSet::load_data()
             throw XY_Error("only one number in a line");
         }
         
-        fp x = xy[0];
-        fp y = xy[1];
+        double x = xy[0];
+        double y = xy[1];
         if (xy.size() == 2) {
             p_rg->add_pt(x, y);
         } else if (xy.size() == 3){
-            fp sig = xy[2];
+            double sig = xy[2];
             if (sig >= 0) {
                 p_rg->add_pt(x, y, sig);
             }
