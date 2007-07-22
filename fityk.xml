@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-fityk">
+    <sub-class-of type="text/plain"/>
+    <comment>fityk script</comment>
+    <glob pattern="*.fit"/>
+  </mime-type>
+  <mime-type type="application/x-fityk-data">
+    <sub-class-of type="text/plain"/>
+    <comment>fityk data file</comment>
+    <glob pattern="*.xy"/>
+    <magic priority="50">
+      <match type="string" value="# Fityk 0.7.8" offset="0"/>
+    </magic>
+  </mime-type>
+</mime-info>
+
