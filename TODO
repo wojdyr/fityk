@@ -21,7 +21,7 @@ Legend:
 * add --disable-rpath option to configure (using popular lib-link.m4 file)
   [it seems to be not trivial and will be probably abandoned]
 
-* make SVG icon, mv fityk.png fityk-32.png 
+// * make SVG icon, mv fityk.png 
 
 * update and add fityk.xml mime specification (for .fit and .xy) to the tarball.
   http://www.gnome.org/learn/admin-guide/latest/mimetypes-source-xml.html

@@ -282,7 +282,7 @@ void AuxPlot::read_settings(wxConfigBase *cf)
 void AuxPlot::save_settings(wxConfigBase *cf) const
 {
     cf->SetPath(wxT("/AuxPlot_") + name);
-    cf->Write (wxT("kind"), kind); 
+    cf->Write (wxT("kind"), (int) kind); 
     cf->Write (wxT("markCtr"), mark_peak_ctrs);
     cf->Write (wxT("reversedDiff"), reversed_diff);
     cf->Write (wxT("line_between_points"), line_between_points);
