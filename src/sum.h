@@ -13,7 +13,7 @@
 class Function;
 class Data;
 class VariableManager;
-class Fityk;
+class Ftk;
 
 ///  This class contains description of curve which we are trying to fit 
 ///  to data. This curve is described simply by listing names of functions
@@ -21,7 +21,7 @@ class Fityk;
 class Sum 
 {
 public:
-    Sum(Fityk *F_);
+    Sum(Ftk *F_);
     ~Sum();
     void find_function_indices();
     void add_function_to(std::string const &name, char add_to);
@@ -57,7 +57,7 @@ public:
     bool is_dependent_on_var(int idx) const;
 
 private:
-    Fityk const* F;
+    Ftk const* F;
     VariableManager &mgr;
     std::vector<std::string> ff_names;
     std::vector<std::string> zz_names;

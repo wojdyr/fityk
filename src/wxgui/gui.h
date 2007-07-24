@@ -26,8 +26,8 @@ class DataEditorDlg;
 class PrintManager;
 class FStatusBar;
 
-class Fityk;
-extern Fityk *ftk;
+class Ftk;
+extern Ftk *ftk;
 
 
 /// Toolbar bar in Fityk

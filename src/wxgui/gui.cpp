@@ -39,7 +39,6 @@
 #endif
 
 #include <algorithm>
-#include <locale.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -103,7 +102,7 @@
 
 using namespace std;
 FFrame *frame = NULL;
-Fityk *ftk = NULL;
+Ftk *ftk = NULL;
 
 enum {
     ID_H_MANUAL        = 24001 ,

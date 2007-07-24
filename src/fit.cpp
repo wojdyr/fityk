@@ -20,7 +20,7 @@
 
 using namespace std;
 
-Fit::Fit(Fityk *F_, string const& m)  
+Fit::Fit(Ftk *F_, string const& m)  
     : name(m), F(F_), evaluations(0), iter_nr (0), na(0)
 {
 }
@@ -473,7 +473,7 @@ void Fit::reverse_matrix (vector<fp>&A, int n)
 
 //-------------------------------------------------------------------
 
-FitMethodsContainer::FitMethodsContainer(Fityk *F)
+FitMethodsContainer::FitMethodsContainer(Ftk *F)
     : ParameterHistoryMgr(F)
     
 {

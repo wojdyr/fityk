@@ -6,7 +6,6 @@
 
 #include <cassert>
 #include <cctype>
-#include <locale.h>
 #include "fityk.h"
 #include "common.h"
 #include "ui.h"
@@ -42,34 +41,34 @@ void check_valid_dataset(int /*dataset*/)
 {
     // do nothing, let throwing exception
     //assert(dataset >= 0);
-    //assert(dataset < AL->get_ds_count());
+    //assert(dataset < ftk->get_ds_count());
 }
 
-double get_wssr_or_ssr(int dataset, bool weigthed)
+double get_wssr_or_ssr(Ftk const* ftk, int dataset, bool weigthed)
 {
     if (dataset == fityk::all_ds) {
         double result = 0;
-        for (int i = 0; i < AL->get_ds_count(); ++i)
-            result += Fit::compute_wssr_for_data(AL->get_ds(i), weigthed);
+        for (int i = 0; i < ftk->get_ds_count(); ++i)
+            result += Fit::compute_wssr_for_data(ftk->get_ds(i), weigthed);
         return result;
     }
     else {
         check_valid_dataset(dataset);
-        return Fit::compute_wssr_for_data(AL->get_ds(dataset), weigthed);
+        return Fit::compute_wssr_for_data(ftk->get_ds(dataset), weigthed);
     }
 }
 
 
-vector<DataWithSum*> get_datasets_(int dataset)
+vector<DataWithSum*> get_datasets_(Ftk* ftk, int dataset)
 {
     vector<DataWithSum*> dd;
     if (dataset == fityk::all_ds) {
-        for (int i = 0; i < AL->get_ds_count(); ++i)
-            dd.push_back(AL->get_ds(i));
+        for (int i = 0; i < ftk->get_ds_count(); ++i)
+            dd.push_back(ftk->get_ds(i));
     }
     else {
         check_valid_dataset(dataset);
-        dd.push_back(AL->get_ds(dataset));
+        dd.push_back(ftk->get_ds(dataset));
     }
     return dd;
 }
@@ -87,29 +86,36 @@ std::string Point::str() { return "(" + S(x) + "; " + S(y) + "; " + S(sigma)
                                + (is_active ? ")*" : ") "); }
 
 
-void initialize()
+Fityk::Fityk()
 {
-    setlocale(LC_NUMERIC, "C");
     if (AL != 0) 
-        delete AL;
-    AL = new Fityk; 
+        throw ExecuteError("Program is not thread-safe yet, "
+                            "so you can only have one Fityk instance.");
+    ftk = new Ftk;
+    AL = ftk;
 }
 
+Fityk::~Fityk()
+{
+    delete ftk;
+    AL = 0;
+}
 
-void execute(string const& s)  throw(SyntaxError, ExecuteError, 
-                                     ExitRequestedException)
+void Fityk::execute(string const& s)  throw(SyntaxError, ExecuteError, 
+                                            ExitRequestedException)
 {
     bool r = parse_and_execute_e(s);
     if (!r)
         throw SyntaxError();
 }
 
-bool safe_execute(string const& s)  throw(ExitRequestedException)
+bool Fityk::safe_execute(string const& s)  throw(ExitRequestedException)
 {
-    return AL->exec(s) == Commands::status_ok; 
+    return ftk->exec(s) == Commands::status_ok; 
 }
 
-string get_info(string const& s, bool full)  throw(SyntaxError, ExecuteError)
+string Fityk::get_info(string const& s, bool full)  
+                                             throw(SyntaxError, ExecuteError)
 {
     try {
         return get_info_string(s, full);
@@ -121,28 +127,28 @@ string get_info(string const& s, bool full)  throw(SyntaxError, ExecuteError)
     }
 }
 
-int get_dataset_count()
+int Fityk::get_dataset_count()
 {
-    return AL->get_ds_count();
+    return ftk->get_ds_count();
 }
 
-double get_sum_value(double x, int dataset)  throw(ExecuteError)
+double Fityk::get_sum_value(double x, int dataset)  throw(ExecuteError)
 {
     check_valid_dataset(dataset);
-    return AL->get_sum(dataset)->value(x);
+    return ftk->get_sum(dataset)->value(x);
 }
 
-vector<double> get_sum_vector(vector<double> const& x, int dataset)  
+vector<double> Fityk::get_sum_vector(vector<double> const& x, int dataset)  
                                                           throw(ExecuteError)
 {
     check_valid_dataset(dataset);
     vector<double> xx(x);
     vector<double> yy(x.size(), 0.);
-    AL->get_sum(dataset)->calculate_sum_value(xx, yy);
+    ftk->get_sum(dataset)->calculate_sum_value(xx, yy);
     return yy;
 }
 
-int get_variable_nr(string const& name)  throw(ExecuteError) 
+int Fityk::get_variable_nr(string const& name)  throw(ExecuteError) 
 {
     if (name.empty())
         throw ExecuteError("get_variable_nr() called with empty name");
@@ -151,99 +157,101 @@ int get_variable_nr(string const& name)  throw(ExecuteError)
         vname = string(name, 1);
     else if (name[0] == '%' && name.find('.') < name.size() - 1) {
         string::size_type pos = name.find('.');
-        Function const* f = AL->find_function(string(1, pos-1));
+        Function const* f = ftk->find_function(string(1, pos-1));
         vname = f->get_param_varname(string(name, pos+1));
     }
     else
         vname = name;
-    return AL->find_variable(vname)->get_nr();
+    return ftk->find_variable(vname)->get_nr();
 }
 
-double get_variable_value(string const& name)  throw(ExecuteError)
+double Fityk::get_variable_value(string const& name)  throw(ExecuteError)
 {
     if (name.empty())
         throw ExecuteError("get_variable_value() called with empty name");
     if (name[0] == '$')
-        return AL->find_variable(string(name, 1))->get_value();
+        return ftk->find_variable(string(name, 1))->get_value();
     else if (name[0] == '%' && name.find('.') < name.size() - 1) {
         string::size_type pos = name.find('.');
-        Function const* f = AL->find_function(string(name, 1, pos-1));
+        Function const* f = ftk->find_function(string(name, 1, pos-1));
         return f->get_param_value(string(name, pos+1));
     }
     else
-        return AL->find_variable(name)->get_value();
+        return ftk->find_variable(name)->get_value();
 }
 
-void load_data(int dataset, 
-               std::vector<double> const& x, 
-               std::vector<double> const& y, 
-               std::vector<double> const& sigma, 
-               std::string const& title)  throw(ExecuteError)
+void Fityk::load_data(int dataset, 
+                      std::vector<double> const& x, 
+                      std::vector<double> const& y, 
+                      std::vector<double> const& sigma, 
+                      std::string const& title)     throw(ExecuteError)
 {
     check_valid_dataset(dataset);
-    AL->get_data(dataset)->load_arrays(x, y, sigma, title);
+    ftk->get_data(dataset)->load_arrays(x, y, sigma, title);
 }
 
-void add_point(double x, double y, double sigma, int dataset)  
+void Fityk::add_point(double x, double y, double sigma, int dataset)  
                                                           throw(ExecuteError)
 {
     check_valid_dataset(dataset);
-    AL->get_data(dataset)->add_one_point(x, y, sigma);
+    ftk->get_data(dataset)->add_one_point(x, y, sigma);
 }
 
-vector<Point> const& get_data(int dataset)  throw(ExecuteError)
+vector<Point> const& Fityk::get_data(int dataset)  throw(ExecuteError)
 {
     check_valid_dataset(dataset);
-    return AL->get_data(dataset)->points();
+    return ftk->get_data(dataset)->points();
 }
 
 
-void set_show_message(t_show_message *func)
+void Fityk::set_show_message(t_show_message *func)
 { 
     simple_message_handler = func;
-    AL->get_ui()->set_show_message(message_handler); 
+    ftk->get_ui()->set_show_message(message_handler); 
 }
 
-void redir_messages(std::FILE *stream)
+void Fityk::redir_messages(std::FILE *stream)
 {
     message_sink = stream;
-    AL->get_ui()->set_show_message(message_redir); 
+    ftk->get_ui()->set_show_message(message_redir); 
 }
 
-double get_wssr(int dataset)  throw(ExecuteError)
+double Fityk::get_wssr(int dataset)  throw(ExecuteError)
 {
-    return get_wssr_or_ssr(dataset, true);
+    return get_wssr_or_ssr(ftk, dataset, true);
 }
 
-double get_ssr(int dataset)  throw(ExecuteError)
+double Fityk::get_ssr(int dataset)  throw(ExecuteError)
 {
-    return get_wssr_or_ssr(dataset, false);
+    return get_wssr_or_ssr(ftk, dataset, false);
 }
 
-double get_rsquared(int dataset)  throw(ExecuteError)
+double Fityk::get_rsquared(int dataset)  throw(ExecuteError)
 {
     if (dataset == fityk::all_ds) {
         double result = 0;
-        for (int i = 0; i < AL->get_ds_count(); ++i)
-            result += Fit::compute_r_squared_for_data(AL->get_ds(i));
+        for (int i = 0; i < ftk->get_ds_count(); ++i)
+            result += Fit::compute_r_squared_for_data(ftk->get_ds(i));
         return result;
     }
     else {
         check_valid_dataset(dataset);
-        return Fit::compute_r_squared_for_data(AL->get_ds(dataset));
+        return Fit::compute_r_squared_for_data(ftk->get_ds(dataset));
     }
 }
 
-int get_dof(int dataset)  throw(ExecuteError)
+int Fityk::get_dof(int dataset)  throw(ExecuteError)
 {
-    return AL->get_fit()->get_dof(get_datasets_(dataset));
+    return ftk->get_fit()->get_dof(get_datasets_(ftk, dataset));
 }
 
-vector<vector<double> > get_covariance_matrix(int dataset) throw(ExecuteError)
+vector<vector<double> > Fityk::get_covariance_matrix(int dataset) 
+                                                           throw(ExecuteError)
 {
-    vector<double> c = AL->get_fit()->get_covariance_matrix(get_datasets_(dataset));
+    vector<double> c 
+        = ftk->get_fit()->get_covariance_matrix(get_datasets_(ftk, dataset));
     //reshape
-    size_t na = AL->get_parameters().size(); 
+    size_t na = ftk->get_parameters().size(); 
     assert(c.size() == na * na);
     vector<vector<double> > r(na);
     for (size_t i = 0; i != na; ++i)

@@ -11,13 +11,13 @@
 #define DECLARE_FUNC_OBLIGATORY_METHODS(NAME) \
     friend class Function;\
 protected:\
-    Func##NAME (Fityk const* F, \
+    Func##NAME (Ftk const* F, \
                 std::string const &name, \
                 std::vector<std::string> const &vars, \
                 std::string const &formula_) \
         : Function(F, name, vars, formula_) {} \
 private:\
-    Func##NAME (Fityk const* F, \
+    Func##NAME (Ftk const* F, \
                 std::string const &name, \
                 std::vector<std::string> const &vars) \
         : Function(F, name, vars, formula) {} \

@@ -6,7 +6,7 @@
 
 # This spec will make two RPMS: fityk and fityk-devel. fityk-devel is very 
 # small, so it may be better to make one RPM instead. OTOH, according to Fedora 
-# policy, devel packages should be separated, whatever size it has.
+# policy, devel packages should be always separated.
 # I made two packages, because it's easier to merge than split.
 # 
 # You may find another fityk spec files at: 
@@ -25,8 +25,8 @@ URL:            http://www.unipress.waw.pl/fityk/
 Source0:        http://download.sourceforge.net/fityk/%{name}-%{version}.tar.bz2
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires:  gcc-c++, desktop-file-utils
-BuildRequires:  wxGTK-devel >= 2.6.1, readline-devel 
-Requires:       wxGTK >= 2.6.1, readline
+BuildRequires:  wxGTK-devel >= 2.6.3, readline-devel 
+Requires:       wxGTK >= 2.6.3, readline
 ### it does NOT require boost library, because it uses only header files
 ### from boost, and these headers are distributed in fityk tarball.
 #Requires: boost-devel
@@ -75,12 +75,12 @@ make %{?_smp_mflags}
 
 %post
 update-desktop-database
-#update-mime-database %{_datadir}/mime >/dev/null
+update-mime-database %{_datadir}/mime 2>&1 >/dev/null || :
 /sbin/ldconfig 2>/dev/null
 
 %postun
 update-desktop-database
-#update-mime-database %{_datadir}/mime >/dev/null
+update-mime-database %{_datadir}/mime 2>&1 >/dev/null || :
 /sbin/ldconfig 2>/dev/null
 
 %files
@@ -93,7 +93,6 @@ update-desktop-database
 %{_datadir}/applications/fityk.desktop
 %{_datadir}/pixmaps/fityk.png
 %{_libdir}/*.so.*
-#%{_datadir}/icons/*
 
 %files devel
 %defattr(-,root,root)

@@ -13,7 +13,7 @@
 using fityk::Point;
 using fityk::operator<;
 
-class Fityk;
+class Ftk;
 
 /// dataset
 class Data 
@@ -21,7 +21,7 @@ class Data
 public :
     std::string title;
 
-    Data(Fityk const* F_) : F(F_), y_min(0.), y_max(1e3) {}
+    Data(Ftk const* F_) : F(F_), y_min(0.), y_max(1e3) {}
     ~Data() {}
     std::string get_info() const;
 
@@ -70,7 +70,7 @@ public :
     std::vector<int> get_given_cols() const { return given_cols; }
     static std::string read_one_line_as_title(std::ifstream& f, int column=0);
 private:
-    Fityk const* F;
+    Ftk const* F;
     std::string filename;
     std::string given_type; // filetype explicitely given when loading the file
     std::vector<int> given_cols; /// columns given when loading the file

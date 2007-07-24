@@ -106,7 +106,6 @@ Commands::Status gui_exec_command(const string& s)
 bool FApp::OnInit(void)
 {
     SetAppName(wxT("fityk"));
-    setlocale(LC_NUMERIC, "C");
 
     // if options can be parsed
     wxCmdLineParser cmdLineParser(cmdLineDesc, argc, argv);
@@ -120,7 +119,7 @@ bool FApp::OnInit(void)
         return false; //false = exit the application
     } //the rest of options will be processed in process_argv()
 
-    ftk = new Fityk; 
+    ftk = new Ftk; 
 
     // set callbacks
     ftk->get_ui()->set_show_message(gui_show_message);

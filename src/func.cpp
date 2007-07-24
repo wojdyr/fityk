@@ -22,7 +22,7 @@ using namespace boost::spirit;
 std::vector<fp> Function::calc_val_xx(1); 
 std::vector<fp> Function::calc_val_yy(1);
 
-Function::Function (Fityk const* F_,
+Function::Function (Ftk const* F_,
                     string const &name_, 
                     vector<string> const &vars,
                     string const &formula_)
@@ -93,7 +93,7 @@ int Function::find_center_in_typevars() const
 }
 
 
-Function* Function::factory (Fityk const* F,
+Function* Function::factory (Ftk const* F,
                              string const &name_, string const &type_name,
                              vector<string> const &vars) 
 {
@@ -707,7 +707,7 @@ vector<string> get_cpd_rhs_components(string const &formula, bool full)
 
 ///////////////////////////////////////////////////////////////////////
 
-CompoundFunction::CompoundFunction(Fityk const* F,
+CompoundFunction::CompoundFunction(Ftk const* F,
                                    string const &name, 
                                    string const &type,
                                    vector<string> const &vars)
@@ -863,7 +863,7 @@ bool CompoundFunction::get_nonzero_range(fp level, fp& left, fp& right) const
 
 ///////////////////////////////////////////////////////////////////////
 
-CustomFunction::CustomFunction(Fityk const* F,
+CustomFunction::CustomFunction(Ftk const* F,
                                string const &name, 
                                string const &type,
                                vector<string> const &vars, 

@@ -2,13 +2,15 @@
 // Licence: GNU General Public License version 2
 // $Id$
 
-#include "common.h"
-#include "logic.h"
 #include <stdio.h>
 #include <fstream>
 #include <time.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <locale.h>
+
+#include "common.h"
+#include "logic.h"
 #include "data.h"
 #include "sum.h"
 #include "ui.h"
@@ -20,7 +22,7 @@
 
 using namespace std;
 
-DataWithSum::DataWithSum(Fityk *F, Data* data_)
+DataWithSum::DataWithSum(Ftk *F, Data* data_)
     : data(data_ ? data_ : new Data(F)), sum(new Sum(F))  
 {}
 
@@ -30,22 +32,25 @@ bool DataWithSum::has_any_info() const
 }
 
 
-Fityk::Fityk()
+Ftk::Ftk()
     : VariableManager(this),
       default_relative_domain_width(0.1)
 {
+    // reading numbers won't work with decimal points different than '.'
+    setlocale(LC_NUMERIC, "C");
     ui = new UserInterface(this);
     initialize();
     AL = this;
 }
 
-Fityk::~Fityk() 
+Ftk::~Ftk() 
 {
     destroy();
     delete ui;
 }
 
-void Fityk::initialize()
+// initializations common for ctor and reset()
+void Ftk::initialize()
 {
     fit_container = new FitMethodsContainer(this);
     // Settings ctor is using FitMethodsContainer 
@@ -57,7 +62,8 @@ void Fityk::initialize()
     UdfContainer::initialize_udfs();
 }
 
-void Fityk::destroy()
+// cleaning common for dtor and reset()
+void Ftk::destroy()
 {
     dsds.clear();
     VariableManager::do_reset();
@@ -66,7 +72,7 @@ void Fityk::destroy()
 }
 
 // reset everything but UserInterface (and related settings)
-void Fityk::reset()
+void Ftk::reset()
 {
     string verbosity = get_settings()->getp("verbosity");
     string autoplot = get_settings()->getp("autoplot");
@@ -78,21 +84,21 @@ void Fityk::reset()
     ui->keep_quiet = false;
 }
 
-void Fityk::activate_ds(int d)
+void Ftk::activate_ds(int d)
 {
     if (d < 0 || d >= size(dsds))
         throw ExecuteError("there is no such dataset: @" + S(d));
     active_ds = d;
 }
 
-int Fityk::append_ds(Data *data)
+int Ftk::append_ds(Data *data)
 {
     DataWithSum* ds = new DataWithSum(this, data);
     dsds.push_back(ds); 
     return dsds.size() - 1; 
 }
 
-void Fityk::remove_ds(int d)
+void Ftk::remove_ds(int d)
 {
     if (d < 0 || d >= size(dsds))
         throw ExecuteError("there is no such dataset: @" + S(d));
@@ -104,14 +110,14 @@ void Fityk::remove_ds(int d)
         activate_ds( d==size(dsds) ? d-1 : d );
 }
 
-const Function* Fityk::find_function_any(string const &fstr) const
+const Function* Ftk::find_function_any(string const &fstr) const
 {
     if (fstr.empty())
         return 0;
     return VariableManager::find_function(find_function_name(fstr));
 }
 
-string Fityk::find_function_name(string const &fstr) const
+string Ftk::find_function_name(string const &fstr) const
 {
     if (fstr[0] == '%' || islower(fstr[0]))
         return fstr;
@@ -130,7 +136,7 @@ string Fityk::find_function_name(string const &fstr) const
 }
 
 
-void Fityk::dump_all_as_script(string const &filename)
+void Ftk::dump_all_as_script(string const &filename)
 {
     ofstream os(filename.c_str(), ios::out);
     if (!os) {
@@ -206,7 +212,7 @@ void Fityk::dump_all_as_script(string const &filename)
 }
 
 
-int Fityk::check_ds_number(int n) const
+int Ftk::check_ds_number(int n) const
 {
     if (n == -1) {
         if (get_ds_count() == 1)
@@ -220,49 +226,49 @@ int Fityk::check_ds_number(int n) const
 }
 
 /// Send warning to UI. 
-void Fityk::warn(std::string const &s) const
+void Ftk::warn(std::string const &s) const
 { 
     get_ui()->output_message(os_warn, s); 
 }
 
 /// Send implicitely requested message to UI. 
-void Fityk::rmsg(std::string const &s) const
+void Ftk::rmsg(std::string const &s) const
 { 
     get_ui()->output_message(os_normal, s);
 }
 
 /// Send message to UI. 
-void Fityk::msg(std::string const &s) const
+void Ftk::msg(std::string const &s) const
 { 
     if (get_ui()->get_verbosity() >= 0)
          get_ui()->output_message(os_normal, s); 
 }
 
 /// Send verbose message to UI. 
-void Fityk::vmsg(std::string const &s) const
+void Ftk::vmsg(std::string const &s) const
 { 
-    if (get_ui()->get_verbosity() >= 0)
+    if (get_ui()->get_verbosity() >= 1)
          get_ui()->output_message(os_normal, s); 
 }
 
-int Fityk::get_verbosity() const 
+int Ftk::get_verbosity() const 
 { 
     return settings->get_e("verbosity"); 
 }
 
 /// execute command(s) from string
-Commands::Status Fityk::exec(std::string const &s) 
+Commands::Status Ftk::exec(std::string const &s) 
 { 
     return get_ui()->exec_and_log(s); 
 }
 
-Fit* Fityk::get_fit() 
+Fit* Ftk::get_fit() 
 { 
     int nr = get_settings()->get_e("fitting-method");
     return get_fit_container()->get_method(nr); 
 }
 
-void Fityk::import_dataset(int slot, string const& filename, 
+void Ftk::import_dataset(int slot, string const& filename, 
                             string const& type, vector<int> const& cols)
 {
     const int new_dataset = -1;
@@ -464,6 +470,6 @@ void View::set_datasets(vector<DataWithSum*> const& dd)
 
 // the use of this global variable in libfityk will be eliminated,
 // because it's not thread safe. 
-Fityk* AL = 0;
+Ftk* AL = 0;
 
 

@@ -16,9 +16,6 @@ Legend:
 
 * GUI: should (and where) windows size & position be stored?
 
-* add --disable-rpath option to configure (using popular lib-link.m4 file)
-  [it seems to be not trivial and will be probably abandoned]
-
 // * make SVG icon, mv fityk.png 
 
 // * add fityk.xml mime specification (for .fit and .xy) to the tarball.

@@ -19,7 +19,7 @@
 
 using namespace std;
 
-GAfit::GAfit(Fityk* F)
+GAfit::GAfit(Ftk* F)
    : Fit(F, "Genetic-Algorithms"),
      popsize (100), elitism(0),
      mutation_type('u'), p_mutation(0.1), mutate_all_genes(false), 

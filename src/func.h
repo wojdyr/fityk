@@ -8,7 +8,7 @@
 #include "mgr.h"
 #include "var.h"
 
-class Fityk;
+class Ftk;
 
 class Function : public VariableUser
 {
@@ -25,11 +25,11 @@ public:
     std::string const type_rhs;
     int const nv; /// number of variables
 
-    Function(Fityk const* F_,
+    Function(Ftk const* F_,
              std::string const &name_, 
              std::vector<std::string> const &vars,
              std::string const &formula_);
-    static Function* factory(Fityk const* F,
+    static Function* factory(Ftk const* F,
                              std::string const &name_, 
                              std::string const &type_name,
                              std::vector<std::string> const &vars);
@@ -110,7 +110,7 @@ public:
     virtual void precomputations_for_alternative_vv() 
                                             { this->more_precomputations(); }
 protected:
-    Fityk const* F;
+    Ftk const* F;
     int const center_idx;
     std::vector<fp> vv; /// current variable values
     std::vector<Multi> multi;
@@ -193,7 +193,7 @@ public:
 private:
     VariableManager vmgr;
 
-    CompoundFunction(Fityk const* F, 
+    CompoundFunction(Ftk const* F, 
                      std::string const &name, 
                      std::string const &type,
                      std::vector<std::string> const &vars);
@@ -215,7 +215,7 @@ public:
     void set_var_idx(std::vector<Variable*> const& variables);
     std::string get_bytecode() const { return afo.get_vmcode_info(); }
 private:
-    CustomFunction(Fityk const* F,
+    CustomFunction(Ftk const* F,
                    std::string const &name, 
                    std::string const &type,
                    std::vector<std::string> const &vars,

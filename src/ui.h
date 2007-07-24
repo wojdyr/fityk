@@ -13,7 +13,7 @@
 class wxString;
 struct NumberedLine;
 class Data;
-class Fityk;
+class Ftk;
 
 /// used for storing commands and logging commands to file
 class Commands 
@@ -42,7 +42,7 @@ public:
                                           bool with_status) const;
     std::string get_info(bool extended) const;
     void start_logging(std::string const& filename, bool with_output, 
-                       Fityk const* F);
+                       Ftk const* F);
     void stop_logging();
     std::string get_log_file() const { return log_filename; }
     bool get_log_with_output() const { return log_with_output; }
@@ -65,7 +65,7 @@ public:
     /// it's used to disable all messages 
     bool keep_quiet;
 
-    UserInterface(Fityk const* F_) 
+    UserInterface(Ftk const* F_) 
         : keep_quiet(false), F(F_), m_show_message(0), m_do_draw_plot(0), 
           m_exec_command(0), m_refresh(0), m_wait(0) {}
     
@@ -113,7 +113,7 @@ public:
     void wait(float seconds) { if (m_wait) (*m_wait)(seconds); }
 
 private:
-    Fityk const* F;
+    Ftk const* F;
     t_show_message *m_show_message;
     t_do_draw_plot *m_do_draw_plot;
     t_exec_command *m_exec_command;

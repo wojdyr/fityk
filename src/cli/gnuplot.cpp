@@ -22,7 +22,7 @@
 
 using namespace std;
 
-extern Fityk* ftk;
+extern Ftk* ftk;
 
 char GnuPlot::path_to_gnuplot[]="gnuplot";
 

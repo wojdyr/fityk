@@ -16,7 +16,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
-#include <locale.h>
 // readline header will be included later, unless NO_READLINE is defined
 
 #include "../common.h"
@@ -29,7 +28,7 @@
 
 using namespace std;
 
-Fityk* ftk = 0;
+Ftk* ftk = 0;
 
 //------ UserInterface - implementation of CLI specific methods ------
 
@@ -452,8 +451,7 @@ void interrupt_handler (int /*signum*/)
 
 int main (int argc, char **argv)
 {
-    setlocale(LC_NUMERIC, "C");
-    // setting ^C handler
+    // setting Ctrl-C handler
     if (signal (SIGINT, interrupt_handler) == SIG_IGN) 
         signal (SIGINT, SIG_IGN);
 
@@ -514,7 +512,7 @@ int main (int argc, char **argv)
         }
     }
 
-    ftk = new Fityk;
+    ftk = new Ftk;
 
     // set callbacks
     ftk->get_ui()->set_show_message(cli_show_message);

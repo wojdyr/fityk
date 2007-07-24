@@ -22,7 +22,7 @@ void Settings::insert_enum(string const& name,
     epar.insert(pair<string, EnumString> (name, EnumString(e, value)));
 }
 
-Settings::Settings(Fityk const* F_) 
+Settings::Settings(Ftk const* F_) 
     : F(F_)
 {
     // general

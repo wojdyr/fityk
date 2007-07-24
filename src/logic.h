@@ -14,7 +14,7 @@
 
 class DataWithSum;
 class Settings;
-class Fityk;
+class Ftk;
 class UserInterface;
 class FitMethodsContainer;
 class Fit;
@@ -74,7 +74,7 @@ protected:
 class DataWithSum
 {
 public:
-    DataWithSum(Fityk *F, Data* data_=0);
+    DataWithSum(Ftk *F, Data* data_=0);
     Data *get_data() const { return data.get(); } 
     Sum *get_sum() const { return sum.get(); }
     bool has_any_info() const;
@@ -88,15 +88,15 @@ private:
 
 
 /// keeps all functions, variables, parameters, datasets with sums and View
-class Fityk : public VariableManager
+class Ftk : public VariableManager
 {
 public:
     View view;
     /// used for randomly drawing parameter values, in fitting methods like GA
     fp default_relative_domain_width;
 
-    Fityk();
-    ~Fityk();
+    Ftk();
+    ~Ftk();
     /// reset everything but UserInterface (and related settings)
     void reset();
     void dump_all_as_script (std::string const &filename);
@@ -162,6 +162,6 @@ private:
     int check_ds_number(int n) const;
 };
 
-extern Fityk* AL;
+extern Ftk* AL;
 
 #endif 

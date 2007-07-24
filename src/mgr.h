@@ -9,7 +9,7 @@
 
 class Variable;
 class Function;
-class Fityk;
+class Ftk;
 class Sum;
 
 /// keeps all functions and variables
@@ -18,7 +18,7 @@ class VariableManager
 public:
     bool silent;
 
-    VariableManager(Fityk const* F_) : silent(false), F(F_), 
+    VariableManager(Ftk const* F_) : silent(false), F(F_), 
                         var_autoname_counter(0), func_autoname_counter(0) {}
     ~VariableManager();
     void register_sum(Sum *s) { sums.push_back(s); }
@@ -85,7 +85,7 @@ public:
     std::vector<std::string> get_variable_references(std::string const &name);
 
 protected:
-    Fityk const* F;
+    Ftk const* F;
     std::vector<Sum*> sums;
     std::vector<fp> parameters;
     /// sorted, a doesn't depend on b if idx(a)>idx(b)

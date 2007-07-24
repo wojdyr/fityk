@@ -1,9 +1,12 @@
 
 This directory contains small samples of data 
-and scripts that are used to test program.
+and scripts that are used to test the program.
 Paths to data in scripts are relative, so you can either run script
 from this directory or change the paths.
 
 nacl01 - 'Hello world' sample
 SiC_Zn - Powder pattern sample 
-test_syntax - used to test command parser, just a set of random commands
+test_syntax - testing the command parser, just a set of random commands
+test_lib.cc - testing the fityk library
+test_lib.py - testing Python binding to the fityk library
+

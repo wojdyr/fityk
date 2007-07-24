@@ -18,7 +18,7 @@
 
 using namespace std;
 
-Sum::Sum(Fityk *F_) 
+Sum::Sum(Ftk *F_) 
     : F(F_), mgr(*F_)
 {
     mgr.register_sum(this);

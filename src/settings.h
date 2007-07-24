@@ -8,7 +8,7 @@
 #include <utility>
 #include "common.h"
 
-class Fityk;
+class Ftk;
 
 struct IntRange 
 {
@@ -31,7 +31,7 @@ public:
             : e(e_), v(v_) {}
     };
 
-    Settings(Fityk const* F_);
+    Settings(Ftk const* F_);
     /// get value of integer option
     inline int get_i(std::string const& k) const;
     /// get value of real (floating-point) option
@@ -68,7 +68,7 @@ public:
     void do_srand();
 
 private:
-    Fityk const* F;
+    Ftk const* F;
     std::map <std::string, int> ipar;
     std::map <std::string, fp> fpar;
     std::map <std::string, bool> bpar;

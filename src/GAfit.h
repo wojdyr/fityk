@@ -22,7 +22,7 @@ struct Individual
 class GAfit : public Fit
 {
 public:
-    GAfit(Fityk* F);
+    GAfit(Ftk* F);
     ~GAfit();
     fp init(); // called before autoiter()
     void autoiter();

@@ -105,7 +105,7 @@ string Commands::get_info(bool extended) const
 
 
 void Commands::start_logging(string const& filename, bool with_output,
-                             Fityk const* F)
+                             Ftk const* F)
 {
     if (filename.empty())
        stop_logging(); 

@@ -13,7 +13,7 @@
 
 using namespace std;
 
-LMfit::LMfit(Fityk* F) 
+LMfit::LMfit(Ftk* F) 
     : Fit(F, "Levenberg-Marquardt"),
       shake_before (0), shake_type ('u')
 {
