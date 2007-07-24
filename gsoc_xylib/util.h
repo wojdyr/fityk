@@ -17,13 +17,9 @@ namespace xylib
 {
 
 // sub namespace to hold the utility functions
-// move the original XY_Lib static member functions (such as string_to_int etc.) here
+// move the original XY_Lib static member functions here
 namespace util 
 {
-/*
-    std::string guess_file_type(const std::string &filename);
-    int string_to_int(const string &str);
-*/
     unsigned read_uint32_le(std::ifstream &f, unsigned offset);
     unsigned read_uint16_le(std::ifstream &f, unsigned offset);
     float read_flt_le(std::ifstream &f, unsigned offset);
@@ -38,13 +34,12 @@ namespace util
     void parse_line(const std::string &line, const std::string &sep, 
         std::string &key, std::string &val);
     bool str_startwith(const std::string &str_src, const std::string &ss);
-    double string_to_double(const std::string &str);
-    int string_to_int(const std::string &str);
 
     int read_line_and_get_all_numbers(std::istream &is, 
         std::vector<double>& result_numbers);
 
     bool peek_line(std::ifstream &f, std::string &line, bool throw_eof = true);
+    bool my_getline(std::ifstream &f, std::string &line, bool throw_eof = true);
     void skip_lines(std::ifstream &f, const int count);
     int read_line_int(std::ifstream& is);
     double read_line_double(std::ifstream& is);
@@ -55,7 +50,6 @@ namespace util
         unsigned size,
         const std::string &find_str);
         
-    std::string add_space(const std::string &str, int max_len);
 } // end of namespace util
 
 } // end of namespace xylib

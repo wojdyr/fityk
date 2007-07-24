@@ -1,14 +1,15 @@
 TODO:
 
-* complete the testmain code
-
-* Detect file format by file contant (magic number), in case some types share one extension name. For example, Brucker v1 and v2 Raw File both use ".raw" as extension name.
-
 * Add more format types, of course
 
 
 
 ////////////////////////////////////////////////////////////////////
+* complete the testmain code, done!
+
+* Detect file format by file contant (magic number), in case some types share one extension name. For example, Brucker v1 and v2 Raw File both use ".raw" as extension name: done!
+
+
 * Finish generic function to handle the UXD-like files, done!
 
 * Change the mechanism of unknown file format detection: 

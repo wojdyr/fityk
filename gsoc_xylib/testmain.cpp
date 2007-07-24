@@ -7,10 +7,12 @@
 #include "common.h"
 #include <string.h>
 #include <iomanip>
+#if !(defined(_WIN32) || defined(WIN32) || defined(__NT__) || defined(__WIN32__))
+#include <dirent.h>
+#endif
 
 using namespace std;
 using namespace xylib;
-using namespace util;
  
 int main(int argc,char* argv[])
 {
@@ -24,50 +26,14 @@ int main(int argc,char* argv[])
 	for(int i = 1;i < argc; ++i){
 		// auto test mode
 		if(0 == strncmp("-a", argv[i], 2)){
-
-			// test the meta-info access methods
-			DataSet *pds = NULL;
-			try{
-				//pds = getNewDataSet("test/diffracat_v1_raw/sample2.raw");
-				//pds = getNewDataSet("test/diffracat_v2_raw/CORKLZ20.RAW", FT_BR_RAW23);
-				pds = getNewDataSet("test/uxd/sample1.uxd", FT_UXD);
-				//pds = getNewDataSet("test/text/xy_text.txt", FT_TEXT);
-				//pds = getNewDataSet("test/rigaku_dat/sample5r.dat", FT_RIGAKU);
-				//pds = getNewDataSet("test/vamas_iso14976/pbn.vms", FT_VAMAS);
-				//pds = getNewDataSet("test/philips-udf/sample2.udf", FT_UDF);
-
-				cout << "type:" << pds->get_filetype() << endl;
-				cout << "description:" << pds->get_filetype_desc() << endl;
-
-				// output the file-scope meta
-				output_meta(cout, pds, "");
-
-				unsigned num = pds->get_range_cnt();
-				cout << num << " ranges in total" << endl;
-				pds->export_xy_file("./xy.txt");
-				for(unsigned i = 0;i < num;++i){
-					const Range& range = pds->get_range(i);
-					cout << "===============================================" << endl;
-					cout << "* range " << i << endl;
-					// output the range-scope meta-info
-					output_meta(cout, &range, "");
-					cout << "this range has " << range.get_pt_count() << " points.\n";
-#if 0
-                    for (unsigned j = 0; j < range.get_pt_count(); ++j) {
-                        cout << j << " " << range.get_x(j) << " ";
-                        cout << range.get_y(j) << endl;
-                    }
+#if !(defined(_WIN32) || defined(WIN32) || defined(__NT__) || defined(__WIN32__))
+		    for (int j = 1; j < FT_NUM; ++j) {
+		        cout << "* subdir: " << g_ftype[j] << endl;
+                test_file(static_cast<xy_ftype>(j));
+		    } 
+#else
+            cout << "option -a not implemented in Windows!" << endl;
 #endif
-				}
-				cout << "done!" << endl;
-			} catch(const runtime_error &e){
-				cerr << e.what() << endl;
-			}
-
-			if(pds){
-				delete pds;
-			}
-
 			return 0;
 		}
 		// user specifying mode
@@ -97,24 +63,87 @@ int main(int argc,char* argv[])
 		}
 
 		pds->export_xy_file(out_file);
+		cout << in_file <<  endl;
+		cout << "type:" << pds->get_filetype() << endl;
+		cout << "successfully exported to " << out_file << endl;
+
+		if (pds) {
+            delete pds;
+            pds = NULL;
+		}
 	}
 
 	return 0;
 } 
 
+#if !(defined(_WIN32) || defined(WIN32) || defined(__NT__) || defined(__WIN32__))
+void test_file(xy_ftype ftype)
+{
+
+    string src_dir = S("test/") + g_ftype[ftype] + "/";
+    string out_dir = S("out/") + g_ftype[ftype] + "/";
+
+    DIR *dir = opendir(src_dir.c_str());
+    if (!dir) {
+        throw XY_Error("cannot open dir " + src_dir);
+    }
+    
+    struct dirent *ent;
+    vector<string> fnames;
+    while((ent = readdir(dir))) {
+        string fname = ent->d_name;
+        if (fname != "." && 
+            fname != ".." && 
+            guess_file_type(src_dir + fname) != FT_UNKNOWN) {
+            fnames.push_back(fname);
+        }
+    }
+
+    if (closedir(dir)) {
+        throw XY_Error("cannot close dir " + src_dir);
+    }
+
+    // perform the test
+    vector<string>::const_iterator it;
+    string src, out;
+    DataSet *pds = NULL;
+    for (it = fnames.begin(); it != fnames.end(); ++it) {
+        src = src_dir + *it;
+        out = out_dir + *it + "_tr.txt";
+        cout << "processing file " << src << "..." << endl;
+        
+        try {
+            pds = getNewDataSet(src);
+            pds->export_xy_file(out);
+            cout << "done!" << endl;
+            if (pds) {
+                delete pds;
+                pds = NULL;
+    		}
+        } catch (const runtime_error &e) {
+            cerr << e.what() << endl;
+            if (pds) {
+                delete pds;
+                pds = NULL;
+    		}
+            continue;
+        }
+    }
+}
+#endif
+
 
 void usage(char* prog_name)
 {
     cout << "usage:" << endl;
-    //cout << "\t" << prog_name << "[-a] [-i in_file -o out_file -t file_type]" << endl;
     cout << "" << prog_name << " [-a] [-i in_file -o out_file -t file_type]" << endl;
     cout << "\t-a: auto test using the existing test files." << endl;
     cout << "\t-i: input file path." << endl;
     cout << "\t-o: output file path." << endl;
     cout << "\t-t: format type of the input file. Supported formats:" << endl;
 
-    for (int i = 0; i < FT_NUM; ++i) {
-        cout << "\t\t" << add_space(g_ftype[i], 19) << ": " << g_desc[i] << endl;
+    for (int i = 1; i < FT_NUM; ++i) {
+        cout << "\t\t" << g_ftype[i] << setw(21 - g_ftype[i].size()) << ": " << g_desc[i] << endl;
     }
 }
 

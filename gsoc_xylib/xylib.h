@@ -195,18 +195,20 @@ class UxdLikeDataSet : public DataSet
 {
     public:
         UxdLikeDataSet(const std::string &filename, xy_ftype filetype)
-            :  DataSet(filename, filetype) {}
+            :  DataSet(filename, filetype), meta_sep("=:"), 
+            data_sep(", ;"), cmt_start(";#")
+        {}
         
     protected:
         line_type get_line_type(const std::string &line);
         bool skip_invalid_lines(std::ifstream &f);
         
-        static std::string rg_start_tag;
-        static std::string x_start_key;
-        static std::string x_step_key;
-        static std::string meta_sep;
-        static std::string data_sep;
-        static std::string cmt_start;
+        std::string rg_start_tag;
+        std::string x_start_key;
+        std::string x_step_key;
+        std::string meta_sep;
+        std::string data_sep;
+        std::string cmt_start;
 };
 
 

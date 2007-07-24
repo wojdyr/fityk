@@ -1,0 +1,9 @@
+=======================
+* SAMPLE SOURCE
+=======================
+All files are downloaded from URL: http://sdpd.univ-lemans.fr/course/week-1/sdpd-1.html, which is a free on-line course site about the SDPD (Structure Determination by Powder Diffractometry).
+
+=======================
+* IMPLEMENTATION REF
+=======================
+Philipse UDF format is text based, and the xylib implementaion of it is mainly based on the analysis of the sample files.

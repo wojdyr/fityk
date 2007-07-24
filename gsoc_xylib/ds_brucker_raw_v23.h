@@ -19,6 +19,8 @@ namespace xylib {
         // implement the interfaces specified by DataSet
         bool is_filetype() const;
         void load_data();
+
+        static bool check(std::ifstream &f);
     }; 
 }
 #endif // #ifndef BRUCKER_RAW_V23_H

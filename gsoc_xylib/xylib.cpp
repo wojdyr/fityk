@@ -14,6 +14,7 @@
 #include "ds_vamas.h"
 #include "ds_philips_udf.h"
 
+#include <iostream>
 #include <algorithm>
 #include <boost/detail/endian.hpp>
 #include <boost/cstdint.hpp>
@@ -302,28 +303,19 @@ void DataSet::init()
 //////////////////////////////////////////////////////////////////////////
 // members of UxdLikeDataSet
 
-// set default value of variables in UxdLikeDataSet
-string UxdLikeDataSet::rg_start_tag("");
-string UxdLikeDataSet::x_start_key("");
-string UxdLikeDataSet::x_step_key("");
-string UxdLikeDataSet::meta_sep("=:");
-string UxdLikeDataSet::data_sep(", ;");
-string UxdLikeDataSet::cmt_start(";#");
-
-
 line_type UxdLikeDataSet::get_line_type(const string &line)
 {
-    string ll = str_trim(line);
+    string str = str_trim(line);
    
-    if (ll.empty()) {
+    if (str.empty()) {
         return LT_EMPTY;
     } else {
-        char ch = ll[0];
-        if (str_startwith(ll, cmt_start)) {
+        char ch = str[0];
+        if (str_startwith(str, cmt_start)) {
             return LT_COMMENT;
-        } else if (string::npos != ll.find_first_of(meta_sep)) {
+        } else if (string::npos != str.find_first_of(meta_sep)) {
             return LT_KEYVALUE;
-        } else if (string::npos != string("0123456789+-").find(ch)) {
+        } else if (isdigit(ch) || ch == '+' || ch == '-') {
             return LT_XYDATA;
         } else {
             return LT_UNKNOWN;
@@ -390,32 +382,51 @@ DataSet* getNewDataSet(const string &filename, xy_ftype filetype /* = FT_UNKNOWN
 }
 
 
-xy_ftype guess_file_type(const string &fname)
+xy_ftype guess_file_type(const string &fpath)
 {
-    string::size_type pos = fname.find_last_of('.');
+    string::size_type pos = fpath.find_last_of('.');
 
     if(string::npos == pos) {
         return FT_UNKNOWN;
     }
 
-    string ext = fname.substr(pos + 1);
+    string ext = fpath.substr(pos + 1);
     for(string::iterator it = ext.begin();it != ext.end();++it) {
         *it = tolower(*it);
     }
 
+    ifstream f(fpath.c_str(), ios::in | ios::binary);
 
-    if("txt" == ext) {
-        return FT_TEXT;
-    } else if ("uxd" == ext) {
-        return FT_UXD;
-    } else if ("raw" == ext) {
-        //TODO: need to detect format by their content
-        return FT_BR_RAW1;
-    } else if ("vms" == ext) {
-        return FT_VAMAS;
-    } else if ("udf" == ext) {
-        return FT_UDF;
-    } else {
+    try {
+        if("txt" == ext || "asc" == ext) {
+            return FT_TEXT;
+        }
+            
+        if ("uxd" == ext) {
+            return FT_UXD;
+        } else if ("vms" == ext) {
+            return FT_VAMAS;
+        } else if ("udf" == ext) {
+            return FT_UDF;
+        } else if ("raw" == ext) {
+            // may be brucker_raw_v1 or v2/v3. notice the order
+            if (BruckerV23RawDataSet::check(f)) {
+                return FT_BR_RAW23;
+            } else {
+                return FT_BR_RAW1;
+            }
+        } else if ("dat" == ext) {
+            // may be "text" or "rigaku"
+            if (RigakuDataSet::check(f)) {
+                return FT_RIGAKU;
+            } else {
+                return FT_TEXT;
+            }
+        } else {
+            return FT_UNKNOWN;
+        }
+    } catch (const runtime_error &e) {
+        cout << "excption in guess_file_type(" << fpath << ")" << endl;
         return FT_UNKNOWN;
     }
 }

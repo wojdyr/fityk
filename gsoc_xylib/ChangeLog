@@ -28,3 +28,12 @@ For the 1st issue, use endian.hpp to determine the endian of the machine, then e
 * new format support: Philips_udf format
 * Used a class "UxdLikeDataSet" to  present all UXD-like formats (so far, they are UXD, Rigaku_dat and Philips_udf format).
 * Re-wrote code of the UXD format parsing and Rigaku_dat format parsing with UxdLikeDataSet
+
+0:56 2007-7-25 GMT+8 version 320
+	* Added a README file in every sub dir in ./test, to describe some related info about the sample files and format implementation in xylib.
+* Improved xylib::guess_file_type(): can guess the file type by preview the file content.
+* Finished testmain.cpp. which can test all of the sample files (only on POSIX OSes, not implemented on Windows), and can also just export user specified input / output files.
+* re-organized some directories in ./test to make it more clear
+* Used my_getline() and seekg() instead of peek_line, to avoid reading every line twice.
+* Cleaned up code and some other slight changes, according to Marcin's advice.
+

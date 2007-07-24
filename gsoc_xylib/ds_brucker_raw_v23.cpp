@@ -12,16 +12,20 @@ namespace xylib {
 
 bool BruckerV23RawDataSet::is_filetype() const
 {
-    // the first 4 letters must be "RAW2"
-    ifstream &f = *p_ifs;
+    return check(*p_ifs);
+}
 
+
+bool BruckerV23RawDataSet::check(ifstream &f)
+{
+    // the first 4 letters must be "RAW2"
     f.clear();
     string head = read_string(f, 0, 4);
     if(f.rdstate() & ios::failbit) {
         throw XY_Error("error when reading file head");
     }
 
-    return ("RAW2" == head) ? true : false;
+    return ("RAW2" == head);
 }
 
 

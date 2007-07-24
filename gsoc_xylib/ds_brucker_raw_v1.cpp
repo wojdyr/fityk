@@ -12,18 +12,21 @@ namespace xylib {
 
 bool BruckerV1RawDataSet::is_filetype() const
 {
-    // the first 3 letters must be "RAW"
-    ifstream &f = *p_ifs;
+    return check(*p_ifs);
+}
 
+
+bool BruckerV1RawDataSet::check(ifstream &f)
+{
+    // the first 3 letters must be "RAW"
     f.clear();
     string head = read_string(f, 0, 3);
     if(f.rdstate() & ios::failbit) {
         throw XY_Error("error when reading file head");
     }
 
-    return ("RAW" == head) ? true : false;
+    return ("RAW" == head);
 }
-
 
 // if user doesn't want the meta-info, they can simply ignore it to improve the performance
 void BruckerV1RawDataSet::load_data() 

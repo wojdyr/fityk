@@ -27,6 +27,8 @@ namespace xylib {
         bool is_filetype() const;
         void load_data();
 
+        static bool check(std::ifstream &f);
+
     protected:
         void parse_range(FixedStepRange* p_rg);
 

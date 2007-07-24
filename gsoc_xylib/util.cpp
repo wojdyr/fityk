@@ -115,21 +115,6 @@ namespace util{
     }
 
 
-    // convert a string to double
-    double string_to_double(const string &str)
-    {
-        char **endptr = NULL;
-        return strtod(str.c_str(), endptr);
-    }
-    
-
-    // convert a string to int
-    int string_to_int(const string &str)
-    {
-        char **endptr = NULL;
-        return strtol(str.c_str(), endptr, 10);
-    }
-
     // change the byte-order from "little endian" to host endian
     // p: pointer to the data
     // len: length of the data type, should be 1, 2, 4
@@ -249,7 +234,7 @@ namespace util{
         if (!getline(is, str)) {
             throw xylib::XY_Error("unexpected end of file");
         }
-        return string_to_int(str);
+        return strtol(str.c_str(), NULL, 10);
     }
 
     double read_line_double(ifstream& is)
@@ -258,7 +243,7 @@ namespace util{
         if (!getline(is, str)) {
             throw xylib::XY_Error("unexpected end of file");
         }
-        return string_to_double(str);
+        return strtod(str.c_str(), NULL);
     }
 
     // read a line and return it as a string
@@ -304,16 +289,20 @@ namespace util{
         return ret;
     }
 
-    string add_space(const string &str, int max_len)
+
+    bool my_getline(std::ifstream &f, std::string &line,
+        bool throw_eof /* = true */ )
     {
-        string ret(str);
-        int spaces = max_len - str.size();
-        for (; spaces > 0; --spaces) {
-            ret += " ";
+        getline(f, line);
+        bool ret = !f.eof();
+        if (throw_eof && !ret) {
+            throw XY_Error("unexpected end of file");
         }
 
+        line = str_trim(line);
         return ret;
     }
+
 
 } // end of namespace util
 } // end of namespace xylib

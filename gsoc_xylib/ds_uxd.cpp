@@ -26,13 +26,13 @@ void UxdDataSet::load_data()
     // file-scope meta-info
     while (true) {
         skip_invalid_lines(f);
-        peek_line(f, line);
+        int pos = f.tellg();
+        my_getline(f, line);
         if (str_startwith(line, rg_start_tag)) {
+            f.seekg(pos);
             break;
         }
         
-        getline(f, line);
-        line = str_trim(line);
         ln_type = get_line_type(line);
 
         if (LT_KEYVALUE == ln_type) {   // file-level meta key-value line
@@ -62,23 +62,21 @@ void UxdDataSet::parse_range(FixedStepRange *p_rg)
     // get range-scope meta-info
     while (true) {
         skip_invalid_lines(f);
-        peek_line(f, line);
+        int pos = f.tellg();
+        my_getline(f, line);
         line_type ln_type = get_line_type(line);
         if (LT_XYDATA == ln_type) {
+            f.seekg(pos);
             break;
         }
-
-        getline(f, line);
-        line = str_trim(line);
-        ln_type = get_line_type(line);
 
         if (LT_KEYVALUE == ln_type) {   // range-level meta key-value line
             string key, val;
             parse_line(line, meta_sep, key, val);
             if (key == x_start_key) {
-                p_rg->set_x_start(string_to_double(val));
+                p_rg->set_x_start(strtod(val.c_str(), NULL));
             } else if (key == x_step_key) {
-                p_rg->set_x_step(string_to_double(val));
+                p_rg->set_x_step(strtod(val.c_str(), NULL));
             }
             key = ('_' == key[0]) ? key.substr(1) : key;
             p_rg->add_meta(key, val);
@@ -91,20 +89,16 @@ void UxdDataSet::parse_range(FixedStepRange *p_rg)
     while (true) {
         if (!skip_invalid_lines(f)) {
             return;
-        }
-        peek_line(f, line, false);
+        }  
+        int pos = f.tellg();
+        my_getline(f, line, false);
         line_type ln_type = get_line_type(line);
         if (str_startwith(line, rg_start_tag)) {
+            f.seekg(pos);
             return;                     // new range
-        }
-        if (LT_XYDATA != ln_type) {
-            skip_lines(f, 1);
+        } else if (LT_XYDATA != ln_type) {
             continue;
         }
-
-        getline(f, line);
-        line = str_trim(line);
-        ln_type = get_line_type(line);
 
         for (string::iterator i = line.begin(); i != line.end(); ++i) {
             if (string::npos != data_sep.find(*i)) {
