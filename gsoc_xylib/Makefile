@@ -9,11 +9,14 @@ TARGET = testmain
 %.o:%.cpp
 	$(CXX) $(CFLAGS) -c $< -o $@
 
-SOURCES = $(wildcard *.c *.cpp)
-OBJS = $(patsubst %.c,%.o,$(patsubst %.cpp,%.o,$(SOURCES)))
+LIB_SOURCES = $(wildcard ds_*.cpp) xylib.cpp util.cpp
+LIB_OBJS = $(patsubst %.c,%.o,$(patsubst %.cpp,%.o,$(LIB_SOURCES)))
 
-all : $(OBJS)
-	 $(CXX) $(OBJS) -o $(TARGET)
+all : testmain.o $(LIB_OBJS) 
+	 $(CXX) $< $(LIB_OBJS) -o $(TARGET)
+
+xyconv: xyconv.o $(LIB_OBJS) 
+	 $(CXX) $< $(LIB_OBJS) -o $@
 
 clean:
 	rm -rf *.o testmain
