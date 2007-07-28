@@ -1,7 +1,7 @@
-// Header of class TextDataSet for reading meta-data and xy-data from 
+// Header of class TextDataSet
 // Siemens/Bruker Diffrac-AT Raw File v2/v3 format
-// Licence: GNU General Public License version 2
-// $Id: __MY_FILE_ID__ $
+// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// $Id: ds_text.h $
 
 #ifndef TEXT_DATASET_H
 #define TEXT_DATASET_H
@@ -18,7 +18,8 @@ namespace xylib {
         // implement the interfaces specified by DataSet
         bool is_filetype() const;
         void load_data();
-        
+
+        const static FormatInfo fmt_info;
     }; 
 }
 #endif // #ifndef TEXT_DATASET_H

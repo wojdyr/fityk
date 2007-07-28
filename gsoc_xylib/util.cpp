@@ -1,10 +1,9 @@
 // Many internal-used helper functions are placed in namespace xylib::util  
-// Licence: GNU General Public License version 2
+// Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id: util.cpp $
 
 #include "util.h"
 #include "xylib.h"
-#include "common.h"
 
 #include <algorithm>
 #include <boost/detail/endian.hpp>
@@ -114,6 +113,16 @@ namespace util{
         return (sub == ss);
     }
 
+    // change all letters in a string to lower case
+    std::string str_tolower(const std::string &str)
+    {
+        string ret;
+        for(string::const_iterator it = str.begin(); it != str.end(); ++it) {
+            char ch = tolower(*it);
+            ret.append(S(ch));
+        }
+        return ret;
+    }
 
     // change the byte-order from "little endian" to host endian
     // p: pointer to the data
@@ -124,63 +133,59 @@ namespace util{
         for more info, see "endian" and "pdp-11" items in wikipedia
         www.wikipedia.org
         */
-        if ((len != 1) && (len != 2) && (len != 4))
-        {
+        if ((len != 1) && (len != 2) && (len != 4)) {
             throw XY_Error("len should be 1, 2, 4");
         }
 
 # if defined(BOOST_LITTLE_ENDIAN)
-        // nothing need to do
+        // no change
         return;
-# else   // BIG_ENDIAN or PDP_ENDIAN
+# else  // BIG_ENDIAN or PDP_ENDIAN
         // store the old values
-        uint8_t byte0, byte1, byte2, byte3;
-        switch (len)
-        {
+        uint8_t byte0(0), byte1(0), byte2(0), byte3(0);
+        switch (len) {
         case 1:
             break;
         case 2:
-            byte0 = (reinterpretcast<uint8_t*>(p))[0];
-            byte1 = (reinterpretcast<uint8_t*>(p))[1];
+            byte0 = (reinterpret_cast<uint8_t*>(p))[0];
+            byte1 = (reinterpret_cast<uint8_t*>(p))[1];
         case 4:
-            byte2 = (reinterpretcast<uint8_t*>(p))[2];
-            byte3 = (reinterpretcast<uint8_t*>(p))[3];
+            byte2 = (reinterpret_cast<uint8_t*>(p))[2];
+            byte3 = (reinterpret_cast<uint8_t*>(p))[3];
             break;
         default:
             break;
         }
 #  if defined(BOOST_BIG_ENDIAN)
-        switch (len)
-        {
+        switch (len) {
         case 1:
             break;
         case 2:
-            (reinterpretcast<uint8_t*>(p))[0] = byte1;
-            (reinterpretcast<uint8_t*>(p))[1] = byte0;
+            (reinterpret_cast<uint8_t*>(p))[0] = byte1;
+            (reinterpret_cast<uint8_t*>(p))[1] = byte0;
             break;
         case 4:
-            (reinterpretcast<uint8_t*>(p))[0] = byte3;
-            (reinterpretcast<uint8_t*>(p))[1] = byte2;
-            (reinterpretcast<uint8_t*>(p))[2] = byte1;
-            (reinterpretcast<uint8_t*>(p))[3] = byte0;
+            (reinterpret_cast<uint8_t*>(p))[0] = byte3;
+            (reinterpret_cast<uint8_t*>(p))[1] = byte2;
+            (reinterpret_cast<uint8_t*>(p))[2] = byte1;
+            (reinterpret_cast<uint8_t*>(p))[3] = byte0;
         }
 #  elif defined(BOOST_PDP_ENDIAN)  // PDP_ENDIAN
         // 16-bit word are stored in little_endian
         // 32-bit word are stored in middle_endian: the most significant "half" (16-bits) followed by 
         // the less significant half (as if big-endian) but with each half stored in little-endian format
-        switch (len)
-        {
+        switch (len) {
         case 1:
         case 2:
             break;
         case 4:
-            (reinterpretcast<uint8_t*>(p))[0] = byte2;
-            (reinterpretcast<uint8_t*>(p))[1] = byte3;
-            (reinterpretcast<uint8_t*>(p))[2] = byte0;
-            (reinterpretcast<uint8_t*>(p))[3] = byte1;
+            (reinterpret_cast<uint8_t*>(p))[0] = byte2;
+            (reinterpret_cast<uint8_t*>(p))[1] = byte3;
+            (reinterpret_cast<uint8_t*>(p))[2] = byte0;
+            (reinterpret_cast<uint8_t*>(p))[3] = byte1;
         }
-#  endif
-# endif
+#  endif    //#  if defined(BOOST_BIG_ENDIAN)
+# endif     //# if defined(BOOST_LITTLE_ENDIAN)       
     }
 
     // convert num to string; if (num == undef), return "undefined"
@@ -219,10 +224,8 @@ namespace util{
     void skip_lines(ifstream &f, const int count)
     {
         string line;
-        for (int i = 0; i < count; ++i)
-        {
-            if (!getline(f, line))
-            {
+        for (int i = 0; i < count; ++i) {
+            if (!getline(f, line)) {
                 throw XY_Error("unexpected end of file");
             }
         }

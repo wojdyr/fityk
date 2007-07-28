@@ -1,14 +1,71 @@
-// Implementation of class UxdDataSet for reading meta-data and xy-data from 
-// Licence: GNU General Public License version 2
-// $Id: UxdDataSet.h $
+// Implementation of class UxdDataSet for reading meta-data and xy-data from
+// Siemens/Bruker Diffrac-AT UXD Format
+// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// $Id: ds_uxd.cpp $
+
+/*
+
+FORMAT DESCRIPTION:
+====================
+
+Siemens/Bruker Diffrac-AT UXD Format, data format used in Siemens/Brucker 
+X-ray diffractors. It can be inter-convertable to RAW format by the official 
+tool XCH.
+
+///////////////////////////////////////////////////////////////////////////////
+    * Name in progam:   uxd
+    * Extension name:   uxd
+    * Binary/Text:      text
+    * Multi-ranged:     Y
+    
+///////////////////////////////////////////////////////////////////////////////
+    * Format details: 
+It has a header indicating the file-scope parameters in the form of 
+"key=val" format. Followed the file header are range sections. Each section 
+starts with "_DRIVER=XXX". In each section, first lines are range-scope meta-
+info; X-Y data starts after "_COUNT".
+
+///////////////////////////////////////////////////////////////////////////////
+    * Sample Fragment: ("#xxx": comments added by me; ...: omitted lines)
+
+# File header with some file-scope prarmeters.
+_FILEVERSION=1
+_SAMPLE='test'
+_WL1=1.540600
+...
+# Data for Range 1
+_DRIVE='COUPLED'
+_STEPTIME=37.000000
+_STEPSIZE=0.020000   # x_step
+_STEPMODE='C'
+_START=10.0000       # x_start
+...
+# Range 1 data starts
+_COUNTS
+     1048      1162      1108      1163      1071      1057      1055       973
+     ...
+# Repeat if there are more ranges
+
+///////////////////////////////////////////////////////////////////////////////
+    * Implementation Ref of xylib: based on the analysis of the sample files.
+    
+*/
 
 #include "ds_uxd.h"
-#include "common.h"
 
 using namespace std;
 using namespace xylib::util;
 
 namespace xylib {
+
+const FormatInfo UxdDataSet::fmt_info(
+    FT_UXD ,
+    "uxd",
+    "Siemens/Bruker Diffrac-AT UXD Format",
+    vector<string>(1, "uxd"),
+    false,                       // whether binary
+    true                         // whether multi-ranged
+);
 
 bool UxdDataSet::is_filetype() const
 {

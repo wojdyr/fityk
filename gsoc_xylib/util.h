@@ -1,17 +1,17 @@
-// Many internal-used helper functions are placed in namespace xylib::util 
-// Licence: GNU General Public License version 2
+// Internal-used helper functions in namespace xylib::util 
+// Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id: util.h $
 
 #ifndef XYLIB__UTIL__H__
 #define XYLIB__UTIL__H__
 
-#include "common.h"
+
 #include <string>
 #include <vector>
 #include <stdexcept>
+#include <sstream>
 #include <fstream>
 #include <iomanip>
-
 
 namespace xylib
 {
@@ -34,6 +34,7 @@ namespace util
     void parse_line(const std::string &line, const std::string &sep, 
         std::string &key, std::string &val);
     bool str_startwith(const std::string &str_src, const std::string &ss);
+    std::string str_tolower(const std::string &str);
 
     int read_line_and_get_all_numbers(std::istream &is, 
         std::vector<double>& result_numbers);
@@ -49,6 +50,20 @@ namespace util
     int get_array_idx(const std::string *array, 
         unsigned size,
         const std::string &find_str);
+
+    //---------------------------  S T R I N G  --------------------------------
+    /// S() converts to string
+    template <typename T>
+    inline std::string S(T k) {
+        return static_cast<std::ostringstream&>(std::ostringstream() << k).str();
+    }
+
+    inline std::string S(bool b) { return b ? "true" : "false"; }
+    inline std::string S(char const *k) { return std::string(k); }
+    inline std::string S(char *k) { return std::string(k); }
+    inline std::string S(char const k) { return std::string(1, k); }
+    inline std::string S(std::string const &k) { return k; }
+    inline std::string S() { return std::string(); }
         
 } // end of namespace util
 

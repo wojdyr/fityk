@@ -1,7 +1,6 @@
-// Header of class BruckerV23RawDataSet for reading meta-data and xy-data from 
-// Siemens/Bruker Diffrac-AT Raw File v2/v3 format
-// Licence: GNU General Public License version 2
-// $Id: __MY_FILE_ID__ $
+// Header of class UxdDataSet
+// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// $Id: ds_uxd.h $
 
 #ifndef UXD_DATASET_H
 #define UXD_DATASET_H
@@ -26,6 +25,8 @@ namespace xylib {
         // implement the interfaces specified by DataSet
         bool is_filetype() const;
         void load_data();
+
+        const static FormatInfo fmt_info;
         
     protected:
         void parse_range(FixedStepRange *p_rg);

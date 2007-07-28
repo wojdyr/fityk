@@ -1,11 +1,11 @@
 // XYlib library is a xy data reading library, aiming to read variaty of xy 
 // data formats.
 // Licence: GNU General Public License version 2
-// $Id: xylib.h $
+// $Id: xylib.cpp $
 
 #include "xylib.h"
 #include "util.h"
-#include "common.h"
+
 #include "ds_brucker_raw_v1.h"
 #include "ds_brucker_raw_v23.h"
 #include "ds_rigaku_dat.h"
@@ -25,28 +25,23 @@ using namespace boost;
 
 namespace xylib {
 
-const string g_ftype[] = {
-    "",
-    "text",
-    "uxd",
-    "rigaku_dat",
-    "diffracat_v1_raw",
-    "diffracat_v2v3_raw",
-    "vamas_iso14976",
-    "philips_udf",
+const FormatInfo *g_fi[] = {
+    NULL,
+    &TextDataSet::fmt_info,
+    &UxdDataSet::fmt_info,
+    &RigakuDataSet::fmt_info,
+    &BruckerV1RawDataSet::fmt_info,
+    &BruckerV23RawDataSet::fmt_info,
+    &VamasDataSet::fmt_info,
+    &UdfDataSet::fmt_info,
 };
 
-const string g_desc[] = {
-    "",
-    "the ascii plain text Format",
-    "Siemens/Bruker Diffrac-AT UXD Format",
-    "Rigaku dat Format",
-    "Siemens/Bruker Diffrac-AT Raw Format v1",
-    "Siemens/Bruker Diffrac-AT Raw Format v2/v3",
-    "ISO14976 VAMAS Surface Chemical Analysis Standard Data Transfer Format",
-    "Philipse UDF Format",
-};
 
+bool FormatInfo::has_extension(const std::string &ext)
+{ 
+    string lower_ext = str_tolower(ext);
+    return (find(exts.begin(), exts.end(), lower_ext) != exts.end()); 
+}
 
  
 //////////////////////////////////////////////////////////////////////////
@@ -134,7 +129,9 @@ void Range::add_meta(const string &key, const string &val)
     pair<map<string, string>::iterator, bool> ret = meta_map.insert(make_pair(key, val));
     if (!ret.second) {
         // the meta-info with this key already exists
-        //throw XY_Error("meta-info with key " + key + "already exists");
+        // meta-info in some formats may has the same name, 
+        // so following line is commented out
+//        throw XY_Error("meta-info with key " + key + "already exists");
     }
 }
 
@@ -210,7 +207,7 @@ void DataSet::export_xy_file(const string &fname,
         throw XY_Error("can't create file" + fname);
     }
 
-    of << cmt_str << "exported from " << filename << endl;
+    of << cmt_str << "exported by xylib from " << filename << endl;
 
     // output the file-level meta-info
     if (with_meta) {
@@ -390,11 +387,7 @@ xy_ftype guess_file_type(const string &fpath)
         return FT_UNKNOWN;
     }
 
-    string ext = fpath.substr(pos + 1);
-    for(string::iterator it = ext.begin();it != ext.end();++it) {
-        *it = tolower(*it);
-    }
-
+    string ext = str_tolower(fpath.substr(pos + 1));
     ifstream f(fpath.c_str(), ios::in | ios::binary);
 
     try {
@@ -427,13 +420,19 @@ xy_ftype guess_file_type(const string &fpath)
         }
     } catch (const runtime_error &e) {
         cout << "excption in guess_file_type(" << fpath << ")" << endl;
+        cout << "excption: " << e.what() << endl;
         return FT_UNKNOWN;
     }
 }
 
 
 xy_ftype string_to_ftype(const std::string &ftype_name) {
-    return (xy_ftype)get_array_idx(g_ftype, FT_NUM, ftype_name);
+    for (int i = 0; i < FT_NUM; ++i) {
+        if (g_fi[i] && ftype_name == g_fi[i]->name) {
+            return static_cast<xy_ftype>(i);
+        }
+    }
+    return FT_UNKNOWN;
 }
 
 

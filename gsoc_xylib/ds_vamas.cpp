@@ -1,14 +1,58 @@
 // Implementation of class VamasDataSet for reading meta-data and xy-data from 
-// Licence: GNU General Public License version 2
-// $Id: VamasDataSet.h $
+// ISO14976 VAMAS Surface Chemical Ana0lysis Standard Data Transfer Format File
+// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// $Id: ds_vamas.cpp $
+
+/*
+
+FORMAT DESCRIPTION:
+====================
+
+ISO14976 VAMAS Surface Chemical Ana0lysis Standard Data Transfer Format File
+For more info about VAMAS, see http://www.biomateria.com/vamas.htm
+
+///////////////////////////////////////////////////////////////////////////////
+    * Name in progam:   vamas_iso14976
+    * Extension name:   vms
+    * Binary/Text:      text
+    * Multi-ranged:     Y
+
+///////////////////////////////////////////////////////////////////////////////
+    * Format details: 
+It is also organized as 
+"file_header - (range_header - range_data) - (range_header - range_data) ..."
+like many other text-based format. However, there is only a value in every 
+line without a key or label; the value sequence and maybe several other values
+determin what a given line means.
+
+For more info, see the following:
+1. W.A. Dench, L. B. Hazell and M. P. Seah, VAMAS Surface Chemical Analysis 
+Standard Data Transfer Format with Skeleton Decoding Programs, published on 
+Surface and Interface Analysis, 13(1988)63-122 or National Physics Laboratory 
+Report DMA(A)164 July 1988
+2. The ISO standard (iso14976)
+
+///////////////////////////////////////////////////////////////////////////////
+    Implementation Ref of xylib: 
+based on the paper 1 mentioned above and the analysis of the sample files.
+
+*/
 
 #include "ds_vamas.h"
-#include "common.h"
 
 using namespace std;
 using namespace xylib::util;
 
 namespace xylib {
+
+const FormatInfo VamasDataSet::fmt_info(
+    FT_VAMAS,
+    "vamas_iso14976",
+    "ISO14976 VAMAS Surface Chemical Analysis Standard Data Transfer Format",
+    vector<string>(1, "vms"),
+    false,                       // whether binary
+    true                         // whether multi-ranged
+);
 
 bool VamasDataSet::is_filetype() const
 {

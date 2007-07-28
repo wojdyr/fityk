@@ -1,8 +1,8 @@
 TODO:
 
+* Integrated the WinSpec format
+* have a look at the JCAMP format specifications and decide whether to implement it.
 * Add more format types, of course
-
-
 
 ////////////////////////////////////////////////////////////////////
 * complete the testmain code, done!
@@ -16,6 +16,6 @@ TODO:
 	1. by the file extension name
 	2. by previewing the first lines of the file content to find the format-specified strings. And checking this of every format can be written as independent functions which can be used to verify the correctness when user calls load_file with a specified file_type.
 
-* Make the text file reading more flexible. 	
+* Make the text file reading more flexible. 
 	e.g. headers can be skipped and columns can be specified
 	use boost::regex to process the text files

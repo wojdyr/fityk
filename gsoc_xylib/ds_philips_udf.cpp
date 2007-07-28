@@ -1,14 +1,61 @@
-// Implementation of class RigakuDataSet for reading meta-data and xy-data from 
-// Licence: GNU General Public License version 2
-// $Id: RigakuDataSet.h $
+// Implementation of class UdfDataSet for reading meta-data and 
+// xy-data from Philis UDF format
+// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// $Id: ds_philips_udf.cpp $
+
+/*
+FORMAT DESCRIPTION:
+====================
+
+Data format used in Philips X-ray diffractors.
+
+///////////////////////////////////////////////////////////////////////////////
+    * Name in progam:   philipse_udf	
+    * Extension name:   udf
+    * Binary/Text:      text
+    * Multi-ranged:     N
+    
+///////////////////////////////////////////////////////////////////////////////
+    * Format details: 
+It has a header indicating some file-scope parameters in the form of 
+"key, val1, [val2 ...] ,/" pattern.It has only 1 group/range of data;
+data body begins after "RawScan"). 
+    
+///////////////////////////////////////////////////////////////////////////////
+    * Sample Fragment: ("#xxx": comments added by me; ...: omitted lines)
+
+# meta-info
+SampleIdent,Sample5 ,/
+Title1,Dat2rit program ,/
+Title2,Sample5 ,/
+...
+DataAngleRange,   5.0000, 120.0000,/    # x_start & x_end
+ScanStepSize,    0.020,/                # x_step
+...
+RawScan
+    6234,    6185,    5969,    6129,    6199,    5988,    6046,    5922
+    6017,    5966,    5806,    5918,    5843,    5938,    5899,    5851
+    ...
+    
+///////////////////////////////////////////////////////////////////////////////
+    Implementation Ref of xylib: based on the analysis of the sample files.
+*/
 
 #include "ds_philips_udf.h"
-#include "common.h"
 
 using namespace std;
 using namespace xylib::util;
 
 namespace xylib {
+
+const FormatInfo UdfDataSet::fmt_info(
+    FT_UDF,
+    "philips_udf",
+    "Philipse UDF Format",
+    vector<string>(1, "udf"),
+    false,                       // whether binary
+    false                        // whether multi-ranged
+);
 
 bool UdfDataSet::is_filetype() const
 {

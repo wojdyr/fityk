@@ -1,6 +1,7 @@
-// XYlib library is a xy data reading library, aiming to read variaty of xy 
-// data formats. This file includes the basic classes
-// Licence: GNU General Public License version 2
+// XYlib library is a xy data reading library, aiming to read variaty 
+// of XY data formats
+// data formats. This file includes the basic base classes
+// Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id: xylib.h $
 
 #ifndef XYLIB__API__H__
@@ -12,13 +13,6 @@
 #endif
 
 
-#ifdef FP_IS_LDOUBLE
-typedef long doule double;  
-#else
-typedef double fp;  
-#endif
-
-#include "common.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -31,7 +25,7 @@ namespace xylib
 {
 
 /*
-   supported file types are:
+   supported file format types are:
 */
 enum xy_ftype {
     FT_UNKNOWN,
@@ -45,7 +39,26 @@ enum xy_ftype {
     FT_NUM,     // always at bottom to get the number of the types
 };
 
-extern const std::string g_ftype[FT_NUM], g_desc[FT_NUM];
+//////////////////////////////////////////////////////////////////////////
+// The class to store the format related info
+struct FormatInfo
+{
+    xy_ftype ftype;
+    std::string name;    // short name, can be used in filter of open-file dialog
+    std::string desc;    // full format name
+    std::vector<std::string> exts;
+    bool binary;
+    bool multi_range;
+
+    FormatInfo(const xy_ftype &ftype_, const std::string &name_, const std::string &desc_, 
+        const std::vector<std::string> &exts_, bool binary_, bool multi_range_)
+        : ftype(ftype_), name(name_), desc(desc_), exts(exts_), binary(binary_), 
+          multi_range(multi_range_) {}
+
+    bool has_extension(const std::string &ext); // case insensitive
+};
+
+extern const FormatInfo *g_fi[FT_NUM];
 
 //////////////////////////////////////////////////////////////////////////
 // The class to describe the errors/exceptions in xylib
@@ -152,18 +165,18 @@ public:
     const Range& get_range(unsigned i) const;
 
     // getters of some attributes associate to files 
-    const std::string& get_filetype() const { return g_ftype[ftype]; };
+    const std::string& get_filetype() const { return g_fi[ftype]->name; };
     const std::string& get_filename() const { return filename; }
     // return a detailed description of current file type
-    const std::string& get_filetype_desc() const { return g_desc[ftype]; }; 
+    const std::string& get_filetype_desc() const { return g_fi[ftype]->desc; }; 
 
-    // basic support for file-level meta-data, common variables shared in the ranges in the file
+    // basic support for file-level meta-data, shared with all ranges
     bool has_meta_key(const std::string &key) const;
     bool has_meta() const { return (0 != meta_map.size()); }
     std::vector<std::string> get_all_meta_keys() const;
     const std::string& get_meta(std::string const& key) const; 
 
-    // check file to see whether it is the expected format, according to the "magic number"
+    // check file by "magic number" to see whether it is the expected format
     virtual bool is_filetype() const = 0;
 
     // input/output data from/to file
@@ -177,9 +190,7 @@ public:
 protected:
     xy_ftype ftype;
     std::string filename;
-    // use "Range*" to support polymorphism, but the memory management will be more complicated 
-    std::vector<Range*> ranges; 
-    // use a std::map to store the key/val pair
+    std::vector<Range*> ranges;     // use "Range*" to support polymorphism
     std::map<std::string, std::string> meta_map;
     std::ifstream *p_ifs;
 
@@ -213,7 +224,7 @@ class UxdLikeDataSet : public DataSet
 
 
 //////////////////////////////////////////////////////////////////////////
-// namespace scope "global functions" 
+// namespace-scope "global functions" 
 
 // get a non-abstract DataSet ptr according to the given "filetype"
 // if "filetype" is not given, auto-detection is used to decide the file type
@@ -223,7 +234,6 @@ xy_ftype string_to_ftype(const std::string &ftype_name);
 
 
 // output the meta-info to ostream os
-// p: a ptr to a Range or a DataSet, depending on is_range
 template <typename T>
 void output_meta(std::ostream &os, T *pds, const std::string &cmt_str)
 {

@@ -1,5 +1,5 @@
-// Convert file supported by xylib to ascii files
-// Licence: GNU General Public License version 2
+// Convert file supported by xylib to ascii format
+// Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id$
 
 #include <iostream>
@@ -25,8 +25,8 @@ void print_usage()
 void list_supported_formats()
 {
     for (int i = 1; i < xylib::FT_NUM; ++i) 
-        cout << setw(20) << left << xylib::g_ftype[i] << ": "
-             << xylib::g_desc[i] << endl;
+        cout << setw(20) << left << xylib::g_fi[i]->name << ": "
+             << xylib::g_fi[i]->desc << endl;
 }
 
 int main(int argc, char **argv)

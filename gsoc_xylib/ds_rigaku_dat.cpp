@@ -1,14 +1,75 @@
-// Implementation of class RigakuDataSet for reading meta-data and xy-data from 
-// Licence: GNU General Public License version 2
-// $Id: RigakuDataSet.h $
+// Implementation of class RigakuDataSet for reading meta-data and xy-data 
+// from Rigaku ".dat" format files
+// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// $Id: ds_rigaku_udf.cpp $
+
+/*
+FORMAT DESCRIPTION:
+====================
+
+Data format used in the Japanese X-ray instrument manufacturer Rigaku Inc.
+
+///////////////////////////////////////////////////////////////////////////////
+    * Name in progam:   rigaku_dat	
+    * Extension name:   dat
+    * Binary/Text:      text
+    * Multi-ranged:     Y
+
+///////////////////////////////////////////////////////////////////////////////
+    * Format details: 
+It has a file header indicating some file-scope parameters.
+It may contain multiple groups/ranges of data, and each group has its own 
+group header. Each group header contains some parameters ("*START", "*STOP" 
+and "*STEP" included).The data body of one group begins after "*COUNT=XXX"). 
+
+///////////////////////////////////////////////////////////////////////////////
+    * Sample Fragment: ("#xxx": comments added by me; ...: omitted lines)
+
+# file header
+*TYPE           =  Raw
+*CLASS          =  Standard measurement
+...
+*GROUP_COUNT    =  2
+...
+# group 0 header
+*BEGIN
+*GROUP          =  0
+...
+*START          =  10.0000    
+*STOP           =  103.1200  
+*STEP           =  0.0200 
+...
+*COUNT          =  4657
+# data in group 0
+ 1048, 1162, 1108, 1163
+ 1071, 1057, 1055, 973
+# group 0 end
+*END
+# repeat group segment if extra group(s) exist
+...
+# end of file
+*EOF
+
+///////////////////////////////////////////////////////////////////////////////
+    Implementation Ref of xylib: based on the analysis of the sample files.
+    
+*/
 
 #include "ds_rigaku_dat.h"
-#include "common.h"
 
 using namespace std;
 using namespace xylib::util;
 
 namespace xylib {
+
+const FormatInfo RigakuDataSet::fmt_info(
+    FT_RIGAKU,
+    "rigaku_dat",
+    "Rigaku dat Format",
+    vector<string>(1, "dat"),
+    false,                       // whether binary
+    true                         // whether multi-ranged
+);
 
 bool RigakuDataSet::is_filetype() const
 {

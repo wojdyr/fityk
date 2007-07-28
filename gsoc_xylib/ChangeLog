@@ -23,17 +23,23 @@ For the 1st issue, use endian.hpp to determine the endian of the machine, then e
 * re-implement the VAMAS reading function for license and mantainability considerations. Besides, many file-scope/range-scope meta variables are read
 
 3:32 2007-7-21 GMT+8 version 317
-* changed the existing code following Marcin's advice (fp, left-hand & right-hand, put xylib::util into separated files, etc..)
+* changed the existing code following Marcin's advice (removed user-defined type "fp", left-hand & right-hand, put xylib::util into separated files, etc..)
 * added meta-info exporting in export_to_xy() with an optional param to determine whether export meta-info together with the xy data
 * new format support: Philips_udf format
 * Used a class "UxdLikeDataSet" to  present all UXD-like formats (so far, they are UXD, Rigaku_dat and Philips_udf format).
 * Re-wrote code of the UXD format parsing and Rigaku_dat format parsing with UxdLikeDataSet
 
 0:56 2007-7-25 GMT+8 version 320
-	* Added a README file in every sub dir in ./test, to describe some related info about the sample files and format implementation in xylib.
+* Added a README file in every sub dir in ./test, to describe some related info about the sample files and format implementation in xylib.
 * Improved xylib::guess_file_type(): can guess the file type by preview the file content.
 * Finished testmain.cpp. which can test all of the sample files (only on POSIX OSes, not implemented on Windows), and can also just export user specified input / output files.
 * re-organized some directories in ./test to make it more clear
 * Used my_getline() and seekg() instead of peek_line, to avoid reading every line twice.
 * Cleaned up code and some other slight changes, according to Marcin's advice.
 
+17:30 2007-7-28 GMT+8 version 325
+* Removed "common.h" file, and moved the needed functions to util.h
+* Move docs about file formats from "IMPLEMENTATION REF" in test/*/README and from docs/formats to ds_*.cpp files. Integrated the format info together into ds_*.cpp files
+* Cleaned up some code, /test -> /samples, update README and all comments, rm /docs
+* Added a "3rdparty" directory, put some of the boost lib headers there, in case that client does not have the boost library installed.
+* Changed to use struct FormatInfo to handle the format info, instead of using global arrays. Based on Marcin's advice with some modifications, e.g, the meanings of field "name" and "desc" are exchanged; added xy_ftype field etc.

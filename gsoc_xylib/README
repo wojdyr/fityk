@@ -1,41 +1,78 @@
 	CONTENT
-============	
+========================
 PURPOSE
 SUPPORTED FORMATS
+COMPILE
 FILES
 USAGE
-============
-
-
+AUTHORS
+SUPPRORT
+THANKS
+========================
 
 PURPOSE
 ============
+xylib is one of the projects in Google Summer of Code (GSoC) 2007 (see http://code.google.com/soc), assigned to fityk organization (http://www.unipress.waw.pl/fityk/). 
 xylib aims to be a common X-Y data format reading library by providing a set of unified and user-friendly APIs to accomplish such a task. Many point data processing applications will be able to use this library to get a wider range of data file format support.
 
 SUPPORTED FORMATS
 ============
-X-Y plain text format: .txt, .asc
-Siemens/Bruker uxd: .uxd
-Diffrac-AT raw v1, v2 & v3: .raw
+This is only a short list of all supported formats. For more info about the format, see "FORMAT DESCRIPTION" section in ds_XXX.cpp files.
+
+X-Y plain text format:  .txt, .asc, .dat
+Siemens/Bruker uxd:     .uxd
+Diffrac-AT raw v1/2/3:  .raw
+Philips UDF Format:     .udf
+Rigaku Dat Format:      .dat
+Vamas ISO14976:         .vms
 
 FILES
 ============
 xylib.h 
 xylib.cpp 
-	Implementation of the xylib functions and classes.
-	
-testmain.h
-testmain.cpp
-	A simple test program to test the lib. Tested sample files are located in the directory ./test
-	
-test/
-	Directory containing the original sample files. They are categorized into different sub-directories according to their types. For more detailed info (like where they are from), see the README file in each sub-directory.
-	
-out/
-	Directory containing the exported X-Y plain text files. They are organized as the same way as files in test/. For example, "test/uxd/sample3.uxd" will be exported to "out/uxd/sample3.uxd_tr.txt".
+	xylib functions and main classes.
 
+util.h
+util.cpp
+	Internal-used helper functions in namespace xylib::util.
+		
+ds_*.h
+ds_*.cpp
+	Derived classes from DataSet, for reading meta-data and xy-data from specified file format.
+	
+xyconv.cpp
+	A user tool with arguments to convert xylib-supported file to ascii file.
+	
+samples/
+	Original sample files categorized into different sub-directories according to their types.
+
+samples.sh
+	Shell script to test all sample files in ./samples, output to ./output.
+
+COMPILE
+============
+	Change current working directory to this position, then type
+gmake clean && gmake
 	
 USAGE
 ============
-To run the test program, just change current directory to here and "make", "./testmain" is the executable.
-To use xylib in your program, see how "testmain.cpp" and "testmain.h" do. Note that all classes, variables, functions are in the namespace "xylib".
+To run the test program xyconv, type "xyconv" for usage and all supported options; type "xyconv -l" to list all supported formats.
+To use xylib in your program, see xylib.h for the public interface, and xyconv.cpp to find out how to use it.
+
+AUTHORS
+============
+Peng ZHANG (zhangpengcas[a]gmail[d]com), the student in this GSoC 2007 project.
+Marcin Wojdyr (wojdyr[a]gmail[d]com), project mentor.
+
+SUPPRORT
+============
+If you find any bugs or problems, please feel free to send mail to the authors, or the fityk devel ML (fityk-devel[a]lists[d]sourceforge[d]net).
+
+THANKS
+============
+First of all, I'd like to thank my mentor Marcin Wojdyr for his careful and in-time mentoring during the whole project process. He spent lots of time to review my code and gave me many good suggestions about the library design and implementation.
+I'd like to thank Google for hosting the GSoC project to promote the Open Source Software in the globe. 
+Thanks to Michael Richardson <michael.richardson@vuw.ac.nz>, for his kind help to send us a specification of VAMAS format and some sample files, suggestion for the JCAMP-DX paper download URL.
+Thanks to David Hovis <dbh6@case.edu>, for sending us a WinSpec file format specification and the sample file.
+Thanks to Pablo Bianucci <pbian@physics.utexas.edu>, for sending us a WinSpec implentation source code and an SPE sample file.
+And thanks to all people who have helped me and gave suggestions to the xylib project. 

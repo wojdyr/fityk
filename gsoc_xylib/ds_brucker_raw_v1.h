@@ -1,7 +1,7 @@
-// Header of class BruckerV1RawDataSet for reading meta-data and xy-data from 
+// Header of class BruckerV1RawDataSet
 // Siemens/Bruker Diffrac-AT Raw File v1 format
-// Licence: GNU General Public License version 2
-// $Id: __MY_FILE_ID__ $
+// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// $Id: ds_brucker_raw_v1.h $
 
 #ifndef BRUCKER_RAW_V1_H
 #define BRUCKER_RAW_V1_H
@@ -21,6 +21,8 @@ namespace xylib {
         void load_data();
 
         static bool check(std::ifstream &f);
+
+        const static FormatInfo fmt_info;
     }; // end of BruckerV1RawDataSet
 }
 #endif // #ifndef BRUCKER_RAW_V1_H

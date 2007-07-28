@@ -1,14 +1,48 @@
-// Implementation of class BruckerV23RawDataSet for reading meta-data and xy-data from 
-// Licence: GNU General Public License version 2
-// $Id: BruckerV23RawDataSet.h $
+// Implementation of class BruckerV23RawDataSet for reading meta-data and 
+// xy-data from Siemens/Bruker Diffrac-AT Raw Format v2/3
+// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// ds_brucker_raw_v23.cpp $
+
+/*
+FORMAT DESCRIPTION:
+====================
+
+Siemens/Bruker Diffrac-AT Raw Format version 2/3, Data format used in 
+Siemens/Brucker X-ray diffractors.
+
+///////////////////////////////////////////////////////////////////////////////
+    * Name in progam:   ds_brucker_raw_v23, 
+    * Extension name:   raw
+    * Binary/Text:      binary
+    * Multi-ranged:     Y
+
+///////////////////////////////////////////////////////////////////////////////
+    * Format details:   
+It is of the same type in the data organizaton with the v1 format, except that 
+the fields have different meanings and offsets. See ds_brucker_raw_v1.cpp for 
+reference.
+
+///////////////////////////////////////////////////////////////////////////////
+    * Implementation Ref: See ds_brucker_raw_v1.cpp
+*/
+
 
 #include "ds_brucker_raw_v23.h"
-#include "common.h"
 
 using namespace std;
 using namespace xylib::util;
 
 namespace xylib {
+
+const FormatInfo BruckerV23RawDataSet::fmt_info(
+    FT_BR_RAW23,
+    "diffracat_v2v3_raw",
+    "Siemens/Bruker Diffrac-AT Raw File v2/v3",
+    vector<string>(1, "raw"),
+    true,                       // whether binary
+    true                        // whether multi-ranged
+);
+
 
 bool BruckerV23RawDataSet::is_filetype() const
 {

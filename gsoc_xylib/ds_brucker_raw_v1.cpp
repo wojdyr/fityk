@@ -1,14 +1,62 @@
-// Implementation of class BruckerV1RawDataSet for reading meta-data and xy-data from 
-// Licence: GNU General Public License version 2
-// $Id: __MY_FILE_ID__ $
+// Implementation of class BruckerV1RawDataSet for reading meta-data and 
+// xy-data from Siemens/Bruker Diffrac-AT Raw Format version 1 format files
+// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// $Id: ds_brucker_raw_v1.cpp $
+
+/*
+
+FORMAT DESCRIPTION:
+====================
+
+Siemens/Bruker Diffrac-AT Raw Format version 1, data format used in 
+Siemens/Brucker X-ray diffractors.
+
+///////////////////////////////////////////////////////////////////////////////
+    * Name in progam:   ds_brucker_raw_v1
+    * Extension name:   raw
+    * Binary/Text:      binary
+    * Multi-ranged:     Y
+    
+///////////////////////////////////////////////////////////////////////////////
+    * Format details: 
+direct access, binary raw format without any record deliminators. 
+All data are stored in records, and each record has a fixed length. Note that 
+in one record, the data is stored as little-endian (see "endian" in wikipedia
+www.wikipedia.org for details), so on the platform other than little-endian
+(e.g. PDP and Sun SPARC), the byte-order needs be exchanged.
+
+It may contain multiple groups/ranges in one file.
+There is a common header in the head of the file, with fixed length fields 
+indicating file-scope meta-info whose actrual meaning can be found in the 
+format specification.Each range has its onw range-scope meta-info at the 
+beginning, followed by the X-Y data.
+
+///////////////////////////////////////////////////////////////////////////////
+    * Implementation Ref of xylib: 
+mainly based on the file format specification: some scanned pages from a book, 
+sent to me by Marcin Wojdyr (wojdyr@gmail.com). 
+The title of these pages are "Appendix B: DIFFRAC-AT Raw Data File Format". 
+In these pages, there are some tables listing every field of the DIFFRAC-AT v1 
+and v2/v3 formats; and at the end, a sample FORTRAN program is given.
+
+*/
 
 #include "ds_brucker_raw_v1.h"
-#include "common.h"
 
 using namespace std;
 using namespace xylib::util;
 
 namespace xylib {
+
+const FormatInfo BruckerV1RawDataSet::fmt_info(
+    FT_BR_RAW1,
+    "diffracat_v1_raw",
+    "Siemens/Bruker Diffrac-AT Raw Format v1",
+    vector<string>(1, "raw"),
+    true,                       // whether binary
+    true                        // whether multi-ranged
+);
+
 
 bool BruckerV1RawDataSet::is_filetype() const
 {
@@ -28,7 +76,7 @@ bool BruckerV1RawDataSet::check(ifstream &f)
     return ("RAW" == head);
 }
 
-// if user doesn't want the meta-info, they can simply ignore it to improve the performance
+
 void BruckerV1RawDataSet::load_data() 
 {
     // no file-scope meta-info in this format
