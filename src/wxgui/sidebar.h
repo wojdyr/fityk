@@ -58,7 +58,7 @@ public:
     int get_focused_data() const;
     int get_active_function() const { return active_function; }
     int get_focused_var() const;
-    bool is_func_selected(int n) const;
+    //bool is_func_selected(int n) const;
     int set_selection(int page) { return nb->SetSelection(page); }
     void activate_function(int n);
     std::vector<std::string> get_selected_data() const;

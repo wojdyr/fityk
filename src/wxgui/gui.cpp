@@ -189,7 +189,7 @@ enum {
     ID_G_LCONF                 ,
     ID_G_LCONFB                ,
     ID_G_LCONF_X               ,
-    ID_G_LCONF_X_END = ID_G_LCONF_X+20,
+    ID_G_LCONF_X_END = ID_G_LCONF_X+50,
     ID_G_SCONF                 ,
     ID_G_SCONF1                ,
     ID_G_SCONF2                ,
@@ -251,25 +251,31 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_S_EXPORTF,     FFrame::OnSExport)   
     EVT_MENU (ID_S_EXPORTD,     FFrame::OnDExport)   
 
-    EVT_UPDATE_UI (ID_F_METHOD, FFrame::OnFMethodUpdate)
-    EVT_MENU_RANGE (ID_F_M+0, ID_F_M_END, FFrame::OnFOneOfMethods)    
+    EVT_UPDATE_UI_RANGE (ID_F_M, ID_F_M_END, FFrame::OnFMethodUpdate)
+    EVT_MENU_RANGE (ID_F_M, ID_F_M_END, FFrame::OnFOneOfMethods)    
     EVT_MENU (ID_F_RUN,         FFrame::OnFRun)    
     EVT_MENU (ID_F_INFO,        FFrame::OnFInfo)    
+    EVT_UPDATE_UI (ID_F_UNDO, FFrame::OnMenuFitUndoUpdate)
     EVT_MENU (ID_F_UNDO,        FFrame::OnFUndo)    
+    EVT_UPDATE_UI (ID_F_REDO, FFrame::OnMenuFitRedoUpdate)
     EVT_MENU (ID_F_REDO,        FFrame::OnFRedo)    
+    EVT_UPDATE_UI (ID_F_HISTORY, FFrame::OnMenuFitHistoryUpdate)
     EVT_MENU (ID_F_HISTORY,     FFrame::OnFHistory)    
+    EVT_UPDATE_UI (ID_F_CLEARH, FFrame::OnMenuFitClearHistoryUpdate)
     EVT_MENU (ID_F_CLEARH,      FFrame::OnFClearH)
 
-    EVT_UPDATE_UI (ID_SESSION_LOG, FFrame::OnLogUpdate)    
+    EVT_UPDATE_UI (ID_LOG_START, FFrame::OnMenuLogStartUpdate)
     EVT_MENU (ID_LOG_START,     FFrame::OnLogStart)
+    EVT_UPDATE_UI (ID_LOG_STOP, FFrame::OnMenuLogStopUpdate)
     EVT_MENU (ID_LOG_STOP,      FFrame::OnLogStop)
+    EVT_UPDATE_UI (ID_LOG_WITH_OUTPUT, FFrame::OnMenuLogOutputUpdate)
     EVT_MENU (ID_LOG_WITH_OUTPUT, FFrame::OnLogWithOutput)
     EVT_MENU (ID_LOG_DUMP,      FFrame::OnLogDump)
     EVT_MENU (ID_O_RESET,       FFrame::OnReset)    
     EVT_MENU (ID_O_INCLUDE,     FFrame::OnInclude)    
     EVT_MENU (ID_O_REINCLUDE,   FFrame::OnReInclude)    
     EVT_MENU (ID_S_DEBUGGER,    FFrame::OnDebugger)    
-    EVT_MENU (wxID_PRINT,         FFrame::OnPrint)
+    EVT_MENU (wxID_PRINT,       FFrame::OnPrint)
     EVT_MENU (ID_PRINT_PSFILE,  FFrame::OnPrintPSFile)
     EVT_MENU (ID_PRINT_CLIPB,   FFrame::OnPrintToClipboard)
     EVT_MENU (ID_PAGE_SETUP,    FFrame::OnPageSetup)
@@ -283,14 +289,16 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_M_BG,        FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_ADD,       FFrame::OnChangeMouseMode)
     EVT_MENU_RANGE (ID_G_M_PEAK_N, ID_G_M_PEAK_N_END, FFrame::OnChangePeakType)
-    EVT_UPDATE_UI(ID_G_M_BG_SUB,FFrame::OnGMBgUpdate)
+    EVT_UPDATE_UI(ID_G_M_BG_STRIP, FFrame::OnMenuBgStripUpdate)
+    EVT_UPDATE_UI(ID_G_M_BG_UNDO, FFrame::OnMenuBgUndoUpdate)
+    EVT_UPDATE_UI(ID_G_M_BG_CLEAR, FFrame::OnMenuBgClearUpdate)
     EVT_MENU (ID_G_M_BG_STRIP,  FFrame::OnStripBg)
     EVT_MENU (ID_G_M_BG_UNDO,   FFrame::OnUndoBg)
     EVT_MENU (ID_G_M_BG_CLEAR,  FFrame::OnClearBg)
     EVT_MENU (ID_G_M_BG_SPLINE, FFrame::OnSplineBg)
-    EVT_UPDATE_UI (ID_G_SHOW,   FFrame::OnGuiShowUpdate)
     EVT_MENU (ID_G_S_SIDEB,     FFrame::OnSwitchSideBar)
     EVT_MENU_RANGE (ID_G_S_A1, ID_G_S_A2, FFrame::OnSwitchAuxPlot)
+    EVT_UPDATE_UI_RANGE (ID_G_S_A1, ID_G_S_A2,  FFrame::OnMenuShowAuxUpdate)
     EVT_MENU (ID_G_S_IO,        FFrame::OnSwitchIOPane)
     EVT_MENU (ID_G_S_TOOLBAR,   FFrame::OnSwitchToolbar)
     EVT_MENU (ID_G_S_STATBAR,   FFrame::OnSwitchStatbar)
@@ -309,7 +317,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_LCONF1,      FFrame::OnConfigRead)
     EVT_MENU (ID_G_LCONF2,      FFrame::OnConfigRead)
     EVT_MENU (ID_G_LCONFB,      FFrame::OnConfigBuiltin)
-    EVT_UPDATE_UI (ID_G_LCONFB, FFrame::OnUpdateLConfMenu)
     EVT_MENU_RANGE (ID_G_LCONF_X, ID_G_LCONF_X_END, FFrame::OnConfigX)
     EVT_MENU (ID_G_SCONF1,      FFrame::OnConfigSave)
     EVT_MENU (ID_G_SCONF2,      FFrame::OnConfigSave)
@@ -733,6 +740,7 @@ void FFrame::set_menubar()
     gui_menu_lconfig->Append(ID_G_LCONFB, wxT("&built-in"), 
                                                wxT("Built-in configuration"));
     gui_menu_lconfig->AppendSeparator();
+    update_config_menu(gui_menu_lconfig);
     gui_menu->Append(ID_G_LCONF, wxT("&Load config..."), gui_menu_lconfig);
     wxMenu* gui_menu_sconfig = new wxMenu;
     gui_menu_sconfig->Append(ID_G_SCONF1, wxT("as default"), 
@@ -975,16 +983,30 @@ void FFrame::OnSExport (wxCommandEvent& event)
         
 void FFrame::OnFMethodUpdate (wxUpdateUIEvent& event)
 {
-    FitMethodsContainer const* fmc = ftk->get_fit_container();
     int n = ftk->get_settings()->get_e("fitting-method");
-    GetMenuBar()->Check (ID_F_M + n, true);
-    // to make it simpler, history menu items are also updated here
-    GetMenuBar()->Enable(ID_F_UNDO, fmc->can_undo());
-    GetMenuBar()->Enable(ID_F_REDO, fmc->has_param_history_rel_item(1));
-    GetMenuBar()->Enable(ID_F_HISTORY, fmc->get_param_history_size() != 0);
-    GetMenuBar()->Enable(ID_F_CLEARH, fmc->get_param_history_size() != 0);
-    event.Skip();
+    event.Check (ID_F_M + n == event.GetId());
 }
+
+void FFrame::OnMenuFitUndoUpdate(wxUpdateUIEvent& event)
+{
+    event.Enable(ftk->get_fit_container()->can_undo());
+}
+
+void FFrame::OnMenuFitRedoUpdate(wxUpdateUIEvent& event)
+{
+    event.Enable(ftk->get_fit_container()->has_param_history_rel_item(1));
+}
+
+void FFrame::OnMenuFitHistoryUpdate(wxUpdateUIEvent& event)
+{
+    event.Enable(ftk->get_fit_container()->get_param_history_size() != 0);
+}
+
+void FFrame::OnMenuFitClearHistoryUpdate(wxUpdateUIEvent& event)
+{
+    event.Enable(ftk->get_fit_container()->get_param_history_size() != 0);
+}
+
 
 void FFrame::OnFOneOfMethods (wxCommandEvent& event)
 {
@@ -1025,21 +1047,23 @@ void FFrame::OnFClearH (wxCommandEvent&)
     ftk->exec("fit history clear");
 }
          
-         
-void FFrame::OnLogUpdate (wxUpdateUIEvent& event)        
+void FFrame::OnMenuLogStartUpdate (wxUpdateUIEvent& event)        
 {
     string const& logfile = ftk->get_ui()->get_commands().get_log_file();
-    if (logfile.empty()) {
-        GetMenuBar()->Enable(ID_LOG_START, true);
-        GetMenuBar()->Enable(ID_LOG_STOP, false);
-    }
-    else {
-        GetMenuBar()->Enable(ID_LOG_START, false);
-        GetMenuBar()->Enable(ID_LOG_STOP, true);
-        GetMenuBar()->Check(ID_LOG_WITH_OUTPUT, 
-                          ftk->get_ui()->get_commands().get_log_with_output());
-    }
-    event.Skip();
+    event.Enable(logfile.empty());
+}
+
+void FFrame::OnMenuLogStopUpdate (wxUpdateUIEvent& event)        
+{
+    string const& logfile = ftk->get_ui()->get_commands().get_log_file();
+    event.Enable(!logfile.empty());
+}
+
+void FFrame::OnMenuLogOutputUpdate (wxUpdateUIEvent& event)        
+{
+    string const& logfile = ftk->get_ui()->get_commands().get_log_file();
+    if (!logfile.empty())
+        event.Check(ftk->get_ui()->get_commands().get_log_with_output());
 }
 
 void FFrame::OnLogStart (wxCommandEvent&)
@@ -1238,13 +1262,20 @@ void FFrame::OnChangePeakType(wxCommandEvent& event)
     update_autoadd_enabled();
 }
 
-void FFrame::OnGMBgUpdate(wxUpdateUIEvent& event)
+void FFrame::OnMenuBgStripUpdate(wxUpdateUIEvent& event)
+{
+    event.Enable(plot_pane->get_bg_manager()->can_strip());
+}
+
+void FFrame::OnMenuBgUndoUpdate(wxUpdateUIEvent& event)
+{
+    event.Enable(plot_pane->get_bg_manager()->can_undo());
+}
+
+void FFrame::OnMenuBgClearUpdate(wxUpdateUIEvent& event)
 {
     BgManager* bgm = plot_pane->get_bg_manager();
-    GetMenuBar()->Enable(ID_G_M_BG_STRIP, bgm->can_strip());
-    GetMenuBar()->Enable(ID_G_M_BG_UNDO, bgm->can_undo());
-    GetMenuBar()->Enable(ID_G_M_BG_CLEAR, bgm->can_strip() || bgm->can_undo());
-    event.Skip();
+    event.Enable(bgm->can_strip() || bgm->can_undo());
 }
 
 void FFrame::OnStripBg(wxCommandEvent&)
@@ -1367,12 +1398,9 @@ void FFrame::OnSwitchFullScreen(wxCommandEvent& event)
               wxFULLSCREEN_NOBORDER|wxFULLSCREEN_NOCAPTION);
 }
 
-void FFrame::OnGuiShowUpdate (wxUpdateUIEvent& event)
+void FFrame::OnMenuShowAuxUpdate (wxUpdateUIEvent& event)
 {
-    for (int i = 0; i < 2; i++) 
-        if (GetMenuBar()->IsChecked(ID_G_S_A1+i) != plot_pane->aux_visible(i))
-            GetMenuBar()->Check(ID_G_S_A1+i, plot_pane->aux_visible(i));
-    event.Skip();
+    event.Check(plot_pane->aux_visible(event.GetId() - ID_G_S_A1));
 }
 
 void FFrame::GViewAll()
@@ -1458,6 +1486,9 @@ void FFrame::OnConfigSaveAs (wxCommandEvent&)
                       wxT("other"));
     if (!txt.IsEmpty())
         save_config_as(dir+txt);
+
+    wxMenu *config_menu = GetMenuBar()->FindItem(ID_G_LCONF)->GetSubMenu();
+    update_config_menu(config_menu);
 }
 
 void FFrame::save_config_as(wxString const& name)
@@ -1497,29 +1528,19 @@ void FFrame::OnConfigBuiltin (wxCommandEvent&)
     delete config;
 }
 
-void FFrame::OnUpdateLConfMenu (wxUpdateUIEvent& event)
+void FFrame::update_config_menu(wxMenu *menu)
 {
+    // the first two items are "built-in" and separator, not to be deleted
+    int old_count = menu->GetMenuItemCount() - 2;
     // delete old menu items
-    wxMenu *menu = GetMenuBar()->FindItem(ID_G_LCONF)->GetSubMenu(); 
-    while (menu->GetMenuItemCount() > 2) //clear 
-        menu->Delete(menu->GetMenuItems().GetLast()->GetData());
-
-    // prepare listing config directory
-    wxDir dir(wxGetApp().config_dir);
-    if (!dir.IsOpened())
-        return;
-
-    // add new menu items
-    wxString filename;     
-    int j = 0;
-    bool cont = dir.GetFirst(&filename, wxT(""), wxDIR_FILES|wxDIR_HIDDEN);
-    while (cont && j < 15) { 
-        menu->Append(ID_G_LCONF_X + j, filename);
-        ++j;
-        cont = dir.GetNext(&filename); 
-    }
-
-    event.Skip();
+    for (int i = 0; i < old_count; ++i) 
+        menu->Destroy(ID_G_LCONF_X + i);
+    // add new items
+    wxArrayString filenames;
+    int n = wxDir::GetAllFiles(wxGetApp().config_dir, &filenames);
+    int config_number_limit = ID_G_LCONF_X_END - ID_G_LCONF_X;
+    for (int i = 0; i < min(n, config_number_limit); ++i) 
+        menu->Append(ID_G_LCONF_X + i, filenames[i]);
 }
 
 
@@ -1527,8 +1548,14 @@ void FFrame::OnConfigX (wxCommandEvent& event)
 {
     wxMenu *menu = GetMenuBar()->FindItem(ID_G_LCONF)->GetSubMenu(); 
     wxString name = menu->GetLabel(event.GetId());
-    if (!name.IsEmpty())
-        read_config(wxGetApp().config_dir + name);
+    if (name.IsEmpty())
+        return;
+    wxString filename = wxGetApp().config_dir + name;
+    // wxFileExists returns false for links, but it's not a problem if the menu
+    // is updated 
+    if (!wxFileExists(filename)) 
+        update_config_menu(menu);
+    read_config(filename);
 }
 
 

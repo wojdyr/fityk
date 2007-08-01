@@ -83,6 +83,10 @@ public:
     void OnSExport       (wxCommandEvent& event);           
 
     void OnFMethodUpdate (wxUpdateUIEvent& event);           
+    void OnMenuFitUndoUpdate (wxUpdateUIEvent& event);
+    void OnMenuFitRedoUpdate (wxUpdateUIEvent& event);
+    void OnMenuFitHistoryUpdate (wxUpdateUIEvent& event);
+    void OnMenuFitClearHistoryUpdate (wxUpdateUIEvent& event);
     void OnFOneOfMethods (wxCommandEvent& event);
     void OnFRun          (wxCommandEvent& event);        
     void OnFInfo         (wxCommandEvent& event);         
@@ -91,7 +95,9 @@ public:
     void OnFHistory      (wxCommandEvent& event);         
     void OnFClearH       (wxCommandEvent& event);         
 
-    void OnLogUpdate     (wxUpdateUIEvent& event);        
+    void OnMenuLogStartUpdate (wxUpdateUIEvent& event);        
+    void OnMenuLogStopUpdate (wxUpdateUIEvent& event);        
+    void OnMenuLogOutputUpdate (wxUpdateUIEvent& event);        
     void OnLogStart      (wxCommandEvent& event);        
     void OnLogStop       (wxCommandEvent& event);        
     void OnLogWithOutput (wxCommandEvent& event);        
@@ -111,7 +117,9 @@ public:
     void OnPrintToClipboard (wxCommandEvent&);
     void OnChangeMouseMode (wxCommandEvent&);
     void OnChangePeakType(wxCommandEvent& event);
-    void OnGMBgUpdate    (wxUpdateUIEvent& event);
+    void OnMenuBgStripUpdate(wxUpdateUIEvent& event);
+    void OnMenuBgUndoUpdate(wxUpdateUIEvent& event);
+    void OnMenuBgClearUpdate(wxUpdateUIEvent& event);
     void OnStripBg       (wxCommandEvent& event);
     void OnUndoBg        (wxCommandEvent& event);
     void OnClearBg       (wxCommandEvent& event);
@@ -126,11 +134,10 @@ public:
     void OnPreviousZoom  (wxCommandEvent& event);
     void OnConfigRead    (wxCommandEvent& event);
     void OnConfigBuiltin (wxCommandEvent& event);
-    void OnUpdateLConfMenu (wxUpdateUIEvent& event);
     void OnConfigX (wxCommandEvent& event);
     void OnConfigSave    (wxCommandEvent& event);
     void OnConfigSaveAs  (wxCommandEvent&);
-    void OnGuiShowUpdate (wxUpdateUIEvent& event);
+    void OnMenuShowAuxUpdate (wxUpdateUIEvent& event);
     void SwitchSideBar(bool show);
     void OnSwitchSideBar(wxCommandEvent& ev) {SwitchSideBar(ev.IsChecked());}
     void OnSwitchAuxPlot(wxCommandEvent& ev);
@@ -168,6 +175,7 @@ public:
     void after_cmd_updates();
     void update_toolbar();
     void update_autoadd_enabled();
+    void update_config_menu(wxMenu *menu);
     std::string get_active_data_str();
     std::string get_in_dataset();
     std::string get_in_one_or_all_datasets();

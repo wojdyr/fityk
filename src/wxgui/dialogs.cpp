@@ -356,6 +356,7 @@ void FitRunDlg::OnOK(wxCommandEvent&)
             cmd += " in @*";
     }
 
+    Show(false);
     ftk->exec(cmd);
     close_it(this, wxID_OK);
 }

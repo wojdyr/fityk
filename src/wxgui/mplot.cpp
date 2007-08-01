@@ -1677,7 +1677,7 @@ void BgManager::add_background_point(fp x, fp y)
             return;
     }
     rm_background_point(x);
-    B_point t(x, y);
+    PointQ t(x, y);
     bg_iterator l = lower_bound(bg.begin(), bg.end(), t);
     bg.insert (l, t);
     recompute_bgline();
@@ -1690,8 +1690,8 @@ void BgManager::rm_background_point (fp x)
     fp upper = x_scale.val(X + min_dist);
     if (lower > upper) 
         swap(lower, upper);
-    bg_iterator l = lower_bound(bg.begin(), bg.end(), B_point(lower, 0));
-    bg_iterator u = upper_bound (bg.begin(), bg.end(), B_point(upper, 0));
+    bg_iterator l = lower_bound(bg.begin(), bg.end(), PointQ(lower, 0));
+    bg_iterator u = upper_bound (bg.begin(), bg.end(), PointQ(upper, 0));
     if (u > l) {
         bg.erase(l, u);
         ftk->vmsg (S(u - l) + " background points removed.");
@@ -1748,6 +1748,19 @@ void BgManager::recompute_bgline()
         bgline[i].y = spline_bg ? get_spline_interpolation(bg, p[i].x)
                                 : get_linear_interpolation(bg, p[i].x);
     }
+}
+
+void BgManager::set_as_convex_hull()
+{
+    SimplePolylineConvex convex;
+    int focused_data = ftk->get_active_ds_position();
+    const Data* data = ftk->get_data(focused_data);
+    for (int i = 0; i < data->get_n(); ++i)
+        convex.push_point(PointQ(data->get_x(i), data->get_y(i)));
+
+    bg = convex.get_vertices();
+    bg_backup.clear();
+    recompute_bgline();
 }
 
 

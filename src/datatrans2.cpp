@@ -35,13 +35,13 @@ public:
 
     void do_prepare() {
         for (int i = 0; i < size(params) - 1; i += 2)
-            bb.push_back(B_point(params[i], params[i+1]));
+            bb.push_back(PointQ(params[i], params[i+1]));
     }
 
     fp calculate(fp x) { return get_linear_interpolation(bb, x); }
 
 private:
-    std::vector<B_point> bb;
+    std::vector<PointQ> bb;
 };
 
 
@@ -54,14 +54,14 @@ public:
 
     void do_prepare() {
         for (int i = 0; i < size(params) - 1; i += 2)
-            bb.push_back(B_point(params[i], params[i+1]));
+            bb.push_back(PointQ(params[i], params[i+1]));
         prepare_spline_interpolation(bb);
     }
 
     fp calculate(fp x) { return get_spline_interpolation(bb, x); }
 
 private:
-    std::vector<B_point> bb;
+    std::vector<PointQ> bb;
 };
 
 //----------------------   functors   -------------------------

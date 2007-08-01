@@ -7,7 +7,7 @@
 
 #include "plot.h"
 #include "cmn.h"
-#include "../numfuncs.h" // B_point definition
+#include "../numfuncs.h" // PointQ definition
 #include "../guess.h" // enum FunctionKind 
 
 
@@ -31,13 +31,14 @@ public:
     bool can_strip() const { return !bg.empty(); }
     bool can_undo() const { return !bg_backup.empty(); }
     void set_spline_bg(bool s) { spline_bg=s; recompute_bgline(); }
+    void set_as_convex_hull();
 protected:
     Scale const& x_scale;
     int min_dist; //minimal distance in X between bg points
     bool spline_bg;
-    typedef std::vector<B_point>::iterator bg_iterator;
-    typedef std::vector<B_point>::const_iterator bg_const_iterator;
-    std::vector<B_point> bg, bg_backup;
+    typedef std::vector<PointQ>::iterator bg_iterator;
+    typedef std::vector<PointQ>::const_iterator bg_const_iterator;
+    std::vector<PointQ> bg, bg_backup;
     std::vector<t_xy> bgline;
     std::string cmd_tail;
 

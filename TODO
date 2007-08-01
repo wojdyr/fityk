@@ -11,19 +11,14 @@ Legend:
 
 // * GUI: remember data show choice ("show only selected", etc.) in settings
 
-* GUI: zoom all/vertically: if "show only sel" etc. and multiple selections,
-    zoom to show _all_ selected datasets
-
-* GUI: should (and where) windows size & position be stored?
+// * GUI: zoom all/vertically: if "show only sel" etc. and multiple selections,
+//     zoom to show _all_ selected datasets
 
 // * make SVG icon, mv fityk.png 
 
 // * add fityk.xml mime specification (for .fit and .xy) to the tarball.
 
-* the API should be designed as FitykAPI class, rather than namespace,
-  to enable multiple instances of the class. 
-
-* GUI: fit run dialog should be hidden before fitting starts
+// * the API should be designed as Fityk class
 
 * XPS Shirley background removing
 
@@ -32,6 +27,8 @@ Legend:
 * check if open-data plot preview still works 
 
 * check compilation with wxMac 
+
+//? * check all wxUpdateUIEvent
 
 --------------> 0.8.2
 
@@ -53,6 +50,8 @@ Legend:
   "stop" bitmap button? in right left corner? 
 
 * refactor guess.cpp to be thread-safe
+
+* GUI: should (and where) windows size & position be stored?
 
 --------------> 0.8.3
 

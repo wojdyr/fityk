@@ -634,10 +634,11 @@ int SideBar::get_focused_var() const
     }
 }
 
-bool SideBar::is_func_selected(int n) const 
-{ 
-    return f->list->IsSelected(n) || f->list->GetFocusedItem() == n; 
-}
+//bool SideBar::is_func_selected(int n) const 
+//{ 
+//    return f->list->IsSelected(n) || f->list->GetFocusedItem() == n; 
+//}
+//
 
 void SideBar::activate_function(int n)
 {
@@ -675,10 +676,18 @@ void SideBar::DataFocusChanged()
 
 string SideBar::get_datasets_str()
 {
-    if (data_look->GetSelection() == 0)
+    if (data_look->GetSelection() == 0) // all datasets
         return "@*";
-    else
-        return frame->get_active_data_str();
+    else { // only selected datasets
+        int first = d->list->GetFirstSelected();
+        if (first == -1)
+            return frame->get_active_data_str();
+        string s = "@" + S(first);
+        for (int i = d->list->GetNextSelected(first); i != -1; 
+                                              i = d->list->GetNextSelected(i))
+            s += ", @" + S(i);
+        return s;
+    }
 }
 
 void SideBar::update_data_inf()

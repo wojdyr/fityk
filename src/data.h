@@ -41,7 +41,7 @@ public :
     fp get_x(int n) const { return p[active_p[n]].x; }
     fp get_y(int n) const { return p[active_p[n]].y; } 
     fp get_sigma (int n) const { return p[active_p[n]].sigma; }
-    int get_n () const { return active_p.size(); }
+    int get_n() const { return active_p.size(); }
     bool is_empty() const { return p.empty(); }
     bool has_any_info() const { return !is_empty() || !get_title().empty(); }
     fp get_x_step() const { return x_step; } /// 0.0 if not fixed

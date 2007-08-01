@@ -3,18 +3,17 @@
 // $Id$
 
 #include "common.h"
-#include "data.h"
 #include "numfuncs.h"
 
 #include <algorithm>
 
 using namespace std;
 
-vector<B_point>::iterator 
-get_interpolation_segment(vector<B_point> &bb,  fp x)
+vector<PointQ>::iterator 
+get_interpolation_segment(vector<PointQ> &bb,  fp x)
 {
     //optimized for sequence of x = x1, x2, x3, x1 < x2 < x3...
-    static vector<B_point>::iterator pos = bb.begin();
+    static vector<PointQ>::iterator pos = bb.begin();
     assert (size(bb) > 1);
     if (x <= bb.front().x)
         return bb.begin();
@@ -32,12 +31,12 @@ get_interpolation_segment(vector<B_point> &bb,  fp x)
         if (pos->x <= x && (pos+1 == bb.end() || x <= (pos+1)->x)) 
             return pos;
     }
-    pos = lower_bound(bb.begin(), bb.end(), B_point(x, 0)) - 1;
+    pos = lower_bound(bb.begin(), bb.end(), PointQ(x, 0)) - 1;
     // pos >= bb.begin() because x > bb.front().x
     return pos;
 }
 
-void prepare_spline_interpolation (vector<B_point> &bb)
+void prepare_spline_interpolation (vector<PointQ> &bb)
 {   
     //first wroten for bb interpolation, then generalized
     const int n = bb.size();
@@ -47,7 +46,7 @@ void prepare_spline_interpolation (vector<B_point> &bb)
     bb[0].q = 0; //natural spline
     vector<fp> u(n);
     for (int k = 1; k <= n-2; k++) {
-        B_point *b = &bb[k];
+        PointQ *b = &bb[k];
         fp sig = (b->x - (b-1)->x) / ((b+1)->x - (b-1)->x);
         fp t = sig * (b-1)->q + 2.;
         b->q = (sig - 1.) / t;
@@ -57,18 +56,18 @@ void prepare_spline_interpolation (vector<B_point> &bb)
     }
     bb.back().q = 0; 
     for (int k = n-2; k >= 0; k--) {
-        B_point *b = &bb[k];
+        PointQ *b = &bb[k];
         b->q = b->q * (b+1)->q + u[k];
     }
 }
 
-fp get_spline_interpolation(vector<B_point> &bb, fp x)
+fp get_spline_interpolation(vector<PointQ> &bb, fp x)
 {
     if (bb.empty())
         return 0.;
     if (bb.size() == 1)
         return bb[0].y;
-    vector<B_point>::iterator pos = get_interpolation_segment(bb, x);
+    vector<PointQ>::iterator pos = get_interpolation_segment(bb, x);
     // based on Numerical Recipes www.nr.com
     fp h = (pos+1)->x - pos->x;
     fp a = ((pos+1)->x - x) / h;
@@ -78,13 +77,13 @@ fp get_spline_interpolation(vector<B_point> &bb, fp x)
     return t;
 }
 
-fp get_linear_interpolation(vector<B_point> &bb, fp x)
+fp get_linear_interpolation(vector<PointQ> &bb, fp x)
 {
     if (bb.empty())
         return 0.;
     if (bb.size() == 1)
         return bb[0].y;
-    vector<B_point>::iterator pos = get_interpolation_segment(bb, x);
+    vector<PointQ>::iterator pos = get_interpolation_segment(bb, x);
     fp a = ((pos + 1)->y - pos->y) / ((pos + 1)->x - pos->x);
     return pos->y + a * (x  - pos->x);
 }
@@ -139,6 +138,20 @@ fp rand_cauchy()
         fp rsq = x1 * x1 + x2 * x2;
         if (rsq >= TINY && rsq < 1 && fabs(x1) >= TINY)
             return (x2 / x1);
+    }
+}
+
+
+void SimplePolylineConvex::push_point(PointQ const& p)
+{
+    if (vertices.size() < 2 
+            || is_left(*(vertices.end() - 2), *(vertices.end() - 1), p)) 
+        vertices.push_back(p);
+    else { 
+        // the middle point (the last one currently in vertices) is not convex
+        // remove it and check again the last three points
+        vertices.pop_back(); 
+        push_point(p);
     }
 }
 
