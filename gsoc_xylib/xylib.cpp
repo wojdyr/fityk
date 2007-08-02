@@ -13,6 +13,7 @@
 #include "ds_uxd.h"
 #include "ds_vamas.h"
 #include "ds_philips_udf.h"
+#include "ds_winspec_spe.h"
 
 #include <iostream>
 #include <algorithm>
@@ -34,6 +35,7 @@ const FormatInfo *g_fi[] = {
     &BruckerV23RawDataSet::fmt_info,
     &VamasDataSet::fmt_info,
     &UdfDataSet::fmt_info,
+    &WinspecSpeDataSet::fmt_info,
 };
 
 
@@ -366,6 +368,8 @@ DataSet* getNewDataSet(const string &filename, xy_ftype filetype /* = FT_UNKNOWN
         pd = new VamasDataSet(filename);
     } else if (FT_UDF == ft) {
         pd = new UdfDataSet(filename);
+    } else if (FT_SPE == ft) {
+        pd = new WinspecSpeDataSet(filename);
     } else {
         pd = NULL;
         throw XY_Error("unkown or unsupported file type");
@@ -415,6 +419,8 @@ xy_ftype guess_file_type(const string &fpath)
             } else {
                 return FT_TEXT;
             }
+        } else if ("spe" == ext) {
+            return FT_SPE;
         } else {
             return FT_UNKNOWN;
         }

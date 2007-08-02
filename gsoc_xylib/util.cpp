@@ -38,6 +38,15 @@ namespace util{
         return val;
     }
 
+    unsigned read_int16_le(ifstream &f, unsigned offset)
+    {
+        int16_t val;
+        f.seekg(offset);
+        f.read(reinterpret_cast<char*>(&val), sizeof(val));
+        le_to_host(&val, sizeof(val));
+        return val;
+    }
+
     // the same as above, but read a float
     float read_flt_le(ifstream &f, unsigned offset)
     {
@@ -48,8 +57,18 @@ namespace util{
         return val;
     }
 
-
     // the same as above, but read a float
+    double read_dbl_le(ifstream &f, unsigned offset)
+    {
+        double val;
+        f.seekg(offset);
+        f.read(reinterpret_cast<char*>(&val), sizeof(val));
+        le_to_host(&val, sizeof(val));
+        return val;
+    }
+
+
+    // read a string from f
     string read_string(ifstream &f, unsigned offset, unsigned len) 
     {
         static char buf[65536];
@@ -62,18 +81,18 @@ namespace util{
     // remove all space chars in str, not used now
     void rm_spaces(string &str)
     {
-        string ll(str);
+        string ss(str);
         str.clear();
         do {
-            string::size_type first_pos = ll.find_first_not_of(" \t\r\n");
+            string::size_type first_pos = ss.find_first_not_of(" \t\r\n");
             if (string::npos == first_pos) {
                 break;
             } else {
-                ll = ll.substr(first_pos);
-                str.append(&ll[0],1);
-                ll = ll.substr(1);
+                ss = ss.substr(first_pos);
+                str.append(&ss[0],1);
+                ss = ss.substr(1);
             }
-        } while(ll.size() > 0);
+        } while(ss.size() > 0);
     }
 
 
@@ -126,16 +145,13 @@ namespace util{
 
     // change the byte-order from "little endian" to host endian
     // p: pointer to the data
-    // len: length of the data type, should be 1, 2, 4
+    // len: length of the data type, should be 1, 2, 4, 8
     void le_to_host(void *p, unsigned len)
     {
         /*
         for more info, see "endian" and "pdp-11" items in wikipedia
         www.wikipedia.org
         */
-        if ((len != 1) && (len != 2) && (len != 4)) {
-            throw XY_Error("len should be 1, 2, 4");
-        }
 
 # if defined(BOOST_LITTLE_ENDIAN)
         // no change
@@ -143,19 +159,27 @@ namespace util{
 # else  // BIG_ENDIAN or PDP_ENDIAN
         // store the old values
         uint8_t byte0(0), byte1(0), byte2(0), byte3(0);
+        uint8_t byte4(0), byte5(0), byte6(0), byte7(0);
         switch (len) {
-        case 1:
-            break;
-        case 2:
-            byte0 = (reinterpret_cast<uint8_t*>(p))[0];
-            byte1 = (reinterpret_cast<uint8_t*>(p))[1];
+        case 8:
+            byte4 = (reinterpret_cast<uint8_t*>(p))[4];
+            byte5 = (reinterpret_cast<uint8_t*>(p))[5];
+            byte6 = (reinterpret_cast<uint8_t*>(p))[6];
+            byte7 = (reinterpret_cast<uint8_t*>(p))[7];
         case 4:
             byte2 = (reinterpret_cast<uint8_t*>(p))[2];
             byte3 = (reinterpret_cast<uint8_t*>(p))[3];
+        case 2:
+            byte0 = (reinterpret_cast<uint8_t*>(p))[0];
+            byte1 = (reinterpret_cast<uint8_t*>(p))[1];
+
+        case 1:
             break;
+        
         default:
-            break;
+            throw XY_Error("len should be 1, 2, 4");;
         }
+        
 #  if defined(BOOST_BIG_ENDIAN)
         switch (len) {
         case 1:
@@ -169,7 +193,21 @@ namespace util{
             (reinterpret_cast<uint8_t*>(p))[1] = byte2;
             (reinterpret_cast<uint8_t*>(p))[2] = byte1;
             (reinterpret_cast<uint8_t*>(p))[3] = byte0;
+            break;
+        case 8:
+            (reinterpret_cast<uint8_t*>(p))[0] = byte7;
+            (reinterpret_cast<uint8_t*>(p))[1] = byte6;
+            (reinterpret_cast<uint8_t*>(p))[2] = byte5;
+            (reinterpret_cast<uint8_t*>(p))[3] = byte4;
+            (reinterpret_cast<uint8_t*>(p))[4] = byte3;
+            (reinterpret_cast<uint8_t*>(p))[5] = byte2;
+            (reinterpret_cast<uint8_t*>(p))[6] = byte1;
+            (reinterpret_cast<uint8_t*>(p))[7] = byte0;
+            break;
+        default:
+            break;
         }
+        
 #  elif defined(BOOST_PDP_ENDIAN)  // PDP_ENDIAN
         // 16-bit word are stored in little_endian
         // 32-bit word are stored in middle_endian: the most significant "half" (16-bits) followed by 
@@ -183,6 +221,13 @@ namespace util{
             (reinterpret_cast<uint8_t*>(p))[1] = byte3;
             (reinterpret_cast<uint8_t*>(p))[2] = byte0;
             (reinterpret_cast<uint8_t*>(p))[3] = byte1;
+            break;
+        case 8:
+            // I do not know how 8-byte atomic element is stored in PDP endian
+            // TODO: going to add once konw how it's stored
+            break;
+        default:
+            break;
         }
 #  endif    //#  if defined(BOOST_BIG_ENDIAN)
 # endif     //# if defined(BOOST_LITTLE_ENDIAN)       

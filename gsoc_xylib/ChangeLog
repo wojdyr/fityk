@@ -43,3 +43,8 @@ For the 1st issue, use endian.hpp to determine the endian of the machine, then e
 * Cleaned up some code, /test -> /samples, update README and all comments, rm /docs
 * Added a "3rdparty" directory, put some of the boost lib headers there, in case that client does not have the boost library installed.
 * Changed to use struct FormatInfo to handle the format info, instead of using global arrays. Based on Marcin's advice with some modifications, e.g, the meanings of field "name" and "desc" are exchanged; added xy_ftype field etc.
+
+6:02 2007-8-3 GMT+8 version 326
+* Added new format support of Princeton Instruments WinSpec SPE format
+* Extended some functions in util.cpp, 
+* Fixed a bug in function le_to_host()

@@ -59,7 +59,7 @@ using namespace xylib::util;
 namespace xylib {
 
 const FormatInfo UxdDataSet::fmt_info(
-    FT_UXD ,
+    FT_UXD,
     "uxd",
     "Siemens/Bruker Diffrac-AT UXD Format",
     vector<string>(1, "uxd"),

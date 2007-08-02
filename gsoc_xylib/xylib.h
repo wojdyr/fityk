@@ -36,6 +36,7 @@ enum xy_ftype {
     FT_BR_RAW23,
     FT_VAMAS,
     FT_UDF,
+    FT_SPE,
     FT_NUM,     // always at bottom to get the number of the types
 };
 

@@ -22,7 +22,9 @@ namespace util
 {
     unsigned read_uint32_le(std::ifstream &f, unsigned offset);
     unsigned read_uint16_le(std::ifstream &f, unsigned offset);
+    unsigned read_int16_le(std::ifstream &f, unsigned offset);
     float read_flt_le(std::ifstream &f, unsigned offset);
+    double read_dbl_le(std::ifstream &f, unsigned offset);
     std::string read_string(std::ifstream &f, unsigned offset, unsigned len);
     void le_to_host(void *p, unsigned len);
 
