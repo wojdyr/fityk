@@ -158,6 +158,7 @@ enum {
     ID_G_M_BG_UNDO             ,
     ID_G_M_BG_CLEAR            ,
     ID_G_M_BG_SPLINE           ,
+    ID_G_M_BG_HULL             ,
     ID_G_M_BG_SUB              ,
     ID_G_M_PEAK                ,
     ID_G_M_PEAK_N              ,
@@ -295,6 +296,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_M_BG_STRIP,  FFrame::OnStripBg)
     EVT_MENU (ID_G_M_BG_UNDO,   FFrame::OnUndoBg)
     EVT_MENU (ID_G_M_BG_CLEAR,  FFrame::OnClearBg)
+    EVT_MENU (ID_G_M_BG_HULL,   FFrame::OnConvexHullBg)
     EVT_MENU (ID_G_M_BG_SPLINE, FFrame::OnSplineBg)
     EVT_MENU (ID_G_S_SIDEB,     FFrame::OnSwitchSideBar)
     EVT_MENU_RANGE (ID_G_S_A1, ID_G_S_A2, FFrame::OnSwitchAuxPlot)
@@ -666,6 +668,9 @@ void FFrame::set_menubar()
                            wxT("Subtract selected baseline from data"));
     baseline_menu->Append (ID_G_M_BG_CLEAR, wxT("&Clear/forget baseline"), 
                            wxT("Clear baseline points, disable undo"));
+    baseline_menu->AppendSeparator();
+    baseline_menu->Append (ID_G_M_BG_HULL, wxT("&Set as convex hull"), 
+                           wxT("Set baseline as convex hull of data"));
     baseline_menu->AppendSeparator();
     baseline_menu->AppendCheckItem(ID_G_M_BG_SPLINE, 
                                    wxT("&Spline interpolation"), 
@@ -1291,6 +1296,12 @@ void FFrame::OnUndoBg(wxCommandEvent&)
 void FFrame::OnClearBg(wxCommandEvent&)
 {
     plot_pane->get_bg_manager()->forget_background();
+    refresh_plots(false, true);
+}
+
+void FFrame::OnConvexHullBg(wxCommandEvent&)
+{
+    plot_pane->get_bg_manager()->set_as_convex_hull();
     refresh_plots(false, true);
 }
 

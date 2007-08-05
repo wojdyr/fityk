@@ -123,6 +123,7 @@ public:
     void OnStripBg       (wxCommandEvent& event);
     void OnUndoBg        (wxCommandEvent& event);
     void OnClearBg       (wxCommandEvent& event);
+    void OnConvexHullBg  (wxCommandEvent& event);
     void OnSplineBg      (wxCommandEvent& event);
     void GViewAll();
     void OnGViewAll      (wxCommandEvent&) { GViewAll(); }

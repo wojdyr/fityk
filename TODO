@@ -22,13 +22,11 @@ Legend:
 
 * XPS Shirley background removing
 
-* convex hull background 
+// * convex hull background 
 
 * check if open-data plot preview still works 
 
-* check compilation with wxMac 
-
-//? * check all wxUpdateUIEvent
+// * check all wxUpdateUIEvent
 
 --------------> 0.8.2
 
