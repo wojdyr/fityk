@@ -16,11 +16,14 @@ namespace xylib {
         BruckerV23RawDataSet(const std::string &filename)
             : DataSet(filename, FT_BR_RAW23) {}
 
+        BruckerV23RawDataSet(std::istream &is, const std::string &filename)
+            : DataSet(is, filename, FT_BR_RAW23) {}
+
         // implement the interfaces specified by DataSet
         bool is_filetype() const;
         void load_data();
 
-        static bool check(std::ifstream &f);
+        static bool check(std::istream &f);
 
         const static FormatInfo fmt_info;
     }; 

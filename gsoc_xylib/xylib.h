@@ -155,7 +155,14 @@ public:
     DataSet(const std::string &filename_, xy_ftype ftype_ = FT_UNKNOWN)
         : filename(filename_) 
     {
-        p_ifs = NULL;       // move here to avoid gcc complaining
+        p_is = NULL;
+        ftype = ftype_;
+    }
+
+    DataSet(std::istream &is, const std::string &filename_, xy_ftype ftype_ = FT_UNKNOWN)
+        : filename(filename_)
+    {
+        p_is = &is;
         ftype = ftype_;
     }
     
@@ -193,7 +200,7 @@ protected:
     std::string filename;
     std::vector<Range*> ranges;     // use "Range*" to support polymorphism
     std::map<std::string, std::string> meta_map;
-    std::ifstream *p_ifs;
+    std::istream *p_is;
 
     // used by load_data to perform some common operations
     virtual void init(); 
@@ -211,9 +218,14 @@ class UxdLikeDataSet : public DataSet
             data_sep(", ;"), cmt_start(";#")
         {}
         
+        UxdLikeDataSet(std::istream& is, const std::string &filename, xy_ftype filetype)
+            :  DataSet(is, filename, filetype), meta_sep("=:"), 
+            data_sep(", ;"), cmt_start(";#")
+        {}
+
     protected:
         line_type get_line_type(const std::string &line);
-        bool skip_invalid_lines(std::ifstream &f);
+        bool skip_invalid_lines(std::istream &f);
         
         std::string rg_start_tag;
         std::string x_start_key;
@@ -229,7 +241,10 @@ class UxdLikeDataSet : public DataSet
 
 // get a non-abstract DataSet ptr according to the given "filetype"
 // if "filetype" is not given, auto-detection is used to decide the file type
-DataSet* getNewDataSet(const std::string &filename, xy_ftype filetype = FT_UNKNOWN);
+DataSet* getNewDataSet(const std::string &filename, xy_ftype filetype /* = FT_UNKNOWN */);
+DataSet* getNewDataSet(std::istream &is, const std::string &filename, 
+                       xy_ftype filetype /* = FT_UNKNOWN */);
+
 xy_ftype guess_file_type(const std::string &filename);
 xy_ftype string_to_ftype(const std::string &ftype_name);
 

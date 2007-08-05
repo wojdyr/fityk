@@ -74,16 +74,16 @@ const FormatInfo RigakuDataSet::fmt_info(
 bool RigakuDataSet::is_filetype() const
 {
     // the first 5 letters must be "*TYPE"
-    return check(*p_ifs);
+    return check(*p_is);
 }
 
 
 // return true if is this type, false otherwise
-bool RigakuDataSet::check(ifstream &f)
+bool RigakuDataSet::check(istream &f)
 {
     f.clear();
     // the first 5 letters must be "*TYPE"
-    string head = read_string(f, 0, 5);
+    string head = read_string(f, 5);
     if(f.rdstate() & ios::failbit) {
         throw XY_Error("error when reading file head");
     }
@@ -95,7 +95,7 @@ bool RigakuDataSet::check(ifstream &f)
 void RigakuDataSet::load_data() 
 {
     init();
-    ifstream &f = *p_ifs;
+    istream &f = *p_is;
 
     string line, key, val;
     line_type ln_type;
@@ -132,7 +132,7 @@ void RigakuDataSet::load_data()
 
 void RigakuDataSet::parse_range(FixedStepRange* p_rg)
 {
-    ifstream &f = *p_ifs;
+    istream &f = *p_is;
 
     string line;
     // get range-scope meta-info

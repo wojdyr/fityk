@@ -1,10 +1,12 @@
 TODO:
 
-* Integrated the WinSpec format
+* Integrate the fityk already-support formats to xylib.
 * have a look at the JCAMP format specifications and decide whether to implement it.
 * Add more format types, of course
 
 ////////////////////////////////////////////////////////////////////
+* Integrated the WinSpec format, done!
+
 * complete the testmain code, done!
 
 * Detect file format by file contant (magic number), in case some types share one extension name. For example, Brucker v1 and v2 Raw File both use ".raw" as extension name: done!

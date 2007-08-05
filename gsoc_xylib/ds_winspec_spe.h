@@ -9,7 +9,9 @@
 
 namespace xylib {
 
-#define SPE_HEADER_SIZE 4100	// fixed binary header size
+enum {
+    SPE_HEADER_SIZE = 4100,   // fixed binary header size
+};
 
 /* datatypes of DATA point in spe_file */
 enum spe_dt {
@@ -25,8 +27,10 @@ class WinspecSpeDataSet : public DataSet
 {
 public:
     WinspecSpeDataSet(const std::string &filename)
-        : DataSet(filename, FT_SPE) 
-    {}
+        : DataSet(filename, FT_SPE) {}
+
+    WinspecSpeDataSet(std::istream &is, const std::string &filename)
+        : DataSet(is, filename,FT_SPE) {}
 
     // implement the interfaces specified by DataSet
     bool is_filetype() const;
@@ -35,9 +39,8 @@ public:
     const static FormatInfo fmt_info;
     
 protected:
-    size_t get_datatype_size(int dt);
     double idx_to_calib_val(int idx, const spe_calib *calib);
-    void read_calib(spe_calib &calib, int offset);
+    void read_calib(spe_calib &calib);
     
 }; 
 

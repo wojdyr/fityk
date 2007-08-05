@@ -75,7 +75,7 @@ bool UxdDataSet::is_filetype() const
 void UxdDataSet::load_data() 
 {
     init();
-    ifstream &f = *p_ifs;
+    istream &f = *p_is;
 
     string line, key, val;
     line_type ln_type;
@@ -113,7 +113,7 @@ void UxdDataSet::load_data()
 // parse a single range of the file
 void UxdDataSet::parse_range(FixedStepRange *p_rg)
 {
-    ifstream &f = *p_ifs;
+    istream &f = *p_is;
 
     string line;
     // get range-scope meta-info

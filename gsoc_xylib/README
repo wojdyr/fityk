@@ -25,6 +25,7 @@ Diffrac-AT raw v1/2/3:  .raw
 Philips UDF Format:     .udf
 Rigaku Dat Format:      .dat
 Vamas ISO14976:         .vms
+Princeton Instruments WinSpec SPE Format:	.spe
 
 FILES
 ============

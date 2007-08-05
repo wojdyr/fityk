@@ -8,8 +8,8 @@
 * To simplify the code, add several helper functions. e.g. read_line_int()
 
 13:13 2007-6-29 GMT+8 version 310
-* Re-write some of the code in load_vamas_file
-* Change existing code to handle the "endian issue" and the "fixed-size int data type issue".
+* Re-wrote some of the code in load_vamas_file
+* Changed existing code to handle the "endian issue" and the "fixed-size int data type issue".
 For the 1st issue, use endian.hpp to determine the endian of the machine, then exchange the bytes manually if necessary. For the 2nd issue, use fixed-size data types defined in <boost/cstdint.hpp> instead of raw types.
 
 3:11 2007-7-10 GMT+8 version 314
@@ -20,7 +20,7 @@ For the 1st issue, use endian.hpp to determine the endian of the machine, then e
 * Write a generic function to handle the UXD-like files (e.g, rigaku_dat files), not finished
 
 13:55 2007-7-13 GMT+8 version 315
-* re-implement the VAMAS reading function for license and mantainability considerations. Besides, many file-scope/range-scope meta variables are read
+* re-implemented the VAMAS reading function for license and mantainability considerations. Besides, many file-scope/range-scope meta variables are read
 
 3:32 2007-7-21 GMT+8 version 317
 * changed the existing code following Marcin's advice (removed user-defined type "fp", left-hand & right-hand, put xylib::util into separated files, etc..)
@@ -48,3 +48,12 @@ For the 1st issue, use endian.hpp to determine the endian of the machine, then e
 * Added new format support of Princeton Instruments WinSpec SPE format
 * Extended some functions in util.cpp, 
 * Fixed a bug in function le_to_host()
+
+21:34 2007-8-5 GMT+8 version 328
+* Some bugs fixed
+* Changed to avoid use seekg() in the file reading stream
+* Gave up PDP-endian support
+* Reimplement the philipse-udf format
+* XXXDataSet's ctor can also accept istream& argument.
+* Some other changes following Marcin's advice.
+

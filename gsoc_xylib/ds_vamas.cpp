@@ -57,7 +57,7 @@ const FormatInfo VamasDataSet::fmt_info(
 bool VamasDataSet::is_filetype() const
 {
     // the first line must be "VAMAS Surface ..."
-    ifstream &f = *p_ifs;
+    istream &f = *p_is;
 
     static string magic = "VAMAS Surface Chemical Analysis Standard Data Transfer Format 1988 May 4";
     string line;
@@ -69,7 +69,7 @@ bool VamasDataSet::is_filetype() const
 void VamasDataSet::load_data() 
 {
     init();
-    ifstream &f = *p_ifs;
+    istream &f = *p_is;
 
     int n;
 
@@ -140,7 +140,7 @@ void VamasDataSet::load_data()
 // read one blk, used by load_vamas_file()
 void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
 {
-    ifstream &f = *p_ifs;
+    istream &f = *p_is;
     int cor_var = 0;    // # of corresponding variables
     
     p_rg->add_meta("block id", read_line(f));
@@ -303,7 +303,7 @@ void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
 // a simple wrapper to simplify the code
 void VamasDataSet::read_meta_line(int idx, FixedStepRange *p_rg, string meta_key)
 {
-    ifstream &f = *p_ifs;
+    istream &f = *p_is;
 
     if (include[idx]) {
         p_rg->add_meta(meta_key, read_line(f));

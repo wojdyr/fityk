@@ -36,6 +36,7 @@ RawScan
     6234,    6185,    5969,    6129,    6199,    5988,    6046,    5922
     6017,    5966,    5806,    5918,    5843,    5938,    5899,    5851
     ...
+    442/                                # last data ends with a '/'
     
 ///////////////////////////////////////////////////////////////////////////////
     Implementation Ref of xylib: based on the analysis of the sample files.
@@ -59,10 +60,10 @@ const FormatInfo UdfDataSet::fmt_info(
 
 bool UdfDataSet::is_filetype() const
 {
-    ifstream &f = *p_ifs;
+    istream &f = *p_is;
 
     f.clear();
-    string head = read_string(f, 0, 11);
+    string head = read_string(f, 11);
     if(f.rdstate() & ios::failbit) {
         throw XY_Error("error when reading file head");
     }
@@ -74,77 +75,80 @@ bool UdfDataSet::is_filetype() const
 void UdfDataSet::load_data() 
 {
     init();
-    ifstream &f = *p_ifs;
+    istream &f = *p_is;
 
-    string line, key, val;
-    line_type ln_type;
+    double x_start(0), x_step(0);
+    string key, val;
     FixedStepRange *p_rg = new FixedStepRange;
-
-    // file-scope meta-info
-    while (true) {
-        skip_invalid_lines(f);
-        int pos = f.tellg();
-        my_getline(f, line);
-        if (str_startwith(line, rg_start_tag)) {
-            f.seekg(pos);
-            break;
+    
+    while(true) {
+        get_key_val(f, key, val);
+        if ("RawScan" == key) {
+            break;      // indicates XY data start
+        } else if ("DataAngleRange" == key) {
+            string::size_type pos = val.find_first_of(",");
+            x_start = strtod(val.substr(0, pos).c_str(), NULL);
+            p_rg->set_x_start(x_start);
+        } else if ("ScanStepSize" == key) {
+            x_step = strtod(val.c_str(), NULL);
+            p_rg->set_x_step(x_step);
         }
-        
-        ln_type = get_line_type(line);
 
-        if (LT_KEYVALUE == ln_type) {   // file-level meta key-value line
-            string tmp1, tmp2;
-            parse_line(line, meta_sep, key, tmp1);
-            // need split again to get val
-            parse_line(tmp1, meta_sep, val, tmp2);
-            add_meta(key, val);
-            if (key == x_start_key) {
-                p_rg->set_x_start(strtod(val.c_str(), NULL));
-            } else if (key == x_step_key) {
-                p_rg->set_x_step(strtod(val.c_str(), NULL));
-            }
-        } else {                        // unkonw line type
-            continue;
-        }
+        p_rg->add_meta(key, val);
     }
 
-    // UDF format has only 1 ranges
-    if (!f.eof()) {
-        parse_range(p_rg);
-        ranges.push_back(p_rg);
-    } 
-}
-
-
-void UdfDataSet::parse_range(FixedStepRange* p_rg)
-{
-    ifstream &f = *p_ifs;
-
     string line;
-
-    // get all x-y data
-    while (true) {
-        if (!skip_invalid_lines(f)) {
-            return;
-        }
-        my_getline(f, line, false);
-        line_type ln_type = get_line_type(line);
-
-        if (LT_COMMENT == ln_type) {
-            continue;
+    bool end_flg(false);
+    while (!end_flg && my_getline(f, line, false)) {
+        if (string::npos != line.find_first_of("/")) {
+            end_flg = true;
         }
 
-        for (string::iterator i = line.begin(); i != line.end(); ++i) {
-            if (string::npos != data_sep.find(*i)) {
+        for (string::iterator i = line.begin(); i != line.end(); i++) {
+            if (*i == ',') {
                 *i = ' ';
             }
         }
-        
-        istringstream q(line);
+
+        istringstream ss(line);
         double d;
-        while (q >> d) {
+        while (ss >> d) {
             p_rg->add_y(d);
         }
+    }
+
+    ranges.push_back(p_rg);
+/*
+   while (true) {
+        int d;
+        f >> d;
+        if (!f) {
+            throw XY_Error("format error: unexpected EOF");
+        }
+        p_rg->add_y(d);
+        int c = f.get();  // c should be blank or ',' or '/'
+        if (c == '/') {
+            // end of data
+            return;
+        }
+    }
+*/
+}
+
+
+void UdfDataSet::get_key_val(istream &f, string &key, string &val)
+{
+    string line;
+    my_getline(f, line, true);
+    string::size_type pos1 = line.find(',');
+    if (string::npos == pos1) {
+        key = str_trim(line);
+        val = "";
+        return;
+    } else {
+        string::size_type pos2 = line.rfind(',');
+        key = str_trim(line.substr(0, pos1));
+        val = str_trim(line.substr(pos1 + 1, pos2 - pos1 - 1));
     }
 }
 

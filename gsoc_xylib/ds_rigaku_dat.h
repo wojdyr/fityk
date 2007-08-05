@@ -14,6 +14,28 @@ namespace xylib {
         RigakuDataSet(const std::string &filename)
             : UxdLikeDataSet(filename, FT_RIGAKU) 
         {
+            init_setup();
+        }
+
+        RigakuDataSet(std::istream &is, const std::string &filename)
+            : UxdLikeDataSet(is, filename, FT_RIGAKU) 
+        {
+            init_setup();
+        }
+
+        // implement the interfaces specified by DataSet
+        bool is_filetype() const;
+        void load_data();
+
+        static bool check(std::istream &f);
+
+        const static FormatInfo fmt_info;
+
+    protected:
+        void parse_range(FixedStepRange* p_rg);
+
+        void init_setup()
+        {
             rg_start_tag = "*BEGIN";
             x_start_key = "*START";
             x_step_key = "*STEP";
@@ -21,17 +43,6 @@ namespace xylib {
             data_sep = ", ";
             cmt_start = ";#";
         }
-
-        // implement the interfaces specified by DataSet
-        bool is_filetype() const;
-        void load_data();
-
-        static bool check(std::ifstream &f);
-
-        const static FormatInfo fmt_info;
-
-    protected:
-        void parse_range(FixedStepRange* p_rg);
 
     }; 
 }

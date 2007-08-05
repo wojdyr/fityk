@@ -114,8 +114,7 @@ void Range::export_xy_file(const string &fname) const
 void Range::export_xy_file(ofstream &of) const
 {
     int n = get_pt_count();
-    of << ";total count:" << n << endl << endl;
-    of << ";x\t\ty\t\t y_stddev" << endl;
+
     for(int i = 0; i < n; ++i) {
         of << setfill(' ') << setiosflags(ios::fixed) << setprecision(5) << setw(7) << 
             get_x(i) << "\t" << setprecision(8) << setw(10) << get_y(i) << "\t";
@@ -209,22 +208,24 @@ void DataSet::export_xy_file(const string &fname,
         throw XY_Error("can't create file" + fname);
     }
 
-    of << cmt_str << "exported by xylib from " << filename << endl;
-
     // output the file-level meta-info
     if (with_meta) {
+        of << cmt_str << "exported by xylib from " << filename << endl;
         output_meta(of, this, cmt_str);
+        of << cmt_str << "total ranges:" << ranges.size() << endl;
     }
     
     for(unsigned i = 0; i < range_num; ++i) {
         const Range &rg = get_range(i);
-        of << endl;
-        for (int j = 0; j < 40; ++j) {
-            of << cmt_str;
-        }
-        of << endl << cmt_str << "* range " << i << endl;
         if (with_meta) {
+            of << endl;
+            for (int j = 0; j < 40; ++j) {
+                of << cmt_str;
+            }
+            of << endl << cmt_str << "* range " << i << endl;
             output_meta(of, &rg, cmt_str);
+            of << cmt_str << "total count: " << rg.get_pt_count() << endl << endl;
+            of << cmt_str << "x\t\ty\t\t y_stddev" << endl;
         }
         rg.export_xy_file(of);
     }
@@ -277,16 +278,16 @@ DataSet::~DataSet()
     for (it = ranges.begin(); it != ranges.end(); ++it) {      
         delete *it;
     }
-    if (p_ifs) {
-        delete p_ifs;
+    if (p_is) {
+        delete p_is;
     }
 }
 
 void DataSet::init()
 {
     // open given file
-    p_ifs = new ifstream(filename.c_str(), ios::in | ios::binary);
-    if (!p_ifs) {
+    p_is = new ifstream(filename.c_str(), ios::in | ios::binary);
+    if (!p_is) {
         throw XY_Error("Can't open file: " + filename);
     }
 
@@ -295,7 +296,7 @@ void DataSet::init()
         throw XY_Error("file is not the expected " + get_filetype() + " format");
     }
 
-    p_ifs->seekg(0);    // reset the ifstream, as if no lines have been read
+    p_is->seekg(0);    // reset the istream, as if no lines have been read
 }
 
 
@@ -325,7 +326,7 @@ line_type UxdLikeDataSet::get_line_type(const string &line)
 
 // move "if" ptr to a line which has meaning to us
 // return ture if not eof, false otherwise
-bool UxdLikeDataSet::skip_invalid_lines(std::ifstream &f)
+bool UxdLikeDataSet::skip_invalid_lines(std::istream &f)
 {
     string line;
     if (!peek_line(f, line, false)) {
@@ -370,6 +371,41 @@ DataSet* getNewDataSet(const string &filename, xy_ftype filetype /* = FT_UNKNOWN
         pd = new UdfDataSet(filename);
     } else if (FT_SPE == ft) {
         pd = new WinspecSpeDataSet(filename);
+    } else {
+        pd = NULL;
+        throw XY_Error("unkown or unsupported file type");
+    }
+
+    if (NULL != pd) {
+        pd->load_data(); 
+    }
+
+    return pd;
+}
+
+
+DataSet* getNewDataSet(istream &is, const string &filename, 
+    xy_ftype filetype /* = FT_UNKNOWN */)
+{
+    DataSet *pd = NULL;
+    xy_ftype ft = (FT_UNKNOWN == filetype) ? guess_file_type(filename) : filetype;
+
+    if (FT_BR_RAW1 == ft) {
+        pd = new BruckerV1RawDataSet(is, filename); 
+    } else if (FT_BR_RAW23 == ft) {
+        pd = new BruckerV23RawDataSet(is, filename);
+    } else if (FT_UXD == ft) {
+        pd = new UxdDataSet(is, filename);
+    } else if (FT_TEXT == ft) {
+        pd = new TextDataSet(is, filename);
+    } else if (FT_RIGAKU == ft) {
+        pd = new RigakuDataSet(is, filename);
+    } else if (FT_VAMAS == ft) {
+        pd = new VamasDataSet(is, filename);
+    } else if (FT_UDF == ft) {
+        pd = new UdfDataSet(is, filename);
+    } else if (FT_SPE == ft) {
+        pd = new WinspecSpeDataSet(is, filename);
     } else {
         pd = NULL;
         throw XY_Error("unkown or unsupported file type");

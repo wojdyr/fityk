@@ -46,15 +46,15 @@ const FormatInfo BruckerV23RawDataSet::fmt_info(
 
 bool BruckerV23RawDataSet::is_filetype() const
 {
-    return check(*p_ifs);
+    return check(*p_is);
 }
 
 
-bool BruckerV23RawDataSet::check(ifstream &f)
+bool BruckerV23RawDataSet::check(istream &f)
 {
     // the first 4 letters must be "RAW2"
     f.clear();
-    string head = read_string(f, 0, 4);
+    string head = read_string(f, 4);
     if(f.rdstate() & ios::failbit) {
         throw XY_Error("error when reading file head");
     }
@@ -66,36 +66,44 @@ bool BruckerV23RawDataSet::check(ifstream &f)
 void BruckerV23RawDataSet::load_data() 
 {
     init();
-    ifstream &f = *p_ifs;
+    istream &f = *p_is;
+
+    f.ignore(4);
+    unsigned range_cnt = read_uint16_le(f);
 
     // add file-scope meta-info
-    add_meta("DATE_TIME_MEASURE", read_string(f, 168, 20));
-    add_meta("LAMDA1", S(read_flt_le(f, 190)));
-    add_meta("LAMDA2", S(read_flt_le(f, 194)));
-    add_meta("INTENSITY_RATIO", S(read_flt_le(f, 198)));
-    add_meta("TOTAL_SAMPLE_RUNTIME_IN_SEC", S(read_flt_le(f, 210)));
+    f.ignore(162);
+    add_meta("DATE_TIME_MEASURE", read_string(f, 20));
+    add_meta("CEMICAL SYMBOL FOR TUBE ANODE", read_string(f, 2));
+    add_meta("LAMDA1", S(read_flt_le(f)));
+    add_meta("LAMDA2", S(read_flt_le(f)));
+    add_meta("INTENSITY_RATIO", S(read_flt_le(f)));
+    f.ignore(8);
+    add_meta("TOTAL_SAMPLE_RUNTIME_IN_SEC", S(read_flt_le(f)));
 
-    unsigned range_cnt = read_uint16_le(f, 4);
-
-    unsigned cur_range_offset = 256;    // 1st range offset
+    f.ignore(42);   // move ptr to the start of 1st range
     for (unsigned cur_range = 0; cur_range < range_cnt; ++cur_range) {
-        unsigned cur_header_len = read_uint16_le(f, cur_range_offset);
-        float x_start = read_flt_le(f, cur_range_offset + 16);
-        float x_step = read_flt_le(f, cur_range_offset + 12);
-        unsigned cur_range_steps = read_uint16_le(f, cur_range_offset + 2);
+        FixedStepRange* p_rg = new FixedStepRange;
 
-        FixedStepRange* p_rg = new FixedStepRange(x_start, x_step);
-        // add the range-scope meta-info here
-        p_rg->add_meta("SEC_PER_STEP", S(read_flt_le(f, cur_range_offset + 8)));
-        p_rg->add_meta("TEMP_IN_K", S(read_uint16_le(f, cur_range_offset + 46)));
+        // add the range-scope meta-info
+        unsigned cur_header_len = read_uint16_le(f);
+        unsigned cur_range_steps = read_uint16_le(f);
+        f.ignore(4);
+        p_rg->add_meta("SEC_PER_STEP", S(read_flt_le(f)));
+        float x_step = read_flt_le(f);
+        p_rg->set_x_step(x_step);
+        float x_start = read_flt_le(f);
+        p_rg->set_x_start(x_start);
 
+        f.ignore(26);
+        p_rg->add_meta("TEMP_IN_K", S(read_uint16_le(f)));
+
+        f.ignore(cur_header_len - 48);  // move ptr to the data_start
         for(unsigned i = 0; i < cur_range_steps; ++i) {
-            float y = read_flt_le(f, cur_range_offset + cur_header_len + i * 4);
+            float y = read_flt_le(f);
             p_rg->add_y(y);
         }
         ranges.push_back(p_rg);
-
-        cur_range_offset += cur_header_len + cur_range_steps * 4;
     }
 }
 

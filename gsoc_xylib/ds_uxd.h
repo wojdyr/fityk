@@ -14,12 +14,13 @@ namespace xylib {
         UxdDataSet(const std::string &filename)
             : UxdLikeDataSet(filename, FT_UXD) 
         {
-            rg_start_tag = "_DRIVE";
-            x_start_key = "_START";
-            x_step_key = "_STEPSIZE";
-            meta_sep = "=";
-            data_sep = " ";
-            cmt_start = ";";
+            init_setup();
+        }
+
+        UxdDataSet(std::istream &is, const std::string &filename)
+            : UxdLikeDataSet(is, filename, FT_UXD) 
+        {
+            init_setup();
         }
 
         // implement the interfaces specified by DataSet
@@ -30,6 +31,15 @@ namespace xylib {
         
     protected:
         void parse_range(FixedStepRange *p_rg);
+        void init_setup()
+        {
+            rg_start_tag = "_DRIVE";
+            x_start_key = "_START";
+            x_step_key = "_STEPSIZE";
+            meta_sep = "=";
+            data_sep = " ";
+            cmt_start = ";";
+        }
     }; 
 }
 #endif // #ifndef UXD_DATASET_H

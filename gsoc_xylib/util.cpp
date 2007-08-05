@@ -20,63 +20,58 @@ namespace xylib {
 namespace util{
     // read a 32-bit, little-endian form int from f,
     // return equivalent int in host endianess
-    unsigned read_uint32_le(ifstream &f, unsigned offset)
+    unsigned read_uint32_le(istream &f)
     {
         uint32_t val;
-        f.seekg(offset);
         f.read(reinterpret_cast<char*>(&val), sizeof(val));
-        le_to_host(&val, sizeof(val));
+        le_to_host_8(&val);
         return val;
     }
 
-    unsigned read_uint16_le(ifstream &f, unsigned offset)
+    int read_uint16_le(istream &f)
     {
         uint16_t val;
-        f.seekg(offset);
         f.read(reinterpret_cast<char*>(&val), sizeof(val));
-        le_to_host(&val, sizeof(val));
+        le_to_host_2(&val);
         return val;
     }
 
-    unsigned read_int16_le(ifstream &f, unsigned offset)
+    unsigned read_int16_le(istream &f)
     {
         int16_t val;
-        f.seekg(offset);
         f.read(reinterpret_cast<char*>(&val), sizeof(val));
-        le_to_host(&val, sizeof(val));
+        le_to_host_2(&val);
         return val;
     }
 
     // the same as above, but read a float
-    float read_flt_le(ifstream &f, unsigned offset)
+    float read_flt_le(istream &f)
     {
         float val;
-        f.seekg(offset);
         f.read(reinterpret_cast<char*>(&val), sizeof(val));
-        le_to_host(&val, sizeof(val));
+        le_to_host_4(&val);
         return val;
     }
 
     // the same as above, but read a float
-    double read_dbl_le(ifstream &f, unsigned offset)
+    double read_dbl_le(istream &f)
     {
         double val;
-        f.seekg(offset);
         f.read(reinterpret_cast<char*>(&val), sizeof(val));
-        le_to_host(&val, sizeof(val));
+        le_to_host_8(&val);
         return val;
     }
 
 
     // read a string from f
-    string read_string(ifstream &f, unsigned offset, unsigned len) 
+    string read_string(istream &f, unsigned len) 
     {
         static char buf[65536];
-        f.seekg(offset);
         f.read(buf, len);
-        buf[offset + len] = '\0';
+        buf[len] = '\0';
         return string(buf);
     }
+/////////////////////////
 
     // remove all space chars in str, not used now
     void rm_spaces(string &str)
@@ -143,101 +138,64 @@ namespace util{
         return ret;
     }
 
+
     // change the byte-order from "little endian" to host endian
+    // for more info, see item "endian" in wikipedia (www.wikipedia.org)
+    // le_to_host_x are versions for x-byte atomic element
     // p: pointer to the data
-    // len: length of the data type, should be 1, 2, 4, 8
-    void le_to_host(void *p, unsigned len)
+   
+    void le_to_host_2(void *p)
     {
-        /*
-        for more info, see "endian" and "pdp-11" items in wikipedia
-        www.wikipedia.org
-        */
-
-# if defined(BOOST_LITTLE_ENDIAN)
-        // no change
+#if defined(BOOST_LITTLE_ENDIAN)
         return;
-# else  // BIG_ENDIAN or PDP_ENDIAN
-        // store the old values
-        uint8_t byte0(0), byte1(0), byte2(0), byte3(0);
-        uint8_t byte4(0), byte5(0), byte6(0), byte7(0);
-        switch (len) {
-        case 8:
-            byte4 = (reinterpret_cast<uint8_t*>(p))[4];
-            byte5 = (reinterpret_cast<uint8_t*>(p))[5];
-            byte6 = (reinterpret_cast<uint8_t*>(p))[6];
-            byte7 = (reinterpret_cast<uint8_t*>(p))[7];
-        case 4:
-            byte2 = (reinterpret_cast<uint8_t*>(p))[2];
-            byte3 = (reinterpret_cast<uint8_t*>(p))[3];
-        case 2:
-            byte0 = (reinterpret_cast<uint8_t*>(p))[0];
-            byte1 = (reinterpret_cast<uint8_t*>(p))[1];
-
-        case 1:
-            break;
-        
-        default:
-            throw XY_Error("len should be 1, 2, 4");;
-        }
-        
-#  if defined(BOOST_BIG_ENDIAN)
-        switch (len) {
-        case 1:
-            break;
-        case 2:
-            (reinterpret_cast<uint8_t*>(p))[0] = byte1;
-            (reinterpret_cast<uint8_t*>(p))[1] = byte0;
-            break;
-        case 4:
-            (reinterpret_cast<uint8_t*>(p))[0] = byte3;
-            (reinterpret_cast<uint8_t*>(p))[1] = byte2;
-            (reinterpret_cast<uint8_t*>(p))[2] = byte1;
-            (reinterpret_cast<uint8_t*>(p))[3] = byte0;
-            break;
-        case 8:
-            (reinterpret_cast<uint8_t*>(p))[0] = byte7;
-            (reinterpret_cast<uint8_t*>(p))[1] = byte6;
-            (reinterpret_cast<uint8_t*>(p))[2] = byte5;
-            (reinterpret_cast<uint8_t*>(p))[3] = byte4;
-            (reinterpret_cast<uint8_t*>(p))[4] = byte3;
-            (reinterpret_cast<uint8_t*>(p))[5] = byte2;
-            (reinterpret_cast<uint8_t*>(p))[6] = byte1;
-            (reinterpret_cast<uint8_t*>(p))[7] = byte0;
-            break;
-        default:
-            break;
-        }
-        
-#  elif defined(BOOST_PDP_ENDIAN)  // PDP_ENDIAN
-        // 16-bit word are stored in little_endian
-        // 32-bit word are stored in middle_endian: the most significant "half" (16-bits) followed by 
-        // the less significant half (as if big-endian) but with each half stored in little-endian format
-        switch (len) {
-        case 1:
-        case 2:
-            break;
-        case 4:
-            (reinterpret_cast<uint8_t*>(p))[0] = byte2;
-            (reinterpret_cast<uint8_t*>(p))[1] = byte3;
-            (reinterpret_cast<uint8_t*>(p))[2] = byte0;
-            (reinterpret_cast<uint8_t*>(p))[3] = byte1;
-            break;
-        case 8:
-            // I do not know how 8-byte atomic element is stored in PDP endian
-            // TODO: going to add once konw how it's stored
-            break;
-        default:
-            break;
-        }
-#  endif    //#  if defined(BOOST_BIG_ENDIAN)
-# endif     //# if defined(BOOST_LITTLE_ENDIAN)       
+#elif defined(BOOST_BIG_ENDIAN)
+        uint8_t bytes[2];
+        memcpy(bytes, p, sizeof(bytes));
+        (reinterpret_cast<uint8_t*>(p))[0] = bytes[1];
+        (reinterpret_cast<uint8_t*>(p))[1] = bytes[0];
+#else
+        throw XY_ERROR("system uses unsupported endianess");
+#endif
     }
 
-    // convert num to string; if (num == undef), return "undefined"
-    string my_flt_to_string(float num, float undef)
+
+    void le_to_host_4(void *p)
     {
-        return ((undef == num) ? "undefined" : S(num));
+#if defined(BOOST_LITTLE_ENDIAN)
+        return;
+#elif defined(BOOST_BIG_ENDIAN)
+        uint8_t bytes[4];
+        memcpy(bytes, p, sizeof(bytes));
+        (reinterpret_cast<uint8_t*>(p))[0] = bytes[3];
+        (reinterpret_cast<uint8_t*>(p))[1] = bytes[2];
+        (reinterpret_cast<uint8_t*>(p))[2] = bytes[1];
+        (reinterpret_cast<uint8_t*>(p))[3] = bytes[0];
+#else
+        throw XY_ERROR("system uses unsupported endianess");
+#endif
     }
+
+
+    void le_to_host_8(void *p)
+    {
+#if defined(BOOST_LITTLE_ENDIAN)
+        return;
+#elif defined(BOOST_BIG_ENDIAN)
+        uint8_t bytes[8];
+        memcpy(bytes, p, sizeof(bytes));
+        (reinterpret_cast<uint8_t*>(p))[0] = bytes[7];
+        (reinterpret_cast<uint8_t*>(p))[1] = bytes[6];
+        (reinterpret_cast<uint8_t*>(p))[2] = bytes[5];
+        (reinterpret_cast<uint8_t*>(p))[3] = bytes[4];
+        (reinterpret_cast<uint8_t*>(p))[4] = bytes[3];
+        (reinterpret_cast<uint8_t*>(p))[5] = bytes[2];
+        (reinterpret_cast<uint8_t*>(p))[6] = bytes[1];
+        (reinterpret_cast<uint8_t*>(p))[7] = bytes[0];
+#else
+        throw XY_ERROR("system uses unsupported endianess");
+#endif
+    }
+
 
     // skip meaningless lines and get all numbers in the first legal line
     int read_line_and_get_all_numbers(istream &is, 
@@ -266,7 +224,7 @@ namespace util{
 
 
     // skip "count" lines in f
-    void skip_lines(ifstream &f, const int count)
+    void skip_lines(istream &f, const int count)
     {
         string line;
         for (int i = 0; i < count; ++i) {
@@ -276,7 +234,7 @@ namespace util{
         }
     }
 
-    int read_line_int(ifstream& is)
+    int read_line_int(istream& is)
     {
         string str;
         if (!getline(is, str)) {
@@ -285,7 +243,7 @@ namespace util{
         return strtol(str.c_str(), NULL, 10);
     }
 
-    double read_line_double(ifstream& is)
+    double read_line_double(istream& is)
     {
         string str;
         if (!getline(is, str)) {
@@ -295,12 +253,12 @@ namespace util{
     }
 
     // read a line and return it as a string
-    string read_line(ifstream& is) {
+    string read_line(istream& is) {
         string line;
         if (!getline(is, line)) {
             throw xylib::XY_Error("unexpected end of file");
         }
-        return line;
+        return str_trim(line);
     }
 
 
@@ -319,7 +277,7 @@ namespace util{
 
     // preview the next line in "f"
     // return: true if not eof, false otherwise
-    bool peek_line(std::ifstream &f, std::string &line, 
+    bool peek_line(std::istream &f, std::string &line, 
         bool throw_eof /* = true */ )
     {
         int pos = f.tellg();
@@ -338,7 +296,7 @@ namespace util{
     }
 
 
-    bool my_getline(std::ifstream &f, std::string &line,
+    bool my_getline(std::istream &f, std::string &line,
         bool throw_eof /* = true */ )
     {
         getline(f, line);

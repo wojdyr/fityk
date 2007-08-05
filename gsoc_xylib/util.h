@@ -20,16 +20,16 @@ namespace xylib
 // move the original XY_Lib static member functions here
 namespace util 
 {
-    unsigned read_uint32_le(std::ifstream &f, unsigned offset);
-    unsigned read_uint16_le(std::ifstream &f, unsigned offset);
-    unsigned read_int16_le(std::ifstream &f, unsigned offset);
-    float read_flt_le(std::ifstream &f, unsigned offset);
-    double read_dbl_le(std::ifstream &f, unsigned offset);
-    std::string read_string(std::ifstream &f, unsigned offset, unsigned len);
-    void le_to_host(void *p, unsigned len);
+    unsigned read_uint32_le(std::istream &f);
+    int read_uint16_le(std::istream &f);
+    unsigned read_int16_le(std::istream &f);
+    float read_flt_le(std::istream &f);
+    double read_dbl_le(std::istream &f);
+    std::string read_string(std::istream &f, unsigned len);
 
-    // convert a float number to string. if 2nd param is true, return "undefined"
-    std::string my_flt_to_string(float num, float undef);
+    void le_to_host_2(void *p);
+    void le_to_host_4(void *p);
+    void le_to_host_8(void *p);
 
     void rm_space(std::string &str);
     std::string str_trim(const std::string &str, std::string ws = " \r\n\t");
@@ -41,12 +41,12 @@ namespace util
     int read_line_and_get_all_numbers(std::istream &is, 
         std::vector<double>& result_numbers);
 
-    bool peek_line(std::ifstream &f, std::string &line, bool throw_eof = true);
-    bool my_getline(std::ifstream &f, std::string &line, bool throw_eof = true);
-    void skip_lines(std::ifstream &f, const int count);
-    int read_line_int(std::ifstream& is);
-    double read_line_double(std::ifstream& is);
-    std::string read_line(std::ifstream& is);
+    bool peek_line(std::istream &f, std::string &line, bool throw_eof = true);
+    bool my_getline(std::istream &f, std::string &line, bool throw_eof = true);
+    void skip_lines(std::istream &f, const int count);
+    int read_line_int(std::istream& is);
+    double read_line_double(std::istream& is);
+    std::string read_line(std::istream& is);
 
     // find the index of @find_str in @array
     int get_array_idx(const std::string *array, 

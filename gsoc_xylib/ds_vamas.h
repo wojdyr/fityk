@@ -14,6 +14,9 @@ namespace xylib {
         VamasDataSet(const std::string &filename)
             : DataSet(filename, FT_VAMAS), include(40, false) {}
 
+        VamasDataSet(std::istream &is, const std::string &filename)
+            : DataSet(is, filename, FT_VAMAS), include(40, false) {}
+
         // implement the interfaces specified by DataSet
         bool is_filetype() const;
         void load_data();

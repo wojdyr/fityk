@@ -63,7 +63,7 @@ bool TextDataSet::is_filetype() const
 void TextDataSet::load_data() 
 {
     init();
-    ifstream &f = *p_ifs;
+    istream &f = *p_is;
 
     Range* p_rg = new Range;
 

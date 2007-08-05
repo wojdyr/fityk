@@ -58,7 +58,7 @@ const FormatInfo WinspecSpeDataSet::fmt_info(
 
 bool WinspecSpeDataSet::is_filetype() const
 {
-    ifstream &f = *p_ifs;
+    istream &f = *p_is;
 
     // make sure file size > 4100
     f.seekg(-1, ios_base::end);
@@ -68,7 +68,8 @@ bool WinspecSpeDataSet::is_filetype() const
     }
 
     // datatype field in header ONLY can be 0~3
-    spe_dt data_type = static_cast<spe_dt>(read_uint16_le(f, 108));
+    f.seekg(108);
+    spe_dt data_type = static_cast<spe_dt>(read_uint16_le(f));
     if (data_type < SPE_DATA_FLOAT || data_type > SPE_DATA_UINT) {
         return false;
     }
@@ -81,53 +82,54 @@ bool WinspecSpeDataSet::is_filetype() const
 void WinspecSpeDataSet::load_data() 
 {
     init();
-    ifstream &f = *p_ifs;
+    istream &f = *p_is;
 
-    // only get neccesary params from file header
+    // only read necessary params from file header
+    f.ignore(42);
+    int xdim = read_uint16_le(f);
+    f.ignore(64);
+    spe_dt data_type = static_cast<spe_dt>(read_uint16_le(f));
+    f.ignore(546);
+    int ydim = read_uint16_le(f);
+    f.ignore(788);
+    size_t num_frames = read_uint32_le(f);
     
-    int xdim = read_uint16_le(f, 42);
-    int ydim = read_uint16_le(f, 656);
-    spe_dt data_type = static_cast<spe_dt>(read_uint16_le(f, 108));
-    size_t num_frames = read_uint32_le(f, 1446);
-    
-    size_t dt_size = get_datatype_size(data_type);
-    size_t frame_size = xdim * ydim * dt_size;    // in Byte
-
     spe_calib x_calib, y_calib;
-    read_calib(x_calib, 3000);
-    read_calib(y_calib, 3489);
+    f.ignore(1550);     // move ptr to x_calib start
+    read_calib(x_calib);
+    read_calib(y_calib);
 
     int dim;
     spe_calib *calib;
     if (1 == ydim) {
         dim = xdim;
         calib = &x_calib;
-    } else if (1 == ydim) {
-        dim = xdim;
+    } else if (1 == xdim) {
+        dim = ydim;
         calib = &y_calib;
     } else {
         throw XY_Error("xylib does not support 2-D images");
     }
 
+    f.ignore(122);      // move ptr to frames-start
     for (unsigned frm = 0; frm < num_frames; ++frm) {
         Range *p_rg = new Range;
-        size_t frm_off = SPE_HEADER_SIZE + frame_size * frm;
         
         for (int pt = 0; pt < dim; ++pt) {
             double x = idx_to_calib_val(pt, calib);
             double y = 0;
             switch (data_type) {
             case SPE_DATA_FLOAT:
-                y = read_flt_le(f, frm_off + dt_size * pt);
+                y = read_flt_le(f);
                 break;
             case SPE_DATA_LONG:
-                y = read_uint32_le(f, frm_off + dt_size * pt);
+                y = read_uint32_le(f);
                 break;
             case SPE_DATA_INT:
-                y = read_int16_le(f, frm_off + dt_size * pt);                    y = read_uint32_le(f, frm_off + dt_size * pt);
+                y = read_int16_le(f);
                 break;
             case SPE_DATA_UINT:
-                y = read_uint16_le(f, frm_off + dt_size * pt);
+                y = read_uint16_le(f);
                 break;
             default:
                 break;
@@ -165,30 +167,23 @@ double WinspecSpeDataSet::idx_to_calib_val(int idx, const spe_calib *calib)
 }
 
 
-// get the size of data types in SPEC files
-size_t WinspecSpeDataSet::get_datatype_size(int dt)
-{
-    static size_t dt_size[] = {
-        4,  // SPE_DATA_FLOAT 
-        4,  // SPE_DATA_LONG  
-        2,  // SPE_DATA_INT   
-        2,  // SPE_DATA_UINT  
-    };
-
-	return dt_size[dt];
-}
-
 // read some fields of calib. 'offset' is the offset of the structure in file
-void WinspecSpeDataSet::read_calib(spe_calib &calib, int offset)
+void WinspecSpeDataSet::read_calib(spe_calib &calib)
 {
-    ifstream &f = *p_ifs;
+    istream &f = *p_is;
 
-    calib.calib_valid = (read_string(f, offset + 98, 1).c_str())[0];
-    calib.polynom_order = (read_string(f, offset + 101, 1).c_str())[0];
+    f.ignore(98);
+    calib.calib_valid = (read_string(f, 1).c_str())[0];
 
+    f.ignore(2);
+    calib.polynom_order = (read_string(f, 1).c_str())[0];
+
+    f.ignore(161);
     for (int i = 0; i < 6; ++i) {
-        calib.polynom_coeff[i] = read_dbl_le(f, offset + 263 + 8 * i);
+        calib.polynom_coeff[i] = read_dbl_le(f);
     }
+
+    f.ignore(178);  // skip all of the left fields in calib
 }
 
 } // end of namespace xylib

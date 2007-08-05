@@ -15,6 +15,9 @@ namespace xylib {
         TextDataSet(const std::string &filename)
             : DataSet(filename, FT_TEXT) {}
 
+        TextDataSet(std::istream &is, const std::string &filename)
+            : DataSet(is, filename, FT_TEXT) {}
+
         // implement the interfaces specified by DataSet
         bool is_filetype() const;
         void load_data();

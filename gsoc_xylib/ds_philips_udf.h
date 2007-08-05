@@ -8,18 +8,14 @@
 #include "util.h"
 
 namespace xylib {
-    class UdfDataSet : public UxdLikeDataSet
+    class UdfDataSet : public DataSet
     {
     public:
         UdfDataSet(const std::string &filename)
-            : UxdLikeDataSet(filename, FT_UDF) 
-        {
-            rg_start_tag = "RawScan";
-            x_start_key = "DataAngleRange";
-            x_step_key = "ScanStepSize";
-            meta_sep = ",";
-            data_sep = ", ";
-        }
+            : DataSet(filename, FT_UDF) {}
+
+        UdfDataSet(std::istream &is, const std::string &filename)
+            : DataSet(is, filename, FT_UDF) {}
 
         // implement the interfaces specified by DataSet
         bool is_filetype() const;
@@ -28,8 +24,7 @@ namespace xylib {
         const static FormatInfo fmt_info;
 
     protected:
-        void parse_range(FixedStepRange* p_rg);
-
+        void get_key_val(std::istream &f, std::string &key, std::string &val);
     }; 
 }
 #endif // #ifndef UDF_DATASET
