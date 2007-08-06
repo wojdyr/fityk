@@ -20,13 +20,11 @@ Legend:
 
 // * the API should be designed as Fityk class
 
-* XPS Shirley background removing
-
 // * convex hull background 
 
-* check if open-data plot preview still works 
+// * check if open-data plot preview still works 
 
-// * check all wxUpdateUIEvent
+* XPS Shirley background removing
 
 --------------> 0.8.2
 

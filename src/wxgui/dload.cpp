@@ -56,9 +56,10 @@ public:
 
 private:
     double xScale, yScale;
+    double xOffset, yOffset;
     int H;
-    int getX(double x) { return iround(x * xScale); }
-    int getY(double y) { return H - iround(y * yScale); }
+    int getX(double x) { return iround(x * xScale + xOffset); }
+    int getY(double y) { return iround(y * yScale + yOffset); }
     void prepare_scaling(wxDC &dc);
     void draw_scale(wxDC &dc);
 
@@ -83,7 +84,7 @@ void PreviewPlot::draw(wxDC &dc, bool)
     vector<Point> const& pp = data->points();
     dc.SetPen(*wxGREEN_PEN);
     for (vector<Point>::const_iterator i = pp.begin(); i != pp.end(); ++i)
-        dc.DrawPoint(int(i->x * xScale), H - int(i->y * yScale));
+        dc.DrawPoint(getX(i->x), getY(i->y));
 }
 
 void PreviewPlot::prepare_scaling(wxDC &dc)
@@ -93,10 +94,10 @@ void PreviewPlot::prepare_scaling(wxDC &dc)
     double dy = data->get_y_max() - data->get_y_min();
     int W = GetClientSize().GetWidth();
     H = GetClientSize().GetHeight();
-    xScale = (1 - 2 * margin) *  W / dx;
-    yScale = (1 - 2 * margin) * H / dy;
-    dc.SetDeviceOrigin(-iround(data->get_x_min() * xScale - margin * W),  
-                       iround(data->get_y_min() * yScale - margin * H));
+    xScale = (1 - 1.2 * margin) *  W / dx;
+    yScale = - (1 - 1.2 * margin) * H / dy;
+    xOffset = - data->get_x_min() * xScale + margin * W;
+    yOffset = H - data->get_y_min() * yScale - margin * H;
 }
 
 void PreviewPlot::draw_scale(wxDC &dc)
@@ -390,7 +391,7 @@ void DLoadDlg::update_plot_preview()
     else {
         plot_preview->data->clear();
     }
-    plot_preview->Refresh();
+    plot_preview->refresh();
 }
 
 void DLoadDlg::on_filter_change()

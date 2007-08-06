@@ -1,7 +1,7 @@
 # $Id$
 
 ACLOCAL_AMFLAGS = -I config
-EXTRA_DIST = fityk.spec fityk.iss fityk.url fityk.svg
+EXTRA_DIST = fityk.spec fityk.iss fityk.url fityk.svg macosx/
 AUTOMAKE_OPTIONS = dist-bzip2 
 SUBDIRS = @DOC@ src samples config 3rdparty @PYBINDINGDIR@
 
