@@ -5,33 +5,13 @@
 #ifndef UXD_DATASET_H
 #define UXD_DATASET_H
 #include "xylib.h"
-#include "util.h"
 
 namespace xylib {
     class UxdDataSet : public UxdLikeDataSet
     {
     public:
-        UxdDataSet(const std::string &filename)
-            : UxdLikeDataSet(filename, FT_UXD) 
-        {
-            init_setup();
-        }
-
-        UxdDataSet(std::istream &is, const std::string &filename)
-            : UxdLikeDataSet(is, filename, FT_UXD) 
-        {
-            init_setup();
-        }
-
-        // implement the interfaces specified by DataSet
-        bool is_filetype() const;
-        void load_data();
-
-        const static FormatInfo fmt_info;
-        
-    protected:
-        void parse_range(FixedStepRange *p_rg);
-        void init_setup()
+        UxdDataSet(std::istream &is, const std::string &filename = "")
+            : UxdLikeDataSet(is, FT_UXD, filename) 
         {
             rg_start_tag = "_DRIVE";
             x_start_key = "_START";
@@ -40,6 +20,16 @@ namespace xylib {
             data_sep = " ";
             cmt_start = ";";
         }
+
+        // implement the interfaces specified by DataSet
+        void load_data();
+
+        static bool check(std::istream &f);
+
+        const static FormatInfo fmt_info;
+        
+    protected:
+        void parse_range(FixedStepRange *p_rg);
     }; 
 }
 #endif // #ifndef UXD_DATASET_H

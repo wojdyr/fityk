@@ -5,21 +5,19 @@
 #ifndef UDF_DATASET
 #define UDF_DATASET
 #include "xylib.h"
-#include "util.h"
+
 
 namespace xylib {
     class UdfDataSet : public DataSet
     {
     public:
-        UdfDataSet(const std::string &filename)
-            : DataSet(filename, FT_UDF) {}
-
-        UdfDataSet(std::istream &is, const std::string &filename)
-            : DataSet(is, filename, FT_UDF) {}
+        UdfDataSet(std::istream &is, const std::string &filename = "")
+            : DataSet(is, FT_UDF, filename) {}
 
         // implement the interfaces specified by DataSet
-        bool is_filetype() const;
         void load_data();
+
+        static bool check(std::istream &f);
 
         const static FormatInfo fmt_info;
 

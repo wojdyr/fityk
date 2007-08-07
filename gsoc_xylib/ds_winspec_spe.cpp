@@ -40,6 +40,7 @@ and a SPE reading program written by Pablo Bianucci <pbian@physics.utexas.edu>.
 */
 
 #include "ds_winspec_spe.h"
+#include "util.h"
 #include <cmath>
 
 using namespace std;
@@ -56,10 +57,7 @@ const FormatInfo WinspecSpeDataSet::fmt_info(
     true                        // whether multi-ranged
 );
 
-bool WinspecSpeDataSet::is_filetype() const
-{
-    istream &f = *p_is;
-
+bool WinspecSpeDataSet::check(istream &f) {
     // make sure file size > 4100
     f.seekg(-1, ios_base::end);
     long file_sz = f.tellg();
@@ -76,13 +74,15 @@ bool WinspecSpeDataSet::is_filetype() const
 
     // additional if-condition can be added
 
+    f.seekg(0);
     return true;
 }
 
 void WinspecSpeDataSet::load_data() 
 {
-    init();
-    istream &f = *p_is;
+    if (!check(f)) {
+        throw XY_Error("file is not the expected " + get_filetype() + " format");
+    }
 
     // only read necessary params from file header
     f.ignore(42);
@@ -170,13 +170,11 @@ double WinspecSpeDataSet::idx_to_calib_val(int idx, const spe_calib *calib)
 // read some fields of calib. 'offset' is the offset of the structure in file
 void WinspecSpeDataSet::read_calib(spe_calib &calib)
 {
-    istream &f = *p_is;
-
     f.ignore(98);
-    calib.calib_valid = (read_string(f, 1).c_str())[0];
+    f.read(&calib.calib_valid, 1);
 
     f.ignore(2);
-    calib.polynom_order = (read_string(f, 1).c_str())[0];
+    f.read(&calib.polynom_order, 1);
 
     f.ignore(161);
     for (int i = 0; i < 6; ++i) {

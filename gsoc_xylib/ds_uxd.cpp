@@ -52,6 +52,7 @@ _COUNTS
 */
 
 #include "ds_uxd.h"
+#include "util.h"
 
 using namespace std;
 using namespace xylib::util;
@@ -67,15 +68,21 @@ const FormatInfo UxdDataSet::fmt_info(
     true                         // whether multi-ranged
 );
 
-bool UxdDataSet::is_filetype() const
-{
-    return true;
+bool UxdDataSet::check(istream &f) {
+    string line;
+    do {
+        my_getline(f, line);
+    } while ("" == line || str_startwith(line, ";"));
+
+    f.seekg(0);
+    return str_startwith(line, "_FILEVERSION");
 }
 
 void UxdDataSet::load_data() 
 {
-    init();
-    istream &f = *p_is;
+    if (!check(f)) {
+        throw XY_Error("file is not the expected " + get_filetype() + " format");
+    }
 
     string line, key, val;
     line_type ln_type;
@@ -113,8 +120,6 @@ void UxdDataSet::load_data()
 // parse a single range of the file
 void UxdDataSet::parse_range(FixedStepRange *p_rg)
 {
-    istream &f = *p_is;
-
     string line;
     // get range-scope meta-info
     while (true) {

@@ -5,7 +5,7 @@
 #ifndef WINSPEC_SPE_DATASET_H
 #define WINSPEC_SPE_DATASET_H
 #include "xylib.h"
-#include "util.h"
+
 
 namespace xylib {
 
@@ -26,14 +26,11 @@ struct spe_calib;
 class WinspecSpeDataSet : public DataSet
 {
 public:
-    WinspecSpeDataSet(const std::string &filename)
-        : DataSet(filename, FT_SPE) {}
-
-    WinspecSpeDataSet(std::istream &is, const std::string &filename)
-        : DataSet(is, filename,FT_SPE) {}
+    WinspecSpeDataSet(std::istream &is, const std::string &filename = "")
+        : DataSet(is, FT_SPE, filename) {}
 
     // implement the interfaces specified by DataSet
-    bool is_filetype() const;
+    static bool check(std::istream &f);
     void load_data();
 
     const static FormatInfo fmt_info;
@@ -61,20 +58,20 @@ struct spe_calib {
     char string[40];      // +18 special string for scaling 
     char reserved2[40];   // +58 reserved
 */
-    char calib_valid;     // +98 flag if calibration is valid 
+    char calib_valid;      // +98 flag if calibration is valid 
 /*
     char input_unit;      // +99 current input units for 
                           // "calib-value" 
     char polynom_unit;    // +100 linear UNIT and used 
                           // in the "polynom-coeff" 
 */
-    char polynom_order;   // +101 ORDER of calibration POLYNOM 
+    char polynom_order;    // +101 ORDER of calibration POLYNOM 
 /*
     char calib_count;             // +102 valid calibration data pairs 
     double pixel_position[10];    // +103 pixel pos. of calibration data 
     double calib_value[10];       // +183 calibration VALUE at above pos 
 */
-    double polynom_coeff[6];      // +263 polynom COEFFICIENTS 
+    double polynom_coeff[6];        // +263 polynom COEFFICIENTS 
 /*
     double laser_position;        // +311 laser wavenumber for relativ WN 
     char reserved3;               // +319 reserved 

@@ -16,8 +16,7 @@
 namespace xylib
 {
 
-// sub namespace to hold the utility functions
-// move the original XY_Lib static member functions here
+// sub namespace that holds the utility functions
 namespace util 
 {
     unsigned read_uint32_le(std::istream &f);
@@ -31,7 +30,6 @@ namespace util
     void le_to_host_4(void *p);
     void le_to_host_8(void *p);
 
-    void rm_space(std::string &str);
     std::string str_trim(const std::string &str, std::string ws = " \r\n\t");
     void parse_line(const std::string &line, const std::string &sep, 
         std::string &key, std::string &val);
@@ -48,10 +46,14 @@ namespace util
     double read_line_double(std::istream& is);
     std::string read_line(std::istream& is);
 
+//  not used functions
+/*
+    void rm_spaces(std::string &str);
     // find the index of @find_str in @array
     int get_array_idx(const std::string *array, 
         unsigned size,
         const std::string &find_str);
+*/
 
     //---------------------------  S T R I N G  --------------------------------
     /// S() converts to string

@@ -28,6 +28,7 @@ reference.
 
 
 #include "ds_brucker_raw_v23.h"
+#include "util.h"
 
 using namespace std;
 using namespace xylib::util;
@@ -44,12 +45,6 @@ const FormatInfo BruckerV23RawDataSet::fmt_info(
 );
 
 
-bool BruckerV23RawDataSet::is_filetype() const
-{
-    return check(*p_is);
-}
-
-
 bool BruckerV23RawDataSet::check(istream &f)
 {
     // the first 4 letters must be "RAW2"
@@ -59,14 +54,16 @@ bool BruckerV23RawDataSet::check(istream &f)
         throw XY_Error("error when reading file head");
     }
 
+    f.seekg(0);
     return ("RAW2" == head);
 }
 
 
 void BruckerV23RawDataSet::load_data() 
 {
-    init();
-    istream &f = *p_is;
+    if (!check(f)) {
+        throw XY_Error("file is not the expected " + get_filetype() + " format");
+    }
 
     f.ignore(4);
     unsigned range_cnt = read_uint16_le(f);

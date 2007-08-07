@@ -26,6 +26,8 @@ using namespace boost;
 
 namespace xylib {
 
+// NOTE: elements in g_fi are ordered, 
+// they must be kept as the same order as enum xy_ftype
 const FormatInfo *g_fi[] = {
     NULL,
     &TextDataSet::fmt_info,
@@ -67,7 +69,6 @@ double Range::get_y(unsigned n) const
     check_idx(n, "point_y");
     return y[n];
 }
-
 
 bool Range::has_y_stddev(unsigned n) const
 { 
@@ -278,27 +279,7 @@ DataSet::~DataSet()
     for (it = ranges.begin(); it != ranges.end(); ++it) {      
         delete *it;
     }
-    if (p_is) {
-        delete p_is;
-    }
 }
-
-void DataSet::init()
-{
-    // open given file
-    p_is = new ifstream(filename.c_str(), ios::in | ios::binary);
-    if (!p_is) {
-        throw XY_Error("Can't open file: " + filename);
-    }
-
-    // check whether legal
-    if (!is_filetype()) {
-        throw XY_Error("file is not the expected " + get_filetype() + " format");
-    }
-
-    p_is->seekg(0);    // reset the istream, as if no lines have been read
-}
-
 
 //////////////////////////////////////////////////////////////////////////
 // members of UxdLikeDataSet
@@ -324,7 +305,7 @@ line_type UxdLikeDataSet::get_line_type(const string &line)
 }
 
 
-// move "if" ptr to a line which has meaning to us
+// move the reading ptr of "f" to a line which has meaning to us
 // return ture if not eof, false otherwise
 bool UxdLikeDataSet::skip_invalid_lines(std::istream &f)
 {
@@ -349,43 +330,8 @@ bool UxdLikeDataSet::skip_invalid_lines(std::istream &f)
 
 //////////////////////////////////////////////////////////////////////////
 // namespace scope global functions
-
-DataSet* getNewDataSet(const string &filename, xy_ftype filetype /* = FT_UNKNOWN */)
-{
-    DataSet *pd = NULL;
-    xy_ftype ft = (FT_UNKNOWN == filetype) ? guess_file_type(filename) : filetype;
-
-    if (FT_BR_RAW1 == ft) {
-        pd = new BruckerV1RawDataSet(filename); 
-    } else if (FT_BR_RAW23 == ft) {
-        pd = new BruckerV23RawDataSet(filename);
-    } else if (FT_UXD == ft) {
-        pd = new UxdDataSet(filename);
-    } else if (FT_TEXT == ft) {
-        pd = new TextDataSet(filename);
-    } else if (FT_RIGAKU == ft) {
-        pd = new RigakuDataSet(filename);
-    } else if (FT_VAMAS == ft) {
-        pd = new VamasDataSet(filename);
-    } else if (FT_UDF == ft) {
-        pd = new UdfDataSet(filename);
-    } else if (FT_SPE == ft) {
-        pd = new WinspecSpeDataSet(filename);
-    } else {
-        pd = NULL;
-        throw XY_Error("unkown or unsupported file type");
-    }
-
-    if (NULL != pd) {
-        pd->load_data(); 
-    }
-
-    return pd;
-}
-
-
-DataSet* getNewDataSet(istream &is, const string &filename, 
-    xy_ftype filetype /* = FT_UNKNOWN */)
+DataSet* getNewDataSet(istream &is, xy_ftype filetype /* = FT_UNKNOWN */, 
+    const string &filename /* = "" */)
 {
     DataSet *pd = NULL;
     xy_ftype ft = (FT_UNKNOWN == filetype) ? guess_file_type(filename) : filetype;
@@ -433,9 +379,7 @@ xy_ftype guess_file_type(const string &fpath)
     try {
         if("txt" == ext || "asc" == ext) {
             return FT_TEXT;
-        }
-            
-        if ("uxd" == ext) {
+        } else if ("uxd" == ext) {
             return FT_UXD;
         } else if ("vms" == ext) {
             return FT_VAMAS;

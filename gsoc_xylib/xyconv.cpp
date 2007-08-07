@@ -62,10 +62,16 @@ int main(int argc, char **argv)
         }
     }
 
+    ifstream ifs(argv[argc-2], ios::in | ios::binary);
+    if (!ifs) {
+        cerr << "Error: can't open input file " << argv[argc-2] << endl;
+        return -1;
+    }
+
     try {
         xylib::xy_ftype t = filetype.empty() ? xylib::FT_UNKNOWN
                                              : xylib::string_to_ftype(filetype);
-        xylib::DataSet *d = xylib::getNewDataSet(argv[argc-2], t);
+        xylib::DataSet *d = xylib::getNewDataSet(ifs, t, argv[argc-2]);
         d->export_xy_file(argv[argc-1], meta, "#");
         delete d;
     } catch (xylib::XY_Error const& e) {

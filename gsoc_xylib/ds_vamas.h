@@ -5,21 +5,18 @@
 #ifndef VAMAS_DATASET
 #define VAMAS_DATASET
 #include "xylib.h"
-#include "util.h"
 
 namespace xylib {
     class VamasDataSet : public DataSet
     {
     public:
-        VamasDataSet(const std::string &filename)
-            : DataSet(filename, FT_VAMAS), include(40, false) {}
-
-        VamasDataSet(std::istream &is, const std::string &filename)
-            : DataSet(is, filename, FT_VAMAS), include(40, false) {}
+        VamasDataSet(std::istream &is, const std::string &filename = "")
+            : DataSet(is, FT_VAMAS, filename), include(40, false) {}
 
         // implement the interfaces specified by DataSet
-        bool is_filetype() const;
         void load_data();
+
+        static bool check(std::istream &f);
 
         const static FormatInfo fmt_info;
 

@@ -42,6 +42,7 @@ and v2/v3 formats; and at the end, a sample FORTRAN program is given.
 */
 
 #include "ds_brucker_raw_v1.h"
+#include "util.h"
 
 using namespace std;
 using namespace xylib::util;
@@ -58,30 +59,25 @@ const FormatInfo BruckerV1RawDataSet::fmt_info(
 );
 
 
-bool BruckerV1RawDataSet::is_filetype() const
-{
-    return check(*p_is);
-}
-
-
 bool BruckerV1RawDataSet::check(istream &f)
 {
     // the first 3 letters must be "RAW"
     f.clear();
-    string head = read_string(f, 3);
+    string head = read_string(f, 4);
     if(f.rdstate() & ios::failbit) {
         throw XY_Error("error when reading file head");
     }
 
-    return ("RAW" == head);
+    f.seekg(0);     // reset the istream, as if no lines have been read
+    return ("RAW" == head.substr(0, 3) && head[3] != '2');
 }
 
 
 void BruckerV1RawDataSet::load_data() 
 {
-    // no file-scope meta-info in this format
-    init();
-    istream &f = *p_is;
+    if (!check(f)) {
+        throw XY_Error("file is not the expected " + get_filetype() + " format");
+    }
 
     unsigned following_range;
     

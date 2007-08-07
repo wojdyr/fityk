@@ -25,7 +25,7 @@ namespace xylib
 {
 
 /*
-   supported file format types are:
+   so far, supported file formats types are:
 */
 enum xy_ftype {
     FT_UNKNOWN,
@@ -152,17 +152,9 @@ protected:
 class DataSet
 {
 public:
-    DataSet(const std::string &filename_, xy_ftype ftype_ = FT_UNKNOWN)
-        : filename(filename_) 
+    DataSet(std::istream &is_, xy_ftype ftype_ = FT_UNKNOWN, const std::string &filename_ = "")
+        : filename(filename_), f(is_)
     {
-        p_is = NULL;
-        ftype = ftype_;
-    }
-
-    DataSet(std::istream &is, const std::string &filename_, xy_ftype ftype_ = FT_UNKNOWN)
-        : filename(filename_)
-    {
-        p_is = &is;
         ftype = ftype_;
     }
     
@@ -184,9 +176,6 @@ public:
     std::vector<std::string> get_all_meta_keys() const;
     const std::string& get_meta(std::string const& key) const; 
 
-    // check file by "magic number" to see whether it is the expected format
-    virtual bool is_filetype() const = 0;
-
     // input/output data from/to file
     virtual void load_data() = 0;
     virtual void export_xy_file(const std::string &fname, 
@@ -200,39 +189,31 @@ protected:
     std::string filename;
     std::vector<Range*> ranges;     // use "Range*" to support polymorphism
     std::map<std::string, std::string> meta_map;
-    std::istream *p_is;
-
-    // used by load_data to perform some common operations
-    virtual void init(); 
+    std::istream &f;
 }; // end of DataSet
 
 
-enum line_type {LT_COMMENT, LT_KEYVALUE, LT_EMPTY, LT_XYDATA, LT_UNKNOWN};
+enum line_type { LT_COMMENT, LT_KEYVALUE, LT_EMPTY, LT_XYDATA, LT_UNKNOWN };
 
 // the generic class to handle all UXD-like dataset
 class UxdLikeDataSet : public DataSet
 {
     public:
-        UxdLikeDataSet(const std::string &filename, xy_ftype filetype)
-            :  DataSet(filename, filetype), meta_sep("=:"), 
-            data_sep(", ;"), cmt_start(";#")
-        {}
-        
-        UxdLikeDataSet(std::istream& is, const std::string &filename, xy_ftype filetype)
-            :  DataSet(is, filename, filetype), meta_sep("=:"), 
-            data_sep(", ;"), cmt_start(";#")
-        {}
+        UxdLikeDataSet(std::istream& is, xy_ftype filetype, const std::string &filename)
+            :  DataSet(is, filetype, filename), meta_sep("=:"), 
+            data_sep(", ;"), cmt_start(";#") {}
 
     protected:
         line_type get_line_type(const std::string &line);
         bool skip_invalid_lines(std::istream &f);
-        
-        std::string rg_start_tag;
+
+        // elements that only owned by UxdLikeDataSet
+        std::string rg_start_tag;       // first tag in a range
         std::string x_start_key;
         std::string x_step_key;
-        std::string meta_sep;
-        std::string data_sep;
-        std::string cmt_start;
+        std::string meta_sep;            // separator chars between key & value
+        std::string data_sep;            // separator chars between points-data
+        std::string cmt_start;           // start chars of a comment line
 };
 
 
@@ -240,16 +221,17 @@ class UxdLikeDataSet : public DataSet
 // namespace-scope "global functions" 
 
 // get a non-abstract DataSet ptr according to the given "filetype"
-// if "filetype" is not given, auto-detection is used to decide the file type
-DataSet* getNewDataSet(const std::string &filename, xy_ftype filetype /* = FT_UNKNOWN */);
-DataSet* getNewDataSet(std::istream &is, const std::string &filename, 
-                       xy_ftype filetype /* = FT_UNKNOWN */);
+// if "filetype" is not given, uses auto-detection to decide its type
+DataSet* getNewDataSet(std::istream &is, xy_ftype filetype = FT_UNKNOWN,
+    const std::string &filename = "");
 
 xy_ftype guess_file_type(const std::string &filename);
 xy_ftype string_to_ftype(const std::string &ftype_name);
 
 
 // output the meta-info to ostream os
+// cmt_str: all meta info will be output as a comment line; cmt_str is the 
+//          string at the biginning of the line to indicate it's a comment
 template <typename T>
 void output_meta(std::ostream &os, T *pds, const std::string &cmt_str)
 {

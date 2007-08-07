@@ -6,21 +6,18 @@
 #ifndef TEXT_DATASET_H
 #define TEXT_DATASET_H
 #include "xylib.h"
-#include "util.h"
 
 namespace xylib {
     class TextDataSet : public DataSet
     {
     public:
-        TextDataSet(const std::string &filename)
-            : DataSet(filename, FT_TEXT) {}
-
-        TextDataSet(std::istream &is, const std::string &filename)
-            : DataSet(is, filename, FT_TEXT) {}
+        TextDataSet(std::istream &is, const std::string &filename = "")
+            : DataSet(is, FT_TEXT, filename) {}
 
         // implement the interfaces specified by DataSet
-        bool is_filetype() const;
         void load_data();
+
+        static bool check(std::istream &f);
 
         const static FormatInfo fmt_info;
     }; 

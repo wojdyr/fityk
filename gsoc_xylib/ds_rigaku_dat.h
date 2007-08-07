@@ -5,36 +5,14 @@
 #ifndef RIGAKU_DATASET
 #define RIGAKU_DATASET
 #include "xylib.h"
-#include "util.h"
+
 
 namespace xylib {
     class RigakuDataSet : public UxdLikeDataSet
     {
     public:
-        RigakuDataSet(const std::string &filename)
-            : UxdLikeDataSet(filename, FT_RIGAKU) 
-        {
-            init_setup();
-        }
-
-        RigakuDataSet(std::istream &is, const std::string &filename)
-            : UxdLikeDataSet(is, filename, FT_RIGAKU) 
-        {
-            init_setup();
-        }
-
-        // implement the interfaces specified by DataSet
-        bool is_filetype() const;
-        void load_data();
-
-        static bool check(std::istream &f);
-
-        const static FormatInfo fmt_info;
-
-    protected:
-        void parse_range(FixedStepRange* p_rg);
-
-        void init_setup()
+        RigakuDataSet(std::istream &is, const std::string &filename = "")
+            : UxdLikeDataSet(is, FT_RIGAKU, filename)
         {
             rg_start_tag = "*BEGIN";
             x_start_key = "*START";
@@ -44,6 +22,15 @@ namespace xylib {
             cmt_start = ";#";
         }
 
+        // implement the interfaces specified by DataSet
+        void load_data();
+
+        static bool check(std::istream &f);
+
+        const static FormatInfo fmt_info;
+
+    protected:
+        void parse_range(FixedStepRange* p_rg);
     }; 
 }
 #endif // #ifndef RIGAKU_DATASET

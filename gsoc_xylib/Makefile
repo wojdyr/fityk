@@ -1,7 +1,9 @@
 CC = gcc
 CXX = g++
 CFLAGS = -Wall -W -O -g -I ./3rdparty
-TARGET = xyconv
+TARGET= xyconv
+
+EXISTED = $(shell test -e output && echo $$?)
 
 %.o:%.cpp
 	$(CXX) $(CFLAGS) -c $< -o $@
@@ -17,5 +19,10 @@ xyconv: xyconv.o $(LIB_OBJS)
 
 clean:
 	rm -rf *.o xyconv
-	# remove the exported files in the out/ dir
-	find out/ -name "*.txt" -type f -print | xargs /bin/rm -f
+	# remove the exported files in the output/ dir, if exists
+ifeq (0,${EXISTED})
+	find output/ -name "*.txt" -type f -print | xargs /bin/rm -f
+	rmdir output/*
+	rmdir output
+endif
+	@echo 'cleaned'

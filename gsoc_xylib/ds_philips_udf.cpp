@@ -43,6 +43,7 @@ RawScan
 */
 
 #include "ds_philips_udf.h"
+#include "util.h"
 
 using namespace std;
 using namespace xylib::util;
@@ -58,24 +59,24 @@ const FormatInfo UdfDataSet::fmt_info(
     false                        // whether multi-ranged
 );
 
-bool UdfDataSet::is_filetype() const
+bool UdfDataSet::check (istream &f)
 {
-    istream &f = *p_is;
-
     f.clear();
     string head = read_string(f, 11);
     if(f.rdstate() & ios::failbit) {
         throw XY_Error("error when reading file head");
     }
 
+    f.seekg(0);
     return ("SampleIdent" == head);
 }
 
 
 void UdfDataSet::load_data() 
 {
-    init();
-    istream &f = *p_is;
+    if (!check(f)) {
+        throw XY_Error("file is not the expected " + get_filetype() + " format");
+    }
 
     double x_start(0), x_step(0);
     string key, val;
@@ -118,21 +119,6 @@ void UdfDataSet::load_data()
     }
 
     ranges.push_back(p_rg);
-/*
-   while (true) {
-        int d;
-        f >> d;
-        if (!f) {
-            throw XY_Error("format error: unexpected EOF");
-        }
-        p_rg->add_y(d);
-        int c = f.get();  // c should be blank or ',' or '/'
-        if (c == '/') {
-            // end of data
-            return;
-        }
-    }
-*/
 }
 
 

@@ -56,6 +56,7 @@ and "*STEP" included).The data body of one group begins after "*COUNT=XXX").
 */
 
 #include "ds_rigaku_dat.h"
+#include "util.h"
 
 using namespace std;
 using namespace xylib::util;
@@ -71,12 +72,6 @@ const FormatInfo RigakuDataSet::fmt_info(
     true                         // whether multi-ranged
 );
 
-bool RigakuDataSet::is_filetype() const
-{
-    // the first 5 letters must be "*TYPE"
-    return check(*p_is);
-}
-
 
 // return true if is this type, false otherwise
 bool RigakuDataSet::check(istream &f)
@@ -87,15 +82,17 @@ bool RigakuDataSet::check(istream &f)
     if(f.rdstate() & ios::failbit) {
         throw XY_Error("error when reading file head");
     }
-
+    
+    f.seekg(0);
     return ("*TYPE" == head);
 }
 
 
 void RigakuDataSet::load_data() 
 {
-    init();
-    istream &f = *p_is;
+    if (!check(f)) {
+        throw XY_Error("file is not the expected " + get_filetype() + " format");
+    }
 
     string line, key, val;
     line_type ln_type;
@@ -132,8 +129,6 @@ void RigakuDataSet::load_data()
 
 void RigakuDataSet::parse_range(FixedStepRange* p_rg)
 {
-    istream &f = *p_is;
-
     string line;
     // get range-scope meta-info
     while (true) {

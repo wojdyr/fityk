@@ -39,6 +39,7 @@ based on the paper 1 mentioned above and the analysis of the sample files.
 */
 
 #include "ds_vamas.h"
+#include "util.h"
 
 using namespace std;
 using namespace xylib::util;
@@ -54,22 +55,24 @@ const FormatInfo VamasDataSet::fmt_info(
     true                         // whether multi-ranged
 );
 
-bool VamasDataSet::is_filetype() const
+bool VamasDataSet::check(istream &f)
 {
     // the first line must be "VAMAS Surface ..."
-    istream &f = *p_is;
-
     static string magic = "VAMAS Surface Chemical Analysis Standard Data Transfer Format 1988 May 4";
     string line;
 
-    return (getline(f, line) && str_trim(line) == magic);
+    bool re = (getline(f, line) && str_trim(line) == magic);
+
+    f.seekg(0);
+    return re;
 }
 
 
 void VamasDataSet::load_data() 
 {
-    init();
-    istream &f = *p_is;
+    if (!check(f)) {
+        throw XY_Error("file is not the expected " + get_filetype() + " format");
+    }
 
     int n;
 
@@ -140,7 +143,6 @@ void VamasDataSet::load_data()
 // read one blk, used by load_vamas_file()
 void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
 {
-    istream &f = *p_is;
     int cor_var = 0;    // # of corresponding variables
     
     p_rg->add_meta("block id", read_line(f));
@@ -205,9 +207,8 @@ void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
     }
 
     if (include[17]) {
-        if (("MAPSV" == exp_mode) || ("MAPSV" == exp_mode) || ("MAPSVDP" == exp_mode)) {
-            throw XY_Error("do not support MAPPING mode now");
-            //skip_lines(f, 6);
+        if (("SEM" == exp_mode) || ("MAPSV" == exp_mode) || ("MAPSVDP" == exp_mode)) {
+            throw XY_Error("do not support MAPPING mode");
         }
     }
 
@@ -303,8 +304,6 @@ void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
 // a simple wrapper to simplify the code
 void VamasDataSet::read_meta_line(int idx, FixedStepRange *p_rg, string meta_key)
 {
-    istream &f = *p_is;
-
     if (include[idx]) {
         p_rg->add_meta(meta_key, read_line(f));
     }

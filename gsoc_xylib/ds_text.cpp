@@ -37,6 +37,8 @@ There may be some comment lines without any valid XY data
 */
 
 #include "ds_text.h"
+#include "ds_rigaku_dat.h"
+#include "util.h"
 
 using namespace std;
 using namespace xylib::util;
@@ -54,16 +56,20 @@ const FormatInfo TextDataSet::fmt_info(
     false                        // whether multi-ranged
 );
 
-bool TextDataSet::is_filetype() const
-{
-    // no detection performed
+bool TextDataSet::check(istream &f) {
+    if (RigakuDataSet::check(f)) {
+        return false;
+    }
+
+    f.seekg(0);
     return true;
 }
 
 void TextDataSet::load_data() 
 {
-    init();
-    istream &f = *p_is;
+    if (!check(f)) {
+        throw XY_Error("file is not the expected " + get_filetype() + " format");
+    }
 
     Range* p_rg = new Range;
 

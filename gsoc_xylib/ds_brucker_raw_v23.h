@@ -7,20 +7,16 @@
 #define BRUCKER_RAW_V23_H
 
 #include "xylib.h"
-#include "util.h"
+
 
 namespace xylib {
     class BruckerV23RawDataSet : public DataSet
     {
     public:
-        BruckerV23RawDataSet(const std::string &filename)
-            : DataSet(filename, FT_BR_RAW23) {}
-
-        BruckerV23RawDataSet(std::istream &is, const std::string &filename)
-            : DataSet(is, filename, FT_BR_RAW23) {}
+        BruckerV23RawDataSet(std::istream &is, const std::string &filename = "")
+            : DataSet(is, FT_BR_RAW23, filename) {}
 
         // implement the interfaces specified by DataSet
-        bool is_filetype() const;
         void load_data();
 
         static bool check(std::istream &f);

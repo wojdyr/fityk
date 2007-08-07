@@ -73,24 +73,6 @@ namespace util{
     }
 /////////////////////////
 
-    // remove all space chars in str, not used now
-    void rm_spaces(string &str)
-    {
-        string ss(str);
-        str.clear();
-        do {
-            string::size_type first_pos = ss.find_first_not_of(" \t\r\n");
-            if (string::npos == first_pos) {
-                break;
-            } else {
-                ss = ss.substr(first_pos);
-                str.append(&ss[0],1);
-                ss = ss.substr(1);
-            }
-        } while(ss.size() > 0);
-    }
-
-
     // trim the string 
     string str_trim(const string &str, string ws /* = " \r\n\t" */)
     {
@@ -261,6 +243,23 @@ namespace util{
         return str_trim(line);
     }
 
+/* 
+    // remove all space chars in str, not used now
+    void rm_spaces(string &str)
+    {
+        string ss(str);
+        str.clear();
+        do {
+            string::size_type first_pos = ss.find_first_not_of(" \t\r\n");
+            if (string::npos == first_pos) {
+                break;
+            } else {
+                ss = ss.substr(first_pos);
+                str.append(&ss[0],1);
+                ss = ss.substr(1);
+            }
+        } while(ss.size() > 0);
+    }
 
     // get the index of find_str in array. return -1 if not exists
     int get_array_idx(const string *array, 
@@ -274,6 +273,7 @@ namespace util{
             return (pos - array);
         }
     }
+*/
 
     // preview the next line in "f"
     // return: true if not eof, false otherwise

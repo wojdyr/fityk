@@ -24,8 +24,8 @@ Siemens/Bruker uxd:     .uxd
 Diffrac-AT raw v1/2/3:  .raw
 Philips UDF Format:     .udf
 Rigaku Dat Format:      .dat
-Vamas ISO14976:         .vms
-Princeton Instruments WinSpec SPE Format:	.spe
+Vamas ISO14976:         .vms	(DO NOT support mapping mode, where experiment mode is "SEM", "MAPSV" or "MAPSVDP")
+Princeton Instruments WinSpec SPE Format:	.spe (ONLY support 1-D)
 
 FILES
 ============
