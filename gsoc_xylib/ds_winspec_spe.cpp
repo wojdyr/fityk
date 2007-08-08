@@ -23,11 +23,12 @@ According to the format specification, SPE format has several versions (v1.43,
 v1.6 and the newest v2.25). But we need not implement every version of it, 
 because it's back-ward compatible.
     
-All data files must begin with a 4100 byte header. There are lots of fields 
+All data files must begin with a 4100-byte header. There are lots of fields 
 stored in the header in a fixed offset. 
 NOTE: there are 2 issues must be aware of when implementing this format.
 1. Data are stored in Little-Endian, binary raw format. 
-2. Its type SPE_DATA_LONG etc has a different length, compared with in C/C++
+2. Its own types (SPE_DATA_LONG etc) have different lengths compared with those
+types in C/C++
 
 Data begins right after the header, with offset 4100.
 
@@ -89,6 +90,7 @@ void WinspecSpeDataSet::load_data()
     int xdim = read_uint16_le(f);
     f.ignore(64);
     spe_dt data_type = static_cast<spe_dt>(read_uint16_le(f));
+    
     f.ignore(546);
     int ydim = read_uint16_le(f);
     f.ignore(788);
@@ -152,6 +154,10 @@ double WinspecSpeDataSet::idx_to_calib_val(int idx, const spe_calib *calib)
     double re = 0;
 
 	// Sanity checks
+    if (!calib) {
+        throw XY_Error("invalid calib structure");
+    }
+	
 	if (calib->polynom_order > 6) {
         throw XY_Error("bad polynom header found");
 	}
@@ -171,10 +177,10 @@ double WinspecSpeDataSet::idx_to_calib_val(int idx, const spe_calib *calib)
 void WinspecSpeDataSet::read_calib(spe_calib &calib)
 {
     f.ignore(98);
-    f.read(&calib.calib_valid, 1);
+    my_read(f, &calib.calib_valid, 1);
 
     f.ignore(2);
-    f.read(&calib.polynom_order, 1);
+    my_read(f, &calib.polynom_order, 1);
 
     f.ignore(161);
     for (int i = 0; i < 6; ++i) {

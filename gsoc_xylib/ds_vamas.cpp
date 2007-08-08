@@ -46,6 +46,24 @@ using namespace xylib::util;
 
 namespace xylib {
 
+// static string arrays to help check the file sanity
+
+const static string exps[9] = {
+    "MAP","MAPDP","MAPSV","MAPSVDP","NORM",
+    "SDP","SDPSV","SEM","NOEXP",
+};
+
+const static string techs[14] = {
+    "AES diff","AES dir","EDX","ELS","FABMS",
+    "FABMS energy spec","ISS","SIMS","SIMS energy spec","SNMS",
+    "SNMS energy spec","UPS","XPS","XRF"
+};
+
+const static string scans[3] = {
+    "REGULAR","IRREGULAR","MAPPING",
+};
+
+
 const FormatInfo VamasDataSet::fmt_info(
     FT_VAMAS,
     "vamas_iso14976",
@@ -87,7 +105,16 @@ void VamasDataSet::load_data()
     skip_lines(f, n);
 
     exp_mode = str_trim(read_line(f));
+    // make sure exp_mode has a valid value
+    if (-1 == get_array_idx(exps, 9, exp_mode)) {
+        throw XY_Error("exp_mode has an invalid value");
+    }
+    
     scan_mode = str_trim(read_line(f));
+    // make sure scan_mode has a valid value
+    if (-1 == get_array_idx(scans, 3, scan_mode)) {
+        throw XY_Error("scan_mode has an invalid value");
+    }
 
     // some exp_mode specific file-scope meta-info
     if (("MAP" == exp_mode) || ("MAPD" == exp_mode) ||
@@ -131,8 +158,8 @@ void VamasDataSet::load_data()
     skip_lines(f, blk_fue);
 
     // handle the blocks
-    int blk_cnt = read_line_int(f);
-    for (int i = 0; i < blk_cnt; ++i) {
+    unsigned blk_cnt = read_line_int(f);
+    for (unsigned i = 0; i < blk_cnt; ++i) {
         FixedStepRange *p_rg = new FixedStepRange;
         vamas_read_blk(p_rg);
         ranges.push_back(p_rg);
@@ -163,6 +190,10 @@ void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
 
     read_meta_line(8, p_rg, "tech");
     string tech = p_rg->get_meta("tech");
+    // make sure tech has a valid value
+    if (-1 == get_array_idx(techs, 14, tech)) {
+        throw XY_Error("tech has an invalid value");
+    }
 
     if (include[9]) {
         if (("MAP" == exp_mode) || ("MAPDP" == exp_mode)) {
@@ -279,8 +310,8 @@ void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
     read_meta_line(38, p_rg, "sample rotate angle");
     
     if (include[39]) {
-        int n = read_line_int(f);   // # of additional numeric parameters
-        for (int i = 0; i < n; ++i) {
+        unsigned n = read_line_int(f);   // # of additional numeric parameters
+        for (unsigned i = 0; i < n; ++i) {
             // 3 items in every loop: param_label, param_unit, param_value
             string param_label = read_line(f);
             string param_unit = read_line(f);

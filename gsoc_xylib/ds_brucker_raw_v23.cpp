@@ -84,11 +84,17 @@ void BruckerV23RawDataSet::load_data()
 
         // add the range-scope meta-info
         unsigned cur_header_len = read_uint16_le(f);
+        if (cur_header_len <= 48) {
+            throw XY_Error("range header too short");
+        }
+        
         unsigned cur_range_steps = read_uint16_le(f);
         f.ignore(4);
         p_rg->add_meta("SEC_PER_STEP", S(read_flt_le(f)));
+        
         float x_step = read_flt_le(f);
         p_rg->set_x_step(x_step);
+        
         float x_start = read_flt_le(f);
         p_rg->set_x_start(x_start);
 

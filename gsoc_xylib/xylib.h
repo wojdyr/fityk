@@ -89,7 +89,7 @@ public:
     virtual double get_x(unsigned n) const;
     double get_y(unsigned n) const; 
 
-    // whether this range of data is in "fixed step"
+    // whether this range of data has a "fixed step"
     bool has_fixed_step() { return fixed_step; }
 
     // std. dev. is optional
@@ -103,7 +103,7 @@ public:
     const std::string& get_meta(std::string const& key) const; 
     
     // add a <key, val> pair of meta-data to DataSet
-    void add_meta(const std::string &key, const std::string &val);
+    bool add_meta(const std::string &key, const std::string &val);
 
     void export_xy_file(const std::string &fname) const;
     void export_xy_file(std::ofstream &of) const;
@@ -152,11 +152,7 @@ protected:
 class DataSet
 {
 public:
-    DataSet(std::istream &is_, xy_ftype ftype_ = FT_UNKNOWN, const std::string &filename_ = "")
-        : filename(filename_), f(is_)
-    {
-        ftype = ftype_;
-    }
+    DataSet(std::istream &is_, xy_ftype ftype_) : f(is_), ftype(ftype_) {}
     
     virtual ~DataSet();
 
@@ -166,7 +162,6 @@ public:
 
     // getters of some attributes associate to files 
     const std::string& get_filetype() const { return g_fi[ftype]->name; };
-    const std::string& get_filename() const { return filename; }
     // return a detailed description of current file type
     const std::string& get_filetype_desc() const { return g_fi[ftype]->desc; }; 
 
@@ -182,14 +177,13 @@ public:
         bool with_meta = true, const std::string &cmt_str = ";") const; 
 
     // add a <key, val> pair of meta-data to DataSet
-    void add_meta(const std::string &key, const std::string &val);
+    bool add_meta(const std::string &key, const std::string &val);
 
 protected:
+    std::istream &f;
     xy_ftype ftype;
-    std::string filename;
     std::vector<Range*> ranges;     // use "Range*" to support polymorphism
     std::map<std::string, std::string> meta_map;
-    std::istream &f;
 }; // end of DataSet
 
 
@@ -199,8 +193,8 @@ enum line_type { LT_COMMENT, LT_KEYVALUE, LT_EMPTY, LT_XYDATA, LT_UNKNOWN };
 class UxdLikeDataSet : public DataSet
 {
     public:
-        UxdLikeDataSet(std::istream& is, xy_ftype filetype, const std::string &filename)
-            :  DataSet(is, filetype, filename), meta_sep("=:"), 
+        UxdLikeDataSet(std::istream& is, xy_ftype filetype)
+            :  DataSet(is, filetype), meta_sep("=:"), 
             data_sep(", ;"), cmt_start(";#") {}
 
     protected:

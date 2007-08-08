@@ -12,8 +12,8 @@ namespace xylib {
     class BruckerV1RawDataSet : public DataSet
     {
     public:
-        BruckerV1RawDataSet(std::istream &is, const std::string &filename = "")
-            : DataSet(is, FT_BR_RAW1, filename) {}
+        BruckerV1RawDataSet(std::istream &is)
+            : DataSet(is, FT_BR_RAW1) {}
         
         // implement the interfaces specified by DataSet
         void load_data();

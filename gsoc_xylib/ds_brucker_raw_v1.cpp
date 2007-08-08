@@ -93,6 +93,7 @@ void BruckerV1RawDataSet::load_data()
         f.ignore(4); 
         float x_start = read_flt_le(f);
         p_rg->set_x_start(x_start);
+        
         float t = read_flt_le(f);
         if (-1e6 != t)
             p_rg->add_meta("THETA_START", S(t));

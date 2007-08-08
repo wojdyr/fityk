@@ -87,11 +87,12 @@ void UdfDataSet::load_data()
         if ("RawScan" == key) {
             break;      // indicates XY data start
         } else if ("DataAngleRange" == key) {
+            // both start and end are given, separated with ','
             string::size_type pos = val.find_first_of(",");
-            x_start = strtod(val.substr(0, pos).c_str(), NULL);
+            x_start = my_strtod(val.substr(0, pos));
             p_rg->set_x_start(x_start);
         } else if ("ScanStepSize" == key) {
-            x_step = strtod(val.c_str(), NULL);
+            x_step = my_strtod(val);
             p_rg->set_x_step(x_step);
         }
 
@@ -109,6 +110,11 @@ void UdfDataSet::load_data()
             if (*i == ',') {
                 *i = ' ';
             }
+
+            // format checking: only space and digit allowed
+            if (!isdigit(*i) && !isspace(*i) && (*i != '/')) {
+                throw XY_Error("unexpected char when reading data");
+            }
         }
 
         istringstream ss(line);
@@ -125,7 +131,7 @@ void UdfDataSet::load_data()
 void UdfDataSet::get_key_val(istream &f, string &key, string &val)
 {
     string line;
-    my_getline(f, line, true);
+    my_getline(f, line);
     string::size_type pos1 = line.find(',');
     if (string::npos == pos1) {
         key = str_trim(line);
@@ -133,6 +139,10 @@ void UdfDataSet::get_key_val(istream &f, string &key, string &val)
         return;
     } else {
         string::size_type pos2 = line.rfind(',');
+        if (string::npos == pos2) {
+            // it's impossible that there is only one ',' in a key-val line
+            throw XY_Error("file is corrupt");
+        }
         key = str_trim(line.substr(0, pos1));
         val = str_trim(line.substr(pos1 + 1, pos2 - pos1 - 1));
     }

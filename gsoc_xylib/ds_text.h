@@ -11,8 +11,8 @@ namespace xylib {
     class TextDataSet : public DataSet
     {
     public:
-        TextDataSet(std::istream &is, const std::string &filename = "")
-            : DataSet(is, FT_TEXT, filename) {}
+        TextDataSet(std::istream &is)
+            : DataSet(is, FT_TEXT) {}
 
         // implement the interfaces specified by DataSet
         void load_data();

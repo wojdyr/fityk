@@ -10,8 +10,8 @@ namespace xylib {
     class UxdDataSet : public UxdLikeDataSet
     {
     public:
-        UxdDataSet(std::istream &is, const std::string &filename = "")
-            : UxdLikeDataSet(is, FT_UXD, filename) 
+        UxdDataSet(std::istream &is)
+            : UxdLikeDataSet(is, FT_UXD) 
         {
             rg_start_tag = "_DRIVE";
             x_start_key = "_START";

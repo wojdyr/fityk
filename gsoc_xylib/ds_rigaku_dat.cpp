@@ -145,9 +145,9 @@ void RigakuDataSet::parse_range(FixedStepRange* p_rg)
             string key, val;
             parse_line(line, meta_sep, key, val);
             if (key == x_start_key) {
-                p_rg->set_x_start(strtod(val.c_str(), NULL));
+                p_rg->set_x_start(my_strtod(val));
             } else if (key == x_step_key) {
-                p_rg->set_x_step(strtod(val.c_str(), NULL));
+                p_rg->set_x_step(my_strtod(val));
             }
             key = ('*' == key[0]) ? key.substr(1) : key;
             p_rg->add_meta(key, val);

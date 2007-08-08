@@ -26,8 +26,8 @@ struct spe_calib;
 class WinspecSpeDataSet : public DataSet
 {
 public:
-    WinspecSpeDataSet(std::istream &is, const std::string &filename = "")
-        : DataSet(is, FT_SPE, filename) {}
+    WinspecSpeDataSet(std::istream &is)
+        : DataSet(is, FT_SPE) {}
 
     // implement the interfaces specified by DataSet
     static bool check(std::istream &f);

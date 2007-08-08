@@ -5,6 +5,8 @@
 #include "util.h"
 #include "xylib.h"
 
+#include <cmath>
+#include <climits>
 #include <algorithm>
 #include <boost/detail/endian.hpp>
 #include <boost/cstdint.hpp>
@@ -23,7 +25,8 @@ namespace util{
     unsigned read_uint32_le(istream &f)
     {
         uint32_t val;
-        f.read(reinterpret_cast<char*>(&val), sizeof(val));
+        my_read(f, reinterpret_cast<char*>(&val), sizeof(val));
+        
         le_to_host_8(&val);
         return val;
     }
@@ -31,7 +34,8 @@ namespace util{
     int read_uint16_le(istream &f)
     {
         uint16_t val;
-        f.read(reinterpret_cast<char*>(&val), sizeof(val));
+        my_read(f, reinterpret_cast<char*>(&val), sizeof(val));
+        
         le_to_host_2(&val);
         return val;
     }
@@ -39,7 +43,8 @@ namespace util{
     unsigned read_int16_le(istream &f)
     {
         int16_t val;
-        f.read(reinterpret_cast<char*>(&val), sizeof(val));
+        my_read(f, reinterpret_cast<char*>(&val), sizeof(val));
+        
         le_to_host_2(&val);
         return val;
     }
@@ -48,7 +53,8 @@ namespace util{
     float read_flt_le(istream &f)
     {
         float val;
-        f.read(reinterpret_cast<char*>(&val), sizeof(val));
+        my_read(f, reinterpret_cast<char*>(&val), sizeof(val));
+        
         le_to_host_4(&val);
         return val;
     }
@@ -57,7 +63,8 @@ namespace util{
     double read_dbl_le(istream &f)
     {
         double val;
-        f.read(reinterpret_cast<char*>(&val), sizeof(val));
+        my_read(f, reinterpret_cast<char*>(&val), sizeof(val));
+        
         le_to_host_8(&val);
         return val;
     }
@@ -67,7 +74,15 @@ namespace util{
     string read_string(istream &f, unsigned len) 
     {
         static char buf[65536];
+        if (len > sizeof(buf)) {
+            throw XY_Error("buffer overflow");
+        }
+        
         f.read(buf, len);
+        if (static_cast<unsigned>(f.gcount()) < len) {
+            throw XY_Error("unexpected eof in read_string()");
+        }
+        
         buf[len] = '\0';
         return string(buf);
     }
@@ -93,6 +108,12 @@ namespace util{
     {
         string line2(line);
         string::size_type len1 = line2.find_first_of(sep);
+        if (string::npos == len1) {
+            key = line;
+            val = "";
+            return;
+        }
+        
         key = line2.substr(0, len1);
         key = str_trim(key);
 
@@ -128,6 +149,10 @@ namespace util{
    
     void le_to_host_2(void *p)
     {
+        if (!p) {
+            return;
+        }
+        
 #if defined(BOOST_LITTLE_ENDIAN)
         return;
 #elif defined(BOOST_BIG_ENDIAN)
@@ -143,6 +168,10 @@ namespace util{
 
     void le_to_host_4(void *p)
     {
+        if (!p) {
+            return;
+        }
+        
 #if defined(BOOST_LITTLE_ENDIAN)
         return;
 #elif defined(BOOST_BIG_ENDIAN)
@@ -160,6 +189,10 @@ namespace util{
 
     void le_to_host_8(void *p)
     {
+        if (!p) {
+            return;
+        }
+        
 #if defined(BOOST_LITTLE_ENDIAN)
         return;
 #elif defined(BOOST_BIG_ENDIAN)
@@ -222,7 +255,7 @@ namespace util{
         if (!getline(is, str)) {
             throw xylib::XY_Error("unexpected end of file");
         }
-        return strtol(str.c_str(), NULL, 10);
+        return my_strtol(str);
     }
 
     double read_line_double(istream& is)
@@ -231,7 +264,7 @@ namespace util{
         if (!getline(is, str)) {
             throw xylib::XY_Error("unexpected end of file");
         }
-        return strtod(str.c_str(), NULL);
+        return my_strtod(str);
     }
 
     // read a line and return it as a string
@@ -260,6 +293,7 @@ namespace util{
             }
         } while(ss.size() > 0);
     }
+*/
 
     // get the index of find_str in array. return -1 if not exists
     int get_array_idx(const string *array, 
@@ -273,7 +307,6 @@ namespace util{
             return (pos - array);
         }
     }
-*/
 
     // preview the next line in "f"
     // return: true if not eof, false otherwise
@@ -310,6 +343,48 @@ namespace util{
     }
 
 
+    long my_strtol(const std::string &str) 
+    {
+        string ss = str_trim(str);
+        const char *startptr = ss.c_str();
+        char *endptr = NULL;
+        long val = strtol(startptr, &endptr, 10);
+
+        if ((LONG_MAX == val) || (LONG_MIN == val)) {
+            throw XY_Error("overflow when reading long");
+        } else if ((0 == val) && (startptr == endptr)) {
+            throw XY_Error("not an integer as expected");
+        }
+
+        return val;
+    }
+
+
+    double my_strtod(const std::string &str) 
+    {
+        string ss = str_trim(str);
+        const char *startptr = ss.c_str();
+        char *endptr = NULL;
+        double val = strtod(startptr, &endptr);
+
+        if ((HUGE_VAL == val) || (-HUGE_VAL == val)) {
+            throw XY_Error("overflow when reading double");
+        } else if ((0 == val) && (startptr == endptr)) {
+            throw XY_Error("not a double as expected");
+        }
+
+        return val;
+    }
+
+
+    void my_read(istream &f, char *buf, int len)
+    {
+        f.read(buf, len);
+        if (f.gcount() < len) {
+            throw XY_Error("unexpected eof");
+        }
+    }
+    
 } // end of namespace util
 } // end of namespace xylib
 

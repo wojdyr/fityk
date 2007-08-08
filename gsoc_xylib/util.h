@@ -46,13 +46,18 @@ namespace util
     double read_line_double(std::istream& is);
     std::string read_line(std::istream& is);
 
-//  not used functions
-/*
-    void rm_spaces(std::string &str);
+    long my_strtol(const std::string &str);
+    double my_strtod(const std::string &str);
+    void my_read(std::istream &f, char *buf, int len);
+
     // find the index of @find_str in @array
     int get_array_idx(const std::string *array, 
         unsigned size,
         const std::string &find_str);
+
+//  not used functions, going to remove
+/*
+    void rm_spaces(std::string &str);
 */
 
     //---------------------------  S T R I N G  --------------------------------

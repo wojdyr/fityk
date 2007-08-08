@@ -11,8 +11,8 @@ namespace xylib {
     class UdfDataSet : public DataSet
     {
     public:
-        UdfDataSet(std::istream &is, const std::string &filename = "")
-            : DataSet(is, FT_UDF, filename) {}
+        UdfDataSet(std::istream &is)
+            : DataSet(is, FT_UDF) {}
 
         // implement the interfaces specified by DataSet
         void load_data();

@@ -1,3 +1,6 @@
+3:09 2007-8-9 GMT+8 version 329
+* Made some necessary changes, got rid of the assumptions that the input is always correct. program defensively, check every point where error may occur.
+
 8:17 2007-8-7 GMT+8 version 329
 * Changed "ChangLog" to the right order
 * Updated README to explicitly give some restrictions of supported formats (VAMAS and WinSpec)

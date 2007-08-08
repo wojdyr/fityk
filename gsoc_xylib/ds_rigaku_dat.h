@@ -11,8 +11,8 @@ namespace xylib {
     class RigakuDataSet : public UxdLikeDataSet
     {
     public:
-        RigakuDataSet(std::istream &is, const std::string &filename = "")
-            : UxdLikeDataSet(is, FT_RIGAKU, filename)
+        RigakuDataSet(std::istream &is)
+            : UxdLikeDataSet(is, FT_RIGAKU)
         {
             rg_start_tag = "*BEGIN";
             x_start_key = "*START";

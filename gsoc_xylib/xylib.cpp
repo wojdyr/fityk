@@ -26,7 +26,7 @@ using namespace boost;
 
 namespace xylib {
 
-// NOTE: elements in g_fi are ordered, 
+// NOTE: elements in g_fi[] are ordered, 
 // they must be kept as the same order as enum xy_ftype
 const FormatInfo *g_fi[] = {
     NULL,
@@ -126,15 +126,13 @@ void Range::export_xy_file(ofstream &of) const
     }
 }
 
-void Range::add_meta(const string &key, const string &val)
+bool Range::add_meta(const string &key, const string &val)
 {
-    pair<map<string, string>::iterator, bool> ret = meta_map.insert(make_pair(key, val));
-    if (!ret.second) {
-        // the meta-info with this key already exists
-        // meta-info in some formats may has the same name, 
-        // so following line is commented out
-//        throw XY_Error("meta-info with key " + key + "already exists");
+    if ("" == key) {
+        return false;
     }
+    pair<map<string, string>::iterator, bool> ret = meta_map.insert(make_pair(key, val));
+    return ret.second;
 }
 
 
@@ -211,7 +209,7 @@ void DataSet::export_xy_file(const string &fname,
 
     // output the file-level meta-info
     if (with_meta) {
-        of << cmt_str << "exported by xylib from " << filename << endl;
+        of << cmt_str << "exported by xylib from a " << get_filetype() << "file" << endl;
         output_meta(of, this, cmt_str);
         of << cmt_str << "total ranges:" << ranges.size() << endl;
     }
@@ -232,13 +230,14 @@ void DataSet::export_xy_file(const string &fname,
     }
 }
 
-void DataSet::add_meta(const string &key, const string &val)
+bool DataSet::add_meta(const string &key, const string &val)
 {
-    pair<map<string, string>::iterator, bool> ret = meta_map.insert(make_pair(key, val));
-    if (!ret.second) {
-        // the meta-info with this key already exists
-        //throw XY_Error("meta-info with key " + key + "already exists");
+    if ("" == key) {
+        return false;
     }
+    
+    pair<map<string, string>::iterator, bool> ret = meta_map.insert(make_pair(key, val));
+    return ret.second;
 }
 
 
@@ -337,21 +336,21 @@ DataSet* getNewDataSet(istream &is, xy_ftype filetype /* = FT_UNKNOWN */,
     xy_ftype ft = (FT_UNKNOWN == filetype) ? guess_file_type(filename) : filetype;
 
     if (FT_BR_RAW1 == ft) {
-        pd = new BruckerV1RawDataSet(is, filename); 
+        pd = new BruckerV1RawDataSet(is); 
     } else if (FT_BR_RAW23 == ft) {
-        pd = new BruckerV23RawDataSet(is, filename);
+        pd = new BruckerV23RawDataSet(is);
     } else if (FT_UXD == ft) {
-        pd = new UxdDataSet(is, filename);
+        pd = new UxdDataSet(is);
     } else if (FT_TEXT == ft) {
-        pd = new TextDataSet(is, filename);
+        pd = new TextDataSet(is);
     } else if (FT_RIGAKU == ft) {
-        pd = new RigakuDataSet(is, filename);
+        pd = new RigakuDataSet(is);
     } else if (FT_VAMAS == ft) {
-        pd = new VamasDataSet(is, filename);
+        pd = new VamasDataSet(is);
     } else if (FT_UDF == ft) {
-        pd = new UdfDataSet(is, filename);
+        pd = new UdfDataSet(is);
     } else if (FT_SPE == ft) {
-        pd = new WinspecSpeDataSet(is, filename);
+        pd = new WinspecSpeDataSet(is);
     } else {
         pd = NULL;
         throw XY_Error("unkown or unsupported file type");
