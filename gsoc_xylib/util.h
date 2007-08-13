@@ -20,8 +20,8 @@ namespace xylib
 namespace util 
 {
     unsigned read_uint32_le(std::istream &f);
-    int read_uint16_le(std::istream &f);
-    unsigned read_int16_le(std::istream &f);
+    unsigned read_uint16_le(std::istream &f);
+    int read_int16_le(std::istream &f);
     float read_flt_le(std::istream &f);
     double read_dbl_le(std::istream &f);
     std::string read_string(std::istream &f, unsigned len);
@@ -42,9 +42,10 @@ namespace util
     bool peek_line(std::istream &f, std::string &line, bool throw_eof = true);
     bool my_getline(std::istream &f, std::string &line, bool throw_eof = true);
     void skip_lines(std::istream &f, const int count);
-    int read_line_int(std::istream& is);
-    double read_line_double(std::istream& is);
-    std::string read_line(std::istream& is);
+    int read_line_int(std::istream &is);
+    double read_line_double(std::istream &is);
+    std::string read_line(std::istream &is);
+    bool get_valid_line(std::istream &is, std::string &line, std::string cmt_start);
 
     long my_strtol(const std::string &str);
     double my_strtod(const std::string &str);
@@ -54,6 +55,8 @@ namespace util
     int get_array_idx(const std::string *array, 
         unsigned size,
         const std::string &find_str);
+
+    void my_assert(int condition, const std::string &msg);
 
 //  not used functions, going to remove
 /*

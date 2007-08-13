@@ -13,7 +13,7 @@ format is WinView/WinSpec.
 
 ///////////////////////////////////////////////////////////////////////////////
     * Name in progam:   spe
-    * Extension name:   Princeton Instruments WinSpec SPE Format 
+    * Extension name:   spe
     * Binary/Text:      binary
     * Multi-ranged:     Y
     

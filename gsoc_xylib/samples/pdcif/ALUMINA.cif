@@ -1,0 +1,3906 @@
+data_ALUMINA_publ
+
+_pd_block_id
+  2002-12-21T19:04|ALUMINA|Brian_H._Toby|BT-1_15'_Cu311
+
+_audit_creation_method  "from EXP file using GSAS2CIF"
+_audit_creation_date                   2002-12-21T19:04
+_audit_author_name                     "Brian H. Toby"
+_audit_update_record
+; 2002-12-21T19:04  Initial CIF as created by GSAS2CIF
+;
+
+#=============================================================================
+# this information describes the project, paper etc. for the CIF             #
+# Acta Cryst. Section C papers and editorial correspondence is generated     #
+# from the information in this section                                       #
+#                                                                            #
+#   (from)   CIF submission form for Rietveld refinements (Acta Cryst. C)    #
+#                                                 Version 14 December 1998   #
+#=============================================================================
+# 1. SUBMISSION DETAILS
+
+_publ_contact_author_name            ?   # Name of author for correspondence
+_publ_contact_author_address             # Address of author for correspondence
+; ?
+;
+_publ_contact_author_email           ?
+_publ_contact_author_fax             ?
+_publ_contact_author_phone           ?
+
+_publ_contact_letter
+; ?
+;
+
+_publ_requested_journal              ?
+_publ_requested_coeditor_name        ?
+_publ_requested_category             ?   # Acta C: one of CI/CM/CO/FI/FM/FO
+
+#==============================================================================
+
+# 2. PROCESSING SUMMARY (IUCr Office Use Only)
+
+_journal_data_validation_number      ?
+
+_journal_date_recd_electronic        ?
+_journal_date_to_coeditor            ?
+_journal_date_from_coeditor          ?
+_journal_date_accepted               ?
+_journal_date_printers_first         ?
+_journal_date_printers_final         ?
+_journal_date_proofs_out             ?
+_journal_date_proofs_in              ?
+_journal_coeditor_name               ?
+_journal_coeditor_code               ?
+_journal_coeditor_notes
+; ?
+;
+_journal_techeditor_code             ?
+_journal_techeditor_notes
+; ?
+;
+_journal_coden_ASTM                  ?
+_journal_name_full                   ?
+_journal_year                        ?
+_journal_volume                      ?
+_journal_issue                       ?
+_journal_page_first                  ?
+_journal_page_last                   ?
+_journal_paper_category              ?
+_journal_suppl_publ_number           ?
+_journal_suppl_publ_pages            ?
+
+#==============================================================================
+
+# 3. TITLE AND AUTHOR LIST
+
+_publ_section_title
+; ?
+;
+_publ_section_title_footnote
+; ?
+;
+
+# The loop structure below should contain the names and addresses of all
+# authors, in the required order of publication. Repeat as necessary.
+
+loop_
+	_publ_author_name
+        _publ_author_footnote
+	_publ_author_address
+ ?                                   #<--'Last name, first name'
+; ?
+;
+; ?
+;
+
+#==============================================================================
+
+# 4. TEXT
+
+_publ_section_synopsis
+;  ?
+;
+_publ_section_abstract
+; ?
+;
+_publ_section_comment
+; ?
+;
+_publ_section_exptl_prep      # Details of the preparation of the sample(s)
+                              # should be given here.
+; ?
+;
+_publ_section_exptl_refinement
+; ?
+;
+_publ_section_references
+; ?
+;
+_publ_section_figure_captions
+; ?
+;
+_publ_section_acknowledgements
+; ?
+;
+
+#=============================================================================
+# 5. OVERALL REFINEMENT & COMPUTING DETAILS
+
+_refine_special_details
+; ?
+;
+_pd_proc_ls_special_details
+; ?
+;
+
+# The following items are used to identify the programs used.
+_computing_molecular_graphics     ?
+_computing_publication_material   ?
+
+_refine_ls_weighting_scheme       ?
+_refine_ls_weighting_details      ?
+_refine_ls_hydrogen_treatment     ?
+_refine_ls_extinction_method      ?
+_refine_ls_extinction_coef        ?
+_refine_ls_number_constraints     ?
+
+_refine_ls_restrained_S_all       ?
+_refine_ls_restrained_S_obs       ?
+
+#==============================================================================
+# 6. SAMPLE PREPARATION DATA
+
+# (In the unusual case where multiple samples are used in a single
+#  Rietveld study, this information should be moved into the phase
+#  blocks)
+
+# The following three fields describe the preparation of the material.
+# The cooling rate is in K/min.  The pressure at which the sample was
+# prepared is in kPa.  The temperature of preparation is in K.
+
+_pd_prep_cool_rate                ?
+_pd_prep_pressure                 ?
+_pd_prep_temperature              ?
+
+_pd_char_colour                   ?       # use ICDD colour descriptions
+_refine_ls_shift/su_max                0.04
+_refine_ls_shift/su_mean               0.00
+_computing_structure_refinement        GSAS
+_refine_ls_number_parameters           21
+_refine_ls_goodness_of_fit_all         1.37
+_refine_ls_number_restraints           0
+_refine_ls_matrix_type                 full
+#==============================================================================
+# 7. CHEMICAL, STRUCTURAL AND CRYSTAL DATA
+
+_pd_char_particle_morphology      ?
+
+_chemical_name_systematic
+; ?
+;
+_chemical_name_common             ?
+_chemical_formula_moiety          ?
+_chemical_formula_structural      ?
+_chemical_formula_analytical      ?
+_chemical_melting_point           ?
+_chemical_compound_source         ?       # for minerals and
+                                          # natural products
+_symmetry_space_group_name_Hall   ?
+
+_cell_measurement_temperature     ?
+
+_cell_special_details
+; ?
+;
+
+_geom_special_details             ?
+
+# The following item identifies the program(s) used (if appropriate).
+_computing_structure_solution     ?
+
+#==============================================================================
+
+# 8. Phase information from GSAS
+
+_pd_phase_name
+    "from C:/Documents and Settings/toby/My Documents/ru/demo/alumina.c"
+_cell_length_a                         4.760773(25)
+_cell_length_b                         4.760773
+_cell_length_c                         12.99719(9)
+_cell_angle_alpha                      90.0
+_cell_angle_beta                       90.0
+_cell_angle_gamma                      120.0
+_cell_volume                           255.1145
+_symmetry_cell_setting                 trigonal
+_symmetry_space_group_name_H-M         "R -3 c"
+loop_ _symmetry_equiv_pos_site_id _symmetry_equiv_pos_as_xyz
+       1 +x,+y,+z 
+       2 -y,x-y,+z 
+       3 y-x,-x,+z 
+       4 y-x,+y,+z+1/2 
+       5 -y,-x,+z+1/2 
+       6 +x,x-y,+z+1/2 
+      -1 -x,-y,-z 
+      -2 +y,y-x,-z 
+      -3 x-y,+x,-z 
+      -4 x-y,-y,-z+1/2 
+      -5 +y,+x,-z+1/2 
+      -6 -x,y-x,-z+1/2 
+     101 +x+1/3,+y+2/3,+z+2/3 
+     102 -y+1/3,x-y+2/3,+z+2/3 
+     103 y-x+1/3,-x+2/3,+z+2/3 
+     104 y-x+1/3,+y+2/3,+z+1/6 
+     105 -y+1/3,-x+2/3,+z+1/6 
+     106 +x+1/3,x-y+2/3,+z+1/6 
+    -101 -x+2/3,-y+1/3,-z+1/3 
+    -102 +y+2/3,y-x+1/3,-z+1/3 
+    -103 x-y+2/3,+x+1/3,-z+1/3 
+    -104 x-y+2/3,-y+1/3,-z+5/6 
+    -105 +y+2/3,+x+1/3,-z+5/6 
+    -106 -x+2/3,y-x+1/3,-z+5/6 
+     201 +x+2/3,+y+1/3,+z+1/3 
+     202 -y+2/3,x-y+1/3,+z+1/3 
+     203 y-x+2/3,-x+1/3,+z+1/3 
+     204 y-x+2/3,+y+1/3,+z+5/6 
+     205 -y+2/3,-x+1/3,+z+5/6 
+     206 +x+2/3,x-y+1/3,+z+5/6 
+    -201 -x+1/3,-y+2/3,-z+2/3 
+    -202 +y+1/3,y-x+2/3,-z+2/3 
+    -203 x-y+1/3,+x+2/3,-z+2/3 
+    -204 x-y+1/3,-y+2/3,-z+1/6 
+    -205 +y+1/3,+x+2/3,-z+1/6 
+    -206 -x+1/3,y-x+2/3,-z+1/6 
+
+# ATOMIC COORDINATES AND DISPLACEMENT PARAMETERS
+
+
+loop_
+      _atom_site_type_symbol
+      _atom_site_label
+      _atom_site_fract_x
+      _atom_site_fract_y
+      _atom_site_fract_z
+      _atom_site_occupancy
+      _atom_site_thermal_displace_type
+      _atom_site_U_iso_or_equiv
+      _atom_site_symmetry_multiplicity
+AL      
+Al1     0.0          0.0          0.35200(6)   1.0        Uiso   0.00218(15)  12
+O       
+O1      0.30655(8)   0.0          0.25         1.0        Uiso   0.00324(12)  18
+ 
+# If you change Z, be sure to change all 3 of the following
+_chemical_formula_sum                  "Al2 O3"
+_chemical_formula_weight               101.96
+_cell_formula_units_Z                  6
+
+# MOLECULAR GEOMETRY
+
+loop_
+      _geom_bond_atom_site_label_1
+      _geom_bond_atom_site_label_2
+      _geom_bond_distance
+      _geom_bond_site_symmetry_1
+      _geom_bond_site_symmetry_2
+      _geom_bond_publ_flag
+  Al1       Al1             2.6514(15)  .     -4_556  N
+  Al1       Al1            2.79113(26)  .   -101_445  N
+  Al1       Al1            2.79113(26)  .   -101_545  N
+  Al1       Al1            2.79113(26)  .   -101_555  N
+  Al1       O1               1.9717(6)  .      1_555  N
+  Al1       O1               1.9717(6)  .      2_555  N
+  Al1       O1               1.9717(6)  .      3_555  N
+  Al1       O1               1.8556(4)  .    104_545  N
+  Al1       O1               1.8556(4)  .    105_555  N
+  Al1       O1               1.8556(4)  .    106_445  N
+  O1        Al1              1.9717(6)  .      1_555  N
+  O1        Al1              1.9717(6)  .     -4_556  N
+  O1        Al1              1.8556(4)  .   -101_545  N
+  O1        Al1              1.8556(4)  .    204_554  N
+
+loop_
+      _geom_angle_atom_site_label_1
+      _geom_angle_atom_site_label_2
+      _geom_angle_atom_site_label_3
+      _geom_angle
+      _geom_angle_site_symmetry_1
+      _geom_angle_site_symmetry_2
+      _geom_angle_site_symmetry_3
+      _geom_angle_publ_flag
+  Al1       Al1       Al1             79.989(30)     -4_556  .   -101_445  N
+  Al1       Al1       Al1             79.989(30)     -4_556  .   -101_545  N
+  Al1       Al1       Al1             79.989(30)     -4_556  .   -101_555  N
+  Al1       Al1       O1              47.749(17)     -4_556  .      1_555  N
+  Al1       Al1       O1              47.749(17)     -4_556  .      2_555  N
+  Al1       Al1       O1              47.749(17)     -4_556  .      3_555  N
+  Al1       Al1       O1             116.933(20)     -4_556  .    104_545  N
+  Al1       Al1       O1             116.933(20)     -4_556  .    105_555  N
+  Al1       Al1       O1             116.933(20)     -4_556  .    106_445  N
+  Al1       Al1       Al1            117.044(17)   -101_445  .   -101_545  N
+  Al1       Al1       Al1            117.044(17)   -101_445  .   -101_555  N
+  Al1       Al1       O1               120.96(4)   -101_445  .      1_555  N
+  Al1       Al1       O1              83.287(22)   -101_445  .      2_555  N
+  Al1       Al1       O1              41.568(16)   -101_445  .      3_555  N
+  Al1       Al1       O1              97.894(13)   -101_445  .    104_545  N
+  Al1       Al1       O1             143.910(26)   -101_445  .    105_555  N
+  Al1       Al1       O1              44.830(13)   -101_445  .    106_445  N
+  Al1       Al1       Al1            117.044(17)   -101_545  .   -101_555  N
+  Al1       Al1       O1              41.568(16)   -101_545  .      1_555  N
+  Al1       Al1       O1               120.96(4)   -101_545  .      2_555  N
+  Al1       Al1       O1              83.287(22)   -101_545  .      3_555  N
+  Al1       Al1       O1              44.830(13)   -101_545  .    104_545  N
+  Al1       Al1       O1              97.894(13)   -101_545  .    105_555  N
+  Al1       Al1       O1             143.910(26)   -101_545  .    106_445  N
+  Al1       Al1       O1              83.287(22)   -101_555  .      1_555  N
+  Al1       Al1       O1              41.568(16)   -101_555  .      2_555  N
+  Al1       Al1       O1               120.96(4)   -101_555  .      3_555  N
+  Al1       Al1       O1             143.910(26)   -101_555  .    104_545  N
+  Al1       Al1       O1              44.830(13)   -101_555  .    105_555  N
+  Al1       Al1       O1              97.894(13)   -101_555  .    106_445  N
+  O1        Al1       O1              79.738(25)      1_555  .      2_555  N
+  O1        Al1       O1              79.738(25)      1_555  .      3_555  N
+  O1        Al1       O1               86.398(6)      1_555  .    104_545  N
+  O1        Al1       O1              90.772(11)      1_555  .    105_555  N
+  O1        Al1       O1               164.37(4)      1_555  .    106_445  N
+  O1        Al1       O1              79.738(25)      2_555  .      3_555  N
+  O1        Al1       O1               164.37(4)      2_555  .    104_545  N
+  O1        Al1       O1               86.398(6)      2_555  .    105_555  N
+  O1        Al1       O1              90.772(11)      2_555  .    106_445  N
+  O1        Al1       O1              90.772(11)      3_555  .    104_545  N
+  O1        Al1       O1               164.37(4)      3_555  .    105_555  N
+  O1        Al1       O1               86.398(6)      3_555  .    106_445  N
+  O1        Al1       O1             101.085(25)    104_545  .    105_555  N
+  O1        Al1       O1             101.085(25)    104_545  .    106_445  N
+  O1        Al1       O1             101.085(25)    105_555  .    106_445  N
+  Al1       O1        Al1             84.503(33)      1_555  .     -4_556  N
+  Al1       O1        Al1              93.602(6)      1_555  .   -101_545  N
+  Al1       O1        Al1            132.215(14)      1_555  .    204_554  N
+  Al1       O1        Al1            132.215(14)     -4_556  .   -101_545  N
+  Al1       O1        Al1              93.602(6)     -4_556  .    204_554  N
+  Al1       O1        Al1            120.488(22)   -101_545  .    204_554  N
+
+# Powder diffraction data for histogram  1
+#==============================================================================
+# 9. INSTRUMENT CHARACTERIZATION
+
+_exptl_special_details
+; ?
+;
+
+# if regions of the data are excluded, the reason(s) are supplied here:
+_pd_proc_info_excluded_regions
+; ?
+;
+
+# The following item is used to identify the equipment used to record
+# the powder pattern when the diffractogram was measured at a laboratory
+# other than the authors' home institution, e.g. when neutron or synchrotron
+# radiation is used.
+
+_pd_instr_location
+; ?
+;
+_pd_calibration_special_details           # description of the method used
+                                          # to calibrate the instrument
+; ?
+;
+
+_diffrn_ambient_temperature       ?
+_diffrn_source                    ?
+_diffrn_source_target             ?
+_diffrn_source_type               ?
+_diffrn_measurement_device_type   ?
+_diffrn_detector                  ?
+_diffrn_detector_type             ?       # make or model of detector
+
+_pd_meas_scan_method              ?       # options are 'step', 'cont',
+                                          # 'tof', 'fixed' or
+                                          # 'disp' (= dispersive)
+_pd_meas_special_details
+;  ?
+;
+
+# The following two items identify the program(s) used (if appropriate).
+_computing_data_collection        ?
+_computing_data_reduction         ?
+
+# Describe any processing performed on the data, prior to refinement.
+# For example: a manual Lp correction or a precomputed absorption correction
+_pd_proc_info_data_reduction      ?
+
+# The following item is used for angular dispersive measurements only.
+
+_diffrn_radiation_monochromator   ?
+
+# The following items are used to define the size of the instrument.
+# Not all distances are appropriate for all instrument types.
+
+_pd_instr_dist_src/mono           ?
+_pd_instr_dist_mono/spec          ?
+_pd_instr_dist_src/spec           ?
+_pd_instr_dist_spec/anal          ?
+_pd_instr_dist_anal/detc          ?
+_pd_instr_dist_spec/detc          ?
+
+# 10. Specimen size and mounting information
+
+# The next three fields give the specimen dimensions in mm.  The equatorial
+# plane contains the incident and diffracted beam.
+
+_pd_spec_size_axial               ?       # perpendicular to
+                                          # equatorial plane
+
+_pd_spec_size_equat               ?       # parallel to
+                                          # scattering vector
+                                          # in transmission
+
+_pd_spec_size_thick               ?       # parallel to
+                                          # scattering vector
+                                          # in reflection
+
+_pd_spec_mounting                         # This field should be
+                                          # used to give details of the
+                                          # container.
+; ?
+;
+
+_pd_spec_mount_mode               ?       # options are 'reflection'
+                                          # or 'transmission'
+
+_pd_spec_shape                    ?       # options are 'cylinder'
+                                          # 'flat_sheet' or 'irregular'
+
+
+loop_ _atom_type_symbol
+      _atom_type_number_in_cell
+      _atom_type_scat_length_neutron
+      _atom_type_scat_source
+  AL        12.0   0.3449
+  International_Tables_Vol_C
+  O         18.0   0.5803
+  International_Tables_Vol_C
+_diffrn_radiation_probe                neutron
+_diffrn_radiation_wavelength           1.5402
+_pd_proc_ls_prof_R_factor              0.0685
+_pd_proc_ls_prof_wR_factor             0.0855
+_pd_proc_ls_prof_wR_expected           0.0627
+_refine_ls_R_Fsqd_factor               0.04699
+
+_pd_proc_ls_background_function
+;   GSAS Background function number 1 with 10 terms.
+ Shifted Chebyshev function of 1st kind
+      1:    61.5838     2:    15.7371     3:    40.4163     4:    9.42001    
+      5:    20.9238     6:    6.19575     7:    10.2828     8:    3.66734    
+      9:    2.70015    10:  -0.618124    
+;
+
+_exptl_absorpt_process_details
+;   GSAS Absorption/surface roughness correction: function number 0
+ No correction is applied.
+;
+_exptl_absorpt_correction_T_min        1.00000
+_exptl_absorpt_correction_T_max        1.00000
+# Extinction correction
+_gsas_exptl_extinct_corr_T_min         1.00000
+_gsas_exptl_extinct_corr_T_max         1.00000
+
+_pd_proc_ls_profile_function
+;
+ CW Profile function number 1 with   6 terms
+ Profile coefficients for Simpson's rule integration of Gaussian function
+ C.J. Howard (1982). J. Appl. Cryst.,15,615-620.
+ Cooper & Sayer, J. Appl. Cryst., 8, 615-618 (1975).
+ Thomas, J. Appl. Cryst., 10, 12-13(1977).
+ #1(U)    =  218.631 #2(V)    = -251.292 #3(W)    =  159.521
+ #4(asym) =   8.7128 #5(F1)   =    0.000 #6(F2)   =    0.000
+ Peak tails are ignored  where the intensity is below 0.0050 times the peak
+   Aniso. broadening axis   0.0   0.0   1.0
+;
+_pd_proc_ls_peak_cutoff 0.00500
+_pd_proc_info_datetime                 2002-12-21T19:04:06
+_pd_calc_method                        "Rietveld Refinement"
+
+#---- raw/calc data loop -----
+_pd_meas_2theta_range_min              3.0
+_pd_meas_2theta_range_max              167.95
+_pd_meas_2theta_range_inc              0.05
+_pd_proc_2theta_range_min              2.9824
+_pd_proc_2theta_range_max              167.9324
+_pd_proc_2theta_range_inc              0.05
+
+loop_
+      _pd_meas_intensity_total
+      _pd_proc_ls_weight
+      _pd_proc_intensity_bkg_calc
+      _pd_calc_intensity_total
+   119(17)     0.0         101.9   .
+   149(19)     0.002770    101.5   101.5
+   141(19)     0.002770    101.1   101.1
+   117(17)     0.003460    100.7   100.7
+   130(18)     0.003086    100.3   100.3
+   103(16)     0.00391     99.9    99.9
+   90(15)      0.00444     99.6    99.6
+   79(14)      0.00510     99.2    99.2
+   114(17)     0.003460    98.8    98.8
+   103(16)     0.00391     98.4    98.4
+   127(18)     0.003086    98.0    98.0
+   114(17)     0.003460    97.7    97.7
+   111(17)     0.003460    97.3    97.3
+   119(17)     0.003460    96.9    96.9
+   127(18)     0.003086    96.5    96.5
+   95(15)      0.00444     96.2    96.2
+   114(17)     0.003460    95.8    95.8
+   82(14)      0.00510     95.5    95.5
+   84(14)      0.00510     95.1    95.1
+   87(15)      0.00444     94.7    94.7
+   79(14)      0.00510     94.4    94.4
+   114(17)     0.003460    94.0    94.0
+   119(17)     0.003460    93.7    93.7
+   106(16)     0.00391     93.4    93.3
+   82(14)      0.00510     93.0    93.0
+   57(11)      0.00826     92.7    92.7
+   100(16)     0.00391     92.3    92.3
+   111(17)     0.003460    92.0    92.0
+   100(16)     0.00391     91.7    91.6
+   117(17)     0.003460    91.3    91.3
+   87(15)      0.00444     91.0    91.0
+   84(14)      0.00510     90.7    90.7
+   103(16)     0.00391     90.3    90.3
+   71(13)      0.00592     90.0    90.0
+   87(15)      0.00444     89.7    89.7
+   95(15)      0.00444     89.4    89.4
+   87(15)      0.00444     89.0    89.0
+   100(16)     0.00391     88.7    88.7
+   98(16)      0.00391     88.4    88.4
+   109(16)     0.00391     88.1    88.1
+   65(12)      0.00694     87.8    87.8
+   103(16)     0.00391     87.5    87.5
+   49(10)      0.01000     87.2    87.2
+   84(14)      0.00510     86.9    86.9
+   114(17)     0.003460    86.6    86.6
+   111(17)     0.003460    86.3    86.3
+   73(13)      0.00592     86.0    86.0
+   82(14)      0.00510     85.7    85.7
+   79(14)      0.00510     85.4    85.4
+   87(15)      0.00444     85.1    85.1
+   84(14)      0.00510     84.8    84.8
+   127(18)     0.003086    84.5    84.5
+   79(14)      0.00510     84.2    84.2
+   100(16)     0.00391     83.9    83.9
+   95(15)      0.00444     83.6    83.6
+   68(13)      0.00592     83.4    83.4
+   73(13)      0.00592     83.1    83.1
+   84(14)      0.00510     82.8    82.8
+   79(14)      0.00510     82.5    82.5
+   95(15)      0.00444     82.2    82.2
+   106(16)     0.00391     82.0    82.0
+   82(14)      0.00510     81.7    81.7
+   90(15)      0.00444     81.4    81.4
+   84(14)      0.00510     81.2    81.2
+   90(15)      0.00444     80.9    80.9
+   92(15)      0.00444     80.6    80.6
+   87(15)      0.00444     80.4    80.4
+   84(14)      0.00510     80.1    80.1
+   87(15)      0.00444     79.8    79.8
+   92(15)      0.00444     79.6    79.6
+   92(15)      0.00444     79.3    79.3
+   76(14)      0.00510     79.1    79.1
+   76(14)      0.00510     78.8    78.8
+   71(13)      0.00592     78.6    78.6
+   87(15)      0.00444     78.3    78.3
+   49(10)      0.01000     78.1    78.1
+   87(15)      0.00444     77.8    77.8
+   87(15)      0.00444     77.6    77.6
+   76(14)      0.00510     77.3    77.3
+   63(12)      0.00694     77.1    77.1
+   60(12)      0.00694     76.9    76.9
+   65(12)      0.00694     76.6    76.6
+   92(15)      0.00444     76.4    76.4
+   57(11)      0.00826     76.1    76.1
+   87(15)      0.00444     75.9    75.9
+   73(13)      0.00592     75.7    75.7
+   82(14)      0.00510     75.4    75.4
+   76(14)      0.00510     75.2    75.2
+   65(12)      0.00694     75.0    75.0
+   65(12)      0.00694     74.8    74.8
+   84(14)      0.00510     74.5    74.5
+   57(11)      0.00826     74.3    74.3
+   68(13)      0.00592     74.1    74.1
+   68(13)      0.00592     73.9    73.9
+   68(13)      0.00592     73.6    73.6
+   57(11)      0.00826     73.4    73.4
+   82(14)      0.00510     73.2    73.2
+   65(12)      0.00694     73.0    73.0
+   73(13)      0.00592     72.8    72.8
+   87(15)      0.00444     72.6    72.6
+   76(9)       0.01235     72.4    72.4
+   66(9)       0.01235     72.1    72.1
+   90(10)      0.01000     71.9    71.9
+   58(8)       0.01562     71.7    71.7
+   57(8)       0.01562     71.5    71.5
+   70(9)       0.01235     71.3    71.3
+   74(9)       0.01235     71.1    71.1
+   75(9)       0.01235     70.9    70.9
+   76(9)       0.01235     70.7    70.7
+   62(8)       0.01562     70.5    70.5
+   64(8)       0.01562     70.3    70.3
+   66(9)       0.01235     70.1    70.1
+   72(9)       0.01235     69.9    69.9
+   74(9)       0.01235     69.7    69.7
+   64(8)       0.01562     69.5    69.5
+   66(9)       0.01235     69.3    69.3
+   57(8)       0.01562     69.2    69.2
+   60(8)       0.01562     69.0    69.0
+   77(9)       0.01235     68.8    68.8
+   75(9)       0.01235     68.6    68.6
+   76(9)       0.01235     68.4    68.4
+   60(8)       0.01562     68.2    68.2
+   75(9)       0.01235     68.0    68.0
+   74(9)       0.01235     67.9    67.9
+   62(8)       0.01562     67.7    67.7
+   55(8)       0.01562     67.5    67.5
+   60(8)       0.01562     67.3    67.3
+   67(9)       0.01235     67.1    67.1
+   75(9)       0.01235     67.0    67.0
+   78(9)       0.01235     66.8    66.8
+   67(9)       0.01235     66.6    66.6
+   70(9)       0.01235     66.4    66.4
+   75(9)       0.01235     66.3    66.3
+   78(9)       0.01235     66.1    66.1
+   64(8)       0.01562     65.9    65.9
+   64(8)       0.01562     65.8    65.8
+   62(8)       0.01562     65.6    65.6
+   56(8)       0.01562     65.4    65.4
+   67(9)       0.01235     65.3    65.3
+   67(9)       0.01235     65.1    65.1
+   72(9)       0.01235     64.9    64.9
+   62(8)       0.01562     64.8    64.8
+   70(9)       0.01235     64.6    64.6
+   79(10)      0.01000     64.5    64.5
+   61(8)       0.01562     64.3    64.3
+   53(8)       0.01562     64.1    64.1
+   58(8)       0.01562     64.0    64.0
+   54(8)       0.01562     63.8    63.8
+   70(9)       0.01235     63.7    63.7
+   57(8)       0.01562     63.5    63.5
+   57(8)       0.01562     63.4    63.4
+   61(8)       0.01562     63.2    63.2
+   59(8)       0.01562     63.1    63.1
+   66(9)       0.01235     62.9    62.9
+   49(7)       0.02041     62.8    62.8
+   59(8)       0.01562     62.6    62.6
+   57(8)       0.01562     62.5    62.5
+   66(9)       0.01235     62.3    62.3
+   68(9)       0.01235     62.2    62.2
+   66(9)       0.01235     62.0    62.0
+   63(8)       0.01562     61.9    61.9
+   45(7)       0.02041     61.8    61.8
+   71(9)       0.01235     61.6    61.6
+   64(8)       0.01562     61.5    61.5
+   84(10)      0.01000     61.3    61.3
+   60(8)       0.01562     61.2    61.2
+   48(7)       0.02041     61.1    61.1
+   45(7)       0.02041     60.9    60.9
+   68(9)       0.01235     60.8    60.8
+   58(8)       0.01562     60.7    60.7
+   56(8)       0.01562     60.5    60.5
+   58(8)       0.01562     60.4    60.4
+   72(9)       0.01235     60.3    60.3
+   64(8)       0.01562     60.1    60.1
+   60(8)       0.01562     60.0    60.0
+   70(9)       0.01235     59.9    59.9
+   67(9)       0.01235     59.7    59.7
+   64(8)       0.01562     59.6    59.6
+   63(8)       0.01562     59.5    59.5
+   62(8)       0.01562     59.3    59.3
+   67(9)       0.01235     59.2    59.2
+   67(9)       0.01235     59.1    59.1
+   75(9)       0.01235     59.0    59.0
+   65(8)       0.01562     58.8    58.8
+   67(9)       0.01235     58.7    58.7
+   61(8)       0.01562     58.6    58.6
+   69(9)       0.01235     58.5    58.5
+   65(9)       0.01235     58.4    58.4
+   54(8)       0.01562     58.2    58.2
+   58(8)       0.01562     58.1    58.1
+   69(9)       0.01235     58.0    58.0
+   62(8)       0.01562     57.9    57.9
+   69(9)       0.01235     57.8    57.8
+   59(8)       0.01562     57.7    57.7
+   50(7)       0.02041     57.5    57.5
+   58(8)       0.01562     57.4    57.4
+   67(9)       0.01235     57.3    57.3
+   62(8)       0.01562     57.2    57.2
+   69(9)       0.01235     57.1    57.1
+   62(8)       0.01562     57.0    57.0
+   57(8)       0.01562     56.9    56.9
+   52(8)       0.01562     56.8    56.8
+   66(9)       0.01235     56.6    56.6
+   63(9)       0.01235     56.5    56.5
+   49(8)       0.01562     56.4    56.4
+   52(8)       0.01562     56.3    56.3
+   52(8)       0.01562     56.2    56.2
+   55(8)       0.01562     56.1    56.1
+   54(8)       0.01562     56.0    56.0
+   61(9)       0.01235     55.9    55.9
+   55(8)       0.01562     55.8    55.8
+   50(8)       0.01562     55.7    55.7
+   46(7)       0.02041     55.6    55.6
+   60(8)       0.01562     55.5    55.5
+   54(8)       0.01562     55.4    55.4
+   50(8)       0.01562     55.3    55.3
+   61(9)       0.01235     55.2    55.2
+   56(8)       0.01562     55.1    55.1
+   45(7)       0.02041     55.0    55.0
+   52(8)       0.01562     54.9    54.9
+   53(8)       0.01562     54.8    54.8
+   51(8)       0.01562     54.7    54.7
+   54(8)       0.01562     54.6    54.6
+   51(8)       0.01562     54.5    54.5
+   68(9)       0.01235     54.4    54.4
+   70(9)       0.01235     54.3    54.3
+   64(9)       0.01235     54.2    54.2
+   49(8)       0.01562     54.1    54.1
+   49(7)       0.02041     54.0    54.0
+   63(9)       0.01235     53.9    53.9
+   52(8)       0.01562     53.8    53.8
+   54(8)       0.01562     53.8    53.8
+   50(8)       0.01562     53.7    53.7
+   44(7)       0.02041     53.6    53.6
+   54(8)       0.01562     53.5    53.5
+   54(8)       0.01562     53.4    53.4
+   52(8)       0.01562     53.3    53.3
+   55(8)       0.01562     53.2    53.2
+   49(8)       0.01562     53.1    53.1
+   50(8)       0.01562     53.0    53.0
+   39(6)       0.02778     53.0    53.0
+   53(8)       0.01562     52.9    52.9
+   55(8)       0.01562     52.8    52.8
+   55(8)       0.01562     52.7    52.7
+   49(7)       0.02041     52.6    52.6
+   47(7)       0.02041     52.5    52.5
+   56(8)       0.01562     52.4    52.4
+   55(8)       0.01562     52.4    52.4
+   49(8)       0.01562     52.3    52.3
+   52(8)       0.01562     52.2    52.2
+   50(8)       0.01562     52.1    52.1
+   53(8)       0.01562     52.0    52.0
+   54(8)       0.01562     52.0    52.0
+   59(8)       0.01562     51.9    51.9
+   57(8)       0.01562     51.8    51.8
+   63(9)       0.01235     51.7    51.7
+   56(8)       0.01562     51.6    51.6
+   61(9)       0.01235     51.6    51.6
+   58(8)       0.01562     51.5    51.5
+   61(9)       0.01235     51.4    51.4
+   49(8)       0.01562     51.3    51.3
+   45(7)       0.02041     51.3    51.3
+   56(8)       0.01562     51.2    51.2
+   53(8)       0.01562     51.1    51.1
+   65(9)       0.01235     51.0    51.0
+   54(8)       0.01562     51.0    51.0
+   57(8)       0.01562     50.9    50.9
+   54(8)       0.01562     50.8    50.8
+   54(8)       0.01562     50.7    50.7
+   56(8)       0.01562     50.7    50.7
+   61(9)       0.01235     50.6    50.6
+   48(7)       0.02041     50.5    50.5
+   51(8)       0.01562     50.4    50.4
+   56(8)       0.01562     50.4    50.4
+   58(8)       0.01562     50.3    50.3
+   67(9)       0.01235     50.2    50.2
+   40(7)       0.02041     50.2    50.2
+   46(7)       0.02041     50.1    50.1
+   62(9)       0.01235     50.0    50.0
+   59(8)       0.01562     50.0    50.0
+   56(8)       0.01562     49.9    49.9
+   61(9)       0.01235     49.8    49.8
+   60(8)       0.01562     49.7    49.7
+   54(8)       0.01562     49.7    49.7
+   60(8)       0.01562     49.6    49.6
+   54(8)       0.01562     49.5    49.5
+   48(7)       0.02041     49.5    49.5
+   50(8)       0.01562     49.4    49.4
+   57(8)       0.01562     49.4    49.4
+   57(8)       0.01562     49.3    49.3
+   42(7)       0.02041     49.2    49.2
+   42(7)       0.02041     49.2    49.2
+   48(7)       0.02041     49.1    49.1
+   57(8)       0.01562     49.0    49.0
+   51(8)       0.01562     49.0    49.0
+   60(8)       0.01562     48.9    48.9
+   48(8)       0.01562     48.8    48.8
+   61(9)       0.01235     48.8    48.8
+   64(9)       0.01235     48.7    48.7
+   55(8)       0.01562     48.7    48.7
+   47(11)      0.00826     48.6    48.6
+   59(9)       0.01235     48.5    48.5
+   54(8)       0.01562     48.5    48.5
+   46(8)       0.01562     48.4    48.4
+   42(7)       0.02041     48.4    48.4
+   45(8)       0.01562     48.3    48.3
+   42(7)       0.02041     48.2    48.2
+   59(9)       0.01235     48.2    48.2
+   55(8)       0.01562     48.1    48.1
+   45(8)       0.01562     48.1    48.1
+   47(8)       0.01562     48.0    48.0
+   43(7)       0.02041     47.9    47.9
+   37(7)       0.02041     47.9    47.9
+   43(7)       0.02041     47.8    47.8
+   51(8)       0.01562     47.8    47.8
+   46(8)       0.01562     47.7    47.7
+   50(8)       0.01562     47.7    47.7
+   38(7)       0.02041     47.6    47.6
+   34(6)       0.02778     47.5    47.5
+   46(8)       0.01562     47.5    47.5
+   37(7)       0.02041     47.4    47.4
+   39(7)       0.02041     47.4    47.4
+   45(8)       0.01562     47.3    47.3
+   48(8)       0.01562     47.3    47.3
+   50(8)       0.01562     47.2    47.2
+   53(8)       0.01562     47.2    47.2
+   47(8)       0.01562     47.1    47.1
+   46(8)       0.01562     47.1    47.1
+   39(7)       0.02041     47.0    47.0
+   52(8)       0.01562     47.0    47.0
+   50(8)       0.01562     46.9    46.9
+   52(8)       0.01562     46.9    46.9
+   44(7)       0.02041     46.8    46.8
+   51(8)       0.01562     46.7    46.7
+   54(8)       0.01562     46.7    46.7
+   47(8)       0.01562     46.6    46.6
+   44(7)       0.02041     46.6    46.6
+   48(8)       0.01562     46.5    46.5
+   49(8)       0.01562     46.5    46.5
+   41(7)       0.02041     46.4    46.4
+   39(7)       0.02041     46.4    46.4
+   42(7)       0.02041     46.3    46.3
+   34(7)       0.02041     46.3    46.3
+   53(8)       0.01562     46.2    46.2
+   61(9)       0.01235     46.2    46.2
+   35(7)       0.02041     46.2    46.2
+   56(8)       0.01562     46.1    46.1
+   54(8)       0.01562     46.1    46.1
+   40(7)       0.02041     46.0    46.0
+   50(8)       0.01562     46.0    46.0
+   53(8)       0.01562     45.9    45.9
+   56(8)       0.01562     45.9    45.9
+   43(7)       0.02041     45.8    45.8
+   36(7)       0.02041     45.8    45.8
+   37(7)       0.02041     45.7    45.7
+   32(6)       0.02778     45.7    45.7
+   40(7)       0.02041     45.6    45.6
+   47(8)       0.01562     45.6    45.6
+   43(7)       0.02041     45.5    45.5
+   37(7)       0.02041     45.5    45.5
+   45(7)       0.02041     45.5    45.5
+   59(9)       0.01235     45.4    45.4
+   60(9)       0.01235     45.4    45.4
+   73(10)      0.01000     45.3    45.3
+   78(10)      0.01000     45.3    45.3
+   77(10)      0.01000     45.2    45.2
+   81(10)      0.01000     45.2    45.2
+   77(10)      0.01000     45.1    45.1
+   67(9)       0.01235     45.1    45.1
+   55(8)       0.01562     45.1    45.1
+   42(7)       0.02041     45.0    45.0
+   40(7)       0.02041     45.0    45.0
+   45(8)       0.01562     44.9    44.9
+   54(8)       0.01562     44.9    44.9
+   50(8)       0.01562     44.8    44.8
+   38(7)       0.02041     44.8    44.8
+   52(8)       0.01562     44.8    44.8
+   54(8)       0.01562     44.7    44.7
+   35(7)       0.02041     44.7    44.7
+   54(8)       0.01562     44.6    44.6
+   54(8)       0.01562     44.6    44.6
+   52(8)       0.01562     44.6    44.6
+   50(8)       0.01562     44.5    44.5
+   47(8)       0.01562     44.5    44.5
+   44(7)       0.02041     44.4    44.4
+   39(7)       0.02041     44.4    44.4
+   32(6)       0.02778     44.4    44.4
+   38(7)       0.02041     44.3    44.3
+   41(7)       0.02041     44.3    44.3
+   47(8)       0.01562     44.2    44.2
+   47(8)       0.01562     44.2    44.2
+   40(7)       0.02041     44.2    44.2
+   39(7)       0.02041     44.1    44.1
+   42(7)       0.02041     44.1    44.1
+   34(6)       0.02778     44.0    44.0
+   50(8)       0.01562     44.0    44.0
+   51(8)       0.01562     44.0    44.0
+   49(8)       0.01562     43.9    43.9
+   47(8)       0.01562     43.9    43.9
+   35(7)       0.02041     43.8    43.8
+   56(8)       0.01562     43.8    43.8
+   46(7)       0.02041     43.8    43.8
+   43(7)       0.02041     43.7    43.7
+   56(8)       0.01562     43.7    43.7
+   57(8)       0.01562     43.7    43.7
+   63(8)       0.01562     43.6    43.6
+   50(8)       0.01562     43.6    43.6
+   55(8)       0.01562     43.5    43.5
+   47(7)       0.02041     43.5    43.5
+   41(7)       0.02041     43.5    43.5
+   31(6)       0.02778     43.4    43.4
+   40(7)       0.02041     43.4    43.4
+   47(7)       0.02041     43.4    43.4
+   42(7)       0.02041     43.3    43.3
+   51(8)       0.01562     43.3    43.3
+   51(8)       0.01562     43.3    43.3
+   51(8)       0.01562     43.2    43.2
+   31(6)       0.02778     43.2    43.2
+   46(7)       0.02041     43.2    43.2
+   41(7)       0.02041     43.1    43.1
+   49(7)       0.02041     43.1    43.1
+   54(8)       0.01562     43.1    43.1
+   48(7)       0.02041     43.0    43.0
+   43(7)       0.02041     43.0    43.0
+   50(8)       0.01562     42.9    42.9
+   43(7)       0.02041     42.9    42.9
+   44(7)       0.02041     42.9    42.9
+   55(8)       0.01562     42.8    42.8
+   35(6)       0.02778     42.8    42.8
+   50(7)       0.02041     42.8    42.8
+   37(6)       0.02778     42.7    42.7
+   34(6)       0.02778     42.7    42.7
+   30(6)       0.02778     42.7    42.7
+   43(7)       0.02041     42.6    42.6
+   38(7)       0.02041     42.6    42.6
+   32(6)       0.02778     42.6    42.6
+   35(6)       0.02778     42.5    42.5
+   46(7)       0.02041     42.5    42.5
+   45(7)       0.02041     42.5    42.5
+   46(7)       0.02041     42.5    42.5
+   34(6)       0.02778     42.4    42.5
+   42(7)       0.02041     42.4    43.0
+   36(6)       0.02778     42.4    44.8
+   50(8)       0.01562     42.3    50.7
+   52(8)       0.01562     42.3    65.9
+   64(9)       0.01235     42.3    98.5
+   105(11)     0.00826     42.2    157.8
+   157(13)     0.00592     42.2    250.6
+   320(19)     0.002770    42.2    374.3
+   493(24)     0.001736    42.1    505.5
+   632(27)     0.001372    42.1    597.1
+   720(29)     0.001189    42.1    601.4
+   629(27)     0.001372    42.0    509.1
+   483(24)     0.001736    42.0    362.0
+   291(18)     0.003086    42.0    220.7
+   160(14)     0.00510     42.0    123.1
+   90(10)      0.01000     41.9    71.9
+   58(8)       0.01562     41.9    50.9
+   53(8)       0.01562     41.9    44.0
+   40(7)       0.02041     41.8    41.8
+   40(7)       0.02041     41.8    41.8
+   45(7)       0.02041     41.8    41.8
+   33(6)       0.02778     41.7    41.7
+   37(6)       0.02778     41.7    41.7
+   42(7)       0.02041     41.7    41.7
+   58(8)       0.01562     41.7    41.7
+   47(7)       0.02041     41.6    41.6
+   47(7)       0.02041     41.6    41.6
+   52(8)       0.01562     41.6    41.6
+   37(6)       0.02778     41.5    41.5
+   36(6)       0.02778     41.5    41.5
+   51(8)       0.01562     41.5    41.5
+   50(7)       0.02041     41.4    41.4
+   51(8)       0.01562     41.4    41.4
+   33(6)       0.02778     41.4    41.4
+   39(7)       0.02041     41.4    41.4
+   42(7)       0.02041     41.3    41.3
+   41(7)       0.02041     41.3    41.3
+   50(8)       0.01562     41.3    41.3
+   49(7)       0.02041     41.3    41.3
+   39(7)       0.02041     41.2    41.2
+   51(8)       0.01562     41.2    41.2
+   49(7)       0.02041     41.2    41.2
+   33(6)       0.02778     41.1    41.1
+   51(8)       0.01562     41.1    41.1
+   39(7)       0.02041     41.1    41.1
+   42(7)       0.02041     41.1    41.1
+   44(7)       0.02041     41.0    41.0
+   55(8)       0.01562     41.0    41.0
+   52(8)       0.01562     41.0    41.0
+   50(8)       0.01562     41.0    41.0
+   41(7)       0.02041     40.9    40.9
+   45(7)       0.02041     40.9    40.9
+   49(7)       0.02041     40.9    40.9
+   57(8)       0.01562     40.8    40.8
+   54(8)       0.01562     40.8    40.8
+   53(8)       0.01562     40.8    40.8
+   46(7)       0.02041     40.8    40.8
+   52(8)       0.01562     40.7    40.7
+   36(6)       0.02778     40.7    40.7
+   34(6)       0.02778     40.7    40.7
+   41(7)       0.02041     40.7    40.7
+   41(7)       0.02041     40.6    40.6
+   39(7)       0.02041     40.6    40.6
+   44(7)       0.02041     40.6    40.6
+   47(7)       0.02041     40.6    40.6
+   34(6)       0.02778     40.5    40.5
+   32(6)       0.02778     40.5    40.5
+   31(6)       0.02778     40.5    40.5
+   34(6)       0.02778     40.5    40.5
+   32(6)       0.02778     40.4    40.4
+   29(6)       0.02778     40.4    40.4
+   39(7)       0.02041     40.4    40.4
+   43(7)       0.02041     40.4    40.4
+   36(6)       0.02778     40.3    40.3
+   35(6)       0.02778     40.3    40.3
+   35(6)       0.02778     40.3    40.3
+   43(7)       0.02041     40.3    40.3
+   51(8)       0.01562     40.2    40.2
+   47(7)       0.02041     40.2    40.2
+   36(6)       0.02778     40.2    40.2
+   40(7)       0.02041     40.2    40.2
+   47(7)       0.02041     40.1    40.1
+   45(7)       0.02041     40.1    40.1
+   47(7)       0.02041     40.1    40.1
+   32(6)       0.02778     40.1    40.1
+   35(6)       0.02778     40.0    40.0
+   39(6)       0.02778     40.0    40.0
+   41(7)       0.02041     40.0    40.0
+   36(6)       0.02778     40.0    40.0
+   28(6)       0.02778     39.9    39.9
+   33(6)       0.02778     39.9    39.9
+   33(6)       0.02778     39.9    39.9
+   36(6)       0.02778     39.9    39.9
+   31(6)       0.02778     39.8    39.8
+   38(6)       0.02778     39.8    39.8
+   44(7)       0.02041     39.8    39.8
+   35(6)       0.02778     39.8    39.8
+   37(6)       0.02778     39.8    39.8
+   36(6)       0.02778     39.7    39.7
+   36(6)       0.02778     39.7    39.7
+   36(6)       0.02778     39.7    39.7
+   37(6)       0.02778     39.7    39.7
+   40(7)       0.02041     39.6    39.6
+   36(6)       0.02778     39.6    39.6
+   32(6)       0.02778     39.6    39.6
+   35(6)       0.02778     39.6    39.6
+   46(7)       0.02041     39.6    39.6
+   45(7)       0.02041     39.5    39.5
+   44(7)       0.02041     39.5    39.5
+   34(6)       0.02778     39.5    39.5
+   43(7)       0.02041     39.5    39.5
+   33(6)       0.02778     39.4    39.4
+   39(7)       0.02041     39.4    39.4
+   38(6)       0.02778     39.4    39.4
+   34(6)       0.02778     39.4    39.4
+   35(6)       0.02778     39.4    39.4
+   41(7)       0.02041     39.3    39.3
+   41(7)       0.02041     39.3    39.3
+   43(7)       0.02041     39.3    39.3
+   33(6)       0.02778     39.3    39.3
+   36(6)       0.02778     39.2    39.2
+   40(7)       0.02041     39.2    39.2
+   37(6)       0.02778     39.2    39.2
+   46(7)       0.02041     39.2    39.2
+   40(7)       0.02041     39.2    39.2
+   34(6)       0.02778     39.1    39.1
+   31(6)       0.02778     39.1    39.1
+   37(6)       0.02778     39.1    39.1
+   42(7)       0.02041     39.1    39.1
+   42(7)       0.02041     39.1    39.1
+   29(6)       0.02778     39.0    39.0
+   37(6)       0.02778     39.0    39.0
+   43(7)       0.02041     39.0    39.0
+   38(6)       0.02778     39.0    39.0
+   40(7)       0.02041     39.0    39.0
+   37(6)       0.02778     38.9    38.9
+   46(7)       0.02041     38.9    38.9
+   47(7)       0.02041     38.9    38.9
+   32(6)       0.02778     38.9    38.9
+   39(7)       0.02041     38.9    38.9
+   36(6)       0.02778     38.8    38.8
+   42(7)       0.02041     38.8    38.8
+   37(6)       0.02778     38.8    38.8
+   41(7)       0.02041     38.8    38.8
+   29(5)       0.0400      38.8    38.8
+   46(7)       0.02041     38.7    38.7
+   35(6)       0.02778     38.7    38.7
+   52(8)       0.01562     38.7    38.7
+   53(8)       0.01562     38.7    38.7
+   46(7)       0.02041     38.7    38.7
+   47(7)       0.02041     38.6    38.6
+   53(8)       0.01562     38.6    38.6
+   42(7)       0.02041     38.6    38.6
+   39(7)       0.02041     38.6    38.6
+   46(7)       0.02041     38.6    38.6
+   41(7)       0.02041     38.5    38.5
+   43(7)       0.02041     38.5    38.5
+   37(6)       0.02778     38.5    38.5
+   39(6)       0.02778     38.5    38.5
+   38(6)       0.02778     38.5    38.5
+   37(6)       0.02778     38.5    38.5
+   35(6)       0.02778     38.4    38.4
+   34(6)       0.02778     38.4    38.4
+   26(5)       0.0400      38.4    38.4
+   34(6)       0.02778     38.4    38.4
+   31(6)       0.02778     38.4    38.4
+   38(6)       0.02778     38.3    38.3
+   34(6)       0.02778     38.3    38.3
+   37(6)       0.02778     38.3    38.3
+   40(6)       0.02778     38.3    38.3
+   33(6)       0.02778     38.3    38.3
+   32(6)       0.02778     38.3    38.3
+   40(6)       0.02778     38.2    38.2
+   25(5)       0.0400      38.2    38.2
+   31(6)       0.02778     38.2    38.2
+   39(6)       0.02778     38.2    38.2
+   38(6)       0.02778     38.2    38.2
+   46(7)       0.02041     38.1    38.1
+   33(6)       0.02778     38.1    38.1
+   33(6)       0.02778     38.1    38.1
+   34(6)       0.02778     38.1    38.1
+   34(6)       0.02778     38.1    38.1
+   39(6)       0.02778     38.1    38.1
+   35(6)       0.02778     38.0    38.0
+   33(6)       0.02778     38.0    38.0
+   33(6)       0.02778     38.0    38.0
+   38(6)       0.02778     38.0    38.0
+   34(6)       0.02778     38.0    38.0
+   34(6)       0.02778     38.0    38.0
+   29(5)       0.0400      37.9    37.9
+   32(6)       0.02778     37.9    37.9
+   29(5)       0.0400      37.9    37.9
+   36(6)       0.02778     37.9    37.9
+   39(6)       0.02778     37.9    38.4
+   44(7)       0.02041     37.9    40.3
+   50(7)       0.02041     37.8    46.9
+   67(8)       0.01562     37.8    65.4
+   79(9)       0.01235     37.8    107.1
+   139(12)     0.00694     37.8    181.8
+   237(16)     0.00391     37.8    285.1
+   364(20)     0.002500    37.8    386.5
+   443(22)     0.002066    37.7    437.7
+   457(22)     0.002066    37.7    407.5
+   331(19)     0.002770    37.7    311.1
+   199(15)     0.00444     37.7    198.5
+   120(11)     0.00826     37.7    112.6
+   72(9)       0.01235     37.7    65.2
+   44(7)       0.02041     37.7    45.7
+   37(6)       0.02778     37.6    39.5
+   33(6)       0.02778     37.6    37.6
+   41(6)       0.02778     37.6    37.6
+   35(6)       0.02778     37.6    37.6
+   35(6)       0.02778     37.6    37.6
+   32(6)       0.02778     37.6    37.6
+   26(5)       0.0400      37.5    37.5
+   32(6)       0.02778     37.5    37.5
+   43(7)       0.02041     37.5    37.5
+   35(6)       0.02778     37.5    37.5
+   39(6)       0.02778     37.5    37.5
+   39(6)       0.02778     37.5    37.5
+   36(6)       0.02778     37.5    37.5
+   39(6)       0.02778     37.4    37.4
+   43(7)       0.02041     37.4    37.4
+   44(7)       0.02041     37.4    37.4
+   49(7)       0.02041     37.4    37.4
+   49(7)       0.02041     37.4    37.4
+   38(6)       0.02778     37.4    37.4
+   43(7)       0.02041     37.4    37.4
+   35(6)       0.02778     37.3    37.3
+   26(5)       0.0400      37.3    37.3
+   27(5)       0.0400      37.3    37.3
+   32(6)       0.02778     37.3    37.3
+   35(6)       0.02778     37.3    37.3
+   39(6)       0.02778     37.3    37.3
+   41(6)       0.02778     37.3    37.3
+   38(6)       0.02778     37.2    37.2
+   37(6)       0.02778     37.2    37.2
+   40(6)       0.02778     37.2    37.2
+   42(7)       0.02041     37.2    37.2
+   35(6)       0.02778     37.2    37.2
+   37(6)       0.02778     37.2    37.2
+   34(6)       0.02778     37.2    37.2
+   34(6)       0.02778     37.1    37.1
+   33(6)       0.02778     37.1    37.1
+   38(6)       0.02778     37.1    37.1
+   42(7)       0.02041     37.1    37.1
+   34(6)       0.02778     37.1    37.2
+   37(6)       0.02778     37.1    37.5
+   34(6)       0.02778     37.1    38.6
+   36(6)       0.02778     37.1    41.7
+   42(7)       0.02041     37.0    48.5
+   61(8)       0.01562     37.0    59.7
+   71(9)       0.01235     37.0    73.6
+   96(10)      0.01000     37.0    84.8
+   94(10)      0.01000     37.0    86.9
+   82(9)       0.01235     37.0    78.5
+   57(8)       0.01562     37.0    64.3
+   54(8)       0.01562     37.0    51.1
+   41(6)       0.02778     36.9    42.7
+   37(5)       0.0400      36.9    38.8
+   31(5)       0.0400      36.9    37.4
+   38(6)       0.02778     36.9    37.0
+   40(6)       0.02778     36.9    36.9
+   41(6)       0.02778     36.9    36.9
+   33(5)       0.0400      36.9    36.9
+   44(6)       0.02778     36.9    36.9
+   47(6)       0.02778     36.8    36.8
+   33(5)       0.0400      36.8    36.8
+   39(6)       0.02778     36.8    36.8
+   42(6)       0.02778     36.8    36.8
+   32(5)       0.0400      36.8    36.8
+   38(6)       0.02778     36.8    36.8
+   38(6)       0.02778     36.8    36.8
+   38(6)       0.02778     36.8    36.8
+   50(7)       0.02041     36.7    36.7
+   50(7)       0.02041     36.7    36.7
+   44(6)       0.02778     36.7    36.7
+   43(6)       0.02778     36.7    36.7
+   36(6)       0.02778     36.7    36.7
+   37(6)       0.02778     36.7    36.7
+   35(6)       0.02778     36.7    36.7
+   40(6)       0.02778     36.7    36.7
+   42(6)       0.02778     36.7    36.7
+   38(6)       0.02778     36.6    36.6
+   45(6)       0.02778     36.6    36.6
+   37(6)       0.02778     36.6    36.6
+   42(6)       0.02778     36.6    36.6
+   40(6)       0.02778     36.6    36.6
+   42(6)       0.02778     36.6    36.6
+   37(6)       0.02778     36.6    36.6
+   35(6)       0.02778     36.6    36.6
+   35(6)       0.02778     36.6    36.6
+   31(5)       0.0400      36.6    36.6
+   33(5)       0.0400      36.5    36.5
+   33(5)       0.0400      36.5    36.5
+   37(6)       0.02778     36.5    36.5
+   38(6)       0.02778     36.5    36.5
+   35(6)       0.02778     36.5    36.5
+   31(5)       0.0400      36.5    36.5
+   42(6)       0.02778     36.5    36.5
+   51(7)       0.02041     36.5    36.5
+   43(6)       0.02778     36.5    36.5
+   41(6)       0.02778     36.5    36.5
+   40(6)       0.02778     36.4    36.4
+   39(6)       0.02778     36.4    36.4
+   35(6)       0.02778     36.4    36.4
+   36(6)       0.02778     36.4    36.4
+   39(6)       0.02778     36.4    36.4
+   38(6)       0.02778     36.4    36.4
+   36(6)       0.02778     36.4    36.4
+   34(5)       0.0400      36.4    36.4
+   44(6)       0.02778     36.4    36.4
+   46(6)       0.02778     36.4    36.4
+   41(6)       0.02778     36.3    36.3
+   31(5)       0.0400      36.3    36.3
+   34(5)       0.0400      36.3    36.3
+   49(7)       0.02041     36.3    36.3
+   41(6)       0.02778     36.3    36.3
+   36(6)       0.02778     36.3    36.3
+   36(6)       0.02778     36.3    36.3
+   43(6)       0.02778     36.3    36.3
+   39(6)       0.02778     36.3    36.3
+   39(6)       0.02778     36.3    36.3
+   48(7)       0.02041     36.3    36.3
+   45(6)       0.02778     36.3    37.3
+   50(7)       0.02041     36.2    41.5
+   67(8)       0.01562     36.2    57.8
+   79(8)       0.01562     36.2    106.8
+   149(12)     0.00694     36.2    221.4
+   325(17)     0.003460    36.2    425.6
+   591(23)     0.001890    36.2    690.3
+   835(28)     0.001276    36.2    909.2
+   860(28)     0.001276    36.2    956.9
+   759(27)     0.001372    36.2    799.2
+   526(22)     0.002066    36.2    530.9
+   293(16)     0.00391     36.2    286.1
+   127(11)     0.00826     36.2    134.4
+   71(8)       0.01562     36.1    66.1
+   52(7)       0.02041     36.1    43.2
+   43(6)       0.02778     36.1    37.4
+   50(7)       0.02041     36.1    36.1
+   41(6)       0.02778     36.1    36.1
+   48(7)       0.02041     36.1    36.1
+   43(6)       0.02778     36.1    36.1
+   37(6)       0.02778     36.1    36.1
+   42(6)       0.02778     36.1    36.1
+   36(6)       0.02778     36.1    36.1
+   37(6)       0.02778     36.1    36.1
+   36(6)       0.02778     36.1    36.1
+   39(6)       0.02778     36.1    36.1
+   47(6)       0.02778     36.1    36.1
+   47(6)       0.02778     36.0    36.0
+   46(6)       0.02778     36.0    36.0
+   39(6)       0.02778     36.0    36.0
+   43(6)       0.02778     36.0    36.0
+   63(8)       0.01562     36.0    36.0
+   61(7)       0.02041     36.0    36.0
+   74(8)       0.01562     36.0    38.5
+   96(9)       0.01235     36.0    51.5
+   156(11)     0.00826     36.0    111.2
+   346(17)     0.003460    36.0    324.7
+   863(26)     0.001479    36.0    917.7
+   1954(40)    0.000625    36.     2179.
+   3880(57)    0.0003078   36.     4174.
+   6443(74)    0.0001826   36.     6360.
+   8042(82)    0.0001487   36.     7649.
+   7830(81)    0.0001524   36.     7219.
+   5987(71)    0.0001984   36.     5324.
+   3515(54)    0.0003429   36.     3062.
+   1618(36)    0.000772    36.     1378.
+   560(21)     0.002268    35.9    496.3
+   180(12)     0.00694     35.9    157.9
+   89(9)       0.01235     35.9    60.8
+   72(8)       0.01562     35.9    35.9
+   65(7)       0.02041     35.9    35.9
+   54(7)       0.02041     35.9    35.9
+   63(7)       0.02041     35.9    35.9
+   65(7)       0.02041     35.9    35.9
+   55(7)       0.02041     35.9    35.9
+   44(6)       0.02778     35.9    35.9
+   42(6)       0.02778     35.9    35.9
+   30(5)       0.0400      35.9    35.9
+   44(6)       0.02778     35.9    35.9
+   48(6)       0.02778     35.9    35.9
+   33(5)       0.0400      35.8    35.8
+   42(6)       0.02778     35.8    35.8
+   43(6)       0.02778     35.8    35.8
+   37(5)       0.0400      35.8    35.8
+   33(5)       0.0400      35.8    35.8
+   42(6)       0.02778     35.8    35.8
+   38(5)       0.0400      35.8    35.8
+   39(6)       0.02778     35.8    35.8
+   37(5)       0.0400      35.8    35.8
+   36(5)       0.0400      35.8    35.8
+   36(5)       0.0400      35.8    35.8
+   42(6)       0.02778     35.8    35.8
+   35(5)       0.0400      35.8    35.8
+   34(5)       0.0400      35.8    35.8
+   35(5)       0.0400      35.8    35.8
+   35(5)       0.0400      35.8    35.8
+   33(5)       0.0400      35.8    35.8
+   40(6)       0.02778     35.8    35.8
+   35(5)       0.0400      35.8    35.8
+   31(5)       0.0400      35.8    35.8
+   32(5)       0.0400      35.8    35.8
+   43(6)       0.02778     35.8    35.8
+   40(6)       0.02778     35.8    35.8
+   41(6)       0.02778     35.7    35.7
+   37(5)       0.0400      35.7    35.7
+   37(5)       0.0400      35.7    35.7
+   36(5)       0.0400      35.7    35.7
+   46(6)       0.02778     35.7    35.7
+   44(6)       0.02778     35.7    35.7
+   40(6)       0.02778     35.7    35.7
+   38(6)       0.02778     35.7    35.7
+   40(6)       0.02778     35.7    35.8
+   31(5)       0.0400      35.7    36.0
+   28(5)       0.0400      35.7    36.7
+   34(5)       0.0400      35.7    38.6
+   42(6)       0.02778     35.7    42.2
+   42(6)       0.02778     35.7    47.0
+   54(7)       0.02041     35.7    51.3
+   46(6)       0.02778     35.7    52.3
+   56(7)       0.02041     35.7    49.5
+   52(6)       0.02778     35.7    44.5
+   41(6)       0.02778     35.7    40.0
+   39(6)       0.02778     35.7    37.3
+   37(5)       0.0400      35.7    36.2
+   37(5)       0.0400      35.7    35.8
+   43(6)       0.02778     35.7    35.7
+   34(5)       0.0400      35.7    35.7
+   44(6)       0.02778     35.7    35.7
+   34(5)       0.0400      35.7    35.7
+   28(5)       0.0400      35.7    35.7
+   32(5)       0.0400      35.7    35.7
+   29(5)       0.0400      35.7    35.7
+   26(4)       0.0625      35.7    35.7
+   36(5)       0.0400      35.7    35.7
+   35(5)       0.0400      35.7    35.7
+   35(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   33(5)       0.0400      35.6    35.6
+   39(6)       0.02778     35.6    35.6
+   44(6)       0.02778     35.6    35.6
+   37(5)       0.0400      35.6    35.6
+   30(5)       0.0400      35.6    35.6
+   38(6)       0.02778     35.6    35.6
+   36(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   31(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   38(5)       0.0400      35.6    35.6
+   37(5)       0.0400      35.6    35.6
+   37(5)       0.0400      35.6    35.6
+   38(6)       0.02778     35.6    35.6
+   33(5)       0.0400      35.6    35.6
+   35(5)       0.0400      35.6    35.6
+   30(5)       0.0400      35.6    35.6
+   27(4)       0.0625      35.6    35.6
+   33(5)       0.0400      35.6    35.6
+   39(5)       0.0400      35.6    35.6
+   38(5)       0.0400      35.6    35.6
+   33(5)       0.0400      35.6    35.6
+   39(5)       0.0400      35.6    35.6
+   39(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   35(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   38(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   32(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   37(5)       0.0400      35.6    35.6
+   35(5)       0.0400      35.6    35.6
+   36(5)       0.0400      35.6    35.6
+   41(5)       0.0400      35.6    35.6
+   33(5)       0.0400      35.6    35.6
+   36(5)       0.0400      35.6    35.6
+   36(5)       0.0400      35.6    35.6
+   33(5)       0.0400      35.6    35.6
+   36(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   32(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   28(4)       0.0625      35.6    35.6
+   38(5)       0.0400      35.6    35.6
+   33(5)       0.0400      35.6    35.6
+   30(5)       0.0400      35.6    35.6
+   29(4)       0.0625      35.6    35.6
+   30(5)       0.0400      35.6    35.6
+   35(5)       0.0400      35.6    35.6
+   35(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   42(5)       0.0400      35.6    35.6
+   37(5)       0.0400      35.6    35.6
+   35(5)       0.0400      35.6    35.6
+   41(5)       0.0400      35.6    35.6
+   37(5)       0.0400      35.6    35.6
+   40(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   32(5)       0.0400      35.6    35.6
+   27(4)       0.0625      35.6    35.6
+   26(4)       0.0625      35.6    35.6
+   32(5)       0.0400      35.6    35.6
+   35(5)       0.0400      35.6    35.6
+   30(5)       0.0400      35.6    35.6
+   31(5)       0.0400      35.6    35.6
+   32(5)       0.0400      35.6    35.6
+   31(5)       0.0400      35.6    35.6
+   33(5)       0.0400      35.6    35.6
+   36(5)       0.0400      35.6    35.6
+   28(4)       0.0625      35.6    35.6
+   31(5)       0.0400      35.6    35.6
+   35(5)       0.0400      35.6    35.6
+   40(5)       0.0400      35.6    35.6
+   33(5)       0.0400      35.6    35.6
+   33(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   31(5)       0.0400      35.6    35.6
+   36(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   30(5)       0.0400      35.6    35.6
+   33(5)       0.0400      35.6    35.6
+   30(5)       0.0400      35.6    35.6
+   33(5)       0.0400      35.6    35.6
+   36(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   36(5)       0.0400      35.6    35.6
+   39(5)       0.0400      35.6    35.6
+   44(6)       0.02778     35.6    35.6
+   44(6)       0.02778     35.6    35.6
+   36(5)       0.0400      35.6    35.6
+   37(5)       0.0400      35.6    35.6
+   34(5)       0.0400      35.6    35.6
+   38(5)       0.0400      35.6    35.6
+   41(5)       0.0400      35.6    35.8
+   40(5)       0.0400      35.6    36.7
+   52(6)       0.02778     35.6    41.8
+   73(7)       0.02041     35.6    63.5
+   134(10)     0.01000     35.6    132.5
+   303(15)     0.00444     35.6    295.0
+   570(20)     0.002500    35.6    570.4
+   876(25)     0.001600    35.6    882.5
+   1049(28)    0.001276    35.6    1063.6
+   1023(27)    0.001372    35.6    989.6
+   751(23)     0.001890    35.6    711.2
+   429(18)     0.003086    35.6    400.0
+   180(11)     0.00826     35.6    185.0
+   90(8)       0.01562     35.6    82.2
+   50(6)       0.02778     35.7    46.6
+   43(5)       0.0400      35.7    37.6
+   38(5)       0.0400      35.7    35.7
+   33(5)       0.0400      35.7    35.7
+   31(4)       0.0625      35.7    35.7
+   34(5)       0.0400      35.7    35.7
+   37(5)       0.0400      35.7    35.7
+   42(5)       0.0400      35.7    35.7
+   37(5)       0.0400      35.7    35.7
+   37(5)       0.0400      35.7    35.7
+   33(5)       0.0400      35.7    35.7
+   35(5)       0.0400      35.7    35.7
+   36(5)       0.0400      35.7    35.7
+   31(4)       0.0625      35.7    35.7
+   32(5)       0.0400      35.7    35.7
+   27(4)       0.0625      35.7    35.7
+   35(5)       0.0400      35.7    35.7
+   45(5)       0.0400      35.7    35.7
+   41(5)       0.0400      35.7    35.7
+   35(5)       0.0400      35.7    35.7
+   34(5)       0.0400      35.7    35.7
+   45(5)       0.0400      35.7    35.7
+   58(6)       0.02778     35.7    35.7
+   38(5)       0.0400      35.7    35.7
+   40(5)       0.0400      35.7    35.7
+   34(5)       0.0400      35.7    35.7
+   31(4)       0.0625      35.7    35.7
+   31(4)       0.0625      35.7    35.7
+   35(5)       0.0400      35.7    35.7
+   36(5)       0.0400      35.7    35.7
+   37(5)       0.0400      35.7    35.7
+   37(5)       0.0400      35.7    35.7
+   28(4)       0.0625      35.7    35.7
+   30(4)       0.0625      35.7    35.7
+   26(4)       0.0625      35.7    35.7
+   33(5)       0.0400      35.7    35.7
+   36(5)       0.0400      35.7    35.7
+   36(5)       0.0400      35.7    35.7
+   34(5)       0.0400      35.7    35.7
+   34(5)       0.0400      35.7    35.7
+   36(5)       0.0400      35.7    35.7
+   34(5)       0.0400      35.7    35.7
+   31(4)       0.0625      35.7    35.7
+   37(5)       0.0400      35.8    35.8
+   31(4)       0.0625      35.8    35.8
+   34(5)       0.0400      35.8    35.8
+   47(6)       0.02778     35.8    35.8
+   46(5)       0.0400      35.8    35.8
+   42(5)       0.0400      35.8    35.8
+   39(5)       0.0400      35.8    35.8
+   39(5)       0.0400      35.8    35.8
+   39(5)       0.0400      35.8    35.8
+   38(5)       0.0400      35.8    35.8
+   29(4)       0.0625      35.8    35.8
+   31(4)       0.0625      35.8    35.8
+   39(5)       0.0400      35.8    35.8
+   35(5)       0.0400      35.8    35.8
+   36(5)       0.0400      35.8    35.8
+   29(4)       0.0625      35.8    35.8
+   28(4)       0.0625      35.8    35.8
+   40(5)       0.0400      35.8    35.8
+   39(5)       0.0400      35.8    35.8
+   34(5)       0.0400      35.8    35.8
+   24(4)       0.0625      35.8    35.8
+   30(4)       0.0625      35.8    35.8
+   32(5)       0.0400      35.8    35.8
+   32(5)       0.0400      35.8    35.8
+   34(5)       0.0400      35.8    35.8
+   38(5)       0.0400      35.8    35.8
+   34(5)       0.0400      35.8    35.8
+   34(5)       0.0400      35.8    35.8
+   44(5)       0.0400      35.8    35.8
+   34(5)       0.0400      35.8    35.8
+   36(5)       0.0400      35.8    35.8
+   39(5)       0.0400      35.8    35.8
+   51(6)       0.02778     35.8    35.8
+   39(5)       0.0400      35.8    35.8
+   32(5)       0.0400      35.9    35.9
+   37(5)       0.0400      35.9    35.9
+   38(5)       0.0400      35.9    35.9
+   37(5)       0.0400      35.9    35.9
+   40(5)       0.0400      35.9    35.9
+   40(5)       0.0400      35.9    35.9
+   41(5)       0.0400      35.9    35.9
+   51(6)       0.02778     35.9    35.9
+   48(6)       0.02778     35.9    36.4
+   66(7)       0.02041     35.9    39.7
+   92(8)       0.01562     35.9    59.7
+   172(11)     0.00826     35.9    147.8
+   445(17)     0.003460    35.9    437.3
+   1050(26)    0.001479    35.9    1134.2
+   2272(39)    0.000657    36.     2325.
+   3625(49)    0.000416    36.     3664.
+   4276(54)    0.0003429   36.     4405.
+   3904(51)    0.000384    36.     4028.
+   2628(42)    0.000567    36.     2799.
+   1410(31)    0.001041    35.9    1483.3
+   574(19)     0.002770    35.9    609.0
+   185(11)     0.00826     35.9    207.3
+   83(7)       0.02041     35.9    74.6
+   55(6)       0.02778     35.9    42.5
+   52(6)       0.02778     35.9    35.9
+   51(6)       0.02778     35.9    35.9
+   49(6)       0.02778     35.9    35.9
+   46(5)       0.0400      35.9    35.9
+   39(5)       0.0400      35.9    35.9
+   45(5)       0.0400      35.9    35.9
+   44(5)       0.0400      35.9    35.9
+   43(5)       0.0400      36.0    36.0
+   41(5)       0.0400      36.0    36.0
+   41(5)       0.0400      36.0    36.0
+   33(4)       0.0625      36.0    36.0
+   35(5)       0.0400      36.0    36.0
+   45(5)       0.0400      36.0    36.0
+   39(5)       0.0400      36.0    36.0
+   36(5)       0.0400      36.0    36.0
+   40(5)       0.0400      36.0    36.0
+   34(5)       0.0400      36.0    36.0
+   32(4)       0.0625      36.0    36.0
+   33(4)       0.0625      36.0    36.0
+   35(5)       0.0400      36.0    36.0
+   37(5)       0.0400      36.0    36.0
+   36(5)       0.0400      36.0    36.0
+   38(5)       0.0400      36.0    36.0
+   44(5)       0.0400      36.0    36.0
+   33(4)       0.0625      36.0    36.0
+   37(5)       0.0400      36.0    36.0
+   33(4)       0.0625      36.0    36.0
+   37(5)       0.0400      36.0    36.0
+   31(4)       0.0625      36.0    36.0
+   30(4)       0.0625      36.0    36.1
+   36(5)       0.0400      36.0    36.5
+   57(6)       0.02778     36.0    39.1
+   66(6)       0.02778     36.0    49.8
+   86(7)       0.02041     36.0    83.8
+   172(10)     0.01000     36.0    161.7
+   288(13)     0.00592     36.0    287.0
+   439(17)     0.003460    36.0    416.1
+   513(18)     0.003086    36.0    472.4
+   458(17)     0.003460    36.0    415.2
+   311(14)     0.00510     36.1    285.2
+   154(10)     0.01000     36.1    159.8
+   73(7)       0.02041     36.1    82.4
+   41(5)       0.0400      36.1    49.2
+   35(5)       0.0400      36.1    38.9
+   27(4)       0.0625      36.1    36.5
+   27(4)       0.0625      36.1    36.1
+   36(5)       0.0400      36.1    36.1
+   35(5)       0.0400      36.1    36.1
+   38(5)       0.0400      36.1    36.1
+   32(4)       0.0625      36.1    36.1
+   33(4)       0.0625      36.1    36.1
+   38(5)       0.0400      36.1    36.1
+   40(5)       0.0400      36.1    36.1
+   39(5)       0.0400      36.1    36.1
+   46(5)       0.0400      36.1    36.1
+   43(5)       0.0400      36.1    36.1
+   43(5)       0.0400      36.1    36.1
+   41(5)       0.0400      36.1    36.1
+   35(5)       0.0400      36.1    36.1
+   32(4)       0.0625      36.1    36.2
+   31(4)       0.0625      36.1    36.5
+   34(4)       0.0625      36.1    37.5
+   41(5)       0.0400      36.1    40.2
+   45(5)       0.0400      36.1    46.8
+   65(6)       0.02778     36.1    62.8
+   96(8)       0.01562     36.1    97.1
+   137(9)      0.01235     36.1    154.3
+   200(11)     0.00826     36.1    219.5
+   235(12)     0.00694     36.1    256.7
+   226(12)     0.00694     36.1    238.7
+   170(10)     0.01000     36.1    177.3
+   98(8)       0.01562     36.1    110.6
+   57(6)       0.02778     36.2    65.8
+   40(5)       0.0400      36.2    45.1
+   42(5)       0.0400      36.2    38.2
+   42(5)       0.0400      36.2    36.5
+   34(4)       0.0625      36.2    36.2
+   39(5)       0.0400      36.2    36.2
+   33(4)       0.0625      36.2    36.2
+   33(4)       0.0625      36.2    36.2
+   28(4)       0.0625      36.2    36.2
+   37(5)       0.0400      36.2    36.2
+   36(5)       0.0400      36.2    36.2
+   33(4)       0.0625      36.2    36.2
+   29(4)       0.0625      36.2    36.2
+   37(5)       0.0400      36.2    36.2
+   34(5)       0.0400      36.2    36.2
+   26(4)       0.0625      36.2    36.2
+   43(5)       0.0400      36.2    36.2
+   41(5)       0.0400      36.2    36.2
+   34(4)       0.0625      36.2    36.2
+   31(4)       0.0625      36.2    36.2
+   26(4)       0.0625      36.2    36.2
+   32(4)       0.0625      36.2    36.2
+   31(4)       0.0625      36.2    36.2
+   38(5)       0.0400      36.2    36.2
+   25(4)       0.0625      36.2    36.2
+   37(5)       0.0400      36.2    36.2
+   40(5)       0.0400      36.2    36.2
+   37(5)       0.0400      36.2    36.2
+   33(4)       0.0625      36.2    36.2
+   36(5)       0.0400      36.2    36.2
+   34(5)       0.0400      36.2    36.2
+   34(4)       0.0625      36.2    36.2
+   31(4)       0.0625      36.2    36.2
+   34(4)       0.0625      36.2    36.2
+   37(4)       0.0625      36.2    36.2
+   39(5)       0.0400      36.2    36.2
+   30(4)       0.0625      36.2    36.2
+   32(4)       0.0625      36.2    36.2
+   34(4)       0.0625      36.2    36.2
+   30(4)       0.0625      36.2    36.2
+   33(4)       0.0625      36.2    36.2
+   39(5)       0.0400      36.3    36.3
+   30(4)       0.0625      36.3    36.3
+   28(4)       0.0625      36.3    36.3
+   31(4)       0.0625      36.3    36.3
+   40(5)       0.0400      36.3    36.3
+   35(4)       0.0625      36.3    36.3
+   31(4)       0.0625      36.3    36.3
+   29(4)       0.0625      36.3    36.3
+   38(4)       0.0625      36.3    36.3
+   30(4)       0.0625      36.3    36.3
+   35(4)       0.0625      36.3    36.3
+   28(4)       0.0625      36.3    36.3
+   29(4)       0.0625      36.3    36.3
+   33(4)       0.0625      36.3    36.3
+   34(4)       0.0625      36.3    36.3
+   37(4)       0.0625      36.3    36.3
+   32(4)       0.0625      36.3    36.3
+   29(4)       0.0625      36.3    36.3
+   39(5)       0.0400      36.3    36.3
+   38(5)       0.0400      36.3    36.3
+   39(5)       0.0400      36.3    36.3
+   32(4)       0.0625      36.3    36.3
+   36(4)       0.0625      36.3    36.3
+   39(5)       0.0400      36.3    36.3
+   38(5)       0.0400      36.3    36.3
+   34(4)       0.0625      36.3    36.3
+   31(4)       0.0625      36.3    36.3
+   31(4)       0.0625      36.3    36.3
+   29(4)       0.0625      36.3    36.3
+   34(4)       0.0625      36.3    36.3
+   40(5)       0.0400      36.3    36.3
+   33(4)       0.0625      36.3    36.3
+   37(4)       0.0625      36.3    36.3
+   37(4)       0.0625      36.3    36.3
+   32(4)       0.0625      36.3    36.3
+   31(4)       0.0625      36.3    36.3
+   33(4)       0.0625      36.3    36.3
+   41(5)       0.0400      36.3    36.3
+   38(5)       0.0400      36.3    36.3
+   36(4)       0.0625      36.3    36.3
+   43(5)       0.0400      36.3    36.3
+   35(4)       0.0625      36.3    36.3
+   36(4)       0.0625      36.3    36.3
+   41(5)       0.0400      36.3    36.3
+   35(4)       0.0625      36.3    36.3
+   29(4)       0.0625      36.3    36.3
+   36(4)       0.0625      36.3    36.3
+   37(4)       0.0625      36.3    36.3
+   32(4)       0.0625      36.3    36.3
+   34(4)       0.0625      36.3    36.3
+   31(4)       0.0625      36.3    36.3
+   35(4)       0.0625      36.3    36.4
+   35(4)       0.0625      36.3    36.7
+   49(5)       0.0400      36.3    39.1
+   57(6)       0.02778     36.3    50.7
+   101(7)      0.02041     36.3    93.5
+   218(11)     0.00826     36.3    209.6
+   482(16)     0.00391     36.3    434.8
+   762(21)     0.002268    36.3    731.4
+   975(23)     0.001890    36.3    955.6
+   1026(24)    0.001736    36.3    957.8
+   753(21)     0.002268    36.3    736.2
+   425(15)     0.00444     36.3    438.8
+   186(10)     0.01000     36.3    211.6
+   86(7)       0.02041     36.3    94.1
+   55(5)       0.0400      36.3    50.7
+   43(5)       0.0400      36.3    39.1
+   44(5)       0.0400      36.3    36.7
+   44(5)       0.0400      36.3    36.3
+   40(5)       0.0400      36.3    36.3
+   44(5)       0.0400      36.3    36.3
+   42(5)       0.0400      36.3    36.3
+   38(5)       0.0400      36.3    36.3
+   42(5)       0.0400      36.3    36.3
+   38(5)       0.0400      36.3    36.3
+   35(4)       0.0625      36.3    36.3
+   42(5)       0.0400      36.3    36.3
+   47(5)       0.0400      36.3    36.3
+   43(5)       0.0400      36.3    36.3
+   49(5)       0.0400      36.3    36.3
+   41(5)       0.0400      36.3    36.3
+   50(5)       0.0400      36.3    36.3
+   55(5)       0.0400      36.3    36.3
+   44(5)       0.0400      36.3    36.3
+   51(5)       0.0400      36.3    36.3
+   55(5)       0.0400      36.3    36.7
+   65(6)       0.02778     36.3    39.3
+   95(7)       0.02041     36.3    55.5
+   188(10)     0.01000     36.3    131.3
+   466(16)     0.00391     36.3    393.7
+   1157(34)    0.000865    36.3    1058.4
+   2627(36)    0.000772    36.     2258.
+   4112(46)    0.000473    36.     3706.
+   4863(50)    0.000400    36.     4640.
+   4422(48)    0.000434    36.     4422.
+   3101(40)    0.000625    36.     3208.
+   1649(29)    0.001189    36.3    1776.7
+   702(19)     0.002770    36.3    760.9
+   267(11)     0.00826     36.3    265.1
+   101(7)      0.02041     36.3    91.1
+   59(5)       0.0400      36.3    46.3
+   46(5)       0.0400      36.3    36.3
+   44(5)       0.0400      36.3    36.3
+   49(5)       0.0400      36.3    36.3
+   45(5)       0.0400      36.3    36.3
+   45(5)       0.0400      36.3    36.3
+   38(4)       0.0625      36.3    36.3
+   42(5)       0.0400      36.3    36.3
+   37(4)       0.0625      36.3    36.3
+   32(4)       0.0625      36.3    36.3
+   39(4)       0.0625      36.3    36.3
+   46(5)       0.0400      36.3    36.3
+   39(4)       0.0625      36.3    36.3
+   35(4)       0.0625      36.3    36.3
+   39(4)       0.0625      36.3    36.3
+   36(4)       0.0625      36.3    36.3
+   37(4)       0.0625      36.3    36.3
+   38(4)       0.0625      36.3    36.3
+   35(4)       0.0625      36.3    36.3
+   26(4)       0.0625      36.3    36.3
+   30(4)       0.0625      36.3    36.3
+   31(4)       0.0625      36.3    36.3
+   38(4)       0.0625      36.3    36.3
+   39(4)       0.0625      36.3    36.3
+   36(4)       0.0625      36.3    36.3
+   42(5)       0.0400      36.3    36.3
+   38(4)       0.0625      36.3    36.3
+   35(4)       0.0625      36.3    36.3
+   38(4)       0.0625      36.3    36.3
+   35(4)       0.0625      36.3    36.3
+   33(4)       0.0625      36.3    36.5
+   37(4)       0.0625      36.3    37.5
+   46(5)       0.0400      36.3    42.3
+   66(6)       0.02778     36.3    59.3
+   123(8)      0.01562     36.3    103.4
+   197(10)     0.01000     36.3    185.5
+   294(12)     0.00694     36.3    289.1
+   361(14)     0.00510     36.3    362.8
+   369(14)     0.00510     36.3    357.6
+   270(12)     0.00694     36.3    277.3
+   163(9)      0.01235     36.3    173.9
+   98(7)       0.02041     36.3    96.2
+   57(5)       0.0400      36.3    56.1
+   37(4)       0.0625      36.3    41.3
+   40(4)       0.0625      36.3    37.2
+   37(4)       0.0625      36.3    36.3
+   39(4)       0.0625      36.3    36.3
+   32(4)       0.0625      36.3    36.3
+   37(4)       0.0625      36.3    36.3
+   38(4)       0.0625      36.3    36.3
+   37(4)       0.0625      36.3    36.3
+   37(4)       0.0625      36.3    36.3
+   36(4)       0.0625      36.3    36.3
+   36(4)       0.0625      36.3    36.3
+   40(4)       0.0625      36.3    36.3
+   39(4)       0.0625      36.3    36.3
+   32(4)       0.0625      36.2    36.2
+   30(4)       0.0625      36.2    36.2
+   35(4)       0.0625      36.2    36.2
+   34(4)       0.0625      36.2    36.2
+   32(4)       0.0625      36.2    36.2
+   34(4)       0.0625      36.2    36.2
+   30(4)       0.0625      36.2    36.2
+   31(4)       0.0625      36.2    36.2
+   36(4)       0.0625      36.2    36.2
+   33(4)       0.0625      36.2    36.2
+   35(4)       0.0625      36.2    36.2
+   31(4)       0.0625      36.2    36.2
+   28(4)       0.0625      36.2    36.2
+   32(4)       0.0625      36.2    36.2
+   38(4)       0.0625      36.2    36.2
+   34(4)       0.0625      36.2    36.2
+   29(4)       0.0625      36.2    36.2
+   31(4)       0.0625      36.2    36.2
+   39(4)       0.0625      36.2    36.2
+   39(4)       0.0625      36.2    36.2
+   33(4)       0.0625      36.2    36.2
+   36(4)       0.0625      36.2    36.2
+   36(4)       0.0625      36.2    36.2
+   35(4)       0.0625      36.2    36.2
+   36(4)       0.0625      36.2    36.2
+   33(4)       0.0625      36.2    36.2
+   34(4)       0.0625      36.2    36.2
+   36(4)       0.0625      36.2    36.2
+   34(4)       0.0625      36.2    36.2
+   35(4)       0.0625      36.2    36.2
+   40(4)       0.0625      36.2    36.2
+   39(4)       0.0625      36.2    36.2
+   32(4)       0.0625      36.2    36.2
+   35(4)       0.0625      36.2    36.2
+   30(4)       0.0625      36.1    36.1
+   33(4)       0.0625      36.1    36.1
+   36(4)       0.0625      36.1    36.1
+   35(4)       0.0625      36.1    36.1
+   34(4)       0.0625      36.1    36.1
+   29(4)       0.0625      36.1    36.1
+   28(4)       0.0625      36.1    36.1
+   29(4)       0.0625      36.1    36.1
+   30(4)       0.0625      36.1    36.1
+   28(4)       0.0625      36.1    36.1
+   32(4)       0.0625      36.1    36.1
+   29(4)       0.0625      36.1    36.1
+   30(4)       0.0625      36.1    36.1
+   33(4)       0.0625      36.1    36.1
+   34(4)       0.0625      36.1    36.1
+   35(4)       0.0625      36.1    36.1
+   39(4)       0.0625      36.1    36.1
+   38(4)       0.0625      36.1    36.1
+   33(4)       0.0625      36.1    36.1
+   33(4)       0.0625      36.1    36.1
+   40(5)       0.0400      36.1    36.1
+   41(5)       0.0400      36.1    36.1
+   43(5)       0.0400      36.1    36.1
+   38(4)       0.0625      36.1    36.2
+   32(4)       0.0625      36.1    36.3
+   38(4)       0.0625      36.0    36.3
+   31(4)       0.0625      36.0    36.3
+   33(4)       0.0625      36.0    36.2
+   36(4)       0.0625      36.0    36.1
+   37(4)       0.0625      36.0    36.1
+   36(4)       0.0625      36.0    36.0
+   36(4)       0.0625      36.0    36.0
+   34(4)       0.0625      36.0    36.0
+   32(4)       0.0625      36.0    36.0
+   32(4)       0.0625      36.0    36.0
+   31(4)       0.0625      36.0    36.0
+   34(4)       0.0625      36.0    36.0
+   31(4)       0.0625      36.0    36.0
+   34(4)       0.0625      36.0    36.0
+   38(4)       0.0625      36.0    36.0
+   34(4)       0.0625      36.0    36.0
+   35(4)       0.0625      36.0    36.0
+   35(4)       0.0625      36.0    36.0
+   39(4)       0.0625      36.0    36.0
+   41(5)       0.0400      36.0    36.0
+   36(4)       0.0625      36.0    36.0
+   36(4)       0.0625      35.9    35.9
+   34(4)       0.0625      35.9    35.9
+   34(4)       0.0625      35.9    35.9
+   38(4)       0.0625      35.9    35.9
+   41(5)       0.0400      35.9    35.9
+   39(4)       0.0625      35.9    35.9
+   33(4)       0.0625      35.9    35.9
+   38(4)       0.0625      35.9    35.9
+   46(5)       0.0400      35.9    35.9
+   38(4)       0.0625      35.9    35.9
+   41(5)       0.0400      35.9    35.9
+   35(4)       0.0625      35.9    35.9
+   40(5)       0.0400      35.9    35.9
+   39(4)       0.0625      35.9    35.9
+   38(4)       0.0625      35.9    35.9
+   41(5)       0.0400      35.9    35.9
+   43(5)       0.0400      35.9    35.9
+   42(5)       0.0400      35.9    35.9
+   44(5)       0.0400      35.9    35.9
+   42(5)       0.0400      35.8    35.8
+   35(4)       0.0625      35.8    35.8
+   38(4)       0.0625      35.8    35.8
+   45(5)       0.0400      35.8    35.9
+   44(5)       0.0400      35.8    36.2
+   37(4)       0.0625      35.8    38.2
+   49(5)       0.0400      35.8    46.9
+   85(7)       0.02041     35.8    75.8
+   154(9)      0.01235     35.8    147.5
+   268(12)     0.00694     35.8    277.7
+   424(15)     0.00444     35.8    441.7
+   508(16)     0.00391     35.8    565.4
+   512(16)     0.00391     35.8    577.7
+   455(15)     0.00444     35.8    497.8
+   443(15)     0.00444     35.8    461.6
+   669(18)     0.003086    35.8    666.0
+   1260(25)    0.001600    35.8    1249.5
+   2053(32)    0.000977    35.7    2126.2
+   2738(37)    0.000730    36.     2902.
+   2792(38)    0.000693    36.     3098.
+   2257(34)    0.000865    35.7    2577.0
+   1441(27)    0.001372    35.7    1672.4
+   732(19)     0.002770    35.7    853.6
+   304(12)     0.00694     35.7    352.9
+   126(8)      0.01562     35.7    131.1
+   63(6)       0.02778     35.7    58.0
+   54(5)       0.0400      35.7    39.7
+   49(5)       0.0400      35.7    35.7
+   42(5)       0.0400      35.7    35.7
+   43(5)       0.0400      35.7    35.7
+   39(4)       0.0625      35.7    35.7
+   48(5)       0.0400      35.7    35.7
+   41(5)       0.0400      35.7    35.7
+   38(4)       0.0625      35.6    35.6
+   37(4)       0.0625      35.6    35.6
+  34.0(30)     0.1111      35.63   35.63
+   36(4)       0.0625      35.6    35.6
+   34(4)       0.0625      35.6    35.6
+   35(4)       0.0625      35.6    35.6
+   36(4)       0.0625      35.6    35.6
+   41(5)       0.0400      35.6    35.6
+   36(4)       0.0625      35.6    35.6
+   29(4)       0.0625      35.6    35.6
+   33(4)       0.0625      35.6    35.6
+   32(4)       0.0625      35.6    35.6
+   37(4)       0.0625      35.6    35.6
+   43(5)       0.0400      35.6    35.6
+   35(4)       0.0625      35.6    35.6
+   36(4)       0.0625      35.5    35.5
+   37(4)       0.0625      35.5    35.5
+   40(4)       0.0625      35.5    35.5
+   41(5)       0.0400      35.5    35.5
+   35(4)       0.0625      35.5    35.5
+   38(4)       0.0625      35.5    35.5
+   35(4)       0.0625      35.5    35.5
+   37(4)       0.0625      35.5    35.5
+   41(5)       0.0400      35.5    35.5
+   37(4)       0.0625      35.5    35.5
+   32(4)       0.0625      35.5    35.5
+   34(4)       0.0625      35.5    35.5
+   33(4)       0.0625      35.5    35.5
+   36(4)       0.0625      35.5    35.5
+   36(4)       0.0625      35.5    35.5
+   33(4)       0.0625      35.4    35.4
+   33(4)       0.0625      35.4    35.4
+   35(4)       0.0625      35.4    35.4
+   39(4)       0.0625      35.4    35.4
+   35(4)       0.0625      35.4    35.4
+   33(4)       0.0625      35.4    35.4
+   42(5)       0.0400      35.4    35.4
+   39(4)       0.0625      35.4    35.4
+   34(4)       0.0625      35.4    35.4
+   33(4)       0.0625      35.4    35.4
+   37(4)       0.0625      35.4    35.4
+   40(4)       0.0625      35.4    35.4
+   43(5)       0.0400      35.4    35.7
+   44(5)       0.0400      35.3    37.3
+   43(5)       0.0400      35.3    43.3
+   61(6)       0.02778     35.3    61.3
+   103(7)      0.02041     35.3    101.7
+   164(9)      0.01235     35.3    168.6
+   255(11)     0.00826     35.3    245.5
+   287(12)     0.00694     35.3    295.5
+   272(12)     0.00694     35.3    288.6
+   218(10)     0.01000     35.3    229.3
+   150(9)      0.01235     35.3    153.1
+   97(7)       0.02041     35.3    93.4
+   72(6)       0.02778     35.3    60.5
+   52(5)       0.0400      35.3    46.9
+   45(5)       0.0400      35.3    41.7
+   35(4)       0.0625      35.2    38.8
+   42(5)       0.0400      35.2    37.2
+   33(4)       0.0625      35.2    36.1
+   34(4)       0.0625      35.2    35.5
+   31(4)       0.0625      35.2    35.3
+   32(4)       0.0625      35.2    35.2
+   42(5)       0.0400      35.2    35.2
+   36(4)       0.0625      35.2    35.2
+   31(4)       0.0625      35.2    35.2
+   38(4)       0.0625      35.2    35.2
+   35(4)       0.0625      35.2    35.2
+   31(4)       0.0625      35.2    35.2
+   31(4)       0.0625      35.2    35.2
+   35(4)       0.0625      35.1    35.1
+   33(4)       0.0625      35.1    35.1
+   32(4)       0.0625      35.1    35.1
+   34(4)       0.0625      35.1    35.1
+   32(4)       0.0625      35.1    35.1
+   35(4)       0.0625      35.1    35.1
+   31(4)       0.0625      35.1    35.1
+   36(4)       0.0625      35.1    35.1
+   36(4)       0.0625      35.1    35.1
+   35(4)       0.0625      35.1    35.1
+   38(4)       0.0625      35.1    35.1
+   39(4)       0.0625      35.1    35.1
+   40(4)       0.0625      35.1    35.1
+   36(4)       0.0625      35.0    35.0
+   39(4)       0.0625      35.0    35.0
+   33(4)       0.0625      35.0    35.0
+   36(4)       0.0625      35.0    35.0
+   37(4)       0.0625      35.0    35.0
+   36(4)       0.0625      35.0    35.0
+   41(5)       0.0400      35.0    35.0
+   34(4)       0.0625      35.0    35.0
+   37(4)       0.0625      35.0    35.0
+   45(5)       0.0400      35.0    35.0
+   35(4)       0.0625      35.0    35.0
+   34(4)       0.0625      35.0    35.0
+   36(4)       0.0625      35.0    35.0
+   33(4)       0.0625      34.9    34.9
+   31(4)       0.0625      34.9    35.4
+   46(5)       0.0400      34.9    37.9
+   69(6)       0.02778     34.9    49.3
+   104(7)      0.02041     34.9    89.7
+   199(10)     0.01000     34.9    200.5
+   416(19)     0.002770    34.9    432.7
+   852(20)     0.002500    34.9    794.4
+   1219(24)    0.001736    34.9    1187.2
+   1436(26)    0.001479    34.9    1424.2
+   1362(25)    0.001600    34.9    1366.1
+   1038(22)    0.002066    34.9    1048.5
+   628(17)     0.003460    34.9    648.2
+   326(12)     0.00694     34.8    329.8
+   150(8)      0.01562     34.8    147.6
+   69(6)       0.02778     34.8    69.1
+   53(5)       0.0400      34.8    43.1
+   42(4)       0.0625      34.8    34.8
+   42(4)       0.0625      34.8    34.8
+   41(4)       0.0625      34.8    34.8
+   45(5)       0.0400      34.8    34.8
+   46(5)       0.0400      34.8    34.8
+   44(5)       0.0400      34.8    34.8
+   42(4)       0.0625      34.8    34.8
+   38(4)       0.0625      34.8    36.1
+   51(5)       0.0400      34.7    42.3
+   66(6)       0.02778     34.7    67.8
+   150(8)      0.01562     34.7    151.1
+   360(13)     0.00592     34.7    361.4
+   782(19)     0.002770    34.7    767.3
+   1371(25)    0.001600    34.7    1347.1
+   1993(31)    0.001041    34.7    1912.7
+   2283(33)    0.000918    34.7    2181.4
+   2036(31)    0.001041    34.7    1994.8
+   1527(27)    0.001372    34.7    1464.3
+   902(21)     0.002268    34.7    867.6
+   430(14)     0.00510     34.7    422.3
+   185(9)      0.01235     34.7    178.7
+   86(6)       0.02778     34.6    77.4
+   53(5)       0.0400      34.6    44.8
+   50(5)       0.0400      34.6    34.8
+   42(4)       0.0625      34.6    35.4
+   43(4)       0.0625      34.6    37.5
+   51(5)       0.0400      34.6    44.0
+   69(6)       0.02778     34.6    58.6
+   94(7)       0.02041     34.6    84.0
+   136(8)      0.01562     34.6    116.1
+   176(9)      0.01235     34.6    142.2
+   167(9)      0.01235     34.6    148.6
+   146(8)      0.01562     34.6    131.4
+   106(7)      0.02041     34.6    100.5
+   73(6)       0.02778     34.5    70.5
+   52(5)       0.0400      34.5    50.3
+   45(5)       0.0400      34.5    40.1
+   43(5)       0.0400      34.5    36.1
+   30(4)       0.0625      34.5    34.9
+   35(4)       0.0625      34.5    34.5
+   36(4)       0.0625      34.5    34.5
+   29(4)       0.0625      34.5    34.5
+   33(4)       0.0625      34.5    34.5
+   36(4)       0.0625      34.5    34.5
+   40(4)       0.0625      34.5    34.5
+   39(4)       0.0625      34.5    34.5
+   36(4)       0.0625      34.5    34.5
+   37(4)       0.0625      34.4    34.9
+   39(4)       0.0625      34.4    36.6
+   44(5)       0.0400      34.4    43.1
+   67(6)       0.02778     34.4    62.6
+   106(7)      0.02041     34.4    108.3
+   200(10)     0.01000     34.4    191.0
+   309(12)     0.00694     34.4    302.4
+   402(14)     0.00510     34.4    405.2
+   472(15)     0.00444     34.4    450.3
+   443(14)     0.00510     34.4    414.2
+   338(13)     0.00592     34.4    319.2
+   226(10)     0.01000     34.4    212.1
+   134(8)      0.01562     34.4    128.6
+   78(6)       0.02778     34.3    77.9
+   46(5)       0.0400      34.3    52.3
+   42(4)       0.0625      34.3    40.9
+   35(4)       0.0625      34.3    36.1
+   36(4)       0.0625      34.3    34.9
+   30(4)       0.0625      34.3    34.4
+   30(4)       0.0625      34.3    34.3
+   30(4)       0.0625      34.3    34.3
+   35(4)       0.0625      34.3    34.3
+   29(4)       0.0625      34.3    34.3
+   34(4)       0.0625      34.3    34.3
+   38(4)       0.0625      34.3    34.3
+   39(4)       0.0625      34.3    34.3
+   38(4)       0.0625      34.2    34.2
+   33(4)       0.0625      34.2    34.2
+   33(4)       0.0625      34.2    34.2
+   34(4)       0.0625      34.2    34.2
+   35(4)       0.0625      34.2    34.2
+   35(4)       0.0625      34.2    34.2
+   36(4)       0.0625      34.2    34.2
+   33(4)       0.0625      34.2    34.2
+   34(4)       0.0625      34.2    34.2
+   31(4)       0.0625      34.2    34.2
+   38(4)       0.0625      34.2    34.2
+   35(4)       0.0625      34.2    34.2
+   33(4)       0.0625      34.2    34.2
+   28(4)       0.0625      34.2    34.2
+   38(4)       0.0625      34.1    34.1
+   38(4)       0.0625      34.1    34.1
+   37(4)       0.0625      34.1    34.1
+   28(4)       0.0625      34.1    34.1
+   36(4)       0.0625      34.1    34.1
+   30(4)       0.0625      34.1    34.1
+   33(4)       0.0625      34.1    34.1
+   32(4)       0.0625      34.1    34.1
+   31(4)       0.0625      34.1    34.1
+   36(4)       0.0625      34.1    34.1
+   34(4)       0.0625      34.1    34.1
+   31(4)       0.0625      34.1    34.1
+   43(5)       0.0400      34.1    34.1
+   37(4)       0.0625      34.1    34.2
+   34(4)       0.0625      34.1    34.8
+   37(4)       0.0625      34.0    36.7
+   44(5)       0.0400      34.0    42.0
+   51(5)       0.0400      34.0    53.2
+   62(5)       0.0400      34.0    71.7
+   75(6)       0.02778     34.0    94.7
+   91(7)       0.02041     34.0    113.7
+   108(7)      0.02041     34.0    119.6
+   96(7)       0.02041     34.0    109.0
+   74(6)       0.02778     34.0    87.7
+   58(5)       0.0400      34.0    65.4
+   48(5)       0.0400      34.0    49.0
+   41(4)       0.0625      34.0    39.8
+   45(5)       0.0400      34.0    35.8
+   34(4)       0.0625      34.0    34.4
+   35(4)       0.0625      34.0    34.0
+   33(4)       0.0625      33.9    33.9
+   34(4)       0.0625      33.9    33.9
+   26(4)       0.0625      33.9    33.9
+   32(4)       0.0625      33.9    33.9
+   38(4)       0.0625      33.9    33.9
+   35(4)       0.0625      33.9    33.9
+   39(4)       0.0625      33.9    33.9
+   35(4)       0.0625      33.9    33.9
+   33(4)       0.0625      33.9    33.9
+   41(4)       0.0625      33.9    33.9
+  25.0(30)     0.1111      33.89   33.89
+   34(4)       0.0625      33.9    33.9
+   38(4)       0.0625      33.9    33.9
+   31(4)       0.0625      33.9    33.9
+   34(4)       0.0625      33.9    33.9
+   38(4)       0.0625      33.9    33.9
+   39(4)       0.0625      33.9    33.9
+   34(4)       0.0625      33.8    35.0
+   36(4)       0.0625      33.8    38.6
+   44(5)       0.0400      33.8    50.9
+   70(6)       0.02778     33.8    84.0
+   136(8)      0.01562     33.8    155.2
+   243(11)     0.00826     33.8    275.8
+   394(14)     0.00510     33.8    431.2
+   526(16)     0.00391     33.8    571.5
+   585(17)     0.003460    33.8    633.3
+   530(16)     0.00391     33.8    584.4
+   402(14)     0.00510     33.8    450.5
+   265(11)     0.00826     33.8    294.1
+   126(8)      0.01562     33.8    169.0
+   78(6)       0.02778     33.8    95.3
+   56(5)       0.0400      33.8    64.6
+   55(5)       0.0400      33.8    59.8
+   63(6)       0.02778     33.8    64.4
+   64(6)       0.02778     33.8    71.9
+   70(6)       0.02778     33.8    72.9
+   69(6)       0.02778     33.7    66.9
+   52(5)       0.0400      33.7    56.9
+   41(4)       0.0625      33.7    47.1
+   45(5)       0.0400      33.7    40.1
+   34(4)       0.0625      33.7    36.2
+   32(4)       0.0625      33.7    34.5
+   30(4)       0.0625      33.7    33.9
+   30(4)       0.0625      33.7    33.7
+   36(4)       0.0625      33.7    33.7
+   36(4)       0.0625      33.7    33.7
+   32(4)       0.0625      33.7    33.7
+   29(4)       0.0625      33.7    33.7
+   29(4)       0.0625      33.7    33.7
+   30(4)       0.0625      33.7    33.7
+   35(4)       0.0625      33.7    33.7
+   33(4)       0.0625      33.7    33.7
+  25.0(30)     0.1111      33.67   33.67
+   27(4)       0.0625      33.7    33.7
+   35(4)       0.0625      33.7    33.7
+   29(4)       0.0625      33.7    33.7
+   36(4)       0.0625      33.7    33.7
+   36(4)       0.0625      33.7    33.7
+   37(4)       0.0625      33.6    33.6
+   35(4)       0.0625      33.6    33.6
+   41(4)       0.0625      33.6    33.6
+   32(4)       0.0625      33.6    33.6
+   33(4)       0.0625      33.6    33.6
+   36(4)       0.0625      33.6    33.6
+   39(4)       0.0625      33.6    33.6
+   36(4)       0.0625      33.6    33.6
+   36(4)       0.0625      33.6    33.6
+   37(4)       0.0625      33.6    33.6
+   26(4)       0.0625      33.6    33.6
+   40(4)       0.0625      33.6    33.6
+   31(4)       0.0625      33.6    33.6
+   28(4)       0.0625      33.6    33.6
+   32(4)       0.0625      33.6    33.6
+   33(4)       0.0625      33.6    33.6
+   29(4)       0.0625      33.6    33.6
+   39(4)       0.0625      33.6    33.6
+   35(4)       0.0625      33.6    33.6
+   34(4)       0.0625      33.6    33.6
+   32(4)       0.0625      33.6    33.6
+   33(4)       0.0625      33.6    33.6
+   39(4)       0.0625      33.6    33.6
+   34(4)       0.0625      33.6    33.6
+   34(4)       0.0625      33.6    33.6
+   32(4)       0.0625      33.6    33.6
+   31(4)       0.0625      33.6    33.6
+   43(5)       0.0400      33.6    33.6
+   33(4)       0.0625      33.6    33.6
+   30(4)       0.0625      33.5    33.5
+   35(4)       0.0625      33.5    33.5
+   36(4)       0.0625      33.5    33.5
+   37(4)       0.0625      33.5    33.5
+   31(4)       0.0625      33.5    33.5
+   30(4)       0.0625      33.5    33.5
+   26(4)       0.0625      33.5    33.5
+   33(4)       0.0625      33.5    33.5
+   38(4)       0.0625      33.5    33.5
+   36(4)       0.0625      33.5    33.5
+   38(4)       0.0625      33.5    33.5
+   33(4)       0.0625      33.5    33.6
+   34(4)       0.0625      33.5    33.8
+   41(5)       0.0400      33.5    34.6
+   45(5)       0.0400      33.5    36.9
+   46(5)       0.0400      33.5    42.4
+   58(5)       0.0400      33.5    53.6
+   71(6)       0.02778     33.5    71.5
+   90(7)       0.02041     33.5    94.1
+   113(8)      0.01562     33.5    115.0
+   140(8)      0.01562     33.5    127.1
+   140(8)      0.01562     33.5    129.6
+   138(8)      0.01562     33.5    135.6
+   162(9)      0.01235     33.5    176.4
+   256(11)     0.00826     33.5    297.2
+   517(16)     0.00391     33.5    538.6
+   858(21)     0.002268    33.5    899.9
+   1275(25)    0.001600    33.5    1305.4
+   1565(28)    0.001276    33.5    1613.0
+   1709(29)    0.001189    33.5    1688.7
+   1538(28)    0.001276    33.5    1496.3
+   1117(24)    0.001736    33.5    1123.5
+   710(19)     0.002770    33.5    718.3
+   387(14)     0.00510     33.5    396.2
+   179(9)      0.01235     33.5    195.5
+   85(7)       0.02041     33.5    94.5
+   60(5)       0.0400      33.5    52.9
+   49(5)       0.0400      33.5    38.7
+   35(4)       0.0625      33.5    34.7
+   43(5)       0.0400      33.5    33.7
+   35(4)       0.0625      33.5    33.5
+   38(4)       0.0625      33.5    33.5
+   38(4)       0.0625      33.5    33.5
+   36(4)       0.0625      33.5    33.5
+   39(4)       0.0625      33.5    33.5
+   32(4)       0.0625      33.5    33.5
+   40(4)       0.0625      33.5    33.5
+   30(4)       0.0625      33.5    33.5
+   27(4)       0.0625      33.5    33.5
+   33(4)       0.0625      33.5    33.5
+   35(4)       0.0625      33.5    33.5
+   33(4)       0.0625      33.5    33.5
+   27(4)       0.0625      33.5    33.5
+   34(4)       0.0625      33.5    33.5
+   36(4)       0.0625      33.5    33.5
+   34(4)       0.0625      33.5    33.5
+   37(4)       0.0625      33.5    33.5
+   30(4)       0.0625      33.5    33.5
+   31(4)       0.0625      33.5    33.5
+   31(4)       0.0625      33.5    33.5
+   40(4)       0.0625      33.5    33.5
+   31(4)       0.0625      33.5    33.5
+   36(4)       0.0625      33.5    33.5
+   36(4)       0.0625      33.5    33.5
+   33(4)       0.0625      33.5    33.5
+   37(4)       0.0625      33.5    33.5
+   34(4)       0.0625      33.5    33.5
+   31(4)       0.0625      33.5    33.5
+   31(4)       0.0625      33.5    33.5
+   28(4)       0.0625      33.5    33.5
+   26(4)       0.0625      33.5    33.5
+   37(4)       0.0625      33.5    33.5
+   30(4)       0.0625      33.5    33.5
+  23.0(30)     0.1111      33.51   33.51
+   33(4)       0.0625      33.5    33.5
+   45(5)       0.0400      33.5    33.5
+   34(4)       0.0625      33.5    33.5
+   37(4)       0.0625      33.5    33.5
+   39(4)       0.0625      33.5    33.5
+   33(4)       0.0625      33.5    33.5
+   35(4)       0.0625      33.5    33.5
+   36(4)       0.0625      33.5    33.6
+   30(4)       0.0625      33.5    33.8
+   43(5)       0.0400      33.5    34.8
+   26(4)       0.0625      33.5    38.0
+   49(5)       0.0400      33.5    47.1
+   73(6)       0.02778     33.5    68.4
+   123(8)      0.01562     33.5    110.4
+   193(10)     0.01000     33.5    178.7
+   282(12)     0.00694     33.5    268.4
+   363(14)     0.00510     33.5    359.1
+   437(15)     0.00444     33.5    420.1
+   435(15)     0.00444     33.6    426.7
+   390(14)     0.00510     33.6    376.1
+   313(13)     0.00592     33.6    289.3
+   208(10)     0.01000     33.6    197.1
+   133(8)      0.01562     33.6    123.2
+   83(7)       0.02041     33.6    75.6
+   50(5)       0.0400      33.6    50.5
+   45(5)       0.0400      33.6    39.4
+   40(5)       0.0400      33.6    35.3
+   31(4)       0.0625      33.6    34.0
+   34(4)       0.0625      33.6    33.7
+   41(5)       0.0400      33.6    33.6
+   37(4)       0.0625      33.6    33.6
+   40(5)       0.0400      33.6    33.6
+   35(4)       0.0625      33.6    33.6
+   29(4)       0.0625      33.6    33.6
+   29(4)       0.0625      33.6    33.6
+   39(4)       0.0625      33.6    33.6
+   34(4)       0.0625      33.6    33.6
+   32(4)       0.0625      33.6    33.6
+   37(4)       0.0625      33.6    33.6
+   39(4)       0.0625      33.6    33.6
+   40(5)       0.0400      33.6    33.6
+   34(4)       0.0625      33.6    33.6
+   30(4)       0.0625      33.6    33.6
+   32(4)       0.0625      33.6    33.6
+   29(4)       0.0625      33.7    33.7
+   37(4)       0.0625      33.7    33.7
+   42(5)       0.0400      33.7    33.7
+   30(4)       0.0625      33.7    33.7
+   33(4)       0.0625      33.7    33.7
+   38(4)       0.0625      33.7    33.7
+   26(4)       0.0625      33.7    33.7
+   33(4)       0.0625      33.7    33.7
+   32(4)       0.0625      33.7    33.7
+   36(4)       0.0625      33.7    33.7
+   36(4)       0.0625      33.7    33.7
+   34(4)       0.0625      33.7    33.7
+   34(4)       0.0625      33.7    33.7
+   37(4)       0.0625      33.7    33.7
+   29(4)       0.0625      33.7    33.7
+   32(4)       0.0625      33.7    33.7
+   32(4)       0.0625      33.7    33.8
+   32(4)       0.0625      33.7    33.9
+   41(5)       0.0400      33.8    34.4
+   42(5)       0.0400      33.8    36.0
+   37(4)       0.0625      33.8    40.5
+   49(5)       0.0400      33.8    51.2
+   72(6)       0.02778     33.8    72.8
+   113(8)      0.01562     33.8    109.5
+   159(9)      0.01235     33.8    161.5
+   200(10)     0.01000     33.8    220.7
+   236(11)     0.00826     33.8    271.3
+   254(11)     0.00826     33.8    295.8
+   245(11)     0.00826     33.8    284.6
+   224(11)     0.00826     33.8    242.3
+   187(10)     0.01000     33.8    184.2
+   113(8)      0.01562     33.8    128.0
+   93(7)       0.02041     33.8    85.1
+   54(5)       0.0400      33.9    58.0
+   43(5)       0.0400      33.9    43.8
+   38(4)       0.0625      33.9    37.4
+   35(4)       0.0625      33.9    35.0
+   39(4)       0.0625      33.9    34.2
+   39(4)       0.0625      33.9    33.9
+   37(4)       0.0625      33.9    33.9
+   30(4)       0.0625      33.9    33.9
+   33(4)       0.0625      33.9    33.9
+   39(4)       0.0625      33.9    33.9
+   30(4)       0.0625      33.9    33.9
+   41(5)       0.0400      33.9    33.9
+   28(4)       0.0625      33.9    33.9
+   33(4)       0.0625      34.0    34.0
+   32(4)       0.0625      34.0    34.0
+   33(4)       0.0625      34.0    34.0
+   31(4)       0.0625      34.0    34.0
+   32(4)       0.0625      34.0    34.0
+   38(4)       0.0625      34.0    34.1
+   44(5)       0.0400      34.0    34.4
+   35(4)       0.0625      34.0    35.6
+   37(4)       0.0625      34.0    39.1
+   47(5)       0.0400      34.0    48.0
+   62(6)       0.02778     34.0    68.0
+   105(7)      0.02041     34.0    106.0
+   166(9)      0.01235     34.1    167.6
+   230(11)     0.00826     34.1    251.1
+   323(13)     0.00592     34.1    342.9
+   379(14)     0.00510     34.1    418.8
+   432(15)     0.00444     34.1    453.5
+   416(15)     0.00444     34.1    434.4
+   346(13)     0.00592     34.1    368.7
+   264(12)     0.00694     34.1    279.2
+   179(10)     0.01000     34.1    191.8
+   118(8)      0.01562     34.1    124.0
+   69(6)       0.02778     34.2    80.9
+   49(5)       0.0400      34.2    58.5
+   52(5)       0.0400      34.2    49.2
+   51(5)       0.0400      34.2    46.2
+   40(4)       0.0625      34.2    45.2
+   43(5)       0.0400      34.2    43.9
+   46(5)       0.0400      34.2    42.1
+   31(4)       0.0625      34.2    39.9
+   33(4)       0.0625      34.2    37.8
+   37(4)       0.0625      34.2    36.2
+   44(5)       0.0400      34.3    35.2
+   43(5)       0.0400      34.3    34.7
+   37(4)       0.0625      34.3    34.4
+   33(4)       0.0625      34.3    34.3
+   36(4)       0.0625      34.3    34.3
+   33(4)       0.0625      34.3    34.3
+   30(4)       0.0625      34.3    34.3
+   34(4)       0.0625      34.3    34.3
+   35(4)       0.0625      34.3    34.3
+   32(4)       0.0625      34.4    34.4
+   33(4)       0.0625      34.4    34.5
+   37(4)       0.0625      34.4    34.7
+   35(4)       0.0625      34.4    35.3
+   32(4)       0.0625      34.4    36.8
+   35(4)       0.0625      34.4    40.1
+   41(5)       0.0400      34.4    46.3
+   54(5)       0.0400      34.4    56.3
+   68(6)       0.02778     34.4    70.0
+   81(6)       0.02778     34.5    85.5
+   96(7)       0.02041     34.5    99.1
+   118(8)      0.01562     34.5    106.9
+   116(8)      0.01562     34.5    106.0
+   115(8)      0.01562     34.5    96.9
+   94(7)       0.02041     34.5    82.6
+   72(6)       0.02778     34.5    67.2
+   53(5)       0.0400      34.5    54.1
+   42(5)       0.0400      34.6    44.9
+   42(5)       0.0400      34.6    39.4
+   42(5)       0.0400      34.6    36.6
+   33(4)       0.0625      34.6    35.3
+   30(4)       0.0625      34.6    34.8
+   35(4)       0.0625      34.6    34.6
+   28(4)       0.0625      34.6    34.6
+   36(4)       0.0625      34.6    34.6
+   30(4)       0.0625      34.7    34.7
+   28(4)       0.0625      34.7    34.7
+   27(4)       0.0625      34.7    34.7
+   38(4)       0.0625      34.7    34.7
+   37(4)       0.0625      34.7    34.7
+   42(5)       0.0400      34.7    34.7
+   37(4)       0.0625      34.7    34.7
+   34(4)       0.0625      34.8    34.8
+   30(4)       0.0625      34.8    34.8
+   33(4)       0.0625      34.8    34.8
+   29(4)       0.0625      34.8    34.8
+   30(4)       0.0625      34.8    34.8
+   33(4)       0.0625      34.8    34.8
+   31(4)       0.0625      34.8    34.8
+   34(4)       0.0625      34.9    34.9
+   28(4)       0.0625      34.9    34.9
+   32(4)       0.0625      34.9    34.9
+   31(4)       0.0625      34.9    34.9
+   30(4)       0.0625      34.9    34.9
+   35(4)       0.0625      34.9    34.9
+   37(4)       0.0625      34.9    34.9
+   31(4)       0.0625      35.0    35.0
+   35(4)       0.0625      35.0    35.0
+   35(4)       0.0625      35.0    35.0
+   42(5)       0.0400      35.0    35.0
+   30(4)       0.0625      35.0    35.0
+   38(4)       0.0625      35.0    35.0
+   37(4)       0.0625      35.0    35.0
+   39(4)       0.0625      35.1    35.1
+   36(4)       0.0625      35.1    35.1
+   37(4)       0.0625      35.1    35.1
+   35(4)       0.0625      35.1    35.1
+   34(4)       0.0625      35.1    35.1
+   30(4)       0.0625      35.1    35.1
+   30(4)       0.0625      35.2    35.2
+   34(4)       0.0625      35.2    35.2
+   31(4)       0.0625      35.2    35.2
+   27(4)       0.0625      35.2    35.2
+   32(4)       0.0625      35.2    35.2
+   33(4)       0.0625      35.2    35.2
+  24.0(30)     0.1111      35.25   35.25
+   29(4)       0.0625      35.3    35.3
+   35(4)       0.0625      35.3    35.3
+   29(4)       0.0625      35.3    35.3
+   37(4)       0.0625      35.3    35.3
+   33(4)       0.0625      35.3    35.3
+   35(4)       0.0625      35.3    35.3
+   35(4)       0.0625      35.4    35.4
+   34(4)       0.0625      35.4    35.4
+   37(4)       0.0625      35.4    35.4
+   32(4)       0.0625      35.4    35.4
+   31(4)       0.0625      35.4    35.4
+   35(4)       0.0625      35.5    35.5
+   31(4)       0.0625      35.5    35.5
+   35(4)       0.0625      35.5    35.5
+   36(6)       0.02778     35.5    35.5
+   35(4)       0.0625      35.5    35.5
+   38(4)       0.0625      35.5    35.5
+   32(4)       0.0625      35.6    35.6
+   33(4)       0.0625      35.6    35.6
+   35(4)       0.0625      35.6    35.6
+   40(4)       0.0625      35.6    35.6
+   38(4)       0.0625      35.6    35.6
+   38(4)       0.0625      35.6    35.6
+   36(4)       0.0625      35.7    35.7
+   36(4)       0.0625      35.7    35.7
+   32(4)       0.0625      35.7    35.7
+   32(4)       0.0625      35.7    35.7
+   37(4)       0.0625      35.7    35.7
+   41(4)       0.0625      35.7    35.7
+   37(4)       0.0625      35.8    35.8
+   34(4)       0.0625      35.8    35.8
+   32(4)       0.0625      35.8    35.8
+   34(4)       0.0625      35.8    36.1
+   33(4)       0.0625      35.8    36.7
+   31(4)       0.0625      35.9    38.2
+   34(4)       0.0625      35.9    41.6
+   45(5)       0.0400      35.9    48.6
+   64(6)       0.02778     35.9    61.6
+   97(7)       0.02041     35.9    82.7
+   133(8)      0.01562     36.0    113.0
+   167(9)      0.01235     36.0    150.6
+   201(10)     0.01000     36.0    190.4
+   238(11)     0.00826     36.0    225.0
+   261(11)     0.00826     36.0    247.8
+   284(12)     0.00694     36.0    255.8
+   276(12)     0.00694     36.1    251.2
+   252(11)     0.00826     36.1    239.7
+   237(11)     0.00826     36.1    227.1
+   226(11)     0.00826     36.1    215.9
+   206(10)     0.01000     36.1    204.6
+   186(10)     0.01000     36.2    189.7
+   165(9)      0.01235     36.2    168.8
+   138(8)      0.01562     36.2    142.8
+   114(8)      0.01562     36.2    114.8
+   95(7)       0.02041     36.2    88.5
+   74(6)       0.02778     36.3    68.3
+   55(5)       0.0400      36.3    54.0
+   46(5)       0.0400      36.3    45.2
+   43(5)       0.0400      36.3    40.5
+   42(5)       0.0400      36.3    38.4
+   40(4)       0.0625      36.4    38.1
+   37(4)       0.0625      36.4    39.6
+   40(4)       0.0625      36.4    43.5
+   55(5)       0.0400      36.4    51.2
+   61(5)       0.0400      36.4    64.8
+   77(6)       0.02778     36.5    86.9
+   122(8)      0.01562     36.5    119.9
+   175(9)      0.01235     36.5    164.6
+   236(11)     0.00826     36.5    219.0
+   282(12)     0.00694     36.5    277.3
+   350(13)     0.00592     36.6    330.0
+   371(14)     0.00510     36.6    366.1
+   396(14)     0.00510     36.6    376.4
+   377(14)     0.00510     36.6    357.7
+   320(13)     0.00592     36.6    314.0
+   273(12)     0.00694     36.7    255.3
+   206(10)     0.01000     36.7    193.8
+   138(8)      0.01562     36.7    139.5
+   108(7)      0.02041     36.7    97.9
+   71(6)       0.02778     36.8    69.8
+   52(5)       0.0400      36.8    52.9
+   44(5)       0.0400      36.8    44.0
+   43(5)       0.0400      36.8    39.7
+   45(5)       0.0400      36.8    36.8
+   46(5)       0.0400      36.9    36.9
+   41(5)       0.0400      36.9    36.9
+   32(4)       0.0625      36.9    36.9
+   36(4)       0.0625      36.9    36.9
+   38(4)       0.0625      36.9    36.9
+   35(4)       0.0625      37.0    37.0
+   34(4)       0.0625      37.0    37.0
+   37(4)       0.0625      37.0    37.0
+   37(4)       0.0625      37.0    37.0
+   38(4)       0.0625      37.1    37.1
+   38(4)       0.0625      37.1    37.1
+   35(4)       0.0625      37.1    37.1
+   37(4)       0.0625      37.1    37.1
+   37(4)       0.0625      37.1    37.1
+   43(5)       0.0400      37.2    37.2
+   38(4)       0.0625      37.2    37.2
+   36(4)       0.0625      37.2    37.2
+   36(4)       0.0625      37.2    37.2
+   40(4)       0.0625      37.3    37.3
+   40(4)       0.0625      37.3    37.3
+   36(4)       0.0625      37.3    37.3
+   38(4)       0.0625      37.3    37.3
+   32(4)       0.0625      37.3    37.3
+   32(4)       0.0625      37.4    37.4
+   38(4)       0.0625      37.4    37.4
+   40(4)       0.0625      37.4    37.4
+   35(4)       0.0625      37.4    37.4
+   39(4)       0.0625      37.5    37.5
+   41(5)       0.0400      37.5    37.5
+   31(4)       0.0625      37.5    37.5
+   31(4)       0.0625      37.5    37.5
+   39(4)       0.0625      37.5    37.5
+   42(4)       0.0625      37.6    37.6
+   41(4)       0.0625      37.6    37.6
+   42(4)       0.0625      37.6    37.6
+   46(4)       0.0625      37.6    37.7
+   40(4)       0.0625      37.7    38.0
+   43(4)       0.0625      37.7    38.7
+   50(5)       0.0400      37.7    40.7
+   50(5)       0.0400      37.7    45.5
+   56(5)       0.0400      37.8    56.5
+   69(6)       0.02778     37.8    79.1
+   104(7)      0.02041     37.8    121.6
+   188(9)      0.01235     37.8    193.6
+   310(12)     0.00694     37.8    303.9
+   463(15)     0.00444     37.9    454.8
+   652(18)     0.003086    37.9    637.7
+   799(19)     0.002770    37.9    830.0
+   953(21)     0.002268    37.9    998.1
+   1108(23)    0.001890    38.0    1106.4
+   1111(23)    0.001890    38.0    1129.4
+   1021(22)    0.002066    38.0    1061.4
+   899(21)     0.002268    38.0    919.0
+   738(19)     0.002770    38.1    734.2
+   557(16)     0.00391     38.1    543.1
+   384(13)     0.00592     38.1    374.4
+   251(11)     0.00826     38.1    243.7
+   153(8)      0.01562     38.2    153.6
+   92(6)       0.02778     38.2    97.6
+   61(5)       0.0400      38.2    66.3
+   50(5)       0.0400      38.2    50.4
+   49(5)       0.0400      38.2    43.1
+   50(5)       0.0400      38.3    40.1
+   45(4)       0.0625      38.3    38.9
+   43(4)       0.0625      38.3    38.3
+   45(4)       0.0625      38.3    38.3
+   42(4)       0.0625      38.4    38.4
+   45(4)       0.0625      38.4    38.4
+   43(4)       0.0625      38.4    38.4
+   44(4)       0.0625      38.4    38.4
+   43(4)       0.0625      38.5    38.5
+   42(4)       0.0625      38.5    38.5
+   41(4)       0.0625      38.5    38.5
+   41(4)       0.0625      38.5    38.5
+   40(4)       0.0625      38.6    38.6
+   42(4)       0.0625      38.6    38.6
+   40(4)       0.0625      38.6    38.8
+   40(4)       0.0625      38.6    39.3
+   45(4)       0.0625      38.7    40.6
+   45(4)       0.0625      38.7    43.5
+   48(5)       0.0400      38.7    50.0
+   67(5)       0.0400      38.7    62.9
+   88(6)       0.02778     38.8    86.9
+   131(8)      0.01562     38.8    127.4
+   196(10)     0.01000     38.8    189.6
+   301(12)     0.00694     38.8    276.1
+   433(14)     0.00510     38.9    383.9
+   530(16)     0.00391     38.9    502.9
+   657(18)     0.003086    38.9    615.9
+   762(19)     0.002770    38.9    702.4
+   784(19)     0.002770    38.9    744.7
+   711(18)     0.003086    39.0    733.7
+   683(18)     0.003086    39.0    672.6
+   612(17)     0.003460    39.0    575.6
+   515(16)     0.00391     39.0    463.0
+   404(14)     0.00510     39.1    354.8
+   284(11)     0.00826     39.1    265.1
+   191(9)      0.01235     39.1    199.8
+   153(8)      0.01562     39.1    157.7
+   122(7)      0.02041     39.2    132.9
+   112(7)      0.02041     39.2    118.3
+   96(7)       0.02041     39.2    108.1
+   91(6)       0.02778     39.2    98.4
+   80(6)       0.02778     39.3    87.9
+   75(6)       0.02778     39.3    77.0
+   70(6)       0.02778     39.3    66.4
+   63(5)       0.0400      39.3    57.6
+   56(5)       0.0400      39.4    50.8
+   51(5)       0.0400      39.4    46.0
+   45(4)       0.0625      39.4    43.0
+   41(4)       0.0625      39.4    41.2
+   40(4)       0.0625      39.5    40.3
+   36(4)       0.0625      39.5    39.8
+   41(4)       0.0625      39.5    39.7
+   40(4)       0.0625      39.5    39.6
+   34(4)       0.0625      39.6    39.6
+   33(4)       0.0625      39.6    39.6
+   35(4)       0.0625      39.6    39.6
+   41(4)       0.0625      39.6    39.7
+   34(4)       0.0625      39.7    39.7
+   38(4)       0.0625      39.7    39.8
+   38(4)       0.0625      39.7    39.9
+   42(4)       0.0625      39.7    40.0
+   36(4)       0.0625      39.8    40.0
+   36(4)       0.0625      39.8    40.1
+   41(4)       0.0625      39.8    40.2
+   40(4)       0.0625      39.8    40.2
+   34(4)       0.0625      39.9    40.2
+   34(4)       0.0625      39.9    40.1
+   41(4)       0.0625      39.9    40.1
+   40(4)       0.0625      39.9    40.1
+   42(4)       0.0625      40.0    40.1
+   41(4)       0.0625      40.0    40.1
+   44(4)       0.0625      40.0    40.1
+   40(4)       0.0625      40.0    40.1
+   51(5)       0.0400      40.1    40.1
+   44(4)       0.0625      40.1    40.1
+   38(4)       0.0625      40.1    40.1
+   41(4)       0.0625      40.1    40.1
+   43(4)       0.0625      40.2    40.2
+   42(4)       0.0625      40.2    40.2
+   43(4)       0.0625      40.2    40.2
+   34(4)       0.0625      40.2    40.2
+   34(4)       0.0625      40.3    40.3
+   35(4)       0.0625      40.3    40.3
+   35(4)       0.0625      40.3    40.3
+   41(4)       0.0625      40.3    40.3
+   39(4)       0.0625      40.4    40.4
+   34(4)       0.0625      40.4    40.4
+   43(4)       0.0625      40.4    40.4
+   42(4)       0.0625      40.4    40.4
+   44(4)       0.0625      40.5    40.5
+   39(4)       0.0625      40.5    40.5
+   45(4)       0.0625      40.5    40.5
+   41(4)       0.0625      40.5    40.5
+   39(4)       0.0625      40.6    40.6
+   43(4)       0.0625      40.6    40.6
+   44(4)       0.0625      40.6    40.6
+   40(4)       0.0625      40.6    40.8
+   42(4)       0.0625      40.7    41.1
+   40(4)       0.0625      40.7    41.8
+   42(4)       0.0625      40.7    43.1
+   46(4)       0.0625      40.7    45.5
+   46(4)       0.0625      40.8    49.8
+   56(5)       0.0400      40.8    56.9
+   81(6)       0.02778     40.8    67.8
+   96(7)       0.02041     40.8    83.1
+   105(7)      0.02041     40.9    102.8
+   136(8)      0.01562     40.9    126.0
+   165(9)      0.01235     40.9    150.5
+   174(9)      0.01235     40.9    173.2
+   186(9)      0.01235     41.0    190.5
+   213(10)     0.01000     41.0    199.4
+   202(10)     0.01000     41.0    198.3
+   196(10)     0.01000     41.0    187.3
+   172(9)      0.01235     41.1    168.6
+   153(9)      0.01235     41.1    145.3
+   130(8)      0.01562     41.1    120.8
+   110(7)      0.02041     41.1    98.3
+   89(6)       0.02778     41.2    79.6
+   67(6)       0.02778     41.2    65.4
+   58(5)       0.0400      41.2    55.5
+   52(5)       0.0400      41.2    49.1
+   49(5)       0.0400      41.2    45.3
+   43(4)       0.0625      41.3    43.3
+   44(4)       0.0625      41.3    42.2
+   48(5)       0.0400      41.3    41.7
+   49(5)       0.0400      41.3    41.3
+   50(5)       0.0400      41.4    41.4
+   40(4)       0.0625      41.4    41.4
+   48(5)       0.0400      41.4    41.4
+   47(4)       0.0625      41.4    41.4
+   50(5)       0.0400      41.5    41.5
+   45(4)       0.0625      41.5    41.5
+   46(4)       0.0625      41.5    43.9
+   51(5)       0.0400      41.5    47.0
+   59(5)       0.0400      41.6    53.7
+   63(5)       0.0400      41.6    67.0
+   75(6)       0.02778     41.6    91.4
+   116(7)      0.02041     41.6    133.7
+   179(9)      0.01235     41.7    202.0
+   301(12)     0.00694     41.7    304.6
+   479(15)     0.00444     41.7    448.0
+   679(18)     0.003086    41.7    633.1
+   911(21)     0.002268    41.8    852.7
+   1119(24)    0.001736    41.8    1089.2
+   1349(26)    0.001479    41.8    1316.3
+   1518(27)    0.001372    41.8    1502.8
+   1641(29)    0.001189    41.8    1619.5
+   1685(29)    0.001189    41.9    1646.8
+   1630(28)    0.001276    41.9    1580.1
+   1464(27)    0.001372    41.9    1430.7
+   1255(25)    0.001600    41.9    1223.3
+   1040(23)    0.001890    42.0    988.7
+   797(20)     0.002500    42.0    756.8
+   603(17)     0.003460    42.0    550.5
+   406(14)     0.00510     42.0    382.8
+   258(11)     0.00826     42.1    257.2
+   149(8)      0.01562     42.1    170.1
+   108(7)      0.02041     42.1    113.9
+   79(6)       0.02778     42.1    80.0
+   69(6)       0.02778     42.1    61.0
+   55(5)       0.0400      42.2    51.0
+   52(5)       0.0400      42.2    42.2
+   50(5)       0.0400      42.2    42.2
+   48(5)       0.0400      42.2    42.2
+   47(4)       0.0625      42.3    42.3
+   45(4)       0.0625      42.3    42.3
+   46(4)       0.0625      42.3    42.3
+   42(4)       0.0625      42.3    42.3
+   46(4)       0.0625      42.4    42.4
+   35(4)       0.0625      42.4    42.4
+   48(5)       0.0400      42.4    42.4
+   48(5)       0.0400      42.4    42.4
+   51(5)       0.0400      42.4    42.4
+   50(5)       0.0400      42.5    42.5
+   41(4)       0.0625      42.5    42.5
+   52(5)       0.0400      42.5    42.5
+   44(4)       0.0625      42.5    42.5
+   47(5)       0.0400      42.6    42.6
+   41(4)       0.0625      42.6    42.6
+   42(4)       0.0625      42.6    42.6
+   48(5)       0.0400      42.6    42.7
+   45(4)       0.0625      42.6    42.8
+   48(5)       0.0400      42.7    43.0
+   44(4)       0.0625      42.7    43.5
+   43(4)       0.0625      42.7    44.4
+   53(5)       0.0400      42.7    46.1
+   47(5)       0.0400      42.7    49.2
+   60(5)       0.0400      42.8    54.6
+   67(6)       0.02778     42.8    63.3
+   78(6)       0.02778     42.8    76.4
+   91(7)       0.02041     42.8    95.1
+   124(8)      0.01562     42.9    120.0
+   151(9)      0.01235     42.9    151.0
+   174(9)      0.01235     42.9    186.6
+   223(11)     0.00826     42.9    224.0
+   250(11)     0.00826     42.9    259.5
+   279(12)     0.00694     43.0    288.6
+   289(12)     0.00694     43.0    307.4
+   304(12)     0.00694     43.0    312.9
+   278(12)     0.00694     43.0    304.4
+   267(12)     0.00694     43.0    283.3
+   271(12)     0.00694     43.1    252.5
+   227(11)     0.00826     43.1    216.3
+   192(10)     0.01000     43.1    179.0
+   138(8)      0.01562     43.1    144.3
+   127(8)      0.01562     43.1    114.6
+   100(7)      0.02041     43.2    91.0
+   64(5)       0.0400      43.2    73.6
+   64(5)       0.0400      43.2    61.6
+   55(5)       0.0400      43.2    53.7
+   48(5)       0.0400      43.2    49.0
+   47(5)       0.0400      43.3    46.2
+   46(4)       0.0625      43.3    44.7
+   45(4)       0.0625      43.3    44.0
+   48(5)       0.0400      43.3    43.6
+   49(5)       0.0400      43.3    43.5
+   48(5)       0.0400      43.4    43.4
+   54(5)       0.0400      43.4    43.4
+   46(4)       0.0625      43.4    43.4
+   47(5)       0.0400      43.4    43.4
+   51(5)       0.0400      43.4    43.4
+   45(4)       0.0625      43.5    43.5
+   54(5)       0.0400      43.5    43.5
+   41(4)       0.0625      43.5    43.5
+   43(4)       0.0625      43.5    43.5
+   52(5)       0.0400      43.5    43.5
+   45(4)       0.0625      43.6    43.6
+   43(4)       0.0625      43.6    43.6
+   50(5)       0.0400      43.6    43.6
+   50(5)       0.0400      43.6    43.6
+   39(4)       0.0625      43.6    43.6
+   49(5)       0.0400      43.6    43.6
+   46(5)       0.0400      43.7    43.7
+   50(5)       0.0400      43.7    43.7
+   46(4)       0.0625      43.7    43.7
+   45(4)       0.0625      43.7    43.7
+   35(4)       0.0625      43.7    43.7
+   49(5)       0.0400      43.8    43.8
+   40(4)       0.0625      43.8    43.8
+   41(4)       0.0625      43.8    43.8
+   40(4)       0.0625      43.8    43.8
+   46(5)       0.0400      43.8    44.1
+   42(4)       0.0625      43.8    44.4
+   47(5)       0.0400      43.9    45.1
+   55(5)       0.0400      43.9    46.4
+   46(4)       0.0625      43.9    48.9
+   51(5)       0.0400      43.9    53.4
+   55(5)       0.0400      43.9    60.9
+   61(5)       0.0400      44.0    73.1
+   78(6)       0.02778     44.0    91.8
+   112(7)      0.02041     44.0    118.9
+   170(9)      0.01235     44.0    156.4
+   196(10)     0.01000     44.0    205.0
+   251(11)     0.00826     44.0    264.6
+   330(13)     0.00592     44.1    332.9
+   403(14)     0.00510     44.1    405.6
+   442(15)     0.00444     44.1    476.6
+   513(16)     0.00391     44.1    538.7
+   561(17)     0.003460    44.1    584.9
+   605(18)     0.003086    44.1    609.3
+   575(17)     0.003460    44.2    608.7
+   548(17)     0.003460    44.2    583.3
+   538(17)     0.003460    44.2    536.4
+   493(16)     0.00391     44.2    473.8
+   411(14)     0.00510     44.2    402.6
+   349(13)     0.00592     44.2    330.1
+   278(12)     0.00694     44.2    262.2
+   213(10)     0.01000     44.3    203.1
+   160(9)      0.01235     44.3    155.0
+   124(8)      0.01562     44.3    118.1
+   92(7)       0.02041     44.3    91.3
+   74(6)       0.02778     44.3    72.9
+   56(5)       0.0400      44.3    61.0
+   52(5)       0.0400      44.4    53.6
+   54(5)       0.0400      44.4    49.3
+   46(5)       0.0400      44.4    46.9
+   47(5)       0.0400      44.4    45.6
+   47(5)       0.0400      44.4    45.0
+   45(5)       0.0400      44.4    44.4
+   40(4)       0.0625      44.4    44.4
+   38(4)       0.0625      44.5    44.5
+   44(5)       0.0400      44.5    44.5
+   44(5)       0.0400      44.5    44.5
+   42(4)       0.0625      44.5    44.5
+   49(5)       0.0400      44.5    44.5
+   48(5)       0.0400      44.5    46.1
+   40(4)       0.0625      44.5    47.8
+   58(5)       0.0400      44.6    51.0
+   49(5)       0.0400      44.6    56.7
+   62(5)       0.0400      44.6    66.6
+   67(6)       0.02778     44.6    83.0
+   95(7)       0.02041     44.6    108.8
+   115(7)      0.02041     44.6    147.6
+   176(9)      0.01235     44.6    203.5
+   272(12)     0.00694     44.7    280.1
+   377(14)     0.00510     44.7    379.8
+   454(15)     0.00444     44.7    503.0
+   589(17)     0.003460    44.7    646.6
+   791(20)     0.002500    44.7    804.1
+   895(21)     0.002268    44.7    965.0
+   1075(23)    0.001890    44.7    1116.1
+   1213(25)    0.001600    44.7    1242.9
+   1229(25)    0.001600    44.8    1331.9
+   1252(25)    0.001600    44.8    1373.1
+   1305(26)    0.001479    44.8    1361.6
+   1280(25)    0.001600    44.8    1298.8
+   1187(24)    0.001736    44.8    1192.1
+   1046(23)    0.001890    44.8    1053.1
+   951(22)     0.002066    44.8    896.1
+   778(20)     0.002500    44.8    735.6
+   617(18)     0.003086    44.9    583.4
+   463(15)     0.00444     44.9    448.7
+   340(13)     0.00592     44.9    336.4
+   236(11)     0.00826     44.9    248.4
+   167(9)      0.01235     44.9    183.4
+   136(8)      0.01562     44.9    139.0
+   104(7)      0.02041     44.9    111.7
+   96(7)       0.02041     44.9    98.1
+   87(6)       0.02778     44.9    95.5
+   102(7)      0.02041     45.0    101.3
+   126(8)      0.01562     45.0    113.9
+   139(8)      0.01562     45.0    131.4
+   148(9)      0.01235     45.0    151.0
+   153(9)      0.01235     45.0    173.9
+   179(9)      0.01235     45.0    196.1
+   195(10)     0.01000     45.0    215.4
+   215(10)     0.01000     45.0    230.2
+   224(11)     0.00826     45.0    238.8
+   217(10)     0.01000     45.0    240.3
+   218(10)     0.01000     45.1    234.6
+   185(10)     0.01000     45.1    222.3
+   195(10)     0.01000     45.1    204.8
+   177(9)      0.01235     45.1    183.9
+   158(9)      0.01235     45.1    161.4
+   141(8)      0.01562     45.1    139.5
+   121(8)      0.01562     45.1    119.6
+   103(7)      0.02041     45.1    103.0
+   96(7)       0.02041     45.1    90.4
+   78(6)       0.02778     45.1    82.2
+   81(6)       0.02778     45.1    78.5
+   87(7)       0.02041     45.2    79.4
+   88(7)       0.02041     45.2    84.1
+   95(7)       0.02041     45.2    92.6
+   112(7)      0.02041     45.2    104.1
+   116(8)      0.01562     45.2    118.1
+   138(8)      0.01562     45.2    133.7
+   155(9)      0.01235     45.2    149.5
+   166(9)      0.01235     45.2    165.4
+   190(10)     0.01000     45.2    179.7
+   199(10)     0.01000     45.2    191.7
+   208(10)     0.01000     45.2    200.7
+   233(11)     0.00826     45.2    206.5
+   235(11)     0.00826     45.3    208.9
+   215(10)     0.01000     45.3    208.3
+   242(11)     0.00826     45.3    204.9
+   226(11)     0.00826     45.3    199.2
+   206(10)     0.01000     45.3    191.5
+   192(10)     0.01000     45.3    182.2
+   170(9)      0.01235     45.3    171.5
+   147(8)      0.01562     45.3    159.7
+   151(9)      0.01235     45.3    147.0
+   142(8)      0.01562     45.3    133.9
+   119(8)      0.01562     45.3    120.7
+   106(7)      0.02041     45.3    107.9
+   88(7)       0.02041     45.3    95.9
+   94(7)       0.02041     45.3    85.0
+   79(6)       0.02778     45.4    75.6
+   68(6)       0.02778     45.4    67.7
+   67(9)       0.01235     45.4    60.9
+   63(6)       0.02778     45.4    56.2
+   48(5)       0.0400      45.4    52.7
+   44(5)       0.0400      45.4    50.1
+   42(5)       0.0400      45.4    48.4
+   41(5)       0.0400      45.4    47.2
+   42(5)       0.0400      45.4    46.5
+   46(5)       0.0400      45.4    46.0
+   47(5)       0.0400      45.4    45.7
+   40(5)       0.0400      45.4    45.4
+   49(5)       0.0400      45.4    45.4
+   44(5)       0.0400      45.4    45.4
+   39(5)       0.0400      45.4    45.4
+   39(5)       0.0400      45.4    45.4
+   43(5)       0.0400      45.4    45.4
+   44(5)       0.0400      45.4    45.4
+   55(5)       0.0400      45.5    45.5
+   40(5)       0.0400      45.5    45.5
+   45(5)       0.0400      45.5    45.5
+   46(5)       0.0400      45.5    45.5
+   46(5)       0.0400      45.5    45.5
+   47(5)       0.0400      45.5    45.5
+   43(5)       0.0400      45.5    45.5
+   38(5)       0.0400      45.5    45.5
+   37(4)       0.0625      45.5    45.5
+   38(5)       0.0400      45.5    45.5
+   43(5)       0.0400      45.5    45.5
+   47(5)       0.0400      45.5    45.5
+   43(5)       0.0400      45.5    45.5
+   46(5)       0.0400      45.5    45.5
+   48(5)       0.0400      45.5    45.5
+   41(5)       0.0400      45.5    45.5
+   40(5)       0.0400      45.5    45.5
+   44(5)       0.0400      45.5    45.5
+   35(4)       0.0625      45.5    45.5
+   41(5)       0.0400      45.5    45.5
+   47(5)       0.0400      45.5    46.3
+   39(5)       0.0400      45.5    46.9
+   47(5)       0.0400      45.5    48.1
+   51(5)       0.0400      45.5    50.0
+   59(6)       0.02778     45.5    53.4
+   44(5)       0.0400      45.5    58.7
+   55(5)       0.0400      45.5    67.1
+   69(6)       0.02778     45.5    79.9
+   77(6)       0.02778     45.5    98.8
+   105(7)      0.02041     45.5    125.6
+   159(9)      0.01235     45.6    162.6
+   203(10)     0.01000     45.6    211.9
+   276(12)     0.00694     45.6    275.4
+   359(14)     0.00510     45.6    354.1
+   484(16)     0.00391     45.6    448.1
+   584(17)     0.003460    45.6    556.1
+   726(19)     0.002770    45.6    674.9
+   848(21)     0.002268    45.6    799.5
+   982(22)     0.002066    45.6    923.6
+   1061(23)    0.001890    45.6    1039.4
+   1163(24)    0.001736    45.6    1138.9
+   1269(25)    0.001600    45.6    1214.7
+   1328(26)    0.001479    45.6    1260.8
+   1331(26)    0.001479    45.6    1273.3
+   1334(26)    0.001479    45.6    1251.2
+   1294(26)    0.001479    45.6    1196.3
+   1229(25)    0.001600    45.6    1113.2
+   1116(24)    0.001736    45.6    1008.4
+   1044(23)    0.001890    45.6    889.6
+   912(22)     0.002066    45.6    764.7
+   775(20)     0.002500    45.6    641.2
+   640(18)     0.003086    45.6    525.1
+   508(16)     0.00391     45.6    420.8
+   364(14)     0.00510     45.6    331.0
+   291(12)     0.00694     45.6    256.7
+   214(10)     0.01000     45.6    197.3
+   150(9)      0.01235     45.6    151.6
+   114(8)      0.01562     45.6    117.6
+   90(7)       0.02041     45.6    93.1
+   68(6)       0.02778     45.6    76.1
+   60(6)       0.02778     45.6    64.6
+   62(6)       0.02778     45.6    57.1
+   59(6)       0.02778     45.6    52.4
+   52(5)       0.0400      45.6    49.5
+   46(5)       0.0400      45.6    47.8
+   49(5)       0.0400      45.6    46.8
+   44(5)       0.0400      45.6    45.6
+   53(5)       0.0400      45.6    45.6
+   50(5)       0.0400      45.6    45.6
+   49(5)       0.0400      45.6    45.6
+   49(5)       0.0400      45.6    45.6
+   48(5)       0.0400      45.6    45.6
+   48(5)       0.0400      45.6    45.6
+   42(5)       0.0400      45.6    45.6
+   60(6)       0.02778     45.6    45.6
+   50(5)       0.0400      45.6    45.6
+   44(5)       0.0400      45.6    45.6
+   44(5)       0.0400      45.6    45.6
+   43(5)       0.0400      45.6    45.6
+   43(5)       0.0400      45.6    45.6
+   48(5)       0.0400      45.6    45.6
+   50(5)       0.0400      45.6    45.6
+   45(5)       0.0400      45.6    45.6
+   46(5)       0.0400      45.6    45.6
+   46(4)       0.0625      45.6    45.6
+   44(5)       0.0400      45.6    45.6
+   46(5)       0.0400      45.6    45.7
+   45(5)       0.0400      45.6    45.7
+   39(4)       0.0625      45.6    45.9
+   43(5)       0.0400      45.6    46.0
+   39(4)       0.0625      45.6    46.3
+   41(5)       0.0400      45.6    46.6
+   45(5)       0.0400      45.6    47.1
+   50(5)       0.0400      45.6    47.9
+   45(5)       0.0400      45.6    48.8
+   46(5)       0.0400      45.6    50.1
+   49(5)       0.0400      45.6    51.7
+   53(5)       0.0400      45.6    53.6
+   58(5)       0.0400      45.6    56.0
+   52(5)       0.0400      45.6    58.7
+   52(5)       0.0400      45.6    61.8
+   60(6)       0.02778     45.6    65.1
+   71(6)       0.02778     45.6    68.5
+   77(6)       0.02778     45.6    71.9
+   70(6)       0.02778     45.5    75.2
+   73(6)       0.02778     45.5    78.0
+   78(6)       0.02778     45.5    80.4
+   78(6)       0.02778     45.5    82.0
+   73(6)       0.02778     45.5    82.8
+   75(6)       0.02778     45.5    82.8
+   78(6)       0.02778     45.5    81.9
+   74(6)       0.02778     45.5    80.3
+   68(6)       0.02778     45.5    77.9
+   69(6)       0.02778     45.5    75.0
+   71(6)       0.02778     45.5    71.8
+   70(6)       0.02778     45.5    68.5
+   68(6)       0.02778     45.5    65.1
+   62(6)       0.02778     45.5    62.0
+   64(6)       0.02778     45.5    59.2
+   58(5)       0.0400      45.5    56.8
+   53(5)       0.0400      45.5    54.9
+   48(5)       0.0400      45.5    53.5
+   58(5)       0.0400      45.5    52.7
+   53(5)       0.0400      45.5    52.5
+   52(5)       0.0400      45.5    52.8
+   47(5)       0.0400      45.5    53.7
+   48(5)       0.0400      45.5    55.1
+   51(5)       0.0400      45.5    57.0
+   63(6)       0.02778     45.5    59.3
+   72(6)       0.02778     45.5    62.0
+   71(6)       0.02778     45.5    64.9
+   69(6)       0.02778     45.5    68.1
+   83(6)       0.02778     45.5    71.2
+   82(6)       0.02778     45.5    74.3
+   81(6)       0.02778     45.5    77.2
+   88(7)       0.02041     45.5    79.7
+   83(6)       0.02778     45.5    81.8
+   91(7)       0.02041     45.5    83.2
+   85(7)       0.02041     45.5    83.9
+   88(7)       0.02041     45.5    84.3
+   92(7)       0.02041     45.5    83.9
+   79(6)       0.02778     45.5    83.0
+   80(6)       0.02778     45.5    81.7
+   79(6)       0.02778     45.5    80.3
+   79(6)       0.02778     45.5    79.1
+   87(7)       0.02041     45.5    78.5
+   82(6)       0.02778     45.5    78.9
+   76(6)       0.02778     45.5    80.8
+   78(6)       0.02778     45.5    84.9
+   80(6)       0.02778     45.5    91.9
+   91(7)       0.02041     45.5    102.6
+   112(7)      0.02041     45.5    117.8
+   145(8)      0.01562     45.5    138.2
+   162(9)      0.01235     45.5    164.6
+   192(10)     0.01000     45.5    197.7
+   244(11)     0.00826     45.5    237.8
+   311(12)     0.00694     45.5    285.0
+   366(13)     0.00592     45.5    338.9
+   386(14)     0.00510     45.5    398.6
+   456(15)     0.00444     45.5    462.7
+   522(16)     0.00391     45.5    529.2
+   572(17)     0.003460    45.5    595.9
+   634(18)     0.003086    45.5    659.9
+   692(18)     0.003086    45.5    718.3
+   725(19)     0.002770    45.5    768.1
+   768(19)     0.002770    45.5    807.0
+   801(20)     0.002500    45.5    832.6
+   792(20)     0.002500    45.5    843.5
+   757(19)     0.002770    45.5    839.1
+   750(19)     0.002770    45.5    819.7
+   762(19)     0.002770    45.5    786.3
+   715(19)     0.002770    45.5    740.8
+   669(18)     0.003086    45.5    685.7
+   595(17)     0.003460    45.5    623.7
+   532(16)     0.00391     45.5    557.7
+   488(15)     0.00444     45.5    490.6
+   416(14)     0.00510     45.5    424.9
+   352(13)     0.00592     45.5    362.8
+   311(12)     0.00694     45.5    305.7
+   253(11)     0.00826     45.5    254.9
+   212(10)     0.01000     45.5    210.8
+   169(9)      0.01235     45.5    173.5
+   140(8)      0.01562     45.5    142.7
+   122(8)      0.01562     45.5    117.9
+   91(7)       0.02041     45.5    98.4
+   76(6)       0.02778     45.5    83.5
+   69(6)       0.02778     45.5    72.2
+   61(5)       0.0400      45.5    63.9
+   56(5)       0.0400      45.6    58.0
+   56(5)       0.0400      45.6    53.8
+   59(5)       0.0400      45.6    50.9
+   50(5)       0.0400      45.6    49.0
+   42(4)       0.0625      45.6    47.7
+   54(5)       0.0400      45.6    46.9
+   53(5)       0.0400      45.6    46.4
+   58(5)       0.0400      45.6    45.6
+   48(5)       0.0400      45.6    46.3
+   51(5)       0.0400      45.6    46.7
+   51(5)       0.0400      45.6    47.3
+   49(5)       0.0400      45.6    48.2
+   46(5)       0.0400      45.6    49.5
+   47(5)       0.0400      45.6    51.2
+   50(5)       0.0400      45.6    53.7
+   54(5)       0.0400      45.6    57.0
+   63(6)       0.02778     45.6    61.4
+   65(6)       0.02778     45.6    67.1
+   71(6)       0.02778     45.6    74.5
+   82(6)       0.02778     45.6    83.7
+   100(7)      0.02041     45.7    95.2
+   112(7)      0.02041     45.7    109.1
+   122(8)      0.01562     45.7    125.5
+   148(8)      0.01562     45.7    144.7
+   181(9)      0.01235     45.7    166.5
+   217(10)     0.01000     45.7    190.7
+   233(11)     0.00826     45.7    217.1
+   262(11)     0.00826     45.7    245.1
+   269(11)     0.00826     45.7    274.0
+   289(12)     0.00694     45.7    302.9
+   327(13)     0.00592     45.7    330.9
+   349(13)     0.00592     45.7    357.0
+   352(13)     0.00592     45.8    380.1
+   388(14)     0.00510     45.8    399.2
+   386(14)     0.00510     45.8    413.6
+   413(14)     0.00510     45.8    422.5
+   413(14)     0.00510     45.8    425.5
+   414(14)     0.00510     45.8    422.5
+   401(14)     0.00510     45.8    413.6
+   389(14)     0.00510     45.8    399.2
+   385(14)     0.00510     45.8    380.1
+   385(14)     0.00510     45.9    357.0
+   351(13)     0.00592     45.9    331.0
+   329(13)     0.00592     45.9    303.0
+   303(12)     0.00694     45.9    274.1
+   251(11)     0.00826     45.9    245.3
+   246(11)     0.00826     45.9    217.4
+   219(10)     0.01000     45.9    191.0
+   173(9)      0.01235     45.9    166.8
+   144(8)      0.01562     46.0    145.1
+   125(8)      0.01562     46.0    125.9
+   103(7)      0.02041     46.0    109.5
+   89(7)       0.02041     46.0    95.7
+   82(6)       0.02778     46.0    84.2
+   72(6)       0.02778     46.0    75.0
+   60(5)       0.0400      46.0    67.6
+   63(6)       0.02778     46.1    61.9
+   60(5)       0.0400      46.1    57.5
+   61(5)       0.0400      46.1    54.2
+   52(5)       0.0400      46.1    51.8
+   55(5)       0.0400      46.1    50.0
+   46(5)       0.0400      46.1    48.8
+   52(5)       0.0400      46.2    47.9
+   48(5)       0.0400      46.2    47.3
+   45(5)       0.0400      46.2    46.3
+   46(5)       0.0400      46.2    46.4
+   44(5)       0.0400      46.2    46.5
+   44(5)       0.0400      46.3    46.6
+   49(5)       0.0400      46.3    46.8
+   49(5)       0.0400      46.3    47.0
+   47(5)       0.0400      46.3    47.4
+   45(5)       0.0400      46.3    47.8
+   52(5)       0.0400      46.4    48.5
+   49(5)       0.0400      46.4    49.3
+   51(5)       0.0400      46.4    50.4
+   54(5)       0.0400      46.4    51.8
+   65(6)       0.02778     46.4    53.6
+   63(5)       0.0400      46.5    55.9
+   64(6)       0.02778     46.5    58.7
+   70(6)       0.02778     46.5    62.2
+   73(6)       0.02778     46.5    66.4
+   83(6)       0.02778     46.6    71.3
+   97(7)       0.02041     46.6    77.2
+   101(7)      0.02041     46.6    84.2
+   101(7)      0.02041     46.6    91.9
+   106(7)      0.02041     46.7    100.5
+   110(7)      0.02041     46.7    110.1
+   122(8)      0.01562     46.7    120.3
+   147(8)      0.01562     46.7    131.3
+   148(8)      0.01562     46.8    142.7
+   155(9)      0.01235     46.8    154.4
+   161(9)      0.01235     46.8    166.2
+   172(9)      0.01235     46.9    177.8
+   180(9)      0.01235     46.9    189.0
+   187(9)      0.01235     46.9    199.7
+   211(10)     0.01000     47.0    209.7
+   205(10)     0.01000     47.0    218.7
+   215(10)     0.01000     47.0    226.9
+   226(10)     0.01000     47.0    234.0
+   237(10)     0.01000     47.1    240.3
+   250(11)     0.00826     47.1    245.8
+   262(11)     0.00826     47.1    251.0
+   261(11)     0.00826     47.2    255.5
+   271(11)     0.00826     47.2    259.8
+   275(11)     0.00826     47.3    264.1
+   276(11)     0.00826     47.3    268.4
+   290(12)     0.00694     47.3    273.1
+   280(11)     0.00826     47.4    278.1
+   305(12)     0.00694     47.4    283.4
+   308(12)     0.00694     47.4    289.1
+   299(12)     0.00694     47.5    294.9
+   297(12)     0.00694     47.5    300.9
+   304(12)     0.00694     47.6    306.7
+   305(12)     0.00694     47.6    312.2
+   309(12)     0.00694     47.6    317.2
+   322(12)     0.00694     47.7    321.5
+   327(12)     0.00694     47.7    325.0
+   330(12)     0.00694     47.8    327.7
+   346(13)     0.00592     47.8    329.5
+   340(12)     0.00694     47.8    330.4
+   337(12)     0.00694     47.9    330.6
+   339(12)     0.00694     47.9    330.2
+   334(12)     0.00694     48.0    329.2
+   326(12)     0.00694     48.0    327.9
+   327(12)     0.00694     48.1    326.3
+   329(12)     0.00694     48.1    324.6
+   322(12)     0.00694     48.2    322.9
+   331(12)     0.00694     48.2    321.0
+   309(12)     0.00694     48.3    319.1
+   291(12)     0.00694     48.3    316.9
+   289(12)     0.00694     48.3    314.4
+   293(12)     0.00694     48.4    311.3
+   284(11)     0.00826     48.4    307.5
+   270(11)     0.00826     48.5    302.9
+   272(11)     0.00826     48.6    297.2
+   268(11)     0.00826     48.6    290.4
+   272(11)     0.00826     48.7    282.4
+   252(11)     0.00826     48.7    273.2
+   220(10)     0.01000     48.8    262.7
+   207(10)     0.01000     48.8    251.1
+   212(10)     0.01000     48.9    239.1
+   205(10)     0.01000     48.9    226.0
+   197(10)     0.01000     49.0    212.5
+   178(9)      0.01235     49.1    198.7
+   163(9)      0.01235     49.1    185.1
+   160(9)      0.01235     49.2    171.8
+   167(9)      0.01235     49.2    159.2
+   157(9)      0.01235     49.3    147.5
+   132(8)      0.01562     49.4    137.0
+   119(7)      0.02041     49.4    127.8
+   111(7)      0.02041     49.5    119.9
+   107(7)      0.02041     49.5    114.2
+   98(7)       0.02041     49.6    110.3
+   94(7)       0.02041     49.7    108.5
+   94(7)       0.02041     49.7    109.0
+   104(7)      0.02041     49.8    111.8
+   119(7)      0.02041     49.9    117.1
+   132(8)      0.01562     49.9    125.0
+   129(8)      0.01562     50.0    135.8
+   154(8)      0.01562     50.1    149.5
+   186(9)      0.01235     50.1    166.1
+   193(9)      0.01235     50.2    185.8
+   220(10)     0.01000     50.3    208.6
+   256(11)     0.00826     50.4    234.4
+   289(12)     0.00694     50.4    263.2
+   328(12)     0.00694     50.5    294.7
+   352(13)     0.00592     50.6    328.6
+   397(13)     0.00592     50.7    364.7
+   425(14)     0.00510     50.7    401.9
+   459(14)     0.00510     50.8    440.7
+   502(15)     0.00444     50.9    479.8
+   557(16)     0.00391     51.0    518.6
+   578(16)     0.00391     51.1    556.1
+   618(17)     0.003460    51.1    591.8
+   634(17)     0.003460    51.2    624.6
+   644(17)     0.003460    51.3    653.9
+   678(18)     0.003086    51.4    678.9
+   711(18)     0.003086    51.5    698.9
+   693(18)     0.003086    51.6    713.5
+   697(18)     0.003086    51.6    722.3
+   713(18)     0.003086    51.7    724.9
+   711(18)     0.003086    51.8    721.4
+   694(18)     0.003086    51.9    711.9
+   697(18)     0.003086    52.0    696.5
+   677(18)     0.003086    52.1    675.8
+   663(17)     0.003460    52.2    650.3
+   652(17)     0.003460    52.3    620.5
+   605(17)     0.003460    52.4    587.4
+   562(16)     0.00391     52.5    551.5
+   544(16)     0.00391     52.6    513.9
+   528(16)     0.00391     52.6    475.2
+   474(15)     0.00444     52.7    436.3
+   416(14)     0.00510     52.8    397.8
+   380(13)     0.00592     52.9    360.3
+   338(12)     0.00694     53.0    324.5
+   301(12)     0.00694     53.1    290.6
+   252(9)      0.01235     53.2    259.1
+   219(10)     0.01000     53.4    230.2
+   199(10)     0.01000     53.5    204.0
+   168(9)      0.01235     53.6    180.6
+   149(8)      0.01562     53.7    159.8
+   143(8)      0.01562     53.8    141.7
+   127(8)      0.01562     53.9    126.1
+   107(7)      0.02041     54.0    112.7
+   99(7)       0.02041     54.1    101.4
+   89(6)       0.02778     54.2    92.0
+   83(6)       0.02778     54.3    84.2
+   75(6)       0.02778     54.4    77.9
+   77(6)       0.02778     54.6    72.8
+   66(6)       0.02778     54.7    68.7
+   55(5)       0.0400      54.8    65.5
+   60(5)       0.0400      54.9    63.0
+   62(6)       0.02778     55.0    61.1
+   61(5)       0.0400      55.2    59.6
+   65(6)       0.02778     55.3    58.6
+   63(6)       0.02778     55.4    57.8
+   66(6)       0.02778     55.5    57.3
+   68(6)       0.02778     55.6    56.9
+   66(6)       0.02778     55.8    56.7
+   62(6)       0.02778     55.9    55.9
+   53(5)       0.0400      56.0    56.0
+   58(5)       0.0400      56.2    56.2
+   58(5)       0.0400      56.3    56.3
+   61(5)       0.0400      56.4    56.4
+   66(6)       0.02778     56.6    56.6
+   66(6)       0.02778     56.7    56.7
+   64(6)       0.02778     56.8    56.8
+   59(5)       0.0400      57.0    57.0
+   61(5)       0.0400      57.1    57.1
+   66(6)       0.02778     57.2    57.2
+   62(6)       0.02778     57.4    57.4
+   63(6)       0.02778     57.5    57.5
+   65(6)       0.02778     57.7    57.7
+   59(5)       0.0400      57.8    57.8
+   59(5)       0.0400      58.0    58.0
+   56(5)       0.0400      58.1    58.1
+   57(5)       0.0400      58.3    58.3
+   62(6)       0.02778     58.4    58.4
+   59(5)       0.0400      58.6    58.6
+   60(5)       0.0400      58.7    58.7
+   64(6)       0.02778     58.9    58.9
+   68(6)       0.02778     59.0    59.0
+   72(6)       0.02778     59.2    59.2
+   63(6)       0.02778     59.3    59.3
+   56(5)       0.0400      59.5    59.5
+   58(5)       0.0400      59.7    59.7
+   63(6)       0.02778     59.8    59.8
+   61(5)       0.0400      60.0    60.0
+   62(6)       0.02778     60.1    60.1
+   63(6)       0.02778     60.3    60.3
+   67(6)       0.02778     60.5    60.5
+   61(5)       0.0400      60.7    60.7
+   62(6)       0.02778     60.8    60.8
+   64(6)       0.02778     61.0    61.0
+   61(5)       0.0400      61.2    61.2
+   67(6)       0.02778     61.3    61.3
+   68(6)       0.02778     61.5    61.5
+   64(6)       0.02778     61.7    61.7
+   70(6)       0.02778     61.9    61.9
+   68(6)       0.02778     62.1    62.1
+   66(6)       0.02778     62.2    62.2
+   67(6)       0.02778     62.4    62.4
+   59(5)       0.0400      62.6    62.6
+   56(5)       0.0400      62.8    62.8
+   59(5)       0.0400      63.0    63.0
+   68(6)       0.02778     63.2    63.2
+   66(6)       0.02778     63.4    63.4
+   67(6)       0.02778     63.6    63.6
+   67(6)       0.02778     63.8    63.8
+   68(6)       0.02778     64.0    64.0
+   67(6)       0.02778     64.2    64.2
+   63(6)       0.02778     64.4    64.4
+   61(5)       0.0400      64.6    64.6
+   66(6)       0.02778     64.8    64.8
+   61(5)       0.0400      65.0    65.0
+   58(5)       0.0400      65.2    65.2
+   59(5)       0.0400      65.4    65.4
+   64(6)       0.02778     65.6    65.6
+   65(6)       0.02778     65.8    65.8
+   66(6)       0.02778     66.0    66.0
+   71(6)       0.02778     66.2    66.2
+   75(6)       0.02778     66.4    66.4
+   64(6)       0.02778     66.7    66.7
+   62(6)       0.02778     66.9    66.9
+   69(6)       0.02778     67.1    67.1
+   73(6)       0.02778     67.3    67.3
+   72(6)       0.02778     67.5    67.5
+   76(6)       0.02778     67.8    67.8
+   71(6)       0.02778     68.0    68.0
+   72(6)       0.02778     68.2    68.2
+   77(6)       0.02778     68.5    68.5
+   76(6)       0.02778     68.7    68.7
+   68(6)       0.02778     68.9    68.9
+   69(6)       0.02778     69.2    69.2
+   73(6)       0.02778     69.4    69.4
+   79(6)       0.02778     69.6    69.6
+   65(6)       0.02778     69.9    69.9
+   65(6)       0.02778     70.1    70.1
+   72(6)       0.02778     70.4    70.4
+   66(6)       0.02778     70.6    70.6
+   70(6)       0.02778     70.9    70.9
+   72(6)       0.02778     71.1    71.1
+   67(6)       0.02778     71.4    71.4
+   68(6)       0.02778     71.6    71.6
+   68(6)       0.02778     71.9    71.9
+   79(6)       0.02778     72.2    72.2
+   65(6)       0.02778     72.4    72.4
+   68(6)       0.02778     72.7    72.7
+   69(6)       0.02778     73.0    73.0
+   77(6)       0.02778     73.2    73.2
+   83(7)       0.02041     73.5    73.5
+   78(6)       0.02778     73.8    73.8
+   81(7)       0.02041     74.0    74.0
+   77(6)       0.02778     74.3    74.3
+   65(6)       0.02778     74.6    74.6
+   67(6)       0.02778     74.9    74.9
+   75(6)       0.02778     75.2    75.2
+   78(6)       0.02778     75.4    75.5
+   75(6)       0.02778     75.7    75.8
+   72(6)       0.02778     76.0    76.0
+   69(6)       0.02778     76.3    76.3
+   76(6)       0.02778     76.6    76.6
+   78(6)       0.02778     76.9    76.9
+   82(7)       0.02041     77.2    77.3
+   85(7)       0.02041     77.5    77.6
+   72(6)       0.02778     77.8    77.9
+   84(7)       0.02041     78.1    78.2
+   79(6)       0.02778     78.4    78.5
+   77(6)       0.02778     78.7    78.8
+   77(6)       0.02778     79.0    79.2
+   70(6)       0.02778     79.3    79.5
+   73(6)       0.02778     79.6    79.8
+   84(7)       0.02041     80.0    80.2
+   78(6)       0.02778     80.3    80.5
+   79(6)       0.02778     80.6    80.9
+   78(6)       0.02778     80.9    81.2
+   81(7)       0.02041     81.2    81.6
+   78(6)       0.02778     81.6    82.0
+   79(6)       0.02778     81.9    82.3
+   82(7)       0.02041     82.2    82.7
+   80(7)       0.02041     82.6    83.1
+   80(6)       0.02778     82.9    83.5
+   75(6)       0.02778     83.2    83.8
+   86(7)       0.02041     83.6    84.2
+   89(7)       0.02041     83.9    84.6
+   92(7)       0.02041     84.3    85.0
+   89(7)       0.02041     84.6    85.4
+   83(7)       0.02041     85.0    85.8
+   92(7)       0.02041     85.3    86.5
+   98(7)       0.02041     85.7    87.0
+   89(7)       0.02041     86.0    87.4
+   88(7)       0.02041     86.4    87.9
+   93(7)       0.02041     86.8    88.4
+   104(7)      0.02041     87.1    89.0
+   88(7)       0.02041     87.5    89.5
+   91(7)       0.02041     87.9    90.0
+   97(7)       0.02041     88.3    90.6
+   83(7)       0.02041     88.6    91.2
+   88(7)       0.02041     89.0    91.8
+   98(7)       0.02041     89.4    92.5
+   93(7)       0.02041     89.8    93.2
+   95(7)       0.02041     90.2    93.9
+   91(7)       0.02041     90.5    94.7
+   89(7)       0.02041     90.9    95.5
+   84(7)       0.02041     91.3    96.3
+   85(7)       0.02041     91.7    97.3
+   85(7)       0.02041     92.1    98.3
+   88(7)       0.02041     92.5    99.3
+   101(7)      0.02041     92.9    100.4
+   97(7)       0.02041     93.3    101.6
+   95(7)       0.02041     93.8    102.9
+   99(7)       0.02041     94.2    104.3
+   97(7)       0.02041     94.6    105.8
+   102(7)      0.02041     95.0    107.4
+   105(7)      0.02041     95.4    109.2
+   114(8)      0.01562     95.8    111.0
+   112(7)      0.02041     96.3    113.0
+   106(7)      0.02041     96.7    115.1
+   116(8)      0.01562     97.1    117.4
+   120(8)      0.01562     97.6    119.8
+   123(8)      0.01562     98.0    122.4
+   121(8)      0.01562     98.5    125.1
+   122(8)      0.01562     98.9    128.0
+   129(8)      0.01562     99.3    131.1
+   148(8)      0.01562     99.8    134.3
+   141(8)      0.01562     100.2   137.7
+   136(8)      0.01562     100.7   141.2
+   129(8)      0.01562     101.2   144.9
+   137(8)      0.01562     101.6   148.8
+   148(8)      0.01562     102.1   152.8
+   162(9)      0.01235     102.6   156.9
+   164(9)      0.01235     103.0   161.1
+   171(9)      0.01235     103.5   165.5
+   174(9)      0.01235     104.0   170.0
+   168(9)      0.01235     104.4   174.5
+   179(9)      0.01235     104.9   179.1
+   182(13)     0.00592     105.4   183.8
+   161(13)     0.00592     105.9   188.4
+   164(13)     0.00592     106.4   193.1
+   177(13)     0.00592     106.9   197.8
+   211(14)     0.00510     107.4   202.4
+   210(14)     0.00510     107.9   206.9
+   233(15)     0.00444     108.4   211.4
+   217(14)     0.00510     108.9   215.7
+   213(14)     0.00510     109.4   219.9
+   201(14)     0.00510     109.9   223.9
+   214(14)     0.00510     110.4   227.7
+   229(15)     0.00444     111.0   231.3
+   222(15)     0.00444     111.5   234.6
+   238(15)     0.00444     112.0   237.7
+   217(14)     0.00510     112.5   240.5
+   232(15)     0.00444     113.1   243.0
+   216(14)     0.00510     113.6   245.2
+   243(15)     0.00444     114.1   247.0
+   227(15)     0.00444     114.7   248.6
+   243(15)     0.00444     115.2   249.7
+   248(15)     0.00444     115.8   250.6
+   236(15)     0.00444     116.3   251.0
+   225(15)     0.00444     116.9   251.1
+   251(15)     0.00444     117.5   250.9
+   260(16)     0.00391     118.0   250.3
+   243(15)     0.00444     118.6   249.4
+   230(15)     0.00444     119.2   248.2
+   248(15)     0.00444     119.7   246.6
+   251(15)     0.00444     120.3   244.8
+   249(15)     0.00444     120.9   242.7
+   235(15)     0.00444     121.5   240.3
+   232(15)     0.00444     122.1   237.7
+   242(15)     0.00444     122.7   234.9
+   231(15)     0.00444     123.2   231.9
+   236(15)     0.00444     123.8   228.8
+   209(14)     0.00510     124.4   225.5
+   192(14)     0.00510     125.0   222.1
+   213(14)     0.00510     125.7   218.6
+   211(14)     0.00510     126.3   215.1
+   197(14)     0.00510     126.9   211.5
+   240(15)     0.00444     127.5   207.9
+   227(15)     0.00444     128.1   204.3
+   208(14)     0.00510     128.8   200.8
+   213(14)     0.00510     129.4   197.3
+   177(13)     0.00592     130.0   193.9
+   184(13)     0.00592     130.7   190.5
+   187(14)     0.00510     131.3   187.3
+   194(14)     0.00510     132.0   184.2
+   185(13)     0.00592     132.6   181.2
+   209(14)     0.00510     133.3   178.3
+   163(13)     0.00592     133.9   175.6
+   155(13)     0.00592     134.6   173.1
+   170(13)     0.00592     135.2   170.7
+   168(13)     0.00592     135.9   168.4
+   148(12)     0.00694     136.6   166.4
+   159(13)     0.00592     137.3   164.5
+   157(13)     0.00592     137.9   162.7
+   161(13)     0.00592     138.6   161.1
+   154(12)     0.00694     139.3   159.7
+   147(12)     0.00694     140.0   158.4
+   151(12)     0.00694     140.7   157.3
+   146(12)     0.00694     141.4   156.3
+   161(13)     0.00592     142.1   155.5
+   139(12)     0.00694     142.8   154.8
+   144(12)     0.00694     143.5   154.2
+   135(12)     0.00694     144.2   153.7
+   155(12)     0.00694     145.0   153.4
+   158(13)     0.00592     145.7   153.1
+   161(13)     0.00592     146.4   153.0
+   154(12)     0.00694     147.2   152.9
+   141(12)     0.00694     147.9   153.0
+   157(13)     0.00592     148.6   153.1
+   162(13)     0.00592     149.4   153.3
+   168(13)     0.00592     150.1   153.5
+   159(13)     0.00592     150.9   153.8
+   148(12)     0.00694     151.6   154.2
+   171(13)     0.00592     152.4   154.6
+   155(13)     0.00592     153.2   155.1
+   159(13)     0.00592     153.9   155.6
+   147(12)     0.00694     154.7   156.1
+   157(13)     0.00592     155.5   156.7
+   155(13)     0.00592     156.3   157.3
+   166(13)     0.00592     157.1   157.9
+   174(13)     0.00592     157.9   158.6
+   178(13)     0.00592     158.7   159.3
+   191(14)     0.00510     159.5   160.0
+   172(13)     0.00592     160.3   160.7
+   161(13)     0.00592     161.1   161.5
+   174(13)     0.00592     161.9   162.2
+   165(13)     0.00592     162.7   162.7
+   185(13)     0.00592     163.5   163.5
+   185(13)     0.00592     164.4   164.4
+   184(13)     0.00592     165.2   165.2
+   166(13)     0.00592     166.0   166.0
+   185(13)     0.00592     166.9   166.9
+   196(14)     0.00510     167.7   167.7
+   194(14)     0.00510     168.6   168.6
+   209(14)     0.00510     169.4   169.4
+   194(14)     0.00510     170.3   170.3
+   203(14)    .            .       .
+_pd_meas_number_of_points              3300
+_pd_proc_number_of_points              3300
+
+loop_
+      _refln_index_h
+      _refln_index_k
+      _refln_index_l
+      _refln_observed_status
+      _refln_F_squared_meas
+      _refln_F_squared_calc
+      _refln_phase_calc
+      _refln_d_spacing
+      _gsas_i100_meas
+   1   0  -2 o   5.340    4.969   180.00   3.48141   8.93
+   1   0   4 o   5.610    5.734   180.00   2.55202   5.16
+   1   1   0 o   0.765    0.805   180.00   2.38039   0.62
+   0   0   6 o  46.408   51.510   180.00   2.16620  10.46
+   1   1   3 o  79.305   75.193    0.00    2.08623 100.00
+   2   0   2 o   0.383    0.360    0.00    1.96498   0.22
+   2   0  -4 o  27.487   26.791   180.00   1.74071  12.50
+   1   1   6 o  62.761   64.641    0.00    1.60212  49.46
+   2   1   1 o   7.240    6.793   180.00   1.54725   5.38
+   2   1  -2 o   0.107    0.142   180.00   1.51537   0.08
+   1   0  -8 o   6.465    7.109    0.00    1.51153   2.31
+   2   1   4 o  18.065   17.378   180.00   1.40509  11.48
+   3   0   0 o  185.216  176.970   0.00    1.37432  56.86
+   2   1  -5 o   6.809    6.670    0.00    1.33656   4.01
+   2   0   8 o   0.020    0.011   180.00   1.27601   0.01
+   1   0  10 o  23.564   25.086   180.00   1.23959   6.22
+   1   1   9 o  65.395   71.198   180.00   1.23468  34.34
+   2   1   7 o   6.553    6.550    0.00    1.19364   3.29
+   2   2   0 o   0.252    0.285   180.00   1.19019   0.06
+   3   0   6 o  37.389   36.916   180.00   1.16047   9.06
+   3   0  -6 o  37.389   36.916   180.00   1.16047   9.06
+   2   2   3 o  59.876   57.860   180.00   1.14767  28.64
+   3   1  -1 o   3.955    3.143   180.00   1.13910   1.88
+   3   1   2 o  11.935   11.418   180.00   1.12620   5.59
+   2   1  -8 o   0.718    0.720    0.00    1.12462   0.34
+   2   0 -10 o   4.176    5.103   180.00   1.09944   0.95
+   0   0  12 o  97.926   111.078   0.00    1.08310   7.33
+   3   1  -4 o   1.050    1.236   180.00   1.07865   0.47
+   3   1   5 o   3.291    3.087    0.00    1.04670   1.43
+   2   2   6 o  55.735   56.557    0.00    1.04311  24.21
+   4   0  -2 o  30.582   28.942   180.00   1.01801   6.52
+   2   1  10 o   9.208   10.109   180.00   0.99812   3.88
+   1   1  12 o  15.652   16.768   180.00   0.98584   6.56
+   4   0   4 o   0.918    0.835    0.00    0.98249   0.19
+   3   1  -7 o   3.167    3.031    0.00    0.97366   1.32
+   3   2   1 o   9.845    9.111    0.00    0.94338   4.08
+   2   1 -11 o   6.404    6.202   180.00   0.94152   2.66
+   3   2  -2 o   2.855    2.773    0.00    0.93601   1.18
+   3   1   8 o  14.952   14.257    0.00    0.93510   6.21
+   2   2   9 o  54.288   54.787    0.00    0.91846  22.63
+   3   2   4 o  39.007   36.792   180.00   0.90817  16.34
+   1   0 -14 o   6.321    6.514    0.00    0.90569   1.33
+   4   1   0 o   0.000    0.018    0.00    0.89970   0.00
+   3   2  -5 o   9.678    8.947   180.00   0.88885   4.12
+   4   1  -3 o  48.043   46.666   180.00   0.88091  20.67
+   4   1   3 o  48.043   46.666    0.00    0.88091  20.67
+   4   0  -8 o  32.667   32.810    0.00    0.87035   7.15
+   3   1 -10 o  35.737   36.383   180.00   0.85852  16.05
+   3   0  12 o  85.305   88.360    0.00    0.85067  19.56
+   3   0 -12 o  85.305   88.360    0.00    0.85067  19.56
+   2   0  14 o  24.728   26.500    0.00    0.84649   5.75
+   3   2   7 o   9.487    8.785   180.00   0.84281   4.47
+   2   1  13 o   6.235    5.981   180.00   0.84149   2.95
+   4   1   6 o  48.556   44.923    0.00    0.83089  24.04
+   4   1  -6 o  48.556   44.923    0.00    0.83089  24.04
+   3   1  11 o   2.386    2.870   180.00   0.82170   1.24
+   5   0   2 o   4.007    3.703    0.00    0.81803   1.07
+   3   2  -8 o   1.413    1.351   180.00   0.81743   0.76
+   1   1  15 o  61.466   63.835    0.00    0.81421  33.79
+   4   0  10 o  63.764   63.043   180.00   0.80760  18.59
+   2   2  12 o  13.979   13.528   180.00   0.80106   8.77
+   5   0  -4 o  39.342   39.150   180.00   0.79926  12.64
+   2   1 -14 o  16.385   17.678    0.00    0.79756  10.79
+   1   0  16 o   2.500    2.736   180.00   0.79700   0.83
+   3   3   0 o  125.109  121.976   0.00    0.79346  44.02
+   3   3   3 o   0.064    0.143   180.00   0.78048   0.06
+   4   2  -1 o  13.093   13.732    0.00    0.77777  15.22
+_reflns_number_observed                67
+_reflns_limit_h_min                    0
+_reflns_limit_h_max                    5
+_reflns_limit_k_min                    0
+_reflns_limit_k_max                    3
+_reflns_limit_l_min                    -14
+_reflns_limit_l_max                    16
+_reflns_d_resolution_high              0.778
+_reflns_d_resolution_low               3.481
+#--eof--eof--eof--eof--eof--eof--eof--eof--eof--eof--eof--eof--eof--eof--eof--#

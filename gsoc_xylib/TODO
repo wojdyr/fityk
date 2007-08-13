@@ -1,5 +1,7 @@
 TODO:
 
+* The structure in xylib now to store X-Y values need to be modified to adapt pdCIF format.
+
 * Integrate the fityk already-support formats to xylib.
 * have a look at the JCAMP format specifications and decide whether to implement it.
 * Add more format types, of course

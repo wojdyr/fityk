@@ -31,7 +31,7 @@ namespace util{
         return val;
     }
 
-    int read_uint16_le(istream &f)
+    unsigned read_uint16_le(istream &f)
     {
         uint16_t val;
         my_read(f, reinterpret_cast<char*>(&val), sizeof(val));
@@ -40,7 +40,7 @@ namespace util{
         return val;
     }
 
-    unsigned read_int16_le(istream &f)
+    int read_int16_le(istream &f)
     {
         int16_t val;
         my_read(f, reinterpret_cast<char*>(&val), sizeof(val));
@@ -268,12 +268,35 @@ namespace util{
     }
 
     // read a line and return it as a string
-    string read_line(istream& is) {
+    string read_line(istream& is) 
+    {
         string line;
         if (!getline(is, line)) {
             throw xylib::XY_Error("unexpected end of file");
         }
         return str_trim(line);
+    }
+
+    // get a valid line from "is"
+    // line: out param, will take the line back
+    // cmt_start: a string consists of all possible "comment start" chars
+    bool get_valid_line(std::istream &is, std::string &line, std::string cmt_start)
+    {
+        // read until get a valid line
+        while (getline (is, line)) {
+            line = str_trim(line);
+            if (!line.empty() && cmt_start.find_first_of(line[0]) == string::npos) {
+                break;
+            }
+        }
+
+        // trim the "single-line" comments at the tail of a valid line, if any
+        string::size_type pos = line.find_first_of(cmt_start);
+        if (string::npos != pos) {
+            line = str_trim(line.substr(0, pos));
+        }
+
+        return !is.eof();
     }
 
 /* 
@@ -384,7 +407,14 @@ namespace util{
             throw XY_Error("unexpected eof");
         }
     }
-    
+
+
+    void my_assert(int condition, const string &msg)
+    {
+        if (!condition) {
+            throw XY_Error(msg);
+        }
+    }
 } // end of namespace util
 } // end of namespace xylib
 

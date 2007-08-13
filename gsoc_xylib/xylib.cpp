@@ -14,6 +14,7 @@
 #include "ds_vamas.h"
 #include "ds_philips_udf.h"
 #include "ds_winspec_spe.h"
+#include "ds_pdcif.h"
 
 #include <iostream>
 #include <algorithm>
@@ -38,6 +39,7 @@ const FormatInfo *g_fi[] = {
     &VamasDataSet::fmt_info,
     &UdfDataSet::fmt_info,
     &WinspecSpeDataSet::fmt_info,
+    &PdCifDataSet::fmt_info,
 };
 
 
@@ -351,6 +353,8 @@ DataSet* getNewDataSet(istream &is, xy_ftype filetype /* = FT_UNKNOWN */,
         pd = new UdfDataSet(is);
     } else if (FT_SPE == ft) {
         pd = new WinspecSpeDataSet(is);
+    } else if (FT_PDCIF == ft) {
+        pd = new PdCifDataSet(is);
     } else {
         pd = NULL;
         throw XY_Error("unkown or unsupported file type");
@@ -400,6 +404,8 @@ xy_ftype guess_file_type(const string &fpath)
             }
         } else if ("spe" == ext) {
             return FT_SPE;
+        } else if ("cif" == ext) {
+            return FT_PDCIF;
         } else {
             return FT_UNKNOWN;
         }

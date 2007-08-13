@@ -19,13 +19,15 @@ SUPPORTED FORMATS
 ============
 This is only a short list of all supported formats. For more info about the format, see "FORMAT DESCRIPTION" section in ds_XXX.cpp files.
 
-X-Y plain text format:  .txt, .asc, .dat
-Siemens/Bruker uxd:     .uxd
-Diffrac-AT raw v1/2/3:  .raw
-Philips UDF Format:     .udf
-Rigaku Dat Format:      .dat
-Vamas ISO14976:         .vms	(DO NOT support mapping mode, where experiment mode is "SEM", "MAPSV" or "MAPSVDP")
-Princeton Instruments WinSpec SPE Format:	.spe (ONLY support 1-D)
+X-Y plain text format:  										.txt, .asc, .dat
+Siemens/Bruker uxd:     										.uxd
+Diffrac-AT raw v1/2/3:  										.raw
+Philips UDF Format:     										.udf
+Rigaku Dat Format:      										.dat
+Vamas ISO14976:         										.vms	(DOES NOT support mapping mode, where experiment mode is "SEM" or "MAPSV" or "MAPSVDP")
+Princeton Instruments WinSpec SPE Format:						.spe 	(ONLY support 1-D)
+Crystallographic Information File for Powder Diffraction:		.cif
+
 
 FILES
 ============
@@ -76,4 +78,5 @@ I'd like to thank Google for hosting the GSoC project to promote the Open Source
 Thanks to Michael Richardson <michael.richardson@vuw.ac.nz>, for his kind help to send us a specification of VAMAS format and some sample files, suggestion for the JCAMP-DX paper download URL.
 Thanks to David Hovis <dbh6@case.edu>, for sending us a WinSpec file format specification and the sample file.
 Thanks to Pablo Bianucci <pbian@physics.utexas.edu>, for sending us a WinSpec implentation source code and an SPE sample file.
+Thanks to Brian H. Toby <Brian.Toby@anl.gov>, for his useful info and suggestions about the pdCIF format.
 And thanks to all people who have helped me and gave suggestions to the xylib project. 

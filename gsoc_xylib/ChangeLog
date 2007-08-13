@@ -1,4 +1,7 @@
-3:09 2007-8-9 GMT+8 version 329
+1:38 2007-8-14 GMT+8 version 333
+* Added support to pdCIF format (Crystallographic Information File for Powder Diffraction).
+
+3:09 2007-8-9 GMT+8 version 332
 * Made some necessary changes, got rid of the assumptions that the input is always correct. program defensively, check every point where error may occur.
 
 8:17 2007-8-7 GMT+8 version 329

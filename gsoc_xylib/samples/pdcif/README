@@ -1,0 +1,12 @@
+=======================
+* SAMPLE SOURCE
+=======================
+All sample files are got from the sample directory of ciftools_Linux, an open-source CIF software package. You can download it from 
+http://www.ncnr.nist.gov/programs/crystallography/software/cif/ciftools.html
+
+The short descriptions of the 2 files in the "ciftools_Linux/samples/whatswhat.txt" in the package are as follows:
+
+ALUMINA.cif	A 1-phase & 1-dataset pdCIF - CW neutron Rietveld fit (single block)
+NISI.cif	A two-phase, two-dataset pdCIF - TOF Rietveld fit (6 blocks)
+
+There are 2 additional ".cif" files in the package, but they do not contain Powder Diffraction data that we need.
