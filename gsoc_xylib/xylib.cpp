@@ -49,58 +49,114 @@ bool FormatInfo::has_extension(const std::string &ext)
     return (find(exts.begin(), exts.end(), lower_ext) != exts.end()); 
 }
 
+//////////////////////////////////////////////////////////////////////////
+// member functions of Class VecColumn
+
+double VecColumn::get_val(unsigned n) const 
+{
+    my_assert(n <= get_pt_cnt(), "index out of range in VecColumn");
+    return dat[n];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// member functions of Class StepColumn
+
+double StepColumn::get_val(unsigned n) const 
+{
+    my_assert(n <= get_pt_cnt(), "index out of range in VecColumn");
+    my_assert(step != 0, "x_step not set, file is likely conrupt");
+    return (start + step * n);
+}
  
 //////////////////////////////////////////////////////////////////////////
 // member functions of Class Range
 
-void Range::check_idx(unsigned n, const string &name) const
+Range::~Range()
 {
-    if (n >= get_pt_count()) {
-        throw XY_Error("no " + name + " in this range with such index");
+    vector<Column*>::iterator it;
+    for (it = cols.begin(); it != cols.end(); ++it) {      
+        delete *it;
     }
 }
 
 double Range::get_x(unsigned n) const
 {
-    check_idx(n, "point_x");
-    return x[n];
+    my_assert(column_x < int(cols.size()), "no column_x");
+    return cols[column_x]->get_val(n);
 }
 
 double Range::get_y(unsigned n) const
 {
-    check_idx(n, "point_y");
-    return y[n];
+    my_assert(column_y < int(cols.size()), "no column_y");
+    return cols[column_y]->get_val(n);
 }
 
-bool Range::has_y_stddev(unsigned n) const
-{ 
-    if (n >= get_pt_count()) {
-        return false;
-    } else {
-        return y_has_stddev[n]; 
-    }    
-} 
-
-double Range::get_y_stddev(unsigned n) const
+// return the pt_cnt in all columns (they are assumed to be the same)
+unsigned Range::get_pt_cnt() const
 {
-    check_idx(n, "point_y_stddev");
-    return y_stddev[n];
+    unsigned pt_cnt(0);
+
+    if (cols.size() != 0) {
+        for (unsigned i = 0; i < cols.size(); ++i) {
+            pt_cnt = cols[i]->get_pt_cnt();
+            if (pt_cnt != numeric_limits<unsigned>::max()) {
+                break;
+            }
+        }
+    }
+    
+    return pt_cnt;
 }
 
-void Range::add_pt(double x_, double y_, double stddev_)
+const Column& Range::get_column(unsigned n) const
 {
-    x.push_back(x_);
-    y.push_back(y_);
-    y_stddev.push_back(stddev_);
-    y_has_stddev.push_back(true);
+    my_assert(n < cols.size(), "column index out of range");
+    return *cols[n];
 }
 
-void Range::add_pt(double x_, double y_)
+
+/*
+// get the index of the column with a name of "name"
+// return -1 if not found
+int Range::get_col_idx(const string &name) const
 {
-    x.push_back(x_);
-    y.push_back(y_);
-    y_stddev.push_back(1);  // meaningless data
-    y_has_stddev.push_back(false);
+    int ret_val(-1);
+    
+    for (unsigned i = 0; i < get_column_cnt(); ++i) {
+        const Column &col = get_column(i);
+        if (name == col.get_name()) {
+            ret_val = i;
+            break;
+        }
+    }
+    return ret_val;
+}
+*/
+
+
+void Range::set_column_x(unsigned n)
+{
+    my_assert(n < cols.size(), "column index out of range");
+    column_x = n;
+}
+
+void Range::set_column_y(unsigned n)
+{
+    my_assert(n < cols.size(), "column index out of range");
+    column_y = n;
+}
+
+void Range::set_column_stddev(unsigned n)
+{
+    my_assert(n < cols.size(), "column index out of range");
+    column_stddev = n;
+}
+
+double Range::get_stddev(unsigned n) const
+{
+    my_assert(has_stddev() && (column_stddev < int(cols.size())), "no column_stddev");
+    return cols[column_stddev]->get_val(n);
 }
 
 void Range::export_xy_file(const string &fname) const
@@ -116,13 +172,13 @@ void Range::export_xy_file(const string &fname) const
 
 void Range::export_xy_file(ofstream &of) const
 {
-    int n = get_pt_count();
+    int n = get_pt_cnt();
 
     for(int i = 0; i < n; ++i) {
         of << setfill(' ') << setiosflags(ios::fixed) << setprecision(5) << setw(7) << 
             get_x(i) << "\t" << setprecision(8) << setw(10) << get_y(i) << "\t";
-        if(has_y_stddev(i)) {
-            of << get_y_stddev(i);
+        if(has_stddev()) {
+            of << get_stddev(i);
         }
         of << endl;
     }
@@ -135,6 +191,26 @@ bool Range::add_meta(const string &key, const string &val)
     }
     pair<map<string, string>::iterator, bool> ret = meta_map.insert(make_pair(key, val));
     return ret.second;
+}
+
+void Range::add_column(Column *p_col, col_type type /* = CT_UNDEF */)
+{
+    cols.push_back(p_col);
+
+    unsigned i = cols.size() - 1;
+    switch (type) {
+    case CT_X:
+        set_column_x(i);
+        break;
+    case CT_Y:
+        set_column_y(i);
+        break; 
+    case CT_STDDEV:
+        set_column_stddev(i);
+        break;
+    default:
+        break;
+    }
 }
 
 
@@ -169,23 +245,6 @@ const string& Range::get_meta(string const& key) const
     }
 }
 
-//////////////////////////////////////////////////////////////////////////
-// member functions of Class FixedStepRange
-
-void FixedStepRange::add_y(double y_)
-{
-    y.push_back(y_);
-    y_stddev.push_back(1);
-    y_has_stddev.push_back(false);
-}
-
-
-void FixedStepRange::add_y(double y_, double stddev_)
-{
-    y.push_back(y_);
-    y_stddev.push_back(stddev_);
-    y_has_stddev.push_back(true);
-}
 
 //////////////////////////////////////////////////////////////////////////
 // member functions of Class DataSet
@@ -199,21 +258,18 @@ const Range& DataSet::get_range(unsigned i) const
     return *(ranges[i]);
 }
 
-
 void DataSet::export_xy_file(const string &fname, 
     bool with_meta /* = true */, const std::string &cmt_str /* = ";" */) const
 {
     unsigned range_num = get_range_cnt();
     ofstream of(fname.c_str());
-    if (!of) {
-        throw XY_Error("can't create file" + fname);
-    }
+    my_assert(of != NULL, "can't create file" + fname);
 
     // output the file-level meta-info
     if (with_meta) {
-        of << cmt_str << "exported by xylib from a " << get_filetype() << "file" << endl;
+        of << cmt_str << "exported by xylib from a " << get_filetype() << " file" << endl;
+        of << cmt_str << "total ranges:" << ranges.size() << endl << endl;
         output_meta(of, this, cmt_str);
-        of << cmt_str << "total ranges:" << ranges.size() << endl;
     }
     
     for(unsigned i = 0; i < range_num; ++i) {
@@ -225,11 +281,34 @@ void DataSet::export_xy_file(const string &fname,
             }
             of << endl << cmt_str << "* range " << i << endl;
             output_meta(of, &rg, cmt_str);
-            of << cmt_str << "total count: " << rg.get_pt_count() << endl << endl;
+            of << cmt_str << "total count: " << rg.get_pt_cnt() << endl << endl;
+
+            string x_label, y_label, stddev_label;
+            try {
+                x_label = rg.get_column(rg.get_column_x()).get_name();
+                y_label = rg.get_column(rg.get_column_y()).get_name();
+                stddev_label = rg.has_stddev() ? rg.get_column(rg.get_column_stddev()).get_name() : "";
+            } catch (...) {
+                // this must be a range without any data, move to next range
+                continue;
+            }
             of << cmt_str << "x\t\ty\t\t y_stddev" << endl;
+            of << cmt_str << x_label << "\t\t" << y_label << "\t\t" << stddev_label << endl;
         }
         rg.export_xy_file(of);
     }
+}
+
+// clear all the data of this dataset
+void DataSet::clear()
+{
+    vector<Range*>::iterator it;
+    for (it = ranges.begin(); it != ranges.end (); ++it) {      
+        delete *it;
+    }
+
+    ranges.clear();
+    meta_map.clear();
 }
 
 bool DataSet::add_meta(const string &key, const string &val)
@@ -338,30 +417,30 @@ DataSet* getNewDataSet(istream &is, xy_ftype filetype /* = FT_UNKNOWN */,
     xy_ftype ft = (FT_UNKNOWN == filetype) ? guess_file_type(filename) : filetype;
 
     if (FT_BR_RAW1 == ft) {
-        pd = new BruckerV1RawDataSet(is); 
+        pd = new BruckerV1RawDataSet(); 
     } else if (FT_BR_RAW23 == ft) {
-        pd = new BruckerV23RawDataSet(is);
+        pd = new BruckerV23RawDataSet();
     } else if (FT_UXD == ft) {
-        pd = new UxdDataSet(is);
+        pd = new UxdDataSet();
     } else if (FT_TEXT == ft) {
-        pd = new TextDataSet(is);
+        pd = new TextDataSet();
     } else if (FT_RIGAKU == ft) {
-        pd = new RigakuDataSet(is);
+        pd = new RigakuDataSet();
     } else if (FT_VAMAS == ft) {
-        pd = new VamasDataSet(is);
+        pd = new VamasDataSet();
     } else if (FT_UDF == ft) {
-        pd = new UdfDataSet(is);
+        pd = new UdfDataSet();
     } else if (FT_SPE == ft) {
-        pd = new WinspecSpeDataSet(is);
+        pd = new WinspecSpeDataSet();
     } else if (FT_PDCIF == ft) {
-        pd = new PdCifDataSet(is);
+        pd = new PdCifDataSet();
     } else {
         pd = NULL;
         throw XY_Error("unkown or unsupported file type");
     }
 
     if (NULL != pd) {
-        pd->load_data(); 
+        pd->load_data(is); 
     }
 
     return pd;

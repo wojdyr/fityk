@@ -1,3 +1,14 @@
+9:47 2007-8-18 GMT+8 version 335
+* Changed to use Class Column to represent a 1-D data
+* If SPE is linear,  set fixed_step = true
+* Export_xy_file is modified with necessary changes, and output column names of x, y, stddev if they exist
+* Depressed exceptions in check(): only return a boolean value.
+* Changed to Read multiple columns in a range of pdCIF format, the uncertainty is treated as a separate column
+* Moved stream& arg from Ctors to load_data() member functions. Got rid of the stream &/* member f in DataSet, passed to other members functions if necessary
+* Added the clear() function in DataSet.
+* Re-wrote one of the uxd-like formats: Rigaku_dat
+* Some other trivial changes
+
 1:38 2007-8-14 GMT+8 version 333
 * Added support to pdCIF format (Crystallographic Information File for Powder Diffraction).
 

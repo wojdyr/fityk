@@ -74,7 +74,7 @@ namespace util{
     string read_string(istream &f, unsigned len) 
     {
         static char buf[65536];
-        if (len > sizeof(buf)) {
+        if (len >= sizeof(buf)) {
             throw XY_Error("buffer overflow");
         }
         
@@ -103,8 +103,7 @@ namespace util{
 
     // parse a line. First skip the space chars, then get the separated key and val
     // e.g. after calling parse_line("a =  2.6", "=", key, val), key=='a' and val=='2.6'
-    void parse_line(const string &line, const string &sep, 
-        string &key, string &val)
+    void parse_line(const string &line, string &key, string &val, const string &sep /* = ",:=" */)
     {
         string line2(line);
         string::size_type len1 = line2.find_first_of(sep);
@@ -212,6 +211,29 @@ namespace util{
     }
 
 
+    // get all numbers in the first legal line
+    void get_all_numbers(std::string &line, std::vector<double>& result_numbers)
+    {
+        for (string::iterator i = line.begin(); i != line.end(); i++) {
+            if (*i == ',' || *i == ';' || *i == ':') {
+                *i = ' ';
+            }
+        }
+
+        string::size_type val_spos(0), val_epos(0);
+        while (true) {
+            val_spos = line.find_first_not_of(" \t,", val_epos);
+            if (string::npos == val_spos) {
+                break;
+            }
+
+            val_epos = line.find_first_of(" \t,", val_spos);
+
+            string val = line.substr(val_spos, val_epos - val_spos);
+            result_numbers.push_back(my_strtod(val));
+        }
+    }
+
     // skip meaningless lines and get all numbers in the first legal line
     int read_line_and_get_all_numbers(istream &is, 
         vector<double>& result_numbers)
@@ -278,7 +300,7 @@ namespace util{
     }
 
     // get a valid line from "is"
-    // line: out param, will take the line back
+    // line: out param, will take the line back to caller
     // cmt_start: a string consists of all possible "comment start" chars
     bool get_valid_line(std::istream &is, std::string &line, std::string cmt_start)
     {
@@ -386,6 +408,11 @@ namespace util{
     double my_strtod(const std::string &str) 
     {
         string ss = str_trim(str);
+        
+        if ("." == ss) {
+            return 0.0;
+        }
+
         const char *startptr = ss.c_str();
         char *endptr = NULL;
         double val = strtod(startptr, &endptr);
@@ -414,6 +441,11 @@ namespace util{
         if (!condition) {
             throw XY_Error(msg);
         }
+    }
+
+
+    bool start_as_num(const string& line){
+        return (isdigit(line[0]) || '+' == line[0] ||  '-' == line[0] || '.' == line[0]);
     }
 } // end of namespace util
 } // end of namespace xylib

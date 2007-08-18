@@ -11,24 +11,23 @@ namespace xylib {
 class PdCifDataSet : public DataSet
 {
 public:
-    PdCifDataSet(std::istream &is)
-        : DataSet(is, FT_PDCIF) {}
+    PdCifDataSet()
+        : DataSet(FT_PDCIF) {}
 
     // implement the interfaces specified by DataSet
     static bool check(std::istream &f);
-    void load_data();
+    void load_data(std::istream &f);
 
     const static FormatInfo fmt_info;
     
 protected:
-    enum {
-        OUT_OF_LOOP = -1,
-        IN_LOOP_HEAD = 0,
-        IN_LOOP_BODY = 1,
-    };
+    void get_all_values(const std::string &line, std::istream &f, 
+        std::vector<std::string> &values);
+    bool add_key_val(Range *p_rg, const std::string &key, const std::string &val);
+    void add_range(Range* p_rg);
 
-    void get_all_values(const std::string &line, std::istream &f, std::vector<std::string> &values);
-    bool add_key_val(FixedStepRange *p_rg, const std::string &key, const std::string &val);
+    VecColumn* get_col_ptr(Range *p_rg, const std::string name, 
+        std::map<std::string, VecColumn*>& mapper);
 }; 
 
 }

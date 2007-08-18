@@ -10,7 +10,7 @@ FORMAT DESCRIPTION:
 Data format used in the Japanese X-ray instrument manufacturer Rigaku Inc.
 
 ///////////////////////////////////////////////////////////////////////////////
-    * Name in progam:   rigaku_dat	
+    * Name in progam:   rigaku_dat    
     * Extension name:   dat
     * Binary/Text:      text
     * Multi-ranged:     Y
@@ -80,7 +80,7 @@ bool RigakuDataSet::check(istream &f)
     // the first 5 letters must be "*TYPE"
     string head = read_string(f, 5);
     if(f.rdstate() & ios::failbit) {
-        throw XY_Error("error when reading file head");
+        return false;
     }
     
     f.seekg(0);
@@ -88,100 +88,112 @@ bool RigakuDataSet::check(istream &f)
 }
 
 
-void RigakuDataSet::load_data() 
+void RigakuDataSet::load_data(std::istream &f) 
 {
     if (!check(f)) {
         throw XY_Error("file is not the expected " + get_filetype() + " format");
     }
+    clear();
 
-    string line, key, val;
-    line_type ln_type;
+    // indicate where we are
+    enum {
+        FILE_META,
+        RANGE_META,
+        RANGE_DATA,
+    } pos_flg = FILE_META;
 
-    // file-scope meta-info
-    while (true) {
-        skip_invalid_lines(f);
-        int pos = f.tellg();
-        my_getline(f, line);
-        if (str_startwith(line, rg_start_tag)) {
-            f.seekg(pos);
-            break;
-        }
-        
-        ln_type = get_line_type(line);
-
-        if (LT_KEYVALUE == ln_type) {   // file-level meta key-value line
-            parse_line(line, meta_sep, key, val);
-            key = ('*' == key[0]) ? key.substr(1) : key;
-            add_meta(key, val);
-        } else {                        // unkonw line type
-            continue;
-        }
-    }
-
-    // handle ranges
-    while (!f.eof()) {
-        FixedStepRange *p_rg = new FixedStepRange;
-        parse_range(p_rg);
-        ranges.push_back(p_rg);
-    } 
-}
-
-
-void RigakuDataSet::parse_range(FixedStepRange* p_rg)
-{
+    Range *p_rg = NULL;
+    StepColumn *p_xcol = NULL;
+    VecColumn *p_ycol = NULL;
+    unsigned grp_cnt = 0;
     string line;
-    // get range-scope meta-info
-    while (true) {
-        skip_invalid_lines(f);
-        int pos = f.tellg();
-        my_getline(f, line);
-        line_type ln_type = get_line_type(line);
-        if (LT_XYDATA == ln_type) {
-            f.seekg(pos);
-            break;
-        }
 
-        if (LT_KEYVALUE == ln_type) {   // range-level meta key-value line
-            string key, val;
-            parse_line(line, meta_sep, key, val);
-            if (key == x_start_key) {
-                p_rg->set_x_start(my_strtod(val));
-            } else if (key == x_step_key) {
-                p_rg->set_x_step(my_strtod(val));
+    while (get_valid_line(f, line, "#")) {
+        if (str_startwith(line, "*BEGIN")) {        // range starts
+            pos_flg = RANGE_META;
+            if (p_rg != NULL) {
+                // save the last unsaved range with sanity check
+                my_assert(p_xcol->get_pt_cnt() == p_ycol->get_pt_cnt(), 
+                    "file corrupt: count of x and y differs");
+                
+                ranges.push_back(p_rg);
+                p_rg = NULL;
             }
-            key = ('*' == key[0]) ? key.substr(1) : key;
-            p_rg->add_meta(key, val);
-        } else {                        // unkonw line type
+        
+            p_xcol = new StepColumn;
+            my_assert(p_xcol != NULL, "no memory to allocate");
+            
+            p_ycol = new VecColumn;
+            my_assert(p_ycol != NULL, "no memory to allocate");
+            
+            p_rg = new Range;
+            my_assert(p_rg != NULL, "no memory to allocate");
+            p_rg->add_column(p_xcol, Range::CT_X);
+            p_rg->add_column(p_ycol, Range::CT_Y);
+            
+        } else if (str_startwith(line, "*END")) {    // range ends
+            pos_flg = FILE_META;
+            
+        } else if (str_startwith(line, "*EOF")) {    // file ends
+            break;
+        
+        } else if (str_startwith(line, "*")) {    // other meta key-value pair. NOTE the order, it must follow other "*XXX" branches
+            string key, val;
+            parse_line(line, key, val, "=");
+            key = key.substr(1);    // rm the leading '*'
+            
+            if ("START" == key) {
+                p_xcol->set_start(my_strtod(val));
+            } else if ("STEP" == key) {
+                p_xcol->set_step(my_strtod(val));
+            } else if ("COUNT" == key) {
+                p_xcol->set_count(static_cast<unsigned>(my_strtol(val)));
+            } else if ("GROUP_COUNT" == key) {
+                grp_cnt = static_cast<unsigned>(my_strtol(val));
+            }
+            
+            switch (pos_flg) {
+            case FILE_META:
+                add_meta(key, val);
+                break;
+            case RANGE_META:
+                p_rg->add_meta(key, val);
+                break;
+            case RANGE_DATA:
+                p_rg->add_meta(key, val);
+                break;            
+            default:
+                break;
+            }
+            
+        } else if (start_as_num(line)){            // should be a li  ne of values
+            vector<double> values;
+            get_all_numbers(line, values);
+            
+            for (unsigned i = 0; i < values.size(); ++i) {
+                p_ycol->add_val(values[i]);
+            }
+            
+            if (RANGE_META == pos_flg) {
+                pos_flg = RANGE_DATA;
+            }
+        } else {                 // unknown type of line. it should not appear in a correct file
+            // what should we do here? continue or throw an exception?
             continue;
         }
     }
 
-    // get all x-y data
-    while (true) {
-        if (!skip_invalid_lines(f)) {
-            return;
-        }
-        int pos = f.tellg();
-        my_getline(f, line, false);
-        line_type ln_type = get_line_type(line);
-        if (str_startwith(line, rg_start_tag)) {
-            f.seekg(pos);
-            return;                     // new range
-        } else if (LT_XYDATA != ln_type) {
-            continue;
-        }
+    // add the last range
+    if (p_rg != NULL) {
+        // save the last unsaved range with sanity check 
+        my_assert(p_xcol->get_pt_cnt() == p_ycol->get_pt_cnt(), 
+            "file corrupt: count of x and y differs at last range");
 
-        for (string::iterator i = line.begin(); i != line.end(); ++i) {
-            if (string::npos != data_sep.find(*i)) {
-                *i = ' ';
-            }
-        }
+        my_assert(grp_cnt != 0, "no GROUP_COUNT attribute given");
+        my_assert(ranges.size() + 1 == grp_cnt, "file corrupt: actual range count differs from expected");
         
-        istringstream q(line);
-        double d;
-        while (q >> d) {
-            p_rg->add_y(d);
-        }
+        ranges.push_back(p_rg);
+        p_rg = NULL;
     }
 }
 

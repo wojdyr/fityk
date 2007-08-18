@@ -11,11 +11,11 @@ namespace xylib {
     class TextDataSet : public DataSet
     {
     public:
-        TextDataSet(std::istream &is)
-            : DataSet(is, FT_TEXT) {}
+        TextDataSet()
+            : DataSet(FT_TEXT) {}
 
         // implement the interfaces specified by DataSet
-        void load_data();
+        void load_data(std::istream &f);
 
         static bool check(std::istream &f);
 

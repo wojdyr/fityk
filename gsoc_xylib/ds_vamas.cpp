@@ -76,7 +76,7 @@ const FormatInfo VamasDataSet::fmt_info(
 bool VamasDataSet::check(istream &f)
 {
     // the first line must be "VAMAS Surface ..."
-    static string magic = "VAMAS Surface Chemical Analysis Standard Data Transfer Format 1988 May 4";
+    static const string magic = "VAMAS Surface Chemical Analysis Standard Data Transfer Format 1988 May 4";
     string line;
 
     bool re = (getline(f, line) && str_trim(line) == magic);
@@ -86,11 +86,12 @@ bool VamasDataSet::check(istream &f)
 }
 
 
-void VamasDataSet::load_data() 
+void VamasDataSet::load_data(std::istream &f) 
 {
     if (!check(f)) {
         throw XY_Error("file is not the expected " + get_filetype() + " format");
     }
+    clear();
 
     int n;
 
@@ -136,7 +137,7 @@ void VamasDataSet::load_data()
         add_meta("experimental variable unit" + S(i), read_line(f));
     }
 
-    n = read_line_int(f);	// # of entries in inclusion or exclusion list
+    n = read_line_int(f);    // # of entries in inclusion or exclusion list
     bool d = (n > 0);
     for (int i = 0; i < 40; ++i) {
         include[i] = !d;
@@ -160,35 +161,45 @@ void VamasDataSet::load_data()
     // handle the blocks
     unsigned blk_cnt = read_line_int(f);
     for (unsigned i = 0; i < blk_cnt; ++i) {
-        FixedStepRange *p_rg = new FixedStepRange;
-        vamas_read_blk(p_rg);
+        StepColumn *p_xcol = new StepColumn;
+        my_assert(p_xcol != NULL, "no memory to allocate");
+
+        VecColumn *p_ycol = new VecColumn;
+        my_assert(p_ycol != NULL, "no memory to allocate");
+
+        Range *p_rg = new Range;
+        my_assert(p_rg != NULL, "no memory to allocate");        
+        p_rg->add_column(p_xcol, Range::CT_X);
+        p_rg->add_column(p_ycol, Range::CT_Y);
+        
+        read_blk(f, p_rg, p_xcol, p_ycol);
         ranges.push_back(p_rg);
     }
 }
 
 
 // read one blk, used by load_vamas_file()
-void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
+void VamasDataSet::read_blk(istream &f, Range *p_rg, StepColumn *p_xcol, VecColumn *p_ycol)
 {
     int cor_var = 0;    // # of corresponding variables
     
     p_rg->add_meta("block id", read_line(f));
     p_rg->add_meta("sample identifier", read_line(f));
 
-    read_meta_line(0, p_rg, "year");
-    read_meta_line(1, p_rg, "month");
-    read_meta_line(2, p_rg, "day");
-    read_meta_line(3, p_rg, "hour");
-    read_meta_line(4, p_rg, "minite");
-    read_meta_line(5, p_rg, "second");
-    read_meta_line(6, p_rg, "no. of hours in advanced GMT");
+    read_meta_line(f, 0, p_rg, "year");
+    read_meta_line(f, 1, p_rg, "month");
+    read_meta_line(f, 2, p_rg, "day");
+    read_meta_line(f, 3, p_rg, "hour");
+    read_meta_line(f, 4, p_rg, "minite");
+    read_meta_line(f, 5, p_rg, "second");
+    read_meta_line(f, 6, p_rg, "no. of hours in advanced GMT");
 
     if (include[7]) {   // skip comments on this blk
         int cmt_lines = read_line_int(f);
         skip_lines(f, cmt_lines);
     }
 
-    read_meta_line(8, p_rg, "tech");
+    read_meta_line(f, 8, p_rg, "tech");
     string tech = p_rg->get_meta("tech");
     // make sure tech has a valid value
     if (-1 == get_array_idx(techs, 14, tech)) {
@@ -208,7 +219,7 @@ void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
         }
     }
 
-    read_meta_line(11, p_rg, "analysis source label");
+    read_meta_line(f, 11, p_rg, "analysis source label");
 
     if (include[12]) {
         if (("MAPDP" == exp_mode) || ("MAPSVDP" == exp_mode) || 
@@ -221,8 +232,8 @@ void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
         }
     }
 
-    read_meta_line(13, p_rg, "analysis source characteristic energy");
-    read_meta_line(14, p_rg, "analysis source strength");
+    read_meta_line(f, 13, p_rg, "analysis source characteristic energy");
+    read_meta_line(f, 14, p_rg, "analysis source strength");
 
     if (include[15]) {
         p_rg->add_meta("analysis source beam width x", read_line(f));
@@ -243,10 +254,10 @@ void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
         }
     }
 
-    read_meta_line(18, p_rg, "analysis source polar angle of incidence");
-    read_meta_line(19, p_rg, "analysis source azimuth");
-    read_meta_line(20, p_rg, "analyser mode");
-    read_meta_line(21, p_rg, "analyser pass energy or retard ratio or mass resolution");
+    read_meta_line(f, 18, p_rg, "analysis source polar angle of incidence");
+    read_meta_line(f, 19, p_rg, "analysis source azimuth");
+    read_meta_line(f, 20, p_rg, "analyser mode");
+    read_meta_line(f, 21, p_rg, "analyser pass energy or retard ratio or mass resolution");
 
     if (include[22]) {
         if ("AES diff" == tech) {
@@ -254,9 +265,9 @@ void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
         }
     }
 
-    read_meta_line(23, p_rg, "magnification of analyser transfer lens");
-    read_meta_line(24, p_rg, "analyser work function or acceptance energy of atom or ion");
-    read_meta_line(25, p_rg, "target bias");
+    read_meta_line(f, 23, p_rg, "magnification of analyser transfer lens");
+    read_meta_line(f, 24, p_rg, "analyser work function or acceptance energy of atom or ion");
+    read_meta_line(f, 25, p_rg, "target bias");
 
     if (include[26]) {
         p_rg->add_meta("analysis width x", read_line(f));
@@ -268,7 +279,7 @@ void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
         p_rg->add_meta("analyser axis take off azimuth", read_line(f));
     }
 
-    read_meta_line(28, p_rg, "species label");
+    read_meta_line(f, 28, p_rg, "species label");
 
     if (include[29]) {
         p_rg->add_meta("transition or charge state label", read_line(f));
@@ -279,8 +290,10 @@ void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
         if ("REGULAR" == scan_mode) {
             p_rg->add_meta("abscissa label", read_line(f));            
             p_rg->add_meta("abscissa units", read_line(f));  
-            p_rg->set_x_start(read_line_double(f));
-            p_rg->set_x_step(read_line_double(f));
+
+            p_xcol->set_start(read_line_double(f));
+            p_xcol->set_step(read_line_double(f));
+            p_xcol->set_name(p_rg->get_meta("abscissa label"));
         }
     }
 
@@ -289,10 +302,10 @@ void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
         skip_lines(f, 2 * cor_var);   // 2 lines per corresponding_var
     }
     
-    read_meta_line(32, p_rg, "signal mode");
-    read_meta_line(33, p_rg, "signal collection time");
-    read_meta_line(34, p_rg, "# of scans to compile this blk");
-    read_meta_line(35, p_rg, "signal time correction");
+    read_meta_line(f, 32, p_rg, "signal mode");
+    read_meta_line(f, 33, p_rg, "signal collection time");
+    read_meta_line(f, 34, p_rg, "# of scans to compile this blk");
+    read_meta_line(f, 35, p_rg, "signal time correction");
 
     if (include[36]) {
         if (("AES1" == tech || "AES2" == tech || "EDX" == tech || "ELS" == tech || "UPS" == tech || 
@@ -307,7 +320,7 @@ void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
         p_rg->add_meta("sample normal polar tilt azimuth", read_line(f));
     }
 
-    read_meta_line(38, p_rg, "sample rotate angle");
+    read_meta_line(f, 38, p_rg, "sample rotate angle");
     
     if (include[39]) {
         unsigned n = read_line_int(f);   // # of additional numeric parameters
@@ -326,14 +339,14 @@ void VamasDataSet::vamas_read_blk(FixedStepRange *p_rg)
     double y;
     for (int i = 0; i < cur_blk_steps; ++i) {
         y = read_line_double(f);
-        p_rg->add_y(y);
+        p_ycol->add_val(y);
     }
 
 }
 
 
 // a simple wrapper to simplify the code
-void VamasDataSet::read_meta_line(int idx, FixedStepRange *p_rg, string meta_key)
+void VamasDataSet::read_meta_line(istream &f, int idx, Range *p_rg, string meta_key)
 {
     if (include[idx]) {
         p_rg->add_meta(meta_key, read_line(f));

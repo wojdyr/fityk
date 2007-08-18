@@ -26,18 +26,18 @@ struct spe_calib;
 class WinspecSpeDataSet : public DataSet
 {
 public:
-    WinspecSpeDataSet(std::istream &is)
-        : DataSet(is, FT_SPE) {}
+    WinspecSpeDataSet()
+        : DataSet(FT_SPE) {}
 
     // implement the interfaces specified by DataSet
     static bool check(std::istream &f);
-    void load_data();
+    void load_data(std::istream &f);
 
     const static FormatInfo fmt_info;
     
 protected:
     double idx_to_calib_val(int idx, const spe_calib *calib);
-    void read_calib(spe_calib &calib);
+    void read_calib(std::istream &f, spe_calib &calib);
     
 }; 
 
@@ -51,27 +51,27 @@ protected:
  */
 struct spe_calib {
 /*
-    double offset;        // +0 offset for absolute data scaling
-    double factor;        // +8 factor for absolute data scaling 
-    char current_unit;    // +16 selected scaling unit 
-    char reserved1;       // +17 reserved 
-    char string[40];      // +18 special string for scaling 
-    char reserved2[40];   // +58 reserved
+    double offset;                // +0 offset for absolute data scaling
+    double factor;                // +8 factor for absolute data scaling 
+    char current_unit;            // +16 selected scaling unit 
+    char reserved1;               // +17 reserved 
+    char string[40];              // +18 special string for scaling 
+    char reserved2[40];           // +58 reserved
 */
-    char calib_valid;      // +98 flag if calibration is valid 
+    char calib_valid;             // +98 flag of whether calibration is valid
 /*
-    char input_unit;      // +99 current input units for 
-                          // "calib-value" 
-    char polynom_unit;    // +100 linear UNIT and used 
-                          // in the "polynom-coeff" 
+    char input_unit;              // +99 current input units for 
+                                  // "calib-value" 
+    char polynom_unit;            // +100 linear UNIT and used 
+                                  // in the "polynom-coeff" 
 */
-    char polynom_order;    // +101 ORDER of calibration POLYNOM 
+    char polynom_order;           // +101 ORDER of calibration POLYNOM 
 /*
     char calib_count;             // +102 valid calibration data pairs 
     double pixel_position[10];    // +103 pixel pos. of calibration data 
     double calib_value[10];       // +183 calibration VALUE at above pos 
 */
-    double polynom_coeff[6];        // +263 polynom COEFFICIENTS 
+    double polynom_coeff[6];      // +263 polynom COEFFICIENTS 
 /*
     double laser_position;        // +311 laser wavenumber for relativ WN 
     char reserved3;               // +319 reserved 

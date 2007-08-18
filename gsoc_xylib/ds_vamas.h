@@ -10,20 +10,20 @@ namespace xylib {
     class VamasDataSet : public DataSet
     {
     public:
-        VamasDataSet(std::istream &is)
-            : DataSet(is, FT_VAMAS), include(40, false) {}
+        VamasDataSet()
+            : DataSet(FT_VAMAS), include(40, false) {}
 
         // implement the interfaces specified by DataSet
-        void load_data();
+        void load_data(std::istream &f);
 
         static bool check(std::istream &f);
 
         const static FormatInfo fmt_info;
 
     protected:
-        void vamas_read_blk(FixedStepRange *p_rg);
+        void read_blk(std::istream &f, Range *p_rg, StepColumn *p_xcol, VecColumn *p_ycol);
 
-        void read_meta_line(int idx, FixedStepRange *p_rg, std::string meta_key);
+        void read_meta_line(std::istream &f, int idx, Range *p_rg, std::string meta_key);
 
         // data members
         //////////////////////////////////////////////////////

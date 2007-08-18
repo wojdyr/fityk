@@ -10,8 +10,8 @@ namespace xylib {
     class UxdDataSet : public UxdLikeDataSet
     {
     public:
-        UxdDataSet(std::istream &is)
-            : UxdLikeDataSet(is, FT_UXD) 
+        UxdDataSet()
+            : UxdLikeDataSet(FT_UXD) 
         {
             rg_start_tag = "_DRIVE";
             x_start_key = "_START";
@@ -22,14 +22,14 @@ namespace xylib {
         }
 
         // implement the interfaces specified by DataSet
-        void load_data();
+        void load_data(std::istream &f);
 
         static bool check(std::istream &f);
 
         const static FormatInfo fmt_info;
         
     protected:
-        void parse_range(FixedStepRange *p_rg);
+        void parse_range(Range *p_rg);
     }; 
 }
 #endif // #ifndef UXD_DATASET_H

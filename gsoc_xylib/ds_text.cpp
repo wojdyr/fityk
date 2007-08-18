@@ -45,13 +45,13 @@ using namespace xylib::util;
 
 namespace xylib {
 
-string exts[3] = { "txt", "dat", "asc" };
+string exts[4] = { "txt", "dat", "asc", "csv" };
 
 const FormatInfo TextDataSet::fmt_info(
     FT_TEXT,
     "text",
     "the ascii plain text Format",
-    vector<string>(exts, exts + 3),
+    vector<string>(exts, exts + 4),
     false,                       // whether binary
     false                        // whether multi-ranged
 );
@@ -65,34 +65,46 @@ bool TextDataSet::check(istream &f) {
     return true;
 }
 
-void TextDataSet::load_data() 
+void TextDataSet::load_data(std::istream &f) 
 {
     if (!check(f)) {
         throw XY_Error("file is not the expected " + get_filetype() + " format");
     }
+    clear();
 
     Range* p_rg = new Range;
+    my_assert(p_rg != NULL, "no memory to allocate");
 
+    vector<VecColumn*> vec_cols;  
+    unsigned nr_cols(0);
     vector<double> xy;
     while (read_line_and_get_all_numbers(f, xy)) {
         if (xy.empty()) {
             continue;
         }
 
-        if (xy.size() == 1) {
-            throw XY_Error("only one number in a line");
-        }
-        
-        double x = xy[0];
-        double y = xy[1];
-        if (xy.size() == 2) {
-            p_rg->add_pt(x, y);
-        } else if (xy.size() == 3){
-            double sig = xy[2];
-            if (sig >= 0) {
-                p_rg->add_pt(x, y, sig);
+        my_assert(xy.size() != 1, "only one number in a line");
+
+        if (0 == nr_cols) {
+            // for the 1st row of numbers
+            nr_cols = xy.size();
+            for (unsigned i = 0; i < nr_cols; ++i) {
+                VecColumn *p_col = new VecColumn;
+                my_assert(p_col != NULL, "no memory to allocate"); 
+                vec_cols.push_back(p_col);
+                p_rg->add_column(p_col);
             }
+        } else {
+            my_assert(xy.size() == nr_cols, "format error: number of columns differs");
         }
+
+        for (unsigned i = 0; i < nr_cols; ++i) {
+            vec_cols[i]->add_val(xy[i]);
+        }
+    }
+
+    if (nr_cols >= 3) {
+        p_rg->set_column_stddev(2);     // set 2nd col as default
     }
 
     ranges.push_back(p_rg);

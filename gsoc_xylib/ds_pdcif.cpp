@@ -41,15 +41,16 @@ It uses '#" to comment out all stuff afterwards like in shell or perl script.
 ///////////////////////////////////////////////////////////////////////////////
     * Sample Fragment: ("//xxx": comments added by me; ...: omitted lines)
     
-data_ALUMINA_publ   // block start identifier
+// block start identifier: block name is the string follows 'data_'
+data_ALUMINA_publ   
 
 // the following line uses a double quote string as value
 _audit_creation_method  "from EXP file using GSAS2CIF"  
 
-// the following line uses a string as value
+// the following line uses a single-line string as value
 _audit_creation_date                   2002-12-21T19:04
 
-// the following line uses multi-lines block marked by ';' as value
+// the following line uses a multi-lines block marked by ';' as value
 _audit_update_record
 ; 2002-12-21T19:04  Initial CIF as created by GSAS2CIF
 ;
@@ -73,13 +74,10 @@ loop_
 data_ALUMINA_pub2
 ...
 
-// end of file flag
-#--eof--eof--eof--eof--eof--eof--eof--eof--eof--eof--eof--eof--eof--eof--eof--#
-
 ///////////////////////////////////////////////////////////////////////////////
     * Implementation Ref of xylib: 
-mainly based on the file format specification mentioned above, the tcl/tk 
-source code of in script browsecif.tcl in the ciftools_Linux package which can 
+mainly based on the file format specification mentioned above, and the tcl/tk 
+source code of script browsecif.tcl in the ciftools_Linux package which can 
 be downloaded from:
 http://www.iucr.org/iucr-top/cif/index.html
 
@@ -87,6 +85,7 @@ http://www.iucr.org/iucr-top/cif/index.html
 
 #include "ds_pdcif.h"
 #include "util.h"
+#include <map>
 
 using namespace std;
 using namespace xylib::util;
@@ -110,28 +109,47 @@ bool PdCifDataSet::check(istream &f) {
     return ret;
 }
 
-void PdCifDataSet::load_data() 
+void PdCifDataSet::load_data(std::istream &f) 
 {
     if (!check(f)) {
         throw XY_Error("file is not the expected " + get_filetype() + " format");
     }
+    clear();
+
+    // names of keys, whose values can be used as X or Y
+    static const string valued_keys[] = {
+        "pd_meas_intensity_total",
+        "pd_proc_ls_weight",
+        "pd_proc_intensity_bkg_calc",
+        "pd_calc_intensity_total",
+    };
+    static const unsigned VALUED_KEYS_NUM = sizeof(valued_keys) / sizeof(string);
+
+    // indicate where we are
+    enum {
+        OUT_OF_LOOP = -1,   // not in a loop now
+        IN_LOOP_HEAD = 0,   // in the loop head, where loop key names are given
+        IN_LOOP_BODY = 1,   // in the loop body, where the data is given
+    } loop_flg = OUT_OF_LOOP;
+
 
     string line;
-    FixedStepRange *p_rg = NULL;
-    string last_key;             // store the key name whose value is given later
-    int loop_flg(OUT_OF_LOOP);   // indicates where we are
+    Range *p_rg = NULL;
+    string last_key;             // store the key name whose value will be given later
     int loop_i(0);
-    vector<string> loop_vars;    // variable names during a loop
-    
+    vector<string> loop_keys;    // names of the keys in a loop
+    map<string, VecColumn*> mapper;
+
     while (get_valid_line(f, line, "#")) {
         if (str_startwith(line, "data_")) {         // range start
-            if ((p_rg != NULL) && (p_rg->get_pt_count() > 0)) {
-                ranges.push_back(p_rg);
+            if ((p_rg != NULL) && (p_rg->get_column_cnt() > 0)) {
+                // save last range
+                add_range(p_rg);
                 p_rg = NULL;
             }
 
-            p_rg = new FixedStepRange;
-            my_assert(p_rg != NULL, "memory allocation failed");
+            p_rg = new Range;
+            my_assert(p_rg != NULL, "no memory to allocate");
 
             if (!add_key_val(p_rg, "name", line.substr(5))) {
                 throw XY_Error("range name empty or already exists");
@@ -149,17 +167,9 @@ void PdCifDataSet::load_data()
                 // NOTE: no break here
             case OUT_OF_LOOP:
                 if (followed_by_val) {
-                    string key = line.substr(1, key_epos - 1); // start without the start '_'
+                    string key = line.substr(1, key_epos - 1); // start without the leading '_'
                     string val = line.substr(key_epos);
                     add_key_val(p_rg, key, val);
-
-                    // TODO: x-y data structure need to be modified to adapt this format
-                    // incomplete here: there are many possible X-Ys
-                    if ("pd_meas_2theta_range_min" == key) {
-                        p_rg->set_x_start(my_strtod(val));
-                    } else if ("pd_meas_2theta_range_inc" == key) {
-                        p_rg->set_x_step(my_strtod(val));
-                    }
                 } else {
                     // val must be in the following valid lines
                     my_assert(last_key.empty(), "last key " + last_key + " has not value");
@@ -171,7 +181,7 @@ void PdCifDataSet::load_data()
             case IN_LOOP_HEAD:
                 // must not followed by value: key_name only
                 my_assert(!followed_by_val, "in loop head, there must be key_name only");
-                loop_vars.push_back(line.substr(1));
+                loop_keys.push_back(line.substr(1));
                 break;
 
             default:
@@ -180,14 +190,15 @@ void PdCifDataSet::load_data()
 
         } else if (str_startwith(line, "loop_")) {  // loop start
             my_assert(p_rg != NULL, "'loop_' appears before 'data_'");
-            my_assert(loop_flg != 0, "loop without values");
+            my_assert(loop_flg != IN_LOOP_HEAD, "loop without values");
 
             loop_flg = IN_LOOP_HEAD;
-            loop_vars.clear();
+            loop_keys.clear();
+            mapper.clear();
             loop_i = 0;
             my_assert(last_key.empty(), "last key " + last_key + " has not value");
             
-            // may followed by some key names (start with a '_')
+            // "loop_" may followed by some key names (start with a '_')
             string::size_type key_spos(5), key_epos(5);     // start_pos & end_pos
             while (true) {
                 key_spos = line.find_first_not_of(" \t", key_epos);
@@ -199,7 +210,7 @@ void PdCifDataSet::load_data()
                 key_epos = line.find_first_of(" \t", key_spos);
                 string key_name = line.substr(key_spos + 1, key_epos - key_spos - 1);
                 my_assert(!key_name.empty(), "key_name empty followed by 'loop_'");
-                loop_vars.push_back(key_name);
+                loop_keys.push_back(key_name);
             }
             
         } else {    // should be values
@@ -211,8 +222,7 @@ void PdCifDataSet::load_data()
             switch (loop_flg) {
             case OUT_OF_LOOP:
                 my_assert(!last_key.empty(), "unexpected value without key_name");
-                my_assert(values.size() == 1, "");
-//                my_assert(values.size() != 0, "");
+                my_assert(1 == values.size(), "");
                 add_key_val(p_rg, last_key, values[0]);
                 last_key = "";
                 break;
@@ -222,38 +232,64 @@ void PdCifDataSet::load_data()
                 // NOTE: no break here
 
             case IN_LOOP_BODY:
-                my_assert(loop_vars.size() != 0, "no loop variables given");
+                my_assert(loop_keys.size() != 0, "no loop keys given");
 
                 for (unsigned i = 0; i < values.size(); ++i) {
-                    string key = loop_vars[loop_i] + "#" + S(loop_i);
-                    add_key_val(p_rg, key, S(values[i]));
-    				
-    				if (loop_vars[loop_i] == "pd_meas_intensity_total") {
-    					my_assert(p_rg->get_x_step() != 0, "x_step has not been read in");
+                    string key = loop_keys[loop_i];
+
+                    if (get_array_idx(valued_keys, VALUED_KEYS_NUM, key) != -1) {
+                        // this is a point can be used as X or Y
+
+                        VecColumn *p_col = get_col_ptr(p_rg, key, mapper);
 
                         // this value may followed by measuring-uncertainty in "()"
-                        string val = values[i].substr(0, values[i].find("("));
-    					p_rg->add_y(my_strtod(val));
-    				}
+                        string::size_type spos = values[i].find("(");    // start pos of uncertainty
+                        string::size_type epos = values[i].find(")");    // end pos of uncertainty
+                        string val;
 
-    				loop_i = (loop_i + 1) % loop_vars.size();
+                        if (spos != string::npos) {
+                            my_assert(epos != string::npos, "'(' does not have a matching ')'");
+
+                            // this column also has an uncertainty column 
+                            // we store these data in a VecColumn named $key_uncertainty
+                            string key_uncty = key + "_uncertainty";
+                            VecColumn *p_uncty_col = get_col_ptr(p_rg, key_uncty, mapper);
+
+                            string val_uncty = values[i].substr(spos + 1, epos - spos);
+                            p_uncty_col->add_val(my_strtod(val_uncty));
+
+                            val = values[i].substr(0, spos);
+                        } else {
+                            val = values[i];
+                        }
+
+                        p_col->add_val(my_strtod(val)); // add the value without uncertainty
+                    } else {
+                        string my_key = key + "#" + S(loop_i);
+                        add_key_val(p_rg, my_key, S(values[i]));
+                    }
+
+                    loop_i = (loop_i + 1) % loop_keys.size();
                 }
                 break;
                 
             default:    
                 break;
             }
-
         }
     }
 
-    if ((p_rg != NULL) && (p_rg->get_pt_count() > 0)) {
-        ranges.push_back(p_rg);
+    if ((p_rg != NULL) && (p_rg->get_column_cnt() > 0)) {
+        add_range(p_rg);
         p_rg = NULL;
     }
 }
 
 
+// get all "values" (in the key-value pair) from f. 
+// line: already read in line at caller place
+// values: ref of vector to hold the values
+// NOTE: multi-range value starts with a ';' will be read in until its end
 void PdCifDataSet::get_all_values(const string &line, istream &f, vector<string> &values) 
 {
     if (str_startwith(line, ";")) {      // multi-lined value
@@ -297,8 +333,9 @@ void PdCifDataSet::get_all_values(const string &line, istream &f, vector<string>
 }
 
 
+// add the "key-val" as a meta to p_rg
 // return: true if meta-info is added successfully, false otherwise
-bool PdCifDataSet::add_key_val(FixedStepRange *p_rg, const string &key, const string &val)
+bool PdCifDataSet::add_key_val(Range *p_rg, const string &key, const string &val)
 {
     string k = str_trim(key);
     string v = str_trim(val);
@@ -323,6 +360,57 @@ bool PdCifDataSet::add_key_val(FixedStepRange *p_rg, const string &key, const st
     }
 
     return p_rg->add_meta(k, v);
+}
+
+
+// find step columns in p_rg, add p_rg to ranges
+void PdCifDataSet::add_range(Range* p_rg)
+{
+    static const string x_names[] = {"pd_meas_2theta_range_min", "pd_proc_2theta_range_min"};
+    static const string x_start_keys[] = {"pd_meas_2theta_range_min", "pd_proc_2theta_range_min"};
+    static const string x_step_keys[] = {"pd measurement 2theta", "pd processed 2theta"};
+    static const int X_NUM = sizeof(x_names) / sizeof(string);
+
+    for (int i = 0; i < X_NUM; ++i) {
+        if (p_rg->has_meta_key(x_start_keys[i]) && 
+            p_rg->has_meta_key(x_step_keys[i])) {
+            double start_2theta = my_strtod(p_rg->get_meta(x_start_keys[i]));
+            my_assert((-180.0 <= start_2theta) && (start_2theta <= 360.0), 
+                "measurement_2theta_range_min should be between -180 and 360");
+            double step_2theta = my_strtod(p_rg->get_meta(x_step_keys[i]));
+            
+            Column *p_meas_2theta = new StepColumn(start_2theta, step_2theta);
+            my_assert(p_meas_2theta != NULL, "no memory to allocate");
+            p_meas_2theta->set_name(x_names[i]);
+
+            p_rg->add_column(p_meas_2theta, Range::CT_X);
+        }
+    }
+   
+    ranges.push_back(p_rg);
+}
+
+
+// get the VecColumn ptr whose name is "name". 
+// mapping info is stored in "map"
+// NOTE: if no VecColumn in map matches "name", a new vecColumn is created
+VecColumn* PdCifDataSet::get_col_ptr(Range *p_rg, const string name, map<string, VecColumn*>& mapper)
+{
+    VecColumn *p_col;
+    map<string, VecColumn*>::const_iterator it = mapper.find(name);
+    if (mapper.end() == it) {
+        p_col = new VecColumn;
+        my_assert(p_col != NULL, "no memory to allocate");
+        p_col->set_name(name);
+        p_rg->add_column(p_col);
+        pair<map<string, VecColumn*>::iterator, bool> ret = 
+            mapper.insert(make_pair(name, p_col));
+        my_assert(ret.second, "mapper insertion failed");
+    } else {
+        p_col = mapper.find(name)->second;
+    }
+
+    return  p_col;
 }
 
 } // end of namespace xylib

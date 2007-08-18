@@ -10,7 +10,7 @@ FORMAT DESCRIPTION:
 Data format used in Philips X-ray diffractors.
 
 ///////////////////////////////////////////////////////////////////////////////
-    * Name in progam:   philipse_udf	
+    * Name in progam:   philipse_udf    
     * Extension name:   udf
     * Binary/Text:      text
     * Multi-ranged:     N
@@ -64,7 +64,7 @@ bool UdfDataSet::check (istream &f)
     f.clear();
     string head = read_string(f, 11);
     if(f.rdstate() & ios::failbit) {
-        throw XY_Error("error when reading file head");
+        return false;
     }
 
     f.seekg(0);
@@ -72,31 +72,45 @@ bool UdfDataSet::check (istream &f)
 }
 
 
-void UdfDataSet::load_data() 
+void UdfDataSet::load_data(std::istream &f) 
 {
     if (!check(f)) {
         throw XY_Error("file is not the expected " + get_filetype() + " format");
     }
+    clear();
 
     double x_start(0), x_step(0);
     string key, val;
-    FixedStepRange *p_rg = new FixedStepRange;
+
+    // UDF format has only one range with fixed-step X, so create them here
+    StepColumn *p_xcol = new StepColumn;
+    my_assert(p_xcol != NULL, "no memory to allocate");
+    p_xcol->set_name("data angle");
+
+    VecColumn *p_ycol = new VecColumn;
+    my_assert(p_ycol != NULL, "no memory to allocate");
+    p_ycol->set_name("raw scan");
+    
+    Range *p_rg = new Range;
+    my_assert(p_rg != NULL, "no memory to allocate");
+    p_rg->add_column(p_xcol, Range::CT_X);
+    p_rg->add_column(p_ycol, Range::CT_Y);
     
     while(true) {
         get_key_val(f, key, val);
         if ("RawScan" == key) {
             break;      // indicates XY data start
         } else if ("DataAngleRange" == key) {
-            // both start and end are given, separated with ','
+            // both start and end value should be given, separated with ','
             string::size_type pos = val.find_first_of(",");
             x_start = my_strtod(val.substr(0, pos));
-            p_rg->set_x_start(x_start);
+            p_xcol->set_start(x_start);
         } else if ("ScanStepSize" == key) {
             x_step = my_strtod(val);
-            p_rg->set_x_step(x_step);
+            p_xcol->set_step(x_step);
+        } else {
+            p_rg->add_meta(key, val);
         }
-
-        p_rg->add_meta(key, val);
     }
 
     string line;
@@ -120,7 +134,7 @@ void UdfDataSet::load_data()
         istringstream ss(line);
         double d;
         while (ss >> d) {
-            p_rg->add_y(d);
+            p_ycol->add_val(d);
         }
     }
 
@@ -136,13 +150,12 @@ void UdfDataSet::get_key_val(istream &f, string &key, string &val)
     if (string::npos == pos1) {
         key = str_trim(line);
         val = "";
-        return;
     } else {
         string::size_type pos2 = line.rfind(',');
-        if (string::npos == pos2) {
-            // it's impossible that there is only one ',' in a key-val line
-            throw XY_Error("file is corrupt");
-        }
+
+        // it's impossible that there is only one ',' in a key-val line
+        my_assert(pos2 != string::npos, "file is corrupt");
+        
         key = str_trim(line.substr(0, pos1));
         val = str_trim(line.substr(pos1 + 1, pos2 - pos1 - 1));
     }

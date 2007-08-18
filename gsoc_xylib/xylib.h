@@ -7,11 +7,9 @@
 #ifndef XYLIB__API__H__
 #define XYLIB__API__H__
 
-
 #ifndef __cplusplus
 #error "This library does not have C API."
 #endif
-
 
 #include <string>
 #include <vector>
@@ -19,7 +17,7 @@
 #include <stdexcept>
 #include <fstream>
 #include <iomanip>
-
+#include <limits>
 
 namespace xylib
 {
@@ -46,16 +44,17 @@ enum xy_ftype {
 struct FormatInfo
 {
     xy_ftype ftype;
-    std::string name;    // short name, can be used in filter of open-file dialog
+    std::string name;    // short name, can be used in dialog filter
     std::string desc;    // full format name
     std::vector<std::string> exts;
     bool binary;
     bool multi_range;
 
-    FormatInfo(const xy_ftype &ftype_, const std::string &name_, const std::string &desc_, 
-        const std::vector<std::string> &exts_, bool binary_, bool multi_range_)
-        : ftype(ftype_), name(name_), desc(desc_), exts(exts_), binary(binary_), 
-          multi_range(multi_range_) {}
+    FormatInfo(const xy_ftype &ftype_, const std::string &name_, 
+        const std::string &desc_, const std::vector<std::string> &exts_, 
+        bool binary_, bool multi_range_)
+        : ftype(ftype_), name(name_), desc(desc_), exts(exts_), 
+          binary(binary_), multi_range(multi_range_) {}
 
     bool has_extension(const std::string &ext); // case insensitive
 };
@@ -73,88 +72,135 @@ public:
 
 
 //////////////////////////////////////////////////////////////////////////
+// abstract base class for a column
+class Column
+{
+    // WinspecSpeDataSet need to set fixed_step;
+    friend class WinspecSpeDataSet;
+public:
+    Column(bool fixed_step_ = false) : fixed_step(fixed_step_) {}
+    virtual ~Column() {}
+
+    virtual unsigned get_pt_cnt() const = 0;
+    virtual double get_val(unsigned n) const = 0; 
+    bool is_fixed_step() const { return fixed_step; }
+    
+    std::string get_name() const { return name; }
+    void set_name(std::string name_) { name = name_; }
+    
+protected:
+    bool fixed_step;
+    bool stddev_exist;
+    std::string name;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+// column uses vector<double> to represent the data 
+class VecColumn : public Column
+{
+public:
+    VecColumn(bool fixed_step_ = false) : Column(fixed_step_) {}
+    
+    // implementation of the base interface 
+    unsigned get_pt_cnt() const { return dat.size(); }
+    double get_val (unsigned n) const;
+
+    void add_val(double val) { dat.push_back(val); }
+    
+protected:
+    std::vector<double> dat; 
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+// column of fixed-step data 
+class StepColumn : public Column
+{
+public:
+    StepColumn(double start_ = 0, double step_ = 0, 
+        unsigned count_ = std::numeric_limits<unsigned>::max()) 
+        : Column(true), start(start_), step(step_), count(count_) 
+    {}
+
+    // implementation of the base interface
+    unsigned get_pt_cnt() const { return (0 == step) ? 0 : count; }
+    double get_val(unsigned n) const;
+    
+    double get_start() const { return start; } 
+    double get_step() const { return step; }
+
+    void set_start(double start_) { start = start_; }
+    void set_step(double step_) { step = step_; }
+    void set_count(unsigned count_) { count = count_; }
+    
+protected:
+    double start, step;
+    unsigned count;
+};
+
+
+
+//////////////////////////////////////////////////////////////////////////
 // The class for holding a range/block of x-y data
 class Range
 {
 public:
-    Range(bool fixed_step_ = false) : fixed_step(fixed_step_) {} 
-    virtual ~Range() {};
+    enum col_type {CT_X, CT_Y, CT_STDDEV, CT_UNDEF};
+    
+    Range() : column_x(0), column_y(1), column_stddev(-1) {}
+    virtual ~Range();
 
     ////////////////////////////////////////////////////////////////////////////////// 
     // reading functions
 
-    // use y to get the size, because in the fixed-step case x is not used
-    unsigned get_pt_count() const { return y.size(); }
-
-    // n must be a valid index, zero-based
-    virtual double get_x(unsigned n) const;
+    // std. dev. is optional
+    bool has_stddev() const { return (column_stddev != -1); }
+    double get_stddev(unsigned n) const;
+    double get_x(unsigned n) const;
     double get_y(unsigned n) const; 
 
-    // whether this range of data has a "fixed step"
-    bool has_fixed_step() { return fixed_step; }
+    unsigned get_pt_cnt() const;          // rows of the columns
+    unsigned get_column_cnt() const { return cols.size(); }
+    const Column& get_column(unsigned n) const;
+//    int get_col_idx(const std::string &name) const;
 
-    // std. dev. is optional
-    virtual bool has_y_stddev(unsigned n) const;
-    virtual double get_y_stddev(unsigned n) const;
-
+    int get_column_x() const { return column_x; }              // defaults to 0 
+    int get_column_y() const { return column_y; }              // defaults to 1
+    int get_column_stddev() const { return column_stddev; }   // defaults to -1
+    
+    void set_column_x(unsigned n);
+    void set_column_y(unsigned n);
+    void set_column_stddev(unsigned n);
+    
     // basic support for range-level meta-data
     bool has_meta_key(const std::string &key) const;
     bool has_meta() const { return (0 != meta_map.size()); }
     std::vector<std::string> get_all_meta_keys() const;
     const std::string& get_meta(std::string const& key) const; 
     
-    // add a <key, val> pair of meta-data to DataSet
-    bool add_meta(const std::string &key, const std::string &val);
-
     void export_xy_file(const std::string &fname) const;
     void export_xy_file(std::ofstream &of) const;
 
     //////////////////////////////////////////////////////////////////////////////////
-    // writing functions    
-    virtual void add_pt(double x_, double py_, double stddev); 
-    virtual void add_pt(double x_, double py_); 
+    // writing functions, only called inside xylib
 
-protected:
-    bool fixed_step;
-    std::vector<double> x;
-    std::vector<double> y;
-    std::vector<double> y_stddev;
-    std::vector<bool> y_has_stddev;
-    std::map<std::string, std::string> meta_map;
-
-    void check_idx(unsigned n, const std::string &name) const;
-};
-
-
-class FixedStepRange : public Range 
-{
-public:
-    FixedStepRange(double x_start_ = 0, double x_step_ = 0) 
-        : Range(true), x_start(x_start_), x_step(x_step_)
-    {}
-    virtual ~FixedStepRange() {}
-
-    double get_x_start() const { return x_start; }
-    double get_x_step() const { return x_step; }
-    double get_x(unsigned n) const { check_idx(n, "point_x"); return x_start + n * x_step; }
-
-    void add_y(double y_); 
-    void add_y(double y_, double stddev_); 
+    // add a <key, val> pair of meta-data to DataSet
+    bool add_meta(const std::string &key, const std::string &val);
+    void add_column(Column *p_col, col_type type = CT_UNDEF);
     
-    void set_x_step(double x_step_) { x_step = x_step_; }
-    void set_x_start(double x_start_) { x_start = x_start_; }
-
 protected:
-    double x_start, x_step;
-};  // end of FixedStepDataSet
+    std::map<std::string, std::string> meta_map;
+    std::vector<Column*> cols;
+    int column_x, column_y, column_stddev;
+};
 
 
 // abstract base class for x-y data in one file, may consist of one or more range(s) of x-y data
 class DataSet
 {
 public:
-    DataSet(std::istream &is_, xy_ftype ftype_) : f(is_), ftype(ftype_) {}
-    
+    DataSet(xy_ftype ftype_) : ftype(ftype_) {}
     virtual ~DataSet();
 
     // access the ranges in this file
@@ -173,15 +219,15 @@ public:
     const std::string& get_meta(std::string const& key) const; 
 
     // input/output data from/to file
-    virtual void load_data() = 0;
-    virtual void export_xy_file(const std::string &fname, 
+    virtual void load_data(std::istream &f) = 0;
+    void clear();
+    void export_xy_file(const std::string &fname, 
         bool with_meta = true, const std::string &cmt_str = ";") const; 
 
     // add a <key, val> pair of meta-data to DataSet
     bool add_meta(const std::string &key, const std::string &val);
 
 protected:
-    std::istream &f;
     xy_ftype ftype;
     std::vector<Range*> ranges;     // use "Range*" to support polymorphism
     std::map<std::string, std::string> meta_map;
@@ -194,8 +240,8 @@ enum line_type { LT_COMMENT, LT_KEYVALUE, LT_EMPTY, LT_XYDATA, LT_UNKNOWN };
 class UxdLikeDataSet : public DataSet
 {
     public:
-        UxdLikeDataSet(std::istream& is, xy_ftype filetype)
-            :  DataSet(is, filetype), meta_sep("=:"), 
+        UxdLikeDataSet(xy_ftype filetype)
+            :  DataSet(filetype), meta_sep("=:"), 
             data_sep(", ;"), cmt_start(";#") {}
 
     protected:
@@ -203,7 +249,7 @@ class UxdLikeDataSet : public DataSet
         bool skip_invalid_lines(std::istream &f);
 
         // elements that only owned by UxdLikeDataSet
-        std::string rg_start_tag;       // first tag in a range
+        std::string rg_start_tag;        // starting tag in a range
         std::string x_start_key;
         std::string x_step_key;
         std::string meta_sep;            // separator chars between key & value
@@ -231,14 +277,14 @@ template <typename T>
 void output_meta(std::ostream &os, T *pds, const std::string &cmt_str)
 {
     using namespace std;
-	if(pds->has_meta()){
-		os << cmt_str << "meta-key" << "\t" << "meta_val" << endl;
-		vector<string> meta_keys = pds->get_all_meta_keys();
-		vector<string>::iterator it = meta_keys.begin();
-		for(; it != meta_keys.end(); ++it){
-			os << cmt_str << *it << ":\t" << pds->get_meta(*it) << endl;
-		}
-	}
+    if(pds->has_meta()){
+        os << cmt_str << "meta-key" << "\t" << "meta_val" << endl;
+        vector<string> meta_keys = pds->get_all_meta_keys();
+        vector<string>::iterator it = meta_keys.begin();
+        for(; it != meta_keys.end(); ++it){
+            os << cmt_str << *it << ":\t" << pds->get_meta(*it) << endl;
+        }
+    }
 }
 
 

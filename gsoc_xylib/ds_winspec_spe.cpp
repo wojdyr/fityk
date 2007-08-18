@@ -79,11 +79,13 @@ bool WinspecSpeDataSet::check(istream &f) {
     return true;
 }
 
-void WinspecSpeDataSet::load_data() 
+
+void WinspecSpeDataSet::load_data(std::istream &f) 
 {
     if (!check(f)) {
         throw XY_Error("file is not the expected " + get_filetype() + " format");
     }
+    clear();
 
     // only read necessary params from file header
     f.ignore(42);
@@ -98,8 +100,8 @@ void WinspecSpeDataSet::load_data()
     
     spe_calib x_calib, y_calib;
     f.ignore(1550);     // move ptr to x_calib start
-    read_calib(x_calib);
-    read_calib(y_calib);
+    read_calib(f, x_calib);
+    read_calib(f, y_calib);
 
     int dim;
     spe_calib *calib;
@@ -115,7 +117,20 @@ void WinspecSpeDataSet::load_data()
 
     f.ignore(122);      // move ptr to frames-start
     for (unsigned frm = 0; frm < num_frames; ++frm) {
+        VecColumn *p_xcol = new VecColumn;
+        my_assert(p_xcol != NULL, "no memory to allocate");
+        if ((1 == calib->polynom_order) || (!calib->calib_valid)) {
+            // it's linear, so step is fixed
+            p_xcol->fixed_step = true;
+        }
+
+        VecColumn *p_ycol = new VecColumn;
+        my_assert(p_ycol != NULL, "no memory to allocate");
+    
         Range *p_rg = new Range;
+        my_assert(p_rg != NULL, "no memory to allocate");
+        p_rg->add_column(p_xcol, Range::CT_X);
+        p_rg->add_column(p_ycol, Range::CT_Y);
         
         for (int pt = 0; pt < dim; ++pt) {
             double x = idx_to_calib_val(pt, calib);
@@ -136,8 +151,9 @@ void WinspecSpeDataSet::load_data()
             default:
                 break;
             }
-            
-            p_rg->add_pt(x, y);
+
+            p_xcol->add_val(x);
+            p_ycol->add_val(x);
         }
         
         ranges.push_back(p_rg);
@@ -153,28 +169,27 @@ double WinspecSpeDataSet::idx_to_calib_val(int idx, const spe_calib *calib)
 {
     double re = 0;
 
-	// Sanity checks
+    // Sanity checks
     if (!calib) {
         throw XY_Error("invalid calib structure");
     }
-	
-	if (calib->polynom_order > 6) {
-        throw XY_Error("bad polynom header found");
-	}
-	if (!calib->calib_valid) {
-	    return idx;	    // if invalid, use idx as X instead
-	}
+    
+    my_assert(calib->polynom_order <= 6, "bad polynom header found");
 
-	for (int i = 0; i <= calib->polynom_order; ++i) {
+    if (!calib->calib_valid) {
+        return idx;        // if invalid, use idx as X instead
+    }
+
+    for (int i = 0; i <= calib->polynom_order; ++i) {
         re += calib->polynom_coeff[i] * pow(double(idx + 1), double(i));
-	}
+    }
 
-	return re;
+    return re;
 }
 
 
 // read some fields of calib. 'offset' is the offset of the structure in file
-void WinspecSpeDataSet::read_calib(spe_calib &calib)
+void WinspecSpeDataSet::read_calib(istream &f, spe_calib &calib)
 {
     f.ignore(98);
     my_read(f, &calib.calib_valid, 1);

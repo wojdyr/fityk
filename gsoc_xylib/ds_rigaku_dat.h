@@ -8,29 +8,17 @@
 
 
 namespace xylib {
-    class RigakuDataSet : public UxdLikeDataSet
+    class RigakuDataSet : public DataSet
     {
     public:
-        RigakuDataSet(std::istream &is)
-            : UxdLikeDataSet(is, FT_RIGAKU)
-        {
-            rg_start_tag = "*BEGIN";
-            x_start_key = "*START";
-            x_step_key = "*STEP";
-            meta_sep = "=";
-            data_sep = ", ";
-            cmt_start = ";#";
-        }
-
+        RigakuDataSet()
+            : DataSet(FT_RIGAKU) {}
+        
         // implement the interfaces specified by DataSet
-        void load_data();
-
+        void load_data(std::istream &f);
         static bool check(std::istream &f);
-
         const static FormatInfo fmt_info;
 
-    protected:
-        void parse_range(FixedStepRange* p_rg);
     }; 
 }
 #endif // #ifndef RIGAKU_DATASET

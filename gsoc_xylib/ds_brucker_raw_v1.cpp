@@ -63,9 +63,16 @@ bool BruckerV1RawDataSet::check(istream &f)
 {
     // the first 3 letters must be "RAW"
     f.clear();
-    string head = read_string(f, 4);
+
+    string head;
+    try {
+        head = read_string(f, 4);
+    } catch (...) {
+        return false;
+    }
+    
     if(f.rdstate() & ios::failbit) {
-        throw XY_Error("error when reading file head");
+        return false;
     }
 
     f.seekg(0);     // reset the istream, as if no lines have been read
@@ -73,26 +80,29 @@ bool BruckerV1RawDataSet::check(istream &f)
 }
 
 
-void BruckerV1RawDataSet::load_data() 
+void BruckerV1RawDataSet::load_data(std::istream &f) 
 {
     if (!check(f)) {
         throw XY_Error("file is not the expected " + get_filetype() + " format");
     }
+    clear();
 
     unsigned following_range;
     
     do {
-        FixedStepRange* p_rg = new FixedStepRange;
+        Range* p_rg = new Range;
+        my_assert(p_rg != NULL, "no memory to allocate");
     
-        f.ignore(4);    
+        f.ignore(4);
         unsigned cur_range_steps = read_uint32_le(f);  
         p_rg->add_meta("MEASUREMENT_TIME_PER_STEP", S(read_flt_le(f)));
         float x_step = read_flt_le(f); 
-        p_rg->set_x_step(x_step);
         p_rg->add_meta("SCAN_MODE", S(read_uint32_le(f)));
         f.ignore(4); 
         float x_start = read_flt_le(f);
-        p_rg->set_x_start(x_start);
+
+        StepColumn *p_xcol = new StepColumn(x_start, x_step);
+        my_assert(p_xcol != NULL, "no memory to allocate");
         
         float t = read_flt_le(f);
         if (-1e6 != t)
@@ -111,12 +121,17 @@ void BruckerV1RawDataSet::load_data()
         p_rg->add_meta("K_ALPHA2", S(read_flt_le(f)));
 
         f.ignore(72);   // unused fields
-
         following_range = read_uint32_le(f);
+        
+        VecColumn *p_ycol = new VecColumn();
+        my_assert(p_ycol != NULL, "no memory to allocate");
         for(unsigned i = 0; i < cur_range_steps; ++i) {
             float y = read_flt_le(f);
-            p_rg->add_y(y);
+            p_ycol->add_val(y);
         }
+        p_rg->add_column(p_xcol, Range::CT_X);
+        p_rg->add_column(p_ycol, Range::CT_Y);
+        
         ranges.push_back(p_rg);
     } while (following_range > 0);
 }

@@ -31,11 +31,12 @@ namespace util
     void le_to_host_8(void *p);
 
     std::string str_trim(const std::string &str, std::string ws = " \r\n\t");
-    void parse_line(const std::string &line, const std::string &sep, 
-        std::string &key, std::string &val);
+    void parse_line(const std::string &line, std::string &key, std::string &val, 
+        const std::string &sep = ",:=");
     bool str_startwith(const std::string &str_src, const std::string &ss);
     std::string str_tolower(const std::string &str);
 
+    void get_all_numbers(std::string &line, std::vector<double>& result_numbers);
     int read_line_and_get_all_numbers(std::istream &is, 
         std::vector<double>& result_numbers);
 
@@ -57,6 +58,8 @@ namespace util
         const std::string &find_str);
 
     void my_assert(int condition, const std::string &msg);
+
+    bool start_as_num(const std::string& line);
 
 //  not used functions, going to remove
 /*

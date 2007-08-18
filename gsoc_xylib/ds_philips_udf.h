@@ -11,11 +11,11 @@ namespace xylib {
     class UdfDataSet : public DataSet
     {
     public:
-        UdfDataSet(std::istream &is)
-            : DataSet(is, FT_UDF) {}
+        UdfDataSet()
+            : DataSet(FT_UDF) {}
 
         // implement the interfaces specified by DataSet
-        void load_data();
+        void load_data(std::istream &f);
 
         static bool check(std::istream &f);
 

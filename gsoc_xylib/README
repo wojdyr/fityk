@@ -19,12 +19,12 @@ SUPPORTED FORMATS
 ============
 This is only a short list of all supported formats. For more info about the format, see "FORMAT DESCRIPTION" section in ds_XXX.cpp files.
 
-X-Y plain text format:  										.txt, .asc, .dat
+X-Y plain text format:  										.txt, .asc, .dat, .csv
 Siemens/Bruker uxd:     										.uxd
 Diffrac-AT raw v1/2/3:  										.raw
 Philips UDF Format:     										.udf
 Rigaku Dat Format:      										.dat
-Vamas ISO14976:         										.vms	(DOES NOT support mapping mode, where experiment mode is "SEM" or "MAPSV" or "MAPSVDP")
+Vamas ISO14976:         										.vms	(The experiment mode must not be "SEM" or "MAPSV" or "MAPSVDP", and so far only "REGULAR" scan_mode can be used to get X-Y data, "IREGULAR" and "MAPPING" scan_mode are supported to read in meta-info)
 Princeton Instruments WinSpec SPE Format:						.spe 	(ONLY support 1-D)
 Crystallographic Information File for Powder Diffraction:		.cif
 

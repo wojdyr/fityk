@@ -78,8 +78,9 @@ bool UxdDataSet::check(istream &f) {
     return str_startwith(line, "_FILEVERSION");
 }
 
-void UxdDataSet::load_data() 
+void UxdDataSet::load_data(std::istream &f) 
 {
+/*
     if (!check(f)) {
         throw XY_Error("file is not the expected " + get_filetype() + " format");
     }
@@ -110,16 +111,18 @@ void UxdDataSet::load_data()
 
     // handle ranges
     while (!f.eof()) {
-        FixedStepRange *p_rg = new FixedStepRange;
+        Range *p_rg = new Range;
         parse_range(p_rg);
         ranges.push_back(p_rg);
     } 
+*/
 }
 
 
 // parse a single range of the file
-void UxdDataSet::parse_range(FixedStepRange *p_rg)
+void UxdDataSet::parse_range(Range *p_rg)
 {
+/*
     string line;
     // get range-scope meta-info
     while (true) {
@@ -174,6 +177,7 @@ void UxdDataSet::parse_range(FixedStepRange *p_rg)
             p_rg->add_y(d);
         }
     }
+*/
 }
 
 } // end of namespace xylib
