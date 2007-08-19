@@ -1,3 +1,11 @@
+20:13 2007-8-19 GMT+8 version 337
+* Removed all non-NULL assertions after new()
+* Re-wrote the Implementation of UxdDataSet, rmoved the UxdLikeDataSet class
+* Found some new sample files (raw_v2, udf, uxd, pdCIF) to test the existing code. Fixed bugs to process pdCIF files.
+* Added support to the Philips Raw Scan format (.RD).
+* Some other trivial changes, such as changing to use fmt_info.ftype in the Ctor, etc
+* Added the LGPL 2.1 text file as COPYING
+
 9:47 2007-8-18 GMT+8 version 335
 * Changed to use Class Column to represent a 1-D data
 * If SPE is linear,  set fixed_step = true
@@ -20,8 +28,8 @@
 * Updated README to explicitly give some restrictions of supported formats (VAMAS and WinSpec)
 * DataSet and all derived classes have only one Ctor, accepting "istream&" argument only
 * Removed XXXDataSet::init() & is_filetype. Type checking is moved to the static check() member function
-* Other slight  changes, such as updating comments, moving "include "util.h" from xxxDataSet.h to .cpp files, changing to use ifstream& instead of ifstream* inside DataSet.
-* Added some handling to avoid raw_v2v3 be mistaken as raw_v1, rigaku_dat as text.
+* Other slight  changes, such as updating comments, moving 'include "util.h"' from xxxDataSet.h to .cpp files, changing to use ifstream& instead of ifstream* inside DataSet.
+* Added some handling statements to avoid raw_v2v3 be mistaken as raw_v1, rigaku_dat as text.
 
 21:34 2007-8-5 GMT+8 version 328
 * Some bugs fixed

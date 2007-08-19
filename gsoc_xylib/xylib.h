@@ -36,6 +36,7 @@ enum xy_ftype {
     FT_UDF,
     FT_SPE,
     FT_PDCIF,
+    FT_PHILIPS_RD,
     FT_NUM,     // always at bottom to get the number of the types
 };
 
@@ -78,7 +79,7 @@ class Column
     // WinspecSpeDataSet need to set fixed_step;
     friend class WinspecSpeDataSet;
 public:
-    Column(bool fixed_step_ = false) : fixed_step(fixed_step_) {}
+    Column(bool fixed_step_ = false) : fixed_step(fixed_step_), stddev_exist(false) {}
     virtual ~Column() {}
 
     virtual unsigned get_pt_cnt() const = 0;
@@ -232,30 +233,6 @@ protected:
     std::vector<Range*> ranges;     // use "Range*" to support polymorphism
     std::map<std::string, std::string> meta_map;
 }; // end of DataSet
-
-
-enum line_type { LT_COMMENT, LT_KEYVALUE, LT_EMPTY, LT_XYDATA, LT_UNKNOWN };
-
-// the generic class to handle all UXD-like dataset
-class UxdLikeDataSet : public DataSet
-{
-    public:
-        UxdLikeDataSet(xy_ftype filetype)
-            :  DataSet(filetype), meta_sep("=:"), 
-            data_sep(", ;"), cmt_start(";#") {}
-
-    protected:
-        line_type get_line_type(const std::string &line);
-        bool skip_invalid_lines(std::istream &f);
-
-        // elements that only owned by UxdLikeDataSet
-        std::string rg_start_tag;        // starting tag in a range
-        std::string x_start_key;
-        std::string x_step_key;
-        std::string meta_sep;            // separator chars between key & value
-        std::string data_sep;            // separator chars between points-data
-        std::string cmt_start;           // start chars of a comment line
-};
 
 
 //////////////////////////////////////////////////////////////////////////

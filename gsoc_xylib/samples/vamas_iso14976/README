@@ -1,18 +1,18 @@
-=======================
+ =======================
 * SAMPLE SOURCE
 =======================
-mjr9_59c.vms
-mjr9_64c.vms
-mjr9_116a.vms
-	These 3 files are from Michael Richardson <michael.richardson@vuw.ac.nz.
+	mjr9_59c.vms
+	mjr9_64c.vms
+	mjr9_116a.vms
+These 3 files are from Michael Richardson <michael.richardson@vuw.ac.nz.
 	
-fomlin_y.vms is got by googling "VAMAS Surface Chemical Analysis Standard Data Transfer Format filetype:vms"
+	fomlin_y.vms 
+is got by googling "VAMAS Surface Chemical Analysis Standard Data Transfer Format filetype:vms"
 
-
-All other files are got from a place I've forgotten, seems a free formats inter-converter's test data.
+	All other files are got from a place I've forgotten, seems a free formats inter-converter's test data.
 The following are the README file along with those sample files.
 
-
+///////////////////////////////////////////////////////
 IMPORTANT: This software has not been fully subjected to NPL's Quality Assurance Procedures.
 No warranty or guarantee applies to this software, and therefore any users should satisfy 
 themselves that it meets their requirements. This software will be provided free of charge, 
@@ -76,4 +76,4 @@ Performing a directory listing of each subdirectory you should see;
 
 ----------------------------
 P J Cumpson, 2nd March 1999
-
+///////////////////////////////////////////////////////

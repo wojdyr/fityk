@@ -81,6 +81,13 @@ source code of script browsecif.tcl in the ciftools_Linux package which can
 be downloaded from:
 http://www.iucr.org/iucr-top/cif/index.html
 
+///////////////////////////////////////////////////////////////////////////////
+    * Known issues:
+There are still some problems when handling some pdCIF files with multiple
+data blocks in a range. 
+Like in NISI.cif, there are 2 data blocks in 1 range, and the counts of the data 
+points are different. This will cause the program to crash. Need be fixed.
+
 */
 
 #include "ds_pdcif.h"
@@ -103,8 +110,22 @@ const FormatInfo PdCifDataSet::fmt_info(
 
 bool PdCifDataSet::check(istream &f) {
     string line;
-    bool ret = get_valid_line(f, line, "#") && str_startwith(line, "data_");
 
+    // the 1st valid line must start with "data_"
+    if (!get_valid_line(f, line, "#") && str_startwith(line, "data_")) {
+        f.seekg(0);
+        return false;
+    }
+
+    // in pdCIF, there must be at least a key whose name starts with "_pd"
+    // avoid mistaking other non-pdCIF CIF files (e.g mmCIF, core CIF) as pdCIF
+    bool ret(false);
+    while (get_valid_line(f, line, "#")) {
+        if (str_startwith(line, "_pd")) {
+            ret = true;
+            break;
+        }
+    }
     f.seekg(0);
     return ret;
 }
@@ -116,7 +137,7 @@ void PdCifDataSet::load_data(std::istream &f)
     }
     clear();
 
-    // names of keys, whose values can be used as X or Y
+    // names of keys, whose values may be used as X or Y
     static const string valued_keys[] = {
         "pd_meas_intensity_total",
         "pd_proc_ls_weight",
@@ -142,6 +163,8 @@ void PdCifDataSet::load_data(std::istream &f)
 
     while (get_valid_line(f, line, "#")) {
         if (str_startwith(line, "data_")) {         // range start
+            loop_flg = OUT_OF_LOOP;
+        
             if ((p_rg != NULL) && (p_rg->get_column_cnt() > 0)) {
                 // save last range
                 add_range(p_rg);
@@ -149,8 +172,6 @@ void PdCifDataSet::load_data(std::istream &f)
             }
 
             p_rg = new Range;
-            my_assert(p_rg != NULL, "no memory to allocate");
-
             if (!add_key_val(p_rg, "name", line.substr(5))) {
                 throw XY_Error("range name empty or already exists");
             }
@@ -162,6 +183,15 @@ void PdCifDataSet::load_data(std::istream &f)
             string::size_type key_epos = line.find_first_of(" \t"); 
             bool followed_by_val = (key_epos != string::npos);
             switch (loop_flg) {
+            case IN_LOOP_HEAD:
+                if (!followed_by_val) {
+                    // names of the keys in the loop
+                    loop_keys.push_back(line.substr(1));
+                    break;
+                } else {
+                    // empty loop body
+                    // NOTE: no break here
+                }
             case IN_LOOP_BODY:
                 loop_flg = OUT_OF_LOOP;
                 // NOTE: no break here
@@ -172,18 +202,10 @@ void PdCifDataSet::load_data(std::istream &f)
                     add_key_val(p_rg, key, val);
                 } else {
                     // val must be in the following valid lines
-                    my_assert(last_key.empty(), "last key " + last_key + " has not value");
                     my_assert(line.size() > 1, "wrong key_name of '_'");
                     last_key = line.substr(1);
                 }
                 break;
-                
-            case IN_LOOP_HEAD:
-                // must not followed by value: key_name only
-                my_assert(!followed_by_val, "in loop head, there must be key_name only");
-                loop_keys.push_back(line.substr(1));
-                break;
-
             default:
                 break;
             }
@@ -196,7 +218,6 @@ void PdCifDataSet::load_data(std::istream &f)
             loop_keys.clear();
             mapper.clear();
             loop_i = 0;
-            my_assert(last_key.empty(), "last key " + last_key + " has not value");
             
             // "loop_" may followed by some key names (start with a '_')
             string::size_type key_spos(5), key_epos(5);     // start_pos & end_pos
@@ -217,12 +238,12 @@ void PdCifDataSet::load_data(std::istream &f)
             my_assert(p_rg != NULL, "values appears before 'data_'");
             vector<string> values;
 
-            get_all_values(line, f, values);
+            get_all_values(line, f, values, loop_flg != OUT_OF_LOOP);
 
             switch (loop_flg) {
             case OUT_OF_LOOP:
                 my_assert(!last_key.empty(), "unexpected value without key_name");
-                my_assert(1 == values.size(), "");
+                my_assert(1 == values.size(), "value.size() != 1");
                 add_key_val(p_rg, last_key, values[0]);
                 last_key = "";
                 break;
@@ -290,7 +311,8 @@ void PdCifDataSet::load_data(std::istream &f)
 // line: already read in line at caller place
 // values: ref of vector to hold the values
 // NOTE: multi-range value starts with a ';' will be read in until its end
-void PdCifDataSet::get_all_values(const string &line, istream &f, vector<string> &values) 
+void PdCifDataSet::get_all_values(const string &line, istream &f, 
+    vector<string> &values, bool in_loop) 
 {
     if (str_startwith(line, ";")) {      // multi-lined value
         string val = line + '\n';
@@ -322,11 +344,11 @@ void PdCifDataSet::get_all_values(const string &line, istream &f, vector<string>
                 ++val_epos;     // val_epos is the first char after the value string
                 break;
             default:
-                val_epos = line.find_first_of(" \t", val_spos);
+                val_epos = in_loop ? line.find_first_of(" \t", val_spos) : string::npos;
                 break;
             }
 
-            string val = line.substr(val_spos, val_epos - val_spos);
+            string val = in_loop ? line.substr(val_spos, val_epos - val_spos) : line.substr(val_spos);
             values.push_back(val);
         }
     }
@@ -366,24 +388,22 @@ bool PdCifDataSet::add_key_val(Range *p_rg, const string &key, const string &val
 // find step columns in p_rg, add p_rg to ranges
 void PdCifDataSet::add_range(Range* p_rg)
 {
-    static const string x_names[] = {"pd_meas_2theta_range_min", "pd_proc_2theta_range_min"};
+    // add the columns implied in the meta-keys
+    static const string x_names[] = {"pd measurement 2theta", "pd processed 2theta"};
     static const string x_start_keys[] = {"pd_meas_2theta_range_min", "pd_proc_2theta_range_min"};
-    static const string x_step_keys[] = {"pd measurement 2theta", "pd processed 2theta"};
+    static const string x_step_keys[] = {"pd_meas_2theta_range_inc", "_pd_proc_2theta_range_inc"};
     static const int X_NUM = sizeof(x_names) / sizeof(string);
 
     for (int i = 0; i < X_NUM; ++i) {
         if (p_rg->has_meta_key(x_start_keys[i]) && 
             p_rg->has_meta_key(x_step_keys[i])) {
-            double start_2theta = my_strtod(p_rg->get_meta(x_start_keys[i]));
-            my_assert((-180.0 <= start_2theta) && (start_2theta <= 360.0), 
+            double start_x = my_strtod(p_rg->get_meta(x_start_keys[i]));
+            my_assert((-180.0 <= start_x) && (start_x <= 360.0), 
                 "measurement_2theta_range_min should be between -180 and 360");
-            double step_2theta = my_strtod(p_rg->get_meta(x_step_keys[i]));
-            
-            Column *p_meas_2theta = new StepColumn(start_2theta, step_2theta);
-            my_assert(p_meas_2theta != NULL, "no memory to allocate");
-            p_meas_2theta->set_name(x_names[i]);
-
-            p_rg->add_column(p_meas_2theta, Range::CT_X);
+            double step_x = my_strtod(p_rg->get_meta(x_step_keys[i]));
+            Column *p_x = new StepColumn(start_x, step_x);
+            p_x->set_name(x_names[i]);
+            p_rg->add_column(p_x, Range::CT_X);
         }
     }
    
@@ -400,9 +420,8 @@ VecColumn* PdCifDataSet::get_col_ptr(Range *p_rg, const string name, map<string,
     map<string, VecColumn*>::const_iterator it = mapper.find(name);
     if (mapper.end() == it) {
         p_col = new VecColumn;
-        my_assert(p_col != NULL, "no memory to allocate");
         p_col->set_name(name);
-        p_rg->add_column(p_col);
+        p_rg->add_column(p_col, Range::CT_Y);
         pair<map<string, VecColumn*>::iterator, bool> ret = 
             mapper.insert(make_pair(name, p_col));
         my_assert(ret.second, "mapper insertion failed");

@@ -1,9 +1,37 @@
 =======================
 * SAMPLE SOURCE
 =======================
-QTZQUIN.RAW, 
-CORKLZ20.RAW
+	QTZQUIN.RAW, 
+	CORKLZ20.RAW
 are taken from WinFit sample file.
+NOTE: There are 2 files corklz20.asc and qtzquin.asc in dir "text", which are corresponding plain text file translated from the ".raw" files by WinFit.
 
-The two ".asc" files are corresponding plain text file translated by WinFit. They are the same as the files exported by xylib.
-
+	BAUXITE.RAW
+	BRUCITE.RAW
+	CORUNDUM.RAW
+	CPD-1A.RAW
+	CPD-1B.RAW
+	CPD-1C.RAW
+	CPD-1D.RAW
+	CPD-1E.RAW
+	CPD-1F.RAW
+	CPD-1G.RAW
+	CPD-1H.RAW
+	CPD-2.RAW
+	CPD-3.RAW
+	CPD-4.RAW
+	CPD-Y2O3.RAW
+	FLUORITE.RAW
+	GRANODIO.RAW
+	MAGNETIT.RAW
+	MANNITOL.RAW
+	NIZATIDI.RAW
+	PHARM1GR.RAW
+	PHARM2GR.RAW
+	SILICA.RAW
+	STARCH.RAW
+	SUCROSE.RAW
+	VALINE.RAW
+	ZINCITE.RAW
+	ZIRCON.RAW
+Sample files download from http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/data-kit.htm

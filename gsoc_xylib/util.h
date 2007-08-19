@@ -24,6 +24,7 @@ namespace util
     int read_int16_le(std::istream &f);
     float read_flt_le(std::istream &f);
     double read_dbl_le(std::istream &f);
+    char read_char(std::istream &f);
     std::string read_string(std::istream &f, unsigned len);
 
     void le_to_host_2(void *p);

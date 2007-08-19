@@ -11,7 +11,7 @@ namespace xylib {
     {
     public:
         VamasDataSet()
-            : DataSet(FT_VAMAS), include(40, false) {}
+            : DataSet(fmt_info.ftype), include(40, false) {}
 
         // implement the interfaces specified by DataSet
         void load_data(std::istream &f);

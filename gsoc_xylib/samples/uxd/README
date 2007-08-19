@@ -1,4 +1,19 @@
-sampleX files are downloaded from URL:http://sdpd.univ-lemans.fr/course/week-1/sdpd-1.html
+=======================
+* SAMPLE SOURCE
+=======================
+	sample1.uxd
+	sample2.uxd
+	sample3.uxd
+	sample4.uxd
+	sample5.uxd
+	sample6.uxd
+	synchro.uxd
+These files are downloaded from URL:http://sdpd.univ-lemans.fr/course/week-1/sdpd-1.html
 
-synchro.uxd is from
-http://sdpd.univ-lemans.fr/DU-SDPD/solutions/week-3/soluce3.html
+	synchro.uxd 
+downloaded from http://sdpd.univ-lemans.fr/DU-SDPD/solutions/week-3/soluce3.html
+
+	nist1976.uxd
+	CDLY14F34.UXD
+	CDLY15F2.UXD
+These 3 files are found by googling "filetype:UXD"

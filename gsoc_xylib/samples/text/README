@@ -1,6 +1,9 @@
 =======================
 * SAMPLE SOURCE
 =======================
-xy_text.txt is from fityk's sample files.
-with_sigma.txt is written by myself to test the xy format with sigma value.
+	xy_text.txt is from fityk's sample files.
+	with_sigma.txt is written by myself to test the xy format with sigma value.
 
+	corklz20.asc
+	qtzquin.asc
+These 2 asc files are taken from WinFit sample file. They are corresponding plain text file translated from the ".raw" (in the directory "diffracat_v2v3_raw") files by WinFit.

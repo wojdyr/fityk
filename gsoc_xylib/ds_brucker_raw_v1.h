@@ -13,7 +13,7 @@ namespace xylib {
     {
     public:
         BruckerV1RawDataSet()
-            : DataSet(FT_BR_RAW1) {}
+            : DataSet(fmt_info.ftype) {}
         
         // implement the interfaces specified by DataSet
         void load_data(std::istream &f);

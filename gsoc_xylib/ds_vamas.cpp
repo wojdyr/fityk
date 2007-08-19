@@ -162,13 +162,8 @@ void VamasDataSet::load_data(std::istream &f)
     unsigned blk_cnt = read_line_int(f);
     for (unsigned i = 0; i < blk_cnt; ++i) {
         StepColumn *p_xcol = new StepColumn;
-        my_assert(p_xcol != NULL, "no memory to allocate");
-
         VecColumn *p_ycol = new VecColumn;
-        my_assert(p_ycol != NULL, "no memory to allocate");
-
         Range *p_rg = new Range;
-        my_assert(p_rg != NULL, "no memory to allocate");        
         p_rg->add_column(p_xcol, Range::CT_X);
         p_rg->add_column(p_ycol, Range::CT_Y);
         

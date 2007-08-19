@@ -24,8 +24,10 @@ Siemens/Bruker uxd:     										.uxd
 Diffrac-AT raw v1/2/3:  										.raw
 Philips UDF Format:     										.udf
 Rigaku Dat Format:      										.dat
-Vamas ISO14976:         										.vms	(The experiment mode must not be "SEM" or "MAPSV" or "MAPSVDP", and so far only "REGULAR" scan_mode can be used to get X-Y data, "IREGULAR" and "MAPPING" scan_mode are supported to read in meta-info)
-Princeton Instruments WinSpec SPE Format:						.spe 	(ONLY support 1-D)
+Vamas ISO14976:         										.vms	
+	(The experiment mode must not be "SEM" or "MAPSV" or "MAPSVDP", and so far only "REGULAR" scan_mode can be used to get X-Y data, "IREGULAR" and "MAPPING" scan_mode are supported to read in meta-info)
+Princeton Instruments WinSpec SPE Format:						.spe 	
+	(ONLY support 1-D)
 Crystallographic Information File for Powder Diffraction:		.cif
 
 
@@ -79,4 +81,6 @@ Thanks to Michael Richardson <michael.richardson@vuw.ac.nz>, for his kind help t
 Thanks to David Hovis <dbh6@case.edu>, for sending us a WinSpec file format specification and the sample file.
 Thanks to Pablo Bianucci <pbian@physics.utexas.edu>, for sending us a WinSpec implentation source code and an SPE sample file.
 Thanks to Brian H. Toby <Brian.Toby@anl.gov>, for his useful info and suggestions about the pdCIF format.
+Thanks to Martijn Fransen <martijn.fransen@panalytical.com>, for sending us a very useful specification on Philips raw formats.
 And thanks to all people who have helped me and gave suggestions to the xylib project. 
+

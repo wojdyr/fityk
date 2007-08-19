@@ -59,6 +59,7 @@ const FormatInfo UdfDataSet::fmt_info(
     false                        // whether multi-ranged
 );
 
+
 bool UdfDataSet::check (istream &f)
 {
     f.clear();
@@ -84,15 +85,12 @@ void UdfDataSet::load_data(std::istream &f)
 
     // UDF format has only one range with fixed-step X, so create them here
     StepColumn *p_xcol = new StepColumn;
-    my_assert(p_xcol != NULL, "no memory to allocate");
     p_xcol->set_name("data angle");
 
     VecColumn *p_ycol = new VecColumn;
-    my_assert(p_ycol != NULL, "no memory to allocate");
     p_ycol->set_name("raw scan");
-    
+
     Range *p_rg = new Range;
-    my_assert(p_rg != NULL, "no memory to allocate");
     p_rg->add_column(p_xcol, Range::CT_X);
     p_rg->add_column(p_ycol, Range::CT_Y);
     
@@ -101,7 +99,7 @@ void UdfDataSet::load_data(std::istream &f)
         if ("RawScan" == key) {
             break;      // indicates XY data start
         } else if ("DataAngleRange" == key) {
-            // both start and end value should be given, separated with ','
+            // both start and end value are given, separated with ','
             string::size_type pos = val.find_first_of(",");
             x_start = my_strtod(val.substr(0, pos));
             p_xcol->set_start(x_start);

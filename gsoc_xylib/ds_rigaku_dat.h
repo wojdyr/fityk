@@ -12,7 +12,7 @@ namespace xylib {
     {
     public:
         RigakuDataSet()
-            : DataSet(FT_RIGAKU) {}
+            : DataSet(fmt_info.ftype) {}
         
         // implement the interfaces specified by DataSet
         void load_data(std::istream &f);

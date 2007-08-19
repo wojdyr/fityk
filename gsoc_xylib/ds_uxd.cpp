@@ -80,104 +80,87 @@ bool UxdDataSet::check(istream &f) {
 
 void UxdDataSet::load_data(std::istream &f) 
 {
-/*
     if (!check(f)) {
         throw XY_Error("file is not the expected " + get_filetype() + " format");
     }
+    clear();
 
-    string line, key, val;
-    line_type ln_type;
+    // indicate where we are
+    enum {
+        FILE_META,
+        RANGE_META,
+        RANGE_DATA,
+    } pos_flg = FILE_META;
 
-    // file-scope meta-info
-    while (true) {
-        skip_invalid_lines(f);
-        int pos = f.tellg();
-        my_getline(f, line);
-        if (str_startwith(line, rg_start_tag)) {
-            f.seekg(pos);
-            break;
-        }
-        
-        ln_type = get_line_type(line);
-
-        if (LT_KEYVALUE == ln_type) {   // file-level meta key-value line
-            parse_line(line, meta_sep, key, val);
-            key = ('_' == key[0]) ? key.substr(1) : key;
-            add_meta(key, val);
-        } else {                        // unkonw line type
-            continue;
-        }
-    }
-
-    // handle ranges
-    while (!f.eof()) {
-        Range *p_rg = new Range;
-        parse_range(p_rg);
-        ranges.push_back(p_rg);
-    } 
-*/
-}
-
-
-// parse a single range of the file
-void UxdDataSet::parse_range(Range *p_rg)
-{
-/*
+    Range *p_rg = NULL;
+    StepColumn *p_xcol = NULL;
+    VecColumn *p_ycol = NULL;
     string line;
-    // get range-scope meta-info
-    while (true) {
-        skip_invalid_lines(f);
-        int pos = f.tellg();
-        my_getline(f, line);
-        line_type ln_type = get_line_type(line);
-        if (LT_XYDATA == ln_type) {
-            f.seekg(pos);
-            break;
-        }
 
-        if (LT_KEYVALUE == ln_type) {   // range-level meta key-value line
-            string key, val;
-            parse_line(line, meta_sep, key, val);
-            if (key == x_start_key) {
-                p_rg->set_x_start(my_strtod(val));
-            } else if (key == x_step_key) {
-                p_rg->set_x_step(my_strtod(val));
+    while (get_valid_line(f, line, ";")) {
+        if (str_startwith(line, "_DRIVE")) {        // first key in a range, indicates range starts
+            pos_flg = RANGE_META;
+            if (p_rg != NULL) {
+                // save the last unsaved range
+                ranges.push_back(p_rg);
+                p_rg = NULL;
             }
-            key = ('_' == key[0]) ? key.substr(1) : key;
-            p_rg->add_meta(key, val);
-        } else {                        // unkonw line type
-            continue;
-        }
-    }
-
-    // get all x-y data
-    while (true) {
-        if (!skip_invalid_lines(f)) {
-            return;
-        }  
-        int pos = f.tellg();
-        my_getline(f, line, false);
-        line_type ln_type = get_line_type(line);
-        if (str_startwith(line, rg_start_tag)) {
-            f.seekg(pos);
-            return;                     // new range
-        } else if (LT_XYDATA != ln_type) {
-            continue;
-        }
-
-        for (string::iterator i = line.begin(); i != line.end(); ++i) {
-            if (string::npos != data_sep.find(*i)) {
-                *i = ' ';
-            }
-        }
         
-        istringstream q(line);
-        double d;
-        while (q >> d) {
-            p_rg->add_y(d);
+            p_xcol = new StepColumn;
+            p_ycol = new VecColumn;
+            p_rg = new Range;
+            
+            p_rg->add_column(p_xcol, Range::CT_X);
+            p_rg->add_column(p_ycol, Range::CT_Y);
+            
+        } else if (str_startwith(line, "_")) {    // other meta key-value pair. NOTE the order, it must follow other "_XXX" branches
+            string key, val;
+            parse_line(line, key, val, "=");
+            key = key.substr(1);    // rm the leading '_'
+            
+            if ("START" == key) {
+                p_xcol->set_start(my_strtod(val));
+            } else if ("STEPSIZE" == key) {
+                p_xcol->set_step(my_strtod(val));
+            }
+            
+            switch (pos_flg) {
+            case FILE_META:
+                add_meta(key, val);
+                break;
+            case RANGE_META:
+                p_rg->add_meta(key, val);
+                break;
+            case RANGE_DATA:
+                p_rg->add_meta(key, val);
+                break;            
+            default:
+                break;
+            }
+            
+        } else if (start_as_num(line)){            // should be a li  ne of values
+            vector<double> values;
+            get_all_numbers(line, values);
+            
+            for (unsigned i = 0; i < values.size(); ++i) {
+                p_ycol->add_val(values[i]);
+            }
+            
+            if (RANGE_META == pos_flg) {
+                pos_flg = RANGE_DATA;
+            }
+        } else {                 // unknown type of line. it should not appear in a correct file
+            // what should we do here? continue or throw an exception?
+            continue;
         }
     }
-*/
+
+    // add the last range
+    if (p_rg != NULL) {
+        // save the last unsaved range
+        ranges.push_back(p_rg);
+        p_rg = NULL;
+    }
 }
 
 } // end of namespace xylib

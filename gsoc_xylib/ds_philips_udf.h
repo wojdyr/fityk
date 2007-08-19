@@ -12,7 +12,7 @@ namespace xylib {
     {
     public:
         UdfDataSet()
-            : DataSet(FT_UDF) {}
+            : DataSet(fmt_info.ftype) {}
 
         // implement the interfaces specified by DataSet
         void load_data(std::istream &f);

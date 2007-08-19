@@ -15,6 +15,7 @@
 #include "ds_philips_udf.h"
 #include "ds_winspec_spe.h"
 #include "ds_pdcif.h"
+#include "ds_philips_rd.h"
 
 #include <iostream>
 #include <algorithm>
@@ -40,6 +41,7 @@ const FormatInfo *g_fi[] = {
     &UdfDataSet::fmt_info,
     &WinspecSpeDataSet::fmt_info,
     &PdCifDataSet::fmt_info,
+    &PhilipsRdDataSet::fmt_info,
 };
 
 
@@ -263,12 +265,12 @@ void DataSet::export_xy_file(const string &fname,
 {
     unsigned range_num = get_range_cnt();
     ofstream of(fname.c_str());
-    my_assert(of != NULL, "can't create file" + fname);
+    my_assert(of != NULL, "can't create file " + fname);
 
     // output the file-level meta-info
     if (with_meta) {
         of << cmt_str << "exported by xylib from a " << get_filetype() << " file" << endl;
-        of << cmt_str << "total ranges:" << ranges.size() << endl << endl;
+        of << cmt_str << "total ranges: " << ranges.size() << endl << endl;
         output_meta(of, this, cmt_str);
     }
     
@@ -280,8 +282,8 @@ void DataSet::export_xy_file(const string &fname,
                 of << cmt_str;
             }
             of << endl << cmt_str << "* range " << i << endl;
-            output_meta(of, &rg, cmt_str);
             of << cmt_str << "total count: " << rg.get_pt_cnt() << endl << endl;
+            output_meta(of, &rg, cmt_str);
 
             string x_label, y_label, stddev_label;
             try {
@@ -292,7 +294,7 @@ void DataSet::export_xy_file(const string &fname,
                 // this must be a range without any data, move to next range
                 continue;
             }
-            of << cmt_str << "x\t\ty\t\t y_stddev" << endl;
+            of << endl << cmt_str << "x\t\ty\t\t y_stddev" << endl;
             of << cmt_str << x_label << "\t\t" << y_label << "\t\t" << stddev_label << endl;
         }
         rg.export_xy_file(of);
@@ -361,52 +363,6 @@ DataSet::~DataSet()
     }
 }
 
-//////////////////////////////////////////////////////////////////////////
-// members of UxdLikeDataSet
-
-line_type UxdLikeDataSet::get_line_type(const string &line)
-{
-    string str = str_trim(line);
-   
-    if (str.empty()) {
-        return LT_EMPTY;
-    } else {
-        char ch = str[0];
-        if (str_startwith(str, cmt_start)) {
-            return LT_COMMENT;
-        } else if (string::npos != str.find_first_of(meta_sep)) {
-            return LT_KEYVALUE;
-        } else if (isdigit(ch) || ch == '+' || ch == '-') {
-            return LT_XYDATA;
-        } else {
-            return LT_UNKNOWN;
-        }
-    }    
-}
-
-
-// move the reading ptr of "f" to a line which has meaning to us
-// return ture if not eof, false otherwise
-bool UxdLikeDataSet::skip_invalid_lines(std::istream &f)
-{
-    string line;
-    if (!peek_line(f, line, false)) {
-        f.seekg(-1, ios_base::end); // set eof
-        return false;
-    }
-    
-    line_type type = get_line_type(line);
-    while (LT_COMMENT == type || LT_EMPTY == type) {
-        skip_lines(f, 1);
-        if (!peek_line(f, line, false)) {
-            f.seekg(-1, ios_base::end); // set eof
-            return false;
-        }
-        type = get_line_type(line);
-    }
-
-    return true;
-}
 
 //////////////////////////////////////////////////////////////////////////
 // namespace scope global functions
@@ -434,6 +390,8 @@ DataSet* getNewDataSet(istream &is, xy_ftype filetype /* = FT_UNKNOWN */,
         pd = new WinspecSpeDataSet();
     } else if (FT_PDCIF == ft) {
         pd = new PdCifDataSet();
+    } else if (FT_PHILIPS_RD== ft) {
+        pd = new PhilipsRdDataSet();
     } else {
         pd = NULL;
         throw XY_Error("unkown or unsupported file type");
@@ -485,6 +443,8 @@ xy_ftype guess_file_type(const string &fpath)
             return FT_SPE;
         } else if ("cif" == ext) {
             return FT_PDCIF;
+        } else if ("rd" == ext) {
+            return FT_PHILIPS_RD;
         } else {
             return FT_UNKNOWN;
         }

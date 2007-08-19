@@ -1,0 +1,1426 @@
+
+
+data__JGHX_1829
+
+loop_
+    _symmetry_equiv_pos_as_xyz
+    x,y,z  1/2-y,x,z  1/2-x,1/2-y,z  y,1/2-x,z  1/2-x,y,z  y,x,z  x,1/2-y,z
+    1/2-y,1/2-x,z -x,-y,-z  -1/2+y,-x,-z  -1/2+x,-1/2+y,-z  -y,-1/2+x,-z
+    -1/2+x,-y,-z -y,-x,-z  -x,-1/2+y,-z  -1/2+y,-1/2+x,-z
+
+_audit_creation_method            'CSD2CIF created by WinCSD program.'
+
+#=============================================================================
+
+_pd_phase_name
+
+# 5. CHEMICAL DATA
+
+_chemical_name_systematic
+; ?
+;
+_chemical_name_common             '                                        '
+_chemical_formula_moiety          ?
+_chemical_formula_structural      ?
+_chemical_formula_analytical      ?
+_chemical_formula_sum             'Ni2 Y2 Bi4'
+_chemical_formula_weight          1131.16
+_chemical_melting_point           ?
+_chemical_compound_source         ?
+
+loop_
+     _atom_type_symbol
+     _atom_type_description
+     _atom_type_number_in_cell
+     _atom_type_scat_dispersion_real
+     _atom_type_scat_dispersion_imag
+     _atom_type_scat_source
+ Ni  Ni        2.00   -3.289     .669 International_Tables_Vol_IV_Table_2.3.1
+ Y   Y         2.00    -.725    2.209 International_Tables_Vol_IV_Table_2.3.1
+ Bi  Bi        4.00   -4.632    8.242 International_Tables_Vol_IV_Table_2.3.1
+
+#=============================================================================
+# 6. POWDER SPECIMEN AND CRYSTAL DATA
+
+_symmetry_cell_setting            tetragonal
+_symmetry_space_group_name_H-M    '  p 4/n m m'
+_symmetry_space_group_name_Hall   ?
+
+loop_
+    _symmetry_equiv_pos_as_xyz
+    x,y,z  1/2-y,x,z  1/2-x,1/2-y,z  y,1/2-x,z  1/2-x,y,z  y,x,z  x,1/2-y,z
+    1/2-y,1/2-x,z -x,-y,-z  -1/2+y,-x,-z  -1/2+x,-1/2+y,-z  -y,-1/2+x,-z
+    -1/2+x,-y,-z -y,-x,-z  -x,-1/2+y,-z  -1/2+y,-1/2+x,-z
+
+_cell_length_a                    4.48350(4)
+_cell_length_b                    4.48350(4)
+_cell_length_c                    9.30026(2)
+_cell_angle_alpha                 90
+_cell_angle_beta                  90
+_cell_angle_gamma                 90
+_cell_volume                      186.952(7)
+_cell_formula_units_Z             1
+_cell_measurement_temperature     ?
+_cell_calib_special_details       ?
+_cell_special_details
+; ?
+;
+
+_pd_spec_size_axial               25 # mm
+_pd_spec_size_equat               25 # mm
+_pd_spec_size_thick               1  # mm
+
+_pd_spec_mounting                 'packed powder pellet'
+_pd_spec_mount_mode               transmission
+_pd_spec_shape                    ?
+_pd_char_particle_morphology      ?
+_pd_char_colour                   ?
+
+#_pd_prep_conditions               ?
+#_pd_prep_cool_rate                ? # K/min
+#_pd_prep_pressure                 ? # kPa
+#_pd_prep_temperature              ? # K
+
+_exptl_crystal_density_meas       ?
+_exptl_crystal_density_diffrn     10.0463(3)
+_exptl_crystal_density_method     ?
+_exptl_crystal_F_000              466
+_exptl_absorpt_coefficient_mu     191.92
+_exptl_absorpt_special_details
+; Absorption correction using CSD exponential formula.
+ for flat specimen, transmission case, effective \m^.^R = 2.562(1)
+ 1/2\m[1-exp(-2\mt/sin\q)], where t is effective thickness of the sample
+;
+_exptl_absorpt_correction_type    ?
+_exptl_absorpt_correction_T_min   ?
+_exptl_absorpt_correction_T_max   ?
+
+#=============================================================================
+# 7. EXPERIMENTAL DATA
+
+_exptl_special_details            ?
+
+_diffrn_ambient_temperature       ? #295
+_diffrn_ambient_environment       ? #air
+_diffrn_radiation_probe           ?
+
+_diffrn_radiation_wavelength      1.540560
+_diffrn_radiation_type            ? #Sync
+
+_diffrn_detector                  ?  #'Ge solid state detector'
+_diffrn_radiation_monochromator   ?
+_diffrn_measurement_device        ? #'Scintag XDS2000'
+_diffrn_measurement_method        ? #'\w/\q'
+_diffrn_reflns_number             ?
+
+_diffrn_reflns_limit_h_min        ?
+_diffrn_reflns_limit_h_max        ?
+_diffrn_reflns_limit_k_min        ?
+_diffrn_reflns_limit_k_max        ?
+_diffrn_reflns_limit_l_min        ?
+_diffrn_reflns_limit_l_max        ?
+_diffrn_reflns_theta_min          ?
+_diffrn_reflns_theta_max          48.5
+
+_computing_data_collection        ?
+_computing_cell_refinement        'CSD'
+_computing_data_reduction         'CSD'
+_computing_structure_solution     'CSD'
+_computing_structure_refinement   'CSD'
+_computing_molecular_graphics     ?
+_computing_publication_material   'CSD (Akselrud et al, 1993)'
+
+#### PLEASE do not forget the following reference :
+#Akselrud, L.G., Zavalii, P.Y., Grin, Yu.N.,
+#Pecharsky, V.K., Baumgartner, B., Wolfel, E.
+#(1993) Materials Science Forum, v.133-136, 335-340
+
+_pd_meas_scan_method              ? #step
+_pd_calc_method                   'Rietveld Refinement'
+_pd_meas_2theta_range_min         ?
+_pd_meas_2theta_range_max         ? #97
+_pd_meas_2theta_range_inc         ?
+_pd_meas_step_count_time          ?
+
+#=============================================================================
+# 8. REFINEMENT DATA
+
+# Use this field to give any special details about
+# about the processing of the powder pattern
+_pd_proc_ls_special_details
+; ?
+;
+
+# The next two items are given as text
+_pd_proc_ls_profile_function      pseudo-Voit
+_pd_proc_ls_pref_orient_corr
+; Preffered orientation was refined using CSD
+formula (Pecharskii, Akselrud & Zavalii, 1987):
+
+I~corr~=I~obs~/[1+(\t^2^-1)^.^sin^2^\f]^1/2^
+
+Axis  3  2  0, \t=0.584
+
+;
+
+#PLEASE do not forget the following reference :
+#Pecharskii V.K., Akselrud L.G., Zavalii P.Yu.
+#(1987) Soviet Physics Crystallogr., 32, 514-516.
+
+_pd_proc_ls_prof_R_factor         0.1200
+_pd_proc_ls_prof_wR_factor        0.0000
+_pd_proc_ls_prof_wR_expected      ?
+_refine_ls_R_factor_I             0.0520
+_refine_ls_R_factor_Fsqd          ?
+_refine_ls_R_factor_all           ?
+
+_refine_special_details
+; ?
+;
+
+_refine_ls_structure_factor_coef  Inet
+_refine_ls_matrix_type            fullcycle
+_refine_ls_weighting_scheme       '1/[Y~i~+\s(Y~i~)]'
+_refine_ls_hydrogen_treatment     ?
+_refine_ls_extinction_method      ?
+_refine_ls_extinction_coef        ?
+_refine_ls_abs_structure_details  ?
+_refine_ls_abs_structure_Flack    ?
+_refine_ls_number_reflns          0
+_refine_ls_number_parameters      13
+_refine_ls_number_restraints      ?
+_refine_ls_number_constraints     ?
+_refine_ls_restrained_S_all       ?
+_refine_ls_restrained_S_obs       ?
+_refine_ls_shift/esd_max          ?
+_refine_ls_shift/esd_mean         ?
+
+_refine_diff_density_max          ?
+_refine_diff_density_min          ?
+
+# The next three fields give the 2-theta minimum,
+# maximum and increment in deg for the intensities
+# used in the refinement
+_pd_proc_2theta_range_min         ?
+_pd_proc_2theta_range_max         97
+_pd_proc_2theta_range_inc         ?
+
+# Give appropriate details in the next two fields
+_pd_proc_info_excluded_regions    ?
+_pd_proc_info_data_reduction      ?
+
+# The next field gives the wavelength used in processing the pattern
+#_pd_proc_wavelength               ?
+
+#=============================================================================
+# 9. ATOMIC COORDINATES AND THERMAL PARAMETERS
+
+loop_
+        _atom_site_label
+        _atom_site_fract_x
+        _atom_site_fract_y
+        _atom_site_fract_z
+        _atom_site_thermal_displace_type
+        _atom_site_U_iso_or_equiv
+        _atom_site_symmetry_multiplicity
+        _atom_site_type_symbol
+        _atom_site_occupancy
+Ni1    0.75        0.25        0          Uani  0.052(3)   2   Ni     0.816(8)
+Y1     0.25        0.25        0.2309(4)  Uani  0.0190(10) 2   Y      .
+Bi1    0.75        0.25        0.5        Uani  0.0168(5)  2   Bi     .
+Bi2    0.25        0.25        0.85569(2) Uani  0.0233(5)  2   Bi     .
+
+loop_
+        _atom_site_aniso_label
+        _atom_site_aniso_U_11
+        _atom_site_aniso_U_22
+        _atom_site_aniso_U_33
+        _atom_site_aniso_U_12
+        _atom_site_aniso_U_13
+        _atom_site_aniso_U_23
+Ni1     0.025(3)    0.025(3)    0.105(8)    0           0           0
+Y1      0.0153(13)  0.0153(13)  0.026(2)    0           0           0
+Bi1     0.0250(7)   0.0250(7)   0.0004(9)   0           0           0
+Bi2     0.0217(7)   0.0217(7)   0.0265(11)  0           0           0
+
+loop_
+         _geom_bond_atom_site_label_1
+         _geom_bond_atom_site_label_2
+         _geom_bond_distance
+         _geom_bond_site_symmetry_2
+         _geom_bond_publ_flag
+Ni1     Bi2      2.6128(7)    1_554   yes
+Ni1     Bi2      2.6128(7)    1_654   yes
+Ni1     Bi2      2.6128(7)    9_656   yes
+Ni1     Bi2      2.6128(7)    9_666   yes
+Ni1     Y1       3.104(2)      .      yes
+Ni1     Y1       3.104(2)     1_655   yes
+Ni1     Y1       3.104(2)     9_655   yes
+Ni1     Y1       3.104(2)     9_665   yes
+Y1      Bi2      3.2710(9)    9_556   yes
+Y1      Bi2      3.2710(9)    9_566   yes
+Y1      Bi2      3.2710(9)    9_656   yes
+Y1      Bi2      3.2710(9)    9_666   yes
+Y1      Bi1      3.360(3)      .      yes
+Y1      Bi1      3.360(3)     1_455   yes
+Y1      Bi1      3.360(3)     2_555   yes
+Y1      Bi1      3.360(3)     2_545   yes
+Y1      Bi2      3.490(4)     1_554   yes
+Bi1     Bi1      3.170        2_555   yes
+Bi1     Bi1      3.170        2_545   yes
+Bi1     Bi1      3.170        2_655   yes
+Bi1     Bi1      3.170        2_645   yes
+Bi1     Bi2      3.996(1)      .      yes
+Bi1     Bi2      3.996(1)     1_655   yes
+Bi1     Bi2      3.996(1)     9_656   yes
+Bi1     Bi2      3.996(1)     9_666   yes
+
+loop_
+        _geom_angle_atom_site_label_1
+        _geom_angle_atom_site_label_2
+        _geom_angle_atom_site_label_3
+        _geom_angle
+        _geom_angle_site_symmetry_1
+        _geom_angle_site_symmetry_3
+        _geom_angle_publ_flag
+Bi2     Ni1     Bi2      118.18(3)    1_554   1_654   no
+Bi2     Ni1     Bi2      105.30(3)    1_554   9_656   no
+Bi2     Ni1     Bi2      105.30(3)    1_554   9_666   no
+Bi2     Ni1     Y1        74.68(4)    1_554    .      no
+Bi2     Ni1     Y1       167.14(4)    1_554   1_655   no
+Bi2     Ni1     Y1        69.18(4)    1_554   9_655   no
+Bi2     Ni1     Y1        69.18(4)    1_554   9_665   no
+Bi2     Ni1     Bi2      105.30(3)    1_654   9_656   no
+Bi2     Ni1     Bi2      105.30(3)    1_654   9_666   no
+Bi2     Ni1     Y1       167.14(4)    1_654    .      no
+Bi2     Ni1     Y1        74.68(4)    1_654   1_655   no
+Bi2     Ni1     Y1        69.18(4)    1_654   9_655   no
+Bi2     Ni1     Y1        69.18(4)    1_654   9_665   no
+Bi2     Ni1     Bi2      118.18(3)    9_656   9_666   no
+Bi2     Ni1     Y1        69.18(4)    9_656    .      no
+Bi2     Ni1     Y1        69.18(4)    9_656   1_655   no
+Bi2     Ni1     Y1        74.68(4)    9_656   9_655   no
+Bi2     Ni1     Y1       167.14(4)    9_656   9_665   no
+Bi2     Ni1     Y1        69.18(4)    9_666    .      no
+Bi2     Ni1     Y1        69.18(4)    9_666   1_655   no
+Bi2     Ni1     Y1       167.14(4)    9_666   9_655   no
+Bi2     Ni1     Y1        74.68(4)    9_666   9_665   no
+Y1      Ni1     Y1        92.46(5)     .      1_655   no
+Y1      Ni1     Y1       118.59(5)     .      9_655   no
+Y1      Ni1     Y1       118.59(5)     .      9_665   no
+Y1      Ni1     Y1       118.59(5)    1_655   9_655   no
+Y1      Ni1     Y1       118.59(5)    1_655   9_665   no
+Y1      Ni1     Y1        92.46(5)    9_655   9_665   no
+Ni1     Y1      Ni1       92.46(5)     .      1_455   no
+Ni1     Y1      Ni1       61.41(4)     .      2_555   no
+Ni1     Y1      Ni1       61.41(4)     .      2_545   no
+Ni1     Y1      Bi2      108.94(6)     .      9_556   no
+Ni1     Y1      Bi2      108.94(6)     .      9_566   no
+Ni1     Y1      Bi2       48.30(3)     .      9_656   no
+Ni1     Y1      Bi2       48.30(3)     .      9_666   no
+Ni1     Y1      Bi1       91.92(5)     .       .      no
+Ni1     Y1      Bi1      175.62(7)     .      1_455   no
+Ni1     Y1      Bi1      121.01(6)     .      2_555   no
+Ni1     Y1      Bi1      121.01(6)     .      2_545   no
+Ni1     Y1      Bi2       46.23(3)     .      1_554   no
+Ni1     Y1      Ni1       61.41(4)    1_455   2_555   no
+Ni1     Y1      Ni1       61.41(4)    1_455   2_545   no
+Ni1     Y1      Bi2       48.30(3)    1_455   9_556   no
+Ni1     Y1      Bi2       48.30(3)    1_455   9_566   no
+Ni1     Y1      Bi2      108.94(6)    1_455   9_656   no
+Ni1     Y1      Bi2      108.94(6)    1_455   9_666   no
+Ni1     Y1      Bi1      175.62(7)    1_455    .      no
+Ni1     Y1      Bi1       91.92(5)    1_455   1_455   no
+Ni1     Y1      Bi1      121.01(6)    1_455   2_555   no
+Ni1     Y1      Bi1      121.01(6)    1_455   2_545   no
+Ni1     Y1      Bi2       46.23(3)    1_455   1_554   no
+Ni1     Y1      Ni1       92.46(5)    2_555   2_545   no
+Ni1     Y1      Bi2      108.94(6)    2_555   9_556   no
+Ni1     Y1      Bi2       48.30(3)    2_555   9_566   no
+Ni1     Y1      Bi2      108.94(6)    2_555   9_656   no
+Ni1     Y1      Bi2       48.30(3)    2_555   9_666   no
+Ni1     Y1      Bi1      121.01(6)    2_555    .      no
+Ni1     Y1      Bi1      121.01(6)    2_555   1_455   no
+Ni1     Y1      Bi1       91.92(5)    2_555   2_555   no
+Ni1     Y1      Bi1      175.62(7)    2_555   2_545   no
+Ni1     Y1      Bi2       46.23(3)    2_555   1_554   no
+Ni1     Y1      Bi2       48.30(3)    2_545   9_556   no
+Ni1     Y1      Bi2      108.94(6)    2_545   9_566   no
+Ni1     Y1      Bi2       48.30(3)    2_545   9_656   no
+Ni1     Y1      Bi2      108.94(6)    2_545   9_666   no
+Ni1     Y1      Bi1      121.01(6)    2_545    .      no
+Ni1     Y1      Bi1      121.01(6)    2_545   1_455   no
+Ni1     Y1      Bi1      175.62(7)    2_545   2_555   no
+Ni1     Y1      Bi1       91.92(5)    2_545   2_545   no
+Ni1     Y1      Bi2       46.23(3)    2_545   1_554   no
+Bi2     Y1      Bi2       86.52(5)    9_556   9_566   no
+Bi2     Y1      Bi2       86.52(5)    9_556   9_656   no
+Bi2     Y1      Bi2      151.49(7)    9_556   9_666   no
+Bi2     Y1      Bi1      129.84(6)    9_556    .      no
+Bi2     Y1      Bi1       74.10(4)    9_556   1_455   no
+Bi2     Y1      Bi1      129.84(6)    9_556   2_555   no
+Bi2     Y1      Bi1       74.10(4)    9_556   2_545   no
+Bi2     Y1      Bi2       75.75(5)    9_556   1_554   no
+Bi2     Y1      Bi2      151.49(7)    9_566   9_656   no
+Bi2     Y1      Bi2       86.52(5)    9_566   9_666   no
+Bi2     Y1      Bi1      129.84(6)    9_566    .      no
+Bi2     Y1      Bi1       74.10(4)    9_566   1_455   no
+Bi2     Y1      Bi1       74.10(4)    9_566   2_555   no
+Bi2     Y1      Bi1      129.84(6)    9_566   2_545   no
+Bi2     Y1      Bi2       75.75(5)    9_566   1_554   no
+Bi2     Y1      Bi2       86.52(5)    9_656   9_666   no
+Bi2     Y1      Bi1       74.10(4)    9_656    .      no
+Bi2     Y1      Bi1      129.84(6)    9_656   1_455   no
+Bi2     Y1      Bi1      129.84(6)    9_656   2_555   no
+Bi2     Y1      Bi1       74.10(4)    9_656   2_545   no
+Bi2     Y1      Bi2       75.75(5)    9_656   1_554   no
+Bi2     Y1      Bi1       74.10(4)    9_666    .      no
+Bi2     Y1      Bi1      129.84(6)    9_666   1_455   no
+Bi2     Y1      Bi1       74.10(4)    9_666   2_555   no
+Bi2     Y1      Bi1      129.84(6)    9_666   2_545   no
+Bi2     Y1      Bi2       75.75(5)    9_666   1_554   no
+Bi1     Y1      Bi1       83.71(5)     .      1_455   no
+Bi1     Y1      Bi1       56.30(3)     .      2_555   no
+Bi1     Y1      Bi1       56.30(3)     .      2_545   no
+Bi1     Y1      Bi2      138.15(6)     .      1_554   no
+Bi1     Y1      Bi1       56.30(3)    1_455   2_555   no
+Bi1     Y1      Bi1       56.30(3)    1_455   2_545   no
+Bi1     Y1      Bi2      138.15(6)    1_455   1_554   no
+Bi1     Y1      Bi1       83.71(5)    2_555   2_545   no
+Bi1     Y1      Bi2      138.15(6)    2_555   1_554   no
+Bi1     Y1      Bi2      138.15(6)    2_545   1_554   no
+Bi1     Bi1     Bi1       90.00       2_555   2_545   no
+Bi1     Bi1     Bi1       90.00       2_555   2_655   no
+Bi1     Bi1     Bi1      179.99       2_555   2_645   no
+Bi1     Bi1     Y1        61.85       2_555    .      no
+Bi1     Bi1     Y1       118.15       2_555   1_655   no
+Bi1     Bi1     Y1       118.15       2_555   9_656   no
+Bi1     Bi1     Y1        61.85       2_555   9_666   no
+Bi1     Bi1     Bi2       66.63       2_555    .      no
+Bi1     Bi1     Bi2      113.37       2_555   1_655   no
+Bi1     Bi1     Bi2      113.37       2_555   9_656   no
+Bi1     Bi1     Bi2       66.63       2_555   9_666   no
+Bi1     Bi1     Bi1      179.98       2_545   2_655   no
+Bi1     Bi1     Bi1       90.00       2_545   2_645   no
+Bi1     Bi1     Y1        61.85       2_545    .      no
+Bi1     Bi1     Y1       118.15       2_545   1_655   no
+Bi1     Bi1     Y1        61.85       2_545   9_656   no
+Bi1     Bi1     Y1       118.15       2_545   9_666   no
+Bi1     Bi1     Bi2       66.63       2_545    .      no
+Bi1     Bi1     Bi2      113.37       2_545   1_655   no
+Bi1     Bi1     Bi2       66.63       2_545   9_656   no
+Bi1     Bi1     Bi2      113.37       2_545   9_666   no
+Bi1     Bi1     Bi1       90.00       2_655   2_645   no
+Bi1     Bi1     Y1       118.15       2_655    .      no
+Bi1     Bi1     Y1        61.85       2_655   1_655   no
+Bi1     Bi1     Y1       118.15       2_655   9_656   no
+Bi1     Bi1     Y1        61.85       2_655   9_666   no
+Bi1     Bi1     Bi2      113.37       2_655    .      no
+Bi1     Bi1     Bi2       66.63       2_655   1_655   no
+Bi1     Bi1     Bi2      113.37       2_655   9_656   no
+Bi1     Bi1     Bi2       66.63       2_655   9_666   no
+Bi1     Bi1     Y1       118.15       2_645    .      no
+Bi1     Bi1     Y1        61.85       2_645   1_655   no
+Bi1     Bi1     Y1        61.85       2_645   9_656   no
+Bi1     Bi1     Y1       118.15       2_645   9_666   no
+Bi1     Bi1     Bi2      113.37       2_645    .      no
+Bi1     Bi1     Bi2       66.63       2_645   1_655   no
+Bi1     Bi1     Bi2       66.63       2_645   9_656   no
+Bi1     Bi1     Bi2      113.37       2_645   9_666   no
+Y1      Bi1     Y1        83.71(5)     .      1_655   no
+Y1      Bi1     Y1       123.70(5)     .      9_656   no
+Y1      Bi1     Y1       123.70(5)     .      9_666   no
+Y1      Bi1     Bi2      104.02(4)     .       .      no
+Y1      Bi1     Bi2      172.27(4)     .      1_655   no
+Y1      Bi1     Bi2       51.93(4)     .      9_656   no
+Y1      Bi1     Bi2       51.93(4)     .      9_666   no
+Y1      Bi1     Y1       123.70(5)    1_655   9_656   no
+Y1      Bi1     Y1       123.70(5)    1_655   9_666   no
+Y1      Bi1     Bi2      172.27(4)    1_655    .      no
+Y1      Bi1     Bi2      104.02(4)    1_655   1_655   no
+Y1      Bi1     Bi2       51.93(4)    1_655   9_656   no
+Y1      Bi1     Bi2       51.93(4)    1_655   9_666   no
+Y1      Bi1     Y1        83.71(5)    9_656   9_666   no
+Y1      Bi1     Bi2       51.93(4)    9_656    .      no
+Y1      Bi1     Bi2       51.93(4)    9_656   1_655   no
+Y1      Bi1     Bi2      104.02(4)    9_656   9_656   no
+Y1      Bi1     Bi2      172.27(4)    9_656   9_666   no
+Y1      Bi1     Bi2       51.93(4)    9_666    .      no
+Y1      Bi1     Bi2       51.93(4)    9_666   1_655   no
+Y1      Bi1     Bi2      172.27(4)    9_666   9_656   no
+Y1      Bi1     Bi2      104.02(4)    9_666   9_666   no
+Bi2     Bi1     Bi2       68.25(2)     .      1_655   no
+Bi2     Bi1     Bi2      133.26(2)     .      9_656   no
+Bi2     Bi1     Bi2      133.26(2)     .      9_666   no
+Bi2     Bi1     Bi2      133.26(2)    1_655   9_656   no
+Bi2     Bi1     Bi2      133.26(2)    1_655   9_666   no
+Bi2     Bi1     Bi2       68.25(2)    9_656   9_666   no
+Ni1     Bi2     Ni1      118.18(3)    1_556   1_456   no
+Ni1     Bi2     Ni1       74.70(2)    1_556   2_556   no
+Ni1     Bi2     Ni1       74.70(2)    1_556   2_546   no
+Ni1     Bi2     Y1       135.60(5)    1_556   9_556   no
+Ni1     Bi2     Y1       135.60(5)    1_556   9_566   no
+Ni1     Bi2     Y1        62.51(4)    1_556   9_656   no
+Ni1     Bi2     Y1        62.51(4)    1_556   9_666   no
+Ni1     Bi2     Y1        59.09(4)    1_556   1_556   no
+Ni1     Bi2     Bi1       86.78(2)    1_556    .      no
+Ni1     Bi2     Bi1      155.03(3)    1_556   1_455   no
+Ni1     Bi2     Bi1      115.17(3)    1_556   2_555   no
+Ni1     Bi2     Bi1      115.17(3)    1_556   2_545   no
+Ni1     Bi2     Ni1       74.70(2)    1_456   2_556   no
+Ni1     Bi2     Ni1       74.70(2)    1_456   2_546   no
+Ni1     Bi2     Y1        62.51(4)    1_456   9_556   no
+Ni1     Bi2     Y1        62.51(4)    1_456   9_566   no
+Ni1     Bi2     Y1       135.60(5)    1_456   9_656   no
+Ni1     Bi2     Y1       135.60(5)    1_456   9_666   no
+Ni1     Bi2     Y1        59.09(4)    1_456   1_556   no
+Ni1     Bi2     Bi1      155.03(3)    1_456    .      no
+Ni1     Bi2     Bi1       86.78(2)    1_456   1_455   no
+Ni1     Bi2     Bi1      115.17(3)    1_456   2_555   no
+Ni1     Bi2     Bi1      115.17(3)    1_456   2_545   no
+Ni1     Bi2     Ni1      118.18(3)    2_556   2_546   no
+Ni1     Bi2     Y1       135.60(5)    2_556   9_556   no
+Ni1     Bi2     Y1        62.51(4)    2_556   9_566   no
+Ni1     Bi2     Y1       135.60(5)    2_556   9_656   no
+Ni1     Bi2     Y1        62.51(4)    2_556   9_666   no
+Ni1     Bi2     Y1        59.09(4)    2_556   1_556   no
+Ni1     Bi2     Bi1      115.17(3)    2_556    .      no
+Ni1     Bi2     Bi1      115.17(3)    2_556   1_455   no
+Ni1     Bi2     Bi1       86.78(2)    2_556   2_555   no
+Ni1     Bi2     Bi1      155.03(3)    2_556   2_545   no
+Ni1     Bi2     Y1        62.51(4)    2_546   9_556   no
+Ni1     Bi2     Y1       135.60(5)    2_546   9_566   no
+Ni1     Bi2     Y1        62.51(4)    2_546   9_656   no
+Ni1     Bi2     Y1       135.60(5)    2_546   9_666   no
+Ni1     Bi2     Y1        59.09(4)    2_546   1_556   no
+Ni1     Bi2     Bi1      115.17(3)    2_546    .      no
+Ni1     Bi2     Bi1      115.17(3)    2_546   1_455   no
+Ni1     Bi2     Bi1      155.03(3)    2_546   2_555   no
+Ni1     Bi2     Bi1       86.78(2)    2_546   2_545   no
+Y1      Bi2     Y1        86.52(5)    9_556   9_566   no
+Y1      Bi2     Y1        86.52(5)    9_556   9_656   no
+Y1      Bi2     Y1       151.49(6)    9_556   9_666   no
+Y1      Bi2     Y1       104.25(5)    9_556   1_556   no
+Y1      Bi2     Bi1      100.41(4)    9_556    .      no
+Y1      Bi2     Bi1       53.96(4)    9_556   1_455   no
+Y1      Bi2     Bi1      100.41(4)    9_556   2_555   no
+Y1      Bi2     Bi1       53.96(4)    9_556   2_545   no
+Y1      Bi2     Y1       151.49(6)    9_566   9_656   no
+Y1      Bi2     Y1        86.52(5)    9_566   9_666   no
+Y1      Bi2     Y1       104.25(5)    9_566   1_556   no
+Y1      Bi2     Bi1      100.41(4)    9_566    .      no
+Y1      Bi2     Bi1       53.96(4)    9_566   1_455   no
+Y1      Bi2     Bi1       53.96(4)    9_566   2_555   no
+Y1      Bi2     Bi1      100.41(4)    9_566   2_545   no
+Y1      Bi2     Y1        86.52(5)    9_656   9_666   no
+Y1      Bi2     Y1       104.25(5)    9_656   1_556   no
+Y1      Bi2     Bi1       53.96(4)    9_656    .      no
+Y1      Bi2     Bi1      100.41(4)    9_656   1_455   no
+Y1      Bi2     Bi1      100.41(4)    9_656   2_555   no
+Y1      Bi2     Bi1       53.96(4)    9_656   2_545   no
+Y1      Bi2     Y1       104.25(5)    9_666   1_556   no
+Y1      Bi2     Bi1       53.96(4)    9_666    .      no
+Y1      Bi2     Bi1      100.41(4)    9_666   1_455   no
+Y1      Bi2     Bi1       53.96(4)    9_666   2_555   no
+Y1      Bi2     Bi1      100.41(4)    9_666   2_545   no
+Y1      Bi2     Bi1      145.88(4)    1_556    .      no
+Y1      Bi2     Bi1      145.88(4)    1_556   1_455   no
+Y1      Bi2     Bi1      145.88(4)    1_556   2_555   no
+Y1      Bi2     Bi1      145.88(4)    1_556   2_545   no
+Bi1     Bi2     Bi1       68.25(1)     .      1_455   no
+Bi1     Bi2     Bi1       46.74(1)     .      2_555   no
+Bi1     Bi2     Bi1       46.74(1)     .      2_545   no
+Bi1     Bi2     Bi1       46.74(1)    1_455   2_555   no
+Bi1     Bi2     Bi1       46.74(1)    1_455   2_545   no
+Bi1     Bi2     Bi1       68.25(1)    2_555   2_545   no
+
+loop_
+        _geom_torsion_atom_site_label_1
+        _geom_torsion_atom_site_label_2
+        _geom_torsion_atom_site_label_3
+        _geom_torsion_atom_site_label_4
+        _geom_torsion
+        _geom_torsion_site_symmetry_1
+        _geom_torsion_site_symmetry_3
+        _geom_torsion_site_symmetry_4
+        _geom_torsion_publ_flag
+Bi2     Ni1     Bi2     Y1     121.2   1_654   1_554   9_354 no
+Bi2     Ni1     Bi2     Bi1    -51.5   1_654   1_554   1_253 no
+Bi2     Ni1     Bi2     Bi1     23.0   1_654   1_554   2_343 no
+Bi2     Ni1     Bi2     Bi1    127.3   1_654   1_554   2_243 no
+Bi2     Ni1     Bi2     Bi2    -63.3   1_654   1_554   1_353 no
+Bi2     Ni1     Bi2     Bi2   -159.1   1_654   1_554   1_253 no
+Bi2     Ni1     Bi2     Y1    -101.4   1_654   1_554   9_364 no
+Bi2     Ni1     Bi2     Y1      10.6   9_656   1_554   9_354 no
+Bi2     Ni1     Bi2     Bi1    162.1   9_656   1_554   1_253 no
+Bi2     Ni1     Bi2     Bi1     87.6   9_656   1_554   2_343 no
+Bi2     Ni1     Bi2     Bi1     16.7   9_656   1_554   2_243 no
+Bi2     Ni1     Bi2     Bi2    173.9   9_656   1_554   1_353 no
+Bi2     Ni1     Bi2     Bi2     90.4   9_656   1_554   1_253 no
+Bi2     Ni1     Bi2     Y1     148.0   9_656   1_554   9_364 no
+Bi2     Ni1     Bi2     Y1    -128.3   9_666   1_554   9_354 no
+Bi2     Ni1     Bi2     Bi1    -59.1   9_666   1_554   1_253 no
+Bi2     Ni1     Bi2     Bi1   -133.6   9_666   1_554   2_343 no
+Bi2     Ni1     Bi2     Bi1   -122.1   9_666   1_554   2_243 no
+Bi2     Ni1     Bi2     Bi2    -47.3   9_666   1_554   1_353 no
+Bi2     Ni1     Bi2     Bi2    -48.5   9_666   1_554   1_253 no
+Bi2     Ni1     Bi2     Y1      -9.2   9_666   1_554   9_364 no
+Bi2     Ni1     Bi2     Bi1    -51.5   1_554   1_654   2_743 no
+Bi2     Ni1     Bi2     Bi2    136.5   1_554   1_654   1_753 no
+Bi2     Ni1     Bi2     Y1     -46.4   1_554   1_654   9_754 no
+Bi2     Ni1     Bi2     Y1    -155.2   1_554   1_654   9_854 no
+Bi2     Ni1     Bi2     Bi1     23.0   1_554   1_654   1_653 no
+Bi2     Ni1     Bi2     Bi1    127.3   1_554   1_654   1_753 no
+Bi2     Ni1     Bi2     Bi1    -59.1   9_656   1_654   2_743 no
+Bi2     Ni1     Bi2     Bi2   -112.9   9_656   1_654   1_753 no
+Bi2     Ni1     Bi2     Y1     -64.2   9_656   1_654   9_754 no
+Bi2     Ni1     Bi2     Y1     -44.6   9_656   1_654   9_854 no
+Bi2     Ni1     Bi2     Bi1   -133.6   9_656   1_654   1_653 no
+Bi2     Ni1     Bi2     Bi1   -122.1   9_656   1_654   1_753 no
+Bi2     Ni1     Bi2     Bi1    162.1   9_666   1_654   2_743 no
+Bi2     Ni1     Bi2     Bi2     26.0   9_666   1_654   1_753 no
+Bi2     Ni1     Bi2     Y1     157.0   9_666   1_654   9_754 no
+Bi2     Ni1     Bi2     Y1      94.2   9_666   1_654   9_854 no
+Bi2     Ni1     Bi2     Bi1     87.6   9_666   1_654   1_653 no
+Bi2     Ni1     Bi2     Bi1     16.7   9_666   1_654   1_753 no
+Bi2     Ni1     Bi2     Bi1    162.1   1_554   9_656   2_526 no
+Bi2     Ni1     Bi2     Bi2     26.0   1_554   9_656   9_537 no
+Bi2     Ni1     Bi2     Y1     157.0   1_554   9_656   1_536 no
+Bi2     Ni1     Bi2     Y1      94.2   1_554   9_656   1_526 no
+Bi2     Ni1     Bi2     Bi1    -87.6   1_554   9_656   1_436 no
+Bi2     Ni1     Bi2     Bi1     16.7   1_554   9_656   1_426 no
+Bi2     Ni1     Bi2     Bi1    -59.1   1_654   9_656   2_526 no
+Bi2     Ni1     Bi2     Bi2   -112.9   1_654   9_656   9_537 no
+Bi2     Ni1     Bi2     Y1      64.2   1_654   9_656   1_536 no
+Bi2     Ni1     Bi2     Y1     -44.6   1_654   9_656   1_526 no
+Bi2     Ni1     Bi2     Bi1    133.6   1_654   9_656   1_436 no
+Bi2     Ni1     Bi2     Bi1   -122.1   1_654   9_656   1_426 no
+Bi2     Ni1     Bi2     Bi1    -51.5   9_666   9_656   2_526 no
+Bi2     Ni1     Bi2     Bi2    136.5   9_666   9_656   9_537 no
+Bi2     Ni1     Bi2     Y1     -46.4   9_666   9_656   1_536 no
+Bi2     Ni1     Bi2     Y1    -155.2   9_666   9_656   1_526 no
+Bi2     Ni1     Bi2     Bi1     23.0   9_666   9_656   1_436 no
+Bi2     Ni1     Bi2     Bi1    127.3   9_666   9_656   1_426 no
+Bi2     Ni1     Bi2     Y1    -128.3   1_554   9_666   1_576 no
+Bi2     Ni1     Bi2     Bi1    -59.1   1_554   9_666   1_476 no
+Bi2     Ni1     Bi2     Bi1    133.6   1_554   9_666   2_566 no
+Bi2     Ni1     Bi2     Bi1   -122.1   1_554   9_666   2_576 no
+Bi2     Ni1     Bi2     Bi2    -47.3   1_554   9_666   9_577 no
+Bi2     Ni1     Bi2     Bi2    -48.5   1_554   9_666   9_587 no
+Bi2     Ni1     Bi2     Y1      -9.2   1_554   9_666   1_476 no
+Bi2     Ni1     Bi2     Y1      10.6   1_654   9_666   1_576 no
+Bi2     Ni1     Bi2     Bi1    162.1   1_654   9_666   1_476 no
+Bi2     Ni1     Bi2     Bi1    -87.6   1_654   9_666   2_566 no
+Bi2     Ni1     Bi2     Bi1     16.7   1_654   9_666   2_576 no
+Bi2     Ni1     Bi2     Bi2    173.9   1_654   9_666   9_577 no
+Bi2     Ni1     Bi2     Bi2     90.4   1_654   9_666   9_587 no
+Bi2     Ni1     Bi2     Y1     148.0   1_654   9_666   1_476 no
+Bi2     Ni1     Bi2     Y1     121.2   9_656   9_666   1_576 no
+Bi2     Ni1     Bi2     Bi1    -51.5   9_656   9_666   1_476 no
+Bi2     Ni1     Bi2     Bi1     23.0   9_656   9_666   2_566 no
+Bi2     Ni1     Bi2     Bi1    127.3   9_656   9_666   2_576 no
+Bi2     Ni1     Bi2     Bi2    -63.3   9_656   9_666   9_577 no
+Bi2     Ni1     Bi2     Bi2   -159.1   9_656   9_666   9_587 no
+Bi2     Ni1     Bi2     Y1    -101.4   9_656   9_666   1_476 no
+Bi2     Y1      Bi2     Bi2    -77.3   9_566   9_556   9_335 no
+Bi2     Y1      Bi2     Ni1    -42.9   9_566   9_556   1_234 no
+Bi2     Y1      Bi2     Ni1   -111.7   9_566   9_556   2_324 no
+Bi2     Y1      Bi2     Ni1   -139.5   9_566   9_556   1_224 no
+Bi2     Y1      Bi2     Ni1    -15.2   9_566   9_556   2_224 no
+Bi2     Y1      Bi2     Y1     -77.3   9_566   9_556   1_334 no
+Bi2     Y1      Bi2     Y1    -173.1   9_566   9_556   1_324 no
+Bi2     Y1      Bi2     Y1     -18.5   9_566   9_556   1_234 no
+Bi2     Y1      Bi2     Y1    -102.7   9_566   9_556   1_224 no
+Bi2     Y1      Bi2     Bi1    -61.3   9_566   9_556   1_234 no
+Bi2     Y1      Bi2     Bi1   -144.1   9_566   9_556   2_324 no
+Bi2     Y1      Bi2     Bi2     77.3   9_656   9_556   9_335 no
+Bi2     Y1      Bi2     Ni1    111.7   9_656   9_556   1_234 no
+Bi2     Y1      Bi2     Ni1     42.9   9_656   9_556   2_324 no
+Bi2     Y1      Bi2     Ni1     15.2   9_656   9_556   1_224 no
+Bi2     Y1      Bi2     Ni1    139.5   9_656   9_556   2_224 no
+Bi2     Y1      Bi2     Y1      77.3   9_656   9_556   1_334 no
+Bi2     Y1      Bi2     Y1      18.5   9_656   9_556   1_324 no
+Bi2     Y1      Bi2     Y1     173.1   9_656   9_556   1_234 no
+Bi2     Y1      Bi2     Y1     102.7   9_656   9_556   1_224 no
+Bi2     Y1      Bi2     Bi1    144.1   9_656   9_556   1_234 no
+Bi2     Y1      Bi2     Bi1     61.3   9_656   9_556   2_324 no
+Bi2     Y1      Bi2     Bi2       .0   9_666   9_556   9_335 no
+Bi2     Y1      Bi2     Ni1    -34.4   9_666   9_556   1_234 no
+Bi2     Y1      Bi2     Ni1    -34.4   9_666   9_556   2_324 no
+Bi2     Y1      Bi2     Ni1    -62.1   9_666   9_556   1_224 no
+Bi2     Y1      Bi2     Ni1    -62.1   9_666   9_556   2_224 no
+Bi2     Y1      Bi2     Y1        .0   9_666   9_556   1_334 no
+Bi2     Y1      Bi2     Y1     -95.8   9_666   9_556   1_324 no
+Bi2     Y1      Bi2     Y1     -95.8   9_666   9_556   1_234 no
+Bi2     Y1      Bi2     Y1    -180.0   9_666   9_556   1_224 no
+Bi2     Y1      Bi2     Bi1   -138.6   9_666   9_556   1_234 no
+Bi2     Y1      Bi2     Bi1   -138.6   9_666   9_556   2_324 no
+Bi1     Y1      Bi2     Bi2    132.9    .      9_556   9_335 no
+Bi1     Y1      Bi2     Ni1    167.3    .      9_556   1_234 no
+Bi1     Y1      Bi2     Ni1     98.6    .      9_556   2_324 no
+Bi1     Y1      Bi2     Ni1     70.8    .      9_556   1_224 no
+Bi1     Y1      Bi2     Ni1    164.9    .      9_556   2_224 no
+Bi1     Y1      Bi2     Y1     132.9    .      9_556   1_334 no
+Bi1     Y1      Bi2     Y1      37.1    .      9_556   1_324 no
+Bi1     Y1      Bi2     Y1     131.2    .      9_556   1_234 no
+Bi1     Y1      Bi2     Y1      47.1    .      9_556   1_224 no
+Bi1     Y1      Bi2     Bi1     88.5    .      9_556   1_234 no
+Bi1     Y1      Bi2     Bi1      5.7    .      9_556   2_324 no
+Bi1     Y1      Bi2     Bi2    151.8   1_455   9_556   9_335 no
+Bi1     Y1      Bi2     Ni1    117.4   1_455   9_556   1_234 no
+Bi1     Y1      Bi2     Ni1    173.8   1_455   9_556   2_324 no
+Bi1     Y1      Bi2     Ni1    146.1   1_455   9_556   1_224 no
+Bi1     Y1      Bi2     Ni1     89.6   1_455   9_556   2_224 no
+Bi1     Y1      Bi2     Y1     151.8   1_455   9_556   1_334 no
+Bi1     Y1      Bi2     Y1     112.4   1_455   9_556   1_324 no
+Bi1     Y1      Bi2     Y1      56.0   1_455   9_556   1_234 no
+Bi1     Y1      Bi2     Y1      28.2   1_455   9_556   1_224 no
+Bi1     Y1      Bi2     Bi1     13.2   1_455   9_556   1_234 no
+Bi1     Y1      Bi2     Bi1     69.6   1_455   9_556   2_324 no
+Bi1     Y1      Bi2     Bi2    132.9   2_555   9_556   9_335 no
+Bi1     Y1      Bi2     Ni1     98.6   2_555   9_556   1_234 no
+Bi1     Y1      Bi2     Ni1    167.3   2_555   9_556   2_324 no
+Bi1     Y1      Bi2     Ni1    164.9   2_555   9_556   1_224 no
+Bi1     Y1      Bi2     Ni1     70.8   2_555   9_556   2_224 no
+Bi1     Y1      Bi2     Y1     132.9   2_555   9_556   1_334 no
+Bi1     Y1      Bi2     Y1     131.2   2_555   9_556   1_324 no
+Bi1     Y1      Bi2     Y1      37.1   2_555   9_556   1_234 no
+Bi1     Y1      Bi2     Y1      47.1   2_555   9_556   1_224 no
+Bi1     Y1      Bi2     Bi1      5.7   2_555   9_556   1_234 no
+Bi1     Y1      Bi2     Bi1     88.5   2_555   9_556   2_324 no
+Bi1     Y1      Bi2     Bi2    151.8   2_545   9_556   9_335 no
+Bi1     Y1      Bi2     Ni1    173.8   2_545   9_556   1_234 no
+Bi1     Y1      Bi2     Ni1    117.4   2_545   9_556   2_324 no
+Bi1     Y1      Bi2     Ni1     89.6   2_545   9_556   1_224 no
+Bi1     Y1      Bi2     Ni1    146.1   2_545   9_556   2_224 no
+Bi1     Y1      Bi2     Y1     151.8   2_545   9_556   1_334 no
+Bi1     Y1      Bi2     Y1      56.0   2_545   9_556   1_324 no
+Bi1     Y1      Bi2     Y1     112.4   2_545   9_556   1_234 no
+Bi1     Y1      Bi2     Y1      28.2   2_545   9_556   1_224 no
+Bi1     Y1      Bi2     Bi1     69.6   2_545   9_556   1_234 no
+Bi1     Y1      Bi2     Bi1     13.2   2_545   9_556   2_324 no
+Bi2     Y1      Bi2     Bi2       .0   1_554   9_556   9_335 no
+Bi2     Y1      Bi2     Ni1    -34.4   1_554   9_556   1_234 no
+Bi2     Y1      Bi2     Ni1    -34.4   1_554   9_556   2_324 no
+Bi2     Y1      Bi2     Ni1    -62.1   1_554   9_556   1_224 no
+Bi2     Y1      Bi2     Ni1    -62.1   1_554   9_556   2_224 no
+Bi2     Y1      Bi2     Y1        .0   1_554   9_556   1_334 no
+Bi2     Y1      Bi2     Y1     -95.8   1_554   9_556   1_324 no
+Bi2     Y1      Bi2     Y1     -95.8   1_554   9_556   1_234 no
+Bi2     Y1      Bi2     Y1    -180.0   1_554   9_556   1_224 no
+Bi2     Y1      Bi2     Bi1   -138.6   1_554   9_556   1_234 no
+Bi2     Y1      Bi2     Bi1   -138.6   1_554   9_556   2_324 no
+Bi2     Y1      Bi2     Ni1     77.3   9_556   9_566   1_274 no
+Bi2     Y1      Bi2     Y1     152.6   9_556   9_566   1_374 no
+Bi2     Y1      Bi2     Bi2     22.8   9_556   9_566   9_375 no
+Bi2     Y1      Bi2     Y1      46.5   9_556   9_566   1_274 no
+Bi2     Y1      Bi2     Bi2    179.8   9_556   9_566   9_385 no
+Bi2     Y1      Bi2     Bi1    102.7   9_556   9_566   1_274 no
+Bi2     Y1      Bi2     Ni1       .0   9_656   9_566   1_274 no
+Bi2     Y1      Bi2     Y1      75.3   9_656   9_566   1_374 no
+Bi2     Y1      Bi2     Bi2     54.5   9_656   9_566   9_375 no
+Bi2     Y1      Bi2     Y1     123.8   9_656   9_566   1_274 no
+Bi2     Y1      Bi2     Bi2    102.4   9_656   9_566   9_385 no
+Bi2     Y1      Bi2     Bi1    180.0   9_656   9_566   1_274 no
+Bi2     Y1      Bi2     Ni1    -77.3   9_666   9_566   1_274 no
+Bi2     Y1      Bi2     Y1      -2.0   9_666   9_566   1_374 no
+Bi2     Y1      Bi2     Bi2   -131.9   9_666   9_566   9_375 no
+Bi2     Y1      Bi2     Y1    -158.9   9_666   9_566   1_274 no
+Bi2     Y1      Bi2     Bi2    -25.1   9_666   9_566   9_385 no
+Bi2     Y1      Bi2     Bi1   -102.7   9_666   9_566   1_274 no
+Bi1     Y1      Bi2     Ni1   -132.9    .      9_566   1_274 no
+Bi1     Y1      Bi2     Y1     -57.7    .      9_566   1_374 no
+Bi1     Y1      Bi2     Bi2   -172.5    .      9_566   9_375 no
+Bi1     Y1      Bi2     Y1    -103.2    .      9_566   1_274 no
+Bi1     Y1      Bi2     Bi2    -30.5    .      9_566   9_385 no
+Bi1     Y1      Bi2     Bi1    -47.1    .      9_566   1_274 no
+Bi1     Y1      Bi2     Ni1   -151.8   1_455   9_566   1_274 no
+Bi1     Y1      Bi2     Y1    -132.9   1_455   9_566   1_374 no
+Bi1     Y1      Bi2     Bi2    -97.2   1_455   9_566   9_375 no
+Bi1     Y1      Bi2     Y1     -28.0   1_455   9_566   1_274 no
+Bi1     Y1      Bi2     Bi2   -105.8   1_455   9_566   9_385 no
+Bi1     Y1      Bi2     Bi1    -28.2   1_455   9_566   1_274 no
+Bi1     Y1      Bi2     Ni1   -151.8   2_555   9_566   1_274 no
+Bi1     Y1      Bi2     Y1     -76.5   2_555   9_566   1_374 no
+Bi1     Y1      Bi2     Bi2   -153.7   2_555   9_566   9_375 no
+Bi1     Y1      Bi2     Y1     -84.4   2_555   9_566   1_274 no
+Bi1     Y1      Bi2     Bi2    -49.3   2_555   9_566   9_385 no
+Bi1     Y1      Bi2     Bi1    -28.2   2_555   9_566   1_274 no
+Bi1     Y1      Bi2     Ni1   -132.9   2_545   9_566   1_274 no
+Bi1     Y1      Bi2     Y1    -151.8   2_545   9_566   1_374 no
+Bi1     Y1      Bi2     Bi2    -78.4   2_545   9_566   9_375 no
+Bi1     Y1      Bi2     Y1      -9.1   2_545   9_566   1_274 no
+Bi1     Y1      Bi2     Bi2   -124.6   2_545   9_566   9_385 no
+Bi1     Y1      Bi2     Bi1    -47.1   2_545   9_566   1_274 no
+Bi2     Y1      Bi2     Ni1       .0   1_554   9_566   1_274 no
+Bi2     Y1      Bi2     Y1      75.3   1_554   9_566   1_374 no
+Bi2     Y1      Bi2     Bi2     54.5   1_554   9_566   9_375 no
+Bi2     Y1      Bi2     Y1     123.8   1_554   9_566   1_274 no
+Bi2     Y1      Bi2     Bi2    102.4   1_554   9_566   9_385 no
+Bi2     Y1      Bi2     Bi1    180.0   1_554   9_566   1_274 no
+Bi2     Y1      Bi2     Ni1    -77.3   9_556   9_656   2_724 no
+Bi2     Y1      Bi2     Y1    -152.6   9_556   9_656   1_734 no
+Bi2     Y1      Bi2     Bi2    -22.8   9_556   9_656   9_735 no
+Bi2     Y1      Bi2     Y1     -46.5   9_556   9_656   1_724 no
+Bi2     Y1      Bi2     Bi2   -179.8   9_556   9_656   9_835 no
+Bi2     Y1      Bi2     Bi1   -102.7   9_556   9_656   2_724 no
+Bi2     Y1      Bi2     Ni1       .0   9_566   9_656   2_724 no
+Bi2     Y1      Bi2     Y1      75.3   9_566   9_656   1_734 no
+Bi2     Y1      Bi2     Bi2     54.5   9_566   9_656   9_735 no
+Bi2     Y1      Bi2     Y1     123.8   9_566   9_656   1_724 no
+Bi2     Y1      Bi2     Bi2    102.4   9_566   9_656   9_835 no
+Bi2     Y1      Bi2     Bi1    180.0   9_566   9_656   2_724 no
+Bi2     Y1      Bi2     Ni1     77.3   9_666   9_656   2_724 no
+Bi2     Y1      Bi2     Y1       2.0   9_666   9_656   1_734 no
+Bi2     Y1      Bi2     Bi2    131.9   9_666   9_656   9_735 no
+Bi2     Y1      Bi2     Y1     158.9   9_666   9_656   1_724 no
+Bi2     Y1      Bi2     Bi2     25.1   9_666   9_656   9_835 no
+Bi2     Y1      Bi2     Bi1    102.7   9_666   9_656   2_724 no
+Bi1     Y1      Bi2     Ni1   -151.8    .      9_656   2_724 no
+Bi1     Y1      Bi2     Y1     -76.5    .      9_656   1_734 no
+Bi1     Y1      Bi2     Bi2   -153.7    .      9_656   9_735 no
+Bi1     Y1      Bi2     Y1     -84.4    .      9_656   1_724 no
+Bi1     Y1      Bi2     Bi2    -49.3    .      9_656   9_835 no
+Bi1     Y1      Bi2     Bi1    -28.2    .      9_656   2_724 no
+Bi1     Y1      Bi2     Ni1   -132.9   1_455   9_656   2_724 no
+Bi1     Y1      Bi2     Y1    -151.8   1_455   9_656   1_734 no
+Bi1     Y1      Bi2     Bi2    -78.4   1_455   9_656   9_735 no
+Bi1     Y1      Bi2     Y1      -9.1   1_455   9_656   1_724 no
+Bi1     Y1      Bi2     Bi2   -124.6   1_455   9_656   9_835 no
+Bi1     Y1      Bi2     Bi1    -47.1   1_455   9_656   2_724 no
+Bi1     Y1      Bi2     Ni1   -132.9   2_555   9_656   2_724 no
+Bi1     Y1      Bi2     Y1     -57.7   2_555   9_656   1_734 no
+Bi1     Y1      Bi2     Bi2   -172.5   2_555   9_656   9_735 no
+Bi1     Y1      Bi2     Y1    -103.2   2_555   9_656   1_724 no
+Bi1     Y1      Bi2     Bi2    -30.5   2_555   9_656   9_835 no
+Bi1     Y1      Bi2     Bi1    -47.1   2_555   9_656   2_724 no
+Bi1     Y1      Bi2     Ni1   -151.8   2_545   9_656   2_724 no
+Bi1     Y1      Bi2     Y1    -132.9   2_545   9_656   1_734 no
+Bi1     Y1      Bi2     Bi2    -97.2   2_545   9_656   9_735 no
+Bi1     Y1      Bi2     Y1     -28.0   2_545   9_656   1_724 no
+Bi1     Y1      Bi2     Bi2   -105.8   2_545   9_656   9_835 no
+Bi1     Y1      Bi2     Bi1    -28.2   2_545   9_656   2_724 no
+Bi2     Y1      Bi2     Ni1       .0   1_554   9_656   2_724 no
+Bi2     Y1      Bi2     Y1      75.3   1_554   9_656   1_734 no
+Bi2     Y1      Bi2     Bi2     54.5   1_554   9_656   9_735 no
+Bi2     Y1      Bi2     Y1     123.8   1_554   9_656   1_724 no
+Bi2     Y1      Bi2     Bi2    102.4   1_554   9_656   9_835 no
+Bi2     Y1      Bi2     Bi1    180.0   1_554   9_656   2_724 no
+Bi2     Y1      Bi2     Y1    -180.0   9_556   9_666   1_774 no
+Bi2     Y1      Bi2     Ni1    -34.4   9_556   9_666   1_674 no
+Bi2     Y1      Bi2     Ni1    -34.4   9_556   9_666   2_764 no
+Bi2     Y1      Bi2     Ni1    -62.1   9_556   9_666   1_774 no
+Bi2     Y1      Bi2     Ni1    -62.1   9_556   9_666   2_774 no
+Bi2     Y1      Bi2     Bi2       .0   9_556   9_666   1_773 no
+Bi2     Y1      Bi2     Bi2       .0   9_556   9_666   9_775 no
+Bi2     Y1      Bi2     Bi2    -83.0   9_556   9_666   9_785 no
+Bi2     Y1      Bi2     Bi2    -83.0   9_556   9_666   9_875 no
+Bi2     Y1      Bi2     Bi2   -180.0   9_556   9_666   9_885 no
+Bi2     Y1      Bi2     Bi1   -138.6   9_556   9_666   1_674 no
+Bi2     Y1      Bi2     Bi1   -138.6   9_556   9_666   2_764 no
+Bi2     Y1      Bi2     Y1     102.7   9_566   9_666   1_774 no
+Bi2     Y1      Bi2     Ni1     42.9   9_566   9_666   1_674 no
+Bi2     Y1      Bi2     Ni1    111.7   9_566   9_666   2_764 no
+Bi2     Y1      Bi2     Ni1    139.5   9_566   9_666   1_774 no
+Bi2     Y1      Bi2     Ni1     15.2   9_566   9_666   2_774 no
+Bi2     Y1      Bi2     Bi2     77.3   9_566   9_666   1_773 no
+Bi2     Y1      Bi2     Bi2     77.3   9_566   9_666   9_775 no
+Bi2     Y1      Bi2     Bi2      5.7   9_566   9_666   9_785 no
+Bi2     Y1      Bi2     Bi2    160.3   9_566   9_666   9_875 no
+Bi2     Y1      Bi2     Bi2    102.7   9_566   9_666   9_885 no
+Bi2     Y1      Bi2     Bi1     61.3   9_566   9_666   1_674 no
+Bi2     Y1      Bi2     Bi1    144.1   9_566   9_666   2_764 no
+Bi2     Y1      Bi2     Y1    -102.7   9_656   9_666   1_774 no
+Bi2     Y1      Bi2     Ni1   -111.7   9_656   9_666   1_674 no
+Bi2     Y1      Bi2     Ni1    -42.9   9_656   9_666   2_764 no
+Bi2     Y1      Bi2     Ni1    -15.2   9_656   9_666   1_774 no
+Bi2     Y1      Bi2     Ni1   -139.5   9_656   9_666   2_774 no
+Bi2     Y1      Bi2     Bi2    -77.3   9_656   9_666   1_773 no
+Bi2     Y1      Bi2     Bi2    -77.3   9_656   9_666   9_775 no
+Bi2     Y1      Bi2     Bi2   -160.3   9_656   9_666   9_785 no
+Bi2     Y1      Bi2     Bi2     -5.7   9_656   9_666   9_875 no
+Bi2     Y1      Bi2     Bi2   -102.7   9_656   9_666   9_885 no
+Bi2     Y1      Bi2     Bi1   -144.1   9_656   9_666   1_674 no
+Bi2     Y1      Bi2     Bi1    -61.3   9_656   9_666   2_764 no
+Bi1     Y1      Bi2     Y1      28.2    .      9_666   1_774 no
+Bi1     Y1      Bi2     Ni1    173.8    .      9_666   1_674 no
+Bi1     Y1      Bi2     Ni1    117.4    .      9_666   2_764 no
+Bi1     Y1      Bi2     Ni1     89.6    .      9_666   1_774 no
+Bi1     Y1      Bi2     Ni1    146.1    .      9_666   2_774 no
+Bi1     Y1      Bi2     Bi2    151.8    .      9_666   1_773 no
+Bi1     Y1      Bi2     Bi2    151.8    .      9_666   9_775 no
+Bi1     Y1      Bi2     Bi2    125.2    .      9_666   9_785 no
+Bi1     Y1      Bi2     Bi2     68.8    .      9_666   9_875 no
+Bi1     Y1      Bi2     Bi2     28.2    .      9_666   9_885 no
+Bi1     Y1      Bi2     Bi1     69.6    .      9_666   1_674 no
+Bi1     Y1      Bi2     Bi1     13.2    .      9_666   2_764 no
+Bi1     Y1      Bi2     Y1      47.1   1_455   9_666   1_774 no
+Bi1     Y1      Bi2     Ni1     98.6   1_455   9_666   1_674 no
+Bi1     Y1      Bi2     Ni1    167.3   1_455   9_666   2_764 no
+Bi1     Y1      Bi2     Ni1    164.9   1_455   9_666   1_774 no
+Bi1     Y1      Bi2     Ni1     70.8   1_455   9_666   2_774 no
+Bi1     Y1      Bi2     Bi2    132.9   1_455   9_666   1_773 no
+Bi1     Y1      Bi2     Bi2    132.9   1_455   9_666   9_775 no
+Bi1     Y1      Bi2     Bi2     49.9   1_455   9_666   9_785 no
+Bi1     Y1      Bi2     Bi2    144.1   1_455   9_666   9_875 no
+Bi1     Y1      Bi2     Bi2     47.1   1_455   9_666   9_885 no
+Bi1     Y1      Bi2     Bi1      5.7   1_455   9_666   1_674 no
+Bi1     Y1      Bi2     Bi1     88.5   1_455   9_666   2_764 no
+Bi1     Y1      Bi2     Y1      28.2   2_555   9_666   1_774 no
+Bi1     Y1      Bi2     Ni1    117.4   2_555   9_666   1_674 no
+Bi1     Y1      Bi2     Ni1    173.8   2_555   9_666   2_764 no
+Bi1     Y1      Bi2     Ni1    146.1   2_555   9_666   1_774 no
+Bi1     Y1      Bi2     Ni1     89.6   2_555   9_666   2_774 no
+Bi1     Y1      Bi2     Bi2    151.8   2_555   9_666   1_773 no
+Bi1     Y1      Bi2     Bi2    151.8   2_555   9_666   9_775 no
+Bi1     Y1      Bi2     Bi2     68.8   2_555   9_666   9_785 no
+Bi1     Y1      Bi2     Bi2    125.2   2_555   9_666   9_875 no
+Bi1     Y1      Bi2     Bi2     28.2   2_555   9_666   9_885 no
+Bi1     Y1      Bi2     Bi1     13.2   2_555   9_666   1_674 no
+Bi1     Y1      Bi2     Bi1     69.6   2_555   9_666   2_764 no
+Bi1     Y1      Bi2     Y1      47.1   2_545   9_666   1_774 no
+Bi1     Y1      Bi2     Ni1    167.3   2_545   9_666   1_674 no
+Bi1     Y1      Bi2     Ni1     98.6   2_545   9_666   2_764 no
+Bi1     Y1      Bi2     Ni1     70.8   2_545   9_666   1_774 no
+Bi1     Y1      Bi2     Ni1    164.9   2_545   9_666   2_774 no
+Bi1     Y1      Bi2     Bi2    132.9   2_545   9_666   1_773 no
+Bi1     Y1      Bi2     Bi2    132.9   2_545   9_666   9_775 no
+Bi1     Y1      Bi2     Bi2    144.1   2_545   9_666   9_785 no
+Bi1     Y1      Bi2     Bi2     49.9   2_545   9_666   9_875 no
+Bi1     Y1      Bi2     Bi2     47.1   2_545   9_666   9_885 no
+Bi1     Y1      Bi2     Bi1     88.5   2_545   9_666   1_674 no
+Bi1     Y1      Bi2     Bi1      5.7   2_545   9_666   2_764 no
+Bi2     Y1      Bi2     Y1    -180.0   1_554   9_666   1_774 no
+Bi2     Y1      Bi2     Ni1    -34.4   1_554   9_666   1_674 no
+Bi2     Y1      Bi2     Ni1    -34.4   1_554   9_666   2_764 no
+Bi2     Y1      Bi2     Ni1    -62.1   1_554   9_666   1_774 no
+Bi2     Y1      Bi2     Ni1    -62.1   1_554   9_666   2_774 no
+Bi2     Y1      Bi2     Bi2       .0   1_554   9_666   1_773 no
+Bi2     Y1      Bi2     Bi2       .0   1_554   9_666   9_775 no
+Bi2     Y1      Bi2     Bi2    -83.0   1_554   9_666   9_785 no
+Bi2     Y1      Bi2     Bi2    -83.0   1_554   9_666   9_875 no
+Bi2     Y1      Bi2     Bi2   -180.0   1_554   9_666   9_885 no
+Bi2     Y1      Bi2     Bi1   -138.6   1_554   9_666   1_674 no
+Bi2     Y1      Bi2     Bi1   -138.6   1_554   9_666   2_764 no
+Bi2     Y1      Bi1     Bi1     40.0   9_556    .      2_747 no
+Bi2     Y1      Bi1     Bi1     81.3   9_556    .      1_657 no
+Bi2     Y1      Bi1     Bi1    155.9   9_556    .      1_757 no
+Bi2     Y1      Bi1     Y1     175.1   9_556    .      1_757 no
+Bi2     Y1      Bi1     Bi1    142.9   9_556    .      2_757 no
+Bi2     Y1      Bi1     Bi2     93.7   9_556    .      1_757 no
+Bi2     Y1      Bi1     Y1      31.8   9_556    .      9_758 no
+Bi2     Y1      Bi1     Y1      82.5   9_556    .      9_858 no
+Bi2     Y1      Bi1     Bi1   -144.4   9_566    .      2_747 no
+Bi2     Y1      Bi1     Bi1    -23.1   9_566    .      1_657 no
+Bi2     Y1      Bi1     Bi1    -99.7   9_566    .      1_757 no
+Bi2     Y1      Bi1     Y1     -80.5   9_566    .      1_757 no
+Bi2     Y1      Bi1     Bi1    -38.5   9_566    .      2_757 no
+Bi2     Y1      Bi1     Bi2    -10.7   9_566    .      1_757 no
+Bi2     Y1      Bi1     Y1     -72.6   9_566    .      9_758 no
+Bi2     Y1      Bi1     Y1    -173.1   9_566    .      9_858 no
+Bi2     Y1      Bi1     Bi1     44.5   9_656    .      2_747 no
+Bi2     Y1      Bi1     Bi1    165.8   9_656    .      1_657 no
+Bi2     Y1      Bi1     Bi1     71.4   9_656    .      1_757 no
+Bi2     Y1      Bi1     Y1      90.6   9_656    .      1_757 no
+Bi2     Y1      Bi1     Bi1    132.6   9_656    .      2_757 no
+Bi2     Y1      Bi1     Bi2    178.2   9_656    .      1_757 no
+Bi2     Y1      Bi1     Y1     116.2   9_656    .      9_758 no
+Bi2     Y1      Bi1     Y1       2.0   9_656    .      9_858 no
+Bi2     Y1      Bi1     Bi1   -131.1   9_666    .      2_747 no
+Bi2     Y1      Bi1     Bi1   -107.6   9_666    .      1_657 no
+Bi2     Y1      Bi1     Bi1    -15.2   9_666    .      1_757 no
+Bi2     Y1      Bi1     Y1      -3.9   9_666    .      1_757 no
+Bi2     Y1      Bi1     Bi1    -45.9   9_666    .      2_757 no
+Bi2     Y1      Bi1     Bi2    -95.2   9_666    .      1_757 no
+Bi2     Y1      Bi1     Y1    -157.1   9_666    .      9_758 no
+Bi2     Y1      Bi1     Y1     -88.6   9_666    .      9_858 no
+Bi1     Y1      Bi1     Bi1     92.2   1_455    .      2_747 no
+Bi1     Y1      Bi1     Bi1    -29.1   1_455    .      1_657 no
+Bi1     Y1      Bi1     Bi1   -151.9   1_455    .      1_757 no
+Bi1     Y1      Bi1     Y1    -132.7   1_455    .      1_757 no
+Bi1     Y1      Bi1     Bi1    -90.7   1_455    .      2_757 no
+Bi1     Y1      Bi1     Bi2    -41.5   1_455    .      1_757 no
+Bi1     Y1      Bi1     Y1      20.4   1_455    .      9_758 no
+Bi1     Y1      Bi1     Y1     134.7   1_455    .      9_858 no
+Bi1     Y1      Bi1     Bi1   -158.4   2_555    .      2_747 no
+Bi1     Y1      Bi1     Bi1    -37.0   2_555    .      1_657 no
+Bi1     Y1      Bi1     Bi1    -85.8   2_555    .      1_757 no
+Bi1     Y1      Bi1     Y1     -66.6   2_555    .      1_757 no
+Bi1     Y1      Bi1     Bi1    -24.6   2_555    .      2_757 no
+Bi1     Y1      Bi1     Bi2    -24.6   2_555    .      1_757 no
+Bi1     Y1      Bi1     Y1     -86.6   2_555    .      9_758 no
+Bi1     Y1      Bi1     Y1    -159.2   2_555    .      9_858 no
+Bi1     Y1      Bi1     Bi1     26.1   2_545    .      2_747 no
+Bi1     Y1      Bi1     Bi1     95.2   2_545    .      1_657 no
+Bi1     Y1      Bi1     Bi1    141.9   2_545    .      1_757 no
+Bi1     Y1      Bi1     Y1     161.1   2_545    .      1_757 no
+Bi1     Y1      Bi1     Bi1    156.9   2_545    .      2_757 no
+Bi1     Y1      Bi1     Bi2    107.6   2_545    .      1_757 no
+Bi1     Y1      Bi1     Y1      45.7   2_545    .      9_758 no
+Bi1     Y1      Bi1     Y1      68.6   2_545    .      9_858 no
+Bi2     Y1      Bi1     Bi1     87.8   1_554    .      2_747 no
+Bi2     Y1      Bi1     Bi1   -150.9   1_554    .      1_657 no
+Bi2     Y1      Bi1     Bi1    -28.1   1_554    .      1_757 no
+Bi2     Y1      Bi1     Y1     -47.3   1_554    .      1_757 no
+Bi2     Y1      Bi1     Bi1    -89.3   1_554    .      2_757 no
+Bi2     Y1      Bi1     Bi2   -138.5   1_554    .      1_757 no
+Bi2     Y1      Bi1     Y1     159.6   1_554    .      9_758 no
+Bi2     Y1      Bi1     Y1      45.3   1_554    .      9_858 no
+Bi2     Y1      Bi1     Bi1   -131.1   9_556   1_455   1_257 no
+Bi2     Y1      Bi1     Bi1   -107.6   9_556   1_455   2_347 no
+Bi2     Y1      Bi1     Bi1    -15.2   9_556   1_455   2_247 no
+Bi2     Y1      Bi1     Y1     -86.9   9_556   1_455   9_358 no
+Bi2     Y1      Bi1     Bi1    -45.9   9_556   1_455   1_247 no
+Bi2     Y1      Bi1     Bi2     -3.7   9_556   1_455   9_358 no
+Bi2     Y1      Bi1     Y1    -175.7   9_556   1_455   1_357 no
+Bi2     Y1      Bi1     Y1     -63.2   9_556   1_455   1_257 no
+Bi2     Y1      Bi1     Bi1     44.5   9_566   1_455   1_257 no
+Bi2     Y1      Bi1     Bi1    165.8   9_566   1_455   2_347 no
+Bi2     Y1      Bi1     Bi1     71.4   9_566   1_455   2_247 no
+Bi2     Y1      Bi1     Y1     173.6   9_566   1_455   9_358 no
+Bi2     Y1      Bi1     Bi1    132.6   9_566   1_455   1_247 no
+Bi2     Y1      Bi1     Bi2     82.9   9_566   1_455   9_358 no
+Bi2     Y1      Bi1     Y1      89.0   9_566   1_455   1_357 no
+Bi2     Y1      Bi1     Y1      23.4   9_566   1_455   1_257 no
+Bi2     Y1      Bi1     Bi1   -144.4   9_656   1_455   1_257 no
+Bi2     Y1      Bi1     Bi1    -23.1   9_656   1_455   2_347 no
+Bi2     Y1      Bi1     Bi1    -99.7   9_656   1_455   2_247 no
+Bi2     Y1      Bi1     Y1      -2.4   9_656   1_455   9_358 no
+Bi2     Y1      Bi1     Bi1    -38.5   9_656   1_455   1_247 no
+Bi2     Y1      Bi1     Bi2    -88.2   9_656   1_455   9_358 no
+Bi2     Y1      Bi1     Y1     -99.8   9_656   1_455   1_357 no
+Bi2     Y1      Bi1     Y1    -147.7   9_656   1_455   1_257 no
+Bi2     Y1      Bi1     Bi1     40.0   9_666   1_455   1_257 no
+Bi2     Y1      Bi1     Bi1     81.3   9_666   1_455   2_347 no
+Bi2     Y1      Bi1     Bi1    155.9   9_666   1_455   2_247 no
+Bi2     Y1      Bi1     Y1     102.0   9_666   1_455   9_358 no
+Bi2     Y1      Bi1     Bi1    142.9   9_666   1_455   1_247 no
+Bi2     Y1      Bi1     Bi2    167.4   9_666   1_455   9_358 no
+Bi2     Y1      Bi1     Y1       4.6   9_666   1_455   1_357 no
+Bi2     Y1      Bi1     Y1     107.9   9_666   1_455   1_257 no
+Bi1     Y1      Bi1     Bi1     92.2    .      1_455   1_257 no
+Bi1     Y1      Bi1     Bi1    -29.1    .      1_455   2_347 no
+Bi1     Y1      Bi1     Bi1   -151.9    .      1_455   2_247 no
+Bi1     Y1      Bi1     Y1     -49.8    .      1_455   9_358 no
+Bi1     Y1      Bi1     Bi1    -90.7    .      1_455   1_247 no
+Bi1     Y1      Bi1     Bi2   -140.4    .      1_455   9_358 no
+Bi1     Y1      Bi1     Y1      47.6    .      1_455   1_357 no
+Bi1     Y1      Bi1     Y1     160.1    .      1_455   1_257 no
+Bi1     Y1      Bi1     Bi1     26.1   2_555   1_455   1_257 no
+Bi1     Y1      Bi1     Bi1     95.2   2_555   1_455   2_347 no
+Bi1     Y1      Bi1     Bi1    141.9   2_555   1_455   2_247 no
+Bi1     Y1      Bi1     Y1     115.9   2_555   1_455   9_358 no
+Bi1     Y1      Bi1     Bi1    156.9   2_555   1_455   1_247 no
+Bi1     Y1      Bi1     Bi2    153.5   2_555   1_455   9_358 no
+Bi1     Y1      Bi1     Y1      18.5   2_555   1_455   1_357 no
+Bi1     Y1      Bi1     Y1      94.0   2_555   1_455   1_257 no
+Bi1     Y1      Bi1     Bi1   -158.4   2_545   1_455   1_257 no
+Bi1     Y1      Bi1     Bi1    -37.0   2_545   1_455   2_347 no
+Bi1     Y1      Bi1     Bi1    -85.8   2_545   1_455   2_247 no
+Bi1     Y1      Bi1     Y1     -16.4   2_545   1_455   9_358 no
+Bi1     Y1      Bi1     Bi1    -24.6   2_545   1_455   1_247 no
+Bi1     Y1      Bi1     Bi2    -74.3   2_545   1_455   9_358 no
+Bi1     Y1      Bi1     Y1    -113.8   2_545   1_455   1_357 no
+Bi1     Y1      Bi1     Y1    -133.8   2_545   1_455   1_257 no
+Bi2     Y1      Bi1     Bi1     87.8   1_554   1_455   1_257 no
+Bi2     Y1      Bi1     Bi1   -150.9   1_554   1_455   2_347 no
+Bi2     Y1      Bi1     Bi1    -28.1   1_554   1_455   2_247 no
+Bi2     Y1      Bi1     Y1    -130.2   1_554   1_455   9_358 no
+Bi2     Y1      Bi1     Bi1    -89.3   1_554   1_455   1_247 no
+Bi2     Y1      Bi1     Bi2    -39.6   1_554   1_455   9_358 no
+Bi2     Y1      Bi1     Y1     132.4   1_554   1_455   1_357 no
+Bi2     Y1      Bi1     Y1      19.9   1_554   1_455   1_257 no
+Bi2     Y1      Bi1     Bi1     40.0   9_556   2_555   1_477 no
+Bi2     Y1      Bi1     Bi1     81.3   9_556   2_555   2_567 no
+Bi2     Y1      Bi1     Bi1    155.9   9_556   2_555   2_577 no
+Bi2     Y1      Bi1     Y1     175.1   9_556   2_555   1_577 no
+Bi2     Y1      Bi1     Bi1    142.9   9_556   2_555   1_577 no
+Bi2     Y1      Bi1     Bi2     93.7   9_556   2_555   1_577 no
+Bi2     Y1      Bi1     Y1      31.8   9_556   2_555   9_578 no
+Bi2     Y1      Bi1     Y1      82.5   9_556   2_555   9_588 no
+Bi2     Y1      Bi1     Bi1    -44.5   9_566   2_555   1_477 no
+Bi2     Y1      Bi1     Bi1   -165.8   9_566   2_555   2_567 no
+Bi2     Y1      Bi1     Bi1    -71.4   9_566   2_555   2_577 no
+Bi2     Y1      Bi1     Y1     -90.6   9_566   2_555   1_577 no
+Bi2     Y1      Bi1     Bi1   -132.6   9_566   2_555   1_577 no
+Bi2     Y1      Bi1     Bi2   -178.2   9_566   2_555   1_577 no
+Bi2     Y1      Bi1     Y1    -116.2   9_566   2_555   9_578 no
+Bi2     Y1      Bi1     Y1      -2.0   9_566   2_555   9_588 no
+Bi2     Y1      Bi1     Bi1   -144.4   9_656   2_555   1_477 no
+Bi2     Y1      Bi1     Bi1    -23.1   9_656   2_555   2_567 no
+Bi2     Y1      Bi1     Bi1    -99.7   9_656   2_555   2_577 no
+Bi2     Y1      Bi1     Y1     -80.5   9_656   2_555   1_577 no
+Bi2     Y1      Bi1     Bi1    -38.5   9_656   2_555   1_577 no
+Bi2     Y1      Bi1     Bi2    -10.7   9_656   2_555   1_577 no
+Bi2     Y1      Bi1     Y1     -72.6   9_656   2_555   9_578 no
+Bi2     Y1      Bi1     Y1    -173.1   9_656   2_555   9_588 no
+Bi2     Y1      Bi1     Bi1    131.1   9_666   2_555   1_477 no
+Bi2     Y1      Bi1     Bi1    107.6   9_666   2_555   2_567 no
+Bi2     Y1      Bi1     Bi1     15.2   9_666   2_555   2_577 no
+Bi2     Y1      Bi1     Y1       3.9   9_666   2_555   1_577 no
+Bi2     Y1      Bi1     Bi1     45.9   9_666   2_555   1_577 no
+Bi2     Y1      Bi1     Bi2     95.2   9_666   2_555   1_577 no
+Bi2     Y1      Bi1     Y1     157.1   9_666   2_555   9_578 no
+Bi2     Y1      Bi1     Y1      88.6   9_666   2_555   9_588 no
+Bi1     Y1      Bi1     Bi1   -158.4    .      2_555   1_477 no
+Bi1     Y1      Bi1     Bi1    -37.0    .      2_555   2_567 no
+Bi1     Y1      Bi1     Bi1     85.8    .      2_555   2_577 no
+Bi1     Y1      Bi1     Y1     -66.6    .      2_555   1_577 no
+Bi1     Y1      Bi1     Bi1    -24.6    .      2_555   1_577 no
+Bi1     Y1      Bi1     Bi2    -24.6    .      2_555   1_577 no
+Bi1     Y1      Bi1     Y1     -86.6    .      2_555   9_578 no
+Bi1     Y1      Bi1     Y1    -159.2    .      2_555   9_588 no
+Bi1     Y1      Bi1     Bi1     26.1   1_455   2_555   1_477 no
+Bi1     Y1      Bi1     Bi1     95.2   1_455   2_555   2_567 no
+Bi1     Y1      Bi1     Bi1    141.9   1_455   2_555   2_577 no
+Bi1     Y1      Bi1     Y1     161.1   1_455   2_555   1_577 no
+Bi1     Y1      Bi1     Bi1    156.9   1_455   2_555   1_577 no
+Bi1     Y1      Bi1     Bi2    107.6   1_455   2_555   1_577 no
+Bi1     Y1      Bi1     Y1      45.7   1_455   2_555   9_578 no
+Bi1     Y1      Bi1     Y1      68.6   1_455   2_555   9_588 no
+Bi1     Y1      Bi1     Bi1    -92.2   2_545   2_555   1_477 no
+Bi1     Y1      Bi1     Bi1     29.1   2_545   2_555   2_567 no
+Bi1     Y1      Bi1     Bi1    151.9   2_545   2_555   2_577 no
+Bi1     Y1      Bi1     Y1     132.7   2_545   2_555   1_577 no
+Bi1     Y1      Bi1     Bi1     90.7   2_545   2_555   1_577 no
+Bi1     Y1      Bi1     Bi2     41.5   2_545   2_555   1_577 no
+Bi1     Y1      Bi1     Y1     -20.4   2_545   2_555   9_578 no
+Bi1     Y1      Bi1     Y1    -134.7   2_545   2_555   9_588 no
+Bi2     Y1      Bi1     Bi1     87.8   1_554   2_555   1_477 no
+Bi2     Y1      Bi1     Bi1   -150.9   1_554   2_555   2_567 no
+Bi2     Y1      Bi1     Bi1    -28.1   1_554   2_555   2_577 no
+Bi2     Y1      Bi1     Y1     -47.3   1_554   2_555   1_577 no
+Bi2     Y1      Bi1     Bi1    -89.3   1_554   2_555   1_577 no
+Bi2     Y1      Bi1     Bi2   -138.5   1_554   2_555   1_577 no
+Bi2     Y1      Bi1     Y1     159.6   1_554   2_555   9_578 no
+Bi2     Y1      Bi1     Y1      45.3   1_554   2_555   9_588 no
+Bi2     Y1      Bi1     Bi1    131.1   9_556   2_545   2_527 no
+Bi2     Y1      Bi1     Bi1    107.6   9_556   2_545   1_437 no
+Bi2     Y1      Bi1     Bi1     15.2   9_556   2_545   1_427 no
+Bi2     Y1      Bi1     Y1      86.9   9_556   2_545   9_538 no
+Bi2     Y1      Bi1     Bi1     45.9   9_556   2_545   2_427 no
+Bi2     Y1      Bi1     Bi2      3.7   9_556   2_545   9_538 no
+Bi2     Y1      Bi1     Y1     175.7   9_556   2_545   1_537 no
+Bi2     Y1      Bi1     Y1      63.2   9_556   2_545   1_527 no
+Bi2     Y1      Bi1     Bi1   -144.4   9_566   2_545   2_527 no
+Bi2     Y1      Bi1     Bi1    -23.1   9_566   2_545   1_437 no
+Bi2     Y1      Bi1     Bi1    -99.7   9_566   2_545   1_427 no
+Bi2     Y1      Bi1     Y1      -2.4   9_566   2_545   9_538 no
+Bi2     Y1      Bi1     Bi1    -38.5   9_566   2_545   2_427 no
+Bi2     Y1      Bi1     Bi2    -88.2   9_566   2_545   9_538 no
+Bi2     Y1      Bi1     Y1     -99.8   9_566   2_545   1_537 no
+Bi2     Y1      Bi1     Y1    -147.7   9_566   2_545   1_527 no
+Bi2     Y1      Bi1     Bi1    -44.5   9_656   2_545   2_527 no
+Bi2     Y1      Bi1     Bi1   -165.8   9_656   2_545   1_437 no
+Bi2     Y1      Bi1     Bi1    -71.4   9_656   2_545   1_427 no
+Bi2     Y1      Bi1     Y1    -173.6   9_656   2_545   9_538 no
+Bi2     Y1      Bi1     Bi1   -132.6   9_656   2_545   2_427 no
+Bi2     Y1      Bi1     Bi2    -82.9   9_656   2_545   9_538 no
+Bi2     Y1      Bi1     Y1     -89.0   9_656   2_545   1_537 no
+Bi2     Y1      Bi1     Y1     -23.4   9_656   2_545   1_527 no
+Bi2     Y1      Bi1     Bi1     40.0   9_666   2_545   2_527 no
+Bi2     Y1      Bi1     Bi1     81.3   9_666   2_545   1_437 no
+Bi2     Y1      Bi1     Bi1    155.9   9_666   2_545   1_427 no
+Bi2     Y1      Bi1     Y1     102.0   9_666   2_545   9_538 no
+Bi2     Y1      Bi1     Bi1    142.9   9_666   2_545   2_427 no
+Bi2     Y1      Bi1     Bi2    167.4   9_666   2_545   9_538 no
+Bi2     Y1      Bi1     Y1       4.6   9_666   2_545   1_537 no
+Bi2     Y1      Bi1     Y1    -107.9   9_666   2_545   1_527 no
+Bi1     Y1      Bi1     Bi1     26.1    .      2_545   2_527 no
+Bi1     Y1      Bi1     Bi1     95.2    .      2_545   1_437 no
+Bi1     Y1      Bi1     Bi1    141.9    .      2_545   1_427 no
+Bi1     Y1      Bi1     Y1     115.9    .      2_545   9_538 no
+Bi1     Y1      Bi1     Bi1    156.9    .      2_545   2_427 no
+Bi1     Y1      Bi1     Bi2    153.5    .      2_545   9_538 no
+Bi1     Y1      Bi1     Y1      18.5    .      2_545   1_537 no
+Bi1     Y1      Bi1     Y1     -94.0    .      2_545   1_527 no
+Bi1     Y1      Bi1     Bi1   -158.4   1_455   2_545   2_527 no
+Bi1     Y1      Bi1     Bi1    -37.0   1_455   2_545   1_437 no
+Bi1     Y1      Bi1     Bi1     85.8   1_455   2_545   1_427 no
+Bi1     Y1      Bi1     Y1     -16.4   1_455   2_545   9_538 no
+Bi1     Y1      Bi1     Bi1    -24.6   1_455   2_545   2_427 no
+Bi1     Y1      Bi1     Bi2    -74.3   1_455   2_545   9_538 no
+Bi1     Y1      Bi1     Y1    -113.8   1_455   2_545   1_537 no
+Bi1     Y1      Bi1     Y1     133.8   1_455   2_545   1_527 no
+Bi1     Y1      Bi1     Bi1    -92.2   2_555   2_545   2_527 no
+Bi1     Y1      Bi1     Bi1     29.1   2_555   2_545   1_437 no
+Bi1     Y1      Bi1     Bi1    151.9   2_555   2_545   1_427 no
+Bi1     Y1      Bi1     Y1      49.8   2_555   2_545   9_538 no
+Bi1     Y1      Bi1     Bi1     90.7   2_555   2_545   2_427 no
+Bi1     Y1      Bi1     Bi2    140.4   2_555   2_545   9_538 no
+Bi1     Y1      Bi1     Y1     -47.6   2_555   2_545   1_537 no
+Bi1     Y1      Bi1     Y1    -160.1   2_555   2_545   1_527 no
+Bi2     Y1      Bi1     Bi1     87.8   1_554   2_545   2_527 no
+Bi2     Y1      Bi1     Bi1   -150.9   1_554   2_545   1_437 no
+Bi2     Y1      Bi1     Bi1    -28.1   1_554   2_545   1_427 no
+Bi2     Y1      Bi1     Y1    -130.2   1_554   2_545   9_538 no
+Bi2     Y1      Bi1     Bi1    -89.3   1_554   2_545   2_427 no
+Bi2     Y1      Bi1     Bi2    -39.6   1_554   2_545   9_538 no
+Bi2     Y1      Bi1     Y1     132.4   1_554   2_545   1_537 no
+Bi2     Y1      Bi1     Y1      19.9   1_554   2_545   1_527 no
+Bi2     Y1      Bi2     Bi1    -90.0   9_556   1_554   1_451 no
+Bi2     Y1      Bi2     Bi1    -90.0   9_556   1_554   2_541 no
+Bi2     Y1      Bi2     Y1        .0   9_556   1_554   9_552 no
+Bi2     Y1      Bi2     Y1    -180.0   9_556   1_554   1_551 no
+Bi2     Y1      Bi2     Bi1   -153.4   9_556   1_554   1_551 no
+Bi2     Y1      Bi2     Bi1    -26.6   9_556   1_554   1_441 no
+Bi2     Y1      Bi2     Bi1   -153.4   9_556   1_554   2_551 no
+Bi2     Y1      Bi2     Bi1    -26.6   9_556   1_554   2_441 no
+Bi2     Y1      Bi2     Bi2   -180.0   9_556   1_554   1_551 no
+Bi2     Y1      Bi2     Bi1       .0   9_566   1_554   1_451 no
+Bi2     Y1      Bi2     Bi1    180.0   9_566   1_554   2_541 no
+Bi2     Y1      Bi2     Y1      90.0   9_566   1_554   9_552 no
+Bi2     Y1      Bi2     Y1      90.0   9_566   1_554   1_551 no
+Bi2     Y1      Bi2     Bi1    116.6   9_566   1_554   1_551 no
+Bi2     Y1      Bi2     Bi1    116.6   9_566   1_554   1_441 no
+Bi2     Y1      Bi2     Bi1     63.4   9_566   1_554   2_551 no
+Bi2     Y1      Bi2     Bi1     63.4   9_566   1_554   2_441 no
+Bi2     Y1      Bi2     Bi2     90.0   9_566   1_554   1_551 no
+Bi2     Y1      Bi2     Bi1    180.0   9_656   1_554   1_451 no
+Bi2     Y1      Bi2     Bi1       .0   9_656   1_554   2_541 no
+Bi2     Y1      Bi2     Y1      90.0   9_656   1_554   9_552 no
+Bi2     Y1      Bi2     Y1      90.0   9_656   1_554   1_551 no
+Bi2     Y1      Bi2     Bi1     63.4   9_656   1_554   1_551 no
+Bi2     Y1      Bi2     Bi1     63.4   9_656   1_554   1_441 no
+Bi2     Y1      Bi2     Bi1    116.6   9_656   1_554   2_551 no
+Bi2     Y1      Bi2     Bi1    116.6   9_656   1_554   2_441 no
+Bi2     Y1      Bi2     Bi2     90.0   9_656   1_554   1_551 no
+Bi2     Y1      Bi2     Bi1    -90.0   9_666   1_554   1_451 no
+Bi2     Y1      Bi2     Bi1    -90.0   9_666   1_554   2_541 no
+Bi2     Y1      Bi2     Y1    -180.0   9_666   1_554   9_552 no
+Bi2     Y1      Bi2     Y1        .0   9_666   1_554   1_551 no
+Bi2     Y1      Bi2     Bi1    -26.6   9_666   1_554   1_551 no
+Bi2     Y1      Bi2     Bi1   -153.4   9_666   1_554   1_441 no
+Bi2     Y1      Bi2     Bi1    -26.6   9_666   1_554   2_551 no
+Bi2     Y1      Bi2     Bi1   -153.4   9_666   1_554   2_441 no
+Bi2     Y1      Bi2     Bi2       .0   9_666   1_554   1_551 no
+Bi1     Y1      Bi2     Bi1   -135.0    .      1_554   1_451 no
+Bi1     Y1      Bi2     Bi1     45.0    .      1_554   2_541 no
+Bi1     Y1      Bi2     Y1     135.0    .      1_554   9_552 no
+Bi1     Y1      Bi2     Y1     -45.0    .      1_554   1_551 no
+Bi1     Y1      Bi2     Bi1    -18.4    .      1_554   1_551 no
+Bi1     Y1      Bi2     Bi1    108.4    .      1_554   1_441 no
+Bi1     Y1      Bi2     Bi1    -71.6    .      1_554   2_551 no
+Bi1     Y1      Bi2     Bi1    161.6    .      1_554   2_441 no
+Bi1     Y1      Bi2     Bi2    -45.0    .      1_554   1_551 no
+Bi1     Y1      Bi2     Bi1     45.0   1_455   1_554   1_451 no
+Bi1     Y1      Bi2     Bi1   -135.0   1_455   1_554   2_541 no
+Bi1     Y1      Bi2     Y1     -45.0   1_455   1_554   9_552 no
+Bi1     Y1      Bi2     Y1     135.0   1_455   1_554   1_551 no
+Bi1     Y1      Bi2     Bi1    161.6   1_455   1_554   1_551 no
+Bi1     Y1      Bi2     Bi1    -71.6   1_455   1_554   1_441 no
+Bi1     Y1      Bi2     Bi1    108.4   1_455   1_554   2_551 no
+Bi1     Y1      Bi2     Bi1    -18.4   1_455   1_554   2_441 no
+Bi1     Y1      Bi2     Bi2    135.0   1_455   1_554   1_551 no
+Bi1     Y1      Bi2     Bi1    -45.0   2_555   1_554   1_451 no
+Bi1     Y1      Bi2     Bi1    135.0   2_555   1_554   2_541 no
+Bi1     Y1      Bi2     Y1    -135.0   2_555   1_554   9_552 no
+Bi1     Y1      Bi2     Y1      45.0   2_555   1_554   1_551 no
+Bi1     Y1      Bi2     Bi1     71.6   2_555   1_554   1_551 no
+Bi1     Y1      Bi2     Bi1   -161.6   2_555   1_554   1_441 no
+Bi1     Y1      Bi2     Bi1     18.4   2_555   1_554   2_551 no
+Bi1     Y1      Bi2     Bi1   -108.4   2_555   1_554   2_441 no
+Bi1     Y1      Bi2     Bi2     45.0   2_555   1_554   1_551 no
+Bi1     Y1      Bi2     Bi1    135.0   2_545   1_554   1_451 no
+Bi1     Y1      Bi2     Bi1    -45.0   2_545   1_554   2_541 no
+Bi1     Y1      Bi2     Y1      45.0   2_545   1_554   9_552 no
+Bi1     Y1      Bi2     Y1    -135.0   2_545   1_554   1_551 no
+Bi1     Y1      Bi2     Bi1   -108.4   2_545   1_554   1_551 no
+Bi1     Y1      Bi2     Bi1     18.4   2_545   1_554   1_441 no
+Bi1     Y1      Bi2     Bi1   -161.6   2_545   1_554   2_551 no
+Bi1     Y1      Bi2     Bi1     71.6   2_545   1_554   2_441 no
+Bi1     Y1      Bi2     Bi2   -135.0   2_545   1_554   1_551 no
+Bi1     Bi1     Bi1     Bi2   -139.7   2_545   2_555   1_374 no
+Bi1     Bi1     Bi1     Bi2     40.3   2_545   2_555   9_376 no
+Bi1     Bi1     Bi1     Bi2    -40.3   2_545   2_555   1_274 no
+Bi1     Bi1     Bi1     Bi2    139.7   2_545   2_555   9_386 no
+Bi1     Bi1     Bi1     Bi2    -40.3   2_655   2_555   1_374 no
+Bi1     Bi1     Bi1     Bi2    139.7   2_655   2_555   9_376 no
+Bi1     Bi1     Bi1     Bi2   -139.7   2_655   2_555   1_274 no
+Bi1     Bi1     Bi1     Bi2     40.3   2_655   2_555   9_386 no
+Bi1     Bi1     Bi1     Bi2     40.3   2_645   2_555   1_374 no
+Bi1     Bi1     Bi1     Bi2   -139.7   2_645   2_555   9_376 no
+Bi1     Bi1     Bi1     Bi2    139.7   2_645   2_555   1_274 no
+Bi1     Bi1     Bi1     Bi2    -40.3   2_645   2_555   9_386 no
+Y1      Bi1     Bi1     Bi2     82.1    .      2_555   1_374 no
+Y1      Bi1     Bi1     Bi2     97.9    .      2_555   9_376 no
+Y1      Bi1     Bi1     Bi2     17.4    .      2_555   1_274 no
+Y1      Bi1     Bi1     Bi2    162.6    .      2_555   9_386 no
+Y1      Bi1     Bi1     Y1     175.9    .      2_555   1_375 no
+Y1      Bi1     Bi1     Y1       4.1    .      2_555   9_375 no
+Y1      Bi1     Bi1     Y1     111.2    .      2_555   1_275 no
+Y1      Bi1     Bi1     Y1      68.8    .      2_555   9_385 no
+Y1      Bi1     Bi1     Bi2     17.4   1_655   2_555   1_374 no
+Y1      Bi1     Bi1     Bi2    162.6   1_655   2_555   9_376 no
+Y1      Bi1     Bi1     Bi2     82.1   1_655   2_555   1_274 no
+Y1      Bi1     Bi1     Bi2     97.9   1_655   2_555   9_386 no
+Y1      Bi1     Bi1     Y1     111.2   1_655   2_555   1_375 no
+Y1      Bi1     Bi1     Y1      68.8   1_655   2_555   9_375 no
+Y1      Bi1     Bi1     Y1     175.9   1_655   2_555   1_275 no
+Y1      Bi1     Bi1     Y1       4.1   1_655   2_555   9_385 no
+Y1      Bi1     Bi1     Bi2   -162.6   9_656   2_555   1_374 no
+Y1      Bi1     Bi1     Bi2    -17.4   9_656   2_555   9_376 no
+Y1      Bi1     Bi1     Bi2    -97.9   9_656   2_555   1_274 no
+Y1      Bi1     Bi1     Bi2    -82.1   9_656   2_555   9_386 no
+Y1      Bi1     Bi1     Y1     -68.8   9_656   2_555   1_375 no
+Y1      Bi1     Bi1     Y1    -111.2   9_656   2_555   9_375 no
+Y1      Bi1     Bi1     Y1      -4.1   9_656   2_555   1_275 no
+Y1      Bi1     Bi1     Y1    -175.9   9_656   2_555   9_385 no
+Y1      Bi1     Bi1     Bi2    -97.9   9_666   2_555   1_374 no
+Y1      Bi1     Bi1     Bi2    -82.1   9_666   2_555   9_376 no
+Y1      Bi1     Bi1     Bi2   -162.6   9_666   2_555   1_274 no
+Y1      Bi1     Bi1     Bi2    -17.4   9_666   2_555   9_386 no
+Y1      Bi1     Bi1     Y1      -4.1   9_666   2_555   1_375 no
+Y1      Bi1     Bi1     Y1    -175.9   9_666   2_555   9_375 no
+Y1      Bi1     Bi1     Y1     -68.8   9_666   2_555   1_275 no
+Y1      Bi1     Bi1     Y1    -111.2   9_666   2_555   9_385 no
+Bi1     Bi1     Bi1     Bi2    -90.0   2_555   2_545   9_336 no
+Bi1     Bi1     Bi1     Bi2     90.0   2_555   2_545   1_334 no
+Bi1     Bi1     Bi1     Bi2    157.1   2_555   2_545   1_324 no
+Bi1     Bi1     Bi1     Bi2     22.9   2_555   2_545   1_234 no
+Bi1     Bi1     Bi1     Bi2     90.0   2_555   2_545   1_224 no
+Bi1     Bi1     Bi1     Bi2    -90.0   2_645   2_545   9_336 no
+Bi1     Bi1     Bi1     Bi2     90.0   2_645   2_545   1_334 no
+Bi1     Bi1     Bi1     Bi2     22.9   2_645   2_545   1_324 no
+Bi1     Bi1     Bi1     Bi2    157.1   2_645   2_545   1_234 no
+Bi1     Bi1     Bi1     Bi2     90.0   2_645   2_545   1_224 no
+Y1      Bi1     Bi1     Bi2   -147.6    .      2_545   9_336 no
+Y1      Bi1     Bi1     Y1     -32.4    .      2_545   9_335 no
+Y1      Bi1     Bi1     Bi2    -32.4    .      2_545   1_334 no
+Y1      Bi1     Bi1     Bi2    -99.4    .      2_545   1_324 no
+Y1      Bi1     Bi1     Bi2    -34.7    .      2_545   1_234 no
+Y1      Bi1     Bi1     Bi2    -32.4    .      2_545   1_224 no
+Y1      Bi1     Bi1     Bi2   -147.6   1_655   2_545   9_336 no
+Y1      Bi1     Bi1     Y1     -32.4   1_655   2_545   9_335 no
+Y1      Bi1     Bi1     Bi2    -32.4   1_655   2_545   1_334 no
+Y1      Bi1     Bi1     Bi2    -34.7   1_655   2_545   1_324 no
+Y1      Bi1     Bi1     Bi2    -99.4   1_655   2_545   1_234 no
+Y1      Bi1     Bi1     Bi2    -32.4   1_655   2_545   1_224 no
+Y1      Bi1     Bi1     Bi2     32.4   9_656   2_545   9_336 no
+Y1      Bi1     Bi1     Y1     147.6   9_656   2_545   9_335 no
+Y1      Bi1     Bi1     Bi2    147.6   9_656   2_545   1_334 no
+Y1      Bi1     Bi1     Bi2     80.6   9_656   2_545   1_324 no
+Y1      Bi1     Bi1     Bi2    145.3   9_656   2_545   1_234 no
+Y1      Bi1     Bi1     Bi2    147.6   9_656   2_545   1_224 no
+Y1      Bi1     Bi1     Bi2     32.4   9_666   2_545   9_336 no
+Y1      Bi1     Bi1     Y1     147.6   9_666   2_545   9_335 no
+Y1      Bi1     Bi1     Bi2    147.6   9_666   2_545   1_334 no
+Y1      Bi1     Bi1     Bi2    145.3   9_666   2_545   1_324 no
+Y1      Bi1     Bi1     Bi2     80.6   9_666   2_545   1_234 no
+Y1      Bi1     Bi1     Bi2    147.6   9_666   2_545   1_224 no
+Bi1     Bi1     Bi1     Bi2     90.0   2_555   2_655   1_774 no
+Bi1     Bi1     Bi1     Bi2    -90.0   2_555   2_655   9_776 no
+Bi1     Bi1     Bi1     Bi2    -22.9   2_555   2_655   9_786 no
+Bi1     Bi1     Bi1     Bi2   -157.1   2_555   2_655   9_876 no
+Bi1     Bi1     Bi1     Bi2    -90.0   2_555   2_655   9_886 no
+Bi1     Bi1     Bi1     Bi2     90.0   2_645   2_655   1_774 no
+Bi1     Bi1     Bi1     Bi2    -90.0   2_645   2_655   9_776 no
+Bi1     Bi1     Bi1     Bi2   -157.1   2_645   2_655   9_786 no
+Bi1     Bi1     Bi1     Bi2    -22.9   2_645   2_655   9_876 no
+Bi1     Bi1     Bi1     Bi2    -90.0   2_645   2_655   9_886 no
+Y1      Bi1     Bi1     Bi2    -32.4    .      2_655   1_774 no
+Y1      Bi1     Bi1     Y1    -147.6    .      2_655   1_775 no
+Y1      Bi1     Bi1     Bi2   -147.6    .      2_655   9_776 no
+Y1      Bi1     Bi1     Bi2    -80.6    .      2_655   9_786 no
+Y1      Bi1     Bi1     Bi2   -145.3    .      2_655   9_876 no
+Y1      Bi1     Bi1     Bi2   -147.6    .      2_655   9_886 no
+Y1      Bi1     Bi1     Bi2    -32.4   1_655   2_655   1_774 no
+Y1      Bi1     Bi1     Y1    -147.6   1_655   2_655   1_775 no
+Y1      Bi1     Bi1     Bi2   -147.6   1_655   2_655   9_776 no
+Y1      Bi1     Bi1     Bi2   -145.3   1_655   2_655   9_786 no
+Y1      Bi1     Bi1     Bi2    -80.6   1_655   2_655   9_876 no
+Y1      Bi1     Bi1     Bi2   -147.6   1_655   2_655   9_886 no
+Y1      Bi1     Bi1     Bi2    147.6   9_656   2_655   1_774 no
+Y1      Bi1     Bi1     Y1      32.4   9_656   2_655   1_775 no
+Y1      Bi1     Bi1     Bi2     32.4   9_656   2_655   9_776 no
+Y1      Bi1     Bi1     Bi2     99.4   9_656   2_655   9_786 no
+Y1      Bi1     Bi1     Bi2     34.7   9_656   2_655   9_876 no
+Y1      Bi1     Bi1     Bi2     32.4   9_656   2_655   9_886 no
+Y1      Bi1     Bi1     Bi2    147.6   9_666   2_655   1_774 no
+Y1      Bi1     Bi1     Y1      32.4   9_666   2_655   1_775 no
+Y1      Bi1     Bi1     Bi2     32.4   9_666   2_655   9_776 no
+Y1      Bi1     Bi1     Bi2     34.7   9_666   2_655   9_786 no
+Y1      Bi1     Bi1     Bi2     99.4   9_666   2_655   9_876 no
+Y1      Bi1     Bi1     Bi2     32.4   9_666   2_655   9_886 no
+Bi1     Bi1     Bi1     Bi2    139.7   2_555   2_645   1_734 no
+Bi1     Bi1     Bi1     Bi2    -40.3   2_555   2_645   9_736 no
+Bi1     Bi1     Bi1     Bi2     40.3   2_555   2_645   1_724 no
+Bi1     Bi1     Bi1     Bi2   -139.7   2_555   2_645   9_836 no
+Bi1     Bi1     Bi1     Bi2   -139.7   2_545   2_645   1_734 no
+Bi1     Bi1     Bi1     Bi2     40.3   2_545   2_645   9_736 no
+Bi1     Bi1     Bi1     Bi2    -40.3   2_545   2_645   1_724 no
+Bi1     Bi1     Bi1     Bi2    139.7   2_545   2_645   9_836 no
+Bi1     Bi1     Bi1     Bi2    -40.3   2_655   2_645   1_734 no
+Bi1     Bi1     Bi1     Bi2    139.7   2_655   2_645   9_736 no
+Bi1     Bi1     Bi1     Bi2   -139.7   2_655   2_645   1_724 no
+Bi1     Bi1     Bi1     Bi2     40.3   2_655   2_645   9_836 no
+Y1      Bi1     Bi1     Bi2     82.1    .      2_645   1_734 no
+Y1      Bi1     Bi1     Bi2     97.9    .      2_645   9_736 no
+Y1      Bi1     Bi1     Bi2     17.4    .      2_645   1_724 no
+Y1      Bi1     Bi1     Bi2    162.6    .      2_645   9_836 no
+Y1      Bi1     Bi1     Y1     175.9    .      2_645   1_735 no
+Y1      Bi1     Bi1     Y1       4.1    .      2_645   9_735 no
+Y1      Bi1     Bi1     Y1     111.2    .      2_645   1_725 no
+Y1      Bi1     Bi1     Y1      68.8    .      2_645   9_835 no
+Y1      Bi1     Bi1     Bi2     17.4   1_655   2_645   1_734 no
+Y1      Bi1     Bi1     Bi2    162.6   1_655   2_645   9_736 no
+Y1      Bi1     Bi1     Bi2     82.1   1_655   2_645   1_724 no
+Y1      Bi1     Bi1     Bi2     97.9   1_655   2_645   9_836 no
+Y1      Bi1     Bi1     Y1     111.2   1_655   2_645   1_735 no
+Y1      Bi1     Bi1     Y1      68.8   1_655   2_645   9_735 no
+Y1      Bi1     Bi1     Y1     175.9   1_655   2_645   1_725 no
+Y1      Bi1     Bi1     Y1       4.1   1_655   2_645   9_835 no
+Y1      Bi1     Bi1     Bi2   -162.6   9_656   2_645   1_734 no
+Y1      Bi1     Bi1     Bi2    -17.4   9_656   2_645   9_736 no
+Y1      Bi1     Bi1     Bi2    -97.9   9_656   2_645   1_724 no
+Y1      Bi1     Bi1     Bi2    -82.1   9_656   2_645   9_836 no
+Y1      Bi1     Bi1     Y1     -68.8   9_656   2_645   1_735 no
+Y1      Bi1     Bi1     Y1    -111.2   9_656   2_645   9_735 no
+Y1      Bi1     Bi1     Y1      -4.1   9_656   2_645   1_725 no
+Y1      Bi1     Bi1     Y1    -175.9   9_656   2_645   9_835 no
+Y1      Bi1     Bi1     Bi2    -97.9   9_666   2_645   1_734 no
+Y1      Bi1     Bi1     Bi2    -82.1   9_666   2_645   9_736 no
+Y1      Bi1     Bi1     Bi2   -162.6   9_666   2_645   1_724 no
+Y1      Bi1     Bi1     Bi2    -17.4   9_666   2_645   9_836 no
+Y1      Bi1     Bi1     Y1      -4.1   9_666   2_645   1_735 no
+Y1      Bi1     Bi1     Y1    -175.9   9_666   2_645   9_735 no
+Y1      Bi1     Bi1     Y1     -68.8   9_666   2_645   1_725 no
+Y1      Bi1     Bi1     Y1    -111.2   9_666   2_645   9_835 no
+
+#  842 torsion angles calculated
+
+# The following 3 entries can be used for peaks,   reflections, and profile
+
+#loop_
+#      _pd_peak_id
+#      _pd_peak_2theta_centroid
+#      _pd_peak_d_spacing
+#      _pd_peak_pk_height
+#      _pd_peak_width_2theta
+#      PK1   25.573  3.480   623.1  0.1195
+
+#loop_
+#      _pd_refln_index_h
+#      _pd_refln_index_k
+#      _pd_refln_index_l
+##     _pd_refln_phase_id
+##     _refln_observed_status
+#      _refln_F_squared_calc
+#      _refln_F_squared_meas
+#      _refln_phase_calc
+#      _pd_refln_i100_meas
+#      _pd_refln_peak_id
+#   1   0  -2  PH01  o   2209.600    2164.058    180.00   42.54    PK1
+
+#loop_
+#      _pd_meas_intensity_total
+##     _pd_proc_ls_weight
+##     _pd_proc_intensity_calc_bkg
+#      _pd_calc_intensity_total
+#    240(15)       0.00417     214.5   214.5
+
+# The following lines are used to test the character set of files sent by
+# network email or other means. They are not part of the CIF data set.
+# abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
+# !@#$%^&*()_+{}:"~<>?|\-=[];'`,./
+

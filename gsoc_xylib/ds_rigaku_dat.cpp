@@ -114,27 +114,23 @@ void RigakuDataSet::load_data(std::istream &f)
             if (p_rg != NULL) {
                 // save the last unsaved range with sanity check
                 my_assert(p_xcol->get_pt_cnt() == p_ycol->get_pt_cnt(), 
-                    "file corrupt: count of x and y differs");
+                    "file corrupt: count of x and y differ");
                 
                 ranges.push_back(p_rg);
                 p_rg = NULL;
             }
         
             p_xcol = new StepColumn;
-            my_assert(p_xcol != NULL, "no memory to allocate");
-            
             p_ycol = new VecColumn;
-            my_assert(p_ycol != NULL, "no memory to allocate");
-            
             p_rg = new Range;
-            my_assert(p_rg != NULL, "no memory to allocate");
+            
             p_rg->add_column(p_xcol, Range::CT_X);
             p_rg->add_column(p_ycol, Range::CT_Y);
             
-        } else if (str_startwith(line, "*END")) {    // range ends
+        } else if (str_startwith(line, "*END")) { // range ends
             pos_flg = FILE_META;
             
-        } else if (str_startwith(line, "*EOF")) {    // file ends
+        } else if (str_startwith(line, "*EOF")) { // file ends
             break;
         
         } else if (str_startwith(line, "*")) {    // other meta key-value pair. NOTE the order, it must follow other "*XXX" branches
@@ -187,10 +183,11 @@ void RigakuDataSet::load_data(std::istream &f)
     if (p_rg != NULL) {
         // save the last unsaved range with sanity check 
         my_assert(p_xcol->get_pt_cnt() == p_ycol->get_pt_cnt(), 
-            "file corrupt: count of x and y differs at last range");
+            "file corrupt: count of x and y differ at last range");
 
         my_assert(grp_cnt != 0, "no GROUP_COUNT attribute given");
-        my_assert(ranges.size() + 1 == grp_cnt, "file corrupt: actual range count differs from expected");
+        my_assert(ranges.size() + 1 == grp_cnt, 
+            "file corrupt: actual range count differ from expected");
         
         ranges.push_back(p_rg);
         p_rg = NULL;

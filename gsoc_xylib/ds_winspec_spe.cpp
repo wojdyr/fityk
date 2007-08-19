@@ -118,17 +118,13 @@ void WinspecSpeDataSet::load_data(std::istream &f)
     f.ignore(122);      // move ptr to frames-start
     for (unsigned frm = 0; frm < num_frames; ++frm) {
         VecColumn *p_xcol = new VecColumn;
-        my_assert(p_xcol != NULL, "no memory to allocate");
         if ((1 == calib->polynom_order) || (!calib->calib_valid)) {
             // it's linear, so step is fixed
             p_xcol->fixed_step = true;
         }
 
         VecColumn *p_ycol = new VecColumn;
-        my_assert(p_ycol != NULL, "no memory to allocate");
-    
         Range *p_rg = new Range;
-        my_assert(p_rg != NULL, "no memory to allocate");
         p_rg->add_column(p_xcol, Range::CT_X);
         p_rg->add_column(p_ycol, Range::CT_Y);
         

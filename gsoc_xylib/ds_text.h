@@ -12,7 +12,7 @@ namespace xylib {
     {
     public:
         TextDataSet()
-            : DataSet(FT_TEXT) {}
+            : DataSet(fmt_info.ftype) {}
 
         // implement the interfaces specified by DataSet
         void load_data(std::istream &f);

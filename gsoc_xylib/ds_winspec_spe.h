@@ -27,7 +27,7 @@ class WinspecSpeDataSet : public DataSet
 {
 public:
     WinspecSpeDataSet()
-        : DataSet(FT_SPE) {}
+        : DataSet(fmt_info.ftype) {}
 
     // implement the interfaces specified by DataSet
     static bool check(std::istream &f);

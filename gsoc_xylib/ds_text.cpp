@@ -51,7 +51,7 @@ const FormatInfo TextDataSet::fmt_info(
     FT_TEXT,
     "text",
     "the ascii plain text Format",
-    vector<string>(exts, exts + 4),
+    vector<string>(exts, exts + sizeof(exts) / sizeof(string)),
     false,                       // whether binary
     false                        // whether multi-ranged
 );
@@ -73,8 +73,6 @@ void TextDataSet::load_data(std::istream &f)
     clear();
 
     Range* p_rg = new Range;
-    my_assert(p_rg != NULL, "no memory to allocate");
-
     vector<VecColumn*> vec_cols;  
     unsigned nr_cols(0);
     vector<double> xy;
@@ -90,12 +88,11 @@ void TextDataSet::load_data(std::istream &f)
             nr_cols = xy.size();
             for (unsigned i = 0; i < nr_cols; ++i) {
                 VecColumn *p_col = new VecColumn;
-                my_assert(p_col != NULL, "no memory to allocate"); 
                 vec_cols.push_back(p_col);
                 p_rg->add_column(p_col);
             }
         } else {
-            my_assert(xy.size() == nr_cols, "format error: number of columns differs");
+            my_assert(xy.size() == nr_cols, "format error: number of columns differ");
         }
 
         for (unsigned i = 0; i < nr_cols; ++i) {

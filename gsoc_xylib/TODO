@@ -1,7 +1,7 @@
 TODO:
 
 * PANalytical's data format
-* find more sample files from other source
+* find more sample files from other source to test existing code
 
 * The structure in xylib now to store X-Y values need to be modified to adapt pdCIF format.
 

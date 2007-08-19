@@ -12,7 +12,7 @@ Siemens/Bruker Diffrac-AT Raw Format version 1, data format used in
 Siemens/Brucker X-ray diffractors.
 
 ///////////////////////////////////////////////////////////////////////////////
-    * Name in progam:   ds_brucker_raw_v1
+    * Name in progam:   diffracat_v1_raw
     * Extension name:   raw
     * Binary/Text:      binary
     * Multi-ranged:     Y
@@ -29,7 +29,7 @@ It may contain multiple groups/ranges in one file.
 There is a common header in the head of the file, with fixed length fields 
 indicating file-scope meta-info whose actrual meaning can be found in the 
 format specification.Each range has its onw range-scope meta-info at the 
-beginning, followed by the X-Y data.
+beginning, followed by the Y data.
 
 ///////////////////////////////////////////////////////////////////////////////
     * Implementation Ref of xylib: 
@@ -91,7 +91,6 @@ void BruckerV1RawDataSet::load_data(std::istream &f)
     
     do {
         Range* p_rg = new Range;
-        my_assert(p_rg != NULL, "no memory to allocate");
     
         f.ignore(4);
         unsigned cur_range_steps = read_uint32_le(f);  
@@ -102,7 +101,6 @@ void BruckerV1RawDataSet::load_data(std::istream &f)
         float x_start = read_flt_le(f);
 
         StepColumn *p_xcol = new StepColumn(x_start, x_step);
-        my_assert(p_xcol != NULL, "no memory to allocate");
         
         float t = read_flt_le(f);
         if (-1e6 != t)
@@ -124,7 +122,7 @@ void BruckerV1RawDataSet::load_data(std::istream &f)
         following_range = read_uint32_le(f);
         
         VecColumn *p_ycol = new VecColumn();
-        my_assert(p_ycol != NULL, "no memory to allocate");
+        
         for(unsigned i = 0; i < cur_range_steps; ++i) {
             float y = read_flt_le(f);
             p_ycol->add_val(y);

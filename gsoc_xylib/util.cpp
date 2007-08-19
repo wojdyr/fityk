@@ -69,6 +69,14 @@ namespace util{
         return val;
     }
 
+    char read_char(istream &f) {
+        char ret;
+        f.read(&ret, 1);
+        if (static_cast<unsigned>(f.gcount()) < 1) {
+            throw XY_Error("unexpected eof in read_string()");
+        }
+        return ret;
+    }
 
     // read a string from f
     string read_string(istream &f, unsigned len) 
@@ -86,6 +94,7 @@ namespace util{
         buf[len] = '\0';
         return string(buf);
     }
+    
 /////////////////////////
 
     // trim the string 

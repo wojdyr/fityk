@@ -12,7 +12,7 @@ class PdCifDataSet : public DataSet
 {
 public:
     PdCifDataSet()
-        : DataSet(FT_PDCIF) {}
+        : DataSet(fmt_info.ftype) {}
 
     // implement the interfaces specified by DataSet
     static bool check(std::istream &f);
@@ -22,7 +22,7 @@ public:
     
 protected:
     void get_all_values(const std::string &line, std::istream &f, 
-        std::vector<std::string> &values);
+        std::vector<std::string> &values, bool in_loop);
     bool add_key_val(Range *p_rg, const std::string &key, const std::string &val);
     void add_range(Range* p_rg);
 
