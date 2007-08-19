@@ -7,35 +7,16 @@ you don't know were to start, there is a list of ideas at the end of this file.
 Legend:
 // = done, but not tested/documented  
 
-// * dataset title should contain also cols, if explicitely given 
-
-// * GUI: remember data show choice ("show only selected", etc.) in settings
-
-// * GUI: zoom all/vertically: if "show only sel" etc. and multiple selections,
-//     zoom to show _all_ selected datasets
-
-// * make SVG icon, mv fityk.png 
-
-// * add fityk.xml mime specification (for .fit and .xy) to the tarball.
-
-// * the API should be designed as Fityk class
-
-// * convex hull background 
-
-// * check if open-data plot preview still works 
-
 * XPS Shirley background removing
 
 --------------> 0.8.2
+
+* data: "filename" should contain full path
 
 * GUI: when printing, everything is first rescaled and rounded(!) for
   plot window at the screen, and then rescaled to the paper size. 
   This rounding causes visible artefacts at the printout.
   (wxDC.GetSize instead of plot.GetClientSize() ?)
-
-* sorting lists at sidebar - by clicking on column header, 
-  use case: sort functions by centers
-  involves refactoring ListWithColors::populate()
 
 * GUI: default view is too wide from the left in when logarithmic scale is on,
   because view margin is always 5%, and this is handled by libfityk
@@ -49,7 +30,13 @@ Legend:
 
 * GUI: should (and where) windows size & position be stored?
 
+* data: integrate fityk with xylib written by Peng Zhang as GSOC project
+
 --------------> 0.8.3
+
+* sorting lists at sidebar - by clicking on column header, 
+  use case: sort functions by centers
+  involves refactoring ListWithColors::populate()
 
 * making libfityk thread-safe (pass around Fityk* F, remove all `AL',
    remove static class members and global variables)
@@ -75,22 +62,20 @@ Legend:
 
 * unused variables should not slow down fitting
 
+* GUI: add more menu icons (GTK only)
+
+* GUI: use icons with alpha channel 
+       http://www.wxwidgets.org/wiki/index.php/Embedding_PNG_Images
+
 ------------------ 
 
 * GUI: script editor: button to change directories in absolute filenames
 
 * GUI: button '(un)lock' on variables pane [waiting for wx-toggle-bitmap-button]
 
-* GUI: wxWidgets file dialog can't be customized, and there is no
-  wxFileDialog-like widget (there is a wxGenericDirCtrl, but it doesn't look 
-  good). Such a widget would be very useful in fityk. 
+* GUI: [when wx3 is released, with customizable file dlg] change file dialogs
   
 * [Infrastructure] Set up BuildBot or similar system for build tests
-
-* GUI: use icons with alpha channel 
-       http://www.wxwidgets.org/wiki/index.php/Embedding_PNG_Images
-
-* GUI: menu file icons (16x15 or 16x16?, only GTK or also MSW?)
 
 * user defined functions:
       - more sophisticated simplifications of expressions and CSE(!)
@@ -142,18 +127,7 @@ Legend:
 
 * auto-freezing of peaks at disactivated range
 
-* loading data -- this should be separated from the rest of the program.
-  use Difdaf library (when it will be ready) for powder diffraction data import.
-  other formats (from survey): .jdx JCAMP-DX (www.jcamp.org)
-	         Galactic (GRAMS/32) SPC files (especially multifiles)
-		 Vamas (vms), multipart Siemens .raw data files, uxd,udf
-  perhaps OPJ with liborigin and XLS with another library
-  Fast reading of ascii multicolumn files (benchmarks needed),
-   with option to use different decimal separator (e.g. ',')
-  see also description below
-
 * (GUI) single dialog for configuring main plot (and also aux. plots) (?)
-  data point size and other properties can be put on data pane(?)
 
 * (GUI) vertical scaling using mouse on main plot near to left edge of the plot 
 

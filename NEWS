@@ -1,8 +1,14 @@
 $Id$
 
-User-visible changes in version 0.8.2  (2007-  -  ):
+User-visible changes in version 0.8.2  (2007-08-1 ):
+* multiple fixes for MacOSX, added macosx/ directory (Ken McIvor)
 * reading multiple y columns from data file: "@+ < foo.xy:0,5/6/7" (or :0,5-7)
 * "Tip of the day" removed (tips.txt deleted). 
+* added SVG icon (fityk.svg) and MIME type info (fityk.xml) 
+* removed files AUTHORS and ChangeLog
+* the API is now a Fityk class
+* GUI: setting baseline as convex hull of data points (experimental)
+* minor improvements and bug fixes (e.g. "reset" was not working in 0.8.1)
 
 User-visible changes in version 0.8.1  (2007-04-23):
 * extended version info can be shown by "info+ version"

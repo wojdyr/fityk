@@ -22,7 +22,6 @@ ChangesAssociations=yes
 [Files]
 Source: src\fityk.exe; DestDir: {app} 
 Source: COPYING; DestDir: {app} 
-Source: AUTHORS; DestDir: {app} 
 Source: TODO; DestDir: {app} 
 Source: NEWS; DestDir: {app}
 Source: doc\fitykhelp.chm; DestDir: {app} 

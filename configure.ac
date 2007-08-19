@@ -6,9 +6,12 @@ LIBRARY_VERSION_FLAG="-version-info 0:0:0"
 
 AC_CONFIG_SRCDIR([src/voigt.h])
 AC_CONFIG_AUX_DIR(config)
-AC_CONFIG_HEADERS([config.h])
+# AM_CONFIG_HEADER is obsolete, but we are using it for compatibility with
+# older versions. 
+AM_CONFIG_HEADER([config.h])
+#AC_CONFIG_HEADERS([config.h])
 AC_CANONICAL_TARGET([])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign])
 AM_MAINTAINER_MODE
 
 # What versions of program are to be made 

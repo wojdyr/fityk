@@ -4,14 +4,14 @@
 # You are welcome to become a maintainer of binary fityk package for your 
 # favourite Linux distribution.
 
-# This spec will make two RPMS: fityk and fityk-devel. fityk-devel is very 
+# This spec will make two RPMs: fityk and fityk-devel. fityk-devel is very 
 # small, so it may be better to make one RPM instead. OTOH, according to Fedora 
 # policy, devel packages should be always separated.
 # I made two packages, because it's easier to merge than split.
 # 
 # You may find another fityk spec files at: 
-#  http://svn.rpmforge.net/svn/trunk/rpms/fityk/
-#  ...
+#  - http://svn.rpmforge.net/svn/trunk/rpms/fityk/
+#  - in Fedora (look for fityk SRPM)
 #  
 
 Summary:        Tool for fitting and analyzing data
@@ -85,7 +85,7 @@ update-mime-database %{_datadir}/mime 2>&1 >/dev/null || :
 
 %files
 %defattr(-,root,root)
-%doc AUTHORS COPYING NEWS TODO 
+%doc COPYING NEWS TODO 
 %doc samples/ doc/*.html doc/*.css doc/fitykhelp_img/
 %doc %{_mandir}/man1/*
 %{_bindir}/*

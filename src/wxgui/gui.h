@@ -66,8 +66,8 @@ public:
     void OnContact (wxCommandEvent& event);
     void OnQuit (wxCommandEvent& event);
 
-    void OnDLoad         (wxCommandEvent& event);   
-    void OnDXLoad        (wxCommandEvent& event);   
+    void OnDataQLoad     (wxCommandEvent& event);   
+    void OnDataXLoad     (wxCommandEvent& event);   
     void OnDRecent       (wxCommandEvent& event);
     void OnDEditor       (wxCommandEvent& event);
     void OnFastDT        (wxCommandEvent& event);       

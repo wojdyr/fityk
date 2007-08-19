@@ -94,6 +94,19 @@
 #include "img/zoom_vert.xpm"
 
 #include "img/book16.h"
+#include "img/export16.h"
+#include "img/fileopen16.h"
+#include "img/filereload16.h"
+#include "img/filesaveas16.h"
+#include "img/function16.h"
+#include "img/preferences16.h"
+#include "img/recordmacro16.h"
+#include "img/redo16.h"
+#include "img/reload16.h"
+#include "img/run16.h"
+#include "img/runmacro16.h"
+#include "img/stopmacro16.h"
+#include "img/undo16.h"
 
 // I have wxUSE_METAFILE=1 on wxGTK-2.6.1, which was probably a bug
 #if wxUSE_METAFILE && defined(__WXGTK__)
@@ -107,7 +120,7 @@ Ftk *ftk = NULL;
 enum {
     ID_H_MANUAL        = 24001 ,
     ID_H_CONTACT               ,
-    ID_D_LOAD                  ,
+    ID_D_QLOAD                  ,
     ID_D_XLOAD                 ,
     ID_D_RECENT                , //and next ones
     ID_D_RECENT_END = ID_D_RECENT+30 , 
@@ -234,8 +247,8 @@ void append_mi(wxMenu* menu, int id, wxBitmap const& bitmap,
 
 
 BEGIN_EVENT_TABLE(FFrame, wxFrame)
-    EVT_MENU (ID_D_LOAD,        FFrame::OnDLoad)   
-    EVT_MENU (ID_D_XLOAD,       FFrame::OnDXLoad)   
+    EVT_MENU (ID_D_QLOAD,       FFrame::OnDataQLoad)   
+    EVT_MENU (ID_D_XLOAD,       FFrame::OnDataXLoad)   
     EVT_MENU_RANGE (ID_D_RECENT+1, ID_D_RECENT_END, FFrame::OnDRecent)
     EVT_MENU (ID_D_EDITOR,      FFrame::OnDEditor)
     EVT_MENU_RANGE (ID_D_FDT+1, ID_D_FDT_END, FFrame::OnFastDT)
@@ -527,29 +540,31 @@ void FFrame::save_settings(wxConfigBase *cf) const
 void FFrame::set_menubar()
 {
     wxMenu* session_menu = new wxMenu;
-    session_menu->Append (ID_O_INCLUDE,   wxT("&Execute script\tCtrl-X"), 
-                                           wxT("Execute commands from a file"));
+    append_mi(session_menu, ID_O_INCLUDE, GET_BMP(runmacro16),
+              wxT("&Execute script\tCtrl-X"), 
+              wxT("Execute commands from a file"));
     session_menu->Append (ID_O_REINCLUDE, wxT("R&e-Execute script"), 
              wxT("Reset & execute commands from the file included last time"));
     session_menu->Append (ID_S_DEBUGGER, wxT("Script debu&gger"), 
                                        wxT("Show script editor and debugger"));
     session_menu->Enable (ID_O_REINCLUDE, false);
-    session_menu->Append (ID_O_RESET, wxT("&Reset"), 
+    append_mi(session_menu, ID_O_RESET, GET_BMP(reload16), wxT("&Reset"), 
                                       wxT("Reset current session"));
     session_menu->AppendSeparator();
     wxMenu *session_log_menu = new wxMenu;
-    session_log_menu->Append(ID_LOG_START, wxT("Choose log file"), 
-                            wxT("Start logging to file (it produces script)"));
-    session_log_menu->Append(ID_LOG_STOP, wxT("Stop logging"),
-                                          wxT("Finish logging to file"));
+    append_mi(session_log_menu, ID_LOG_START, GET_BMP(recordmacro16), 
+           wxT("Choose log file"), wxT("Start logging to file (make script)"));
+    append_mi(session_log_menu, ID_LOG_STOP, GET_BMP(stopmacro16), 
+              wxT("Stop logging"), wxT("Finish logging to file"));
     session_log_menu->AppendCheckItem(ID_LOG_WITH_OUTPUT,wxT("Log also output"),
                           wxT("output can be included in logfile as comments"));
     session_log_menu->AppendSeparator();
     session_log_menu->Append(ID_LOG_DUMP, wxT("History Dump"),
                             wxT("Save all commands executed so far to file"));
     session_menu->Append(ID_SESSION_LOG, wxT("&Logging"), session_log_menu);
-    session_menu->Append(ID_O_DUMP, wxT("&Dump to file"), 
-                              wxT("Save current program state as script file"));
+    append_mi(session_menu, ID_O_DUMP, GET_BMP(filesaveas16), 
+              wxT("&Dump to file"), 
+              wxT("Save current program state as script file"));
     session_menu->AppendSeparator();
     session_menu->Append(ID_PAGE_SETUP, wxT("Page Se&tup..."), 
                                         wxT("Page setup"));
@@ -570,18 +585,19 @@ void FFrame::set_menubar()
                          wxT("Copy plots to clipboard."));
 #endif
     session_menu->AppendSeparator();
-    session_menu->Append (ID_SESSION_SET, wxT("&Settings"),
-                                          wxT("Preferences and options"));
+    append_mi(session_menu, ID_SESSION_SET, GET_BMP(preferences16),
+              wxT("&Settings"), wxT("Preferences and options"));
     session_menu->Append (ID_SESSION_EI, wxT("Edit &Init File"),
                              wxT("Edit script executed when program starts"));
     session_menu->AppendSeparator();
     session_menu->Append(wxID_EXIT, wxT("&Quit"));
 
     wxMenu* data_menu = new wxMenu;
-    data_menu->Append (ID_D_LOAD, wxT("&Quick Load File\tCtrl-O"), 
-                                                 wxT("Load data from file"));
-    data_menu->Append (ID_D_XLOAD, wxT("&Load File\tCtrl-M"), 
-                               wxT("Load data from file, with some options"));
+    append_mi(data_menu, ID_D_QLOAD, GET_BMP(fileopen16), 
+              wxT("&Quick Load File\tCtrl-O"), wxT("Load data from file"));
+    append_mi(data_menu, ID_D_XLOAD, GET_BMP(fileopen16),
+              wxT("&Load File\tCtrl-M"), 
+              wxT("Load data from file, with some options"));
     this->data_menu_recent = new wxMenu;
     int rf_counter = 1;
     for (list<wxFileName>::const_iterator i = recent_data_files.begin(); 
@@ -602,15 +618,15 @@ void FFrame::set_menubar()
     data_menu->Append (ID_D_MERGE, wxT("&Merge Points..."), 
                                         wxT("Reduce the number of points"));
     data_menu->AppendSeparator();
-    data_menu->Append (ID_D_EXPORT, wxT("&Export\tCtrl-S"), 
-                                                  wxT("Save data to file"));
+    append_mi(data_menu, ID_D_EXPORT, GET_BMP(export16), 
+              wxT("&Export\tCtrl-S"), wxT("Save data to file"));
 
     wxMenu* sum_menu = new wxMenu;
     func_type_menu = new wxMenu;
     sum_menu->Append (ID_G_M_PEAK, wxT("Function &type"), func_type_menu);
     // the function list is created in update_menu_functions()
-    sum_menu->Append (ID_DEFMGR, wxT("&Definition Manager"),
-                      wxT("Add or modify funtion types"));
+    append_mi(sum_menu, ID_DEFMGR, GET_BMP(function16), 
+              wxT("&Definition Manager"), wxT("Add or modify funtion types"));
     sum_menu->Append (ID_S_GUESS, wxT("&Guess Peak"),wxT("Guess and add peak"));
     sum_menu->Append (ID_S_PFINFO, wxT("Peak-Find &Info"), 
                                 wxT("Show where guessed peak would be placed"));
@@ -620,12 +636,13 @@ void FFrame::set_menubar()
     sum_menu->Append (ID_S_VARLIST, wxT("Show &Variable List"),
                                 wxT("Open `Variables' tab on right-hand pane"));
     sum_menu->AppendSeparator();
-    sum_menu->Append (ID_S_EXPORTP, wxT("&Export Peak Parameters"), 
-                                    wxT("Export function parameters to file"));
-    sum_menu->Append (ID_S_EXPORTF, wxT("&Export Formula"), 
-                                    wxT("Export mathematic formula to file"));
-    sum_menu->Append (ID_S_EXPORTD, wxT("&Export Points"), 
-                                    wxT("Export as points in TSV file"));
+    append_mi(sum_menu, ID_S_EXPORTP, GET_BMP(export16), 
+              wxT("&Export Peak Parameters"), 
+              wxT("Export function parameters to file"));
+    append_mi(sum_menu, ID_S_EXPORTF, GET_BMP(export16), wxT("&Export Formula"),
+              wxT("Export mathematic formula to file"));
+    append_mi(sum_menu, ID_S_EXPORTD, GET_BMP(export16), wxT("&Export Points"),
+              wxT("Export as points in TSV file"));
 
     wxMenu* fit_menu = new wxMenu;
     wxMenu* fit_method_menu = new wxMenu;
@@ -637,13 +654,13 @@ void FFrame::set_menubar()
                                                 wxT("almost AI"));
     fit_menu->Append (ID_F_METHOD, wxT("&Method"), fit_method_menu, wxT(""));
     fit_menu->AppendSeparator();
-    fit_menu->Append (ID_F_RUN, wxT("&Run...\tCtrl-R"), 
+    append_mi(fit_menu, ID_F_RUN, GET_BMP(run16), wxT("&Run...\tCtrl-R"), 
                                              wxT("Fit sum to data"));
     fit_menu->Append (ID_F_INFO, wxT("&Info"), wxT("Info about current fit")); 
     fit_menu->AppendSeparator();
-    fit_menu->Append (ID_F_UNDO, wxT("&Undo"), 
+    append_mi(fit_menu, ID_F_UNDO, GET_BMP(undo16), wxT("&Undo"), 
                             wxT("Undo change of parameter")); 
-    fit_menu->Append (ID_F_REDO, wxT("R&edo"), 
+    append_mi(fit_menu, ID_F_REDO, GET_BMP(redo16), wxT("R&edo"), 
                             wxT("Redo change of parameter")); 
     fit_menu->Append (ID_F_HISTORY, wxT("&Parameter History"), 
                             wxT("Go back or forward in parameter history")); 
@@ -820,7 +837,7 @@ void FFrame::OnContact(wxCommandEvent&)
                      wxT("feedback"), wxOK|wxICON_INFORMATION);
 }
 
-void FFrame::OnDLoad (wxCommandEvent&)
+void FFrame::OnDataQLoad (wxCommandEvent&)
 {
     static wxString dir = wxConfig::Get()->Read(wxT("/loadDataDir"));
     wxFileDialog fdlg (this, wxT("Load data from a file"), dir, wxT(""),
@@ -851,7 +868,7 @@ void FFrame::OnDLoad (wxCommandEvent&)
     dir = fdlg.GetDirectory();
 }
 
-void FFrame::OnDXLoad (wxCommandEvent&)
+void FFrame::OnDataXLoad (wxCommandEvent&)
 {
     int n = ftk->get_active_ds_position();
     DLoadDlg dload_dialog(this, -1, n, ftk->get_data(n));
@@ -1807,7 +1824,7 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
             wxT("Dump current session to file"));
     AddSeparator();
     //data
-    AddTool(ID_D_LOAD, wxT("Load"), wxBitmap(open_data_xpm), wxNullBitmap,  
+    AddTool(ID_D_QLOAD, wxT("Load"), wxBitmap(open_data_xpm), wxNullBitmap,  
             wxITEM_NORMAL, wxT("Load file"),
             wxT("Load data from file"));
     AddTool(ID_D_XLOAD, wxT("Load2"), 
@@ -1843,11 +1860,7 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     //AddTool (ID_ft_f_undo, "Undo", wxBitmap(undo_fit_xpm), wxNullBitmap,
     //         wxITEM_NORMAL, "Undo fitting", "Previous set of parameters");
     AddSeparator();
-    //help
-    AddTool(ID_H_MANUAL, wxT("Help"), wxBitmap(manual_xpm), wxNullBitmap,
-            wxITEM_NORMAL, wxT("Manual"), wxT("Open user manual"));
-    AddSeparator();
-    AddTool(ID_ft_sideb, wxT("Datasets"), 
+    AddTool(ID_ft_sideb, wxT("SideBar"), 
             wxBitmap(right_pane_xpm), wxNullBitmap, wxITEM_CHECK, 
             wxT("Datasets Pane"), wxT("Show/hide datasets pane"));
     Realize();

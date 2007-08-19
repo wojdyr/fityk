@@ -197,7 +197,7 @@ elif [ $1 -eq 6 ]; then
  rm -rf ../samples/tmp*
  cp -rf ../samples .
  mkdir $ALL_WIN_FILES $ALL_WIN_FILES/src $ALL_WIN_FILES/doc
- cp fityk.iss ../fityk.url ../COPYING ../AUTHORS ../TODO ../NEWS $ALL_WIN_FILES
+ cp fityk.iss ../fityk.url ../COPYING ../TODO ../NEWS $ALL_WIN_FILES
  cp src/wxgui/fityk.exe $ALL_WIN_FILES/src
  cp -r ../samples $ALL_WIN_FILES
  if [ -a doc/fitykhelp.htb ]; then

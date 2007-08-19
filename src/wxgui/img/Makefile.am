@@ -1,7 +1,7 @@
 # $Id$
 
 ## to find files not listed here use (in bash):
-## for i in *.xpm; do [ `grep -c $i Makefile.am` -eq 0 ] && ls $i; done
+## for i in *.xpm *.h; do [ `grep -c $i Makefile.am` -eq 0 ] && ls $i; done
 
 EXTRA_DIST = \
 active_mode.xpm \
@@ -55,6 +55,19 @@ zoom_vert.xpm \
 zshift.xpm \
  \
 book16.h \
+export16.h \
+fileopen16.h \
+filereload16.h \
+filesaveas16.h \
+function16.h \
+preferences16.h \
+recordmacro16.h \
+redo16.h \
+reload16.h \
+run16.h \
+runmacro16.h \
+stopmacro16.h \
+undo16.h \
  \
 fityk.ico 
 
