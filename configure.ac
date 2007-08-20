@@ -26,6 +26,10 @@ test -z "$enable_CLI" && enable_CLI="yes"
 AC_ARG_ENABLE(python, 
 [  --enable-python         build python bindings to libfityk])
 
+AC_ARG_ENABLE(3rdparty, 
+[  --disable-3rdparty      do not use 3rdparty directory])
+test -z "$enable_3rdparty" && enable_3rdparty="yes"  
+
 # The GNU readline library
 AC_ARG_WITH(readline, 
 [  --without-readline      do not use the GNU readline library for cfityk])
@@ -90,7 +94,9 @@ AC_CHECK_HEADER(sstream, [], [AC_MSG_ERROR(
 OLD_CPPFLAGS=$CPPFLAGS
 # can it cause problems?
 # CPPFLAGS is set here only for this test, and it is changed later 
-CPPFLAGS="$CPPFLAGS -I$srcdir/3rdparty"
+if test "$enable_3rdparty" != "yes"; then
+	CPPFLAGS="$CPPFLAGS -I$srcdir/3rdparty"
+fi
 
 AC_CHECK_HEADER([boost/spirit/core.hpp], [], [AC_MSG_ERROR(
  [Boost::Spirit headers were not found 
@@ -101,7 +107,12 @@ AC_CHECK_HEADER([boost/spirit/core.hpp], [], [AC_MSG_ERROR(
 # see comments above...
 CPPFLAGS=$OLD_CPPFLAGS
 
-CPPFLAGS_3RDPARTY="-I\$(top_srcdir)/3rdparty"
+if test "$enable_3rdparty" = "yes"; then
+	CPPFLAGS_3RDPARTY="-I\$(top_srcdir)/3rdparty"
+else
+	CPPFLAGS_3RDPARTY= 
+fi
+
 
 AC_LANG_POP([C++]) dnl C is faster than C++
 

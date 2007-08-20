@@ -75,7 +75,7 @@
 #include "img/bg_mode.xpm"
 #include "img/cont_fit.xpm"
 #include "img/edit_data.xpm"
-#include "img/manual.xpm"
+//#include "img/manual.xpm"
 #include "img/open_data_custom.xpm"
 #include "img/open_data.xpm"
 #include "img/right_pane.xpm"
