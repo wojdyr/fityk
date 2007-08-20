@@ -21,9 +21,9 @@ namespace xylib {
         const static FormatInfo fmt_info;
 
     protected:
-        void read_blk(std::istream &f, Range *p_rg, StepColumn *p_xcol, VecColumn *p_ycol);
+        void read_blk(std::istream &f, Block *p_blk, StepColumn *p_xcol, VecColumn *p_ycol);
 
-        void read_meta_line(std::istream &f, int idx, Range *p_rg, std::string meta_key);
+        void read_meta_line(std::istream &f, int idx, Block *p_blk, std::string meta_key);
 
         // data members
         //////////////////////////////////////////////////////

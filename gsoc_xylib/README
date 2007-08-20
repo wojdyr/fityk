@@ -5,6 +5,7 @@ SUPPORTED FORMATS
 COMPILE
 FILES
 USAGE
+HOW TO EXTEND
 AUTHORS
 SUPPRORT
 THANKS
@@ -18,6 +19,7 @@ xylib aims to be a common X-Y data format reading library by providing a set of 
 SUPPORTED FORMATS
 ============
 This is only a short list of all supported formats. For more info about the format, see "FORMAT DESCRIPTION" section in ds_XXX.cpp files.
+Note the extension names are case insensitive.
 
 X-Y plain text format:  										.txt, .asc, .dat, .csv
 Siemens/Bruker uxd:     										.uxd
@@ -29,6 +31,7 @@ Vamas ISO14976:         										.vms
 Princeton Instruments WinSpec SPE Format:						.spe 	
 	(ONLY support 1-D)
 Crystallographic Information File for Powder Diffraction:		.cif
+Philips RD raw scan format V3									.rd
 
 
 FILES
@@ -43,16 +46,16 @@ util.cpp
 		
 ds_*.h
 ds_*.cpp
-	Derived classes from DataSet, for reading meta-data and xy-data from specified file format.
+	Derived classes from DataSet, for reading meta-info and xy-data from specific file format.
 	
 xyconv.cpp
-	A user tool with arguments to convert xylib-supported file to ascii file.
+	A user tool with arguments to convert xylib-supported file to ASCII file.
 	
 samples/
 	Original sample files categorized into different sub-directories according to their types.
 
 samples.sh
-	Shell script to test all sample files in ./samples, output to ./output.
+	Shell script to test all sample files in ./samples, and output to ./output.
 
 COMPILE
 ============
@@ -63,6 +66,30 @@ USAGE
 ============
 To run the test program xyconv, type "xyconv" for usage and all supported options; type "xyconv -l" to list all supported formats.
 To use xylib in your program, see xylib.h for the public interface, and xyconv.cpp to find out how to use it.
+
+Here is a brief introduction of xylib.h to the client program who uses xylib.
+Only several interfaces are needed to read, in order to know how to use xylib in client code.
+classes: FormatInfo, Column, Block, DataSet.
+functions: getNewDataSet
+A DataSet is corresponding to a data file, which can be made up by one or more X-Y data blocks. A block has at least 2 columns and all columns have the same size. A column is a series of 1-D data which can be taken as X or Y or stddev point values.
+More info can be found in source code and comments.
+
+HOW TO EXTEND
+============
+If you want to contribute to xylib by adding new file formats-support to it, follow the following steps:
+1. Create the two necessary ds_foo.cpp and ds_foo.h files
+2. Add a type of your format to enum xy_ftype in xylib.h before FT_NUM, keep in mind that the order o xy_ftype must be kept.
+3. Add the ds_xxx.h that you just added to the include list in xylib.cpp
+4. Add the const static FormatInfo member in your XXXDataSet to the global const array g_fi, in xylib.cpp
+5. Update the functions in xylib to let them know you new DataSet: getNewDataSet, guess_file_type.
+6. Add Foo sample files to ./samples/foo/* and update the corresponding README file to tell others where these files are got from, if you have the right to re-distribution of them. Otherwise, add a shell script which can download those sample files from a public-accessible URL.
+7. Complete the source code in ds_foo.cpp/.h.
+There are some things need to be done, in order to keep your newly-add code compatible with the framework.
+	* A class FooDataSet derived from the base DataSet
+	* A const static FormatInfo member fmt_info in FooDataSet: is set with some related information of this format.
+	* Member function check(std::istream &f): perform some basic format checking. Return true if the check passes, false otherwise.
+	* Member function load_data(std::istream &f): parse the format, read in the X-Y data and related meta-info.
+	* Some functions if needed. Make the format-specific functions as the member functions of FooDataSet, and the more general functions (may be used elsewhere) as global functions in the namespace xylib::util.
 
 AUTHORS
 ============
@@ -77,7 +104,7 @@ THANKS
 ============
 First of all, I'd like to thank my mentor Marcin Wojdyr for his careful and in-time mentoring during the whole project process. He spent lots of time to review my code and gave me many good suggestions about the library design and implementation.
 I'd like to thank Google for hosting the GSoC project to promote the Open Source Software in the globe. 
-Thanks to Michael Richardson <michael.richardson@vuw.ac.nz>, for his kind help to send us a specification of VAMAS format and some sample files, suggestion for the JCAMP-DX paper download URL.
+Thanks to Michael Richardson <michael.richardson@vuw.ac.nz>, for his kind help to send us a specification of VAMAS format and some sample files, and suggestions for the JCAMP-DX paper download URL.
 Thanks to David Hovis <dbh6@case.edu>, for sending us a WinSpec file format specification and the sample file.
 Thanks to Pablo Bianucci <pbian@physics.utexas.edu>, for sending us a WinSpec implentation source code and an SPE sample file.
 Thanks to Brian H. Toby <Brian.Toby@anl.gov>, for his useful info and suggestions about the pdCIF format.

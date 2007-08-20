@@ -1,4 +1,4 @@
-// Implementation of class UxdDataSet for reading meta-data and xy-data from
+// Implementation of class UxdDataSet for reading meta-info and xy-data from
 // Siemens/Bruker Diffrac-AT UXD Format
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id: ds_uxd.cpp $
@@ -16,13 +16,13 @@ tool XCH.
     * Name in progam:   uxd
     * Extension name:   uxd
     * Binary/Text:      text
-    * Multi-ranged:     Y
+    * Multi-blocks:     Y
     
 ///////////////////////////////////////////////////////////////////////////////
     * Format details: 
 It has a header indicating the file-scope parameters in the form of 
-"key=val" format. Followed the file header are range sections. Each section 
-starts with "_DRIVER=XXX". In each section, first lines are range-scope meta-
+"key=val" format. Followed the file header are block sections. Each section 
+starts with "_DRIVER=XXX". In each section, first lines are block-scope meta-
 info; X-Y data starts after "_COUNT".
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,18 +33,18 @@ _FILEVERSION=1
 _SAMPLE='test'
 _WL1=1.540600
 ...
-# Data for Range 1
+# Data for Block 1
 _DRIVE='COUPLED'
 _STEPTIME=37.000000
 _STEPSIZE=0.020000   # x_step
 _STEPMODE='C'
 _START=10.0000       # x_start
 ...
-# Range 1 data starts
+# Block 1 data starts
 _COUNTS
      1048      1162      1108      1163      1071      1057      1055       973
      ...
-# Repeat if there are more ranges
+# Repeat if there are more blocks/ranges
 
 ///////////////////////////////////////////////////////////////////////////////
     * Implementation Ref of xylib: based on the analysis of the sample files.
@@ -65,7 +65,7 @@ const FormatInfo UxdDataSet::fmt_info(
     "Siemens/Bruker Diffrac-AT UXD Format",
     vector<string>(1, "uxd"),
     false,                       // whether binary
-    true                         // whether multi-ranged
+    true                         // whether has multi-blocks
 );
 
 bool UxdDataSet::check(istream &f) {
@@ -92,26 +92,26 @@ void UxdDataSet::load_data(std::istream &f)
         RANGE_DATA,
     } pos_flg = FILE_META;
 
-    Range *p_rg = NULL;
+    Block *p_blk = NULL;
     StepColumn *p_xcol = NULL;
     VecColumn *p_ycol = NULL;
     string line;
 
     while (get_valid_line(f, line, ";")) {
-        if (str_startwith(line, "_DRIVE")) {        // first key in a range, indicates range starts
+        if (str_startwith(line, "_DRIVE")) {        // first key in a block, indicates block starts
             pos_flg = RANGE_META;
-            if (p_rg != NULL) {
-                // save the last unsaved range
-                ranges.push_back(p_rg);
-                p_rg = NULL;
+            if (p_blk != NULL) {
+                // save the last unsaved block
+                blocks.push_back(p_blk);
+                p_blk = NULL;
             }
         
             p_xcol = new StepColumn;
             p_ycol = new VecColumn;
-            p_rg = new Range;
+            p_blk = new Block;
             
-            p_rg->add_column(p_xcol, Range::CT_X);
-            p_rg->add_column(p_ycol, Range::CT_Y);
+            p_blk->add_column(p_xcol, Block::CT_X);
+            p_blk->add_column(p_ycol, Block::CT_Y);
             
         } else if (str_startwith(line, "_")) {    // other meta key-value pair. NOTE the order, it must follow other "_XXX" branches
             string key, val;
@@ -129,10 +129,10 @@ void UxdDataSet::load_data(std::istream &f)
                 add_meta(key, val);
                 break;
             case RANGE_META:
-                p_rg->add_meta(key, val);
+                p_blk->add_meta(key, val);
                 break;
             case RANGE_DATA:
-                p_rg->add_meta(key, val);
+                p_blk->add_meta(key, val);
                 break;            
             default:
                 break;
@@ -155,11 +155,11 @@ void UxdDataSet::load_data(std::istream &f)
         }
     }
 
-    // add the last range
-    if (p_rg != NULL) {
-        // save the last unsaved range
-        ranges.push_back(p_rg);
-        p_rg = NULL;
+    // add the last block
+    if (p_blk != NULL) {
+        // save the last unsaved block
+        blocks.push_back(p_blk);
+        p_blk = NULL;
     }
 }
 

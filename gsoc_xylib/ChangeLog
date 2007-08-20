@@ -1,3 +1,13 @@
+2:37 2007-8-21 GMT+8 version 341
+* Fixed the pdCif multi-block-in-one-range issue, use multiple Ranges to represent the blocks.
+* Added a name attribute to Range class
+* Changed the name of class Range to Block, and many other places related
+* Updated some inconsistent places in the source code
+* Updated README with instructions on how to extend the library
+* Removed all sample files that are not explicitly-declared distributable
+* Added a shell script to download the sample files
+* Other slight changes
+
 20:13 2007-8-19 GMT+8 version 337
 * Removed all non-NULL assertions after new()
 * Re-wrote the Implementation of UxdDataSet, rmoved the UxdLikeDataSet class

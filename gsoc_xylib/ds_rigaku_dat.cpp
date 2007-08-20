@@ -1,4 +1,4 @@
-// Implementation of class RigakuDataSet for reading meta-data and xy-data 
+// Implementation of class RigakuDataSet for reading meta-info and xy-data 
 // from Rigaku ".dat" format files
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id: ds_rigaku_udf.cpp $
@@ -13,12 +13,12 @@ Data format used in the Japanese X-ray instrument manufacturer Rigaku Inc.
     * Name in progam:   rigaku_dat    
     * Extension name:   dat
     * Binary/Text:      text
-    * Multi-ranged:     Y
+    * Multi-blocks:     Y
 
 ///////////////////////////////////////////////////////////////////////////////
     * Format details: 
 It has a file header indicating some file-scope parameters.
-It may contain multiple groups/ranges of data, and each group has its own 
+It may contain multiple blocks/ranges/groups of data, and each block has its own 
 group header. Each group header contains some parameters ("*START", "*STOP" 
 and "*STEP" included).The data body of one group begins after "*COUNT=XXX"). 
 
@@ -69,7 +69,7 @@ const FormatInfo RigakuDataSet::fmt_info(
     "Rigaku dat Format",
     vector<string>(1, "dat"),
     false,                       // whether binary
-    true                         // whether multi-ranged
+    true                         // whether has multi-blocks
 );
 
 
@@ -102,32 +102,32 @@ void RigakuDataSet::load_data(std::istream &f)
         RANGE_DATA,
     } pos_flg = FILE_META;
 
-    Range *p_rg = NULL;
+    Block *p_blk = NULL;
     StepColumn *p_xcol = NULL;
     VecColumn *p_ycol = NULL;
     unsigned grp_cnt = 0;
     string line;
 
     while (get_valid_line(f, line, "#")) {
-        if (str_startwith(line, "*BEGIN")) {        // range starts
+        if (str_startwith(line, "*BEGIN")) {        // block starts
             pos_flg = RANGE_META;
-            if (p_rg != NULL) {
-                // save the last unsaved range with sanity check
+            if (p_blk != NULL) {
+                // save the last unsaved block with sanity check
                 my_assert(p_xcol->get_pt_cnt() == p_ycol->get_pt_cnt(), 
                     "file corrupt: count of x and y differ");
                 
-                ranges.push_back(p_rg);
-                p_rg = NULL;
+                blocks.push_back(p_blk);
+                p_blk = NULL;
             }
         
             p_xcol = new StepColumn;
             p_ycol = new VecColumn;
-            p_rg = new Range;
+            p_blk = new Block;
             
-            p_rg->add_column(p_xcol, Range::CT_X);
-            p_rg->add_column(p_ycol, Range::CT_Y);
+            p_blk->add_column(p_xcol, Block::CT_X);
+            p_blk->add_column(p_ycol, Block::CT_Y);
             
-        } else if (str_startwith(line, "*END")) { // range ends
+        } else if (str_startwith(line, "*END")) { // block ends
             pos_flg = FILE_META;
             
         } else if (str_startwith(line, "*EOF")) { // file ends
@@ -153,10 +153,10 @@ void RigakuDataSet::load_data(std::istream &f)
                 add_meta(key, val);
                 break;
             case RANGE_META:
-                p_rg->add_meta(key, val);
+                p_blk->add_meta(key, val);
                 break;
             case RANGE_DATA:
-                p_rg->add_meta(key, val);
+                p_blk->add_meta(key, val);
                 break;            
             default:
                 break;
@@ -179,18 +179,18 @@ void RigakuDataSet::load_data(std::istream &f)
         }
     }
 
-    // add the last range
-    if (p_rg != NULL) {
-        // save the last unsaved range with sanity check 
+    // add the last block
+    if (p_blk != NULL) {
+        // save the last unsaved block with sanity check 
         my_assert(p_xcol->get_pt_cnt() == p_ycol->get_pt_cnt(), 
-            "file corrupt: count of x and y differ at last range");
+            "file corrupt: count of x and y differ at last block");
 
         my_assert(grp_cnt != 0, "no GROUP_COUNT attribute given");
-        my_assert(ranges.size() + 1 == grp_cnt, 
-            "file corrupt: actual range count differ from expected");
+        my_assert(blocks.size() + 1 == grp_cnt, 
+            "file corrupt: actual block count differ from expected");
         
-        ranges.push_back(p_rg);
-        p_rg = NULL;
+        blocks.push_back(p_blk);
+        p_blk = NULL;
     }
 }
 

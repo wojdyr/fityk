@@ -18,7 +18,7 @@ void print_usage()
             "\txyconv -l\n\n"
             "  Converts INPUT_FILE to ascii OUTPUT_FILE\n"
             "  -l              list all supported file types.\n"
-            "  -m              write also meta-data.\n"
+            "  -m              write also meta-info.\n"
             "  -t              specify filetype of input file.\n";
 }
 

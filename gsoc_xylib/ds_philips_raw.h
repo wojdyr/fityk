@@ -1,6 +1,6 @@
-// Header of class PhilipsRdDataSet
+// Header of class PhilipsRawDataSet
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: ds_philips_rd.h $
+// $Id: ds_philips_raw.h $
 
 #ifndef PHILIPS_RD_H
 #define PHILIPS_RD_H
@@ -9,10 +9,10 @@
 
 
 namespace xylib {
-    class PhilipsRdDataSet : public DataSet
+    class PhilipsRawDataSet : public DataSet
     {
     public:
-        PhilipsRdDataSet()
+        PhilipsRawDataSet()
             : DataSet(fmt_info.ftype) {}
 
         // implement the interfaces specified by DataSet

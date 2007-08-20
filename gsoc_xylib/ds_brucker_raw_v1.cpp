@@ -1,4 +1,4 @@
-// Implementation of class BruckerV1RawDataSet for reading meta-data and 
+// Implementation of class BruckerV1RawDataSet for reading meta-info and 
 // xy-data from Siemens/Bruker Diffrac-AT Raw Format version 1 format files
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id: ds_brucker_raw_v1.cpp $
@@ -15,7 +15,7 @@ Siemens/Brucker X-ray diffractors.
     * Name in progam:   diffracat_v1_raw
     * Extension name:   raw
     * Binary/Text:      binary
-    * Multi-ranged:     Y
+    * Multi-blocks:     Y
     
 ///////////////////////////////////////////////////////////////////////////////
     * Format details: 
@@ -25,10 +25,10 @@ in one record, the data is stored as little-endian (see "endian" in wikipedia
 www.wikipedia.org for details), so on the platform other than little-endian
 (e.g. PDP and Sun SPARC), the byte-order needs be exchanged.
 
-It may contain multiple groups/ranges in one file.
+It may contain multiple blocks/ranges in one file.
 There is a common header in the head of the file, with fixed length fields 
 indicating file-scope meta-info whose actrual meaning can be found in the 
-format specification.Each range has its onw range-scope meta-info at the 
+format specification.Each block has its onw block-scope meta-info at the 
 beginning, followed by the Y data.
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,7 +55,7 @@ const FormatInfo BruckerV1RawDataSet::fmt_info(
     "Siemens/Bruker Diffrac-AT Raw Format v1",
     vector<string>(1, "raw"),
     true,                       // whether binary
-    true                        // whether multi-ranged
+    true                        // whether has multi-blocks
 );
 
 
@@ -90,13 +90,13 @@ void BruckerV1RawDataSet::load_data(std::istream &f)
     unsigned following_range;
     
     do {
-        Range* p_rg = new Range;
+        Block* p_blk = new Block;
     
         f.ignore(4);
         unsigned cur_range_steps = read_uint32_le(f);  
-        p_rg->add_meta("MEASUREMENT_TIME_PER_STEP", S(read_flt_le(f)));
+        p_blk->add_meta("MEASUREMENT_TIME_PER_STEP", S(read_flt_le(f)));
         float x_step = read_flt_le(f); 
-        p_rg->add_meta("SCAN_MODE", S(read_uint32_le(f)));
+        p_blk->add_meta("SCAN_MODE", S(read_uint32_le(f)));
         f.ignore(4); 
         float x_start = read_flt_le(f);
 
@@ -104,19 +104,19 @@ void BruckerV1RawDataSet::load_data(std::istream &f)
         
         float t = read_flt_le(f);
         if (-1e6 != t)
-            p_rg->add_meta("THETA_START", S(t));
+            p_blk->add_meta("THETA_START", S(t));
             
         t = read_flt_le(f);
         if (-1e6 != t)
-            p_rg->add_meta("KHI_START", S(t));
+            p_blk->add_meta("KHI_START", S(t));
             
         t = read_flt_le(f);
         if (-1e6 != t)
-            p_rg->add_meta("PHI_START", S(t));
+            p_blk->add_meta("PHI_START", S(t));
 
-        p_rg->add_meta("SAMPLE_NAME", read_string(f, 32));
-        p_rg->add_meta("K_ALPHA1", S(read_flt_le(f)));
-        p_rg->add_meta("K_ALPHA2", S(read_flt_le(f)));
+        p_blk->add_meta("SAMPLE_NAME", read_string(f, 32));
+        p_blk->add_meta("K_ALPHA1", S(read_flt_le(f)));
+        p_blk->add_meta("K_ALPHA2", S(read_flt_le(f)));
 
         f.ignore(72);   // unused fields
         following_range = read_uint32_le(f);
@@ -127,10 +127,10 @@ void BruckerV1RawDataSet::load_data(std::istream &f)
             float y = read_flt_le(f);
             p_ycol->add_val(y);
         }
-        p_rg->add_column(p_xcol, Range::CT_X);
-        p_rg->add_column(p_ycol, Range::CT_Y);
+        p_blk->add_column(p_xcol, Block::CT_X);
+        p_blk->add_column(p_ycol, Block::CT_Y);
         
-        ranges.push_back(p_rg);
+        blocks.push_back(p_blk);
     } while (following_range > 0);
 }
 

@@ -1,4 +1,4 @@
-// Implementation of class UdfDataSet for reading meta-data and 
+// Implementation of class UdfDataSet for reading meta-info and 
 // xy-data from Philis UDF format
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id: ds_philips_udf.cpp $
@@ -13,12 +13,12 @@ Data format used in Philips X-ray diffractors.
     * Name in progam:   philipse_udf    
     * Extension name:   udf
     * Binary/Text:      text
-    * Multi-ranged:     N
+    * Multi-blocks:     N
     
 ///////////////////////////////////////////////////////////////////////////////
     * Format details: 
 It has a header indicating some file-scope parameters in the form of 
-"key, val1, [val2 ...] ,/" pattern.It has only 1 group/range of data;
+"key, val1, [val2 ...] ,/" pattern.It has only 1 blocks/ranges of data;
 data body begins after "RawScan"). 
     
 ///////////////////////////////////////////////////////////////////////////////
@@ -56,7 +56,7 @@ const FormatInfo UdfDataSet::fmt_info(
     "Philipse UDF Format",
     vector<string>(1, "udf"),
     false,                       // whether binary
-    false                        // whether multi-ranged
+    false                        // whether has multi-blocks
 );
 
 
@@ -83,16 +83,16 @@ void UdfDataSet::load_data(std::istream &f)
     double x_start(0), x_step(0);
     string key, val;
 
-    // UDF format has only one range with fixed-step X, so create them here
+    // UDF format has only one block with fixed-step X, so create them here
     StepColumn *p_xcol = new StepColumn;
     p_xcol->set_name("data angle");
 
     VecColumn *p_ycol = new VecColumn;
     p_ycol->set_name("raw scan");
 
-    Range *p_rg = new Range;
-    p_rg->add_column(p_xcol, Range::CT_X);
-    p_rg->add_column(p_ycol, Range::CT_Y);
+    Block *p_blk = new Block;
+    p_blk->add_column(p_xcol, Block::CT_X);
+    p_blk->add_column(p_ycol, Block::CT_Y);
     
     while(true) {
         get_key_val(f, key, val);
@@ -107,7 +107,7 @@ void UdfDataSet::load_data(std::istream &f)
             x_step = my_strtod(val);
             p_xcol->set_step(x_step);
         } else {
-            p_rg->add_meta(key, val);
+            p_blk->add_meta(key, val);
         }
     }
 
@@ -136,7 +136,7 @@ void UdfDataSet::load_data(std::istream &f)
         }
     }
 
-    ranges.push_back(p_rg);
+    blocks.push_back(p_blk);
 }
 
 

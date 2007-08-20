@@ -1,4 +1,4 @@
-// Implementation of class TextDataSet for reading meta-data and xy-data from 
+// Implementation of class TextDataSet for reading meta-info and xy-data from 
 // ascii plain text Format
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id: TextDataSet.h $
@@ -14,7 +14,7 @@ X-Y plain text format.
     * Name in progam:   ds_brucker_raw_v1
     * Extension name:   txt, dat, asc
     * Binary/Text:      text
-    * Multi-ranged:     N
+    * Multi-blocks:     N
     
 ///////////////////////////////////////////////////////////////////////////////
     * Format details: 
@@ -45,7 +45,7 @@ using namespace xylib::util;
 
 namespace xylib {
 
-string exts[4] = { "txt", "dat", "asc", "csv" };
+const static string exts[4] = { "txt", "dat", "asc", "csv" };
 
 const FormatInfo TextDataSet::fmt_info(
     FT_TEXT,
@@ -53,7 +53,7 @@ const FormatInfo TextDataSet::fmt_info(
     "the ascii plain text Format",
     vector<string>(exts, exts + sizeof(exts) / sizeof(string)),
     false,                       // whether binary
-    false                        // whether multi-ranged
+    false                        // whether has multi-blocks
 );
 
 bool TextDataSet::check(istream &f) {
@@ -72,7 +72,7 @@ void TextDataSet::load_data(std::istream &f)
     }
     clear();
 
-    Range* p_rg = new Range;
+    Block* p_blk = new Block;
     vector<VecColumn*> vec_cols;  
     unsigned nr_cols(0);
     vector<double> xy;
@@ -89,7 +89,7 @@ void TextDataSet::load_data(std::istream &f)
             for (unsigned i = 0; i < nr_cols; ++i) {
                 VecColumn *p_col = new VecColumn;
                 vec_cols.push_back(p_col);
-                p_rg->add_column(p_col);
+                p_blk->add_column(p_col);
             }
         } else {
             my_assert(xy.size() == nr_cols, "format error: number of columns differ");
@@ -101,10 +101,10 @@ void TextDataSet::load_data(std::istream &f)
     }
 
     if (nr_cols >= 3) {
-        p_rg->set_column_stddev(2);     // set 2nd col as default
+        p_blk->set_column_stddev(2);     // set 2nd col as default
     }
 
-    ranges.push_back(p_rg);
+    blocks.push_back(p_blk);
 }
 
 } // end of namespace xylib

@@ -1,4 +1,4 @@
-// Implementation of class PdCifDataSet for reading meta-data 
+// Implementation of class PdCifDataSet for reading meta-info 
 // and xy-data from pdCIF Format
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id: ds_pdcif.cpp $
@@ -23,7 +23,7 @@ and the IUCr official website:
     * Name in progam:   pdcif
     * Extension name:   cif
     * Binary/Text:      text
-    * Multi-ranged:     Y
+    * Multi-blocks:     Y
     
 ///////////////////////////////////////////////////////////////////////////////
     * Format details: 
@@ -37,7 +37,7 @@ or use a block quoted with ';'
 given right after "loop_" are the table header, and the following data is the 
 table contents.
 It uses '#" to comment out all stuff afterwards like in shell or perl script.
-    
+
 ///////////////////////////////////////////////////////////////////////////////
     * Sample Fragment: ("//xxx": comments added by me; ...: omitted lines)
     
@@ -74,19 +74,17 @@ loop_
 data_ALUMINA_pub2
 ...
 
+NOTE: there may be more than one data-blocks in one block (defined by the 
+format specification), and the point counts of these data-blocks are different. 
+To handle this, xylib uses a new xylib::Block with duplicated meta-info to 
+represent them. 
+
 ///////////////////////////////////////////////////////////////////////////////
     * Implementation Ref of xylib: 
 mainly based on the file format specification mentioned above, and the tcl/tk 
 source code of script browsecif.tcl in the ciftools_Linux package which can 
 be downloaded from:
 http://www.iucr.org/iucr-top/cif/index.html
-
-///////////////////////////////////////////////////////////////////////////////
-    * Known issues:
-There are still some problems when handling some pdCIF files with multiple
-data blocks in a range. 
-Like in NISI.cif, there are 2 data blocks in 1 range, and the counts of the data 
-points are different. This will cause the program to crash. Need be fixed.
 
 */
 
@@ -105,7 +103,7 @@ const FormatInfo PdCifDataSet::fmt_info(
     "The Crystallographic Information File for Powder Diffraction",
     vector<string>(1, "cif"),
     false,                      // whether binary
-    true                        // whether multi-ranged
+    true                        // whether has multi-blocks
 );
 
 bool PdCifDataSet::check(istream &f) {
@@ -139,10 +137,15 @@ void PdCifDataSet::load_data(std::istream &f)
 
     // names of keys, whose values may be used as X or Y
     static const string valued_keys[] = {
+        "pd_meas_time_of_flight",
         "pd_meas_intensity_total",
+        "pd_meas_point_id",
+        "pd_proc_d_spacing",
+        "pd_proc_intensity_total",
         "pd_proc_ls_weight",
         "pd_proc_intensity_bkg_calc",
         "pd_calc_intensity_total",
+        "pd_proc_point_id",
     };
     static const unsigned VALUED_KEYS_NUM = sizeof(valued_keys) / sizeof(string);
 
@@ -155,29 +158,29 @@ void PdCifDataSet::load_data(std::istream &f)
 
 
     string line;
-    Range *p_rg = NULL;
+    Block *p_blk = NULL;
     string last_key;             // store the key name whose value will be given later
     int loop_i(0);
     vector<string> loop_keys;    // names of the keys in a loop
     map<string, VecColumn*> mapper;
 
     while (get_valid_line(f, line, "#")) {
-        if (str_startwith(line, "data_")) {         // range start
+        if (str_startwith(line, "data_")) {         // block start
             loop_flg = OUT_OF_LOOP;
         
-            if ((p_rg != NULL) && (p_rg->get_column_cnt() > 0)) {
-                // save last range
-                add_range(p_rg);
-                p_rg = NULL;
+            if ((p_blk != NULL) && (p_blk->get_column_cnt() > 0)) {
+                // save last block
+                add_block(p_blk);
+                p_blk = NULL;
             }
 
-            p_rg = new Range;
-            if (!add_key_val(p_rg, "name", line.substr(5))) {
-                throw XY_Error("range name empty or already exists");
-            }
+            p_blk = new Block;
+            string name = line.substr(5);
+            my_assert(!name.empty(), "block name is empty");
+            p_blk->set_name(name);
             
          } else if (str_startwith(line, "_")) {      // key name
-            my_assert(p_rg != NULL, "key name apears before 'data_'");
+            my_assert(p_blk != NULL, "key name apears before 'data_'");
 
             // key_epos: first position beyond the end of key_name
             string::size_type key_epos = line.find_first_of(" \t"); 
@@ -199,7 +202,7 @@ void PdCifDataSet::load_data(std::istream &f)
                 if (followed_by_val) {
                     string key = line.substr(1, key_epos - 1); // start without the leading '_'
                     string val = line.substr(key_epos);
-                    add_key_val(p_rg, key, val);
+                    add_key_val(p_blk, key, val);
                 } else {
                     // val must be in the following valid lines
                     my_assert(line.size() > 1, "wrong key_name of '_'");
@@ -211,14 +214,26 @@ void PdCifDataSet::load_data(std::istream &f)
             }
 
         } else if (str_startwith(line, "loop_")) {  // loop start
-            my_assert(p_rg != NULL, "'loop_' appears before 'data_'");
+            my_assert(p_blk != NULL, "'loop_' appears before 'data_'");
             my_assert(loop_flg != IN_LOOP_HEAD, "loop without values");
 
             loop_flg = IN_LOOP_HEAD;
             loop_keys.clear();
             mapper.clear();
             loop_i = 0;
-            
+
+            if (0 != p_blk->get_pt_cnt()) {
+                // this block (defined by file specification) contains multiple
+                // sub-blocks (used by xylib to store X-Y data)
+                // save earlier sub-block, create a new block shares the same meta-info
+                add_block(p_blk);
+                Block *last_rg = p_blk;
+                p_blk = new Block(last_rg->p_meta_map);
+                p_blk->sub_blk_idx = last_rg->sub_blk_idx + 1;
+                string name = last_rg->name + "#" + S(p_blk->sub_blk_idx);
+                p_blk->set_name(name);
+            }
+           
             // "loop_" may followed by some key names (start with a '_')
             string::size_type key_spos(5), key_epos(5);     // start_pos & end_pos
             while (true) {
@@ -235,7 +250,7 @@ void PdCifDataSet::load_data(std::istream &f)
             }
             
         } else {    // should be values
-            my_assert(p_rg != NULL, "values appears before 'data_'");
+            my_assert(p_blk != NULL, "values appears before 'data_'");
             vector<string> values;
 
             get_all_values(line, f, values, loop_flg != OUT_OF_LOOP);
@@ -244,7 +259,7 @@ void PdCifDataSet::load_data(std::istream &f)
             case OUT_OF_LOOP:
                 my_assert(!last_key.empty(), "unexpected value without key_name");
                 my_assert(1 == values.size(), "value.size() != 1");
-                add_key_val(p_rg, last_key, values[0]);
+                add_key_val(p_blk, last_key, values[0]);
                 last_key = "";
                 break;
 
@@ -261,7 +276,7 @@ void PdCifDataSet::load_data(std::istream &f)
                     if (get_array_idx(valued_keys, VALUED_KEYS_NUM, key) != -1) {
                         // this is a point can be used as X or Y
 
-                        VecColumn *p_col = get_col_ptr(p_rg, key, mapper);
+                        VecColumn *p_col = get_col_ptr(p_blk, key, mapper);
 
                         // this value may followed by measuring-uncertainty in "()"
                         string::size_type spos = values[i].find("(");    // start pos of uncertainty
@@ -274,7 +289,7 @@ void PdCifDataSet::load_data(std::istream &f)
                             // this column also has an uncertainty column 
                             // we store these data in a VecColumn named $key_uncertainty
                             string key_uncty = key + "_uncertainty";
-                            VecColumn *p_uncty_col = get_col_ptr(p_rg, key_uncty, mapper);
+                            VecColumn *p_uncty_col = get_col_ptr(p_blk, key_uncty, mapper);
 
                             string val_uncty = values[i].substr(spos + 1, epos - spos);
                             p_uncty_col->add_val(my_strtod(val_uncty));
@@ -287,7 +302,7 @@ void PdCifDataSet::load_data(std::istream &f)
                         p_col->add_val(my_strtod(val)); // add the value without uncertainty
                     } else {
                         string my_key = key + "#" + S(loop_i);
-                        add_key_val(p_rg, my_key, S(values[i]));
+                        add_key_val(p_blk, my_key, S(values[i]));
                     }
 
                     loop_i = (loop_i + 1) % loop_keys.size();
@@ -300,9 +315,9 @@ void PdCifDataSet::load_data(std::istream &f)
         }
     }
 
-    if ((p_rg != NULL) && (p_rg->get_column_cnt() > 0)) {
-        add_range(p_rg);
-        p_rg = NULL;
+    if ((p_blk != NULL) && (p_blk->get_column_cnt() > 0)) {
+        add_block(p_blk);
+        p_blk = NULL;
     }
 }
 
@@ -310,11 +325,11 @@ void PdCifDataSet::load_data(std::istream &f)
 // get all "values" (in the key-value pair) from f. 
 // line: already read in line at caller place
 // values: ref of vector to hold the values
-// NOTE: multi-range value starts with a ';' will be read in until its end
+// NOTE: multi-line value starts with a ';' will be read in until its end
 void PdCifDataSet::get_all_values(const string &line, istream &f, 
     vector<string> &values, bool in_loop) 
 {
-    if (str_startwith(line, ";")) {      // multi-lined value
+    if (str_startwith(line, ";")) {      // multi-line value
         string val = line + '\n';
         
         string ln;
@@ -355,14 +370,14 @@ void PdCifDataSet::get_all_values(const string &line, istream &f,
 }
 
 
-// add the "key-val" as a meta to p_rg
+// add the "key-val" as a meta to p_blk
 // return: true if meta-info is added successfully, false otherwise
-bool PdCifDataSet::add_key_val(Range *p_rg, const string &key, const string &val)
+bool PdCifDataSet::add_key_val(Block *p_blk, const string &key, const string &val)
 {
     string k = str_trim(key);
     string v = str_trim(val);
 
-    if (NULL == p_rg || k.empty() || v.empty()) {
+    if (NULL == p_blk || k.empty() || v.empty()) {
         throw XY_Error("key or value of meta-info in empty");
     }
 
@@ -381,12 +396,12 @@ bool PdCifDataSet::add_key_val(Range *p_rg, const string &key, const string &val
         return false;
     }
 
-    return p_rg->add_meta(k, v);
+    return p_blk->add_meta(k, v);
 }
 
 
-// find step columns in p_rg, add p_rg to ranges
-void PdCifDataSet::add_range(Range* p_rg)
+// find step columns in "p_blk", then add "p_blk" to blocks
+void PdCifDataSet::add_block(Block* p_blk)
 {
     // add the columns implied in the meta-keys
     static const string x_names[] = {"pd measurement 2theta", "pd processed 2theta"};
@@ -395,33 +410,33 @@ void PdCifDataSet::add_range(Range* p_rg)
     static const int X_NUM = sizeof(x_names) / sizeof(string);
 
     for (int i = 0; i < X_NUM; ++i) {
-        if (p_rg->has_meta_key(x_start_keys[i]) && 
-            p_rg->has_meta_key(x_step_keys[i])) {
-            double start_x = my_strtod(p_rg->get_meta(x_start_keys[i]));
+        if (p_blk->has_meta_key(x_start_keys[i]) && 
+            p_blk->has_meta_key(x_step_keys[i])) {
+            double start_x = my_strtod(p_blk->get_meta(x_start_keys[i]));
             my_assert((-180.0 <= start_x) && (start_x <= 360.0), 
                 "measurement_2theta_range_min should be between -180 and 360");
-            double step_x = my_strtod(p_rg->get_meta(x_step_keys[i]));
+            double step_x = my_strtod(p_blk->get_meta(x_step_keys[i]));
             Column *p_x = new StepColumn(start_x, step_x);
             p_x->set_name(x_names[i]);
-            p_rg->add_column(p_x, Range::CT_X);
+            p_blk->add_column(p_x, Block::CT_X);
         }
     }
    
-    ranges.push_back(p_rg);
+    blocks.push_back(p_blk);
 }
 
 
 // get the VecColumn ptr whose name is "name". 
 // mapping info is stored in "map"
 // NOTE: if no VecColumn in map matches "name", a new vecColumn is created
-VecColumn* PdCifDataSet::get_col_ptr(Range *p_rg, const string name, map<string, VecColumn*>& mapper)
+VecColumn* PdCifDataSet::get_col_ptr(Block *p_blk, const string name, map<string, VecColumn*>& mapper)
 {
     VecColumn *p_col;
     map<string, VecColumn*>::const_iterator it = mapper.find(name);
     if (mapper.end() == it) {
         p_col = new VecColumn;
         p_col->set_name(name);
-        p_rg->add_column(p_col, Range::CT_Y);
+        p_blk->add_column(p_col, Block::CT_Y);
         pair<map<string, VecColumn*>::iterator, bool> ret = 
             mapper.insert(make_pair(name, p_col));
         my_assert(ret.second, "mapper insertion failed");

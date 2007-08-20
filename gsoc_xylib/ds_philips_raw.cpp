@@ -1,4 +1,4 @@
-// Implementation of class PhilipsRdDataSet for reading meta-data and 
+// Implementation of class PhilipsRawDataSet for reading meta-info and 
 // xy-data from Philips RD raw scan format V3
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // ds_philips_rd.cpp $
@@ -14,7 +14,7 @@ Philips RD raw scan format V3
     * Name in progam:   philips_rd
     * Extension name:   rd
     * Binary/Text:      binary
-    * Multi-ranged:     N
+    * Multi-blocks:     N
 
 ///////////////////////////////////////////////////////////////////////////////
     * Format details: 
@@ -24,7 +24,7 @@ Note that in one record, data is stored as little-endian (see "endian" in
 wikipedia www.wikipedia.org for details), so on the platform other than 
 little-endian (e.g. PDP and Sun SPARC), the byte-order needs be exchanged.
 
-It contains ONLY 1 group/range in one file.
+It contains ONLY 1 blocks/ranges in one file.
 
 ///////////////////////////////////////////////////////////////////////////////
     * Implementation Ref of xylib: 
@@ -33,7 +33,7 @@ mainly based on the file format specification sent to us by Martijn Fransen
 
 */
 
-#include "ds_philips_rd.h"
+#include "ds_philips_raw.h"
 #include "util.h"
 
 using namespace std;
@@ -41,17 +41,19 @@ using namespace xylib::util;
 
 namespace xylib {
 
-const FormatInfo PhilipsRdDataSet::fmt_info(
-    FT_PHILIPS_RD,
+const static string exts[4] = { "rd", "sd" };
+
+const FormatInfo PhilipsRawDataSet::fmt_info(
+    FT_PHILIPS_RAW,
     "philips_rd",
     "Philips RD raw scan format V3",
-    vector<string>(1, "rd"),
+    vector<string>(exts, exts + sizeof(exts) / sizeof(string)),
     true,                        // whether binary
-    false                        // whether multi-ranged
+    false                        // whether has multi-blocks
 );
 
 
-bool PhilipsRdDataSet::check(istream &f)
+bool PhilipsRawDataSet::check(istream &f)
 {
     // the first 4 letters must be "V3RD"
     f.clear();
@@ -61,11 +63,11 @@ bool PhilipsRdDataSet::check(istream &f)
     }
 
     f.seekg(0);
-    return ("V3RD" == head);
+    return ("V3RD" == head || "V5RD" == head);
 }
 
 
-void PhilipsRdDataSet::load_data(std::istream &f) 
+void PhilipsRawDataSet::load_data(std::istream &f) 
 {
     if (!check(f)) {
         throw XY_Error("file is not the expected " + get_filetype() + " format");
@@ -78,7 +80,9 @@ void PhilipsRdDataSet::load_data(std::istream &f)
     const static string anode_materials[6] = { "Cu", "Mo", "Fe", "Cr", "Other"};
     const static string focus_types[4] = {"BF", "NF", "FF", "LFF"};
 
-    f.ignore(84);
+    string version = read_string(f, 2);    // "V3" or "V5"
+
+    f.ignore(82);
     int dt_idx = static_cast<int>(read_char(f));
     if (0 <= dt_idx && dt_idx <= 5) {
         add_meta("diffractor type", diffractor_types[dt_idx]);
@@ -102,24 +106,29 @@ void PhilipsRdDataSet::load_data(std::istream &f)
     double x_step = read_dbl_le(f);
     double x_start = read_dbl_le(f);
     double x_end = read_dbl_le(f);
-    unsigned pt_cnt = static_cast<unsigned>((x_end - x_start) / x_step);
+    unsigned pt_cnt = static_cast<unsigned>((x_end - x_start) / x_step + 1);
 
     StepColumn *p_xcol = new StepColumn(x_start, x_step, pt_cnt);
     
     // read in y data
-    f.ignore(250 - 214 - 8*3);
+    if ("V3" == version) {
+        f.ignore(250 - 214 - 8*3);
+    } else {
+        f.ignore(810 - 214 - 8*3);
+    }
+    
     VecColumn *p_ycol = new VecColumn;
     for (unsigned i = 0; i < pt_cnt; ++i) {
-        double packed_y = read_uint16_le(f);
-        double y = packed_y * packed_y * 0.01;
+        int packed_y = read_uint16_le(f);
+        double y = packed_y * packed_y / 100;
         p_ycol->add_val(y);
     }
 
-    Range *p_rg = new Range;
-    p_rg->add_column(p_xcol, Range::CT_X);
-    p_rg->add_column(p_ycol, Range::CT_Y);
+    Block *p_blk = new Block;
+    p_blk->add_column(p_xcol, Block::CT_X);
+    p_blk->add_column(p_ycol, Block::CT_Y);
 
-    ranges.push_back(p_rg);
+    blocks.push_back(p_blk);
 }
 
 } // end of namespace xylib

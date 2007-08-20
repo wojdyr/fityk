@@ -36,7 +36,7 @@ enum xy_ftype {
     FT_UDF,
     FT_SPE,
     FT_PDCIF,
-    FT_PHILIPS_RD,
+    FT_PHILIPS_RAW,
     FT_NUM,     // always at bottom to get the number of the types
 };
 
@@ -76,8 +76,6 @@ public:
 // abstract base class for a column
 class Column
 {
-    // WinspecSpeDataSet need to set fixed_step;
-    friend class WinspecSpeDataSet;
 public:
     Column(bool fixed_step_ = false) : fixed_step(fixed_step_), stddev_exist(false) {}
     virtual ~Column() {}
@@ -93,6 +91,9 @@ protected:
     bool fixed_step;
     bool stddev_exist;
     std::string name;
+
+    // WinspecSpeDataSet need to set fixed_step;
+    friend class WinspecSpeDataSet;
 };
 
 
@@ -143,16 +144,16 @@ protected:
 
 
 //////////////////////////////////////////////////////////////////////////
-// The class for holding a range/block of x-y data
-class Range
+// The class for holding a block/range of X-Y data
+class Block
 {
 public:
-    enum col_type {CT_X, CT_Y, CT_STDDEV, CT_UNDEF};
+    enum col_type {CT_X, CT_Y, CT_STDDEV, CT_UNDEF};    // column type
     
-    Range() : column_x(0), column_y(1), column_stddev(-1) {}
-    virtual ~Range();
+    Block(std::map<std::string, std::string> *p_meta_map_ = NULL);
+    virtual ~Block();
 
-    ////////////////////////////////////////////////////////////////////////////////// 
+    ///////////////////////////////////////////////////////////////////////////
     // reading functions
 
     // std. dev. is optional
@@ -161,59 +162,69 @@ public:
     double get_x(unsigned n) const;
     double get_y(unsigned n) const; 
 
-    unsigned get_pt_cnt() const;          // rows of the columns
+    unsigned get_pt_cnt() const;    // points count, also rows of the columns
     unsigned get_column_cnt() const { return cols.size(); }
     const Column& get_column(unsigned n) const;
-//    int get_col_idx(const std::string &name) const;
+    int get_col_idx(const std::string &name) const;
 
-    int get_column_x() const { return column_x; }              // defaults to 0 
-    int get_column_y() const { return column_y; }              // defaults to 1
-    int get_column_stddev() const { return column_stddev; }   // defaults to -1
+    int get_column_x() const { return column_x; }           
+    int get_column_y() const { return column_y; }           
+    int get_column_stddev() const { return column_stddev; } 
+    std::string get_name() const { return name; }
     
-    void set_column_x(unsigned n);
-    void set_column_y(unsigned n);
-    void set_column_stddev(unsigned n);
-    
-    // basic support for range-level meta-data
+    // basic support for block-level meta-info
     bool has_meta_key(const std::string &key) const;
-    bool has_meta() const { return (0 != meta_map.size()); }
+    bool has_meta() const { return (0 != p_meta_map->size()); }
     std::vector<std::string> get_all_meta_keys() const;
     const std::string& get_meta(std::string const& key) const; 
     
     void export_xy_file(const std::string &fname) const;
     void export_xy_file(std::ofstream &of) const;
 
-    //////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
     // writing functions, only called inside xylib
 
-    // add a <key, val> pair of meta-data to DataSet
+    // setters for some attributes
+    void set_column_x(unsigned n);
+    void set_column_y(unsigned n);
+    void set_column_stddev(unsigned n);
+    void set_name(std::string &name_) { name = name_; }
+
+    // add a <key, val> pair of meta-info to DataSet
     bool add_meta(const std::string &key, const std::string &val);
     void add_column(Column *p_col, col_type type = CT_UNDEF);
     
 protected:
-    std::map<std::string, std::string> meta_map;
+    std::map<std::string, std::string> *p_meta_map;
     std::vector<Column*> cols;
-    int column_x, column_y, column_stddev;
+    int column_x, column_y, column_stddev;  // which column is taken as x/y/stddev
+                                            // x,y column idx defaut to 0,1
+    std::string name;
+    int sub_blk_idx;    // idx of a sub-block in a block (e.g. some pdCIF format)
+
+    // Class PdCifDataSet need to access the p_meta_map member.
+    friend class PdCifDataSet;
 };
 
 
-// abstract base class for x-y data in one file, may consist of one or more range(s) of x-y data
+// abstract base class for X-Y data in *ONE FILE*, 
+// may consist of one or more block(s) of X-Y data
 class DataSet
 {
 public:
     DataSet(xy_ftype ftype_) : ftype(ftype_) {}
     virtual ~DataSet();
 
-    // access the ranges in this file
-    unsigned get_range_cnt() const { return ranges.size(); }
-    const Range& get_range(unsigned i) const;
+    // access the blocks in this file
+    unsigned get_block_cnt() const { return blocks.size(); }
+    const Block& get_block(unsigned i) const;
 
     // getters of some attributes associate to files 
     const std::string& get_filetype() const { return g_fi[ftype]->name; };
     // return a detailed description of current file type
     const std::string& get_filetype_desc() const { return g_fi[ftype]->desc; }; 
 
-    // basic support for file-level meta-data, shared with all ranges
+    // basic support for file-level meta-info, shared with all blocks
     bool has_meta_key(const std::string &key) const;
     bool has_meta() const { return (0 != meta_map.size()); }
     std::vector<std::string> get_all_meta_keys() const;
@@ -225,12 +236,12 @@ public:
     void export_xy_file(const std::string &fname, 
         bool with_meta = true, const std::string &cmt_str = ";") const; 
 
-    // add a <key, val> pair of meta-data to DataSet
+    // add a <key, val> pair of meta-info to DataSet
     bool add_meta(const std::string &key, const std::string &val);
 
 protected:
     xy_ftype ftype;
-    std::vector<Range*> ranges;     // use "Range*" to support polymorphism
+    std::vector<Block*> blocks;     // use "Block*" to support polymorphism
     std::map<std::string, std::string> meta_map;
 }; // end of DataSet
 

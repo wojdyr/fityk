@@ -1,4 +1,4 @@
-// Implementation of class WinspecSpeDataSet for reading meta-data 
+// Implementation of class WinspecSpeDataSet for reading meta-info 
 // and xy-data from WinSpec SPE Format
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id: ds_winspec_spe.cpp $
@@ -15,7 +15,7 @@ format is WinView/WinSpec.
     * Name in progam:   spe
     * Extension name:   spe
     * Binary/Text:      binary
-    * Multi-ranged:     Y
+    * Multi-blocks:     Y
     
 ///////////////////////////////////////////////////////////////////////////////
     * Format details: 
@@ -55,7 +55,7 @@ const FormatInfo WinspecSpeDataSet::fmt_info(
     "Princeton Instruments WinSpec SPE Format",
     vector<string>(1, "spe"),
     true,                       // whether binary
-    true                        // whether multi-ranged
+    true                        // whether has multi-blocks
 );
 
 bool WinspecSpeDataSet::check(istream &f) {
@@ -124,9 +124,9 @@ void WinspecSpeDataSet::load_data(std::istream &f)
         }
 
         VecColumn *p_ycol = new VecColumn;
-        Range *p_rg = new Range;
-        p_rg->add_column(p_xcol, Range::CT_X);
-        p_rg->add_column(p_ycol, Range::CT_Y);
+        Block *p_blk = new Block;
+        p_blk->add_column(p_xcol, Block::CT_X);
+        p_blk->add_column(p_ycol, Block::CT_Y);
         
         for (int pt = 0; pt < dim; ++pt) {
             double x = idx_to_calib_val(pt, calib);
@@ -152,7 +152,7 @@ void WinspecSpeDataSet::load_data(std::istream &f)
             p_ycol->add_val(x);
         }
         
-        ranges.push_back(p_rg);
+        blocks.push_back(p_blk);
     }
 }
 
