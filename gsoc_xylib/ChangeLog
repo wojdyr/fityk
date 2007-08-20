@@ -6,6 +6,7 @@
 * Updated README with instructions on how to extend the library
 * Removed all sample files that are not explicitly-declared distributable
 * Added a shell script to download the sample files
+* Added support to Philips SD format
 * Other slight changes
 
 20:13 2007-8-19 GMT+8 version 337

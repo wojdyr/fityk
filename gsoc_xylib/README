@@ -52,7 +52,7 @@ xyconv.cpp
 	A user tool with arguments to convert xylib-supported file to ASCII file.
 	
 samples/
-	Original sample files categorized into different sub-directories according to their types.
+	Original sample files categorized into different sub-directories according to their types. To get the sample files, change your working directory to ./samples/, then "sh get_samples.sh".
 
 samples.sh
 	Shell script to test all sample files in ./samples, and output to ./output.

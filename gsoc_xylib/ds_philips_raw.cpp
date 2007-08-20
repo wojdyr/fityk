@@ -1,5 +1,5 @@
 // Implementation of class PhilipsRawDataSet for reading meta-info and 
-// xy-data from Philips RD raw scan format V3
+// xy-data from Philips RD raw scan format V3/V5
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // ds_philips_rd.cpp $
 
@@ -8,11 +8,12 @@
 FORMAT DESCRIPTION:
 ====================
 
-Philips RD raw scan format V3
+Philips RD raw scan format V3/V5
+".rd" files are V3, ".sd" files are V5.
 
 ///////////////////////////////////////////////////////////////////////////////
     * Name in progam:   philips_rd
-    * Extension name:   rd
+    * Extension name:   rd, sd
     * Binary/Text:      binary
     * Multi-blocks:     N
 
@@ -30,6 +31,8 @@ It contains ONLY 1 blocks/ranges in one file.
     * Implementation Ref of xylib: 
 mainly based on the file format specification sent to us by Martijn Fransen
 <martijn.fransen@panalytical.com>. 
+
+NOTE: V5 format has not been tested, because we cannot get sample files.
 
 */
 
