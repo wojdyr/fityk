@@ -8,6 +8,7 @@ User-visible changes in version 0.8.2  (2007-08-1 ):
 * removed files AUTHORS and ChangeLog
 * the API is now a Fityk class
 * GUI: setting baseline as convex hull of data points (experimental)
+* XPS Shirley background removing
 * minor improvements and bug fixes (e.g. "reset" was not working in 0.8.1)
 
 User-visible changes in version 0.8.1  (2007-04-23):

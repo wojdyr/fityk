@@ -7,7 +7,7 @@ you don't know were to start, there is a list of ideas at the end of this file.
 Legend:
 // = done, but not tested/documented  
 
-* XPS Shirley background removing
+* add Shirley bg to GUI (Data>XPS>Remove Shirley Bg, Calc. Shirley Bg).
 
 --------------> 0.8.2
 

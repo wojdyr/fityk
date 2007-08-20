@@ -770,6 +770,19 @@
         is set as an average of components.
       </para></listitem> 
      </varlistentry>
+     <varlistentry>
+      <term>shirley_bg</term>
+      <listitem><para>
+        Calculates Shirley background 
+        (useful in X-ray photoelectron spectroscopy).
+      </para></listitem> 
+     </varlistentry>
+     <varlistentry>
+      <term>rm_shirley_bg</term>
+      <listitem><para>
+        Calculates data with removed Shirley background.
+      </para></listitem> 
+     </varlistentry>
     </variablelist>
 
    </section> 
