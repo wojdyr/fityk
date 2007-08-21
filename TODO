@@ -26,6 +26,8 @@ Legend:
 
 * data: integrate fityk with xylib written by Peng Zhang as GSOC project
 
+* GUI: Data: revert from file (button on Data Pane)
+
 --------------> 0.8.3
 
 * sorting lists at sidebar - by clicking on column header, 

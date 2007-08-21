@@ -22,7 +22,9 @@ class Ftk;
 /// (see the webpage for contact info) to let them know about it,
 /// or to request more functions in the API.
 /// \par
-/// Only one Fityk
+/// See description of Fityk class to see the list of methods it supports.
+/// \par
+/// Only one instance of Fityk class can be used.
 /// \par
 /// \b TODO 
 /// - find out how to make bindings to set_show_message() and redir_messages()

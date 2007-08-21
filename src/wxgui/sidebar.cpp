@@ -707,7 +707,7 @@ void SideBar::update_data_inf()
     inf->AppendText(s2wx("@" + S(n) + "\n"));
     inf->SetDefaultStyle(defattr);
     inf->AppendText(s2wx(ftk->get_data(n)->get_info()));
-    wxFileName fn(ftk->get_data(n)->get_filename());
+    wxFileName fn(s2wx(ftk->get_data(n)->get_filename()));
     if (fn.IsOk() && !fn.IsAbsolute())
         inf->AppendText(wxT("\nPath: ") + fn.MakeAbsolute());
     inf->ShowPosition(0);

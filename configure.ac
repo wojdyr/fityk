@@ -1,7 +1,7 @@
 # $Id$
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([fityk], [0.8.1])
+AC_INIT([fityk], [0.8.2])
 LIBRARY_VERSION_FLAG="-version-info 0:0:0"
 
 AC_CONFIG_SRCDIR([src/voigt.h])
@@ -94,7 +94,7 @@ AC_CHECK_HEADER(sstream, [], [AC_MSG_ERROR(
 OLD_CPPFLAGS=$CPPFLAGS
 # can it cause problems?
 # CPPFLAGS is set here only for this test, and it is changed later 
-if test "$enable_3rdparty" != "yes"; then
+if test "$enable_3rdparty" = "yes"; then
 	CPPFLAGS="$CPPFLAGS -I$srcdir/3rdparty"
 fi
 
