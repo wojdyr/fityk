@@ -270,7 +270,7 @@ void SideBar::OnDataButtonNew (wxCommandEvent&)
 
 void SideBar::OnDataButtonDup (wxCommandEvent&)
 {
-    ftk->exec("@+ = " + join_vector(d->get_selected_data(), " + "));
+    ftk->exec("@+ = sum_same_x " + join_vector(d->get_selected_data(), " + "));
     frame->refresh_plots(false, true);
 }
 
@@ -707,6 +707,9 @@ void SideBar::update_data_inf()
     inf->AppendText(s2wx("@" + S(n) + "\n"));
     inf->SetDefaultStyle(defattr);
     inf->AppendText(s2wx(ftk->get_data(n)->get_info()));
+    wxFileName fn(ftk->get_data(n)->get_filename());
+    if (fn.IsOk() && !fn.IsAbsolute())
+        inf->AppendText(wxT("\nPath: ") + fn.MakeAbsolute());
     inf->ShowPosition(0);
 }
 

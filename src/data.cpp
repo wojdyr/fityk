@@ -203,7 +203,7 @@ void merge_same_x(vector<Point> &pp, bool avg)
 void shirley_bg(vector<Point> &pp, bool remove)
 {
     const int max_iter = 50;
-    const double max_rdiff = 1e-5;
+    const double max_rdiff = 1e-6;
     const int n = pp.size();
     double ya = pp[0].y; // lowest bg
     double yb = pp[n-1].y; // highest bg
@@ -218,7 +218,7 @@ void shirley_bg(vector<Point> &pp, bool remove)
         for (int i = 1; i < n; ++i)
             PA[i] = PA[i-1] + (Y[i] + Y[i-1]) / 2 * (pp[i].x - pp[i-1].x);
         double rel_diff = old_A != 0. ? abs(PA[n-1] - old_A) / old_A : 1.;
-        if (rel_diff < max_rdiff)
+        if (rel_diff < max_rdiff) 
             break;
         old_A = PA[n-1];
         for (int i = 0; i < n; ++i)
@@ -498,19 +498,26 @@ void Data::load_xy_filetype (ifstream& f, vector<int> const& columns)
     x_step = find_step();
 }
 
-string Data::read_one_line_as_title(ifstream& f, int column)
+/// If the column is non-negative, we try to get n'th word in the line,
+/// where n = column+1 (i.e. column==0 is first word. Otherwise, the line is
+/// returned. 
+/// The hash (#) at the beginning of line is ignored.
+string Data::read_one_line_as_title(ifstream& f, int column/*=-1*/)
 {
     if (!f)
         return "";
     string s;
     getline(f, s);
+    s = strip_string(s);
+    if (!s.empty() && s[0] == '#') 
+        s = string(s, 1);
     --column;
     if (column >= 0) {
         vector<string> v = split_string(s, " \t");
         if (column < size(v)) 
             return v[column];
     }
-    return strip_string(s);
+    return s;
 }
 
 /// read first line as file's title, and than run load_xy_filetype()

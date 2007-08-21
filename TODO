@@ -7,12 +7,6 @@ you don't know were to start, there is a list of ideas at the end of this file.
 Legend:
 // = done, but not tested/documented  
 
-* add Shirley bg to GUI (Data>XPS>Remove Shirley Bg, Calc. Shirley Bg).
-
---------------> 0.8.2
-
-* data: "filename" should contain full path
-
 * GUI: when printing, everything is first rescaled and rounded(!) for
   plot window at the screen, and then rescaled to the paper size. 
   This rounding causes visible artefacts at the printout.
@@ -62,10 +56,7 @@ Legend:
 
 * unused variables should not slow down fitting
 
-* GUI: add more menu icons (GTK only)
-
-* GUI: use icons with alpha channel 
-       http://www.wxwidgets.org/wiki/index.php/Embedding_PNG_Images
+* add alpha channel to toolbar icons
 
 ------------------ 
 

@@ -51,7 +51,7 @@ public :
     std::string range_as_string () const;
     int get_lower_bound_ac (fp x) const; 
     int get_upper_bound_ac (fp x) const;
-    std::string const& get_title() const {return title.empty()?filename:title;}
+    std::string const& get_title() const { return title; }
     std::string const& get_filename() const { return filename; }
 
     void recompute_y_bounds();
@@ -68,7 +68,7 @@ public :
     std::vector<Point> const& points() const { return p; }
     std::string get_given_type() const { return given_type; }
     std::vector<int> get_given_cols() const { return given_cols; }
-    static std::string read_one_line_as_title(std::ifstream& f, int column=0);
+    static std::string read_one_line_as_title(std::ifstream& f, int column=-1);
 private:
     Ftk const* F;
     std::string filename;

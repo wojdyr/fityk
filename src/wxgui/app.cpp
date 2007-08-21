@@ -258,7 +258,7 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
     vector<string> p;
     for (unsigned int i = 0; i < cmdLineParser.GetParamCount(); i++) 
         p.push_back(wx2s(cmdLineParser.GetParam(i)));
-    if (cmdLineParser.Found(wxT("r")) && p.size() > 1) {
+    if (cmdLineParser.Found(wxT("r")) && p.size() > 1) { // reorder
         sort(p.begin(), p.end(), less_filename(find_common_prefix_length(p)));
     }
     for (vector<string>::const_iterator i = p.begin(); i != p.end(); ++i) 

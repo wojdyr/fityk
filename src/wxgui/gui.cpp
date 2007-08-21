@@ -129,6 +129,8 @@ enum {
     ID_D_FDT_END = ID_D_FDT+50 ,
     ID_D_ALLDS                 ,
     ID_D_MERGE                 ,
+    ID_D_RM_SHIRLEY            ,
+    ID_D_CALC_SHIRLEY          ,
     ID_D_EXPORT                ,
     ID_DEFMGR                  ,
     ID_S_GUESS                 ,
@@ -239,7 +241,8 @@ void append_mi(wxMenu* menu, int id, wxBitmap const& bitmap,
                const wxString& text=wxT(""), const wxString& helpString=wxT(""))
 {
     wxMenuItem *item = new wxMenuItem(menu, id, text, helpString);
-#if wxUSE_OWNER_DRAWN || defined(__WXGTK__)
+//#if wxUSE_OWNER_DRAWN || defined(__WXGTK__)
+#if defined(__WXGTK__)
     item->SetBitmap(bitmap);
 #endif
     menu->Append(item);
@@ -249,12 +252,14 @@ void append_mi(wxMenu* menu, int id, wxBitmap const& bitmap,
 BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_D_QLOAD,       FFrame::OnDataQLoad)   
     EVT_MENU (ID_D_XLOAD,       FFrame::OnDataXLoad)   
-    EVT_MENU_RANGE (ID_D_RECENT+1, ID_D_RECENT_END, FFrame::OnDRecent)
-    EVT_MENU (ID_D_EDITOR,      FFrame::OnDEditor)
+    EVT_MENU_RANGE (ID_D_RECENT+1, ID_D_RECENT_END, FFrame::OnDataRecent)
+    EVT_MENU (ID_D_EDITOR,      FFrame::OnDataEditor)
     EVT_MENU_RANGE (ID_D_FDT+1, ID_D_FDT_END, FFrame::OnFastDT)
     EVT_UPDATE_UI (ID_D_ALLDS,  FFrame::OnAllDatasetsUpdate) 
-    EVT_MENU (ID_D_MERGE,       FFrame::OnDMerge)
-    EVT_MENU (ID_D_EXPORT,      FFrame::OnDExport) 
+    EVT_MENU (ID_D_MERGE,       FFrame::OnDataMerge)
+    EVT_MENU (ID_D_RM_SHIRLEY,  FFrame::OnDataRmShirley)
+    EVT_MENU (ID_D_CALC_SHIRLEY,FFrame::OnDataCalcShirley)
+    EVT_MENU (ID_D_EXPORT,      FFrame::OnDataExport) 
 
     EVT_MENU (ID_DEFMGR,        FFrame::OnDefinitionMgr)   
     EVT_MENU (ID_S_GUESS,       FFrame::OnSGuess)   
@@ -263,7 +268,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_S_VARLIST,     FFrame::OnSVarList)  
     EVT_MENU (ID_S_EXPORTP,     FFrame::OnSExport)   
     EVT_MENU (ID_S_EXPORTF,     FFrame::OnSExport)   
-    EVT_MENU (ID_S_EXPORTD,     FFrame::OnDExport)   
+    EVT_MENU (ID_S_EXPORTD,     FFrame::OnDataExport)   
 
     EVT_UPDATE_UI_RANGE (ID_F_M, ID_F_M_END, FFrame::OnFMethodUpdate)
     EVT_MENU_RANGE (ID_F_M, ID_F_M_END, FFrame::OnFOneOfMethods)    
@@ -617,6 +622,12 @@ void FFrame::set_menubar()
     data_menu->AppendSeparator();
     data_menu->Append (ID_D_MERGE, wxT("&Merge Points..."), 
                                         wxT("Reduce the number of points"));
+    wxMenu* data_xps_menu = new wxMenu;
+    data_xps_menu->Append(ID_D_RM_SHIRLEY, wxT("&Remove Shirley BG"), 
+                                                    wxT("Remove Shirley BG"));
+    data_xps_menu->Append(ID_D_CALC_SHIRLEY, wxT("&Calculate Shirley BG"), 
+                                        wxT("put Shirley BG to new dataset"));
+    data_menu->Append(-1, wxT("&XPS"), data_xps_menu);
     data_menu->AppendSeparator();
     append_mi(data_menu, ID_D_EXPORT, GET_BMP(export16), 
               wxT("&Export\tCtrl-S"), wxT("Save data to file"));
@@ -875,14 +886,14 @@ void FFrame::OnDataXLoad (wxCommandEvent&)
     dload_dialog.ShowModal();
 }
 
-void FFrame::OnDRecent (wxCommandEvent& event)
+void FFrame::OnDataRecent (wxCommandEvent& event)
 {
     string s = wx2s(GetMenuBar()->GetHelpString(event.GetId()));
     ftk->exec(get_active_data_str() + " <'" + s + "'");
     add_recent_data_file(s);
 }
 
-void FFrame::OnDEditor (wxCommandEvent&)
+void FFrame::OnDataEditor (wxCommandEvent&)
 {
     vector<pair<int,Data*> > dd;
     if (get_apply_to_all_ds()) {
@@ -937,7 +948,7 @@ void FFrame::OnAllDatasetsUpdate (wxUpdateUIEvent& event)
     event.Enable(ftk->get_ds_count() > 1);
 }
 
-void FFrame::OnDMerge (wxCommandEvent&)
+void FFrame::OnDataMerge (wxCommandEvent&)
 {
     MergePointsDlg *dlg = new MergePointsDlg(this);
     if (dlg->ShowModal() == wxID_OK)
@@ -945,7 +956,23 @@ void FFrame::OnDMerge (wxCommandEvent&)
     dlg->Destroy();
 }
 
-void FFrame::OnDExport (wxCommandEvent&)
+void FFrame::OnDataCalcShirley (wxCommandEvent&)
+{
+    int n = ftk->get_active_ds_position();
+    string title = ftk->get_data(n)->get_title();
+    int c = ftk->get_ds_count();
+    
+    ftk->exec("@+ = shirley_bg @" + S(n)
+              + "; @" + S(c) + ".title = '" + title + "-Shirley'");
+}
+
+void FFrame::OnDataRmShirley (wxCommandEvent&)
+{
+    string dstr = get_active_data_str();
+    ftk->exec(dstr + " = rm_shirley_bg " + dstr);
+}
+
+void FFrame::OnDataExport (wxCommandEvent&)
 {
     export_data_dlg(this);
 }
@@ -1567,8 +1594,10 @@ void FFrame::update_config_menu(wxMenu *menu)
     wxArrayString filenames;
     int n = wxDir::GetAllFiles(wxGetApp().config_dir, &filenames);
     int config_number_limit = ID_G_LCONF_X_END - ID_G_LCONF_X;
-    for (int i = 0; i < min(n, config_number_limit); ++i) 
-        menu->Append(ID_G_LCONF_X + i, filenames[i]);
+    for (int i = 0; i < min(n, config_number_limit); ++i) {
+        wxFileName fn(filenames[i]);
+        menu->Append(ID_G_LCONF_X + i, fn.GetFullName(), fn.GetFullPath());
+    }
 }
 
 

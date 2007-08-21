@@ -456,9 +456,15 @@ string DLoadDlg::get_command(string const& ds, int d_nr)
 
     string cols;
     if (columns_panel->IsEnabled()) { // a:b[:c]
-        cols = " " + S(x_column->GetValue()) + "," + S(y_column->GetValue());
-        if (std_dev_cb->GetValue())
-            cols += S(",") + S(s_column->GetValue());
+        int x = x_column->GetValue();
+        int y = y_column->GetValue();
+        bool has_s = std_dev_cb->GetValue();
+        // default parameter values are not passed explicitely
+        if (x != 1 || y != 2 || has_s) {
+            cols = " " + S(x) + "," + S(y);
+            if (has_s)
+                cols += S(",") + S(s_column->GetValue());
+        }
     }
 
     string filetype;
