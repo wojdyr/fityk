@@ -708,8 +708,10 @@ void SideBar::update_data_inf()
     inf->SetDefaultStyle(defattr);
     inf->AppendText(s2wx(ftk->get_data(n)->get_info()));
     wxFileName fn(s2wx(ftk->get_data(n)->get_filename()));
-    if (fn.IsOk() && !fn.IsAbsolute())
-        inf->AppendText(wxT("\nPath: ") + fn.MakeAbsolute());
+    if (fn.IsOk() && !fn.IsAbsolute()) {
+        fn.MakeAbsolute();
+        inf->AppendText(wxT("\nPath: ") + fn.GetFullPath());
+    }
     inf->ShowPosition(0);
 }
 

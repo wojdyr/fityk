@@ -1,7 +1,7 @@
 #!/bin/bash 
 # $Id$
 
-version=0.8.2
+version=0.8.3
 WEB="iris.unipress.waw.pl:/d2/people/wojdyr/www/fityk2/" 
 TEMP_DOWNLOAD=$WEB/d/
 SF_NEW_RELEASE="https://sourceforge.net/project/admin/newrelease.php?package_id=80864&group_id=79434"
@@ -185,7 +185,6 @@ elif [ $1 -eq 6 ]; then
  #        --disable-wizarddlg  --disable-miniframe --disable-joystick \
  #        --disable-gif  --disable-pcx --disable-tga --disable-iff \
  #        --disable-pnm
- #      # and we don't have to build it.
  #      make; make install
  #
  rm -rf $MINGW_DIR
