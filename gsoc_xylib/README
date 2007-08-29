@@ -32,6 +32,7 @@ Princeton Instruments WinSpec SPE Format:						.spe
 	(ONLY support 1-D)
 Crystallographic Information File for Powder Diffraction:		.cif
 Philips RD raw scan format V3									.rd
+GSAS format														.gss
 
 
 FILES

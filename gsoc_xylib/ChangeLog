@@ -1,3 +1,9 @@
+13:22 2007-8-29
+* Going to move code repository to xylib project at SF.NET
+* Added 3 1-D spe files after getting re-distribution rights from Pablo Bianucci <pablob@mail.utexas.edu>
+* Added support to GSAS format
+* Added text file extension name ".prn"
+
 2:37 2007-8-21 GMT+8 version 341
 * Fixed the pdCif multi-block-in-one-range issue, use multiple Ranges to represent the blocks.
 * Added a name attribute to Range class

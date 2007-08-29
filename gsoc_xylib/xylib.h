@@ -37,6 +37,7 @@ enum xy_ftype {
     FT_SPE,
     FT_PDCIF,
     FT_PHILIPS_RAW,
+    FT_GSAS,
     FT_NUM,     // always at bottom to get the number of the types
 };
 

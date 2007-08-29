@@ -40,6 +40,11 @@ wget -N http://sdpd.univ-lemans.fr/DU-SDPD/solutions/week-3/synchro.uxd -P uxd/
 # VAMAS files
 wget -N http://www.surfacespectra.com/xps/download/fomblin_y.vms -P vamas/
 
+# GSAS files
+wget -N http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/gss/cpd-1a.gss -P gsas/
+wget -N http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/gss/cpd-1b.gss -P gsas/
+wget -N http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/gss/cpd-1c.gss -P gsas/
+
 echo "done!"
 
 

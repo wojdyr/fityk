@@ -12,7 +12,7 @@ X-Y plain text format.
 
 ///////////////////////////////////////////////////////////////////////////////
     * Name in progam:   ds_brucker_raw_v1
-    * Extension name:   txt, dat, asc
+    * Extension name:   txt, dat, asc, prn
     * Binary/Text:      text
     * Multi-blocks:     N
     
@@ -45,7 +45,7 @@ using namespace xylib::util;
 
 namespace xylib {
 
-const static string exts[4] = { "txt", "dat", "asc", "csv" };
+const static string exts[5] = { "txt", "dat", "asc", "csv", "prn" };
 
 const FormatInfo TextDataSet::fmt_info(
     FT_TEXT,

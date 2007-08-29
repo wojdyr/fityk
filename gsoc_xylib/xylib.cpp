@@ -16,6 +16,7 @@
 #include "ds_winspec_spe.h"
 #include "ds_pdcif.h"
 #include "ds_philips_raw.h"
+#include "ds_gsas.h"
 
 #include <iostream>
 #include <algorithm>
@@ -42,6 +43,7 @@ const FormatInfo *g_fi[] = {
     &WinspecSpeDataSet::fmt_info,
     &PdCifDataSet::fmt_info,
     &PhilipsRawDataSet::fmt_info,
+    &GsasDataSet::fmt_info,
 };
 
 
@@ -404,8 +406,10 @@ DataSet* getNewDataSet(istream &is, xy_ftype filetype /* = FT_UNKNOWN */,
         pd = new WinspecSpeDataSet();
     } else if (FT_PDCIF == ft) {
         pd = new PdCifDataSet();
-    } else if (FT_PHILIPS_RAW== ft) {
+    } else if (FT_PHILIPS_RAW == ft) {
         pd = new PhilipsRawDataSet();
+    } else if (FT_GSAS== ft) {
+        pd = new GsasDataSet();
     } else {
         pd = NULL;
         throw XY_Error("unkown or unsupported file type");
@@ -459,6 +463,8 @@ xy_ftype guess_file_type(const string &fpath)
             return FT_PDCIF;
         } else if ("rd" == ext) {
             return FT_PHILIPS_RAW;
+        } else if ("gss" == ext) {
+            return FT_GSAS;
         } else {
             return FT_UNKNOWN;
         }
