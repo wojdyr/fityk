@@ -271,10 +271,6 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
     }
 }
 
-#ifndef HELP_DIR
-#    define HELP_DIR "."
-#endif
-
 //TODO when wx>=2.8 -> use GetResourcesDir() on all platforms
 string get_full_path_of_help_file (const string &name)
 {
@@ -288,7 +284,9 @@ string get_full_path_of_help_file (const string &name)
     if (!exedir.IsEmpty() && exedir.Last() != wxFILE_SEP_PATH)
             exedir += wxFILE_SEP_PATH;
     wxChar *possible_paths[] = {
+#ifdef HELP_DIR
         wxT(HELP_DIR),
+#endif
         wxT("."),
         wxT(".."),
         wxT("doc"),

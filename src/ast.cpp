@@ -63,12 +63,15 @@ string OpTree::str(const vector<string> *vars)
         case OP_EXP:  return "exp(" + c1->str(vars) + ")";
         case OP_ERFC: return "erfc(" + c1->str(vars) + ")";
         case OP_ERF:  return "erf(" + c1->str(vars) + ")";
+        case OP_SINH:  return "sinh(" + c1->str(vars) + ")";
+        case OP_COSH:  return "cosh(" + c1->str(vars) + ")";
+        case OP_TANH: return "tanh("+ c1->str(vars) + ")";
         case OP_SIN:  return "sin(" + c1->str(vars) + ")";
         case OP_COS:  return "cos(" + c1->str(vars) + ")";
-        case OP_ATAN: return "atan("+ c1->str(vars) + ")";
         case OP_TAN:  return "tan(" + c1->str(vars) + ")";
         case OP_ASIN: return "asin("+ c1->str(vars) + ")";
         case OP_ACOS: return "acos("+ c1->str(vars) + ")";
+        case OP_ATAN: return "atan("+ c1->str(vars) + ")";
         case OP_LGAMMA: return "lgamma("+ c1->str(vars) + ")";
         case OP_DIGAMMA: return "digamma("+ c1->str(vars) + ")";
         case OP_LOG10:return "log10("+c1->str(vars) + ")";
@@ -106,12 +109,15 @@ string OpTree::ascii_tree(int width, int start, const vector<string> *vars)
             case OP_EXP:  node = "EXP";  break;
             case OP_ERFC: node = "ERFC"; break;
             case OP_ERF:  node = "ERF";  break;
+            case OP_SINH: node = "SINH"; break;
+            case OP_COSH: node = "COSH"; break;
+            case OP_TANH: node = "TANH"; break;
             case OP_SIN:  node = "SIN";  break;
             case OP_COS:  node = "COS";  break;
-            case OP_ATAN: node = "ATAN"; break;
             case OP_TAN:  node = "TAN";  break;
             case OP_ASIN: node = "ASIN"; break;
             case OP_ACOS: node = "ACOS"; break;
+            case OP_ATAN: node = "ATAN"; break;
             case OP_LOG10:node = "LOG";  break;
             case OP_LN:   node = "LN";   break;
             case OP_SQRT: node = "SQRT"; break;
@@ -383,6 +389,39 @@ OpTree* do_ln(OpTree *a)
     }
     else
         return new OpTree(OP_LN, simplify_terms(a));
+}
+
+OpTree* do_sinh(OpTree *a)
+{
+    if (a->op == 0) {
+        double val = sinh(a->val);
+        delete a;
+        return new OpTree(val);
+    }
+    else
+        return new OpTree(OP_SINH, simplify_terms(a));
+}
+
+OpTree* do_cosh(OpTree *a)
+{
+    if (a->op == 0) {
+        double val = cosh(a->val);
+        delete a;
+        return new OpTree(val);
+    }
+    else
+        return new OpTree(OP_COSH, simplify_terms(a));
+}
+
+OpTree* do_tanh(OpTree *a)
+{
+    if (a->op == 0) {
+        double val = tanh(a->val);
+        delete a;
+        return new OpTree(val);
+    }
+    else
+        return new OpTree(OP_TANH, simplify_terms(a));
 }
 
 OpTree* do_sin(OpTree *a)
@@ -908,6 +947,18 @@ vector<OpTree*> calculate_deriv(const_tm_iter_t const &i,
             else if (s == "ln") {
                 der = do_oneover(larg);
                 do_op = do_ln;
+            }
+            else if (s == "sinh") {
+                der = do_cosh(larg);
+                do_op = do_sinh;
+            }
+            else if (s == "cosh") {
+                der = do_sinh(larg);
+                do_op = do_cosh;
+            }
+            else if (s == "tanh") {
+                der = do_oneover(do_sqr(do_cosh(larg)));
+                do_op = do_tanh;
             }
             else if (s == "sin") {
                 der = do_cos(larg);

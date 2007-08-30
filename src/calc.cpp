@@ -131,6 +131,15 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
             case OP_LN:
                 *stackPtr = log(*stackPtr); 
                 break;
+            case OP_SINH:
+                *stackPtr = sinh(*stackPtr);
+                break;
+            case OP_COSH:
+                *stackPtr = cosh(*stackPtr);
+                break;
+            case OP_TANH:
+                *stackPtr = tanh(*stackPtr); 
+                break;
             case OP_SIN:
                 *stackPtr = sin(*stackPtr);
                 break;

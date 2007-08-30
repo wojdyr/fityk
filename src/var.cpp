@@ -198,6 +198,7 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
                 |  inner_node_d[ch_p('(') >> expression >> ')']
                 |  root_node_d[ as_lower_d[ str_p("sqrt") | "exp" 
                                           | "erfc" | "erf" | "log10" | "ln" 
+                                          | "sinh" | "cosh" | "tanh" 
                                           | "sin" | "cos" | "tan" 
                                           | "atan" | "asin" | "acos"
                                           | "lgamma"
