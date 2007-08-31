@@ -7,6 +7,9 @@ you don't know were to start, there is a list of ideas at the end of this file.
 Legend:
 // = done, but not tested/documented  
 
+* GUI: Data: revert from file (button on Data Pane)
+       BUG: data revert button in Data Editor doesn't use columns
+
 * GUI: when printing, everything is first rescaled and rounded(!) for
   plot window at the screen, and then rescaled to the paper size. 
   This rounding causes visible artefacts at the printout.
@@ -25,8 +28,6 @@ Legend:
 * GUI: should (and where) windows size & position be stored?
 
 * data: integrate fityk with xylib written by Peng Zhang as GSOC project
-
-* GUI: Data: revert from file (button on Data Pane)
 
 * Mac binary and http://versiontracker.com/
 
