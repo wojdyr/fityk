@@ -57,23 +57,9 @@ public:
     Scale() : scale(1.), origin(0.), logarithm(false), reversed(false) {}
 
     /// value -> pixel
-    int px(double val) const 
-    {
-        if (logarithm) {
-            if (val <= 0)
-                return inf_px(scale);
-            val = log(val);
-        }
-        double t = (val - origin) * scale;
-        return fabs(t) < SHRT_MAX ? static_cast<int>(t) : inf_px(t);
-    }
-
+    inline int px(double val) const;
     /// pixel -> value
-    double val(int px) const
-    { 
-        fp a = px / scale + origin; 
-        return logarithm ? exp(a) : a; 
-    }
+    inline double val(int px) const;
 
     // set scale using minimum and maximum logical values and width/height 
     // of the screen in pixels.
@@ -84,6 +70,23 @@ private:
     static int inf_px(float t) { return t > 0 ? SHRT_MAX : SHRT_MIN; }
 };
 
+
+int Scale::px(double val) const
+{
+    if (logarithm) {
+        if (val <= 0)
+            return inf_px(scale);
+        val = log(val);
+    }
+    double t = (val - origin) * scale;
+    return fabs(t) < SHRT_MAX ? static_cast<int>(t) : inf_px(t);
+}
+
+double Scale::val(int px) const
+{ 
+    fp a = px / scale + origin; 
+    return logarithm ? exp(a) : a; 
+}
 
 
 /// This class has no instances, MainPlot and AuxPlot are derived from it
@@ -99,7 +102,7 @@ public:
     ~FPlot() {}
     wxColour const& get_bg_color() const { return backgroundCol; }
     void draw_crosshair(int X, int Y);
-    void set_scale();
+    void set_scale(int pixel_width, int pixel_height);
     int get_special_point_at_pointer(wxMouseEvent& event);
     std::vector<wxPoint> const& get_special_points() const
                                                 { return special_points; }
@@ -142,6 +145,11 @@ protected:
                     int Y_offset = 0,
                     bool cumulative=false);
     void change_tics_font();
+
+    int get_pixel_width(wxDC const& dc) const 
+      { return dc.GetSize().GetWidth(); }
+    int get_pixel_height(wxDC const& dc) const 
+      { return dc.GetSize().GetHeight(); }
 
     DECLARE_EVENT_TABLE()
 };

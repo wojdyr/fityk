@@ -191,7 +191,7 @@ private:
     void draw_peaktop_selection(wxDC& dc, Sum const* sum);
     void draw_plabels (wxDC& dc, Sum const* sum, bool set_pen=true);
     void draw_dataset(wxDC& dc, int n, bool set_pen=true);
-    void prepare_peaktops(Sum const* sum);
+    void prepare_peaktops(Sum const* sum, int Ymax);
     void prepare_peak_labels(Sum const* sum);
     void look_for_peaktop (wxMouseEvent& event);
     void show_peak_menu (wxMouseEvent &event);

@@ -185,42 +185,49 @@ void do_print_plots(wxDC *dc, PrintManager const* pm)
 {
     // Set the scale and origin
     const int space = 10; //vertical space between plots
-    const int marginX = 50, marginY = 50; //page margins
-    //width is the same for all plots
-    int width = pm->plot_pane->GetClientSize().GetWidth(); 
+
+    // `vp' is a list of plots that are to be printed.
+    // PlotPane::get_visible_plots() can't be used, because aux plots can be
+    // disabled in print setup.
     vector<FPlot*> vp; 
     vp.push_back(pm->plot_pane->get_plot());
     for (int i = 0; i < 2; ++i)
         if (pm->plot_pane->aux_visible(i) && pm->plot_aux[i])
             vp.push_back(pm->plot_pane->get_aux_plot(i));
-    int height = -space;  //height = sum of all heights + (N-1)*space
+
+    //width is the same for all plots
+    int W = pm->plot_pane->GetClientSize().GetWidth(); 
+
+    // height = sum of all heights + (N-1)*space
+    int H = (vp.size() - 1) * space;  
     for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i) 
-        height += (*i)->GetClientSize().GetHeight() + space;
-    int w, h;
+        H += (*i)->GetClientSize().GetHeight();
+
+    int w, h; // size in DC units
     dc->GetSize(&w, &h);
-    fp scaleX = w / (width + 2.*marginX) * pm->scale/100.;
-    fp scaleY = h / (height + 2.*marginY) * pm->scale/100.;
+    fp scaleX = pm->scale/100. * w / W;
+    fp scaleY = pm->scale/100. * h / H;
     if (pm->keep_ratio) {
         if (scaleX > scaleY)
             scaleX = scaleY;
         else
             scaleY = scaleX;
     }
-    dc->SetUserScale (scaleX, scaleY);
-    const int posX = iround((w - width * scaleX) / 2.);
-    int posY = iround((h - height * scaleY) / 2.);
+    //dc->SetUserScale (scaleX, scaleY);
+    const int posX = iround((w - W * scaleX) / 2.);
+    int posY = iround((h - H * scaleY) / 2.);
 
     //drawing all visible plots, every at different posY
     for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i) {
-        dc->SetDeviceOrigin (posX, posY);
+        //dc->SetDeviceOrigin (posX, posY);
         if (pm->plot_borders && i != vp.begin()) {
             int Y = -space/2;
-            dc->DrawLine(0, Y, width, Y);
+            dc->DrawLine(0, Y, w, Y);
         }
         int plot_height = (*i)->GetClientSize().GetHeight();
-        dc->SetClippingRegion(0, 0, width, plot_height);
+        //dc->SetClippingRegion(0, 0, width, plot_height);
         (*i)->draw(*dc, !pm->colors);
-        dc->DestroyClippingRegion();
+        //dc->DestroyClippingRegion();
         posY += iround((plot_height+space) * scaleY);
     }
 }
@@ -362,7 +369,7 @@ void PrintManager::print()
     print_dialog_data.EnableSelection(false);
     wxPrinter printer (&print_dialog_data);
     FPrintout printout(this);
-    bool r = printer.Print(0, &printout, true);
+    bool r = printer.Print(plot_pane, &printout, true);
     if (r) {
         get_print_data() = printer.GetPrintDialogData().GetPrintData();
         landscape = (get_print_data().GetOrientation() == wxLANDSCAPE);

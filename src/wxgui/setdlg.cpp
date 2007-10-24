@@ -297,7 +297,7 @@ void SettingsDlg::add_persistence_note(wxWindow *parent, wxSizer *sizer)
                                            parent, wxT("persistance note"));
     persistence->Add(new wxStaticText(parent, -1,
                        wxT("To have values above remained after restart, ")
-                       wxT("put proper\ncommands into init file:")
+                       wxT("put proper\ncommands into init file: ")
                        + get_user_conffile(startup_commands_filename)),
                      0, wxALL|wxALIGN_CENTER, 5);
     sizer->AddStretchSpacer();

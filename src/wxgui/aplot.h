@@ -34,7 +34,7 @@ public:
     void OnMiddleDown (wxMouseEvent &event);
     void OnKeyDown (wxKeyEvent& event);
     bool cancel_mouse_left_press();
-    void set_scale();
+    void set_scale(int pixel_width, int pixel_height);
     bool is_zoomable(); //false if kind is eg. empty or peak-position
     void OnPopupPlot (wxCommandEvent& event);
     void OnPopupPlotCtr (wxCommandEvent& event);

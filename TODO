@@ -7,13 +7,15 @@ you don't know were to start, there is a list of ideas at the end of this file.
 Legend:
 // = done, but not tested/documented  
 
-* GUI: Data: revert from file (button on Data Pane)
-       BUG: data revert button in Data Editor doesn't use columns
-
 * GUI: when printing, everything is first rescaled and rounded(!) for
   plot window at the screen, and then rescaled to the paper size. 
   This rounding causes visible artefacts at the printout.
   (wxDC.GetSize instead of plot.GetClientSize() ?)
+
+* BUG?: @+ < 'filename':1,5/6/7" doesn't work
+
+* GUI: Data: revert from file (button on Data Pane)
+       BUG: data revert button in Data Editor doesn't use columns
 
 * GUI: default view is too wide from the left in when logarithmic scale is on,
   because view margin is always 5%, and this is handled by libfityk
@@ -22,8 +24,6 @@ Legend:
 
 * (GUI) stopping fitting interactively (when user doesn't want to wait longer);
   "stop" bitmap button? in right left corner? 
-
-* refactor guess.cpp to be thread-safe
 
 * GUI: should (and where) windows size & position be stored?
 
@@ -53,8 +53,6 @@ Legend:
 
 * GUI, BUG: executing script with define gives on GTK: 
    Gtk-CRITICAL **: gtk_radio_menu_item_get_group: assertion `GTK_IS_RADIO_MENU_ITEM (radio_menu_item)' failed
-
-* simplify get_full_path_of_help_file() and make it more robust on Mac.
 
 --------------> 0.8.3
 
@@ -87,6 +85,8 @@ Legend:
 * unused variables should not slow down fitting
 
 * add alpha channel to toolbar icons
+
+* fitting with constrained parameters
 
 ------------------ 
 
@@ -197,25 +197,6 @@ Legend:
   exact that the standard Humlicek one. GSL would probably also accept
   such a function in C.
   http://sources.redhat.com/ml/gsl-discuss/2004-q4/msg00061.html
-
-- GUI/wxWidgets: file dialog in wxWidgets can't be customized, and there is no
-  widget like GtkFileChooserWidget in gtk+. Implement such a widget, that
-  will use GtkFileChooserWidget on GTK, perhaps also native implementation
-  on other platforms, and a generic implementation, which can be based
-  on generic wxFileDialog implementation.
-  [Assigned to GSOC student]
-
-- add import for new file formats or prepare a x-y data file reading
-  library. Files requested by users include: .jdx JCAMP-DX (www.jcamp.org),
-  Galactic (GRAMS/32) SPC files (especially multifiles), VAMAS ISO,
-  multipart Siemens .raw data files and more. 
-  The code to read popular powder diffraction data formats can be borrowed
-  (with necessery modifications) from various open-source projects,
-  i'm not sure how it's in other fields.
-  Maintaining such a library could be quite rewarding, there are at least
-  2-3 open-source project inclined to use it, the library would automatically
-  go into a few popular Linux distributions, etc.
-  [Assigned to GSOC student]
 
 - if you have some expertise in nonlinear optimization methods, it's possible
   to do what Gnu Scientific Library seems to plan: put a few least-squares

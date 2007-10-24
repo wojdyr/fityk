@@ -278,7 +278,7 @@ void do_print_info(char const* a, char const* b)
         vector<DataWithSum*> v = get_datasets_from_indata();
         for (vector<DataWithSum*>::const_iterator i = v.begin(); 
                                                            i != v.end(); ++i)
-            m += get_guess_info(*i, vr);
+            m += Guess(AL, *i).get_guess_info(vr);
     }
     prepared_info += "\n" + m;
 }
@@ -402,8 +402,15 @@ void do_print_func_type(char const* a, char const* b)
 void do_guess(char const*, char const*)
 {
     vector<DataWithSum*> v = get_datasets_from_indata();
-    for (vector<DataWithSum*>::const_iterator i = v.begin(); i != v.end(); ++i)
-        guess_and_add(*i, t, t2, vr, vt);
+    string const& name = t;
+    string const& function = t2;
+    for (vector<DataWithSum*>::const_iterator i = v.begin(); i != v.end(); ++i) {
+        DataWithSum *ds = *i;
+        vector<string> vars = vt;
+        Guess(AL, ds).guess(name, function, vr, vars);
+        string real_name = AL->assign_func(name, function, vars);
+        ds->get_sum()->add_function_to(real_name, 'F');
+    }
     outdated_plot=true;  
 }
 

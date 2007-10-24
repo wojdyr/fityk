@@ -1651,6 +1651,9 @@
      stopping criteria, so that the number of executed iterations can be smaller.
     </para>
     <para>
+     <userinput>fit [...] in @*</userinput> fits all datasets simultaneously.
+    </para>
+    <para>
      Fitting methods can be set using the set command:
      <command>set fitting-method = <replaceable>method</replaceable></command>,
      where method is one of: Levenberg-Marquardt, Nelder-Mead-simplex,

@@ -124,7 +124,7 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
         fit_y_zoom(data, sum);
         fit_y_once = false;
     }
-    set_scale();
+    set_scale(get_pixel_width(dc), get_pixel_height(dc));
     if (monochrome) {
         dc.SetPen(*wxBLACK_PEN);
         dc.SetBrush(*wxBLACK_BRUSH);
@@ -133,7 +133,7 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
         dc.SetPen(wxPen(xAxisCol));
 
     if (mark_peak_ctrs) {
-        int ymax = GetClientSize().GetHeight();
+        int ymax = get_pixel_height(dc);
         std::vector<wxPoint> const& t = master->get_special_points();
         for (vector<wxPoint>::const_iterator i = t.begin(); i != t.end(); i++) 
             dc.DrawLine(i->x, 0, i->x, ymax);
@@ -144,16 +144,16 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
 
     if (x_axis_visible) {
         int Y0 = ys.px(0.);
-        dc.DrawLine (0, Y0, GetClientSize().GetWidth(), Y0);
+        dc.DrawLine (0, Y0, get_pixel_width(dc), Y0);
         if (kind == apk_diff) 
             draw_zoom_text(dc, !monochrome);
     }
     if (y_axis_visible) {
         int X0 = xs.px(0.);
-        dc.DrawLine (X0, 0, X0, GetClientSize().GetHeight());
+        dc.DrawLine (X0, 0, X0, get_pixel_height(dc));
     }
     if (ytics_visible) {
-        View v(0, 0, ys.val(GetClientSize().GetHeight()), ys.val(0));
+        View v(0, 0, ys.val(get_pixel_height(dc)), ys.val(0));
         draw_ytics(dc, v, !monochrome);
     }
 
@@ -188,7 +188,7 @@ void AuxPlot::draw_zoom_text(wxDC& dc, bool set_pen)
     string s = "x" + S(y_zoom);  
     wxCoord w, h;
     dc.GetTextExtent (s2wx(s), &w, &h); 
-    dc.DrawText (s2wx(s), GetClientSize().GetWidth() - w - 2, 2);
+    dc.DrawText (s2wx(s), get_pixel_width(dc) - w - 2, 2);
 }
 
 void AuxPlot::OnMouseMove(wxMouseEvent &event)
@@ -223,15 +223,17 @@ bool AuxPlot::is_zoomable()
            || kind == apk_diff_y_perc || kind == apk_cum_chi2;
 }
 
-void AuxPlot::set_scale()
+void AuxPlot::set_scale(int pixel_width, int pixel_height)
 {
-    master->set_scale();
+    // this functions depends on x scale in MainPlot 
+    // sometimes AuxPlot is redrawed before MainPlot, so we are updating 
+    // horizontal scale in MainPlot
+    master->set_scale(pixel_width, 0); 
     xs = master->get_x_scale();
 
-    int h = GetClientSize().GetHeight();
     if (kind == apk_cum_chi2) {
         ys.scale = -1. * y_zoom_base * y_zoom;
-        ys.origin = - h / ys.scale;
+        ys.origin = - pixel_height / ys.scale;
         return;
     }
     switch (kind) {
@@ -251,7 +253,7 @@ void AuxPlot::set_scale()
         default:
             assert(0);
     }
-    ys.origin = - h / 2. / ys.scale;
+    ys.origin = - pixel_height / 2. / ys.scale;
 }
  
 void AuxPlot::read_settings(wxConfigBase *cf)
@@ -486,12 +488,13 @@ void AuxPlot::fit_y_zoom(Data const* data, Sum const* sum)
                                   last = data->get_point_at(ftk->view.right);
     if (data->is_empty() || last==first)
         return;
+    int pixel_height = GetClientSize().GetHeight();
     switch (kind) { // setting y_zoom
         case apk_diff: 
             {
             y = get_max_abs_y(diff_of_data_for_draw_data, first, last, sum);
             Scale const& mys = master->get_y_scale();
-            y_zoom = fabs (GetClientSize().GetHeight() / (2 * y 
+            y_zoom = fabs (pixel_height / (2 * y 
                                            * (mys.logarithm ? 1 : mys.scale)));
             fp order = pow (10, floor (log10(y_zoom)));
             y_zoom = floor(y_zoom / order) * order;
@@ -500,20 +503,20 @@ void AuxPlot::fit_y_zoom(Data const* data, Sum const* sum)
         case apk_diff_stddev:
             y = get_max_abs_y(diff_stddev_of_data_for_draw_data, 
                               first, last, sum);
-            y_zoom_base = GetClientSize().GetHeight() / (2. * y);
+            y_zoom_base = pixel_height / (2. * y);
             y_zoom = 0.9;
             break;
         case apk_diff_y_perc:
             y = get_max_abs_y(diff_y_perc_of_data_for_draw_data, 
                               first, last, sum);
-            y_zoom_base = GetClientSize().GetHeight() / (2. * y);
+            y_zoom_base = pixel_height / (2. * y);
             y_zoom = 0.9;
             break;
         case apk_cum_chi2:
             y = 0.;
             for (vector<Point>::const_iterator i = first; i < last; i++) 
                 y += diff_chi2_of_data_for_draw_data(i, sum);
-            y_zoom_base = GetClientSize().GetHeight() / y;
+            y_zoom_base = pixel_height / y;
             y_zoom = 0.9;
             break;
         default:

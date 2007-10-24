@@ -100,7 +100,7 @@ void FPlot::draw_dashed_vert_line(int X, int style)
             pen.SetStyle(style);
             dc.SetPen(pen);
         }
-        int h = GetClientSize().GetHeight();
+        int h = get_pixel_height(dc);
         dc.DrawLine (X, 0, X, h);
     }
 }
@@ -168,7 +168,7 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
 
     //if x axis is visible tics are drawed at the axis, 
     //otherwise tics are drawed at the bottom edge of the plot
-    int Y = GetClientSize().GetHeight() - h;
+    int Y = get_pixel_height(dc) - h;
     if (x_axis_visible && !ys.logarithm && ys.px(0) >= 0 && ys.px(0) < Y)
         Y = ys.px(0);
     for (vector<double>::const_iterator i = x_tics.begin(); 
@@ -184,7 +184,7 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
         if (x_grid) {
             draw_line_with_style(dc, wxDOT, X,0, X,Y);
             draw_line_with_style(dc, wxDOT, X, Y+1+h, 
-                                            X, GetClientSize().GetHeight());
+                                            X, get_pixel_height(dc));
         }
     }
     //draw minor tics
@@ -210,7 +210,7 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
     //otherwise tics are drawed at the left hand edge of the plot
     int X = 0;
     if (y_axis_visible && xs.px(0) > 0 
-            && xs.px(0) < GetClientSize().GetWidth()-10)
+            && xs.px(0) < get_pixel_width(dc)-10)
         X = xs.px(0);
     vector<double> minors;
     vector<double> y_tics = scale_tics_step(v.bottom, v.top, y_max_tics, 
@@ -230,7 +230,7 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
         if (y_grid) {
             draw_line_with_style(dc, wxDOT, 0,Y, X,Y);
             draw_line_with_style(dc, wxDOT, X + y_tic_size + 1 + w + 1, Y,
-                                            GetClientSize().GetWidth(), Y);
+                                            get_pixel_width(dc), Y);
         }
     }
     //draw minor tics
@@ -267,7 +267,7 @@ void FPlot::draw_data (wxDC& dc,
                        int Y_offset,
                        bool cumulative)
 {
-    Y_offset *= (GetClientSize().GetHeight() / 100);
+    Y_offset *= (get_pixel_height(dc) / 100);
     wxPen const activePen(color.Ok() ? color : activeDataCol);
     wxPen const inactivePen(inactive_color.Ok() ? inactive_color 
                                                 : inactiveDataCol);
@@ -314,9 +314,11 @@ void FPlot::draw_data (wxDC& dc,
             //draw first half here and change X_, Y_; the rest will be drawed
             //as usually.
             if (line_between_points) {
-                int X_mid = (X_ + X) / 2, Y_mid = (Y_ + Y) / 2;
+                int X_mid = (X_ + X) / 2; 
+		int Y_mid = (Y_ + Y) / 2;
                 dc.DrawLine (X_, Y_, X_mid, Y_mid);
-                X_ = X_mid, Y_ = Y_mid;
+                X_ = X_mid; 
+		Y_ = Y_mid;
             }
             active = i->is_active;
             if (active) {
@@ -334,7 +336,8 @@ void FPlot::draw_data (wxDC& dc,
         if (line_between_points) {
             if (X_ != INT_MIN)
                 dc.DrawLine (X_, Y_, X, Y);
-            X_ = X, Y_ = Y;
+            X_ = X; 
+	    Y_ = Y;
         }
         else {//no line_between_points
             if (point_radius == 1)
@@ -377,11 +380,13 @@ void FPlot::change_tics_font()
     }
 }
 
-void FPlot::set_scale()
+void FPlot::set_scale(int pixel_width, int pixel_height)
 {
     View const &v = ftk->view;
-    xs.set(v.left, v.right, GetClientSize().GetWidth());
-    ys.set(v.top, v.bottom, GetClientSize().GetHeight());
+    if (pixel_width > 0)
+	xs.set(v.left, v.right, pixel_width);
+    if (pixel_height > 0)
+	ys.set(v.top, v.bottom, pixel_height);
 }
 
 int FPlot::get_special_point_at_pointer(wxMouseEvent& event)

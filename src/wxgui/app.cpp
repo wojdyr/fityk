@@ -39,6 +39,22 @@ IMPLEMENT_APP(FApp)
 
 /// command line options
 static const wxCmdLineEntryDesc cmdLineDesc[] = {
+#if wxCHECK_VERSION(2, 9, 0)
+    { wxCMD_LINE_SWITCH, "h", "help", "show this help message",
+                                wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+    { wxCMD_LINE_SWITCH, "V", "version", 
+          "output version information and exit", wxCMD_LINE_VAL_NONE, 0 },
+    { wxCMD_LINE_OPTION, "c", "cmd", "script passed in as string",
+                                                   wxCMD_LINE_VAL_STRING, 0 },
+    { wxCMD_LINE_OPTION, "g", "config", 
+               "choose GUI configuration", wxCMD_LINE_VAL_STRING, 0 },
+    { wxCMD_LINE_SWITCH, "I", "no-init", 
+          "don't process $HOME/.fityk/init file", wxCMD_LINE_VAL_NONE, 0 },
+    { wxCMD_LINE_SWITCH, "r", "reorder", 
+          "reorder data (50.xy before 100.xy)", wxCMD_LINE_VAL_NONE, 0 },
+    { wxCMD_LINE_PARAM,  0, 0, "script or data file", wxCMD_LINE_VAL_STRING,
+                        wxCMD_LINE_PARAM_OPTIONAL|wxCMD_LINE_PARAM_MULTIPLE },
+#else
     { wxCMD_LINE_SWITCH, wxT("h"), wxT("help"), wxT("show this help message"),
                                 wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
     { wxCMD_LINE_SWITCH, wxT("V"), wxT("version"), 
@@ -53,6 +69,7 @@ static const wxCmdLineEntryDesc cmdLineDesc[] = {
           wxT("reorder data (50.xy before 100.xy)"), wxCMD_LINE_VAL_NONE, 0 },
     { wxCMD_LINE_PARAM,  0, 0, wxT("script or data file"),wxCMD_LINE_VAL_STRING,
                         wxCMD_LINE_PARAM_OPTIONAL|wxCMD_LINE_PARAM_MULTIPLE },
+#endif
     { wxCMD_LINE_NONE, 0, 0, 0,  wxCMD_LINE_VAL_NONE, 0 }
 };  
 
@@ -271,42 +288,36 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
     }
 }
 
-//TODO when wx>=2.8 -> use GetResourcesDir() on all platforms
+// search for `name' in two or three directories:  
+//   wxStandardPaths::GetResourcesDir() 
+//                        on Mac: appname.app/Contents/Resources bundle subdir
+//                        on Win: dir where executable is
+//   HELP_DIR = $(pkgdatadir), not defined on Win
+//   {exedir}/../../doc/ - for uninstalled program
 string get_full_path_of_help_file (const string &name)
 {
-#ifdef __WXMAC__
-    return wx2s(wxStandardPaths::Get().GetResourcesDir() + wxFILE_SEP_PATH)
-                                 + name;
-#else
-    // filename --> path and filename
     // if there is no `name' file in HELP_DIR, we are trying a few other dirs
-    wxString exedir = wxPathOnly(wxGetApp().argv[0]);
-    if (!exedir.IsEmpty() && exedir.Last() != wxFILE_SEP_PATH)
-            exedir += wxFILE_SEP_PATH;
-    wxChar *possible_paths[] = {
-#ifdef HELP_DIR
-        wxT(HELP_DIR),
+    wxArrayString paths;
+    // installed path
+#if defined(__WXMAC__) || defined(__WXMSW__)
+    paths.Add(wxStandardPaths::Get().GetResourcesDir());
 #endif
-        wxT("."),
-        wxT(".."),
-        wxT("doc"),
-        wxT("../doc"), 
-        0
-    };
-    for (int flag = 0; flag <= 1; ++flag) {
-        for (int i = 0; possible_paths[i]; i++) {
-            wxString path = !flag ? wxString(possible_paths[i])
-                                  : exedir + possible_paths[i];
-            if (!path.IsEmpty() && path.Last() != wxFILE_SEP_PATH) 
-                path += wxFILE_SEP_PATH;
-            string path_name = wx2s(path) + name;
-            //wxMessageBox(("Looking for \n" + path_name).c_str());
-            if (wxFileExists(s2wx(path_name))) 
-                return path_name;
-        }
+#ifdef HELP_DIR
+    paths.Add(HELP_DIR);
+#endif
+    // uninstalled path, relative to executable
+    paths.Add(wxPathOnly(wxGetApp().argv[0]) 
+                 + wxFILE_SEP_PATH + wxT("..") 
+                 + wxFILE_SEP_PATH + wxT("..") 
+                 + wxFILE_SEP_PATH + wxT("doc"));
+    // filename --> path and filename
+    for (size_t i = 0; i != paths.Count(); ++i) {
+            wxString path_name = paths[i] + wxFILE_SEP_PATH + s2wx(name);
+            //wxMessageBox(("Looking for \n" + path_name));
+            if (wxFileExists(path_name)) 
+                return wx2s(path_name);
     }
     return name;
-#endif
 }
 
 

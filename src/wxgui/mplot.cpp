@@ -282,11 +282,12 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
     int focused_data = ftk->get_active_ds_position();
     Sum const* sum = ftk->get_sum(focused_data);
 
-    set_scale();
+    set_scale(get_pixel_width(dc), get_pixel_height(dc));
 
     frame->draw_crosshair(-1, -1); //erase crosshair before redrawing plot
 
-    prepare_peaktops(sum);
+    int Ymax = get_pixel_height(dc);
+    prepare_peaktops(sum, Ymax);
 
     if (monochrome) {
         dc.SetPen(*wxBLACK_PEN);
@@ -340,7 +341,7 @@ void MainPlot::draw_x_axis (wxDC& dc, bool set_pen)
     if (set_pen)
         dc.SetPen(wxPen(xAxisCol));
     int Y0 = ys.px(0.);
-    dc.DrawLine (0, Y0, GetClientSize().GetWidth(), Y0);
+    dc.DrawLine (0, Y0, get_pixel_width(dc), Y0);
 }
 
 void MainPlot::draw_y_axis (wxDC& dc, bool set_pen)
@@ -348,14 +349,14 @@ void MainPlot::draw_y_axis (wxDC& dc, bool set_pen)
     if (set_pen)
         dc.SetPen(wxPen(xAxisCol));
     int X0 = xs.px(0.);
-    dc.DrawLine (X0, 0, X0, GetClientSize().GetHeight());
+    dc.DrawLine (X0, 0, X0, get_pixel_height(dc));
 }
 
 void MainPlot::draw_sum(wxDC& dc, Sum const* sum, bool set_pen)
 {
     if (set_pen)
         dc.SetPen(wxPen(sumCol));
-    int n = GetClientSize().GetWidth();
+    int n = get_pixel_width(dc);
     vector<fp> xx(n), yy(n);
     vector<int> YY(n);
     for (int i = 0; i < n; ++i) 
@@ -377,7 +378,7 @@ void MainPlot::draw_peaks(wxDC& dc, Sum const* sum, bool set_pen)
 {
     fp level = 0;
     vector<int> const& idx = sum->get_ff_idx();
-    int n = GetClientSize().GetWidth();
+    int n = get_pixel_width(dc);
     vector<fp> xx(n), yy(n);
     vector<int> YY(n);
     for (int i = 0; i < n; ++i) 
@@ -483,9 +484,8 @@ static bool operator< (const wxPoint& a, const wxPoint& b)
 }
 */
 
-void MainPlot::prepare_peaktops(Sum const* sum)
+void MainPlot::prepare_peaktops(Sum const* sum, int Ymax)
 {
-    int H =  GetClientSize().GetHeight();
     int Y0 = ys.px(0);
     vector<int> const& idx = sum->get_ff_idx();
     int n = idx.size();
@@ -505,7 +505,7 @@ void MainPlot::prepare_peaktops(Sum const* sum)
         }
         //FIXME: check if these zero_shift()'s above are needed
         Y = ys.px(f->calculate_value(x));
-        if (Y < 0 || Y > H) 
+        if (Y < 0 || Y > Ymax) 
             Y = Y0;
         special_points[k] = wxPoint(X, Y);
     }
@@ -1148,7 +1148,7 @@ void MainPlot::draw_xor_peak(Function const* func, vector<fp> const& p_values)
     dc.SetLogicalFunction (wxINVERT);
     dc.SetPen(*wxBLACK_DASHED_PEN);
 
-    int n = GetClientSize().GetWidth();
+    int n = get_pixel_width(dc);
     if (n <= 0) 
         return;
     vector<fp> xx(n), yy(n, 0);
@@ -1195,7 +1195,7 @@ void MainPlot::draw_peak_draft(int Ctr, int Hwhm, int Y)
     dc.SetPen(*wxBLACK_DASHED_PEN);
     int Y0 = ys.px(0);
     if (func_draft_kind == fk_linear) {
-        dc.DrawLine (0, Y, GetClientSize().GetWidth(), Y); 
+        dc.DrawLine (0, Y, get_pixel_width(dc), Y); 
     }
     else {
         dc.DrawLine (Ctr, Y0, Ctr, Y); //vertical line

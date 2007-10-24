@@ -167,7 +167,7 @@ public:
 wxString get_user_conffile(std::string const& filename);
 
 
-/// introduced because OnOK and OnCancel were removed
+/// introduced because OnOK and OnCancel were removed;
 /// when wx-2.6 compatibility is dropped, it will be replaced with 
 /// wxSetEscapeId for Cancel and perhaps with wxSetAffirmativeId for OK.
 inline void close_it(wxDialog* dlg, int id=wxID_CANCEL)
