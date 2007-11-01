@@ -112,3 +112,6 @@ Thanks to Brian H. Toby <Brian.Toby@anl.gov>, for his useful info and suggestion
 Thanks to Martijn Fransen <martijn.fransen@panalytical.com>, for sending us a very useful specification on Philips raw formats.
 And thanks to all people who have helped me and gave suggestions to the xylib project. 
 
+NOTE:
+Now this work has been moved to a new project, see http://www.sf.net/projects/xylib
+The newest code can be checked out from URL: https://xylib.svn.sourceforge.net/svnroot/xylib

@@ -1,5 +1,5 @@
 13:22 2007-8-29
-* Going to move code repository to xylib project at SF.NET
+* Going to move code repository to xylib project at SF.NET. The newest code can be checked out from URL: https://xylib.svn.sourceforge.net/svnroot/xylib
 * Added 3 1-D spe files after getting re-distribution rights from Pablo Bianucci <pablob@mail.utexas.edu>
 * Added support to GSAS format
 * Added text file extension name ".prn"
