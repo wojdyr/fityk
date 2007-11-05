@@ -1291,6 +1291,22 @@ void FFrame::update_menu_functions()
 {
     size_t cnt = this->func_type_menu->GetMenuItemCount();
     size_t pcnt = peak_types.size();
+
+    // in wxGTK 2.9 (svn 11.2007) in wxMenu::GtkAppend() m_prevRadio is stored
+    // and adding radio-item to menu when the last added radio-item is already
+    // removed will cause error
+    //  a workaround is to delete and add all items:
+    static bool was_deleted = false;
+    if (pcnt < cnt) 
+        was_deleted = true;
+    else if (pcnt > cnt && was_deleted) {
+        for (size_t i = 0; i < cnt; i++)
+            func_type_menu->Destroy(ID_G_M_PEAK_N+i);
+        cnt = 0;
+        was_deleted = false;
+    }
+    // -- end of the workaround
+
     for (size_t i = 0; i < min(pcnt, cnt); i++)
         if (func_type_menu->GetLabel(ID_G_M_PEAK_N+i) != s2wx(peak_types[i]))
             func_type_menu->SetLabel(ID_G_M_PEAK_N+i, s2wx(peak_types[i]));

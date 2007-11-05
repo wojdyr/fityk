@@ -270,8 +270,10 @@ namespace datatrans {
     if (op == OP_##x) return #x;
 string dt_op(int op)
 {
-    OP_(NEG)   OP_(EXP)   OP_(SIN)   OP_(COS)  OP_(ATAN)  OP_(ABS)  OP_(ROUND) 
-    OP_(TAN) OP_(ASIN) OP_(ACOS)
+    OP_(NEG)   OP_(EXP)   
+    OP_(SIN)   OP_(COS)  OP_(TAN)  OP_(SINH) OP_(COSH)  OP_(TANH)  
+    OP_(ABS)  OP_(ROUND) 
+    OP_(ATAN) OP_(ASIN) OP_(ACOS)
     OP_(LOG10) OP_(LN)  OP_(SQRT)  OP_(POW)  
     OP_(GAMMA) OP_(LGAMMA) OP_(VOIGT)
     OP_(ADD)   OP_(SUB)   OP_(MUL)   OP_(DIV)  OP_(MOD)
@@ -441,6 +443,15 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 break;
             case OP_TAN:
                 STACK_OP *stackPtr = tan(*stackPtr); 
+                break;
+            case OP_SINH:
+                STACK_OP *stackPtr = sinh(*stackPtr);
+                break;
+            case OP_COSH:
+                STACK_OP *stackPtr = cosh(*stackPtr);
+                break;
+            case OP_TANH:
+                STACK_OP *stackPtr = tanh(*stackPtr); 
                 break;
             case OP_ATAN:
                 STACK_OP *stackPtr = atan(*stackPtr); 

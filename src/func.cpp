@@ -50,11 +50,13 @@ Function::Function (Ftk const* F_,
 /// can be used also for eg. Foo(3+$bleh, area/fwhm/sqrt(pi/ln(2)))
 vector<string> Function::get_varnames_from_formula(string const& formula)
 {
+    vector<string> names;
     int lb = formula.find('(');
     int rb = find_matching_bracket(formula, lb);
     string all_names(formula, lb+1, rb-lb-1);
+    if (strip_string(all_names).empty()) 
+        return names;
     vector<string> nd = split_string(all_names, ',');
-    vector<string> names;
     for (vector<string>::const_iterator i = nd.begin(); i != nd.end(); ++i) {
         string::size_type eq = i->find('=');
         if (eq == string::npos) 

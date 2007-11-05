@@ -1,6 +1,7 @@
 $Id$
 
 User-visible changes in version 0.8.3  (2007-  -  ):
+* added hyperbolic functions
 
 User-visible changes in version 0.8.2  (2007-08-21):
 * multiple fixes for MacOSX, added macosx/ directory (Ken McIvor)

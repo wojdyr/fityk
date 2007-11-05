@@ -303,7 +303,7 @@ string get_full_path_of_help_file (const string &name)
     paths.Add(wxStandardPaths::Get().GetResourcesDir());
 #endif
 #ifdef HELP_DIR
-    paths.Add(HELP_DIR);
+    paths.Add(wxT(HELP_DIR));
 #endif
     // uninstalled path, relative to executable
     paths.Add(wxPathOnly(wxGetApp().argv[0]) 

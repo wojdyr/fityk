@@ -22,7 +22,7 @@ class AuxPlot : public FPlot
 public:
     AuxPlot(wxWindow *parent, FPlot *master_, wxString const& name_) 
         : FPlot(parent), master(master_), name(name_), 
-          y_zoom(1.), y_zoom_base(1.), fit_y_once(false) {}
+          y_zoom(1.), y_zoom_base(1.), fit_y_once(false), cursor_id(-1) {}
     ~AuxPlot() {}
     void OnPaint(wxPaintEvent &event);
     void draw(wxDC &dc, bool monochrome=false);
@@ -46,6 +46,7 @@ public:
     void OnTicsFont (wxCommandEvent&) { change_tics_font(); }
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
+    void set_cursor(int id) { if (id != cursor_id) SetCursor((cursor_id=id)); } 
 
 private:
     FPlot* master;

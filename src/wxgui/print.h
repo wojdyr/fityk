@@ -16,8 +16,8 @@ class PrintManager
 public:
     bool landscape;
     bool colors;
-    int scale;
-    bool keep_ratio; 
+    //int scale;
+    //bool keep_ratio; 
     bool plot_aux[2], plot_borders;
     PlotPane* plot_pane;
 
@@ -46,9 +46,10 @@ protected:
     PrintManager *pm;
     wxRadioBox *orientation, *colors;
     wxComboBox *papers;
-    wxCheckBox *keep_ratio, *plot_aux[2], *plot_borders;
-    //wxSpinCtrl *left_margin, *right_margin, *top_margin, *bottom_margin;
-    SpinCtrl *scale;
+    //wxCheckBox *keep_ratio; 
+    wxCheckBox *plot_aux[2], *plot_borders;
+    SpinCtrl *left_margin, *right_margin, *top_margin, *bottom_margin;
+    //SpinCtrl *scale;
     DECLARE_EVENT_TABLE()
 };
 

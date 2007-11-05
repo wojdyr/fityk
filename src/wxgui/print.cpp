@@ -70,7 +70,6 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
                                  2, wxRA_SPECIFY_COLS);
     top_sizer->Add(orientation, 0, wxALL|wxEXPAND, 5);
 
-    /* TODO what about margins?
     wxStaticBox *margbox = new wxStaticBox(this, -1, 
                                            wxT("Margins (millimetres)"));
     wxStaticBoxSizer *hsizer = new wxStaticBoxSizer(margbox, wxHORIZONTAL);
@@ -91,8 +90,8 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
     bottom_margin = new SpinCtrl(this, -1, 0, -100, 500);
     hsizer->Add(bottom_margin, 0, wxALL, 5);
     top_sizer->Add(hsizer, 0, wxALL|wxEXPAND, 5);
-    */
 
+    /*
     wxBoxSizer *h2sizer = new wxBoxSizer(wxHORIZONTAL);
     h2sizer->Add(new wxStaticText(this, -1, wxT("Scale to")),
                  0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
@@ -103,6 +102,7 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
     top_sizer->Add(h2sizer);
     keep_ratio = new wxCheckBox(this, -1, wxT("keep width to height ratio"));
     top_sizer->Add(keep_ratio, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    */
     wxString color_choices[] = { wxT("black lines on white background"), 
                                  wxT("colors from plots on white background") };
     colors = new wxRadioBox(this, -1, wxT("Colors"),
@@ -126,8 +126,8 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
     SetSizerAndFit(top_sizer);
     orientation->SetSelection(pm->landscape ? 1 : 0);
     colors->SetSelection(pm->colors ? 1 : 0);
-    keep_ratio->SetValue(pm->keep_ratio);
-    scale->SetValue(pm->scale);
+    //keep_ratio->SetValue(pm->keep_ratio);
+    //scale->SetValue(pm->scale);
     for (int i = 0; i < 2; ++i) {
         if (pm->plot_pane->aux_visible(i)) {
             plot_aux[i]->SetValue(pm->plot_aux[i]);
@@ -138,12 +138,11 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
         }
     }
     plot_borders->SetValue(pm->plot_borders);
-    /*
+    
     left_margin->SetValue(pm->get_page_data().GetMarginTopLeft().x);
     right_margin->SetValue(pm->get_page_data().GetMarginBottomRight().x);
     top_margin->SetValue(pm->get_page_data().GetMarginTopLeft().y); 
     bottom_margin->SetValue(pm->get_page_data().GetMarginBottomRight().y);
-    */
 }
 
 void PageSetupDialog::OnOk(wxCommandEvent&) 
@@ -160,18 +159,16 @@ void PageSetupDialog::OnOk(wxCommandEvent&)
 
     pm->landscape = (orientation->GetSelection() == 1);
     pm->colors = colors->GetSelection() == 1;
-    pm->keep_ratio = keep_ratio->GetValue();
-    pm->scale = scale->GetValue();
+    //pm->keep_ratio = keep_ratio->GetValue();
+    //pm->scale = scale->GetValue();
     for (int i = 0; i < 2; ++i) 
         pm->plot_aux[i] = plot_aux[i]->GetValue();
     pm->plot_borders = plot_borders->GetValue();
 
-    /*
-    pm->get_page_data().GetMarginTopLeft().x = left_margin->GetValue();
-    pm->get_page_data().GetMarginBottomRight().x = right_margin->GetValue();
-    pm->get_page_data().GetMarginTopLeft().y = top_margin->GetValue();
-    pm->get_page_data().GetMarginBottomRight().y = bottom_margin->GetValue();
-    */
+    wxPoint top_left(left_margin->GetValue(), top_margin->GetValue());
+    pm->get_page_data().SetMarginTopLeft(top_left);
+    wxPoint bottom_right(right_margin->GetValue(), bottom_margin->GetValue());
+    pm->get_page_data().SetMarginBottomRight(bottom_right);
 
     close_it(this, wxID_OK);
 }
@@ -184,7 +181,7 @@ void PageSetupDialog::OnOk(wxCommandEvent&)
 void do_print_plots(wxDC *dc, PrintManager const* pm)
 {
     // Set the scale and origin
-    const int space = 10; //vertical space between plots
+    const int space = 10; //vertical space between plots (in screen units)
 
     // `vp' is a list of plots that are to be printed.
     // PlotPane::get_visible_plots() can't be used, because aux plots can be
@@ -198,37 +195,40 @@ void do_print_plots(wxDC *dc, PrintManager const* pm)
     //width is the same for all plots
     int W = pm->plot_pane->GetClientSize().GetWidth(); 
 
-    // height = sum of all heights + (N-1)*space
+    // height is a sum of all heights + (N-1)*space
     int H = (vp.size() - 1) * space;  
     for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i) 
         H += (*i)->GetClientSize().GetHeight();
 
     int w, h; // size in DC units
     dc->GetSize(&w, &h);
-    fp scaleX = pm->scale/100. * w / W;
-    fp scaleY = pm->scale/100. * h / H;
-    if (pm->keep_ratio) {
-        if (scaleX > scaleY)
-            scaleX = scaleY;
-        else
-            scaleY = scaleX;
-    }
-    //dc->SetUserScale (scaleX, scaleY);
-    const int posX = iround((w - W * scaleX) / 2.);
-    int posY = iround((h - H * scaleY) / 2.);
+    fp y_scale = 1. * h / H;
+    int space_dc = iround(space * y_scale);
+    //fp scale = pm->scale/100.;
+    //fp scaleX = scale * w / W;
+    //fp scaleY = scale * h / H;
+    //if (pm->keep_ratio) 
+    //    scaleX = scaleY = min(scaleX, scaleY);
+    //const int marginX = iround((w - W * scaleX) / 2.);
+    //const int marginY = iround((h - H * scaleX) / 2.);
+
+    const int posX = 0;
+    int posY = 0; // changed for every plot
+//
+//    dc->SetUserScale (scaleX, scaleY);
 
     //drawing all visible plots, every at different posY
     for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i) {
-        //dc->SetDeviceOrigin (posX, posY);
+        dc->SetDeviceOrigin (posX, posY);
         if (pm->plot_borders && i != vp.begin()) {
-            int Y = -space/2;
+            int Y = -space_dc / 2;
             dc->DrawLine(0, Y, w, Y);
         }
-        int plot_height = (*i)->GetClientSize().GetHeight();
-        //dc->SetClippingRegion(0, 0, width, plot_height);
-        (*i)->draw(*dc, !pm->colors);
-        //dc->DestroyClippingRegion();
-        posY += iround((plot_height+space) * scaleY);
+        int plot_height = iround((*i)->GetClientSize().GetHeight() * y_scale);
+        dc->SetClippingRegion(0, 0, w, plot_height);
+        (*i)->draw(*dc, !pm->colors); // <- 99% of plotting is done here
+        dc->DestroyClippingRegion();
+        posY += plot_height + space_dc;
     }
 }
 
@@ -285,8 +285,8 @@ PrintManager::~PrintManager()
 void PrintManager::save_settings(wxConfigBase *cf) const
 {
     cf->Write(wxT("/print/colors"), colors);
-    cf->Write(wxT("/print/scale"), scale);
-    cf->Write(wxT("/print/keepRatio"), keep_ratio);
+    //cf->Write(wxT("/print/scale"), scale);
+    //cf->Write(wxT("/print/keepRatio"), keep_ratio);
     cf->Write(wxT("/print/plotBorders"), plot_borders);
     for (int i = 0; i < 2; ++i)
         cf->Write(wxString::Format(wxT("/print/plotAux%i"), i), plot_aux[i]);
@@ -296,8 +296,8 @@ void PrintManager::save_settings(wxConfigBase *cf) const
 void PrintManager::read_settings(wxConfigBase *cf)
 {
     colors = cfg_read_bool(cf, wxT("/print/colors"), false);
-    scale = cf->Read(wxT("/print/scale"), 100);
-    keep_ratio = cfg_read_bool(cf, wxT("/print/keepRatio"), false);
+    //scale = cf->Read(wxT("/print/scale"), 100);
+    //keep_ratio = cfg_read_bool(cf, wxT("/print/keepRatio"), false);
     plot_borders = cfg_read_bool(cf, wxT("/print/plotBorders"), true);
     for (int i = 0; i < 2; ++i)
         plot_aux[i] = cfg_read_bool(cf, 

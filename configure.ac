@@ -129,7 +129,7 @@ if test "$enable_GUI" != "no" ; then
     	      Please check that wx-config is in path, the directory
     	      where wxWindows libraries are installed (returned by
     	      'wx-config --libs' command) is in LD_LIBRARY_PATH or
-    	      equivalent variable and wxWindows version is 2.5.3 or above.
+    	      equivalent variable and wxWindows version is 2.6.3 or above.
             ])
     fi
 fi

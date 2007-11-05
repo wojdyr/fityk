@@ -124,7 +124,9 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
         fit_y_zoom(data, sum);
         fit_y_once = false;
     }
-    set_scale(get_pixel_width(dc), get_pixel_height(dc));
+    const int pixel_width = get_pixel_width(dc);
+    const int pixel_height = get_pixel_height(dc);
+    set_scale(pixel_width, pixel_height);
     if (monochrome) {
         dc.SetPen(*wxBLACK_PEN);
         dc.SetBrush(*wxBLACK_BRUSH);
@@ -133,7 +135,7 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
         dc.SetPen(wxPen(xAxisCol));
 
     if (mark_peak_ctrs) {
-        int ymax = get_pixel_height(dc);
+        int ymax = pixel_height;
         std::vector<wxPoint> const& t = master->get_special_points();
         for (vector<wxPoint>::const_iterator i = t.begin(); i != t.end(); i++) 
             dc.DrawLine(i->x, 0, i->x, ymax);
@@ -144,16 +146,16 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
 
     if (x_axis_visible) {
         int Y0 = ys.px(0.);
-        dc.DrawLine (0, Y0, get_pixel_width(dc), Y0);
+        dc.DrawLine (0, Y0, pixel_width, Y0);
         if (kind == apk_diff) 
             draw_zoom_text(dc, !monochrome);
     }
     if (y_axis_visible) {
         int X0 = xs.px(0.);
-        dc.DrawLine (X0, 0, X0, get_pixel_height(dc));
+        dc.DrawLine (X0, 0, X0, pixel_height);
     }
     if (ytics_visible) {
-        View v(0, 0, ys.val(get_pixel_height(dc)), ys.val(0));
+        View v(0, 0, ys.val(pixel_height), ys.val(0));
         draw_ytics(dc, v, !monochrome);
     }
 
@@ -196,18 +198,13 @@ void AuxPlot::OnMouseMove(wxMouseEvent &event)
     int X = event.GetX();
     vert_line_following_cursor(mat_move, X);
     frame->set_status_coord_info(xs.val(X), ys.val(event.GetY()), true);
-    int new_cursor;
     if (X < move_plot_margin_width)
-        new_cursor = wxCURSOR_POINT_LEFT;
+        set_cursor(wxCURSOR_POINT_LEFT);
     else if (X > GetClientSize().GetWidth() - move_plot_margin_width)
-        new_cursor = wxCURSOR_POINT_RIGHT;
+        set_cursor(wxCURSOR_POINT_RIGHT);
     else {
         frame->draw_crosshair(X, -1);
-        new_cursor = wxCURSOR_CROSS;
-    }
-    if (new_cursor != cursor_id) {
-        cursor_id = new_cursor;
-        SetCursor(wxCursor(new_cursor));
+        set_cursor(wxCURSOR_CROSS);
     }
 }
 
@@ -319,7 +316,7 @@ void AuxPlot::OnLeftDown (wxMouseEvent &event)
     else {
         mouse_press_X = X;
         vert_line_following_cursor(mat_start, mouse_press_X+1, mouse_press_X);
-        SetCursor(wxCursor(wxCURSOR_SIZEWE));  
+        set_cursor(wxCURSOR_SIZEWE);  
         frame->set_status_text("Select x range and release button to zoom..."); 
         CaptureMouse();
     }
@@ -331,8 +328,7 @@ bool AuxPlot::cancel_mouse_left_press()
         vert_line_following_cursor(mat_stop);
         ReleaseMouse();
         mouse_press_X = INT_MIN;
-        cursor_id = wxCURSOR_CROSS;
-        SetCursor(wxCursor(wxCURSOR_CROSS));  
+        set_cursor(wxCURSOR_CROSS);  
         frame->set_status_text(""); 
         return true;
     }

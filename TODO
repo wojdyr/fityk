@@ -7,58 +7,44 @@ you don't know were to start, there is a list of ideas at the end of this file.
 Legend:
 // = done, but not tested/documented  
 
-* GUI: when printing, everything is first rescaled and rounded(!) for
-  plot window at the screen, and then rescaled to the paper size. 
-  This rounding causes visible artefacts at the printout.
-  (wxDC.GetSize instead of plot.GetClientSize() ?)
+// * allow functions with no parameters in parser
 
-* BUG?: @+ < 'filename':1,5/6/7" doesn't work
+* GUI: selected dataset line can be below shadowed one
+
+* GUI: "Apply to all datasets" is not clear - it's hard to say what it's 
+  related to. 
+
+* data: integrate fityk with xylib written by Peng Zhang as GSOC project
+
+* BUG?: @+ < 'filename':1,5/6/7" doesn't work. What should be a syntax 
+  for columns?
 
 * GUI: Data: revert from file (button on Data Pane)
        BUG: data revert button in Data Editor doesn't use columns
+
+* GUI: check if "shadow unselected" works on MSW
+
+* GUI: test printing
+
+--------------> 0.8.3
+
+* GUI: should (and where) windows size & position be stored?
+
+* (GUI) plot horizontal/vertical lines (X/Y | pos=2.34 | 100% | title="50steps")
+     can be used to show theoretical peak positions in XRD
+     (or to make stress-strain curves in MD with marked simulation restarts)
+
+* (GUI) stopping fitting interactively (when user doesn't want to wait longer);
+  "stop" bitmap button? in right left corner? 
 
 * GUI: default view is too wide from the left in when logarithmic scale is on,
   because view margin is always 5%, and this is handled by libfityk
 
 * BUG: "plot . []" sometimes doesn't work as expected if x axis is not visible.
 
-* (GUI) stopping fitting interactively (when user doesn't want to wait longer);
-  "stop" bitmap button? in right left corner? 
-
-* GUI: should (and where) windows size & position be stored?
-
-* data: integrate fityk with xylib written by Peng Zhang as GSOC project
-
-* Mac binary and http://versiontracker.com/
-
-* (GUI) plot horizontal/vertical lines (X/Y | pos=2.34 | 100% | title="50steps")
-     can be used to show theoretical peak positions in XRD
-     (or to make stress-strain curves in MD with marked simulation restarts)
-
 * export multiple datasets to one data file
 
-* selected dataset line can be below shadowed one
-
-* GUI: "Apply to all datasets" is not clear - it's hard to say what it's 
-  related to. 
-
-* GUI: check if "shadow unselected" works on MSW
-
-* add sinh, cosh, tanh to data transformations
-
-* add sinh, cosh, tanh to basic functions 
-
-* GUI: Function Manager allows functions with no parameters, but it gives
-     syntax error 
-
-* GUI, BUG: executing script with define gives on GTK: 
-   Gtk-CRITICAL **: gtk_radio_menu_item_get_group: assertion `GTK_IS_RADIO_MENU_ITEM (radio_menu_item)' failed
-
---------------> 0.8.3
-
-* sorting lists at sidebar - by clicking on column header, 
-  use case: sort functions by centers
-  involves refactoring ListWithColors::populate()
+--------------> 0.8.4
 
 * making libfityk thread-safe (pass around Fityk* F, remove all `AL',
    remove static class members and global variables)
@@ -77,6 +63,10 @@ Legend:
   for all functions (F[hwhm]=...; F[shape]=...) or independent.
   buttons should be active only when it's possible
    should also affect graphical peak adding (all 3 ways)
+
+* sorting lists at sidebar - by clicking on column header, 
+  use case: sort functions by centers
+  involves refactoring ListWithColors::populate()
 
 * GUI: in script editor, "info ...> file" should be marked differently
   than not redirected info 
@@ -208,6 +198,8 @@ Legend:
   It would be nice to have tab-completion in InputLine, like we have in CLI,
   thanks to readline library. Ideally, the code for finding completion in CLI
   should be possible to use with InputLine.
+
+- see note about EMG function above
 
 - anything else
 

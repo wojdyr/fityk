@@ -227,11 +227,11 @@ struct CmdGrammar : public grammar<CmdGrammar>
                  | str_p("=") [assign_a(with_plus, false_)] 
                  ) [clear_a(vr)]
               >> (('0' //nothing
+                  | eps_p [assign_a(t2, empty)]
+                    >> (func_id | new_func_rhs) [push_back_a(vr, t)] 
                   | "copy(" >> ds_prefix >> (str_p("F")|"Z") [&add_fz_copy] 
                     >> ")"
                   | ds_prefix >> (str_p("F")|"Z") [&add_fz_links]
-                  | eps_p [assign_a(t2, empty)]
-                    >> (func_id | new_func_rhs) [push_back_a(vr, t)] 
                   )  % '+') [&do_assign_fz]
             ;
 
@@ -249,8 +249,8 @@ struct CmdGrammar : public grammar<CmdGrammar>
         define_func
             = optional_suffix_p("def","ine") 
               >> (type_name >> '(' 
-                  >> ((function_param >> !('=' >> no_actions_d[FuncG])
-                      ) % ',')
+                  >> !((function_param >> !('=' >> no_actions_d[FuncG])
+                       ) % ',')
                   >> ')' >> '='
                   >> (((type_name >> '('  // CompoundFunction
                       >> (no_actions_d[FuncG]  % ',')

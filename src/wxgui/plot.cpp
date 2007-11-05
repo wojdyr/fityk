@@ -75,7 +75,6 @@ void BufferedPanel::clear_and_draw()
     draw(memory_dc);
 }
 
-/// called from wxPaint event handler
 void BufferedPanel::buffered_draw()
 {
     wxPaintDC dc(this);
@@ -168,7 +167,8 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
 
     //if x axis is visible tics are drawed at the axis, 
     //otherwise tics are drawed at the bottom edge of the plot
-    int Y = get_pixel_height(dc) - h;
+    const int pixel_height = get_pixel_height(dc);
+    int Y = pixel_height - h;
     if (x_axis_visible && !ys.logarithm && ys.px(0) >= 0 && ys.px(0) < Y)
         Y = ys.px(0);
     for (vector<double>::const_iterator i = x_tics.begin(); 
@@ -182,9 +182,8 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
         dc.GetTextExtent (label, &w, 0);
         dc.DrawText (label, X - w/2, Y + 1);
         if (x_grid) {
-            draw_line_with_style(dc, wxDOT, X,0, X,Y);
-            draw_line_with_style(dc, wxDOT, X, Y+1+h, 
-                                            X, get_pixel_height(dc));
+            draw_line_with_style(dc, wxDOT, X, 0, X, Y);
+            draw_line_with_style(dc, wxDOT, X, Y+1+h, X, pixel_height);
         }
     }
     //draw minor tics
@@ -204,13 +203,14 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
         dc.SetTextForeground(xAxisCol);
     }
     dc.SetFont(ticsFont);
+    const int pixel_width = get_pixel_width(dc);
 
 
     //if y axis is visible, tics are drawed at the axis, 
     //otherwise tics are drawed at the left hand edge of the plot
     int X = 0;
     if (y_axis_visible && xs.px(0) > 0 
-            && xs.px(0) < get_pixel_width(dc)-10)
+            && xs.px(0) < pixel_width - 10)
         X = xs.px(0);
     vector<double> minors;
     vector<double> y_tics = scale_tics_step(v.bottom, v.top, y_max_tics, 
@@ -230,7 +230,7 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
         if (y_grid) {
             draw_line_with_style(dc, wxDOT, 0,Y, X,Y);
             draw_line_with_style(dc, wxDOT, X + y_tic_size + 1 + w + 1, Y,
-                                            get_pixel_width(dc), Y);
+                                            pixel_width, Y);
         }
     }
     //draw minor tics
@@ -282,7 +282,7 @@ void FPlot::draw_data (wxDC& dc,
     dc.SetPen (active ? activePen : inactivePen);
     dc.SetBrush (active ? activeBrush : inactiveBrush);
     int X_ = INT_MIN, Y_ = INT_MIN;
-    // first line segment -- lines should be drawed towards points 
+    // first line segment -- lines should be drawn towards points 
     //                                                 that are outside of plot 
     if (line_between_points && first > data->points().begin() && !cumulative) {
         X_ = xs.px (ftk->view.left);

@@ -25,14 +25,47 @@ void draw_line_with_style(wxDC& dc, int style,
 // and uppercase ones are coordinates of point on screen (integers).
 
 
+#if 0
+class Canvas
+{
+public:
+    wxDC &w;
+    bool monochrome;
+
+    fDC(wxDC &w_) : w(w_), monochrome(false) {}
+    int get_pixel_width() const;
+    int get_pixel_height() const;
+    void use_subcanvas(int X, int Y, int width, int height);
+        //dc->SetClippingRegion(X, Y, width, height);
+        //dc->SetDeviceOrigin(X, Y);
+        //p_width = width;
+        //p_height = height;
+    void use_all();
+        //dc->DestroyClippingRegion();
+        //dc->SetDeviceOrigin(0, 0);
+        //p_width = 0;
+        //p_height = 0;
+private:
+    int p_width;
+    int p_height;
+};
+#endif
+
+/// wxPanel with associated bitmap buffer, used for drawing plots
+/// refresh() must be called when data is changed
+/// BufferedPanel checks if size of the plot was changed and refreshes
+/// plot automatically.
 class BufferedPanel : public wxPanel
 {
 public:
     BufferedPanel(wxWindow *parent)
        : wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize, 
                  wxNO_BORDER|wxFULL_REPAINT_ON_RESIZE) {}
+    /// to be called when content of the panel is changed
     void refresh(bool now=false);
+    /// called from wxPaint event handler
     void buffered_draw();
+    /// plotting function called to refresh buffer
     virtual void draw(wxDC &dc, bool monochrome=false) = 0;
 
 protected:
@@ -90,6 +123,12 @@ double Scale::val(int px) const
 
 
 /// This class has no instances, MainPlot and AuxPlot are derived from it
+/// It knows how to draw on wxDC. Note that wxDC:SetClippingRegion() should be
+/// used together with wxDC::SetDeviceOrigin(). Clipping box is used only in
+/// get_pixel_width() and get_pixel_height() functions.
+/// When plotting a curve, values in each x from 0 to get_pixel_width() is 
+/// calculated.
+
 class FPlot : public BufferedPanel 
 {
 public:
@@ -147,9 +186,19 @@ protected:
     void change_tics_font();
 
     int get_pixel_width(wxDC const& dc) const 
-      { return dc.GetSize().GetWidth(); }
+      //{ return dc.GetSize().GetWidth(); }
+    { 
+          int w;
+          dc.GetClippingBox(NULL, NULL, &w, NULL);
+          return w != 0 ? w : dc.GetSize().GetWidth(); 
+    }
     int get_pixel_height(wxDC const& dc) const 
-      { return dc.GetSize().GetHeight(); }
+    //  { return dc.GetSize().GetHeight(); }
+    { 
+          int h;
+          dc.GetClippingBox(NULL, NULL, NULL, &h);
+          return h != 0 ? h : dc.GetSize().GetHeight(); 
+    }
 
     DECLARE_EVENT_TABLE()
 };
