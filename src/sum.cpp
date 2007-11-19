@@ -202,7 +202,7 @@ Sum::get_numeric_derivatives(fp x, fp numerical_h) const
 }
 
 // estimate max. value in given range (probe at peak centers and between)
-fp Sum::approx_max(fp x_min, fp x_max)
+fp Sum::approx_max(fp x_min, fp x_max) const
 {
     mgr.use_parameters();
     fp x = x_min;

@@ -97,7 +97,8 @@ bool GnuPlot::gnuplot_pipe_ok()
 int GnuPlot::plot() 
 {
     // plot only active data with sum
-    DataWithSum const* ds = ftk->get_ds(ftk->get_active_ds_position());
+    int ds_number = ftk->view.get_datasets()[0];
+    DataWithSum const* ds = ftk->get_ds(ds_number);
     Data const* data = ds->get_data();
     Sum const* sum = ds->get_sum();
     if (!gnuplot_pipe_ok())

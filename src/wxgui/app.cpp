@@ -2,7 +2,6 @@
 // Licence: GNU General Public License version 2
 // $Id$
 
-// wxwindows headers, see wxwindows samples for description
 #include <wx/wxprec.h>
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -25,7 +24,7 @@
 
 #include "app.h"
 #include "cmn.h"
-#include "gui.h"
+#include "frame.h"
 #include "dataedit.h" //DataEditorDlg::read_transforms()
 #include "pane.h" // initializations
 #include "sidebar.h" // initializations
@@ -82,7 +81,7 @@ void gui_show_message(OutputStyle style, const string& s)
 
 void gui_do_draw_plot(bool now)
 {
-        frame->refresh_plots(now);
+    frame->refresh_plots(now);
 }
 
 void gui_wait(float seconds) 
@@ -283,8 +282,8 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
     if (ftk->get_ds_count() > 1) {
         frame->SwitchSideBar(true);
         // zoom to show all loaded datafiles
-        ftk->view.set_datasets(ftk->get_dsds()); 
-        ftk->view.fit();
+        ftk->view.parse_and_set(vector<string>(4), 
+                                range_vector(0, ftk->get_ds_count())); 
     }
 }
 

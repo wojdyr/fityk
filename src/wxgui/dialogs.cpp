@@ -18,8 +18,7 @@
 #include <boost/spirit/version.hpp> //SPIRIT_VERSION for AboutDlg
 
 #include "dialogs.h"
-#include "gui.h"
-#include "listptxt.h"
+#include "frame.h"
 #include "../fit.h"
 #include "../ui.h"
 #include "../settings.h"
@@ -178,9 +177,8 @@ void SumHistoryDlg::OnComputeWssrButton (wxCommandEvent&)
 {
     FitMethodsContainer const* fmc = ftk->get_fit_container();
     vector<double> const orig = ftk->get_parameters();
-    vector<DataWithSum*> dsds;
-    dsds.push_back(ftk->get_ds(ftk->get_active_ds_position()));
-        //TODO dsds = ftk->get_dsds() if ...
+    vector<DataWithSum*> dsds = frame->get_selected_ds();
+
     for (int i = 0; i != fmc->get_param_history_size(); ++i) {
         vector<double> const& item = fmc->get_item(i);
         if (item.size() == orig.size()) {
@@ -242,7 +240,13 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
     wxArrayString ds_choices;
-    ds_choices.Add(wxT("active dataset ") + s2wx(frame->get_active_data_str()));
+    sel = frame->get_selected_ds_indices();
+    string a = S(sel.size()) + " selected dataset";
+    if (sel.size() == 1)
+        a += ": @" + S(sel[0]);
+    else
+        a += "s";
+    ds_choices.Add(s2wx(a)); 
     ds_choices.Add(wxT("all datasets"));
     ds_rb = new wxRadioBox(this, -1, wxT("fit..."), 
                            wxDefaultPosition, wxDefaultSize,
@@ -307,8 +311,10 @@ void FitRunDlg::update_allow_continue()
     //use "::Fit", because Fit is also a method of wxDialog
     ::Fit const* f = ftk->get_fit_container()->get_method(m_sel);
     if (ds_rb->GetSelection() == 0) {
-        DataWithSum const* ds = ftk->get_ds(ftk->get_active_ds_position());
-        is_initialized = f->is_initialized(ds);
+        vector<DataWithSum*> dsds(sel.size());
+        for (size_t i = 0; i < sel.size(); ++i)
+            dsds[i] = ftk->get_ds(sel[i]);
+        is_initialized = f->is_initialized(dsds);
     }
     else {
         is_initialized = f->is_initialized(ftk->get_dsds());
@@ -351,7 +357,7 @@ void FitRunDlg::OnOK(wxCommandEvent&)
 
     if (ini) {
         if (ds_rb->GetSelection() == 0)
-            cmd += frame->get_in_dataset();
+            cmd += frame->get_in_datasets();
         else
             cmd += " in @*";
     }
@@ -368,7 +374,10 @@ bool export_data_dlg(wxWindow *parent, bool load_exported)
 {
     static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
     string columns = "";
-    string ds = frame->get_active_data_str();
+    vector<int> sel = frame->get_selected_ds_indices();
+    if (sel.size() != 1)
+        return false;
+    string ds = "@" + S(sel[0]);
     if (!load_exported) {
         DataExportDlg ded(parent, -1, ds);
         if (ded.ShowModal() != wxID_OK)
@@ -577,8 +586,6 @@ void AboutDlg::OnTextURL(wxTextUrlEvent& event)
 //===============================================================
 
 BEGIN_EVENT_TABLE (MergePointsDlg, wxDialog)
-    EVT_LIST_ITEM_SELECTED(-1, MergePointsDlg::OnDataSelChanged)
-    EVT_LIST_ITEM_DESELECTED(-1, MergePointsDlg::OnDataSelChanged)
     EVT_CHECKBOX(-1, MergePointsDlg::OnCheckBox)
 END_EVENT_TABLE()
 
@@ -588,14 +595,10 @@ MergePointsDlg::MergePointsDlg(wxWindow* parent, wxWindowID id)
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER) 
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
-    d = new DataListPlusText(this, -1, -1, 
-                         vector3(pair<string,int>("No", 50),
-                                 pair<string,int>("Name", 200),
-                                 pair<string,int>("File", 0)));
-    d->split(0.6);
-    d->update_data_list(true, false);
+    inf = new wxTextCtrl(this, -1, wxT(""), wxDefaultPosition, wxDefaultSize,
+                         wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
     update_info();
-    top_sizer->Add(d, 1, wxEXPAND|wxALL, 1);
+    top_sizer->Add(inf, 1, wxEXPAND|wxALL, 1);
     wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL); 
     dx_cb = new wxCheckBox(this, -1, wxT("merge points with |x1-x2|<"));
     dx_cb->SetValue(true);
@@ -608,8 +611,8 @@ MergePointsDlg::MergePointsDlg(wxWindow* parent, wxWindowID id)
                           make_wxArrStr(wxT("sum"), wxT("avg")),
                           1, wxRA_SPECIFY_ROWS);
     top_sizer->Add(y_rb, 0, wxEXPAND|wxALL, 5);
-    active_ds = ftk->get_active_ds_position();
-    wxString this_ds = wxString::Format(wxT("dataset @%d"), active_ds);
+    focused_data = frame->get_focused_ds_index();
+    wxString this_ds = wxString::Format(wxT("dataset @%d"), focused_data);
     output_rb = new wxRadioBox(this, -1, wxT("output to ..."), 
                                wxDefaultPosition, wxDefaultSize, 
                                make_wxArrStr(this_ds, wxT("new dataset")),
@@ -623,20 +626,13 @@ MergePointsDlg::MergePointsDlg(wxWindow* parent, wxWindowID id)
 
 void MergePointsDlg::update_info()
 {
-    int i = d->list->GetFirstSelected();
-    if (i == -1) {
-        d->inf->Clear();
-        //TODO disable OK button
-        return;
-    }
-    Data const* data = ftk->get_data(i);
+    vector<int> dd = frame->get_selected_ds_indices();
+    Data const* data = ftk->get_data(dd[0]);
     fp x_min = data->get_x_min();
     fp x_max = data->get_x_max();
     int n = data->points().size();
-    wxString dstr = wxString::Format(wxT("@%d"), i);
-    bool only_one = true;
-    while ((i = d->list->GetNextSelected(i)) != -1) {
-        only_one = false;
+    wxString dstr = wxString::Format(wxT("@%d"), dd[0]);
+    for (size_t i = 1; i < dd.size(); ++i) {
         data = ftk->get_data(i);
         if (data->get_x_min() < x_min)
             x_min = data->get_x_min();
@@ -647,11 +643,11 @@ void MergePointsDlg::update_info()
     }
     wxString s = wxString::Format(wxT("%i data points from: "), n) + dstr;
     s += wxString::Format(wxT("\nx in range (%g, %g)"), x_min, x_max);
-    if (only_one && data->get_x_step() != 0.)
+    if (dd.size() != 1 && data->get_x_step() != 0.)
         s += wxString::Format(wxT("\nfixed step: %g"), data->get_x_step());
     else
         s += wxString::Format(wxT("\naverage step: %g"), (x_max-x_min) / (n-1));
-    d->inf->SetValue(s);
+    inf->SetValue(s);
 }
 
 string MergePointsDlg::get_command()
@@ -659,10 +655,11 @@ string MergePointsDlg::get_command()
     string s;
     if (dx_cb->GetValue())
         s += "with epsilon=" + wx2s(dx_val->GetValue()) + " ";
-    s += (output_rb->GetSelection() == 0 ? "@"+S(active_ds) : S("@+")) + " = ";
+    string dat = output_rb->GetSelection() == 0 ? S(focused_data) : S("+");
+    s += "@" + dat + " = ";
     if (dx_cb->GetValue())
         s += y_rb->GetSelection() == 0 ? "sum_same_x " : "avg_same_x ";
-    s += join_vector(d->get_selected_data(), " + ");
+    s += "@" + join_vector(frame->get_selected_ds_indices(), " + @");
     return s;
 }
 

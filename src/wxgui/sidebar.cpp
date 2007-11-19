@@ -19,7 +19,7 @@
 #include "listptxt.h"
 #include "gradient.h"
 #include "cmn.h" //SpinCtrl, ProportionalSplitter, change_color_dlg, ...
-#include "gui.h" //frame
+#include "frame.h" //frame
 #include "mplot.h" 
 #include "../common.h" //vector4, join_vector, S(), ...
 #include "../ui.h" 
@@ -37,7 +37,7 @@
 #include "img/filter.xpm"
 #include "img/shiftup.xpm"
 #include "img/dpsize.xpm"
-#include "img/convert.xpm"
+//#include "img/convert.xpm"
 #include "img/copyfunc.xpm"
 #include "img/unused.xpm"
 #include "img/zshift.xpm"
@@ -95,8 +95,8 @@ BEGIN_EVENT_TABLE(SideBar, ProportionalSplitter)
     EVT_CHECKBOX (ID_DP_PLINE, SideBar::OnDataPLineChanged)
     EVT_CHECKBOX (ID_DP_PS,    SideBar::OnDataPSChanged)
     EVT_SPINCTRL (ID_DP_SHIFTUP, SideBar::OnDataShiftUpChanged)
-    EVT_LIST_ITEM_SELECTED(ID_DP_LIST, SideBar::OnDataFocusChanged)
-    EVT_LIST_ITEM_DESELECTED(ID_DP_LIST, SideBar::OnDataFocusChanged)
+    EVT_LIST_ITEM_SELECTED(ID_DP_LIST, SideBar::OnDataSelectionChanged)
+    EVT_LIST_ITEM_DESELECTED(ID_DP_LIST, SideBar::OnDataSelectionChanged)
     EVT_LIST_ITEM_FOCUSED(ID_DP_LIST, SideBar::OnDataFocusChanged)
     EVT_CHOICE (ID_FP_FILTER, SideBar::OnFuncFilterChanged)
     EVT_BUTTON (ID_FP_NEW, SideBar::OnFuncButtonNew)
@@ -105,10 +105,14 @@ BEGIN_EVENT_TABLE(SideBar, ProportionalSplitter)
     EVT_BUTTON (ID_FP_CHTYPE, SideBar::OnFuncButtonChType)
     EVT_BUTTON (ID_FP_COL, SideBar::OnFuncButtonCol)
     EVT_LIST_ITEM_FOCUSED(ID_FP_LIST, SideBar::OnFuncFocusChanged)
+    EVT_LIST_ITEM_SELECTED(ID_FP_LIST, SideBar::OnFuncSelectionChanged)
+    EVT_LIST_ITEM_DESELECTED(ID_FP_LIST, SideBar::OnFuncSelectionChanged)
     EVT_BUTTON (ID_VP_NEW, SideBar::OnVarButtonNew)
     EVT_BUTTON (ID_VP_DEL, SideBar::OnVarButtonDel)
     EVT_BUTTON (ID_VP_EDIT, SideBar::OnVarButtonEdit)
     EVT_LIST_ITEM_FOCUSED(ID_VP_LIST, SideBar::OnVarFocusChanged)
+    EVT_LIST_ITEM_SELECTED(ID_VP_LIST, SideBar::OnVarSelectionChanged)
+    EVT_LIST_ITEM_DESELECTED(ID_VP_LIST, SideBar::OnVarSelectionChanged)
 END_EVENT_TABLE()
 
 SideBar::SideBar(wxWindow *parent, wxWindowID id)
@@ -219,8 +223,8 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
                       wxT("delete"), func_buttons_sizer);
     add_bitmap_button(func_page, ID_FP_EDIT, editf_xpm, 
                       wxT("edit function"), func_buttons_sizer);
-    add_bitmap_button(func_page, ID_FP_CHTYPE, convert_xpm, 
-                      wxT("change type of function"), func_buttons_sizer);
+    //add_bitmap_button(func_page, ID_FP_CHTYPE, convert_xpm, 
+    //                  wxT("change type of function"), func_buttons_sizer);
     add_bitmap_button(func_page, ID_FP_COL, colorsel_xpm, 
                       wxT("change color"), func_buttons_sizer);
     func_sizer->Add(func_buttons_sizer, 0, wxEXPAND);
@@ -314,11 +318,11 @@ void SideBar::OnDataButtonCopyF (wxCommandEvent&)
     d->list->Select(n, false);
     d->list->Select(n+1, true);
     d->list->Focus(n+1);
-    DataFocusChanged();
     string cmd = "@" + S(n+1) + ".F=copy(@" + S(n) + ".F)";
     if (!ftk->get_sum(n)->get_zz_names().empty() 
             || !ftk->get_sum(n+1)->get_zz_names().empty())
         cmd += "; @" + S(n+1) + ".Z=copy(@" + S(n) + ".Z)";
+    update_data_buttons();
     ftk->exec(cmd);
 }
 
@@ -337,7 +341,6 @@ void SideBar::OnDataButtonCol (wxCommandEvent&)
         }
     }
     else {//sel_size > 1
-        vector<string> sel = d->get_selected_data();
         int first_sel = d->list->GetFirstSelected();
         int last_sel = 0;
         for (int i = first_sel; i != -1; i = d->list->GetNextSelected(i))
@@ -432,7 +435,7 @@ void SideBar::OnFuncButtonChType (wxCommandEvent&)
 void SideBar::OnFuncButtonCol (wxCommandEvent&)
 {
     vector<int> const& ffi 
-        = ftk->get_sum(ftk->get_active_ds_position())->get_ff_idx();
+        = ftk->get_sum(frame->get_focused_ds_index())->get_ff_idx();
     vector<int>::const_iterator in_ff = find(ffi.begin(), ffi.end(), 
                                                          active_function);
     if (in_ff == ffi.end())
@@ -487,16 +490,9 @@ void SideBar::update_lists(bool nondata_changed)
     update_var_list();
     
     //-- enable/disable buttons
-    bool not_the_last = get_focused_data()+1 < ftk->get_ds_count();
-    data_page->FindWindow(ID_DP_CPF)->Enable(not_the_last);
-    bool has_any_funcs = (f->list->GetItemCount() > 0);
-    func_page->FindWindow(ID_FP_DEL)->Enable(has_any_funcs);
-    func_page->FindWindow(ID_FP_EDIT)->Enable(has_any_funcs);
-    func_page->FindWindow(ID_FP_CHTYPE)->Enable(has_any_funcs);
-    func_page->FindWindow(ID_FP_COL)->Enable(has_any_funcs);
-    bool has_any_vars = (v->list->GetItemCount() > 0);
-    var_page->FindWindow(ID_VP_DEL)->Enable(has_any_vars);
-    var_page->FindWindow(ID_VP_EDIT)->Enable(has_any_vars);
+    update_data_buttons();
+    update_func_buttons();
+    update_var_buttons();
 
     int n = get_focused_data();
     dpline_cb->SetValue(frame->get_main_plot()->get_data_with_line(n));
@@ -526,8 +522,7 @@ void SideBar::update_func_list(bool nondata_changed)
     static int old_func_size;
     vector<string> func_data;
     vector<int> new_func_col_id;
-    int active_ds_pos = ftk->get_active_ds_position();
-    Sum const* sum = ftk->get_sum(active_ds_pos);
+    Sum const* sum = ftk->get_sum(frame->get_focused_ds_index());
     Sum const* filter_sum = 0;
     if (filter_ch->GetSelection() > 0)
         filter_sum = ftk->get_sum(filter_ch->GetSelection()-1);
@@ -620,8 +615,18 @@ void SideBar::update_var_list()
 
 int SideBar::get_focused_data() const
 { 
-    int n = d->list->GetFocusedItem(); 
-    return n == -1 ? 0 : n; 
+    wxListView *lv = d->list;
+    int focused = lv->GetFocusedItem();
+    if (focused >= ftk->get_ds_count()) {
+        d->update_data_list(true, true);
+        focused = ftk->get_ds_count() - 1;
+        lv->Focus(focused);
+    }
+    else if (focused < 0) {
+        focused = 0;
+        lv->Focus(focused);
+    }
+    return focused;
 }
 
 int SideBar::get_focused_var() const 
@@ -632,6 +637,65 @@ int SideBar::get_focused_var() const
         int n = v->list->GetFocusedItem(); 
         return n > 0 ? n : 0;
     }
+}
+
+vector<int> SideBar::get_selected_ds_indices()
+{
+    vector<int> sel;
+    wxListView *lv = d->list;
+    for (int i = lv->GetFirstSelected(); i != -1; i = lv->GetNextSelected(i))
+        sel.push_back(i);
+    if (sel.empty()) {
+        int n = get_focused_data();
+        lv->Select(n, true);
+        sel.push_back(n);
+    }
+    return sel;
+}
+
+// in plotting order 
+vector<int> SideBar::get_ordered_dataset_numbers()
+{
+    wxListView *lv = d->list;
+    vector<int> ordered;
+    int count = lv->GetItemCount();
+    if (count == 0)
+        return ordered;
+    vector<int> selected;
+    int focused = lv->GetFocusedItem();
+    // focused but not selected is not important
+    if (focused >= 0 && !lv->IsSelected(focused)) 
+        focused = -1;
+    for (int i = 0; i < count; ++i) {
+        if (lv->IsSelected(i)) {
+            if (i != focused) 
+                ordered.push_back(i);
+        }
+        else
+            ordered.push_back(i);
+    }
+    ordered.insert(ordered.end(), selected.begin(), selected.end());
+    if (focused >= 0)
+        ordered.push_back(focused);
+    assert (size(ordered) == count);
+    return ordered;
+}
+
+string SideBar::get_plot_in_datasets()
+{
+    if (ftk->get_ds_count() == 1)
+        return "";
+    int focused = get_focused_data();
+    string s = " in @" + S(focused);
+    if (data_look->GetSelection() == 0) // all datasets
+        s += ", @*";
+    else {
+        for (int i = d->list->GetFirstSelected(); i != -1; 
+                                             i = d->list->GetNextSelected(i))
+            if (i != focused)
+                s += ", @" + S(i);
+    }
+    return s;
 }
 
 //bool SideBar::is_func_selected(int n) const 
@@ -663,29 +727,61 @@ void SideBar::do_activate_function()
     update_bottom_panel();
 }
 
-void SideBar::DataFocusChanged()
-{
+void SideBar::OnDataFocusChanged(wxListEvent &) 
+{ 
     int n = d->list->GetFocusedItem();
     if (n < 0)
         return;
     int length = ftk->get_ds_count();
-    if (length > 1 && ftk->get_active_ds_position() != n) 
-        ftk->exec("plot .. in @" + S(n));
-    data_page->FindWindow(ID_DP_CPF)->Enable(n+1<length);
+    if (length > 1)
+        frame->refresh_plots();
 }
 
-string SideBar::get_datasets_str()
+void SideBar::OnDataSelectionChanged(wxListEvent &) 
+{ 
+    if (data_look->GetSelection() != 0) // ! all datasets
+        frame->refresh_plots();
+    update_data_buttons();
+}
+
+void SideBar::update_data_buttons()
 {
+    bool not_the_last = get_focused_data()+1 < ftk->get_ds_count();
+    int sel_d = d->list->GetSelectedItemCount();
+    data_page->FindWindow(ID_DP_REN)->Enable(sel_d == 1);
+    data_page->FindWindow(ID_DP_DEL)->Enable(sel_d > 0);
+    data_page->FindWindow(ID_DP_COL)->Enable(sel_d > 0);
+    data_page->FindWindow(ID_DP_CPF)->Enable(sel_d == 1 && not_the_last);
+}
+
+void SideBar::update_func_buttons()
+{
+    int sel_f = f->list->GetSelectedItemCount();
+    func_page->FindWindow(ID_FP_DEL)->Enable(sel_f > 0);
+    func_page->FindWindow(ID_FP_EDIT)->Enable(sel_f == 1);
+    //func_page->FindWindow(ID_FP_CHTYPE)->Enable(sel_f > 0);
+    func_page->FindWindow(ID_FP_COL)->Enable(sel_f > 0);
+
+}
+
+void SideBar::update_var_buttons()
+{
+    int sel_v = v->list->GetSelectedItemCount();
+    var_page->FindWindow(ID_VP_DEL)->Enable(sel_v > 0);
+    var_page->FindWindow(ID_VP_EDIT)->Enable(sel_v == 1);
+}
+
+string SideBar::get_datasets_for_plot()
+{
+    int first = frame->get_focused_ds_index();
+    string s = "@" + S(first);
     if (data_look->GetSelection() == 0) // all datasets
-        return "@*";
+        return s + ", @*";
     else { // only selected datasets
-        int first = d->list->GetFirstSelected();
-        if (first == -1)
-            return frame->get_active_data_str();
-        string s = "@" + S(first);
-        for (int i = d->list->GetNextSelected(first); i != -1; 
+        for (int i = d->list->GetFirstSelected(); i != -1; 
                                               i = d->list->GetNextSelected(i))
-            s += ", @" + S(i);
+            if (i != first)
+                s += ", @" + S(i);
         return s;
     }
 }
@@ -937,10 +1033,10 @@ vector<string> SideBar::get_selected_func() const
     for (int i = f->list->GetFirstSelected(); i != -1; 
                                             i = f->list->GetNextSelected(i))
         dd.push_back(ftk->get_function(i)->xname);
-    if (dd.empty() && f->list->GetItemCount() > 0) {
-        int n = f->list->GetFocusedItem();
-        dd.push_back(ftk->get_function(n == -1 ? 0 : n)->xname);
-    }
+    //if (dd.empty() && f->list->GetItemCount() > 0) {
+    //    int n = f->list->GetFocusedItem();
+    //    dd.push_back(ftk->get_function(n == -1 ? 0 : n)->xname);
+    //}
     return dd;
 }
 
@@ -950,10 +1046,10 @@ vector<string> SideBar::get_selected_vars() const
     for (int i = v->list->GetFirstSelected(); i != -1; 
                                              i = v->list->GetNextSelected(i))
         dd.push_back(ftk->get_variable(i)->xname);
-    if (dd.empty() && v->list->GetItemCount() > 0) {
-        int n = v->list->GetFocusedItem();
-        dd.push_back(ftk->get_function(n == -1 ? 0 : n)->xname);
-    }
+    //if (dd.empty() && v->list->GetItemCount() > 0) {
+    //    int n = v->list->GetFocusedItem();
+    //    dd.push_back(ftk->get_function(n == -1 ? 0 : n)->xname);
+    //}
     return dd;
 }
 

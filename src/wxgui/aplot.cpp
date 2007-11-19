@@ -15,7 +15,7 @@
 #include <wx/numdlg.h>
 
 #include "aplot.h"
-#include "gui.h"
+#include "frame.h"
 #include "../sum.h"
 #include "../data.h"
 #include "../logic.h"
@@ -117,7 +117,7 @@ double rdiff_y_perc_of_data_for_draw_data (vector<Point>::const_iterator i,
 
 void AuxPlot::draw(wxDC &dc, bool monochrome)
 {
-    int pos = ftk->get_active_ds_position();
+    int pos = frame->get_focused_ds_index();
     Data const* data = ftk->get_data(pos);
     Sum const* sum = ftk->get_sum(pos);
     if (auto_zoom_y || fit_y_once) {
@@ -155,7 +155,8 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
         dc.DrawLine (X0, 0, X0, pixel_height);
     }
     if (ytics_visible) {
-        View v(0, 0, ys.val(pixel_height), ys.val(0));
+        View v(NULL);
+        v.set(0, 0, ys.val(pixel_height), ys.val(0));
         draw_ytics(dc, v, !monochrome);
     }
 

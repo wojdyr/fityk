@@ -20,7 +20,7 @@
 #include "../settings.h" 
 #include "../ui.h"  //startup_commands_filename
 #include "../logic.h"  
-#include "gui.h"  //ftk
+#include "frame.h"  //ftk
 
 using namespace std;
 
@@ -244,8 +244,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     add_persistence_note(page_fit_NM, sizer_fnm);
     page_fit_NM->SetSizerAndFit(sizer_fnm);
     
-    // sub-page GA
-    // TODO
+    // TODO: sub-page GA
 
     // page directories
     wxBoxSizer *sizer_dirs = new wxBoxSizer(wxVERTICAL);

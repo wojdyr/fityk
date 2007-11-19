@@ -48,6 +48,7 @@ private:
     wxCheckBox* initialize_cb, *autoplot_cb;
     SpinCtrl *maxiter_sc, *maxeval_sc;
     wxStaticText *nomaxeval_st, *nomaxiter_st;
+    std::vector<int> sel; // indices of selected datasets
 
     void update_unlimited();
     void update_allow_continue();
@@ -95,15 +96,14 @@ public:
     MergePointsDlg(wxWindow* parent, wxWindowID id=wxID_ANY);
     std::string get_command();
     void update_info();
-    void OnDataSelChanged(wxListEvent &) { update_info(); }
     void OnCheckBox(wxCommandEvent&) { y_rb->Enable(dx_cb->GetValue()); }
 
 private:
-    int active_ds;
+    int focused_data;
     wxRadioBox *y_rb, *output_rb;
     wxCheckBox *dx_cb;
     RealNumberCtrl *dx_val;
-    DataListPlusText *d;
+    wxTextCtrl *inf;
     DECLARE_EVENT_TABLE()
 };
 

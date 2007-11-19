@@ -15,7 +15,7 @@
 #include <fstream>
 
 #include "sdebug.h"
-#include "gui.h" //ftk
+#include "frame.h" //ftk
 #include "../cmd.h" //check_command_syntax()
 #include "../logic.h" 
 

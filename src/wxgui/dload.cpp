@@ -20,7 +20,7 @@
 #include <wx/filename.h>
 
 #include "dload.h" 
-#include "gui.h"  // frame->add_recent_data_file(get_filename()
+#include "frame.h"  // frame->add_recent_data_file(get_filename()
 #include "plot.h" // scale_tics_step()
 #include "../data.h"
 #include "../logic.h" 
@@ -92,8 +92,8 @@ void PreviewPlot::prepare_scaling(wxDC &dc)
     double const margin = 0.1;
     double dx = data->get_x_max() - data->get_x_min();
     double dy = data->get_y_max() - data->get_y_min();
-    int W = GetClientSize().GetWidth();
-    H = GetClientSize().GetHeight();
+    int W = dc.GetSize().GetWidth();
+    H = dc.GetSize().GetHeight();
     xScale = (1 - 1.2 * margin) *  W / dx;
     yScale = - (1 - 1.2 * margin) * H / dy;
     xOffset = - data->get_x_min() * xScale + margin * W;
@@ -148,6 +148,8 @@ BEGIN_EVENT_TABLE(DLoadDlg, wxDialog)
     EVT_TEXT_ENTER(ID_DXLOAD_FN,          DLoadDlg::OnPathTextChanged)
 END_EVENT_TABLE()
 
+/// n - data slot to be used by "Replace ..." button, -1 means none
+/// data - used for default settings (path, columns, etc.), not NULL
 DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     : wxDialog(parent, id, wxT("Data load (custom)"), 
                wxDefaultPosition, wxSize(600, 500), 
@@ -280,10 +282,13 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
 
     top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
     wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
+    string data_nr_str = (data_nr >= 0 ? S(data_nr) : S("?"));
     open_here = new wxButton(this, ID_DXLOAD_OPENHERE, 
-                             s2wx("&Replace dataset @"+S(data_nr)));
+                                        wxT("&Replace @") + s2wx(data_nr_str));
+    if (data_nr < 0)
+        open_here->Enable(false);
     open_new = new wxButton(this, ID_DXLOAD_OPENNEW, 
-                            wxT("&Open as new dataset"));
+                            wxT("&Open in new slot"));
     button_sizer->Add(open_here, 0, wxALL, 5);
     button_sizer->Add(open_new, 0, wxALL, 5);
     button_sizer->Add(new wxButton(this, wxID_CLOSE, wxT("&Close")), 

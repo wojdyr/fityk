@@ -9,18 +9,25 @@ Legend:
 
 // * allow functions with no parameters in parser
 
-* GUI: selected dataset line can be below shadowed one
+// * GUI: selected dataset line can be below shadowed one
 
-* GUI: "Apply to all datasets" is not clear - it's hard to say what it's 
-  related to. 
+* @0.revert
+   (can't revert data that was not read from file)
+
+//* remove active_ds, get_active_ds_position(), etc.
+//  plot (...) in @3, @*
+
+* GUI: Fit > Info doesn't work with multiple datasets
+
+* GUI: Data: revert from file (new menu item), 
+       use @n.revert in Data Editor button
+
+* GUI: remove "Apply to all datasets" is not clear - use sidebar selection
 
 * data: integrate fityk with xylib written by Peng Zhang as GSOC project
 
 * BUG?: @+ < 'filename':1,5/6/7" doesn't work. What should be a syntax 
   for columns?
-
-* GUI: Data: revert from file (button on Data Pane)
-       BUG: data revert button in Data Editor doesn't use columns
 
 * GUI: check if "shadow unselected" works on MSW
 
@@ -180,6 +187,7 @@ Legend:
 * [BUG]: program crashes (MS Win 9x) when data contains NaN (as a result
   of asin(x) x>1) and "Zoom all" is called.
 
+
 -------  Ideas for people, who would like to contribute:  -----------
 
 - write a function to calculate a Voigt/Faddeeva function, based on one 
@@ -199,7 +207,7 @@ Legend:
   thanks to readline library. Ideally, the code for finding completion in CLI
   should be possible to use with InputLine.
 
-- see note about EMG function above
+- see the note about EMG function above
 
 - anything else
 

@@ -25,6 +25,7 @@ class ProportionalSplitter;
 class DataEditorDlg;
 class PrintManager;
 class FStatusBar;
+class DataWithSum;
 
 class Ftk;
 extern Ftk *ftk;
@@ -71,7 +72,6 @@ public:
     void OnDataRecent       (wxCommandEvent& event);
     void OnDataEditor       (wxCommandEvent& event);
     void OnFastDT        (wxCommandEvent& event);       
-    void OnAllDatasetsUpdate (wxUpdateUIEvent& event);           
     void OnDataMerge        (wxCommandEvent&);
     void OnDataCalcShirley (wxCommandEvent&);
     void OnDataRmShirley (wxCommandEvent&);
@@ -179,13 +179,16 @@ public:
     void update_toolbar();
     void update_autoadd_enabled();
     void update_config_menu(wxMenu *menu);
-    std::string get_active_data_str();
-    std::string get_in_dataset();
-    std::string get_in_one_or_all_datasets();
+    int get_focused_ds_index();
+    std::vector<int> get_selected_ds_indices();
+    std::vector<DataWithSum*> get_selected_ds();
+    //std::string get_focused_data_str();
+    //std::string get_in_dataset();
+    std::string get_in_datasets();
+    //std::string get_in_one_or_all_datasets();
     MainPlot* get_main_plot(); 
     MainPlot const* get_main_plot() const; 
     void update_data_pane(); 
-    bool get_apply_to_all_ds();
     SideBar const* get_sidebar() const { return sidebar; }
     SideBar* get_sidebar() { return sidebar; }
     void activate_function(int n);

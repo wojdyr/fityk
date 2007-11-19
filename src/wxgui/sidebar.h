@@ -47,10 +47,15 @@ public:
     void OnVarButtonDel (wxCommandEvent&) { delete_selected_items(); }
     void OnVarButtonEdit (wxCommandEvent& event);
     void OnFuncFilterChanged (wxCommandEvent& event);
-    void OnDataFocusChanged(wxListEvent &) { DataFocusChanged(); }
-    void DataFocusChanged();
+    void OnDataFocusChanged(wxListEvent &);
+    void OnDataSelectionChanged(wxListEvent &);
+    void update_data_buttons();
+    void update_func_buttons();
+    void update_var_buttons();
     void OnFuncFocusChanged(wxListEvent &event);
+    void OnFuncSelectionChanged(wxListEvent&) { update_func_buttons(); }
     void OnVarFocusChanged(wxListEvent &event);
+    void OnVarSelectionChanged(wxListEvent&) { update_var_buttons(); }
     void read_settings(wxConfigBase *cf);
     void save_settings(wxConfigBase *cf) const;
     void update_lists(bool nondata_changed=true);
@@ -58,6 +63,9 @@ public:
     int get_focused_data() const;
     int get_active_function() const { return active_function; }
     int get_focused_var() const;
+    std::vector<int> get_ordered_dataset_numbers();
+    std::string get_plot_in_datasets();
+    std::vector<int> get_selected_ds_indices();
     //bool is_func_selected(int n) const;
     int set_selection(int page) { return nb->SetSelection(page); }
     void activate_function(int n);
@@ -72,7 +80,7 @@ public:
     void delete_selected_items();
     void draw_function_draft(FancyRealCtrl const* frc) const;
     void change_bp_parameter_value(int idx, double value);
-    std::string get_datasets_str();
+    std::string get_datasets_for_plot();
 private:
     wxNotebook *nb;
     wxPanel *data_page, *func_page, *var_page, *bottom_panel;

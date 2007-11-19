@@ -37,7 +37,7 @@ public:
     fp value_and_put_deriv (fp x, std::vector<fp>& dy_da) const;
     fp value_and_add_numeric_deriv (fp x, bool both_sides, 
                                     std::vector<fp>& dy_da) const;
-    fp approx_max(fp x_min, fp x_max);
+    fp approx_max(fp x_min, fp x_max) const;
     std::string general_info() const;
     std::string get_formula(bool simplify, bool gnuplot) const;
     std::string get_peak_parameters(std::vector<fp> const& errors) const;

@@ -7,7 +7,7 @@ libfityk_la_LDFLAGS = @LIBRARY_VERSION_FLAG@
 libfityk_la_CPPFLAGS = @CPPFLAGS_3RDPARTY@ 
 
 
-libfityk_la_SOURCES = logic.cpp cmd3.cpp cmd2.cpp cmd.cpp common.cpp \
+libfityk_la_SOURCES = logic.cpp view.cpp cmd3.cpp cmd2.cpp cmd.cpp common.cpp \
 		 var.cpp mgr.cpp func.cpp bfunc.cpp calc.cpp ast.cpp \
 		 data.cpp datatrans.cpp datatrans2.cpp datatrans3.cpp \
 		 datatrans4.cpp \
@@ -17,7 +17,7 @@ libfityk_la_SOURCES = logic.cpp cmd3.cpp cmd2.cpp cmd.cpp common.cpp \
 		 \
                  common.h data.h datatrans.h datatrans2.h datatrans3.h \
 		 datatrans4.h \
-		 settings.h GAfit.h LMfit.h guess.h NMfit.h logic.h \
+		 settings.h GAfit.h LMfit.h guess.h NMfit.h logic.h view.h \
 		 sum.h fit.h ui.h voigt.h fileroutines.h \
 		 numfuncs.h cmd.h cmd2.h cmd3.h var.h mgr.h func.h bfunc.h \
 		 calc.h ast.h optional_suffix.h

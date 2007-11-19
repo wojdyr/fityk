@@ -34,6 +34,7 @@ bool DataWithSum::has_any_info() const
 
 Ftk::Ftk()
     : VariableManager(this),
+      view(this),
       default_relative_domain_width(0.1)
 {
     // reading numbers won't work with decimal points different than '.'
@@ -55,9 +56,8 @@ void Ftk::initialize()
     fit_container = new FitMethodsContainer(this);
     // Settings ctor is using FitMethodsContainer 
     settings = new Settings(this);
-    view = View(0, 180, -50, 1e3);
+    view = View(this);
     append_ds();
-    activate_ds(0);
     get_settings()->do_srand();
     UdfContainer::initialize_udfs();
 }
@@ -84,13 +84,6 @@ void Ftk::reset()
     ui->keep_quiet = false;
 }
 
-void Ftk::activate_ds(int d)
-{
-    if (d < 0 || d >= size(dsds))
-        throw ExecuteError("there is no such dataset: @" + S(d));
-    active_ds = d;
-}
-
 int Ftk::append_ds(Data *data)
 {
     DataWithSum* ds = new DataWithSum(this, data);
@@ -106,8 +99,6 @@ void Ftk::remove_ds(int d)
     dsds.erase(dsds.begin() + d);
     if (dsds.empty())
         append_ds();
-    if (active_ds == d)
-        activate_ds( d==size(dsds) ? d-1 : d );
 }
 
 const Function* Ftk::find_function_any(string const &fstr) const
@@ -206,7 +197,7 @@ void Ftk::dump_all_as_script(string const &filename)
                 << endl;
         os << endl;
     }
-    os << "plot " << view.str() << " in @" << active_ds << endl;
+    os << "plot " << view.str() << " in @" << view.get_datasets()[0] << endl; 
     os << "set autoplot = " << get_settings()->getp("autoplot") << endl;
     os << "set verbosity = " << get_settings()->getp("verbosity") << endl;
 }
@@ -283,8 +274,7 @@ void Ftk::import_dataset(int slot, string const& filename,
         }
         else { // there is only one and empty slot -- load data there
             next_files = this->get_data(-1)->load_file(filename, type, cols); 
-            this->view.set_datasets(vector1(this->get_ds(0)));
-            this->view.fit();
+            this->view.fit_zoom();
             slot = 0;
         }
         for (vector<string>::const_iterator i = next_files.begin(); 
@@ -294,178 +284,9 @@ void Ftk::import_dataset(int slot, string const& filename,
     else { // slot number was specified -- load data there
         this->get_data(slot)->load_file(filename, type, cols); 
         if (this->get_ds_count() == 1) {
-            this->view.set_datasets(vector1(this->get_ds(0)));
-            this->view.fit();
+            this->view.fit_zoom();
         }
     }
-    this->activate_ds(slot);
-}
-
-//==================================================================
-
-
-const fp View::relative_x_margin = 1./20.;
-const fp View::relative_y_margin = 1./20.;
-
-string View::str() const
-{ 
-    return "[" + (left!=right ? S(left) + ":" + S(right) : string(" "))
-        + "] [" + (bottom!=top ? S(bottom) + ":" + S(top) 
-                                           : string (" ")) + "]";
-}
-
-void View::fit(int flag)
-{
-    if (flag&fit_left || flag&fit_right) {
-        fp x_min=0, x_max=0;
-        get_x_range(x_min, x_max);
-        if (x_min == x_max) {
-            x_min -= 0.1; 
-            x_max += 0.1;
-        }
-        fp x_margin = (x_max - x_min) * relative_x_margin;
-        if (flag&fit_left)
-            left = x_min - x_margin;
-        if (flag&fit_right)
-            right = x_max + x_margin;
-    }
-
-    if (flag&fit_top || flag&fit_bottom) {
-        fp y_min=0, y_max=0;
-        get_y_range(y_min, y_max);
-        if (y_min == y_max) {
-            y_min -= 0.1; 
-            y_max += 0.1;
-        }
-        fp y_margin = (y_max - y_min) * relative_y_margin;
-        if (flag&fit_bottom)
-            bottom = y_min - y_margin;
-        if (flag&fit_top)
-            top = y_max + y_margin;
-    }
-
-}
-
-void View::get_x_range(fp &x_min, fp &x_max)
-{
-    if (datas.empty()) 
-        throw ExecuteError("Can't find x-y axes ranges for plot");
-    x_min = datas.front()->get_x_min();
-    x_max = datas.front()->get_x_max();
-    for (vector<Data*>::const_iterator i = datas.begin()+1; 
-            i != datas.end(); ++i) {
-        x_min = min(x_min, (*i)->get_x_min());
-        x_max = max(x_max, (*i)->get_x_max());
-    }
-}
-
-void View::get_y_range(fp &y_min, fp &y_max)
-{
-    if (datas.empty()) 
-        throw ExecuteError("Can't find x-y axes ranges for plot");
-    y_min = y_max = (datas.front()->get_n() > 0 ? datas.front()->get_y(0) : 0);
-    bool min_max_set = false;
-    for (vector<Data*>::const_iterator i = datas.begin(); i != datas.end();
-            ++i) {
-        vector<Point>::const_iterator f = (*i)->get_point_at(left);
-        vector<Point>::const_iterator l = (*i)->get_point_at(right);
-        //first we are searching for minimal and max. y in active points
-        for (vector<Point>::const_iterator i = f; i < l; i++) {
-            if (i->is_active && is_finite(i->y)) {
-                min_max_set = true;
-                if (i->y > y_max) 
-                    y_max = i->y;
-                if (i->y < y_min) 
-                    y_min = i->y;
-            }
-        }
-    }
-
-    if (!min_max_set || y_min == y_max) { //none or 1 active point, so now we  
-                                   // search for min. and max. y in all points 
-        for (vector<Data*>::const_iterator i = datas.begin(); i != datas.end();
-                ++i) {
-            vector<Point>::const_iterator f = (*i)->get_point_at(left);
-            vector<Point>::const_iterator l = (*i)->get_point_at(right);
-            for (vector<Point>::const_iterator i = f; i < l; i++) { 
-                if (!is_finite(i->y))
-                    continue;
-                min_max_set = true;
-                if (i->y > y_max) 
-                    y_max = i->y;
-                if (i->y < y_min) 
-                    y_min = i->y;
-            }
-        }
-    }
-
-    for (vector<Sum*>::const_iterator i = sums.begin(); i != sums.end(); ++i) {
-        Sum *sum = *i;
-        if (!sum->has_any_info())
-            continue;
-        // estimated sum maximum
-        fp sum_y_max = sum->approx_max(left, right);
-        if (sum_y_max > y_max) 
-            y_max = sum_y_max;
-        if (sum_y_max < y_min) 
-            y_min = sum_y_max;
-    }
-    // include or not include zero
-    const fp show_zero_factor = 0.1;
-    if (y_min > 0 && y_max - y_min > show_zero_factor * y_max)
-        y_min = 0;
-    else if (y_max < 0 && y_max - y_min > show_zero_factor * fabs(y_min))
-        y_max = 0;
-}
-
-void View::parse_and_set(std::vector<std::string> const& lrbt) 
-{
-    assert(lrbt.size() == 4);
-    string const &left = lrbt[0];
-    string const &right = lrbt[1];
-    string const &bottom = lrbt[2];
-    string const &top = lrbt[3];
-    fp l=0., r=0., b=0., t=0.;
-    int flag = 0;
-    if (left.empty())
-        flag |= fit_left;
-    else if (left != ".") {
-        flag |= change_left;
-        l = strtod(left.c_str(), 0);
-    }
-    if (right.empty())
-        flag |= fit_right;
-    else if (right != ".") {
-        flag |= change_right;
-        r = strtod(right.c_str(), 0);
-    }
-    if (bottom.empty())
-        flag |= fit_bottom;
-    else if (bottom != ".") {
-        flag |= change_bottom;
-        b = strtod(bottom.c_str(), 0);
-    }
-    if (top.empty())
-        flag |= fit_top;
-    else if (top != ".") {
-        flag |= change_top;
-        t = strtod(top.c_str(), 0);
-    }
-    set(l, r, b, t, flag);
-    fit(flag);
-}
-
-//TODO set_datasets() is should not be public, datasets 
-// should be always passed by fit() and parse_and_set()
-void View::set_datasets(vector<DataWithSum*> const& dd) 
-{
-    assert(!dd.empty());
-    datas.clear();
-    sums.clear();
-    for (vector<DataWithSum*>::const_iterator i = dd.begin(); 
-                                                        i != dd.end(); ++i) 
-        datas.push_back((*i)->get_data());
-    sums.push_back(dd.front()->get_sum());
 }
 
 // the use of this global variable in libfityk will be eliminated,

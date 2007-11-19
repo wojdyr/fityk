@@ -15,7 +15,7 @@
 #include <wx/statline.h>
 
 #include "dataedit.h"
-#include "gui.h"
+#include "frame.h"
 #include "dialogs.h" //export_data_dlg()
 #include "../data.h" // Data, Point
 #include "../logic.h"  
@@ -81,7 +81,7 @@ public:
             case 3: t = "S";  break;
             default: assert(0);
         }
-        ftk->exec(t + "[" + S(row)+"]=" + S(value) + frame->get_in_dataset());
+        ftk->exec(t + "[" + S(row)+"]=" + S(value) + frame->get_in_datasets());
         if (col == 1) // order of items can be changed
             ded->grid->ForceRefresh();
         ded->rezoom_btn->Enable();
@@ -91,7 +91,7 @@ public:
     { 
         assert(col==0); 
         ftk->exec("A[" + S(row)+"]=" + (value?"true":"false") 
-                                                  + frame->get_in_dataset()); 
+                                                  + frame->get_in_datasets()); 
         ded->rezoom_btn->Enable();
     }
 
@@ -327,7 +327,7 @@ void DataEditorDlg::read_transforms(bool reset)
                                         "You can type eg. Y=log10(y).\n"
                                         "See Help for details.",
                                         "", false));
-    //TODO last transformation item
+    //TODO add last transformation item
     wxString transform_path = get_user_conffile("transform");
     string t_line;
     if (wxFileExists(transform_path) && !reset) {
@@ -531,7 +531,7 @@ void DataEditorDlg::execute_tranform(string code)
     string t;
     for (vector<string>::const_iterator i = cmds.begin(); i != cmds.end(); ++i){
         if (!strip_string(*i).empty())
-            t += *i + frame->get_in_one_or_all_datasets();
+            t += *i + frame->get_in_datasets();
         if (i+1 != cmds.end())
             t += ";";
     }

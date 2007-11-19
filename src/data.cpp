@@ -168,6 +168,14 @@ int Data::load_arrays(const vector<fp> &x, const vector<fp> &y,
     return p.size();
 }
 
+void Data::revert()
+{
+    if (filename.empty())
+        throw ExecuteError("Dataset can't be reverted, it was not loaded "
+                           "from file");
+    load_file(filename, given_type, given_cols);
+}
+
 namespace {
 
 void merge_same_x(vector<Point> &pp, bool avg)

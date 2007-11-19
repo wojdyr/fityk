@@ -17,7 +17,7 @@
 #include "listptxt.h"
 #include "cmn.h" //SpinCtrl, ProportionalSplitter
 #include "sidebar.h" //SideBar::delete_selected_items()
-#include "gui.h" // frame->focus_input() and used in update_data_list()
+#include "frame.h" // frame->focus_input() and used in update_data_list()
 #include "mplot.h" // used in update_data_list()
 #include "../common.h" // s2wx
 #include "../logic.h" // used in update_data_list()
@@ -211,8 +211,8 @@ void DataListPlusText::update_data_list(bool nondata_changed, bool with_stats)
             data_images->Add(make_color_bitmap16(mplot->get_data_color(i), 
                                                  bg_col));
     }
-    int active_ds_pos = ftk->get_active_ds_position();
-    list->populate(data_data, data_images, active_ds_pos);
+    int focused_data = frame->get_focused_ds_index();
+    list->populate(data_data, data_images, focused_data);
 }
 
 
@@ -221,10 +221,10 @@ vector<string> DataListPlusText::get_selected_data() const
     vector<string> dd;
     for (int i=list->GetFirstSelected(); i != -1; i = list->GetNextSelected(i))
         dd.push_back("@" + S(i));
-    if (dd.empty()) {
-        int n = list->GetFocusedItem();
-        dd.push_back("@" + S(n == -1 ? 0 : n));
-    }
+    //if (dd.empty()) {
+    //    int n = list->GetFocusedItem();
+    //    dd.push_back("@" + S(n == -1 ? 0 : n));
+    //}
     return dd;
 }
 

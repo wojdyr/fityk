@@ -19,7 +19,7 @@
 
 #include "plot.h"
 #include "cmn.h" 
-#include "gui.h" //ftk
+#include "frame.h" //ftk
 #include "../data.h"
 #include "../logic.h" 
 

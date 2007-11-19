@@ -53,21 +53,41 @@ bool outdated_plot = false;
 bool no_info_output = false;
 
 
-vector<DataWithSum*> get_datasets_from_indata()
+vector<int> get_ds_indices_from_indata()
 {
-    vector<DataWithSum*> result;
+    vector<int> result;
+    // no datasets specified
     if (vds.empty()) {
         if (AL->get_ds_count() == 1)
-            result.push_back(AL->get_ds(0));
+            result.push_back(0);
         else
             throw ExecuteError("Dataset must be specified (eg. 'in @0').");
     }
+    // @*
     else if (vds.size() == 1 && vds[0] == all_datasets)
         for (int i = 0; i < AL->get_ds_count(); ++i)
-            result.push_back(AL->get_ds(i));
+            result.push_back(i);
+    // general case
     else
         for (vector<int>::const_iterator i = vds.begin(); i != vds.end(); ++i)
-            result.push_back(AL->get_ds(*i));
+            if (*i == all_datasets) {
+                for (int j = 0; j < AL->get_ds_count(); ++j) {
+                    if (!contains_element(result, j))
+                        result.push_back(j);
+                }
+                return result;
+            }
+            else
+                result.push_back(*i);
+    return result;
+}
+
+vector<DataWithSum*> get_datasets_from_indata()
+{
+    vector<int> indices = get_ds_indices_from_indata();
+    vector<DataWithSum*> result(indices.size());
+    for (size_t i = 0; i < indices.size(); ++i)
+        result[i] = AL->get_ds(i);
     return result;
 }
 
@@ -93,8 +113,13 @@ void do_export_dataset(char const*, char const*)
 
 void do_append_data(char const*, char const*)
 {
-    int n = AL->append_ds();
-    AL->activate_ds(n);
+    AL->append_ds();
+    outdated_plot=true;  
+}
+
+void do_revert_data(char const*, char const*)
+{
+    AL->get_data(tmp_int)->revert();
     outdated_plot=true;  
 }
 
@@ -106,30 +131,12 @@ void do_load_data_sum(char const*, char const*)
     if (tmp_int == new_dataset) 
         tmp_int = AL->append_ds();
     AL->get_data(tmp_int)->load_data_sum(dd, t);
-    AL->activate_ds(tmp_int);
     outdated_plot=true;  
 }
 
 void do_plot(char const*, char const*)
 {
-    if (vds.size() == 1 && vds[0] >= 0)
-        AL->activate_ds(vds[0]);
-    bool need_ds = false;
-    for (vector<string>::const_iterator i = vr.begin(); i != vr.end(); ++i)
-        if (i->empty())
-            need_ds = true;
-    if (need_ds) {
-        vector<DataWithSum*> dsds = get_datasets_from_indata();
-        //move active ds to the front
-        DataWithSum* ads = AL->get_ds(AL->get_active_ds_position());
-        vector<DataWithSum*>::iterator pos = find(dsds.begin(),dsds.end(), ads);
-        if (pos != dsds.end() && pos != dsds.begin()) {
-            *pos = dsds[0];
-            dsds[0] = ads;
-        }
-        AL->view.set_datasets(dsds);
-    }
-    AL->view.parse_and_set(vr);
+    AL->view.parse_and_set(vr, get_ds_indices_from_indata());
     AL->get_ui()->draw_plot(1, true);
     outdated_plot = false;
 }
@@ -443,10 +450,11 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
 
     in_data
         = eps_p [clear_a(vds)]
-        >> !("in" >> (lexeme_d['@' >> uint_p [push_back_a(vds)]
-                               ]
+        >> !("in" >> (lexeme_d['@' >> (uint_p [push_back_a(vds)]
+                                      |ch_p('*')[push_back_a(vds, all_datasets)]
+                                      )
+                              ]
                        % ','
-                     | str_p("@*") [push_back_a(vds, all_datasets)]
                      )
             )
         ;
@@ -499,6 +507,7 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
                 >> ')')
            >> '>' >> compact_str) [&do_export_dataset]
         | str_p("@+")[&do_append_data] 
+        | existing_dataset_nr >> str_p(".revert")[&do_revert_data] 
         ;
 
     plot_range  //first clear vr if needed 

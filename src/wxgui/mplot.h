@@ -14,7 +14,6 @@
 /// it cares about visualization of spline / polyline background 
 /// which can be set by selecting points on Plot
 
-struct t_xy { fp x, y; };
 class Function;
 
 class BgManager
@@ -30,8 +29,9 @@ public:
     void undo_strip_background();
     bool can_strip() const { return !bg.empty(); }
     bool can_undo() const { return !bg_backup.empty(); }
-    void set_spline_bg(bool s) { spline_bg=s; recompute_bgline(); }
+    void set_spline_bg(bool s) { spline_bg=s; }
     void set_as_convex_hull();
+    std::vector<int> calculate_bgline(int window_width);
 protected:
     Scale const& x_scale;
     int min_dist; //minimal distance in X between bg points
@@ -39,10 +39,7 @@ protected:
     typedef std::vector<PointQ>::iterator bg_iterator;
     typedef std::vector<PointQ>::const_iterator bg_const_iterator;
     std::vector<PointQ> bg, bg_backup;
-    std::vector<t_xy> bgline;
     std::string cmd_tail;
-
-    void recompute_bgline();
 };
 
 
@@ -108,6 +105,7 @@ private:
 
 /// main plot, single in application, displays data, fitted peaks etc. 
 class MainPlot : public FPlot, public BgManager
+                 //TODO BgManager should be contained in MainPlot
 {
     friend class ConfigureAxesDlg;
     friend class ConfigurePLabelsDlg;
@@ -201,6 +199,8 @@ private:
     void draw_temporary_rect(MouseActEnum ma, int X_=0, int Y_=0);
     void draw_rect (int X1, int Y1, int X2, int Y2);
     bool visible_peaktops(MouseModeEnum mode);
+    void add_peak_from_draft(int X, int Y);
+    bool can_disactivate();
 
     DECLARE_EVENT_TABLE()
 };

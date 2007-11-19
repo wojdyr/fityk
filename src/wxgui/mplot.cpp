@@ -14,7 +14,7 @@
 #include <algorithm>
 
 #include "mplot.h"
-#include "gui.h"
+#include "frame.h"
 #include "sidebar.h"
 #include "../data.h" 
 #include "../logic.h"
@@ -279,7 +279,7 @@ void MainPlot::draw_dataset(wxDC& dc, int n, bool set_pen)
 
 void MainPlot::draw(wxDC &dc, bool monochrome)
 {
-    int focused_data = ftk->get_active_ds_position();
+    int focused_data = frame->get_focused_ds_index();
     Sum const* sum = ftk->get_sum(focused_data);
 
     set_scale(get_pixel_width(dc), get_pixel_height(dc));
@@ -293,14 +293,10 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
         dc.SetPen(*wxBLACK_PEN);
         dc.SetBrush(*wxBLACK_BRUSH);
     }
-    //draw datasets
-    for (int i = 0; i < ftk->get_ds_count(); i++) {
-        if (i != focused_data) {
-            draw_dataset(dc, i, !monochrome);
-        }
-    }
-    // focused dataset is drawed at the end (to be at the top)
-    draw_dataset(dc, focused_data, !monochrome);
+    //draw datasets (selected and focused at the end)
+    vector<int> ord = frame->get_sidebar()->get_ordered_dataset_numbers();
+    for (vector<int>::const_iterator i = ord.begin(); i != ord.end(); ++i)
+        draw_dataset(dc, *i, !monochrome);
 
     if (xtics_visible)
         draw_xtics(dc, ftk->view, !monochrome);
@@ -554,10 +550,12 @@ void MainPlot::draw_background(wxDC& dc, bool set_pen)
     dc.SetBrush (*wxTRANSPARENT_BRUSH);
     // bg line
     int X = -1, Y = -1;
-    for (vector<t_xy>::const_iterator i=bgline.begin(); i != bgline.end(); i++){
+    int width = get_pixel_width(dc);
+    vector<int> bgline = calculate_bgline(width);
+    for (int i = 0; i < width; ++i) {
         int X_ = X, Y_ = Y;
-        X = xs.px(i->x);
-        Y = ys.px(i->y);
+        X = i;
+        Y = bgline[i];
         if (X_ >= 0 && (X != X_ || Y != Y_)) 
             dc.DrawLine (X_, Y_, X, Y); 
     }
@@ -730,7 +728,7 @@ void MainPlot::OnPeakGuess(wxCommandEvent&)
             fp plusmin = max(fabs(p->fwhm()), p->iwidth());    
             ftk->exec(p->xname + " = guess " + p->type_name + " [" 
                              + S(ctr-plusmin) + ":" + S(ctr+plusmin) + "]"
-                             + frame->get_in_dataset());
+                             + frame->get_in_datasets());
         }
     }
 }
@@ -836,7 +834,7 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
 
 void MainPlot::look_for_peaktop (wxMouseEvent& event)
 {
-    int focused_data = ftk->get_active_ds_position();
+    int focused_data = frame->get_focused_ds_index();
     Sum const* sum = ftk->get_sum(focused_data);
     vector<int> const& idx = sum->get_ff_idx();
     if (special_points.size() != idx.size()) 
@@ -951,8 +949,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     }
     else if (button != 2 && mode == mmd_range) {
         if (button == 1) {
-            Data const* data = ftk->get_data(ftk->get_active_ds_position());
-            if (!data->is_empty() && data->get_n() == size(data->points())) {
+            if (!can_disactivate()) {
                 cancel_mouse_press();
                 wxMessageBox(
                  wxT("You pressed the left mouse button in data-range mode,")
@@ -984,6 +981,18 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     update_mouse_hints();
 }
 
+bool MainPlot::can_disactivate()
+{
+    vector<int> sel = frame->get_selected_ds_indices();
+    for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i) {
+        Data const* data = ftk->get_data(*i);
+        // if data->is_empty() we allow to try disactivate data to let user
+        // experiment with mouse right after launching the program
+        if (data->is_empty() || data->get_n() != size(data->points())) 
+            return true;
+    }
+    return false;
+}
 
 void MainPlot::OnButtonUp (wxMouseEvent &event)
 {
@@ -995,6 +1004,8 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     int dist_X = abs(event.GetX() - mouse_press_X);  
     int dist_Y = abs(event.GetY() - mouse_press_Y);  
     // if Down and Up events are at the same position -> cancel
+
+    // zoom
     if (button == 1 && (ctrl_on_down || mode == mmd_zoom) || button == 2) {
         draw_temporary_rect(mat_stop);
         if (dist_X + dist_Y >= 10) {
@@ -1009,6 +1020,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         }
         frame->set_status_text("");
     }
+    // drag peak
     else if (mode == mmd_peak && button == 1) {
         if (dist_X + dist_Y >= 2) {
             string cmd = fmd.get_cmd();
@@ -1018,6 +1030,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         draw_moving_func(mat_stop);
         frame->set_status_text("");
     }
+    // activate or disactivate data
     else if (mode == mmd_range && button != 2) {
         vert_line_following_cursor(mat_stop);
         draw_temporary_rect(mat_stop);
@@ -1026,7 +1039,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             fp xmin = xs.val (min (event.GetX(), mouse_press_X));
             fp xmax = xs.val (max (event.GetX(), mouse_press_X));
             string cond = "(" + S(xmin) + "< x <" + S(xmax) + ")";
-            ftk->exec(c + cond + frame->get_in_one_or_all_datasets());
+            ftk->exec(c + cond + frame->get_in_datasets());
         }
         else if (shift_on_down && dist_X + dist_Y >= 10) {
             fp x1 = xs.val(mouse_press_X);
@@ -1035,33 +1048,18 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             fp y2 = ys.val(event.GetY());
             string cond = "(" + S(min(x1,x2)) + " < x < " + S(max(x1,x2)) 
                    + " and " + S(min(y1,y2)) + " < y < " + S(max(y1,y2)) + ")";
-            ftk->exec(c + cond + frame->get_in_one_or_all_datasets());
+            ftk->exec(c + cond + frame->get_in_datasets());
         }
         frame->set_status_text("");
     }
+    // add peak (left button)
     else if (mode == mmd_add && button == 1) {
         frame->set_status_text("");
         peak_draft(mat_stop, event.GetX(), event.GetY());
-        string F = ftk->get_ds_count() > 1 ?  frame->get_active_data_str()+".F" 
-                                          : "F";
-        if (func_draft_kind == fk_linear) {
-            fp y = ys.val(event.GetY());
-            ftk->exec(F + " += " + frame->get_peak_type()  
-                         + "(slope=~" + S(0) + ", intercept=~" + S(y) 
-                         + ", avgy=~" + S(y) + ")");
-        }
-        else {
-            if (dist_X + dist_Y >= 5) {
-                fp height = ys.val(event.GetY());
-                fp center = xs.val(mouse_press_X);
-                fp fwhm = fabs(center - xs.val(event.GetX()));
-                fp area = height * fwhm;
-                ftk->exec(F + " += " + frame->get_peak_type()  
-                         + "(height=~" + S(height) + ", center=~" + S(center) 
-                         + ", fwhm=~" + S(fwhm) + ", area=~" + S(area) + ")");
-            }
-        }
+        if (func_draft_kind == fk_linear || dist_X + dist_Y >= 5) 
+            add_peak_from_draft(event.GetX(), event.GetY());
     }
+    // add peak (in range)
     else if (mode == mmd_add && button == 3) {
         frame->set_status_text("");
         if (dist_X >= 5) { 
@@ -1069,7 +1067,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             fp x2 = xs.val(event.GetX());
             ftk->exec("guess " + frame->get_peak_type() 
                           + " [" + S(min(x1,x2)) + " : " + S(max(x1,x2)) + "]"
-                          + frame->get_in_dataset());
+                          + frame->get_in_datasets());
         }
         vert_line_following_cursor(mat_stop);
     }
@@ -1078,6 +1076,32 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     }
     pressed_mouse_button = 0;
     update_mouse_hints();
+}
+
+void MainPlot::add_peak_from_draft(int X, int Y)
+{
+    string args;
+    if (func_draft_kind == fk_linear) {
+        fp y = ys.val(Y);
+        args = "slope=~" + S(0) + ", intercept=~" + S(y) + ", avgy=~" + S(y);
+    }
+    else {
+        fp height = ys.val(Y);
+        fp center = xs.val(mouse_press_X);
+        fp fwhm = fabs(center - xs.val(X));
+        fp area = height * fwhm;
+        args = "height=~" + S(height) + ", center=~" + S(center) 
+                 + ", fwhm=~" + S(fwhm) + ", area=~" + S(area);
+    }
+    string tail = "F += " + frame->get_peak_type() + "(" + args + ")";
+    string cmd;
+    if (ftk->get_ds_count() == 1)
+        cmd = tail;
+    else {
+        vector<int> sel = frame->get_selected_ds_indices();
+        cmd = "@" + join_vector(sel, "." + tail + "; @") + "." + tail;
+    }
+    ftk->exec(cmd); 
 }
 
 
@@ -1660,8 +1684,8 @@ void auto_background (int n, fp p1, bool is_perc1, fp p2, bool is_perc2)
 void BgManager::add_background_point(fp x, fp y)
 {
     if (!bg_backup.empty()) {
-        int r = wxMessageBox(wxT("The old background has been removed\n")
-                             wxT("and now you start to create a new one.\n")
+        int r = wxMessageBox(wxT("The old background will be removed\n")
+                             wxT("and the new one will be created.\n")
                              wxT("It will make impossible to undo\n")
                              wxT("removing the old background.\n\n")
                              wxT("Use GUI->Mode->Baseline Handling->Clear...\n")
@@ -1680,7 +1704,6 @@ void BgManager::add_background_point(fp x, fp y)
     PointQ t(x, y);
     bg_iterator l = lower_bound(bg.begin(), bg.end(), t);
     bg.insert (l, t);
-    recompute_bgline();
 }
 
 void BgManager::rm_background_point (fp x)
@@ -1695,7 +1718,6 @@ void BgManager::rm_background_point (fp x)
     if (u > l) {
         bg.erase(l, u);
         ftk->vmsg (S(u - l) + " background points removed.");
-        recompute_bgline();
     }
 }
 
@@ -1703,7 +1725,6 @@ void BgManager::clear_background()
 {
     int n = bg.size();
     bg.clear();
-    recompute_bgline();
     if (n != 0)
         ftk->vmsg (S(n) + " background points deleted.");
 }
@@ -1720,7 +1741,7 @@ void BgManager::strip_background()
     bg_backup = bg;
     cmd_tail = (spline_bg ? "spline[" : "interpolate[") 
                + join_vector(pars, ", ") + "](x)" 
-               + frame->get_in_one_or_all_datasets();
+               + frame->get_in_datasets();
     clear_background();
     ftk->exec("Y = y - " + cmd_tail);
     ftk->vmsg("Background stripped.");
@@ -1732,35 +1753,35 @@ void BgManager::undo_strip_background()
         return;
     bg = bg_backup;
     bg_backup.clear();
-    recompute_bgline();
     ftk->exec("Y = y + " + cmd_tail);
 }
 
-void BgManager::recompute_bgline()
+vector<int> BgManager::calculate_bgline(int window_width)
 {
-    int focused_data = ftk->get_active_ds_position();
-    const std::vector<Point>& p = ftk->get_data(focused_data)->points();
-    bgline.resize(p.size());
+    vector<int> bgline(window_width);
     if (spline_bg) 
         prepare_spline_interpolation(bg);
-    for (int i = 0; i < size(p); i++) {
-        bgline[i].x = p[i].x;
-        bgline[i].y = spline_bg ? get_spline_interpolation(bg, p[i].x)
-                                : get_linear_interpolation(bg, p[i].x);
+    for (int i = 0; i < window_width; i++) {
+        fp x = x_scale.val(i);
+        fp y = spline_bg ? get_spline_interpolation(bg, x)
+                         : get_linear_interpolation(bg, x);
+        bgline[i] = x_scale.px(y);
     }
+    return bgline;
 }
 
 void BgManager::set_as_convex_hull()
 {
     SimplePolylineConvex convex;
-    int focused_data = ftk->get_active_ds_position();
-    const Data* data = ftk->get_data(focused_data);
+    vector<int> sel = frame->get_selected_ds_indices();
+    if (sel.size() != 1)
+        return;
+    const Data* data = ftk->get_data(sel[0]);
     for (int i = 0; i < data->get_n(); ++i)
         convex.push_point(PointQ(data->get_x(i), data->get_y(i)));
 
     bg = convex.get_vertices();
     bg_backup.clear();
-    recompute_bgline();
 }
 
 

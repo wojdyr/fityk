@@ -16,7 +16,7 @@
 #include <wx/image.h>
 
 #include "pane.h" 
-#include "gui.h" 
+#include "frame.h" 
 #include "plot.h" 
 #include "mplot.h" 
 #include "aplot.h" 

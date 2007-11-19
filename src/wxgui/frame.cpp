@@ -2,7 +2,6 @@
 // Licence: GNU General Public License version 2
 // $Id$
 
-// wxwindows headers, see wxwindows samples for description
 #include <wx/wxprec.h>
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -42,7 +41,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "gui.h"
+#include "frame.h"
 #include "plot.h"
 #include "mplot.h"
 #include "aplot.h"
@@ -120,14 +119,13 @@ Ftk *ftk = NULL;
 enum {
     ID_H_MANUAL        = 24001 ,
     ID_H_CONTACT               ,
-    ID_D_QLOAD                  ,
+    ID_D_QLOAD                 ,
     ID_D_XLOAD                 ,
     ID_D_RECENT                , //and next ones
     ID_D_RECENT_END = ID_D_RECENT+30 , 
     ID_D_EDITOR                ,
     ID_D_FDT                   ,
     ID_D_FDT_END = ID_D_FDT+50 ,
-    ID_D_ALLDS                 ,
     ID_D_MERGE                 ,
     ID_D_RM_SHIRLEY            ,
     ID_D_CALC_SHIRLEY          ,
@@ -255,7 +253,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU_RANGE (ID_D_RECENT+1, ID_D_RECENT_END, FFrame::OnDataRecent)
     EVT_MENU (ID_D_EDITOR,      FFrame::OnDataEditor)
     EVT_MENU_RANGE (ID_D_FDT+1, ID_D_FDT_END, FFrame::OnFastDT)
-    EVT_UPDATE_UI (ID_D_ALLDS,  FFrame::OnAllDatasetsUpdate) 
     EVT_MENU (ID_D_MERGE,       FFrame::OnDataMerge)
     EVT_MENU (ID_D_RM_SHIRLEY,  FFrame::OnDataRmShirley)
     EVT_MENU (ID_D_CALC_SHIRLEY,FFrame::OnDataCalcShirley)
@@ -362,7 +359,9 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
            |wxHF_MERGE_BOOKS)
 #endif
 {
-    peak_type_nr = wxConfig::Get()->Read(wxT("/DefaultFunctionType"), 7);
+    const int default_peak_nr = 7; // Gaussian
+    peak_type_nr = wxConfig::Get()->Read(wxT("/DefaultFunctionType"), 
+                                         default_peak_nr);
     update_peak_type_list();
     // Load icon and bitmap
     SetIcon (wxICON (fityk));
@@ -617,8 +616,6 @@ void FFrame::set_menubar()
     this->data_ft_menu = new wxMenu;
     data_menu->Append (ID_D_FDT, wxT("&Fast Transformations"), data_ft_menu, 
                                  wxT("Quick data transformations"));
-    data_menu->AppendCheckItem (ID_D_ALLDS, wxT("Apply to &All Datasets"), 
-                            wxT("Apply data transformations to all datasets."));
     data_menu->AppendSeparator();
     data_menu->Append (ID_D_MERGE, wxT("&Merge Points..."), 
                                         wxT("Reduce the number of points"));
@@ -866,10 +863,9 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
         int count = paths.GetCount();
         string cmd;
         for (int i = 0; i < count; ++i) {
-            if (i == 0)
-                cmd = get_active_data_str() + " <'" + wx2s(paths[i]) + "'";
-            else
-                cmd += " ; @+ <'" + wx2s(paths[i]) + "'"; 
+            if (i != 0)
+                cmd += " ; ";
+            cmd += "@+ <'" + wx2s(paths[i]) + "'"; 
             add_recent_data_file(wx2s(paths[i]));
         }
         ftk->exec(cmd);
@@ -881,29 +877,27 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
 
 void FFrame::OnDataXLoad (wxCommandEvent&)
 {
-    int n = ftk->get_active_ds_position();
-    DLoadDlg dload_dialog(this, -1, n, ftk->get_data(n));
+    vector<int> sel = get_selected_ds_indices();
+    int n = (sel.size() == 1 ? sel[0] : -1);
+    // in case of multi-selection, use the first item
+    Data *data = ftk->get_data(sel[0]); 
+    DLoadDlg dload_dialog(this, -1, n, data);
     dload_dialog.ShowModal();
 }
 
 void FFrame::OnDataRecent (wxCommandEvent& event)
 {
     string s = wx2s(GetMenuBar()->GetHelpString(event.GetId()));
-    ftk->exec(get_active_data_str() + " <'" + s + "'");
+    ftk->exec("@+ <'" + s + "'");
     add_recent_data_file(s);
 }
 
 void FFrame::OnDataEditor (wxCommandEvent&)
 {
     vector<pair<int,Data*> > dd;
-    if (get_apply_to_all_ds()) {
-        for (int i = 0; i < ftk->get_ds_count(); ++i) 
-            dd.push_back(make_pair(i, ftk->get_data(i)));
-    }
-    else {
-        int p = ftk->get_active_ds_position();
-        dd.push_back(make_pair(p, ftk->get_data(p)));
-    }
+    vector<int> sel = get_selected_ds_indices();
+    for (size_t i = 0; i < sel.size(); ++i)
+        dd.push_back(make_pair(i, ftk->get_data(i)));
     DataEditorDlg data_editor(this, -1, dd);
     data_editor.ShowModal();
 }
@@ -943,11 +937,6 @@ void FFrame::OnFastDT (wxCommandEvent& event)
         }
 }
 
-void FFrame::OnAllDatasetsUpdate (wxUpdateUIEvent& event)
-{
-    event.Enable(ftk->get_ds_count() > 1);
-}
-
 void FFrame::OnDataMerge (wxCommandEvent&)
 {
     MergePointsDlg *dlg = new MergePointsDlg(this);
@@ -958,18 +947,31 @@ void FFrame::OnDataMerge (wxCommandEvent&)
 
 void FFrame::OnDataCalcShirley (wxCommandEvent&)
 {
-    int n = ftk->get_active_ds_position();
-    string title = ftk->get_data(n)->get_title();
-    int c = ftk->get_ds_count();
-    
-    ftk->exec("@+ = shirley_bg @" + S(n)
-              + "; @" + S(c) + ".title = '" + title + "-Shirley'");
+    vector<int> sel = get_selected_ds_indices();
+    string cmd;
+    for (size_t i = 0; i < sel.size(); ++i) {
+        int n = sel[i];
+        string title = ftk->get_data(n)->get_title();
+        int c = ftk->get_ds_count();
+        if (i != 0)
+            cmd += "; ";
+        cmd += "@+ = shirley_bg @" + S(n)
+              + "; @" + S(c) + ".title = '" + title + "-Shirley'";
+    }
+    ftk->exec(cmd);
 }
 
 void FFrame::OnDataRmShirley (wxCommandEvent&)
 {
-    string dstr = get_active_data_str();
-    ftk->exec(dstr + " = rm_shirley_bg " + dstr);
+    vector<int> sel = get_selected_ds_indices();
+    string cmd;
+    for (size_t i = 0; i < sel.size(); ++i) {
+        string dstr = "@" + S(sel[i]);
+        if (i != 0)
+            cmd += "; ";
+        cmd += dstr + " = rm_shirley_bg " + dstr;
+    }
+    ftk->exec(cmd);
 }
 
 void FFrame::OnDataExport (wxCommandEvent&)
@@ -987,12 +989,12 @@ void FFrame::OnDefinitionMgr(wxCommandEvent&)
 
 void FFrame::OnSGuess (wxCommandEvent&)
 {
-    ftk->exec("guess " + frame->get_peak_type() + get_in_dataset());
+    ftk->exec("guess " + frame->get_peak_type() + get_in_datasets());
 }
 
 void FFrame::OnSPFInfo (wxCommandEvent&)
 {
-    ftk->exec("info guess" + get_in_dataset());
+    ftk->exec("info guess" + get_in_datasets());
     //TODO animations showing peak positions
 }
         
@@ -1012,10 +1014,13 @@ void FFrame::OnSExport (wxCommandEvent& event)
 {
     static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
     bool as_peaks = (event.GetId() == ID_S_EXPORTP);
-    int pos = ftk->get_active_ds_position();
-    string const& filename = ftk->get_data(pos)->get_filename();
-    wxString name = wxFileName(s2wx(filename)).GetName()
+    wxString name;
+    vector<int> sel = get_selected_ds_indices();
+    if (sel.size() == 1) {
+        string const& filename = ftk->get_data(sel[0])->get_filename();
+        name = wxFileName(s2wx(filename)).GetName()
                                 + (as_peaks ? wxT(".peaks") : wxT(".formula"));
+    }
     wxFileDialog fdlg (this, wxT("Export curve to file"), dir, name,
                        (as_peaks 
                             ? wxT("parameters of functions (*.peaks)|*.peaks")
@@ -1024,8 +1029,8 @@ void FFrame::OnSExport (wxCommandEvent& event)
                        wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) 
         ftk->exec(string("info ") + (as_peaks ? "peaks" : "formula")
-                     + " in " +  get_active_data_str() + 
-                     + " > '" + wx2s(fdlg.GetPath()) + "'");
+                  + frame->get_in_datasets() 
+                  + " > '" + wx2s(fdlg.GetPath()) + "'");
     dir = fdlg.GetDirectory();
 }
            
@@ -1517,13 +1522,13 @@ void FFrame::OnPreviousZoom(wxCommandEvent& event)
     int id = event.GetId();
     string s = plot_pane->zoom_backward(id ? id - ID_G_V_ZOOM_PREV : 1);
     if (s.size()) 
-        ftk->exec("plot " + s + " in " + get_active_data_str());
+        ftk->exec("plot " + s + " in @" + S(get_focused_ds_index()));
 }
 
 void FFrame::change_zoom(const string& s)
 {
     plot_pane->zoom_forward();
-    string cmd = "plot " + s + " in " + sidebar->get_datasets_str();
+    string cmd = "plot " + s + sidebar->get_plot_in_datasets();
     ftk->exec(cmd);
 }
 
@@ -1729,42 +1734,50 @@ void FFrame::update_toolbar()
     if (!toolbar) 
         return;
     toolbar->ToggleTool(ID_ft_b_strip, plot_pane->get_bg_manager()->can_undo());
-    //DataWithSum const* ds = ftk->get_ds(ftk->get_active_ds_position());
     toolbar->EnableTool(ID_ft_f_cont, ftk->get_fit()->is_initialized());
     toolbar->EnableTool(ID_ft_v_pr, !plot_pane->get_zoom_hist().empty());
 }
 
 void FFrame::update_autoadd_enabled()
 {
-    static int old_nr = -1; //this is for optimization, if nr is the same, ...
-    bool diff = (peak_type_nr != old_nr); //... default values are not parsed
-    bool enable = ftk->get_data(ftk->get_active_ds_position())->get_n() > 2
-          && is_function_guessable(Function::get_formula(peak_type_nr), diff);
+    bool enable = is_function_guessable(Function::get_formula(peak_type_nr));
+    vector<int> sel = get_selected_ds_indices();
+    for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i)
+        if (ftk->get_data(*i)->get_n() <= 2)
+            enable = false;
     GetMenuBar()->Enable(ID_S_GUESS, enable);
     if (toolbar)
         toolbar->EnableTool(ID_ft_s_aa, enable);
 }
 
-string FFrame::get_active_data_str()
+int FFrame::get_focused_ds_index()
 {
-    return "@" + S(ftk->get_active_ds_position());
+    return sidebar->get_focused_data();
 }
 
-string FFrame::get_in_dataset()
+vector<int> FFrame::get_selected_ds_indices()
 {
-    return ftk->get_ds_count() > 1 ? " in " + get_active_data_str() : string();
+    return sidebar->get_selected_ds_indices();
 }
 
-string FFrame::get_in_one_or_all_datasets()
+string FFrame::get_in_datasets()
 {
-    if (ftk->get_ds_count() > 1) {
-        if (get_apply_to_all_ds())
-            return " in @*";
-        else
-            return " in " + get_active_data_str();
-    }
-    else
+    if (ftk->get_ds_count() == 1)
         return "";
+    vector<int> sel = get_selected_ds_indices();
+    if (ftk->get_ds_count() == size(sel))
+        return " in @*";
+    else
+        return " in @" + join_vector(sel, ", @");
+}
+
+vector<DataWithSum*> FFrame::get_selected_ds()
+{
+    vector<int> sel = get_selected_ds_indices();
+    vector<DataWithSum*> dsds(sel.size());
+    for (size_t i = 0; i < sel.size(); ++i)
+        dsds[i] = ftk->get_ds(sel[i]);
+    return dsds;
 }
 
 MainPlot* FFrame::get_main_plot() 
@@ -1782,11 +1795,6 @@ void FFrame::update_data_pane()
     sidebar->update_lists();
 }
 
-bool FFrame::get_apply_to_all_ds()
-{ 
-    return ftk->get_ds_count() > 1 && GetMenuBar()->IsChecked(ID_D_ALLDS); 
-}
-
 void FFrame::activate_function(int n)
 {
     sidebar->activate_function(n);
@@ -1795,7 +1803,7 @@ void FFrame::activate_function(int n)
 void FFrame::update_app_title()
 {
     string title = "fityk";
-    int pos = ftk->get_active_ds_position();
+    int pos = frame->get_focused_ds_index();
     string const& filename = ftk->get_data(pos)->get_filename();
     if (!filename.empty())
         title += " - " + filename;
@@ -1934,7 +1942,6 @@ void FToolBar::update_peak_type(int nr, vector<string> const* peak_types)
     peak_choice->SetSelection(nr); 
 }
 
-//FIXME move these small functions to header file?
 void FToolBar::OnChangeMouseMode (wxCommandEvent& event)
 {
     frame->OnChangeMouseMode(event);
@@ -1958,7 +1965,7 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
                 frame->plot_pane->get_bg_manager()->undo_strip_background();
             break; 
         case ID_ft_f_run : 
-            ftk->exec("fit" + frame->get_in_dataset()); 
+            ftk->exec("fit" + frame->get_in_datasets()); 
             break; 
         case ID_ft_f_cont: 
             ftk->exec("fit+"); 
@@ -1968,7 +1975,7 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
             break; 
         case ID_ft_s_aa: 
             ftk->exec("guess " + frame->get_peak_type() 
-                         + frame->get_in_dataset());
+                                                 + frame->get_in_datasets());
             break; 
         default: 
             assert(0);

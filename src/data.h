@@ -21,7 +21,7 @@ class Data
 public :
     std::string title;
 
-    Data(Ftk const* F_) : F(F_), y_min(0.), y_max(1e3) {}
+    Data(Ftk const* F_) : F(F_), x_step(0.), y_min(0.), y_max(1e3) {}
     ~Data() {}
     std::string get_info() const;
 
@@ -69,6 +69,7 @@ public :
     std::string get_given_type() const { return given_type; }
     std::vector<int> get_given_cols() const { return given_cols; }
     static std::string read_one_line_as_title(std::ifstream& f, int column=-1);
+    void revert();
 private:
     Ftk const* F;
     std::string filename;

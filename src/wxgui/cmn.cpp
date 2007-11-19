@@ -2,7 +2,6 @@
 // Licence: GNU General Public License version 2
 // $Id$
 
-// wxwindows headers, see wxwindows samples for description
 #include <wx/wxprec.h>
 #ifdef __BORLANDC__
 #pragma hdrstop
