@@ -233,7 +233,7 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
 END_EVENT_TABLE()
 
 MainPlot::MainPlot (wxWindow *parent) 
-    : FPlot(parent), BgManager(xs),
+    : FPlot(parent), bgm(xs),
       basic_mode(mmd_zoom), mode(mmd_zoom), 
       pressed_mouse_button(0), ctrl_on_down(false), shift_on_down(false),
       over_peak(-1), limit1(INT_MIN), limit2(INT_MIN)
@@ -551,7 +551,7 @@ void MainPlot::draw_background(wxDC& dc, bool set_pen)
     // bg line
     int X = -1, Y = -1;
     int width = get_pixel_width(dc);
-    vector<int> bgline = calculate_bgline(width);
+    vector<int> bgline = bgm.calculate_bgline(width);
     for (int i = 0; i < width; ++i) {
         int X_ = X, Y_ = Y;
         X = i;
@@ -560,7 +560,7 @@ void MainPlot::draw_background(wxDC& dc, bool set_pen)
             dc.DrawLine (X_, Y_, X, Y); 
     }
     // bg points (circles)
-    for (bg_const_iterator i = bg.begin(); i != bg.end(); i++) {
+    for (BgManager::bg_const_iterator i = bgm.begin(); i != bgm.end(); i++) {
         dc.DrawCircle(xs.px(i->x), ys.px(i->y), 3);
         dc.DrawCircle(xs.px(i->x), ys.px(i->y), 4);
     }
@@ -928,11 +928,11 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         cancel_mouse_press();
     }
     else if (button == 1 && mode == mmd_bg) {
-        add_background_point(x, y);
+        bgm.add_background_point(x, y);
         refresh(false);
     }
     else if (button == 3 && mode == mmd_bg) {
-        rm_background_point(x);
+        bgm.rm_background_point(x);
         refresh(false);
     }
     else if (button == 1 && mode == mmd_add) {

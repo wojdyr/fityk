@@ -67,6 +67,8 @@ public:
     void OnContact (wxCommandEvent& event);
     void OnQuit (wxCommandEvent& event);
 
+    void OnDataRevertUpdate (wxUpdateUIEvent& event);
+    void OnDataExportUpdate (wxUpdateUIEvent& event);
     void OnDataQLoad     (wxCommandEvent& event);   
     void OnDataXLoad     (wxCommandEvent& event);   
     void OnDataRecent    (wxCommandEvent& event);

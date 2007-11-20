@@ -253,12 +253,14 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_D_QLOAD,       FFrame::OnDataQLoad)   
     EVT_MENU (ID_D_XLOAD,       FFrame::OnDataXLoad)   
     EVT_MENU_RANGE (ID_D_RECENT+1, ID_D_RECENT_END, FFrame::OnDataRecent)
+    EVT_UPDATE_UI (ID_D_REVERT, FFrame::OnDataRevertUpdate)
     EVT_MENU (ID_D_REVERT,      FFrame::OnDataRevert)
     EVT_MENU (ID_D_EDITOR,      FFrame::OnDataEditor)
     EVT_MENU_RANGE (ID_D_FDT+1, ID_D_FDT_END, FFrame::OnFastDT)
     EVT_MENU (ID_D_MERGE,       FFrame::OnDataMerge)
     EVT_MENU (ID_D_RM_SHIRLEY,  FFrame::OnDataRmShirley)
     EVT_MENU (ID_D_CALC_SHIRLEY,FFrame::OnDataCalcShirley)
+    EVT_UPDATE_UI (ID_D_EXPORT, FFrame::OnDataExportUpdate)
     EVT_MENU (ID_D_EXPORT,      FFrame::OnDataExport) 
 
     EVT_MENU (ID_DEFMGR,        FFrame::OnDefinitionMgr)   
@@ -897,14 +899,21 @@ void FFrame::OnDataRecent (wxCommandEvent& event)
     add_recent_data_file(s);
 }
 
+void FFrame::OnDataRevertUpdate (wxUpdateUIEvent& event)
+{
+    vector<int> sel = get_selected_ds_indices();
+    event.Enable(sel.size() == 1 
+                 && !ftk->get_data(sel[0])->get_filename().empty());
+}
+
 void FFrame::OnDataRevert (wxCommandEvent&)
 {
     vector<int> sel = get_selected_ds_indices();
     string cmd;
-    for (size_t i = 0; i < sel.size(); ++i) {
-        if (i != 0)
+    for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i) {
+        if (i != sel.begin())
             cmd += "; ";
-        cmd += "@" + S(i) + ".revert";
+        cmd += "@" + S(*i) + ".revert";
     }
     ftk->exec(cmd);
 }
@@ -913,8 +922,8 @@ void FFrame::OnDataEditor (wxCommandEvent&)
 {
     vector<pair<int,Data*> > dd;
     vector<int> sel = get_selected_ds_indices();
-    for (size_t i = 0; i < sel.size(); ++i)
-        dd.push_back(make_pair(i, ftk->get_data(i)));
+    for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i) 
+        dd.push_back(make_pair(*i, ftk->get_data(*i)));
     DataEditorDlg data_editor(this, -1, dd);
     data_editor.ShowModal();
 }
@@ -966,13 +975,12 @@ void FFrame::OnDataCalcShirley (wxCommandEvent&)
 {
     vector<int> sel = get_selected_ds_indices();
     string cmd;
-    for (size_t i = 0; i < sel.size(); ++i) {
-        int n = sel[i];
-        string title = ftk->get_data(n)->get_title();
+    for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i) {
+        string title = ftk->get_data(*i)->get_title();
         int c = ftk->get_ds_count();
-        if (i != 0)
+        if (i != sel.begin())
             cmd += "; ";
-        cmd += "@+ = shirley_bg @" + S(n)
+        cmd += "@+ = shirley_bg @" + S(*i)
               + "; @" + S(c) + ".title = '" + title + "-Shirley'";
     }
     ftk->exec(cmd);
@@ -982,13 +990,18 @@ void FFrame::OnDataRmShirley (wxCommandEvent&)
 {
     vector<int> sel = get_selected_ds_indices();
     string cmd;
-    for (size_t i = 0; i < sel.size(); ++i) {
-        string dstr = "@" + S(sel[i]);
-        if (i != 0)
+    for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i) {
+        string dstr = "@" + S(*i);
+        if (i != sel.begin())
             cmd += "; ";
         cmd += dstr + " = rm_shirley_bg " + dstr;
     }
     ftk->exec(cmd);
+}
+
+void FFrame::OnDataExportUpdate (wxUpdateUIEvent& event)
+{
+    event.Enable(get_selected_ds_indices().size() == 1);
 }
 
 void FFrame::OnDataExport (wxCommandEvent&)

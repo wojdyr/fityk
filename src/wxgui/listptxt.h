@@ -58,7 +58,7 @@ public:
     DataListPlusText(wxWindow *parent, wxWindowID id, wxWindowID list_id,
                  std::vector<std::pair<std::string,int> > const& columns_)
         : ListPlusText(parent, id, list_id, columns_) {}
-    void update_data_list(bool nondata_changed, bool with_stats);
+    void update_data_list(bool nondata_changed);
     std::vector<std::string> get_selected_data() const;
 };
 

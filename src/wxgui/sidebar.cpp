@@ -177,8 +177,8 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     wxBoxSizer *data_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
     add_bitmap_button(data_page, ID_DP_COL, colorsel_xpm, 
                       wxT("change color"), data_buttons_sizer);
-    add_bitmap_button(data_page, ID_DP_NEW, add_xpm, 
-                      wxT("new data"), data_buttons_sizer);
+    //add_bitmap_button(data_page, ID_DP_NEW, add_xpm, 
+    //                  wxT("new data"), data_buttons_sizer);
     add_bitmap_button(data_page, ID_DP_DUP, sum_xpm, 
                       wxT("duplicate/sum"), data_buttons_sizer);
     add_bitmap_button(data_page, ID_DP_CPF, copyfunc_xpm, 
@@ -485,7 +485,7 @@ void SideBar::save_settings(wxConfigBase *cf) const
 void SideBar::update_lists(bool nondata_changed)
 {
     Freeze();
-    d->update_data_list(nondata_changed, true);
+    d->update_data_list(nondata_changed);
     update_func_list(nondata_changed);
     update_var_list();
     
@@ -618,7 +618,7 @@ int SideBar::get_focused_data() const
     wxListView *lv = d->list;
     int focused = lv->GetFocusedItem();
     if (focused >= ftk->get_ds_count()) {
-        d->update_data_list(true, true);
+        d->update_data_list(false);
         focused = ftk->get_ds_count() - 1;
         lv->Focus(focused);
     }
@@ -643,6 +643,8 @@ vector<int> SideBar::get_selected_ds_indices()
 {
     vector<int> sel;
     wxListView *lv = d->list;
+    if (ftk->get_ds_count() != lv->GetItemCount())
+        d->update_data_list(false);
     for (int i = lv->GetFirstSelected(); i != -1; i = lv->GetNextSelected(i))
         sel.push_back(i);
     if (sel.empty()) {
@@ -657,6 +659,8 @@ vector<int> SideBar::get_selected_ds_indices()
 vector<int> SideBar::get_ordered_dataset_numbers()
 {
     wxListView *lv = d->list;
+    if (ftk->get_ds_count() != lv->GetItemCount())
+        d->update_data_list(false);
     vector<int> ordered;
     int count = lv->GetItemCount();
     if (count == 0)
@@ -727,20 +731,32 @@ void SideBar::do_activate_function()
     update_bottom_panel();
 }
 
+// Focus is _not_ used for data-related operations, only for function-related
+// ones. Sum and functions are shown only for focused dataset.
 void SideBar::OnDataFocusChanged(wxListEvent &) 
 { 
     int n = d->list->GetFocusedItem();
+    //ftk->msg("[F] id:" + S(event.GetIndex()) + " focused:" 
+    //         + S(d->list->GetFocusedItem()));
     if (n < 0)
         return;
     int length = ftk->get_ds_count();
     if (length > 1)
         frame->refresh_plots();
+    update_data_inf();
 }
 
-void SideBar::OnDataSelectionChanged(wxListEvent &) 
+void SideBar::OnDataSelectionChanged(wxListEvent &event) 
 { 
     if (data_look->GetSelection() != 0) // ! all datasets
         frame->refresh_plots();
+    bool selected = (event.GetEventType() == wxEVT_COMMAND_LIST_ITEM_SELECTED);
+    assert (selected 
+            || event.GetEventType() == wxEVT_COMMAND_LIST_ITEM_DESELECTED);
+    //long index = event.GetIndex();
+    //ftk->msg("id:" + S(index) + " e.sel:" + S(selected)
+    //         + " issel:" + S(d->list->IsSelected(index))
+    //         + " foc:" + S(d->list->GetFocusedItem()));
     update_data_buttons();
 }
 
@@ -749,8 +765,8 @@ void SideBar::update_data_buttons()
     bool not_the_last = get_focused_data()+1 < ftk->get_ds_count();
     int sel_d = d->list->GetSelectedItemCount();
     data_page->FindWindow(ID_DP_REN)->Enable(sel_d == 1);
-    data_page->FindWindow(ID_DP_DEL)->Enable(sel_d > 0);
-    data_page->FindWindow(ID_DP_COL)->Enable(sel_d > 0);
+    //data_page->FindWindow(ID_DP_DEL)->Enable(sel_d > 0);
+    //data_page->FindWindow(ID_DP_COL)->Enable(sel_d > 0);
     data_page->FindWindow(ID_DP_CPF)->Enable(sel_d == 1 && not_the_last);
 }
 
@@ -1012,8 +1028,6 @@ void SideBar::update_bottom_panel()
 
 bool SideBar::howto_plot_dataset(int n, bool& shadowed, int& offset) const
 {
-    if (ftk->get_ds_count() != d->list->GetItemCount())
-        d->update_data_list(true, true);
     // choice_idx: 0: "show all datasets" 
     //             1: "show only selected" 
     //             2: "shadow unselected" 

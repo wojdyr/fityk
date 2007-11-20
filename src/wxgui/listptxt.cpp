@@ -86,8 +86,8 @@ void ListWithColors::populate(vector<string> const& data,
                 ++c;
             }
         }
-        if (active != -2)
-            Select(i, i == active);
+        //if (active != -2)
+        //    Select(i, i == active);
     }
     list_data = data;
     
@@ -189,8 +189,11 @@ void ListPlusText::OnSwitchInfo(wxCommandEvent&)
 
 //===============================================================
 
-void DataListPlusText::update_data_list(bool nondata_changed, bool with_stats)
+void DataListPlusText::update_data_list(bool nondata_changed)
 {
+    if (!frame)
+        return;
+
     MainPlot const* mplot = frame->get_main_plot();
     wxColour const& bg_col = mplot->get_bg_color();
 
@@ -198,8 +201,7 @@ void DataListPlusText::update_data_list(bool nondata_changed, bool with_stats)
     for (int i = 0; i < ftk->get_ds_count(); ++i) {
         DataWithSum const* ds = ftk->get_ds(i);
         data_data.push_back(S(i));
-        if (with_stats)
-            data_data.push_back(S(ds->get_sum()->get_ff_names().size()) 
+        data_data.push_back(S(ds->get_sum()->get_ff_names().size()) 
                             + "+" + S(ds->get_sum()->get_zz_names().size()));
         data_data.push_back(ds->get_data()->get_title());
         data_data.push_back(ds->get_data()->get_filename());
@@ -211,8 +213,12 @@ void DataListPlusText::update_data_list(bool nondata_changed, bool with_stats)
             data_images->Add(make_color_bitmap16(mplot->get_data_color(i), 
                                                  bg_col));
     }
-    int focused_data = frame->get_focused_ds_index();
-    list->populate(data_data, data_images, focused_data);
+    int focused = list->GetFocusedItem();
+    if (focused < 0) 
+        focused = 0;
+    else if (focused >= list->GetItemCount())
+        focused = list->GetItemCount() - 1;
+    list->populate(data_data, data_images, focused);
 }
 
 

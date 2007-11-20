@@ -193,7 +193,7 @@ void do_print_plots(wxDC *dc, PrintManager const* pm)
             vp.push_back(pm->plot_pane->get_aux_plot(i));
 
     //width is the same for all plots
-    int W = pm->plot_pane->GetClientSize().GetWidth(); 
+    //int W = pm->plot_pane->GetClientSize().GetWidth(); 
 
     // height is a sum of all heights + (N-1)*space
     int H = (vp.size() - 1) * space;  

@@ -19,6 +19,9 @@ class Function;
 class BgManager
 {
 public:
+    typedef std::vector<PointQ>::iterator bg_iterator;
+    typedef std::vector<PointQ>::const_iterator bg_const_iterator;
+
     BgManager(Scale const& x_scale_) : x_scale(x_scale_), min_dist(8), 
                                      spline_bg(true) {}
     void add_background_point(fp x, fp y);
@@ -32,12 +35,12 @@ public:
     void set_spline_bg(bool s) { spline_bg=s; }
     void set_as_convex_hull();
     std::vector<int> calculate_bgline(int window_width);
+    bg_const_iterator begin() const { return bg.begin(); }
+    bg_const_iterator end() const { return bg.end(); }
 protected:
     Scale const& x_scale;
     int min_dist; //minimal distance in X between bg points
     bool spline_bg;
-    typedef std::vector<PointQ>::iterator bg_iterator;
-    typedef std::vector<PointQ>::const_iterator bg_const_iterator;
     std::vector<PointQ> bg, bg_backup;
     std::string cmd_tail;
 };
@@ -104,12 +107,13 @@ private:
 };
 
 /// main plot, single in application, displays data, fitted peaks etc. 
-class MainPlot : public FPlot, public BgManager
-                 //TODO BgManager should be contained in MainPlot
+class MainPlot : public FPlot
 {
     friend class ConfigureAxesDlg;
     friend class ConfigurePLabelsDlg;
 public:
+    BgManager bgm;
+
     MainPlot(wxWindow *parent); 
     ~MainPlot() {}
     void OnPaint(wxPaintEvent &event);
