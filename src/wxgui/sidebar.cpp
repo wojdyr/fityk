@@ -673,7 +673,7 @@ vector<int> SideBar::get_ordered_dataset_numbers()
     for (int i = 0; i < count; ++i) {
         if (lv->IsSelected(i)) {
             if (i != focused) 
-                ordered.push_back(i);
+                selected.push_back(i);
         }
         else
             ordered.push_back(i);
