@@ -73,6 +73,7 @@ protected:
     int get_selected_item();
     void insert_trans_list_item(int n);
     void select_transform(int item);
+    bool is_revertable() const;
     void refresh_grid();
     DECLARE_EVENT_TABLE()
 };

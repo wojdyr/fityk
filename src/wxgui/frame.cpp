@@ -106,6 +106,7 @@
 #include "img/runmacro16.h"
 #include "img/stopmacro16.h"
 #include "img/undo16.h"
+#include "img/revert16.h"
 
 // I have wxUSE_METAFILE=1 on wxGTK-2.6.1, which was probably a bug
 #if wxUSE_METAFILE && defined(__WXGTK__)
@@ -123,6 +124,7 @@ enum {
     ID_D_XLOAD                 ,
     ID_D_RECENT                , //and next ones
     ID_D_RECENT_END = ID_D_RECENT+30 , 
+    ID_D_REVERT                ,
     ID_D_EDITOR                ,
     ID_D_FDT                   ,
     ID_D_FDT_END = ID_D_FDT+50 ,
@@ -251,6 +253,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_D_QLOAD,       FFrame::OnDataQLoad)   
     EVT_MENU (ID_D_XLOAD,       FFrame::OnDataXLoad)   
     EVT_MENU_RANGE (ID_D_RECENT+1, ID_D_RECENT_END, FFrame::OnDataRecent)
+    EVT_MENU (ID_D_REVERT,      FFrame::OnDataRevert)
     EVT_MENU (ID_D_EDITOR,      FFrame::OnDataEditor)
     EVT_MENU_RANGE (ID_D_FDT+1, ID_D_FDT_END, FFrame::OnFastDT)
     EVT_MENU (ID_D_MERGE,       FFrame::OnDataMerge)
@@ -609,6 +612,8 @@ void FFrame::set_menubar()
         data_menu_recent->Append(ID_D_RECENT + rf_counter, 
                                  i->GetFullName(), i->GetFullPath());
     data_menu->Append(ID_D_RECENT, wxT("&Recent Files"), data_menu_recent); 
+    append_mi(data_menu, ID_D_REVERT, GET_BMP(revert16), wxT("&Revert"), 
+              wxT("Reload data from file(s)")); 
     data_menu->AppendSeparator();
 
     data_menu->Append (ID_D_EDITOR, wxT("&Editor\tCtrl-E"), 
@@ -892,6 +897,18 @@ void FFrame::OnDataRecent (wxCommandEvent& event)
     add_recent_data_file(s);
 }
 
+void FFrame::OnDataRevert (wxCommandEvent&)
+{
+    vector<int> sel = get_selected_ds_indices();
+    string cmd;
+    for (size_t i = 0; i < sel.size(); ++i) {
+        if (i != 0)
+            cmd += "; ";
+        cmd += "@" + S(i) + ".revert";
+    }
+    ftk->exec(cmd);
+}
+
 void FFrame::OnDataEditor (wxCommandEvent&)
 {
     vector<pair<int,Data*> > dd;
@@ -1076,7 +1093,7 @@ void FFrame::OnFRun (wxCommandEvent&)
         
 void FFrame::OnFInfo (wxCommandEvent&)
 {
-    ftk->exec("info fit");
+    ftk->exec("info fit" + get_in_datasets());
 }
          
 void FFrame::OnFUndo (wxCommandEvent&)

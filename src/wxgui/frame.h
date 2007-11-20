@@ -69,13 +69,14 @@ public:
 
     void OnDataQLoad     (wxCommandEvent& event);   
     void OnDataXLoad     (wxCommandEvent& event);   
-    void OnDataRecent       (wxCommandEvent& event);
-    void OnDataEditor       (wxCommandEvent& event);
+    void OnDataRecent    (wxCommandEvent& event);
+    void OnDataRevert    (wxCommandEvent& event);
+    void OnDataEditor    (wxCommandEvent& event);
     void OnFastDT        (wxCommandEvent& event);       
-    void OnDataMerge        (wxCommandEvent&);
+    void OnDataMerge     (wxCommandEvent&);
     void OnDataCalcShirley (wxCommandEvent&);
     void OnDataRmShirley (wxCommandEvent&);
-    void OnDataExport       (wxCommandEvent&);
+    void OnDataExport    (wxCommandEvent&);
 
     void OnDefinitionMgr (wxCommandEvent&);         
     void OnSGuess        (wxCommandEvent& event);         

@@ -87,7 +87,7 @@ vector<DataWithSum*> get_datasets_from_indata()
     vector<int> indices = get_ds_indices_from_indata();
     vector<DataWithSum*> result(indices.size());
     for (size_t i = 0; i < indices.size(); ++i)
-        result[i] = AL->get_ds(i);
+        result[i] = AL->get_ds(indices[i]);
     return result;
 }
 

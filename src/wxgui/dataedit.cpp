@@ -397,9 +397,17 @@ void DataEditorDlg::update_data(ndnd_type const& dd)
         save_as_btn->Enable(false);
         grid->Show(false);
     }
+    revert_btn->Enable(is_revertable());
     filename_label->SetLabel(s2wx(filename));
-    revert_btn->Enable(!filename.empty());
     title_label->SetLabel(s2wx(title));
+}
+
+bool DataEditorDlg::is_revertable() const
+{
+    for (ndnd_type::const_iterator i = ndnd.begin(); i != ndnd.end(); ++i) 
+        if (i->second->get_filename().empty())
+            return false;
+    return true;
 }
 
 void DataEditorDlg::refresh_grid()
@@ -418,14 +426,10 @@ void DataEditorDlg::OnRevert (wxCommandEvent&)
 {
     string cmd;
     for (ndnd_type::const_iterator i = ndnd.begin(); i != ndnd.end(); ++i) {
-        Data const* d = i->second;
-        if (!d->get_filename().empty())
-            cmd += "@" + S(i->first) + " <'" + d->get_filename() + "'" 
-                + d->get_given_type() + " " 
-                + join_vector(d->get_given_cols(), ",") + "; "; 
+        if (i != ndnd.begin())
+            cmd += "; ";
+        cmd += "@" + S(i->first) + ".revert";
     }
-    if (cmd.empty())
-        return;
     ftk->exec(cmd);
     refresh_grid();
 }

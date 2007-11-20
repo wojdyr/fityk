@@ -173,7 +173,12 @@ void Data::revert()
     if (filename.empty())
         throw ExecuteError("Dataset can't be reverted, it was not loaded "
                            "from file");
-    load_file(filename, given_type, given_cols);
+    string old_title = title;
+    string old_filename = filename; 
+    // this->filename should not be passed by ref to load_file(), because it's
+    // cleared before being used
+    load_file(old_filename, given_type, given_cols);
+    title = old_title;
 }
 
 namespace {

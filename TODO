@@ -11,18 +11,25 @@ Legend:
 
 // * GUI: selected dataset line can be below shadowed one
 
-* @0.revert
-   (can't revert data that was not read from file)
+// * @0.revert
+
+* enable/disable menu items: Data > Revert, Data > Export
+
+* GUI: sidebar: 
+          - items in data listctrl should not be re-inserted when number
+	      of items is the same (to preserve selection and focus)
+	  - info textctrl is not updated when it should
+	  - it shouldn't be possible to deselect all datasets
 
 //* remove active_ds, get_active_ds_position(), etc.
 //  plot (...) in @3, @*
 
-* GUI: Fit > Info doesn't work with multiple datasets
+// * GUI: Fit > Info doesn't work with multiple datasets
 
-* GUI: Data: revert from file (new menu item), 
-       use @n.revert in Data Editor button
+// * GUI: Data: revert from file (new menu item), 
+//        use @n.revert in Data Editor button
 
-* GUI: remove "Apply to all datasets" is not clear - use sidebar selection
+// * GUI: remove "Apply to all datasets" is not clear - use sidebar selection
 
 * data: integrate fityk with xylib written by Peng Zhang as GSOC project
 

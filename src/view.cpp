@@ -40,7 +40,7 @@ void View::fit_zoom(int flag)
     vector<Data const*> datas(datasets.size()); 
     datas[0] = first->get_data();
     for (size_t i = 1; i < datasets.size(); ++i)
-        datas[i] = F->get_ds(i)->get_data();
+        datas[i] = F->get_ds(datasets[i])->get_data();
     
     if (flag&fit_left || flag&fit_right) {
         fp x_min=0, x_max=0;
