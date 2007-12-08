@@ -311,7 +311,7 @@
      the potential of this auxiliary plot.
     </para>
     <para>
-     Configuration of the GUI (visible windows, colors, etc.) can be saved using 
+     Configuration of the GUI (visible windows, colors, etc.) can be saved using
      <menuchoice>
       <guimenu>GUI</guimenu><guimenuitem>Save current config</guimenuitem>
      </menuchoice>. 
@@ -328,8 +328,8 @@
     <para>
      The usage of the mouse on menu, dialog windows, 
      input field and output window is (hopefully)
-     intuitive, so the only remaining topic to be discussed here is how to effectively
-     use the mouse on plots.
+     intuitive, so the only remaining topic to be discussed here is how to 
+     effectively use the mouse on plots.
     </para>
     <para>
      Let us start with the auxiliary plot. 
@@ -338,8 +338,8 @@
      while the <mousebutton>left</mousebutton> allows you to 
      select the range to be displayed on the x-axis. 
      Clicking with the <mousebutton>middle</mousebutton> button (or with 
-     <mousebutton>left</mousebutton> button and <keycap>Shift</keycap> pressed simultaneously)
-     will zoom out to display all data. 
+     <mousebutton>left</mousebutton> button and <keycap>Shift</keycap> pressed 
+     simultaneously) will zoom out to display all data. 
     </para>
     <para>
      On the main plot, the meaning of the <mousebutton>left</mousebutton> and
@@ -1539,8 +1539,8 @@
    <section id="nonlinear">
     <title>Nonlinear optimization </title>
     <para>
-     This is the core. We have a set of observations (data points), 
-     to which we want to fit a <firstterm>model</firstterm> (or sum of functions) 
+     This is the core. We have a set of observations (data points), to which 
+     we want to fit a <firstterm>model</firstterm> (or sum of functions) 
      that depends on adjustable parameters. 
      Let me quote <citetitle pubwork="book">Numerical Recipes</citetitle>, 
      chapter 15.0, page 656 (if you do not know the book, visit 
@@ -2251,11 +2251,18 @@
    <title>Extensions</title>
    <section id="add_bfunc">
     <title>How to add your own built-in function</title>
+    <note>
+     <para>
+      Add built-in function only if 
+      <link linkend="udf">user-defined function (UDF)</link> 
+      is too slow or too limited.
+     </para>
+    </note>
     <para>
      To add a built-in function, you have to change the source of the program
      and then recompile it. Users who want to do this should be able to compile
-     the program from source and know the basics of C, C++ or another programming
-     language.
+     the program from source and know the basics of C, C++ or another 
+     programming language.
     </para>
     <para>
      The description that follows is not complete. If something is not clear,

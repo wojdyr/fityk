@@ -642,6 +642,8 @@ int SideBar::get_focused_var() const
 vector<int> SideBar::get_selected_ds_indices()
 {
     vector<int> sel;
+    if (!frame) // app not fully initialized yet
+        return sel;
     wxListView *lv = d->list;
     if (ftk->get_ds_count() != lv->GetItemCount())
         d->update_data_list(false);

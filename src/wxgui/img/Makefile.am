@@ -55,6 +55,7 @@ zoom_vert.xpm \
 zshift.xpm \
  \
 book16.h \
+bug16.h \
 export16.h \
 fileopen16.h \
 filereload16.h \

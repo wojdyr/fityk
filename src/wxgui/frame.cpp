@@ -93,6 +93,7 @@
 #include "img/zoom_vert.xpm"
 
 #include "img/book16.h"
+#include "img/bug16.h"
 #include "img/export16.h"
 #include "img/fileopen16.h"
 #include "img/filereload16.h"
@@ -793,7 +794,7 @@ void FFrame::set_menubar()
 
     append_mi(help_menu, ID_H_MANUAL, GET_BMP(book16), wxT("&Manual\tF1"), 
               wxT("User's Manual"));
-    help_menu->Append(ID_H_CONTACT, wxT("&Report bug (on-line)"), 
+    append_mi(help_menu, ID_H_CONTACT, GET_BMP(bug16), wxT("&Report a Problem"),
                       wxT("Feedback is always appreciated."));
     help_menu->Append(wxID_ABOUT, wxT("&About..."), wxT("Show about dialog"));
 

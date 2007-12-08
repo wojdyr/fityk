@@ -16,7 +16,20 @@ Legend:
 
 * GUI: test printing
 
+* gtk: opening definition manager causes Gtk-CRITICAL warning (wx2.9)
+
+* check if commands with trailing spaces work with Boost 1.34
+
+* %name = guess Linear in @*  -- should give error for more than one dataset
+
 --------------> 0.8.3
+
+* embedding python scripts or other plugin-like solution  [IMPORTANT]
+  perhaps IPC instead of embedded scripting language?
+
+* rewrite crystallographic part in python [IMPORTANT]
+
+--------------> 0.9.0
 
 * GUI: should (and where) windows size & position be stored?
 
@@ -32,20 +45,14 @@ Legend:
 
 * BUG: "plot . []" sometimes doesn't work as expected if x axis is not visible.
 
-* export multiple datasets to one data file
-
---------------> 0.8.4
+--------------> 
 
 * making libfityk thread-safe (pass around Fityk* F, remove all `AL',
    remove static class members and global variables)
 
-* embedding python scripts or other plugin-like solution  [IMPORTANT]
-  perhaps IPC instead of embedded scripting language?
-
-* rewrite crystallographic part in python [IMPORTANT]
-
 * BUG, parsing problem: "i $a*$a" => Syntax error; "i 0+$a*$a" => OK
 
+* export multiple datasets to one data file
 * (?)exporting data with info "info @n () [range] > file"
   if not redirected, should display ... [1234 lines more] rather than all lines
 
