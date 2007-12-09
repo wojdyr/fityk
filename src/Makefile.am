@@ -24,6 +24,3 @@ libfityk_la_SOURCES = logic.cpp view.cpp cmd3.cpp cmd2.cpp cmd.cpp common.cpp \
 
 include_HEADERS = fityk.h
 
-#fityk_wrap.cpp: fityk.i fityk.h
-#	swig -c++ -python -o $@ $<
-

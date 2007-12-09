@@ -1,8 +1,14 @@
 
 For convenience of user, who will build fityk from source (from tarball,
-not from CVS -- if you've downloaded fityk from CVS, you have to first install
+not from SVN -- if you downloaded fityk from SVN, you have to first install
 these dependencies), following dependencies are distributed with fityk:
 
 * Spirit 1.8.2 (without docs, examples etc. See http://spirit.sf.net 
                 for details. Spirit consists only of header files)
 
+* additional Boost headers - some of them are distributed with Spirit as 
+  'miniboost', other are required by xylib
+
+* xylib - at this moment modified version of xylib is in fityk SVN. 
+          probably in future we will use original version:
+	  http://www.sf.net/projects/xylib
