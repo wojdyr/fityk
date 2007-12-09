@@ -7,7 +7,7 @@
 #include <string>
 #include <string.h>
 
-#include "xylib.h"
+#include "xylib/xylib.h"
 
 using namespace std;
  
