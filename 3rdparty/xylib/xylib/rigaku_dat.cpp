@@ -55,7 +55,7 @@ and "*STEP" included).The data body of one group begins after "*COUNT=XXX").
     
 */
 
-#include "ds_rigaku_dat.h"
+#include "rigaku_dat.h"
 #include "util.h"
 
 using namespace std;

@@ -36,7 +36,7 @@ NOTE: V5 format has not been tested, because we cannot get sample files.
 
 */
 
-#include "ds_philips_raw.h"
+#include "philips_raw.h"
 #include "util.h"
 
 using namespace std;

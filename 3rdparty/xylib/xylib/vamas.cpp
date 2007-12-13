@@ -38,7 +38,7 @@ based on the paper 1 mentioned above and the analysis of the sample files.
 
 */
 
-#include "ds_vamas.h"
+#include "vamas.h"
 #include "util.h"
 
 using namespace std;

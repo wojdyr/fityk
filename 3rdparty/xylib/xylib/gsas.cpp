@@ -11,7 +11,7 @@ FORMAT DESCRIPTION:
 GSAS data format, used in the software called GSAS.
 
 ///////////////////////////////////////////////////////////////////////////////
-    * Name in progam:   ds_gsas
+    * Name in progam:   gsas
     * Extension name:   gss
     * Binary/Text:      text
     * Multi-blocks:     N
@@ -36,7 +36,7 @@ BANK    1       7251       726 CONST        500.00      2.00     0.000     0.000
    
 */
 
-#include "ds_gsas.h"
+#include "gsas.h"
 #include "util.h"
 
 using namespace std;
@@ -46,7 +46,7 @@ namespace xylib {
 
 const FormatInfo GsasDataSet::fmt_info(
     FT_GSAS,
-    "gss",
+    "gsas",
     "GSAS Instrumental File Format",
     vector<string>(1, "gss"),
     false,                       // whether binary

@@ -6,17 +6,17 @@
 #include "xylib.h"
 #include "util.h"
 
-#include "ds_brucker_raw_v1.h"
-#include "ds_brucker_raw_v23.h"
-#include "ds_rigaku_dat.h"
-#include "ds_text.h"
-#include "ds_uxd.h"
-#include "ds_vamas.h"
-#include "ds_philips_udf.h"
-#include "ds_winspec_spe.h"
-#include "ds_pdcif.h"
-#include "ds_philips_raw.h"
-#include "ds_gsas.h"
+#include "brucker_raw_v1.h"
+#include "brucker_raw_v2.h"
+#include "rigaku_dat.h"
+#include "text.h"
+#include "uxd.h"
+#include "vamas.h"
+#include "philips_udf.h"
+#include "winspec_spe.h"
+#include "pdcif.h"
+#include "philips_raw.h"
+#include "gsas.h"
 
 #include <iostream>
 #include <algorithm>
@@ -382,46 +382,64 @@ DataSet::~DataSet()
 
 //////////////////////////////////////////////////////////////////////////
 // namespace scope global functions
+
+DataSet* dataset_factory(xy_ftype ft)
+{
+    if (FT_BR_RAW1 == ft) 
+        return new BruckerV1RawDataSet(); 
+    else if (FT_BR_RAW23 == ft) 
+        return new BruckerV23RawDataSet();
+    else if (FT_UXD == ft) 
+        return new UxdDataSet();
+    else if (FT_TEXT == ft) 
+        return new TextDataSet();
+    else if (FT_RIGAKU == ft) 
+        return new RigakuDataSet();
+    else if (FT_VAMAS == ft) 
+        return new VamasDataSet();
+    else if (FT_UDF == ft) 
+        return new UdfDataSet();
+    else if (FT_SPE == ft) 
+        return new WinspecSpeDataSet();
+    else if (FT_PDCIF == ft) 
+        return new PdCifDataSet();
+    else if (FT_PHILIPS_RAW == ft) 
+        return new PhilipsRawDataSet();
+    else if (FT_GSAS== ft) 
+        return new GsasDataSet();
+    else {
+        throw XY_Error("unkown or unsupported file type");
+        return 0; // to avoid warnings
+    }
+}
+
 DataSet* getNewDataSet(istream &is, xy_ftype filetype /* = FT_UNKNOWN */, 
     const string &filename /* = "" */)
 {
-    DataSet *pd = NULL;
     xy_ftype ft = (FT_UNKNOWN == filetype) ? guess_file_type(filename) : filetype;
-
-    if (FT_BR_RAW1 == ft) {
-        pd = new BruckerV1RawDataSet(); 
-    } else if (FT_BR_RAW23 == ft) {
-        pd = new BruckerV23RawDataSet();
-    } else if (FT_UXD == ft) {
-        pd = new UxdDataSet();
-    } else if (FT_TEXT == ft) {
-        pd = new TextDataSet();
-    } else if (FT_RIGAKU == ft) {
-        pd = new RigakuDataSet();
-    } else if (FT_VAMAS == ft) {
-        pd = new VamasDataSet();
-    } else if (FT_UDF == ft) {
-        pd = new UdfDataSet();
-    } else if (FT_SPE == ft) {
-        pd = new WinspecSpeDataSet();
-    } else if (FT_PDCIF == ft) {
-        pd = new PdCifDataSet();
-    } else if (FT_PHILIPS_RAW == ft) {
-        pd = new PhilipsRawDataSet();
-    } else if (FT_GSAS== ft) {
-        pd = new GsasDataSet();
-    } else {
-        pd = NULL;
-        throw XY_Error("unkown or unsupported file type");
-    }
-
-    if (NULL != pd) {
-        pd->load_data(is); 
-    }
-
+    DataSet *pd = dataset_factory(ft);
+    pd->load_data(is); 
     return pd;
 }
 
+// filename: path, filename or only extension *with dot*
+vector<xy_ftype> get_possible_filetypes(string const& filename)
+{
+    vector<xy_ftype> results;
+
+    // get extension
+    string::size_type pos = filename.find_last_of('.');
+    if(pos == string::npos) 
+        return results;
+    string ext = str_tolower(filename.substr(pos + 1));
+
+    for (int i = 1; i < FT_NUM; ++i) {
+        vector<string> const& exts = g_fi[i]->exts;
+        if (find(exts.begin(), exts.end(), ext) != exts.end())
+            results.push_back(g_fi[i]->ftype);
+    }
+    return results;
+}
 
 xy_ftype guess_file_type(const string &fpath)
 {
@@ -444,7 +462,7 @@ xy_ftype guess_file_type(const string &fpath)
         } else if ("udf" == ext) {
             return FT_UDF;
         } else if ("raw" == ext) {
-            // may be brucker_raw_v1 or v2/v3. notice the order
+            // may be brucker_raw_v1 or v2/v3. 
             if (BruckerV23RawDataSet::check(f)) {
                 return FT_BR_RAW23;
             } else {

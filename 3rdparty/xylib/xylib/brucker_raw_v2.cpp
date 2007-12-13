@@ -19,15 +19,15 @@ Siemens/Brucker X-ray diffractors.
 ///////////////////////////////////////////////////////////////////////////////
     * Format details:   
 It is of the same type in the data organizaton with the v1 format, except that 
-the fields have different meanings and offsets. See ds_brucker_raw_v1.cpp for 
+the fields have different meanings and offsets. See brucker_raw_v1.cpp for 
 reference.
 
 ///////////////////////////////////////////////////////////////////////////////
-    * Implementation Ref: See ds_brucker_raw_v1.cpp
+    * Implementation Ref: See brucker_raw_v1.cpp
 */
 
 
-#include "ds_brucker_raw_v23.h"
+#include "brucker_raw_v2.h"
 #include "util.h"
 
 using namespace std;

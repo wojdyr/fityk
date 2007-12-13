@@ -38,8 +38,8 @@ There may be some comment lines without any valid XY data
 
 */
 
-#include "ds_text.h"
-#include "ds_rigaku_dat.h"
+#include "text.h"
+#include "rigaku_dat.h"
 #include "util.h"
 
 using namespace std;

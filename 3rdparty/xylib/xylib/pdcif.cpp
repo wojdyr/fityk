@@ -88,7 +88,7 @@ http://www.iucr.org/iucr-top/cif/index.html
 
 */
 
-#include "ds_pdcif.h"
+#include "pdcif.h"
 #include "util.h"
 #include <map>
 

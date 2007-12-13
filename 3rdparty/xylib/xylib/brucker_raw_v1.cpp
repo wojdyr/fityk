@@ -41,7 +41,7 @@ and v2/v3 formats; and at the end, a sample FORTRAN program is given.
 
 */
 
-#include "ds_brucker_raw_v1.h"
+#include "brucker_raw_v1.h"
 #include "util.h"
 
 using namespace std;

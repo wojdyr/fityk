@@ -40,7 +40,7 @@ and a SPE reading program written by Pablo Bianucci <pbian@physics.utexas.edu>.
 
 */
 
-#include "ds_winspec_spe.h"
+#include "winspec_spe.h"
 #include "util.h"
 #include <cmath>
 
