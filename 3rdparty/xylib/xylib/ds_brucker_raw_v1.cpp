@@ -61,7 +61,7 @@ const FormatInfo BruckerV1RawDataSet::fmt_info(
 
 bool BruckerV1RawDataSet::check(istream &f)
 {
-    // the first 3 letters must be "RAW"
+    // the first 4 letters must be "RAW "
     f.clear();
 
     string head;
@@ -76,7 +76,7 @@ bool BruckerV1RawDataSet::check(istream &f)
     }
 
     f.seekg(0);     // reset the istream, as if no lines have been read
-    return ("RAW" == head.substr(0, 3) && head[3] != '2');
+    return ("RAW " == head);
 }
 
 

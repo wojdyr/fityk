@@ -11,7 +11,7 @@ FORMAT DESCRIPTION:
 X-Y plain text format.
 
 ///////////////////////////////////////////////////////////////////////////////
-    * Name in progam:   ds_brucker_raw_v1
+    * Name in progam:   text
     * Extension name:   txt, dat, asc, prn
     * Binary/Text:      text
     * Multi-blocks:     N
@@ -19,7 +19,9 @@ X-Y plain text format.
 ///////////////////////////////////////////////////////////////////////////////
     * Format details: 
 In every valid date line, the format is 
-x y [std_dev]\n x y [std_dev]\n x y [std_dev]\n ...
+x y [std_dev]
+x y [std_dev]
+...
 delimiters between X and Y may be white spaces or  , : ;
 There may be some comment lines without any valid XY data
 
@@ -50,7 +52,7 @@ const static string exts[5] = { "txt", "dat", "asc", "csv", "prn" };
 const FormatInfo TextDataSet::fmt_info(
     FT_TEXT,
     "text",
-    "the ascii plain text Format",
+    "ascii plain text",
     vector<string>(exts, exts + sizeof(exts) / sizeof(string)),
     false,                       // whether binary
     false                        // whether has multi-blocks

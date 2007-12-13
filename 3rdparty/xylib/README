@@ -37,23 +37,22 @@ GSAS format														.gss
 
 FILES
 ============
-xylib.h 
-xylib.cpp 
-	xylib functions and main classes.
-
-util.h
-util.cpp
-	Internal-used helper functions in namespace xylib::util.
-		
-ds_*.h
-ds_*.cpp
-	Derived classes from DataSet, for reading meta-info and xy-data from specific file format.
+xylib/
+    xylib.h 
+    xylib.cpp 
+    	xylib functions and main classes.
+    
+    util.h
+    util.cpp
+    	Internal-used helper functions in namespace xylib::util.
+    		
+    Other .cpp/.h files correspond to supported file formats.
 	
 xyconv.cpp
 	A user tool with arguments to convert xylib-supported file to ASCII file.
 	
 samples/
-	Original sample files categorized into different sub-directories according to their types. To get the sample files, change your working directory to ./samples/, then "sh get_samples.sh".
+      run get_samples.sh to download sample files
 
 samples.sh
 	Shell script to test all sample files in ./samples, and output to ./output.

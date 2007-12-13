@@ -8,6 +8,18 @@ Legend:
 // = done, but not tested/documented  
 
 * data: integrate fityk with xylib written by Peng Zhang as GSOC project
+  - change data loading syntax: 
+          @n < filename
+          @+ < filename:1,5/6/7 
+          @+ < filename:1,5-7 
+          @+ < 'filename':1,5/6/7 
+          @n < 'filename':1,2,3,4-5  (x,y,z,block)
+          @n < 'filename':1,2,,4-5  (x,y,z,block)
+          @n < 'filename':,,,4-5  (block)
+          @n < 'filename':4-5  (block)
+          @n < 'filename':x,y,z,block  filetype filetype-options
+	                 (:[0-9,/- ]+)   [::alnum::]+
+  - 
 
 * BUG?: @+ < 'filename':1,5/6/7" doesn't work. What should be a syntax 
   for columns?

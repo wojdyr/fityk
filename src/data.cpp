@@ -4,7 +4,6 @@
 
 #include "common.h"
 #include "data.h" 
-#include "fileroutines.h"
 //#include "ui.h"
 #include "numfuncs.h"
 #include "datatrans.h" 
@@ -17,6 +16,8 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+
+//#include <xylib/xylib.h>
 
 using namespace std;
 
@@ -59,18 +60,19 @@ string Data::get_info() const
     return s;
 }
 
+// FIXME: check if it works correctly on both little- and big-endian machines
 double Data::pdp11_f (char* fl)  //   function that converts:
 {                          //   single precision 32-bit floating point
                            //   DEC PDP-11 format
                            //   to double
-    int znak = *(fl+1) & 0x80;
-    int unbiased = ((*(fl+1)&0x7F)<<1) + (((*fl)&0x80)>>7) -128 ;
+    int sign = *(fl+1) & 0x80;
+    int unbiased = ((*(fl+1)&0x7F)<<1) + (((*fl)&0x80)>>7) - 128;
     if (unbiased == -128)
         return (0);
     double h = ( (*(fl+2)&0x7F)/256./256./256. +
             (*(fl+3)&0x7F)/256./256.  +
             (128+((*fl)&0x7F))/256. );
-    return (znak==0 ? 1. : -1.) * h * pow(2., (double)unbiased);
+    return (sign == 0 ? 1. : -1.) * h * pow(2., unbiased);
 }
 
 string Data::guess_file_type(string const& filename)
@@ -430,7 +432,7 @@ vector<string> Data::load_file (string const& file, string const& type,
     else if (ft == "CPI")                     // .cpi
         load_cpi_filetype(f);
     else if (ft == "BrukerRAW")               // .raw
-        load_siemensbruker_filetype(filename, this);
+        ; //load_siemensbruker_filetype(filename, this);
     else {                                  // other ?
         throw ExecuteError("Unknown filetype.");
     }
