@@ -124,9 +124,6 @@ void WinspecSpeDataSet::load_data(std::istream &f)
         }
 
         VecColumn *p_ycol = new VecColumn;
-        Block *p_blk = new Block;
-        p_blk->add_column(p_xcol, Block::CT_X);
-        p_blk->add_column(p_ycol, Block::CT_Y);
         
         for (int pt = 0; pt < dim; ++pt) {
             double x = idx_to_calib_val(pt, calib);
@@ -152,6 +149,9 @@ void WinspecSpeDataSet::load_data(std::istream &f)
             p_ycol->add_val(x);
         }
         
+        Block *p_blk = new Block;
+        p_blk->add_column(p_xcol, Block::CT_X);
+        p_blk->add_column(p_ycol, Block::CT_Y);
         blocks.push_back(p_blk);
     }
 }

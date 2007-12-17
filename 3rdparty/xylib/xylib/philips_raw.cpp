@@ -88,22 +88,22 @@ void PhilipsRawDataSet::load_data(std::istream &f)
     f.ignore(82);
     int dt_idx = static_cast<int>(read_char(f));
     if (0 <= dt_idx && dt_idx <= 5) {
-        add_meta("diffractor type", diffractor_types[dt_idx]);
+        meta["diffractor type"]  = diffractor_types[dt_idx];
     }
 
     int anode_idx = static_cast<int>(read_char(f));
     if (0 <= anode_idx && anode_idx <= 5) {
-        add_meta("tube anode material", anode_materials[anode_idx]);
+        meta["tube anode material"] = anode_materials[anode_idx];
     }
 
     int ft_idx = static_cast<int>(read_char(f));
     if (0 <= ft_idx && ft_idx <= 3) {
-        add_meta("focus type of x-ray tube", focus_types[ft_idx]);
+        meta["focus type of x-ray tube"] = focus_types[ft_idx];
     }
 
     f.ignore(138 - 84 - 3);
-    add_meta("name of the file", read_string(f, 8));
-    add_meta("sample identification", read_string(f, 20));
+    meta["name of the file"] = read_string(f, 8);
+    meta["sample identification"] = read_string(f, 20);
 
     f.ignore(214 - 138 - 8 - 20);
     double x_step = read_dbl_le(f);

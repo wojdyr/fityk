@@ -124,19 +124,10 @@ void UxdDataSet::load_data(std::istream &f)
                 p_xcol->set_step(my_strtod(val));
             }
             
-            switch (pos_flg) {
-            case FILE_META:
-                add_meta(key, val);
-                break;
-            case RANGE_META:
-                p_blk->add_meta(key, val);
-                break;
-            case RANGE_DATA:
-                p_blk->add_meta(key, val);
-                break;            
-            default:
-                break;
-            }
+            if (pos_flg == FILE_META)
+                meta[key] = val;
+            else
+                p_blk->meta[key] = val;
             
         } else if (start_as_num(line)){            // should be a li  ne of values
             vector<double> values;

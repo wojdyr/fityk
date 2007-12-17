@@ -11,6 +11,10 @@
 #include <boost/detail/endian.hpp>
 #include <boost/cstdint.hpp>
 
+#if !defined(BOOST_LITTLE_ENDIAN) && !defined(BOOST_BIG_ENDIAN)
+#error "Unknown endianess"
+#endif
+
 using namespace std;
 using namespace xylib::util;
 using namespace boost;
@@ -26,8 +30,7 @@ namespace util{
     {
         uint32_t val;
         my_read(f, reinterpret_cast<char*>(&val), sizeof(val));
-        
-        le_to_host_8(&val);
+        le_to_host_4(&val);
         return val;
     }
 
@@ -153,69 +156,35 @@ namespace util{
     // change the byte-order from "little endian" to host endian
     // for more info, see item "endian" in wikipedia (www.wikipedia.org)
     // le_to_host_x are versions for x-byte atomic element
-    // p: pointer to the data
+    // ptr: pointer to the data
    
-    void le_to_host_2(void *p)
+    void le_to_host_2(void *ptr)
     {
-        if (!p) {
-            return;
-        }
-        
-#if defined(BOOST_LITTLE_ENDIAN)
-        return;
-#elif defined(BOOST_BIG_ENDIAN)
-        uint8_t bytes[2];
-        memcpy(bytes, p, sizeof(bytes));
-        (reinterpret_cast<uint8_t*>(p))[0] = bytes[1];
-        (reinterpret_cast<uint8_t*>(p))[1] = bytes[0];
-#else
-        throw XY_ERROR("system uses unsupported endianess");
+#if defined(BOOST_BIG_ENDIAN)
+        char *p = ptr;
+        swap(p[0], p[1]);
 #endif
     }
 
 
-    void le_to_host_4(void *p)
+    void le_to_host_4(void *ptr)
     {
-        if (!p) {
-            return;
-        }
-        
-#if defined(BOOST_LITTLE_ENDIAN)
-        return;
-#elif defined(BOOST_BIG_ENDIAN)
-        uint8_t bytes[4];
-        memcpy(bytes, p, sizeof(bytes));
-        (reinterpret_cast<uint8_t*>(p))[0] = bytes[3];
-        (reinterpret_cast<uint8_t*>(p))[1] = bytes[2];
-        (reinterpret_cast<uint8_t*>(p))[2] = bytes[1];
-        (reinterpret_cast<uint8_t*>(p))[3] = bytes[0];
-#else
-        throw XY_ERROR("system uses unsupported endianess");
+#if defined(BOOST_BIG_ENDIAN)
+        char *p = ptr;
+        swap(p[0], p[3]);
+        swap(p[1], p[2]);
 #endif
     }
 
 
-    void le_to_host_8(void *p)
+    void le_to_host_8(void *ptr)
     {
-        if (!p) {
-            return;
-        }
-        
-#if defined(BOOST_LITTLE_ENDIAN)
-        return;
-#elif defined(BOOST_BIG_ENDIAN)
-        uint8_t bytes[8];
-        memcpy(bytes, p, sizeof(bytes));
-        (reinterpret_cast<uint8_t*>(p))[0] = bytes[7];
-        (reinterpret_cast<uint8_t*>(p))[1] = bytes[6];
-        (reinterpret_cast<uint8_t*>(p))[2] = bytes[5];
-        (reinterpret_cast<uint8_t*>(p))[3] = bytes[4];
-        (reinterpret_cast<uint8_t*>(p))[4] = bytes[3];
-        (reinterpret_cast<uint8_t*>(p))[5] = bytes[2];
-        (reinterpret_cast<uint8_t*>(p))[6] = bytes[1];
-        (reinterpret_cast<uint8_t*>(p))[7] = bytes[0];
-#else
-        throw XY_ERROR("system uses unsupported endianess");
+#if defined(BOOST_BIG_ENDIAN)
+        char *p = ptr;
+        swap(p[0], p[7]);
+        swap(p[1], p[6]);
+        swap(p[2], p[5]);
+        swap(p[3], p[4]);
 #endif
     }
 

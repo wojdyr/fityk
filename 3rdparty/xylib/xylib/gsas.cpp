@@ -76,15 +76,14 @@ void GsasDataSet::load_data(std::istream &f)
     VecColumn *p_ycol = new VecColumn;
 
     Block *p_blk = new Block;
-    p_blk->add_column(p_xcol, Block::CT_X);
-    p_blk->add_column(p_ycol, Block::CT_Y);
+    p_blk->set_xy_columns(p_xcol, p_ycol);
 
     string line;
 
     // read in line 1, parsing "sample ident" meta-info
     my_getline(f, line);
     string ident = line.substr(13);
-    p_blk->add_meta("sample ident", ident);
+    p_blk->meta["sample ident"] = ident;
 
     // read in line 2. get pt_cnt, x_start & x_step
     my_getline(f, line);

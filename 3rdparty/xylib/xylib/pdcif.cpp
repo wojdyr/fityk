@@ -88,6 +88,8 @@ http://www.iucr.org/iucr-top/cif/index.html
 
 */
 
+#if 0
+
 #include "pdcif.h"
 #include "util.h"
 #include <map>
@@ -179,7 +181,7 @@ void PdCifDataSet::load_data(std::istream &f)
             my_assert(!name.empty(), "block name is empty");
             p_blk->set_name(name);
             
-         } else if (str_startwith(line, "_")) {      // key name
+        } else if (str_startwith(line, "_")) {      // key name
             my_assert(p_blk != NULL, "key name apears before 'data_'");
 
             // key_epos: first position beyond the end of key_name
@@ -404,14 +406,16 @@ bool PdCifDataSet::add_key_val(Block *p_blk, const string &key, const string &va
 void PdCifDataSet::add_block(Block* p_blk)
 {
     // add the columns implied in the meta-keys
-    static const string x_names[] = {"pd measurement 2theta", "pd processed 2theta"};
-    static const string x_start_keys[] = {"pd_meas_2theta_range_min", "pd_proc_2theta_range_min"};
-    static const string x_step_keys[] = {"pd_meas_2theta_range_inc", "_pd_proc_2theta_range_inc"};
-    static const int X_NUM = sizeof(x_names) / sizeof(string);
+    static const string x_names[] 
+                = {"pd measurement 2theta", "pd processed 2theta"};
+    static const string x_start_keys[] 
+                = {"pd_meas_2theta_range_min", "pd_proc_2theta_range_min"};
+    static const string x_step_keys[] 
+                = {"pd_meas_2theta_range_inc", "_pd_proc_2theta_range_inc"};
 
-    for (int i = 0; i < X_NUM; ++i) {
-        if (p_blk->has_meta_key(x_start_keys[i]) && 
-            p_blk->has_meta_key(x_step_keys[i])) {
+    for (int i = 0; i < 2; ++i) {
+        if (p_blk->has_meta_key(x_start_keys[i]) 
+                && p_blk->has_meta_key(x_step_keys[i])) {
             double start_x = my_strtod(p_blk->get_meta(x_start_keys[i]));
             my_assert((-180.0 <= start_x) && (start_x <= 360.0), 
                 "measurement_2theta_range_min should be between -180 and 360");
@@ -449,4 +453,4 @@ VecColumn* PdCifDataSet::get_col_ptr(Block *p_blk, const string name, map<string
 
 } // end of namespace xylib
 
-
+#endif

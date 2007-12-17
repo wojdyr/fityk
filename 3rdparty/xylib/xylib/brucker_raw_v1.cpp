@@ -55,7 +55,8 @@ const FormatInfo BruckerV1RawDataSet::fmt_info(
     "Siemens/Bruker Diffrac-AT Raw Format v1",
     vector<string>(1, "raw"),
     true,                       // whether binary
-    true                        // whether has multi-blocks
+    true,                       // whether has multi-blocks
+    &BruckerV1RawDataSet::check
 );
 
 
@@ -85,18 +86,27 @@ void BruckerV1RawDataSet::load_data(std::istream &f)
     if (!check(f)) {
         throw XY_Error("file is not the expected " + get_filetype() + " format");
     }
-    clear();
 
-    unsigned following_range;
+    f.ignore(4);
+    unsigned following_range = 1;
     
-    do {
+    while (following_range > 0) {
         Block* p_blk = new Block;
     
-        f.ignore(4);
         unsigned cur_range_steps = read_uint32_le(f);  
-        p_blk->add_meta("MEASUREMENT_TIME_PER_STEP", S(read_flt_le(f)));
+        // early DIFFRAC-AT raw data files didn't repeat the "RAW " 
+        // on additional ranges
+        // (and if it's the first block, 4 bytes from file were already read)
+        if (!blocks.empty()) {
+            char rawstr[4] = {'R', 'A', 'W', ' '};
+            le_to_host_4(rawstr);
+            if (cur_range_steps == *reinterpret_cast<uint32_t*>(rawstr))
+                cur_range_steps = read_uint32_le(f);
+        }
+        
+        p_blk->meta["MEASUREMENT_TIME_PER_STEP"] = S(read_flt_le(f));
         float x_step = read_flt_le(f); 
-        p_blk->add_meta("SCAN_MODE", S(read_uint32_le(f)));
+        p_blk->meta["SCAN_MODE"] = S(read_uint32_le(f));
         f.ignore(4); 
         float x_start = read_flt_le(f);
 
@@ -104,19 +114,19 @@ void BruckerV1RawDataSet::load_data(std::istream &f)
         
         float t = read_flt_le(f);
         if (-1e6 != t)
-            p_blk->add_meta("THETA_START", S(t));
+            p_blk->meta["THETA_START"] = S(t);
             
         t = read_flt_le(f);
         if (-1e6 != t)
-            p_blk->add_meta("KHI_START", S(t));
+            p_blk->meta["KHI_START"] = S(t);
             
         t = read_flt_le(f);
         if (-1e6 != t)
-            p_blk->add_meta("PHI_START", S(t));
+            p_blk->meta["PHI_START"], S(t);
 
-        p_blk->add_meta("SAMPLE_NAME", read_string(f, 32));
-        p_blk->add_meta("K_ALPHA1", S(read_flt_le(f)));
-        p_blk->add_meta("K_ALPHA2", S(read_flt_le(f)));
+        p_blk->meta["SAMPLE_NAME"] = read_string(f, 32);
+        p_blk->meta["K_ALPHA1"] = S(read_flt_le(f));
+        p_blk->meta["K_ALPHA2"] = S(read_flt_le(f));
 
         f.ignore(72);   // unused fields
         following_range = read_uint32_le(f);
@@ -127,11 +137,10 @@ void BruckerV1RawDataSet::load_data(std::istream &f)
             float y = read_flt_le(f);
             p_ycol->add_val(y);
         }
-        p_blk->add_column(p_xcol, Block::CT_X);
-        p_blk->add_column(p_ycol, Block::CT_Y);
-        
+        p_blk->set_xy_columns(p_xcol, p_ycol);
+
         blocks.push_back(p_blk);
-    } while (following_range > 0);
+    } 
 }
 
 } // end of namespace xylib

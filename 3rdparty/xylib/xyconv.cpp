@@ -24,9 +24,9 @@ void print_usage()
 
 void list_supported_formats()
 {
-    for (int i = 1; i < xylib::FT_NUM; ++i) 
-        cout << setw(20) << left << xylib::g_fi[i]->name << ": "
-             << xylib::g_fi[i]->desc << endl;
+    for (int i = 0; xylib::formats[i] != NULL; ++i) 
+        cout << setw(20) << left << xylib::formats[i]->name << ": "
+             << xylib::formats[i]->desc << endl;
 }
 
 int main(int argc, char **argv)

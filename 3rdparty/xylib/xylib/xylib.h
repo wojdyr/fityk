@@ -19,49 +19,61 @@
 #include <iomanip>
 #include <limits>
 
+
 namespace xylib
 {
 
-/*
-   so far, supported file formats types are:
-*/
+
+// The list of supported file formats. 
+// When changing order, change also the order of `formats' (TODO: change it)
+// If the file format is not explicitely when reading a file, all formats that
+// support the extension of the file will be tried, so more strict/specific
+// formats should go first on this list.
+
 enum xy_ftype {
-    FT_UNKNOWN,
-    FT_TEXT,
     FT_UXD,
     FT_RIGAKU,
     FT_BR_RAW1,
-    FT_BR_RAW23,
+    FT_BR_RAW2,
     FT_VAMAS,
     FT_UDF,
     FT_SPE,
-    FT_PDCIF,
+    //FT_PDCIF,
     FT_PHILIPS_RAW,
     FT_GSAS,
-    FT_NUM,     // always at bottom to get the number of the types
+    FT_TEXT,
+    FT_UNKNOWN // FT_UNKNOWN doesn't have corresponding element in `formats'
 };
 
 //////////////////////////////////////////////////////////////////////////
 // The class to store the format related info
 struct FormatInfo
 {
+    typedef bool (*t_checker)(std::istream&);
+
     xy_ftype ftype;
     std::string name;    // short name, can be used in dialog filter
     std::string desc;    // full format name
     std::vector<std::string> exts;
     bool binary;
     bool multi_range;
+    t_checker checker;
 
-    FormatInfo(const xy_ftype &ftype_, const std::string &name_, 
-        const std::string &desc_, const std::vector<std::string> &exts_, 
-        bool binary_, bool multi_range_)
+    FormatInfo(const xy_ftype &ftype_, 
+               const std::string &name_, 
+               const std::string &desc_, 
+               const std::vector<std::string> &exts_, 
+               bool binary_, 
+               bool multi_range_,
+               t_checker checker_=NULL)
         : ftype(ftype_), name(name_), desc(desc_), exts(exts_), 
-          binary(binary_), multi_range(multi_range_) {}
+          binary(binary_), multi_range(multi_range_), checker(checker_) {}
 
-    bool has_extension(const std::string &ext); // case insensitive
+    bool has_extension(const std::string &ext) const; // case insensitive
+    bool check(std::istream& f) const {return !checker || (*checker)(f);}
 };
 
-extern const FormatInfo *g_fi[FT_NUM];
+extern const FormatInfo *formats[];
 
 //////////////////////////////////////////////////////////////////////////
 // The class to describe the errors/exceptions in xylib
@@ -78,19 +90,22 @@ public:
 class Column
 {
 public:
-    Column(bool fixed_step_ = false) : fixed_step(fixed_step_), stddev_exist(false) {}
+    Column(bool fixed_step_) 
+        : fixed_step(fixed_step_), stddev(NULL) {}
     virtual ~Column() {}
 
     virtual unsigned get_pt_cnt() const = 0;
     virtual double get_val(unsigned n) const = 0; 
-    bool is_fixed_step() const { return fixed_step; }
+    bool has_fixed_step() const { return fixed_step; }
     
     std::string get_name() const { return name; }
     void set_name(std::string name_) { name = name_; }
+
+    Column const* get_stddev() { }
     
 protected:
     bool fixed_step;
-    bool stddev_exist;
+    Column *stddev;
     std::string name;
 
     // WinspecSpeDataSet need to set fixed_step;
@@ -143,6 +158,13 @@ protected:
 };
 
 
+class MetaData : public std::map<std::string, std::string>
+{
+public:
+    bool has_key(const std::string &key) const { return find(key) != end(); }
+    std::string const& get(std::string const& key) const; 
+    bool set(std::string const& key, std::string const& val);
+};
 
 //////////////////////////////////////////////////////////////////////////
 // The class for holding a block/range of X-Y data
@@ -150,9 +172,10 @@ class Block
 {
 public:
     enum col_type {CT_X, CT_Y, CT_STDDEV, CT_UNDEF};    // column type
+    MetaData meta;
     
-    Block(std::map<std::string, std::string> *p_meta_map_ = NULL);
-    virtual ~Block();
+    Block();
+    ~Block();
 
     ///////////////////////////////////////////////////////////////////////////
     // reading functions
@@ -173,14 +196,8 @@ public:
     int get_column_stddev() const { return column_stddev; } 
     std::string get_name() const { return name; }
     
-    // basic support for block-level meta-info
-    bool has_meta_key(const std::string &key) const;
-    bool has_meta() const { return (0 != p_meta_map->size()); }
-    std::vector<std::string> get_all_meta_keys() const;
-    const std::string& get_meta(std::string const& key) const; 
     
-    void export_xy_file(const std::string &fname) const;
-    void export_xy_file(std::ofstream &of) const;
+    void export_xy_file(std::ostream &os) const;
 
     ///////////////////////////////////////////////////////////////////////////
     // writing functions, only called inside xylib
@@ -191,20 +208,16 @@ public:
     void set_column_stddev(unsigned n);
     void set_name(std::string &name_) { name = name_; }
 
-    // add a <key, val> pair of meta-info to DataSet
-    bool add_meta(const std::string &key, const std::string &val);
     void add_column(Column *p_col, col_type type = CT_UNDEF);
+    void set_xy_columns(Column *x, Column *y);
     
 protected:
-    std::map<std::string, std::string> *p_meta_map;
     std::vector<Column*> cols;
     int column_x, column_y, column_stddev;  // which column is taken as x/y/stddev
                                             // x,y column idx defaut to 0,1
     std::string name;
-    int sub_blk_idx;    // idx of a sub-block in a block (e.g. some pdCIF format)
+    //int sub_blk_idx;    // idx of a sub-block in a block (e.g. some pdCIF format)
 
-    // Class PdCifDataSet need to access the p_meta_map member.
-    friend class PdCifDataSet;
 };
 
 
@@ -218,18 +231,11 @@ public:
 
     // access the blocks in this file
     unsigned get_block_cnt() const { return blocks.size(); }
-    const Block& get_block(unsigned i) const;
+    const Block* get_block(unsigned i) const;
 
-    // getters of some attributes associate to files 
-    const std::string& get_filetype() const { return g_fi[ftype]->name; };
     // return a detailed description of current file type
-    const std::string& get_filetype_desc() const { return g_fi[ftype]->desc; }; 
-
-    // basic support for file-level meta-info, shared with all blocks
-    bool has_meta_key(const std::string &key) const;
-    bool has_meta() const { return (0 != meta_map.size()); }
-    std::vector<std::string> get_all_meta_keys() const;
-    const std::string& get_meta(std::string const& key) const; 
+    const std::string& get_filetype_desc() const 
+                                            { return formats[ftype]->desc; }; 
 
     // input/output data from/to file
     virtual void load_data(std::istream &f) = 0;
@@ -237,14 +243,14 @@ public:
     void export_xy_file(const std::string &fname, 
         bool with_meta = true, const std::string &cmt_str = ";") const; 
 
-    // add a <key, val> pair of meta-info to DataSet
-    bool add_meta(const std::string &key, const std::string &val);
 
 protected:
     xy_ftype ftype;
-    std::vector<Block*> blocks;     // use "Block*" to support polymorphism
-    std::map<std::string, std::string> meta_map;
-}; // end of DataSet
+    std::vector<Block*> blocks;
+    MetaData meta;
+
+    const std::string& get_filetype() const { return formats[ftype]->name; };
+}; 
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -253,29 +259,10 @@ protected:
 // get a non-abstract DataSet ptr according to the given "filetype"
 // if "filetype" is not given, uses auto-detection to decide its type
 DataSet* getNewDataSet(std::istream &is, xy_ftype filetype = FT_UNKNOWN,
-    const std::string &filename = "");
+                       const std::string &filename = "");
 
-xy_ftype guess_file_type(const std::string &filename);
+xy_ftype guess_filetype(const std::string &path);
 xy_ftype string_to_ftype(const std::string &ftype_name);
-
-
-// output the meta-info to ostream os
-// cmt_str: all meta info will be output as a comment line; cmt_str is the 
-//          string at the biginning of the line to indicate it's a comment
-template <typename T>
-void output_meta(std::ostream &os, T *pds, const std::string &cmt_str)
-{
-    using namespace std;
-    if(pds->has_meta()){
-        os << cmt_str << "meta-key" << "\t" << "meta_val" << endl;
-        vector<string> meta_keys = pds->get_all_meta_keys();
-        vector<string>::iterator it = meta_keys.begin();
-        for(; it != meta_keys.end(); ++it){
-            os << cmt_str << *it << ":\t" << pds->get_meta(*it) << endl;
-        }
-    }
-}
-
 
 } // end of namespace xylib
 

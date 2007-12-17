@@ -27,9 +27,9 @@ namespace util
     char read_char(std::istream &f);
     std::string read_string(std::istream &f, unsigned len);
 
-    void le_to_host_2(void *p);
-    void le_to_host_4(void *p);
-    void le_to_host_8(void *p);
+    void le_to_host_2(void *ptr);
+    void le_to_host_4(void *ptr);
+    void le_to_host_8(void *ptr);
 
     std::string str_trim(const std::string &str, std::string ws = " \r\n\t");
     void parse_line(const std::string &line, std::string &key, std::string &val, 

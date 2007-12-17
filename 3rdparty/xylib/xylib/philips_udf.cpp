@@ -107,7 +107,7 @@ void UdfDataSet::load_data(std::istream &f)
             x_step = my_strtod(val);
             p_xcol->set_step(x_step);
         } else {
-            p_blk->add_meta(key, val);
+            p_blk->meta[key] = val;
         }
     }
 
