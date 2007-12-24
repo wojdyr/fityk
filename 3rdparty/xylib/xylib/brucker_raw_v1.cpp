@@ -1,45 +1,10 @@
-// Implementation of class BruckerV1RawDataSet for reading meta-info and 
-// xy-data from Siemens/Bruker Diffrac-AT Raw Format version 1 format files
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id: ds_brucker_raw_v1.cpp $
 
-/*
-
-FORMAT DESCRIPTION:
-====================
-
-Siemens/Bruker Diffrac-AT Raw Format version 1, data format used in 
-Siemens/Brucker X-ray diffractors.
-
-///////////////////////////////////////////////////////////////////////////////
-    * Name in progam:   diffracat_v1_raw
-    * Extension name:   raw
-    * Binary/Text:      binary
-    * Multi-blocks:     Y
-    
-///////////////////////////////////////////////////////////////////////////////
-    * Format details: 
-direct access, binary raw format without any record deliminators. 
-All data are stored in records, and each record has a fixed length. Note that 
-in one record, the data is stored as little-endian (see "endian" in wikipedia
-www.wikipedia.org for details), so on the platform other than little-endian
-(e.g. PDP and Sun SPARC), the byte-order needs be exchanged.
-
-It may contain multiple blocks/ranges in one file.
-There is a common header in the head of the file, with fixed length fields 
-indicating file-scope meta-info whose actrual meaning can be found in the 
-format specification.Each block has its onw block-scope meta-info at the 
-beginning, followed by the Y data.
-
-///////////////////////////////////////////////////////////////////////////////
-    * Implementation Ref of xylib: 
-mainly based on the file format specification: some scanned pages from a book, 
-sent to me by Marcin Wojdyr (wojdyr@gmail.com). 
-The title of these pages are "Appendix B: DIFFRAC-AT Raw Data File Format". 
-In these pages, there are some tables listing every field of the DIFFRAC-AT v1 
-and v2/v3 formats; and at the end, a sample FORTRAN program is given.
-
-*/
+// Siemens/Bruker Diffrac-AT Raw Format version 1/2/3
+//  - data format used in Siemens/Brucker X-ray diffractometers.
+// based on the file format specification:
+// "Appendix B: DIFFRAC-AT Raw Data File Format" from a diffractometer manual 
 
 #include "brucker_raw_v1.h"
 #include "util.h"
@@ -49,26 +14,35 @@ using namespace xylib::util;
 
 namespace xylib {
 
-const FormatInfo BruckerV1RawDataSet::fmt_info(
+const FormatInfo BruckerRawDataSet::fmt_info(
     "diffracat_v1_raw",
-    "Siemens/Bruker Diffrac-AT Raw Format v1",
+    "Siemens/Bruker Diffrac-AT Raw v 1/2/3",
     vector<string>(1, "raw"),
     true,                       // whether binary
     true,                       // whether has multi-blocks
-    &BruckerV1RawDataSet::check
+    &BruckerRawDataSet::check
 );
 
 
-bool BruckerV1RawDataSet::check(istream &f)
+bool BruckerRawDataSet::check(istream &f)
 {
     string head = read_string(f, 4);
-    return head == "RAW ";
+    return head == "RAW " || head == "RAW2";
 }
 
 
-void BruckerV1RawDataSet::load_data(std::istream &f) 
+void BruckerRawDataSet::load_data(std::istream &f) 
 {
-    f.ignore(4);
+    string head = read_string(f, 4);
+    format_assert(head == "RAW " || head == "RAW2"); 
+    if (head[3] == ' ')
+        load_version1(f);
+    else
+        load_version2(f);
+}
+
+void BruckerRawDataSet::load_version1(std::istream &f) 
+{
     unsigned following_range = 1;
     
     while (following_range > 0) {
@@ -122,6 +96,51 @@ void BruckerV1RawDataSet::load_data(std::istream &f)
 
         blocks.push_back(p_blk);
     } 
+}
+
+void BruckerRawDataSet::load_version2(std::istream &f) 
+{
+    unsigned range_cnt = read_uint16_le(f);
+
+    // add file-scope meta-info
+    f.ignore(162);
+    meta["DATE_TIME_MEASURE"] = read_string(f, 20);
+    meta["CEMICAL SYMBOL FOR TUBE ANODE"] = read_string(f, 2);
+    meta["LAMDA1"] = S(read_flt_le(f));
+    meta["LAMDA2"] = S(read_flt_le(f));
+    meta["INTENSITY_RATIO"] = S(read_flt_le(f));
+    f.ignore(8);
+    meta["TOTAL_SAMPLE_RUNTIME_IN_SEC"] = S(read_flt_le(f));
+
+    f.ignore(42);   // move ptr to the start of 1st block
+    for (unsigned cur_range = 0; cur_range < range_cnt; ++cur_range) {
+        Block* p_blk = new Block;
+
+        // add the block-scope meta-info
+        unsigned cur_header_len = read_uint16_le(f);
+        my_assert (cur_header_len > 48, "block header too short");
+
+        unsigned cur_range_steps = read_uint16_le(f);
+        f.ignore(4);
+        p_blk->meta["SEC_PER_STEP"] = S(read_flt_le(f));
+        
+        float x_step = read_flt_le(f);
+        float x_start = read_flt_le(f);
+        StepColumn *p_xcol = new StepColumn(x_start, x_step);
+
+        f.ignore(26);
+        p_blk->meta["TEMP_IN_K"] = S(read_uint16_le(f));
+
+        f.ignore(cur_header_len - 48);  // move ptr to the data_start
+        VecColumn *p_ycol = new VecColumn;
+        
+        for(unsigned i = 0; i < cur_range_steps; ++i) {
+            float y = read_flt_le(f);
+            p_ycol->add_val(y);
+        }
+        p_blk->set_xy_columns(p_xcol, p_ycol);
+        blocks.push_back(p_blk);
+    }
 }
 
 } // end of namespace xylib

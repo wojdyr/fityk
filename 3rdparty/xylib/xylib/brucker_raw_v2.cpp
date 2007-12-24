@@ -52,51 +52,6 @@ bool BruckerV23RawDataSet::check(istream &f)
 }
 
 
-void BruckerV23RawDataSet::load_data(std::istream &f) 
-{
-    f.ignore(4);
-    unsigned range_cnt = read_uint16_le(f);
-
-    // add file-scope meta-info
-    f.ignore(162);
-    meta["DATE_TIME_MEASURE"] = read_string(f, 20);
-    meta["CEMICAL SYMBOL FOR TUBE ANODE"] = read_string(f, 2);
-    meta["LAMDA1"] = S(read_flt_le(f));
-    meta["LAMDA2"] = S(read_flt_le(f));
-    meta["INTENSITY_RATIO"] = S(read_flt_le(f));
-    f.ignore(8);
-    meta["TOTAL_SAMPLE_RUNTIME_IN_SEC"] = S(read_flt_le(f));
-
-    f.ignore(42);   // move ptr to the start of 1st block
-    for (unsigned cur_range = 0; cur_range < range_cnt; ++cur_range) {
-        Block* p_blk = new Block;
-
-        // add the block-scope meta-info
-        unsigned cur_header_len = read_uint16_le(f);
-        my_assert (cur_header_len > 48, "block header too short");
-
-        unsigned cur_range_steps = read_uint16_le(f);
-        f.ignore(4);
-        p_blk->meta["SEC_PER_STEP"] = S(read_flt_le(f));
-        
-        float x_step = read_flt_le(f);
-        float x_start = read_flt_le(f);
-        StepColumn *p_xcol = new StepColumn(x_start, x_step);
-
-        f.ignore(26);
-        p_blk->meta["TEMP_IN_K"] = S(read_uint16_le(f));
-
-        f.ignore(cur_header_len - 48);  // move ptr to the data_start
-        VecColumn *p_ycol = new VecColumn;
-        
-        for(unsigned i = 0; i < cur_range_steps; ++i) {
-            float y = read_flt_le(f);
-            p_ycol->add_val(y);
-        }
-        p_blk->set_xy_columns(p_xcol, p_ycol);
-        blocks.push_back(p_blk);
-    }
-}
 
 } // end of namespace xylib
 

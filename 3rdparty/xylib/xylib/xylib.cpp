@@ -12,7 +12,6 @@
 #include "util.h"
 
 #include "brucker_raw_v1.h"
-#include "brucker_raw_v2.h"
 #include "rigaku_dat.h"
 #include "text.h"
 #include "uxd.h"
@@ -32,8 +31,7 @@ namespace xylib {
 const FormatInfo *formats[] = {
     &UxdDataSet::fmt_info,
     &RigakuDataSet::fmt_info,
-    &BruckerV1RawDataSet::fmt_info,
-    &BruckerV23RawDataSet::fmt_info,
+    &BruckerRawDataSet::fmt_info,
     &VamasDataSet::fmt_info,
     &UdfDataSet::fmt_info,
     &WinspecSpeDataSet::fmt_info,
@@ -242,8 +240,7 @@ DataSet* dataset_factory(FormatInfo const* ft)
 #define FACTORY_ITEM(classname) \
     if (ft == &classname::fmt_info) \
         return new classname(); 
-    FACTORY_ITEM(BruckerV1RawDataSet)
-    FACTORY_ITEM(BruckerV23RawDataSet)
+    FACTORY_ITEM(BruckerRawDataSet)
     FACTORY_ITEM(UxdDataSet)
     FACTORY_ITEM(TextDataSet)
     FACTORY_ITEM(RigakuDataSet)
