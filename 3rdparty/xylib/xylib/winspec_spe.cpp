@@ -50,7 +50,6 @@ using namespace xylib::util;
 namespace xylib {
 
 const FormatInfo WinspecSpeDataSet::fmt_info(
-    FT_SPE,
     "spe",
     "Princeton Instruments WinSpec SPE Format",
     vector<string>(1, "spe"),
@@ -69,24 +68,15 @@ bool WinspecSpeDataSet::check(istream &f) {
     // datatype field in header ONLY can be 0~3
     f.seekg(108);
     spe_dt data_type = static_cast<spe_dt>(read_uint16_le(f));
-    if (data_type < SPE_DATA_FLOAT || data_type > SPE_DATA_UINT) {
+    if (data_type < SPE_DATA_FLOAT || data_type > SPE_DATA_UINT) 
         return false;
-    }
 
-    // additional if-condition can be added
-
-    f.seekg(0);
     return true;
 }
 
 
 void WinspecSpeDataSet::load_data(std::istream &f) 
 {
-    if (!check(f)) {
-        throw XY_Error("file is not the expected " + get_filetype() + " format");
-    }
-    clear();
-
     // only read necessary params from file header
     f.ignore(42);
     int xdim = read_uint16_le(f);
@@ -105,10 +95,10 @@ void WinspecSpeDataSet::load_data(std::istream &f)
 
     int dim;
     spe_calib *calib;
-    if (1 == ydim) {
+    if (ydim == 1) {
         dim = xdim;
         calib = &x_calib;
-    } else if (1 == xdim) {
+    } else if (xdim == 1) {
         dim = ydim;
         calib = &y_calib;
     } else {
@@ -117,42 +107,33 @@ void WinspecSpeDataSet::load_data(std::istream &f)
 
     f.ignore(122);      // move ptr to frames-start
     for (unsigned frm = 0; frm < num_frames; ++frm) {
-        VecColumn *p_xcol = new VecColumn;
-        if ((1 == calib->polynom_order) || (!calib->calib_valid)) {
-            // it's linear, so step is fixed
-            p_xcol->fixed_step = true;
-        }
+        Column *xcol = get_calib_column(calib, dim);
 
-        VecColumn *p_ycol = new VecColumn;
-        
-        for (int pt = 0; pt < dim; ++pt) {
-            double x = idx_to_calib_val(pt, calib);
+        VecColumn *ycol = new VecColumn;
+        for (int i = 0; i < dim; ++i) {
             double y = 0;
             switch (data_type) {
-            case SPE_DATA_FLOAT:
-                y = read_flt_le(f);
-                break;
-            case SPE_DATA_LONG:
-                y = read_uint32_le(f);
-                break;
-            case SPE_DATA_INT:
-                y = read_int16_le(f);
-                break;
-            case SPE_DATA_UINT:
-                y = read_uint16_le(f);
-                break;
-            default:
-                break;
+                case SPE_DATA_FLOAT:
+                    y = read_flt_le(f);
+                    break;
+                case SPE_DATA_LONG:
+                    y = read_uint32_le(f);
+                    break;
+                case SPE_DATA_INT:
+                    y = read_int16_le(f);
+                    break;
+                case SPE_DATA_UINT:
+                    y = read_uint16_le(f);
+                    break;
+                default:
+                    break;
             }
-
-            p_xcol->add_val(x);
-            p_ycol->add_val(x);
+            ycol->add_val(y);
         }
         
-        Block *p_blk = new Block;
-        p_blk->add_column(p_xcol, Block::CT_X);
-        p_blk->add_column(p_ycol, Block::CT_Y);
-        blocks.push_back(p_blk);
+        Block *blk = new Block;
+        blk->set_xy_columns(xcol, ycol);
+        blocks.push_back(blk);
     }
 }
 
@@ -160,27 +141,26 @@ void WinspecSpeDataSet::load_data(std::istream &f)
 // internally-used helper functions
 ///////////////////////////////////////////////////////////////////////////////
 
-// get the calibration value of index 'idx'
-double WinspecSpeDataSet::idx_to_calib_val(int idx, const spe_calib *calib)
+Column* WinspecSpeDataSet::get_calib_column(const spe_calib *calib, int dim)
 {
-    double re = 0;
-
-    // Sanity checks
-    if (!calib) {
-        throw XY_Error("invalid calib structure");
-    }
-    
     my_assert(calib->polynom_order <= 6, "bad polynom header found");
 
-    if (!calib->calib_valid) {
-        return idx;        // if invalid, use idx as X instead
+    if (!calib->calib_valid)    //use idx as X instead
+        return new StepColumn(0, 1); 
+    else if (calib->polynom_order == 1) { // linear
+        return new StepColumn(calib->polynom_coeff[0], 
+                              calib->polynom_coeff[1]); 
     }
-
-    for (int i = 0; i <= calib->polynom_order; ++i) {
-        re += calib->polynom_coeff[i] * pow(double(idx + 1), double(i));
+    else {
+        VecColumn *xcol = new VecColumn;
+        for (int i = 0; i < dim; ++i) {
+            double x = 0;
+            for (int j = 0; j <= calib->polynom_order; ++j) 
+                x += calib->polynom_coeff[j] * pow(i + 1., double(j));
+            xcol->add_val(x);
+        }
+        return xcol;
     }
-
-    return re;
 }
 
 

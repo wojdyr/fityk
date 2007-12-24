@@ -47,7 +47,6 @@ namespace xylib {
 const static string exts[4] = { "rd", "sd" };
 
 const FormatInfo PhilipsRawDataSet::fmt_info(
-    FT_PHILIPS_RAW,
     "philips_rd",
     "Philips RD raw scan format V3",
     vector<string>(exts, exts + sizeof(exts) / sizeof(string)),
@@ -58,32 +57,21 @@ const FormatInfo PhilipsRawDataSet::fmt_info(
 
 bool PhilipsRawDataSet::check(istream &f)
 {
-    // the first 4 letters must be "V3RD"
-    f.clear();
     string head = read_string(f, 4);
-    if(f.rdstate() & ios::failbit) {
-        return false;
-    }
-
-    f.seekg(0);
-    return ("V3RD" == head || "V5RD" == head);
+    return head == "V3RD" || head == "V5RD";
 }
 
 
 void PhilipsRawDataSet::load_data(std::istream &f) 
 {
-    if (!check(f)) {
-        throw XY_Error("file is not the expected " + get_filetype() + " format");
-    }
-    clear();
-
     // mappers, translate the numbers to human-readable strings
     const static string diffractor_types[6] = {"PW1800", "PW1710 based system", "PW1840",
         "PW3710 based system", "Undefined", "X'Pert MPD"};
     const static string anode_materials[6] = { "Cu", "Mo", "Fe", "Cr", "Other"};
     const static string focus_types[4] = {"BF", "NF", "FF", "LFF"};
 
-    string version = read_string(f, 2);    // "V3" or "V5"
+    string version = read_string(f, 2);    
+    format_assert(version == "V3" || version == "V5");
 
     f.ignore(82);
     int dt_idx = static_cast<int>(read_char(f));
@@ -128,8 +116,7 @@ void PhilipsRawDataSet::load_data(std::istream &f)
     }
 
     Block *p_blk = new Block;
-    p_blk->add_column(p_xcol, Block::CT_X);
-    p_blk->add_column(p_ycol, Block::CT_Y);
+    p_blk->set_xy_columns(p_xcol, p_ycol);
 
     blocks.push_back(p_blk);
 }

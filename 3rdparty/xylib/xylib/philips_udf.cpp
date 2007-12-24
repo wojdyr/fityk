@@ -51,7 +51,6 @@ using namespace xylib::util;
 namespace xylib {
 
 const FormatInfo UdfDataSet::fmt_info(
-    FT_UDF,
     "philips_udf",
     "Philipse UDF Format",
     vector<string>(1, "udf"),
@@ -62,101 +61,74 @@ const FormatInfo UdfDataSet::fmt_info(
 
 bool UdfDataSet::check (istream &f)
 {
-    f.clear();
     string head = read_string(f, 11);
-    if(f.rdstate() & ios::failbit) {
-        return false;
-    }
-
-    f.seekg(0);
-    return ("SampleIdent" == head);
+    return head == "SampleIdent";
 }
 
 
 void UdfDataSet::load_data(std::istream &f) 
 {
-    if (!check(f)) {
-        throw XY_Error("file is not the expected " + get_filetype() + " format");
+    Block *p_blk = new Block;
+
+    double x_start = 0;
+    double x_step = 0;
+    // read header
+    while (true) {
+        string line = my_getline(f);
+        if (line == "RawScan") // indicates XY data start
+            break;      
+
+        string::size_type pos1 = line.find(',');
+        string::size_type pos2 = line.rfind(',');
+        // there should be at least two ',' in a key-value line
+        format_assert(pos1 != pos2);
+        string key = str_trim(line.substr(0, pos1));
+        string val = str_trim(line.substr(pos1 + 1, pos2 - pos1 - 1));
+
+        if (key == "DataAngleRange") {
+            // both start and end value are given, separated with ','
+            string::size_type pos = val.find_first_of(",");
+            x_start = my_strtod(val.substr(0, pos));
+        } 
+        else if (key == "ScanStepSize") {
+            x_step = my_strtod(val);
+        } 
+        else {
+            p_blk->meta[key] = val;
+        }
     }
-    clear();
 
-    double x_start(0), x_step(0);
-    string key, val;
-
-    // UDF format has only one block with fixed-step X, so create them here
-    StepColumn *p_xcol = new StepColumn;
+    StepColumn *p_xcol = new StepColumn(x_start, x_step);
     p_xcol->set_name("data angle");
 
     VecColumn *p_ycol = new VecColumn;
     p_ycol->set_name("raw scan");
 
-    Block *p_blk = new Block;
-    p_blk->add_column(p_xcol, Block::CT_X);
-    p_blk->add_column(p_ycol, Block::CT_Y);
-    
-    while(true) {
-        get_key_val(f, key, val);
-        if ("RawScan" == key) {
-            break;      // indicates XY data start
-        } else if ("DataAngleRange" == key) {
-            // both start and end value are given, separated with ','
-            string::size_type pos = val.find_first_of(",");
-            x_start = my_strtod(val.substr(0, pos));
-            p_xcol->set_start(x_start);
-        } else if ("ScanStepSize" == key) {
-            x_step = my_strtod(val);
-            p_xcol->set_step(x_step);
-        } else {
-            p_blk->meta[key] = val;
-        }
-    }
-
+    // read data
     string line;
-    bool end_flg(false);
-    while (!end_flg && my_getline(f, line, false)) {
-        if (string::npos != line.find_first_of("/")) {
-            end_flg = true;
-        }
-
+    while (getline(f, line)) {
+        bool has_slash = false;
         for (string::iterator i = line.begin(); i != line.end(); i++) {
-            if (*i == ',') {
+            if (*i == ',') 
                 *i = ' ';
-            }
-
+            else if (*i == '/')
+                has_slash = true;
             // format checking: only space and digit allowed
-            if (!isdigit(*i) && !isspace(*i) && (*i != '/')) {
+            else if (!isdigit(*i) && !isspace(*i)) 
                 throw XY_Error("unexpected char when reading data");
-            }
         }
 
         istringstream ss(line);
         double d;
-        while (ss >> d) {
+        while (ss >> d) 
             p_ycol->add_val(d);
-        }
+    
+        if (has_slash)
+            break;
     }
 
+    p_blk->set_xy_columns(p_xcol, p_ycol);
     blocks.push_back(p_blk);
-}
-
-
-void UdfDataSet::get_key_val(istream &f, string &key, string &val)
-{
-    string line;
-    my_getline(f, line);
-    string::size_type pos1 = line.find(',');
-    if (string::npos == pos1) {
-        key = str_trim(line);
-        val = "";
-    } else {
-        string::size_type pos2 = line.rfind(',');
-
-        // it's impossible that there is only one ',' in a key-val line
-        my_assert(pos2 != string::npos, "file is corrupt");
-        
-        key = str_trim(line.substr(0, pos1));
-        val = str_trim(line.substr(pos1 + 1, pos2 - pos1 - 1));
-    }
 }
 
 } // end of namespace xylib

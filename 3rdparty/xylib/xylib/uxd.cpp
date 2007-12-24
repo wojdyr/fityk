@@ -60,7 +60,6 @@ using namespace xylib::util;
 namespace xylib {
 
 const FormatInfo UxdDataSet::fmt_info(
-    FT_UXD,
     "uxd",
     "Siemens/Bruker Diffrac-AT UXD Format",
     vector<string>(1, "uxd"),
@@ -68,68 +67,54 @@ const FormatInfo UxdDataSet::fmt_info(
     true                         // whether has multi-blocks
 );
 
-bool UxdDataSet::check(istream &f) {
+bool UxdDataSet::check(istream &f) 
+{
     string line;
-    do {
-        my_getline(f, line);
-    } while ("" == line || str_startwith(line, ";"));
-
-    f.seekg(0);
+    while (getline(f, line)) {
+        string::size_type p = line.find_first_not_of(" \t\r\n");
+        if (p != string::npos && line[p] != ';')
+            break;
+    }
     return str_startwith(line, "_FILEVERSION");
 }
 
+
 void UxdDataSet::load_data(std::istream &f) 
 {
-    if (!check(f)) {
-        throw XY_Error("file is not the expected " + get_filetype() + " format");
-    }
-    clear();
-
-    // indicate where we are
-    enum {
-        FILE_META,
-        RANGE_META,
-        RANGE_DATA,
-    } pos_flg = FILE_META;
-
     Block *p_blk = NULL;
-    StepColumn *p_xcol = NULL;
     VecColumn *p_ycol = NULL;
     string line;
+    double start=0., step=0.;
 
-    while (get_valid_line(f, line, ";")) {
-        if (str_startwith(line, "_DRIVE")) {        // first key in a block, indicates block starts
-            pos_flg = RANGE_META;
-            if (p_blk != NULL) {
-                // save the last unsaved block
-                blocks.push_back(p_blk);
-                p_blk = NULL;
-            }
-        
-            p_xcol = new StepColumn;
-            p_ycol = new VecColumn;
+    while (get_valid_line(f, line, ';')) {
+        if (str_startwith(line, "_DRIVE")) { // block starts
             p_blk = new Block;
-            
-            p_blk->add_column(p_xcol, Block::CT_X);
-            p_blk->add_column(p_ycol, Block::CT_Y);
-            
-        } else if (str_startwith(line, "_")) {    // other meta key-value pair. NOTE the order, it must follow other "_XXX" branches
+        }
+        else if (str_startwith(line, "_COUNT")) { // data starts
+            StepColumn *p_xcol = new StepColumn(start, step);
+            p_ycol = new VecColumn;
+            p_blk->set_xy_columns(p_xcol, p_ycol);
+            blocks.push_back(p_blk);
+        } 
+        else if (str_startwith(line, "_")) { // meta-data 
+            // other meta key-value pair. 
+            // NOTE the order, it must follow other "_XXX" branches
             string key, val;
-            parse_line(line, key, val, "=");
-            key = key.substr(1);    // rm the leading '_'
+            str_split(line.substr(1), "=", key, val);
             
-            if ("START" == key) {
-                p_xcol->set_start(my_strtod(val));
-            } else if ("STEPSIZE" == key) {
-                p_xcol->set_step(my_strtod(val));
+            if (key == "START") 
+                start = my_strtod(val);
+            else if (key == "STEPSIZE") 
+                step = my_strtod(val);
+            else {
+                if (p_blk)
+                    p_blk->meta[key] = val;
+                else
+                    meta[key] = val;
             }
             
-            if (pos_flg == FILE_META)
-                meta[key] = val;
-            else
-                p_blk->meta[key] = val;
-            
-        } else if (start_as_num(line)){            // should be a li  ne of values
+        } 
+        else if (is_numeric(line[0])) {   
             vector<double> values;
             get_all_numbers(line, values);
             
@@ -137,21 +122,14 @@ void UxdDataSet::load_data(std::istream &f)
                 p_ycol->add_val(values[i]);
             }
             
-            if (RANGE_META == pos_flg) {
-                pos_flg = RANGE_DATA;
-            }
-        } else {                 // unknown type of line. it should not appear in a correct file
+        } 
+        else {                 
+            // unknown type of line. it should not appear in a correct file
             // what should we do here? continue or throw an exception?
             continue;
         }
     }
-
-    // add the last block
-    if (p_blk != NULL) {
-        // save the last unsaved block
-        blocks.push_back(p_blk);
-        p_blk = NULL;
-    }
+    format_assert(p_blk);
 }
 
 } // end of namespace xylib

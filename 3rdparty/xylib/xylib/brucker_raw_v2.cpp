@@ -36,7 +36,6 @@ using namespace xylib::util;
 namespace xylib {
 
 const FormatInfo BruckerV23RawDataSet::fmt_info(
-    FT_BR_RAW2,
     "diffracat_v2_raw",
     "Siemens/Bruker Diffrac-AT Raw File v2/v3",
     vector<string>(1, "raw"),
@@ -48,24 +47,13 @@ const FormatInfo BruckerV23RawDataSet::fmt_info(
 
 bool BruckerV23RawDataSet::check(istream &f)
 {
-    // the first 4 letters must be "RAW2"
-    f.clear();
     string head = read_string(f, 4);
-    if(f.rdstate() & ios::failbit) {
-        return false;
-    }
-
-    f.seekg(0);
-    return ("RAW2" == head);
+    return head == "RAW2";
 }
 
 
 void BruckerV23RawDataSet::load_data(std::istream &f) 
 {
-    if (!check(f)) {
-        throw XY_Error("file is not the expected " + get_filetype() + " format");
-    }
-
     f.ignore(4);
     unsigned range_cnt = read_uint16_le(f);
 
@@ -105,9 +93,7 @@ void BruckerV23RawDataSet::load_data(std::istream &f)
             float y = read_flt_le(f);
             p_ycol->add_val(y);
         }
-        p_blk->add_column(p_xcol, Block::CT_X);
-        p_blk->add_column(p_ycol, Block::CT_Y);
-        
+        p_blk->set_xy_columns(p_xcol, p_ycol);
         blocks.push_back(p_blk);
     }
 }

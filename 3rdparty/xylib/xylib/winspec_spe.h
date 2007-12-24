@@ -27,7 +27,7 @@ class WinspecSpeDataSet : public DataSet
 {
 public:
     WinspecSpeDataSet()
-        : DataSet(fmt_info.ftype) {}
+        : DataSet(&fmt_info) {}
 
     // implement the interfaces specified by DataSet
     static bool check(std::istream &f);
@@ -36,7 +36,7 @@ public:
     const static FormatInfo fmt_info;
     
 protected:
-    double idx_to_calib_val(int idx, const spe_calib *calib);
+    Column* get_calib_column(const spe_calib *calib, int dim);
     void read_calib(std::istream &f, spe_calib &calib);
     
 }; 

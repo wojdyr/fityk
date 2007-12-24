@@ -11,7 +11,7 @@ namespace xylib {
     {
     public:
         VamasDataSet()
-            : DataSet(fmt_info.ftype), include(40, false) {}
+            : DataSet(&fmt_info), include(40, false) {}
 
         // implement the interfaces specified by DataSet
         void load_data(std::istream &f);
@@ -21,9 +21,8 @@ namespace xylib {
         const static FormatInfo fmt_info;
 
     protected:
-        void read_blk(std::istream &f, Block *p_blk, StepColumn *p_xcol, VecColumn *p_ycol);
+        Block *read_blk(std::istream &f);
 
-        void read_meta_line(std::istream &f, int idx, Block *p_blk, std::string meta_key);
 
         // data members
         //////////////////////////////////////////////////////

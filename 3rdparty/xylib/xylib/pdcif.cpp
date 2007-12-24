@@ -113,7 +113,6 @@ bool PdCifDataSet::check(istream &f) {
 
     // the 1st valid line must start with "data_"
     if (!get_valid_line(f, line, "#") && str_startwith(line, "data_")) {
-        f.seekg(0);
         return false;
     }
 
@@ -126,7 +125,6 @@ bool PdCifDataSet::check(istream &f) {
             break;
         }
     }
-    f.seekg(0);
     return ret;
 }
 

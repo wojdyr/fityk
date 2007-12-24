@@ -50,7 +50,6 @@ using namespace xylib::util;
 namespace xylib {
 
 const FormatInfo BruckerV1RawDataSet::fmt_info(
-    FT_BR_RAW1,
     "diffracat_v1_raw",
     "Siemens/Bruker Diffrac-AT Raw Format v1",
     vector<string>(1, "raw"),
@@ -62,31 +61,13 @@ const FormatInfo BruckerV1RawDataSet::fmt_info(
 
 bool BruckerV1RawDataSet::check(istream &f)
 {
-    // the first 4 letters must be "RAW "
-    f.clear();
-
-    string head;
-    try {
-        head = read_string(f, 4);
-    } catch (...) {
-        return false;
-    }
-    
-    if(f.rdstate() & ios::failbit) {
-        return false;
-    }
-
-    f.seekg(0);     // reset the istream, as if no lines have been read
-    return ("RAW " == head);
+    string head = read_string(f, 4);
+    return head == "RAW ";
 }
 
 
 void BruckerV1RawDataSet::load_data(std::istream &f) 
 {
-    if (!check(f)) {
-        throw XY_Error("file is not the expected " + get_filetype() + " format");
-    }
-
     f.ignore(4);
     unsigned following_range = 1;
     

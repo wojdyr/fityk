@@ -101,44 +101,38 @@ namespace util{
 /////////////////////////
 
     // trim the string 
-    string str_trim(const string &str, string ws /* = " \r\n\t" */)
+    string str_trim(string const& str)
     {
+        std::string ws = " \r\n\t";
         string::size_type first, last;
         first = str.find_first_not_of(ws);
         last = str.find_last_not_of(ws);
-        if (string::npos == first) {
+        if (first == string::npos) 
             return "";
-        }
         return str.substr(first, last - first + 1);
     }
 
 
-    // parse a line. First skip the space chars, then get the separated key and val
-    // e.g. after calling parse_line("a =  2.6", "=", key, val), key=='a' and val=='2.6'
-    void parse_line(const string &line, string &key, string &val, const string &sep /* = ",:=" */)
+    // skip whitespace, get key and val that are separated by `sep'
+    void str_split(string const& line, string const& sep, 
+                   string &key, string &val)
     {
-        string line2(line);
-        string::size_type len1 = line2.find_first_of(sep);
-        if (string::npos == len1) {
+        string::size_type p = line.find_first_of(sep);
+        if (p == string::npos) {
             key = line;
             val = "";
-            return;
         }
-        
-        key = line2.substr(0, len1);
-        key = str_trim(key);
-
-        string::size_type off2 = len1 + sep.size();
-        val = line2.substr(off2);
-        val = str_trim(val);
+        else {
+            key = str_trim(line.substr(0, p));
+            val = str_trim(line.substr(p + sep.size()));
+        }
     }
 
     
-    // decide whether str_src starts with ss
-    bool str_startwith(const string &str_src, const string &ss)
+    // true if str starts with ss
+    bool str_startwith(const string &str, const string &ss)
     {
-        string sub = str_src.substr(0, ss.size());
-        return (sub == ss);
+        return str.size() >= ss.size() && ss == str.substr(0, ss.size());
     }
 
     // change all letters in a string to lower case
@@ -158,35 +152,35 @@ namespace util{
     // le_to_host_x are versions for x-byte atomic element
     // ptr: pointer to the data
    
+#if defined(BOOST_BIG_ENDIAN)
     void le_to_host_2(void *ptr)
     {
-#if defined(BOOST_BIG_ENDIAN)
         char *p = ptr;
         swap(p[0], p[1]);
-#endif
     }
 
 
     void le_to_host_4(void *ptr)
     {
-#if defined(BOOST_BIG_ENDIAN)
         char *p = ptr;
         swap(p[0], p[3]);
         swap(p[1], p[2]);
-#endif
     }
 
 
     void le_to_host_8(void *ptr)
     {
-#if defined(BOOST_BIG_ENDIAN)
         char *p = ptr;
         swap(p[0], p[7]);
         swap(p[1], p[6]);
         swap(p[2], p[5]);
         swap(p[3], p[4]);
-#endif
     }
+#else
+    void le_to_host_2(void *) {}
+    void le_to_host_4(void *) {}
+    void le_to_host_8(void *) {}
+#endif
 
 
     // get all numbers in the first legal line
@@ -277,46 +271,25 @@ namespace util{
         return str_trim(line);
     }
 
-    // get a valid line from "is"
-    // line: out param, will take the line back to caller
-    // cmt_start: a string consists of all possible "comment start" chars
-    bool get_valid_line(std::istream &is, std::string &line, std::string cmt_start)
+    // get a line that is not empty and not a comment
+    bool get_valid_line(std::istream &is, std::string &line, char comment_char)
     {
         // read until get a valid line
         while (getline (is, line)) {
             line = str_trim(line);
-            if (!line.empty() && cmt_start.find_first_of(line[0]) == string::npos) {
+            if (!line.empty() && line[0] != comment_char) 
                 break;
-            }
         }
 
         // trim the "single-line" comments at the tail of a valid line, if any
-        string::size_type pos = line.find_first_of(cmt_start);
-        if (string::npos != pos) {
+        string::size_type pos = line.find_first_of(comment_char);
+        if (pos != string::npos) {
             line = str_trim(line.substr(0, pos));
         }
 
         return !is.eof();
     }
 
-/* 
-    // remove all space chars in str, not used now
-    void rm_spaces(string &str)
-    {
-        string ss(str);
-        str.clear();
-        do {
-            string::size_type first_pos = ss.find_first_not_of(" \t\r\n");
-            if (string::npos == first_pos) {
-                break;
-            } else {
-                ss = ss.substr(first_pos);
-                str.append(&ss[0],1);
-                ss = ss.substr(1);
-            }
-        } while(ss.size() > 0);
-    }
-*/
 
     // get the index of find_str in array. return -1 if not exists
     int get_array_idx(const string *array, 
@@ -329,40 +302,6 @@ namespace util{
         } else {
             return (pos - array);
         }
-    }
-
-    // preview the next line in "f"
-    // return: true if not eof, false otherwise
-    bool peek_line(std::istream &f, std::string &line, 
-        bool throw_eof /* = true */ )
-    {
-        int pos = f.tellg();
-        string ll;
-        bool ret;
-        
-        getline(f, ll);
-        ret = !f.eof();
-        if (throw_eof && !ret) {
-            throw XY_Error("unexpected end of file");
-        }
-        f.seekg(pos);
-
-        line = str_trim(ll);
-        return ret;
-    }
-
-
-    bool my_getline(std::istream &f, std::string &line,
-        bool throw_eof /* = true */ )
-    {
-        getline(f, line);
-        bool ret = !f.eof();
-        if (throw_eof && !ret) {
-            throw XY_Error("unexpected end of file");
-        }
-
-        line = str_trim(line);
-        return ret;
     }
 
 
@@ -385,19 +324,13 @@ namespace util{
 
     double my_strtod(const std::string &str) 
     {
-        string ss = str_trim(str);
-        
-        if ("." == ss) {
-            return 0.0;
-        }
-
-        const char *startptr = ss.c_str();
+        const char *startptr = str.c_str();
         char *endptr = NULL;
         double val = strtod(startptr, &endptr);
 
         if ((HUGE_VAL == val) || (-HUGE_VAL == val)) {
             throw XY_Error("overflow when reading double");
-        } else if ((0 == val) && (startptr == endptr)) {
+        } else if (startptr == endptr) {
             throw XY_Error("not a double as expected");
         }
 
@@ -414,7 +347,7 @@ namespace util{
     }
 
 
-    void my_assert(int condition, const string &msg)
+    void my_assert(bool condition, const string &msg)
     {
         if (!condition) {
             throw XY_Error(msg);
@@ -422,9 +355,6 @@ namespace util{
     }
 
 
-    bool start_as_num(const string& line){
-        return (isdigit(line[0]) || '+' == line[0] ||  '-' == line[0] || '.' == line[0]);
-    }
 } // end of namespace util
 } // end of namespace xylib
 

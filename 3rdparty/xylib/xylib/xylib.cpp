@@ -3,6 +3,11 @@
 // Licence: GNU General Public License version 2
 // $Id: xylib.cpp $
 
+#include <iostream>
+#include <algorithm>
+#include <boost/detail/endian.hpp>
+#include <boost/cstdint.hpp>
+
 #include "xylib.h"
 #include "util.h"
 
@@ -18,18 +23,12 @@
 #include "philips_raw.h"
 #include "gsas.h"
 
-#include <iostream>
-#include <algorithm>
-#include <boost/detail/endian.hpp>
-#include <boost/cstdint.hpp>
-
 using namespace std;
 using namespace xylib::util;
 using namespace boost;
 
 namespace xylib {
 
-// elements in formats[] are ordered, in the same order as enum xy_ftype
 const FormatInfo *formats[] = {
     &UxdDataSet::fmt_info,
     &RigakuDataSet::fmt_info,
@@ -42,7 +41,7 @@ const FormatInfo *formats[] = {
     &PhilipsRawDataSet::fmt_info,
     &GsasDataSet::fmt_info,
     &TextDataSet::fmt_info,
-    NULL,
+    NULL // it must be a NULL-terminated array
 };
 
 
@@ -53,27 +52,24 @@ bool FormatInfo::has_extension(const std::string &ext) const
 }
 
 //////////////////////////////////////////////////////////////////////////
-// member functions of Class VecColumn
 
-double VecColumn::get_val(unsigned n) const 
+double VecColumn::get_val(int n) const 
 {
-    my_assert(n <= get_pt_cnt(), "index out of range in VecColumn");
+    my_assert(n >= 0 && n < get_pt_cnt(), "index out of range in VecColumn");
     return dat[n];
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-// member functions of Class StepColumn
 
-double StepColumn::get_val(unsigned n) const 
+double StepColumn::get_val(int n) const 
 {
-    my_assert(n <= get_pt_cnt(), "index out of range in VecColumn");
-    my_assert(step != 0, "x_step not set, file is likely conrupt");
-    return (start + step * n);
+    my_assert(count == -1 || (n >= 0 && n < count), "point index out of range");
+    return start + step * n;
 }
  
-
 //////////////////////////////////////////////////////////////////////////
+
 string const& MetaData::get(string const& key) const
 {
     const_iterator it = find(key);
@@ -88,7 +84,6 @@ bool MetaData::set(string const& key, string const& val)
 }
 
 //////////////////////////////////////////////////////////////////////////
-// member functions of Class Block
 
 Block::Block() 
     : column_x(0), column_y(1), column_stddev(-1)
@@ -115,22 +110,6 @@ double Block::get_y(unsigned n) const
     return cols[column_y]->get_val(n);
 }
 
-// return the pt_cnt in all columns (they are assumed to be the same)
-unsigned Block::get_pt_cnt() const
-{
-    unsigned pt_cnt(0);
-
-    if (cols.size() != 0) {
-        for (unsigned i = 0; i < cols.size(); ++i) {
-            pt_cnt = cols[i]->get_pt_cnt();
-            if (pt_cnt != numeric_limits<unsigned>::max()) {
-                break;
-            }
-        }
-    }
-    
-    return pt_cnt;
-}
 
 const Column& Block::get_column(unsigned n) const
 {
@@ -138,34 +117,6 @@ const Column& Block::get_column(unsigned n) const
     return *cols[n];
 }
 
-
-// get the index of the column with a name of "name"
-// return -1 if not found
-int Block::get_col_idx(const string &name) const
-{
-    int ret_val(-1);
-    
-    for (unsigned i = 0; i < get_column_cnt(); ++i) {
-        const Column &col = get_column(i);
-        if (name == col.get_name()) {
-            ret_val = i;
-            break;
-        }
-    }
-    return ret_val;
-}
-
-void Block::set_column_x(unsigned n)
-{
-    my_assert(n < cols.size(), "column index out of range");
-    column_x = n;
-}
-
-void Block::set_column_y(unsigned n)
-{
-    my_assert(n < cols.size(), "column index out of range");
-    column_y = n;
-}
 
 void Block::set_column_stddev(unsigned n)
 {
@@ -181,7 +132,11 @@ double Block::get_stddev(unsigned n) const
 
 void Block::export_xy_file(ostream &os) const
 {
-    int n = get_pt_cnt();
+    int nx = get_column_x().get_pt_cnt();
+    int ny = get_column_y().get_pt_cnt();
+    if (nx == -1 && ny == -1)
+        return;
+    int n = (nx != -1 && nx < ny) ? nx : ny;
 
     for (int i = 0; i < n; ++i) {
         os << setfill(' ') << setiosflags(ios::fixed) 
@@ -203,26 +158,6 @@ void Block::set_xy_columns(Column *x, Column *y)
     column_y = 1;
 }
 
-//TODO: remove it
-void Block::add_column(Column *p_col, col_type type /* = CT_UNDEF */)
-{
-    cols.push_back(p_col);
-
-    unsigned i = cols.size() - 1;
-    switch (type) {
-    case CT_X:
-        set_column_x(i);
-        break;
-    case CT_Y:
-        set_column_y(i);
-        break; 
-    case CT_STDDEV:
-        set_column_stddev(i);
-        break;
-    default:
-        break;
-    }
-}
 
 
 
@@ -253,7 +188,7 @@ void DataSet::export_xy_file(const string &fname,
 
     // output the file-level meta-info
     if (with_meta) {
-        of << cmt_str << "exported by xylib from a " << get_filetype() << " file" << endl;
+        of << cmt_str << "exported by xylib from a " << fi->name << " file" << endl;
         of << cmt_str << "total blocks: " << blocks.size() << endl << endl;
         for (map<string,string>::const_iterator i = meta.begin();
                                                 i != meta.end(); ++i) 
@@ -267,10 +202,7 @@ void DataSet::export_xy_file(const string &fname,
             for (int j = 0; j < 40; ++j) {
                 of << cmt_str;
             }
-            of << endl << cmt_str << "* block " << i << endl;
-            of << cmt_str << "name: " << blk->get_name() << endl;
-            of << cmt_str << "total point count: " << blk->get_pt_cnt() << endl;
-            of << endl;
+            of << endl << cmt_str << "* block " << i << "  " << blk->get_name() << endl;
 
             for (map<string,string>::const_iterator j = blk->meta.begin();
                                                     j != blk->meta.end(); ++j) 
@@ -278,10 +210,10 @@ void DataSet::export_xy_file(const string &fname,
 
             string x_label, y_label, stddev_label;
             try {
-                x_label = blk->get_column(blk->get_column_x()).get_name();
-                y_label = blk->get_column(blk->get_column_y()).get_name();
+                x_label = blk->get_column_x().get_name();
+                y_label = blk->get_column_y().get_name();
                 if (blk->has_stddev())
-                    stddev_label = blk->get_column(blk->get_column_stddev()).get_name();
+                    stddev_label = blk->get_column_stddev().get_name();
             } catch (...) {
                 // this must be a block without any data, move to next block
                 continue;
@@ -305,47 +237,53 @@ void DataSet::clear()
 //////////////////////////////////////////////////////////////////////////
 // namespace scope global functions
 
-DataSet* dataset_factory(xy_ftype ft)
+DataSet* dataset_factory(FormatInfo const* ft)
 {
-    if (FT_BR_RAW1 == ft) 
-        return new BruckerV1RawDataSet(); 
-    else if (FT_BR_RAW2 == ft) 
-        return new BruckerV23RawDataSet();
-    else if (FT_UXD == ft) 
-        return new UxdDataSet();
-    else if (FT_TEXT == ft) 
-        return new TextDataSet();
-    else if (FT_RIGAKU == ft) 
-        return new RigakuDataSet();
-    else if (FT_VAMAS == ft) 
-        return new VamasDataSet();
-    else if (FT_UDF == ft) 
-        return new UdfDataSet();
-    else if (FT_SPE == ft) 
-        return new WinspecSpeDataSet();
-    //else if (FT_PDCIF == ft) 
-    //    return new PdCifDataSet();
-    else if (FT_PHILIPS_RAW == ft) 
-        return new PhilipsRawDataSet();
-    else if (FT_GSAS== ft) 
-        return new GsasDataSet();
-    else {
-        throw XY_Error("unkown or unsupported file type");
-        return 0; // to avoid warnings
-    }
+#define FACTORY_ITEM(classname) \
+    if (ft == &classname::fmt_info) \
+        return new classname(); 
+    FACTORY_ITEM(BruckerV1RawDataSet)
+    FACTORY_ITEM(BruckerV23RawDataSet)
+    FACTORY_ITEM(UxdDataSet)
+    FACTORY_ITEM(TextDataSet)
+    FACTORY_ITEM(RigakuDataSet)
+    FACTORY_ITEM(VamasDataSet)
+    FACTORY_ITEM(UdfDataSet)
+    FACTORY_ITEM(WinspecSpeDataSet)
+    //FACTORY_ITEM(PdCifDataSet)
+    FACTORY_ITEM(PhilipsRawDataSet)
+    FACTORY_ITEM(GsasDataSet)
+#undef FACTORY_ITEM
+    throw XY_Error("unkown or unsupported file type");
+    return 0; // to avoid warnings
 }
 
-DataSet* getNewDataSet(istream &is, xy_ftype filetype /* = FT_UNKNOWN */, 
-    const string &filename /* = "" */)
+DataSet* load_file(string const& path, string const& format_name)
 {
-    if (filetype == FT_UNKNOWN)
-        filetype = guess_filetype(filename);
-    DataSet *pd = dataset_factory(filetype);
+    ifstream is(path.c_str(), ios::in | ios::binary);
+    if (!is) 
+        throw XY_Error("Error: can't open input file: " + path);
+    string filetype;
+    if (format_name.empty()) {
+        FormatInfo const* fi = guess_filetype(path);
+        my_assert(fi, "Format of file can not be guessed");
+        filetype = fi->name;
+    }
+    else
+        filetype = format_name;
+    return load_stream(is, filetype);
+}
+
+DataSet* load_stream(istream &is, string const& format_name)
+{
+    FormatInfo const* fi = string_to_format(format_name);
+    my_assert(fi != NULL, "when loading data: format of the file is not known");
+    DataSet *pd = dataset_factory(fi);
     pd->load_data(is); 
     return pd;
 }
 
-// filename: path, filename or only extension *with dot*
+// filename: path, filename or only extension with dot
 vector<FormatInfo const*> get_possible_filetypes(string const& filename)
 {
     vector<FormatInfo const*> results;
@@ -357,41 +295,40 @@ vector<FormatInfo const*> get_possible_filetypes(string const& filename)
     string ext = str_tolower(filename.substr(pos + 1));
 
     for (FormatInfo const **i = formats; *i != NULL; ++i) {
-        vector<string> const& exts = (*i)->exts;
-        if (find(exts.begin(), exts.end(), ext) != exts.end())
+        if ((*i)->has_extension(ext))
             results.push_back(*i);
     }
     return results;
 }
 
-xy_ftype guess_filetype(const string &path)
+FormatInfo const* guess_filetype(const string &path)
 {
     vector<FormatInfo const*> possible = get_possible_filetypes(path);
     if (possible.empty())
-        return FT_UNKNOWN;
-    else if (possible.size() == 1)
-        // don't check file's content
-        return possible[0]->ftype;
+        return NULL;
+    ifstream f(path.c_str(), ios::in | ios::binary);
+    if (possible.size() == 1)
+        return possible[0]->check(f) ? possible[0] : NULL;
     else {
-        ifstream f(path.c_str(), ios::in | ios::binary);
         for (vector<FormatInfo const*>::const_iterator i = possible.begin(); 
-                                                     i != possible.end(); ++i)
+                                                    i != possible.end(); ++i) {
             if ((*i)->check(f)) 
-                return (*i)->ftype;
+                return *i;
+            f.seekg(0);
+            f.clear();
+        }
 
-        return FT_UNKNOWN;
+        return NULL;
     }
 }
 
 
-xy_ftype string_to_ftype(const std::string &ftype_name) 
+FormatInfo const* string_to_format(string const& format_name) 
 {
-    for (int i = 0; formats[i] != NULL; ++i) {
-        if (ftype_name == formats[i]->name) {
-            return static_cast<xy_ftype>(i);
-        }
-    }
-    return FT_UNKNOWN;
+    for (FormatInfo const **i = formats; *i != NULL; ++i) 
+        if (format_name == (*i)->name) 
+            return *i;
+    return NULL;
 }
 
 

@@ -5,13 +5,14 @@
 #ifndef XYLIB__UTIL__H__
 #define XYLIB__UTIL__H__
 
-
 #include <string>
 #include <vector>
 #include <stdexcept>
 #include <sstream>
 #include <fstream>
 #include <iomanip>
+
+#include "xylib.h"
 
 namespace xylib
 {
@@ -31,9 +32,9 @@ namespace util
     void le_to_host_4(void *ptr);
     void le_to_host_8(void *ptr);
 
-    std::string str_trim(const std::string &str, std::string ws = " \r\n\t");
-    void parse_line(const std::string &line, std::string &key, std::string &val, 
-        const std::string &sep = ",:=");
+    std::string str_trim(std::string const& str);
+    void str_split(std::string const& line, std::string const& sep, 
+                   std::string &key, std::string &val);
     bool str_startwith(const std::string &str_src, const std::string &ss);
     std::string str_tolower(const std::string &str);
 
@@ -41,13 +42,20 @@ namespace util
     int read_line_and_get_all_numbers(std::istream &is, 
         std::vector<double>& result_numbers);
 
-    bool peek_line(std::istream &f, std::string &line, bool throw_eof = true);
-    bool my_getline(std::istream &f, std::string &line, bool throw_eof = true);
+    inline std::string my_getline(std::istream &f)
+    {
+        std::string line;
+        if (!std::getline(f, line))
+            throw XY_Error("unexpected end of file");
+        return str_trim(line);
+    }
+
+
     void skip_lines(std::istream &f, const int count);
     int read_line_int(std::istream &is);
     double read_line_double(std::istream &is);
     std::string read_line(std::istream &is);
-    bool get_valid_line(std::istream &is, std::string &line, std::string cmt_start);
+    bool get_valid_line(std::istream &is, std::string &line, char comment_char);
 
     long my_strtol(const std::string &str);
     double my_strtod(const std::string &str);
@@ -58,14 +66,11 @@ namespace util
         unsigned size,
         const std::string &find_str);
 
-    void my_assert(int condition, const std::string &msg);
+    void my_assert(bool condition, const std::string &msg);
 
-    bool start_as_num(const std::string& line);
+    inline bool is_numeric(int c) 
+        { return isdigit(c) || c=='+' ||  c=='-' || c=='.'; }
 
-//  not used functions, going to remove
-/*
-    void rm_spaces(std::string &str);
-*/
 
     //---------------------------  S T R I N G  --------------------------------
     /// S() converts to string

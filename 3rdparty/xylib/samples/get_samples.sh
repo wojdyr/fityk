@@ -22,10 +22,8 @@ wget -N http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/raw/cpd-3.raw -P diffracat
 
 #  pdCIF format files
 mkdir -p pdcif/
-	# ic0111177.cif
-wget -N http://pubs.acs.org/subscribe/journals/inocaj/suppinfo/41/i14/ic0111177/ic0111177.cif?sessid=8929 -P pdcif/
-	#ic034984fsi20030819_115442.cif
-wget -N http://pubs.acs.org/subscribe/journals/inocaj/suppinfo/ic034984f/ic034984fsi20030819_115442.cif?sessid=1240 -P pdcif/
+wget -N http://pubs.acs.org/subscribe/journals/inocaj/suppinfo/41/i14/ic0111177/ic0111177.cif -P pdcif/
+wget -N http://pubs.acs.org/subscribe/journals/inocaj/suppinfo/ic034984f/ic034984fsi20030819_115442.cif -P pdcif/
 wget -N http://159.226.150.7/cifs/2005No7/1829.cif -P pdcif/
 wget -N http://www.ccp14.ac.uk/ccp/ccp14/ftp-mirror/briantoby/pub/cryst/cif/NISI.cif -P pdcif/
 #You can also get some .cif files from the sample directory of ciftools_Linux, 
@@ -82,8 +80,6 @@ wget -N http://www.unipress.waw.pl/fityk/xylib_samples/mjr9_116a.vms -P vamas/
 # GSAS files
 mkdir -p gsas/
 wget -N http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/gss/cpd-1a.gss -P gsas/
-wget -N http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/gss/cpd-1b.gss -P gsas/
-wget -N http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/gss/cpd-1c.gss -P gsas/
 
 
 # text files

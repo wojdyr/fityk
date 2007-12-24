@@ -50,7 +50,6 @@ namespace xylib {
 const static string exts[5] = { "txt", "dat", "asc", "csv", "prn" };
 
 const FormatInfo TextDataSet::fmt_info(
-    FT_TEXT,
     "text",
     "ascii plain text",
     vector<string>(exts, exts + sizeof(exts) / sizeof(string)),
@@ -58,22 +57,13 @@ const FormatInfo TextDataSet::fmt_info(
     false                        // whether has multi-blocks
 );
 
-bool TextDataSet::check(istream &f) {
-    if (RigakuDataSet::check(f)) {
-        return false;
-    }
-
-    f.seekg(0);
+bool TextDataSet::check(istream & /*f*/) 
+{
     return true;
 }
 
 void TextDataSet::load_data(std::istream &f) 
 {
-    if (!check(f)) {
-        throw XY_Error("file is not the expected " + get_filetype() + " format");
-    }
-    clear();
-
     Block* p_blk = new Block;
     vector<VecColumn*> vec_cols;  
     unsigned nr_cols(0);

@@ -11,7 +11,7 @@ namespace xylib {
     {
     public:
         GsasDataSet()
-            : DataSet(fmt_info.ftype) {}
+            : DataSet(&fmt_info) {}
 
         // implement the interfaces specified by DataSet
         void load_data(std::istream &f);

@@ -12,7 +12,7 @@ namespace xylib {
     {
     public:
         UdfDataSet()
-            : DataSet(fmt_info.ftype) {}
+            : DataSet(&fmt_info) {}
 
         // implement the interfaces specified by DataSet
         void load_data(std::istream &f);
@@ -20,9 +20,6 @@ namespace xylib {
         static bool check(std::istream &f);
 
         const static FormatInfo fmt_info;
-
-    protected:
-        void get_key_val(std::istream &f, std::string &key, std::string &val);
     }; 
 }
 #endif // #ifndef UDF_DATASET

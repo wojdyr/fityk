@@ -64,7 +64,6 @@ using namespace xylib::util;
 namespace xylib {
 
 const FormatInfo RigakuDataSet::fmt_info(
-    FT_RIGAKU,
     "rigaku_dat",
     "Rigaku dat Format",
     vector<string>(1, "dat"),
@@ -76,113 +75,71 @@ const FormatInfo RigakuDataSet::fmt_info(
 // return true if is this type, false otherwise
 bool RigakuDataSet::check(istream &f)
 {
-    f.clear();
-    // the first 5 letters must be "*TYPE"
     string head = read_string(f, 5);
-    if(f.rdstate() & ios::failbit) {
-        return false;
-    }
-    
-    f.seekg(0);
-    return ("*TYPE" == head);
+    return head == "*TYPE";
 }
 
 
 void RigakuDataSet::load_data(std::istream &f) 
 {
-    if (!check(f)) {
-        throw XY_Error("file is not the expected " + get_filetype() + " format");
-    }
-    clear();
-
-    // indicate where we are
-    enum {
-        FILE_META,
-        RANGE_META,
-        RANGE_DATA,
-    } pos_flg = FILE_META;
-
     Block *p_blk = NULL;
-    StepColumn *p_xcol = NULL;
     VecColumn *p_ycol = NULL;
-    unsigned grp_cnt = 0;
+    int grp_cnt = 0;
+    double start = 0., step = 0.;
+    int count = 0;
     string line;
 
-    while (get_valid_line(f, line, "#")) {
-        if (str_startwith(line, "*BEGIN")) {        // block starts
-            pos_flg = RANGE_META;
-            if (p_blk != NULL) {
-                // save the last unsaved block with sanity check
-                my_assert(p_xcol->get_pt_cnt() == p_ycol->get_pt_cnt(), 
-                    "file corrupt: count of x and y differ");
-                
+    while (get_valid_line(f, line, '#')) {
+        if (line[0] == '*') {
+            if (str_startwith(line, "*BEGIN")) {   // block starts
+                p_ycol = new VecColumn;
+                p_blk = new Block;
+            } 
+            else if (str_startwith(line, "*END")) { // block ends
+                my_assert(count == p_ycol->get_pt_cnt(), 
+                          "file corrupt: count of x and y differ");
+                StepColumn *p_xcol = new StepColumn(start, step, count);
+                p_blk->set_xy_columns(p_xcol, p_ycol);
                 blocks.push_back(p_blk);
                 p_blk = NULL;
-            }
-        
-            p_xcol = new StepColumn;
-            p_ycol = new VecColumn;
-            p_blk = new Block;
-            
-            p_blk->add_column(p_xcol, Block::CT_X);
-            p_blk->add_column(p_ycol, Block::CT_Y);
-            
-        } else if (str_startwith(line, "*END")) { // block ends
-            pos_flg = FILE_META;
-            
-        } else if (str_startwith(line, "*EOF")) { // file ends
-            break;
-        
-        } else if (str_startwith(line, "*")) {    // other meta key-value pair. NOTE the order, it must follow other "*XXX" branches
-            string key, val;
-            parse_line(line, key, val, "=");
-            key = key.substr(1);    // rm the leading '*'
-            
-            if ("START" == key) {
-                p_xcol->set_start(my_strtod(val));
-            } else if ("STEP" == key) {
-                p_xcol->set_step(my_strtod(val));
-            } else if ("COUNT" == key) {
-                p_xcol->set_count(static_cast<unsigned>(my_strtol(val)));
-            } else if ("GROUP_COUNT" == key) {
-                grp_cnt = static_cast<unsigned>(my_strtol(val));
-            }
-            
-            if (pos_flg == FILE_META) 
-                meta[key] = val;
-            else
-                p_blk->meta[key] = val;
-            
-        } else if (start_as_num(line)){            // should be a li  ne of values
+                p_ycol = NULL;
+            } 
+            else if (str_startwith(line, "*EOF")) { // file ends
+                break;
+            } 
+            else { // meta key-value pair 
+                string key, val;
+                // parse "*KEY = VALUE" 
+                str_split(line.substr(1), "=", key, val);
+                if (key == "START") 
+                    start = my_strtod(val);
+                else if (key == "STEP") 
+                    step = my_strtod(val);
+                else if (key == "COUNT") 
+                    count = my_strtol(val);
+                else if (key == "GROUP_COUNT") 
+                    grp_cnt = my_strtol(val);
+                
+                if (p_blk) 
+                    p_blk->meta[key] = val;
+                else
+                    meta[key] = val;
+            } 
+        }
+        else if (is_numeric(line[0])) {     // should be a line of values
             vector<double> values;
             get_all_numbers(line, values);
             
             for (unsigned i = 0; i < values.size(); ++i) {
                 p_ycol->add_val(values[i]);
             }
-            
-            if (RANGE_META == pos_flg) {
-                pos_flg = RANGE_DATA;
-            }
-        } else {                 // unknown type of line. it should not appear in a correct file
-            // what should we do here? continue or throw an exception?
-            continue;
-        }
+        } 
+        else 
+            ; // unexpected line. ignore.
     }
-
-    // add the last block
-    if (p_blk != NULL) {
-        // save the last unsaved block with sanity check 
-        my_assert(p_xcol->get_pt_cnt() == p_ycol->get_pt_cnt(), 
-            "file corrupt: count of x and y differ at last block");
-
-        my_assert(grp_cnt != 0, "no GROUP_COUNT attribute given");
-        my_assert(blocks.size() + 1 == grp_cnt, 
-            "file corrupt: actual block count differ from expected");
-        
-        blocks.push_back(p_blk);
-        p_blk = NULL;
-    }
+    my_assert(grp_cnt != 0, "no GROUP_COUNT attribute given");
+    my_assert(grp_cnt == (int) blocks.size(), 
+              "file corrupt: actual block count differ from expected");
 }
 
 } // end of namespace xylib
