@@ -6,7 +6,7 @@
 // based on the file format specification:
 // "Appendix B: DIFFRAC-AT Raw Data File Format" from a diffractometer manual 
 
-#include "brucker_raw_v1.h"
+#include "brucker_raw.h"
 #include "util.h"
 
 using namespace std;

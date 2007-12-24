@@ -11,7 +11,7 @@
 #include "xylib.h"
 #include "util.h"
 
-#include "brucker_raw_v1.h"
+#include "brucker_raw.h"
 #include "rigaku_dat.h"
 #include "text.h"
 #include "uxd.h"
