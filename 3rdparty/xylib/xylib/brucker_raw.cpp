@@ -15,8 +15,8 @@ using namespace xylib::util;
 namespace xylib {
 
 const FormatInfo BruckerRawDataSet::fmt_info(
-    "diffracat_v1_raw",
-    "Siemens/Bruker Diffrac-AT Raw v 1/2/3",
+    "bruker_raw",
+    "Siemens/Bruker RAW ver. 1/2/3",
     vector<string>(1, "raw"),
     true,                       // whether binary
     true,                       // whether has multi-blocks
@@ -54,7 +54,7 @@ void BruckerRawDataSet::load_version1(std::istream &f)
         // (and if it's the first block, 4 bytes from file were already read)
         if (!blocks.empty()) {
             char rawstr[4] = {'R', 'A', 'W', ' '};
-            le_to_host_4(rawstr);
+            le_to_host(rawstr, 4);
             if (cur_range_steps == *reinterpret_cast<uint32_t*>(rawstr))
                 cur_range_steps = read_uint32_le(f);
         }

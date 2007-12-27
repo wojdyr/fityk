@@ -52,7 +52,7 @@ namespace xylib {
 
 const FormatInfo UdfDataSet::fmt_info(
     "philips_udf",
-    "Philipse UDF Format",
+    "Philips UDF",
     vector<string>(1, "udf"),
     false,                       // whether binary
     false                        // whether has multi-blocks
@@ -74,7 +74,7 @@ void UdfDataSet::load_data(std::istream &f)
     double x_step = 0;
     // read header
     while (true) {
-        string line = my_getline(f);
+        string line = str_trim(read_line(f));
         if (line == "RawScan") // indicates XY data start
             break;      
 
@@ -99,10 +99,10 @@ void UdfDataSet::load_data(std::istream &f)
     }
 
     StepColumn *p_xcol = new StepColumn(x_start, x_step);
-    p_xcol->set_name("data angle");
+    p_xcol->name = "data angle";
 
     VecColumn *p_ycol = new VecColumn;
-    p_ycol->set_name("raw scan");
+    p_ycol->name = "raw scan";
 
     // read data
     string line;

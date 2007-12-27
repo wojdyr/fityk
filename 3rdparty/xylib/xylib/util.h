@@ -28,9 +28,7 @@ namespace util
     char read_char(std::istream &f);
     std::string read_string(std::istream &f, unsigned len);
 
-    void le_to_host_2(void *ptr);
-    void le_to_host_4(void *ptr);
-    void le_to_host_8(void *ptr);
+    void le_to_host(void *ptr, int size);
 
     std::string str_trim(std::string const& str);
     void str_split(std::string const& line, std::string const& sep, 
@@ -38,22 +36,7 @@ namespace util
     bool str_startwith(const std::string &str_src, const std::string &ss);
     std::string str_tolower(const std::string &str);
 
-    void get_all_numbers(std::string &line, std::vector<double>& result_numbers);
-    int read_line_and_get_all_numbers(std::istream &is, 
-        std::vector<double>& result_numbers);
-
-    inline std::string my_getline(std::istream &f)
-    {
-        std::string line;
-        if (!std::getline(f, line))
-            throw XY_Error("unexpected end of file");
-        return str_trim(line);
-    }
-
-
-    void skip_lines(std::istream &f, const int count);
-    int read_line_int(std::istream &is);
-    double read_line_double(std::istream &is);
+    void skip_lines(std::istream &f, int count);
     std::string read_line(std::istream &is);
     bool get_valid_line(std::istream &is, std::string &line, char comment_char);
 
@@ -61,33 +44,70 @@ namespace util
     double my_strtod(const std::string &str);
     void my_read(std::istream &f, char *buf, int len);
 
-    // find the index of @find_str in @array
-    int get_array_idx(const std::string *array, 
-        unsigned size,
-        const std::string &find_str);
-
     void my_assert(bool condition, const std::string &msg);
 
     inline bool is_numeric(int c) 
         { return isdigit(c) || c=='+' ||  c=='-' || c=='.'; }
 
 
-    //---------------------------  S T R I N G  --------------------------------
-    /// S() converts to string
-    template <typename T>
-    inline std::string S(T k) {
-        return static_cast<std::ostringstream&>(std::ostringstream() << k).str();
+/// S() converts to string
+template <typename T>
+inline std::string S(T k) {
+    return static_cast<std::ostringstream&>(std::ostringstream() << k).str();
+}
+inline std::string S(bool b) { return b ? "true" : "false"; }
+inline std::string S(char const *k) { return std::string(k); }
+inline std::string S(char *k) { return std::string(k); }
+inline std::string S(char const k) { return std::string(1, k); }
+inline std::string S(std::string const &k) { return k; }
+inline std::string S() { return std::string(); }
+        
+
+
+// column uses vector<double> to represent the data 
+class VecColumn : public Column
+{
+public:
+    VecColumn() : Column(0.) {}
+    
+    // implementation of the base interface 
+    int get_pt_cnt() const { return dat.size(); }
+    double get_value (int n) const
+    {
+        my_assert(n >= 0 && n < get_pt_cnt(),"index out of range in VecColumn");
+        return dat[n];
     }
 
-    inline std::string S(bool b) { return b ? "true" : "false"; }
-    inline std::string S(char const *k) { return std::string(k); }
-    inline std::string S(char *k) { return std::string(k); }
-    inline std::string S(char const k) { return std::string(1, k); }
-    inline std::string S(std::string const &k) { return k; }
-    inline std::string S() { return std::string(); }
-        
-} // end of namespace util
+    void add_val(double val) { dat.push_back(val); }
+    void add_values_from_str(std::string const& str, char sep=' '); 
+    
+protected:
+    std::vector<double> dat; 
+};
 
+
+//////////////////////////////////////////////////////////////////////////
+// column of fixed-step data 
+class StepColumn : public Column
+{
+public:
+    double start;
+    int count; // -1 means unlimited...
+
+    StepColumn(double start_, double step_, int count_ = -1) 
+        : Column(step_), start(start_), count(count_) 
+    {}
+
+    int get_pt_cnt() const { return count; }
+    double get_value(int n) const
+    {
+        my_assert(count == -1 || (n>=0 && n<count), "point index out of range");
+        return start + step * n;
+    }
+};
+
+
+} // end of namespace util
 } // end of namespace xylib
 
 

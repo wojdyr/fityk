@@ -1,38 +1,34 @@
-	CONTENT
-========================
-PURPOSE
-SUPPORTED FORMATS
-COMPILE
-FILES
-USAGE
-HOW TO EXTEND
-AUTHORS
-SUPPRORT
-THANKS
-========================
+
+This is version of xylib modified and integrated with fityk.
+For original xylib see: 
+  http://www.sf.net/projects/xylib
+  SVN: https://xylib.svn.sourceforge.net/svnroot/xylib
+
 
 PURPOSE
-============
-xylib is one of the projects in Google Summer of Code (GSoC) 2007 (see http://code.google.com/soc), assigned to fityk organization (http://www.unipress.waw.pl/fityk/). 
-xylib aims to be a common X-Y data format reading library by providing a set of unified and user-friendly APIs to accomplish such a task. Many point data processing applications will be able to use this library to get a wider range of data file format support.
+=======
+xylib is a library for reading various x-y data format. 
+
+xylib was created as a project in Google Summer of Code 2007 
+(see http://code.google.com/soc), assigned to fityk organization 
+(http://www.unipress.waw.pl/fityk/). 
+
 
 SUPPORTED FORMATS
-============
-This is only a short list of all supported formats. For more info about the format, see "FORMAT DESCRIPTION" section in ds_XXX.cpp files.
-Note the extension names are case insensitive.
-
-X-Y plain text format:  										.txt, .asc, .dat, .csv
-Siemens/Bruker uxd:     										.uxd
-Diffrac-AT raw v1/2/3:  										.raw
-Philips UDF Format:     										.udf
-Rigaku Dat Format:      										.dat
-Vamas ISO14976:         										.vms	
-	(The experiment mode must not be "SEM" or "MAPSV" or "MAPSVDP", and so far only "REGULAR" scan_mode can be used to get X-Y data, "IREGULAR" and "MAPPING" scan_mode are supported to read in meta-info)
-Princeton Instruments WinSpec SPE Format:						.spe 	
-	(ONLY support 1-D)
-Crystallographic Information File for Powder Diffraction:		.cif
-Philips RD raw scan format V3									.rd
-GSAS format														.gss
+=================
+X-Y plain text format
+Siemens/Bruker uxd
+Diffrac-AT raw v1/2/3
+Philips UDF Format
+Rigaku Dat Format
+Vamas ISO14976
+   only experiment modes: "SEM" or "MAPSV" or "MAPSVDP" are supported
+   only "REGULAR" scan_mode is supported
+Princeton Instruments WinSpec SPE Format
+   only 1-D data is supported
+Philips RD raw scan format V3
+Crystallographic Information File for Powder Diffraction
+GSAS format
 
 
 FILES
@@ -49,33 +45,27 @@ xylib/
     Other .cpp/.h files correspond to supported file formats.
 	
 xyconv.cpp
-	A user tool with arguments to convert xylib-supported file to ASCII file.
+    A user tool with arguments to convert xylib-supported file to ASCII file.
 	
 samples/
-      run get_samples.sh to download sample files
+    run get_samples.sh to download sample files
 
 samples.sh
-	Shell script to test all sample files in ./samples, and output to ./output.
+     Shell script that converts all of the sample files in ./sample 
+     to ASCII plain format in ./output
 
-COMPILE
-============
-	Change current working directory to this position, then type
-gmake clean && gmake
 	
 USAGE
-============
-To run the test program xyconv, type "xyconv" for usage and all supported options; type "xyconv -l" to list all supported formats.
-To use xylib in your program, see xylib.h for the public interface, and xyconv.cpp to find out how to use it.
+=====
+See xylib/xylib.h for library API
+xyconv is a simple converting program and an example how to use the library
 
-Here is a brief introduction of xylib.h to the client program who uses xylib.
-Only several interfaces are needed to read, in order to know how to use xylib in client code.
-classes: FormatInfo, Column, Block, DataSet.
-functions: getNewDataSet
-A DataSet is corresponding to a data file, which can be made up by one or more X-Y data blocks. A block has at least 2 columns and all columns have the same size. A column is a series of 1-D data which can be taken as X or Y or stddev point values.
-More info can be found in source code and comments.
 
-HOW TO EXTEND
-============
+-----------------------------------------------------------------------------
+The rest of this file comes from original xylib.
+
+HOW TO EXTEND 
+=============
 If you want to contribute to xylib by adding new file formats-support to it, follow the following steps:
 1. Create the two necessary ds_foo.cpp and ds_foo.h files
 2. Add a type of your format to enum xy_ftype in xylib.h before FT_NUM, keep in mind that the order o xy_ftype must be kept.
@@ -96,12 +86,12 @@ AUTHORS
 Peng ZHANG (zhangpengcas[a]gmail[d]com), the student in this GSoC 2007 project.
 Marcin Wojdyr (wojdyr[a]gmail[d]com), project mentor.
 
-SUPPRORT
-============
+SUPPORT
+=======
 If you find any bugs or problems, please feel free to send mail to the authors, or the fityk devel ML (fityk-devel[a]lists[d]sourceforge[d]net).
 
 THANKS
-============
+======
 First of all, I'd like to thank my mentor Marcin Wojdyr for his careful and in-time mentoring during the whole project process. He spent lots of time to review my code and gave me many good suggestions about the library design and implementation.
 I'd like to thank Google for hosting the GSoC project to promote the Open Source Software in the globe. 
 Thanks to Michael Richardson <michael.richardson@vuw.ac.nz>, for his kind help to send us a specification of VAMAS format and some sample files, and suggestions for the JCAMP-DX paper download URL.
@@ -111,6 +101,5 @@ Thanks to Brian H. Toby <Brian.Toby@anl.gov>, for his useful info and suggestion
 Thanks to Martijn Fransen <martijn.fransen@panalytical.com>, for sending us a very useful specification on Philips raw formats.
 And thanks to all people who have helped me and gave suggestions to the xylib project. 
 
-NOTE:
-Now this work has been moved to a new project, see http://www.sf.net/projects/xylib
-The newest code can be checked out from URL: https://xylib.svn.sourceforge.net/svnroot/xylib
+
+

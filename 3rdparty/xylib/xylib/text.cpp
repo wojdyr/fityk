@@ -62,6 +62,31 @@ bool TextDataSet::check(istream & /*f*/)
     return true;
 }
 
+// skip meaningless lines and get all numbers in the first legal line
+int read_line_and_get_all_numbers(istream &is, 
+    vector<double>& result_numbers)
+{
+    // returns number of numbers in line
+    result_numbers.clear();
+    string s;
+    while (getline(is, s) && 
+        (s.empty() || s[0] == '#' 
+        || s.find_first_not_of(" \t\r\n") == string::npos))
+        ;   // ignore lines with '#' at first column or empty lines
+    for (string::iterator i = s.begin(); i != s.end(); i++) {
+        if (*i == ',' || *i == ';' || *i == ':') {
+            *i = ' ';
+        }
+    }
+
+    istringstream q(s);
+    double d;
+    while (q >> d) {
+        result_numbers.push_back(d);
+    }
+    return !is.eof();
+}
+
 void TextDataSet::load_data(std::istream &f) 
 {
     Block* p_blk = new Block;
@@ -90,10 +115,6 @@ void TextDataSet::load_data(std::istream &f)
         for (unsigned i = 0; i < nr_cols; ++i) {
             vec_cols[i]->add_val(xy[i]);
         }
-    }
-
-    if (nr_cols >= 3) {
-        p_blk->set_column_stddev(2);     // set 2nd col as default
     }
 
     blocks.push_back(p_blk);

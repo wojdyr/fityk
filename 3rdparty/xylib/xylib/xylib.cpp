@@ -3,7 +3,7 @@
 // Licence: GNU General Public License version 2
 // $Id: xylib.cpp $
 
-#include <iostream>
+#include <iomanip>
 #include <algorithm>
 #include <boost/detail/endian.hpp>
 #include <boost/cstdint.hpp>
@@ -37,7 +37,7 @@ const FormatInfo *formats[] = {
     &WinspecSpeDataSet::fmt_info,
     //&PdCifDataSet::fmt_info,
     &PhilipsRawDataSet::fmt_info,
-    &GsasDataSet::fmt_info,
+    //&GsasDataSet::fmt_info,
     &TextDataSet::fmt_info,
     NULL // it must be a NULL-terminated array
 };
@@ -49,23 +49,6 @@ bool FormatInfo::has_extension(const std::string &ext) const
     return (find(exts.begin(), exts.end(), lower_ext) != exts.end()); 
 }
 
-//////////////////////////////////////////////////////////////////////////
-
-double VecColumn::get_val(int n) const 
-{
-    my_assert(n >= 0 && n < get_pt_cnt(), "index out of range in VecColumn");
-    return dat[n];
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-
-double StepColumn::get_val(int n) const 
-{
-    my_assert(count == -1 || (n >= 0 && n < count), "point index out of range");
-    return start + step * n;
-}
- 
 //////////////////////////////////////////////////////////////////////////
 
 string const& MetaData::get(string const& key) const
@@ -83,10 +66,6 @@ bool MetaData::set(string const& key, string const& val)
 
 //////////////////////////////////////////////////////////////////////////
 
-Block::Block() 
-    : column_x(0), column_y(1), column_stddev(-1)
-{
-}
 
 Block::~Block()
 {
@@ -94,18 +73,6 @@ Block::~Block()
     for (it = cols.begin(); it != cols.end(); ++it) {      
         delete *it;
     }
-}
-
-double Block::get_x(unsigned n) const
-{
-    my_assert(column_x < int(cols.size()), "no column_x");
-    return cols[column_x]->get_val(n);
-}
-
-double Block::get_y(unsigned n) const
-{
-    my_assert(column_y < int(cols.size()), "no column_y");
-    return cols[column_y]->get_val(n);
 }
 
 
@@ -116,33 +83,25 @@ const Column& Block::get_column(unsigned n) const
 }
 
 
-void Block::set_column_stddev(unsigned n)
-{
-    my_assert(n < cols.size(), "column index out of range");
-    column_stddev = n;
-}
-
-double Block::get_stddev(unsigned n) const
-{
-    my_assert(has_stddev() && (column_stddev < int(cols.size())), "no column_stddev");
-    return cols[column_stddev]->get_val(n);
-}
-
 void Block::export_xy_file(ostream &os) const
 {
-    int nx = get_column_x().get_pt_cnt();
-    int ny = get_column_y().get_pt_cnt();
-    if (nx == -1 && ny == -1)
-        return;
-    int n = (nx != -1 && nx < ny) ? nx : ny;
-
-    for (int i = 0; i < n; ++i) {
-        os << setfill(' ') << setiosflags(ios::fixed) 
-           << setprecision(5) << setw(7) << get_x(i) << "\t" 
-           << setprecision(8) << setw(10) << get_y(i) << "\t";
-        if (has_stddev()) {
-            os << get_stddev(i);
-        }
+    int ncol = get_column_cnt();
+    os << "# ";
+    for (int i = 0; i < ncol; ++i) {
+        string const& name = get_column(i).name;
+        os << (name.empty() ? "col_"+S(i) : name) << "\t";
+    }
+    os << endl;
+    int nrow = 0;
+    for (int i = 0; i < ncol; ++i) {
+        int c = get_column(i).get_pt_cnt();
+        if (c > nrow)
+            nrow = c;
+    }
+    for (int i = 0; i < nrow; ++i) {
+        for (int j = 0; j < ncol; ++j) 
+            os << setfill(' ') << setiosflags(ios::fixed) << setprecision(6) 
+                << setw(8) << get_column(j).get_value(i) << "\t";
         os << endl;
     }
 }
@@ -152,8 +111,6 @@ void Block::set_xy_columns(Column *x, Column *y)
     my_assert(cols.empty(), "Internal error in set_xy_columns()");
     cols.push_back(x);
     cols.push_back(y);
-    column_x = 0;
-    column_y = 1;
 }
 
 
@@ -168,57 +125,33 @@ DataSet::~DataSet()
         delete *i;
 }
 
-const Block* DataSet::get_block(unsigned i) const
+const Block* DataSet::get_block(int n) const
 {
-    if (i >= blocks.size()) {
-        throw XY_Error("no block in this file with such index");
-    }
-
-    return blocks[i];
+    if (n < 0 || (size_t)n >= blocks.size()) 
+        throw XY_Error("no block #" + S(n) + "in this file.");
+    return blocks[n];
 }
 
-void DataSet::export_xy_file(const string &fname, 
-    bool with_meta /* = true */, const std::string &cmt_str /* = ";" */) const
+void DataSet::export_plain_text(const string &fname) const
 {
     unsigned range_num = get_block_cnt();
     ofstream of(fname.c_str());
     my_assert(of != NULL, "can't create file " + fname);
 
     // output the file-level meta-info
-    if (with_meta) {
-        of << cmt_str << "exported by xylib from a " << fi->name << " file" << endl;
-        of << cmt_str << "total blocks: " << blocks.size() << endl << endl;
-        for (map<string,string>::const_iterator i = meta.begin();
-                                                i != meta.end(); ++i) 
-            of << cmt_str << i->first << ":\t" << i->second << endl;
-    }
+    of << "# exported by xylib from a " << fi->name << " file" << endl;
+    for (map<string,string>::const_iterator i = meta.begin();
+                                            i != meta.end(); ++i) 
+        of << "# " << i->first << ":\t" << i->second << endl;
     
-    for(unsigned i = 0; i < range_num; ++i) {
+    for (unsigned i = 0; i < range_num; ++i) {
         const Block *blk = get_block(i);
-        if (with_meta) {
-            of << endl;
-            for (int j = 0; j < 40; ++j) {
-                of << cmt_str;
-            }
-            of << endl << cmt_str << "* block " << i << "  " << blk->get_name() << endl;
+        if (range_num > 0)
+            of << endl << "### block #" << i << " " << blk->name << endl;
+        for (map<string,string>::const_iterator j = blk->meta.begin();
+                                                j != blk->meta.end(); ++j) 
+            of << "#" << j->first << ":\t" << j->second << endl;
 
-            for (map<string,string>::const_iterator j = blk->meta.begin();
-                                                    j != blk->meta.end(); ++j) 
-                of << cmt_str << j->first << ":\t" << j->second << endl;
-
-            string x_label, y_label, stddev_label;
-            try {
-                x_label = blk->get_column_x().get_name();
-                y_label = blk->get_column_y().get_name();
-                if (blk->has_stddev())
-                    stddev_label = blk->get_column_stddev().get_name();
-            } catch (...) {
-                // this must be a block without any data, move to next block
-                continue;
-            }
-            of << endl << cmt_str << "x\ty\t y_stddev" << endl;
-            of << cmt_str << x_label << "\t" << y_label << "\t" << stddev_label << endl;
-        }
         blk->export_xy_file(of);
     }
 }
@@ -289,7 +222,7 @@ vector<FormatInfo const*> get_possible_filetypes(string const& filename)
     string::size_type pos = filename.find_last_of('.');
     if (pos == string::npos) 
         return results;
-    string ext = str_tolower(filename.substr(pos + 1));
+    string ext = filename.substr(pos + 1);
 
     for (FormatInfo const **i = formats; *i != NULL; ++i) {
         if ((*i)->has_extension(ext))
@@ -304,6 +237,8 @@ FormatInfo const* guess_filetype(const string &path)
     if (possible.empty())
         return NULL;
     ifstream f(path.c_str(), ios::in | ios::binary);
+    if (!f)
+        throw XY_Error("can't open input file: " + path);
     if (possible.size() == 1)
         return possible[0]->check(f) ? possible[0] : NULL;
     else {

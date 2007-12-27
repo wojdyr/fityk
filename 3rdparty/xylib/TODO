@@ -1,28 +1,11 @@
-TODO:
 
-* PANalytical's data format
-* find more sample files from other source to test existing code
-
-* The structure in xylib now to store X-Y values need to be modified to adapt pdCIF format.
-
-* Integrate the fityk already-support formats to xylib.
+* add CPI format
+* add eight-column RIT format
+* add MCA format from fityk
+* change reading text format to be compatible with fityk 
+---
+* implement GSAS format (see gsas.cpp for comments) - previous code was useless
+* fix pdCIF, that was broken by MW when changing API
+---
+* PANalytical's XRDML
 * have a look at the JCAMP format specifications and decide whether to implement it.
-* Add more format types, of course
-
-////////////////////////////////////////////////////////////////////
-* Integrated the WinSpec format, done!
-
-* complete the testmain code, done!
-
-* Detect file format by file contant (magic number), in case some types share one extension name. For example, Brucker v1 and v2 Raw File both use ".raw" as extension name: done!
-
-
-* Finish generic function to handle the UXD-like files, done!
-
-* Change the mechanism of unknown file format detection: 
-	1. by the file extension name
-	2. by previewing the first lines of the file content to find the format-specified strings. And checking this of every format can be written as independent functions which can be used to verify the correctness when user calls load_file with a specified file_type.
-
-* Make the text file reading more flexible. 
-	e.g. headers can be skipped and columns can be specified
-	use boost::regex to process the text files

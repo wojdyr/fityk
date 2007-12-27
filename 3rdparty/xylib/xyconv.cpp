@@ -14,12 +14,15 @@ using namespace std;
 void print_usage()
 {
     cout << "Usage:\n" 
-            "\txyconv [-m] [-t FILETYPE] INPUT_FILE OUTPUT_FILE\n"
-            "\txyconv -l\n\n"
+            "\txyconv [-t FILETYPE] INPUT_FILE OUTPUT_FILE\n"
+            "\txyconv -l\n"
+            "\txyconv -i FILETYPE\n"
+            "\txyconv -g INPUT_FILE\n"
             "  Converts INPUT_FILE to ascii OUTPUT_FILE\n"
-            "  -l              list all supported file types.\n"
-            "  -m              write also meta-info.\n"
-            "  -t              specify filetype of input file.\n";
+            "  -t     specify filetype of input file\n"
+            "  -l     list all supported file types\n"
+            "  -i     show information about filetype\n"
+            "  -g     guess filetype of file \n";
 }
 
 void list_supported_formats()
@@ -27,6 +30,39 @@ void list_supported_formats()
     for (int i = 0; xylib::formats[i] != NULL; ++i) 
         cout << setw(20) << left << xylib::formats[i]->name << ": "
              << xylib::formats[i]->desc << endl;
+}
+
+int print_guessed_filetype(string const& path)
+{
+    try {
+        xylib::FormatInfo const* fi = xylib::guess_filetype(path);
+        if (fi)
+            cout << fi->name << ": " << fi->desc << endl;
+        else
+            cout << "Format of the file was not detected";
+        return 0;
+    } catch (xylib::XY_Error const& e) {
+        cerr << "Error: " << e.what() << endl;
+        return -1;
+    }
+}
+
+void print_filetype_info(string const& filetype)
+{
+        xylib::FormatInfo const* fi = xylib::string_to_format(filetype);
+        if (fi) {
+            cout << "Name: " << fi->name << endl;
+            cout << "Description: " << fi->desc << endl;
+            cout << "Possible extensions:";
+            for (size_t i = 0; i != fi->exts.size(); ++i)
+                cout << " " << fi->exts[i];
+            cout << endl;
+            cout << "Other flags: "
+                << (fi->binary ? "binary-file" : "text-file") << " "
+                << (fi->multi_range ? "multi-block" : "single-block") << endl;
+        }
+        else
+            cout << "Unknown file format.";
 }
 
 int main(int argc, char **argv)
@@ -42,17 +78,22 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    if (argc == 3 && strcmp(argv[1], "-i") == 0) {
+        print_filetype_info(argv[2]);
+        return 0;
+    }
+
+    if (argc == 3 && strcmp(argv[1], "-g") == 0) 
+        return print_guessed_filetype(argv[2]);
+
     if (argc < 3) {
         print_usage();
         return -1;
     }
 
-    bool meta = false;
     string filetype;
     for (int i = 1; i < argc - 2; ++i) {
-        if (strcmp(argv[i], "-m") == 0) 
-            meta = true;
-        else if (strcmp(argv[i], "-t") == 0 && i+1 < argc - 2) {
+        if (strcmp(argv[i], "-t") == 0 && i+1 < argc - 2) {
             ++i;
             filetype = argv[i];
         }
@@ -64,7 +105,7 @@ int main(int argc, char **argv)
 
     try {
         xylib::DataSet *d = xylib::load_file(argv[argc-2], filetype);
-        d->export_xy_file(argv[argc-1], meta, "#");
+        d->export_plain_text(argv[argc-1]);
         delete d;
     } catch (xylib::XY_Error const& e) {
         cerr << "Error: " << e.what() << endl;

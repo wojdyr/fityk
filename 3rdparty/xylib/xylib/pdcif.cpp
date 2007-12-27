@@ -130,10 +130,6 @@ bool PdCifDataSet::check(istream &f) {
 
 void PdCifDataSet::load_data(std::istream &f) 
 {
-    if (!check(f)) {
-        throw XY_Error("file is not the expected " + get_filetype() + " format");
-    }
-    clear();
 
     // names of keys, whose values may be used as X or Y
     static const string valued_keys[] = {

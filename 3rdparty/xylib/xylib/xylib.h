@@ -16,25 +16,22 @@
 #include <map>
 #include <stdexcept>
 #include <fstream>
-#include <iomanip>
-#include <limits>
 
 
 namespace xylib
 {
 
-//////////////////////////////////////////////////////////////////////////
-// stores the format related info
+// stores format related info
 struct FormatInfo
 {
     typedef bool (*t_checker)(std::istream&);
 
     std::string name;    // short name, can be used in dialog filter
     std::string desc;    // full format name
-    std::vector<std::string> exts;
+    std::vector<std::string> exts; // possible extensions
     bool binary;
     bool multi_range;
-    t_checker checker;
+    t_checker checker; // function used to check if a file has this format
 
     FormatInfo(const std::string &name_, 
                const std::string &desc_, 
@@ -45,14 +42,16 @@ struct FormatInfo
         : name(name_), desc(desc_), exts(exts_), 
           binary(binary_), multi_range(multi_range_), checker(checker_) {}
 
-    bool has_extension(const std::string &ext) const; // case insensitive
-    bool check(std::istream& f) const {return !checker || (*checker)(f);}
+    // check if extension `ext' is in the list `exts'; case insensitive
+    bool has_extension(const std::string &ext) const; 
+    // check if file f can be of this format
+    bool check(std::istream& f) const { return !checker || (*checker)(f); }
 };
 
 extern const FormatInfo *formats[];
 
-//////////////////////////////////////////////////////////////////////////
-// The class to describe the errors/exceptions in xylib
+
+// the only exception thrown by xylib
 class XY_Error : public std::runtime_error
 {
 public:
@@ -60,68 +59,31 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////////
-// abstract base class for a column
+// column abstract base class for a column
 class Column
 {
 public:
+    std::string name; // column can have a name
     double step; // 0. means step is not fixed
 
     Column(double step_) 
-        : step(step_), stddev(NULL) {}
+        : step(step_)/*, stddev(NULL)*/ {}
     virtual ~Column() {}
 
     // return number of points or -1 for "unlimited" number of points
     virtual int get_pt_cnt() const = 0;
-    virtual double get_val(int n) const = 0; 
+    virtual double get_value(int n) const = 0; 
     bool has_fixed_step() const { return step != 0.; }
     
-    std::string get_name() const { return name; }
-    void set_name(std::string name_) { name = name_; }
-
     //Column const* get_stddev() { }
     
 protected:
-    Column *stddev;
-    std::string name;
+    //Column *stddev;
 };
 
 
-//////////////////////////////////////////////////////////////////////////
-// column uses vector<double> to represent the data 
-class VecColumn : public Column
-{
-public:
-    VecColumn() : Column(0.) {}
-    
-    // implementation of the base interface 
-    int get_pt_cnt() const { return dat.size(); }
-    double get_val (int n) const;
-
-    void add_val(double val) { dat.push_back(val); }
-    
-protected:
-    std::vector<double> dat; 
-};
-
-
-//////////////////////////////////////////////////////////////////////////
-// column of fixed-step data 
-class StepColumn : public Column
-{
-public:
-    double start;
-    int count; // -1 means unlimited...
-
-    StepColumn(double start_, double step_, int count_ = -1) 
-        : Column(step_), start(start_), count(count_) 
-    {}
-
-    int get_pt_cnt() const { return count; }
-    double get_val(int n) const;
-};
-
-
+// stores meta-data (additional data, that usually describe x-y data) 
+// for block or dataset. For example: date of the experiment, wavelength, ...
 class MetaData : public std::map<std::string, std::string>
 {
 public:
@@ -130,47 +92,28 @@ public:
     bool set(std::string const& key, std::string const& val);
 };
 
-//////////////////////////////////////////////////////////////////////////
-// The class for holding a block/range of X-Y data
+
+// The class for holding a block (range) of data
 class Block
 {
 public:
     MetaData meta;
+    std::string name; // block can have a name
     
-    Block();
+    Block() {}
     ~Block();
-
-    // std. dev. is optional
-    bool has_stddev() const { return (column_stddev != -1); }
-    double get_stddev(unsigned n) const;
-    double get_x(unsigned n) const;
-    double get_y(unsigned n) const; 
 
     int get_column_cnt() const { return cols.size(); }
     const Column& get_column(unsigned n) const;
 
-    int get_column_x_idx() const { return column_x; }           
-    int get_column_y_idx() const { return column_y; }           
-    int get_column_stddev_idx() const { return column_stddev; } 
-    Column const& get_column_x() const { return get_column(column_x); }
-    Column const& get_column_y() const { return get_column(column_y); }
-    Column const& get_column_stddev() const {return get_column(column_stddev);}
-    std::string get_name() const { return name; }
-    
     void export_xy_file(std::ostream &os) const;
-
-    void set_column_stddev(unsigned n);
-    void set_name(std::string &name_) { name = name_; }
 
     void set_xy_columns(Column *x, Column *y);
     void add_column(Column *c) { cols.push_back(c); }
     
 protected:
     std::vector<Column*> cols;
-    // which column is taken as x/y/stddev
-    int column_x, column_y, column_stddev;  
-    std::string name;
-    //int sub_blk_idx;    // idx of a sub-block in a block (e.g. some pdCIF format)
+    //int sub_blk_idx; // idx of a sub-block in a block (e.g. some pdCIF format)
 };
 
 
@@ -184,16 +127,18 @@ public:
     DataSet(FormatInfo const* fi_) : fi(fi_) {}
     virtual ~DataSet();
 
-    // access the blocks in this file
-    unsigned get_block_cnt() const { return blocks.size(); }
-    const Block* get_block(unsigned i) const;
+    // number of blocks (usually 1)
+    int get_block_cnt() const { return blocks.size(); }
+    // access block number i
+    const Block* get_block(int n) const;
 
-    // input/output data from/to file
+    // read data from file
     virtual void load_data(std::istream &f) = 0;
+    // delete all data stored in this class (use only if you want to 
+    // use load_data() more than once)
     void clear();
-    void export_xy_file(const std::string &fname, 
-        bool with_meta = true, const std::string &cmt_str = ";") const; 
-
+    // export to text file
+    void export_plain_text(const std::string &fname) const; 
 
 protected:
     std::vector<Block*> blocks;
@@ -214,7 +159,10 @@ DataSet* load_file(std::string const& path, std::string const& format_name="");
 // return value: pointer to Dataset that contains all data read from file
 DataSet* load_stream(std::istream &is, std::string const& format_name);
 
+// guess a format of the file
 FormatInfo const* guess_filetype(const std::string &path);
+
+// returns FormatInfo that has a name format_name
 FormatInfo const* string_to_format(const std::string &format_name);
 
 } // namespace xylib

@@ -7,38 +7,32 @@
 #include "xylib.h"
 
 namespace xylib {
-    class VamasDataSet : public DataSet
-    {
-    public:
-        VamasDataSet()
-            : DataSet(&fmt_info), include(40, false) {}
 
-        // implement the interfaces specified by DataSet
-        void load_data(std::istream &f);
+class VamasDataSet : public DataSet
+{
+public:
+    static const FormatInfo fmt_info;
+    VamasDataSet()
+        : DataSet(&fmt_info), include(40, false) {}
 
-        static bool check(std::istream &f);
+    void load_data(std::istream &f);
 
-        const static FormatInfo fmt_info;
+    static bool check(std::istream &f);
 
-    protected:
-        Block *read_blk(std::istream &f);
+protected:
+    // a complete blk/range contains 40 parts. 
+    // include[i] indicates if the i-th part (0-based) is included 
+    std::vector<bool> include;
 
+    int blk_fue;            // number of future upgrade experiment entries
+    int exp_fue;            // number of future upgrade block entries
+    std::string exp_mode;   // experimental mode
+    std::string scan_mode;  // scan mode
+    int exp_var_cnt;        // count of experimental variables
+    
+    Block *read_block(std::istream &f);
+}; 
 
-        // data members
-        //////////////////////////////////////////////////////
-        
-        // a complete blk/range contains 40 parts. 
-        // include[i] indicates if the i-th part (0-based) is included 
-        std::vector<bool> include;
-
-        int blk_fue;            // number of future upgrade experiment entries
-        int exp_fue;            // number of future upgrade block entries
-        std::string exp_mode;   // experimental mode
-        std::string scan_mode;  // scan mode
-        int exp_var_cnt;        // count of experimental variables
-        
-       
-    }; 
-}
-#endif // #ifndef BRUCKER_RAW_V23_H
+} // namespace xylib
+#endif // #ifndef VAMAS_DATASET
 

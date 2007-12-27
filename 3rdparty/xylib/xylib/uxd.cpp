@@ -112,16 +112,9 @@ void UxdDataSet::load_data(std::istream &f)
                 else
                     meta[key] = val;
             }
-            
         } 
         else if (is_numeric(line[0])) {   
-            vector<double> values;
-            get_all_numbers(line, values);
-            
-            for (unsigned i = 0; i < values.size(); ++i) {
-                p_ycol->add_val(values[i]);
-            }
-            
+            p_ycol->add_values_from_str(line);
         } 
         else {                 
             // unknown type of line. it should not appear in a correct file

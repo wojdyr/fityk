@@ -127,12 +127,7 @@ void RigakuDataSet::load_data(std::istream &f)
             } 
         }
         else if (is_numeric(line[0])) {     // should be a line of values
-            vector<double> values;
-            get_all_numbers(line, values);
-            
-            for (unsigned i = 0; i < values.size(); ++i) {
-                p_ycol->add_val(values[i]);
-            }
+            p_ycol->add_values_from_str(line, ',');
         } 
         else 
             ; // unexpected line. ignore.

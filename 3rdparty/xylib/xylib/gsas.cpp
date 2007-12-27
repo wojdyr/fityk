@@ -17,8 +17,8 @@ namespace xylib {
 
 const FormatInfo GsasDataSet::fmt_info(
     "gsas",
-    "GSAS Instrumental File Format",
-    vector<string>(1, "gss"), // also .gsa, .gsas?
+    "GSAS Standard Powder Data File",
+    vector<string>(1, "gss"), // also .gsa, .gsas?, .dat?
     false,                       // whether binary
     false                         // whether has multi-blocks
 );
