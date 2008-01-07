@@ -1,6 +1,6 @@
 // Header of class WinspecSpeDataSet
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: ds_winspec_spe.h $
+// $Id$
 
 #ifndef WINSPEC_SPE_DATASET_H
 #define WINSPEC_SPE_DATASET_H

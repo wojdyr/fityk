@@ -1,6 +1,6 @@
 // GSAS File Format
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: ds_gsas.cpp $
+// $Id$
 
 // based on GSAS Manual, chapter "GSAS Standard Powder Data File"
 

@@ -2,7 +2,7 @@
 // of XY data formats
 // data formats. This file includes the basic base classes
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: xylib.h $
+// $Id$
 
 #ifndef XYLIB__API__H__
 #define XYLIB__API__H__

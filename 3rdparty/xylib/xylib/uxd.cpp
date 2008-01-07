@@ -1,6 +1,6 @@
 // Siemens/Bruker Diffrac-AT UXD Format
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: ds_uxd.cpp $
+// $Id$
 
 /*
 

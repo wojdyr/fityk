@@ -1,6 +1,6 @@
 // Header of class UdfDataSet
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: ds_philips_udf.h $
+// $Id$
 
 #ifndef UDF_DATASET
 #define UDF_DATASET

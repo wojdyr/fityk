@@ -1,7 +1,7 @@
 // Implementation of class VamasDataSet for reading meta-info and xy-data from 
 // ISO14976 VAMAS Surface Chemical Ana0lysis Standard Data Transfer Format File
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: ds_vamas.cpp $
+// $Id$
 
 /*
 

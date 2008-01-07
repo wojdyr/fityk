@@ -1,7 +1,7 @@
 // XYlib library is a xy data reading library, aiming to read variaty of xy 
 // data formats.
 // Licence: GNU General Public License version 2
-// $Id: xylib.cpp $
+// $Id$
 
 #include <iomanip>
 #include <algorithm>

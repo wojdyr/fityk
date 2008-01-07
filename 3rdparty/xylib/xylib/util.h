@@ -1,6 +1,6 @@
 // Internal-used helper functions in namespace xylib::util 
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: util.h $
+// $Id$
 
 #ifndef XYLIB__UTIL__H__
 #define XYLIB__UTIL__H__

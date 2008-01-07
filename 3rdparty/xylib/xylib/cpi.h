@@ -1,6 +1,6 @@
 // Sietronics Sieray CPI format 
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: ds_uxd.h $
+// $Id$
 
 #ifndef CPI_DATASET_H_
 #define CPI_DATASET_H_

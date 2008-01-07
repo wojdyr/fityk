@@ -1,5 +1,5 @@
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: ds_brucker_raw_v1.cpp $
+// $Id$
 
 // Siemens/Bruker Diffrac-AT Raw Format version 1/2/3
 //  - data format used in Siemens/Brucker X-ray diffractometers.

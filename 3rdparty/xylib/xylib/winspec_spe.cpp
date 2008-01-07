@@ -1,6 +1,6 @@
 // Princeton Instruments WinSpec SPE Format
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: ds_winspec_spe.cpp $
+// $Id$
 
 
 // Princeton Instruments WinSpec SPE format. One kind of spectroscopy formats

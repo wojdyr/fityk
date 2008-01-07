@@ -1,6 +1,6 @@
 // ascii plain text Format
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: TextDataSet.h $
+// $Id$
 
 /*
 

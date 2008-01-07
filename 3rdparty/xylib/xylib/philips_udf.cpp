@@ -1,7 +1,7 @@
 // Implementation of class UdfDataSet for reading meta-info and 
 // xy-data from Philis UDF format
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: ds_philips_udf.cpp $
+// $Id$
 
 /*
 FORMAT DESCRIPTION:

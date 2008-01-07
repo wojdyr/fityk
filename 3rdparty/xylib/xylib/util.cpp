@@ -1,6 +1,6 @@
 // internal-used helper functions are placed in namespace xylib::util  
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: util.cpp $
+// $Id$
 
 #include "util.h"
 #include "xylib.h"

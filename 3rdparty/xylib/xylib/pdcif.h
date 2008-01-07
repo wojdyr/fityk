@@ -1,6 +1,6 @@
 // Header of class PdCifDataSet
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: ds_pdcif_spe.h $
+// $Id$
 
 #ifndef PDCIF_DATASET_H
 #define PDCIF_DATASET_H

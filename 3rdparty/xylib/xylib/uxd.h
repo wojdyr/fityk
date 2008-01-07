@@ -1,6 +1,6 @@
 // Header of class UxdDataSet
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: ds_uxd.h $
+// $Id$
 
 #ifndef UXD_DATASET_H
 #define UXD_DATASET_H

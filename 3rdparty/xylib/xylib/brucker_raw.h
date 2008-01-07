@@ -1,6 +1,6 @@
 // Siemens/Bruker Diffrac-AT Raw File v1 format
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: ds_brucker_raw_v1.h $
+// $Id$
 
 #ifndef BRUCKER_RAW_V1_H
 #define BRUCKER_RAW_V1_H

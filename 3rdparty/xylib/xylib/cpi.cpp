@@ -1,6 +1,6 @@
 // Sietronics Sieray CPI format 
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: ds_uxd.cpp $
+// $Id$
 
 // Based on sample files 
 

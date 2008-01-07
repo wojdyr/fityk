@@ -1,6 +1,6 @@
 // Header of class VamasDataSet
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: ds_vamas.h $
+// $Id$
 
 #ifndef VAMAS_DATASET
 #define VAMAS_DATASET

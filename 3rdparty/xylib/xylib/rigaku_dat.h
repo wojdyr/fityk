@@ -1,6 +1,6 @@
 // Header of class RigakuDataSet
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: ds_rigaku_udf.h $
+// $Id$
 
 #ifndef RIGAKU_DATASET
 #define RIGAKU_DATASET

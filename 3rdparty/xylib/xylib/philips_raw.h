@@ -1,6 +1,6 @@
 // Header of class PhilipsRawDataSet
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: ds_philips_raw.h $
+// $Id$
 
 #ifndef PHILIPS_RD_H
 #define PHILIPS_RD_H
