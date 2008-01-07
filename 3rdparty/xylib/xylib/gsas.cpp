@@ -1,4 +1,3 @@
-// Implementation of class GsasDataSet for reading meta-info and xy-data from
 // GSAS File Format
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id: ds_gsas.cpp $
@@ -20,7 +19,9 @@ const FormatInfo GsasDataSet::fmt_info(
     "GSAS Standard Powder Data File",
     vector<string>(1, "gss"), // also .gsa, .gsas?, .dat?
     false,                       // whether binary
-    false                         // whether has multi-blocks
+    false,                        // whether has multi-blocks
+    &GsasDataSet::ctor,
+    &GsasDataSet::check
 );
 
 bool GsasDataSet::check(istream &f) {

@@ -38,7 +38,9 @@ const FormatInfo VamasDataSet::fmt_info(
     "VAMAS (ISO-14976)",
     vector<string>(1, "vms"),
     false,                       // whether binary
-    true                         // whether has multi-blocks
+    true,                        // whether has multi-blocks
+    &VamasDataSet::ctor,
+    &VamasDataSet::check
 );
 
 } // namespace
@@ -135,6 +137,7 @@ void VamasDataSet::load_data(std::istream &f)
         meta["experimental variable unit " + S(i)] = read_line_trim(f);
     }
 
+    include = vector<bool>(40, false);
     // fill `include' table
     n = read_line_int(f);    // # of entries in inclusion or exclusion list
     bool d = (n > 0);

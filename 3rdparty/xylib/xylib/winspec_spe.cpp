@@ -1,44 +1,21 @@
-// Implementation of class WinspecSpeDataSet for reading meta-info 
-// and xy-data from WinSpec SPE Format
+// Princeton Instruments WinSpec SPE Format
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id: ds_winspec_spe.cpp $
 
-/*
 
-FORMAT DESCRIPTION:
-====================
-Princeton Instruments WinSpec SPE format. One kind of spectroscopy formats
-used by Princeton Instruments (PI). The Official programs to deal with this
-format is WinView/WinSpec.
-
-///////////////////////////////////////////////////////////////////////////////
-    * Name in progam:   spe
-    * Extension name:   spe
-    * Binary/Text:      binary
-    * Multi-blocks:     Y
-    
-///////////////////////////////////////////////////////////////////////////////
-    * Format details: 
-According to the format specification, SPE format has several versions (v1.43, 
-v1.6 and the newest v2.25). But we need not implement every version of it, 
-because it's back-ward compatible.
-    
-All data files must begin with a 4100-byte header. There are lots of fields 
-stored in the header in a fixed offset. 
-NOTE: there are 2 issues must be aware of when implementing this format.
-1. Data are stored in Little-Endian, binary raw format. 
-2. Its own types (SPE_DATA_LONG etc) have different lengths compared with those
-types in C/C++
-
-Data begins right after the header, with offset 4100.
-
-///////////////////////////////////////////////////////////////////////////////
-    * Implementation Ref of xylib: 
-mainly based on the file format specification: A file format specification
-sent us by David Hovis <dbh6@case.edu> (the documents came with his equipment) 
-and a SPE reading program written by Pablo Bianucci <pbian@physics.utexas.edu>.
-
-*/
+// Princeton Instruments WinSpec SPE format. One kind of spectroscopy formats
+// used by Princeton Instruments (PI). The Official programs to deal with this
+// format is WinView/WinSpec.
+// 
+// According to the format specification, SPE format has several versions 
+// (v1.43, v1.6 and the newest v2.25). But we need not implement every version 
+// of it, because it's backward compatible.
+//     
+// Data begins after a 4100-byte header.
+// 
+// Based on the file format specification sent us by David Hovis <dbh6@case.edu>
+// (the documents came with his equipment) and a SPE reading program written by
+// Pablo Bianucci <pbian@physics.utexas.edu>.
 
 #include "winspec_spe.h"
 #include "util.h"
@@ -54,7 +31,9 @@ const FormatInfo WinspecSpeDataSet::fmt_info(
     "Princeton Instruments WinSpec SPE Format",
     vector<string>(1, "spe"),
     true,                       // whether binary
-    true                        // whether has multi-blocks
+    true,                       // whether has multi-blocks
+    &WinspecSpeDataSet::ctor,
+    &WinspecSpeDataSet::check
 );
 
 bool WinspecSpeDataSet::check(istream &f) {

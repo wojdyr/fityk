@@ -8,19 +8,12 @@
 #include "xylib.h"
 
 namespace xylib {
-    class TextDataSet : public DataSet
-    {
-    public:
-        TextDataSet()
-            : DataSet(&fmt_info) {}
 
-        // implement the interfaces specified by DataSet
-        void load_data(std::istream &f);
+class TextDataSet : public DataSet
+{
+    OBLIGATORY_DATASET_MEMBERS(TextDataSet)
+}; 
 
-        static bool check(std::istream &f);
-
-        const static FormatInfo fmt_info;
-    }; 
-}
-#endif // #ifndef TEXT_DATASET_H
+} // namespace
+#endif // TEXT_DATASET_H
 

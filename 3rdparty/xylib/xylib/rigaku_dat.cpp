@@ -68,7 +68,9 @@ const FormatInfo RigakuDataSet::fmt_info(
     "Rigaku dat Format",
     vector<string>(1, "dat"),
     false,                       // whether binary
-    true                         // whether has multi-blocks
+    true,                        // whether has multi-blocks
+    &RigakuDataSet::ctor,
+    &RigakuDataSet::check
 );
 
 

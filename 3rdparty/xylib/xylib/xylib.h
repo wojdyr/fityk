@@ -21,16 +21,20 @@
 namespace xylib
 {
 
+class DataSet;
+
 // stores format related info
 struct FormatInfo
 {
     typedef bool (*t_checker)(std::istream&);
+    typedef DataSet* (*t_ctor)();
 
     std::string name;    // short name, can be used in dialog filter
     std::string desc;    // full format name
     std::vector<std::string> exts; // possible extensions
     bool binary;
     bool multi_range;
+    t_ctor ctor; // factory function
     t_checker checker; // function used to check if a file has this format
 
     FormatInfo(const std::string &name_, 
@@ -38,9 +42,11 @@ struct FormatInfo
                const std::vector<std::string> &exts_, 
                bool binary_, 
                bool multi_range_,
+               t_ctor ctor_,
                t_checker checker_=NULL)
         : name(name_), desc(desc_), exts(exts_), 
-          binary(binary_), multi_range(multi_range_), checker(checker_) {}
+          binary(binary_), multi_range(multi_range_), 
+          ctor(ctor_), checker(checker_) {}
 
     // check if extension `ext' is in the list `exts'; case insensitive
     bool has_extension(const std::string &ext) const; 
@@ -124,7 +130,6 @@ class DataSet
 public:
     FormatInfo const* const fi;
 
-    DataSet(FormatInfo const* fi_) : fi(fi_) {}
     virtual ~DataSet();
 
     // number of blocks (usually 1)
@@ -143,6 +148,8 @@ public:
 protected:
     std::vector<Block*> blocks;
     MetaData meta;
+
+    DataSet(FormatInfo const* fi_);
 
     void format_assert(bool condition) 
     {
@@ -167,6 +174,15 @@ FormatInfo const* string_to_format(const std::string &format_name);
 
 } // namespace xylib
 
+
+// macro used in declarations of classes derived from DataSet
+#define OBLIGATORY_DATASET_MEMBERS(class_name) \
+    public: \
+        class_name() : DataSet(&fmt_info) {} \
+        void load_data(std::istream &f); \
+        static bool check(std::istream &f); \
+        static DataSet* ctor() { return new class_name; } \
+        static const FormatInfo fmt_info; 
 
 #endif //ifndef XYLIB__API__H__
 

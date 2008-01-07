@@ -1,4 +1,3 @@
-// Implementation of class UxdDataSet for reading meta-info and xy-data from
 // Siemens/Bruker Diffrac-AT UXD Format
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id: ds_uxd.cpp $
@@ -64,7 +63,9 @@ const FormatInfo UxdDataSet::fmt_info(
     "Siemens/Bruker Diffrac-AT UXD Format",
     vector<string>(1, "uxd"),
     false,                       // whether binary
-    true                         // whether has multi-blocks
+    true,                        // whether has multi-blocks
+    &UxdDataSet::ctor,
+    &UxdDataSet::check
 );
 
 bool UxdDataSet::check(istream &f) 

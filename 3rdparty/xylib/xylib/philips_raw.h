@@ -7,21 +7,13 @@
 
 #include "xylib.h"
 
-
 namespace xylib {
-    class PhilipsRawDataSet : public DataSet
-    {
-    public:
-        PhilipsRawDataSet()
-            : DataSet(&fmt_info) {}
 
-        // implement the interfaces specified by DataSet
-        void load_data(std::istream &f);
+class PhilipsRawDataSet : public DataSet
+{
+    OBLIGATORY_DATASET_MEMBERS(PhilipsRawDataSet)
+}; 
 
-        static bool check(std::istream &f);
-
-        const static FormatInfo fmt_info;
-    }; 
 }
-#endif // #ifndef PHILIPS_RD_H
+#endif // PHILIPS_RD_H
 

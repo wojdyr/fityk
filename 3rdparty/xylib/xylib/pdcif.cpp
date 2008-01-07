@@ -1,5 +1,4 @@
-// Implementation of class PdCifDataSet for reading meta-info 
-// and xy-data from pdCIF Format
+// CIF for Powder Diffraction (pdCIF)
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id: ds_pdcif.cpp $
 

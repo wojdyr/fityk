@@ -8,18 +8,13 @@
 
 
 namespace xylib {
-    class RigakuDataSet : public DataSet
-    {
-    public:
-        RigakuDataSet()
-            : DataSet(&fmt_info) {}
-        
-        // implement the interfaces specified by DataSet
-        void load_data(std::istream &f);
-        static bool check(std::istream &f);
-        const static FormatInfo fmt_info;
 
-    }; 
-}
-#endif // #ifndef RIGAKU_DATASET
+class RigakuDataSet : public DataSet
+{
+    OBLIGATORY_DATASET_MEMBERS(RigakuDataSet)
+}; 
+
+} // namespace
+
+#endif // RIGAKU_DATASET
 

@@ -7,18 +7,12 @@
 #include "xylib.h"
 
 namespace xylib {
-    class UxdDataSet : public DataSet
-    {
-    public:
-        UxdDataSet()
-            : DataSet(&fmt_info) {}
 
-        // implement the interfaces specified by DataSet
-        void load_data(std::istream &f);
+class UxdDataSet : public DataSet
+{
+    OBLIGATORY_DATASET_MEMBERS(UxdDataSet)
+};
 
-        static bool check(std::istream &f);
-        const static FormatInfo fmt_info;
-    }; 
 }
-#endif // #ifndef UXD_DATASET_H
+#endif // UXD_DATASET_H
 

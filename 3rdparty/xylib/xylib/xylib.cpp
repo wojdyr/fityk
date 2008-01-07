@@ -21,6 +21,7 @@
 //#include "pdcif.h"
 #include "philips_raw.h"
 #include "gsas.h"
+#include "cpi.h"
 
 using namespace std;
 using namespace xylib::util;
@@ -29,6 +30,7 @@ using namespace boost;
 namespace xylib {
 
 const FormatInfo *formats[] = {
+    &CpiDataSet::fmt_info,
     &UxdDataSet::fmt_info,
     &RigakuDataSet::fmt_info,
     &BruckerRawDataSet::fmt_info,
@@ -117,7 +119,10 @@ void Block::set_xy_columns(Column *x, Column *y)
 
 
 //////////////////////////////////////////////////////////////////////////
-// member functions of Class DataSet
+
+DataSet::DataSet(FormatInfo const* fi_) 
+    : fi(fi_) 
+{}
 
 DataSet::~DataSet()
 {
@@ -168,26 +173,6 @@ void DataSet::clear()
 //////////////////////////////////////////////////////////////////////////
 // namespace scope global functions
 
-DataSet* dataset_factory(FormatInfo const* ft)
-{
-#define FACTORY_ITEM(classname) \
-    if (ft == &classname::fmt_info) \
-        return new classname(); 
-    FACTORY_ITEM(BruckerRawDataSet)
-    FACTORY_ITEM(UxdDataSet)
-    FACTORY_ITEM(TextDataSet)
-    FACTORY_ITEM(RigakuDataSet)
-    FACTORY_ITEM(VamasDataSet)
-    FACTORY_ITEM(UdfDataSet)
-    FACTORY_ITEM(WinspecSpeDataSet)
-    //FACTORY_ITEM(PdCifDataSet)
-    FACTORY_ITEM(PhilipsRawDataSet)
-    FACTORY_ITEM(GsasDataSet)
-#undef FACTORY_ITEM
-    throw XY_Error("unkown or unsupported file type");
-    return 0; // to avoid warnings
-}
-
 DataSet* load_file(string const& path, string const& format_name)
 {
     ifstream is(path.c_str(), ios::in | ios::binary);
@@ -208,7 +193,7 @@ DataSet* load_stream(istream &is, string const& format_name)
 {
     FormatInfo const* fi = string_to_format(format_name);
     my_assert(fi != NULL, "when loading data: format of the file is not known");
-    DataSet *pd = dataset_factory(fi);
+    DataSet *pd = (*fi->ctor)();
     pd->load_data(is); 
     return pd;
 }

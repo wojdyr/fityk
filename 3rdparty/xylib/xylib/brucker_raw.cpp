@@ -3,7 +3,7 @@
 
 // Siemens/Bruker Diffrac-AT Raw Format version 1/2/3
 //  - data format used in Siemens/Brucker X-ray diffractometers.
-// based on the file format specification:
+// Based on the file format specification:
 // "Appendix B: DIFFRAC-AT Raw Data File Format" from a diffractometer manual 
 
 #include "brucker_raw.h"
@@ -20,6 +20,7 @@ const FormatInfo BruckerRawDataSet::fmt_info(
     vector<string>(1, "raw"),
     true,                       // whether binary
     true,                       // whether has multi-blocks
+    &BruckerRawDataSet::ctor,
     &BruckerRawDataSet::check
 );
 

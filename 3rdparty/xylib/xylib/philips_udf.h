@@ -8,19 +8,13 @@
 
 
 namespace xylib {
-    class UdfDataSet : public DataSet
-    {
-    public:
-        UdfDataSet()
-            : DataSet(&fmt_info) {}
 
-        // implement the interfaces specified by DataSet
-        void load_data(std::istream &f);
+class UdfDataSet : public DataSet
+{
+    OBLIGATORY_DATASET_MEMBERS(UdfDataSet)
+}; 
 
-        static bool check(std::istream &f);
+} // namespace
 
-        const static FormatInfo fmt_info;
-    }; 
-}
-#endif // #ifndef UDF_DATASET
+#endif // UDF_DATASET
 

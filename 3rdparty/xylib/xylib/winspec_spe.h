@@ -25,20 +25,11 @@ struct spe_calib;
 
 class WinspecSpeDataSet : public DataSet
 {
-public:
-    WinspecSpeDataSet()
-        : DataSet(&fmt_info) {}
-
-    // implement the interfaces specified by DataSet
-    static bool check(std::istream &f);
-    void load_data(std::istream &f);
-
-    const static FormatInfo fmt_info;
+    OBLIGATORY_DATASET_MEMBERS(WinspecSpeDataSet)
     
 protected:
     Column* get_calib_column(const spe_calib *calib, int dim);
     void read_calib(std::istream &f, spe_calib &calib);
-    
 }; 
 
 

@@ -1,4 +1,3 @@
-// Implementation of class TextDataSet for reading meta-info and xy-data from 
 // ascii plain text Format
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id: TextDataSet.h $
@@ -54,7 +53,9 @@ const FormatInfo TextDataSet::fmt_info(
     "ascii plain text",
     vector<string>(exts, exts + sizeof(exts) / sizeof(string)),
     false,                       // whether binary
-    false                        // whether has multi-blocks
+    false,                       // whether has multi-blocks
+    &TextDataSet::ctor,
+    &TextDataSet::check
 );
 
 bool TextDataSet::check(istream & /*f*/) 

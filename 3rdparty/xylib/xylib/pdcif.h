@@ -10,15 +10,7 @@ namespace xylib {
 
 class PdCifDataSet : public DataSet
 {
-public:
-    PdCifDataSet()
-        : DataSet(fmt_info.ftype) {}
-
-    // implement the interfaces specified by DataSet
-    static bool check(std::istream &f);
-    void load_data(std::istream &f);
-
-    const static FormatInfo fmt_info;
+    OBLIGATORY_DATASET_MEMBERS(PdCifDataSet)
     
 protected:
     void get_all_values(const std::string &line, std::istream &f, 
@@ -30,5 +22,6 @@ protected:
         std::map<std::string, VecColumn*>& mapper);
 }; 
 
-}
+} // namespace
+
 #endif // #ifndef PDCIF_DATASET_H

@@ -50,6 +50,27 @@ namespace util
         { return isdigit(c) || c=='+' ||  c=='-' || c=='.'; }
 
 
+// vector "constructors" 
+
+inline std::vector<std::string> vector_string(std::string const& s1) 
+  { return std::vector<std::string>(1, s1); }
+
+inline std::vector<std::string> vector_string(std::string const& s1,
+                                              std::string const& s2) 
+  { std::vector<std::string> r(2); r[0] = s1; r[1] = s2; return r; }
+
+inline std::vector<std::string> vector_string(std::string const& s1,
+                                              std::string const& s2, 
+                                              std::string const& s3) 
+  { std::vector<std::string> r(3); r[0] = s1; r[1] = s2; r[2] = s3; return r; }
+
+inline std::vector<std::string> vector_string(std::string const& s1,
+                                              std::string const& s2, 
+                                              std::string const& s3, 
+                                              std::string const& s4) 
+  { std::vector<std::string> r(4); r[0] = s1; r[1] = s2; r[2] = s3; r[3] = s4; 
+    return r; }
+
 /// S() converts to string
 template <typename T>
 inline std::string S(T k) {

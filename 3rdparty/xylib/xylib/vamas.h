@@ -10,14 +10,7 @@ namespace xylib {
 
 class VamasDataSet : public DataSet
 {
-public:
-    static const FormatInfo fmt_info;
-    VamasDataSet()
-        : DataSet(&fmt_info), include(40, false) {}
-
-    void load_data(std::istream &f);
-
-    static bool check(std::istream &f);
+    OBLIGATORY_DATASET_MEMBERS(VamasDataSet)
 
 protected:
     // a complete blk/range contains 40 parts. 
