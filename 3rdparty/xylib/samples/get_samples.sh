@@ -97,6 +97,9 @@ wget -N http://www.unipress.waw.pl/fityk/xylib_samples/1d-1.spe -P winspec_spe/
 wget -N http://www.unipress.waw.pl/fityk/xylib_samples/1d-2.spe -P winspec_spe/
 wget -N http://www.unipress.waw.pl/fityk/xylib_samples/1d-3.spe -P winspec_spe/
 
+# Sietronics Sieray CPI files
+mkdir -p cpi/
+wget -N http://www.chemistry.ohio-state.edu/~woodward/ceo2br.cpi cpi/
 
 echo "done!"
 
