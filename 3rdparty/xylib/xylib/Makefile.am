@@ -9,11 +9,11 @@ libxy_la_CPPFLAGS = @CPPFLAGS_3RDPARTY@
 libxy_la_SOURCES = xylib.cpp brucker_raw.cpp \
 		   gsas.cpp pdcif.cpp philips_raw.cpp \
 		   philips_udf.cpp rigaku_dat.cpp text.cpp \
-		   uxd.cpp vamas.cpp winspec_spe.cpp cpi.cpp \
+		   uxd.cpp vamas.cpp winspec_spe.cpp cpi.cpp dbws.cpp \
                    util.cpp util.h
 
 include_HEADERS = xylib.h brucker_raw.h \
 		  gsas.h pdcif.h philips_raw.h philips_udf.h \
 		  rigaku_dat.h text.h uxd.h vamas.h \
-		  winspec_spe.h cpi.h
+		  winspec_spe.h cpi.h dbws.h
 

@@ -25,7 +25,7 @@ mkdir -p pdcif/
 wget -N http://pubs.acs.org/subscribe/journals/inocaj/suppinfo/41/i14/ic0111177/ic0111177.cif -P pdcif/
 wget -N http://pubs.acs.org/subscribe/journals/inocaj/suppinfo/ic034984f/ic034984fsi20030819_115442.cif -P pdcif/
 wget -N http://159.226.150.7/cifs/2005No7/1829.cif -P pdcif/
-wget -N http://www.ccp14.ac.uk/ccp/ccp14/ftp-mirror/briantoby/pub/cryst/cif/NISI.cif -P pdcif/
+##wget -N http://www.ccp14.ac.uk/ccp/ccp14/ftp-mirror/briantoby/pub/cryst/cif/NISI.cif -P pdcif/
 #You can also get some .cif files from the sample directory of ciftools_Linux, 
 # an open-source CIF software package which can be download from 
 #http://www.ncnr.nist.gov/programs/crystallography/software/cif/ciftools.html
@@ -46,7 +46,7 @@ mkdir -p philips_udf/
 # Also, you can get a package of several udf files from 
 # http://sdpd.univ-lemans.fr/course/week-1/philips-udf.zip
 # (link from: http://sdpd.univ-lemans.fr/course/week-1/sdpd-1.html)
-wget -N http://www.ccp14.ac.uk/ccp/ccp14/ftp-mirror/krumm/Software/windows/winfit/Winfit/ZEOLITE.UDF -P philips_udf/
+##wget -N http://www.ccp14.ac.uk/ccp/ccp14/ftp-mirror/krumm/Software/windows/winfit/Winfit/ZEOLITE.UDF -P philips_udf/
 wget -N http://www.eng.uc.edu/~gbeaucag/Classes/XRD/Labs/2004_Hull_Davey_data/CU1.UDF -P philips_udf/
 wget -N http://sdpd.univ-lemans.fr/DU-SDPD/semaine-5/PbCrF1.udf -P philips_udf/
 
@@ -99,7 +99,12 @@ wget -N http://www.unipress.waw.pl/fityk/xylib_samples/1d-3.spe -P winspec_spe/
 
 # Sietronics Sieray CPI files
 mkdir -p cpi/
-wget -N http://www.chemistry.ohio-state.edu/~woodward/ceo2br.cpi cpi/
+wget -N http://www.chemistry.ohio-state.edu/~woodward/ceo2br.cpi -P cpi/
+
+# DBWS data files
+mkdir -p dbws/
+wget -N http://mysite.du.edu/~balzar/lebailbr.dbw -P dbws/
+wget -N http://sdpd.univ-lemans.fr/DU-SDPD/semaine-4/na5.rit -P dbws/
 
 echo "done!"
 

@@ -22,6 +22,7 @@
 #include "philips_raw.h"
 #include "gsas.h"
 #include "cpi.h"
+#include "dbws.h"
 
 using namespace std;
 using namespace xylib::util;
@@ -40,6 +41,7 @@ const FormatInfo *formats[] = {
     //&PdCifDataSet::fmt_info,
     &PhilipsRawDataSet::fmt_info,
     //&GsasDataSet::fmt_info,
+    &DbwsDataSet::fmt_info,
     &TextDataSet::fmt_info,
     NULL // it must be a NULL-terminated array
 };

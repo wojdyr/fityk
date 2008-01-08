@@ -221,6 +221,7 @@ void skip_lines(istream &f, int count)
 
 
 // get all numbers in the first legal line
+// sep is _optional_ separator that can be used in addition to white space
 void VecColumn::add_values_from_str(string const& str, char sep) 
 {
     const char* p = str.c_str();

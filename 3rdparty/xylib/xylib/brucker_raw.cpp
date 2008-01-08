@@ -47,7 +47,7 @@ void BruckerRawDataSet::load_version1(std::istream &f)
     unsigned following_range = 1;
     
     while (following_range > 0) {
-        Block* p_blk = new Block;
+        Block* blk = new Block;
     
         unsigned cur_range_steps = read_uint32_le(f);  
         // early DIFFRAC-AT raw data files didn't repeat the "RAW " 
@@ -60,42 +60,42 @@ void BruckerRawDataSet::load_version1(std::istream &f)
                 cur_range_steps = read_uint32_le(f);
         }
         
-        p_blk->meta["MEASUREMENT_TIME_PER_STEP"] = S(read_flt_le(f));
+        blk->meta["MEASUREMENT_TIME_PER_STEP"] = S(read_flt_le(f));
         float x_step = read_flt_le(f); 
-        p_blk->meta["SCAN_MODE"] = S(read_uint32_le(f));
+        blk->meta["SCAN_MODE"] = S(read_uint32_le(f));
         f.ignore(4); 
         float x_start = read_flt_le(f);
 
-        StepColumn *p_xcol = new StepColumn(x_start, x_step);
+        StepColumn *xcol = new StepColumn(x_start, x_step);
         
         float t = read_flt_le(f);
         if (-1e6 != t)
-            p_blk->meta["THETA_START"] = S(t);
+            blk->meta["THETA_START"] = S(t);
             
         t = read_flt_le(f);
         if (-1e6 != t)
-            p_blk->meta["KHI_START"] = S(t);
+            blk->meta["KHI_START"] = S(t);
             
         t = read_flt_le(f);
         if (-1e6 != t)
-            p_blk->meta["PHI_START"], S(t);
+            blk->meta["PHI_START"], S(t);
 
-        p_blk->meta["SAMPLE_NAME"] = read_string(f, 32);
-        p_blk->meta["K_ALPHA1"] = S(read_flt_le(f));
-        p_blk->meta["K_ALPHA2"] = S(read_flt_le(f));
+        blk->meta["SAMPLE_NAME"] = read_string(f, 32);
+        blk->meta["K_ALPHA1"] = S(read_flt_le(f));
+        blk->meta["K_ALPHA2"] = S(read_flt_le(f));
 
         f.ignore(72);   // unused fields
         following_range = read_uint32_le(f);
         
-        VecColumn *p_ycol = new VecColumn();
+        VecColumn *ycol = new VecColumn();
         
         for(unsigned i = 0; i < cur_range_steps; ++i) {
             float y = read_flt_le(f);
-            p_ycol->add_val(y);
+            ycol->add_val(y);
         }
-        p_blk->set_xy_columns(p_xcol, p_ycol);
+        blk->set_xy_columns(xcol, ycol);
 
-        blocks.push_back(p_blk);
+        blocks.push_back(blk);
     } 
 }
 
@@ -115,7 +115,7 @@ void BruckerRawDataSet::load_version2(std::istream &f)
 
     f.ignore(42);   // move ptr to the start of 1st block
     for (unsigned cur_range = 0; cur_range < range_cnt; ++cur_range) {
-        Block* p_blk = new Block;
+        Block* blk = new Block;
 
         // add the block-scope meta-info
         unsigned cur_header_len = read_uint16_le(f);
@@ -123,24 +123,24 @@ void BruckerRawDataSet::load_version2(std::istream &f)
 
         unsigned cur_range_steps = read_uint16_le(f);
         f.ignore(4);
-        p_blk->meta["SEC_PER_STEP"] = S(read_flt_le(f));
+        blk->meta["SEC_PER_STEP"] = S(read_flt_le(f));
         
         float x_step = read_flt_le(f);
         float x_start = read_flt_le(f);
-        StepColumn *p_xcol = new StepColumn(x_start, x_step);
+        StepColumn *xcol = new StepColumn(x_start, x_step);
 
         f.ignore(26);
-        p_blk->meta["TEMP_IN_K"] = S(read_uint16_le(f));
+        blk->meta["TEMP_IN_K"] = S(read_uint16_le(f));
 
         f.ignore(cur_header_len - 48);  // move ptr to the data_start
-        VecColumn *p_ycol = new VecColumn;
+        VecColumn *ycol = new VecColumn;
         
         for(unsigned i = 0; i < cur_range_steps; ++i) {
             float y = read_flt_le(f);
-            p_ycol->add_val(y);
+            ycol->add_val(y);
         }
-        p_blk->set_xy_columns(p_xcol, p_ycol);
-        blocks.push_back(p_blk);
+        blk->set_xy_columns(xcol, ycol);
+        blocks.push_back(blk);
     }
 }
 

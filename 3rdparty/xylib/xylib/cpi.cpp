@@ -52,7 +52,7 @@ void CpiDataSet::load_data(std::istream &f)
         ...
     */
 
-    Block *blk = NULL;
+    Block* blk = new Block;
 
     string s;
     getline (f, s); // first line
@@ -68,7 +68,7 @@ void CpiDataSet::load_data(std::istream &f)
         getline (f, s);
 
     // data
-    VecColumn *ycol = NULL;
+    VecColumn *ycol = new VecColumn();
     while (getline(f, s)) 
         ycol->add_val(my_strtod(s));
 

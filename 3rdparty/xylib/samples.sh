@@ -6,6 +6,6 @@ do
 	echo "processing file $i ..."
 	outpath=$(echo $i | sed -e 's@^samples/@output/@')"_tr.txt"
 	mkdir -p $(dirname $outpath)
-	./xyconv -m $i $outpath && echo OK
+	./xyconv $i $outpath || echo Failed: ./xyconv $i $outpath
 done
 
