@@ -34,6 +34,8 @@ Legend:
 
 * %name = guess Linear in @*  -- should give error for more than one dataset
 
+* GUI: save (and load) cmd line history to ~/.fityk/wxhistory
+
 --------------> 0.8.3
 
 * embedding python scripts or other plugin-like solution  [IMPORTANT]

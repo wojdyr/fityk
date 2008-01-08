@@ -382,8 +382,10 @@ void DataEditorDlg::update_data(ndnd_type const& dd)
     if (dd.size() == 1) {
         Data const* data = ndnd[0].second;
         filename = data->get_filename();
-        title = data->get_title();
         save_as_btn->Enable(true);
+        title = data->get_title();
+        title_label->Show(true);
+        title_label->SetLabel(s2wx(title));
         grid->SetTable(new DataTable(data, this), true, 
                        wxGrid::wxGridSelectRows);
         refresh_grid();
@@ -395,11 +397,11 @@ void DataEditorDlg::update_data(ndnd_type const& dd)
             title += nr + i->second->get_title() + "\n";
         }
         save_as_btn->Enable(false);
+        title_label->Show(false);
         grid->Show(false);
     }
     revert_btn->Enable(is_revertable());
     filename_label->SetLabel(s2wx(filename));
-    title_label->SetLabel(s2wx(title));
 }
 
 bool DataEditorDlg::is_revertable() const

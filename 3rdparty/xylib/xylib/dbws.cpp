@@ -1,6 +1,6 @@
 // DBWS data file
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: cpi.cpp 373 2008-01-07 17:34:17Z wojdyr $
+// $Id$
 
 #include <cmath>
 #include "dbws.h"

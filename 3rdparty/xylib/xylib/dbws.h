@@ -1,6 +1,6 @@
 // DBWS data file
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
-// $Id: cpi.h 373 2008-01-07 17:34:17Z wojdyr $
+// $Id$
 
 // From DBWS-9807a User's Guide page 37-38:
 // The observed data file > Category 1 >

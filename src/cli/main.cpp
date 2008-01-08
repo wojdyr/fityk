@@ -101,7 +101,7 @@ string get_config_dir()
 #       undef Function // anti-Function workaround #2, part 2   
 #   endif
 
-//TODO support for libedit (MacOs X, etc.)
+// libedit (MacOs X, etc.) is not supported
 
 
 string set_eq_str;
@@ -539,7 +539,7 @@ int main (int argc, char **argv)
                 ftk->get_ui()->process_cmd_line_filename(argv[i]);
         }
 
-        // the version of main_loop() depends on NO_READLINE  
+        // there are two versions of main_loop(), depending on NO_READLINE  
         if (!quit)
             main_loop(); 
     } 
