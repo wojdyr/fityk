@@ -43,7 +43,7 @@ struct FormatInfo
                bool binary_, 
                bool multi_range_,
                t_ctor ctor_,
-               t_checker checker_=NULL)
+               t_checker checker_)
         : name(name_), desc(desc_), exts(exts_), 
           binary(binary_), multi_range(multi_range_), 
           ctor(ctor_), checker(checker_) {}

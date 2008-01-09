@@ -52,7 +52,8 @@ const FormatInfo *formats[] = {
 bool FormatInfo::has_extension(const std::string &ext) const
 { 
     string lower_ext = str_tolower(ext);
-    return (find(exts.begin(), exts.end(), lower_ext) != exts.end()); 
+    return exts.empty() 
+           || find(exts.begin(), exts.end(), lower_ext) != exts.end();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -95,7 +96,7 @@ void Block::export_xy_file(ostream &os) const
     os << "# ";
     for (int i = 0; i < ncol; ++i) {
         string const& name = get_column(i).name;
-        os << (name.empty() ? "col_"+S(i) : name) << "\t";
+        os << (name.empty() ? "column_"+S(i) : name) << "\t";
     }
     os << endl;
     int nrow = 0;
@@ -118,8 +119,6 @@ void Block::set_xy_columns(Column *x, Column *y)
     cols.push_back(x);
     cols.push_back(y);
 }
-
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -155,7 +154,7 @@ void DataSet::export_plain_text(const string &fname) const
     
     for (unsigned i = 0; i < range_num; ++i) {
         const Block *blk = get_block(i);
-        if (range_num > 0)
+        if (range_num > 1 || !blk->name.empty())
             of << endl << "### block #" << i << " " << blk->name << endl;
         for (map<string,string>::const_iterator j = blk->meta.begin();
                                                 j != blk->meta.end(); ++j) 

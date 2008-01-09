@@ -56,6 +56,8 @@ void print_filetype_info(string const& filetype)
             cout << "Possible extensions:";
             for (size_t i = 0; i != fi->exts.size(); ++i)
                 cout << " " << fi->exts[i];
+            if (fi->exts.empty())
+                cout << " (not specified)";
             cout << endl;
             cout << "Other flags: "
                 << (fi->binary ? "binary-file" : "text-file") << " "

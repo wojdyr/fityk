@@ -1,5 +1,4 @@
-// Header of class TextDataSet
-// Siemens/Bruker Diffrac-AT Raw File v2/v3 format
+// ascii plain text 
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id$
 
