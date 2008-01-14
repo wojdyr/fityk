@@ -19,6 +19,9 @@ class GaussianFitter(Fityk):
         print "WSSR=", self.get_wssr()
         print "Gaussian center: %.5g" % self.get_variable_value("%g.center")
 
+    def save_session(self, filename):
+        self.execute("dump >'%s'" % filename)
+
 f = Fityk()
 print f.get_info("version", True)
 print "ln(2) =", f.get_info("ln(2)")
@@ -26,7 +29,7 @@ del f
 
 g = GaussianFitter("nacl01.dat")
 g.run()
-g.execute("dump >'%s'" % "tmp_dump.fit")
+g.save_session("tmp_dump.fit")
 
 
 

@@ -19,6 +19,8 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 
+#include <xylib/xylib.h>
+
 #include "dload.h" 
 #include "frame.h"  // frame->add_recent_data_file(get_filename()
 #include "plot.h" // scale_tics_step()
@@ -404,7 +406,7 @@ void DLoadDlg::on_filter_change()
     int idx = dir_ctrl->GetFilterIndex();
     wxString path = dir_ctrl->GetFilePath();
     bool is_text = (idx == 0 && !path.IsEmpty() 
-                             && Data::guess_file_type(wx2s(path)) == "text")
+                         && xylib::guess_filetype(wx2s(path))->name == "text")
                     || idx == 1; 
     enable_text_options(is_text);
 }
@@ -426,7 +428,7 @@ void DLoadDlg::on_path_change()
     filename_tc->SetValue(path);
     if (dir_ctrl->GetFilterIndex() == 0) { // all files
         bool is_text = !path.IsEmpty() 
-                             && Data::guess_file_type(wx2s(path)) == "text"; 
+                         && xylib::guess_filetype(wx2s(path)) ->name== "text"; 
         enable_text_options(is_text);
     }
     open_here->Enable(!path.IsEmpty());

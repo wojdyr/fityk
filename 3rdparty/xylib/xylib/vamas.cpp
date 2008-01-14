@@ -1,29 +1,7 @@
-// Implementation of class VamasDataSet for reading meta-info and xy-data from 
-// ISO14976 VAMAS Surface Chemical Ana0lysis Standard Data Transfer Format File
+// ISO14976 VAMAS Surface Chemical Analysis Standard Data Transfer Format File
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id$
 
-/*
-
-ISO14976 VAMAS Surface Chemical Analysis Standard Data Transfer Format File
-
-Vamas file is also organized as 
-"file_header - (range_header - range_data) - (range_header - range_data) ..."
-There is only a value in every line without a key or label; the meaning is 
-determined by its position and values in preceding lines
-
-For more info, see the following:
-1. W.A. Dench, L. B. Hazell and M. P. Seah, VAMAS Surface Chemical Analysis 
-Standard Data Transfer Format with Skeleton Decoding Programs, published on 
-Surface and Interface Analysis, 13(1988)63-122 or National Physics Laboratory 
-Report DMA(A)164 July 1988
-2. The ISO standard (iso14976)
-3. http://www.biomateria.com/vamas.htm
-
-Implementation is based on the paper [1] above and on the analysis of sample 
-files.
-
-*/
 
 #include "vamas.h"
 #include "util.h"
@@ -36,7 +14,7 @@ namespace xylib {
 const FormatInfo VamasDataSet::fmt_info(
     "vamas",
     "VAMAS (ISO-14976)",
-    vector<string>(1, "vms"),
+    vector_string("vms"),
     false,                       // whether binary
     true,                        // whether has multi-blocks
     &VamasDataSet::ctor,
@@ -45,8 +23,26 @@ const FormatInfo VamasDataSet::fmt_info(
 
 } // namespace
 
-namespace 
-{
+namespace {
+
+// NULL-terminated arrays -  dictionaries for VAMAS data
+
+const char* exps[] = {
+    "MAP","MAPDP","MAPSV","MAPSVDP","NORM",
+    "SDP","SDPSV","SEM","NOEXP", NULL
+};
+
+const char* techs[] = {
+    "AES diff","AES dir","EDX","ELS","FABMS",
+    "FABMS energy spec","ISS","SIMS","SIMS energy spec","SNMS",
+    "SNMS energy spec","UPS","XPS","XRF", NULL
+};
+
+const char* scans[] = {
+    "REGULAR","IRREGULAR","MAPPING", NULL
+};
+
+// simple utilities
 
 int read_line_int(istream& is) 
 { 
@@ -63,28 +59,13 @@ void assert_in_array(string const& val, const char** array, string const& name)
     for (const char** i = &array[0]; *i != NULL; ++i)
         if (strcmp(val.c_str(), *i) == 0)
             return;
-    throw xylib::XY_Error(name + "has an invalid value");
+    throw xylib::FormatError(name + "has an invalid value");
 }
+
 } // anonymous namespace
 
 
 namespace xylib {
-// NULL-terminated arrays -  dictionaries for VAMAS data
-
-static const char* exps[] = {
-    "MAP","MAPDP","MAPSV","MAPSVDP","NORM",
-    "SDP","SDPSV","SEM","NOEXP", NULL
-};
-
-static const char* techs[] = {
-    "AES diff","AES dir","EDX","ELS","FABMS",
-    "FABMS energy spec","ISS","SIMS","SIMS energy spec","SNMS",
-    "SNMS energy spec","UPS","XPS","XRF", NULL
-};
-
-static const char* scans[] = {
-    "REGULAR","IRREGULAR","MAPPING", NULL
-};
 
 
 bool VamasDataSet::check(istream &f)
@@ -96,6 +77,10 @@ bool VamasDataSet::check(istream &f)
 }
 
 
+// Vamas file is organized as 
+// "file_header - (range_header - range_data) - (range_header - range_data) ..."
+// There is only a value in every line without a key or label; the meaning is 
+// determined by its position and values in preceding lines
 void VamasDataSet::load_data(std::istream &f) 
 {
     int n;
@@ -261,7 +246,7 @@ Block* VamasDataSet::read_block(istream &f)
 
     if (include[17]) {
         if ("SEM" == exp_mode || "MAPSV" == exp_mode || "MAPSVDP" == exp_mode) {
-            throw XY_Error("do not support MAPPING mode");
+            throw FormatError("unsupported MAPPING mode");
         }
     }
 
@@ -314,10 +299,10 @@ Block* VamasDataSet::read_block(istream &f)
             x_step = my_strtod(read_line(f));
         }
         else
-            throw XY_Error("Only REGULAR scans are supported now");
+            throw FormatError("Only REGULAR scans are supported now");
     }
     else
-        throw XY_Error("how to find abscissa properties in this file?");
+        throw FormatError("how to find abscissa properties in this file?");
 
     if (include[31]) {
         cor_var = read_line_int(f);

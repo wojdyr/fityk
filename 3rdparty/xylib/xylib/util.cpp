@@ -35,9 +35,9 @@ long my_strtol(const std::string &str)
     long val = strtol(startptr, &endptr, 10);
 
     if (LONG_MAX == val || LONG_MIN == val) {
-        throw XY_Error("overflow when reading long");
+        throw FormatError("overflow when reading long");
     } else if (startptr == endptr) {
-        throw XY_Error("not an integer as expected");
+        throw FormatError("not an integer as expected");
     }
 
     return val;
@@ -50,21 +50,14 @@ double my_strtod(const std::string &str)
     double val = strtod(startptr, &endptr);
 
     if (HUGE_VAL == val || -HUGE_VAL == val) {
-        throw XY_Error("overflow when reading double");
+        throw FormatError("overflow when reading double");
     } else if (startptr == endptr) {
-        throw XY_Error("not a double as expected");
+        throw FormatError("not a double as expected");
     }
 
     return val;
 }
 
-
-void my_assert(bool condition, const string &msg)
-{
-    if (!condition) {
-        throw XY_Error(msg);
-    }
-}
 
 // ----------   istream::read()- & endiannes-related utilities   ----------
 
@@ -72,7 +65,7 @@ void my_read(istream &f, char *buf, int len)
 {
     f.read(buf, len);
     if (f.gcount() < len) {
-        throw XY_Error("unexpected eof");
+        throw FormatError("unexpected eof");
     }
 }
 
@@ -203,7 +196,7 @@ string read_line(istream& is)
 {
     string line;
     if (!getline(is, line)) 
-        throw xylib::XY_Error("unexpected end of file");
+        throw xylib::FormatError("unexpected end of file");
     return line;
 }
 
@@ -213,7 +206,7 @@ void skip_lines(istream &f, int count)
     string line;
     for (int i = 0; i < count; ++i) {
         if (!getline(f, line)) {
-            throw XY_Error("unexpected end of file");
+            throw FormatError("unexpected end of file");
         }
     }
 }

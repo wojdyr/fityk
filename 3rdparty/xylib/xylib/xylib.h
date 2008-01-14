@@ -37,9 +37,9 @@ struct FormatInfo
     t_ctor ctor; // factory function
     t_checker checker; // function used to check if a file has this format
 
-    FormatInfo(const std::string &name_, 
-               const std::string &desc_, 
-               const std::vector<std::string> &exts_, 
+    FormatInfo(std::string const& name_, 
+               std::string const& desc_, 
+               std::vector<std::string> const& exts_, 
                bool binary_, 
                bool multi_range_,
                t_ctor ctor_,
@@ -49,7 +49,7 @@ struct FormatInfo
           ctor(ctor_), checker(checker_) {}
 
     // check if extension `ext' is in the list `exts'; case insensitive
-    bool has_extension(const std::string &ext) const; 
+    bool has_extension(std::string const& ext) const; 
     // check if file f can be of this format
     bool check(std::istream& f) const { return !checker || (*checker)(f); }
 };
@@ -57,11 +57,18 @@ struct FormatInfo
 extern const FormatInfo *formats[];
 
 
-// the only exception thrown by xylib
-class XY_Error : public std::runtime_error
+// unexpected format, unexpected EOF, etc
+class FormatError : public std::runtime_error
 {
 public:
-    XY_Error(const std::string& msg) : std::runtime_error(msg) {};
+    FormatError(std::string const& msg) : std::runtime_error(msg) {};
+};
+
+// all errors other than format error
+class RunTimeError : public std::runtime_error
+{
+public:
+    RunTimeError(std::string const& msg) : std::runtime_error(msg) {};
 };
 
 
@@ -69,7 +76,7 @@ public:
 class Column
 {
 public:
-    std::string name; // column can have a name
+    std::string name; // column can have a name (but usually it doesn't have)
     double step; // 0. means step is not fixed
 
     Column(double step_) 
@@ -77,7 +84,7 @@ public:
     virtual ~Column() {}
 
     // return number of points or -1 for "unlimited" number of points
-    virtual int get_pt_cnt() const = 0;
+    virtual int get_point_count() const = 0;
     virtual double get_value(int n) const = 0; 
     bool has_fixed_step() const { return step != 0.; }
     
@@ -93,7 +100,7 @@ protected:
 class MetaData : public std::map<std::string, std::string>
 {
 public:
-    bool has_key(const std::string &key) const { return find(key) != end(); }
+    bool has_key(std::string const& key) const { return find(key) != end(); }
     std::string const& get(std::string const& key) const; 
     bool set(std::string const& key, std::string const& val);
 };
@@ -104,18 +111,23 @@ class Block
 {
 public:
     MetaData meta;
-    std::string name; // block can have a name
+    std::string name; // block can have a name (but usually it doesn't have)
     
     Block() {}
     ~Block();
 
-    int get_column_cnt() const { return cols.size(); }
+    int get_column_count() const { return cols.size(); }
     const Column& get_column(unsigned n) const;
 
     void export_xy_file(std::ostream &os) const;
 
     void set_xy_columns(Column *x, Column *y);
     void add_column(Column *c) { cols.push_back(c); }
+
+    // return number of points or -1 for "unlimited" number of points
+    // each column should have the same number of points (or "unlimited"
+    // number if the column is a generator)
+    int get_point_count() const;
     
 protected:
     std::vector<Column*> cols;
@@ -128,22 +140,27 @@ protected:
 class DataSet
 {
 public:
+    // pointer to FormatInfo of a class derived from DataSet
     FormatInfo const* const fi;
 
+    // ctor is protected
     virtual ~DataSet();
 
     // number of blocks (usually 1)
-    int get_block_cnt() const { return blocks.size(); }
+    int get_block_count() const { return blocks.size(); }
+
     // access block number i
-    const Block* get_block(int n) const;
+    Block const* get_block(int n) const;
 
     // read data from file
     virtual void load_data(std::istream &f) = 0;
+
     // delete all data stored in this class (use only if you want to 
-    // use load_data() more than once)
+    // call load_data() more than once)
     void clear();
+
     // export to text file
-    void export_plain_text(const std::string &fname) const; 
+    void export_plain_text(std::string const& fname) const; 
 
 protected:
     std::vector<Block*> blocks;
@@ -151,10 +168,11 @@ protected:
 
     DataSet(FormatInfo const* fi_);
 
-    void format_assert(bool condition) 
+    void format_assert(bool condition, std::string const& comment = "") 
     {
         if (!condition)
-            throw XY_Error("Unexpected format for filetype: " + fi->name);
+            throw FormatError("Unexpected format for filetype: " + fi->name
+                              + (comment.empty() ? comment : "; " + comment));
     }
 }; 
 
@@ -164,13 +182,13 @@ protected:
 DataSet* load_file(std::string const& path, std::string const& format_name="");
 
 // return value: pointer to Dataset that contains all data read from file
-DataSet* load_stream(std::istream &is, std::string const& format_name);
+DataSet* load_stream(std::istream &is, FormatInfo const* fi);
 
 // guess a format of the file
-FormatInfo const* guess_filetype(const std::string &path);
+FormatInfo const* guess_filetype(std::string const& path);
 
 // returns FormatInfo that has a name format_name
-FormatInfo const* string_to_format(const std::string &format_name);
+FormatInfo const* string_to_format(std::string const& format_name);
 
 } // namespace xylib
 

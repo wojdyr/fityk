@@ -1,21 +1,6 @@
-// Princeton Instruments WinSpec SPE Format
+// Princeton Instruments WinSpec SPE Format - spectroscopy data
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id$
-
-
-// Princeton Instruments WinSpec SPE format. One kind of spectroscopy formats
-// used by Princeton Instruments (PI). The Official programs to deal with this
-// format is WinView/WinSpec.
-// 
-// According to the format specification, SPE format has several versions 
-// (v1.43, v1.6 and the newest v2.25). But we need not implement every version 
-// of it, because it's backward compatible.
-//     
-// Data begins after a 4100-byte header.
-// 
-// Based on the file format specification sent us by David Hovis <dbh6@case.edu>
-// (the documents came with his equipment) and a SPE reading program written by
-// Pablo Bianucci <pbian@physics.utexas.edu>.
 
 #include "winspec_spe.h"
 #include "util.h"
@@ -36,8 +21,47 @@ const FormatInfo WinspecSpeDataSet::fmt_info(
     &WinspecSpeDataSet::check
 );
 
+enum {
+    SPE_HEADER_SIZE = 4100,   // fixed binary header size
+};
+
+/* datatypes of DATA point in spe_file */
+enum spe_dt {
+    SPE_DATA_FLOAT = 0,     // size 4
+    SPE_DATA_LONG  = 1,     // size 4
+    SPE_DATA_INT   = 2,     // size 2
+    SPE_DATA_UINT  = 3,     // size 2
+};
+
+// Calibration structure in SPE format.
+// NOTE: fields that we don't care have been commented out
+struct spe_calib {
+//    double offset;                // +0 offset for absolute data scaling
+//    double factor;                // +8 factor for absolute data scaling 
+//    char current_unit;            // +16 selected scaling unit 
+//    char reserved1;               // +17 reserved 
+//    char string[40];              // +18 special string for scaling 
+//    char reserved2[40];           // +58 reserved
+    char calib_valid;             // +98 flag of whether calibration is valid
+//    char input_unit;              // +99 current input units for 
+                                  // "calib-value" 
+//    char polynom_unit;            // +100 linear UNIT and used 
+                                  // in the "polynom-coeff" 
+    char polynom_order;           // +101 ORDER of calibration POLYNOM 
+//    char calib_count;             // +102 valid calibration data pairs 
+//    double pixel_position[10];    // +103 pixel pos. of calibration data 
+//    double calib_value[10];       // +183 calibration VALUE at above pos 
+    double polynom_coeff[6];      // +263 polynom COEFFICIENTS 
+//    double laser_position;        // +311 laser wavenumber for relativ WN 
+//    char reserved3;               // +319 reserved 
+//    unsigned char new_calib_flag; // +320 If set to 200, valid label below 
+//    char calib_label[81];         // +321 Calibration label (NULL term'd) 
+//    char expansion[87];           // +402 Calibration Expansion area 
+};
+
+
 bool WinspecSpeDataSet::check(istream &f) {
-    // make sure file size > 4100
+    // make sure file size > 4100 (data begins after a 4100-byte header)
     f.seekg(-1, ios_base::end);
     long file_sz = f.tellg();
     if (file_sz <= 4100) {
@@ -81,7 +105,7 @@ void WinspecSpeDataSet::load_data(std::istream &f)
         dim = ydim;
         calib = &y_calib;
     } else {
-        throw XY_Error("xylib does not support 2-D images");
+        throw FormatError("xylib does not support 2-D images");
     }
 
     f.ignore(122);      // move ptr to frames-start
@@ -117,12 +141,9 @@ void WinspecSpeDataSet::load_data(std::istream &f)
 }
 
 
-// internally-used helper functions
-///////////////////////////////////////////////////////////////////////////////
-
 Column* WinspecSpeDataSet::get_calib_column(const spe_calib *calib, int dim)
 {
-    my_assert(calib->polynom_order <= 6, "bad polynom header found");
+    format_assert(calib->polynom_order <= 6, "bad polynom header");
 
     if (!calib->calib_valid)    //use idx as X instead
         return new StepColumn(0, 1); 

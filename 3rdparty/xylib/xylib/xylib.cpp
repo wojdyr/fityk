@@ -3,6 +3,7 @@
 // Licence: GNU General Public License version 2
 // $Id$
 
+#include <cassert>
 #include <iomanip>
 #include <algorithm>
 #include <boost/detail/endian.hpp>
@@ -20,7 +21,7 @@
 #include "winspec_spe.h"
 //#include "pdcif.h"
 #include "philips_raw.h"
-#include "gsas.h"
+//#include "gsas.h"
 #include "cpi.h"
 #include "dbws.h"
 #include "canberra_mca.h"
@@ -62,7 +63,7 @@ string const& MetaData::get(string const& key) const
 {
     const_iterator it = find(key);
     if (it == end()) 
-        throw XY_Error("no such key in meta-info found");
+        throw RunTimeError("no such key in meta-info found");
     return it->second;
 }
 
@@ -85,14 +86,15 @@ Block::~Block()
 
 const Column& Block::get_column(unsigned n) const
 {
-    my_assert(n < cols.size(), "column index out of range");
+    if (n >= cols.size()) 
+        throw RunTimeError("column index out of range");
     return *cols[n];
 }
 
 
 void Block::export_xy_file(ostream &os) const
 {
-    int ncol = get_column_cnt();
+    int ncol = get_column_count();
     os << "# ";
     for (int i = 0; i < ncol; ++i) {
         string const& name = get_column(i).name;
@@ -101,7 +103,7 @@ void Block::export_xy_file(ostream &os) const
     os << endl;
     int nrow = 0;
     for (int i = 0; i < ncol; ++i) {
-        int c = get_column(i).get_pt_cnt();
+        int c = get_column(i).get_point_count();
         if (c > nrow)
             nrow = c;
     }
@@ -115,11 +117,22 @@ void Block::export_xy_file(ostream &os) const
 
 void Block::set_xy_columns(Column *x, Column *y)
 {
-    my_assert(cols.empty(), "Internal error in set_xy_columns()");
+    if (!cols.empty()) 
+        throw RunTimeError("Internal error in set_xy_columns()");
     cols.push_back(x);
     cols.push_back(y);
 }
 
+int Block::get_point_count() const
+{
+    int min_n = -1;
+    for (vector<Column*>::const_iterator i=cols.begin(); i != cols.end(); ++i){
+        int n = (*i)->get_point_count();
+        if (min_n == -1 || (n != -1 && n < min_n))
+            min_n = n;
+    }
+    return min_n;
+}
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -136,15 +149,16 @@ DataSet::~DataSet()
 const Block* DataSet::get_block(int n) const
 {
     if (n < 0 || (size_t)n >= blocks.size()) 
-        throw XY_Error("no block #" + S(n) + "in this file.");
+        throw RunTimeError("no block #" + S(n) + "in this file.");
     return blocks[n];
 }
 
-void DataSet::export_plain_text(const string &fname) const
+void DataSet::export_plain_text(string const &fname) const
 {
-    unsigned range_num = get_block_cnt();
+    unsigned range_num = get_block_count();
     ofstream of(fname.c_str());
-    my_assert(of != NULL, "can't create file " + fname);
+    if (!of) 
+        throw RunTimeError("can't create file: " + fname);
 
     // output the file-level meta-info
     of << "# exported by xylib from a " << fi->name << " file" << endl;
@@ -180,22 +194,27 @@ DataSet* load_file(string const& path, string const& format_name)
 {
     ifstream is(path.c_str(), ios::in | ios::binary);
     if (!is) 
-        throw XY_Error("Error: can't open input file: " + path);
-    string filetype;
+        throw RunTimeError("can't open input file: " + path);
+
+    FormatInfo const* fi = NULL;
     if (format_name.empty()) {
-        FormatInfo const* fi = guess_filetype(path);
-        my_assert(fi, "Format of file can not be guessed");
-        filetype = fi->name;
+        fi = guess_filetype(path);
+        if (!fi)
+            throw RunTimeError ("Format of the file can not be guessed");
     }
-    else
-        filetype = format_name;
-    return load_stream(is, filetype);
+    else {
+        fi = string_to_format(format_name);
+        if (!fi)
+            throw RunTimeError("Unsupported (misspelled?) data format:" 
+                                + format_name);
+    }
+
+    return load_stream(is, fi);
 }
 
-DataSet* load_stream(istream &is, string const& format_name)
+DataSet* load_stream(istream &is, FormatInfo const* fi)
 {
-    FormatInfo const* fi = string_to_format(format_name);
-    my_assert(fi != NULL, "when loading data: format of the file is not known");
+    assert(fi != NULL);
     DataSet *pd = (*fi->ctor)();
     pd->load_data(is); 
     return pd;
@@ -208,9 +227,7 @@ vector<FormatInfo const*> get_possible_filetypes(string const& filename)
 
     // get extension
     string::size_type pos = filename.find_last_of('.');
-    if (pos == string::npos) 
-        return results;
-    string ext = filename.substr(pos + 1);
+    string ext = (pos == string::npos) ? string() : filename.substr(pos + 1);
 
     for (FormatInfo const **i = formats; *i != NULL; ++i) {
         if ((*i)->has_extension(ext))
@@ -226,7 +243,7 @@ FormatInfo const* guess_filetype(const string &path)
         return NULL;
     ifstream f(path.c_str(), ios::in | ios::binary);
     if (!f)
-        throw XY_Error("can't open input file: " + path);
+        throw RunTimeError("can't open input file: " + path);
     if (possible.size() == 1)
         return possible[0]->check(f) ? possible[0] : NULL;
     else {

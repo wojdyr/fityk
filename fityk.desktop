@@ -1,12 +1,15 @@
 [Desktop Entry]
 Type=Application
-Encoding=UTF-8
 Name=fityk
-Comment=peak fitting and data analysis
+Comment=Peak fitting and data analysis
 GenericName=Curve Fitter
-Icon=fityk.png
+Icon=fityk
 Exec=fityk %F
 Terminal=false
 StartupNotify=true
 MimeType=application/x-fityk;
+# according to: http://standards.freedesktop.org/menu-spec/latest/apa.html
+# we need one category from Main Categories list. That's why Office is here.
+# (Another choice would be Education, but I don't think fityk is educational 
+# software. Your opinion may be different, of course)
 Categories=Science;Office;DataVisualization;GTK;

@@ -24,10 +24,10 @@
 
 namespace xylib {
 
-class DbwsDataSet : public DataSet
-{
-    OBLIGATORY_DATASET_MEMBERS(DbwsDataSet)
-};
+    class DbwsDataSet : public DataSet
+    {
+        OBLIGATORY_DATASET_MEMBERS(DbwsDataSet)
+    };
 
 }
 #endif // DBWS_DATASET_H_

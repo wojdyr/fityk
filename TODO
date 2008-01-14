@@ -1,7 +1,7 @@
 $Id$
 
-If you know C++ and would like to help in development of fityk, but
-you don't know were to start, there is a list of ideas at the end of this file.
+If you know C++ and would like to help improving fityk, but you don't know were
+to start, there is a list of ideas at the end of this file.
 
 ---------- TODO list and tentative development plan  ----------------
 Legend:
@@ -19,10 +19,9 @@ Legend:
           @n < 'filename':4-5  (block)
           @n < 'filename':x,y,z,block  filetype filetype-options
 	                 (:[0-9,/- ]+)   [::alnum::]+
-  - 
-
-* BUG?: @+ < 'filename':1,5/6/7" doesn't work. What should be a syntax 
-  for columns?
+    NOTE: now @+ < 'filename':1,5/6" doesn't work, but ...'filename:1,5/6' does
+    ? what to do with htext format?
+    GUI: plot preview (in data load dialog) is not working now
 
 * GUI: check if "shadow unselected" works on MSW
 
@@ -38,10 +37,13 @@ Legend:
 
 --------------> 0.8.3
 
+* GUI: refactor MainPlot - mouse event handling based on subscriptions,
+       a clean interface to XOR-drawing 
+
 * embedding python scripts or other plugin-like solution  [IMPORTANT]
   perhaps IPC instead of embedded scripting language?
 
-* rewrite crystallographic part in python [IMPORTANT]
+* rewrite old crystallographic part in python [IMPORTANT]
 
 --------------> 0.9.0
 
@@ -58,6 +60,8 @@ Legend:
   because view margin is always 5%, and this is handled by libfityk
 
 * BUG: "plot . []" sometimes doesn't work as expected if x axis is not visible.
+
+* ? rewrite manual in Markdown or Crossmark 
 
 --------------> 
 
@@ -111,8 +115,6 @@ Legend:
   perhaps using gsl_sf_log_erfc
 
 * ? GUI: changing data point size and line separately for each dataset,
-
-* data load, ascii: optimize, loading many datafiles is slow
 
 * info -- more informations about error, confidence limits, etc.
   graphical interface Fit > Info

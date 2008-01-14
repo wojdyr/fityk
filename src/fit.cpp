@@ -436,20 +436,20 @@ void Fit::Jordan(vector<fp>& A, vector<fp>& b, int n)
             continue; // x[i]=b[i], b[i]==0
         }
         if (maxnr != i) {                            // interchanging rows
-            for (int j=i; j<n; j++)
+            for (int j = i; j < n; j++)
                 swap (A[n*maxnr+j], A[n*i+j]);
             swap (b[i], b[maxnr]);
         }
-        register fp foo = 1.0 / A[i*n+i];
+        fp c = 1.0 / A[i*n+i];
         for (int j = i; j < n; j++)
-            A[i*n+j] *= foo;
-        b[i] *= foo;
+            A[i*n+j] *= c;
+        b[i] *= c;
         for (int k = 0; k < n; k++)
             if (k != i) {
-                foo = A[k * n + i];
+                fp d = A[k * n + i];
                 for (int j = i; j < n; j++)
-                    A[k * n + j] -= A[i * n + j] * foo;
-                b[k] -= b[i] * foo;
+                    A[k * n + j] -= A[i * n + j] * d;
+                b[k] -= b[i] * d;
             }
     }
 }

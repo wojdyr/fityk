@@ -1,10 +1,6 @@
+// Siemens/Bruker Diffrac-AT Raw Format version 1/2/3
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id$
-
-// Siemens/Bruker Diffrac-AT Raw Format version 1/2/3
-//  - data format used in Siemens/Brucker X-ray diffractometers.
-// Based on the file format specification:
-// "Appendix B: DIFFRAC-AT Raw Data File Format" from a diffractometer manual 
 
 #include "brucker_raw.h"
 #include "util.h"
@@ -119,7 +115,7 @@ void BruckerRawDataSet::load_version2(std::istream &f)
 
         // add the block-scope meta-info
         unsigned cur_header_len = read_uint16_le(f);
-        my_assert (cur_header_len > 48, "block header too short");
+        format_assert (cur_header_len > 48);
 
         unsigned cur_range_steps = read_uint16_le(f);
         f.ignore(4);

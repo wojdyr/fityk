@@ -27,8 +27,7 @@ class Ftk;
 /// Only one instance of Fityk class can be used.
 /// \par
 /// \b TODO 
-/// - find out how to make bindings to set_show_message() and redir_messages()
-///   in SWIG
+/// - find out how to make bindings to set_show_message() in SWIG
 
 
 namespace fityk
@@ -38,14 +37,21 @@ namespace fityk
 struct ExecuteError : public std::runtime_error 
 {
     ExecuteError(const std::string& msg) : runtime_error(msg) {}
+    const char* str() { return what(); } // used by SWIG 
 };
 
 /// syntax error exception, used only in public API
-struct SyntaxError : public std::exception {};
+struct SyntaxError : public std::exception 
+{
+    const char* str() { return ""; } // used by SWIG 
+};
 
 
 /// exception thrown to finish the program (on command "quit")
-struct ExitRequestedException : std::exception {};
+struct ExitRequestedException : std::exception 
+{
+    const char* str() { return ""; } // used by SWIG 
+};
 
 /// data point
 struct Point 

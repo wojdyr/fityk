@@ -1,4 +1,4 @@
-# $Id: $
+# $Id$
 
 SUBDIRS = img 
 bin_PROGRAMS = fityk 
@@ -30,7 +30,7 @@ fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 
 AM_CPPFLAGS = @WX_CPPFLAGS@ @CPPFLAGS_3RDPARTY@ $(HELP_DEF)
 AM_CXXFLAGS = @WX_CXXFLAGS_ONLY@ 
-LDADD = ../libfityk.la @WX_LIBS@ $(ms_win_res)
+LDADD = ../libfityk.la @XYLIB_LDADD@ @WX_LIBS@ $(ms_win_res)
 
 
 inputline: sample_inputline.cpp inputline.cpp inputline.h callback.h

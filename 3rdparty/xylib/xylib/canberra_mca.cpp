@@ -50,7 +50,7 @@ void CanberraMcaDataSet::load_data(std::istream &f)
     f.read(all_data, file_size);
     if (f.gcount() != file_size) {
         delete [] all_data;
-        throw XY_Error("Unexpected end of file.");
+        throw FormatError("Unexpected end of file.");
     }
 
     double energy_offset = pdp11_f (all_data + 108);

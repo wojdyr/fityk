@@ -2,19 +2,6 @@
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id$
 
-// Multi-column ascii text file.
-// In each line, we try to read as many numbers as possible.
-// If there are at least two numbers, the line is considered a valid
-// data line, otherwise it is silently skipped (regarded a comment).
-// The number of "columns" in file is the minimal number of columns of valid
-// lines. 
-// 
-// The following lines will be skipped:
-// # foo bar
-// ; 1.2 3.4 5.6
-// 1.2 ** 3.4
-// foo 2 bar 4
-
 #include <cerrno>
 #include "text.h"
 #include "util.h"
@@ -55,7 +42,8 @@ void TextDataSet::load_data(std::istream &f)
             if (p == endptr) // no more numbers
                 break;
             if (errno != 0)
-                throw XY_Error("Numeric overflow or underflow in line:\n" + s);
+                throw FormatError("Numeric overflow or underflow in line:\n" 
+                                  + s);
             row.push_back(val);
             p = endptr;
             while (isspace(*p) || *p == ',' || *p == ';' || *p == ':')
@@ -84,8 +72,8 @@ void TextDataSet::load_data(std::istream &f)
             cols[i]->add_val(row[i]);
     }
 
-    my_assert (cols.size() >= 2 && cols[0]->get_pt_cnt() >= 2,
-               "Data not found in file.");
+    format_assert (cols.size() >= 2 && cols[0]->get_point_count() >= 2,
+                   "data not found in file.");
 
     Block* blk = new Block;
     for (unsigned i = 0; i < cols.size(); ++i) 

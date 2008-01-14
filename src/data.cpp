@@ -17,7 +17,7 @@
 #include <sstream>
 #include <algorithm>
 
-//#include <xylib/xylib.h>
+#include <xylib/xylib.h>
 
 using namespace std;
 
@@ -58,37 +58,6 @@ string Data::get_info() const
     if (active_p.size() != p.size())
         s += "\nActive data range: " + range_as_string();
     return s;
-}
-
-// FIXME: check if it works correctly on both little- and big-endian machines
-double Data::pdp11_f (char* fl)  //   function that converts:
-{                          //   single precision 32-bit floating point
-                           //   DEC PDP-11 format
-                           //   to double
-    int sign = *(fl+1) & 0x80;
-    int unbiased = ((*(fl+1)&0x7F)<<1) + (((*fl)&0x80)>>7) - 128;
-    if (unbiased == -128)
-        return (0);
-    double h = ( (*(fl+2)&0x7F)/256./256./256. +
-            (*(fl+3)&0x7F)/256./256.  +
-            (128+((*fl)&0x7F))/256. );
-    return (sign == 0 ? 1. : -1.) * h * pow(2., unbiased);
-}
-
-string Data::guess_file_type(string const& filename)
-{ //using only filename extension
-    if (filename.size() > 4) {
-        string file_ext = filename.substr (filename.size() - 4, 4);
-        if (file_ext == ".mca"   || file_ext == ".MCA") 
-            return "MCA";
-        else if (file_ext == ".rit" || file_ext == ".RIT")
-            return "RIT";
-        else if (file_ext == ".cpi" || file_ext == ".CPI")
-            return "CPI";
-        else if (file_ext == ".raw" || file_ext == ".RAW")
-            return "BrukerRAW";
-    }
-    return "text";
 }
 
 void Data::clear()
@@ -353,6 +322,7 @@ vector<int> parse_int_range(string const& s)
 }
 } //anonymous namespace
 
+/*
 vector<string> Data::open_filename_with_columns(string const& file, ifstream& f)
 {
     vector<string> next_files;
@@ -399,119 +369,66 @@ vector<string> Data::open_filename_with_columns(string const& file, ifstream& f)
     }
     return next_files;
 }
+*/
 
 
-vector<string> Data::load_file (string const& file, string const& type, 
-                                vector<int> const& cols, bool preview)
+void Data::load_file (string const& file, string const& type, 
+                      vector<int> const& indices, bool preview)
 {   
-    vector<string> next_files;
-    ifstream f (file.c_str(), ios::in | ios::binary);
-    if (f) {
-        clear(); //removing previous file
-        filename = file;   
-        given_cols = cols;
-    }
-    else if (cols.empty()) {
-        next_files = open_filename_with_columns(file, f);
-    }
-    if (!f) {
-        throw ExecuteError("Can't open file: " + file);
-    }
-    given_type = type;
-
-    // guess format if not given
-    string const& ft = type.empty() ? guess_file_type(filename) : type;
-    if (ft == "text")                         // x y x y ... 
-        load_xy_filetype(f, given_cols);
-    else if (ft == "htext")                   // header\n x y x y ... 
-        load_header_xy_filetype(f, given_cols);
-    else if (ft == "MCA")                     // .mca
-        load_mca_filetype(f);
-    else if (ft == "RIT")                     // .rit
-        load_rit_filetype(f);
-    else if (ft == "CPI")                     // .cpi
-        load_cpi_filetype(f);
-    else if (ft == "BrukerRAW")               // .raw
-        ; //load_siemensbruker_filetype(filename, this);
-    else {                                  // other ?
-        throw ExecuteError("Unknown filetype.");
-    }
-    if (preview) {
-        recompute_y_bounds();
-        return next_files;
-    }
-    if (p.size() < 5)
-        F->warn("Only " + S(p.size()) + " data points found in file.");
-    if (!f.eof() && ft != "MCA") //!=mca; .mca doesn't have to reach EOF
-        F->warn("Unexpected char when reading " + S (p.size() + 1) + ". point");
-    post_load();
-    return next_files;
-}
-
-
-void Data::load_xy_filetype (ifstream& f, vector<int> const& columns)
-{
-    /* format  x y \n x y \n x y \n ...
-    *           38.834110      361
-    *           38.872800  ,   318
-    *           38.911500      352.431
-    * delimiters: white spaces and  , : ;
-     */
-    if (columns.size() == 1 || columns.size() > 3) //0, 2, or 3 columns allowed
+    if (indices.size() == 1 || indices.size() > 3) //0, 2, or 3 columns allowed
         throw ExecuteError("If columns are specified, two or three of them"
                            " must be given (eg. 1,2,3)");
-    vector<int> const& cols = columns.empty() ? vector2<int>(1, 2) : columns;
-    vector<fp> xy;
-    has_sigma = (columns.size() == 3);
-    int maxc = *max_element (cols.begin(), cols.end());
-    int minc = *min_element (cols.begin(), cols.end());
-    if (minc < 0) {
-        F->warn ("Invalid (negative) column number: " + S(minc));
-        return;
-    }
-    int not_enough_cols = 0, non_data_lines = 0, non_data_blocks = 0;
-    bool prev_empty = false;
-    //TODO: optimize loop below
-    //most of time (?) is spent in getline() in read_line_and_get_all_numbers()
-    while (read_line_and_get_all_numbers(f, xy)) {
-        if (xy.empty()) {
-            non_data_lines++;
-            if (!prev_empty) {
-                non_data_blocks++;
-                prev_empty = true;
+    int idx_x = indices.empty() ? 0 : indices[0];
+    int idx_y = indices.empty() ? 1 : indices[1];
+    int idx_z = indices.size() < 3 ? -1 : indices[2];
+
+    try {
+        xylib::DataSet *d = xylib::load_file(file, type);
+        xylib::Block const* block = d->get_block(0);
+        xylib::Column const& xcol = block->get_column(idx_x);
+        xylib::Column const& ycol = block->get_column(idx_y);
+        int n = block->get_point_count();
+        if (n < 5)
+            F->warn("Only " + S(p.size()) + " data points found in file.");
+
+        clear(); //removing previous file
+        filename = file;   
+        given_cols = indices;
+        given_type = type;
+
+        if (idx_z == -1) {
+            for (int i = 0; i < n; ++i) {
+                p.push_back(Point(xcol.get_value(i), ycol.get_value(i)));
             }
-            continue;
         }
-        else 
-            prev_empty = false;
+        else {
+            xylib::Column const& zcol = block->get_column(idx_z);
+            for (int i = 0; i < n; ++i) {
+                p.push_back(Point(xcol.get_value(i), ycol.get_value(i),
+                                  zcol.get_value(i)));
+            }
+        }
 
-        if (size(xy) < maxc) {
-            not_enough_cols++;
-            continue;
+        if (preview) {
+            recompute_y_bounds();
+            return;
         }
-
-        fp x = cols[0] == 0 ? p.size() : xy[cols[0] - 1];
-        fp y = cols[1] == 0 ? p.size() : xy[cols[1] - 1];
-        if (cols.size() == 2)
-            p.push_back (Point(x, y));
-        else {// cols.size() == 3
-            fp sig = cols[2] == 0 ? p.size() : xy[cols[2] - 1];
-            if (sig > 0) 
-                p.push_back (Point(x, y, sig));
-            else
-                F->warn ("Point " + S(p.size()) + " has sigma = " + S(sig) 
-                         + ". Point canceled.");
+        if (xcol.has_fixed_step()) {
+            x_step = xcol.step;
+            if (x_step < 0)
+                reverse(p.begin(), p.end());
         }
+        else {
+            sort(p.begin(), p.end());
+            x_step = find_step();
+        }
+        post_load();
+    } catch (runtime_error const& e) {
+        throw ExecuteError(e.what());
     }
-    if (non_data_lines > 0)
-        F->msg(S(non_data_lines) +" (not empty and not `#...') non-data lines "
-                "in " + S(non_data_blocks) + " blocks.");
-    if (not_enough_cols > 0)
-        F->warn("Less than " + S(maxc) + " numbers in " + S(not_enough_cols) 
-                 + " lines.");
-    sort(p.begin(), p.end());
-    x_step = find_step();
+
 }
+
 
 /// If the column is non-negative, we try to get n'th word in the line,
 /// where n = column+1 (i.e. column==0 is first word. Otherwise, the line is
@@ -536,107 +453,15 @@ string Data::read_one_line_as_title(ifstream& f, int column/*=-1*/)
 }
 
 /// read first line as file's title, and than run load_xy_filetype()
-void Data::load_header_xy_filetype(ifstream& f, vector<int> const& columns)
-{
-    int title_col = columns.size() > 1 ? columns[1] : 0;
-    title = Data::read_one_line_as_title(f, title_col);
-    load_xy_filetype(f, columns);
-}
+//void Data::load_header_xy_filetype(ifstream& f, vector<int> const& columns)
+//{
+//    int title_col = columns.size() > 1 ? columns[1] : 0;
+//    title = Data::read_one_line_as_title(f, title_col);
+//    load_xy_filetype(f, columns);
+//}
+//
 
-void Data::load_mca_filetype (ifstream& f) 
-{
-    typedef unsigned short int ui2b;
-    char all_data [9216];//2*512+2048*4];
-    f.read (all_data, sizeof(all_data));
-    if (f.gcount() != static_cast<int>(sizeof(all_data)) 
-            || *reinterpret_cast<ui2b*>(all_data) !=0 
-            || *reinterpret_cast<ui2b*>(all_data+34) != 4
-            || *reinterpret_cast<ui2b*>(all_data+36) != 2048
-            || *reinterpret_cast<ui2b*>(all_data+38) != 1) {
-        F->warn ("file format different than expected: "+ filename);
-        return;
-    }
-
-    double energy_offset = pdp11_f (all_data + 108);
-    double energy_slope = pdp11_f (all_data + 112);
-    double energy_quadr = pdp11_f (all_data + 116);
-    p.clear();
-    ui2b* pw = reinterpret_cast<ui2b*>(all_data + 
-                                *reinterpret_cast<ui2b*>(all_data+24));
-    for (int i = 1; i <= 2048; i++, pw += 2){ //FIXME should it be from 1 ?
-                        // perhaps from 0 to 2047, description was not clear.
-        fp x = energy_offset + energy_slope * i + energy_quadr * i * i;
-        fp y = *pw * 65536 + *(pw+1);
-        p.push_back (Point(x, y));
-    }
-    x_step = energy_quadr ? 0 : energy_slope;
-}
-
-void Data::load_cpi_filetype (ifstream& f) 
-{
-   /* format example:
-        SIETRONICS XRD SCAN
-        10.00
-        155.00
-        0.010
-        Cu
-        1.54056
-        1-1-1900
-        0.600
-        HH117 CaO:Nb2O5 neutron batch .0
-        SCANDATA
-        8992
-        9077
-        9017
-        9018
-        9129
-        9057
-        ...
-    */
-    string header = "SIETRONICS XRD SCAN";
-    string start_flag = "SCANDATA";
-    string s;
-    getline (f, s);
-    if (s.substr(0, header.size()).compare (header) != 0){
-        F->warn ("No \"" + header + "\" header found.");
-        return;
-    }
-    getline (f, s);//xmin
-    fp xmin = strtod (s.c_str(), 0);
-    getline (f, s); //xmax
-    getline (f, s); //xstep
-    x_step = strtod (s.c_str(), 0); 
-    //the rest of header
-    while (s.substr(0, start_flag.size()).compare(start_flag) != 0)
-        getline (f, s);
-    //data
-    while (getline(f, s)) {
-        fp y = strtod (s.c_str(), 0);
-        fp x = xmin + p.size() * x_step;
-        p.push_back (Point (x, y));
-    }
-}
-
-void Data::load_rit_filetype (ifstream& f) 
-{
-   /* format example:
-    *    10.0000   .0200150 foobar
-    *         0.      2.    132.     84.     92.    182.     86.
-    *       240.    306.    588.    639.    697.    764.    840.
-    *           
-    * delimiters: white spaces and  , : ;
-    *  above xmin=10.0 and step .02, so data points:
-    *  (10.00, 0), (10.02, 2), (10.04, 132), ...
-    *  !! if second number has dot '.', reading max. 4 digits after dots,
-    *  because in example above, in .0200150 means 0.0200 150.0 
-    */
-
-    vector<fp> num;
-    bool r = read_line_and_get_all_numbers(f, num);
-    if (!r || num.size() < 2 ){
-        F->warn ("Bad format in \"header\" of .rit file");
-        return;
-    }
+/*
     fp xmin = num[0];
     x_step = static_cast<int>(num[1] * 1e4) / 1e4; //only 4 digits after '.'
     vector<fp> ys;
@@ -650,6 +475,7 @@ void Data::load_rit_filetype (ifstream& f)
         }
     }
 }
+*/
 
 fp Data::get_y_at (fp x) const
 {
@@ -760,24 +586,6 @@ fp Data::find_step()
         return 0.;
 }
         
-int Data::read_line_and_get_all_numbers(istream &is, vector<fp>& result_numbers)
-{
-    // returns number of numbers in line
-    result_numbers.clear();
-    string s;
-    while (getline (is, s) && (s.empty() || s[0] == '#' 
-                             || s.find_first_not_of(" \t\r\n") == string::npos))
-        ;//ignore lines with '#' at first column or empty lines
-    for (string::iterator i = s.begin(); i != s.end(); i++)
-        if (*i == ',' || *i == ';' || *i == ':')
-            *i = ' ';
-    istringstream q(s);
-    fp d;
-    while (q >> d)
-        result_numbers.push_back (d);
-    return !is.eof();
-}
-
 
 int Data::get_lower_bound_ac (fp x) const
 {

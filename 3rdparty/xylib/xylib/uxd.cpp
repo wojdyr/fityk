@@ -1,54 +1,6 @@
-// Siemens/Bruker Diffrac-AT UXD Format
+// Siemens/Bruker Diffrac-AT UXD text format (for powder diffraction data)
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id$
-
-/*
-
-FORMAT DESCRIPTION:
-====================
-
-Siemens/Bruker Diffrac-AT UXD Format, data format used in Siemens/Brucker 
-X-ray diffractors. It can be inter-convertable to RAW format by the official 
-tool XCH.
-
-///////////////////////////////////////////////////////////////////////////////
-    * Name in progam:   uxd
-    * Extension name:   uxd
-    * Binary/Text:      text
-    * Multi-blocks:     Y
-    
-///////////////////////////////////////////////////////////////////////////////
-    * Format details: 
-It has a header indicating the file-scope parameters in the form of 
-"key=val" format. Followed the file header are block sections. Each section 
-starts with "_DRIVER=XXX". In each section, first lines are block-scope meta-
-info; X-Y data starts after "_COUNT".
-
-///////////////////////////////////////////////////////////////////////////////
-    * Sample Fragment: ("#xxx": comments added by me; ...: omitted lines)
-
-# File header with some file-scope prarmeters.
-_FILEVERSION=1
-_SAMPLE='test'
-_WL1=1.540600
-...
-# Data for Block 1
-_DRIVE='COUPLED'
-_STEPTIME=37.000000
-_STEPSIZE=0.020000   # x_step
-_STEPMODE='C'
-_START=10.0000       # x_start
-...
-# Block 1 data starts
-_COUNTS
-     1048      1162      1108      1163      1071      1057      1055       973
-     ...
-# Repeat if there are more blocks/ranges
-
-///////////////////////////////////////////////////////////////////////////////
-    * Implementation Ref of xylib: based on the analysis of the sample files.
-    
-*/
 
 #include "uxd.h"
 #include "util.h"
@@ -79,7 +31,34 @@ bool UxdDataSet::check(istream &f)
     return str_startwith(line, "_FILEVERSION");
 }
 
+/*
+It has a header indicating the file-scope parameters in the form of 
+"key=val" format. Followed the file header are block sections. Each section 
+starts with "_DRIVER=XXX". In each section, first lines are block-scope meta-
+info; X-Y data starts after "_COUNT".
 
+Format example: ("#xxx": comments added by me; ...: omitted lines)
+--8<---------------------------------------------------------------
+# File header with some file-scope prarmeters.
+_FILEVERSION=1
+_SAMPLE='test'
+_WL1=1.540600
+...
+# Data for Block 1
+_DRIVE='COUPLED'
+_STEPTIME=37.000000
+_STEPSIZE=0.020000   # x_step
+_STEPMODE='C'
+_START=10.0000       # x_start
+...
+# Block 1 data starts
+_COUNTS
+     1048      1162      1108      1163      1071      1057      1055       973
+     1000      1031      1068      1015       983      1028      1030      1019
+     ...
+# Repeat if there are more blocks/ranges
+--8<---------------------------------------------------------------
+*/
 void UxdDataSet::load_data(std::istream &f) 
 {
     Block *p_blk = NULL;

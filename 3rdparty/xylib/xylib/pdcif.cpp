@@ -127,6 +127,13 @@ bool PdCifDataSet::check(istream &f) {
     return ret;
 }
 
+//void my_assert(bool condition, const string &msg)
+//{
+//    if (!condition) {
+//        throw XY_Error(msg);
+//    }
+//}
+
 void PdCifDataSet::load_data(std::istream &f) 
 {
 
@@ -217,7 +224,7 @@ void PdCifDataSet::load_data(std::istream &f)
             mapper.clear();
             loop_i = 0;
 
-            if (0 != p_blk->get_pt_cnt()) {
+            if (0 != p_blk->get_point_count()) {
                 // this block (defined by file specification) contains multiple
                 // sub-blocks (used by xylib to store X-Y data)
                 // save earlier sub-block, create a new block shares the same meta-info

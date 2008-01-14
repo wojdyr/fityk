@@ -19,12 +19,12 @@
 
 namespace xylib {
 
-class CanberraMcaDataSet : public DataSet
-{
-    OBLIGATORY_DATASET_MEMBERS(CanberraMcaDataSet)
-public:
-    static double pdp11_f (char* p);
-};
+    class CanberraMcaDataSet : public DataSet
+    {
+        OBLIGATORY_DATASET_MEMBERS(CanberraMcaDataSet)
+    public:
+        static double pdp11_f (char* p);
+    };
 
 }
 #endif // CANBERRA_MCA_DATASET_H_

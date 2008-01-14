@@ -48,6 +48,12 @@ xylib/
     	Internal-used helper functions in namespace xylib::util.
     		
     Other .cpp/.h files correspond to supported file formats.
+    Each of these .cpp files contains basic info about the format
+    in constructor of struct FormatInfo. Each header files includes a note 
+    what the implementation is based on (i.e. what documentation was available
+    to a developer). In some cases a format is described in .cpp file (above
+    load_data() method).
+
 	
 xyconv.cpp
     A user tool with arguments to convert xylib-supported file to ASCII file.

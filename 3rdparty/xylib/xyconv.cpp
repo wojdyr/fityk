@@ -41,7 +41,7 @@ int print_guessed_filetype(string const& path)
         else
             cout << "Format of the file was not detected";
         return 0;
-    } catch (xylib::XY_Error const& e) {
+    } catch (runtime_error const& e) {
         cerr << "Error: " << e.what() << endl;
         return -1;
     }
@@ -109,8 +109,8 @@ int main(int argc, char **argv)
         xylib::DataSet *d = xylib::load_file(argv[argc-2], filetype);
         d->export_plain_text(argv[argc-1]);
         delete d;
-    } catch (xylib::XY_Error const& e) {
-        cerr << "Error: " << e.what() << endl;
+    } catch (runtime_error const& e) {
+        cerr << "Error. " << e.what() << endl;
         return -1;
     }
     return 0;

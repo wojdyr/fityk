@@ -25,10 +25,8 @@ public :
     ~Data() {}
     std::string get_info() const;
 
-    ///load data from file, return next filenames if `file' stands for sequance
-    std::vector<std::string> 
-    load_file (std::string const& file, std::string const& type, 
-               std::vector<int> const& cols, bool preview=false);
+    void load_file (std::string const& file, std::string const& type, 
+                    std::vector<int> const& indices, bool preview=false);
 
     int load_arrays(std::vector<fp> const& x, std::vector<fp> const& y, 
                    std::vector<fp> const& sigma, std::string const& data_title);
@@ -37,7 +35,6 @@ public :
     void clear();
     void add_point(Point const& pt) { p.push_back(pt); }; //don't use it
     void add_one_point(double x, double y, double sigma);
-    static std::string guess_file_type (std::string const& filename);
     fp get_x(int n) const { return p[active_p[n]].x; }
     fp get_y(int n) const { return p[active_p[n]].y; } 
     fp get_sigma (int n) const { return p[active_p[n]].sigma; }
@@ -82,21 +79,13 @@ private:
     fp y_min, y_max;
 
     Data (Data&); //disable
-    bool get_seq_num (std::istream &is, fp *num);
-    int read_line_and_get_all_numbers(std::istream &is, 
-                                      std::vector<fp>& result_numbers);
-    static double pdp11_f (char* fl);  
     fp find_step();
     void load_xy_filetype (std::ifstream& f, std::vector<int> const& cols);
-    void load_header_xy_filetype(std::ifstream& f, std::vector<int>const& cols);
-    void load_mca_filetype (std::ifstream& f);
-    void load_rit_filetype (std::ifstream& f);
-    void load_cpi_filetype (std::ifstream& f);
     void post_load();
     /// open file with columns embedded into filename (foo.xy:1,2), 
     // returns next files, if `file' stands for a sequance
-    std::vector<std::string> 
-    open_filename_with_columns(std::string const& file, std::ifstream& f);
+    //std::vector<std::string> 
+    //open_filename_with_columns(std::string const& file, std::ifstream& f);
 };
 
 #endif

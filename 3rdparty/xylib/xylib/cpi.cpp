@@ -2,8 +2,6 @@
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id$
 
-// Based on sample files 
-
 #include "cpi.h"
 #include "util.h"
 

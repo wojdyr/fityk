@@ -895,6 +895,7 @@ void MainPlot::cancel_mouse_press()
 void MainPlot::OnButtonDown (wxMouseEvent &event)
 {
     if (pressed_mouse_button) {
+        // if one button is already down, pressing other button cancels action
         cancel_mouse_press();
         return;
     }

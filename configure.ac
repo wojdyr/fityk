@@ -108,10 +108,13 @@ AC_CHECK_HEADER([boost/spirit/core.hpp], [], [AC_MSG_ERROR(
 CPPFLAGS=$OLD_CPPFLAGS
 
 if test "$enable_3rdparty" = "yes"; then
-	CPPFLAGS_3RDPARTY="-I\$(top_srcdir)/3rdparty"
+	CPPFLAGS_3RDPARTY="-I\$(top_srcdir)/3rdparty -I\$(top_srcdir)/3rdparty/xylib" 
 else
-	CPPFLAGS_3RDPARTY= 
+# xylib is in 3rdparty, but it's always necessary 
+	CPPFLAGS_3RDPARTY="-I\$(top_srcdir)/3rdparty/xylib" 
 fi
+
+XYLIB_LDADD="\$(top_srcdir)/3rdparty/xylib/xylib/libxy.la"
 
 
 AC_LANG_POP([C++]) dnl C is faster than C++
@@ -172,6 +175,7 @@ AC_SUBST(SRCSUBDIRS)
 AC_SUBST(DOC)
 AC_SUBST(PYBINDINGDIR)
 AC_SUBST(CPPFLAGS_3RDPARTY)
+AC_SUBST(XYLIB_LDADD)
 AC_SUBST(LIBRARY_VERSION_FLAG)
 
 # check for erf and erfc function
