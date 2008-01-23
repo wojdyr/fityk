@@ -19,7 +19,7 @@
 #include "dialogs.h" //export_data_dlg()
 #include "../data.h" // Data, Point
 #include "../logic.h"  
-#include "../datatrans.h" //validate_transformation()
+#include "../datatrans.h" //compile_data_transformation()
 
 using namespace std;
 
@@ -562,7 +562,7 @@ void DataEditorDlg::CodeText()
         string text = wx2s(code->GetValue());
         replace_all(text, "\n", " , ");
         // 'text' is not identical with the final command (, instead of ;)
-        apply_btn->Enable(validate_transformation(text));
+        apply_btn->Enable(compile_data_transformation(text));
     }
     else
         apply_btn->Enable(!code->GetValue().Trim().IsEmpty());

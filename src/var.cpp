@@ -239,7 +239,7 @@ template FuncGrammar::definition<scanner<char const*, scanner_policies<skipper_i
 /// uses calculate_deriv() to simplify formulae
 std::string simplify_formula(std::string const &formula)
 {
-    tree_parse_info<> info = ast_parse(formula.c_str(), FuncG, space_p);
+    tree_parse_info<> info = ast_parse(formula.c_str(), FuncG>>end_p, space_p);
     assert(info.full);
     const_tm_iter_t const &root = info.trees.begin();
     vector<string> vars(1, "x");

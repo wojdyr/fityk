@@ -24,7 +24,7 @@ Y[1...] = Y[n-1] + y[n];S = sqrt(max2(1,y))
 Y[...-1] = (y[n+1]-y[n])/(x[n+1]-x[n]);X[...-1] = (x[n+1]+x[n])/2
 M=M-1;S = sqrt(max2(1,y))
 S = s / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0);
-Y = y / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0)
+Y = y / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0) 	   
 X[...-1] = (x[n]+x[n+1])/2;Y[...-1] = y[n]+y[n+1];
 S[...-1] = sqrt(s[n]^2+s[n]^2); delete(n%2==1)
 Y=max2(y,0)
@@ -68,7 +68,7 @@ plot in @0
 sleep 0.3
 %lo = guess LorentzianA [38:44]
 %pe = Pearson7(height=~1901, center=~75.313, hwhm=~1/2, shape=2.4) 
-F += %pe
+F += %pe  	 
 %ble = copy(%pe)
 dele %pe
 F += Pearson7(~2000, ~75, ~0.6, ~2) 
@@ -78,7 +78,7 @@ with fitting-method=Nelder-Mead-simplex fit 10
 with fitting-method=Genetic-Algorithms fit 10
 %fun = copy(%_1)
 i+ %ble, %lo
-$a = %ble.shape
+$a = %ble.shape   
 $a = %ble.shape + %lo.hwhm 
 $b = ~{%ble.shape} + {%lo.hwhm} 
 $abc = F[0].hwhm + 1
@@ -159,7 +159,7 @@ i+ GaussianA, Gaussian, Linear
 
 # data expressions
 $foo = {y[0] in @0} + 1
-$foo = 3 + 1
+$foo = 3 + 1    
 Y = y / $foo
 i 2*(findx(%fun, %fun.Center, %fun.Center+10, %fun.Height/2) - %fun.Center) 
 i %fun.FWHM
@@ -202,7 +202,7 @@ $t4=sin($t1)^2+(-cos($t1))^2
 $t5=voigt($t4, ~3)
 
 define Bleh(area, center, fwhm, shape) = GaussianA(area*(1-shape), center, fwhm) + LorentzianA(area*shape, center, fwhm+0.2)
-%bleh = Bleh(~123., 30, ~4, ~0.5)
+%bleh = Bleh(~123., 30, ~4, ~0.5)     
 undefine Bleh
 define Bleh(a) = Linear(0, a)
 %bleh = Bleh(~{pi})
@@ -234,7 +234,7 @@ dump > tmp_dump.fit
 
 # settings
 set can-cancel-guess # only shows info
-set can-cancel-guess = 1
+set can-cancel-guess = 1   
 set cut-function-level = 0
 set fitting-method = Levenberg-Marquardt
 set formula-export-style = normal

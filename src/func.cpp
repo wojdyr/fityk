@@ -545,7 +545,7 @@ bool is_compounded(string const& formula)
 vector<OpTree*> make_op_trees(string const& formula)
 {
     string rhs = Function::get_rhs_from_formula(formula);
-    tree_parse_info<> info = ast_parse(rhs.c_str(), FuncG, space_p);
+    tree_parse_info<> info = ast_parse(rhs.c_str(), FuncG >> end_p, space_p);
     assert(info.full);
     vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID, info);
     vector<string> lhs_vars = Function::get_varnames_from_formula(formula);
@@ -562,7 +562,7 @@ void check_fudf_rhs(string const& rhs, vector<string> const& lhs_vars)
 {
     if (rhs.empty())
         throw ExecuteError("No formula");
-    tree_parse_info<> info = ast_parse(rhs.c_str(), FuncG, space_p);
+    tree_parse_info<> info = ast_parse(rhs.c_str(), FuncG >> end_p, space_p);
     if (!info.full)
         throw ExecuteError("Syntax error in formula");
     vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID, info);
@@ -581,10 +581,13 @@ void check_rhs(string const& rhs, vector<string> const& lhs_vars)
 {
     string::size_type t = rhs.find_first_not_of(" \t\r\n");
     if (t != string::npos && isupper(rhs[t])) { //compound
-        parse_info<> info = parse(rhs.c_str(), 
-                               ((lexeme_d[(upper_p >> +alnum_p)] >> '('  
-                                 >> (no_actions_d[FuncG]  % ',') >> ')') % '+'),
-                               space_p);
+        parse_info<> info 
+            = parse(rhs.c_str(), 
+                    ((lexeme_d[(upper_p >> +alnum_p)] 
+                      >> '(' >> (no_actions_d[FuncG]  % ',') >> ')'
+                     ) % '+'
+                    ) >> end_p,
+                    space_p);
         if (!info.full)
             throw ExecuteError("Syntax error in compound formula.");
         vector<string> rf = get_cpd_rhs_components(rhs, false);
@@ -674,7 +677,7 @@ void check_cpd_rhs_function(std::string const& fun,
                                       + S(tvars.size()) + " parameters.");
     // ... and check if these parameters are ok 
     for (vector<string>::const_iterator j=gvars.begin(); j != gvars.end(); ++j){
-        tree_parse_info<> info = ast_parse(j->c_str(), FuncG, space_p);
+        tree_parse_info<> info = ast_parse(j->c_str(), FuncG >> end_p, space_p);
         assert(info.full);
         vector<string> vars=find_tokens_in_ptree(FuncGrammar::variableID, info);
         if (contains_element(vars, "x"))

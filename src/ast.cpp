@@ -862,7 +862,7 @@ fp get_constant_value(string const &s)
             string in_expr(expr, in_pos+4);
             int n;
             if (parse(in_expr.c_str(), 
-                      *ch_p(' ') >> '@' >> uint_p[assign_a(n)] >> *ch_p(' ')
+                      !space_p >> '@' >> uint_p[assign_a(n)] >> !space_p
                      ).full) {
                 data = AL->get_data(n);
                 expr.resize(in_pos);
@@ -1116,7 +1116,7 @@ vector<OpTree*> calculate_deriv(const_tm_iter_t const &i,
 string get_derivatives_str(string const &formula)
 {
     string s;
-    tree_parse_info<> info = ast_parse(formula.c_str(), FuncG, space_p);
+    tree_parse_info<> info = ast_parse(formula.c_str(), FuncG>>end_p, space_p);
     if (!info.full)
         throw ExecuteError("Can't parse formula: " + formula);
     const_tm_iter_t const &root = info.trees.begin();

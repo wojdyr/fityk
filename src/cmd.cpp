@@ -308,15 +308,15 @@ struct CmdGrammar : public grammar<CmdGrammar>
 
 bool check_command_syntax(string const& str)
 {
-    return parse(str.c_str(), no_actions_d[cmdG], space_p).full;
+    return parse(str.c_str(), no_actions_d[cmdG >> end_p], space_p).full;
 }
 
 bool parse_and_execute_e(string const& str)
 {
-    parse_info<> result = parse(str.c_str(), no_actions_d[cmdG], space_p);
-    if (result.full) 
+    bool r = check_command_syntax(str);
+    if (r) 
         parse(str.c_str(), cmdG, space_p);
-    return result.full;
+    return r;
 }
 
 Commands::Status parse_and_execute(string const& str)

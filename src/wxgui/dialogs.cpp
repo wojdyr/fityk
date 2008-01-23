@@ -499,9 +499,10 @@ void DataExportDlg::OnTextChanged(wxCommandEvent&)
         string t = strip_string(*i);
         if (t == "a")
             has_a = true;
-        if (!(startswith(t, "*F(") && *(t.end()-1) == ')' 
-                    && validate_data_expression(string(t, 3, t.size()-4))
-              || validate_data_expression(t)))
+
+        if (startswith(t, "*F(") && *(t.end()-1) == ')') 
+            t = t.substr(3, t.size()-4);
+        if (!compile_data_expression(t))
             parsable = false;
     }
     FindWindow(wxID_OK)->Enable(parsable);

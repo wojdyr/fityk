@@ -18,8 +18,8 @@ class Data;
 std::vector<Point> transform_data(std::string const& str, 
                                   std::vector<Point> const& old_points);
 
-bool validate_transformation(std::string const& str); 
-bool validate_data_expression(std::string const& str);
+bool compile_data_transformation(std::string const& str); 
+bool compile_data_expression(std::string const& str);
 bool is_data_dependent_expression(std::string const& s);
 fp get_transform_expression_value(std::string const &s, Data const* data);
 fp get_transform_expr_value(std::vector<int>& code_, 

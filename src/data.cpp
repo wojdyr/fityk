@@ -320,7 +320,6 @@ void Data::load_file (string const& filename_,
         }
         xylib::DataSet *d = xylib::load_file(filename_, format_name, 
                                              options_tail);
-        int block_count = d->get_block_count();
 
         clear(); //removing previous file
 

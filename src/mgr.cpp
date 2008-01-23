@@ -144,7 +144,7 @@ string VariableManager::assign_variable(string const &name, string const &rhs)
         return put_into_variables(var);
     }
 
-    tree_parse_info<> info = ast_parse(rhs.c_str(), FuncG, space_p);
+    tree_parse_info<> info = ast_parse(rhs.c_str(), FuncG >> end_p, space_p);
     assert(info.full);
     const_tm_iter_t const &root = info.trees.begin();
     if (root->value.id() == FuncGrammar::variableID

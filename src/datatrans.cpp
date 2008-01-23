@@ -1336,32 +1336,30 @@ void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
 
 } //namespace
 
-vector<Point> transform_data(string const& str, vector<Point> const& old_points)
+bool compile_data_transformation(string const& str)
 {
     clear_parse_vecs();
-    // First compile string...
-    parse_info<> result = parse(str.c_str(), DataTransformG, space_p);
-    if (!result.full) {
+    parse_info<> result = parse(str.c_str(), DataTransformG >> end_p, space_p);
+    return (bool) result.full;
+}
+
+bool compile_data_expression(string const& str)
+{
+    clear_parse_vecs();
+    parse_info<> result = parse(str.c_str(), DataExpressionG >> end_p, space_p);
+    return (bool) result.full; 
+}
+
+vector<Point> transform_data(string const& str, vector<Point> const& old_points)
+{
+    bool r = compile_data_transformation(str);
+    if (!r) 
         throw ExecuteError("Syntax error in data transformation formula.");
-    }
+    
     // and then execute compiled code.
     vector<Point> new_points = old_points; //initial values of new_points
     execute_vm_code(old_points, new_points);
     return new_points;
-}
-
-bool validate_transformation(string const& str)
-{
-    clear_parse_vecs();
-    parse_info<> result = parse(str.c_str(), DataTransformG, space_p);
-    return (bool) result.full;
-}
-
-bool validate_data_expression(string const& str)
-{
-    clear_parse_vecs();
-    parse_info<> result = parse(str.c_str(), DataExpressionG, space_p);
-    return (bool) result.full; 
 }
 
 bool is_data_dependent_code(vector<int> const& code)
@@ -1375,18 +1373,17 @@ bool is_data_dependent_code(vector<int> const& code)
 
 bool is_data_dependent_expression(string const& s)
 {
-    if (!validate_data_expression(s)) //it fills `code'
+    if (!compile_data_expression(s)) //it fills `code'
         return false;
     return is_data_dependent_code(code);
 }
 
 fp get_transform_expression_value(string const &s, Data const* data)
 {
-    clear_parse_vecs();
-    // First compile string... puts result into code etc.
-    parse_info<> result = parse(s.c_str(), DataExpressionG, space_p);
-    if (!result.full) 
+    bool r = compile_data_expression(s);
+    if (!r) 
         throw ExecuteError("Syntax error in expression: " + s);
+
     if (!data && is_data_dependent_code(code))
         throw ExecuteError("Dataset is not specified and the expression "
                            "depends on it: " + s);
@@ -1412,11 +1409,10 @@ fp get_transform_expr_value(vector<int>& code_, vector<Point> const& points)
 
 bool get_dt_code(string const& s, vector<int>& code_, vector<fp>& numbers_)
 {
-    clear_parse_vecs();
-    // First compile string... puts result into code etc.
-    parse_info<> result = parse(s.c_str(), DataExpressionG, space_p);
-    if (!result.full) 
+    bool r = compile_data_expression(s);
+    if (!r) 
         return false;
+
     for (vector<int>::iterator i = code.begin(); i != code.end(); ++i) 
         if (*i == OP_PARAMETERIZED 
                 || *i == OP_AGMIN || *i == OP_AGMAX || *i == OP_AGSUM 
@@ -1445,11 +1441,11 @@ vector<fp> get_all_point_expressions(string const &s, Data const* data,
 {
     vector<fp> values;
     vector<Point> const& points = data->points();
-    clear_parse_vecs();
-    // First compile string... puts result into code etc.
-    parse_info<> result = parse(s.c_str(), DataExpressionG, space_p);
-    if (!result.full) 
+
+    bool r = compile_data_expression(s);
+    if (!r) 
         throw ExecuteError("Syntax error in expression: " + s);
+
     int M = (int) points.size();
     vector<Point> new_points = points;
     vector<fp> stack(stack_size);
