@@ -101,7 +101,7 @@ namespace {
 
 void do_import_dataset(char const*, char const*)
 {
-    AL->import_dataset(tmp_int, t, t2, vn);
+    AL->import_dataset(tmp_int, t, vt);
     outdated_plot=true;  
 }
 
@@ -490,15 +490,17 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         ;
 
     dataset_handling
-        = (dataset_nr >> ch_p('<') >> compact_str //load from file
-           >> lexeme_d[!(alpha_p >> *alnum_p)] [assign_a(t2)] [clear_a(vn)]
-           >> !(uint_p [push_back_a(vn)] 
+          //load from file
+        = (dataset_nr >> '<' >> compact_str [clear_a(vt)]
+           >> !(lexeme_d[+(alnum_p | '-' | '_')] [push_back_a(vt)] 
                 % ',')
           ) [&do_import_dataset]
-        | dataset_nr >> ch_p('=') [clear_a(vn)] [assign_a(t, empty)] //sum/dup
+          //sum / duplicate
+        | dataset_nr >> ch_p('=') [clear_a(vn)] [assign_a(t, empty)] 
           >> !(lexeme_d[lower_p >> +(alnum_p | '-' | '_')] [assign_a(t)])
           >> (lexeme_d['@' >> uint_p [push_back_a(vn)]  
                                            ] % '+') [&do_load_data_sum]
+          // export data
         | (existing_dataset_nr [clear_a(vt)]
            >> !('(' >> ((DataExpressionG
                         | ("*F(" >> DataExpressionG >> ")")
@@ -506,7 +508,9 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
                         % ',')
                 >> ')')
            >> '>' >> compact_str) [&do_export_dataset]
+          // add empty data slot
         | str_p("@+")[&do_append_data] 
+          // revert dataset
         | existing_dataset_nr >> str_p(".revert")[&do_revert_data] 
         ;
 

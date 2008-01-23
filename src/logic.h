@@ -93,7 +93,7 @@ public:
 
     /// import dataset (or multiple datasets, in special cases)
     void import_dataset(int slot, std::string const& filename, 
-                        std::string const& type, std::vector<int> const& cols);
+                        std::vector<std::string> const& options);
 
 protected:
     std::vector<DataWithSum*> dsds;

@@ -51,8 +51,11 @@ string Data::get_info() const
         s = S(p.size()) + " points, " + S(active_p.size()) + " active.";
     if (!filename.empty())
         s += "\nFilename: " + filename;
-    if (!given_cols.empty())
-        s += "\nColumns: " + join_vector(given_cols, ", ");
+    if (given_x != INT_MAX || given_y != INT_MAX || given_s != INT_MAX)
+        s += "\nColumns: " + (given_x != INT_MAX ? S(given_x) : S("_")) 
+                    + ", " + (given_y != INT_MAX ? S(given_y) : S("_"));
+    if (given_s != INT_MAX)
+        s += ", " + S(given_s);
     if (!title.empty())
         s += "\nData title: " + title;
     if (active_p.size() != p.size())
@@ -64,9 +67,11 @@ void Data::clear()
 {
     filename = "";   
     title = "";
-    given_type = "";
-    given_cols.clear();
+    given_x = given_y = given_s = INT_MAX;
+    given_options.clear();
+    given_blocks.clear();
     p.clear();
+    x_step = 0;
     active_p.clear();
     has_sigma = false;
 }
@@ -94,8 +99,8 @@ void Data::post_load()
     F->msg(inf);
     if (title.empty()) {
         title = get_file_basename(filename);
-        if (given_cols.size() >= 2)
-            title += ":" + S(given_cols[0]) + "," + S(given_cols[1]);
+        if (given_x != INT_MAX && given_y != INT_MAX)
+            title += ":" + S(given_x) + ":" + S(given_y);
     }
     update_active_p();
     recompute_y_bounds();
@@ -148,7 +153,8 @@ void Data::revert()
     string old_filename = filename; 
     // this->filename should not be passed by ref to load_file(), because it's
     // cleared before being used
-    load_file(old_filename, given_type, given_cols);
+    load_file(old_filename, given_x, given_y, given_s,
+              given_blocks, given_options);
     title = old_title;
 }
 
@@ -297,115 +303,59 @@ void Data::add_one_point(double x, double y, double sigma)
     }
 }
 
-namespace {
-vector<int> parse_int_range(string const& s)
+
+// for column indices, INT_MAX is used as not given
+void Data::load_file (string const& filename_, 
+                      int idx_x, int idx_y, int idx_s, 
+                      vector<int> const& blocks,
+                      vector<string> const& options, 
+                      bool preview)
 {
-    vector<int> values;
-    vector<string> t = split_string(s, "/");
-    for (vector<string>::const_iterator i = t.begin(); i != t.end(); ++i) {
-        vector<string> a = split_string(*i, "-");
-        if (a.size() == 1 && !a[0].empty()) {
-            int n = strtol(a[0].c_str(), 0, 10);
-            values.push_back(n);
-        }
-        else if (a.size() >= 2 && !a[0].empty() && !a[1].empty()) {
-            int m = strtol(a[0].c_str(), 0, 10);
-            int n = strtol(a[1].c_str(), 0, 10);
-            if (abs(m-n) > 99) // too much..., take only the first one
-                values.push_back(n);
-            else
-                for (int j = min(m,n); j <= max(m,n); ++j)
-                    values.push_back(j);
-        }
-    }
-    return values;
-}
-} //anonymous namespace
-
-/*
-vector<string> Data::open_filename_with_columns(string const& file, ifstream& f)
-{
-    vector<string> next_files;
-    // ../data/foo.dat:1,8 -> ../data/foo.dat cols: 1,8
-    // in y column multiple values (2/3/4) or ranges are allowed (foo.dat:1,2-5)
-    string::size_type a = file.find_last_not_of(",0123456789-/");
-    if (a == string::npos || file[a] != ':') 
-        return next_files;
-    string fn(file, 0, a);
-    vector<string> cols_s = split_string(string(file,a+1), ',');
-    if (cols_s.size() < 2 || cols_s.size() > 3)
-        return next_files;
-    vector<int> cols_i;
-    vector<int> yy;
-    for (size_t i = 0; i != cols_s.size(); ++i) {
-        int n;
-        if (cols_s[i].empty())
-            return next_files;
-        if (cols_s[i].find_first_of("/-") != string::npos) {
-            if (i == 1 && isdigit(cols_s[i][0])) { //column y
-                yy = parse_int_range(cols_s[i]);
-                if (yy.empty())
-                    return next_files;
-                n = yy[0];
-                yy.erase(yy.begin());
-            }
-            else // "-" is not accepted in other columns
-                return next_files;
-        }
-        else
-            n = strtol(cols_s[i].c_str(), 0, 10);
-        cols_i.push_back(n);
-    }
-    f.clear();
-    f.open(fn.c_str(), ios::in | ios::binary);
-    if (!f) 
-        throw ExecuteError("Can't open file: " + fn);
-    clear(); //removing previous file
-    filename = fn;   
-    given_cols = cols_i;
-    for (vector<int>::const_iterator i = yy.begin(); i != yy.end(); ++i) {
-        cols_i[1] = *i;
-        next_files.push_back(fn + ":" + join_vector(cols_i, ","));
-    }
-    return next_files;
-}
-*/
-
-
-void Data::load_file (string const& file, string const& type, 
-                      vector<int> const& indices, bool preview)
-{   
-    if (indices.size() == 1 || indices.size() > 3) //0, 2, or 3 columns allowed
-        throw ExecuteError("If columns are specified, two or three of them"
-                           " must be given (eg. 1,2,3)");
-    int idx_x = indices.empty() ? 0 : indices[0];
-    int idx_y = indices.empty() ? 1 : indices[1];
-    int idx_z = indices.size() < 3 ? -1 : indices[2];
-
     try {
-        xylib::DataSet *d = xylib::load_file(file, type);
-        xylib::Block const* block = d->get_block(0);
-        xylib::Column const& xcol = block->get_column(idx_x);
-        xylib::Column const& ycol = block->get_column(idx_y);
-        int n = block->get_point_count();
-        if (n < 5)
-            F->warn("Only " + S(p.size()) + " data points found in file.");
+        string format_name;
+        vector<string> options_tail;
+        if (!options.empty()) {
+            format_name = options[0];
+            options_tail = vector<string>(options.begin() + 1, options.end());
+        }
+        xylib::DataSet *d = xylib::load_file(filename_, format_name, 
+                                             options_tail);
+        int block_count = d->get_block_count();
 
         clear(); //removing previous file
-        filename = file;   
-        given_cols = indices;
-        given_type = type;
 
-        if (idx_z == -1) {
-            for (int i = 0; i < n; ++i) {
-                p.push_back(Point(xcol.get_value(i), ycol.get_value(i)));
+        vector<int> bb = blocks.empty() ? vector1(0) : blocks;
+
+        for (vector<int>::const_iterator b = bb.begin(); b != bb.end(); ++b) {
+            xylib::Block const* block = d->get_block(*b);
+            xylib::Column const& xcol 
+                = block->get_column(idx_x != INT_MAX ?  idx_x : 1);
+            xylib::Column const& ycol 
+                = block->get_column(idx_y != INT_MAX ?  idx_y : 2);
+            int n = block->get_point_count();
+            if (n < 5 && bb.size() == 1)
+                F->warn("Only " + S(p.size()) + " data points found in file.");
+
+            if (idx_s == INT_MAX) {
+                for (int i = 0; i < n; ++i) {
+                    p.push_back(Point(xcol.get_value(i), ycol.get_value(i)));
+                }
             }
-        }
-        else {
-            xylib::Column const& zcol = block->get_column(idx_z);
-            for (int i = 0; i < n; ++i) {
-                p.push_back(Point(xcol.get_value(i), ycol.get_value(i),
-                                  zcol.get_value(i)));
+            else {
+                xylib::Column const& scol 
+                    = block->get_column(idx_s != INT_MAX ?  idx_s : 2);
+                for (int i = 0; i < n; ++i) {
+                    p.push_back(Point(xcol.get_value(i), ycol.get_value(i),
+                                      scol.get_value(i)));
+                }
+                has_sigma = true;
+            }
+            if (xcol.has_fixed_step()) {
+                x_step = xcol.step;
+                if (x_step < 0) {
+                    reverse(p.begin(), p.end());
+                    x_step = -x_step;
+                }
             }
         }
 
@@ -413,69 +363,23 @@ void Data::load_file (string const& file, string const& type,
             recompute_y_bounds();
             return;
         }
-        if (xcol.has_fixed_step()) {
-            x_step = xcol.step;
-            if (x_step < 0)
-                reverse(p.begin(), p.end());
-        }
-        else {
+        if (x_step == 0) {
             sort(p.begin(), p.end());
             x_step = find_step();
         }
+
+        filename = filename_;   
+        given_x = idx_x;
+        given_y = idx_y;
+        given_s = idx_s;
+        given_blocks = blocks;
+        given_options = options;
+
         post_load();
     } catch (runtime_error const& e) {
         throw ExecuteError(e.what());
     }
-
 }
-
-
-/// If the column is non-negative, we try to get n'th word in the line,
-/// where n = column+1 (i.e. column==0 is first word. Otherwise, the line is
-/// returned. 
-/// The hash (#) at the beginning of line is ignored.
-string Data::read_one_line_as_title(ifstream& f, int column/*=-1*/)
-{
-    if (!f)
-        return "";
-    string s;
-    getline(f, s);
-    s = strip_string(s);
-    if (!s.empty() && s[0] == '#') 
-        s = string(s, 1);
-    --column;
-    if (column >= 0) {
-        vector<string> v = split_string(s, " \t");
-        if (column < size(v)) 
-            return v[column];
-    }
-    return s;
-}
-
-/// read first line as file's title, and than run load_xy_filetype()
-//void Data::load_header_xy_filetype(ifstream& f, vector<int> const& columns)
-//{
-//    int title_col = columns.size() > 1 ? columns[1] : 0;
-//    title = Data::read_one_line_as_title(f, title_col);
-//    load_xy_filetype(f, columns);
-//}
-//
-
-/*
-    fp xmin = num[0];
-    x_step = static_cast<int>(num[1] * 1e4) / 1e4; //only 4 digits after '.'
-    vector<fp> ys;
-    while (read_line_and_get_all_numbers(f, ys)) {
-        if (ys.size() == 0)
-            F->warn("Error when trying to read " + S (p.size() + 1) 
-                     + ". point. Ignoring line.");
-        for (vector<fp>::iterator i = ys.begin(); i != ys.end(); i++) {
-            fp x = xmin + p.size() * x_step;
-            p.push_back (Point(x, *i));
-        }
-    }
-}
-*/
 
 fp Data::get_y_at (fp x) const
 {

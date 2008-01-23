@@ -9,7 +9,10 @@ Terminal=false
 StartupNotify=true
 MimeType=application/x-fityk;
 # according to: http://standards.freedesktop.org/menu-spec/latest/apa.html
-# we need one category from Main Categories list. That's why Office is here.
-# (Another choice would be Education, but I don't think fityk is educational 
-# software. Your opinion may be different, of course)
-Categories=Science;Office;DataVisualization;GTK;
+# we need one category from Main Categories list. Two reasonable choices are
+# Office and Education. I think Office is more suitable, but some people think
+# otherwise. Leaving Science with no Main Category will put the fityk entry
+# into Education menu.
+#Categories=Science;Office;DataVisualization;GTK;
+Categories=Science;DataVisualization;GTK;
+

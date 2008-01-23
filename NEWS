@@ -1,6 +1,8 @@
 $Id$
 
 User-visible changes in version 0.8.3  (2007-  -  ):
+* data import is done using (locally modified) xylib library. 
+  VAMAS and a few other new file formats are supported.
 * added hyperbolic functions
 * command "@n.revert" reloads data points from file
 * GUI: menu item "Apply to all datasets" was removed. Now all data-related

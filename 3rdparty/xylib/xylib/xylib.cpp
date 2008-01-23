@@ -74,6 +74,7 @@ bool MetaData::set(string const& key, string const& val)
 
 //////////////////////////////////////////////////////////////////////////
 
+Column* const Block::index_column = new StepColumn(0, 1);
 
 Block::~Block()
 {
@@ -84,11 +85,14 @@ Block::~Block()
 }
 
 
-const Column& Block::get_column(unsigned n) const
+const Column& Block::get_column(int n) const
 {
-    if (n >= cols.size()) 
-        throw RunTimeError("column index out of range");
-    return *cols[n];
+    if (n == 0)
+        return *index_column;
+    int c = (n < 0 ? n + cols.size() : n - 1);
+    if (c < 0 || c >= (int) cols.size()) 
+        throw RunTimeError("column index out of range: " + S(n));
+    return *cols[c];
 }
 
 
@@ -149,7 +153,7 @@ DataSet::~DataSet()
 const Block* DataSet::get_block(int n) const
 {
     if (n < 0 || (size_t)n >= blocks.size()) 
-        throw RunTimeError("no block #" + S(n) + "in this file.");
+        throw RunTimeError("no block #" + S(n) + " in this file.");
     return blocks[n];
 }
 
@@ -190,7 +194,8 @@ void DataSet::clear()
 //////////////////////////////////////////////////////////////////////////
 // namespace scope global functions
 
-DataSet* load_file(string const& path, string const& format_name)
+DataSet* load_file(string const& path, string const& format_name,
+                   vector<string> const& options)
 {
     ifstream is(path.c_str(), ios::in | ios::binary);
     if (!is) 
@@ -209,13 +214,15 @@ DataSet* load_file(string const& path, string const& format_name)
                                 + format_name);
     }
 
-    return load_stream(is, fi);
+    return load_stream(is, fi, options);
 }
 
-DataSet* load_stream(istream &is, FormatInfo const* fi)
+DataSet* load_stream(istream &is, FormatInfo const* fi, 
+                     vector<string> const& options)
 {
     assert(fi != NULL);
     DataSet *pd = (*fi->ctor)();
+    pd->options = options;
     pd->load_data(is); 
     return pd;
 }
@@ -268,6 +275,30 @@ FormatInfo const* string_to_format(string const& format_name)
     return NULL;
 }
 
+string get_wildcards_string(string const& all_files)
+{
+    string r;
+    for (FormatInfo const **i = formats; *i != NULL; ++i) {
+        if (!r.empty())
+            r += "|";
+        string ext_list;
+        if ((*i)->exts.empty())
+            ext_list = all_files;
+        else {
+            for (size_t j = 0; j < (*i)->exts.size(); ++j) {
+                if (j != 0)
+                    ext_list += ";";
+                ext_list += "*." + (*i)->exts[j];
+            }
+        }
+        string up = ext_list;
+        transform(up.begin(), up.end(), up.begin(), (int(*)(int)) toupper);
+        r += (*i)->desc + " (" + ext_list + ")|" + ext_list; 
+        if (up != ext_list) // if it contains only (*.*) it won't be appended 
+            r += ";" + up;
+    }
+    return r;
+}
 
 } // end of namespace xylib
 

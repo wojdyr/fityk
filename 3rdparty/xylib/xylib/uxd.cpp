@@ -93,14 +93,10 @@ void UxdDataSet::load_data(std::istream &f)
                     meta[key] = val;
             }
         } 
-        else if (is_numeric(line[0])) {   
+        else { //data
+            format_assert(is_numeric(line[0]), "line: "+line);
             p_ycol->add_values_from_str(line);
         } 
-        else {                 
-            // unknown type of line. it should not appear in a correct file
-            // what should we do here? continue or throw an exception?
-            continue;
-        }
     }
     format_assert(p_blk);
 }

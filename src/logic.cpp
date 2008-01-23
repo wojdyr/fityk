@@ -259,22 +259,98 @@ Fit* Ftk::get_fit()
     return get_fit_container()->get_method(nr); 
 }
 
+namespace {
+
+int atoi_all(string const& s)
+{
+    char *endptr;
+    int n = strtol(s.c_str(), &endptr, 10);
+    if (*endptr != 0)
+        throw ExecuteError("integral number expected, got: " + s);
+    return n;
+}
+
+// e.g.: "1,3..5,7" -> 1,3,4,5,7 
+//       "4"        -> 4
+//       "2,1"      -> 2,1
+vector<int> parse_int_range(string const& s)
+{
+    vector<int> values;
+    vector<string> t = split_string(s, ",");
+    for (vector<string>::const_iterator i = t.begin(); i != t.end(); ++i) {
+        string::size_type dots = i->find("..");
+        if (dots == string::npos) {
+            int n = atoi_all(*i);
+            values.push_back(n);
+        }
+        else {
+            int m = atoi_all(i->substr(0, dots));
+            int n = atoi_all(i->substr(dots+2));
+            if (abs(m-n) > 99) // too much..., take only the first one
+                values.push_back(n);
+            else
+                for (int j = min(m,n); j <= max(m,n); ++j)
+                    values.push_back(j);
+        }
+    }
+    return values;
+}
+} //anonymous namespace
+
+
 void Ftk::import_dataset(int slot, string const& filename, 
-                            string const& type, vector<int> const& cols)
+                         vector<string> const& options)
 {
     const int new_dataset = -1;
-    if (slot == new_dataset
-        && (this->get_ds_count() != 1 || this->get_data(0)->has_any_info()
-                                      || this->get_sum(0)->has_any_info())) {
-        // load data into new slot
-        auto_ptr<Data> data(new Data(this));
-        data->load_file(filename, type, cols); 
-        append_ds(data.release());
+
+    // split "filename" (e.g. "foo.dat:1:2,3::") into real filename 
+    // and colon-separated indices
+    int count_colons = count(filename.begin(), filename.end(), ':');
+    string fn;
+    vector<int> indices[4];
+    if (count_colons >= 4) {
+        string::size_type old_pos = filename.size();
+        for (int i = 3; i >= 0; --i) {
+            string::size_type pos = filename.rfind(':', old_pos - 1);
+            string::size_type len = old_pos - pos - 1;
+            if (len > 0)
+                indices[i] = parse_int_range(filename.substr(pos+1, len));
+            old_pos = pos;
+        }
+        fn = filename.substr(0, old_pos);
     }
     else {
-        // if slot == new_dataset and there is only one dataset, 
-        // then get_data(slot) will point to this single slot
-        get_data(slot)->load_file(filename, type, cols); 
+        fn = filename;
+    }
+
+    if (indices[0].size() > 1)
+        throw ExecuteError("Only one column x can be specified");
+    if (indices[2].size() > 1)
+        throw ExecuteError("Only one column sigma can be specified");
+    if (indices[1].size() > 1 && slot != new_dataset)
+        throw ExecuteError("Multiple y columns can be specified only with @+");
+
+    int idx_x = indices[0].empty() ?  INT_MAX : indices[0][0];
+    if (indices[1].empty())
+        indices[1].push_back(INT_MAX);
+    int idx_s = indices[2].empty() ? INT_MAX : indices[2][0];
+
+    for (size_t i = 0; i < indices[1].size(); ++i) {
+        if (slot == new_dataset
+            && (this->get_ds_count() != 1 || this->get_data(0)->has_any_info()
+                                        || this->get_sum(0)->has_any_info())) {
+            // load data into new slot
+            auto_ptr<Data> data(new Data(this));
+            data->load_file(fn, idx_x, indices[1][i], idx_s, 
+                            indices[3], options);
+            append_ds(data.release());
+        }
+        else {
+            // if slot == new_dataset and there is only one dataset, 
+            // then get_data(slot) will point to this single slot
+            get_data(slot)->load_file(fn, idx_x, indices[1][i], idx_s, 
+                                      indices[3], options);
+        }
     }
 
     if (get_ds_count() == 1) 

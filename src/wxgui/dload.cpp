@@ -193,15 +193,8 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
 //#else
                        0,
 //#endif
-                       // multiple wildcards, eg. 
-                       // |*.dat;*.DAT;*.xy;*.XY;*.fio;*.FIO
-                       // are not supported by wxGenericDirCtrl  
-                       wxT("all files (*)|*")
-                       wxT("|ASCII x y files (*)|*" )
-                       wxT("|rit files (*.rit)|*.rit")
-                       wxT("|cpi files (*.cpi)|*.cpi")
-                       wxT("|mca files (*.mca)|*.mca")
-                       wxT("|Siemens/Bruker (*.raw)|*.raw"));
+                       wxT("All Files (*)|*|") 
+                           + s2wx(xylib::get_wildcards_string()));
     left_sizer->Add(dir_ctrl, 1, wxALL|wxEXPAND, 5);
     wxFileName path = s2wx(data->get_filename());
     path.Normalize();
@@ -230,13 +223,13 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     h2a_sizer->Add(s_column, 0, wxALL|wxALIGN_LEFT, 5);
     columns_panel->SetSizer(h2a_sizer);
     left_sizer->Add (columns_panel, 0, wxALL|wxEXPAND, 5);
-    if (data->get_given_cols().size() > 1) {
-        x_column->SetValue(data->get_given_cols()[0]);
-        y_column->SetValue(data->get_given_cols()[1]);
-        if (data->get_given_cols().size() > 2) {
-            std_dev_cb->SetValue(true);
-            s_column->SetValue(data->get_given_cols()[2]);
-        }
+    if (data->get_given_x() != INT_MAX) 
+        x_column->SetValue(data->get_given_x());
+    if (data->get_given_y() != INT_MAX) 
+        y_column->SetValue(data->get_given_y());
+    if (data->get_given_s() != INT_MAX) {
+        std_dev_cb->SetValue(true);
+        s_column->SetValue(data->get_given_s());
     }
 
     bool def_sqrt = (ftk->get_settings()->getp("data-default-sigma") == "sqrt");
@@ -318,10 +311,11 @@ void DLoadDlg::OnHTitleCheckBox (wxCommandEvent& event)
 void DLoadDlg::update_title_from_file()
 {
     assert (htitle_cb->GetValue());
-    ifstream f(dir_ctrl->GetFilePath().fn_str());
-    int col = columns_panel->IsEnabled() ? y_column->GetValue() : 0;
-    string title = Data::read_one_line_as_title(f, col);
-    title_tc->SetValue(s2wx(title));
+    //ifstream f(dir_ctrl->GetFilePath().fn_str());
+    //int col = columns_panel->IsEnabled() ? y_column->GetValue() : 0;
+    //string title = Data::read_one_line_as_title(f, col);
+    //title_tc->SetValue(s2wx(title));
+    title_tc->SetValue(wxT(""));
 }
 
 void DLoadDlg::OnAutoTextCheckBox (wxCommandEvent& event)
@@ -381,15 +375,16 @@ void DLoadDlg::update_text_preview()
 void DLoadDlg::update_plot_preview()
 {
     if (auto_plot_cb->GetValue()) {
-        std::vector<int> cols;
-        if (columns_panel->IsEnabled()) {
-            cols.push_back(x_column->GetValue());
-            cols.push_back(y_column->GetValue());
-        }
+        bool has_cols = columns_panel->IsEnabled();
+        int idx_x = has_cols ? x_column->GetValue() : INT_MAX;
+        int idx_y = has_cols ? y_column->GetValue() : INT_MAX;
         ftk->get_ui()->keep_quiet = true;
         try {
             plot_preview->data->load_file(wx2s(dir_ctrl->GetFilePath()), 
-                                          "", cols, true);
+                                          idx_x, idx_y, INT_MAX, 
+                                          vector<int>(),
+                                          vector<string>(),
+                                          true);
         } catch (ExecuteError&) {
             plot_preview->data->clear();
         }
@@ -428,7 +423,7 @@ void DLoadDlg::on_path_change()
     filename_tc->SetValue(path);
     if (dir_ctrl->GetFilterIndex() == 0) { // all files
         bool is_text = !path.IsEmpty() 
-                         && xylib::guess_filetype(wx2s(path)) ->name== "text"; 
+                         && xylib::guess_filetype(wx2s(path))->name == "text";
         enable_text_options(is_text);
     }
     open_here->Enable(!path.IsEmpty());
@@ -468,15 +463,16 @@ string DLoadDlg::get_command(string const& ds, int d_nr)
         bool has_s = std_dev_cb->GetValue();
         // default parameter values are not passed explicitely
         if (x != 1 || y != 2 || has_s) {
-            cols = " " + S(x) + "," + S(y);
+            cols = ":" + S(x) + ":" + S(y) + ":";
             if (has_s)
-                cols += S(",") + S(s_column->GetValue());
+                cols += S(s_column->GetValue());
+            cols += ":";
         }
     }
 
     string filetype;
     if (htitle_cb->IsChecked())
-        filetype = " htext";
+        filetype = "text first-line-header";
 
     bool def_sqrt = (ftk->get_settings()->getp("data-default-sigma") == "sqrt");
     bool set_sqrt = sd_sqrt_cb->GetValue();
@@ -488,7 +484,7 @@ string DLoadDlg::get_command(string const& ds, int d_nr)
             cmd = "with data-default-sigma=one ";
     }
 
-    cmd += ds + " < '" + get_filename() + "'" + filetype + cols;
+    cmd += ds + " < '" + get_filename() + cols + "'" + filetype;
 
     if (title_tc->IsEnabled()) {
         wxString t = title_tc->GetValue().Trim();

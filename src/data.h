@@ -21,12 +21,17 @@ class Data
 public :
     std::string title;
 
-    Data(Ftk const* F_) : F(F_), x_step(0.), y_min(0.), y_max(1e3) {}
+    Data(Ftk const* F_) : F(F_), 
+                          given_x(INT_MAX), given_y(INT_MAX), given_s(INT_MAX),
+                          x_step(0.), y_min(0.), y_max(1e3) {}
     ~Data() {}
     std::string get_info() const;
 
-    void load_file (std::string const& file, std::string const& type, 
-                    std::vector<int> const& indices, bool preview=false);
+    void load_file(std::string const& filename_, 
+                   int idx_x, int idx_y, int idx_s, 
+                   std::vector<int> const& blocks,
+                   std::vector<std::string> const& options, 
+                   bool preview=false);
 
     int load_arrays(std::vector<fp> const& x, std::vector<fp> const& y, 
                    std::vector<fp> const& sigma, std::string const& data_title);
@@ -63,15 +68,18 @@ public :
     fp get_y_min() const { return y_min; }
     fp get_y_max() const { return y_max; }
     std::vector<Point> const& points() const { return p; }
-    std::string get_given_type() const { return given_type; }
-    std::vector<int> get_given_cols() const { return given_cols; }
+    int get_given_x() const { return given_x; }
+    int get_given_y() const { return given_y; }
+    int get_given_s() const { return given_s; }
+    std::vector<std::string> get_given_options() const { return given_options; }
     static std::string read_one_line_as_title(std::ifstream& f, int column=-1);
     void revert();
 private:
     Ftk const* F;
     std::string filename;
-    std::string given_type; // filetype explicitely given when loading the file
-    std::vector<int> given_cols; /// columns given when loading the file
+    int given_x, given_y, given_s;/// columns given when loading the file
+    std::vector<int> given_blocks;
+    std::vector<std::string> given_options; 
     fp x_step; // 0.0 if not fixed;
     bool has_sigma;
     std::vector<Point> p;

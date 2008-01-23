@@ -31,7 +31,16 @@ void TextDataSet::load_data(std::istream &f)
 {
     vector<VecColumn*> cols;  
     vector<double> row; // temporary storage for values from one line
+    string title_line;
     string s;
+
+    if (find(options.begin(), options.end(), "first-line-header") 
+                                                    != options.end()) {
+        title_line = str_trim(read_line(f));
+        if (!title_line.empty() && title_line[0] == '#') 
+            title_line = title_line.substr(1);
+    }
+
     while (getline(f, s)) {
         row.clear();
         const char *p = s.c_str();
@@ -50,7 +59,11 @@ void TextDataSet::load_data(std::istream &f)
                 ++p;
         }
 
-        if (row.size() < 2) // no data in this line
+        // We silently skip lines with no data.
+        // Unfortunatelly some non-data lines may start with numbers.
+        // If there is only one number, we use additional precaution.
+        if (row.size() < 1 || (row.size() == 1 && cols.size() > 1)) 
+            // no data in this line
             continue;
 
         if (cols.size() == 0)  // first line - initialization
@@ -78,6 +91,26 @@ void TextDataSet::load_data(std::istream &f)
     Block* blk = new Block;
     for (unsigned i = 0; i < cols.size(); ++i) 
         blk->add_column(cols[i]);
+
+    // the title-line is either a name of block or contains names of columns
+    // we assume that it's the latter if the number of words is the same
+    // as number of columns
+    if (!title_line.empty()) {
+        const char* delim = " \t";
+        vector<string> words;
+        std::string::size_type start_pos = 0, pos = 0;
+        while (pos != std::string::npos) {
+            pos = s.find_first_of(delim, start_pos);
+            words.push_back(std::string(s, start_pos, pos-start_pos));
+            start_pos = pos+1;
+        }
+        if (words.size() == cols.size()) {
+            for (size_t i = 0; i < words.size(); ++i)
+                cols[i]->name = words[i];
+        }
+        else
+            blk->name = title_line;
+    }
 
     blocks.push_back(blk);
 }

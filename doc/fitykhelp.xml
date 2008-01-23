@@ -393,18 +393,16 @@
    <section id="DataLoad">
     <title>Loading data </title>
     <para>
-     Data are stored in files.  Unfortunately, there are various formats of
-     files with data. The basic one is a text file with every line 
-     corresponding to one data point. The line should contain at least two
-     numbers: x and y of the point. It can also contain the standard deviation of the y
-     coordinate.  Numbers can be separated by whitespace, commas, colons or
-     semicolons. Some lines can contain comments or extra information. If
-     these lines have a hash (#) in the first column, they are ignored. In other
-     case, they are also ignored (unless they can be read as a data point). 
-     Specific file types that can also be read currently include: .rit, .cpi,
-     Siemens-Bruker .raw and .mca. In future, the way the special file formats
-     are handled will be changed (external library will be used for it,
-     unfortunatelly this library does not yet exist).
+     The basic file format is ascii text file with every line 
+     corresponding to one data point. If there are more than two columns 
+     of numbers, it can be specified which columns corresponds to x and y,
+     and, optionally, also sigma. 
+     Numbers in line can be separated by whitespace, commas or semicolons. 
+     Lines that can't be read as numbers are ignored.
+    </para>
+    <para>
+     The modified version of <systemitem class="library">xylib</systemitem> 
+     library is used to read data from file. New formats can be easily added.
     </para>
     <para>
      Points are loaded from files using the command
@@ -413,10 +411,9 @@
      <arg choice="plain"><replaceable>dataslot</replaceable></arg>
      <command>&lt;</command> 
      <arg choice="plain"><replaceable>filename</replaceable></arg> 
-     <arg><replaceable>filetype</replaceable></arg>  
-     <arg><replaceable>xcol</replaceable>,<replaceable>ycol</replaceable>
-      <arg>,<replaceable>scol</replaceable></arg>
+     <arg>:<replaceable>xcol</replaceable>:<replaceable>ycol</replaceable>:<replaceable>scol</replaceable>:<replaceable>block</replaceable>
      </arg> 
+     <arg><replaceable>filetype options...</replaceable></arg>  
     </cmdsynopsis>
     <para>
      where 
@@ -424,61 +421,104 @@
      should be replaced with <userinput>@0</userinput>, 
      unless many datasets are to be used simultaneously 
      (for details see: <xref linkend="multidata"/>),
-     <replaceable>filetype</replaceable> usually can be omitted 
+     <replaceable>filetype</replaceable> and <replaceable>options</replaceable>
+     usually can be omitted 
      (in most of the cases the filetype can be detected automatically,
      all supported filetypes are listed at the end of this section),
      <replaceable>xcol</replaceable>, <replaceable>ycol</replaceable>, 
-     <replaceable>scol</replaceable>, 
-     are unsigned integers. If the filename contains blank characters,
-     a semicolon or comma, it should be put inside single
-     quotation marks. If the file is in a text format (columns with numbers)
-     it can be specified which column contains x, y, and (optionally) std. dev.
-     of y. A column number of 0 generates a number increasing (from zero) 
-     with each point.
-     The list of <replaceable>filetype</replaceable> can be one of the following:
+     <replaceable>scol</replaceable> (supported only in text file) are columns
+     corresponding to x, y and std. dev. of y.  
+     A column number of 0 generates a number increasing (from zero) with each 
+     point.
+     <replaceable>block</replaceable> is supported by formats with multiple 
+     blocks of data.
     </para>
-
     <para>
-     Information about the current data can be obtained by using the command:
-     <command>info <replaceable>dataslot</replaceable></command>
+     If the filename contains blank characters,
+     a semicolon or comma, it should be put inside single
+     quotation marks (together with colon-separated indices, if any). 
     </para>
-    <cmdsynopsis>
-     <command></command>
-     <arg choice="plain"></arg>
-    </cmdsynopsis>
+    <para>
+     Multiple y columns and/or blocks can be specified, see the examples below.
+     <screen>     
+      @0 &lt; foo.vms 
+      @0 &lt; foo.fii text first-line-header
+      @0 &lt; foo.dat:1:4:: # x,y - 1st and 4th columns
+      @+ &lt; foo.dat:1:3,4:: # load two dataset (with y in columns 3,4)
+      @+ &lt; foo.dat:1:3..5:: # load three dataset (with y in columns 3,4,5)
+      @+ &lt; foo.dat:1:4..6,2:: # load four dataset (y: 4,5,6,2)
+      @0 &lt; foo.dat:1:2:3: # read std. dev. of y from 3rd column
+      @0 &lt; foo.dat:0:1:: # x - 0,1,2,..., y - first column
+      @0 &lt; foo.raw::::0,1 # load two first blocks of data (as one dataset)
+     </screen>     
+    </para>
 
     <variablelist><title>Supported filetypes</title>
      <varlistentry><term>text</term>
-      <listitem><para>ASCII format, at least two numbers in each line
+      <listitem><para>ASCII format. If option first-line-header is given,
+        the first line is read as title.
       </para></listitem> 
      </varlistentry>
 
-     <varlistentry><term>htext</term>
-      <listitem><para>Similar to text, but the first line contains title
+     <varlistentry><term>dbws</term>
+      <listitem><para>format used by DBWS (program for Rietveld analysis)
+        and DMPLOT.
       </para></listitem> 
      </varlistentry>
 
-     <varlistentry><term>MCA</term>
-      <listitem><para>Spectral data stored by Canberra MCA systems
-      </para></listitem> 
-     </varlistentry>
-
-     <varlistentry><term>RIT</term>
-      <listitem><para>RIT format used by DBWS 
-        (the program for Rietveld analysis)
-      </para></listitem> 
-     </varlistentry>
-
-     <varlistentry><term>CPI</term>
+     <varlistentry><term>cpi</term>
       <listitem><para>Sietronics Sieray CPI format
       </para></listitem> 
      </varlistentry>
 
-     <varlistentry><term>BrukerRAW</term>
-      <listitem><para>Simens-Bruker RAW format (version 2)
+     <varlistentry><term>uxd</term>
+      <listitem><para>Siemens/Bruker UXD format (powder diffraction data)
+      </para></listitem> 
+     </varlistentry>
+
+     <varlistentry><term>bruker_raw</term>
+      <listitem><para>Simens-Bruker RAW format (version 1,2,3)
+      </para></listitem> 
+     </varlistentry>
+
+     <varlistentry><term>canberra_mca</term>
+      <listitem><para>Spectral data stored by Canberra MCA systems
+      </para></listitem> 
+     </varlistentry>
+
+     <varlistentry><term>rigaku_dat</term>
+      <listitem><para>Rigaku dat format (powder diffraction data)
+      </para></listitem> 
+     </varlistentry>
+
+     <varlistentry><term>vamas</term>
+      <listitem><para>VAMAS ISO-14976
+        (only experiment modes: "SEM" or "MAPSV" or "MAPSVDP" and
+            only "REGULAR" scan mode are supported)
+      </para></listitem> 
+     </varlistentry>
+
+     <varlistentry><term>philips_udf</term>
+      <listitem><para>Philips UDF (powder diffraction data)
+      </para></listitem> 
+     </varlistentry>
+
+     <varlistentry><term>philips_rd</term>
+      <listitem><para>Philips RD raw scan format V3 (powder diffraction data)
+      </para></listitem> 
+     </varlistentry>
+
+     <varlistentry><term>spe</term>
+      <listitem><para>Princeton Instruments WinSpec SPE format 
+        (only 1-D data is supported)
       </para></listitem> 
      </varlistentry>
     </variablelist>
+
+    <para>
+     Information about loaded data can be obtained by using the command:
+     <command>info <replaceable>dataslot</replaceable></command>
+    </para>
 
    </section> 
 

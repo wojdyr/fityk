@@ -110,6 +110,9 @@ public:
 class Block
 {
 public:
+    // pseudo-column that returns index of point as value
+    static Column* const index_column;
+
     MetaData meta;
     std::string name; // block can have a name (but usually it doesn't have)
     
@@ -117,7 +120,7 @@ public:
     ~Block();
 
     int get_column_count() const { return cols.size(); }
-    const Column& get_column(unsigned n) const;
+    const Column& get_column(int n) const;
 
     void export_xy_file(std::ostream &os) const;
 
@@ -142,6 +145,8 @@ class DataSet
 public:
     // pointer to FormatInfo of a class derived from DataSet
     FormatInfo const* const fi;
+    // if load_data() supports options, set it before it's called
+    std::vector<std::string> options;
 
     // ctor is protected
     virtual ~DataSet();
@@ -179,16 +184,23 @@ protected:
 
 // if format_name is not given, it is guessed
 // return value: pointer to Dataset that contains all data read from file
-DataSet* load_file(std::string const& path, std::string const& format_name="");
+DataSet* load_file(std::string const& path, std::string const& format_name="",
+                   std::vector<std::string> const& options 
+                                                = std::vector<std::string>());
 
 // return value: pointer to Dataset that contains all data read from file
-DataSet* load_stream(std::istream &is, FormatInfo const* fi);
+DataSet* load_stream(std::istream &is, FormatInfo const* fi,
+                     std::vector<std::string> const& options);
 
 // guess a format of the file
 FormatInfo const* guess_filetype(std::string const& path);
 
 // returns FormatInfo that has a name format_name
 FormatInfo const* string_to_format(std::string const& format_name);
+
+// return wildcard for file dialog in format:
+// "All Files (*)|*|ASCII X Y Files (*)|*|Sietronics Sieray CPI (*.cpi)|*.cpi"
+std::string get_wildcards_string(std::string const& all_files="*");
 
 } // namespace xylib
 

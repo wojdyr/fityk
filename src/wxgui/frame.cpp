@@ -41,6 +41,8 @@
 #include <string.h>
 #include <ctype.h>
 
+#include <xylib/xylib.h>
+
 #include "frame.h"
 #include "plot.h"
 #include "mplot.h"
@@ -857,14 +859,9 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
 {
     static wxString dir = wxConfig::Get()->Read(wxT("/loadDataDir"));
     wxFileDialog fdlg (this, wxT("Load data from a file"), dir, wxT(""),
-                              wxT("all files (*)|*")
-                              wxT("|x y files (*.dat, *.xy, *.fio)")
-                                      wxT("|*.dat;*.DAT;*.xy;*.XY;*.fio;*.FIO") 
-                              wxT("|rit files (*.rit)|*.rit;*.RIT")
-                              wxT("|cpi files (*.cpi)|*.cpi;*.CPI")
-                              wxT("|mca files (*.mca)|*.mca;*.MCA")
-                              wxT("|Siemens/Bruker (*.raw)|*.raw;*.RAW"),
-                              wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
+                       wxT("All Files (*)|*|") 
+                                       + s2wx(xylib::get_wildcards_string()),
+                       wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
     if (fdlg.ShowModal() == wxID_OK) {
         wxArrayString paths;
         fdlg.GetPaths(paths);

@@ -149,11 +149,10 @@ string read_string(istream &f, unsigned len)
 string str_trim(string const& str)
 {
     std::string ws = " \r\n\t";
-    string::size_type first, last;
-    first = str.find_first_not_of(ws);
-    last = str.find_last_not_of(ws);
+    string::size_type first = str.find_first_not_of(ws);
     if (first == string::npos) 
         return "";
+    string::size_type last = str.find_last_not_of(ws);
     return str.substr(first, last - first + 1);
 }
 
