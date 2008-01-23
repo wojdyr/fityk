@@ -1,5 +1,5 @@
 /* XPM */
-static char * undo_fit_xpm[] = {
+static const char * undo_fit_xpm[] = {
 "24 24 105 2",
 "  	c None",
 ". 	c #000000",

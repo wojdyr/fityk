@@ -1,5 +1,5 @@
 /* XPM */
-static char * open_data_custom_xpm[] = {
+static const char * open_data_custom_xpm[] = {
 "24 24 151 2",
 "  	c None",
 ". 	c #127704",

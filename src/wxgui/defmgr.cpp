@@ -95,6 +95,8 @@ DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
     par_g->SetColLabelValue(1, wxT("default value"));
     par_g->SetDefaultRowSize(20, true);
     par_g->SetColLabelSize(20);
+    par_g->BeginBatch(); ////////////////////////////////////
+    par_g->EndBatch();   //////////////////////////////////
     par_g->SetRowLabelSize(0);
     par_g->EnableDragRowSize(false);
     par_g->SetLabelFont(*wxNORMAL_FONT);
@@ -117,12 +119,13 @@ DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
     top_sizer->Add(new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
     top_sizer->Add(CreateButtonSizer (wxOK|wxCANCEL), 
                    0, wxALL|wxALIGN_CENTER, 5);
-    fill_function_list();
-    lb->SetSelection(selected);
-    select_function(true);
 
     SetSizer(top_sizer);
     top_sizer->SetSizeHints(this);
+
+    fill_function_list();
+    lb->SetSelection(selected);
+    select_function(true);
 }
 
 void DefinitionMgrDlg::fill_function_list()

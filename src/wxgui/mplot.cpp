@@ -909,7 +909,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     mouse_press_Y = event.GetY();
     fp x = xs.val (event.GetX());
     fp y = ys.val (event.GetY());
-    if (button == 1 && (ctrl_on_down || mode == mmd_zoom) || button == 2) {
+    if ((button == 1 && (ctrl_on_down || mode == mmd_zoom)) || button == 2) {
         draw_temporary_rect(mat_start, event.GetX(), event.GetY());
         SetCursor(wxCURSOR_MAGNIFIER);  
         frame->set_status_text("Select second corner to zoom...");
@@ -1007,7 +1007,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     // if Down and Up events are at the same position -> cancel
 
     // zoom
-    if (button == 1 && (ctrl_on_down || mode == mmd_zoom) || button == 2) {
+    if ((button == 1 && (ctrl_on_down || mode == mmd_zoom)) || button == 2) {
         draw_temporary_rect(mat_stop);
         if (dist_X + dist_Y >= 10) {
             fp x1 = xs.val(mouse_press_X);

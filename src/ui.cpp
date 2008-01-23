@@ -2,11 +2,12 @@
 // Licence: GNU General Public License version 2
 // $Id$
 
-#include "common.h"
-#include "ui.h"
-#include "settings.h"
 #include <string>
 #include <iostream>
+#include <string.h>
+
+#include "ui.h"
+#include "settings.h"
 #include "logic.h"
 #include "cmd.h"
 

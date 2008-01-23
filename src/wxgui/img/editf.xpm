@@ -1,5 +1,5 @@
 /* XPM */
-static char * editf_xpm[] = {
+static const char * editf_xpm[] = {
 "24 24 44 1",
 " 	c None",
 ".	c #000000",

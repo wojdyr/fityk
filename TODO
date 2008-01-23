@@ -7,9 +7,7 @@ to start, there is a list of ideas at the end of this file.
 Legend:
 // = done, but not tested/documented  
 
-* %name = guess Linear in @*  -- should give error for more than one dataset
-
-* GUI: save (and load) cmd line history to ~/.fityk/wxhistory
+// * %name = guess Linear in @*  -- should give error for more than one dataset
 
 * gtk: opening definition manager causes Gtk-CRITICAL warning (wx2.9)
 
@@ -18,6 +16,8 @@ Legend:
 * GUI: test printing on MSW
 
 --------------> 0.8.3
+
+* GUI: save (and load) cmd line history to ~/.fityk/wxhistory
 
 * GUI: refactor MainPlot - mouse event handling based on subscriptions,
        a clean interface to XOR-drawing 
@@ -184,6 +184,8 @@ Legend:
   such a function in C.
   http://sources.redhat.com/ml/gsl-discuss/2004-q4/msg00061.html
 
+- see the note about EMG function above
+
 - if you have some expertise in nonlinear optimization methods, it's possible
   to do what Gnu Scientific Library seems to plan: put a few least-squares
   fitting methods with similar interface into one library. 
@@ -194,8 +196,13 @@ Legend:
   It would be nice to have tab-completion in InputLine, like we have in CLI,
   thanks to readline library. Ideally, the code for finding completion in CLI
   should be possible to use with InputLine.
+  update: wx developers are working on auto-completion. It will be much simpler
+          than in readline library, though.
 
-- see the note about EMG function above
+- Add alpha channel to toolbar icons. Fityk icons are usually modified GTK 
+  stock icons. Alpha-channel was removed when converting to xpm format.
+  Now I see icons with alpha-channel look much better (like menu icons,
+  visible in GTK version only), but making the icons again takes time...
 
 - anything else
 

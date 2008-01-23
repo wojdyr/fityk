@@ -41,8 +41,9 @@ public:
     static fp compute_r_squared_for_data(DataWithSum const* ds) ;
     void Jordan (std::vector<fp>& A, std::vector<fp>& b, int n); 
     void reverse_matrix (std::vector<fp>&A, int n);
+    // pretty-print matrix m x n stored in vec. `mname' is name/comment.
     std::string print_matrix (const std::vector<fp>& vec, 
-                                     int m, int n, char *mname);//m x n
+                                     int m, int n, const char *mname);
 protected:
     Ftk *F;
     std::vector<DataWithSum*> datsums;

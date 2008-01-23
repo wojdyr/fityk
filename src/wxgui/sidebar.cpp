@@ -75,7 +75,7 @@ enum {
 //                           SideBar
 //===============================================================
 
-void add_bitmap_button(wxWindow* parent, wxWindowID id, char** xpm,
+void add_bitmap_button(wxWindow* parent, wxWindowID id, const char** xpm,
                        wxString const& tip, wxSizer* sizer)
 {
     wxBitmapButton *btn = new wxBitmapButton(parent, id, wxBitmap(xpm));

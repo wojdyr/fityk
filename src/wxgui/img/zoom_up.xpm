@@ -1,5 +1,5 @@
 /* XPM */
-static char * zoom_up_xpm[] = {
+static const char * zoom_up_xpm[] = {
 "24 24 128 2",
 "  	c None",
 ". 	c #343434",

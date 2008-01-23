@@ -1,5 +1,5 @@
 /* XPM */
-static char * run_fit_xpm[] = {
+static const char * run_fit_xpm[] = {
 "24 24 77 1",
 " 	c None",
 ".	c #000000",

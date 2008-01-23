@@ -1,5 +1,5 @@
 /* XPM */
-static char * active_mode_xpm[] = {
+static const char* active_mode_xpm[] = {
 "24 24 4 1",
 " 	c None",
 ".	c #4E4E4E",

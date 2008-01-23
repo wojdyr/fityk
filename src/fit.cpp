@@ -2,11 +2,12 @@
 // Licence: GNU General Public License version 2
 // $Id$
 
-#include "common.h"
-#include "fit.h"
 #include <algorithm>
 #include <sstream>
 #include <math.h>
+#include <string.h>
+
+#include "fit.h"
 #include "logic.h"
 #include "sum.h"
 #include "data.h"
@@ -248,7 +249,8 @@ void Fit::compute_derivatives_for(DataWithSum const* ds,
     }   
 }
 
-string Fit::print_matrix (const vector<fp>& vec, int m, int n, char *mname)
+string Fit::print_matrix (const vector<fp>& vec, int m, int n, 
+                          const char *mname)
     //m rows, n columns
 { 
     if (F->get_verbosity() <= 0)  //optimization (?)
@@ -263,7 +265,7 @@ string Fit::print_matrix (const vector<fp>& vec, int m, int n, char *mname)
             h << vec[i] << (i < n - 1 ? ", " : " }") ;
     }
     else { //matrix 
-        std::string blanks (strlen (mname) + 1, ' ');
+        std::string blanks (strlen(mname) + 1, ' ');
         for (int j = 0; j < m; j++){
             if (j > 0)
                 h << blanks << "  ";

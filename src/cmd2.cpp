@@ -411,6 +411,12 @@ void do_guess(char const*, char const*)
     vector<DataWithSum*> v = get_datasets_from_indata();
     string const& name = t;
     string const& function = t2;
+
+    // "%name = guess Linear in @0, @1" makes no sense
+    if (!name.empty() && v.size() > 1)
+        // SyntaxError actually
+        throw ExecuteError("many functions can't be assigned to one name."); 
+
     for (vector<DataWithSum*>::const_iterator i = v.begin(); i != v.end(); ++i) {
         DataWithSum *ds = *i;
         vector<string> vars = vt;

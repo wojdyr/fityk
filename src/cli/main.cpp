@@ -120,11 +120,11 @@ void read_and_execute_input()
 }
 
 
-char *commands[] = { "info", "plot", "delete", "set", "fit",
+const char *commands[] = { "info", "plot", "delete", "set", "fit",
         "commands", "dump", "sleep", "reset", "quit", "guess", "define"
         };
 
-char *after_info[] = { "variables", "types", "functions", "datasets",
+const char *after_info[] = { "variables", "types", "functions", "datasets",
          "commands", "view", "set", "fit", "fit-history", "errors", "formula",
          "peaks", "guess", "F", "Z", "formula", "dF"
         };
@@ -135,7 +135,7 @@ char *command_generator (const char *text, int state)
     if (!state) 
         list_index = 0;
     while (list_index < sizeof(commands) / sizeof(char*)) {
-        char *name = commands[list_index];
+        const char *name = commands[list_index];
         list_index++;
         if (strncmp (name, text, strlen(text)) == 0)
             return strdup(name);
@@ -191,7 +191,7 @@ char *info_generator(const char *text, int state)
             if (!strncmp(i->c_str(), text, strlen(text)))
                 e.push_back(*i);
         for (size_t i = 0; i < sizeof(after_info) / sizeof(char*); ++i) {
-            char *name = after_info[i];
+            const char *name = after_info[i];
             if (strncmp (name, text, strlen(text)) == 0)
                 e.push_back(name);
         }
@@ -267,7 +267,11 @@ char *set_eq_generator (const char *text, int state)
     static unsigned int list_index = 0;
     static vector<string> e;
     if (!state) {
-        e = ftk->get_settings()->expand_enum(set_eq_str, text);
+        try {
+            e = ftk->get_settings()->expand_enum(set_eq_str, text);
+        } catch (ExecuteError&) {
+            return NULL;
+        }
         list_index = 0;
     }
     else
@@ -275,7 +279,19 @@ char *set_eq_generator (const char *text, int state)
     if (list_index < e.size())
         return strdup(e[list_index].c_str());
     else
-        return 0;
+        return NULL;
+}
+
+bool starts_with_command(const char *cmd, int n, 
+                 const char* head, const char* tail, char trailing)
+{
+    int hlen = strlen(head);
+    if (strncmp(head, cmd, hlen) != 0)
+        return false;
+    for (int i = 0; hlen + i < n; ++i)
+        if (cmd[hlen+i] == trailing)
+            return i == 0 || strncmp(cmd+hlen, tail, i) == 0;
+    return false;
 }
 
 char **my_completion (const char *text, int start, int end)
@@ -292,23 +308,18 @@ char **my_completion (const char *text, int start, int end)
         return rl_completion_matches(text, command_generator);
     char *ptr = rl_line_buffer+cmd_start;
     //check if it is after set command or after with
-    if (cmd_start <= start-2 && !strncmp(ptr, "s ", 2)
-            || cmd_start <= start-3 && !strncmp(ptr, "se ", 3) 
-            || cmd_start <= start-4 && !strncmp(ptr, "set ", 4)
-            || cmd_start <= start-2 && !strncmp(ptr, "w ", 2)
-            || cmd_start <= start-3 && !strncmp(ptr, "wi ", 3) 
-            || cmd_start <= start-4 && !strncmp(ptr, "wit ", 4)
-            || cmd_start <= start-5 && !strncmp(ptr, "with ", 5)) {
+    if (starts_with_command(ptr, start - cmd_start, "s","et", ' ')
+        || starts_with_command(ptr, start - cmd_start, "w","ith", ' ')) {
         while (*ptr && !isspace(*ptr))
             ++ptr;
         ++ptr;
-        char *has_eq = 0;
+        char *has_eq = NULL;
         for (char *i = ptr; i <= rl_line_buffer+end; ++i) {
             if (*i == '=')
                 has_eq = i;
             else if (*i == ',') {
                 ptr = i+1;
-                has_eq = 0;
+                has_eq = NULL;
             }
         }
         if (!has_eq)
@@ -319,11 +330,7 @@ char **my_completion (const char *text, int start, int end)
         }
     }
     // FunctionType completion
-    if (cmd_start <= start-2 && !strncmp(ptr, "g ", 2)
-            || cmd_start <= start-3 && !strncmp(ptr, "gu ", 3) 
-            || cmd_start <= start-4 && !strncmp(ptr, "gue ", 4) 
-            || cmd_start <= start-5 && !strncmp(ptr, "gues ", 5) 
-            || cmd_start <= start-6 && !strncmp(ptr, "guess ", 6)) {
+    if (starts_with_command(ptr, start - cmd_start, "g","uess", ' ')) {
         return rl_completion_matches(text, type_generator);
     }
     // FunctionType or "guess" completion
@@ -341,14 +348,8 @@ char **my_completion (const char *text, int start, int end)
         return rl_completion_matches(text, variable_generator);
 
     // info completion
-    if (cmd_start <= start-2 && (!strncmp(ptr, "i ", 2) 
-                                 || !strncmp(ptr, "i+", 2))
-            || cmd_start <= start-3 && (!strncmp(ptr, "in ", 3) 
-                                        || !strncmp(ptr, "in+", 3))
-            || cmd_start <= start-4 && (!strncmp(ptr, "inf ", 4) 
-                                        || !strncmp(ptr, "inf+", 4))
-            || cmd_start <= start-5 && (!strncmp(ptr, "info ", 5)
-                                        || !strncmp(ptr, "info+", 5))) {
+    if (starts_with_command(ptr, start - cmd_start, "i","nfo", ' ')
+        || starts_with_command(ptr, start - cmd_start, "i","nfo", '+')) {
         return rl_completion_matches(text, info_generator);
     }
 

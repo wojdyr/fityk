@@ -1,5 +1,5 @@
 /* XPM */
-static char * colorsel_xpm[] = {
+static const char * colorsel_xpm[] = {
 "24 24 223 2",
 "  	c None",
 ". 	c #000000",

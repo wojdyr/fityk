@@ -1,5 +1,5 @@
 /* XPM */
-static char * shiftup_xpm[] = {
+static const char * shiftup_xpm[] = {
 "10 15 4 1",
 " 	c None",
 ".	c #00FF00",

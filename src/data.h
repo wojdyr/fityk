@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <limits.h>
 #include "common.h"
 
 #include "fityk.h" // struct Point

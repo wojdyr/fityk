@@ -1,5 +1,5 @@
 /* XPM */
-static char * addpeak_mode_xpm[] = {
+static const char * addpeak_mode_xpm[] = {
 "24 24 55 1",
 " 	c None",
 ".	c #000000",

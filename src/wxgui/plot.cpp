@@ -481,11 +481,12 @@ vector<double> scale_tics_step (double beg, double end, int max_tics,
             result.push_back(t);
             for (int i = 2; i <= 9; ++i) {
                 double v = t * i;
-                if (v > beg && v < end)
+                if (v > beg && v < end) {
                     if (with_2_5 && (i == 2 || i == 5))
                         result.push_back(v);
                     else
                         minors.push_back(v);
+                }
             }
         }
     }

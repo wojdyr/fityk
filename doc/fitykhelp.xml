@@ -513,6 +513,12 @@
         (only 1-D data is supported)
       </para></listitem> 
      </varlistentry>
+
+     <varlistentry><term>...</term>
+      <listitem><para>what else would you like to have here?
+      </para></listitem> 
+     </varlistentry>
+
     </variablelist>
 
     <para>

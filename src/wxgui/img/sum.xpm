@@ -1,5 +1,5 @@
 /* XPM */
-static char * sum_xpm[] = {
+static const char * sum_xpm[] = {
 "24 24 2 1",
 " 	c None",
 ".	c #000000",

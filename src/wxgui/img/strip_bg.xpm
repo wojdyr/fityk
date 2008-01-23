@@ -1,5 +1,5 @@
 /* XPM */
-static char * strip_bg_xpm[] = {
+static const char * strip_bg_xpm[] = {
 "24 24 32 1",
 " 	c None",
 ".	c #127704",
