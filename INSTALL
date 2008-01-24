@@ -25,12 +25,12 @@ PORTABILITY:
 
 The only wxWidgets port I test on Linux is wxGTK. 
 wxMotif and wxX11 are _not_ supported.
-Only GCC compiler, versions 3.3 and newer are supported.
-(I usually test compilation with all GCC versions, that are included
+Only GCC compiler, versions 3.4 and newer are supported.
+(I usually test compilation with GCC versions, that are included
 in the latest stable Ubuntu distro)
 
 If you have wxWidgets (wxGTK) installed from package for your Linux distro,
-also "devel" package should be installed (it has name like libwxgtk2.6-dev
+also "devel" package should be installed (it has name like libwxgtk2.8-dev
 or wxGTK-devel).
 
 		                  MS Windows 

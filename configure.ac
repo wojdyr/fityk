@@ -114,7 +114,7 @@ else
 	CPPFLAGS_3RDPARTY="-I\$(top_srcdir)/3rdparty/xylib" 
 fi
 
-XYLIB_LDADD="\$(top_srcdir)/3rdparty/xylib/xylib/libxy.la"
+XYLIB_LDADD="\$(top_builddir)/3rdparty/xylib/xylib/libxy.la"
 
 
 AC_LANG_POP([C++]) dnl C is faster than C++

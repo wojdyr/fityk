@@ -50,9 +50,9 @@ void BruckerRawDataSet::load_version1(std::istream &f)
         // on additional ranges
         // (and if it's the first block, 4 bytes from file were already read)
         if (!blocks.empty()) {
-            char rawstr[4] = {'R', 'A', 'W', ' '};
-            le_to_host(rawstr, 4);
-            if (cur_range_steps == *reinterpret_cast<uint32_t*>(rawstr))
+            istringstream raw_stream("RAW ");
+            unsigned raw_int = read_uint32_le(raw_stream);
+            if (cur_range_steps == raw_int)
                 cur_range_steps = read_uint32_le(f);
         }
         

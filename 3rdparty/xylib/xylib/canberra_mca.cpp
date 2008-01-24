@@ -3,6 +3,7 @@
 // $Id$
 
 #include <cmath>
+#include <boost/cstdint.hpp>
 #include "canberra_mca.h"
 #include "util.h"
 
