@@ -3,6 +3,7 @@
 // $Id$
 
 #include <cerrno>
+#include <cstdlib>
 #include "text.h"
 #include "util.h"
 
@@ -34,8 +35,7 @@ void TextDataSet::load_data(std::istream &f)
     string title_line;
     string s;
 
-    if (find(options.begin(), options.end(), "first-line-header") 
-                                                    != options.end()) {
+    if (!options.empty() && options[0] == "first-line-header") { 
         title_line = str_trim(read_line(f));
         if (!title_line.empty() && title_line[0] == '#') 
             title_line = title_line.substr(1);

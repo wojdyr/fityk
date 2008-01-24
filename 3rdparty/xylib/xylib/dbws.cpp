@@ -3,6 +3,7 @@
 // $Id$
 
 #include <cmath>
+#include <cstdlib>
 #include "dbws.h"
 #include "util.h"
 

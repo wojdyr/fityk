@@ -170,21 +170,22 @@ elif [ $1 -eq 6 ]; then
  #      ../configure --build=i686-pc-linux-gnu --host=i586-mingw32msvc \
  #        --with-msw --disable-threads --disable-shared --disable-unicode \
  #        --enable-optimise --prefix=$WXMSWINSTALL \
+ #        --disable-compat26 \
  #        --without-regex --without-expat --without-odbc \
- #        --without-opengl --without-libjpeg --without-libtiff 
-
- #        --disable-html --disable-stc --disable-intl --disable-protocols \
- #        --disable-sockets --disable-ole --disable-ipc --disable-apple_ieee \
- #        --disable-arcstream --disable-backtrace --disable-datetime \
+ #        --without-opengl --without-libjpeg --without-libtiff \
+ #        --disable-html --disable-htmlhelp --disable-stc --disable-intl \
+ #        --disable-protocols --disable-protocol --disable-fs_inet \
+ #        --disable-sockets --disable-ipc --disable-apple_ieee \
+ #        --disable-backtrace \
  #        --disable-debugreport --disable-dialupman  --disable-tarstream \
  #        --disable-sound --disable-mediactrl --disable-url --disable-variant \
  #        --disable-aui --disable-xrc --disable-docview \
- #	  --disable-logdialog --disable-animatectrl --disable-calendar \
- #	  --disable-datepick --disable-tipwindow --disable-popupwin \
- #	  --disable-splash --disable-textdlg --disable-tipdlg \
+ #        --disable-logdialog --disable-animatectrl --disable-calendar \
+ #        --disable-datepick --disable-tipwindow --disable-popupwin \
+ #        --disable-splash --disable-tipdlg \
  #        --disable-wizarddlg  --disable-miniframe --disable-joystick \
  #        --disable-gif  --disable-pcx --disable-tga --disable-iff \
- #        --disable-pnm
+ #        --disable-pnm --disable-mdi --disable-richtext
  #      make; make install
  #
  rm -rf $MINGW_DIR

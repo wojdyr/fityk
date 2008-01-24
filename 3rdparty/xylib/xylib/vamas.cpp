@@ -2,7 +2,7 @@
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id$
 
-
+#include <cstring>
 #include "vamas.h"
 #include "util.h"
 

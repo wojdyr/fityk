@@ -95,8 +95,6 @@ DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
     par_g->SetColLabelValue(1, wxT("default value"));
     par_g->SetDefaultRowSize(20, true);
     par_g->SetColLabelSize(20);
-    par_g->BeginBatch(); ////////////////////////////////////
-    par_g->EndBatch();   //////////////////////////////////
     par_g->SetRowLabelSize(0);
     par_g->EnableDragRowSize(false);
     par_g->SetLabelFont(*wxNORMAL_FONT);

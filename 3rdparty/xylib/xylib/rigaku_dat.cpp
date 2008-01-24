@@ -109,11 +109,10 @@ void RigakuDataSet::load_data(std::istream &f)
                     meta[key] = val;
             } 
         }
-        else if (is_numeric(line[0])) {     // should be a line of values
+        else { // should be a line of values
+            format_assert(is_numeric(line[0]));
             p_ycol->add_values_from_str(line, ',');
         } 
-        else 
-            ; // unexpected line. ignore.
     }
     format_assert(grp_cnt != 0, "no GROUP_COUNT attribute given");
     format_assert(grp_cnt == (int) blocks.size(), 

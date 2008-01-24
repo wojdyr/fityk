@@ -7,10 +7,6 @@ to start, there is a list of ideas at the end of this file.
 Legend:
 // = done, but not tested/documented  
 
-// * %name = guess Linear in @*  -- should give error for more than one dataset
-
-* gtk: opening definition manager causes Gtk-CRITICAL warning (wx2.9)
-
 * GUI: check if "shadow unselected" works on MSW
 
 * GUI: test printing on MSW
