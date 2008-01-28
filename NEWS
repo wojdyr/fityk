@@ -1,7 +1,7 @@
 $Id$
 
-User-visible changes in version 0.8.3  (2007-  -  ):
-* data import is done using (locally modified) xylib library. 
+User-visible changes in version 0.8.3  (2008-01-25):
+* data import is done using (modified) xylib library. 
   VAMAS and a few other new file formats are supported.
 * added hyperbolic functions
 * command "@n.revert" reloads data points from file
@@ -9,7 +9,6 @@ User-visible changes in version 0.8.3  (2007-  -  ):
   menu items and buttons are applied to datasets selected at the sidebar
 * GUI: new dataset is opened in a new slot now (it was replacing an active 
   dataset before)
-
 
 User-visible changes in version 0.8.2  (2007-08-21):
 * multiple fixes for MacOSX, added macosx/ directory (Ken McIvor)

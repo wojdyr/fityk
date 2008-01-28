@@ -60,9 +60,12 @@ void TextDataSet::load_data(std::istream &f)
         }
 
         // We silently skip lines with no data.
-        // Unfortunatelly some non-data lines may start with numbers.
+        if (row.empty())
+            continue;
+        // Some non-data lines may start with numbers.
         // If there is only one number, we use additional precaution.
-        if (row.size() < 1 || (row.size() == 1 && cols.size() > 1)) 
+        if (row.size() == 1 && (cols.size() > 1 
+                                || (cols.empty() && *p != 0 && *p != '#'))) 
             // no data in this line
             continue;
 

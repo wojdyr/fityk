@@ -4,26 +4,30 @@ If you know C++ and would like to help improving fityk, but you don't know were
 to start, there is a list of ideas at the end of this file.
 
 ---------- TODO list and tentative development plan  ----------------
-Legend:
-// = done, but not tested/documented  
-
-* GUI: check if "shadow unselected" works on MSW
-
-* GUI: test printing on MSW
-
---------------> 0.8.3
+* xylib/text: allow non-data lines like this: "56160 atoms",
+  i.e. with starting with one number followed by something else than number
 
 * GUI: save (and load) cmd line history to ~/.fityk/wxhistory
 
+* data title should be taken from xylib block or y column title
+
+* printing: it doesn't look good now (too thin lines, too small labels, ...)
+
+* GUI: on wxGTK 2.9 function choice on toolbar is not visible
+
+* xylib: more data formats
+
 * GUI: refactor MainPlot - mouse event handling based on subscriptions,
        a clean interface to XOR-drawing 
+
+--------------> 
 
 * embedding python scripts or other plugin-like solution  [IMPORTANT]
   perhaps IPC instead of embedded scripting language?
 
 * rewrite old crystallographic part in python [IMPORTANT]
 
---------------> 0.9.0
+--------------> 
 
 * GUI: should (and where) windows size & position be stored?
 

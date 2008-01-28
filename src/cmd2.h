@@ -12,9 +12,11 @@
 ///
 /// this file is included only by datatrans*.cpp
 
-#include "common.h"
+#include <limits.h>
 #include <boost/spirit/core.hpp>
 #include <boost/spirit/actor/increment_actor.hpp>
+
+#include "common.h"
 
 
 using namespace boost::spirit;

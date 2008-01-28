@@ -522,7 +522,7 @@
     </variablelist>
 
     <para>
-     Information about loaded data can be obtained by using the command:
+     Information about loaded data can be obtained with:
      <command>info <replaceable>dataslot</replaceable></command>
     </para>
 

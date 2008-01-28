@@ -17,7 +17,7 @@ OLDWX_DIR=oldwx
 MINGW_DIR=cross_win32
 ALL_WIN_FILES=all_files #inside of $MINGW_DIR
 
-win_setup_filename=fityk-$version-setup.exe
+win_setup_filename=cross_win32/all_files/Output/fityk-$version-setup.exe
 tarball_filename=fityk-$version.tar.bz2
 
 if [ $# -eq 0 ]; then 
