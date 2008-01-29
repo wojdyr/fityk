@@ -5,6 +5,5 @@ noinst_PROGRAMS = xyconv
 
 xyconv_SOURCES = xyconv.cpp
 
-AM_CPPFLAGS = @CPPFLAGS_3RDPARTY@ 
 LDADD = xylib/libxy.la -lm
 

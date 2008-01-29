@@ -4,9 +4,6 @@ If you know C++ and would like to help improving fityk, but you don't know were
 to start, there is a list of ideas at the end of this file.
 
 ---------- TODO list and tentative development plan  ----------------
-* xylib/text: allow non-data lines like this: "56160 atoms",
-  i.e. with starting with one number followed by something else than number
-
 * GUI: save (and load) cmd line history to ~/.fityk/wxhistory
 
 * data title should be taken from xylib block or y column title
