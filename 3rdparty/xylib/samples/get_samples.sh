@@ -1,6 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 # download some sample files, which we do not have re-distribution rights
 
+XYLIB_STORAGE=http://www.unipress.waw.pl/fityk/xylib_samples
 
 # Siemens/Bruker diffract v1 raw files
 mkdir -p diffracat_v1_raw/
@@ -72,9 +73,9 @@ mkdir -p vamas/
 wget -N http://www.surfacespectra.com/xps/download/fomblin_y.vms -P vamas/
 # data from Michael Richardson <michael.richardson@vuw.ac.nz> 
 # (stored at fityk website)
-wget -N http://www.unipress.waw.pl/fityk/xylib_samples/mjr9_59c.vms -P vamas/
-wget -N http://www.unipress.waw.pl/fityk/xylib_samples/mjr9_64c.vms -P vamas/
-wget -N http://www.unipress.waw.pl/fityk/xylib_samples/mjr9_116a.vms -P vamas/
+wget -N $XYLIB_STORAGE/mjr9_59c.vms -P vamas/
+wget -N $XYLIB_STORAGE/mjr9_64c.vms -P vamas/
+wget -N $XYLIB_STORAGE/mjr9_116a.vms -P vamas/
 
 
 # GSAS files
@@ -85,17 +86,17 @@ wget -N http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/gss/cpd-1a.gss -P gsas/
 # text files
 mkdir -p text/
 # (stored at fityk website)
-wget -N http://www.unipress.waw.pl/fityk/xylib_samples/with_sigma.txt -P text/
-wget -N http://www.unipress.waw.pl/fityk/xylib_samples/xy_text.txt -P text/
+wget -N $XYLIB_STORAGE/with_sigma.txt -P text/
+wget -N $XYLIB_STORAGE/xy_text.txt -P text/
 
 
 # Princeton Instruments WinSpec SPE files
 mkdir -p winspec_spe/
 # sample files from Pablo Bianucci <pbian@physics.utexas.edu> 
 # (stored at fityk website)
-wget -N http://www.unipress.waw.pl/fityk/xylib_samples/1d-1.spe -P winspec_spe/
-wget -N http://www.unipress.waw.pl/fityk/xylib_samples/1d-2.spe -P winspec_spe/
-wget -N http://www.unipress.waw.pl/fityk/xylib_samples/1d-3.spe -P winspec_spe/
+wget -N $XYLIB_STORAGE/1d-1.spe -P winspec_spe/
+wget -N $XYLIB_STORAGE/1d-2.spe -P winspec_spe/
+wget -N $XYLIB_STORAGE/1d-3.spe -P winspec_spe/
 
 # Sietronics Sieray CPI files
 mkdir -p cpi/
@@ -105,6 +106,12 @@ wget -N http://www.chemistry.ohio-state.edu/~woodward/ceo2br.cpi -P cpi/
 mkdir -p dbws/
 wget -N http://mysite.du.edu/~balzar/lebailbr.dbw -P dbws/
 wget -N http://sdpd.univ-lemans.fr/DU-SDPD/semaine-4/na5.rit -P dbws/
+
+# Canberra MCA files (made by one of machines in Hamburg synchrotron)
+mkdir -p canberra_mca/
+wget -N $XYLIB_STORAGE/03yag02.mca -P canberra_mca/
+wget -N $XYLIB_STORAGE/04nacl02.mca -P canberra_mca/
+
 
 echo "done!"
 

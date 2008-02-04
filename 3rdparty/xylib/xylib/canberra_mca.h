@@ -8,9 +8,9 @@
 // accumulated in memory. These data are transferred to a disk
 // file via the \Move command in the MCA program."
 //
-// This format is (was?) used in one of synchrotron stations (in Hamburg?).
+// This format is (was?) used in two synchrotron stations in Hamburg.
 // Data is produced by Canberra multi-channel analyser (MCA).
-// .mca is not a canonical extension.
+// NOTE: .mca is not a canonical extension.
 
 
 #ifndef CANBERRA_MCA_DATASET_H_

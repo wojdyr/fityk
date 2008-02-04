@@ -91,7 +91,8 @@ to start, there is a list of ideas at the end of this file.
 
 * EMG function: how to calculate it? Now there are some problems with
   this function. There must be smarter way to implement it...
-  perhaps using gsl_sf_log_erfc
+  perhaps using gsl_sf_log_erfc or exp(x*x)*erfc(x) from
+  http://www.netlib.org/specfun/erf
 
 * ? GUI: changing data point size and line separately for each dataset,
 
@@ -147,7 +148,8 @@ to start, there is a list of ideas at the end of this file.
 
 * fitting: it should be separated even more from the rest of the program.
   Perhaps it fitting functions should be in extern library (COOOL,
-  GAUL, WNLIB, netlib, OOL.sf.net, levmar, GSL and 3rd-party extensions to GSL)
+  GAUL, WNLIB, netlib, OOL.sf.net, levmar, GSL and 3rd-party extensions to GSL,
+  scitbx::lbfgs)
   are there any other such libraries? 
   I haven't investigated the possibility of using mentioned libs yet. 
   Links: 

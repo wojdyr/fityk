@@ -1,6 +1,12 @@
 
-* implement GSAS format (see gsas.cpp for comments) 
 * fix pdCIF, that was broken by MW when changing API
----
+
+* add formats from: http://www.ccp14.ac.uk/tutorial/xfit-95/dformat.htm
+* is Rigaku RIG the same as rigaku_dat?   
+* add rigaku_dat files to get_samples.sh
+* add ILL_D1A5 and PSI_DMC formats from ObjCryst
+* implement GSAS format (see gsas.cpp for comments) 
+* add simple GUI 
 * PANalytical's XRDML
-* have a look at the JCAMP format specifications and decide whether to implement it.
+* consider adding JCAMP format (Standard NMR Data Format)
+
