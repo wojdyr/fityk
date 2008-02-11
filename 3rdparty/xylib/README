@@ -1,13 +1,12 @@
 
 This is a version of xylib modified and integrated with fityk.
-For original xylib see: 
-  http://www.sf.net/projects/xylib
-  SVN: https://xylib.svn.sourceforge.net/svnroot/xylib
+For original (i.e. older version of) xylib see: http://www.sf.net/projects/xylib
 
 
 PURPOSE
 =======
-xylib is a library for reading various x-y data formats. 
+xylib is a library for reading x-y data formats, usually experimental data
+from powder diffraction 
 
 xylib was created as a project in Google Summer of Code 2007 
 (see http://code.google.com/soc), assigned to fityk organization 
@@ -72,45 +71,19 @@ See xylib/xylib.h for library API
 xyconv is a simple converting program and an example how to use the library
 
 
-
-
-
-
------------------------------------------------------------------------------
-              The rest of this file comes from original xylib.
------------------------------------------------------------------------------
-
-
-
-
-
-HOW TO EXTEND 
-=============
-If you want to contribute to xylib by adding new file formats-support to it, follow the following steps:
-1. Create the two necessary ds_foo.cpp and ds_foo.h files
-2. Add a type of your format to enum xy_ftype in xylib.h before FT_NUM, keep in mind that the order o xy_ftype must be kept.
-3. Add the ds_xxx.h that you just added to the include list in xylib.cpp
-4. Add the const static FormatInfo member in your XXXDataSet to the global const array g_fi, in xylib.cpp
-5. Update the functions in xylib to let them know you new DataSet: getNewDataSet, guess_file_type.
-6. Add Foo sample files to ./samples/foo/* and update the corresponding README file to tell others where these files are got from, if you have the right to re-distribution of them. Otherwise, add a shell script which can download those sample files from a public-accessible URL.
-7. Complete the source code in ds_foo.cpp/.h.
-There are some things need to be done, in order to keep your newly-add code compatible with the framework.
-	* A class FooDataSet derived from the base DataSet
-	* A const static FormatInfo member fmt_info in FooDataSet: is set with some related information of this format.
-	* Member function check(std::istream &f): perform some basic format checking. Return true if the check passes, false otherwise.
-	* Member function load_data(std::istream &f): parse the format, read in the X-Y data and related meta-info.
-	* Some functions if needed. Make the format-specific functions as the member functions of FooDataSet, and the more general functions (may be used elsewhere) as global functions in the namespace xylib::util.
-
 AUTHORS
-============
-Peng ZHANG (zhangpengcas[a]gmail[d]com), the student in this GSoC 2007 project.
-Marcin Wojdyr (wojdyr[a]gmail[d]com), project mentor.
-
-SUPPORT
 =======
-If you find any bugs or problems, please feel free to send mail to the authors, or the fityk devel ML (fityk-devel[a]lists[d]sourceforge[d]net).
+Peng ZHANG (zhangpengcas gmail com)
+Marcin Wojdyr (wojdyr gmail com)
 
-THANKS
+
+CONTACT
+=======
+Feel free to send e-mail to the authors, or to the fityk-devel mailing list:
+https://lists.sourceforge.net/lists/listinfo/fityk-devel
+
+
+THANKS (from original xylib)
 ======
 First of all, I'd like to thank my mentor Marcin Wojdyr for his careful and in-time mentoring during the whole project process. He spent lots of time to review my code and gave me many good suggestions about the library design and implementation.
 I'd like to thank Google for hosting the GSoC project to promote the Open Source Software in the globe. 
@@ -120,6 +93,5 @@ Thanks to Pablo Bianucci <pbian@physics.utexas.edu>, for sending us a WinSpec im
 Thanks to Brian H. Toby <Brian.Toby@anl.gov>, for his useful info and suggestions about the pdCIF format.
 Thanks to Martijn Fransen <martijn.fransen@panalytical.com>, for sending us a very useful specification on Philips raw formats.
 And thanks to all people who have helped me and gave suggestions to the xylib project. 
-
 
 

@@ -60,18 +60,19 @@ void DbwsDataSet::load_data(std::istream &f)
     string s;
     getline(f, s); // first line
     format_assert(s.size() >= 3*8);
+    blk->name = s.substr(24);
     double start = my_strtod(s.substr(0, 8));
     double step = my_strtod(s.substr(8, 8));
-    //TODO: set title to line[24:]
     StepColumn *xcol = new StepColumn(start, step);
+    blk->add_column(xcol);
 
     // data
     VecColumn *ycol = new VecColumn;
     while (getline(f, s)) 
-        // The delimiters are commas or spaces.
+        // numbers delimited by commas or spaces.
         ycol->add_values_from_str(s, ',');
+    blk->add_column(ycol);
 
-    blk->set_xy_columns(xcol, ycol);
     blocks.push_back(blk);
 }
 

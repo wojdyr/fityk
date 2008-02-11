@@ -23,48 +23,49 @@ namespace xylib
 
 class DataSet;
 
-// stores format related info
+/// stores format related info
 struct FormatInfo
 {
     typedef bool (*t_checker)(std::istream&);
     typedef DataSet* (*t_ctor)();
 
-    std::string name;    // short name, can be used in dialog filter
-    std::string desc;    // full format name
+    std::string name;  /// short name, usually basename of .cpp/.h files  
+    std::string desc;  /// full format name (reasonably short)
     std::vector<std::string> exts; // possible extensions
-    bool binary;
-    bool multi_range;
-    t_ctor ctor; // factory function
-    t_checker checker; // function used to check if a file has this format
+    bool binary; /// true if it's binary file
+    bool multiblock; /// true if filetype supports multiple blocks
+
+    t_ctor ctor; /// factory function
+    t_checker checker; /// function used to check if a file has this format
 
     FormatInfo(std::string const& name_, 
                std::string const& desc_, 
                std::vector<std::string> const& exts_, 
                bool binary_, 
-               bool multi_range_,
+               bool multiblock_,
                t_ctor ctor_,
                t_checker checker_)
         : name(name_), desc(desc_), exts(exts_), 
-          binary(binary_), multi_range(multi_range_), 
+          binary(binary_), multiblock(multiblock_), 
           ctor(ctor_), checker(checker_) {}
 
-    // check if extension `ext' is in the list `exts'; case insensitive
+    /// check if extension `ext' is in the list `exts'; case insensitive
     bool has_extension(std::string const& ext) const; 
-    // check if file f can be of this format
+    /// check if file f can be of this format
     bool check(std::istream& f) const { return !checker || (*checker)(f); }
 };
 
 extern const FormatInfo *formats[];
 
 
-// unexpected format, unexpected EOF, etc
+/// unexpected format, unexpected EOF, etc
 class FormatError : public std::runtime_error
 {
 public:
     FormatError(std::string const& msg) : std::runtime_error(msg) {};
 };
 
-// all errors other than format error
+/// all errors other than format error
 class RunTimeError : public std::runtime_error
 {
 public:
@@ -72,31 +73,26 @@ public:
 };
 
 
-// column abstract base class for a column
+/// abstract base class for a column
 class Column
 {
 public:
-    std::string name; // column can have a name (but usually it doesn't have)
-    double step; // 0. means step is not fixed
+    std::string name; /// Column can have a name (but usually it doesn't have)
+    double step; /// step, 0. means step is not fixed
 
-    Column(double step_) 
-        : step(step_)/*, stddev(NULL)*/ {}
+    Column(double step_) : step(step_) {}
     virtual ~Column() {}
 
-    // return number of points or -1 for "unlimited" number of points
+    /// return number of points or -1 for "unlimited" number of points
     virtual int get_point_count() const = 0;
+
+    /// return value of n'th point (starting from 0-th)
     virtual double get_value(int n) const = 0; 
-    bool has_fixed_step() const { return step != 0.; }
-    
-    //Column const* get_stddev() { }
-    
-protected:
-    //Column *stddev;
 };
 
 
-// stores meta-data (additional data, that usually describe x-y data) 
-// for block or dataset. For example: date of the experiment, wavelength, ...
+/// stores meta-data (additional data, that usually describe x-y data) 
+/// for block or dataset. For example: date of the experiment, wavelength, ...
 class MetaData : public std::map<std::string, std::string>
 {
 public:
@@ -106,39 +102,38 @@ public:
 };
 
 
-// The class for holding a block (range) of data
+/// a block of data
 class Block
 {
 public:
-    // pseudo-column that returns index of point as value
+    /// handy pseudo-column that returns index of point as value
     static Column* const index_column;
 
-    MetaData meta;
-    std::string name; // block can have a name (but usually it doesn't have)
+    MetaData meta; /// meta-data
+    std::string name; /// block can have a name (but usually it doesn't have)
     
     Block() {}
     ~Block();
 
+    /// number of columns
     int get_column_count() const { return cols.size(); }
+    /// get column
     const Column& get_column(int n) const;
 
-    void export_xy_file(std::ostream &os) const;
-
-    void set_xy_columns(Column *x, Column *y);
-    void add_column(Column *c) { cols.push_back(c); }
-
-    // return number of points or -1 for "unlimited" number of points
-    // each column should have the same number of points (or "unlimited"
-    // number if the column is a generator)
+    /// return number of points or -1 for "unlimited" number of points
+    /// each column should have the same number of points (or "unlimited"
+    /// number if the column is a generator)
     int get_point_count() const;
     
+    // add one column; for use in filetype implementations
+    void add_column(Column *c, std::string const& title=""); 
+
 protected:
     std::vector<Column*> cols;
-    //int sub_blk_idx; // idx of a sub-block in a block (e.g. some pdCIF format)
 };
 
 
-// abstract base class for X-Y data in *ONE FILE*, 
+/// DataSet represents data stored typically in one file. 
 // may consist of one or more block(s) of X-Y data
 class DataSet
 {

@@ -46,7 +46,7 @@ RawScan
 */
 void UdfDataSet::load_data(std::istream &f) 
 {
-    Block *p_blk = new Block;
+    Block *blk = new Block;
 
     double x_start = 0;
     double x_step = 0;
@@ -72,17 +72,14 @@ void UdfDataSet::load_data(std::istream &f)
             x_step = my_strtod(val);
         } 
         else {
-            p_blk->meta[key] = val;
+            blk->meta[key] = val;
         }
     }
 
-    StepColumn *p_xcol = new StepColumn(x_start, x_step);
-    p_xcol->name = "data angle";
+    StepColumn *xcol = new StepColumn(x_start, x_step);
+    blk->add_column(xcol, "data angle");
 
-    VecColumn *p_ycol = new VecColumn;
-    p_ycol->name = "raw scan";
-
-    // read data
+    VecColumn *ycol = new VecColumn;
     string line;
     while (getline(f, line)) {
         bool has_slash = false;
@@ -99,15 +96,14 @@ void UdfDataSet::load_data(std::istream &f)
         istringstream ss(line);
         double d;
         while (ss >> d) 
-            p_ycol->add_val(d);
+            ycol->add_val(d);
     
         if (has_slash)
             break;
     }
-
-    p_blk->set_xy_columns(p_xcol, p_ycol);
-    blocks.push_back(p_blk);
+    blk->add_column(ycol, "raw scan");
+    blocks.push_back(blk);
 }
 
-} // end of namespace xylib
+} // namespace xylib
 

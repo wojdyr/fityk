@@ -21,9 +21,7 @@ using namespace std;
 using namespace xylib::util;
 using namespace boost;
 
-namespace xylib {
-namespace util {
-
+namespace xylib { namespace util {
 
 // -------   standard library functions with added error checking    --------
 
@@ -235,27 +233,28 @@ void VecColumn::add_values_from_str(string const& str, char sep)
 }
 
 
-//TODO: clean this function
-// get a line that is not empty and not a comment
+// get a trimmed line that is not empty and not a comment
 bool get_valid_line(std::istream &is, std::string &line, char comment_char)
 {
-    // read until get a valid line
-    while (getline (is, line)) {
-        line = str_trim(line);
-        if (!line.empty() && line[0] != comment_char) 
+    int start = 0;
+    while (1) {
+        if (!getline(is, line))
+            return false;
+        start = 0;
+        while (isspace(line[start])) 
+            ++start;
+        if (line[start] && line[start] != comment_char)
             break;
     }
-
-    // trim the "single-line" comments at the tail of a valid line, if any
-    string::size_type pos = line.find_first_of(comment_char);
-    if (pos != string::npos) {
-        line = str_trim(line.substr(0, pos));
-    }
-
-    return !is.eof();
+    int stop = start + 1;
+    while (line[stop] && line[stop] != comment_char) 
+        ++stop;
+    while (isspace(line[stop-1]))
+        --stop;
+    if (start != 0 || stop != line.size())
+        line = line.substr(start, stop - start);
 }
 
 
-} // end of namespace util
-} // end of namespace xylib
+} } // namespace xylib::util
 

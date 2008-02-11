@@ -95,36 +95,11 @@ const Column& Block::get_column(int n) const
     return *cols[c];
 }
 
-
-void Block::export_xy_file(ostream &os) const
-{
-    int ncol = get_column_count();
-    os << "# ";
-    for (int i = 0; i < ncol; ++i) {
-        string const& name = get_column(i).name;
-        os << (name.empty() ? "column_"+S(i) : name) << "\t";
-    }
-    os << endl;
-    int nrow = 0;
-    for (int i = 0; i < ncol; ++i) {
-        int c = get_column(i).get_point_count();
-        if (c > nrow)
-            nrow = c;
-    }
-    for (int i = 0; i < nrow; ++i) {
-        for (int j = 0; j < ncol; ++j) 
-            os << setfill(' ') << setiosflags(ios::fixed) << setprecision(6) 
-                << setw(8) << get_column(j).get_value(i) << "\t";
-        os << endl;
-    }
-}
-
-void Block::set_xy_columns(Column *x, Column *y)
-{
-    if (!cols.empty()) 
-        throw RunTimeError("Internal error in set_xy_columns()");
-    cols.push_back(x);
-    cols.push_back(y);
+void Block::add_column(Column *c, string const& title) 
+{ 
+    if (!title.empty())
+        c->name = title;
+    cols.push_back(c); 
 }
 
 int Block::get_point_count() const
@@ -178,7 +153,26 @@ void DataSet::export_plain_text(string const &fname) const
                                                 j != blk->meta.end(); ++j) 
             of << "#" << j->first << ":\t" << j->second << endl;
 
-        blk->export_xy_file(of);
+        int ncol = blk->get_column_count();
+        of << "# ";
+        for (int i = 0; i < ncol; ++i) {
+            string const& name = blk->get_column(i).name;
+            of << (name.empty() ? "column_"+S(i) : name) << "\t";
+        }
+        of << endl;
+
+        int nrow = blk->get_point_count();
+
+        for (int i = 0; i < nrow; ++i) {
+            for (int j = 0; j < ncol; ++j) {
+                if (j > 0)
+                    of << "\t";
+                of << setfill(' ') << setiosflags(ios::fixed) 
+                    << setprecision(6) << setw(8) 
+                    << blk->get_column(j).get_value(i); 
+            }
+            of << endl;
+        }
     }
 }
 

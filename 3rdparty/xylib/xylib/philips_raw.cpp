@@ -65,7 +65,9 @@ void PhilipsRawDataSet::load_data(std::istream &f)
     double x_end = read_dbl_le(f);
     unsigned pt_cnt = static_cast<unsigned>((x_end - x_start) / x_step + 1);
 
+    Block *blk = new Block;
     StepColumn *xcol = new StepColumn(x_start, x_step, pt_cnt);
+    blk->add_column(xcol);
     
     // read in y data
     if ("V3" == version) {
@@ -80,11 +82,9 @@ void PhilipsRawDataSet::load_data(std::istream &f)
         double y = packed_y * packed_y / 100;
         ycol->add_val(y);
     }
+    blk->add_column(ycol);
 
-    Block *p_blk = new Block;
-    p_blk->set_xy_columns(xcol, ycol);
-
-    blocks.push_back(p_blk);
+    blocks.push_back(blk);
 }
 
 } // end of namespace xylib

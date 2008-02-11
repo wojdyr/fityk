@@ -65,8 +65,8 @@ and "*STEP" included).The data body of one group begins after "*COUNT=XXX").
 */
 void RigakuDataSet::load_data(std::istream &f) 
 {
-    Block *p_blk = NULL;
-    VecColumn *p_ycol = NULL;
+    Block *blk = NULL;
+    VecColumn *ycol = NULL;
     int grp_cnt = 0;
     double start = 0., step = 0.;
     int count = 0;
@@ -75,17 +75,18 @@ void RigakuDataSet::load_data(std::istream &f)
     while (get_valid_line(f, line, '#')) {
         if (line[0] == '*') {
             if (str_startwith(line, "*BEGIN")) {   // block starts
-                p_ycol = new VecColumn;
-                p_blk = new Block;
+                ycol = new VecColumn;
+                blk = new Block;
             } 
             else if (str_startwith(line, "*END")) { // block ends
-                format_assert(count == p_ycol->get_point_count(), 
+                format_assert(count == ycol->get_point_count(), 
                               "count of x and y differ");
-                StepColumn *p_xcol = new StepColumn(start, step, count);
-                p_blk->set_xy_columns(p_xcol, p_ycol);
-                blocks.push_back(p_blk);
-                p_blk = NULL;
-                p_ycol = NULL;
+                StepColumn *xcol = new StepColumn(start, step, count);
+                blk->add_column(xcol);
+                blk->add_column(ycol);
+                blocks.push_back(blk);
+                blk = NULL;
+                ycol = NULL;
             } 
             else if (str_startwith(line, "*EOF")) { // file ends
                 break;
@@ -103,15 +104,15 @@ void RigakuDataSet::load_data(std::istream &f)
                 else if (key == "GROUP_COUNT") 
                     grp_cnt = my_strtol(val);
                 
-                if (p_blk) 
-                    p_blk->meta[key] = val;
+                if (blk) 
+                    blk->meta[key] = val;
                 else
                     meta[key] = val;
             } 
         }
         else { // should be a line of values
             format_assert(is_numeric(line[0]));
-            p_ycol->add_values_from_str(line, ',');
+            ycol->add_values_from_str(line, ',');
         } 
     }
     format_assert(grp_cnt != 0, "no GROUP_COUNT attribute given");
@@ -119,5 +120,5 @@ void RigakuDataSet::load_data(std::istream &f)
                   "block count different from expected");
 }
 
-} // end of namespace xylib
+} // namespace xylib
 

@@ -61,7 +61,7 @@ void print_filetype_info(string const& filetype)
             cout << endl;
             cout << "Other flags: "
                 << (fi->binary ? "binary-file" : "text-file") << " "
-                << (fi->multi_range ? "multi-block" : "single-block") << endl;
+                << (fi->multiblock ? "multi-block" : "single-block") << endl;
         }
         else
             cout << "Unknown file format.";

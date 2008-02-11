@@ -60,6 +60,7 @@ void CpiDataSet::load_data(std::istream &f)
     getline (f, s); //xstep
     double xstep = my_strtod(s);
     StepColumn *xcol = new StepColumn(xmin, xstep);
+    blk->add_column(xcol);
 
     // ignore the rest of the header
     while (!str_startwith(s, "SCANDATA"))
@@ -70,9 +71,9 @@ void CpiDataSet::load_data(std::istream &f)
     while (getline(f, s)) 
         ycol->add_val(my_strtod(s));
 
-    blk->set_xy_columns(xcol, ycol);
+    blk->add_column(ycol);
     blocks.push_back(blk);
 }
 
+} // namespace xylib
 
-} // end of namespace xylib

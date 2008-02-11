@@ -78,7 +78,7 @@ bool VamasDataSet::check(istream &f)
 
 
 // Vamas file is organized as 
-// "file_header - (range_header - range_data) - (range_header - range_data) ..."
+// file_header block_header block_data [block_header block_data] ...
 // There is only a value in every line without a key or label; the meaning is 
 // determined by its position and values in preceding lines
 void VamasDataSet::load_data(std::istream &f) 
@@ -350,16 +350,16 @@ Block* VamasDataSet::read_block(istream &f)
     skip_lines(f, 2 * cor_var);   // min & max ordinate
 
     StepColumn *xcol = new StepColumn(x_start, x_step);
-    xcol->name = x_name;
-    VecColumn *ycol = new VecColumn;
+    block->add_column(xcol, x_name);
 
+    VecColumn *ycol = new VecColumn;
     for (int i = 0; i < cur_blk_steps; ++i) {
         double y = my_strtod(read_line_trim(f));
         ycol->add_val(y);
     }
-    block->set_xy_columns(xcol, ycol);
+    block->add_column(ycol);
     return block;
 }
 
-} // end of namespace xylib
+} // namespace xylib
 

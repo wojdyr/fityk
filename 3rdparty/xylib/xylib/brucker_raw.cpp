@@ -63,6 +63,7 @@ void BruckerRawDataSet::load_version1(std::istream &f)
         float x_start = read_flt_le(f);
 
         StepColumn *xcol = new StepColumn(x_start, x_step);
+        blk->add_column(xcol);
         
         float t = read_flt_le(f);
         if (-1e6 != t)
@@ -89,7 +90,7 @@ void BruckerRawDataSet::load_version1(std::istream &f)
             float y = read_flt_le(f);
             ycol->add_val(y);
         }
-        blk->set_xy_columns(xcol, ycol);
+        blk->add_column(ycol);
 
         blocks.push_back(blk);
     } 
@@ -124,18 +125,19 @@ void BruckerRawDataSet::load_version2(std::istream &f)
         float x_step = read_flt_le(f);
         float x_start = read_flt_le(f);
         StepColumn *xcol = new StepColumn(x_start, x_step);
+        blk->add_column(xcol);
 
         f.ignore(26);
         blk->meta["TEMP_IN_K"] = S(read_uint16_le(f));
 
         f.ignore(cur_header_len - 48);  // move ptr to the data_start
         VecColumn *ycol = new VecColumn;
-        
         for(unsigned i = 0; i < cur_range_steps; ++i) {
             float y = read_flt_le(f);
             ycol->add_val(y);
         }
-        blk->set_xy_columns(xcol, ycol);
+        blk->add_column(ycol);
+
         blocks.push_back(blk);
     }
 }

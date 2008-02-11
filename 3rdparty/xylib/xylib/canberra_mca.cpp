@@ -74,6 +74,7 @@ void CanberraMcaDataSet::load_data(std::istream &f)
     else {
         xcol = new StepColumn(energy_offset+energy_slope, energy_slope);
     }
+    blk->add_column(xcol);
 
     VecColumn *ycol = new VecColumn;
     uint16_t data_offset = *reinterpret_cast<uint16_t*>(all_data+24);
@@ -85,8 +86,8 @@ void CanberraMcaDataSet::load_data(std::istream &f)
         le_to_host(&y, 4);
         ycol->add_val(y);
     }
+    blk->add_column(ycol);
 
-    blk->set_xy_columns(xcol, ycol);
     blocks.push_back(blk);
 }
 

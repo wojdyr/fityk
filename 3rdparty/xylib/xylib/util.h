@@ -86,19 +86,19 @@ public:
     VecColumn() : Column(0.) {}
     
     // implementation of the base interface 
-    int get_point_count() const { return dat.size(); }
+    int get_point_count() const { return data.size(); }
     double get_value (int n) const
     {
         if (n < 0 || n >= get_point_count())
             throw RunTimeError("index out of range in VecColumn");
-        return dat[n];
+        return data[n];
     }
 
-    void add_val(double val) { dat.push_back(val); }
+    void add_val(double val) { data.push_back(val); }
     void add_values_from_str(std::string const& str, char sep=' '); 
     
 protected:
-    std::vector<double> dat; 
+    std::vector<double> data; 
 };
 
 

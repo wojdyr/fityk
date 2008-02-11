@@ -2,15 +2,13 @@
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id$
 
-// Format documentation:
-// 1. W.A. Dench, L. B. Hazell and M. P. Seah, VAMAS Surface Chemical Analysis 
+// This implementation is based on [1] and on the analysis of sample files.
+//
+//[1] W.A. Dench, L. B. Hazell and M. P. Seah, VAMAS Surface Chemical Analysis 
 //    Standard Data Transfer Format with Skeleton Decoding Programs, 
 //    Surface and Interface Analysis, 13 (1988) 63-122 
 //    or National Physics Laboratory Report DMA(A)164 July 1988
-// 2. The ISO standard (iso14976)
-// 3. http://www.biomateria.com/vamas.htm
 // 
-// This implementation is based on [1] and on the analysis of sample files.
 
 #ifndef VAMAS_DATASET
 #define VAMAS_DATASET
@@ -23,7 +21,7 @@ namespace xylib {
         OBLIGATORY_DATASET_MEMBERS(VamasDataSet)
 
     protected:
-        // a complete blk/range contains 40 parts. 
+        // a complete block contains 40 parts. 
         // include[i] indicates if the i-th part (0-based) is included 
         std::vector<bool> include;
 

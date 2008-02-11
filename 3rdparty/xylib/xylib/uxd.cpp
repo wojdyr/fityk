@@ -32,49 +32,54 @@ bool UxdDataSet::check(istream &f)
 }
 
 /*
-It has a header indicating the file-scope parameters in the form of 
-"key=val" format. Followed the file header are block sections. Each section 
-starts with "_DRIVER=XXX". In each section, first lines are block-scope meta-
-info; X-Y data starts after "_COUNT".
+A header (with file-scope parameters) is followed by block sections. 
+Each section consists of:
+ _DRIVE=...
+ parameters - key-value pairs
+ _COUNT keyword
+ list of intensities
+comments start with semicolon ';'
 
-Format example: ("#xxx": comments added by me; ...: omitted lines)
---8<---------------------------------------------------------------
-# File header with some file-scope prarmeters.
+Format example: 
+
+; File header with some file-scope prarmeters.
 _FILEVERSION=1
 _SAMPLE='test'
 _WL1=1.540600
 ...
-# Data for Block 1
+; Data for Block 1
 _DRIVE='COUPLED'
 _STEPTIME=37.000000
 _STEPSIZE=0.020000   # x_step
 _STEPMODE='C'
 _START=10.0000       # x_start
 ...
-# Block 1 data starts
+; Block 1 data starts
 _COUNTS
      1048      1162      1108      1163      1071      1057      1055       973
      1000      1031      1068      1015       983      1028      1030      1019
      ...
-# Repeat if there are more blocks/ranges
---8<---------------------------------------------------------------
+; Repeat if there are more blocks/ranges
+
 */
+
 void UxdDataSet::load_data(std::istream &f) 
 {
-    Block *p_blk = NULL;
-    VecColumn *p_ycol = NULL;
+    Block *blk = NULL;
+    VecColumn *ycol = NULL;
     string line;
     double start=0., step=0.;
 
     while (get_valid_line(f, line, ';')) {
         if (str_startwith(line, "_DRIVE")) { // block starts
-            p_blk = new Block;
+            blk = new Block;
         }
         else if (str_startwith(line, "_COUNT")) { // data starts
-            StepColumn *p_xcol = new StepColumn(start, step);
-            p_ycol = new VecColumn;
-            p_blk->set_xy_columns(p_xcol, p_ycol);
-            blocks.push_back(p_blk);
+            StepColumn *xcol = new StepColumn(start, step);
+            blk->add_column(xcol);
+            ycol = new VecColumn;
+            blk->add_column(ycol);
+            blocks.push_back(blk);
         } 
         else if (str_startwith(line, "_")) { // meta-data 
             // other meta key-value pair. 
@@ -87,19 +92,19 @@ void UxdDataSet::load_data(std::istream &f)
             else if (key == "STEPSIZE") 
                 step = my_strtod(val);
             else {
-                if (p_blk)
-                    p_blk->meta[key] = val;
+                if (blk)
+                    blk->meta[key] = val;
                 else
                     meta[key] = val;
             }
         } 
         else { //data
             format_assert(is_numeric(line[0]), "line: "+line);
-            p_ycol->add_values_from_str(line);
+            ycol->add_values_from_str(line);
         } 
     }
-    format_assert(p_blk);
+    format_assert(blk);
 }
 
-} // end of namespace xylib
+} // namespace xylib
 
