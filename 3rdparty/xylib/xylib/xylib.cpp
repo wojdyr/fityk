@@ -19,7 +19,7 @@
 #include "vamas.h"
 #include "philips_udf.h"
 #include "winspec_spe.h"
-//#include "pdcif.h"
+#include "pdcif.h"
 #include "philips_raw.h"
 //#include "gsas.h"
 #include "cpi.h"
@@ -40,7 +40,7 @@ const FormatInfo *formats[] = {
     &VamasDataSet::fmt_info,
     &UdfDataSet::fmt_info,
     &WinspecSpeDataSet::fmt_info,
-    //&PdCifDataSet::fmt_info,
+    &PdCifDataSet::fmt_info,
     &PhilipsRawDataSet::fmt_info,
     //&GsasDataSet::fmt_info,
     &CanberraMcaDataSet::fmt_info,

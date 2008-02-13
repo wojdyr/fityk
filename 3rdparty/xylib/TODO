@@ -1,5 +1,7 @@
 
-* fix pdCIF, that was broken by MW when changing API
+* handle multiline values in MetaData
+
+* fix pdCIF
 
 * add formats from: http://www.ccp14.ac.uk/tutorial/xfit-95/dformat.htm
 * is Rigaku RIG the same as rigaku_dat?   

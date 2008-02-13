@@ -23,10 +23,10 @@ wget -N http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/raw/cpd-3.raw -P diffracat
 
 #  pdCIF format files
 mkdir -p pdcif/
-wget -N http://pubs.acs.org/subscribe/journals/inocaj/suppinfo/41/i14/ic0111177/ic0111177.cif -P pdcif/
-wget -N http://pubs.acs.org/subscribe/journals/inocaj/suppinfo/ic034984f/ic034984fsi20030819_115442.cif -P pdcif/
+#wget -N http://pubs.acs.org/subscribe/journals/inocaj/suppinfo/41/i14/ic0111177/ic0111177.cif -P pdcif/
+#wget -N http://pubs.acs.org/subscribe/journals/inocaj/suppinfo/ic034984f/ic034984fsi20030819_115442.cif -P pdcif/
 wget -N http://159.226.150.7/cifs/2005No7/1829.cif -P pdcif/
-##wget -N http://www.ccp14.ac.uk/ccp/ccp14/ftp-mirror/briantoby/pub/cryst/cif/NISI.cif -P pdcif/
+wget -N http://www.ccp14.ac.uk/ccp/ccp14/ftp-mirror/briantoby/pub/cryst/cif/NISI.cif -P pdcif/
 #You can also get some .cif files from the sample directory of ciftools_Linux, 
 # an open-source CIF software package which can be download from 
 #http://www.ncnr.nist.gov/programs/crystallography/software/cif/ciftools.html
