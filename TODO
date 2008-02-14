@@ -7,7 +7,7 @@ to start, there is a list of ideas at the end of this file.
 
 * GUI: save (and load) cmd line history to ~/.fityk/wxhistory
 
-* data title should be taken from xylib block or y column title
+// * data title should be taken from xylib block or y column title
 
 * printing: it doesn't look good now (too thin lines, too small labels, ...)
 

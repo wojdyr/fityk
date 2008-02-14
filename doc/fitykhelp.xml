@@ -514,6 +514,11 @@
       </para></listitem> 
      </varlistentry>
 
+     <varlistentry><term>pdcif</term>
+      <listitem><para>CIF for powder diffraction 
+      </para></listitem> 
+     </varlistentry>
+
      <varlistentry><term>...</term>
       <listitem><para>what else would you like to have here?
       </para></listitem> 

@@ -97,11 +97,6 @@ void Data::post_load()
             assert(0);
     }
     F->msg(inf);
-    if (title.empty()) {
-        title = get_file_basename(filename);
-        if (given_x != INT_MAX && given_y != INT_MAX)
-            title += ":" + S(given_x) + ":" + S(given_y);
-    }
     update_active_p();
     recompute_y_bounds();
 }
@@ -311,22 +306,38 @@ void Data::load_file (string const& filename_,
                       vector<string> const& options, 
                       bool preview)
 {
+    static xylib::DataSet *xyds = NULL;
+    static string xyds_path;
+    static vector<string> xyds_options;
+
+    if (filename_.empty())
+        return;
+
     try {
-        string format_name;
-        vector<string> options_tail;
-        if (!options.empty()) {
-            format_name = options[0];
-            options_tail = vector<string>(options.begin() + 1, options.end());
+        if (filename_ != xyds_path || options != xyds_options) {
+            string format_name;
+            vector<string> options_tail;
+            if (!options.empty()) {
+                format_name = options[0];
+                options_tail = vector<string>(options.begin()+1, options.end());
+            }
+            // if xylib::load_file() throws exception, we keep value of xyds
+            xylib::DataSet *new_xyds = xylib::load_file(filename_, format_name,
+                                                        options_tail);
+            assert(new_xyds);
+            delete xyds;
+            xyds = new_xyds;
+            xyds_path = filename_;
+            xyds_options = options;
         }
-        xylib::DataSet *d = xylib::load_file(filename_, format_name, 
-                                             options_tail);
 
         clear(); //removing previous file
 
         vector<int> bb = blocks.empty() ? vector1(0) : blocks;
 
         for (vector<int>::const_iterator b = bb.begin(); b != bb.end(); ++b) {
-            xylib::Block const* block = d->get_block(*b);
+            assert(xyds);
+            xylib::Block const* block = xyds->get_block(*b);
             xylib::Column const& xcol 
                 = block->get_column(idx_x != INT_MAX ?  idx_x : 1);
             xylib::Column const& ycol 
@@ -349,7 +360,7 @@ void Data::load_file (string const& filename_,
                 }
                 has_sigma = true;
             }
-            if (xcol.has_fixed_step()) {
+            if (xcol.step != 0.) { // column has fixed step
                 x_step = xcol.step;
                 if (x_step < 0) {
                     reverse(p.begin(), p.end());
@@ -357,6 +368,10 @@ void Data::load_file (string const& filename_,
                 }
             }
         }
+
+        title = get_file_basename(filename_);
+        if (idx_x != INT_MAX && idx_y != INT_MAX)
+            title += ":" + S(idx_x) + ":" + S(idx_y);
 
         if (preview) {
             recompute_y_bounds();

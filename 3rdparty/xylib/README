@@ -15,7 +15,7 @@ xylib was created as a project in Google Summer of Code 2007
 
 SUPPORTED FORMATS
 =================
-X-Y plain text format
+plain text format (CSV or TSV or space-separated-values)
 Siemens/Bruker uxd
 Diffrac-AT raw v1/2/3
 Philips UDF Format
@@ -26,10 +26,7 @@ Vamas ISO14976
 Princeton Instruments WinSpec SPE Format
     only 1-D data is supported
 Philips RD raw scan format V3
-Crystallographic Information File for Powder Diffraction
-    not working now!
-GSAS format 
-    not working!
+Crystallographic Information File for Powder Diffraction (pdCIF)
 Sietronics Sieray CPI 
 DBWS/DMPLOT data file
 Canberra MCA (one of formats)

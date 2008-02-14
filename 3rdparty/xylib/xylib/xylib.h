@@ -126,7 +126,10 @@ public:
     int get_point_count() const;
     
     // add one column; for use in filetype implementations
-    void add_column(Column *c, std::string const& title=""); 
+    void add_column(Column *c, std::string const& title="", bool append=true); 
+
+    // split block if it has columns with different sizes
+    std::vector<Block*> split_on_column_lentgh();
 
 protected:
     std::vector<Column*> cols;

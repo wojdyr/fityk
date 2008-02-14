@@ -28,7 +28,7 @@ protected:
     wxSpinCtrl *x_column, *y_column, *s_column;
     wxPanel *left_panel, *rupper_panel, *rbottom_panel, *columns_panel;
     PreviewPlot *plot_preview;
-    wxCheckBox *std_dev_cb, *sd_sqrt_cb, *htitle_cb, *auto_text_cb, 
+    wxCheckBox *std_dev_cb, *sd_sqrt_cb, *title_cb, *auto_text_cb, 
                *auto_plot_cb;
     wxButton *open_here, *open_new;
     bool initialized;

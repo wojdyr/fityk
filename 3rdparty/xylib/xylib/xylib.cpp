@@ -95,11 +95,11 @@ const Column& Block::get_column(int n) const
     return *cols[c];
 }
 
-void Block::add_column(Column *c, string const& title) 
+void Block::add_column(Column *c, string const& title, bool append) 
 { 
     if (!title.empty())
         c->name = title;
-    cols.push_back(c); 
+    cols.insert((append ? cols.end() : cols.begin()), c); 
 }
 
 int Block::get_point_count() const
@@ -111,6 +111,39 @@ int Block::get_point_count() const
             min_n = n;
     }
     return min_n;
+}
+
+vector<Block*> Block::split_on_column_lentgh()
+{
+    vector<Block*> result;
+    if (cols.empty())
+        return result;
+    result.push_back(this);
+    const int n1 = cols[0]->get_point_count();
+    for (size_t i = 1; i < cols.size(); /*nothing*/) {
+        const int n = cols[i]->get_point_count();
+        if (n == n1)
+            ++i;
+        else {
+            int new_b_idx = -1;
+            for (size_t j = 1; j < result.size(); ++j) {
+                if (result[j]->get_point_count() == n) {
+                    new_b_idx = j;
+                    break;
+                }
+            }
+            if (new_b_idx == -1) {
+                new_b_idx = result.size();
+                Block* new_block = new Block;
+                new_block->meta = meta;
+                new_block->name = name + "_" + S(n);
+                result.push_back(new_block);
+            }
+            result[new_b_idx]->add_column(cols[i]);
+            cols.erase(cols.begin() + i);
+        }
+    }
+    return result;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -132,6 +165,25 @@ const Block* DataSet::get_block(int n) const
     return blocks[n];
 }
 
+namespace {
+
+void export_metadata(ostream &of, MetaData const& meta)
+{
+    for (map<string,string>::const_iterator i = meta.begin();
+                                                        i != meta.end(); ++i) {
+        of << "# " << i->first << ":\t"; 
+        for (string::const_iterator j = i->second.begin(); 
+                                                   j != i->second.end(); ++j) {
+            of << *j;
+            if (*j == '\n')
+                of << "# " << i->first << ":\t"; 
+        }
+        of << endl;
+    }
+}
+
+} // anonymous namespace
+
 void DataSet::export_plain_text(string const &fname) const
 {
     unsigned range_num = get_block_count();
@@ -141,21 +193,18 @@ void DataSet::export_plain_text(string const &fname) const
 
     // output the file-level meta-info
     of << "# exported by xylib from a " << fi->name << " file" << endl;
-    for (map<string,string>::const_iterator i = meta.begin();
-                                            i != meta.end(); ++i) 
-        of << "# " << i->first << ":\t" << i->second << endl;
+    export_metadata(of, meta);
     
     for (unsigned i = 0; i < range_num; ++i) {
         const Block *blk = get_block(i);
         if (range_num > 1 || !blk->name.empty())
             of << endl << "### block #" << i << " " << blk->name << endl;
-        for (map<string,string>::const_iterator j = blk->meta.begin();
-                                                j != blk->meta.end(); ++j) 
-            of << "#" << j->first << ":\t" << j->second << endl;
+        export_metadata(of, blk->meta);
 
         int ncol = blk->get_column_count();
         of << "# ";
-        for (int i = 0; i < ncol; ++i) {
+        // column 0 is pseudo-column with point indices, we skip it
+        for (int i = 1; i < ncol; ++i) {
             string const& name = blk->get_column(i).name;
             of << (name.empty() ? "column_"+S(i) : name) << "\t";
         }
@@ -164,7 +213,7 @@ void DataSet::export_plain_text(string const &fname) const
         int nrow = blk->get_point_count();
 
         for (int i = 0; i < nrow; ++i) {
-            for (int j = 0; j < ncol; ++j) {
+            for (int j = 1; j < ncol; ++j) {
                 if (j > 0)
                     of << "\t";
                 of << setfill(' ') << setiosflags(ios::fixed) 
@@ -204,7 +253,7 @@ DataSet* load_file(string const& path, string const& format_name,
     else {
         fi = string_to_format(format_name);
         if (!fi)
-            throw RunTimeError("Unsupported (misspelled?) data format:" 
+            throw RunTimeError("Unsupported (misspelled?) data format: " 
                                 + format_name);
     }
 

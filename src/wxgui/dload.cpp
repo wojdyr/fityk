@@ -22,7 +22,7 @@
 #include <xylib/xylib.h>
 
 #include "dload.h" 
-#include "frame.h"  // frame->add_recent_data_file(get_filename()
+#include "frame.h"  // frame->add_recent_data_file(get_filename())
 #include "plot.h" // scale_tics_step()
 #include "../data.h"
 #include "../logic.h" 
@@ -239,11 +239,12 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     left_sizer->Add (sd_sqrt_cb, 0, wxALL|wxEXPAND, 5);
 
     wxStaticBoxSizer *dt_sizer = new wxStaticBoxSizer(wxVERTICAL, 
-                                    left_panel, wxT("Data title (optional):"));
-    htitle_cb = new wxCheckBox(left_panel, ID_DXLOAD_HTITLE, 
-                               wxT("get from 1st line"));
-    dt_sizer->Add(htitle_cb, 0, wxALL, 5);
+                                    left_panel, wxT("Data title:"));
+    title_cb = new wxCheckBox(left_panel, ID_DXLOAD_HTITLE, 
+                              wxT("custom title"));
+    dt_sizer->Add(title_cb, 0, wxALL, 5);
     title_tc = new wxTextCtrl(left_panel, -1, wxT(""));
+    title_tc->Enable(false);
     dt_sizer->Add(title_tc, 0, wxALL|wxEXPAND, 5);
     left_sizer->Add (dt_sizer, 0, wxALL|wxEXPAND, 5);
 
@@ -264,7 +265,7 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     rbottom_sizer->Add(plot_preview, 1, wxEXPAND|wxALL, 5);
     auto_plot_cb = new wxCheckBox(rbottom_panel, ID_DXLOAD_AUTO_PLOT, 
                                   wxT("plot"));
-    auto_plot_cb->SetValue(false);
+    auto_plot_cb->SetValue(true);
     rbottom_sizer->Add(auto_plot_cb, 0, wxALL, 5);
 
     // ------ finishing layout (+buttons) -----------
@@ -303,19 +304,25 @@ void DLoadDlg::StdDevCheckBoxChanged()
 
 void DLoadDlg::OnHTitleCheckBox (wxCommandEvent& event)
 {
-    if (event.IsChecked()) 
+    if (!event.IsChecked()) 
         update_title_from_file();
-    title_tc->Enable(!event.IsChecked());
+    title_tc->Enable(event.IsChecked());
 }
 
 void DLoadDlg::update_title_from_file()
 {
-    assert (htitle_cb->GetValue());
-    //ifstream f(dir_ctrl->GetFilePath().fn_str());
-    //int col = columns_panel->IsEnabled() ? y_column->GetValue() : 0;
-    //string title = Data::read_one_line_as_title(f, col);
-    //title_tc->SetValue(s2wx(title));
-    title_tc->SetValue(wxT(""));
+    if (title_cb->GetValue()) 
+        return;
+
+    string title;
+    if (auto_plot_cb->GetValue()) {
+        if (plot_preview && plot_preview->data.get())
+            title = plot_preview->data->get_title();
+    }
+    else 
+        title = "<no-preview>";
+
+    title_tc->SetValue(s2wx(title));
 }
 
 void DLoadDlg::OnAutoTextCheckBox (wxCommandEvent& event)
@@ -326,17 +333,18 @@ void DLoadDlg::OnAutoTextCheckBox (wxCommandEvent& event)
         text_preview->Clear();
 }
 
-void DLoadDlg::OnAutoPlotCheckBox (wxCommandEvent&)
+void DLoadDlg::OnAutoPlotCheckBox (wxCommandEvent& event)
 {
     update_plot_preview();
+    if (event.IsChecked()) 
+        update_title_from_file();
 }
 
 void DLoadDlg::OnColumnChanged (wxSpinEvent&)
 {
     if (auto_plot_cb->GetValue()) 
         update_plot_preview();
-    if (htitle_cb->GetValue()) 
-        update_title_from_file();
+    update_title_from_file();
 }
 
 void DLoadDlg::OnClose (wxCommandEvent&)
@@ -375,9 +383,11 @@ void DLoadDlg::update_text_preview()
 void DLoadDlg::update_plot_preview()
 {
     if (auto_plot_cb->GetValue()) {
-        bool has_cols = columns_panel->IsEnabled();
-        int idx_x = has_cols ? x_column->GetValue() : INT_MAX;
-        int idx_y = has_cols ? y_column->GetValue() : INT_MAX;
+        int idx_x = x_column->GetValue();
+        int idx_y = y_column->GetValue();
+        if (idx_x == 1 && idx_y == 2 && !std_dev_cb->GetValue()) 
+            // don't pass explicitely default parameters
+            idx_x = idx_y = INT_MAX;
         ftk->get_ui()->keep_quiet = true;
         try {
             plot_preview->data->load_file(wx2s(dir_ctrl->GetFilePath()), 
@@ -408,11 +418,7 @@ void DLoadDlg::on_filter_change()
 
 void DLoadDlg::enable_text_options(bool is_text)
 {
-    columns_panel->Enable(is_text);
-    htitle_cb->Enable(is_text);
-    if (!is_text && htitle_cb->IsChecked())
-        htitle_cb->SetValue(false);
-    sd_sqrt_cb->Enable(!(is_text  && std_dev_cb->GetValue()));
+    sd_sqrt_cb->Enable(!(is_text && std_dev_cb->GetValue()));
 }
 
 void DLoadDlg::on_path_change()
@@ -432,8 +438,7 @@ void DLoadDlg::on_path_change()
         update_text_preview();
     if (auto_plot_cb->GetValue()) 
         update_plot_preview();
-    if (htitle_cb->GetValue()) 
-        update_title_from_file();
+    update_title_from_file();
 }
 
 void DLoadDlg::OnPathTextChanged(wxCommandEvent&)
@@ -457,26 +462,24 @@ string DLoadDlg::get_command(string const& ds, int d_nr)
     string cmd;
 
     string cols;
-    if (columns_panel->IsEnabled()) { // a:b[:c]
-        int x = x_column->GetValue();
-        int y = y_column->GetValue();
-        bool has_s = std_dev_cb->GetValue();
-        // default parameter values are not passed explicitely
-        if (x != 1 || y != 2 || has_s) {
-            cols = ":" + S(x) + ":" + S(y) + ":";
-            if (has_s)
-                cols += S(s_column->GetValue());
-            cols += ":";
-        }
+    int x = x_column->GetValue();
+    int y = y_column->GetValue();
+    bool has_s = std_dev_cb->GetValue();
+    // default parameter values are not passed explicitely
+    if (x != 1 || y != 2 || has_s) {
+        cols = ":" + S(x) + ":" + S(y) + ":";
+        if (has_s)
+            cols += S(s_column->GetValue());
+        cols += ":";
     }
 
     string filetype;
-    if (htitle_cb->IsChecked())
+    if (title_cb->IsChecked())
         filetype = "text first-line-header";
 
     bool def_sqrt = (ftk->get_settings()->getp("data-default-sigma") == "sqrt");
     bool set_sqrt = sd_sqrt_cb->GetValue();
-    bool sigma_in_file = (columns_panel->IsEnabled() && std_dev_cb->GetValue());
+    bool sigma_in_file = std_dev_cb->GetValue();
     if (!sigma_in_file && set_sqrt != def_sqrt) {
         if (set_sqrt)
             cmd = "with data-default-sigma=sqrt ";

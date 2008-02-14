@@ -236,7 +236,7 @@ void VecColumn::add_values_from_str(string const& str, char sep)
 // get a trimmed line that is not empty and not a comment
 bool get_valid_line(std::istream &is, std::string &line, char comment_char)
 {
-    int start = 0;
+    size_t start = 0;
     while (1) {
         if (!getline(is, line))
             return false;
@@ -246,13 +246,14 @@ bool get_valid_line(std::istream &is, std::string &line, char comment_char)
         if (line[start] && line[start] != comment_char)
             break;
     }
-    int stop = start + 1;
+    size_t stop = start + 1;
     while (line[stop] && line[stop] != comment_char) 
         ++stop;
     while (isspace(line[stop-1]))
         --stop;
     if (start != 0 || stop != line.size())
         line = line.substr(start, stop - start);
+    return true;
 }
 
 

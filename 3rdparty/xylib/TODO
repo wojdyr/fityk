@@ -1,14 +1,10 @@
 
-* handle multiline values in MetaData
-
-* fix pdCIF
-
 * add formats from: http://www.ccp14.ac.uk/tutorial/xfit-95/dformat.htm
 * is Rigaku RIG the same as rigaku_dat?   
-* add rigaku_dat files to get_samples.sh
+* add rigaku_dat sample files
 * add ILL_D1A5 and PSI_DMC formats from ObjCryst
 * implement GSAS format (see gsas.cpp for comments) 
-* add simple GUI 
+* add simple GUI converter
 * PANalytical's XRDML
 * consider adding JCAMP format (Standard NMR Data Format)
 
