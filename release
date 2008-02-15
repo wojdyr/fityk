@@ -3,7 +3,6 @@
 
 version=0.8.4
 WEB="iris.unipress.waw.pl:/d2/people/wojdyr/www/fityk2/" 
-TEMP_DOWNLOAD=$WEB/d/
 SF_NEW_RELEASE="https://sourceforge.net/project/admin/newrelease.php?package_id=80864&group_id=79434"
 SF_ADMIN_PAGE="https://sourceforge.net/project/admin/?group_id=79434"
 WEB_ANNOUNCE_DIR=$WEB
@@ -11,9 +10,6 @@ WEB_ANNOUNCE_FILE="index.html"
 WEB_DOWNLOAD_FILE="download.html"
 
 BUILD_DIR=testbuild
-CVSTEST_DIR=cvs_test
-GCCX_DIR=gccx
-OLDWX_DIR=oldwx
 MINGW_DIR=cross_win32
 ALL_WIN_FILES=all_files #inside of $MINGW_DIR
 
@@ -27,11 +23,8 @@ if [ $# -eq 0 ]; then
  echo 0. prepare new version and increase version number 
  echo "1. test if everything compiles after distclean, run samples"
  echo "2. test if this release can be compiled with other settings"
- echo "3. test if it compiles with older wxWidgets"
- echo "4. test if CVS version compiles"
  echo 5. put docs on www
  echo 6. compile windows version and make installer
- echo 7. uploading to local server, for testing on other computers
  echo 8. SourceForge release
  echo 9. web announce
  echo 10. FreshMeat announce
@@ -56,6 +49,8 @@ if [ $1 -eq 0 ]; then
  grep AC_INIT configure.ac
  echo and doc/fitykhelp.xml:
  grep '<title>Fityk' doc/fitykhelp.xml
+ echo
+ echo svnversion: `svnversion`
 
 
 
@@ -75,59 +70,21 @@ elif [ $1 -eq 1 ]; then
  echo run samples...
  cd ../samples
  cfityk nacl01.fit 
+ cfityk test_syntax.fit 
  fityk nacl01.fit
  fityk SiC_Zn.fit
 
 
-
 elif [ $1 -eq 2 ]; then
- echo  testing compilation with gcc 3.3 and --wx-config=/usr/bin/wx-config
- rm -rf $GCCX_DIR
- mkdir $GCCX_DIR
- cd $GCCX_DIR
- tar xjf ../$tarball_filename
- cd fityk-$version  
- CC=gcc-3.3 CXX=g++-3.3 ./configure --wx-config=/usr/bin/wx-config
- make
- ls -l src/wxgui/fityk src/cli/cfityk
- cd ../..
+ echo  go to buildtest/ and run tests ...
  
 
-elif [ $1 -eq 3 ]; then
- OLD_WXCONFIG=wxgtk-2.4-config
- echo test other wx version
- #mv -i $HOME/local $HOME/Local
- echo Testing with version `$OLD_WXCONFIG --version`
- rm -rf $OLDWX_DIR
- mkdir $OLDWX_DIR
- cd $OLDWX_DIR
- ../configure --with-wx-config=$OLD_WXCONFIG
- cd src
- make
- ./wxgui/fityk
- #mv -i $HOME/Local $HOME/local
-
-elif [ $1 -eq 4 ]; then
- echo  testing downloading and building CVS version 
- rm -rf $CVSTEST_DIR
- mkdir $CVSTEST_DIR
- cd $CVSTEST_DIR
- echo "anonymous login to CVS..."
- cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/fityk login
- cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/fityk co fityk
- cd fityk
- ./autogen.sh
- ./configure
- make 
- 
-
- 
 elif [ $1 -eq 5 ]; then
  echo  putting docs on www   
  echo destination: $WEB
  cd doc/ 
  echo "preparing and sending PDF manual..."
- JAVA_HOME=/usr/lib/j2re1.5-sun make fitykhelp.pdf
+ make fitykhelp.pdf
  scp fitykhelp.pdf $WEB/doc/
  echo sending fitykhelp.html fitykhelp.xml ...
  make fitykhelp.html 
@@ -215,13 +172,6 @@ elif [ $1 -eq 6 ]; then
  echo everything is in: `pwd`/$ALL_WIN_FILES
  
 
-elif [ $1 -eq 7 ]; then
- echo uploading files to $TEMP_DOWNLOAD testing windows installer 
- scp $tarball_filename $TEMP_DOWNLOAD  
- scp $win_setup_filename $TEMP_DOWNLOAD   
- echo now ask other people to download it and test...
- 
-
 elif [ $1 -eq 8 ]; then
  echo  SF release
  echo uploading files...
@@ -258,9 +208,6 @@ elif [ $1 -eq 10 ]; then
 elif [ $1 -eq 11 ]; then
  echo cleaning everything and preparing normal working environment
  rm -rf $BUILD_DIR
- rm -rf $CVSTEST_DIR
- rm -rf $GCC2_DIR
- rm -rf $OLDWX_DIR
  make clean
  #./autogen.sh
  #./configure --enable-debug

@@ -65,6 +65,7 @@ preferences16.h \
 recordmacro16.h \
 redo16.h \
 reload16.h \
+revert16.h \
 run16.h \
 runmacro16.h \
 stopmacro16.h \

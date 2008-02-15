@@ -1,31 +1,27 @@
 
-This is a version of xylib modified and integrated with fityk.
-For original (i.e. older version of) xylib see: http://www.sf.net/projects/xylib
+This is a version of xylib integrated with fityk.
+Original (older) version of xylib see is here: http://www.sf.net/projects/xylib
 
 
 PURPOSE
 =======
-xylib is a library for reading x-y data formats, usually experimental data
-from powder diffraction 
-
-xylib was created as a project in Google Summer of Code 2007 
-(see http://code.google.com/soc), assigned to fityk organization 
-(http://www.unipress.waw.pl/fityk/). 
+xylib is a library for reading files that contain x-y data from powder 
+diffraction, spectroscopy or other experimental methods.
 
 
 SUPPORTED FORMATS
 =================
-plain text format (CSV or TSV or space-separated-values)
-Siemens/Bruker uxd
-Diffrac-AT raw v1/2/3
-Philips UDF Format
-Rigaku Dat Format
+plain text (CSV or TSV or space-separated-values)
+Siemens/Bruker UXD
+Siemens/Bruker Diffrac-AT RAW v1/2/3
+Philips UDF 
+Rigaku DAT 
 Vamas ISO14976
     only experiment modes: "SEM" or "MAPSV" or "MAPSVDP" are supported
     only "REGULAR" scan_mode is supported
-Princeton Instruments WinSpec SPE Format
+Princeton Instruments WinSpec SPE 
     only 1-D data is supported
-Philips RD raw scan format V3
+Philips RD (raw scan) V3
 Crystallographic Information File for Powder Diffraction (pdCIF)
 Sietronics Sieray CPI 
 DBWS/DMPLOT data file
