@@ -180,4 +180,8 @@ inline void close_it(wxDialog* dlg, int id=wxID_CANCEL)
     }
 }
 
+// same as cwi->Clear(), cwi->Append(...), but optimized for some special cases
+void updateControlWithItems(wxControlWithItems *cwi, 
+                            std::vector<std::string> const& v);
+
 #endif 

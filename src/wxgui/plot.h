@@ -65,6 +65,8 @@ public:
     void refresh(bool now=false);
     /// called from wxPaint event handler
     void buffered_draw();
+    /// no need to call it explicitely
+    void clear();
     /// plotting function called to refresh buffer
     virtual void draw(wxDC &dc, bool monochrome=false) = 0;
 

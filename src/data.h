@@ -16,6 +16,8 @@ using fityk::operator<;
 
 class Ftk;
 
+std::string get_file_basename(std::string const& path);
+
 /// dataset
 class Data 
 {

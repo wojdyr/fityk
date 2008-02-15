@@ -30,6 +30,7 @@ protected:
     PreviewPlot *plot_preview;
     wxCheckBox *std_dev_cb, *sd_sqrt_cb, *title_cb, *auto_text_cb, 
                *auto_plot_cb;
+    wxChoice *block_ch;
     wxButton *open_here, *open_new;
     bool initialized;
 
@@ -41,6 +42,7 @@ protected:
     void OnAutoTextCheckBox (wxCommandEvent& event);
     void OnAutoPlotCheckBox (wxCommandEvent& event);
     void OnColumnChanged (wxSpinEvent& event);
+    void OnBlockChanged (wxCommandEvent& event);
     void OnOpenHere (wxCommandEvent& event);
     void OnOpenNew (wxCommandEvent& event);
     void OnClose (wxCommandEvent& event);
@@ -51,6 +53,7 @@ protected:
     void OnPathTextChanged(wxCommandEvent&);
     void update_text_preview();
     void update_plot_preview();
+    void update_block_list();
     void update_title_from_file();
     DECLARE_EVENT_TABLE()
 };

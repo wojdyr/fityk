@@ -30,7 +30,7 @@ using namespace std;
 #define FILE_SEP_PATH '/'
 #endif
 
-string get_file_basename(const string &path)
+string get_file_basename(string const& path)
 {
     string::size_type last_sep = path.rfind(FILE_SEP_PATH);
     string::size_type last_dot = path.rfind('.');

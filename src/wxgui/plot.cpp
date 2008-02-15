@@ -65,13 +65,18 @@ bool BufferedPanel::resize_buffer(wxDC &dc)
     return false;
 }
 
+void BufferedPanel::clear()
+{
+    memory_dc.SetLogicalFunction(wxCOPY);
+    memory_dc.SetBackground(wxBrush(backgroundCol));
+    memory_dc.Clear();
+}
+
 void BufferedPanel::clear_and_draw()
 {
     if (!buffer.Ok())
         return;
-    memory_dc.SetLogicalFunction(wxCOPY);
-    memory_dc.SetBackground(wxBrush(backgroundCol));
-    memory_dc.Clear();
+    clear();
     draw(memory_dc);
 }
 
@@ -510,7 +515,7 @@ vector<double> scale_tics_step (double beg, double end, int max_tics,
         for (double t = s * ceil(beg / s); t < end; t += s) {
             if (t > beg) {
                 // make sure that 0 is not displayed as e.g. -2.7893e-17 
-                if (is_zero(t))
+                if (fabs(t) < 1e-6 * fabs(min_step))
                     t = 0.;
                 result.push_back(t);
             }

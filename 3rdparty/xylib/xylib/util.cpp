@@ -232,6 +232,39 @@ void VecColumn::add_values_from_str(string const& str, char sep)
     }
 }
 
+double VecColumn::get_min() const
+{
+    calculate_min_max();
+    return min_val;
+}
+
+double VecColumn::get_max(int /*point_count*/) const
+{
+    calculate_min_max();
+    return max_val;
+}
+
+void VecColumn::calculate_min_max() const
+{
+    static bool has_min_max = false;
+    static size_t previous_length = 0;
+    // public api of VecColumn don't allow changing data, only appending
+    if (has_min_max && data.size() == previous_length)
+        return;
+    if (data.empty()) {
+        min_val = max_val = 0.;
+        return;
+    }
+    min_val = max_val = data[0];
+    for (vector<double>::const_iterator i = data.begin() + 1; i != data.end(); 
+                                                                         ++i) {
+        if (*i < min_val)
+            min_val = *i;
+        if (*i > max_val)
+            max_val = *i;
+    }
+}
+
 
 // get a trimmed line that is not empty and not a comment
 bool get_valid_line(std::istream &is, std::string &line, char comment_char)

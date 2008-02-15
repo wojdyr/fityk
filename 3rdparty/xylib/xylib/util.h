@@ -11,6 +11,7 @@
 #include <sstream>
 #include <fstream>
 #include <iomanip>
+#include <cassert>
 
 #include "xylib.h"
 
@@ -96,9 +97,14 @@ public:
 
     void add_val(double val) { data.push_back(val); }
     void add_values_from_str(std::string const& str, char sep=' '); 
+    double get_min() const;
+    double get_max(int point_count=0) const;
     
 protected:
     std::vector<double> data; 
+    mutable double min_val, max_val;
+
+    void calculate_min_max() const;
 };
 
 
@@ -119,6 +125,13 @@ public:
         if (count != -1 && (n < 0 || n >= count))
             throw RunTimeError("point index out of range");
         return start + step * n;
+    }
+    double get_min() const { return start; }
+    double get_max(int point_count=0) const
+    {
+        assert (point_count != 0 || count != -1);
+        int n = (count == -1 ? point_count : count);
+        return get_value(n-1);
     }
 };
 

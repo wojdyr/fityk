@@ -24,15 +24,16 @@
 #include "dload.h" 
 #include "frame.h"  // frame->add_recent_data_file(get_filename())
 #include "plot.h" // scale_tics_step()
-#include "../data.h"
 #include "../logic.h" 
 #include "../settings.h"
+#include "../data.h" // get_file_basename()
 #include "../common.h" //iround
 
 using namespace std;
 
 enum {
     ID_DXLOAD_STDDEV_CB     =28000,
+    ID_DXLOAD_BLOCK               ,
     ID_DXLOAD_COLX                ,
     ID_DXLOAD_COLY                ,
     ID_DXLOAD_SDS                 ,
@@ -48,22 +49,29 @@ enum {
 class PreviewPlot : public BufferedPanel
 {
 public:
-    auto_ptr<Data> data;
+    int block_nr, idx_x, idx_y;
 
     PreviewPlot(wxWindow* parent)
-        : BufferedPanel(parent), data(new Data(ftk)) 
-                  { backgroundCol = *wxBLACK; }
+        : BufferedPanel(parent), block_nr(0), idx_x(1), idx_y(2),
+          data(NULL), data_updated(false)
+        { backgroundCol = *wxBLACK; }
+
+    ~PreviewPlot() { delete data; }
     void OnPaint(wxPaintEvent &event);
     void draw(wxDC &dc, bool);
+    void load_dataset(string const& filename, string const& filetype,
+                      vector<string> const& options);
+    xylib::DataSet* const get_data() { return data_updated ? data : NULL; }
+    void make_outdated() { data_updated = false; }
 
 private:
+    xylib::DataSet* data;
+    bool data_updated;
+
     double xScale, yScale;
     double xOffset, yOffset;
-    int H;
     int getX(double x) { return iround(x * xScale + xOffset); }
     int getY(double y) { return iround(y * yScale + yOffset); }
-    void prepare_scaling(wxDC &dc);
-    void draw_scale(wxDC &dc);
 
     DECLARE_EVENT_TABLE()
 };
@@ -79,59 +87,105 @@ void PreviewPlot::OnPaint(wxPaintEvent&)
 
 void PreviewPlot::draw(wxDC &dc, bool)
 {
-    if (data->is_empty())
+    if (!data || !data_updated 
+        || block_nr < 0 || block_nr >= data->get_block_count())
         return;
-    prepare_scaling(dc);
-    draw_scale(dc);
-    vector<Point> const& pp = data->points();
-    dc.SetPen(*wxGREEN_PEN);
-    for (vector<Point>::const_iterator i = pp.begin(); i != pp.end(); ++i)
-        dc.DrawPoint(getX(i->x), getY(i->y));
-}
 
-void PreviewPlot::prepare_scaling(wxDC &dc)
-{
+    xylib::Block const *block = data->get_block(block_nr);
+
+    if (idx_x < 0 || idx_x > block->get_column_count() 
+            || idx_y < 0 || idx_y > block->get_column_count()) 
+        return;
+
+    xylib::Column const& xcol = block->get_column(idx_x);
+    xylib::Column const& ycol = block->get_column(idx_y);
+    const int np = block->get_point_count();
+
+    // prepare scaling
     double const margin = 0.1;
-    double dx = data->get_x_max() - data->get_x_min();
-    double dy = data->get_y_max() - data->get_y_min();
+    double dx = xcol.get_max(np) - xcol.get_min();
+    double dy = ycol.get_max(np) - ycol.get_min();
     int W = dc.GetSize().GetWidth();
-    H = dc.GetSize().GetHeight();
+    int H = dc.GetSize().GetHeight();
     xScale = (1 - 1.2 * margin) *  W / dx;
     yScale = - (1 - 1.2 * margin) * H / dy;
-    xOffset = - data->get_x_min() * xScale + margin * W;
-    yOffset = H - data->get_y_min() * yScale - margin * H;
-}
-
-void PreviewPlot::draw_scale(wxDC &dc)
-{
+    xOffset = - xcol.get_min() * xScale + margin * W;
+    yOffset = H - ycol.get_min() * yScale - margin * H;
+    
+    // draw scale
     dc.SetPen(*wxWHITE_PEN);
     dc.SetTextForeground(*wxWHITE);
     dc.SetFont(*wxSMALL_FONT);  
+
+    // ... horizontal
     vector<double> minors;
     vector<double> tics 
-        = scale_tics_step(data->get_x_min(), data->get_x_max(), 4, minors);
+        = scale_tics_step(xcol.get_min(), xcol.get_max(np), 4, minors);
     for (vector<double>::const_iterator i = tics.begin(); i != tics.end(); ++i){
         int X = getX(*i);
         wxString label = s2wx(S(*i));
-        if (label == wxT("-0")) 
-            label = wxT("0");
         wxCoord tw, th;
         dc.GetTextExtent (label, &tw, &th);
         int Y = dc.DeviceToLogicalY(H - th - 2);
         dc.DrawText (label, X - tw/2, Y + 1);
         dc.DrawLine (X, Y, X, Y - 4);
     }
+    if (!xcol.name.empty()) {
+        wxCoord tw, th;
+        dc.GetTextExtent (s2wx(xcol.name), &tw, &th);
+        dc.DrawText (s2wx(xcol.name), (W - tw)/2, 2);
+    }
 
-    tics = scale_tics_step(data->get_y_min(), data->get_y_max(), 4, minors);
+    // ... vertical
+    tics = scale_tics_step(ycol.get_min(), ycol.get_max(np), 4, minors);
     for (vector<double>::const_iterator i = tics.begin(); i != tics.end(); ++i){
         int Y = getY(*i);
         wxString label = s2wx(S(*i));
-        if (label == wxT("-0")) 
-            label = wxT("0");
         wxCoord tw, th;
         dc.GetTextExtent (label, &tw, &th);
         dc.DrawText (label, dc.DeviceToLogicalX(5), Y - th/2);
         dc.DrawLine (dc.DeviceToLogicalX(0), Y, dc.DeviceToLogicalX(4), Y);
+    }
+    if (!ycol.name.empty()) {
+        wxCoord tw, th;
+        dc.GetTextExtent (s2wx(ycol.name), &tw, &th);
+        dc.DrawRotatedText (s2wx(ycol.name), W - 2, (H - tw)/2, 270);
+    }
+
+    // draw data
+    dc.SetPen(*wxGREEN_PEN);
+    for (int i = 0; i < np; ++i)
+        dc.DrawPoint(getX(xcol.get_value(i)), getY(ycol.get_value(i)));
+}
+
+
+// wrapper around xylib::load_file()
+// with added caching (if the same filename and options are given)
+void PreviewPlot::load_dataset(string const& filename, 
+                               string const& filetype,
+                               vector<string> const& options)
+{
+    static string old_filename;
+    static string old_filetype;
+    static vector<string> old_options;
+    if (filename == old_filename && filetype == old_filetype 
+                                                && options == old_options) {
+        data_updated = true;
+        return;
+    }
+
+    try {
+        // if xylib::load_file() throws exception, we keep value of data
+        xylib::DataSet *new_ds = xylib::load_file(filename, filetype, options);
+        assert(new_ds);
+        delete data;
+        data = new_ds;
+        old_filename = filename;
+        old_filetype = filetype;
+        old_options = options;
+        data_updated = true;
+    } catch (runtime_error const& e) {
+        data_updated = false;
     }
 }
 
@@ -143,6 +197,7 @@ BEGIN_EVENT_TABLE(DLoadDlg, wxDialog)
     EVT_CHECKBOX    (ID_DXLOAD_AUTO_PLOT, DLoadDlg::OnAutoPlotCheckBox)
     EVT_SPINCTRL    (ID_DXLOAD_COLX,      DLoadDlg::OnColumnChanged)
     EVT_SPINCTRL    (ID_DXLOAD_COLY,      DLoadDlg::OnColumnChanged)
+    EVT_CHOICE      (ID_DXLOAD_BLOCK,     DLoadDlg::OnBlockChanged)
     EVT_BUTTON      (wxID_CLOSE,          DLoadDlg::OnClose)
     EVT_BUTTON      (ID_DXLOAD_OPENHERE,  DLoadDlg::OnOpenHere)
     EVT_BUTTON      (ID_DXLOAD_OPENNEW,   DLoadDlg::OnOpenNew)
@@ -154,7 +209,7 @@ END_EVENT_TABLE()
 /// data - used for default settings (path, columns, etc.), not NULL
 DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     : wxDialog(parent, id, wxT("Data load (custom)"), 
-               wxDefaultPosition, wxSize(600, 500), 
+               wxDefaultPosition, wxDefaultSize, 
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
       data_nr(n), initialized(false)
 {
@@ -202,6 +257,10 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     filename_tc = new KFTextCtrl(left_panel, ID_DXLOAD_FN, path.GetFullPath());
     left_sizer->Add (filename_tc, 0, wxALL|wxEXPAND, 5);
                                      
+
+    // selecting block
+    block_ch = new wxChoice(left_panel, ID_DXLOAD_BLOCK);
+    left_sizer->Add(block_ch, 0, wxALL|wxEXPAND, 5);
 
     // selecting columns
     columns_panel = new wxPanel (left_panel, -1);
@@ -291,8 +350,10 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
                       0, wxALL, 5);
     top_sizer->Add(button_sizer, 0, wxALL|wxALIGN_CENTER, 0);
     initialized = true;
-    SetSizer(top_sizer);
+    SetSizerAndFit(top_sizer);
+    SetSize(wxSize(700, 600));
     on_filter_change();
+    update_block_list();
 }
 
 void DLoadDlg::StdDevCheckBoxChanged()
@@ -309,19 +370,36 @@ void DLoadDlg::OnHTitleCheckBox (wxCommandEvent& event)
     title_tc->Enable(event.IsChecked());
 }
 
+void DLoadDlg::update_block_list()
+{
+    vector<string> bb;
+    if (plot_preview && plot_preview->get_data())
+        for (int i = 0; i < plot_preview->get_data()->get_block_count(); ++i) {
+            const string& name = plot_preview->get_data()->get_block(i)->name;
+            bb.push_back(name.empty() ? "Block #" + S(i+1) : name);
+        }
+    else {
+        bb.push_back("<default block>");
+    }
+    updateControlWithItems(block_ch, bb);
+    block_ch->SetSelection(0);
+    block_ch->Enable(block_ch->GetCount() > 1);
+}
+
 void DLoadDlg::update_title_from_file()
 {
     if (title_cb->GetValue()) 
         return;
-
-    string title;
-    if (auto_plot_cb->GetValue()) {
-        if (plot_preview && plot_preview->data.get())
-            title = plot_preview->data->get_title();
+    string path = wx2s(dir_ctrl->GetFilePath());
+    if (path.empty()) {
+        title_tc->Clear();
+        return;
     }
-    else 
-        title = "<no-preview>";
-
+    string title = get_file_basename(path);
+    int x = x_column->GetValue();
+    int y = y_column->GetValue();
+    if (x == 1 && y == 2 && !std_dev_cb->GetValue()) 
+        title += ":" + S(x) + ":" + S(y);
     title_tc->SetValue(s2wx(title));
 }
 
@@ -338,6 +416,11 @@ void DLoadDlg::OnAutoPlotCheckBox (wxCommandEvent& event)
     update_plot_preview();
     if (event.IsChecked()) 
         update_title_from_file();
+}
+
+void DLoadDlg::OnBlockChanged (wxCommandEvent&)
+{
+    update_plot_preview();
 }
 
 void DLoadDlg::OnColumnChanged (wxSpinEvent&)
@@ -383,26 +466,14 @@ void DLoadDlg::update_text_preview()
 void DLoadDlg::update_plot_preview()
 {
     if (auto_plot_cb->GetValue()) {
-        int idx_x = x_column->GetValue();
-        int idx_y = y_column->GetValue();
-        if (idx_x == 1 && idx_y == 2 && !std_dev_cb->GetValue()) 
-            // don't pass explicitely default parameters
-            idx_x = idx_y = INT_MAX;
-        ftk->get_ui()->keep_quiet = true;
-        try {
-            plot_preview->data->load_file(wx2s(dir_ctrl->GetFilePath()), 
-                                          idx_x, idx_y, INT_MAX, 
-                                          vector<int>(),
-                                          vector<string>(),
-                                          true);
-        } catch (ExecuteError&) {
-            plot_preview->data->clear();
-        }
-        ftk->get_ui()->keep_quiet = false;
+        plot_preview->idx_x = x_column->GetValue();
+        plot_preview->idx_y = y_column->GetValue();
+        plot_preview->block_nr = block_ch->GetSelection();
+        plot_preview->load_dataset(wx2s(dir_ctrl->GetFilePath()), 
+                                   "", vector<string>());
     }
-    else {
-        plot_preview->data->clear();
-    }
+    else 
+        plot_preview->make_outdated();
     plot_preview->refresh();
 }
 
@@ -436,8 +507,10 @@ void DLoadDlg::on_path_change()
     open_new->Enable(!path.IsEmpty());
     if (auto_text_cb->GetValue())
         update_text_preview();
+    block_ch->SetSelection(0);
     if (auto_plot_cb->GetValue()) 
         update_plot_preview();
+    update_block_list();
     update_title_from_file();
 }
 
@@ -465,17 +538,20 @@ string DLoadDlg::get_command(string const& ds, int d_nr)
     int x = x_column->GetValue();
     int y = y_column->GetValue();
     bool has_s = std_dev_cb->GetValue();
+    int b = block_ch->GetSelection();
     // default parameter values are not passed explicitely
-    if (x != 1 || y != 2 || has_s) {
+    if (x != 1 || y != 2 || has_s || b != 0) {
         cols = ":" + S(x) + ":" + S(y) + ":";
         if (has_s)
             cols += S(s_column->GetValue());
         cols += ":";
+        if (b != 0)
+            cols += S(b);
     }
 
     string filetype;
-    if (title_cb->IsChecked())
-        filetype = "text first-line-header";
+    //if (title_cb->IsChecked())
+    //    filetype = " text, first-line-header";
 
     bool def_sqrt = (ftk->get_settings()->getp("data-default-sigma") == "sqrt");
     bool set_sqrt = sd_sqrt_cb->GetValue();

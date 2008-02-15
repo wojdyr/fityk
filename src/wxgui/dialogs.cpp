@@ -134,8 +134,8 @@ void SumHistoryDlg::initialize_lc()
 void SumHistoryDlg::add_item_to_lc(int pos, vector<double> const& item)
 {
     lc->InsertItem(pos, wxString::Format(wxT("  %i  "), pos));
-    lc->SetItem (pos, 1, wxString::Format(wxT("%i"), item.size()));
-    lc->SetItem (pos, 2, wxT("      ?      "));
+    lc->SetItem(pos, 1, wxString::Format(wxT("%i"), (int) item.size()));
+    lc->SetItem(pos, 2, wxT("      ?      "));
     for (int j = 0; j < 4; j++) {
         int n = view[j];
         if (n < size(item))
@@ -640,7 +640,7 @@ void MergePointsDlg::update_info()
         if (data->get_x_max() > x_max)
             x_max = data->get_x_max();
         n += data->points().size();
-        dstr += wxString::Format(wxT(" @%d"), i);
+        dstr += wxString::Format(wxT(" @%d"), (int) i);
     }
     wxString s = wxString::Format(wxT("%i data points from: "), n) + dstr;
     s += wxString::Format(wxT("\nx in range (%g, %g)"), x_min, x_max);

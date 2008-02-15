@@ -253,3 +253,17 @@ bool should_focus_input(wxKeyEvent& event)
     return c < 128 && (c == ' ' || isalnum(c) || ispunct(c));
 }
 
+
+void updateControlWithItems(wxControlWithItems *cwi, vector<string> const& v)
+{
+    if (v.size() != (size_t) cwi->GetCount()) {
+        cwi->Clear();
+        for (size_t i = 0; i < v.size(); ++i)
+            cwi->Append(s2wx(v[i]));
+    }
+    else
+        for (size_t i = 0; i < v.size(); ++i)
+            if (cwi->GetString(i) != s2wx(v[i]))
+                cwi->SetString(i, s2wx(v[i]));
+}
+

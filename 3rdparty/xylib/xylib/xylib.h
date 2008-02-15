@@ -88,6 +88,13 @@ public:
 
     /// return value of n'th point (starting from 0-th)
     virtual double get_value(int n) const = 0; 
+
+    /// get minimum value in column
+    virtual double get_min() const = 0;
+    /// get maximum value in column;
+    /// point_count must be specified if column has "unlimited" length, it is
+    /// ignored otherwise 
+    virtual double get_max(int point_count=0) const = 0;
 };
 
 
@@ -115,9 +122,9 @@ public:
     Block() {}
     ~Block();
 
-    /// number of columns
+    /// number of real columns, not including 0-th pseudo-column
     int get_column_count() const { return cols.size(); }
-    /// get column
+    /// get column, 0-th column is index of point
     const Column& get_column(int n) const;
 
     /// return number of points or -1 for "unlimited" number of points

@@ -449,6 +449,8 @@ void FFrame::read_recent_data_files()
 void FFrame::write_recent_data_files()
 {
     wxConfigBase *c = wxConfig::Get();
+    if (!c)
+        return;
     wxString group(wxT("/RecentDataFiles"));
     if (c->HasGroup(group))
         c->DeleteGroup(group);
@@ -1956,17 +1958,8 @@ void FToolBar::OnPeakChoice(wxCommandEvent &event)
 
 void FToolBar::update_peak_type(int nr, vector<string> const* peak_types) 
 { 
-    if (peak_types) {
-        if (peak_types->size() != (size_t) peak_choice->GetCount()) {
-            peak_choice->Clear();
-            for (size_t i = 0; i < peak_types->size(); ++i)
-                peak_choice->Append(s2wx((*peak_types)[i]));
-        }
-        else
-            for (size_t i = 0; i < peak_types->size(); ++i)
-                if (peak_choice->GetString(i) != s2wx((*peak_types)[i]))
-                    peak_choice->SetString(i, s2wx((*peak_types)[i]));
-    }
+    if (peak_types) 
+        updateControlWithItems(peak_choice, *peak_types);
     peak_choice->SetSelection(nr); 
 }
 
