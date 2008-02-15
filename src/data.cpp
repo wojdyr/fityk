@@ -303,8 +303,7 @@ void Data::add_one_point(double x, double y, double sigma)
 void Data::load_file (string const& filename_, 
                       int idx_x, int idx_y, int idx_s, 
                       vector<int> const& blocks,
-                      vector<string> const& options, 
-                      bool preview)
+                      vector<string> const& options)
 {
     static xylib::DataSet *xyds = NULL;
     static string xyds_path;
@@ -373,10 +372,6 @@ void Data::load_file (string const& filename_,
         if (idx_x != INT_MAX && idx_y != INT_MAX)
             title += ":" + S(idx_x) + ":" + S(idx_y);
 
-        if (preview) {
-            recompute_y_bounds();
-            return;
-        }
         if (x_step == 0) {
             sort(p.begin(), p.end());
             x_step = find_step();

@@ -1,5 +1,8 @@
 $Id$
 
+User-visible changes in version 0.8.4  (2008-02-15):
+* xylib: pdCIF format was added
+
 User-visible changes in version 0.8.3  (2008-01-25):
 * data import is done using (modified) xylib library. 
   VAMAS and a few other new file formats are supported.

@@ -33,8 +33,7 @@ public :
     void load_file(std::string const& filename_, 
                    int idx_x, int idx_y, int idx_s, 
                    std::vector<int> const& blocks,
-                   std::vector<std::string> const& options, 
-                   bool preview=false);
+                   std::vector<std::string> const& options);
 
     int load_arrays(std::vector<fp> const& x, std::vector<fp> const& y, 
                    std::vector<fp> const& sigma, std::string const& data_title);
