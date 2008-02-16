@@ -12,6 +12,7 @@
 #include <fstream>
 #include <iomanip>
 #include <cassert>
+#include <cmath>
 
 #include "xylib.h"
 
@@ -45,6 +46,8 @@ void my_read(std::istream &f, char *buf, int len);
 inline bool is_numeric(int c) 
     { return isdigit(c) || c=='+' ||  c=='-' || c=='.'; }
 
+/// Round real to integer.
+inline int iround(double d) { return static_cast<int>(floor(d+0.5)); }
 
 // vector "constructors" 
 

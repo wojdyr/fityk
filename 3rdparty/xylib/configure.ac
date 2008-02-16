@@ -1,4 +1,4 @@
-# $Id:$
+# $Id$
 # after changing, run "autoreconf --install --verbose"
 
 AC_PREREQ(2.59)
@@ -18,9 +18,14 @@ AC_TYPE_SIZE_T
 # Checks for header files.
 AC_LANG([C++])
 AC_CHECK_HEADERS([cstdlib cstring climits vector], [],
-                 AC_MSG_ERROR([Could not find necessary C++ libs headers]))
+                 [AC_MSG_ERROR([Could not find necessary C++ libs headers])])
 AC_CHECK_HEADERS([boost/cstdint.hpp boost/detail/endian.hpp], [],
-                 AC_MSG_ERROR([Could not find necessary Boost headers]))
+                 [AC_MSG_ERROR([Could not find necessary Boost headers])])
+AC_CHECK_HEADERS([boost/cstdint.hpp boost/detail/endian.hpp], [],
+                 [AC_MSG_ERROR([Could not find necessary Boost headers])])
+AC_CHECK_HEADERS([boost/spirit/core.hpp], [], 
+                 [AC_MSG_ERROR([Boost::Spirit headers were not found.])])
+
 
 # this is for compatibility with fityk configure.ac 
 # see xylib/Makefile.am for comments on CPPFLAGS_3RDPARTY

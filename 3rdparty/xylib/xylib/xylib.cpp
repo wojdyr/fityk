@@ -1,5 +1,4 @@
-// XYlib library is a xy data reading library, aiming to read variaty of xy 
-// data formats.
+// Implementation of Public API of xylib library.
 // Licence: GNU General Public License version 2
 // $Id$
 
@@ -25,6 +24,7 @@
 #include "cpi.h"
 #include "dbws.h"
 #include "canberra_mca.h"
+#include "xfit_xdd.h"
 
 using namespace std;
 using namespace xylib::util;
@@ -44,6 +44,7 @@ const FormatInfo *formats[] = {
     &PhilipsRawDataSet::fmt_info,
     //&GsasDataSet::fmt_info,
     &CanberraMcaDataSet::fmt_info,
+    &XfitXddDataSet::fmt_info,
     &DbwsDataSet::fmt_info,
     &TextDataSet::fmt_info,
     NULL // it must be a NULL-terminated array
@@ -171,12 +172,12 @@ void export_metadata(ostream &of, MetaData const& meta)
 {
     for (map<string,string>::const_iterator i = meta.begin();
                                                         i != meta.end(); ++i) {
-        of << "# " << i->first << ":\t"; 
+        of << "# " << i->first << ": "; 
         for (string::const_iterator j = i->second.begin(); 
                                                    j != i->second.end(); ++j) {
             of << *j;
             if (*j == '\n')
-                of << "# " << i->first << ":\t"; 
+                of << "# " << i->first << ": "; 
         }
         of << endl;
     }
@@ -186,7 +187,7 @@ void export_metadata(ostream &of, MetaData const& meta)
 
 void DataSet::export_plain_text(string const &fname) const
 {
-    unsigned range_num = get_block_count();
+    int range_num = get_block_count();
     ofstream of(fname.c_str());
     if (!of) 
         throw RunTimeError("can't create file: " + fname);
@@ -195,7 +196,7 @@ void DataSet::export_plain_text(string const &fname) const
     of << "# exported by xylib from a " << fi->name << " file" << endl;
     export_metadata(of, meta);
     
-    for (unsigned i = 0; i < range_num; ++i) {
+    for (int i = 0; i < range_num; ++i) {
         const Block *blk = get_block(i);
         if (range_num > 1 || !blk->name.empty())
             of << endl << "### block #" << i << " " << blk->name << endl;
@@ -204,21 +205,23 @@ void DataSet::export_plain_text(string const &fname) const
         int ncol = blk->get_column_count();
         of << "# ";
         // column 0 is pseudo-column with point indices, we skip it
-        for (int i = 1; i < ncol; ++i) {
-            string const& name = blk->get_column(i).name;
-            of << (name.empty() ? "column_"+S(i) : name) << "\t";
+        for (int k = 1; k <= ncol; ++k) {
+            string const& name = blk->get_column(k).name;
+            if (k > 1)
+                of << "\t";
+            of << (name.empty() ? "column_"+S(k) : name);
         }
         of << endl;
 
         int nrow = blk->get_point_count();
 
-        for (int i = 0; i < nrow; ++i) {
-            for (int j = 1; j < ncol; ++j) {
-                if (j > 0)
+        for (int j = 0; j < nrow; ++j) {
+            for (int k = 1; k <= ncol; ++k) {
+                if (k > 1)
                     of << "\t";
                 of << setfill(' ') << setiosflags(ios::fixed) 
                     << setprecision(6) << setw(8) 
-                    << blk->get_column(j).get_value(i); 
+                    << blk->get_column(k).get_value(j); 
             }
             of << endl;
         }

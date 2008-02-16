@@ -112,6 +112,12 @@ mkdir -p canberra_mca/
 wget -N $XYLIB_STORAGE/03yag02.mca -P canberra_mca/
 wget -N $XYLIB_STORAGE/04nacl02.mca -P canberra_mca/
 
+# XFIT XDD files
+mkdir -p xfit_xdd/
+wget -N http://ccp14.sims.nrc.ca/ccp/ccp14/ftp-mirror/krumm/Software/windows/stereo/Y2O3.XDD -P xfit_xdd/
+# this is different format:
+#wget -N http://www.ccp14.ac.uk/ccp/ccp14/ccp14-by-program/fourya-windows/fourya.zip -P xfit_xdd/
+#cd xfit_xdd/ && unzip -j fourya.zip FOURYA/BROAD.XDD && cd ..
 
 echo "done!"
 

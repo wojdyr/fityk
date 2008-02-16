@@ -46,7 +46,7 @@ bool DbwsDataSet::check(istream &f)
         return false;
     if (step < 0 || start + step > stop)
         return false;
-    double count = (stop - start) / step;
+    double count = (stop - start) / step + 1;
     double rounded_count = floor(count + 0.5);
     if (fabs(rounded_count - count) > 1e-6)
         return false;

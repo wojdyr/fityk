@@ -3,6 +3,7 @@
 // $Id$
 
 // Implementation based on analysis of sample files 
+// and description from http://www.ccp14.ac.uk/tutorial/xfit-95/dformat.htm
 
 #ifndef CPI_DATASET_H_
 #define CPI_DATASET_H_

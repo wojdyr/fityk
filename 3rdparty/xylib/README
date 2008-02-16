@@ -12,20 +12,24 @@ diffraction, spectroscopy or other experimental methods.
 SUPPORTED FORMATS
 =================
 plain text (CSV or TSV or space-separated-values)
+
+Crystallographic Information File for Powder Diffraction (pdCIF)
 Siemens/Bruker UXD
 Siemens/Bruker Diffrac-AT RAW v1/2/3
 Philips UDF 
+Philips RD (raw scan) V3
 Rigaku DAT 
+Sietronics Sieray CPI 
+DBWS/DMPLOT data file
+Canberra MCA (one of formats)
+XFIT/Koalariet XDD 
+
 Vamas ISO14976
     only experiment modes: "SEM" or "MAPSV" or "MAPSVDP" are supported
     only "REGULAR" scan_mode is supported
 Princeton Instruments WinSpec SPE 
     only 1-D data is supported
-Philips RD (raw scan) V3
-Crystallographic Information File for Powder Diffraction (pdCIF)
-Sietronics Sieray CPI 
-DBWS/DMPLOT data file
-Canberra MCA (one of formats)
+ 
 
 
 FILES

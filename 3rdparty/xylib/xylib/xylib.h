@@ -1,8 +1,12 @@
-// XYlib library is a xy data reading library, aiming to read variaty 
-// of XY data formats
-// data formats. This file includes the basic base classes
+// Public API of xylib library.
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id$
+
+/// xylib is a library for reading files that contain x-y data from powder
+/// diffraction, spectroscopy or other experimental methods.
+/// It is recommended to set LC_NUMERIC="C" (or other locale with the same 
+/// numeric format) before reading files.
+
 
 #ifndef XYLIB__API__H__
 #define XYLIB__API__H__
@@ -156,20 +160,20 @@ public:
     // ctor is protected
     virtual ~DataSet();
 
-    // number of blocks (usually 1)
+    /// number of blocks (usually 1)
     int get_block_count() const { return blocks.size(); }
 
-    // access block number i
+    /// get block n (block 0 is first)
     Block const* get_block(int n) const;
 
-    // read data from file
+    /// read data from file
     virtual void load_data(std::istream &f) = 0;
 
     // delete all data stored in this class (use only if you want to 
     // call load_data() more than once)
     void clear();
 
-    // export to text file
+    /// export to text file
     void export_plain_text(std::string const& fname) const; 
 
 protected:
@@ -187,24 +191,24 @@ protected:
 }; 
 
 
-// if format_name is not given, it is guessed
-// return value: pointer to Dataset that contains all data read from file
+/// if format_name is not given, it is guessed
+/// return value: pointer to Dataset that contains all data read from file
 DataSet* load_file(std::string const& path, std::string const& format_name="",
                    std::vector<std::string> const& options 
                                                 = std::vector<std::string>());
 
-// return value: pointer to Dataset that contains all data read from file
+/// return value: pointer to Dataset that contains all data read from file
 DataSet* load_stream(std::istream &is, FormatInfo const* fi,
                      std::vector<std::string> const& options);
 
-// guess a format of the file
+/// guess a format of the file
 FormatInfo const* guess_filetype(std::string const& path);
 
-// returns FormatInfo that has a name format_name
+/// returns FormatInfo that has a name format_name
 FormatInfo const* string_to_format(std::string const& format_name);
 
-// return wildcard for file dialog in format:
-// "All Files (*)|*|ASCII X Y Files (*)|*|Sietronics Sieray CPI (*.cpi)|*.cpi"
+/// return wildcard for file dialog in format:
+/// "All Files (*)|*|ASCII X Y Files (*)|*|Sietronics Sieray CPI (*.cpi)|*.cpi"
 std::string get_wildcards_string(std::string const& all_files="*");
 
 } // namespace xylib
