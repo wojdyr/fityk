@@ -74,7 +74,7 @@ void my_read(istream &f, char *buf, int len)
 #if defined(BOOST_BIG_ENDIAN)
 void le_to_host(void *ptr, int size)
 {
-    char *p = ptr;
+    char *p = (char*) ptr;
     for (int i = 0; i < size/2; ++i)
         swap(p[i], p[size-i-1]);
 }
