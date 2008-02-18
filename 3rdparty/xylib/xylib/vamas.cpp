@@ -62,6 +62,19 @@ void assert_in_array(string const& val, const char** array, string const& name)
     throw xylib::FormatError(name + "has an invalid value");
 }
 
+// skip "count" lines in f
+void skip_lines(istream &f, int count)
+{
+    using namespace xylib;
+    string line;
+    for (int i = 0; i < count; ++i) {
+        if (!getline(f, line)) {
+            throw FormatError("unexpected end of file");
+        }
+    }
+}
+
+
 } // anonymous namespace
 
 

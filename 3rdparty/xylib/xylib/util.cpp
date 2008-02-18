@@ -59,6 +59,7 @@ double my_strtod(const std::string &str)
 
 // ----------   istream::read()- & endiannes-related utilities   ----------
 
+namespace {
 void my_read(istream &f, char *buf, int len)
 {
     f.read(buf, len);
@@ -66,6 +67,7 @@ void my_read(istream &f, char *buf, int len)
         throw FormatError("unexpected eof");
     }
 }
+} // anonymous namespace
 
 // change the byte-order from "little endian" to host endian
 // ptr: pointer to the data, size - size in bytes
@@ -82,7 +84,7 @@ void le_to_host(void *, int) {}
 
 // read a 32-bit, little-endian form int from f,
 // return equivalent int in host endianess
-unsigned read_uint32_le(istream &f)
+unsigned int read_uint32_le(istream &f)
 {
     uint32_t val;
     my_read(f, reinterpret_cast<char*>(&val), sizeof(val));
@@ -90,7 +92,7 @@ unsigned read_uint32_le(istream &f)
     return val;
 }
 
-unsigned read_uint16_le(istream &f)
+unsigned int read_uint16_le(istream &f)
 {
     uint16_t val;
     my_read(f, reinterpret_cast<char*>(&val), sizeof(val));
@@ -197,18 +199,6 @@ string read_line(istream& is)
     return line;
 }
 
-// skip "count" lines in f
-void skip_lines(istream &f, int count)
-{
-    string line;
-    for (int i = 0; i < count; ++i) {
-        if (!getline(f, line)) {
-            throw FormatError("unexpected end of file");
-        }
-    }
-}
-
-
 
 // get all numbers in the first legal line
 // sep is _optional_ separator that can be used in addition to white space
@@ -222,9 +212,10 @@ void VecColumn::add_values_from_str(string const& str, char sep)
         errno = 0; // To distinguish success/failure after call 
         double val = strtod(p, &endptr);
         if (p == endptr)
-            throw("Number not found in line:\n" + str);
+            throw(xylib::FormatError("Number not found in line:\n" + str));
         if (errno != 0)
-            throw("Numeric overflow or underflow in line:\n" + str);
+            throw(xylib::FormatError("Numeric overflow or underflow in line:\n"
+                                     + str));
         add_val(val);
         p = endptr;
         while (isspace(*p) || *p == sep)
@@ -289,6 +280,76 @@ bool get_valid_line(std::istream &is, std::string &line, char comment_char)
     return true;
 }
 
+
+void skip_whitespace(istream &f)
+{
+    while (isspace(f.peek()))
+        f.ignore();
+}
+
+// read line (popular e.g. in powder data ascii file types) in free format:
+// start step count
+// example:
+//   15.000   0.020 110.000
+// returns NULL on error
+Column* read_start_step_end_line(istream& f)
+{
+    char line[256];
+    f.getline(line, 255); 
+    // the first line should contain start, step and stop
+    char *endptr;
+    const char *startptr = line;
+    double start = strtod(startptr, &endptr);
+    if (startptr == endptr)
+        return NULL;
+
+    startptr = endptr;
+    double step = strtod(startptr, &endptr);
+    if (startptr == endptr || step == 0.)
+        return NULL;
+
+    startptr = endptr;
+    double stop = strtod(endptr, &endptr);
+    if (startptr == endptr)
+        return NULL;
+
+    double dcount = (stop - start) / step + 1;
+    int count = iround(dcount);
+    if (count < 4 || fabs(count - dcount) > 1e-2)
+        return NULL;
+
+    return new StepColumn(start, step, count);
+}
+
+Block* read_ssel_and_data(istream &f, int max_headers)
+{
+    // we are looking for the first line with start-step-end numeric triple,
+    // it should be one of the first (max_headers+1) lines
+    Column *xcol = read_start_step_end_line(f);
+    for (int i = 0; i < max_headers && xcol == NULL; ++i)
+        xcol = read_start_step_end_line(f);
+
+    if (!xcol) 
+        return NULL;
+
+    Block* blk = new Block;
+    blk->add_column(xcol);
+    
+    VecColumn *ycol = new VecColumn;
+    string s;
+    // in PSI_DMC there is a text following the data, so we read only as many
+    // data lines as necessary
+    while (getline(f, s) && ycol->get_point_count() < xcol->get_point_count()) 
+        ycol->add_values_from_str(s);
+    blk->add_column(ycol);
+
+    // both xcol and ycol should have known and same number of points
+    if (xcol->get_point_count() != ycol->get_point_count()) {
+        delete blk;
+        return NULL;
+    }
+    return blk;
+}
 
 } } // namespace xylib::util
 

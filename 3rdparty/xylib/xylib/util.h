@@ -16,18 +16,18 @@
 
 #include "xylib.h"
 
-namespace xylib {
-namespace util {
+namespace xylib { namespace util {
 
-unsigned read_uint32_le(std::istream &f);
-unsigned read_uint16_le(std::istream &f);
+void le_to_host(void *ptr, int size);
+
+unsigned int read_uint32_le(std::istream &f);
+unsigned int read_uint16_le(std::istream &f);
 int read_int16_le(std::istream &f);
 float read_flt_le(std::istream &f);
 double read_dbl_le(std::istream &f);
+
 char read_char(std::istream &f);
 std::string read_string(std::istream &f, unsigned len);
-
-void le_to_host(void *ptr, int size);
 
 std::string str_trim(std::string const& str);
 void str_split(std::string const& line, std::string const& sep, 
@@ -35,13 +35,15 @@ void str_split(std::string const& line, std::string const& sep,
 bool str_startwith(const std::string &str_src, const std::string &ss);
 std::string str_tolower(const std::string &str);
 
-void skip_lines(std::istream &f, int count);
 std::string read_line(std::istream &is);
 bool get_valid_line(std::istream &is, std::string &line, char comment_char);
 
+void skip_whitespace(std::istream &f);
+Column* read_start_step_end_line(std::istream& f);
+Block* read_ssel_and_data(std::istream &f, int max_headers=0);
+
 long my_strtol(const std::string &str);
 double my_strtod(const std::string &str);
-void my_read(std::istream &f, char *buf, int len);
 
 inline bool is_numeric(int c) 
     { return isdigit(c) || c=='+' ||  c=='-' || c=='.'; }

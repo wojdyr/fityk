@@ -1,11 +1,4 @@
 
-* add RIET7/LHPM/CSRIET DAT format from: 
-      http://www.ccp14.ac.uk/tutorial/xfit-95/dformat.htm
-  and ILL_D1A5 and PSI_DMC formats from ObjCryst
-  as one *.dat format, using read_start_step_end_line() from xfit_xdd.cpp
-  number of unused header lines <= 4
-  line length in read_start_step_end_line() should be reasonably limited
-  
 * is Rigaku RIG the same as rigaku_dat?   
 * add rigaku_dat sample files
 * implement GSAS format (see gsas.cpp for comments) 

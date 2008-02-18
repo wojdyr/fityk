@@ -496,7 +496,6 @@ void t_on_loop_finish::operator()(IteratorT, IteratorT) const
 
 } // anonymous namespace
 
-
 void PdCifDataSet::load_data(std::istream &f) 
 {
     // read file into vector<char>
@@ -504,6 +503,10 @@ void PdCifDataSet::load_data(std::istream &f)
     vector<char> vec;
     std::copy(istream_iterator<char>(f), istream_iterator<char>(),
               std::back_inserter(vec));
+    format_assert(vec.size() > 5);
+    // some CIF files have 0x1A character at the end, let's ignore it
+    while (vec.back() == 0x1A)
+        vec.pop_back();
     DatasetActions actions;
     CifGrammar<DatasetActions> p(actions);
     parse_info<vector<char>::const_iterator> info =

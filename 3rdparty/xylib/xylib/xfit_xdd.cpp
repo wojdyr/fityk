@@ -2,8 +2,6 @@
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id$
 
-#include <cmath>
-#include <cstdlib>
 #include "xfit_xdd.h"
 #include "util.h"
 
@@ -25,12 +23,6 @@ const FormatInfo XfitXddDataSet::fmt_info(
 
 namespace {
 
-void skip_whitespace(istream &f)
-{
-    while (isspace(f.peek()))
-        f.ignore();
-}
-
 void skip_c_style_comments(istream& f)
 {
     skip_whitespace(f);
@@ -50,69 +42,12 @@ void skip_c_style_comments(istream& f)
     skip_whitespace(f);
 }
 
-// read line (popular e.g. in powder data ascii file types) in free format:
-// start step count
-// example:
-//   15.000   0.020 110.000
-// returns NULL on error
-StepColumn* read_start_step_end_line(istream& f)
-{
-    string line;
-    getline(f, line); 
-    // the first line should contain start, step and stop
-    char *endptr;
-    const char *startptr = line.c_str();
-    double start = strtod(startptr, &endptr);
-    if (startptr == endptr)
-        return NULL;
-
-    startptr = endptr;
-    double step = strtod(startptr, &endptr);
-    if (startptr == endptr || step == 0.)
-        return NULL;
-
-    startptr = endptr;
-    double stop = strtod(endptr, &endptr);
-    if (startptr == endptr)
-        return NULL;
-
-    double dcount = (stop - start) / step + 1;
-    int count = iround(dcount);
-    if (count < 4 || fabs(count - dcount) > 1e-2)
-        return NULL;
-
-    return new StepColumn(start, step, count);
-}
-
-Block* read_ssel_and_data(istream &f)
-{
-    StepColumn *xcol = read_start_step_end_line(f);
-    if (!xcol)
-        return NULL;
-
-    Block* blk = new Block;
-    blk->add_column(xcol);
-    
-    VecColumn *ycol = new VecColumn;
-    string s;
-    while (getline(f, s)) 
-        ycol->add_values_from_str(s);
-    blk->add_column(ycol);
-
-    // both xcol and ycol should have known and same number of points
-    if (xcol->get_point_count() != ycol->get_point_count()) {
-        delete blk;
-        return NULL;
-    }
-    return blk;
-}
-
 } // anonymous namespace
 
 bool XfitXddDataSet::check(istream &f) 
 {
     skip_c_style_comments(f);
-    StepColumn *c = read_start_step_end_line(f);
+    Column *c = read_start_step_end_line(f);
     delete c;
     return c != NULL;
 }

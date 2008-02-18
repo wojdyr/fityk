@@ -169,15 +169,14 @@ Column* WinspecSpeDataSet::get_calib_column(const spe_calib *calib, int dim)
 void WinspecSpeDataSet::read_calib(istream &f, spe_calib &calib)
 {
     f.ignore(98);
-    my_read(f, &calib.calib_valid, 1);
+    f.read(&calib.calib_valid, 1);
 
     f.ignore(2);
-    my_read(f, &calib.polynom_order, 1);
+    f.read(&calib.polynom_order, 1);
 
     f.ignore(161);
-    for (int i = 0; i < 6; ++i) {
+    for (int i = 0; i < 6; ++i) 
         calib.polynom_coeff[i] = read_dbl_le(f);
-    }
 
     f.ignore(178);  // skip all of the left fields in calib
 }

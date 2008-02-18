@@ -14,11 +14,11 @@ libxy_la_SOURCES = xylib.cpp brucker_raw.cpp \
 		   gsas.cpp pdcif.cpp philips_raw.cpp \
 		   philips_udf.cpp rigaku_dat.cpp text.cpp \
 		   uxd.cpp vamas.cpp winspec_spe.cpp cpi.cpp dbws.cpp \
-		   canberra_mca.cpp xfit_xdd.cpp \
+		   canberra_mca.cpp xfit_xdd.cpp riet7.cpp \
                    util.cpp util.h
 
 include_HEADERS = xylib.h brucker_raw.h \
 		  gsas.h pdcif.h philips_raw.h philips_udf.h \
-		  rigaku_dat.h text.h uxd.h vamas.h \
-		  winspec_spe.h cpi.h dbws.h canberra_mca.h xfit_xdd.h 
+		  rigaku_dat.h text.h uxd.h vamas.h winspec_spe.h \
+		  cpi.h dbws.h canberra_mca.h xfit_xdd.h riet7.h
 

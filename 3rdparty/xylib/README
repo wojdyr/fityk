@@ -23,6 +23,7 @@ Sietronics Sieray CPI
 DBWS/DMPLOT data file
 Canberra MCA (one of formats)
 XFIT/Koalariet XDD 
+RIET7/LHPM/CSRIET/ILL_D1A5/PSI_DMC DAT
 
 Vamas ISO14976
     only experiment modes: "SEM" or "MAPSV" or "MAPSVDP" are supported
@@ -30,6 +31,10 @@ Vamas ISO14976
 Princeton Instruments WinSpec SPE 
     only 1-D data is supported
  
+
+HOW TO ADD NEW FORMATS
+======================
+Please contact us first, see: CONTACT 
 
 
 FILES
@@ -80,8 +85,9 @@ Feel free to send e-mail to the authors, or to the fityk-devel mailing list:
 https://lists.sourceforge.net/lists/listinfo/fityk-devel
 
 
-THANKS (from original xylib)
+THANKS 
 ======
+(from original xylib)
 First of all, I'd like to thank my mentor Marcin Wojdyr for his careful and in-time mentoring during the whole project process. He spent lots of time to review my code and gave me many good suggestions about the library design and implementation.
 I'd like to thank Google for hosting the GSoC project to promote the Open Source Software in the globe. 
 Thanks to Michael Richardson <michael.richardson@vuw.ac.nz>, for his kind help to send us a specification of VAMAS format and some sample files, and suggestions for the JCAMP-DX paper download URL.
@@ -91,4 +97,6 @@ Thanks to Brian H. Toby <Brian.Toby@anl.gov>, for his useful info and suggestion
 Thanks to Martijn Fransen <martijn.fransen@panalytical.com>, for sending us a very useful specification on Philips raw formats.
 And thanks to all people who have helped me and gave suggestions to the xylib project. 
 
+(added by MW)
+Vincent Favre-Nicolin - info about PSI_DMC and ILL_D1A5 formats
 

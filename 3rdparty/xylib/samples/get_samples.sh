@@ -119,6 +119,15 @@ wget -N http://ccp14.sims.nrc.ca/ccp/ccp14/ftp-mirror/krumm/Software/windows/ste
 #wget -N http://www.ccp14.ac.uk/ccp/ccp14/ccp14-by-program/fourya-windows/fourya.zip -P xfit_xdd/
 #cd xfit_xdd/ && unzip -j fourya.zip FOURYA/BROAD.XDD && cd ..
 
-echo "done!"
+# RIET7 / ILL_D1A5 / PSI_DMC files
+mkdir -p riet7/
+wget -N http://www.ccp14.ac.uk/ccp/ccp14/ftp-mirror/csirominerals-anon-ftp/pub/xtallography/xrd-data-formats/riet7/fct-xray.dat -P riet7/
+# LaNi2Mn3: J. of Alloys and Compounds 348 (2003), 176-183, 
+# http://dx.doi.org/10.1016/S0925-8388(02)00838-1
+wget -N $XYLIB_STORAGE/D1A5.dat -P riet7/
+# NdNi4MgDx : J. of Alloys and Compounds 348 (2003), 129-137, 
+# http://dx.doi.org/10.1016/S0925-8388(02)00797-1
+wget -N $XYLIB_STORAGE/PSI_DMC.dat -P riet7/
 
+echo "done!"
 
