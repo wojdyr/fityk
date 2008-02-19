@@ -1,6 +1,6 @@
 // Purpose: input line with history (wxTextCtrl+wxSpinButton)
 // Copyright: (c) 2007 Marcin Wojdyr 
-// Licence: wxWidgets licence 
+// Licence: wxWidgets licence, or (at your option) GPL
 // $Id$
 
 /// Input line with history (wxTextCtrl+wxSpinButton). 
@@ -29,6 +29,8 @@
 #include <wx/wx.h>
 #endif
 
+#include <fstream>
+
 #include "inputline.h"
 
 
@@ -38,8 +40,10 @@ BEGIN_EVENT_TABLE(InputLine, wxPanel)
 END_EVENT_TABLE()
 
 InputLine::InputLine(wxWindow *parent, wxWindowID id, 
-                     V1Callback<wxString const&> const& receiver)
-    : wxPanel(parent, id), m_hpos(0), m_receiver(receiver)
+                     V1Callback<wxString const&> const& receiver,
+                     wxString const& hist_file_)
+    : wxPanel(parent, id), m_hpos(0), m_receiver(receiver), 
+      hist_file(hist_file_)
 {
     m_text = new wxTextCtrl(this, wxID_ANY, wxT(""),
                        wxDefaultPosition, wxDefaultSize, 
@@ -54,13 +58,37 @@ InputLine::InputLine(wxWindow *parent, wxWindowID id,
     sizer->Add(m_button, 0, wxEXPAND);
     SetSizer(sizer);
     SetMinSize(wxSize(-1, m_text->GetBestSize().y));
-    m_history.Add(wxT(""));
     m_text->Connect(wxID_ANY, wxEVT_KEY_DOWN, 
                     wxKeyEventHandler(InputLine::OnKeyDownAtText), 
                     0, this);
     m_button->Connect(wxID_ANY, wxEVT_KEY_DOWN, 
                       wxKeyEventHandler(InputLine::OnKeyDownAtSpinButton), 
                       0, this);
+    // read history
+    if (!hist_file.IsEmpty()) {
+        std::ifstream f(hist_file.fn_str());
+        char line[512];
+        while (f.getline(line, 512))
+            m_history.Add(line);
+    }
+    // add empty line that will be displayed initially
+    m_history.Add(wxT(""));
+    GoToHistoryEnd();
+}
+
+InputLine::~InputLine()
+{
+    // write history
+    if (hist_file.IsEmpty())
+        return;
+    std::ofstream f(hist_file.fn_str());
+    if (!f)
+        return;
+    for (size_t i = 0; i < m_history.GetCount(); ++i) {
+        if (i > 0)
+            f << std::endl;
+        f << m_history[i].c_str();
+    }
 }
 
 wxSize InputLine::DoGetBestSize() const
@@ -97,13 +125,20 @@ void InputLine::OnInputLine(const wxString& line)
 { 
     m_history.Last() = line;
     m_history.Add(wxT(""));
-    if (m_history.GetCount() > 1024+128)
-        m_history.RemoveAt(0, 128);
+    GoToHistoryEnd();
+    m_receiver(line); 
+    m_text->SetFocus();
+}
+
+void InputLine::GoToHistoryEnd()
+{
+    const int hist_size = 1024;
+    const int hist_chunk = 128;
+    if (m_history.GetCount() > hist_size + hist_chunk)
+        m_history.RemoveAt(0, m_history.GetCount() - hist_size);
     m_hpos = m_history.GetCount() - 1;
     m_button->SetRange(0, m_hpos);
     m_button->SetValue(0);
-    m_receiver(line); 
-    m_text->SetFocus();
 }
 
 void InputLine::OnKeyDownAtText (wxKeyEvent& event)

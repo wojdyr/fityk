@@ -1,4 +1,4 @@
-// internal-used helper functions are placed in namespace xylib::util  
+// private helper functions (namespace xylib::util)
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id$
 

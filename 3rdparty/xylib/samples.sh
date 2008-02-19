@@ -1,5 +1,6 @@
 #!/bin/bash
 # convert all of the sample files in ./sample to ASCII plain format in ./output
+# using ./xyconv
 
 for i in samples/*/[^R]* 
 do

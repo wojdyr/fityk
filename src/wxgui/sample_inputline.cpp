@@ -39,7 +39,8 @@ Frame::Frame() : wxFrame(0, wxID_ANY, wxT("InputLine sample"))
 {
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
     m_input = new InputLine(this, wxID_ANY, 
-                 make_callback<wxString const&>().V1(this, &Frame::AddLine));
+                 make_callback<wxString const&>().V1(this, &Frame::AddLine),
+                 wxT(""));
     m_output = new wxTextCtrl(this, wxID_ANY, wxT(""), 
                               wxDefaultPosition, wxDefaultSize,
                               wxTE_MULTILINE|wxTE_READONLY);

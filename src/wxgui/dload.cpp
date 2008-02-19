@@ -398,7 +398,7 @@ void DLoadDlg::update_title_from_file()
     string title = get_file_basename(path);
     int x = x_column->GetValue();
     int y = y_column->GetValue();
-    if (x == 1 && y == 2 && !std_dev_cb->GetValue()) 
+    if (x != 1 || y != 2 || std_dev_cb->GetValue()) 
         title += ":" + S(x) + ":" + S(y);
     title_tc->SetValue(s2wx(title));
 }

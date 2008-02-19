@@ -1,82 +1,71 @@
 
-This is a version of xylib integrated with fityk.
-Original (older) version of xylib see is here: http://www.sf.net/projects/xylib
-
-
-PURPOSE
-=======
+OVERVIEW
+========
 xylib is a library for reading files that contain x-y data from powder 
 diffraction, spectroscopy or other experimental methods.
 
 
-SUPPORTED FORMATS
-=================
-plain text (CSV or TSV or space-separated-values)
+Supported formats:
 
-Crystallographic Information File for Powder Diffraction (pdCIF)
-Siemens/Bruker UXD
-Siemens/Bruker Diffrac-AT RAW v1/2/3
-Philips UDF 
-Philips RD (raw scan) V3
-Rigaku DAT 
-Sietronics Sieray CPI 
-DBWS/DMPLOT data file
-Canberra MCA (one of formats)
-XFIT/Koalariet XDD 
-RIET7/LHPM/CSRIET/ILL_D1A5/PSI_DMC DAT
-
-Vamas ISO14976
+* plain text (CSV or TSV or space-separated-values)
+* Crystallographic Information File for Powder Diffraction (pdCIF)
+* Siemens/Bruker UXD
+* Siemens/Bruker Diffrac-AT RAW v1/2/3
+* Philips UDF 
+* Philips RD (raw scan) V3
+* Rigaku DAT 
+* Sietronics Sieray CPI 
+* DBWS/DMPLOT data file
+* Canberra MCA (one of formats)
+* XFIT/Koalariet XDD 
+* RIET7/LHPM/CSRIET/ILL_D1A5/PSI_DMC DAT
+* Vamas ISO14976
     only experiment modes: "SEM" or "MAPSV" or "MAPSVDP" are supported
     only "REGULAR" scan_mode is supported
-Princeton Instruments WinSpec SPE 
+* Princeton Instruments WinSpec SPE 
     only 1-D data is supported
  
 
-HOW TO ADD NEW FORMATS
-======================
+For API description, see: xylib/xylib.h file.
+
+
+NOTES
+=====
+This is a version of xylib integrated with fityk.
+Original (older) version of xylib see is here: http://www.sf.net/projects/xylib
+
+Filetype samples are not distributed with the library, but there is a script
+samples/get_samples.sh that tries to download them from Internet.
+See the script for more info.
+
+The library includes a tiny program xyconv, which converts from any file 
+supported by xylib to TSV.
+
+xylib is used by fityk (since version 0.8.3).
+	
+	
+HOW TO ADD A NEW FORMAT
+=======================
 Please contact us first, see: CONTACT 
 
+Each .cpp/.h file pair in xylib/ (excluding xylib.* and util.*) corresponds
+to one supported filetype.  Each of these .cpp files contains basic info 
+about the format in constructor of struct FormatInfo. Each header files 
+includes a note what the implementation is based on (i.e. what documentation 
+was available to a developer). In some cases the format is described in .cpp 
+file (above load_data() method).
 
-FILES
-=====
-xylib/
-    xylib.h 
-    xylib.cpp 
-    	xylib functions and main classes.
-    
-    util.h
-    util.cpp
-    	Internal-used helper functions in namespace xylib::util.
-    		
-    Other .cpp/.h files correspond to supported file formats.
-    Each of these .cpp files contains basic info about the format
-    in constructor of struct FormatInfo. Each header files includes a note 
-    what the implementation is based on (i.e. what documentation was available
-    to a developer). In some cases a format is described in .cpp file (above
-    load_data() method).
-
-	
-xyconv.cpp
-    A user tool with arguments to convert xylib-supported file to ASCII file.
-	
-samples/
-    run get_samples.sh to download sample files
-
-samples.sh
-     Shell script that converts all of the sample files in ./sample 
-     to ASCII plain format in ./output
-
-	
-USAGE
-=====
-See xylib/xylib.h for library API
-xyconv is a simple converting program and an example how to use the library
-
+To add a new filetype: 
+* go to xylib/ subdirectory
+* write new_format.cpp and .h files
+* #include new_format.h file in xylib.cpp
+* add an entry to formats[] array in xylib.cpp
+* add new_format.cpp and .h files to Makefile.am
 
 AUTHORS
 =======
-Peng ZHANG (zhangpengcas gmail com)
-Marcin Wojdyr (wojdyr gmail com)
+Peng ZHANG <zhangpengcas@gmail.com>
+Marcin Wojdyr <wojdyr@gmail.com>
 
 
 CONTACT
@@ -85,18 +74,20 @@ Feel free to send e-mail to the authors, or to the fityk-devel mailing list:
 https://lists.sourceforge.net/lists/listinfo/fityk-devel
 
 
-THANKS 
-======
-(from original xylib)
-First of all, I'd like to thank my mentor Marcin Wojdyr for his careful and in-time mentoring during the whole project process. He spent lots of time to review my code and gave me many good suggestions about the library design and implementation.
-I'd like to thank Google for hosting the GSoC project to promote the Open Source Software in the globe. 
-Thanks to Michael Richardson <michael.richardson@vuw.ac.nz>, for his kind help to send us a specification of VAMAS format and some sample files, and suggestions for the JCAMP-DX paper download URL.
-Thanks to David Hovis <dbh6@case.edu>, for sending us a WinSpec file format specification and the sample file.
-Thanks to Pablo Bianucci <pbian@physics.utexas.edu>, for sending us a WinSpec implentation source code and an SPE sample file.
-Thanks to Brian H. Toby <Brian.Toby@anl.gov>, for his useful info and suggestions about the pdCIF format.
-Thanks to Martijn Fransen <martijn.fransen@panalytical.com>, for sending us a very useful specification on Philips raw formats.
-And thanks to all people who have helped me and gave suggestions to the xylib project. 
+CREDITS
+=======
+* The library was started as Google Summer of Code 2007 project by Peng ZHANG,
+mentored by Marcin Wojdyr from Fityk organization.
 
-(added by MW)
-Vincent Favre-Nicolin - info about PSI_DMC and ILL_D1A5 formats
+* Michael Richardson <michael.richardson@vuw.ac.nz> provided VAMAS 
+  specification and sample files.
+* David Hovis <dbh6@case.edu> provided a WinSpec file format specification 
+  and sample files.
+* Pablo Bianucci <pbian@physics.utexas.edu> provided his code for reading 
+  WinSpec format and sample files.
+* Brian H. Toby <Brian.Toby@anl.gov> suggested adding pdCIF format.
+* Martijn Fransen <martijn.fransen@panalytical.com> provided very useful 
+  specifications of Philips formats.
+* Vincent Favre-Nicolin provided PSI_DMC and ILL_D1A5 samples; reading his
+  ObjCryst library was also helpful.
 
