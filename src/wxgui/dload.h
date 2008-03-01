@@ -47,8 +47,6 @@ protected:
     void OnOpenNew (wxCommandEvent& event);
     void OnClose (wxCommandEvent& event);
     void on_path_change();
-    void on_filter_change();
-    void enable_text_options(bool is_text);
     void OnPathSelectionChanged(wxTreeEvent&) { on_path_change(); }
     void OnPathTextChanged(wxCommandEvent&);
     void update_text_preview();

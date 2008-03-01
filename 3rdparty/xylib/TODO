@@ -2,6 +2,7 @@
 * is Rigaku RIG the same as rigaku_dat?   
 * add rigaku_dat sample files
 * implement GSAS format (see gsas.cpp for comments) 
-* PANalytical's XRDML
+* PANalytical XRDML
 * consider adding JCAMP format (Standard NMR Data Format)
+* support for gzipped and bzip2-ed files
 

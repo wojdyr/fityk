@@ -26,13 +26,23 @@ fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 		dataedit.cpp dataedit.h defmgr.cpp defmgr.h \
 		setdlg.cpp setdlg.h print.cpp print.h sdebug.cpp sdebug.h \
 		plot.cpp plot.h aplot.cpp aplot.h mplot.cpp mplot.h \
+		uplot.cpp uplot.h \
 		dialogs.cpp dialogs.h frame.cpp frame.h app.cpp app.h
 
 AM_CPPFLAGS = @WX_CPPFLAGS@ @CPPFLAGS_3RDPARTY@ $(HELP_DEF)
 AM_CXXFLAGS = @WX_CXXFLAGS_ONLY@ 
-LDADD = ../libfityk.la @XYLIB_LDADD@ @WX_LIBS@ $(ms_win_res)
+LDADD = ../libfityk.la @WX_LIBS@ $(ms_win_res)
 
 
 inputline: sample_inputline.cpp inputline.cpp inputline.h callback.h
 	`wx-config --cxx` `wx-config --cxxflags` -g -Wall -W -O0 -o $@ $< inputline.cpp `wx-config --libs`
+
+xyConvert: xybrowser.cpp cmn.cpp cmn.h uplot.cpp uplot.h
+	$(CXX) -o $@ $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \
+	-DXYCONVERT \
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+	xybrowser.cpp cmn.cpp uplot.cpp ../.libs/libfityk.a \
+	../../3rdparty/xylib/xylib/.libs/libxy.a @WX_LIBS@ $(LIBS)
+
 

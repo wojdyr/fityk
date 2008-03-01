@@ -7,15 +7,23 @@ know what to do, there is a list of ideas at the end of this file.
 
 // * GUI: save (and load) cmd line history to ~/.fityk/history
 
+* export all datasets to one data file: @* (...) ...
+* GUI: file dialog with title "Write n-column TSV"
+
 * make stand-alone converter utility that uses xylib and wx >= 2.9,
   built explicitely by "make xyConvert" in src/wxgui/
 
 * make separate package for xylib and don't use the one in 3rdparty/ if the 
   the flag --disable-3rdparty is given
 
-* use html manual (in default system browser) instead of htb
-  (install doc/fitykhelp.html doc/*.css doc/fitykhelp_img/
-   without doc/fitykhelp_img/Makefile*)
+// * use html manual (in default system browser) instead of htb
+//   (install doc/fitykhelp.html doc/*.css doc/fitykhelp_img/)
+
+// * from gentoo package: src/Makefile.in: +libfityk_la_LIBADD = @XYLIB_LDADD@
+
+* printing: it doesn't look good now (too thin lines, too small labels, ...)
+
+* wxWidgets: on wxGTK 2.9 wxChoice on toolbar is not visible
 
 --------------> 2.8.5
 
@@ -25,10 +33,6 @@ know what to do, there is a list of ideas at the end of this file.
        a clean interface to XOR-drawing 
 
 --------------> 2.9
-
-* printing: it doesn't look good now (too thin lines, too small labels, ...)
-
-* GUI: on wxGTK 2.9 function choice on toolbar is not visible
 
 * configure.ac: 
   --enable-samples-install  Install samples as documentation 
@@ -59,10 +63,6 @@ know what to do, there is a list of ideas at the end of this file.
 
 * BUG, parsing problem: "i $a*$a" => Syntax error; "i 0+$a*$a" => OK
 
-* export multiple datasets to one data file
-* (?)exporting data with info "info @n () [range] > file"
-  if not redirected, should display ... [1234 lines more] rather than all lines
-
 * GUI: buttons on sidebar>functions that make hwhm and shape equal
   for all functions (F[hwhm]=...; F[shape]=...) or independent.
   buttons should be active only when it's possible
@@ -83,6 +83,9 @@ know what to do, there is a list of ideas at the end of this file.
 * fitting with constrained parameters
 
 ------------------ 
+
+* (?)exporting data with info (i.e. "info @n () [range] > file")
+  if not redirected, should display ... [1234 lines more] rather than all lines
 
 * GUI: script editor: button to change directories in absolute filenames
 

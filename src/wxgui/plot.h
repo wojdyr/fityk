@@ -9,6 +9,10 @@
 #include <vector>
 #include <wx/config.h>
 #include "../data.h" //Point
+#include "uplot.h" //BufferedPanel
+
+// convention: lowercase coordinates of point are real values,
+// and uppercase ones are coordinates of point on screen (integers).
 
 // INT_MIN, given as coordinate, is invalid value, means "cancel drawing"
 
@@ -20,66 +24,6 @@ enum MouseActEnum  { mat_start, mat_stop, mat_move, mat_redraw };
 
 void draw_line_with_style(wxDC& dc, int style, 
                           wxCoord X1, wxCoord Y1, wxCoord X2, wxCoord Y2);
-
-// convention here: lowercase coordinates of point are real values,
-// and uppercase ones are coordinates of point on screen (integers).
-
-
-#if 0
-class Canvas
-{
-public:
-    wxDC &w;
-    bool monochrome;
-
-    fDC(wxDC &w_) : w(w_), monochrome(false) {}
-    int get_pixel_width() const;
-    int get_pixel_height() const;
-    void use_subcanvas(int X, int Y, int width, int height);
-        //dc->SetClippingRegion(X, Y, width, height);
-        //dc->SetDeviceOrigin(X, Y);
-        //p_width = width;
-        //p_height = height;
-    void use_all();
-        //dc->DestroyClippingRegion();
-        //dc->SetDeviceOrigin(0, 0);
-        //p_width = 0;
-        //p_height = 0;
-private:
-    int p_width;
-    int p_height;
-};
-#endif
-
-/// wxPanel with associated bitmap buffer, used for drawing plots
-/// refresh() must be called when data is changed
-/// BufferedPanel checks if size of the plot was changed and refreshes
-/// plot automatically.
-class BufferedPanel : public wxPanel
-{
-public:
-    BufferedPanel(wxWindow *parent)
-       : wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize, 
-                 wxNO_BORDER|wxFULL_REPAINT_ON_RESIZE) {}
-    /// to be called when content of the panel is changed
-    void refresh(bool now=false);
-    /// called from wxPaint event handler
-    void buffered_draw();
-    /// no need to call it explicitely
-    void clear();
-    /// plotting function called to refresh buffer
-    virtual void draw(wxDC &dc, bool monochrome=false) = 0;
-
-protected:
-    wxColour backgroundCol;
-
-private:
-    wxMemoryDC memory_dc;
-    wxBitmap buffer;
-
-    bool resize_buffer(wxDC &dc);
-    void clear_and_draw();
-};
 
 
 /// convertion between pixels and logical values
@@ -209,9 +153,6 @@ protected:
 
 inline wxColour invert_colour(const wxColour& col)
 { return wxColour(255 - col.Red(), 255 - col.Green(), 255 - col.Blue()); }
-
-std::vector<double> scale_tics_step (double beg, double end, int max_tics, 
-                                 std::vector<double> &minors, bool log=false);
 
 #endif 
 

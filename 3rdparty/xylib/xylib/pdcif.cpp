@@ -21,7 +21,7 @@ namespace xylib {
 
 const FormatInfo PdCifDataSet::fmt_info(
     "pdcif",
-    "The Crystallographic Information File for Powder Diffraction",
+    "Powder Diffraction CIF",
     vector<string>(1, "cif"),
     false,                      // not binary
     true,                       // multi-blocks

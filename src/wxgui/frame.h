@@ -7,7 +7,7 @@
 
 #include <list>
 #include <wx/spinctrl.h>
-#include <wx/help.h>
+
 #include <wx/filename.h>
 #include "cmn.h"  // Output_style_enum
 #include "../common.h" //s2wx
@@ -177,7 +177,6 @@ public:
     void edit_in_input(std::string const& s);
     void set_status_text(std::string const& text, StatusBarField field=sbf_text)
             { if (status_bar) SetStatusText(s2wx(text), field); }
-    bool display_help_section(std::string const& s);
     void after_cmd_updates();
     void update_toolbar();
     void update_autoadd_enabled();
@@ -213,7 +212,6 @@ protected:
     FToolBar *toolbar;
     ProportionalSplitter *v_splitter;
     PrintManager* print_mgr;
-    wxHelpController help;
     std::string last_include_path;
     std::list<wxFileName> recent_data_files;
     wxMenu *data_menu_recent, *data_ft_menu, *func_type_menu;

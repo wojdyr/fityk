@@ -32,7 +32,7 @@ For API description, see: xylib/xylib.h file.
 NOTES
 =====
 This is a version of xylib integrated with fityk.
-Original (older) version of xylib see is here: http://www.sf.net/projects/xylib
+Original (older) version of xylib is at http://www.sf.net/projects/xylib
 
 Filetype samples are not distributed with the library, but there is a script
 samples/get_samples.sh that tries to download them from Internet.
@@ -41,9 +41,11 @@ See the script for more info.
 The library includes a tiny program xyconv, which converts from any file 
 supported by xylib to TSV.
 
-xylib is used by fityk (since version 0.8.3).
-	
-	
+xylib is used by: 
+* fityk (http://www.unipress.waw.pl/fityk)
+* xyConvert (a small program for converting files, distributed with fityk)
+
+
 HOW TO ADD A NEW FORMAT
 =======================
 Please contact us first, see: CONTACT 
@@ -52,8 +54,8 @@ Each .cpp/.h file pair in xylib/ (excluding xylib.* and util.*) corresponds
 to one supported filetype.  Each of these .cpp files contains basic info 
 about the format in constructor of struct FormatInfo. Each header files 
 includes a note what the implementation is based on (i.e. what documentation 
-was available to a developer). In some cases the format is described in .cpp 
-file (above load_data() method).
+was available to developers). In some cases the format is described in .cpp 
+file.
 
 To add a new filetype: 
 * go to xylib/ subdirectory
@@ -67,7 +69,6 @@ AUTHORS
 Peng ZHANG <zhangpengcas@gmail.com>
 Marcin Wojdyr <wojdyr@gmail.com>
 
-
 CONTACT
 =======
 Feel free to send e-mail to the authors, or to the fityk-devel mailing list:
@@ -77,8 +78,7 @@ https://lists.sourceforge.net/lists/listinfo/fityk-devel
 CREDITS
 =======
 * The library was started as Google Summer of Code 2007 project by Peng ZHANG,
-mentored by Marcin Wojdyr from Fityk organization.
-
+  mentored by Marcin Wojdyr from Fityk organization.
 * Michael Richardson <michael.richardson@vuw.ac.nz> provided VAMAS 
   specification and sample files.
 * David Hovis <dbh6@case.edu> provided a WinSpec file format specification 
@@ -90,4 +90,6 @@ mentored by Marcin Wojdyr from Fityk organization.
   specifications of Philips formats.
 * Vincent Favre-Nicolin provided PSI_DMC and ILL_D1A5 samples; reading his
   ObjCryst library was also helpful.
+* long time ago, before this project started, Janos Vegh sent us his VAMAS
+  reading routines.
 

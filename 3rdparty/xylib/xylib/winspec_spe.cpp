@@ -13,7 +13,7 @@ namespace xylib {
 
 const FormatInfo WinspecSpeDataSet::fmt_info(
     "spe",
-    "Princeton Instruments WinSpec SPE Format",
+    "Princeton Instruments WinSpec",
     vector<string>(1, "spe"),
     true,                       // whether binary
     true,                       // whether has multi-blocks

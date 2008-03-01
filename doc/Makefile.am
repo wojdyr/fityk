@@ -1,11 +1,11 @@
 # $Id$
 
-dist_pkgdata_DATA = fitykhelp.htb 
+dist_pkgdata_DATA = fitykhelp.html html.css 
 dist_man_MANS = fityk.1
-EXTRA_DIST = fitykhelp.xml hh-mod.xsl fitykhelp.html html.css fo.xsl
+EXTRA_DIST = fitykhelp.xml hh-mod.xsl fo.xsl
 SUBDIRS = fitykhelp_img
 
-all: fitykhelp.htb fitykhelp.html
+all: fitykhelp.html
 
 fitykhelp.htb: $(srcdir)/fitykhelp.xml 
 	rm -rf fh_tmp/
@@ -26,8 +26,8 @@ html-chunks:
 
 # Apache FOP in needed, setting JAVA_HOME may be necessary
 #JAVA_HOME=/usr/lib/j2re1.5-sun
-# sed is used to make the images smaller in pdf (recommended :))
-# pdftk is used to get rid of 2nd and 3rd page (optional :))
+# sed is used to make the images in pdf smaller (recommended)
+# pdftk is used to get rid of 2nd and 3rd page (to save trees, optional)
 fitykhelp.pdf: fitykhelp.xml fo.xsl
 	sed -e 's/\.png"\/>/\.png" scale="66.66"\/>/g' fitykhelp.xml >fitykhelp_.xml
 	xmlto -m $(srcdir)/fo.xsl fo $(srcdir)/fitykhelp_.xml

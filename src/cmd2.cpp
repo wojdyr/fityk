@@ -109,6 +109,10 @@ void do_export_dataset(char const*, char const*)
 {
     vector<string> const& ff_names = AL->get_sum(tmp_int)->get_ff_names();
     AL->get_data(tmp_int)->export_to_file(t, vt, ff_names); 
+
+    // expand *F here
+    // Data::export_to_file -> Data::get_columns(vt, &columns)
+    // in get_columns: check if first column is the same as columns[0]
 }
 
 void do_append_data(char const*, char const*)

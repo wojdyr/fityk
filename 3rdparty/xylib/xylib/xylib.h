@@ -59,7 +59,10 @@ struct FormatInfo
     bool check(std::istream& f) const { return !checker || (*checker)(f); }
 };
 
+/// NULL-terminated array of all supported filetypes
 extern const FormatInfo *formats[];
+
+const FormatInfo* get_format(int n);
 
 
 /// unexpected format, unexpected EOF, etc
@@ -208,7 +211,7 @@ FormatInfo const* guess_filetype(std::string const& path);
 FormatInfo const* string_to_format(std::string const& format_name);
 
 /// return wildcard for file dialog in format:
-/// "All Files (*)|*|ASCII X Y Files (*)|*|Sietronics Sieray CPI (*.cpi)|*.cpi"
+/// "ASCII X Y Files (*)|*|Sietronics Sieray CPI (*.cpi)|*.cpi"
 std::string get_wildcards_string(std::string const& all_files="*");
 
 } // namespace xylib

@@ -60,6 +60,12 @@ bool FormatInfo::has_extension(const std::string &ext) const
            || find(exts.begin(), exts.end(), lower_ext) != exts.end();
 }
 
+const FormatInfo* get_format(int n)
+{
+    if (n < 0 || n > sizeof(formats) / sizeof(formats[0]))
+        throw RunTimeError("Format index out of range: " + S(n));
+    return formats[n];
+}
 //////////////////////////////////////////////////////////////////////////
 
 string const& MetaData::get(string const& key) const

@@ -5,7 +5,7 @@ lib_LTLIBRARIES = libfityk.la
 
 libfityk_la_LDFLAGS = @LIBRARY_VERSION_FLAG@
 libfityk_la_CPPFLAGS = @CPPFLAGS_3RDPARTY@ 
-
+libfityk_la_LIBADD = @XYLIB_LDADD@
 
 libfityk_la_SOURCES = logic.cpp view.cpp cmd3.cpp cmd2.cpp cmd.cpp common.cpp \
 		 var.cpp mgr.cpp func.cpp bfunc.cpp calc.cpp ast.cpp \

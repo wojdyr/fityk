@@ -27,6 +27,10 @@
 #include <wx/metafile.h>
 #include <wx/dir.h>
 #include <wx/mstream.h>
+#ifdef __WXMSW__
+# include <wx/help.h>
+#endif
+
 
 #ifdef __WXMAC__
 # include <wx/version.h>
@@ -358,14 +362,7 @@ END_EVENT_TABLE()
 FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title, 
                  const long style)
     : wxFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, style), 
-      main_pane(0), sidebar(0), status_bar(0), 
-      toolbar(0), 
-#ifdef __WXMSW__
-      help()
-#else //wxHtmlHelpController
-      help(wxHF_TOOLBAR|wxHF_CONTENTS|wxHF_SEARCH|wxHF_BOOKMARKS|wxHF_PRINT
-           |wxHF_MERGE_BOOKS)
-#endif
+      main_pane(0), sidebar(0), status_bar(0), toolbar(0) 
 {
     const int default_peak_nr = 7; // Gaussian
     peak_type_nr = wxConfig::Get()->Read(wxT("/DefaultFunctionType"), 
@@ -401,10 +398,6 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     sizer->SetSizeHints(this);
 
     print_mgr = new PrintManager(plot_pane);
-
-    string help_path = get_full_path_of_help_file("fitykhelp.htb"); 
-    string help_path_no_exten = help_path.substr(0, help_path.size() - 4);
-    help.Initialize(s2wx(help_path_no_exten));
 
     update_menu_functions();
     update_menu_fast_tranforms();
@@ -833,12 +826,18 @@ void FFrame::update_menu_previous_zooms()
 
 void FFrame::OnShowHelp(wxCommandEvent&)
 {
-        help.DisplayContents();
-}
-
-bool FFrame::display_help_section(const string &s)
-{
-    return help.DisplaySection(s2wx(s));
+#ifdef __WXMSW__
+    wxHelpController help;
+    wxString help_path = get_full_path_of_help_file(wxT("fitykhelp.chm")); 
+    help.Initialize(help_path);
+    help.DisplayContents();
+#else
+    wxString help_path = get_full_path_of_help_file(wxT("fitykhelp.html")); 
+    bool r = wxLaunchDefaultBrowser(help_path);
+    if (!r)
+        wxMessageBox(wxT("Can't open browser.\n Manual is here:\n") + help_path,
+                     wxT("Manual"), wxOK|wxICON_INFORMATION);
+#endif
 }
 
 void FFrame::OnAbout(wxCommandEvent&)

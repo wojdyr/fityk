@@ -544,9 +544,9 @@ void DataEditorDlg::execute_tranform(string code)
     ftk->exec(t);
 }
 
-void DataEditorDlg::OnHelp (wxCommandEvent&)
+void DataEditorDlg::OnHelp (wxCommandEvent& event)
 {
-    frame->display_help_section("Data transformations");
+    frame->OnShowHelp(event);
 }
 
 void DataEditorDlg::OnClose (wxCommandEvent&)

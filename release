@@ -157,15 +157,18 @@ elif [ $1 -eq 6 ]; then
  cp fityk.iss ../fityk.url ../COPYING ../TODO ../NEWS $ALL_WIN_FILES
  cp src/wxgui/fityk.exe $ALL_WIN_FILES/src
  cp -r ../samples $ALL_WIN_FILES
+ cd doc
+ make fitykhelp.htb
+ cd ..
  if [ -a doc/fitykhelp.htb ]; then
-	 unzip doc/fitykhelp.htb -d $ALL_WIN_FILES/doc
+     unzip doc/fitykhelp.htb -d $ALL_WIN_FILES/doc
  else
-	 unzip ../doc/fitykhelp.htb -d $ALL_WIN_FILES/doc
+     echo can not make doc/fitykhelp.htb
+     exit
  fi
  # use default fonts in HTML Help
  egrep -v font $ALL_WIN_FILES/doc/html.css > tmp_html.css
  mv -f tmp_html.css $ALL_WIN_FILES/doc/html.css
- # i had problems making hhp working under wine
  echo '"C:\Program Files\HTML Help Workshop\hhc.exe" doc\htmlhelp.hhp' \
 					    >$ALL_WIN_FILES/build_help.cmd
  echo 'ren doc\htmlhelp.chm fitykhelp.chm' >>$ALL_WIN_FILES/build_help.cmd
