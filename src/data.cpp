@@ -243,7 +243,10 @@ void apply_operation(vector<Point> &pp, string const& op)
 
 void Data::load_data_sum(vector<Data const*> const& dd, string const& op)
 {
-    assert(!dd.empty());
+    if (dd.empty()) {
+        clear();
+        return;
+    }
     // dd can contain this, we can't change p or title in-place.
     std::vector<Point> new_p;
     string new_title = dd[0]->get_title();
@@ -519,46 +522,5 @@ int Data::get_upper_bound_ac (fp x) const
 vector<Point>::const_iterator Data::get_point_at(fp x) const
 {
     return lower_bound (p.begin(), p.end(), Point(x,0));
-}
-
-void Data::export_to_file(string filename, vector<string> const& vt, 
-                          vector<string> const& ff_names,
-                          bool append) 
-{
-    ofstream os(filename.c_str(), ios::out | (append ? ios::app : ios::trunc));
-    if (!os) {
-        F->warn("Can't open file: " + filename);
-        return;
-    }
-    os << "# " << title << endl;
-    vector<string> cols;
-    if (vt.empty()) {
-        cols.push_back("x");
-        cols.push_back("y");
-        cols.push_back("s");
-    }
-    else {
-        for (vector<string>::const_iterator i=vt.begin(); i != vt.end(); ++i) 
-            if (startswith(*i, "*F")) {
-                for (vector<string>::const_iterator j = ff_names.begin(); 
-                                                    j != ff_names.end(); ++j)
-                    cols.push_back("%" + *j + string(*i, 2));
-            }
-            else
-                cols.push_back(*i);
-    }
-    os << join_vector(cols, "\t") << "\t#exported by fityk " VERSION << endl;
-
-    vector<vector<fp> > r;
-    bool only_active = !contains_element(vt, "a");
-    for (vector<string>::const_iterator i = cols.begin(); i != cols.end(); ++i) 
-        r.push_back(get_all_point_expressions(*i, this, only_active));
-
-    size_t nc = cols.size();
-    for (size_t i = 0; i != r[0].size(); ++i) {
-        for (size_t j = 0; j != nc; ++j) {
-            os << r[j][i] << (j < nc-1 ? '\t' : '\n'); 
-        }
-    }
 }
 

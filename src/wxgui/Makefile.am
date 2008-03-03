@@ -37,12 +37,12 @@ LDADD = ../libfityk.la @WX_LIBS@ $(ms_win_res)
 inputline: sample_inputline.cpp inputline.cpp inputline.h callback.h
 	`wx-config --cxx` `wx-config --cxxflags` -g -Wall -W -O0 -o $@ $< inputline.cpp `wx-config --libs`
 
-xyConvert: xybrowser.cpp cmn.cpp cmn.h uplot.cpp uplot.h
+xyConvert: xybrowser.cpp uplot.cpp uplot.h
 	$(CXX) -o $@ $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \
 	-DXYCONVERT \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
-	xybrowser.cpp cmn.cpp uplot.cpp ../.libs/libfityk.a \
+	xybrowser.cpp uplot.cpp ../.libs/libfityk.a \
 	../../3rdparty/xylib/xylib/.libs/libxy.a @WX_LIBS@ $(LIBS)
 
 

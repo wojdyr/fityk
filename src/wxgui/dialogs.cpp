@@ -434,7 +434,10 @@ DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id,
     choices.Add(wxT("x, y, sigma, sum"));
     cv.Add(wxT("x, y, s, ") + s2wx(ds) + wxT(".F(x)"));
     choices.Add(wxT("x, y, sigma, sum, all functions..."));
+    //TODO:
+    //vector<string> const& ff_names = AL->get_sum(tmp_int)->get_ff_names();
     cv.Add(wxT("x, y, s, ") + s2wx(ds) + wxT(".F(x), *F(x)"));
+
     choices.Add(wxT("x, y, sigma, sum, residual"));
     cv.Add(wxT("x, y, s, ") + s2wx(ds) + wxT(".F(x), y-") + s2wx(ds) 
             + wxT(".F(x)"));

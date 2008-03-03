@@ -160,6 +160,8 @@ public:
     // if load_data() supports options, set it before it's called
     std::vector<std::string> options;
 
+    MetaData meta; /// meta-data
+
     // ctor is protected
     virtual ~DataSet();
 
@@ -172,16 +174,12 @@ public:
     /// read data from file
     virtual void load_data(std::istream &f) = 0;
 
-    // delete all data stored in this class (use only if you want to 
-    // call load_data() more than once)
+    /// delete all data stored in this class (use only if you want to 
+    /// call load_data() more than once)
     void clear();
-
-    /// export to text file
-    void export_plain_text(std::string const& fname) const; 
 
 protected:
     std::vector<Block*> blocks;
-    MetaData meta;
 
     DataSet(FormatInfo const* fi_);
 

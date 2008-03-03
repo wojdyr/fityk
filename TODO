@@ -7,7 +7,12 @@ know what to do, there is a list of ideas at the end of this file.
 
 // * GUI: save (and load) cmd line history to ~/.fityk/history
 
-* export all datasets to one data file: @* (...) ...
+//* export all datasets to one data file: @* (...) ...
+
+// * (?)exporting data with info (i.e. "info @n () [range] > file")
+// if not redirected, should display ... [...more] rather than all lines
+
+
 * GUI: file dialog with title "Write n-column TSV"
 
 * make stand-alone converter utility that uses xylib and wx >= 2.9,
@@ -23,8 +28,6 @@ know what to do, there is a list of ideas at the end of this file.
 
 * printing: it doesn't look good now (too thin lines, too small labels, ...)
 
-* wxWidgets: on wxGTK 2.9 wxChoice on toolbar is not visible
-
 --------------> 2.8.5
 
 * add crystallographic module/extension 
@@ -33,6 +36,8 @@ know what to do, there is a list of ideas at the end of this file.
        a clean interface to XOR-drawing 
 
 --------------> 2.9
+
+* wxWidgets: on wxGTK 2.9 wxChoice on toolbar is not visible
 
 * configure.ac: 
   --enable-samples-install  Install samples as documentation 
@@ -83,9 +88,6 @@ know what to do, there is a list of ideas at the end of this file.
 * fitting with constrained parameters
 
 ------------------ 
-
-* (?)exporting data with info (i.e. "info @n () [range] > file")
-  if not redirected, should display ... [1234 lines more] rather than all lines
 
 * GUI: script editor: button to change directories in absolute filenames
 

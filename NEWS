@@ -1,5 +1,17 @@
 $Id$
 
+User-visible changes in version 0.8.5  (2008-03-  ):
+* minor changes in syntax: 
+    info @0             ->   info data in @0
+    info @0.title       ->   info title in @0
+    info @0.filename    ->   info filename in @0
+    @0.title = abc      ->   set @0.title = abc
+    @+                  ->   @+ = 0
+    @0.revert           ->   @0 < .
+   data is exported with "info" now: 
+      info @n ( expr1, ... ) > filename
+      other changes: columns have to be given, @* can be used and *F() can not.
+
 User-visible changes in version 0.8.4  (2008-02-15):
 * xylib: pdCIF format was added
 

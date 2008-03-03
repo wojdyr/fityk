@@ -171,12 +171,6 @@ struct CmdGrammar : public grammar<CmdGrammar>
         static const int minus_one = -1;
         static const char *empty = "";
 
-        compact_str
-            = lexeme_d['\'' >> (+~ch_p('\''))[assign_a(t)] 
-                       >> '\'']
-            | lexeme_d[+chset<>(anychar_p - chset<>(" \t\n\r;,"))] [assign_a(t)]
-            ;
-
         assign_var 
             = VariableLhsG [assign_a(t)]
                       >> '=' >> no_actions_d[FuncG] [&do_assign_var]
@@ -264,7 +258,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
         temporary_set 
             = optional_suffix_p("w","ith") 
               >> ((+(lower_p | '-'))[assign_a(t2)]
-                  >> '=' >> compact_str[&do_temporary_set]
+                  >> '=' >> CompactStrG[&do_temporary_set]
                  ) % ','
             ;
 
@@ -299,7 +293,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
     rule<ScannerT> assign_var, type_name, func_id, new_func_rhs, assign_func, 
                    function_param, subst_func_param, 
                    assign_fz, remove_from_fz, define_func,
-                   ds_prefix, compact_str, temporary_set, statement, multi;  
+                   ds_prefix, temporary_set, statement, multi;  
 
     rule<ScannerT> const& start() const { return multi; }
   };

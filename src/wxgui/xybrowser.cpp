@@ -13,29 +13,68 @@
 #include <wx/filepicker.h>
 #include <wx/filename.h>
 #include <wx/cmdline.h>
-#include <wx/statline.h>
+//#include <wx/statline.h>
+#include <wx/splitter.h>
+#include <wx/spinctrl.h>
 
 #include <xylib/xylib.h>
 
-#include "cmn.h"
 #include "plot.h" // BufferedPanel, scale_tics_step()
+
+
+//#include "cmn.h"
+// --------- copied from cmn.h
+class SpinCtrl: public wxSpinCtrl
+{
+public:
+    SpinCtrl(wxWindow* parent, wxWindowID id, int val, 
+             int min, int max, int width=50)
+        : wxSpinCtrl (parent, id, wxString::Format(wxT("%i"), val),
+                      wxDefaultPosition, wxSize(width, -1), 
+                      wxSP_ARROW_KEYS, min, max, val) 
+    {}
+};
+
+inline wxString pchar2wx(char const* pc)
+{
+    return wxString(pc, wxConvUTF8);
+}
+
+inline std::string wx2s(wxString const& w) 
+{ 
+    return std::string((const char*) w.mb_str(wxConvUTF8)); 
+}
+
+void updateControlWithItems(wxControlWithItems *cwi, 
+                            std::vector<std::string> const& v)
+{
+    if (v.size() != (size_t) cwi->GetCount()) {
+        cwi->Clear();
+        for (size_t i = 0; i < v.size(); ++i)
+            cwi->Append(v[i]);
+    }
+    else
+        for (size_t i = 0; i < v.size(); ++i)
+            if (cwi->GetString(i) != v[i])
+                cwi->SetString(i, v[i]);
+}
+
+
+// --------- end
+
 
 using namespace std;
 
 enum {
-    ID_DXLOAD_STDDEV_CB     =22200,
-    ID_DXLOAD_BLOCK               ,
-    ID_DXLOAD_COLX                ,
-    ID_DXLOAD_COLY                ,
-    ID_DXLOAD_SDS                 ,
-    ID_DXLOAD_HTITLE              ,
-    ID_DXLOAD_AUTO_TEXT           ,
-    ID_DXLOAD_AUTO_PLOT           ,
-    ID_DXLOAD_OPENHERE            ,
-    ID_DXLOAD_OPENNEW             ,
-    ID_DXLOAD_FN                  
+    ID_STDDEV_CB     =22200,
+    ID_BLOCK               ,
+    ID_COLX                ,
+    ID_COLY                ,
+    ID_SDS                 ,
+    ID_HTITLE              ,
+    ID_AUTO_TEXT           ,
+    ID_AUTO_PLOT           ,
 };
-
 
 class PreviewPlot : public BufferedPanel
 {
@@ -115,7 +154,7 @@ void PreviewPlot::draw(wxDC &dc, bool)
         = scale_tics_step(xcol.get_min(), xcol.get_max(np), 4, minors);
     for (vector<double>::const_iterator i = tics.begin(); i != tics.end(); ++i){
         int X = getX(*i);
-        wxString label = s2wx(S(*i));
+        wxString label = S(*i);
         wxCoord tw, th;
         dc.GetTextExtent (label, &tw, &th);
         int Y = dc.DeviceToLogicalY(H - th - 2);
@@ -124,15 +163,15 @@ void PreviewPlot::draw(wxDC &dc, bool)
     }
     if (!xcol.name.empty()) {
         wxCoord tw, th;
-        dc.GetTextExtent (s2wx(xcol.name), &tw, &th);
-        dc.DrawText (s2wx(xcol.name), (W - tw)/2, 2);
+        dc.GetTextExtent (xcol.name, &tw, &th);
+        dc.DrawText (xcol.name, (W - tw)/2, 2);
     }
 
     // ... vertical
     tics = scale_tics_step(ycol.get_min(), ycol.get_max(np), 4, minors);
     for (vector<double>::const_iterator i = tics.begin(); i != tics.end(); ++i){
         int Y = getY(*i);
-        wxString label = s2wx(S(*i));
+        wxString label = S(*i);
         wxCoord tw, th;
         dc.GetTextExtent (label, &tw, &th);
         dc.DrawText (label, dc.DeviceToLogicalX(5), Y - th/2);
@@ -140,8 +179,8 @@ void PreviewPlot::draw(wxDC &dc, bool)
     }
     if (!ycol.name.empty()) {
         wxCoord tw, th;
-        dc.GetTextExtent (s2wx(ycol.name), &tw, &th);
-        dc.DrawRotatedText (s2wx(ycol.name), W - 2, (H - tw)/2, 270);
+        dc.GetTextExtent (ycol.name, &tw, &th);
+        dc.DrawRotatedText (ycol.name, W - 2, (H - tw)/2, 270);
     }
 
     // draw data
@@ -183,7 +222,7 @@ void PreviewPlot::load_dataset(string const& filename,
 
 
 
-class XyFileBrowser : public ProportionalSplitter
+class XyFileBrowser : public wxSplitterWindow
 {
 public:
     XyFileBrowser(wxWindow* parent, wxWindowID id);
@@ -228,18 +267,18 @@ private:
     DECLARE_EVENT_TABLE()
 };
 
-BEGIN_EVENT_TABLE(XyFileBrowser, ProportionalSplitter)
-    EVT_CHECKBOX    (ID_DXLOAD_STDDEV_CB, XyFileBrowser::OnStdDevCheckBox)
-    EVT_CHECKBOX    (ID_DXLOAD_AUTO_TEXT, XyFileBrowser::OnAutoTextCheckBox)
-    EVT_CHECKBOX    (ID_DXLOAD_AUTO_PLOT, XyFileBrowser::OnAutoPlotCheckBox)
-    EVT_SPINCTRL    (ID_DXLOAD_COLX,      XyFileBrowser::OnColumnChanged)
-    EVT_SPINCTRL    (ID_DXLOAD_COLY,      XyFileBrowser::OnColumnChanged)
-    EVT_CHOICE      (ID_DXLOAD_BLOCK,     XyFileBrowser::OnBlockChanged)
+BEGIN_EVENT_TABLE(XyFileBrowser, wxSplitterWindow)
+    EVT_CHECKBOX    (ID_STDDEV_CB, XyFileBrowser::OnStdDevCheckBox)
+    EVT_CHECKBOX    (ID_AUTO_TEXT, XyFileBrowser::OnAutoTextCheckBox)
+    EVT_CHECKBOX    (ID_AUTO_PLOT, XyFileBrowser::OnAutoPlotCheckBox)
+    EVT_SPINCTRL    (ID_COLX,      XyFileBrowser::OnColumnChanged)
+    EVT_SPINCTRL    (ID_COLY,      XyFileBrowser::OnColumnChanged)
+    EVT_CHOICE      (ID_BLOCK,     XyFileBrowser::OnBlockChanged)
     EVT_FILECTRL_SELECTIONCHANGED(wxID_ANY, XyFileBrowser::OnPathChanged)
 END_EVENT_TABLE()
 
 XyFileBrowser::XyFileBrowser(wxWindow* parent, wxWindowID id)
-    : ProportionalSplitter(parent, id, 0.5), auto_plot_cb(NULL)
+    : wxSplitterWindow(parent, id), auto_plot_cb(NULL)
 {
     // +----------------------------+
     // |            | rupper_panel  |
@@ -247,10 +286,9 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent, wxWindowID id)
     // |            | rbottom_panel |
     // +----------------------------+
 
+    this->SetSashGravity(0.5);
     wxPanel *left_panel = new wxPanel(this, -1);
     wxBoxSizer *left_sizer = new wxBoxSizer(wxVERTICAL);
-//ProportionalSplitter *right_splitter 
-//        = new ProportionalSplitter(this, -1, 0.5);
     wxSplitterWindow *right_splitter = new wxSplitterWindow(this, -1);
     right_splitter->SetSashGravity(0.5);
     wxPanel *rupper_panel = new wxPanel(right_splitter, -1);
@@ -261,28 +299,28 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent, wxWindowID id)
     // ----- left panel -----
     wxString all(wxFileSelectorDefaultWildcardStr);
     wxString wild = "All Files (" + all + ")|" + all
-                    + "|" + s2wx(xylib::get_wildcards_string());
+                    + "|" + xylib::get_wildcards_string();
     filectrl = new wxFileCtrl(left_panel, -1, wxEmptyString, wxEmptyString,
                               wild, wxFC_OPEN | wxFC_MULTIPLE);
     left_sizer->Add(filectrl, 1, wxALL|wxEXPAND, 5);
 
     // selecting block
-    block_ch = new wxChoice(left_panel, ID_DXLOAD_BLOCK);
+    block_ch = new wxChoice(left_panel, ID_BLOCK);
     left_sizer->Add(block_ch, 0, wxALL|wxEXPAND, 5);
 
     // selecting columns
     wxPanel *columns_panel = new wxPanel (left_panel, -1);
     wxStaticBoxSizer *h2a_sizer = new wxStaticBoxSizer(wxHORIZONTAL, 
-                    columns_panel, wxT("Select columns (0 for point index):"));
+                    columns_panel, wxT("Select columns (0 for point index)"));
     h2a_sizer->Add (new wxStaticText (columns_panel, -1, wxT("x")), 
                     0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    x_column = new SpinCtrl (columns_panel, ID_DXLOAD_COLX, 1, 0, 99, 50);
+    x_column = new SpinCtrl (columns_panel, ID_COLX, 1, 0, 99, 50);
     h2a_sizer->Add (x_column, 0, wxALL|wxALIGN_LEFT, 5);
     h2a_sizer->Add (new wxStaticText (columns_panel, -1, wxT("y")), 
                     0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    y_column = new SpinCtrl (columns_panel, ID_DXLOAD_COLY, 2, 0, 99, 50);
+    y_column = new SpinCtrl (columns_panel, ID_COLY, 2, 0, 99, 50);
     h2a_sizer->Add (y_column, 0, wxALL|wxALIGN_LEFT, 5);
-    std_dev_cb = new wxCheckBox(columns_panel, ID_DXLOAD_STDDEV_CB, 
+    std_dev_cb = new wxCheckBox(columns_panel, ID_STDDEV_CB, 
                                 wxT("std.dev."));
     std_dev_cb->SetValue(false);
     h2a_sizer->Add(std_dev_cb, 0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL,5);
@@ -293,14 +331,14 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent, wxWindowID id)
 
 #if 0
     bool def_sqrt = (ftk->get_settings()->getp("data-default-sigma") == "sqrt");
-    sd_sqrt_cb = new wxCheckBox(left_panel, ID_DXLOAD_SDS, 
+    sd_sqrt_cb = new wxCheckBox(left_panel, ID_SDS, 
                                 wxT("set std. dev. as max(sqrt(y), 1.0)"));
     sd_sqrt_cb->SetValue(def_sqrt);
     left_sizer->Add (sd_sqrt_cb, 0, wxALL|wxEXPAND, 5);
 
     wxStaticBoxSizer *dt_sizer = new wxStaticBoxSizer(wxVERTICAL, 
                                     left_panel, wxT("Data title:"));
-    title_cb = new wxCheckBox(left_panel, ID_DXLOAD_HTITLE, 
+    title_cb = new wxCheckBox(left_panel, ID_HTITLE, 
                               wxT("custom title"));
     dt_sizer->Add(title_cb, 0, wxALL, 5);
     title_tc = new wxTextCtrl(left_panel, -1, wxT(""));
@@ -314,7 +352,7 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent, wxWindowID id)
                                    wxDefaultPosition, wxDefaultSize,
                                    wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
     rupper_sizer->Add(text_preview, 1, wxEXPAND|wxALL, 5);
-    auto_text_cb = new wxCheckBox(rupper_panel, ID_DXLOAD_AUTO_TEXT, 
+    auto_text_cb = new wxCheckBox(rupper_panel, ID_AUTO_TEXT, 
                                   wxT("view the first 64kB of file as text"));
     auto_text_cb->SetValue(false);
     rupper_sizer->Add(auto_text_cb, 0, wxALL, 5);
@@ -322,7 +360,7 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent, wxWindowID id)
     // ----- right bottom panel -----
     plot_preview = new PreviewPlot(rbottom_panel);
     rbottom_sizer->Add(plot_preview, 1, wxEXPAND|wxALL, 5);
-    auto_plot_cb = new wxCheckBox(rbottom_panel, ID_DXLOAD_AUTO_PLOT, 
+    auto_plot_cb = new wxCheckBox(rbottom_panel, ID_AUTO_PLOT, 
                                   wxT("plot"));
     auto_plot_cb->SetValue(true);
     rbottom_sizer->Add(auto_plot_cb, 0, wxALL, 5);
@@ -377,7 +415,7 @@ void XyFileBrowser::update_title_from_file()
 {
     if (title_cb->GetValue()) 
         return;
-    string path = wx2s(filectrl->GetFilePath());
+    string path = filectrl->GetFilePath();
     if (path.empty()) {
         title_tc->Clear();
         return;
@@ -387,7 +425,7 @@ void XyFileBrowser::update_title_from_file()
     int y = y_column->GetValue();
     if (x != 1 || y != 2 || std_dev_cb->GetValue()) 
         title += ":" + S(x) + ":" + S(y);
-    title_tc->SetValue(s2wx(title));
+    title_tc->SetValue(title);
 }
 #endif
 
@@ -489,6 +527,8 @@ class App : public wxApp
 {
 public:
     bool OnInit();
+    void OnConvert(wxCommandEvent&);
+    void OnClose(wxCommandEvent&) { GetTopWindow()->Close(); }
 };
 
 IMPLEMENT_APP(App)
@@ -505,6 +545,7 @@ static const wxCmdLineEntryDesc cmdLineDesc[] = {
 
 bool App::OnInit()
 {
+    //TODO set LC_NUMERIC
     SetAppName(wxT("xyConvert"));
     wxCmdLineParser cmdLineParser(cmdLineDesc, argc, argv);
     if (cmdLineParser.Parse(false) != 0) {
@@ -528,12 +569,15 @@ bool App::OnInit()
                   wxSizerFlags().Centre().Border());
     wxDirPickerCtrl *dp = new wxDirPickerCtrl(frame, wxID_ANY);
     outsizer->Add(dp, wxSizerFlags(1));
-    outsizer->AddSpacer(15);
+    outsizer->AddSpacer(10);
     outsizer->Add(new wxStaticText(frame, wxID_ANY, "extension:"),
                   wxSizerFlags().Centre().Border());
     wxTextCtrl *ext_tc = new wxTextCtrl(frame, wxID_ANY, "xy");
     ext_tc->SetMinSize(wxSize(50, -1));
     outsizer->Add(ext_tc, wxSizerFlags().Centre());
+    outsizer->AddSpacer(10);
+    wxCheckBox *overwrite = new wxCheckBox(frame, wxID_ANY, "overwrite files");
+    outsizer->Add(overwrite, wxSizerFlags().Centre());
     sizer->Add(outsizer, wxSizerFlags().Expand().Border());
 
     wxBoxSizer *btn_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -554,7 +598,16 @@ bool App::OnInit()
     frame->SetSizerAndFit(sizer);
     frame->SetSize(-1, 550);
     frame->Show();
+
+    Connect(convert->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, 
+            (wxObjectEventFunction) &App::OnConvert, NULL, this);
+    Connect(close->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, 
+            (wxObjectEventFunction) &App::OnClose, NULL, this);
     return true;
+}
+
+void App::OnConvert(wxCommandEvent&)
+{
 }
 
 #endif

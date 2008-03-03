@@ -62,7 +62,7 @@ bool FormatInfo::has_extension(const std::string &ext) const
 
 const FormatInfo* get_format(int n)
 {
-    if (n < 0 || n > sizeof(formats) / sizeof(formats[0]))
+    if (n < 0 || (size_t) n > sizeof(formats) / sizeof(formats[0]))
         throw RunTimeError("Format index out of range: " + S(n));
     return formats[n];
 }
@@ -172,68 +172,6 @@ const Block* DataSet::get_block(int n) const
     if (n < 0 || (size_t)n >= blocks.size()) 
         throw RunTimeError("no block #" + S(n) + " in this file.");
     return blocks[n];
-}
-
-namespace {
-
-void export_metadata(ostream &of, MetaData const& meta)
-{
-    for (map<string,string>::const_iterator i = meta.begin();
-                                                        i != meta.end(); ++i) {
-        of << "# " << i->first << ": "; 
-        for (string::const_iterator j = i->second.begin(); 
-                                                   j != i->second.end(); ++j) {
-            of << *j;
-            if (*j == '\n')
-                of << "# " << i->first << ": "; 
-        }
-        of << endl;
-    }
-}
-
-} // anonymous namespace
-
-void DataSet::export_plain_text(string const &fname) const
-{
-    int range_num = get_block_count();
-    ofstream of(fname.c_str());
-    if (!of) 
-        throw RunTimeError("can't create file: " + fname);
-
-    // output the file-level meta-info
-    of << "# exported by xylib from a " << fi->name << " file" << endl;
-    export_metadata(of, meta);
-    
-    for (int i = 0; i < range_num; ++i) {
-        const Block *blk = get_block(i);
-        if (range_num > 1 || !blk->name.empty())
-            of << endl << "### block #" << i << " " << blk->name << endl;
-        export_metadata(of, blk->meta);
-
-        int ncol = blk->get_column_count();
-        of << "# ";
-        // column 0 is pseudo-column with point indices, we skip it
-        for (int k = 1; k <= ncol; ++k) {
-            string const& name = blk->get_column(k).name;
-            if (k > 1)
-                of << "\t";
-            of << (name.empty() ? "column_"+S(k) : name);
-        }
-        of << endl;
-
-        int nrow = blk->get_point_count();
-
-        for (int j = 0; j < nrow; ++j) {
-            for (int k = 1; k <= ncol; ++k) {
-                if (k > 1)
-                    of << "\t";
-                of << setfill(' ') << setiosflags(ios::fixed) 
-                    << setprecision(6) << setw(8) 
-                    << blk->get_column(k).get_value(j); 
-            }
-            of << endl;
-        }
-    }
 }
 
 // clear all the data of this dataset

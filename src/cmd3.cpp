@@ -133,18 +133,12 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
         | eps_p [assign_a(with_plus, false_)] 
         ;
 
-    compact_str
-        = lexeme_d['\'' >> (+~ch_p('\''))[assign_a(t)] 
-                   >> '\'']
-        | lexeme_d[+chset<>(anychar_p - chset<>(" \t\n\r;,"))] [assign_a(t)]
-        ;
-
     commands_arg
         = eps_p [assign_a(t, empty)] 
           >> optional_plus
-          >> ( (ch_p('>') >> compact_str) [&do_commands_logging] 
+          >> ( (ch_p('>') >> CompactStrG) [&do_commands_logging] 
              | (ch_p('<') [clear_a(vn)]
-                 >> compact_str 
+                 >> CompactStrG 
                  >> *(IntRangeG[push_back_a(vn, tmp_int)]
                                              [push_back_a(vn, tmp_int2)])
                ) [&do_exec_file]
@@ -152,8 +146,8 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
         ;
 
     set_arg
-        = (+(lower_p | '-'))[assign_a(t2)]
-          >> ('=' >> compact_str[&do_set]
+        = (+chset_p("a-z-")) [assign_a(t2)]
+          >> ('=' >> CompactStrG [&do_set]
              | eps_p[&do_set_show]
              )
         ;
@@ -171,11 +165,10 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
         ;
 
 
-
     statement 
         = str_p("reset") [&do_reset]
         | ("sleep" >> ureal_p[assign_a(tmp_real)])[&do_sleep]
-        | (str_p("dump") >> '>' >> compact_str)[&do_dump]
+        | (str_p("dump") >> '>' >> CompactStrG)[&do_dump]
         | (no_actions_d[DataTransformG][assign_a(t)] >> in_data)[&do_transform]
         | optional_suffix_p("s","et") >> (set_arg % ',')
         | optional_suffix_p("c","ommands") >> commands_arg

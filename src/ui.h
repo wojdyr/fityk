@@ -9,6 +9,7 @@
 #include <vector>
 #include <utility>
 #include <fstream>
+#include <string>
 
 class wxString;
 struct NumberedLine;

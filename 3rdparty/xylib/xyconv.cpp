@@ -67,6 +67,70 @@ void print_filetype_info(string const& filetype)
             cout << "Unknown file format.";
 }
 
+void export_metadata(ostream &of, xylib::MetaData const& meta)
+{
+    for (map<string,string>::const_iterator i = meta.begin();
+                                                        i != meta.end(); ++i) {
+        of << "# " << i->first << ": "; 
+        for (string::const_iterator j = i->second.begin(); 
+                                                   j != i->second.end(); ++j) {
+            of << *j;
+            if (*j == '\n')
+                of << "# " << i->first << ": "; 
+        }
+        of << endl;
+    }
+}
+
+void export_plain_text(xylib::DataSet *d, string const &fname, 
+                       bool with_metadata)
+{
+    int range_num = d->get_block_count();
+    ofstream of(fname.c_str());
+    if (!of) 
+        throw xylib::RunTimeError("can't create file: " + fname);
+
+    // output the file-level meta-info
+    of << "# exported by xylib from a " << d->fi->name << " file" << endl;
+    if (with_metadata)
+        export_metadata(of, d->meta);
+    
+    for (int i = 0; i < range_num; ++i) {
+        const xylib::Block *block = d->get_block(i);
+        if (range_num > 1 || !block->name.empty())
+            of << endl << "### block #" << i << " " << block->name << endl;
+        if (with_metadata)
+            export_metadata(of, block->meta);
+
+        int ncol = block->get_column_count();
+        of << "# ";
+        // column 0 is pseudo-column with point indices, we skip it
+        for (int k = 1; k <= ncol; ++k) {
+            string const& name = block->get_column(k).name;
+            if (k > 1)
+                of << "\t";
+            if (name.empty())
+                of << "column_" << k;
+            else
+                of << name;
+        }
+        of << endl;
+
+        int nrow = block->get_point_count();
+
+        for (int j = 0; j < nrow; ++j) {
+            for (int k = 1; k <= ncol; ++k) {
+                if (k > 1)
+                    of << "\t";
+                of << setfill(' ') << setiosflags(ios::fixed) 
+                    << setprecision(6) << setw(8) 
+                    << block->get_column(k).get_value(j); 
+            }
+            of << endl;
+        }
+    }
+}
+
 int main(int argc, char **argv)
 {
     if (argc == 2 && strcmp(argv[1], "-l") == 0) {
@@ -107,7 +171,7 @@ int main(int argc, char **argv)
 
     try {
         xylib::DataSet *d = xylib::load_file(argv[argc-2], filetype);
-        d->export_plain_text(argv[argc-1]);
+        export_plain_text(d, argv[argc-1], true);
         delete d;
     } catch (runtime_error const& e) {
         cerr << "Error. " << e.what() << endl;

@@ -92,6 +92,7 @@ vector<DataWithSum*> get_datasets_from_indata()
 }
 
 IntRangeGrammar  IntRangeG;
+CompactStrGrammar  CompactStrG;
 
 } //namespace cmdgram
 
@@ -101,31 +102,87 @@ namespace {
 
 void do_import_dataset(char const*, char const*)
 {
-    AL->import_dataset(tmp_int, t, vt);
+    if (t == ".") {
+        if (tmp_int == new_dataset)
+            throw ExecuteError("New dataset can't be reverted");
+        if (!vt.empty())
+            throw ExecuteError("Options can't be given when reverting data");
+        AL->get_data(tmp_int)->revert();
+    }
+    else
+        AL->import_dataset(tmp_int, t, vt);
     outdated_plot=true;  
 }
-
-void do_export_dataset(char const*, char const*)
-{
-    vector<string> const& ff_names = AL->get_sum(tmp_int)->get_ff_names();
-    AL->get_data(tmp_int)->export_to_file(t, vt, ff_names); 
-
-    // expand *F here
-    // Data::export_to_file -> Data::get_columns(vt, &columns)
-    // in get_columns: check if first column is the same as columns[0]
-}
-
-void do_append_data(char const*, char const*)
-{
-    AL->append_ds();
-    outdated_plot=true;  
-}
-
 void do_revert_data(char const*, char const*)
 {
     AL->get_data(tmp_int)->revert();
     outdated_plot=true;  
 }
+
+// returns true if x columns in all datasets have the same fixed step and 
+// the same x_min
+bool equal_x_colums()
+{
+        Data const* data = AL->get_data(0);
+        fp x_start = data->get_x_min();
+        fp x_step =  data->get_x_step();
+        if (x_step == 0.)
+            return false;
+        for (int i = 1; i < AL->get_ds_count(); ++i) {
+            Data const* data = AL->get_data(i);
+            if (x_start != data->get_x_min())
+                return false;
+            if (fabs(x_step - data->get_x_step()) < 1e-6 * fabs(x_step))
+                return false;
+        }
+        return true;
+}
+
+void do_export_dataset(char const*, char const*)
+{
+    vector<string>& cols = vt;
+    int idx = tmp_int; 
+
+    ostringstream os;
+    os << "# exported by fityk " VERSION << endl;
+
+    bool only_active = !contains_element(cols, "a");
+    int ds_count = AL->get_ds_count();
+    vector<vector<fp> > r;
+    Data *data = AL->get_data(idx == all_datasets ? 0 : idx);
+    string title = data->get_title();
+    for (vector<string>::const_iterator i = cols.begin(); i != cols.end(); ++i){
+        os << (i == cols.begin() ? "#" : "\t") << title << ":" << *i;
+        r.push_back(get_all_point_expressions(*i, data, only_active));
+    }
+    if (idx == all_datasets && ds_count > 1) { 
+        // special exception - remove redundant x columns
+        if (cols[0] == "x" && equal_x_colums())
+            cols.erase(cols.begin());
+
+        for (int i = 1; i < ds_count; ++i) {
+            Data *data = AL->get_data(idx == all_datasets ? 0 : idx);
+            string title = data->get_title();
+            for (vector<string>::const_iterator i = cols.begin(); 
+                    i != cols.end(); ++i) {
+                os << "\t" << title << ":" << *i;
+                r.push_back(get_all_point_expressions(*i, data, only_active));
+            }
+        }
+    }
+    os << endl; // after title
+
+    // output 2D table r as TSV
+    size_t nc = cols.size();
+    for (size_t i = 0; i != r[0].size(); ++i) {
+        for (size_t j = 0; j != nc; ++j) {
+            os << r[j][i] << (j < nc-1 ? '\t' : '\n'); 
+        }
+    }
+
+    prepared_info += "\n" + os.str();
+}
+
 
 void do_load_data_sum(char const*, char const*)
 {
@@ -150,8 +207,15 @@ void do_output_info(char const*, char const*)
     prepared_info = strip_string(prepared_info);
     if (no_info_output)
         return;
-    if (output_redir.empty())
+    if (output_redir.empty()) {
+        int max_screen_info_length = 2048;
+        int more = prepared_info.length() - max_screen_info_length;
+        if (more > 0) {
+            prepared_info.resize(max_screen_info_length);
+            prepared_info += "\n[... " + S(more) + " characters more...]";
+        }
         AL->rmsg(prepared_info);
+    }
     else {
         ofstream os(output_redir.c_str(), 
                     ios::out | (info_append ? ios::app : ios::trunc));
@@ -160,6 +224,50 @@ void do_output_info(char const*, char const*)
         os << prepared_info << endl;
     }
 }
+
+void do_print_info_in_data(char const* a, char const* b)
+{
+    string s = string(a,b);
+    vector<DataWithSum*> v = get_datasets_from_indata();
+
+    if (startswith(s, "fit"))
+        prepared_info += "\n" + AL->get_fit()->get_info(v);
+    else if (startswith(s, "errors"))
+        prepared_info += "\n" + AL->get_fit()->getErrorInfo(v, with_plus);
+
+    else if (startswith(s, "peaks")) {
+        vector<fp> errors;
+        if (with_plus) 
+            errors = AL->get_fit()->get_symmetric_errors(v);
+        for (vector<DataWithSum*>::const_iterator i = v.begin(); i != v.end(); ++i) {
+            prepared_info += "\n# " + (*i)->get_data()->get_title() + "\n"
+                          + (*i)->get_sum()->get_peak_parameters(errors) + "\n";
+        }
+    }
+    else if (startswith(s, "formula")) {
+        bool gnuplot = AL->get_settings()->get_e("formula-export-style") == 1;
+        for (vector<DataWithSum*>::const_iterator i = v.begin(); i != v.end(); ++i) {
+            prepared_info += "\n# " + (*i)->get_data()->get_title() + "\n"
+                   + (*i)->get_sum()->get_formula(!with_plus, gnuplot);
+        }
+    }
+    else if (startswith(s, "title")) {
+        for (vector<DataWithSum*>::const_iterator i = v.begin(); i != v.end(); ++i) {
+            prepared_info += "\n" + (*i)->get_data()->get_title();
+        }
+    }
+    else if (startswith(s, "filename")) {
+        for (vector<DataWithSum*>::const_iterator i = v.begin(); i != v.end(); ++i) {
+            prepared_info += "\n" + (*i)->get_data()->get_filename();
+        }
+    }
+    else if (startswith(s, "data")) {
+        for (vector<DataWithSum*>::const_iterator i = v.begin(); i != v.end(); ++i) {
+            prepared_info += "\n" + (*i)->get_data()->get_info();
+        }
+    }
+}
+
 
 void do_print_info(char const* a, char const* b)
 {
@@ -245,15 +353,6 @@ void do_print_info(char const* a, char const* b)
             for (int i = 0; i < AL->get_ds_count(); ++i)
                 m += "\n@" + S(i) + ": " + AL->get_data(i)->get_title();
     }
-    else if (s[0] == '@') {
-        Data const* data = AL->get_data(tmp_int);
-        if (s.find(".title") != string::npos)
-            m = data->get_title();
-        else if (s.find(".filename") != string::npos)
-            m = data->get_filename();
-        else
-            m = data->get_info();
-    }
     else if (s == "view") {
         m = AL->view.str();
     }
@@ -261,28 +360,6 @@ void do_print_info(char const* a, char const* b)
         m = AL->get_settings()->print_usage();
     else if (startswith(s, "fit-history"))
         m = AL->get_fit_container()->param_history_info();
-    else if (startswith(s, "fit"))
-        m = AL->get_fit()->get_info(get_datasets_from_indata());
-    else if (startswith(s, "errors"))
-        m = AL->get_fit()->getErrorInfo(get_datasets_from_indata(), with_plus);
-    else if (startswith(s, "peaks")) {
-        vector<fp> errors;
-        vector<DataWithSum*> v = get_datasets_from_indata();
-        if (with_plus) 
-            errors = AL->get_fit()->get_symmetric_errors(v);
-        for (vector<DataWithSum*>::const_iterator i=v.begin(); i!=v.end(); ++i){
-            m += "# " + (*i)->get_data()->get_title() + "\n";
-            m += (*i)->get_sum()->get_peak_parameters(errors) + "\n";
-        }
-    }
-    else if (startswith(s, "formula")) {
-        vector<DataWithSum*> v = get_datasets_from_indata();
-        for (vector<DataWithSum*>::const_iterator i=v.begin(); i!=v.end(); ++i){
-            m += "# " + (*i)->get_data()->get_title() + "\n";
-            bool gnuplot = AL->get_settings()->get_e("formula-export-style")==1;
-            m += (*i)->get_sum()->get_formula(!with_plus, gnuplot) + "\n";
-        }
-    }
     else if (s == "commands")
         m = AL->get_ui()->get_commands().get_info(with_plus);
     else if (startswith(s, "guess")) {
@@ -475,12 +552,6 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         | eps_p [assign_a(ds_pref, minus_one)]
         ;
 
-    compact_str
-        = lexeme_d['\'' >> (+~ch_p('\''))[assign_a(t)] 
-                   >> '\'']
-        | lexeme_d[+chset<>(anychar_p - chset<>(" \t\n\r;,#"))] [assign_a(t)]
-        ;
-
     type_name
         = lexeme_d[(upper_p >> +alnum_p)] 
         ;
@@ -489,39 +560,32 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         = lexeme_d[alpha_p >> *(alnum_p | '_')]
         ;
 
-    existing_dataset_nr
-        = lexeme_d['@' >> uint_p [assign_a(tmp_int)]
+    dataset_nr
+        = lexeme_d['@' >> ( uint_p [assign_a(tmp_int)]
+                          | ch_p('*') [assign_a(tmp_int, all_datasets)]
+                          )
                   ]
         ;
 
-    dataset_nr
-        = str_p("@+") [assign_a(tmp_int, new_dataset)]
-        | existing_dataset_nr
+    dataset_lhs
+        = lexeme_d['@' >> ( uint_p [assign_a(tmp_int)]
+                          | ch_p('+') [assign_a(tmp_int, new_dataset)]
+                          )
+                  ]
         ;
 
     dataset_handling
           //load from file
-        = (dataset_nr >> '<' >> compact_str [clear_a(vt)]
+        = (dataset_lhs >> '<' >> CompactStrG [clear_a(vt)]
            >> !(lexeme_d[+(alnum_p | '-' | '_')] [push_back_a(vt)] 
                 % ',')
           ) [&do_import_dataset]
           //sum / duplicate
-        | dataset_nr >> ch_p('=') [clear_a(vn)] [assign_a(t, empty)] 
+        | dataset_lhs >> ch_p('=') [clear_a(vn)] [assign_a(t, empty)] 
           >> !(lexeme_d[lower_p >> +(alnum_p | '-' | '_')] [assign_a(t)])
           >> (lexeme_d['@' >> uint_p [push_back_a(vn)]  
-                                           ] % '+') [&do_load_data_sum]
-          // export data
-        | (existing_dataset_nr [clear_a(vt)]
-           >> !('(' >> ((DataExpressionG
-                        | ("*F(" >> DataExpressionG >> ")")
-                        ) [push_back_a(vt)] 
-                        % ',')
-                >> ')')
-           >> '>' >> compact_str) [&do_export_dataset]
-          // add empty data slot
-        | str_p("@+")[&do_append_data] 
-          // revert dataset
-        | existing_dataset_nr >> str_p(".revert")[&do_revert_data] 
+                      | "0"
+                                   ] % '+') [&do_load_data_sum]
         ;
 
     plot_range  //first clear vr if needed 
@@ -535,21 +599,26 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
     
     info_arg
         = (str_p("commands") >> IntRangeG) [&do_list_commands] 
-        |  ( str_p("version") 
-           | str_p("variables") 
-           | VariableLhsG 
-           | str_p("types") 
-           | str_p("functions") 
-           | str_p("datasets") 
-           | str_p("commands") 
-           | str_p("view") 
-           | str_p("set")) [&do_print_info] 
-        | ((str_p("fit-history") 
-            | "fit"
-            | "errors"
-            | "peaks"
-            | "formula"
-                    ) >> in_data) [&do_print_info] 
+        | ( str_p("version") 
+          | str_p("variables") 
+          | VariableLhsG 
+          | "types" 
+          | "functions" 
+          | "datasets" 
+          | "commands" 
+          | "view" 
+          | "set"
+          | "fit-history"
+          ) [&do_print_info] 
+        | (( str_p("fit")
+           | "errors"
+           | "peaks"
+           | "formula"
+           | "filename" 
+           | "title" 
+           | "data"
+           ) 
+           >> in_data) [&do_print_info_in_data] 
         | (str_p("guess") [clear_a(vr)]
            >> plot_range >> in_data) [&do_print_info]
         | type_name[&do_print_func_type]
@@ -563,9 +632,13 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         | (ds_prefix >> str_p("dF") >> '(' 
            >> no_actions_d[DataExpressionG][assign_a(t2)] 
            >> ')') [&do_print_sum_derivatives_info]
-        | (existing_dataset_nr 
-                >> (str_p(".filename") | ".title" | eps_p)) [&do_print_info]
-        | "debug " >> compact_str [&do_print_debug_info] //no output_redir
+          // export data
+        | dataset_nr [clear_a(vt)]
+          >> str_p("(") 
+          >> (DataExpressionG [push_back_a(vt)] 
+              % ',')
+          >> str_p(")") [&do_export_dataset]
+        | "debug " >> CompactStrG [&do_print_debug_info] //no output_redir
         // this will eat also ',', because voigt(x,y) needs it
         // unfortunatelly "i der x^2, sin(x)" is made impossible
         | "der " >> (+chset<>(anychar_p - chset<>(";#"))) [&do_print_deriv]
@@ -597,14 +670,15 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
            >> !( ( str_p(">>") [assign_a(info_append, true_)]
                  | str_p(">") [assign_a(info_append, false_)]
                  )
-                >> compact_str [assign_a(output_redir, t)]
+                >> CompactStrG [assign_a(output_redir, t)]
                )
           ) [&do_output_info]
         | (optional_suffix_p("p","lot") [clear_a(vr)] 
            >> plot_range >> plot_range >> in_data) [&do_plot]
         | guess [&do_guess]
-        | (ds_prefix >> "title" >> '=' >> compact_str)[&set_data_title]
         | dataset_handling
+        | optional_suffix_p("s","et") 
+          >> (ds_prefix >> "title" >> '=' >> CompactStrG)[&set_data_title]
         ;
 }
 

@@ -37,9 +37,9 @@ X = asin(x/(4*pi)*1.54051) * 2*180/pi
 X = x[0] + n * (x[M-1]-x[0]) / (M-1),  Y = y[x=X], S = s[x=X], A = a[x=X]
 del @0
 
-@0.title = 'Title X'
-@+
-@1.title = TitleY
+set @0.title = 'Title X'
+@+ = 0
+set @1.title = TitleY
 M = 400 in @1
 X=n/M*3*pi in @1
 Y=sin(x) in @1
@@ -113,8 +113,8 @@ i @0.F[0], @0.F[-1]
 i @0.Z
 i formula in @0
 i @0.dF(12*3)
-i @0
-i @0.filename, @0.title
+i data in @0
+i filename in @0, title in @0
 i fit
 i fit-history
 i set
@@ -146,8 +146,8 @@ i+ @0.F[0], @0.F[-1]
 i+ @0.Z
 i+ formula in @0
 i+ @0.dF(12*3)
-i+ @0
-i+ @0.filename, @0.title
+i+ data in @0
+i+ filename, title
 i+ fit
 i+ fit-history
 i+ set
@@ -184,7 +184,7 @@ plo [] in @*
 plo [:50] in @0 
 
 @+ = @0
-@+
+@+ = 0
 @2 = @0 + @1
 del @2
 @+ = avg_same_x @0 + @1
@@ -221,10 +221,10 @@ commands < tmp_log.fit # it's an empty file (with some comments)
 info commands[0:4] >tmp_foo.fit 
 info+ commands[0] >>tmp_foo.fit 
 
-@0 > tmp_foo1.xy
-@0 (x, y, s) > tmp_foo2.xy
-@0 (x, y, a) > tmp_foo3.xy
-@0 (x, y, s, @0.F(x), *F(x), (y-@0.F(x))/s, a) > tmp_foo4.xy
+info @0 (x, y) 
+info @* (x, y, s) > tmp_foo2.xy
+info @0 (x, y, a) > tmp_foo3.xy
+info @0 (x, y, s, @0.F(x), (y-@0.F(x))/s, a) > tmp_foo4.xy
 info peaks in @0 > tmp_foo5.xy
 info+ peaks in @0 > tmp_foo6.xy
 info formula in @0 > tmp_foo7.xy
