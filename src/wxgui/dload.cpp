@@ -547,7 +547,7 @@ string DLoadDlg::get_command(string const& ds, int d_nr)
     if (title_tc->IsEnabled()) {
         wxString t = title_tc->GetValue().Trim();
         if (!t.IsEmpty())
-            cmd += "; @" + S(d_nr) + ".title = '" + wx2s(t) + "'";
+            cmd += "; set @" + S(d_nr) + ".title = '" + wx2s(t) + "'";
     }
 
     return cmd;

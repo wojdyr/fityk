@@ -833,7 +833,7 @@ void FFrame::OnShowHelp(wxCommandEvent&)
     help.DisplayContents();
 #else
     wxString help_path = get_full_path_of_help_file(wxT("fitykhelp.html")); 
-    bool r = wxLaunchDefaultBrowser(help_path);
+    bool r = wxLaunchDefaultBrowser(wxT("file://") + help_path);
     if (!r)
         wxMessageBox(wxT("Can't open browser.\n Manual is here:\n") + help_path,
                      wxT("Manual"), wxOK|wxICON_INFORMATION);
@@ -912,7 +912,7 @@ void FFrame::OnDataRevert (wxCommandEvent&)
     for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i) {
         if (i != sel.begin())
             cmd += "; ";
-        cmd += "@" + S(*i) + ".revert";
+        cmd += "@" + S(*i) + "< .";
     }
     ftk->exec(cmd);
 }
@@ -980,7 +980,7 @@ void FFrame::OnDataCalcShirley (wxCommandEvent&)
         if (i != sel.begin())
             cmd += "; ";
         cmd += "@+ = shirley_bg @" + S(*i)
-              + "; @" + S(c) + ".title = '" + title + "-Shirley'";
+              + "; set @" + S(c) + ".title = '" + title + "-Shirley'";
     }
     ftk->exec(cmd);
 }
@@ -1000,7 +1000,8 @@ void FFrame::OnDataRmShirley (wxCommandEvent&)
 
 void FFrame::OnDataExportUpdate (wxUpdateUIEvent& event)
 {
-    event.Enable(get_selected_ds_indices().size() == 1);
+    int nsel = get_selected_ds_indices().size();
+    event.Enable(nsel == 1 || nsel == ftk->get_ds_count());
 }
 
 void FFrame::OnDataExport (wxCommandEvent&)

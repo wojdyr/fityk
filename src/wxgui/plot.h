@@ -80,11 +80,13 @@ class FPlot : public BufferedPanel
 public:
     FPlot (wxWindow *parent)
        : BufferedPanel(parent),
+         pen_width(1),
          draw_sigma(false), 
          mouse_press_X(INT_MIN), mouse_press_Y(INT_MIN),
          vlfc_prev_x(INT_MIN), vlfc_prev_x0(INT_MIN)   {}
          
     ~FPlot() {}
+    void set_font(wxDC &dc, wxFont const& font);
     wxColour const& get_bg_color() const { return backgroundCol; }
     void draw_crosshair(int X, int Y);
     void set_scale(int pixel_width, int pixel_height);
@@ -95,9 +97,11 @@ public:
     Scale const& get_y_scale() const { return ys; }
     virtual void save_settings(wxConfigBase *cf) const;
     virtual void read_settings(wxConfigBase *cf);
+    void set_magnification(int m) { pen_width = m > 0 ? m : 1; }
 
 protected:
     Scale xs, ys;
+    int pen_width;
     wxColour activeDataCol, inactiveDataCol, xAxisCol;
     wxFont ticsFont;
     int point_radius;

@@ -46,6 +46,17 @@ void Scale::set(fp m, fp M, int pixels)
 BEGIN_EVENT_TABLE(FPlot, wxPanel)
 END_EVENT_TABLE()
 
+void FPlot::set_font(wxDC &dc, wxFont const& font) 
+{ 
+    if (pen_width > 1) {
+        wxFont f = font;
+        f.SetPointSize(f.GetPointSize() * pen_width);
+        dc.SetFont(f);
+    }
+    else
+        dc.SetFont(font); 
+}
+
 void FPlot::draw_dashed_vert_line(int X, int style)
 {
     if (X != INT_MIN) {
@@ -112,10 +123,10 @@ void draw_line_with_style(wxDC& dc, int style,
 void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
 {
     if (set_pen) {
-        dc.SetPen(wxPen(xAxisCol));
+        dc.SetPen(wxPen(xAxisCol, pen_width));
         dc.SetTextForeground(xAxisCol);
     }
-    dc.SetFont(ticsFont);
+    set_font(dc, ticsFont);
     // get tics text height
     wxCoord h;
     dc.GetTextExtent(wxT("1234567890"), 0, &h);
@@ -158,10 +169,10 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
 void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
 {
     if (set_pen) {
-        dc.SetPen(wxPen(xAxisCol));
+        dc.SetPen(wxPen(xAxisCol, pen_width));
         dc.SetTextForeground(xAxisCol);
     }
-    dc.SetFont(ticsFont);
+    set_font(dc, ticsFont);
     const int pixel_width = get_pixel_width(dc);
 
 
@@ -227,9 +238,10 @@ void FPlot::draw_data (wxDC& dc,
                        bool cumulative)
 {
     Y_offset *= (get_pixel_height(dc) / 100);
-    wxPen const activePen(color.Ok() ? color : activeDataCol);
+    wxPen const activePen(color.Ok() ? color : activeDataCol, pen_width);
     wxPen const inactivePen(inactive_color.Ok() ? inactive_color 
-                                                : inactiveDataCol);
+                                                : inactiveDataCol, 
+                            pen_width);
     wxBrush const activeBrush(activePen.GetColour(), wxSOLID);
     wxBrush const inactiveBrush(inactivePen.GetColour(), wxSOLID);
     if (data->is_empty()) 
@@ -291,7 +303,7 @@ void FPlot::draw_data (wxDC& dc,
         }
 
         if (point_radius > 1) 
-            dc.DrawCircle (X, Y, point_radius - 1);
+            dc.DrawCircle (X, Y, (point_radius - 1) * pen_width);
         if (line_between_points) {
             if (X_ != INT_MIN)
                 dc.DrawLine (X_, Y_, X, Y);

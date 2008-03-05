@@ -13,6 +13,7 @@
 #include <boost/spirit/utility/chset.hpp>
 #include <boost/spirit/utility/chset_operators.hpp>
 #include <math.h>
+#include <xylib/xylib.h> //xylib_version()
 
 #include "cmd2.h"
 #include "optional_suffix.h"
@@ -138,6 +139,16 @@ bool equal_x_colums()
         return true;
 }
 
+// change F(...) to @n.F(...), and the same with Z
+string add_ds_to_sum(string const& s, int nr)
+{
+    if (nr >= 0 && s.size() > 3 && (s[0] == 'F' || s[0] == 'Z') 
+                                 && (s[1] == '(' || isspace(s[1])))
+        return "@" + S(nr) + "." + s;
+    else
+        return s;
+}
+
 void do_export_dataset(char const*, char const*)
 {
     vector<string>& cols = vt;
@@ -149,24 +160,30 @@ void do_export_dataset(char const*, char const*)
     bool only_active = !contains_element(cols, "a");
     int ds_count = AL->get_ds_count();
     vector<vector<fp> > r;
+
+    // first dataset
     Data *data = AL->get_data(idx == all_datasets ? 0 : idx);
     string title = data->get_title();
     for (vector<string>::const_iterator i = cols.begin(); i != cols.end(); ++i){
         os << (i == cols.begin() ? "#" : "\t") << title << ":" << *i;
-        r.push_back(get_all_point_expressions(*i, data, only_active));
+        r.push_back(get_all_point_expressions(add_ds_to_sum(*i, idx), 
+                                              data, only_active));
     }
+
+    // the rest of datasets (if any)
     if (idx == all_datasets && ds_count > 1) { 
         // special exception - remove redundant x columns
         if (cols[0] == "x" && equal_x_colums())
             cols.erase(cols.begin());
 
         for (int i = 1; i < ds_count; ++i) {
-            Data *data = AL->get_data(idx == all_datasets ? 0 : idx);
+            Data *data = AL->get_data(i);
             string title = data->get_title();
-            for (vector<string>::const_iterator i = cols.begin(); 
-                    i != cols.end(); ++i) {
-                os << "\t" << title << ":" << *i;
-                r.push_back(get_all_point_expressions(*i, data, only_active));
+            for (vector<string>::const_iterator j = cols.begin(); 
+                                                    j != cols.end(); ++j) {
+                os << "\t" << title << ":" << *j;
+                r.push_back(get_all_point_expressions(add_ds_to_sum(*j, idx), 
+                                                      data, only_active));
             }
         }
     }
@@ -291,7 +308,8 @@ void do_print_info(char const* a, char const* b)
                 "\nCompilation date: " __DATE__ 
                 "\nBoost.Spirit version: " + S(SPIRIT_VERSION / 0x1000) 
                                 + "." + S(SPIRIT_VERSION % 0x1000 / 0x0100)
-                                + "." + S(SPIRIT_VERSION % 0x0100);
+                                + "." + S(SPIRIT_VERSION % 0x0100)
+                + "\nxylib version:" + xylib::xylib_version();
  
         }
         else

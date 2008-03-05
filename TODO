@@ -5,28 +5,18 @@ know what to do, there is a list of ideas at the end of this file.
 
 ---------- TODO list and tentative development plan  ----------------
 
-// * GUI: save (and load) cmd line history to ~/.fityk/history
-
 //* export all datasets to one data file: @* (...) ...
+//* data export: parse @n ( F(...), Z(...)) as @n.F(), @n.Z()
 
-// * (?)exporting data with info (i.e. "info @n () [range] > file")
-// if not redirected, should display ... [...more] rather than all lines
+// * not redirected info should display ... [...more] rather than all lines
 
+// * make separate package for xylib and don't use the one in 3rdparty/ if the 
+//   the flag --disable-3rdparty is given
 
-* GUI: file dialog with title "Write n-column TSV"
+* manual: update syntax
 
 * make stand-alone converter utility that uses xylib and wx >= 2.9,
   built explicitely by "make xyConvert" in src/wxgui/
-
-* make separate package for xylib and don't use the one in 3rdparty/ if the 
-  the flag --disable-3rdparty is given
-
-// * use html manual (in default system browser) instead of htb
-//   (install doc/fitykhelp.html doc/*.css doc/fitykhelp_img/)
-
-// * from gentoo package: src/Makefile.in: +libfityk_la_LIBADD = @XYLIB_LDADD@
-
-* printing: it doesn't look good now (too thin lines, too small labels, ...)
 
 --------------> 2.8.5
 
@@ -63,9 +53,6 @@ know what to do, there is a list of ideas at the end of this file.
 
 --------------> 
 
-* making libfityk thread-safe (pass around Fityk* F, remove all `AL',
-   remove static class members and global variables)
-
 * BUG, parsing problem: "i $a*$a" => Syntax error; "i 0+$a*$a" => OK
 
 * GUI: buttons on sidebar>functions that make hwhm and shape equal
@@ -93,8 +80,6 @@ know what to do, there is a list of ideas at the end of this file.
 
 * GUI: button '(un)lock' on variables pane [waiting for wx-toggle-bitmap-button]
 
-* GUI: [when wx3 is released, with customizable file dlg] change file dialogs
-  
 * [Infrastructure] Set up BuildBot or similar system for build tests
 
 * user defined functions:
@@ -188,6 +173,17 @@ know what to do, there is a list of ideas at the end of this file.
 
 * [BUG]: program crashes (MS Win 9x) when data contains NaN (as a result
   of asin(x) x>1) and "Zoom all" is called.
+
+-------  Anticipated upgrades  -----------
+
+* when Boost::Spirit 2 is released, parsers will be rewritten and 
+  libfityk will be made thread-safe (removing all `AL' and all static class 
+  members and global variables)
+
+* when wxWidgets 3.x will be available in major Linux distributions:
+  - open-file dialog (with preview) will use XyBrowser
+  - most of file dialogs will be changed to take adventage of custom controls.
+  - wxAboutBox will be used instead of AboutDlg
 
 
 -------  Ideas for people, who would like to contribute:  -----------

@@ -192,8 +192,8 @@ void do_print_plots(wxDC *dc, PrintManager const* pm)
         if (pm->plot_pane->aux_visible(i) && pm->plot_aux[i])
             vp.push_back(pm->plot_pane->get_aux_plot(i));
 
-    //width is the same for all plots
-    //int W = pm->plot_pane->GetClientSize().GetWidth(); 
+    // width is the same for all plots
+    int W = pm->plot_pane->GetClientSize().GetWidth(); 
 
     // height is a sum of all heights + (N-1)*space
     int H = (vp.size() - 1) * space;  
@@ -202,7 +202,7 @@ void do_print_plots(wxDC *dc, PrintManager const* pm)
 
     int w, h; // size in DC units
     dc->GetSize(&w, &h);
-    fp y_scale = 1. * h / H;
+    fp y_scale = (float) h / H;
     int space_dc = iround(space * y_scale);
     //fp scale = pm->scale/100.;
     //fp scaleX = scale * w / W;
@@ -217,6 +217,7 @@ void do_print_plots(wxDC *dc, PrintManager const* pm)
 //
 //    dc->SetUserScale (scaleX, scaleY);
 
+    int magnify = w / W;
     //drawing all visible plots, every at different posY
     for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i) {
         dc->SetDeviceOrigin (posX, posY);
@@ -226,7 +227,9 @@ void do_print_plots(wxDC *dc, PrintManager const* pm)
         }
         int plot_height = iround((*i)->GetClientSize().GetHeight() * y_scale);
         dc->SetClippingRegion(0, 0, w, plot_height);
+        (*i)->set_magnification(magnify);
         (*i)->draw(*dc, !pm->colors); // <- 99% of plotting is done here
+        (*i)->set_magnification(1);
         dc->DestroyClippingRegion();
         posY += plot_height + space_dc;
     }

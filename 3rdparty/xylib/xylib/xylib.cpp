@@ -292,6 +292,15 @@ string get_wildcards_string(string const& all_files)
     return r;
 }
 
+/// see also XYLIB_VERSION
+string xylib_version()
+{
+    int major = XYLIB_VERSION / 10000;
+    int minor = XYLIB_VERSION / 100 % 100;
+    int subminor = XYLIB_VERSION % 100;
+    return S(major) + "." + S(minor) + "." + S(subminor);
+}
+
 } // end of namespace xylib
 
 

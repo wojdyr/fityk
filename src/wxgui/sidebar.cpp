@@ -268,7 +268,7 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
 
 void SideBar::OnDataButtonNew (wxCommandEvent&)
 {
-    ftk->exec("@+");
+    ftk->exec("@+ = 0");
     frame->refresh_plots(false, true);
 }
 
@@ -289,7 +289,7 @@ void SideBar::OnDataButtonRen (wxCommandEvent&)
                          wxT("Rename dataset"),
                          old_title);
     if (!s.IsEmpty() && s != old_title)
-        ftk->exec("@" + S(n) + ".title = '" + wx2s(s) + "'");
+        ftk->exec("set @" + S(n) + ".title = '" + wx2s(s) + "'");
 }
 
 void SideBar::delete_selected_items()

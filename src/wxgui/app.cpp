@@ -295,8 +295,8 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
 //   {exedir}/../../doc/ - for uninstalled program
 wxString get_full_path_of_help_file (wxString const& name)
 {
-    // if there is no `name' file in HELP_DIR, we are trying a few other dirs
-    wxArrayString paths;
+    wxPathList paths;
+
     // installed path
 #if defined(__WXMAC__) || defined(__WXMSW__)
     paths.Add(wxStandardPaths::Get().GetResourcesDir());
@@ -304,18 +304,16 @@ wxString get_full_path_of_help_file (wxString const& name)
 #ifdef HELP_DIR
     paths.Add(wxT(HELP_DIR));
 #endif
+
     // uninstalled path, relative to executable
-    wxString sep(wxT(".."));
-    paths.Add(wxPathOnly(wxGetApp().argv[0]) 
-              + sep + wxT("..") + sep + wxT("..") + sep + wxT("doc"));
-    // filename --> path and filename
-    for (size_t i = 0; i != paths.Count(); ++i) {
-        wxString path_name = paths[i] + sep + name;
-        //wxMessageBox(("Looking for \n" + path_name));
-        if (wxFileExists(path_name)) 
-            return path_name;
-    }
-    return name;
+    paths.Add(wxPathOnly(wxGetApp().argv[0]) + wxFILE_SEP_PATH + wxT("..") 
+              + wxFILE_SEP_PATH + wxT("..") + wxFILE_SEP_PATH + wxT("doc"));
+
+    wxString path = paths.FindAbsoluteValidPath(name);
+    if (path.IsEmpty())
+        wxMessageBox(wxT("File ") + name + wxT(" was not found."), 
+                     wxT("File not found."), wxICON_ERROR);
+    return path; 
 }
 
 

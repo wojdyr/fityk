@@ -61,7 +61,7 @@ bool export_data_dlg(wxWindow *parent, bool load_exported=false);
 class DataExportDlg : public wxDialog
 {
 public:
-    DataExportDlg(wxWindow* parent, wxWindowID id, std::string const& ds);
+    DataExportDlg(wxWindow* parent, wxWindowID id, int ds_);
     void OnRadioChanged(wxCommandEvent&) { on_widget_change(); }
     void OnInactiveChanged(wxCommandEvent&) { on_widget_change(); }
     void OnTextChanged(wxCommandEvent&);
@@ -69,6 +69,7 @@ public:
     void on_widget_change();
     std::string get_columns() { return wx2s(text->GetValue()); }
 protected:
+    int ds;
     wxRadioBox *rb;
     wxCheckBox *inactive_cb;
     wxTextCtrl *text;

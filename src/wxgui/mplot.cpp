@@ -335,7 +335,7 @@ bool MainPlot::visible_peaktops(MouseModeEnum mode)
 void MainPlot::draw_x_axis (wxDC& dc, bool set_pen)
 {
     if (set_pen)
-        dc.SetPen(wxPen(xAxisCol));
+        dc.SetPen(wxPen(xAxisCol, pen_width));
     int Y0 = ys.px(0.);
     dc.DrawLine (0, Y0, get_pixel_width(dc), Y0);
 }
@@ -343,7 +343,7 @@ void MainPlot::draw_x_axis (wxDC& dc, bool set_pen)
 void MainPlot::draw_y_axis (wxDC& dc, bool set_pen)
 {
     if (set_pen)
-        dc.SetPen(wxPen(xAxisCol));
+        dc.SetPen(wxPen(xAxisCol, pen_width));
     int X0 = xs.px(0.);
     dc.DrawLine (X0, 0, X0, get_pixel_height(dc));
 }
@@ -351,7 +351,7 @@ void MainPlot::draw_y_axis (wxDC& dc, bool set_pen)
 void MainPlot::draw_sum(wxDC& dc, Sum const* sum, bool set_pen)
 {
     if (set_pen)
-        dc.SetPen(wxPen(sumCol));
+        dc.SetPen(wxPen(sumCol, pen_width));
     int n = get_pixel_width(dc);
     vector<fp> xx(n), yy(n);
     vector<int> YY(n);
@@ -389,7 +389,7 @@ void MainPlot::draw_peaks(wxDC& dc, Sum const* sum, bool set_pen)
             to = min(to, xs.px(right));
         }
         if (set_pen)
-            dc.SetPen(wxPen(peakCol[k % max_peak_cols]));
+            dc.SetPen(wxPen(peakCol[k % max_peak_cols], pen_width));
         f->calculate_value(xx, yy);
         for (int i = from; i <= to; ++i) 
             YY[i] = ys.px(yy[i]);
@@ -400,7 +400,7 @@ void MainPlot::draw_peaks(wxDC& dc, Sum const* sum, bool set_pen)
 
 void MainPlot::draw_peaktops (wxDC& dc, Sum const* sum)
 {
-    dc.SetPen(wxPen(xAxisCol));
+    dc.SetPen(wxPen(xAxisCol, pen_width));
     dc.SetBrush (*wxTRANSPARENT_BRUSH);
     for (vector<wxPoint>::const_iterator i = special_points.begin(); 
                                            i != special_points.end(); i++) {
@@ -427,7 +427,7 @@ void MainPlot::draw_peaktop_selection (wxDC& dc, Sum const* sum)
 void MainPlot::draw_plabels (wxDC& dc, Sum const* sum, bool set_pen)
 {
     prepare_peak_labels(sum); //TODO re-prepare only when peaks where changed
-    dc.SetFont(plabelFont);
+    set_font(dc, plabelFont);
     vector<wxRect> previous;
     vector<int> const& idx = sum->get_ff_idx();
     for (int k = 0; k < size(idx); k++) {
@@ -546,7 +546,7 @@ void MainPlot::prepare_peak_labels(Sum const* sum)
 void MainPlot::draw_background(wxDC& dc, bool set_pen)
 {
     if (set_pen) 
-        dc.SetPen(wxPen(bg_pointsCol));
+        dc.SetPen(wxPen(bg_pointsCol, pen_width));
     dc.SetBrush (*wxTRANSPARENT_BRUSH);
     // bg line
     int X = -1, Y = -1;

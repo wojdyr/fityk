@@ -16,6 +16,7 @@
 
 #include <wx/statline.h>
 #include <boost/spirit/version.hpp> //SPIRIT_VERSION for AboutDlg
+#include <xylib/xylib.h> //XYLIB_VERSION for AboutDlg
 
 #include "dialogs.h"
 #include "frame.h"
@@ -25,6 +26,7 @@
 #include "../datatrans.h" 
 #include "../logic.h"
 #include "../data.h"
+#include "../sum.h" // get_ff_names()
 
 #include "img/up_arrow.xpm"
 #include "img/down_arrow.xpm"
@@ -373,26 +375,34 @@ void FitRunDlg::OnOK(wxCommandEvent&)
 bool export_data_dlg(wxWindow *parent, bool load_exported)
 {
     static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
-    string columns = "";
+
     vector<int> sel = frame->get_selected_ds_indices();
-    if (sel.size() != 1)
+    int ds;
+    if (sel.size() == 1) 
+        ds = sel[0];
+    else if ((int) sel.size() == ftk->get_ds_count())
+        ds = -1;
+    else
         return false;
-    string ds = "@" + S(sel[0]);
+
+    string columns = "";
     if (!load_exported) {
         DataExportDlg ded(parent, -1, ds);
         if (ded.ShowModal() != wxID_OK)
             return false;
         columns = " (" + ded.get_columns() + ")";
     }
+
     wxFileDialog fdlg (parent, wxT("Export data to file"), dir, wxT(""),
                        wxT("x y data (*.dat, *.xy)|*.dat;*.DAT;*.xy;*.XY"),
                        wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     dir = fdlg.GetDirectory();
     if (fdlg.ShowModal() == wxID_OK) {
         string path = wx2s(fdlg.GetPath());
-        ftk->exec(ds + columns + " > '" + path + "'");
+        string ds_str = (ds == -1 ? string("@*") : "@" + S(ds));
+        ftk->exec("info " + ds_str + columns + " > '" + path + "'");
         if (load_exported)
-            ftk->exec(ds + " < '" + path + "'");
+            ftk->exec(ds_str + " < '" + path + "'");
         return true;
     }
     else
@@ -408,11 +418,11 @@ BEGIN_EVENT_TABLE(DataExportDlg, wxDialog)
     EVT_TEXT(ID_DED_TEXT, DataExportDlg::OnTextChanged)
 END_EVENT_TABLE()
 
-DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id, 
-                             std::string const& ds)
+DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id, int ds_)
     : wxDialog(parent, id, wxT("Export data/functions as points"), 
                wxDefaultPosition, wxSize(600, 500), 
-               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
+               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
+      ds(ds_)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
     wxStaticText *st1 = new wxStaticText(this, -1, 
@@ -428,25 +438,37 @@ DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id,
     choices.Add(wxT("x, y, sigma"));
     cv.Add(wxT("x, y, s"));
     choices.Add(wxT("x, sum"));
-    cv.Add(wxT("x, ") + s2wx(ds) + wxT(".F(x)"));
+    cv.Add(wxT("x, F(x)"));
     choices.Add(wxT("x, sum, zero shift"));
-    cv.Add(wxT("x, ") + s2wx(ds) + wxT(".F(x), ") + s2wx(ds) + wxT(".Z(x)"));
+    cv.Add(wxT("x, F(x), Z(x)"));
     choices.Add(wxT("x, y, sigma, sum"));
-    cv.Add(wxT("x, y, s, ") + s2wx(ds) + wxT(".F(x)"));
+    wxString xysF = wxT("x, y, s, F(x)");
+    cv.Add(xysF);
+
     choices.Add(wxT("x, y, sigma, sum, all functions..."));
-    //TODO:
-    //vector<string> const& ff_names = AL->get_sum(tmp_int)->get_ff_names();
-    cv.Add(wxT("x, y, s, ") + s2wx(ds) + wxT(".F(x), *F(x)"));
+    wxString all_func;
+    if (ds >= -1) {
+        vector<string> const& ff_names = ftk->get_sum(ds)->get_ff_names();
+        for (vector<string>::const_iterator i = ff_names.begin(); 
+                                                      i != ff_names.end(); ++i)
+            all_func += wxT(", %") + s2wx(*i) + wxT("(x)");
+        cv.Add(xysF + all_func);
+    }
+    else
+        cv.Add(wxT(""));
 
     choices.Add(wxT("x, y, sigma, sum, residual"));
-    cv.Add(wxT("x, y, s, ") + s2wx(ds) + wxT(".F(x), y-") + s2wx(ds) 
-            + wxT(".F(x)"));
+    cv.Add(wxT("x, y, s, F(x), y-F(x)"));
     choices.Add(wxT("x, y, sigma, weighted residual"));
-    cv.Add(wxT("x, y, s, (y-") + s2wx(ds) + wxT(".F(x))/s"));
+    cv.Add(wxT("x, y, s, (y-F(x))/s"));
     choices.Add(wxT("custom"));
     rb = new wxRadioBox(this, ID_DED_RADIO, wxT("exported columns"),
                         wxDefaultPosition, wxDefaultSize, choices,
                         2, wxRA_SPECIFY_COLS);
+    for (size_t i = 0; i < choices.size(); ++i) {
+        if (cv.IsEmpty())
+            rb->Enable(i, false);
+    }
     top_sizer->Add(rb, 0, wxALL|wxEXPAND, 5);
     inactive_cb = new wxCheckBox(this, ID_DED_INACT_CB, 
                                  wxT("export also inactive points"));
@@ -554,6 +576,8 @@ AboutDlg::AboutDlg(wxWindow* parent)
                                        SPIRIT_VERSION / 0x1000,
                                        SPIRIT_VERSION % 0x1000 / 0x0100,
                                        SPIRIT_VERSION % 0x0100));
+    txt->AppendText(wxT("powered by xylib ") + s2wx(xylib::xylib_version())
+                    + wxT("\n"));
     txt->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, 
                                     *wxNORMAL_FONT));
     txt->AppendText(wxT("\nCopyright (C) 2001 - 2008 Marcin Wojdyr\n\n"));

@@ -11,6 +11,12 @@ User-visible changes in version 0.8.5  (2008-03-  ):
    data is exported with "info" now: 
       info @n ( expr1, ... ) > filename
       other changes: columns have to be given, @* can be used and *F() can not.
+* xylib: RIET7/LHPM/CSRIET/ILL_D1A5/PSI_DMC .dat filetypes added
+* non-Windows platforms: using HTML manual (in default browser) instead of HTB
+* GUI: command line history is stored in ~/.fityk/history
+
+* bug fixes (there are some bug fixes in every release)
+
 
 User-visible changes in version 0.8.4  (2008-02-15):
 * xylib: pdCIF format was added

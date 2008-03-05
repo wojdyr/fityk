@@ -132,7 +132,7 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
         dc.SetBrush(*wxBLACK_BRUSH);
     }
     else
-        dc.SetPen(wxPen(xAxisCol));
+        dc.SetPen(wxPen(xAxisCol, pen_width));
 
     if (mark_peak_ctrs) {
         int ymax = pixel_height;
@@ -187,7 +187,7 @@ void AuxPlot::draw_zoom_text(wxDC& dc, bool set_pen)
         return;
     if (set_pen)
         dc.SetTextForeground(xAxisCol);
-    dc.SetFont(*wxNORMAL_FONT);  
+    set_font(dc, *wxNORMAL_FONT);  
     string s = "x" + S(y_zoom);  
     wxCoord w, h;
     dc.GetTextExtent (s2wx(s), &w, &h); 

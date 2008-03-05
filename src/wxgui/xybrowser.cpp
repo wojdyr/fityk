@@ -580,6 +580,7 @@ bool App::OnInit()
     outsizer->Add(overwrite, wxSizerFlags().Centre());
     sizer->Add(outsizer, wxSizerFlags().Expand().Border());
 
+    //TODO button wxID_ABOUT
     wxBoxSizer *btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxButton *convert = new wxButton(frame, wxID_ANY, "Convert");
     wxButton *close = new wxButton(frame, wxID_CLOSE);

@@ -1,7 +1,7 @@
 # $Id$
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([fityk], [0.8.4])
+AC_INIT([fityk], [0.8.5])
 LIBRARY_VERSION_FLAG="-version-info 0:0:0"
 
 AC_CONFIG_SRCDIR([src/voigt.h])
@@ -88,6 +88,13 @@ AC_CHECK_HEADER(sstream, [], [AC_MSG_ERROR(
  [You don't have a <sstream> header. It is a part of standard C++ library.
   Either you have too old compiler, or standard C++ library can't be found.])])
 
+if test "$enable_3rdparty" != "yes"; then
+    AC_CHECK_HEADER([xylib/xylib.h], [], [AC_MSG_ERROR(
+ [xylib headers were not found. If you want to use --disable-3rdparty flag,
+  install xylib separately.
+ ])])
+fi
+
 # use headers from 3rdparty/  
 # CPPFLAGS="$CPPFLAGS -I\$(top_srcdir)/3rdparty" #doesn't work here(?), 
 # or substitutes top_srcdir only in Makefile's(?)
@@ -107,14 +114,16 @@ AC_CHECK_HEADER([boost/spirit/core.hpp], [], [AC_MSG_ERROR(
 # see comments above...
 CPPFLAGS=$OLD_CPPFLAGS
 
+
+
 if test "$enable_3rdparty" = "yes"; then
 	CPPFLAGS_3RDPARTY="-I\$(top_srcdir)/3rdparty -I\$(top_srcdir)/3rdparty/xylib" 
+	XYLIB_LDADD="\$(top_builddir)/3rdparty/xylib/xylib/libxy.la"
 else
-# xylib is in 3rdparty, but it's always necessary 
-	CPPFLAGS_3RDPARTY="-I\$(top_srcdir)/3rdparty/xylib" 
+	CPPFLAGS_3RDPARTY=
+        XYLIB_LDADD="-lxy"
 fi
 
-XYLIB_LDADD="\$(top_builddir)/3rdparty/xylib/xylib/libxy.la"
 
 
 AC_LANG_POP([C++]) dnl C is faster than C++

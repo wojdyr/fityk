@@ -21,9 +21,19 @@
 #include <stdexcept>
 #include <fstream>
 
+/// Library version. Use xylib_version() to get is as string.
+///  XYLIB_VERSION % 100 is the sub-minor version
+///  XYLIB_VERSION / 100 % 100 is the minor version
+///  XYLIB_VERSION / 10000 is the major version
+
+#define XYLIB_VERSION 200 // 0.2.0
+
 
 namespace xylib
 {
+
+/// see also XYLIB_VERSION
+std::string xylib_version();
 
 class DataSet;
 
