@@ -7,3 +7,5 @@ xyconv_SOURCES = xyconv.cpp
 
 LDADD = xylib/libxy.la -lm
 
+index.html: README
+	rst2html --stylesheet-path=web.css README index.html

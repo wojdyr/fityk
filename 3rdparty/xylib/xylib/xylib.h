@@ -4,8 +4,30 @@
 
 /// xylib is a library for reading files that contain x-y data from powder
 /// diffraction, spectroscopy or other experimental methods.
+///
 /// It is recommended to set LC_NUMERIC="C" (or other locale with the same 
 /// numeric format) before reading files.
+/// 
+/// Usually, we first call load_file() to read file from disk. It stores 
+/// all data from the file in class DataSet. 
+/// DataSet contains a list of Blocks, each Blocks contains a list of Columns, 
+/// and each Column contains a list of values. 
+/// It may sound complex, but it can't be made simpler.
+/// It's analogical to a spreadsheet. One OOCalc or Excel file (which 
+/// corresponds to xylib::DataSet) contains a number of sheets (Blocks), 
+/// but usually only one is used.
+/// We can view each sheet as a list of columns. 
+/// In xylib all columns in one block must have equal length. 
+/// Some of supported filetypes contain only one Block with two Columns.
+/// In this case we can take coordinates of the 15th point as:
+///    x = get_block(0)->get_column(1)->get_value(14);
+///    y = get_block(0)->get_column(2)->get_value(14);
+/// Note that blocks and points are numbered from 0, but columns are numbered
+/// from 1, because column returns index of points.
+/// All values are stored as floating-point numbers, even if they are integers
+/// in the file.
+/// DataSet and Block contain also MetaData, which is a string to string map.
+/// 
 
 
 #ifndef XYLIB__API__H__
@@ -21,7 +43,7 @@
 #include <stdexcept>
 #include <fstream>
 
-/// Library version. Use xylib_version() to get is as string.
+/// Library version. Use xylib_version() to get it as a string.
 ///  XYLIB_VERSION % 100 is the sub-minor version
 ///  XYLIB_VERSION / 100 % 100 is the minor version
 ///  XYLIB_VERSION / 10000 is the major version

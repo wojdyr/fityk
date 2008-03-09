@@ -1,95 +1,113 @@
 
-OVERVIEW
-========
-xylib is a library for reading files that contain x-y data from powder 
-diffraction, spectroscopy or other experimental methods.
+=====
+xylib
+=====
 
+xylib is a C++ library for reading files that contain x-y data from
+powder diffraction, spectroscopy or other experimental methods.
 
 Supported formats:
 
-* plain text (CSV or TSV or space-separated-values)
-* Crystallographic Information File for Powder Diffraction (pdCIF)
-* Siemens/Bruker UXD
-* Siemens/Bruker Diffrac-AT RAW v1/2/3
-* Philips UDF 
-* Philips RD (raw scan) V3
-* Rigaku DAT 
-* Sietronics Sieray CPI 
-* DBWS/DMPLOT data file
-* Canberra MCA (one of formats)
-* XFIT/Koalariet XDD 
-* RIET7/LHPM/CSRIET/ILL_D1A5/PSI_DMC DAT
-* Vamas ISO14976
-    only experiment modes: "SEM" or "MAPSV" or "MAPSVDP" are supported
-    only "REGULAR" scan_mode is supported
-* Princeton Instruments WinSpec SPE 
-    only 1-D data is supported
- 
+-  plain text (CSV or TSV or space-separated-values)
+-  Crystallographic Information File for Powder Diffraction (pdCIF)
+-  Siemens/Bruker UXD
+-  Siemens/Bruker RAW v1/2/3
+-  Philips UDF
+-  Philips RD (raw scan) V3
+-  Rigaku DAT
+-  Sietronics Sieray CPI
+-  DBWS/DMPLOT data file
+-  Canberra MCA *(only one of Canberra MCA formats?)*
+-  XFIT/Koalariet XDD
+-  RIET7/LHPM/CSRIET/ILL\_D1A5/PSI\_DMC DAT
+-  Vamas ISO14976
+   *(only experiment modes: SEM or MAPSV or MAPSVDP are supported; 
+   only REGULAR scan_mode is supported)*
+-  Princeton Instruments WinSpec SPE
+   *(only 1-D data is supported)*
 
-For API description, see: xylib/xylib.h file.
+For API description, see `xylib/xylib.h`__ file.
 
+__ http://fityk.svn.sourceforge.net/viewvc/fityk/trunk/3rdparty/xylib/xylib/xylib.h?view=markup
 
-NOTES
-=====
-This is a version of xylib integrated with fityk.
-Original (older) version of xylib is at http://www.sf.net/projects/xylib
+INSTALLATION
+============
 
-Filetype samples are not distributed with the library, but there is a script
-samples/get_samples.sh that tries to download them from Internet.
-See the script for more info.
+You can download source tarball here or use Subversion repository_. 
+Boost libraries are required at compile time.
 
-The library includes a tiny program xyconv, which converts from any file 
+.. _repository: https://fityk.svn.sourceforge.net/svnroot/fityk/trunk/3rdparty/xylib
+
+**Linux, FreeBSD, etc:** 
+the library can be compiled in a standard ``./configure && make`` way. 
+If you downloaded the source from svn, you need to run ``autoreconf -i`` before.
+
+MISC NOTES
+==========
+
+This is a version of xylib integrated with fityk. Original (older)
+version of xylib is `here <http://www.sf.net/projects/xylib>`_.
+
+Filetype samples are not distributed with the library, but there is
+a script `samples/get_samples.sh`__ that tries to download them
+from Internet. 
+
+__ https://fityk.svn.sourceforge.net/svnroot/fityk/trunk/3rdparty/xylib/samples/get_samples.sh
+
+The library includes a tiny program xyconv, which converts files
 supported by xylib to TSV.
 
-xylib is used by: 
-* fityk (http://www.unipress.waw.pl/fityk)
-* xyConvert (a small program for converting files, distributed with fityk)
+xylib is used by:
 
+-  `fityk <http://www.unipress.waw.pl/fityk>`_
+-  xyConvert
 
 HOW TO ADD A NEW FORMAT
 =======================
-Please contact us first, see: CONTACT 
 
-Each .cpp/.h file pair in xylib/ (excluding xylib.* and util.*) corresponds
-to one supported filetype.  Each of these .cpp files contains basic info 
-about the format in constructor of struct FormatInfo. Each header files 
-includes a note what the implementation is based on (i.e. what documentation 
-was available to developers). In some cases the format is described in .cpp 
-file.
+We will be glad to include support for (almost) any format. 
+You may contact us before you start working.
 
-To add a new filetype: 
-* go to xylib/ subdirectory
-* write new_format.cpp and .h files
-* #include new_format.h file in xylib.cpp
-* add an entry to formats[] array in xylib.cpp
-* add new_format.cpp and .h files to Makefile.am
+Each ``.cpp``/``.h`` file pair in ``xylib/`` (excluding ``xylib.*``
+and ``util.*``) corresponds to one supported filetype.
+
+Each of these ``.cpp`` files contains basic info about the format
+in constructor of ``struct FormatInfo``. Each header files includes
+a note what the implementation is based on (i.e. what documentation
+was available to developers). In some cases the format is described
+in ``.cpp`` file.
+
+To add a new filetype:
+
+-  go to ``xylib/`` subdirectory
+-  write ``new_format.cpp`` and ``.h`` files
+-  ``#include new_format.h`` in ``xylib.cpp``
+-  add an entry to ``formats[]`` array in ``xylib.cpp``
+-  add ``new_format.cpp`` and ``.h`` files to ``Makefile.am``
 
 AUTHORS
 =======
-Peng ZHANG <zhangpengcas@gmail.com>
-Marcin Wojdyr <wojdyr@gmail.com>
+
+-  Peng ZHANG zhangpengcas@gmail.com
+-  Marcin Wojdyr wojdyr@gmail.com (maintainer)
 
 CONTACT
 =======
-Feel free to send e-mail to the authors, or to the fityk-devel mailing list:
-https://lists.sourceforge.net/lists/listinfo/fityk-devel
 
+Feel free to send e-mail to the authors, or to the
+`fityk-devel mailing list <https://lists.sourceforge.net/lists/listinfo/fityk-devel>`_.
 
 CREDITS
 =======
-* The library was started as Google Summer of Code 2007 project by Peng ZHANG,
-  mentored by Marcin Wojdyr from Fityk organization.
-* Michael Richardson <michael.richardson@vuw.ac.nz> provided VAMAS 
-  specification and sample files.
-* David Hovis <dbh6@case.edu> provided a WinSpec file format specification 
-  and sample files.
-* Pablo Bianucci <pbian@physics.utexas.edu> provided his code for reading 
-  WinSpec format and sample files.
-* Brian H. Toby <Brian.Toby@anl.gov> suggested adding pdCIF format.
-* Martijn Fransen <martijn.fransen@panalytical.com> provided very useful 
-  specifications of Philips formats.
-* Vincent Favre-Nicolin provided PSI_DMC and ILL_D1A5 samples; reading his
-  ObjCryst library was also helpful.
-* long time ago, before this project started, Janos Vegh sent us his VAMAS
-  reading routines.
 
+-  Google - the library was started as Google Summer of Code 2007 project 
+   by Peng ZHANG, mentored by Marcin Wojdyr from Fityk organization.
+-  Michael Richardson provided VAMAS specification and sample files.
+-  David Hovis provided a WinSpec file format specification and sample files.
+-  Pablo Bianucci provided his code for reading WinSpec format and sample files.
+-  Brian H. Toby suggested adding pdCIF format.
+-  Martijn Fransen provided very useful specifications of Philips formats.
+-  Vincent Favre-Nicolin provided PSI\_DMC and ILL\_D1A5 samples;
+   reading his ObjCryst library was also helpful.
+-  Janos Vegh sent us his VAMAS reading routines (long time ago, before this 
+   project started). 

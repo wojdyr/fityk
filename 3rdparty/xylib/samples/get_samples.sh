@@ -1,6 +1,7 @@
 #!/bin/sh
-# download some sample files, which we do not have re-distribution rights
+# download sample files
 
+# We were granted permissions to distribute all files stored at $XYLIB_STORAGE.
 XYLIB_STORAGE=http://www.unipress.waw.pl/fityk/xylib_samples
 
 # Siemens/Bruker diffract v1 raw files

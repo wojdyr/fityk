@@ -61,7 +61,7 @@
     and postpone reading
     <xref linkend="CommandReference"/> until you need to write a script,
     put constraints on variables, add user-defined function 
-    or understand in more detail how the program works.
+    or understand better how the program works.
    </para>
    <para>
     In case you are not familiar with the term 
@@ -2283,7 +2283,8 @@
     </para>
     <para>
      The command <command>quit</command> works as expected. 
-     If this command is found in a script it will close the program as well.
+     If this command is found in a script it quits the program, not only 
+     the script.
     </para>
    </section> 
   </section> 

@@ -27,8 +27,6 @@ know what to do, there is a list of ideas at the end of this file.
 
 --------------> 2.9
 
-* wxWidgets: on wxGTK 2.9 wxChoice on toolbar is not visible
-
 * configure.ac: 
   --enable-samples-install  Install samples as documentation 
     (to .../share/doc/fityk/samples/, only *.fit and *.dat files)
@@ -47,7 +45,7 @@ know what to do, there is a list of ideas at the end of this file.
 
 * BUG: "plot . []" sometimes doesn't work as expected if x axis is not visible.
 
-* ? rewrite manual in Markdown/Pandoc
+* convert manual from DocBook to reStructuredText
 
 * data import: possibility to use xylib column/block name as title
 
@@ -123,15 +121,14 @@ know what to do, there is a list of ideas at the end of this file.
 
 * cmd/GUI: plot peak-groups: ==> plot (%a+%b+%c)  
 
-* (GUI) different peak-draft for sigmoids/steps (new function category), 
-         and for other functions
+* add a new function category: sigmoids/steps (now function can be guessed as
+  "peak" and "linear"). (GUI): drawing drafts for the new category.
 
 * auto-freezing of peaks at disactivated range
 
-* (GUI) single dialog for configuring main plot (and also aux. plots) (?)
-
 * (GUI) vertical scaling using mouse on main plot near to left edge of the plot 
 
+* (GUI) single dialog for configuring main plot (and also aux. plots) (?)
 * (GUI, BUG) in Configure axes / peak labels: fonts are changed even
   if Apply is not pressed
 
@@ -182,7 +179,10 @@ know what to do, there is a list of ideas at the end of this file.
 
 * when wxWidgets 3.x will be available in major Linux distributions:
   - open-file dialog (with preview) will use XyBrowser
-  - most of file dialogs will be changed to take adventage of custom controls.
+  - file dialogs will be changed to take adventage of custom controls:
+      * Choose log file: add "log also output" checkbox
+      * Data > Export will be done in one step
+      * "Export formula" dialog will have formula-export-style option
   - wxAboutBox will be used instead of AboutDlg
 
 
