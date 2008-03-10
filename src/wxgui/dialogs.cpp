@@ -447,7 +447,7 @@ DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id, int ds_)
 
     choices.Add(wxT("x, y, sigma, sum, all functions..."));
     wxString all_func;
-    if (ds >= -1) {
+    if (ds >= 0) {
         vector<string> const& ff_names = ftk->get_sum(ds)->get_ff_names();
         for (vector<string>::const_iterator i = ff_names.begin(); 
                                                       i != ff_names.end(); ++i)
@@ -465,8 +465,8 @@ DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id, int ds_)
     rb = new wxRadioBox(this, ID_DED_RADIO, wxT("exported columns"),
                         wxDefaultPosition, wxDefaultSize, choices,
                         2, wxRA_SPECIFY_COLS);
-    for (size_t i = 0; i < choices.size(); ++i) {
-        if (cv.IsEmpty())
+    for (size_t i = 0; i < cv.GetCount(); ++i) {
+        if (cv[i].IsEmpty())
             rb->Enable(i, false);
     }
     top_sizer->Add(rb, 0, wxALL|wxEXPAND, 5);
@@ -481,36 +481,32 @@ DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id, int ds_)
     SetSizerAndFit(top_sizer);
 
     //read settings
-    wxString t = wxConfig::Get()->Read(wxT("/exportDataCols"), wxT("x, y, s"));
-    for (size_t i = 0; i < cv.GetCount(); ++i) {
-        if (t == cv[i]) {
-            rb->SetSelection(i);
-            inactive_cb->SetValue(false);
-            on_widget_change();
-            return;
-        }
-        else if (t == cv[i]+wxT(", a")) {
-            rb->SetSelection(i);
-            inactive_cb->SetValue(true);
-            on_widget_change();
-            return;
-        }
+    wxConfigBase *config = wxConfig::Get();
+    int n = config->Read(wxT("/exportDataSel"), 0L);
+    if (n >= 0 && n < (int) rb->GetCount())
+        rb->SetSelection(n);
+    if (is_custom()) {
+        text->SetValue(config->Read(wxT("/exportDataText"), wxT("")));
+        text->MarkDirty();
     }
-    rb->SetSelection(cv.GetCount());
-    text->SetValue(t);
-    text->MarkDirty();
+    else {
+        bool a = cfg_read_bool(config, wxT("/exportDataA"), false);
+        inactive_cb->SetValue(a);
+    }
+    on_widget_change();
 }
+
 
 void DataExportDlg::on_widget_change()
 {
-    int n = rb->GetSelection();
-    bool is_custom = (n == (int) cv.GetCount());
-    if (!is_custom) {
+    bool custom = is_custom();
+    if (!custom) {
+        int n = rb->GetSelection();
         text->SetValue(cv[n] + (inactive_cb->GetValue() ? wxT(", a"):wxT("")));
         FindWindow(wxID_OK)->Enable(true);
     }
-    text->Enable(is_custom);
-    inactive_cb->Enable(!is_custom);
+    text->Enable(custom);
+    inactive_cb->Enable(!custom);
 }
 
 void DataExportDlg::OnTextChanged(wxCommandEvent&) 
@@ -525,8 +521,6 @@ void DataExportDlg::OnTextChanged(wxCommandEvent&)
         if (t == "a")
             has_a = true;
 
-        if (startswith(t, "*F(") && *(t.end()-1) == ')') 
-            t = t.substr(3, t.size()-4);
         if (!compile_data_expression(t))
             parsable = false;
     }
@@ -536,7 +530,14 @@ void DataExportDlg::OnTextChanged(wxCommandEvent&)
 
 void DataExportDlg::OnOk(wxCommandEvent& event) 
 {
-    wxConfig::Get()->Write(wxT("/exportDataCols"), text->GetValue());
+    // save current settings to config file
+    wxConfigBase *config = wxConfig::Get();
+    config->Write(wxT("/exportDataSel"), rb->GetSelection());
+    if (is_custom()) 
+        config->Write(wxT("/exportDataText"), text->GetValue());
+    else 
+        config->Write(wxT("/exportDataA"), inactive_cb->GetValue());
+
     event.Skip();
 }
 

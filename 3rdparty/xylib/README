@@ -3,7 +3,7 @@
 xylib
 =====
 
-xylib is a C++ library for reading files that contain x-y data from
+xylib is a portable C++ library for reading files that contain x-y data from
 powder diffraction, spectroscopy or other experimental methods.
 
 Supported formats:
@@ -33,9 +33,11 @@ __ http://fityk.svn.sourceforge.net/viewvc/fityk/trunk/3rdparty/xylib/xylib/xyli
 INSTALLATION
 ============
 
-You can download source tarball here or use Subversion repository_. 
+You can download `source tarball`_ or use Subversion repository_. 
+
 Boost libraries are required at compile time.
 
+.. _`source tarball`: https://sourceforge.net/project/showfiles.php?group_id=79434&package_id=unknown
 .. _repository: https://fityk.svn.sourceforge.net/svnroot/fityk/trunk/3rdparty/xylib
 
 **Linux, FreeBSD, etc:** 

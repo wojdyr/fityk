@@ -74,6 +74,9 @@ protected:
     wxCheckBox *inactive_cb;
     wxTextCtrl *text;
     wxArrayString cv;
+
+    bool is_custom() const { return rb->GetSelection() == (int) cv.GetCount(); }
+
     DECLARE_EVENT_TABLE()
 };
 

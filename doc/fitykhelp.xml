@@ -444,9 +444,9 @@
       @0 &lt; foo.vms 
       @0 &lt; foo.fii text first-line-header
       @0 &lt; foo.dat:1:4:: # x,y - 1st and 4th columns
-      @+ &lt; foo.dat:1:3,4:: # load two dataset (with y in columns 3,4)
-      @+ &lt; foo.dat:1:3..5:: # load three dataset (with y in columns 3,4,5)
-      @+ &lt; foo.dat:1:4..6,2:: # load four dataset (y: 4,5,6,2)
+      @0 &lt; foo.dat:1:3,4:: # load two dataset (with y in columns 3,4)
+      @0 &lt; foo.dat:1:3..5:: # load three dataset (with y in columns 3,4,5)
+      @0 &lt; foo.dat:1:4..6,2:: # load four dataset (y: 4,5,6,2)
       @0 &lt; foo.dat:1:2:3: # read std. dev. of y from 3rd column
       @0 &lt; foo.dat:0:1:: # x - 0,1,2,..., y - first column
       @0 &lt; foo.raw::::0,1 # load two first blocks of data (as one dataset)
@@ -528,7 +528,7 @@
 
     <para>
      Information about loaded data can be obtained with:
-     <command>info <replaceable>dataslot</replaceable></command>
+     <command>info data in <replaceable>dataslot</replaceable></command>
     </para>
 
    </section> 
@@ -927,20 +927,19 @@
       <arg choice="plain">@<replaceable>n</replaceable></arg>
       <command>&lt;</command> 
       <arg choice="plain"><replaceable>filename</replaceable></arg> 
-      <arg><replaceable>filetype</replaceable></arg>  
-      <arg><replaceable>xcol</replaceable>,<replaceable>ycol</replaceable>
-       <arg>,<replaceable>scol</replaceable></arg>
+      <arg>:<replaceable>xcol</replaceable>:<replaceable>ycol</replaceable>:<replaceable>scol</replaceable>:<replaceable>block</replaceable>
       </arg> 
+      <arg><replaceable>filetype options...</replaceable></arg>  
      </cmdsynopsis>
      <cmdsynopsis>
-      <arg choice="plain">@+</arg>
+      <arg choice="plain">@<replaceable>+</replaceable></arg>
       <command>&lt;</command> 
       <arg choice="plain"><replaceable>filename</replaceable></arg> 
-      <arg><replaceable>filetype</replaceable></arg>  
-      <arg><replaceable>xcol</replaceable>,<replaceable>ycol</replaceable>
-       <arg>,<replaceable>scol</replaceable></arg>
+      <arg>:<replaceable>xcol</replaceable>:<replaceable>ycol</replaceable>:<replaceable>scol</replaceable>:<replaceable>block</replaceable>
       </arg> 
+      <arg><replaceable>filetype options...</replaceable></arg>  
      </cmdsynopsis>
+
      The first one uses existing data slot and the second one creates 
      a new slot. 
      Using @+ increases the number of datasets,
@@ -989,10 +988,10 @@
      of the file).
      Titles can be changed using the command 
      <command>
-      @<replaceable>n</replaceable>.title=<replaceable>new-title</replaceable>
+      set @<replaceable>n</replaceable>.title=<replaceable>new-title</replaceable>
      </command>. 
      To see the current title of the dataset, 
-     use <command>info @<replaceable>n</replaceable></command>.
+     use <command>info title in @<replaceable>n</replaceable></command>.
     </para>
     <para>
      It is possible to show values of a data expression calculated for each
@@ -1004,26 +1003,22 @@
     <para>
      Command
      <cmdsynopsis>
+      <command>info</command>
       <arg choice="plain"><replaceable>dataslot</replaceable></arg>
-      <command>(<replaceable>expression</replaceable>, ...)
-      &gt;</command> 
+      <arg choice="plain">(<replaceable>expression</replaceable>, ...) &gt;</arg>
       <arg choice="plain"><replaceable>filename</replaceable></arg> 
      </cmdsynopsis>
      can export data to an ASCII TSV (tab separated values) file. 
      To export data in a 3-column (x, y and standard deviation) format, use
-     <userinput>@<replaceable>n</replaceable> (x, y, s) > <replaceable>file</replaceable></userinput>.
+     <userinput>info @<replaceable>n</replaceable> (x, y, s) > <replaceable>file</replaceable></userinput>.
      If <userinput>a</userinput> is not listed in the list of columns,
      such as in this example, only the active points are exported.
     </para>
     <para>
-     All expressions that can be used on the right-hand side of data transformations
-     can also be used in the column list, e.g.
-     <userinput>@0 (n+1, x, y, @0.F(x), y-@0.F(x), @0.Z(x), %foo(x), a, sin(pi*x)+y^2) > bar.tsv</userinput>. 
-     [To make it easier to export all functions
-     in F separately, there is an exception in the syntax: "*F(x)" is replaced 
-     with all functions in sum of the exported dataset, 
-     e.g. with "%_1(x) %_2(x) %_3(x)". This is most likely not a good idea and
-     will probably be removed in a future version. If you find it useful, let the author know.]
+     All expressions that can be used on the right-hand side of data 
+     transformations can also be used in the column list. 
+     Additionally, F and Z can be used with dataset prefix, e.g.
+     <userinput>info @0 (n+1, x, y, F(x), y-F(x), Z(x), %foo(x), a, sin(pi*x)+y^2) > bar.tsv</userinput>. 
     </para>
    </section> 
   </section> 
@@ -1763,8 +1758,7 @@
      <varlistentry>
       <term>fit undo</term>
       <listitem><para>
-        move back to the previous parameters. Can be used to revert 
-        the <command>fit</command> command.
+        move back to the previous parameters (undo fitting). 
       </para></listitem> 
      </varlistentry>
      <varlistentry>
@@ -2201,9 +2195,9 @@
       <member>functions</member>
       <member><replaceable>%function_name</replaceable></member>
       <member>datasets</member>
-      <member>@<replaceable>n</replaceable></member>
-      <member>@<replaceable>n</replaceable>.title</member>
-      <member>@<replaceable>n</replaceable>.filename</member>
+      <member>data [in @<replaceable>n</replaceable>]</member>
+      <member>title [in @<replaceable>n</replaceable>]</member>
+      <member>filename [in @<replaceable>n</replaceable>]</member>
       <member>commands</member>
       <member>commands [n:m]</member>
       <member>view</member>

@@ -8,15 +8,14 @@ User-visible changes in version 0.8.5  (2008-03-  ):
     @0.title = abc      ->   set @0.title = abc
     @+                  ->   @+ = 0
     @0.revert           ->   @0 < .
-   data is exported with "info" now: 
-      info @n ( expr1, ... ) > filename
-      other changes: columns have to be given, @* can be used and *F() can not.
+   data is exported with "info" now: info @n ( expr1, ... ) > filename
+     where: columns have to be given, @* can be used, F() and Z() can 
+            be used without "@n." prefix,  *F() can not be used.
 * xylib: RIET7/LHPM/CSRIET/ILL_D1A5/PSI_DMC .dat filetypes added
 * non-Windows platforms: using HTML manual (in default browser) instead of HTB
 * GUI: command line history is stored in ~/.fityk/history
-
+* --disable-3rdparty configure flag prevents building with xylib from 3rdparty/
 * bug fixes (there are some bug fixes in every release)
-
 
 User-visible changes in version 0.8.4  (2008-02-15):
 * xylib: pdCIF format was added

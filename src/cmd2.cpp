@@ -142,11 +142,10 @@ bool equal_x_colums()
 // change F(...) to @n.F(...), and the same with Z
 string add_ds_to_sum(string const& s, int nr)
 {
-    if (nr >= 0 && s.size() > 3 && (s[0] == 'F' || s[0] == 'Z') 
-                                 && (s[1] == '(' || isspace(s[1])))
-        return "@" + S(nr) + "." + s;
-    else
-        return s;
+    string s2 = s;
+    replace_words(s2, "F", "@" + S(nr) + "F");
+    replace_words(s2, "Z", "@" + S(nr) + "Z");
+    return s2;
 }
 
 void do_export_dataset(char const*, char const*)

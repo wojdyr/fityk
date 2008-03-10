@@ -91,7 +91,7 @@ void ListWithColors::populate(vector<string> const& data,
     }
     list_data = data;
     
-    if (active >= 0)
+    if (active >= 0 && active < length)
         Focus(active);
     Thaw();
 }

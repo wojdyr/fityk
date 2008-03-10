@@ -10,15 +10,12 @@
 #include <wx/wx.h>
 #endif
 
-#include <wx/laywin.h>
 #include <wx/splitter.h>
 #include <wx/filedlg.h>
-#include <wx/valtext.h>
 #include <wx/textdlg.h>
 #include <wx/numdlg.h>
 #include <wx/utils.h>
 #include <wx/statline.h>
-#include <wx/html/htmlwin.h>
 #include <wx/printdlg.h>
 #include <wx/image.h>
 #include <wx/config.h>
@@ -1412,6 +1409,8 @@ void FFrame::SwitchToolbar(bool show)
         toolbar = new FToolBar(this, -1);
         SetToolBar(toolbar);
         update_toolbar();
+        update_peak_type_list();
+        toolbar->ToggleTool(ID_ft_sideb, v_splitter->IsSplit());
     }
     else if (!show && GetToolBar()){
         SetToolBar(0);

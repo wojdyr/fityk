@@ -5,16 +5,6 @@ know what to do, there is a list of ideas at the end of this file.
 
 ---------- TODO list and tentative development plan  ----------------
 
-//* export all datasets to one data file: @* (...) ...
-//* data export: parse @n ( F(...), Z(...)) as @n.F(), @n.Z()
-
-// * not redirected info should display ... [...more] rather than all lines
-
-// * make separate package for xylib and don't use the one in 3rdparty/ if the 
-//   the flag --disable-3rdparty is given
-
-* manual: update syntax
-
 * make stand-alone converter utility that uses xylib and wx >= 2.9,
   built explicitely by "make xyConvert" in src/wxgui/
 
@@ -27,6 +17,7 @@ know what to do, there is a list of ideas at the end of this file.
 
 --------------> 2.9
 
+* GUI, toolbar: remove "continue fitting" and add "undo fitting"
 * configure.ac: 
   --enable-samples-install  Install samples as documentation 
     (to .../share/doc/fityk/samples/, only *.fit and *.dat files)
