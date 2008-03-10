@@ -90,8 +90,8 @@ AC_CHECK_HEADER(sstream, [], [AC_MSG_ERROR(
 
 if test "$enable_3rdparty" != "yes"; then
     AC_CHECK_HEADER([xylib/xylib.h], [], [AC_MSG_ERROR(
- [xylib headers were not found. If you want to use --disable-3rdparty flag,
-  install xylib separately.
+ [xylib headers were not found. 
+  If you want to use --disable-3rdparty flag, install xylib separately.
  ])])
 fi
 

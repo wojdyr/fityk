@@ -69,7 +69,7 @@ InputLine::InputLine(wxWindow *parent, wxWindowID id,
         std::ifstream f(hist_file.fn_str());
         char line[512];
         while (f.getline(line, 512))
-            m_history.Add(line);
+            m_history.Add(pchar2wx(line));
     }
     // add empty line that will be displayed initially
     m_history.Add(wxT(""));
