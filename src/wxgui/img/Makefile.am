@@ -61,6 +61,7 @@ fileopen16.h \
 filereload16.h \
 filesaveas16.h \
 function16.h \
+image16.h \
 preferences16.h \
 recordmacro16.h \
 redo16.h \
@@ -70,6 +71,7 @@ run16.h \
 runmacro16.h \
 stopmacro16.h \
 undo16.h \
+zoom-fit16.h \
  \
 fityk.ico 
 

@@ -25,6 +25,8 @@ public:
     void clear();
     /// plotting function called to refresh buffer
     virtual void draw(wxDC &dc, bool monochrome=false) = 0;
+    /// get bitmap buffer
+    wxBitmap const& get_bitmap() const { return buffer; }
 
 protected:
     wxColour backgroundCol;

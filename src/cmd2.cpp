@@ -120,31 +120,37 @@ void do_revert_data(char const*, char const*)
     outdated_plot=true;  
 }
 
-// returns true if x columns in all datasets have the same fixed step and 
-// the same x_min
-bool equal_x_colums()
+// returns true if x columns in all datasets have the same x values
+bool equal_x_colums(bool only_active)
 {
-        Data const* data = AL->get_data(0);
-        fp x_start = data->get_x_min();
-        fp x_step =  data->get_x_step();
-        if (x_step == 0.)
-            return false;
-        for (int i = 1; i < AL->get_ds_count(); ++i) {
-            Data const* data = AL->get_data(i);
-            if (x_start != data->get_x_min())
-                return false;
-            if (fabs(x_step - data->get_x_step()) < 1e-6 * fabs(x_step))
-                return false;
+    vector<fp> xx;
+    vector<Point> const& points = AL->get_data(0)->points();
+    for (size_t i = 0; i < points.size(); ++i) {
+        if (!only_active || points[i].is_active)
+            xx.push_back(points[i].x);
+    }
+
+    for (int j = 1; j < AL->get_ds_count(); ++j) {
+        vector<Point> const& points2 = AL->get_data(j)->points();
+        size_t n = 0;
+        for (size_t i = 0; i < points2.size(); ++i) {
+            if (!only_active || points2[i].is_active) {
+                double x = points2[i].x;
+                if (n >= xx.size() || fabs(xx[n] - x) > 1e-6 * fabs(xx[n] + x))
+                    return false;
+                ++n;
+            }
         }
-        return true;
+    }
+    return true;
 }
 
 // change F(...) to @n.F(...), and the same with Z
 string add_ds_to_sum(string const& s, int nr)
 {
     string s2 = s;
-    replace_words(s2, "F", "@" + S(nr) + "F");
-    replace_words(s2, "Z", "@" + S(nr) + "Z");
+    replace_words(s2, "F", "@" + S(nr) + ".F");
+    replace_words(s2, "Z", "@" + S(nr) + ".Z");
     return s2;
 }
 
@@ -172,11 +178,11 @@ void do_export_dataset(char const*, char const*)
     // the rest of datasets (if any)
     if (idx == all_datasets && ds_count > 1) { 
         // special exception - remove redundant x columns
-        if (cols[0] == "x" && equal_x_colums())
+        if (cols[0] == "x" && equal_x_colums(only_active))
             cols.erase(cols.begin());
 
         for (int i = 1; i < ds_count; ++i) {
-            Data *data = AL->get_data(i);
+            data = AL->get_data(i);
             string title = data->get_title();
             for (vector<string>::const_iterator j = cols.begin(); 
                                                     j != cols.end(); ++j) {
@@ -189,7 +195,7 @@ void do_export_dataset(char const*, char const*)
     os << endl; // after title
 
     // output 2D table r as TSV
-    size_t nc = cols.size();
+    size_t nc = r.size();
     for (size_t i = 0; i != r[0].size(); ++i) {
         for (size_t j = 0; j != nc; ++j) {
             os << r[j][i] << (j < nc-1 ? '\t' : '\n'); 

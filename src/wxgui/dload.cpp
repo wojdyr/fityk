@@ -61,7 +61,7 @@ public:
     void draw(wxDC &dc, bool);
     void load_dataset(string const& filename, string const& filetype,
                       vector<string> const& options);
-    xylib::DataSet* const get_data() { return data_updated ? data : NULL; }
+    xylib::DataSet const* get_data() { return data_updated ? data : NULL; }
     void make_outdated() { data_updated = false; }
 
 private:

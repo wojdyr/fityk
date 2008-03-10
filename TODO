@@ -1,5 +1,8 @@
 $Id$
 
+If you can help convert the manual from DocBook to reStructuredText, please
+contact me.
+
 If you know C++ and would like to help improving fityk code, but you don't 
 know what to do, there is a list of ideas at the end of this file.
 
@@ -17,7 +20,10 @@ know what to do, there is a list of ideas at the end of this file.
 
 --------------> 2.9
 
+* GUI: save plot as image (PNG)
+
 * GUI, toolbar: remove "continue fitting" and add "undo fitting"
+
 * configure.ac: 
   --enable-samples-install  Install samples as documentation 
     (to .../share/doc/fityk/samples/, only *.fit and *.dat files)
@@ -53,9 +59,10 @@ know what to do, there is a list of ideas at the end of this file.
   use case: sort functions by centers
   involves refactoring ListWithColors::populate()
 
-* GUI: in script editor, "info ...> file" should be marked differently
-  than not redirected info 
-  paths of files to be read should be checked 
+* GUI, script editor: 
+       "info ...> file" should be marked differently than not redirected info 
+       paths of files to be read should be checked 
+       ? search'n'replace button
 
 * unused variables should not slow down fitting
 
@@ -65,11 +72,7 @@ know what to do, there is a list of ideas at the end of this file.
 
 ------------------ 
 
-* GUI: script editor: button to change directories in absolute filenames
-
 * GUI: button '(un)lock' on variables pane [waiting for wx-toggle-bitmap-button]
-
-* [Infrastructure] Set up BuildBot or similar system for build tests
 
 * user defined functions:
       - more sophisticated simplifications of expressions and CSE(!)
@@ -83,16 +86,16 @@ know what to do, there is a list of ideas at the end of this file.
   perhaps using gsl_sf_log_erfc or exp(x*x)*erfc(x) from
   http://www.netlib.org/specfun/erf
 
-* ? GUI: changing data point size and line separately for each dataset,
-
-* info -- more informations about error, confidence limits, etc.
-  graphical interface Fit > Info
-
 * improve Voigt function (cut-tails, better approx.) 
   eg. http://portal.acm.org/citation.cfm?doid=77626.77629
 
-* GUI: it should be possible to constrain two parameters of two peak,
-     at least to make them equal.
+* ? GUI: changing data point size and line separately for each dataset,
+
+* info -- more information about error, confidence limits, etc.
+  graphical interface Fit > Info
+
+* GUI: it should be possible to constrain two parameters of two peak 
+     (using mouse), at least to make them equal.
 
 * GUI: menu Functions:
   Functions > Peak-Find Info -> animation
@@ -115,7 +118,7 @@ know what to do, there is a list of ideas at the end of this file.
 * add a new function category: sigmoids/steps (now function can be guessed as
   "peak" and "linear"). (GUI): drawing drafts for the new category.
 
-* auto-freezing of peaks at disactivated range
+* ? automatically freeze peaks in disactivated range
 
 * (GUI) vertical scaling using mouse on main plot near to left edge of the plot 
 

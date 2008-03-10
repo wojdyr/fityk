@@ -102,6 +102,7 @@
 #include "img/filereload16.h"
 #include "img/filesaveas16.h"
 #include "img/function16.h"
+#include "img/image16.h"
 #include "img/preferences16.h"
 #include "img/recordmacro16.h"
 #include "img/redo16.h"
@@ -111,6 +112,7 @@
 #include "img/stopmacro16.h"
 #include "img/undo16.h"
 #include "img/revert16.h"
+#include "img/zoom-fit16.h"
 
 // I have wxUSE_METAFILE=1 on wxGTK-2.6.1, which was probably a bug
 #if wxUSE_METAFILE && defined(__WXGTK__)
@@ -162,6 +164,7 @@ enum {
     ID_PAGE_SETUP              ,
     ID_PRINT_PSFILE            ,
     ID_PRINT_CLIPB             ,
+    ID_SAVE_IMAGE              ,
     ID_O_INCLUDE               ,
     ID_O_REINCLUDE             ,
     ID_S_DEBUGGER              ,
@@ -305,6 +308,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_PRINT_CLIPB,   FFrame::OnPrintToClipboard)
     EVT_MENU (ID_PAGE_SETUP,    FFrame::OnPageSetup)
     EVT_MENU (wxID_PREVIEW,     FFrame::OnPrintPreview)
+    EVT_MENU (ID_SAVE_IMAGE,    FFrame::OnSaveAsImage)
     EVT_MENU (ID_O_DUMP,        FFrame::OnDump)    
     EVT_MENU (ID_SESSION_SET,   FFrame::OnSettings)    
     EVT_MENU (ID_SESSION_EI,    FFrame::OnEditInit)    
@@ -572,7 +576,7 @@ void FFrame::set_menubar()
     session_menu->AppendSeparator();
     session_menu->Append(ID_PAGE_SETUP, wxT("Page Se&tup..."), 
                                         wxT("Page setup"));
-    session_menu->Append(wxID_PREVIEW, wxT("Print previe&w")); 
+    session_menu->Append(wxID_PREVIEW, wxT("Print Previe&w")); 
     session_menu->Append(wxID_PRINT, wxT("&Print...\tCtrl-P"),
                          wxT("Print plots"));
 #if 0
@@ -588,6 +592,8 @@ void FFrame::set_menubar()
     session_menu->Append(ID_PRINT_CLIPB, wxT("&Copy to Clipboard"),
                          wxT("Copy plots to clipboard."));
 #endif
+    append_mi(session_menu, ID_SAVE_IMAGE, GET_BMP(image16),
+              wxT("Sa&ve as Image..."), wxT("Save plot as PNG image."));
     session_menu->AppendSeparator();
     append_mi(session_menu, ID_SESSION_SET, GET_BMP(preferences16),
               wxT("&Settings"), wxT("Preferences and options"));
@@ -747,8 +753,8 @@ void FFrame::set_menubar()
     gui_menu->AppendCheckItem(ID_G_FULLSCRN, wxT("&Full Screen\tF11"), 
                                               wxT("Switch full screen"));
     gui_menu->AppendSeparator();
-    gui_menu->Append (ID_G_V_ALL, wxT("Zoom &All\tCtrl-A"), 
-                                  wxT("View whole data"));
+    append_mi(gui_menu, ID_G_V_ALL, GET_BMP(zoom_fit16), 
+              wxT("Zoom &All\tCtrl-A"), wxT("View whole data"));
     gui_menu->Append (ID_G_V_VERT, wxT("Fit &vertically\tCtrl-V"), 
                       wxT("Adjust vertical zoom"));
     gui_menu->Append (ID_G_V_SCROLL_L, wxT("Scroll &Left\tCtrl-["), 
@@ -1700,6 +1706,21 @@ void FFrame::OnPrintToClipboard(wxCommandEvent&)
     } 
 #endif
 }
+
+void FFrame::OnSaveAsImage(wxCommandEvent&)
+{
+    static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
+    wxFileDialog fdlg(this, wxT("Save main plot as image"),
+                      dir, wxT(""), wxT("PNG image (*.png)|*.png;*.PNG"),
+                      wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (fdlg.ShowModal() == wxID_OK) {
+        wxString path = fdlg.GetPath();
+        wxBitmap const& bmp = get_main_plot()->get_bitmap();
+        bmp.ConvertToImage().SaveFile(path, wxBITMAP_TYPE_PNG);
+    }
+    dir = fdlg.GetDirectory();
+}
+
 
 string FFrame::get_peak_type() const
 {

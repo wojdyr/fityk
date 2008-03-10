@@ -15,6 +15,7 @@ User-visible changes in version 0.8.5  (2008-03-  ):
 * non-Windows platforms: using HTML manual (in default browser) instead of HTB
 * GUI: command line history is stored in ~/.fityk/history
 * --disable-3rdparty configure flag prevents building with xylib from 3rdparty/
+* GUI: added Session -> Save as Image
 * bug fixes (there are some bug fixes in every release)
 
 User-visible changes in version 0.8.4  (2008-02-15):

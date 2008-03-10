@@ -9,6 +9,4 @@ these dependencies), following dependencies are distributed with fityk:
 * additional Boost headers - some of them are distributed with Spirit as 
   'miniboost', other are required by xylib
 
-* xylib - at this moment modified version of xylib is in fityk SVN. 
-          probably in future we will use original version:
-	  http://www.sf.net/projects/xylib
+* xylib - also in SVN, see xylib/README 
