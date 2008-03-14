@@ -2227,7 +2227,7 @@
     </para>
    </section>
    <section id="misc">
-    <title>commands, dump, sleep, reset, quit</title>
+    <title>commands, dump, sleep, reset, quit, !</title>
     <para>
      All commands given during program execution are stored in memory.
      They can be listed using the command:
@@ -2279,6 +2279,10 @@
      The command <command>quit</command> works as expected. 
      If this command is found in a script it quits the program, not only 
      the script.
+    </para>
+    <para>
+     Commands that start with <command>!</command> are passed (without '!')
+     to <function>system()</function> call.
     </para>
    </section> 
   </section> 

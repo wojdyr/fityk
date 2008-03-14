@@ -151,6 +151,12 @@ void do_temporary_unset(char const*, char const*)
     AL->get_settings()->clear_temporary();
 }
 
+void do_system(char const* a, char const* b)
+{
+    string s(a, b);
+    system(s.c_str());
+}
+
 
 } //namespace
 
@@ -281,6 +287,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
                      % ',')[&do_undefine_func]
                | cmd2G
                | cmd3G
+               | '!' >> (+~ch_p('\n')) [&do_system]
                ) [&do_temporary_unset]
             ;
 

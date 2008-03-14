@@ -20,8 +20,6 @@ know what to do, there is a list of ideas at the end of this file.
 
 --------------> 2.9
 
-* GUI: save plot as image (PNG)
-
 * GUI, toolbar: remove "continue fitting" and add "undo fitting"
 
 * configure.ac: 

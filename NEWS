@@ -16,6 +16,7 @@ User-visible changes in version 0.8.5  (2008-03-  ):
 * GUI: command line history is stored in ~/.fityk/history
 * --disable-3rdparty configure flag prevents building with xylib from 3rdparty/
 * GUI: added Session -> Save as Image
+* !foo: executes a command foo by calling system() (from stdlib.h)
 * bug fixes (there are some bug fixes in every release)
 
 User-visible changes in version 0.8.4  (2008-02-15):

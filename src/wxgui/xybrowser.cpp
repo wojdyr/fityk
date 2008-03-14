@@ -19,7 +19,7 @@
 
 #include <xylib/xylib.h>
 
-#include "plot.h" // BufferedPanel, scale_tics_step()
+#include "uplot.h" // BufferedPanel, scale_tics_step()
 
 
 //#include "cmn.h"

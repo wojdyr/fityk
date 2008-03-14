@@ -173,7 +173,7 @@ void Ftk::dump_all_as_script(string const &filename)
         if (i != 0)
             os << "@+\n";
         if (!data->get_title().empty())
-            os << "@" << i << ".title = '" << data->get_title() << "'\n";
+            os << "set @" << i << ".title = '" << data->get_title() << "'\n";
         int m = data->points().size();
         os << "M=" << m << " in @" << i << endl;
         os << "X=" << data->get_x_max() << " in @" << i 

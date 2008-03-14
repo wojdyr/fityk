@@ -67,8 +67,8 @@ public:
     bool keep_quiet;
 
     UserInterface(Ftk const* F_) 
-        : keep_quiet(false), F(F_), m_show_message(0), m_do_draw_plot(0), 
-          m_exec_command(0), m_refresh(0), m_wait(0) {}
+        : keep_quiet(false), F(F_), m_show_message(NULL), m_do_draw_plot(NULL), 
+          m_exec_command(NULL), m_refresh(NULL), m_wait(NULL) {}
     
     /// Update plot if pri<=auto_plot.   If !now, update can be delayed
     /// Different definition for GUI and CLI
