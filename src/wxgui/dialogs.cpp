@@ -16,7 +16,7 @@
 
 #include <wx/statline.h>
 #include <boost/spirit/version.hpp> //SPIRIT_VERSION for AboutDlg
-#include <xylib/xylib.h> //XYLIB_VERSION for AboutDlg
+#include <xylib/xylib.h> //get_version() for AboutDlg
 
 #include "dialogs.h"
 #include "frame.h"
@@ -577,7 +577,7 @@ AboutDlg::AboutDlg(wxWindow* parent)
                                        SPIRIT_VERSION / 0x1000,
                                        SPIRIT_VERSION % 0x1000 / 0x0100,
                                        SPIRIT_VERSION % 0x0100));
-    txt->AppendText(wxT("powered by xylib ") + s2wx(xylib::xylib_version())
+    txt->AppendText(wxT("powered by xylib ") + s2wx(xylib::get_version())
                     + wxT("\n"));
     txt->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, 
                                     *wxNORMAL_FONT));

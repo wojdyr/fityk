@@ -16,6 +16,7 @@
 //#include <wx/statline.h>
 #include <wx/splitter.h>
 #include <wx/spinctrl.h>
+#include <wx/file.h>
 
 #include <xylib/xylib.h>
 
@@ -58,6 +59,27 @@ void updateControlWithItems(wxControlWithItems *cwi,
             if (cwi->GetString(i) != v[i])
                 cwi->SetString(i, v[i]);
 }
+
+// --------- end
+
+// --------- copied from ../common.h
+#include <sstream>
+
+/// Round real to integer.
+inline int iround(double d) { return static_cast<int>(floor(d+0.5)); }
+
+/// S() converts to string
+template <typename T>
+inline std::string S(T k) {
+    return static_cast<std::ostringstream&>(std::ostringstream() << k).str();
+}
+
+inline std::string S(bool b) { return b ? "true" : "false"; }
+inline std::string S(char const *k) { return std::string(k); }
+inline std::string S(char *k) { return std::string(k); }
+inline std::string S(char const k) { return std::string(1, k); }
+inline std::string S(std::string const &k) { return k; }
+inline std::string S() { return std::string(); }
 
 
 // --------- end
@@ -228,8 +250,6 @@ public:
     XyFileBrowser(wxWindow* parent, wxWindowID id);
     void SetPath(wxString const& path) 
         { filectrl->SetPath(path); on_path_change(); }
-    //void OnConvert(wxCommandEvent&);
-    void OnClose(wxCommandEvent&) { GetParent()->Close(true); }
 
 private:
     wxFileCtrl *filectrl;
@@ -437,7 +457,7 @@ void XyFileBrowser::OnAutoTextCheckBox (wxCommandEvent& event)
         text_preview->Clear();
 }
 
-void XyFileBrowser::OnAutoPlotCheckBox (wxCommandEvent& event)
+void XyFileBrowser::OnAutoPlotCheckBox (wxCommandEvent& /*event*/)
 {
     update_plot_preview();
 #if 0
@@ -523,12 +543,22 @@ void XyFileBrowser::on_path_change()
 
 #ifdef XYCONVERT
 
+#include <wx/aboutdlg.h>
+#include "img/xyconvert16.xpm"
+#include "img/xyconvert48.xpm"
+
 class App : public wxApp
 {
 public:
+    wxString version;
+
     bool OnInit();
+    void OnAbout(wxCommandEvent&);
     void OnConvert(wxCommandEvent&);
     void OnClose(wxCommandEvent&) { GetTopWindow()->Close(); }
+    void OnDirCheckBox(wxCommandEvent&);
+private:
+    wxDirPickerCtrl *dp;
 };
 
 IMPLEMENT_APP(App)
@@ -545,48 +575,71 @@ static const wxCmdLineEntryDesc cmdLineDesc[] = {
 
 bool App::OnInit()
 {
-    //TODO set LC_NUMERIC
-    SetAppName(wxT("xyConvert"));
+    // to make life simpler, use the same version number as xylib
+    version = xylib::get_version();
+
+    // reading numbers won't work with decimal points different than '.'
+    setlocale(LC_NUMERIC, "C");
+
+    SetAppName("xyConvert");
     wxCmdLineParser cmdLineParser(cmdLineDesc, argc, argv);
     if (cmdLineParser.Parse(false) != 0) {
         cmdLineParser.Usage();
         return false; 
     }
     if (cmdLineParser.Found(wxT("V"))) {
-        wxMessageOutput::Get()->Printf("xyConvert 0.2, powered by xylib ..\n");
+        wxMessageOutput::Get()->Printf("xyConvert " + version 
+                                   + ", powered by xylib " + version + "\n");
         return false;
     }
 
     wxFrame *frame = new wxFrame(NULL, wxID_ANY, "xyConvert");
+
     //frame->SetIcon(wxICON(xyconvert));
+#ifdef __WXMSW__
+    SetIcon(wxIcon("xyconvert")); // load from a resource
+#else
+    wxIconBundle ib;
+    ib.AddIcon(wxIcon(xyconvert48_xpm));
+    ib.AddIcon(wxIcon(xyconvert16_xpm));
+    frame->SetIcons(ib); // load from a resource
+#endif
+
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
     XyFileBrowser *browser = new XyFileBrowser(frame, wxID_ANY);
     sizer->Add(browser, wxSizerFlags(1).Expand());
 
-    wxStaticBoxSizer *outsizer = new wxStaticBoxSizer(wxHORIZONTAL, frame, 
+    wxStaticBoxSizer *outsizer = new wxStaticBoxSizer(wxVERTICAL, frame, 
                                                       "TSV output");
-    outsizer->Add(new wxStaticText(frame, wxID_ANY, "directory:"),
-                  wxSizerFlags().Centre().Border());
-    wxDirPickerCtrl *dp = new wxDirPickerCtrl(frame, wxID_ANY);
-    outsizer->Add(dp, wxSizerFlags(1));
-    outsizer->AddSpacer(10);
-    outsizer->Add(new wxStaticText(frame, wxID_ANY, "extension:"),
+    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
+    wxCheckBox *dir_cb = new wxCheckBox(frame, wxID_ANY, "directory:");
+    hsizer->Add(dir_cb, wxSizerFlags().Centre().Border());
+    dir_cb->SetValue(true);
+    dp = new wxDirPickerCtrl(frame, wxID_ANY);
+    hsizer->Add(dp, wxSizerFlags(1));
+    hsizer->AddSpacer(10);
+    hsizer->Add(new wxStaticText(frame, wxID_ANY, "extension:"),
                   wxSizerFlags().Centre().Border());
     wxTextCtrl *ext_tc = new wxTextCtrl(frame, wxID_ANY, "xy");
     ext_tc->SetMinSize(wxSize(50, -1));
-    outsizer->Add(ext_tc, wxSizerFlags().Centre());
-    outsizer->AddSpacer(10);
-    wxCheckBox *overwrite = new wxCheckBox(frame, wxID_ANY, "overwrite files");
-    outsizer->Add(overwrite, wxSizerFlags().Centre());
+    hsizer->Add(ext_tc, wxSizerFlags().Centre());
+    hsizer->AddSpacer(10);
+    wxCheckBox *overwrite = new wxCheckBox(frame, wxID_ANY, "allow overwrite");
+    hsizer->Add(overwrite, wxSizerFlags().Centre());
+    outsizer->Add(hsizer, wxSizerFlags().Expand());
+    wxCheckBox *header = new wxCheckBox(frame, wxID_ANY, "add header");
+    outsizer->Add(header, wxSizerFlags().Border());
     sizer->Add(outsizer, wxSizerFlags().Expand().Border());
 
-    //TODO button wxID_ABOUT
     wxBoxSizer *btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxButton *convert = new wxButton(frame, wxID_ANY, "Convert");
+    wxButton *about = new wxButton(frame, wxID_ABOUT);
+    wxButton *convert = new wxButton(frame, wxID_ANY, "Con&vert");
     wxButton *close = new wxButton(frame, wxID_CLOSE);
+    btn_sizer->Add(about, wxSizerFlags().Border());
+    btn_sizer->AddStretchSpacer();
     btn_sizer->Add(convert, wxSizerFlags().Border());
     btn_sizer->Add(close, wxSizerFlags().Border());
-    sizer->Add(btn_sizer, wxSizerFlags().Centre().Border());
+    sizer->Add(btn_sizer, wxSizerFlags().Expand().Border());
 
     if (cmdLineParser.GetParamCount() > 0) {
         wxFileName fn(cmdLineParser.GetParam(0));
@@ -600,16 +653,43 @@ bool App::OnInit()
     frame->SetSize(-1, 550);
     frame->Show();
 
+    Connect(dir_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            (wxObjectEventFunction) &App::OnDirCheckBox);
+
+    Connect(about->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, 
+            (wxObjectEventFunction) &App::OnAbout);
     Connect(convert->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, 
-            (wxObjectEventFunction) &App::OnConvert, NULL, this);
+            (wxObjectEventFunction) &App::OnConvert);
     Connect(close->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, 
-            (wxObjectEventFunction) &App::OnClose, NULL, this);
+            (wxObjectEventFunction) &App::OnClose);
     return true;
 }
 
 void App::OnConvert(wxCommandEvent&)
 {
 }
+
+void App::OnAbout(wxCommandEvent&)
+{
+    wxAboutDialogInfo adi;
+    adi.SetVersion(version);
+    wxString desc = "A simple converter of files supported by xylib library\n"
+                    "to two- or three-column text format.\n";
+    adi.SetDescription(desc);
+    adi.SetWebSite("http://www.unipress.waw.pl/fityk/xyconvert/");
+    wxString copyright = "(c) 2008 Marcin Wojdyr <wojdyr@gmail.com>";
+#ifdef __WXGTK__
+    copyright.Replace("(c)", "\xc2\xa9");
+#endif
+    adi.SetCopyright(copyright);
+    wxAboutBox(adi);
+}
+
+void App::OnDirCheckBox(wxCommandEvent& event)
+{
+    dp->Enable(event.IsChecked());
+}
+
 
 #endif
 

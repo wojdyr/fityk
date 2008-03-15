@@ -13,7 +13,7 @@
 #include <boost/spirit/utility/chset.hpp>
 #include <boost/spirit/utility/chset_operators.hpp>
 #include <math.h>
-#include <xylib/xylib.h> //xylib_version()
+#include <xylib/xylib.h> //get_version()
 
 #include "cmd2.h"
 #include "optional_suffix.h"
@@ -314,7 +314,7 @@ void do_print_info(char const* a, char const* b)
                 "\nBoost.Spirit version: " + S(SPIRIT_VERSION / 0x1000) 
                                 + "." + S(SPIRIT_VERSION % 0x1000 / 0x0100)
                                 + "." + S(SPIRIT_VERSION % 0x0100)
-                + "\nxylib version:" + xylib::xylib_version();
+                + "\nxylib version:" + xylib::get_version();
  
         }
         else

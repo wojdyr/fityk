@@ -3,7 +3,7 @@
 SUBDIRS = img 
 bin_PROGRAMS = fityk 
 
-EXTRA_DIST = winres.rc 
+EXTRA_DIST = winres.rc xyconvert.rc xybrowser.cpp
 
 # tested only on MinGW 
 if OS_WIN32
@@ -37,12 +37,20 @@ LDADD = ../libfityk.la @WX_LIBS@ $(ms_win_res)
 inputline: sample_inputline.cpp inputline.cpp inputline.h callback.h
 	`wx-config --cxx` `wx-config --cxxflags` -g -Wall -W -O0 -o $@ $< inputline.cpp `wx-config --libs`
 
-xyConvert: xybrowser.cpp uplot.cpp uplot.h
+
+if OS_WIN32
+xyconvert_res = winres.o
+$(xyconvert_res): xyconvert.rc img/fityk.ico 
+	$(RC) -o $@ `echo $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS)\
+			    @WX_CPPFLAGS@  | sed -e 's/-mthreads//g' ` $<
+endif
+
+xyConvert: xybrowser.cpp uplot.cpp uplot.h $(xyconvert_res)
 	$(CXX) -o $@ $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \
 	-DXYCONVERT \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
-	xybrowser.cpp uplot.cpp ../.libs/libfityk.a \
+	xybrowser.cpp uplot.cpp $(xyconvert_res) ../.libs/libfityk.a \
 	../../3rdparty/xylib/xylib/.libs/libxy.a @WX_LIBS@ $(LIBS)
 
 

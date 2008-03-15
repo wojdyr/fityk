@@ -293,7 +293,7 @@ string get_wildcards_string(string const& all_files)
 }
 
 /// see also XYLIB_VERSION
-string xylib_version()
+string get_version()
 {
     int major = XYLIB_VERSION / 10000;
     int minor = XYLIB_VERSION / 100 % 100;

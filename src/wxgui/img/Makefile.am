@@ -73,5 +73,9 @@ stopmacro16.h \
 undo16.h \
 zoom-fit16.h \
  \
-fityk.ico 
+fityk.ico \
+\
+xyconvert16.xpm \
+xyconvert48.xpm \
+xyconvert.ico 
 
