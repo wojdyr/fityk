@@ -247,23 +247,26 @@ void PreviewPlot::load_dataset(string const& filename,
 class XyFileBrowser : public wxSplitterWindow
 {
 public:
+    wxFileCtrl *filectrl;
+    wxSpinCtrl *x_column, *y_column, *s_column;
+    wxCheckBox *std_dev_cb;
+    wxChoice *block_ch;
+
     XyFileBrowser(wxWindow* parent, wxWindowID id);
     void SetPath(wxString const& path) 
         { filectrl->SetPath(path); on_path_change(); }
+    string get_filetype() const;
 
 private:
-    wxFileCtrl *filectrl;
 #if 0
     wxTextCtrl *title_tc; 
 #endif
-    wxSpinCtrl *x_column, *y_column, *s_column;
     wxTextCtrl *text_preview;
     PreviewPlot *plot_preview;
-    wxCheckBox *std_dev_cb, *auto_text_cb, *auto_plot_cb;
+    wxCheckBox *auto_text_cb, *auto_plot_cb;
 #if 0
     wxCheckBox *sd_sqrt_cb, *title_cb;
 #endif
-    wxChoice *block_ch;
 
     void StdDevCheckBoxChanged();
     void OnStdDevCheckBox(wxCommandEvent&) { StdDevCheckBoxChanged(); }
@@ -325,8 +328,12 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent, wxWindowID id)
     left_sizer->Add(filectrl, 1, wxALL|wxEXPAND, 5);
 
     // selecting block
+    wxBoxSizer *block_sizer = new wxBoxSizer(wxHORIZONTAL);
     block_ch = new wxChoice(left_panel, ID_BLOCK);
-    left_sizer->Add(block_ch, 0, wxALL|wxEXPAND, 5);
+    block_sizer->Add(new wxStaticText(left_panel, -1, "block:"), 
+                     wxSizerFlags().Border(wxRIGHT).Center());
+    block_sizer->Add(block_ch, wxSizerFlags(1));
+    left_sizer->Add(block_sizer, wxSizerFlags().Border().Expand());
 
     // selecting columns
     wxPanel *columns_panel = new wxPanel (left_panel, -1);
@@ -512,18 +519,23 @@ void XyFileBrowser::update_plot_preview()
     if (auto_plot_cb->GetValue()) {
         wxString path = get_one_path();
         if (!path.IsEmpty()) {
-            string filetype;
             vector<string> options;
-            int idx = filectrl->GetFilterIndex();
-            if (idx > 0)
-                filetype = xylib::get_format(idx - 1)->name;
-            plot_preview->load_dataset(wx2s(path), filetype, options);
+            plot_preview->load_dataset(wx2s(path), get_filetype(), options);
             plot_preview->idx_x = x_column->GetValue();
             plot_preview->idx_y = y_column->GetValue();
             plot_preview->block_nr = block_ch->GetSelection();
         }
     }
     plot_preview->refresh();
+}
+
+string XyFileBrowser::get_filetype() const
+{
+    int idx = filectrl->GetFilterIndex();
+    if (idx > 0)
+        return xylib::get_format(idx - 1)->name;
+    else
+        return "";
 }
 
 void XyFileBrowser::on_path_change()
@@ -557,8 +569,12 @@ public:
     void OnConvert(wxCommandEvent&);
     void OnClose(wxCommandEvent&) { GetTopWindow()->Close(); }
     void OnDirCheckBox(wxCommandEvent&);
+    void OnFolderChanged(wxFileCtrlEvent& event);
 private:
-    wxDirPickerCtrl *dp;
+    wxCheckBox *dir_cb, *overwrite, *header;
+    wxDirPickerCtrl *dirpicker;
+    XyFileBrowser *browser;
+    wxTextCtrl *ext_tc;
 };
 
 IMPLEMENT_APP(App)
@@ -606,28 +622,28 @@ bool App::OnInit()
 #endif
 
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-    XyFileBrowser *browser = new XyFileBrowser(frame, wxID_ANY);
+    browser = new XyFileBrowser(frame, wxID_ANY);
     sizer->Add(browser, wxSizerFlags(1).Expand());
 
     wxStaticBoxSizer *outsizer = new wxStaticBoxSizer(wxVERTICAL, frame, 
                                                       "TSV output");
     wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
-    wxCheckBox *dir_cb = new wxCheckBox(frame, wxID_ANY, "directory:");
+    dir_cb = new wxCheckBox(frame, wxID_ANY, "directory:");
     hsizer->Add(dir_cb, wxSizerFlags().Centre().Border());
     dir_cb->SetValue(true);
-    dp = new wxDirPickerCtrl(frame, wxID_ANY);
-    hsizer->Add(dp, wxSizerFlags(1));
+    dirpicker = new wxDirPickerCtrl(frame, wxID_ANY);
+    hsizer->Add(dirpicker, wxSizerFlags(1));
     hsizer->AddSpacer(10);
     hsizer->Add(new wxStaticText(frame, wxID_ANY, "extension:"),
                   wxSizerFlags().Centre().Border());
-    wxTextCtrl *ext_tc = new wxTextCtrl(frame, wxID_ANY, "xy");
+    ext_tc = new wxTextCtrl(frame, wxID_ANY, "xy");
     ext_tc->SetMinSize(wxSize(50, -1));
     hsizer->Add(ext_tc, wxSizerFlags().Centre());
     hsizer->AddSpacer(10);
-    wxCheckBox *overwrite = new wxCheckBox(frame, wxID_ANY, "allow overwrite");
+    overwrite = new wxCheckBox(frame, wxID_ANY, "allow overwrite");
     hsizer->Add(overwrite, wxSizerFlags().Centre());
     outsizer->Add(hsizer, wxSizerFlags().Expand());
-    wxCheckBox *header = new wxCheckBox(frame, wxID_ANY, "add header");
+    header = new wxCheckBox(frame, wxID_ANY, "add header");
     outsizer->Add(header, wxSizerFlags().Border());
     sizer->Add(outsizer, wxSizerFlags().Expand().Border());
 
@@ -645,7 +661,7 @@ bool App::OnInit()
         wxFileName fn(cmdLineParser.GetParam(0));
         if (fn.FileExists()) {
             browser->SetPath(fn.GetFullPath());
-            dp->SetDirName(fn);
+            dirpicker->SetDirName(fn);
         }
     }
     
@@ -655,6 +671,8 @@ bool App::OnInit()
 
     Connect(dir_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
             (wxObjectEventFunction) &App::OnDirCheckBox);
+    browser->Connect(browser->filectrl->GetId(), wxEVT_FILECTRL_FOLDERCHANGED,
+            (wxObjectEventFunction) &App::OnFolderChanged, NULL, this);
 
     Connect(about->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, 
             (wxObjectEventFunction) &App::OnAbout);
@@ -667,6 +685,69 @@ bool App::OnInit()
 
 void App::OnConvert(wxCommandEvent&)
 {
+    bool with_header = header->GetValue();
+    int block_nr = browser->block_ch->GetSelection();
+    int idx_x = browser->x_column->GetValue();
+    int idx_y = browser->y_column->GetValue();
+    bool has_err = browser->std_dev_cb->GetValue();
+    int idx_err = browser->s_column->GetValue();
+
+    wxArrayString paths;
+    browser->filectrl->GetPaths(paths);
+    vector<string> options;
+
+    for (size_t i = 0; i < paths.GetCount(); ++i) {
+        wxFileName old_filename(paths[i]);
+        wxString fn = old_filename.GetName() + "." + ext_tc->GetValue();
+        wxString new_filename = dirpicker->GetPath() + wxFILE_SEP_PATH + fn;
+        if (!overwrite->GetValue() && wxFileExists(new_filename)) {
+            int answer = wxMessageBox("File " + fn + " exists.\n"
+                                      "Overwrite?", 
+                                      "Overwrite?", 
+                                      wxYES|wxNO|wxCANCEL|wxICON_QUESTION);
+            if (answer == wxCANCEL)
+                break;
+            if (answer != wxYES)
+                continue;
+
+        }
+        ofstream f(new_filename);
+        try {
+            wxBusyCursor wait;
+            xylib::DataSet const *ds = xylib::load_file(wx2s(paths[i]), 
+                                            browser->get_filetype(), options);
+            xylib::Block const *block = ds->get_block(block_nr);
+            xylib::Column const& xcol = block->get_column(idx_x);
+            xylib::Column const& ycol = block->get_column(idx_y);
+            xylib::Column const* ecol = (has_err ? &block->get_column(idx_err) 
+                                                 : NULL);
+            const int np = block->get_point_count();
+
+            if (with_header) {
+                f << "# converted by xyConvert " << version << " from file:\n"; 
+                f << "# " << new_filename << endl;
+                if (ds->get_block_count() > 1)
+                    f << "# (block " << block_nr << ") " << block->name << endl;
+                if (block->get_column_count() > 2) {
+                    f << "#" << (xcol.name.empty() ? string("x") : xcol.name) 
+                      << "\t" << (ycol.name.empty() ? string("y") : ycol.name);
+                    if (has_err) 
+                        f << "\t" << (ecol->name.empty() ? string("err") 
+                                                         : ecol->name);
+                    f << endl; 
+                }
+            }
+
+            for (int i = 0; i < np; ++i) {
+                f << xcol.get_value(i) << "\t" << ycol.get_value(i);
+                if (has_err)
+                    f << "\t" << ecol->get_value(i);
+                f << endl;
+            }
+        } catch (runtime_error const& e) {
+            wxMessageBox(e.what(), "Error", wxCANCEL|wxICON_ERROR);
+        }
+    }
 }
 
 void App::OnAbout(wxCommandEvent&)
@@ -687,9 +768,17 @@ void App::OnAbout(wxCommandEvent&)
 
 void App::OnDirCheckBox(wxCommandEvent& event)
 {
-    dp->Enable(event.IsChecked());
+    bool checked = event.IsChecked();
+    dirpicker->Enable(checked);
+    if (!checked)
+        dirpicker->SetPath(browser->filectrl->GetDirectory());
 }
 
+void App::OnFolderChanged(wxFileCtrlEvent& event)
+{
+    if (!dir_cb->GetValue())
+        dirpicker->SetPath(event.GetDirectory());
+}
 
 #endif
 

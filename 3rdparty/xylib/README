@@ -62,7 +62,7 @@ supported by xylib to TSV.
 xylib is used by:
 
 -  `fityk <http://www.unipress.waw.pl/fityk>`_
--  xyConvert
+-  `xyConvert <http://www.unipress.waw.pl/fityk/xyconvert>`_
 
 HOW TO ADD A NEW FORMAT
 =======================
