@@ -148,9 +148,10 @@ elif [ $1 -eq 6 ]; then
  rm -rf $MINGW_DIR
  mkdir $MINGW_DIR
  cd $MINGW_DIR
- ../configure --build=i686-pc-linux-gnu --host=i586-mingw32msvc \
+ tar xjf ../$tarball_filename
+ ./fityk-$version/configure --build=i686-pc-linux-gnu --host=i586-mingw32msvc \
    CXXFLAGS="-O3" LDFLAGS="-s" --disable-CLI --with-wx-prefix=$WXMSWINSTALL 
- make
+ make || exit
  rm -rf ../samples/tmp*
  cp -rf ../samples .
  mkdir $ALL_WIN_FILES $ALL_WIN_FILES/src $ALL_WIN_FILES/doc

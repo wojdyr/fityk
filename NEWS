@@ -1,6 +1,6 @@
 $Id$
 
-User-visible changes in version 0.8.5  (2008-03-  ):
+User-visible changes in version 0.8.5  (2008-03-17):
 * minor changes in syntax: 
     info @0             ->   info data in @0
     info @0.title       ->   info title in @0
@@ -18,6 +18,7 @@ User-visible changes in version 0.8.5  (2008-03-  ):
 * GUI: added Session -> Save as Image
 * !foo: executes a command foo by calling system() (from stdlib.h)
 * bug fixes (there are some bug fixes in every release)
+* xyConvert tool (can be built only with wxWidgets >= 2.9)
 
 User-visible changes in version 0.8.4  (2008-02-15):
 * xylib: pdCIF format was added

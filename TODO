@@ -8,11 +8,6 @@ know what to do, there is a list of ideas at the end of this file.
 
 ---------- TODO list and tentative development plan  ----------------
 
-* make stand-alone converter utility that uses xylib and wx >= 2.9,
-  built explicitely by "make xyConvert" in src/wxgui/
-
---------------> 2.8.5
-
 * add crystallographic module/extension 
 
 * GUI: refactor MainPlot - mouse event handling based on subscriptions,

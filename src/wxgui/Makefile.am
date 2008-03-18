@@ -39,7 +39,7 @@ inputline: sample_inputline.cpp inputline.cpp inputline.h callback.h
 
 
 if OS_WIN32
-xyconvert_res = winres.o
+xyconvert_res = xyconvertres.o
 $(xyconvert_res): xyconvert.rc img/fityk.ico 
 	$(RC) -o $@ `echo $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS)\
 			    @WX_CPPFLAGS@  | sed -e 's/-mthreads//g' ` $<
@@ -50,7 +50,7 @@ xyConvert: xybrowser.cpp uplot.cpp uplot.h $(xyconvert_res)
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \
 	-DXYCONVERT \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
-	xybrowser.cpp uplot.cpp $(xyconvert_res) ../.libs/libfityk.a \
+	$< $(srcdir)/uplot.cpp $(xyconvert_res) ../.libs/libfityk.a \
 	../../3rdparty/xylib/xylib/.libs/libxy.a @WX_LIBS@ $(LIBS)
 
 
