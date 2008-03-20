@@ -362,6 +362,7 @@ void MainPlot::draw_sum(wxDC& dc, Sum const* sum, bool set_pen)
         YY[i] = ys.px(yy[i]);
     for (int i = 1; i < n; i++) 
         dc.DrawLine (i-1, YY[i-1], i, YY[i]); 
+    // perhaps wxDC::DrawLines() would be faster?
 }
 
 

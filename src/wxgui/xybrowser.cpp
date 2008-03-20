@@ -301,7 +301,9 @@ BEGIN_EVENT_TABLE(XyFileBrowser, wxSplitterWindow)
 END_EVENT_TABLE()
 
 XyFileBrowser::XyFileBrowser(wxWindow* parent, wxWindowID id)
-    : wxSplitterWindow(parent, id), auto_plot_cb(NULL)
+    : wxSplitterWindow(parent, id, wxDefaultPosition, wxDefaultSize,
+                       wxSP_NOBORDER), 
+      auto_plot_cb(NULL)
 {
     // +----------------------------+
     // |            | rupper_panel  |
@@ -310,10 +312,14 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent, wxWindowID id)
     // +----------------------------+
 
     this->SetSashGravity(0.5);
+    this->SetMinimumPaneSize(20);
     wxPanel *left_panel = new wxPanel(this, -1);
     wxBoxSizer *left_sizer = new wxBoxSizer(wxVERTICAL);
-    wxSplitterWindow *right_splitter = new wxSplitterWindow(this, -1);
+    wxSplitterWindow *right_splitter = new wxSplitterWindow(this, -1,
+                                             wxDefaultPosition, wxDefaultSize,
+                                             wxSP_NOBORDER);
     right_splitter->SetSashGravity(0.5);
+    right_splitter->SetMinimumPaneSize(20);
     wxPanel *rupper_panel = new wxPanel(right_splitter, -1);
     wxBoxSizer *rupper_sizer = new wxBoxSizer(wxVERTICAL);
     wxPanel *rbottom_panel = new wxPanel(right_splitter, -1);
@@ -324,7 +330,7 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent, wxWindowID id)
     wxString wild = "All Files (" + all + ")|" + all
                     + "|" + xylib::get_wildcards_string();
     filectrl = new wxFileCtrl(left_panel, -1, wxEmptyString, wxEmptyString,
-                              wild, wxFC_OPEN | wxFC_MULTIPLE);
+                              wild, wxFC_OPEN|wxFC_MULTIPLE|wxFC_NOSHOWHIDDEN);
     left_sizer->Add(filectrl, 1, wxALL|wxEXPAND, 5);
 
     // selecting block
@@ -613,7 +619,7 @@ bool App::OnInit()
 
     //frame->SetIcon(wxICON(xyconvert));
 #ifdef __WXMSW__
-    SetIcon(wxIcon("xyconvert")); // load from a resource
+    frame->SetIcon(wxIcon("xyconvert")); // load from a resource
 #else
     wxIconBundle ib;
     ib.AddIcon(wxIcon(xyconvert48_xpm));
@@ -630,7 +636,6 @@ bool App::OnInit()
     wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
     dir_cb = new wxCheckBox(frame, wxID_ANY, "directory:");
     hsizer->Add(dir_cb, wxSizerFlags().Centre().Border());
-    dir_cb->SetValue(true);
     dirpicker = new wxDirPickerCtrl(frame, wxID_ANY);
     hsizer->Add(dirpicker, wxSizerFlags(1));
     hsizer->AddSpacer(10);
@@ -659,14 +664,20 @@ bool App::OnInit()
 
     if (cmdLineParser.GetParamCount() > 0) {
         wxFileName fn(cmdLineParser.GetParam(0));
-        if (fn.FileExists()) {
+        if (fn.FileExists()) 
             browser->SetPath(fn.GetFullPath());
-            dirpicker->SetDirName(fn);
-        }
     }
+    dirpicker->SetPath(browser->filectrl->GetDirectory());
+    dirpicker->Enable(false);
     
     frame->SetSizerAndFit(sizer);
+#ifdef __WXGTK__
     frame->SetSize(-1, 550);
+#endif
+    
+    // wxMSW bug workaround
+    frame->SetBackgroundColour(browser->GetBackgroundColour());
+
     frame->Show();
 
     Connect(dir_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
@@ -758,9 +769,9 @@ void App::OnAbout(wxCommandEvent&)
                     "to two- or three-column text format.\n";
     adi.SetDescription(desc);
     adi.SetWebSite("http://www.unipress.waw.pl/fityk/xyconvert/");
-    wxString copyright = "(c) 2008 Marcin Wojdyr <wojdyr@gmail.com>";
+    wxString copyright = "(C) 2008 Marcin Wojdyr <wojdyr@gmail.com>";
 #ifdef __WXGTK__
-    copyright.Replace("(c)", "\xc2\xa9");
+    copyright.Replace("(C)", "\xc2\xa9");
 #endif
     adi.SetCopyright(copyright);
     wxAboutBox(adi);

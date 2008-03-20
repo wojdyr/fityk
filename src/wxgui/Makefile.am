@@ -40,17 +40,20 @@ inputline: sample_inputline.cpp inputline.cpp inputline.h callback.h
 
 if OS_WIN32
 xyconvert_res = xyconvertres.o
-$(xyconvert_res): xyconvert.rc img/fityk.ico 
+$(xyconvert_res): xyconvert.rc img/xyconvert.ico 
 	$(RC) -o $@ `echo $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS)\
 			    @WX_CPPFLAGS@  | sed -e 's/-mthreads//g' ` $<
+xyconvert = xyconvert.exe
+else
+xyconvert = xyconvert
 endif
 
-xyConvert: xybrowser.cpp uplot.cpp uplot.h $(xyconvert_res)
+$(xyconvert): xybrowser.cpp uplot.cpp uplot.h $(xyconvert_res)
 	$(CXX) -o $@ $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \
-	-DXYCONVERT \
-	$(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
-	$< $(srcdir)/uplot.cpp $(xyconvert_res) ../.libs/libfityk.a \
+	$(AM_CPPFLAGS) $(CPPFLAGS) -DXYCONVERT \
+	$(AM_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) \
+	$< $(srcdir)/uplot.cpp $(xyconvert_res) \
 	../../3rdparty/xylib/xylib/.libs/libxy.a @WX_LIBS@ $(LIBS)
 
 

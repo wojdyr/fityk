@@ -118,6 +118,7 @@ know what to do, there is a list of ideas at the end of this file.
 * (GUI) single dialog for configuring main plot (and also aux. plots) (?)
 * (GUI, BUG) in Configure axes / peak labels: fonts are changed even
   if Apply is not pressed
+* (GUI) option to change the width of the sum line (and other lines)
 
 * automatic background substraction - what are good algorithms?
 
