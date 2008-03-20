@@ -55,8 +55,7 @@ This is a version of xylib integrated with fityk. Original (older)
 version of xylib is `here <http://www.sf.net/projects/xylib>`_.
 
 Filetype samples are not distributed with the library, but there is
-a script `samples/get_samples.sh`__ that tries to download them
-from Internet. 
+a script `samples/get_samples.sh`__ that tries to download them.
 
 __ https://fityk.svn.sourceforge.net/svnroot/fityk/trunk/3rdparty/xylib/samples/get_samples.sh
 

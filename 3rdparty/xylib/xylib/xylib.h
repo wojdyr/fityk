@@ -12,18 +12,19 @@
 /// all data from the file in class DataSet. 
 /// DataSet contains a list of Blocks, each Blocks contains a list of Columns, 
 /// and each Column contains a list of values. 
-/// It may sound complex, but it can't be made simpler.
+///
+/// It may sound complex, but IMO it can't be made simpler.
 /// It's analogical to a spreadsheet. One OOCalc or Excel file (which 
 /// corresponds to xylib::DataSet) contains a number of sheets (Blocks), 
-/// but usually only one is used.
-/// We can view each sheet as a list of columns. 
+/// but usually only one is used. We can view each sheet as a list of columns. 
+///
 /// In xylib all columns in one block must have equal length. 
-/// Some of supported filetypes contain only one Block with two Columns.
+/// Several filetypes always contain only one Block with two Columns.
 /// In this case we can take coordinates of the 15th point as:
-///    x = get_block(0)->get_column(1)->get_value(14);
-///    y = get_block(0)->get_column(2)->get_value(14);
+///    double x = get_block(0)->get_column(1)->get_value(14);
+///    double y = get_block(0)->get_column(2)->get_value(14);
 /// Note that blocks and points are numbered from 0, but columns are numbered
-/// from 1, because column returns index of points.
+/// from 1, because the column 0 returns index of point.
 /// All values are stored as floating-point numbers, even if they are integers
 /// in the file.
 /// DataSet and Block contain also MetaData, which is a string to string map.
