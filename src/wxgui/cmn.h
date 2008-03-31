@@ -156,9 +156,10 @@ public:
 class KFTextCtrl : public wxTextCtrl
 {
 public:
-    KFTextCtrl(wxWindow* parent, wxWindowID id, wxString const& value) 
-        : wxTextCtrl(parent, id, value, wxDefaultPosition, wxDefaultSize,
-                     wxTE_PROCESS_ENTER) {}
+    KFTextCtrl(wxWindow* parent, wxWindowID id, wxString const& value,
+               int size=-1, long style=0) 
+        : wxTextCtrl(parent, id, value, wxDefaultPosition, wxSize(size, -1),
+                     style | wxTE_PROCESS_ENTER) {}
     void OnKillFocus(wxFocusEvent&);
     DECLARE_EVENT_TABLE()
 };

@@ -1,6 +1,6 @@
 // Author: Marcin Wojdyr 
 // Licence: GNU General Public License version 2
-// $Id: dload.cpp 398 2008-02-19 20:36:19Z wojdyr $
+// $Id$
 
 #include <wx/wxprec.h>
 #ifdef __BORLANDC__

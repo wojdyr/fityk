@@ -70,9 +70,8 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
                                  2, wxRA_SPECIFY_COLS);
     top_sizer->Add(orientation, 0, wxALL|wxEXPAND, 5);
 
-    wxStaticBox *margbox = new wxStaticBox(this, -1, 
-                                           wxT("Margins (millimetres)"));
-    wxStaticBoxSizer *hsizer = new wxStaticBoxSizer(margbox, wxHORIZONTAL);
+    wxStaticBoxSizer *hsizer = new wxStaticBoxSizer(wxHORIZONTAL, this, 
+                                                 wxT("Margins (millimetres)"));
     hsizer->Add(new wxStaticText(this, -1, wxT(" Left")),
                 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     left_margin = new SpinCtrl(this, -1, 0, -100, 500);
