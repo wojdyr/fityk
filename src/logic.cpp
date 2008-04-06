@@ -134,7 +134,8 @@ void Ftk::dump_all_as_script(string const &filename)
         warn ("Can't open file: " + filename);
         return;
     }
-    os << fityk_version_line << "## dumped at: " << time_now() << endl;
+    os << fityk_version_line << endl;
+    os << "## dumped at: " << time_now() << endl;
     os << "set verbosity = quiet #the rest of the file is not shown\n"; 
     os << "set autoplot = never\n";
     os << "reset\n";

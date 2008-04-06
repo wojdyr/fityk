@@ -549,10 +549,11 @@ void MainPlot::draw_background(wxDC& dc, bool set_pen)
     if (set_pen) 
         dc.SetPen(wxPen(bg_pointsCol, pen_width));
     dc.SetBrush (*wxTRANSPARENT_BRUSH);
+
     // bg line
     int X = -1, Y = -1;
     int width = get_pixel_width(dc);
-    vector<int> bgline = bgm.calculate_bgline(width);
+    vector<int> bgline = bgm.calculate_bgline(width, ys);
     for (int i = 0; i < width; ++i) {
         int X_ = X, Y_ = Y;
         X = i;
@@ -560,6 +561,7 @@ void MainPlot::draw_background(wxDC& dc, bool set_pen)
         if (X_ >= 0 && (X != X_ || Y != Y_)) 
             dc.DrawLine (X_, Y_, X, Y); 
     }
+
     // bg points (circles)
     for (BgManager::bg_const_iterator i = bgm.begin(); i != bgm.end(); i++) {
         dc.DrawCircle(xs.px(i->x), ys.px(i->y), 3);
@@ -572,8 +574,7 @@ void MainPlot::read_settings(wxConfigBase *cf)
     cf->SetPath(wxT("/MainPlot/Colors"));
     backgroundCol = cfg_read_color(cf, wxT("bg"), wxColour(wxT("BLACK")));
     for (int i = 0; i < max_data_cols; i++)
-        dataColour[i] = cfg_read_color(cf, 
-                                            wxString::Format(wxT("data/%i"), i),
+        dataColour[i] = cfg_read_color(cf, wxString::Format(wxT("data/%i"), i),
                                                wxColour(0, 255, 0));
     inactiveDataCol = cfg_read_color(cf,wxT("inactive_data"),
                                                       wxColour (128, 128, 128));
@@ -1758,7 +1759,7 @@ void BgManager::undo_strip_background()
     ftk->exec("Y = y + " + cmd_tail);
 }
 
-vector<int> BgManager::calculate_bgline(int window_width)
+vector<int> BgManager::calculate_bgline(int window_width, Scale const& y_scale)
 {
     vector<int> bgline(window_width);
     if (spline_bg) 
@@ -1767,7 +1768,7 @@ vector<int> BgManager::calculate_bgline(int window_width)
         fp x = x_scale.val(i);
         fp y = spline_bg ? get_spline_interpolation(bg, x)
                          : get_linear_interpolation(bg, x);
-        bgline[i] = x_scale.px(y);
+        bgline[i] = y_scale.px(y);
     }
     return bgline;
 }

@@ -132,7 +132,7 @@ SRCSUBDIRS=
 # Checks for version specific libraries and headers.
 if test "$enable_GUI" != "no" ; then 
     SRCSUBDIRS="$SRCSUBDIRS wxgui"
-    AM_PATH_WXCONFIG(2.6.3, wxWin=1)
+    AM_PATH_WXCONFIG([2.6.3], [wxWin=1], [wxWin=0], [base,core,adv])
     if test "$wxWin" != 1; then
     	AC_MSG_ERROR([
     	      wxWindows must be installed on your system

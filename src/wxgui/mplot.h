@@ -34,7 +34,7 @@ public:
     bool can_undo() const { return !bg_backup.empty(); }
     void set_spline_bg(bool s) { spline_bg=s; }
     void set_as_convex_hull();
-    std::vector<int> calculate_bgline(int window_width);
+    std::vector<int> calculate_bgline(int window_width, Scale const& y_scale);
     bg_const_iterator begin() const { return bg.begin(); }
     bg_const_iterator end() const { return bg.end(); }
 protected:
