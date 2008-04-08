@@ -57,3 +57,12 @@ $(xyconvert): xybrowser.cpp uplot.cpp uplot.h $(xyconvert_res)
 	../../3rdparty/xylib/xylib/.libs/libxy.a @WX_LIBS@ $(LIBS)
 
 
+powdifpat: powdifpat.cpp cmn.o 
+	$(CXX) -o $@ $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) \
+	-Icctbx/cctbx/include/ -Icctbx/scitbx/include/ \
+	$(AM_CXXFLAGS) $(CXXFLAGS) \
+	$< $(srcdir)/cmn.o \
+	$(AM_LDFLAGS) $(LDFLAGS) -Lcctbx -lcctbx \
+	../../3rdparty/xylib/xylib/.libs/libxy.a @WX_LIBS@ $(LIBS)
+
