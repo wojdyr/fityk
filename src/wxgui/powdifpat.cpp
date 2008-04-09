@@ -172,6 +172,8 @@ public:
     void OnAddToQLButton(wxCommandEvent& event);
     void OnNameChanged(wxCommandEvent& event);
     void OnSpaceGroupChanged(wxCommandEvent& event);
+    void OnSpaceGroupChanging(wxCommandEvent&) 
+                               { powder_book->deselect_phase_quick_list(); }
     void OnParameterChanged(wxCommandEvent& event);
     void set_data(vector<string> const& tokens);
 
@@ -278,7 +280,7 @@ PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
     image_list->Add(wxBitmap(wxImage("img/info32.png")));
     image_list->Add(wxBitmap(wxImage("img/radiation32.png")));
     image_list->Add(wxBitmap(wxImage("img/rubik32.png")));
-    image_list->Add(wxBitmap(wxImage("img/info32.png")));
+    image_list->Add(wxBitmap(wxImage("img/peak32.png")));
     image_list->Add(wxBitmap(wxImage("img/run32.png")));
     AssignImageList(image_list);
 
@@ -506,6 +508,8 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
             (wxObjectEventFunction) &PhasePanel::OnNameChanged);
     Connect(sg_tc->GetId(), wxEVT_COMMAND_TEXT_ENTER, 
             (wxObjectEventFunction) &PhasePanel::OnSpaceGroupChanged);
+    Connect(sg_tc->GetId(), wxEVT_COMMAND_TEXT_UPDATED, 
+            (wxObjectEventFunction) &PhasePanel::OnSpaceGroupChanging);
 
     Connect(par_a->get_text_ctrl()->GetId(), wxEVT_COMMAND_TEXT_UPDATED, 
             (wxObjectEventFunction) &PhasePanel::OnParameterChanged);
@@ -604,14 +608,14 @@ void PhasePanel::OnNameChanged(wxCommandEvent&)
     }
 }
 
-#include <iostream>
-
 void PhasePanel::OnSpaceGroupChanged(wxCommandEvent&)
 {
     string text = wx2s(sg_tc->GetValue());
     set_space_group(text);
     powder_book->deselect_phase_quick_list();
 }
+
+#include <iostream>
 
 void PhasePanel::set_space_group(string const& text)
 {

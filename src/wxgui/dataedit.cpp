@@ -458,7 +458,7 @@ void DataEditorDlg::OnAdd (wxCommandEvent&)
         select_transform(pos);
 
         FFrame *fframe = static_cast<FFrame *>(GetParent());
-        fframe->update_menu_fast_tranforms();
+        fframe->update_menu_saved_tranforms();
     }
 }
 
@@ -630,7 +630,8 @@ TransEditorDlg::TransEditorDlg(wxWindow* parent, wxWindowID id,
     code_tc = new wxTextCtrl(this, -1, s2wx(ex.code), 
                              wxDefaultPosition, wxSize(-1, 100),
                              wxTE_MULTILINE|wxHSCROLL|wxVSCROLL);
-    inmenu_cb = new wxCheckBox(this, -1,wxT("show item in Data->Fast_DT menu"));
+    inmenu_cb = new wxCheckBox(this, -1,
+                               wxT("show item in Data->Saved DT menu"));
     inmenu_cb->SetValue(ex.in_menu);
 
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);

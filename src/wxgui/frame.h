@@ -74,7 +74,7 @@ public:
     void OnDataRecent    (wxCommandEvent& event);
     void OnDataRevert    (wxCommandEvent& event);
     void OnDataEditor    (wxCommandEvent& event);
-    void OnFastDT        (wxCommandEvent& event);       
+    void OnSavedDT       (wxCommandEvent& event);       
     void OnDataMerge     (wxCommandEvent&);
     void OnDataCalcShirley (wxCommandEvent&);
     void OnDataRmShirley (wxCommandEvent&);
@@ -198,7 +198,7 @@ public:
     void update_app_title();
     void add_recent_data_file(std::string const& filename);
     void update_menu_functions();
-    void update_menu_fast_tranforms();
+    void update_menu_saved_tranforms();
     void update_menu_previous_zooms();
 
 protected:

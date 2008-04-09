@@ -75,7 +75,6 @@
 #include "img/addpeak_mode.xpm"
 #include "img/add_peak.xpm"
 #include "img/bg_mode.xpm"
-#include "img/cont_fit.xpm"
 #include "img/edit_data.xpm"
 //#include "img/manual.xpm"
 #include "img/open_data_custom.xpm"
@@ -86,7 +85,7 @@
 #include "img/save_data.xpm"
 #include "img/save_script.xpm"
 #include "img/strip_bg.xpm"
-//#include "img/undo_fit.xpm"
+#include "img/undo_fit.xpm"
 #include "img/zoom_all.xpm"
 #include "img/zoom_left.xpm"
 #include "img/zoom_mode.xpm"
@@ -124,6 +123,7 @@ FFrame *frame = NULL;
 Ftk *ftk = NULL;
 
 enum {
+    // menu
     ID_H_MANUAL        = 24001 ,
     ID_H_CONTACT               ,
     ID_D_QLOAD                 ,
@@ -132,8 +132,8 @@ enum {
     ID_D_RECENT_END = ID_D_RECENT+30 , 
     ID_D_REVERT                ,
     ID_D_EDITOR                ,
-    ID_D_FDT                   ,
-    ID_D_FDT_END = ID_D_FDT+50 ,
+    ID_D_SDT                   ,
+    ID_D_SDT_END = ID_D_SDT+50 ,
     ID_D_MERGE                 ,
     ID_D_RM_SHIRLEY            ,
     ID_D_CALC_SHIRLEY          ,
@@ -218,6 +218,7 @@ enum {
     ID_G_SCONF2                ,
     ID_G_SCONFAS               ,
 
+    // toolbar 
     ID_ft_m_zoom               ,
     ID_ft_m_range              ,
     ID_ft_m_bg                 ,
@@ -263,7 +264,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_UPDATE_UI (ID_D_REVERT, FFrame::OnDataRevertUpdate)
     EVT_MENU (ID_D_REVERT,      FFrame::OnDataRevert)
     EVT_MENU (ID_D_EDITOR,      FFrame::OnDataEditor)
-    EVT_MENU_RANGE (ID_D_FDT+1, ID_D_FDT_END, FFrame::OnFastDT)
+    EVT_MENU_RANGE (ID_D_SDT+1, ID_D_SDT_END, FFrame::OnSavedDT)
     EVT_MENU (ID_D_MERGE,       FFrame::OnDataMerge)
     EVT_MENU (ID_D_RM_SHIRLEY,  FFrame::OnDataRmShirley)
     EVT_MENU (ID_D_CALC_SHIRLEY,FFrame::OnDataCalcShirley)
@@ -401,7 +402,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     print_mgr = new PrintManager(plot_pane);
 
     update_menu_functions();
-    update_menu_fast_tranforms();
+    update_menu_saved_tranforms();
     io_pane->SetFocus();
 }
 
@@ -622,8 +623,8 @@ void FFrame::set_menubar()
     data_menu->Append (ID_D_EDITOR, wxT("&Editor\tCtrl-E"), 
                                                      wxT("Open data editor"));
     this->data_ft_menu = new wxMenu;
-    data_menu->Append (ID_D_FDT, wxT("&Fast Transformations"), data_ft_menu, 
-                                 wxT("Quick data transformations"));
+    data_menu->Append (ID_D_SDT, wxT("&Saved Transformations"), data_ft_menu, 
+                                 wxT("Saved data transformations"));
     data_menu->AppendSeparator();
     data_menu->Append (ID_D_MERGE, wxT("&Merge Points..."), 
                                         wxT("Reduce the number of points"));
@@ -930,7 +931,7 @@ void FFrame::OnDataEditor (wxCommandEvent&)
     data_editor.ShowModal();
 }
 
-void FFrame::update_menu_fast_tranforms ()
+void FFrame::update_menu_saved_tranforms ()
 {
     const vector<DataTransform> &all = DataEditorDlg::get_transforms();
     vector<DataTransform> transforms;
@@ -940,7 +941,7 @@ void FFrame::update_menu_fast_tranforms ()
             transforms.push_back(*i);
     int menu_len = data_ft_menu->GetMenuItemCount();
     for (int i = 0; i < size(transforms); ++i) {
-        int id = ID_D_FDT+i+1;
+        int id = ID_D_SDT+i+1;
         wxString name = s2wx(transforms[i].name);
         if (i >= menu_len)
             data_ft_menu->Append(id, name);
@@ -950,10 +951,10 @@ void FFrame::update_menu_fast_tranforms ()
             data_ft_menu->SetLabel(id, name);
     }
     for (int i = size(transforms); i < menu_len; ++i) 
-        data_ft_menu->Delete(ID_D_FDT+i+1);
+        data_ft_menu->Delete(ID_D_SDT+i+1);
 }
 
-void FFrame::OnFastDT (wxCommandEvent& event)
+void FFrame::OnSavedDT (wxCommandEvent& event)
 {
     string name = wx2s(GetMenuBar()->GetLabel(event.GetId()));
     const vector<DataTransform> &transforms = DataEditorDlg::get_transforms();
@@ -1784,7 +1785,8 @@ void FFrame::update_toolbar()
     if (!toolbar) 
         return;
     toolbar->ToggleTool(ID_ft_b_strip, plot_pane->get_bg_manager()->can_undo());
-    toolbar->EnableTool(ID_ft_f_cont, ftk->get_fit()->is_initialized());
+    //toolbar->EnableTool(ID_ft_f_cont, ftk->get_fit()->is_initialized());
+    toolbar->EnableTool(ID_ft_f_undo, ftk->get_fit_container()->can_undo());
     toolbar->EnableTool(ID_ft_v_pr, !plot_pane->get_zoom_hist().empty());
 }
 
@@ -1957,11 +1959,12 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     AddTool(ID_ft_f_run, wxT("Run"), 
             wxBitmap(run_fit_xpm), wxNullBitmap, wxITEM_NORMAL, 
             wxT("Start fitting"), wxT("Start fitting sum to data"));
-    AddTool(ID_ft_f_cont, wxT("Continue"), wxBitmap(cont_fit_xpm), wxNullBitmap,
-            wxITEM_NORMAL, wxT("Continue fitting"), 
-            wxT("Continue fitting sum to data"));
-    //AddTool (ID_ft_f_undo, "Undo", wxBitmap(undo_fit_xpm), wxNullBitmap,
-    //         wxITEM_NORMAL, "Undo fitting", "Previous set of parameters");
+    //AddTool(ID_ft_f_cont, wxT("Continue"), 
+    //        wxBitmap(cont_fit_xpm), wxNullBitmap, wxITEM_NORMAL, 
+    //        wxT("Continue fitting"), wxT("Continue fitting sum to data"));
+    AddTool(ID_ft_f_undo, wxT("Undo"), 
+             wxBitmap(undo_fit_xpm), wxNullBitmap, wxITEM_NORMAL, 
+             wxT("Undo fitting"), wxT("Previous set of parameters"));
     AddSeparator();
     AddTool(ID_ft_sideb, wxT("SideBar"), 
             wxBitmap(right_pane_xpm), wxNullBitmap, wxITEM_CHECK, 

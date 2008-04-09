@@ -1,16 +1,18 @@
 $Id$
 
-If you can help convert the manual from DocBook to reStructuredText, please
-contact me.
+Help is needed:
 
-If you know C++ and would like to help with coding, but you don't 
-know what to do, there is a list of ideas at the end of this file.
+- C++ coding: see the list of ideas at the end of this file
+- documentation: convert the manual from DocBook to reStructuredText
+- graphics: make PNG icons for toolbar. XPM format (now in use) doesn't support
+  alpha channel, and the toolbar doesn't look good.
+
 
 ---------- TODO list and tentative development plan  ----------------
 
 // * use `wx-config --libs base,core,adv` in config
 
-* GUI, toolbar: remove "continue fitting" and add "undo fitting"
+// * GUI, toolbar: remove "continue fitting" and add "undo fitting"
 
 * GUI: default view is too wide from the left in when logarithmic scale is on,
   because view margin is always 5%, and this is handled by libfityk
@@ -18,7 +20,7 @@ know what to do, there is a list of ideas at the end of this file.
 
 * BUG: "plot . []" sometimes doesn't work as expected if x axis is not visible.
 
-* rename "fast transformations" to "saved t."
+// * rename "fast transformations" to "saved t."
 
 * FFT (forward and backward) data transformation
 
