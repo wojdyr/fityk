@@ -54,7 +54,7 @@ int Scale::px(double val) const
 {
     if (logarithm) {
         if (val <= 0)
-            return inf_px(scale);
+            return inf_px(-scale);
         val = log(val);
     }
     double t = (val - origin) * scale;

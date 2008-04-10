@@ -29,8 +29,8 @@ void Scale::set(fp m, fp M, int pixels)
 {
     fp h = 0;
     if (logarithm) {
-        M = log(max(M, 1e-1));
-        m = log(max(m, 1e-1));
+        M = log(max(M, epsilon));
+        m = log(max(m, epsilon));
     }
     h = M - m;
     origin = reversed ? M : m;

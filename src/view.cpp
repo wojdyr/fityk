@@ -49,11 +49,22 @@ void View::fit_zoom(int flag)
             x_min -= 0.1; 
             x_max += 0.1;
         }
-        fp x_margin = (x_max - x_min) * relative_x_margin;
-        if (flag&fit_left)
-            left = x_min - x_margin;
-        if (flag&fit_right)
-            right = x_max + x_margin;
+        if (log_x) {
+            x_min = max(epsilon, x_min);
+            x_max = max(epsilon, x_max);
+            fp margin = log(x_max / x_min) * relative_x_margin;
+            if (flag&fit_left)
+                left = exp(log(x_min) - margin);
+            if (flag&fit_right)
+                right = exp(log(x_max) + margin);
+        }
+        else {
+            fp margin = (x_max - x_min) * relative_x_margin;
+            if (flag&fit_left)
+                left = x_min - margin;
+            if (flag&fit_right)
+                right = x_max + margin;
+        }
     }
 
     if (flag&fit_top || flag&fit_bottom) {
@@ -63,11 +74,22 @@ void View::fit_zoom(int flag)
             y_min -= 0.1; 
             y_max += 0.1;
         }
-        fp y_margin = (y_max - y_min) * relative_y_margin;
-        if (flag&fit_bottom)
-            bottom = y_min - y_margin;
-        if (flag&fit_top)
-            top = y_max + y_margin;
+        if (log_y) {
+            y_min = max(epsilon, y_min);
+            y_max = max(epsilon, y_max);
+            fp margin = log(y_max / y_min) * relative_y_margin;
+            if (flag&fit_bottom)
+                bottom = exp(log(y_min) - margin);
+            if (flag&fit_top)
+                top = exp(log(y_max) + margin);
+        }
+        else {
+            fp margin = (y_max - y_min) * relative_y_margin;
+            if (flag&fit_bottom)
+                bottom = y_min - margin;
+            if (flag&fit_top)
+                top = y_max + margin;
+        }
     }
 }
 
@@ -139,12 +161,15 @@ void View::get_y_range(vector<Data const*> datas, vector<Sum const*> sums,
         if (sum_y_max < y_min) 
             y_min = sum_y_max;
     }
+
     // include or not include zero
-    const fp show_zero_factor = 0.1;
-    if (y_min > 0 && y_max - y_min > show_zero_factor * y_max)
-        y_min = 0;
-    else if (y_max < 0 && y_max - y_min > show_zero_factor * fabs(y_min))
-        y_max = 0;
+    if (!log_y) {
+        const fp show_zero_factor = 0.1;
+        if (y_min > 0 && y_max - y_min > show_zero_factor * y_max)
+            y_min = 0;
+        else if (y_max < 0 && y_max - y_min > show_zero_factor * fabs(y_min))
+            y_max = 0;
+    }
 }
 
 

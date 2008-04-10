@@ -1,5 +1,9 @@
 $Id$
 
+User-visible changes in version 0.8.6  (2008-04-  ):
+* bug fixes (drawing baseline, "zoom all" with log scale)
+* 
+
 User-visible changes in version 0.8.5  (2008-03-17):
 * minor changes in syntax: 
     info @0             ->   info data in @0

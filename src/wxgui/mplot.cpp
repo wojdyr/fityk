@@ -607,6 +607,7 @@ void MainPlot::read_settings(wxConfigBase *cf)
     ys.reversed = cfg_read_bool (cf, wxT("yReversed"), false); 
     xs.logarithm = cfg_read_bool (cf, wxT("xLogarithm"), false); 
     ys.logarithm = cfg_read_bool (cf, wxT("yLogarithm"), false); 
+    ftk->view.set_log_scale(xs.logarithm, ys.logarithm);
     FPlot::read_settings(cf);
     refresh();
 }
@@ -1492,6 +1493,7 @@ void ConfigureAxesDlg::OnApply (wxCommandEvent&)
     plot->y_tic_size = y_tics_size->GetValue();
     plot->ys.reversed = y_reversed_cb->GetValue();
     plot->ys.logarithm = y_logarithm_cb->GetValue();
+    ftk->view.set_log_scale(plot->xs.logarithm, plot->ys.logarithm);
     frame->refresh_plots(false, !scale_changed);
 }
 

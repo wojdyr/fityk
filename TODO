@@ -12,29 +12,22 @@ Help is needed:
 
 // * use `wx-config --libs base,core,adv` in config
 
-// * GUI, toolbar: remove "continue fitting" and add "undo fitting"
-
-* GUI: default view is too wide from the left in when logarithmic scale is on,
-  because view margin is always 5%, and this is handled by libfityk
-  Remove (or lower) log scale minimum=0.1 in Scale::set()
-
-* BUG: "plot . []" sometimes doesn't work as expected if x axis is not visible.
-
-// * rename "fast transformations" to "saved t."
-
 * FFT (forward and backward) data transformation
 
 * convolution / deconvolution (of two datasets)
 
+
 ----------> 0.8.6
 
-* add crystallographic module/extension 
+* powder diffraction "add-on" - Pawley fitting 
 
+* minimum wx version will be raised to 2.8
+  - wxAboutBox will be used instead of AboutDlg
+
+--------------> 0.9
 
 * GUI: refactor MainPlot - mouse event handling based on subscriptions,
        a clean interface to XOR-drawing 
-
---------------> 0.9
 
 * GUI: should (and where) windows size & position be stored?
 
@@ -85,8 +78,6 @@ Help is needed:
   - option to change the width of the sum line (and other lines)
 
 ------------------ 
-
-* GUI: button '(un)lock' on variables pane [waiting for wx-toggle-bitmap-button]
 
 * user defined functions:
       - more sophisticated simplifications of expressions and CSE(!)
@@ -187,7 +178,7 @@ Help is needed:
       * Choose log file: add "log also output" checkbox
       * Data > Export will be done in one step
       * "Export formula" dialog will have formula-export-style option
-  - wxAboutBox will be used instead of AboutDlg
+  - button '(un)lock' on variables pane (wxToggleBitmapButton)
 
 
 -------  Ideas for people, who would like to contribute:  -----------
