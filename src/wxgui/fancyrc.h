@@ -62,8 +62,8 @@ private:
     void OnLockButton(wxCommandEvent&) 
                                 { ToggleLock(); toggled_lock_callback(this); }
     void OnTextEnter(wxCommandEvent &) { OnStopChanging(); }
-
-    DECLARE_EVENT_TABLE()
+    void OnMouseWheel(wxMouseEvent &event);
+    void OnKeyDown(wxKeyEvent &event);
 };
 
 #endif

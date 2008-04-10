@@ -98,11 +98,6 @@ void ValueChangingWidget::OnMouse(wxMouseEvent &event)
 //                          FancyRealCtrl
 //===============================================================
 
-BEGIN_EVENT_TABLE(FancyRealCtrl, wxPanel)
-    EVT_TEXT_ENTER(-1, FancyRealCtrl::OnTextEnter)
-    EVT_BUTTON(-1, FancyRealCtrl::OnLockButton)
-END_EVENT_TABLE()
-
 FancyRealCtrl::FancyRealCtrl(wxWindow* parent, wxWindowID id, 
                   double value, wxString const& tip, bool locked_, 
                   V1Callback<FancyRealCtrl const*> const& changing_value_cb,
@@ -128,7 +123,53 @@ FancyRealCtrl::FancyRealCtrl(wxWindow* parent, wxWindowID id,
     vch->Enable(!locked);
     sizer->Add(vch, 0, wxALL|wxALIGN_CENTER_VERTICAL, 1);
     SetSizer(sizer);
+
+    Connect(tc->GetId(), wxEVT_COMMAND_TEXT_ENTER,
+            (wxObjectEventFunction) &FancyRealCtrl::OnTextEnter);
+    Connect(lock_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
+            (wxObjectEventFunction) &FancyRealCtrl::OnLockButton);
+    tc->Connect(wxEVT_KEY_DOWN,
+                (wxObjectEventFunction) &FancyRealCtrl::OnKeyDown,
+                 NULL, this);
+    tc->Connect(wxEVT_MOUSEWHEEL,
+                (wxObjectEventFunction) &FancyRealCtrl::OnMouseWheel,
+                NULL, this);
 }
+
+void FancyRealCtrl::OnKeyDown(wxKeyEvent &event) 
+{
+    double change = 0.;
+    if (event.GetKeyCode() == WXK_PAGEUP) 
+        change = 0.001;
+    else if (event.GetKeyCode() == WXK_PAGEDOWN) 
+        change = -0.001;
+    else {
+        event.Skip();
+        return;
+    }
+    if (event.ShiftDown())
+        change *= 10;
+    if (event.CmdDown())
+        change *= 100;
+    if (event.AltDown())
+        change /= 20;
+    SetValue(initial_value + fabs(initial_value) * change);
+    changed_value_callback(this);
+}
+
+void FancyRealCtrl::OnMouseWheel(wxMouseEvent &event) 
+{
+    double change = 1e-5 * event.GetWheelRotation();
+    if (event.ShiftDown())
+        change *= 10;
+    if (event.CmdDown())
+        change *= 100;
+    if (event.AltDown())
+        change /= 20;
+    SetValue(initial_value + fabs(initial_value) * change);
+    changed_value_callback(this);
+}
+
 
 void FancyRealCtrl::SetTemporaryValue(double value) 
 { 
