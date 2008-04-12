@@ -2,7 +2,7 @@ $Id$
 
 User-visible changes in version 0.8.6  (2008-04-  ):
 * bug fixes (drawing baseline, "zoom all" with log scale)
-* GUI: parameters (at the bottom of the sidebar can be changed with Page-Up
+* GUI: parameters (at the bottom of the sidebar) can be changed with Page-Up
   and Page-Down keys or with mouse wheel. Shift, Ctrl, Alt keys modify speed.
 
 User-visible changes in version 0.8.5  (2008-03-17):

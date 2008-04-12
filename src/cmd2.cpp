@@ -334,15 +334,6 @@ void do_print_info(char const* a, char const* b)
                         m += (*i)->xname + " ";
         }
     }
-    else if (s[0] == '$') {
-        const Variable* v = AL->find_variable(string(s, 1));
-        m = v->get_info(AL->get_parameters(), with_plus);
-        if (with_plus) {
-            vector<string> refs = AL->get_variable_references(string(s, 1));
-            if (!refs.empty())
-                m += "\nreferenced by: " + join_vector(refs, ", ");
-        }
-    }
     else if (s == "functions") {
         if (functions.empty())
             m = "No functions found.";
@@ -476,6 +467,21 @@ void do_print_debug_info(char const*, char const*)
 void do_print_data_expr(char const*, char const*)
 {
     string s;
+
+    // special case, only one variable, e.g. "info $_1"
+    if (t2[0] == '$' && parse(t2.c_str(), VariableLhsG).full) {
+        string varname = t2.substr(1);
+        const Variable* v = AL->find_variable(varname);
+        s = v->get_info(AL->get_parameters(), with_plus);
+        if (with_plus) {
+            vector<string> refs = AL->get_variable_references(varname);
+            if (!refs.empty())
+                s += "\nreferenced by: " + join_vector(refs, ", ");
+        }
+        prepared_info += "\n" + s;
+        return;
+    }
+
     if (vds.empty() && !is_data_dependent_expression(t2)) //no data
         s = S(get_transform_expression_value(t2, 0));
     else {
@@ -623,8 +629,7 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
     info_arg
         = (str_p("commands") >> IntRangeG) [&do_list_commands] 
         | ( str_p("version") 
-          | str_p("variables") 
-          | VariableLhsG 
+          | "variables" 
           | "types" 
           | "functions" 
           | "datasets" 

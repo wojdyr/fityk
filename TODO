@@ -12,10 +12,20 @@ Help is needed:
 
 // * use `wx-config --libs base,core,adv` in config
 
+* fityk slows down when ... (problem reported on wx-users)
+
 * FFT (forward and backward) data transformation
 
 * convolution / deconvolution (of two datasets)
 
+// * [BUG] parsing problems: "i $a*$a" => Syntax error; "i 0+$a*$a" => OK
+
+* [BUG] parsing problems: "a=a" => OK   "a=ab" => Syntax error
+
+* GUI: (wxToggleButton) buttons on sidebar>functions that make hwhm 
+  and shape equal for all functions (F[hwhm]=...; F[shape]=...) or 
+  independent.  
+  They should also affect graphical peak adding (all 3 ways)
 
 ----------> 0.8.6
 
@@ -50,41 +60,28 @@ Help is needed:
 
 --------------> 
 
-* BUG, parsing problem: "i $a*$a" => Syntax error; "i 0+$a*$a" => OK
-
-* GUI: buttons on sidebar>functions that make hwhm and shape equal
-  for all functions (F[hwhm]=...; F[shape]=...) or independent.
-  buttons should be active only when it's possible
-   should also affect graphical peak adding (all 3 ways)
-
-* sorting lists at sidebar - by clicking on column header, 
-  use case: sort functions by centers
-  involves refactoring ListWithColors::populate()
-
-* GUI, script editor: 
-       "info ...> file" should be marked differently than not redirected info 
-       paths of files to be read should be checked 
-       ? search'n'replace button
-
-* unused variables should not slow down fitting
-
 * add alpha channel to toolbar icons
-
-* fitting with constrained parameters
 
 * (GUI) single dialog for configuring main plot (and also aux. plots) (?)
   - now in Configure axes / peak labels fonts are changed (but shouldn't) 
     even if Apply is not pressed 
   - option to change the width of the sum line (and other lines)
+  - ? changing data point size and line separately for each dataset,
+
+* unused variables should not slow down fitting
 
 ------------------ 
+
+* fitting with box-constrained parameters
+
+* GUI, enhancements for the script editor: 
+       - "info ...> file" marked differently than not redirected info 
+       - paths of files to be read should be checked 
+       - ? search'n'replace button
 
 * user defined functions:
       - more sophisticated simplifications of expressions and CSE(!)
       - calculating limits, width, area, etc. for UDF(!)
-
-* un-strip background: what to do if active dataset is different than the one
-  the background was removed for.
 
 * EMG function: how to calculate it? Now there are some problems with
   this function. There must be smarter way to implement it...
@@ -93,8 +90,6 @@ Help is needed:
 
 * improve Voigt function (cut-tails, better approx.) 
   eg. http://portal.acm.org/citation.cfm?doid=77626.77629
-
-* ? GUI: changing data point size and line separately for each dataset,
 
 * info -- more information about error, confidence limits, etc.
   graphical interface Fit > Info
@@ -161,7 +156,7 @@ Help is needed:
 
 * [BUG] (GUI) (MS Win) <br> does not work in vertical peak labels 
 
-* exporting formulae in MathML (when option formula-export-style == mathml)
+* ? exporting formulae in MathML (when option formula-export-style == mathml)
 
 * [BUG]: program crashes (MS Win 9x) when data contains NaN (as a result
   of asin(x) x>1) and "Zoom all" is called.
@@ -179,7 +174,12 @@ Help is needed:
       * Data > Export will be done in one step
       * "Export formula" dialog will have formula-export-style option
   - button '(un)lock' on variables pane (wxToggleBitmapButton)
-
+  - use wxDataViewCtrl instead of wxGrid in  data editor
+  - use wxDataViewCtrl for the lists at the sidebar,
+    refactor ListWithColors::populate(), add sorting by clicking on column 
+    header (use case: sort functions by centers)
+  - use wxToggleBitmapButton buttons on sidebar>functions (buttons that make 
+    hwhm and shape equal for all functions)
 
 -------  Ideas for people, who would like to contribute:  -----------
 
