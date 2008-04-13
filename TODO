@@ -12,8 +12,6 @@ Help is needed:
 
 // * use `wx-config --libs base,core,adv` in config
 
-* fityk slows down when ... (problem reported on wx-users)
-
 * FFT (forward and backward) data transformation
 
 * convolution / deconvolution (of two datasets)

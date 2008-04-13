@@ -330,6 +330,16 @@ void Fit::fit(int max_iter, vector<DataWithSum*> const& dsds)
     user_interrupt = false;
     init(); //method specific init
     max_iterations = max_iter;
+
+    // print stats
+    int nu = count(par_usage.begin(), par_usage.end(), true);
+    int np = 0;
+    for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
+                                                    i != dsds.end(); ++i) 
+        np += (*i)->get_data()->get_n(); 
+    F->msg ("Fit " + S(nu) + " (of " + S(na) + ") parameters to " + S(np) 
+            + " points ...");
+
     autoiter();
 }
 

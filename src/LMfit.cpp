@@ -109,7 +109,7 @@ bool LMfit::do_iteration()
     for (int j = 0; j < na; j++) 
         alpha_[na * j + j] *= (1.0 + lambda);
     beta_ = beta;
-    if (F->get_verbosity() > 1) { 
+    if (F->get_verbosity() > 1) { // level: debug
         F->msg (print_matrix (beta_, 1, na, "beta"));
         F->msg (print_matrix (alpha_, na, na, "alpha'"));
     }
@@ -118,7 +118,7 @@ bool LMfit::do_iteration()
     Jordan (alpha_, beta_, na);
 
     // da is in beta_  
-    if (F->get_ui()->get_verbosity() >= 1) {
+    if (F->get_verbosity() >= 1) { // level: verbose
         vector<fp> rel (na);
         for (int q = 0; q < na; q++)
             rel[q] = beta_[q] / a[q] * 100;

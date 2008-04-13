@@ -308,9 +308,14 @@ void OutputWin::save_settings(wxConfigBase *cf) const
 
 void OutputWin::append_text (OutputStyle style, const wxString& str)
 {
+    const int max_len = 1048576;
+    const int delta = 262144;
+    if (GetLastPosition() > max_len)
+        Remove(0, delta);
+
     SetDefaultStyle (wxTextAttr (text_color[style]));
     AppendText (str);
-    ShowPosition(GetLastPosition());
+    //ShowPosition(GetLastPosition());
 }
 
 void OutputWin::OnPopupColor (wxCommandEvent& event)

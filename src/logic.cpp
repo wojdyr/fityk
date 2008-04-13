@@ -65,7 +65,7 @@ void Ftk::initialize()
 // cleaning common for dtor and reset()
 void Ftk::destroy()
 {
-    dsds.clear();
+    purge_all_elements(dsds);
     VariableManager::do_reset();
     delete fit_container;
     delete settings;
