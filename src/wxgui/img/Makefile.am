@@ -62,6 +62,7 @@ filereload16.h \
 filesaveas16.h \
 function16.h \
 image16.h \
+info16.h \
 preferences16.h \
 recordmacro16.h \
 redo16.h \

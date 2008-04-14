@@ -107,6 +107,7 @@
 #include "img/redo16.h"
 #include "img/reload16.h"
 #include "img/run16.h"
+#include "img/info16.h"
 #include "img/runmacro16.h"
 #include "img/stopmacro16.h"
 #include "img/undo16.h"
@@ -673,7 +674,8 @@ void FFrame::set_menubar()
     fit_menu->AppendSeparator();
     append_mi(fit_menu, ID_F_RUN, GET_BMP(run16), wxT("&Run...\tCtrl-R"), 
                                              wxT("Fit sum to data"));
-    fit_menu->Append (ID_F_INFO, wxT("&Info"), wxT("Info about current fit")); 
+    append_mi(fit_menu, ID_F_INFO, GET_BMP(info16), wxT("&Info"), 
+                                            wxT("Info about current fit")); 
     fit_menu->AppendSeparator();
     append_mi(fit_menu, ID_F_UNDO, GET_BMP(undo16), wxT("&Undo"), 
                             wxT("Undo change of parameter")); 
