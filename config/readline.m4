@@ -6,16 +6,21 @@ AC_DEFUN([READLINE_STUFF],
  AC_SUBST(READLINE_LIBS)
  AC_SUBST(NO_READLINE)
  if test "x$with_readline" != "xno" ; then
-     dnl check for terminal library (based on octave's configure.in)
+     dnl check for terminal library 
+     dnl if libreadline is already linked with a terminal library, 
+     dnl we don't need to link it the second time 
      gp_tcap=""
-     for termlib in ncurses curses termcap terminfo termlib; do
-         AC_CHECK_LIB(${termlib}, tputs, [gp_tcap="${gp_tcap} -l${termlib}"])
-         case "${gp_tcap}" in
-             *-l${termlib}*)
-             AC_MSG_RESULT([using ${gp_tcap} with readline])
+     for termlib in readline ncurses curses termcap terminfo termlib; do
+         AC_CHECK_LIB(${termlib}, tputs, [gp_tcap="-l${termlib}"])
+	 if test "x${gp_tcap}" != x; then
+	     if test "${termlib}" = "readline"; then
+	         gp_tcap=""
+		 AC_MSG_RESULT([readline is linked with a terminal library])
+	     else
+		 AC_MSG_RESULT([using ${gp_tcap} with readline])
+	     fi
              break
-             ;;
-         esac
+         fi
      done
  
      AC_CHECK_LIB([readline], [readline], 
@@ -37,7 +42,7 @@ AC_DEFUN([READLINE_STUFF],
      dnl don't have it. We don't support them.
      AC_CHECK_DECLS([rl_completion_matches], [], [AC_MSG_ERROR([ 
      Although you seem to have a readline-compatible library, it is either 
-     old GNU readline <= 4.1 (XX century), or readline-compatible library, 
+     a very old GNU readline <= 4.1, or readline-compatible library, 
      like libedit, but it's not compatible enough with readline >= 4.2.
          Either install libreadline >= 4.2, 
          or configure fityk with option --without-readline])],
