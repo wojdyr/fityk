@@ -87,7 +87,7 @@ InputLine::~InputLine()
     for (size_t i = 0; i < m_history.GetCount(); ++i) {
         if (i > 0)
             f << std::endl;
-        f << m_history[i].c_str();
+        f << m_history[i].fn_str();
     }
 }
 
