@@ -225,6 +225,7 @@ info @0 (x, y)
 info @* (x, y, s) > tmp_foo2.xy
 info @0 (x, y, a) > tmp_foo3.xy
 info @0 (x, y, s, @0.F(x), (y-@0.F(x))/s, a) > tmp_foo4.xy
+info @0 (x, y, s, F(x), (y-F(x))/s, a) > tmp_foo4.xy
 info peaks in @0 > tmp_foo5.xy
 info+ peaks in @0 > tmp_foo6.xy
 info formula in @0 > tmp_foo7.xy

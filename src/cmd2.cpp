@@ -145,12 +145,22 @@ bool equal_x_colums(bool only_active)
     return true;
 }
 
+
 // change F(...) to @n.F(...), and the same with Z
 string add_ds_to_sum(string const& s, int nr)
 {
-    string s2 = s;
-    replace_words(s2, "F", "@" + S(nr) + ".F");
-    replace_words(s2, "Z", "@" + S(nr) + ".Z");
+    string s2;
+    s2.reserve(s.size());
+    for (string::const_iterator i = s.begin(); i != s.end(); ++i) {
+        if ((*i == 'F' || *i == 'Z')
+             && (i == s.begin() || (*(i-1) != '.' && !isalnum(*(i-1)) 
+                                    && *(i-1) != '_' && *(i-1) != '$' 
+                                    && *(i-1) != '%')) 
+             && (i+1 == s.end() || (!isalnum(*(i+1)) && *(i+1) != '_'))) {
+            s2 += "@" + S(nr) + ".";
+        }
+        s2 += *i;
+    }
     return s2;
 }
 
