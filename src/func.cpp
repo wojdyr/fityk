@@ -360,6 +360,16 @@ int Function::get_param_nr(string const& param) const
     return i - type_var_names.begin();
 }
 
+bool Function::get_param_value_safe(string const& param, fp &value) const
+{
+    vector<string>::const_iterator i = find(type_var_names.begin(), 
+                                            type_var_names.end(), param);
+    if (i == type_var_names.end())
+        return false;
+    value = get_var_value(i - type_var_names.begin());
+    return true;
+}
+
 fp Function::get_param_value(string const& param) const
 {
     if (param.empty())

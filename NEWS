@@ -1,9 +1,11 @@
 $Id$
 
-User-visible changes in version 0.8.6  (2008-04-  ):
+User-visible changes in version 0.8.6  (2008-04-15):
 * bug fixes (drawing baseline, "zoom all" with log scale)
 * GUI: parameters (at the bottom of the sidebar) can be changed with Page-Up
   and Page-Down keys or with mouse wheel. Shift, Ctrl, Alt keys modify speed.
+* GUI: two buttons added to the "functions" pane in the sidebar. They make 
+  HWHM and shape equal for all functions (works only with a few function types)
 
 User-visible changes in version 0.8.5  (2008-03-17):
 * minor changes in syntax: 

@@ -731,6 +731,7 @@ void MainPlot::OnPeakGuess(wxCommandEvent&)
             fp plusmin = max(fabs(p->fwhm()), p->iwidth());    
             ftk->exec(p->xname + " = guess " + p->type_name + " [" 
                              + S(ctr-plusmin) + ":" + S(ctr+plusmin) + "]"
+                             + frame->get_global_parameters()
                              + frame->get_in_datasets());
         }
     }
@@ -1071,6 +1072,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             fp x2 = xs.val(event.GetX());
             ftk->exec("guess " + frame->get_peak_type() 
                           + " [" + S(min(x1,x2)) + " : " + S(max(x1,x2)) + "]"
+                          + frame->get_global_parameters()
                           + frame->get_in_datasets());
         }
         vert_line_following_cursor(mat_stop);
@@ -1096,6 +1098,9 @@ void MainPlot::add_peak_from_draft(int X, int Y)
         fp area = height * fwhm;
         args = "height=~" + S(height) + ", center=~" + S(center) 
                  + ", fwhm=~" + S(fwhm) + ", area=~" + S(area);
+        string global = frame->get_global_parameters();
+        if (!global.empty())
+            args += "," + global;
     }
     string tail = "F += " + frame->get_peak_type() + "(" + args + ")";
     string cmd;

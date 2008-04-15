@@ -103,6 +103,9 @@ public:
     std::string get_param_varname(std::string const& param) const
                                 { return get_var_name(get_param_nr(param)); }
     fp get_param_value(std::string const& param) const;
+    /// similar to get_param_value(), but doesn't throw exceptions and doesn't
+    /// search for pseudo-parameters
+    bool get_param_value_safe(std::string const& param, fp &value) const;
     fp numarea(fp x1, fp x2, int nsteps) const;
     fp find_x_with_value(fp x1, fp x2, fp val, int max_iter=1000) const;
     fp find_extremum(fp x1, fp x2, int max_iter=1000) const;

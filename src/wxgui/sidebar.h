@@ -43,6 +43,10 @@ public:
     void OnFuncButtonEdit (wxCommandEvent& event);
     void OnFuncButtonChType (wxCommandEvent& event);
     void OnFuncButtonCol (wxCommandEvent& event);
+    void OnFuncButtonHwhm (wxCommandEvent& event) 
+                            { make_same_func_par("hwhm", event.IsChecked()); }
+    void OnFuncButtonShape (wxCommandEvent& event)
+                            { make_same_func_par("shape", event.IsChecked()); }
     void OnVarButtonNew (wxCommandEvent& event);
     void OnVarButtonDel (wxCommandEvent&) { delete_selected_items(); }
     void OnVarButtonEdit (wxCommandEvent& event);
@@ -108,6 +112,7 @@ private:
     void on_changing_frc_value(FancyRealCtrl const* frc);
     void on_changed_frc_value(FancyRealCtrl const* frc);
     void on_toggled_frc_lock(FancyRealCtrl const* frc);
+    void make_same_func_par(std::string const& p, bool checked);
 
     DECLARE_EVENT_TABLE()
 };

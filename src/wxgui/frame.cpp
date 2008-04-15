@@ -1025,7 +1025,8 @@ void FFrame::OnDefinitionMgr(wxCommandEvent&)
 
 void FFrame::OnSGuess (wxCommandEvent&)
 {
-    ftk->exec("guess " + frame->get_peak_type() + get_in_datasets());
+    ftk->exec("guess " + frame->get_peak_type() + get_global_parameters()
+              + get_in_datasets());
 }
 
 void FFrame::OnSPFInfo (wxCommandEvent&)
@@ -1825,6 +1826,24 @@ string FFrame::get_in_datasets()
         return " in @" + join_vector(sel, ", @");
 }
 
+string FFrame::get_global_parameters()
+{
+    string s;
+
+    int nh = ftk->find_variable_nr("_hwhm");
+    if (nh != -1)
+        s += " hwhm=$_hwhm";
+
+    int ns = ftk->find_variable_nr("_shape");
+    if (ns != -1) {
+        if (!s.empty())
+            s += ",";
+        s += " shape=$_shape";
+    }
+
+    return s;
+}
+
 vector<DataWithSum*> FFrame::get_selected_ds()
 {
     vector<int> sel = get_selected_ds_indices();
@@ -2020,8 +2039,7 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
             ftk->exec("fit undo"); 
             break; 
         case ID_ft_s_aa: 
-            ftk->exec("guess " + frame->get_peak_type() 
-                                                 + frame->get_in_datasets());
+            frame->OnSGuess(dummy_cmd_event);
             break; 
         default: 
             assert(0);

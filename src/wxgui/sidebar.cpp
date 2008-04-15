@@ -13,6 +13,7 @@
 #include <wx/wx.h>
 #endif
 #include <wx/imaglist.h>
+#include <wx/tglbtn.h>
 
 #include "sidebar.h"
 #include "fancyrc.h"
@@ -65,6 +66,8 @@ enum {
     ID_FP_EDIT                 ,
     ID_FP_CHTYPE               ,
     ID_FP_COL                  ,
+    ID_FP_HWHM                 ,
+    ID_FP_SHAPE                ,
     ID_VP_LIST                 ,
     ID_VP_NEW                  ,
     ID_VP_DEL                  ,
@@ -82,6 +85,19 @@ void add_bitmap_button(wxWindow* parent, wxWindowID id, const char** xpm,
     btn->SetToolTip(tip);
     sizer->Add(btn);
 }
+
+// wxToggleBitmapButton was added in 2.9. We use wxToggleButton instead
+void add_toggle_bitmap_button(wxWindow* parent, wxWindowID id, 
+                              wxString const& label,
+                              wxString const& tip, wxSizer* sizer)
+{
+    wxToggleButton *btn = new wxToggleButton(parent, id, label, 
+                                             wxDefaultPosition, wxDefaultSize,
+                                             wxBU_EXACTFIT);
+    btn->SetToolTip(tip);
+    sizer->Add(btn, wxSizerFlags().Expand());
+}
+
 
 BEGIN_EVENT_TABLE(SideBar, ProportionalSplitter)
     EVT_BUTTON (ID_DP_NEW, SideBar::OnDataButtonNew)
@@ -104,6 +120,8 @@ BEGIN_EVENT_TABLE(SideBar, ProportionalSplitter)
     EVT_BUTTON (ID_FP_EDIT, SideBar::OnFuncButtonEdit)
     EVT_BUTTON (ID_FP_CHTYPE, SideBar::OnFuncButtonChType)
     EVT_BUTTON (ID_FP_COL, SideBar::OnFuncButtonCol)
+    EVT_TOGGLEBUTTON (ID_FP_HWHM, SideBar::OnFuncButtonHwhm)
+    EVT_TOGGLEBUTTON (ID_FP_SHAPE, SideBar::OnFuncButtonShape)
     EVT_LIST_ITEM_FOCUSED(ID_FP_LIST, SideBar::OnFuncFocusChanged)
     EVT_LIST_ITEM_SELECTED(ID_FP_LIST, SideBar::OnFuncSelectionChanged)
     EVT_LIST_ITEM_DESELECTED(ID_FP_LIST, SideBar::OnFuncSelectionChanged)
@@ -217,16 +235,22 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     f->list->set_side_bar(this);
     func_sizer->Add(f, 1, wxEXPAND|wxALL, 1);
     wxBoxSizer *func_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
+    add_toggle_bitmap_button(func_page, ID_FP_HWHM, wxT("=W"), 
+                             wxT("same HWHM for all functions"), 
+                             func_buttons_sizer);
+    add_toggle_bitmap_button(func_page, ID_FP_SHAPE, wxT("=S"), 
+                             wxT("same shape for all functions"), 
+                             func_buttons_sizer);
     add_bitmap_button(func_page, ID_FP_NEW, add_xpm, 
                       wxT("new function"), func_buttons_sizer);
-    add_bitmap_button(func_page, ID_FP_DEL, close_xpm, 
-                      wxT("delete"), func_buttons_sizer);
     add_bitmap_button(func_page, ID_FP_EDIT, editf_xpm, 
                       wxT("edit function"), func_buttons_sizer);
     //add_bitmap_button(func_page, ID_FP_CHTYPE, convert_xpm, 
     //                  wxT("change type of function"), func_buttons_sizer);
     add_bitmap_button(func_page, ID_FP_COL, colorsel_xpm, 
                       wxT("change color"), func_buttons_sizer);
+    add_bitmap_button(func_page, ID_FP_DEL, close_xpm, 
+                      wxT("delete"), func_buttons_sizer);
     func_sizer->Add(func_buttons_sizer, 0, wxEXPAND);
     func_page->SetSizerAndFit(func_sizer);
     nb->AddPage(func_page, wxT("functions"));
@@ -780,6 +804,17 @@ void SideBar::update_func_buttons()
     //func_page->FindWindow(ID_FP_CHTYPE)->Enable(sel_f > 0);
     func_page->FindWindow(ID_FP_COL)->Enable(sel_f > 0);
 
+    bool has_hwhm = false, has_shape = false;
+    for (vector<Function*>::const_iterator i = ftk->get_functions().begin();
+                                         i != ftk->get_functions().end(); ++i) {
+        vector<string> const& t = (*i)->type_var_names;
+        if (find(t.begin(), t.end(), "hwhm") != t.end())
+            has_hwhm = true;
+        if (find(t.begin(), t.end(), "shape") != t.end())
+            has_shape = true;
+    }
+    func_page->FindWindow(ID_FP_HWHM)->Enable(has_hwhm);
+    func_page->FindWindow(ID_FP_SHAPE)->Enable(has_shape);
 }
 
 void SideBar::update_var_buttons()
@@ -1085,6 +1120,45 @@ void SideBar::OnFuncFocusChanged(wxListEvent&)
 void SideBar::OnVarFocusChanged(wxListEvent&)
 {
     update_var_inf();
+}
+
+void SideBar::make_same_func_par(string const& p, bool checked)
+{
+    string varname = "_" + p;
+    string cmd;
+    if (checked) {
+
+        // find value
+        fp value = 0;
+        bool found = false;
+        if (active_function != -1) {
+            Function const* f = ftk->get_function(active_function);
+            found = f->get_param_value_safe(p, value);
+        }
+        vector<Function*> const& ff = ftk->get_functions();
+        for (vector<Function*>::const_iterator i = ff.begin(); 
+                                                 i != ff.end() && !found; ++i)
+            found = (*i)->get_param_value_safe(p, value);
+        if (!found)
+            return;
+
+        cmd += "$" + varname + " = ~" + S(value);
+        for (int i = 0; i < ftk->get_ds_count(); ++i)
+            if (ftk->get_sum(i)->get_ff_names().size() > 0)
+                cmd += "; @" + S(i) + ".F." + p + " = $" + varname;
+    }
+    else {
+        int nr = ftk->find_variable_nr(varname);
+        if (nr == -1)
+            return;
+        fp value = ftk->get_variable(nr)->get_value();
+        for (int i = 0; i < ftk->get_ds_count(); ++i)
+            if (ftk->get_sum(i)->get_ff_names().size() > 0)
+                cmd += "@" + S(i) + ".F." + p + " = " + S(value) + "; ";
+        // the variable was auto-deleted.
+        //cmd += "delete " + varname;
+    }
+    ftk->exec(cmd);
 }
 
 
