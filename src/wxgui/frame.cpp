@@ -696,7 +696,7 @@ void FFrame::set_menubar()
                                 wxT("Use mouse for subtracting background"));
     gui_menu_mode->AppendRadioItem (ID_G_M_ADD, wxT("&Peak-Add\tCtrl-K"), 
                                     wxT("Use mouse for adding new peaks"));
-    gui_menu_mode->AppendSeparator();
+    gui_menu->Append(ID_G_MODE, wxT("&Mode"), gui_menu_mode);
     wxMenu* baseline_menu = new wxMenu;
     baseline_menu->Append (ID_G_M_BG_STRIP, wxT("&Strip baseline"), 
                            wxT("Subtract selected baseline from data"));
@@ -712,10 +712,9 @@ void FFrame::set_menubar()
                                    wxT("&Spline interpolation"), 
                                    wxT("Cubic spline interpolation of points"));
     baseline_menu->Check(ID_G_M_BG_SPLINE, true);
-    gui_menu_mode->Append(ID_G_M_BG_SUB, wxT("Baseline handling"), 
+    gui_menu->Append(ID_G_M_BG_SUB, wxT("Baseline handling"), 
                           baseline_menu);
-    gui_menu_mode->Enable(ID_G_M_BG_SUB, false);
-    gui_menu->Append(ID_G_MODE, wxT("&Mode"), gui_menu_mode);
+    gui_menu->Enable(ID_G_M_BG_SUB, false);
     gui_menu->AppendSeparator();
 
     wxMenu* gui_menu_show = new wxMenu;
