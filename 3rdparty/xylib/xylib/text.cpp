@@ -88,7 +88,7 @@ void TextDataSet::load_data(std::istream &f)
             cols[i]->add_val(row[i]);
     }
 
-    format_assert (cols.size() >= 2 && cols[0]->get_point_count() >= 2,
+    format_assert (cols.size() >= 1 && cols[0]->get_point_count() >= 2,
                    "data not found in file.");
 
     Block* blk = new Block;
