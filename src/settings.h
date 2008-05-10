@@ -44,7 +44,7 @@ public:
     char get_e(std::string const& k) const
                   { assert(epar.count(k)); return epar.find(k)->second.v; }
     /// get value of string option
-    std::string get_s(std::string const& k) const
+    std::string const& get_s(std::string const& k) const
                   { assert(spar.count(k)); return spar.find(k)->second; }
 
     /// set value of option (string v is parsed according to option type)
@@ -66,6 +66,15 @@ public:
     /// for faster access
     fp get_cut_level() const { return cut_function_level; }
     void do_srand();
+
+    std::string format_double(fp d) 
+    { 
+        char buf[32];
+        // snprintf is not in C89, but is supported by major compilers (?)
+        const char *format = get_s("info-numeric-format").c_str();
+        snprintf(buf, 31, format, d);
+        return buf; 
+    }
 
 private:
     Ftk const* F;

@@ -4,5 +4,6 @@
 * implement GSAS format (see gsas.cpp for comments) 
 * PANalytical XRDML
 * consider adding JCAMP format (Standard NMR Data Format)
-* support for gzipped and bzip2-ed files
+* allow compressed (.gz, .bz2) data files (only in standalone version,
+  if Boost.Iostreams headers and libbzip2 and/or zlib are present)
 

@@ -22,7 +22,7 @@ class View;
 
 enum MouseActEnum  { mat_start, mat_stop, mat_move, mat_redraw };
 
-void draw_line_with_style(wxDC& dc, int style, 
+void draw_line_with_style(wxDC& dc, wxPenStyle style, 
                           wxCoord X1, wxCoord Y1, wxCoord X2, wxCoord Y2);
 
 
@@ -115,7 +115,7 @@ protected:
     int vlfc_prev_x, vlfc_prev_x0; //vertical lines following cursor
     std::vector<wxPoint> special_points; //used to mark positions of peak tops
 
-    void draw_dashed_vert_line(int X, int style=wxSHORT_DASH);
+    void draw_dashed_vert_line(int X, wxPenStyle style=wxPENSTYLE_SHORT_DASH);
     bool vert_line_following_cursor(MouseActEnum ma, int x=0, int x0=INT_MIN);
     void draw_xtics (wxDC& dc, View const& v, bool set_pen=true);
     void draw_ytics (wxDC& dc, View const &v, bool set_pen=true);

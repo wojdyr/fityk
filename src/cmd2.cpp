@@ -492,8 +492,10 @@ void do_print_data_expr(char const*, char const*)
         return;
     }
 
-    if (vds.empty() && !is_data_dependent_expression(t2)) //no data
-        s = S(get_transform_expression_value(t2, 0));
+    if (vds.empty() && !is_data_dependent_expression(t2)) { //no data
+        fp d = get_transform_expression_value(t2, 0);
+        s = AL->get_settings()->format_double(d);
+    }
     else {
         vector<DataWithSum*> v = get_datasets_from_indata();
         if (v.size() == 1)
@@ -510,7 +512,7 @@ void do_print_data_expr(char const*, char const*)
                 s += "in @" + S(m[*i]); 
                 if (with_plus)
                     s += " " + (*i)->get_data()->get_title();
-                s += ": " + S(k);
+                s += ": " + AL->get_settings()->format_double(k);
             }
         }
     }

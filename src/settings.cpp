@@ -55,6 +55,10 @@ Settings::Settings(Ftk const* F_)
     sum_export_style_enum [0] = "normal";
     sum_export_style_enum [1] = "gnuplot";
     insert_enum("formula-export-style", sum_export_style_enum, 0);
+
+    // undocumented (testing)
+    spar["info-numeric-format"] = "%g";
+
     // Function
     fpar["cut-function-level"] = cut_function_level = 0.;
 
@@ -118,7 +122,7 @@ string Settings::getp(string const& k) const
         return ens.e.find(ens.v)->second;
     }
     else if (spar.count(k)) {
-        return "\"" +  spar.find(k)->second + "\"";
+        return spar.find(k)->second;
     }
     else 
         throw ExecuteError("Unknown option: " +  k);

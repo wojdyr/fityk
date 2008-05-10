@@ -826,6 +826,12 @@ wxPanel* PowderBook::PreparePeakPanel()
     wxPanel *panel = new wxPanel(this); 
     wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 
+    /*  Npr=0, 1, 5 - Pseudo-Voigt,  shape - see (3.21)
+     *  Npr=4 - 3 * Pseudo-Voigt
+     *  Npr=2, 3, 6 - Pearson VII - shape - see (3.23)
+     *  FWHM - see (3.20)
+     */
+
     panel->SetSizerAndFit(sizer);
 
     return panel;

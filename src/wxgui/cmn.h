@@ -185,4 +185,11 @@ inline void close_it(wxDialog* dlg, int id=wxID_CANCEL)
 void updateControlWithItems(wxControlWithItems *cwi, 
                             std::vector<std::string> const& v);
 
+# if !wxCHECK_VERSION(2, 9, 0)
+#define wxPENSTYLE_SHORT_DASH wxSHORT_DASH
+#define wxPENSTYLE_DOT wxDOT
+#define wxPENSTYLE_DOT_DASH wxDOT_DASH
+typedef int wxPenStyle;
+#endif
+
 #endif 

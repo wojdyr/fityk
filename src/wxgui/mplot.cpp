@@ -866,8 +866,8 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
         if (r) {
             limit1 = xs.px(x1);
             limit2 = xs.px(x2);
-            draw_dashed_vert_line(limit1, wxDOT_DASH);
-            draw_dashed_vert_line(limit2, wxDOT_DASH);
+            draw_dashed_vert_line(limit1, wxPENSTYLE_DOT_DASH);
+            draw_dashed_vert_line(limit2, wxPENSTYLE_DOT_DASH);
         }
         else 
             limit1 = limit2 = INT_MIN;
@@ -875,8 +875,8 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
     else { //was over peak, but now is not 
         frame->set_status_text("");
         set_mouse_mode(basic_mode);
-        draw_dashed_vert_line(limit1, wxDOT_DASH);
-        draw_dashed_vert_line(limit2, wxDOT_DASH);
+        draw_dashed_vert_line(limit1, wxPENSTYLE_DOT_DASH);
+        draw_dashed_vert_line(limit2, wxPENSTYLE_DOT_DASH);
         limit1 = limit2 = INT_MIN;
     }
 }

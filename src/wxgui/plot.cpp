@@ -57,12 +57,12 @@ void FPlot::set_font(wxDC &dc, wxFont const& font)
         dc.SetFont(font); 
 }
 
-void FPlot::draw_dashed_vert_line(int X, int style)
+void FPlot::draw_dashed_vert_line(int X, wxPenStyle style)
 {
     if (X != INT_MIN) {
         wxClientDC dc(this);
         dc.SetLogicalFunction (wxINVERT);
-        if (style == wxSHORT_DASH)
+        if (style == wxPENSTYLE_SHORT_DASH)
             dc.SetPen(*wxBLACK_DASHED_PEN);
         else {
             wxPen pen = *wxBLACK_DASHED_PEN;
@@ -107,11 +107,11 @@ bool FPlot::vert_line_following_cursor (MouseActEnum ma, int x, int x0)
     return true;
 }
 
-void draw_line_with_style(wxDC& dc, int style, 
+void draw_line_with_style(wxDC& dc, wxPenStyle style, 
                           wxCoord X1, wxCoord Y1, wxCoord X2, wxCoord Y2)
 {
     wxPen pen = dc.GetPen();
-    int old_style = pen.GetStyle();
+    wxPenStyle old_style = pen.GetStyle();
     pen.SetStyle(style);
     dc.SetPen(pen);
     dc.DrawLine (X1, Y1, X2, Y2);
@@ -152,8 +152,8 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
         dc.GetTextExtent (label, &w, 0);
         dc.DrawText (label, X - w/2, Y + 1);
         if (x_grid) {
-            draw_line_with_style(dc, wxDOT, X, 0, X, Y);
-            draw_line_with_style(dc, wxDOT, X, Y+1+h, X, pixel_height);
+            draw_line_with_style(dc, wxPENSTYLE_DOT, X, 0, X, Y);
+            draw_line_with_style(dc, wxPENSTYLE_DOT, X, Y+1+h, X, pixel_height);
         }
     }
     //draw minor tics
@@ -198,9 +198,9 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
         dc.GetTextExtent (label, &w, &h);
         dc.DrawText (label, X + y_tic_size + 1, Y - h/2);
         if (y_grid) {
-            draw_line_with_style(dc, wxDOT, 0,Y, X,Y);
-            draw_line_with_style(dc, wxDOT, X + y_tic_size + 1 + w + 1, Y,
-                                            pixel_width, Y);
+            draw_line_with_style(dc, wxPENSTYLE_DOT, 0,Y, X,Y);
+            draw_line_with_style(dc, wxPENSTYLE_DOT, X+y_tic_size+1+w+1, Y,
+                                                     pixel_width, Y);
         }
     }
     //draw minor tics

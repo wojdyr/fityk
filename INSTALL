@@ -1,6 +1,7 @@
 
-REQUIREMENTS:
+Requirements
 ============
+
 both CLI and GUI
   modern c++ compiler (eg. GCC)
 only for CLI (command line interface, cfityk): 
@@ -11,44 +12,46 @@ only for GUI (graphical user interface, fityk):
 
 Compilation of some files with "g++ -O2" can use up to 300-400 MB RAM.
 
-+-- HOW TO UNINSTALL------------------------------------------------------+
-| Uninstallation of the program installed from source is easy:            |
-| either do "make uninstall" or manually find and remove all files, e.g.: |
-| find /usr/local/ -name \*fityk\* -exec rm -r \{} \;                     |
-+-------------------------------------------------------------------------+
 
+Installation
+============
 
-PORTABILITY:
-===========
-		 Linux (and probably other unices): 
-		 ----------------------------------
+Linux (and other unices)  
+------------------------ 
 
-The only wxWidgets port I test on Linux is wxGTK. 
-wxMotif and wxX11 are _not_ supported.
-Only GCC compiler, versions 3.4 and newer are supported.
-(I usually test compilation with GCC versions, that are included
-in the latest stable Ubuntu distro)
+Recommended prerequisites: wxGTK (port of wxWidgets) and GCC (>= 3.4) compiler.
 
-If you have wxWidgets (wxGTK) installed from package for your Linux distro,
-also "devel" package should be installed (it has name like libwxgtk2.8-dev
-or wxGTK-devel).
+If you have wxGTK installed from package for your Linux distro, also "devel" 
+package (e.g. libwxgtk2.8-dev or wxGTK-devel) should be installed.
 
-		                  MS Windows 
-		-----------------------------------------------
+$ ./configure (optionally followed by options, see: Configuration Options)
+$ make
+# make install
+
+You may also need to add the directory where libraries were installed (usually
+/usr/local/lib) to the file /etc/ld.so.conf and run ldconfig.
+
+Uninstallation of the program installed from source is also easy:
+either do "make uninstall" or manually find and remove all files, e.g.: 
+find /usr/local/ -name \*fityk\* -exec rm -r \{} \;
+
+MS Windows 
+----------                     
 
 MS Windows executable is compiled with MinGW. You may figure out more details
 from `release' file.
 Windows installer is prepared with Inno Setup (configuration in fityk.iss).
 
+Mac OS X
+--------            
 
-				 Mac OS 
-		     --------------------------------
 I don't have Mac, but fityk was reported to run under Mac OS X.
 See fityk-users mailing list for details.
 
 
-CONFIGURATION OPTIONS:
-======================
+Configuration Options
+=====================
+
 For debugging:
 ./configure CXXFLAGS="-g -O0 -fno-inline -W -Wall" --enable-static
 
@@ -61,8 +64,9 @@ To build python bindings, use --enable-python option.
         
 
 
-SUBVERSION:
-===========
+Subversion
+==========
+
 To compile source code from Subversion, automake, autoconf and libtool are 
 needed.  Run ./autogen.sh instead of ./configure. See the file autogen.sh 
 for details.

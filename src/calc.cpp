@@ -50,37 +50,43 @@ void add_calc_bytecode(const OpTree* tree, const vector<int> &vmvar_idx,
 
 /// debuging utility
 #define OP_(x) \
-    if (op == OP_##x) return #x;
+    case OP_##x: return #x;
 string ast_op(int op)
 {
-    OP_(CONSTANT)
-    OP_(VARIABLE)  
-    OP_(X)
-    OP_(PUT_VAL)
-    OP_(PUT_DERIV)
-    OP_(NEG)
-    OP_(EXP)
-    OP_(SIN)
-    OP_(COS)
-    OP_(ATAN)
-    OP_(TAN)
-    OP_(ASIN)
-    OP_(ACOS)
-    OP_(LOG10)
-    OP_(LN)
-    OP_(SQRT)
-    OP_(LGAMMA)
-    OP_(DIGAMMA)
-    OP_(VOIGT)
-    OP_(DVOIGT_DX)
-    OP_(DVOIGT_DY)
-    OP_(POW)
-    OP_(MUL)
-    OP_(DIV)
-    OP_(ADD)
-    OP_(SUB)
-    else
-        return S(op);
+    switch (op) {
+        OP_(CONSTANT)
+        OP_(VARIABLE)  
+        OP_(X)
+        OP_(PUT_VAL)
+        OP_(PUT_DERIV)
+        OP_(NEG)
+        OP_(EXP)
+        OP_(ERFC),
+        OP_(ERF),
+        OP_(SINH),       
+        OP_(COSH),       
+        OP_(TANH),       
+        OP_(SIN)
+        OP_(COS)
+        OP_(ATAN)
+        OP_(TAN)
+        OP_(ASIN)
+        OP_(ACOS)
+        OP_(LOG10)
+        OP_(LN)
+        OP_(SQRT)
+        OP_(LGAMMA)
+        OP_(DIGAMMA)
+        OP_(VOIGT)
+        OP_(DVOIGT_DX)
+        OP_(DVOIGT_DY)
+        OP_(POW)
+        OP_(MUL)
+        OP_(DIV)
+        OP_(ADD)
+        OP_(SUB)
+        default: return S(op);
+    }
 };
 
 string vmcode2str(vector<int> const& code, vector<fp> const& data)

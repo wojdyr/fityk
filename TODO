@@ -10,36 +10,54 @@ Help is needed:
 
 ---------- TODO list and tentative development plan  ----------------
 
-* powder diffraction "add-on" - Pawley fitting 
+* powder diffraction add-on - Pawley fitting 
 
 * minimum wx version will be raised to 2.8
   - wxAboutBox will be used instead of AboutDlg
 
---------------> 0.9
+* add "integrate", "std.dev.=1" and "std.dev.=sqrt" to "Saved transformations".
 
-* [BUG] parsing problems: "a=a" => OK   "a=ab" => Syntax error
+* GUI, Data Editor: 
+          - BUG: revert doesn't work
+          - BUG: save doesn't work
+	  - remove "category"
+	  - empty lines make in "code" make the Apply button disabled
+
+--------------> 0.9.0
+
+* GUI, Fit > Info - a dialog that should contain all the information from
+                    info fit and info+ errors commands
+
+* [BUG] parsing problems: "a=a" => OK (should be error)  "a=ab" => Syntax error
 
 * FFT (forward and backward) data transformation,
   convolution and deconvolution of two datasets
   (implement both using code from Kiss FFT library)
+
+* (GUI) plot horizontal/vertical lines 
+     can be used to show theoretical peak positions in XRD
+     (or to make stress-strain curves in MD with marked simulation restarts)
+     Syntax: 
+             plot line x=42.2 label="foo" in @*
+             plot line y=1000.3 label="foo" in @*
+             plot no lines in @*
+
+* convert manual from DocBook to reStructuredText
+
+--------------> 0.9.1
 
 * GUI: refactor MainPlot - mouse event handling based on subscriptions,
        a clean interface to XOR-drawing 
 
 * GUI: should (and where) windows size & position be stored?
 
-* (GUI) plot horizontal/vertical lines (X/Y | pos=2.34 | 100% | title="50steps")
-     can be used to show theoretical peak positions in XRD
-     (or to make stress-strain curves in MD with marked simulation restarts)
-
 * (GUI) stopping fitting interactively (when user doesn't want to wait longer);
   "stop" bitmap button? in right left corner? 
 
-* convert manual from DocBook to reStructuredText
-
 * data import: possibility to use xylib column/block name as title
 
-* allow gzipped data files and .fit scripts (if build with zlib)
+* xylib: allow compressed (.gz, .bz2) data files (only in standalone version,
+  if Boost.Iostreams headers and libbzip2 and/or zlib are present)
 
 * configure.ac: 
   --enable-samples-install  Install samples as documentation 
@@ -47,6 +65,16 @@ Help is needed:
 
 * magic default parameters: if $default__name is defined: when functions 
   with parameter `name' are "guessed", this parameter is set to $default__name
+
+* GUI: it should be possible to constrain two parameters of two peak 
+     (using mouse and peak-top menu), at least to make them equal.
+
+* A way to define split functions as UDFs.
+  E.g. by adding a switch to CompoundFunction:
+  SplitGaussian(h, c, hwhm1, hwhm2) = if x < c then Gaussian(h,c,hwhm1) else...
+
+* GUI: on "Guess function" toolbar button: if initial values are not known,
+  show a dialog asking for the values.
 
 --------------> 
 
@@ -60,9 +88,14 @@ Help is needed:
 
 * unused variables should not slow down fitting
 
+* add a new function category: sigmoids/steps (now function can be guessed as
+  "peak" and "linear"). (GUI): drawing drafts for the new category.
+
+* (GUI) vertical scaling using mouse on main plot near to left edge of the plot 
+
 ------------------ 
 
-* fitting with box-constrained parameters
+* ?GUI: use wxGraphicsContext for drawing plots with antialiasing
 
 * GUI, enhancements for the script editor: 
        - "info ...> file" marked differently than not redirected info 
@@ -70,8 +103,9 @@ Help is needed:
        - ? search'n'replace button
 
 * user defined functions:
-      - more sophisticated simplifications of expressions and CSE(!)
-      - calculating limits, width, area, etc. for UDF(!)
+      - more sophisticated simplifications of expressions and CSE
+      - calculating limits, width, area, etc. for UDF
+      - ?? optionally use LLVM for faster calculation of user-defined functions
 
 * EMG function: how to calculate it? Now there are some problems with
   this function. There must be smarter way to implement it...
@@ -81,40 +115,26 @@ Help is needed:
 * improve Voigt function (cut-tails, better approx.) 
   eg. http://portal.acm.org/citation.cfm?doid=77626.77629
 
-* info -- more information about error, confidence limits, etc.
-  graphical interface Fit > Info
-
-* GUI: it should be possible to constrain two parameters of two peak 
-     (using mouse), at least to make them equal.
+* ? confidence intervals for data
 
 * GUI: menu Functions:
   Functions > Peak-Find Info -> animation
   Functions > Multidata P-F Info -> window with list of parameters (Xview-like)
 
-* Function: check_parameters_out_of_domain() ?  
-             eg. in Pearson shape > 0.5 , shape < 1e9
-	     called from fitting iteration?
-	     what if parameter is out-of-domain? change? disable function?
-	                                          change and freeze?
-	     set fit-fix-parameters-times = 5
-	    simple-var bounds?
-	    ? $$simple = ~{min2(max2($simple, -1e9), 1e9)}
+* ? box-constrained simple variables 
 
-* GUI: Data Editor - left/right/top/bottom - magic keywords: user would be
+* ?fitting with enforcing valid function's parameters: 
+    eg. in Pearson shape > 0.5 , shape < 1e9
+    what if parameter is out of domain? change? disable function?
+
+* ? cmd/GUI: plot peak-groups: ==> plot (%a+%b+%c)  
+
+* ?GUI: Data Editor - left/right/top/bottom - magic keywords: user would be
        asked to select point/range/rectangle in plot
-
-* cmd/GUI: plot peak-groups: ==> plot (%a+%b+%c)  
-
-* add a new function category: sigmoids/steps (now function can be guessed as
-  "peak" and "linear"). (GUI): drawing drafts for the new category.
 
 * ? automatically freeze peaks in disactivated range
 
-* (GUI) vertical scaling using mouse on main plot near to left edge of the plot 
-
-* automatic background substraction - what are good algorithms?
-
-* more sophisticated algorithms for peak detection
+* ? more sophisticated algorithms for peak detection
 
 * fitting: GA fitting options, 
   a way to "shake" parameters for L-M
@@ -123,33 +143,32 @@ Help is needed:
 	simulated annealing (it can replace LM shake_before option)
 	perhaps also BFGS, conjugate gradients methods
 
-* fitting: it should be separated even more from the rest of the program.
-  Perhaps it fitting functions should be in extern library (COOOL,
-  GAUL, WNLIB, netlib, OOL.sf.net, levmar, GSL and 3rd-party extensions to GSL,
-  scitbx::lbfgs)
-  are there any other such libraries? 
-  I haven't investigated the possibility of using mentioned libs yet. 
-  Links: 
-  http://coool.mines.edu/ 
-  http://gaul.sourceforge.net/, 
-  http://www.willnaylor.com/wnlib.html
-  http://sal.jyu.fi/B/3/index.shtml, http://coin-or.org
-  http://www-unix.mcs.anl.gov/otc/Guide/faq/nonlinear-programming-faq.html 
-  http://www.ics.forth.gr/~lourakis/levmar/
+* fitting: investigate using a library for nonlinear fitting/optimization:
+  I don't know about any library good enough to justify migration.  
+  The list of libraries in this category:
+    COOOL: http://coool.mines.edu/ 
+    GAUL: http://gaul.sourceforge.net/, 
+    WNLIB: http://www.willnaylor.com/wnlib.html
+    GSL and 3rd-party extensions to GSL,
+    netlib: http://www.netlib.org/ 
+    OOL: http://OOL.sf.net, 
+    scitbx::lbfgs http://cctbx.sourceforge.net/
+    http://sal.jyu.fi/B/3/index.shtml, 
+    http://coin-or.org
+    http://www-unix.mcs.anl.gov/otc/Guide/faq/nonlinear-programming-faq.html 
+    levmar: http://www.ics.forth.gr/~lourakis/levmar/
+    OpenOpt: http://scipy.org/scipy/scikits/wiki/OpenOpt
 
 * fitting: robust fit - other error distributions then Gaussian, 
   eg. Lorenzian...; so called 'maximum-likelihood method' -- using Poisson
   error distribution.
 
-* investigate LLVM - can it be used for faster calculation of 
-  user-defined functions?
-
 * [BUG] (GUI) (MS Win) <br> does not work in vertical peak labels 
 
 * ? exporting formulae in MathML (when option formula-export-style == mathml)
 
-* [BUG]: program crashes (MS Win 9x) when data contains NaN (as a result
-  of asin(x) x>1) and "Zoom all" is called.
+* [BUG, won't be fixed]: program crashes on MS Win 9x when data contains NaN 
+  (e.g. as a result of asin(x) x>1) and "Zoom all" is called.
 
 -------  Anticipated upgrades  -----------
 
