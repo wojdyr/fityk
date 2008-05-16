@@ -430,7 +430,7 @@ void DataEditorDlg::OnRevert (wxCommandEvent&)
     for (ndnd_type::const_iterator i = ndnd.begin(); i != ndnd.end(); ++i) {
         if (i != ndnd.begin())
             cmd += "; ";
-        cmd += "@" + S(i->first) + ".revert";
+        cmd += "@" + S(i->first) + "< .";
     }
     ftk->exec(cmd);
     refresh_grid();

@@ -61,11 +61,11 @@ string ast_op(int op)
         OP_(PUT_DERIV)
         OP_(NEG)
         OP_(EXP)
-        OP_(ERFC),
-        OP_(ERF),
-        OP_(SINH),       
-        OP_(COSH),       
-        OP_(TANH),       
+        OP_(ERFC)
+        OP_(ERF)
+        OP_(SINH)       
+        OP_(COSH)       
+        OP_(TANH)       
         OP_(SIN)
         OP_(COS)
         OP_(ATAN)

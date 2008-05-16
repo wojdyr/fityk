@@ -18,7 +18,6 @@ Help is needed:
 * add "integrate", "std.dev.=1" and "std.dev.=sqrt" to "Saved transformations".
 
 * GUI, Data Editor: 
-          - BUG: revert doesn't work
           - BUG: save doesn't work
 	  - remove "category"
 	  - empty lines make in "code" make the Apply button disabled
@@ -43,6 +42,10 @@ Help is needed:
              plot no lines in @*
 
 * convert manual from DocBook to reStructuredText
+
+* reading sessions saved with dump command is very slow if datasets contain
+  a large number of points. Optimize it: when reading a line from script, 
+  check first, using sscanf(), if it is a data point.
 
 --------------> 0.9.1
 
@@ -76,6 +79,13 @@ Help is needed:
 * GUI: on "Guess function" toolbar button: if initial values are not known,
   show a dialog asking for the values.
 
+* add a new function category: sigmoids/steps (now function can be guessed as
+  "peak" and "linear"). (GUI): drawing drafts for the new category.
+
+* "auto-freeze" option in settings, that automatically locks/unlocks all 
+  parameters of a peak when the data range containing the center of this peak 
+  is disactivated/activated
+
 --------------> 
 
 * add alpha channel to toolbar icons
@@ -87,9 +97,6 @@ Help is needed:
   - ? changing data point size and line separately for each dataset,
 
 * unused variables should not slow down fitting
-
-* add a new function category: sigmoids/steps (now function can be guessed as
-  "peak" and "linear"). (GUI): drawing drafts for the new category.
 
 * (GUI) vertical scaling using mouse on main plot near to left edge of the plot 
 
@@ -131,8 +138,6 @@ Help is needed:
 
 * ?GUI: Data Editor - left/right/top/bottom - magic keywords: user would be
        asked to select point/range/rectangle in plot
-
-* ? automatically freeze peaks in disactivated range
 
 * ? more sophisticated algorithms for peak detection
 
