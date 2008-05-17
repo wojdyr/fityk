@@ -617,7 +617,7 @@ void FFrame::set_menubar()
         data_menu_recent->Append(ID_D_RECENT + rf_counter, 
                                  i->GetFullName(), i->GetFullPath());
     data_menu->Append(ID_D_RECENT, wxT("&Recent Files"), data_menu_recent); 
-    append_mi(data_menu, ID_D_REVERT, GET_BMP(revert16), wxT("&Revert"), 
+    append_mi(data_menu, ID_D_REVERT, GET_BMP(revert16), wxT("Re&vert"), 
               wxT("Reload data from file(s)")); 
     data_menu->AppendSeparator();
 

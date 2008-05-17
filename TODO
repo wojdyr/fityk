@@ -17,10 +17,6 @@ Help is needed:
 
 * add "integrate", "std.dev.=1" and "std.dev.=sqrt" to "Saved transformations".
 
-* GUI, Data Editor: 
-          - BUG: save doesn't work
-	  - remove "category"
-	  - empty lines make in "code" make the Apply button disabled
 
 --------------> 0.9.0
 
@@ -188,7 +184,14 @@ Help is needed:
       * Data > Export will be done in one step
       * "Export formula" dialog will have formula-export-style option
   - button '(un)lock' on variables pane (wxToggleBitmapButton)
-  - use wxDataViewCtrl instead of wxGrid in  data editor
+  - Redesign Data Editor:  
+       - use wxDataViewCtrl for spreadsheet.
+       - the spreadsheet should be a separate dialog, and it should also 
+	 be available in "Transformation Mgr" on clicking "Data>>" button
+       - use wxDataViewCtrl instead of wxListCtrl
+       - no extra dialog for adding transformation
+       - remove "description" field, use comments in "code" instead
+   
   - use wxDataViewCtrl for the lists at the sidebar,
     refactor ListWithColors::populate(), add sorting by clicking on column 
     header (use case: sort functions by centers)

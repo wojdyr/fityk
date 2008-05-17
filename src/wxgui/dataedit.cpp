@@ -26,10 +26,9 @@ using namespace std;
 
 enum {
     ID_DE_GRID              = 26200,
-    ID_DE_RESET                    ,
     ID_DE_CODE                     ,
     ID_DE_EXAMPLES                 ,
-    ID_DE_REZOOM                   ,
+    ID_DE_RESET                 
 };
 
 
@@ -166,30 +165,23 @@ DataTransform::DataTransform(string line)
      : in_menu(false) 
 {
     replace_all(line, ";", "\n");
-    string::size_type pos=0;
-    for (int cnt = 0; cnt <= 4; ++cnt) {
-        string::size_type new_pos = line.find('|', pos);
-        string sub = string(line, pos, new_pos-pos);
-        if (cnt == 0) 
-            name = sub;
-        else if (cnt == 1)
-            category = sub;
-        else if (cnt == 2)
-            description = sub;
-        else if (cnt == 3)
-            code = sub;
-        else if (cnt == 4)
-            in_menu = (sub == "Y");
-        if (new_pos == string::npos)
-            break;
-        pos = new_pos + 1;
-    }
+    vector<string> tokens = split_string(line, '|');
+    if (tokens.size() < 4)
+        return;
+    name = tokens[0];
+    //category = tokens[1]; // category field has been removed
+    description = tokens[2];
+    code = tokens[3];
+    in_menu = (tokens[4] == "Y");
 }
 
 string DataTransform::as_fileline() const
 {
-    string s = name + "|" + category + "|" + description + "|" + code 
+    // the second field is reserved. It used to be "category", but since 
+    // it was rather useless, i removed it
+    string s = name + "||" + description + "|" + code 
                + "|" + (in_menu ? "Y" : "N");
+    //TODO replace_all(s, "|", "{pipe}")
     replace_all(s, "\n", ";");
     return s;
 }
@@ -205,7 +197,7 @@ BEGIN_EVENT_TABLE(DataEditorDlg, wxDialog)
     EVT_BUTTON      (wxID_SAVE,             DataEditorDlg::OnSave)
     EVT_BUTTON      (ID_DE_RESET,           DataEditorDlg::OnReset)
     EVT_BUTTON      (wxID_APPLY,            DataEditorDlg::OnApply)
-    EVT_BUTTON      (ID_DE_REZOOM,          DataEditorDlg::OnReZoom)
+    EVT_BUTTON      (wxID_ZOOM_FIT,         DataEditorDlg::OnReZoom)
     EVT_BUTTON      (wxID_HELP,             DataEditorDlg::OnHelp)
     EVT_BUTTON      (wxID_CLOSE,            DataEditorDlg::OnClose)
     EVT_TEXT        (ID_DE_CODE,            DataEditorDlg::OnCodeText)
@@ -257,15 +249,15 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id,
     wxBoxSizer *trans_button_sizer = new wxBoxSizer(wxVERTICAL);
     add_btn = new wxButton(right_panel, wxID_ADD, wxT("Add"));
     trans_button_sizer->Add(add_btn, 0, wxALL, 5);
-    remove_btn = new wxButton(right_panel, wxID_REMOVE, wxT("Remove"));
+    remove_btn = new wxButton(right_panel, wxID_REMOVE);
     trans_button_sizer->Add(remove_btn, 0, wxALL, 5);
-    up_btn = new wxButton(right_panel, wxID_UP, wxT("&Up"));
+    up_btn = new wxButton(right_panel, wxID_UP);
     trans_button_sizer->Add(up_btn, 0, wxALL, 5);
-    down_btn = new wxButton(right_panel, wxID_DOWN, wxT("&Down"));
+    down_btn = new wxButton(right_panel, wxID_DOWN);
     trans_button_sizer->Add(down_btn, 0, wxALL, 5);
-    save_btn = new wxButton(right_panel, wxID_SAVE, wxT("&Save"));
+    save_btn = new wxButton(right_panel, wxID_SAVE);
     trans_button_sizer->Add(save_btn, 0, wxALL, 5);
-    reset_btn = new wxButton(right_panel, ID_DE_RESET, wxT("&Reset"));
+    reset_btn = new wxButton(right_panel, ID_DE_RESET, "Reset");
     trans_button_sizer->Add(reset_btn, 0, wxALL, 5);
     trans_sizer->Add(trans_button_sizer, 0);
     right_sizer->Add(trans_sizer, 0, wxEXPAND);
@@ -279,13 +271,13 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id,
     right_sizer->Add(code, 1, wxEXPAND|wxALL, 5);
     wxBoxSizer *apply_help_sizer = new wxBoxSizer(wxHORIZONTAL);
     apply_help_sizer->Add(1, 1, 1);
-    apply_btn = new wxButton(right_panel, wxID_APPLY, wxT("&Apply"));
+    apply_btn = new wxButton(right_panel, wxID_APPLY);
     apply_help_sizer->Add(apply_btn, 0, wxALIGN_CENTER|wxALL, 5);
     apply_help_sizer->Add(1, 1, 1);
-    rezoom_btn = new wxButton(right_panel, ID_DE_REZOOM, wxT("&Fit Zoom"));
+    rezoom_btn = new wxButton(right_panel, wxID_ZOOM_FIT);
     apply_help_sizer->Add(rezoom_btn, 0, wxALIGN_CENTER|wxALL, 5);
     apply_help_sizer->Add(1, 1, 1);
-    help_btn = new wxButton(right_panel, wxID_HELP, wxT("&Help"));
+    help_btn = new wxButton(right_panel, wxID_HELP);
     apply_help_sizer->Add(help_btn, 0, wxALIGN_RIGHT|wxALL, 5);
     right_sizer->Add(apply_help_sizer, 0, wxEXPAND);
     right_panel->SetSizerAndFit(right_sizer);
@@ -322,10 +314,10 @@ void DataEditorDlg::read_transforms(bool reset)
 {
     transforms.clear();
     // this item should be always present
-    transforms.push_back(DataTransform("custom", "builtin", 
+    transforms.push_back(DataTransform("custom", 
                                         "Custom transformation.\n"
                                         "You can type eg. Y=log10(y).\n"
-                                        "See Help for details.",
+                                        "See Help for the syntax details.",
                                         "", false));
     //TODO add last transformation item
     wxString transform_path = get_user_conffile("transform");
@@ -448,8 +440,7 @@ void DataEditorDlg::OnSaveAs (wxCommandEvent&)
 
 void DataEditorDlg::OnAdd (wxCommandEvent&)
 {
-    DataTransform new_transform("new", "useful",
-                                 "", wx2s(code->GetValue()));
+    DataTransform new_transform("new", "", wx2s(code->GetValue()));
     TransEditorDlg dlg(this, -1, new_transform, transforms, -1);
     if (dlg.ShowModal() == wxID_OK) {
         int pos = get_selected_item() + 1;
@@ -465,7 +456,7 @@ void DataEditorDlg::OnAdd (wxCommandEvent&)
 void DataEditorDlg::OnRemove (wxCommandEvent&)
 {
     int item = get_selected_item();
-    if (item == -1 || transforms[item].category == "builtin")
+    if (item == -1)
         return;
     transforms.erase(transforms.begin() + item);
     trans_list->DeleteItem(item);
@@ -508,8 +499,7 @@ void DataEditorDlg::OnSave (wxCommandEvent&)
     ofstream f(wx2s(transform_path).c_str());
     for (vector<DataTransform>::const_iterator i = transforms.begin();
             i != transforms.end(); ++i)
-        if (i->category != "builtin")
-            f << i->as_fileline() << endl;
+        f << i->as_fileline() << endl;
 }
 
 void DataEditorDlg::OnReset (wxCommandEvent&)
@@ -560,7 +550,19 @@ void DataEditorDlg::CodeText()
     wxString text = code->GetValue().Trim();
     if (check_syntax) {
         string text = wx2s(code->GetValue());
-        replace_all(text, "\n", " , ");
+
+        //TODO move this to get_code(char sep=';') and use in execute_tranform()
+        // also remove comments from code
+        
+        // remove empty lines and replace "\n" with ", "
+        vector<string> lines = split_string(text, "\n");
+        for (size_t i = 0; i < lines.size(); ++i)
+            if (lines[i].find_first_not_of(" \r\n\t") == string::npos) {
+                lines.erase(lines.begin() + i);
+                --i;
+            }
+        text = join_vector(lines, ", ");
+
         // 'text' is not identical with the final command (, instead of ;)
         apply_btn->Enable(compile_data_transformation(text));
     }
@@ -587,15 +589,13 @@ void DataEditorDlg::ESelected()
 
     up_btn->Enable(item > 0);
     down_btn->Enable(item < trans_list->GetItemCount() - 1);
-    remove_btn->Enable(ex.category != "builtin");
+    remove_btn->Enable(item >= 0);
     CodeText();
 }
 
 void DataEditorDlg::OnEActivated (wxListEvent& event)
 {
     int n = event.GetIndex();
-    if (transforms[n].category == "builtin")
-        return;
     TransEditorDlg dlg(this, -1, transforms[n], transforms, n);
     if (dlg.ShowModal() == wxID_OK) {
         trans_list->DeleteItem(n);
@@ -622,11 +622,6 @@ TransEditorDlg::TransEditorDlg(wxWindow* parent, wxWindowID id,
     description_tc = new wxTextCtrl(this, -1, s2wx(ex.description),
                                     wxDefaultPosition, wxSize(-1, 80),
                                     wxTE_MULTILINE|wxHSCROLL|wxVSCROLL);
-    wxString choices[] = {wxT("useful"), wxT("example"), wxT("other")};
-    category_c = new wxComboBox(this, -1, s2wx(ex.category),
-                                wxDefaultPosition, wxDefaultSize,
-                                3, choices,
-                                wxCB_READONLY);
     code_tc = new wxTextCtrl(this, -1, s2wx(ex.code), 
                              wxDefaultPosition, wxSize(-1, 100),
                              wxTE_MULTILINE|wxHSCROLL|wxVSCROLL);
@@ -638,8 +633,6 @@ TransEditorDlg::TransEditorDlg(wxWindow* parent, wxWindowID id,
     wxFlexGridSizer *flexsizer = new wxFlexGridSizer(2);
     flexsizer->Add(new wxStaticText(this, -1, wxT("name")), 0, wxALL, 5);
     flexsizer->Add(name_tc, 0, wxALL|wxEXPAND, 5);
-    flexsizer->Add(new wxStaticText(this, -1, wxT("category")), 0, wxALL, 5);
-    flexsizer->Add(category_c, 0, wxALL|wxEXPAND, 5);
     flexsizer->Add(new wxStaticText(this, -1, wxT("description")), 0, wxALL, 5);
     flexsizer->Add(description_tc, 0, wxALL|wxEXPAND, 5);
     flexsizer->Add(new wxStaticText(this, -1, wxT("code")), 0, wxALL, 5);
@@ -666,7 +659,6 @@ void TransEditorDlg::OnOK(wxCommandEvent &)
             }
     // we are here -- name is unique
     ex.name = new_name;
-    ex.category = wx2s(category_c->GetValue());
     ex.description = wx2s(description_tc->GetValue().Trim());
     ex.code = wx2s(code_tc->GetValue().Trim());
     ex.in_menu = inmenu_cb->GetValue();

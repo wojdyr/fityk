@@ -15,15 +15,13 @@ class Data;
 struct DataTransform
 {
     std::string name;
-    std::string category;
     std::string description;
     std::string code;
     bool in_menu;
 
-    DataTransform(const std::string& name_, const std::string& category_, 
-                     const std::string& description_, const std::string& code_,
-                     bool in_menu_=false)
-        : name(name_), category(category_), description(description_),
+    DataTransform(const std::string& name_, const std::string& description_, 
+                  const std::string& code_, bool in_menu_=false)
+        : name(name_), description(description_),
           code(code_), in_menu(in_menu_) {}
    DataTransform(std::string line);
    std::string as_fileline() const;
@@ -90,7 +88,6 @@ protected:
     const std::vector<DataTransform>& transforms;
     int pos;
     wxTextCtrl *name_tc, *description_tc, *code_tc;
-    wxComboBox *category_c;
     wxCheckBox *inmenu_cb;
 
     DECLARE_EVENT_TABLE()
