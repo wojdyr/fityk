@@ -116,49 +116,86 @@ private:
 // ';' will be replaced by line break
 static const char *default_transforms = 
 
-"accumulate|useful|Accumulate y of data and adjust std. dev."
-"|Y[1...] = Y[n-1] + y[n];S = sqrt(max2(1,y))|Y\n"
+"std.dev.=1||"
+"|s=1"
+"|Y\n" 
 
-"differentiate|useful|compute numerical derivative f'(x)"
-"|Y[...-1] = (y[n+1]-y[n])/(x[n+1]-x[n]);X[...-1] = (x[n+1]+x[n])/2;"
-"M=M-1;S = sqrt(max2(1,y))|Y\n"
+"std.dev.=sqrt(y)||std.dev. = sqrt(y) (or 1 if y<1)"
+"|sqrt(max2(1,y))"
+"|Y\n" 
 
-"normalize area|useful|divide all Y (and std. dev.) values;"
+"integrate||"
+"Y[0] = 0;"
+"|Y[1...] = Y[n-1] + (x[n] - x[n-1]) * (y[n-1] + y[n]) / 2"
+"|Y\n"
+
+"differentiate||compute numerical derivative f'(x)"
+"|Y[...-1] = (y[n+1]-y[n])/(x[n+1]-x[n])"
+";X[...-1] = (x[n+1]+x[n])/2"
+";M=M-1"
+";S = sqrt(max2(1,y))"
+"|Y\n"
+
+"accumulate||Accumulate y of data and adjust std. dev."
+"|Y[1...] = Y[n-1] + y[n]"
+";S = sqrt(max2(1,y))"
+"|Y\n"
+
+"normalize area||divide all Y (and std. dev.) values;"
 "by the current data area; (it gives unit area)"
 "|Y = y/darea(y), S = s / darea(y)" 
 "|Y\n" 
 
-"reduce 2x|useful|join every two adjacent points"
-"|X[...-1] = (x[n]+x[n+1])/2;Y[...-1] = y[n]+y[n+1];"
-"S[...-1] = sqrt(s[n]^2+s[n]^2); delete(n%2==1)|Y\n"
+"reduce 2x||join every two adjacent points"
+"|X[...-1] = (x[n]+x[n+1])/2"
+";Y[...-1] = y[n]+y[n+1]"
+";S[...-1] = sqrt(s[n]^2+s[n]^2)"
+";delete(n%2==1)"
+"|Y\n"
 
-"equilibrate step|useful|make equal step, keep the number of points"
+"equilibrate step||make equal step, keep the number of points"
 "|X = x[0] + n * (x[M-1]-x[0]) / (M-1), Y = y[x=X], S = s[x=X], A = a[x=X]"
 "|Y\n"
 
-"zero negative y|useful|zero the Y value; of points with negative Y"
-"|Y=max2(y,0)|Y\n"
+"zero negative y||zero the Y value; of points with negative Y"
+"|Y=max2(y,0)"
+"|Y\n"
 
-"clear inactive|useful|delete inactive points"
-"|delete(not a)|Y\n"
+"clear inactive||delete inactive points"
+"|delete(not a)"
+"|Y\n"
 
-"swap axes|example|Swap X and Y axes and adjust std. dev."
-"|Y=x , X=y , S=sqrt(max2(1,Y))|N\n"
+"swap axes||Swap X and Y axes and adjust std. dev."
+"|Y=x , X=y , S=sqrt(max2(1,Y))"
+"|N\n"
 
-"generate sinusoid|example|replaces current data with sinusoid"
-"|M=2000; x=n/100; y=sin(x); s=1|N\n"
+"generate sinusoid||replaces current data with sinusoid"
+"|M=2000"
+";x=n/100"
+";y=sin(x)"
+";s=1"
+"|N\n"
 
-"invert|example|inverts y value of points"
-"|Y=-y|N\n"
+"invert||inverts y value of points"
+"|Y=-y"
+"|N\n"
 
-"activate all|example|activate all data points"
-"|a=true|N\n"
+"activate all||activate all data points"
+"|a=true"
+"|N\n"
 
-"Q -> 2theta(Cu)|example|rescale X axis;in powder diffraction pattern"
-"|X = asin(x/(4*pi)*1.54051) * 2*180/pi|N\n"
+"Q -> 2theta(Cu)||rescale X axis;in powder diffraction pattern"
+"|X = asin(x/(4*pi)*1.54051) * 2*180/pi"
+"|N\n"
 
-"2theta(Cu) -> Q|example|rescale X axis;in powder diffraction pattern"
-"|X = 4*pi * sin(x/2*pi/180) / 1.54051|N\n"
+"2theta(Cu) -> Q||rescale X axis;in powder diffraction pattern"
+"|X = 4*pi * sin(x/2*pi/180) / 1.54051"
+"|N\n"
+
+"custom|"
+"|Custom transformation.;You can type e.g. Y=log10(y)."
+";See Help for the syntax details."
+"||N\n"
 ;
 
 DataTransform::DataTransform(string line)
@@ -313,12 +350,6 @@ std::vector<DataTransform> DataEditorDlg::transforms;
 void DataEditorDlg::read_transforms(bool reset)
 {
     transforms.clear();
-    // this item should be always present
-    transforms.push_back(DataTransform("custom", 
-                                        "Custom transformation.\n"
-                                        "You can type eg. Y=log10(y).\n"
-                                        "See Help for the syntax details.",
-                                        "", false));
     //TODO add last transformation item
     wxString transform_path = get_user_conffile("transform");
     string t_line;

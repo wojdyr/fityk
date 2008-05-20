@@ -15,9 +15,6 @@ Help is needed:
 * minimum wx version will be raised to 2.8
   - wxAboutBox will be used instead of AboutDlg
 
-* add "integrate", "std.dev.=1" and "std.dev.=sqrt" to "Saved transformations".
-
-
 --------------> 0.9.0
 
 * GUI, Fit > Info - a dialog that should contain all the information from
