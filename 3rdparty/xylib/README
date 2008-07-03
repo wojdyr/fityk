@@ -11,7 +11,7 @@ Supported formats:
 -  plain text (CSV or TSV or space-separated-values)
 -  Crystallographic Information File for Powder Diffraction (pdCIF)
 -  Siemens/Bruker UXD
--  Siemens/Bruker RAW v1/2/3
+-  Siemens/Bruker RAW ver. 1/2/3/4
 -  Philips UDF
 -  Philips RD (raw scan) V3
 -  Rigaku DAT
@@ -118,3 +118,17 @@ CREDITS
    reading his ObjCryst library was also helpful.
 -  Janos Vegh sent us his VAMAS reading routines (long time ago, before this 
    project started). 
+-  Andreas Breslau added Bruker RAW4 (RAW1.01) support
+
+HISTORY
+=======
+
+* 0.3 (2008-06-03)
+
+  - added Bruker binary RAW1.01 format
+  - fixed bug in reading one-column ascii files
+
+* 0.2 (2008-03-09)
+
+  - initial public release
+

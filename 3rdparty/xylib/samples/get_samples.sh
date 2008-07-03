@@ -21,6 +21,12 @@ wget -N http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/raw/cpd-1c.raw -P diffraca
 wget -N http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/raw/cpd-2.raw -P diffracat_v2v3_raw/
 wget -N http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/raw/cpd-3.raw -P diffracat_v2v3_raw/
 
+# Siemens/Bruker v4 raw files
+mkdir -p bruker_raw4/
+# samples from Andreas Breslau (stored at fityk website)
+wget -N $XYLIB_STORAGE/Cu3Au-1.raw -P bruker_raw4/
+wget -N $XYLIB_STORAGE/Cu3Au-2.raw -P bruker_raw4/
+wget -N $XYLIB_STORAGE/format1.raw -P bruker_raw4/
 
 #  pdCIF format files
 mkdir -p pdcif/

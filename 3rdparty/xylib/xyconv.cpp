@@ -64,7 +64,7 @@ void print_filetype_info(string const& filetype)
                 << (fi->multiblock ? "multi-block" : "single-block") << endl;
         }
         else
-            cout << "Unknown file format.";
+            cout << "Unknown file format." << endl;
 }
 
 void export_metadata(ostream &of, xylib::MetaData const& meta)
