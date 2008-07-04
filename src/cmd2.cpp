@@ -498,8 +498,10 @@ void do_print_data_expr(char const*, char const*)
     }
     else {
         vector<DataWithSum*> v = get_datasets_from_indata();
-        if (v.size() == 1)
-            s = S(get_transform_expression_value(t2, v[0]->get_data()));
+        if (v.size() == 1) {
+            fp k = get_transform_expression_value(t2, v[0]->get_data());
+            s = AL->get_settings()->format_double(k);
+        }
         else {
             map<DataWithSum const*, int> m;
             for (int i = 0; i < AL->get_ds_count(); ++i)
