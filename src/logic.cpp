@@ -172,7 +172,7 @@ void Ftk::dump_all_as_script(string const &filename)
     for (int i = 0; i != get_ds_count(); ++i) {
         Data const* data = get_data(i);
         if (i != 0)
-            os << "@+\n";
+            os << "@+ = 0\n";
         if (!data->get_title().empty())
             os << "set @" << i << ".title = '" << data->get_title() << "'\n";
         int m = data->points().size();
