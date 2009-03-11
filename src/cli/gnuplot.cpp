@@ -109,9 +109,8 @@ int GnuPlot::plot()
     if (i_l - i_f <= 0) 
         return 0;
     string plot_string = "plot "+ ftk->view.str() 
-        + " \'-\' title \"data\", ";
-    plot_string += " '-' title \"sum\" with line\n ";
-    fprintf (gnuplot_pipe, plot_string.c_str());
+        + " \'-\' title \"data\", '-' title \"sum\" with line\n";
+    fprintf (gnuplot_pipe, "%s", plot_string.c_str());
     if (fflush (gnuplot_pipe) != 0)
         ftk->warn("Flushing pipe program-to-gnuplot failed.");
     bool at_least_one_point = false;
