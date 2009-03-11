@@ -15,6 +15,7 @@ using fityk::Point;
 using fityk::operator<;
 
 class Ftk;
+namespace xylib { class DataSet; }
 
 std::string get_file_basename(std::string const& path);
 
@@ -23,6 +24,13 @@ class Data
 {
 public :
     std::string title;
+    static xylib::DataSet* cache_file(std::string const& fn, 
+                                      std::vector<std::string> const& options);
+    static int count_blocks(std::string const& fn, 
+                            std::vector<std::string> const& options);
+    static int count_columns(std::string const& fn, 
+                             std::vector<std::string> const& options, 
+                             int first_block);
 
     Data(Ftk const* F_) : F(F_), 
                           given_x(INT_MAX), given_y(INT_MAX), given_s(INT_MAX),

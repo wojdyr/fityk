@@ -274,7 +274,7 @@ int atoi_all(string const& s)
 // e.g.: "1,3..5,7" -> 1,3,4,5,7 
 //       "4"        -> 4
 //       "2,1"      -> 2,1
-vector<int> parse_int_range(string const& s)
+vector<int> parse_int_range(string const& s, int maximum)
 {
     vector<int> values;
     vector<string> t = split_string(s, ",");
@@ -286,11 +286,19 @@ vector<int> parse_int_range(string const& s)
         }
         else {
             int m = atoi_all(i->substr(0, dots));
-            int n = atoi_all(i->substr(dots+2));
-            if (abs(m-n) > 99) // too much..., take only the first one
-                values.push_back(n);
+            string n_ = i->substr(dots+2);
+            int n = n_.empty() ? maximum : atoi_all(i->substr(dots+2));
+            if (m < 0)
+                m += maximum;
+            if (n < 0)
+                n += maximum;
+            if (m < 0 || n < 0)
+                throw ExecuteError("Negative number found in range: " + s);
+            if (m <= n)
+                for (int j = m; j <= n; ++j)
+                    values.push_back(j);
             else
-                for (int j = min(m,n); j <= max(m,n); ++j)
+                for (int j = m; j >= n; --j)
                     values.push_back(j);
         }
     }
@@ -308,17 +316,38 @@ void Ftk::import_dataset(int slot, string const& filename,
     // and colon-separated indices
     int count_colons = count(filename.begin(), filename.end(), ':');
     string fn;
-    vector<int> indices[4];
+    vector<int> indices[3];
+    vector<int> block_range;
     if (count_colons >= 4) {
-        string::size_type old_pos = filename.size();
-        for (int i = 3; i >= 0; --i) {
-            string::size_type pos = filename.rfind(':', old_pos - 1);
-            string::size_type len = old_pos - pos - 1;
-            if (len > 0)
-                indices[i] = parse_int_range(filename.substr(pos+1, len));
-            old_pos = pos;
+        // take filename
+        string::size_type fn_end = string::npos;
+        for (int i = 0; i < 4; ++i)
+            fn_end = filename.rfind(':', fn_end - 1);
+        fn = filename.substr(0, fn_end);
+
+        // blocks
+        string::size_type end_pos = filename.size();
+        string::size_type bpos = filename.rfind(':', end_pos - 1);
+        string::size_type blen = end_pos - bpos - 1;
+        if (blen > 0) {
+            int block_count = Data::count_blocks(fn, options);
+            string range = filename.substr(bpos+1, blen);
+            block_range = parse_int_range(range, block_count-1);
         }
-        fn = filename.substr(0, old_pos);
+        end_pos = bpos;
+
+        int first_block = block_range.empty() ? 0 : block_range[0];
+        int col_count = Data::count_columns(fn, options, first_block);
+        for (int i = 2; i >= 0; --i) {
+            string::size_type pos = filename.rfind(':', end_pos - 1);
+            string::size_type len = end_pos - pos - 1;
+            if (len > 0) {
+                string range = filename.substr(pos+1, len);
+                indices[i] = parse_int_range(range, col_count-1);
+            }
+            end_pos = pos;
+        }
+        assert(fn_end == end_pos);
     }
     else {
         fn = filename;
@@ -343,14 +372,14 @@ void Ftk::import_dataset(int slot, string const& filename,
             // load data into new slot
             auto_ptr<Data> data(new Data(this));
             data->load_file(fn, idx_x, indices[1][i], idx_s, 
-                            indices[3], options);
+                            block_range, options);
             append_ds(data.release());
         }
         else {
             // if slot == new_dataset and there is only one dataset, 
             // then get_data(slot) will point to this single slot
             get_data(slot)->load_file(fn, idx_x, indices[1][i], idx_s, 
-                                      indices[3], options);
+                                      block_range, options);
         }
     }
 

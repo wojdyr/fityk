@@ -301,6 +301,46 @@ void Data::add_one_point(double x, double y, double sigma)
     }
 }
 
+int Data::count_blocks(string const& fn, vector<string> const& options)
+{
+    xylib::DataSet *xyds = Data::cache_file(fn, options);
+    return xyds->get_block_count();
+}
+
+int Data::count_columns(string const& fn, vector<string> const& options, 
+                               int first_block)
+{
+    xylib::DataSet *xyds = Data::cache_file(fn, options);
+    return xyds->get_block(first_block)->get_column_count();
+}
+
+xylib::DataSet*
+Data::cache_file(string const& filename_, vector<string> const& options)
+{
+    // static variables are common for all classes,
+    // this is not thread-safe (move it to Ftk?)
+    static xylib::DataSet *cached_xyds = NULL;
+    static std::string cached_xyds_path;
+    static std::vector<std::string> cached_xyds_options;
+
+    if (filename_ != cached_xyds_path || options != cached_xyds_options) {
+        string format_name;
+        vector<string> options_tail;
+        if (!options.empty()) {
+            format_name = options[0];
+            options_tail = vector<string>(options.begin()+1, options.end());
+        }
+        // if xylib::load_file() throws exception, we keep value of cached_xyds
+        xylib::DataSet *new_xyds = xylib::load_file(filename_, format_name,
+                                                    options_tail);
+        assert(new_xyds);
+        delete cached_xyds;
+        cached_xyds = new_xyds;
+        cached_xyds_path = filename_;
+        cached_xyds_options = options;
+    }
+    return cached_xyds;
+}
 
 // for column indices, INT_MAX is used as not given
 void Data::load_file (string const& filename_, 
@@ -308,35 +348,17 @@ void Data::load_file (string const& filename_,
                       vector<int> const& blocks,
                       vector<string> const& options)
 {
-    static xylib::DataSet *xyds = NULL;
-    static string xyds_path;
-    static vector<string> xyds_options;
-
     if (filename_.empty())
         return;
 
     try {
-        if (filename_ != xyds_path || options != xyds_options) {
-            string format_name;
-            vector<string> options_tail;
-            if (!options.empty()) {
-                format_name = options[0];
-                options_tail = vector<string>(options.begin()+1, options.end());
-            }
-            // if xylib::load_file() throws exception, we keep value of xyds
-            xylib::DataSet *new_xyds = xylib::load_file(filename_, format_name,
-                                                        options_tail);
-            assert(new_xyds);
-            delete xyds;
-            xyds = new_xyds;
-            xyds_path = filename_;
-            xyds_options = options;
-        }
+        xylib::DataSet *xyds = cache_file(filename_, options);
 
         clear(); //removing previous file
 
         vector<int> bb = blocks.empty() ? vector1(0) : blocks;
 
+        string block_name;
         for (vector<int>::const_iterator b = bb.begin(); b != bb.end(); ++b) {
             assert(xyds);
             xylib::Block const* block = xyds->get_block(*b);
@@ -369,11 +391,22 @@ void Data::load_file (string const& filename_,
                     x_step = -x_step;
                 }
             }
+            if (!ycol.name.empty()) {
+                if (!block_name.empty())
+                    block_name += "/";
+                block_name += ycol.name;
+                if (!xcol.name.empty())
+                    block_name += "(" + xcol.name + ")";
+            }
         }
 
-        title = get_file_basename(filename_);
-        if (idx_x != INT_MAX && idx_y != INT_MAX)
-            title += ":" + S(idx_x) + ":" + S(idx_y);
+        if (!block_name.empty())
+            title = block_name;
+        else {
+            title = get_file_basename(filename_);
+            if (idx_x != INT_MAX && idx_y != INT_MAX)
+                title += ":" + S(idx_x) + ":" + S(idx_y);
+        }
 
         if (x_step == 0) {
             sort(p.begin(), p.end());
