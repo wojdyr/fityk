@@ -82,9 +82,15 @@ inline bool is_finite(fp a)
 inline int iround(fp d) { return static_cast<int>(floor(d+0.5)); }
 
 #ifndef __GNUC__
-        //TODO implement erf and erfc
+        // These functions are missing in some compilers. If your compiler
+        // has these function, please modify the #if above.
+#warning "Functions erf and erfc in fityk are working only with GCC."
+#warning "Please try to fix this in common.h header. "
+        // fake definitions
 	inline float erfc(float f) { return 0.5f; }
 	inline float erf(float f) { return 0.5f; }
+
+        // this one is correct
 	inline float trunc(float f) { return (float) (int) f; }
 #endif	// !__GNUC__
 
