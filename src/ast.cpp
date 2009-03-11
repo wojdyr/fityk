@@ -1,5 +1,5 @@
 // This file is part of fityk program. Copyright (C) 2005 Marcin Wojdyr
-// Licence: GNU General Public License version 2
+// Licence: GNU General Public License version 2 or (at your option) 3
 // $Id$
 
 //  Based on ast_calc example from Boost::Spirit by Daniel Nuffer

@@ -1,5 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
-// Licence: GNU General Public License version 2
+// Licence: GNU General Public License version 2 or (at your option) 3
 // $Id: plot.cpp 391 2008-02-15 02:59:57Z wojdyr $
 
 /// In this file: utilities for making plot (BufferedPanel, scale_tics_step())

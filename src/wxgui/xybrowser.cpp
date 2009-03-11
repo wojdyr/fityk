@@ -1,5 +1,5 @@
 // Author: Marcin Wojdyr 
-// Licence: GNU General Public License version 2
+// Licence: GNU General Public License version 2 or (at your option) 3
 // $Id$
 
 #include <wx/wxprec.h>
