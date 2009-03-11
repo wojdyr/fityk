@@ -1,21 +1,40 @@
 $Id$
 
 Help is needed:
-
-- C++ coding: see the list of ideas at the end of this file
-- documentation: convert the manual from DocBook to reStructuredText
-- graphics: make PNG icons for toolbar. XPM format (now in use) doesn't support
-  alpha channel, and the toolbar doesn't look good.
+|
+|- C++ coding: see the list of ideas at the end of this file
+|- documentation: convert the manual from DocBook to reStructuredText
+`- graphics: make PNG icons for toolbar. XPM format (now in use) doesn't support
+   alpha channel, and the toolbar doesn't look good.
 
 
 ---------- TODO list and tentative development plan  ----------------
+
+* change licence from GPLv2 to GPLv2+
 
 * powder diffraction add-on - Pawley fitting 
 
 * minimum wx version will be raised to 2.8
   - wxAboutBox will be used instead of AboutDlg
 
+* GUI, MSW, bug: default/alternative configs use .fityk dir 
+
+* BUG: 'info formula' crashes when EMG function is in the formula 
+
+* BUG: removing negative spline baseline adds the baseline instead of removing 
+
+* support data reading syntax without upper boundary, i.e. foo.dat:1:2..::
+
+* BUG: caching data gives suprising effects if the data file was changed
+  since the last reading
+
 --------------> 0.9.0
+
+* GUI: reset doesn't reset GUI baseline
+
+* if F is empty, command fit should fail with appropriate message
+
+* GUI: Data>Load should use default load dir (as Quick Load)
 
 * GUI, Fit > Info - a dialog that should contain all the information from
                     info fit and info+ errors commands
@@ -93,9 +112,13 @@ Help is needed:
 
 * (GUI) vertical scaling using mouse on main plot near to left edge of the plot 
 
+* a command to delete all functions or variables
+
+* support variables in range in data transformation: Y[$foo-1] = 0
+
 ------------------ 
 
-* ?GUI: use wxGraphicsContext for drawing plots with antialiasing
+* GUI: use wxGraphicsContext or Cairo for drawing plots with antialiasing
 
 * GUI, enhancements for the script editor: 
        - "info ...> file" marked differently than not redirected info 
