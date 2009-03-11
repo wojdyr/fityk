@@ -1,5 +1,5 @@
 // Author: Marcin Wojdyr 
-// Licence: GNU General Public License version 2
+// Licence: GNU General Public License version 2 or (at your option) 3
 // $Id$
 
 #include <wx/wx.h>  
@@ -88,7 +88,8 @@ public:
     void OnPaint(wxPaintEvent&)
     {
         wxPaintDC dc(this);
-        PrepareDC( dc );
+        //DoPrepareDC(dc);
+        PrepareDC(dc);
         dc.DrawBitmap(bitmap, 0, 0, true);
     }
 
@@ -319,11 +320,12 @@ wxPanel* PowderBook::PrepareIntroPanel()
     "  - and baseline (background) either removed manually,\n"
     "    or modeled with e.g. polynomial.\n"
     "\n"
-    "This window will help you build a model for your data. "
+    "This window will help you to build a model for your data. "
     "The model has constrained position of peaks and "
-    "not constrained intensities. Fitting this model is "
-    "known as using Pawley's method. It's similar to LeBail's method, "
-    "where the model is the same, but fitting procedure is more complex.\n"
+    "not constrained intensities. Fitting this model (all variables "
+    "at the same time) is "
+    "known as Pawley's method. LeBail's method is similar, "
+    "but fitting procedure is more complex.\n"
     "\n"
     "This window will not analyze the final result for you. "
     "But there is another window that can help with size-strain analysis.\n"
