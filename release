@@ -182,8 +182,9 @@ elif [ $1 -eq 8 ]; then
  [ ! -e $tarball_filename ] && echo "File not found: $tarball_filename" && exit
  [ ! -e $win_setup_filename ] && echo "File not found: $win_setup_filename" \
                                                                        && exit
- curl -v -T $tarball_filename ftp://upload.sourceforge.net/incoming/ 
- curl -v -T $win_setup_filename ftp://upload.sourceforge.net/incoming/ 
+ #curl -v -T $tarball_filename ftp://upload.sourceforge.net/incoming/ 
+ #curl -v -T $win_setup_filename ftp://upload.sourceforge.net/incoming/ 
+ echo do sftp frs.sourceforge.net:uploads/ (or lftp?)
  echo now go to:
  echo $SF_NEW_RELEASE
  echo and add release named: $version
