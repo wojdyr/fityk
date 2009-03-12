@@ -1,6 +1,11 @@
 $Id$
 
 User-visible changes in version 0.8.6  (2008-04-15):
+* minimum wxWidgets version is now 2.8.0
+* fityk license was changed from GPLv2 to GPLv2/3 (ver. 2 or at your option 3)
+* added syntax for loading data from all columns in file: file.csv:1,2..::
+
+User-visible changes in version 0.8.6  (2008-04-15):
 * bug fixes (drawing baseline, "zoom all" with log scale)
 * GUI: parameters (at the bottom of the sidebar) can be changed with Page-Up
   and Page-Down keys or with mouse wheel. Shift, Ctrl, Alt keys modify speed.

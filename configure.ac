@@ -1,7 +1,7 @@
 # $Id$
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([fityk], [0.8.6])
+AC_INIT([fityk], [0.8.7])
 LIBRARY_VERSION_FLAG="-version-info 0:0:0"
 
 AC_CONFIG_SRCDIR([src/voigt.h])
@@ -132,7 +132,7 @@ SRCSUBDIRS=
 # Checks for version specific libraries and headers.
 if test "$enable_GUI" != "no" ; then 
     SRCSUBDIRS="$SRCSUBDIRS wxgui"
-    AM_PATH_WXCONFIG([2.6.3], [wxWin=1], [wxWin=0], [adv,core,base])
+    AM_PATH_WXCONFIG([2.8.0], [wxWin=1], [wxWin=0], [adv,core,base])
     if test "$wxWin" != 1; then
     	AC_MSG_ERROR([
     	      wxWindows must be installed on your system
@@ -141,7 +141,7 @@ if test "$enable_GUI" != "no" ; then
     	      Please check that wx-config is in path, the directory
     	      where wxWindows libraries are installed (returned by
     	      'wx-config --libs' command) is in LD_LIBRARY_PATH or
-    	      equivalent variable and wxWindows version is 2.6.3 or above.
+    	      equivalent variable and wxWindows version is 2.8.0 or above.
             ])
     fi
 fi
