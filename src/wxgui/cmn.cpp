@@ -95,9 +95,9 @@ void cfg_write_font (wxConfigBase *config, const wxString& key,
                            const wxFont& value)
 {
     config->Write (key + wxT("/pointSize"), value.GetPointSize());
-    config->Write (key + wxT("/family"), value.GetFamily());
-    config->Write (key + wxT("/style"), value.GetStyle());
-    config->Write (key + wxT("/weight"), value.GetWeight());
+    config->Write (key + wxT("/family"), (int) value.GetFamily());
+    config->Write (key + wxT("/style"), (int) value.GetStyle());
+    config->Write (key + wxT("/weight"), (int) value.GetWeight());
     config->Write (key + wxT("/faceName"), value.GetFaceName());
 }
 

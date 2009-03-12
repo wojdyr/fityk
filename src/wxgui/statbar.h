@@ -23,8 +23,7 @@ public:
     void OnSize(wxSizeEvent& event) { move_bitmaps(); event.Skip(); }
     void move_bitmaps();
     void set_hint(std::string const& left, std::string const& right);
-    int get_coord_width() const { return m_statusWidths[sbf_coord]; }
-    int get_hint_width() const { return m_statusWidths[sbf_hint1]; }
+    int get_field_width(int field) const;
     void set_widths(int hint, int coord);
     void set_hint_width(int w);
     void set_coord_info(double x, double y, bool aux=false);

@@ -116,6 +116,13 @@ bool FStatusBar::set_extra_value(string const& s)
     return true;
 }
 
+int FStatusBar::get_field_width(int field) const
+{
+    wxRect rect;
+    GetFieldRect(field, rect);
+    return rect.GetWidth() + 2 * GetBorderX();
+}
+
 //===============================================================
 //                     ConfStatBarDlg
 //===============================================================
@@ -156,11 +163,13 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
 
     wxStaticBoxSizer *w_sizer  = new wxStaticBoxSizer(wxVERTICAL, this, 
                                                       wxT("field widths"));
-    whint_sc = new SpinCtrl(this, -1, sb->get_hint_width(), 0, 200, 50);
+    whint_sc = new SpinCtrl(this, -1, sb->get_field_width(sbf_hint1), 
+                            0, 200, 50);
     w_sizer->Add(get_labeled_control_sizer(this, wxT("mouse hints: "), 
                                            whint_sc));
 
-    width_sc = new SpinCtrl(this, -1, sb->get_coord_width(), 0, 400, 50);
+    width_sc = new SpinCtrl(this, -1, sb->get_field_width(sbf_coord), 
+                            0, 400, 50);
     w_sizer->Add(get_labeled_control_sizer(this, wxT("cursor position info: "),
                                            width_sc));
     top_sizer->Add(w_sizer, 0, wxALL|wxEXPAND, 5);
