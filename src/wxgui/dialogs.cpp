@@ -552,7 +552,7 @@ END_EVENT_TABLE()
 
 AboutDlg::AboutDlg(wxWindow* parent)
     : wxDialog(parent, -1, wxT("About Fityk"), wxDefaultPosition, 
-               wxSize(350,400), wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
+               wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(new wxStaticBitmap(this, -1, wxBitmap(fityk_xpm)),
@@ -562,7 +562,7 @@ AboutDlg::AboutDlg(wxWindow* parent)
     name->SetFont(wxFont(18, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
                          wxFONTWEIGHT_BOLD));
     sizer->Add(name, 0, wxALIGN_CENTER|wxALL, 5); 
-    txt = new wxTextCtrl(this, -1, wxT(""), wxDefaultPosition, wxSize(350,250), 
+    txt = new wxTextCtrl(this, -1, wxT(""), wxDefaultPosition, wxSize(400,250), 
                          wxTE_MULTILINE|wxTE_RICH2|wxNO_BORDER
                              |wxTE_READONLY|wxTE_AUTO_URL);
     txt->SetBackgroundColour(GetBackgroundColour());
@@ -585,10 +585,12 @@ AboutDlg::AboutDlg(wxWindow* parent)
     txt->SetDefaultStyle(wxTextAttr(*wxBLUE));
     txt->AppendText(wxT("http://www.unipress.waw.pl/fityk/\n\n"));
     txt->SetDefaultStyle(wxTextAttr(*wxBLACK));
-    txt->AppendText(wxT("This program is free software; ")
-      wxT("you can redistribute it ")
-      wxT("and/or modify it under the terms of the GNU General Public ")
-      wxT("License, version 2, as published by the Free Software Foundation"));
+    txt->AppendText(
+   wxT("This program is free software; you can redistribute it and/or modify ")
+   wxT("it under the terms of the GNU General Public License as published by ")
+   wxT("the Free Software Foundation; either version 2 of the License, or ")
+   wxT("(at your option) version 3.")
+    );
     sizer->Add (txt, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
     //sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
     wxButton *bu_ok = new wxButton (this, wxID_OK, wxT("OK"));
