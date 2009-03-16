@@ -343,7 +343,7 @@ void Ftk::import_dataset(int slot, string const& filename,
             string::size_type len = end_pos - pos - 1;
             if (len > 0) {
                 string range = filename.substr(pos+1, len);
-                indices[i] = parse_int_range(range, col_count-1);
+                indices[i] = parse_int_range(range, col_count);
             }
             end_pos = pos;
         }
