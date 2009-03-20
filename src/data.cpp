@@ -331,8 +331,12 @@ Data::cache_file(string const& filename_, vector<string> const& options)
             options_tail = vector<string>(options.begin()+1, options.end());
         }
         // if xylib::load_file() throws exception, we keep value of cached_xyds
-        xylib::DataSet *new_xyds = xylib::load_file(filename_, format_name,
-                                                    options_tail);
+        xylib::DataSet *new_xyds = NULL;
+        try {
+            new_xyds = xylib::load_file(filename_, format_name, options_tail);
+        } catch (runtime_error const& e) {
+            throw ExecuteError(e.what());
+        }
         assert(new_xyds);
         delete cached_xyds;
         cached_xyds = new_xyds;
@@ -351,14 +355,14 @@ void Data::load_file (string const& filename_,
     if (filename_.empty())
         return;
 
+    xylib::DataSet *xyds = cache_file(filename_, options);
+
+    clear(); //removing previous file
+
+    vector<int> bb = blocks.empty() ? vector1(0) : blocks;
+
+    string block_name;
     try {
-        xylib::DataSet *xyds = cache_file(filename_, options);
-
-        clear(); //removing previous file
-
-        vector<int> bb = blocks.empty() ? vector1(0) : blocks;
-
-        string block_name;
         for (vector<int>::const_iterator b = bb.begin(); b != bb.end(); ++b) {
             assert(xyds);
             xylib::Block const* block = xyds->get_block(*b);
@@ -399,31 +403,31 @@ void Data::load_file (string const& filename_,
                     block_name += "(" + xcol.name + ")";
             }
         }
-
-        if (!block_name.empty())
-            title = block_name;
-        else {
-            title = get_file_basename(filename_);
-            if (idx_x != INT_MAX && idx_y != INT_MAX)
-                title += ":" + S(idx_x) + ":" + S(idx_y);
-        }
-
-        if (x_step == 0) {
-            sort(p.begin(), p.end());
-            x_step = find_step();
-        }
-
-        filename = filename_;   
-        given_x = idx_x;
-        given_y = idx_y;
-        given_s = idx_s;
-        given_blocks = blocks;
-        given_options = options;
-
-        post_load();
     } catch (runtime_error const& e) {
         throw ExecuteError(e.what());
     }
+
+    if (!block_name.empty())
+        title = block_name;
+    else {
+        title = get_file_basename(filename_);
+        if (idx_x != INT_MAX && idx_y != INT_MAX)
+            title += ":" + S(idx_x) + ":" + S(idx_y);
+    }
+
+    if (x_step == 0) {
+        sort(p.begin(), p.end());
+        x_step = find_step();
+    }
+
+    filename = filename_;   
+    given_x = idx_x;
+    given_y = idx_y;
+    given_s = idx_s;
+    given_blocks = blocks;
+    given_options = options;
+
+    post_load();
 }
 
 fp Data::get_y_at (fp x) const
