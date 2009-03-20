@@ -368,7 +368,7 @@ void Data::load_file (string const& filename_,
                 = block->get_column(idx_y != INT_MAX ?  idx_y : 2);
             int n = block->get_point_count();
             if (n < 5 && bb.size() == 1)
-                F->warn("Only " + S(p.size()) + " data points found in file.");
+                F->warn("Only " + S(n) + " data points found in file.");
 
             if (idx_s == INT_MAX) {
                 for (int i = 0; i < n; ++i) {
