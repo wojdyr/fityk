@@ -17,10 +17,6 @@ Help is needed:
 * BUG: caching data gives suprising effects if the data file was changed
   since the last reading
 
-* GUI: reset doesn't reset GUI baseline
-
-* if F is empty, command fit should fail with appropriate message
-
 --------------> 0.8.7
 
 * powder diffraction add-on - Pawley fitting 

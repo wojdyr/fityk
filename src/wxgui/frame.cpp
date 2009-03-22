@@ -1205,8 +1205,10 @@ void FFrame::OnReset (wxCommandEvent&)
                       wxT("and lose everything you have done in this session?"),
                          wxT("Are you sure?"), 
                          wxYES_NO | wxCANCEL | wxCENTRE | wxICON_QUESTION);
-    if (r == wxYES)
+    if (r == wxYES) {
+        plot_pane->get_bg_manager()->forget_background();
         ftk->exec("reset");
+    }
 }
         
 void FFrame::OnInclude (wxCommandEvent&)
