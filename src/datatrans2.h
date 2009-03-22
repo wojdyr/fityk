@@ -152,6 +152,16 @@ struct push_op
     int op, op2;
 };
 
+// optimization, to parse -3 as number, not as 3 OP_NEG
+inline void push_neg_op(char const*, char const*)
+{
+    if (code.size() >= 2 && *(code.end() - 2) == OP_NUMBER)
+        numbers[*(code.end() - 1)] *= -1;
+    else
+        code.push_back(OP_NEG); 
+}
+
+
 struct parameterized_op
 {
     parameterized_op(int op_) : op(op_) {}

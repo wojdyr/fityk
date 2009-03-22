@@ -179,7 +179,7 @@ DataExpressionGrammar::definition<ScannerT>::definition(
         ;
 
     rprec4
-        =   ('-' >> rprec5) [push_op(OP_NEG)]
+        =   ('-' >> rprec5) [&push_neg_op]
         |   (!ch_p('+') >> rprec5)
         ;
         
