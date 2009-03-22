@@ -88,18 +88,18 @@ void parameterized_op::push() const
 { 
     //DT_DEBUG("PARAMETERIZED " + S(op))  
     typedef vector<int>::iterator viit;
-    viit first = find(code.begin(), code.end(), OP_PLIST_BEGIN);
-    viit last = find(code.begin(), code.end(), OP_PLIST_END) + 1;
-    if (find(first+1, last, OP_PLIST_BEGIN) != last)
+    const viit plbegin = find(code.begin(), code.end(), OP_PLIST_BEGIN);
+    const viit plend = find(code.begin(), code.end(), OP_PLIST_END) + 1;
+    if (find(plbegin+1, plend, OP_PLIST_BEGIN) != plend)
         throw ExecuteError("Parametrized functions can not be nested.");
     vector<fp> params;
     map<int, vector<int> > pcodes; //codes for parameters of eg. spline
-    viit start = first+1;
-    while (start != last) {
-        viit finish = find(start, last, OP_PLIST_SEP);
-        if (finish == last) 
-            finish = last-1; // at OP_PLIST_END
-        if (finish == start+3 && *start == OP_NUMBER) { //the most common case
+    viit start = plbegin+1;
+    while (start != plend) {
+        viit finish = find(start, plend, OP_PLIST_SEP);
+        if (finish == plend) 
+            finish = plend-1; // at OP_PLIST_END
+        if (finish == start+2 && *start == OP_NUMBER) { //the most common case
             params.push_back(numbers[*(start+1)]);
         }
         else {
@@ -108,7 +108,7 @@ void parameterized_op::push() const
         }
         start = finish+1;
     }
-    code.erase(first, last);
+    code.erase(plbegin, plend);
     code.push_back(OP_PARAMETERIZED); 
     code.push_back(size(parameterized));
     ParameterizedFunction *func = 0;
