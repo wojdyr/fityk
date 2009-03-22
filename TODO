@@ -14,20 +14,18 @@ Help is needed:
 
 * BUG: 'info formula' crashes when EMG function is in the formula 
 
-* BUG: removing negative spline baseline adds the baseline instead of removing 
-
 * BUG: caching data gives suprising effects if the data file was changed
   since the last reading
+
+* GUI: reset doesn't reset GUI baseline
+
+* if F is empty, command fit should fail with appropriate message
 
 --------------> 0.8.7
 
 * powder diffraction add-on - Pawley fitting 
 
 --------------> 0.9.0
-
-* GUI: reset doesn't reset GUI baseline
-
-* if F is empty, command fit should fail with appropriate message
 
 * GUI: Data>Load should use default load dir (as Quick Load)
 

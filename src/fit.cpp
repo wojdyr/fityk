@@ -380,6 +380,8 @@ void Fit::update_parameters(vector<DataWithSum*> const& dsds)
             //        + " is not in chi2.");
         }
     }
+    if (count(par_usage.begin(), par_usage.end(), true) == 0)
+        throw ExecuteError("No parametrized functions are used in the model.");
 }
 
 /// checks termination criteria common for all fitting methods
