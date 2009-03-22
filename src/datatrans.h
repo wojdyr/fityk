@@ -29,6 +29,7 @@ std::vector<fp> get_all_point_expressions(std::string const &s,
                                           bool only_active=true);
 bool get_dt_code(std::string const& s, 
                  std::vector<int>& code_, std::vector<fp>& numbers_);
+std::string get_trans_repr(std::string const& s);
 fp get_value_for_point(std::vector<int> const& code_, 
                        std::vector<fp> const& numbers_, fp x, fp y);
 

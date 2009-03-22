@@ -104,7 +104,7 @@
 //
 //    substract spline baseline given by points (22.17, 37.92), (48.06, 17.23),
 //                                              (93.03, 20.68).
-//    y = y - spline[22.17 37.92  48.06 17.23  93.03 20.68](x) 
+//    y = y - spline[22.17, 37.92,  48.06, 17.23,  93.03, 20.68](x) 
 //
 
 //-----------------------------------------------------------------
@@ -306,7 +306,22 @@ string dt_ops(vector<int> const& code)
     return r;
 }
 
-
+string get_code_as_text(vector<int> const& code, vector<fp> const& numbers)
+{
+    string txt;
+    for (vector<int>::const_iterator i = code.begin(); i != code.end(); ++i) {
+        txt += " " + dt_op(*i);
+        if (*i == OP_NUMBER && i+1 != code.end()) {
+            ++i;
+            txt += "(" + S(numbers[*i]) + ")";
+        }
+        if (*i == OP_PARAMETERIZED && i+1 != code.end()) {
+            ++i;
+            txt += "[" + S(*i) + "]";
+        }
+    }
+    return txt;
+}
 //------------------------  Virtual Machine  --------------------------------
 
 vector<int> code;        //  VM code 
@@ -951,6 +966,28 @@ void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
 }
 
 } //namespace
+
+
+string get_trans_repr(string const& s)
+{
+    bool r = compile_data_transformation(s);
+    if (!r) 
+        r = compile_data_expression(s);
+    if (!r) 
+        return "ERROR";
+    string txt = get_code_as_text(code, numbers);
+    for (size_t i = 0; i != parameterized.size(); ++i) {
+        ParameterizedFunction *p = parameterized[i];
+        txt += "\n P" + S(i) + ":" + p->get_name() + "[" 
+            + join_vector(p->get_params(), ", ") + "]";
+        map<int, vector<int> > const& pc = p->get_pcodes();
+        for (map<int, vector<int> >::const_iterator j = pc.begin(); 
+                j != pc.end(); ++j)
+            txt += "\n   a[" + S(j->first) + "] <- " 
+                + get_code_as_text(j->second, numbers);
+    }
+    return txt;
+}
 
 bool compile_data_transformation(string const& str)
 {

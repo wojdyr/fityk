@@ -40,6 +40,8 @@ public:
 
     fp calculate(fp x) { return get_linear_interpolation(bb, x); }
 
+    const char *get_name() const { return "interpolate"; }
+
 private:
     std::vector<PointQ> bb;
 };
@@ -59,6 +61,8 @@ public:
     }
 
     fp calculate(fp x) { return get_spline_interpolation(bb, x); }
+
+    const char *get_name() const { return "spline"; }
 
 private:
     std::vector<PointQ> bb;

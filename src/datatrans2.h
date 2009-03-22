@@ -36,11 +36,25 @@ public:
         : params(params_), pcodes(pcodes_) {}
     virtual ~ParameterizedFunction() {}
     virtual fp calculate(fp x) = 0;
+
+    /// The parameters can be also given as expressions. In such a case,
+    /// the code for n-th parameter is stored in pcodes[n], and params[n]
+    /// is initially 0 and prepare_parameters() must be called before 
+    /// calling calculate().
     void prepare_parameters(std::vector<Point> const& points);
-    virtual void do_prepare() = 0;
+
+    // name of the function -- for debugging
+    virtual const char *get_name() const = 0;
+    vector<fp> const& get_params() const { return params; }
+    std::map<int, std::vector<int> >const& get_pcodes() const { return pcodes; }
 protected:
+    /// parameters of the function (given in [])
     std::vector<fp> params;
+    /// codes for parameters, if not just simple numbers
     std::map<int, std::vector<int> > pcodes;
+
+    /// called by prepare_parameters(), no need to call it explicitely
+    virtual void do_prepare() = 0;
 };
 
 

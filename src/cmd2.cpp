@@ -443,6 +443,12 @@ void do_print_deriv(char const* a, char const* b)
     prepared_info += "\n" + get_derivatives_str(s);
 }
 
+void do_print_dops(char const* a, char const* b)
+{
+    string s = string(a, b);
+    prepared_info += "\n" + get_trans_repr(s);
+}
+
 void do_print_debug_info(char const*, char const*)  
 { 
     string m;
@@ -684,7 +690,8 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         // this will eat also ',', because voigt(x,y) needs it
         // unfortunatelly "i der x^2, sin(x)" is made impossible
         | "der " >> (+chset<>(anychar_p - chset<>(";#"))) [&do_print_deriv]
-        | eps_p [&do_print_info] 
+        | "dops " >> (+chset<>(anychar_p - chset<>(";#"))) [&do_print_dops]
+        | eps_p [&do_print_info]
         ;
 
     guess
