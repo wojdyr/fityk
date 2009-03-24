@@ -927,4 +927,76 @@ FUNC_CALCULATE_VALUE_DERIV_BEGIN(PielaszekCube)
     dy_dx = dcenter;
 FUNC_CALCULATE_VALUE_DERIV_END(height*t);
 
+///////////////////////////////////////////////////////////////////////
+
+const char *FuncLogNormal::formula 
+= "LogNormal(height, center, bandwidth=fwhm, asymmetry = 0.1) = "
+"height*exp(-ln(2)*(ln(2.0*asymmetry*(x-center)/bandwidth+1)/asymmetry)^2)"; 
+
+void FuncLogNormal::more_precomputations() 
+{ 
+    if (vv.size() != 4)
+        vv.resize(4);
+    if (fabs(vv[2]) < epsilon) 
+        vv[2] = epsilon; 
+    if (fabs(vv[3]) < epsilon) 
+        vv[3] = 0.001; 
+}
+
+FUNC_CALCULATE_VALUE_BEGIN(LogNormal)
+    fp a = 2.0 * vv[3] * (x - vv[1]) / vv[2];
+    fp ex = 0.0;
+    if (a > -1.0) {
+        fp b = log(1 + a) / vv[3];
+        ex = vv[0] * exp_(-M_LN2 * b * b);
+    }
+FUNC_CALCULATE_VALUE_END(ex)
+
+FUNC_CALCULATE_VALUE_DERIV_BEGIN(LogNormal)
+    fp a = 2.0 * vv[3] * (x - vv[1]) / vv[2];
+    fp ex;
+    if (a > -1.0) {
+        fp b = log(1 + a) / vv[3];
+        ex = exp_(-M_LN2 * b * b);
+        dy_dv[0] = ex;
+        ex *= vv[0];
+        dy_dv[1] = 4.0*M_LN2/(vv[2]*(a+1))*ex*b;
+        dy_dv[2] = 4.0*(x-vv[1])*M_LN2/(vv[2]*vv[2]*(a+1))*ex*b;
+        dy_dv[3] = ex*(2.0*M_LN2*b*b/vv[3]
+            -4.0*(x-vv[1])*log(a+1)*M_LN2/(vv[2]*vv[3]*vv[3]*(a+1)));
+        dy_dx = -4.0*M_LN2/(vv[2]*(a+1))*ex*b;
+    }
+    else {
+        ex = 0.0;
+        dy_dv[0] = 0.0;
+        dy_dv[1] = 0.0;
+        dy_dv[2] = 0.0;
+        dy_dv[3] = 0.0;
+        dy_dx = 0.0;
+    }
+FUNC_CALCULATE_VALUE_DERIV_END(ex)
+
+bool FuncLogNormal::get_nonzero_range (fp level, fp &left, fp &right) const
+{ /* untested */ 
+    if (level == 0)
+        return false;
+    else if (fabs(level) >= fabs(vv[0]))
+        left = right = 0;
+    else {
+        //fp w = sqrt (log (fabs(vv[0]/level)) / M_LN2) * vv[2]; 
+        fp w1 = (1-exp_(sqrt(log(fabs(vv[0]/level))/M_LN2)*vv[3]))*vv[2]
+            /2.0/vv[3]+vv[1];
+        fp w0 = (1-exp_(-sqrt(log(fabs(vv[0]/level))/M_LN2)*vv[3]))*vv[2]
+            /2.0/vv[3]+vv[1];
+        if (w1>w0) {
+            left = w0;
+            right = w1;
+        }
+        else {
+            left = w1;
+            right = w0;
+        }
+    }
+    return true;
+}
 

@@ -1,6 +1,7 @@
 $Id$
 
 User-visible changes in version 0.8.6  (2008-04-15):
+* added functions LogNormal and LogNormalA (Mirko Scholz)
 * minimum wxWidgets version is now 2.8.0
 * fityk license was changed from GPLv2 to GPLv2/3 (ver. 2 or at your option 3)
 * added syntax for loading data from all columns in file: file.csv:1,2..::

@@ -123,6 +123,7 @@ Function* Function::factory (Ftk const* F,
     FACTORY_FUNC(EMG)
     FACTORY_FUNC(DoniachSunjic)
     FACTORY_FUNC(PielaszekCube)
+    FACTORY_FUNC(LogNormal)
     else if (UdfContainer::is_defined(type_name)) {
         UdfContainer::UDF const* udf = UdfContainer::get_udf(type_name);
         if (udf->is_compound)
@@ -153,7 +154,8 @@ const char* builtin_formulas[] = {
     FuncVoigtA::formula,
     FuncEMG::formula,
     FuncDoniachSunjic::formula,
-    FuncPielaszekCube::formula
+    FuncPielaszekCube::formula,
+    FuncLogNormal::formula
 };
 
 vector<string> Function::get_all_types()
@@ -535,7 +537,8 @@ void initialize_udfs()
 "LorentzianA(area, center, hwhm) = Lorentzian(area/hwhm/pi, center, hwhm)\n"
 "Pearson7A(area, center, hwhm, shape=2) = Pearson7(area/(hwhm*exp(lgamma(shape-0.5)-lgamma(shape))*sqrt(pi/(2^(1/shape)-1))), center, hwhm, shape)\n"
 "PseudoVoigtA(area, center, hwhm, shape=0.5) = GaussianA(area*(1-shape), center, hwhm) + LorentzianA(area*shape, center, hwhm)\n"
-"ExpDecay(a=0, t=1) = a*exp(-x/t)",
+"ExpDecay(a=0, t=1) = a*exp(-x/t)\n"
+"LogNormalA(area, center, bandwidth=fwhm, asymmetry=0.1) = LogNormal(sqrt(ln(2)/pi)*(2*area/bandwidth)*exp(-asymmetry^2/4/ln(2)), center, bandwidth, asymmetry)",
   "\n");
     udfs.clear();
     for (vector<string>::const_iterator i = formulae.begin(); 
