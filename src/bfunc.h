@@ -206,12 +206,6 @@ class FuncPielaszekCube : public Function
     fp center() const { return vv[1]; }
 };
 
-class FuncValente : public Function
-{
-    DECLARE_FUNC_OBLIGATORY_METHODS(Valente)
-    fp center() const { return vv[3]; }
-};
-
 class FuncLogNormal : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(LogNormal)
