@@ -929,9 +929,11 @@ FUNC_CALCULATE_VALUE_DERIV_END(height*t);
 
 ///////////////////////////////////////////////////////////////////////
 
+// Implemented by Mirko Scholz. The formula is taken from:
+// Bingemann, D.; Ernsting, N. P. J. Chem. Phys. 1995, 102, 2691–2700.
 const char *FuncLogNormal::formula 
-= "LogNormal(height, center, bandwidth=fwhm, asymmetry = 0.1) = "
-"height*exp(-ln(2)*(ln(2.0*asymmetry*(x-center)/bandwidth+1)/asymmetry)^2)"; 
+= "LogNormal(height, center, width=fwhm, asym = 0.1) = "
+"height*exp(-ln(2)*(ln(2.0*asym*(x-center)/width+1)/asym)^2)"; 
 
 void FuncLogNormal::more_precomputations() 
 { 

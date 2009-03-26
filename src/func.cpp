@@ -538,7 +538,7 @@ void initialize_udfs()
 "Pearson7A(area, center, hwhm, shape=2) = Pearson7(area/(hwhm*exp(lgamma(shape-0.5)-lgamma(shape))*sqrt(pi/(2^(1/shape)-1))), center, hwhm, shape)\n"
 "PseudoVoigtA(area, center, hwhm, shape=0.5) = GaussianA(area*(1-shape), center, hwhm) + LorentzianA(area*shape, center, hwhm)\n"
 "ExpDecay(a=0, t=1) = a*exp(-x/t)\n"
-"LogNormalA(area, center, bandwidth=fwhm, asymmetry=0.1) = LogNormal(sqrt(ln(2)/pi)*(2*area/bandwidth)*exp(-asymmetry^2/4/ln(2)), center, bandwidth, asymmetry)",
+"LogNormalA(area, center, width=fwhm, asym=0.1) = LogNormal(sqrt(ln(2)/pi)*(2*area/width)*exp(-asym^2/4/ln(2)), center, width, asym)",
   "\n");
     udfs.clear();
     for (vector<string>::const_iterator i = formulae.begin(); 
