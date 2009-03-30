@@ -39,7 +39,7 @@ public:
                                     std::vector<fp>& dy_da) const;
     fp approx_max(fp x_min, fp x_max) const;
     std::string general_info() const;
-    std::string get_formula(bool simplify, bool gnuplot) const;
+    std::string get_formula(bool simplify, bool gnuplot_style) const;
     std::string get_peak_parameters(std::vector<fp> const& errors) const;
     std::vector<fp> get_symbolic_derivatives(fp x) const;
     std::vector<fp> get_numeric_derivatives(fp x, fp numerical_h) const;

@@ -712,7 +712,7 @@ fp FuncVoigtA::height() const
 const char *FuncEMG::formula 
 = "EMG(a=height, b=center, c=fwhm*0.4, d=fwhm*0.04) ="
                 " a*c*(2*pi)^0.5/(2*d) * exp((b-x)/d + c^2/(2*d^2))"
-                " * (sign(d) - erf((b-x)/(2^0.5*c) + c/(2^0.5*d)))";
+                " * (abs(d)/d - erf((b-x)/(2^0.5*c) + c/(2^0.5*d)))";
 
 void FuncEMG::more_precomputations() 
 { 

@@ -12,10 +12,14 @@ Help is needed:
 
 * GUI, MSW, bug: default/alternative configs use .fityk dir 
 
-* BUG: 'info formula' crashes when EMG function is in the formula 
-
 * BUG: caching data gives suprising effects if the data file was changed
   since the last reading
+
+* redesign gradient dialog
+
+* reading sessions saved with dump command is very slow if datasets contain
+  a large number of points. Optimize it: when reading a line from script, 
+  check first, using sscanf(), if it is a data point.
 
 --------------> 0.8.7
 
@@ -44,10 +48,6 @@ Help is needed:
 
 * convert manual from DocBook to reStructuredText
 
-* reading sessions saved with dump command is very slow if datasets contain
-  a large number of points. Optimize it: when reading a line from script, 
-  check first, using sscanf(), if it is a data point.
-
 --------------> 0.9.1
 
 * GUI: refactor MainPlot - mouse event handling based on subscriptions,
@@ -69,6 +69,8 @@ Help is needed:
 
 * magic default parameters: if $default__name is defined: when functions 
   with parameter `name' are "guessed", this parameter is set to $default__name
+  (e.g. user sets $default__shape=2.5 to have initial value of Pearson7.shape
+  equal 2.5).
 
 * GUI: it should be possible to constrain two parameters of two peak 
      (using mouse and peak-top menu), at least to make them equal.
@@ -182,7 +184,7 @@ Help is needed:
 
 -------  Anticipated upgrades  -----------
 
-* when Boost::Spirit 2 is released, parsers will be rewritten and 
+* when Boost::Spirit 2x is released/stable, parsers will be rewritten and 
   libfityk will be made thread-safe (removing all `AL' and all static class 
   members and global variables)
 

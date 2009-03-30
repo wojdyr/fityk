@@ -251,7 +251,7 @@ string Sum::get_peak_parameters(vector<fp> const& errors) const
 }
 
 
-string Sum::get_formula(bool simplify, bool gnuplot) const
+string Sum::get_formula(bool simplify, bool gnuplot_style) const
 {
     if (ff_names.empty())
         return "0";
@@ -275,7 +275,7 @@ string Sum::get_formula(bool simplify, bool gnuplot) const
         if (!has_upper) 
             formula = simplify_formula(formula);
     }
-    if (gnuplot) { //gnuplot format is a bit different
+    if (gnuplot_style) { //gnuplot format is a bit different
         replace_all(formula, "^", "**");
         replace_words(formula, "ln", "log");
         // avoid integer division (1/2 == 0)

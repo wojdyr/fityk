@@ -1144,6 +1144,7 @@
      <function>erf</function>,
      <function>erfc</function>,
      <function>lgamma</function>,
+     <function>abs</function>,
      <function>voigt</function>. 
      This is a subset of the functions
      used in <link linkend="transform">data transformations</link>.

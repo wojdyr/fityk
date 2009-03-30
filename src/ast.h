@@ -37,6 +37,7 @@ enum
     OP_SQRT,      
     OP_LGAMMA,    
     OP_DIGAMMA,   
+    OP_ABS,   
     OP_TWO_ARG,   
     OP_POW = OP_TWO_ARG,       
     OP_MUL,       

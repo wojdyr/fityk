@@ -74,6 +74,7 @@ string OpTree::str(const vector<string> *vars)
         case OP_ATAN: return "atan("+ c1->str(vars) + ")";
         case OP_LGAMMA: return "lgamma("+ c1->str(vars) + ")";
         case OP_DIGAMMA: return "digamma("+ c1->str(vars) + ")";
+        case OP_ABS: return "abs(" + c1->str(vars) + ")";
         case OP_LOG10:return "log10("+c1->str(vars) + ")";
         case OP_LN:   return "ln("  + c1->str(vars) + ")";
         case OP_SQRT: return "sqrt("+ c1->str(vars) + ")";
@@ -324,6 +325,19 @@ OpTree *do_oneover(OpTree *a)
     return do_divide(new OpTree(1.), a);
 }
 
+/*
+template<typename T>
+OpTree* one_arg_func(OpTree *a, T func, int op)
+{
+    if (a->op == 0) {
+        double val = func(a->val);
+        delete a;
+        return new OpTree(val);
+    }
+    else
+        return new OpTree(op, simplify_terms(a));
+}
+*/
 
 OpTree* do_exp(OpTree *a)
 {
@@ -510,6 +524,17 @@ OpTree* do_digamma(OpTree *a)
     }
     else
         return new OpTree(OP_DIGAMMA, simplify_terms(a));
+}
+
+OpTree* do_abs(OpTree *a)
+{
+    if (a->op == 0) {
+        double val = fabs(a->val);
+        delete a;
+        return new OpTree(val);
+    }
+    else
+        return new OpTree(OP_ABS, simplify_terms(a));
 }
 
 OpTree* do_pow(OpTree *a, OpTree *b)
@@ -989,6 +1014,10 @@ vector<OpTree*> calculate_deriv(const_tm_iter_t const &i,
             else if (s == "lgamma") {
                 der = do_digamma(larg);
                 do_op = do_lgamma;
+            }
+            else if (s == "abs") {
+                der = do_divide(do_abs(larg), larg->copy());
+                do_op = do_abs;
             }
             else
                 assert(0);

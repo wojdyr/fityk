@@ -201,7 +201,7 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
                                           | "sinh" | "cosh" | "tanh" 
                                           | "sin" | "cos" | "tan" 
                                           | "atan" | "asin" | "acos"
-                                          | "lgamma"
+                                          | "lgamma" | "abs"
                                           ] ]
                    >>  inner_node_d[ch_p('(') >> expression >> ')']
                 | root_node_d[ as_lower_d["voigt"] ]
