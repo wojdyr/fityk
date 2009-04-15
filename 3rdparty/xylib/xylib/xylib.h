@@ -43,6 +43,7 @@
 #include <map>
 #include <stdexcept>
 #include <fstream>
+#include <algorithm>
 
 /// Library version. Use get_version() to get it as a string.
 ///  XYLIB_VERSION % 100 is the sub-minor version
@@ -210,6 +211,12 @@ public:
     /// delete all data stored in this class (use only if you want to 
     /// call load_data() more than once)
     void clear();
+
+    /// check if options (first arg) contains given element (second arg)
+    bool has_option(std::string const& t)
+    {
+        return (std::find(options.begin(), options.end(), t) != options.end());
+    }
 
 protected:
     std::vector<Block*> blocks;
