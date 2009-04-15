@@ -42,7 +42,7 @@ To build xylib you need:
 * any modern C++ compiler 
 * Boost_ libraries (only at compile time). 
 
-.. _`source tarball`: http://downloads.sourceforge.net/fityk/xylib-0.2.tar.bz2
+.. _`source tarball`: http://downloads.sourceforge.net/fityk/xylib-0.3.tar.bz2
 .. _repository: https://fityk.svn.sourceforge.net/svnroot/fityk/trunk/3rdparty/xylib
 .. _Boost: http://www.boost.org/
 
@@ -95,8 +95,8 @@ To add a new filetype:
 AUTHORS
 =======
 
--  Peng ZHANG zhangpengcas@gmail.com
 -  Marcin Wojdyr wojdyr@gmail.com (maintainer)
+-  Peng ZHANG zhangpengcas@gmail.com
 
 CONTACT
 =======
