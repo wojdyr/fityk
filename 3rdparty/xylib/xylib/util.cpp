@@ -175,7 +175,7 @@ void str_split(string const& line, string const& sep,
 // true if str starts with ss
 bool str_startwith(const string &str, const string &ss)
 {
-    return str.size() >= ss.size() && ss == str.substr(0, ss.size());
+    return ss == str.substr(0, ss.size());
 }
 
 // change all letters in a string to lower case
