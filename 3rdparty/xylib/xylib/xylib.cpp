@@ -1,5 +1,5 @@
 // Implementation of Public API of xylib library.
-// Licence: GNU General Public License version 2
+// Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id$
 
 #include <cassert>
