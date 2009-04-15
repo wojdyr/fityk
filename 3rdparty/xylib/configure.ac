@@ -21,8 +21,6 @@ AC_CHECK_HEADERS([cstdlib cstring climits vector], [],
                  [AC_MSG_ERROR([Could not find necessary C++ libs headers])])
 AC_CHECK_HEADERS([boost/cstdint.hpp boost/detail/endian.hpp], [],
                  [AC_MSG_ERROR([Could not find necessary Boost headers])])
-AC_CHECK_HEADERS([boost/cstdint.hpp boost/detail/endian.hpp], [],
-                 [AC_MSG_ERROR([Could not find necessary Boost headers])])
 AC_CHECK_HEADERS([boost/spirit/core.hpp], [], 
                  [AC_MSG_ERROR([Boost::Spirit headers were not found.])])
 
