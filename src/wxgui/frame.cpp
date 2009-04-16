@@ -49,6 +49,7 @@
 #include "mplot.h"
 #include "aplot.h"
 #include "dialogs.h"
+#include "about.h"
 #include "dload.h"
 #include "pane.h"
 #include "sidebar.h"
