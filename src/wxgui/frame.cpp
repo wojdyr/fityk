@@ -23,20 +23,10 @@
 #include <wx/msgout.h>
 #include <wx/metafile.h>
 #include <wx/dir.h>
-#include <wx/mstream.h>
 #ifdef __WXMSW__
 # include <wx/help.h>
 #endif
-
-
-#ifdef __WXMAC__
-# include <wx/version.h>
-# if wxCHECK_VERSION(2, 8, 0)
-#  include <wx/stdpaths.h>
-# else
-#  error "wxWidgets 2.8 or later is required on Mac OSX"
-# endif
-#endif
+#include <wx/stdpaths.h>
 
 #include <algorithm>
 #include <string.h>
@@ -234,17 +224,6 @@ enum {
     ID_ft_sideb                ,
     ID_ft_peakchoice
 };
-
-
-// from http://www.wxwidgets.org/wiki/index.php/Embedding_PNG_Images
-wxBitmap GetBitmapFromMemory_(const unsigned char *data, int length) 
-{
-    wxMemoryInputStream is(data, length);
-    return wxBitmap(wxImage(is, wxBITMAP_TYPE_PNG));
-}
-
-#define GET_BMP(name) \
-            GetBitmapFromMemory_(name##_png, sizeof(name##_png))
 
 
 void append_mi(wxMenu* menu, int id, wxBitmap const& bitmap,

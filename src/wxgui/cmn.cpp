@@ -17,16 +17,6 @@
 #include <wx/msgdlg.h>
 #include <wx/stdpaths.h>
 
-//TODO when wx>=2.8 -> delete
-#ifdef __WXMAC__
-# include <wx/version.h>
-# if wxCHECK_VERSION(2, 8, 0)
-#  include <wx/stdpaths.h>
-# else
-#  error "wxWidgets 2.8 or later is required on Mac OSX"
-# endif
-#endif
-
 #include "cmn.h"
 #include "../common.h" //iround()
 

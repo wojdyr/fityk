@@ -14,10 +14,6 @@ class AboutDlg : public wxDialog
 {
 public:
     AboutDlg(wxWindow* parent);
-    void OnTextURL(wxTextUrlEvent& event);
-private:
-    wxTextCtrl *txt;
-    DECLARE_EVENT_TABLE()
 };
 
 #endif // FITYK_WX_ABOUT_H_

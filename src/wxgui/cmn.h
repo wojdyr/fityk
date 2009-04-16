@@ -1,14 +1,15 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License version 2 or (at your option) 3
 // $Id$
-#ifndef FITYK__WX_CMN__H__
-#define FITYK__WX_CMN__H__
+#ifndef FITYK_WX_CMN_H_
+#define FITYK_WX_CMN_H_
 
 #include <string>
 #include <vector>
 #include <wx/splitter.h>
 #include <wx/arrstr.h>
 #include <wx/spinctrl.h>
+#include <wx/mstream.h>
 
 enum MouseModeEnum { mmd_zoom, mmd_bg, mmd_add, mmd_range, mmd_peak };
 
@@ -98,16 +99,6 @@ void add_apply_close_buttons(wxWindow *parent, wxSizer *top_sizer);
 extern wxMouseEvent dummy_mouse_event;
 extern wxCommandEvent dummy_cmd_event;
 
-//TODO when wx>=2.8 -> delete
-#if !wxCHECK_VERSION(2,7,0)
-# define wxFD_OPEN wxOPEN
-# define wxFD_SAVE wxSAVE
-# define wxFD_OVERWRITE_PROMPT wxOVERWRITE_PROMPT
-# define wxFD_FILE_MUST_EXIST wxFILE_MUST_EXIST
-# define wxFD_MULTIPLE wxMULTIPLE
-# define wxFD_CHANGE_DIR wxCHANGE_DIR
-#endif
-
 /// based on http://wiki.wxpython.org/index.cgi/ProportionalSplitterWindow
 /// it is like wxSplitterWindow, but when resized, both windows are resized
 /// proporionally
@@ -118,12 +109,7 @@ public:
                          wxWindowID id=-1, 
                          float proportion=0.66, // 0. - 1.
                          const wxSize& size = wxDefaultSize,
-//TODO when wx>=2.8 -> delete
-#if wxCHECK_VERSION(2, 8, 0)
                          long style=wxSP_NOBORDER|wxSP_3DSASH);
-#else
-                         long style=wxSP_NOBORDER|wxSP_FULLSASH|wxSP_3DSASH);
-#endif
     bool SplitHorizontally(wxWindow* win1, wxWindow* win2, float proportion=-1);
     bool SplitVertically(wxWindow* win1, wxWindow* win2, float proportion=-1);
     float GetProportion() const { return m_proportion; }
@@ -192,4 +178,16 @@ void updateControlWithItems(wxControlWithItems *cwi,
 typedef int wxPenStyle;
 #endif
 
-#endif 
+
+// from http://www.wxwidgets.org/wiki/index.php/Embedding_PNG_Images
+inline wxBitmap GetBitmapFromMemory_(const unsigned char *data, int length) 
+{
+    wxMemoryInputStream is(data, length);
+    return wxBitmap(wxImage(is, wxBITMAP_TYPE_PNG));
+}
+
+#define GET_BMP(name) \
+            GetBitmapFromMemory_(name##_png, sizeof(name##_png))
+
+
+#endif // FITYK_WX_CMN_H_
