@@ -29,7 +29,7 @@ AboutDlg::AboutDlg(wxWindow* parent)
     name_sizer->Add(name, wxSizerFlags().Centre().Border());
     wxStaticText *desc = new wxStaticText(this, -1, 
                             wxT("A curve fitting and data analysis program"));
-    name_sizer->Add(desc, wxSizerFlags().Centre());
+    name_sizer->Add(desc, wxSizerFlags().Centre().Border(wxLEFT|wxRIGHT));
     wxString link = wxT("http://www.unipress.waw.pl/fityk/");
     wxHyperlinkCtrl *link_ctrl = new wxHyperlinkCtrl(this, -1, link, link);
     name_sizer->Add(link_ctrl, wxSizerFlags().Centre().Border());
@@ -63,8 +63,8 @@ AboutDlg::AboutDlg(wxWindow* parent)
     //sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
     wxButton *button = new wxButton (this, wxID_CLOSE);
     SetEscapeId(wxID_CLOSE);
-    button->SetDefault();
-    sizer->Add (button, 0, wxALL|wxALIGN_RIGHT, 10);
+    //button->SetDefault();
+    sizer->Add (button, wxSizerFlags().Right().Border());
     SetSizerAndFit(sizer);
 }
 
