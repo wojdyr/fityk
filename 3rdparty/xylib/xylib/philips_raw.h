@@ -6,8 +6,8 @@
 //
 //NOTE: V5 format has not been tested, because we cannot get sample files.
 
-#ifndef PHILIPS_RD_H
-#define PHILIPS_RD_H
+#ifndef XYLIB_PHILIPS_RAW_H_
+#define XYLIB_PHILIPS_RAW_H_
 
 #include "xylib.h"
 
@@ -19,5 +19,5 @@ namespace xylib {
     }; 
 
 }
-#endif // PHILIPS_RD_H
+#endif // XYLIB_PHILIPS_RAW_H_
 

@@ -4,8 +4,8 @@
 
 //    Implementation based on the analysis of the sample files.
 
-#ifndef UDF_DATASET
-#define UDF_DATASET
+#ifndef XYLIB_PHILIPS_UDF_H_
+#define XYLIB_PHILIPS_UDF_H_
 #include "xylib.h"
 
 namespace xylib {
@@ -17,5 +17,5 @@ namespace xylib {
 
 } // namespace
 
-#endif // UDF_DATASET
+#endif // XYLIB_PHILIPS_UDF_H_
 

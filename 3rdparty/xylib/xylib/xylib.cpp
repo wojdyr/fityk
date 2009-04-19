@@ -2,15 +2,13 @@
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id$
 
+#include "xylib.h"
+
 #include <cassert>
 #include <iomanip>
 #include <algorithm>
-#include <boost/detail/endian.hpp>
-#include <boost/cstdint.hpp>
 
-#include "xylib.h"
 #include "util.h"
-
 #include "brucker_raw.h"
 #include "rigaku_dat.h"
 #include "text.h"
@@ -29,7 +27,6 @@
 
 using namespace std;
 using namespace xylib::util;
-using namespace boost;
 
 namespace xylib {
 

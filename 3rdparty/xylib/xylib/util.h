@@ -2,8 +2,8 @@
 // Licence: Lesser GNU Public License 2.1 (LGPL) 
 // $Id$
 
-#ifndef XYLIB__UTIL__H__
-#define XYLIB__UTIL__H__
+#ifndef XYLIB_UTIL_H_
+#define XYLIB_UTIL_H_
 
 #include <string>
 #include <vector>
@@ -143,4 +143,4 @@ public:
 } // namespace util
 } // namespace xylib
 
-#endif //ifndef XYLIB__UTIL__H__
+#endif // XYLIB_UTIL_H_

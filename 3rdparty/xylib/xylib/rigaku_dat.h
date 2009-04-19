@@ -4,8 +4,8 @@
 
 // Implementation based on the analysis of the sample files.
 
-#ifndef RIGAKU_DATASET
-#define RIGAKU_DATASET
+#ifndef XYLIB_RIGAKU_DAT_H_
+#define XYLIB_RIGAKU_DAT_H_
 #include "xylib.h"
 
 
@@ -18,5 +18,5 @@ namespace xylib {
 
 } // namespace
 
-#endif // RIGAKU_DATASET
+#endif // XYLIB_RIGAKU_DAT_H_
 

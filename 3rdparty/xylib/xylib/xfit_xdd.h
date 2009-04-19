@@ -4,8 +4,8 @@
 
 // format description: http://www.ccp14.ac.uk/tutorial/xfit-95/dformat.htm
 
-#ifndef XFIT_XDD_DATASET_H_
-#define XFIT_XDD_DATASET_H_
+#ifndef XYLIB_XFIT_XDD_H_
+#define XYLIB_XFIT_XDD_H_
 #include "xylib.h"
 
 namespace xylib {
@@ -16,5 +16,5 @@ namespace xylib {
     };
 
 }
-#endif // XFIT_XDD_DATASET_H_
+#endif // XYLIB_XFIT_XDD_H_
 

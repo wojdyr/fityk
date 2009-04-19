@@ -4,8 +4,8 @@
 
 // based on GSAS Manual, chapter "GSAS Standard Powder Data File"
 
-#ifndef GSAS_DATASET_H
-#define GSAS_DATASET_H
+#ifndef XYLIB_GSAS_H_
+#define XYLIB_GSAS_H_
 
 #include "xylib.h"
 
@@ -19,5 +19,5 @@ namespace xylib {
 
 } // namespace
 
-#endif // GSAS_DATASET_H
+#endif // XYLIB_GSAS_H_
 

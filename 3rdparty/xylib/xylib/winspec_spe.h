@@ -11,8 +11,8 @@
 // David Hovis (the documents came with his equipment) 
 // and source code of a program written by Pablo Bianucci.
 
-#ifndef WINSPEC_SPE_DATASET_H
-#define WINSPEC_SPE_DATASET_H
+#ifndef XYLIB_WINSPEC_SPE_H_
+#define XYLIB_WINSPEC_SPE_H_
 #include "xylib.h"
 
 namespace xylib {
@@ -29,5 +29,5 @@ namespace xylib {
     }; 
 
 } // namespace
-#endif // WINSPEC_SPE_DATASET_H
+#endif // XYLIB_WINSPEC_SPE_H_
 

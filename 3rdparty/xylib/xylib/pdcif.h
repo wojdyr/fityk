@@ -16,8 +16,8 @@
 // implementation is based on the file format specification and the tcl/tk
 // program ciftools
 
-#ifndef PDCIF_DATASET_H
-#define PDCIF_DATASET_H
+#ifndef XYLIB_PDCIF_H_
+#define XYLIB_PDCIF_H_
 #include "xylib.h"
 
 namespace xylib {
@@ -29,4 +29,4 @@ namespace xylib {
 
 } // namespace
 
-#endif // #ifndef PDCIF_DATASET_H
+#endif // XYLIB_PDCIF_H_

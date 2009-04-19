@@ -13,8 +13,8 @@
 // NOTE: .mca is not a canonical extension.
 
 
-#ifndef CANBERRA_MCA_DATASET_H_
-#define CANBERRA_MCA_DATASET_H_
+#ifndef XYLIB_CANBERRA_MCA_H_
+#define XYLIB_CANBERRA_MCA_H_
 #include "xylib.h"
 
 namespace xylib {
@@ -27,5 +27,5 @@ namespace xylib {
     };
 
 }
-#endif // CANBERRA_MCA_DATASET_H_
+#endif // CANBERRA_MCA_H_
 

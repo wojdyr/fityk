@@ -18,8 +18,8 @@
 // have the extensions *.rit for x-ray data *.neu for neutron data.
 
 
-#ifndef DBWS_DATASET_H_
-#define DBWS_DATASET_H_
+#ifndef XYLIB_DBWS_H_
+#define XYLIB_DBWS_H_
 #include "xylib.h"
 
 namespace xylib {
@@ -30,5 +30,5 @@ namespace xylib {
     };
 
 }
-#endif // DBWS_DATASET_H_
+#endif // XYLIB_DBWS_H_
 

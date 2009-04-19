@@ -5,8 +5,8 @@
 // Implementation based on analysis of sample files 
 // and description from http://www.ccp14.ac.uk/tutorial/xfit-95/dformat.htm
 
-#ifndef CPI_DATASET_H_
-#define CPI_DATASET_H_
+#ifndef XYLIB_CPI_H_
+#define XYLIB_CPI_H_
 #include "xylib.h"
 
 namespace xylib {
@@ -17,5 +17,5 @@ namespace xylib {
     };
 
 }
-#endif // CPI_DATASET_H_
+#endif // XYLIB_CPI_H_
 

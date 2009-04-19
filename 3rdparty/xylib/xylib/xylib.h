@@ -31,8 +31,8 @@
 /// 
 
 
-#ifndef XYLIB__API__H__
-#define XYLIB__API__H__
+#ifndef XYLIB_XYLIB_H_
+#define XYLIB_XYLIB_H_
 
 #ifndef __cplusplus
 #error "This library does not have C API."
@@ -50,7 +50,7 @@
 ///  XYLIB_VERSION / 100 % 100 is the minor version
 ///  XYLIB_VERSION / 10000 is the major version
 
-#define XYLIB_VERSION 200 // 0.2.0
+#define XYLIB_VERSION 400 // 0.4.0
 
 
 namespace xylib
@@ -264,5 +264,5 @@ std::string get_wildcards_string(std::string const& all_files="*");
         static DataSet* ctor() { return new class_name; } \
         static const FormatInfo fmt_info; 
 
-#endif //ifndef XYLIB__API__H__
+#endif // XYLIB_XYLIB_H_
 

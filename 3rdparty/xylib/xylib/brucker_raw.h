@@ -11,8 +11,8 @@
 //               was contributed by Andreas Breslau, who analysed binary files
 //               and corresponding ascii files.
 
-#ifndef BRUCKER_RAW_V1_H
-#define BRUCKER_RAW_V1_H
+#ifndef XYLIB_BRUCKER_RAW_H_
+#define XYLIB_BRUCKER_RAW_H_
 
 #include "xylib.h"
 
@@ -30,5 +30,5 @@ namespace xylib {
 
 } // namespace
 
-#endif // BRUCKER_RAW_V1_H
+#endif // XYLIB_BRUCKER_RAW_H_
 

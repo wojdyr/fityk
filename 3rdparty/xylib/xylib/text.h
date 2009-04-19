@@ -18,8 +18,8 @@
 // ; 1.2 3.4 5.6
 // foo 2 bar 4
 
-#ifndef TEXT_DATASET_H
-#define TEXT_DATASET_H
+#ifndef XYLIB_TEXT_H_
+#define XYLIB_TEXT_H_
 #include "xylib.h"
 
 namespace xylib {
@@ -32,5 +32,5 @@ namespace xylib {
     }; 
 
 } // namespace
-#endif // TEXT_DATASET_H
+#endif // XYLIB_TEXT_H_
 

@@ -5,8 +5,8 @@
 // Binary files can be converted to UXD format with XCH tool.
 // Implementation based on the analysis of sample files.
 
-#ifndef UXD_DATASET_H
-#define UXD_DATASET_H
+#ifndef XYLIB_UXD_H_
+#define XYLIB_UXD_H_
 #include "xylib.h"
 
 namespace xylib {
@@ -17,5 +17,5 @@ namespace xylib {
     };
 
 }
-#endif // UXD_DATASET_H
+#endif // XYLIB_UXD_H_
 

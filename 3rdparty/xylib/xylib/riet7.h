@@ -11,8 +11,8 @@
 // In this way ILL_D1A5 and PSI_DMC formats can be also read - these formats
 // are read by ObjCryst library
 
-#ifndef RIET7_DATASET_H_
-#define RIET7_DATASET_H_
+#ifndef XYLIB_RIET7_H_
+#define XYLIB_RIET7_H_
 #include "xylib.h"
 
 namespace xylib {
@@ -23,5 +23,5 @@ namespace xylib {
     };
 
 }
-#endif // XFIT_XDD_DATASET_H_
+#endif // XYLIB_RIET7_H_
 

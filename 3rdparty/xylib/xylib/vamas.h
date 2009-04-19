@@ -10,8 +10,8 @@
 //    or National Physics Laboratory Report DMA(A)164 July 1988
 // 
 
-#ifndef VAMAS_DATASET_H_
-#define VAMAS_DATASET_H_
+#ifndef XYLIB_VAMAS_H_
+#define XYLIB_VAMAS_H_
 #include "xylib.h"
 
 namespace xylib {
@@ -35,5 +35,5 @@ namespace xylib {
     }; 
 
 } // namespace xylib
-#endif // VAMAS_DATASET_H_
+#endif // XYLIB_VAMAS_H_
 
