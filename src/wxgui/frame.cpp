@@ -365,7 +365,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     sidebar->Show(false);
     v_splitter->Initialize(main_pane);
     sizer->Add(v_splitter, 1, wxEXPAND, 0);
-
+    
     read_recent_data_files();
     set_menubar();
 
@@ -375,7 +375,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
 
     //status bar
     status_bar = new FStatusBar(this);
-    SetStatusBar(status_bar);
+    sizer->Add(status_bar, 0, wxEXPAND, 0);
 
     SetSizer(sizer);
     sizer->SetSizeHints(this);
@@ -1413,16 +1413,7 @@ void FFrame::SwitchToolbar(bool show)
 
 void FFrame::SwitchStatbar (bool show)
 {
-    if (show && !GetStatusBar()) {
-        status_bar = new FStatusBar(this);
-        SetStatusBar(status_bar);
-        plot_pane->update_mouse_hints();
-    }
-    else if (!show && GetStatusBar()) {
-        SetStatusBar(0);
-        delete status_bar; 
-        status_bar = 0;
-    }
+    status_bar->Show(show);
     GetMenuBar()->Check(ID_G_S_STATBAR, show);
 }
 
@@ -1473,13 +1464,10 @@ void FFrame::OnShowPopupMenu(wxCommandEvent& ev)
         plot_pane->get_aux_plot(ev.GetId() - ID_G_C_A1)->OnRightDown(me);
 }
 
-void FFrame::OnConfigureStatusBar(wxCommandEvent&) 
+void FFrame::OnConfigureStatusBar(wxCommandEvent& event) 
 {
-    if (!status_bar)
-        return;
-    ConfStatBarDlg *dialog = new ConfStatBarDlg(this, -1, status_bar);
-    dialog->ShowModal();
-    dialog->Destroy();
+    if (status_bar)
+        status_bar->OnPrefButton(event);
 }
 
 void FFrame::SwitchCrosshair (bool show)
@@ -1491,7 +1479,7 @@ void FFrame::SwitchCrosshair (bool show)
 void FFrame::OnSwitchFullScreen(wxCommandEvent& event)
 {
     ShowFullScreen(event.IsChecked(), 
-              wxFULLSCREEN_NOBORDER|wxFULLSCREEN_NOCAPTION);
+                   wxFULLSCREEN_NOBORDER|wxFULLSCREEN_NOCAPTION);
 }
 
 void FFrame::OnMenuShowAuxUpdate (wxUpdateUIEvent& event)
@@ -1715,13 +1703,25 @@ string FFrame::get_peak_type() const
 void FFrame::set_status_hint(string const& left, string const& right)
 {
     if (status_bar)
-        status_bar->set_hint(left, right);  
+        status_bar->set_hints(left, right);  
 }
 
-void FFrame::set_status_coord_info(fp x, fp y, bool aux)
+void FFrame::set_status_text(std::string const& text)
+{ 
+    if (status_bar) 
+        status_bar->set_text(s2wx(text)); 
+}
+
+void FFrame::set_status_coords(fp x, fp y, PlotTypeEnum pte)
 {
     if (status_bar)
-        status_bar->set_coord_info(x, y, aux);  
+        status_bar->set_coords(x, y, pte);  
+}
+
+void FFrame::clear_status_coords()
+{
+    if (status_bar)
+        status_bar->clear_coords();  
 }
 
 void FFrame::output_text(OutputStyle style, const string& str)
@@ -1862,6 +1862,32 @@ void FFrame::update_app_title()
     if (!filename.empty())
         title += " - " + filename;
     SetTitle(s2wx(title));
+}
+
+// Overrides how menu items' help is displayed. 
+// We show the help in our status bar, which is not derived from wxStatusBar.
+// Implementation based on wxFrameBase::DoGiveHelp(), see comments there.
+void FFrame::DoGiveHelp(const wxString& help, bool show)
+{
+    if (!status_bar)
+        return;
+
+    wxString text;
+    if (show) {
+        if (m_oldStatusText.empty()) {
+            m_oldStatusText = status_bar->get_text();
+            if (m_oldStatusText.empty()) {
+                // use special value to prevent us from doing this the next time
+                m_oldStatusText += _T('\0');
+            }
+        }
+        text = help;
+    }
+    else {
+        text = m_oldStatusText;
+        m_oldStatusText.clear();
+    }
+    status_bar->set_text(text);
 }
 
 //===============================================================

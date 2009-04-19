@@ -653,7 +653,7 @@ void MainPlot::save_settings(wxConfigBase *cf) const
 
 void MainPlot::OnLeaveWindow (wxMouseEvent&)
 {
-    frame->set_status_text("", sbf_coord);
+    frame->clear_status_coords();
     frame->draw_crosshair(-1, -1);
 }
 
@@ -814,7 +814,7 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
     //display coords in status bar 
     int X = event.GetX();
     int Y = event.GetY();
-    frame->set_status_coord_info(xs.val(X), ys.val(Y));
+    frame->set_status_coords(xs.val(X), ys.val(Y), pte_main);
 
     if (pressed_mouse_button == 0) {
         if (mode == mmd_range) {

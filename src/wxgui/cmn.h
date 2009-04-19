@@ -11,7 +11,11 @@
 #include <wx/spinctrl.h>
 #include <wx/mstream.h>
 
+// input mode, changes functions of left and right clicks
 enum MouseModeEnum { mmd_zoom, mmd_bg, mmd_add, mmd_range, mmd_peak };
+
+// plot types, e.g. to tell where is mouse
+enum PlotTypeEnum { pte_main, pte_aux };
 
 
 inline wxString pchar2wx(char const* pc)

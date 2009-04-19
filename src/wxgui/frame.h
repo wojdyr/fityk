@@ -11,7 +11,6 @@
 #include <wx/filename.h>
 #include "cmn.h"  // Output_style_enum
 #include "../common.h" //s2wx
-#include "statbar.h" // StatusBarField
 
 //struct z_names_type;
 struct f_names_type;
@@ -29,7 +28,6 @@ class DataWithSum;
 
 class Ftk;
 extern Ftk *ftk;
-
 
 /// Toolbar bar in Fityk
 class FToolBar : public wxToolBar
@@ -156,7 +154,7 @@ public:
     void OnSwitchStatbar(wxCommandEvent& ev) {SwitchStatbar(ev.IsChecked());}
     void SwitchCrosshair(bool show);
     void OnShowPopupMenu(wxCommandEvent& ev);
-    void OnConfigureStatusBar(wxCommandEvent&);
+    void OnConfigureStatusBar(wxCommandEvent& event);
     void OnSwitchCrosshair(wxCommandEvent& ev){SwitchCrosshair(ev.IsChecked());}
     void OnSwitchFullScreen(wxCommandEvent& event);
     void save_config_as(wxString const& name);
@@ -167,8 +165,10 @@ public:
     void read_settings(wxConfigBase *cf);
     const FToolBar* get_toolbar() const { return toolbar; }
     std::string get_peak_type() const;
+    void set_status_text(std::string const& text);
     void set_status_hint(std::string const& left, std::string const& right);
-    void set_status_coord_info(fp x, fp y, bool aux=false);
+    void set_status_coords(fp x, fp y, PlotTypeEnum pte);
+    void clear_status_coords();
     void output_text(OutputStyle style, std::string const& str);
     void change_zoom(const std::string& s);
     void scroll_view_horizontally(fp step);
@@ -176,8 +176,6 @@ public:
     void draw_crosshair(int X, int Y);
     void focus_input(wxKeyEvent& event);
     void edit_in_input(std::string const& s);
-    void set_status_text(std::string const& text, StatusBarField field=sbf_text)
-            { if (status_bar) SetStatusText(s2wx(text), field); }
     void after_cmd_updates();
     void update_toolbar();
     void update_autoadd_enabled();
@@ -201,6 +199,8 @@ public:
     void update_menu_functions();
     void update_menu_saved_tranforms();
     void update_menu_previous_zooms();
+    // overridden from wxFrameBase, to show help in our status bar replacement
+    void DoGiveHelp(const wxString& help, bool show);
 
 protected:
     ProportionalSplitter *main_pane;

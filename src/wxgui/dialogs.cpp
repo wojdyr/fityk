@@ -15,6 +15,7 @@
 #endif
 
 #include <wx/statline.h>
+#include <wx/config.h>
 
 #include "dialogs.h"
 #include "frame.h"

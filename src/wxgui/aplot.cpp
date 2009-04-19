@@ -198,7 +198,7 @@ void AuxPlot::OnMouseMove(wxMouseEvent &event)
 {
     int X = event.GetX();
     vert_line_following_cursor(mat_move, X);
-    frame->set_status_coord_info(xs.val(X), ys.val(event.GetY()), true);
+    frame->set_status_coords(xs.val(X), ys.val(event.GetY()), pte_aux);
     if (X < move_plot_margin_width)
         set_cursor(wxCURSOR_POINT_LEFT);
     else if (X > GetClientSize().GetWidth() - move_plot_margin_width)
@@ -211,7 +211,7 @@ void AuxPlot::OnMouseMove(wxMouseEvent &event)
 
 void AuxPlot::OnLeaveWindow (wxMouseEvent&)
 {
-    frame->set_status_text("", sbf_coord);
+    frame->clear_status_coords();
     frame->draw_crosshair(-1, -1);
 }
 
