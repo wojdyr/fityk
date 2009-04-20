@@ -25,8 +25,6 @@ fityk.xpm \
 lock.xpm \
 lock_open.xpm \
 manual.xpm \
-mouse_l.xpm \
-mouse_r.xpm \
 open.xpm \
 open_data_custom.xpm \
 open_data.xpm \
@@ -73,6 +71,9 @@ runmacro16.h \
 stopmacro16.h \
 undo16.h \
 zoom-fit16.h \
+\
+mouse16.h
+sbprefs.h
  \
 fityk96.h \
  \
