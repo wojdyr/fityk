@@ -298,6 +298,6 @@ string get_version()
     return S(major) + "." + S(minor) + "." + S(subminor);
 }
 
-} // end of namespace xylib
+} // namespace xylib
 
 

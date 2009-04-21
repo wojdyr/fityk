@@ -24,6 +24,15 @@ AC_CHECK_HEADERS([boost/cstdint.hpp boost/detail/endian.hpp], [],
 AC_CHECK_HEADERS([boost/spirit/core.hpp], [], 
                  [AC_MSG_ERROR([Boost::Spirit headers were not found.])])
 
+AC_CHECK_HEADERS([tr1/memory], [], 
+                 [AC_MSG_ERROR([<tr1/memory> headers were not found.
+		  Please inform xylib maintainer about this problem,
+		  including information about your compiler. ])])
+
+AC_CHECK_HEADERS([sys/types.h sys/stat.h], [], 
+                 [AC_MSG_ERROR([Headers containg POSIX stat() are not found 
+		  Please inform xylib maintainer about this problem,
+		  including information about your compiler. ])])
 
 # this is for compatibility with fityk configure.ac 
 # see xylib/Makefile.am for comments on CPPFLAGS_3RDPARTY
