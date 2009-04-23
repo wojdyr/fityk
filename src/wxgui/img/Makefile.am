@@ -74,6 +74,7 @@ zoom-fit16.h \
 \
 mouse16.h
 sbprefs.h
+ok24.h
  \
 fityk96.h \
  \

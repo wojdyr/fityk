@@ -52,6 +52,7 @@ private:
     wxStaticText *coords;
     wxStaticText *lmouse_hint, *rmouse_hint;
     wxBitmapButton *prefbtn;
+    wxStaticBitmap *mousebmp;
     wxSplitterWindow *split;
 
     void set_coords_format();
@@ -64,11 +65,14 @@ class ConfStatBarDlg: public wxDialog
 public:
     ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_);
     void OnApply (wxCommandEvent&);
+    void OnExtraValueChange(wxCommandEvent&) { check_extra_value(); }
+    void check_extra_value();
 private:
     FStatusBar *sb;
     wxTextCtrl *extra_tc;
     wxCheckBox *show_btn_cb, *show_hints_cb;
     wxSpinCtrl *x_prec_sc, *y_prec_sc, *e_prec_sc;
+    wxStaticBitmap *okbmp;
 };
 
 #endif // FITYK_WX_STATBAR_H_

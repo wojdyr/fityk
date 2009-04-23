@@ -16,6 +16,7 @@
 // icons
 #include "img/mouse16.h"
 #include "img/sbprefs.h"
+#include "img/ok24.h"
 
 using namespace std;
 
@@ -23,7 +24,6 @@ using namespace std;
 // - ConfStatBarDlg should have only Close button
 // - coordinates of the center of the plot should be shown as example
 //   when ConfStatBarDlg is called
-// - tooltip for settings button
 // - mouse icon should display a tooltip with full information about current
 //   mode and all button usage (also with Shift/Alt/Ctrl)
 
@@ -44,6 +44,7 @@ FStatusBar::FStatusBar(wxWindow *parent)
     sizer->Add(split, wxSizerFlags(1).Centre().Border(wxLEFT));
 
     wxBitmapButton *prefbtn = new wxBitmapButton(this, -1, GET_BMP(sbprefs));
+    prefbtn->SetToolTip(wxT("configure status bar"));
     sizer->Add(prefbtn, wxSizerFlags().Expand().Centre());
 
     wxString long_hint = wxT("add-in-range");
@@ -56,7 +57,7 @@ FStatusBar::FStatusBar(wxWindow *parent)
     wxBoxSizer *hint_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *vhint_sizer = new wxBoxSizer(wxHORIZONTAL);
     vhint_sizer->Add(lmouse_hint, wxSizerFlags().Centre().FixedMinSize());
-    wxStaticBitmap *mousebmp = new wxStaticBitmap(this, -1, GET_BMP(mouse16));
+    mousebmp = new wxStaticBitmap(this, -1, GET_BMP(mouse16));
     vhint_sizer->Add(mousebmp, wxSizerFlags().Centre().Border(wxRIGHT, 3));
     vhint_sizer->Add(rmouse_hint, wxSizerFlags().Centre().FixedMinSize());
     hint_sizer->Add(new wxStaticLine(this), wxSizerFlags().Expand());
@@ -116,6 +117,10 @@ void FStatusBar::set_hints(string const& left, string const& right)
 {
     lmouse_hint->SetLabel(s2wx(left));
     rmouse_hint->SetLabel(s2wx(right));
+    string tip = "In this mode:"
+                 "\nleft mouse button: " + left
+               + "\nright mouse button: " + right;
+    mousebmp->SetToolTip(tip);
 }
 
 void FStatusBar::set_coords(double x, double y, PlotTypeEnum pte)
@@ -155,7 +160,6 @@ void FStatusBar::OnPrefButton(wxCommandEvent&)
 //                     ConfStatBarDlg
 //===============================================================
 
-
 ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
     //explicit conversion of title to wxString() is neccessary
   : wxDialog(parent, id, wxString(wxT("Configure Status Bar")),
@@ -174,7 +178,25 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
     top_sizer->Add(show_hints_cb, wxSizerFlags().Border());
 
     wxStaticBoxSizer *f_sizer = new wxStaticBoxSizer(wxVERTICAL, this, 
-                                   wxT("coordinates format"));
+                                                     wxT("coordinates"));
+
+    f_sizer->Add(new wxStaticText(this, -1, 
+              wxT("Extra numeric value can be shown in addition to x and y")
+              wxT("\ncoordinates. It can a function of x or y or both, e.g:")
+              wxT("\n4*pi*sin(x/2*pi/180)/1.54051")
+              wxT("\nFormula of the extra value:")), 
+                 wxSizerFlags().Border(wxLEFT|wxRIGHT|wxTOP));
+
+    wxBoxSizer *evsizer = new wxBoxSizer(wxHORIZONTAL);
+    extra_tc = new wxTextCtrl(this, -1, sb->extra_value);
+    evsizer->Add(extra_tc, wxSizerFlags(1).Center().Border());
+    okbmp = new wxStaticBitmap(this, -1, GET_BMP(ok24));
+    evsizer->Add(okbmp, wxSizerFlags().Center().Border()
+#if wxCHECK_VERSION(2, 8, 8)
+            .ReserveSpaceEvenIfHidden()
+#endif
+                );
+    f_sizer->Add(evsizer, wxSizerFlags().Expand());
 
     wxGridSizer *gsizer = new wxGridSizer(2, 5, 5);
 
@@ -190,23 +212,42 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
     y_prec_sc = new SpinCtrl(this, -1, sb->y_prec, 0, 9, 40);
     gsizer->Add(y_prec_sc, cl);
 
-    gsizer->Add(new wxStaticText(this, -1, wxT("formula of extra value")), cr);
-    extra_tc = new wxTextCtrl(this, -1, sb->extra_value);
-    gsizer->Add(extra_tc, wxSizerFlags().Expand().Centre());
-
     gsizer->Add(new wxStaticText(this, -1,wxT("precision of extra value")), cr);
     e_prec_sc = new SpinCtrl(this, -1, sb->e_prec, 0, 9, 40);
     gsizer->Add(e_prec_sc, cl);
 
-    f_sizer->Add(gsizer, wxSizerFlags(1).Expand());
+    f_sizer->Add(gsizer, wxSizerFlags(1).Border());
     top_sizer->Add(f_sizer, wxSizerFlags().Expand().Border());
+
+    wxStaticBoxSizer *persistence = new wxStaticBoxSizer(wxHORIZONTAL,
+                                             this, wxT("persistance note"));
+    persistence->Add(new wxStaticText(this, -1,
+                        wxT("To have values above remained after restart use")
+                        wxT("\nGUI > Save current config")),
+                     wxSizerFlags().Center().Border());
+    top_sizer->Add(persistence, wxSizerFlags().Expand().Border());
 
     add_apply_close_buttons(this, top_sizer);
     SetSizerAndFit(top_sizer);
 
     SetEscapeId(wxID_CLOSE);
+
+    check_extra_value();
+
     Connect(wxID_APPLY, wxEVT_COMMAND_BUTTON_CLICKED,
             (wxObjectEventFunction) &ConfStatBarDlg::OnApply);
+    Connect(extra_tc->GetId(), wxEVT_COMMAND_TEXT_UPDATED, 
+            (wxObjectEventFunction) &ConfStatBarDlg::OnExtraValueChange);
+}
+
+void ConfStatBarDlg::check_extra_value()
+{
+    string str = wx2s(extra_tc->GetValue());
+    bool ok = compile_data_expression(str);
+    okbmp->Show(ok);
+#if !wxCHECK_VERSION(2, 8, 8)
+    GetSizer()->Layout();
+#endif
 }
 
 void ConfStatBarDlg::OnApply (wxCommandEvent&)
