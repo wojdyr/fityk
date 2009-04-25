@@ -73,8 +73,8 @@ FStatusBar::FStatusBar(wxWindow *parent)
 void FStatusBar::save_settings(wxConfigBase *cf) const
 {
     cf->SetPath(wxT("/StatusBar"));
-    int pos = split->GetClientSize().x - split->GetSashPosition();
-    cf->Write(wxT("sash_pos"), pos);
+    int coord_width = split->GetClientSize().x - split->GetSashPosition();
+    cf->Write(wxT("coord_width"), coord_width);
     cf->Write(wxT("show_btn"), show_btn);
     cf->Write(wxT("show_hints"), show_hints);
     cf->Write(wxT("x_prec"), x_prec);
@@ -86,7 +86,7 @@ void FStatusBar::save_settings(wxConfigBase *cf) const
 void FStatusBar::read_settings(wxConfigBase *cf)
 {
     cf->SetPath(wxT("/StatusBar"));
-    int pos = cf->Read(wxT("sash_pos"), -200);
+    int coord_width = cf->Read(wxT("coord_width"), 200);
     show_btn = cfg_read_bool(cf, wxT("show_btn"), true);
     show_hints = cfg_read_bool(cf, wxT("show_hints"), true);
     x_prec = cf->Read(wxT("x_prec"), 3);
@@ -95,7 +95,7 @@ void FStatusBar::read_settings(wxConfigBase *cf)
     wxString ev = cf->Read(wxT("extraValue"), wxT(""));
 
     set_extra_value(wx2s(ev));
-    split->SetSashPosition(pos);
+    split->SetSashPosition(-coord_width);
     show_or_hide();
 }
 
@@ -180,23 +180,25 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
     wxStaticBoxSizer *f_sizer = new wxStaticBoxSizer(wxVERTICAL, this, 
                                                      wxT("coordinates"));
 
-    f_sizer->Add(new wxStaticText(this, -1, 
-              wxT("Extra numeric value can be shown in addition to x and y")
-              wxT("\ncoordinates. It can a function of x or y or both, e.g:")
-              wxT("\n4*pi*sin(x/2*pi/180)/1.54051")
-              wxT("\nFormula of the extra value:")), 
-                 wxSizerFlags().Border(wxLEFT|wxRIGHT|wxTOP));
+    wxStaticText *evcomment = new wxStaticText(this, -1, 
+                 wxT("In addition to x and y, extra numeric value ")
+                 wxT("(function of x and/or y) can be shown, e.g.:")
+                 wxT("\n4*pi*sin(x/2*pi/180)/1.54051"));
+    evcomment->SetFont(*wxITALIC_FONT);
+    f_sizer->Add(evcomment, wxSizerFlags().Border());
 
     wxBoxSizer *evsizer = new wxBoxSizer(wxHORIZONTAL);
+    evsizer->Add(new wxStaticText(this, -1, wxT("extra value formula")), 
+                 wxSizerFlags().Center().Border(wxRIGHT));
     extra_tc = new wxTextCtrl(this, -1, sb->extra_value);
-    evsizer->Add(extra_tc, wxSizerFlags(1).Center().Border());
+    evsizer->Add(extra_tc, wxSizerFlags(1).Center());
     okbmp = new wxStaticBitmap(this, -1, GET_BMP(ok24));
-    evsizer->Add(okbmp, wxSizerFlags().Center().Border()
+    evsizer->Add(okbmp, wxSizerFlags().Center()
 #if wxCHECK_VERSION(2, 8, 8)
             .ReserveSpaceEvenIfHidden()
 #endif
                 );
-    f_sizer->Add(evsizer, wxSizerFlags().Expand());
+    f_sizer->Add(evsizer, wxSizerFlags().Expand().Border());
 
     wxGridSizer *gsizer = new wxGridSizer(2, 5, 5);
 
@@ -258,8 +260,6 @@ void ConfStatBarDlg::OnApply (wxCommandEvent&)
     sb->x_prec = x_prec_sc->GetValue();
     sb->y_prec = y_prec_sc->GetValue();
     sb->e_prec = e_prec_sc->GetValue();
-    bool r = sb->set_extra_value(wx2s(extra_tc->GetValue()));
-    if (!r)
-        extra_tc->SetSelection(-1, -1);
+    sb->set_extra_value(wx2s(extra_tc->GetValue()));
 }
 
