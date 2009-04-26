@@ -42,6 +42,7 @@
 #include "about.h"
 #include "dload.h"
 #include "pane.h"
+#include "pplot.h"
 #include "sidebar.h"
 #include "print.h"
 #include "dataedit.h"
@@ -384,6 +385,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
 
     update_menu_functions();
     update_menu_saved_tranforms();
+    plot_pane->get_plot()->set_hint_receiver(status_bar);
     io_pane->SetFocus();
 }
 
@@ -1004,7 +1006,7 @@ void FFrame::OnDefinitionMgr(wxCommandEvent&)
 
 void FFrame::OnSGuess (wxCommandEvent&)
 {
-    ftk->exec("guess " + frame->get_peak_type() + get_global_parameters()
+    ftk->exec("guess " + get_peak_type() + get_global_parameters()
               + get_in_datasets());
 }
 
@@ -1045,8 +1047,7 @@ void FFrame::OnSExport (wxCommandEvent& event)
                        wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) 
         ftk->exec(string("info ") + (as_peaks ? "peaks" : "formula")
-                  + frame->get_in_datasets() 
-                  + " > '" + wx2s(fdlg.GetPath()) + "'");
+                  + get_in_datasets() + " > '" + wx2s(fdlg.GetPath()) + "'");
     dir = fdlg.GetDirectory();
 }
            
@@ -1857,7 +1858,7 @@ void FFrame::activate_function(int n)
 void FFrame::update_app_title()
 {
     string title = "fityk";
-    int pos = frame->get_focused_ds_index();
+    int pos = get_focused_ds_index();
     string const& filename = ftk->get_data(pos)->get_filename();
     if (!filename.empty())
         title += " - " + filename;

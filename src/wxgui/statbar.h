@@ -11,8 +11,16 @@
 
 #include "cmn.h" //SpinCtrl, close_it
 
+
+// used by MainPlot to set hints on FStatusBar
+class HintReceiver
+{
+public:
+    virtual void set_hints(std::string const& left, std::string const& right)=0;
+};
+
 /// Status bar in Fityk
-class FStatusBar: public wxPanel
+class FStatusBar: public wxPanel, public HintReceiver
 {
     friend class ConfStatBarDlg;
 public:

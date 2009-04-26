@@ -21,7 +21,7 @@
 
 #include "print.h"
 #include "cmn.h" 
-#include "pane.h" 
+#include "pplot.h" 
 #include "plot.h" 
 #include "mplot.h" 
 #include "aplot.h" 

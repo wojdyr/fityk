@@ -16,6 +16,7 @@
 #include "mplot.h"
 #include "frame.h"
 #include "sidebar.h"
+#include "statbar.h" // HintReceiver
 #include "../data.h" 
 #include "../logic.h"
 #include "../sum.h"
@@ -236,8 +237,11 @@ MainPlot::MainPlot (wxWindow *parent)
     : FPlot(parent), bgm(xs),
       basic_mode(mmd_zoom), mode(mmd_zoom), 
       pressed_mouse_button(0), ctrl_on_down(false), shift_on_down(false),
-      over_peak(-1), limit1(INT_MIN), limit2(INT_MIN)
-{ }
+      over_peak(-1), limit1(INT_MIN), limit2(INT_MIN),
+      hint_receiver(NULL)
+{ 
+    set_cursor();
+}
 
 void MainPlot::OnPaint(wxPaintEvent&)
 {
@@ -247,7 +251,6 @@ void MainPlot::OnPaint(wxPaintEvent&)
     vert_line_following_cursor(mat_redraw);//draw, if necessary, vertical lines
     peak_draft(mat_redraw);
     draw_moving_func(mat_redraw);
-    frame->update_app_title();
 }
 
 fp y_of_data_for_draw_data(vector<Point>::const_iterator i, Sum const* /*sum*/)
@@ -279,7 +282,7 @@ void MainPlot::draw_dataset(wxDC& dc, int n, bool set_pen)
 
 void MainPlot::draw(wxDC &dc, bool monochrome)
 {
-    int focused_data = frame->get_focused_ds_index();
+    int focused_data = frame->get_sidebar()->get_focused_data();
     Sum const* sum = ftk->get_sum(focused_data);
 
     set_scale(get_pixel_width(dc), get_pixel_height(dc));
@@ -760,53 +763,51 @@ void MainPlot::set_mouse_mode(MouseModeEnum m)
         basic_mode = m;
     mode = m;
     update_mouse_hints();
+    set_cursor();
     if (old != mode && (old == mmd_bg || mode == mmd_bg 
                         || visible_peaktops(old) != visible_peaktops(mode)))
         refresh(false);
 }
 
+// update mouse hint on status bar
 void MainPlot::update_mouse_hints()
-    // update mouse hint on status bar and cursor
 {
-    string left="", right="";
-    switch (pressed_mouse_button) {
-        case 1:
-            left = "";       right = "cancel";
-            break;
-        case 2:
-            left = "cancel"; right = "cancel";
-            break;
-        case 3:
-            left = "cancel"; right = "";
-            break;
-        default:
-            //button not pressed
-            switch (mode) {
-                case mmd_peak:
-                    left = "move peak"; right = "peak menu";
-                    SetCursor (wxCURSOR_CROSS);
-                    break;
-                case mmd_zoom: 
-                    left = "rect zoom"; right = "plot menu";
-                    SetCursor (wxCURSOR_ARROW);
-                    break;
-                case mmd_bg: 
-                    left = "add point"; right = "del point";
-                    SetCursor (wxCURSOR_ARROW);
-                    break;
-                case mmd_add: 
-                    left = "draw-add";  right = "add-in-range";
-                    SetCursor (wxCURSOR_ARROW);
-                    break;
-                case mmd_range: 
-                    left = "activate";  right = "disactivate";
-                    SetCursor (wxCURSOR_ARROW);
-                    break;
-                default: 
-                    assert(0);
-            }
+    if (!hint_receiver)
+        return;
+    const char *left="", *right="";
+    if (pressed_mouse_button) {
+        if (pressed_mouse_button != 1)
+            left = "cancel";
+        if (pressed_mouse_button != 3)
+            right = "cancel";
     }
-    frame->set_status_hint(left, right);
+    else { //button not pressed
+        switch (mode) {
+            case mmd_peak:
+                left = "move peak"; right = "peak menu";
+                break;
+            case mmd_zoom: 
+                left = "rect zoom"; right = "plot menu";
+                break;
+            case mmd_bg: 
+                left = "add point"; right = "del point";
+                break;
+            case mmd_add: 
+                left = "draw-add";  right = "add-in-range";
+                break;
+            case mmd_range: 
+                left = "activate";  right = "disactivate";
+                break;
+            default: 
+                assert(0);
+        }
+    }
+    hint_receiver->set_hints(left, right);
+}
+
+void MainPlot::set_cursor()
+{
+    SetCursor(mode == mmd_peak ? wxCURSOR_CROSS : wxCURSOR_ARROW);
 }
 
 void MainPlot::OnMouseMove(wxMouseEvent &event)
@@ -838,7 +839,7 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
 
 void MainPlot::look_for_peaktop (wxMouseEvent& event)
 {
-    int focused_data = frame->get_focused_ds_index();
+    int focused_data = frame->get_sidebar()->get_focused_data();
     Sum const* sum = ftk->get_sum(focused_data);
     vector<int> const& idx = sum->get_ff_idx();
     if (special_points.size() != idx.size()) 
@@ -892,6 +893,7 @@ void MainPlot::cancel_mouse_press()
         pressed_mouse_button = 0;
         frame->set_status_text("");
         update_mouse_hints();
+        set_cursor();
     }
 }
 
@@ -923,7 +925,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         cancel_mouse_press();
     }
     else if (button == 1 && mode == mmd_peak) {
-        frame->activate_function(over_peak);
+        frame->get_sidebar()->activate_function(over_peak);
         draw_moving_func(mat_start, event.GetX(), event.GetY());
         frame->set_status_text("Moving " + ftk->get_function(over_peak)->xname 
                                 + "...");
@@ -988,7 +990,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
 
 bool MainPlot::can_disactivate()
 {
-    vector<int> sel = frame->get_selected_ds_indices();
+    vector<int> sel = frame->get_sidebar()->get_selected_ds_indices();
     for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i) {
         Data const* data = ftk->get_data(*i);
         // if data->is_empty() we allow to try disactivate data to let user
@@ -1082,6 +1084,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     }
     pressed_mouse_button = 0;
     update_mouse_hints();
+    set_cursor();
 }
 
 void MainPlot::add_peak_from_draft(int X, int Y)
@@ -1107,7 +1110,7 @@ void MainPlot::add_peak_from_draft(int X, int Y)
     if (ftk->get_ds_count() == 1)
         cmd = tail;
     else {
-        vector<int> sel = frame->get_selected_ds_indices();
+        vector<int> sel = frame->get_sidebar()->get_selected_ds_indices();
         cmd = "@" + join_vector(sel, "." + tail + "; @") + "." + tail;
     }
     ftk->exec(cmd); 
@@ -1341,13 +1344,13 @@ void MainPlot::OnPopupRadius (wxCommandEvent& event)
 
 void MainPlot::OnConfigureAxes (wxCommandEvent&)
 {
-    ConfigureAxesDlg dialog(frame, -1, this);
+    ConfigureAxesDlg dialog(NULL, -1, this);
     dialog.ShowModal();
 }
 
 void MainPlot::OnConfigurePLabels (wxCommandEvent&)
 {
-    ConfigurePLabelsDlg dialog(frame, -1, this);
+    ConfigurePLabelsDlg dialog(NULL, -1, this);
     dialog.ShowModal();
 }
 
@@ -1620,7 +1623,7 @@ void ConfigurePLabelsDlg::OnChangeLabelFont (wxCommandEvent&)
 { 
     wxFontData data;
     data.SetInitialFont(plot->plabelFont);
-    wxFontDialog dialog(frame, data);
+    wxFontDialog dialog(NULL, data);
     if (dialog.ShowModal() == wxID_OK)
     {
         wxFontData retData = dialog.GetFontData();

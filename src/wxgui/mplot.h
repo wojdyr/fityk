@@ -15,6 +15,7 @@
 /// which can be set by selecting points on Plot
 
 class Function;
+class HintReceiver;
 
 class BgManager
 {
@@ -140,6 +141,7 @@ public:
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
     void update_mouse_hints();
+    void set_cursor();
     void set_mouse_mode(MouseModeEnum m);
     MouseModeEnum get_mouse_mode() const { return mode; }
     wxColour const& get_data_color(int n) const
@@ -158,6 +160,8 @@ public:
     bool get_x_reversed() const { return x_reversed; }
     void draw_xor_peak(Function const* func, std::vector<fp> const& p_values);
     void show_popup_menu(wxMouseEvent &event);
+    void set_hint_receiver(HintReceiver *hr) 
+        { hint_receiver = hr; update_mouse_hints(); }
 
 private:
     MouseModeEnum basic_mode, 
@@ -182,6 +186,7 @@ private:
     int limit1, limit2; /// for drawing function limits (vertical lines)
     FunctionMouseDrag fmd; //for function dragging
     FunctionKind func_draft_kind; // for function adding (with drawing draft)
+    HintReceiver *hint_receiver; // used to set mouse hints, probably statusbar
 
     void draw_x_axis (wxDC& dc, bool set_pen=true);
     void draw_y_axis (wxDC& dc, bool set_pen=true);

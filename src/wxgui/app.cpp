@@ -26,7 +26,6 @@
 #include "cmn.h"
 #include "frame.h"
 #include "dataedit.h" //DataEditorDlg::read_transforms()
-#include "pane.h" // initializations
 #include "sidebar.h" // initializations
 #include "../logic.h"
 #include "../cmd.h"
@@ -200,15 +199,11 @@ bool FApp::OnInit(void)
                                     wxCONFIG_USE_LOCAL_FILE);
     frame->read_all_settings(cf);
 
-    frame->plot_pane->set_mouse_mode(mmd_zoom);
-
     frame->Show(true);
 
-    // it does not work earlier, problems with OutputWin colors (wxGTK gtk1.2)
-    frame->io_pane->output_win->read_settings(cf);
-    frame->io_pane->output_win->show_fancy_dashes();
     // sash inside wxNoteBook can have wrong position (eg. wxGTK 2.7.1)
     frame->sidebar->read_settings(cf);
+
     delete cf;
 
     SetTopWindow(frame);

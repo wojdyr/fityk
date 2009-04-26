@@ -862,6 +862,9 @@ void SideBar::update_data_inf()
         inf->AppendText(wxT("\nPath: ") + fn.GetFullPath());
     }
     inf->ShowPosition(0);
+
+    // update also data filename in app window title
+    frame->update_app_title();
 }
 
 void SideBar::update_func_inf()
