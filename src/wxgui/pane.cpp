@@ -25,14 +25,8 @@
 using namespace std;
 
 enum { 
-    ID_OUTPUT_C_BG      = 27001,
-    ID_OUTPUT_C_IN             ,
-    ID_OUTPUT_C_OU             ,
-    ID_OUTPUT_C_QT             ,
-    ID_OUTPUT_C_WR             ,
-    ID_OUTPUT_C                ,
-    ID_OUTPUT_P_FONT           ,
-    ID_OUTPUT_P_CLEAR          
+    ID_OUTPUT_CLEAR     = 27001,
+    ID_OUTPUT_CONFIGURE
 };
 
 
@@ -76,9 +70,8 @@ void IOPane::OnInputLine(wxString const& s)
 
 BEGIN_EVENT_TABLE(OutputWin, wxTextCtrl)
     EVT_RIGHT_DOWN (                      OutputWin::OnRightDown)
-    EVT_MENU_RANGE (ID_OUTPUT_C_BG, ID_OUTPUT_C_WR, OutputWin::OnPopupColor)
-    EVT_MENU       (ID_OUTPUT_P_FONT    , OutputWin::OnPopupFont)
-    EVT_MENU       (ID_OUTPUT_P_CLEAR   , OutputWin::OnPopupClear)
+    EVT_MENU       (ID_OUTPUT_CLEAR,      OutputWin::OnClear)
+    EVT_MENU       (ID_OUTPUT_CONFIGURE,  OutputWin::OnConfigure)
     EVT_KEY_DOWN   (                      OutputWin::OnKeyDown)
 END_EVENT_TABLE()
 
@@ -141,43 +134,13 @@ void OutputWin::append_text (OutputStyle style, const wxString& str)
     //ShowPosition(GetLastPosition());
 }
 
-void OutputWin::OnPopupColor (wxCommandEvent& event)
+void OutputWin::OnConfigure (wxCommandEvent&)
 {
-    int n = event.GetId();
-    wxColour *col;
-    if (n == ID_OUTPUT_C_BG)
-        col = &bg_color;
-    else if (n == ID_OUTPUT_C_OU)
-        col = &text_color[os_normal];
-    else if (n == ID_OUTPUT_C_QT)
-        col = &text_color[os_quot];
-    else if (n == ID_OUTPUT_C_WR)
-        col = &text_color[os_warn];
-    else if (n == ID_OUTPUT_C_IN)
-        col = &text_color[os_input];
-    else 
-        return;
-    if (change_color_dlg(*col)) {
-        SetBackgroundColour (bg_color);
-        SetDefaultStyle (wxTextAttr(wxNullColour, bg_color));
-        Refresh();
-    }
+    OutputWinConfDlg dlg(NULL, -1, this);
+    dlg.ShowModal();
 }
 
-void OutputWin::OnPopupFont (wxCommandEvent&)
-{
-    wxFontData data; 
-    data.SetInitialFont (GetDefaultStyle().GetFont());
-    wxFontDialog dlg (frame, data);
-    int r = dlg.ShowModal();
-    if (r == wxID_OK) {
-        wxFont f = dlg.GetFontData().GetChosenFont();
-        SetDefaultStyle (wxTextAttr (wxNullColour, wxNullColour, f));
-        Refresh();
-    }
-}
-
-void OutputWin::OnPopupClear (wxCommandEvent&)
+void OutputWin::OnClear (wxCommandEvent&)
 {
     Clear();
     show_fancy_dashes();
@@ -186,19 +149,9 @@ void OutputWin::OnPopupClear (wxCommandEvent&)
     
 void OutputWin::OnRightDown (wxMouseEvent& event)
 {
-    wxMenu popup_menu (wxT("output text menu"));
-
-    wxMenu *color_menu = new wxMenu;
-    color_menu->Append (ID_OUTPUT_C_BG, wxT("&Background"));
-    color_menu->Append (ID_OUTPUT_C_IN, wxT("&Input"));
-    color_menu->Append (ID_OUTPUT_C_OU, wxT("&Output"));
-    color_menu->Append (ID_OUTPUT_C_QT, wxT("&Quotation"));
-    color_menu->Append (ID_OUTPUT_C_WR, wxT("&Warning"));
-    popup_menu.Append  (ID_OUTPUT_C   , wxT("&Color"), color_menu);
-
-    popup_menu.Append  (ID_OUTPUT_P_FONT, wxT("&Font"));
-    popup_menu.Append  (ID_OUTPUT_P_CLEAR, wxT("Clea&r"));
-
+    wxMenu popup_menu;
+    popup_menu.Append (ID_OUTPUT_CLEAR, wxT("Clea&r"));
+    popup_menu.Append (ID_OUTPUT_CONFIGURE, wxT("&Configure"));
     PopupMenu (&popup_menu, event.GetX(), event.GetY());
 }
 
@@ -206,4 +159,139 @@ void OutputWin::OnKeyDown (wxKeyEvent& event)
 {
     frame->focus_input(event);
 }
+
+void OutputWin::set_bg_color(wxColour const &color)
+{
+    bg_color = color;
+    SetBackgroundColour (color);
+    SetDefaultStyle (wxTextAttr(wxNullColour, color));
+}
+
+
+OutputWinConfDlg::OutputWinConfDlg(wxWindow* parent, wxWindowID id, 
+                                   OutputWin* ow_) 
+  : wxDialog(parent, id, wxString(wxT("Configure Status Bar")),
+             wxDefaultPosition, wxDefaultSize, 
+             wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
+    ow(ow_)
+{
+    wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
+
+    wxCheckBox *system_font_cb = new wxCheckBox(this, -1, 
+                                    wxT("use the regular system font"));
+    top_sizer->Add(system_font_cb, wxSizerFlags().Border());
+
+    wxBoxSizer *fsizer = new wxBoxSizer(wxHORIZONTAL);
+    fsizer->AddSpacer(16);
+    font_label = new wxStaticText(this, -1, wxT("font:"));
+    fsizer->Add(font_label, wxSizerFlags().Center().Border());
+    font_picker = new wxFontPickerCtrl(this, -1, 
+                                             ow->GetDefaultStyle().GetFont());
+    fsizer->Add(font_picker, wxSizerFlags(1).Center().Border());
+    top_sizer->Add(fsizer, wxSizerFlags().Expand());
+
+    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
+
+    wxGridSizer *gsizer = new wxGridSizer(2, 5, 5);
+    wxSizerFlags cl = wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL),
+             cr = wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL|wxALIGN_RIGHT);
+
+    gsizer->Add(new wxStaticText(this, -1, wxT("background color")), cr);
+    bg_cpicker = new wxColourPickerCtrl(this, -1, ow->bg_color);
+    gsizer->Add(bg_cpicker, cl);
+
+    gsizer->Add(new wxStaticText(this, -1, wxT("input color")), cr);
+    t0_cpicker = new wxColourPickerCtrl(this, -1, ow->text_color[os_input]);
+    gsizer->Add(t0_cpicker, cl);
+
+    gsizer->Add(new wxStaticText(this, -1, wxT("output color")), cr);
+    t1_cpicker = new wxColourPickerCtrl(this, -1, ow->text_color[os_normal]);
+    gsizer->Add(t1_cpicker, cl);
+
+    gsizer->Add(new wxStaticText(this, -1, wxT("quotation color")), cr);
+    t2_cpicker = new wxColourPickerCtrl(this, -1, ow->text_color[os_quot]);
+    gsizer->Add(t2_cpicker, cl);
+
+    gsizer->Add(new wxStaticText(this, -1, wxT("warning color")), cr);
+    t3_cpicker = new wxColourPickerCtrl(this, -1, ow->text_color[os_warn]);
+    gsizer->Add(t3_cpicker, cl);
+
+    hsizer->Add(gsizer, wxSizerFlags());
+
+    preview = new wxTextCtrl(this, -1, wxT(""), 
+                             wxDefaultPosition, wxDefaultSize,
+                             wxTE_MULTILINE|wxTE_RICH|wxTE_READONLY);
+    preview->SetMinSize(wxSize(140, -1));
+    hsizer->Add(preview, wxSizerFlags(1).Expand());
+
+    top_sizer->Add(hsizer, wxSizerFlags(1).Expand().Border());
+
+    top_sizer->Add(new wxButton(this, wxID_CLOSE), 
+                   wxSizerFlags().Right().Border());
+
+    SetSizerAndFit(top_sizer);
+
+    if (ow->GetDefaultStyle().GetFont() == *wxNORMAL_FONT) {
+        system_font_cb->SetValue(true);
+        font_label->Enable(false);
+        font_picker->Enable(false);
+    }
+
+    show_preview();
+
+    SetEscapeId(wxID_CLOSE);
+
+    Connect(system_font_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            (wxObjectEventFunction) &OutputWinConfDlg::OnSystemFontCheckbox);
+    Connect(font_picker->GetId(), wxEVT_COMMAND_FONTPICKER_CHANGED,
+            (wxObjectEventFunction) &OutputWinConfDlg::OnFontChange);
+    Connect(bg_cpicker->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
+            (wxObjectEventFunction) &OutputWinConfDlg::OnColorBg);
+    Connect(t0_cpicker->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
+            (wxObjectEventFunction) &OutputWinConfDlg::OnColorT0);
+    Connect(t1_cpicker->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
+            (wxObjectEventFunction) &OutputWinConfDlg::OnColorT1);
+    Connect(t2_cpicker->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
+            (wxObjectEventFunction) &OutputWinConfDlg::OnColorT2);
+    Connect(t3_cpicker->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
+            (wxObjectEventFunction) &OutputWinConfDlg::OnColorT3);
+}
+
+void OutputWinConfDlg::OnSystemFontCheckbox(wxCommandEvent& event)
+{
+    bool checked = event.IsChecked();
+    font_label->Enable(!checked);
+    font_picker->Enable(!checked);
+    wxFont const& font = checked ? *wxNORMAL_FONT 
+                                 : font_picker->GetSelectedFont();
+    ow->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, font));
+    show_preview();
+}
+
+void OutputWinConfDlg::OnFontChange(wxFontPickerEvent& event)
+{
+    ow->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, 
+                                   event.GetFont())); 
+    show_preview();
+}
+
+void OutputWinConfDlg::show_preview()
+{
+    preview->Clear();
+    preview->SetBackgroundColour(ow->bg_color);
+    preview->SetDefaultStyle(ow->GetDefaultStyle());
+    preview->SetDefaultStyle (wxTextAttr (ow->text_color[os_normal]));
+    preview->AppendText(wxT("\nsettings preview\n\n"));
+    preview->SetDefaultStyle (wxTextAttr (ow->text_color[os_input]));
+    preview->AppendText(wxT("=-> i pi\n"));
+    preview->SetDefaultStyle (wxTextAttr (ow->text_color[os_normal]));
+    preview->AppendText(wxT("3.14159\n"));
+    preview->SetDefaultStyle (wxTextAttr (ow->text_color[os_input]));
+    preview->AppendText(wxT("=-> c < file.fit\n"));
+    preview->SetDefaultStyle (wxTextAttr (ow->text_color[os_quot]));
+    preview->AppendText(wxT("1> bleh in file\n"));
+    preview->SetDefaultStyle (wxTextAttr (ow->text_color[os_warn]));
+    preview->AppendText(wxT("Syntax error.\n"));
+}
+
 

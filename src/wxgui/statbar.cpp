@@ -24,8 +24,6 @@ using namespace std;
 // - ConfStatBarDlg should have only Close button
 // - coordinates of the center of the plot should be shown as example
 //   when ConfStatBarDlg is called
-// - mouse icon should display a tooltip with full information about current
-//   mode and all button usage (also with Shift/Alt/Ctrl)
 
 //===============================================================
 //                    FStatusBar   
@@ -113,14 +111,23 @@ void FStatusBar::set_coords_format()
     }
 }
 
-void FStatusBar::set_hints(string const& left, string const& right)
+void FStatusBar::set_hints(string const& left, string const& right,
+                           string const& mode_name, 
+                           string const& shift_left, string const& shift_right)
 {
-    lmouse_hint->SetLabel(s2wx(left));
-    rmouse_hint->SetLabel(s2wx(right));
-    string tip = "In this mode:"
-                 "\nleft mouse button: " + left
-               + "\nright mouse button: " + right;
-    mousebmp->SetToolTip(tip);
+    lmouse_hint->SetLabel(wxControl::EscapeMnemonics(s2wx(left)));
+    rmouse_hint->SetLabel(wxControl::EscapeMnemonics(s2wx(right)));
+    string tip = "In this mode (" + mode_name + "), on main plot:"
+                 "\n  left mouse button: " + left
+               + "\n  right mouse button: " + right
+               + "\n  Shift + left button: " + shift_left
+               + "\n  Shift + right button: " + shift_right
+               + "\nIn all modes, on main plot:"
+                 "\n  middle mouse button: zoom"
+                 "\n  Ctrl + left button: zoom"
+                 "\n  Ctrl + right button: menu"
+               ;
+    mousebmp->SetToolTip(s2wx(tip));
 }
 
 void FStatusBar::set_coords(double x, double y, PlotTypeEnum pte)

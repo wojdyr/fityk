@@ -16,7 +16,10 @@
 class HintReceiver
 {
 public:
-    virtual void set_hints(std::string const& left, std::string const& right)=0;
+    virtual void set_hints(std::string const& left, std::string const& right,
+                           std::string const& mode_name, 
+                           std::string const& shift_left, 
+                           std::string const& shift_right)=0;
 };
 
 /// Status bar in Fityk
@@ -28,7 +31,9 @@ public:
 
     void set_text(wxString const& text_) { text->SetLabel(text_); }
     wxString get_text() const { return text->GetLabel(); }
-    void set_hints(std::string const& left, std::string const& right);
+    void set_hints(std::string const& left, std::string const& right,
+               std::string const& mode_name, 
+               std::string const& shift_left, std::string const& shift_right);
     void set_coords(double x, double y, PlotTypeEnum pte);
     void clear_coords() { coords->SetLabel(wxEmptyString); }
     bool set_extra_value(std::string const& s);

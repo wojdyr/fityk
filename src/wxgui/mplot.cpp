@@ -774,7 +774,11 @@ void MainPlot::update_mouse_hints()
 {
     if (!hint_receiver)
         return;
-    const char *left="", *right="";
+    const char *left="";
+    const char *right="";
+    const char *mode_name="";
+    const char *shift_left = "";
+    const char *shift_right = "";
     if (pressed_mouse_button) {
         if (pressed_mouse_button != 1)
             left = "cancel";
@@ -787,22 +791,28 @@ void MainPlot::update_mouse_hints()
                 left = "move peak"; right = "peak menu";
                 break;
             case mmd_zoom: 
-                left = "rect zoom"; right = "plot menu";
+                left = "zoom"; right = "menu";
+                mode_name = "normal";
                 break;
             case mmd_bg: 
                 left = "add point"; right = "del point";
+                mode_name = "baseline";
                 break;
             case mmd_add: 
-                left = "draw-add";  right = "add-in-range";
+                left = "draw & add";  right = "add in range";
+                mode_name = "add-peak";
                 break;
             case mmd_range: 
                 left = "activate";  right = "disactivate";
+                mode_name = "data range";
+                shift_left = "activate rectangle"; 
+                shift_right = "disactivate rectangle";
                 break;
             default: 
                 assert(0);
         }
     }
-    hint_receiver->set_hints(left, right);
+    hint_receiver->set_hints(left, right, mode_name, shift_left, shift_right);
 }
 
 void MainPlot::set_cursor()

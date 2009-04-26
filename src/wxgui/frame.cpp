@@ -315,7 +315,8 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_S_IO,        FFrame::OnSwitchIOPane)
     EVT_MENU (ID_G_S_TOOLBAR,   FFrame::OnSwitchToolbar)
     EVT_MENU (ID_G_S_STATBAR,   FFrame::OnSwitchStatbar)
-    EVT_MENU_RANGE (ID_G_C_MAIN, ID_G_C_OUTPUT, FFrame::OnShowPopupMenu)
+    EVT_MENU_RANGE (ID_G_C_MAIN, ID_G_C_A2, FFrame::OnShowPopupMenu)
+    EVT_MENU (ID_G_C_OUTPUT,    FFrame::OnConfigureOutputWin)
     EVT_MENU (ID_G_C_SB,        FFrame::OnConfigureStatusBar)
     EVT_MENU (ID_G_CROSSHAIR,   FFrame::OnSwitchCrosshair)
     EVT_MENU (ID_G_FULLSCRN,   FFrame::OnSwitchFullScreen)
@@ -727,7 +728,7 @@ void FFrame::set_menubar()
     gui_menu_config->Append(ID_G_C_A2, wxT("A&uxliliary Plot 2"), 
                             wxT("Show aux. plot 2 pop-up menu"));
     gui_menu_config->Append(ID_G_C_OUTPUT, wxT("&Output Window"), 
-                            wxT("Show output window pop-up menu"));
+                            wxT("Configure output window"));
     gui_menu_config->Append(ID_G_C_SB, wxT("&Status Bar"), 
                             wxT("Configure Status Bar"));
     gui_menu->Append(-1, wxT("Confi&gure"), gui_menu_config);
@@ -1459,8 +1460,6 @@ void FFrame::OnShowPopupMenu(wxCommandEvent& ev)
     me.m_y = 5;
     if (ev.GetId() == ID_G_C_MAIN)
         plot_pane->get_plot()->show_popup_menu(me);
-    else if (ev.GetId() == ID_G_C_OUTPUT)
-        io_pane->output_win->OnRightDown(me);
     else
         plot_pane->get_aux_plot(ev.GetId() - ID_G_C_A1)->OnRightDown(me);
 }
@@ -1469,6 +1468,11 @@ void FFrame::OnConfigureStatusBar(wxCommandEvent& event)
 {
     if (status_bar)
         status_bar->OnPrefButton(event);
+}
+
+void FFrame::OnConfigureOutputWin(wxCommandEvent& event)
+{ 
+    io_pane->output_win->OnConfigure(event); 
 }
 
 void FFrame::SwitchCrosshair (bool show)
@@ -1699,12 +1703,6 @@ void FFrame::OnSaveAsImage(wxCommandEvent&)
 string FFrame::get_peak_type() const
 {
     return Function::get_all_types()[peak_type_nr];
-}
-
-void FFrame::set_status_hint(string const& left, string const& right)
-{
-    if (status_bar)
-        status_bar->set_hints(left, right);  
 }
 
 void FFrame::set_status_text(std::string const& text)

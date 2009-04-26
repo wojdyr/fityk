@@ -155,6 +155,7 @@ public:
     void SwitchCrosshair(bool show);
     void OnShowPopupMenu(wxCommandEvent& ev);
     void OnConfigureStatusBar(wxCommandEvent& event);
+    void OnConfigureOutputWin(wxCommandEvent& event);
     void OnSwitchCrosshair(wxCommandEvent& ev){SwitchCrosshair(ev.IsChecked());}
     void OnSwitchFullScreen(wxCommandEvent& event);
     void save_config_as(wxString const& name);
@@ -166,7 +167,6 @@ public:
     const FToolBar* get_toolbar() const { return toolbar; }
     std::string get_peak_type() const;
     void set_status_text(std::string const& text);
-    void set_status_hint(std::string const& left, std::string const& right);
     void set_status_coords(fp x, fp y, PlotTypeEnum pte);
     void clear_status_coords();
     void output_text(OutputStyle style, std::string const& str);
