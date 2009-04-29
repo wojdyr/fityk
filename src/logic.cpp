@@ -142,6 +142,10 @@ void Ftk::dump_all_as_script(string const &filename)
     os << "# ------------  settings  ------------\n";
     os << get_settings()->set_script() << endl;
     os << "# ------------  variables and functions  ------------\n";
+    // We define here also auto-removed variables and functions,
+    // so the script can't trigger VariableManager::remove_unreferred()
+    // nor VariableManager::auto_remove_functions() until all references
+    // are reproduced.
     for (vector<Variable*>::const_iterator i = variables.begin();
             i != variables.end(); ++i)
         os << (*i)->xname << " = " << (*i)->get_formula(parameters) << endl;

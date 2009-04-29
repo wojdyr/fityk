@@ -77,11 +77,13 @@ void do_assign_fz(char const*, char const*)
 {
     Sum* sum = AL->get_sum(tmp_int2);
     assert(t3 == "F" || t3 == "Z");
-    if (!with_plus)
-        sum->remove_all_functions_from(t3[0]);
+    char fz = t3[0];
+    bool remove = (!with_plus && !sum->get_names(fz).empty());
+    if (remove)
+        sum->remove_all_functions_from(fz);
     for (vector<string>::const_iterator i = vr.begin(); i != vr.end(); ++i)
-        sum->add_function_to(*i, t3[0]);
-    if (!with_plus)
+        sum->add_function_to(*i, fz);
+    if (remove)
         AL->auto_remove_functions();
     outdated_plot=true;  //TODO only if ds_pref == @active
 }
