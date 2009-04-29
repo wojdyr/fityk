@@ -228,13 +228,8 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
     f_sizer->Add(gsizer, wxSizerFlags(1).Border());
     top_sizer->Add(f_sizer, wxSizerFlags().Expand().Border());
 
-    wxStaticBoxSizer *persistence = new wxStaticBoxSizer(wxHORIZONTAL,
-                                             this, wxT("persistance note"));
-    persistence->Add(new wxStaticText(this, -1,
-                        wxT("To have values above remained after restart use")
-                        wxT("\nGUI > Save current config")),
-                     wxSizerFlags().Center().Border());
-    top_sizer->Add(persistence, wxSizerFlags().Expand().Border());
+    top_sizer->Add(persistance_note_sizer(this), 
+                   wxSizerFlags().Expand().Border());
 
     add_apply_close_buttons(this, top_sizer);
     SetSizerAndFit(top_sizer);

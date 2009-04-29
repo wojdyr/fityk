@@ -257,3 +257,20 @@ void updateControlWithItems(wxControlWithItems *cwi, vector<string> const& v)
                 cwi->SetString(i, s2wx(v[i]));
 }
 
+
+wxSizer* note_sizer(wxWindow *parent, wxString const& title, 
+                    wxString const& msg)
+{
+    wxStaticBoxSizer *t = new wxStaticBoxSizer(wxVERTICAL, parent, title);
+    t->Add(new wxStaticText(parent, -1, msg), wxSizerFlags().Center().Border());
+    return t;
+}
+
+wxSizer* persistance_note_sizer(wxWindow *parent)
+{
+    return note_sizer(parent, wxT("persistance note"),
+                      wxT("To have values above remained after restart use")
+                      wxT("\nGUI > Save current config")
+                     );
+}
+

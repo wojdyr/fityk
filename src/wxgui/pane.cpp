@@ -226,6 +226,9 @@ OutputWinConfDlg::OutputWinConfDlg(wxWindow* parent, wxWindowID id,
 
     top_sizer->Add(hsizer, wxSizerFlags(1).Expand().Border());
 
+    top_sizer->Add(persistance_note_sizer(this), 
+                   wxSizerFlags().Expand().Border());
+
     top_sizer->Add(new wxButton(this, wxID_CLOSE), 
                    wxSizerFlags().Right().Border());
 
