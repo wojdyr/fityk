@@ -8,7 +8,7 @@
 
 #include "datatrans2.h"
 #include "datatrans3.h"
-#include "sum.h"
+#include "model.h"
 using namespace datatrans;
 
 namespace datatrans {

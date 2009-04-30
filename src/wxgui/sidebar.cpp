@@ -26,7 +26,7 @@
 #include "../ui.h" 
 #include "../logic.h"
 #include "../data.h"
-#include "../sum.h"
+#include "../model.h"
 #include "../func.h"
 
 #include "img/add.xpm"

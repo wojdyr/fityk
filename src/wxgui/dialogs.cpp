@@ -25,7 +25,7 @@
 #include "../datatrans.h" 
 #include "../logic.h"
 #include "../data.h"
-#include "../sum.h" // get_ff_names()
+#include "../model.h" // get_ff_names()
 
 #include "img/up_arrow.xpm"
 #include "img/down_arrow.xpm"

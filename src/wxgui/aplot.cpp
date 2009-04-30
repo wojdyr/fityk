@@ -16,7 +16,7 @@
 
 #include "aplot.h"
 #include "frame.h"
-#include "../sum.h"
+#include "../model.h"
 #include "../data.h"
 #include "../logic.h"
 

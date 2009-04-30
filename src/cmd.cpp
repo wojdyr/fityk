@@ -18,7 +18,7 @@
 #include "cmd3.h"
 #include "ui.h"
 #include "var.h"
-#include "sum.h"
+#include "model.h"
 #include "func.h"
 #include "logic.h"
 #include "settings.h"

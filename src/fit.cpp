@@ -9,7 +9,7 @@
 
 #include "fit.h"
 #include "logic.h"
-#include "sum.h"
+#include "model.h"
 #include "data.h"
 #include "ui.h"
 #include "numfuncs.h"

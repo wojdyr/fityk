@@ -21,7 +21,7 @@
 #include "mplot.h" // used in update_data_list()
 #include "../common.h" // s2wx
 #include "../logic.h" // used in update_data_list()
-#include "../sum.h" // used in update_data_list()
+#include "../model.h" // used in update_data_list()
 #include "../data.h" // used in update_data_list()
 
 using namespace std;

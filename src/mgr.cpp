@@ -9,7 +9,7 @@
 #include "ast.h"
 #include "ui.h"
 #include "func.h"
-#include "sum.h"
+#include "model.h"
 #include "settings.h"
 #include "logic.h" //VariableManager::get_or_make_variable() handles @0.F[1].a
 

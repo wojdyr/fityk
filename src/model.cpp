@@ -9,7 +9,7 @@
 #include <fstream>
 #include <ctype.h>
 #include "common.h"
-#include "sum.h"
+#include "model.h"
 #include "func.h"
 #include "var.h"
 #include "mgr.h"

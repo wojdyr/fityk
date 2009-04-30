@@ -11,7 +11,7 @@
 #include "ui.h"
 #include "logic.h"
 #include "data.h"
-#include "sum.h"
+#include "model.h"
 #include "fit.h"
 #include "cmd.h"
 #include "func.h"

@@ -16,7 +16,7 @@
 #include "gnuplot.h"
 #include "../common.h"
 #include "../data.h"
-#include "../sum.h"
+#include "../model.h"
 #include "../logic.h"
 #include "../ui.h"
 

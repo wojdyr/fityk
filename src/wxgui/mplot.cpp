@@ -19,7 +19,7 @@
 #include "statbar.h" // HintReceiver
 #include "../data.h" 
 #include "../logic.h"
-#include "../sum.h"
+#include "../model.h"
 #include "../var.h"
 #include "../func.h"
 #include "../ui.h"

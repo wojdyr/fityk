@@ -5,7 +5,7 @@
 #include "view.h"
 #include "common.h"
 #include "data.h"
-#include "sum.h"
+#include "model.h"
 #include "logic.h"
 
 using namespace std;

@@ -8,7 +8,7 @@
 #include "common.h"
 #include "guess.h"
 #include "data.h"
-#include "sum.h"
+#include "model.h"
 #include "logic.h"
 #include "ui.h"
 #include "func.h"

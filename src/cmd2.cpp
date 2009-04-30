@@ -19,7 +19,7 @@
 #include "optional_suffix.h"
 #include "logic.h"
 #include "data.h"
-#include "sum.h"
+#include "model.h"
 #include "ui.h"
 #include "fit.h"
 #include "settings.h"

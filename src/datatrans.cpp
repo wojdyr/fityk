@@ -127,7 +127,7 @@
 
 //#include "datatrans.h"
 #include "datatrans2.h"
-#include "sum.h"
+#include "model.h"
 #include "voigt.h"
 //#include "common.h"
 //#include "data.h"
