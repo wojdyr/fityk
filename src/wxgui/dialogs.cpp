@@ -177,12 +177,12 @@ void SumHistoryDlg::OnComputeWssrButton (wxCommandEvent&)
 {
     FitMethodsContainer const* fmc = ftk->get_fit_container();
     vector<double> const orig = ftk->get_parameters();
-    vector<DataWithSum*> dsds = frame->get_selected_ds();
+    vector<DataAndModel*> dms = frame->get_selected_dms();
 
     for (int i = 0; i != fmc->get_param_history_size(); ++i) {
         vector<double> const& item = fmc->get_item(i);
         if (item.size() == orig.size()) {
-            double wssr = ftk->get_fit()->do_compute_wssr(item, dsds, true);
+            double wssr = ftk->get_fit()->do_compute_wssr(item, dms, true);
             lc->SetItem(i, 2, wxString::Format(wxT("%g"), wssr));
         }
     }
@@ -239,21 +239,21 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER) 
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
-    wxArrayString ds_choices;
-    sel = frame->get_selected_ds_indices();
+    wxArrayString data_choices;
+    sel = frame->get_selected_data_indices();
     string a = S(sel.size()) + " selected dataset";
     if (sel.size() == 1)
         a += ": @" + S(sel[0]);
     else
         a += "s";
-    ds_choices.Add(s2wx(a)); 
-    ds_choices.Add(wxT("all datasets"));
-    ds_rb = new wxRadioBox(this, -1, wxT("fit..."), 
-                           wxDefaultPosition, wxDefaultSize,
-                           ds_choices, 1, wxRA_SPECIFY_COLS);
-    if (ftk->get_ds_count() == 1)
-        ds_rb->Enable(1, false);
-    top_sizer->Add(ds_rb, 0, wxALL|wxEXPAND, 5);
+    data_choices.Add(s2wx(a)); 
+    data_choices.Add(wxT("all datasets"));
+    data_rb = new wxRadioBox(this, -1, wxT("fit..."), 
+                             wxDefaultPosition, wxDefaultSize,
+                             data_choices, 1, wxRA_SPECIFY_COLS);
+    if (ftk->get_dm_count() == 1)
+        data_rb->Enable(1, false);
+    top_sizer->Add(data_rb, 0, wxALL|wxEXPAND, 5);
     wxBoxSizer *method_sizer = new wxBoxSizer(wxHORIZONTAL);
     method_sizer->Add(new wxStaticText(this, -1, wxT("method:")), 
                       0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
@@ -310,14 +310,14 @@ void FitRunDlg::update_allow_continue()
     int m_sel = method_c->GetSelection();
     //use "::Fit", because Fit is also a method of wxDialog
     ::Fit const* f = ftk->get_fit_container()->get_method(m_sel);
-    if (ds_rb->GetSelection() == 0) {
-        vector<DataWithSum*> dsds(sel.size());
+    if (data_rb->GetSelection() == 0) {
+        vector<DataAndModel*> dms(sel.size());
         for (size_t i = 0; i < sel.size(); ++i)
-            dsds[i] = ftk->get_ds(sel[i]);
-        is_initialized = f->is_initialized(dsds);
+            dms[i] = ftk->get_dm(sel[i]);
+        is_initialized = f->is_initialized(dms);
     }
     else {
-        is_initialized = f->is_initialized(ftk->get_dsds());
+        is_initialized = f->is_initialized(ftk->get_dms());
     }
     initialize_cb->Enable(is_initialized);
 }
@@ -356,7 +356,7 @@ void FitRunDlg::OnOK(wxCommandEvent&)
         cmd += S(max_iter);
 
     if (ini) {
-        if (ds_rb->GetSelection() == 0)
+        if (data_rb->GetSelection() == 0)
             cmd += frame->get_in_datasets();
         else
             cmd += " in @*";
@@ -374,18 +374,18 @@ bool export_data_dlg(wxWindow *parent, bool load_exported)
 {
     static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
 
-    vector<int> sel = frame->get_selected_ds_indices();
-    int ds;
+    vector<int> sel = frame->get_selected_data_indices();
+    int data_idx;
     if (sel.size() == 1) 
-        ds = sel[0];
-    else if ((int) sel.size() == ftk->get_ds_count())
-        ds = -1;
+        data_idx = sel[0];
+    else if ((int) sel.size() == ftk->get_dm_count())
+        data_idx = -1;
     else
         return false;
 
     string columns = "";
     if (!load_exported) {
-        DataExportDlg ded(parent, -1, ds);
+        DataExportDlg ded(parent, -1, data_idx);
         if (ded.ShowModal() != wxID_OK)
             return false;
         columns = " (" + ded.get_columns() + ")";
@@ -397,10 +397,10 @@ bool export_data_dlg(wxWindow *parent, bool load_exported)
     dir = fdlg.GetDirectory();
     if (fdlg.ShowModal() == wxID_OK) {
         string path = wx2s(fdlg.GetPath());
-        string ds_str = (ds == -1 ? string("@*") : "@" + S(ds));
-        ftk->exec("info " + ds_str + columns + " > '" + path + "'");
+        string dstr = (data_idx == -1 ? string("@*") : "@" + S(data_idx));
+        ftk->exec("info " + dstr + columns + " > '" + path + "'");
         if (load_exported)
-            ftk->exec(ds_str + " < '" + path + "'");
+            ftk->exec(dstr + " < '" + path + "'");
         return true;
     }
     else
@@ -416,11 +416,11 @@ BEGIN_EVENT_TABLE(DataExportDlg, wxDialog)
     EVT_TEXT(ID_DED_TEXT, DataExportDlg::OnTextChanged)
 END_EVENT_TABLE()
 
-DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id, int ds_)
+DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id, int data_idx)
     : wxDialog(parent, id, wxT("Export data/functions as points"), 
                wxDefaultPosition, wxSize(600, 500), 
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
-      ds(ds_)
+      data_idx_(data_idx)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
     wxStaticText *st1 = new wxStaticText(this, -1, 
@@ -435,18 +435,19 @@ DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id, int ds_)
     cv.Add(wxT("x, y"));
     choices.Add(wxT("x, y, sigma"));
     cv.Add(wxT("x, y, s"));
-    choices.Add(wxT("x, sum"));
+    choices.Add(wxT("x, model"));
     cv.Add(wxT("x, F(x)"));
-    choices.Add(wxT("x, sum, zero shift"));
+    choices.Add(wxT("x, model, x-correction"));
     cv.Add(wxT("x, F(x), Z(x)"));
-    choices.Add(wxT("x, y, sigma, sum"));
+    choices.Add(wxT("x, y, sigma, model"));
     wxString xysF = wxT("x, y, s, F(x)");
     cv.Add(xysF);
 
-    choices.Add(wxT("x, y, sigma, sum, all functions..."));
+    choices.Add(wxT("x, y, sigma, model, all functions..."));
     wxString all_func;
-    if (ds >= 0) {
-        vector<string> const& ff_names = ftk->get_sum(ds)->get_ff_names();
+    if (data_idx_ >= 0) {
+        vector<string> const& ff_names 
+            = ftk->get_model(data_idx_)->get_ff_names();
         for (vector<string>::const_iterator i = ff_names.begin(); 
                                                       i != ff_names.end(); ++i)
             all_func += wxT(", %") + s2wx(*i) + wxT("(x)");
@@ -455,7 +456,7 @@ DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id, int ds_)
     else
         cv.Add(wxT(""));
 
-    choices.Add(wxT("x, y, sigma, sum, residual"));
+    choices.Add(wxT("x, y, sigma, model, residual"));
     cv.Add(wxT("x, y, s, F(x), y-F(x)"));
     choices.Add(wxT("x, y, sigma, weighted residual"));
     cv.Add(wxT("x, y, s, (y-F(x))/s"));
@@ -567,14 +568,14 @@ MergePointsDlg::MergePointsDlg(wxWindow* parent, wxWindowID id)
     top_sizer->Add(hsizer, 0, wxALL, 5);
     y_rb = new wxRadioBox(this, -1, wxT("set y as ..."), 
                           wxDefaultPosition, wxDefaultSize, 
-                          make_wxArrStr(wxT("sum"), wxT("avg")),
+                          ArrayString(wxT("sum"), wxT("avg")),
                           1, wxRA_SPECIFY_ROWS);
     top_sizer->Add(y_rb, 0, wxEXPAND|wxALL, 5);
-    focused_data = frame->get_focused_ds_index();
-    wxString this_ds = wxString::Format(wxT("dataset @%d"), focused_data);
+    focused_data = frame->get_focused_data_index();
+    wxString fdstr = wxString::Format(wxT("dataset @%d"), focused_data);
     output_rb = new wxRadioBox(this, -1, wxT("output to ..."), 
                                wxDefaultPosition, wxDefaultSize, 
-                               make_wxArrStr(this_ds, wxT("new dataset")),
+                               ArrayString(fdstr, wxT("new dataset")),
                                1, wxRA_SPECIFY_ROWS);
     top_sizer->Add(output_rb, 0, wxEXPAND|wxALL, 5);
     top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
@@ -585,7 +586,7 @@ MergePointsDlg::MergePointsDlg(wxWindow* parent, wxWindowID id)
 
 void MergePointsDlg::update_info()
 {
-    vector<int> dd = frame->get_selected_ds_indices();
+    vector<int> dd = frame->get_selected_data_indices();
     Data const* data = ftk->get_data(dd[0]);
     fp x_min = data->get_x_min();
     fp x_max = data->get_x_max();
@@ -618,7 +619,7 @@ string MergePointsDlg::get_command()
     s += "@" + dat + " = ";
     if (dx_cb->GetValue())
         s += y_rb->GetSelection() == 0 ? "sum_same_x " : "avg_same_x ";
-    s += "@" + join_vector(frame->get_selected_ds_indices(), " + @");
+    s += "@" + join_vector(frame->get_selected_data_indices(), " + @");
     return s;
 }
 

@@ -27,11 +27,11 @@ VariableManager::~VariableManager()
     purge_all_elements(variables);
 }
 
-void VariableManager::unregister_sum(Sum const *s)
+void VariableManager::unregister_model(Model const *s)
 { 
-    vector<Sum*>::iterator k = find(sums.begin(), sums.end(), s);
-    assert (k != sums.end());
-    sums.erase(k);
+    vector<Model*>::iterator k = find(models.begin(), models.end(), s);
+    assert (k != models.end());
+    models.erase(k);
 }
 
 void VariableManager::sort_variables()
@@ -366,13 +366,14 @@ void VariableManager::delete_funcs(vector<string> const &names)
         functions.erase(functions.begin() + k);
     }
     remove_unreferred();
-    for (vector<Sum*>::iterator i = sums.begin(); i != sums.end(); ++i)
+    for (vector<Model*>::iterator i = models.begin(); i != models.end(); ++i)
         (*i)->find_function_indices();
 }
 
 bool VariableManager::is_function_referred(int n) const
 {
-    for (vector<Sum*>::const_iterator i = sums.begin(); i != sums.end(); ++i) {
+    for (vector<Model*>::const_iterator i = models.begin(); 
+                                                    i != models.end(); ++i) {
         if (contains_element((*i)->get_ff_idx(), n)
                 || contains_element((*i)->get_zz_idx(), n))
             return true;
@@ -390,7 +391,8 @@ void VariableManager::auto_remove_functions()
         }
     if (func_size != size(functions)) {
         remove_unreferred();
-        for (vector<Sum*>::iterator i = sums.begin(); i != sums.end(); ++i)
+        for (vector<Model*>::iterator i = models.begin(); 
+                                                    i != models.end(); ++i)
             (*i)->find_function_indices();
     }
 }
@@ -689,8 +691,8 @@ void VariableManager::do_reset()
     purge_all_elements(functions);
     purge_all_elements(variables);
     parameters.clear();
-    //don't delete sums, they should unregister itself
-    for (vector<Sum*>::iterator i = sums.begin(); i != sums.end(); ++i)
+    //don't delete models, they should unregister itself
+    for (vector<Model*>::iterator i = models.begin(); i != models.end(); ++i)
         (*i)->find_function_indices();
 }
 

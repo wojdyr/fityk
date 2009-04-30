@@ -37,38 +37,29 @@ void message_redir(OutputStyle style, std::string const& s)
 }
 
 
-void check_valid_dataset(int /*dataset*/)
-{
-    // do nothing, let throwing exception
-    //assert(dataset >= 0);
-    //assert(dataset < ftk->get_ds_count());
-}
-
 double get_wssr_or_ssr(Ftk const* ftk, int dataset, bool weigthed)
 {
-    if (dataset == fityk::all_ds) {
+    if (dataset == fityk::all_datasets) {
         double result = 0;
-        for (int i = 0; i < ftk->get_ds_count(); ++i)
-            result += Fit::compute_wssr_for_data(ftk->get_ds(i), weigthed);
+        for (int i = 0; i < ftk->get_dm_count(); ++i)
+            result += Fit::compute_wssr_for_data(ftk->get_dm(i), weigthed);
         return result;
     }
     else {
-        check_valid_dataset(dataset);
-        return Fit::compute_wssr_for_data(ftk->get_ds(dataset), weigthed);
+        return Fit::compute_wssr_for_data(ftk->get_dm(dataset), weigthed);
     }
 }
 
 
-vector<DataWithSum*> get_datasets_(Ftk* ftk, int dataset)
+vector<DataAndModel*> get_datasets_(Ftk* ftk, int dataset)
 {
-    vector<DataWithSum*> dd;
-    if (dataset == fityk::all_ds) {
-        for (int i = 0; i < ftk->get_ds_count(); ++i)
-            dd.push_back(ftk->get_ds(i));
+    vector<DataAndModel*> dd;
+    if (dataset == fityk::all_datasets) {
+        for (int i = 0; i < ftk->get_dm_count(); ++i)
+            dd.push_back(ftk->get_dm(i));
     }
     else {
-        check_valid_dataset(dataset);
-        dd.push_back(ftk->get_ds(dataset));
+        dd.push_back(ftk->get_dm(dataset));
     }
     return dd;
 }
@@ -129,22 +120,20 @@ string Fityk::get_info(string const& s, bool full)
 
 int Fityk::get_dataset_count()
 {
-    return ftk->get_ds_count();
+    return ftk->get_dm_count();
 }
 
-double Fityk::get_sum_value(double x, int dataset)  throw(ExecuteError)
+double Fityk::get_model_value(double x, int dataset)  throw(ExecuteError)
 {
-    check_valid_dataset(dataset);
-    return ftk->get_sum(dataset)->value(x);
+    return ftk->get_model(dataset)->value(x);
 }
 
-vector<double> Fityk::get_sum_vector(vector<double> const& x, int dataset)  
+vector<double> Fityk::get_model_vector(vector<double> const& x, int dataset)  
                                                           throw(ExecuteError)
 {
-    check_valid_dataset(dataset);
     vector<double> xx(x);
     vector<double> yy(x.size(), 0.);
-    ftk->get_sum(dataset)->calculate_sum_value(xx, yy);
+    ftk->get_model(dataset)->compute_model(xx, yy);
     return yy;
 }
 
@@ -186,20 +175,17 @@ void Fityk::load_data(int dataset,
                       std::vector<double> const& sigma, 
                       std::string const& title)     throw(ExecuteError)
 {
-    check_valid_dataset(dataset);
     ftk->get_data(dataset)->load_arrays(x, y, sigma, title);
 }
 
 void Fityk::add_point(double x, double y, double sigma, int dataset)  
                                                           throw(ExecuteError)
 {
-    check_valid_dataset(dataset);
     ftk->get_data(dataset)->add_one_point(x, y, sigma);
 }
 
 vector<Point> const& Fityk::get_data(int dataset)  throw(ExecuteError)
 {
-    check_valid_dataset(dataset);
     return ftk->get_data(dataset)->points();
 }
 
@@ -228,15 +214,14 @@ double Fityk::get_ssr(int dataset)  throw(ExecuteError)
 
 double Fityk::get_rsquared(int dataset)  throw(ExecuteError)
 {
-    if (dataset == fityk::all_ds) {
+    if (dataset == fityk::all_datasets) {
         double result = 0;
-        for (int i = 0; i < ftk->get_ds_count(); ++i)
-            result += Fit::compute_r_squared_for_data(ftk->get_ds(i));
+        for (int i = 0; i < ftk->get_dm_count(); ++i)
+            result += Fit::compute_r_squared_for_data(ftk->get_dm(i));
         return result;
     }
     else {
-        check_valid_dataset(dataset);
-        return Fit::compute_r_squared_for_data(ftk->get_ds(dataset));
+        return Fit::compute_r_squared_for_data(ftk->get_dm(dataset));
     }
 }
 

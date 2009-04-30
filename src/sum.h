@@ -18,18 +18,20 @@ class Ftk;
 ///  This class contains description of curve which we are trying to fit 
 ///  to data. This curve is described simply by listing names of functions
 ///  in F and in Z (Z contains x-corrections)
-class Sum 
+class Model 
 {
 public:
-    Sum(Ftk *F_);
-    ~Sum();
+    Model(Ftk *F_);
+    ~Model();
     void find_function_indices();
     void add_function_to(std::string const &name, char add_to);
     void remove_function_from(std::string const &name, char add_to);
     void remove_all_functions_from(char rm_from);
     fp value(fp x) const;
-    void calculate_sum_value(std::vector<fp> &x, std::vector<fp> &y) const; 
-    void calculate_sum_value_deriv(std::vector<fp> &x, std::vector<fp> &y,
+    // calculate value of model (to be used when derivatives are not needed)
+    void compute_model(std::vector<fp> &x, std::vector<fp> &y) const; 
+    // calculate value of model and its derivatives, see definition for details
+    void compute_model_with_derivs(std::vector<fp> &x, std::vector<fp> &y,
                                    std::vector<fp> &dy_da) const;
 
     fp funcs_value (const std::vector<int>& fn, fp x) const;
@@ -64,10 +66,9 @@ private:
     std::vector<int> ff_idx;
     std::vector<int> zz_idx;
 
-    Sum (const Sum&); //disable
-    Sum& operator= (Sum&); //disable
     void do_find_function_indices(std::vector<std::string> &names,
                                   std::vector<int> &idx);
+    DISALLOW_COPY_AND_ASSIGN(Model);
 };
 
 

@@ -7,7 +7,7 @@
 
 enum FunctionKind { fk_peak, fk_linear /*, fk_step*/, fk_unknown };
 
-class DataWithSum;
+class DataAndModel;
 class Ftk;
 class Data;
 
@@ -15,7 +15,7 @@ class Data;
 class Guess
 {
 public:
-    Guess(Ftk const *F_, DataWithSum const* ds_);
+    Guess(Ftk const *F_, DataAndModel const* dm_);
     std::string get_guess_info(std::vector<std::string> const& range);
     void guess(std::string const& name, std::string const& function,
                std::vector<std::string> const& range,

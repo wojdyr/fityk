@@ -22,13 +22,13 @@
 
 using namespace std;
 
-DataWithSum::DataWithSum(Ftk *F, Data* data_)
-    : data(data_ ? data_ : new Data(F)), sum(new Sum(F))  
+DataAndModel::DataAndModel(Ftk *F, Data* data)
+    : data_(data ? data : new Data(F)), model_(new Model(F))  
 {}
 
-bool DataWithSum::has_any_info() const
+bool DataAndModel::has_any_info() const
 {
-    return get_data()->has_any_info() || get_sum()->has_any_info(); 
+    return data()->has_any_info() || model()->has_any_info(); 
 }
 
 
@@ -57,7 +57,7 @@ void Ftk::initialize()
     // Settings ctor is using FitMethodsContainer 
     settings = new Settings(this);
     view = View(this);
-    append_ds();
+    append_dm();
     get_settings()->do_srand();
     UdfContainer::initialize_udfs();
 }
@@ -65,7 +65,7 @@ void Ftk::initialize()
 // cleaning common for dtor and reset()
 void Ftk::destroy()
 {
-    purge_all_elements(dsds);
+    purge_all_elements(dms);
     VariableManager::do_reset();
     delete fit_container;
     delete settings;
@@ -84,21 +84,21 @@ void Ftk::reset()
     ui->keep_quiet = false;
 }
 
-int Ftk::append_ds(Data *data)
+int Ftk::append_dm(Data *data)
 {
-    DataWithSum* ds = new DataWithSum(this, data);
-    dsds.push_back(ds); 
-    return dsds.size() - 1; 
+    DataAndModel* dm = new DataAndModel(this, data);
+    dms.push_back(dm); 
+    return dms.size() - 1; 
 }
 
-void Ftk::remove_ds(int d)
+void Ftk::remove_dm(int d)
 {
-    if (d < 0 || d >= size(dsds))
+    if (d < 0 || d >= size(dms))
         throw ExecuteError("there is no such dataset: @" + S(d));
-    delete dsds[d];
-    dsds.erase(dsds.begin() + d);
-    if (dsds.empty())
-        append_ds();
+    delete dms[d];
+    dms.erase(dms.begin() + d);
+    if (dms.empty())
+        append_dm();
 }
 
 const Function* Ftk::find_function_any(string const &fstr) const
@@ -118,7 +118,7 @@ string Ftk::find_function_name(string const &fstr) const
         pos = fstr.find(".") + 1;
         pref = strtol(fstr.c_str()+1, 0, 10);
     }
-    vector<string> const &names = get_ds(pref)->get_sum()->get_names(fstr[pos]);
+    vector<string> const &names = get_dm(pref)->model()->get_names(fstr[pos]);
     int idx_ = strtol(fstr.c_str()+pos+2, 0, 10);
     int idx = (idx_ >= 0 ? idx_ : idx_ + names.size());
     if (!is_index(idx, names))
@@ -172,8 +172,8 @@ void Ftk::dump_all_as_script(string const &filename)
             os << (*i)->get_basic_assignment() << endl;
     }
     os << endl;
-    os << "# ------------  datasets and sums  ------------\n";
-    for (int i = 0; i != get_ds_count(); ++i) {
+    os << "# ------------  datasets and models  ------------\n";
+    for (int i = 0; i != get_dm_count(); ++i) {
         Data const* data = get_data(i);
         if (i != 0)
             os << "@+ = 0\n";
@@ -191,14 +191,14 @@ void Ftk::dump_all_as_script(string const &filename)
                 << " in @" << i << endl;
         }
         os << endl;
-        Sum const* sum = get_sum(i);
-        if (!sum->get_ff_names().empty())
+        Model const* model = get_model(i);
+        if (!model->get_ff_names().empty())
             os << "@" << i << ".F = " 
-                << join_vector(concat_pairs("%", sum->get_ff_names()), " + ") 
+                << join_vector(concat_pairs("%", model->get_ff_names()), " + ") 
                 << endl;
-        if (!sum->get_zz_names().empty())
+        if (!model->get_zz_names().empty())
             os << "@" << i << ".Z = " 
-                << join_vector(concat_pairs("%", sum->get_zz_names()), " + ") 
+                << join_vector(concat_pairs("%", model->get_zz_names()), " + ") 
                 << endl;
         os << endl;
     }
@@ -208,15 +208,15 @@ void Ftk::dump_all_as_script(string const &filename)
 }
 
 
-int Ftk::check_ds_number(int n) const
+int Ftk::check_dm_number(int n) const
 {
     if (n == -1) {
-        if (get_ds_count() == 1)
+        if (get_dm_count() == 1)
             return 0;
         else
             throw ExecuteError("Dataset must be specified.");
     }
-    if (n < 0 || n >= get_ds_count())
+    if (n < 0 || n >= get_dm_count())
         throw ExecuteError("There is no dataset @" + S(n));
     return n;
 }
@@ -371,13 +371,12 @@ void Ftk::import_dataset(int slot, string const& filename,
 
     for (size_t i = 0; i < indices[1].size(); ++i) {
         if (slot == new_dataset
-            && (this->get_ds_count() != 1 || this->get_data(0)->has_any_info()
-                                        || this->get_sum(0)->has_any_info())) {
+            && (get_dm_count() != 1 || get_dm(0)->has_any_info())) {
             // load data into new slot
             auto_ptr<Data> data(new Data(this));
             data->load_file(fn, idx_x, indices[1][i], idx_s, 
                             block_range, options);
-            append_ds(data.release());
+            append_dm(data.release());
         }
         else {
             // if slot == new_dataset and there is only one dataset, 
@@ -387,7 +386,7 @@ void Ftk::import_dataset(int slot, string const& filename,
         }
     }
 
-    if (get_ds_count() == 1) 
+    if (get_dm_count() == 1) 
         view.fit_zoom();
 }
 

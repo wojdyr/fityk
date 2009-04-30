@@ -298,7 +298,8 @@
     </para>
     <para>
      The main plot can display
-     data points, functions and/or the sum of all functions. Use the pop-up
+     data points, model that is to be fitted to the data and component functions 
+     of the model. Use the pop-up
      menu (click <mousebutton>right</mousebutton> button on the plot) 
      to configure it. 
      Some properties of the plot (e.g. colors of data points) can be changed
@@ -306,7 +307,7 @@
     </para>
     <para>
      One of the most useful things which can be displayed by the auxiliary plot 
-     is the difference between the data and the sum of functions. 
+     is the difference between the data and the model
      (also controlled by a pop-up menu). Hopefully, a quick look at this menu 
      and a minute or two's worth of experiments will show
      the potential of this auxiliary plot.
@@ -846,7 +847,7 @@
     <title>Functions and variables in data transformation</title>
     <para>
      information in this section are not often used in practice.
-     Read it after reading <xref linkend="sum"/>.
+     Read it after reading <xref linkend="model"/>.
     </para>
     <para>
      Variables ($foo) and functions (%bar) can be used in data transformations, 
@@ -894,7 +895,7 @@
       Z += Constant(~0)  # fit constant x-correction (this can be caused...
       fit                # ...by a shift in scale of the instrument collecting data),
       X = x + @0.Z(x)  # ...remove it from the dataset,
-      Z = 0            # ...and clear the x-correction in the sum
+      Z = 0            # ...and clear the x-correction in the model
 
       info numarea(%fun, 0, 100, 10000) # shows area of function %fun 
       info %fun.Area  # it is not always supported
@@ -979,7 +980,7 @@
             @<replaceable>m</replaceable> + ...</command>.
     </para>
     <para>
-     Each dataset has a separate <link linkend="sum">sum</link>, i.e. a model
+     Each dataset has a separate <link linkend="model">model</link>, 
      that can be fitted to the data. This is explained in the next chapter.
     </para>
     <para>
@@ -1025,14 +1026,16 @@
   </section> 
 
 
-  <section id="sum">
-   <title>Sum of fitted functions </title>
-   <section id="sumintro">
-    <title>Sum - Introduction</title>
+  <section id="model">
+   <title>Model </title>
+   <section id="modelintro">
+    <title>Model - Introduction</title>
     <para>
-     The sum of functions S (the curve that is fitted to the data) is itself a
-     function. The value of the whole sum is computed as a sum of the functions,
-     like Gaussians or polynomials, and can be given by the formula:
+     The model S (the function that is fitted to the data) is 
+     computed as a sum of component functions, like Gaussians or polynomials.
+     To avoid confusion we will always use name model when referring to the
+     total function fitted to data. The name function will be used only when
+     referring to a component function.
      <inlineequation>
       <inlinemediaobject>
        <imageobject>
@@ -1051,7 +1054,7 @@
      fitted parameters. 
      Because we often have the situation, that the error 
      in the x coordinate of data points can be modeled with function z(x; a),
-     we introduce this term to sum:
+     we introduce this term to the model:
      <informalequation>
       <mediaobject>
        <imageobject>
@@ -1117,7 +1120,7 @@
      <firstterm>simple variable</firstterm>. 
      It is created by assigning
      to it real number prefixed with ~. The `~' means that the value
-     assigned to the variable can be changed when fitting the sum of the functions to the data.
+     assigned to the variable can be changed when fitting the model to the data.
      For people familiar with optimization techniques: 
      the number of defined simple variables is the number of dimensions
      of space we are looking for the optimum in.
@@ -1385,28 +1388,27 @@
     </para>
    </section> 
    <section id="fz">
-    <title>Sum, F and Z</title>
+    <title>Model, F and Z</title>
     <para>
-     As already discussed, each dataset has a separate sum. i.e. a model
+     As already discussed, each dataset has a separate model
      that can be fitted to the data. 
-     As can be seen from the <link linkend="sumintro">formula above</link>,
-     the sum consists of functions f<subscript>i</subscript> 
-     and z<subscript>i</subscript>. Each dataset has two sets named F and Z,
-     containing the names of the functions.
-     The sum is constructed by specifying which functions are in F and which in Z.
+     As can be seen from the <link linkend="modelintro">formula above</link>,
+     the model is defined as a set functions f<subscript>i</subscript> 
+     and the set of functions z<subscript>i</subscript>. 
+     These sets are named F and Z respectively.
+     The model is constructed by specifying names of functions in these two sets.
     </para>
     <para>
      In many cases <firstterm>x-correction</firstterm> Z can safely be ignored.
-     The fitted curve is thus the sum of all functions in F. These functions
-     can be listed with <command>info F</command>.
+     The fitted curve is thus the sum of all functions in F. 
     </para>
     <para>
      Command 
      <command>F += <replaceable>%function</replaceable></command>
-     puts <replaceable>%function</replaceable> into F,
+     adds <replaceable>%function</replaceable> to F,
      command 
      <command>Z += <replaceable>%function</replaceable></command>
-     puts <replaceable>%function</replaceable> into Z.
+     adds <replaceable>%function</replaceable> to Z.
      To remove <replaceable>%function</replaceable> from F (or Z) either
      do <command>F -= <replaceable>%function</replaceable></command>
      or delete <replaceable>%function</replaceable> 
@@ -1438,7 +1440,7 @@
   @1.F = copy(@0.F) </screen>
     </para>
     <para id="formula_export_style">
-     The sum can be exported as data points, using the syntax described in
+     The model can be exported as data points, using the syntax described in
      <xref linkend="dexport"/>,  or as mathematical formulae, using the command 
      <command>info formula in @<replaceable>n</replaceable> &gt; <replaceable>filename</replaceable></command>. 
      Some primitive simplifications are applied to the formula. To prevent it,
@@ -1515,7 +1517,7 @@
      options respectively.
     </para>
    </section> 
-   <section id="sum_info">
+   <section id="model_info">
     <title>Displaying information </title>
     <para>
      If you are using the GUI, most of the available information can be
@@ -1588,7 +1590,7 @@
     <title>Nonlinear optimization </title>
     <para>
      This is the core. We have a set of observations (data points), to which 
-     we want to fit a <firstterm>model</firstterm> (or sum of functions) 
+     we want to fit a <firstterm>model</firstterm>
      that depends on adjustable parameters. 
      Let me quote <citetitle pubwork="book">Numerical Recipes</citetitle>, 
      chapter 15.0, page 656 (if you do not know the book, visit 
@@ -1689,7 +1691,7 @@
    <section id="fitting_cmd">
     <title>Fitting related commands </title>
     <para>
-     To fit sum to data, use command
+     To fit model to data, use command
      <cmdsynopsis>
       <command>fit</command> 
       <arg>+</arg> 
@@ -2113,7 +2115,7 @@
     </para>
     <para>
      The command <command>plot</command> controls visualization of data 
-     and the sum.
+     and the model.
      It is used to plot a given area - in <acronym>GUI</acronym> it is plotted
      in the program's main window, in <acronym>CLI</acronym> the popular program 
      <application>gnuplot</application> is used, if available. 
@@ -2154,7 +2156,7 @@
     <para id="autoplot">
      The value of the option <parameter class="option">autoplot</parameter> 
      changes the automatic plotting behaviour. By default, the plot is
-     refreshed automatically after changing the data or the sum of functions.
+     refreshed automatically after changing the data or the model.
      It is also possible to visualize each iteration of the fitting method by
      replotting the peaks after every iteration.
     </para>

@@ -97,10 +97,10 @@ bool GnuPlot::gnuplot_pipe_ok()
 int GnuPlot::plot() 
 {
     // plot only active data with sum
-    int ds_number = ftk->view.get_datasets()[0];
-    DataWithSum const* ds = ftk->get_ds(ds_number);
-    Data const* data = ds->get_data();
-    Sum const* sum = ds->get_sum();
+    int dm_number = ftk->view.get_datasets()[0];
+    DataAndModel const* dm = ftk->get_dm(dm_number);
+    Data const* data = dm->data();
+    Model const* model = dm->model();
     if (!gnuplot_pipe_ok())
         return -1;
     // Send commands through the pipe to gnuplot
@@ -127,7 +127,7 @@ int GnuPlot::plot()
     fprintf (gnuplot_pipe, "e\n");//gnuplot needs 'e' at the end of data
     for (int i = i_f; i < i_l; i++) {
         fp x = data->get_x(i);
-        fp y = sum->value(x);
+        fp y = model->value(x);
         if (is_finite(x) && is_finite(y))
             fprintf(gnuplot_pipe, "%f  %f\n", x, y);
     }

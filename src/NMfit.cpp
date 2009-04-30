@@ -75,7 +75,7 @@ void NMfit::find_best_worst()
 void NMfit::autoiter()
 {
     fp convergence = F->get_settings()->get_f("nm-convergence");
-    wssr_before = compute_wssr(a_orig, datsums);
+    wssr_before = compute_wssr(a_orig, dmdm_);
     F->msg ("WSSR before starting simplex fit: " + S(wssr_before));
     for (int iter = 0; !termination_criteria(iter, convergence); ++iter) {
         iteration_plot(best->a);
@@ -176,7 +176,7 @@ bool NMfit::termination_criteria(int iter, fp convergence)
 void NMfit::compute_v (Vertex& v) 
 {
     assert (!v.a.empty()); 
-    v.wssr = compute_wssr(v.a, datsums); 
+    v.wssr = compute_wssr(v.a, dmdm_); 
     v.computed = true;
 }
 

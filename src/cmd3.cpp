@@ -30,9 +30,9 @@ using namespace cmdgram;
 namespace {
 
 void do_transform(char const*, char const*)  { 
-    vector<DataWithSum*> v = get_datasets_from_indata();
-    for (vector<DataWithSum*>::const_iterator i = v.begin(); i != v.end(); ++i)
-        (*i)->get_data()->transform(t); 
+    vector<DataAndModel*> v = get_datasets_from_indata();
+    for (vector<DataAndModel*>::const_iterator i = v.begin(); i != v.end(); ++i)
+        (*i)->data()->transform(t); 
     outdated_plot=true; 
 }
 

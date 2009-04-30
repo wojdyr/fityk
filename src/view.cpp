@@ -32,15 +32,15 @@ void View::fit_zoom(int flag)
 {
     assert(!datasets.empty());
 
-    // for the first dataset in `dataset' (@n, it doesn't contain @*) both 
-    // data points and sum (functions) are considered, for the next ones only 
-    // data points
-    DataWithSum const* first = F->get_ds(datasets[0]);
-    vector<Sum const*> sums(1, first->get_sum()); 
+    // For the first dataset in `dataset' (@n, it doesn't contain @*) both 
+    // data points and models are considered. 
+    // For the next ones only data points.
+    DataAndModel const* first = F->get_dm(datasets[0]);
+    vector<Model const*> models(1, first->model()); 
     vector<Data const*> datas(datasets.size()); 
-    datas[0] = first->get_data();
+    datas[0] = first->data();
     for (size_t i = 1; i < datasets.size(); ++i)
-        datas[i] = F->get_ds(datasets[i])->get_data();
+        datas[i] = F->get_dm(datasets[i])->data();
     
     if (flag&fit_left || flag&fit_right) {
         fp x_min=0, x_max=0;
@@ -69,7 +69,7 @@ void View::fit_zoom(int flag)
 
     if (flag&fit_top || flag&fit_bottom) {
         fp y_min=0, y_max=0;
-        get_y_range(datas, sums, y_min, y_max);
+        get_y_range(datas, models, y_min, y_max);
         if (y_min == y_max) {
             y_min -= 0.1; 
             y_max += 0.1;
@@ -108,7 +108,7 @@ void View::get_x_range(vector<Data const*> datas, fp &x_min, fp &x_max)
 }
 
 
-void View::get_y_range(vector<Data const*> datas, vector<Sum const*> sums,
+void View::get_y_range(vector<Data const*> datas, vector<Model const*> models,
                        fp &y_min, fp &y_max)
 {
     if (datas.empty()) 
@@ -149,17 +149,17 @@ void View::get_y_range(vector<Data const*> datas, vector<Sum const*> sums,
         }
     }
 
-    for (vector<Sum const*>::const_iterator i = sums.begin(); 
-                                                     i != sums.end(); ++i) {
-        Sum const* sum = *i;
-        if (!sum->has_any_info())
+    for (vector<Model const*>::const_iterator i = models.begin(); 
+                                                     i != models.end(); ++i) {
+        Model const* model = *i;
+        if (!model->has_any_info())
             continue;
-        // estimated sum maximum
-        fp sum_y_max = sum->approx_max(left, right);
-        if (sum_y_max > y_max) 
-            y_max = sum_y_max;
-        if (sum_y_max < y_min) 
-            y_min = sum_y_max;
+        // estimated model maximum
+        fp model_y_max = model->approx_max(left, right);
+        if (model_y_max > y_max) 
+            y_max = model_y_max;
+        if (model_y_max < y_min) 
+            y_min = model_y_max;
     }
 
     // include or not include zero

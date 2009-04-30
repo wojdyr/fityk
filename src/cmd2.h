@@ -20,13 +20,13 @@
 
 
 using namespace boost::spirit;
-class DataWithSum;
+class DataAndModel;
 
 namespace cmdgram {
 
 extern bool with_plus, deep_cp;
 extern std::string t, t2, t3;
-extern int tmp_int, tmp_int2, ds_pref;
+extern int tmp_int, tmp_int2, dm_pref;
 extern double tmp_real, tmp_real2;
 extern std::vector<std::string> vt, vr;
 extern std::vector<int> vn, vds;
@@ -36,7 +36,7 @@ extern bool outdated_plot;
 extern bool no_info_output;
 extern std::string prepared_info;
 
-std::vector<DataWithSum*> get_datasets_from_indata();
+std::vector<DataAndModel*> get_datasets_from_indata();
 
 /// a part of command grammar 
 struct IntRangeGrammar : public grammar<IntRangeGrammar>
@@ -102,7 +102,7 @@ struct Cmd2Grammar : public grammar<Cmd2Grammar>
     definition(Cmd2Grammar const& self);
 
     rule<ScannerT> transform, type_name, function_param, 
-                   in_data, ds_prefix, 
+                   in_data, dm_prefix, 
                    dataset_handling, guess,
                    dataset_lhs, dataset_nr, 
                    optional_plus, 

@@ -274,11 +274,11 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
     }
     for (vector<string>::const_iterator i = p.begin(); i != p.end(); ++i) 
         ftk->get_ui()->process_cmd_line_filename(*i);
-    if (ftk->get_ds_count() > 1) {
+    if (ftk->get_dm_count() > 1) {
         frame->SwitchSideBar(true);
         // zoom to show all loaded datafiles
         ftk->view.parse_and_set(vector<string>(4), 
-                                range_vector(0, ftk->get_ds_count())); 
+                                range_vector(0, ftk->get_dm_count())); 
     }
 }
 

@@ -10,7 +10,7 @@
 class Variable;
 class Function;
 class Ftk;
-class Sum;
+class Model;
 
 /// keeps all functions and variables
 class VariableManager
@@ -21,8 +21,8 @@ public:
     VariableManager(Ftk const* F_) : silent(false), F(F_), 
                         var_autoname_counter(0), func_autoname_counter(0) {}
     ~VariableManager();
-    void register_sum(Sum *s) { sums.push_back(s); }
-    void unregister_sum(Sum const *s);
+    void register_model(Model *m) { models.push_back(m); }
+    void unregister_model(Model const *m);
 
     /// if name is empty, variable name is generated automatically
     /// name of created variable is returned
@@ -86,7 +86,7 @@ public:
 
 protected:
     Ftk const* F;
-    std::vector<Sum*> sums;
+    std::vector<Model*> models;
     std::vector<fp> parameters;
     /// sorted, a doesn't depend on b if idx(a)>idx(b)
     std::vector<Variable*> variables; 

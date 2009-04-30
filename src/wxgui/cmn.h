@@ -40,21 +40,20 @@ inline wxArrayString stl2wxArrayString(std::vector<std::string> const& vs)
     return wxas;
 }
 
-inline wxArrayString make_wxArrStr(wxString const& s1) 
+// convenient wxArrayString constructors
+inline wxArrayString ArrayString(wxString const& s1) 
 { 
     wxArrayString a(1, &s1);
     return a;
 } 
-
-inline wxArrayString make_wxArrStr(wxString const& s1, wxString const& s2) 
+inline wxArrayString ArrayString(wxString const& s1, wxString const& s2) 
 { 
     wxArrayString a(1, &s1);
     a.Add(s2);
     return a;
 } 
-
-inline wxArrayString make_wxArrStr(wxString const& s1, wxString const& s2, 
-                                   wxString const& s3) 
+inline wxArrayString ArrayString(wxString const& s1, wxString const& s2, 
+                                 wxString const& s3) 
 { 
     wxArrayString a(1, &s1);
     a.Add(s2);

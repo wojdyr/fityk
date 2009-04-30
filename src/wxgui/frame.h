@@ -24,7 +24,7 @@ class ProportionalSplitter;
 class DataEditorDlg;
 class PrintManager;
 class FStatusBar;
-class DataWithSum;
+class DataAndModel;
 
 class Ftk;
 extern Ftk *ftk;
@@ -180,9 +180,9 @@ public:
     void update_toolbar();
     void update_autoadd_enabled();
     void update_config_menu(wxMenu *menu);
-    int get_focused_ds_index();
-    std::vector<int> get_selected_ds_indices();
-    std::vector<DataWithSum*> get_selected_ds();
+    int get_focused_data_index();
+    std::vector<int> get_selected_data_indices();
+    std::vector<DataAndModel*> get_selected_dms();
     //std::string get_focused_data_str();
     //std::string get_in_dataset();
     std::string get_in_datasets();

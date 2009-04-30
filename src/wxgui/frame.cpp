@@ -871,7 +871,7 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
 
 void FFrame::OnDataXLoad (wxCommandEvent&)
 {
-    vector<int> sel = get_selected_ds_indices();
+    vector<int> sel = get_selected_data_indices();
     int n = (sel.size() == 1 ? sel[0] : -1);
     // in case of multi-selection, use the first item
     Data *data = ftk->get_data(sel[0]); 
@@ -888,14 +888,14 @@ void FFrame::OnDataRecent (wxCommandEvent& event)
 
 void FFrame::OnDataRevertUpdate (wxUpdateUIEvent& event)
 {
-    vector<int> sel = get_selected_ds_indices();
+    vector<int> sel = get_selected_data_indices();
     event.Enable(sel.size() == 1 
                  && !ftk->get_data(sel[0])->get_filename().empty());
 }
 
 void FFrame::OnDataRevert (wxCommandEvent&)
 {
-    vector<int> sel = get_selected_ds_indices();
+    vector<int> sel = get_selected_data_indices();
     string cmd;
     for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i) {
         if (i != sel.begin())
@@ -908,7 +908,7 @@ void FFrame::OnDataRevert (wxCommandEvent&)
 void FFrame::OnDataEditor (wxCommandEvent&)
 {
     vector<pair<int,Data*> > dd;
-    vector<int> sel = get_selected_ds_indices();
+    vector<int> sel = get_selected_data_indices();
     for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i) 
         dd.push_back(make_pair(*i, ftk->get_data(*i)));
     DataEditorDlg data_editor(this, -1, dd);
@@ -960,11 +960,11 @@ void FFrame::OnDataMerge (wxCommandEvent&)
 
 void FFrame::OnDataCalcShirley (wxCommandEvent&)
 {
-    vector<int> sel = get_selected_ds_indices();
+    vector<int> sel = get_selected_data_indices();
     string cmd;
     for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i) {
         string title = ftk->get_data(*i)->get_title();
-        int c = ftk->get_ds_count();
+        int c = ftk->get_dm_count();
         if (i != sel.begin())
             cmd += "; ";
         cmd += "@+ = shirley_bg @" + S(*i)
@@ -975,7 +975,7 @@ void FFrame::OnDataCalcShirley (wxCommandEvent&)
 
 void FFrame::OnDataRmShirley (wxCommandEvent&)
 {
-    vector<int> sel = get_selected_ds_indices();
+    vector<int> sel = get_selected_data_indices();
     string cmd;
     for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i) {
         string dstr = "@" + S(*i);
@@ -988,8 +988,8 @@ void FFrame::OnDataRmShirley (wxCommandEvent&)
 
 void FFrame::OnDataExportUpdate (wxUpdateUIEvent& event)
 {
-    int nsel = get_selected_ds_indices().size();
-    event.Enable(nsel == 1 || nsel == ftk->get_ds_count());
+    int nsel = get_selected_data_indices().size();
+    event.Enable(nsel == 1 || nsel == ftk->get_dm_count());
 }
 
 void FFrame::OnDataExport (wxCommandEvent&)
@@ -1034,7 +1034,7 @@ void FFrame::OnSExport (wxCommandEvent& event)
     static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
     bool as_peaks = (event.GetId() == ID_S_EXPORTP);
     wxString name;
-    vector<int> sel = get_selected_ds_indices();
+    vector<int> sel = get_selected_data_indices();
     if (sel.size() == 1) {
         string const& filename = ftk->get_data(sel[0])->get_filename();
         name = wxFileName(s2wx(filename)).GetName()
@@ -1535,7 +1535,7 @@ void FFrame::OnPreviousZoom(wxCommandEvent& event)
     int id = event.GetId();
     string s = plot_pane->zoom_backward(id ? id - ID_G_V_ZOOM_PREV : 1);
     if (s.size()) 
-        ftk->exec("plot " + s + " in @" + S(get_focused_ds_index()));
+        ftk->exec("plot " + s + " in @" + S(get_focused_data_index()));
 }
 
 void FFrame::change_zoom(const string& s)
@@ -1776,7 +1776,7 @@ void FFrame::update_toolbar()
 void FFrame::update_autoadd_enabled()
 {
     bool enable = is_function_guessable(Function::get_formula(peak_type_nr));
-    vector<int> sel = get_selected_ds_indices();
+    vector<int> sel = get_selected_data_indices();
     for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i)
         if (ftk->get_data(*i)->get_n() <= 2)
             enable = false;
@@ -1785,22 +1785,22 @@ void FFrame::update_autoadd_enabled()
         toolbar->EnableTool(ID_ft_s_aa, enable);
 }
 
-int FFrame::get_focused_ds_index()
+int FFrame::get_focused_data_index()
 {
     return sidebar->get_focused_data();
 }
 
-vector<int> FFrame::get_selected_ds_indices()
+vector<int> FFrame::get_selected_data_indices()
 {
-    return sidebar->get_selected_ds_indices();
+    return sidebar->get_selected_data_indices();
 }
 
 string FFrame::get_in_datasets()
 {
-    if (ftk->get_ds_count() == 1)
+    if (ftk->get_dm_count() == 1)
         return "";
-    vector<int> sel = get_selected_ds_indices();
-    if (ftk->get_ds_count() == size(sel))
+    vector<int> sel = get_selected_data_indices();
+    if (ftk->get_dm_count() == size(sel))
         return " in @*";
     else
         return " in @" + join_vector(sel, ", @");
@@ -1824,13 +1824,13 @@ string FFrame::get_global_parameters()
     return s;
 }
 
-vector<DataWithSum*> FFrame::get_selected_ds()
+vector<DataAndModel*> FFrame::get_selected_dms()
 {
-    vector<int> sel = get_selected_ds_indices();
-    vector<DataWithSum*> dsds(sel.size());
+    vector<int> sel = get_selected_data_indices();
+    vector<DataAndModel*> dms(sel.size());
     for (size_t i = 0; i < sel.size(); ++i)
-        dsds[i] = ftk->get_ds(sel[i]);
-    return dsds;
+        dms[i] = ftk->get_dm(sel[i]);
+    return dms;
 }
 
 MainPlot* FFrame::get_main_plot() 
@@ -1856,7 +1856,7 @@ void FFrame::activate_function(int n)
 void FFrame::update_app_title()
 {
     string title = "fityk";
-    int pos = get_focused_ds_index();
+    int pos = get_focused_data_index();
     string const& filename = ftk->get_data(pos)->get_filename();
     if (!filename.empty())
         title += " - " + filename;

@@ -176,10 +176,10 @@ void PreviewPlot::load_dataset(string const& filename,
 
     try {
         // if xylib::load_file() throws exception, we keep value of data
-        xylib::DataSet *new_ds = xylib::load_file(filename, filetype, options);
-        assert(new_ds);
+        xylib::DataSet *new_dt = xylib::load_file(filename, filetype, options);
+        assert(new_dt);
         delete data;
-        data = new_ds;
+        data = new_dt;
         old_filename = filename;
         old_filetype = filetype;
         old_options = options;
@@ -442,8 +442,8 @@ void DLoadDlg::OnOpenHere (wxCommandEvent&)
 
 void DLoadDlg::OnOpenNew (wxCommandEvent&)
 {
-    int d_nr = ftk->get_ds_count();
-    if (d_nr == 1 && !ftk->get_ds(0)->has_any_info())
+    int d_nr = ftk->get_dm_count();
+    if (d_nr == 1 && !ftk->get_dm(0)->has_any_info())
         d_nr = 0; // special case, @+ will not add new data slot
     ftk->exec(get_command("@+", d_nr));
     frame->add_recent_data_file(get_filename());

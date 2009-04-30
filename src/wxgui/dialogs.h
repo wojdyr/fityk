@@ -43,7 +43,7 @@ public:
     void OnSpinEvent(wxSpinEvent &) { update_unlimited(); }
     void OnChangeDsOrMethod(wxCommandEvent&) { update_allow_continue(); }
 private:
-    wxRadioBox* ds_rb;
+    wxRadioBox* data_rb;
     wxChoice* method_c;
     wxCheckBox* initialize_cb, *autoplot_cb;
     SpinCtrl *maxiter_sc, *maxeval_sc;
@@ -61,7 +61,7 @@ bool export_data_dlg(wxWindow *parent, bool load_exported=false);
 class DataExportDlg : public wxDialog
 {
 public:
-    DataExportDlg(wxWindow* parent, wxWindowID id, int ds_);
+    DataExportDlg(wxWindow* parent, wxWindowID id, int data_idx);
     void OnRadioChanged(wxCommandEvent&) { on_widget_change(); }
     void OnInactiveChanged(wxCommandEvent&) { on_widget_change(); }
     void OnTextChanged(wxCommandEvent&);
@@ -69,7 +69,7 @@ public:
     void on_widget_change();
     std::string get_columns() { return wx2s(text->GetValue()); }
 protected:
-    int ds;
+    int data_idx_;
     wxRadioBox *rb;
     wxCheckBox *inactive_cb;
     wxTextCtrl *text;

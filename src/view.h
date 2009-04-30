@@ -10,9 +10,9 @@
 
 #include "common.h"
 
-class DataWithSum;
+class DataAndModel;
 class Data;
-class Sum;
+class Model;
 class Ftk;
 
 /// manages view, i.e. x and y range visible currently to the user 
@@ -22,7 +22,7 @@ class Ftk;
 /// to data.
 /// Applications using libfityk can ignore datasets stored in this class or use
 /// only the first one, or all. 
-/// most difficult part here is finding an "auto" view for given data and sum
+/// most difficult part here is finding an "auto" view for given data and model
 class View 
 {
 public:
@@ -66,7 +66,7 @@ private:
 
     void get_x_range(std::vector<Data const*> datas, fp &x_min, fp &x_max);
     void get_y_range(std::vector<Data const*> datas, 
-                     std::vector<Sum const*> sums, 
+                     std::vector<Model const*> models, 
                      fp &y_min, fp &y_max);
 
     /// set datasets that are to be used when fitting viewed area to data

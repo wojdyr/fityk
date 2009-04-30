@@ -17,10 +17,10 @@
 
 using namespace std;
 
-Guess::Guess(Ftk const *F_, DataWithSum const* ds) 
-    : F(F_), data(ds->get_data())  
+Guess::Guess(Ftk const *F_, DataAndModel const* dm) 
+    : F(F_), data(dm->data())  
 {
-    real_peaks = ds->get_sum()->get_ff_idx();
+    real_peaks = dm->model()->get_ff_idx();
 }
 
 fp Guess::my_y(int n) 

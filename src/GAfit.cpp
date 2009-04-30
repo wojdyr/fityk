@@ -94,7 +94,7 @@ fp GAfit::init()
 
 void GAfit::autoiter()
 {
-    wssr_before = compute_wssr(a_orig, datsums);
+    wssr_before = compute_wssr(a_orig, dmdm_);
     F->msg ("WSSR before starting GA: " + S(wssr_before));
     assert (pop && opop); 
     if (elitism >= popsize) {
@@ -114,7 +114,7 @@ void GAfit::autoiter()
 
 void GAfit::compute_wssr_for_ind (vector<Individual>::iterator ind)
 {
-    ind->raw_score = compute_wssr(ind->g, datsums);
+    ind->raw_score = compute_wssr(ind->g, dmdm_);
     ind->generation = iter_nr;
 }
 

@@ -67,61 +67,61 @@ void AuxPlot::OnPaint(wxPaintEvent&)
     vert_line_following_cursor(mat_redraw);//draw, if necessary, vertical lines
 }
 
-inline double sum_value(vector<Point>::const_iterator pt, Sum const* sum)
+inline double model_value(vector<Point>::const_iterator pt, Model const* model)
 {
-    return sum->value(pt->x);
+    return model->value(pt->x);
 }
 
 double diff_of_data_for_draw_data (vector<Point>::const_iterator i, 
-                                   Sum const* sum)
+                                   Model const* model)
 {
-    return i->y - sum_value(i, sum);
+    return i->y - model_value(i, model);
 }
 
 double rdiff_of_data_for_draw_data (vector<Point>::const_iterator i, 
-                                    Sum const* sum)
+                                    Model const* model)
 {
-    return sum_value(i, sum) - i->y;
+    return model_value(i, model) - i->y;
 }
 
 double diff_stddev_of_data_for_draw_data (vector<Point>::const_iterator i, 
-                                          Sum const* sum)
+                                          Model const* model)
 {
-    return (i->y - sum_value(i, sum)) / i->sigma;
+    return (i->y - model_value(i, model)) / i->sigma;
 }
 
 double rdiff_stddev_of_data_for_draw_data (vector<Point>::const_iterator i, 
-                                           Sum const* sum)
+                                           Model const* model)
 {
-    return (sum_value(i, sum) - i->y) / i->sigma;
+    return (model_value(i, model) - i->y) / i->sigma;
 }
 
 double diff_chi2_of_data_for_draw_data (vector<Point>::const_iterator i, 
-                                        Sum const* sum)
+                                        Model const* model)
 {
-    double t = (i->y - sum_value(i, sum)) / i->sigma;
+    double t = (i->y - model_value(i, model)) / i->sigma;
     return t*t;
 }
 
 double diff_y_perc_of_data_for_draw_data (vector<Point>::const_iterator i, 
-                                          Sum const* sum)
+                                          Model const* model)
 {
-    return i->y ? (i->y - sum_value(i, sum)) / i->y * 100 : 0;
+    return i->y ? (i->y - model_value(i, model)) / i->y * 100 : 0;
 }
 
 double rdiff_y_perc_of_data_for_draw_data (vector<Point>::const_iterator i, 
-                                           Sum const* sum)
+                                           Model const* model)
 {
-    return i->y ? (sum_value(i, sum) - i->y) / i->y * 100 : 0;
+    return i->y ? (model_value(i, model) - i->y) / i->y * 100 : 0;
 }
 
 void AuxPlot::draw(wxDC &dc, bool monochrome)
 {
-    int pos = frame->get_focused_ds_index();
+    int pos = frame->get_focused_data_index();
     Data const* data = ftk->get_data(pos);
-    Sum const* sum = ftk->get_sum(pos);
+    Model const* model = ftk->get_model(pos);
     if (auto_zoom_y || fit_y_once) {
-        fit_y_zoom(data, sum);
+        fit_y_zoom(data, model);
         fit_y_once = false;
     }
     const int pixel_width = get_pixel_width(dc);
@@ -160,7 +160,7 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
         draw_ytics(dc, v, !monochrome);
     }
 
-    fp (*f)(vector<Point>::const_iterator, Sum const*) = 0;
+    fp (*f)(vector<Point>::const_iterator, Model const*) = 0;
     bool cummulative = false;
     if (kind == apk_diff) 
         f = reversed_diff ? rdiff_of_data_for_draw_data 
@@ -176,7 +176,7 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
         cummulative = true;
     }
     wxColour col = monochrome ? dc.GetPen().GetColour() : wxNullColour;
-    draw_data (dc, f, data, sum, col, col, 0, cummulative);
+    draw_data (dc, f, data, model, col, col, 0, cummulative);
 }
 
 /// print zoom info - how it compares to zoom of the master plot (e.g. "x3"), 
@@ -476,7 +476,7 @@ void AuxPlot::OnPopupYZoomFit (wxCommandEvent&)
     refresh(false);
 }
 
-void AuxPlot::fit_y_zoom(Data const* data, Sum const* sum)
+void AuxPlot::fit_y_zoom(Data const* data, Model const* model)
 {
     if (!is_zoomable())
         return;
@@ -489,7 +489,7 @@ void AuxPlot::fit_y_zoom(Data const* data, Sum const* sum)
     switch (kind) { // setting y_zoom
         case apk_diff: 
             {
-            y = get_max_abs_y(diff_of_data_for_draw_data, first, last, sum);
+            y = get_max_abs_y(diff_of_data_for_draw_data, first, last, model);
             Scale const& mys = master->get_y_scale();
             y_zoom = fabs (pixel_height / (2 * y 
                                            * (mys.logarithm ? 1 : mys.scale)));
@@ -499,20 +499,20 @@ void AuxPlot::fit_y_zoom(Data const* data, Sum const* sum)
             break;
         case apk_diff_stddev:
             y = get_max_abs_y(diff_stddev_of_data_for_draw_data, 
-                              first, last, sum);
+                              first, last, model);
             y_zoom_base = pixel_height / (2. * y);
             y_zoom = 0.9;
             break;
         case apk_diff_y_perc:
             y = get_max_abs_y(diff_y_perc_of_data_for_draw_data, 
-                              first, last, sum);
+                              first, last, model);
             y_zoom_base = pixel_height / (2. * y);
             y_zoom = 0.9;
             break;
         case apk_cum_chi2:
             y = 0.;
             for (vector<Point>::const_iterator i = first; i < last; i++) 
-                y += diff_chi2_of_data_for_draw_data(i, sum);
+                y += diff_chi2_of_data_for_draw_data(i, model);
             y_zoom_base = pixel_height / y;
             y_zoom = 0.9;
             break;

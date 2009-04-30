@@ -170,13 +170,13 @@ private:
     static const int max_peak_cols = 32;
     static const int max_data_cols = 64;
     static const int max_radius = 4; ///size of data point
-    bool peaks_visible, groups_visible, sum_visible,  
+    bool peaks_visible, groups_visible, model_visible,  
          plabels_visible, x_reversed;  
     wxFont plabelFont;
     std::string plabel_format;
     bool vertical_plabels;
     std::vector<std::string> plabels;
-    wxColour sumCol, bg_pointsCol;
+    wxColour modelCol, bg_pointsCol;
     wxColour groupCol[max_group_cols], peakCol[max_peak_cols];
     wxColour dataColour[max_data_cols];
     int pressed_mouse_button;
@@ -191,15 +191,15 @@ private:
     void draw_x_axis (wxDC& dc, bool set_pen=true);
     void draw_y_axis (wxDC& dc, bool set_pen=true);
     void draw_background(wxDC& dc, bool set_pen=true); 
-    void draw_sum (wxDC& dc, Sum const* sum, bool set_pen=true);
-    void draw_groups (wxDC& dc, Sum const* sum, bool set_pen=true);
-    void draw_peaks (wxDC& dc, Sum const* sum, bool set_pen=true);
-    void draw_peaktops (wxDC& dc, Sum const* sum);
-    void draw_peaktop_selection(wxDC& dc, Sum const* sum);
-    void draw_plabels (wxDC& dc, Sum const* sum, bool set_pen=true);
+    void draw_model (wxDC& dc, Model const* model, bool set_pen=true);
+    void draw_groups (wxDC& dc, Model const* model, bool set_pen=true);
+    void draw_peaks (wxDC& dc, Model const* model, bool set_pen=true);
+    void draw_peaktops (wxDC& dc, Model const* model);
+    void draw_peaktop_selection(wxDC& dc, Model const* model);
+    void draw_plabels (wxDC& dc, Model const* model, bool set_pen=true);
     void draw_dataset(wxDC& dc, int n, bool set_pen=true);
-    void prepare_peaktops(Sum const* sum, int Ymax);
-    void prepare_peak_labels(Sum const* sum);
+    void prepare_peaktops(Model const* model, int Ymax);
+    void prepare_peak_labels(Model const* model);
     void look_for_peaktop (wxMouseEvent& event);
     void show_peak_menu (wxMouseEvent &event);
     void peak_draft (MouseActEnum ma, int X_=0, int Y_=0);

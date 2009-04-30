@@ -10,7 +10,7 @@
 #include "common.h"
 
 
-class DataWithSum;
+class DataAndModel;
 class Ftk;
 
 ///   interface of fitting method and implementation of common functions
@@ -21,24 +21,24 @@ public:
 
     Fit(Ftk *F_, std::string const& m);
     virtual ~Fit() {};
-    void fit(int max_iter, std::vector<DataWithSum*> const& dsds);
+    void fit(int max_iter, std::vector<DataAndModel*> const& dms);
     void continue_fit(int max_iter);
-    bool is_initialized() const { return !datsums.empty(); }
-    //bool is_initialized(DataWithSum const* ds) const 
-    //                      { return datsums.size() == 1 && ds == datsums[0]; }
-    bool is_initialized(std::vector<DataWithSum*> const& dsds) const
-                                                    { return dsds == datsums; }
-    std::string get_info(std::vector<DataWithSum*> const& dsds);
-    int get_dof(std::vector<DataWithSum*> const& dsds);
-    std::string getErrorInfo(std::vector<DataWithSum*> const& dsds, 
-                             bool matrix=false);
-    std::vector<fp> get_covariance_matrix(std::vector<DataWithSum*> const&dsds);
-    std::vector<fp> get_symmetric_errors(std::vector<DataWithSum*> const& dsds);
-    std::vector<DataWithSum*> const& get_datsums() const { return datsums; }
-    static fp compute_wssr_for_data (DataWithSum const* ds, bool weigthed);
+    bool is_initialized() const { return !dmdm_.empty(); }
+    bool is_initialized(std::vector<DataAndModel*> const& dms) const
+                                                    { return dms == dmdm_; }
+    std::string get_info(std::vector<DataAndModel*> const& dms);
+    int get_dof(std::vector<DataAndModel*> const& dms);
+    std::string get_error_info(std::vector<DataAndModel*> const& dms, 
+                               bool matrix=false);
+    std::vector<fp> 
+        get_covariance_matrix(std::vector<DataAndModel*> const&dms);
+    std::vector<fp> 
+        get_symmetric_errors(std::vector<DataAndModel*> const& dms);
+    //std::vector<DataAndModel*> const& get_datsums() const { return dmdm_; }
+    static fp compute_wssr_for_data (DataAndModel const* dm, bool weigthed);
     fp do_compute_wssr(std::vector<fp> const &A, 
-                       std::vector<DataWithSum*> const& dsds, bool weigthed);
-    static fp compute_r_squared_for_data(DataWithSum const* ds) ;
+                       std::vector<DataAndModel*> const& dms, bool weigthed);
+    static fp compute_r_squared_for_data(DataAndModel const* dm) ;
     void Jordan (std::vector<fp>& A, std::vector<fp>& b, int n); 
     void reverse_matrix (std::vector<fp>&A, int n);
     // pretty-print matrix m x n stored in vec. `mname' is name/comment.
@@ -46,7 +46,7 @@ public:
                                      int m, int n, const char *mname);
 protected:
     Ftk *F;
-    std::vector<DataWithSum*> datsums;
+    std::vector<DataAndModel*> dmdm_;
     int evaluations;
     int max_iterations; //it is set before calling autoiter()
     int iter_nr;
@@ -59,20 +59,20 @@ protected:
     virtual void autoiter() = 0;
     bool common_termination_criteria(int iter);
     fp compute_wssr(std::vector<fp> const &A, 
-                    std::vector<DataWithSum*> const& dsds, bool weigthed=true)
-        { ++evaluations; return do_compute_wssr(A, dsds, weigthed); }
+                    std::vector<DataAndModel*> const& dms, bool weigthed=true)
+        { ++evaluations; return do_compute_wssr(A, dms, weigthed); }
     fp compute_r_squared(std::vector<fp> const &A, 
-                         std::vector<DataWithSum*> const& dsds) ;
+                         std::vector<DataAndModel*> const& dms);
     void compute_derivatives(std::vector<fp> const &A, 
-                             std::vector<DataWithSum*> const& dsds, 
+                             std::vector<DataAndModel*> const& dms, 
                              std::vector<fp>& alpha, std::vector<fp>& beta);
     bool post_fit (const std::vector<fp>& aa, fp chi2);
     fp draw_a_from_distribution (int nr, char distribution = 'u', fp mult = 1.);
     void iteration_plot(std::vector<fp> const &A);
 private:
-    void compute_derivatives_for(DataWithSum const *ds, 
+    void compute_derivatives_for(DataAndModel const *dm, 
                                  std::vector<fp>& alpha, std::vector<fp>& beta);
-    void update_parameters(std::vector<DataWithSum*> const& dss);
+    void update_parameters(std::vector<DataAndModel*> const& dms);
 };
 
 /// handles parameter history

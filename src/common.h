@@ -321,6 +321,12 @@ inline std::string get_directory(std::string const& filename)
 
 //-------------------- M I S C E L A N O U S ------------------------------
 
+// A macro to disallow the copy constructor and operator= functions.
+// This should be used in the private: declarations for a class.
+#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
+  TypeName(const TypeName&);               \
+  void operator=(const TypeName&)
+
 extern const char* fityk_version_line; /// it is used to put version to script
 
 /// flag that is set to interrupt fitting (it is checked after each iteration)

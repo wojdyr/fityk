@@ -18,20 +18,20 @@
 
 using namespace std;
 
-Sum::Sum(Ftk *F_) 
+Model::Model(Ftk *F_) 
     : F(F_), mgr(*F_)
 {
-    mgr.register_sum(this);
+    mgr.register_model(this);
 }
 
-Sum::~Sum()
+Model::~Model()
 {
-    mgr.unregister_sum(this);
+    mgr.unregister_model(this);
 }
 
 
-void Sum::do_find_function_indices(vector<string> &names,
-                                   vector<int> &idx)
+void Model::do_find_function_indices(vector<string> &names,
+                                     vector<int> &idx)
 {
     idx.clear();
     for (int i = 0; i < size(names); ){
@@ -45,14 +45,14 @@ void Sum::do_find_function_indices(vector<string> &names,
     }
 }
 
-void Sum::find_function_indices()
+void Model::find_function_indices()
 {
     do_find_function_indices(ff_names, ff_idx);
     do_find_function_indices(zz_names, zz_idx);
 }
 
-/// checks if sum depends on variable with index idx
-bool Sum::is_dependent_on_var(int idx) const
+/// checks if this model depends on the variable with index idx
+bool Model::is_dependent_on_var(int idx) const
 {
     std::vector<Variable*> const& vv = mgr.get_variables();
     for (vector<int>::const_iterator i = ff_idx.begin(); i != ff_idx.end(); i++)
@@ -64,7 +64,7 @@ bool Sum::is_dependent_on_var(int idx) const
     return false;
 }
 
-void Sum::remove_all_functions_from(char rm_from)
+void Model::remove_all_functions_from(char rm_from)
 {
     assert(rm_from == 'F' || rm_from == 'Z');
     if (rm_from == 'F') {
@@ -77,7 +77,7 @@ void Sum::remove_all_functions_from(char rm_from)
     }
 }
 
-void Sum::remove_function_from(string const &name, char rm_from)
+void Model::remove_function_from(string const &name, char rm_from)
 {
     string only_name = !name.empty() && name[0]=='%' ? string(name,1) : name;
     // first remove function if it is already in ff or zz
@@ -94,7 +94,7 @@ void Sum::remove_function_from(string const &name, char rm_from)
     }
 }
 
-void Sum::add_function_to(string const &name, char add_to)
+void Model::add_function_to(string const &name, char add_to)
 {
     assert(add_to == 'F' || add_to == 'Z');
     string only_name = !name.empty() && name[0]=='%' ? string(name,1) : name;
@@ -115,7 +115,7 @@ void Sum::add_function_to(string const &name, char add_to)
     }
 }
 
-fp Sum::value(fp x) const
+fp Model::value(fp x) const
 {
     x += zero_shift(x);
     fp y = 0;
@@ -124,7 +124,7 @@ fp Sum::value(fp x) const
     return y;
 }
 
-fp Sum::zero_shift(fp x) const
+fp Model::zero_shift(fp x) const
 {
     fp z = 0;
     for (vector<int>::const_iterator i = zz_idx.begin(); i != zz_idx.end(); i++)
@@ -132,7 +132,7 @@ fp Sum::zero_shift(fp x) const
     return z;
 }
 
-void Sum::calculate_sum_value(vector<fp> &x, vector<fp> &y) const
+void Model::compute_model(vector<fp> &x, vector<fp> &y) const
 {
     // add x-correction to x
     for (vector<int>::const_iterator i = zz_idx.begin(); i != zz_idx.end(); i++)
@@ -142,15 +142,14 @@ void Sum::calculate_sum_value(vector<fp> &x, vector<fp> &y) const
         mgr.get_function(*i)->calculate_value(x, y);
 }
 
-// returns y values in y
-//         x is changed to x+Z
-//         and matrix in dy_da:
+// returns y values in y, x is changed in place to x+Z,
+// derivatives are returned in dy_da as a matrix:
 // [ dy/da_1 (x_1)  dy/da_2 (x_1)  ...  dy/da_na (x_1)  dy/dx (x_1) ]
 // [ dy/da_1 (x_2)  dy/da_2 (x_2)  ...  dy/da_na (x_2)  dy/dx (x_2) ]
 // [ ...                                                            ]
 // [ dy/da_1 (x_n)  dy/da_2 (x_n)  ...  dy/da_na (x_n)  dy/dx (x_n) ]
-void Sum::calculate_sum_value_deriv(vector<fp> &x, vector<fp> &y,
-                                    vector<fp> &dy_da) const
+void Model::compute_model_with_derivs(vector<fp> &x, vector<fp> &y,
+                                      vector<fp> &dy_da) const
 {
     assert(y.size() == x.size());
     if (x.empty())
@@ -167,19 +166,19 @@ void Sum::calculate_sum_value_deriv(vector<fp> &x, vector<fp> &y,
 }
 
 vector<fp> 
-Sum::get_symbolic_derivatives(fp x) const
+Model::get_symbolic_derivatives(fp x) const
 {
     int n = mgr.get_parameters().size();
     vector<fp> dy_da(n+1);
     vector<fp> xx(1, x);
     vector<fp> yy(1);
-    calculate_sum_value_deriv(xx, yy, dy_da);
+    compute_model_with_derivs(xx, yy, dy_da);
     dy_da.resize(n); //throw out last item (dy/dx)
     return dy_da;
 }
 
 vector<fp> 
-Sum::get_numeric_derivatives(fp x, fp numerical_h) const
+Model::get_numeric_derivatives(fp x, fp numerical_h) const
 {
     std::vector<fp> av_numder = mgr.get_parameters();
     int n = av_numder.size();
@@ -202,7 +201,7 @@ Sum::get_numeric_derivatives(fp x, fp numerical_h) const
 }
 
 // estimate max. value in given range (probe at peak centers and between)
-fp Sum::approx_max(fp x_min, fp x_max) const
+fp Model::approx_max(fp x_min, fp x_max) const
 {
     mgr.use_parameters();
     fp x = x_min;
@@ -226,7 +225,7 @@ fp Sum::approx_max(fp x_min, fp x_max) const
 }
 
 
-string Sum::get_peak_parameters(vector<fp> const& errors) const
+string Model::get_peak_parameters(vector<fp> const& errors) const
 {
     string s;
     s += "# Peak Type     Center  Height  Area    FWHM    parameters...\n"; 
@@ -251,7 +250,7 @@ string Sum::get_peak_parameters(vector<fp> const& errors) const
 }
 
 
-string Sum::get_formula(bool simplify, bool gnuplot_style) const
+string Model::get_formula(bool simplify, bool gnuplot_style) const
 {
     if (ff_names.empty())
         return "0";
@@ -296,7 +295,7 @@ string Sum::get_formula(bool simplify, bool gnuplot_style) const
 }
 
 
-fp Sum::numarea(fp x1, fp x2, int nsteps) const
+fp Model::numarea(fp x1, fp x2, int nsteps) const
 {
     x1 += zero_shift(x1);
     x2 += zero_shift(x2);

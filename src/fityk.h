@@ -70,7 +70,7 @@ inline bool operator< (Point const& p, Point const& q) { return p.x < q.x; }
 typedef void t_show_message(std::string const& s);
 
 /// used to get statistics for all datasets together, e.g. in Fityk::get_wssr()
-const int all_ds=-1; 
+const int all_datasets=-1; 
     
 
 /// the public API to libfityk 
@@ -129,13 +129,12 @@ public:
     /// get data points
     std::vector<Point> const& get_data(int dataset=0)  throw(ExecuteError);
     
-    /// \brief returns the value of the model (i.e. sum of function) 
-    /// for a given dataset at x
-    double get_sum_value(double x, int dataset=0)  throw(ExecuteError);
+    /// returns the value of the model for a given dataset at x
+    double get_model_value(double x, int dataset=0)  throw(ExecuteError);
     
-    /// multiple point version of the get_sum_value() 
+    /// multiple point version of the get_model_value() 
     std::vector<double> 
-    get_sum_vector(std::vector<double> const& x, int dataset=0)
+    get_model_vector(std::vector<double> const& x, int dataset=0)
                                                         throw(ExecuteError);
     
     /// returns the value of a variable (given as "$foo" or "%func.height")
@@ -151,22 +150,22 @@ public:
     // @{
     
     /// get WSSR for given dataset or for all datasets
-    double get_wssr(int dataset=all_ds)  throw(ExecuteError);
+    double get_wssr(int dataset=all_datasets)  throw(ExecuteError);
     
     /// get SSR for given dataset or for all datasets
-    double get_ssr(int dataset=all_ds)  throw(ExecuteError);
+    double get_ssr(int dataset=all_datasets)  throw(ExecuteError);
     
     /// get R-squared for given dataset or for all datasets
-    double get_rsquared(int dataset=all_ds)  throw(ExecuteError);
+    double get_rsquared(int dataset=all_datasets)  throw(ExecuteError);
     
     /// get number of degrees-of-freedom for given dataset or for all datasets
-    int get_dof(int dataset=all_ds)  throw(ExecuteError);
+    int get_dof(int dataset=all_datasets)  throw(ExecuteError);
     
     /// \brief get covariance matrix (for given dataset or for all datasets)
     /// get_variable_nr() can be used to connect variables with parameter 
     /// positions
-    std::vector<std::vector<double> > get_covariance_matrix(int dataset=all_ds)
-                                                           throw(ExecuteError);
+    std::vector<std::vector<double> > 
+    get_covariance_matrix(int dataset=all_datasets)  throw(ExecuteError);
     // @}
 
 private:

@@ -18,26 +18,27 @@ class Ftk;
 class UserInterface;
 class FitMethodsContainer;
 class Fit;
+class Model;
 
 
-/// keeps Data and its Sum
-class DataWithSum
+/// keeps Data and its Model
+class DataAndModel
 {
 public:
-    DataWithSum(Ftk *F, Data* data_=0);
-    Data *get_data() const { return data.get(); } 
-    Sum *get_sum() const { return sum.get(); }
+    DataAndModel(Ftk *F, Data* data=NULL);
+    Data *data() const { return data_.get(); } 
+    Model *model() const { return model_.get(); }
     bool has_any_info() const;
 
 private:
-    std::auto_ptr<Data> data;
-    std::auto_ptr<Sum> sum;
+    std::auto_ptr<Data> data_;
+    std::auto_ptr<Model> model_;
 
-    DataWithSum(DataWithSum const&); //disable
+    DataAndModel(DataAndModel const&); //disable
 };
 
 
-/// keeps all functions, variables, parameters, datasets with sums and View
+/// keeps all functions, variables, parameters, datasets with models and View
 class Ftk : public VariableManager
 {
 public:
@@ -51,16 +52,16 @@ public:
     void reset();
     void dump_all_as_script (std::string const &filename);
 
-    int append_ds(Data *data=0);
-    void remove_ds(int d);
-    int get_ds_count() const { return dsds.size(); }
-    DataWithSum* get_ds(int n) { return dsds[check_ds_number(n)]; }
-    DataWithSum const* get_ds(int n) const { return dsds[check_ds_number(n)]; }
-    std::vector<DataWithSum*> const& get_dsds() const { return dsds; }
-    Data *get_data(int n) { return get_ds(n)->get_data(); }
-    Sum *get_sum(int n)   { return get_ds(n)->get_sum(); }
-    bool has_ds(DataWithSum const* p) const 
-                      { return count(dsds.begin(), dsds.end(), p) > 0; }
+    int append_dm(Data *data=0);
+    void remove_dm(int d);
+    int get_dm_count() const { return dms.size(); }
+    DataAndModel* get_dm(int n) { return dms[check_dm_number(n)]; }
+    DataAndModel const* get_dm(int n) const { return dms[check_dm_number(n)]; }
+    std::vector<DataAndModel*> const& get_dms() const { return dms; }
+    Data *get_data(int n) { return get_dm(n)->data(); }
+    Model *get_model(int n)   { return get_dm(n)->model(); }
+    bool contains_dm(DataAndModel const* p) const 
+                      { return count(dms.begin(), dms.end(), p) > 0; }
     std::string find_function_name(std::string const &fstr) const;
     const Function* find_function_any(std::string const &fstr) const;
 
@@ -96,7 +97,7 @@ public:
                         std::vector<std::string> const& options);
 
 protected:
-    std::vector<DataWithSum*> dsds;
+    std::vector<DataAndModel*> dms;
     Settings* settings;
     UserInterface* ui;
     FitMethodsContainer* fit_container;
@@ -105,8 +106,8 @@ protected:
     void destroy();
 
 private:
-    /// verify that n is the valid number for get_ds() and return n 
-    int check_ds_number(int n) const;
+    /// verify that n is the valid number for get_dm() and return n 
+    int check_dm_number(int n) const;
 };
 
 extern Ftk* AL;

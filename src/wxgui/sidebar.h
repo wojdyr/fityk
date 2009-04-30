@@ -69,7 +69,7 @@ public:
     int get_focused_var() const;
     std::vector<int> get_ordered_dataset_numbers();
     std::string get_plot_in_datasets();
-    std::vector<int> get_selected_ds_indices();
+    std::vector<int> get_selected_data_indices();
     //bool is_func_selected(int n) const;
     int set_selection(int page) { return nb->SetSelection(page); }
     void activate_function(int n);

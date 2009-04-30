@@ -62,7 +62,7 @@ private:
     void draw_diff (wxDC& dc, std::vector<Point>::const_iterator first,
                                 std::vector<Point>::const_iterator last);
     void draw_zoom_text(wxDC& dc, bool set_pen=true);
-    void fit_y_zoom(Data const* data, Sum const* sum);
+    void fit_y_zoom(Data const* data, Model const* model);
 
     DECLARE_EVENT_TABLE()
 };

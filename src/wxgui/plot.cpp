@@ -213,15 +213,15 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
 }
 
 double FPlot::get_max_abs_y (double (*compute_y)(vector<Point>::const_iterator, 
-                                                 Sum const*),
+                                                 Model const*),
                          vector<Point>::const_iterator first,
                          vector<Point>::const_iterator last,
-                         Sum const* sum)
+                         Model const* model)
 {
     double max_abs_y = 0;
     for (vector<Point>::const_iterator i = first; i < last; i++) {
         if (i->is_active) {
-            double y = fabs(((*compute_y)(i, sum)));
+            double y = fabs(((*compute_y)(i, model)));
             if (y > max_abs_y) max_abs_y = y;
         }
     }
@@ -230,9 +230,9 @@ double FPlot::get_max_abs_y (double (*compute_y)(vector<Point>::const_iterator,
 
 void FPlot::draw_data (wxDC& dc, 
                        double (*compute_y)(vector<Point>::const_iterator, 
-                                           Sum const*),
+                                           Model const*),
                        Data const* data, 
-                       Sum const* sum,
+                       Model const* model,
                        wxColour const& color, wxColour const& inactive_color, 
                        int Y_offset,
                        bool cumulative)
@@ -257,8 +257,8 @@ void FPlot::draw_data (wxDC& dc,
     //                                                 that are outside of plot 
     if (line_between_points && first > data->points().begin() && !cumulative) {
         X_ = xs.px (ftk->view.left);
-        int Y_l = ys.px ((*compute_y)(first - 1, sum));
-        int Y_r = ys.px ((*compute_y)(first, sum));
+        int Y_l = ys.px ((*compute_y)(first - 1, model));
+        int Y_r = ys.px ((*compute_y)(first, model));
         int X_l = xs.px ((first - 1)->x);
         int X_r = xs.px (first->x);
         if (X_r == X_l)
@@ -273,9 +273,9 @@ void FPlot::draw_data (wxDC& dc,
     for (vector<Point>::const_iterator i = first; i < last; i++) {
         int X = xs.px(i->x);
         if (cumulative)
-            y += (*compute_y)(i, sum);
+            y += (*compute_y)(i, model);
         else
-            y = (*compute_y)(i, sum);
+            y = (*compute_y)(i, model);
         int Y = ys.px(y) - Y_offset;
         if (X == X_ && Y == Y_) 
             continue;
@@ -324,8 +324,8 @@ void FPlot::draw_data (wxDC& dc,
     //the last line segment, toward next point
     if (line_between_points && last < data->points().end() && !cumulative) {
         int X = xs.px (ftk->view.right);
-        int Y_l = ys.px ((*compute_y)(last - 1, sum));
-        int Y_r = ys.px ((*compute_y)(last, sum));
+        int Y_l = ys.px ((*compute_y)(last - 1, model));
+        int Y_r = ys.px ((*compute_y)(last, model));
         int X_l = xs.px ((last - 1)->x);
         int X_r = xs.px (last->x);
         if (X_r != X_l) {

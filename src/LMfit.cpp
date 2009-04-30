@@ -48,14 +48,14 @@ fp LMfit::init()
 
     F->vmsg (print_matrix (a, 1, na, "Initial A"));
     //no need to optimise it (and compute chi2 and derivatives together)
-    chi2 = compute_wssr(a, datsums);
-    compute_derivatives(a, datsums, alpha, beta);
+    chi2 = compute_wssr(a, dmdm_);
+    compute_derivatives(a, dmdm_, alpha, beta);
     return chi2;
 }
 
 void LMfit::autoiter() 
 {
-    wssr_before = (shake_before > 0. ? compute_wssr(a_orig, datsums) : chi2);
+    wssr_before = (shake_before > 0. ? compute_wssr(a_orig, dmdm_) : chi2);
     fp prev_chi2 = chi2;
     F->vmsg("\t === Levenberg-Marquardt method ===");
     F->msg ("Initial values:  lambda=" + S(lambda) + "  WSSR=" + S(chi2));
@@ -128,12 +128,12 @@ bool LMfit::do_iteration()
         beta_[i] = a[i] + beta_[i];   // and now there is new a[] in beta_[] 
     F->vmsg (print_matrix (beta_, 1, na, "Trying A"));
     //  compute chi2_
-    chi2_ = compute_wssr(beta_, datsums);
+    chi2_ = compute_wssr(beta_, dmdm_);
 
     if (chi2_ < chi2) { // better fitting
         chi2 = chi2_; 
         a = beta_;
-        compute_derivatives(a, datsums, alpha, beta);
+        compute_derivatives(a, dmdm_, alpha, beta);
         lambda /= F->get_settings()->get_f("lm-lambda-down-factor");
         return true;
     }

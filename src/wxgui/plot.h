@@ -16,7 +16,7 @@
 
 // INT_MIN, given as coordinate, is invalid value, means "cancel drawing"
 
-class Sum;
+class Model;
 class Data;
 class View;
 
@@ -120,15 +120,15 @@ protected:
     void draw_xtics (wxDC& dc, View const& v, bool set_pen=true);
     void draw_ytics (wxDC& dc, View const &v, bool set_pen=true);
     double get_max_abs_y(double (*compute_y)(std::vector<Point>::const_iterator,
-                                             Sum const*),
+                                             Model const*),
                          std::vector<Point>::const_iterator first,
                          std::vector<Point>::const_iterator last,
-                         Sum const* sum);
+                         Model const* model);
     void draw_data (wxDC& dc, 
                     double (*compute_y)(std::vector<Point>::const_iterator, 
-                                        Sum const*),
+                                        Model const*),
                     Data const* data, 
-                    Sum const* sum, 
+                    Model const* model, 
                     wxColour const& color = wxNullColour,
                     wxColour const& inactive_color = wxNullColour,
                     int Y_offset = 0,

@@ -30,13 +30,13 @@ using namespace std;
 
 enum {
     ID_plot_popup_za                = 25001, 
-    ID_plot_popup_sum               = 25011,
+    ID_plot_popup_model               = 25011,
     ID_plot_popup_groups                   ,
     ID_plot_popup_peak                     ,
 
     ID_plot_popup_c_background             ,
     ID_plot_popup_c_inactive_data          ,
-    ID_plot_popup_c_sum                    ,
+    ID_plot_popup_c_model                    ,
     ID_plot_popup_c_inv                    ,
 
     ID_plot_popup_axes                     ,
@@ -219,9 +219,9 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_MIDDLE_UP (       MainPlot::OnButtonUp)
     EVT_KEY_DOWN   (      MainPlot::OnKeyDown)
     EVT_MENU (ID_plot_popup_za,     MainPlot::OnZoomAll)
-    EVT_MENU_RANGE (ID_plot_popup_sum, ID_plot_popup_peak,  
+    EVT_MENU_RANGE (ID_plot_popup_model, ID_plot_popup_peak,  
                                     MainPlot::OnPopupShowXX)
-    EVT_MENU_RANGE (ID_plot_popup_c_background, ID_plot_popup_c_sum, 
+    EVT_MENU_RANGE (ID_plot_popup_c_background, ID_plot_popup_c_model, 
                                     MainPlot::OnPopupColor)
     EVT_MENU_RANGE (ID_plot_popup_pt_size, ID_plot_popup_pt_size + max_radius, 
                                     MainPlot::OnPopupRadius)
@@ -253,7 +253,8 @@ void MainPlot::OnPaint(wxPaintEvent&)
     draw_moving_func(mat_redraw);
 }
 
-fp y_of_data_for_draw_data(vector<Point>::const_iterator i, Sum const* /*sum*/)
+fp y_of_data_for_draw_data(vector<Point>::const_iterator i, 
+                           Model const* /*model*/)
 {
     return i->y;
 }
@@ -283,14 +284,14 @@ void MainPlot::draw_dataset(wxDC& dc, int n, bool set_pen)
 void MainPlot::draw(wxDC &dc, bool monochrome)
 {
     int focused_data = frame->get_sidebar()->get_focused_data();
-    Sum const* sum = ftk->get_sum(focused_data);
+    Model const* model = ftk->get_model(focused_data);
 
     set_scale(get_pixel_width(dc), get_pixel_height(dc));
 
     frame->draw_crosshair(-1, -1); //erase crosshair before redrawing plot
 
     int Ymax = get_pixel_height(dc);
-    prepare_peaktops(sum, Ymax);
+    prepare_peaktops(model, Ymax);
 
     if (monochrome) {
         dc.SetPen(*wxBLACK_PEN);
@@ -307,24 +308,24 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
         draw_ytics(dc, ftk->view, !monochrome);
 
     if (peaks_visible)
-        draw_peaks(dc, sum, !monochrome);
+        draw_peaks(dc, model, !monochrome);
     if (groups_visible)
-        draw_groups(dc, sum, !monochrome);
-    if (sum_visible)
-        draw_sum(dc, sum, !monochrome);
+        draw_groups(dc, model, !monochrome);
+    if (model_visible)
+        draw_model(dc, model, !monochrome);
     if (x_axis_visible) 
         draw_x_axis(dc, !monochrome);
     if (y_axis_visible) 
         draw_y_axis(dc, !monochrome);
 
     if (visible_peaktops(mode) && !monochrome) 
-        draw_peaktops(dc, sum); 
+        draw_peaktops(dc, model); 
     if (mode == mmd_bg) {
         draw_background(dc); 
     }
     else {
         if (plabels_visible)
-            draw_plabels(dc, sum, !monochrome);
+            draw_plabels(dc, model, !monochrome);
     }
 }
 
@@ -351,16 +352,16 @@ void MainPlot::draw_y_axis (wxDC& dc, bool set_pen)
     dc.DrawLine (X0, 0, X0, get_pixel_height(dc));
 }
 
-void MainPlot::draw_sum(wxDC& dc, Sum const* sum, bool set_pen)
+void MainPlot::draw_model(wxDC& dc, Model const* model, bool set_pen)
 {
     if (set_pen)
-        dc.SetPen(wxPen(sumCol, pen_width));
+        dc.SetPen(wxPen(modelCol, pen_width));
     int n = get_pixel_width(dc);
     vector<fp> xx(n), yy(n);
     vector<int> YY(n);
     for (int i = 0; i < n; ++i) 
         xx[i] = xs.val(i);
-    sum->calculate_sum_value(xx, yy);
+    model->compute_model(xx, yy);
     for (int i = 0; i < n; ++i) 
         YY[i] = ys.px(yy[i]);
     for (int i = 1; i < n; i++) 
@@ -370,14 +371,14 @@ void MainPlot::draw_sum(wxDC& dc, Sum const* sum, bool set_pen)
 
 
 //TODO draw groups
-void MainPlot::draw_groups (wxDC& /*dc*/, Sum const*, bool)
+void MainPlot::draw_groups (wxDC& /*dc*/, Model const*, bool)
 {
 }
 
-void MainPlot::draw_peaks(wxDC& dc, Sum const* sum, bool set_pen)
+void MainPlot::draw_peaks(wxDC& dc, Model const* model, bool set_pen)
 {
     fp level = 0;
-    vector<int> const& idx = sum->get_ff_idx();
+    vector<int> const& idx = model->get_ff_idx();
     int n = get_pixel_width(dc);
     vector<fp> xx(n), yy(n);
     vector<int> YY(n);
@@ -402,7 +403,7 @@ void MainPlot::draw_peaks(wxDC& dc, Sum const* sum, bool set_pen)
     }
 }
 
-void MainPlot::draw_peaktops (wxDC& dc, Sum const* sum)
+void MainPlot::draw_peaktops (wxDC& dc, Model const* model)
 {
     dc.SetPen(wxPen(xAxisCol, pen_width));
     dc.SetBrush (*wxTRANSPARENT_BRUSH);
@@ -410,15 +411,15 @@ void MainPlot::draw_peaktops (wxDC& dc, Sum const* sum)
                                            i != special_points.end(); i++) {
         dc.DrawRectangle (i->x - 1, i->y - 1, 3, 3);
     }
-    draw_peaktop_selection(dc, sum);
+    draw_peaktop_selection(dc, model);
 }
 
-void MainPlot::draw_peaktop_selection (wxDC& dc, Sum const* sum)
+void MainPlot::draw_peaktop_selection (wxDC& dc, Model const* model)
 {
     int n = frame->get_sidebar()->get_active_function();
     if (n == -1)
         return;
-    vector<int> const& idx = sum->get_ff_idx();
+    vector<int> const& idx = model->get_ff_idx();
     vector<int>::const_iterator t = find(idx.begin(), idx.end(), n);
     if (t != idx.end()) {
         wxPoint const&p = special_points[t-idx.begin()];
@@ -428,12 +429,12 @@ void MainPlot::draw_peaktop_selection (wxDC& dc, Sum const* sum)
     }
 }
 
-void MainPlot::draw_plabels (wxDC& dc, Sum const* sum, bool set_pen)
+void MainPlot::draw_plabels (wxDC& dc, Model const* model, bool set_pen)
 {
-    prepare_peak_labels(sum); //TODO re-prepare only when peaks where changed
+    prepare_peak_labels(model); //TODO re-prepare only when peaks where changed
     set_font(dc, plabelFont);
     vector<wxRect> previous;
-    vector<int> const& idx = sum->get_ff_idx();
+    vector<int> const& idx = model->get_ff_idx();
     for (int k = 0; k < size(idx); k++) {
         const wxPoint &peaktop = special_points[k];
         if (set_pen)
@@ -484,10 +485,10 @@ static bool operator< (const wxPoint& a, const wxPoint& b)
 }
 */
 
-void MainPlot::prepare_peaktops(Sum const* sum, int Ymax)
+void MainPlot::prepare_peaktops(Model const* model, int Ymax)
 {
     int Y0 = ys.px(0);
-    vector<int> const& idx = sum->get_ff_idx();
+    vector<int> const& idx = model->get_ff_idx();
     int n = idx.size();
     special_points.resize(n);
     for (int k = 0; k < n; k++) {
@@ -496,12 +497,12 @@ void MainPlot::prepare_peaktops(Sum const* sum, int Ymax)
         int X, Y;
         if (f->has_center()) {
             x = f->center();
-            X = xs.px (x - sum->zero_shift(x));
+            X = xs.px (x - model->zero_shift(x));
         }
         else {
             X = k * 10;
             x = xs.val(X);
-            x += sum->zero_shift(x);
+            x += model->zero_shift(x);
         }
         //FIXME: check if these zero_shift()'s above are needed
         Y = ys.px(f->calculate_value(x));
@@ -512,9 +513,9 @@ void MainPlot::prepare_peaktops(Sum const* sum, int Ymax)
 }
 
 
-void MainPlot::prepare_peak_labels(Sum const* sum)
+void MainPlot::prepare_peak_labels(Model const* model)
 {
-    vector<int> const& idx = sum->get_ff_idx();
+    vector<int> const& idx = model->get_ff_idx();
     plabels.resize(idx.size());
     for (int k = 0; k < size(idx); k++) {
         Function const *f = ftk->get_function(idx[k]);
@@ -581,7 +582,7 @@ void MainPlot::read_settings(wxConfigBase *cf)
                                                wxColour(0, 255, 0));
     inactiveDataCol = cfg_read_color(cf,wxT("inactive_data"),
                                                       wxColour (128, 128, 128));
-    sumCol = cfg_read_color (cf, wxT("sum"), wxColour(wxT("YELLOW")));
+    modelCol = cfg_read_color (cf, wxT("model"), wxColour(wxT("YELLOW")));
     bg_pointsCol = cfg_read_color(cf, wxT("BgPoints"), wxColour(wxT("RED")));
     for (int i = 0; i < max_group_cols; i++)
         groupCol[i] = cfg_read_color(cf, wxString::Format(wxT("group/%i"), i),
@@ -594,7 +595,7 @@ void MainPlot::read_settings(wxConfigBase *cf)
     peaks_visible = cfg_read_bool(cf, wxT("peaks"), true); 
     plabels_visible = cfg_read_bool(cf, wxT("plabels"), false); 
     groups_visible = cfg_read_bool(cf, wxT("groups"), false);  
-    sum_visible = cfg_read_bool(cf, wxT("sum"), true);
+    model_visible = cfg_read_bool(cf, wxT("model"), true);
     cf->SetPath(wxT("/MainPlot"));
     point_radius = cf->Read (wxT("point_radius"), 1);
     line_between_points = cfg_read_bool(cf,wxT("line_between_points"), false);
@@ -638,7 +639,7 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     for (int i = 0; i < max_data_cols; i++)
         cfg_write_color(cf, wxString::Format(wxT("data/%i"), i), dataColour[i]);
     cfg_write_color (cf, wxT("inactive_data"), inactiveDataCol);
-    cfg_write_color (cf, wxT("sum"), sumCol);
+    cfg_write_color (cf, wxT("model"), modelCol);
     cfg_write_color (cf, wxT("BgPoints"), bg_pointsCol);
     for (int i = 0; i < max_group_cols; i++)
         cfg_write_color(cf, wxString::Format(wxT("group/%i"), i), groupCol[i]);
@@ -649,7 +650,7 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->Write (wxT("peaks"), peaks_visible);
     cf->Write (wxT("plabels"), plabels_visible);
     cf->Write (wxT("groups"), groups_visible);
-    cf->Write (wxT("sum"), sum_visible);
+    cf->Write (wxT("model"), model_visible);
     cf->SetPath(wxT("/MainPlot"));
     FPlot::save_settings(cf);
 }
@@ -668,8 +669,8 @@ void MainPlot::show_popup_menu (wxMouseEvent &event)
     popup_menu.AppendSeparator();
 
     wxMenu *show_menu = new wxMenu;
-    show_menu->AppendCheckItem (ID_plot_popup_sum, wxT("S&um"), wxT(""));
-    show_menu->Check (ID_plot_popup_sum, sum_visible);
+    show_menu->AppendCheckItem (ID_plot_popup_model, wxT("&Model"), wxT(""));
+    show_menu->Check (ID_plot_popup_model, model_visible);
     //show_menu->AppendCheckItem (ID_plot_popup_groups, 
     //                            wxT("Grouped peaks"), wxT(""));
     //show_menu->Check (ID_plot_popup_groups, groups_visible);
@@ -680,7 +681,7 @@ void MainPlot::show_popup_menu (wxMouseEvent &event)
     wxMenu *color_menu = new wxMenu;
     color_menu->Append (ID_plot_popup_c_background, wxT("&Background"));
     color_menu->Append (ID_plot_popup_c_inactive_data, wxT("&Inactive Data"));
-    color_menu->Append (ID_plot_popup_c_sum, wxT("&Sum"));
+    color_menu->Append (ID_plot_popup_c_model, wxT("&Model"));
     color_menu->AppendSeparator(); 
     color_menu->Append (ID_plot_popup_c_inv, wxT("&Invert colors")); 
     popup_menu.Append (wxNewId(), wxT("&Color"), color_menu);  
@@ -850,8 +851,8 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
 void MainPlot::look_for_peaktop (wxMouseEvent& event)
 {
     int focused_data = frame->get_sidebar()->get_focused_data();
-    Sum const* sum = ftk->get_sum(focused_data);
-    vector<int> const& idx = sum->get_ff_idx();
+    Model const* model = ftk->get_model(focused_data);
+    vector<int> const& idx = model->get_ff_idx();
     if (special_points.size() != idx.size()) 
         refresh(false);
     int n = get_special_point_at_pointer(event);
@@ -1000,7 +1001,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
 
 bool MainPlot::can_disactivate()
 {
-    vector<int> sel = frame->get_sidebar()->get_selected_ds_indices();
+    vector<int> sel = frame->get_sidebar()->get_selected_data_indices();
     for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i) {
         Data const* data = ftk->get_data(*i);
         // if data->is_empty() we allow to try disactivate data to let user
@@ -1117,10 +1118,10 @@ void MainPlot::add_peak_from_draft(int X, int Y)
     }
     string tail = "F += " + frame->get_peak_type() + "(" + args + ")";
     string cmd;
-    if (ftk->get_ds_count() == 1)
+    if (ftk->get_dm_count() == 1)
         cmd = tail;
     else {
-        vector<int> sel = frame->get_sidebar()->get_selected_ds_indices();
+        vector<int> sel = frame->get_sidebar()->get_selected_data_indices();
         cmd = "@" + join_vector(sel, "." + tail + "; @") + "." + tail;
     }
     ftk->exec(cmd); 
@@ -1298,9 +1299,9 @@ void MainPlot::draw_rect (int X1, int Y1, int X2, int Y2)
 void MainPlot::OnPopupShowXX (wxCommandEvent& event)
 {
     switch (event.GetId()) {
-        case ID_plot_popup_sum  :  sum_visible = !sum_visible;       break; 
+        case ID_plot_popup_model:  model_visible = !model_visible;   break; 
         case ID_plot_popup_groups: groups_visible = !groups_visible; break; 
-        case ID_plot_popup_peak :  peaks_visible = !peaks_visible;   break;  
+        case ID_plot_popup_peak:   peaks_visible = !peaks_visible;   break;  
         default: assert(0);
     }
     refresh(false);
@@ -1315,8 +1316,8 @@ void MainPlot::OnPopupColor(wxCommandEvent& event)
     else if (n == ID_plot_popup_c_inactive_data) {
         color = &inactiveDataCol;
     }
-    else if (n == ID_plot_popup_c_sum)
-        color = &sumCol;
+    else if (n == ID_plot_popup_c_model)
+        color = &modelCol;
     else 
         return;
     if (change_color_dlg(*color)) {
@@ -1332,7 +1333,7 @@ void MainPlot::OnInvertColors (wxCommandEvent&)
     for (int i = 0; i < max_data_cols; i++)
         dataColour[i] = invert_colour(dataColour[i]);
     inactiveDataCol = invert_colour(inactiveDataCol);
-    sumCol = invert_colour(sumCol); 
+    modelCol = invert_colour(modelCol); 
     xAxisCol = invert_colour(xAxisCol);
     for (int i = 0; i < max_group_cols; i++)
         groupCol[i] = invert_colour(groupCol[i]);
@@ -1796,7 +1797,7 @@ vector<int> BgManager::calculate_bgline(int window_width, Scale const& y_scale)
 void BgManager::set_as_convex_hull()
 {
     SimplePolylineConvex convex;
-    vector<int> sel = frame->get_selected_ds_indices();
+    vector<int> sel = frame->get_selected_data_indices();
     if (sel.size() != 1)
         return;
     const Data* data = ftk->get_data(sel[0]);

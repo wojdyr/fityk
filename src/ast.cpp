@@ -895,7 +895,7 @@ fp get_constant_value(string const &s)
             else
                 throw ExecuteError("Syntax error near: `" + in_expr + "'");
         }
-        else if (AL->get_ds_count() == 1)
+        else if (AL->get_dm_count() == 1)
             data = AL->get_data(0);
         return get_transform_expression_value(expr, data);
     }

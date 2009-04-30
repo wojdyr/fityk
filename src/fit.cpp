@@ -27,37 +27,37 @@ Fit::Fit(Ftk *F_, string const& m)
 }
 
 /// dof = degrees of freedom = (number of points - number of parameters) 
-int Fit::get_dof(vector<DataWithSum*> const& dsds)
+int Fit::get_dof(vector<DataAndModel*> const& dms)
 {
-    update_parameters(dsds);
+    update_parameters(dms);
     int dof = 0;
-    for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
-                                                    i != dsds.end(); ++i) 
-        dof += (*i)->get_data()->get_n(); 
+    for (vector<DataAndModel*>::const_iterator i = dms.begin(); 
+                                                    i != dms.end(); ++i) 
+        dof += (*i)->data()->get_n(); 
     dof -= count(par_usage.begin(), par_usage.end(), true);
     return dof;
 }
 
-string Fit::get_info(vector<DataWithSum*> const& dsds)
+string Fit::get_info(vector<DataAndModel*> const& dms)
 {
     vector<fp> const &pp = F->get_parameters();
-    int dof = get_dof(dsds);
-    update_parameters(dsds);
-    fp wssr = compute_wssr(pp, dsds);
+    int dof = get_dof(dms);
+    update_parameters(dms);
+    fp wssr = compute_wssr(pp, dms);
     return "WSSR = " + S(wssr) 
            + ";  DoF = " + S(dof) 
            + ";  WSSR/DoF = " + S(wssr/dof) 
-           + ";  SSR = " + S(compute_wssr(pp, dsds, false))
-           + ";  R-squared = " + S(compute_r_squared(pp, dsds)) ;
+           + ";  SSR = " + S(compute_wssr(pp, dms, false))
+           + ";  R-squared = " + S(compute_r_squared(pp, dms)) ;
 }
 
-vector<fp> Fit::get_covariance_matrix(vector<DataWithSum*> const& dsds)
+vector<fp> Fit::get_covariance_matrix(vector<DataAndModel*> const& dms)
 {
     vector<fp> const &pp = F->get_parameters();
-    update_parameters(dsds);
+    update_parameters(dms);
 
     vector<fp> alpha(na*na), beta(na);
-    compute_derivatives(pp, dsds, alpha, beta);
+    compute_derivatives(pp, dms, alpha, beta);
     for (int i = 0; i < na; ++i) //to avoid singular matrix, we put fake values
         if (!par_usage[i]) {     // corresponding unused parameters
             alpha[i*na + i] = 1.;
@@ -88,18 +88,18 @@ vector<fp> Fit::get_covariance_matrix(vector<DataWithSum*> const& dsds)
     return alpha;
 }
 
-vector<fp> Fit::get_symmetric_errors(vector<DataWithSum*> const& dsds)
+vector<fp> Fit::get_symmetric_errors(vector<DataAndModel*> const& dms)
 {
-    vector<fp> alpha = get_covariance_matrix(dsds);
+    vector<fp> alpha = get_covariance_matrix(dms);
     vector<fp> errors(na);
     for (int i = 0; i < na; ++i)
         errors[i] = sqrt(alpha[i*na + i]); 
     return errors;
 }
 
-string Fit::getErrorInfo(vector<DataWithSum*> const& dsds, bool matrix)
+string Fit::get_error_info(vector<DataAndModel*> const& dms, bool matrix)
 {
-    vector<fp> alpha = get_covariance_matrix(dsds);
+    vector<fp> alpha = get_covariance_matrix(dms);
     vector<fp> const &pp = F->get_parameters();
     string s;
     s = "Symmetric errors: ";
@@ -129,28 +129,28 @@ string Fit::getErrorInfo(vector<DataWithSum*> const& dsds, bool matrix)
     return s;
 }
 
-fp Fit::do_compute_wssr(vector<fp> const &A, vector<DataWithSum*> const& dsds,
+fp Fit::do_compute_wssr(vector<fp> const &A, vector<DataAndModel*> const& dms,
                         bool weigthed)
 {
     fp wssr = 0;
     F->use_external_parameters(A); //that's the only side-effect
-    for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
-                                                    i != dsds.end(); ++i) {
+    for (vector<DataAndModel*>::const_iterator i = dms.begin(); 
+                                                    i != dms.end(); ++i) {
         wssr += compute_wssr_for_data(*i, weigthed);
     }
     return wssr;
 }
 
 //static
-fp Fit::compute_wssr_for_data(DataWithSum const* ds, bool weigthed)
+fp Fit::compute_wssr_for_data(DataAndModel const* dm, bool weigthed)
 {
-    Data const* data = ds->get_data();
+    Data const* data = dm->data();
     int n = data->get_n();
     vector<fp> xx(n);
     for (int j = 0; j < n; j++) 
         xx[j] = data->get_x(j);
     vector<fp> yy(n, 0.);
-    ds->get_sum()->calculate_sum_value(xx, yy);
+    dm->model()->compute_model(xx, yy);
     fp wssr = 0;
     for (int j = 0; j < n; j++) {
         fp dy = data->get_y(j) - yy[j];
@@ -161,27 +161,27 @@ fp Fit::compute_wssr_for_data(DataWithSum const* ds, bool weigthed)
     return wssr;
 }
 
-fp Fit::compute_r_squared(vector<fp> const &A, vector<DataWithSum*> const& dsds)
+fp Fit::compute_r_squared(vector<fp> const &A, vector<DataAndModel*> const& dms)
 {
     fp r_squared = 0;
     F->use_external_parameters(A);
-    for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
-                                                    i != dsds.end(); ++i) {
+    for (vector<DataAndModel*>::const_iterator i = dms.begin(); 
+                                                    i != dms.end(); ++i) {
         r_squared += compute_r_squared_for_data(*i);
     }
     return r_squared ;
 }
 
 //static
-fp Fit::compute_r_squared_for_data(DataWithSum const* ds)
+fp Fit::compute_r_squared_for_data(DataAndModel const* dm)
 {
-    Data const* data = ds->get_data();
+    Data const* data = dm->data();
     int n = data->get_n();
     vector<fp> xx(n);
     for (int j = 0; j < n; j++) 
         xx[j] = data->get_x(j);
     vector<fp> yy(n, 0.);
-    ds->get_sum()->calculate_sum_value(xx, yy);
+    dm->model()->compute_model(xx, yy);
     fp mean = 0;
     fp ssr_curve = 0; // Sum of squares of dist. between fitted curve and data
     fp ssr_mean = 0 ;  // Sum of squares of distances between mean and data
@@ -202,7 +202,7 @@ fp Fit::compute_r_squared_for_data(DataWithSum const* ds)
 
 //results in alpha and beta 
 void Fit::compute_derivatives(vector<fp> const &A, 
-                              vector<DataWithSum*> const& dsds,
+                              vector<DataAndModel*> const& dms,
                               vector<fp>& alpha, vector<fp>& beta)
 {
     assert (size(A) == na && size(alpha) == na * na && size(beta) == na);
@@ -210,8 +210,8 @@ void Fit::compute_derivatives(vector<fp> const &A,
     fill(beta.begin(), beta.end(), 0.0);
 
     F->use_external_parameters(A);
-    for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
-                                                    i != dsds.end(); ++i) {
+    for (vector<DataAndModel*>::const_iterator i = dms.begin(); 
+                                                    i != dms.end(); ++i) {
         compute_derivatives_for(*i, alpha, beta);
     }
     // filling second half of alpha[] 
@@ -222,10 +222,10 @@ void Fit::compute_derivatives(vector<fp> const &A,
 
 //results in alpha and beta 
 //it computes only half of alpha matrix
-void Fit::compute_derivatives_for(DataWithSum const* ds, 
+void Fit::compute_derivatives_for(DataAndModel const* dm, 
                                   vector<fp>& alpha, vector<fp>& beta)
 {
-    Data const* data = ds->get_data();
+    Data const* data = dm->data();
     int n = data->get_n();
     vector<fp> xx(n);
     for (int j = 0; j < n; ++j) 
@@ -233,7 +233,7 @@ void Fit::compute_derivatives_for(DataWithSum const* ds,
     vector<fp> yy(n, 0.);
     const int dyn = na+1;
     vector<fp> dy_da(n*dyn, 0.);
-    ds->get_sum()->calculate_sum_value_deriv(xx, yy, dy_da);
+    dm->model()->compute_model_with_derivs(xx, yy, dy_da);
     for (int i = 0; i != n; i++) {
         fp inv_sig = 1.0 / data->get_sigma(i);
         fp dy_sig = (data->get_y(i) - yy[i]) * inv_sig;
@@ -319,10 +319,10 @@ fp Fit::draw_a_from_distribution (int nr, char distribution, fp mult)
 }
 
 /// initialize and run fitting procedure for not more than max_iter iterations
-void Fit::fit(int max_iter, vector<DataWithSum*> const& dsds)
+void Fit::fit(int max_iter, vector<DataAndModel*> const& dms)
 {
-    update_parameters(dsds);
-    datsums = dsds;
+    update_parameters(dms);
+    dmdm_ = dms;
     a_orig = F->get_parameters();
     F->get_fit_container()->push_param_history(a_orig);
     iter_nr = 0;
@@ -334,9 +334,9 @@ void Fit::fit(int max_iter, vector<DataWithSum*> const& dsds)
     // print stats
     int nu = count(par_usage.begin(), par_usage.end(), true);
     int np = 0;
-    for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
-                                                    i != dsds.end(); ++i) 
-        np += (*i)->get_data()->get_n(); 
+    for (vector<DataAndModel*>::const_iterator i = dms.begin(); 
+                                                    i != dms.end(); ++i) 
+        np += (*i)->data()->get_n(); 
     F->msg ("Fit " + S(nu) + " (of " + S(na) + ") parameters to " + S(np) 
             + " points ...");
 
@@ -346,11 +346,11 @@ void Fit::fit(int max_iter, vector<DataWithSum*> const& dsds)
 /// run fitting procedure (without initialization) 
 void Fit::continue_fit(int max_iter)
 {
-    for (vector<DataWithSum*>::const_iterator i = datsums.begin(); 
-                                                      i != datsums.end(); ++i) 
-        if (!F->has_ds(*i) || na != size(F->get_parameters()))
+    for (vector<DataAndModel*>::const_iterator i = dmdm_.begin(); 
+                                                      i != dmdm_.end(); ++i) 
+        if (!F->contains_dm(*i) || na != size(F->get_parameters()))
             throw ExecuteError(name + " method should be initialized first.");
-    update_parameters(datsums);
+    update_parameters(dmdm_);
     a_orig = F->get_parameters();  //should it be also updated?
     user_interrupt = false;
     evaluations = 0;
@@ -358,11 +358,11 @@ void Fit::continue_fit(int max_iter)
     autoiter();
 }
 
-void Fit::update_parameters(vector<DataWithSum*> const& dsds)
+void Fit::update_parameters(vector<DataAndModel*> const& dms)
 {
     if (F->get_parameters().empty()) 
         throw ExecuteError("there are no fittable parameters.");
-    if (dsds.empty())
+    if (dms.empty())
         throw ExecuteError("No datasets to fit.");
 
     na = F->get_parameters().size(); 
@@ -370,9 +370,9 @@ void Fit::update_parameters(vector<DataWithSum*> const& dsds)
     par_usage = vector<bool>(na, false);
     for (int idx = 0; idx < na; ++idx) {
         int var_idx = F->find_nr_var_handling_param(idx);
-        for (vector<DataWithSum*>::const_iterator i = dsds.begin(); 
-                                                        i != dsds.end(); ++i) {
-            if ((*i)->get_sum()->is_dependent_on_var(var_idx)) {
+        for (vector<DataAndModel*>::const_iterator i = dms.begin(); 
+                                                        i != dms.end(); ++i) {
+            if ((*i)->model()->is_dependent_on_var(var_idx)) {
                 par_usage[idx] = true;
                 break; //go to next idx
             }

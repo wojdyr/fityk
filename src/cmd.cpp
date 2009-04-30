@@ -53,7 +53,7 @@ void do_assign_func_copy(char const*, char const*)
 void do_subst_func_param(char const* a, char const* b)
 {
     if (t == "F" || t == "Z") { 
-        vector<string> const &names = AL->get_sum(ds_pref)->get_names(t[0]);
+        vector<string> const &names = AL->get_model(dm_pref)->get_names(t[0]);
         for (vector<string>::const_iterator i = names.begin(); 
                                                    i != names.end(); ++i)
             AL->substitute_func_param(*i, t2, string(a,b));
@@ -66,7 +66,7 @@ void do_subst_func_param(char const* a, char const* b)
 void do_get_func_by_idx(char const* a, char const*)
 {
     //TODO replace it with ApplicationLogic::find_function_any()
-    vector<string> const &names = AL->get_sum(ds_pref)->get_names(*a);
+    vector<string> const &names = AL->get_model(dm_pref)->get_names(*a);
     int idx = (tmp_int >= 0 ? tmp_int : tmp_int + names.size());
     if (!is_index(idx, names))
         throw ExecuteError("There is no item with index " + S(tmp_int));
@@ -75,38 +75,38 @@ void do_get_func_by_idx(char const* a, char const*)
 
 void do_assign_fz(char const*, char const*) 
 {
-    Sum* sum = AL->get_sum(tmp_int2);
+    Model* model = AL->get_model(tmp_int2);
     assert(t3 == "F" || t3 == "Z");
     char fz = t3[0];
-    bool remove = (!with_plus && !sum->get_names(fz).empty());
+    bool remove = (!with_plus && !model->get_names(fz).empty());
     if (remove)
-        sum->remove_all_functions_from(fz);
+        model->remove_all_functions_from(fz);
     for (vector<string>::const_iterator i = vr.begin(); i != vr.end(); ++i)
-        sum->add_function_to(*i, fz);
+        model->add_function_to(*i, fz);
     if (remove)
         AL->auto_remove_functions();
-    outdated_plot=true;  //TODO only if ds_pref == @active
+    outdated_plot=true;  //TODO only if dm_pref == @active
 }
 
 void add_fz_copy(char const* a, char const*)
 {
-    vector<string> const &names = AL->get_sum(ds_pref)->get_names(*a);
+    vector<string> const &names = AL->get_model(dm_pref)->get_names(*a);
     for (vector<string>::const_iterator i=names.begin(); i != names.end(); ++i)
         vr.push_back(AL->assign_func_copy("", *i));
 }
 
 void add_fz_links(char const* a, char const*)
 {
-    vector<string> const &names = AL->get_sum(ds_pref)->get_names(*a);
+    vector<string> const &names = AL->get_model(dm_pref)->get_names(*a);
     vr.insert(vr.end(), names.begin(), names.end());
 }
 
 void do_remove_from_fz(char const* a, char const*)
 {
     assert(*a == 'F' || *a == 'Z');
-    AL->get_sum(ds_pref)->remove_function_from(t, *a);
+    AL->get_model(dm_pref)->remove_function_from(t, *a);
     AL->auto_remove_functions();
-    outdated_plot=true;  //TODO only if ds_pref == @active
+    outdated_plot=true;  //TODO only if dm_pref == @active
 }
 
 void do_delete(char const*, char const*) 
@@ -115,7 +115,7 @@ void do_delete(char const*, char const*)
         sort(vn.begin(), vn.end());
         reverse(vn.begin(), vn.end());
         for (vector<int>::const_iterator i = vn.begin(); i != vn.end(); ++i) 
-            AL->remove_ds(*i);
+            AL->remove_dm(*i);
     }
     AL->delete_funcs_and_vars(vt);
     outdated_plot=true;  //TODO only if...
@@ -194,7 +194,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
 
         subst_func_param
             = ( func_id 
-              | ds_prefix >> (str_p("F")|"Z") [assign_a(t)]
+              | dm_prefix >> (str_p("F")|"Z") [assign_a(t)]
               )
               >> "." >> function_param [assign_a(t2)]
               >> "=" >> no_actions_d[FuncG] [&do_subst_func_param]
@@ -202,7 +202,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
 
         func_id  // stores the function name in `t'
             = FunctionLhsG [assign_a(t)]
-            | ds_prefix >> ((str_p("F[")|"Z[") >> int_p[assign_a(tmp_int)] 
+            | dm_prefix >> ((str_p("F[")|"Z[") >> int_p[assign_a(tmp_int)] 
               >> ch_p(']')) [&do_get_func_by_idx]
             ;
 
@@ -223,7 +223,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
             ;
 
         assign_fz 
-            = ds_prefix [assign_a(tmp_int2, ds_pref)] 
+            = dm_prefix [assign_a(tmp_int2, dm_pref)] 
               >> (str_p("F")|"Z") [assign_a(t3)] 
               >> ( str_p("+=") [assign_a(with_plus, true_)]
                  | str_p("=") [assign_a(with_plus, false_)] 
@@ -231,20 +231,20 @@ struct CmdGrammar : public grammar<CmdGrammar>
               >> (('0' //nothing
                   | eps_p [assign_a(t2, empty)]
                     >> (func_id | new_func_rhs) [push_back_a(vr, t)] 
-                  | "copy(" >> ds_prefix >> (str_p("F")|"Z") [&add_fz_copy] 
+                  | "copy(" >> dm_prefix >> (str_p("F")|"Z") [&add_fz_copy] 
                     >> ")"
-                  | ds_prefix >> (str_p("F")|"Z") [&add_fz_links]
+                  | dm_prefix >> (str_p("F")|"Z") [&add_fz_links]
                   )  % '+') [&do_assign_fz]
             ;
 
         remove_from_fz
-            = ds_prefix >> ((ch_p('F')|'Z') >>  "-=" >> func_id) 
+            = dm_prefix >> ((ch_p('F')|'Z') >>  "-=" >> func_id) 
                                                          [&do_remove_from_fz]
             ;
-        ds_prefix
-            = lexeme_d['@' >> uint_p [assign_a(ds_pref)] 
+        dm_prefix
+            = lexeme_d['@' >> uint_p [assign_a(dm_pref)] 
                >> '.']
-            | eps_p [assign_a(ds_pref, minus_one)]
+            | eps_p [assign_a(dm_pref, minus_one)]
             ;
 
 
@@ -302,7 +302,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
     rule<ScannerT> assign_var, type_name, func_id, new_func_rhs, assign_func, 
                    function_param, subst_func_param, 
                    assign_fz, remove_from_fz, define_func,
-                   ds_prefix, temporary_set, statement, multi;  
+                   dm_prefix, temporary_set, statement, multi;  
 
     rule<ScannerT> const& start() const { return multi; }
   };

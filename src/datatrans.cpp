@@ -496,11 +496,11 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 break;
             case OP_SUM_F:
                 i++;
-                STACK_OP *stackPtr = AL->get_sum(*i)->value(*stackPtr);
+                STACK_OP *stackPtr = AL->get_model(*i)->value(*stackPtr);
                 break;
             case OP_SUM_Z:
                 i++;
-                STACK_OP *stackPtr = AL->get_sum(*i)->zero_shift(*stackPtr);
+                STACK_OP *stackPtr = AL->get_model(*i)->zero_shift(*stackPtr);
                 break;
             case OP_NUMAREA:
                 i += 2;
@@ -512,7 +512,7 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 }
                 else if (*(i-1) == OP_SUM_F) {
                     STACK_OP
-                    *stackPtr = AL->get_sum(*i)->numarea(*stackPtr, 
+                    *stackPtr = AL->get_model(*i)->numarea(*stackPtr, 
                                         *(stackPtr+1), iround(*(stackPtr+2)));
                 }
                 else // OP_SUM_Z
