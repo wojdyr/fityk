@@ -15,10 +15,6 @@ Help is needed:
 * BUG: caching data gives suprising effects if the data file was changed
   since the last reading
 
-* reading sessions saved with dump command is very slow if datasets contain
-  a large number of points. Optimize it: when reading a line from script, 
-  check first, using sscanf(), if it is a data point.
-
 * check compilation with GCC 4.4
 
 --------------> 0.8.7

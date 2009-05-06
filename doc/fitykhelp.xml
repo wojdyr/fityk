@@ -2268,6 +2268,10 @@
      <command>
       commands &lt; <replaceable>filename</replaceable>
      </command>.
+     It is possible to execute only selected lines from the script:
+     <command>
+      commands &lt; <replaceable>filename</replaceable>[<replaceable>n</replaceable>:<replaceable>m</replaceable>]
+     </command> 
     </para>
     <para>
      There is also a command

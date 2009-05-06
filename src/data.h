@@ -58,6 +58,7 @@ public :
     bool has_any_info() const { return !is_empty() || !get_title().empty(); }
     fp get_x_step() const { return x_step; } /// 0.0 if not fixed
     void transform(const std::string &s);
+    void after_transform(); // update x_step, active_p, y_min, y_max
     void update_active_p();
     //int auto_range (fp y_level, fp x_margin);
     std::string range_as_string () const;
@@ -75,6 +76,7 @@ public :
     fp get_y_min() const { return y_min; }
     fp get_y_max() const { return y_max; }
     std::vector<Point> const& points() const { return p; }
+    std::vector<Point>& get_mutable_points() { return p; }
     int get_given_x() const { return given_x; }
     int get_given_y() const { return given_y; }
     int get_given_s() const { return given_s; }

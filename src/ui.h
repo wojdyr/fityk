@@ -66,7 +66,7 @@ public:
     /// it's used to disable all messages 
     bool keep_quiet;
 
-    UserInterface(Ftk const* F_) 
+    UserInterface(Ftk* F_) 
         : keep_quiet(false), F(F_), m_show_message(NULL), m_do_draw_plot(NULL), 
           m_exec_command(NULL), m_refresh(NULL), m_wait(NULL) {}
     
@@ -114,7 +114,7 @@ public:
     void wait(float seconds) { if (m_wait) (*m_wait)(seconds); }
 
 private:
-    Ftk const* F;
+    Ftk* F;
     t_show_message *m_show_message;
     t_do_draw_plot *m_do_draw_plot;
     t_exec_command *m_exec_command;

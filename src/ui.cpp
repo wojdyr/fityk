@@ -10,6 +10,7 @@
 #include "settings.h"
 #include "logic.h"
 #include "cmd.h"
+#include "data.h"
 
 using namespace std;
 
@@ -147,14 +148,6 @@ void Commands::stop_logging()
 }
 
 
-//utility for storing lines from script file: line number and line as a string
-struct NumberedLine
-{
-    int nr;  //1 - first line, etc.
-    string txt;
-    NumberedLine(int nr_, string txt_) : nr(nr_), txt(txt_) {}
-};
-
 Commands::Status UserInterface::exec_and_log(string const &c)
 {
     Commands::Status r = this->exec_command(c); 
@@ -174,8 +167,10 @@ void UserInterface::output_message (OutputStyle style, const string& s) const
     }
 }
 
-/// items in selected_lines are ranges (first, after-last).
-/// if selected_lines are empty - all lines from file are executed
+
+/// Items in selected_lines are ranges (first, after-last).
+/// Lines in a file are numbered from 1.
+/// If selected_lines are empty all lines from file are executed.
 void UserInterface::exec_script(const string& filename, 
                                 const vector<pair<int,int> >& selected_lines)
 {
@@ -185,37 +180,89 @@ void UserInterface::exec_script(const string& filename,
         return;
     }
 
-    vector<NumberedLine> nls, //all lines from file
-                         exec_nls; //lines to execute (in order of execution)
-
-    //fill nls for easier manipulation of file lines
     string dir = get_directory(filename);
-    string s;
-    int line_index = 0;
-    while (getline (file, s)) {
-        replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);
-        nls.push_back(NumberedLine(++line_index, s));
-    }
 
-    if (selected_lines.empty())
-        exec_nls = nls;
-    else
-        for (vector<pair<int,int> >::const_iterator i = selected_lines.begin(); 
-                                            i != selected_lines.end(); i++) {
-            int f = max(i->first, 0);  // f and t are 1-based (not 0-based)
-            int t = min(i->second, size(nls));
-            exec_nls.insert(exec_nls.end(), nls.begin()+f, nls.begin()+t);
+    // most common case - execute all file
+    // optimized for reading large embedded datasets
+    if (selected_lines.empty()) {
+        int line_index = 0;
+        string s;
+        int dirty_data = -1;
+        while (getline (file, s)) {
+            ++line_index;
+            if (s.empty())
+                continue;
+            if (get_verbosity() >= 0)
+                show_message (os_quot, S(line_index) + "> " + s);
+
+            // optimize reading data lines like this:
+            // X[93]=23.5124, Y[93]=122, S[93]=11.0454, A[93]=1 in @0
+            if (s.size() > 20 && s[0] == 'X') {
+                int nx, ny, ns, na, a, nd;
+                double x, y, sigma;
+                if (sscanf(s.c_str(),
+                           "X[%d]=%lf, Y[%d]=%lf, S[%d]=%lf, A[%d]=%d in @%d",
+                           &nx, &x, &ny, &y, &ns, &sigma, &na, &a, &nd) == 9
+                     && nx >= 0 && nx < size(F->get_data(nd)->points()) 
+                     && nx == ny && nx == ns && nx == na) {
+                    vector<Point>& p = F->get_data(nd)->get_mutable_points();
+                    p[nx].x = x;
+                    p[ny].y = y;
+                    p[ns].sigma = sigma;
+                    p[na].is_active = a;
+                    // check if we need to sort the data
+                    if ((nx > 0 && p[nx-1].x > x) 
+                        || (nx+1 < size(p) && x > p[nx+1].x))
+                        sort(p.begin(), p.end());
+                    if (dirty_data != -1 && dirty_data != nd)
+                        F->get_data(dirty_data)->after_transform();
+                    dirty_data = nd;
+                    continue;
+                }
+            }
+            if (dirty_data != -1) {
+                F->get_data(dirty_data)->after_transform();
+                dirty_data = -1;
+            }
+            replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);
+            parse_and_execute(s);
+        }
+        if (dirty_data != -1) 
+            F->get_data(dirty_data)->after_transform();
+    }
+    
+    else { // execute specified lines from the file
+        // read in all lines from the file for easier manipulations
+        vector<string> lines;
+        string s;
+        while (getline (file, s)) {
+            replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);
+            lines.push_back(s);
         }
 
-    for (vector<NumberedLine>::const_iterator i = exec_nls.begin(); 
-                                                    i != exec_nls.end(); i++) {
-        if (i->txt.length() == 0)
-            continue;
-        if (get_verbosity() >= 0)
-            show_message (os_quot, S(i->nr) + "> " + i->txt); 
-        // result of parse_and_execute here is neglected. Errors in script
-        // don't change status of command, which executes script
-        parse_and_execute(i->txt);
+        for (vector<pair<int,int> >::const_iterator i = selected_lines.begin(); 
+                                            i != selected_lines.end(); i++) {
+            int f = i->first;
+            int t = i->second;
+            if (f < 0)
+                f += lines.size();
+            if (t < 0)
+                t += lines.size();
+            // f and t are 1-based (not 0-based)
+            if (f < 1)
+                f = 1;
+            if (t > (int) lines.size())
+                t = lines.size();
+            for (int j = f; j <= t; ++j) {
+                if (lines[j-1].empty())
+                    continue;
+                if (get_verbosity() >= 0)
+                    show_message (os_quot, S(j) + "> " + lines[j-1]); 
+                // result of parse_and_execute here is neglected. Errors in 
+                // script don't change status of command, which executes script
+                parse_and_execute(lines[j-1]);
+            }
+        }
     }
 }
 

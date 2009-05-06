@@ -446,7 +446,14 @@ void Data::transform(const string &s)
 {
     p = transform_data(s, p);
     sort(p.begin(), p.end());
+    after_transform();
+}
+
+void Data::after_transform() 
+{
+    x_step = find_step();
     update_active_p();
+    recompute_y_bounds();
 }
 
 void Data::update_active_p() 
