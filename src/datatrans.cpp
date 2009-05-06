@@ -102,7 +102,7 @@
 //    normalize area: 
 //           y = y / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0) 
 //
-//    substract spline baseline given by points (22.17, 37.92), (48.06, 17.23),
+//    subtract spline baseline given by points (22.17, 37.92), (48.06, 17.23),
 //                                              (93.03, 20.68).
 //    y = y - spline[22.17, 37.92,  48.06, 17.23,  93.03, 20.68](x) 
 //
