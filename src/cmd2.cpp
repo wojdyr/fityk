@@ -402,7 +402,8 @@ void do_print_info(char const* a, char const* b)
 
 void do_print_func(char const*, char const*)
 {
-    vector<string> const &names = AL->get_model(dm_pref)->get_names(t2[0]);
+    vector<string> const &names = 
+        AL->get_model(dm_pref)->get_names(Model::parse_funcset(t2[0]));
     if (tmp_int < 0)
         tmp_int += names.size();
     if (is_index(tmp_int, names)) 
@@ -415,7 +416,8 @@ void do_print_func(char const*, char const*)
 void do_print_model_info(char const*, char const*)
 {
     string m = t2 + ": "; 
-    vector<int> const &idx = AL->get_model(dm_pref)->get_indices(t2[0]);
+    vector<int> const &idx = 
+        AL->get_model(dm_pref)->get_indices(Model::parse_funcset(t2[0]));
     for (vector<int>::const_iterator i = idx.begin(); i != idx.end(); ++i) {
         Function const* f = AL->get_function(*i);
         if (with_plus)
@@ -558,7 +560,7 @@ void do_guess(char const*, char const*)
         vector<string> vars = vt;
         Guess(AL, dm).guess(name, function, vr, vars);
         string real_name = AL->assign_func(name, function, vars);
-        dm->model()->add_function_to(real_name, 'F');
+        dm->model()->add_function_to(real_name, Model::kF);
     }
     outdated_plot=true;  
 }

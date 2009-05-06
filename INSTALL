@@ -8,7 +8,7 @@ only for CLI (command line interface, cfityk):
   readline library >= 4.2 (optional)
   gnuplot program (for graph output, optional)
 only for GUI (graphical user interface, fityk):
-  wxWidgets (formerly wxWindows) >= 2.6.3 
+  wxWidgets (formerly wxWindows) >= 2.8.0 
 
 Compilation of some files with "g++ -O2" can use up to 300-400 MB RAM.
 

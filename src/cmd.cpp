@@ -53,7 +53,8 @@ void do_assign_func_copy(char const*, char const*)
 void do_subst_func_param(char const* a, char const* b)
 {
     if (t == "F" || t == "Z") { 
-        vector<string> const &names = AL->get_model(dm_pref)->get_names(t[0]);
+        vector<string> const &names = 
+                AL->get_model(dm_pref)->get_names(Model::parse_funcset(t[0]));
         for (vector<string>::const_iterator i = names.begin(); 
                                                    i != names.end(); ++i)
             AL->substitute_func_param(*i, t2, string(a,b));
@@ -66,7 +67,8 @@ void do_subst_func_param(char const* a, char const* b)
 void do_get_func_by_idx(char const* a, char const*)
 {
     //TODO replace it with ApplicationLogic::find_function_any()
-    vector<string> const &names = AL->get_model(dm_pref)->get_names(*a);
+    vector<string> const &names = 
+            AL->get_model(dm_pref)->get_names(Model::parse_funcset(*a));
     int idx = (tmp_int >= 0 ? tmp_int : tmp_int + names.size());
     if (!is_index(idx, names))
         throw ExecuteError("There is no item with index " + S(tmp_int));
@@ -76,8 +78,7 @@ void do_get_func_by_idx(char const* a, char const*)
 void do_assign_fz(char const*, char const*) 
 {
     Model* model = AL->get_model(tmp_int2);
-    assert(t3 == "F" || t3 == "Z");
-    char fz = t3[0];
+    Model::FuncSet fz = Model::parse_funcset(t3[0]);
     bool remove = (!with_plus && !model->get_names(fz).empty());
     if (remove)
         model->remove_all_functions_from(fz);
@@ -90,21 +91,23 @@ void do_assign_fz(char const*, char const*)
 
 void add_fz_copy(char const* a, char const*)
 {
-    vector<string> const &names = AL->get_model(dm_pref)->get_names(*a);
+    Model::FuncSet fz = Model::parse_funcset(*a);
+    vector<string> const &names = AL->get_model(dm_pref)->get_names(fz);
     for (vector<string>::const_iterator i=names.begin(); i != names.end(); ++i)
         vr.push_back(AL->assign_func_copy("", *i));
 }
 
 void add_fz_links(char const* a, char const*)
 {
-    vector<string> const &names = AL->get_model(dm_pref)->get_names(*a);
+    Model::FuncSet fz = Model::parse_funcset(*a);
+    vector<string> const &names = AL->get_model(dm_pref)->get_names(fz);
     vr.insert(vr.end(), names.begin(), names.end());
 }
 
 void do_remove_from_fz(char const* a, char const*)
 {
-    assert(*a == 'F' || *a == 'Z');
-    AL->get_model(dm_pref)->remove_function_from(t, *a);
+    Model::FuncSet fz = Model::parse_funcset(*a);
+    AL->get_model(dm_pref)->remove_function_from(t, fz);
     AL->auto_remove_functions();
     outdated_plot=true;  //TODO only if dm_pref == @active
 }

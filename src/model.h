@@ -21,12 +21,15 @@ class Ftk;
 class Model 
 {
 public:
+    // set of functions, F and Z
+    enum FuncSet { kF, kZ };
+
     Model(Ftk *F_);
     ~Model();
     void find_function_indices();
-    void add_function_to(std::string const &name, char add_to);
-    void remove_function_from(std::string const &name, char add_to);
-    void remove_all_functions_from(char rm_from);
+    void add_function_to(std::string const &name, FuncSet fset);
+    void remove_function_from(std::string const &name, FuncSet fset);
+    void remove_all_functions_from(FuncSet fset);
     fp value(fp x) const;
     // calculate value of model (to be used when derivatives are not needed)
     void compute_model(std::vector<fp> &x, std::vector<fp> &y) const; 
@@ -50,13 +53,16 @@ public:
     std::vector<int> const& get_zz_idx() const { return zz_idx; }
     std::vector<std::string> const &get_ff_names() const { return ff_names; }
     std::vector<std::string> const &get_zz_names() const { return zz_names; }
-    std::vector<std::string> const &get_names(char c) const 
-        { assert(c=='F' || c=='Z'); return (c == 'F' ? ff_names : zz_names); }
-    std::vector<int> const &get_indices(char c) const 
-        { assert(c=='F' || c=='Z'); return (c == 'F' ? ff_idx : zz_idx); }
+    std::vector<std::string> const &get_names(FuncSet fset) const 
+        { return (fset == kF ? ff_names : zz_names); }
+    std::vector<int> const &get_indices(FuncSet fset) const 
+        { return (fset == kF ? ff_idx : zz_idx); }
     bool has_any_info() const { return !ff_names.empty() || !zz_names.empty(); }
     fp numarea(fp x1, fp x2, int nsteps) const;
     bool is_dependent_on_var(int idx) const;
+    static std::string str(FuncSet fset) { return fset == kF ? "F" : "Z"; }
+    static FuncSet parse_funcset(char c) 
+        { assert(c == 'F' || c == 'Z'); return c == 'F' ? kF : kZ; }
 
 private:
     Ftk const* F;

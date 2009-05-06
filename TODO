@@ -19,7 +19,7 @@ Help is needed:
   a large number of points. Optimize it: when reading a line from script, 
   check first, using sscanf(), if it is a data point.
 
-* refactor: char 'F'/'Z' in sum.cpp -> Model::SumEnum kF/kZ
+* check compilation with GCC 4.4
 
 --------------> 0.8.7
 

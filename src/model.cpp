@@ -64,52 +64,50 @@ bool Model::is_dependent_on_var(int idx) const
     return false;
 }
 
-void Model::remove_all_functions_from(char rm_from)
+void Model::remove_all_functions_from(FuncSet fset)
 {
-    assert(rm_from == 'F' || rm_from == 'Z');
-    if (rm_from == 'F') {
+    if (fset == kF) {
         ff_names.clear();
         ff_idx.clear();
     }
-    else { // (rm_from == 'Z') 
+    else { // (fset == kZ) 
         zz_names.clear();
         zz_idx.clear();
     }
 }
 
-void Model::remove_function_from(string const &name, char rm_from)
+void Model::remove_function_from(string const &name, FuncSet fset)
 {
     string only_name = !name.empty() && name[0]=='%' ? string(name,1) : name;
     // first remove function if it is already in ff or zz
-    int idx = index_of_element(get_names(rm_from), only_name);
+    int idx = index_of_element(get_names(fset), only_name);
     if (idx == -1)
-        throw ExecuteError("function %" + only_name + " is not in " + rm_from);
-    if (rm_from == 'F') {
+        throw ExecuteError("function %" + only_name + " is not in "+str(fset));
+    if (fset == kF) {
         ff_names.erase(ff_names.begin() + idx);
         ff_idx.erase(ff_idx.begin() + idx);
     }
-    else { // (rm_from == 'Z') 
+    else { // (fset == kZ) 
         zz_names.erase(zz_names.begin() + idx);
         zz_idx.erase(zz_idx.begin() + idx);
     }
 }
 
-void Model::add_function_to(string const &name, char add_to)
+void Model::add_function_to(string const &name, FuncSet fset)
 {
-    assert(add_to == 'F' || add_to == 'Z');
     string only_name = !name.empty() && name[0]=='%' ? string(name,1) : name;
     int idx = mgr.find_function_nr(only_name);
     if (idx == -1)
         throw ExecuteError("function %" + only_name + " not found.");
-    if (contains_element(get_names(add_to), only_name)) {
-        F->msg("function %" + only_name + " already in " + add_to + ".");
+    if (contains_element(get_names(fset), only_name)) {
+        F->msg("function %" + only_name + " already in " + str(fset) + ".");
         return;
     }
-    if (add_to == 'F') {
+    if (fset == kF) {
         ff_names.push_back(only_name);
         ff_idx.push_back(idx);
     }
-    else if (add_to == 'Z') {
+    else if (fset == kZ) {
         zz_names.push_back(only_name);
         zz_idx.push_back(idx);
     }

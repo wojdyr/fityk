@@ -118,7 +118,8 @@ string Ftk::find_function_name(string const &fstr) const
         pos = fstr.find(".") + 1;
         pref = strtol(fstr.c_str()+1, 0, 10);
     }
-    vector<string> const &names = get_dm(pref)->model()->get_names(fstr[pos]);
+    Model::FuncSet fset = Model::parse_funcset(fstr[pos]);
+    vector<string> const &names = get_dm(pref)->model()->get_names(fset);
     int idx_ = strtol(fstr.c_str()+pos+2, 0, 10);
     int idx = (idx_ >= 0 ? idx_ : idx_ + names.size());
     if (!is_index(idx, names))
