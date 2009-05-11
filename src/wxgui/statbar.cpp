@@ -45,25 +45,29 @@ FStatusBar::FStatusBar(wxWindow *parent)
     prefbtn->SetToolTip(wxT("configure status bar"));
     sizer->Add(prefbtn, wxSizerFlags().Expand().Centre());
 
+    // wxALIGN_RIGHT flag for wxStaticText doesn't work on wxGTK 2.9
+    // (wx bug #10716), so we must align the text in a different way
     wxString long_hint = wxT("add-in-range");
-    lmouse_hint = new wxStaticText(this, -1, long_hint,
-                                   wxDefaultPosition, wxDefaultSize,
-                                   wxALIGN_RIGHT|wxST_NO_AUTORESIZE);
+    lmouse_hint = new wxStaticText(this, -1, long_hint);
     rmouse_hint = new wxStaticText(this, -1, long_hint,
                                    wxDefaultPosition, wxDefaultSize,
                                    wxST_NO_AUTORESIZE);
+    mousebmp = new wxStaticBitmap(this, -1, GET_BMP(mouse16));
+    wxBoxSizer *lmouse_sizer = new wxBoxSizer(wxHORIZONTAL);
+    lmouse_sizer->AddStretchSpacer();
+    lmouse_sizer->Add(lmouse_hint, wxSizerFlags().Right());
+    lmouse_sizer->SetMinSize(rmouse_hint->GetClientSize());
     wxBoxSizer *hint_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *vhint_sizer = new wxBoxSizer(wxHORIZONTAL);
-    vhint_sizer->Add(lmouse_hint, wxSizerFlags().Centre().FixedMinSize());
-    mousebmp = new wxStaticBitmap(this, -1, GET_BMP(mouse16));
+    vhint_sizer->Add(lmouse_sizer, wxSizerFlags(1).Expand().FixedMinSize());
     vhint_sizer->Add(mousebmp, wxSizerFlags().Centre().Border(wxRIGHT, 3));
     vhint_sizer->Add(rmouse_hint, wxSizerFlags().Centre().FixedMinSize());
     hint_sizer->Add(new wxStaticLine(this), wxSizerFlags().Expand());
-    hint_sizer->Add(vhint_sizer, wxSizerFlags(1).Expand());
+    hint_sizer->Add(vhint_sizer, wxSizerFlags(1).Expand().FixedMinSize());
     sizer->Add(hint_sizer, wxSizerFlags().Expand());
+
     sizer->AddSpacer(16);
     SetSizer(sizer);
-
     Connect(prefbtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             (wxObjectEventFunction) &FStatusBar::OnPrefButton);
 }
@@ -128,6 +132,7 @@ void FStatusBar::set_hints(string const& left, string const& right,
                  "\n  Ctrl + right button: menu"
                ;
     mousebmp->SetToolTip(s2wx(tip));
+    Layout();
 }
 
 void FStatusBar::set_coords(double x, double y, PlotTypeEnum pte)
