@@ -7,6 +7,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 #include <locale.h>
 
 #include "common.h"
@@ -275,6 +276,148 @@ int atoi_all(string const& s)
         throw ExecuteError("integral number expected, got: " + s);
     return n;
 }
+
+// TODO finish and use this class for parsing ranges, 
+// instead of parse_int_range()
+#if 0
+
+// Represents ordered set of uints. 
+// Can be specified as a set of numbers and ranges, e.g. string "0,2..5,3,..9".
+// If length is specified, upper limit can be omitted and negative numbers
+// can be given as they were counted from the end (-1 means the last one,
+// -2 is length-2, etc.). The range runs from the start to the end inclusively.
+// Should be accessed as iterator, using first() and next().
+// example:
+//    IndexRanges r("3..-2");
+//    if (r.need
+class IndexRanges
+{
+public:
+    static const char sep;
+    static const char* dots;
+    //static bool check_syntax();
+
+    IndexRanges(string const& s) : length_(-1) { set_from_string(s.c_str()); }
+    // true if the string contains negative numbers; in this case calling
+    // set_length() is required before calling get_first().
+    bool needs_length() const { return needs_length_; }
+    // The length will be added to all negative values (i.e. -2 -> length-2).
+    // It is not checked if indices are in range <0, length).
+    bool set_length(int length);
+    
+    // true if it was initialized with valid string
+    bool ok() const { return !ranges_.empty(); }
+
+    // Get first index. Can be called many times.
+    int get_first();
+    // get next index; return -1 if all indices were returned
+    int get_next();
+    string str() const;
+
+private:
+    vector<pair<int,int> > ranges_;
+    bool needs_length_;
+    int length_;
+    vector<pair<int,int> >::const_iterator cur_pair_;
+    int cur_offset_;
+
+    void set_from_string(const char* s);
+    int calc(int n) { return n >= 0 ? n : n + length_; }
+};
+
+const char IndexRanges::sep = ',';
+const char* IndexRanges::dots = "..";
+
+bool IndexRanges::check_syntax()
+{
+    TODO
+}
+
+void IndexRanges::set_from_string(const char* s)
+{
+    if (s == NULL || *s == '\0')
+        return;
+
+    needs_length_ = false;
+    const char *a = s;
+    while (a != NULL) {
+        char *endptr;
+        // if there are no digits, strtol returns 0, thats what we need
+        int lo = strtol(a, &endptr, 10);
+        int hi = lo;
+        if (strncmp(endptr, dots, strlen(dots)) == 0) {
+            a = endptr + strlen(dots);
+            hi = strtol(a, &endptr, 10);
+            if (endptr == a)
+                hi = -1;
+        }
+        while (isspace(*endptr))
+            ++endptr;
+        if (*endptr == sep || *endptr == '\0')
+            a = endptr;
+        else { // error
+            ranges_.clear();
+            return; 
+        }
+        if (lo < 0 || hi < 0)
+            needs_length_ = true;
+        if (lo <= hi || (lo >= 0 && hi < 0)) // non-empty range
+            ranges_.push_back(make_pair(lo, hi));
+    }
+
+    // this is used as a flag, -1 means that first() was not called
+    cur_offset_ = -1;
+}
+
+bool IndexRanges::set_length(int length) 
+{ 
+    length_ = length; 
+}
+
+int IndexRanges::get_first()
+{
+    if (!ok() || (needs_length_ && length_ <= 0))
+        return -1;
+    cur_pair_ = ranges_.begin();
+    cur_offset_ = 0;
+    return calc(cur_pair_->first);
+}
+
+int IndexRanges::get_next()
+{
+    assert(cur_offset_ >= 0);
+
+    if (calc(cur_pair_->first) + cur_offset_ < calc(cur_pair_->second)) {
+        ++cur_offset_;
+        return calc(cur_pair_->first) + cur_offset_;
+    }
+    else if (cur_pair_ + 1 != ranges_.end()) {
+        ++cur_pair_;
+        cur_offset_ = 0;
+        return calc(cur_pair_->first);
+    }
+    else
+        return -1;
+}
+
+string IndexRanges::str() const
+{
+    string s;
+    for (vector<pair<int,int> >::const_iterator i = ranges_.begin(); 
+                                                    i != ranges_.end(); ++i) {
+        if (i != ranges_.begin())
+            s += sep;
+        if (i->first == i->second)
+            s += S(i->first);
+        else {
+            s += S(i->first) + dots;
+            if (i->second != -1)
+                s += S(i->second);
+        }
+    }
+    return s;
+}
+#endif
 
 // e.g.: "1,3..5,7" -> 1,3,4,5,7 
 //       "4"        -> 4
