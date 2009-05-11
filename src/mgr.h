@@ -18,7 +18,7 @@ class VariableManager
 public:
     bool silent;
 
-    VariableManager(Ftk const* F_) : silent(false), F(F_), 
+    VariableManager(Ftk const* F_) : silent(false), F(F_),
                         var_autoname_counter(0), func_autoname_counter(0) {}
     ~VariableManager();
     void register_model(Model *m) { models.push_back(m); }
@@ -30,8 +30,8 @@ public:
 
     void sort_variables();
 
-    std::string assign_variable_copy(std::string const& name, 
-                                     Variable const* orig, 
+    std::string assign_variable_copy(std::string const& name,
+                                     Variable const* orig,
                                      std::map<int,std::string> const& varmap);
 
     void delete_variables(std::vector<std::string> const &name);
@@ -59,13 +59,13 @@ public:
     Variable const* get_variable(int n) const { return variables[n]; }
     Variable* get_variable(int n) { return variables[n]; }
 
-    std::string assign_func(std::string const &name, 
-                            std::string const &function, 
+    std::string assign_func(std::string const &name,
+                            std::string const &function,
                             std::vector<std::string> const &vars,
                             bool parse_vars=true);
-    std::string assign_func_copy(std::string const &name, 
+    std::string assign_func_copy(std::string const &name,
                                  std::string const &orig);
-    void substitute_func_param(std::string const &name, 
+    void substitute_func_param(std::string const &name,
                                std::string const &param,
                                std::string const &var);
     void delete_funcs(std::vector<std::string> const &names);
@@ -76,9 +76,9 @@ public:
     std::vector<Function*> const& get_functions() const { return functions; }
     Function const* get_function(int n) const { return functions[n]; }
 
-    /// calculate value and derivatives of all variables; 
+    /// calculate value and derivatives of all variables;
     /// do precomputations for all functions
-    void use_parameters(); 
+    void use_parameters();
     void use_external_parameters(std::vector<fp> const &ext_param);
     void put_new_parameters(std::vector<fp> const &aa);
     fp variation_of_a(int n, fp variat) const;
@@ -89,7 +89,7 @@ protected:
     std::vector<Model*> models;
     std::vector<fp> parameters;
     /// sorted, a doesn't depend on b if idx(a)>idx(b)
-    std::vector<Variable*> variables; 
+    std::vector<Variable*> variables;
     std::vector<Function*> functions;
     int var_autoname_counter; ///for names for "anonymous" variables
     int func_autoname_counter; ///for names for "anonymous" functions
@@ -98,7 +98,7 @@ protected:
     std::string get_or_make_variable(std::string const& func);
     Variable *create_variable(std::string const &name, std::string const &rhs);
     std::string put_into_variables(Variable* new_var);
-    bool is_variable_referred(int i, 
+    bool is_variable_referred(int i,
                               std::vector<std::string> const &ignore_vars
                                                  =std::vector<std::string>(),
                               std::string *first_referrer=0);
@@ -112,4 +112,4 @@ protected:
     void do_reset();
 };
 
-#endif 
+#endif

@@ -26,42 +26,42 @@ inline wxString pchar2wx(char const* pc)
 inline wxString s2wx(std::string const& s) { return pchar2wx(s.c_str()); }
 
 
-inline std::string wx2s(wxString const& w) 
-{ 
-    return std::string((const char*) w.mb_str(wxConvUTF8)); 
+inline std::string wx2s(wxString const& w)
+{
+    return std::string((const char*) w.mb_str(wxConvUTF8));
 }
 
 inline wxArrayString stl2wxArrayString(std::vector<std::string> const& vs)
 {
-    wxArrayString wxas; 
-    for (std::vector<std::string>::const_iterator i = vs.begin(); 
+    wxArrayString wxas;
+    for (std::vector<std::string>::const_iterator i = vs.begin();
                                                         i != vs.end(); ++i)
         wxas.Add(s2wx(*i));
     return wxas;
 }
 
 // convenient wxArrayString constructors
-inline wxArrayString ArrayString(wxString const& s1) 
-{ 
+inline wxArrayString ArrayString(wxString const& s1)
+{
     wxArrayString a(1, &s1);
     return a;
-} 
-inline wxArrayString ArrayString(wxString const& s1, wxString const& s2) 
-{ 
+}
+inline wxArrayString ArrayString(wxString const& s1, wxString const& s2)
+{
     wxArrayString a(1, &s1);
     a.Add(s2);
     return a;
-} 
-inline wxArrayString ArrayString(wxString const& s1, wxString const& s2, 
-                                 wxString const& s3) 
-{ 
+}
+inline wxArrayString ArrayString(wxString const& s1, wxString const& s2,
+                                 wxString const& s3)
+{
     wxArrayString a(1, &s1);
     a.Add(s2);
     a.Add(s3);
     return a;
-} 
+}
 
-/// wxTextCtrl for real number input, will be enhanced 
+/// wxTextCtrl for real number input, will be enhanced
 class RealNumberCtrl : public wxTextCtrl
 {
 public:
@@ -108,8 +108,8 @@ extern wxCommandEvent dummy_cmd_event;
 class ProportionalSplitter: public wxSplitterWindow
 {
 public:
-    ProportionalSplitter(wxWindow* parent, 
-                         wxWindowID id=-1, 
+    ProportionalSplitter(wxWindow* parent,
+                         wxWindowID id=-1,
                          float proportion=0.66, // 0. - 1.
                          const wxSize& size = wxDefaultSize,
                          long style=wxSP_NOBORDER|wxSP_3DSASH);
@@ -133,11 +133,11 @@ protected:
 class SpinCtrl: public wxSpinCtrl
 {
 public:
-    SpinCtrl(wxWindow* parent, wxWindowID id, int val, 
+    SpinCtrl(wxWindow* parent, wxWindowID id, int val,
              int min, int max, int width=50)
         : wxSpinCtrl (parent, id, wxString::Format(wxT("%i"), val),
-                      wxDefaultPosition, wxSize(width, -1), 
-                      wxSP_ARROW_KEYS, min, max, val) 
+                      wxDefaultPosition, wxSize(width, -1),
+                      wxSP_ARROW_KEYS, min, max, val)
     {}
 };
 
@@ -146,7 +146,7 @@ class KFTextCtrl : public wxTextCtrl
 {
 public:
     KFTextCtrl(wxWindow* parent, wxWindowID id, wxString const& value,
-               int size=-1, long style=0) 
+               int size=-1, long style=0)
         : wxTextCtrl(parent, id, value, wxDefaultPosition, wxSize(size, -1),
                      style | wxTE_PROCESS_ENTER) {}
     void OnKillFocus(wxFocusEvent&);
@@ -158,7 +158,7 @@ wxString get_user_conffile(std::string const& filename);
 
 
 /// introduced because OnOK and OnCancel were removed;
-/// when wx-2.6 compatibility is dropped, it will be replaced with 
+/// when wx-2.6 compatibility is dropped, it will be replaced with
 /// wxSetEscapeId for Cancel and perhaps with wxSetAffirmativeId for OK.
 inline void close_it(wxDialog* dlg, int id=wxID_CANCEL)
 {
@@ -171,7 +171,7 @@ inline void close_it(wxDialog* dlg, int id=wxID_CANCEL)
 }
 
 // same as cwi->Clear(), cwi->Append(...), but optimized for some special cases
-void updateControlWithItems(wxControlWithItems *cwi, 
+void updateControlWithItems(wxControlWithItems *cwi,
                             std::vector<std::string> const& v);
 
 # if !wxCHECK_VERSION(2, 9, 0)
@@ -183,7 +183,7 @@ typedef int wxPenStyle;
 
 
 // from http://www.wxwidgets.org/wiki/index.php/Embedding_PNG_Images
-inline wxBitmap GetBitmapFromMemory_(const unsigned char *data, int length) 
+inline wxBitmap GetBitmapFromMemory_(const unsigned char *data, int length)
 {
     wxMemoryInputStream is(data, length);
     return wxBitmap(wxImage(is, wxBITMAP_TYPE_PNG));
@@ -193,7 +193,7 @@ inline wxBitmap GetBitmapFromMemory_(const unsigned char *data, int length)
             GetBitmapFromMemory_(name##_png, sizeof(name##_png))
 
 // add note in static box
-wxSizer* note_sizer(wxWindow *parent, wxString const& title, 
+wxSizer* note_sizer(wxWindow *parent, wxString const& title,
                     wxString const& msg);
 // add persistance note (use GUI > Save...)
 wxSizer* persistance_note_sizer(wxWindow *parent);

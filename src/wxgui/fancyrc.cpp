@@ -1,10 +1,10 @@
 // Purpose: FancyRealCtrl (numeric wxTextCtrl + wxSlider + "lock" button)
-// Copyright: (c) 2007 Marcin Wojdyr 
-// Licence: wxWidgets licence 
+// Copyright: (c) 2007 Marcin Wojdyr
+// Licence: wxWidgets licence
 // $Id$
 
 /// In this file:
-///  Fancy Real Control (FancyRealCtrl), which changes the value of 
+///  Fancy Real Control (FancyRealCtrl), which changes the value of
 ///  parameter at the sidebar, and helpers
 
 #include <wx/wxprec.h>
@@ -23,7 +23,7 @@
 
 using namespace std;
 
-static 
+static
 wxString double2wxstr(double v) { return wxString::Format(wxT("%g"), v); }
 
 //===============================================================
@@ -39,14 +39,14 @@ public:
           frc(frc_), timer(this, -1), button(0) {}
 
     void OnTimer(wxTimerEvent &event);
-    void OnThumbTrack(wxScrollEvent&); 
+    void OnThumbTrack(wxScrollEvent&);
     void OnMouse(wxMouseEvent &event);
 
 private:
     FancyRealCtrl *frc;
     wxTimer timer;
     char button;
-    
+
     DECLARE_EVENT_TABLE()
 };
 
@@ -75,9 +75,9 @@ void ValueChangingWidget::OnTimer(wxTimerEvent&)
     }
 }
 
-void ValueChangingWidget::OnThumbTrack(wxScrollEvent&) 
-{ 
-    if (!timer.IsRunning()) 
+void ValueChangingWidget::OnThumbTrack(wxScrollEvent&)
+{
+    if (!timer.IsRunning())
         timer.Start(100);
 }
 
@@ -98,20 +98,20 @@ void ValueChangingWidget::OnMouse(wxMouseEvent &event)
 //                          FancyRealCtrl
 //===============================================================
 
-FancyRealCtrl::FancyRealCtrl(wxWindow* parent, wxWindowID id, 
-                  double value, wxString const& tip, bool locked_, 
+FancyRealCtrl::FancyRealCtrl(wxWindow* parent, wxWindowID id,
+                  double value, wxString const& tip, bool locked_,
                   V1Callback<FancyRealCtrl const*> const& changing_value_cb,
                   V1Callback<FancyRealCtrl const*> const& changed_value_cb,
                   V1Callback<FancyRealCtrl const*> const& toggled_lock_cb)
-    : wxPanel(parent, id), initial_value(value), locked(locked_), 
+    : wxPanel(parent, id), initial_value(value), locked(locked_),
       changing_value_callback(changing_value_cb),
-      changed_value_callback(changed_value_cb), 
+      changed_value_callback(changed_value_cb),
       toggled_lock_callback(toggled_lock_cb)
 {
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
-    // KFTextCtrl is a wxTextCtrl which sends wxEVT_COMMAND_TEXT_ENTER 
+    // KFTextCtrl is a wxTextCtrl which sends wxEVT_COMMAND_TEXT_ENTER
     // when loses the focus
-    tc = new KFTextCtrl(this, -1, double2wxstr(value)); 
+    tc = new KFTextCtrl(this, -1, double2wxstr(value));
     tc->SetToolTip(tip);
     tc->SetEditable(!locked);
     sizer->Add(tc, 1, wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND, 1);
@@ -136,12 +136,12 @@ FancyRealCtrl::FancyRealCtrl(wxWindow* parent, wxWindowID id,
                 NULL, this);
 }
 
-void FancyRealCtrl::OnKeyDown(wxKeyEvent &event) 
+void FancyRealCtrl::OnKeyDown(wxKeyEvent &event)
 {
     double change = 0.;
-    if (event.GetKeyCode() == WXK_PAGEUP) 
+    if (event.GetKeyCode() == WXK_PAGEUP)
         change = 0.001;
-    else if (event.GetKeyCode() == WXK_PAGEDOWN) 
+    else if (event.GetKeyCode() == WXK_PAGEDOWN)
         change = -0.001;
     else {
         event.Skip();
@@ -157,7 +157,7 @@ void FancyRealCtrl::OnKeyDown(wxKeyEvent &event)
     changed_value_callback(this);
 }
 
-void FancyRealCtrl::OnMouseWheel(wxMouseEvent &event) 
+void FancyRealCtrl::OnMouseWheel(wxMouseEvent &event)
 {
     double change = 1e-5 * event.GetWheelRotation();
     if (event.ShiftDown())
@@ -171,9 +171,9 @@ void FancyRealCtrl::OnMouseWheel(wxMouseEvent &event)
 }
 
 
-void FancyRealCtrl::SetTemporaryValue(double value) 
-{ 
-    tc->SetValue(double2wxstr(value)); 
+void FancyRealCtrl::SetTemporaryValue(double value)
+{
+    tc->SetValue(double2wxstr(value));
 }
 
 void FancyRealCtrl::AddValue(double term)
@@ -221,7 +221,7 @@ void FancyRealCtrl::ToggleLock()
     tc->SetEditable(!locked);
 }
 
-void FancyRealCtrl::ConnectToOnKeyDown(wxObjectEventFunction function, 
+void FancyRealCtrl::ConnectToOnKeyDown(wxObjectEventFunction function,
                                          wxEvtHandler* sink)
 {
     lock_btn->Connect(wxID_ANY, wxEVT_KEY_DOWN, function, 0, sink);

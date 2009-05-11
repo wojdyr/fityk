@@ -1,5 +1,5 @@
 // Purpose: input line with history (wxTextCtrl+wxSpinButton)
-// Copyright: (c) 2007 Marcin Wojdyr 
+// Copyright: (c) 2007 Marcin Wojdyr
 // Licence: wxWidgets licence, or (at your option) GPL
 // $Id$
 //
@@ -13,8 +13,8 @@
 class InputLine : public wxPanel
 {
 public:
-    /// receiver will be called when Enter is pressed 
-    InputLine(wxWindow *parent, wxWindowID winid, 
+    /// receiver will be called when Enter is pressed
+    InputLine(wxWindow *parent, wxWindowID winid,
               V1Callback<wxString const&> const& receiver,
               wxString const& hist_file_);
     ~InputLine();
@@ -30,7 +30,7 @@ protected:
     V1Callback<wxString const&> m_receiver;
     wxString const hist_file;
 
-    void OnSpinButton(wxSpinEvent &event) 
+    void OnSpinButton(wxSpinEvent &event)
         { HistoryMove(m_history.GetCount() - 1 - event.GetPosition(), false); }
     void OnInputLine(const wxString& line);
     void HistoryMove(int n, bool relative);

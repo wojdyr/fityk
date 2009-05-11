@@ -19,7 +19,7 @@ struct DataTransform
     std::string code;
     bool in_menu;
 
-    DataTransform(const std::string& name_, const std::string& description_, 
+    DataTransform(const std::string& name_, const std::string& description_,
                   const std::string& code_, bool in_menu_=false)
         : name(name_), description(description_),
           code(code_), in_menu(in_menu_) {}
@@ -52,7 +52,7 @@ public:
     void ESelected();
     void OnEActivated (wxListEvent& event);
     void update_data(ndnd_type const& dd);
-    static std::vector<DataTransform> const& get_transforms() 
+    static std::vector<DataTransform> const& get_transforms()
                                                     { return transforms; }
     static void read_transforms(bool reset=false);
     static void execute_tranform(std::string code);
@@ -61,10 +61,10 @@ protected:
     wxGrid *grid;
     ndnd_type ndnd;
     wxStaticText *filename_label, *title_label, *description;
-    wxListCtrl *trans_list; 
+    wxListCtrl *trans_list;
     wxTextCtrl *code;
     wxButton *revert_btn, *save_as_btn, *apply_btn, *rezoom_btn, *help_btn,
-             *add_btn, *remove_btn, *up_btn, *down_btn, 
+             *add_btn, *remove_btn, *up_btn, *down_btn,
              *save_btn, *reset_btn;
 
     void initialize_transforms(bool reset=false);

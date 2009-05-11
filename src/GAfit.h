@@ -9,10 +9,10 @@
 #include "fit.h"
 
 /// Individual in Genetic Algorithms (i.e. candidate solutions)
-struct Individual 
-{ 
-    std::vector<fp> g; 
-    fp raw_score, phase_2_score, reversed_score, norm_score; 
+struct Individual
+{
+    std::vector<fp> g;
+    fp raw_score, phase_2_score, reversed_score, norm_score;
     int generation;
     Individual (int n) : g(n), raw_score(0) {}
     Individual () : g(), raw_score(0) {}
@@ -53,17 +53,17 @@ private:
 
     void mutation();
     void crossover();
-    void uniform_crossover (std::vector<Individual>::iterator c1, 
+    void uniform_crossover (std::vector<Individual>::iterator c1,
                             std::vector<Individual>::iterator c2);
-    void one_point_crossover (std::vector<Individual>::iterator c1, 
+    void one_point_crossover (std::vector<Individual>::iterator c1,
                               std::vector<Individual>::iterator c2);
-    void two_points_crossover (std::vector<Individual>::iterator c1, 
+    void two_points_crossover (std::vector<Individual>::iterator c1,
                                std::vector<Individual>::iterator c2);
-    void arithmetic_crossover1 (std::vector<Individual>::iterator c1, 
+    void arithmetic_crossover1 (std::vector<Individual>::iterator c1,
                                 std::vector<Individual>::iterator c2);
-    void arithmetic_crossover2 (std::vector<Individual>::iterator c1, 
+    void arithmetic_crossover2 (std::vector<Individual>::iterator c1,
                                 std::vector<Individual>::iterator c2);
-    void guaranteed_avarage_crossover (std::vector<Individual>::iterator c1, 
+    void guaranteed_avarage_crossover (std::vector<Individual>::iterator c1,
                                        std::vector<Individual>::iterator c2);
     void scale_score ();
     void pre_selection();
@@ -80,7 +80,7 @@ private:
     void print_post_fit_info (fp wssr_before);
     void autoplot_in_autoiter();
     void compute_wssr_for_ind (std::vector<Individual>::iterator ind);
-}; 
+};
 
-#endif 
+#endif
 

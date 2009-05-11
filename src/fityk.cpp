@@ -71,15 +71,15 @@ namespace fityk
 
 Point::Point() : x(0), y(0), sigma(1), is_active(true) {}
 Point::Point(double x_, double y_) : x(x_), y(y_), sigma(1), is_active(true) {}
-Point::Point(double x_, double y_, fp sigma_) : x(x_), y(y_), sigma(sigma_), 
+Point::Point(double x_, double y_, fp sigma_) : x(x_), y(y_), sigma(sigma_),
                                                 is_active(true) {}
-std::string Point::str() { return "(" + S(x) + "; " + S(y) + "; " + S(sigma) 
+std::string Point::str() { return "(" + S(x) + "; " + S(y) + "; " + S(sigma)
                                + (is_active ? ")*" : ") "); }
 
 
 Fityk::Fityk()
 {
-    if (AL != 0) 
+    if (AL != 0)
         throw ExecuteError("Program is not thread-safe yet, "
                             "so you can only have one Fityk instance.");
     ftk = new Ftk;
@@ -92,7 +92,7 @@ Fityk::~Fityk()
     AL = 0;
 }
 
-void Fityk::execute(string const& s)  throw(SyntaxError, ExecuteError, 
+void Fityk::execute(string const& s)  throw(SyntaxError, ExecuteError,
                                             ExitRequestedException)
 {
     bool r = parse_and_execute_e(s);
@@ -102,10 +102,10 @@ void Fityk::execute(string const& s)  throw(SyntaxError, ExecuteError,
 
 bool Fityk::safe_execute(string const& s)  throw(ExitRequestedException)
 {
-    return ftk->exec(s) == Commands::status_ok; 
+    return ftk->exec(s) == Commands::status_ok;
 }
 
-string Fityk::get_info(string const& s, bool full)  
+string Fityk::get_info(string const& s, bool full)
                                              throw(SyntaxError, ExecuteError)
 {
     try {
@@ -128,7 +128,7 @@ double Fityk::get_model_value(double x, int dataset)  throw(ExecuteError)
     return ftk->get_model(dataset)->value(x);
 }
 
-vector<double> Fityk::get_model_vector(vector<double> const& x, int dataset)  
+vector<double> Fityk::get_model_vector(vector<double> const& x, int dataset)
                                                           throw(ExecuteError)
 {
     vector<double> xx(x);
@@ -137,7 +137,7 @@ vector<double> Fityk::get_model_vector(vector<double> const& x, int dataset)
     return yy;
 }
 
-int Fityk::get_variable_nr(string const& name)  throw(ExecuteError) 
+int Fityk::get_variable_nr(string const& name)  throw(ExecuteError)
 {
     if (name.empty())
         throw ExecuteError("get_variable_nr() called with empty name");
@@ -169,16 +169,16 @@ double Fityk::get_variable_value(string const& name)  throw(ExecuteError)
         return ftk->find_variable(name)->get_value();
 }
 
-void Fityk::load_data(int dataset, 
-                      std::vector<double> const& x, 
-                      std::vector<double> const& y, 
-                      std::vector<double> const& sigma, 
+void Fityk::load_data(int dataset,
+                      std::vector<double> const& x,
+                      std::vector<double> const& y,
+                      std::vector<double> const& sigma,
                       std::string const& title)     throw(ExecuteError)
 {
     ftk->get_data(dataset)->load_arrays(x, y, sigma, title);
 }
 
-void Fityk::add_point(double x, double y, double sigma, int dataset)  
+void Fityk::add_point(double x, double y, double sigma, int dataset)
                                                           throw(ExecuteError)
 {
     ftk->get_data(dataset)->add_one_point(x, y, sigma);
@@ -191,15 +191,15 @@ vector<Point> const& Fityk::get_data(int dataset)  throw(ExecuteError)
 
 
 void Fityk::set_show_message(t_show_message *func)
-{ 
+{
     simple_message_handler = func;
-    ftk->get_ui()->set_show_message(message_handler); 
+    ftk->get_ui()->set_show_message(message_handler);
 }
 
 void Fityk::redir_messages(std::FILE *stream)
 {
     message_sink = stream;
-    ftk->get_ui()->set_show_message(message_redir); 
+    ftk->get_ui()->set_show_message(message_redir);
 }
 
 double Fityk::get_wssr(int dataset)  throw(ExecuteError)
@@ -230,13 +230,13 @@ int Fityk::get_dof(int dataset)  throw(ExecuteError)
     return ftk->get_fit()->get_dof(get_datasets_(ftk, dataset));
 }
 
-vector<vector<double> > Fityk::get_covariance_matrix(int dataset) 
+vector<vector<double> > Fityk::get_covariance_matrix(int dataset)
                                                            throw(ExecuteError)
 {
-    vector<double> c 
+    vector<double> c
         = ftk->get_fit()->get_covariance_matrix(get_datasets_(ftk, dataset));
     //reshape
-    size_t na = ftk->get_parameters().size(); 
+    size_t na = ftk->get_parameters().size();
     assert(c.size() == na * na);
     vector<vector<double> > r(na);
     for (size_t i = 0; i != na; ++i)

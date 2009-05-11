@@ -31,7 +31,7 @@ enum {
     ID_DL_CMENU_SHOW_END = ID_DL_CMENU_SHOW_START+20,
     ID_DL_CMENU_FITCOLS        ,
     ID_DL_SELECTALL            ,
-    ID_DL_SWITCHINFO           
+    ID_DL_SWITCHINFO
 };
 
 
@@ -43,14 +43,14 @@ BEGIN_EVENT_TABLE(ListWithColors, wxListView)
     EVT_LIST_COL_CLICK(-1, ListWithColors::OnColumnMenu)
     EVT_LIST_COL_RIGHT_CLICK(-1, ListWithColors::OnColumnMenu)
     EVT_RIGHT_DOWN (ListWithColors::OnRightDown)
-    EVT_MENU_RANGE (ID_DL_CMENU_SHOW_START, ID_DL_CMENU_SHOW_END, 
+    EVT_MENU_RANGE (ID_DL_CMENU_SHOW_START, ID_DL_CMENU_SHOW_END,
                     ListWithColors::OnShowColumn)
     EVT_MENU (ID_DL_CMENU_FITCOLS, ListWithColors::OnFitColumnWidths)
     EVT_MENU (ID_DL_SELECTALL, ListWithColors::OnSelectAll)
     EVT_KEY_DOWN (ListWithColors::OnKeyDown)
 END_EVENT_TABLE()
-    
-ListWithColors::ListWithColors(wxWindow *parent, wxWindowID id, 
+
+ListWithColors::ListWithColors(wxWindow *parent, wxWindowID id,
                                vector<pair<string,int> > const& columns_)
     : wxListView(parent, id, wxDefaultPosition, wxDefaultSize,
                  wxLC_REPORT|wxLC_HRULES|wxLC_VRULES),
@@ -62,7 +62,7 @@ ListWithColors::ListWithColors(wxWindow *parent, wxWindowID id,
                          columns[i].second);
 }
 
-void ListWithColors::populate(vector<string> const& data, 
+void ListWithColors::populate(vector<string> const& data,
                               wxImageList* image_list,
                               int active)
 {
@@ -71,7 +71,7 @@ void ListWithColors::populate(vector<string> const& data,
         return;
     int length = data.size() / columns.size();
     Freeze();
-    if (image_list) 
+    if (image_list)
         AssignImageList(image_list, wxIMAGE_LIST_SMALL);
     if (GetItemCount() != length) {
         DeleteAllItems();
@@ -90,7 +90,7 @@ void ListWithColors::populate(vector<string> const& data,
         //    Select(i, i == active);
     }
     list_data = data;
-    
+
     if (active >= 0 && active < length)
         Focus(active);
     Thaw();
@@ -98,9 +98,9 @@ void ListWithColors::populate(vector<string> const& data,
 
 void ListWithColors::OnColumnMenu(wxListEvent&)
 {
-    wxMenu popup_menu; 
+    wxMenu popup_menu;
     for (size_t i = 0; i < columns.size(); ++i) {
-        popup_menu.AppendCheckItem(ID_DL_CMENU_SHOW_START+i, 
+        popup_menu.AppendCheckItem(ID_DL_CMENU_SHOW_START+i,
                                    s2wx(columns[i].first));
         popup_menu.Check(ID_DL_CMENU_SHOW_START+i, columns[i].second);
     }
@@ -111,7 +111,7 @@ void ListWithColors::OnColumnMenu(wxListEvent&)
 
 void ListWithColors::OnRightDown(wxMouseEvent &event)
 {
-    wxMenu popup_menu; 
+    wxMenu popup_menu;
     popup_menu.Append(ID_DL_SELECTALL, wxT("Select &All"));
     popup_menu.Append(ID_DL_SWITCHINFO, wxT("Show/Hide &Info"));
     PopupMenu (&popup_menu, event.GetX(), event.GetY());
@@ -171,7 +171,7 @@ END_EVENT_TABLE()
 
 ListPlusText::ListPlusText(wxWindow *parent, wxWindowID id, wxWindowID list_id,
                            vector<pair<string,int> > const& columns_)
-: ProportionalSplitter(parent, id, 0.75) 
+: ProportionalSplitter(parent, id, 0.75)
 {
     list = new ListWithColors(this, list_id, columns_);
     inf = new wxTextCtrl(this, -1, wxT(""), wxDefaultPosition, wxDefaultSize,
@@ -201,7 +201,7 @@ void DataListPlusText::update_data_list(bool nondata_changed)
     for (int i = 0; i < ftk->get_dm_count(); ++i) {
         DataAndModel const* dm = ftk->get_dm(i);
         data_data.push_back(S(i));
-        data_data.push_back(S(dm->model()->get_ff_names().size()) 
+        data_data.push_back(S(dm->model()->get_ff_names().size())
                             + "+" + S(dm->model()->get_zz_names().size()));
         data_data.push_back(dm->data()->get_title());
         data_data.push_back(dm->data()->get_filename());
@@ -209,12 +209,12 @@ void DataListPlusText::update_data_list(bool nondata_changed)
     wxImageList* data_images = 0;
     if (nondata_changed || ftk->get_dm_count() > list->GetItemCount()) {
         data_images = new wxImageList(16, 16);
-        for (int i = 0; i < ftk->get_dm_count(); ++i) 
-            data_images->Add(make_color_bitmap16(mplot->get_data_color(i), 
+        for (int i = 0; i < ftk->get_dm_count(); ++i)
+            data_images->Add(make_color_bitmap16(mplot->get_data_color(i),
                                                  bg_col));
     }
     int focused = list->GetFocusedItem();
-    if (focused < 0) 
+    if (focused < 0)
         focused = 0;
     else if (focused >= list->GetItemCount())
         focused = list->GetItemCount() - 1;

@@ -17,7 +17,7 @@
 #include "sdebug.h"
 #include "frame.h" //ftk
 #include "../cmd.h" //check_command_syntax()
-#include "../logic.h" 
+#include "../logic.h"
 
 #include "img/open.xpm"
 #include "img/exec_selected.xpm"
@@ -52,52 +52,52 @@ BEGIN_EVENT_TABLE(ScriptDebugDlg, wxDialog)
 END_EVENT_TABLE()
 
 ScriptDebugDlg::ScriptDebugDlg(wxWindow* parent, wxWindowID id)
-    : wxDialog(parent, id, wxT(""), 
-               wxDefaultPosition, wxSize(600, 500), 
+    : wxDialog(parent, id, wxT(""),
+               wxDefaultPosition, wxSize(600, 500),
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
-    tb = new wxToolBar(this, -1, wxDefaultPosition, wxDefaultSize, 
+    tb = new wxToolBar(this, -1, wxDefaultPosition, wxDefaultSize,
                        wxTB_HORIZONTAL | wxNO_BORDER);
     tb->SetToolBitmapSize(wxSize(24, 24));
     tb->AddTool(ID_SE_OPEN, wxT("Open"), wxBitmap(open_xpm), wxNullBitmap,
                 wxITEM_NORMAL, wxT("Open File"), wxT("Open script file"));
     tb->AddSeparator();
-    tb->AddTool(ID_SE_EXECSEL, wxT("Execute"), 
+    tb->AddTool(ID_SE_EXECSEL, wxT("Execute"),
                 wxBitmap(exec_selected_xpm), wxNullBitmap,
-                wxITEM_NORMAL, wxT("Execute selected"), 
+                wxITEM_NORMAL, wxT("Execute selected"),
                 wxT("Execute selected lines"));
-    tb->AddTool(ID_SE_EXECDOWN, wxT("Execute"), 
+    tb->AddTool(ID_SE_EXECDOWN, wxT("Execute"),
                 wxBitmap(exec_down_xpm), wxNullBitmap,
-                wxITEM_NORMAL, wxT("Execute selected and select next"), 
+                wxITEM_NORMAL, wxT("Execute selected and select next"),
                 wxT("Execute selected lines"));
     tb->AddSeparator();
     tb->AddTool(ID_SE_SAVE, wxT("Save"), wxBitmap(save_xpm), wxNullBitmap,
-                wxITEM_NORMAL, wxT("Save"), 
+                wxITEM_NORMAL, wxT("Save"),
                 wxT("Save to file"));
-    tb->AddTool(ID_SE_SAVE_AS, wxT("Save as"), 
+    tb->AddTool(ID_SE_SAVE_AS, wxT("Save as"),
                 wxBitmap(save_as_xpm), wxNullBitmap,
-                wxITEM_NORMAL, wxT("Save as..."), 
+                wxITEM_NORMAL, wxT("Save as..."),
                 wxT("Save a copy to file"));
 #if 0
     tb->AddSeparator();
-    tb->AddTool(wxID_UNDO, wxT("Undo"), 
+    tb->AddTool(wxID_UNDO, wxT("Undo"),
                 wxBitmap(undo_xpm), wxNullBitmap,
-                wxITEM_NORMAL, wxT("Undo"), 
+                wxITEM_NORMAL, wxT("Undo"),
                 wxT("Undo the last edit"));
-    tb->AddTool(wxID_REDO, wxT("Redo"), 
+    tb->AddTool(wxID_REDO, wxT("Redo"),
                 wxBitmap(redo_xpm), wxNullBitmap,
-                wxITEM_NORMAL, wxT("Redo"), 
+                wxITEM_NORMAL, wxT("Redo"),
                 wxT("Redo the last undone edit"));
 #endif
     tb->AddSeparator();
     tb->AddTool(ID_SE_CLOSE, wxT("Close"), wxBitmap(close_xpm), wxNullBitmap,
                 wxITEM_NORMAL, wxT("Exit debugger"), wxT("Close debugger"));
     tb->Realize();
-    top_sizer->Add(tb, 0, wxEXPAND); 
+    top_sizer->Add(tb, 0, wxEXPAND);
     nb = new wxNotebook(this, ID_SE_NB);
 
-    list = new wxListView(nb, -1, 
+    list = new wxListView(nb, -1,
                           wxDefaultPosition, wxDefaultSize,
                           wxLC_REPORT|wxLC_HRULES|wxLC_VRULES);
     list->InsertColumn(0, wxT("No"));
@@ -107,7 +107,7 @@ ScriptDebugDlg::ScriptDebugDlg(wxWindow* parent, wxWindowID id)
     list->SetColumnWidth(1, 430);
     list->SetColumnWidth(2, 100);
 
-    txt = new wxTextCtrl(nb, ID_SE_TXT, wxT(""), 
+    txt = new wxTextCtrl(nb, ID_SE_TXT, wxT(""),
                          wxDefaultPosition, wxDefaultSize,
                          wxTE_MULTILINE|wxTE_RICH);
 
@@ -121,10 +121,10 @@ ScriptDebugDlg::ScriptDebugDlg(wxWindow* parent, wxWindowID id)
 
 void ScriptDebugDlg::OpenFile(wxWindow *parent)
 {
-    wxFileDialog dialog(parent, wxT("open script file"), dir, wxT(""), 
-                        wxT("fityk scripts (*.fit)|*.fit|all files|*"), 
+    wxFileDialog dialog(parent, wxT("open script file"), dir, wxT(""),
+                        wxT("fityk scripts (*.fit)|*.fit|all files|*"),
                         wxFD_OPEN /*| wxFD_FILE_MUST_EXIST*/);
-    if (dialog.ShowModal() == wxID_OK) 
+    if (dialog.ShowModal() == wxID_OK)
         do_open_file(dialog.GetPath());
     dir = dialog.GetDirectory();
 }
@@ -132,7 +132,7 @@ void ScriptDebugDlg::OpenFile(wxWindow *parent)
 bool ScriptDebugDlg::do_open_file(wxString const& path_)
 {
     bool r = false;
-    if (wxFileExists(path_)) 
+    if (wxFileExists(path_))
         r = txt->LoadFile(path_);
     else
         txt->Clear();
@@ -152,24 +152,24 @@ void ScriptDebugDlg::make_list_from_txt()
     // (empty line gives "\n"+next line) so we don't use it
     // the bug was fixed on 2007-04-09
     vector<string> lines = split_string(wx2s(txt->GetValue()), "\n");
-    for (size_t i = 0; i != lines.size(); ++i) 
+    for (size_t i = 0; i != lines.size(); ++i)
         add_line(i+1, lines[i]);
 }
 
 void ScriptDebugDlg::OnSave(wxCommandEvent& event)
-{ 
+{
     if (!path.IsEmpty())
-        save_file(path); 
+        save_file(path);
     else
         OnSaveAs(event);
 }
 
 void ScriptDebugDlg::OnSaveAs(wxCommandEvent&)
 {
-    wxFileDialog dialog(this, wxT("save script as..."), dir, wxT(""), 
-                        wxT("fityk scripts (*.fit)|*.fit|all files|*"), 
+    wxFileDialog dialog(this, wxT("save script as..."), dir, wxT(""),
+                        wxT("fityk scripts (*.fit)|*.fit|all files|*"),
                         wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (dialog.ShowModal() == wxID_OK) 
+    if (dialog.ShowModal() == wxID_OK)
         save_file(dialog.GetPath());
     dir = dialog.GetDirectory();
 }
@@ -188,7 +188,7 @@ void ScriptDebugDlg::save_file(wxString const& save_path)
 void ScriptDebugDlg::add_line(int n, string const& line)
 {
     int pos = list->GetItemCount();
-    list->InsertItem(pos, n == -1 ? wxString(wxT("...")) 
+    list->InsertItem(pos, n == -1 ? wxString(wxT("..."))
                                   : wxString::Format(wxT("%i"), n));
     string::size_type sep = line.find(';');
     string::size_type hash = line.find('#');
@@ -199,12 +199,12 @@ void ScriptDebugDlg::add_line(int n, string const& line)
     }
     else
         head = line;
-    
+
     list->SetItem(pos, 1, s2wx(head));
     string::size_type nonblank = head.find_first_not_of(" \r\n\t");
     bool is_comment = (nonblank == string::npos || head[nonblank] == '#');
     list->SetItemData(pos, is_comment ? 1 : 0); //to be skipped if comment
-    if (is_comment) 
+    if (is_comment)
         list->SetItemTextColour(pos, *wxGREEN);
     else if (!check_command_syntax(head))
         list->SetItemBackgroundColour(pos, *wxRED);
@@ -225,7 +225,7 @@ void ScriptDebugDlg::exec_line(int n)
         line = txt->GetLineText(n);
         // there was a bug in wxTextCtrl::GetLineText(),
         // empty line gives "\n"+next line
-        if (!line.empty() && line[0] == '\n') // wx bug 
+        if (!line.empty() && line[0] == '\n') // wx bug
             line = wxT("");
     }
     string s = wx2s(line);
@@ -246,7 +246,7 @@ int ScriptDebugDlg::ExecSelected()
 {
     long last = -1;
     if (nb->GetSelection() == 0) { //view tab
-        for (long i = list->GetFirstSelected(); i != -1; 
+        for (long i = list->GetFirstSelected(); i != -1;
                 i = list->GetNextSelected(i)) {
             exec_line(i);
             last = i;
@@ -258,7 +258,7 @@ int ScriptDebugDlg::ExecSelected()
         if (from == to) { //no selection
             long x, y;
             txt->PositionToXY(txt->GetInsertionPoint(), &x, &y);
-            if (y >= 0) 
+            if (y >= 0)
                 exec_line(y);
             last = y;
         }
@@ -267,7 +267,7 @@ int ScriptDebugDlg::ExecSelected()
             txt->PositionToXY(from, &x, &y);
             txt->PositionToXY(to, &x, &y2);
             for (int i = y; i <= y2; ++i) {
-                if (i >= 0) 
+                if (i >= 0)
                     exec_line(i);
             }
             return y2;

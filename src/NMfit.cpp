@@ -15,7 +15,7 @@
 using namespace std;
 
 NMfit::NMfit(Ftk* F)
-    : Fit(F, "Nelder-Mead-simplex") 
+    : Fit(F, "Nelder-Mead-simplex")
 {
 }
 
@@ -23,8 +23,8 @@ NMfit::~NMfit() {}
 
 fp NMfit::init()
 {
-    bool move_all = F->get_settings()->get_b("nm-move-all"); 
-    char distrib = F->get_settings()->get_e("nm-distribution"); 
+    bool move_all = F->get_settings()->get_b("nm-move-all");
+    char distrib = F->get_settings()->get_e("nm-distribution");
     fp factor = F->get_settings()->get_f("nm-move-factor");
 
     // 1. all n+1 vertices are the same
@@ -35,7 +35,7 @@ fp NMfit::init()
         vertices[i + 1].a[i] = draw_a_from_distribution(i, distrib, factor);
         if (move_all) {
             fp d2 = (vertices[i + 1].a[i] - vertices[0].a[i]) / 2;
-            for (vector<Vertex>::iterator j = vertices.begin(); 
+            for (vector<Vertex>::iterator j = vertices.begin();
                                                     j != vertices.end(); j++)
                 j->a[i] -= d2;
         }
@@ -95,7 +95,7 @@ void NMfit::change_simplex()
         fp old = worst->wssr;
         fp t = try_new_worst(0.5);
         if (t >= old) { // than multiple contraction
-            for (vector<Vertex>::iterator i = vertices.begin(); 
+            for (vector<Vertex>::iterator i = vertices.begin();
                                                     i != vertices.end() ;i++) {
                 if (i == best)
                     continue;
@@ -111,7 +111,7 @@ void NMfit::change_simplex()
 
 fp NMfit::try_new_worst (fp f)
     //extrapolates by a factor f through the face of the simplex across
-    //from the high point, tries it, 
+    //from the high point, tries it,
     //and replaces the high point if the new point is better.
 {
     Vertex t(na);
@@ -134,15 +134,15 @@ void NMfit::compute_coord_sum()
     coord_sum.resize(na);
     fill (coord_sum.begin(), coord_sum.end(), 0.);
     for (int i = 0; i < na; i++)
-        for (vector<Vertex>::iterator j = vertices.begin(); 
-                                                j != vertices.end(); j++) 
+        for (vector<Vertex>::iterator j = vertices.begin();
+                                                j != vertices.end(); j++)
             coord_sum[i] += j->a[i];
 }
 
 bool NMfit::termination_criteria(int iter, fp convergence)
 {
-    F->msg ("#" + S(iter_nr) + " (ev:" + S(evaluations) + "): best:" 
-                + S(best->wssr) + " worst:" + S(worst->wssr) + ", " 
+    F->msg ("#" + S(iter_nr) + " (ev:" + S(evaluations) + "): best:"
+                + S(best->wssr) + " worst:" + S(worst->wssr) + ", "
                 + S(s_worst->wssr) + " [V * |" + S(volume_factor) + "|]");
     bool stop = false;
     if (volume_factor == 1. && iter != 0) {
@@ -151,7 +151,7 @@ bool NMfit::termination_criteria(int iter, fp convergence)
     }
     volume_factor = 1.;
 
-/*DEBUG - BEGIN* 
+/*DEBUG - BEGIN*
     string s = "WSSR:";
     for (vector<Vertex>::iterator i = vertices.begin(); i!=vertices.end(); i++)
         s += " " + S(i->wssr);
@@ -173,10 +173,10 @@ bool NMfit::termination_criteria(int iter, fp convergence)
     return stop;
 }
 
-void NMfit::compute_v (Vertex& v) 
+void NMfit::compute_v (Vertex& v)
 {
-    assert (!v.a.empty()); 
-    v.wssr = compute_wssr(v.a, dmdm_); 
+    assert (!v.a.empty());
+    v.wssr = compute_wssr(v.a, dmdm_);
     v.computed = true;
 }
 

@@ -22,7 +22,7 @@ class View;
 
 enum MouseActEnum  { mat_start, mat_stop, mat_move, mat_redraw };
 
-void draw_line_with_style(wxDC& dc, wxPenStyle style, 
+void draw_line_with_style(wxDC& dc, wxPenStyle style,
                           wxCoord X1, wxCoord Y1, wxCoord X2, wxCoord Y2);
 
 
@@ -30,7 +30,7 @@ void draw_line_with_style(wxDC& dc, wxPenStyle style,
 class Scale
 {
 public:
-    double scale, origin; 
+    double scale, origin;
     bool logarithm, reversed;
 
     Scale() : scale(1.), origin(0.), logarithm(false), reversed(false) {}
@@ -40,9 +40,9 @@ public:
     /// pixel -> value
     inline double val(int px) const;
 
-    // set scale using minimum and maximum logical values and width/height 
+    // set scale using minimum and maximum logical values and width/height
     // of the screen in pixels.
-    // In case of y scale, where pixel=0 is at the top, m and M are switched 
+    // In case of y scale, where pixel=0 is at the top, m and M are switched
     void set(fp m, fp M, int pixels);
 
 private:
@@ -62,9 +62,9 @@ int Scale::px(double val) const
 }
 
 double Scale::val(int px) const
-{ 
-    fp a = px / scale + origin; 
-    return logarithm ? exp(a) : a; 
+{
+    fp a = px / scale + origin;
+    return logarithm ? exp(a) : a;
 }
 
 
@@ -72,19 +72,19 @@ double Scale::val(int px) const
 /// It knows how to draw on wxDC. Note that wxDC:SetClippingRegion() should be
 /// used together with wxDC::SetDeviceOrigin(). Clipping box is used only in
 /// get_pixel_width() and get_pixel_height() functions.
-/// When plotting a curve, values in each x from 0 to get_pixel_width() is 
+/// When plotting a curve, values in each x from 0 to get_pixel_width() is
 /// calculated.
 
-class FPlot : public BufferedPanel 
+class FPlot : public BufferedPanel
 {
 public:
     FPlot (wxWindow *parent)
        : BufferedPanel(parent),
          pen_width(1),
-         draw_sigma(false), 
+         draw_sigma(false),
          mouse_press_X(INT_MIN), mouse_press_Y(INT_MIN),
          vlfc_prev_x(INT_MIN), vlfc_prev_x0(INT_MIN)   {}
-         
+
     ~FPlot() {}
     void set_font(wxDC &dc, wxFont const& font);
     wxColour const& get_bg_color() const { return backgroundCol; }
@@ -124,30 +124,30 @@ protected:
                          std::vector<Point>::const_iterator first,
                          std::vector<Point>::const_iterator last,
                          Model const* model);
-    void draw_data (wxDC& dc, 
-                    double (*compute_y)(std::vector<Point>::const_iterator, 
+    void draw_data (wxDC& dc,
+                    double (*compute_y)(std::vector<Point>::const_iterator,
                                         Model const*),
-                    Data const* data, 
-                    Model const* model, 
+                    Data const* data,
+                    Model const* model,
                     wxColour const& color = wxNullColour,
                     wxColour const& inactive_color = wxNullColour,
                     int Y_offset = 0,
                     bool cumulative=false);
     void change_tics_font();
 
-    int get_pixel_width(wxDC const& dc) const 
+    int get_pixel_width(wxDC const& dc) const
       //{ return dc.GetSize().GetWidth(); }
-    { 
+    {
           int w;
           dc.GetClippingBox(NULL, NULL, &w, NULL);
-          return w != 0 ? w : dc.GetSize().GetWidth(); 
+          return w != 0 ? w : dc.GetSize().GetWidth();
     }
-    int get_pixel_height(wxDC const& dc) const 
+    int get_pixel_height(wxDC const& dc) const
     //  { return dc.GetSize().GetHeight(); }
-    { 
+    {
           int h;
           dc.GetClippingBox(NULL, NULL, NULL, &h);
-          return h != 0 ? h : dc.GetSize().GetHeight(); 
+          return h != 0 ? h : dc.GetSize().GetHeight();
     }
 
     DECLARE_EVENT_TABLE()
@@ -158,5 +158,5 @@ protected:
 inline wxColour invert_colour(const wxColour& col)
 { return wxColour(255 - col.Red(), 255 - col.Green(), 255 - col.Blue()); }
 
-#endif 
+#endif
 

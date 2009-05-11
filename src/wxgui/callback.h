@@ -1,10 +1,10 @@
-// Purpose: simple callback implementation 
+// Purpose: simple callback implementation
 // Licence: Public Domain
 // Author: Marcin Wojdyr; based on http://www.newty.de/jakubik/callback.pdf
-// $Id:$
+// $Id$
 //
 
-/// See e.g. http://www.tutok.sk/fastgl/callback.html 
+/// See e.g. http://www.tutok.sk/fastgl/callback.html
 /// and http://www.newty.de/jakubik/callback.html for discussion
 /// of various callback mechanisms in C++
 
@@ -31,7 +31,7 @@ public:
 
   void call(T t) const { (instance->*member)(t); }
 
-  V1CallbackBody<T,Class,Member>* clone() const 
+  V1CallbackBody<T,Class,Member>* clone() const
       { return new V1CallbackBody<T,Class,Member>(*this); }
 
 private:
@@ -69,9 +69,9 @@ class make_callback
 public:
     template <typename Class, typename Member>
     V1Callback<T> V1(Class* instance, Member member)
-    { 
+    {
         return V1Callback<T> (new V1CallbackBody<T,Class,Member>
-                                                    (instance, member)); 
+                                                    (instance, member));
     }
 };
 

@@ -7,11 +7,11 @@
 
 #include "plot.h"
 
-enum Aux_plot_kind_enum 
-{ 
-    apk_empty, 
-    apk_diff, 
-    apk_diff_stddev, 
+enum Aux_plot_kind_enum
+{
+    apk_empty,
+    apk_diff,
+    apk_diff_stddev,
     apk_diff_y_perc,
     apk_cum_chi2
 };
@@ -20,8 +20,8 @@ enum Aux_plot_kind_enum
 class AuxPlot : public FPlot
 {
 public:
-    AuxPlot(wxWindow *parent, FPlot *master_, wxString const& name_) 
-        : FPlot(parent), master(master_), name(name_), 
+    AuxPlot(wxWindow *parent, FPlot *master_, wxString const& name_)
+        : FPlot(parent), master(master_), name(name_),
           y_zoom(1.), y_zoom_base(1.), fit_y_once(false) {}
     ~AuxPlot() {}
     void OnPaint(wxPaintEvent &event);

@@ -3,7 +3,7 @@
 // $Id$
 
 /// In this file:
-///  SideBar class, the right hand sidebar in GUI 
+///  SideBar class, the right hand sidebar in GUI
 
 #include <wx/wxprec.h>
 #ifdef __BORLANDC__
@@ -21,9 +21,9 @@
 #include "gradient.h"
 #include "cmn.h" //SpinCtrl, ProportionalSplitter, change_color_dlg, ...
 #include "frame.h" //frame
-#include "mplot.h" 
+#include "mplot.h"
 #include "../common.h" //vector4, join_vector, S(), ...
-#include "../ui.h" 
+#include "../ui.h"
 #include "../logic.h"
 #include "../data.h"
 #include "../model.h"
@@ -71,7 +71,7 @@ enum {
     ID_VP_LIST                 ,
     ID_VP_NEW                  ,
     ID_VP_DEL                  ,
-    ID_VP_EDIT                 
+    ID_VP_EDIT
 };
 
 //===============================================================
@@ -87,11 +87,11 @@ void add_bitmap_button(wxWindow* parent, wxWindowID id, const char** xpm,
 }
 
 // wxToggleBitmapButton was added in 2.9. We use wxToggleButton instead
-void add_toggle_bitmap_button(wxWindow* parent, wxWindowID id, 
+void add_toggle_bitmap_button(wxWindow* parent, wxWindowID id,
                               wxString const& label,
                               wxString const& tip, wxSizer* sizer)
 {
-    wxToggleButton *btn = new wxToggleButton(parent, id, label, 
+    wxToggleButton *btn = new wxToggleButton(parent, id, label,
                                              wxDefaultPosition, wxDefaultSize,
                                              wxBU_EXACTFIT);
     btn->SetToolTip(tip);
@@ -147,7 +147,7 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     //-----  data page  -----
     data_page = new wxPanel(nb, -1);
     wxBoxSizer *data_sizer = new wxBoxSizer(wxVERTICAL);
-    d = new DataListPlusText(data_page, -1, ID_DP_LIST, 
+    d = new DataListPlusText(data_page, -1, ID_DP_LIST,
                                 vector4(pair<string,int>("No", 43),
                                         pair<string,int>("#F+#Z", 43),
                                         pair<string,int>("Name", 108),
@@ -168,8 +168,8 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
 
     wxBoxSizer *data_spin_sizer = new wxBoxSizer(wxHORIZONTAL);
     // point-size spin button
-    data_spin_sizer->Add(new wxStaticBitmap(data_page, -1, 
-                                            wxBitmap(dpsize_xpm)), 
+    data_spin_sizer->Add(new wxStaticBitmap(data_page, -1,
+                                            wxBitmap(dpsize_xpm)),
                          0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
     dpsize_sc = new SpinCtrl(data_page, ID_DP_PSIZE, 1, 1, 8, 40);
     dpsize_sc->SetToolTip(wxT("data point size"));
@@ -184,8 +184,8 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     data_spin_sizer->Add(dpsigma_cb, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
     // shift-up spin button
     data_spin_sizer->AddStretchSpacer();
-    data_spin_sizer->Add(new wxStaticBitmap(data_page, -1, 
-                                            wxBitmap(shiftup_xpm)), 
+    data_spin_sizer->Add(new wxStaticBitmap(data_page, -1,
+                                            wxBitmap(shiftup_xpm)),
                          0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
     shiftup_sc = new SpinCtrl(data_page, ID_DP_SHIFTUP, 0, 0, 80, 40);
     shiftup_sc->SetToolTip(wxT("shift up (in \% of plot height)"));
@@ -193,17 +193,17 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     data_sizer->Add(data_spin_sizer, 0, wxEXPAND);
 
     wxBoxSizer *data_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
-    add_bitmap_button(data_page, ID_DP_COL, colorsel_xpm, 
+    add_bitmap_button(data_page, ID_DP_COL, colorsel_xpm,
                       wxT("change color"), data_buttons_sizer);
-    //add_bitmap_button(data_page, ID_DP_NEW, add_xpm, 
+    //add_bitmap_button(data_page, ID_DP_NEW, add_xpm,
     //                  wxT("new data"), data_buttons_sizer);
-    add_bitmap_button(data_page, ID_DP_DUP, sum_xpm, 
+    add_bitmap_button(data_page, ID_DP_DUP, sum_xpm,
                       wxT("duplicate/sum"), data_buttons_sizer);
-    add_bitmap_button(data_page, ID_DP_CPF, copyfunc_xpm, 
+    add_bitmap_button(data_page, ID_DP_CPF, copyfunc_xpm,
                       wxT("copy F to next dataset"), data_buttons_sizer);
-    add_bitmap_button(data_page, ID_DP_REN, rename_xpm, 
+    add_bitmap_button(data_page, ID_DP_REN, rename_xpm,
                       wxT("rename"), data_buttons_sizer);
-    add_bitmap_button(data_page, ID_DP_DEL, close_xpm, 
+    add_bitmap_button(data_page, ID_DP_DEL, close_xpm,
                       wxT("delete"), data_buttons_sizer);
     data_sizer->Add(data_buttons_sizer, 0, wxEXPAND);
     data_page->SetSizerAndFit(data_sizer);
@@ -214,7 +214,7 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     wxBoxSizer *func_sizer = new wxBoxSizer(wxVERTICAL);
 
     wxBoxSizer *func_filter_sizer = new wxBoxSizer(wxHORIZONTAL);
-    func_filter_sizer->Add(new wxStaticBitmap(func_page, -1, 
+    func_filter_sizer->Add(new wxStaticBitmap(func_page, -1,
                                               wxBitmap(filter_xpm)),
                            0, wxALIGN_CENTER_VERTICAL);
     filter_ch = new wxChoice(func_page, ID_FP_FILTER,
@@ -235,21 +235,21 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     f->list->set_side_bar(this);
     func_sizer->Add(f, 1, wxEXPAND|wxALL, 1);
     wxBoxSizer *func_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
-    add_toggle_bitmap_button(func_page, ID_FP_HWHM, wxT("=W"), 
-                             wxT("same HWHM for all functions"), 
+    add_toggle_bitmap_button(func_page, ID_FP_HWHM, wxT("=W"),
+                             wxT("same HWHM for all functions"),
                              func_buttons_sizer);
-    add_toggle_bitmap_button(func_page, ID_FP_SHAPE, wxT("=S"), 
-                             wxT("same shape for all functions"), 
+    add_toggle_bitmap_button(func_page, ID_FP_SHAPE, wxT("=S"),
+                             wxT("same shape for all functions"),
                              func_buttons_sizer);
-    add_bitmap_button(func_page, ID_FP_NEW, add_xpm, 
+    add_bitmap_button(func_page, ID_FP_NEW, add_xpm,
                       wxT("new function"), func_buttons_sizer);
-    add_bitmap_button(func_page, ID_FP_EDIT, editf_xpm, 
+    add_bitmap_button(func_page, ID_FP_EDIT, editf_xpm,
                       wxT("edit function"), func_buttons_sizer);
-    //add_bitmap_button(func_page, ID_FP_CHTYPE, convert_xpm, 
+    //add_bitmap_button(func_page, ID_FP_CHTYPE, convert_xpm,
     //                  wxT("change type of function"), func_buttons_sizer);
-    add_bitmap_button(func_page, ID_FP_COL, colorsel_xpm, 
+    add_bitmap_button(func_page, ID_FP_COL, colorsel_xpm,
                       wxT("change color"), func_buttons_sizer);
-    add_bitmap_button(func_page, ID_FP_DEL, close_xpm, 
+    add_bitmap_button(func_page, ID_FP_DEL, close_xpm,
                       wxT("delete"), func_buttons_sizer);
     func_sizer->Add(func_buttons_sizer, 0, wxEXPAND);
     func_page->SetSizerAndFit(func_sizer);
@@ -260,18 +260,18 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     wxBoxSizer *var_sizer = new wxBoxSizer(wxVERTICAL);
     vector<pair<string,int> > vdata = vector4(
                                      pair<string,int>("Name", 52),
-                                     pair<string,int>("#/#", 72), 
+                                     pair<string,int>("#/#", 72),
                                      pair<string,int>("value", 70),
                                      pair<string,int>("formula", 0) );
     v = new ListPlusText(var_page, -1, ID_VP_LIST, vdata);
     v->list->set_side_bar(this);
     var_sizer->Add(v, 1, wxEXPAND|wxALL, 1);
     wxBoxSizer *var_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
-    add_bitmap_button(var_page, ID_VP_NEW, add_xpm, 
+    add_bitmap_button(var_page, ID_VP_NEW, add_xpm,
                       wxT("new variable"), var_buttons_sizer);
-    add_bitmap_button(var_page, ID_VP_DEL, close_xpm, 
+    add_bitmap_button(var_page, ID_VP_DEL, close_xpm,
                       wxT("delete"), var_buttons_sizer);
-    add_bitmap_button(var_page, ID_VP_EDIT, editf_xpm, 
+    add_bitmap_button(var_page, ID_VP_EDIT, editf_xpm,
                       wxT("edit variable"), var_buttons_sizer);
     var_sizer->Add(var_buttons_sizer, 0, wxEXPAND);
     var_page->SetSizerAndFit(var_sizer);
@@ -279,8 +279,8 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
 
     //-----
     wxBoxSizer* bp_topsizer = new wxBoxSizer(wxVERTICAL);
-    bp_label = new wxStaticText(bottom_panel, -1, wxT(""), 
-                                wxDefaultPosition, wxDefaultSize, 
+    bp_label = new wxStaticText(bottom_panel, -1, wxT(""),
+                                wxDefaultPosition, wxDefaultSize,
                                 wxST_NO_AUTORESIZE|wxALIGN_CENTRE);
     bp_topsizer->Add(bp_label, 0, wxEXPAND|wxALL, 5);
     bp_sizer = new wxFlexGridSizer(2, 0, 0);
@@ -309,7 +309,7 @@ void SideBar::OnDataButtonRen (wxCommandEvent&)
     wxString old_title = s2wx(data->get_title());
 
     wxString s = wxGetTextFromUser(
-                         wxString::Format(wxT("New name for dataset @%i"), n), 
+                         wxString::Format(wxT("New name for dataset @%i"), n),
                          wxT("Rename dataset"),
                          old_title);
     if (!s.IsEmpty() && s != old_title)
@@ -343,7 +343,7 @@ void SideBar::OnDataButtonCopyF (wxCommandEvent&)
     d->list->Select(n+1, true);
     d->list->Focus(n+1);
     string cmd = "@" + S(n+1) + ".F=copy(@" + S(n) + ".F)";
-    if (!ftk->get_model(n)->get_zz_names().empty() 
+    if (!ftk->get_model(n)->get_zz_names().empty()
             || !ftk->get_model(n+1)->get_zz_names().empty())
         cmd += "; @" + S(n+1) + ".Z=copy(@" + S(n) + ".Z)";
     update_data_buttons();
@@ -371,7 +371,7 @@ void SideBar::OnDataButtonCol (wxCommandEvent&)
             last_sel = i;
         wxColour first_col = frame->get_main_plot()->get_data_color(first_sel);
         wxColour last_col = frame->get_main_plot()->get_data_color(last_sel);
-        GradientDlgWithApply<SideBar> gd(this, -1, first_col, last_col, 
+        GradientDlgWithApply<SideBar> gd(this, -1, first_col, last_col,
                                          this, &SideBar::OnDataColorsChanged);
         gd.ShowModal();
     }
@@ -380,7 +380,7 @@ void SideBar::OnDataButtonCol (wxCommandEvent&)
 void SideBar::OnDataColorsChanged(GradientDlg *gd)
 {
     vector<int> selected;
-    for (int i = d->list->GetFirstSelected(), c = 0; i != -1; 
+    for (int i = d->list->GetFirstSelected(), c = 0; i != -1;
                                         i = d->list->GetNextSelected(i), ++c) {
         selected.push_back(i);
         wxColour col = gd->get_value(c / (d->list->GetSelectedItemCount()-1.));
@@ -388,8 +388,8 @@ void SideBar::OnDataColorsChanged(GradientDlg *gd)
     }
     update_lists();
     frame->refresh_plots(false, true);
-    for (vector<int>::const_iterator i = selected.begin(); 
-            i != selected.end(); ++i) 
+    for (vector<int>::const_iterator i = selected.begin();
+            i != selected.end(); ++i)
     for (int i = 0; i != d->list->GetItemCount(); ++i)
         d->list->Select(i, contains_element(selected, i));
 }
@@ -407,7 +407,7 @@ void SideBar::OnDataShiftUpChanged (wxSpinEvent&)
 
 void SideBar::OnDataPSizeChanged (wxSpinEvent& event)
 {
-    //for (int i = d->list->GetFirstSelected(); i != -1; 
+    //for (int i = d->list->GetFirstSelected(); i != -1;
     //                                       i = d->list->GetNextSelected(i))
     //    frame->get_main_plot()->set_data_point_size(i, event.GetPosition());
     // now it is set globally
@@ -437,7 +437,7 @@ void SideBar::OnFuncButtonNew (wxCommandEvent&)
     string peak_type = frame->get_peak_type();
     string formula = Function::get_formula(peak_type);
     vector<string> varnames = Function::get_varnames_from_formula(formula);
-    string t = "%put_name_here = " + peak_type + "(" 
+    string t = "%put_name_here = " + peak_type + "("
                                       + join_vector(varnames, "= , ") + "= )";
     frame->edit_in_input(t);
 }
@@ -446,7 +446,7 @@ void SideBar::OnFuncButtonEdit (wxCommandEvent&)
 {
     if (!bp_func)
         return;
-    string t = bp_func->get_current_assignment(ftk->get_variables(), 
+    string t = bp_func->get_current_assignment(ftk->get_variables(),
                                                ftk->get_parameters());
     frame->edit_in_input(t);
 }
@@ -458,9 +458,9 @@ void SideBar::OnFuncButtonChType (wxCommandEvent&)
 
 void SideBar::OnFuncButtonCol (wxCommandEvent&)
 {
-    vector<int> const& ffi 
+    vector<int> const& ffi
         = ftk->get_model(frame->get_focused_data_index())->get_ff_idx();
-    vector<int>::const_iterator in_ff = find(ffi.begin(), ffi.end(), 
+    vector<int>::const_iterator in_ff = find(ffi.begin(), ffi.end(),
                                                          active_function);
     if (in_ff == ffi.end())
         return;
@@ -512,7 +512,7 @@ void SideBar::update_lists(bool nondata_changed)
     d->update_data_list(nondata_changed);
     update_func_list(nondata_changed);
     update_var_list();
-    
+
     //-- enable/disable buttons
     update_data_buttons();
     update_func_buttons();
@@ -555,7 +555,7 @@ void SideBar::update_func_list(bool nondata_changed)
     if (active_function == -1)
         active_function = func_size - 1;
     else {
-        if (active_function >= func_size || 
+        if (active_function >= func_size ||
                 ftk->get_function(active_function) != bp_func)
             active_function = ftk->find_function_nr(active_function_name);
         if (active_function == -1 || func_size == old_func_size+1)
@@ -594,14 +594,14 @@ void SideBar::update_func_list(bool nondata_changed)
     if (nondata_changed || func_col_id != new_func_col_id) {
         func_col_id = new_func_col_id;
         func_images = new wxImageList(16, 16);
-        for (vector<int>::const_iterator i = func_col_id.begin(); 
+        for (vector<int>::const_iterator i = func_col_id.begin();
                                                 i != func_col_id.end(); ++i) {
             if (*i == -2)
                 func_images->Add(wxBitmap(unused_xpm));
             else if (*i == -1)
                 func_images->Add(wxBitmap(zshift_xpm));
-            else 
-                func_images->Add(make_color_bitmap16(mplot->get_func_color(*i), 
+            else
+                func_images->Add(make_color_bitmap16(mplot->get_func_color(*i),
                                                      bg_col));
         }
     }
@@ -629,7 +629,7 @@ void SideBar::update_var_list()
     for (int i = 0; i < size(variables); ++i) {
         Variable const* v = variables[i];
         var_data.push_back(v->name);           //name
-        string refs = S(var_frefs[i]) + "+" + S(var_vrefs[i]) + " / " 
+        string refs = S(var_frefs[i]) + "+" + S(var_vrefs[i]) + " / "
                       + S(v->get_vars_count());
         var_data.push_back(refs); //refs
         var_data.push_back(S(v->get_value())); //value
@@ -639,7 +639,7 @@ void SideBar::update_var_list()
 }
 
 int SideBar::get_focused_data() const
-{ 
+{
     wxListView *lv = d->list;
     int focused = lv->GetFocusedItem();
     if (focused >= ftk->get_dm_count()) {
@@ -654,12 +654,12 @@ int SideBar::get_focused_data() const
     return focused;
 }
 
-int SideBar::get_focused_var() const 
-{ 
+int SideBar::get_focused_var() const
+{
     if (ftk->get_variables().empty())
         return -1;
     else {
-        int n = v->list->GetFocusedItem(); 
+        int n = v->list->GetFocusedItem();
         return n > 0 ? n : 0;
     }
 }
@@ -682,7 +682,7 @@ vector<int> SideBar::get_selected_data_indices()
     return sel;
 }
 
-// in plotting order 
+// in plotting order
 vector<int> SideBar::get_ordered_dataset_numbers()
 {
     wxListView *lv = d->list;
@@ -695,11 +695,11 @@ vector<int> SideBar::get_ordered_dataset_numbers()
     vector<int> selected;
     int focused = lv->GetFocusedItem();
     // focused but not selected is not important
-    if (focused >= 0 && !lv->IsSelected(focused)) 
+    if (focused >= 0 && !lv->IsSelected(focused))
         focused = -1;
     for (int i = 0; i < count; ++i) {
         if (lv->IsSelected(i)) {
-            if (i != focused) 
+            if (i != focused)
                 selected.push_back(i);
         }
         else
@@ -721,7 +721,7 @@ string SideBar::get_plot_in_datasets()
     if (data_look->GetSelection() == 0) // all datasets
         s += ", @*";
     else {
-        for (int i = d->list->GetFirstSelected(); i != -1; 
+        for (int i = d->list->GetFirstSelected(); i != -1;
                                              i = d->list->GetNextSelected(i))
             if (i != focused)
                 s += ", @" + S(i);
@@ -729,9 +729,9 @@ string SideBar::get_plot_in_datasets()
     return s;
 }
 
-//bool SideBar::is_func_selected(int n) const 
-//{ 
-//    return f->list->IsSelected(n) || f->list->GetFocusedItem() == n; 
+//bool SideBar::is_func_selected(int n) const
+//{
+//    return f->list->IsSelected(n) || f->list->GetFocusedItem() == n;
 //}
 //
 
@@ -760,10 +760,10 @@ void SideBar::do_activate_function()
 
 // Focus is _not_ used for data-related operations, only for function-related
 // ones. Sum and functions are shown only for focused dataset.
-void SideBar::OnDataFocusChanged(wxListEvent &) 
-{ 
+void SideBar::OnDataFocusChanged(wxListEvent &)
+{
     int n = d->list->GetFocusedItem();
-    //ftk->msg("[F] id:" + S(event.GetIndex()) + " focused:" 
+    //ftk->msg("[F] id:" + S(event.GetIndex()) + " focused:"
     //         + S(d->list->GetFocusedItem()));
     if (n < 0)
         return;
@@ -773,12 +773,12 @@ void SideBar::OnDataFocusChanged(wxListEvent &)
     update_data_inf();
 }
 
-void SideBar::OnDataSelectionChanged(wxListEvent &event) 
-{ 
+void SideBar::OnDataSelectionChanged(wxListEvent &event)
+{
     if (data_look->GetSelection() != 0) // ! all datasets
         frame->refresh_plots();
     bool selected = (event.GetEventType() == wxEVT_COMMAND_LIST_ITEM_SELECTED);
-    assert (selected 
+    assert (selected
             || event.GetEventType() == wxEVT_COMMAND_LIST_ITEM_DESELECTED);
     //long index = event.GetIndex();
     //ftk->msg("id:" + S(index) + " e.sel:" + S(selected)
@@ -832,7 +832,7 @@ string SideBar::get_datasets_for_plot()
     if (data_look->GetSelection() == 0) // all datasets
         return s + ", @*";
     else { // only selected datasets
-        for (int i = d->list->GetFirstSelected(); i != -1; 
+        for (int i = d->list->GetFirstSelected(); i != -1;
                                               i = d->list->GetNextSelected(i))
             if (i != first)
                 s += ", @" + S(i);
@@ -884,17 +884,17 @@ void SideBar::update_func_inf()
     inf->SetDefaultStyle(boldattr);
     inf->AppendText(s2wx(func->xname));
     inf->SetDefaultStyle(defattr);
-    if (func->has_center()) 
+    if (func->has_center())
         inf->AppendText(wxT("\nCenter: ") + s2wx(S(func->center())));
-    if (func->has_area()) 
+    if (func->has_area())
         inf->AppendText(wxT("\nArea: ") + s2wx(S(func->area())));
-    if (func->has_height()) 
+    if (func->has_height())
         inf->AppendText(wxT("\nHeight: ") + s2wx(S(func->height())));
-    if (func->has_fwhm()) 
+    if (func->has_fwhm())
         inf->AppendText(wxT("\nFWHM: ") + s2wx(S(func->fwhm())));
-    if (func->has_iwidth()) 
+    if (func->has_iwidth())
         inf->AppendText(wxT("\nInt. Width: ") + s2wx(S(func->iwidth())));
-    if (func->has_other_props()) 
+    if (func->has_other_props())
         inf->AppendText(wxT("\n") + s2wx(func->other_props_str()));
     vector<string> in;
     for (int i = 0; i < ftk->get_dm_count(); ++i) {
@@ -932,7 +932,7 @@ void SideBar::update_var_inf()
     inf->ShowPosition(0);
 }
 
-void SideBar::add_variable_to_bottom_panel(Variable const* var, 
+void SideBar::add_variable_to_bottom_panel(Variable const* var,
                                            string const& tv_name)
 {
     wxStaticText* name_st = new wxStaticText(bottom_panel, -1, s2wx(tv_name));
@@ -940,14 +940,14 @@ void SideBar::add_variable_to_bottom_panel(Variable const* var,
     bp_statict.push_back(name_st);
     if (var->is_simple() || var->is_constant()) {
         FancyRealCtrl *frc = new FancyRealCtrl(bottom_panel, -1,
-                                               var->get_value(), 
+                                               var->get_value(),
                                                s2wx(var->xname),
-                                               !var->is_simple(), 
-                            make_callback<FancyRealCtrl const*>().V1(this, 
+                                               !var->is_simple(),
+                            make_callback<FancyRealCtrl const*>().V1(this,
                                             &SideBar::on_changing_frc_value),
-                            make_callback<FancyRealCtrl const*>().V1(this, 
+                            make_callback<FancyRealCtrl const*>().V1(this,
                                             &SideBar::on_changed_frc_value),
-                            make_callback<FancyRealCtrl const*>().V1(this, 
+                            make_callback<FancyRealCtrl const*>().V1(this,
                                             &SideBar::on_toggled_frc_lock));
         frc->ConnectToOnKeyDown(wxKeyEventHandler(FFrame::focus_input), frame);
         bp_sizer->Add(frc, 1, wxALL|wxEXPAND, 1);
@@ -968,7 +968,7 @@ void SideBar::on_changing_frc_value(FancyRealCtrl const* frc)
     vector<fp> p_values(bp_func->nv);
     for (int i = 0; i < bp_func->nv; ++i) {
         string xname = "$" + bp_func->get_var_name(i);
-        p_values[i] = wx2s(frc->GetTip()) != xname ? bp_func->get_var_value(i) 
+        p_values[i] = wx2s(frc->GetTip()) != xname ? bp_func->get_var_value(i)
                                                    : frc->GetValue();
     }
     frame->get_main_plot()->draw_xor_peak(bp_func, p_values);
@@ -987,11 +987,11 @@ void SideBar::on_toggled_frc_lock(FancyRealCtrl const* frc)
 
 void SideBar::clear_bottom_panel()
 {
-    for (vector<wxStaticText*>::iterator i = bp_statict.begin(); 
+    for (vector<wxStaticText*>::iterator i = bp_statict.begin();
                                                 i != bp_statict.end(); ++i)
         (*i)->Destroy();
     bp_statict.clear();
-    for (vector<FancyRealCtrl*>::iterator i = bp_frc.begin(); 
+    for (vector<FancyRealCtrl*>::iterator i = bp_frc.begin();
                                                       i != bp_frc.end(); ++i)
         if (*i)
             (*i)->Destroy();
@@ -1012,8 +1012,8 @@ vector<bool> SideBar::make_bottom_panel_sig(Function const* func)
 
 void SideBar::change_bp_parameter_value(int idx, double value)
 {
-    if (idx < (int)bp_frc.size()) 
-        bp_frc[idx]->SetTemporaryValue(value); 
+    if (idx < (int)bp_frc.size())
+        bp_frc[idx]->SetTemporaryValue(value);
 }
 
 void SideBar::update_bottom_panel()
@@ -1056,7 +1056,7 @@ void SideBar::update_bottom_panel()
             }
             else {
                 assert (bp_frc[i] == 0);
-                string f = var->xname + " = " 
+                string f = var->xname + " = "
                                    + var->get_formula(ftk->get_parameters());
                 (*st)->SetLabel(s2wx(f));
                 ++st;
@@ -1069,9 +1069,9 @@ void SideBar::update_bottom_panel()
 
 bool SideBar::howto_plot_dataset(int n, bool& shadowed, int& offset) const
 {
-    // choice_idx: 0: "show all datasets" 
-    //             1: "show only selected" 
-    //             2: "shadow unselected" 
+    // choice_idx: 0: "show all datasets"
+    //             1: "show only selected"
+    //             2: "shadow unselected"
     //             3: "hide all"
     int choice_idx = data_look->GetSelection();
     bool sel = d->list->IsSelected(n) || d->list->GetFocusedItem() == n;
@@ -1085,7 +1085,7 @@ bool SideBar::howto_plot_dataset(int n, bool& shadowed, int& offset) const
 vector<string> SideBar::get_selected_func() const
 {
     vector<string> dd;
-    for (int i = f->list->GetFirstSelected(); i != -1; 
+    for (int i = f->list->GetFirstSelected(); i != -1;
                                             i = f->list->GetNextSelected(i))
         dd.push_back(ftk->get_function(i)->xname);
     //if (dd.empty() && f->list->GetItemCount() > 0) {
@@ -1098,7 +1098,7 @@ vector<string> SideBar::get_selected_func() const
 vector<string> SideBar::get_selected_vars() const
 {
     vector<string> dd;
-    for (int i = v->list->GetFirstSelected(); i != -1; 
+    for (int i = v->list->GetFirstSelected(); i != -1;
                                              i = v->list->GetNextSelected(i))
         dd.push_back(ftk->get_variable(i)->xname);
     //if (dd.empty() && v->list->GetItemCount() > 0) {
@@ -1111,7 +1111,7 @@ vector<string> SideBar::get_selected_vars() const
 
 void SideBar::OnFuncFocusChanged(wxListEvent&)
 {
-    int n = f->list->GetFocusedItem(); 
+    int n = f->list->GetFocusedItem();
     if (n == -1)
         active_function = -1;
     else {
@@ -1140,7 +1140,7 @@ void SideBar::make_same_func_par(string const& p, bool checked)
             found = f->get_param_value_safe(p, value);
         }
         vector<Function*> const& ff = ftk->get_functions();
-        for (vector<Function*>::const_iterator i = ff.begin(); 
+        for (vector<Function*>::const_iterator i = ff.begin();
                                                  i != ff.end() && !found; ++i)
             found = (*i)->get_param_value_safe(p, value);
         if (!found)

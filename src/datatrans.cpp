@@ -6,77 +6,77 @@
 
 // this file can be compiled to stand-alone test program:
 // $ g++ -I../3rdparty -DSTANDALONE_DATATRANS datatrans*.cpp numfuncs.cpp -o dt
-// $ ./dt 
+// $ ./dt
 
-// right hand variables: 
+// right hand variables:
 //       arrays (index in square brackets can be ommitted and n is assumed):
-//              x[] - x coordinate of point before transformation (old x)  
+//              x[] - x coordinate of point before transformation (old x)
 //              X[] - x coordinate after transformation (new x),
 //              y[], Y[] - y coordinate of point (before/after transformation)
-//              s[], S[]  -  std. dev. of y, 
+//              s[], S[]  -  std. dev. of y,
 //              a[], A[] - active point, either 0 or 1
 //       scalars:
-//              M - size of arrays, 
+//              M - size of arrays,
 //              n - current index (index of currently transformed point)
-// upper-case variables are assignable 
-// assignment syntax: 
+// upper-case variables are assignable
+// assignment syntax:
 //        or: assignable_var = expression     --> executed for all points
 //        or: assignable_var[k] = expression  --> executed for k-th point
-//        or: assignable_var[k...m] = expression  
-//        or: assignable_var[k...] = expression  
-//        or: assignable_var[...k] = expression  
+//        or: assignable_var[k...m] = expression
+//        or: assignable_var[k...] = expression
+//        or: assignable_var[...k] = expression
 //   where k and m are integers (negative are counted from the end:
 //                               -1 is last, -2 one before last, and so on)
 //                               FIXME: should x[-1] also mean x[M-1]?
 //     k...m means that expression is executed for k, k+1, ... m-1. Not for m.
 //
-// Assignments are executed for n = 0, ..., M-1 (if assignments are joined 
+// Assignments are executed for n = 0, ..., M-1 (if assignments are joined
 // with '&', all are executed for n=0, then all for n=1, and so on).
 // Before transformation the new point coordinates are a copy of the old ones.
 //
-// There is a special function sum(), which can be used as a real value. 
-// and returns a sum over all points of value of expression 
+// There is a special function sum(), which can be used as a real value.
+// and returns a sum over all points of value of expression
 // eg. sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0) -> area.
 // The value of sum() is computed before transformation.
 //
 //
-// There are statements, that are executed only once: 
-//    M=..., 
+// There are statements, that are executed only once:
+//    M=...,
 //    order=...
-// and assignments T[k]=..., if these statements are joined with other 
+// and assignments T[k]=..., if these statements are joined with other
 // assignments using ',', they are executed first, before iteration over all
 // indices.
 //
-//        M=length (eg. M=M+5 or M=100) changes number of points: 
+//        M=length (eg. M=M+5 or M=100) changes number of points:
 //        either appends new data points with x=y=sigma=0, is_active=false,
 //        or deletes last points.
-//        order=[-]coordinate (eg. order=x, order=-x) 
-//        sort data points; sorting is stable. After finishing transform 
+//        order=[-]coordinate (eg. order=x, order=-x)
+//        sort data points; sorting is stable. After finishing transform
 //        command, points are sorted using x.
 //        delete[k] (or delete[k...m])
 //        delete(condition)
 //           deletion and change of M is postponed to the end of computation
-// 
+//
 
-// operators: binary +, -, *, /, % , ^  
-// ternary operator:       condition ? expression1 : expression2 
-// 
+// operators: binary +, -, *, /, % , ^
+// ternary operator:       condition ? expression1 : expression2
+//
 //functions: sqrt exp log10 ln sin cos tan atan asin acos abs min2 max2 round
 // boolean: AND, OR, >, >=, <, <=, = (or ==), != (or <>), TRUE, FALSE, NOT
 //
 //parametrized functions: spline, interpolate //TODO->polyline
-// The general syntax is: pfunc[param1, param2,...](expression), 
+// The general syntax is: pfunc[param1, param2,...](expression),
 //  eg. spline[22.1, 37.9, 48.1, 17.2, 93.0, 20.7](x)
 // spline - cubic spline interpolation, parameters are x1, y1, x2, y2, ...
 // interpolate - polyline interpolation, parameters are x1, y1, x2, y2, ...
 //
 // All computations are performed using real numbers, but using round for
 // comparisions should not be neccessary. Two numbers that differ less
-// than epsilon (see: common.h) ie. abs(a-b)<epsilon, are considered equal. 
-// Indices are also computed in real number domain, 
+// than epsilon (see: common.h) ie. abs(a-b)<epsilon, are considered equal.
+// Indices are also computed in real number domain,
 // and if they are not integers, interpolation of two values
-// is taken (i.e of values with indices floor(idx) and ceil(idx) 
-//     
+// is taken (i.e of values with indices floor(idx) and ceil(idx)
+//
 //
 // Syntax examples:
 //    set standard deviation as sqrt(max2(1,y))
@@ -86,35 +86,35 @@
 //                    or:  S = sqrt(max2(1,Y[n]))
 //                    or:  S = sqrt(max2(1,Y))
 //
-//    integration:   Y[1...] = Y[n-1] + y[n]  
+//    integration:   Y[1...] = Y[n-1] + y[n]
 //
-//    swaping x and y axes: y=x , x=y , s=sqrt(Y) 
+//    swaping x and y axes: y=x , x=y , s=sqrt(Y)
 //                      or: y=x , x=y , s=sqrt(x)
 //
-//    smoothing: Y[1...-1] = (y[n-1] + y[n+1])/2  
+//    smoothing: Y[1...-1] = (y[n-1] + y[n+1])/2
 //
 //    reducing: order = x, # not neccessary, points are always in this order
-//              x[...-1] = (x[n]+x[n+1])/2, 
+//              x[...-1] = (x[n]+x[n+1])/2,
 //              y[...-1] = y[n]+y[n+1],
-//              delete(n%2==1)    
+//              delete(n%2==1)
 //
-//    delete inactive points:    delete(not a)  
-//    normalize area: 
-//           y = y / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0) 
+//    delete inactive points:    delete(not a)
+//    normalize area:
+//           y = y / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0)
 //
 //    subtract spline baseline given by points (22.17, 37.92), (48.06, 17.23),
 //                                              (93.03, 20.68).
-//    y = y - spline[22.17, 37.92,  48.06, 17.23,  93.03, 20.68](x) 
+//    y = y - spline[22.17, 37.92,  48.06, 17.23,  93.03, 20.68](x)
 //
 
 //-----------------------------------------------------------------
 // how it works:
-//   * parse string and prepare VM code (list of operators) 
+//   * parse string and prepare VM code (list of operators)
 //     and data (list of numbers). There is one VM code and
 //     data array for both do-once operations
-//     for for-many-points operations (perhaps it should be separated). 
-//  
-//   * execute do-once operations (eg. order=x, x[3]=4) 
+//     for for-many-points operations (perhaps it should be separated).
+//
+//   * execute do-once operations (eg. order=x, x[3]=4)
 //     and computes value of sum()
 //
 //   * execute all assignments for every point (from first to last),
@@ -145,7 +145,7 @@ using namespace datatrans;
 
 #ifdef STANDALONE_DATATRANS
 
-#include <iostream>  
+#include <iostream>
 bool dt_verbose = false;
 #define DT_DEBUG(x) if (dt_verbose) std::cout << (x) << std::endl;
 //-------------------------  Main program  ---------------------------------
@@ -174,8 +174,8 @@ int main(int argc, char **argv)
         try {
             vector<Point> transformed_points = transform_data(str, points);
             int len = (int) points.size();
-            for (int n = 0; n != (int) transformed_points.size(); n++) 
-                cout << "point " << n << ": " 
+            for (int n = 0; n != (int) transformed_points.size(); n++)
+                cout << "point " << n << ": "
                     << (n < len ? points[n] : Point()).str()
                     << " -> " << transformed_points[n].str() << endl;
         } catch (ExecuteError& e) {
@@ -186,7 +186,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-#else 
+#else
 
 #  ifndef DT_DEBUG
 #    define DT_DEBUG(x) ;
@@ -201,8 +201,8 @@ DataTransformGrammar::definition<ScannerT>::definition(
                                           DataTransformGrammar const& /*self*/)
 {
     range
-        =  '[' >> 
-              ( eps_p(int_p >> ']')[push_op(OP_DO_ONCE)] 
+        =  '[' >>
+              ( eps_p(int_p >> ']')[push_op(OP_DO_ONCE)]
                 >> int_p [push_double()] [push_op(OP_INDEX)]
               | (
                   ch_p('n') [push_the_double(0.)] [push_the_double(0.)]
@@ -215,12 +215,12 @@ DataTransformGrammar::definition<ScannerT>::definition(
                         | eps_p [push_the_double(0)]
                         )
                    )
-                ) [push_op(OP_RANGE)] 
-              )  
+                ) [push_op(OP_RANGE)]
+              )
             >> ']'
         ;
 
-    order 
+    order
         =  ('-' >> as_lower_d["x"])        [push_the_double(-1.)]
         |  (!ch_p('+') >> as_lower_d["x"]) [push_the_double(+1.)]
         |  ('-' >> as_lower_d["y"])        [push_the_double(-2.)]
@@ -231,31 +231,31 @@ DataTransformGrammar::definition<ScannerT>::definition(
 
 
     assignment //not only assignments
-        =  (as_lower_d["x"] >> !range >> '=' >> DataExpressionG) 
+        =  (as_lower_d["x"] >> !range >> '=' >> DataExpressionG)
                                                      [push_op(OP_ASSIGN_X)]
-        |  (as_lower_d["y"] >> !range >> '=' >> DataExpressionG) 
+        |  (as_lower_d["y"] >> !range >> '=' >> DataExpressionG)
                                                      [push_op(OP_ASSIGN_Y)]
-        |  (as_lower_d["s"] >> !range >> '=' >> DataExpressionG) 
+        |  (as_lower_d["s"] >> !range >> '=' >> DataExpressionG)
                                                      [push_op(OP_ASSIGN_S)]
-        |  (as_lower_d["a"] >> !range >> '=' >> DataExpressionG) 
+        |  (as_lower_d["a"] >> !range >> '=' >> DataExpressionG)
                                                      [push_op(OP_ASSIGN_A)]
-        |  ((ch_p('M') >> '=') [push_op(OP_DO_ONCE)]  
-           >> DataExpressionG) [push_op(OP_RESIZE)]  
-        |  ((as_lower_d["order"] >> '=') [push_op(OP_DO_ONCE)]  
-           >> order) [push_op(OP_ORDER)] 
-        |  (as_lower_d["delete"] >> eps_p('[') [push_op(OP_DO_ONCE)]  
+        |  ((ch_p('M') >> '=') [push_op(OP_DO_ONCE)]
+           >> DataExpressionG) [push_op(OP_RESIZE)]
+        |  ((as_lower_d["order"] >> '=') [push_op(OP_DO_ONCE)]
+           >> order) [push_op(OP_ORDER)]
+        |  (as_lower_d["delete"] >> eps_p('[') [push_op(OP_DO_ONCE)]
             >> range) [push_op(OP_DELETE)]
-        |  (as_lower_d["delete"] >> '(' >> DataExpressionG >> ')') 
+        |  (as_lower_d["delete"] >> '(' >> DataExpressionG >> ')')
                                                    [push_op(OP_DELETE_COND)]
         ;
 
-    statement 
+    statement
         = (eps_p[push_op(OP_BEGIN)] >> assignment >> eps_p[push_op(OP_END)])
-                                                             % ch_p(',') 
+                                                             % ch_p(',')
         ;
 }
 
-// explicit template instantiations 
+// explicit template instantiations
 template DataTransformGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(DataTransformGrammar const&);
 
 template DataTransformGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<no_actions_action_policy<action_policy> > > > >::definition(DataTransformGrammar const&);
@@ -270,24 +270,24 @@ namespace datatrans {
     if (op == OP_##x) return #x;
 string dt_op(int op)
 {
-    OP_(NEG)   OP_(EXP)   
-    OP_(SIN)   OP_(COS)  OP_(TAN)  OP_(SINH) OP_(COSH)  OP_(TANH)  
-    OP_(ABS)  OP_(ROUND) 
+    OP_(NEG)   OP_(EXP)
+    OP_(SIN)   OP_(COS)  OP_(TAN)  OP_(SINH) OP_(COSH)  OP_(TANH)
+    OP_(ABS)  OP_(ROUND)
     OP_(ATAN) OP_(ASIN) OP_(ACOS)
-    OP_(LOG10) OP_(LN)  OP_(SQRT)  OP_(POW)  
+    OP_(LOG10) OP_(LN)  OP_(SQRT)  OP_(POW)
     OP_(GAMMA) OP_(LGAMMA) OP_(VOIGT)
     OP_(ADD)   OP_(SUB)   OP_(MUL)   OP_(DIV)  OP_(MOD)
-    OP_(MIN2)   OP_(MAX2) OP_(RANDNORM) OP_(RANDU)    
-    OP_(VAR_X) OP_(VAR_Y) OP_(VAR_S) OP_(VAR_A) 
-    OP_(VAR_x) OP_(VAR_y) OP_(VAR_s) OP_(VAR_a) 
-    OP_(VAR_n) OP_(VAR_M) OP_(NUMBER)  
+    OP_(MIN2)   OP_(MAX2) OP_(RANDNORM) OP_(RANDU)
+    OP_(VAR_X) OP_(VAR_Y) OP_(VAR_S) OP_(VAR_A)
+    OP_(VAR_x) OP_(VAR_y) OP_(VAR_s) OP_(VAR_a)
+    OP_(VAR_n) OP_(VAR_M) OP_(NUMBER)
     OP_(OR) OP_(AFTER_OR) OP_(AND) OP_(AFTER_AND) OP_(NOT)
     OP_(TERNARY) OP_(TERNARY_MID) OP_(AFTER_TERNARY) OP_(DELETE_COND)
-    OP_(GT) OP_(GE) OP_(LT) OP_(LE) OP_(EQ) OP_(NEQ) OP_(NCMP_HACK) 
+    OP_(GT) OP_(GE) OP_(LT) OP_(LE) OP_(EQ) OP_(NEQ) OP_(NCMP_HACK)
     OP_(RANGE) OP_(INDEX) OP_(x_IDX)
     OP_(ASSIGN_X) OP_(ASSIGN_Y) OP_(ASSIGN_S) OP_(ASSIGN_A)
-    OP_(DO_ONCE) OP_(RESIZE) OP_(ORDER) OP_(DELETE) OP_(BEGIN) OP_(END) 
-    OP_(END_AGGREGATE) OP_(AGCONDITION) 
+    OP_(DO_ONCE) OP_(RESIZE) OP_(ORDER) OP_(DELETE) OP_(BEGIN) OP_(END)
+    OP_(END_AGGREGATE) OP_(AGCONDITION)
     OP_(AGSUM) OP_(AGMIN) OP_(AGMAX) OP_(AGAREA) OP_(AGAVG) OP_(AGSTDDEV)
     OP_(PARAMETERIZED) OP_(PLIST_BEGIN) OP_(PLIST_SEP) OP_(PLIST_END)
     OP_(FUNC) OP_(SUM_F) OP_(SUM_Z) OP_(NUMAREA) OP_(FINDX) OP_(FIND_EXTR)
@@ -298,7 +298,7 @@ string dt_op(int op)
 string dt_ops(vector<int> const& code)
 {
     string r;
-    for (std::vector<int>::const_iterator i=code.begin(); i != code.end(); ++i) 
+    for (std::vector<int>::const_iterator i=code.begin(); i != code.end(); ++i)
         if (*i < 0)
             r += dt_op(*i) + " ";
         else
@@ -324,11 +324,11 @@ string get_code_as_text(vector<int> const& code, vector<fp> const& numbers)
 }
 //------------------------  Virtual Machine  --------------------------------
 
-vector<int> code;        //  VM code 
+vector<int> code;        //  VM code
 vector<fp> numbers;  //  VM data (numeric values)
-vector<ParameterizedFunction*> parameterized; // also used by VM 
-const int stack_size = 128;  //should be enough, 
-                              //there are no checks for stack overflow  
+vector<ParameterizedFunction*> parameterized; // also used by VM
+const int stack_size = 128;  //should be enough,
+                              //there are no checks for stack overflow
 
 void clear_parse_vecs()
 {
@@ -338,7 +338,7 @@ void clear_parse_vecs()
     purge_all_elements(parameterized);
 }
 
-vector<int>::const_iterator 
+vector<int>::const_iterator
 skip_code(vector<int>::const_iterator i, int start_op, int finish_op)
 {
     int counter = 1;
@@ -387,7 +387,7 @@ fp find_idx_in_sorted(vector<Point> const& pp, fp x)
         return 0;
     else if (x >= pp.back().x)
         return pp.size() - 1;
-    vector<Point>::const_iterator i = lower_bound(pp.begin(), pp.end(), 
+    vector<Point>::const_iterator i = lower_bound(pp.begin(), pp.end(),
                                                   Point(x, 0));
     assert (i > pp.begin() && i < pp.end());
     if (is_eq(x, i->x))
@@ -397,25 +397,25 @@ fp find_idx_in_sorted(vector<Point> const& pp, fp x)
 }
 
 
-// Return value: 
+// Return value:
 //  if once==true (one-time pass).
 //   true means: it is neccessary to call this function for every point.
 //  if iterative pass:
 //   true means: delete this point.
 // n: index of point; //     special value: n==M: one-time operations
-//     n(==M) can be changed in OP_INDEX 
+//     n(==M) can be changed in OP_INDEX
 // M: number of all points (==new_points.size())
 bool execute_code(int n, int &M, vector<fp>& stack,
                   vector<Point> const& old_points, vector<Point>& new_points,
-                  vector<int> const& code)  
+                  vector<int> const& code)
 {
     DT_DEBUG("executing code; n=" + S(n) + " M=" + S(M))
     assert(M == size(new_points));
     bool once = (n == M);
-    bool return_value = false; 
+    bool return_value = false;
     vector<fp>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
 
-#define STACK_OP  
+#define STACK_OP
 #define STACK_OFFSET_CHANGE(ch) stackPtr+=(ch);
 
     for (vector<int>::const_iterator i=code.begin(); i != code.end(); i++) {
@@ -445,10 +445,10 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 STACK_OP *stackPtr = erf(*stackPtr);
                 break;
             case OP_LOG10:
-                STACK_OP *stackPtr = log10(*stackPtr); 
+                STACK_OP *stackPtr = log10(*stackPtr);
                 break;
             case OP_LN:
-                STACK_OP *stackPtr = log(*stackPtr); 
+                STACK_OP *stackPtr = log(*stackPtr);
                 break;
             case OP_SIN:
                 STACK_OP *stackPtr = sin(*stackPtr);
@@ -457,7 +457,7 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 STACK_OP *stackPtr = cos(*stackPtr);
                 break;
             case OP_TAN:
-                STACK_OP *stackPtr = tan(*stackPtr); 
+                STACK_OP *stackPtr = tan(*stackPtr);
                 break;
             case OP_SINH:
                 STACK_OP *stackPtr = sinh(*stackPtr);
@@ -466,16 +466,16 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 STACK_OP *stackPtr = cosh(*stackPtr);
                 break;
             case OP_TANH:
-                STACK_OP *stackPtr = tanh(*stackPtr); 
+                STACK_OP *stackPtr = tanh(*stackPtr);
                 break;
             case OP_ATAN:
-                STACK_OP *stackPtr = atan(*stackPtr); 
+                STACK_OP *stackPtr = atan(*stackPtr);
                 break;
             case OP_ASIN:
-                STACK_OP *stackPtr = asin(*stackPtr); 
+                STACK_OP *stackPtr = asin(*stackPtr);
                 break;
             case OP_ACOS:
-                STACK_OP *stackPtr = acos(*stackPtr); 
+                STACK_OP *stackPtr = acos(*stackPtr);
                 break;
             case OP_ABS:
                 STACK_OP *stackPtr = fabs(*stackPtr);
@@ -491,7 +491,7 @@ bool execute_code(int n, int &M, vector<fp>& stack,
 #ifndef STANDALONE_DATATRANS
             case OP_FUNC:
                 i++;
-                STACK_OP 
+                STACK_OP
                 *stackPtr = AL->get_function(*i)->calculate_value(*stackPtr);
                 break;
             case OP_SUM_F:
@@ -507,17 +507,17 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 STACK_OFFSET_CHANGE(-2)
                 if (*(i-1) == OP_FUNC) {
                     STACK_OP
-                    *stackPtr = AL->get_function(*i)->numarea(*stackPtr, 
+                    *stackPtr = AL->get_function(*i)->numarea(*stackPtr,
                                         *(stackPtr+1), iround(*(stackPtr+2)));
                 }
                 else if (*(i-1) == OP_SUM_F) {
                     STACK_OP
-                    *stackPtr = AL->get_model(*i)->numarea(*stackPtr, 
+                    *stackPtr = AL->get_model(*i)->numarea(*stackPtr,
                                         *(stackPtr+1), iround(*(stackPtr+2)));
                 }
                 else // OP_SUM_Z
                     throw ExecuteError("numarea(Z,...) is not implemented."
-                                       "Does anyone need it?"); 
+                                       "Does anyone need it?");
                 break;
 
             case OP_FINDX:
@@ -530,11 +530,11 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 }
                 else if (*(i-1) == OP_SUM_F) {
                     throw ExecuteError("findx(F,...) is not implemented. "
-                                       "Does anyone need it?"); 
+                                       "Does anyone need it?");
                 }
                 else // OP_SUM_Z
                     throw ExecuteError("findx(Z,...) is not implemented. "
-                                       "Does anyone need it?"); 
+                                       "Does anyone need it?");
                 break;
 
             case OP_FIND_EXTR:
@@ -547,11 +547,11 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 }
                 else if (*(i-1) == OP_SUM_F) {
                     throw ExecuteError("extremum(F,...) is not implemented. "
-                                       "Does anyone need it?"); 
+                                       "Does anyone need it?");
                 }
                 else // OP_SUM_Z
                     throw ExecuteError("extremum(Z,...) is not implemented. "
-                                       "Does anyone need it?"); 
+                                       "Does anyone need it?");
                 break;
 #endif //not STANDALONE_DATATRANS
 
@@ -604,7 +604,7 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 break;
             case OP_VOIGT:
                 STACK_OFFSET_CHANGE(-1)
-                STACK_OP *stackPtr = humlik(*stackPtr, *(stackPtr+1)) 
+                STACK_OP *stackPtr = humlik(*stackPtr, *(stackPtr+1))
                                                                / sqrt(M_PI);
                 break;
 
@@ -638,9 +638,9 @@ bool execute_code(int n, int &M, vector<fp>& stack,
             case OP_NCMP_HACK:
                 STACK_OFFSET_CHANGE(+1)
                 // put number that is accidentally in unused part of the stack
-                STACK_OP *stackPtr = *(stackPtr+1); 
+                STACK_OP *stackPtr = *(stackPtr+1);
                 break;
-            
+
             // putting-number-to-stack-operators
             // stack overflow not checked
             case OP_NUMBER:
@@ -666,12 +666,12 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 break;
             case OP_VAR_s:
                 STACK_OP
-                *stackPtr = get_var_with_idx(*stackPtr, old_points, 
+                *stackPtr = get_var_with_idx(*stackPtr, old_points,
                                              &Point::sigma);
                 break;
             case OP_VAR_a:
                 STACK_OP
-                *stackPtr = bool(iround(get_var_with_idx(*stackPtr, old_points, 
+                *stackPtr = bool(iround(get_var_with_idx(*stackPtr, old_points,
                                                          &Point::is_active)));
                 break;
             case OP_VAR_X:
@@ -684,12 +684,12 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 break;
             case OP_VAR_S:
                 STACK_OP
-                *stackPtr = get_var_with_idx(*stackPtr, new_points, 
+                *stackPtr = get_var_with_idx(*stackPtr, new_points,
                                              &Point::sigma);
                 break;
             case OP_VAR_A:
                 STACK_OP
-                *stackPtr = bool(iround(get_var_with_idx(*stackPtr, new_points, 
+                *stackPtr = bool(iround(get_var_with_idx(*stackPtr, new_points,
                                                          &Point::is_active)));
                 break;
 
@@ -718,7 +718,7 @@ bool execute_code(int n, int &M, vector<fp>& stack,
 //---8<--- END OF DT COMMON BLOCK --------------------------------------
             case OP_AND:
                 if (is_neq(*stackPtr, 0))    //return second
-                    stackPtr--; 
+                    stackPtr--;
                 else              // return first
                     i = skip_code(i, OP_AND, OP_AFTER_AND);
                 break;
@@ -727,13 +727,13 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 if (is_neq(*stackPtr, 0))    //return first
                     i = skip_code(i, OP_OR, OP_AFTER_OR);
                 else              // return second
-                    stackPtr--; 
+                    stackPtr--;
                 break;
 
             case OP_TERNARY:
-                if (! *stackPtr) 
+                if (! *stackPtr)
                     i = skip_code(i, OP_TERNARY, OP_TERNARY_MID);
-                stackPtr--; 
+                stackPtr--;
                 break;
             case OP_TERNARY_MID:
                 //if we are here, condition was true. Skip.
@@ -751,7 +751,7 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 stackPtr--;
                 break;
 
-            //transformation condition 
+            //transformation condition
             case OP_INDEX:
                 assert(once);  //x[n]= or delete[n]
                 n = iround(*stackPtr);//changing n(!!) for use in OP_ASSIGN_
@@ -766,11 +766,11 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                     skip_to_end(i);
                 }
                 break;
-            case OP_RANGE: 
+            case OP_RANGE:
               {
                 //x[i...j]= or delete[i...j]
                 int right = iround(*stackPtr); //Last In First Out
-                stackPtr--;                    
+                stackPtr--;
                 if (right <= 0)
                     right += M;
                 int left = iround(*stackPtr);
@@ -779,16 +779,16 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                     left += M;
                 if (*(i+1) == OP_DELETE) {
                     if (0 < left && left < right && right <= M) {
-                        new_points.erase(new_points.begin()+left, 
+                        new_points.erase(new_points.begin()+left,
                                          new_points.begin()+right);
                         M = size(new_points);
                     }
                     skip_to_end(i);
                 }
-                else { 
+                else {
                     //if n not in [i...j] then skip to prevent OP_ASSIGN_.
                     bool n_between = (left <= n && n < right);
-                    if (!n_between) 
+                    if (!n_between)
                         skip_to_end(i);
                 }
                 break;
@@ -807,7 +807,7 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 break;
             // once - operators
             case OP_DO_ONCE: //do nothing, it is only a flag
-                assert(once); 
+                assert(once);
                 break;
             case OP_RESIZE:
                 assert(once);
@@ -853,13 +853,13 @@ bool execute_code(int n, int &M, vector<fp>& stack,
 }
 
 
-/// change  AGSUM X ... X END_AGGREGATE  to  NUMBER INDEX 
+/// change  AGSUM X ... X END_AGGREGATE  to  NUMBER INDEX
 void replace_aggregates(int M, vector<Point> const& old_points,
                         vector<int>& code, vector<int>::iterator cb)
 {
     vector<fp> stack(stack_size);
     for (vector<int>::iterator i = cb; i != code.end(); ++i) {
-        if (*i == OP_AGMIN || *i == OP_AGMAX || *i == OP_AGSUM 
+        if (*i == OP_AGMIN || *i == OP_AGMAX || *i == OP_AGSUM
                 || *i == OP_AGAREA || *i == OP_AGAVG || *i == OP_AGSTDDEV) {
             int op = *i;
             vector<int>::iterator const start = i;
@@ -891,19 +891,19 @@ void replace_aggregates(int M, vector<Point> const& old_points,
                 if (op == OP_AGSUM)
                     result += stack.front();
                 else if (op == OP_AGMIN) {
-                    if (counter == 1) 
+                    if (counter == 1)
                         result = stack.front();
                     else if (result > stack.front())
                         result = stack.front();
                 }
                 else if (op == OP_AGMAX) {
-                    if (counter == 1) 
+                    if (counter == 1)
                         result = stack.front();
                     else if (result < stack.front())
                         result = stack.front();
                 }
                 else if (op == OP_AGAREA) {
-                    fp dx = (old_points[min(n+1, M-1)].x 
+                    fp dx = (old_points[min(n+1, M-1)].x
                              - old_points[max(n-1, 0)].x) / 2.;
                     result += stack.front() * dx;
                 }
@@ -921,7 +921,7 @@ void replace_aggregates(int M, vector<Point> const& old_points,
                     assert(0);
                 DT_DEBUG("n=" + S(n) + " stack.front() = " + S(stack.front()));
             }
-            if (op == OP_AGSTDDEV) 
+            if (op == OP_AGSTDDEV)
                 result = sqrt(result / (counter - 1));
             *start = OP_NUMBER;
             *(start+1) = size(numbers);
@@ -944,10 +944,10 @@ void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
             i != parameterized.end(); ++i)
         (*i)->prepare_parameters(old_points);
     replace_aggregates(M, old_points, code, code.begin());
-    // first execute one-time operations: sorting, x[15]=3, etc. 
+    // first execute one-time operations: sorting, x[15]=3, etc.
     // n==M => one-time op.
     bool t = execute_code(M, M, stack, old_points, new_points, code);
-    if (!t) 
+    if (!t)
         return;
 #if 1
     vector<int> to_be_deleted;
@@ -957,7 +957,7 @@ void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
             to_be_deleted.push_back(n);
     }
     if (!to_be_deleted.empty())
-        for (vector<int>::const_iterator i = to_be_deleted.end() - 1; 
+        for (vector<int>::const_iterator i = to_be_deleted.end() - 1;
                                              i >= to_be_deleted.begin(); --i)
             new_points.erase(new_points.begin() + *i);
 #else
@@ -971,19 +971,19 @@ void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
 string get_trans_repr(string const& s)
 {
     bool r = compile_data_transformation(s);
-    if (!r) 
+    if (!r)
         r = compile_data_expression(s);
-    if (!r) 
+    if (!r)
         return "ERROR";
     string txt = get_code_as_text(code, numbers);
     for (size_t i = 0; i != parameterized.size(); ++i) {
         ParameterizedFunction *p = parameterized[i];
-        txt += "\n P" + S(i) + ":" + p->get_name() + "[" 
+        txt += "\n P" + S(i) + ":" + p->get_name() + "["
             + join_vector(p->get_params(), ", ") + "]";
         map<int, vector<int> > const& pc = p->get_pcodes();
-        for (map<int, vector<int> >::const_iterator j = pc.begin(); 
+        for (map<int, vector<int> >::const_iterator j = pc.begin();
                 j != pc.end(); ++j)
-            txt += "\n   a[" + S(j->first) + "] <- " 
+            txt += "\n   a[" + S(j->first) + "] <- "
                 + get_code_as_text(j->second, numbers);
     }
     return txt;
@@ -1000,15 +1000,15 @@ bool compile_data_expression(string const& str)
 {
     clear_parse_vecs();
     parse_info<> result = parse(str.c_str(), DataExpressionG >> end_p, space_p);
-    return (bool) result.full; 
+    return (bool) result.full;
 }
 
 vector<Point> transform_data(string const& str, vector<Point> const& old_points)
 {
     bool r = compile_data_transformation(str);
-    if (!r) 
+    if (!r)
         throw ExecuteError("Syntax error in data transformation formula.");
-    
+
     // and then execute compiled code.
     vector<Point> new_points = old_points; //initial values of new_points
     execute_vm_code(old_points, new_points);
@@ -1017,7 +1017,7 @@ vector<Point> transform_data(string const& str, vector<Point> const& old_points)
 
 bool is_data_dependent_code(vector<int> const& code)
 {
-    for (vector<int>::const_iterator i = code.begin(); i != code.end(); ++i) 
+    for (vector<int>::const_iterator i = code.begin(); i != code.end(); ++i)
         if ((*i >= OP_VAR_FIRST_OP && *i <= OP_VAR_LAST_OP)
                 || *i == OP_END_AGGREGATE)
             return true;
@@ -1034,7 +1034,7 @@ bool is_data_dependent_expression(string const& s)
 fp get_transform_expression_value(string const &s, Data const* data)
 {
     bool r = compile_data_expression(s);
-    if (!r) 
+    if (!r)
         throw ExecuteError("Syntax error in expression: " + s);
 
     if (!data && is_data_dependent_code(code))
@@ -1049,13 +1049,13 @@ fp get_transform_expr_value(vector<int>& code_, vector<Point> const& points)
     static vector<fp> stack(stack_size);
     int M = (int) points.size();
     vector<Point> new_points = points;
-    for (vector<int>::const_iterator i = code_.begin(); i != code_.end(); ++i) 
-        if (*i == OP_PARAMETERIZED) 
+    for (vector<int>::const_iterator i = code_.begin(); i != code_.end(); ++i)
+        if (*i == OP_PARAMETERIZED)
             parameterized[*(i+1)]->prepare_parameters(points);
     replace_aggregates(M, points, code_, code_.begin());
     // n==M => one-time op.
     bool t = execute_code(M, M, stack, points, new_points, code_);
-    if (t)  
+    if (t)
         throw ExecuteError("Expression depends on undefined `n' index.");
     return stack.front();
 }
@@ -1063,13 +1063,13 @@ fp get_transform_expr_value(vector<int>& code_, vector<Point> const& points)
 bool get_dt_code(string const& s, vector<int>& code_, vector<fp>& numbers_)
 {
     bool r = compile_data_expression(s);
-    if (!r) 
+    if (!r)
         return false;
 
-    for (vector<int>::iterator i = code.begin(); i != code.end(); ++i) 
-        if (*i == OP_PARAMETERIZED 
-                || *i == OP_AGMIN || *i == OP_AGMAX || *i == OP_AGSUM 
-                || *i == OP_AGAREA || *i == OP_AGAVG || *i == OP_AGSTDDEV) 
+    for (vector<int>::iterator i = code.begin(); i != code.end(); ++i)
+        if (*i == OP_PARAMETERIZED
+                || *i == OP_AGMIN || *i == OP_AGMAX || *i == OP_AGSUM
+                || *i == OP_AGAREA || *i == OP_AGAVG || *i == OP_AGSTDDEV)
             return false;
     code_ = code;
     numbers_ = numbers;
@@ -1080,8 +1080,8 @@ fp get_value_for_point(vector<int> const& code_, vector<fp> const& numbers_,
                        fp x, fp y)
 {
     static vector<fp> stack(stack_size);
-    static vector<Point> points(1); 
-    static vector<Point> new_points(1); 
+    static vector<Point> points(1);
+    static vector<Point> new_points(1);
     numbers = numbers_;
     points[0] = new_points[0] = Point(x, y);
     int M = 1;
@@ -1096,7 +1096,7 @@ vector<fp> get_all_point_expressions(string const &s, Data const* data,
     vector<Point> const& points = data->points();
 
     bool r = compile_data_expression(s);
-    if (!r) 
+    if (!r)
         throw ExecuteError("Syntax error in expression: " + s);
 
     int M = (int) points.size();

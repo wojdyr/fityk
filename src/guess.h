@@ -26,7 +26,7 @@ protected:
     // only these peaks/functions are considered
     std::vector<int> real_peaks;
 
-    void estimate_peak_parameters (fp range_from, fp range_to, 
+    void estimate_peak_parameters (fp range_from, fp range_to,
                                    fp *center, fp *height, fp *area, fp *fwhm);
     void estimate_linear_parameters(fp range_from, fp range_to,
                                     fp *slope, fp *intercept, fp *avgy);
@@ -34,19 +34,19 @@ protected:
     void get_point_range(fp range_from, fp range_to, int &l_bor, int &r_bor);
 
     fp my_y (int n);
-    fp data_area (int from, int to); 
+    fp data_area (int from, int to);
     int max_data_y_pos (int from, int to);
     fp compute_data_fwhm (int from, int max_pos, int to, fp level);
-    void parse_range(std::vector<std::string> const& range, 
+    void parse_range(std::vector<std::string> const& range,
                      fp& range_from, fp& range_to);
     void remove_peak(std::string const& name);
 };
 
 
-bool is_function_guessable(std::string const& formula, 
+bool is_function_guessable(std::string const& formula,
                            bool check_defvalue=true);
 
-bool is_function_guessable(std::vector<std::string> const& vars, 
+bool is_function_guessable(std::vector<std::string> const& vars,
                            std::vector<std::string> const& defv,
                            FunctionKind* fk);
 

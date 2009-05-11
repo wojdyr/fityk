@@ -112,12 +112,12 @@ void do_import_dataset(char const*, char const*)
     }
     else
         AL->import_dataset(tmp_int, t, vt);
-    outdated_plot=true;  
+    outdated_plot=true;
 }
 void do_revert_data(char const*, char const*)
 {
     AL->get_data(tmp_int)->revert();
-    outdated_plot=true;  
+    outdated_plot=true;
 }
 
 // returns true if x columns in all datasets have the same x values
@@ -153,9 +153,9 @@ string add_dm_to_model(string const& s, int nr)
     s2.reserve(s.size());
     for (string::const_iterator i = s.begin(); i != s.end(); ++i) {
         if ((*i == 'F' || *i == 'Z')
-             && (i == s.begin() || (*(i-1) != '.' && !isalnum(*(i-1)) 
-                                    && *(i-1) != '_' && *(i-1) != '$' 
-                                    && *(i-1) != '%')) 
+             && (i == s.begin() || (*(i-1) != '.' && !isalnum(*(i-1))
+                                    && *(i-1) != '_' && *(i-1) != '$'
+                                    && *(i-1) != '%'))
              && (i+1 == s.end() || (!isalnum(*(i+1)) && *(i+1) != '_'))) {
             s2 += "@" + S(nr) + ".";
         }
@@ -167,7 +167,7 @@ string add_dm_to_model(string const& s, int nr)
 void do_export_dataset(char const*, char const*)
 {
     vector<string>& cols = vt;
-    int idx = tmp_int; 
+    int idx = tmp_int;
 
     ostringstream os;
     os << "# exported by fityk " VERSION << endl;
@@ -181,12 +181,12 @@ void do_export_dataset(char const*, char const*)
     string title = data->get_title();
     for (vector<string>::const_iterator i = cols.begin(); i != cols.end(); ++i){
         os << (i == cols.begin() ? "#" : "\t") << title << ":" << *i;
-        r.push_back(get_all_point_expressions(add_dm_to_model(*i, idx), 
+        r.push_back(get_all_point_expressions(add_dm_to_model(*i, idx),
                                               data, only_active));
     }
 
     // the rest of datasets (if any)
-    if (idx == all_datasets && dm_count > 1) { 
+    if (idx == all_datasets && dm_count > 1) {
         // special exception - remove redundant x columns
         if (cols[0] == "x" && equal_x_colums(only_active))
             cols.erase(cols.begin());
@@ -194,10 +194,10 @@ void do_export_dataset(char const*, char const*)
         for (int i = 1; i < dm_count; ++i) {
             data = AL->get_data(i);
             string title = data->get_title();
-            for (vector<string>::const_iterator j = cols.begin(); 
+            for (vector<string>::const_iterator j = cols.begin();
                                                     j != cols.end(); ++j) {
                 os << "\t" << title << ":" << *j;
-                r.push_back(get_all_point_expressions(add_dm_to_model(*j, idx), 
+                r.push_back(get_all_point_expressions(add_dm_to_model(*j, idx),
                                                       data, only_active));
             }
         }
@@ -208,7 +208,7 @@ void do_export_dataset(char const*, char const*)
     size_t nc = r.size();
     for (size_t i = 0; i != r[0].size(); ++i) {
         for (size_t j = 0; j != nc; ++j) {
-            os << r[j][i] << (j < nc-1 ? '\t' : '\n'); 
+            os << r[j][i] << (j < nc-1 ? '\t' : '\n');
         }
     }
 
@@ -221,10 +221,10 @@ void do_load_data_sum(char const*, char const*)
     vector<Data const*> dd;
     for (vector<int>::const_iterator i = vn.begin(); i != vn.end(); ++i)
         dd.push_back(AL->get_data(*i));
-    if (tmp_int == new_dataset) 
+    if (tmp_int == new_dataset)
         tmp_int = AL->append_dm();
     AL->get_data(tmp_int)->load_data_sum(dd, t);
-    outdated_plot=true;  
+    outdated_plot=true;
 }
 
 void do_plot(char const*, char const*)
@@ -249,9 +249,9 @@ void do_output_info(char const*, char const*)
         AL->rmsg(prepared_info);
     }
     else {
-        ofstream os(output_redir.c_str(), 
+        ofstream os(output_redir.c_str(),
                     ios::out | (info_append ? ios::app : ios::trunc));
-        if (!os) 
+        if (!os)
             throw ExecuteError("Can't open file: " + output_redir);
         os << prepared_info << endl;
     }
@@ -269,9 +269,9 @@ void do_print_info_in_data(char const* a, char const* b)
 
     else if (startswith(s, "peaks")) {
         vector<fp> errors;
-        if (with_plus) 
+        if (with_plus)
             errors = AL->get_fit()->get_symmetric_errors(v);
-        for (vector<DataAndModel*>::const_iterator i = v.begin(); 
+        for (vector<DataAndModel*>::const_iterator i = v.begin();
                                                          i != v.end(); ++i) {
             prepared_info += "\n# " + (*i)->data()->get_title() + "\n"
                           + (*i)->model()->get_peak_parameters(errors) + "\n";
@@ -279,26 +279,26 @@ void do_print_info_in_data(char const* a, char const* b)
     }
     else if (startswith(s, "formula")) {
         bool gnuplot = AL->get_settings()->get_e("formula-export-style") == 1;
-        for (vector<DataAndModel*>::const_iterator i = v.begin(); 
+        for (vector<DataAndModel*>::const_iterator i = v.begin();
                                                         i != v.end(); ++i) {
             prepared_info += "\n# " + (*i)->data()->get_title() + "\n"
                    + (*i)->model()->get_formula(!with_plus, gnuplot);
         }
     }
     else if (startswith(s, "title")) {
-        for (vector<DataAndModel*>::const_iterator i = v.begin(); 
+        for (vector<DataAndModel*>::const_iterator i = v.begin();
                                                         i != v.end(); ++i) {
             prepared_info += "\n" + (*i)->data()->get_title();
         }
     }
     else if (startswith(s, "filename")) {
-        for (vector<DataAndModel*>::const_iterator i = v.begin(); 
+        for (vector<DataAndModel*>::const_iterator i = v.begin();
                                                         i != v.end(); ++i) {
             prepared_info += "\n" + (*i)->data()->get_filename();
         }
     }
     else if (startswith(s, "data")) {
-        for (vector<DataAndModel*>::const_iterator i = v.begin(); 
+        for (vector<DataAndModel*>::const_iterator i = v.begin();
                                                         i != v.end(); ++i) {
             prepared_info += "\n" + (*i)->data()->get_info();
         }
@@ -310,27 +310,27 @@ void do_print_info(char const* a, char const* b)
 {
     string s = string(a,b);
     string m;
-    vector<Variable*> const &variables = AL->get_variables(); 
-    vector<Function*> const &functions = AL->get_functions(); 
+    vector<Variable*> const &variables = AL->get_variables();
+    vector<Function*> const &functions = AL->get_functions();
     if (s.empty())
         m = "info about what?";
     else if (s == "version") {
         if (with_plus) {
-            m = "Version: " VERSION 
+            m = "Version: " VERSION
                 "\nBuild system type: " CONFIGURE_BUILD
                 "\nConfigured with: " CONFIGURE_ARGS
 #ifdef __GNUC__
                 "\nCompiler: GCC"
 #endif
 #ifdef __VERSION__
-                "\nCompiler version: " __VERSION__ 
+                "\nCompiler version: " __VERSION__
 #endif
-                "\nCompilation date: " __DATE__ 
-                "\nBoost.Spirit version: " + S(SPIRIT_VERSION / 0x1000) 
+                "\nCompilation date: " __DATE__
+                "\nBoost.Spirit version: " + S(SPIRIT_VERSION / 0x1000)
                                 + "." + S(SPIRIT_VERSION % 0x1000 / 0x0100)
                                 + "." + S(SPIRIT_VERSION % 0x0100)
                 + "\nxylib version:" + xylib::get_version();
- 
+
         }
         else
             m = VERSION;
@@ -340,7 +340,7 @@ void do_print_info(char const* a, char const* b)
             m = "No variables found.";
         else {
             m = "Defined variables: ";
-            for (vector<Variable*>::const_iterator i = variables.begin(); 
+            for (vector<Variable*>::const_iterator i = variables.begin();
                     i != variables.end(); ++i)
                 if (with_plus)
                     m += "\n" + (*i)->get_info(AL->get_parameters(), false);
@@ -354,7 +354,7 @@ void do_print_info(char const* a, char const* b)
             m = "No functions found.";
         else {
             m = "Defined functions: ";
-            for (vector<Function*>::const_iterator i = functions.begin(); 
+            for (vector<Function*>::const_iterator i = functions.begin();
                     i != functions.end(); ++i)
                 if (with_plus)
                     m += "\n" + (*i)->get_info(variables, AL->get_parameters());
@@ -365,7 +365,7 @@ void do_print_info(char const* a, char const* b)
     else if (s == "types") {
         m = "Defined function types: ";
         vector<string> const& types = Function::get_all_types();
-        for (vector<string>::const_iterator i = types.begin(); 
+        for (vector<string>::const_iterator i = types.begin();
                 i != types.end(); ++i)
             if (with_plus)
                 m += "\n" + Function::get_formula(*i);
@@ -393,7 +393,7 @@ void do_print_info(char const* a, char const* b)
         m = AL->get_ui()->get_commands().get_info(with_plus);
     else if (startswith(s, "guess")) {
         vector<DataAndModel*> v = get_datasets_from_indata();
-        for (vector<DataAndModel*>::const_iterator i = v.begin(); 
+        for (vector<DataAndModel*>::const_iterator i = v.begin();
                                                            i != v.end(); ++i)
             m += Guess(AL, *i).get_guess_info(vr);
     }
@@ -402,11 +402,11 @@ void do_print_info(char const* a, char const* b)
 
 void do_print_func(char const*, char const*)
 {
-    vector<string> const &names = 
+    vector<string> const &names =
         AL->get_model(dm_pref)->get_names(Model::parse_funcset(t2[0]));
     if (tmp_int < 0)
         tmp_int += names.size();
-    if (is_index(tmp_int, names)) 
+    if (is_index(tmp_int, names))
         prepared_info += "\n" + AL->find_function(names[tmp_int])
             ->get_info(AL->get_variables(), AL->get_parameters(), with_plus);
     else
@@ -415,8 +415,8 @@ void do_print_func(char const*, char const*)
 
 void do_print_model_info(char const*, char const*)
 {
-    string m = t2 + ": "; 
-    vector<int> const &idx = 
+    string m = t2 + ": ";
+    vector<int> const &idx =
         AL->get_model(dm_pref)->get_indices(Model::parse_funcset(t2[0]));
     for (vector<int>::const_iterator i = idx.begin(); i != idx.end(); ++i) {
         Function const* f = AL->get_function(*i);
@@ -438,7 +438,7 @@ void do_print_model_derivatives_info(char const*, char const*)
     string m = "F(" + S(x) + ")=" + S(model->value(x));
     for (int i = 0; i < size(num); ++i) {
         if (is_neq(symb[i], 0) || is_neq(num[i], 0))
-            m += "\ndF / d " + AL->find_variable_handling_param(i)->xname 
+            m += "\ndF / d " + AL->find_variable_handling_param(i)->xname
                 + " = (symb.) " + S(symb[i]) + " = (num.) " + S(num[i]);
     }
     prepared_info += "\n" + m;
@@ -456,25 +456,25 @@ void do_print_dops(char const* a, char const* b)
     prepared_info += "\n" + get_trans_repr(s);
 }
 
-void do_print_debug_info(char const*, char const*)  
-{ 
+void do_print_debug_info(char const*, char const*)
+{
     string m;
     if (t == "idx") {   // show varnames and var_idx from VariableUser
-        for (int i = 0; i < size(AL->get_functions()); ++i) 
+        for (int i = 0; i < size(AL->get_functions()); ++i)
             m += S(i) + ": " + AL->get_function(i)->get_debug_idx_info() +"\n";
-        for (int i = 0; i < size(AL->get_variables()); ++i) 
+        for (int i = 0; i < size(AL->get_variables()); ++i)
             m += S(i) + ": " + AL->get_variable(i)->get_debug_idx_info() +"\n";
     }
     else if (t == "rd") { // show values of derivatives for all variables
         for (int i = 0; i < size(AL->get_variables()); ++i) {
             Variable const* var = AL->get_variable(i);
             m += var->xname + ": ";
-            vector<Variable::ParMult> const& rd 
+            vector<Variable::ParMult> const& rd
                                         = var->get_recursive_derivatives();
-            for (vector<Variable::ParMult>::const_iterator i = rd.begin(); 
+            for (vector<Variable::ParMult>::const_iterator i = rd.begin();
                                                            i != rd.end(); ++i)
-                m += S(i->p) 
-                    + "/" + AL->find_variable_handling_param(i->p)->xname 
+                m += S(i->p)
+                    + "/" + AL->find_variable_handling_param(i->p)->xname
                     + "/" + S(i->mult) + "  ";
             m += "\n";
         }
@@ -519,12 +519,12 @@ void do_print_data_expr(char const*, char const*)
             map<DataAndModel const*, int> m;
             for (int i = 0; i < AL->get_dm_count(); ++i)
                 m[AL->get_dm(i)] = i;
-            for (vector<DataAndModel*>::const_iterator i = v.begin(); 
+            for (vector<DataAndModel*>::const_iterator i = v.begin();
                     i != v.end(); ++i) {
                 fp k = get_transform_expression_value(t2, (*i)->data());
                 if (i != v.begin())
                     s += "\n";
-                s += "in @" + S(m[*i]); 
+                s += "in @" + S(m[*i]);
                 if (with_plus)
                     s += " " + (*i)->data()->get_title();
                 s += ": " + AL->get_settings()->format_double(k);
@@ -552,9 +552,9 @@ void do_guess(char const*, char const*)
     // "%name = guess Linear in @0, @1" makes no sense
     if (!name.empty() && v.size() > 1)
         // SyntaxError actually
-        throw ExecuteError("many functions can't be assigned to one name."); 
+        throw ExecuteError("many functions can't be assigned to one name.");
 
-    for (vector<DataAndModel*>::const_iterator i = v.begin(); 
+    for (vector<DataAndModel*>::const_iterator i = v.begin();
                                                           i != v.end(); ++i) {
         DataAndModel *dm = *i;
         vector<string> vars = vt;
@@ -562,16 +562,16 @@ void do_guess(char const*, char const*)
         string real_name = AL->assign_func(name, function, vars);
         dm->model()->add_function_to(real_name, Model::kF);
     }
-    outdated_plot=true;  
+    outdated_plot=true;
 }
 
-void set_data_title(char const*, char const*)  { 
-    AL->get_data(dm_pref)->title = t; 
+void set_data_title(char const*, char const*)  {
+    AL->get_data(dm_pref)->title = t;
 }
 
 void do_list_commands(char const*, char const*)
 {
-    vector<string> cc 
+    vector<string> cc
       = AL->get_ui()->get_commands().get_commands(tmp_int, tmp_int2, with_plus);
     prepared_info += "\n" + join_vector(cc, "\n");
 }
@@ -604,13 +604,13 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         ;
 
     dm_prefix
-        = lexeme_d['@' >> uint_p [assign_a(dm_pref)] 
+        = lexeme_d['@' >> uint_p [assign_a(dm_pref)]
            >> '.']
         | eps_p [assign_a(dm_pref, minus_one)]
         ;
 
     type_name
-        = lexeme_d[(upper_p >> +alnum_p)] 
+        = lexeme_d[(upper_p >> +alnum_p)]
         ;
 
     function_param
@@ -634,64 +634,64 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
     dataset_handling
           //load from file
         = (dataset_lhs >> '<' >> CompactStrG [clear_a(vt)]
-           >> !(lexeme_d[+(alnum_p | '-' | '_')] [push_back_a(vt)] 
+           >> !(lexeme_d[+(alnum_p | '-' | '_')] [push_back_a(vt)]
                 % ',')
           ) [&do_import_dataset]
           //sum / duplicate
-        | dataset_lhs >> ch_p('=') [clear_a(vn)] [assign_a(t, empty)] 
+        | dataset_lhs >> ch_p('=') [clear_a(vn)] [assign_a(t, empty)]
           >> !(lexeme_d[lower_p >> +(alnum_p | '-' | '_')] [assign_a(t)])
-          >> (lexeme_d['@' >> uint_p [push_back_a(vn)]  
+          >> (lexeme_d['@' >> uint_p [push_back_a(vn)]
                       | "0"
                                    ] % '+') [&do_load_data_sum]
         ;
 
-    plot_range  //first clear vr if needed 
+    plot_range  //first clear vr if needed
         = (ch_p('[') >> ']') [push_back_a(vr,empty)][push_back_a(vr,empty)]
-        | '[' >> (real_p|"."|eps_p) [push_back_a(vr)] 
-          >> ':' >> (real_p|"."|eps_p) [push_back_a(vr)] 
-          >> ']'  
+        | '[' >> (real_p|"."|eps_p) [push_back_a(vr)]
+          >> ':' >> (real_p|"."|eps_p) [push_back_a(vr)]
+          >> ']'
         | str_p(".") [push_back_a(vr,dot)][push_back_a(vr,dot)] // [.:.]
         | eps_p [push_back_a(vr,empty)][push_back_a(vr,empty)] // [:]
         ;
-    
+
     info_arg
-        = (str_p("commands") >> IntRangeG) [&do_list_commands] 
-        | ( str_p("version") 
-          | "variables" 
-          | "types" 
-          | "functions" 
-          | "datasets" 
-          | "commands" 
-          | "view" 
+        = (str_p("commands") >> IntRangeG) [&do_list_commands]
+        | ( str_p("version")
+          | "variables"
+          | "types"
+          | "functions"
+          | "datasets"
+          | "commands"
+          | "view"
           | "set"
           | "fit-history"
-          ) [&do_print_info] 
+          ) [&do_print_info]
         | (( str_p("fit")
            | "errors"
            | "peaks"
            | "formula"
-           | "filename" 
-           | "title" 
+           | "filename"
+           | "title"
            | "data"
-           ) 
-           >> in_data) [&do_print_info_in_data] 
+           )
+           >> in_data) [&do_print_info_in_data]
         | (str_p("guess") [clear_a(vr)]
            >> plot_range >> in_data) [&do_print_info]
         | type_name[&do_print_func_type]
-        | (no_actions_d[DataExpressionG][assign_a(t2)] 
+        | (no_actions_d[DataExpressionG][assign_a(t2)]
              >> in_data) [&do_print_data_expr]
         | FunctionLhsG [&do_print_info]
-        | dm_prefix >> (str_p("F")|"Z")[assign_a(t2)] 
-          >> ( ('[' >> int_p [assign_a(tmp_int)] >> ']') [&do_print_func] 
+        | dm_prefix >> (str_p("F")|"Z")[assign_a(t2)]
+          >> ( ('[' >> int_p [assign_a(tmp_int)] >> ']') [&do_print_func]
              | eps_p [&do_print_model_info]
              )
-        | (dm_prefix >> str_p("dF") >> '(' 
-           >> no_actions_d[DataExpressionG][assign_a(t2)] 
+        | (dm_prefix >> str_p("dF") >> '('
+           >> no_actions_d[DataExpressionG][assign_a(t2)]
            >> ')') [&do_print_model_derivatives_info]
           // export data
         | dataset_nr [clear_a(vt)]
-          >> str_p("(") 
-          >> (DataExpressionG [push_back_a(vt)] 
+          >> str_p("(")
+          >> (DataExpressionG [push_back_a(vt)]
               % ',')
           >> str_p(")") [&do_export_dataset]
         | "debug " >> CompactStrG [&do_print_debug_info] //no output_redir
@@ -703,10 +703,10 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         ;
 
     guess
-        = (FunctionLhsG [assign_a(t)] >> '=' 
+        = (FunctionLhsG [assign_a(t)] >> '='
           | eps_p [assign_a(t, empty)]
           )
-          >> optional_suffix_p("g","uess")[clear_a(vt)] [clear_a(vr)] 
+          >> optional_suffix_p("g","uess")[clear_a(vt)] [clear_a(vr)]
           >> type_name [assign_a(t2)]
           >> plot_range
           >> !((function_param >> '=' >> no_actions_d[FuncG])
@@ -716,11 +716,11 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
         ;
 
     optional_plus
-        = str_p("+") [assign_a(with_plus, true_)] 
-        | eps_p [assign_a(with_plus, false_)] 
+        = str_p("+") [assign_a(with_plus, true_)]
+        | eps_p [assign_a(with_plus, false_)]
         ;
 
-    statement 
+    statement
         = (optional_suffix_p("i","nfo") [assign_a(output_redir, empty)]
                                         [assign_a(prepared_info, empty)]
            >> optional_plus >> (info_arg % ',')
@@ -730,11 +730,11 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
                 >> CompactStrG [assign_a(output_redir, t)]
                )
           ) [&do_output_info]
-        | (optional_suffix_p("p","lot") [clear_a(vr)] 
+        | (optional_suffix_p("p","lot") [clear_a(vr)]
            >> plot_range >> plot_range >> in_data) [&do_plot]
         | guess [&do_guess]
         | dataset_handling
-        | optional_suffix_p("s","et") 
+        | optional_suffix_p("s","et")
           >> (dm_prefix >> "title" >> '=' >> CompactStrG)[&set_data_title]
         ;
 }

@@ -10,19 +10,19 @@
 
 class Ftk;
 
-struct IntRange 
+struct IntRange
 {
     int v, l, u;
     IntRange() : v(0), l(0), u(0) {}
     IntRange(int v_, int l_, int u_) : v(v_), l(l_), u(u_) {}
 };
 
-/// it stores all setting - variables of various types with names, 
+/// it stores all setting - variables of various types with names,
 /// such as lambda-starting-value (used in LMfit class)
-class Settings 
+class Settings
 {
 public:
-    /// value of "select one from a list of strings" option 
+    /// value of "select one from a list of strings" option
     struct EnumString
     {
         std::map<char, std::string> const e; //all possible values
@@ -57,23 +57,23 @@ public:
     std::string typep(std::string const& k) const;
     /// get all option keys that start with k
     std::vector<std::string> expanp (std::string const& k = "") const;
-    std::vector<std::string> 
+    std::vector<std::string>
     expand_enum(std::string const& k, std::string const& t="") const;
     std::string print_usage() const;
-    std::string set_script() const; 
+    std::string set_script() const;
     /// get value of option as string
     std::string getp(std::string const& k) const;
     /// for faster access
     fp get_cut_level() const { return cut_function_level; }
     void do_srand();
 
-    std::string format_double(fp d) 
-    { 
+    std::string format_double(fp d)
+    {
         char buf[32];
         // snprintf is not in C89, but is supported by major compilers (?)
         const char *format = get_s("info-numeric-format").c_str();
         snprintf(buf, 31, format, d);
-        return buf; 
+        return buf;
     }
 
 private:
@@ -90,17 +90,17 @@ private:
     Settings(Settings const&); //disable
     Settings& operator= (const Settings&); //disable
     void setp_core(std::string const& k, std::string const& v);
-    void insert_enum(std::string const& name, 
+    void insert_enum(std::string const& name,
                      std::map<char,std::string> const& e, char value);
 };
 
-int Settings::get_i(std::string const& k) const { 
+int Settings::get_i(std::string const& k) const {
     std::map <std::string, int>::const_iterator t = ipar.find(k);
     if (t != ipar.end())
         return t->second;
     else {
-        assert(irpar.count(k)); 
-        return irpar.find(k)->second.v; 
+        assert(irpar.count(k));
+        return irpar.find(k)->second.v;
     }
 }
 

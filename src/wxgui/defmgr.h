@@ -7,7 +7,7 @@
 
 #include <string>
 #include <vector>
-#include <wx/grid.h> 
+#include <wx/grid.h>
 //#include "wx_common.h"
 
 

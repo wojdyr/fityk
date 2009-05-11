@@ -26,7 +26,7 @@ using namespace std;
 //   when ConfStatBarDlg is called
 
 //===============================================================
-//                    FStatusBar   
+//                    FStatusBar
 //===============================================================
 
 FStatusBar::FStatusBar(wxWindow *parent)
@@ -103,12 +103,12 @@ void FStatusBar::read_settings(wxConfigBase *cf)
 
 void FStatusBar::set_coords_format()
 {
-    fmt_main.Printf(wxT("%% %d.%df  %% %d.%df"), 
+    fmt_main.Printf(wxT("%% %d.%df  %% %d.%df"),
                     int_len+x_prec, x_prec, int_len+y_prec, y_prec);
-    fmt_aux.Printf(wxT("%% %d.%df  [%% %d.%df]"), 
+    fmt_aux.Printf(wxT("%% %d.%df  [%% %d.%df]"),
                    int_len+x_prec, x_prec, int_len+y_prec, y_prec);
     if (!extra_value.IsEmpty()) {
-        wxString extra_fmt 
+        wxString extra_fmt
             = wxString::Format(wxT("  -> %% %d.%df"), int_len+e_prec, e_prec);
         fmt_main += extra_fmt;
         fmt_aux += extra_fmt;
@@ -116,7 +116,7 @@ void FStatusBar::set_coords_format()
 }
 
 void FStatusBar::set_hints(string const& left, string const& right,
-                           string const& mode_name, 
+                           string const& mode_name,
                            string const& shift_left, string const& shift_right)
 {
     lmouse_hint->SetLabel(wxControl::EscapeMnemonics(s2wx(left)));
@@ -175,7 +175,7 @@ void FStatusBar::OnPrefButton(wxCommandEvent&)
 ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
     //explicit conversion of title to wxString() is neccessary
   : wxDialog(parent, id, wxString(wxT("Configure Status Bar")),
-             wxDefaultPosition, wxDefaultSize, 
+             wxDefaultPosition, wxDefaultSize,
              wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
     sb(sb_)
 {
@@ -189,10 +189,10 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
     show_hints_cb->SetValue(sb->show_hints);
     top_sizer->Add(show_hints_cb, wxSizerFlags().Border());
 
-    wxStaticBoxSizer *f_sizer = new wxStaticBoxSizer(wxVERTICAL, this, 
+    wxStaticBoxSizer *f_sizer = new wxStaticBoxSizer(wxVERTICAL, this,
                                                      wxT("coordinates"));
 
-    wxStaticText *evcomment = new wxStaticText(this, -1, 
+    wxStaticText *evcomment = new wxStaticText(this, -1,
                  wxT("In addition to x and y, extra numeric value ")
                  wxT("(function of x and/or y) can be shown, e.g.:")
                  wxT("\n4*pi*sin(x/2*pi/180)/1.54051"));
@@ -200,7 +200,7 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
     f_sizer->Add(evcomment, wxSizerFlags().Border());
 
     wxBoxSizer *evsizer = new wxBoxSizer(wxHORIZONTAL);
-    evsizer->Add(new wxStaticText(this, -1, wxT("extra value formula")), 
+    evsizer->Add(new wxStaticText(this, -1, wxT("extra value formula")),
                  wxSizerFlags().Center().Border(wxRIGHT));
     extra_tc = new wxTextCtrl(this, -1, sb->extra_value);
     evsizer->Add(extra_tc, wxSizerFlags(1).Center());
@@ -215,7 +215,7 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
     wxGridSizer *gsizer = new wxGridSizer(2, 5, 5);
 
     wxSizerFlags cl = wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL);
-    wxSizerFlags cr 
+    wxSizerFlags cr
                 = wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL|wxALIGN_RIGHT);
 
     gsizer->Add(new wxStaticText(this, -1, wxT("precision of x")), cr);
@@ -233,7 +233,7 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
     f_sizer->Add(gsizer, wxSizerFlags(1).Border());
     top_sizer->Add(f_sizer, wxSizerFlags().Expand().Border());
 
-    top_sizer->Add(persistance_note_sizer(this), 
+    top_sizer->Add(persistance_note_sizer(this),
                    wxSizerFlags().Expand().Border());
 
     add_apply_close_buttons(this, top_sizer);
@@ -245,7 +245,7 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
 
     Connect(wxID_APPLY, wxEVT_COMMAND_BUTTON_CLICKED,
             (wxObjectEventFunction) &ConfStatBarDlg::OnApply);
-    Connect(extra_tc->GetId(), wxEVT_COMMAND_TEXT_UPDATED, 
+    Connect(extra_tc->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
             (wxObjectEventFunction) &ConfStatBarDlg::OnExtraValueChange);
 }
 

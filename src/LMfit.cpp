@@ -13,21 +13,21 @@
 
 using namespace std;
 
-LMfit::LMfit(Ftk* F) 
+LMfit::LMfit(Ftk* F)
     : Fit(F, "Levenberg-Marquardt"),
       shake_before (0), shake_type ('u')
 {
     /*
     fpar ["shake-before"] = &shake_before;
-    epar.insert(pair<string, Enum_string>("shake-type", 
+    epar.insert(pair<string, Enum_string>("shake-type",
                                Enum_string (Distrib_enum, &shake_type)));
     */
-}    
-    
+}
+
 LMfit::~LMfit() {}
 
 // WSSR is also called chi2
-fp LMfit::init()   
+fp LMfit::init()
 {
     alpha.resize (na*na);
     alpha_.resize (na*na);
@@ -40,11 +40,11 @@ fp LMfit::init()
     lambda = F->get_settings()->get_f("lm-lambda-start");
     //TODO what to do with this shake?
     if (shake_before > 0.) {
-        for (int i = 0; i < na; i++) 
+        for (int i = 0; i < na; i++)
             a[i] = draw_a_from_distribution (i, shake_type, shake_before);
     }
     else
-        a = a_orig; 
+        a = a_orig;
 
     F->vmsg (print_matrix (a, 1, na, "Initial A"));
     //no need to optimise it (and compute chi2 and derivatives together)
@@ -53,7 +53,7 @@ fp LMfit::init()
     return chi2;
 }
 
-void LMfit::autoiter() 
+void LMfit::autoiter()
 {
     wssr_before = (shake_before > 0. ? compute_wssr(a_orig, dmdm_) : chi2);
     fp prev_chi2 = chi2;
@@ -69,13 +69,13 @@ void LMfit::autoiter()
     int small_change_counter = 0;
     for (int iter = 0; !common_termination_criteria(iter); iter++) {
         bool better_fit = do_iteration();
-        if (better_fit) { 
+        if (better_fit) {
             fp d = prev_chi2 - chi2;
-            F->msg ("#" + S(iter_nr) + ":  WSSR=" + S(chi2) 
-                        + "  lambda=" + S(lambda) + "  d(WSSR)=" +  S(-d) 
-                        + "  (" + S (d / prev_chi2 * 100) + "%)");  
+            F->msg ("#" + S(iter_nr) + ":  WSSR=" + S(chi2)
+                        + "  lambda=" + S(lambda) + "  d(WSSR)=" +  S(-d)
+                        + "  (" + S (d / prev_chi2 * 100) + "%)");
             // another termination criterium: negligible change of chi2
-            if (d / prev_chi2 < stop_rel || chi2 == 0) { 
+            if (d / prev_chi2 < stop_rel || chi2 == 0) {
                 small_change_counter++;
                 if (small_change_counter >= 2 || chi2 == 0) {
                     F->msg("Fit converged.");
@@ -90,7 +90,7 @@ void LMfit::autoiter()
         else { // no better fit
             F->msg("#"+S(iter_nr)+": (WSSR="+S(chi2_)+")  lambda="+S(lambda));
             if (lambda > max_lambda) { // another termination criterium
-                F->msg("In L-M method: lambda=" + S(lambda) + " > " 
+                F->msg("In L-M method: lambda=" + S(lambda) + " > "
                         + S(max_lambda) + ", stopped.");
                 break;
             }
@@ -102,11 +102,11 @@ void LMfit::autoiter()
 bool LMfit::do_iteration()
     //pre: init() callled
 {
-    if (na < 1) 
+    if (na < 1)
         throw ExecuteError("No parameters to fit.");
     iter_nr++;
     alpha_ = alpha;
-    for (int j = 0; j < na; j++) 
+    for (int j = 0; j < na; j++)
         alpha_[na * j + j] *= (1.0 + lambda);
     beta_ = beta;
     if (F->get_verbosity() > 1) { // level: debug
@@ -117,21 +117,21 @@ bool LMfit::do_iteration()
     // Matrix solution (Ax=b)  alpha_ * da == beta_
     Jordan (alpha_, beta_, na);
 
-    // da is in beta_  
+    // da is in beta_
     if (F->get_verbosity() >= 1) { // level: verbose
         vector<fp> rel (na);
         for (int q = 0; q < na; q++)
             rel[q] = beta_[q] / a[q] * 100;
         F->vmsg (print_matrix (rel, 1, na, "delta(A)/A[%]"));
     }
-    for (int i = 0; i < na; i++) 
-        beta_[i] = a[i] + beta_[i];   // and now there is new a[] in beta_[] 
+    for (int i = 0; i < na; i++)
+        beta_[i] = a[i] + beta_[i];   // and now there is new a[] in beta_[]
     F->vmsg (print_matrix (beta_, 1, na, "Trying A"));
     //  compute chi2_
     chi2_ = compute_wssr(beta_, dmdm_);
 
     if (chi2_ < chi2) { // better fitting
-        chi2 = chi2_; 
+        chi2 = chi2_;
         a = beta_;
         compute_derivatives(a, dmdm_, alpha, beta);
         lambda /= F->get_settings()->get_f("lm-lambda-down-factor");
@@ -141,5 +141,5 @@ bool LMfit::do_iteration()
         lambda *= F->get_settings()->get_f("lm-lambda-up-factor");
         return false;
     }
-}    
+}
 

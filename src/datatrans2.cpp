@@ -15,7 +15,7 @@ namespace datatrans {
 
 void ParameterizedFunction::prepare_parameters(vector<Point> const& points)
 {
-    for (map<int, vector<int> >::const_iterator i = pcodes.begin(); 
+    for (map<int, vector<int> >::const_iterator i = pcodes.begin();
             i != pcodes.end(); ++i) {
         vector<int> code_ = i->second;
         fp v = get_transform_expr_value(code_, points);
@@ -29,8 +29,8 @@ void ParameterizedFunction::prepare_parameters(vector<Point> const& points)
 class InterpolateFunction : public ParameterizedFunction
 {
 public:
-    InterpolateFunction(vector<fp> const& params_, 
-                        map<int, vector<int> > const& pcodes_) 
+    InterpolateFunction(vector<fp> const& params_,
+                        map<int, vector<int> > const& pcodes_)
         : ParameterizedFunction(params_, pcodes_) {}
 
     void do_prepare() {
@@ -50,8 +50,8 @@ private:
 class SplineFunction : public ParameterizedFunction
 {
 public:
-    SplineFunction(vector<fp> const& params_, 
-                   map<int, vector<int> > const& pcodes_) 
+    SplineFunction(vector<fp> const& params_,
+                   map<int, vector<int> > const& pcodes_)
         : ParameterizedFunction(params_, pcodes_) {}
 
     void do_prepare() {
@@ -77,16 +77,16 @@ void push_double::operator()(const double& n) const
     numbers.push_back(n);
 }
 
-void push_op::push() const 
-{ 
-    code.push_back(op); 
+void push_op::push() const
+{
+    code.push_back(op);
     if (op2)
-        code.push_back(op2); 
+        code.push_back(op2);
 }
 
 void parameterized_op::push() const
-{ 
-    //DT_DEBUG("PARAMETERIZED " + S(op))  
+{
+    //DT_DEBUG("PARAMETERIZED " + S(op))
     typedef vector<int>::iterator viit;
     const viit plbegin = find(code.begin(), code.end(), OP_PLIST_BEGIN);
     const viit plend = find(code.begin(), code.end(), OP_PLIST_END) + 1;
@@ -97,7 +97,7 @@ void parameterized_op::push() const
     viit start = plbegin+1;
     while (start != plend) {
         viit finish = find(start, plend, OP_PLIST_SEP);
-        if (finish == plend) 
+        if (finish == plend)
             finish = plend-1; // at OP_PLIST_END
         if (finish == start+2 && *start == OP_NUMBER) { //the most common case
             params.push_back(numbers[*(start+1)]);
@@ -109,7 +109,7 @@ void parameterized_op::push() const
         start = finish+1;
     }
     code.erase(plbegin, plend);
-    code.push_back(OP_PARAMETERIZED); 
+    code.push_back(OP_PARAMETERIZED);
     code.push_back(size(parameterized));
     ParameterizedFunction *func = 0;
     switch (op) {
@@ -128,15 +128,15 @@ void parameterized_op::push() const
 
 #ifndef STANDALONE_DATATRANS
 void push_func::operator()(char const* a, char const* b) const
-{ 
+{
     string t(a, b);
     if (t[0] == '%') {
         string fstr = strip_string(string(t, 1, t.find_first_of("(,")-1));
-        int n = AL->find_function_nr(fstr); 
+        int n = AL->find_function_nr(fstr);
         if (n == -1)
             throw ExecuteError("undefined function: %" + fstr);
-        code.push_back(OP_FUNC); 
-        code.push_back(n); 
+        code.push_back(OP_FUNC);
+        code.push_back(n);
     }
     else {
         int n = -1;
@@ -146,17 +146,17 @@ void push_func::operator()(char const* a, char const* b) const
             t = strip_string(string(t, dot+1));
         }
         if (t[0] == 'F')
-            code.push_back(OP_SUM_F); 
+            code.push_back(OP_SUM_F);
         else if (t[0] == 'Z')
-            code.push_back(OP_SUM_Z); 
+            code.push_back(OP_SUM_Z);
         else
             assert(0);
-        code.push_back(n); 
+        code.push_back(n);
     }
 }
 
-void push_func_param::operator()(char const* a, char const* b) const 
-{ 
+void push_func_param::operator()(char const* a, char const* b) const
+{
     string t(a, b);
     int dot = t.rfind(".");
     string fstr = strip_string(string(t, 0, dot));
@@ -171,8 +171,8 @@ template <typename ScannerT>
 DataExpressionGrammar::definition<ScannerT>::definition(
                                           DataExpressionGrammar const& /*self*/)
 {
-    rprec5 
-        =   DataE2G 
+    rprec5
+        =   DataE2G
             >> *(
                   ('^' >> DataE2G) [push_op(OP_POW)]
                 )
@@ -182,8 +182,8 @@ DataExpressionGrammar::definition<ScannerT>::definition(
         =   ('-' >> rprec5) [&push_neg_op]
         |   (!ch_p('+') >> rprec5)
         ;
-        
-    rprec3 
+
+    rprec3
         =   rprec4
             >> *(   ('*' >> rprec4)[push_op(OP_MUL)]
                 |   ('/' >> rprec4)[push_op(OP_DIV)]
@@ -191,7 +191,7 @@ DataExpressionGrammar::definition<ScannerT>::definition(
                 )
         ;
 
-    rprec2 
+    rprec2
         =   rprec3
             >> *(   ('+' >> rprec3) [push_op(OP_ADD)]
                 |   ('-' >> rprec3) [push_op(OP_SUB)]
@@ -199,7 +199,7 @@ DataExpressionGrammar::definition<ScannerT>::definition(
         ;
 
     rbool
-    // a hack for handling 10 < x < 20 
+    // a hack for handling 10 < x < 20
     // how it works:
     //  3 < 5.2
     //    op:    OP_NUMBER(3)    OP_NUMBER(5.2)   OP_LT
@@ -208,7 +208,7 @@ DataExpressionGrammar::definition<ScannerT>::definition(
     //  3 < 5.2 < 4 (continued previous example)
     //    op:     OP_AND     OP_NCMP_HACK  OP_NUMBER(4) OP_LT  OP_AFTER_AND
     //    stack: ... 1 5.2   ... 5.2       ... 5.2 4   ... 0 4     (flag)
-    //    s. end:  ^               ^               ^       ^  
+    //    s. end:  ^               ^               ^       ^
         = rprec2
            >> !(( ("<=" >> rprec2) [push_op(OP_LE)]
                 | (">=" >> rprec2) [push_op(OP_GE)]
@@ -217,17 +217,17 @@ DataExpressionGrammar::definition<ScannerT>::definition(
                 | ('<' >> rprec2)  [push_op(OP_LT)]
                 | ('>' >> rprec2)  [push_op(OP_GT)]
                 )
-                >> *( (str_p("<=")[push_op(OP_AND, OP_NCMP_HACK)] 
+                >> *( (str_p("<=")[push_op(OP_AND, OP_NCMP_HACK)]
                         >> rprec2) [push_op(OP_LE, OP_AFTER_AND)]
-                    | (str_p(">=")[push_op(OP_AND, OP_NCMP_HACK)] 
+                    | (str_p(">=")[push_op(OP_AND, OP_NCMP_HACK)]
                         >> rprec2) [push_op(OP_GE, OP_AFTER_AND)]
-                    | (str_p("==")[push_op(OP_AND, OP_NCMP_HACK)] 
+                    | (str_p("==")[push_op(OP_AND, OP_NCMP_HACK)]
                         >> rprec2) [push_op(OP_EQ, OP_AFTER_AND)]
-                    | ((str_p("!=")|"<>")[push_op(OP_AND, OP_NCMP_HACK)] 
+                    | ((str_p("!=")|"<>")[push_op(OP_AND, OP_NCMP_HACK)]
                         >> rprec2)  [push_op(OP_NEQ, OP_AFTER_AND)]
-                    | (ch_p('<')[push_op(OP_AND, OP_NCMP_HACK)] 
+                    | (ch_p('<')[push_op(OP_AND, OP_NCMP_HACK)]
                         >> rprec2) [push_op(OP_LT, OP_AFTER_AND)]
-                    | (ch_p('>')[push_op(OP_AND, OP_NCMP_HACK)] 
+                    | (ch_p('>')[push_op(OP_AND, OP_NCMP_HACK)]
                         >> rprec2) [push_op(OP_GT, OP_AFTER_AND)]
                     )
                )
@@ -241,31 +241,31 @@ DataExpressionGrammar::definition<ScannerT>::definition(
     rbool_and
         =  rbool_not
            >> *(
-                as_lower_d["and"] [push_op(OP_AND)] 
+                as_lower_d["and"] [push_op(OP_AND)]
                 >> rbool_not
                ) [push_op(OP_AFTER_AND)]
         ;
 
-    rbool_or  
-        =  rbool_and 
+    rbool_or
+        =  rbool_and
            >> *(
-                as_lower_d["or"] [push_op(OP_OR)] 
+                as_lower_d["or"] [push_op(OP_OR)]
                 >> rbool_and
                ) [push_op(OP_AFTER_OR)]
-        ;  
+        ;
 
 
     rprec1
-        =  rbool_or 
-           >> !(ch_p('?') [push_op(OP_TERNARY)] 
-                >> rbool_or 
-                >> ch_p(':') [push_op(OP_TERNARY_MID)] 
+        =  rbool_or
+           >> !(ch_p('?') [push_op(OP_TERNARY)]
+                >> rbool_or
+                >> ch_p(':') [push_op(OP_TERNARY_MID)]
                 >> rbool_or
                ) [push_op(OP_AFTER_TERNARY)]
         ;
 }
 
-// explicit template instantiations 
+// explicit template instantiations
 template DataExpressionGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(DataExpressionGrammar const&);
 
 template DataExpressionGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<no_actions_action_policy<action_policy> > > > >::definition(DataExpressionGrammar const&);

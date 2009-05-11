@@ -15,15 +15,15 @@ class Data;
 class Model;
 class Ftk;
 
-/// manages view, i.e. x and y range visible currently to the user 
-/// user can set view in `plot' command, using string like "[20:][-100:1000]" 
+/// manages view, i.e. x and y range visible currently to the user
+/// user can set view in `plot' command, using string like "[20:][-100:1000]"
 /// plot command requires also to specify dataset(s), if there is more than
 /// one dataset. This is necessary in case the visible range is to be fitted
 /// to data.
 /// Applications using libfityk can ignore datasets stored in this class or use
-/// only the first one, or all. 
+/// only the first one, or all.
 /// most difficult part here is finding an "auto" view for given data and model
-class View 
+class View
 {
 public:
     enum {
@@ -43,7 +43,7 @@ public:
     static const fp relative_x_margin, relative_y_margin;
     fp left, right, bottom, top;
 
-    // F is used only in fit_zoom(), can be NULL 
+    // F is used only in fit_zoom(), can be NULL
     View(Ftk const* F_)
         : left(0), right(180.), bottom(-50), top(1e3), F(F_), datasets(1,0),
           log_x(false), log_y(false) {}
@@ -51,13 +51,13 @@ public:
     fp height() const { return top - bottom; }
     std::string str() const;
     void parse_and_set(std::vector<std::string> const& lrbt,
-                       std::vector<int> const& dd); 
-    /// fit specified edges to the data range 
-    void fit_zoom(int flag=fit_all); 
+                       std::vector<int> const& dd);
+    /// fit specified edges to the data range
+    void fit_zoom(int flag=fit_all);
     std::vector<int> const& get_datasets() const { return datasets; }
     // set range
     void set(fp l, fp r, fp b, fp t, int flag=change_all);
-    void set_log_scale(bool log_x_, bool log_y_) 
+    void set_log_scale(bool log_x_, bool log_y_)
                                          { log_x = log_x_; log_y = log_y_; }
 private:
     Ftk const* F;
@@ -65,12 +65,12 @@ private:
     bool log_x, log_y;
 
     void get_x_range(std::vector<Data const*> datas, fp &x_min, fp &x_max);
-    void get_y_range(std::vector<Data const*> datas, 
-                     std::vector<Model const*> models, 
+    void get_y_range(std::vector<Data const*> datas,
+                     std::vector<Model const*> models,
                      fp &y_min, fp &y_max);
 
     /// set datasets that are to be used when fitting viewed area to data
-    void set_datasets(std::vector<int> const& dd); 
+    void set_datasets(std::vector<int> const& dd);
 };
 
-#endif 
+#endif

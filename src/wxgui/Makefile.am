@@ -1,15 +1,15 @@
 # $Id$
 
-SUBDIRS = img 
-bin_PROGRAMS = fityk 
+SUBDIRS = img
+bin_PROGRAMS = fityk
 
 EXTRA_DIST = winres.rc xyconvert.rc xybrowser.cpp
 
-# tested only on MinGW 
+# tested only on MinGW
 if OS_WIN32
-AM_LDFLAGS = -mwindows 
+AM_LDFLAGS = -mwindows
 ms_win_res = winres.o
-$(ms_win_res): winres.rc img/fityk.ico 
+$(ms_win_res): winres.rc img/fityk.ico
 	$(RC) -o $@ `echo $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS)\
 			    @WX_CPPFLAGS@ \
 				    | sed -e 's/-mthreads//g' ` \
@@ -30,7 +30,7 @@ fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 		dialogs.cpp dialogs.h frame.cpp frame.h app.cpp app.h
 
 AM_CPPFLAGS = @WX_CPPFLAGS@ @CPPFLAGS_3RDPARTY@ $(HELP_DEF)
-AM_CXXFLAGS = @WX_CXXFLAGS_ONLY@ 
+AM_CXXFLAGS = @WX_CXXFLAGS_ONLY@
 LDADD = ../libfityk.la @WX_LIBS@ $(ms_win_res)
 
 
@@ -40,7 +40,7 @@ inputline: sample_inputline.cpp inputline.cpp inputline.h callback.h
 
 if OS_WIN32
 xyconvert_res = xyconvertres.o
-$(xyconvert_res): xyconvert.rc img/xyconvert.ico 
+$(xyconvert_res): xyconvert.rc img/xyconvert.ico
 	$(RC) -o $@ `echo $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS)\
 			    @WX_CPPFLAGS@  | sed -e 's/-mthreads//g' ` $<
 xyconvert = xyconvert.exe
@@ -57,7 +57,7 @@ $(xyconvert): xybrowser.cpp uplot.cpp uplot.h $(xyconvert_res)
 	../../3rdparty/xylib/xylib/.libs/libxy.a @WX_LIBS@ $(LIBS)
 
 
-powdifpat: powdifpat.cpp cmn.o 
+powdifpat: powdifpat.cpp cmn.o
 	$(CXX) -o $@ $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) \
 	-Icctbx/cctbx/include/ -Icctbx/scitbx/include/ \

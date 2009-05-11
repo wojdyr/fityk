@@ -38,7 +38,7 @@ extern std::string prepared_info;
 
 std::vector<DataAndModel*> get_datasets_from_indata();
 
-/// a part of command grammar 
+/// a part of command grammar
 struct IntRangeGrammar : public grammar<IntRangeGrammar>
 {
     template <typename ScannerT>
@@ -49,18 +49,18 @@ struct IntRangeGrammar : public grammar<IntRangeGrammar>
           static const int zero = 0;
           static const int int_max = INT_MAX;
 
-          t 
-              = '[' >> (int_p[assign_a(tmp_int)] 
+          t
+              = '[' >> (int_p[assign_a(tmp_int)]
                        | eps_p[assign_a(tmp_int, zero)]
                        )
                     >> (':'
-                        >> (int_p[assign_a(tmp_int2)] 
+                        >> (int_p[assign_a(tmp_int2)]
                            | eps_p[assign_a(tmp_int2, int_max)]
                            )
                         >> ']'
                        | ch_p(']')[assign_a(tmp_int2, tmp_int)]
                               [increment_a(tmp_int2)]//see assign_a error above
-                       )  
+                       )
               ;
       }
       rule<ScannerT> t;
@@ -77,8 +77,8 @@ struct CompactStrGrammar : public grammar<CompactStrGrammar>
     {
       definition(CompactStrGrammar const& /*self*/)
       {
-          main 
-            = lexeme_d['\'' >> (+~chset_p("'\n"))[assign_a(t)] 
+          main
+            = lexeme_d['\'' >> (+~chset_p("'\n"))[assign_a(t)]
                        >> '\'']
             | lexeme_d[+~chset_p(" \t\n\r;,#")] [assign_a(t)]
             ;
@@ -101,12 +101,12 @@ struct Cmd2Grammar : public grammar<Cmd2Grammar>
   {
     definition(Cmd2Grammar const& self);
 
-    rule<ScannerT> transform, type_name, function_param, 
-                   in_data, dm_prefix, 
+    rule<ScannerT> transform, type_name, function_param,
+                   in_data, dm_prefix,
                    dataset_handling, guess,
-                   dataset_lhs, dataset_nr, 
-                   optional_plus, 
-                   plot_range, info_arg, statement;  
+                   dataset_lhs, dataset_nr,
+                   optional_plus,
+                   plot_range, info_arg, statement;
 
     rule<ScannerT> const& start() const { return statement; }
   };

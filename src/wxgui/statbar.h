@@ -17,8 +17,8 @@ class HintReceiver
 {
 public:
     virtual void set_hints(std::string const& left, std::string const& right,
-                           std::string const& mode_name, 
-                           std::string const& shift_left, 
+                           std::string const& mode_name,
+                           std::string const& shift_left,
                            std::string const& shift_right)=0;
 };
 
@@ -32,7 +32,7 @@ public:
     void set_text(wxString const& text_) { text->SetLabel(text_); }
     wxString get_text() const { return text->GetLabel(); }
     void set_hints(std::string const& left, std::string const& right,
-               std::string const& mode_name, 
+               std::string const& mode_name,
                std::string const& shift_left, std::string const& shift_right);
     void set_coords(double x, double y, PlotTypeEnum pte);
     void clear_coords() { coords->SetLabel(wxEmptyString); }
@@ -47,7 +47,7 @@ public:
 private:
     // a number calculated as a function of cursor coordinates x and y and
     // shown at the status bar (as a 3rd number, after x and y)
-    wxString extra_value; 
+    wxString extra_value;
     std::vector<int> e_code; // bytecode for calculating extra value
     std::vector<double> e_numbers; // numbers for the bytecode in e_code
 

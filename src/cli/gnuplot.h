@@ -14,7 +14,7 @@ public:
     GnuPlot();
     ~GnuPlot();
     int plot();
-    static char path_to_gnuplot[] ; 
+    static char path_to_gnuplot[] ;
 
 private:
     FILE *gnuplot_pipe;
@@ -23,4 +23,4 @@ private:
     bool gnuplot_pipe_ok();
 };
 
-#endif 
+#endif

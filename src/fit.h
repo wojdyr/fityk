@@ -14,8 +14,8 @@ class DataAndModel;
 class Ftk;
 
 ///   interface of fitting method and implementation of common functions
-class Fit 
-{               
+class Fit
+{
 public:
     std::string const name;
 
@@ -28,21 +28,21 @@ public:
                                                     { return dms == dmdm_; }
     std::string get_info(std::vector<DataAndModel*> const& dms);
     int get_dof(std::vector<DataAndModel*> const& dms);
-    std::string get_error_info(std::vector<DataAndModel*> const& dms, 
+    std::string get_error_info(std::vector<DataAndModel*> const& dms,
                                bool matrix=false);
-    std::vector<fp> 
+    std::vector<fp>
         get_covariance_matrix(std::vector<DataAndModel*> const&dms);
-    std::vector<fp> 
+    std::vector<fp>
         get_symmetric_errors(std::vector<DataAndModel*> const& dms);
     //std::vector<DataAndModel*> const& get_datsums() const { return dmdm_; }
     static fp compute_wssr_for_data (DataAndModel const* dm, bool weigthed);
-    fp do_compute_wssr(std::vector<fp> const &A, 
+    fp do_compute_wssr(std::vector<fp> const &A,
                        std::vector<DataAndModel*> const& dms, bool weigthed);
     static fp compute_r_squared_for_data(DataAndModel const* dm) ;
-    void Jordan (std::vector<fp>& A, std::vector<fp>& b, int n); 
+    void Jordan (std::vector<fp>& A, std::vector<fp>& b, int n);
     void reverse_matrix (std::vector<fp>&A, int n);
     // pretty-print matrix m x n stored in vec. `mname' is name/comment.
-    std::string print_matrix (const std::vector<fp>& vec, 
+    std::string print_matrix (const std::vector<fp>& vec,
                                      int m, int n, const char *mname);
 protected:
     Ftk *F;
@@ -58,19 +58,19 @@ protected:
     virtual fp init() = 0; // called before autoiter()
     virtual void autoiter() = 0;
     bool common_termination_criteria(int iter);
-    fp compute_wssr(std::vector<fp> const &A, 
+    fp compute_wssr(std::vector<fp> const &A,
                     std::vector<DataAndModel*> const& dms, bool weigthed=true)
         { ++evaluations; return do_compute_wssr(A, dms, weigthed); }
-    fp compute_r_squared(std::vector<fp> const &A, 
+    fp compute_r_squared(std::vector<fp> const &A,
                          std::vector<DataAndModel*> const& dms);
-    void compute_derivatives(std::vector<fp> const &A, 
-                             std::vector<DataAndModel*> const& dms, 
+    void compute_derivatives(std::vector<fp> const &A,
+                             std::vector<DataAndModel*> const& dms,
                              std::vector<fp>& alpha, std::vector<fp>& beta);
     bool post_fit (const std::vector<fp>& aa, fp chi2);
     fp draw_a_from_distribution (int nr, char distribution = 'u', fp mult = 1.);
     void iteration_plot(std::vector<fp> const &A);
 private:
-    void compute_derivatives_for(DataAndModel const *dm, 
+    void compute_derivatives_for(DataAndModel const *dm,
                                  std::vector<fp>& alpha, std::vector<fp>& beta);
     void update_parameters(std::vector<DataAndModel*> const& dms);
 };
@@ -84,9 +84,9 @@ public:
     void clear_param_history() { param_history.clear(); param_hist_ptr = 0; }
     int get_param_history_size() const { return param_history.size(); }
     void load_param_history(int item_nr, bool relative=false);
-    bool has_param_history_rel_item(int rel_nr) const 
+    bool has_param_history_rel_item(int rel_nr) const
         { return is_index(param_hist_ptr + rel_nr, param_history); }
-    bool can_undo() const; 
+    bool can_undo() const;
     std::string param_history_info() const;
     std::vector<fp> const& get_item(int n) const { return param_history[n]; }
     int get_active_nr() const { return param_hist_ptr; }

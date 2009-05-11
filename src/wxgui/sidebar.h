@@ -43,7 +43,7 @@ public:
     void OnFuncButtonEdit (wxCommandEvent& event);
     void OnFuncButtonChType (wxCommandEvent& event);
     void OnFuncButtonCol (wxCommandEvent& event);
-    void OnFuncButtonHwhm (wxCommandEvent& event) 
+    void OnFuncButtonHwhm (wxCommandEvent& event)
                             { make_same_func_par("hwhm", event.IsChecked()); }
     void OnFuncButtonShape (wxCommandEvent& event)
                             { make_same_func_par("shape", event.IsChecked()); }
@@ -94,7 +94,7 @@ private:
     std::vector<wxStaticText*> bp_statict;
     std::vector<bool> bp_sig; /// bottom panel "signature" (widget order)
     Function const* bp_func; ///bottom panel function
-    DataListPlusText *d; 
+    DataListPlusText *d;
     ListPlusText *f, *v;
     wxChoice *data_look, *filter_ch;
     wxSpinCtrl *shiftup_sc, *dpsize_sc;
@@ -104,7 +104,7 @@ private:
 
     void update_func_list(bool nondata_changed);
     void update_var_list();
-    void add_variable_to_bottom_panel(Variable const* var, 
+    void add_variable_to_bottom_panel(Variable const* var,
                                       std::string const& tv_name);
     void clear_bottom_panel();
     std::vector<bool> make_bottom_panel_sig(Function const* func);

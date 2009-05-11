@@ -3,7 +3,7 @@
 // $Id$
 
 /// In this file:
-///  FPlot, the base class for MainPlot and AuxPlot 
+///  FPlot, the base class for MainPlot and AuxPlot
 
 #include <wx/wxprec.h>
 #ifdef __BORLANDC__
@@ -18,10 +18,10 @@
 #include <wx/confbase.h>
 
 #include "plot.h"
-#include "cmn.h" 
+#include "cmn.h"
 #include "frame.h" //ftk
 #include "../data.h"
-#include "../logic.h" 
+#include "../logic.h"
 
 using namespace std;
 
@@ -40,21 +40,21 @@ void Scale::set(fp m, fp M, int pixels)
 }
 
 //===============================================================
-//                FPlot (plot with data and fitted curves) 
+//                FPlot (plot with data and fitted curves)
 //===============================================================
 
 BEGIN_EVENT_TABLE(FPlot, wxPanel)
 END_EVENT_TABLE()
 
-void FPlot::set_font(wxDC &dc, wxFont const& font) 
-{ 
+void FPlot::set_font(wxDC &dc, wxFont const& font)
+{
     if (pen_width > 1) {
         wxFont f = font;
         f.SetPointSize(f.GetPointSize() * pen_width);
         dc.SetFont(f);
     }
     else
-        dc.SetFont(font); 
+        dc.SetFont(font);
 }
 
 void FPlot::draw_dashed_vert_line(int X, wxPenStyle style)
@@ -89,7 +89,7 @@ bool FPlot::vert_line_following_cursor (MouseActEnum ma, int x, int x0)
         vlfc_prev_x0 = x0;
     }
     else {
-        if (vlfc_prev_x == INT_MIN) 
+        if (vlfc_prev_x == INT_MIN)
             return false;
         draw_dashed_vert_line(vlfc_prev_x); //clear (or draw again) old line
     }
@@ -107,7 +107,7 @@ bool FPlot::vert_line_following_cursor (MouseActEnum ma, int x, int x0)
     return true;
 }
 
-void draw_line_with_style(wxDC& dc, wxPenStyle style, 
+void draw_line_with_style(wxDC& dc, wxPenStyle style,
                           wxCoord X1, wxCoord Y1, wxCoord X2, wxCoord Y2)
 {
     wxPen pen = dc.GetPen();
@@ -132,21 +132,21 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
     dc.GetTextExtent(wxT("1234567890"), 0, &h);
 
     vector<double> minors;
-    vector<double> x_tics = scale_tics_step(v.left, v.right, x_max_tics, 
+    vector<double> x_tics = scale_tics_step(v.left, v.right, x_max_tics,
                                             minors, xs.logarithm);
 
-    //if x axis is visible tics are drawed at the axis, 
+    //if x axis is visible tics are drawed at the axis,
     //otherwise tics are drawed at the bottom edge of the plot
     const int pixel_height = get_pixel_height(dc);
     int Y = pixel_height - h;
     if (x_axis_visible && !ys.logarithm && ys.px(0) >= 0 && ys.px(0) < Y)
         Y = ys.px(0);
-    for (vector<double>::const_iterator i = x_tics.begin(); 
+    for (vector<double>::const_iterator i = x_tics.begin();
                                                     i != x_tics.end(); ++i) {
         int X = xs.px(*i);
         dc.DrawLine (X, Y, X, Y - x_tic_size);
         wxString label = s2wx(S(*i));
-        if (label == wxT("-0")) 
+        if (label == wxT("-0"))
             label = wxT("0");
         wxCoord w;
         dc.GetTextExtent (label, &w, 0);
@@ -158,7 +158,7 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
     }
     //draw minor tics
     if (xminor_tics_visible)
-        for (vector<double>::const_iterator i = minors.begin(); 
+        for (vector<double>::const_iterator i = minors.begin();
                                                     i != minors.end(); ++i) {
             int X = xs.px(*i);
             dc.DrawLine (X, Y, X, Y - x_tic_size);
@@ -176,23 +176,23 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
     const int pixel_width = get_pixel_width(dc);
 
 
-    //if y axis is visible, tics are drawed at the axis, 
+    //if y axis is visible, tics are drawed at the axis,
     //otherwise tics are drawed at the left hand edge of the plot
     int X = 0;
-    if (y_axis_visible && xs.px(0) > 0 
+    if (y_axis_visible && xs.px(0) > 0
             && xs.px(0) < pixel_width - 10)
         X = xs.px(0);
     vector<double> minors;
-    vector<double> y_tics = scale_tics_step(v.bottom, v.top, y_max_tics, 
+    vector<double> y_tics = scale_tics_step(v.bottom, v.top, y_max_tics,
                                             minors, ys.logarithm);
-    for (vector<double>::const_iterator i = y_tics.begin(); 
+    for (vector<double>::const_iterator i = y_tics.begin();
                                                     i != y_tics.end(); ++i) {
         int Y = ys.px(*i);
         dc.DrawLine (X, Y, X + y_tic_size, Y);
         wxString label = s2wx(S(*i));
         if (label == wxT("-0"))
             label = wxT("0");
-        if (x_axis_visible && label == wxT("0")) 
+        if (x_axis_visible && label == wxT("0"))
             continue;
         wxCoord w, h;
         dc.GetTextExtent (label, &w, &h);
@@ -205,14 +205,14 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
     }
     //draw minor tics
     if (yminor_tics_visible)
-        for (vector<double>::const_iterator i = minors.begin(); 
+        for (vector<double>::const_iterator i = minors.begin();
                                                     i != minors.end(); ++i) {
             int Y = ys.px(*i);
             dc.DrawLine (X, Y, X + y_tic_size, Y);
         }
 }
 
-double FPlot::get_max_abs_y (double (*compute_y)(vector<Point>::const_iterator, 
+double FPlot::get_max_abs_y (double (*compute_y)(vector<Point>::const_iterator,
                                                  Model const*),
                          vector<Point>::const_iterator first,
                          vector<Point>::const_iterator last,
@@ -228,23 +228,23 @@ double FPlot::get_max_abs_y (double (*compute_y)(vector<Point>::const_iterator,
     return max_abs_y;
 }
 
-void FPlot::draw_data (wxDC& dc, 
-                       double (*compute_y)(vector<Point>::const_iterator, 
+void FPlot::draw_data (wxDC& dc,
+                       double (*compute_y)(vector<Point>::const_iterator,
                                            Model const*),
-                       Data const* data, 
+                       Data const* data,
                        Model const* model,
-                       wxColour const& color, wxColour const& inactive_color, 
+                       wxColour const& color, wxColour const& inactive_color,
                        int Y_offset,
                        bool cumulative)
 {
     Y_offset *= (get_pixel_height(dc) / 100);
     wxPen const activePen(color.Ok() ? color : activeDataCol, pen_width);
-    wxPen const inactivePen(inactive_color.Ok() ? inactive_color 
-                                                : inactiveDataCol, 
+    wxPen const inactivePen(inactive_color.Ok() ? inactive_color
+                                                : inactiveDataCol,
                             pen_width);
     wxBrush const activeBrush(activePen.GetColour(), wxSOLID);
     wxBrush const inactiveBrush(inactivePen.GetColour(), wxSOLID);
-    if (data->is_empty()) 
+    if (data->is_empty())
         return;
     vector<Point>::const_iterator first = data->get_point_at(ftk->view.left),
                                   last = data->get_point_at(ftk->view.right);
@@ -253,8 +253,8 @@ void FPlot::draw_data (wxDC& dc,
     dc.SetPen (active ? activePen : inactivePen);
     dc.SetBrush (active ? activeBrush : inactiveBrush);
     int X_ = INT_MIN, Y_ = INT_MIN;
-    // first line segment -- lines should be drawn towards points 
-    //                                                 that are outside of plot 
+    // first line segment -- lines should be drawn towards points
+    //                                                 that are outside of plot
     if (line_between_points && first > data->points().begin() && !cumulative) {
         X_ = xs.px (ftk->view.left);
         int Y_l = ys.px ((*compute_y)(first - 1, model));
@@ -277,7 +277,7 @@ void FPlot::draw_data (wxDC& dc,
         else
             y = (*compute_y)(i, model);
         int Y = ys.px(y) - Y_offset;
-        if (X == X_ && Y == Y_) 
+        if (X == X_ && Y == Y_)
             continue;
 
         if (i->is_active != active) {
@@ -285,10 +285,10 @@ void FPlot::draw_data (wxDC& dc,
             //draw first half here and change X_, Y_; the rest will be drawed
             //as usually.
             if (line_between_points) {
-                int X_mid = (X_ + X) / 2; 
+                int X_mid = (X_ + X) / 2;
 		int Y_mid = (Y_ + Y) / 2;
                 dc.DrawLine (X_, Y_, X_mid, Y_mid);
-                X_ = X_mid; 
+                X_ = X_mid;
 		Y_ = Y_mid;
             }
             active = i->is_active;
@@ -302,12 +302,12 @@ void FPlot::draw_data (wxDC& dc,
             }
         }
 
-        if (point_radius > 1) 
+        if (point_radius > 1)
             dc.DrawCircle (X, Y, (point_radius - 1) * pen_width);
         if (line_between_points) {
             if (X_ != INT_MIN)
                 dc.DrawLine (X_, Y_, X, Y);
-            X_ = X; 
+            X_ = X;
 	    Y_ = Y;
         }
         else {//no line_between_points
@@ -362,10 +362,10 @@ void FPlot::set_scale(int pixel_width, int pixel_height)
 
 int FPlot::get_special_point_at_pointer(wxMouseEvent& event)
 {
-    // searching the closest peak-top and distance from it, d = dx + dy < 10 
+    // searching the closest peak-top and distance from it, d = dx + dy < 10
     int nearest = -1;
     int min_dist = 10;
-    for (vector<wxPoint>::const_iterator i = special_points.begin(); 
+    for (vector<wxPoint>::const_iterator i = special_points.begin();
                                              i != special_points.end(); i++) {
         int d = abs(event.GetX() - i->x) + abs(event.GetY() - i->y);
         if (d < min_dist) {
@@ -379,8 +379,8 @@ int FPlot::get_special_point_at_pointer(wxMouseEvent& event)
 void FPlot::read_settings(wxConfigBase *cf)
 {
     cf->SetPath(wxT("Visible"));
-    x_axis_visible = cfg_read_bool (cf, wxT("xAxis"), true);  
-    y_axis_visible = cfg_read_bool (cf, wxT("yAxis"), false);  
+    x_axis_visible = cfg_read_bool (cf, wxT("xAxis"), true);
+    y_axis_visible = cfg_read_bool (cf, wxT("yAxis"), false);
     xtics_visible = cfg_read_bool (cf, wxT("xtics"), true);
     ytics_visible = cfg_read_bool (cf, wxT("ytics"), true);
     xminor_tics_visible = cfg_read_bool (cf, wxT("xMinorTics"), true);
@@ -390,9 +390,9 @@ void FPlot::read_settings(wxConfigBase *cf)
     cf->SetPath(wxT("../Colors"));
     xAxisCol = cfg_read_color(cf, wxT("xAxis"), wxColour(wxT("WHITE")));
     cf->SetPath(wxT(".."));
-    ticsFont = cfg_read_font(cf, wxT("ticsFont"), 
-                             wxFont(8, wxFONTFAMILY_DEFAULT, 
-                                    wxFONTSTYLE_NORMAL, 
+    ticsFont = cfg_read_font(cf, wxT("ticsFont"),
+                             wxFont(8, wxFONTFAMILY_DEFAULT,
+                                    wxFONTSTYLE_NORMAL,
                                     wxFONTWEIGHT_NORMAL));
 }
 

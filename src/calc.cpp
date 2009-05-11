@@ -12,8 +12,8 @@ using namespace std;
 
 namespace {
 
-const int stack_size = 8192;  //should be enough, 
-                              //there are no checks for stack overflow  
+const int stack_size = 8192;  //should be enough,
+                              //there are no checks for stack overflow
 vector<double> stack(stack_size);
 
 
@@ -55,7 +55,7 @@ string ast_op(int op)
 {
     switch (op) {
         OP_(CONSTANT)
-        OP_(VARIABLE)  
+        OP_(VARIABLE)
         OP_(X)
         OP_(PUT_VAL)
         OP_(PUT_DERIV)
@@ -63,9 +63,9 @@ string ast_op(int op)
         OP_(EXP)
         OP_(ERFC)
         OP_(ERF)
-        OP_(SINH)       
-        OP_(COSH)       
-        OP_(TANH)       
+        OP_(SINH)
+        OP_(COSH)
+        OP_(TANH)
         OP_(SIN)
         OP_(COS)
         OP_(ATAN)
@@ -132,10 +132,10 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
                 *stackPtr = erf(*stackPtr);
                 break;
             case OP_LOG10:
-                *stackPtr = log10(*stackPtr); 
+                *stackPtr = log10(*stackPtr);
                 break;
             case OP_LN:
-                *stackPtr = log(*stackPtr); 
+                *stackPtr = log(*stackPtr);
                 break;
             case OP_SINH:
                 *stackPtr = sinh(*stackPtr);
@@ -144,7 +144,7 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
                 *stackPtr = cosh(*stackPtr);
                 break;
             case OP_TANH:
-                *stackPtr = tanh(*stackPtr); 
+                *stackPtr = tanh(*stackPtr);
                 break;
             case OP_SIN:
                 *stackPtr = sin(*stackPtr);
@@ -153,22 +153,22 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
                 *stackPtr = cos(*stackPtr);
                 break;
             case OP_TAN:
-                *stackPtr = tan(*stackPtr); 
+                *stackPtr = tan(*stackPtr);
                 break;
             case OP_ATAN:
-                *stackPtr = atan(*stackPtr); 
+                *stackPtr = atan(*stackPtr);
                 break;
             case OP_ASIN:
-                *stackPtr = asin(*stackPtr); 
+                *stackPtr = asin(*stackPtr);
                 break;
             case OP_ACOS:
-                *stackPtr = acos(*stackPtr); 
+                *stackPtr = acos(*stackPtr);
                 break;
             case OP_LGAMMA:
-                *stackPtr = lgammafn(*stackPtr); 
+                *stackPtr = lgammafn(*stackPtr);
                 break;
             case OP_DIGAMMA:
-                *stackPtr = digamma(*stackPtr); 
+                *stackPtr = digamma(*stackPtr);
                 break;
 
             //binary operators
@@ -194,15 +194,15 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
                 break;
             case OP_VOIGT:
                 stackPtr--;
-                *stackPtr = humlik(*stackPtr, *(stackPtr+1)) / sqrt(M_PI); 
+                *stackPtr = humlik(*stackPtr, *(stackPtr+1)) / sqrt(M_PI);
                 break;
             case OP_DVOIGT_DX:
                 stackPtr--;
-                *stackPtr = humdev_dkdx(*stackPtr, *(stackPtr+1)) / sqrt(M_PI); 
+                *stackPtr = humdev_dkdx(*stackPtr, *(stackPtr+1)) / sqrt(M_PI);
                 break;
             case OP_DVOIGT_DY:
                 stackPtr--;
-                *stackPtr = humdev_dkdy(*stackPtr, *(stackPtr+1)) / sqrt(M_PI); 
+                *stackPtr = humdev_dkdy(*stackPtr, *(stackPtr+1)) / sqrt(M_PI);
                 break;
 
             // putting-number-to-stack-operators
@@ -216,12 +216,12 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
             //assignment-operators
             case OP_PUT_VAL:
                 value = *stackPtr;
-                stackPtr--; 
+                stackPtr--;
                 break;
             case OP_PUT_DERIV:
                 i++;
                 derivatives[*i] = *stackPtr;
-                stackPtr--; 
+                stackPtr--;
                 break;
 
             default:
@@ -247,7 +247,7 @@ void AnyFormula::run_vm(vector<Variable*> const &variables) const
 
 void AnyFormula::tree_to_bytecode(vector<int> const& var_idx)
 {
-    //assert(var_idx.size() + 1 == op_trees.size()); 
+    //assert(var_idx.size() + 1 == op_trees.size());
     // it's +2, if also dy/dx is in op_trees
     vmcode.clear();
     vmdata.clear();
@@ -261,17 +261,17 @@ void AnyFormula::tree_to_bytecode(vector<int> const& var_idx)
     }
 }
 
-bool AnyFormula::is_constant() const 
-{ 
-    return op_trees.back()->op == 0; 
+bool AnyFormula::is_constant() const
+{
+    return op_trees.back()->op == 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 
-void AnyFormulaO::tree_to_bytecode(size_t var_idx_size) 
+void AnyFormulaO::tree_to_bytecode(size_t var_idx_size)
 {
-    assert(var_idx_size + 2 == op_trees.size()); 
-    // we put function's parameter index rather than variable index after 
+    assert(var_idx_size + 2 == op_trees.size());
+    // we put function's parameter index rather than variable index after
     //  OP_VARIABLE, it is handled in this way in prepare_optimized_codes()
     AnyFormula::tree_to_bytecode(range_vector(0, var_idx_size));
     vmdata_size = vmdata.size();
@@ -282,9 +282,9 @@ void AnyFormulaO::prepare_optimized_codes(vector<fp> const& vv)
     vmdata.resize(vmdata_size);
     vmcode_der = vmcode;
     vector<int>::iterator value_it = vmcode_der.begin();
-    for (vector<int>::iterator i = vmcode_der.begin(); 
+    for (vector<int>::iterator i = vmcode_der.begin();
                                         i != vmcode_der.end(); ++i) {
-        if (*i == OP_CONSTANT || *i == OP_PUT_DERIV) 
+        if (*i == OP_CONSTANT || *i == OP_PUT_DERIV)
             ++i;
         else if (*i == OP_VARIABLE) {
             *i = OP_CONSTANT;
@@ -313,7 +313,7 @@ void AnyFormulaO::prepare_optimized_codes(vector<fp> const& vv)
 void AnyFormulaO::run_vm_der(fp x) const
 {
     vector<double>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
-    for (vector<int>::const_iterator i = vmcode_der.begin(); 
+    for (vector<int>::const_iterator i = vmcode_der.begin();
                                              i != vmcode_der.end(); i++) {
         if (*i == OP_X) {
             stackPtr++;
@@ -328,7 +328,7 @@ void AnyFormulaO::run_vm_der(fp x) const
 fp AnyFormulaO::run_vm_val(fp x) const
 {
     vector<double>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
-    for (vector<int>::const_iterator i = vmcode_val.begin(); 
+    for (vector<int>::const_iterator i = vmcode_val.begin();
                                                 i != vmcode_val.end(); i++) {
         if (*i == OP_X) {
             stackPtr++;

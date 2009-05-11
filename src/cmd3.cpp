@@ -29,17 +29,17 @@ using namespace cmdgram;
 
 namespace {
 
-void do_transform(char const*, char const*)  { 
+void do_transform(char const*, char const*)  {
     vector<DataAndModel*> v = get_datasets_from_indata();
     for (vector<DataAndModel*>::const_iterator i = v.begin(); i != v.end(); ++i)
-        (*i)->data()->transform(t); 
-    outdated_plot=true; 
+        (*i)->data()->transform(t);
+    outdated_plot=true;
 }
 
-void do_reset(char const*, char const*)  
-{ 
+void do_reset(char const*, char const*)
+{
     AL->reset();
-    outdated_plot=true; 
+    outdated_plot=true;
 }
 
 void do_dump(char const*, char const*)  { AL->dump_all_as_script(t); }
@@ -52,12 +52,12 @@ void do_commands_logging(char const*, char const*)
         AL->get_ui()->start_log(t, with_plus);
 }
 
-void do_exec_file(char const*, char const*) 
-{ 
+void do_exec_file(char const*, char const*)
+{
     vector<pair<int,int> > vpn;
     for (int i = 0; i < size(vn); i+=2)
         vpn.push_back(make_pair(vn[i],vn[i+1]));
-    AL->get_ui()->exec_script(t, vpn); 
+    AL->get_ui()->exec_script(t, vpn);
 }
 
 void do_fit(char const*, char const*)
@@ -69,13 +69,13 @@ void do_fit(char const*, char const*)
     }
     else
         AL->get_fit()->fit(tmp_int, get_datasets_from_indata());
-    outdated_plot=true;  
+    outdated_plot=true;
 }
 
 void do_load_fit_history(int n)
 {
     AL->get_fit_container()->load_param_history(n);
-    outdated_plot=true;  
+    outdated_plot=true;
 }
 
 void do_clear_fit_history(char const*, char const*)
@@ -86,19 +86,19 @@ void do_clear_fit_history(char const*, char const*)
 void do_undo_fit(char const*, char const*)
 {
     AL->get_fit_container()->load_param_history(-1, true);
-    outdated_plot=true;  
+    outdated_plot=true;
 }
 
 void do_redo_fit(char const*, char const*)
 {
     AL->get_fit_container()->load_param_history(+1, true);
-    outdated_plot=true;  
+    outdated_plot=true;
 }
 
 
 void do_set(char const*, char const*) { AL->get_settings()->setp(t2, t); }
 
-void do_set_show(char const*, char const*)  
+void do_set_show(char const*, char const*)
                                    { AL->rmsg(AL->get_settings()->infop(t2)); }
 
 void do_sleep(char const*, char const*) { AL->get_ui()->wait(tmp_real); }
@@ -129,20 +129,20 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
         ;
 
     optional_plus
-        = str_p("+") [assign_a(with_plus, true_)] 
-        | eps_p [assign_a(with_plus, false_)] 
+        = str_p("+") [assign_a(with_plus, true_)]
+        | eps_p [assign_a(with_plus, false_)]
         ;
 
     commands_arg
-        = eps_p [assign_a(t, empty)] 
+        = eps_p [assign_a(t, empty)]
           >> optional_plus
-          >> ( (ch_p('>') >> CompactStrG) [&do_commands_logging] 
+          >> ( (ch_p('>') >> CompactStrG) [&do_commands_logging]
              | (ch_p('<') [clear_a(vn)]
-                 >> CompactStrG 
+                 >> CompactStrG
                  >> *(IntRangeG[push_back_a(vn, tmp_int)]
                                              [push_back_a(vn, tmp_int2)])
                ) [&do_exec_file]
-             ) 
+             )
         ;
 
     set_arg
@@ -157,28 +157,28 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
           >> ( uint_p[assign_a(tmp_int)]
              | eps_p[assign_a(tmp_int, minus_one)]
              )
-          //TODO >> !("only" >>  (%name | $name)[push_back_a()] 
+          //TODO >> !("only" >>  (%name | $name)[push_back_a()]
           //                                  % ',')
-          //     >> !("not" >>   (%name | $name)[push_back_a()] 
+          //     >> !("not" >>   (%name | $name)[push_back_a()]
           //                                  % ',')
           >> in_data
         ;
 
 
-    statement 
+    statement
         = str_p("reset") [&do_reset]
         | ("sleep" >> ureal_p[assign_a(tmp_real)])[&do_sleep]
         | (str_p("dump") >> '>' >> CompactStrG)[&do_dump]
         | (no_actions_d[DataTransformG][assign_a(t)] >> in_data)[&do_transform]
         | optional_suffix_p("s","et") >> (set_arg % ',')
         | optional_suffix_p("c","ommands") >> commands_arg
-        | optional_suffix_p("f","it") 
-          >> (optional_suffix_p("h","istory") 
+        | optional_suffix_p("f","it")
+          >> (optional_suffix_p("h","istory")
                >> (int_p [&do_load_fit_history]
                   | optional_suffix_p("c","lear") [&do_clear_fit_history]
                   )
-             | optional_suffix_p("u","ndo") [&do_undo_fit] 
-             | optional_suffix_p("r","edo") [&do_redo_fit] 
+             | optional_suffix_p("u","ndo") [&do_undo_fit]
+             | optional_suffix_p("r","edo") [&do_redo_fit]
              | fit_arg [&do_fit]
              )
         ;

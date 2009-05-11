@@ -23,12 +23,12 @@ protected:
     int data_nr;
     ProportionalSplitter *splitter, *right_splitter;
     wxGenericDirCtrl *dir_ctrl;
-    KFTextCtrl *filename_tc; 
+    KFTextCtrl *filename_tc;
     wxTextCtrl *title_tc, *text_preview;
     wxSpinCtrl *x_column, *y_column, *s_column;
     wxPanel *left_panel, *rupper_panel, *rbottom_panel, *columns_panel;
     PreviewPlot *plot_preview;
-    wxCheckBox *std_dev_cb, *sd_sqrt_cb, *title_cb, *auto_text_cb, 
+    wxCheckBox *std_dev_cb, *sd_sqrt_cb, *title_cb, *auto_text_cb,
                *auto_plot_cb;
     wxChoice *block_ch;
     wxButton *open_here, *open_new;

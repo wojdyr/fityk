@@ -15,16 +15,16 @@
 #include <wx/textdlg.h>
 #include <wx/image.h>
 
-#include "pane.h" 
-#include "frame.h" 
-#include "inputline.h" 
+#include "pane.h"
+#include "frame.h"
+#include "inputline.h"
 #include "../common.h"
-#include "../logic.h" 
-#include "../ui.h" 
+#include "../logic.h"
+#include "../ui.h"
 
 using namespace std;
 
-enum { 
+enum {
     ID_OUTPUT_CLEAR     = 27001,
     ID_OUTPUT_CONFIGURE
 };
@@ -41,7 +41,7 @@ IOPane::IOPane(wxWindow *parent, wxWindowID id)
 
     // on Linux platform GUI and CLI history is stored in the same file
     wxString hist_file = get_user_conffile("history");
-    input_field = new InputLine(this, -1, 
+    input_field = new InputLine(this, -1,
               make_callback<wxString const&>().V1(this, &IOPane::OnInputLine),
               hist_file);
     output_win = new OutputWin (this, -1);
@@ -52,10 +52,10 @@ IOPane::IOPane(wxWindow *parent, wxWindowID id)
     io_sizer->SetSizeHints(this);
 }
 
-void IOPane::edit_in_input(string const& s) 
+void IOPane::edit_in_input(string const& s)
 {
     input_field->SetValue(s2wx(s));
-    input_field->SetFocus(); 
+    input_field->SetFocus();
 }
 
 void IOPane::OnInputLine(wxString const& s)
@@ -75,7 +75,7 @@ BEGIN_EVENT_TABLE(OutputWin, wxTextCtrl)
     EVT_KEY_DOWN   (                      OutputWin::OnKeyDown)
 END_EVENT_TABLE()
 
-OutputWin::OutputWin (wxWindow *parent, wxWindowID id, 
+OutputWin::OutputWin (wxWindow *parent, wxWindowID id,
                       const wxPoint& pos, const wxSize& size)
     : wxTextCtrl(parent, id, wxT(""), pos, size,
                  wxTE_MULTILINE|wxTE_RICH|wxNO_BORDER|wxTE_READONLY)
@@ -92,32 +92,32 @@ void OutputWin::show_fancy_dashes() {
 void OutputWin::read_settings(wxConfigBase *cf)
 {
     cf->SetPath(wxT("/OutputWin/Colors"));
-    text_color[os_normal] = cfg_read_color(cf, wxT("normal"), 
+    text_color[os_normal] = cfg_read_color(cf, wxT("normal"),
                                                       wxColour(150, 150, 150));
-    text_color[os_warn] = cfg_read_color(cf, wxT("warn"), 
+    text_color[os_warn] = cfg_read_color(cf, wxT("warn"),
                                                     wxColour(200, 0, 0));
-    text_color[os_quot] = cfg_read_color(cf, wxT("quot"), 
+    text_color[os_quot] = cfg_read_color(cf, wxT("quot"),
                                                     wxColour(50, 50, 255));
-    text_color[os_input] = cfg_read_color(cf, wxT("input"), 
+    text_color[os_input] = cfg_read_color(cf, wxT("input"),
                                                      wxColour(0, 200, 0));
     bg_color = cfg_read_color(cf, wxT("bg"), wxColour(20, 20, 20));
     cf->SetPath(wxT("/OutputWin"));
     wxFont font = cfg_read_font(cf, wxT("font"), wxNullFont);
     SetDefaultStyle (wxTextAttr(text_color[os_quot], bg_color, font));
-    SetBackgroundColour(bg_color); 
+    SetBackgroundColour(bg_color);
     if (IsEmpty())
         show_fancy_dashes();
-    Refresh(); 
-} 
+    Refresh();
+}
 
 void OutputWin::save_settings(wxConfigBase *cf) const
 {
     cf->SetPath(wxT("/OutputWin/Colors"));
-    cfg_write_color (cf, wxT("normal"), text_color[os_normal]);  
-    cfg_write_color (cf, wxT("warn"), text_color[os_warn]); 
-    cfg_write_color (cf, wxT("quot"), text_color[os_quot]); 
-    cfg_write_color (cf, wxT("input"), text_color[os_input]); 
-    cfg_write_color (cf, wxT("bg"), bg_color); 
+    cfg_write_color (cf, wxT("normal"), text_color[os_normal]);
+    cfg_write_color (cf, wxT("warn"), text_color[os_warn]);
+    cfg_write_color (cf, wxT("quot"), text_color[os_quot]);
+    cfg_write_color (cf, wxT("input"), text_color[os_input]);
+    cfg_write_color (cf, wxT("bg"), bg_color);
     cf->SetPath(wxT("/OutputWin"));
     cfg_write_font (cf, wxT("font"), GetDefaultStyle().GetFont());
 }
@@ -146,7 +146,7 @@ void OutputWin::OnClear (wxCommandEvent&)
     show_fancy_dashes();
 }
 
-    
+
 void OutputWin::OnRightDown (wxMouseEvent& event)
 {
     wxMenu popup_menu;
@@ -168,16 +168,16 @@ void OutputWin::set_bg_color(wxColour const &color)
 }
 
 
-OutputWinConfDlg::OutputWinConfDlg(wxWindow* parent, wxWindowID id, 
-                                   OutputWin* ow_) 
+OutputWinConfDlg::OutputWinConfDlg(wxWindow* parent, wxWindowID id,
+                                   OutputWin* ow_)
   : wxDialog(parent, id, wxString(wxT("Configure Status Bar")),
-             wxDefaultPosition, wxDefaultSize, 
+             wxDefaultPosition, wxDefaultSize,
              wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
     ow(ow_)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
 
-    wxCheckBox *system_font_cb = new wxCheckBox(this, -1, 
+    wxCheckBox *system_font_cb = new wxCheckBox(this, -1,
                                     wxT("use the regular system font"));
     top_sizer->Add(system_font_cb, wxSizerFlags().Border());
 
@@ -185,7 +185,7 @@ OutputWinConfDlg::OutputWinConfDlg(wxWindow* parent, wxWindowID id,
     fsizer->AddSpacer(16);
     font_label = new wxStaticText(this, -1, wxT("font:"));
     fsizer->Add(font_label, wxSizerFlags().Center().Border());
-    font_picker = new wxFontPickerCtrl(this, -1, 
+    font_picker = new wxFontPickerCtrl(this, -1,
                                              ow->GetDefaultStyle().GetFont());
     fsizer->Add(font_picker, wxSizerFlags(1).Center().Border());
     top_sizer->Add(fsizer, wxSizerFlags().Expand());
@@ -218,7 +218,7 @@ OutputWinConfDlg::OutputWinConfDlg(wxWindow* parent, wxWindowID id,
 
     hsizer->Add(gsizer, wxSizerFlags());
 
-    preview = new wxTextCtrl(this, -1, wxT(""), 
+    preview = new wxTextCtrl(this, -1, wxT(""),
                              wxDefaultPosition, wxDefaultSize,
                              wxTE_MULTILINE|wxTE_RICH|wxTE_READONLY);
     preview->SetMinSize(wxSize(140, -1));
@@ -226,10 +226,10 @@ OutputWinConfDlg::OutputWinConfDlg(wxWindow* parent, wxWindowID id,
 
     top_sizer->Add(hsizer, wxSizerFlags(1).Expand().Border());
 
-    top_sizer->Add(persistance_note_sizer(this), 
+    top_sizer->Add(persistance_note_sizer(this),
                    wxSizerFlags().Expand().Border());
 
-    top_sizer->Add(new wxButton(this, wxID_CLOSE), 
+    top_sizer->Add(new wxButton(this, wxID_CLOSE),
                    wxSizerFlags().Right().Border());
 
     SetSizerAndFit(top_sizer);
@@ -265,7 +265,7 @@ void OutputWinConfDlg::OnSystemFontCheckbox(wxCommandEvent& event)
     bool checked = event.IsChecked();
     font_label->Enable(!checked);
     font_picker->Enable(!checked);
-    wxFont const& font = checked ? *wxNORMAL_FONT 
+    wxFont const& font = checked ? *wxNORMAL_FONT
                                  : font_picker->GetSelectedFont();
     ow->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, font));
     show_preview();
@@ -273,8 +273,8 @@ void OutputWinConfDlg::OnSystemFontCheckbox(wxCommandEvent& event)
 
 void OutputWinConfDlg::OnFontChange(wxFontPickerEvent& event)
 {
-    ow->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, 
-                                   event.GetFont())); 
+    ow->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour,
+                                   event.GetFont()));
     show_preview();
 }
 

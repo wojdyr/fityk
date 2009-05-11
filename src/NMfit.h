@@ -9,7 +9,7 @@
 #include "common.h"
 #include "fit.h"
 
-/// Vertex used in Nelder-Mead method 
+/// Vertex used in Nelder-Mead method
 struct Vertex
 {
     std::vector<fp> a;
@@ -41,8 +41,8 @@ private:
     fp try_new_worst (fp f);
     void compute_coord_sum();
     bool termination_criteria (int iter, fp convergence);
-    void compute_v (Vertex& v); 
+    void compute_v (Vertex& v);
 };
 
-#endif 
+#endif
 

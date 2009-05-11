@@ -3,7 +3,7 @@
  * merged into one file and slightly modified.
  * The homepage of R-project: http://www.r-project.org/
  * Mathlib is a library of mathematical special functions.
- * Original filenames: lgamma.c stirlerr.c chebyshev.c 
+ * Original filenames: lgamma.c stirlerr.c chebyshev.c
  *                     lgammacor.c gamma.c i1mach.c d1mach.c polygamma.c
  * All my modification have MW in comments -- Marcin Wojdyr
  * Declarations of public functions from this file are in numfuncs.h
@@ -55,8 +55,8 @@ double R_Zero_Hack = 0.0;
 #define ML_POSINF (1./R_Zero_Hack)
 #define ML_NEGINF (-1./R_Zero_Hack)
 #define ML_NAN (0./R_Zero_Hack)
-#define ML_ERROR(x, s)  
-#define MATHLIB_WARNING(fmt,x) 
+#define ML_ERROR(x, s)
+#define MATHLIB_WARNING(fmt,x)
 #define MATHLIB_WARNING2(fmt,x,x2)
 #define ML_ERR_return_NAN { return ML_NAN; }
 #define ML_UNDERFLOW    (DBL_MIN * DBL_MIN)
@@ -764,7 +764,7 @@ double gammafn(double x)
  */
 
 #if 0 //MW
-#include "nmath.h" 
+#include "nmath.h"
 #undef i1mach
 #endif //0, MW
 
@@ -1053,7 +1053,7 @@ void dpsifn(double x, int n, int kode, int m, double *ans, int *nz, int *ierr)
     int i, j, k, mm, mx, nn, np, nx, fn;
     double arg, den, elim, eps, fln, fx, rln, rxsq,
 	r1m4, r1m5, s, slope, t, ta, tk, tol, tols, tss, tst,
-	tt, t1, t2, wdtol, xdmln, xdmy, xinc, xln = 0.0 /* -Wall */, 
+	tt, t1, t2, wdtol, xdmln, xdmy, xinc, xln = 0.0 /* -Wall */,
 	xm, xmin, xq, yint;
     double trm[23], trmr[n_max + 1];
 

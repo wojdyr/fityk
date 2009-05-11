@@ -9,20 +9,20 @@
 #include <ctype.h>
 #include <algorithm>
 #include <stdlib.h>
-#include <ctime> //time() 
+#include <ctime> //time()
 
 using namespace std;
 
 fp epsilon = 1e-12; // declared in common.h
 
 /// small utility used only in constructor
-void Settings::insert_enum(string const& name, 
+void Settings::insert_enum(string const& name,
                            map<char,string> const& e, char value)
 {
     epar.insert(pair<string, EnumString> (name, EnumString(e, value)));
 }
 
-Settings::Settings(Ftk const* F_) 
+Settings::Settings(Ftk const* F_)
     : F(F_)
 {
     // general
@@ -90,7 +90,7 @@ Settings::Settings(Ftk const* F_)
     fpar["nm-convergence"] = 0.0001;
     bpar["nm-move-all"] = false;
 
-    map<char, string> distrib_enum; 
+    map<char, string> distrib_enum;
     distrib_enum ['u'] = "uniform";
     distrib_enum ['g'] = "gauss";
     distrib_enum ['l'] = "lorentz";
@@ -124,7 +124,7 @@ string Settings::getp(string const& k) const
     else if (spar.count(k)) {
         return spar.find(k)->second;
     }
-    else 
+    else
         throw ExecuteError("Unknown option: " +  k);
 }
 
@@ -172,7 +172,7 @@ void Settings::setp_core(string const& k, string const& v)
     }
     else if (epar.count (k)){
         EnumString& t = epar.find(k)->second;
-        for (map<char,string>::const_iterator i = t.e.begin(); 
+        for (map<char,string>::const_iterator i = t.e.begin();
                                                            i != t.e.end(); i++)
             if (i->second == v) {
                 t.v = i->first;
@@ -226,7 +226,7 @@ string Settings::typep (string const& k) const
     else if (spar.count (k)){
         return "string (a-zA-Z0-9+-.)";
     }
-    else 
+    else
         throw ExecuteError("Unknown option: " +  k);
 }
 
@@ -243,15 +243,15 @@ vector<string> Settings::expanp(string const& k) const
     for (map<string,bool>::const_iterator i = bpar.begin();i!=bpar.end();i++)
         if (!string(i->first, 0, len).compare (k))
             e.push_back (i->first);
-    for (map<string, IntRange>::const_iterator i = irpar.begin(); 
+    for (map<string, IntRange>::const_iterator i = irpar.begin();
                                                         i != irpar.end(); i++)
         if (!string(i->first, 0, len).compare (k))
             e.push_back (i->first);
-    for (map<string, EnumString>::const_iterator i = epar.begin(); 
+    for (map<string, EnumString>::const_iterator i = epar.begin();
                                                           i != epar.end(); i++)
         if (!string(i->first, 0, len).compare (k))
             e.push_back (i->first);
-    for (map<string, string>::const_iterator i = spar.begin(); 
+    for (map<string, string>::const_iterator i = spar.begin();
                                                           i != spar.end(); i++)
         if (!string(i->first, 0, len).compare (k))
             e.push_back (i->first);

@@ -5,9 +5,9 @@
 #include <wx/wx.h>
 
 #include "pplot.h"
-#include "plot.h" 
-#include "mplot.h" 
-#include "aplot.h" 
+#include "plot.h"
+#include "mplot.h"
+#include "aplot.h"
 #include "../logic.h" //ftk->view
 
 extern Ftk *ftk; // frame.cpp
@@ -16,7 +16,7 @@ using namespace std;
 
 
 PlotPane::PlotPane(wxWindow *parent, wxWindowID id)
-    : ProportionalSplitter(parent, id, 0.75), 
+    : ProportionalSplitter(parent, id, 0.75),
       crosshair_cursor(false)
 {
     plot = new MainPlot(this);
@@ -39,7 +39,7 @@ void PlotPane::zoom_forward()
 
 string PlotPane::zoom_backward(int n)
 {
-    if (n < 1 || zoom_hist.empty()) 
+    if (n < 1 || zoom_hist.empty())
         return "";
     int pos = zoom_hist.size() - n;
     if (pos < 0) pos = 0;
@@ -64,7 +64,7 @@ void PlotPane::read_settings(wxConfigBase *cf)
 {
     cf->SetPath(wxT("/PlotPane"));
     SetProportion(cfg_read_double(cf, wxT("PlotPaneProportion"), 0.75));
-    aux_split->SetProportion(cfg_read_double(cf, wxT("AuxPlotsProportion"), 
+    aux_split->SetProportion(cfg_read_double(cf, wxT("AuxPlotsProportion"),
                                                          0.5));
     show_aux(0, cfg_read_bool(cf, wxT("ShowAuxPane0"), true));
     show_aux(1, cfg_read_bool(cf, wxT("ShowAuxPane1"), false));
@@ -81,20 +81,20 @@ void PlotPane::refresh_plots(bool now, bool only_main)
     }
     // not only main
     vector<FPlot*> vp = get_visible_plots();
-    for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i) 
+    for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i)
         (*i)->refresh(now);
 }
 
-void PlotPane::set_mouse_mode(MouseModeEnum m) 
-{ 
-    plot->set_mouse_mode(m); 
+void PlotPane::set_mouse_mode(MouseModeEnum m)
+{
+    plot->set_mouse_mode(m);
 }
 
-bool PlotPane::is_background_white() 
-{ 
+bool PlotPane::is_background_white()
+{
     //have all visible plots white background?
     vector<FPlot*> vp = get_visible_plots();
-    for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i) 
+    for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i)
         if ((*i)->get_bg_color() != *wxWHITE)
             return false;
     return true;

@@ -15,7 +15,7 @@ using namespace datatrans;
 template <typename ScannerT>
 DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
 {
-    index 
+    index
         =  ch_p('[') >> ( (ch_p('x') >> '=' >> DataExpressionG >> ch_p(']'))
                                                            [push_op(OP_x_IDX)]
                         | (DataExpressionG >> ch_p(']'))
@@ -26,15 +26,15 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
     //--------
 
     real_constant
-        =  real_p [push_double()] 
+        =  real_p [push_double()]
         |  as_lower_d["pi"] [push_the_double(M_PI)]
         |  as_lower_d["true"] [push_the_double(1.)]
         |  as_lower_d["false"] [push_the_double(0.)]
 #ifndef STANDALONE_DATATRANS
         |  VariableLhsG [push_var()]
-        |  ((FunctionLhsG 
+        |  ((FunctionLhsG
             | !lexeme_d['@' >> uint_p >> '.']
-              >> ((str_p("F[")|"Z[") >> int_p >> ch_p(']')) 
+              >> ((str_p("F[")|"Z[") >> int_p >> ch_p(']'))
             )
             >> lexeme_d['.' >> +(alnum_p|'_')])[push_func_param()]
 
@@ -49,7 +49,7 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
                     >> '(' >> DataExpressionG >> ')'
         ;
 
-    real_variable 
+    real_variable
         =  ("x" >> index) [push_op(OP_VAR_x)]
         |  ("y" >> index) [push_op(OP_VAR_y)]
         |  ("s" >> index) [push_op(OP_VAR_s)]
@@ -58,18 +58,18 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
         |  ("Y" >> index) [push_op(OP_VAR_Y)]
         |  ("S" >> index) [push_op(OP_VAR_S)]
         |  ("A" >> index) [push_op(OP_VAR_A)]
-        |  str_p("n") [push_op(OP_VAR_n)] 
+        |  str_p("n") [push_op(OP_VAR_n)]
         |  str_p("M") [push_op(OP_VAR_M)]
         ;
 
     aggregate_arg
-        = '(' >> DataExpressionG 
+        = '(' >> DataExpressionG
           >> !(str_p("if") [push_op(OP_AGCONDITION)]
                >> DataExpressionG)
           >> ch_p(')') [push_op(OP_END_AGGREGATE)]
         ;
 
-    rprec6 
+    rprec6
         =   real_constant
         |   '(' >> DataExpressionG >> ')'
         |   DataExprFunG
@@ -90,11 +90,11 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
                                           [parameterized_op(PF_INTERPOLATE)]
         |   (as_lower_d["spline"] >> parameterized_args)
                                           [parameterized_op(PF_SPLINE)]
-        |   real_variable   //"s" is checked after "sin" and "sqrt"   
+        |   real_variable   //"s" is checked after "sin" and "sqrt"
         ;
 }
 
-// explicit template instantiations 
+// explicit template instantiations
 template DataE2Grammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(DataE2Grammar const&);
 
 template DataE2Grammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<no_actions_action_policy<action_policy> > > > >::definition(DataE2Grammar const&);

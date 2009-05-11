@@ -33,7 +33,7 @@ extern Ftk *ftk;
 class FToolBar : public wxToolBar
 {
 public:
-    FToolBar (wxFrame *parent, wxWindowID id); 
+    FToolBar (wxFrame *parent, wxWindowID id);
     void update_peak_type(int nr, std::vector<std::string> const* peak_types=0);
 
     void OnPeakChoice (wxCommandEvent& event);
@@ -42,7 +42,7 @@ public:
     void OnClickTool (wxCommandEvent& event);
 
 private:
-    wxChoice *peak_choice; 
+    wxChoice *peak_choice;
 
     DECLARE_EVENT_TABLE()
 };
@@ -55,7 +55,7 @@ class FFrame: public wxFrame
     friend class FToolBar;
     friend class FApp;
 public:
-    FFrame(wxWindow *parent, const wxWindowID id, const wxString& title, 
+    FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
             const long style);
     ~FFrame();
     //void OnSize (wxSizeEvent& event);
@@ -67,52 +67,52 @@ public:
 
     void OnDataRevertUpdate (wxUpdateUIEvent& event);
     void OnDataExportUpdate (wxUpdateUIEvent& event);
-    void OnDataQLoad     (wxCommandEvent& event);   
-    void OnDataXLoad     (wxCommandEvent& event);   
+    void OnDataQLoad     (wxCommandEvent& event);
+    void OnDataXLoad     (wxCommandEvent& event);
     void OnDataRecent    (wxCommandEvent& event);
     void OnDataRevert    (wxCommandEvent& event);
     void OnDataEditor    (wxCommandEvent& event);
-    void OnSavedDT       (wxCommandEvent& event);       
+    void OnSavedDT       (wxCommandEvent& event);
     void OnDataMerge     (wxCommandEvent&);
     void OnDataCalcShirley (wxCommandEvent&);
     void OnDataRmShirley (wxCommandEvent&);
     void OnDataExport    (wxCommandEvent&);
 
-    void OnDefinitionMgr (wxCommandEvent&);         
-    void OnSGuess        (wxCommandEvent& event);         
-    void OnSPFInfo       (wxCommandEvent& event);         
-    void OnSFuncList     (wxCommandEvent& event);        
-    void OnSVarList      (wxCommandEvent& event);           
-    void OnSExport       (wxCommandEvent& event);           
+    void OnDefinitionMgr (wxCommandEvent&);
+    void OnSGuess        (wxCommandEvent& event);
+    void OnSPFInfo       (wxCommandEvent& event);
+    void OnSFuncList     (wxCommandEvent& event);
+    void OnSVarList      (wxCommandEvent& event);
+    void OnSExport       (wxCommandEvent& event);
 
-    void OnFMethodUpdate (wxUpdateUIEvent& event);           
+    void OnFMethodUpdate (wxUpdateUIEvent& event);
     void OnMenuFitUndoUpdate (wxUpdateUIEvent& event);
     void OnMenuFitRedoUpdate (wxUpdateUIEvent& event);
     void OnMenuFitHistoryUpdate (wxUpdateUIEvent& event);
     void OnMenuFitClearHistoryUpdate (wxUpdateUIEvent& event);
     void OnFOneOfMethods (wxCommandEvent& event);
-    void OnFRun          (wxCommandEvent& event);        
-    void OnFInfo         (wxCommandEvent& event);         
-    void OnFUndo         (wxCommandEvent& event);         
-    void OnFRedo         (wxCommandEvent& event);         
-    void OnFHistory      (wxCommandEvent& event);         
-    void OnFClearH       (wxCommandEvent& event);         
+    void OnFRun          (wxCommandEvent& event);
+    void OnFInfo         (wxCommandEvent& event);
+    void OnFUndo         (wxCommandEvent& event);
+    void OnFRedo         (wxCommandEvent& event);
+    void OnFHistory      (wxCommandEvent& event);
+    void OnFClearH       (wxCommandEvent& event);
 
-    void OnMenuLogStartUpdate (wxUpdateUIEvent& event);        
-    void OnMenuLogStopUpdate (wxUpdateUIEvent& event);        
-    void OnMenuLogOutputUpdate (wxUpdateUIEvent& event);        
-    void OnLogStart      (wxCommandEvent& event);        
-    void OnLogStop       (wxCommandEvent& event);        
-    void OnLogWithOutput (wxCommandEvent& event);        
-    void OnLogDump       (wxCommandEvent& event);        
-    void OnInclude      (wxCommandEvent& event);            
-    void OnReInclude    (wxCommandEvent& event);            
-    void OnDebugger     (wxCommandEvent&) { show_debugger(); } 
+    void OnMenuLogStartUpdate (wxUpdateUIEvent& event);
+    void OnMenuLogStopUpdate (wxUpdateUIEvent& event);
+    void OnMenuLogOutputUpdate (wxUpdateUIEvent& event);
+    void OnLogStart      (wxCommandEvent& event);
+    void OnLogStop       (wxCommandEvent& event);
+    void OnLogWithOutput (wxCommandEvent& event);
+    void OnLogDump       (wxCommandEvent& event);
+    void OnInclude      (wxCommandEvent& event);
+    void OnReInclude    (wxCommandEvent& event);
+    void OnDebugger     (wxCommandEvent&) { show_debugger(); }
     void show_debugger (wxString const& path=wxT(""));
     void OnReset       (wxCommandEvent&);
-    void OnDump         (wxCommandEvent&);         
-    void OnSettings      (wxCommandEvent&);        
-    void OnEditInit      (wxCommandEvent&);        
+    void OnDump         (wxCommandEvent&);
+    void OnSettings      (wxCommandEvent&);
+    void OnEditInit      (wxCommandEvent&);
     void OnPrintPreview  (wxCommandEvent&);
     void OnPageSetup     (wxCommandEvent&);
     void OnPrint         (wxCommandEvent&);
@@ -188,9 +188,9 @@ public:
     std::string get_in_datasets();
     std::string get_global_parameters();
     //std::string get_in_one_or_all_datasets();
-    MainPlot* get_main_plot(); 
-    MainPlot const* get_main_plot() const; 
-    void update_data_pane(); 
+    MainPlot* get_main_plot();
+    MainPlot const* get_main_plot() const;
+    void update_data_pane();
     SideBar const* get_sidebar() const { return sidebar; }
     SideBar* get_sidebar() { return sidebar; }
     void activate_function(int n);
@@ -230,5 +230,5 @@ protected:
 
 extern FFrame *frame;
 
-#endif 
+#endif
 

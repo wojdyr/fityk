@@ -14,9 +14,9 @@ class FApp: public wxApp
 {
 public:
     // default config name
-    wxString conf_filename; 
+    wxString conf_filename;
     // alternative config name
-    wxString alt_conf_filename; 
+    wxString alt_conf_filename;
     // directory for (named by user) config files
     wxString config_dir;
 
@@ -32,5 +32,5 @@ wxString get_full_path_of_help_file (wxString const& name);
 
 DECLARE_APP(FApp)
 
-#endif 
+#endif
 

@@ -34,12 +34,12 @@ enum {
     ID_aux_m_tfont                 ,
     ID_aux_yz_fit                  ,
     ID_aux_yz_change               ,
-    ID_aux_yz_auto                  
+    ID_aux_yz_auto
 };
 
 
 //===============================================================
-//                           AuxPlot (auxiliary plot) 
+//                           AuxPlot (auxiliary plot)
 //===============================================================
 BEGIN_EVENT_TABLE (AuxPlot, FPlot)
     EVT_PAINT (           AuxPlot::OnPaint)
@@ -62,7 +62,7 @@ END_EVENT_TABLE()
 
 void AuxPlot::OnPaint(wxPaintEvent&)
 {
-    frame->draw_crosshair(-1, -1); 
+    frame->draw_crosshair(-1, -1);
     buffered_draw();
     vert_line_following_cursor(mat_redraw);//draw, if necessary, vertical lines
 }
@@ -72,44 +72,44 @@ inline double model_value(vector<Point>::const_iterator pt, Model const* model)
     return model->value(pt->x);
 }
 
-double diff_of_data_for_draw_data (vector<Point>::const_iterator i, 
+double diff_of_data_for_draw_data (vector<Point>::const_iterator i,
                                    Model const* model)
 {
     return i->y - model_value(i, model);
 }
 
-double rdiff_of_data_for_draw_data (vector<Point>::const_iterator i, 
+double rdiff_of_data_for_draw_data (vector<Point>::const_iterator i,
                                     Model const* model)
 {
     return model_value(i, model) - i->y;
 }
 
-double diff_stddev_of_data_for_draw_data (vector<Point>::const_iterator i, 
+double diff_stddev_of_data_for_draw_data (vector<Point>::const_iterator i,
                                           Model const* model)
 {
     return (i->y - model_value(i, model)) / i->sigma;
 }
 
-double rdiff_stddev_of_data_for_draw_data (vector<Point>::const_iterator i, 
+double rdiff_stddev_of_data_for_draw_data (vector<Point>::const_iterator i,
                                            Model const* model)
 {
     return (model_value(i, model) - i->y) / i->sigma;
 }
 
-double diff_chi2_of_data_for_draw_data (vector<Point>::const_iterator i, 
+double diff_chi2_of_data_for_draw_data (vector<Point>::const_iterator i,
                                         Model const* model)
 {
     double t = (i->y - model_value(i, model)) / i->sigma;
     return t*t;
 }
 
-double diff_y_perc_of_data_for_draw_data (vector<Point>::const_iterator i, 
+double diff_y_perc_of_data_for_draw_data (vector<Point>::const_iterator i,
                                           Model const* model)
 {
     return i->y ? (i->y - model_value(i, model)) / i->y * 100 : 0;
 }
 
-double rdiff_y_perc_of_data_for_draw_data (vector<Point>::const_iterator i, 
+double rdiff_y_perc_of_data_for_draw_data (vector<Point>::const_iterator i,
                                            Model const* model)
 {
     return i->y ? (model_value(i, model) - i->y) / i->y * 100 : 0;
@@ -137,17 +137,17 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
     if (mark_peak_ctrs) {
         int ymax = pixel_height;
         std::vector<wxPoint> const& t = master->get_special_points();
-        for (vector<wxPoint>::const_iterator i = t.begin(); i != t.end(); i++) 
+        for (vector<wxPoint>::const_iterator i = t.begin(); i != t.end(); i++)
             dc.DrawLine(i->x, 0, i->x, ymax);
     }
 
-    if (kind == apk_empty || data->is_empty()) 
+    if (kind == apk_empty || data->is_empty())
         return;
 
     if (x_axis_visible) {
         int Y0 = ys.px(0.);
         dc.DrawLine (0, Y0, pixel_width, Y0);
-        if (kind == apk_diff) 
+        if (kind == apk_diff)
             draw_zoom_text(dc, !monochrome);
     }
     if (y_axis_visible) {
@@ -162,11 +162,11 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
 
     fp (*f)(vector<Point>::const_iterator, Model const*) = 0;
     bool cummulative = false;
-    if (kind == apk_diff) 
-        f = reversed_diff ? rdiff_of_data_for_draw_data 
+    if (kind == apk_diff)
+        f = reversed_diff ? rdiff_of_data_for_draw_data
                           : diff_of_data_for_draw_data;
     else if (kind == apk_diff_stddev)
-        f = reversed_diff ? rdiff_stddev_of_data_for_draw_data 
+        f = reversed_diff ? rdiff_stddev_of_data_for_draw_data
                           : diff_stddev_of_data_for_draw_data;
     else if (kind == apk_diff_y_perc)
         f = reversed_diff ? rdiff_y_perc_of_data_for_draw_data
@@ -179,18 +179,18 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
     draw_data (dc, f, data, model, col, col, 0, cummulative);
 }
 
-/// print zoom info - how it compares to zoom of the master plot (e.g. "x3"), 
+/// print zoom info - how it compares to zoom of the master plot (e.g. "x3"),
 /// it makes sense only for apk_diff plot, when master plot is not logarithmic
 void AuxPlot::draw_zoom_text(wxDC& dc, bool set_pen)
 {
-    if (master->get_y_scale().logarithm) 
+    if (master->get_y_scale().logarithm)
         return;
     if (set_pen)
         dc.SetTextForeground(xAxisCol);
-    set_font(dc, *wxNORMAL_FONT);  
-    string s = "x" + S(y_zoom);  
+    set_font(dc, *wxNORMAL_FONT);
+    string s = "x" + S(y_zoom);
     wxCoord w, h;
-    dc.GetTextExtent (s2wx(s), &w, &h); 
+    dc.GetTextExtent (s2wx(s), &w, &h);
     dc.DrawText (s2wx(s), get_pixel_width(dc) - w - 2, 2);
 }
 
@@ -217,16 +217,16 @@ void AuxPlot::OnLeaveWindow (wxMouseEvent&)
 
 bool AuxPlot::is_zoomable()
 {
-    return kind == apk_diff || kind == apk_diff_stddev 
+    return kind == apk_diff || kind == apk_diff_stddev
            || kind == apk_diff_y_perc || kind == apk_cum_chi2;
 }
 
 void AuxPlot::set_scale(int pixel_width, int pixel_height)
 {
-    // this functions depends on x scale in MainPlot 
-    // sometimes AuxPlot is redrawed before MainPlot, so we are updating 
+    // this functions depends on x scale in MainPlot
+    // sometimes AuxPlot is redrawed before MainPlot, so we are updating
     // horizontal scale in MainPlot
-    master->set_scale(pixel_width, 0); 
+    master->set_scale(pixel_width, 0);
     xs = master->get_x_scale();
 
     if (kind == apk_cum_chi2) {
@@ -237,8 +237,8 @@ void AuxPlot::set_scale(int pixel_width, int pixel_height)
     switch (kind) {
         case apk_empty:
             ys.scale = 1.; //y scale doesn't matter
-            break; 
-        case apk_diff: 
+            break;
+        case apk_diff:
             if (master->get_y_scale().logarithm)
                 ys.scale = y_zoom;
             else
@@ -253,14 +253,14 @@ void AuxPlot::set_scale(int pixel_width, int pixel_height)
     }
     ys.origin = - pixel_height / 2. / ys.scale;
 }
- 
+
 void AuxPlot::read_settings(wxConfigBase *cf)
 {
     wxString path = wxT("/AuxPlot_") + name;
     cf->SetPath(path);
     kind = static_cast <Aux_plot_kind_enum> (cf->Read (wxT("kind"), apk_diff));
-    mark_peak_ctrs = cfg_read_bool (cf, wxT("markCtr"), false);  
-    reversed_diff = cfg_read_bool (cf, wxT("reversedDiff"), false);  
+    mark_peak_ctrs = cfg_read_bool (cf, wxT("markCtr"), false);
+    reversed_diff = cfg_read_bool (cf, wxT("reversedDiff"), false);
     auto_zoom_y = false;
     line_between_points = cfg_read_bool(cf, wxT("line_between_points"), true);
     point_radius = cf->Read (wxT("point_radius"), 1);
@@ -282,7 +282,7 @@ void AuxPlot::read_settings(wxConfigBase *cf)
 void AuxPlot::save_settings(wxConfigBase *cf) const
 {
     cf->SetPath(wxT("/AuxPlot_") + name);
-    cf->Write (wxT("kind"), (int) kind); 
+    cf->Write (wxT("kind"), (int) kind);
     cf->Write (wxT("markCtr"), mark_peak_ctrs);
     cf->Write (wxT("reversedDiff"), reversed_diff);
     cf->Write (wxT("line_between_points"), line_between_points);
@@ -294,7 +294,7 @@ void AuxPlot::save_settings(wxConfigBase *cf) const
     // nothing here now
 
     cf->SetPath(wxT("../Colors"));
-    cfg_write_color(cf, wxT("bg"), backgroundCol); 
+    cfg_write_color(cf, wxT("bg"), backgroundCol);
     cfg_write_color(cf, wxT("active_data"), activeDataCol);
     cfg_write_color(cf, wxT("inactive_data"),inactiveDataCol);
     cf->SetPath(wxT(".."));
@@ -310,15 +310,15 @@ void AuxPlot::OnLeftDown (wxMouseEvent &event)
     }
     int X = event.GetPosition().x;
     // if mouse pointer is near to left or right border, move view
-    if (X < move_plot_margin_width) 
+    if (X < move_plot_margin_width)
         frame->scroll_view_horizontally(-0.33);  // <--
-    else if (X > GetClientSize().GetWidth() - move_plot_margin_width) 
+    else if (X > GetClientSize().GetWidth() - move_plot_margin_width)
         frame->scroll_view_horizontally(+0.33); // -->
     else {
         mouse_press_X = X;
         vert_line_following_cursor(mat_start, mouse_press_X+1, mouse_press_X);
-        SetCursor(wxCURSOR_SIZEWE);  
-        frame->set_status_text("Select x range and release button to zoom..."); 
+        SetCursor(wxCURSOR_SIZEWE);
+        frame->set_status_text("Select x range and release button to zoom...");
         CaptureMouse();
     }
 }
@@ -329,8 +329,8 @@ bool AuxPlot::cancel_mouse_left_press()
         vert_line_following_cursor(mat_stop);
         ReleaseMouse();
         mouse_press_X = INT_MIN;
-        SetCursor(wxCURSOR_CROSS);  
-        frame->set_status_text(""); 
+        SetCursor(wxCURSOR_CROSS);
+        frame->set_status_text("");
         return true;
     }
     else
@@ -361,19 +361,19 @@ void AuxPlot::OnRightDown (wxMouseEvent &event)
     //wxMenu *kind_menu = new wxMenu;
     popup_menu.AppendRadioItem(ID_aux_plot0+0, wxT("&empty"), wxT("nothing"));
     popup_menu.AppendRadioItem(ID_aux_plot0+1, wxT("&diff"), wxT("y_d - y_s"));
-    popup_menu.AppendRadioItem(ID_aux_plot0+2, wxT("&weighted diff"), 
+    popup_menu.AppendRadioItem(ID_aux_plot0+2, wxT("&weighted diff"),
                                wxT("(y_d - y_s) / sigma"));
-    popup_menu.AppendRadioItem(ID_aux_plot0+3, wxT("&proc diff"), 
+    popup_menu.AppendRadioItem(ID_aux_plot0+3, wxT("&proc diff"),
                                wxT("(y_d - y_s) / y_d [%]"));
-    popup_menu.AppendRadioItem(ID_aux_plot0+4, wxT("cumul. &chi2"), 
+    popup_menu.AppendRadioItem(ID_aux_plot0+4, wxT("cumul. &chi2"),
                                wxT("cumulative chi square"));
     popup_menu.Check(ID_aux_plot0+kind, true);
     popup_menu.AppendSeparator();
-    popup_menu.AppendCheckItem(ID_aux_revd, wxT("reversed diff"), 
+    popup_menu.AppendCheckItem(ID_aux_revd, wxT("reversed diff"),
                                wxT(""));
     popup_menu.Check(ID_aux_revd, reversed_diff);
     popup_menu.AppendSeparator();
-    popup_menu.AppendCheckItem(ID_aux_plot_ctr, wxT("show peak po&sitions"), 
+    popup_menu.AppendCheckItem(ID_aux_plot_ctr, wxT("show peak po&sitions"),
                                wxT("mark centers of peaks"));
     popup_menu.Check(ID_aux_plot_ctr, mark_peak_ctrs);
     popup_menu.AppendSeparator();
@@ -451,7 +451,7 @@ void AuxPlot::OnPopupColor (wxCommandEvent& event)
     }
     else if (n == ID_aux_c_axis)
         color = &xAxisCol;
-    else 
+    else
         return;
     if (change_color_dlg(*color)) {
         refresh();
@@ -460,9 +460,9 @@ void AuxPlot::OnPopupColor (wxCommandEvent& event)
 
 void AuxPlot::OnPopupYZoom (wxCommandEvent&)
 {
-    int r = wxGetNumberFromUser(wxT("Set zoom in y direction [%]"), 
-                                wxT(""), wxT(""), 
-                                static_cast<int>(y_zoom * 100 + 0.5), 
+    int r = wxGetNumberFromUser(wxT("Set zoom in y direction [%]"),
+                                wxT(""), wxT(""),
+                                static_cast<int>(y_zoom * 100 + 0.5),
                                 1, 10000000);
     if (r > 0)
         y_zoom = r / 100.;
@@ -487,31 +487,31 @@ void AuxPlot::fit_y_zoom(Data const* data, Model const* model)
         return;
     int pixel_height = GetClientSize().GetHeight();
     switch (kind) { // setting y_zoom
-        case apk_diff: 
+        case apk_diff:
             {
             y = get_max_abs_y(diff_of_data_for_draw_data, first, last, model);
             Scale const& mys = master->get_y_scale();
-            y_zoom = fabs (pixel_height / (2 * y 
+            y_zoom = fabs (pixel_height / (2 * y
                                            * (mys.logarithm ? 1 : mys.scale)));
             fp order = pow (10, floor (log10(y_zoom)));
             y_zoom = floor(y_zoom / order) * order;
             }
             break;
         case apk_diff_stddev:
-            y = get_max_abs_y(diff_stddev_of_data_for_draw_data, 
+            y = get_max_abs_y(diff_stddev_of_data_for_draw_data,
                               first, last, model);
             y_zoom_base = pixel_height / (2. * y);
             y_zoom = 0.9;
             break;
         case apk_diff_y_perc:
-            y = get_max_abs_y(diff_y_perc_of_data_for_draw_data, 
+            y = get_max_abs_y(diff_y_perc_of_data_for_draw_data,
                               first, last, model);
             y_zoom_base = pixel_height / (2. * y);
             y_zoom = 0.9;
             break;
         case apk_cum_chi2:
             y = 0.;
-            for (vector<Point>::const_iterator i = first; i < last; i++) 
+            for (vector<Point>::const_iterator i = first; i < last; i++)
                 y += diff_chi2_of_data_for_draw_data(i, model);
             y_zoom_base = pixel_height / y;
             y_zoom = 0.9;

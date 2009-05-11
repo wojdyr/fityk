@@ -17,7 +17,7 @@ public:
     bool landscape;
     bool colors;
     //int scale;
-    //bool keep_ratio; 
+    //bool keep_ratio;
     bool plot_aux[2], plot_borders;
     PlotPane* plot_pane;
 
@@ -28,7 +28,7 @@ public:
     void print();
     void print_to_psfile();
     void printPreview();
-    void pageSetup(); 
+    void pageSetup();
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
 private:
@@ -46,7 +46,7 @@ protected:
     PrintManager *pm;
     wxRadioBox *orientation, *colors;
     wxComboBox *papers;
-    //wxCheckBox *keep_ratio; 
+    //wxCheckBox *keep_ratio;
     wxCheckBox *plot_aux[2], *plot_borders;
     SpinCtrl *left_margin, *right_margin, *top_margin, *bottom_margin;
     //SpinCtrl *scale;

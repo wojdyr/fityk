@@ -21,10 +21,10 @@ bool VariableUser::is_directly_dependent_on(int idx) {
 }
 
 /// checks if *this depends (directly or indirectly) on variable with index idx
-bool VariableUser::is_dependent_on(int idx, 
+bool VariableUser::is_dependent_on(int idx,
                                    vector<Variable*> const &variables) const
 {
-    for (vector<int>::const_iterator i = var_idx.begin(); 
+    for (vector<int>::const_iterator i = var_idx.begin();
             i != var_idx.end(); ++i)
         if (*i == idx || variables[*i]->is_dependent_on(idx, variables))
             return true;
@@ -49,10 +49,10 @@ void VariableUser::set_var_idx(vector<Variable*> const &variables)
     }
 }
 
-int VariableUser::get_max_var_idx() 
+int VariableUser::get_max_var_idx()
 {
-    if (var_idx.empty()) 
-        return -1; 
+    if (var_idx.empty())
+        return -1;
     else
        return *max_element(var_idx.begin(), var_idx.end());
 }
@@ -62,7 +62,7 @@ int VariableUser::get_max_var_idx()
 
 // ctor for simple variables and mirror variables
 Variable::Variable(std::string const &name_, int nr_)
-    : VariableUser(name_, "$"), 
+    : VariableUser(name_, "$"),
       nr(nr_), af(value, derivatives), original(0)
 {
     assert(!name_.empty());
@@ -77,7 +77,7 @@ Variable::Variable(std::string const &name_, int nr_)
 // ctor for compound variables
 Variable::Variable(std::string const &name_, vector<string> const &vars_,
                    vector<OpTree*> const &op_trees_)
-    : VariableUser(name_, "$", vars_), 
+    : VariableUser(name_, "$", vars_),
       nr(-1), derivatives(vars_.size()),
       af(op_trees_, value, derivatives), original(0)
 {
@@ -86,9 +86,9 @@ Variable::Variable(std::string const &name_, vector<string> const &vars_,
 
 void Variable::set_var_idx(vector<Variable*> const& variables)
 {
-    VariableUser::set_var_idx(variables); 
+    VariableUser::set_var_idx(variables);
     if (nr == -1)
-        af.tree_to_bytecode(var_idx); 
+        af.tree_to_bytecode(var_idx);
 }
 
 
@@ -96,12 +96,12 @@ string Variable::get_formula(vector<fp> const &parameters) const
 {
     assert(nr >= -1);
     vector<string> vn = concat_pairs("$", varnames);
-    return nr == -1 ? get_op_trees().back()->str(&vn) 
+    return nr == -1 ? get_op_trees().back()->str(&vn)
                     : "~" + S(parameters[nr]);
 }
 
-string Variable::get_info(vector<fp> const &parameters, bool extended) const 
-{ 
+string Variable::get_info(vector<fp> const &parameters, bool extended) const
+{
     string s = xname + " = " + get_formula(parameters) + " = " + S(value);
     if (domain.is_set())
         s += "  " + domain.str();
@@ -110,13 +110,13 @@ string Variable::get_info(vector<fp> const &parameters, bool extended) const
     if (extended && nr == -1) {
         vector<string> vn = concat_pairs("$", varnames);
         for (unsigned int i = 0; i < varnames.size(); ++i)
-            s += "\nd(" + xname + ")/d($" + varnames[i] + "): " 
+            s += "\nd(" + xname + ")/d($" + varnames[i] + "): "
               + get_op_trees()[i]->str(&vn) + " == " + S(derivatives[i]);
     }
     return s;
-} 
+}
 
-void Variable::recalculate(vector<Variable*> const &variables, 
+void Variable::recalculate(vector<Variable*> const &variables,
                            vector<fp> const &parameters)
 {
     if (nr >= 0) {
@@ -129,7 +129,7 @@ void Variable::recalculate(vector<Variable*> const &variables,
         for (int i = 0; i < size(derivatives); ++i) {
             Variable *v = variables[var_idx[i]];
             vector<ParMult> const &pm = v->get_recursive_derivatives();
-            for (vector<ParMult>::const_iterator j = pm.begin(); 
+            for (vector<ParMult>::const_iterator j = pm.begin();
                     j != pm.end(); ++j) {
                 recursive_derivatives.push_back(*j);
                 recursive_derivatives.back().mult *= derivatives[i];
@@ -138,30 +138,30 @@ void Variable::recalculate(vector<Variable*> const &variables,
   }
   else if (nr == -2) {
       if (original) {
-          value = original->value; 
+          value = original->value;
           recursive_derivatives = original->recursive_derivatives;
       }
   }
-  else 
+  else
       assert(0);
 }
 
 void Variable::erased_parameter(int k)
 {
-    if (nr != -1 && nr > k) 
-            --nr; 
-    for (vector<ParMult>::iterator i = recursive_derivatives.begin(); 
+    if (nr != -1 && nr > k)
+            --nr;
+    for (vector<ParMult>::iterator i = recursive_derivatives.begin();
                                         i != recursive_derivatives.end(); ++i)
         if (i->p > k)
             -- i->p;
 }
 
-Variable const* Variable::freeze_original(fp val) 
+Variable const* Variable::freeze_original(fp val)
 {
     assert(nr == -2);
     Variable const* old = original;
     original = 0;
-    value = val; 
+    value = val;
     return old;
 }
 
@@ -172,40 +172,40 @@ template <typename ScannerT>
 FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
 {
     //  Start grammar definition
-    real_const  =  leaf_node_d[   real_p 
-                               |  as_lower_d[str_p("pi")] 
-                               |  '{' >> lexeme_d[+~ch_p('}') >> '}'] 
+    real_const  =  leaf_node_d[   real_p
+                               |  as_lower_d[str_p("pi")]
+                               |  '{' >> lexeme_d[+~ch_p('}') >> '}']
                               ];
 
     //"x" only in functions
     //all expressions but the last are for variables and functions
     //the last is for function types
     variable    = leaf_node_d[lexeme_d['$' >> +(alnum_p | '_')]]
-                | leaf_node_d[lexeme_d['~' >> real_p] 
+                | leaf_node_d[lexeme_d['~' >> real_p]
                               >> !('[' >> !real_p >> "+-" >> real_p >> ']')]
                 | leaf_node_d["~{" >> lexeme_d[+~ch_p('}') >> '}']
                               >> !('[' >> !real_p >> "+-" >> real_p >> ']')]
-                // using FunctionLhsG causes crash 
-                | leaf_node_d[(lexeme_d["%" >> +(alnum_p | '_')] //FunctionLhsG 
-                              | !lexeme_d['@' >> uint_p >> '.'] 
-                                >> (str_p("F[")|"Z[") >> int_p >> ch_p(']') 
+                // using FunctionLhsG causes crash
+                | leaf_node_d[(lexeme_d["%" >> +(alnum_p | '_')] //FunctionLhsG
+                              | !lexeme_d['@' >> uint_p >> '.']
+                                >> (str_p("F[")|"Z[") >> int_p >> ch_p(']')
                               )
-                              >> '.' >> lexeme_d[alpha_p >> *(alnum_p | '_')]] 
+                              >> '.' >> lexeme_d[alpha_p >> *(alnum_p | '_')]]
                 | leaf_node_d[lexeme_d[alpha_p >> *(alnum_p | '_')]]
                 ;
 
     exptoken    =  real_const
                 |  inner_node_d[ch_p('(') >> expression >> ')']
-                |  root_node_d[ as_lower_d[ str_p("sqrt") | "exp" 
-                                          | "erfc" | "erf" | "log10" | "ln" 
-                                          | "sinh" | "cosh" | "tanh" 
-                                          | "sin" | "cos" | "tan" 
+                |  root_node_d[ as_lower_d[ str_p("sqrt") | "exp"
+                                          | "erfc" | "erf" | "log10" | "ln"
+                                          | "sinh" | "cosh" | "tanh"
+                                          | "sin" | "cos" | "tan"
                                           | "atan" | "asin" | "acos"
                                           | "lgamma" | "abs"
                                           ] ]
                    >>  inner_node_d[ch_p('(') >> expression >> ')']
                 | root_node_d[ as_lower_d["voigt"] ]
-                  >>  inner_node_d[ch_p('(') >> expression >> ','] 
+                  >>  inner_node_d[ch_p('(') >> expression >> ',']
                   >>  discard_last_node_d[expression >> ')']
                 |  variable
                 ;
@@ -229,13 +229,13 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
                     );
 }
 
-// explicit template instantiation -- to accelerate compilation 
+// explicit template instantiation -- to accelerate compilation
 template FuncGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(FuncGrammar const&);
 
 template FuncGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<no_actions_action_policy<action_policy> > > > >::definition(FuncGrammar const&);
 
 
-/// small and slow utility function 
+/// small and slow utility function
 /// uses calculate_deriv() to simplify formulae
 std::string simplify_formula(std::string const &formula)
 {

@@ -1,4 +1,4 @@
-// This file is part of fityk program. Copyright (C) Marcin Wojdyr 
+// This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License version 2 or (at your option) 3
 // $Id$
 
@@ -37,7 +37,7 @@ bool is_double (string const& s) {
         return false;
     while (isspace(*endptr))
         endptr++;
-    return (*endptr == 0); 
+    return (*endptr == 0);
 }
 
 bool is_int (string const& s) {
@@ -48,12 +48,12 @@ bool is_int (string const& s) {
         return false;
     while (isspace(*endptr))
         endptr++;
-    return (*endptr == 0); 
+    return (*endptr == 0);
 }
 
 void replace_all(string &s, string const &old, string const &new_)
 {
-    string::size_type pos = 0; 
+    string::size_type pos = 0;
     while ((pos = s.find(old, pos)) != string::npos) {
         s.replace(pos, old.size(), new_);
         pos += new_.size();
@@ -67,7 +67,7 @@ void replace_words(string &t, string const &old_word, string const &new_word)
     string::size_type pos = 0;
     while ((pos=t.find(old_word, pos)) != string::npos) {
         int k = old_word.size();
-        if ((pos == 0 
+        if ((pos == 0
                 || !(isalnum(t[pos-1]) || t[pos-1]=='_' || t[pos-1]=='$'))
               && (pos+k==t.size() || !(isalnum(t[pos+k]) || t[pos+k]=='_'))) {
             t.replace(pos, k, new_word);
@@ -79,15 +79,15 @@ void replace_words(string &t, string const &old_word, string const &new_word)
 }
 
 /// find matching bracket for (, [ or {, return position in string
-string::size_type 
+string::size_type
 find_matching_bracket(string const& formula, string::size_type left_pos)
 {
     if (left_pos == string::npos)
         return string::npos;
     assert(left_pos < formula.size());
-    char opening = formula[left_pos], 
+    char opening = formula[left_pos],
          closing = 0;
-    if (opening == '(') 
+    if (opening == '(')
         closing = ')';
     else if (opening == '[')
         closing = ']';

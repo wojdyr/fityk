@@ -2,11 +2,11 @@
 // Licence: GNU General Public License version 2 or (at your option) 3
 // $Id$
 
-// CLI-only file 
+// CLI-only file
 // in this file: main loop, readline support (command expansion)
 // and part of UserInterface implementation (CLI-specific)
 
-            
+
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,7 +45,7 @@ void cli_do_draw_plot (bool /*now*/)
     my_gnuplot.plot();
 }
 
-void cli_wait(float seconds) 
+void cli_wait(float seconds)
 {
     seconds = fabs(seconds);
     timespec ts;
@@ -54,7 +54,7 @@ void cli_wait(float seconds)
     nanosleep(&ts, 0);
 }
 
-//----------------------------------------------------------------- 
+//-----------------------------------------------------------------
 
 namespace {
 
@@ -75,7 +75,7 @@ string get_config_dir()
         home_dir = t;
     }
     // '/' is assumed as path separator
-    dir = S(home_dir) + "/" + config_dirname + "/"; 
+    dir = S(home_dir) + "/" + config_dirname + "/";
     if (access(dir.c_str(), X_OK) != 0)
         dir = ""; //gcc 2.95 have no std::string.clear() method
     first_run = false;
@@ -90,15 +90,15 @@ string get_config_dir()
     // typedef int Function ();
     // it would clash with class Function in fityk
     //  anti-Function workaround #1: works with libreadline >= 4.2
-#   define _FUNCTION_DEF 
+#   define _FUNCTION_DEF
     //  anti-Function workaround #2 (should work always), part 1
 #   define Function Function_Bn4MtsgO3fQXM4Ag4z
 
 #   include <readline/readline.h>
 #   include <readline/history.h>
 
-#   ifdef Function     
-#       undef Function // anti-Function workaround #2, part 2   
+#   ifdef Function
+#       undef Function // anti-Function workaround #2, part 2
 #   endif
 
 // libedit (MacOs X, etc.) is not supported
@@ -132,7 +132,7 @@ const char *after_info[] = { "variables", "types", "functions", "datasets",
 char *command_generator (const char *text, int state)
 {
     static unsigned int list_index = 0;
-    if (!state) 
+    if (!state)
         list_index = 0;
     while (list_index < sizeof(commands) / sizeof(char*)) {
         const char *name = commands[list_index];
@@ -151,7 +151,7 @@ char *type_generator(const char *text, int state)
     static vector<string> e;
     if (!state) {
         e.clear();
-        vector<string> const tt = Function::get_all_types(); 
+        vector<string> const tt = Function::get_all_types();
         for (vector<string>::const_iterator i = tt.begin(); i != tt.end(); ++i)
             if (!strncmp(i->c_str(), text, strlen(text)))
                 e.push_back(*i);
@@ -169,7 +169,7 @@ char *type_or_guess_generator(const char *text, int state)
 {
     static bool give_guess = false;
     const char *guess = "guess";
-    if (!state) 
+    if (!state)
         give_guess = true;
     char *r = type_generator(text, state);
     if (!r && give_guess) {
@@ -186,7 +186,7 @@ char *info_generator(const char *text, int state)
     static vector<string> e;
     if (!state) {
         e.clear();
-        vector<string> const tt = Function::get_all_types(); 
+        vector<string> const tt = Function::get_all_types();
         for (vector<string>::const_iterator i = tt.begin(); i != tt.end(); ++i)
             if (!strncmp(i->c_str(), text, strlen(text)))
                 e.push_back(*i);
@@ -212,7 +212,7 @@ char *function_generator(const char *text, int state)
     static vector<string> e;
     if (!state) {
         e.clear();
-        vector<Function*> const& ff = ftk->get_functions(); 
+        vector<Function*> const& ff = ftk->get_functions();
         for (vector<Function*>::const_iterator i=ff.begin(); i != ff.end(); ++i)
             if (!strncmp ((*i)->xname.c_str(), text, strlen(text)))
                 e.push_back((*i)->xname);
@@ -232,7 +232,7 @@ char *variable_generator(const char *text, int state)
     static vector<string> e;
     if (!state) {
         e.clear();
-        vector<Variable*> const& vv = ftk->get_variables(); 
+        vector<Variable*> const& vv = ftk->get_variables();
         for (vector<Variable*>::const_iterator i=vv.begin(); i != vv.end(); ++i)
             if (!strncmp ((*i)->name.c_str(), text, strlen(text)))
                 e.push_back((*i)->name);
@@ -282,7 +282,7 @@ char *set_eq_generator (const char *text, int state)
         return NULL;
 }
 
-bool starts_with_command(const char *cmd, int n, 
+bool starts_with_command(const char *cmd, int n,
                  const char* head, const char* tail, char trailing)
 {
     int hlen = strlen(head);
@@ -301,7 +301,7 @@ char **my_completion (const char *text, int start, int end)
     int cmd_start = start;
     while (cmd_start > 0 && rl_line_buffer[cmd_start-1] != ';')
         --cmd_start;
-    while (isspace(rl_line_buffer[cmd_start])) 
+    while (isspace(rl_line_buffer[cmd_start]))
         ++cmd_start;
     //command
     if (cmd_start == start)
@@ -354,10 +354,10 @@ char **my_completion (const char *text, int start, int end)
     }
 
     ptr = rl_line_buffer + start - 1;
-    while (ptr > rl_line_buffer && isspace(*ptr)) 
+    while (ptr > rl_line_buffer && isspace(*ptr))
         --ptr;
     if (*ptr == '>' || *ptr == '<') { //filename completion
-        rl_attempted_completion_over = 0; 
+        rl_attempted_completion_over = 0;
         return 0;
     }
 
@@ -422,7 +422,7 @@ bool main_loop()
 }
 
 
-#else //if NO_READLINE 
+#else //if NO_READLINE
 
 // the simplest version of user interface -- when readline is not available
 bool main_loop()
@@ -438,7 +438,7 @@ bool main_loop()
     return true;
 }
 
-#endif //NO_READLINE 
+#endif //NO_READLINE
 
 
 
@@ -453,7 +453,7 @@ void interrupt_handler (int /*signum*/)
 int main (int argc, char **argv)
 {
     // setting Ctrl-C handler
-    if (signal (SIGINT, interrupt_handler) == SIG_IGN) 
+    if (signal (SIGINT, interrupt_handler) == SIG_IGN)
         signal (SIGINT, SIG_IGN);
 
     // process command-line arguments
@@ -462,7 +462,7 @@ int main (int argc, char **argv)
     string script_string;
     for (int i = 1; i < argc; ++i) {
         if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
-            cout << 
+            cout <<
               "Usage: cfityk [-h] [-V] [-c <str>] [script or data file...]\n"
               "  -h, --help            show this help message\n"
               "  -V, --version         output version information and exit\n"
@@ -540,10 +540,10 @@ int main (int argc, char **argv)
                 ftk->get_ui()->process_cmd_line_filename(argv[i]);
         }
 
-        // there are two versions of main_loop(), depending on NO_READLINE  
+        // there are two versions of main_loop(), depending on NO_READLINE
         if (!quit)
-            main_loop(); 
-    } 
+            main_loop();
+    }
     catch(ExitRequestedException) {
         cerr << "\nbye...\n";
     }

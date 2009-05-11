@@ -21,19 +21,19 @@
 
 using namespace std;
 
-Fit::Fit(Ftk *F_, string const& m)  
+Fit::Fit(Ftk *F_, string const& m)
     : name(m), F(F_), evaluations(0), iter_nr (0), na(0)
 {
 }
 
-/// dof = degrees of freedom = (number of points - number of parameters) 
+/// dof = degrees of freedom = (number of points - number of parameters)
 int Fit::get_dof(vector<DataAndModel*> const& dms)
 {
     update_parameters(dms);
     int dof = 0;
-    for (vector<DataAndModel*>::const_iterator i = dms.begin(); 
-                                                    i != dms.end(); ++i) 
-        dof += (*i)->data()->get_n(); 
+    for (vector<DataAndModel*>::const_iterator i = dms.begin();
+                                                    i != dms.end(); ++i)
+        dof += (*i)->data()->get_n();
     dof -= count(par_usage.begin(), par_usage.end(), true);
     return dof;
 }
@@ -44,9 +44,9 @@ string Fit::get_info(vector<DataAndModel*> const& dms)
     int dof = get_dof(dms);
     update_parameters(dms);
     fp wssr = compute_wssr(pp, dms);
-    return "WSSR = " + S(wssr) 
-           + ";  DoF = " + S(dof) 
-           + ";  WSSR/DoF = " + S(wssr/dof) 
+    return "WSSR = " + S(wssr)
+           + ";  DoF = " + S(dof)
+           + ";  WSSR/DoF = " + S(wssr/dof)
            + ";  SSR = " + S(compute_wssr(pp, dms, false))
            + ";  R-squared = " + S(compute_r_squared(pp, dms)) ;
 }
@@ -62,14 +62,14 @@ vector<fp> Fit::get_covariance_matrix(vector<DataAndModel*> const& dms)
         if (!par_usage[i]) {     // corresponding unused parameters
             alpha[i*na + i] = 1.;
         }
-    //sometimes some parameters are unused, although formally are "used". 
+    //sometimes some parameters are unused, although formally are "used".
     //E.g. SplitGaussian with center < min(active x) will have hwhm1 unused
     //Anyway, if i'th column/row in alpha are only zeros, we must
-    //do something about it -- symmetric error is undefined 
+    //do something about it -- symmetric error is undefined
     vector<int> undef;
     for (int i = 0; i < na; ++i) {
         bool has_nonzero = false;
-        for (int j = 0; j < na; j++)                     
+        for (int j = 0; j < na; j++)
             if (alpha[na*i+j] != 0.) {
                 has_nonzero = true;
                 break;
@@ -83,7 +83,7 @@ vector<fp> Fit::get_covariance_matrix(vector<DataAndModel*> const& dms)
     reverse_matrix(alpha, na);
 
     for (vector<int>::const_iterator i = undef.begin(); i != undef.end(); ++i)
-        alpha[(*i)*na + (*i)] = 0.; 
+        alpha[(*i)*na + (*i)] = 0.;
 
     return alpha;
 }
@@ -93,7 +93,7 @@ vector<fp> Fit::get_symmetric_errors(vector<DataAndModel*> const& dms)
     vector<fp> alpha = get_covariance_matrix(dms);
     vector<fp> errors(na);
     for (int i = 0; i < na; ++i)
-        errors[i] = sqrt(alpha[i*na + i]); 
+        errors[i] = sqrt(alpha[i*na + i]);
     return errors;
 }
 
@@ -106,8 +106,8 @@ string Fit::get_error_info(vector<DataAndModel*> const& dms, bool matrix)
     for (int i = 0; i < na; i++) {
         if (par_usage[i]) {
             fp err = sqrt(alpha[i*na + i]);
-            s += "\n" + F->find_variable_handling_param(i)->xname 
-                + " = " + S(pp[i]) 
+            s += "\n" + F->find_variable_handling_param(i)->xname
+                + " = " + S(pp[i])
                 + " +- " + (err == 0. ? string("??") : S(err));
         }
     }
@@ -134,7 +134,7 @@ fp Fit::do_compute_wssr(vector<fp> const &A, vector<DataAndModel*> const& dms,
 {
     fp wssr = 0;
     F->use_external_parameters(A); //that's the only side-effect
-    for (vector<DataAndModel*>::const_iterator i = dms.begin(); 
+    for (vector<DataAndModel*>::const_iterator i = dms.begin();
                                                     i != dms.end(); ++i) {
         wssr += compute_wssr_for_data(*i, weigthed);
     }
@@ -147,7 +147,7 @@ fp Fit::compute_wssr_for_data(DataAndModel const* dm, bool weigthed)
     Data const* data = dm->data();
     int n = data->get_n();
     vector<fp> xx(n);
-    for (int j = 0; j < n; j++) 
+    for (int j = 0; j < n; j++)
         xx[j] = data->get_x(j);
     vector<fp> yy(n, 0.);
     dm->model()->compute_model(xx, yy);
@@ -157,7 +157,7 @@ fp Fit::compute_wssr_for_data(DataAndModel const* dm, bool weigthed)
         if (weigthed)
             dy /= data->get_sigma(j);
         wssr += dy * dy;
-    }  
+    }
     return wssr;
 }
 
@@ -165,7 +165,7 @@ fp Fit::compute_r_squared(vector<fp> const &A, vector<DataAndModel*> const& dms)
 {
     fp r_squared = 0;
     F->use_external_parameters(A);
-    for (vector<DataAndModel*>::const_iterator i = dms.begin(); 
+    for (vector<DataAndModel*>::const_iterator i = dms.begin();
                                                     i != dms.end(); ++i) {
         r_squared += compute_r_squared_for_data(*i);
     }
@@ -178,7 +178,7 @@ fp Fit::compute_r_squared_for_data(DataAndModel const* dm)
     Data const* data = dm->data();
     int n = data->get_n();
     vector<fp> xx(n);
-    for (int j = 0; j < n; j++) 
+    for (int j = 0; j < n; j++)
         xx[j] = data->get_x(j);
     vector<fp> yy(n, 0.);
     dm->model()->compute_model(xx, yy);
@@ -187,7 +187,7 @@ fp Fit::compute_r_squared_for_data(DataAndModel const* dm)
     fp ssr_mean = 0 ;  // Sum of squares of distances between mean and data
     for (int j = 0; j < n; j++) {
         mean += data->get_y(j) ;
-        fp dy = data->get_y(j) - yy[j]; 
+        fp dy = data->get_y(j) - yy[j];
         ssr_curve += dy * dy ;
     }
     mean = mean / n;    // Mean computed here.
@@ -200,8 +200,8 @@ fp Fit::compute_r_squared_for_data(DataAndModel const* dm)
     return 1 - (ssr_curve/ssr_mean); // R^2 as defined.
 }
 
-//results in alpha and beta 
-void Fit::compute_derivatives(vector<fp> const &A, 
+//results in alpha and beta
+void Fit::compute_derivatives(vector<fp> const &A,
                               vector<DataAndModel*> const& dms,
                               vector<fp>& alpha, vector<fp>& beta)
 {
@@ -210,25 +210,25 @@ void Fit::compute_derivatives(vector<fp> const &A,
     fill(beta.begin(), beta.end(), 0.0);
 
     F->use_external_parameters(A);
-    for (vector<DataAndModel*>::const_iterator i = dms.begin(); 
+    for (vector<DataAndModel*>::const_iterator i = dms.begin();
                                                     i != dms.end(); ++i) {
         compute_derivatives_for(*i, alpha, beta);
     }
-    // filling second half of alpha[] 
+    // filling second half of alpha[]
     for (int j = 1; j < na; j++)
         for (int k = 0; k < j; k++)
-            alpha[na * k + j] = alpha[na * j + k]; 
+            alpha[na * k + j] = alpha[na * j + k];
 }
 
-//results in alpha and beta 
+//results in alpha and beta
 //it computes only half of alpha matrix
-void Fit::compute_derivatives_for(DataAndModel const* dm, 
+void Fit::compute_derivatives_for(DataAndModel const* dm,
                                   vector<fp>& alpha, vector<fp>& beta)
 {
     Data const* data = dm->data();
     int n = data->get_n();
     vector<fp> xx(n);
-    for (int j = 0; j < n; ++j) 
+    for (int j = 0; j < n; ++j)
         xx[j] = data->get_x(j);
     vector<fp> yy(n, 0.);
     const int dyn = na+1;
@@ -243,16 +243,16 @@ void Fit::compute_derivatives_for(DataAndModel const* dm,
                 *(t+j) *= inv_sig;
                 for (int k = 0; k <= j; ++k)    //half of alpha[]
                     alpha[na * j + k] += *(t+j) * *(t+k);
-                beta[j] += dy_sig * *(t+j); 
+                beta[j] += dy_sig * *(t+j);
             }
         }
-    }   
+    }
 }
 
-string Fit::print_matrix (const vector<fp>& vec, int m, int n, 
+string Fit::print_matrix (const vector<fp>& vec, int m, int n,
                           const char *mname)
     //m rows, n columns
-{ 
+{
     if (F->get_verbosity() <= 0)  //optimization (?)
         return "";
     assert (size(vec) == m * n);
@@ -260,16 +260,16 @@ string Fit::print_matrix (const vector<fp>& vec, int m, int n,
         throw ExecuteError("In `print_matrix': It is not a matrix.");
     ostringstream h;
     h << mname << "={ ";
-    if (m == 1) { // vector 
+    if (m == 1) { // vector
         for (int i = 0; i < n; i++)
             h << vec[i] << (i < n - 1 ? ", " : " }") ;
     }
-    else { //matrix 
+    else { //matrix
         std::string blanks (strlen(mname) + 1, ' ');
         for (int j = 0; j < m; j++){
             if (j > 0)
                 h << blanks << "  ";
-            for (int i = 0; i < n; i++) 
+            for (int i = 0; i < n; i++)
                 h << vec[j * n + i] << ", ";
             h << endl;
         }
@@ -284,7 +284,7 @@ bool Fit::post_fit (const std::vector<fp>& aa, fp chi2)
     if (better) {
         F->get_fit_container()->push_param_history(aa);
         F->put_new_parameters(aa);
-        F->msg ("Better fit found (WSSR = " + S(chi2) 
+        F->msg ("Better fit found (WSSR = " + S(chi2)
                  + ", was " + S(wssr_before)
                  + ", " + S((chi2 - wssr_before) / wssr_before * 100) + "%).");
     }
@@ -334,20 +334,20 @@ void Fit::fit(int max_iter, vector<DataAndModel*> const& dms)
     // print stats
     int nu = count(par_usage.begin(), par_usage.end(), true);
     int np = 0;
-    for (vector<DataAndModel*>::const_iterator i = dms.begin(); 
-                                                    i != dms.end(); ++i) 
-        np += (*i)->data()->get_n(); 
-    F->msg ("Fit " + S(nu) + " (of " + S(na) + ") parameters to " + S(np) 
+    for (vector<DataAndModel*>::const_iterator i = dms.begin();
+                                                    i != dms.end(); ++i)
+        np += (*i)->data()->get_n();
+    F->msg ("Fit " + S(nu) + " (of " + S(na) + ") parameters to " + S(np)
             + " points ...");
 
     autoiter();
 }
 
-/// run fitting procedure (without initialization) 
+/// run fitting procedure (without initialization)
 void Fit::continue_fit(int max_iter)
 {
-    for (vector<DataAndModel*>::const_iterator i = dmdm_.begin(); 
-                                                      i != dmdm_.end(); ++i) 
+    for (vector<DataAndModel*>::const_iterator i = dmdm_.begin();
+                                                      i != dmdm_.end(); ++i)
         if (!F->contains_dm(*i) || na != size(F->get_parameters()))
             throw ExecuteError(name + " method should be initialized first.");
     update_parameters(dmdm_);
@@ -360,23 +360,23 @@ void Fit::continue_fit(int max_iter)
 
 void Fit::update_parameters(vector<DataAndModel*> const& dms)
 {
-    if (F->get_parameters().empty()) 
+    if (F->get_parameters().empty())
         throw ExecuteError("there are no fittable parameters.");
     if (dms.empty())
         throw ExecuteError("No datasets to fit.");
 
-    na = F->get_parameters().size(); 
+    na = F->get_parameters().size();
 
     par_usage = vector<bool>(na, false);
     for (int idx = 0; idx < na; ++idx) {
         int var_idx = F->find_nr_var_handling_param(idx);
-        for (vector<DataAndModel*>::const_iterator i = dms.begin(); 
+        for (vector<DataAndModel*>::const_iterator i = dms.begin();
                                                         i != dms.end(); ++i) {
             if ((*i)->model()->is_dependent_on_var(var_idx)) {
                 par_usage[idx] = true;
                 break; //go to next idx
             }
-            //vmsg(F->find_variable_handling_param(idx)->xname 
+            //vmsg(F->find_variable_handling_param(idx)->xname
             //        + " is not in chi2.");
         }
     }
@@ -417,28 +417,28 @@ void Fit::iteration_plot(vector<fp> const &A)
 /// Jordan elimination with partial pivoting.
 ///
 /// A * x = b
-/// 
+///
 /// A is n x n matrix, fp A[n*n]
-/// b is vector b[n],   
+/// b is vector b[n],
 /// Function returns vector x[] in b[], and 1-matrix in A[].
 /// return value: true=OK, false=singular matrix
-///   with special exception: 
+///   with special exception:
 ///     if i'th row, i'th column and i'th element in b all contains zeros,
-///     it's just ignored, 
-void Fit::Jordan(vector<fp>& A, vector<fp>& b, int n) 
+///     it's just ignored,
+void Fit::Jordan(vector<fp>& A, vector<fp>& b, int n)
 {
     assert (size(A) == n*n && size(b) == n);
     for (int i = 0; i < n; i++) {
         fp amax = 0;                    // looking for a pivot element
-        int maxnr = -1;  
-        for (int j = i; j < n; j++)                     
+        int maxnr = -1;
+        for (int j = i; j < n; j++)
             if (fabs (A[n*j+i]) > amax) {
                 maxnr = j;
                 amax = fabs (A[n * j + i]);
             }
         if (maxnr == -1) {    // singular matrix
-            // i-th column has only zeros. 
-            // If it's the same about i-th row, and b[i]==0, let x[i]==0. 
+            // i-th column has only zeros.
+            // If it's the same about i-th row, and b[i]==0, let x[i]==0.
             for (int j = i; j < n; j++)
                 if (A[n * i + j] || b[i]) {
                     F->vmsg (print_matrix(A, n, n, "A"));
@@ -469,17 +469,17 @@ void Fit::Jordan(vector<fp>& A, vector<fp>& b, int n)
 }
 
 /// A - matrix n x n; returns A^(-1) in A
-void Fit::reverse_matrix (vector<fp>&A, int n) 
+void Fit::reverse_matrix (vector<fp>&A, int n)
 {
     //no need to optimize it
-    assert (size(A) == n*n);    
-    vector<fp> A_result(n*n);   
+    assert (size(A) == n*n);
+    vector<fp> A_result(n*n);
     for (int i = 0; i < n; i++) {
-        vector<fp> A_copy = A;      
+        vector<fp> A_copy = A;
         vector<fp> v(n, 0);
         v[i] = 1;
         Jordan(A_copy, v, n);
-        for (int j = 0; j < n; j++) 
+        for (int j = 0; j < n; j++)
             A_result[j * n + i] = v[j];
     }
     A = A_result;
@@ -489,11 +489,11 @@ void Fit::reverse_matrix (vector<fp>&A, int n)
 
 FitMethodsContainer::FitMethodsContainer(Ftk *F)
     : ParameterHistoryMgr(F)
-    
+
 {
-    methods.push_back(new LMfit(F)); 
-    methods.push_back(new NMfit(F)); 
-    methods.push_back(new GAfit(F)); 
+    methods.push_back(new LMfit(F));
+    methods.push_back(new NMfit(F));
+    methods.push_back(new GAfit(F));
 }
 
 FitMethodsContainer::~FitMethodsContainer()
@@ -503,38 +503,38 @@ FitMethodsContainer::~FitMethodsContainer()
 
 /// loads vector of parameters from the history
 /// "relative" is used for undo/redo commands
-/// if history is not empty and current parameters are different from 
-///     the ones pointed by param_hist_ptr (but have the same size), 
-///     load_param_history(-1, true), i.e undo, will load the parameters 
+/// if history is not empty and current parameters are different from
+///     the ones pointed by param_hist_ptr (but have the same size),
+///     load_param_history(-1, true), i.e undo, will load the parameters
 ///     pointed by param_hist_ptr
 void ParameterHistoryMgr::load_param_history(int item_nr, bool relative)
 {
     if (item_nr == -1 && relative && !param_history.empty() //undo
          && param_history[param_hist_ptr].size() == F->get_parameters().size()
-         && param_history[param_hist_ptr] != F->get_parameters()) 
+         && param_history[param_hist_ptr] != F->get_parameters())
         item_nr = 0; // load parameters from param_hist_ptr
     if (relative)
         item_nr += param_hist_ptr;
     else if (item_nr < 0)
         item_nr += param_history.size();
     if (item_nr < 0 || item_nr >= size(param_history))
-        throw ExecuteError("There is no parameter history item #" 
+        throw ExecuteError("There is no parameter history item #"
                             + S(item_nr) + ".");
     F->put_new_parameters(param_history[item_nr]);
     param_hist_ptr = item_nr;
 }
 
-bool ParameterHistoryMgr::can_undo() const 
-{ 
-    return !param_history.empty() 
-        && (param_hist_ptr > 0 || param_history[0] != F->get_parameters()); 
+bool ParameterHistoryMgr::can_undo() const
+{
+    return !param_history.empty()
+        && (param_hist_ptr > 0 || param_history[0] != F->get_parameters());
 }
 
-bool ParameterHistoryMgr::push_param_history(vector<fp> const& aa) 
-{ 
+bool ParameterHistoryMgr::push_param_history(vector<fp> const& aa)
+{
     param_hist_ptr = param_history.size() - 1;
     if (param_history.empty() || param_history.back() != aa) {
-        param_history.push_back(aa); 
+        param_history.push_back(aa);
         ++param_hist_ptr;
         return true;
     }
@@ -545,7 +545,7 @@ bool ParameterHistoryMgr::push_param_history(vector<fp> const& aa)
 
 std::string ParameterHistoryMgr::param_history_info() const
 {
-    string s = "Parameter history contains " + S(param_history.size()) 
+    string s = "Parameter history contains " + S(param_history.size())
         + " items.";
     if (!param_history.empty())
         s += " Now at #" + S(param_hist_ptr);

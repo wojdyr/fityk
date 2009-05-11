@@ -17,7 +17,7 @@ class Data;
 class Ftk;
 
 /// used for storing commands and logging commands to file
-class Commands 
+class Commands
 {
 public:
     static const int max_cmd = 1024;
@@ -34,20 +34,20 @@ public:
 
     Commands() : command_counter(0) {}
     void put_command(std::string const& c, Status s);
-    void put_output_message(std::string const& s) const; 
+    void put_output_message(std::string const& s) const;
     std::string get_command(int n) const { assert(is_index(n, cmds));
                                            return cmds[n].cmd; }
-    Status get_status(int n) const { assert(is_index(n, cmds)); 
+    Status get_status(int n) const { assert(is_index(n, cmds));
                                      return cmds[n].status; }
-    std::vector<std::string> get_commands(int from, int to, 
+    std::vector<std::string> get_commands(int from, int to,
                                           bool with_status) const;
     std::string get_info(bool extended) const;
-    void start_logging(std::string const& filename, bool with_output, 
+    void start_logging(std::string const& filename, bool with_output,
                        Ftk const* F);
     void stop_logging();
     std::string get_log_file() const { return log_filename; }
     bool get_log_with_output() const { return log_with_output; }
-  
+
   protected:
     int command_counter; //!=cmds.size() if max_cmd was exceeded
     std::vector<Cmd> cmds;
@@ -60,16 +60,16 @@ public:
 
 /// commands, messages and plot refreshing
 /// it has callbacks that can be set by user interface
-class UserInterface 
+class UserInterface
 {
 public:
-    /// it's used to disable all messages 
+    /// it's used to disable all messages
     bool keep_quiet;
 
-    UserInterface(Ftk* F_) 
-        : keep_quiet(false), F(F_), m_show_message(NULL), m_do_draw_plot(NULL), 
+    UserInterface(Ftk* F_)
+        : keep_quiet(false), F(F_), m_show_message(NULL), m_do_draw_plot(NULL),
           m_exec_command(NULL), m_refresh(NULL), m_wait(NULL) {}
-    
+
     /// Update plot if pri<=auto_plot.   If !now, update can be delayed
     /// Different definition for GUI and CLI
     void draw_plot(int pri=0, bool now=false);
@@ -82,11 +82,11 @@ public:
     void stop_log() { commands.stop_logging(); }
     Commands const& get_commands() const { return commands; }
 
-    /// Excute all commands (or these from specified lines) from file. 
+    /// Excute all commands (or these from specified lines) from file.
     /// In other words, run a script (.fit).
-    void exec_script (std::string const &filename, 
+    void exec_script (std::string const &filename,
                       std::vector<std::pair<int,int> > const &selected_lines);
-    void exec_script (std::string const &filename) 
+    void exec_script (std::string const &filename)
         { exec_script(filename, std::vector<std::pair<int,int> >()); }
 
     Commands::Status exec_and_log(std::string const &c);
@@ -106,11 +106,11 @@ public:
     typedef void t_refresh();
     void set_refresh(t_refresh *func) { m_refresh = func; }
     /// refresh the screen if needed, for use during time-consuming tasks
-    void refresh() { if (m_refresh) (*m_refresh)(); } 
+    void refresh() { if (m_refresh) (*m_refresh)(); }
 
-    typedef void t_wait(float seconds); 
+    typedef void t_wait(float seconds);
     void set_wait(t_wait *func) { m_wait = func; }
-    /// Wait and disable UI for ... seconds. 
+    /// Wait and disable UI for ... seconds.
     void wait(float seconds) { if (m_wait) (*m_wait)(seconds); }
 
 private:
@@ -125,7 +125,7 @@ private:
     UserInterface (UserInterface const&); //disable
     UserInterface& operator= (UserInterface const&); //disable
 
-    void do_draw_plot(bool now=false) 
+    void do_draw_plot(bool now=false)
         { if (m_do_draw_plot) (*m_do_draw_plot)(now); }
     /// show message to user
     void show_message (OutputStyle style, std::string const& s) const
@@ -137,9 +137,9 @@ private:
 };
 
 
-    
+
 extern const char* startup_commands_filename;
 extern const char* config_dirname;
 
 
-#endif 
+#endif

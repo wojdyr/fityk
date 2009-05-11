@@ -8,10 +8,10 @@
 #include "plot.h"
 #include "cmn.h"
 #include "../numfuncs.h" // PointQ definition
-#include "../guess.h" // enum FunctionKind 
+#include "../guess.h" // enum FunctionKind
 
 
-/// it cares about visualization of spline / polyline background 
+/// it cares about visualization of spline / polyline background
 /// which can be set by selecting points on Plot
 
 class Function;
@@ -23,7 +23,7 @@ public:
     typedef std::vector<PointQ>::iterator bg_iterator;
     typedef std::vector<PointQ>::const_iterator bg_const_iterator;
 
-    BgManager(Scale const& x_scale_) : x_scale(x_scale_), min_dist(8), 
+    BgManager(Scale const& x_scale_) : x_scale(x_scale_), min_dist(8),
                                      spline_bg(true) {}
     void add_background_point(fp x, fp y);
     void rm_background_point(fp x);
@@ -53,20 +53,20 @@ class ConfigureAxesDlg;
 class FunctionMouseDrag
 {
 public:
-    enum drag_type { 
-        no_drag, 
+    enum drag_type {
+        no_drag,
         relative_value, //eg. for area
         absolute_value,  //eg. for width
-        absolute_pixels 
+        absolute_pixels
     };
 
-    class Drag 
+    class Drag
     {
     public:
         drag_type how;
         int parameter_idx;
         std::string parameter_name;
-        std::string variable_name; /// name of variable that are to be changed 
+        std::string variable_name; /// name of variable that are to be changed
         fp value; /// current value of parameter
         fp ini_value; /// initial value of parameter
         fp multiplier; /// increases or decreases changing rate
@@ -107,7 +107,7 @@ private:
                   drag_type how, fp multiplier=1.);
 };
 
-/// main plot, single in application, displays data, fitted peaks etc. 
+/// main plot, single in application, displays data, fitted peaks etc.
 class MainPlot : public FPlot
 {
     friend class ConfigureAxesDlg;
@@ -115,7 +115,7 @@ class MainPlot : public FPlot
 public:
     BgManager bgm;
 
-    MainPlot(wxWindow *parent); 
+    MainPlot(wxWindow *parent);
     ~MainPlot() {}
     void OnPaint(wxPaintEvent &event);
     void draw(wxDC &dc, bool monochrome=false);
@@ -148,30 +148,30 @@ public:
         { return dataColour[n % max_data_cols]; }
     wxColour const& get_func_color(int n) const
         { return peakCol[n % max_peak_cols]; }
-    void set_data_color(int n, wxColour const& col) 
+    void set_data_color(int n, wxColour const& col)
         { dataColour[n % max_data_cols] = col; }
     void set_data_point_size(int /*n*/, int r) { point_radius = r; }
     void set_data_with_line(int /*n*/, bool b) { line_between_points = b; }
     void set_data_with_sigma(int /*n*/, bool b) { draw_sigma = b; }
     int get_data_point_size(int /*n*/) const { return point_radius; }
     bool get_data_with_line(int /*n*/) const { return line_between_points; }
-    void set_func_color(int n, wxColour const& col) 
+    void set_func_color(int n, wxColour const& col)
         { peakCol[n % max_peak_cols] = col; }
     bool get_x_reversed() const { return x_reversed; }
     void draw_xor_peak(Function const* func, std::vector<fp> const& p_values);
     void show_popup_menu(wxMouseEvent &event);
-    void set_hint_receiver(HintReceiver *hr) 
+    void set_hint_receiver(HintReceiver *hr)
         { hint_receiver = hr; update_mouse_hints(); }
 
 private:
-    MouseModeEnum basic_mode, 
+    MouseModeEnum basic_mode,
                   mode;  ///actual mode -- either basic_mode or mmd_peak
     static const int max_group_cols = 8;
     static const int max_peak_cols = 32;
     static const int max_data_cols = 64;
     static const int max_radius = 4; ///size of data point
-    bool peaks_visible, groups_visible, model_visible,  
-         plabels_visible, x_reversed;  
+    bool peaks_visible, groups_visible, model_visible,
+         plabels_visible, x_reversed;
     wxFont plabelFont;
     std::string plabel_format;
     bool vertical_plabels;
@@ -190,7 +190,7 @@ private:
 
     void draw_x_axis (wxDC& dc, bool set_pen=true);
     void draw_y_axis (wxDC& dc, bool set_pen=true);
-    void draw_background(wxDC& dc, bool set_pen=true); 
+    void draw_background(wxDC& dc, bool set_pen=true);
     void draw_model (wxDC& dc, Model const* model, bool set_pen=true);
     void draw_groups (wxDC& dc, Model const* model, bool set_pen=true);
     void draw_peaks (wxDC& dc, Model const* model, bool set_pen=true);
@@ -221,14 +221,14 @@ public:
     void OnApply (wxCommandEvent& event);
     void OnClose (wxCommandEvent&) { close_it(this); }
     void OnChangeColor (wxCommandEvent&) { change_color_dlg(axis_color); }
-    void OnChangeFont (wxCommandEvent& event); 
+    void OnChangeFont (wxCommandEvent& event);
 private:
     MainPlot *plot;
     wxColour axis_color;
-    wxCheckBox *x_show_axis, *x_show_tics, *x_show_minor_tics, 
-               *x_show_grid, *x_reversed_cb, *x_logarithm_cb; 
-    wxCheckBox *y_show_axis, *y_show_tics, *y_show_minor_tics, 
-               *y_show_grid, *y_reversed_cb, *y_logarithm_cb; 
+    wxCheckBox *x_show_axis, *x_show_tics, *x_show_minor_tics,
+               *x_show_grid, *x_reversed_cb, *x_logarithm_cb;
+    wxCheckBox *y_show_axis, *y_show_tics, *y_show_minor_tics,
+               *y_show_grid, *y_reversed_cb, *y_logarithm_cb;
     wxSpinCtrl *x_max_tics, *x_tics_size;
     wxSpinCtrl *y_max_tics, *y_tics_size;
     DECLARE_EVENT_TABLE()
@@ -241,10 +241,10 @@ public:
     ConfigurePLabelsDlg(wxWindow* parent, wxWindowID id, MainPlot* plot_);
     void OnApply (wxCommandEvent& event);
     void OnClose (wxCommandEvent&) { close_it(this); }
-    void OnChangeLabelFont (wxCommandEvent& event); 
-    void OnChangeLabelText (wxCommandEvent& event); 
-    void OnCheckShowLabel (wxCommandEvent& event); 
-    void OnRadioLabel (wxCommandEvent& event); 
+    void OnChangeLabelFont (wxCommandEvent& event);
+    void OnChangeLabelText (wxCommandEvent& event);
+    void OnCheckShowLabel (wxCommandEvent& event);
+    void OnRadioLabel (wxCommandEvent& event);
 private:
     MainPlot *plot;
     bool in_onradiolabel;
@@ -255,4 +255,4 @@ private:
 };
 
 
-#endif 
+#endif

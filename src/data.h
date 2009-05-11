@@ -20,36 +20,36 @@ namespace xylib { class DataSet; }
 std::string get_file_basename(std::string const& path);
 
 /// dataset
-class Data 
+class Data
 {
 public :
     std::string title;
-    static int count_blocks(std::string const& fn, 
+    static int count_blocks(std::string const& fn,
                             std::vector<std::string> const& options);
-    static int count_columns(std::string const& fn, 
-                             std::vector<std::string> const& options, 
+    static int count_columns(std::string const& fn,
+                             std::vector<std::string> const& options,
                              int first_block);
 
-    Data(Ftk const* F_) : F(F_), 
+    Data(Ftk const* F_) : F(F_),
                           given_x(INT_MAX), given_y(INT_MAX), given_s(INT_MAX),
                           x_step(0.), y_min(0.), y_max(1e3) {}
     ~Data() {}
     std::string get_info() const;
 
-    void load_file(std::string const& fn, 
-                   int idx_x, int idx_y, int idx_s, 
+    void load_file(std::string const& fn,
+                   int idx_x, int idx_y, int idx_s,
                    std::vector<int> const& blocks,
                    std::vector<std::string> const& options);
 
-    int load_arrays(std::vector<fp> const& x, std::vector<fp> const& y, 
+    int load_arrays(std::vector<fp> const& x, std::vector<fp> const& y,
                    std::vector<fp> const& sigma, std::string const& data_title);
-    void load_data_sum(std::vector<Data const*> const& dd, 
+    void load_data_sum(std::vector<Data const*> const& dd,
                        std::string const& op);
     void clear();
     void add_point(Point const& pt) { p.push_back(pt); }; //don't use it
     void add_one_point(double x, double y, double sigma);
     fp get_x(int n) const { return p[active_p[n]].x; }
-    fp get_y(int n) const { return p[active_p[n]].y; } 
+    fp get_y(int n) const { return p[active_p[n]].y; }
     fp get_sigma (int n) const { return p[active_p[n]].sigma; }
     int get_n() const { return active_p.size(); }
     bool is_empty() const { return p.empty(); }
@@ -60,7 +60,7 @@ public :
     void update_active_p();
     //int auto_range (fp y_level, fp x_margin);
     std::string range_as_string () const;
-    int get_lower_bound_ac (fp x) const; 
+    int get_lower_bound_ac (fp x) const;
     int get_upper_bound_ac (fp x) const;
     std::string const& get_title() const { return title; }
     std::string const& get_filename() const { return filename; }
@@ -70,7 +70,7 @@ public :
     //return points at x (if any) or (usually) after it.
     std::vector<Point>::const_iterator get_point_at(fp x) const;
     fp get_x_min() const { return p.empty() ? 0 : p.front().x; }
-    fp get_x_max() const { return p.empty() ? 180. : p.back().x; } 
+    fp get_x_max() const { return p.empty() ? 180. : p.back().x; }
     fp get_y_min() const { return y_min; }
     fp get_y_max() const { return y_max; }
     std::vector<Point> const& points() const { return p; }
@@ -86,7 +86,7 @@ private:
     std::string filename;
     int given_x, given_y, given_s;/// columns given when loading the file
     std::vector<int> given_blocks;
-    std::vector<std::string> given_options; 
+    std::vector<std::string> given_options;
     fp x_step; // 0.0 if not fixed;
     bool has_sigma;
     std::vector<Point> p;
@@ -97,9 +97,9 @@ private:
     fp find_step();
     void load_xy_filetype (std::ifstream& f, std::vector<int> const& cols);
     void post_load();
-    /// open file with columns embedded into filename (foo.xy:1,2), 
+    /// open file with columns embedded into filename (foo.xy:1,2),
     // returns next files, if `file' stands for a sequance
-    //std::vector<std::string> 
+    //std::vector<std::string>
     //open_filename_with_columns(std::string const& file, std::ifstream& f);
 };
 

@@ -29,11 +29,11 @@ public:
     std::vector<std::string> const& get_zoom_hist() const { return zoom_hist; }
     MainPlot const* get_plot() const { return plot; }
     MainPlot* get_plot() { return plot; }
-    BgManager* get_bg_manager(); 
+    BgManager* get_bg_manager();
     std::vector<FPlot*> const get_visible_plots() const;
-    AuxPlot* get_aux_plot(int n) const 
+    AuxPlot* get_aux_plot(int n) const
                      { assert(n>=0 && n<2); return aux_plot[n]; }
-    void show_aux(int n, bool show); 
+    void show_aux(int n, bool show);
     bool aux_visible(int n) const;
     void draw_crosshair(int X, int Y);
 

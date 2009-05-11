@@ -15,22 +15,22 @@ using namespace boost::spirit;
 
 class Data;
 
-std::vector<Point> transform_data(std::string const& str, 
+std::vector<Point> transform_data(std::string const& str,
                                   std::vector<Point> const& old_points);
 
-bool compile_data_transformation(std::string const& str); 
+bool compile_data_transformation(std::string const& str);
 bool compile_data_expression(std::string const& str);
 bool is_data_dependent_expression(std::string const& s);
 fp get_transform_expression_value(std::string const &s, Data const* data);
-fp get_transform_expr_value(std::vector<int>& code_, 
+fp get_transform_expr_value(std::vector<int>& code_,
                             std::vector<Point> const& points);
-std::vector<fp> get_all_point_expressions(std::string const &s, 
+std::vector<fp> get_all_point_expressions(std::string const &s,
                                           Data const* data,
                                           bool only_active=true);
-bool get_dt_code(std::string const& s, 
+bool get_dt_code(std::string const& s,
                  std::vector<int>& code_, std::vector<fp>& numbers_);
 std::string get_trans_repr(std::string const& s);
-fp get_value_for_point(std::vector<int> const& code_, 
+fp get_value_for_point(std::vector<int> const& code_,
                        std::vector<fp> const& numbers_, fp x, fp y);
 
 
@@ -43,7 +43,7 @@ struct DataExpressionGrammar : public grammar<DataExpressionGrammar>
     definition(DataExpressionGrammar const& /*self*/);
 
     rule<ScannerT> rprec1, rbool_or, rbool_and, rbool_not, rbool,
-                   rprec2, rprec3, rprec4, rprec5; 
+                   rprec2, rprec3, rprec4, rprec5;
 
     rule<ScannerT> const& start() const { return rprec1; }
   };
@@ -70,4 +70,4 @@ extern DataTransformGrammar DataTransformG;
 
 
 
-#endif 
+#endif

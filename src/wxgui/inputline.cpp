@@ -1,22 +1,22 @@
 // Purpose: input line with history (wxTextCtrl+wxSpinButton)
-// Copyright: (c) 2007 Marcin Wojdyr 
+// Copyright: (c) 2007 Marcin Wojdyr
 // Licence: wxWidgets licence, or (at your option) GPL
 // $Id$
 
-/// Input line with history (wxTextCtrl+wxSpinButton). 
+/// Input line with history (wxTextCtrl+wxSpinButton).
 /// Supported keybindings:
-///      up / Ctrl-p   Move `back' through the history list, 
+///      up / Ctrl-p   Move `back' through the history list,
 ///                     fetching the previous command.
-///    down / Ctrl-n   Move `forward' through the history list, 
+///    down / Ctrl-n   Move `forward' through the history list,
 ///                     fetching the next command.
 ///      page up       Move to the first line in the history.
-///      page down     Move to the end of the input history, 
+///      page down     Move to the end of the input history,
 ///                     i.e., the line currently being entered.
 ///           Ctrl-a   Move to the start of the line.
 ///           Ctrl-e   Move to the end of the line.
-///           Ctrl-k   Cut the text from the current cursor position 
+///           Ctrl-k   Cut the text from the current cursor position
 ///                     to the end of the line.
-///           Ctrl-u   Cut backward from the cursor to the beginning 
+///           Ctrl-u   Cut backward from the cursor to the beginning
 ///                     of the current line.
 ///           Ctrl-y   Yank, the same as Ctrl-V
 /// This control was originally written for Fityk (http://fityk.sf.net)
@@ -39,30 +39,30 @@ BEGIN_EVENT_TABLE(InputLine, wxPanel)
     //KEY_DOWN events from wxTextCtrl and wxSpinButtonare Connect()-ed
 END_EVENT_TABLE()
 
-InputLine::InputLine(wxWindow *parent, wxWindowID id, 
+InputLine::InputLine(wxWindow *parent, wxWindowID id,
                      V1Callback<wxString const&> const& receiver,
                      wxString const& hist_file_)
-    : wxPanel(parent, id), m_hpos(0), m_receiver(receiver), 
+    : wxPanel(parent, id), m_hpos(0), m_receiver(receiver),
       hist_file(hist_file_)
 {
     m_text = new wxTextCtrl(this, wxID_ANY, wxT(""),
-                       wxDefaultPosition, wxDefaultSize, 
+                       wxDefaultPosition, wxDefaultSize,
                        wxWANTS_CHARS|wxTE_PROCESS_ENTER /*|wxTE_PROCESS_TAB*/);
-    m_button = new wxSpinButton(this, wxID_ANY, 
+    m_button = new wxSpinButton(this, wxID_ANY,
                                 wxDefaultPosition, wxDefaultSize,
                                 wxSP_VERTICAL|wxSP_ARROW_KEYS|wxNO_BORDER),
-    m_button->SetRange(0, 0); 
-    m_button->SetValue(0); 
+    m_button->SetRange(0, 0);
+    m_button->SetValue(0);
     wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(m_text, 1, wxEXPAND);
     sizer->Add(m_button, 0, wxEXPAND);
     SetSizer(sizer);
     SetMinSize(wxSize(-1, m_text->GetBestSize().y));
-    m_text->Connect(wxID_ANY, wxEVT_KEY_DOWN, 
-                    wxKeyEventHandler(InputLine::OnKeyDownAtText), 
+    m_text->Connect(wxID_ANY, wxEVT_KEY_DOWN,
+                    wxKeyEventHandler(InputLine::OnKeyDownAtText),
                     0, this);
-    m_button->Connect(wxID_ANY, wxEVT_KEY_DOWN, 
-                      wxKeyEventHandler(InputLine::OnKeyDownAtSpinButton), 
+    m_button->Connect(wxID_ANY, wxEVT_KEY_DOWN,
+                      wxKeyEventHandler(InputLine::OnKeyDownAtSpinButton),
                       0, this);
     // read history
     if (!hist_file.IsEmpty()) {
@@ -108,7 +108,7 @@ void InputLine::HistoryMove(int n, bool relative)
     int new_pos = relative ? m_hpos + n : n;
     if (!relative && n < 0)
         new_pos += m_history.GetCount();
-    if (new_pos == m_hpos || new_pos<0 || new_pos >= (int)m_history.GetCount()) 
+    if (new_pos == m_hpos || new_pos<0 || new_pos >= (int)m_history.GetCount())
         return;
 
     // save line editing
@@ -121,12 +121,12 @@ void InputLine::HistoryMove(int n, bool relative)
     m_text->SetInsertionPointEnd();
 }
 
-void InputLine::OnInputLine(const wxString& line) 
-{ 
+void InputLine::OnInputLine(const wxString& line)
+{
     m_history.Last() = line;
     m_history.Add(wxT(""));
     GoToHistoryEnd();
-    m_receiver(line); 
+    m_receiver(line);
     m_text->SetFocus();
 }
 
@@ -158,7 +158,7 @@ void InputLine::OnKeyDownAtText (wxKeyEvent& event)
                 HistoryMove(+1, true);
                 return;
             case 'K':
-                m_text->SetSelection(m_text->GetInsertionPoint(), 
+                m_text->SetSelection(m_text->GetInsertionPoint(),
                                      m_text->GetLastPosition());
                 m_text->Cut();
                 return;

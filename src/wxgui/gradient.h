@@ -16,12 +16,12 @@ class ColorGradientDisplay : public wxPanel
 public:
     std::vector<wxColour> data;
 
-    ColorGradientDisplay(wxWindow *parent, 
+    ColorGradientDisplay(wxWindow *parent,
                       UpdateCalleeT *callee, void (UpdateCalleeT::*callback)())
-        : wxPanel(parent, -1), updateCallee(callee), updateCallback(callback) 
-    { 
-        Connect(wxEVT_PAINT, 
-                  wxPaintEventHandler(ColorGradientDisplay::OnPaint)); 
+        : wxPanel(parent, -1), updateCallee(callee), updateCallback(callback)
+    {
+        Connect(wxEVT_PAINT,
+                  wxPaintEventHandler(ColorGradientDisplay::OnPaint));
     }
     void OnPaint(wxPaintEvent&);
     bool was_resized() { return GetClientSize().GetWidth() != (int)data.size();}
@@ -52,7 +52,7 @@ class ColorSpinSelector : public wxPanel
 public:
     SpinCtrl *r, *g, *b;
 
-    ColorSpinSelector(wxWindow *parent, wxString const& title, 
+    ColorSpinSelector(wxWindow *parent, wxString const& title,
                       wxColour const& col);
     void OnSelector(wxCommandEvent &);
     DECLARE_EVENT_TABLE()
@@ -62,7 +62,7 @@ public:
 class GradientDlg : public wxDialog
 {
 public:
-    GradientDlg(wxWindow *parent, wxWindowID id, 
+    GradientDlg(wxWindow *parent, wxWindowID id,
                 wxColour const& first_col, wxColour const& last_col);
     void OnSpinEvent(wxSpinEvent &) { update_gradient_display(); }
     void OnRadioChanged(wxCommandEvent &) { update_gradient_display(); }
@@ -82,16 +82,16 @@ template<typename calleeT>
 class GradientDlgWithApply : public GradientDlg
 {
 public:
-    GradientDlgWithApply(wxWindow *parent, wxWindowID id, 
+    GradientDlgWithApply(wxWindow *parent, wxWindowID id,
                 wxColour const& first_col, wxColour const& last_col,
                 calleeT *callee_, void (calleeT::*callback_)(GradientDlg*))
-        : GradientDlg(parent, id, first_col, last_col), 
-          callee(callee_), callback(callback_) 
-    { 
+        : GradientDlg(parent, id, first_col, last_col),
+          callee(callee_), callback(callback_)
+    {
         Connect(wxID_APPLY, wxEVT_COMMAND_BUTTON_CLICKED,
-                  wxCommandEventHandler(GradientDlgWithApply::OnApply)); 
+                  wxCommandEventHandler(GradientDlgWithApply::OnApply));
         Connect(wxID_CLOSE, wxEVT_COMMAND_BUTTON_CLICKED,
-                  wxCommandEventHandler(GradientDlgWithApply::OnClose)); 
+                  wxCommandEventHandler(GradientDlgWithApply::OnClose));
     }
     void OnApply(wxCommandEvent &) { (callee->*callback)(this); }
     void OnClose(wxCommandEvent&) { close_it(this); }

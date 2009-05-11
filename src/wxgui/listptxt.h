@@ -19,9 +19,9 @@ class SideBar;
 class ListWithColors : public wxListView
 {
 public:
-    ListWithColors(wxWindow *parent, wxWindowID id, 
+    ListWithColors(wxWindow *parent, wxWindowID id,
                    std::vector<std::pair<std::string,int> > const& columns_);
-    void populate(std::vector<std::string> const& data, 
+    void populate(std::vector<std::string> const& data,
                   wxImageList* image_list = 0,
                   int active = -2);
     void OnColumnMenu(wxListEvent &event);

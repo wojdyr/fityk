@@ -3,7 +3,7 @@
 // $Id$
 
 /// In this file:
-///  small dialogs:  SumHistoryDlg, FitRunDlg, DataExportDlg, 
+///  small dialogs:  SumHistoryDlg, FitRunDlg, DataExportDlg,
 ///                  MergePointsDlg
 
 #include <wx/wxprec.h>
@@ -22,7 +22,7 @@
 #include "../fit.h"
 #include "../ui.h"
 #include "../settings.h"
-#include "../datatrans.h" 
+#include "../datatrans.h"
 #include "../logic.h"
 #include "../data.h"
 #include "../model.h" // get_ff_names()
@@ -43,7 +43,7 @@ enum {
 
     ID_DED_RADIO                   ,
     ID_DED_INACT_CB                ,
-    ID_DED_TEXT                   
+    ID_DED_TEXT
 };
 
 
@@ -63,9 +63,9 @@ BEGIN_EVENT_TABLE(SumHistoryDlg, wxDialog)
 END_EVENT_TABLE()
 
 SumHistoryDlg::SumHistoryDlg (wxWindow* parent, wxWindowID id)
-    : wxDialog(parent, id, wxT("Parameters History"), 
-               wxDefaultPosition, wxDefaultSize, 
-               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER), 
+    : wxDialog(parent, id, wxT("Parameters History"),
+               wxDefaultPosition, wxDefaultSize,
+               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
       lc(0)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
@@ -78,25 +78,25 @@ SumHistoryDlg::SumHistoryDlg (wxWindow* parent, wxWindowID id)
     up_arrow = new wxBitmapButton (this, ID_SHIST_UP, wxBitmap (up_arrow_xpm));
     arrows_sizer->Add (up_arrow, 0);
     arrows_sizer->Add (10, 10, 1);
-    down_arrow = new wxBitmapButton (this, ID_SHIST_DOWN, 
+    down_arrow = new wxBitmapButton (this, ID_SHIST_DOWN,
                                      wxBitmap (down_arrow_xpm));
     arrows_sizer->Add (down_arrow, 0);
     hsizer->Add (arrows_sizer, 0, wxALIGN_CENTER);
     top_sizer->Add (hsizer, 1, wxEXPAND);
 
     wxBoxSizer *buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
-    compute_wssr_button = new wxButton (this, ID_SHIST_CWSSR, 
+    compute_wssr_button = new wxButton (this, ID_SHIST_CWSSR,
                                         wxT("Compute WSSRs"));
     buttons_sizer->Add (compute_wssr_button, 0, wxALL, 5);
     buttons_sizer->Add (10, 10, 1);
-    buttons_sizer->Add (new wxStaticText(this, -1, wxT("View parameters:")), 
+    buttons_sizer->Add (new wxStaticText(this, -1, wxT("View parameters:")),
                         0, wxALL|wxALIGN_CENTER, 5);
     for (int i = 0; i < 4; i++)
         buttons_sizer->Add (new SpinCtrl(this, ID_SHIST_V + i, view[i],
                                          0, view_max, 40),
                             0, wxALL, 5);
     buttons_sizer->Add (10, 10, 1);
-    buttons_sizer->Add (new wxButton (this, wxID_CLOSE, wxT("&Close")), 
+    buttons_sizer->Add (new wxButton (this, wxID_CLOSE, wxT("&Close")),
                         0, wxALL, 5);
     top_sizer->Add (buttons_sizer, 0, wxALIGN_CENTER);
 
@@ -113,15 +113,15 @@ void SumHistoryDlg::initialize_lc()
     assert (view_max != -1);
     for (int i = 0; i < 4; i++)
         view[i] = min (i, view_max);
-    lc = new wxListCtrl (this, ID_SHIST_LC, 
-                         wxDefaultPosition, wxSize(450, 250), 
+    lc = new wxListCtrl (this, ID_SHIST_LC,
+                         wxDefaultPosition, wxSize(450, 250),
                          wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_HRULES|wxLC_VRULES
                              |wxSIMPLE_BORDER);
     lc->InsertColumn(0, wxT("No."));
     lc->InsertColumn(1, wxT("parameters"));
     lc->InsertColumn(2, wxT("WSSR"));
     for (int i = 0; i < 4; i++)
-        lc->InsertColumn(3 + i, wxString::Format(wxT("par. %i"), view[i])); 
+        lc->InsertColumn(3 + i, wxString::Format(wxT("par. %i"), view[i]));
 
     FitMethodsContainer const* fmc = ftk->get_fit_container();
     for (int i = 0; i != fmc->get_param_history_size(); ++i) {
@@ -147,7 +147,7 @@ void SumHistoryDlg::update_selection()
 {
     FitMethodsContainer const* fmc = ftk->get_fit_container();
     int index = fmc->get_active_nr();
-    lc->SetItemState (index, wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED, 
+    lc->SetItemState (index, wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED,
                              wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED);
     up_arrow->Enable (index != 0);
     down_arrow->Enable (index != fmc->get_param_history_size() - 1);
@@ -201,7 +201,7 @@ void SumHistoryDlg::OnActivatedItem (wxListEvent& event)
     update_selection();
 }
 
-void SumHistoryDlg::OnViewSpinCtrlUpdate (wxSpinEvent& event) 
+void SumHistoryDlg::OnViewSpinCtrlUpdate (wxSpinEvent& event)
 {
     int v = event.GetId() - ID_SHIST_V;
     assert (0 <= v && v < 4);
@@ -212,12 +212,12 @@ void SumHistoryDlg::OnViewSpinCtrlUpdate (wxSpinEvent& event)
     wxListItem li;
     li.SetMask (wxLIST_MASK_TEXT);
     li.SetText(wxString::Format(wxT("par. %i"), n));
-    lc->SetColumn(3 + v, li); 
+    lc->SetColumn(3 + v, li);
     //update data in wxListCtrl
     FitMethodsContainer const* fmc = ftk->get_fit_container();
     for (int i = 0; i != fmc->get_param_history_size(); ++i) {
         vector<double> const& item = fmc->get_item(i);
-        wxString s = n < size(item) ? wxString::Format(wxT("%g"), item[n]) 
+        wxString s = n < size(item) ? wxString::Format(wxT("%g"), item[n])
                                     : wxString();
         lc->SetItem(i, 3 + v, s);
     }
@@ -235,8 +235,8 @@ END_EVENT_TABLE()
 
 FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
     : wxDialog(parent, id, wxT("fit functions to data"),
-               wxDefaultPosition, wxDefaultSize, 
-               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER) 
+               wxDefaultPosition, wxDefaultSize,
+               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
     wxArrayString data_choices;
@@ -246,21 +246,21 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
         a += ": @" + S(sel[0]);
     else
         a += "s";
-    data_choices.Add(s2wx(a)); 
+    data_choices.Add(s2wx(a));
     data_choices.Add(wxT("all datasets"));
-    data_rb = new wxRadioBox(this, -1, wxT("fit..."), 
+    data_rb = new wxRadioBox(this, -1, wxT("fit..."),
                              wxDefaultPosition, wxDefaultSize,
                              data_choices, 1, wxRA_SPECIFY_COLS);
     if (ftk->get_dm_count() == 1)
         data_rb->Enable(1, false);
     top_sizer->Add(data_rb, 0, wxALL|wxEXPAND, 5);
     wxBoxSizer *method_sizer = new wxBoxSizer(wxHORIZONTAL);
-    method_sizer->Add(new wxStaticText(this, -1, wxT("method:")), 
+    method_sizer->Add(new wxStaticText(this, -1, wxT("method:")),
                       0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     wxArrayString m_choices;
-    m_choices.Add(wxT("Levenberg-Marquardt")); 
+    m_choices.Add(wxT("Levenberg-Marquardt"));
     m_choices.Add(wxT("Nelder-Mead simplex"));
-    m_choices.Add(wxT("Genetic Algorithm")); 
+    m_choices.Add(wxT("Genetic Algorithm"));
     method_c = new wxChoice(this, -1, wxDefaultPosition, wxDefaultSize,
                             m_choices);
     int method_nr = ftk->get_settings()->get_e("fitting-method");
@@ -277,26 +277,26 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
     max_sizer->Add(nomaxiter_st, 0, wxRIGHT|wxALIGN_CENTER_VERTICAL, 5);
     max_sizer->Add(new wxStaticText(this, -1, wxT("max. WSSR evaluations")),
                    0, wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT, 5);
-    int default_max_eval = ftk->get_settings()->get_i("max-wssr-evaluations"); 
+    int default_max_eval = ftk->get_settings()->get_i("max-wssr-evaluations");
     maxeval_sc = new SpinCtrl(this, -1, default_max_eval, 0, 999999, 70);
     max_sizer->Add(maxeval_sc, 0, wxALL, 5);
     nomaxeval_st = new wxStaticText(this, -1, wxT("(unlimited)"));
     max_sizer->Add(nomaxeval_st, 0, wxALIGN_CENTER_VERTICAL, 0);
     top_sizer->Add(max_sizer, 0);
-    
+
     initialize_cb = new wxCheckBox(this, -1, wxT("initialize method"));
     initialize_cb->SetValue(initialize);
     top_sizer->Add(initialize_cb, 0, wxALL, 5);
 
     bool autop = (ftk->get_settings()->getp("autoplot") == "on-fit-iteration");
-    autoplot_cb = new wxCheckBox(this, -1, 
+    autoplot_cb = new wxCheckBox(this, -1,
                                  wxT("refresh plot after each iteration"));
-    autoplot_cb->SetValue(autop); 
+    autoplot_cb->SetValue(autop);
     top_sizer->Add(autoplot_cb, 0, wxALL, 5);
 
 
     top_sizer->Add(new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
-    top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL), 
+    top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL),
                    0, wxALL|wxALIGN_CENTER, 5);
     SetSizerAndFit(top_sizer);
     update_allow_continue();
@@ -333,19 +333,19 @@ void FitRunDlg::OnOK(wxCommandEvent&)
     string cmd;
     int m = method_c->GetSelection();
     if (m != ftk->get_settings()->get_e("fitting-method"))
-        cmd += "with fitting-method=" 
+        cmd += "with fitting-method="
             + ftk->get_fit_container()->get_method(m)->name + " ";
 
     bool autop = (ftk->get_settings()->getp("autoplot") == "on-fit-iteration");
     if (autoplot_cb->GetValue() != autop) {
         cmd += string(cmd.empty() ? "with" : ",") + " autoplot=";
-        cmd += (autoplot_cb->GetValue() ? "on-fit-iteration " 
+        cmd += (autoplot_cb->GetValue() ? "on-fit-iteration "
                                         : "on-plot-change ");
     }
 
     int max_eval = maxeval_sc->GetValue();
-    if (max_eval != ftk->get_settings()->get_i("max-wssr-evaluations")) 
-        cmd += (cmd.empty() ? "with" : ",") 
+    if (max_eval != ftk->get_settings()->get_i("max-wssr-evaluations"))
+        cmd += (cmd.empty() ? "with" : ",")
                 + string(" max-wssr-evaluations=") + S(max_eval) + " ";
 
     bool ini = initialize_cb->GetValue();
@@ -376,7 +376,7 @@ bool export_data_dlg(wxWindow *parent, bool load_exported)
 
     vector<int> sel = frame->get_selected_data_indices();
     int data_idx;
-    if (sel.size() == 1) 
+    if (sel.size() == 1)
         data_idx = sel[0];
     else if ((int) sel.size() == ftk->get_dm_count())
         data_idx = -1;
@@ -417,16 +417,16 @@ BEGIN_EVENT_TABLE(DataExportDlg, wxDialog)
 END_EVENT_TABLE()
 
 DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id, int data_idx)
-    : wxDialog(parent, id, wxT("Export data/functions as points"), 
-               wxDefaultPosition, wxSize(600, 500), 
+    : wxDialog(parent, id, wxT("Export data/functions as points"),
+               wxDefaultPosition, wxSize(600, 500),
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
       data_idx_(data_idx)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *st1 = new wxStaticText(this, -1, 
+    wxStaticText *st1 = new wxStaticText(this, -1,
                                          wxT("       Step 1: Select columns"));
     top_sizer->Add(st1, 0, wxTOP|wxLEFT|wxRIGHT, 5);
-    wxStaticText *st2 = new wxStaticText(this, -1, 
+    wxStaticText *st2 = new wxStaticText(this, -1,
                                          wxT("       Step 2: Choose a file"));
     st2->Enable(false);
     top_sizer->Add(st2, 0, wxALL, 5);
@@ -446,9 +446,9 @@ DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id, int data_idx)
     choices.Add(wxT("x, y, sigma, model, all functions..."));
     wxString all_func;
     if (data_idx_ >= 0) {
-        vector<string> const& ff_names 
+        vector<string> const& ff_names
             = ftk->get_model(data_idx_)->get_ff_names();
-        for (vector<string>::const_iterator i = ff_names.begin(); 
+        for (vector<string>::const_iterator i = ff_names.begin();
                                                       i != ff_names.end(); ++i)
             all_func += wxT(", %") + s2wx(*i) + wxT("(x)");
         cv.Add(xysF + all_func);
@@ -469,13 +469,13 @@ DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id, int data_idx)
             rb->Enable(i, false);
     }
     top_sizer->Add(rb, 0, wxALL|wxEXPAND, 5);
-    inactive_cb = new wxCheckBox(this, ID_DED_INACT_CB, 
+    inactive_cb = new wxCheckBox(this, ID_DED_INACT_CB,
                                  wxT("export also inactive points"));
     top_sizer->Add(inactive_cb, 0, wxALL, 5);
     text = new wxTextCtrl(this, ID_DED_TEXT, wxT(""));
     top_sizer->Add(text, 0, wxEXPAND|wxALL, 5);
     top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
-    top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL), 
+    top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL),
                    0, wxALL|wxALIGN_CENTER, 5);
     SetSizerAndFit(top_sizer);
 
@@ -508,8 +508,8 @@ void DataExportDlg::on_widget_change()
     inactive_cb->Enable(!custom);
 }
 
-void DataExportDlg::OnTextChanged(wxCommandEvent&) 
-{ 
+void DataExportDlg::OnTextChanged(wxCommandEvent&)
+{
     if (!text->IsModified())
         return;
     vector<string> cols = split_string(wx2s(text->GetValue()), ",");
@@ -527,14 +527,14 @@ void DataExportDlg::OnTextChanged(wxCommandEvent&)
     inactive_cb->SetValue(has_a);
 }
 
-void DataExportDlg::OnOk(wxCommandEvent& event) 
+void DataExportDlg::OnOk(wxCommandEvent& event)
 {
     // save current settings to config file
     wxConfigBase *config = wxConfig::Get();
     config->Write(wxT("/exportDataSel"), rb->GetSelection());
-    if (is_custom()) 
+    if (is_custom())
         config->Write(wxT("/exportDataText"), text->GetValue());
-    else 
+    else
         config->Write(wxT("/exportDataA"), inactive_cb->GetValue());
 
     event.Skip();
@@ -551,35 +551,35 @@ END_EVENT_TABLE()
 
 MergePointsDlg::MergePointsDlg(wxWindow* parent, wxWindowID id)
     : wxDialog(parent, id, wxT("Merge data points"),
-               wxDefaultPosition, wxDefaultSize, 
-               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER) 
+               wxDefaultPosition, wxDefaultSize,
+               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
     inf = new wxTextCtrl(this, -1, wxT(""), wxDefaultPosition, wxDefaultSize,
                          wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
     update_info();
     top_sizer->Add(inf, 1, wxEXPAND|wxALL, 1);
-    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL); 
+    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
     dx_cb = new wxCheckBox(this, -1, wxT("merge points with |x1-x2|<"));
     dx_cb->SetValue(true);
     hsizer->Add(dx_cb, 0, wxALIGN_CENTER_VERTICAL);
     dx_val = new RealNumberCtrl(this, -1, ftk->get_settings()->getp("epsilon"));
     hsizer->Add(dx_val, 0);
     top_sizer->Add(hsizer, 0, wxALL, 5);
-    y_rb = new wxRadioBox(this, -1, wxT("set y as ..."), 
-                          wxDefaultPosition, wxDefaultSize, 
+    y_rb = new wxRadioBox(this, -1, wxT("set y as ..."),
+                          wxDefaultPosition, wxDefaultSize,
                           ArrayString(wxT("sum"), wxT("avg")),
                           1, wxRA_SPECIFY_ROWS);
     top_sizer->Add(y_rb, 0, wxEXPAND|wxALL, 5);
     focused_data = frame->get_focused_data_index();
     wxString fdstr = wxString::Format(wxT("dataset @%d"), focused_data);
-    output_rb = new wxRadioBox(this, -1, wxT("output to ..."), 
-                               wxDefaultPosition, wxDefaultSize, 
+    output_rb = new wxRadioBox(this, -1, wxT("output to ..."),
+                               wxDefaultPosition, wxDefaultSize,
                                ArrayString(fdstr, wxT("new dataset")),
                                1, wxRA_SPECIFY_ROWS);
     top_sizer->Add(output_rb, 0, wxEXPAND|wxALL, 5);
     top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
-    top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL), 
+    top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL),
                    0, wxALL|wxALIGN_CENTER, 5);
     SetSizerAndFit(top_sizer);
 }

@@ -3,7 +3,7 @@
 // $Id$
 
 /// In this file:
-///  Definition Manager Dialog (DefinitionMgrDlg) 
+///  Definition Manager Dialog (DefinitionMgrDlg)
 
 #include <wx/wxprec.h>
 #ifdef __BORLANDC__
@@ -24,12 +24,12 @@ using namespace std;
 
 enum {
     ID_DMD_NAME             = 26300,
-    ID_DMD_DEF                     
+    ID_DMD_DEF
 };
 
 string DefinitionMgrDlg::FunctionDefinitonElems::get_full_definition() const
 {
-    std::string s = name + "("; 
+    std::string s = name + "(";
     for (size_t i = 0; i < parameters.size(); ++i) {
         s += (i == 0 ? "" : ", ") + parameters[i];
         if (!defvalues[i].empty())
@@ -50,7 +50,7 @@ END_EVENT_TABLE()
 
 DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
     : wxDialog(parent, -1, wxT("Function Definition Manager"),
-               wxDefaultPosition, wxSize(600, 500), 
+               wxDefaultPosition, wxSize(600, 500),
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
       selected(0)
 {
@@ -68,7 +68,7 @@ DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
     name_sizer->Add(new wxStaticText(this, -1, wxT("Name:")),
                     0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
     wxBoxSizer *namev_sizer = new wxBoxSizer(wxVERTICAL);
-    name_tc = new wxTextCtrl(this, ID_DMD_NAME, wxT(""), 
+    name_tc = new wxTextCtrl(this, ID_DMD_NAME, wxT(""),
                              wxDefaultPosition, wxSize(200, -1));
     namev_sizer->Add(name_tc, 1, wxALL, 5);
     name_comment_st = new wxStaticText(this, -1, wxT(""));
@@ -80,7 +80,7 @@ DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
     vsizer->Add(name_sizer, 0, wxEXPAND);
     vsizer->AddSpacer(5);
 
-    vsizer->Add(new wxStaticText(this, -1, 
+    vsizer->Add(new wxStaticText(this, -1,
         wxT("Parameters (don't put 'x' here).\n")
         wxT("Default values of functions can be given in terms of:\n")
         wxT("- if it looks like peak: 'center', 'height', 'fwhm', 'area'\n")
@@ -100,22 +100,22 @@ DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
     par_g->SetLabelFont(*wxNORMAL_FONT);
     vsizer->Add(par_g, 1, wxALL|wxEXPAND, 5);
     guess_label_st = new wxStaticText(this, -1, wxT(""),
-                                      wxDefaultPosition, wxDefaultSize, 
+                                      wxDefaultPosition, wxDefaultSize,
                                       wxST_NO_AUTORESIZE|wxALIGN_RIGHT);
     vsizer->Add(guess_label_st, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 5);
     def_label_st = new wxStaticText(this, -1, wxT("definition:"),
                     wxDefaultPosition, wxDefaultSize, wxST_NO_AUTORESIZE);
     vsizer->Add(def_label_st, 0, wxEXPAND|wxALL, 5);
-    def_tc = new wxTextCtrl(this, ID_DMD_DEF, wxT(""), 
+    def_tc = new wxTextCtrl(this, ID_DMD_DEF, wxT(""),
                             wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
     vsizer->Add(def_tc, 1, wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
 
 
     hsizer->Add(vsizer, 1, wxEXPAND);
     top_sizer->Add(hsizer, 1, wxEXPAND);
-    
+
     top_sizer->Add(new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
-    top_sizer->Add(CreateButtonSizer (wxOK|wxCANCEL), 
+    top_sizer->Add(CreateButtonSizer (wxOK|wxCANCEL),
                    0, wxALL|wxALIGN_CENTER, 5);
 
     SetSizer(top_sizer);
@@ -150,7 +150,7 @@ bool DefinitionMgrDlg::check_definition()
     FunctionDefinitonElems const& fde = modified[selected];
     if (!fde.builtin) {
         string value = wx2s(def_tc->GetValue());
-        vector<string> lhs_vars(fde.parameters.size()); 
+        vector<string> lhs_vars(fde.parameters.size());
         for (size_t i = 0; i < fde.parameters.size(); ++i)
             lhs_vars[i] = fde.parameters[i];
         try {
@@ -182,7 +182,7 @@ void DefinitionMgrDlg::update_guess_comment()
         guess_label_st->SetLabel(wxT("The function can be guessed as peak."));
     else if (fk == fk_linear)
         guess_label_st->SetLabel(wxT("The function can be guessed as linear."));
-    else 
+    else
         guess_label_st->SetLabel(wxT(""));
 }
 
@@ -282,7 +282,7 @@ std::string DefinitionMgrDlg::get_command()
         for (vfde_iter_type j = orig.begin(); j != orig.end(); ++j) {
             if (i->name == j->name) {
                 found = true;
-                if (i->parameters != j->parameters 
+                if (i->parameters != j->parameters
                         || i->defvalues != j->defvalues || i->rhs != j->rhs) {
                     ss.push_back("undefine " + i->name);
                     ss.push_back("define " + i->get_full_definition());
@@ -321,7 +321,7 @@ void DefinitionMgrDlg::OnEndCellEdit(wxGridEvent &event)
     wxString new_val_ = par_g->GetCellValue(row, col);
     if (new_val_.Lower() != new_val_) {
         new_val_.MakeLower();
-        wxMessageBox(wxT("Parameter names should be lower case."), 
+        wxMessageBox(wxT("Parameter names should be lower case."),
                      wxT(""), wxOK|wxICON_INFORMATION, this);
         par_g->SetCellValue(row, col, new_val_);
     }
@@ -337,7 +337,7 @@ void DefinitionMgrDlg::OnEndCellEdit(wxGridEvent &event)
             }
         }
         else if (new_row) { //added parameter
-            if (is_valid_parameter_name(new_val.c_str()) 
+            if (is_valid_parameter_name(new_val.c_str())
                             && !contains_element(fde.parameters, new_val)) {
                 fde.parameters.push_back(new_val);
                 fde.defvalues.push_back("");

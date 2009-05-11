@@ -17,15 +17,15 @@ using namespace std;
 const char* config_dirname = ".fityk";
 const char* startup_commands_filename = "init";
 
-string Commands::Cmd::str() const 
-{ 
+string Commands::Cmd::str() const
+{
     string s = cmd + " #>";
     if (status == status_ok)
         s += "OK";
-    else if (status == status_execute_error) 
+    else if (status == status_execute_error)
         s += "Runtime Error";
     else //status_syntax_error
-        s += "Syntax Error"; 
+        s += "Syntax Error";
     return s;
 }
 
@@ -35,8 +35,8 @@ void Commands::put_command(string const &c, Commands::Status r)
         return;
     cmds.push_back(Cmd(c, r));
     ++command_counter;
-    if (!log_filename.empty())  
-        log << " " << c << endl; 
+    if (!log_filename.empty())
+        log << " " << c << endl;
 }
 
 void Commands::put_output_message(string const& s) const
@@ -88,16 +88,16 @@ string Commands::get_info(bool extended) const
         s += " of which:";
     else
         s += "\nin last " + S(cmds.size()) + " commands:";
-    s += "\n  " + S(count_commands_with_status(status_ok)) 
+    s += "\n  " + S(count_commands_with_status(status_ok))
               + " executed successfully"
-        + "\n  " + S(count_commands_with_status(status_execute_error)) 
+        + "\n  " + S(count_commands_with_status(status_execute_error))
           + " finished with execute error"
         + "\n  " + S(count_commands_with_status(status_syntax_error))
           + " with syntax error";
     if (log_filename.empty())
         s += "\nCommands are not logged to any file.";
     else
-        s += S("\nCommands (") + (log_with_output ? "with" : "without") 
+        s += S("\nCommands (") + (log_with_output ? "with" : "without")
             + " output) are logged to file: " + log_filename;
     if (extended) {
         // no extended info for now
@@ -110,7 +110,7 @@ void Commands::start_logging(string const& filename, bool with_output,
                              Ftk const* F)
 {
     if (filename.empty())
-       stop_logging(); 
+       stop_logging();
     else if (filename == log_filename) {
         if (with_output != log_with_output) {
             log_with_output = with_output;
@@ -122,11 +122,11 @@ void Commands::start_logging(string const& filename, bool with_output,
         stop_logging();
         log.clear();
         log.open(filename.c_str(), ios::out | ios::app);
-        if (!log) 
+        if (!log)
             throw ExecuteError("Can't open file for writing: " + filename);
         log << fityk_version_line << endl;
         log << "### AT "<< time_now() << "### START LOGGING ";
-        log_with_output = false; //don't put info() below into log 
+        log_with_output = false; //don't put info() below into log
         if (with_output) {
             log << "INPUT AND OUTPUT";
             F->msg("Logging input and output to file: " + filename);
@@ -150,8 +150,8 @@ void Commands::stop_logging()
 
 Commands::Status UserInterface::exec_and_log(string const &c)
 {
-    Commands::Status r = this->exec_command(c); 
-    commands.put_command(c, r); 
+    Commands::Status r = this->exec_command(c);
+    commands.put_command(c, r);
     return r;
 }
 
@@ -171,7 +171,7 @@ void UserInterface::output_message (OutputStyle style, const string& s) const
 /// Items in selected_lines are ranges (first, after-last).
 /// Lines in a file are numbered from 1.
 /// If selected_lines are empty all lines from file are executed.
-void UserInterface::exec_script(const string& filename, 
+void UserInterface::exec_script(const string& filename,
                                 const vector<pair<int,int> >& selected_lines)
 {
     ifstream file(filename.c_str(), ios::in);
@@ -203,7 +203,7 @@ void UserInterface::exec_script(const string& filename,
                 if (sscanf(s.c_str(),
                            "X[%d]=%lf, Y[%d]=%lf, S[%d]=%lf, A[%d]=%d in @%d",
                            &nx, &x, &ny, &y, &ns, &sigma, &na, &a, &nd) == 9
-                     && nx >= 0 && nx < size(F->get_data(nd)->points()) 
+                     && nx >= 0 && nx < size(F->get_data(nd)->points())
                      && nx == ny && nx == ns && nx == na) {
                     vector<Point>& p = F->get_data(nd)->get_mutable_points();
                     p[nx].x = x;
@@ -211,7 +211,7 @@ void UserInterface::exec_script(const string& filename,
                     p[ns].sigma = sigma;
                     p[na].is_active = a;
                     // check if we need to sort the data
-                    if ((nx > 0 && p[nx-1].x > x) 
+                    if ((nx > 0 && p[nx-1].x > x)
                         || (nx+1 < size(p) && x > p[nx+1].x))
                         sort(p.begin(), p.end());
                     if (dirty_data != -1 && dirty_data != nd)
@@ -227,10 +227,10 @@ void UserInterface::exec_script(const string& filename,
             replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);
             parse_and_execute(s);
         }
-        if (dirty_data != -1) 
+        if (dirty_data != -1)
             F->get_data(dirty_data)->after_transform();
     }
-    
+
     else { // execute specified lines from the file
         // read in all lines from the file for easier manipulations
         vector<string> lines;
@@ -240,7 +240,7 @@ void UserInterface::exec_script(const string& filename,
             lines.push_back(s);
         }
 
-        for (vector<pair<int,int> >::const_iterator i = selected_lines.begin(); 
+        for (vector<pair<int,int> >::const_iterator i = selected_lines.begin();
                                             i != selected_lines.end(); i++) {
             int f = i->first;
             int t = i->second;
@@ -257,8 +257,8 @@ void UserInterface::exec_script(const string& filename,
                 if (lines[j-1].empty())
                     continue;
                 if (get_verbosity() >= 0)
-                    show_message (os_quot, S(j) + "> " + lines[j-1]); 
-                // result of parse_and_execute here is neglected. Errors in 
+                    show_message (os_quot, S(j) + "> " + lines[j-1]);
+                // result of parse_and_execute here is neglected. Errors in
                 // script don't change status of command, which executes script
                 parse_and_execute(lines[j-1]);
             }
@@ -268,7 +268,7 @@ void UserInterface::exec_script(const string& filename,
 
 void UserInterface::draw_plot (int pri, bool now)
 {
-    if (pri <= F->get_settings()->get_e("autoplot")) 
+    if (pri <= F->get_settings()->get_e("autoplot"))
         do_draw_plot(now);
 }
 
@@ -278,8 +278,8 @@ int UserInterface::get_verbosity() const
 
 
 Commands::Status UserInterface::exec_command (std::string const &s)
-{ 
-    return m_exec_command ? (*m_exec_command)(s) : parse_and_execute(s); 
+{
+    return m_exec_command ? (*m_exec_command)(s) : parse_and_execute(s);
 }
 
 bool is_fityk_script(string filename)
@@ -287,7 +287,7 @@ bool is_fityk_script(string filename)
     const char *magic = "# Fityk";
 
     ifstream f(filename.c_str(), ios::in | ios::binary);
-    if (!f) 
+    if (!f)
         return false;
 
     int n = filename.size();

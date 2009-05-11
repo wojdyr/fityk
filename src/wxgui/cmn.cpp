@@ -23,17 +23,17 @@
 using namespace std;
 
 bool cfg_read_bool(wxConfigBase *cf, const wxString& key, bool def_val)
-{ 
-    bool b; 
-    cf->Read(key, &b, def_val); 
-    return b; 
+{
+    bool b;
+    cf->Read(key, &b, def_val);
+    return b;
 }
 
 double cfg_read_double(wxConfigBase *cf, const wxString& key, double def_val)
-{ 
-    double d; 
-    cf->Read(key, &d, def_val); 
-    return d; 
+{
+    double d;
+    cf->Read(key, &d, def_val);
+    return d;
 }
 
 wxColour cfg_read_color(const wxConfigBase *config, const wxString& key,
@@ -41,7 +41,7 @@ wxColour cfg_read_color(const wxConfigBase *config, const wxString& key,
 {
     return wxColour(
              config->Read (key + wxT("/Red"), (int) default_value.Red()),
-             config->Read (key + wxT("/Green"), (int) default_value.Green()), 
+             config->Read (key + wxT("/Green"), (int) default_value.Green()),
              config->Read (key + wxT("/Blue"), (int) default_value.Blue()));
 }
 
@@ -71,13 +71,13 @@ wxFont cfg_read_font(wxConfigBase const *config, wxString const& key,
         else
             return wxNullFont;
     }
-    return wxFont (config->Read(key+wxT("/pointSize"), 
+    return wxFont (config->Read(key+wxT("/pointSize"),
                                                default_value.GetPointSize()),
                    config->Read(key+wxT("/family"), default_value.GetFamily()),
                    config->Read(key+wxT("/style"), default_value.GetStyle()),
                    config->Read(key+wxT("/weight"), default_value.GetWeight()),
                    false, //underline
-                   config->Read(key+wxT("/faceName"), 
+                   config->Read(key+wxT("/faceName"),
                                 default_value.GetFaceName()));
 }
 
@@ -97,8 +97,8 @@ bool change_color_dlg(wxColour& col)
     col_data.SetCustomColour(0, col);
     col_data.SetColour(col);
     wxColourDialog dialog(0, &col_data);
-    if (dialog.ShowModal() == wxID_OK 
-            && col != dialog.GetColourData().GetColour()) { 
+    if (dialog.ShowModal() == wxID_OK
+            && col != dialog.GetColourData().GetColour()) {
         col = dialog.GetColourData().GetColour();
         return true;
     }
@@ -124,9 +124,9 @@ wxCommandEvent dummy_cmd_event;
 //                            ProportionalSplitter
 //===============================================================
 
-ProportionalSplitter::ProportionalSplitter(wxWindow* parent, wxWindowID id, 
+ProportionalSplitter::ProportionalSplitter(wxWindow* parent, wxWindowID id,
                                            float proportion, const wxSize& size,
-                                           long style) 
+                                           long style)
     : wxSplitterWindow(parent, id, wxDefaultPosition, size, style),
       m_proportion(proportion), m_firstpaint(true)
 {
@@ -135,15 +135,15 @@ ProportionalSplitter::ProportionalSplitter(wxWindow* parent, wxWindowID id,
     ResetSash();
     Connect(GetId(), wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,
                 (wxObjectEventFunction) &ProportionalSplitter::OnSashChanged);
-    Connect(GetId(), wxEVT_SIZE, 
+    Connect(GetId(), wxEVT_SIZE,
                      (wxObjectEventFunction) &ProportionalSplitter::OnReSize);
     //hack to set sizes on first paint event
-    Connect(GetId(), wxEVT_PAINT, 
+    Connect(GetId(), wxEVT_PAINT,
                       (wxObjectEventFunction) &ProportionalSplitter::OnPaint);
 }
 
 bool ProportionalSplitter::SplitHorizontally(wxWindow* win1, wxWindow* win2,
-                                             float proportion) 
+                                             float proportion)
 {
     if (proportion >= 0. && proportion <= 1.)
         m_proportion = proportion;
@@ -151,12 +151,12 @@ bool ProportionalSplitter::SplitHorizontally(wxWindow* win1, wxWindow* win2,
     int h = iround(height * m_proportion);
     //sometimes there is a strange problem without it (why?)
     if (h < GetMinimumPaneSize() || h > height-GetMinimumPaneSize())
-        h = 0; 
+        h = 0;
     return wxSplitterWindow::SplitHorizontally(win1, win2, h);
 }
 
 bool ProportionalSplitter::SplitVertically(wxWindow* win1, wxWindow* win2,
-                                           float proportion) 
+                                           float proportion)
 {
     if (proportion >= 0. && proportion <= 1.)
         m_proportion = proportion;
@@ -216,10 +216,10 @@ void ProportionalSplitter::OnPaint(wxPaintEvent &event)
 
 
 //                            KFTextCtrl
-void KFTextCtrl::OnKillFocus(wxFocusEvent&) 
-{ 
-    wxCommandEvent ev(wxEVT_COMMAND_TEXT_ENTER, GetId()); 
-    ProcessEvent(ev); 
+void KFTextCtrl::OnKillFocus(wxFocusEvent&)
+{
+    wxCommandEvent ev(wxEVT_COMMAND_TEXT_ENTER, GetId());
+    ProcessEvent(ev);
 }
 
 BEGIN_EVENT_TABLE(KFTextCtrl, wxTextCtrl)
@@ -230,7 +230,7 @@ END_EVENT_TABLE()
 /// get path ~/.fityk/filename or equivalent on other platforms
 wxString get_user_conffile(string const& filename)
 {
-    return wxStandardPaths::Get().GetUserDataDir() 
+    return wxStandardPaths::Get().GetUserDataDir()
                                    + wxFILE_SEP_PATH + s2wx(filename);
 }
 
@@ -258,7 +258,7 @@ void updateControlWithItems(wxControlWithItems *cwi, vector<string> const& v)
 }
 
 
-wxSizer* note_sizer(wxWindow *parent, wxString const& title, 
+wxSizer* note_sizer(wxWindow *parent, wxString const& title,
                     wxString const& msg)
 {
     wxStaticBoxSizer *t = new wxStaticBoxSizer(wxVERTICAL, parent, title);

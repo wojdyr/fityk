@@ -28,7 +28,7 @@ public:
     const std::string prefix;
     const std::string xname;
 
-    VariableUser(std::string const &name_, std::string const &prefix_, 
+    VariableUser(std::string const &name_, std::string const &prefix_,
               std::vector<std::string> const &vars = std::vector<std::string>())
         : name(name_), prefix(prefix_), xname(prefix_+name), varnames(vars) {}
     virtual ~VariableUser() {}
@@ -36,7 +36,7 @@ public:
     bool is_dependent_on(int idx, std::vector<Variable*> const &variables)const;
     bool is_directly_dependent_on(int idx);
     virtual void set_var_idx(std::vector<Variable*> const& variables);
-    int get_var_idx(int n) const 
+    int get_var_idx(int n) const
              { assert(n >= 0 && n < size(var_idx)); return var_idx[n]; }
     int get_max_var_idx();
     int get_vars_count() const { return varnames.size(); }
@@ -44,10 +44,10 @@ public:
              { assert(n >= 0 && n < size(varnames)); return varnames[n]; }
     void substitute_param(int n, std::string const &new_p)
              { assert(n >= 0 && n < size(varnames)); varnames[n] = new_p; }
-    std::string get_debug_idx_info() const { return xname + ": " 
+    std::string get_debug_idx_info() const { return xname + ": "
                    + join_vector(concat_pairs(varnames, var_idx, "/"), " "); }
 protected:
-    std::vector<std::string> varnames; // variable names 
+    std::vector<std::string> varnames; // variable names
     /// var_idx is set after initialization (in derived class)
     /// and modified after variable removal or change
     std::vector<int> var_idx;
@@ -55,10 +55,10 @@ protected:
 
 
 /// domain of variable, used _only_ for randomization of the variable
-class Domain 
-{ 
+class Domain
+{
     bool ok, ctr_set;
-    fp ctr, sigma; 
+    fp ctr, sigma;
 
 public:
     Domain() : ok(false), ctr_set(false) {}
@@ -68,7 +68,7 @@ public:
     fp get_sigma() const { assert(ok); return sigma; }
     void set(fp c, fp s) { ok=true; ctr_set=true; ctr=c; sigma=s; }
     void set_sigma(fp s) { ok=true; sigma=s; }
-    std::string str() const 
+    std::string str() const
     {
         if (ok)
             return "[" + (ctr_set ? S(ctr) : S()) + " +- " + S(sigma) + "]";
@@ -82,7 +82,7 @@ public:
 /// of parameters, or it is "compound variable" and has nr==-1.
 /// third special case: nr==-2 - it is mirror-variable (such variable
 ///        is not recalculated but copied)
-/// In second case, the value and derivatives are calculated 
+/// In second case, the value and derivatives are calculated
 /// in following steps:
 ///  0. string is parsed by Spirit parser to Spirit AST representation,
 ///     and then expression is simplified and derivates are
@@ -92,8 +92,8 @@ public:
 ///  1  set_var_idx() finds indices of variables in variables vector
 ///      (references to variables are kept using names of the variables
 ///       is has to be called when indices of referred variables change
-///  1a. tree_to_bytecode() called from Variable::set_var_idx 
-///       takes trees and var_idx and results in bytecode  
+///  1a. tree_to_bytecode() called from Variable::set_var_idx
+///       takes trees and var_idx and results in bytecode
 ///  3. recalculate() calculates (using run_vm()) value and derivatives
 ///     for current parameter value
 class Variable : public VariableUser
@@ -105,30 +105,30 @@ public:
     Variable(const std::string &name_, int nr_);
     Variable(std::string const &name_, std::vector<std::string> const &vars_,
              std::vector<OpTree*> const &op_trees_);
-    void recalculate(std::vector<Variable*> const &variables, 
+    void recalculate(std::vector<Variable*> const &variables,
                      std::vector<fp> const &parameters);
-  
+
     int get_nr() const { return nr; };
     void erased_parameter(int k);
     fp get_value() const { return value; };
-    std::string get_info(std::vector<fp> const &parameters, 
+    std::string get_info(std::vector<fp> const &parameters,
                          bool extended=false) const;
     std::string get_formula(std::vector<fp> const &parameters) const;
     bool is_visible() const { return true; } //for future use
     void set_var_idx(std::vector<Variable*> const& variables);
-    std::vector<ParMult> const& get_recursive_derivatives() const 
+    std::vector<ParMult> const& get_recursive_derivatives() const
                                             { return recursive_derivatives; }
     bool is_simple() const { return nr != -1; }
     bool is_constant() const { return nr == -1 && af.is_constant(); }
-    std::vector<OpTree*> const& get_op_trees() const 
+    std::vector<OpTree*> const& get_op_trees() const
                                                 { return af.get_op_trees(); }
     void set_original(Variable const* orig) { assert(nr==-2); original=orig; }
     Variable const* freeze_original(fp val);
 
 private:
-    int nr; /// see description of this class in .h 
-    fp value; 
-    std::vector<fp> derivatives; 
+    int nr; /// see description of this class in .h
+    fp value;
+    std::vector<fp> derivatives;
     std::vector<ParMult> recursive_derivatives;
     AnyFormula af; //TODO use auto_ptr<AnyFormula>
     Variable const* original;
@@ -200,4 +200,4 @@ struct FuncGrammar : public grammar<FuncGrammar>
 
 extern FuncGrammar FuncG;
 
-#endif 
+#endif

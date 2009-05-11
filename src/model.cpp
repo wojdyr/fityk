@@ -18,7 +18,7 @@
 
 using namespace std;
 
-Model::Model(Ftk *F_) 
+Model::Model(Ftk *F_)
     : F(F_), mgr(*F_)
 {
     mgr.register_model(this);
@@ -70,7 +70,7 @@ void Model::remove_all_functions_from(FuncSet fset)
         ff_names.clear();
         ff_idx.clear();
     }
-    else { // (fset == kZ) 
+    else { // (fset == kZ)
         zz_names.clear();
         zz_idx.clear();
     }
@@ -87,7 +87,7 @@ void Model::remove_function_from(string const &name, FuncSet fset)
         ff_names.erase(ff_names.begin() + idx);
         ff_idx.erase(ff_idx.begin() + idx);
     }
-    else { // (fset == kZ) 
+    else { // (fset == kZ)
         zz_names.erase(zz_names.begin() + idx);
         zz_idx.erase(zz_idx.begin() + idx);
     }
@@ -163,7 +163,7 @@ void Model::compute_model_with_derivs(vector<fp> &x, vector<fp> &y,
         mgr.get_function(*i)->calculate_value_deriv(x, y, dy_da, true);
 }
 
-vector<fp> 
+vector<fp>
 Model::get_symbolic_derivatives(fp x) const
 {
     int n = mgr.get_parameters().size();
@@ -175,7 +175,7 @@ Model::get_symbolic_derivatives(fp x) const
     return dy_da;
 }
 
-vector<fp> 
+vector<fp>
 Model::get_numeric_derivatives(fp x, fp numerical_h) const
 {
     std::vector<fp> av_numder = mgr.get_parameters();
@@ -204,7 +204,7 @@ fp Model::approx_max(fp x_min, fp x_max) const
     mgr.use_parameters();
     fp x = x_min;
     fp y_max = value(x);
-    vector<fp> xx; 
+    vector<fp> xx;
     for (vector<int>::const_iterator i=ff_idx.begin(); i != ff_idx.end(); i++) {
         fp ctr = mgr.get_function(*i)->center();
         if (x_min < ctr && ctr < x_max)
@@ -216,7 +216,7 @@ fp Model::approx_max(fp x_min, fp x_max) const
         fp x_between = (x + *i)/2.;
         x = *i;
         fp y = max(value(x_between), value(x));
-        if (y > y_max) 
+        if (y > y_max)
             y_max = y;
     }
     return y_max;
@@ -226,10 +226,10 @@ fp Model::approx_max(fp x_min, fp x_max) const
 string Model::get_peak_parameters(vector<fp> const& errors) const
 {
     string s;
-    s += "# Peak Type     Center  Height  Area    FWHM    parameters...\n"; 
+    s += "# Peak Type     Center  Height  Area    FWHM    parameters...\n";
     for (vector<int>::const_iterator i=ff_idx.begin(); i != ff_idx.end(); i++){
         Function const* p = mgr.get_function(*i);
-        s += p->xname + "  " + p->type_name  
+        s += p->xname + "  " + p->type_name
             + "  "+ S(p->center()) + " " + S(p->height()) + " " + S(p->area())
             + " " + S(p->fwhm()) + "  ";
         for (int j = 0; j < p->get_vars_count(); ++j) {
@@ -258,8 +258,8 @@ string Model::get_formula(bool simplify, bool gnuplot_style) const
     string x = "(x" + shift + ")";
     string formula;
     for (vector<int>::const_iterator i = ff_idx.begin(); i != ff_idx.end(); i++)
-        formula += (i==ff_idx.begin() ? "" : "+") 
-                   + mgr.get_function(*i)->get_current_formula(x); 
+        formula += (i==ff_idx.begin() ? "" : "+")
+                   + mgr.get_function(*i)->get_current_formula(x);
     if (simplify) {
         // check if formula has not-expanded-functions, like Voigt(2,3,4,5)
         bool has_upper = false;
@@ -269,14 +269,14 @@ string Model::get_formula(bool simplify, bool gnuplot_style) const
                 break;
             }
         // the simplify_formula() is not working with not-expanded-functions
-        if (!has_upper) 
+        if (!has_upper)
             formula = simplify_formula(formula);
     }
     if (gnuplot_style) { //gnuplot format is a bit different
         replace_all(formula, "^", "**");
         replace_words(formula, "ln", "log");
         // avoid integer division (1/2 == 0)
-        string::size_type pos = 0; 
+        string::size_type pos = 0;
         while ((pos = formula.find('/', pos)) != string::npos) {
             ++pos;
             if (!isdigit(formula[pos]))

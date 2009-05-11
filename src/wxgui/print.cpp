@@ -20,11 +20,11 @@
 #include <wx/generic/prntdlgg.h>
 
 #include "print.h"
-#include "cmn.h" 
-#include "pplot.h" 
-#include "plot.h" 
-#include "mplot.h" 
-#include "aplot.h" 
+#include "cmn.h"
+#include "pplot.h"
+#include "plot.h"
+#include "mplot.h"
+#include "aplot.h"
 
 using namespace std;
 
@@ -37,15 +37,15 @@ BEGIN_EVENT_TABLE(PageSetupDialog, wxDialog)
 END_EVENT_TABLE()
 
 PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
-    : wxDialog(parent, -1, wxT("Page Setup"), 
-               wxDefaultPosition, wxDefaultSize, 
+    : wxDialog(parent, -1, wxT("Page Setup"),
+               wxDefaultPosition, wxDefaultSize,
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
       pm(print_mgr)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
 
     //paper size
-    wxStaticBoxSizer *sizerp = new wxStaticBoxSizer(wxVERTICAL, this, 
+    wxStaticBoxSizer *sizerp = new wxStaticBoxSizer(wxVERTICAL, this,
                                                     wxT("Paper Size"));
     wxArrayString paper_sizes;
     int paper_sel = 0;
@@ -55,8 +55,8 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
         if (pm->get_print_data().GetPaperId() == papertype->GetId())
             paper_sel = i;
     }
-    papers = new  wxComboBox(this, -1, _("Paper Size"), 
-                             wxDefaultPosition, wxDefaultSize, 
+    papers = new  wxComboBox(this, -1, _("Paper Size"),
+                             wxDefaultPosition, wxDefaultSize,
                              paper_sizes, wxCB_READONLY);
     papers->SetSelection(paper_sel);
     sizerp->Add(papers, 1, wxALL|wxEXPAND, 5);
@@ -65,12 +65,12 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
     //orientation
     wxString orient_choices[] = { wxT("Portrait"), wxT("Landscape") };
     orientation = new wxRadioBox(this, -1, wxT("Orientation"),
-                                 wxDefaultPosition, wxDefaultSize, 
-                                 2, orient_choices, 
+                                 wxDefaultPosition, wxDefaultSize,
+                                 2, orient_choices,
                                  2, wxRA_SPECIFY_COLS);
     top_sizer->Add(orientation, 0, wxALL|wxEXPAND, 5);
 
-    wxStaticBoxSizer *hsizer = new wxStaticBoxSizer(wxHORIZONTAL, this, 
+    wxStaticBoxSizer *hsizer = new wxStaticBoxSizer(wxHORIZONTAL, this,
                                                  wxT("Margins (millimetres)"));
     hsizer->Add(new wxStaticText(this, -1, wxT(" Left")),
                 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
@@ -102,17 +102,17 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
     keep_ratio = new wxCheckBox(this, -1, wxT("keep width to height ratio"));
     top_sizer->Add(keep_ratio, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     */
-    wxString color_choices[] = { wxT("black lines on white background"), 
+    wxString color_choices[] = { wxT("black lines on white background"),
                                  wxT("colors from plots on white background") };
     colors = new wxRadioBox(this, -1, wxT("Colors"),
-                            wxDefaultPosition, wxDefaultSize, 
-                            2, color_choices, 
+                            wxDefaultPosition, wxDefaultSize,
+                            2, color_choices,
                             1, wxRA_SPECIFY_COLS);
     top_sizer->Add(colors, 0, wxALL|wxEXPAND, 5);
-    wxStaticBoxSizer *boxsizer = new wxStaticBoxSizer(wxVERTICAL, this, 
+    wxStaticBoxSizer *boxsizer = new wxStaticBoxSizer(wxVERTICAL, this,
                                                       wxT("Optional elements"));
     for (int i = 0; i < 2; ++i) {
-        plot_aux[i] = new wxCheckBox(this, -1, 
+        plot_aux[i] = new wxCheckBox(this, -1,
                                 wxString::Format(wxT("auxiliary plot %i"), i));
         boxsizer->Add(plot_aux[i], 0, wxALL, 5);
     }
@@ -120,7 +120,7 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
     boxsizer->Add(plot_borders, 0, wxALL, 5);
     top_sizer->Add(boxsizer, 0, wxALL|wxEXPAND, 5);
     top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
-    top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL), 
+    top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL),
                    0, wxALL|wxALIGN_CENTER, 5);
     SetSizerAndFit(top_sizer);
     orientation->SetSelection(pm->landscape ? 1 : 0);
@@ -137,20 +137,20 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
         }
     }
     plot_borders->SetValue(pm->plot_borders);
-    
+
     left_margin->SetValue(pm->get_page_data().GetMarginTopLeft().x);
     right_margin->SetValue(pm->get_page_data().GetMarginBottomRight().x);
-    top_margin->SetValue(pm->get_page_data().GetMarginTopLeft().y); 
+    top_margin->SetValue(pm->get_page_data().GetMarginTopLeft().y);
     bottom_margin->SetValue(pm->get_page_data().GetMarginBottomRight().y);
 }
 
-void PageSetupDialog::OnOk(wxCommandEvent&) 
+void PageSetupDialog::OnOk(wxCommandEvent&)
 {
     if (papers->GetSelection() != -1) {
-        wxPrintPaperType *ppt 
+        wxPrintPaperType *ppt
                       = wxThePrintPaperDatabase->Item(papers->GetSelection());
         if (ppt) {
-            pm->get_page_data().SetPaperSize(wxSize(ppt->GetWidth()/10, 
+            pm->get_page_data().SetPaperSize(wxSize(ppt->GetWidth()/10,
                                              ppt->GetHeight()/10));
             pm->get_print_data().SetPaperId(ppt->GetId());
         }
@@ -160,7 +160,7 @@ void PageSetupDialog::OnOk(wxCommandEvent&)
     pm->colors = colors->GetSelection() == 1;
     //pm->keep_ratio = keep_ratio->GetValue();
     //pm->scale = scale->GetValue();
-    for (int i = 0; i < 2; ++i) 
+    for (int i = 0; i < 2; ++i)
         pm->plot_aux[i] = plot_aux[i]->GetValue();
     pm->plot_borders = plot_borders->GetValue();
 
@@ -185,18 +185,18 @@ void do_print_plots(wxDC *dc, PrintManager const* pm)
     // `vp' is a list of plots that are to be printed.
     // PlotPane::get_visible_plots() can't be used, because aux plots can be
     // disabled in print setup.
-    vector<FPlot*> vp; 
+    vector<FPlot*> vp;
     vp.push_back(pm->plot_pane->get_plot());
     for (int i = 0; i < 2; ++i)
         if (pm->plot_pane->aux_visible(i) && pm->plot_aux[i])
             vp.push_back(pm->plot_pane->get_aux_plot(i));
 
     // width is the same for all plots
-    int W = pm->plot_pane->GetClientSize().GetWidth(); 
+    int W = pm->plot_pane->GetClientSize().GetWidth();
 
     // height is a sum of all heights + (N-1)*space
-    int H = (vp.size() - 1) * space;  
-    for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i) 
+    int H = (vp.size() - 1) * space;
+    for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i)
         H += (*i)->GetClientSize().GetHeight();
 
     int w, h; // size in DC units
@@ -206,7 +206,7 @@ void do_print_plots(wxDC *dc, PrintManager const* pm)
     //fp scale = pm->scale/100.;
     //fp scaleX = scale * w / W;
     //fp scaleY = scale * h / H;
-    //if (pm->keep_ratio) 
+    //if (pm->keep_ratio)
     //    scaleX = scaleY = min(scaleX, scaleY);
     //const int marginX = iround((w - W * scaleX) / 2.);
     //const int marginY = iround((h - H * scaleX) / 2.);
@@ -236,16 +236,16 @@ void do_print_plots(wxDC *dc, PrintManager const* pm)
 
 //===============================================================
 
-FPrintout::FPrintout(PrintManager const* print_manager) 
-    : wxPrintout(wxT("fityk")), pm(print_manager) 
+FPrintout::FPrintout(PrintManager const* print_manager)
+    : wxPrintout(wxT("fityk")), pm(print_manager)
 {}
 
 bool FPrintout::OnPrintPage(int page)
 {
-    if (page != 1) 
+    if (page != 1)
         return false;
     wxDC *dc = GetDC();
-    if (!dc) 
+    if (!dc)
         return false;
     do_print_plots(dc, pm);
     return true;
@@ -256,11 +256,11 @@ bool FPrintout::OnPrintPage(int page)
 class FPreviewFrame : public wxPreviewFrame
 {
 public:
-    FPreviewFrame(wxPrintPreview* preview, wxWindow* parent) 
-        : wxPreviewFrame (preview, parent, wxT("Print Preview"), 
+    FPreviewFrame(wxPrintPreview* preview, wxWindow* parent)
+        : wxPreviewFrame (preview, parent, wxT("Print Preview"),
                           wxDefaultPosition, wxSize(600, 550)) {}
-    void CreateControlBar() { 
-        m_controlBar = new wxPreviewControlBar(m_printPreview, 
+    void CreateControlBar() {
+        m_controlBar = new wxPreviewControlBar(m_printPreview,
                                         wxPREVIEW_PRINT|wxPREVIEW_ZOOM, this);
         m_controlBar->CreateButtons();
         m_controlBar->SetZoomControl(110);
@@ -270,12 +270,12 @@ public:
 //===============================================================
 
 PrintManager::PrintManager(PlotPane* pane)
-    :  plot_pane(pane), print_data(0), page_setup_data(0) 
-{ 
+    :  plot_pane(pane), print_data(0), page_setup_data(0)
+{
     read_settings(wxConfig::Get());
 }
 
-PrintManager::~PrintManager() 
+PrintManager::~PrintManager()
 {
     save_settings(wxConfig::Get());
     if (print_data)
@@ -302,12 +302,12 @@ void PrintManager::read_settings(wxConfigBase *cf)
     //keep_ratio = cfg_read_bool(cf, wxT("/print/keepRatio"), false);
     plot_borders = cfg_read_bool(cf, wxT("/print/plotBorders"), true);
     for (int i = 0; i < 2; ++i)
-        plot_aux[i] = cfg_read_bool(cf, 
+        plot_aux[i] = cfg_read_bool(cf,
                           wxString::Format(wxT("/print/plotAux%i"), i), true);
     landscape = cfg_read_bool(cf, wxT("/print/landscape"), true);
 }
 
-wxPrintData& PrintManager::get_print_data() 
+wxPrintData& PrintManager::get_print_data()
 {
     if (!print_data) {
         print_data = new wxPrintData;
@@ -316,7 +316,7 @@ wxPrintData& PrintManager::get_print_data()
     return *print_data;
 }
 
-wxPageSetupDialogData& PrintManager::get_page_data() 
+wxPageSetupDialogData& PrintManager::get_page_data()
 {
     if (!page_setup_data)
         page_setup_data = new wxPageSetupDialogData;
@@ -328,7 +328,7 @@ void PrintManager::printPreview()
     // Pass two printout objects: for preview, and possible printing.
     wxPrintDialogData print_dialog_data(get_print_data());
     wxPrintPreview *preview = new wxPrintPreview (new FPrintout(this),
-                                                  new FPrintout(this), 
+                                                  new FPrintout(this),
                                                   &print_dialog_data);
     if (!preview->Ok()) {
         delete preview;
@@ -349,7 +349,7 @@ void PrintManager::pageSetup()
     dlg.ShowModal();
     /*
      * Old standard wxWidgets "page setup" dlg worked in this way:
-    if (!page_setup_data) 
+    if (!page_setup_data)
         page_setup_data = new wxPageSetupDialogData(get_print_data());
     else
         (*page_setup_data) = get_print_data();
@@ -378,16 +378,16 @@ void PrintManager::print()
     }
     else if (wxPrinter::GetLastError() == wxPRINTER_ERROR)
         wxMessageBox(wxT("There was a problem printing.\nPerhaps your current ")
-                     wxT("printer is not set correctly?"), 
+                     wxT("printer is not set correctly?"),
                      wxT("Printing"), wxOK);
 }
 
 
 void PrintManager::print_to_psfile()
 {
-    wxFileDialog dialog(0, wxT("PostScript file"), wxT(""), wxT(""), 
+    wxFileDialog dialog(0, wxT("PostScript file"), wxT(""), wxT(""),
                         wxT("*.ps"), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (dialog.ShowModal() != wxID_OK) 
+    if (dialog.ShowModal() != wxID_OK)
         return;
     get_print_data().SetPrintMode(wxPRINT_MODE_FILE);
     get_print_data().SetFilename(dialog.GetPath());

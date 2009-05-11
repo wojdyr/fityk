@@ -24,12 +24,12 @@
 using namespace std;
 
 DataAndModel::DataAndModel(Ftk *F, Data* data)
-    : data_(data ? data : new Data(F)), model_(new Model(F))  
+    : data_(data ? data : new Data(F)), model_(new Model(F))
 {}
 
 bool DataAndModel::has_any_info() const
 {
-    return data()->has_any_info() || model()->has_any_info(); 
+    return data()->has_any_info() || model()->has_any_info();
 }
 
 
@@ -45,7 +45,7 @@ Ftk::Ftk()
     AL = this;
 }
 
-Ftk::~Ftk() 
+Ftk::~Ftk()
 {
     destroy();
     delete ui;
@@ -55,7 +55,7 @@ Ftk::~Ftk()
 void Ftk::initialize()
 {
     fit_container = new FitMethodsContainer(this);
-    // Settings ctor is using FitMethodsContainer 
+    // Settings ctor is using FitMethodsContainer
     settings = new Settings(this);
     view = View(this);
     append_dm();
@@ -88,8 +88,8 @@ void Ftk::reset()
 int Ftk::append_dm(Data *data)
 {
     DataAndModel* dm = new DataAndModel(this, data);
-    dms.push_back(dm); 
-    return dms.size() - 1; 
+    dms.push_back(dm);
+    return dms.size() - 1;
 }
 
 void Ftk::remove_dm(int d)
@@ -138,7 +138,7 @@ void Ftk::dump_all_as_script(string const &filename)
     }
     os << fityk_version_line << endl;
     os << "## dumped at: " << time_now() << endl;
-    os << "set verbosity = quiet #the rest of the file is not shown\n"; 
+    os << "set verbosity = quiet #the rest of the file is not shown\n";
     os << "set autoplot = never\n";
     os << "reset\n";
     os << "# ------------  settings  ------------\n";
@@ -183,28 +183,28 @@ void Ftk::dump_all_as_script(string const &filename)
             os << "set @" << i << ".title = '" << data->get_title() << "'\n";
         int m = data->points().size();
         os << "M=" << m << " in @" << i << endl;
-        os << "X=" << data->get_x_max() << " in @" << i 
+        os << "X=" << data->get_x_max() << " in @" << i
             << " # =max(x), prevents sorting." << endl;
         for (int j = 0; j != m; ++j) {
             Point const& p = data->points()[j];
-            os << "X[" << j << "]=" << p.x << ", Y[" << j << "]=" << p.y 
-                << ", S[" << j << "]=" << p.sigma 
-                << ", A[" << j << "]=" << (p.is_active ? 1 : 0) 
+            os << "X[" << j << "]=" << p.x << ", Y[" << j << "]=" << p.y
+                << ", S[" << j << "]=" << p.sigma
+                << ", A[" << j << "]=" << (p.is_active ? 1 : 0)
                 << " in @" << i << endl;
         }
         os << endl;
         Model const* model = get_model(i);
         if (!model->get_ff_names().empty())
-            os << "@" << i << ".F = " 
-                << join_vector(concat_pairs("%", model->get_ff_names()), " + ") 
+            os << "@" << i << ".F = "
+                << join_vector(concat_pairs("%", model->get_ff_names()), " + ")
                 << endl;
         if (!model->get_zz_names().empty())
-            os << "@" << i << ".Z = " 
-                << join_vector(concat_pairs("%", model->get_zz_names()), " + ") 
+            os << "@" << i << ".Z = "
+                << join_vector(concat_pairs("%", model->get_zz_names()), " + ")
                 << endl;
         os << endl;
     }
-    os << "plot " << view.str() << " in @" << view.get_datasets()[0] << endl; 
+    os << "plot " << view.str() << " in @" << view.get_datasets()[0] << endl;
     os << "set autoplot = " << get_settings()->getp("autoplot") << endl;
     os << "set verbosity = " << get_settings()->getp("verbosity") << endl;
 }
@@ -223,47 +223,47 @@ int Ftk::check_dm_number(int n) const
     return n;
 }
 
-/// Send warning to UI. 
+/// Send warning to UI.
 void Ftk::warn(std::string const &s) const
-{ 
-    get_ui()->output_message(os_warn, s); 
+{
+    get_ui()->output_message(os_warn, s);
 }
 
-/// Send implicitely requested message to UI. 
+/// Send implicitely requested message to UI.
 void Ftk::rmsg(std::string const &s) const
-{ 
+{
     get_ui()->output_message(os_normal, s);
 }
 
-/// Send message to UI. 
+/// Send message to UI.
 void Ftk::msg(std::string const &s) const
-{ 
+{
     if (get_ui()->get_verbosity() >= 0)
-         get_ui()->output_message(os_normal, s); 
+         get_ui()->output_message(os_normal, s);
 }
 
-/// Send verbose message to UI. 
+/// Send verbose message to UI.
 void Ftk::vmsg(std::string const &s) const
-{ 
+{
     if (get_ui()->get_verbosity() >= 1)
-         get_ui()->output_message(os_normal, s); 
+         get_ui()->output_message(os_normal, s);
 }
 
-int Ftk::get_verbosity() const 
-{ 
-    return settings->get_e("verbosity"); 
+int Ftk::get_verbosity() const
+{
+    return settings->get_e("verbosity");
 }
 
 /// execute command(s) from string
-Commands::Status Ftk::exec(std::string const &s) 
-{ 
-    return get_ui()->exec_and_log(s); 
+Commands::Status Ftk::exec(std::string const &s)
+{
+    return get_ui()->exec_and_log(s);
 }
 
-Fit* Ftk::get_fit() 
-{ 
+Fit* Ftk::get_fit()
+{
     int nr = get_settings()->get_e("fitting-method");
-    return get_fit_container()->get_method(nr); 
+    return get_fit_container()->get_method(nr);
 }
 
 namespace {
@@ -277,11 +277,11 @@ int atoi_all(string const& s)
     return n;
 }
 
-// TODO finish and use this class for parsing ranges, 
+// TODO finish and use this class for parsing ranges,
 // instead of parse_int_range()
 #if 0
 
-// Represents ordered set of uints. 
+// Represents ordered set of uints.
 // Can be specified as a set of numbers and ranges, e.g. string "0,2..5,3,..9".
 // If length is specified, upper limit can be omitted and negative numbers
 // can be given as they were counted from the end (-1 means the last one,
@@ -304,7 +304,7 @@ public:
     // The length will be added to all negative values (i.e. -2 -> length-2).
     // It is not checked if indices are in range <0, length).
     bool set_length(int length);
-    
+
     // true if it was initialized with valid string
     bool ok() const { return !ranges_.empty(); }
 
@@ -357,7 +357,7 @@ void IndexRanges::set_from_string(const char* s)
             a = endptr;
         else { // error
             ranges_.clear();
-            return; 
+            return;
         }
         if (lo < 0 || hi < 0)
             needs_length_ = true;
@@ -369,9 +369,9 @@ void IndexRanges::set_from_string(const char* s)
     cur_offset_ = -1;
 }
 
-bool IndexRanges::set_length(int length) 
-{ 
-    length_ = length; 
+bool IndexRanges::set_length(int length)
+{
+    length_ = length;
 }
 
 int IndexRanges::get_first()
@@ -403,7 +403,7 @@ int IndexRanges::get_next()
 string IndexRanges::str() const
 {
     string s;
-    for (vector<pair<int,int> >::const_iterator i = ranges_.begin(); 
+    for (vector<pair<int,int> >::const_iterator i = ranges_.begin();
                                                     i != ranges_.end(); ++i) {
         if (i != ranges_.begin())
             s += sep;
@@ -419,7 +419,7 @@ string IndexRanges::str() const
 }
 #endif
 
-// e.g.: "1,3..5,7" -> 1,3,4,5,7 
+// e.g.: "1,3..5,7" -> 1,3,4,5,7
 //       "4"        -> 4
 //       "2,1"      -> 2,1
 vector<int> parse_int_range(string const& s, int maximum)
@@ -455,12 +455,12 @@ vector<int> parse_int_range(string const& s, int maximum)
 } //anonymous namespace
 
 
-void Ftk::import_dataset(int slot, string const& filename, 
+void Ftk::import_dataset(int slot, string const& filename,
                          vector<string> const& options)
 {
     const int new_dataset = -1;
 
-    // split "filename" (e.g. "foo.dat:1:2,3::") into real filename 
+    // split "filename" (e.g. "foo.dat:1:2,3::") into real filename
     // and colon-separated indices
     int count_colons = count(filename.begin(), filename.end(), ':');
     string fn;
@@ -518,24 +518,24 @@ void Ftk::import_dataset(int slot, string const& filename,
             && (get_dm_count() != 1 || get_dm(0)->has_any_info())) {
             // load data into new slot
             auto_ptr<Data> data(new Data(this));
-            data->load_file(fn, idx_x, indices[1][i], idx_s, 
+            data->load_file(fn, idx_x, indices[1][i], idx_s,
                             block_range, options);
             append_dm(data.release());
         }
         else {
-            // if slot == new_dataset and there is only one dataset, 
+            // if slot == new_dataset and there is only one dataset,
             // then get_data(slot) will point to this single slot
-            get_data(slot)->load_file(fn, idx_x, indices[1][i], idx_s, 
+            get_data(slot)->load_file(fn, idx_x, indices[1][i], idx_s,
                                       block_range, options);
         }
     }
 
-    if (get_dm_count() == 1) 
+    if (get_dm_count() == 1)
         view.fit_zoom();
 }
 
 // the use of this global variable in libfityk will be eliminated,
-// because it's not thread safe. 
+// because it's not thread safe.
 Ftk* AL = 0;
 
 

@@ -10,7 +10,7 @@
 #include <algorithm>
 #include "mgr.h"
 #include "ui.h" //Commands::Status
-#include "view.h" 
+#include "view.h"
 
 
 class Settings;
@@ -26,7 +26,7 @@ class DataAndModel
 {
 public:
     DataAndModel(Ftk *F, Data* data=NULL);
-    Data *data() const { return data_.get(); } 
+    Data *data() const { return data_.get(); }
     Model *model() const { return model_.get(); }
     bool has_any_info() const;
 
@@ -60,7 +60,7 @@ public:
     std::vector<DataAndModel*> const& get_dms() const { return dms; }
     Data *get_data(int n) { return get_dm(n)->data(); }
     Model *get_model(int n)   { return get_dm(n)->model(); }
-    bool contains_dm(DataAndModel const* p) const 
+    bool contains_dm(DataAndModel const* p) const
                       { return count(dms.begin(), dms.end(), p) > 0; }
     std::string find_function_name(std::string const &fstr) const;
     const Function* find_function_any(std::string const &fstr) const;
@@ -73,18 +73,18 @@ public:
 
     FitMethodsContainer const* get_fit_container() const {return fit_container;}
     FitMethodsContainer* get_fit_container() { return fit_container; }
-    Fit* get_fit(); 
+    Fit* get_fit();
 
-    /// Send warning to UI. 
+    /// Send warning to UI.
     void warn(std::string const &s) const;
 
-    /// Send implicitely requested message to UI. 
+    /// Send implicitely requested message to UI.
     void rmsg(std::string const &s) const;
 
-    /// Send message to UI. 
-    void msg(std::string const &s) const; 
+    /// Send message to UI.
+    void msg(std::string const &s) const;
 
-    /// Send verbose message to UI. 
+    /// Send verbose message to UI.
     void vmsg(std::string const &s) const;
 
     int get_verbosity() const;
@@ -93,7 +93,7 @@ public:
     Commands::Status exec(std::string const &s);
 
     /// import dataset (or multiple datasets, in special cases)
-    void import_dataset(int slot, std::string const& filename, 
+    void import_dataset(int slot, std::string const& filename,
                         std::vector<std::string> const& options);
 
 protected:
@@ -106,10 +106,10 @@ protected:
     void destroy();
 
 private:
-    /// verify that n is the valid number for get_dm() and return n 
+    /// verify that n is the valid number for get_dm() and return n
     int check_dm_number(int n) const;
 };
 
 extern Ftk* AL;
 
-#endif 
+#endif

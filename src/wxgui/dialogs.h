@@ -7,7 +7,7 @@
 
 #include <vector>
 #include <wx/spinctrl.h>
-#include <wx/listctrl.h> 
+#include <wx/listctrl.h>
 
 #include "cmn.h"
 
@@ -19,8 +19,8 @@ public:
     void OnDownButton         (wxCommandEvent& event);
     void OnComputeWssrButton  (wxCommandEvent& event);
     void OnSelectedItem       (wxListEvent&    event);
-    void OnActivatedItem      (wxListEvent&    event); 
-    void OnViewSpinCtrlUpdate (wxSpinEvent&    event); 
+    void OnActivatedItem      (wxListEvent&    event);
+    void OnViewSpinCtrlUpdate (wxSpinEvent&    event);
     void OnClose (wxCommandEvent& ) { close_it(this); }
 protected:
     int view[4], view_max;

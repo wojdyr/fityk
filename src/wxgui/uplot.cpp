@@ -21,7 +21,7 @@ void BufferedPanel::refresh(bool now)
 {
     clear_and_draw();
     Refresh(false);
-    if (now) 
+    if (now)
         Update();
 }
 
@@ -57,14 +57,14 @@ void BufferedPanel::clear_and_draw()
 void BufferedPanel::buffered_draw()
 {
     wxPaintDC dc(this);
-    if (resize_buffer(dc)) 
+    if (resize_buffer(dc))
         clear_and_draw();
     dc.Blit(0, 0, buffer.GetWidth(), buffer.GetHeight(), &memory_dc, 0, 0);
 }
 
 
 
-vector<double> scale_tics_step (double beg, double end, int max_tics, 
+vector<double> scale_tics_step (double beg, double end, int max_tics,
                                 vector<double> &minors, bool logarithm)
 {
     vector<double> result;
@@ -113,15 +113,15 @@ vector<double> scale_tics_step (double beg, double end, int max_tics,
             s *= 2;
             minor_div = 2;
         }
-        else if (s * 2.5 >= min_step) 
+        else if (s * 2.5 >= min_step)
             s *= 2.5;
-        else if (s * 5 >=  min_step) 
+        else if (s * 5 >=  min_step)
             s *= 5;
         else
             s *= 10;
         for (double t = s * ceil(beg / s); t < end; t += s) {
             if (t > beg) {
-                // make sure that 0 is not displayed as e.g. -2.7893e-17 
+                // make sure that 0 is not displayed as e.g. -2.7893e-17
                 if (fabs(t) < 1e-6 * fabs(min_step))
                     t = 0.;
                 result.push_back(t);

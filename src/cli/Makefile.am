@@ -2,8 +2,8 @@
 
 bin_PROGRAMS = cfityk
 
-cfityk_SOURCES = gnuplot.cpp main.cpp gnuplot.h 
+cfityk_SOURCES = gnuplot.cpp main.cpp gnuplot.h
 
-AM_CPPFLAGS = @CPPFLAGS_3RDPARTY@ 
+AM_CPPFLAGS = @CPPFLAGS_3RDPARTY@
 LDADD = ../libfityk.la @READLINE_LIBS@ -lm
 

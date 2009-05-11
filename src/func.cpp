@@ -16,37 +16,37 @@
 #include <ctype.h>
 #include <boost/spirit/core.hpp>
 
-using namespace std; 
+using namespace std;
 using namespace boost::spirit;
 
-std::vector<fp> Function::calc_val_xx(1); 
+std::vector<fp> Function::calc_val_xx(1);
 std::vector<fp> Function::calc_val_yy(1);
 
 Function::Function (Ftk const* F_,
-                    string const &name_, 
+                    string const &name_,
                     vector<string> const &vars,
                     string const &formula_)
-    : VariableUser(name_, "%", vars), 
+    : VariableUser(name_, "%", vars),
       type_formula(formula_),
       type_name(get_typename_from_formula(formula_)),
       type_var_names(get_varnames_from_formula(formula_)),
       type_rhs(get_rhs_from_formula(formula_)),
-      nv(vars.size()), 
-      F(F_), 
+      nv(vars.size()),
+      F(F_),
       center_idx(find_center_in_typevars()),
       vv(vars.size())
 {
-    // parsing formula (above) for every instance of the class is not effective 
+    // parsing formula (above) for every instance of the class is not effective
     // but the overhead is negligible
     // the ease of adding new built-in function types is more important
     // is there a better way to do it? (MW)
 
     if (type_var_names.size() != vars.size())
-        throw ExecuteError("Function " + type_name + " requires " 
+        throw ExecuteError("Function " + type_name + " requires "
                            + S(type_var_names.size()) + " parameters.");
 }
 
-/// returns type variable names 
+/// returns type variable names
 /// can be used also for eg. Foo(3+$bleh, area/fwhm/sqrt(pi/ln(2)))
 vector<string> Function::get_varnames_from_formula(string const& formula)
 {
@@ -54,20 +54,20 @@ vector<string> Function::get_varnames_from_formula(string const& formula)
     int lb = formula.find('(');
     int rb = find_matching_bracket(formula, lb);
     string all_names(formula, lb+1, rb-lb-1);
-    if (strip_string(all_names).empty()) 
+    if (strip_string(all_names).empty())
         return names;
     vector<string> nd = split_string(all_names, ',');
     for (vector<string>::const_iterator i = nd.begin(); i != nd.end(); ++i) {
         string::size_type eq = i->find('=');
-        if (eq == string::npos) 
+        if (eq == string::npos)
             names.push_back(strip_string(*i));
-        else 
+        else
             names.push_back(strip_string(string(*i, 0, eq)));
     }
     return names;
 }
 
-/// returns type variable default values 
+/// returns type variable default values
 vector<string> Function::get_defvalues_from_formula(string const& formula)
 {
     int lb = formula.find('(');
@@ -77,9 +77,9 @@ vector<string> Function::get_defvalues_from_formula(string const& formula)
     vector<string> defaults;
     for (vector<string>::const_iterator i = nd.begin(); i != nd.end(); ++i) {
         string::size_type eq = i->find('=');
-        if (eq == string::npos) 
+        if (eq == string::npos)
             defaults.push_back(string());
-        else 
+        else
             defaults.push_back(strip_string(string(*i, eq+1)));
     }
     return defaults;
@@ -97,7 +97,7 @@ int Function::find_center_in_typevars() const
 
 Function* Function::factory (Ftk const* F,
                              string const &name_, string const &type_name,
-                             vector<string> const &vars) 
+                             vector<string> const &vars)
 {
     string name = name_[0] == '%' ? string(name_, 1) : name_;
 
@@ -128,11 +128,11 @@ Function* Function::factory (Ftk const* F,
         UdfContainer::UDF const* udf = UdfContainer::get_udf(type_name);
         if (udf->is_compound)
             return new CompoundFunction(F, name, type_name, vars);
-        else 
-            return new CustomFunction(F, name, type_name, vars, 
+        else
+            return new CustomFunction(F, name, type_name, vars,
                                       udf->op_trees);
     }
-    else 
+    else
         throw ExecuteError("Undefined type of function: " + type_name);
 }
 
@@ -165,7 +165,7 @@ vector<string> Function::get_all_types()
     for (int i = 0; i < nb; ++i)
         types.push_back(get_typename_from_formula(builtin_formulas[i]));
     vector<UdfContainer::UDF> const& uff = UdfContainer::get_udfs();
-    for (vector<UdfContainer::UDF>::const_iterator i = uff.begin(); 
+    for (vector<UdfContainer::UDF>::const_iterator i = uff.begin();
                                                         i != uff.end(); ++i)
         types.push_back(i->name);
     return types;
@@ -215,7 +215,7 @@ void Function::do_precomputations(vector<Variable*> const &variables)
     multi.clear();
     for (int i = 0; i < size(var_idx); ++i) {
         Variable const *v = variables[var_idx[i]];
-        vv[i] = v->get_value(); 
+        vv[i] = v->get_value();
         vector<Variable::ParMult> const &pm = v->get_recursive_derivatives();
         for (vector<Variable::ParMult>::const_iterator j = pm.begin();
                 j != pm.end(); ++j)
@@ -239,11 +239,11 @@ void Function::get_nonzero_idx_range(std::vector<fp> const &xx,
     fp left, right;
     bool r = get_nonzero_range(F->get_settings()->get_cut_level(), left, right);
     if (r) {
-        first = lower_bound(xx.begin(), xx.end(), left) - xx.begin(); 
-        last = upper_bound(xx.begin(), xx.end(), right) - xx.begin(); 
+        first = lower_bound(xx.begin(), xx.end(), left) - xx.begin();
+        last = upper_bound(xx.begin(), xx.end(), right) - xx.begin();
     }
     else {
-        first = 0; 
+        first = 0;
         last = xx.size();
     }
 }
@@ -256,13 +256,13 @@ fp Function::calculate_value(fp x) const
     return calc_val_yy[0];
 }
 
-void Function::calculate_values_with_params(vector<fp> const& x, 
+void Function::calculate_values_with_params(vector<fp> const& x,
                                             vector<fp> &y,
                                             vector<fp> const& alt_vv) const
 {
     vector<fp> backup_vv = vv;
     Function* this_ = const_cast<Function*>(this);
-    for (int i = 0; i < min(size(alt_vv), size(vv)); ++i) 
+    for (int i = 0; i < min(size(alt_vv), size(vv)); ++i)
         this_->vv[i] = alt_vv[i];
     this_->precomputations_for_alternative_vv();
     calculate_value(x, y);
@@ -284,39 +284,39 @@ std::string Function::other_props_str() const
     return r;
 }
 
-string Function::get_info(vector<Variable*> const &variables, 
-                          vector<fp> const &parameters, 
-                          bool extended) const 
-{ 
+string Function::get_info(vector<Variable*> const &variables,
+                          vector<fp> const &parameters,
+                          bool extended) const
+{
     string s = get_basic_assignment();
     if (extended) {
         s += "\n" + type_formula;
         for (int i = 0; i < size(var_idx); ++i)
             s += "\n" + type_var_names[i] + " = "
                 + variables[var_idx[i]]->get_info(parameters);
-        if (this->has_center()) 
+        if (this->has_center())
             if (!contains_element(type_var_names, string("center")))
                 s += "\nCenter: " + S(center());
-        if (this->has_height()) 
+        if (this->has_height())
             if (!contains_element(type_var_names, string("height")))
                 s += "\nHeight: " + S(height());
-        if (this->has_fwhm()) 
+        if (this->has_fwhm())
             if (!contains_element(type_var_names, string("fwhm")))
                 s += "\nFWHM: " + S(fwhm());
-        if (this->has_area()) 
+        if (this->has_area())
             if (!contains_element(type_var_names, string("area")))
                 s += "\nArea: " + S(area());
-        if (this->has_other_props()) 
+        if (this->has_other_props())
             s += "\n" + other_props_str();
     }
     return s;
-} 
+}
 
 /// return sth like: Linear($foo, $_2)
 string Function::get_basic_assignment() const
 {
-    vector<string> xvarnames; 
-    for (vector<string>::const_iterator i = varnames.begin(); 
+    vector<string> xvarnames;
+    for (vector<string>::const_iterator i = varnames.begin();
             i != varnames.end(); ++i)
         xvarnames.push_back("$" + *i);
     return xname + " = " + type_name+ "(" + join_vector(xvarnames, ", ") + ")";
@@ -326,11 +326,11 @@ string Function::get_basic_assignment() const
 string Function::get_current_assignment(vector<Variable*> const &variables,
                                         vector<fp> const &parameters) const
 {
-    vector<string> vs; 
+    vector<string> vs;
     assert(type_var_names.size() == var_idx.size());
     for (int i = 0; i < size(var_idx); ++i) {
         Variable const* v = variables[var_idx[i]];
-        string t = type_var_names[i] + "=" 
+        string t = type_var_names[i] + "="
                    + (v->is_simple() ? v->get_formula(parameters) : v->xname);
         vs.push_back(t);
     }
@@ -345,7 +345,7 @@ string Function::get_current_formula(string const& x) const
         t = type_name + "(" + join_vector(values, ", ") + ")";
     }
     else {
-        for (size_t i = 0; i < type_var_names.size(); ++i) 
+        for (size_t i = 0; i < type_var_names.size(); ++i)
             replace_words(t, type_var_names[i], S(get_var_value(i)));
     }
 
@@ -355,7 +355,7 @@ string Function::get_current_formula(string const& x) const
 
 int Function::get_param_nr(string const& param) const
 {
-    vector<string>::const_iterator i = find(type_var_names.begin(), 
+    vector<string>::const_iterator i = find(type_var_names.begin(),
                                             type_var_names.end(), param);
     if (i == type_var_names.end())
         throw ExecuteError("function " + xname + " has no parameter: " + param);
@@ -364,7 +364,7 @@ int Function::get_param_nr(string const& param) const
 
 bool Function::get_param_value_safe(string const& param, fp &value) const
 {
-    vector<string>::const_iterator i = find(type_var_names.begin(), 
+    vector<string>::const_iterator i = find(type_var_names.begin(),
                                             type_var_names.end(), param);
     if (i == type_var_names.end())
         return false;
@@ -391,7 +391,7 @@ fp Function::get_param_value(string const& param) const
         return area();
     }
     else
-        throw ExecuteError("Function " + xname + " (" + type_name 
+        throw ExecuteError("Function " + xname + " (" + type_name
                            + ") has no parameter " + param);
 }
 
@@ -402,7 +402,7 @@ fp Function::numarea(fp x1, fp x2, int nsteps) const
     fp xmin = min(x1, x2);
     fp xmax = max(x1, x2);
     fp h = (xmax - xmin) / (nsteps-1);
-    vector<fp> xx(nsteps), yy(nsteps); 
+    vector<fp> xx(nsteps), yy(nsteps);
     for (int i = 0; i < nsteps; ++i)
         xx[i] = xmin + i*h;
     calculate_value(xx, yy);
@@ -412,7 +412,7 @@ fp Function::numarea(fp x1, fp x2, int nsteps) const
     return a*h;
 }
 
-/// search x in [x1, x2] for which %f(x)==val, 
+/// search x in [x1, x2] for which %f(x)==val,
 /// x1, x2, val: f(x1) <= val <= f(x2) or f(x2) <= val <= f(x1)
 /// bisection + Newton-Raphson
 fp Function::find_x_with_value(fp x1, fp x2, fp val, int max_iter) const
@@ -421,7 +421,7 @@ fp Function::find_x_with_value(fp x1, fp x2, fp val, int max_iter) const
     fp y2 = calculate_value(x2) - val;
     if ((y1 > 0 && y2 > 0) || (y1 < 0 && y2 < 0))
         throw ExecuteError("Value " + S(val) + " is not bracketed by "
-                           + S(x1) + "(" + S(y1+val) + ") and " 
+                           + S(x1) + "(" + S(y1+val) + ") and "
                            + S(x2) + "(" + S(y2+val) + ").");
     int n = 0;
     for (vector<Multi>::const_iterator j = multi.begin(); j != multi.end(); ++j)
@@ -466,7 +466,7 @@ fp Function::find_x_with_value(fp x1, fp x2, fp val, int max_iter) const
             t += dx;
         }
     }
-    throw ExecuteError("The search has not converged in " + S(max_iter) 
+    throw ExecuteError("The search has not converged in " + S(max_iter)
                        + " steps");
 }
 
@@ -490,7 +490,7 @@ fp Function::find_extremum(fp x1, fp x2, int max_iter) const
     fp y2 = dy_da.back();
 
     if ((y1 > 0 && y2 > 0) || (y1 < 0 && y2 < 0))
-        throw ExecuteError("Derivatives at " + S(x1) + " and " + S(x2) 
+        throw ExecuteError("Derivatives at " + S(x1) + " and " + S(x2)
                            + " have the same sign.");
     if (y1 == 0)
         return x1;
@@ -520,7 +520,7 @@ fp Function::find_extremum(fp x1, fp x2, int max_iter) const
         if (is_eq(x1, x2))
             return (x1+x2) / 2.;
     }
-    throw ExecuteError("The search has not converged in " + S(max_iter) 
+    throw ExecuteError("The search has not converged in " + S(max_iter)
                        + " steps");
 }
 
@@ -528,7 +528,7 @@ fp Function::find_extremum(fp x1, fp x2, int max_iter) const
 
 namespace UdfContainer {
 
-vector<UDF> udfs; 
+vector<UDF> udfs;
 
 void initialize_udfs()
 {
@@ -541,7 +541,7 @@ void initialize_udfs()
 "LogNormalA(area, center, width=fwhm, asym=0.1) = LogNormal(sqrt(ln(2)/pi)*(2*area/width)*exp(-asym^2/4/ln(2)), center, width, asym)",
   "\n");
     udfs.clear();
-    for (vector<string>::const_iterator i = formulae.begin(); 
+    for (vector<string>::const_iterator i = formulae.begin();
                                                     i != formulae.end(); ++i)
         udfs.push_back(UDF(*i, true));
 }
@@ -563,9 +563,9 @@ vector<OpTree*> make_op_trees(string const& formula)
     vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID, info);
     vector<string> lhs_vars = Function::get_varnames_from_formula(formula);
     lhs_vars.push_back("x");
-    for (vector<string>::const_iterator i = vars.begin(); i != vars.end(); i++) 
+    for (vector<string>::const_iterator i = vars.begin(); i != vars.end(); i++)
         if (find(lhs_vars.begin(), lhs_vars.end(), *i) == lhs_vars.end())
-            throw ExecuteError("variable `" + *i 
+            throw ExecuteError("variable `" + *i
                                            + "' only at the right hand side.");
     vector<OpTree*> op_trees = calculate_deriv(info.trees.begin(), lhs_vars);
     return op_trees;
@@ -583,7 +583,7 @@ void check_fudf_rhs(string const& rhs, vector<string> const& lhs_vars)
         if (*i != "x" && !contains_element(lhs_vars, *i)) {
             throw ExecuteError("Unexpected parameter in formula: " + *i);
         }
-    for (vector<string>::const_iterator i = lhs_vars.begin(); 
+    for (vector<string>::const_iterator i = lhs_vars.begin();
                                                     i != lhs_vars.end(); ++i)
         if (!contains_element(vars, *i)) {
             throw ExecuteError("Unused parameter in formula: " + *i);
@@ -594,9 +594,9 @@ void check_rhs(string const& rhs, vector<string> const& lhs_vars)
 {
     string::size_type t = rhs.find_first_not_of(" \t\r\n");
     if (t != string::npos && isupper(rhs[t])) { //compound
-        parse_info<> info 
-            = parse(rhs.c_str(), 
-                    ((lexeme_d[(upper_p >> +alnum_p)] 
+        parse_info<> info
+            = parse(rhs.c_str(),
+                    ((lexeme_d[(upper_p >> +alnum_p)]
                       >> '(' >> (no_actions_d[FuncG]  % ',') >> ')'
                      ) % '+'
                     ) >> end_p,
@@ -604,9 +604,9 @@ void check_rhs(string const& rhs, vector<string> const& lhs_vars)
         if (!info.full)
             throw ExecuteError("Syntax error in compound formula.");
         vector<string> rf = get_cpd_rhs_components(rhs, false);
-        for (vector<string>::const_iterator i = rf.begin(); i != rf.end(); ++i) 
+        for (vector<string>::const_iterator i = rf.begin(); i != rf.end(); ++i)
             check_cpd_rhs_function(*i, lhs_vars);
-    } 
+    }
     else { //udf, not compound
         check_fudf_rhs(rhs, lhs_vars);
     }
@@ -616,7 +616,7 @@ void define(std::string const &formula)
 {
     string type = Function::get_typename_from_formula(formula);
     vector<string> lhs_vars = Function::get_varnames_from_formula(formula);
-    for (vector<string>::const_iterator i = lhs_vars.begin(); 
+    for (vector<string>::const_iterator i = lhs_vars.begin();
                                                     i != lhs_vars.end(); i++) {
         if (*i == "x")
             throw ExecuteError("x should not be given explicitly as "
@@ -625,7 +625,7 @@ void define(std::string const &formula)
             throw ExecuteError("Improper variable: " + *i);
     }
     check_rhs(Function::get_rhs_from_formula(formula), lhs_vars);
-    if (is_defined(type) && !get_udf(type)->is_builtin) { 
+    if (is_defined(type) && !get_udf(type)->is_builtin) {
         //defined, but can be undefined; don't undefine function implicitely
         throw ExecuteError("Function `" + type + "' is already defined. "
                            "You can try to undefine it.");
@@ -644,7 +644,7 @@ void undefine(std::string const &type)
                 throw ExecuteError("Built-in compound function "
                                                     "can't be undefined.");
             //check if other definitions depend on it
-            for (vector<UDF>::const_iterator j = udfs.begin(); 
+            for (vector<UDF>::const_iterator j = udfs.begin();
                                                   j != udfs.end(); ++j) {
                 if (!j->is_builtin)
                     continue;
@@ -652,7 +652,7 @@ void undefine(std::string const &type)
                 for (vector<string>::const_iterator k = rf.begin();
                                                           k != rf.end(); ++k) {
                     if (Function::get_typename_from_formula(*k) == type)
-                        throw ExecuteError("Can not undefine function `" + type 
+                        throw ExecuteError("Can not undefine function `" + type
                                             + "', because function `" + j->name
                                             + "' depends on it.");
                 }
@@ -660,7 +660,7 @@ void undefine(std::string const &type)
             udfs.erase(i);
             return;
         }
-    throw ExecuteError("Can not undefine function `" + type 
+    throw ExecuteError("Can not undefine function `" + type
                         + "' which is not defined");
 }
 
@@ -674,7 +674,7 @@ UDF const* get_udf(std::string const &type)
 
 
 ///check for errors in function at RHS
-void check_cpd_rhs_function(std::string const& fun, 
+void check_cpd_rhs_function(std::string const& fun,
                                           vector<string> const& lhs_vars)
 {
     //check if component function is known
@@ -686,20 +686,20 @@ void check_cpd_rhs_function(std::string const& fun,
     vector<string> tvars = Function::get_varnames_from_formula(tf);
     vector<string> gvars = Function::get_varnames_from_formula(fun);
     if (tvars.size() != gvars.size())
-        throw ExecuteError("Function `" + t + "' requires " 
+        throw ExecuteError("Function `" + t + "' requires "
                                       + S(tvars.size()) + " parameters.");
-    // ... and check if these parameters are ok 
+    // ... and check if these parameters are ok
     for (vector<string>::const_iterator j=gvars.begin(); j != gvars.end(); ++j){
         tree_parse_info<> info = ast_parse(j->c_str(), FuncG >> end_p, space_p);
         assert(info.full);
         vector<string> vars=find_tokens_in_ptree(FuncGrammar::variableID, info);
         if (contains_element(vars, "x"))
             throw ExecuteError("variable can not depend on x.");
-        for (vector<string>::const_iterator k = vars.begin(); 
+        for (vector<string>::const_iterator k = vars.begin();
                                                         k != vars.end(); ++k)
-            if ((*k)[0] != '~' && (*k)[0] != '{' && (*k)[0] != '$' 
+            if ((*k)[0] != '~' && (*k)[0] != '{' && (*k)[0] != '$'
                     && (*k)[0] != '%' && !contains_element(lhs_vars, *k))
-                throw ExecuteError("Improper variable given in parameter " 
+                throw ExecuteError("Improper variable given in parameter "
                               + S(j-gvars.begin()+1) + " of "+ t + ": " + *k);
     }
 }
@@ -708,14 +708,14 @@ void check_cpd_rhs_function(std::string const& fun,
 vector<string> get_cpd_rhs_components(string const &formula, bool full)
 {
     vector<string> result;
-    string::size_type pos = (full ? formula.rfind('=') + 1 : 0), 
+    string::size_type pos = (full ? formula.rfind('=') + 1 : 0),
                       rpos = 0;
     while (pos != string::npos) {
         rpos = find_matching_bracket(formula, formula.find('(', pos));
         if (rpos == string::npos)
             break;
         string fun = string(formula, pos, rpos-pos+1);
-        pos = formula.find_first_not_of(" +", rpos+1); 
+        pos = formula.find_first_not_of(" +", rpos+1);
         result.push_back(fun);
     }
     return result;
@@ -726,14 +726,14 @@ vector<string> get_cpd_rhs_components(string const &formula, bool full)
 ///////////////////////////////////////////////////////////////////////
 
 CompoundFunction::CompoundFunction(Ftk const* F,
-                                   string const &name, 
+                                   string const &name,
                                    string const &type,
                                    vector<string> const &vars)
     : Function(F, name, vars, get_formula(type)),
       vmgr(F)
 {
     vmgr.silent = true;
-    for (int j = 0; j != nv; ++j) 
+    for (int j = 0; j != nv; ++j)
         vmgr.assign_variable(varnames[j], ""); // mirror variables
 
     vector<string> rf = UdfContainer::get_cpd_rhs_components(type_formula,true);
@@ -741,7 +741,7 @@ CompoundFunction::CompoundFunction(Ftk const* F,
         for (int j = 0; j != nv; ++j) {
             replace_words(*i, type_var_names[j], vmgr.get_variable(j)->xname);
         }
-        vmgr.assign_func("", get_typename_from_formula(*i), 
+        vmgr.assign_func("", get_typename_from_formula(*i),
                              get_varnames_from_formula(*i));
     }
 }
@@ -749,13 +749,13 @@ CompoundFunction::CompoundFunction(Ftk const* F,
 void CompoundFunction::set_var_idx(vector<Variable*> const& variables)
 {
     VariableUser::set_var_idx(variables);
-    for (int i = 0; i < nv; ++i) 
+    for (int i = 0; i < nv; ++i)
         vmgr.get_variable(i)->set_original(variables[get_var_idx(i)]);
 }
 
 /// vv was changed, but not variables, mirror variables in vmgr must be frozen
 void CompoundFunction::precomputations_for_alternative_vv()
-{ 
+{
     vector<Variable const*> backup(nv);
     for (int i = 0; i < nv; ++i) {
         //prevent change in use_parameters()
@@ -768,11 +768,11 @@ void CompoundFunction::precomputations_for_alternative_vv()
 }
 
 void CompoundFunction::more_precomputations()
-{ 
+{
     vmgr.use_parameters();
 }
 
-void CompoundFunction::calculate_value(vector<fp> const &xx, 
+void CompoundFunction::calculate_value(vector<fp> const &xx,
                                        vector<fp> &yy) const
 {
     vector<Function*> const& functions = vmgr.get_functions();
@@ -781,7 +781,7 @@ void CompoundFunction::calculate_value(vector<fp> const &xx,
         (*i)->calculate_value(xx, yy);
 }
 
-void CompoundFunction::calculate_value_deriv(vector<fp> const &xx, 
+void CompoundFunction::calculate_value_deriv(vector<fp> const &xx,
                                              vector<fp> &yy, vector<fp> &dy_da,
                                              bool in_dx) const
 {
@@ -804,8 +804,8 @@ string CompoundFunction::get_current_formula(string const& x) const
     return t;
 }
 
-bool CompoundFunction::has_center() const 
-{ 
+bool CompoundFunction::has_center() const
+{
     vector<Function*> const& ff = vmgr.get_functions();
     for (size_t i = 0; i < ff.size(); ++i) {
         if (!ff[i]->has_center()
@@ -820,7 +820,7 @@ bool CompoundFunction::has_center() const
 bool CompoundFunction::has_height() const
 {
     vector<Function*> const& ff = vmgr.get_functions();
-    if (ff.size() == 1) 
+    if (ff.size() == 1)
         return ff[0]->has_center();
     for (size_t i = 0; i < ff.size(); ++i) {
         if (!ff[i]->has_center() || !ff[i]->has_height()
@@ -854,7 +854,7 @@ fp CompoundFunction::fwhm() const
 bool CompoundFunction::has_area() const
 {
     vector<Function*> const& ff = vmgr.get_functions();
-    for (size_t i = 0; i < ff.size(); ++i) 
+    for (size_t i = 0; i < ff.size(); ++i)
         if (!ff[i]->has_area())
             return false;
     return true;
@@ -871,24 +871,24 @@ fp CompoundFunction::area() const
 }
 
 bool CompoundFunction::get_nonzero_range(fp level, fp& left, fp& right) const
-{ 
+{
     vector<Function*> const& ff = vmgr.get_functions();
-    if (ff.size() == 1) 
+    if (ff.size() == 1)
         return ff[0]->get_nonzero_range(level, left, right);
     else
-        return false; 
+        return false;
 }
 
 ///////////////////////////////////////////////////////////////////////
 
 CustomFunction::CustomFunction(Ftk const* F,
-                               string const &name, 
+                               string const &name,
                                string const &type,
-                               vector<string> const &vars, 
+                               vector<string> const &vars,
                                vector<OpTree*> const& op_trees)
     : Function(F, name, vars, get_formula(type)),
       derivatives(nv+1),
-      afo(op_trees, value, derivatives) 
+      afo(op_trees, value, derivatives)
 {
 }
 
@@ -901,40 +901,40 @@ void CustomFunction::set_var_idx(vector<Variable*> const& variables)
 
 
 void CustomFunction::more_precomputations()
-{ 
+{
     afo.prepare_optimized_codes(vv);
 }
 
-void CustomFunction::calculate_value(vector<fp> const &xx, 
+void CustomFunction::calculate_value(vector<fp> const &xx,
                                      vector<fp> &yy) const
 {
-    //int first, last; 
-    //get_nonzero_idx_range(xx, first, last); 
+    //int first, last;
+    //get_nonzero_idx_range(xx, first, last);
     //for (int i = first; i < last; ++i) {
     for (size_t i = 0; i < xx.size(); ++i) {
-        yy[i] += afo.run_vm_val(xx[i]); 
+        yy[i] += afo.run_vm_val(xx[i]);
     }
 }
 
-void CustomFunction::calculate_value_deriv(vector<fp> const &xx, 
+void CustomFunction::calculate_value_deriv(vector<fp> const &xx,
                                            vector<fp> &yy, vector<fp> &dy_da,
                                            bool in_dx) const
 {
     int dyn = dy_da.size() / xx.size();
     for (size_t i = 0; i < yy.size(); ++i) {
-        afo.run_vm_der(xx[i]); 
+        afo.run_vm_der(xx[i]);
 
-        if (!in_dx) { 
-            yy[i] += value; 
-            for (vector<Multi>::const_iterator j = multi.begin(); 
-                    j != multi.end(); ++j) 
+        if (!in_dx) {
+            yy[i] += value;
+            for (vector<Multi>::const_iterator j = multi.begin();
+                    j != multi.end(); ++j)
                 dy_da[dyn*i+j->p] += derivatives[j->n] * j->mult;
             dy_da[dyn*i+dyn-1] += derivatives.back();
         }
-        else {  
-            for (vector<Multi>::const_iterator j = multi.begin(); 
-                    j != multi.end(); ++j) 
-                dy_da[dyn*i+j->p] += dy_da[dyn*i+dyn-1] 
+        else {
+            for (vector<Multi>::const_iterator j = multi.begin();
+                    j != multi.end(); ++j)
+                dy_da[dyn*i+j->p] += dy_da[dyn*i+dyn-1]
                                        * derivatives[j->n] * j->mult;
         }
     }

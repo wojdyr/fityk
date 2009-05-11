@@ -28,7 +28,7 @@ class OutputWin : public wxTextCtrl
     friend class OutputWinConfDlg;
 public:
     OutputWin (wxWindow *parent, wxWindowID id,
-                const wxPoint& pos = wxDefaultPosition, 
+                const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize);
     void append_text (OutputStyle style, const wxString& str);
     void save_settings(wxConfigBase *cf) const;
@@ -36,12 +36,12 @@ public:
     void show_fancy_dashes();
     void set_bg_color(wxColour const &color);
     void OnRightDown (wxMouseEvent& event);
-    void OnConfigure(wxCommandEvent&);  
-    void OnClear(wxCommandEvent&); 
+    void OnConfigure(wxCommandEvent&);
+    void OnClear(wxCommandEvent&);
     void OnKeyDown (wxKeyEvent& event);
 
 private:
-    wxColour text_color[4]; 
+    wxColour text_color[4];
     wxColour bg_color;
 
     DECLARE_EVENT_TABLE()
@@ -67,7 +67,7 @@ public:
 private:
     OutputWin *ow;
     wxStaticText *font_label;
-    wxColourPickerCtrl *bg_cpicker; 
+    wxColourPickerCtrl *bg_cpicker;
     wxColourPickerCtrl *t0_cpicker, *t1_cpicker, *t2_cpicker, *t3_cpicker;
     wxFontPickerCtrl *font_picker;
     wxTextCtrl *preview;
@@ -75,7 +75,7 @@ private:
     void show_preview();
     void OnSystemFontCheckbox(wxCommandEvent& event);
     void OnFontChange(wxFontPickerEvent& event);
-    void OnColorBg(wxColourPickerEvent& event) 
+    void OnColorBg(wxColourPickerEvent& event)
         { ow->set_bg_color(event.GetColour()); show_preview(); }
     void OnColorT0(wxColourPickerEvent& event)
         { ow->text_color[0] = event.GetColour(); show_preview(); }
@@ -87,5 +87,5 @@ private:
         { ow->text_color[3] = event.GetColour(); show_preview(); }
 };
 
-#endif 
+#endif
 

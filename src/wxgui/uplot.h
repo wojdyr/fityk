@@ -15,7 +15,7 @@ class BufferedPanel : public wxPanel
 {
 public:
     BufferedPanel(wxWindow *parent)
-       : wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize, 
+       : wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize,
                  wxNO_BORDER|wxFULL_REPAINT_ON_RESIZE) {}
     /// to be called when content of the panel is changed
     void refresh(bool now=false);
@@ -41,8 +41,8 @@ private:
 
 
 /// returns positions of major and minor tics, for normal or logarithmic scale
-std::vector<double> scale_tics_step(double beg, double end, int max_tics, 
-                                    std::vector<double> &minors, 
+std::vector<double> scale_tics_step(double beg, double end, int max_tics,
+                                    std::vector<double> &minors,
                                     bool logarithm=false);
 
 #endif //FITYK__WX_UPLOT__H__

@@ -1,6 +1,6 @@
 // Purpose: FancyRealCtrl (numeric wxTextCtrl + wxSlider + "lock" button)
-// Copyright: (c) 2007 Marcin Wojdyr 
-// Licence: wxWidgets licence 
+// Copyright: (c) 2007 Marcin Wojdyr
+// Licence: wxWidgets licence
 // $Id$
 
 #ifndef FITYK__WX_FANCYRC__H__
@@ -17,7 +17,7 @@ class ValueChangingWidget;
 class FancyRealCtrl : public wxPanel
 {
 public:
-    FancyRealCtrl(wxWindow* parent, wxWindowID id, 
+    FancyRealCtrl(wxWindow* parent, wxWindowID id,
                   double value, wxString const& tip, bool locked_,
                   V1Callback<FancyRealCtrl const*> const& changing_value_cb,
                   V1Callback<FancyRealCtrl const*> const& changed_value_cb,
@@ -32,18 +32,18 @@ public:
     double GetValue() const;
     wxString GetValueStr() const { return tc->GetValue(); }
     /// changes only value in text-ctrl
-    void SetTemporaryValue(double value); 
+    void SetTemporaryValue(double value);
     void SetValue(double v) { SetTemporaryValue(v); initial_value = v; }
 
 
     void SetTip(wxString const& tt) { tc->SetToolTip(tt); }
     wxString GetTip() const { return tc->GetToolTip()->GetTip(); }
 
-    void ToggleLock(); 
+    void ToggleLock();
     bool IsLocked() const { return locked; }
 
     /// redirects OnKeyDown events from lock button and slider
-    void ConnectToOnKeyDown(wxObjectEventFunction function, 
+    void ConnectToOnKeyDown(wxObjectEventFunction function,
                               wxEvtHandler* sink);
 
 private:
@@ -51,7 +51,7 @@ private:
     bool locked;
     wxTextCtrl *tc;
     wxBitmapButton *lock_btn;
-    ValueChangingWidget *vch; 
+    ValueChangingWidget *vch;
 
     //callbacks
     V1Callback<FancyRealCtrl const*> changing_value_callback;
@@ -59,7 +59,7 @@ private:
     V1Callback<FancyRealCtrl const*> toggled_lock_callback;
 
     wxBitmap GetLockBitmap() const;
-    void OnLockButton(wxCommandEvent&) 
+    void OnLockButton(wxCommandEvent&)
                                 { ToggleLock(); toggled_lock_callback(this); }
     void OnTextEnter(wxCommandEvent &) { OnStopChanging(); }
     void OnMouseWheel(wxMouseEvent &event);

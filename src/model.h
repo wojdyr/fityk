@@ -15,10 +15,10 @@ class Data;
 class VariableManager;
 class Ftk;
 
-///  This class contains description of curve which we are trying to fit 
+///  This class contains description of curve which we are trying to fit
 ///  to data. This curve is described simply by listing names of functions
 ///  in F and in Z (Z contains x-corrections)
-class Model 
+class Model
 {
 public:
     // set of functions, F and Z
@@ -32,7 +32,7 @@ public:
     void remove_all_functions_from(FuncSet fset);
     fp value(fp x) const;
     // calculate value of model (to be used when derivatives are not needed)
-    void compute_model(std::vector<fp> &x, std::vector<fp> &y) const; 
+    void compute_model(std::vector<fp> &x, std::vector<fp> &y) const;
     // calculate value of model and its derivatives, see definition for details
     void compute_model_with_derivs(std::vector<fp> &x, std::vector<fp> &y,
                                    std::vector<fp> &dy_da) const;
@@ -40,7 +40,7 @@ public:
     fp funcs_value (const std::vector<int>& fn, fp x) const;
 
     fp value_and_put_deriv (fp x, std::vector<fp>& dy_da) const;
-    fp value_and_add_numeric_deriv (fp x, bool both_sides, 
+    fp value_and_add_numeric_deriv (fp x, bool both_sides,
                                     std::vector<fp>& dy_da) const;
     fp approx_max(fp x_min, fp x_max) const;
     std::string general_info() const;
@@ -53,15 +53,15 @@ public:
     std::vector<int> const& get_zz_idx() const { return zz_idx; }
     std::vector<std::string> const &get_ff_names() const { return ff_names; }
     std::vector<std::string> const &get_zz_names() const { return zz_names; }
-    std::vector<std::string> const &get_names(FuncSet fset) const 
+    std::vector<std::string> const &get_names(FuncSet fset) const
         { return (fset == kF ? ff_names : zz_names); }
-    std::vector<int> const &get_indices(FuncSet fset) const 
+    std::vector<int> const &get_indices(FuncSet fset) const
         { return (fset == kF ? ff_idx : zz_idx); }
     bool has_any_info() const { return !ff_names.empty() || !zz_names.empty(); }
     fp numarea(fp x1, fp x2, int nsteps) const;
     bool is_dependent_on_var(int idx) const;
     static std::string str(FuncSet fset) { return fset == kF ? "F" : "Z"; }
-    static FuncSet parse_funcset(char c) 
+    static FuncSet parse_funcset(char c)
         { assert(c == 'F' || c == 'Z'); return c == 'F' ? kF : kZ; }
 
 private:
@@ -78,5 +78,5 @@ private:
 };
 
 
-#endif  
+#endif
 

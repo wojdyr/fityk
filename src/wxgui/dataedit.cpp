@@ -18,7 +18,7 @@
 #include "frame.h"
 #include "dialogs.h" //export_data_dlg()
 #include "../data.h" // Data, Point
-#include "../logic.h"  
+#include "../logic.h"
 #include "../datatrans.h" //compile_data_transformation()
 
 using namespace std;
@@ -28,25 +28,25 @@ enum {
     ID_DE_GRID              = 26200,
     ID_DE_CODE                     ,
     ID_DE_EXAMPLES                 ,
-    ID_DE_RESET                 
+    ID_DE_RESET
 };
 
 
 class DataTable: public wxGridTableBase
 {
 public:
-    DataTable(Data const* data_, DataEditorDlg *ded_) : wxGridTableBase(), 
+    DataTable(Data const* data_, DataEditorDlg *ded_) : wxGridTableBase(),
                                             data(data_), ded(ded_) {}
     int GetNumberRows() { return data->points().size(); }
     int GetNumberCols() { return 4; }
     bool IsEmptyCell(int /*row*/, int /*col*/) { return false; }
 
-    wxString GetValue(int row, int col) 
-    {  
-        if (col == 0) 
+    wxString GetValue(int row, int col)
+    {
+        if (col == 0)
             return GetValueAsBool(row,col) ? wxT("1") : wxT("0");
-        else 
-            return wxString::Format(wxT("%g"), GetValueAsDouble(row,col)); 
+        else
+            return wxString::Format(wxT("%g"), GetValueAsDouble(row,col));
     }
 
     void SetValue(int, int, const wxString&) { assert(0); }
@@ -58,12 +58,12 @@ public:
         { return typeName == GetTypeName(row, col); }
 
     double GetValueAsDouble(int row, int col)
-    { 
-        const Point &p = data->points()[row]; 
+    {
+        const Point &p = data->points()[row];
         switch (col) {
-            case 1: return p.x;      
-            case 2: return p.y;      
-            case 3: return p.sigma;  
+            case 1: return p.x;
+            case 2: return p.y;
+            case 3: return p.sigma;
             default: assert(0);
         }
     }
@@ -71,8 +71,8 @@ public:
     bool GetValueAsBool(int row, int col)
         { assert(col==0); return data->points()[row].is_active; }
 
-    void SetValueAsDouble(int row, int col, double value) 
-    { 
+    void SetValueAsDouble(int row, int col, double value)
+    {
         string t;
         switch (col) {
             case 1: t = "X";  break;
@@ -86,23 +86,23 @@ public:
         ded->rezoom_btn->Enable();
     }
 
-    void SetValueAsBool(int row, int col, bool value) 
-    { 
-        assert(col==0); 
-        ftk->exec("A[" + S(row)+"]=" + (value?"true":"false") 
-                                                  + frame->get_in_datasets()); 
+    void SetValueAsBool(int row, int col, bool value)
+    {
+        assert(col==0);
+        ftk->exec("A[" + S(row)+"]=" + (value?"true":"false")
+                                                  + frame->get_in_datasets());
         ded->rezoom_btn->Enable();
     }
 
     wxString GetRowLabelValue(int row) {return wxString::Format(wxT("%i"),row);}
 
-    wxString GetColLabelValue(int col) 
-    { 
+    wxString GetColLabelValue(int col)
+    {
         switch (col) {
-            case 0: return wxT("active"); 
-            case 1: return wxT("x");      
-            case 2: return wxT("y");      
-            case 3: return wxT("sigma");  
+            case 0: return wxT("active");
+            case 1: return wxT("x");
+            case 2: return wxT("y");
+            case 3: return wxT("sigma");
             default: assert(0);
         }
     }
@@ -114,15 +114,15 @@ private:
 
 
 // ';' will be replaced by line break
-static const char *default_transforms = 
+static const char *default_transforms =
 
 "std.dev.=1||"
 "|s=1"
-"|Y\n" 
+"|Y\n"
 
 "std.dev.=sqrt(y)||std.dev. = sqrt(y) (or 1 if y<1)"
 "|sqrt(max2(1,y))"
-"|Y\n" 
+"|Y\n"
 
 "integrate||"
 "Y[0] = 0;"
@@ -143,8 +143,8 @@ static const char *default_transforms =
 
 "normalize area||divide all Y (and std. dev.) values;"
 "by the current data area; (it gives unit area)"
-"|Y = y/darea(y), S = s / darea(y)" 
-"|Y\n" 
+"|Y = y/darea(y), S = s / darea(y)"
+"|Y\n"
 
 "reduce 2x||join every two adjacent points"
 "|X[...-1] = (x[n]+x[n+1])/2"
@@ -199,7 +199,7 @@ static const char *default_transforms =
 ;
 
 DataTransform::DataTransform(string line)
-     : in_menu(false) 
+     : in_menu(false)
 {
     replace_all(line, ";", "\n");
     vector<string> tokens = split_string(line, '|');
@@ -214,9 +214,9 @@ DataTransform::DataTransform(string line)
 
 string DataTransform::as_fileline() const
 {
-    // the second field is reserved. It used to be "category", but since 
+    // the second field is reserved. It used to be "category", but since
     // it was rather useless, i removed it
-    string s = name + "||" + description + "|" + code 
+    string s = name + "||" + description + "|" + code
                + "|" + (in_menu ? "Y" : "N");
     //TODO replace_all(s, "|", "{pipe}")
     replace_all(s, "\n", ";");
@@ -242,25 +242,25 @@ BEGIN_EVENT_TABLE(DataEditorDlg, wxDialog)
     EVT_LIST_ITEM_ACTIVATED(ID_DE_EXAMPLES, DataEditorDlg::OnEActivated)
 END_EVENT_TABLE()
 
-DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id, 
+DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id,
                               ndnd_type const& dd)
-    : wxDialog(parent, id, wxT("Data Editor"), 
-               wxDefaultPosition, wxSize(500, 500), 
+    : wxDialog(parent, id, wxT("Data Editor"),
+               wxDefaultPosition, wxSize(500, 500),
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
     ProportionalSplitter *splitter = new ProportionalSplitter(this, -1, 0.5);
 
     // left side of the dialog
-    wxPanel *left_panel = new wxPanel(splitter); 
+    wxPanel *left_panel = new wxPanel(splitter);
     wxBoxSizer *left_sizer = new wxBoxSizer(wxVERTICAL);
     left_sizer->Add(new wxStaticText(left_panel, -1,wxT("Original filename:")));
     filename_label = new wxStaticText(left_panel, -1, wxT(""));
     left_sizer->Add(filename_label, 0);
     wxBoxSizer *two_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-    revert_btn = new wxButton(left_panel, wxID_REVERT_TO_SAVED, 
+    revert_btn = new wxButton(left_panel, wxID_REVERT_TO_SAVED,
                               wxT("Revert to Saved"));
     two_btn_sizer->Add(revert_btn, 0, wxALL|wxALIGN_CENTER, 5);
-    save_as_btn = new wxButton(left_panel, wxID_SAVEAS, 
+    save_as_btn = new wxButton(left_panel, wxID_SAVEAS,
                                wxT("Save &As..."));
     two_btn_sizer->Add(save_as_btn, 0, wxALL|wxALIGN_CENTER, 5);
     left_sizer->Add(two_btn_sizer, 0, wxALIGN_CENTER);
@@ -268,16 +268,16 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id,
                     0, wxLEFT|wxRIGHT|wxTOP, 5);
     title_label = new wxStaticText(left_panel, -1, wxT(""));
     left_sizer->Add(title_label, 0, wxLEFT|wxRIGHT|wxBOTTOM, 5);
-    grid = new wxGrid(left_panel, ID_DE_GRID, 
+    grid = new wxGrid(left_panel, ID_DE_GRID,
                       wxDefaultPosition, wxSize(-1, 350));
     left_sizer->Add(grid, 1, wxEXPAND);
     left_panel->SetSizerAndFit(left_sizer);
 
     // right side of the dialog
-    wxPanel *right_panel = new wxPanel(splitter); 
+    wxPanel *right_panel = new wxPanel(splitter);
     wxBoxSizer *right_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *trans_sizer = new wxBoxSizer(wxHORIZONTAL);
-    trans_list = new wxListCtrl(right_panel, ID_DE_EXAMPLES, 
+    trans_list = new wxListCtrl(right_panel, ID_DE_EXAMPLES,
                                   wxDefaultPosition, wxDefaultSize,
                                   wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_HRULES);
     trans_list->InsertColumn(0, wxT("transformation"));
@@ -298,11 +298,11 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id,
     trans_button_sizer->Add(reset_btn, 0, wxALL, 5);
     trans_sizer->Add(trans_button_sizer, 0);
     right_sizer->Add(trans_sizer, 0, wxEXPAND);
-    description = new wxStaticText(right_panel, -1, wxT("\n\n\n\n"), 
+    description = new wxStaticText(right_panel, -1, wxT("\n\n\n\n"),
                                    wxDefaultPosition, wxDefaultSize,
                                    wxALIGN_LEFT);
     right_sizer->Add(description, 0, wxEXPAND|wxALL, 5);
-    code = new wxTextCtrl(right_panel, ID_DE_CODE, wxT(""), 
+    code = new wxTextCtrl(right_panel, ID_DE_CODE, wxT(""),
                           wxDefaultPosition, wxDefaultSize,
                           wxTE_MULTILINE|wxHSCROLL|wxVSCROLL);
     right_sizer->Add(code, 1, wxEXPAND|wxALL, 5);
@@ -334,14 +334,14 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id,
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
     top_sizer->Add(splitter, 1, wxEXPAND, 1);
     top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
-    top_sizer->Add(new wxButton(this, wxID_CLOSE, wxT("&Close")), 
+    top_sizer->Add(new wxButton(this, wxID_CLOSE, wxT("&Close")),
                    0, wxALIGN_CENTER|wxALL, 5);
     SetSizerAndFit(top_sizer);
 
     // workaround for wxMSW 2.5.3 strange problem -- very small dialog window
     if (GetClientSize().GetHeight() < 200)
-        SetClientSize(500, 500); 
-                             
+        SetClientSize(500, 500);
+
     Centre();
 }
 
@@ -370,7 +370,7 @@ void DataEditorDlg::initialize_transforms(bool reset)
     if (reset)
         read_transforms(reset);
     trans_list->DeleteAllItems();
-    for (int i = 0; i < size(transforms); ++i) 
+    for (int i = 0; i < size(transforms); ++i)
         insert_trans_list_item(i);
     select_transform(0);
 }
@@ -386,7 +386,7 @@ void DataEditorDlg::select_transform(int item)
 {
     if (item >= trans_list->GetItemCount())
         return;
-    trans_list->SetItemState (item, 
+    trans_list->SetItemState (item,
                                 wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED,
                                 wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED);
     // ESelected();
@@ -409,7 +409,7 @@ void DataEditorDlg::update_data(ndnd_type const& dd)
         title = data->get_title();
         title_label->Show(true);
         title_label->SetLabel(s2wx(title));
-        grid->SetTable(new DataTable(data, this), true, 
+        grid->SetTable(new DataTable(data, this), true,
                        wxGrid::wxGridSelectRows);
         refresh_grid();
     }
@@ -429,7 +429,7 @@ void DataEditorDlg::update_data(ndnd_type const& dd)
 
 bool DataEditorDlg::is_revertable() const
 {
-    for (ndnd_type::const_iterator i = ndnd.begin(); i != ndnd.end(); ++i) 
+    for (ndnd_type::const_iterator i = ndnd.begin(); i != ndnd.end(); ++i)
         if (i->second->get_filename().empty())
             return false;
     return true;
@@ -440,7 +440,7 @@ void DataEditorDlg::refresh_grid()
     if (ndnd.size() != 1)
         return;
     if (grid->GetNumberRows() != grid->GetTable()->GetNumberRows()) {
-        grid->SetTable(new DataTable(ndnd[0].second, this), true, 
+        grid->SetTable(new DataTable(ndnd[0].second, this), true,
                        wxGrid::wxGridSelectRows);
     }
     grid->ForceRefresh();
@@ -584,7 +584,7 @@ void DataEditorDlg::CodeText()
 
         //TODO move this to get_code(char sep=';') and use in execute_tranform()
         // also remove comments from code
-        
+
         // remove empty lines and replace "\n" with ", "
         vector<string> lines = split_string(text, "\n");
         for (size_t i = 0; i < lines.size(); ++i)
@@ -640,12 +640,12 @@ BEGIN_EVENT_TABLE(TransEditorDlg, wxDialog)
     EVT_BUTTON  (wxID_OK,    TransEditorDlg::OnOK)
 END_EVENT_TABLE()
 
-TransEditorDlg::TransEditorDlg(wxWindow* parent, wxWindowID id, 
+TransEditorDlg::TransEditorDlg(wxWindow* parent, wxWindowID id,
                                    DataTransform& ex_,
                                    const vector<DataTransform>& transforms_,
                                    int pos_)
-    : wxDialog(parent, id, wxT("Transformation Editor"), 
-               wxDefaultPosition, wxDefaultSize, 
+    : wxDialog(parent, id, wxT("Transformation Editor"),
+               wxDefaultPosition, wxDefaultSize,
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
       ex(ex_), transforms(transforms_), pos(pos_)
 {
@@ -653,7 +653,7 @@ TransEditorDlg::TransEditorDlg(wxWindow* parent, wxWindowID id,
     description_tc = new wxTextCtrl(this, -1, s2wx(ex.description),
                                     wxDefaultPosition, wxSize(-1, 80),
                                     wxTE_MULTILINE|wxHSCROLL|wxVSCROLL);
-    code_tc = new wxTextCtrl(this, -1, s2wx(ex.code), 
+    code_tc = new wxTextCtrl(this, -1, s2wx(ex.code),
                              wxDefaultPosition, wxSize(-1, 100),
                              wxTE_MULTILINE|wxHSCROLL|wxVSCROLL);
     inmenu_cb = new wxCheckBox(this, -1,
@@ -682,7 +682,7 @@ TransEditorDlg::TransEditorDlg(wxWindow* parent, wxWindowID id,
 void TransEditorDlg::OnOK(wxCommandEvent &)
 {
     string new_name = wx2s(name_tc->GetValue().Trim());
-    for (int i = 0; i < size(transforms); ++i) 
+    for (int i = 0; i < size(transforms); ++i)
             if (i != pos && transforms[i].name == new_name) {//name not unique
                 name_tc->SetFocus();
                 name_tc->SetSelection(-1, -1);
