@@ -20,6 +20,7 @@
 #include <wx/filename.h>
 
 #include <xylib/xylib.h>
+#include <xylib/cache.h>
 
 #include "dload.h" 
 #include "frame.h"  // frame->add_recent_data_file(get_filename())
@@ -53,19 +54,18 @@ public:
 
     PreviewPlot(wxWindow* parent)
         : BufferedPanel(parent), block_nr(0), idx_x(1), idx_y(2),
-          data(NULL), data_updated(false)
+          data_updated(false)
         { backgroundCol = *wxBLACK; }
 
-    ~PreviewPlot() { delete data; }
     void OnPaint(wxPaintEvent &event);
     void draw(wxDC &dc, bool);
     void load_dataset(string const& filename, string const& filetype,
                       vector<string> const& options);
-    xylib::DataSet const* get_data() { return data_updated ? data : NULL; }
+    shared_ptr<const xylib::DataSet> get_data() const { return data; }
     void make_outdated() { data_updated = false; }
 
 private:
-    xylib::DataSet* data;
+    shared_ptr<const xylib::DataSet> data;
     bool data_updated; // if false, draw() doesn't do anything (plot is clear)
 
     double xScale, yScale;
@@ -87,7 +87,7 @@ void PreviewPlot::OnPaint(wxPaintEvent&)
 
 void PreviewPlot::draw(wxDC &dc, bool)
 {
-    if (!data || !data_updated 
+    if (data.get() == NULL || !data_updated 
         || block_nr < 0 || block_nr >= data->get_block_count())
         return;
 
@@ -159,30 +159,12 @@ void PreviewPlot::draw(wxDC &dc, bool)
 }
 
 
-// wrapper around xylib::load_file()
-// with added caching (if the same filename and options are given)
 void PreviewPlot::load_dataset(string const& filename, 
                                string const& filetype,
                                vector<string> const& options)
 {
-    static string old_filename;
-    static string old_filetype;
-    static vector<string> old_options;
-    if (filename == old_filename && filetype == old_filetype 
-                                                && options == old_options) {
-        data_updated = true;
-        return;
-    }
-
     try {
-        // if xylib::load_file() throws exception, we keep value of data
-        xylib::DataSet *new_dt = xylib::load_file(filename, filetype, options);
-        assert(new_dt);
-        delete data;
-        data = new_dt;
-        old_filename = filename;
-        old_filetype = filetype;
-        old_options = options;
+        data = xylib::cached_load_file(filename, filetype, options);
         data_updated = true;
     } catch (runtime_error const& e) {
         data_updated = false;
@@ -293,19 +275,18 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
 
     bool def_sqrt = (ftk->get_settings()->getp("data-default-sigma") == "sqrt");
     sd_sqrt_cb = new wxCheckBox(left_panel, ID_DXLOAD_SDS, 
-                                wxT("set std. dev. as max(sqrt(y), 1.0)"));
+                                wxT("std. dev. = max(sqrt(y), 1)"));
     sd_sqrt_cb->SetValue(def_sqrt);
     left_sizer->Add (sd_sqrt_cb, 0, wxALL|wxEXPAND, 5);
 
-    wxStaticBoxSizer *dt_sizer = new wxStaticBoxSizer(wxVERTICAL, 
-                                    left_panel, wxT("Data title:"));
+    wxBoxSizer *dt_sizer = new wxBoxSizer(wxHORIZONTAL); 
     title_cb = new wxCheckBox(left_panel, ID_DXLOAD_HTITLE, 
-                              wxT("custom title"));
-    dt_sizer->Add(title_cb, 0, wxALL, 5);
+                              wxT("data title:"));
+    dt_sizer->Add(title_cb, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     title_tc = new wxTextCtrl(left_panel, -1, wxT(""));
     title_tc->Enable(false);
-    dt_sizer->Add(title_tc, 0, wxALL|wxEXPAND, 5);
-    left_sizer->Add (dt_sizer, 0, wxALL|wxEXPAND, 5);
+    dt_sizer->Add(title_tc, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    left_sizer->Add (dt_sizer, 0, wxEXPAND);
 
     StdDevCheckBoxChanged();
 
@@ -372,7 +353,7 @@ void DLoadDlg::OnHTitleCheckBox (wxCommandEvent& event)
 void DLoadDlg::update_block_list()
 {
     vector<string> bb;
-    if (plot_preview && plot_preview->get_data())
+    if (plot_preview && plot_preview->get_data().get() != NULL)
         for (int i = 0; i < plot_preview->get_data()->get_block_count(); ++i) {
             const string& name = plot_preview->get_data()->get_block(i)->name;
             bb.push_back(name.empty() ? "Block #" + S(i+1) : name);
@@ -394,6 +375,7 @@ void DLoadDlg::update_title_from_file()
         title_tc->Clear();
         return;
     }
+    // TODO: use class Data for this
     string title = get_file_basename(path);
     int x = x_column->GetValue();
     int y = y_column->GetValue();
