@@ -556,7 +556,7 @@ void FFrame::set_menubar()
                             wxT("Save all commands executed so far to file"));
     session_menu->Append(ID_SESSION_LOG, wxT("&Logging"), session_log_menu);
     append_mi(session_menu, ID_O_DUMP, GET_BMP(filesaveas16), 
-              wxT("&Dump to file"), 
+              wxT("&Save session..."), 
               wxT("Save current program state as script file"));
     session_menu->AppendSeparator();
     session_menu->Append(ID_PAGE_SETUP, wxT("Page Se&tup..."), 
@@ -1229,12 +1229,11 @@ void FFrame::show_debugger(wxString const& path)
 void FFrame::OnDump (wxCommandEvent&)
 {
     static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
-    wxFileDialog fdlg(this, wxT("Dump current program state to file as script"),
+    wxFileDialog fdlg(this, wxT("Save everything as a script"),
                       dir, wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
         ftk->exec("dump > '" + wx2s(fdlg.GetPath()) + "'");
-        //ftk->exec("commands[:] > '" + wx2s(fdlg.GetPath()) + "'");
     }
     dir = fdlg.GetDirectory();
 }
