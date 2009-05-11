@@ -63,7 +63,7 @@ const FormatInfo* get_format(int n)
         throw RunTimeError("Format index out of range: " + S(n));
     return formats[n];
 }
-//////////////////////////////////////////////////////////////////////////
+
 
 string const& MetaData::get(string const& key) const
 {
@@ -78,7 +78,6 @@ bool MetaData::set(string const& key, string const& val)
     return insert(make_pair(key, val)).second;
 }
 
-//////////////////////////////////////////////////////////////////////////
 
 Column* const Block::index_column = new StepColumn(0, 1);
 
@@ -152,7 +151,6 @@ vector<Block*> Block::split_on_column_lentgh()
     return result;
 }
 
-//////////////////////////////////////////////////////////////////////////
 
 DataSet::DataSet(FormatInfo const* fi_) 
     : fi(fi_) 
@@ -179,9 +177,6 @@ void DataSet::clear()
     meta.clear();
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-// namespace scope global functions
 
 DataSet* load_file(string const& path, string const& format_name,
                    vector<string> const& options)

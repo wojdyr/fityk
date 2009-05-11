@@ -82,7 +82,7 @@ void export_metadata(ostream &of, xylib::MetaData const& meta)
     }
 }
 
-void export_plain_text(xylib::DataSet *d, string const &fname, 
+void export_plain_text(xylib::DataSet const *d, string const &fname, 
                        bool with_metadata)
 {
     int range_num = d->get_block_count();

@@ -1,11 +1,13 @@
 // Public API of xylib library.
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id: xylib.h 462 2009-04-15 23:54:27Z wojdyr $
 
 /// This header is new in 0.4 and may be changed in future.
 /// Support for caching files read by xylib.
 /// Usage is similar to load_file() from xylib.h:
-///     DataSet const& my_dataset = xylib::Cache::Get()->load_file(...);
+///  shared_ptr<const xylib::DataSet> my_dataset = xylib::cached_load_file(...);
+/// or
+///  xylib::DataSet const& my_dataset = xylib::Cache::Get()->load_file(...);
 
 #ifndef XYLIB_CACHE_H_
 #define XYLIB_CACHE_H_
@@ -32,14 +34,14 @@ class Cache
 {
 public:
     // get instance
-    static Cache* Get() 
+    static Cache* Get()
         { if (instance_ == NULL) instance_ = new Cache(); return instance_; }
 
-    // Arguments are the same as in load_file() in xylib.h, 
+    // Arguments are the same as in load_file() in xylib.h,
     // but a const ref is returned instead of pointer.
-    DataSet const& load_file(std::string const& path, 
-                             std::string const& format_name="",
-                             std::vector<std::string> const& options 
+    shared_ptr<const DataSet> load_file(std::string const& path,
+                                        std::string const& format_name="",
+                                        std::vector<std::string> const& options
                                                 = std::vector<std::string>());
 
     // set max. number of cached files, default=1
@@ -60,10 +62,10 @@ private:
         std::time_t read_time_;
         shared_ptr<const DataSet> dataset_;
 
-        CachedFile(std::string const& path, 
-                   std::string const& format_name, 
-                   DataSet *dataset) 
-            : path_(path), format_name_(format_name), 
+        CachedFile(std::string const& path,
+                   std::string const& format_name,
+                   shared_ptr<const DataSet> dataset)
+            : path_(path), format_name_(format_name),
               read_time_(std::time(NULL)), dataset_(dataset) {}
     };
 
@@ -73,7 +75,25 @@ private:
     Cache() : n_cached_files_(1) {}
 };
 
-Cache* Cache::instance_ = NULL;
+inline
+shared_ptr<const DataSet> cached_load_file(std::string const& path,
+                                        std::string const& format_name="",
+                                        std::vector<std::string> const& options
+                                                = std::vector<std::string>())
+{
+    return Cache::Get()->load_file(path, format_name, options);
+}
+
+// format is passed as the first option
+inline
+shared_ptr<const DataSet> cached_load_file(std::string const& path,
+                                      std::vector<std::string> const& options)
+{
+    return options.empty() ? cached_load_file(path)
+                           : cached_load_file(path, options[0], 
+                                   std::vector<std::string>(options.begin()+1, 
+                                                            options.end()));
+}
 
 } // namespace xylib
 

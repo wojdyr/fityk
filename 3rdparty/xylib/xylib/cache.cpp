@@ -34,10 +34,12 @@ time_t get_file_mtime(string const& path)
 
 namespace xylib {
 
+Cache* Cache::instance_ = NULL;
+
 // not thread-safe
-DataSet const& Cache::load_file(string const& path, 
-                                string const& format_name,
-                                vector<string> const& options)
+shared_ptr<const DataSet> Cache::load_file(string const& path, 
+                                           string const& format_name,
+                                           vector<string> const& options)
 {
     vector<CachedFile>::iterator iter;
     for (iter = cache_.begin(); iter < cache_.end(); ++iter) {
@@ -50,7 +52,7 @@ DataSet const& Cache::load_file(string const& path,
             // if we can't check mtime, keep cache for 2 seconds
             if (time(NULL) - 2 < iter->read_time_) 
 #endif
-                return *(iter->dataset_);
+                return iter->dataset_;
             else {
                 cache_.erase(iter);
                 break;
@@ -58,12 +60,12 @@ DataSet const& Cache::load_file(string const& path,
         }
     }
     // this can throw exception
-    xylib::DataSet *ds = xylib::load_file(path, format_name, options);
+    shared_ptr<const DataSet> ds(xylib::load_file(path, format_name, options));
 
     if (cache_.size() >= n_cached_files_)
         cache_.erase(cache_.begin());
     cache_.push_back(CachedFile(path, format_name, ds));
-    return *ds;
+    return ds;
 }
 
 void Cache::set_number_of_cached_files(size_t n)
