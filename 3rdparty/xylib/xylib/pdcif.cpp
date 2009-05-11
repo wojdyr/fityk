@@ -1,5 +1,5 @@
 // Powder Diffraction CIF (pdCIF)
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 
@@ -29,16 +29,16 @@ const FormatInfo PdCifDataSet::fmt_info(
     &PdCifDataSet::check
 );
 
-bool PdCifDataSet::check(istream &f) 
+bool PdCifDataSet::check(istream &f)
 {
     string line;
     // the 1st line (that is not a comment) must start with "data_"
-    if (!get_valid_line(f, line, '#') || !str_startwith(line, "data_")) 
+    if (!get_valid_line(f, line, '#') || !str_startwith(line, "data_"))
         return false;
 
     // in pdCIF, there must be at least a tag whose name starts with "_pd_"
-    while (get_valid_line(f, line, '#')) 
-        if (str_startwith(line, "_pd_")) 
+    while (get_valid_line(f, line, '#'))
+        if (str_startwith(line, "_pd_"))
             return true;
 
     return false;
@@ -62,13 +62,13 @@ namespace {
 //
 // Known issues:
 // - to make is simpler, UnquotedString can't start with semicolon,
-//   and SemiColonTextField don't have to start after EOL. 
+//   and SemiColonTextField don't have to start after EOL.
 //
 // Finally, there is so many mistakes in both CIF specification and in popular
 // existing software, that it's hard to tell how the correct implementation
 // should look like
 
-// types of <Value> 
+// types of <Value>
 const int v_inapplicable = 0;
 const int v_unknown = 1;
 const int v_numeric = 2;
@@ -100,9 +100,9 @@ struct CifGrammar : public grammar<CifGrammar<Actions> >
             Actions& actions = self.actions;
 
             chset<> OrdinaryChar("a-zA-Z0-9!%&()*+,./:<=>?@\\`^{|}~-");
-            chset<> NonBlankChar("\"#$'_;[]" 
+            chset<> NonBlankChar("\"#$'_;[]"
                                  "a-zA-Z0-9!%&()*+,./:<=>?@\\`^{|}~-");
-            chset<> AnyPrintChar("\"#$'_;[] \t" 
+            chset<> AnyPrintChar("\"#$'_;[] \t"
                                  "a-zA-Z0-9!%&()*+,./:<=>?@\\`^{|}~-");
             //<TextLeadChar> is AnyPrintChar - ";"
 
@@ -124,61 +124,61 @@ struct CifGrammar : public grammar<CifGrammar<Actions> >
             BOOST_SPIRIT_DEBUG_NODE(SkipLine);
             BOOST_SPIRIT_DEBUG_NODE(PeekNoReservedWord);
 
-            CIF 
+            CIF
                 = !Comments >> !WhiteSpace
                   >> !( DataBlock >> *(WhiteSpace >> DataBlock) >> !WhiteSpace
                       )
                 ;
 
-            DataBlock 
-                = DataBlockHeading 
-                  >> *( WhiteSpace >> (DataItems 
-                                   // | SaveFrame 
-                                      ) 
+            DataBlock
+                = DataBlockHeading
+                  >> *( WhiteSpace >> (DataItems
+                                   // | SaveFrame
+                                      )
                       )
                   >> eps_p [actions.on_block_finish]
                 ;
 
-            DataBlockHeading 
-                = as_lower_d["data_"] 
-                  >> (+NonBlankChar) [actions.on_block_start] 
+            DataBlockHeading
+                = as_lower_d["data_"]
+                  >> (+NonBlankChar) [actions.on_block_start]
                 ;
 
-            // Save frames may only be used in dictionary files, 
+            // Save frames may only be used in dictionary files,
             // so we don't care about it
-            
-            //SaveFrame 
-            //    = SaveFrameHeading 
+
+            //SaveFrame
+            //    = SaveFrameHeading
             //      >> +( WhiteSpace >> DataItems )
             //      >> WhiteSpace >> as_lower_d["save_"]
             //    ;
 
-            //SaveFrameHeading 
+            //SaveFrameHeading
             //    = as_lower_d["save_"] >> +NonBlankChar
             //    ;
 
-            DataItems 
+            DataItems
                 = (Tag >> WhiteSpace >> Value) [actions.on_tag_value_finish]
                 | (LoopHeader >> LoopBody) [actions.on_loop_finish]
                 | SkipLine // ignore invalid lines
                 ;
 
-            // There is a lot of invalid CIF files in the world. It's not 
+            // There is a lot of invalid CIF files in the world. It's not
             // very suprising - if the spec contains so many errors
             // who would bother to implement it properly. It's not clear
-            // to me if there is a kind of informal spec all CIF tools 
-            // conform to. 
-            // The most common bug is a missing or non-standard value in 
+            // to me if there is a kind of informal spec all CIF tools
+            // conform to.
+            // The most common bug is a missing or non-standard value in
             // tag-value pair.
-            SkipLine 
-                = PeekNoReservedWord >> +AnyPrintChar 
+            SkipLine
+                = PeekNoReservedWord >> +AnyPrintChar
                                    [increment_a(actions.invalid_line_counter)]
                 ;
 
 
-            LoopHeader 
-                = as_lower_d["loop_"] 
-                  >> + ( WhiteSpace >> Tag ) [actions.on_loop_tag] 
+            LoopHeader
+                = as_lower_d["loop_"]
+                  >> + ( WhiteSpace >> Tag ) [actions.on_loop_tag]
                 ;
 
             LoopBody
@@ -187,19 +187,19 @@ struct CifGrammar : public grammar<CifGrammar<Actions> >
                 = * ( WhiteSpace >> Value ) [actions.on_loop_value]
                 ;
 
-            Tag 
+            Tag
                 = '_' >> (+NonBlankChar) [assign_a(actions.last_tag)]
                 ;
 
-            // The special values of '.' and '?' represent data that are 
+            // The special values of '.' and '?' represent data that are
             // inapplicable or unknown, respectively.
             Value
                 = (real_p  [assign_a(actions.value_real)]
-                   >> ( ( '(' >> uint_p  >> ch_p(')') 
-                           [assign_a(actions.last_value, v_numeric_with_err)] 
+                   >> ( ( '(' >> uint_p  >> ch_p(')')
+                           [assign_a(actions.last_value, v_numeric_with_err)]
                         )
                       | eps_p [assign_a(actions.last_value, v_numeric)]
-                      ) 
+                      )
                   ) [assign_a(actions.value_string)]
                   >> eps_p(space_p)
                 | ch_p('.')  [assign_a(actions.last_value, v_unknown)]
@@ -209,7 +209,7 @@ struct CifGrammar : public grammar<CifGrammar<Actions> >
                 ;
 
             PeekNoReservedWord
-                = ~eps_p(as_lower_d[str_p("data_") | "loop_" | "global_" 
+                = ~eps_p(as_lower_d[str_p("data_") | "loop_" | "global_"
                                    | "save_" | "stop_"])
                 ;
 
@@ -217,27 +217,27 @@ struct CifGrammar : public grammar<CifGrammar<Actions> >
             CharString
                   // UnquotedString (we don't check for preceding ';')
                 = PeekNoReservedWord
-                  >> (OrdinaryChar >> *NonBlankChar) 
+                  >> (OrdinaryChar >> *NonBlankChar)
                                               [assign_a(actions.value_string)]
                   // SingleQuotedString
-                | ch_p('\'') 
-                  >> ( *chset<>(AnyPrintChar - '\'') ) 
+                | ch_p('\'')
+                  >> ( *chset<>(AnyPrintChar - '\'') )
                                               [assign_a(actions.value_string)]
                   >> '\'' >> eps_p(space_p)
                   // DoubleQuotedString
-                | ch_p('"') 
+                | ch_p('"')
                   >> ( *chset<>(AnyPrintChar - '"') )
                                               [assign_a(actions.value_string)]
                   >> ch_p('"') >> eps_p(space_p)
                 ;
 
             TextField
-                = ch_p(';') 
+                = ch_p(';')
                   >> ( *AnyPrintChar>> +eol_p
-                       >>   *( chset<>(AnyPrintChar - ';') >> *AnyPrintChar 
+                       >>   *( chset<>(AnyPrintChar - ';') >> *AnyPrintChar
                                >> +eol_p)
                      ) [assign_a(actions.value_string)]
-                  >> ';'; 
+                  >> ';';
                 ;
 
             WhiteSpace
@@ -248,7 +248,7 @@ struct CifGrammar : public grammar<CifGrammar<Actions> >
                 ;
         }
 
-        rule<ScannerT> CIF, DataBlock, DataBlockHeading, SaveFrame, 
+        rule<ScannerT> CIF, DataBlock, DataBlockHeading, SaveFrame,
                        SaveFrameHeading, DataItems, LoopHeader, LoopBody,
                        Tag, Value,
                        CharString, TextField,
@@ -332,7 +332,7 @@ struct LoopValue
 };
 
 // parsing format 143.910(26)
-LoopValue::LoopValue(int kind_, string const& s) 
+LoopValue::LoopValue(int kind_, string const& s)
     : kind(kind_)
 {
     assert (kind == v_numeric_with_err);
@@ -344,7 +344,7 @@ LoopValue::LoopValue(int kind_, string const& s)
     string::size_type dot_pos = val_s.find('.');
     int frac_len = (dot_pos == string::npos ? 0 : val_s.size() - dot_pos - 1);
     err = ierr * pow(10., -frac_len);
-} 
+}
 
 struct DatasetActions
 {
@@ -366,7 +366,7 @@ struct DatasetActions
     Block *block;
     vector<Block*> block_list;
 
-    DatasetActions() 
+    DatasetActions()
         : invalid_line_counter(0),
           on_block_start(*this),
           on_block_finish(*this),
@@ -378,7 +378,7 @@ struct DatasetActions
 };
 
 template <typename IteratorT>
-void t_on_block_start::operator()(IteratorT a, IteratorT b) const 
+void t_on_block_start::operator()(IteratorT a, IteratorT b) const
 {
     assert(da.block == NULL);
     da.block = new Block;
@@ -386,12 +386,12 @@ void t_on_block_start::operator()(IteratorT a, IteratorT b) const
 }
 
 template <typename IteratorT>
-void t_on_block_finish::operator()(IteratorT, IteratorT) const 
+void t_on_block_finish::operator()(IteratorT, IteratorT) const
 {
     assert(da.block != NULL);
     MetaData const& meta = da.block->meta;
 
-    static const char* step_tags[] = { "pd_meas_2theta_range_", 
+    static const char* step_tags[] = { "pd_meas_2theta_range_",
                                        "pd_proc_2theta_range_" };
     for (size_t i = 0; i < sizeof(step_tags) / sizeof(step_tags[0]); ++i) {
         string t = step_tags[i];
@@ -413,10 +413,10 @@ void t_on_block_finish::operator()(IteratorT, IteratorT) const
 }
 
 template <typename IteratorT>
-void t_on_tag_value_finish::operator()(IteratorT, IteratorT) const 
+void t_on_tag_value_finish::operator()(IteratorT, IteratorT) const
 {
     string s;
-    if (da.last_value == v_numeric) 
+    if (da.last_value == v_numeric)
         s = S(da.value_real);
     else if (da.last_value == v_numeric_with_err)
         s = da.value_string;
@@ -429,15 +429,15 @@ void t_on_tag_value_finish::operator()(IteratorT, IteratorT) const
 }
 
 template <typename IteratorT>
-void t_on_loop_tag::operator()(IteratorT, IteratorT) const 
+void t_on_loop_tag::operator()(IteratorT, IteratorT) const
 {
     da.loop_tags.push_back(da.last_tag);
 }
 
 template <typename IteratorT>
-void t_on_loop_value::operator()(IteratorT, IteratorT) const 
+void t_on_loop_value::operator()(IteratorT, IteratorT) const
 {
-    if (da.last_value == v_numeric) 
+    if (da.last_value == v_numeric)
         da.loop_values.push_back(LoopValue(da.last_value, da.value_real));
     else if (da.last_value == v_numeric_with_err)
         da.loop_values.push_back(LoopValue(da.last_value, da.value_string));
@@ -446,7 +446,7 @@ void t_on_loop_value::operator()(IteratorT, IteratorT) const
 }
 
 template <typename IteratorT>
-void t_on_loop_finish::operator()(IteratorT, IteratorT) const 
+void t_on_loop_finish::operator()(IteratorT, IteratorT) const
 {
     int ncol = da.loop_tags.size();
     int nrow = da.loop_values.size() / ncol;
@@ -455,14 +455,14 @@ void t_on_loop_finish::operator()(IteratorT, IteratorT) const
     vector<VecColumn*> cols;
     for (int i = 0; i < ncol; ++i) {
         string const& name = da.loop_tags[i];
-        if (!is_pd_data_tag(name)) 
+        if (!is_pd_data_tag(name))
             continue;
 
         // find what kind of column it is
         int col_kind = v_unknown;
         for (int j = 0; j != nrow; ++j) {
             LoopValue const& lv = da.loop_values[j * ncol + i];
-            if (lv.kind == v_unknown || lv.kind == v_inapplicable) 
+            if (lv.kind == v_unknown || lv.kind == v_inapplicable)
                 continue;
             if (col_kind == v_unknown)
                 col_kind = lv.kind;
@@ -496,10 +496,10 @@ void t_on_loop_finish::operator()(IteratorT, IteratorT) const
 
 } // anonymous namespace
 
-void PdCifDataSet::load_data(std::istream &f) 
+void PdCifDataSet::load_data(std::istream &f)
 {
     // read file into vector<char>
-    f.unsetf(ios::skipws); 
+    f.unsetf(ios::skipws);
     vector<char> vec;
     std::copy(istream_iterator<char>(f), istream_iterator<char>(),
               std::back_inserter(vec));
@@ -515,7 +515,7 @@ void PdCifDataSet::load_data(std::istream &f)
                   "Parse error at character " + S(info.stop - vec.begin()));
     int n = actions.block_list.size();
     if (n == 0)
-        throw RunTimeError("pdCIF file was read, " 
+        throw RunTimeError("pdCIF file was read, "
                            + S(actions.invalid_line_counter) + " invalid lines,"
                            " no data found");
     for (int i = 0; i < n; ++i) {

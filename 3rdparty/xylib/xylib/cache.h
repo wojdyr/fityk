@@ -90,8 +90,8 @@ shared_ptr<const DataSet> cached_load_file(std::string const& path,
                                       std::vector<std::string> const& options)
 {
     return options.empty() ? cached_load_file(path)
-                           : cached_load_file(path, options[0], 
-                                   std::vector<std::string>(options.begin()+1, 
+                           : cached_load_file(path, options[0],
+                                   std::vector<std::string>(options.begin()+1,
                                                             options.end()));
 }
 

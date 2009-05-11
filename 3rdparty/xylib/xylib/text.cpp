@@ -1,5 +1,5 @@
-// ascii plain text 
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// ascii plain text
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 #include <cerrno>
@@ -22,7 +22,7 @@ const FormatInfo TextDataSet::fmt_info(
     &TextDataSet::check
 );
 
-bool TextDataSet::check(istream & /*f*/) 
+bool TextDataSet::check(istream & /*f*/)
 {
     return true;
 }
@@ -34,12 +34,12 @@ const char* TextDataSet::read_numbers(string const& s, vector<double>& row)
     const char *p = s.c_str();
     while (*p != 0) {
         char *endptr = NULL;
-        errno = 0; // to distinguish success/failure after call 
+        errno = 0; // to distinguish success/failure after call
         double val = strtod(p, &endptr);
         if (p == endptr) // no more numbers
             break;
         if (errno != 0)
-            throw FormatError("Numeric overflow or underflow in line:\n" 
+            throw FormatError("Numeric overflow or underflow in line:\n"
                               + s);
         row.push_back(val);
         p = endptr;
@@ -54,7 +54,7 @@ namespace {
 // the title-line is either a name of block or contains names of columns
 // we assume that it's the latter if the number of words is the same
 // as number of columns
-void use_title_line(string const& line, 
+void use_title_line(string const& line,
                     vector<VecColumn*> &cols, Block* blk)
 {
     const char* delim = " \t";
@@ -75,9 +75,9 @@ void use_title_line(string const& line,
 
 } // anonymous namespace
 
-void TextDataSet::load_data(std::istream &f) 
+void TextDataSet::load_data(std::istream &f)
 {
-    vector<VecColumn*> cols;  
+    vector<VecColumn*> cols;
     vector<double> row; // temporary storage for values from one line
     string title_line;
     string s;
@@ -89,7 +89,7 @@ void TextDataSet::load_data(std::istream &f)
 
     if (first_line_header) {
         title_line = str_trim(read_line(f));
-        if (!title_line.empty() && title_line[0] == '#') 
+        if (!title_line.empty() && title_line[0] == '#')
             title_line = title_line.substr(1);
     }
 
@@ -98,7 +98,7 @@ void TextDataSet::load_data(std::istream &f)
     while (getline(f, s)) {
         // Basic support for LAMMPS log file.
         // There is a chance that output from thermo command will be read
-        // properly, but because the LAMMPS log file doesn't have 
+        // properly, but because the LAMMPS log file doesn't have
         // a well-defined syntax, it can not be guaranteed.
         // All data blocks (numeric lines after `run' command) should have
         // the same columns (do not use thermo_style/thermo_modify between
@@ -111,7 +111,7 @@ void TextDataSet::load_data(std::istream &f)
         // We skip lines with no data.
         // If there is only one number in first line, skip it if there
         // is a text after the number.
-        if (row.size() > 1 || 
+        if (row.size() > 1 ||
                 (row.size() == 1 && (strict || *p == 0 || *p == '#'))) {
             // columns initialization
             for (size_t i = 0; i != row.size(); ++i) {
@@ -134,7 +134,7 @@ void TextDataSet::load_data(std::istream &f)
         if (row.empty())
             continue;
 
-        // Some non-data lines may start with numbers. The example is 
+        // Some non-data lines may start with numbers. The example is
         // LAMMPS log file. The exceptions below are made to allow plotting
         // such a file. In strict mode, no exceptions are made.
         if (!strict) {
@@ -155,9 +155,9 @@ void TextDataSet::load_data(std::istream &f)
                     break;
                 if (row2.size() < cols.size()) {
                     // add the previous row
-                    for (size_t i = 0; i != row.size(); ++i) 
+                    for (size_t i = 0; i != row.size(); ++i)
                         cols[i]->add_val(row[i]);
-                    // number of columns will be shrinked to the size of the 
+                    // number of columns will be shrinked to the size of the
                     // last row. If the previous row was shorter, shrink
                     // the last row.
                     if (row.size() < row2.size())
@@ -168,15 +168,15 @@ void TextDataSet::load_data(std::istream &f)
 
         }
 
-        if (row.size() < cols.size()) { 
-            // decrease the number of columns to the new minimum of numbers 
+        if (row.size() < cols.size()) {
+            // decrease the number of columns to the new minimum of numbers
             // in line
             for (size_t i = row.size(); i != cols.size(); ++i)
                 delete cols[i];
             cols.resize(row.size());
         }
 
-        for (size_t i = 0; i != cols.size(); ++i) 
+        for (size_t i = 0; i != cols.size(); ++i)
             cols[i]->add_val(row[i]);
     }
 
@@ -184,12 +184,12 @@ void TextDataSet::load_data(std::istream &f)
                    "data not found in file.");
 
     Block* blk = new Block;
-    for (unsigned i = 0; i < cols.size(); ++i) 
+    for (unsigned i = 0; i < cols.size(); ++i)
         blk->add_column(cols[i]);
 
-    if (!title_line.empty()) 
+    if (!title_line.empty())
         use_title_line(title_line, cols, blk);
-    if (!last_line.empty()) 
+    if (!last_line.empty())
         use_title_line(last_line, cols, blk);
 
     blocks.push_back(blk);

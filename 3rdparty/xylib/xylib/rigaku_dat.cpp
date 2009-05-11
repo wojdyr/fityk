@@ -1,5 +1,5 @@
 // Rigaku .dat format - powder diffraction data from Rigaku diffractometers
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 #include "rigaku_dat.h"
@@ -30,9 +30,9 @@ bool RigakuDataSet::check(istream &f)
 
 /*
 The format has a file header indicating some file-scope parameters.
-It may contain multiple blocks/ranges/groups of data, and each block has its 
-own group header. Each group header contains some parameters ("*START", "*STOP" 
-and "*STEP" included).The data body of one group begins after "*COUNT=XXX"). 
+It may contain multiple blocks/ranges/groups of data, and each block has its
+own group header. Each group header contains some parameters ("*START", "*STOP"
+and "*STEP" included).The data body of one group begins after "*COUNT=XXX").
 
 ///////////////////////////////////////////////////////////////////////////////
 * Sample Fragment: ("#xxx": comments added by me; ...: omitted lines)
@@ -47,9 +47,9 @@ and "*STEP" included).The data body of one group begins after "*COUNT=XXX").
 *BEGIN
 *GROUP          =  0
 ...
-*START          =  10.0000    
-*STOP           =  103.1200  
-*STEP           =  0.0200 
+*START          =  10.0000
+*STOP           =  103.1200
+*STEP           =  0.0200
 ...
 *COUNT          =  4657
 # data in group 0
@@ -63,7 +63,7 @@ and "*STEP" included).The data body of one group begins after "*COUNT=XXX").
 *EOF
 ///////////////////////////////////////////////////////////////////////////////
 */
-void RigakuDataSet::load_data(std::istream &f) 
+void RigakuDataSet::load_data(std::istream &f)
 {
     Block *blk = NULL;
     VecColumn *ycol = NULL;
@@ -77,9 +77,9 @@ void RigakuDataSet::load_data(std::istream &f)
             if (str_startwith(line, "*BEGIN")) {   // block starts
                 ycol = new VecColumn;
                 blk = new Block;
-            } 
+            }
             else if (str_startwith(line, "*END")) { // block ends
-                format_assert(count == ycol->get_point_count(), 
+                format_assert(count == ycol->get_point_count(),
                               "count of x and y differ");
                 StepColumn *xcol = new StepColumn(start, step, count);
                 blk->add_column(xcol);
@@ -87,36 +87,36 @@ void RigakuDataSet::load_data(std::istream &f)
                 blocks.push_back(blk);
                 blk = NULL;
                 ycol = NULL;
-            } 
+            }
             else if (str_startwith(line, "*EOF")) { // file ends
                 break;
-            } 
-            else { // meta key-value pair 
+            }
+            else { // meta key-value pair
                 string key, val;
-                // parse "*KEY = VALUE" 
+                // parse "*KEY = VALUE"
                 str_split(line.substr(1), "=", key, val);
-                if (key == "START") 
+                if (key == "START")
                     start = my_strtod(val);
-                else if (key == "STEP") 
+                else if (key == "STEP")
                     step = my_strtod(val);
-                else if (key == "COUNT") 
+                else if (key == "COUNT")
                     count = my_strtol(val);
-                else if (key == "GROUP_COUNT") 
+                else if (key == "GROUP_COUNT")
                     grp_cnt = my_strtol(val);
-                
-                if (blk) 
+
+                if (blk)
                     blk->meta[key] = val;
                 else
                     meta[key] = val;
-            } 
+            }
         }
         else { // should be a line of values
             format_assert(is_numeric(line[0]));
             ycol->add_values_from_str(line, ',');
-        } 
+        }
     }
     format_assert(grp_cnt != 0, "no GROUP_COUNT attribute given");
-    format_assert(grp_cnt == (int) blocks.size(), 
+    format_assert(grp_cnt == (int) blocks.size(),
                   "block count different from expected");
 }
 

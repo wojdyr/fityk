@@ -1,5 +1,5 @@
-// ascii plain text 
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// ascii plain text
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 // Multi-column ascii text file.
@@ -12,7 +12,7 @@
 // can also be skipped.
 // If valid (numeric) lines have different number of numbers, the smallest
 // number is used as the number of columns and the longer lines are truncated.
-// 
+//
 // The following lines will be skipped:
 // # foo bar
 // ; 1.2 3.4 5.6
@@ -27,9 +27,9 @@ namespace xylib {
     class TextDataSet : public DataSet
     {
         OBLIGATORY_DATASET_MEMBERS(TextDataSet)
-        static const char*  read_numbers(std::string const& s, 
+        static const char*  read_numbers(std::string const& s,
                                          std::vector<double>& row);
-    }; 
+    };
 
 } // namespace
 #endif // XYLIB_TEXT_H_

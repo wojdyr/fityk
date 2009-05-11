@@ -1,5 +1,5 @@
 // Siemens/Bruker Diffrac-AT UXD text format (for powder diffraction data)
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 #include "uxd.h"
@@ -20,7 +20,7 @@ const FormatInfo UxdDataSet::fmt_info(
     &UxdDataSet::check
 );
 
-bool UxdDataSet::check(istream &f) 
+bool UxdDataSet::check(istream &f)
 {
     string line;
     while (getline(f, line)) {
@@ -32,7 +32,7 @@ bool UxdDataSet::check(istream &f)
 }
 
 /*
-A header (with file-scope parameters) is followed by block sections. 
+A header (with file-scope parameters) is followed by block sections.
 Each section consists of:
  _DRIVE=...
  parameters - key-value pairs
@@ -40,7 +40,7 @@ Each section consists of:
  list of intensities
 comments start with semicolon ';'
 
-Format example: 
+Format example:
 
 ; File header with some file-scope prarmeters.
 _FILEVERSION=1
@@ -63,7 +63,7 @@ _COUNTS
 
 */
 
-void UxdDataSet::load_data(std::istream &f) 
+void UxdDataSet::load_data(std::istream &f)
 {
     Block *blk = NULL;
     VecColumn *ycol = NULL;
@@ -80,16 +80,16 @@ void UxdDataSet::load_data(std::istream &f)
             ycol = new VecColumn;
             blk->add_column(ycol);
             blocks.push_back(blk);
-        } 
-        else if (str_startwith(line, "_")) { // meta-data 
-            // other meta key-value pair. 
+        }
+        else if (str_startwith(line, "_")) { // meta-data
+            // other meta key-value pair.
             // NOTE the order, it must follow other "_XXX" branches
             string key, val;
             str_split(line.substr(1), "=", key, val);
-            
-            if (key == "START") 
+
+            if (key == "START")
                 start = my_strtod(val);
-            else if (key == "STEPSIZE") 
+            else if (key == "STEPSIZE")
                 step = my_strtod(val);
             else {
                 if (blk)
@@ -97,11 +97,11 @@ void UxdDataSet::load_data(std::istream &f)
                 else
                     meta[key] = val;
             }
-        } 
+        }
         else { //data
             format_assert(is_numeric(line[0]), "line: "+line);
             ycol->add_values_from_str(line);
-        } 
+        }
     }
     format_assert(blk);
 }

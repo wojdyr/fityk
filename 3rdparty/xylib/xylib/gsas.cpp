@@ -1,5 +1,5 @@
 // GSAS File Format
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 #include <cstdio>
@@ -28,12 +28,12 @@ bool GsasDataSet::check(istream &f) {
     getline(f, line);
     while (line.empty() || line[0] == '#')
         getline(f, line);
-    return str_startwith(line, "BANK") 
+    return str_startwith(line, "BANK")
         || str_startwith(line, "TIME_MAP")
         || str_startwith(line, "Instrument parameter");
 }
 
-void GsasDataSet::load_data(std::istream &f) 
+void GsasDataSet::load_data(std::istream &f)
 {
     string line;
     getline(f, line); // first line is title
@@ -41,13 +41,13 @@ void GsasDataSet::load_data(std::istream &f)
 
     // optional Instrument parameter
     string const ip = "Instrument parameter";
-    getline(f, line); 
+    getline(f, line);
     if (str_startwith(line, ip)) {
         meta[ip] = str_trim(line.substr(ip.size()));
-        getline(f, line); 
+        getline(f, line);
     }
 
-    // optional comments 
+    // optional comments
     while (line.empty() || line[0] == '#')
         getline(f, line);
 

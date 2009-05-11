@@ -1,5 +1,5 @@
 // Implementation of Public API of xylib library.
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id: xylib.cpp 459 2009-04-15 23:14:50Z wojdyr $
 
 #include "cache.h"
@@ -18,14 +18,14 @@ namespace {
 // There is a function boost::filesystem::last_write_time(), but it requires
 // linking with Boost.Filesystem library and this would cause more problems
 // than it's worth.
-// Portable libraries such as wxWidgets and Boost.Filesystem get mtime using 
+// Portable libraries such as wxWidgets and Boost.Filesystem get mtime using
 // ::GetFileTime() on MS Windows.
 // Apparently some compilers also use _stat/_stat64 instead of stat.
 // This will be implemented when portability problems are reported.
 time_t get_file_mtime(string const& path)
 {
     struct stat sb;
-    if (stat(path.c_str(), &sb) == -1) 
+    if (stat(path.c_str(), &sb) == -1)
         return 0;
     return sb.st_mtime;
 }
@@ -37,7 +37,7 @@ namespace xylib {
 Cache* Cache::instance_ = NULL;
 
 // not thread-safe
-shared_ptr<const DataSet> Cache::load_file(string const& path, 
+shared_ptr<const DataSet> Cache::load_file(string const& path,
                                            string const& format_name,
                                            vector<string> const& options)
 {
@@ -50,7 +50,7 @@ shared_ptr<const DataSet> Cache::load_file(string const& path,
             if (mtime != 0 && mtime < iter->read_time_)
 #else
             // if we can't check mtime, keep cache for 2 seconds
-            if (time(NULL) - 2 < iter->read_time_) 
+            if (time(NULL) - 2 < iter->read_time_)
 #endif
                 return iter->dataset_;
             else {
@@ -69,8 +69,8 @@ shared_ptr<const DataSet> Cache::load_file(string const& path,
 }
 
 void Cache::set_number_of_cached_files(size_t n)
-{ 
-    n_cached_files_ = n; 
+{
+    n_cached_files_ = n;
     if (n > cache_.size())
         cache_.erase(cache_.begin() + n, cache_.end());
 }

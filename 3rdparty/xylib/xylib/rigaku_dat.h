@@ -1,5 +1,5 @@
 // Rigaku .dat format - powder diffraction data from Rigaku diffractometers
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 // Implementation based on the analysis of the sample files.
@@ -14,7 +14,7 @@ namespace xylib {
     class RigakuDataSet : public DataSet
     {
         OBLIGATORY_DATASET_MEMBERS(RigakuDataSet)
-    }; 
+    };
 
 } // namespace
 

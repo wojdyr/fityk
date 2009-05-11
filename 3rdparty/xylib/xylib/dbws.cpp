@@ -1,5 +1,5 @@
 // DBWS data file
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 #include <cmath>
@@ -23,10 +23,10 @@ const FormatInfo DbwsDataSet::fmt_info(
     &DbwsDataSet::check
 );
 
-bool DbwsDataSet::check(istream &f) 
+bool DbwsDataSet::check(istream &f)
 {
     string line;
-    getline(f, line); 
+    getline(f, line);
     if (line.size() < 3*8)
         return false;
     // the first line should be in format (3F8.2, A48), but sometimes
@@ -53,7 +53,7 @@ bool DbwsDataSet::check(istream &f)
     return true;
 }
 
-void DbwsDataSet::load_data(std::istream &f) 
+void DbwsDataSet::load_data(std::istream &f)
 {
     Block* blk = new Block;
 
@@ -68,7 +68,7 @@ void DbwsDataSet::load_data(std::istream &f)
 
     // data
     VecColumn *ycol = new VecColumn;
-    while (getline(f, s)) 
+    while (getline(f, s))
         // numbers delimited by commas or spaces.
         ycol->add_values_from_str(s, ',');
     blk->add_column(ycol);

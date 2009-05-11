@@ -1,5 +1,5 @@
-// Sietronics Sieray CPI format 
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Sietronics Sieray CPI format
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 #include "cpi.h"
@@ -21,14 +21,14 @@ const FormatInfo CpiDataSet::fmt_info(
     &CpiDataSet::check
 );
 
-bool CpiDataSet::check(istream &f) 
+bool CpiDataSet::check(istream &f)
 {
     string line;
     getline(f, line);
     return str_startwith(line, "SIETRONICS XRD SCAN");
 }
 
-void CpiDataSet::load_data(std::istream &f) 
+void CpiDataSet::load_data(std::istream &f)
 {
     /* format example:
         SIETRONICS XRD SCAN
@@ -68,7 +68,7 @@ void CpiDataSet::load_data(std::istream &f)
 
     // data
     VecColumn *ycol = new VecColumn();
-    while (getline(f, s)) 
+    while (getline(f, s))
         ycol->add_val(my_strtod(s));
 
     blk->add_column(ycol);

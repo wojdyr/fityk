@@ -1,5 +1,5 @@
 // Convert file supported by xylib to ascii format
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 #include <iostream>
@@ -10,10 +10,10 @@
 #include "xylib/xylib.h"
 
 using namespace std;
- 
+
 void print_usage()
 {
-    cout << "Usage:\n" 
+    cout << "Usage:\n"
             "\txyconv [-t FILETYPE] INPUT_FILE OUTPUT_FILE\n"
             "\txyconv -l\n"
             "\txyconv -i FILETYPE\n"
@@ -27,7 +27,7 @@ void print_usage()
 
 void list_supported_formats()
 {
-    for (int i = 0; xylib::formats[i] != NULL; ++i) 
+    for (int i = 0; xylib::formats[i] != NULL; ++i)
         cout << setw(20) << left << xylib::formats[i]->name << ": "
              << xylib::formats[i]->desc << endl;
 }
@@ -71,30 +71,30 @@ void export_metadata(ostream &of, xylib::MetaData const& meta)
 {
     for (map<string,string>::const_iterator i = meta.begin();
                                                         i != meta.end(); ++i) {
-        of << "# " << i->first << ": "; 
-        for (string::const_iterator j = i->second.begin(); 
+        of << "# " << i->first << ": ";
+        for (string::const_iterator j = i->second.begin();
                                                    j != i->second.end(); ++j) {
             of << *j;
             if (*j == '\n')
-                of << "# " << i->first << ": "; 
+                of << "# " << i->first << ": ";
         }
         of << endl;
     }
 }
 
-void export_plain_text(xylib::DataSet const *d, string const &fname, 
+void export_plain_text(xylib::DataSet const *d, string const &fname,
                        bool with_metadata)
 {
     int range_num = d->get_block_count();
     ofstream of(fname.c_str());
-    if (!of) 
+    if (!of)
         throw xylib::RunTimeError("can't create file: " + fname);
 
     // output the file-level meta-info
     of << "# exported by xylib from a " << d->fi->name << " file" << endl;
     if (with_metadata)
         export_metadata(of, d->meta);
-    
+
     for (int i = 0; i < range_num; ++i) {
         const xylib::Block *block = d->get_block(i);
         if (range_num > 1 || !block->name.empty())
@@ -122,9 +122,9 @@ void export_plain_text(xylib::DataSet const *d, string const &fname,
             for (int k = 1; k <= ncol; ++k) {
                 if (k > 1)
                     of << "\t";
-                of << setfill(' ') << setiosflags(ios::fixed) 
-                    << setprecision(6) << setw(8) 
-                    << block->get_column(k).get_value(j); 
+                of << setfill(' ') << setiosflags(ios::fixed)
+                    << setprecision(6) << setw(8)
+                    << block->get_column(k).get_value(j);
             }
             of << endl;
         }
@@ -138,7 +138,7 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    if (argc == 2 && 
+    if (argc == 2 &&
             (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0)) {
         print_usage();
         return 0;
@@ -149,7 +149,7 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    if (argc == 3 && strcmp(argv[1], "-g") == 0) 
+    if (argc == 3 && strcmp(argv[1], "-g") == 0)
         return print_guessed_filetype(argv[2]);
 
     if (argc < 3) {

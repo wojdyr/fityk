@@ -1,5 +1,5 @@
 // FOURYA/XFIT/Koalariet XDD file
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 // format description: http://www.ccp14.ac.uk/tutorial/xfit-95/dformat.htm

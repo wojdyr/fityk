@@ -1,5 +1,5 @@
 // Philips UDF format - powder diffraction data from Philips diffractometers
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 #include "philips_udf.h"
@@ -44,7 +44,7 @@ RawScan
     ...
     442/                                # last data ends with a '/'
 */
-void UdfDataSet::load_data(std::istream &f) 
+void UdfDataSet::load_data(std::istream &f)
 {
     Block *blk = new Block;
 
@@ -54,7 +54,7 @@ void UdfDataSet::load_data(std::istream &f)
     while (true) {
         string line = str_trim(read_line(f));
         if (line == "RawScan") // indicates XY data start
-            break;      
+            break;
 
         string::size_type pos1 = line.find(',');
         string::size_type pos2 = line.rfind(',');
@@ -67,10 +67,10 @@ void UdfDataSet::load_data(std::istream &f)
             // both start and end value are given, separated with ','
             string::size_type pos = val.find_first_of(",");
             x_start = my_strtod(val.substr(0, pos));
-        } 
+        }
         else if (key == "ScanStepSize") {
             x_step = my_strtod(val);
-        } 
+        }
         else {
             blk->meta[key] = val;
         }
@@ -84,20 +84,20 @@ void UdfDataSet::load_data(std::istream &f)
     while (getline(f, line)) {
         bool has_slash = false;
         for (string::iterator i = line.begin(); i != line.end(); i++) {
-            if (*i == ',') 
+            if (*i == ',')
                 *i = ' ';
             else if (*i == '/')
                 has_slash = true;
             // format checking: only space and digit allowed
-            else if (!isdigit(*i) && !isspace(*i)) 
+            else if (!isdigit(*i) && !isspace(*i))
                 throw FormatError("unexpected char when reading data");
         }
 
         istringstream ss(line);
         double d;
-        while (ss >> d) 
+        while (ss >> d)
             ycol->add_val(d);
-    
+
         if (has_slash)
             break;
     }

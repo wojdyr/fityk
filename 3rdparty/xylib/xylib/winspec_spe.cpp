@@ -1,5 +1,5 @@
 // Princeton Instruments WinSpec SPE Format - spectroscopy data
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 #include "winspec_spe.h"
@@ -37,26 +37,26 @@ enum spe_dt {
 // NOTE: fields that we don't care have been commented out
 struct spe_calib {
 //    double offset;                // +0 offset for absolute data scaling
-//    double factor;                // +8 factor for absolute data scaling 
-//    char current_unit;            // +16 selected scaling unit 
-//    char reserved1;               // +17 reserved 
-//    char string[40];              // +18 special string for scaling 
+//    double factor;                // +8 factor for absolute data scaling
+//    char current_unit;            // +16 selected scaling unit
+//    char reserved1;               // +17 reserved
+//    char string[40];              // +18 special string for scaling
 //    char reserved2[40];           // +58 reserved
     char calib_valid;             // +98 flag of whether calibration is valid
-//    char input_unit;              // +99 current input units for 
-                                  // "calib-value" 
-//    char polynom_unit;            // +100 linear UNIT and used 
-                                  // in the "polynom-coeff" 
-    char polynom_order;           // +101 ORDER of calibration POLYNOM 
-//    char calib_count;             // +102 valid calibration data pairs 
-//    double pixel_position[10];    // +103 pixel pos. of calibration data 
-//    double calib_value[10];       // +183 calibration VALUE at above pos 
-    double polynom_coeff[6];      // +263 polynom COEFFICIENTS 
-//    double laser_position;        // +311 laser wavenumber for relativ WN 
-//    char reserved3;               // +319 reserved 
-//    unsigned char new_calib_flag; // +320 If set to 200, valid label below 
-//    char calib_label[81];         // +321 Calibration label (NULL term'd) 
-//    char expansion[87];           // +402 Calibration Expansion area 
+//    char input_unit;              // +99 current input units for
+                                  // "calib-value"
+//    char polynom_unit;            // +100 linear UNIT and used
+                                  // in the "polynom-coeff"
+    char polynom_order;           // +101 ORDER of calibration POLYNOM
+//    char calib_count;             // +102 valid calibration data pairs
+//    double pixel_position[10];    // +103 pixel pos. of calibration data
+//    double calib_value[10];       // +183 calibration VALUE at above pos
+    double polynom_coeff[6];      // +263 polynom COEFFICIENTS
+//    double laser_position;        // +311 laser wavenumber for relativ WN
+//    char reserved3;               // +319 reserved
+//    unsigned char new_calib_flag; // +320 If set to 200, valid label below
+//    char calib_label[81];         // +321 Calibration label (NULL term'd)
+//    char expansion[87];           // +402 Calibration Expansion area
 };
 
 
@@ -71,26 +71,26 @@ bool WinspecSpeDataSet::check(istream &f) {
     // datatype field in header ONLY can be 0~3
     f.seekg(108);
     spe_dt data_type = static_cast<spe_dt>(read_uint16_le(f));
-    if (data_type < SPE_DATA_FLOAT || data_type > SPE_DATA_UINT) 
+    if (data_type < SPE_DATA_FLOAT || data_type > SPE_DATA_UINT)
         return false;
 
     return true;
 }
 
 
-void WinspecSpeDataSet::load_data(std::istream &f) 
+void WinspecSpeDataSet::load_data(std::istream &f)
 {
     // only read necessary params from file header
     f.ignore(42);
     int xdim = read_uint16_le(f);
     f.ignore(64);
     spe_dt data_type = static_cast<spe_dt>(read_uint16_le(f));
-    
+
     f.ignore(546);
     int ydim = read_uint16_le(f);
     f.ignore(788);
     size_t num_frames = read_uint32_le(f);
-    
+
     spe_calib x_calib, y_calib;
     f.ignore(1550);     // move ptr to x_calib start
     read_calib(f, x_calib);
@@ -136,7 +136,7 @@ void WinspecSpeDataSet::load_data(std::istream &f)
             ycol->add_val(y);
         }
         blk->add_column(ycol);
-        
+
         blocks.push_back(blk);
     }
 }
@@ -147,16 +147,16 @@ Column* WinspecSpeDataSet::get_calib_column(const spe_calib *calib, int dim)
     format_assert(calib->polynom_order <= 6, "bad polynom header");
 
     if (!calib->calib_valid)    //use idx as X instead
-        return new StepColumn(0, 1); 
+        return new StepColumn(0, 1);
     else if (calib->polynom_order == 1) { // linear
-        return new StepColumn(calib->polynom_coeff[0], 
-                              calib->polynom_coeff[1]); 
+        return new StepColumn(calib->polynom_coeff[0],
+                              calib->polynom_coeff[1]);
     }
     else {
         VecColumn *xcol = new VecColumn;
         for (int i = 0; i < dim; ++i) {
             double x = 0;
-            for (int j = 0; j <= calib->polynom_order; ++j) 
+            for (int j = 0; j <= calib->polynom_order; ++j)
                 x += calib->polynom_coeff[j] * pow(i + 1., double(j));
             xcol->add_val(x);
         }
@@ -175,7 +175,7 @@ void WinspecSpeDataSet::read_calib(istream &f, spe_calib &calib)
     f.read(&calib.polynom_order, 1);
 
     f.ignore(161);
-    for (int i = 0; i < 6; ++i) 
+    for (int i = 0; i < 6; ++i)
         calib.polynom_coeff[i] = read_dbl_le(f);
 
     f.ignore(178);  // skip all of the left fields in calib

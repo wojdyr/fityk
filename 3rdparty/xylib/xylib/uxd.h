@@ -1,5 +1,5 @@
 // Siemens/Bruker Diffrac-AT UXD text format (for powder diffraction data)
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 // Binary files can be converted to UXD format with XCH tool.

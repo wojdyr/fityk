@@ -1,24 +1,24 @@
 // Public API of xylib library.
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 /// xylib is a library for reading files that contain x-y data from powder
 /// diffraction, spectroscopy or other experimental methods.
 ///
-/// It is recommended to set LC_NUMERIC="C" (or other locale with the same 
+/// It is recommended to set LC_NUMERIC="C" (or other locale with the same
 /// numeric format) before reading files.
-/// 
-/// Usually, we first call load_file() to read file from disk. It stores 
-/// all data from the file in class DataSet. 
-/// DataSet contains a list of Blocks, each Blocks contains a list of Columns, 
-/// and each Column contains a list of values. 
+///
+/// Usually, we first call load_file() to read file from disk. It stores
+/// all data from the file in class DataSet.
+/// DataSet contains a list of Blocks, each Blocks contains a list of Columns,
+/// and each Column contains a list of values.
 ///
 /// It may sound complex, but IMO it can't be made simpler.
-/// It's analogical to a spreadsheet. One OOCalc or Excel file (which 
-/// corresponds to xylib::DataSet) contains a number of sheets (Blocks), 
-/// but usually only one is used. We can view each sheet as a list of columns. 
+/// It's analogical to a spreadsheet. One OOCalc or Excel file (which
+/// corresponds to xylib::DataSet) contains a number of sheets (Blocks),
+/// but usually only one is used. We can view each sheet as a list of columns.
 ///
-/// In xylib all columns in one block must have equal length. 
+/// In xylib all columns in one block must have equal length.
 /// Several filetypes always contain only one Block with two Columns.
 /// In this case we can take coordinates of the 15th point as:
 ///    double x = get_block(0)->get_column(1)->get_value(14);
@@ -28,7 +28,7 @@
 /// All values are stored as floating-point numbers, even if they are integers
 /// in the file.
 /// DataSet and Block contain also MetaData, which is a string to string map.
-/// 
+///
 
 
 #ifndef XYLIB_XYLIB_H_
@@ -67,7 +67,7 @@ struct FormatInfo
     typedef bool (*t_checker)(std::istream&);
     typedef DataSet* (*t_ctor)();
 
-    std::string name;  /// short name, usually basename of .cpp/.h files  
+    std::string name;  /// short name, usually basename of .cpp/.h files
     std::string desc;  /// full format name (reasonably short)
     std::vector<std::string> exts; // possible extensions
     bool binary; /// true if it's binary file
@@ -76,19 +76,19 @@ struct FormatInfo
     t_ctor ctor; /// factory function
     t_checker checker; /// function used to check if a file has this format
 
-    FormatInfo(std::string const& name_, 
-               std::string const& desc_, 
-               std::vector<std::string> const& exts_, 
-               bool binary_, 
+    FormatInfo(std::string const& name_,
+               std::string const& desc_,
+               std::vector<std::string> const& exts_,
+               bool binary_,
                bool multiblock_,
                t_ctor ctor_,
                t_checker checker_)
-        : name(name_), desc(desc_), exts(exts_), 
-          binary(binary_), multiblock(multiblock_), 
+        : name(name_), desc(desc_), exts(exts_),
+          binary(binary_), multiblock(multiblock_),
           ctor(ctor_), checker(checker_) {}
 
     /// check if extension `ext' is in the list `exts'; case insensitive
-    bool has_extension(std::string const& ext) const; 
+    bool has_extension(std::string const& ext) const;
     /// check if file f can be of this format
     bool check(std::istream& f) const { return !checker || (*checker)(f); }
 };
@@ -128,24 +128,24 @@ public:
     virtual int get_point_count() const = 0;
 
     /// return value of n'th point (starting from 0-th)
-    virtual double get_value(int n) const = 0; 
+    virtual double get_value(int n) const = 0;
 
     /// get minimum value in column
     virtual double get_min() const = 0;
     /// get maximum value in column;
     /// point_count must be specified if column has "unlimited" length, it is
-    /// ignored otherwise 
+    /// ignored otherwise
     virtual double get_max(int point_count=0) const = 0;
 };
 
 
-/// stores meta-data (additional data, that usually describe x-y data) 
+/// stores meta-data (additional data, that usually describe x-y data)
 /// for block or dataset. For example: date of the experiment, wavelength, ...
 class MetaData : public std::map<std::string, std::string>
 {
 public:
     bool has_key(std::string const& key) const { return find(key) != end(); }
-    std::string const& get(std::string const& key) const; 
+    std::string const& get(std::string const& key) const;
     bool set(std::string const& key, std::string const& val);
 };
 
@@ -159,7 +159,7 @@ public:
 
     MetaData meta; /// meta-data
     std::string name; /// block can have a name (but usually it doesn't have)
-    
+
     Block() {}
     ~Block();
 
@@ -172,9 +172,9 @@ public:
     /// each column should have the same number of points (or "unlimited"
     /// number if the column is a generator)
     int get_point_count() const;
-    
+
     // add one column; for use in filetype implementations
-    void add_column(Column *c, std::string const& title="", bool append=true); 
+    void add_column(Column *c, std::string const& title="", bool append=true);
 
     // split block if it has columns with different sizes
     std::vector<Block*> split_on_column_lentgh();
@@ -184,7 +184,7 @@ protected:
 };
 
 
-/// DataSet represents data stored typically in one file. 
+/// DataSet represents data stored typically in one file.
 // may consist of one or more block(s) of X-Y data
 class DataSet
 {
@@ -208,7 +208,7 @@ public:
     /// read data from file
     virtual void load_data(std::istream &f) = 0;
 
-    /// delete all data stored in this class (use only if you want to 
+    /// delete all data stored in this class (use only if you want to
     /// call load_data() more than once)
     void clear();
 
@@ -223,19 +223,19 @@ protected:
 
     DataSet(FormatInfo const* fi_);
 
-    void format_assert(bool condition, std::string const& comment = "") 
+    void format_assert(bool condition, std::string const& comment = "")
     {
         if (!condition)
             throw FormatError("Unexpected format for filetype: " + fi->name
                               + (comment.empty() ? comment : "; " + comment));
     }
-}; 
+};
 
 
 /// if format_name is not given, it is guessed
 /// return value: pointer to Dataset that contains all data read from file
 DataSet* load_file(std::string const& path, std::string const& format_name="",
-                   std::vector<std::string> const& options 
+                   std::vector<std::string> const& options
                                                 = std::vector<std::string>());
 
 /// return value: pointer to Dataset that contains all data read from file
@@ -262,7 +262,7 @@ std::string get_wildcards_string(std::string const& all_files="*");
         void load_data(std::istream &f); \
         static bool check(std::istream &f); \
         static DataSet* ctor() { return new class_name; } \
-        static const FormatInfo fmt_info; 
+        static const FormatInfo fmt_info;
 
 #endif // XYLIB_XYLIB_H_
 

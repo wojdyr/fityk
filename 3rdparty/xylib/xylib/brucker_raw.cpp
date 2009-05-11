@@ -1,5 +1,5 @@
 // Siemens/Bruker Diffrac-AT Raw Format version 1/2/3
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 #include "brucker_raw.h"
@@ -30,10 +30,10 @@ bool BruckerRawDataSet::check(istream &f)
 }
 
 
-void BruckerRawDataSet::load_data(std::istream &f) 
+void BruckerRawDataSet::load_data(std::istream &f)
 {
     string head = read_string(f, 4);
-    format_assert(head == "RAW " || head == "RAW2" || head == "RAW1"); 
+    format_assert(head == "RAW " || head == "RAW2" || head == "RAW1");
     if (head[3] == ' ')
         load_version1(f);
     else if (head[3] == '2')
@@ -42,17 +42,17 @@ void BruckerRawDataSet::load_data(std::istream &f)
         load_version1_01(f);
 }
 
-void BruckerRawDataSet::load_version1(std::istream &f) 
+void BruckerRawDataSet::load_version1(std::istream &f)
 {
     meta["format version"] = "1";
 
     unsigned following_range = 1;
-    
+
     while (following_range > 0) {
         Block* blk = new Block;
-    
-        unsigned cur_range_steps = read_uint32_le(f);  
-        // early DIFFRAC-AT raw data files didn't repeat the "RAW " 
+
+        unsigned cur_range_steps = read_uint32_le(f);
+        // early DIFFRAC-AT raw data files didn't repeat the "RAW "
         // on additional ranges
         // (and if it's the first block, 4 bytes from file were already read)
         if (!blocks.empty()) {
@@ -61,24 +61,24 @@ void BruckerRawDataSet::load_version1(std::istream &f)
             if (cur_range_steps == raw_int)
                 cur_range_steps = read_uint32_le(f);
         }
-        
+
         blk->meta["MEASUREMENT_TIME_PER_STEP"] = S(read_flt_le(f));
-        float x_step = read_flt_le(f); 
+        float x_step = read_flt_le(f);
         blk->meta["SCAN_MODE"] = S(read_uint32_le(f));
-        f.ignore(4); 
+        f.ignore(4);
         float x_start = read_flt_le(f);
 
         StepColumn *xcol = new StepColumn(x_start, x_step);
         blk->add_column(xcol);
-        
+
         float t = read_flt_le(f);
         if (-1e6 != t)
             blk->meta["THETA_START"] = S(t);
-            
+
         t = read_flt_le(f);
         if (-1e6 != t)
             blk->meta["KHI_START"] = S(t);
-            
+
         t = read_flt_le(f);
         if (-1e6 != t)
             blk->meta["PHI_START"], S(t);
@@ -89,9 +89,9 @@ void BruckerRawDataSet::load_version1(std::istream &f)
 
         f.ignore(72);   // unused fields
         following_range = read_uint32_le(f);
-        
+
         VecColumn *ycol = new VecColumn();
-        
+
         for(unsigned i = 0; i < cur_range_steps; ++i) {
             float y = read_flt_le(f);
             ycol->add_val(y);
@@ -99,10 +99,10 @@ void BruckerRawDataSet::load_version1(std::istream &f)
         blk->add_column(ycol);
 
         blocks.push_back(blk);
-    } 
+    }
 }
 
-void BruckerRawDataSet::load_version2(std::istream &f) 
+void BruckerRawDataSet::load_version2(std::istream &f)
 {
     meta["format version"] = "2";
 
@@ -129,7 +129,7 @@ void BruckerRawDataSet::load_version2(std::istream &f)
         unsigned cur_range_steps = read_uint16_le(f);
         f.ignore(4);
         blk->meta["SEC_PER_STEP"] = S(read_flt_le(f));
-        
+
         float x_step = read_flt_le(f);
         float x_start = read_flt_le(f);
         StepColumn *xcol = new StepColumn(x_start, x_step);
@@ -151,7 +151,7 @@ void BruckerRawDataSet::load_version2(std::istream &f)
 }
 
 // contributed by Andreas Breslau
-void BruckerRawDataSet::load_version1_01(std::istream &f) 
+void BruckerRawDataSet::load_version1_01(std::istream &f)
 {
     meta["format version"] = "1.01";
 

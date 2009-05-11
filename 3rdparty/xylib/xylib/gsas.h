@@ -1,5 +1,5 @@
 // GSAS File Format
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 // based on GSAS Manual, chapter "GSAS Standard Powder Data File"
@@ -15,7 +15,7 @@ namespace xylib {
     {
     public:
         OBLIGATORY_DATASET_MEMBERS(GsasDataSet)
-    }; 
+    };
 
 } // namespace
 

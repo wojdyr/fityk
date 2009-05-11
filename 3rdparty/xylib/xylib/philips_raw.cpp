@@ -1,5 +1,5 @@
 // Philips RD raw scan format V3 (.rd) and V5 (.sd)
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // ds_philips_rd.cpp $
 
 #include "philips_raw.h"
@@ -28,7 +28,7 @@ bool PhilipsRawDataSet::check(istream &f)
 }
 
 
-void PhilipsRawDataSet::load_data(std::istream &f) 
+void PhilipsRawDataSet::load_data(std::istream &f)
 {
     // mappers, translate the numbers to human-readable strings
     static const string diffractor_types[6] = {"PW1800", "PW1710 based system",
@@ -36,7 +36,7 @@ void PhilipsRawDataSet::load_data(std::istream &f)
     static const string anode_materials[6] = { "Cu", "Mo", "Fe", "Cr", "Other"};
     static const string focus_types[4] = {"BF", "NF", "FF", "LFF"};
 
-    string version = read_string(f, 2);    
+    string version = read_string(f, 2);
     format_assert(version == "V3" || version == "V5");
 
     f.ignore(82);
@@ -68,14 +68,14 @@ void PhilipsRawDataSet::load_data(std::istream &f)
     Block *blk = new Block;
     StepColumn *xcol = new StepColumn(x_start, x_step, pt_cnt);
     blk->add_column(xcol);
-    
+
     // read in y data
     if ("V3" == version) {
         f.ignore(250 - 214 - 8*3);
     } else {
         f.ignore(810 - 214 - 8*3);
     }
-    
+
     VecColumn *ycol = new VecColumn;
     for (unsigned i = 0; i < pt_cnt; ++i) {
         int packed_y = read_uint16_le(f);

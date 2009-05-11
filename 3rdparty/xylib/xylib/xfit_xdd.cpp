@@ -1,5 +1,5 @@
 // FOURYA/XFIT/Koalariet XDD file
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 #include "xfit_xdd.h"
@@ -44,7 +44,7 @@ void skip_c_style_comments(istream& f)
 
 } // anonymous namespace
 
-bool XfitXddDataSet::check(istream &f) 
+bool XfitXddDataSet::check(istream &f)
 {
     skip_c_style_comments(f);
     Column *c = read_start_step_end_line(f);
@@ -52,7 +52,7 @@ bool XfitXddDataSet::check(istream &f)
     return c != NULL;
 }
 
-void XfitXddDataSet::load_data(std::istream &f) 
+void XfitXddDataSet::load_data(std::istream &f)
 {
     skip_c_style_comments(f);
     Block *block = read_ssel_and_data(f);

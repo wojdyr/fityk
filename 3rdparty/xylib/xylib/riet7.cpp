@@ -1,5 +1,5 @@
 // RIET7/LHPM/CSRIET DAT,  ILL_D1A5 and PSI_DMC formats
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 #include "riet7.h"
@@ -22,7 +22,7 @@ const FormatInfo Riet7DataSet::fmt_info(
 );
 
 
-bool Riet7DataSet::check(istream &f) 
+bool Riet7DataSet::check(istream &f)
 {
     for (int i = 0; i < 6; ++i) {
         Column *c = read_start_step_end_line(f);
@@ -34,7 +34,7 @@ bool Riet7DataSet::check(istream &f)
     return false;
 }
 
-void Riet7DataSet::load_data(std::istream &f) 
+void Riet7DataSet::load_data(std::istream &f)
 {
     Block *block = read_ssel_and_data(f, 5);
     format_assert(block);

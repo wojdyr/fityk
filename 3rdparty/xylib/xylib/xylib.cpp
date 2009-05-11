@@ -1,5 +1,5 @@
 // Implementation of Public API of xylib library.
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 #include "xylib.h"
@@ -51,9 +51,9 @@ const FormatInfo *formats[] = {
 
 
 bool FormatInfo::has_extension(const std::string &ext) const
-{ 
+{
     string lower_ext = str_tolower(ext);
-    return exts.empty() 
+    return exts.empty()
            || find(exts.begin(), exts.end(), lower_ext) != exts.end();
 }
 
@@ -68,7 +68,7 @@ const FormatInfo* get_format(int n)
 string const& MetaData::get(string const& key) const
 {
     const_iterator it = find(key);
-    if (it == end()) 
+    if (it == end())
         throw RunTimeError("no such key in meta-info found");
     return it->second;
 }
@@ -84,7 +84,7 @@ Column* const Block::index_column = new StepColumn(0, 1);
 Block::~Block()
 {
     vector<Column*>::iterator it;
-    for (it = cols.begin(); it != cols.end(); ++it) {      
+    for (it = cols.begin(); it != cols.end(); ++it) {
         delete *it;
     }
 }
@@ -95,16 +95,16 @@ const Column& Block::get_column(int n) const
     if (n == 0)
         return *index_column;
     int c = (n < 0 ? n + cols.size() : n - 1);
-    if (c < 0 || c >= (int) cols.size()) 
+    if (c < 0 || c >= (int) cols.size())
         throw RunTimeError("column index out of range: " + S(n));
     return *cols[c];
 }
 
-void Block::add_column(Column *c, string const& title, bool append) 
-{ 
+void Block::add_column(Column *c, string const& title, bool append)
+{
     if (!title.empty())
         c->name = title;
-    cols.insert((append ? cols.end() : cols.begin()), c); 
+    cols.insert((append ? cols.end() : cols.begin()), c);
 }
 
 int Block::get_point_count() const
@@ -152,8 +152,8 @@ vector<Block*> Block::split_on_column_lentgh()
 }
 
 
-DataSet::DataSet(FormatInfo const* fi_) 
-    : fi(fi_) 
+DataSet::DataSet(FormatInfo const* fi_)
+    : fi(fi_)
 {}
 
 DataSet::~DataSet()
@@ -164,7 +164,7 @@ DataSet::~DataSet()
 
 const Block* DataSet::get_block(int n) const
 {
-    if (n < 0 || (size_t)n >= blocks.size()) 
+    if (n < 0 || (size_t)n >= blocks.size())
         throw RunTimeError("no block #" + S(n) + " in this file.");
     return blocks[n];
 }
@@ -182,7 +182,7 @@ DataSet* load_file(string const& path, string const& format_name,
                    vector<string> const& options)
 {
     ifstream is(path.c_str(), ios::in | ios::binary);
-    if (!is) 
+    if (!is)
         throw RunTimeError("can't open input file: " + path);
 
     FormatInfo const* fi = NULL;
@@ -194,20 +194,20 @@ DataSet* load_file(string const& path, string const& format_name,
     else {
         fi = string_to_format(format_name);
         if (!fi)
-            throw RunTimeError("Unsupported (misspelled?) data format: " 
+            throw RunTimeError("Unsupported (misspelled?) data format: "
                                 + format_name);
     }
 
     return load_stream(is, fi, options);
 }
 
-DataSet* load_stream(istream &is, FormatInfo const* fi, 
+DataSet* load_stream(istream &is, FormatInfo const* fi,
                      vector<string> const& options)
 {
     assert(fi != NULL);
     DataSet *pd = (*fi->ctor)();
     pd->options = options;
-    pd->load_data(is); 
+    pd->load_data(is);
     return pd;
 }
 
@@ -238,9 +238,9 @@ FormatInfo const* guess_filetype(const string &path)
     if (possible.size() == 1)
         return possible[0]->check(f) ? possible[0] : NULL;
     else {
-        for (vector<FormatInfo const*>::const_iterator i = possible.begin(); 
+        for (vector<FormatInfo const*>::const_iterator i = possible.begin();
                                                     i != possible.end(); ++i) {
-            if ((*i)->check(f)) 
+            if ((*i)->check(f))
                 return *i;
             f.seekg(0);
             f.clear();
@@ -251,10 +251,10 @@ FormatInfo const* guess_filetype(const string &path)
 }
 
 
-FormatInfo const* string_to_format(string const& format_name) 
+FormatInfo const* string_to_format(string const& format_name)
 {
-    for (FormatInfo const **i = formats; *i != NULL; ++i) 
-        if (format_name == (*i)->name) 
+    for (FormatInfo const **i = formats; *i != NULL; ++i)
+        if (format_name == (*i)->name)
             return *i;
     return NULL;
 }
@@ -277,8 +277,8 @@ string get_wildcards_string(string const& all_files)
         }
         string up = ext_list;
         transform(up.begin(), up.end(), up.begin(), (int(*)(int)) toupper);
-        r += (*i)->desc + " (" + ext_list + ")|" + ext_list; 
-        if (up != ext_list) // if it contains only (*.*) it won't be appended 
+        r += (*i)->desc + " (" + ext_list + ")|" + ext_list;
+        if (up != ext_list) // if it contains only (*.*) it won't be appended
             r += ";" + up;
     }
     return r;

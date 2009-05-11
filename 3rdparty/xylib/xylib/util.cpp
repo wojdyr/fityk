@@ -1,5 +1,5 @@
 // private helper functions (namespace xylib::util)
-// Licence: Lesser GNU Public License 2.1 (LGPL) 
+// Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
 #include "util.h"
@@ -25,7 +25,7 @@ namespace xylib { namespace util {
 
 // -------   standard library functions with added error checking    --------
 
-long my_strtol(const std::string &str) 
+long my_strtol(const std::string &str)
 {
     string ss = str_trim(str);
     const char *startptr = ss.c_str();
@@ -41,7 +41,7 @@ long my_strtol(const std::string &str)
     return val;
 }
 
-double my_strtod(const std::string &str) 
+double my_strtod(const std::string &str)
 {
     const char *startptr = str.c_str();
     char *endptr = NULL;
@@ -126,7 +126,7 @@ double read_dbl_le(istream &f)
     return val;
 }
 
-char read_char(istream &f) 
+char read_char(istream &f)
 {
     char val;
     my_read(f, &val, sizeof(val));
@@ -134,7 +134,7 @@ char read_char(istream &f)
 }
 
 // read a string from f
-string read_string(istream &f, unsigned len) 
+string read_string(istream &f, unsigned len)
 {
     static char buf[256];
     assert(len < sizeof(buf));
@@ -150,7 +150,7 @@ string str_trim(string const& str)
 {
     std::string ws = " \r\n\t";
     string::size_type first = str.find_first_not_of(ws);
-    if (first == string::npos) 
+    if (first == string::npos)
         return "";
     string::size_type last = str.find_last_not_of(ws);
     return str.substr(first, last - first + 1);
@@ -158,7 +158,7 @@ string str_trim(string const& str)
 
 
 // skip whitespace, get key and val that are separated by `sep'
-void str_split(string const& line, string const& sep, 
+void str_split(string const& line, string const& sep,
                string &key, string &val)
 {
     string::size_type p = line.find_first_of(sep);
@@ -191,10 +191,10 @@ std::string str_tolower(const std::string &str)
 //      --------   line-oriented file reading functions   --------
 
 // read a line and return it as a string
-string read_line(istream& is) 
+string read_line(istream& is)
 {
     string line;
-    if (!getline(is, line)) 
+    if (!getline(is, line))
         throw xylib::FormatError("unexpected end of file");
     return line;
 }
@@ -202,14 +202,14 @@ string read_line(istream& is)
 
 // get all numbers in the first legal line
 // sep is _optional_ separator that can be used in addition to white space
-void VecColumn::add_values_from_str(string const& str, char sep) 
+void VecColumn::add_values_from_str(string const& str, char sep)
 {
     const char* p = str.c_str();
     while (isspace(*p) || *p == sep)
         ++p;
     while (*p != 0) {
         char *endptr = NULL;
-        errno = 0; // To distinguish success/failure after call 
+        errno = 0; // To distinguish success/failure after call
         double val = strtod(p, &endptr);
         if (p == endptr)
             throw(xylib::FormatError("Number not found in line:\n" + str));
@@ -247,7 +247,7 @@ void VecColumn::calculate_min_max() const
         return;
     }
     min_val = max_val = data[0];
-    for (vector<double>::const_iterator i = data.begin() + 1; i != data.end(); 
+    for (vector<double>::const_iterator i = data.begin() + 1; i != data.end();
                                                                          ++i) {
         if (*i < min_val)
             min_val = *i;
@@ -265,13 +265,13 @@ bool get_valid_line(std::istream &is, std::string &line, char comment_char)
         if (!getline(is, line))
             return false;
         start = 0;
-        while (isspace(line[start])) 
+        while (isspace(line[start]))
             ++start;
         if (line[start] && line[start] != comment_char)
             break;
     }
     size_t stop = start + 1;
-    while (line[stop] && line[stop] != comment_char) 
+    while (line[stop] && line[stop] != comment_char)
         ++stop;
     while (isspace(line[stop-1]))
         --stop;
@@ -295,7 +295,7 @@ void skip_whitespace(istream &f)
 Column* read_start_step_end_line(istream& f)
 {
     char line[256];
-    f.getline(line, 255); 
+    f.getline(line, 255);
     // the first line should contain start, step and stop
     char *endptr;
     const char *startptr = line;
@@ -329,17 +329,17 @@ Block* read_ssel_and_data(istream &f, int max_headers)
     for (int i = 0; i < max_headers && xcol == NULL; ++i)
         xcol = read_start_step_end_line(f);
 
-    if (!xcol) 
+    if (!xcol)
         return NULL;
 
     Block* blk = new Block;
     blk->add_column(xcol);
-    
+
     VecColumn *ycol = new VecColumn;
     string s;
     // in PSI_DMC there is a text following the data, so we read only as many
     // data lines as necessary
-    while (getline(f, s) && ycol->get_point_count() < xcol->get_point_count()) 
+    while (getline(f, s) && ycol->get_point_count() < xcol->get_point_count())
         ycol->add_values_from_str(s);
     blk->add_column(ycol);
 
