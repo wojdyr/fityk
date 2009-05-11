@@ -18,6 +18,7 @@
 #include <algorithm>
 
 #include <xylib/xylib.h>
+#include <xylib/cache.h>
 
 using namespace std;
 
@@ -303,59 +304,28 @@ void Data::add_one_point(double x, double y, double sigma)
 
 int Data::count_blocks(string const& fn, vector<string> const& options)
 {
-    xylib::DataSet *xyds = Data::cache_file(fn, options);
+    shared_ptr<const xylib::DataSet> xyds(xylib::cached_load_file(fn, options));
     return xyds->get_block_count();
 }
 
 int Data::count_columns(string const& fn, vector<string> const& options, 
                                int first_block)
 {
-    xylib::DataSet *xyds = Data::cache_file(fn, options);
+    shared_ptr<const xylib::DataSet> xyds(xylib::cached_load_file(fn, options));
     return xyds->get_block(first_block)->get_column_count();
 }
 
-xylib::DataSet*
-Data::cache_file(string const& filename_, vector<string> const& options)
-{
-    // static variables are common for all classes,
-    // this is not thread-safe (move it to Ftk?)
-    static xylib::DataSet *cached_xyds = NULL;
-    static std::string cached_xyds_path;
-    static std::vector<std::string> cached_xyds_options;
-
-    if (filename_ != cached_xyds_path || options != cached_xyds_options) {
-        string format_name;
-        vector<string> options_tail;
-        if (!options.empty()) {
-            format_name = options[0];
-            options_tail = vector<string>(options.begin()+1, options.end());
-        }
-        // if xylib::load_file() throws exception, we keep value of cached_xyds
-        xylib::DataSet *new_xyds = NULL;
-        try {
-            new_xyds = xylib::load_file(filename_, format_name, options_tail);
-        } catch (runtime_error const& e) {
-            throw ExecuteError(e.what());
-        }
-        assert(new_xyds);
-        delete cached_xyds;
-        cached_xyds = new_xyds;
-        cached_xyds_path = filename_;
-        cached_xyds_options = options;
-    }
-    return cached_xyds;
-}
 
 // for column indices, INT_MAX is used as not given
-void Data::load_file (string const& filename_, 
+void Data::load_file (string const& fn, 
                       int idx_x, int idx_y, int idx_s, 
                       vector<int> const& blocks,
                       vector<string> const& options)
 {
-    if (filename_.empty())
+    if (fn.empty())
         return;
 
-    xylib::DataSet *xyds = cache_file(filename_, options);
+    shared_ptr<const xylib::DataSet> xyds(xylib::cached_load_file(fn, options));
 
     clear(); //removing previous file
 
@@ -410,7 +380,7 @@ void Data::load_file (string const& filename_,
     if (!block_name.empty())
         title = block_name;
     else {
-        title = get_file_basename(filename_);
+        title = get_file_basename(fn);
         if (idx_x != INT_MAX && idx_y != INT_MAX)
             title += ":" + S(idx_x) + ":" + S(idx_y);
     }
@@ -420,7 +390,7 @@ void Data::load_file (string const& filename_,
         x_step = find_step();
     }
 
-    filename = filename_;   
+    filename = fn;   
     given_x = idx_x;
     given_y = idx_y;
     given_s = idx_s;

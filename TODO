@@ -12,9 +12,6 @@ Help is needed:
 
 * GUI, MSW, bug: default/alternative configs use .fityk dir 
 
-* BUG: caching data gives suprising effects if the data file was changed
-  since the last reading
-
 * check compilation with GCC 4.4
 
 --------------> 0.8.7
@@ -35,6 +32,8 @@ Help is needed:
    where eta = 2*pi/alpha * sin(theta/2), theta=x*pi/180
 
 * GUI: redesign gradient dialog
+
+* GUI: when zooming, [Esc] should cancel
 
 * GUI: Data>Load should use default load dir (as Quick Load)
 

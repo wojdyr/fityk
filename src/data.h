@@ -24,8 +24,6 @@ class Data
 {
 public :
     std::string title;
-    static xylib::DataSet* cache_file(std::string const& fn, 
-                                      std::vector<std::string> const& options);
     static int count_blocks(std::string const& fn, 
                             std::vector<std::string> const& options);
     static int count_columns(std::string const& fn, 
@@ -38,7 +36,7 @@ public :
     ~Data() {}
     std::string get_info() const;
 
-    void load_file(std::string const& filename_, 
+    void load_file(std::string const& fn, 
                    int idx_x, int idx_y, int idx_s, 
                    std::vector<int> const& blocks,
                    std::vector<std::string> const& options);
