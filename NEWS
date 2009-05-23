@@ -1,11 +1,13 @@
 $Id$
 
 User-visible changes in version 0.8.7  (2009-0 -  ):
+* fityk license was changed from GPLv2 to GPLv2/3 (ver. 2 or at your option 3)
+* now works also with GCC 4.4 and Boost 1.35
+* minimum wxWidgets version increased to 2.8.0
 * added functions LogNormal and LogNormalA (Mirko Scholz)
 * abs() can be used in user-defined functions
-* minimum wxWidgets version is now 2.8.0
-* fityk license was changed from GPLv2 to GPLv2/3 (ver. 2 or at your option 3)
 * added syntax for loading data from all columns in file: file.csv:1:2..::
+* bug fixes, most notably bugs with saving/loading session
 
 User-visible changes in version 0.8.6  (2008-04-15):
 * bug fixes (drawing baseline, "zoom all" with log scale)

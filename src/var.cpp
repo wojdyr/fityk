@@ -9,6 +9,7 @@
 
 #include <stdlib.h>
 #include <boost/spirit/core.hpp>
+#include <boost/spirit/version.hpp>
 #include <algorithm>
 #include <memory>
 
@@ -166,7 +167,14 @@ Variable const* Variable::freeze_original(fp val)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-
+// from Spirit changelog:
+// 1.8.5
+// * For performance reasons, leaf_node_d/token_node_d have been changed to   
+//   implicit lexems that create leaf nodes in one shot. The old              
+//   token_node_d is still available and called reduced_node_d, now.
+#if SPIRIT_VERSION >= 0x1805
+#define leaf_node_d reduced_node_d
+#endif
 
 template <typename ScannerT>
 FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
@@ -230,10 +238,13 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
 }
 
 // explicit template instantiation -- to accelerate compilation
+#if SPIRIT_VERSION >= 0x1805
+template FuncGrammar::definition<scanner<char const*, scanner_policies<skip_parser_iteration_policy<space_parser, iteration_policy>, ast_match_policy<char const*, node_val_data_factory<nil_t> >, action_policy> > >::definition(FuncGrammar const&);
 template FuncGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(FuncGrammar const&);
-
+#else
+template FuncGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(FuncGrammar const&);
 template FuncGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<no_actions_action_policy<action_policy> > > > >::definition(FuncGrammar const&);
-
+#endif
 
 /// small and slow utility function
 /// uses calculate_deriv() to simplify formulae
