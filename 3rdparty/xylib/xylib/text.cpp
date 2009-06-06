@@ -127,6 +127,7 @@ void TextDataSet::load_data(std::istream &f)
         }
     }
 
+    // read all the next data lines (the first data line was read above)
     while (getline(f, s)) {
         read_numbers(s, row);
 
@@ -149,10 +150,10 @@ void TextDataSet::load_data(std::istream &f)
 
                 // if it's the single line with smaller length, we ignore it
                 vector<double> row2;
-                while (getline(f, s) && row2.empty())
-                    read_numbers(s, row2);
-                if (row2.empty()) // EOF
-                    break;
+                getline(f, s);
+                read_numbers(s, row2);
+                if (row2.size() <= 1)
+                    continue;
                 if (row2.size() < cols.size()) {
                     // add the previous row
                     for (size_t i = 0; i != row.size(); ++i)
@@ -163,6 +164,7 @@ void TextDataSet::load_data(std::istream &f)
                     if (row.size() < row2.size())
                         row2.resize(row.size());
                 }
+                // if we are here, row2 needs to be stored
                 row = row2;
             }
 
