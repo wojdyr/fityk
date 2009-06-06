@@ -250,9 +250,9 @@
      </para></listitem>
     </itemizedlist>
     There are also other parameters to the CLI and GUI versions of the program.
-    Option "-h" gives the full listing.
+    Option "-h" (on MS Windows "/h") gives the full listing.
     <screen>
-     wojdyr@ubu:~/fityk/src$ ./fityk --help
+     wojdyr@ubu:~/fityk/src$ ./fityk -h
      Usage: fityk [-h] [-V] [-c &lt;str&gt;] [-I] [-r] [script or data file...]
       -h, --help            show this help message
       -V, --version         output version information and exit
