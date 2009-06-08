@@ -294,7 +294,7 @@ DataEditorDlg::DataEditorDlg (wxWindow* parent, wxWindowID id,
     trans_button_sizer->Add(down_btn, 0, wxALL, 5);
     save_btn = new wxButton(right_panel, wxID_SAVE);
     trans_button_sizer->Add(save_btn, 0, wxALL, 5);
-    reset_btn = new wxButton(right_panel, ID_DE_RESET, "Reset");
+    reset_btn = new wxButton(right_panel, ID_DE_RESET, wxT("Reset"));
     trans_button_sizer->Add(reset_btn, 0, wxALL, 5);
     trans_sizer->Add(trans_button_sizer, 0);
     right_sizer->Add(trans_sizer, 0, wxEXPAND);

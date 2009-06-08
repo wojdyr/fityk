@@ -10,6 +10,7 @@
 #include <wx/config.h>
 #include "../data.h" //Point
 #include "uplot.h" //BufferedPanel
+#include "cmn.h" // compatibility with wx2.8 (defined wxPenStyle, etc.)
 
 // convention: lowercase coordinates of point are real values,
 // and uppercase ones are coordinates of point on screen (integers).
