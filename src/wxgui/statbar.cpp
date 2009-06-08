@@ -119,8 +119,8 @@ void FStatusBar::set_hints(string const& left, string const& right,
                            string const& mode_name,
                            string const& shift_left, string const& shift_right)
 {
-    lmouse_hint->SetLabel(wxControl::EscapeMnemonics(s2wx(left)));
-    rmouse_hint->SetLabel(wxControl::EscapeMnemonics(s2wx(right)));
+    lmouse_hint->SetLabel(s2wx(left));
+    rmouse_hint->SetLabel(s2wx(right));
     string tip = "In this mode (" + mode_name + "), on main plot:"
                  "\n  left mouse button: " + left
                + "\n  right mouse button: " + right

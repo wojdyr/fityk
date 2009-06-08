@@ -800,7 +800,7 @@ void MainPlot::update_mouse_hints()
                 mode_name = "baseline";
                 break;
             case mmd_add:
-                left = "draw & add";  right = "add in range";
+                left = "manual add";  right = "add in range";
                 mode_name = "add-peak";
                 break;
             case mmd_range:
