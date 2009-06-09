@@ -24,6 +24,7 @@ using namespace std;
 // - ConfStatBarDlg should have only Close button
 // - coordinates of the center of the plot should be shown as example
 //   when ConfStatBarDlg is called
+// - clicking on mouse icon should also show the tip
 
 //===============================================================
 //                    FStatusBar
