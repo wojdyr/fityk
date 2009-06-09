@@ -1,6 +1,6 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
-// Licence: GNU General Public License version 2 or (at your option) 3
-// $Id: dialogs.cpp 453 2009-03-23 14:25:24Z wojdyr $
+// Licence: GNU General Public License ver. 2+
+// $Id$
 
 
 #include "about.h"
@@ -56,7 +56,7 @@ AboutDlg::AboutDlg(wxWindow* parent)
    wxT("This program is free software; you can redistribute it and/or modify ")
    wxT("it under the terms of the GNU General Public License as published by ")
    wxT("the Free Software Foundation; either version 2 of the License, or ")
-   wxT("(at your option) version 3.")
+   wxT("(at your option) any later version.")
     );
     sizer->Add (txt, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
 

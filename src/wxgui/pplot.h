@@ -1,6 +1,6 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
-// Licence: GNU General Public License version 2 or (at your option) 3
-// $Id: statbar.h 470 2009-04-23 07:14:25Z wojdyr $
+// Licence: GNU General Public License ver. 2+
+// $Id$
 
 #ifndef FITYK_WX_PPLOT_H_
 #define FITYK_WX_PPLOT_H_

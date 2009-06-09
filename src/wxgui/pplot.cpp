@@ -1,6 +1,6 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
-// Licence: GNU General Public License version 2 or (at your option) 3
-// $Id: statbar.cpp 471 2009-04-25 20:08:50Z wojdyr $
+// Licence: GNU General Public License ver. 2+
+// $Id$
 
 #include <wx/wx.h>
 

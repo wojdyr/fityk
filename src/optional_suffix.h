@@ -1,6 +1,6 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // $Id$
-// Licence of this file: either GPL or Boost Software License, Version 1.0.
+// Licence of this file: either GPLv2+ or Boost Software License, Version 1.0.
 
 #ifndef FITYK__OPTIONAL_SUFFIX__H
 #define FITYK__OPTIONAL_SUFFIX__H

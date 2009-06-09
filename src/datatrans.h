@@ -1,5 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
-// Licence: GNU General Public License version 2 or (at your option) 3
+// Licence: GNU General Public License ver. 2+
 // $Id$
 
 #ifndef FITYK__DATATRANS__H__
