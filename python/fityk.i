@@ -1,6 +1,6 @@
 // This file is part of fityk program. 
 // Licence: GNU General Public License version 2
-// $Id: fityk.h 272 2007-03-17 19:03:07Z wojdyr $
+// $Id$
 
 // tests for bindings are in samples/ directory (*.py)
 
