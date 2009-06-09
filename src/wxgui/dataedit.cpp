@@ -351,7 +351,7 @@ void DataEditorDlg::read_transforms(bool reset)
 {
     transforms.clear();
     //TODO add last transformation item
-    wxString transform_path = get_user_conffile("transform");
+    wxString transform_path = get_conf_file("transform");
     string t_line;
     if (wxFileExists(transform_path) && !reset) {
         ifstream f(wx2s(transform_path).c_str());
@@ -526,7 +526,7 @@ void DataEditorDlg::OnDown (wxCommandEvent&)
 
 void DataEditorDlg::OnSave (wxCommandEvent&)
 {
-    wxString transform_path = get_user_conffile("transform");
+    wxString transform_path = get_conf_file("transform");
     ofstream f(wx2s(transform_path).c_str());
     for (vector<DataTransform>::const_iterator i = transforms.begin();
             i != transforms.end(); ++i)

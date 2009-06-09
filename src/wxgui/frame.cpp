@@ -1247,7 +1247,7 @@ void FFrame::OnSettings (wxCommandEvent&)
 
 void FFrame::OnEditInit (wxCommandEvent&)
 {
-    wxString startup_file = get_user_conffile(startup_commands_filename);
+    wxString startup_file = get_conf_file(startup_commands_filename);
     show_debugger(startup_file);
 }
 
@@ -1558,9 +1558,9 @@ void FFrame::scroll_view_horizontally(fp step)
 
 void FFrame::OnConfigSave (wxCommandEvent& event)
 {
-    wxString name = (event.GetId() == ID_G_SCONF1 ?  wxGetApp().conf_filename
-                                               : wxGetApp().alt_conf_filename);
-    save_config_as(name);
+    string name = (event.GetId() == ID_G_SCONF1 ? wxGetApp().conf_filename
+                                                : wxGetApp().alt_conf_filename);
+    save_config_as(get_conf_file(name));
 }
 
 void FFrame::OnConfigSaveAs (wxCommandEvent&)
@@ -1589,15 +1589,14 @@ void FFrame::save_config_as(wxString const& name)
 
 void FFrame::OnConfigRead (wxCommandEvent& event)
 {
-    wxString name = (event.GetId() == ID_G_LCONF1 ? wxGetApp().conf_filename
-                                               : wxGetApp().alt_conf_filename);
-    read_config(name);
+    string name = (event.GetId() == ID_G_LCONF1 ? wxGetApp().conf_filename
+                                                : wxGetApp().alt_conf_filename);
+    read_config(get_conf_file(name));
 }
 
 void FFrame::read_config(wxString const& name)
 {
-    wxFileConfig *config = new wxFileConfig(wxT(""), wxT(""), name, wxT(""),
-                                            wxCONFIG_USE_LOCAL_FILE);
+    wxFileConfig *config = new wxFileConfig(wxT(""), wxT(""), name);
     read_all_settings(config);
     delete config;
 }

@@ -10,10 +10,6 @@ Help is needed:
 
 ---------- TODO list and tentative development plan  ----------------
 
-* GUI, MSW, bug: default/alternative configs use .fityk dir 
-
---------------> 0.8.7
-
 * powder diffraction add-on - Pawley fitting 
 
 --------------> 0.9.0

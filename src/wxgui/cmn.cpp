@@ -227,8 +227,11 @@ BEGIN_EVENT_TABLE(KFTextCtrl, wxTextCtrl)
 END_EVENT_TABLE()
 
 
-/// get path ~/.fityk/filename or equivalent on other platforms
-wxString get_user_conffile(string const& filename)
+/// All configuration is stored in files in directory:
+///    Unix: ~/.fityk
+/// Windows: C:\Documents and Settings\username\Application Data\fityk
+///     Mac: ~/Library/Application Support/fityk
+wxString get_conf_file(string const& filename)
 {
     return wxStandardPaths::Get().GetUserDataDir()
                                    + wxFILE_SEP_PATH + s2wx(filename);

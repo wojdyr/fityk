@@ -40,7 +40,7 @@ IOPane::IOPane(wxWindow *parent, wxWindowID id)
     wxBoxSizer *io_sizer = new wxBoxSizer (wxVERTICAL);
 
     // on Linux platform GUI and CLI history is stored in the same file
-    wxString hist_file = get_user_conffile("history");
+    wxString hist_file = get_conf_file("history");
     input_field = new InputLine(this, -1,
               make_callback<wxString const&>().V1(this, &IOPane::OnInputLine),
               hist_file);

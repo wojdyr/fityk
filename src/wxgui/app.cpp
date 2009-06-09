@@ -11,7 +11,6 @@
 #endif
 
 #include <wx/cmdline.h>
-#include <wx/config.h>
 #include <wx/fs_zip.h>
 #include <wx/fileconf.h>
 #include <wx/stdpaths.h>
@@ -158,29 +157,19 @@ bool FApp::OnInit(void)
         wxMkdir(fityk_dir);
 
     wxConfig::DontCreateOnDemand();
-    //prefix for wxConfig. It can be wxFileConfig or wxRegConfig,
-    // so the prefix on MSW can't be absolute
-    // On Unix - it is compatible with get_user_conffile()
-    // On MSW - not compatible, but it uses registry, so it doesn't matter
-#ifdef __WXMAC__
-    wxString prefix = wxStandardPaths::Get().GetUserConfigDir()
-                         + wxFILE_SEP_PATH + wxT("pl.waw.unipress.fityk.");
-#else
-    wxString prefix = pchar2wx(config_dirname) + wxFILE_SEP_PATH;
-#endif
-
-    // set default and alternative config names
-    conf_filename = prefix + wxT("config");
-    alt_conf_filename = prefix + wxT("alt-config");
 
     // set config file for options automatically saved
     // it will be accessed only via wxConfig::Get()
-    wxConfig *config = new wxConfig(wxT(""), wxT(""),
-                                    prefix + wxT("wxoptions"), wxT(""),
-                                    wxCONFIG_USE_LOCAL_FILE);
+    wxFileConfig *config = new wxFileConfig(wxEmptyString, wxEmptyString,
+                                            get_conf_file("wxoptions"));
     wxConfig::Set(config);
 
-    config_dir = get_user_conffile("configs") + wxFILE_SEP_PATH;
+    // default and alternative config names
+    conf_filename = "config";
+    alt_conf_filename = "alt-config";
+
+    // directory for other configs (Save current config > as ...)
+    config_dir = fityk_dir + wxFILE_SEP_PATH + wxT("configs") + wxFILE_SEP_PATH;
     if (!wxDirExists(config_dir))
         wxMkdir(config_dir);
 
@@ -189,14 +178,11 @@ bool FApp::OnInit(void)
     // Create the main frame window
     frame = new FFrame(NULL, -1, wxT("fityk"), wxDEFAULT_FRAME_STYLE);
 
-    wxConfigBase *cf;
     wxString g_config;
-    if (cmdLineParser.Found(wxT("g"), &g_config))
-        cf = new wxFileConfig(wxT(""), wxT(""), config_dir + g_config,
-                              wxT(""), wxCONFIG_USE_LOCAL_FILE);
-    else
-        cf = new wxConfig(wxT(""), wxT(""), conf_filename, wxT(""),
-                                    wxCONFIG_USE_LOCAL_FILE);
+    bool has_g = cmdLineParser.Found(wxT("g"), &g_config);
+    wxString ini_conf = (has_g ? config_dir + g_config
+                               : get_conf_file(conf_filename));
+    wxConfigBase *cf = new wxFileConfig(wxT(""), wxT(""), ini_conf);
     frame->read_all_settings(cf);
 
     frame->Show(true);
@@ -209,8 +195,8 @@ bool FApp::OnInit(void)
     SetTopWindow(frame);
 
     if (!cmdLineParser.Found(wxT("I"))) {
-        // run initial commands (from ~/.fityk/init file)
-        wxString startup_file = get_user_conffile(startup_commands_filename);
+        // run initial commands
+        wxString startup_file = get_conf_file(startup_commands_filename);
         if (wxFileExists(startup_file)) {
             ftk->get_ui()->exec_script(wx2s(startup_file));
         }

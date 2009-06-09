@@ -153,8 +153,8 @@ public:
     DECLARE_EVENT_TABLE()
 };
 
-/// get path ~/.fityk/filename and create ~/.fityk/ dir if not exists
-wxString get_user_conffile(std::string const& filename);
+/// get path ~/.fityk/filename or equivalent on other platforms
+wxString get_conf_file(std::string const& filename);
 
 
 /// introduced because OnOK and OnCancel were removed;
