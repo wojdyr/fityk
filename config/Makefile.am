@@ -1,3 +1,3 @@
 # $Id$
 
-EXTRA_DIST = readline.m4 
+EXTRA_DIST = readline.m4

@@ -19,9 +19,14 @@
 #include <ctime>
 #include <string>
 #include <vector>
-#include <tr1/memory>
 
+#if 0
+#include <tr1/memory>
 using std::tr1::shared_ptr;
+#else
+#include <boost/shared_ptr.hpp>
+using boost::shared_ptr;
+#endif
 
 namespace xylib
 {

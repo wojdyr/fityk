@@ -6,6 +6,7 @@ LIBRARY_VERSION_FLAG="-version-info 1:0:0"
 
 AC_CONFIG_SRCDIR([src/voigt.h])
 AC_CONFIG_AUX_DIR(config)
+AC_CONFIG_MACRO_DIR([config])
 # AM_CONFIG_HEADER is obsolete, but we are using it for compatibility with
 # older versions.
 AM_CONFIG_HEADER([config.h])

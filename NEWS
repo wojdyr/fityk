@@ -1,10 +1,12 @@
 $Id$
 
-User-visible changes in version 0.8.7  (2009-06-09):
+User-visible changes in version 0.8.7  (2009-06-10):
 * fityk license was changed from GPLv2 to GPLv2+ (2 or at your option any later)
-* all config files are stored in a directory returned by 
-  wxStandardPaths::GetUserDataDir(). This changes a path to default and alt
-  configs on Windows and Mac.
+* all config files are stored in a single directory:
+       Unix: ~/.fityk
+    Windows: C:\Documents and Settings\username\Application Data\fityk
+        Mac: ~/Library/Application Support/fityk
+  This changes the path to the default and alt. configs on Windows and Mac.
 * now works also with GCC 4.4 and Boost 1.35
 * minimum wxWidgets version increased to 2.8.0
 * added functions LogNormal and LogNormalA (Mirko Scholz)

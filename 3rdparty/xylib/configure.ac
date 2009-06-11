@@ -21,16 +21,16 @@ AC_CHECK_HEADERS([cstdlib cstring climits vector], [],
                  [AC_MSG_ERROR([Could not find necessary C++ libs headers])])
 AC_CHECK_HEADERS([boost/cstdint.hpp boost/detail/endian.hpp], [],
                  [AC_MSG_ERROR([Could not find necessary Boost headers])])
-AC_CHECK_HEADERS([boost/spirit/core.hpp], [], 
+AC_CHECK_HEADERS([boost/spirit/core.hpp], [],
                  [AC_MSG_ERROR([Boost::Spirit headers were not found.])])
 
-AC_CHECK_HEADERS([tr1/memory], [], 
-                 [AC_MSG_ERROR([<tr1/memory> headers were not found.
-		  Please inform xylib maintainer about this problem,
-		  including information about your compiler. ])])
+#AC_CHECK_HEADERS([tr1/memory], [],
+#                 [AC_MSG_ERROR([<tr1/memory> headers were not found.
+#		  Please inform xylib maintainer about this problem,
+#		  including information about your compiler. ])])
 
-AC_CHECK_HEADERS([sys/types.h sys/stat.h], [], 
-                 [AC_MSG_ERROR([Headers containg POSIX stat() are not found 
+AC_CHECK_HEADERS([sys/types.h sys/stat.h], [],
+                 [AC_MSG_ERROR([Headers containg POSIX stat() are not found
 		  Please inform xylib maintainer about this problem,
 		  including information about your compiler. ])])
 

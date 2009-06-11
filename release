@@ -2,7 +2,7 @@
 # $Id$
 
 version=0.8.7
-WEB="iris.unipress.waw.pl:/d2/people/wojdyr/www/fityk2/" 
+WEB="iris.unipress.waw.pl:/d2/people/wojdyr/www/fityk2/"
 SF_NEW_RELEASE="https://sourceforge.net/project/admin/newrelease.php?package_id=80864&group_id=79434"
 SF_ADMIN_PAGE="https://sourceforge.net/project/admin/?group_id=79434"
 WEB_ANNOUNCE_DIR=$WEB
@@ -62,7 +62,7 @@ elif [ $1 -eq 1 ]; then
  rm -rf $BUILD_DIR
  mkdir $BUILD_DIR
  cd $BUILD_DIR
- ../configure --prefix=$HOME/local
+ ../configure --prefix=$HOME/local --enable-python
  make 
  make dist-bzip2
  mv $tarball_filename ..
@@ -116,7 +116,9 @@ elif [ $1 -eq 5 ]; then
  
 elif [ $1 -eq 6 ]; then
  echo Building MS Windows version
- WXMSWINSTALL=/home/wojdyr/local/mingw32msvc/
+ #WXMSWINSTALL=/home/wojdyr/local/mingw32msvc/
+ WXMSWINSTALL=/home/wojdyr/local/mingw32/
+ PATH=$PATH:$HOME/local/mingw32/bin
  #
  # wxWidgets where cross-compiled using debian mingw32* packages:
  #      download wxAll
@@ -149,7 +151,8 @@ elif [ $1 -eq 6 ]; then
  mkdir $MINGW_DIR
  cd $MINGW_DIR
  tar xjf ../$tarball_filename
- ./fityk-$version/configure --build=i686-pc-linux-gnu --host=i586-mingw32msvc \
+ # host: MinGW from .deb: i586-mingw32msvc, built locally: i586-pc-mingw32
+ ./fityk-$version/configure --build=x86_64-pc-linux-gnu --host=i586-pc-mingw32 \
    CXXFLAGS="-O3" LDFLAGS="-s" --disable-CLI --with-wx-prefix=$WXMSWINSTALL 
  make || exit
  rm -rf ../samples/tmp*
