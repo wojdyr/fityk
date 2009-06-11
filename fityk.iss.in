@@ -20,14 +20,14 @@ ChangesAssociations=yes
 
 
 [Files]
-Source: src\fityk.exe; DestDir: {app} 
-Source: COPYING; DestDir: {app} 
-Source: TODO; DestDir: {app} 
+Source: src\fityk.exe; DestDir: {app}
+Source: COPYING; DestDir: {app}
+Source: TODO; DestDir: {app}
 Source: NEWS; DestDir: {app}
-Source: doc\fitykhelp.chm; DestDir: {app} 
-Source: samples\README; DestDir: {app}\samples\ 
-Source: samples\*.dat; DestDir: {app}\samples\ 
-Source: samples\*.fit; DestDir: {app}\samples\ 
+Source: doc\fitykhelp.chm; DestDir: {app}
+Source: samples\README; DestDir: {app}\samples\
+Source: samples\*.dat; DestDir: {app}\samples\
+Source: samples\*.fit; DestDir: {app}\samples\
 Source: fityk.url; DestDir: {app}
 
 [Icons]
@@ -41,7 +41,7 @@ Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\Fityk"; Filename: 
 
 [Tasks]
 Name: desktopicon; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:"
-Name: quicklaunchicon; Description: "Create a &Quick Launch icon"; GroupDescription: "Additional icons:"; Flags: unchecked 
+Name: quicklaunchicon; Description: "Create a &Quick Launch icon"; GroupDescription: "Additional icons:"; Flags: unchecked
 Name: associate; Description: "&Associate .fit files"; GroupDescription: "Other tasks:"; Flags: unchecked
 
 [INI]
@@ -60,7 +60,7 @@ Root: HKCR; Subkey: "FitykScript\shell\open\command"; ValueType: string; ValueNa
 [InstallDelete]
 
 [Run]
-Filename: "{app}\fityk.exe"; Description: "Launch application"; Flags: postinstall nowait skipifsilent unchecked 
+Filename: "{app}\fityk.exe"; Description: "Launch application"; Flags: postinstall nowait skipifsilent unchecked
 
 [UninstallRun]
 

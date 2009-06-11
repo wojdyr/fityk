@@ -151,16 +151,23 @@ elif [ $1 -eq 6 ]; then
  mkdir $MINGW_DIR
  cd $MINGW_DIR
  tar xjf ../$tarball_filename
+ SRC_DIR=fityk-$version
  # host: MinGW from .deb: i586-mingw32msvc, built locally: i586-pc-mingw32
- ./fityk-$version/configure --build=x86_64-pc-linux-gnu --host=i586-pc-mingw32 \
+ $SRC_DIR/configure --build=x86_64-pc-linux-gnu --host=i586-pc-mingw32 \
    CXXFLAGS="-O3" LDFLAGS="-s" --disable-CLI --with-wx-prefix=$WXMSWINSTALL 
  make || exit
- rm -rf ../samples/tmp*
- cp -rf ../samples .
- mkdir $ALL_WIN_FILES $ALL_WIN_FILES/src $ALL_WIN_FILES/doc
- cp fityk.iss ../fityk.url ../COPYING ../TODO ../NEWS $ALL_WIN_FILES
- cp src/wxgui/fityk.exe $ALL_WIN_FILES/src
- cp -r ../samples $ALL_WIN_FILES
+ mkdir -p $ALL_WIN_FILES/samples $ALL_WIN_FILES/src $ALL_WIN_FILES/doc
+ cp fityk.iss $SRC_DIR/fityk.url $SRC_DIR/COPYING $SRC_DIR/TODO \
+    $SRC_DIR/NEWS $ALL_WIN_FILES
+ cp $SRC_DIR/samples/*.fit $SRC_DIR/samples/*.dat $ALL_WIN_FILES/samples/
+
+ #cp src/wxgui/fityk.exe $ALL_WIN_FILES/src/
+ # due to unsolved problem, perhaps in libtool, making executables gives:
+ #../../libtool: line 8376: $func_ltwrapper_scriptname_result: ambiguous redirect
+ # and we take the executable from .libs/ 
+ #cp src/wxgui/fityk.exe $ALL_WIN_FILES/src/
+ cp src/wxgui/.libs/fityk.exe $ALL_WIN_FILES/src/
+
  cd doc
  make fitykhelp.htb
  cd ..
