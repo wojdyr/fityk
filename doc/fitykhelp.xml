@@ -42,7 +42,7 @@
    <para>
     <application>Fityk</application> is free software; you can redistribute
     and modify it under the terms of the <acronym>GPL</acronym>, version 2
-    or (at your option) 3.
+    or (at your option) any later version.
     See <xref linkend="license"/> for details.
     You can download the latest version of <application>fityk</application> from
     <ulink url="http://www.unipress.waw.pl/fityk">http://www.unipress.waw.pl/fityk</ulink>.
@@ -2751,7 +2751,7 @@
   <para>
    <application>Fityk</application> is free software; you can redistribute
    and modify it under terms of GNU General Public License,
-   version 2 or (at your option) 3. There is no warranty.
+   version 2 or (at your option) any later version. There is no warranty.
    Text of the license is distributed with the program
    in the file <filename>COPYING</filename>.
   </para>
