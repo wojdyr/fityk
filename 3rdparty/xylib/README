@@ -42,7 +42,7 @@ To build xylib you need:
 * any modern C++ compiler 
 * Boost_ libraries (only at compile time). 
 
-.. _`source tarball`: http://downloads.sourceforge.net/fityk/xylib-0.3.tar.bz2
+.. _`source tarball`: http://downloads.sourceforge.net/fityk/xylib-0.4.tar.bz2
 .. _repository: https://fityk.svn.sourceforge.net/svnroot/fityk/trunk/3rdparty/xylib
 .. _Boost: http://www.boost.org/
 
@@ -52,9 +52,6 @@ If you downloaded the source from svn, you need to run ``autoreconf -i`` before.
 
 MISC NOTES
 ==========
-
-This is a version of xylib integrated with fityk. Original (older)
-version of xylib is `here <http://www.sf.net/projects/xylib>`_.
 
 Filetype samples are not distributed with the library, but there is
 a script `samples/get_samples.sh`__ that tries to download them.
@@ -122,6 +119,11 @@ CREDITS
 
 HISTORY
 =======
+
+* 0.4 (2009-06-11)
+
+  - added file caching (for details see ``xylib/cache.h``)
+  - changes to parsing text files in which numeric data is mixed with text
 
 * 0.3 (2008-06-03)
 
