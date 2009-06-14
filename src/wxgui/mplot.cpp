@@ -217,7 +217,6 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_LEFT_UP   (       MainPlot::OnButtonUp)
     EVT_RIGHT_UP (        MainPlot::OnButtonUp)
     EVT_MIDDLE_UP (       MainPlot::OnButtonUp)
-    EVT_KEY_DOWN   (      MainPlot::OnKeyDown)
     EVT_MENU (ID_plot_popup_za,     MainPlot::OnZoomAll)
     EVT_MENU_RANGE (ID_plot_popup_model, ID_plot_popup_peak,
                                     MainPlot::OnPopupShowXX)
@@ -1128,20 +1127,6 @@ void MainPlot::add_peak_from_draft(int X, int Y)
 }
 
 
-void MainPlot::OnKeyDown (wxKeyEvent& event)
-{
-    if (event.GetKeyCode() == WXK_ESCAPE) {
-        cancel_mouse_press();
-    }
-    else if (should_focus_input(event)) {
-        cancel_mouse_press();
-        frame->focus_input(event);
-    }
-    else
-        event.Skip();
-}
-
-
 bool MainPlot::draw_moving_func(MouseActEnum ma, int X, int Y, bool shift)
 {
     static int prevX=INT_MIN, prevY=INT_MIN;
@@ -1169,6 +1154,7 @@ bool MainPlot::draw_moving_func(MouseActEnum ma, int X, int Y, bool shift)
         prevY = Y;
         old_cursor = GetCursor();
         SetCursor(wxCURSOR_SIZENWSE);
+        connect_esc_to_cancel(true);
     }
     else if (ma == mat_move) {
         fmd.move(shift, X, Y, xs.val(X), ys.val(Y));
@@ -1184,6 +1170,7 @@ bool MainPlot::draw_moving_func(MouseActEnum ma, int X, int Y, bool shift)
             old_cursor = wxNullCursor;
         }
         fmd.stop();
+        connect_esc_to_cancel(false);
     }
     return true;
 }
@@ -1220,12 +1207,15 @@ void MainPlot::peak_draft(MouseActEnum ma, int X_, int Y_)
     }
     switch (ma) {
         case mat_start:
+            connect_esc_to_cancel(true);
+            // no break
         case mat_move:
             prev.x = X_, prev.y = Y_;
             draw_peak_draft(mouse_press_X, abs(mouse_press_X-prev.x), prev.y);
             break;
         case mat_stop:
             prev.x = prev.y = INT_MIN;
+            connect_esc_to_cancel(false);
             break;
         case mat_redraw: //already redrawn
             break;
@@ -1264,6 +1254,7 @@ void MainPlot::draw_temporary_rect(MouseActEnum ma, int X_, int Y_)
             Y1 = Y2 = Y_;
             draw_rect (X1, Y1, X2, Y2);
             CaptureMouse();
+            connect_esc_to_cancel(true);
             break;
         case mat_move:
             draw_rect (X1, Y1, X2, Y2); //clear old rectangle
@@ -1275,6 +1266,7 @@ void MainPlot::draw_temporary_rect(MouseActEnum ma, int X_, int Y_)
             draw_rect (X1, Y1, X2, Y2); //clear old rectangle
             X1 = INT_MIN;
             ReleaseMouse();
+            connect_esc_to_cancel(false);
             break;
         case mat_redraw: //unused
             break;

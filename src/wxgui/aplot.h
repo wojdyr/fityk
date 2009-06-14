@@ -32,7 +32,8 @@ public:
     void OnLeftUp (wxMouseEvent &event);
     void OnRightDown (wxMouseEvent &event);
     void OnMiddleDown (wxMouseEvent &event);
-    void OnKeyDown (wxKeyEvent& event);
+    // function called when Esc is pressed
+    virtual void cancel_action() { cancel_mouse_left_press(); }
     bool cancel_mouse_left_press();
     void set_scale(int pixel_width, int pixel_height);
     bool is_zoomable(); //false if kind is eg. empty or peak-position

@@ -43,9 +43,6 @@ void Scale::set(fp m, fp M, int pixels)
 //                FPlot (plot with data and fitted curves)
 //===============================================================
 
-BEGIN_EVENT_TABLE(FPlot, wxPanel)
-END_EVENT_TABLE()
-
 void FPlot::set_font(wxDC &dc, wxFont const& font)
 {
     if (pen_width > 1) {
@@ -87,6 +84,7 @@ bool FPlot::vert_line_following_cursor (MouseActEnum ma, int x, int x0)
     if (ma == mat_start) {
         draw_dashed_vert_line(x0);
         vlfc_prev_x0 = x0;
+        connect_esc_to_cancel(true);
     }
     else {
         if (vlfc_prev_x == INT_MIN)
@@ -103,6 +101,7 @@ bool FPlot::vert_line_following_cursor (MouseActEnum ma, int x, int x0)
     else { // mat_stop
         draw_dashed_vert_line(vlfc_prev_x0); //clear
         vlfc_prev_x = vlfc_prev_x0 = INT_MIN;
+        connect_esc_to_cancel(false);
     }
     return true;
 }
@@ -413,4 +412,31 @@ void FPlot::save_settings(wxConfigBase *cf) const
     cfg_write_font (cf, wxT("ticsFont"), ticsFont);
 }
 
+
+void FPlot::OnKeyDown(wxKeyEvent& event)
+{
+    if (event.GetKeyCode() == WXK_ESCAPE)
+        cancel_action();
+    else
+        event.Skip();
+}
+
+
+void FPlot::connect_esc_to_cancel(bool connect)
+{
+    if (esc_seed_ != NULL) {
+        esc_seed_->Disconnect(wxID_ANY, wxEVT_KEY_DOWN,
+                              wxKeyEventHandler(FPlot::OnKeyDown), 0, this);
+        esc_seed_ = NULL;
+    }
+
+    if (connect) {
+        wxWindow *fw = wxWindow::FindFocus();
+        if (fw == NULL || fw == this)
+            return;
+        esc_seed_ = fw;
+        fw->Connect(wxID_ANY, wxEVT_KEY_DOWN,
+                    wxKeyEventHandler(FPlot::OnKeyDown), 0, this);
+    }
+}
 

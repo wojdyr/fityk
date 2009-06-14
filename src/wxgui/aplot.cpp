@@ -49,7 +49,6 @@ BEGIN_EVENT_TABLE (AuxPlot, FPlot)
     EVT_LEFT_UP (         AuxPlot::OnLeftUp)
     EVT_RIGHT_DOWN (      AuxPlot::OnRightDown)
     EVT_MIDDLE_DOWN (     AuxPlot::OnMiddleDown)
-    EVT_KEY_DOWN   (      AuxPlot::OnKeyDown)
     EVT_MENU_RANGE (ID_aux_plot0, ID_aux_plot0+10, AuxPlot::OnPopupPlot)
     EVT_MENU (ID_aux_plot_ctr, AuxPlot::OnPopupPlotCtr)
     EVT_MENU (ID_aux_revd, AuxPlot::OnPopupReversedDiff)
@@ -402,19 +401,6 @@ void AuxPlot::OnMiddleDown (wxMouseEvent&)
     if (cancel_mouse_left_press())
         return;
     frame->GViewAll();
-}
-
-void AuxPlot::OnKeyDown (wxKeyEvent& event)
-{
-    if (event.GetKeyCode() == WXK_ESCAPE) {
-        cancel_mouse_left_press();
-    }
-    else if (should_focus_input(event)) {
-        cancel_mouse_left_press();
-        frame->focus_input(event);
-    }
-    else
-        event.Skip();
 }
 
 void AuxPlot::OnPopupPlot (wxCommandEvent& event)

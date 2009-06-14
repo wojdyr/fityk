@@ -84,9 +84,15 @@ public:
          pen_width(1),
          draw_sigma(false),
          mouse_press_X(INT_MIN), mouse_press_Y(INT_MIN),
-         vlfc_prev_x(INT_MIN), vlfc_prev_x0(INT_MIN)   {}
+         vlfc_prev_x(INT_MIN), vlfc_prev_x0(INT_MIN),
+         esc_seed_(NULL) {}
 
     ~FPlot() {}
+
+    // in wxGTK 2.9 it seems that changing this to true doesn't make
+    // the window accept focus
+    virtual bool AcceptsFocus() { return false; }
+
     void set_font(wxDC &dc, wxFont const& font);
     wxColour const& get_bg_color() const { return backgroundCol; }
     void draw_crosshair(int X, int Y);
@@ -115,6 +121,7 @@ protected:
     int mouse_press_X, mouse_press_Y;
     int vlfc_prev_x, vlfc_prev_x0; //vertical lines following cursor
     std::vector<wxPoint> special_points; //used to mark positions of peak tops
+    wxWindow *esc_seed_; // temporary source of OnKeyDown() events
 
     void draw_dashed_vert_line(int X, wxPenStyle style=wxPENSTYLE_SHORT_DASH);
     bool vert_line_following_cursor(MouseActEnum ma, int x=0, int x0=INT_MIN);
@@ -151,7 +158,15 @@ protected:
           return h != 0 ? h : dc.GetSize().GetHeight();
     }
 
-    DECLARE_EVENT_TABLE()
+
+    // if connect is true: connect, otherwise disconnect;
+    // connect to the currently focused window and handle wxEVT_KEY_DOWN 
+    // event: if Esc is pressed call cancel_action().
+    void connect_esc_to_cancel(bool connect);
+
+    virtual void cancel_action() {}
+    // handler used by connect_esc_to_cancel()
+    void OnKeyDown(wxKeyEvent& event);
 };
 
 // utilities
