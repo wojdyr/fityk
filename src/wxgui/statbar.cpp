@@ -8,6 +8,7 @@
 #include <wx/wx.h>
 #include <wx/spinctrl.h>
 #include <wx/statline.h>
+#include <wx/tooltip.h>
 
 #include "statbar.h"
 #include "../common.h" //wx2s, s2wx, GET_BMP
@@ -20,18 +21,12 @@
 
 using namespace std;
 
-//TODO:
-// - ConfStatBarDlg should have only Close button
-// - coordinates of the center of the plot should be shown as example
-//   when ConfStatBarDlg is called
-// - clicking on mouse icon should also show the tip
-
 //===============================================================
 //                    FStatusBar
 //===============================================================
 
 FStatusBar::FStatusBar(wxWindow *parent)
-        : wxPanel(parent, -1)
+        : wxPanel(parent, -1), last_x(0), last_y(0)
 {
     wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
     split = new wxSplitterWindow(this, -1);
@@ -71,6 +66,12 @@ FStatusBar::FStatusBar(wxWindow *parent)
     SetSizer(sizer);
     Connect(prefbtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             (wxObjectEventFunction) &FStatusBar::OnPrefButton);
+    mousebmp->Connect(wxEVT_LEFT_DOWN,
+                      (wxObjectEventFunction) &FStatusBar::OnMouseBmpClicked,
+                      NULL, this);
+    mousebmp->Connect(wxEVT_RIGHT_DOWN,
+                      (wxObjectEventFunction) &FStatusBar::OnMouseBmpClicked,
+                      NULL, this);
 }
 
 void FStatusBar::save_settings(wxConfigBase *cf) const
@@ -143,6 +144,9 @@ void FStatusBar::set_coords(double x, double y, PlotTypeEnum pte)
         val = get_value_for_point(e_code, e_numbers, x, y);
     wxString const& fmt = (pte == pte_main ? fmt_main : fmt_aux);
     coords->SetLabel(wxString::Format(fmt, x, y, val));
+    last_x = x;
+    last_y = y;
+    last_pte = pte;
 }
 
 bool FStatusBar::set_extra_value(string const& s)
@@ -168,6 +172,15 @@ void FStatusBar::OnPrefButton(wxCommandEvent&)
     ConfStatBarDlg dlg(NULL, -1, this);
     dlg.ShowModal();
 }
+
+void FStatusBar::OnMouseBmpClicked(wxMouseEvent&)
+{
+    wxToolTip *tip = mousebmp->GetToolTip();
+    if (tip == NULL)
+        return;
+    wxMessageBox(tip->GetTip(), wxT("Mouse usage"));
+}
+
 
 //===============================================================
 //                     ConfStatBarDlg
@@ -237,37 +250,62 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
     top_sizer->Add(persistance_note_sizer(this),
                    wxSizerFlags().Expand().Border());
 
-    add_apply_close_buttons(this, top_sizer);
+    top_sizer->Add(new wxButton(this, wxID_CLOSE),
+                   wxSizerFlags().Right().Border());
     SetSizerAndFit(top_sizer);
 
     SetEscapeId(wxID_CLOSE);
 
-    check_extra_value();
+    //okbmp->Show(!sb->extra_value.empty());
 
-    Connect(wxID_APPLY, wxEVT_COMMAND_BUTTON_CLICKED,
-            (wxObjectEventFunction) &ConfStatBarDlg::OnApply);
+    Connect(show_btn_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            (wxObjectEventFunction) &ConfStatBarDlg::OnShowBtnCheckbox);
+    Connect(show_hints_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            (wxObjectEventFunction) &ConfStatBarDlg::OnShowHintsCheckbox);
+
     Connect(extra_tc->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
             (wxObjectEventFunction) &ConfStatBarDlg::OnExtraValueChange);
+
+    Connect(x_prec_sc->GetId(), wxEVT_COMMAND_SPINCTRL_UPDATED,
+            (wxObjectEventFunction) &ConfStatBarDlg::OnPrecisionSpin);
+    Connect(y_prec_sc->GetId(), wxEVT_COMMAND_SPINCTRL_UPDATED,
+            (wxObjectEventFunction) &ConfStatBarDlg::OnPrecisionSpin);
+    Connect(e_prec_sc->GetId(), wxEVT_COMMAND_SPINCTRL_UPDATED,
+            (wxObjectEventFunction) &ConfStatBarDlg::OnPrecisionSpin);
 }
 
-void ConfStatBarDlg::check_extra_value()
+void ConfStatBarDlg::OnShowBtnCheckbox(wxCommandEvent& event)
+{
+    sb->show_btn = event.IsChecked();
+    sb->show_or_hide();
+}
+
+void ConfStatBarDlg::OnShowHintsCheckbox(wxCommandEvent& event)
+{
+    sb->show_hints = event.IsChecked();
+    sb->show_or_hide();
+}
+
+void ConfStatBarDlg::OnPrecisionSpin(wxCommandEvent& event)
+{
+    if (event.GetId() == x_prec_sc->GetId())
+        sb->x_prec = x_prec_sc->GetValue();
+    else if (event.GetId() == y_prec_sc->GetId())
+        sb->y_prec = y_prec_sc->GetValue();
+    else if (event.GetId() == e_prec_sc->GetId())
+        sb->e_prec = e_prec_sc->GetValue();
+    sb->set_coords_format();
+    sb->show_last_coordinates();
+}
+
+void ConfStatBarDlg::OnExtraValueChange(wxCommandEvent&)
 {
     string str = wx2s(extra_tc->GetValue());
-    bool ok = compile_data_expression(str);
+    bool ok = sb->set_extra_value(str);
     okbmp->Show(ok);
 #if !wxCHECK_VERSION(2, 8, 8)
     GetSizer()->Layout();
 #endif
-}
-
-void ConfStatBarDlg::OnApply (wxCommandEvent&)
-{
-    sb->show_btn = show_btn_cb->GetValue();
-    sb->show_hints = show_hints_cb->GetValue();
-    sb->show_or_hide();
-    sb->x_prec = x_prec_sc->GetValue();
-    sb->y_prec = y_prec_sc->GetValue();
-    sb->e_prec = e_prec_sc->GetValue();
-    sb->set_extra_value(wx2s(extra_tc->GetValue()));
+    sb->show_last_coordinates();
 }
 

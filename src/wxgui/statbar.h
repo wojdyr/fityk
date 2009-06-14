@@ -43,6 +43,10 @@ public:
     void read_settings(wxConfigBase *cf);
 
     void OnPrefButton(wxCommandEvent&);
+    void OnMouseBmpClicked(wxMouseEvent&);
+
+    // show last coordinates (as example) in the current format
+    void show_last_coordinates() { set_coords(last_x, last_y, last_pte); }
 
 private:
     // a number calculated as a function of cursor coordinates x and y and
@@ -59,6 +63,9 @@ private:
 
     bool show_btn;
     bool show_hints;
+
+    double last_x, last_y;
+    PlotTypeEnum last_pte;
 
     wxString fmt_main, fmt_aux;
     wxStaticText *text;
@@ -77,9 +84,10 @@ class ConfStatBarDlg: public wxDialog
 {
 public:
     ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_);
-    void OnApply (wxCommandEvent&);
-    void OnExtraValueChange(wxCommandEvent&) { check_extra_value(); }
-    void check_extra_value();
+    void OnShowBtnCheckbox(wxCommandEvent& event);
+    void OnShowHintsCheckbox(wxCommandEvent& event);
+    void OnExtraValueChange(wxCommandEvent&);
+    void OnPrecisionSpin(wxCommandEvent& event);
 private:
     FStatusBar *sb;
     wxTextCtrl *extra_tc;
