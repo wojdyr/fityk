@@ -1,5 +1,7 @@
 $Id$
 
+User-visible changes in version 0.8.8  (2009-06-  ):
+
 User-visible changes in version 0.8.7  (2009-06-10):
 * fityk license was changed from GPLv2 to GPLv2+ (2 or at your option any later)
 * all config files are stored in a single directory:

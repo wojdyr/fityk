@@ -10,6 +10,15 @@ Help is needed:
 
 ---------- TODO list and tentative development plan  ----------------
 
+* move 3rdparty/xylib to xylib/
+  add --enable-builtin-xylib flag 
+
+* configure.ac: 
+  --enable-samples-install  Install samples as documentation 
+    (to .../share/doc/fityk/samples/, only *.fit and *.dat files)
+
+--------------> 0.8.8
+
 * powder diffraction add-on - Pawley fitting 
 
 --------------> 0.9.0
@@ -19,15 +28,13 @@ Help is needed:
   function should also be changed (to the function that was active last time
   this dataset was active)
 
-* add functions cot and coth
-
 * define: enhance syntax to allow for substitutions, e.g.
    define FullGBE(k, eta) = k * eta * (eta * coth(eta) - ln (2*sinh(eta))) \
    where eta = 2*pi/alpha * sin(theta/2), theta=x*pi/180
 
-* GUI: redesign gradient dialog
+* add functions cot and coth
 
-* GUI: when zooming, [Esc] should cancel
+* GUI: redesign gradient dialog
 
 * GUI: Data>Load should use default load dir (as Quick Load)
 
@@ -64,10 +71,6 @@ Help is needed:
 
 * xylib: allow compressed (.gz, .bz2) data files (only in standalone version,
   if Boost.Iostreams headers and libbzip2 and/or zlib are present)
-
-* configure.ac: 
-  --enable-samples-install  Install samples as documentation 
-    (to .../share/doc/fityk/samples/, only *.fit and *.dat files)
 
 * magic default parameters: if $default__name is defined: when functions 
   with parameter `name' are "guessed", this parameter is set to $default__name
@@ -176,8 +179,6 @@ Help is needed:
 * fitting: robust fit - other error distributions then Gaussian, 
   eg. Lorenzian...; so called 'maximum-likelihood method' -- using Poisson
   error distribution.
-
-* [BUG] (GUI) (MS Win) <br> does not work in vertical peak labels 
 
 * ? exporting formulae in MathML (when option formula-export-style == mathml)
 
