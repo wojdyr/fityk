@@ -1,11 +1,11 @@
 # $Id$
 
 ACLOCAL_AMFLAGS = -I config
-EXTRA_DIST = fityk.spec fityk.iss fityk.url fityk.svg \
+EXTRA_DIST = fityk.iss fityk.url fityk.svg \
 	     macosx/README.txt macosx/Makefile macosx/Info.plist.in \
 	     macosx/fityk.icns
 AUTOMAKE_OPTIONS = dist-bzip2
-SUBDIRS = @DOC@ 3rdparty src samples config @PYBINDINGDIR@
+SUBDIRS = @DOC@ @XYLIB_DIR@ 3rdparty src @SAMPLES_DIR@ config @PYBINDINGDIR@
 
 icondir = $(datadir)/pixmaps
 desktopdir = $(datadir)/applications

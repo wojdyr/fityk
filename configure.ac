@@ -28,8 +28,14 @@ AC_ARG_ENABLE(python,
 [  --enable-python         build python bindings to libfityk])
 
 AC_ARG_ENABLE(3rdparty,
-[  --disable-3rdparty      do not use 3rdparty directory])
+[  --disable-3rdparty      do not use 3rdparty directory @<:@default=enable@:>@])
 test -z "$enable_3rdparty" && enable_3rdparty="yes"
+
+AC_ARG_WITH(xylib,
+[  --with-xylib            use built-in xylib, not standalone one @<:@default=no@:>@])
+
+AC_ARG_WITH(samples,
+[  --with-samples          install samples as documentation])
 
 # The GNU readline library
 AC_ARG_WITH(readline,
@@ -89,10 +95,10 @@ AC_CHECK_HEADER(sstream, [], [AC_MSG_ERROR(
  [You don't have a <sstream> header. It is a part of standard C++ library.
   Either you have too old compiler, or standard C++ library can't be found.])])
 
-if test "$enable_3rdparty" != "yes"; then
+if test "$with_xylib" != "yes"; then
     AC_CHECK_HEADER([xylib/xylib.h], [], [AC_MSG_ERROR(
  [xylib headers were not found.
-  If you want to use --disable-3rdparty flag, install xylib separately.
+  Either use --with-xylib flag or install xylib separately.
  ])])
 fi
 
@@ -117,13 +123,26 @@ CPPFLAGS=$OLD_CPPFLAGS
 
 
 if test "$enable_3rdparty" = "yes"; then
-	CPPFLAGS_3RDPARTY="-I\$(top_srcdir)/3rdparty -I\$(top_srcdir)/3rdparty/xylib"
-	XYLIB_LDADD="\$(top_builddir)/3rdparty/xylib/xylib/libxy.la"
+	CPPFLAGS_3RDPARTY="-I\$(top_srcdir)/3rdparty"
 else
 	CPPFLAGS_3RDPARTY=
-        XYLIB_LDADD="-lxy"
 fi
 
+if test "$with_xylib" = "yes"; then
+	XYLIB_CPPFLAGS="-I\$(top_srcdir)/xylib"
+	XYLIB_LDADD="\$(top_builddir)/xylib/xylib/libxy.la"
+	XYLIB_DIR=xylib
+else
+	XYLIB_CPPFLAGS=
+        XYLIB_LDADD="-lxy"
+	XYLIB_DIR=
+fi
+
+if test "$with_samples" = "yes"; then
+    SAMPLES_DIR=samples
+else
+    SAMPLES_DIR=
+fi
 
 
 AC_LANG_POP([C++]) dnl C is faster than C++
@@ -184,7 +203,10 @@ AC_SUBST(SRCSUBDIRS)
 AC_SUBST(DOC)
 AC_SUBST(PYBINDINGDIR)
 AC_SUBST(CPPFLAGS_3RDPARTY)
+AC_SUBST(XYLIB_CPPFLAGS)
 AC_SUBST(XYLIB_LDADD)
+AC_SUBST(XYLIB_DIR)
+AC_SUBST(SAMPLES_DIR)
 AC_SUBST(LIBRARY_VERSION_FLAG)
 
 # check for erf and erfc function
@@ -203,7 +225,7 @@ AC_CHECK_LIB([m], [isnan], [AC_DEFINE([HAVE_ISNAN], [1],
 AC_DEFINE_UNQUOTED(CONFIGURE_BUILD, "$ac_cv_build", [ac_cv_build])
 AC_DEFINE_UNQUOTED(CONFIGURE_ARGS, "$ac_configure_args", [ac_configure_args])
 
-AC_CONFIG_FILES([Makefile fityk.spec fityk.iss src/Makefile src/wxgui/Makefile src/cli/Makefile src/wxgui/img/Makefile doc/Makefile doc/fitykhelp_img/Makefile samples/Makefile config/Makefile 3rdparty/Makefile 3rdparty/xylib/Makefile 3rdparty/xylib/xylib/Makefile python/Makefile])
+AC_CONFIG_FILES([Makefile fityk.iss src/Makefile src/wxgui/Makefile src/cli/Makefile src/wxgui/img/Makefile doc/Makefile doc/fitykhelp_img/Makefile samples/Makefile config/Makefile 3rdparty/Makefile xylib/Makefile xylib/xylib/Makefile python/Makefile])
 AC_OUTPUT
 
 

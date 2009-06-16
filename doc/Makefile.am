@@ -1,6 +1,6 @@
 # $Id$
 
-dist_pkgdata_DATA = fitykhelp.html html.css 
+dist_pkgdata_DATA = fitykhelp.html html.css
 dist_man_MANS = fityk.1
 EXTRA_DIST = fitykhelp.xml hh-mod.xsl fo.xsl
 SUBDIRS = fitykhelp_img
