@@ -10,15 +10,6 @@ Help is needed:
 
 ---------- TODO list and tentative development plan  ----------------
 
-* move 3rdparty/xylib to xylib/
-  add --enable-builtin-xylib flag 
-
-* configure.ac: 
-  --enable-samples-install  Install samples as documentation 
-    (to .../share/doc/fityk/samples/, only *.fit and *.dat files)
-
---------------> 0.8.8
-
 * powder diffraction add-on - Pawley fitting 
 
 --------------> 0.9.0
@@ -31,6 +22,9 @@ Help is needed:
 * define: enhance syntax to allow for substitutions, e.g.
    define FullGBE(k, eta) = k * eta * (eta * coth(eta) - ln (2*sinh(eta))) \
    where eta = 2*pi/alpha * sin(theta/2), theta=x*pi/180
+
+* GUI: saving background and reusing it for the next dataset (i.e. loading
+  saved background, changing it a bit and substracting)
 
 * add functions cot and coth
 

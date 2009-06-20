@@ -1,6 +1,8 @@
 $Id$
 
 User-visible changes in version 0.8.8  (2009-06-  ):
+* added two flags to the configure script: --with-xylib and --with-samples
+  (xylib from the fityk tarball is not used by default now)
 
 User-visible changes in version 0.8.7  (2009-06-10):
 * fityk license was changed from GPLv2 to GPLv2+ (2 or at your option any later)
