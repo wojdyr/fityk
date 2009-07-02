@@ -8,7 +8,12 @@
 #include <boost/ref.hpp>
 #include <boost/spirit/core/assert.hpp>
 #include <boost/spirit/core/parser.hpp>
-#include <boost/spirit/core/composite/impl/directives.ipp>
+
+// In boost<1.37 composite/impl/directives.ipp was included directly:
+// but since there is no such header in boost 1.37, this was changed
+// to include whole composite/directives.hpp header.
+//#include <boost/spirit/core/composite/impl/directives.ipp>
+#include <boost/spirit/core/composite/directives.hpp>
 
 using namespace boost::spirit;
 
