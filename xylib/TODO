@@ -1,4 +1,6 @@
 
+* install xyconv
+* add samples.sh and samples/get_samples.sh to tarball
 * add rigaku_dat sample files
 * is Rigaku RIG the same as rigaku_dat?   
 * implement GSAS format (see gsas.cpp for comments) 

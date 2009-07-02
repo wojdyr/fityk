@@ -20,8 +20,9 @@ if [ $# -eq 0 ]; then
  echo usage: $0 step_nr
  echo steps:
  echo 0. prepare new version and increase version number 
- echo "1. test if everything compiles after distclean, run samples"
- echo "2. test if this release can be compiled with other settings"
+ echo 1. test if everything compiles after distclean, run samples
+ echo 2. test if svn can be compiled with other settings
+ echo 3. make tarball
  echo 5. put docs on www
  echo 6. compile windows version and make installer
  echo 8. SourceForge release
@@ -63,8 +64,6 @@ elif [ $1 -eq 1 ]; then
  cd $BUILD_DIR
  ../configure --prefix=$HOME/local --enable-python --with-xylib --with-samples
  make 
- make dist-bzip2
- mv $tarball_filename ..
  make install
  echo run samples...
  cd ../samples
@@ -77,6 +76,13 @@ elif [ $1 -eq 1 ]; then
 elif [ $1 -eq 2 ]; then
  echo  go to buildtest/ and run tests ...
  
+elif [ $1 -eq 3 ]; then
+ echo  make tarball
+ rm -r xylib/aclocal.m4 xylib/autom4te.cache/ xylib/config.* xylib/configure \
+       xylib/depcomp xylib/install-sh xylib/libtool xylib/ltmain.sh \
+       xylib/missing xylib/stamp-h1
+ ./autogen.sh --prefix=$HOME/local --enable-python --with-xylib --with-samples
+ make dist-bzip2
 
 elif [ $1 -eq 5 ]; then
  echo  putting docs on www   
@@ -153,7 +159,9 @@ elif [ $1 -eq 6 ]; then
  SRC_DIR=fityk-$version
  # host: MinGW from .deb: i586-mingw32msvc, built locally: i586-pc-mingw32
  $SRC_DIR/configure --build=x86_64-pc-linux-gnu --host=i586-pc-mingw32 \
-   CXXFLAGS="-O3" LDFLAGS="-s" --disable-CLI --with-wx-prefix=$WXMSWINSTALL 
+   CXXFLAGS="-O3" LDFLAGS="-s" --disable-CLI --with-wx-prefix=$WXMSWINSTALL \
+   --with-xylib
+
  make || exit
  mkdir -p $ALL_WIN_FILES/samples $ALL_WIN_FILES/src $ALL_WIN_FILES/doc
  cp fityk.iss $SRC_DIR/fityk.url $SRC_DIR/COPYING $SRC_DIR/TODO \

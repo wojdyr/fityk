@@ -1,6 +1,6 @@
 $Id$
 
-User-visible changes in version 0.8.8  (2009-06-  ):
+User-visible changes in version 0.8.8  (2009-06-21):
 * added two flags to the configure script: --with-xylib and --with-samples
   (xylib from the fityk tarball is not used by default now)
 

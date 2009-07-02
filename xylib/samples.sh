@@ -2,7 +2,7 @@
 # convert all of the sample files in ./sample to ASCII plain format in ./output
 # using ./xyconv
 
-for i in samples/*/[^R]* 
+for i in samples/*/[^R]*
 do
 	echo "processing file $i ..."
 	outpath=$(echo $i | sed -e 's@^samples/@output/@')"_tr.txt"
