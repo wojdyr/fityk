@@ -64,7 +64,7 @@ public:
             case 1: return p.x;
             case 2: return p.y;
             case 3: return p.sigma;
-            default: assert(0);
+            default: assert(0); return 0.;
         }
     }
 
@@ -103,7 +103,7 @@ public:
             case 1: return wxT("x");
             case 2: return wxT("y");
             case 3: return wxT("sigma");
-            default: assert(0);
+            default: assert(0); return wxEmptyString;
         }
     }
 
