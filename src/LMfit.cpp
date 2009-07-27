@@ -58,7 +58,7 @@ void LMfit::autoiter()
     wssr_before = (shake_before > 0. ? compute_wssr(a_orig, dmdm_) : chi2);
     fp prev_chi2 = chi2;
     F->vmsg("\t === Levenberg-Marquardt method ===");
-    F->msg ("Initial values:  lambda=" + S(lambda) + "  WSSR=" + S(chi2));
+    F->vmsg ("Initial values:  lambda=" + S(lambda) + "  WSSR=" + S(chi2));
     F->vmsg ("Max. number of iterations: " + max_iterations);
     fp stop_rel = F->get_settings()->get_f("lm-stop-rel-change");
     fp max_lambda = F->get_settings()->get_f("lm-max-lambda");
@@ -71,30 +71,30 @@ void LMfit::autoiter()
         bool better_fit = do_iteration();
         if (better_fit) {
             fp d = prev_chi2 - chi2;
-            F->msg ("#" + S(iter_nr) + ":  WSSR=" + S(chi2)
-                        + "  lambda=" + S(lambda) + "  d(WSSR)=" +  S(-d)
-                        + "  (" + S (d / prev_chi2 * 100) + "%)");
+            F->vmsg ("#" + S(iter_nr) + ":  WSSR=" + S(chi2)
+                    + "  lambda=" + S(lambda) + "  d(WSSR)=" +  S(-d)
+                    + "  (" + S (d / prev_chi2 * 100) + "%)");
             // another termination criterium: negligible change of chi2
             if (d / prev_chi2 < stop_rel || chi2 == 0) {
                 small_change_counter++;
                 if (small_change_counter >= 2 || chi2 == 0) {
-                    F->msg("Fit converged.");
+                    F->msg("Fitting converged.");
                     break;
                 }
             }
             else
                 small_change_counter = 0;
             prev_chi2 = chi2;
-            iteration_plot(a);
         }
         else { // no better fit
-            F->msg("#"+S(iter_nr)+": (WSSR="+S(chi2_)+")  lambda="+S(lambda));
+            F->vmsg("#"+S(iter_nr)+": (WSSR="+S(chi2_)+")  lambda="+S(lambda));
             if (lambda > max_lambda) { // another termination criterium
                 F->msg("In L-M method: lambda=" + S(lambda) + " > "
                         + S(max_lambda) + ", stopped.");
                 break;
             }
         }
+        iteration_plot(a, better_fit, chi2);
     }
     post_fit (a, chi2);
 }

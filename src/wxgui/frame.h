@@ -9,7 +9,7 @@
 #include <wx/spinctrl.h>
 
 #include <wx/filename.h>
-#include "cmn.h"  // Output_style_enum
+#include "cmn.h"  // enums
 #include "../common.h" //s2wx
 
 //struct z_names_type;
@@ -172,7 +172,7 @@ public:
     void output_text(OutputStyle style, std::string const& str);
     void change_zoom(const std::string& s);
     void scroll_view_horizontally(fp step);
-    void refresh_plots(bool update=false, bool only_main=false);
+    void refresh_plots(bool now, WhichPlot which_plot);
     void draw_crosshair(int X, int Y);
     void focus_input(wxKeyEvent& event);
     void edit_in_input(std::string const& s);

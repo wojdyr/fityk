@@ -79,7 +79,7 @@ void gui_show_message(OutputStyle style, const string& s)
 
 void gui_do_draw_plot(bool now)
 {
-    frame->refresh_plots(now);
+    frame->refresh_plots(now, kAllPlots);
 }
 
 void gui_wait(float seconds)
@@ -87,10 +87,28 @@ void gui_wait(float seconds)
     wxMilliSleep(iround(seconds*1e3));
 }
 
+// return value: true if we can continue, false if Cancel was pressed
 void gui_refresh()
 {
-    wxSafeYield();
+    wxYield();
 }
+
+// enable/disable non-responsive mode with menu and all windows disabled
+// and `wait' cursor. To be used during time-consuming computations.
+void gui_compute_ui(bool enable)
+{
+    static wxWindowDisabler *wd = NULL;
+    if (enable == (wd != NULL))
+        return;
+    if (enable) {
+        wd = new wxWindowDisabler();
+    }
+    else {
+        delete wd;
+        wd = NULL;
+    }
+}
+
 
 Commands::Status gui_exec_command(const string& s)
 {
@@ -140,6 +158,7 @@ bool FApp::OnInit(void)
     ftk->get_ui()->set_do_draw_plot(gui_do_draw_plot);
     ftk->get_ui()->set_wait(gui_wait);
     ftk->get_ui()->set_refresh(gui_refresh);
+    ftk->get_ui()->set_compute_ui(gui_compute_ui);
     ftk->get_ui()->set_exec_command(gui_exec_command);
 
     wxFileSystem::AddHandler(new wxZipFSHandler);

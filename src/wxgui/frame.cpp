@@ -1380,19 +1380,19 @@ void FFrame::OnUndoBg(wxCommandEvent&)
 void FFrame::OnClearBg(wxCommandEvent&)
 {
     plot_pane->get_bg_manager()->forget_background();
-    refresh_plots(false, true);
+    refresh_plots(false, kMainPlot);
 }
 
 void FFrame::OnConvexHullBg(wxCommandEvent&)
 {
     plot_pane->get_bg_manager()->set_as_convex_hull();
-    refresh_plots(false, true);
+    refresh_plots(false, kMainPlot);
 }
 
 void FFrame::OnSplineBg(wxCommandEvent& event)
 {
     plot_pane->get_bg_manager()->set_spline_bg(event.IsChecked());
-    refresh_plots(false, true);
+    refresh_plots(false, kMainPlot);
 }
 
 void FFrame::SwitchToolbar(bool show)
@@ -1726,9 +1726,9 @@ void FFrame::output_text(OutputStyle style, const string& str)
     io_pane->output_win->append_text(style, s2wx(str));
 }
 
-void FFrame::refresh_plots(bool now, bool only_main)
+void FFrame::refresh_plots(bool now, WhichPlot which_plot)
 {
-    plot_pane->refresh_plots(now, only_main);
+    plot_pane->refresh_plots(now, which_plot);
 }
 
 void FFrame::draw_crosshair(int X, int Y)

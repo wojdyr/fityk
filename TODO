@@ -26,6 +26,8 @@ Help is needed:
 * GUI: saving background and reusing it for the next dataset (i.e. loading
   saved background, changing it a bit and substracting)
 
+* higher precision on exporting xy data
+
 * add functions cot and coth
 
 * GUI: redesign gradient dialog
@@ -51,7 +53,8 @@ Help is needed:
 
 * convert manual from DocBook to reStructuredText
 
-* consider using wxAutoBufferedPaintDC instead of own buffer
+* (GUI) stopping fitting interactively (when user doesn't want to wait longer);
+  "stop" bitmap button? in right left corner? 
 
 --------------> 0.9.1
 
@@ -61,9 +64,6 @@ Help is needed:
        a clean interface to XOR-drawing 
 
 * GUI: should (and where) windows size & position be stored?
-
-* (GUI) stopping fitting interactively (when user doesn't want to wait longer);
-  "stop" bitmap button? in right left corner? 
 
 * data import: possibility to use xylib column/block name as title
 

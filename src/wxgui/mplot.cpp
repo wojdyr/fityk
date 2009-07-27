@@ -282,6 +282,7 @@ void MainPlot::draw_dataset(wxDC& dc, int n, bool set_pen)
 
 void MainPlot::draw(wxDC &dc, bool monochrome)
 {
+    cout << "MainPlot::draw()" << endl;
     int focused_data = frame->get_sidebar()->get_focused_data();
     Model const* model = ftk->get_model(focused_data);
 
@@ -575,7 +576,7 @@ void MainPlot::draw_background(wxDC& dc, bool set_pen)
 void MainPlot::read_settings(wxConfigBase *cf)
 {
     cf->SetPath(wxT("/MainPlot/Colors"));
-    backgroundCol = cfg_read_color(cf, wxT("bg"), wxColour(wxT("BLACK")));
+    set_bg_color(cfg_read_color(cf, wxT("bg"), wxColour(wxT("BLACK"))));
     for (int i = 0; i < max_data_cols; i++)
         dataColour[i] = cfg_read_color(cf, wxString::Format(wxT("data/%i"), i),
                                                wxColour(0, 255, 0));
@@ -634,7 +635,7 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->Write(wxT("yLogarithm"), ys.logarithm);
 
     cf->SetPath(wxT("/MainPlot/Colors"));
-    cfg_write_color(cf, wxT("bg"), backgroundCol);
+    cfg_write_color(cf, wxT("bg"), get_bg_color());
     for (int i = 0; i < max_data_cols; i++)
         cfg_write_color(cf, wxString::Format(wxT("data/%i"), i), dataColour[i]);
     cfg_write_color (cf, wxT("inactive_data"), inactiveDataCol);
@@ -766,7 +767,7 @@ void MainPlot::set_mouse_mode(MouseModeEnum m)
     set_cursor();
     if (old != mode && (old == mmd_bg || mode == mmd_bg
                         || visible_peaktops(old) != visible_peaktops(mode)))
-        refresh(false);
+        refresh();
 }
 
 // update mouse hint on status bar
@@ -853,7 +854,7 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
     Model const* model = ftk->get_model(focused_data);
     vector<int> const& idx = model->get_ff_idx();
     if (special_points.size() != idx.size())
-        refresh(false);
+        refresh();
     int n = get_special_point_at_pointer(event);
     int nearest = n == -1 ? -1 : idx[n];
 
@@ -946,11 +947,11 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     }
     else if (button == 1 && mode == mmd_bg) {
         bgm.add_background_point(x, y);
-        refresh(false);
+        refresh();
     }
     else if (button == 3 && mode == mmd_bg) {
         bgm.rm_background_point(x);
-        refresh(false);
+        refresh();
     }
     else if (button == 1 && mode == mmd_add) {
         func_draft_kind
@@ -1296,15 +1297,16 @@ void MainPlot::OnPopupShowXX (wxCommandEvent& event)
         case ID_plot_popup_peak:   peaks_visible = !peaks_visible;   break;
         default: assert(0);
     }
-    refresh(false);
+    refresh();
 }
 
 void MainPlot::OnPopupColor(wxCommandEvent& event)
 {
     int n = event.GetId();
     wxColour *color = 0;
+    wxColour bg_color = get_bg_color();
     if (n == ID_plot_popup_c_background)
-        color = &backgroundCol;
+        color = &bg_color;
     else if (n == ID_plot_popup_c_inactive_data) {
         color = &inactiveDataCol;
     }
@@ -1313,15 +1315,17 @@ void MainPlot::OnPopupColor(wxCommandEvent& event)
     else
         return;
     if (change_color_dlg(*color)) {
-        if (n == ID_plot_popup_c_background)
+        if (n == ID_plot_popup_c_background) {
             frame->update_data_pane();
+            set_bg_color(bg_color);
+        }
         refresh();
     }
 }
 
 void MainPlot::OnInvertColors (wxCommandEvent&)
 {
-    backgroundCol = invert_colour(backgroundCol);
+    set_bg_color(invert_colour(get_bg_color()));
     for (int i = 0; i < max_data_cols; i++)
         dataColour[i] = invert_colour(dataColour[i]);
     inactiveDataCol = invert_colour(inactiveDataCol);
@@ -1342,7 +1346,7 @@ void MainPlot::OnPopupRadius (wxCommandEvent& event)
         line_between_points = !line_between_points;
     else
         point_radius = nr;
-    refresh(false);
+    refresh();
 }
 
 void MainPlot::OnConfigureAxes (wxCommandEvent&)
@@ -1505,7 +1509,7 @@ void ConfigureAxesDlg::OnApply (wxCommandEvent&)
     plot->ys.reversed = y_reversed_cb->GetValue();
     plot->ys.logarithm = y_logarithm_cb->GetValue();
     ftk->view.set_log_scale(plot->xs.logarithm, plot->ys.logarithm);
-    frame->refresh_plots(false, !scale_changed);
+    frame->refresh_plots(false, scale_changed ? kAllPlots : kMainPlot);
 }
 
 void ConfigureAxesDlg::OnChangeFont (wxCommandEvent&)
@@ -1619,7 +1623,7 @@ void ConfigurePLabelsDlg::OnApply (wxCommandEvent&)
     plot->plabels_visible = show_plabels->GetValue();
     plot->plabel_format = wx2s(label_text->GetValue());
     plot->vertical_plabels = vertical_rb->GetSelection() != 0;
-    frame->refresh_plots(false, true);
+    plot->refresh();
 }
 
 void ConfigurePLabelsDlg::OnChangeLabelFont (wxCommandEvent&)
@@ -1631,7 +1635,7 @@ void ConfigurePLabelsDlg::OnChangeLabelFont (wxCommandEvent&)
     {
         wxFontData retData = dialog.GetFontData();
         plot->plabelFont = retData.GetChosenFont();
-        plot->refresh(false);
+        plot->refresh();
     }
 }
 

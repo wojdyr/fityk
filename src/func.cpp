@@ -22,6 +22,47 @@ using namespace boost::spirit;
 std::vector<fp> Function::calc_val_xx(1);
 std::vector<fp> Function::calc_val_yy(1);
 
+static
+string::size_type find_outer_comma(string const& s, string::size_type pos)
+{
+    while (1) {
+        string::size_type c = s.find(',', pos);
+        if (c == string::npos)
+            return string::npos;
+        if (count(s.begin() + pos, s.begin() + c, '(')
+                == count(s.begin() + pos, s.begin() + c, ')'))
+            return c;
+        pos = c + 1;
+    }
+}
+
+string Function::get_rhs_from_formula(string const &formula)
+{
+    string::size_type v = formula.find(" where ");
+    string::size_type rhs_start = formula.rfind('=', v) + 1;
+
+    if (v == string::npos) // no substitutions
+        return strip_string(formula.substr(rhs_start));
+
+    // substitude variables that go after "where"
+    string rhs(formula, rhs_start, v - rhs_start);
+    v += 7; // strlen(" where ");
+    while (1) {
+        string::size_type eq = formula.find('=', v);
+        string var = strip_string(formula.substr(v, eq-v));
+        if (var.empty())
+            throw ExecuteError("Wrong syntax in formula after `where'");
+        string::size_type comma = find_outer_comma(formula, eq + 1);
+        string value(formula, eq + 1,
+                     comma == string::npos ? string::npos : comma - (eq+1));
+        replace_words(rhs, var, value);
+        if (comma == string::npos)
+            break;
+        v = comma + 1;
+    }
+    return strip_string(rhs);
+}
+
 Function::Function (Ftk const* F_,
                     string const &name_,
                     vector<string> const &vars,
@@ -624,6 +665,7 @@ void define(std::string const &formula)
         else if (!islower((*i)[0]))
             throw ExecuteError("Improper variable: " + *i);
     }
+
     check_rhs(Function::get_rhs_from_formula(formula), lhs_vars);
     if (is_defined(type) && !get_udf(type)->is_builtin) {
         //defined, but can be undefined; don't undefine function implicitely

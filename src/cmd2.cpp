@@ -540,6 +540,8 @@ void do_print_func_type(char const* a, char const* b)
     string m = Function::get_formula(s);
     if (m.empty())
         m = "Undefined function type: " + s;
+    else if (with_plus && m.find(" where ") != string::npos)
+        m += "\n = " + Function::get_rhs_from_formula(m);
     prepared_info += "\n" + m;
 }
 

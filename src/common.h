@@ -148,7 +148,11 @@ inline std::string strip_string(std::string const &s) {
     std::string::size_type first = s.find_first_not_of(blank);
     if (first == std::string::npos)
         return std::string();
-    return std::string(s, first, s.find_last_not_of(blank)-first+1);
+    std::string::size_type last = s.find_last_not_of(blank);
+    if (first == 0 && last == s.size() - 1)
+        return s;
+    else
+        return std::string(s, first, last-first+1);
 }
 
 /// similar to Python string.startswith() method

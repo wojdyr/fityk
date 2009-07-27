@@ -23,7 +23,7 @@ public:
     std::string zoom_backward(int n=1);
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
-    void refresh_plots(bool update, bool only_main=false);
+    void refresh_plots(bool now, WhichPlot which_plot);
     void set_mouse_mode(MouseModeEnum m);
     bool is_background_white();
     std::vector<std::string> const& get_zoom_hist() const { return zoom_hist; }

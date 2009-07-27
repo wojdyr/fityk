@@ -67,12 +67,12 @@ public:
     bool keep_quiet;
 
     UserInterface(Ftk* F_)
-        : keep_quiet(false), F(F_), m_show_message(NULL), m_do_draw_plot(NULL),
-          m_exec_command(NULL), m_refresh(NULL), m_wait(NULL) {}
+        : keep_quiet(false), F(F_), show_message_(NULL), do_draw_plot_(NULL),
+          exec_command_(NULL), refresh_(NULL), compute_ui_(NULL), wait_(NULL)
+    {}
 
     /// Update plot if pri<=auto_plot.   If !now, update can be delayed
-    /// Different definition for GUI and CLI
-    void draw_plot(int pri=0, bool now=false);
+    void draw_plot(int pri, bool now);
 
     /// sent message - to user input and to log file (if logging is on)
     void output_message (OutputStyle style, std::string const &s) const;
@@ -90,46 +90,54 @@ public:
         { exec_script(filename, std::vector<std::pair<int,int> >()); }
 
     Commands::Status exec_and_log(std::string const &c);
-    int get_verbosity() const;
+    //int get_verbosity() const { return F->get_verbosity(); }
+
+
     void process_cmd_line_filename(std::string const& par);
 
     // callbacks
     typedef void t_do_draw_plot(bool now);
-    void set_do_draw_plot(t_do_draw_plot *func) { m_do_draw_plot = func; }
+    void set_do_draw_plot(t_do_draw_plot *func) { do_draw_plot_ = func; }
 
     typedef void t_show_message(OutputStyle style, std::string const& s);
-    void set_show_message(t_show_message *func) { m_show_message = func; }
+    void set_show_message(t_show_message *func) { show_message_ = func; }
 
     typedef Commands::Status t_exec_command (std::string const &s);
-    void set_exec_command(t_exec_command *func) { m_exec_command = func; }
+    void set_exec_command(t_exec_command *func) { exec_command_ = func; }
 
     typedef void t_refresh();
-    void set_refresh(t_refresh *func) { m_refresh = func; }
+    void set_refresh(t_refresh *func) { refresh_ = func; }
     /// refresh the screen if needed, for use during time-consuming tasks
-    void refresh() { if (m_refresh) (*m_refresh)(); }
+    void refresh() { if (refresh_) (*refresh_)(); }
+
+    typedef void t_compute_ui(bool);
+    void set_compute_ui(t_compute_ui *func) { compute_ui_ = func; }
+    void enable_compute_ui(bool enable)
+            { if (compute_ui_) (*compute_ui_)(enable); }
 
     typedef void t_wait(float seconds);
-    void set_wait(t_wait *func) { m_wait = func; }
+    void set_wait(t_wait *func) { wait_ = func; }
     /// Wait and disable UI for ... seconds.
-    void wait(float seconds) { if (m_wait) (*m_wait)(seconds); }
+    void wait(float seconds) { if (wait_) (*wait_)(seconds); }
 
 private:
     Ftk* F;
-    t_show_message *m_show_message;
-    t_do_draw_plot *m_do_draw_plot;
-    t_exec_command *m_exec_command;
-    t_refresh *m_refresh;
-    t_wait *m_wait;
+    t_show_message *show_message_;
+    t_do_draw_plot *do_draw_plot_;
+    t_exec_command *exec_command_;
+    t_refresh *refresh_;
+    t_compute_ui *compute_ui_;
+    t_wait *wait_;
     Commands commands;
 
     UserInterface (UserInterface const&); //disable
     UserInterface& operator= (UserInterface const&); //disable
 
-    void do_draw_plot(bool now=false)
-        { if (m_do_draw_plot) (*m_do_draw_plot)(now); }
+    void do_draw_plot(bool now)
+        { if (do_draw_plot_) (*do_draw_plot_)(now); }
     /// show message to user
     void show_message (OutputStyle style, std::string const& s) const
-        { if (m_show_message) (*m_show_message)(style, s); }
+        { if (show_message_) (*show_message_)(style, s); }
 
     /// Execute command(s) from string
     /// It can finish the program (eg. if s=="quit").
@@ -137,9 +145,7 @@ private:
 };
 
 
-
 extern const char* startup_commands_filename;
 extern const char* config_dirname;
-
 
 #endif

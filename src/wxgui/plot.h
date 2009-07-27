@@ -94,7 +94,6 @@ public:
     virtual bool AcceptsFocus() { return false; }
 
     void set_font(wxDC &dc, wxFont const& font);
-    wxColour const& get_bg_color() const { return backgroundCol; }
     void draw_crosshair(int X, int Y);
     void set_scale(int pixel_width, int pixel_height);
     int get_special_point_at_pointer(wxMouseEvent& event);

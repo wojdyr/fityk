@@ -63,8 +63,12 @@ public:
     std::string set_script() const;
     /// get value of option as string
     std::string getp(std::string const& k) const;
-    /// for faster access
-    fp get_cut_level() const { return cut_function_level; }
+
+    // for faster access
+    fp get_cut_level() const { return cut_function_level_; }
+    fp get_verbosity() const { return verbosity_; }
+    fp get_autoplot() const { return autoplot_; }
+
     void do_srand();
 
     std::string format_double(fp d)
@@ -84,7 +88,12 @@ private:
     std::map <std::string, IntRange> irpar;
     std::map <std::string, EnumString> epar;
     std::map <std::string, std::string> spar;
-    fp cut_function_level; ///for faster access
+
+    // variables that enable quick access to some settings
+    fp cut_function_level_;
+    int verbosity_;
+    int autoplot_;
+
     std::vector<std::pair<std::string, std::string> > old_values;
 
     Settings(Settings const&); //disable

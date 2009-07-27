@@ -16,53 +16,60 @@
 
 using namespace std;
 
-
-void BufferedPanel::refresh(bool now)
+BufferedPanel::BufferedPanel(wxWindow *parent)
+   : wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize,
+             wxNO_BORDER|wxFULL_REPAINT_ON_RESIZE),
+     dirty_(true)
 {
-    clear_and_draw();
+    SetBackgroundStyle(wxBG_STYLE_CUSTOM);
+    Connect(wxEVT_IDLE, wxIdleEventHandler(BufferedPanel::OnIdle));
+}
+
+void BufferedPanel::redraw_now()
+{
+    dirty_ = true;
     Refresh(false);
-    if (now)
-        Update();
-}
-
-bool BufferedPanel::resize_buffer(wxDC &dc)
-{
-    wxCoord w, h;
-    dc.GetSize(&w, &h);
-    if (!buffer.Ok()
-            || w != buffer.GetWidth() || h != buffer.GetHeight()) {
-        memory_dc.SelectObject(wxNullBitmap);
-        buffer = wxBitmap(w, h);
-        memory_dc.SelectObject(buffer);
-        return true;
-    }
-    return false;
-}
-
-void BufferedPanel::clear()
-{
-    memory_dc.SetLogicalFunction(wxCOPY);
-    memory_dc.SetBackground(wxBrush(backgroundCol));
-    memory_dc.Clear();
-}
-
-void BufferedPanel::clear_and_draw()
-{
-    if (!buffer.Ok())
-        return;
-    clear();
-    draw(memory_dc);
+    Update();
 }
 
 void BufferedPanel::buffered_draw()
 {
+    cout << "BufferedPanel::buffered_draw()" << endl;
     wxPaintDC dc(this);
-    if (resize_buffer(dc))
-        clear_and_draw();
-    dc.Blit(0, 0, buffer.GetWidth(), buffer.GetHeight(), &memory_dc, 0, 0);
+    // check size
+    wxCoord w, h;
+    dc.GetSize(&w, &h);
+    if (!buffer_.Ok() || w != buffer_.GetWidth() || h != buffer_.GetHeight()) {
+        memory_dc_.SelectObject(wxNullBitmap);
+        buffer_ = wxBitmap(w, h);
+        memory_dc_.SelectObject(buffer_);
+        memory_dc_.SetBackground(wxBrush(bg_color_));
+        dirty_ = true;
+    }
+    // replot if it's necessary
+    if (dirty_) {
+        dirty_ = false;
+        memory_dc_.SetLogicalFunction(wxCOPY);
+        memory_dc_.Clear();
+        draw(memory_dc_);
+    }
+
+    // copy bitmap to window
+    dc.Blit(0, 0, buffer_.GetWidth(), buffer_.GetHeight(), &memory_dc_, 0, 0);
 }
 
+void BufferedPanel::OnIdle(wxIdleEvent&)
+{
+    if (dirty_)
+        Refresh(false);
+}
 
+void BufferedPanel::set_bg_color(wxColour const& c)
+{
+    bg_color_ = c;
+    if (memory_dc_.IsOk())
+        memory_dc_.SetBackground(wxBrush(c));
+}
 
 vector<double> scale_tics_step (double beg, double end, int max_tics,
                                 vector<double> &minors, bool logarithm)

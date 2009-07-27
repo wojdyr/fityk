@@ -7,6 +7,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <time.h>
 #include "common.h"
 
 
@@ -48,6 +49,7 @@ protected:
     Ftk *F;
     std::vector<DataAndModel*> dmdm_;
     int evaluations;
+    int max_evaluations_;
     int max_iterations; //it is set before calling autoiter()
     int iter_nr;
     fp wssr_before;
@@ -68,8 +70,11 @@ protected:
                              std::vector<fp>& alpha, std::vector<fp>& beta);
     bool post_fit (const std::vector<fp>& aa, fp chi2);
     fp draw_a_from_distribution (int nr, char distribution = 'u', fp mult = 1.);
-    void iteration_plot(std::vector<fp> const &A);
+    void iteration_plot(std::vector<fp> const &A, bool changed, fp wssr);
 private:
+    time_t last_refresh_time_;
+    time_t start_time_;
+
     void compute_derivatives_for(DataAndModel const *dm,
                                  std::vector<fp>& alpha, std::vector<fp>& beta);
     void update_parameters(std::vector<DataAndModel*> const& dms);

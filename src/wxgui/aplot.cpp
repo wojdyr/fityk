@@ -268,7 +268,7 @@ void AuxPlot::read_settings(wxConfigBase *cf)
     cf->SetPath(wxT("Visible"));
     // nothing here now
     cf->SetPath(wxT("../Colors"));
-    backgroundCol = cfg_read_color (cf, wxT("bg"), wxColour(50, 50, 50));
+    set_bg_color(cfg_read_color (cf, wxT("bg"), wxColour(50, 50, 50)));
     activeDataCol = cfg_read_color (cf, wxT("active_data"),
                                                        wxColour (wxT("GREEN")));
     inactiveDataCol = cfg_read_color(cf,wxT("inactive_data"),
@@ -293,7 +293,7 @@ void AuxPlot::save_settings(wxConfigBase *cf) const
     // nothing here now
 
     cf->SetPath(wxT("../Colors"));
-    cfg_write_color(cf, wxT("bg"), backgroundCol);
+    cfg_write_color(cf, wxT("bg"), get_bg_color());
     cfg_write_color(cf, wxT("active_data"), activeDataCol);
     cfg_write_color(cf, wxT("inactive_data"),inactiveDataCol);
     cf->SetPath(wxT(".."));
@@ -408,27 +408,28 @@ void AuxPlot::OnPopupPlot (wxCommandEvent& event)
     kind = static_cast<Aux_plot_kind_enum>(event.GetId()-ID_aux_plot0);
     //fit_y_zoom();
     fit_y_once = true;
-    refresh(false);
+    refresh();
 }
 
 void AuxPlot::OnPopupPlotCtr (wxCommandEvent& event)
 {
     mark_peak_ctrs = event.IsChecked();
-    refresh(false);
+    refresh();
 }
 
 void AuxPlot::OnPopupReversedDiff (wxCommandEvent& event)
 {
     reversed_diff = event.IsChecked();
-    refresh(false);
+    refresh();
 }
 
 void AuxPlot::OnPopupColor (wxCommandEvent& event)
 {
     wxColour *color = 0;
     int n = event.GetId();
+    wxColour bg_color = get_bg_color();
     if (n == ID_aux_c_background)
-        color = &backgroundCol;
+        color = &bg_color;
     else if (n == ID_aux_c_active_data) {
         color = &activeDataCol;
     }
@@ -440,6 +441,8 @@ void AuxPlot::OnPopupColor (wxCommandEvent& event)
     else
         return;
     if (change_color_dlg(*color)) {
+        if (n == ID_aux_c_background)
+            set_bg_color(bg_color);
         refresh();
     }
 }
@@ -452,14 +455,14 @@ void AuxPlot::OnPopupYZoom (wxCommandEvent&)
                                 1, 10000000);
     if (r > 0)
         y_zoom = r / 100.;
-    refresh(false);
+    refresh();
 }
 
 void AuxPlot::OnPopupYZoomFit (wxCommandEvent&)
 {
     //fit_y_zoom();
     fit_y_once = true;
-    refresh(false);
+    refresh();
 }
 
 void AuxPlot::fit_y_zoom(Data const* data, Model const* model)
@@ -512,7 +515,7 @@ void AuxPlot::OnPopupYZoomAuto (wxCommandEvent&)
     auto_zoom_y = !auto_zoom_y;
     if (auto_zoom_y) {
         //fit_y_zoom() is called from draw
-        refresh(false);
+        refresh();
     }
 }
 

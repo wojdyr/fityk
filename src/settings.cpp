@@ -32,12 +32,14 @@ Settings::Settings(Ftk const* F_)
     verbosity_enum [1] = "verbose";
     verbosity_enum [2] = "debug";
     insert_enum("verbosity", verbosity_enum, 0);
+    verbosity_ = 0;
 
     map<char, string> autoplot_enum;
     autoplot_enum [1] = "never";
     autoplot_enum [2] = "on-plot-change";
     autoplot_enum [3] = "on-fit-iteration";
     insert_enum("autoplot", autoplot_enum, 2);
+    autoplot_ = 2;
 
     bpar["exit-on-warning"] = false;
 
@@ -60,7 +62,7 @@ Settings::Settings(Ftk const* F_)
     spar["info-numeric-format"] = "%g";
 
     // Function
-    fpar["cut-function-level"] = cut_function_level = 0.;
+    fpar["cut-function-level"] = cut_function_level_ = 0.;
 
     // guess
     bpar ["can-cancel-guess"] = true;
@@ -77,6 +79,7 @@ Settings::Settings(Ftk const* F_)
 
     //  - common
     ipar["max-wssr-evaluations"] = 1000;
+    ipar["refresh-period"] = 4;
     fpar["variable-domain-percent"] = 30.;
 
     //  - Lev-Mar
@@ -145,7 +148,7 @@ void Settings::setp_core(string const& k, string const& v)
             fpar[k] = d;
             //optimization
             if (k == "cut-function-level")
-                cut_function_level = d;
+                cut_function_level_ = d;
             else if (k == "epsilon") {
                 if (d <= 0.) {
                     throw ExecuteError("Value of epsilon must be positive.");
@@ -173,11 +176,17 @@ void Settings::setp_core(string const& k, string const& v)
     else if (epar.count (k)){
         EnumString& t = epar.find(k)->second;
         for (map<char,string>::const_iterator i = t.e.begin();
-                                                           i != t.e.end(); i++)
+                                                         i != t.e.end(); i++) {
             if (i->second == v) {
                 t.v = i->first;
+                //optimization
+                if (k == "verbosity")
+                    verbosity_ = t.v;
+                if (k == "autoplot")
+                    autoplot_ = t.v;
                 return;
             }
+        }
     }
     else if (spar.count (k)){
         spar[k] = v;

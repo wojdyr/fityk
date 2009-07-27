@@ -346,7 +346,7 @@ void FPlot::change_tics_font()
         wxFontData retData = dialog.GetFontData();
         ticsFont = retData.GetChosenFont();
         xAxisCol = retData.GetColour();
-        refresh(false);
+        refresh();
     }
 }
 

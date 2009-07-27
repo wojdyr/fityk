@@ -142,7 +142,7 @@ void do_undefine_func(char const*, char const*)
 void do_replot(char const*, char const*)
 {
     if (outdated_plot)
-        AL->get_ui()->draw_plot(2);
+        AL->get_ui()->draw_plot(2, false);
     outdated_plot=false;
 }
 
@@ -262,6 +262,10 @@ struct CmdGrammar : public grammar<CmdGrammar>
                       >> ')'
                       ) % '+')
                      | no_actions_d[FuncG] //Custom Function
+                       >> !("where"
+                            >> (function_param >> '=' >> no_actions_d[FuncG])
+                                % ','
+                           )
                      )
               ) [&do_define_func]
             ;

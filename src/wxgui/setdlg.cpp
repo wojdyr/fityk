@@ -183,6 +183,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     sizer_fcstop->Add(mwssre_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     sizer_fcstop->Add(mwssre_sp, 0, wxALL, 5);
     sizer_fcmn->Add(sizer_fcstop, 0, wxEXPAND|wxALL, 5);
+
     domain_p = addRealNumberCtrl(page_fit_common,
                                  wxT("default domain of variable is +/-"),
                                  settings->getp("variable-domain-percent"),
@@ -193,6 +194,16 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     autoplot_cb = addCheckbox(page_fit_common,
                               wxT("refresh plot after each iteration"),
                               autop, sizer_fcmn);
+
+    wxStaticText *delay_st = new wxStaticText(page_fit_common, -1,
+                            wxT("time (in sec.) between stats/plot updates"));
+    delay_sp = new SpinCtrl(page_fit_common, -1,
+                            settings->get_i("refresh-period"), -1, 9999,
+                            70);
+    wxBoxSizer *delay_sizer = new wxBoxSizer(wxHORIZONTAL);
+    delay_sizer->Add(delay_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    delay_sizer->Add(delay_sp, 0, wxALL, 5);
+    sizer_fcmn->Add(delay_sizer, 0, wxEXPAND|wxALL, 5);
 
     add_persistence_note(page_fit_common, sizer_fcmn);
     page_fit_common->SetSizerAndFit(sizer_fcmn);
@@ -335,6 +346,7 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
     m["variable-domain-percent"] = wx2s(domain_p->GetValue());
     m["autoplot"] = autoplot_cb->GetValue() ? "on-fit-iteration"
                                             : "on-plot-change";
+    m["refresh-period"] = S(delay_sp->GetValue());
     m["lm-lambda-start"] = wx2s(lm_lambda_ini->GetValue());
     m["lm-lambda-up-factor"] = wx2s(lm_lambda_up->GetValue());
     m["lm-lambda-down-factor"] = wx2s(lm_lambda_down->GetValue());

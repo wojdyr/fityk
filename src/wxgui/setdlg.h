@@ -23,7 +23,7 @@ public:
 private:
     wxChoice *sigma_ch, *verbosity_ch, *export_f_ch, *nm_distrib;
     wxCheckBox *exit_cb;
-    SpinCtrl *seed_sp, *mwssre_sp;
+    SpinCtrl *delay_sp, *seed_sp, *mwssre_sp;
     RealNumberCtrl *cut_func, *eps_rc, *height_correction, *width_correction,
                    *domain_p, *lm_lambda_ini, *lm_lambda_up, *lm_lambda_down,
                    *lm_stop, *lm_max_lambda,

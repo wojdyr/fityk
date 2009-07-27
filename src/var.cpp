@@ -172,6 +172,8 @@ Variable const* Variable::freeze_original(fp val)
 // * For performance reasons, leaf_node_d/token_node_d have been changed to   
 //   implicit lexems that create leaf nodes in one shot. The old              
 //   token_node_d is still available and called reduced_node_d, now.
+//
+// The new leaf_node_d doesn't work here, so we use the old one
 #if SPIRIT_VERSION >= 0x1805
 #define leaf_node_d reduced_node_d
 #endif

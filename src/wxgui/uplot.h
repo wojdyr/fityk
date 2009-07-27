@@ -14,29 +14,36 @@
 class BufferedPanel : public wxPanel
 {
 public:
-    BufferedPanel(wxWindow *parent)
-       : wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize,
-                 wxNO_BORDER|wxFULL_REPAINT_ON_RESIZE) {}
-    /// to be called when content of the panel is changed
-    void refresh(bool now=false);
+    BufferedPanel(wxWindow *parent);
+
+    /// mark panel as dirty and needing replotting,
+    /// to be called when the content of panel is changed
+    void refresh() { dirty_ = true; }
+    // force redrawing panel now
+    void redraw_now();
     /// called from wxPaint event handler
     void buffered_draw();
-    /// no need to call it explicitely
-    void clear();
     /// plotting function called to refresh buffer
     virtual void draw(wxDC &dc, bool monochrome=false) = 0;
     /// get bitmap buffer
-    wxBitmap const& get_bitmap() const { return buffer; }
+    wxBitmap const& get_bitmap() const { return buffer_; }
+
+    /// set background color
+    void set_bg_color(wxColour const& c);
+    /// get background color
+    wxColour const& get_bg_color() const { return bg_color_; }
 
 protected:
-    wxColour backgroundCol;
 
 private:
-    wxMemoryDC memory_dc;
-    wxBitmap buffer;
+    wxMemoryDC memory_dc_;
+    wxBitmap buffer_;
+    bool dirty_;
+    wxColour bg_color_;
 
     bool resize_buffer(wxDC &dc);
-    void clear_and_draw();
+
+    void OnIdle(wxIdleEvent&);
 };
 
 

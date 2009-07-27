@@ -17,6 +17,8 @@ enum MouseModeEnum { mmd_zoom, mmd_bg, mmd_add, mmd_range, mmd_peak };
 // plot types, e.g. to tell where is mouse
 enum PlotTypeEnum { pte_main, pte_aux };
 
+// used in refresh_plots()
+enum WhichPlot { kMainPlot, kAllPlots };
 
 inline wxString pchar2wx(char const* pc)
 {

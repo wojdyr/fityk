@@ -293,13 +293,11 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
 void SideBar::OnDataButtonNew (wxCommandEvent&)
 {
     ftk->exec("@+ = 0");
-    frame->refresh_plots(false, true);
 }
 
 void SideBar::OnDataButtonDup (wxCommandEvent&)
 {
     ftk->exec("@+ = sum_same_x " + join_vector(d->get_selected_data(), " + "));
-    frame->refresh_plots(false, true);
 }
 
 void SideBar::OnDataButtonRen (wxCommandEvent&)
@@ -324,7 +322,6 @@ void SideBar::delete_selected_items()
     string txt = wx2s(nb->GetPageText(n));
     if (txt == "data") {
         ftk->exec("delete " + join_vector(d->get_selected_data(), ", "));
-        frame->refresh_plots(false, true);
     }
     else if (txt == "functions")
         ftk->exec("delete " + join_vector(get_selected_func(), ", "));
@@ -361,7 +358,7 @@ void SideBar::OnDataButtonCol (wxCommandEvent&)
         if (change_color_dlg(col)) {
             frame->get_main_plot()->set_data_color(n, col);
             update_lists();
-            frame->refresh_plots(false, true);
+            frame->refresh_plots(false, kMainPlot);
         }
     }
     else {//sel_size > 1
@@ -387,7 +384,7 @@ void SideBar::OnDataColorsChanged(GradientDlg *gd)
         frame->get_main_plot()->set_data_color(i, col);
     }
     update_lists();
-    frame->refresh_plots(false, true);
+    frame->refresh_plots(false, kMainPlot);
     for (vector<int>::const_iterator i = selected.begin();
             i != selected.end(); ++i)
     for (int i = 0; i != d->list->GetItemCount(); ++i)
@@ -397,12 +394,12 @@ void SideBar::OnDataColorsChanged(GradientDlg *gd)
 
 void SideBar::OnDataLookChanged (wxCommandEvent&)
 {
-    frame->refresh_plots(false, true);
+    frame->refresh_plots(false, kMainPlot);
 }
 
 void SideBar::OnDataShiftUpChanged (wxSpinEvent&)
 {
-    frame->refresh_plots(false, true);
+    frame->refresh_plots(false, kMainPlot);
 }
 
 void SideBar::OnDataPSizeChanged (wxSpinEvent& event)
@@ -412,19 +409,19 @@ void SideBar::OnDataPSizeChanged (wxSpinEvent& event)
     //    frame->get_main_plot()->set_data_point_size(i, event.GetPosition());
     // now it is set globally
     frame->get_main_plot()->set_data_point_size(0, event.GetPosition());
-    frame->refresh_plots(false, true);
+    frame->refresh_plots(false, kMainPlot);
 }
 
 void SideBar::OnDataPLineChanged (wxCommandEvent& event)
 {
     frame->get_main_plot()->set_data_with_line(0, event.IsChecked());
-    frame->refresh_plots(false, true);
+    frame->refresh_plots(false, kMainPlot);
 }
 
 void SideBar::OnDataPSChanged (wxCommandEvent& event)
 {
     frame->get_main_plot()->set_data_with_sigma(0, event.IsChecked());
-    frame->refresh_plots(false, true);
+    frame->refresh_plots(false, kMainPlot);
 }
 
 void SideBar::OnFuncFilterChanged (wxCommandEvent&)
@@ -469,7 +466,7 @@ void SideBar::OnFuncButtonCol (wxCommandEvent&)
     if (change_color_dlg(col)) {
         frame->get_main_plot()->set_func_color(color_id, col);
         update_lists();
-        frame->refresh_plots(false, true);
+        frame->refresh_plots(false, kMainPlot);
     }
 }
 
@@ -753,7 +750,7 @@ void SideBar::do_activate_function()
         active_function_name = ftk->get_function(active_function)->name;
     else
         active_function_name = "";
-    frame->refresh_plots(false, true);
+    frame->refresh_plots(false, kMainPlot);
     update_func_inf();
     update_bottom_panel();
 }
@@ -769,14 +766,14 @@ void SideBar::OnDataFocusChanged(wxListEvent &)
         return;
     int length = ftk->get_dm_count();
     if (length > 1)
-        frame->refresh_plots();
+        frame->refresh_plots(false, kAllPlots);
     update_data_inf();
 }
 
 void SideBar::OnDataSelectionChanged(wxListEvent &event)
 {
     if (data_look->GetSelection() != 0) // ! all datasets
-        frame->refresh_plots();
+        frame->refresh_plots(false, kAllPlots);
     bool selected = (event.GetEventType() == wxEVT_COMMAND_LIST_ITEM_SELECTED);
     assert (selected
             || event.GetEventType() == wxEVT_COMMAND_LIST_ITEM_DESELECTED);

@@ -40,8 +40,7 @@ public:
 
     static std::string get_typename_from_formula(std::string const &formula)
      {return strip_string(std::string(formula, 0, formula.find_first_of("(")));}
-    static std::string get_rhs_from_formula(std::string const &formula)
-     { return strip_string(std::string(formula, formula.rfind('=')+1)); }
+    static std::string get_rhs_from_formula(std::string const &formula);
     static std::vector<std::string>
       get_varnames_from_formula(std::string const& formula);
     static std::vector<std::string>

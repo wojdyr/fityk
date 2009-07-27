@@ -11,9 +11,9 @@
 #include "mgr.h"
 #include "ui.h" //Commands::Status
 #include "view.h"
+#include "settings.h"
 
 
-class Settings;
 class Ftk;
 class UserInterface;
 class FitMethodsContainer;
@@ -87,7 +87,7 @@ public:
     /// Send verbose message to UI.
     void vmsg(std::string const &s) const;
 
-    int get_verbosity() const;
+    int get_verbosity() const { return settings->get_verbosity(); }
 
     /// execute command(s) from string
     Commands::Status exec(std::string const &s);

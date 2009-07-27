@@ -76,12 +76,12 @@ void NMfit::autoiter()
 {
     fp convergence = F->get_settings()->get_f("nm-convergence");
     wssr_before = compute_wssr(a_orig, dmdm_);
-    F->msg ("WSSR before starting simplex fit: " + S(wssr_before));
+    F->msg("WSSR before starting simplex fit: " + S(wssr_before));
     for (int iter = 0; !termination_criteria(iter, convergence); ++iter) {
-        iteration_plot(best->a);
         iter_nr++;
         change_simplex();
         find_best_worst();
+        iteration_plot(best->a, true, best->wssr);
     }
     post_fit (best->a, best->wssr);
 }

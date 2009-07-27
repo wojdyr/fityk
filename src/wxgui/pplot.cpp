@@ -73,16 +73,20 @@ void PlotPane::read_settings(wxConfigBase *cf)
         aux_plot[i]->read_settings(cf);
 }
 
-void PlotPane::refresh_plots(bool now, bool only_main)
+void PlotPane::refresh_plots(bool now, WhichPlot which_plot)
 {
-    if (only_main) {
-        plot->refresh(now);
-        return;
+    if (now)
+        plot->redraw_now();
+    else
+        plot->refresh();
+    if (which_plot == kAllPlots) {
+        vector<FPlot*> vp = get_visible_plots();
+        for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i)
+            if (now)
+                (*i)->redraw_now();
+            else
+                (*i)->refresh();
     }
-    // not only main
-    vector<FPlot*> vp = get_visible_plots();
-    for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i)
-        (*i)->refresh(now);
 }
 
 void PlotPane::set_mouse_mode(MouseModeEnum m)

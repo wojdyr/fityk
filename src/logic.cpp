@@ -238,20 +238,15 @@ void Ftk::rmsg(std::string const &s) const
 /// Send message to UI.
 void Ftk::msg(std::string const &s) const
 {
-    if (get_ui()->get_verbosity() >= 0)
+    if (get_verbosity() >= 0)
          get_ui()->output_message(os_normal, s);
 }
 
 /// Send verbose message to UI.
 void Ftk::vmsg(std::string const &s) const
 {
-    if (get_ui()->get_verbosity() >= 1)
+    if (get_verbosity() >= 1)
          get_ui()->output_message(os_normal, s);
-}
-
-int Ftk::get_verbosity() const
-{
-    return settings->get_e("verbosity");
 }
 
 /// execute command(s) from string

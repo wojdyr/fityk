@@ -55,7 +55,7 @@ public:
     PreviewPlot(wxWindow* parent)
         : BufferedPanel(parent), block_nr(0), idx_x(1), idx_y(2),
           data_updated(false)
-        { backgroundCol = *wxBLACK; }
+        { set_bg_color(*wxBLACK); }
 
     void OnPaint(wxPaintEvent &event);
     void draw(wxDC &dc, bool);

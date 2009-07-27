@@ -192,7 +192,7 @@ void UserInterface::exec_script(const string& filename,
             ++line_index;
             if (s.empty())
                 continue;
-            if (get_verbosity() >= 0)
+            if (F->get_verbosity() >= 0)
                 show_message (os_quot, S(line_index) + "> " + s);
 
             // optimize reading data lines like this:
@@ -256,7 +256,7 @@ void UserInterface::exec_script(const string& filename,
             for (int j = f; j <= t; ++j) {
                 if (lines[j-1].empty())
                     continue;
-                if (get_verbosity() >= 0)
+                if (F->get_verbosity() >= 0)
                     show_message (os_quot, S(j) + "> " + lines[j-1]);
                 // result of parse_and_execute here is neglected. Errors in
                 // script don't change status of command, which executes script
@@ -268,18 +268,14 @@ void UserInterface::exec_script(const string& filename,
 
 void UserInterface::draw_plot (int pri, bool now)
 {
-    if (pri <= F->get_settings()->get_e("autoplot"))
+    if (pri <= F->get_settings()->get_autoplot())
         do_draw_plot(now);
 }
 
 
-int UserInterface::get_verbosity() const
-                           { return F->get_settings()->get_e("verbosity"); }
-
-
 Commands::Status UserInterface::exec_command (std::string const &s)
 {
-    return m_exec_command ? (*m_exec_command)(s) : parse_and_execute(s);
+    return exec_command_ ? (*exec_command_)(s) : parse_and_execute(s);
 }
 
 bool is_fityk_script(string filename)

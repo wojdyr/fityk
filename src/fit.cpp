@@ -22,7 +22,7 @@
 using namespace std;
 
 Fit::Fit(Ftk *F_, string const& m)
-    : name(m), F(F_), evaluations(0), iter_nr (0), na(0)
+    : name(m), F(F_), evaluations(0), iter_nr (0), na(0), last_refresh_time_(0)
 {
 }
 
@@ -280,6 +280,9 @@ string Fit::print_matrix (const vector<fp>& vec, int m, int n,
 
 bool Fit::post_fit (const std::vector<fp>& aa, fp chi2)
 {
+    F->msg(name + " method. " + S(iter_nr) + " iterations, "
+            + S(evaluations) + " func. evaluations in "
+            + S(time(0)-start_time_) + "s.");
     bool better = (chi2 < wssr_before);
     if (better) {
         F->get_fit_container()->push_param_history(aa);
@@ -291,9 +294,10 @@ bool Fit::post_fit (const std::vector<fp>& aa, fp chi2)
     else {
         F->msg ("Better fit NOT found (WSSR = " + S(chi2)
                     + ", was " + S(wssr_before) + ").\nParameters NOT changed");
-        F->use_parameters();
-        iteration_plot(a_orig); //reverting to old plot
+        F->use_external_parameters(a_orig);
+        F->get_ui()->draw_plot(3, true);
     }
+    F->get_ui()->enable_compute_ui(false);
     return better;
 }
 
@@ -321,12 +325,15 @@ fp Fit::draw_a_from_distribution (int nr, char distribution, fp mult)
 /// initialize and run fitting procedure for not more than max_iter iterations
 void Fit::fit(int max_iter, vector<DataAndModel*> const& dms)
 {
+    start_time_ = last_refresh_time_ = time(0);
+    F->get_ui()->enable_compute_ui(true);
     update_parameters(dms);
     dmdm_ = dms;
     a_orig = F->get_parameters();
     F->get_fit_container()->push_param_history(a_orig);
     iter_nr = 0;
     evaluations = 0;
+    max_evaluations_ = F->get_settings()->get_i("max-wssr-evaluations");
     user_interrupt = false;
     init(); //method specific init
     max_iterations = max_iter;
@@ -346,6 +353,7 @@ void Fit::fit(int max_iter, vector<DataAndModel*> const& dms)
 /// run fitting procedure (without initialization)
 void Fit::continue_fit(int max_iter)
 {
+    start_time_ = last_refresh_time_ = time(0);
     for (vector<DataAndModel*>::const_iterator i = dmdm_.begin();
                                                       i != dmdm_.end(); ++i)
         if (!F->contains_dm(*i) || na != size(F->get_parameters()))
@@ -388,7 +396,6 @@ void Fit::update_parameters(vector<DataAndModel*> const& dms)
 bool Fit::common_termination_criteria(int iter)
 {
     bool stop = false;
-    F->get_ui()->refresh();
     if (user_interrupt) {
         user_interrupt = false;
         F->msg ("Fitting stopped manually.");
@@ -398,18 +405,35 @@ bool Fit::common_termination_criteria(int iter)
         F->msg("Maximum iteration number reached.");
         stop = true;
     }
-    int max_evaluations = F->get_settings()->get_i("max-wssr-evaluations");
-    if (max_evaluations > 0 && evaluations >= max_evaluations) {
+    if (max_evaluations_ > 0 && evaluations >= max_evaluations_) {
         F->msg("Maximum evaluations number reached.");
         stop = true;
     }
     return stop;
 }
 
-void Fit::iteration_plot(vector<fp> const &A)
+void Fit::iteration_plot(vector<fp> const &A, bool changed, fp wssr)
 {
-    F->use_external_parameters(A);
-    F->get_ui()->draw_plot(3, true);
+    int refresh_period = F->get_settings()->get_i("refresh-period");
+    if (refresh_period < 0)
+        return;
+    time_t now = time(0);
+    if (now - last_refresh_time_ < refresh_period)
+        return;
+    if (changed) {
+        F->use_external_parameters(A);
+        F->get_ui()->draw_plot(3, true);
+    }
+    if (refresh_period > 0)
+        F->msg("Iter: " + S(iter_nr) + "/"
+                + (max_iterations > 0 ? S(max_iterations) : string("oo"))
+                + "  Eval: " + S(evaluations) + "/"
+                + (max_evaluations_ > 0 ? S(max_evaluations_) : string("oo"))
+                + "  WSSR=" + S(wssr)
+                + " (" + S(wssr * 100. / wssr_before)+ "%)"
+                + "  Elapsed " + S(now - start_time_) + "s.");
+    F->get_ui()->refresh();
+    last_refresh_time_ = time(0);
 }
 
 
