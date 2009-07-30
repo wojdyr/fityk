@@ -3,12 +3,15 @@ $Id$
 Help is needed:
 |
 |- C++ coding: see the list of ideas at the end of this file
-|- documentation: convert the manual from DocBook to reStructuredText
 `- graphics: make PNG icons for toolbar. XPM format (now in use) doesn't support
    alpha channel, and the toolbar doesn't look good.
 
 
 ---------- TODO list and tentative development plan  ----------------
+
+* convert manual from DocBook to reStructuredText [IN PROGRESS]
+
+--------------> 0.8.9
 
 * powder diffraction add-on - Pawley fitting 
 
@@ -18,10 +21,6 @@ Help is needed:
   in the bottom of the sidebar) is not in the new active dataset, the active
   function should also be changed (to the function that was active last time
   this dataset was active)
-
-* define: enhance syntax to allow for substitutions, e.g.
-   define FullGBE(k, eta) = k * eta * (eta * coth(eta) - ln (2*sinh(eta))) \
-   where eta = 2*pi/alpha * sin(theta/2), theta=x*pi/180
 
 * GUI: saving background and reusing it for the next dataset (i.e. loading
   saved background, changing it a bit and substracting)
@@ -50,8 +49,6 @@ Help is needed:
              plot line x=42.2 label="foo" in @*
              plot line y=1000.3 label="foo" in @*
              plot no lines in @*
-
-* convert manual from DocBook to reStructuredText
 
 * (GUI) stopping fitting interactively (when user doesn't want to wait longer);
   "stop" bitmap button? in right left corner? 
