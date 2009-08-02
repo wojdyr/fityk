@@ -282,7 +282,7 @@ void MainPlot::draw_dataset(wxDC& dc, int n, bool set_pen)
 
 void MainPlot::draw(wxDC &dc, bool monochrome)
 {
-    cout << "MainPlot::draw()" << endl;
+    //cout << "MainPlot::draw()" << endl;
     int focused_data = frame->get_sidebar()->get_focused_data();
     Model const* model = ftk->get_model(focused_data);
 

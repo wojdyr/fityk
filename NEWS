@@ -1,5 +1,15 @@
 $Id$
 
+User-visible changes in version 0.8.9  (2009-0 -  ):
+* GUI: On Linux fitting was very slow, this was fixed. A new option
+  `refresh-period` was added to control refreshing during fitting.
+* define supports variable substitution with "define ... where ...", e.g. 
+   define Foo(alpha) = alpha * eta * (eta / tanh(eta) - ln (2*sinh(eta))) \
+   where eta = 2*pi/alpha * sin(theta/2), theta=x*pi/180
+* added access to symmetric errors from scripts (e.g. $variable.error 
+  or %func.height.error)
+* category "Education" was added to fityk.desktop
+
 User-visible changes in version 0.8.8  (2009-06-21):
 * added two flags to the configure script: --with-xylib and --with-samples
   (xylib from the fityk tarball is not used by default now)

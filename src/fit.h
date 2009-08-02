@@ -13,6 +13,7 @@
 
 class DataAndModel;
 class Ftk;
+class Variable;
 
 ///   interface of fitting method and implementation of common functions
 class Fit
@@ -95,8 +96,9 @@ public:
     std::string param_history_info() const;
     std::vector<fp> const& get_item(int n) const { return param_history[n]; }
     int get_active_nr() const { return param_hist_ptr; }
-private:
+protected:
     Ftk *F;
+private:
     std::vector<std::vector<fp> > param_history; /// old parameter vectors
     int param_hist_ptr; /// points to the current/last parameter vector
 };
@@ -106,14 +108,18 @@ private:
 class FitMethodsContainer : public ParameterHistoryMgr
 {
 public:
-    FitMethodsContainer(Ftk *F);
+    FitMethodsContainer(Ftk *F_);
     ~FitMethodsContainer();
     Fit* get_method(int n) const
-                    { assert(n >= 0 && n<size(methods)); return methods[n]; }
-    std::vector<Fit*> const& get_methods() const { return methods; }
+                    { assert(n >= 0 && n<size(methods_)); return methods_[n]; }
+    std::vector<Fit*> const& get_methods() const { return methods_; }
+    fp get_symmetric_error(Variable const* var);
+    void outdated_error_cache() { dirty_error_cache_ = true; }
 
 private:
-    std::vector<Fit*> methods;
+    std::vector<Fit*> methods_;
+    std::vector<fp> errors_cache_;
+    bool dirty_error_cache_;
 
     FitMethodsContainer (FitMethodsContainer const&); //disable
 };

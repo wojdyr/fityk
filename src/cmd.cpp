@@ -34,19 +34,19 @@ namespace {
 void do_assign_var(char const* a, char const* b)
 {
     AL->assign_variable(string(t, 1), string(a,b));
-    outdated_plot=true;  //TODO only if...
+    AL->outdated_plot();  //TODO only if...
 }
 
 void do_assign_func(char const*, char const*)
 {
     t = AL->assign_func(t2, t, vt);
-    outdated_plot=true;  //TODO only if function in @active
+    AL->outdated_plot(); //TODO only if function in @active
 }
 
 void do_assign_func_copy(char const*, char const*)
 {
     t = AL->assign_func_copy(t2, t);
-    outdated_plot=true;  //TODO only if function in @active
+    AL->outdated_plot(); //TODO only if function in @active
 }
 
 
@@ -61,7 +61,7 @@ void do_subst_func_param(char const* a, char const* b)
     }
     else
         AL->substitute_func_param(t, t2, string(a,b));
-    outdated_plot=true;  //TODO only if...
+    AL->outdated_plot(); //TODO only if...
 }
 
 void do_get_func_by_idx(char const* a, char const*)
@@ -86,7 +86,7 @@ void do_assign_fz(char const*, char const*)
         model->add_function_to(*i, fz);
     if (remove)
         AL->auto_remove_functions();
-    outdated_plot=true;  //TODO only if dm_pref == @active
+    AL->outdated_plot(); //TODO only if dm_pref == @active
 }
 
 void add_fz_copy(char const* a, char const*)
@@ -109,7 +109,7 @@ void do_remove_from_fz(char const* a, char const*)
     Model::FuncSet fz = Model::parse_funcset(*a);
     AL->get_model(dm_pref)->remove_function_from(t, fz);
     AL->auto_remove_functions();
-    outdated_plot=true;  //TODO only if dm_pref == @active
+    AL->outdated_plot(); //TODO only if dm_pref == @active
 }
 
 void do_delete(char const*, char const*)
@@ -121,7 +121,7 @@ void do_delete(char const*, char const*)
             AL->remove_dm(*i);
     }
     AL->delete_funcs_and_vars(vt);
-    outdated_plot=true;  //TODO only if...
+    AL->outdated_plot(); //TODO only if...
 }
 
 void do_quit(char const*, char const*) { throw ExitRequestedException(); }
@@ -141,9 +141,9 @@ void do_undefine_func(char const*, char const*)
 
 void do_replot(char const*, char const*)
 {
-    if (outdated_plot)
+    if (AL->is_plot_outdated()) {
         AL->get_ui()->draw_plot(2, false);
-    outdated_plot=false;
+    }
 }
 
 void do_temporary_set(char const*, char const*)

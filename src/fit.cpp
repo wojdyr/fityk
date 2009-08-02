@@ -511,18 +511,29 @@ void Fit::reverse_matrix (vector<fp>&A, int n)
 
 //-------------------------------------------------------------------
 
-FitMethodsContainer::FitMethodsContainer(Ftk *F)
-    : ParameterHistoryMgr(F)
+FitMethodsContainer::FitMethodsContainer(Ftk *F_)
+    : ParameterHistoryMgr(F_), dirty_error_cache_(true)
 
 {
-    methods.push_back(new LMfit(F));
-    methods.push_back(new NMfit(F));
-    methods.push_back(new GAfit(F));
+    methods_.push_back(new LMfit(F));
+    methods_.push_back(new NMfit(F));
+    methods_.push_back(new GAfit(F));
 }
 
 FitMethodsContainer::~FitMethodsContainer()
 {
-    purge_all_elements(methods);
+    purge_all_elements(methods_);
+}
+
+fp FitMethodsContainer::get_symmetric_error(Variable const* var)
+{
+    if (!var->is_simple())
+        return -1.; // value signaling unknown symmetric error
+    if (dirty_error_cache_
+            || errors_cache_.size() != F->get_parameters().size()) {
+        errors_cache_ = F->get_fit()->get_symmetric_errors(F->get_dms());
+    }
+    return errors_cache_[var->get_nr()];
 }
 
 /// loads vector of parameters from the history

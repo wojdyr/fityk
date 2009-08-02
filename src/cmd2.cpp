@@ -50,7 +50,6 @@ vector<string> vt, vr;
 vector<int> vn, vds;
 const int new_dataset = -1;
 const int all_datasets = -2;
-bool outdated_plot = false;
 bool no_info_output = false;
 
 
@@ -112,12 +111,12 @@ void do_import_dataset(char const*, char const*)
     }
     else
         AL->import_dataset(tmp_int, t, vt);
-    outdated_plot=true;
+    AL->outdated_plot();
 }
 void do_revert_data(char const*, char const*)
 {
     AL->get_data(tmp_int)->revert();
-    outdated_plot=true;
+    AL->outdated_plot();
 }
 
 // returns true if x columns in all datasets have the same x values
@@ -224,14 +223,13 @@ void do_load_data_sum(char const*, char const*)
     if (tmp_int == new_dataset)
         tmp_int = AL->append_dm();
     AL->get_data(tmp_int)->load_data_sum(dd, t);
-    outdated_plot=true;
+    AL->outdated_plot();
 }
 
 void do_plot(char const*, char const*)
 {
     AL->view.parse_and_set(vr, get_dm_indices_from_indata());
     AL->get_ui()->draw_plot(1, true);
-    outdated_plot = false;
 }
 
 void do_output_info(char const*, char const*)
@@ -564,7 +562,7 @@ void do_guess(char const*, char const*)
         string real_name = AL->assign_func(name, function, vars);
         dm->model()->add_function_to(real_name, Model::kF);
     }
-    outdated_plot=true;
+    AL->outdated_plot();
 }
 
 void set_data_title(char const*, char const*)  {

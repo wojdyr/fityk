@@ -11,6 +11,8 @@ Help is needed:
 
 * convert manual from DocBook to reStructuredText [IN PROGRESS]
 
+* fit should not be clickable when there are no parameters
+
 --------------> 0.8.9
 
 * powder diffraction add-on - Pawley fitting 
@@ -34,7 +36,7 @@ Help is needed:
 * GUI: Data>Load should use default load dir (as Quick Load)
 
 * GUI, Fit > Info - a dialog that should contain all the information from
-                    info fit and info+ errors commands
+                    info fit and info+ errors (and info+ peaks?) commands
 
 * [BUG] parsing problems: "a=a" => OK (should be error)  "a=ab" => Syntax error
 

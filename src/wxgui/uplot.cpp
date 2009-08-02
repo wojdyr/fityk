@@ -34,7 +34,7 @@ void BufferedPanel::redraw_now()
 
 void BufferedPanel::buffered_draw()
 {
-    cout << "BufferedPanel::buffered_draw()" << endl;
+    //cout << "BufferedPanel::buffered_draw()" << endl;
     wxPaintDC dc(this);
     // check size
     wxCoord w, h;

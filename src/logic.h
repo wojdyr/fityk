@@ -96,11 +96,23 @@ public:
     void import_dataset(int slot, std::string const& filename,
                         std::vector<std::string> const& options);
 
+    /// called after changes that (possibly) need to be reflected in the plot
+    /// (IOW when plot needs to be updated). This function is also used
+    /// to mark cache of parameter errors as outdated.
+    void outdated_plot();
+
+    /// called after replotting 
+    void updated_plot() { dirty_plot_ = false; }
+
+    /// returns true if the plot should be replotted
+    bool is_plot_outdated() { return dirty_plot_; }
+
 protected:
     std::vector<DataAndModel*> dms;
     Settings* settings;
     UserInterface* ui;
     FitMethodsContainer* fit_container;
+    bool dirty_plot_;
 
     void initialize();
     void destroy();

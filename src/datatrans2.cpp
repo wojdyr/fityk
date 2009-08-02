@@ -9,6 +9,7 @@
 #include "datatrans2.h"
 #include "datatrans3.h"
 #include "model.h"
+#include "fit.h"
 using namespace datatrans;
 
 namespace datatrans {
@@ -70,11 +71,11 @@ private:
 
 //----------------------   functors   -------------------------
 
-void push_double::operator()(const double& n) const
+void push_double::operator()(const double& d) const
 {
     code.push_back(OP_NUMBER);
     code.push_back(size(numbers));
-    numbers.push_back(n);
+    numbers.push_back(d);
 }
 
 void push_op::push() const
@@ -155,13 +156,40 @@ void push_func::operator()(char const* a, char const* b) const
     }
 }
 
+void push_var::operator()(char const* a, char const* b) const
+{
+    // string(a,b) is either $foo or $foo.error
+    char const* dot = find(a, b, '.');
+    Variable const* var = AL->find_variable(string(a+1, dot));
+    fp value;
+    if (dot == b) // variable
+        value = var->get_value();
+    else  // ".error"
+        value = AL->get_fit_container()->get_symmetric_error(var);
+    push_double::operator()(value);
+}
+
 void push_func_param::operator()(char const* a, char const* b) const
 {
     string t(a, b);
+    string::size_type error = t.find(".error");
+    if (error != string::npos)
+        t = t.erase(error);
     int dot = t.rfind(".");
     string fstr = strip_string(string(t, 0, dot));
     string pstr = strip_string(string(t, dot+1));
-    push_double::operator()(AL->find_function_any(fstr)->get_param_value(pstr));
+    Function const* f = AL->find_function_any(fstr);
+    fp value;
+    if (error == string::npos) // variable
+        value = f->get_param_value(pstr);
+    else { // ".error"
+        if (!islower(pstr[0]))
+            throw ExecuteError("Errors of pseudo-parameters (" + pstr
+                               + ") can not be accessed. ");
+        Variable const* var = AL->find_variable(f->get_param_varname(pstr));
+        value = AL->get_fit_container()->get_symmetric_error(var);
+    }
+    push_double::operator()(value);
 }
 #endif //not STANDALONE_DATATRANS
 

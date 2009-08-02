@@ -58,6 +58,7 @@ void Ftk::initialize()
     // Settings ctor is using FitMethodsContainer
     settings = new Settings(this);
     view = View(this);
+    dirty_plot_ = true;
     append_dm();
     get_settings()->do_srand();
     UdfContainer::initialize_udfs();
@@ -527,6 +528,12 @@ void Ftk::import_dataset(int slot, string const& filename,
 
     if (get_dm_count() == 1)
         view.fit_zoom();
+}
+
+void Ftk::outdated_plot()
+{
+    dirty_plot_ = true;
+    fit_container->outdated_error_cache();
 }
 
 // the use of this global variable in libfityk will be eliminated,

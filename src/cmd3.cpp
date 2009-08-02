@@ -33,13 +33,13 @@ void do_transform(char const*, char const*)  {
     vector<DataAndModel*> v = get_datasets_from_indata();
     for (vector<DataAndModel*>::const_iterator i = v.begin(); i != v.end(); ++i)
         (*i)->data()->transform(t);
-    outdated_plot=true;
+    AL->outdated_plot();
 }
 
 void do_reset(char const*, char const*)
 {
     AL->reset();
-    outdated_plot=true;
+    AL->outdated_plot();
 }
 
 void do_dump(char const*, char const*)  { AL->dump_all_as_script(t); }
@@ -69,13 +69,13 @@ void do_fit(char const*, char const*)
     }
     else
         AL->get_fit()->fit(tmp_int, get_datasets_from_indata());
-    outdated_plot=true;
+    AL->outdated_plot();
 }
 
 void do_load_fit_history(int n)
 {
     AL->get_fit_container()->load_param_history(n);
-    outdated_plot=true;
+    AL->outdated_plot();
 }
 
 void do_clear_fit_history(char const*, char const*)
@@ -86,13 +86,13 @@ void do_clear_fit_history(char const*, char const*)
 void do_undo_fit(char const*, char const*)
 {
     AL->get_fit_container()->load_param_history(-1, true);
-    outdated_plot=true;
+    AL->outdated_plot();
 }
 
 void do_redo_fit(char const*, char const*)
 {
     AL->get_fit_container()->load_param_history(+1, true);
-    outdated_plot=true;
+    AL->outdated_plot();
 }
 
 

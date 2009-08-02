@@ -111,7 +111,7 @@ enum {
 
 struct push_double
 {
-    void operator()(const double& n) const;
+    void operator()(const double& d) const;
 };
 
 struct push_the_double: public push_double
@@ -126,8 +126,7 @@ struct push_the_double: public push_double
 #ifndef STANDALONE_DATATRANS
 struct push_var: public push_double
 {
-    void operator()(char const* a, char const* b) const
-     { push_double::operator()(AL->find_variable(string(a+1,b))->get_value()); }
+    void operator()(char const* a, char const* b) const;
 };
 
 struct push_func_param: public push_double

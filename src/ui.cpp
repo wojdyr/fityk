@@ -268,8 +268,10 @@ void UserInterface::exec_script(const string& filename,
 
 void UserInterface::draw_plot (int pri, bool now)
 {
-    if (pri <= F->get_settings()->get_autoplot())
+    if (pri <= F->get_settings()->get_autoplot()) {
         do_draw_plot(now);
+        F->updated_plot();
+    }
 }
 
 
