@@ -86,6 +86,7 @@ public:
     void OnSExport       (wxCommandEvent& event);
 
     void OnFMethodUpdate (wxUpdateUIEvent& event);
+    void OnMenuFitRunUpdate (wxUpdateUIEvent& event);
     void OnMenuFitUndoUpdate (wxUpdateUIEvent& event);
     void OnMenuFitRedoUpdate (wxUpdateUIEvent& event);
     void OnMenuFitHistoryUpdate (wxUpdateUIEvent& event);

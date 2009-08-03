@@ -220,7 +220,6 @@ enum {
     ID_ft_v_pr                 ,
     ID_ft_b_strip              ,
     ID_ft_f_run                ,
-    ID_ft_f_cont               ,
     ID_ft_f_undo               ,
     ID_ft_s_aa                 ,
     ID_ft_sideb                ,
@@ -265,6 +264,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
 
     EVT_UPDATE_UI_RANGE (ID_F_M, ID_F_M_END, FFrame::OnFMethodUpdate)
     EVT_MENU_RANGE (ID_F_M, ID_F_M_END, FFrame::OnFOneOfMethods)
+    EVT_UPDATE_UI (ID_F_RUN,    FFrame::OnMenuFitRunUpdate)
     EVT_MENU (ID_F_RUN,         FFrame::OnFRun)
     EVT_MENU (ID_F_INFO,        FFrame::OnFInfo)
     EVT_UPDATE_UI (ID_F_UNDO, FFrame::OnMenuFitUndoUpdate)
@@ -1060,6 +1060,11 @@ void FFrame::OnFMethodUpdate (wxUpdateUIEvent& event)
     event.Check (ID_F_M + n == event.GetId());
 }
 
+void FFrame::OnMenuFitRunUpdate(wxUpdateUIEvent& event)
+{
+    event.Enable(!ftk->get_parameters().empty());
+}
+
 void FFrame::OnMenuFitUndoUpdate(wxUpdateUIEvent& event)
 {
     event.Enable(ftk->get_fit_container()->can_undo());
@@ -1770,7 +1775,7 @@ void FFrame::update_toolbar()
     if (!toolbar)
         return;
     toolbar->ToggleTool(ID_ft_b_strip, plot_pane->get_bg_manager()->can_undo());
-    //toolbar->EnableTool(ID_ft_f_cont, ftk->get_fit()->is_initialized());
+    toolbar->EnableTool(ID_ft_f_run, !ftk->get_parameters().empty());
     toolbar->EnableTool(ID_ft_f_undo, ftk->get_fit_container()->can_undo());
     toolbar->EnableTool(ID_ft_v_pr, !plot_pane->get_zoom_hist().empty());
 }
@@ -1988,9 +1993,6 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     AddTool(ID_ft_f_run, wxT("Run"),
             wxBitmap(run_fit_xpm), wxNullBitmap, wxITEM_NORMAL,
             wxT("Start fitting"), wxT("Start fitting sum to data"));
-    //AddTool(ID_ft_f_cont, wxT("Continue"),
-    //        wxBitmap(cont_fit_xpm), wxNullBitmap, wxITEM_NORMAL,
-    //        wxT("Continue fitting"), wxT("Continue fitting sum to data"));
     AddTool(ID_ft_f_undo, wxT("Undo"),
              wxBitmap(undo_fit_xpm), wxNullBitmap, wxITEM_NORMAL,
              wxT("Undo fitting"), wxT("Previous set of parameters"));
@@ -2039,9 +2041,6 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
             break;
         case ID_ft_f_run :
             ftk->exec("fit" + frame->get_in_datasets());
-            break;
-        case ID_ft_f_cont:
-            ftk->exec("fit+");
             break;
         case ID_ft_f_undo:
             ftk->exec("fit undo");

@@ -11,8 +11,6 @@ Help is needed:
 
 * convert manual from DocBook to reStructuredText [IN PROGRESS]
 
-* fit should not be clickable when there are no parameters
-
 --------------> 0.8.9
 
 * powder diffraction add-on - Pawley fitting 
