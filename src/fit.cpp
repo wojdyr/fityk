@@ -326,8 +326,10 @@ fp Fit::draw_a_from_distribution (int nr, char distribution, fp mult)
 void Fit::fit(int max_iter, vector<DataAndModel*> const& dms)
 {
     start_time_ = last_refresh_time_ = time(0);
-    F->get_ui()->enable_compute_ui(true);
+    // update_parameters() can throw exceptions, so don't freeze UI before
+    // calling it.
     update_parameters(dms);
+    F->get_ui()->enable_compute_ui(true);
     dmdm_ = dms;
     a_orig = F->get_parameters();
     F->get_fit_container()->push_param_history(a_orig);
