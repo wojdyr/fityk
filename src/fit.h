@@ -46,6 +46,8 @@ public:
     // pretty-print matrix m x n stored in vec. `mname' is name/comment.
     std::string print_matrix (const std::vector<fp>& vec,
                                      int m, int n, const char *mname);
+    fp compute_r_squared(std::vector<fp> const &A,
+                         std::vector<DataAndModel*> const& dms);
 protected:
     Ftk *F;
     std::vector<DataAndModel*> dmdm_;
@@ -61,14 +63,12 @@ protected:
     virtual fp init() = 0; // called before autoiter()
     virtual void autoiter() = 0;
     bool common_termination_criteria(int iter);
-    fp compute_wssr(std::vector<fp> const &A,
-                    std::vector<DataAndModel*> const& dms, bool weigthed=true)
-        { ++evaluations; return do_compute_wssr(A, dms, weigthed); }
-    fp compute_r_squared(std::vector<fp> const &A,
-                         std::vector<DataAndModel*> const& dms);
     void compute_derivatives(std::vector<fp> const &A,
                              std::vector<DataAndModel*> const& dms,
                              std::vector<fp>& alpha, std::vector<fp>& beta);
+    fp compute_wssr(std::vector<fp> const &A,
+                    std::vector<DataAndModel*> const& dms, bool weigthed=true)
+        { ++evaluations; return do_compute_wssr(A, dms, weigthed); }
     bool post_fit (const std::vector<fp>& aa, fp chi2);
     fp draw_a_from_distribution (int nr, char distribution = 'u', fp mult = 1.);
     void iteration_plot(std::vector<fp> const &A, bool changed, fp wssr);

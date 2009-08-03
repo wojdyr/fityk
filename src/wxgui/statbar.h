@@ -9,7 +9,7 @@
 #include <string>
 #include <wx/config.h>
 
-#include "cmn.h" //SpinCtrl, close_it
+#include "cmn.h" //SpinCtrl
 
 
 // used by MainPlot to set hints on FStatusBar

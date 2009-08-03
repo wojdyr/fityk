@@ -42,12 +42,12 @@ string Fit::get_info(vector<DataAndModel*> const& dms)
 {
     vector<fp> const &pp = F->get_parameters();
     int dof = get_dof(dms);
-    update_parameters(dms);
-    fp wssr = compute_wssr(pp, dms);
+    //update_parameters(dms);
+    fp wssr = do_compute_wssr(pp, dms, true);
     return "WSSR = " + S(wssr)
            + ";  DoF = " + S(dof)
            + ";  WSSR/DoF = " + S(wssr/dof)
-           + ";  SSR = " + S(compute_wssr(pp, dms, false))
+           + ";  SSR = " + S(do_compute_wssr(pp, dms, false))
            + ";  R-squared = " + S(compute_r_squared(pp, dms)) ;
 }
 

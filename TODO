@@ -35,8 +35,10 @@ Help is needed:
 
 * GUI: Data>Load should use default load dir (as Quick Load)
 
-* GUI, Fit > Info - a dialog that should contain all the information from
-                    info fit and info+ errors (and info+ peaks?) commands
+* GUI: enhance Fit->Info dialog:
+  - option to scale errors with sqrt(WSSR/DoF)
+  - show where each variable is used (e.g. "%_1.height" or "2 refs")
+  - covariance matrix
 
 * [BUG] parsing problems: "a=a" => OK (should be error)  "a=ab" => Syntax error
 

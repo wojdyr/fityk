@@ -50,6 +50,7 @@
 #include "sdebug.h"
 #include "setdlg.h"
 #include "statbar.h"
+#include "fitinfo.h"
 #include "inputline.h"
 #include "app.h"
 #include "../common.h"
@@ -1094,7 +1095,10 @@ void FFrame::OnFRun (wxCommandEvent&)
 
 void FFrame::OnFInfo (wxCommandEvent&)
 {
-    ftk->exec("info fit" + get_in_datasets());
+    FitInfoDlg dlg(this, -1);
+    if (dlg.Initialize())
+        dlg.ShowModal();
+    //ftk->exec("info fit" + get_in_datasets());
 }
 
 void FFrame::OnFUndo (wxCommandEvent&)
