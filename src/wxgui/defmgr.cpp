@@ -38,9 +38,14 @@ string DefinitionMgrDlg::FunctionDefinitonElems::get_full_definition() const
     return s + ") = " + rhs;
 }
 
+// EVT_GRID_CMD_CELL_CHANGED is new in wx2.9, it replaced .._CHANGE
+#ifndef EVT_GRID_CMD_CELL_CHANGED
+    #define EVT_GRID_CMD_CELL_CHANGED EVT_GRID_CMD_CELL_CHANGE
+#endif
+
 BEGIN_EVENT_TABLE(DefinitionMgrDlg, wxDialog)
     EVT_LISTBOX(-1, DefinitionMgrDlg::OnFunctionChanged)
-    EVT_GRID_CMD_CELL_CHANGE(-1, DefinitionMgrDlg::OnEndCellEdit)
+    EVT_GRID_CMD_CELL_CHANGED(-1, DefinitionMgrDlg::OnEndCellEdit)
     EVT_TEXT(ID_DMD_NAME, DefinitionMgrDlg::OnNameChanged)
     EVT_TEXT(ID_DMD_DEF, DefinitionMgrDlg::OnDefChanged)
     EVT_BUTTON(wxID_ADD, DefinitionMgrDlg::OnAddButton)

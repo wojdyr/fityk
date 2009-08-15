@@ -1681,7 +1681,7 @@ void FFrame::OnPrintToClipboard(wxCommandEvent&)
 {
 #if wxUSE_METAFILE
     wxMetafileDC dc;
-    if (dc.Ok()) {
+    if (dc.IsOk()) {
         do_print_plots(&dc, print_mgr);
         wxMetafile *mf = dc.Close();
         if (mf) {
