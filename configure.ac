@@ -47,6 +47,12 @@ AC_ARG_WITH(doc,
 [  --without-doc           do not build and install documentation])
 test -z "$with_doc" && with_doc="yes"
 
+# option added just after CC, CXX and LD. Can be used on Mac for "-isysroot ..."
+AC_ARG_WITH(options,
+[  --with-options=OPTIONS  options appended to CC, CXX and LD (e.g. -isysroot)],
+            [UNIV_OPTION=$withval])
+
+
 AM_OPTIONS_WXCONFIG
 
 # both CLI and GUI can't be disabled.
@@ -82,6 +88,12 @@ fi
 AC_PROG_CXX
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
+
+if test "x$UNIV_OPTION" != "x"; then
+    CC="$CC $UNIV_OPTION"
+    CXX="$CXX $UNIV_OPTION"
+    LD="$LD $UNIV_OPTION"
+fi
 
 # Checks for common header files.
 AC_HEADER_STDC
@@ -209,6 +221,8 @@ AC_SUBST(XYLIB_DIR)
 AC_SUBST(SAMPLES_DIR)
 AC_SUBST(LIBRARY_VERSION_FLAG)
 
+# before checking erf, see if a basic math function (and linking) works
+AC_CHECK_LIB([m], [sin], [], [])
 # check for erf and erfc function
 AC_CHECK_LIB([m], [erf], [], [AC_MSG_ERROR(
       [You don't have an erf function(?).
