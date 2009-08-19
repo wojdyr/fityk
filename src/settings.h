@@ -66,8 +66,8 @@ public:
 
     // for faster access
     fp get_cut_level() const { return cut_function_level_; }
-    fp get_verbosity() const { return verbosity_; }
-    fp get_autoplot() const { return autoplot_; }
+    int get_verbosity() const { return verbosity_; }
+    int get_autoplot() const { return autoplot_; }
 
     void do_srand();
 
