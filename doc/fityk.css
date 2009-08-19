@@ -1,0 +1,11 @@
+
+@import url("sphinxdoc.css");
+
+p.searchtip {
+    visibility: hidden;
+}
+
+.compound-first, .compound-middle { margin-bottom: 0; }
+
+.compound-middle, .compound-last { margin-top: 0; }
+

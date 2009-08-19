@@ -1,0 +1,14 @@
+{% extends "!layout.html" %}
+
+{% block rootrellink %}
+  <li><a href="http://www.unipress.waw.pl/fityk/">Fityk home</a>&nbsp;|&nbsp;</li>
+  <li><a href="http://sourceforge.net/apps/trac/fityk/">Wiki/Trac</a>&nbsp;|&nbsp;</li>
+  <li><a href="{{ pathto(master_doc) }}">{{ shorttitle|e }}</a>{{ reldelim1 }}</li>
+{% endblock %}
+
+{% block header %}
+<div style="background-color: white; text-align: center; padding: 10px 10px 10px 10px">
+ <a href="http://www.unipress.waw.pl/fityk/"><img src="{{ pathto("_static/fityk-banner.png", 1) }}" alt="" /></a>
+</div>
+{% endblock %}
+
