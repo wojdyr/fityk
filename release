@@ -78,7 +78,7 @@ elif [ $1 -eq 2 ]; then
  
 elif [ $1 -eq 3 ]; then
  echo  make tarball
- rm -r xylib/aclocal.m4 xylib/autom4te.cache/ xylib/config.* xylib/configure \
+ rm -rf xylib/aclocal.m4 xylib/autom4te.cache/ xylib/config.* xylib/configure \
        xylib/depcomp xylib/install-sh xylib/libtool xylib/ltmain.sh \
        xylib/missing xylib/stamp-h1
  ./autogen.sh --prefix=$HOME/local --enable-python --with-xylib --with-samples
@@ -88,36 +88,19 @@ elif [ $1 -eq 5 ]; then
  echo  putting docs on www   
  echo destination: $WEB
  cd doc/ 
- echo "preparing and sending PDF manual..."
- make fitykhelp.pdf
- scp fitykhelp.pdf $WEB/doc/
- echo sending fitykhelp.html fitykhelp.xml ...
- make fitykhelp.html 
- scp fitykhelp.html fitykhelp.xml html.css $WEB/doc/
- echo sending fitykhelp_img ...
- scp -r fitykhelp_img/ $WEB/doc/
- echo generating html chunks...
- make html-chunks
- echo sending html chunks...
- scp *.html *.css $WEB/doc/html/
- cd ..
- echo sending NEWS file...
- scp NEWS $WEB/d/
+ make all pdf
+ echo "sending PDF manual..."
+ scp latex/fityk-manual.pdf $WEB/
+ echo sending html
+ scp -r html/* $WEB/
  echo generating doxygen docs...
- cd doxygen/
+ cd ../doxygen/
  doxygen
  echo sending doxygen docs... 
  scp -r html/ $WEB/doxygen/
  cd ..
  
-# testing mac compilation
-# using MacOsX almost-working cross-compiler from 
-#  http://biolpc22.york.ac.uk/pub/linux-mac-cross/
-# PATH=$PATH:/opt/mac/bin 
-# prepare wx
-# ../configure --enable-debug --prefix=/home/wojdyr/local/  --host=i686-apple-darwin8 
-# and fityk
-# ...
+# TODO: testing mac compilation
  
 elif [ $1 -eq 6 ]; then
  echo Building MS Windows version
