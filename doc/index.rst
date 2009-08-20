@@ -60,13 +60,9 @@ Download
 * The latest code:
   ``svn co https://fityk.svn.sourceforge.net/svnroot/fityk/trunk fityk``
 
-.. compound::
-
-   New version **notifications**:
-
-   * e-mails from http://freshmeat.net/projects/fityk/
-   * `RSS feeds <http://sourceforge.net/export/rss2_projfiles.php?group_id=79434>`_
-     from SourceForge
+New version **notifications** from FreshMeat:
+`emails <http://freshmeat.net/projects/fityk/>`_ or
+`feeds <http://freshmeat.net/projects/fityk/releases.atom>`_.
 
 History
 =======

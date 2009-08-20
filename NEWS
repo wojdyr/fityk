@@ -1,7 +1,6 @@
 $Id$
 
 User-visible changes in version 0.8.9  (2009-08-20):
-
 * manual was converted from DocBook to reStructuredText
 * GUI: On Linux fitting was very slow, this was fixed. A new option
   `refresh-period` was added to control refreshing during fitting.

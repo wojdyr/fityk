@@ -23,7 +23,9 @@ if [ $# -eq 0 ]; then
  echo 5. https://build.opensuse.org/project/show?project=home%3Awojdyr
  echo 8. SourceForge release
  echo 9. put docs on www
- echo 10. announce: freshmeat.net gnomefiles.com
+ echo "10. http://freshmeat.net/projects/fityk/releases/new "
+ echo "    http://freshmeat.net/projects/xylib/releases/new  "
+ echo "    http://www.gnomefiles.org/devs/index.php?login    "
  exit
 fi
 
@@ -130,8 +132,9 @@ elif [ $1 -eq 4 ]; then
  mkdir -p $ALL_WIN_FILES/samples $ALL_WIN_FILES/src
  cp fityk.iss $SRC_DIR/fityk.url $SRC_DIR/COPYING $SRC_DIR/TODO \
     $SRC_DIR/NEWS $ALL_WIN_FILES
- cp -r doc/html/ $ALL_WIN_FILES/
- cp $SRC_DIR/samples/*.fit $SRC_DIR/samples/*.dat $ALL_WIN_FILES/samples/
+ cp -r $SRC_DIR/doc/html/ $ALL_WIN_FILES/
+ cp $SRC_DIR/samples/*.fit $SRC_DIR/samples/*.dat $SRC_DIR/samples/README \
+    $ALL_WIN_FILES/samples/
 
  #cp src/wxgui/fityk.exe $ALL_WIN_FILES/src/
  # due to unsolved problem, perhaps in libtool, making executables gives:
@@ -152,26 +155,28 @@ elif [ $1 -eq 8 ]; then
  [ ! -e $tarball_filename ] && echo "File not found: $tarball_filename" && exit
  [ ! -e $win_setup_filename ] && echo "File not found: $win_setup_filename" \
                                                                        && exit
- scp $tarball_filename $win_setup_filename frs.sourceforge.net:uploads/
- echo now go to:
- echo $SF_NEW_RELEASE
- echo and add release named: $version
+ mkdir $version || exit
+ cp $tarball_filename $win_setup_filename $version/
+ scp -r $version "wojdyr,fityk@frs.sourceforge.net:/home/frs/project/f/fi/fityk/fityk/"
+ rm -r $version/
+ echo now you may go to:
+ echo https://sourceforge.net/project/admin/explorer.php?group_id=79434
  
 
 elif [ $1 -eq 9 ]; then
  echo  putting docs on www   
  echo destination: $WEB
  cd doc/ 
- make all pdf
- echo "sending PDF manual..."
- scp latex/fityk-manual.pdf $WEB/
+ #make all pdf
+ #echo "sending PDF manual..."
+ #scp latex/fityk-manual.pdf $WEB/
  echo sending html
  scp -r html/* $WEB/
- echo generating doxygen docs...
- cd ../doxygen/
- doxygen
- echo sending doxygen docs... 
- scp -r html/ $WEB/doxygen/
+ #echo generating doxygen docs...
+ #cd ../doxygen/
+ #doxygen
+ #echo sending doxygen docs... 
+ #scp -r html/ $WEB/doxygen/
  cd ..
  
 

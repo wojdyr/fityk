@@ -24,7 +24,7 @@ Source: src\fityk.exe; DestDir: {app}
 Source: COPYING; DestDir: {app}
 Source: TODO; DestDir: {app}
 Source: NEWS; DestDir: {app}
-Source: html\*; DestDir: {app}\html\
+Source: html\*; DestDir: {app}\html\; Flags: recursesubdirs
 Source: samples\README; DestDir: {app}\samples\
 Source: samples\*.dat; DestDir: {app}\samples\
 Source: samples\*.fit; DestDir: {app}\samples\

@@ -48,7 +48,7 @@ bool FitInfoDlg::Initialize()
             s.Printf(wxT("dataset %d: %s\n"), sel[0],
                                   ftk->get_data(sel[0])->get_title().c_str());
         else
-            s.Printf(wxT("%u datasets\n"), sel.size());
+            s.Printf(wxT("%d datasets\n"), (int) sel.size());
         s += wxString::Format(
                 wxT("points: %d\nDoF: %d\nWSSR: %g\nSSR: %g\nWSSR/DoF: %g\n")
                 wxT("R-squared: %g\n"),

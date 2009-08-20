@@ -45,6 +45,7 @@ latex_documents = [
 latex_logo = 'fityk-banner.pdf'
 latex_elements = { 'papersize': 'a4paper' # 'letterpaper'
                  }
+#latex_appendices = ['appendix']
 
 download_prefix = 'http://downloads.sourceforge.net/fityk/'
 msw_filename = 'fityk-%s-setup' % version
