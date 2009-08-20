@@ -1,5 +1,15 @@
 # -*- coding: utf-8 -*-
 
+# NOTE: if you have images in html/ and not in this directory
+# you need to copy them here:
+# cp html/_static/* html/_images/* . # this is more than enough
+#
+# ATM I'm using sphinx from 1.0-hg with a few hacks.
+# hopefully in the future these hacks won't be necessary
+#
+# sphinx-build -d ./doctrees/ -b html . html
+
+
 extensions = ["sphinx.ext.pngmath", "sphinx.ext.extlinks"]
 
 exclude_trees = ['html', 'latex', '.svn']

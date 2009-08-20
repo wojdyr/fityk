@@ -4,11 +4,7 @@
 version=0.8.9
 WEB="iris.unipress.waw.pl:/d2/people/wojdyr/www/fityk2/"
 SF_NEW_RELEASE="https://sourceforge.net/project/admin/newrelease.php?package_id=80864&group_id=79434"
-WEB_ANNOUNCE_DIR=$WEB
-WEB_ANNOUNCE_FILE="index.html"
-WEB_DOWNLOAD_FILE="download.html"
 
-BUILD_DIR=testbuild
 MINGW_DIR=cross_win32
 ALL_WIN_FILES=all_files #inside of $MINGW_DIR
 
@@ -23,12 +19,11 @@ if [ $# -eq 0 ]; then
  echo 1. test if everything compiles after distclean, run samples
  echo 2. test if svn can be compiled with other settings
  echo 3. make tarball
- echo 5. put docs on www
- echo 6. compile windows version and make installer
+ echo 4. compile windows version and make installer
+ echo 5. https://build.opensuse.org/project/show?project=home%3Awojdyr
  echo 8. SourceForge release
- echo 9. web announce
- echo 10. FreshMeat announce
- echo 11. clean all changes... 
+ echo 9. put docs on www
+ echo 10. announce: freshmeat.net gnomefiles.com
  exit
 fi
 
@@ -47,18 +42,20 @@ if [ $1 -eq 0 ]; then
  echo now the version in this script is: $version
  echo and configure.ac contains:
  grep AC_INIT configure.ac
- echo and doc/fitykhelp.xml:
- grep '<title>Fityk' doc/fitykhelp.xml
+ echo and doc/conf.py:
+ grep 'version =' doc/conf.py
  echo
  echo svnversion: `svnversion`
+ echo Do not forget to update NEWS and doc/index.rst
 
 
 
 elif [ $1 -eq 1 ]; then
  echo  testing compilation and instalation after make distclean
 
- make distclean
  ./autogen.sh
+ make distclean
+ BUILD_DIR=test1
  rm -rf $BUILD_DIR
  mkdir $BUILD_DIR
  cd $BUILD_DIR
@@ -84,25 +81,9 @@ elif [ $1 -eq 3 ]; then
  ./autogen.sh --prefix=$HOME/local --enable-python --with-xylib --with-samples
  make dist-bzip2
 
-elif [ $1 -eq 5 ]; then
- echo  putting docs on www   
- echo destination: $WEB
- cd doc/ 
- make all pdf
- echo "sending PDF manual..."
- scp latex/fityk-manual.pdf $WEB/
- echo sending html
- scp -r html/* $WEB/
- echo generating doxygen docs...
- cd ../doxygen/
- doxygen
- echo sending doxygen docs... 
- scp -r html/ $WEB/doxygen/
- cd ..
- 
 # TODO: testing mac compilation
  
-elif [ $1 -eq 6 ]; then
+elif [ $1 -eq 4 ]; then
  echo Building MS Windows version
  #WXMSWINSTALL=/home/wojdyr/local/mingw32msvc/
  WXMSWINSTALL=/home/wojdyr/local/mingw32/
@@ -146,9 +127,10 @@ elif [ $1 -eq 6 ]; then
    --with-xylib
 
  make || exit
- mkdir -p $ALL_WIN_FILES/samples $ALL_WIN_FILES/src $ALL_WIN_FILES/doc
+ mkdir -p $ALL_WIN_FILES/samples $ALL_WIN_FILES/src
  cp fityk.iss $SRC_DIR/fityk.url $SRC_DIR/COPYING $SRC_DIR/TODO \
     $SRC_DIR/NEWS $ALL_WIN_FILES
+ cp -r doc/html/ $ALL_WIN_FILES/
  cp $SRC_DIR/samples/*.fit $SRC_DIR/samples/*.dat $ALL_WIN_FILES/samples/
 
  #cp src/wxgui/fityk.exe $ALL_WIN_FILES/src/
@@ -158,21 +140,9 @@ elif [ $1 -eq 6 ]; then
  #cp src/wxgui/fityk.exe $ALL_WIN_FILES/src/
  cp src/wxgui/.libs/fityk.exe $ALL_WIN_FILES/src/
 
- cd doc
- make fitykhelp.htb
- cd ..
- if [ -a doc/fitykhelp.htb ]; then
-     unzip doc/fitykhelp.htb -d $ALL_WIN_FILES/doc
- else
-     echo can not make doc/fitykhelp.htb
-     exit
- fi
- # use default fonts in HTML Help
- egrep -v font $ALL_WIN_FILES/doc/html.css > tmp_html.css
- mv -f tmp_html.css $ALL_WIN_FILES/doc/html.css
- echo '"C:\Program Files\HTML Help Workshop\hhc.exe" doc\htmlhelp.hhp' \
-					    >$ALL_WIN_FILES/build_help.cmd
- echo 'ren doc\htmlhelp.chm fitykhelp.chm' >>$ALL_WIN_FILES/build_help.cmd
+ #echo '"C:\Program Files\HTML Help Workshop\hhc.exe" doc\htmlhelp.hhp' \
+ #       				    >$ALL_WIN_FILES/build_help.cmd
+ #echo 'ren doc\htmlhelp.chm fitykhelp.chm' >>$ALL_WIN_FILES/build_help.cmd
  echo everything is in: `pwd`/$ALL_WIN_FILES
  
 
@@ -189,32 +159,25 @@ elif [ $1 -eq 8 ]; then
  
 
 elif [ $1 -eq 9 ]; then
- echo web announce, prepare for vim editing...
- scp $WEB_ANNOUNCE_DIR/$WEB_ANNOUNCE_FILE .
- sleep 2
- vi $WEB_ANNOUNCE_FILE
- scp $WEB_ANNOUNCE_FILE $WEB_ANNOUNCE_DIR
+ echo  putting docs on www   
+ echo destination: $WEB
+ cd doc/ 
+ make all pdf
+ echo "sending PDF manual..."
+ scp latex/fityk-manual.pdf $WEB/
+ echo sending html
+ scp -r html/* $WEB/
+ echo generating doxygen docs...
+ cd ../doxygen/
+ doxygen
+ echo sending doxygen docs... 
+ scp -r html/ $WEB/doxygen/
+ cd ..
+ 
 
- echo links from download page, prepare for vim editing...
- scp $WEB_ANNOUNCE_DIR/$WEB_DOWNLOAD_FILE .
- sleep 2
- vi $WEB_DOWNLOAD_FILE
- scp $WEB_DOWNLOAD_FILE $WEB_ANNOUNCE_DIR
- 
- 
 elif [ $1 -eq 10 ]; then
- echo FM announce
- echo TODO
- # freshmeat-submit
- 
- 
-elif [ $1 -eq 11 ]; then
- echo cleaning everything and preparing normal working environment
- rm -rf $BUILD_DIR
- make clean
- #./autogen.sh
- #./configure --enable-debug
- #make
+ echo announce: freshmeat.net gnomefiles.com
+ # TODO: freshmeat-submit
  
 else
  echo unexpected step number: $1

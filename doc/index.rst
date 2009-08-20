@@ -71,6 +71,7 @@ Download
 History
 =======
 
+* 2009-08-20 Version 0.8.9
 * 2009-06-21 Version 0.8.8 (no Windows exe this time)
 * 2009-06-11 Version 0.8.7
 * 2008-04-15 Version 0.8.6

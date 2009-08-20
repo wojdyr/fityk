@@ -24,7 +24,7 @@ Source: src\fityk.exe; DestDir: {app}
 Source: COPYING; DestDir: {app}
 Source: TODO; DestDir: {app}
 Source: NEWS; DestDir: {app}
-Source: doc\fitykhelp.chm; DestDir: {app}
+Source: html\*; DestDir: {app}\html\
 Source: samples\README; DestDir: {app}\samples\
 Source: samples\*.dat; DestDir: {app}\samples\
 Source: samples\*.fit; DestDir: {app}\samples\
@@ -32,7 +32,7 @@ Source: fityk.url; DestDir: {app}
 
 [Icons]
 Name: {group}\Fityk; Filename: {app}\fityk.exe; WorkingDir: {app}; IconFilename: {app}\fityk.exe; IconIndex: 0
-Name: {group}\Fityk Manual; Filename: {app}\fitykhelp.chm; WorkingDir: {app}; Flags: useapppaths
+Name: {group}\Fityk Manual; Filename: {app}\html\fityk-manual.html; WorkingDir: {app}; Flags: useapppaths
 Name: "{group}\Fityk Web Site"; Filename: {app}\fityk.url
 Name: {group}\Uninstall Fityk; Filename: {uninstallexe}
 Name: {userdesktop}\Fityk; Filename: {app}\fityk.exe; WorkingDir: {app}; Tasks: desktopicon

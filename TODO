@@ -9,10 +9,6 @@ Help is needed:
 
 ---------- TODO list and tentative development plan  ----------------
 
-* convert manual from DocBook to reStructuredText [IN PROGRESS]
-
---------------> 0.8.9
-
 * powder diffraction add-on - Pawley fitting 
 
 --------------> 0.9.0

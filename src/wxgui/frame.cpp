@@ -23,9 +23,6 @@
 #include <wx/msgout.h>
 #include <wx/metafile.h>
 #include <wx/dir.h>
-#ifdef __WXMSW__
-# include <wx/help.h>
-#endif
 #include <wx/stdpaths.h>
 
 #include <algorithm>
@@ -815,18 +812,13 @@ void FFrame::update_menu_previous_zooms()
 
 void FFrame::OnShowHelp(wxCommandEvent&)
 {
-#ifdef __WXMSW__
-    wxHelpController help;
-    wxString help_path = get_full_path_of_help_file(wxT("fitykhelp.chm"));
-    help.Initialize(help_path);
-    help.DisplayContents();
-#else
-    wxString help_path = get_full_path_of_help_file(wxT("fitykhelp.html"));
+    wxString help_file = wxString(wxT("html")) + wxFILE_SEP_PATH
+                         + wxT("fityk-manual.html");
+    wxString help_path = get_full_path_of_help_file(help_file);
     bool r = wxLaunchDefaultBrowser(wxT("file://") + help_path);
     if (!r)
         wxMessageBox(wxT("Can't open browser.\n Manual is here:\n") + help_path,
                      wxT("Manual"), wxOK|wxICON_INFORMATION);
-#endif
 }
 
 void FFrame::OnAbout(wxCommandEvent&)
@@ -838,10 +830,10 @@ void FFrame::OnAbout(wxCommandEvent&)
 
 void FFrame::OnContact(wxCommandEvent&)
 {
-    wxString url = wxT("http://www.unipress.waw.pl/fityk/contact.html");
+    wxString url = wxT("http://groups.google.com/group/fityk-users/topics");
     bool r = wxLaunchDefaultBrowser(url);
     if (!r)
-        wxMessageBox(wxT("Read instructions at:\n") + url,
+        wxMessageBox(wxT("Read instructions at the programs webpage.\n"),
                      wxT("feedback"), wxOK|wxICON_INFORMATION);
 }
 

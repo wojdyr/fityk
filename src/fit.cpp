@@ -281,7 +281,7 @@ string Fit::print_matrix (const vector<fp>& vec, int m, int n,
 bool Fit::post_fit (const std::vector<fp>& aa, fp chi2)
 {
     F->msg(name + " method. " + S(iter_nr) + " iterations, "
-            + S(evaluations) + " func. evaluations in "
+            + S(evaluations) + " evaluations in "
             + S(time(0)-start_time_) + "s.");
     bool better = (chi2 < wssr_before);
     if (better) {
