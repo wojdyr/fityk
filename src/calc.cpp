@@ -170,6 +170,9 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
             case OP_DIGAMMA:
                 *stackPtr = digamma(*stackPtr);
                 break;
+            case OP_ABS:
+                *stackPtr = fabs(*stackPtr);
+                break;
 
             //binary operators
             case OP_ADD:
