@@ -32,6 +32,8 @@ Help is needed:
 * GUI: there is ugly vertical line (a part of the fitted curve) in points
   where the value is undefined (e.g. in ReadShockley function for x=0).
 
+* problem: SGLITE_CPPFLAGS conflict with --disable-3rdparty
+
 --------------> 0.9.0
 
 * GUI: when dataset is changed and the active function (i.e. the function

@@ -50,6 +50,7 @@
 #include "fitinfo.h"
 #include "inputline.h"
 #include "app.h"
+#include "powdifpat.h"
 #include "../common.h"
 #include "../logic.h"
 #include "../fit.h"
@@ -103,11 +104,7 @@
 #include "img/undo16.h"
 #include "img/revert16.h"
 #include "img/zoom-fit16.h"
-
-// I have wxUSE_METAFILE=1 on wxGTK-2.6.1, which was probably a bug
-#if wxUSE_METAFILE && defined(__WXGTK__)
-#undef wxUSE_METAFILE
-#endif
+#include "img/powdifpat16.xpm"
 
 using namespace std;
 FFrame *frame = NULL;
@@ -144,6 +141,7 @@ enum {
     ID_F_REDO                  ,
     ID_F_HISTORY               ,
     ID_F_CLEARH                ,
+    ID_T_PD                    ,
     ID_F_M                     ,
     ID_F_M_END = ID_F_M+10     ,
     ID_SESSION_LOG             ,
@@ -151,15 +149,15 @@ enum {
     ID_LOG_STOP                ,
     ID_LOG_WITH_OUTPUT         ,
     ID_LOG_DUMP                ,
-    ID_O_RESET                 ,
+    ID_SESSION_RESET           ,
     ID_PAGE_SETUP              ,
     ID_PRINT_PSFILE            ,
     ID_PRINT_CLIPB             ,
     ID_SAVE_IMAGE              ,
-    ID_O_INCLUDE               ,
-    ID_O_REINCLUDE             ,
+    ID_SESSION_INCLUDE         ,
+    ID_SESSION_REINCLUDE       ,
     ID_S_DEBUGGER              ,
-    ID_O_DUMP                  ,
+    ID_SESSION_DUMP            ,
     ID_SESSION_SET             ,
     ID_SESSION_EI              ,
     ID_G_MODE                  ,
@@ -237,6 +235,27 @@ void append_mi(wxMenu* menu, int id, wxBitmap const& bitmap,
 
 
 BEGIN_EVENT_TABLE(FFrame, wxFrame)
+    EVT_UPDATE_UI (ID_LOG_START, FFrame::OnMenuLogStartUpdate)
+    EVT_MENU (ID_LOG_START,     FFrame::OnLogStart)
+    EVT_UPDATE_UI (ID_LOG_STOP, FFrame::OnMenuLogStopUpdate)
+    EVT_MENU (ID_LOG_STOP,      FFrame::OnLogStop)
+    EVT_UPDATE_UI (ID_LOG_WITH_OUTPUT, FFrame::OnMenuLogOutputUpdate)
+    EVT_MENU (ID_LOG_WITH_OUTPUT, FFrame::OnLogWithOutput)
+    EVT_MENU (ID_LOG_DUMP,      FFrame::OnLogDump)
+    EVT_MENU (ID_SESSION_RESET, FFrame::OnReset)
+    EVT_MENU (ID_SESSION_INCLUDE, FFrame::OnInclude)
+    EVT_MENU (ID_SESSION_REINCLUDE, FFrame::OnReInclude)
+    EVT_MENU (ID_S_DEBUGGER,    FFrame::OnDebugger)
+    EVT_MENU (wxID_PRINT,       FFrame::OnPrint)
+    EVT_MENU (ID_PRINT_PSFILE,  FFrame::OnPrintPSFile)
+    EVT_MENU (ID_PRINT_CLIPB,   FFrame::OnPrintToClipboard)
+    EVT_MENU (ID_PAGE_SETUP,    FFrame::OnPageSetup)
+    EVT_MENU (wxID_PREVIEW,     FFrame::OnPrintPreview)
+    EVT_MENU (ID_SAVE_IMAGE,    FFrame::OnSaveAsImage)
+    EVT_MENU (ID_SESSION_DUMP,  FFrame::OnDump)
+    EVT_MENU (ID_SESSION_SET,   FFrame::OnSettings)
+    EVT_MENU (ID_SESSION_EI,    FFrame::OnEditInit)
+
     EVT_MENU (ID_D_QLOAD,       FFrame::OnDataQLoad)
     EVT_MENU (ID_D_XLOAD,       FFrame::OnDataXLoad)
     EVT_MENU_RANGE (ID_D_RECENT+1, ID_D_RECENT_END, FFrame::OnDataRecent)
@@ -273,26 +292,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_UPDATE_UI (ID_F_CLEARH, FFrame::OnMenuFitClearHistoryUpdate)
     EVT_MENU (ID_F_CLEARH,      FFrame::OnFClearH)
 
-    EVT_UPDATE_UI (ID_LOG_START, FFrame::OnMenuLogStartUpdate)
-    EVT_MENU (ID_LOG_START,     FFrame::OnLogStart)
-    EVT_UPDATE_UI (ID_LOG_STOP, FFrame::OnMenuLogStopUpdate)
-    EVT_MENU (ID_LOG_STOP,      FFrame::OnLogStop)
-    EVT_UPDATE_UI (ID_LOG_WITH_OUTPUT, FFrame::OnMenuLogOutputUpdate)
-    EVT_MENU (ID_LOG_WITH_OUTPUT, FFrame::OnLogWithOutput)
-    EVT_MENU (ID_LOG_DUMP,      FFrame::OnLogDump)
-    EVT_MENU (ID_O_RESET,       FFrame::OnReset)
-    EVT_MENU (ID_O_INCLUDE,     FFrame::OnInclude)
-    EVT_MENU (ID_O_REINCLUDE,   FFrame::OnReInclude)
-    EVT_MENU (ID_S_DEBUGGER,    FFrame::OnDebugger)
-    EVT_MENU (wxID_PRINT,       FFrame::OnPrint)
-    EVT_MENU (ID_PRINT_PSFILE,  FFrame::OnPrintPSFile)
-    EVT_MENU (ID_PRINT_CLIPB,   FFrame::OnPrintToClipboard)
-    EVT_MENU (ID_PAGE_SETUP,    FFrame::OnPageSetup)
-    EVT_MENU (wxID_PREVIEW,     FFrame::OnPrintPreview)
-    EVT_MENU (ID_SAVE_IMAGE,    FFrame::OnSaveAsImage)
-    EVT_MENU (ID_O_DUMP,        FFrame::OnDump)
-    EVT_MENU (ID_SESSION_SET,   FFrame::OnSettings)
-    EVT_MENU (ID_SESSION_EI,    FFrame::OnEditInit)
+    EVT_MENU (ID_T_PD,          FFrame::OnPowderDiffraction)
 
     EVT_MENU (ID_G_M_ZOOM,      FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_RANGE,     FFrame::OnChangeMouseMode)
@@ -531,15 +531,15 @@ void FFrame::save_settings(wxConfigBase *cf) const
 void FFrame::set_menubar()
 {
     wxMenu* session_menu = new wxMenu;
-    append_mi(session_menu, ID_O_INCLUDE, GET_BMP(runmacro16),
+    append_mi(session_menu, ID_SESSION_INCLUDE, GET_BMP(runmacro16),
               wxT("&Execute script\tCtrl-X"),
               wxT("Execute commands from a file"));
-    session_menu->Append (ID_O_REINCLUDE, wxT("R&e-Execute script"),
+    session_menu->Append (ID_SESSION_REINCLUDE, wxT("R&e-Execute script"),
              wxT("Reset & execute commands from the file included last time"));
+    session_menu->Enable (ID_SESSION_REINCLUDE, false);
     session_menu->Append (ID_S_DEBUGGER, wxT("Script debu&gger"),
                                        wxT("Show script editor and debugger"));
-    session_menu->Enable (ID_O_REINCLUDE, false);
-    append_mi(session_menu, ID_O_RESET, GET_BMP(reload16), wxT("&Reset"),
+    append_mi(session_menu, ID_SESSION_RESET, GET_BMP(reload16), wxT("&Reset"),
                                       wxT("Reset current session"));
     session_menu->AppendSeparator();
     wxMenu *session_log_menu = new wxMenu;
@@ -553,7 +553,7 @@ void FFrame::set_menubar()
     session_log_menu->Append(ID_LOG_DUMP, wxT("History Dump"),
                             wxT("Save all commands executed so far to file"));
     session_menu->Append(ID_SESSION_LOG, wxT("&Logging"), session_log_menu);
-    append_mi(session_menu, ID_O_DUMP, GET_BMP(filesaveas16),
+    append_mi(session_menu, ID_SESSION_DUMP, GET_BMP(filesaveas16),
               wxT("&Save session..."),
               wxT("Save current program state as script file"));
     session_menu->AppendSeparator();
@@ -666,6 +666,11 @@ void FFrame::set_menubar()
                             wxT("Go back or forward in parameter history"));
     fit_menu->Append (ID_F_CLEARH, wxT("&Clear History"),
                             wxT("Clear parameter history"));
+
+    wxMenu* tools_menu = new wxMenu;
+    append_mi(tools_menu, ID_T_PD, wxBitmap(powdifpat16_xpm),
+              wxT("&Powder Diffraction"),
+              wxT("A tool for Pawley fitting"));
 
     wxMenu* gui_menu = new wxMenu;
     wxMenu* gui_menu_mode = new wxMenu;
@@ -786,6 +791,7 @@ void FFrame::set_menubar()
     menu_bar->Append (data_menu, wxT("&Data") );
     menu_bar->Append (sum_menu, wxT("&Functions") );
     menu_bar->Append (fit_menu, wxT("Fi&t") );
+    menu_bar->Append (tools_menu, wxT("&Tools") );
     menu_bar->Append (gui_menu, wxT("&GUI"));
     menu_bar->Append (help_menu, wxT("&Help"));
 
@@ -1120,6 +1126,18 @@ void FFrame::OnFClearH (wxCommandEvent&)
     ftk->exec("fit history clear");
 }
 
+void FFrame::OnPowderDiffraction (wxCommandEvent&)
+{
+    wxDialog *dialog = new wxDialog(NULL, wxID_ANY,
+                                    wxT("powder diffraction analysis"));
+    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+    PowderBook *pb = new PowderBook(dialog, wxID_ANY);
+    sizer->Add(pb, wxSizerFlags(1).Expand());
+    dialog->SetSizerAndFit(sizer);
+    dialog->ShowModal();
+    dialog->Destroy();
+}
+
 void FFrame::OnMenuLogStartUpdate (wxUpdateUIEvent& event)
 {
     string const& logfile = ftk->get_ui()->get_commands().get_log_file();
@@ -1203,7 +1221,7 @@ void FFrame::OnInclude (wxCommandEvent&)
     if (fdlg.ShowModal() == wxID_OK) {
         ftk->exec("commands < '" + wx2s(fdlg.GetPath()) + "'");
         last_include_path = wx2s(fdlg.GetPath());
-        GetMenuBar()->Enable(ID_O_REINCLUDE, true);
+        GetMenuBar()->Enable(ID_SESSION_REINCLUDE, true);
     }
     dir = fdlg.GetDirectory();
 }
@@ -1947,11 +1965,12 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
             wxT("Go to previous View"));
     AddSeparator();
     //file
-    AddTool(ID_O_INCLUDE, wxT("Execute"),
+    AddTool(ID_SESSION_INCLUDE, wxT("Execute"),
             wxBitmap(run_script_xpm), wxNullBitmap, wxITEM_NORMAL,
             wxT("Execute script"), wxT("Execute (include) script from file"));
-    AddTool(ID_O_DUMP, wxT("Dump"), wxBitmap(save_script_xpm), wxNullBitmap,
-            wxITEM_NORMAL, wxT("Dump session to file"),
+    AddTool(ID_SESSION_DUMP, wxT("Dump"),
+            wxBitmap(save_script_xpm), wxNullBitmap, wxITEM_NORMAL,
+            wxT("Dump session to file"),
             wxT("Dump current session to file"));
     AddSeparator();
     //data

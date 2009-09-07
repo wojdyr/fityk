@@ -99,6 +99,8 @@ public:
     void OnFHistory      (wxCommandEvent& event);
     void OnFClearH       (wxCommandEvent& event);
 
+    void OnPowderDiffraction (wxCommandEvent&);
+
     void OnMenuLogStartUpdate (wxUpdateUIEvent& event);
     void OnMenuLogStopUpdate (wxUpdateUIEvent& event);
     void OnMenuLogOutputUpdate (wxUpdateUIEvent& event);

@@ -10,12 +10,16 @@ if OS_WIN32
 AM_LDFLAGS = -mwindows
 RC_FLAGS_ALL=$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS) @WX_CPPFLAGS@
 RC_FLAGS=`echo $(RC_FLAGS_ALL) | sed -e 's/-mthreads//g' `
-ms_win_res = winres.o
-$(ms_win_res): winres.rc img/fityk.ico
+fityk_res = winres.o
+$(fityk_res): winres.rc img/fityk.ico
 	$(RC) -o $@ $(RC_FLAGS) $<
 HELP_DEF=
 xyconvert_res = xyconvertres.o
 $(xyconvert_res): xyconvert.rc img/xyconvert.ico
+	$(RC) -o $@ $(RC_FLAGS) $<
+
+powdifpat_res = powdifpatres.o
+$(powdifpat_res): powdifpat.rc img/powdifpat.ico
 	$(RC) -o $@ $(RC_FLAGS) $<
 else
 HELP_DEF= -DHELP_DIR=\"$(pkgdatadir)\"
@@ -35,7 +39,7 @@ fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 
 AM_CPPFLAGS = @WX_CPPFLAGS@ @CPPFLAGS_3RDPARTY@ @XYLIB_CPPFLAGS@ $(HELP_DEF)
 AM_CXXFLAGS = @WX_CXXFLAGS_ONLY@
-fityk_LDADD = ../libfityk.la @WX_LIBS@ @SGLITE_LDADD@ $(ms_win_res)
+fityk_LDADD = ../libfityk.la @WX_LIBS@ @SGLITE_LDADD@ $(fityk_res)
 
 if XYCONVERT
 bin_PROGRAMS += xyconvert
@@ -51,16 +55,8 @@ inputline: sample_inputline.cpp inputline.cpp inputline.h callback.h
 if POWDIFPAT
 bin_PROGRAMS += powdifpat
 powdifpat_SOURCES = powdifpat.cpp powdifpat.h uplot.cpp uplot.h cmn.cpp cmn.h
-powdifpat_CPPFLAGS = @WX_CPPFLAGS@ @XYLIB_CPPFLAGS@ -DSTANDALONE_POWDIFPAT
-powdifpat_LDADD = @WX_LIBS@ @XYLIB_LDADD@ @SGLITE_LDADD@ -Lcctbx -L. -lcctbx
+powdifpat_CPPFLAGS = @WX_CPPFLAGS@ @XYLIB_CPPFLAGS@ @SGLITE_CPPFLAGS@ \
+		     -DSTANDALONE_POWDIFPAT
+powdifpat_LDADD = @WX_LIBS@ @XYLIB_LDADD@ @SGLITE_LDADD@ $(powdifpat_res)
 endif
-
-#powdifpat: powdifpat.cpp powdifpat.h cmn.o
-#	$(CXX) -o $@ $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-#	$(AM_CPPFLAGS) $(CPPFLAGS) -DSTANDALONE_POWDIFPAT \
-#	-Icctbx/cctbx/include/ -Icctbx/scitbx/include/ \
-#	$(AM_CXXFLAGS) $(CXXFLAGS) \
-#	$< $(srcdir)/cmn.o $(srcdir)/uplot.o \
-#	$(AM_LDFLAGS) $(LDFLAGS) -Lcctbx -L. -lcctbx \
-#	@WX_LIBS@ $(LIBS) -lxy
 

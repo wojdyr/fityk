@@ -82,5 +82,9 @@ fityk.ico \
 \
 xyconvert16.xpm \
 xyconvert48.xpm \
-xyconvert.ico 
+xyconvert.ico \
+\
+powdifpat16.xpm \
+powdifpat48.xpm \
+powdifpat.ico
 

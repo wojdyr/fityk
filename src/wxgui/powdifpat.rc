@@ -1,0 +1,7 @@
+// This file is used only on MS Windows platform. 
+// It can be compiled by windres
+
+// wxWidgets resource definitions
+#include "wx/msw/wx.rc"
+// program icon
+powdifpat ICON "img/powdifpat.ico"

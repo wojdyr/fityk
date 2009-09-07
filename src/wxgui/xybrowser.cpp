@@ -567,7 +567,7 @@ bool App::OnInit()
     wxIconBundle ib;
     ib.AddIcon(wxIcon(xyconvert48_xpm));
     ib.AddIcon(wxIcon(xyconvert16_xpm));
-    frame->SetIcons(ib); // load from a resource
+    frame->SetIcons(ib);
 #endif
 
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);

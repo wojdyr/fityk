@@ -1179,6 +1179,8 @@ wxString SpaceGroupChooser::get_value() const
 #if STANDALONE_POWDIFPAT
 
 #include <wx/aboutdlg.h>
+#include "img/powdifpat16.xpm"
+#include "img/powdifpat48.xpm"
 
 class App : public wxApp
 {
@@ -1226,15 +1228,14 @@ bool App::OnInit()
 
     wxFrame *frame = new wxFrame(NULL, wxID_ANY, GetAppName());
 
-//    //frame->SetIcon(wxICON(xyconvert));
-//#ifdef __WXMSW__
-//    frame->SetIcon(wxIcon("xyconvert")); // load from a resource
-//#else
-//    wxIconBundle ib;
-//    ib.AddIcon(wxIcon(xyconvert48_xpm));
-//    ib.AddIcon(wxIcon(xyconvert16_xpm));
-//    frame->SetIcons(ib); // load from a resource
-//#endif
+#ifdef __WXMSW__
+    frame->SetIcon(wxIcon("powdifpat")); // load from a resource
+#else
+    wxIconBundle ib;
+    ib.AddIcon(wxIcon(powdifpat48_xpm));
+    ib.AddIcon(wxIcon(powdifpat16_xpm));
+    frame->SetIcons(ib);
+#endif
 
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
     PowderBook *pb = new PowderBook(frame, wxID_ANY);
