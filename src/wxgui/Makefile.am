@@ -3,7 +3,7 @@
 SUBDIRS = img
 bin_PROGRAMS = fityk
 
-EXTRA_DIST = winres.rc xyconvert.rc xybrowser.cpp
+EXTRA_DIST = winres.rc xyconvert.rc powdifpat.rc
 
 # tested only on MinGW
 if OS_WIN32
