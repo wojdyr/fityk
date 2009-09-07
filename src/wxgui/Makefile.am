@@ -8,13 +8,15 @@ EXTRA_DIST = winres.rc xyconvert.rc xybrowser.cpp
 # tested only on MinGW
 if OS_WIN32
 AM_LDFLAGS = -mwindows
+RC_FLAGS_ALL=$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS) @WX_CPPFLAGS@
+RC_FLAGS=`echo $(RC_FLAGS_ALL) | sed -e 's/-mthreads//g' `
 ms_win_res = winres.o
 $(ms_win_res): winres.rc img/fityk.ico
-	$(RC) -o $@ `echo $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS)\
-			    @WX_CPPFLAGS@ \
-				    | sed -e 's/-mthreads//g' ` \
-		    $<
+	$(RC) -o $@ $(RC_FLAGS) $<
 HELP_DEF=
+xyconvert_res = xyconvertres.o
+$(xyconvert_res): xyconvert.rc img/xyconvert.ico
+	$(RC) -o $@ $(RC_FLAGS) $<
 else
 HELP_DEF= -DHELP_DIR=\"$(pkgdatadir)\"
 endif  #OS_WIN32
@@ -27,42 +29,38 @@ fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 		setdlg.cpp setdlg.h print.cpp print.h sdebug.cpp sdebug.h \
 		plot.cpp plot.h aplot.cpp aplot.h mplot.cpp mplot.h \
 		uplot.cpp uplot.h about.cpp about.h fitinfo.cpp fitinfo.h \
-		dialogs.cpp dialogs.h frame.cpp frame.h app.cpp app.h
+		dialogs.cpp dialogs.h frame.cpp frame.h app.cpp app.h \
+		powdifpat.cpp powdifpat.h
+
 
 AM_CPPFLAGS = @WX_CPPFLAGS@ @CPPFLAGS_3RDPARTY@ @XYLIB_CPPFLAGS@ $(HELP_DEF)
 AM_CXXFLAGS = @WX_CXXFLAGS_ONLY@
-LDADD = ../libfityk.la @WX_LIBS@ $(ms_win_res)
+fityk_LDADD = ../libfityk.la @WX_LIBS@ @SGLITE_LDADD@ $(ms_win_res)
 
+if XYCONVERT
+bin_PROGRAMS += xyconvert
+xyconvert_SOURCES = xybrowser.cpp uplot.cpp uplot.h cmn.cpp cmn.h
+xyconvert_CPPFLAGS = @WX_CPPFLAGS@ @XYLIB_CPPFLAGS@ -DXYCONVERT
+xyconvert_LDADD = @WX_LIBS@ @XYLIB_LDADD@ $(xyconvert_res)
+endif
 
 inputline: sample_inputline.cpp inputline.cpp inputline.h callback.h
 	`wx-config --cxx` `wx-config --cxxflags` -g -Wall -W -O0 -o $@ $< inputline.cpp `wx-config --libs`
 
 
-if OS_WIN32
-xyconvert_res = xyconvertres.o
-$(xyconvert_res): xyconvert.rc img/xyconvert.ico
-	$(RC) -o $@ `echo $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS)\
-			    @WX_CPPFLAGS@  | sed -e 's/-mthreads//g' ` $<
-xyconvert = xyconvert.exe
-else
-xyconvert = xyconvert
+if POWDIFPAT
+bin_PROGRAMS += powdifpat
+powdifpat_SOURCES = powdifpat.cpp powdifpat.h uplot.cpp uplot.h cmn.cpp cmn.h
+powdifpat_CPPFLAGS = @WX_CPPFLAGS@ @XYLIB_CPPFLAGS@ -DSTANDALONE_POWDIFPAT
+powdifpat_LDADD = @WX_LIBS@ @XYLIB_LDADD@ @SGLITE_LDADD@ -Lcctbx -L. -lcctbx
 endif
 
-$(xyconvert): xybrowser.cpp uplot.cpp uplot.h $(xyconvert_res)
-	$(CXX) -o $@ $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) -DXYCONVERT \
-	$(AM_CXXFLAGS) $(CXXFLAGS) \
-	$(AM_LDFLAGS) $(LDFLAGS) \
-	$< $(srcdir)/uplot.cpp $(xyconvert_res) \
-	../../3rdparty/xylib/xylib/.libs/libxy.a @WX_LIBS@ $(LIBS)
-
-
-powdifpat: powdifpat.cpp cmn.o
-	$(CXX) -o $@ $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) \
-	-Icctbx/cctbx/include/ -Icctbx/scitbx/include/ \
-	$(AM_CXXFLAGS) $(CXXFLAGS) \
-	$< $(srcdir)/cmn.o \
-	$(AM_LDFLAGS) $(LDFLAGS) -Lcctbx -lcctbx \
-	../../3rdparty/xylib/xylib/.libs/libxy.a @WX_LIBS@ $(LIBS)
+#powdifpat: powdifpat.cpp powdifpat.h cmn.o
+#	$(CXX) -o $@ $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+#	$(AM_CPPFLAGS) $(CPPFLAGS) -DSTANDALONE_POWDIFPAT \
+#	-Icctbx/cctbx/include/ -Icctbx/scitbx/include/ \
+#	$(AM_CXXFLAGS) $(CXXFLAGS) \
+#	$< $(srcdir)/cmn.o $(srcdir)/uplot.o \
+#	$(AM_LDFLAGS) $(LDFLAGS) -Lcctbx -L. -lcctbx \
+#	@WX_LIBS@ $(LIBS) -lxy
 

@@ -22,47 +22,10 @@
 #include <xylib/cache.h>
 
 #include "uplot.h" // BufferedPanel, scale_tics_step()
+#include "cmn.h" // SpinCtrl, pchar2wx, wx2s, updateControlWithItems
 
 
-//#include "cmn.h"
-// --------- copied from cmn.h
-class SpinCtrl: public wxSpinCtrl
-{
-public:
-    SpinCtrl(wxWindow* parent, wxWindowID id, int val,
-             int min, int max, int width=50)
-        : wxSpinCtrl (parent, id, wxString::Format(wxT("%i"), val),
-                      wxDefaultPosition, wxSize(width, -1),
-                      wxSP_ARROW_KEYS, min, max, val)
-    {}
-};
-
-inline wxString pchar2wx(char const* pc)
-{
-    return wxString(pc, wxConvUTF8);
-}
-
-inline std::string wx2s(wxString const& w)
-{
-    return std::string((const char*) w.mb_str(wxConvUTF8));
-}
-
-void updateControlWithItems(wxControlWithItems *cwi,
-                            std::vector<std::string> const& v)
-{
-    if (v.size() != (size_t) cwi->GetCount()) {
-        cwi->Clear();
-        for (size_t i = 0; i < v.size(); ++i)
-            cwi->Append(v[i]);
-    }
-    else
-        for (size_t i = 0; i < v.size(); ++i)
-            if (cwi->GetString(i) != v[i])
-                cwi->SetString(i, v[i]);
-}
-
-// --------- end
-
+#ifdef XYCONVERT
 // --------- copied from ../common.h
 #include <sstream>
 
@@ -82,8 +45,7 @@ inline std::string S(char const k) { return std::string(1, k); }
 inline std::string S(std::string const &k) { return k; }
 inline std::string S() { return std::string(); }
 
-
-// --------- end
+#endif
 
 
 using namespace std;
@@ -107,18 +69,18 @@ public:
     PreviewPlot(wxWindow* parent)
         : BufferedPanel(parent), block_nr(0), idx_x(1), idx_y(2),
           data_updated(false)
-        { backgroundCol = *wxBLACK; }
+        { set_bg_color(*wxBLACK); }
 
     void OnPaint(wxPaintEvent &event);
     void draw(wxDC &dc, bool);
     void load_dataset(string const& filename, string const& filetype,
                       vector<string> const& options);
-    const shared_ptr<const xylib::DataSet> get_data() const { return data; }
+    shared_ptr<const xylib::DataSet> get_data() const { return data; }
     void make_outdated() { data_updated = false; }
 
 private:
     shared_ptr<const xylib::DataSet> data;
-    bool data_updated;
+    bool data_updated; // if false, draw() doesn't do anything (plot is clear)
 
     double xScale, yScale;
     double xOffset, yOffset;
@@ -127,7 +89,6 @@ private:
 
     DECLARE_EVENT_TABLE()
 };
-
 
 BEGIN_EVENT_TABLE (PreviewPlot, wxPanel)
     EVT_PAINT (PreviewPlot::OnPaint)
@@ -140,7 +101,7 @@ void PreviewPlot::OnPaint(wxPaintEvent&)
 
 void PreviewPlot::draw(wxDC &dc, bool)
 {
-    if (!data || !data_updated
+    if (data.get() == NULL || !data_updated
         || block_nr < 0 || block_nr >= data->get_block_count())
         return;
 

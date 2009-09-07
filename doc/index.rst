@@ -93,12 +93,12 @@ Join the Google group
 `fityk-users <http://groups.google.com/group/fityk-users/>`_.
 You may select option "no mail" when joining and use the web interface to read
 and send messages.
-Feel free to send there questions, comments, bug reports, feature ideas
+Feel free to send questions, comments, bug reports, new feature requests
 or success stories.
 
 Asking for a new feature usually results in adding the request to
 the `TODO list <http://fityk.svn.sourceforge.net/svnroot/fityk/trunk/TODO>`_
-or, if it is already on the list, in assigning higher priority to it.
+or, if it already is on the list, in assigning higher priority to it.
 
 If for some reasons you do not want to use the group,
 you may contact directly the maintainer of the program:

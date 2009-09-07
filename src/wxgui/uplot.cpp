@@ -13,6 +13,7 @@
 #endif
 
 #include "uplot.h"
+#include "cmn.h"
 
 using namespace std;
 
@@ -70,6 +71,75 @@ void BufferedPanel::set_bg_color(wxColour const& c)
     if (memory_dc_.IsOk())
         memory_dc_.SetBackground(wxBrush(c));
 }
+
+PlotWithTics::PlotWithTics(wxWindow* parent)
+    : BufferedPanel(parent)
+{
+    Connect(GetId(), wxEVT_PAINT,
+                  (wxObjectEventFunction) &PlotWithTics::OnPaint);
+}
+
+void PlotWithTics::draw_tics(wxDC &dc, double x_min, double x_max,
+                             double y_min, double y_max)
+{
+    // prepare scaling
+    double const margin = 0.1;
+    double dx = x_max - x_min;
+    double dy = y_max - y_min;
+    int W = dc.GetSize().GetWidth();
+    int H = dc.GetSize().GetHeight();
+    xScale = (1 - 1.2 * margin) *  W / dx;
+    yScale = - (1 - 1.2 * margin) * H / dy;
+    xOffset = - x_min * xScale + margin * W;
+    yOffset = H - y_min * yScale - margin * H;
+
+    // draw scale
+    dc.SetPen(*wxWHITE_PEN);
+    dc.SetTextForeground(*wxWHITE);
+    dc.SetFont(*wxSMALL_FONT);
+
+    // ... horizontal
+    vector<double> minors;
+    vector<double> tics = scale_tics_step(x_min, x_max, 4, minors);
+    for (vector<double>::const_iterator i = tics.begin(); i != tics.end(); ++i){
+        int X = getX(*i);
+        wxString label = format_label(*i);
+        wxCoord tw, th;
+        dc.GetTextExtent (label, &tw, &th);
+        int Y = dc.DeviceToLogicalY(H - th - 2);
+        dc.DrawText (label, X - tw/2, Y + 1);
+        dc.DrawLine (X, Y, X, Y - 4);
+    }
+
+    // ... vertical
+    tics = scale_tics_step(y_min, y_max, 4, minors);
+    for (vector<double>::const_iterator i = tics.begin(); i != tics.end(); ++i){
+        int Y = getY(*i);
+        wxString label = format_label(*i);
+        wxCoord tw, th;
+        dc.GetTextExtent (label, &tw, &th);
+        dc.DrawText (label, dc.DeviceToLogicalX(5), Y - th/2);
+        dc.DrawLine (dc.DeviceToLogicalX(0), Y, dc.DeviceToLogicalX(4), Y);
+    }
+}
+
+void PlotWithTics::draw_axis_labels(wxDC& dc, string const& x_name,
+                                    string const& y_name)
+{
+    int W = dc.GetSize().GetWidth();
+    int H = dc.GetSize().GetHeight();
+    if (!x_name.empty()) {
+        wxCoord tw, th;
+        dc.GetTextExtent (s2wx(x_name), &tw, &th);
+        dc.DrawText (s2wx(x_name), (W - tw)/2, 2);
+    }
+    if (!y_name.empty()) {
+        wxCoord tw, th;
+        dc.GetTextExtent (s2wx(y_name), &tw, &th);
+        dc.DrawRotatedText (s2wx(y_name), W - 2, (H - tw)/2, 270);
+    }
+}
+
 
 vector<double> scale_tics_step (double beg, double end, int max_tics,
                                 vector<double> &minors, bool logarithm)

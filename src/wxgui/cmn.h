@@ -72,7 +72,8 @@ public:
     RealNumberCtrl(wxWindow* parent, wxWindowID id, std::string const& value)
         : wxTextCtrl(parent, id, s2wx(value)) {}
     RealNumberCtrl(wxWindow* parent, wxWindowID id, double value)
-        : wxTextCtrl(parent, id, wxString::Format(wxT("%g"), value)) {}
+        : wxTextCtrl(parent, id) { set(value); }
+    void set(double value) { SetValue(wxString::Format(wxT("%g"), value)); }
 };
 
 

@@ -2,21 +2,32 @@
 // Licence: GNU General Public License ver. 2+
 // $Id$
 
+// TODO:
+// phases: static box around name, space group, lattice parameters
+// avoid dups on reflection list, e.g. 333 and 151
+
+#include <cmath>
+#include <iostream>
+
 #include <wx/wx.h>
 
 #include <wx/imaglist.h>
 #include <wx/cmdline.h>
-#include <wx/listbook.h>
 #include <wx/listctrl.h>
 
-#include <cmath>
+//#include <cctbx/sgtbx/symbols.h>
+//#include <cctbx/error.h>
+//#include <cctbx/miller/index_generator.h>
+//
+extern "C" {
+#include <sglite/sglite.h>
+#include <sglite/sgconst.h>
+}
+// SgLite doesn't provide API to some data tables
+extern const T_Main_HM_Dict Main_HM_Dict[];
 
-#include <xylib/xylib.h>
 
-#include <cctbx/sgtbx/symbols.h>
-#include <cctbx/error.h>
-#include <cctbx/miller/index_generator.h>
-
+#include "powdifpat.h"
 #include "../common.h"
 #include "cmn.h"
 #include "uplot.h" // BufferedPanel, scale_tics_step()
@@ -26,38 +37,6 @@
 
 
 using namespace std;
-
-class LockableRealCtrl;
-
-
-class PowderBook : public wxListbook
-{
-public:
-    static const int max_wavelengths = 5;
-    map<string, vector<string> > quick_phase_list;
-
-    PowderBook(wxWindow* parent, wxWindowID id);
-    void OnAnodeSelected(wxCommandEvent& event);
-    void OnQuickPhaseSelected(wxCommandEvent& event);
-    void OnQuickListRemove(wxCommandEvent& event);
-    void OnLambdaChange(wxCommandEvent& event);
-    void deselect_phase_quick_list()
-               { quick_phase_lb->SetSelection(wxNOT_FOUND); }
-    double get_lambda0() const;
-    wxListBox *get_quick_phase_lb() { return quick_phase_lb; }
-
-private:
-    wxListBox *anode_lb, *quick_phase_lb;
-    vector<LockableRealCtrl*> lambda_ctrl, intensity_ctrl, corr_ctrl;
-    wxNotebook *sample_nb;
-
-    wxPanel* PrepareIntroPanel();
-    wxPanel* PrepareInstrumentPanel();
-    wxPanel* PrepareSamplePanel();
-    wxPanel* PreparePeakPanel();
-    wxPanel* PrepareActionPanel();
-    void initialize_quick_phase_list();
-};
 
 
 class StaticBitmap : public wxControl
@@ -158,14 +137,31 @@ class SpaceGroupChooser : public wxDialog
 {
 public:
     SpaceGroupChooser(wxWindow* parent);
+    void OnCheckBox(wxCommandEvent&) { regenerate_list(); }
+    void regenerate_list();
     wxString get_value() const;
 private:
     wxListView *list;
+    wxCheckBox *centering_cb[7];
 };
 
+class PlotWithLines : public PlotWithTics
+{
+public:
+    PlotWithLines(wxWindow* parent, PhasePanel *phase_panel,
+                  PowderBook *powder_book);
+    void draw(wxDC &dc, bool);
+
+private:
+    void draw_active_data(wxDC& dc);
+
+    PhasePanel *phase_panel_;
+    PowderBook *powder_book_;
+};
 
 class PhasePanel : public wxPanel
 {
+    friend class PowderBook;
 public:
     PhasePanel(wxNotebook *parent, PowderBook *powder_book_);
     void OnSpaceGroupButton(wxCommandEvent& event);
@@ -176,7 +172,9 @@ public:
     void OnSpaceGroupChanging(wxCommandEvent&)
                                { powder_book->deselect_phase_quick_list(); }
     void OnParameterChanged(wxCommandEvent& event);
+    void OnLineToggled(wxCommandEvent& event);
     void set_data(vector<string> const& tokens);
+    vector<double> get_dists() const;
 
 private:
     wxNotebook *nb_parent;
@@ -186,9 +184,14 @@ private:
     LockableRealCtrl *par_a, *par_b, *par_c, *par_alpha, *par_beta, *par_gamma;
     wxButton *s_qadd_btn;
     wxCheckListBox *hkl_list;
+    PlotWithLines *sample_plot;
     wxStaticText *sg_nr_st;
 
-    cctbx::sgtbx::space_group_symbols sgs;
+    //cctbx::sgtbx::space_group_symbols sgs;
+    T_HM_as_Hall sg_names;
+    T_SgOps sg_ops;
+    int sg_xs;
+    vector<double> all_dists;
 
     void enable_parameter_fields();
     void update_disabled_parameters();
@@ -196,7 +199,6 @@ private:
     void set_ortho_angles();
     void set_space_group(string const& text);
 };
-
 
 namespace {
 
@@ -220,8 +222,10 @@ const char* quick_list_ini =
 "SiC 3C|F -4 3 m|4.36|4.36|4.36|90|90|90\n"
 "SiC 6H|186|3.081|3.081|15.117|90|90|120\n"
 "NaCl|F m -3 m|5.64009|5.64009|5.64009|90|90|90\n"
+"CeO2|F m -3 m|5.41|5.41|5.41|90|90|90\n"
 ;
 
+#if 0
 // functor for sorting by decreasing d
 struct compare_hkl
 {
@@ -231,6 +235,7 @@ struct compare_hkl
                                             { return uc.d(a) > uc.d(b); }
     cctbx::uctbx::unit_cell uc;
 };
+#endif
 
 
 } // anonymous namespace
@@ -273,7 +278,10 @@ LockableRealCtrl *addMaybeRealCtrl(wxWindow *parent, wxString const& label,
 
 
 PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
-    : wxListbook(parent, id)
+    : wxListbook(parent, id), x_min(20), x_max(150), y_max(1000)
+#if STANDALONE_POWDIFPAT
+      , data(NULL)
+#endif
 {
     initialize_quick_phase_list();
 
@@ -289,7 +297,8 @@ PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
     AddPage(PrepareInstrumentPanel(), wxT("instrument"), false, 1);
     AddPage(PrepareSamplePanel(), wxT("sample"), false, 2);
     AddPage(PreparePeakPanel(), wxT("peak"), false, 3);
-    AddPage(PrepareActionPanel(), wxT("action"), false, 4);
+    //AddPage(PrepareActionPanel(), wxT("action"), false, 4);
+    AddPage(PrepareActionPanel(), wxEmptyString, false, 4);
 }
 
 void PowderBook::initialize_quick_phase_list()
@@ -314,9 +323,17 @@ void PowderBook::initialize_quick_phase_list()
 wxPanel* PowderBook::PrepareIntroPanel()
 {
     static const char* intro_str =
+#if STANDALONE_POWDIFPAT
+    "This simple program can generate diffraction pattern using information\n"
+    "about symmetry group, unit cell and radiation wavelength.\n"
+    "At this moment the program is experimental and the old PowderCell\n"
+    "is definitely more reliable.\n"
+    "Actually this is stand-alone version of fityk's tool that prepares to\n"
+    "Pawley method analysis of powder diffraction data.\n";
+#else
     "Before you start, you should have:\n"
     "  - data (powder diffraction pattern) loaded,\n"
-    "  - only interesting range active,\n"
+    "  - only interesting data range active,\n"
     "  - and baseline (background) either removed manually,\n"
     "    or modeled with e.g. polynomial.\n"
     "\n"
@@ -325,12 +342,13 @@ wxPanel* PowderBook::PrepareIntroPanel()
     "not constrained intensities. Fitting this model (all variables "
     "at the same time) is "
     "known as Pawley's method. LeBail's method is similar, "
-    "but fitting procedure is more complex.\n"
+    "but the fitting procedure is more complex.\n"
     "\n"
     "This window will not analyze the final result for you. "
     "But there is another window that can help with size-strain analysis.\n"
     "\n"
     "Good luck!\n";
+#endif
 
     wxPanel *panel = new wxPanel(this);
     wxSizer *intro_sizer = new wxBoxSizer(wxVERTICAL);
@@ -340,6 +358,42 @@ wxPanel* PowderBook::PrepareIntroPanel()
                                           |wxNO_BORDER);
     intro_tc->SetBackgroundColour(GetBackgroundColour());
     intro_sizer->Add(intro_tc, wxSizerFlags(1).Expand().Border(wxALL, 20));
+#if STANDALONE_POWDIFPAT
+    wxStaticText *file_picker_desc = new wxStaticText(panel, -1,
+            wxT("You can use a data file as a background image"));
+    intro_sizer->Add(file_picker_desc, wxSizerFlags().Expand().Border());
+    file_picker = new wxFilePickerCtrl(panel, -1);
+    intro_sizer->Add(file_picker, wxSizerFlags().Expand().Border());
+    wxBoxSizer *range_sizer = new wxBoxSizer(wxHORIZONTAL);
+    range_sizer->Add(new wxStaticText(panel, -1, wxT("Generate pattern from")),
+                     wxSizerFlags().Center().Border());
+    range_from = new RealNumberCtrl(panel, -1, wxT("20"));
+    range_sizer->Add(range_from, wxSizerFlags().Center().Border());
+    range_sizer->Add(new wxStaticText(panel, -1, wxT("to")),
+                     wxSizerFlags().Center().Border());
+    range_to = new RealNumberCtrl(panel, -1, wxT("150"));
+    range_sizer->Add(range_to, wxSizerFlags().Center().Border());
+    intro_sizer->Add(range_sizer);
+    Connect(file_picker->GetId(), wxEVT_COMMAND_FILEPICKER_CHANGED,
+            (wxObjectEventFunction) &PowderBook::OnFilePicked);
+#endif
+
+    wxStaticBoxSizer *legend_box = new wxStaticBoxSizer(wxHORIZONTAL,
+                                                        panel, wxT("Legend"));
+    wxFlexGridSizer *legend = new wxFlexGridSizer(2, 5, 5);
+    legend->Add(new wxStaticBitmap(panel, -1, lock_xpm),
+                wxSizerFlags().Center().Right());
+    legend->Add(new wxStaticText(panel, -1, wxT("constant parameter")),
+                wxSizerFlags().Center().Left());
+    legend->Add(new wxStaticBitmap(panel, -1, lock_open_xpm),
+                wxSizerFlags().Center().Right());
+    legend->Add(new wxStaticText(panel, -1,
+                                 wxT("parameter should be optimized")),
+                wxSizerFlags().Center().Left());
+    legend_box->Add(legend, wxSizerFlags(1).Expand().Border());
+    intro_sizer->Add(legend_box);
+    intro_sizer->AddSpacer(20);
+
     panel->SetSizerAndFit(intro_sizer);
     return panel;
 }
@@ -394,22 +448,6 @@ wxPanel* PowderBook::PrepareInstrumentPanel()
     lambda_sizer->AddSpacer(20);
     lambda_sizer->AddSpacer(1);
 
-    wxSizer *lo_sizer = new wxBoxSizer(wxHORIZONTAL);
-    lo_sizer->Add(new wxStaticBitmap(panel, -1, lock_xpm),
-                  wxSizerFlags().Center().Right());
-    lo_sizer->Add(new wxStaticText(panel, -1, wxT(" = const")),
-                  wxSizerFlags().Center().Left());
-    lambda_sizer->Add(lo_sizer);
-    lambda_sizer->AddSpacer(1);
-
-    wxSizer *lc_sizer = new wxBoxSizer(wxHORIZONTAL);
-    lc_sizer->Add(new wxStaticBitmap(panel, -1, lock_open_xpm),
-                  wxSizerFlags().Center().Right());
-    lc_sizer->Add(new wxStaticText(panel, -1, wxT(" = fit")),
-                  wxSizerFlags().Center().Left());
-    lambda_sizer->Add(lc_sizer);
-    lambda_sizer->AddSpacer(1);
-
     wave_sizer->Add(lambda_sizer, wxSizerFlags(1).Border());
     sizer->Add(wave_sizer, wxSizerFlags().Expand());
 
@@ -418,16 +456,18 @@ wxPanel* PowderBook::PrepareInstrumentPanel()
     wxBitmap formula(wxT("img/correction.png"), wxBITMAP_TYPE_PNG);
     corr_sizer->Add(new StaticBitmap(panel, formula), wxSizerFlags().Border());
 
-    wxSizer *g_sizer = new wxFlexGridSizer(2);
+    wxSizer *g_sizer = new wxGridSizer(2, 5, 5);
     for (int i = 1; i <= 6; ++i) {
+        wxSizer *px_sizer = new wxBoxSizer(wxHORIZONTAL);
         wxString label = wxString::Format(wxT("p%d = "), i);
-        g_sizer->Add(new wxStaticText(panel, -1, label),
+        px_sizer->Add(new wxStaticText(panel, -1, label),
                      wxSizerFlags().Center());
         LockableRealCtrl *cor = new LockableRealCtrl(panel);
-        g_sizer->Add(cor);
+        px_sizer->Add(cor);
+        g_sizer->Add(px_sizer, wxSizerFlags());
         corr_ctrl.push_back(cor);
     }
-    corr_sizer->Add(g_sizer, wxSizerFlags().Expand());
+    corr_sizer->Add(g_sizer, wxSizerFlags().Expand().Border());
     sizer->Add(corr_sizer, wxSizerFlags().Expand());
 
     panel->SetSizerAndFit(sizer);
@@ -446,6 +486,60 @@ wxPanel* PowderBook::PrepareInstrumentPanel()
     return panel;
 }
 
+PlotWithLines::PlotWithLines(wxWindow* parent, PhasePanel* phase_panel,
+                             PowderBook* powder_book)
+    : PlotWithTics(parent),
+      phase_panel_(phase_panel),
+      powder_book_(powder_book)
+{
+    set_bg_color(wxColour(64, 64, 64));
+}
+
+void PlotWithLines::draw(wxDC &dc, bool)
+{
+    draw_tics(dc, powder_book_->x_min, powder_book_->x_max,
+                  0, powder_book_->y_max);
+    // draw data
+    dc.SetPen(*wxGREEN_PEN);
+    draw_active_data(dc);
+    // draw lines
+    int Y0 = dc.GetSize().GetHeight();
+    int Y1 = getY(0) + 2;
+    dc.SetPen(*wxRED_PEN);
+    double lambda1 = powder_book_->lambda_ctrl[0]->get_value();
+    vector<double> dd = phase_panel_->get_dists();
+    for (vector<double>::const_iterator i = dd.begin(); i != dd.end(); ++i) {
+        double d = *i;
+        double angle = 180 / M_PI * 2 * asin(lambda1 / (2*d));
+        int X = getX(angle);
+        dc.DrawLine(X, Y0, X, Y1);
+    }
+}
+
+void PlotWithLines:: draw_active_data(wxDC& dc)
+{
+#if STANDALONE_POWDIFPAT
+    if (!powder_book_->data)
+        return;
+    xylib::Block const *block = powder_book_->data->get_block(0);
+    xylib::Column const& xcol = block->get_column(1);
+    xylib::Column const& ycol = block->get_column(2);
+    int n = block->get_point_count();
+    //for (int i = 0; i != n; ++i)
+    //    draw_point(dc, xcol.get_value(i), ycol.get_value(i));
+    wxPoint *points = new wxPoint[n];
+    for (int i = 0; i != n; ++i) {
+        points[i].x = getX(xcol.get_value(i));
+        points[i].y = getY(ycol.get_value(i));
+    }
+#else // STANDALONE_POWDIFPAT
+    //TODO
+    int n = 10;
+    wxPoint *points = new wxPoint[n];
+#endif // STANDALONE_POWDIFPAT
+    dc.DrawLines(n, points);
+    delete [] points;
+}
 
 PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
         : wxPanel(parent), nb_parent(parent), powder_book(powder_book_)
@@ -457,6 +551,14 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
                  wxSizerFlags().Center().Border());
     name_tc = new KFTextCtrl(this, -1, wxEmptyString, 150);
     h0sizer->Add(name_tc, wxSizerFlags().Center().Border());
+
+    wxBoxSizer *h2sizer = new wxBoxSizer(wxHORIZONTAL);
+    s_qadd_btn = new wxButton(this, wxID_ADD, "Add to quick list");
+    h2sizer->Add(s_qadd_btn, wxSizerFlags().Border());
+    h2sizer->AddStretchSpacer();
+    wxButton *s_clear_btn = new wxButton(this, wxID_CLEAR);
+    h2sizer->Add(s_clear_btn, wxSizerFlags().Border());
+    h0sizer->Add(h2sizer, wxSizerFlags().Expand());
 
     vsizer->Add(h0sizer, wxSizerFlags().Expand());
 
@@ -487,16 +589,11 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
     stp_sizer->Add(par_sizer, wxSizerFlags(1).Expand());
     vsizer->Add(stp_sizer, wxSizerFlags().Border().Expand());
 
-    hkl_list = new wxCheckListBox(this, -1);
-    vsizer->Add(hkl_list, wxSizerFlags(1).Expand().Border());
-
-    wxBoxSizer *h2sizer = new wxBoxSizer(wxHORIZONTAL);
-    s_qadd_btn = new wxButton(this, wxID_ADD, "Add to quick list");
-    h2sizer->Add(s_qadd_btn, wxSizerFlags().Border());
-    h2sizer->AddStretchSpacer();
-    wxButton *s_clear_btn = new wxButton(this, wxID_CLEAR);
-    h2sizer->Add(s_clear_btn, wxSizerFlags().Border());
-    vsizer->Add(h2sizer, wxSizerFlags().Expand());
+    wxSplitterWindow *hkl_split = new ProportionalSplitter(this, -1, 0.4);
+    hkl_list = new wxCheckListBox(hkl_split, -1);
+    sample_plot = new PlotWithLines(hkl_split, this, powder_book);
+    hkl_split->SplitVertically(hkl_list, sample_plot);
+    vsizer->Add(hkl_split, wxSizerFlags(1).Expand().Border());
 
     SetSizerAndFit(vsizer);
 
@@ -525,6 +622,9 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
             (wxObjectEventFunction) &PhasePanel::OnParameterChanged);
     Connect(par_gamma->get_text_ctrl()->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
             (wxObjectEventFunction) &PhasePanel::OnParameterChanged);
+
+    Connect(hkl_list->GetId(), wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,
+            (wxObjectEventFunction) &PhasePanel::OnLineToggled);
 }
 
 void PhasePanel::OnSpaceGroupButton(wxCommandEvent& event)
@@ -540,7 +640,7 @@ void PhasePanel::OnAddToQLButton(wxCommandEvent&)
     wxString name = name_tc->GetValue();
     if (name.find("|") != string::npos) {
         wxMessageBox(wxT("The pipe character '|' is not allowed in name."),
-                     wxT("Error"), wxCANCEL|wxICON_ERROR);
+                     wxT("Error"), wxOK|wxICON_ERROR);
         return;
     }
     wxListBox *quick_phase_lb = powder_book->get_quick_phase_lb();
@@ -615,48 +715,48 @@ void PhasePanel::OnSpaceGroupChanged(wxCommandEvent&)
     string text = wx2s(sg_tc->GetValue());
     set_space_group(text);
     powder_book->deselect_phase_quick_list();
+    sample_plot->refresh();
 }
-
-#include <iostream>
 
 void PhasePanel::set_space_group(string const& text)
 {
-    namespace sgtbx = cctbx::sgtbx;
-    namespace crystal_system = cctbx::sgtbx::crystal_system;
-
-    try {
-        sgs = sgtbx::space_group_symbols(text);
-
-        string univ_text = sgs.universal_hermann_mauguin();
-        sg_tc->ChangeValue(s2wx(univ_text));
-
-        const char *system_label = crystal_system::label(sgs.crystal_system());
-        sg_nr_st->SetLabel(wxString::Format(wxT("no. %d, %s"), sgs.number(),
-                                                               system_label));
-        enable_parameter_fields();
-        update_disabled_parameters();
-        update_miller_indices();
-    }
-    catch (cctbx::error &e) {
-        cout << "Error in OnSpaceGroupChanged: " << e.what() << endl;
+    int sg_number = SgSymbolLookup('A', text.c_str(), &sg_names);
+    //cout << sg_number << " " << sg_names.SgNumber << " " << sg_names.Schoenfl
+    //     << " " << sg_names.HM << " " << sg_names.Hall << endl;
+    if (sg_number <= 0) {
         sg_tc->Clear();
         hkl_list->Clear();
         sg_nr_st->SetLabel(wxEmptyString);
+        return;
     }
+
+    ClrSgError();
+    ResetSgOps(&sg_ops);
+    ParseHallSymbol(sg_names.Hall, &sg_ops, PHSymOptPedantic);
+    if (SgError)
+        cerr << SgError << endl;
+    //DumpSgOps(&sg_ops, stdout);
+
+    sg_tc->ChangeValue(pchar2wx(sg_names.HM));
+    sg_xs = ixXS(GetPG(&sg_ops));
+    sg_nr_st->SetLabel(wxString::Format(wxT("no. %d, %s"), sg_names.SgNumber,
+                                                           XS_Name[sg_xs]));
+    enable_parameter_fields();
+    update_disabled_parameters();
+    update_miller_indices();
 }
 
 void PhasePanel::enable_parameter_fields()
 {
-    namespace crystal_system = cctbx::sgtbx::crystal_system;
-    switch (sgs.crystal_system()) {
-        case crystal_system::triclinic:
+    switch (sg_xs) {
+        case XS_Triclinic:
             par_b->Enable(true);
             par_c->Enable(true);
             par_alpha->Enable(true);
             par_beta->Enable(true);
             par_gamma->Enable(true);
             break;
-        case crystal_system::monoclinic:
+        case XS_Monoclinic:
             par_b->Enable(true);
             par_c->Enable(true);
             par_alpha->Enable(true);
@@ -665,31 +765,31 @@ void PhasePanel::enable_parameter_fields()
             par_gamma->Enable(false);
             par_gamma->set_value(90.);
             break;
-        case crystal_system::orthorhombic:
+        case XS_Orthorhombic:
             par_b->Enable(false);
             par_c->Enable(true);
             set_ortho_angles();
             break;
-        case crystal_system::tetragonal:
+        case XS_Tetragonal:
             par_b->Enable(true);
             par_c->Enable(true);
             set_ortho_angles();
             break;
-        case crystal_system::trigonal:
+        case XS_Trigonal:
             par_b->Enable(false);
             par_c->Enable(false);
             par_alpha->Enable(true);
             par_beta->Enable(false);
             par_gamma->Enable(false);
             break;
-        case crystal_system::hexagonal:
+        case XS_Hexagonal:
             par_b->Enable(false);
             par_c->Enable(true);
             par_alpha->set_value(90);
             par_beta->set_value(90);
             par_gamma->set_value(120);
             break;
-        case crystal_system::cubic:
+        case XS_Cubic:
             par_b->Enable(false);
             par_c->Enable(false);
             set_ortho_angles();
@@ -713,6 +813,12 @@ void PhasePanel::OnParameterChanged(wxCommandEvent&)
 {
     update_disabled_parameters();
     powder_book->deselect_phase_quick_list();
+    sample_plot->refresh();
+}
+
+void PhasePanel::OnLineToggled(wxCommandEvent &event)
+{
+    sample_plot->refresh();
 }
 
 void PhasePanel::update_disabled_parameters()
@@ -723,7 +829,7 @@ void PhasePanel::update_disabled_parameters()
     if (!par_c->IsEnabled())
         par_c->set_string(par_a->get_string());
 
-    if (sgs.crystal_system() == cctbx::sgtbx::crystal_system::trigonal) {
+    if (sg_xs == XS_Trigonal) {
         par_beta->set_string(par_alpha->get_string());
         par_gamma->set_string(par_alpha->get_string());
     }
@@ -731,9 +837,9 @@ void PhasePanel::update_disabled_parameters()
 
 void PhasePanel::update_miller_indices()
 {
-    using cctbx::uctbx::unit_cell;
-    namespace miller =  cctbx::miller;
-    namespace sgtbx = cctbx::sgtbx;
+//    using cctbx::uctbx::unit_cell;
+//    namespace miller =  cctbx::miller;
+//    namespace sgtbx = cctbx::sgtbx;
 
     double a = par_a->get_value();
     double b = par_b->get_value();
@@ -752,23 +858,29 @@ void PhasePanel::update_miller_indices()
         return;
     }
 
-    unit_cell uc = unit_cell(scitbx::af::double6(a, b, c, alpha, beta, gamma));
-    sgtbx::space_group sg(sgs);
-    sgtbx::space_group_type sg_type(sg);
     double min_d = lambda / (2 * sin(max_2theta / 2.));
 
-    miller::index_generator igen(uc, sg_type, false, min_d);
-    vector<miller::index<> > hvec;
-    for (miller::index<> h = igen.next(); !h.is_zero(); h = igen.next())
-        hvec.push_back(h);
-    sort(hvec.begin(), hvec.end(), compare_hkl(uc));
+    //unit_cell uc = unit_cell(scitbx::af::double6(a, b, c, alpha, beta, gamma));
+    //sgtbx::space_group sg(sgs);
+    //sgtbx::space_group_type sg_type(sg);
+
+    //miller::index_generator igen(uc, sg_type, false, min_d);
+    //vector<miller::index<> > hvec;
+    //for (miller::index<> h = igen.next(); !h.is_zero(); h = igen.next())
+    //    hvec.push_back(h);
+    //sort(hvec.begin(), hvec.end(), compare_hkl(uc));
 
     vector<string> items;
+    all_dists.clear();
+#if 0
     for (vector<miller::index<> >::const_iterator i = hvec.begin();
                                                     i != hvec.end(); ++i) {
         string label = i->as_string() + "  d=" + S(uc.d(*i));
+
+        all_dists.push_back(uc.d(*i));
         items.push_back(label);
     }
+#endif
     updateControlWithItems(hkl_list, items);
     for (size_t i = 0; i < hkl_list->GetCount(); ++i)
         hkl_list->Check(i, true);
@@ -785,6 +897,15 @@ void PhasePanel::set_data(vector<string> const& tokens)
     par_beta->set_string(s2wx(tokens[6]));
     par_gamma->set_string(s2wx(tokens[7]));
     update_miller_indices();
+}
+
+vector<double> PhasePanel::get_dists() const
+{
+    vector<double> dd;
+    for (size_t i = 0; i != all_dists.size(); ++i)
+        if (hkl_list->IsChecked(i))
+            dd.push_back(all_dists[i]);
+    return dd;
 }
 
 wxPanel* PowderBook::PrepareSamplePanel()
@@ -849,6 +970,35 @@ wxPanel* PowderBook::PrepareActionPanel()
     return panel;
 }
 
+#if STANDALONE_POWDIFPAT
+void PowderBook::OnFilePicked(wxFileDirPickerEvent& event)
+{
+    set_file(event.GetPath());
+}
+
+void PowderBook::set_file(wxString const& path)
+{
+    try {
+        delete data;
+        data = xylib::load_file(wx2s(path));
+        xylib::Block const *block = data->get_block(0);
+        xylib::Column const& xcol = block->get_column(1);
+        xylib::Column const& ycol = block->get_column(2);
+        x_min = xcol.get_min();
+        x_max = xcol.get_max(block->get_point_count());
+        y_max = ycol.get_max(block->get_point_count());
+        range_from->set(x_min);
+        range_to->set(x_max);
+        for (int i = 0; i < sample_nb->GetPageCount(); ++i)
+            get_phase_panel(i)->sample_plot->refresh();
+    } catch (runtime_error const& e) {
+        data = NULL;
+        wxMessageBox(wxT("Can not load file:\n") + s2wx(e.what()),
+                     wxT("Error"), wxICON_ERROR);
+    }
+}
+#endif
+
 void PowderBook::OnAnodeSelected(wxCommandEvent& event)
 {
     int n = event.GetSelection();
@@ -891,9 +1041,11 @@ void PowderBook::OnQuickPhaseSelected(wxCommandEvent& event)
         return;
     string name = wx2s(quick_phase_lb->GetString(n));
     vector<string> const& tokens = quick_phase_list[name];
-    PhasePanel *panel = static_cast<PhasePanel*>(sample_nb->GetCurrentPage());
+    PhasePanel *panel = get_current_phase_panel();
     assert(panel->GetParent() == sample_nb);
     panel->set_data(tokens);
+    panel->s_qadd_btn->Enable(false);
+    panel->sample_plot->refresh();
 }
 
 void PowderBook::OnQuickListRemove(wxCommandEvent&)
@@ -915,10 +1067,29 @@ void PowderBook::OnLambdaChange(wxCommandEvent&)
     anode_lb->SetSelection(wxNOT_FOUND);
 }
 
+PhasePanel *PowderBook::get_phase_panel(int n)
+{
+    return static_cast<PhasePanel*>(sample_nb->GetPage(n));
+}
+
+PhasePanel *PowderBook::get_current_phase_panel()
+{
+    return static_cast<PhasePanel*>(sample_nb->GetCurrentPage());
+}
+
+void PowderBook::deselect_phase_quick_list()
+{
+    quick_phase_lb->SetSelection(wxNOT_FOUND);
+    PhasePanel *panel = get_current_phase_panel();
+    if (!panel->name_tc->GetValue().empty())
+        panel->s_qadd_btn->Enable(true);
+}
+
 double PowderBook::get_lambda0() const
 {
     return lambda_ctrl[0]->get_value();
 }
+
 
 SpaceGroupChooser::SpaceGroupChooser(wxWindow* parent)
         : wxDialog(parent, -1, wxT("Choose space group"),
@@ -926,27 +1097,69 @@ SpaceGroupChooser::SpaceGroupChooser(wxWindow* parent)
                    wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
     wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+    wxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
+    hsizer->Add(new wxStaticText(this, -1, wxT("centering:")),
+                wxSizerFlags().Border().Center());
+    wxString letters = wxT("PABCIRF");
+    for (int i = 0; i < sizeof(centering_cb)/sizeof(centering_cb[0]); ++i) {
+        centering_cb[i] = new wxCheckBox(this, -1, letters[i]);
+        centering_cb[i]->SetValue(true);
+        hsizer->Add(centering_cb[i], wxSizerFlags().Border());
+    }
+    sizer->Add(hsizer);
     list = new wxListView(this, -1,
                           wxDefaultPosition, wxSize(300, 500),
                           wxLC_REPORT|wxLC_HRULES|wxLC_VRULES);
     list->InsertColumn(0, wxT("No"));
     list->InsertColumn(1, wxT("H-M symbol"));
     list->InsertColumn(2, wxT("Schoenflies symbol"));
+    list->InsertColumn(3, wxT("Hall symbol"));
 
-    cctbx::sgtbx::space_group_symbol_iterator it;
-    cctbx::sgtbx::space_group_symbols sgs = it.next();
-    for (int i = 0; sgs.number() != 0; ++i, sgs = it.next()) {
-        list->InsertItem(i, wxString::Format(wxT("%d"), sgs.number()));
-        list->SetItem(i, 1, s2wx(sgs.universal_hermann_mauguin()));
-        list->SetItem(i, 2, s2wx(sgs.schoenflies()));
-    }
-    for (int i = 0; i < 3; i++)
+    regenerate_list();
+
+    // set widths of columns
+    int total_width = 0;
+    for (int i = 0; i < 4; i++) {
         list->SetColumnWidth(i, wxLIST_AUTOSIZE);
+        total_width += list->GetColumnWidth(i);
+    }
+    // leave margin of 20 px for scrollbar
+    int empty_width = GetClientSize().GetWidth() - total_width - 20;
+    if (empty_width > 0)
+        for (int i = 0; i < 4; i++)
+            list->SetColumnWidth(i, list->GetColumnWidth(i) + empty_width / 4);
 
     sizer->Add(list, wxSizerFlags(1).Expand().Border());
     sizer->Add(CreateButtonSizer(wxOK|wxCANCEL),
                wxSizerFlags().Expand());
     SetSizerAndFit(sizer);
+    for (int i = 0; i < sizeof(centering_cb)/sizeof(centering_cb[0]); ++i)
+        Connect(centering_cb[i]->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+                (wxObjectEventFunction) &SpaceGroupChooser::OnCheckBox);
+}
+
+void SpaceGroupChooser::regenerate_list()
+{
+    list->DeleteAllItems();
+    for (const T_Main_HM_Dict* i = Main_HM_Dict; i->HM != NULL; ++i) {
+        switch (i->HM[0]) {
+            case 'P': if (!centering_cb[0]->IsChecked()) continue; break;
+            case 'A': if (!centering_cb[1]->IsChecked()) continue; break;
+            case 'B': if (!centering_cb[2]->IsChecked()) continue; break;
+            case 'C': if (!centering_cb[3]->IsChecked()) continue; break;
+            case 'I': if (!centering_cb[4]->IsChecked()) continue; break;
+            case 'R': if (!centering_cb[5]->IsChecked()) continue; break;
+            case 'F': if (!centering_cb[6]->IsChecked()) continue; break;
+            default: assert(0);
+        }
+        int n = list->GetItemCount();
+        list->InsertItem(n, wxString::Format(wxT("%d"), i->SgNumber));
+        list->SetItem(n, 1, pchar2wx(i->HM));
+        T_HM_as_Hall names;
+        SgSymbolLookup('A', i->HM, &names);
+        list->SetItem(n, 2, pchar2wx(names.Schoenfl));
+        list->SetItem(n, 3, pchar2wx(names.Hall));
+    }
 }
 
 wxString SpaceGroupChooser::get_value() const
@@ -963,11 +1176,9 @@ wxString SpaceGroupChooser::get_value() const
 }
 
 
-#if 1
+#if STANDALONE_POWDIFPAT
 
 #include <wx/aboutdlg.h>
-//#include "img/xyconvert16.xpm"
-//#include "img/xyconvert48.xpm"
 
 class App : public wxApp
 {
@@ -985,13 +1196,14 @@ IMPLEMENT_APP(App)
 static const wxCmdLineEntryDesc cmdLineDesc[] = {
     { wxCMD_LINE_SWITCH, "V", "version",
           "output version information and exit", wxCMD_LINE_VAL_NONE, 0 },
+    { wxCMD_LINE_PARAM,  0, 0, "data file", wxCMD_LINE_VAL_STRING,
+                                            wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_NONE, 0, 0, 0,  wxCMD_LINE_VAL_NONE, 0 }
 };
 
 
 bool App::OnInit()
 {
-    // to make life simpler, use the same version number as xylib
     version = "0.1.0";
 
     // write numbers in C locale
@@ -1041,6 +1253,12 @@ bool App::OnInit()
     // wxMSW bug workaround
     frame->SetBackgroundColour(pb->GetBackgroundColour());
 
+    if (cmdLineParser.GetParamCount() == 1) {
+        wxString path = cmdLineParser.GetParam(0);
+        pb->set_file(path);
+        pb->file_picker->SetPath(path);
+    }
+
     frame->Show();
 
     Connect(about->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
@@ -1058,7 +1276,7 @@ void App::OnAbout(wxCommandEvent&)
     wxString desc = "Powder diffraction pattern generator.\n";
     adi.SetDescription(desc);
     adi.SetWebSite("http://www.unipress.waw.pl/fityk/powdifpat/");
-    wxString copyright = "(C) 2008 Marcin Wojdyr <wojdyr@gmail.com>";
+    wxString copyright = "(C) 2008 - 2009 Marcin Wojdyr <wojdyr@gmail.com>";
 #ifdef __WXGTK__
     copyright.Replace("(C)", "\xc2\xa9");
 #endif

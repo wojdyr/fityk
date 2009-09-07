@@ -18,9 +18,13 @@
 #include <wx/stdpaths.h>
 
 #include "cmn.h"
-#include "../common.h" //iround()
 
 using namespace std;
+
+namespace {
+/// Round real to integer. Defined here to avoid dependency on ../common.h.
+int iround(double d) { return static_cast<int>(floor(d+0.5)); }
+}
 
 bool cfg_read_bool(wxConfigBase *cf, const wxString& key, bool def_val)
 {

@@ -9,7 +9,28 @@ Help is needed:
 
 ---------- TODO list and tentative development plan  ----------------
 
+* bug: freezing on error during fitting, see analytical-gbe
+
+* install html help into docdir rather than pkgdatadir?
+
+* build xyConvert and powdifpat by default?
+
+* add sglite to 3rdparty/ ?
+
 * powder diffraction add-on - Pawley fitting 
+
+* GUI: Fit > Clear History is not needed in menu, can be called from dialog (?)
+
+* CLI: filter out "inf"s from data passed to gnuplot
+
+* document recent features:
+  "define ... where ...",
+  option refresh-period,
+  $variable.error or %func.height.error
+  functions LogNormal and LogNormalA
+
+* GUI: there is ugly vertical line (a part of the fitted curve) in points
+  where the value is undefined (e.g. in ReadShockley function for x=0).
 
 --------------> 0.9.0
 
@@ -182,7 +203,10 @@ Help is needed:
 
 * when Boost::Spirit 2x is released/stable, parsers will be rewritten and 
   libfityk will be made thread-safe (removing all `AL' and all static class 
-  members and global variables)
+  members and global variables) (?)
+  Or perhaps it's better to use antlr?
+  Maybe a custom math parser based on muparser or FunctionParser could be used
+  for math expressions?
 
 * when wxWidgets 3.x will be available in major Linux distributions:
   - open-file dialog (with preview) will use XyBrowser

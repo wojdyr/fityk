@@ -1,4 +1,6 @@
 
+.. title:: Appendices
+
 .. raw:: latex
 
    \appendix

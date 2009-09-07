@@ -47,13 +47,13 @@ enum {
 };
 
 
-class PreviewPlot : public BufferedPanel
+class PreviewPlot : public PlotWithTics
 {
 public:
     int block_nr, idx_x, idx_y;
 
     PreviewPlot(wxWindow* parent)
-        : BufferedPanel(parent), block_nr(0), idx_x(1), idx_y(2),
+        : PlotWithTics(parent), block_nr(0), idx_x(1), idx_y(2),
           data_updated(false)
         { set_bg_color(*wxBLACK); }
 
@@ -68,15 +68,10 @@ private:
     shared_ptr<const xylib::DataSet> data;
     bool data_updated; // if false, draw() doesn't do anything (plot is clear)
 
-    double xScale, yScale;
-    double xOffset, yOffset;
-    int getX(double x) { return iround(x * xScale + xOffset); }
-    int getY(double y) { return iround(y * yScale + yOffset); }
-
     DECLARE_EVENT_TABLE()
 };
 
-BEGIN_EVENT_TABLE (PreviewPlot, wxPanel)
+BEGIN_EVENT_TABLE (PreviewPlot, PlotWithTics)
     EVT_PAINT (PreviewPlot::OnPaint)
 END_EVENT_TABLE()
 
@@ -100,62 +95,14 @@ void PreviewPlot::draw(wxDC &dc, bool)
     xylib::Column const& xcol = block->get_column(idx_x);
     xylib::Column const& ycol = block->get_column(idx_y);
     const int np = block->get_point_count();
-
-    // prepare scaling
-    double const margin = 0.1;
-    double dx = xcol.get_max(np) - xcol.get_min();
-    double dy = ycol.get_max(np) - ycol.get_min();
-    int W = dc.GetSize().GetWidth();
-    int H = dc.GetSize().GetHeight();
-    xScale = (1 - 1.2 * margin) *  W / dx;
-    yScale = - (1 - 1.2 * margin) * H / dy;
-    xOffset = - xcol.get_min() * xScale + margin * W;
-    yOffset = H - ycol.get_min() * yScale - margin * H;
-
-    // draw scale
-    dc.SetPen(*wxWHITE_PEN);
-    dc.SetTextForeground(*wxWHITE);
-    dc.SetFont(*wxSMALL_FONT);
-
-    // ... horizontal
-    vector<double> minors;
-    vector<double> tics
-        = scale_tics_step(xcol.get_min(), xcol.get_max(np), 4, minors);
-    for (vector<double>::const_iterator i = tics.begin(); i != tics.end(); ++i){
-        int X = getX(*i);
-        wxString label = s2wx(S(*i));
-        wxCoord tw, th;
-        dc.GetTextExtent (label, &tw, &th);
-        int Y = dc.DeviceToLogicalY(H - th - 2);
-        dc.DrawText (label, X - tw/2, Y + 1);
-        dc.DrawLine (X, Y, X, Y - 4);
-    }
-    if (!xcol.name.empty()) {
-        wxCoord tw, th;
-        dc.GetTextExtent (s2wx(xcol.name), &tw, &th);
-        dc.DrawText (s2wx(xcol.name), (W - tw)/2, 2);
-    }
-
-    // ... vertical
-    tics = scale_tics_step(ycol.get_min(), ycol.get_max(np), 4, minors);
-    for (vector<double>::const_iterator i = tics.begin(); i != tics.end(); ++i){
-        int Y = getY(*i);
-        wxString label = s2wx(S(*i));
-        wxCoord tw, th;
-        dc.GetTextExtent (label, &tw, &th);
-        dc.DrawText (label, dc.DeviceToLogicalX(5), Y - th/2);
-        dc.DrawLine (dc.DeviceToLogicalX(0), Y, dc.DeviceToLogicalX(4), Y);
-    }
-    if (!ycol.name.empty()) {
-        wxCoord tw, th;
-        dc.GetTextExtent (s2wx(ycol.name), &tw, &th);
-        dc.DrawRotatedText (s2wx(ycol.name), W - 2, (H - tw)/2, 270);
-    }
+    draw_tics(dc, xcol.get_min(), xcol.get_max(np),
+                  ycol.get_min(), ycol.get_max(np));
+    draw_axis_labels(dc, xcol.name, ycol.name);
 
     // draw data
     dc.SetPen(*wxGREEN_PEN);
     for (int i = 0; i < np; ++i)
-        dc.DrawPoint(getX(xcol.get_value(i)), getY(ycol.get_value(i)));
+        draw_point(dc, xcol.get_value(i), ycol.get_value(i));
 }
 
 

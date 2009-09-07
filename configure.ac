@@ -2,6 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_INIT([fityk], [0.8.9])
+#AC_REVISION([$Revision$])
 LIBRARY_VERSION_FLAG="-version-info 2:0:0"
 
 AC_CONFIG_SRCDIR([src/voigt.h])
@@ -23,6 +24,14 @@ test -z "$enable_GUI" && enable_GUI="yes"
 AC_ARG_ENABLE(CLI,
 [  --disable-CLI           do not build CLI version of program])
 test -z "$enable_CLI" && enable_CLI="yes"
+
+AC_ARG_ENABLE(xyconvert,
+[  --disable-xyconvert     do not build xyconvert program])
+test -z "$enable_xyconvert" && enable_xyconvert="yes"
+
+AC_ARG_ENABLE(powdifpat,
+[  --disable-powdifpat     do not build powdifpat program])
+test -z "$enable_powdifpat" && enable_powdifpat="yes"
 
 AC_ARG_ENABLE(python,
 [  --enable-python         build python bindings to libfityk])
@@ -124,6 +133,11 @@ if test "$enable_3rdparty" = "yes"; then
 	CPPFLAGS="$CPPFLAGS -I$srcdir/3rdparty"
 fi
 
+# we don't expect SgLite to be installed anywhere,
+# so there is no point in making special flags for it
+SGLITE_LDADD="-L\$(top_builddir)/3rdparty/sglite -lsglite"
+SGLITE_CPPFLAGS="-I\$(top_builddir)/3rdparty/"
+
 AC_CHECK_HEADER([boost/spirit/core.hpp], [], [AC_MSG_ERROR(
  [Boost::Spirit headers were not found or your compiler can't compile it.
   If you use source from svn, make sure you have Spirit installed (see INSTALL).
@@ -177,6 +191,17 @@ if test "$enable_GUI" != "no" ; then
     fi
 fi
 
+if test "$enable_xyconvert" != "no" ; then
+    WX_CONFIG_CHECK([2.9.0], [], [AC_MSG_ERROR([
+	 xyConvert requires wxWidgets >= 2.9.
+	 Either upgrade or add --disable-xyconvert flag.])
+		    ])
+fi
+AM_CONDITIONAL([XYCONVERT], [test $enable_xyconvert != no])
+
+AM_CONDITIONAL([POWDIFPAT], [test $enable_powdifpat != no])
+
+
 if test "$enable_CLI" != "no"; then
     SRCSUBDIRS="$SRCSUBDIRS cli"
     READLINE_STUFF
@@ -218,6 +243,8 @@ AC_SUBST(CPPFLAGS_3RDPARTY)
 AC_SUBST(XYLIB_CPPFLAGS)
 AC_SUBST(XYLIB_LDADD)
 AC_SUBST(XYLIB_DIR)
+AC_SUBST(SGLITE_CPPFLAGS)
+AC_SUBST(SGLITE_LDADD)
 AC_SUBST(SAMPLES_DIR)
 AC_SUBST(LIBRARY_VERSION_FLAG)
 
@@ -239,7 +266,18 @@ AC_CHECK_LIB([m], [isnan], [AC_DEFINE([HAVE_ISNAN], [1],
 AC_DEFINE_UNQUOTED(CONFIGURE_BUILD, "$ac_cv_build", [ac_cv_build])
 AC_DEFINE_UNQUOTED(CONFIGURE_ARGS, "$ac_configure_args", [ac_configure_args])
 
-AC_CONFIG_FILES([Makefile fityk.iss src/Makefile src/wxgui/Makefile src/cli/Makefile src/wxgui/img/Makefile doc/Makefile samples/Makefile config/Makefile 3rdparty/Makefile xylib/Makefile xylib/xylib/Makefile python/Makefile])
+AC_CONFIG_FILES([Makefile fityk.iss
+		 src/Makefile
+		 src/wxgui/Makefile
+		 src/cli/Makefile
+		 src/wxgui/img/Makefile
+		 doc/Makefile
+		 samples/Makefile
+		 config/Makefile
+		 3rdparty/Makefile
+		 3rdparty/sglite/Makefile
+		 xylib/Makefile
+		 xylib/xylib/Makefile
+		 python/Makefile])
 AC_OUTPUT
-
 

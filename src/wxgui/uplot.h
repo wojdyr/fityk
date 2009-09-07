@@ -14,6 +14,10 @@
 class BufferedPanel : public wxPanel
 {
 public:
+    /// Round real to integer. Defined here to avoid dependency on ../common.h.
+    static int iround(double d) { return static_cast<int>(floor(d+0.5)); }
+    static wxString format_label(double x) { return wxString::Format("%g", x); }
+
     BufferedPanel(wxWindow *parent);
 
     /// mark panel as dirty and needing replotting,
@@ -44,6 +48,26 @@ private:
     bool resize_buffer(wxDC &dc);
 
     void OnIdle(wxIdleEvent&);
+};
+
+class PlotWithTics : public BufferedPanel
+{
+public:
+    PlotWithTics(wxWindow* parent);
+    void OnPaint(wxPaintEvent &) { buffered_draw(); }
+    void draw_tics(wxDC &dc, double x_min, double x_max,
+                   double y_min, double y_max);
+    void draw_axis_labels(wxDC& dc, std::string const& x_name,
+                          std::string const& y_name);
+    void draw_point(wxDC& dc, double x, double y)
+                                        { dc.DrawPoint(getX(x), getY(y)); }
+
+protected:
+    double xScale, yScale;
+    double xOffset, yOffset;
+    int getX(double x) { return iround(x * xScale + xOffset); }
+    int getY(double y) { return iround(y * yScale + yOffset); }
+
 };
 
 
