@@ -29,6 +29,7 @@ fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 		inputline.cpp inputline.h callback.h \
 		listptxt.cpp listptxt.h dload.cpp dload.h pplot.cpp pplot.h \
 		statbar.cpp statbar.h pane.cpp pane.h sidebar.cpp sidebar.h \
+		history.cpp history.h \
 		dataedit.cpp dataedit.h defmgr.cpp defmgr.h \
 		setdlg.cpp setdlg.h print.cpp print.h sdebug.cpp sdebug.h \
 		plot.cpp plot.h aplot.cpp aplot.h mplot.cpp mplot.h \

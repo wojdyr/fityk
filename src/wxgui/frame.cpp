@@ -36,6 +36,7 @@
 #include "mplot.h"
 #include "aplot.h"
 #include "dialogs.h"
+#include "history.h"
 #include "about.h"
 #include "dload.h"
 #include "pane.h"
@@ -140,7 +141,6 @@ enum {
     ID_F_UNDO                  ,
     ID_F_REDO                  ,
     ID_F_HISTORY               ,
-    ID_F_CLEARH                ,
     ID_T_PD                    ,
     ID_F_M                     ,
     ID_F_M_END = ID_F_M+10     ,
@@ -289,8 +289,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_F_REDO,        FFrame::OnFRedo)
     EVT_UPDATE_UI (ID_F_HISTORY, FFrame::OnMenuFitHistoryUpdate)
     EVT_MENU (ID_F_HISTORY,     FFrame::OnFHistory)
-    EVT_UPDATE_UI (ID_F_CLEARH, FFrame::OnMenuFitClearHistoryUpdate)
-    EVT_MENU (ID_F_CLEARH,      FFrame::OnFClearH)
 
     EVT_MENU (ID_T_PD,          FFrame::OnPowderDiffraction)
 
@@ -664,8 +662,6 @@ void FFrame::set_menubar()
                             wxT("Redo change of parameter"));
     fit_menu->Append (ID_F_HISTORY, wxT("&Parameter History"),
                             wxT("Go back or forward in parameter history"));
-    fit_menu->Append (ID_F_CLEARH, wxT("&Clear History"),
-                            wxT("Clear parameter history"));
 
     wxMenu* tools_menu = new wxMenu;
     append_mi(tools_menu, ID_T_PD, wxBitmap(powdifpat16_xpm),
@@ -790,7 +786,7 @@ void FFrame::set_menubar()
     menu_bar->Append (session_menu, wxT("&Session") );
     menu_bar->Append (data_menu, wxT("&Data") );
     menu_bar->Append (sum_menu, wxT("&Functions") );
-    menu_bar->Append (fit_menu, wxT("Fi&t") );
+    menu_bar->Append (fit_menu, wxT("F&it") );
     menu_bar->Append (tools_menu, wxT("&Tools") );
     menu_bar->Append (gui_menu, wxT("&GUI"));
     menu_bar->Append (help_menu, wxT("&Help"));
@@ -1078,12 +1074,6 @@ void FFrame::OnMenuFitHistoryUpdate(wxUpdateUIEvent& event)
     event.Enable(ftk->get_fit_container()->get_param_history_size() != 0);
 }
 
-void FFrame::OnMenuFitClearHistoryUpdate(wxUpdateUIEvent& event)
-{
-    event.Enable(ftk->get_fit_container()->get_param_history_size() != 0);
-}
-
-
 void FFrame::OnFOneOfMethods (wxCommandEvent& event)
 {
     int m = event.GetId() - ID_F_M;
@@ -1119,11 +1109,6 @@ void FFrame::OnFHistory (wxCommandEvent&)
     SumHistoryDlg *dialog = new SumHistoryDlg(this, -1);
     dialog->ShowModal();
     dialog->Destroy();
-}
-
-void FFrame::OnFClearH (wxCommandEvent&)
-{
-    ftk->exec("fit history clear");
 }
 
 void FFrame::OnPowderDiffraction (wxCommandEvent&)

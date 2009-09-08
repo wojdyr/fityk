@@ -7,33 +7,8 @@
 
 #include <vector>
 #include <wx/spinctrl.h>
-#include <wx/listctrl.h>
 
 #include "cmn.h"
-
-class SumHistoryDlg : public wxDialog
-{
-public:
-    SumHistoryDlg (wxWindow* parent, wxWindowID id);
-    void OnUpButton           (wxCommandEvent& event);
-    void OnDownButton         (wxCommandEvent& event);
-    void OnComputeWssrButton  (wxCommandEvent& event);
-    void OnSelectedItem       (wxListEvent&    event);
-    void OnActivatedItem      (wxListEvent&    event);
-    void OnViewSpinCtrlUpdate (wxSpinEvent&    event);
-    void OnClose (wxCommandEvent& ) { close_it(this); }
-protected:
-    int view[4], view_max;
-    wxListCtrl *lc;
-    wxBitmapButton *up_arrow, *down_arrow;
-    wxButton *compute_wssr_button;
-
-    void initialize_lc();
-    void update_selection();
-    void add_item_to_lc(int pos, std::vector<double> const& item);
-    DECLARE_EVENT_TABLE()
-};
-
 
 class FitRunDlg : public wxDialog
 {

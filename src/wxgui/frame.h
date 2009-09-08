@@ -90,14 +90,12 @@ public:
     void OnMenuFitUndoUpdate (wxUpdateUIEvent& event);
     void OnMenuFitRedoUpdate (wxUpdateUIEvent& event);
     void OnMenuFitHistoryUpdate (wxUpdateUIEvent& event);
-    void OnMenuFitClearHistoryUpdate (wxUpdateUIEvent& event);
     void OnFOneOfMethods (wxCommandEvent& event);
     void OnFRun          (wxCommandEvent& event);
     void OnFInfo         (wxCommandEvent& event);
     void OnFUndo         (wxCommandEvent& event);
     void OnFRedo         (wxCommandEvent& event);
     void OnFHistory      (wxCommandEvent& event);
-    void OnFClearH       (wxCommandEvent& event);
 
     void OnPowderDiffraction (wxCommandEvent&);
 

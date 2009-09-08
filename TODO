@@ -19,8 +19,6 @@ Help is needed:
 
 * powder diffraction add-on - Pawley fitting 
 
-* GUI: Fit > Clear History is not needed in menu, can be called from dialog (?)
-
 * CLI: filter out "inf"s from data passed to gnuplot
 
 * document recent features:
