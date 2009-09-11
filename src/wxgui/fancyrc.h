@@ -66,4 +66,29 @@ private:
     void OnKeyDown(wxKeyEvent &event);
 };
 
+class LockButton;
+
+// This class is used in powdifpat. TODO: merge with FancyRealCtrl
+class LockableRealCtrl : public wxPanel
+{
+public:
+    LockableRealCtrl(wxWindow* parent, bool percent=false);
+    bool is_locked() const;
+    bool is_null() const { return text->IsEmpty(); }
+    double get_value() const;
+    wxString get_string() const { return text->GetValue(); }
+    void set_string(wxString const& s) { text->ChangeValue(s); }
+    void set_value(double value);
+    void Clear() { text->ChangeValue(wxT("")); }
+    wxTextCtrl* get_text_ctrl() const { return text; }
+
+private:
+    wxTextCtrl *text;
+    LockButton *lock;
+};
+
+// access to xpm bitmaps
+const char **get_lock_xpm();
+const char **get_lock_open_xpm();
+
 #endif

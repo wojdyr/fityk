@@ -234,3 +234,70 @@ wxBitmap FancyRealCtrl::GetLockBitmap() const
 }
 
 
+
+// LockableRealCtrl is used in powdifpat; to be merged with FancyRealCtrl
+
+class LockButton : public wxBitmapButton
+{
+public:
+    LockButton(wxWindow* parent /*, wxTextCtrl *text_*/)
+        : wxBitmapButton(parent, -1, wxBitmap(lock_xpm),
+                         wxDefaultPosition, wxDefaultSize, wxNO_BORDER),
+          //text(text_),
+          locked(true)
+    {
+        Connect(GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
+                (wxObjectEventFunction) &LockButton::OnClick);
+    }
+
+    void OnClick(wxCommandEvent&)
+    {
+        locked = !locked;
+        SetBitmapLabel(wxBitmap(locked ? lock_xpm : lock_open_xpm));
+        //text->Enable(!locked);
+        //text->SetEditable(!locked);
+    }
+
+    bool is_locked() const { return locked; }
+
+private:
+    //wxTextCtrl *text;
+    bool locked;
+};
+
+LockableRealCtrl::LockableRealCtrl(wxWindow* parent, bool percent)
+    : wxPanel(parent, -1)
+{
+    if (percent)
+        text = new KFTextCtrl(this, -1, wxT(""), 50, wxTE_RIGHT);
+    else
+        text = new KFTextCtrl(this, -1, wxT(""));
+    lock = new LockButton(this);
+    wxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(text, wxSizerFlags().Center());
+    if (percent)
+        sizer->Add(new wxStaticText(this, -1, wxT("%")),
+                   wxSizerFlags().Center());
+    sizer->Add(lock, wxSizerFlags().Center());
+    SetSizerAndFit(sizer);
+}
+
+double LockableRealCtrl::get_value() const
+{
+    return strtod(text->GetValue().c_str(), 0);
+}
+
+void LockableRealCtrl::set_value(double value)
+{
+    if (value != get_value())
+        text->ChangeValue(wxString::Format(wxT("%g"), value));
+}
+
+bool LockableRealCtrl::is_locked() const
+{
+    return lock->is_locked();
+}
+
+const char **get_lock_xpm() { return lock_xpm; }
+const char **get_lock_open_xpm() { return lock_open_xpm; }
+

@@ -55,7 +55,8 @@ inputline: sample_inputline.cpp inputline.cpp inputline.h callback.h
 
 if POWDIFPAT
 bin_PROGRAMS += powdifpat
-powdifpat_SOURCES = powdifpat.cpp powdifpat.h uplot.cpp uplot.h cmn.cpp cmn.h
+powdifpat_SOURCES = powdifpat.cpp powdifpat.h uplot.cpp uplot.h cmn.cpp cmn.h \
+		    fancyrc.cpp fancyrc.h
 powdifpat_CPPFLAGS = @WX_CPPFLAGS@ @XYLIB_CPPFLAGS@ @SGLITE_CPPFLAGS@ \
 		     -DSTANDALONE_POWDIFPAT
 powdifpat_LDADD = @WX_LIBS@ @XYLIB_LDADD@ @SGLITE_LDADD@ $(powdifpat_res)

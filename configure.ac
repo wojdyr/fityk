@@ -30,8 +30,8 @@ AC_ARG_ENABLE(xyconvert,
 test -z "$enable_xyconvert" && enable_xyconvert="yes"
 
 AC_ARG_ENABLE(powdifpat,
-[  --disable-powdifpat     do not build powdifpat program])
-test -z "$enable_powdifpat" && enable_powdifpat="yes"
+[  --enable-powdifpat      build (not working) powdifpat program])
+test -z "$enable_powdifpat" && enable_powdifpat="no"
 
 AC_ARG_ENABLE(python,
 [  --enable-python         build python bindings to libfityk])

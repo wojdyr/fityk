@@ -31,10 +31,7 @@ extern const T_Main_HM_Dict Main_HM_Dict[];
 #include "../common.h"
 #include "cmn.h"
 #include "uplot.h" // BufferedPanel, scale_tics_step()
-
-#include "img/lock.xpm"
-#include "img/lock_open.xpm"
-
+#include "fancyrc.h" // LockableRealCtrl 
 
 using namespace std;
 
@@ -74,62 +71,6 @@ public:
 
 private:
     wxBitmap bitmap;
-};
-
-
-class LockButton : public wxBitmapButton
-{
-public:
-    LockButton(wxWindow* parent /*, wxTextCtrl *text_*/)
-        : wxBitmapButton(parent, -1, wxBitmap(lock_xpm),
-                         wxDefaultPosition, wxDefaultSize, wxNO_BORDER),
-          //text(text_),
-          locked(true)
-    {
-        Connect(GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
-                (wxObjectEventFunction) &LockButton::OnClick);
-    }
-
-    void OnClick(wxCommandEvent&)
-    {
-        locked = !locked;
-        SetBitmapLabel(wxBitmap(locked ? lock_xpm : lock_open_xpm));
-        //text->Enable(!locked);
-        //text->SetEditable(!locked);
-    }
-
-    bool is_locked() const { return locked; }
-
-private:
-    //wxTextCtrl *text;
-    bool locked;
-};
-
-
-class LockableRealCtrl : public wxPanel
-{
-public:
-    LockableRealCtrl(wxWindow* parent, bool percent=false);
-    bool is_locked() const { return lock->is_locked(); }
-    bool is_null() const { return text->IsEmpty(); }
-    double get_value() const;
-    wxString get_string() const { return text->GetValue(); }
-
-    void set_string(wxString const& s) { text->ChangeValue(s); }
-
-    void set_value(double val)
-    {
-        if (val != get_value())
-            text->ChangeValue(wxString::Format(wxT("%g"), val));
-    }
-
-    void Clear() { text->ChangeValue(wxT("")); }
-
-    wxTextCtrl* get_text_ctrl() const { return text; }
-
-private:
-    KFTextCtrl *text;
-    LockButton *lock;
 };
 
 
@@ -238,32 +179,6 @@ struct compare_hkl
 #endif
 
 
-} // anonymous namespace
-
-
-LockableRealCtrl::LockableRealCtrl(wxWindow* parent, bool percent)
-    : wxPanel(parent, -1)
-{
-    if (percent)
-        text = new KFTextCtrl(this, -1, wxT(""), 50, wxTE_RIGHT);
-    else
-        text = new KFTextCtrl(this, -1, wxT(""));
-    lock = new LockButton(this);
-    wxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(text, wxSizerFlags().Center());
-    if (percent)
-        sizer->Add(new wxStaticText(this, -1, wxT("%")),
-                   wxSizerFlags().Center());
-    sizer->Add(lock, wxSizerFlags().Center());
-    SetSizerAndFit(sizer);
-}
-
-double LockableRealCtrl::get_value() const
-{
-    return strtod(text->GetValue().c_str(), 0);
-}
-
-
 LockableRealCtrl *addMaybeRealCtrl(wxWindow *parent, wxString const& label,
                                    wxSizer *sizer, wxSizerFlags const& flags)
 {
@@ -275,6 +190,10 @@ LockableRealCtrl *addMaybeRealCtrl(wxWindow *parent, wxString const& label,
     sizer->Add(hsizer, flags);
     return ctrl;
 }
+
+
+} // anonymous namespace
+
 
 
 PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
@@ -381,11 +300,11 @@ wxPanel* PowderBook::PrepareIntroPanel()
     wxStaticBoxSizer *legend_box = new wxStaticBoxSizer(wxHORIZONTAL,
                                                         panel, wxT("Legend"));
     wxFlexGridSizer *legend = new wxFlexGridSizer(2, 5, 5);
-    legend->Add(new wxStaticBitmap(panel, -1, lock_xpm),
+    legend->Add(new wxStaticBitmap(panel, -1, get_lock_xpm()),
                 wxSizerFlags().Center().Right());
     legend->Add(new wxStaticText(panel, -1, wxT("constant parameter")),
                 wxSizerFlags().Center().Left());
-    legend->Add(new wxStaticBitmap(panel, -1, lock_open_xpm),
+    legend->Add(new wxStaticBitmap(panel, -1, get_lock_open_xpm()),
                 wxSizerFlags().Center().Right());
     legend->Add(new wxStaticText(panel, -1,
                                  wxT("parameter should be optimized")),
