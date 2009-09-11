@@ -3,7 +3,7 @@
 # to regenerage the list in vim:
 # ++d}- :r! find html -type f -exec echo '$(srcdir)/'\{} \\ \;
 # }bxx
-nobase_dist_pkgdata_DATA = \
+nobase_dist_doc_DATA = \
 $(srcdir)/html/appendix.html \
 $(srcdir)/html/index.html \
 $(srcdir)/html/getstarted.html \

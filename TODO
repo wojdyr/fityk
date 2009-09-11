@@ -11,8 +11,6 @@ Help is needed:
 
 * bug: freezing on error during fitting, see analytical-gbe
 
-* install html help into docdir rather than pkgdatadir?
-
 * build xyConvert and powdifpat by default?
 
 * add sglite to 3rdparty/ ?

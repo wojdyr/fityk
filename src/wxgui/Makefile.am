@@ -22,7 +22,7 @@ powdifpat_res = powdifpatres.o
 $(powdifpat_res): powdifpat.rc img/powdifpat.ico
 	$(RC) -o $@ $(RC_FLAGS) $<
 else
-HELP_DEF= -DHELP_DIR=\"$(pkgdatadir)\"
+HELP_DEF= -DHELP_DIR=\"$(docdir)\"
 endif  #OS_WIN32
 
 fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
