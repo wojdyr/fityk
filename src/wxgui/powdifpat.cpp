@@ -3,10 +3,11 @@
 // $Id$
 
 // TODO:
-// phases: static box around name, space group, lattice parameters
-// avoid dups on reflection list, e.g. 333 and 151
+// double click in space group chooser should close the dialog
+// systematic absences of peaks
 
 #include <cmath>
+#include <algorithm>
 #include <iostream>
 
 #include <wx/wx.h>
@@ -23,7 +24,8 @@ extern "C" {
 #include <sglite/sglite.h>
 #include <sglite/sgconst.h>
 }
-// SgLite doesn't provide API to some data tables
+// SgLite doesn't provide API to this tables
+// In 3rdparty/sglite this table was made not static
 extern const T_Main_HM_Dict Main_HM_Dict[];
 
 
@@ -71,6 +73,45 @@ public:
 
 private:
     wxBitmap bitmap;
+};
+
+
+class UnitCell
+{
+public:
+    const double a, b, c, alpha, beta, gamma;
+    const double V;
+    double M[3][3];
+    double M_1[3][3]; // M^-1
+
+    UnitCell(double a_, double b_, double c_,
+             double alpha_, double beta_, double gamma_)
+        : a(a_), b(b_), c(c_), alpha(alpha_), beta(beta_), gamma(gamma_),
+          V(calculate_V())
+            { set_M(); }
+
+    double calculate_V() const;
+
+    // pre: V should be set
+    void set_M();
+
+    UnitCell get_reciprocal() const;
+
+    // returns |v|, where v = M_1 * [h k l]; 
+    double calculate_distance(double h, double k, double l) const;
+
+    // calculate interplanar distance
+    double calculate_d(int h, int k, int l) const;
+};
+
+struct Plane
+{
+    int h, k, l;
+    double d;
+    int multiplicity;
+    double intensity;
+
+    bool operator<(const Plane& p) const { return d > p.d; }
 };
 
 
@@ -132,7 +173,7 @@ private:
     T_HM_as_Hall sg_names;
     T_SgOps sg_ops;
     int sg_xs;
-    vector<double> all_dists;
+    vector<Plane> hkls; // reflections
 
     void enable_parameter_fields();
     void update_disabled_parameters();
@@ -143,13 +184,13 @@ private:
 
 namespace {
 
-struct t_wavelength
+struct Anode
 {
-    const char *anode;
+    const char *name;
     double alpha1, alpha2;
 };
 
-const t_wavelength wavelengths[] = {
+const Anode anodes[] = {
     { "Cu", 1.54056, 1.54439 },
     { "Cr", 2.28970, 2.29361 },
     { "Fe", 1.93604, 1.93998 },
@@ -166,18 +207,48 @@ const char* quick_list_ini =
 "CeO2|F m -3 m|5.41|5.41|5.41|90|90|90\n"
 ;
 
-#if 0
-// functor for sorting by decreasing d
-struct compare_hkl
-{
-    compare_hkl(cctbx::uctbx::unit_cell const& uc_) : uc(uc_) {}
-    bool operator() (cctbx::miller::index<> const& a,
-                     cctbx::miller::index<> const& b)
-                                            { return uc.d(a) > uc.d(b); }
-    cctbx::uctbx::unit_cell uc;
-};
-#endif
+// helper to generate sequence 0, 1, -1, 2, -2, 3, ...
+int inc_neg(int h) { return h > 0 ? -h : -h+1; }
 
+static const double epsilon = 1e-9;
+
+vector<Plane> generate_reflections(UnitCell const& uc, double min_d)
+{
+    vector<Plane> v;
+    int max_h = 10; // TODO
+    int max_k = 10; // TODO
+    int max_l = 10; // TODO
+    UnitCell reciprocal = uc.get_reciprocal();
+    for (int h = 0; h != max_h; h = inc_neg(h))
+        for (int k = 0; k != max_k; k = inc_neg(k))
+            for (int l = (h==0 && k==0 ? 1 : 0); l != max_l; l = inc_neg(l)) {
+                double d = 1 / reciprocal.calculate_distance(h, k, l);
+                //double d = uc.calculate_d(h, k, l); // the same
+                if (d < min_d)
+                    continue;
+                bool found = false;
+                for (vector<Plane>::iterator i = v.begin(); i != v.end(); ++i) {
+                    if (fabs(d - i->d) < epsilon) {
+                        i->multiplicity++;
+                        i->intensity += 0.;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    Plane p;
+                    p.h = h;
+                    p.k = k;
+                    p.l = l;
+                    p.d = d;
+                    p.multiplicity = 1;
+                    p.intensity = 0.;
+                    v.push_back(p);
+                }
+            }
+    sort(v.begin(), v.end());
+    return v;
+}
 
 LockableRealCtrl *addMaybeRealCtrl(wxWindow *parent, wxString const& label,
                                    wxSizer *sizer, wxSizerFlags const& flags)
@@ -191,9 +262,88 @@ LockableRealCtrl *addMaybeRealCtrl(wxWindow *parent, wxString const& label,
     return ctrl;
 }
 
-
 } // anonymous namespace
 
+double UnitCell::calculate_V() const
+{
+    // Giacovazzo p.62
+    double cosA = cos(alpha), cosB = cos(beta), cosG = cos(gamma);
+    double t = 1 - cosA*cosA - cosB*cosB - cosG*cosG + 2*cosA*cosB*cosG;
+    return a*b*c * sqrt(t);
+}
+
+double UnitCell::calculate_d(int h, int k, int l) const
+{
+    double sinA=sin(alpha), sinB=sin(beta), sinG=sin(gamma),
+           cosA=cos(alpha), cosB=cos(beta), cosG=cos(gamma);
+    return
+      sqrt((1 - cosA*cosA - cosB*cosB - cosG*cosG + 2*cosA*cosB*cosG)
+              / (  (h/a*sinA) * (h/a*sinA)
+                 + (k/b*sinB) * (k/b*sinB)
+                 + (l/c*sinG) * (l/c*sinG)
+                 + 2*h*l/a/c*(cosA*cosG-cosB)
+                 + 2*h*k/a/b*(cosA*cosB-cosG)
+                 + 2*k*l/b/c*(cosB*cosG-cosA)
+                )
+          );
+}
+
+//     [       1/a               0        0   ]
+// M = [  -cosG/(a sinG)    1/(b sinG)    0   ]
+//     [     a*cosB*         b*cosA*      c*  ]
+//
+// where A is alpha, B is beta, G is gamma, * means reciprocal space.
+// (Giacovazzo, p.68)
+void UnitCell::set_M()
+{
+    double sinA=sin(alpha), sinB=sin(beta), sinG=sin(gamma),
+           cosA=cos(alpha), cosB=cos(beta), cosG=cos(gamma);
+    M[0][0] = 1/a;
+    M[0][1] = 0.;
+    M[0][2] = 0.;
+    M[1][0] = -cosG/(a*sinG);
+    M[1][1] = 1/(b*sinG);
+    M[1][2] = 0.;
+    M[2][0] = b * c * sinA / V // a*
+              * (cosA*cosG-cosB) / (sinA*sinG); //cosB*
+    M[2][1] = a * c * sinB / V // b*
+              * (cosB*cosG-cosA) / (sinB*sinG); //cosA*
+    M[2][2] = a * b * sinG / V; // c*
+
+    M_1[0][0] = a;
+    M_1[0][1] = 0;
+    M_1[0][2] = 0;
+    M_1[1][0] = b * cosG;
+    M_1[1][1] = b * sinG;
+    M_1[1][2] = 0;
+    M_1[2][0] = c * cosB;
+    M_1[2][1] = -c * sinB * (cosB*cosG-cosA) / (sinB*sinG);
+    M_1[2][2] = 1 / M[2][2];
+}
+
+// returns UnitCell reciprocal to this, i.e. that has parameters a*, b*, ...
+// (Giacovazzo, p. 64)
+UnitCell UnitCell::get_reciprocal() const
+{
+    double ar = b * c * sin(alpha) / V;
+    double br = a * c * sin(beta) / V;
+    double cr = a * b * sin(gamma) / V;
+    double cosAr = (cos(beta)*cos(gamma)-cos(alpha)) / (sin(beta)*sin(gamma));
+    double cosBr = (cos(alpha)*cos(gamma)-cos(beta)) / (sin(alpha)*sin(gamma));
+    double cosGr = (cos(alpha)*cos(beta)-cos(gamma)) / (sin(alpha)*sin(beta));
+    return UnitCell(ar, br, cr, acos(cosAr), acos(cosBr), acos(cosGr));
+}
+
+// returns 1/|v|, where v = M * [h k l]; 
+double UnitCell::calculate_distance(double h, double k, double l) const
+{
+    double v2 = 0.;
+    for (int i = 0; i != 3; ++i) {
+        double t = h * M_1[0][i] + k * M_1[1][i] + l * M_1[2][i];
+        v2 += t*t;
+    }
+    return sqrt(v2);
+}
 
 
 PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
@@ -337,10 +487,10 @@ wxPanel* PowderBook::PrepareInstrumentPanel()
     wxSizer *wave_sizer = new wxStaticBoxSizer(wxHORIZONTAL, panel,
                                                wxT("wavelengths"));
     anode_lb = new wxListBox(panel, -1);
-    for (t_wavelength const* i = wavelengths; i->anode; ++i) {
-        anode_lb->Append(pchar2wx(i->anode));
-        anode_lb->Append(pchar2wx(i->anode) + wxT(" A1"));
-        anode_lb->Append(pchar2wx(i->anode) + wxT(" A12"));
+    for (Anode const* i = anodes; i->name; ++i) {
+        anode_lb->Append(pchar2wx(i->name));
+        anode_lb->Append(pchar2wx(i->name) + wxT(" A1"));
+        anode_lb->Append(pchar2wx(i->name) + wxT(" A12"));
     }
     wave_sizer->Add(anode_lb, wxSizerFlags(1).Border().Expand());
 
@@ -735,7 +885,7 @@ void PhasePanel::OnParameterChanged(wxCommandEvent&)
     sample_plot->refresh();
 }
 
-void PhasePanel::OnLineToggled(wxCommandEvent &event)
+void PhasePanel::OnLineToggled(wxCommandEvent&)
 {
     sample_plot->refresh();
 }
@@ -756,51 +906,31 @@ void PhasePanel::update_disabled_parameters()
 
 void PhasePanel::update_miller_indices()
 {
-//    using cctbx::uctbx::unit_cell;
-//    namespace miller =  cctbx::miller;
-//    namespace sgtbx = cctbx::sgtbx;
-
     double a = par_a->get_value();
     double b = par_b->get_value();
     double c = par_c->get_value();
-    double alpha = par_alpha->get_value();
-    double beta = par_beta->get_value();
-    double gamma = par_gamma->get_value();
+    double alpha = par_alpha->get_value() * M_PI / 180.;
+    double beta = par_beta->get_value() * M_PI / 180.;
+    double gamma = par_gamma->get_value() * M_PI / 180.;
 
     double lambda = powder_book->get_lambda0();
 
     double max_2theta = 150 * M_PI / 180; //TODO
 
+    hkl_list->Clear();
     if (a <= 0 || b <= 0 || c <= 0 || alpha <= 0 || beta <= 0 || gamma <= 0
             || lambda <= 0 || max_2theta <= 0) {
-        hkl_list->Clear();
         return;
     }
+    UnitCell uc(a, b, c, alpha, beta, gamma);
 
     double min_d = lambda / (2 * sin(max_2theta / 2.));
+    hkls = generate_reflections(uc, min_d);
 
-    //unit_cell uc = unit_cell(scitbx::af::double6(a, b, c, alpha, beta, gamma));
-    //sgtbx::space_group sg(sgs);
-    //sgtbx::space_group_type sg_type(sg);
-
-    //miller::index_generator igen(uc, sg_type, false, min_d);
-    //vector<miller::index<> > hvec;
-    //for (miller::index<> h = igen.next(); !h.is_zero(); h = igen.next())
-    //    hvec.push_back(h);
-    //sort(hvec.begin(), hvec.end(), compare_hkl(uc));
-
-    vector<string> items;
-    all_dists.clear();
-#if 0
-    for (vector<miller::index<> >::const_iterator i = hvec.begin();
-                                                    i != hvec.end(); ++i) {
-        string label = i->as_string() + "  d=" + S(uc.d(*i));
-
-        all_dists.push_back(uc.d(*i));
-        items.push_back(label);
+    for (vector<Plane>::const_iterator i = hkls.begin(); i != hkls.end(); ++i) {
+        hkl_list->Append(wxString::Format(wxT("(%d,%d,%d)  *%d  d=%g"),
+                                   i->h, i->k, i->l, i->multiplicity, i->d));
     }
-#endif
-    updateControlWithItems(hkl_list, items);
     for (size_t i = 0; i < hkl_list->GetCount(); ++i)
         hkl_list->Check(i, true);
 }
@@ -821,9 +951,9 @@ void PhasePanel::set_data(vector<string> const& tokens)
 vector<double> PhasePanel::get_dists() const
 {
     vector<double> dd;
-    for (size_t i = 0; i != all_dists.size(); ++i)
+    for (size_t i = 0; i != hkls.size(); ++i)
         if (hkl_list->IsChecked(i))
-            dd.push_back(all_dists[i]);
+            dd.push_back(hkls[i].d);
     return dd;
 }
 
@@ -908,7 +1038,7 @@ void PowderBook::set_file(wxString const& path)
         y_max = ycol.get_max(block->get_point_count());
         range_from->set(x_min);
         range_to->set(x_max);
-        for (int i = 0; i < sample_nb->GetPageCount(); ++i)
+        for (size_t i = 0; i < sample_nb->GetPageCount(); ++i)
             get_phase_panel(i)->sample_plot->refresh();
     } catch (runtime_error const& e) {
         data = NULL;
@@ -932,8 +1062,8 @@ void PowderBook::OnAnodeSelected(wxCommandEvent& event)
 
     // set new value
     wxString s = anode_lb->GetString(n);
-    for (t_wavelength const* i = wavelengths; i->anode; ++i) {
-        if (s.StartsWith(i->anode)) {
+    for (Anode const* i = anodes; i->name; ++i) {
+        if (s.StartsWith(i->name)) {
             double a1 = 0, a2 = 0;
             if (s.EndsWith("A12")) {
                 a1 = i->alpha1;
@@ -1020,7 +1150,7 @@ SpaceGroupChooser::SpaceGroupChooser(wxWindow* parent)
     hsizer->Add(new wxStaticText(this, -1, wxT("centering:")),
                 wxSizerFlags().Border().Center());
     wxString letters = wxT("PABCIRF");
-    for (int i = 0; i < sizeof(centering_cb)/sizeof(centering_cb[0]); ++i) {
+    for (size_t i = 0; i < sizeof(centering_cb)/sizeof(centering_cb[0]); ++i) {
         centering_cb[i] = new wxCheckBox(this, -1, letters[i]);
         centering_cb[i]->SetValue(true);
         hsizer->Add(centering_cb[i], wxSizerFlags().Border());
@@ -1052,7 +1182,7 @@ SpaceGroupChooser::SpaceGroupChooser(wxWindow* parent)
     sizer->Add(CreateButtonSizer(wxOK|wxCANCEL),
                wxSizerFlags().Expand());
     SetSizerAndFit(sizer);
-    for (int i = 0; i < sizeof(centering_cb)/sizeof(centering_cb[0]); ++i)
+    for (size_t i = 0; i < sizeof(centering_cb)/sizeof(centering_cb[0]); ++i)
         Connect(centering_cb[i]->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
                 (wxObjectEventFunction) &SpaceGroupChooser::OnCheckBox);
 }
