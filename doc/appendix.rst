@@ -124,6 +124,13 @@ The approximation is very fast, but not very exact.
                                 + \frac{c}{\sqrt{2}d}\right)
        \right]
 
+**LogNormal:**
+
+.. math::
+   y = h \exp\left\{ -\ln(2) \left[
+                                   \frac{\ln\left(1+2b\frac{x-c}{w}\right)}{b}
+                            \right]^{2} \right\}
+
 **Doniach-Sunjic (DoniachSunjic):**
 
 .. math:: 

@@ -34,6 +34,7 @@ $(srcdir)/html/_images/math/5e97a8af68fbc8e357d3ee0eba452022b06c1875.png \
 $(srcdir)/html/_images/math/7532b41a34c9ca592694135d1de65eeb8d9ce036.png \
 $(srcdir)/html/_images/math/727873d2cbeda3d30f41bee18cb2bf5ea1071fa1.png \
 $(srcdir)/html/_images/math/fa35d9fc104207e09a712110ac81612c5b279a6c.png \
+$(srcdir)/html/_images/math/b72439b28d639f1999aeecd537d21df605ad8db8.png \
 $(srcdir)/html/_images/math/61c594c97b61f72af93af4e61894b3f16a3bbb30.png \
 $(srcdir)/html/_images/math/ee5c7c921b3334f6ecf58c241eeea42acf0ce71e.png \
 $(srcdir)/html/_images/math/572b65ebc3f438b176b4ca4a890799f2f72564af.png \
