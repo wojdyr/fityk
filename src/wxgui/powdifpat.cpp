@@ -120,9 +120,11 @@ class SpaceGroupChooser : public wxDialog
 public:
     SpaceGroupChooser(wxWindow* parent);
     void OnCheckBox(wxCommandEvent&) { regenerate_list(); }
+    void OnSystemChoice(wxCommandEvent&) { regenerate_list(); }
     void regenerate_list();
     wxString get_value() const;
 private:
+    wxChoice *system_c;
     wxListView *list;
     wxCheckBox *centering_cb[7];
 };
@@ -787,6 +789,24 @@ void PhasePanel::OnSpaceGroupChanged(wxCommandEvent&)
     sample_plot->refresh();
 }
 
+int get_crystal_system(int space_group)
+{
+    if (space_group <= 2)
+        return XS_Triclinic;
+    else if (space_group <= 15)
+        return XS_Monoclinic;
+    else if (space_group <= 74)
+        return XS_Orthorhombic;
+    else if (space_group <= 142)
+        return XS_Tetragonal;
+    else if (space_group <= 167)
+        return XS_Trigonal;
+    else if (space_group <= 194)
+        return XS_Hexagonal;
+    else
+        return XS_Cubic;
+}
+
 void PhasePanel::set_space_group(string const& text)
 {
     int sg_number = SgSymbolLookup('A', text.c_str(), &sg_names);
@@ -1146,6 +1166,20 @@ SpaceGroupChooser::SpaceGroupChooser(wxWindow* parent)
                    wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
     wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+
+    wxSizer *ssizer = new wxBoxSizer(wxHORIZONTAL);
+    ssizer->Add(new wxStaticText(this, -1, wxT("system:")),
+                wxSizerFlags().Border().Center());
+    wxArrayString s_choices;
+    s_choices.Add(wxT("All lattice systems"));
+    for (int i = 2; i < 9; ++i)
+        s_choices.Add(pchar2wx(XS_Name[i]));
+    system_c = new wxChoice(this, -1, wxDefaultPosition, wxDefaultSize,
+                            s_choices);
+    system_c->SetSelection(0);
+    ssizer->Add(system_c, wxSizerFlags(1).Border());
+    sizer->Add(ssizer, wxSizerFlags().Expand());
+
     wxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
     hsizer->Add(new wxStaticText(this, -1, wxT("centering:")),
                 wxSizerFlags().Border().Center());
@@ -1156,6 +1190,7 @@ SpaceGroupChooser::SpaceGroupChooser(wxWindow* parent)
         hsizer->Add(centering_cb[i], wxSizerFlags().Border());
     }
     sizer->Add(hsizer);
+
     list = new wxListView(this, -1,
                           wxDefaultPosition, wxSize(300, 500),
                           wxLC_REPORT|wxLC_HRULES|wxLC_VRULES);
@@ -1167,30 +1202,39 @@ SpaceGroupChooser::SpaceGroupChooser(wxWindow* parent)
     regenerate_list();
 
     // set widths of columns
+    int col_widths[4];
     int total_width = 0;
     for (int i = 0; i < 4; i++) {
         list->SetColumnWidth(i, wxLIST_AUTOSIZE);
-        total_width += list->GetColumnWidth(i);
+        col_widths[i] = list->GetColumnWidth(i);
+        total_width += col_widths[i];
     }
-    // leave margin of 20 px for scrollbar
-    int empty_width = GetClientSize().GetWidth() - total_width - 20;
+    // leave margin of 50 px for scrollbar
+    int empty_width = GetClientSize().GetWidth() - total_width - 50;
     if (empty_width > 0)
         for (int i = 0; i < 4; i++)
-            list->SetColumnWidth(i, list->GetColumnWidth(i) + empty_width / 4);
+            list->SetColumnWidth(i, col_widths[i] + empty_width / 4);
 
     sizer->Add(list, wxSizerFlags(1).Expand().Border());
     sizer->Add(CreateButtonSizer(wxOK|wxCANCEL),
                wxSizerFlags().Expand());
     SetSizerAndFit(sizer);
+
     for (size_t i = 0; i < sizeof(centering_cb)/sizeof(centering_cb[0]); ++i)
         Connect(centering_cb[i]->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
                 (wxObjectEventFunction) &SpaceGroupChooser::OnCheckBox);
+
+    Connect(system_c->GetId(), wxEVT_COMMAND_CHOICE_SELECTED,
+            (wxObjectEventFunction) &SpaceGroupChooser::OnSystemChoice);
 }
 
 void SpaceGroupChooser::regenerate_list()
 {
     list->DeleteAllItems();
+    int sel = system_c->GetSelection();
     for (const T_Main_HM_Dict* i = Main_HM_Dict; i->HM != NULL; ++i) {
+        if (sel != 0 && get_crystal_system(i->SgNumber) != sel+1)
+            continue;
         switch (i->HM[0]) {
             case 'P': if (!centering_cb[0]->IsChecked()) continue; break;
             case 'A': if (!centering_cb[1]->IsChecked()) continue; break;
