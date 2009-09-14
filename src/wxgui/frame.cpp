@@ -1113,14 +1113,7 @@ void FFrame::OnFHistory (wxCommandEvent&)
 
 void FFrame::OnPowderDiffraction (wxCommandEvent&)
 {
-    wxDialog *dialog = new wxDialog(NULL, wxID_ANY,
-                                    wxT("powder diffraction analysis"));
-    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-    PowderBook *pb = new PowderBook(dialog, wxID_ANY);
-    sizer->Add(pb, wxSizerFlags(1).Expand());
-    dialog->SetSizerAndFit(sizer);
-    dialog->ShowModal();
-    dialog->Destroy();
+    PowderDiffractionDlg(this, -1).ShowModal();
 }
 
 void FFrame::OnMenuLogStartUpdate (wxUpdateUIEvent& event)

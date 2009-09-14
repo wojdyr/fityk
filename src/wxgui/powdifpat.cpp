@@ -2,9 +2,6 @@
 // Licence: GNU General Public License ver. 2+
 // $Id$
 
-// TODO:
-// double click in space group chooser should close the dialog
-// systematic absences of peaks
 
 #include <cmath>
 #include <algorithm>
@@ -16,16 +13,12 @@
 #include <wx/cmdline.h>
 #include <wx/listctrl.h>
 
-//#include <cctbx/sgtbx/symbols.h>
-//#include <cctbx/error.h>
-//#include <cctbx/miller/index_generator.h>
-//
 extern "C" {
 #include <sglite/sglite.h>
 #include <sglite/sgconst.h>
 }
-// SgLite doesn't provide API to this tables
-// In 3rdparty/sglite this table was made not static
+// SgLite doesn't provide API to iterate this table.
+// In 3rdparty/sglite this table was made not static.
 extern const T_Main_HM_Dict Main_HM_Dict[];
 
 
@@ -34,6 +27,12 @@ extern const T_Main_HM_Dict Main_HM_Dict[];
 #include "cmn.h"
 #include "uplot.h" // BufferedPanel, scale_tics_step()
 #include "fancyrc.h" // LockableRealCtrl 
+
+#if !STANDALONE_POWDIFPAT
+#include "frame.h"
+#include "../logic.h"
+#include "../data.h"
+#endif
 
 using namespace std;
 
@@ -114,6 +113,24 @@ struct Plane
     bool operator<(const Plane& p) const { return d > p.d; }
 };
 
+class Crystal
+{
+public:
+    T_HM_as_Hall sg_names; // space group
+    T_SgOps sg_ops; // symmetry operations
+    int sg_xs; // crystal system
+    UnitCell* uc;
+    vector<Plane> hkls; // reflections
+
+    Crystal() : uc(NULL) {}
+    ~Crystal() { delete uc; }
+    const char* get_crystal_system_name() { return XS_Name[sg_xs]; }
+    int set_space_group(const char* name);
+    void generate_reflections(double min_d);
+    void set_unit_cell(double a, double b, double c,
+                       double alpha, double beta, double gamma)
+        { delete uc; uc = new UnitCell(a, b, c, alpha, beta, gamma); }
+};
 
 class SpaceGroupChooser : public wxDialog
 {
@@ -121,6 +138,7 @@ public:
     SpaceGroupChooser(wxWindow* parent);
     void OnCheckBox(wxCommandEvent&) { regenerate_list(); }
     void OnSystemChoice(wxCommandEvent&) { regenerate_list(); }
+    void OnListItemActivated(wxCommandEvent&) { EndModal(wxID_OK); }
     void regenerate_list();
     wxString get_value() const;
 private:
@@ -157,7 +175,7 @@ public:
                                { powder_book->deselect_phase_quick_list(); }
     void OnParameterChanged(wxCommandEvent& event);
     void OnLineToggled(wxCommandEvent& event);
-    void set_data(vector<string> const& tokens);
+    void set_phase(vector<string> const& tokens);
     vector<double> get_dists() const;
 
 private:
@@ -171,17 +189,13 @@ private:
     PlotWithLines *sample_plot;
     wxStaticText *sg_nr_st;
 
-    //cctbx::sgtbx::space_group_symbols sgs;
-    T_HM_as_Hall sg_names;
-    T_SgOps sg_ops;
-    int sg_xs;
-    vector<Plane> hkls; // reflections
+    Crystal cr;
 
     void enable_parameter_fields();
     void update_disabled_parameters();
     void update_miller_indices();
     void set_ortho_angles();
-    void set_space_group(string const& text);
+    void change_space_group(string const& text);
 };
 
 namespace {
@@ -212,25 +226,69 @@ const char* quick_list_ini =
 // helper to generate sequence 0, 1, -1, 2, -2, 3, ...
 int inc_neg(int h) { return h > 0 ? -h : -h+1; }
 
-static const double epsilon = 1e-9;
-
-vector<Plane> generate_reflections(UnitCell const& uc, double min_d)
+LockableRealCtrl *addMaybeRealCtrl(wxWindow *parent, wxString const& label,
+                                   wxSizer *sizer, wxSizerFlags const& flags)
 {
-    vector<Plane> v;
-    int max_h = 10; // TODO
-    int max_k = 10; // TODO
-    int max_l = 10; // TODO
-    UnitCell reciprocal = uc.get_reciprocal();
-    for (int h = 0; h != max_h; h = inc_neg(h))
-        for (int k = 0; k != max_k; k = inc_neg(k))
-            for (int l = (h==0 && k==0 ? 1 : 0); l != max_l; l = inc_neg(l)) {
+    wxStaticText *st = new wxStaticText(parent, -1, label);
+    LockableRealCtrl *ctrl = new LockableRealCtrl(parent);
+    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
+    hsizer->Add(st, 0, wxALIGN_CENTER_VERTICAL);
+    hsizer->Add(ctrl, 0);
+    sizer->Add(hsizer, flags);
+    return ctrl;
+}
+
+} // anonymous namespace
+
+int Crystal::set_space_group(const char* name)
+{
+    int sg_number = SgSymbolLookup('A', name, &sg_names);
+    //cout << sg_number << " " << sg_names.SgNumber << " " << sg_names.Schoenfl
+    //     << " " << sg_names.HM << " " << sg_names.Hall << endl;
+    ClrSgError();
+    ResetSgOps(&sg_ops);
+    ParseHallSymbol(sg_names.Hall, &sg_ops, PHSymOptPedantic);
+    if (SgError)
+        cerr << SgError << endl;
+    //DumpSgOps(&sg_ops, stdout);
+    sg_xs = ixXS(GetPG(&sg_ops));
+    return sg_number;
+}
+
+void Crystal::generate_reflections(double min_d)
+{
+    hkls.clear();
+    UnitCell reciprocal = uc->get_reciprocal();
+
+    // set upper limit for iteration of Miller indices
+    // TODO: smarter algorithm, like in uctbx::unit_cell::max_miller_indices()
+    int max_h = 20;
+    int max_k = 20;
+    int max_l = 20;
+    if (fabs(uc->alpha - M_PI/2) < 1e-9 && fabs(uc->beta - M_PI/2) < 1e-9 &&
+                                          fabs(uc->gamma - M_PI/2) < 1e-9) {
+        max_h = (int) (uc->a / min_d);
+        max_k = (int) (uc->b / min_d);
+        max_l = (int) (uc->c / min_d);
+    }
+
+    for (int h = 0; h != max_h+1; h = inc_neg(h))
+        for (int k = 0; k != max_k+1; k = inc_neg(k))
+            for (int l = (h==0 && k==0 ? 1 : 0); l != max_l+1; l = inc_neg(l)) {
                 double d = 1 / reciprocal.calculate_distance(h, k, l);
-                //double d = uc.calculate_d(h, k, l); // the same
+                //double d = uc->calculate_d(h, k, l); // the same
                 if (d < min_d)
                     continue;
+
+                // check for systematic absence
+                int H[] = { h, k, l};
+                if (IsSysAbsMIx(&sg_ops, H, NULL) != 0)
+                    continue;
+
                 bool found = false;
-                for (vector<Plane>::iterator i = v.begin(); i != v.end(); ++i) {
-                    if (fabs(d - i->d) < epsilon) {
+                for (vector<Plane>::iterator i = hkls.begin();
+                        i != hkls.end(); ++i) {
+                    if (fabs(d - i->d) < 1e-9) {
                         i->multiplicity++;
                         i->intensity += 0.;
                         found = true;
@@ -245,26 +303,11 @@ vector<Plane> generate_reflections(UnitCell const& uc, double min_d)
                     p.d = d;
                     p.multiplicity = 1;
                     p.intensity = 0.;
-                    v.push_back(p);
+                    hkls.push_back(p);
                 }
             }
-    sort(v.begin(), v.end());
-    return v;
+    sort(hkls.begin(), hkls.end());
 }
-
-LockableRealCtrl *addMaybeRealCtrl(wxWindow *parent, wxString const& label,
-                                   wxSizer *sizer, wxSizerFlags const& flags)
-{
-    wxStaticText *st = new wxStaticText(parent, -1, label);
-    LockableRealCtrl *ctrl = new LockableRealCtrl(parent);
-    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
-    hsizer->Add(st, 0, wxALIGN_CENTER_VERTICAL);
-    hsizer->Add(ctrl, 0);
-    sizer->Add(hsizer, flags);
-    return ctrl;
-}
-
-} // anonymous namespace
 
 double UnitCell::calculate_V() const
 {
@@ -280,9 +323,9 @@ double UnitCell::calculate_d(int h, int k, int l) const
            cosA=cos(alpha), cosB=cos(beta), cosG=cos(gamma);
     return
       sqrt((1 - cosA*cosA - cosB*cosB - cosG*cosG + 2*cosA*cosB*cosG)
-              / (  (h/a*sinA) * (h/a*sinA)
-                 + (k/b*sinB) * (k/b*sinB)
-                 + (l/c*sinG) * (l/c*sinG)
+              / (  (h/a*sinA) * (h/a*sinA)  //(h/a*sinA)^2
+                 + (k/b*sinB) * (k/b*sinB)  //(k/b*sinB)^2
+                 + (l/c*sinG) * (l/c*sinG)  //(l/c*sinG)^2
                  + 2*h*l/a/c*(cosA*cosG-cosB)
                  + 2*h*k/a/b*(cosA*cosB-cosG)
                  + 2*k*l/b/c*(cosB*cosG-cosA)
@@ -349,11 +392,17 @@ double UnitCell::calculate_distance(double h, double k, double l) const
 
 
 PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
-    : wxListbook(parent, id), x_min(20), x_max(150), y_max(1000)
-#if STANDALONE_POWDIFPAT
-      , data(NULL)
-#endif
+    : wxListbook(parent, id), x_min(10), x_max(150), y_max(1000), data(NULL)
 {
+#if !STANDALONE_POWDIFPAT
+    int data_nr = frame->get_focused_data_index();
+    if (data_nr >= 0) {
+        data = ftk->get_data(data_nr);
+        x_min = data->get_x_min();
+        x_max = data->get_x_max();
+        y_max = data->get_y_max();
+    }
+#endif
     initialize_quick_phase_list();
 
     wxImageList *image_list = new wxImageList(32, 32);
@@ -370,6 +419,9 @@ PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
     AddPage(PreparePeakPanel(), wxT("peak"), false, 3);
     //AddPage(PrepareActionPanel(), wxT("action"), false, 4);
     AddPage(PrepareActionPanel(), wxEmptyString, false, 4);
+
+    Connect(GetId(), wxEVT_COMMAND_LISTBOOK_PAGE_CHANGED,
+            (wxObjectEventFunction) &PowderBook::OnPageChanged);
 }
 
 void PowderBook::initialize_quick_phase_list()
@@ -474,17 +526,27 @@ wxPanel* PowderBook::PrepareInstrumentPanel()
 {
     wxPanel *panel = new wxPanel(this);
     wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+    wxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
+
+    wxRadioBox *radiation_rb = new wxRadioBox(panel, -1, wxT("radiation"),
+                                  wxDefaultPosition, wxDefaultSize,
+                                  ArrayString(wxT("x-ray"), wxT("neutron")),
+                                  1, wxRA_SPECIFY_ROWS);
+    radiation_rb->Enable(1, false);
+    hsizer->AddSpacer(50);
+    hsizer->Add(radiation_rb, wxSizerFlags().Border());
+    hsizer->AddStretchSpacer();
 
     wxArrayString xaxis_choices;
-    xaxis_choices.Add(wxT("2theta"));
+    xaxis_choices.Add(wxT("2θ")); //03B8
     xaxis_choices.Add(wxT("Q"));
-    xaxis_choices.Add(wxT("energy"));
     wxRadioBox *xaxis_rb = new wxRadioBox(panel, -1, wxT("data x axis"),
                                           wxDefaultPosition, wxDefaultSize,
                                           xaxis_choices, 3);
     xaxis_rb->Enable(1, false);
-    xaxis_rb->Enable(2, false);
-    sizer->Add(xaxis_rb, wxSizerFlags().Border().Expand());
+    hsizer->Add(xaxis_rb, wxSizerFlags().Border());
+    hsizer->AddSpacer(50);
+    sizer->Add(hsizer, wxSizerFlags().Expand());
 
     wxSizer *wave_sizer = new wxStaticBoxSizer(wxHORIZONTAL, panel,
                                                wxT("wavelengths"));
@@ -573,6 +635,7 @@ void PlotWithLines::draw(wxDC &dc, bool)
     // draw data
     dc.SetPen(*wxGREEN_PEN);
     draw_active_data(dc);
+    //TODO buffer the plot with tics and data
     // draw lines
     int Y0 = dc.GetSize().GetHeight();
     int Y1 = getY(0) + 2;
@@ -587,7 +650,7 @@ void PlotWithLines::draw(wxDC &dc, bool)
     }
 }
 
-void PlotWithLines:: draw_active_data(wxDC& dc)
+void PlotWithLines::draw_active_data(wxDC& dc)
 {
 #if STANDALONE_POWDIFPAT
     if (!powder_book_->data)
@@ -604,9 +667,14 @@ void PlotWithLines:: draw_active_data(wxDC& dc)
         points[i].y = getY(ycol.get_value(i));
     }
 #else // STANDALONE_POWDIFPAT
-    //TODO
-    int n = 10;
+    if (!powder_book_->data)
+        return;
+    int n = powder_book_->data->get_n();
     wxPoint *points = new wxPoint[n];
+    for (int i = 0; i != n; ++i) {
+        points[i].x = getX(powder_book_->data->get_x(i));
+        points[i].y = getY(powder_book_->data->get_y(i));
+    }
 #endif // STANDALONE_POWDIFPAT
     dc.DrawLines(n, points);
     delete [] points;
@@ -654,9 +722,9 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
     par_a = addMaybeRealCtrl(this, wxT("a ="),  par_sizer, flags);
     par_b = addMaybeRealCtrl(this, wxT("b ="),  par_sizer, flags);
     par_c = addMaybeRealCtrl(this, wxT("c ="),  par_sizer, flags);
-    par_alpha = addMaybeRealCtrl(this, wxT("α ="),  par_sizer, flags);
-    par_beta = addMaybeRealCtrl(this, wxT("β ="),  par_sizer, flags);
-    par_gamma = addMaybeRealCtrl(this, wxT("γ ="),  par_sizer, flags);
+    par_alpha = addMaybeRealCtrl(this, wxT("α ="),  par_sizer, flags);//03B1
+    par_beta = addMaybeRealCtrl(this, wxT("β ="),  par_sizer, flags); //03B2
+    par_gamma = addMaybeRealCtrl(this, wxT("γ ="),  par_sizer, flags);//03B3
     stp_sizer->Add(par_sizer, wxSizerFlags(1).Expand());
     vsizer->Add(stp_sizer, wxSizerFlags().Border().Expand());
 
@@ -784,7 +852,7 @@ void PhasePanel::OnNameChanged(wxCommandEvent&)
 void PhasePanel::OnSpaceGroupChanged(wxCommandEvent&)
 {
     string text = wx2s(sg_tc->GetValue());
-    set_space_group(text);
+    change_space_group(text);
     powder_book->deselect_phase_quick_list();
     sample_plot->refresh();
 }
@@ -807,11 +875,9 @@ int get_crystal_system(int space_group)
         return XS_Cubic;
 }
 
-void PhasePanel::set_space_group(string const& text)
+void PhasePanel::change_space_group(string const& text)
 {
-    int sg_number = SgSymbolLookup('A', text.c_str(), &sg_names);
-    //cout << sg_number << " " << sg_names.SgNumber << " " << sg_names.Schoenfl
-    //     << " " << sg_names.HM << " " << sg_names.Hall << endl;
+    int sg_number = cr.set_space_group(text.c_str());
     if (sg_number <= 0) {
         sg_tc->Clear();
         hkl_list->Clear();
@@ -819,17 +885,9 @@ void PhasePanel::set_space_group(string const& text)
         return;
     }
 
-    ClrSgError();
-    ResetSgOps(&sg_ops);
-    ParseHallSymbol(sg_names.Hall, &sg_ops, PHSymOptPedantic);
-    if (SgError)
-        cerr << SgError << endl;
-    //DumpSgOps(&sg_ops, stdout);
-
-    sg_tc->ChangeValue(pchar2wx(sg_names.HM));
-    sg_xs = ixXS(GetPG(&sg_ops));
-    sg_nr_st->SetLabel(wxString::Format(wxT("no. %d, %s"), sg_names.SgNumber,
-                                                           XS_Name[sg_xs]));
+    sg_tc->ChangeValue(pchar2wx(cr.sg_names.HM));
+    sg_nr_st->SetLabel(wxString::Format(wxT("no. %d, %s"), cr.sg_names.SgNumber,
+                                             cr.get_crystal_system_name()));
     enable_parameter_fields();
     update_disabled_parameters();
     update_miller_indices();
@@ -837,7 +895,7 @@ void PhasePanel::set_space_group(string const& text)
 
 void PhasePanel::enable_parameter_fields()
 {
-    switch (sg_xs) {
+    switch (cr.sg_xs) {
         case XS_Triclinic:
             par_b->Enable(true);
             par_c->Enable(true);
@@ -918,7 +976,7 @@ void PhasePanel::update_disabled_parameters()
     if (!par_c->IsEnabled())
         par_c->set_string(par_a->get_string());
 
-    if (sg_xs == XS_Trigonal) {
+    if (cr.sg_xs == XS_Trigonal) {
         par_beta->set_string(par_alpha->get_string());
         par_gamma->set_string(par_alpha->get_string());
     }
@@ -935,19 +993,20 @@ void PhasePanel::update_miller_indices()
 
     double lambda = powder_book->get_lambda0();
 
-    double max_2theta = 150 * M_PI / 180; //TODO
+    double max_2theta = powder_book->get_x_max() * M_PI / 180;
 
     hkl_list->Clear();
     if (a <= 0 || b <= 0 || c <= 0 || alpha <= 0 || beta <= 0 || gamma <= 0
             || lambda <= 0 || max_2theta <= 0) {
         return;
     }
-    UnitCell uc(a, b, c, alpha, beta, gamma);
+    cr.set_unit_cell(a, b, c, alpha, beta, gamma);
 
     double min_d = lambda / (2 * sin(max_2theta / 2.));
-    hkls = generate_reflections(uc, min_d);
+    cr.generate_reflections(min_d);
 
-    for (vector<Plane>::const_iterator i = hkls.begin(); i != hkls.end(); ++i) {
+    for (vector<Plane>::const_iterator i = cr.hkls.begin();
+            i != cr.hkls.end(); ++i) {
         hkl_list->Append(wxString::Format(wxT("(%d,%d,%d)  *%d  d=%g"),
                                    i->h, i->k, i->l, i->multiplicity, i->d));
     }
@@ -955,10 +1014,10 @@ void PhasePanel::update_miller_indices()
         hkl_list->Check(i, true);
 }
 
-void PhasePanel::set_data(vector<string> const& tokens)
+void PhasePanel::set_phase(vector<string> const& tokens)
 {
     name_tc->SetValue(s2wx(tokens[0]));
-    set_space_group(tokens[1]);
+    change_space_group(tokens[1]);
     par_a->set_string(s2wx(tokens[2]));
     par_b->set_string(s2wx(tokens[3]));
     par_c->set_string(s2wx(tokens[4]));
@@ -971,9 +1030,9 @@ void PhasePanel::set_data(vector<string> const& tokens)
 vector<double> PhasePanel::get_dists() const
 {
     vector<double> dd;
-    for (size_t i = 0; i != hkls.size(); ++i)
+    for (size_t i = 0; i != cr.hkls.size(); ++i)
         if (hkl_list->IsChecked(i))
-            dd.push_back(hkls[i].d);
+            dd.push_back(cr.hkls[i].d);
     return dd;
 }
 
@@ -1112,7 +1171,7 @@ void PowderBook::OnQuickPhaseSelected(wxCommandEvent& event)
     vector<string> const& tokens = quick_phase_list[name];
     PhasePanel *panel = get_current_phase_panel();
     assert(panel->GetParent() == sample_nb);
-    panel->set_data(tokens);
+    panel->set_phase(tokens);
     panel->s_qadd_btn->Enable(false);
     panel->sample_plot->refresh();
 }
@@ -1134,6 +1193,17 @@ void PowderBook::OnQuickListRemove(wxCommandEvent&)
 void PowderBook::OnLambdaChange(wxCommandEvent&)
 {
     anode_lb->SetSelection(wxNOT_FOUND);
+}
+
+void PowderBook::OnPageChanged(wxListbookEvent& event)
+{
+    if (event.GetSelection() == 2) { // sample
+        for (size_t i = 0; i != sample_nb->GetPageCount(); ++i) {
+            PhasePanel* p = get_phase_panel(i);
+            p->update_miller_indices();
+            p->sample_plot->refresh();
+        }
+    }
 }
 
 PhasePanel *PowderBook::get_phase_panel(int n)
@@ -1226,6 +1296,8 @@ SpaceGroupChooser::SpaceGroupChooser(wxWindow* parent)
 
     Connect(system_c->GetId(), wxEVT_COMMAND_CHOICE_SELECTED,
             (wxObjectEventFunction) &SpaceGroupChooser::OnSystemChoice);
+    Connect(system_c->GetId(), wxEVT_COMMAND_LIST_ITEM_FOCUSED,
+            (wxObjectEventFunction) &SpaceGroupChooser::OnListItemActivated);
 }
 
 void SpaceGroupChooser::regenerate_list()
@@ -1376,6 +1448,19 @@ void App::OnAbout(wxCommandEvent&)
 #endif
     adi.SetCopyright(copyright);
     wxAboutBox(adi);
+}
+
+#else
+
+PowderDiffractionDlg::PowderDiffractionDlg(wxWindow* parent, wxWindowID id)
+     : wxDialog(parent, id, wxT("powder diffraction analysis"),
+                wxDefaultPosition, wxDefaultSize,
+                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
+{
+    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+    PowderBook *pb = new PowderBook(this, wxID_ANY);
+    sizer->Add(pb, wxSizerFlags(1).Expand());
+    SetSizerAndFit(sizer);
 }
 
 #endif

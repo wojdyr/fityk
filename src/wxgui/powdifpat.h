@@ -15,6 +15,8 @@
 #if STANDALONE_POWDIFPAT
 #  include <wx/filepicker.h>
 #  include <xylib/xylib.h>
+#else
+   class Data;
 #endif
 
 class LockableRealCtrl;
@@ -37,6 +39,7 @@ public:
     void OnQuickPhaseSelected(wxCommandEvent& event);
     void OnQuickListRemove(wxCommandEvent& event);
     void OnLambdaChange(wxCommandEvent& event);
+    void OnPageChanged(wxListbookEvent& event);
     PhasePanel *get_phase_panel(int n);
     PhasePanel *get_current_phase_panel();
     void deselect_phase_quick_list();
@@ -58,6 +61,8 @@ private:
     wxFilePickerCtrl *file_picker;
     RealNumberCtrl *range_from, *range_to;
     const xylib::DataSet* data;
+#else
+    const Data* data;
 #endif
 
     wxPanel* PrepareIntroPanel();
@@ -68,4 +73,13 @@ private:
     void initialize_quick_phase_list();
 };
 
+#if !STANDALONE_POWDIFPAT
+class PowderDiffractionDlg : public wxDialog
+{
+public:
+    PowderDiffractionDlg(wxWindow* parent, wxWindowID id);
+};
+#endif // STANDALONE_POWDIFPAT
+
 #endif // FITYK_WX_POWDIFPAT_H_
+
