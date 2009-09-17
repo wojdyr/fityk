@@ -122,7 +122,7 @@ public:
     void SetProportion(float proportion) {m_proportion=proportion; ResetSash();}
     void SetSashPosition(int position);
 
-protected:
+private:
     float m_proportion; //0-1
     bool m_firstpaint;
 

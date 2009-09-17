@@ -186,7 +186,7 @@ void ProportionalSplitter::SetSashPosition(int position)
 
 void ProportionalSplitter::ResetSash()
 {
-    SetSashPosition(GetExpectedSashPosition());
+    wxSplitterWindow::SetSashPosition(GetExpectedSashPosition());
 }
 
 void ProportionalSplitter::OnReSize(wxSizeEvent& event)
@@ -198,11 +198,19 @@ void ProportionalSplitter::OnReSize(wxSizeEvent& event)
 
 void ProportionalSplitter::OnSashChanged(wxSplitterEvent &event)
 {
+    // This event is triggered on start-up in some cases,
+    // eg. on wxGTK, in a setup with h-splitter containing two v-splitters,
+    // if the inner splitters are split first the lower v-splitter gets it.
+    if (!m_firstpaint) {
+        event.Skip();
+        return;
+    }
+
     // We'll change m_proportion now based on where user dragged the sash.
     const wxSize& s = GetSize();
     int t = GetSplitMode() == wxSPLIT_HORIZONTAL ? s.GetHeight() : s.GetWidth();
-    float prop = float(GetSashPosition()) / t;
-    if (prop >= 0. && prop <= 1.)
+    float prop = float(event.GetSashPosition()) / t;
+    if (prop > 0. && prop < 1.)
         m_proportion = prop;
     event.Skip();
 }

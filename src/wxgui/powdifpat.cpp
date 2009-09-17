@@ -2,8 +2,19 @@
 // Licence: GNU General Public License ver. 2+
 // $Id$
 
+//TODO:
+// buffer plot with data
+// miller indices: plot selected index with different color
+// intensities?:
+//   - read .cel files
+//   - input (textctrl) for atom positions
+//   - use symmetry to generate all atom positions
+//   - calculate |F|
+// peaks: peak formula, widths, shapes,
+//        scale initial intensity, 3 previews (first, middle and last peak)
 
 #include <cmath>
+#include <cstring>
 #include <algorithm>
 #include <iostream>
 
@@ -103,15 +114,28 @@ public:
     double calculate_d(int h, int k, int l) const;
 };
 
+struct Miller
+{
+    int h, k, l;
+};
+
 struct Plane
 {
     int h, k, l;
+    vector<Miller> alt; // other hkl's with the same d
     double d;
     int multiplicity;
     double intensity;
 
     bool operator<(const Plane& p) const { return d > p.d; }
 };
+
+struct Atom
+{
+    char symbol[8];
+    double pos[3]; // position in unit cell, in [0,1)
+};
+
 
 class Crystal
 {
@@ -120,9 +144,11 @@ public:
     T_SgOps sg_ops; // symmetry operations
     int sg_xs; // crystal system
     UnitCell* uc;
+    int n_atoms;
+    vector<Atom> atoms;
     vector<Plane> hkls; // reflections
 
-    Crystal() : uc(NULL) {}
+    Crystal() : uc(NULL) { atoms.reserve(16); }
     ~Crystal() { delete uc; }
     const char* get_crystal_system_name() { return XS_Name[sg_xs]; }
     int set_space_group(const char* name);
@@ -130,7 +156,27 @@ public:
     void set_unit_cell(double a, double b, double c,
                        double alpha, double beta, double gamma)
         { delete uc; uc = new UnitCell(a, b, c, alpha, beta, gamma); }
+private:
+    DISALLOW_COPY_AND_ASSIGN(Crystal);
 };
+
+bool CheckSymmetricHkl(const T_SgOps *sg_info, const Miller &p1,
+                                               const Miller &p2)
+{
+    for (int i = 0; i < sg_info->nSMx; ++i)
+    {
+        const T_RTMx &sm = sg_info->SMx[i];
+        int h = sm.s.R[0] * p1.h + sm.s.R[3] * p1.k + sm.s.R[6] * p1.l;
+        int k = sm.s.R[1] * p1.h + sm.s.R[4] * p1.k + sm.s.R[7] * p1.l;
+        int l = sm.s.R[2] * p1.h + sm.s.R[5] * p1.k + sm.s.R[8] * p1.l;
+        if (h == p2.h && k == p2.k && l == p2.l)
+            return  true;
+        // we assume Friedel symmetry here
+        if (h == -p2.h && k == -p2.k && l == -p2.l)
+            return true;
+    }
+    return false;
+}
 
 class SpaceGroupChooser : public wxDialog
 {
@@ -145,6 +191,7 @@ private:
     wxChoice *system_c;
     wxListView *list;
     wxCheckBox *centering_cb[7];
+    DISALLOW_COPY_AND_ASSIGN(SpaceGroupChooser);
 };
 
 class PlotWithLines : public PlotWithTics
@@ -159,6 +206,7 @@ private:
 
     PhasePanel *phase_panel_;
     PowderBook *powder_book_;
+    DISALLOW_COPY_AND_ASSIGN(PlotWithLines);
 };
 
 class PhasePanel : public wxPanel
@@ -175,6 +223,9 @@ public:
                                { powder_book->deselect_phase_quick_list(); }
     void OnParameterChanged(wxCommandEvent& event);
     void OnLineToggled(wxCommandEvent& event);
+    void OnLineSelected(wxCommandEvent& event);
+    void OnAtomsFocus(wxFocusEvent&);
+    void OnAtomsChanged(wxCommandEvent& event);
     void set_phase(vector<string> const& tokens);
     vector<double> get_dists() const;
 
@@ -186,6 +237,8 @@ private:
     LockableRealCtrl *par_a, *par_b, *par_c, *par_alpha, *par_beta, *par_gamma;
     wxButton *s_qadd_btn;
     wxCheckListBox *hkl_list;
+    wxTextCtrl *atoms, *info;
+    bool atoms_show_help;
     PlotWithLines *sample_plot;
     wxStaticText *sg_nr_st;
 
@@ -196,6 +249,8 @@ private:
     void update_miller_indices();
     void set_ortho_angles();
     void change_space_group(string const& text);
+
+    DISALLOW_COPY_AND_ASSIGN(PhasePanel);
 };
 
 namespace {
@@ -247,6 +302,8 @@ int Crystal::set_space_group(const char* name)
     //     << " " << sg_names.HM << " " << sg_names.Hall << endl;
     ClrSgError();
     ResetSgOps(&sg_ops);
+    if (sg_number <= 0)
+        return sg_number;
     ParseHallSymbol(sg_names.Hall, &sg_ops, PHSymOptPedantic);
     if (SgError)
         cerr << SgError << endl;
@@ -728,12 +785,31 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
     stp_sizer->Add(par_sizer, wxSizerFlags(1).Expand());
     vsizer->Add(stp_sizer, wxSizerFlags().Border().Expand());
 
-    wxSplitterWindow *hkl_split = new ProportionalSplitter(this, -1, 0.4);
+    ProportionalSplitter *vsplit = new ProportionalSplitter(this, -1, 0.75);
+
+    ProportionalSplitter *hkl_split = new ProportionalSplitter(vsplit,-1, 0.4);
     hkl_list = new wxCheckListBox(hkl_split, -1);
     sample_plot = new PlotWithLines(hkl_split, this, powder_book);
-    hkl_split->SplitVertically(hkl_list, sample_plot);
-    vsizer->Add(hkl_split, wxSizerFlags(1).Expand().Border());
 
+    ProportionalSplitter *atom_split = new ProportionalSplitter(vsplit,-1, 0.6);
+    atoms = new wxTextCtrl(atom_split, -1, wxEmptyString,
+                          wxDefaultPosition, wxDefaultSize,
+                          wxTE_RICH|wxTE_MULTILINE);
+    atoms->SetValue(wxT("Optional: atom positions, e.g.\n")
+                    wxT("Si 0 0 0\n")
+                    wxT("C 0.25 0.25 0.25"));
+    atoms_show_help = true;
+    atoms->SetSelection(-1, -1);
+    info = new wxTextCtrl(atom_split, -1, wxEmptyString,
+                          wxDefaultPosition, wxDefaultSize,
+                          wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
+    info->SetBackgroundColour(powder_book->GetBackgroundColour());
+
+    vsplit->SplitHorizontally(hkl_split, atom_split);
+    hkl_split->SplitVertically(hkl_list, sample_plot);
+    atom_split->SplitVertically(atoms, info);
+
+    vsizer->Add(vsplit, wxSizerFlags(1).Expand().Border());
     SetSizerAndFit(vsizer);
 
     Connect(sg_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
@@ -764,6 +840,15 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
 
     Connect(hkl_list->GetId(), wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,
             (wxObjectEventFunction) &PhasePanel::OnLineToggled);
+    Connect(hkl_list->GetId(), wxEVT_COMMAND_LISTBOX_SELECTED,
+            (wxObjectEventFunction) &PhasePanel::OnLineSelected);
+
+    atoms->Connect(wxEVT_SET_FOCUS,
+                   (wxObjectEventFunction) &PhasePanel::OnAtomsFocus,
+                   NULL, this);
+    atoms->Connect(wxEVT_COMMAND_TEXT_UPDATED,
+                   (wxObjectEventFunction) &PhasePanel::OnAtomsChanged,
+                   NULL, this);
 }
 
 void PhasePanel::OnSpaceGroupButton(wxCommandEvent& event)
@@ -809,15 +894,22 @@ void PhasePanel::OnAddToQLButton(wxCommandEvent&)
 
 void PhasePanel::OnClearButton(wxCommandEvent& event)
 {
-    name_tc->Clear();
-    sg_tc->Clear();
-    par_a->Clear();
-    par_b->Clear();
-    par_c->Clear();
-    par_alpha->Clear();
-    par_beta->Clear();
-    par_gamma->Clear();
-    OnSpaceGroupChanged(event);
+    size_t sel = nb_parent->GetSelection();
+    if (sel < nb_parent->GetPageCount() - 1) {
+        nb_parent->SetSelection(nb_parent->GetPageCount() - 1);
+        nb_parent->DeletePage(sel);
+    }
+    else {
+        name_tc->Clear();
+        sg_tc->Clear();
+        par_a->Clear();
+        par_b->Clear();
+        par_c->Clear();
+        par_alpha->Clear();
+        par_beta->Clear();
+        par_gamma->Clear();
+        OnSpaceGroupChanged(event);
+    }
 }
 
 void PhasePanel::OnNameChanged(wxCommandEvent&)
@@ -886,8 +978,10 @@ void PhasePanel::change_space_group(string const& text)
     }
 
     sg_tc->ChangeValue(pchar2wx(cr.sg_names.HM));
-    sg_nr_st->SetLabel(wxString::Format(wxT("no. %d, %s"), cr.sg_names.SgNumber,
-                                             cr.get_crystal_system_name()));
+    sg_nr_st->SetLabel(wxString::Format(wxT("no. %d, %s, order %d"),
+                                        cr.sg_names.SgNumber,
+                                        cr.get_crystal_system_name(),
+                                        SgOpsOrderL(&cr.sg_ops)));
     enable_parameter_fields();
     update_disabled_parameters();
     update_miller_indices();
@@ -968,6 +1062,139 @@ void PhasePanel::OnLineToggled(wxCommandEvent&)
     sample_plot->refresh();
 }
 
+void PhasePanel::OnLineSelected(wxCommandEvent& event)
+{
+    if (event.IsSelection()) {
+        int n = event.GetSelection();
+        Plane const& p = cr.hkls[n];
+        info->SetValue(wxString::Format(
+                        wxT("line (%d,%d,%d)\n")
+                        wxT("d=%g\n")
+                        wxT("multiplicity: %d\n")
+                        wxT("intensity: %g"),
+                        p.h, p.k, p.l, p.multiplicity, p.d, p.intensity));
+        for (int i = 0; ; ++i) {
+            double lambda = powder_book->get_lambda(i);
+            if (lambda == 0.)
+                break;
+            wxString format = (i == 0 ? wxT("\npeak center: %g") : wxT(", %g"));
+            info->AppendText(wxString::Format(format, lambda));
+        }
+    }
+}
+
+void PhasePanel::OnAtomsFocus(wxFocusEvent&)
+{
+    if (atoms_show_help) {
+        atoms->Clear();
+        atoms_show_help = false;
+    }
+}
+
+bool isspace(const char* s)
+{
+    for (const char* i = s; *s != '\0'; ++i)
+        if (!isspace(s))
+            return false;
+    return true;
+}
+
+void PhasePanel::OnAtomsChanged(wxCommandEvent&)
+{
+    string atoms_str = wx2s(atoms->GetValue());
+    if (atoms_str.size() < 3) {
+        info->Clear();
+        return;
+    }
+    const char* s = atoms_str.c_str();
+    int line_with_error = -1;
+    int atom_count = 0;
+    // don't use cr.atoms.clear(), to make it faster
+    for (int line_nr = 1; ; ++line_nr) {
+        // skip whitespace
+        while(isspace(*s) && *s != '\n')
+            ++s;
+        if (*s == '\n')
+            continue;
+        if (*s == '\0')
+            break;
+
+        // usually the atom is not changed, so we first write data
+        // into a new struct Atom, and than if it is different copy
+        // the atom and do calculations
+        Atom a;
+
+        // parse symbol
+        const char* word_end = s;
+        while (isalnum(*word_end))
+            ++word_end;
+        int symbol_len = word_end - s;
+        if (symbol_len == 0 || symbol_len >= 8) {
+            line_with_error = line_nr;
+            break;
+        }
+        memcpy(a.symbol, s, symbol_len);
+        a.symbol[symbol_len] = '\0';
+        s = word_end;
+
+        // parse x, y, z
+        char *endptr;
+        a.pos[0] = strtod(s, &endptr);
+        s = endptr;
+        a.pos[1] = strtod(s, &endptr);
+        s = endptr;
+        a.pos[2] = strtod(s, &endptr);
+
+        // check if the numbers were parsed
+        if (endptr == s || // one or more numbers were not parsed
+            (!isspace(*endptr) && *endptr != '\0')) // e.g. "Si 0 0 0foo"
+        {
+            line_with_error = line_nr;
+            break;
+        }
+
+        s = endptr;
+
+        // if there is more than 4 words in the line, ignore the extra words
+        while (*s != '\n' && *s != '\0')
+            ++s;
+        if (*s == '\n')
+            ++s;
+
+        // check if the atom needs to be copied, and copy it if necessary
+        bool atom_changed = false;
+        if (atom_count == (int) cr.atoms.size()) {
+            cr.atoms.push_back(a);
+            atom_changed = true;
+        }
+        else {
+            Atom &b = cr.atoms[atom_count];
+            atom_changed = (strcmp(a.symbol, b.symbol) != 0
+                            || a.pos[0] != b.pos[0]
+                            || a.pos[1] != b.pos[1]
+                            || a.pos[2] != b.pos[2]);
+            b = a;
+        }
+
+        if (atom_changed) {
+            //TODO symmetry calculations
+        }
+
+        ++atom_count;
+    }
+    // vector cr.atoms may be longer than necessary
+    cr.atoms.resize(atom_count);
+
+    info->SetValue(wxString::Format(wxT("%d atoms parsed."), atom_count));
+    if (line_with_error != -1)
+        info->AppendText(wxString::Format(wxT("\n<- Error in line %d."),
+                                          line_with_error));
+    //TODO:
+    //  In unit cell: 4 Si, 4 C, 2 O
+    //  Raw Formula: Si₂C₂O (gcd)
+}
+
+
 void PhasePanel::update_disabled_parameters()
 {
     if (!par_b->IsEnabled())
@@ -991,7 +1218,7 @@ void PhasePanel::update_miller_indices()
     double beta = par_beta->get_value() * M_PI / 180.;
     double gamma = par_gamma->get_value() * M_PI / 180.;
 
-    double lambda = powder_book->get_lambda0();
+    double lambda = powder_book->get_lambda(0);
 
     double max_2theta = powder_book->get_x_max() * M_PI / 180;
 
@@ -1007,8 +1234,8 @@ void PhasePanel::update_miller_indices()
 
     for (vector<Plane>::const_iterator i = cr.hkls.begin();
             i != cr.hkls.end(); ++i) {
-        hkl_list->Append(wxString::Format(wxT("(%d,%d,%d)  *%d  d=%g"),
-                                   i->h, i->k, i->l, i->multiplicity, i->d));
+        hkl_list->Append(wxString::Format(wxT("(%d,%d,%d)  d=%g"),
+                                          i->h, i->k, i->l, i->d));
     }
     for (size_t i = 0; i < hkl_list->GetCount(); ++i)
         hkl_list->Check(i, true);
@@ -1051,7 +1278,10 @@ wxPanel* PowderBook::PrepareSamplePanel()
 
     quick_sizer->Add(quick_phase_lb, wxSizerFlags(1).Border().Expand());
     wxButton *s_qremove_btn = new wxButton(panel, wxID_REMOVE);
-    quick_sizer->Add(s_qremove_btn, wxSizerFlags().Center().Border());
+    quick_sizer->Add(s_qremove_btn,
+                     wxSizerFlags().Center().Border(wxLEFT|wxRIGHT));
+    wxButton *s_qimport_btn = new wxButton(panel, wxID_OPEN, wxT("Import"));
+    quick_sizer->Add(s_qimport_btn, wxSizerFlags().Center().Border());
 
     sizer->Add(quick_sizer, wxSizerFlags().Expand());
 
@@ -1068,6 +1298,8 @@ wxPanel* PowderBook::PrepareSamplePanel()
             (wxObjectEventFunction) &PowderBook::OnQuickPhaseSelected);
     Connect(s_qremove_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             (wxObjectEventFunction) &PowderBook::OnQuickListRemove);
+    Connect(s_qimport_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
+            (wxObjectEventFunction) &PowderBook::OnQuickListImport);
 
     return panel;
 }
@@ -1190,6 +1422,17 @@ void PowderBook::OnQuickListRemove(wxCommandEvent&)
     quick_phase_list.erase(name);
 }
 
+void PowderBook::OnQuickListImport(wxCommandEvent&)
+{
+    wxFileDialog dlg (this, wxT("Import CIF or CEL files"), wxT(""), wxT(""),
+                      wxT("all supported files|*.cif;*.CIF;*.cel;*.CEL|")
+                      wxT("CIF files (*.cif)|*.cif;*.CIF|")
+                      wxT("PowderCell files (*.cel)|*.cel;*.CEL"),
+                      wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
+    if (dlg.ShowModal() == wxID_OK) {
+    }
+}
+
 void PowderBook::OnLambdaChange(wxCommandEvent&)
 {
     anode_lb->SetSelection(wxNOT_FOUND);
@@ -1224,9 +1467,11 @@ void PowderBook::deselect_phase_quick_list()
         panel->s_qadd_btn->Enable(true);
 }
 
-double PowderBook::get_lambda0() const
+double PowderBook::get_lambda(int n) const
 {
-    return lambda_ctrl[0]->get_value();
+    if (n < 0 || n >= (int) lambda_ctrl.size())
+        return 0;
+    return lambda_ctrl[n]->get_value();
 }
 
 

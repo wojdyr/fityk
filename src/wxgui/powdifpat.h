@@ -37,13 +37,14 @@ public:
     PowderBook(wxWindow* parent, wxWindowID id);
     void OnAnodeSelected(wxCommandEvent& event);
     void OnQuickPhaseSelected(wxCommandEvent& event);
-    void OnQuickListRemove(wxCommandEvent& event);
+    void OnQuickListRemove(wxCommandEvent&);
+    void OnQuickListImport(wxCommandEvent&);
     void OnLambdaChange(wxCommandEvent& event);
     void OnPageChanged(wxListbookEvent& event);
     PhasePanel *get_phase_panel(int n);
     PhasePanel *get_current_phase_panel();
     void deselect_phase_quick_list();
-    double get_lambda0() const;
+    double get_lambda(int n) const;
     wxListBox *get_quick_phase_lb() { return quick_phase_lb; }
     double get_x_min() const { return x_min; }
     double get_x_max() const { return x_max; }
