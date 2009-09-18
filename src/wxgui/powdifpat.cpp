@@ -5,11 +5,8 @@
 //TODO:
 // buffer plot with data
 // miller indices: plot selected index with different color
-// intensities?:
-//   - read .cel files
-//   - input (textctrl) for atom positions
-//   - use symmetry to generate all atom positions
-//   - calculate |F|
+// import .cel and .cif files
+// calculate intensities
 // peaks: peak formula, widths, shapes,
 //        scale initial intensity, 3 previews (first, middle and last peak)
 
@@ -23,6 +20,8 @@
 #include <wx/imaglist.h>
 #include <wx/cmdline.h>
 #include <wx/listctrl.h>
+
+//#include <boost/foreach.hpp>
 
 extern "C" {
 #include <sglite/sglite.h>
@@ -119,21 +118,30 @@ struct Miller
     int h, k, l;
 };
 
-struct Plane
+struct Plane : public Miller
 {
-    int h, k, l;
-    vector<Miller> alt; // other hkl's with the same d
     double d;
     int multiplicity;
     double intensity;
+    vector<Miller> alt; // other hkl's with the same d
 
     bool operator<(const Plane& p) const { return d > p.d; }
+};
+
+struct Pos // position in unit cell, in [0,1)
+{
+    double x, y, z;
 };
 
 struct Atom
 {
     char symbol[8];
-    double pos[3]; // position in unit cell, in [0,1)
+    // contains positions in unit cell, in [0,1)
+    // positions[0] contains "original" atom,
+    // the next items are symmetric images
+    vector<Pos> positions;
+
+    Atom() : positions(1) {}
 };
 
 
@@ -160,8 +168,8 @@ private:
     DISALLOW_COPY_AND_ASSIGN(Crystal);
 };
 
-bool CheckSymmetricHkl(const T_SgOps *sg_info, const Miller &p1,
-                                               const Miller &p2)
+bool check_symmetric_hkl(const T_SgOps *sg_info, const Miller &p1,
+                                                 const Miller &p2)
 {
     for (int i = 0; i < sg_info->nSMx; ++i)
     {
@@ -176,6 +184,52 @@ bool CheckSymmetricHkl(const T_SgOps *sg_info, const Miller &p1,
             return true;
     }
     return false;
+}
+
+bool is_position_empty(const vector<Pos>& pp, const Pos& p)
+{
+    const double eps = 0.01;
+    for (vector<Pos>::const_iterator j = pp.begin(); j != pp.end(); ++j) {
+        if ((fabs(p.x - j->x) < eps || fabs(p.x - j->x) > 1 - eps) &&
+            (fabs(p.y - j->y) < eps || fabs(p.y - j->y) > 1 - eps) &&
+            (fabs(p.z - j->z) < eps || fabs(p.z - j->z) > 1 - eps))
+            return false;
+    }
+    return true;
+}
+
+double mod1(double x) { return x - floor(x); }
+
+void add_symmetric_images(Atom& a, const T_SgOps* sg_ops)
+{
+    assert(a.positions.size() == 1);
+    const Pos& p0 = a.positions[0];
+    bool has_inverson = (sg_ops->fInv == 2);
+    // iterate over translation, Seitz matrices and inversion
+    for (int nt = 0; nt != sg_ops->nLTr; ++nt) {
+        const int *t = sg_ops->LTr[nt].v;
+        for (int ns = 0; ns != sg_ops->nSMx; ++ns) {
+            const T_RTMx& s = sg_ops->SMx[ns];
+            const int *R = s.s.R;
+            const int *T = s.s.T;
+            Pos p = {
+            mod1(R[0] * p0.x + R[1] * p0.y + R[2] * p0.z + T[0]/12. + t[0]/12.),
+            mod1(R[3] * p0.x + R[4] * p0.y + R[5] * p0.z + T[1]/12. + t[1]/12.),
+            mod1(R[6] * p0.x + R[7] * p0.y + R[8] * p0.z + T[2]/12. + t[2]/12.)
+            };
+            if (is_position_empty(a.positions, p))
+                a.positions.push_back(p);
+            if (has_inverson) {
+                Pos p2 = {
+           mod1(-R[0] * p0.x - R[1] * p0.y - R[2] * p0.z - T[0]/12. + t[0]/12.),
+           mod1(-R[3] * p0.x - R[4] * p0.y - R[5] * p0.z - T[1]/12. + t[1]/12.),
+           mod1(-R[6] * p0.x - R[7] * p0.y - R[8] * p0.z - T[2]/12. + t[2]/12.)
+                };
+                if (is_position_empty(a.positions, p2))
+                    a.positions.push_back(p2);
+            }
+        }
+    }
 }
 
 class SpaceGroupChooser : public wxDialog
@@ -237,7 +291,7 @@ private:
     LockableRealCtrl *par_a, *par_b, *par_c, *par_alpha, *par_beta, *par_gamma;
     wxButton *s_qadd_btn;
     wxCheckListBox *hkl_list;
-    wxTextCtrl *atoms, *info;
+    wxTextCtrl *atoms_tc, *info_tc;
     bool atoms_show_help;
     PlotWithLines *sample_plot;
     wxStaticText *sg_nr_st;
@@ -348,6 +402,15 @@ void Crystal::generate_reflections(double min_d)
                     if (fabs(d - i->d) < 1e-9) {
                         i->multiplicity++;
                         i->intensity += 0.;
+                        Miller hkl = { h, k, l };
+                        if (!check_symmetric_hkl(&sg_ops, *i, hkl)) {
+                            vector<Miller>::const_iterator a = i->alt.begin();
+                            for ( ; a != i->alt.end(); ++a)
+                                if (check_symmetric_hkl(&sg_ops, *a, hkl))
+                                    break;
+                            if (a == i->alt.end())
+                                i->alt.push_back(hkl);
+                        }
                         found = true;
                         break;
                     }
@@ -792,22 +855,22 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
     sample_plot = new PlotWithLines(hkl_split, this, powder_book);
 
     ProportionalSplitter *atom_split = new ProportionalSplitter(vsplit,-1, 0.6);
-    atoms = new wxTextCtrl(atom_split, -1, wxEmptyString,
+    atoms_tc = new wxTextCtrl(atom_split, -1, wxEmptyString,
                           wxDefaultPosition, wxDefaultSize,
                           wxTE_RICH|wxTE_MULTILINE);
-    atoms->SetValue(wxT("Optional: atom positions, e.g.\n")
+    atoms_tc->SetValue(wxT("Optional: atom positions, e.g.\n")
                     wxT("Si 0 0 0\n")
                     wxT("C 0.25 0.25 0.25"));
     atoms_show_help = true;
-    atoms->SetSelection(-1, -1);
-    info = new wxTextCtrl(atom_split, -1, wxEmptyString,
-                          wxDefaultPosition, wxDefaultSize,
-                          wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
-    info->SetBackgroundColour(powder_book->GetBackgroundColour());
+    atoms_tc->SetSelection(-1, -1);
+    info_tc = new wxTextCtrl(atom_split, -1, wxEmptyString,
+                             wxDefaultPosition, wxDefaultSize,
+                             wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
+    info_tc->SetBackgroundColour(powder_book->GetBackgroundColour());
 
     vsplit->SplitHorizontally(hkl_split, atom_split);
     hkl_split->SplitVertically(hkl_list, sample_plot);
-    atom_split->SplitVertically(atoms, info);
+    atom_split->SplitVertically(atoms_tc, info_tc);
 
     vsizer->Add(vsplit, wxSizerFlags(1).Expand().Border());
     SetSizerAndFit(vsizer);
@@ -843,12 +906,12 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
     Connect(hkl_list->GetId(), wxEVT_COMMAND_LISTBOX_SELECTED,
             (wxObjectEventFunction) &PhasePanel::OnLineSelected);
 
-    atoms->Connect(wxEVT_SET_FOCUS,
-                   (wxObjectEventFunction) &PhasePanel::OnAtomsFocus,
-                   NULL, this);
-    atoms->Connect(wxEVT_COMMAND_TEXT_UPDATED,
-                   (wxObjectEventFunction) &PhasePanel::OnAtomsChanged,
-                   NULL, this);
+    atoms_tc->Connect(wxEVT_SET_FOCUS,
+                      (wxObjectEventFunction) &PhasePanel::OnAtomsFocus,
+                      NULL, this);
+    atoms_tc->Connect(wxEVT_COMMAND_TEXT_UPDATED,
+                      (wxObjectEventFunction) &PhasePanel::OnAtomsChanged,
+                      NULL, this);
 }
 
 void PhasePanel::OnSpaceGroupButton(wxCommandEvent& event)
@@ -1067,26 +1130,29 @@ void PhasePanel::OnLineSelected(wxCommandEvent& event)
     if (event.IsSelection()) {
         int n = event.GetSelection();
         Plane const& p = cr.hkls[n];
-        info->SetValue(wxString::Format(
-                        wxT("line (%d,%d,%d)\n")
-                        wxT("d=%g\n")
-                        wxT("multiplicity: %d\n")
-                        wxT("intensity: %g"),
-                        p.h, p.k, p.l, p.multiplicity, p.d, p.intensity));
+        wxString s = wxString::Format(wxT("line (%d,%d,%d)"), p.h, p.k, p.l);
+        for (vector<Miller>::const_iterator i = p.alt.begin();
+                                                    i != p.alt.end(); ++i)
+            s += wxString::Format(wxT(" & (%d,%d,%d)"), i->h, i->k, i->l);
+        s += wxString::Format(wxT("\nd=%g")
+                              wxT("\nmultiplicity: %d")
+                              wxT("\nintensity: %g"),
+                              p.multiplicity, p.d, p.intensity);
         for (int i = 0; ; ++i) {
             double lambda = powder_book->get_lambda(i);
             if (lambda == 0.)
                 break;
             wxString format = (i == 0 ? wxT("\npeak center: %g") : wxT(", %g"));
-            info->AppendText(wxString::Format(format, lambda));
+            s += wxString::Format(format, lambda);
         }
+        info_tc->SetValue(s);
     }
 }
 
 void PhasePanel::OnAtomsFocus(wxFocusEvent&)
 {
     if (atoms_show_help) {
-        atoms->Clear();
+        atoms_tc->Clear();
         atoms_show_help = false;
     }
 }
@@ -1101,9 +1167,9 @@ bool isspace(const char* s)
 
 void PhasePanel::OnAtomsChanged(wxCommandEvent&)
 {
-    string atoms_str = wx2s(atoms->GetValue());
+    string atoms_str = wx2s(atoms_tc->GetValue());
     if (atoms_str.size() < 3) {
-        info->Clear();
+        info_tc->Clear();
         return;
     }
     const char* s = atoms_str.c_str();
@@ -1119,9 +1185,9 @@ void PhasePanel::OnAtomsChanged(wxCommandEvent&)
         if (*s == '\0')
             break;
 
-        // usually the atom is not changed, so we first write data
-        // into a new struct Atom, and than if it is different copy
-        // the atom and do calculations
+        // usually the atom is not changed, so we first parse data
+        // into a new struct Atom, and if it is different we copy it
+        // and do calculations
         Atom a;
 
         // parse symbol
@@ -1139,11 +1205,11 @@ void PhasePanel::OnAtomsChanged(wxCommandEvent&)
 
         // parse x, y, z
         char *endptr;
-        a.pos[0] = strtod(s, &endptr);
+        a.positions[0].x = strtod(s, &endptr);
         s = endptr;
-        a.pos[1] = strtod(s, &endptr);
+        a.positions[0].y = strtod(s, &endptr);
         s = endptr;
-        a.pos[2] = strtod(s, &endptr);
+        a.positions[0].z = strtod(s, &endptr);
 
         // check if the numbers were parsed
         if (endptr == s || // one or more numbers were not parsed
@@ -1170,14 +1236,18 @@ void PhasePanel::OnAtomsChanged(wxCommandEvent&)
         else {
             Atom &b = cr.atoms[atom_count];
             atom_changed = (strcmp(a.symbol, b.symbol) != 0
-                            || a.pos[0] != b.pos[0]
-                            || a.pos[1] != b.pos[1]
-                            || a.pos[2] != b.pos[2]);
-            b = a;
+                            || a.positions[0].x != b.positions[0].x
+                            || a.positions[0].y != b.positions[0].y
+                            || a.positions[0].z != b.positions[0].z);
+            if (atom_changed) {
+                memcpy(b.symbol, a.symbol, 8);
+                b.positions.resize(1);
+                b.positions[0] = a.positions[0];
+            }
         }
 
         if (atom_changed) {
-            //TODO symmetry calculations
+            add_symmetric_images(cr.atoms[atom_count], &cr.sg_ops);
         }
 
         ++atom_count;
@@ -1185,13 +1255,17 @@ void PhasePanel::OnAtomsChanged(wxCommandEvent&)
     // vector cr.atoms may be longer than necessary
     cr.atoms.resize(atom_count);
 
-    info->SetValue(wxString::Format(wxT("%d atoms parsed."), atom_count));
+    wxString info = wxT("In unit cell:");
+    for (vector<Atom>::const_iterator i = cr.atoms.begin();
+                                                    i != cr.atoms.end(); ++i) {
+        info += wxString::Format(wxT(" %d %s "),
+                              (int)i->positions.size(), i->symbol);
+        //BOOST_FOREACH(Pos j, i->positions)
+        //    info += wxString::Format(wxT("(%g,%g,%g)\n"), j.x, j.y, j.z);
+    }
     if (line_with_error != -1)
-        info->AppendText(wxString::Format(wxT("\n<- Error in line %d."),
-                                          line_with_error));
-    //TODO:
-    //  In unit cell: 4 Si, 4 C, 2 O
-    //  Raw Formula: Si₂C₂O (gcd)
+        info += wxString::Format(wxT("\nError in line %d."), line_with_error);
+    info_tc->SetValue(info);
 }
 
 
@@ -1234,8 +1308,9 @@ void PhasePanel::update_miller_indices()
 
     for (vector<Plane>::const_iterator i = cr.hkls.begin();
             i != cr.hkls.end(); ++i) {
-        hkl_list->Append(wxString::Format(wxT("(%d,%d,%d)  d=%g"),
-                                          i->h, i->k, i->l, i->d));
+        char a = (i->alt.empty() ? ' ' : '*');
+        hkl_list->Append(wxString::Format(wxT("(%d,%d,%d)%c  d=%g"),
+                                          i->h, i->k, i->l, a, i->d));
     }
     for (size_t i = 0; i < hkl_list->GetCount(); ++i)
         hkl_list->Check(i, true);
