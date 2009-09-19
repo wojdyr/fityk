@@ -120,15 +120,25 @@ struct Miller
 
 struct Plane : public Miller
 {
-    double d;
     int multiplicity;
-    double intensity;
-    vector<Miller> alt; // other hkl's with the same d
+    double F2; // |F_hkl|^2 (_not_ multiplied by multiplicity)
 
-    bool operator<(const Plane& p) const { return d > p.d; }
+    Plane() {}
+    Plane(Miller const& hkl) : Miller(hkl), multiplicity(1.), F2(0.){}
 };
 
-struct Pos // position in unit cell, in [0,1)
+struct PlanesWithSameD
+{
+    vector<Plane> planes;
+    double d;
+    double lpf; // Lorentz-polarization factor
+    double intensity; // total intensity = lpf * sum(multiplicity * F2)
+
+    bool operator<(const PlanesWithSameD& p) const { return d > p.d; }
+    void add(Miller const& hkl, const T_SgOps* sg_ops);
+};
+
+struct Pos // position in unit cell, 0 <= x,y,z < 1
 {
     double x, y, z;
 };
@@ -136,9 +146,8 @@ struct Pos // position in unit cell, in [0,1)
 struct Atom
 {
     char symbol[8];
-    // contains positions in unit cell, in [0,1)
-    // positions[0] contains "original" atom,
-    // the next items are symmetric images
+    // Contains positions of all symmetrically equivalent atoms in unit cell.
+    // positions[0] contains the "original" atom.
     vector<Pos> positions;
 
     Atom() : positions(1) {}
@@ -154,7 +163,7 @@ public:
     UnitCell* uc;
     int n_atoms;
     vector<Atom> atoms;
-    vector<Plane> hkls; // reflections
+    vector<PlanesWithSameD> bp; // boundles of hkl planes
 
     Crystal() : uc(NULL) { atoms.reserve(16); }
     ~Crystal() { delete uc; }
@@ -164,6 +173,7 @@ public:
     void set_unit_cell(double a, double b, double c,
                        double alpha, double beta, double gamma)
         { delete uc; uc = new UnitCell(a, b, c, alpha, beta, gamma); }
+    void calculate_intensities(double lambda);
 private:
     DISALLOW_COPY_AND_ASSIGN(Crystal);
 };
@@ -232,6 +242,19 @@ void add_symmetric_images(Atom& a, const T_SgOps* sg_ops)
     }
 }
 
+void PlanesWithSameD::add(Miller const& hkl, const T_SgOps* sg_ops)
+{
+    for (vector<Plane>::iterator i = planes.begin(); i != planes.end(); ++i) {
+        if (check_symmetric_hkl(sg_ops, *i, hkl)) {
+            i->multiplicity++;
+            return;
+        }
+    }
+    // equivalent plane not found
+    planes.push_back(Plane(hkl));
+}
+
+
 class SpaceGroupChooser : public wxDialog
 {
 public:
@@ -279,6 +302,7 @@ public:
     void OnLineToggled(wxCommandEvent& event);
     void OnLineSelected(wxCommandEvent& event);
     void OnAtomsFocus(wxFocusEvent&);
+    void OnAtomsUnfocus(wxFocusEvent&);
     void OnAtomsChanged(wxCommandEvent& event);
     void set_phase(vector<string> const& tokens);
     vector<double> get_dists() const;
@@ -295,6 +319,8 @@ private:
     bool atoms_show_help;
     PlotWithLines *sample_plot;
     wxStaticText *sg_nr_st;
+    // line number with the first syntax error atoms_tc; -1 if correct
+    int line_with_error_;
 
     Crystal cr;
 
@@ -368,7 +394,7 @@ int Crystal::set_space_group(const char* name)
 
 void Crystal::generate_reflections(double min_d)
 {
-    hkls.clear();
+    bp.clear();
     UnitCell reciprocal = uc->get_reciprocal();
 
     // set upper limit for iteration of Miller indices
@@ -396,38 +422,77 @@ void Crystal::generate_reflections(double min_d)
                 if (IsSysAbsMIx(&sg_ops, H, NULL) != 0)
                     continue;
 
+                Miller hkl = { h, k, l };
                 bool found = false;
-                for (vector<Plane>::iterator i = hkls.begin();
-                        i != hkls.end(); ++i) {
+                for (vector<PlanesWithSameD>::iterator i = bp.begin();
+                        i != bp.end(); ++i) {
                     if (fabs(d - i->d) < 1e-9) {
-                        i->multiplicity++;
-                        i->intensity += 0.;
-                        Miller hkl = { h, k, l };
-                        if (!check_symmetric_hkl(&sg_ops, *i, hkl)) {
-                            vector<Miller>::const_iterator a = i->alt.begin();
-                            for ( ; a != i->alt.end(); ++a)
-                                if (check_symmetric_hkl(&sg_ops, *a, hkl))
-                                    break;
-                            if (a == i->alt.end())
-                                i->alt.push_back(hkl);
-                        }
+                        i->add(hkl, &sg_ops);
                         found = true;
                         break;
                     }
                 }
                 if (!found) {
-                    Plane p;
-                    p.h = h;
-                    p.k = k;
-                    p.l = l;
-                    p.d = d;
-                    p.multiplicity = 1;
-                    p.intensity = 0.;
-                    hkls.push_back(p);
+                    PlanesWithSameD new_p;
+                    new_p.planes.push_back(Plane(hkl));
+                    new_p.d = d;
+                    new_p.lpf = 0.;
+                    new_p.intensity = 0.;
+                    bp.push_back(new_p);
                 }
             }
-    sort(hkls.begin(), hkls.end());
+    sort(bp.begin(), bp.end());
 }
+
+
+// stol = sin(theta)/lambda
+void calculate_intensity(Plane& p, const vector<Atom>& atoms, double stol)
+{
+    // calculating F_hkl, (Pecharsky & Zavalij, eq. (2.89) and (2.103))
+    // assuming population g = 1
+    // assuming temperature factor t = 1
+    //p.intensity = ;
+    double F_real = 0.;
+    double F_img = 0;
+    for (vector<Atom>::const_iterator i = atoms.begin(); i != atoms.end(); ++i){
+        stol = stol; //TODO
+        double f = 1; //i->name, stol;
+        for (vector<Pos>::const_iterator j = i->positions.begin();
+                                                j != i->positions.end(); ++j) {
+            double hx = p.h * j->x + p.k * j->y + p.l * j->z;
+            F_real += f * cos(2*M_PI * hx);
+            F_img += f * sin(2*M_PI * hx);
+        }
+    }
+    p.F2 = F_real*F_real + F_img*F_img;
+}
+
+void calculate_total_intensity(PlanesWithSameD &bp, const vector<Atom>& atoms,
+                               double lambda)
+{
+    double stol = 1. / (2 * bp.d); // == sin(T) / lambda
+    double T = asin(stol * lambda); // theta
+
+    // for x-rays, we assume K=0.5 and
+    // LP = (1 + cos(2T)^2) / (cos(T) sin(T)^2)
+    //  (Pecharsky & Zavalij, eq. (2.70), p. 192)
+    bp.lpf = (1 + cos(2*T)*cos(2*T)) / (cos(T)*sin(T)*sin(T));
+
+    double t = 0;
+    for (vector<Plane>::iterator i = bp.planes.begin();
+                                                i != bp.planes.end(); ++i) {
+        calculate_intensity(*i, atoms, stol);
+        t += i->multiplicity * i->F2;
+    }
+    bp.intensity = bp.lpf * t;
+}
+
+void Crystal::calculate_intensities(double lambda)
+{
+    for (vector<PlanesWithSameD>::iterator i = bp.begin(); i != bp.end(); ++i)
+        calculate_total_intensity(*i, atoms, lambda);
+}
+
 
 double UnitCell::calculate_V() const
 {
@@ -764,8 +829,8 @@ void PlotWithLines::draw(wxDC &dc, bool)
     vector<double> dd = phase_panel_->get_dists();
     for (vector<double>::const_iterator i = dd.begin(); i != dd.end(); ++i) {
         double d = *i;
-        double angle = 180 / M_PI * 2 * asin(lambda1 / (2*d));
-        int X = getX(angle);
+        double two_theta = 180 / M_PI * 2 * asin(lambda1 / (2*d));
+        int X = getX(two_theta);
         dc.DrawLine(X, Y0, X, Y1);
     }
 }
@@ -801,7 +866,8 @@ void PlotWithLines::draw_active_data(wxDC& dc)
 }
 
 PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
-        : wxPanel(parent), nb_parent(parent), powder_book(powder_book_)
+        : wxPanel(parent), nb_parent(parent), powder_book(powder_book_),
+          line_with_error_(-1)
 {
     wxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
 
@@ -908,6 +974,9 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
 
     atoms_tc->Connect(wxEVT_SET_FOCUS,
                       (wxObjectEventFunction) &PhasePanel::OnAtomsFocus,
+                      NULL, this);
+    atoms_tc->Connect(wxEVT_KILL_FOCUS,
+                      (wxObjectEventFunction) &PhasePanel::OnAtomsUnfocus,
                       NULL, this);
     atoms_tc->Connect(wxEVT_COMMAND_TEXT_UPDATED,
                       (wxObjectEventFunction) &PhasePanel::OnAtomsChanged,
@@ -1125,27 +1194,58 @@ void PhasePanel::OnLineToggled(wxCommandEvent&)
     sample_plot->refresh();
 }
 
+wxString make_info_string_for_line(const PlanesWithSameD& bp,
+                                   PowderBook *powder_book)
+{
+    wxString info = wxT("line ");
+    wxString mult_str = wxT("multiplicity: ");
+    wxString sfac2_str = wxT("|F|^2: ");
+    for (vector<Plane>::const_iterator i = bp.planes.begin();
+                                              i != bp.planes.end(); ++i) {
+        if (i != bp.planes.begin()) {
+            info += wxT(", ");
+            mult_str += wxT(", ");
+            sfac2_str += wxT(", ");
+        }
+        info += wxString::Format(wxT("(%d,%d,%d)"), i->h, i->k, i->l);
+        mult_str += wxString::Format(wxT("%d"), i->multiplicity);
+        sfac2_str += wxString::Format(wxT("%g"), i->F2);
+    }
+    info += wxString::Format(wxT("\nd=%g\n"), bp.d);
+    info += mult_str + wxT("\n") + sfac2_str;
+    info += wxString::Format(wxT("\nLorentz-polarization: %g"), bp.lpf);
+    info += wxString::Format(wxT("\ntotal intensity: %g"), bp.intensity);
+    for (int i = 0; ; ++i) {
+        double lambda = powder_book->get_lambda(i);
+        if (lambda == 0.)
+            break;
+        wxString format = (i == 0 ? wxT("\npeak center: %g") : wxT(", %g"));
+        info += wxString::Format(format, lambda);
+    }
+    return info;
+}
+
+wxString make_info_string_for_atoms(const vector<Atom>& atoms, int error_line)
+{
+    wxString info = wxT("In unit cell:");
+    for (vector<Atom>::const_iterator i = atoms.begin(); i != atoms.end(); ++i){
+        info += wxString::Format(wxT(" %d %s "),
+                                 (int)i->positions.size(), i->symbol);
+        //BOOST_FOREACH(Pos j, i->positions)
+        //    info += wxString::Format(wxT("(%g,%g,%g)\n"), j.x, j.y, j.z);
+    }
+    if (error_line != -1)
+        info += wxString::Format(wxT("\nError in line %d."), error_line);
+    return info;
+}
+
+
 void PhasePanel::OnLineSelected(wxCommandEvent& event)
 {
     if (event.IsSelection()) {
         int n = event.GetSelection();
-        Plane const& p = cr.hkls[n];
-        wxString s = wxString::Format(wxT("line (%d,%d,%d)"), p.h, p.k, p.l);
-        for (vector<Miller>::const_iterator i = p.alt.begin();
-                                                    i != p.alt.end(); ++i)
-            s += wxString::Format(wxT(" & (%d,%d,%d)"), i->h, i->k, i->l);
-        s += wxString::Format(wxT("\nd=%g")
-                              wxT("\nmultiplicity: %d")
-                              wxT("\nintensity: %g"),
-                              p.multiplicity, p.d, p.intensity);
-        for (int i = 0; ; ++i) {
-            double lambda = powder_book->get_lambda(i);
-            if (lambda == 0.)
-                break;
-            wxString format = (i == 0 ? wxT("\npeak center: %g") : wxT(", %g"));
-            s += wxString::Format(format, lambda);
-        }
-        info_tc->SetValue(s);
+        PlanesWithSameD const& bp = cr.bp[n];
+        info_tc->SetValue(make_info_string_for_line(bp, powder_book));
     }
 }
 
@@ -1154,6 +1254,19 @@ void PhasePanel::OnAtomsFocus(wxFocusEvent&)
     if (atoms_show_help) {
         atoms_tc->Clear();
         atoms_show_help = false;
+    }
+    info_tc->SetValue(make_info_string_for_atoms(cr.atoms, line_with_error_));
+}
+
+void PhasePanel::OnAtomsUnfocus(wxFocusEvent&)
+{
+    double lambda = powder_book->get_lambda(0);
+    if (lambda > 0)
+        cr.calculate_intensities(lambda);
+    int n = hkl_list->GetSelection();
+    if (n >= 0) {
+        PlanesWithSameD const& bp = cr.bp[n];
+        info_tc->SetValue(make_info_string_for_line(bp, powder_book));
     }
 }
 
@@ -1173,7 +1286,7 @@ void PhasePanel::OnAtomsChanged(wxCommandEvent&)
         return;
     }
     const char* s = atoms_str.c_str();
-    int line_with_error = -1;
+    line_with_error_ = -1;
     int atom_count = 0;
     // don't use cr.atoms.clear(), to make it faster
     for (int line_nr = 1; ; ++line_nr) {
@@ -1196,7 +1309,7 @@ void PhasePanel::OnAtomsChanged(wxCommandEvent&)
             ++word_end;
         int symbol_len = word_end - s;
         if (symbol_len == 0 || symbol_len >= 8) {
-            line_with_error = line_nr;
+            line_with_error_ = line_nr;
             break;
         }
         memcpy(a.symbol, s, symbol_len);
@@ -1215,7 +1328,7 @@ void PhasePanel::OnAtomsChanged(wxCommandEvent&)
         if (endptr == s || // one or more numbers were not parsed
             (!isspace(*endptr) && *endptr != '\0')) // e.g. "Si 0 0 0foo"
         {
-            line_with_error = line_nr;
+            line_with_error_ = line_nr;
             break;
         }
 
@@ -1255,19 +1368,8 @@ void PhasePanel::OnAtomsChanged(wxCommandEvent&)
     // vector cr.atoms may be longer than necessary
     cr.atoms.resize(atom_count);
 
-    wxString info = wxT("In unit cell:");
-    for (vector<Atom>::const_iterator i = cr.atoms.begin();
-                                                    i != cr.atoms.end(); ++i) {
-        info += wxString::Format(wxT(" %d %s "),
-                              (int)i->positions.size(), i->symbol);
-        //BOOST_FOREACH(Pos j, i->positions)
-        //    info += wxString::Format(wxT("(%g,%g,%g)\n"), j.x, j.y, j.z);
-    }
-    if (line_with_error != -1)
-        info += wxString::Format(wxT("\nError in line %d."), line_with_error);
-    info_tc->SetValue(info);
+    info_tc->SetValue(make_info_string_for_atoms(cr.atoms, line_with_error_));
 }
-
 
 void PhasePanel::update_disabled_parameters()
 {
@@ -1306,11 +1408,12 @@ void PhasePanel::update_miller_indices()
     double min_d = lambda / (2 * sin(max_2theta / 2.));
     cr.generate_reflections(min_d);
 
-    for (vector<Plane>::const_iterator i = cr.hkls.begin();
-            i != cr.hkls.end(); ++i) {
-        char a = (i->alt.empty() ? ' ' : '*');
+    for (vector<PlanesWithSameD>::const_iterator i = cr.bp.begin();
+                                                i != cr.bp.end(); ++i) {
+        char a = (i->planes.size() == 1 ? ' ' : '*');
+        Miller const& m = i->planes[0];
         hkl_list->Append(wxString::Format(wxT("(%d,%d,%d)%c  d=%g"),
-                                          i->h, i->k, i->l, a, i->d));
+                                          m.h, m.k, m.l, a, i->d));
     }
     for (size_t i = 0; i < hkl_list->GetCount(); ++i)
         hkl_list->Check(i, true);
@@ -1332,9 +1435,9 @@ void PhasePanel::set_phase(vector<string> const& tokens)
 vector<double> PhasePanel::get_dists() const
 {
     vector<double> dd;
-    for (size_t i = 0; i != cr.hkls.size(); ++i)
+    for (size_t i = 0; i != cr.bp.size(); ++i)
         if (hkl_list->IsChecked(i))
-            dd.push_back(cr.hkls[i].d);
+            dd.push_back(cr.bp[i].d);
     return dd;
 }
 
