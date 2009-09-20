@@ -3,12 +3,12 @@
 // $Id$
 
 //TODO:
+// enable x-ray / neutron switching (different LPF and scattering factors)
 // buffer plot with data
-// miller indices: plot selected index with different color
 // import .cel and .cif files
-// calculate intensities
-// peaks: peak formula, widths, shapes,
-//        scale initial intensity, 3 previews (first, middle and last peak)
+// read/save quick-list "phases" from/to file
+// peaks: peak formula, widths, shapes
+// action: info about old and new models, button to add/update the model
 
 #include <cmath>
 #include <cstring>
@@ -33,6 +33,7 @@ extern const T_Main_HM_Dict Main_HM_Dict[];
 
 
 #include "powdifpat.h"
+#include "atomtables.h"
 #include "../common.h"
 #include "cmn.h"
 #include "uplot.h" // BufferedPanel, scale_tics_step()
@@ -133,6 +134,7 @@ struct PlanesWithSameD
     double d;
     double lpf; // Lorentz-polarization factor
     double intensity; // total intensity = lpf * sum(multiplicity * F2)
+    bool enabled; // include this peak in model
 
     bool operator<(const PlanesWithSameD& p) const { return d > p.d; }
     void add(Miller const& hkl, const T_SgOps* sg_ops);
@@ -149,6 +151,8 @@ struct Atom
     // Contains positions of all symmetrically equivalent atoms in unit cell.
     // positions[0] contains the "original" atom.
     vector<Pos> positions;
+    const t_it92_coeff *xray_sf;
+    const t_nn92_record *neutron_sf;
 
     Atom() : positions(1) {}
 };
@@ -305,7 +309,9 @@ public:
     void OnAtomsUnfocus(wxFocusEvent&);
     void OnAtomsChanged(wxCommandEvent& event);
     void set_phase(vector<string> const& tokens);
-    vector<double> get_dists() const;
+    const Crystal& get_crystal() { return cr_; }
+    bool editing_atoms() const { return editing_atoms_; }
+    int get_selected_hkl() const { return hkl_list->GetSelection(); }
 
 private:
     wxNotebook *nb_parent;
@@ -316,13 +322,14 @@ private:
     wxButton *s_qadd_btn;
     wxCheckListBox *hkl_list;
     wxTextCtrl *atoms_tc, *info_tc;
-    bool atoms_show_help;
-    PlotWithLines *sample_plot;
     wxStaticText *sg_nr_st;
+    bool atoms_show_help_;
+    bool editing_atoms_;
+    PlotWithLines *sample_plot;
     // line number with the first syntax error atoms_tc; -1 if correct
     int line_with_error_;
 
-    Crystal cr;
+    Crystal cr_;
 
     void enable_parameter_fields();
     void update_disabled_parameters();
@@ -438,6 +445,7 @@ void Crystal::generate_reflections(double min_d)
                     new_p.d = d;
                     new_p.lpf = 0.;
                     new_p.intensity = 0.;
+                    new_p.enabled = true;
                     bp.push_back(new_p);
                 }
             }
@@ -451,12 +459,12 @@ void calculate_intensity(Plane& p, const vector<Atom>& atoms, double stol)
     // calculating F_hkl, (Pecharsky & Zavalij, eq. (2.89) and (2.103))
     // assuming population g = 1
     // assuming temperature factor t = 1
-    //p.intensity = ;
     double F_real = 0.;
     double F_img = 0;
     for (vector<Atom>::const_iterator i = atoms.begin(); i != atoms.end(); ++i){
-        stol = stol; //TODO
-        double f = 1; //i->name, stol;
+        double f = 1.;
+        if (i->xray_sf)
+            f = calculate_it92_factor(i->xray_sf, stol*stol);
         for (vector<Pos>::const_iterator j = i->positions.begin();
                                                 j != i->positions.end(); ++j) {
             double hx = p.h * j->x + p.k * j->y + p.l * j->z;
@@ -489,6 +497,8 @@ void calculate_total_intensity(PlanesWithSameD &bp, const vector<Atom>& atoms,
 
 void Crystal::calculate_intensities(double lambda)
 {
+    if (atoms.empty())
+        return;
     for (vector<PlanesWithSameD>::iterator i = bp.begin(); i != bp.end(); ++i)
         calculate_total_intensity(*i, atoms, lambda);
 }
@@ -821,17 +831,44 @@ void PlotWithLines::draw(wxDC &dc, bool)
     dc.SetPen(*wxGREEN_PEN);
     draw_active_data(dc);
     //TODO buffer the plot with tics and data
+
     // draw lines
     int Y0 = dc.GetSize().GetHeight();
-    int Y1 = getY(0) + 2;
+    int Yx = getY(0); // Y of x axis
     dc.SetPen(*wxRED_PEN);
-    double lambda1 = powder_book_->lambda_ctrl[0]->get_value();
-    vector<double> dd = phase_panel_->get_dists();
-    for (vector<double>::const_iterator i = dd.begin(); i != dd.end(); ++i) {
-        double d = *i;
-        double two_theta = 180 / M_PI * 2 * asin(lambda1 / (2*d));
+    double lambda1 = powder_book_->get_lambda(0);
+    if (lambda1 == 0.)
+        return;
+    const vector<PlanesWithSameD>& bp = phase_panel_->get_crystal().bp;
+    int selected = phase_panel_->get_selected_hkl();
+    double max_intensity = 0.;
+    for (vector<PlanesWithSameD>::const_iterator i = bp.begin();
+                                                        i != bp.end(); ++i)
+        if (i->intensity > max_intensity)
+            max_intensity = i->intensity;
+    double y_scaling = 0;
+    if (max_intensity > 0)
+        y_scaling = powder_book_->y_max / max_intensity;
+    for (vector<PlanesWithSameD>::const_iterator i = bp.begin();
+                                                        i != bp.end(); ++i) {
+        if (!i->enabled)
+            continue;
+        bool is_selected = (i - bp.begin() == selected);
+        if (is_selected)
+            //wxYELLOW_PEN and wxYELLOW were added in 2.9
+            dc.SetPen(wxPen(wxColour(255, 255, 0)));
+        double two_theta = 180 / M_PI * 2 * asin(lambda1 / (2 * i->d));
         int X = getX(two_theta);
-        dc.DrawLine(X, Y0, X, Y1);
+        // draw short line at the bottom to mark position of the peak
+        dc.DrawLine(X, Y0, X, (Yx+Y0)/2);
+        if (i->intensity && !phase_panel_->editing_atoms()) {
+            int Y1 = getY(y_scaling * i->intensity);
+            // draw line that has height proportional to peak intensity
+            dc.DrawLine(X, Yx, X, Y1);
+        }
+        // set it back to normal color
+        if (is_selected)
+            dc.SetPen(*wxRED_PEN);
     }
 }
 
@@ -927,7 +964,7 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
     atoms_tc->SetValue(wxT("Optional: atom positions, e.g.\n")
                     wxT("Si 0 0 0\n")
                     wxT("C 0.25 0.25 0.25"));
-    atoms_show_help = true;
+    atoms_show_help_ = true;
     atoms_tc->SetSelection(-1, -1);
     info_tc = new wxTextCtrl(atom_split, -1, wxEmptyString,
                              wxDefaultPosition, wxDefaultSize,
@@ -1101,7 +1138,7 @@ int get_crystal_system(int space_group)
 
 void PhasePanel::change_space_group(string const& text)
 {
-    int sg_number = cr.set_space_group(text.c_str());
+    int sg_number = cr_.set_space_group(text.c_str());
     if (sg_number <= 0) {
         sg_tc->Clear();
         hkl_list->Clear();
@@ -1109,11 +1146,11 @@ void PhasePanel::change_space_group(string const& text)
         return;
     }
 
-    sg_tc->ChangeValue(pchar2wx(cr.sg_names.HM));
+    sg_tc->ChangeValue(pchar2wx(cr_.sg_names.HM));
     sg_nr_st->SetLabel(wxString::Format(wxT("no. %d, %s, order %d"),
-                                        cr.sg_names.SgNumber,
-                                        cr.get_crystal_system_name(),
-                                        SgOpsOrderL(&cr.sg_ops)));
+                                        cr_.sg_names.SgNumber,
+                                        cr_.get_crystal_system_name(),
+                                        SgOpsOrderL(&cr_.sg_ops)));
     enable_parameter_fields();
     update_disabled_parameters();
     update_miller_indices();
@@ -1121,7 +1158,7 @@ void PhasePanel::change_space_group(string const& text)
 
 void PhasePanel::enable_parameter_fields()
 {
-    switch (cr.sg_xs) {
+    switch (cr_.sg_xs) {
         case XS_Triclinic:
             par_b->Enable(true);
             par_c->Enable(true);
@@ -1189,8 +1226,13 @@ void PhasePanel::OnParameterChanged(wxCommandEvent&)
     sample_plot->refresh();
 }
 
-void PhasePanel::OnLineToggled(wxCommandEvent&)
+void PhasePanel::OnLineToggled(wxCommandEvent& event)
 {
+    int n = event.GetSelection();
+    PlanesWithSameD& bp = cr_.bp[n];
+    // event.IsChecked() is not set (wxGTK 2.9)
+    bp.enabled = hkl_list->IsChecked(n);
+
     sample_plot->refresh();
 }
 
@@ -1199,20 +1241,20 @@ wxString make_info_string_for_line(const PlanesWithSameD& bp,
 {
     wxString info = wxT("line ");
     wxString mult_str = wxT("multiplicity: ");
-    wxString sfac2_str = wxT("|F|^2: ");
+    wxString sfac_str = wxT("|F(hkl)|: ");
     for (vector<Plane>::const_iterator i = bp.planes.begin();
                                               i != bp.planes.end(); ++i) {
         if (i != bp.planes.begin()) {
             info += wxT(", ");
             mult_str += wxT(", ");
-            sfac2_str += wxT(", ");
+            sfac_str += wxT(", ");
         }
         info += wxString::Format(wxT("(%d,%d,%d)"), i->h, i->k, i->l);
         mult_str += wxString::Format(wxT("%d"), i->multiplicity);
-        sfac2_str += wxString::Format(wxT("%g"), i->F2);
+        sfac_str += wxString::Format(wxT("%g"), sqrt(i->F2));
     }
     info += wxString::Format(wxT("\nd=%g\n"), bp.d);
-    info += mult_str + wxT("\n") + sfac2_str;
+    info += mult_str + wxT("\n") + sfac_str;
     info += wxString::Format(wxT("\nLorentz-polarization: %g"), bp.lpf);
     info += wxString::Format(wxT("\ntotal intensity: %g"), bp.intensity);
     for (int i = 0; ; ++i) {
@@ -1244,30 +1286,36 @@ void PhasePanel::OnLineSelected(wxCommandEvent& event)
 {
     if (event.IsSelection()) {
         int n = event.GetSelection();
-        PlanesWithSameD const& bp = cr.bp[n];
+        PlanesWithSameD const& bp = cr_.bp[n];
         info_tc->SetValue(make_info_string_for_line(bp, powder_book));
     }
+    sample_plot->refresh();
 }
 
 void PhasePanel::OnAtomsFocus(wxFocusEvent&)
 {
-    if (atoms_show_help) {
+    if (atoms_show_help_) {
         atoms_tc->Clear();
-        atoms_show_help = false;
+        atoms_show_help_ = false;
     }
-    info_tc->SetValue(make_info_string_for_atoms(cr.atoms, line_with_error_));
+    wxString info = make_info_string_for_atoms(cr_.atoms, line_with_error_);
+    info_tc->SetValue(info);
+    editing_atoms_ = true;
+    sample_plot->refresh();
 }
 
 void PhasePanel::OnAtomsUnfocus(wxFocusEvent&)
 {
     double lambda = powder_book->get_lambda(0);
     if (lambda > 0)
-        cr.calculate_intensities(lambda);
+        cr_.calculate_intensities(lambda);
     int n = hkl_list->GetSelection();
     if (n >= 0) {
-        PlanesWithSameD const& bp = cr.bp[n];
+        PlanesWithSameD const& bp = cr_.bp[n];
         info_tc->SetValue(make_info_string_for_line(bp, powder_book));
     }
+    editing_atoms_ = false;
+    sample_plot->refresh();
 }
 
 bool isspace(const char* s)
@@ -1288,7 +1336,7 @@ void PhasePanel::OnAtomsChanged(wxCommandEvent&)
     const char* s = atoms_str.c_str();
     line_with_error_ = -1;
     int atom_count = 0;
-    // don't use cr.atoms.clear(), to make it faster
+    // don't use cr_.atoms.clear(), to make it faster
     for (int line_nr = 1; ; ++line_nr) {
         // skip whitespace
         while(isspace(*s) && *s != '\n')
@@ -1341,34 +1389,34 @@ void PhasePanel::OnAtomsChanged(wxCommandEvent&)
             ++s;
 
         // check if the atom needs to be copied, and copy it if necessary
-        bool atom_changed = false;
-        if (atom_count == (int) cr.atoms.size()) {
-            cr.atoms.push_back(a);
-            atom_changed = true;
+        if (atom_count == (int) cr_.atoms.size()) {
+            a.xray_sf = find_in_it92(a.symbol);
+            a.neutron_sf = find_in_nn92(a.symbol);
+            cr_.atoms.push_back(a);
+            add_symmetric_images(cr_.atoms[atom_count], &cr_.sg_ops);
         }
         else {
-            Atom &b = cr.atoms[atom_count];
-            atom_changed = (strcmp(a.symbol, b.symbol) != 0
-                            || a.positions[0].x != b.positions[0].x
-                            || a.positions[0].y != b.positions[0].y
-                            || a.positions[0].z != b.positions[0].z);
-            if (atom_changed) {
+            Atom &b = cr_.atoms[atom_count];
+            if (strcmp(a.symbol, b.symbol) != 0) {
                 memcpy(b.symbol, a.symbol, 8);
+                b.xray_sf = find_in_it92(b.symbol);
+                b.neutron_sf = find_in_nn92(b.symbol);
+            }
+            if (a.positions[0].x != b.positions[0].x
+                    || a.positions[0].y != b.positions[0].y
+                    || a.positions[0].z != b.positions[0].z) {
                 b.positions.resize(1);
                 b.positions[0] = a.positions[0];
+                add_symmetric_images(cr_.atoms[atom_count], &cr_.sg_ops);
             }
         }
-
-        if (atom_changed) {
-            add_symmetric_images(cr.atoms[atom_count], &cr.sg_ops);
-        }
-
         ++atom_count;
     }
-    // vector cr.atoms may be longer than necessary
-    cr.atoms.resize(atom_count);
+    // vector cr_.atoms may be longer than necessary
+    cr_.atoms.resize(atom_count);
 
-    info_tc->SetValue(make_info_string_for_atoms(cr.atoms, line_with_error_));
+    wxString info = make_info_string_for_atoms(cr_.atoms, line_with_error_);
+    info_tc->SetValue(info);
 }
 
 void PhasePanel::update_disabled_parameters()
@@ -1379,7 +1427,7 @@ void PhasePanel::update_disabled_parameters()
     if (!par_c->IsEnabled())
         par_c->set_string(par_a->get_string());
 
-    if (cr.sg_xs == XS_Trigonal) {
+    if (cr_.sg_xs == XS_Trigonal) {
         par_beta->set_string(par_alpha->get_string());
         par_gamma->set_string(par_alpha->get_string());
     }
@@ -1403,13 +1451,14 @@ void PhasePanel::update_miller_indices()
             || lambda <= 0 || max_2theta <= 0) {
         return;
     }
-    cr.set_unit_cell(a, b, c, alpha, beta, gamma);
+    cr_.set_unit_cell(a, b, c, alpha, beta, gamma);
 
     double min_d = lambda / (2 * sin(max_2theta / 2.));
-    cr.generate_reflections(min_d);
+    cr_.generate_reflections(min_d);
+    cr_.calculate_intensities(lambda);
 
-    for (vector<PlanesWithSameD>::const_iterator i = cr.bp.begin();
-                                                i != cr.bp.end(); ++i) {
+    for (vector<PlanesWithSameD>::const_iterator i = cr_.bp.begin();
+                                                i != cr_.bp.end(); ++i) {
         char a = (i->planes.size() == 1 ? ' ' : '*');
         Miller const& m = i->planes[0];
         hkl_list->Append(wxString::Format(wxT("(%d,%d,%d)%c  d=%g"),
@@ -1430,15 +1479,6 @@ void PhasePanel::set_phase(vector<string> const& tokens)
     par_beta->set_string(s2wx(tokens[6]));
     par_gamma->set_string(s2wx(tokens[7]));
     update_miller_indices();
-}
-
-vector<double> PhasePanel::get_dists() const
-{
-    vector<double> dd;
-    for (size_t i = 0; i != cr.bp.size(); ++i)
-        if (hkl_list->IsChecked(i))
-            dd.push_back(cr.bp[i].d);
-    return dd;
 }
 
 wxPanel* PowderBook::PrepareSamplePanel()

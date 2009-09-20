@@ -35,7 +35,7 @@ fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 		plot.cpp plot.h aplot.cpp aplot.h mplot.cpp mplot.h \
 		uplot.cpp uplot.h about.cpp about.h fitinfo.cpp fitinfo.h \
 		dialogs.cpp dialogs.h frame.cpp frame.h app.cpp app.h \
-		powdifpat.cpp powdifpat.h
+		powdifpat.cpp powdifpat.h atomtables.c atomtables.h
 
 
 AM_CPPFLAGS = @WX_CPPFLAGS@ @CPPFLAGS_3RDPARTY@ @XYLIB_CPPFLAGS@ $(HELP_DEF)
@@ -55,8 +55,8 @@ inputline: sample_inputline.cpp inputline.cpp inputline.h callback.h
 
 if POWDIFPAT
 bin_PROGRAMS += powdifpat
-powdifpat_SOURCES = powdifpat.cpp powdifpat.h uplot.cpp uplot.h cmn.cpp cmn.h \
-		    fancyrc.cpp fancyrc.h
+powdifpat_SOURCES = powdifpat.cpp powdifpat.h atomtables.c atomtables.h \
+		    uplot.cpp uplot.h cmn.cpp cmn.h fancyrc.cpp fancyrc.h
 powdifpat_CPPFLAGS = @WX_CPPFLAGS@ @XYLIB_CPPFLAGS@ @SGLITE_CPPFLAGS@ \
 		     -DSTANDALONE_POWDIFPAT
 powdifpat_LDADD = @WX_LIBS@ @XYLIB_LDADD@ @SGLITE_LDADD@ $(powdifpat_res)
