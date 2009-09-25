@@ -17,12 +17,6 @@ Help is needed:
 
 * CLI: filter out "inf"s from data passed to gnuplot
 
-* document recent features:
-  "define ... where ...",
-  option refresh-period,
-  $variable.error or %func.height.error
-  functions LogNormal and LogNormalA
-
 * GUI: there is ugly vertical line (a part of the fitted curve) in points
   where the value is undefined (e.g. in ReadShockley function for x=0).
 

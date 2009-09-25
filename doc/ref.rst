@@ -793,7 +793,7 @@ or as a sum of already defined functions, with possible
 When giving a full formula, right-hand side of the equality sign
 is similar to the :ref:`definiton of variable <variables>`,
 but the formula can also depend on *x*.
-Hopefully the examples below will make the syntax clear.
+Hopefully the examples at the end of this section make the syntax clear.
 
 .. admonition:: How it works internally
 
@@ -808,6 +808,15 @@ Hopefully the examples below will make the syntax clear.
 
     Possible (i.e. not implemented) optimizations include
     Common Subexpression Elimination and JIT compilation.
+
+There is a simple substitution mechanism that makes writing complicated
+functions easier.
+Substitutions must be assigned in the same line, after keyword ``where``.
+Example::
+    define ReadShockley(sigma0=1, a=1) = sigma0 * t * (a - ln(t)) where t=x*pi/180
+
+    # more complicated example, with nested substitutions
+    define FullGBE(k, alpha) = k * alpha * eta * (eta / tanh(eta) - ln (2*sinh(eta))) where eta = 2*pi/alpha * sin(theta/2), theta=x*pi/180
 
 .. tip:: Use the :file:`init` file for often used definitions.
          See :ref:`invoking` for details.
@@ -1168,9 +1177,12 @@ Setting ``set autoplot = on-fit-iteration``
 will plot a model after every iteration, to visualize progress.
 (see :ref:`autoplot <autoplot>`)
 
-Information about goodness-of-fit can be displayed using ``info fit``.
+``info fit`` shows goodness-of-fit.
+
 To see symmetric errors use ``info errors``.
 ``info+ errors`` additionally shows the variance-covariance matrix.
+Individual symmetric errors of simple-variables can be accessed as
+``$variable.error`` or e.g. ``%func.height.error``
 
 Available methods can be mixed together, e.g. it is sensible
 to obtain initial parameter estimates using the Simplex method,
@@ -1393,6 +1405,13 @@ pseudo-random-seed
     option :option:`pseudo-random-seed`.  If it
     is set to 0, the seed is based on the current time and a sequence of
     pseudo-random numbers is different each time.
+
+refresh-period
+    During time-consuming computations (like fitting) user interface can
+    remain not changed for this time (in seconds).
+    This option was introduced, because on one hand frequent refreshing of
+    the program's window notably slows down fitting, and on the other hand
+    irresponsive program is a frustrating experience.
 
 variable-domain-percent
     See :ref:`the section about variables <domain>`.
