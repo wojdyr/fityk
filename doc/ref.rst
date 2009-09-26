@@ -813,6 +813,7 @@ There is a simple substitution mechanism that makes writing complicated
 functions easier.
 Substitutions must be assigned in the same line, after keyword ``where``.
 Example::
+
     define ReadShockley(sigma0=1, a=1) = sigma0 * t * (a - ln(t)) where t=x*pi/180
 
     # more complicated example, with nested substitutions
