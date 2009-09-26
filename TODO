@@ -9,8 +9,6 @@ Help is needed:
 
 ---------- TODO list and tentative development plan  ----------------
 
-* bug: freezing on error during fitting, see analytical-gbe
-
 * add sglite to 3rdparty/ ?
 
 * powder diffraction add-on - Pawley fitting 

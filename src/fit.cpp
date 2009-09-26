@@ -297,7 +297,6 @@ bool Fit::post_fit (const std::vector<fp>& aa, fp chi2)
         F->use_external_parameters(a_orig);
         F->get_ui()->draw_plot(3, true);
     }
-    F->get_ui()->enable_compute_ui(false);
     return better;
 }
 
@@ -322,14 +321,21 @@ fp Fit::draw_a_from_distribution (int nr, char distribution, fp mult)
     return F->variation_of_a(nr, dv * mult);
 }
 
+class ComputeUI
+{
+public:
+    ComputeUI(UserInterface *ui) : ui_(ui) { ui->enable_compute_ui(true); }
+    ~ComputeUI() { ui_->enable_compute_ui(false); }
+private:
+    UserInterface *ui_;
+};
+
 /// initialize and run fitting procedure for not more than max_iter iterations
 void Fit::fit(int max_iter, vector<DataAndModel*> const& dms)
 {
     start_time_ = last_refresh_time_ = time(0);
-    // update_parameters() can throw exceptions, so don't freeze UI before
-    // calling it.
+    ComputeUI compute_ui(F->get_ui());
     update_parameters(dms);
-    F->get_ui()->enable_compute_ui(true);
     dmdm_ = dms;
     a_orig = F->get_parameters();
     F->get_fit_container()->push_param_history(a_orig);
