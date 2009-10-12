@@ -547,6 +547,10 @@ int main (int argc, char **argv)
     catch(ExitRequestedException) {
         cerr << "\nbye...\n";
     }
+    catch (runtime_error const& e) {
+        cerr << "Error: " << e.what() << endl;
+        return 1;
+    }
 
     return 0;
 }

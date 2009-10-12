@@ -18,6 +18,8 @@
     #include <wx/tooltip.h>
 #endif
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <vector>
 #include <string>
 
@@ -277,8 +279,15 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
     if (cmdLineParser.Found(wxT("r")) && p.size() > 1) { // reorder
         sort(p.begin(), p.end(), less_filename(find_common_prefix_length(p)));
     }
-    for (vector<string>::const_iterator i = p.begin(); i != p.end(); ++i)
-        ftk->get_ui()->process_cmd_line_filename(*i);
+    for (vector<string>::const_iterator i = p.begin(); i != p.end(); ++i) {
+        try {
+            ftk->get_ui()->process_cmd_line_filename(*i);
+        }
+        catch (runtime_error const& e) {
+            fprintf(stderr, "Error: %s\n", e.what());
+            exit(1);
+        }
+    }
     if (ftk->get_dm_count() > 1) {
         frame->SwitchSideBar(true);
         // zoom to show all loaded datafiles
