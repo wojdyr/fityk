@@ -1512,7 +1512,9 @@ void FFrame::OnGScrollUp (wxCommandEvent&)
 {
     fp const factor = 2.;
     fp new_top = ftk->view.bottom + factor * ftk->view.height();
-    change_zoom(". [.:" + S(new_top, 12) + "]");
+    char buffer[128];
+    sprintf(buffer, ". [.:%.12g]", new_top);
+    change_zoom(buffer);
 }
 
 void FFrame::OnGExtendH (wxCommandEvent&)
@@ -1522,7 +1524,9 @@ void FFrame::OnGExtendH (wxCommandEvent&)
     fp diff = vw.width() * factor;
     fp new_left = vw.left - diff;
     fp new_right = vw.right + diff;
-    change_zoom("[" + S(new_left) + " : " + S(new_right) + "] .");
+    char buffer[128];
+    sprintf(buffer, "[%.12g:%.12g] .", new_left, new_right);
+    change_zoom(buffer);
 }
 
 
@@ -1549,7 +1553,9 @@ void FFrame::scroll_view_horizontally(fp step)
         diff = -diff;
     fp new_left = vw.left + diff;
     fp new_right = vw.right + diff;
-    change_zoom("[" + S(new_left) + " : " + S(new_right) + "] .");
+    char buffer[128];
+    sprintf(buffer, "[%.12g:%.12g] .", new_left, new_right);
+    change_zoom(buffer);
 }
 
 

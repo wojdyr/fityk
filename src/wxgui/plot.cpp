@@ -144,9 +144,7 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
                                                     i != x_tics.end(); ++i) {
         int X = xs.px(*i);
         dc.DrawLine (X, Y, X, Y - x_tic_size);
-        wxString label = s2wx(S(*i));
-        if (label == wxT("-0"))
-            label = wxT("0");
+        wxString label = wxString::Format(wxT("%.12g"), *i);
         wxCoord w;
         dc.GetTextExtent (label, &w, 0);
         dc.DrawText (label, X - w/2, Y + 1);
@@ -188,9 +186,7 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
                                                     i != y_tics.end(); ++i) {
         int Y = ys.px(*i);
         dc.DrawLine (X, Y, X + y_tic_size, Y);
-        wxString label = s2wx(S(*i));
-        if (label == wxT("-0"))
-            label = wxT("0");
+        wxString label = wxString::Format(wxT("%.12g"), *i);
         if (x_axis_visible && label == wxT("0"))
             continue;
         wxCoord w, h;

@@ -23,8 +23,9 @@ void View::set_datasets(vector<int> const& dd)
 
 string View::str() const
 {
-    return "[" + (S(left) + ":" + S(right)) + "] "
-           "[" + (S(bottom) + ":" + S(top)) + "]";
+    char buffer[128];
+    sprintf(buffer, "[%.12g:%.12g] [%.12g:%.12g]", left, right, bottom, top);
+    return string(buffer);
 }
 
 

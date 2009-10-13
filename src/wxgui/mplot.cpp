@@ -1031,10 +1031,10 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             fp x2 = xs.val(event.GetX());
             fp y1 = ys.val(mouse_press_Y);
             fp y2 = ys.val(event.GetY());
-            frame->change_zoom("[ " + S(min(x1,x2)) + " : "
-                                                    + S(max(x1,x2)) + " ]"
-                               "[ " + S(min(y1,y2), 12) + " : "
-                                                    + S(max(y1,y2), 12) + " ]");
+            char buffer[128];
+            sprintf(buffer, "[%.12g:%.12g] [%.12g:%.12g]",
+                    min(x1,x2), max(x1,x2), min(y1,y2), max(y1,y2));
+            frame->change_zoom(buffer);
         }
         frame->set_status_text("");
     }

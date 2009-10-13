@@ -347,7 +347,9 @@ void AuxPlot::OnLeftUp (wxMouseEvent &event)
     fp x1 = xs.val(event.GetX());
     fp x2 = xs.val(mouse_press_X);
     cancel_mouse_left_press();
-    frame->change_zoom("[" + S(min(x1,x2)) + " : " + S(max(x1,x2)) + "]");
+    char buffer[128];
+    sprintf(buffer, "[%.12g:%.12g]", min(x1,x2), max(x1,x2));
+    frame->change_zoom(buffer);
 }
 
 //popup-menu
