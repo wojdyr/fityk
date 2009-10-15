@@ -3,6 +3,7 @@
 // $Id$
 
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <string>
 #include <string.h>
@@ -35,7 +36,12 @@ void list_supported_formats()
 int print_guessed_filetype(string const& path)
 {
     try {
-        xylib::FormatInfo const* fi = xylib::guess_filetype(path);
+        ifstream is(path.c_str());
+        if (!is) {
+            cout << "Error: can't open input file: " << path;
+            return -1;
+        }
+        xylib::FormatInfo const* fi = xylib::guess_filetype(path, is);
         if (fi)
             cout << fi->name << ": " << fi->desc << endl;
         else

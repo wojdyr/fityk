@@ -12,8 +12,6 @@
 * implement GSAS format (see gsas.cpp for comments) 
 * PANalytical XRDML
 * consider adding JCAMP format (Standard NMR Data Format)
-* allow compressed (.gz, .bz2) data files (only in standalone version,
-  if Boost.Iostreams headers and libbzip2 and/or zlib are present)
 * "read text as nan" option for text files, for reading CSV files with both 
   text and numeric colums
 * support URIs (using libcurl, libfetch or boost:asio)

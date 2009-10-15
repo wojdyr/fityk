@@ -8,6 +8,18 @@
 #include <iomanip>
 #include <algorithm>
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+#ifdef HAVE_ZLIB
+#  include <zlib.h>
+#endif
+
+#ifdef HAVE_BZLIB
+#  include <bzlib.h>
+#endif
+
 #include "util.h"
 #include "brucker_raw.h"
 #include "rigaku_dat.h"
@@ -177,19 +189,86 @@ void DataSet::clear()
     meta.clear();
 }
 
-
-DataSet* load_file(string const& path, string const& format_name,
-                   vector<string> const& options)
+// One pass input streambuf. It reads and decompress whole file in ctor.
+struct decompressing_istreambuf : public std::streambuf
 {
-    ifstream is(path.c_str(), ios::in | ios::binary);
-    if (!is)
-        throw RunTimeError("can't open input file: " + path);
+    decompressing_istreambuf() { init_buf(); }
 
+    void init_buf()
+    {
+        bufavail_ = 512;
+        bufdata_ = (char*) malloc(bufavail_);
+        writeptr_ = bufdata_;
+    }
+
+    // should be called only when the buffer is full, double the buffer size 
+    void double_buf()
+    {
+        int old_size = writeptr_ - bufdata_;
+        bufdata_ = (char*) realloc(bufdata_, 2 * old_size);
+        if (!bufdata_)
+            throw RunTimeError("Can't allocate memory (" + S(2*old_size)
+                    + " bytes).");
+        // bufdata_ can be changed
+        writeptr_ = bufdata_ + old_size;
+        bufavail_ = old_size;
+    }
+
+    ~decompressing_istreambuf() { free(bufdata_); }
+
+protected:
+    int bufavail_;
+    char* bufdata_;
+    char* writeptr_;
+};
+
+#ifdef HAVE_ZLIB
+struct gzip_istreambuf : public decompressing_istreambuf
+{
+    gzip_istreambuf(gzFile gz)
+    {
+        while (1) {
+            int n = gzread(gz, writeptr_, bufavail_);
+            writeptr_ += n;
+            if (n != bufavail_)
+                break;
+            double_buf();
+        }
+        setg(bufdata_, bufdata_, writeptr_);
+    }
+};
+#endif
+
+#ifdef HAVE_BZLIB
+struct bzip2_istreambuf : public decompressing_istreambuf
+{
+    bzip2_istreambuf(BZFILE* bz2)
+    {
+        while (1) {
+            int n = BZ2_bzread(bz2, writeptr_, bufavail_);//the only difference
+            writeptr_ += n;
+            if (n != bufavail_)
+                break;
+            double_buf();
+        }
+        setg(bufdata_, bufdata_, writeptr_);
+    }
+};
+#endif
+
+
+DataSet* guess_and_load_stream(istream &is,
+                               string const& path, // only used for guessing
+                               string const& format_name,
+                               vector<string> const& options)
+{
     FormatInfo const* fi = NULL;
     if (format_name.empty()) {
-        fi = guess_filetype(path);
+        fi = guess_filetype(path, is);
         if (!fi)
             throw RunTimeError ("Format of the file can not be guessed");
+        is.seekg(0);
+        is.clear();
     }
     else {
         fi = string_to_format(format_name);
@@ -200,6 +279,53 @@ DataSet* load_file(string const& path, string const& format_name,
 
     return load_stream(is, fi, options);
 }
+
+
+DataSet* load_file(string const& path, string const& format_name,
+                   vector<string> const& options)
+{
+    DataSet *ret = NULL;
+    // open stream
+    int len = path.size();
+    bool gzipped = (len > 3 && path.substr(len-3) == ".gz");
+    bool bz2ed = (len > 4 && path.substr(len-4) == ".bz2");
+    if (gzipped) {
+#ifdef HAVE_ZLIB
+        gzFile gz_stream = gzopen(path.c_str(), "rb");
+        if (!gz_stream) {
+            throw RunTimeError("can't open .gz input file: " + path);
+        }
+        gzip_istreambuf istrbuf(gz_stream);
+        istream is(&istrbuf);
+        ret = guess_and_load_stream(is, path.substr(0, len-3),
+                                    format_name, options);
+#else
+        throw RunTimeError("Program is compiled with disabled zlib support.");
+#endif //HAVE_ZLIB
+    }
+    else if (bz2ed) {
+#ifdef HAVE_BZLIB
+        BZFILE* bz_stream = BZ2_bzopen(path.c_str(), "rb");
+        if (!bz_stream) {
+            throw RunTimeError("can't open .bz2 input file: " + path);
+        }
+        bzip2_istreambuf istrbuf(bz_stream);
+        istream is(&istrbuf);
+        ret = guess_and_load_stream(is, path.substr(0, len-3),
+                                    format_name, options);
+#else
+        throw RunTimeError("Program is compiled with disabled bzlib support.");
+#endif //HAVE_BZLIB
+    }
+    else {
+        ifstream is(path.c_str(), ios::in | ios::binary);
+        if (!is)
+            throw RunTimeError("can't open input file: " + path);
+        ret = guess_and_load_stream(is, path, format_name, options);
+    }
+    return ret;
+}
+
 
 DataSet* load_stream(istream &is, FormatInfo const* fi,
                      vector<string> const& options)
@@ -227,14 +353,11 @@ vector<FormatInfo const*> get_possible_filetypes(string const& filename)
     return results;
 }
 
-FormatInfo const* guess_filetype(const string &path)
+FormatInfo const* guess_filetype(const string &path, istream &f)
 {
     vector<FormatInfo const*> possible = get_possible_filetypes(path);
     if (possible.empty())
         return NULL;
-    ifstream f(path.c_str(), ios::in | ios::binary);
-    if (!f)
-        throw RunTimeError("can't open input file: " + path);
     if (possible.size() == 1)
         return possible[0]->check(f) ? possible[0] : NULL;
     else {
@@ -259,6 +382,7 @@ FormatInfo const* string_to_format(string const& format_name)
     return NULL;
 }
 
+// all_files is a string used to show all file ("*" or "*.*")
 string get_wildcards_string(string const& all_files)
 {
     string r;
@@ -273,6 +397,12 @@ string get_wildcards_string(string const& all_files)
                 if (j != 0)
                     ext_list += ";";
                 ext_list += "*." + (*i)->exts[j];
+#ifdef HAVE_ZLIB
+                ext_list += "*." + (*i)->exts[j] + ".gz";
+#endif
+#ifdef HAVE_BZLIB
+                ext_list += "*." + (*i)->exts[j] + ".bz2";
+#endif
             }
         }
         string up = ext_list;

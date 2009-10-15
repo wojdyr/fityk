@@ -120,6 +120,10 @@ CREDITS
 HISTORY
 =======
 
+* 0.5 (2009-10-  )
+
+  - added support for compressed files .gz (requires zlib) and .bz2 (bzlib)
+
 * 0.4 (2009-06-11)
 
   - added file caching (for details see ``xylib/cache.h``)

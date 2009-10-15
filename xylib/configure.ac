@@ -8,9 +8,47 @@ AC_CONFIG_HEADER([config.h])
 
 AM_INIT_AUTOMAKE([1.9 dist-bzip2 foreign])
 
+# optional zlib and bzlib libraries
+AC_ARG_WITH(zlib,
+ [  --without-zlib                disable zlib support (reading .gz files)])
+test -z "$with_zlib" && with_zlib="yes"
+
+AC_ARG_WITH(bzlib,
+ [  --without-bzlib               disable bzlib support (reading .bz2 files)])
+test -z "$with_bzlib" && with_bzlib="yes"
+
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_LIBTOOL
+
+# Checks for libraries.
+if test "$with_zlib" = "yes"; then
+  AC_CHECK_LIB([z], [gzopen],
+               [AC_DEFINE([HAVE_ZLIB], [1], [Define if zlib is available])],
+               [AC_MSG_ERROR(
+  [zlib library was not found.
+   Either use flag --without-zlib or install the library.
+ ])])
+  LIBS="$LIBS -lz"
+  AC_CHECK_HEADER([zlib.h], [], [AC_MSG_ERROR([
+   zlib.h header was not found. Either use flag --without-zlib or install
+   zlib library (including header files).
+ ])])
+fi
+
+if test "$with_bzlib" = "yes"; then
+  AC_CHECK_LIB([bz2], [BZ2_bzReadOpen],
+               [AC_DEFINE([HAVE_BZLIB], [1], [Define if bzlib is available])],
+               [AC_MSG_ERROR(
+  [bzlib library was not found.
+   Either use flag --without-bzlib or install the library.
+ ])])
+  LIBS="$LIBS -lbz2"
+  AC_CHECK_HEADER([bzlib.h], [], [AC_MSG_ERROR([
+   bzlib.h header was not found. Either use flag --without-bzlib or install
+   bzlib library (including header files).
+ ])])
+fi
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIZE_T

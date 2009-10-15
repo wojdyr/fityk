@@ -242,8 +242,8 @@ DataSet* load_file(std::string const& path, std::string const& format_name="",
 DataSet* load_stream(std::istream &is, FormatInfo const* fi,
                      std::vector<std::string> const& options);
 
-/// guess a format of the file
-FormatInfo const* guess_filetype(std::string const& path);
+/// guess a format of the file; does NOT handle compressed files
+FormatInfo const* guess_filetype(std::string const& path, std::istream &f);
 
 /// returns FormatInfo that has a name format_name
 FormatInfo const* string_to_format(std::string const& format_name);
