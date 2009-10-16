@@ -3,11 +3,21 @@
 // $Id$
 
 //TODO:
+// phases quick-list:
+//  - read/save from/to file,
+//  - the built-in list should also have atoms
+// add sglite to svn
+// split powdifpat into powdifpat and ceria:
+// - ceria+atomtables+sglite=libceria
+// - libceria does not depend on boost
+// - powdifpat does not depend on sglite
+// replace UTF8 chars with hex
+// peaks: peak formula, widths, shapes
+// make a (preview) release
+//
 // enable x-ray / neutron switching (different LPF and scattering factors)
 // buffer plot with data
 // import .cel and .cif files
-// read/save quick-list "phases" from/to file
-// peaks: peak formula, widths, shapes
 // action: info about old and new models, button to add/update the model
 
 #include <cmath>
@@ -21,16 +31,6 @@
 #include <wx/cmdline.h>
 #include <wx/listctrl.h>
 
-//#include <boost/foreach.hpp>
-
-extern "C" {
-#include <sglite/sglite.h>
-#include <sglite/sgconst.h>
-}
-// SgLite doesn't provide API to iterate this table.
-// In 3rdparty/sglite this table was made not static.
-extern const T_Main_HM_Dict Main_HM_Dict[];
-
 
 #include "powdifpat.h"
 #include "atomtables.h"
@@ -38,6 +38,7 @@ extern const T_Main_HM_Dict Main_HM_Dict[];
 #include "cmn.h"
 #include "uplot.h" // BufferedPanel, scale_tics_step()
 #include "fancyrc.h" // LockableRealCtrl 
+#include "ceria.h"
 
 #if !STANDALONE_POWDIFPAT
 #include "frame.h"
@@ -85,178 +86,6 @@ private:
     wxBitmap bitmap;
 };
 
-
-class UnitCell
-{
-public:
-    const double a, b, c, alpha, beta, gamma;
-    const double V;
-    double M[3][3];
-    double M_1[3][3]; // M^-1
-
-    UnitCell(double a_, double b_, double c_,
-             double alpha_, double beta_, double gamma_)
-        : a(a_), b(b_), c(c_), alpha(alpha_), beta(beta_), gamma(gamma_),
-          V(calculate_V())
-            { set_M(); }
-
-    double calculate_V() const;
-
-    // pre: V should be set
-    void set_M();
-
-    UnitCell get_reciprocal() const;
-
-    // returns |v|, where v = M_1 * [h k l]; 
-    double calculate_distance(double h, double k, double l) const;
-
-    // calculate interplanar distance
-    double calculate_d(int h, int k, int l) const;
-};
-
-struct Miller
-{
-    int h, k, l;
-};
-
-struct Plane : public Miller
-{
-    int multiplicity;
-    double F2; // |F_hkl|^2 (_not_ multiplied by multiplicity)
-
-    Plane() {}
-    Plane(Miller const& hkl) : Miller(hkl), multiplicity(1.), F2(0.){}
-};
-
-struct PlanesWithSameD
-{
-    vector<Plane> planes;
-    double d;
-    double lpf; // Lorentz-polarization factor
-    double intensity; // total intensity = lpf * sum(multiplicity * F2)
-    bool enabled; // include this peak in model
-
-    bool operator<(const PlanesWithSameD& p) const { return d > p.d; }
-    void add(Miller const& hkl, const T_SgOps* sg_ops);
-};
-
-struct Pos // position in unit cell, 0 <= x,y,z < 1
-{
-    double x, y, z;
-};
-
-struct Atom
-{
-    char symbol[8];
-    // Contains positions of all symmetrically equivalent atoms in unit cell.
-    // positions[0] contains the "original" atom.
-    vector<Pos> positions;
-    const t_it92_coeff *xray_sf;
-    const t_nn92_record *neutron_sf;
-
-    Atom() : positions(1) {}
-};
-
-
-class Crystal
-{
-public:
-    T_HM_as_Hall sg_names; // space group
-    T_SgOps sg_ops; // symmetry operations
-    int sg_xs; // crystal system
-    UnitCell* uc;
-    int n_atoms;
-    vector<Atom> atoms;
-    vector<PlanesWithSameD> bp; // boundles of hkl planes
-
-    Crystal() : uc(NULL) { atoms.reserve(16); }
-    ~Crystal() { delete uc; }
-    const char* get_crystal_system_name() { return XS_Name[sg_xs]; }
-    int set_space_group(const char* name);
-    void generate_reflections(double min_d);
-    void set_unit_cell(double a, double b, double c,
-                       double alpha, double beta, double gamma)
-        { delete uc; uc = new UnitCell(a, b, c, alpha, beta, gamma); }
-    void calculate_intensities(double lambda);
-private:
-    DISALLOW_COPY_AND_ASSIGN(Crystal);
-};
-
-bool check_symmetric_hkl(const T_SgOps *sg_info, const Miller &p1,
-                                                 const Miller &p2)
-{
-    for (int i = 0; i < sg_info->nSMx; ++i)
-    {
-        const T_RTMx &sm = sg_info->SMx[i];
-        int h = sm.s.R[0] * p1.h + sm.s.R[3] * p1.k + sm.s.R[6] * p1.l;
-        int k = sm.s.R[1] * p1.h + sm.s.R[4] * p1.k + sm.s.R[7] * p1.l;
-        int l = sm.s.R[2] * p1.h + sm.s.R[5] * p1.k + sm.s.R[8] * p1.l;
-        if (h == p2.h && k == p2.k && l == p2.l)
-            return  true;
-        // we assume Friedel symmetry here
-        if (h == -p2.h && k == -p2.k && l == -p2.l)
-            return true;
-    }
-    return false;
-}
-
-bool is_position_empty(const vector<Pos>& pp, const Pos& p)
-{
-    const double eps = 0.01;
-    for (vector<Pos>::const_iterator j = pp.begin(); j != pp.end(); ++j) {
-        if ((fabs(p.x - j->x) < eps || fabs(p.x - j->x) > 1 - eps) &&
-            (fabs(p.y - j->y) < eps || fabs(p.y - j->y) > 1 - eps) &&
-            (fabs(p.z - j->z) < eps || fabs(p.z - j->z) > 1 - eps))
-            return false;
-    }
-    return true;
-}
-
-double mod1(double x) { return x - floor(x); }
-
-void add_symmetric_images(Atom& a, const T_SgOps* sg_ops)
-{
-    assert(a.positions.size() == 1);
-    const Pos& p0 = a.positions[0];
-    bool has_inverson = (sg_ops->fInv == 2);
-    // iterate over translation, Seitz matrices and inversion
-    for (int nt = 0; nt != sg_ops->nLTr; ++nt) {
-        const int *t = sg_ops->LTr[nt].v;
-        for (int ns = 0; ns != sg_ops->nSMx; ++ns) {
-            const T_RTMx& s = sg_ops->SMx[ns];
-            const int *R = s.s.R;
-            const int *T = s.s.T;
-            Pos p = {
-            mod1(R[0] * p0.x + R[1] * p0.y + R[2] * p0.z + T[0]/12. + t[0]/12.),
-            mod1(R[3] * p0.x + R[4] * p0.y + R[5] * p0.z + T[1]/12. + t[1]/12.),
-            mod1(R[6] * p0.x + R[7] * p0.y + R[8] * p0.z + T[2]/12. + t[2]/12.)
-            };
-            if (is_position_empty(a.positions, p))
-                a.positions.push_back(p);
-            if (has_inverson) {
-                Pos p2 = {
-           mod1(-R[0] * p0.x - R[1] * p0.y - R[2] * p0.z - T[0]/12. + t[0]/12.),
-           mod1(-R[3] * p0.x - R[4] * p0.y - R[5] * p0.z - T[1]/12. + t[1]/12.),
-           mod1(-R[6] * p0.x - R[7] * p0.y - R[8] * p0.z - T[2]/12. + t[2]/12.)
-                };
-                if (is_position_empty(a.positions, p2))
-                    a.positions.push_back(p2);
-            }
-        }
-    }
-}
-
-void PlanesWithSameD::add(Miller const& hkl, const T_SgOps* sg_ops)
-{
-    for (vector<Plane>::iterator i = planes.begin(); i != planes.end(); ++i) {
-        if (check_symmetric_hkl(sg_ops, *i, hkl)) {
-            i->multiplicity++;
-            return;
-        }
-    }
-    // equivalent plane not found
-    planes.push_back(Plane(hkl));
-}
 
 
 class SpaceGroupChooser : public wxDialog
@@ -342,32 +171,6 @@ private:
 
 namespace {
 
-struct Anode
-{
-    const char *name;
-    double alpha1, alpha2;
-};
-
-const Anode anodes[] = {
-    { "Cu", 1.54056, 1.54439 },
-    { "Cr", 2.28970, 2.29361 },
-    { "Fe", 1.93604, 1.93998 },
-    { "Mo", 0.70930, 0.71359 },
-    { "Ag", 0.55941, 0.56380 },
-    { "Co", 1.78901, 1.79290 },
-    { NULL, 0, 0 }
-};
-
-const char* quick_list_ini =
-"SiC 3C|F -4 3 m|4.36|4.36|4.36|90|90|90\n"
-"SiC 6H|186|3.081|3.081|15.117|90|90|120\n"
-"NaCl|F m -3 m|5.64009|5.64009|5.64009|90|90|90\n"
-"CeO2|F m -3 m|5.41|5.41|5.41|90|90|90\n"
-;
-
-// helper to generate sequence 0, 1, -1, 2, -2, 3, ...
-int inc_neg(int h) { return h > 0 ? -h : -h+1; }
-
 LockableRealCtrl *addMaybeRealCtrl(wxWindow *parent, wxString const& label,
                                    wxSizer *sizer, wxSizerFlags const& flags)
 {
@@ -381,209 +184,6 @@ LockableRealCtrl *addMaybeRealCtrl(wxWindow *parent, wxString const& label,
 }
 
 } // anonymous namespace
-
-int Crystal::set_space_group(const char* name)
-{
-    int sg_number = SgSymbolLookup('A', name, &sg_names);
-    //cout << sg_number << " " << sg_names.SgNumber << " " << sg_names.Schoenfl
-    //     << " " << sg_names.HM << " " << sg_names.Hall << endl;
-    ClrSgError();
-    ResetSgOps(&sg_ops);
-    if (sg_number <= 0)
-        return sg_number;
-    ParseHallSymbol(sg_names.Hall, &sg_ops, PHSymOptPedantic);
-    if (SgError)
-        cerr << SgError << endl;
-    //DumpSgOps(&sg_ops, stdout);
-    sg_xs = ixXS(GetPG(&sg_ops));
-    return sg_number;
-}
-
-void Crystal::generate_reflections(double min_d)
-{
-    bp.clear();
-    UnitCell reciprocal = uc->get_reciprocal();
-
-    // set upper limit for iteration of Miller indices
-    // TODO: smarter algorithm, like in uctbx::unit_cell::max_miller_indices()
-    int max_h = 20;
-    int max_k = 20;
-    int max_l = 20;
-    if (fabs(uc->alpha - M_PI/2) < 1e-9 && fabs(uc->beta - M_PI/2) < 1e-9 &&
-                                          fabs(uc->gamma - M_PI/2) < 1e-9) {
-        max_h = (int) (uc->a / min_d);
-        max_k = (int) (uc->b / min_d);
-        max_l = (int) (uc->c / min_d);
-    }
-
-    for (int h = 0; h != max_h+1; h = inc_neg(h))
-        for (int k = 0; k != max_k+1; k = inc_neg(k))
-            for (int l = (h==0 && k==0 ? 1 : 0); l != max_l+1; l = inc_neg(l)) {
-                double d = 1 / reciprocal.calculate_distance(h, k, l);
-                //double d = uc->calculate_d(h, k, l); // the same
-                if (d < min_d)
-                    continue;
-
-                // check for systematic absence
-                int H[] = { h, k, l};
-                if (IsSysAbsMIx(&sg_ops, H, NULL) != 0)
-                    continue;
-
-                Miller hkl = { h, k, l };
-                bool found = false;
-                for (vector<PlanesWithSameD>::iterator i = bp.begin();
-                        i != bp.end(); ++i) {
-                    if (fabs(d - i->d) < 1e-9) {
-                        i->add(hkl, &sg_ops);
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    PlanesWithSameD new_p;
-                    new_p.planes.push_back(Plane(hkl));
-                    new_p.d = d;
-                    new_p.lpf = 0.;
-                    new_p.intensity = 0.;
-                    new_p.enabled = true;
-                    bp.push_back(new_p);
-                }
-            }
-    sort(bp.begin(), bp.end());
-}
-
-
-// stol = sin(theta)/lambda
-void calculate_intensity(Plane& p, const vector<Atom>& atoms, double stol)
-{
-    // calculating F_hkl, (Pecharsky & Zavalij, eq. (2.89) and (2.103))
-    // assuming population g = 1
-    // assuming temperature factor t = 1
-    double F_real = 0.;
-    double F_img = 0;
-    for (vector<Atom>::const_iterator i = atoms.begin(); i != atoms.end(); ++i){
-        double f = 1.;
-        if (i->xray_sf)
-            f = calculate_it92_factor(i->xray_sf, stol*stol);
-        for (vector<Pos>::const_iterator j = i->positions.begin();
-                                                j != i->positions.end(); ++j) {
-            double hx = p.h * j->x + p.k * j->y + p.l * j->z;
-            F_real += f * cos(2*M_PI * hx);
-            F_img += f * sin(2*M_PI * hx);
-        }
-    }
-    p.F2 = F_real*F_real + F_img*F_img;
-}
-
-void calculate_total_intensity(PlanesWithSameD &bp, const vector<Atom>& atoms,
-                               double lambda)
-{
-    double stol = 1. / (2 * bp.d); // == sin(T) / lambda
-    double T = asin(stol * lambda); // theta
-
-    // for x-rays, we assume K=0.5 and
-    // LP = (1 + cos(2T)^2) / (cos(T) sin(T)^2)
-    //  (Pecharsky & Zavalij, eq. (2.70), p. 192)
-    bp.lpf = (1 + cos(2*T)*cos(2*T)) / (cos(T)*sin(T)*sin(T));
-
-    double t = 0;
-    for (vector<Plane>::iterator i = bp.planes.begin();
-                                                i != bp.planes.end(); ++i) {
-        calculate_intensity(*i, atoms, stol);
-        t += i->multiplicity * i->F2;
-    }
-    bp.intensity = bp.lpf * t;
-}
-
-void Crystal::calculate_intensities(double lambda)
-{
-    if (atoms.empty())
-        return;
-    for (vector<PlanesWithSameD>::iterator i = bp.begin(); i != bp.end(); ++i)
-        calculate_total_intensity(*i, atoms, lambda);
-}
-
-
-double UnitCell::calculate_V() const
-{
-    // Giacovazzo p.62
-    double cosA = cos(alpha), cosB = cos(beta), cosG = cos(gamma);
-    double t = 1 - cosA*cosA - cosB*cosB - cosG*cosG + 2*cosA*cosB*cosG;
-    return a*b*c * sqrt(t);
-}
-
-double UnitCell::calculate_d(int h, int k, int l) const
-{
-    double sinA=sin(alpha), sinB=sin(beta), sinG=sin(gamma),
-           cosA=cos(alpha), cosB=cos(beta), cosG=cos(gamma);
-    return
-      sqrt((1 - cosA*cosA - cosB*cosB - cosG*cosG + 2*cosA*cosB*cosG)
-              / (  (h/a*sinA) * (h/a*sinA)  //(h/a*sinA)^2
-                 + (k/b*sinB) * (k/b*sinB)  //(k/b*sinB)^2
-                 + (l/c*sinG) * (l/c*sinG)  //(l/c*sinG)^2
-                 + 2*h*l/a/c*(cosA*cosG-cosB)
-                 + 2*h*k/a/b*(cosA*cosB-cosG)
-                 + 2*k*l/b/c*(cosB*cosG-cosA)
-                )
-          );
-}
-
-//     [       1/a               0        0   ]
-// M = [  -cosG/(a sinG)    1/(b sinG)    0   ]
-//     [     a*cosB*         b*cosA*      c*  ]
-//
-// where A is alpha, B is beta, G is gamma, * means reciprocal space.
-// (Giacovazzo, p.68)
-void UnitCell::set_M()
-{
-    double sinA=sin(alpha), sinB=sin(beta), sinG=sin(gamma),
-           cosA=cos(alpha), cosB=cos(beta), cosG=cos(gamma);
-    M[0][0] = 1/a;
-    M[0][1] = 0.;
-    M[0][2] = 0.;
-    M[1][0] = -cosG/(a*sinG);
-    M[1][1] = 1/(b*sinG);
-    M[1][2] = 0.;
-    M[2][0] = b * c * sinA / V // a*
-              * (cosA*cosG-cosB) / (sinA*sinG); //cosB*
-    M[2][1] = a * c * sinB / V // b*
-              * (cosB*cosG-cosA) / (sinB*sinG); //cosA*
-    M[2][2] = a * b * sinG / V; // c*
-
-    M_1[0][0] = a;
-    M_1[0][1] = 0;
-    M_1[0][2] = 0;
-    M_1[1][0] = b * cosG;
-    M_1[1][1] = b * sinG;
-    M_1[1][2] = 0;
-    M_1[2][0] = c * cosB;
-    M_1[2][1] = -c * sinB * (cosB*cosG-cosA) / (sinB*sinG);
-    M_1[2][2] = 1 / M[2][2];
-}
-
-// returns UnitCell reciprocal to this, i.e. that has parameters a*, b*, ...
-// (Giacovazzo, p. 64)
-UnitCell UnitCell::get_reciprocal() const
-{
-    double ar = b * c * sin(alpha) / V;
-    double br = a * c * sin(beta) / V;
-    double cr = a * b * sin(gamma) / V;
-    double cosAr = (cos(beta)*cos(gamma)-cos(alpha)) / (sin(beta)*sin(gamma));
-    double cosBr = (cos(alpha)*cos(gamma)-cos(beta)) / (sin(alpha)*sin(gamma));
-    double cosGr = (cos(alpha)*cos(beta)-cos(gamma)) / (sin(alpha)*sin(beta));
-    return UnitCell(ar, br, cr, acos(cosAr), acos(cosBr), acos(cosGr));
-}
-
-// returns 1/|v|, where v = M * [h k l]; 
-double UnitCell::calculate_distance(double h, double k, double l) const
-{
-    double v2 = 0.;
-    for (int i = 0; i != 3; ++i) {
-        double t = h * M_1[0][i] + k * M_1[1][i] + l * M_1[2][i];
-        v2 += t*t;
-    }
-    return sqrt(v2);
-}
 
 
 PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
@@ -1118,39 +718,21 @@ void PhasePanel::OnSpaceGroupChanged(wxCommandEvent&)
     sample_plot->refresh();
 }
 
-int get_crystal_system(int space_group)
-{
-    if (space_group <= 2)
-        return XS_Triclinic;
-    else if (space_group <= 15)
-        return XS_Monoclinic;
-    else if (space_group <= 74)
-        return XS_Orthorhombic;
-    else if (space_group <= 142)
-        return XS_Tetragonal;
-    else if (space_group <= 167)
-        return XS_Trigonal;
-    else if (space_group <= 194)
-        return XS_Hexagonal;
-    else
-        return XS_Cubic;
-}
-
 void PhasePanel::change_space_group(string const& text)
 {
-    int sg_number = cr_.set_space_group(text.c_str());
-    if (sg_number <= 0) {
+    cr_.set_space_group(text.c_str());
+    if (cr_.sg_number <= 0) {
         sg_tc->Clear();
         hkl_list->Clear();
         sg_nr_st->SetLabel(wxEmptyString);
         return;
     }
 
-    sg_tc->ChangeValue(pchar2wx(cr_.sg_names.HM));
+    sg_tc->ChangeValue(pchar2wx(cr_.sg_hm));
     sg_nr_st->SetLabel(wxString::Format(wxT("no. %d, %s, order %d"),
-                                        cr_.sg_names.SgNumber,
-                                        cr_.get_crystal_system_name(),
-                                        SgOpsOrderL(&cr_.sg_ops)));
+                                        cr_.sg_number,
+                                        get_crystal_system_name(cr_.sg_xs),
+                                        get_sg_order(cr_.sg_ops)));
     enable_parameter_fields();
     update_disabled_parameters();
     update_miller_indices();
@@ -1159,14 +741,14 @@ void PhasePanel::change_space_group(string const& text)
 void PhasePanel::enable_parameter_fields()
 {
     switch (cr_.sg_xs) {
-        case XS_Triclinic:
+        case TriclinicSystem:
             par_b->Enable(true);
             par_c->Enable(true);
             par_alpha->Enable(true);
             par_beta->Enable(true);
             par_gamma->Enable(true);
             break;
-        case XS_Monoclinic:
+        case MonoclinicSystem:
             par_b->Enable(true);
             par_c->Enable(true);
             par_alpha->Enable(true);
@@ -1175,31 +757,31 @@ void PhasePanel::enable_parameter_fields()
             par_gamma->Enable(false);
             par_gamma->set_value(90.);
             break;
-        case XS_Orthorhombic:
+        case OrthorhombicSystem:
             par_b->Enable(false);
             par_c->Enable(true);
             set_ortho_angles();
             break;
-        case XS_Tetragonal:
+        case TetragonalSystem:
             par_b->Enable(true);
             par_c->Enable(true);
             set_ortho_angles();
             break;
-        case XS_Trigonal:
+        case TrigonalSystem:
             par_b->Enable(false);
             par_c->Enable(false);
             par_alpha->Enable(true);
             par_beta->Enable(false);
             par_gamma->Enable(false);
             break;
-        case XS_Hexagonal:
+        case HexagonalSystem:
             par_b->Enable(false);
             par_c->Enable(true);
             par_alpha->set_value(90);
             par_beta->set_value(90);
             par_gamma->set_value(120);
             break;
-        case XS_Cubic:
+        case CubicSystem:
             par_b->Enable(false);
             par_c->Enable(false);
             set_ortho_angles();
@@ -1273,8 +855,6 @@ wxString make_info_string_for_atoms(const vector<Atom>& atoms, int error_line)
     for (vector<Atom>::const_iterator i = atoms.begin(); i != atoms.end(); ++i){
         info += wxString::Format(wxT(" %d %s "),
                                  (int)i->positions.size(), i->symbol);
-        //BOOST_FOREACH(Pos j, i->positions)
-        //    info += wxString::Format(wxT("(%g,%g,%g)\n"), j.x, j.y, j.z);
     }
     if (error_line != -1)
         info += wxString::Format(wxT("\nError in line %d."), error_line);
@@ -1393,7 +973,7 @@ void PhasePanel::OnAtomsChanged(wxCommandEvent&)
             a.xray_sf = find_in_it92(a.symbol);
             a.neutron_sf = find_in_nn92(a.symbol);
             cr_.atoms.push_back(a);
-            add_symmetric_images(cr_.atoms[atom_count], &cr_.sg_ops);
+            add_symmetric_images(cr_.atoms[atom_count], cr_.sg_ops);
         }
         else {
             Atom &b = cr_.atoms[atom_count];
@@ -1407,7 +987,7 @@ void PhasePanel::OnAtomsChanged(wxCommandEvent&)
                     || a.positions[0].z != b.positions[0].z) {
                 b.positions.resize(1);
                 b.positions[0] = a.positions[0];
-                add_symmetric_images(cr_.atoms[atom_count], &cr_.sg_ops);
+                add_symmetric_images(cr_.atoms[atom_count], cr_.sg_ops);
             }
         }
         ++atom_count;
@@ -1427,7 +1007,7 @@ void PhasePanel::update_disabled_parameters()
     if (!par_c->IsEnabled())
         par_c->set_string(par_a->get_string());
 
-    if (cr_.sg_xs == XS_Trigonal) {
+    if (cr_.sg_xs == TrigonalSystem) {
         par_beta->set_string(par_alpha->get_string());
         par_gamma->set_string(par_alpha->get_string());
     }
@@ -1706,7 +1286,7 @@ SpaceGroupChooser::SpaceGroupChooser(wxWindow* parent)
     wxArrayString s_choices;
     s_choices.Add(wxT("All lattice systems"));
     for (int i = 2; i < 9; ++i)
-        s_choices.Add(pchar2wx(XS_Name[i]));
+        s_choices.Add(pchar2wx(CrystalSystemNames[i]));
     system_c = new wxChoice(this, -1, wxDefaultPosition, wxDefaultSize,
                             s_choices);
     system_c->SetSelection(0);
@@ -1767,8 +1347,9 @@ void SpaceGroupChooser::regenerate_list()
 {
     list->DeleteAllItems();
     int sel = system_c->GetSelection();
-    for (const T_Main_HM_Dict* i = Main_HM_Dict; i->HM != NULL; ++i) {
-        if (sel != 0 && get_crystal_system(i->SgNumber) != sel+1)
+    //for (const T_Main_HM_Dict* i = Main_HM_Dict; i->HM != NULL; ++i) {
+    for (const SpaceGroupSetting* i = space_group_settings; i->sgnumber; ++i) {
+        if (sel != 0 && get_crystal_system(i->sgnumber) != sel+1)
             continue;
         switch (i->HM[0]) {
             case 'P': if (!centering_cb[0]->IsChecked()) continue; break;
@@ -1781,12 +1362,10 @@ void SpaceGroupChooser::regenerate_list()
             default: assert(0);
         }
         int n = list->GetItemCount();
-        list->InsertItem(n, wxString::Format(wxT("%d"), i->SgNumber));
+        list->InsertItem(n, wxString::Format(wxT("%d"), i->sgnumber));
         list->SetItem(n, 1, pchar2wx(i->HM));
-        T_HM_as_Hall names;
-        SgSymbolLookup('A', i->HM, &names);
-        list->SetItem(n, 2, pchar2wx(names.Schoenfl));
-        list->SetItem(n, 3, pchar2wx(names.Hall));
+        list->SetItem(n, 2, pchar2wx(SchoenfliesSymbols[i->sgnumber-1]));
+        list->SetItem(n, 3, pchar2wx(i->Hall));
     }
 }
 
