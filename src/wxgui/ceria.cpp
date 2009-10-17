@@ -5,8 +5,11 @@
 #include "ceria.h"
 
 #include <stdio.h>
+#include <ctype.h>
+#include <string.h>
 #include <math.h>
 #include <assert.h>
+#include <string>
 #include <algorithm>
 extern "C" {
 #include <sglite/sglite.h> // SgSymbolLookup, ParseHallSymbol, IsSysAbsMIx
@@ -969,18 +972,271 @@ const char* SchoenfliesSymbols[] = {
 // 11 trigonal, hexagonal coordinate system (-3m)
 
 // Here we have a dictionary to match them with the settings in the table above.
-struct PowderCellSgSettingTableRow
+// E.g.  sg=15, pc_setting==9, std_setting==3 means that
+// "RGNR 15 9" <-> 4th setting for SG 15 in space_group_settings[]
+// If there is only one position in space_group_settings[] for given SG number,
+// of pc_setting=n corresponds to n-th position in space_group_settings[],
+// the item is omitted.
+struct PowderCellSgSetting
 {
-    unsigned char space_group;
-    unsigned char pc_setting_offset; // 1, 7 or 14
-    // the settings in the table above corresponding to PC settings, e.g.
-    // space_group=15, pc_setting_offset==7, idx[2]==3 means that
-    // "RGNR 15 9" (9=7+2) <-> 4th setting for SG 15 in space_group_settings[]
-    char idx[6];
+    unsigned char sg; // space group number
+    unsigned char pc_setting;
+    // 0 - 1st setting for this SG in the table above, 1 - 2nd, ...
+    unsigned char std_setting;
 };
 
-const PowderCellSgSettingTableRow powdercell_settings[] = {
-    { 3, 1, { 1, 1, 3, 3, 2, 2 } },
+const PowderCellSgSetting powdercell_settings[] = {
+{3,2,0}, {3,3,1}, {3,4,1}, {3,5,2}, {3,6,2},
+{4,2,0}, {4,3,1}, {4,4,1}, {4,5,2}, {4,6,2},
+{5,3,3}, {5,4,4}, {5,5,6}, {5,6,7}, {5,7,1}, {5,8,0}, {5,9,4}, {5,10,3},
+{5,11,7}, {5,12,6}, {5,13,2}, {5,14,2}, {5,15,5}, {5,16,5}, {5,17,8}, {5,18,8},
+{6,2,0}, {6,3,1}, {6,4,1}, {6,5,2}, {6,6,2},
+{7,2,2}, {7,3,3}, {7,4,5}, {7,5,6}, {7,6,8}, {7,7,1}, {7,8,1}, {7,9,4},
+{7,10,4}, {7,11,7}, {7,12,7}, {7,13,2}, {7,14,0}, {7,15,5}, {7,16,3}, {7,17,8},
+{7,18,6},
+{8,3,3}, {8,4,4}, {8,5,6}, {8,6,7}, {8,7,1}, {8,8,0}, {8,9,4}, {8,10,3},
+{8,11,7}, {8,12,6}, {8,13,2}, {8,14,2}, {8,15,5}, {8,16,5}, {8,17,8}, {8,18,8},
+{9,2,3}, {9,3,6}, {9,4,9}, {9,5,12}, {9,6,15}, {9,7,1}, {9,8,4}, {9,9,7},
+{9,10,10}, {9,11,13}, {9,12,16}, {9,13,2}, {9,14,5}, {9,15,8}, {9,16,11},
+{9,17,14},
+{10,2,0}, {10,3,1}, {10,4,1}, {10,5,2}, {10,6,2},
+{11,2,0}, {11,3,1}, {11,4,1}, {11,5,2}, {11,6,2},
+{12,3,3}, {12,4,4}, {12,5,6}, {12,6,7}, {12,7,1}, {12,8,0}, {12,9,4},
+{12,10,3}, {12,11,7}, {12,12,6}, {12,13,2}, {12,14,2}, {12,15,5}, {12,16,5},
+{12,17,8}, {12,18,8},
+{13,2,2}, {13,3,3}, {13,4,5}, {13,5,6}, {13,6,8}, {13,7,1}, {13,8,1}, {13,9,4},
+{13,10,4}, {13,11,7}, {13,12,7}, {13,13,2}, {13,14,0}, {13,15,5}, {13,16,3},
+{13,17,8}, {13,18,6},
+{14,2,2}, {14,3,3}, {14,4,5}, {14,5,6}, {14,6,8}, {14,7,1}, {14,8,1}, {14,9,4},
+{14,10,4}, {14,11,7}, {14,12,7}, {14,13,2}, {14,14,0}, {14,15,5}, {14,16,3},
+{14,17,8}, {14,18,6},
+{15,2,3}, {15,3,6}, {15,4,9}, {15,5,12}, {15,6,15}, {15,7,1}, {15,8,4},
+{15,9,7}, {15,10,10}, {15,11,13}, {15,12,16}, {15,13,2}, {15,14,5}, {15,15,8},
+{15,16,11}, {15,17,14},
+{17,2,0}, {17,3,1}, {17,4,1}, {17,5,2}, {17,6,2},
+{18,2,0}, {18,3,1}, {18,4,1}, {18,5,2}, {18,6,2},
+{20,2,0}, {20,3,1}, {20,4,1}, {20,5,2}, {20,6,2},
+{21,2,0}, {21,3,1}, {21,4,1}, {21,5,2}, {21,6,2},
+{25,2,0}, {25,3,1}, {25,4,1}, {25,5,2}, {25,6,2},
+{27,2,0}, {27,3,1}, {27,4,1}, {27,5,2}, {27,6,2},
+{32,2,0}, {32,3,1}, {32,4,1}, {32,5,2}, {32,6,2},
+{34,2,0}, {34,3,1}, {34,4,1}, {34,5,2}, {34,6,2},
+{35,2,0}, {35,3,1}, {35,4,1}, {35,5,2}, {35,6,2},
+{37,2,0}, {37,3,1}, {37,4,1}, {37,5,2}, {37,6,2},
+{42,2,0}, {42,3,1}, {42,4,1}, {42,5,2}, {42,6,2},
+{43,2,0}, {43,3,1}, {43,4,1}, {43,5,2}, {43,6,2},
+{44,2,0}, {44,3,1}, {44,4,1}, {44,5,2}, {44,6,2},
+{45,2,0}, {45,3,1}, {45,4,1}, {45,5,2}, {45,6,2},
+{48,3,0}, {48,4,1}, {48,5,0}, {48,6,1}, {48,7,0}, {48,8,1}, {48,9,0},
+{48,10,1}, {48,11,0}, {48,12,1},
+{49,2,0}, {49,3,1}, {49,4,1}, {49,5,2}, {49,6,2},
+{50,3,0}, {50,4,1}, {50,5,2}, {50,6,3}, {50,7,2}, {50,8,3}, {50,9,4},
+{50,10,5}, {50,11,4}, {50,12,5},
+{55,2,0}, {55,3,1}, {55,4,1}, {55,5,2}, {55,6,2},
+{56,2,0}, {56,3,1}, {56,4,1}, {56,5,2}, {56,6,2},
+{58,2,0}, {58,3,1}, {58,4,1}, {58,5,2}, {58,6,2},
+{59,3,0}, {59,4,1}, {59,5,2}, {59,6,3}, {59,7,2}, {59,8,3}, {59,9,4},
+{59,10,5}, {59,11,4}, {59,12,5},
+{61,3,0}, {61,4,1}, {61,5,0}, {61,6,1},
+{65,2,0}, {65,3,1}, {65,4,1}, {65,5,2}, {65,6,2},
+{66,2,0}, {66,3,1}, {66,4,1}, {66,5,2}, {66,6,2},
+{70,3,0}, {70,4,1}, {70,5,0}, {70,6,1}, {70,7,0}, {70,8,1}, {70,9,0},
+{70,10,1}, {70,11,0}, {70,12,1},
+{72,2,0}, {72,3,1}, {72,4,1}, {72,5,2}, {72,6,2},
+{73,3,0}, {73,4,1}, {73,5,0}, {73,6,1},
+{0,0,0}
 };
+
+
+const SpaceGroupSetting* find_first_sg_with_number(int sgn)
+{
+    assert (sgn >= 1 && sgn <= 230);
+    for (const SpaceGroupSetting *p = space_group_settings; p->sgnumber!=0; ++p)
+        if (p->sgnumber == sgn)
+            return p;
+    return NULL;
+}
+
+const SpaceGroupSetting* find_space_group_setting(int sgn, const char *setting)
+{
+    char ext = 0;
+    const char *qualif = setting;
+    if (isdigit(setting[0]) || setting[0] == 'R' || setting[0] == 'H') {
+        ext = setting[0];
+        ++qualif;
+    }
+    const SpaceGroupSetting *p = find_first_sg_with_number(sgn);
+    while (p->ext != ext || strcmp(p->qualif, qualif) != 0) {
+        if (p->sgnumber != sgn) // not found
+            return NULL;
+        ++p;
+    }
+    return p;
+}
+
+const SpaceGroupSetting* get_sg_from_powdercell_rgnr(int sgn, int setting)
+{
+    const SpaceGroupSetting *sgs0 = find_first_sg_with_number(sgn);
+    if (setting == 0 || (sgs0+1)->sgnumber != sgn)
+        return sgs0;
+    for (const PowderCellSgSetting *i = powdercell_settings; i->sg != 0; ++i)
+        if (i->sg == sgn && i->pc_setting)
+            return sgs0 + i->std_setting;
+    // if we are here, the setting is not in PowderCell table,
+    // i.e. std_setting == pc_setting - 1
+    return sgs0 + setting - 1;
+}
+
+
+extern const char* default_cel_files[] = {
+
+"cell  4.358 4.358 4.358  90 90 90\n"
+"Si   14  0 0 0\n"
+"C     6  0.25 0.25 0.25\n"
+"rgnr 216\n"
+"filename bSiC",
+
+"cell  3.082 3.082 15.123  90 90 120\n"
+"SI1  14  0       0       0\n"
+"SI2  14  0.3333  0.6667  0.1667\n"
+"SI3  14  0.3333  0.6667  0.8333\n"
+"C1    6  0.0     0.0     0.125\n"
+"C2    6  0.3333  0.6667  0.2917\n"
+"C3    6  0.3333  0.6667  0.9583\n"
+"rgnr 186\n"
+"filename aSiC",
+
+"cell  5.64009 5.64009 5.64009  90 90 90\n"
+"Na   11   0   0   0\n"
+"Cl   17   0.5 0   0\n"
+"rgnr 225\n"
+"filename NaCl",
+
+"cell  3.5595 3.5595 3.5595  90 90 90\n"
+"C     6  0 0 0\n"
+"rgnr 227\n"
+"filename diamond",
+
+"cell  5.4309 5.4309 5.4309  90 90 90\n"
+"Si    6  0 0 0\n"
+"rgnr 227\n"
+"filename Si",
+
+"cell  5.41 5.41 5.41  90 90 90\n"
+"Ce   58  0   0   0\n"
+"O     8  0.25 0.25 0.25\n"
+"rgnr 225\n"
+"filename CeO2",
+
+NULL
+};
+
+
+CelFile read_cel_file(const char* path)
+{
+    CelFile cel;
+    cel.sgs = NULL;
+    FILE *f = fopen(path, "r");
+    if (!f)
+        return cel;
+    char s[20];
+    int r = fscanf(f, "%4s %lf %lf %lf %lf %lf %lf",
+               s, &cel.a, &cel.b, &cel.c, &cel.alpha, &cel.beta, &cel.gamma);
+    if (r != 7) {
+        fclose(f);
+        return cel;
+    }
+    if (strcmp(s, "cell") != 0 && strcmp(s, "CELL") != 0
+            && strcmp(s, "Cell") != 0) {
+        fclose(f);
+        return cel;
+    }
+    while (1) {
+        fscanf(f, "%12s", s);
+        if (strcmp(s, "RGNR") == 0 || strcmp(s, "rgnr") == 0
+                || strcmp(s, "Rgnr") == 0)
+            break;
+        AtomInCell atom;
+        r = fscanf(f, "%d %lf %lf %lf", &atom.Z, &atom.x, &atom.y, &atom.z);
+        if (r != 4) {
+            fclose(f);
+            return cel;
+        }
+        cel.atoms.push_back(atom);
+        // skip the rest of the line
+        for (char c = fgetc(f); c != '\n' && c != EOF; c = fgetc(f))
+            ;
+    }
+    int sgn;
+    r = fscanf(f, "%d", &sgn);
+    if (r != 1) {
+        fclose(f);
+        return cel;
+    }
+    if (sgn < 1 || sgn > 230) {
+        fclose(f);
+        return cel;
+    }
+    cel.sgs = find_first_sg_with_number(sgn);
+    for (char c = fgetc(f); c != '\n' && c != EOF; c = fgetc(f)) {
+        if (c == ':') {
+            fscanf(f, "%8s", s);
+            cel.sgs = find_space_group_setting(sgn, s);
+            break;
+        }
+        else if (isdigit(c)) {
+            ungetc(c, f);
+            int pc_setting;
+            fscanf(f, "%d", &pc_setting);
+            cel.sgs = get_sg_from_powdercell_rgnr(sgn, pc_setting);
+            break;
+        }
+        else if (!isspace(c))
+            break;
+    }
+    fclose(f);
+    return cel;
+}
+
+void write_cel_file(CelFile const& cel, const char* path)
+{
+    for (int i = 1; i != 104; ++i)
+        assert(find_Z_in_pse(i)->Z == i);
+    FILE *f = fopen(path, "w");
+    if (!f)
+        return;
+    fprintf(f, "cell  %g %g %g  %g %g %g\n", cel.a, cel.b, cel.c,
+                                             cel.alpha, cel.beta, cel.gamma);
+    for (vector<AtomInCell>::const_iterator i = cel.atoms.begin();
+                                                   i != cel.atoms.end(); ++i) {
+        const t_pse* pse = find_Z_in_pse(i->Z);
+        fprintf(f, "%-2s   %2d  %g %g %g\n",
+                pse->symbol, i->Z, i->x, i->y, i->z);
+    }
+    int sgn = cel.sgs->sgnumber;
+    fprintf(f, "rgnr %d", sgn);
+    if (sgn != 1 && (cel.sgs-1)->sgnumber != sgn) {
+        fprintf(f, " :");
+        if (cel.sgs->ext != 0)
+            fprintf(f, "%c", cel.sgs->ext);
+        fprintf(f, "%s", cel.sgs->qualif);
+    }
+    fprintf(f, "\n");
+    fclose(f);
+}
+
+void write_default_cel_files(const char* path_prefix)
+{
+    const char* special_str = "\nfilename ";
+    for (const char** s = default_cel_files; *s != NULL; ++s) {
+        const char* fn = strstr(*s, special_str) + strlen(special_str);
+        string filename = string(path_prefix) + fn;
+        FILE *f = fopen(filename.c_str(), "w");
+        if (!f)
+            continue;
+        fprintf(f, "%s\n", *s);
+        fclose(f);
+    }
+}
 
 

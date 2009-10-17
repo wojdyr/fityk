@@ -28,8 +28,7 @@
  *     CRC Handbook of Chemistry & Physics, 63rd edition, 1982-1983
  *     CRC Handbook of Chemistry & Physics, 70th edition, 1989-1990
  */
-const t_pse pse_table[] =
-  {
+const t_pse pse_table[] = {
     {   1, "H",  "hydrogen",       1.008 },
     {   1, "D",  "deuterium",      2.000 },
     {   2, "He", "helium",         4.003 },
@@ -135,7 +134,7 @@ const t_pse pse_table[] =
     { 102, "No", "nobelium",     259.000 },
     { 103, "Lr", "lawrencium",   260.000 },
     {   0, NULL, NULL,             0.    }
-  };
+};
 
 
 const t_pse *find_in_pse(const char *label)
@@ -155,6 +154,16 @@ const t_pse *find_in_pse(const char *label)
         if (strcmp(it->symbol, label) == 0)
             return it;
     return NULL;
+}
+
+const t_pse *find_Z_in_pse(int Z)
+{
+    if (Z == 1)
+        return &pse_table[0];
+    else if (Z > 1 && Z <= 103)
+        return &pse_table[Z];
+    else
+        return NULL;
 }
 
 /***************************************************************************/

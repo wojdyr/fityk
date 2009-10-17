@@ -31,7 +31,7 @@ extern "C" {
 /* element of periodic system of elements */
 typedef struct
 {
-    int Z;
+    int Z; // atomic number
     const char* symbol;
     const char* name;
     float mass;
@@ -45,6 +45,9 @@ t_pse;
  */
 const t_pse *find_in_pse(const char *label);
 
+/* Finds element with atomic number Z. Returns NULL if not found.
+ */
+const t_pse *find_Z_in_pse(int Z);
 
 
 /* Coefficients for approximation to the scattering factor called IT92.

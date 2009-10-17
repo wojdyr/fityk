@@ -12,6 +12,8 @@
 #include <string>
 #include <wx/listbook.h>
 
+#include "ceria.h"
+
 #if STANDALONE_POWDIFPAT
 #  include <wx/filepicker.h>
 #  include <xylib/xylib.h>
@@ -32,7 +34,7 @@ class PowderBook : public wxListbook
 #endif
 public:
     static const int max_wavelengths = 5;
-    std::map<std::string, std::vector<std::string> > quick_phase_list;
+    std::map<std::string, CelFile> quick_phase_list;
 
     PowderBook(wxWindow* parent, wxWindowID id);
     void OnAnodeSelected(wxCommandEvent& event);

@@ -6,11 +6,7 @@
 // phases quick-list:
 //  - read/save from/to file,
 //  - the built-in list should also have atoms
-// add sglite to svn
-// split powdifpat into powdifpat and ceria:
-// - ceria+atomtables+sglite=libceria
-// - libceria does not depend on boost
-// - powdifpat does not depend on sglite
+// ceria+atomtables+sglite=libceria
 // replace UTF8 chars with hex
 // peaks: peak formula, widths, shapes
 // make a (preview) release
@@ -30,6 +26,7 @@
 #include <wx/imaglist.h>
 #include <wx/cmdline.h>
 #include <wx/listctrl.h>
+#include <wx/stdpaths.h>
 
 
 #include "powdifpat.h"
@@ -137,7 +134,7 @@ public:
     void OnAtomsFocus(wxFocusEvent&);
     void OnAtomsUnfocus(wxFocusEvent&);
     void OnAtomsChanged(wxCommandEvent& event);
-    void set_phase(vector<string> const& tokens);
+    void set_phase(string const& name, CelFile const& cel);
     const Crystal& get_crystal() { return cr_; }
     bool editing_atoms() const { return editing_atoms_; }
     int get_selected_hkl() const { return hkl_list->GetSelection(); }
@@ -221,20 +218,23 @@ PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
 
 void PowderBook::initialize_quick_phase_list()
 {
-    string s = quick_list_ini;
-
-    const char *end = "\r\n";
-
-    string::size_type a = s.find_first_not_of(end);
-    while (a != string::npos) {
-        string::size_type b = s.find_first_of(end, a);
-        vector<string> tokens = split_string(s.substr(a, b-a), "|");
-
-        if (tokens.size() >= 8)
-            quick_phase_list[tokens[0]] = tokens;
-
-        a = s.find_first_not_of(end, b);
+    wxString fityk_dir = wxStandardPaths::Get().GetUserDataDir();
+#if STANDALONE_POWDIFPAT
+    fityk_dir.Replace(wxT("powdifpat"), wxT("fityk"));
+#endif
+    wxString cel_dir = fityk_dir + wxFILE_SEP_PATH
+                       + wxT("cel_files") + wxFILE_SEP_PATH;
+    if (!wxDirExists(cel_dir)) {
+        wxMkdir(cel_dir);
+        write_default_cel_files(wx2s(cel_dir).c_str());
     }
+
+    // TODO
+    //for () {
+    //    CelFile cel = read_cel_file();
+    //    if (cel.sgs != NULL)
+    //        quick_phase_list[name] = cel;
+    //}
 }
 
 
@@ -647,18 +647,17 @@ void PhasePanel::OnAddToQLButton(wxCommandEvent&)
     else
         quick_phase_lb->Append(name);
 
-    vector<string> tokens;
-    tokens.push_back(wx2s(name));
-    tokens.push_back(wx2s(sg_tc->GetValue()));
-    tokens.push_back(wx2s(par_a->get_string()));
-    tokens.push_back(wx2s(par_b->get_string()));
-    tokens.push_back(wx2s(par_c->get_string()));
-    tokens.push_back(wx2s(par_alpha->get_string()));
-    tokens.push_back(wx2s(par_beta->get_string()));
-    tokens.push_back(wx2s(par_gamma->get_string()));
+    CelFile cel;
+    cel.sgs = find_first_sg_with_number(cr_.sg_number); // TODO ...
+    cel.a = par_a->get_value();
+    cel.b = par_b->get_value();
+    cel.c = par_c->get_value();
+    cel.alpha = par_alpha->get_value();
+    cel.beta = par_beta->get_value();
+    cel.gamma = par_gamma->get_value();
 
     quick_phase_lb->SetStringSelection(name);
-    powder_book->quick_phase_list[wx2s(name)] = tokens;
+    powder_book->quick_phase_list[wx2s(name)] = cel;
 }
 
 void PhasePanel::OnClearButton(wxCommandEvent& event)
@@ -1048,16 +1047,16 @@ void PhasePanel::update_miller_indices()
         hkl_list->Check(i, true);
 }
 
-void PhasePanel::set_phase(vector<string> const& tokens)
+void PhasePanel::set_phase(string const& name, CelFile const& cel)
 {
-    name_tc->SetValue(s2wx(tokens[0]));
-    change_space_group(tokens[1]);
-    par_a->set_string(s2wx(tokens[2]));
-    par_b->set_string(s2wx(tokens[3]));
-    par_c->set_string(s2wx(tokens[4]));
-    par_alpha->set_string(s2wx(tokens[5]));
-    par_beta->set_string(s2wx(tokens[6]));
-    par_gamma->set_string(s2wx(tokens[7]));
+    name_tc->SetValue(s2wx(name));
+    change_space_group(cel.sgs->HM); // TODO ...
+    par_a->set_string(wxString::Format(wxT("%g"), (cel.a)));
+    par_b->set_string(wxString::Format(wxT("%g"), (cel.b)));
+    par_c->set_string(wxString::Format(wxT("%g"), (cel.c)));
+    par_alpha->set_string(wxString::Format(wxT("%g"), (cel.alpha)));
+    par_beta->set_string(wxString::Format(wxT("%g"), (cel.beta)));
+    par_gamma->set_string(wxString::Format(wxT("%g"), (cel.gamma)));
     update_miller_indices();
 }
 
@@ -1070,7 +1069,7 @@ wxPanel* PowderBook::PrepareSamplePanel()
     quick_phase_lb = new wxListBox(panel, -1, wxDefaultPosition, wxDefaultSize,
                                    0, NULL, wxLB_SINGLE|wxLB_SORT);
 
-    for (map<string, vector<string> >::const_iterator i
+    for (map<string, CelFile>::const_iterator i
               = quick_phase_list.begin(); i != quick_phase_list.end(); ++i)
         quick_phase_lb->Append(s2wx(i->first));
 
@@ -1198,10 +1197,10 @@ void PowderBook::OnQuickPhaseSelected(wxCommandEvent& event)
     if (n < 0)
         return;
     string name = wx2s(quick_phase_lb->GetString(n));
-    vector<string> const& tokens = quick_phase_list[name];
+    CelFile const& cel = quick_phase_list[name];
     PhasePanel *panel = get_current_phase_panel();
     assert(panel->GetParent() == sample_nb);
-    panel->set_phase(tokens);
+    panel->set_phase(name, cel);
     panel->s_qadd_btn->Enable(false);
     panel->sample_plot->refresh();
 }

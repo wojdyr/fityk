@@ -27,6 +27,23 @@ struct SpaceGroupSetting
 extern const SpaceGroupSetting space_group_settings[];
 extern const char* SchoenfliesSymbols[];
 
+struct AtomInCell
+{
+    int Z;
+    double x, y, z;
+};
+
+struct CelFile
+{
+    double a, b, c, alpha, beta, gamma;
+    const SpaceGroupSetting* sgs;
+    std::vector<AtomInCell> atoms;
+};
+
+CelFile read_cel_file(const char* path);
+void write_cel_file(CelFile const& cel, const char* path);
+void write_default_cel_files(const char* path_prefix);
+
 
 class UnitCell
 {
@@ -145,6 +162,8 @@ CrystalSystem get_crystal_system(int space_group);
 const char* get_crystal_system_name(int xs);
 void add_symmetric_images(Atom& a, const SgOps* sg_ops);
 
+const SpaceGroupSetting* find_first_sg_with_number(int sgn);
+
 // Returns the order of the space group,
 // i.e. the maximum number of symmetry equivalent positions.
 int get_sg_order(const SgOps* sg_ops);
@@ -157,11 +176,6 @@ struct Anode
 
 extern const Anode anodes[];
 
-static const char* quick_list_ini =
-"SiC 3C|F -4 3 m|4.36|4.36|4.36|90|90|90\n"
-"SiC 6H|186|3.081|3.081|15.117|90|90|120\n"
-"NaCl|F m -3 m|5.64009|5.64009|5.64009|90|90|90\n"
-"CeO2|F m -3 m|5.41|5.41|5.41|90|90|90\n"
-;
+extern const char* default_cel_files[];
 
 #endif // FITYK_WX_CERIA_H_
