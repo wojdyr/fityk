@@ -3,17 +3,15 @@
 // $Id$
 
 //TODO:
-// phases quick-list:
-//  - read/save from/to file,
-//  - the built-in list should also have atoms
-// ceria+atomtables+sglite=libceria
+// phases quick-list: read/save from/to file,
+// import cel files
 // replace UTF8 chars with hex
 // peaks: peak formula, widths, shapes
 // make a (preview) release
 //
 // enable x-ray / neutron switching (different LPF and scattering factors)
 // buffer plot with data
-// import .cel and .cif files
+// import .cif files
 // action: info about old and new models, button to add/update the model
 
 #include <cmath>
@@ -27,7 +25,7 @@
 #include <wx/cmdline.h>
 #include <wx/listctrl.h>
 #include <wx/stdpaths.h>
-
+#include <wx/dir.h>
 
 #include "powdifpat.h"
 #include "atomtables.h"
@@ -140,6 +138,7 @@ public:
     int get_selected_hkl() const { return hkl_list->GetSelection(); }
 
 private:
+    static const wxString default_atom_string;
     wxNotebook *nb_parent;
     PowderBook *powder_book;
 
@@ -161,7 +160,7 @@ private:
     void update_disabled_parameters();
     void update_miller_indices();
     void set_ortho_angles();
-    void change_space_group(string const& text);
+    void change_space_group();
 
     DISALLOW_COPY_AND_ASSIGN(PhasePanel);
 };
@@ -209,14 +208,14 @@ PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
     AddPage(PrepareInstrumentPanel(), wxT("instrument"), false, 1);
     AddPage(PrepareSamplePanel(), wxT("sample"), false, 2);
     AddPage(PreparePeakPanel(), wxT("peak"), false, 3);
-    //AddPage(PrepareActionPanel(), wxT("action"), false, 4);
-    AddPage(PrepareActionPanel(), wxEmptyString, false, 4);
+    AddPage(PrepareActionPanel(), wxT("action"), false, 4);
+    //AddPage(PrepareActionPanel(), wxEmptyString, false, 4);
 
     Connect(GetId(), wxEVT_COMMAND_LISTBOOK_PAGE_CHANGED,
             (wxObjectEventFunction) &PowderBook::OnPageChanged);
 }
 
-void PowderBook::initialize_quick_phase_list()
+wxString get_cel_files_dir()
 {
     wxString fityk_dir = wxStandardPaths::Get().GetUserDataDir();
 #if STANDALONE_POWDIFPAT
@@ -224,17 +223,28 @@ void PowderBook::initialize_quick_phase_list()
 #endif
     wxString cel_dir = fityk_dir + wxFILE_SEP_PATH
                        + wxT("cel_files") + wxFILE_SEP_PATH;
+    return cel_dir;
+}
+
+void PowderBook::initialize_quick_phase_list()
+{
+    wxString cel_dir = get_cel_files_dir();
     if (!wxDirExists(cel_dir)) {
         wxMkdir(cel_dir);
         write_default_cel_files(wx2s(cel_dir).c_str());
     }
 
-    // TODO
-    //for () {
-    //    CelFile cel = read_cel_file();
-    //    if (cel.sgs != NULL)
-    //        quick_phase_list[name] = cel;
-    //}
+    wxDir dir(cel_dir);
+    wxString filename;
+    bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
+    while (cont)
+    {
+        wxString path = cel_dir + filename;
+        CelFile cel = read_cel_file(path.fn_str());
+        if (cel.sgs != NULL)
+            quick_phase_list[wx2s(filename)] = cel;
+        cont = dir.GetNext(&filename);
+    }
 }
 
 
@@ -502,6 +512,11 @@ void PlotWithLines::draw_active_data(wxDC& dc)
     delete [] points;
 }
 
+const wxString PhasePanel::default_atom_string =
+    wxT("Optional: atom positions, e.g.\n")
+    wxT("Si 0 0 0\n")
+    wxT("C 0.25 0.25 0.25");
+
 PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
         : wxPanel(parent), nb_parent(parent), powder_book(powder_book_),
           line_with_error_(-1)
@@ -561,9 +576,7 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
     atoms_tc = new wxTextCtrl(atom_split, -1, wxEmptyString,
                           wxDefaultPosition, wxDefaultSize,
                           wxTE_RICH|wxTE_MULTILINE);
-    atoms_tc->SetValue(wxT("Optional: atom positions, e.g.\n")
-                    wxT("Si 0 0 0\n")
-                    wxT("C 0.25 0.25 0.25"));
+    atoms_tc->ChangeValue(default_atom_string);
     atoms_show_help_ = true;
     atoms_tc->SetSelection(-1, -1);
     info_tc = new wxTextCtrl(atom_split, -1, wxEmptyString,
@@ -648,16 +661,29 @@ void PhasePanel::OnAddToQLButton(wxCommandEvent&)
         quick_phase_lb->Append(name);
 
     CelFile cel;
-    cel.sgs = find_first_sg_with_number(cr_.sg_number); // TODO ...
+    cel.sgs = cr_.sgs;
     cel.a = par_a->get_value();
     cel.b = par_b->get_value();
     cel.c = par_c->get_value();
     cel.alpha = par_alpha->get_value();
     cel.beta = par_beta->get_value();
     cel.gamma = par_gamma->get_value();
+    for (vector<Atom>::const_iterator i = cr_.atoms.begin();
+                                                i != cr_.atoms.end(); ++i) {
+        t_pse const* pse = find_in_pse(i->symbol);
+        assert (pse != NULL);
+        AtomInCell aic;
+        aic.Z = pse->Z;
+        aic.x = i->pos[0].x;
+        aic.y = i->pos[0].y;
+        aic.z = i->pos[0].z;
+        cel.atoms.push_back(aic);
+    }
 
     quick_phase_lb->SetStringSelection(name);
     powder_book->quick_phase_list[wx2s(name)] = cel;
+    wxString path = get_cel_files_dir() + name;
+    write_cel_file(cel, path.fn_str());
 }
 
 void PhasePanel::OnClearButton(wxCommandEvent& event)
@@ -712,25 +738,26 @@ void PhasePanel::OnNameChanged(wxCommandEvent&)
 void PhasePanel::OnSpaceGroupChanged(wxCommandEvent&)
 {
     string text = wx2s(sg_tc->GetValue());
-    change_space_group(text);
+    const SpaceGroupSetting *sgs = parse_any_sg_symbol(text.c_str());
+    cr_.set_space_group(sgs);
+    change_space_group();
     powder_book->deselect_phase_quick_list();
     sample_plot->refresh();
 }
 
-void PhasePanel::change_space_group(string const& text)
+void PhasePanel::change_space_group()
 {
-    cr_.set_space_group(text.c_str());
-    if (cr_.sg_number <= 0) {
+    if (cr_.sgs == NULL) {
         sg_tc->Clear();
         hkl_list->Clear();
         sg_nr_st->SetLabel(wxEmptyString);
         return;
     }
 
-    sg_tc->ChangeValue(pchar2wx(cr_.sg_hm));
+    sg_tc->ChangeValue(s2wx(fullHM(cr_.sgs)));
     sg_nr_st->SetLabel(wxString::Format(wxT("no. %d, %s, order %d"),
-                                        cr_.sg_number,
-                                        get_crystal_system_name(cr_.sg_xs),
+                                        cr_.sgs->sgnumber,
+                                        get_crystal_system_name(cr_.xs()),
                                         get_sg_order(cr_.sg_ops)));
     enable_parameter_fields();
     update_disabled_parameters();
@@ -739,7 +766,7 @@ void PhasePanel::change_space_group(string const& text)
 
 void PhasePanel::enable_parameter_fields()
 {
-    switch (cr_.sg_xs) {
+    switch (cr_.xs()) {
         case TriclinicSystem:
             par_b->Enable(true);
             par_c->Enable(true);
@@ -852,8 +879,7 @@ wxString make_info_string_for_atoms(const vector<Atom>& atoms, int error_line)
 {
     wxString info = wxT("In unit cell:");
     for (vector<Atom>::const_iterator i = atoms.begin(); i != atoms.end(); ++i){
-        info += wxString::Format(wxT(" %d %s "),
-                                 (int)i->positions.size(), i->symbol);
+        info += wxString::Format(wxT(" %d %s "), (int)i->pos.size(), i->symbol);
     }
     if (error_line != -1)
         info += wxString::Format(wxT("\nError in line %d."), error_line);
@@ -912,88 +938,9 @@ void PhasePanel::OnAtomsChanged(wxCommandEvent&)
         info_tc->Clear();
         return;
     }
-    const char* s = atoms_str.c_str();
-    line_with_error_ = -1;
-    int atom_count = 0;
-    // don't use cr_.atoms.clear(), to make it faster
-    for (int line_nr = 1; ; ++line_nr) {
-        // skip whitespace
-        while(isspace(*s) && *s != '\n')
-            ++s;
-        if (*s == '\n')
-            continue;
-        if (*s == '\0')
-            break;
+    line_with_error_ = parse_atoms(atoms_str.c_str(), cr_);
 
-        // usually the atom is not changed, so we first parse data
-        // into a new struct Atom, and if it is different we copy it
-        // and do calculations
-        Atom a;
-
-        // parse symbol
-        const char* word_end = s;
-        while (isalnum(*word_end))
-            ++word_end;
-        int symbol_len = word_end - s;
-        if (symbol_len == 0 || symbol_len >= 8) {
-            line_with_error_ = line_nr;
-            break;
-        }
-        memcpy(a.symbol, s, symbol_len);
-        a.symbol[symbol_len] = '\0';
-        s = word_end;
-
-        // parse x, y, z
-        char *endptr;
-        a.positions[0].x = strtod(s, &endptr);
-        s = endptr;
-        a.positions[0].y = strtod(s, &endptr);
-        s = endptr;
-        a.positions[0].z = strtod(s, &endptr);
-
-        // check if the numbers were parsed
-        if (endptr == s || // one or more numbers were not parsed
-            (!isspace(*endptr) && *endptr != '\0')) // e.g. "Si 0 0 0foo"
-        {
-            line_with_error_ = line_nr;
-            break;
-        }
-
-        s = endptr;
-
-        // if there is more than 4 words in the line, ignore the extra words
-        while (*s != '\n' && *s != '\0')
-            ++s;
-        if (*s == '\n')
-            ++s;
-
-        // check if the atom needs to be copied, and copy it if necessary
-        if (atom_count == (int) cr_.atoms.size()) {
-            a.xray_sf = find_in_it92(a.symbol);
-            a.neutron_sf = find_in_nn92(a.symbol);
-            cr_.atoms.push_back(a);
-            add_symmetric_images(cr_.atoms[atom_count], cr_.sg_ops);
-        }
-        else {
-            Atom &b = cr_.atoms[atom_count];
-            if (strcmp(a.symbol, b.symbol) != 0) {
-                memcpy(b.symbol, a.symbol, 8);
-                b.xray_sf = find_in_it92(b.symbol);
-                b.neutron_sf = find_in_nn92(b.symbol);
-            }
-            if (a.positions[0].x != b.positions[0].x
-                    || a.positions[0].y != b.positions[0].y
-                    || a.positions[0].z != b.positions[0].z) {
-                b.positions.resize(1);
-                b.positions[0] = a.positions[0];
-                add_symmetric_images(cr_.atoms[atom_count], cr_.sg_ops);
-            }
-        }
-        ++atom_count;
-    }
-    // vector cr_.atoms may be longer than necessary
-    cr_.atoms.resize(atom_count);
-
+    powder_book->deselect_phase_quick_list();
     wxString info = make_info_string_for_atoms(cr_.atoms, line_with_error_);
     info_tc->SetValue(info);
 }
@@ -1006,7 +953,7 @@ void PhasePanel::update_disabled_parameters()
     if (!par_c->IsEnabled())
         par_c->set_string(par_a->get_string());
 
-    if (cr_.sg_xs == TrigonalSystem) {
+    if (cr_.xs() == TrigonalSystem) {
         par_beta->set_string(par_alpha->get_string());
         par_gamma->set_string(par_alpha->get_string());
     }
@@ -1050,13 +997,29 @@ void PhasePanel::update_miller_indices()
 void PhasePanel::set_phase(string const& name, CelFile const& cel)
 {
     name_tc->SetValue(s2wx(name));
-    change_space_group(cel.sgs->HM); // TODO ...
+    cr_.set_space_group(cel.sgs);
+    change_space_group();
     par_a->set_string(wxString::Format(wxT("%g"), (cel.a)));
     par_b->set_string(wxString::Format(wxT("%g"), (cel.b)));
     par_c->set_string(wxString::Format(wxT("%g"), (cel.c)));
     par_alpha->set_string(wxString::Format(wxT("%g"), (cel.alpha)));
     par_beta->set_string(wxString::Format(wxT("%g"), (cel.beta)));
     par_gamma->set_string(wxString::Format(wxT("%g"), (cel.gamma)));
+    wxString atoms_str;
+    for (vector<AtomInCell>::const_iterator i = cel.atoms.begin();
+            i != cel.atoms.end(); ++i) {
+        t_pse const* pse = find_Z_in_pse(i->Z);
+        if (pse == NULL)
+            continue;
+        atoms_str += wxString::Format(wxT("%s %g %g %g\n"),
+                                      pse->symbol, i->x, i->y, i->z);
+    }
+    atoms_tc->ChangeValue(atoms_str);
+    cr_.atoms.clear();
+    line_with_error_ = parse_atoms(atoms_str.c_str(), cr_);
+    wxString info = make_info_string_for_atoms(cr_.atoms, line_with_error_);
+    info_tc->SetValue(info);
+    atoms_show_help_ = false;
     update_miller_indices();
 }
 
@@ -1226,7 +1189,32 @@ void PowderBook::OnQuickListImport(wxCommandEvent&)
                       wxT("CIF files (*.cif)|*.cif;*.CIF|")
                       wxT("PowderCell files (*.cel)|*.cel;*.CEL"),
                       wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
-    if (dlg.ShowModal() == wxID_OK) {
+    if (dlg.ShowModal() != wxID_OK)
+        return;
+    wxArrayString paths;
+    dlg.GetPaths(paths);
+    for (size_t i = 0; i != paths.GetCount(); ++i) {
+        wxFileName fn(paths[i]);
+        wxString name = fn.GetName();
+        wxString ext = fn.GetExt();
+        if (quick_phase_lb->FindString(name) != wxNOT_FOUND) {
+            int answer = wxMessageBox(wxT("Name `") + name
+                    + wxT("' already exists.\nOverwrite?"),
+                    wxT("Overwrite?"), wxYES_NO|wxICON_QUESTION);
+            if (answer != wxYES)
+                continue;;
+        }
+        if (ext == wxT("cif") || ext == wxT("CIF")) {
+            wxMessageBox(wxT("Support for CIF files is not ready yet."),
+                         wxT("Sorry."), wxOK|wxICON_ERROR);
+            continue;
+        }
+        else {
+            CelFile cel = read_cel_file(paths[i].fn_str());
+            if (cel.sgs != NULL)
+                quick_phase_list[wx2s(name)] = cel;
+        }
+        quick_phase_lb->Append(name);
     }
 }
 
@@ -1346,7 +1334,6 @@ void SpaceGroupChooser::regenerate_list()
 {
     list->DeleteAllItems();
     int sel = system_c->GetSelection();
-    //for (const T_Main_HM_Dict* i = Main_HM_Dict; i->HM != NULL; ++i) {
     for (const SpaceGroupSetting* i = space_group_settings; i->sgnumber; ++i) {
         if (sel != 0 && get_crystal_system(i->sgnumber) != sel+1)
             continue;
@@ -1362,7 +1349,7 @@ void SpaceGroupChooser::regenerate_list()
         }
         int n = list->GetItemCount();
         list->InsertItem(n, wxString::Format(wxT("%d"), i->sgnumber));
-        list->SetItem(n, 1, pchar2wx(i->HM));
+        list->SetItem(n, 1, s2wx(fullHM(i)));
         list->SetItem(n, 2, pchar2wx(SchoenfliesSymbols[i->sgnumber-1]));
         list->SetItem(n, 3, pchar2wx(i->Hall));
     }

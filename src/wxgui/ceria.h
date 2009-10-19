@@ -8,9 +8,30 @@
 #define FITYK_WX_CERIA_H_
 
 #include <vector>
+#include <string>
 #include "atomtables.h"
 
-struct SgOps;
+struct SeitzMatrix
+{
+    int R[9];
+    int T[3]; // divide by 12. before use
+};
+
+struct TransVec
+{
+    int x, y, z; // divide by 12. before use
+};
+
+// symmetry operations for the space group
+struct SgOps
+{
+    //T_SgOps s;
+    std::vector<SeitzMatrix> seitz; // Seitz matrices
+    std::vector<TransVec> tr; // translation vectors
+    bool inv; // has center of inversion
+    int inv_t[3]; // translation for centre of inversion
+};
+
 
 struct SpaceGroupSetting
 {
@@ -22,10 +43,14 @@ struct SpaceGroupSetting
     char Hall[16]; // Hall symbol; nul-terminated string
 };
 
+std::string fullHM(const SpaceGroupSetting *sgs);
+
     // number that goes after SG number in PowderCell .cel file (1-18 or 0)
     //char powdercell_setting;
 extern const SpaceGroupSetting space_group_settings[];
 extern const char* SchoenfliesSymbols[];
+
+const SpaceGroupSetting* parse_any_sg_symbol(const char *symbol);
 
 struct AtomInCell
 {
@@ -96,7 +121,7 @@ struct PlanesWithSameD
     bool enabled; // include this peak in model
 
     bool operator<(const PlanesWithSameD& p) const { return d > p.d; }
-    void add(Miller const& hkl, const SgOps* sg_ops);
+    void add(Miller const& hkl, const SgOps& sg_ops);
 };
 
 struct Pos // position in unit cell, 0 <= x,y,z < 1
@@ -108,12 +133,12 @@ struct Atom
 {
     char symbol[8];
     // Contains positions of all symmetrically equivalent atoms in unit cell.
-    // positions[0] contains the "original" atom.
-    std::vector<Pos> positions;
+    // pos[0] contains the "original" atom.
+    std::vector<Pos> pos;
     const t_it92_coeff *xray_sf;
     const t_nn92_record *neutron_sf;
 
-    Atom() : positions(1) {}
+    Atom() : pos(1) { pos[0].x = pos[0].y = pos[0].z = 0.; }
 };
 
 
@@ -130,13 +155,14 @@ enum CrystalSystem
     CubicSystem        = 8
 };
 
+CrystalSystem get_crystal_system(int space_group);
+const char* get_crystal_system_name(CrystalSystem xs);
+
 class Crystal
 {
 public:
-    int sg_number; // space group number
-    const char* sg_hm; // Hermann-Mauguin symbol
-    SgOps *sg_ops; // symmetry operations
-    CrystalSystem sg_xs; // crystal system
+    const SpaceGroupSetting* sgs; // space group
+    SgOps sg_ops; // symmetry operations
     UnitCell* uc;
     int n_atoms;
     std::vector<Atom> atoms;
@@ -144,29 +170,31 @@ public:
 
     Crystal();
     ~Crystal();
-    void set_space_group(const char* name);
+    void set_space_group(const SpaceGroupSetting* name);
     void generate_reflections(double min_d);
     void set_unit_cell(double a, double b, double c,
                        double alpha, double beta, double gamma)
         { delete uc; uc = new UnitCell(a, b, c, alpha, beta, gamma); }
     void calculate_intensities(double lambda);
+    CrystalSystem xs() const
+        { return sgs ? get_crystal_system(sgs->sgnumber) : UndefinedSystem; }
 private:
     Crystal(const Crystal&); // disallow copy
     void operator=(const Crystal&); // disallow assign
 };
 
+int parse_atoms(const char* s, Crystal& cr);
+
 extern const char *CrystalSystemNames[];
 extern const SpaceGroupSetting space_group_settings[];
 
-CrystalSystem get_crystal_system(int space_group);
-const char* get_crystal_system_name(int xs);
-void add_symmetric_images(Atom& a, const SgOps* sg_ops);
+void add_symmetric_images(Atom& a, const SgOps& sg_ops);
 
 const SpaceGroupSetting* find_first_sg_with_number(int sgn);
 
 // Returns the order of the space group,
 // i.e. the maximum number of symmetry equivalent positions.
-int get_sg_order(const SgOps* sg_ops);
+int get_sg_order(const SgOps& sg_ops);
 
 struct Anode
 {

@@ -6,33 +6,46 @@
 
 #include <stdio.h>
 #include <ctype.h>
-#include <string.h>
 #include <math.h>
 #include <assert.h>
-#include <string>
+#include <string.h>
 #include <algorithm>
+//#include <iostream> // debug
 extern "C" {
-#include <sglite/sglite.h> // SgSymbolLookup, ParseHallSymbol, IsSysAbsMIx
-                           // T_SgOps: nSMx, SMx[], fInv, nLTr, LTr[],
+#include <sglite/sglite.h> // ParseHallSymbol in set_space_group()
 }
 
 using namespace std;
 
-// wrapper that allows to not include sglite.h in ceria.h
-struct SgOps
+Pos apply_seitz(Pos const& p0, SeitzMatrix const& s)
 {
-    T_SgOps s;
-};
+    Pos p;
+    p.x = s.R[0]*p0.x + s.R[1]*p0.y + s.R[2]*p0.z + s.T[0]/12.;
+    p.y = s.R[3]*p0.x + s.R[4]*p0.y + s.R[5]*p0.z + s.T[1]/12.;
+    p.z = s.R[6]*p0.x + s.R[7]*p0.y + s.R[8]*p0.z + s.T[2]/12.;
+    return p;
+}
 
-bool check_symmetric_hkl(const SgOps *sg_ops, const Miller &p1,
+
+string fullHM(const SpaceGroupSetting *sgs)
+{
+    if (sgs == NULL)
+        return "";
+    else if (sgs->ext == 0)
+        return sgs->HM;
+    else
+        return string(sgs->HM) + ":" + sgs->ext;
+}
+
+bool check_symmetric_hkl(const SgOps &sg_ops, const Miller &p1,
                                               const Miller &p2)
 {
-    for (int i = 0; i < sg_ops->s.nSMx; ++i)
+    for (size_t i = 0; i < sg_ops.seitz.size(); ++i)
     {
-        const T_RTMx &sm = sg_ops->s.SMx[i];
-        int h = sm.s.R[0] * p1.h + sm.s.R[3] * p1.k + sm.s.R[6] * p1.l;
-        int k = sm.s.R[1] * p1.h + sm.s.R[4] * p1.k + sm.s.R[7] * p1.l;
-        int l = sm.s.R[2] * p1.h + sm.s.R[5] * p1.k + sm.s.R[8] * p1.l;
+        const int* R = sg_ops.seitz[i].R;
+        int h = R[0] * p1.h + R[3] * p1.k + R[6] * p1.l;
+        int k = R[1] * p1.h + R[4] * p1.k + R[7] * p1.l;
+        int l = R[2] * p1.h + R[5] * p1.k + R[8] * p1.l;
         if (h == p2.h && k == p2.k && l == p2.l)
             return  true;
         // we assume Friedel symmetry here
@@ -56,39 +69,120 @@ bool is_position_empty(const vector<Pos>& pp, const Pos& p)
 
 double mod1(double x) { return x - floor(x); }
 
-void add_symmetric_images(Atom& a, const SgOps* sg_ops)
+void add_symmetric_images(Atom& a, const SgOps& sg_ops)
 {
-    assert(a.positions.size() == 1);
-    const Pos& p0 = a.positions[0];
-    bool has_inverson = (sg_ops->s.fInv == 2);
+    assert(a.pos.size() == 1);
     // iterate over translation, Seitz matrices and inversion
-    for (int nt = 0; nt != sg_ops->s.nLTr; ++nt) {
-        const int *t = sg_ops->s.LTr[nt].v;
-        for (int ns = 0; ns != sg_ops->s.nSMx; ++ns) {
-            const T_RTMx& s = sg_ops->s.SMx[ns];
-            const int *R = s.s.R;
-            const int *T = s.s.T;
-            Pos p = {
-            mod1(R[0] * p0.x + R[1] * p0.y + R[2] * p0.z + T[0]/12. + t[0]/12.),
-            mod1(R[3] * p0.x + R[4] * p0.y + R[5] * p0.z + T[1]/12. + t[1]/12.),
-            mod1(R[6] * p0.x + R[7] * p0.y + R[8] * p0.z + T[2]/12. + t[2]/12.)
-            };
-            if (is_position_empty(a.positions, p))
-                a.positions.push_back(p);
-            if (has_inverson) {
-                Pos p2 = {
-           mod1(-R[0] * p0.x - R[1] * p0.y - R[2] * p0.z - T[0]/12. + t[0]/12.),
-           mod1(-R[3] * p0.x - R[4] * p0.y - R[5] * p0.z - T[1]/12. + t[1]/12.),
-           mod1(-R[6] * p0.x - R[7] * p0.y - R[8] * p0.z - T[2]/12. + t[2]/12.)
-                };
-                if (is_position_empty(a.positions, p2))
-                    a.positions.push_back(p2);
+    for (size_t nt = 0; nt != sg_ops.tr.size(); ++nt) {
+        const TransVec& t = sg_ops.tr[nt];
+        for (size_t ns = 0; ns != sg_ops.seitz.size(); ++ns) {
+            Pos ps = apply_seitz(a.pos[0], sg_ops.seitz[ns]);
+            Pos p = { mod1(ps.x + t.x/12.),
+                      mod1(ps.y + t.y/12.),
+                      mod1(ps.z + t.z/12.) };
+            if (is_position_empty(a.pos, p)) {
+                a.pos.push_back(p);
+            }
+            if (sg_ops.inv) {
+                Pos p2 = { mod1(-ps.x + t.x/12.),
+                           mod1(-ps.y + t.y/12.),
+                           mod1(-ps.z + t.z/12.) };
+                if (is_position_empty(a.pos, p2)) {
+                    a.pos.push_back(p2);
+                }
             }
         }
     }
 }
 
-void PlanesWithSameD::add(Miller const& hkl, const SgOps* sg_ops)
+int parse_atoms(const char* s, Crystal& cr)
+{
+    int line_with_error = -1;
+
+    int atom_count = 0;
+    // to avoid not necessary copying, don't use atoms.clear()
+    for (int line_nr = 1; ; ++line_nr) {
+        // skip whitespace
+        while(isspace(*s) && *s != '\n')
+            ++s;
+        if (*s == '\n')
+            continue;
+        if (*s == '\0')
+            break;
+
+        // usually the atom is not changed, so we first parse data
+        // into a new struct Atom, and if it is different we copy it
+        // and do calculations
+        Atom a;
+
+        // parse symbol
+        const char* word_end = s;
+        while (isalnum(*word_end))
+            ++word_end;
+        int symbol_len = word_end - s;
+        if (symbol_len == 0 || symbol_len >= 8) {
+            line_with_error = line_nr;
+            break;
+        }
+        memcpy(a.symbol, s, symbol_len);
+        a.symbol[symbol_len] = '\0';
+        s = word_end;
+
+        // parse x, y, z
+        char *endptr;
+        a.pos[0].x = strtod(s, &endptr);
+        s = endptr;
+        a.pos[0].y = strtod(s, &endptr);
+        s = endptr;
+        a.pos[0].z = strtod(s, &endptr);
+
+        // check if the numbers were parsed
+        if (endptr == s || // one or more numbers were not parsed
+            (!isspace(*endptr) && *endptr != '\0')) // e.g. "Si 0 0 0foo"
+        {
+            line_with_error = line_nr;
+            break;
+        }
+
+        s = endptr;
+
+        // if there is more than 4 words in the line, ignore the extra words
+        while (*s != '\n' && *s != '\0')
+            ++s;
+        if (*s == '\n')
+            ++s;
+
+        // check if the atom needs to be copied, and copy it if necessary
+        if (atom_count == (int) cr.atoms.size()) {
+            a.xray_sf = find_in_it92(a.symbol);
+            a.neutron_sf = find_in_nn92(a.symbol);
+            cr.atoms.push_back(a);
+            add_symmetric_images(cr.atoms[atom_count], cr.sg_ops);
+        }
+        else {
+            Atom &b = cr.atoms[atom_count];
+            if (strcmp(a.symbol, b.symbol) != 0) {
+                memcpy(b.symbol, a.symbol, 8);
+                b.xray_sf = find_in_it92(b.symbol);
+                b.neutron_sf = find_in_nn92(b.symbol);
+            }
+            if (a.pos[0].x != b.pos[0].x
+                    || a.pos[0].y != b.pos[0].y
+                    || a.pos[0].z != b.pos[0].z) {
+                b.pos.resize(1);
+                b.pos[0] = a.pos[0];
+                add_symmetric_images(b, cr.sg_ops);
+            }
+        }
+        ++atom_count;
+    }
+    // vector cr.atoms may be longer than necessary
+    cr.atoms.resize(atom_count);
+    return line_with_error;
+}
+
+
+void PlanesWithSameD::add(Miller const& hkl, const SgOps& sg_ops)
 {
     for (vector<Plane>::iterator i = planes.begin(); i != planes.end(); ++i) {
         if (check_symmetric_hkl(sg_ops, *i, hkl)) {
@@ -101,7 +195,7 @@ void PlanesWithSameD::add(Miller const& hkl, const SgOps* sg_ops)
 }
 
 Crystal::Crystal()
-    : sg_ops(new SgOps), uc(NULL)
+    : uc(NULL)
 {
     atoms.reserve(16);
 }
@@ -109,7 +203,6 @@ Crystal::Crystal()
 Crystal::~Crystal()
 {
     delete uc;
-    delete sg_ops;
 }
 
 // in the same order as in enum CrystalSystem
@@ -125,7 +218,7 @@ const char *CrystalSystemNames[] = {
     "Cubic" // 8
 };
 
-const char* get_crystal_system_name(int xs)
+const char* get_crystal_system_name(CrystalSystem xs)
 {
     return CrystalSystemNames[xs];
 }
@@ -148,27 +241,194 @@ CrystalSystem get_crystal_system(int space_group)
         return CubicSystem;
 }
 
-int get_sg_order(const SgOps* sg_ops)
+int get_sg_order(const SgOps& sg_ops)
 {
-    return sg_ops->s.nLTr * sg_ops->s.nSMx * sg_ops->s.fInv;
+    return sg_ops.tr.size() * sg_ops.seitz.size() * (sg_ops.inv ? 2 : 1);
 }
 
-
-void Crystal::set_space_group(const char* name)
+char parse_sg_extension(const char *symbol, char *qualif)
 {
-    T_HM_as_Hall hm_as_hall;
-    sg_number = SgSymbolLookup('A', name, &hm_as_hall);
-    sg_hm = hm_as_hall.HM;
-    ClrSgError();
-    ResetSgOps(&sg_ops->s);
-    if (sg_number <= 0)
+    if (symbol == NULL || *symbol == '\0') {
+        if (qualif != NULL)
+            qualif[0] = '\0';
+        return 0;
+    }
+    char ext = 0;
+    while (isspace(*symbol) || *symbol == ':')
+        ++symbol;
+    if (isdigit(*symbol) || *symbol == 'R' || *symbol == 'H') {
+        ext = *symbol;
+        ++symbol;
+        while (isspace(*symbol) || *symbol == ':')
+            ++symbol;
+    }
+    if (qualif != NULL) {
+        strncpy(qualif, symbol, 4);
+        qualif[4] = '\0';
+    }
+    return ext;
+}
+
+const SpaceGroupSetting* parse_hm_or_hall(const char *symbol)
+{
+    // copy and 'normalize' symbol (up to ':') to table s
+    char s[32];
+    for (int i = 0; i < 32; ++i) {
+        if (*symbol == '\0' || *symbol == ':') {
+            s[i] = '\0';
+            break;
+        }
+        else if (isspace(*symbol)) {
+            s[i] = ' ';
+            ++symbol;
+            while (isspace(*symbol))
+                ++symbol;
+        }
+        else {
+            // In HM symbols, first character is upper case letter.
+            // In Hall symbols, the second character is upper case.
+            // The first and second chars are either upper or ' ' or '-'.
+            // The rest of alpha chars is lower case. 
+            s[i] = (i < 2 ? toupper(*symbol) : tolower(*symbol));
+            ++symbol;
+        }
+    }
+    // now *symbol is either '\0' or ':'
+    for (const SpaceGroupSetting *p = space_group_settings;
+                                                p->sgnumber != 0; ++p) {
+        if (strcmp(p->HM, s) == 0) {
+            if (*symbol == ':') {
+                char ext = parse_sg_extension(symbol+1, NULL);
+                while (p->ext != ext) {
+                    ++p;
+                    if (strcmp(p->HM, s) != 0) // full match not found
+                        return NULL;
+                }
+            }
+            return p;
+        }
+        else if (strcmp(p->Hall + (p->Hall[0] == ' ' ? 1 : 0), s) == 0) {
+            return p;
+        }
+    }
+    return NULL;
+}
+
+const SpaceGroupSetting* find_first_sg_with_number(int sgn)
+{
+    for (const SpaceGroupSetting *p = space_group_settings; p->sgnumber!=0; ++p)
+        if (p->sgnumber == sgn)
+            return p;
+    return NULL;
+}
+
+const SpaceGroupSetting* find_space_group_setting(int sgn, const char *setting)
+{
+    char qualif[5];
+    char ext = parse_sg_extension(setting, qualif);
+    const SpaceGroupSetting *p = find_first_sg_with_number(sgn);
+    if (p == NULL)
+        return NULL;
+    while (p->ext != ext || strcmp(p->qualif, qualif) != 0) {
+        ++p;
+        if (p->sgnumber != sgn) // not found
+            return NULL;
+    }
+    return p;
+}
+
+const SpaceGroupSetting* parse_any_sg_symbol(const char *symbol)
+{
+    if (symbol == NULL)
+        return NULL;
+    while (isspace(*symbol))
+        ++symbol;
+    if (isdigit(*symbol)) {
+        const char* colon = strchr(symbol, ':');
+        int sgn = strtol(symbol, NULL, 10);
+        return find_space_group_setting(sgn, colon);
+    }
+    else {
+        return parse_hm_or_hall(symbol);
+    }
+}
+
+void Crystal::set_space_group(const SpaceGroupSetting* sgs_)
+{
+    sgs = sgs_;
+    sg_ops.seitz.clear();
+    sg_ops.tr.clear();
+    sg_ops.inv = false;
+    if (sgs == NULL)
         return;
-    ParseHallSymbol(hm_as_hall.Hall, &sg_ops->s, PHSymOptPedantic);
+    T_SgOps sglite_ops;
+    ClrSgError();
+    ResetSgOps(&sglite_ops);
+    ParseHallSymbol(sgs->Hall, &sglite_ops, PHSymOptPedantic);
     if (SgError)
         fprintf(stderr, "%s\n", SgError);
-    //DumpSgOps(sg_ops, stdout);
-    sg_xs = get_crystal_system(sg_number);
+    //DumpSgOps(&sg_ops->s, stdout);
+    for (int i = 0; i != sglite_ops.nSMx; ++i) {
+        SeitzMatrix sm;
+        for (int j = 0; j != 9; ++j)
+            sm.R[j] = sglite_ops.SMx[i].s.R[j];
+        for (int j = 0; j != 3; ++j)
+            sm.T[j] = sglite_ops.SMx[i].s.T[j];
+        sg_ops.seitz.push_back(sm);
+    }
+    // TODO:
+    // tr can be set directly from sgs->Hall[1]:
+    //    A ('0,0,0', '0,1/2,1/2')
+    //    B ('0,0,0', '1/2,0,1/2')
+    //    C ('0,0,0', '1/2,1/2,0')
+    //    F ('0,0,0', '0,1/2,1/2', '1/2,0,1/2', '1/2,1/2,0')
+    //    I ('0,0,0', '1/2,1/2,1/2')
+    //    P ('0,0,0',)
+    //    R ('0,0,0', '2/3,1/3,1/3', '1/3,2/3,2/3')
+    for (int i = 0; i != sglite_ops.nLTr; ++i) {
+        const int *v = sglite_ops.LTr[i].v;
+        TransVec t = { v[0], v[1], v[2] };
+        sg_ops.tr.push_back(t);
+    }
+    for (int i = 0; i != 3; ++i)
+        sg_ops.inv_t[i] = sglite_ops.InvT[i];
+    sg_ops.inv = (sglite_ops.fInv == 2);
 }
+
+// returns true if exists t in sg_ops.tr, such that: h*(t+T) != n
+// used by is_sys_absent()
+bool has_nonunit_tr(const SgOps& sg_ops, const int* T, int h, int k, int l)
+{
+    for (vector<TransVec>::const_iterator t = sg_ops.tr.begin();
+                                                t != sg_ops.tr.end(); ++t)
+        if (((T[0]+t->x) * h + (T[1]+t->y) * k + (T[2]+t->z) * l) % 12 != 0)
+            return true;
+    return false;
+}
+
+bool is_sys_absent(const SgOps& sg_ops, int h, int k, int l)
+{
+    for (size_t i = 0; i < sg_ops.seitz.size(); ++i) {
+        const int* R = sg_ops.seitz[i].R;
+        const int* T = sg_ops.seitz[i].T;
+        int M[3] = { h * R[0] + k * R[3] + l * R[6],
+                     h * R[1] + k * R[4] + l * R[7],
+                     h * R[2] + k * R[5] + l * R[8] };
+        if (h == M[0] && k == M[1] && l == M[2]) {
+            if (has_nonunit_tr(sg_ops, T, h, k, l))
+                return true;
+        }
+        else if (h == -M[0] && k == -M[1] && l == -M[2] && sg_ops.inv) {
+            int ts[3] = { sg_ops.inv_t[0] - T[0],
+                          sg_ops.inv_t[1] - T[1],
+                          sg_ops.inv_t[2] - T[2] };
+            if (has_nonunit_tr(sg_ops, ts, h, k, l))
+                return true;
+        }
+    }
+    return false;
+}
+
 
 // helper to generate sequence 0, 1, -1, 2, -2, 3, ...
 static int inc_neg(int h) { return h > 0 ? -h : -h+1; }
@@ -199,8 +459,7 @@ void Crystal::generate_reflections(double min_d)
                     continue;
 
                 // check for systematic absence
-                int H[] = { h, k, l};
-                if (IsSysAbsMIx(&sg_ops->s, H, NULL) != 0)
+                if (is_sys_absent(sg_ops, h, k, l))
                     continue;
 
                 Miller hkl = { h, k, l };
@@ -239,8 +498,8 @@ void calculate_intensity(Plane& p, const vector<Atom>& atoms, double stol)
         double f = 1.;
         if (i->xray_sf)
             f = calculate_it92_factor(i->xray_sf, stol*stol);
-        for (vector<Pos>::const_iterator j = i->positions.begin();
-                                                j != i->positions.end(); ++j) {
+        for (vector<Pos>::const_iterator j = i->pos.begin();
+                                                j != i->pos.end(); ++j) {
             double hx = p.h * j->x + p.k * j->y + p.l * j->z;
             F_real += f * cos(2*M_PI * hx);
             F_img += f * sin(2*M_PI * hx);
@@ -276,7 +535,6 @@ void Crystal::calculate_intensities(double lambda)
     for (vector<PlanesWithSameD>::iterator i = bp.begin(); i != bp.end(); ++i)
         calculate_total_intensity(*i, atoms, lambda);
 }
-
 
 double UnitCell::calculate_V() const
 {
@@ -1048,32 +1306,6 @@ const PowderCellSgSetting powdercell_settings[] = {
 };
 
 
-const SpaceGroupSetting* find_first_sg_with_number(int sgn)
-{
-    assert (sgn >= 1 && sgn <= 230);
-    for (const SpaceGroupSetting *p = space_group_settings; p->sgnumber!=0; ++p)
-        if (p->sgnumber == sgn)
-            return p;
-    return NULL;
-}
-
-const SpaceGroupSetting* find_space_group_setting(int sgn, const char *setting)
-{
-    char ext = 0;
-    const char *qualif = setting;
-    if (isdigit(setting[0]) || setting[0] == 'R' || setting[0] == 'H') {
-        ext = setting[0];
-        ++qualif;
-    }
-    const SpaceGroupSetting *p = find_first_sg_with_number(sgn);
-    while (p->ext != ext || strcmp(p->qualif, qualif) != 0) {
-        if (p->sgnumber != sgn) // not found
-            return NULL;
-        ++p;
-    }
-    return p;
-}
-
 const SpaceGroupSetting* get_sg_from_powdercell_rgnr(int sgn, int setting)
 {
     const SpaceGroupSetting *sgs0 = find_first_sg_with_number(sgn);
@@ -1118,7 +1350,7 @@ extern const char* default_cel_files[] = {
 "filename diamond",
 
 "cell  5.4309 5.4309 5.4309  90 90 90\n"
-"Si    6  0 0 0\n"
+"Si   14  0 0 0\n"
 "rgnr 227\n"
 "filename Si",
 

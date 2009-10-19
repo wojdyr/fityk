@@ -25,6 +25,11 @@ else
 HELP_DEF= -DHELP_DIR=\"$(docdir)\"
 endif  #OS_WIN32
 
+noinst_LIBRARIES = libceria.a
+libceria_a_SOURCES = ceria.cpp ceria.h atomtables.c atomtables.h
+libceria_a_CPPFLAGS = @SGLITE_CPPFLAGS@
+CERIA = libceria.a ../../3rdparty/sglite/libsglite.a
+
 fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 		inputline.cpp inputline.h callback.h \
 		listptxt.cpp listptxt.h dload.cpp dload.h pplot.cpp pplot.h \
@@ -35,13 +40,12 @@ fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 		plot.cpp plot.h aplot.cpp aplot.h mplot.cpp mplot.h \
 		uplot.cpp uplot.h about.cpp about.h fitinfo.cpp fitinfo.h \
 		dialogs.cpp dialogs.h frame.cpp frame.h app.cpp app.h \
-		powdifpat.cpp powdifpat.h atomtables.c atomtables.h \
-		ceria.cpp ceria.h
+		powdifpat.cpp powdifpat.h
 
 
-AM_CPPFLAGS = @WX_CPPFLAGS@ @CPPFLAGS_3RDPARTY@ @XYLIB_CPPFLAGS@ $(HELP_DEF)
-AM_CXXFLAGS = @WX_CXXFLAGS_ONLY@
-fityk_LDADD = ../libfityk.la @WX_LIBS@ @SGLITE_LDADD@ $(fityk_res)
+fityk_CPPFLAGS = @WX_CPPFLAGS@ @CPPFLAGS_3RDPARTY@ @XYLIB_CPPFLAGS@ $(HELP_DEF)
+fityk_CXXFLAGS = @WX_CXXFLAGS_ONLY@
+fityk_LDADD = ../libfityk.la $(CERIA) @WX_LIBS@ $(fityk_res)
 
 if XYCONVERT
 bin_PROGRAMS += xyconvert
@@ -56,10 +60,9 @@ inputline: sample_inputline.cpp inputline.cpp inputline.h callback.h
 
 if POWDIFPAT
 bin_PROGRAMS += powdifpat
-powdifpat_SOURCES = powdifpat.cpp powdifpat.h atomtables.c atomtables.h \
+powdifpat_SOURCES = powdifpat.cpp powdifpat.h \
 		    uplot.cpp uplot.h cmn.cpp cmn.h fancyrc.cpp fancyrc.h
-powdifpat_CPPFLAGS = @WX_CPPFLAGS@ @XYLIB_CPPFLAGS@ @SGLITE_CPPFLAGS@ \
-		     -DSTANDALONE_POWDIFPAT
-powdifpat_LDADD = @WX_LIBS@ @XYLIB_LDADD@ @SGLITE_LDADD@ $(powdifpat_res)
+powdifpat_CPPFLAGS = @WX_CPPFLAGS@ @XYLIB_CPPFLAGS@ -DSTANDALONE_POWDIFPAT
+powdifpat_LDADD = $(CERIA) @WX_LIBS@ @XYLIB_LDADD@ $(powdifpat_res)
 endif
 
