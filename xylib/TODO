@@ -1,14 +1,10 @@
-* check in configure if tr1 is present, to avoid run-time dependency of boost
-  (cache.h includes boost)
-
 * handle CR as a newline (and perhaps also others from 
   http://en.wikipedia.org/wiki/Newline)
-* add rigaku_dat sample files
-* is Rigaku RIG the same as rigaku_dat?   
+* is Rigaku RIG just another common extension for rigaku_dat?   
 * implement GSAS format (see gsas.cpp for comments) 
 * PANalytical XRDML
 * consider adding JCAMP format (Standard NMR Data Format)
 * "read text as nan" option for text files, for reading CSV files with both 
   text and numeric colums
-* support URIs (using libcurl, libfetch or boost:asio)
+* (?) support URIs (using libcurl, libfetch or boost:asio)
 

@@ -20,12 +20,14 @@
 #include <string>
 #include <vector>
 
-#if 0
-#include <tr1/memory>
-using std::tr1::shared_ptr;
+// XXX: to handle XYLIB_HAVE_TR1_MEMORY in this file we would need to define
+// it here (by creating cache.h.in), because we shouldn't include <config.h>.
+#if 0 //XYLIB_HAVE_TR1_MEMORY
+# include <tr1/memory>
+  using std::tr1::shared_ptr;
 #else
-#include <boost/shared_ptr.hpp>
-using boost::shared_ptr;
+# include <boost/shared_ptr.hpp>
+  using boost::shared_ptr;
 #endif
 
 namespace xylib
