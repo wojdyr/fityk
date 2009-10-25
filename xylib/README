@@ -53,12 +53,11 @@ If you downloaded the source from svn, you need to run ``autoreconf -i`` before.
 MISC NOTES
 ==========
 
-Filetype samples are not distributed with the library, but there is
-a script `samples/get_samples.sh`__ that tries to download them.
+The file `sample-urls`__ contains links to files in formats handled by xylib.
 
-__ https://fityk.svn.sourceforge.net/svnroot/fityk/trunk/xylib/samples/get_samples.sh
+__ https://fityk.svn.sourceforge.net/svnroot/fityk/trunk/xylib/sample-urls
 
-The library includes a tiny program xyconv, which converts files
+The library comes with a tiny program *xyconv*, which converts files
 supported by xylib to TSV.
 
 xylib is used by:

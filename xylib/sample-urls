@@ -1,0 +1,113 @@
+# This file contains links to sample files in various formats.
+#
+# The non-URL lines are started with '#' so it's easier to download
+# all the files, e.g.:
+# $ grep -v '^#' sample-urls | wget -i -
+#
+# We've been granted permissions to distribute the files stored at
+# http://www.unipress.waw.pl/fityk/xylib_samples
+# The other files were just found on the web and are not guaranteed
+# to still be there.
+
+# Siemens/Bruker diffract v1 raw files
+http://sdpd.univ-lemans.fr/course/week-1/sample2.raw
+http://sdpd.univ-lemans.fr/course/week-1/sample3.raw
+http://sdpd.univ-lemans.fr/course/week-1/sample4.raw
+http://sdpd.univ-lemans.fr/course/week-1/sample5.raw
+http://sdpd.univ-lemans.fr/course/week-1/sample6.raw
+
+# Siemens/Bruker diffract v2/v3 raw files
+http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/raw/cpd-1a.raw
+http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/raw/cpd-1b.raw
+http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/raw/cpd-1c.raw
+http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/raw/cpd-2.raw
+http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/raw/cpd-3.raw
+
+# Siemens/Bruker v4 raw files
+# samples from Andreas Breslau
+http://www.unipress.waw.pl/fityk/xylib_samples/Cu3Au-1.raw
+http://www.unipress.waw.pl/fityk/xylib_samples/Cu3Au-2.raw
+http://www.unipress.waw.pl/fityk/xylib_samples/format1.raw
+
+#  pdCIF format files
+#http://pubs.acs.org/subscribe/journals/inocaj/suppinfo/41/i14/ic0111177/ic0111177.cif
+#http://pubs.acs.org/subscribe/journals/inocaj/suppinfo/ic034984f/ic034984fsi20030819_115442.cif
+#http://jghx.fjirsm.ac.cn/cifs/2005No7/1829.cif
+http://www.ccp14.ac.uk/ccp/ccp14/ftp-mirror/briantoby/pub/cryst/cif/NISI.cif
+#You can also get some .cif files from the sample directory of ciftools_Linux, 
+# an open-source CIF software package which can be download from 
+#http://www.ncnr.nist.gov/programs/crystallography/software/cif/ciftools.html
+
+# Philips RD files
+http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/rd/cpd-1a.rd
+http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/rd/cpd-1b.rd
+http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/rd/cpd-1c.rd
+http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/rd/cpd-2.rd
+http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/rd/cpd-3.rd
+
+# Philips UDF files
+# samples found by http://www.google.com/search?q=SampleIdent+filetype%3Audf
+# Also, you can get a package of several udf files from 
+# http://sdpd.univ-lemans.fr/course/week-1/philips-udf.zip
+# (link from: http://sdpd.univ-lemans.fr/course/week-1/sdpd-1.html)
+http://www.ccp14.ac.uk/ccp/ccp14/ftp-mirror/krumm/Software/windows/winfit/Winfit/ZEOLITE.UDF
+http://www.eng.uc.edu/~gbeaucag/Classes/XRD/Labs/2004_Hull_Davey_data/CU1.UDF
+http://sdpd.univ-lemans.fr/DU-SDPD/semaine-5/PbCrF1.udf
+
+# UXD files
+http://sdpd.univ-lemans.fr/course/week-1/sample1.uxd
+http://sdpd.univ-lemans.fr/course/week-1/sample2.uxd
+http://sdpd.univ-lemans.fr/course/week-1/sample3.uxd
+http://sdpd.univ-lemans.fr/course/week-1/sample4.uxd
+http://sdpd.univ-lemans.fr/DU-SDPD/solutions/week-3/synchro.uxd
+
+# Rigaku dat files
+# There are Rigaku ".dat" sample files at:
+# http://sdpd.univ-lemans.fr/course/week-1/rigaku.zip
+# (link from: http://sdpd.univ-lemans.fr/course/week-1/sdpd-1.html)
+
+# VAMAS files
+http://www.surfacespectra.com/xps/download/fomblin_y.vms
+# data from Michael Richardson <michael.richardson@vuw.ac.nz> 
+http://www.unipress.waw.pl/fityk/xylib_samples/mjr9_59c.vms
+http://www.unipress.waw.pl/fityk/xylib_samples/mjr9_64c.vms
+http://www.unipress.waw.pl/fityk/xylib_samples/mjr9_116a.vms
+
+# GSAS files
+http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/gss/cpd-1a.gss
+
+# text files
+http://www.unipress.waw.pl/fityk/xylib_samples/with_sigma.txt
+http://www.unipress.waw.pl/fityk/xylib_samples/xy_text.txt
+
+# Princeton Instruments WinSpec SPE files
+# sample files from Pablo Bianucci <pbian@physics.utexas.edu> 
+http://www.unipress.waw.pl/fityk/xylib_samples/1d-1.spe
+http://www.unipress.waw.pl/fityk/xylib_samples/1d-2.spe
+http://www.unipress.waw.pl/fityk/xylib_samples/1d-3.spe
+
+# Sietronics Sieray CPI files
+http://www.chemistry.ohio-state.edu/~woodward/ceo2br.cpi
+
+# DBWS data files
+http://mysite.du.edu/~balzar/lebailbr.dbw
+http://sdpd.univ-lemans.fr/DU-SDPD/semaine-4/na5.rit
+
+# Canberra MCA files (made by one of machines in Hamburg synchrotron)
+http://www.unipress.waw.pl/fityk/xylib_samples/03yag02.mca
+http://www.unipress.waw.pl/fityk/xylib_samples/04nacl02.mca
+
+# XFIT XDD files
+http://www.ccp14.ac.uk/ccp/ccp14/ftp-mirror/krumm/Software/windows/stereo/Y2O3.XDD
+# this is different format:
+#  http://www.ccp14.ac.uk/ccp/ccp14/ccp14-by-program/fourya-windows/fourya.zip
+
+# RIET7 / ILL_D1A5 / PSI_DMC files
+http://www.ccp14.ac.uk/ccp/ccp14/ftp-mirror/csirominerals-anon-ftp/pub/xtallography/xrd-data-formats/riet7/fct-xray.dat
+# LaNi2Mn3: J. of Alloys and Compounds 348 (2003), 176-183, 
+# http://dx.doi.org/10.1016/S0925-8388(02)00838-1
+http://www.unipress.waw.pl/fityk/xylib_samples/D1A5.dat
+# NdNi4MgDx : J. of Alloys and Compounds 348 (2003), 129-137, 
+# http://dx.doi.org/10.1016/S0925-8388(02)00797-1
+http://www.unipress.waw.pl/fityk/xylib_samples/PSI_DMC.dat
+

@@ -1,7 +1,3 @@
-
-* install xyconv
-* write man page for xyconv
-* add samples.sh and samples/get_samples.sh to tarball
 * check in configure if tr1 is present, to avoid run-time dependency of boost
   (cache.h includes boost)
 
