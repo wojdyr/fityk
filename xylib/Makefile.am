@@ -3,7 +3,9 @@ SUBDIRS = xylib
 
 EXTRA_DIST = web.css
 
-noinst_PROGRAMS = xyconv
+bin_PROGRAMS = xyconv
+
+dist_man_MANS = xyconv.1
 
 xyconv_SOURCES = xyconv.cpp
 

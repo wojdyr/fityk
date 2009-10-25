@@ -14,16 +14,30 @@ using namespace std;
 
 void print_usage()
 {
-    cout << "Usage:\n"
-            "\txyconv [-t FILETYPE] INPUT_FILE OUTPUT_FILE\n"
-            "\txyconv -l\n"
-            "\txyconv -i FILETYPE\n"
-            "\txyconv -g INPUT_FILE\n"
-            "  Converts INPUT_FILE to ascii OUTPUT_FILE\n"
-            "  -t     specify filetype of input file\n"
-            "  -l     list all supported file types\n"
-            "  -i     show information about filetype\n"
-            "  -g     guess filetype of file \n";
+    cout <<
+"Usage:\n"
+"\txyconv [-t FILETYPE] INPUT_FILE OUTPUT_FILE\n"
+"\txyconv [-t FILETYPE] -m INPUT_FILE1 ...\n"
+"\txyconv -i FILETYPE\n"
+"\txyconv -g INPUT_FILE\n"
+"\txyconv [-l|-v|-h]\n"
+"  Converts INPUT_FILE to ascii OUTPUT_FILE\n"
+"  -t     specify filetype of input file\n"
+"  -m     convert one or multiple files; output files have the same name\n"
+"         as input, but with extension changed to .xy\n"
+"  -l     list all supported file types\n"
+"  -v     output version information and exit\n"
+"  -h     show this help message and exit\n"
+"  -i     show information about filetype\n"
+"  -g     guess filetype of file \n";
+}
+
+// Print version of the library. This program is too small to have own version.
+void print_version()
+{
+    cout << XYLIB_VERSION / 10000 << "."
+         << XYLIB_VERSION / 100 % 100 << "."
+         << XYLIB_VERSION % 100 << endl;
 }
 
 void list_supported_formats()
@@ -38,7 +52,7 @@ int print_guessed_filetype(string const& path)
     try {
         ifstream is(path.c_str());
         if (!is) {
-            cout << "Error: can't open input file: " << path;
+            cerr << "Error: can't open input file: " << path;
             return -1;
         }
         xylib::FormatInfo const* fi = xylib::guess_filetype(path, is);
@@ -137,52 +151,82 @@ void export_plain_text(xylib::DataSet const *d, string const &fname,
     }
 }
 
-int main(int argc, char **argv)
+
+int convert_file(string const& input, string const& output,
+                 string const& filetype)
 {
-    if (argc == 2 && strcmp(argv[1], "-l") == 0) {
-        list_supported_formats();
-        return 0;
-    }
-
-    if (argc == 2 &&
-            (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0)) {
-        print_usage();
-        return 0;
-    }
-
-    if (argc == 3 && strcmp(argv[1], "-i") == 0) {
-        print_filetype_info(argv[2]);
-        return 0;
-    }
-
-    if (argc == 3 && strcmp(argv[1], "-g") == 0)
-        return print_guessed_filetype(argv[2]);
-
-    if (argc < 3) {
-        print_usage();
-        return -1;
-    }
-
-    string filetype;
-    for (int i = 1; i < argc - 2; ++i) {
-        if (strcmp(argv[i], "-t") == 0 && i+1 < argc - 2) {
-            ++i;
-            filetype = argv[i];
-        }
-        else {
-            print_usage();
-            return -1;
-        }
-    }
-
     try {
-        xylib::DataSet *d = xylib::load_file(argv[argc-2], filetype);
-        export_plain_text(d, argv[argc-1], true);
+        xylib::DataSet *d = xylib::load_file(input, filetype);
+        export_plain_text(d, output, true);
         delete d;
     } catch (runtime_error const& e) {
         cerr << "Error. " << e.what() << endl;
         return -1;
     }
     return 0;
+}
+
+int main(int argc, char **argv)
+{
+    // options -l -h -i -g -v are not combined with other options
+
+    if (argc == 2 && strcmp(argv[1], "-l") == 0) {
+        list_supported_formats();
+        return 0;
+    }
+    else if (argc == 2 &&
+            (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0)) {
+        print_usage();
+        return 0;
+    }
+    else if (argc == 2 &&
+            (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0)) {
+        print_version();
+        return 0;
+    }
+    else if (argc == 3 && strcmp(argv[1], "-i") == 0) {
+        print_filetype_info(argv[2]);
+        return 0;
+    }
+    else if (argc == 3 && strcmp(argv[1], "-g") == 0)
+        return print_guessed_filetype(argv[2]);
+    else if (argc < 3) {
+        print_usage();
+        return -1;
+    }
+
+    string filetype;
+    bool option_m = false;
+    int n = 1;
+    while (n < argc - 1) {
+        if (strcmp(argv[n], "-m") == 0) {
+            option_m = true;
+            ++n;
+        }
+        else if (strcmp(argv[n], "-t") == 0 && n+1 < argc - 1) {
+            filetype = argv[n+1];
+            n += 2;
+        }
+        else
+            break;
+    }
+    if (!option_m && n != argc - 2) {
+        print_usage();
+        return -1;
+    }
+    if (option_m) {
+        for ( ; n < argc; ++n) {
+            string out = argv[n];
+            size_t p = out.rfind('.');
+            if (p != string::npos)
+                out.erase(p);
+            out += ".xy";
+            cout << "converting " << argv[n] << " to " << out << endl;
+            convert_file(argv[n], out, filetype);
+        }
+        return 0;
+    }
+    else
+        return convert_file(argv[argc-2], argv[argc-1], filetype);
 }
 
