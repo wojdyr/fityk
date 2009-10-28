@@ -20,6 +20,8 @@ struct SeitzMatrix
 struct TransVec
 {
     int x, y, z; // divide by 12. before use
+    TransVec() {}
+    TransVec(int x_, int y_, int z_) : x(x_), y(y_), z(z_) {}
 };
 
 // symmetry operations for the space group
@@ -29,7 +31,7 @@ struct SgOps
     std::vector<SeitzMatrix> seitz; // Seitz matrices
     std::vector<TransVec> tr; // translation vectors
     bool inv; // has center of inversion
-    int inv_t[3]; // translation for centre of inversion
+    TransVec inv_t; // translation for centre of inversion
 };
 
 

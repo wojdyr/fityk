@@ -198,6 +198,7 @@ Crystal::Crystal()
     : uc(NULL)
 {
     atoms.reserve(16);
+    sg_ops.tr.push_back(TransVec(0, 0, 0)); // always keep trivial tr
 }
 
 Crystal::~Crystal()
@@ -357,10 +358,13 @@ void Crystal::set_space_group(const SpaceGroupSetting* sgs_)
 {
     sgs = sgs_;
     sg_ops.seitz.clear();
-    sg_ops.tr.clear();
+    sg_ops.tr.resize(1); // leave only the trivial tr (0, 0, 0)
     sg_ops.inv = false;
+    sg_ops.inv_t.x = sg_ops.inv_t.y = sg_ops.inv_t.z = 0;
     if (sgs == NULL)
         return;
+
+    // TODO: make a table of Seitz Matrices
     T_SgOps sglite_ops;
     ClrSgError();
     ResetSgOps(&sglite_ops);
@@ -376,23 +380,44 @@ void Crystal::set_space_group(const SpaceGroupSetting* sgs_)
             sm.T[j] = sglite_ops.SMx[i].s.T[j];
         sg_ops.seitz.push_back(sm);
     }
-    // TODO:
-    // tr can be set directly from sgs->Hall[1]:
-    //    A ('0,0,0', '0,1/2,1/2')
-    //    B ('0,0,0', '1/2,0,1/2')
-    //    C ('0,0,0', '1/2,1/2,0')
-    //    F ('0,0,0', '0,1/2,1/2', '1/2,0,1/2', '1/2,1/2,0')
-    //    I ('0,0,0', '1/2,1/2,1/2')
-    //    P ('0,0,0',)
-    //    R ('0,0,0', '2/3,1/3,1/3', '1/3,2/3,2/3')
-    for (int i = 0; i != sglite_ops.nLTr; ++i) {
-        const int *v = sglite_ops.LTr[i].v;
-        TransVec t = { v[0], v[1], v[2] };
-        sg_ops.tr.push_back(t);
+
+    switch (sgs->Hall[1])
+    {
+        case 'A': sg_ops.tr.push_back(TransVec(0,6,6)); break;
+        case 'B': sg_ops.tr.push_back(TransVec(6,0,6)); break;
+        case 'C': sg_ops.tr.push_back(TransVec(6,6,0)); break;
+        case 'I': sg_ops.tr.push_back(TransVec(6,6,6)); break;
+        case 'P': break;
+        case 'R': sg_ops.tr.push_back(TransVec(8,4,4));
+                  sg_ops.tr.push_back(TransVec(4,8,8));
+                  break;
+        case 'F': sg_ops.tr.push_back(TransVec(0,6,6));
+                  sg_ops.tr.push_back(TransVec(6,0,6));
+                  sg_ops.tr.push_back(TransVec(6,6,0));
+                  break;
+        default: assert(0);
     }
-    for (int i = 0; i != 3; ++i)
-        sg_ops.inv_t[i] = sglite_ops.InvT[i];
-    sg_ops.inv = (sglite_ops.fInv == 2);
+    if (sgs->Hall[0] == '-') {
+        sg_ops.inv = true;
+    }
+    else {
+        const char* t = strstr(sgs->Hall, " -1");
+        if (t != NULL) {
+            sg_ops.inv = true;
+            t += 3;
+            if      (strcmp(t, "ab") == 0) sg_ops.inv_t = TransVec(6, 6, 0);
+            else if (strcmp(t, "ac") == 0) sg_ops.inv_t = TransVec(6, 0, 6);
+            else if (strcmp(t, "bc") == 0) sg_ops.inv_t = TransVec(0, 6, 6);
+            else if (strcmp(t, "ad") == 0) sg_ops.inv_t = TransVec(9, 3, 3);
+            else if (strcmp(t, "bw") == 0) sg_ops.inv_t = TransVec(0, 6, 3);
+            else if (strcmp(t, "d" ) == 0) sg_ops.inv_t = TransVec(3, 3, 3);
+            else if (strcmp(t, "n" ) == 0) sg_ops.inv_t = TransVec(6, 6, 6);
+            else assert(0);
+        }
+    }
+    //for (int i = 0; i != 3; ++i)
+    //    sg_ops.inv_t[i] = sglite_ops.InvT[i];
+    //sg_ops.inv = (sglite_ops.fInv == 2);
 }
 
 // returns true if exists t in sg_ops.tr, such that: h*(t+T) != n
@@ -419,9 +444,9 @@ bool is_sys_absent(const SgOps& sg_ops, int h, int k, int l)
                 return true;
         }
         else if (h == -M[0] && k == -M[1] && l == -M[2] && sg_ops.inv) {
-            int ts[3] = { sg_ops.inv_t[0] - T[0],
-                          sg_ops.inv_t[1] - T[1],
-                          sg_ops.inv_t[2] - T[2] };
+            int ts[3] = { sg_ops.inv_t.x - T[0],
+                          sg_ops.inv_t.y - T[1],
+                          sg_ops.inv_t.z - T[2] };
             if (has_nonunit_tr(sg_ops, ts, h, k, l))
                 return true;
         }
