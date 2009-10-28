@@ -135,7 +135,6 @@ fi
 
 # we don't expect SgLite to be installed anywhere,
 # so there is no point in making special flags for it
-SGLITE_LDADD="-L\$(top_builddir)/3rdparty/sglite -lsglite"
 SGLITE_CPPFLAGS="-I\$(top_builddir)/3rdparty/"
 
 AC_CHECK_HEADER([boost/spirit/core.hpp], [], [AC_MSG_ERROR(
@@ -244,7 +243,6 @@ AC_SUBST(XYLIB_CPPFLAGS)
 AC_SUBST(XYLIB_LDADD)
 AC_SUBST(XYLIB_DIR)
 AC_SUBST(SGLITE_CPPFLAGS)
-AC_SUBST(SGLITE_LDADD)
 AC_SUBST(SAMPLES_DIR)
 AC_SUBST(LIBRARY_VERSION_FLAG)
 

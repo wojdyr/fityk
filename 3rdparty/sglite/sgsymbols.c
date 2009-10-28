@@ -126,7 +126,7 @@ T_Short_Mono_HM_Dict VolA_Short_Mono_HM_Dict[] = {
 };
 
 
-/*static*/ const
+static const
 T_Main_HM_Dict Main_HM_Dict[] = {
 {   1, NULL,   "P 1",        " P 1\0" },
 {   2, NULL,   "P -1",       "-P 1\0" },
