@@ -109,12 +109,6 @@ inline std::string S(char *k) { return std::string(k); }
 inline std::string S(char const k) { return std::string(1, k); }
 inline std::string S(std::string const &k) { return k; }
 inline std::string S() { return std::string(); }
-// double -> string, with given precision
-inline std::string S(double k, int /*prec*/) {
-    return static_cast<std::ostringstream&>(std::ostringstream()
-                                /* << std::setprecision(prec) */<< k).str();
-}
-
 
 /// True if the string contains only a real number
 bool is_double (std::string const& s);
