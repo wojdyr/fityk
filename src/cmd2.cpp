@@ -341,7 +341,7 @@ void do_print_info(char const* a, char const* b)
             for (vector<Variable*>::const_iterator i = variables.begin();
                     i != variables.end(); ++i)
                 if (with_plus)
-                    m += "\n" + (*i)->get_info(AL->get_parameters(), false);
+                    m += "\n" + AL->get_variable_info(*i, false);
                 else
                     if ((*i)->is_visible())
                         m += (*i)->xname + " ";
@@ -355,7 +355,7 @@ void do_print_info(char const* a, char const* b)
             for (vector<Function*>::const_iterator i = functions.begin();
                     i != functions.end(); ++i)
                 if (with_plus)
-                    m += "\n" + (*i)->get_info(variables, AL->get_parameters());
+                    m += "\n" + (*i)->get_info(AL, false);
                 else
                     m += (*i)->xname + " ";
         }
@@ -372,7 +372,7 @@ void do_print_info(char const* a, char const* b)
     }
     else if (s[0] == '%') {
         const Function* f = AL->find_function(string(s, 1));
-        m = f->get_info(variables, AL->get_parameters(), with_plus);
+        m = f->get_info(AL, with_plus);
     }
     else if (s == "datasets") {
         m = S(AL->get_dm_count()) + " datasets.";
@@ -405,8 +405,8 @@ void do_print_func(char const*, char const*)
     if (tmp_int < 0)
         tmp_int += names.size();
     if (is_index(tmp_int, names))
-        prepared_info += "\n" + AL->find_function(names[tmp_int])
-            ->get_info(AL->get_variables(), AL->get_parameters(), with_plus);
+        prepared_info += "\n"
+            + AL->find_function(names[tmp_int])->get_info(AL, with_plus);
     else
         prepared_info += "\nNot found.";
 }
@@ -419,7 +419,7 @@ void do_print_model_info(char const*, char const*)
     for (vector<int>::const_iterator i = idx.begin(); i != idx.end(); ++i) {
         Function const* f = AL->get_function(*i);
         if (with_plus)
-            m += "\n" + f->get_info(AL->get_variables(), AL->get_parameters());
+            m += "\n" + f->get_info(AL, false);
         else
             m += f->xname + " ";
     }
@@ -492,8 +492,7 @@ void do_print_data_expr(char const*, char const*)
     // special case, only one variable, e.g. "info $_1"
     if (t2[0] == '$' && parse(t2.c_str(), VariableLhsG).full) {
         string varname = t2.substr(1);
-        const Variable* v = AL->find_variable(varname);
-        s = v->get_info(AL->get_parameters(), with_plus);
+        s = AL->get_variable_info(varname, with_plus);
         if (with_plus) {
             vector<string> refs = AL->get_variable_references(varname);
             if (!refs.empty())

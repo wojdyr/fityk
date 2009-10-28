@@ -325,16 +325,14 @@ std::string Function::other_props_str() const
     return r;
 }
 
-string Function::get_info(vector<Variable*> const &variables,
-                          vector<fp> const &parameters,
-                          bool extended) const
+string Function::get_info(VariableManager const* mgr, bool extended) const
 {
     string s = get_basic_assignment();
     if (extended) {
         s += "\n" + type_formula;
         for (int i = 0; i < size(var_idx); ++i)
             s += "\n" + type_var_names[i] + " = "
-                + variables[var_idx[i]]->get_info(parameters);
+                + mgr->get_variable_info(mgr->get_variable(var_idx[i]), false);
         if (this->has_center())
             if (!contains_element(type_var_names, string("center")))
                 s += "\nCenter: " + S(center());

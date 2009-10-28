@@ -101,22 +101,6 @@ string Variable::get_formula(vector<fp> const &parameters) const
                     : "~" + S(parameters[nr]);
 }
 
-string Variable::get_info(vector<fp> const &parameters, bool extended) const
-{
-    string s = xname + " = " + get_formula(parameters) + " = " + S(value);
-    if (domain.is_set())
-        s += "  " + domain.str();
-    if (is_auto_delete())
-        s += "  [auto]";
-    if (extended && nr == -1) {
-        vector<string> vn = concat_pairs("$", varnames);
-        for (unsigned int i = 0; i < varnames.size(); ++i)
-            s += "\nd(" + xname + ")/d($" + varnames[i] + "): "
-              + get_op_trees()[i]->str(&vn) + " == " + S(derivatives[i]);
-    }
-    return s;
-}
-
 void Variable::recalculate(vector<Variable*> const &variables,
                            vector<fp> const &parameters)
 {

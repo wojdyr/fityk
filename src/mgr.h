@@ -37,8 +37,8 @@ public:
     void delete_variables(std::vector<std::string> const &name);
 
     ///returns -1 if not found or idx in variables if found
-    int find_variable_nr(std::string const &name);
-    Variable const* find_variable(std::string const &name);
+    int find_variable_nr(std::string const &name) const;
+    Variable const* find_variable(std::string const &name) const;
     int find_nr_var_handling_param(int p);
     Variable const* find_variable_handling_param(int p)
                 { return variables[find_nr_var_handling_param(p)]; }
@@ -53,7 +53,9 @@ public:
     void auto_remove_functions();
     bool is_function_referred(int n) const;
 
-    std::string get_variable_info(std::string const &s, bool extended_print);
+    std::string get_variable_info(std::string const &s, bool extended) const
+        { return get_variable_info(find_variable(s), extended); }
+    std::string get_variable_info(Variable const* v, bool extended) const;
     std::vector<fp> const& get_parameters() const { return parameters; }
     std::vector<Variable*> const& get_variables() const { return variables; }
     Variable const* get_variable(int n) const { return variables[n]; }

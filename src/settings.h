@@ -71,11 +71,11 @@ public:
 
     void do_srand();
 
-    std::string format_double(fp d)
+    std::string format_double(fp d) const
     {
         char buf[32];
-        // snprintf is not in C89, but is supported by major compilers (?)
         const char *format = get_s("info-numeric-format").c_str();
+        // snprintf is not in C89, but is supported by major compilers (?)
         snprintf(buf, 31, format, d);
         return buf;
     }

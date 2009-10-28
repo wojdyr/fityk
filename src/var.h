@@ -40,6 +40,7 @@ public:
              { assert(n >= 0 && n < size(var_idx)); return var_idx[n]; }
     int get_max_var_idx();
     int get_vars_count() const { return varnames.size(); }
+    std::vector<std::string> const& get_varnames() const { return varnames; }
     std::string get_var_name(int n) const
              { assert(n >= 0 && n < size(varnames)); return varnames[n]; }
     void substitute_param(int n, std::string const &new_p)
@@ -111,8 +112,6 @@ public:
     int get_nr() const { return nr; };
     void erased_parameter(int k);
     fp get_value() const { return value; };
-    std::string get_info(std::vector<fp> const &parameters,
-                         bool extended=false) const;
     std::string get_formula(std::vector<fp> const &parameters) const;
     bool is_visible() const { return true; } //for future use
     void set_var_idx(std::vector<Variable*> const& variables);
@@ -124,6 +123,7 @@ public:
                                                 { return af.get_op_trees(); }
     void set_original(Variable const* orig) { assert(nr==-2); original=orig; }
     Variable const* freeze_original(fp val);
+    fp get_derivative(int n) const { return derivatives[n]; }
 
 private:
     int nr; /// see description of this class in .h

@@ -271,10 +271,23 @@ void VariableManager::remove_unreferred()
     }
 }
 
-
-string VariableManager::get_variable_info(string const &s, bool extended_print)
+string VariableManager::get_variable_info(Variable const* v,
+                                          bool extended) const
 {
-    return find_variable(s)->get_info(parameters, extended_print);
+    string s = v->xname + " = " + v->get_formula(parameters) + " = "
+               + F->get_settings()->format_double(v->get_value());
+    if (v->domain.is_set())
+        s += "  " + v->domain.str();
+    if (v->is_auto_delete())
+        s += "  [auto]";
+    if (extended && v->get_nr() == -1) {
+        vector<string> vn = concat_pairs("$", v->get_varnames());
+        for (int i = 0; i < v->get_vars_count(); ++i)
+            s += "\nd(" + v->xname + ")/d($" + v->get_var_name(i) + "): "
+              + v->get_op_trees()[i]->str(&vn) + " == "
+              + F->get_settings()->format_double(v->get_derivative(i));
+    }
+    return s;
 }
 
 /// puts Variable into "variables" vector, checking dependencies
@@ -432,7 +445,7 @@ const Function* VariableManager::find_function(string const &name) const
     return functions[n];
 }
 
-int VariableManager::find_variable_nr(string const &name)
+int VariableManager::find_variable_nr(string const &name) const
 {
     for (int i = 0; i < size(variables); ++i)
         if (variables[i]->name == name)
@@ -440,7 +453,7 @@ int VariableManager::find_variable_nr(string const &name)
     return -1;
 }
 
-Variable const* VariableManager::find_variable(string const &name)
+Variable const* VariableManager::find_variable(string const &name) const
 {
     int n = find_variable_nr(name);
     if (n == -1)
