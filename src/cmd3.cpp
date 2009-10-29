@@ -23,6 +23,7 @@
 #include "fit.h"
 #include "settings.h"
 #include "datatrans.h"
+#include "stdio.h"
 
 using namespace std;
 using namespace cmdgram;
@@ -58,6 +59,24 @@ void do_exec_file(char const*, char const*)
     for (int i = 0; i < size(vn); i+=2)
         vpn.push_back(make_pair(vn[i],vn[i+1]));
     AL->get_ui()->exec_script(t, vpn);
+}
+
+void do_exec_prog_output(char const* a, char const* b)
+{
+    string s(a, b);
+    FILE* f = NULL;
+#if HAVE_POPEN
+    f = popen(s.c_str(), "r");
+#else
+    AL->warn ("popen() was disabled during compilation.");
+#endif
+    // consider using _popen() on Windows for compilers that don't have popen()
+
+    if (!f)
+        return;
+
+    AL->get_ui()->exec_stream(f);
+    pclose(f);
 }
 
 void do_fit(char const*, char const*)
@@ -142,6 +161,7 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
                  >> *(IntRangeG[push_back_a(vn, tmp_int)]
                                              [push_back_a(vn, tmp_int2)])
                ) [&do_exec_file]
+             | ch_p('!') >> (+~ch_p('\n')) [&do_exec_prog_output]
              )
         ;
 

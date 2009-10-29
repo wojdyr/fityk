@@ -5,6 +5,8 @@
 #include <string>
 #include <iostream>
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "ui.h"
 #include "settings.h"
@@ -16,6 +18,52 @@ using namespace std;
 
 const char* config_dirname = ".fityk";
 const char* startup_commands_filename = "init";
+
+
+// utils for reading FILE
+class GetLiner
+{
+public:
+    GetLiner(FILE *fp) : fp_(fp), len_(160), buf_((char*) malloc(len_)) {}
+    ~GetLiner() { free(buf_); }
+    char *next();
+private:
+    FILE *fp_;
+    size_t len_;
+    char* buf_;
+};
+
+// simple replacement for GNU getline() (returns int, not ssize_t)
+int our_getline (char **lineptr, size_t *n, FILE *stream)
+{
+    int c;
+    int counter = 0;
+    while ((c = getc (stream)) != EOF && c != '\n') {
+        if (counter >= (int) *n - 1) {
+            *n = 2 * (*n) + 80;
+            *lineptr = (char *) realloc (*lineptr, *n); // let's hope it worked
+        }
+        (*lineptr)[counter] = c;
+        ++counter;
+    }
+    (*lineptr)[counter] = '\0';
+    return c == EOF ? -1 : counter;
+}
+
+char* GetLiner::next()
+{
+#if HAVE_GETLINE
+    int n = getline(&buf_, &len_, fp_);
+#else
+    // if GNU getline() is not available, use very simple replacement
+    int n = our_getline(&buf_, &len_, fp_);
+#endif
+    // we don't need '\n' at all
+    if (n > 0 && buf_[n-1] == '\n')
+        buf_[n-1] = '\0';
+    return n == -1 ? NULL : buf_;
+}
+
 
 string Commands::Cmd::str() const
 {
@@ -227,8 +275,6 @@ void UserInterface::exec_script(const string& filename,
             replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);
             parse_and_execute(s);
         }
-        if (dirty_data != -1)
-            F->get_data(dirty_data)->after_transform();
     }
 
     else { // execute specified lines from the file
@@ -263,6 +309,18 @@ void UserInterface::exec_script(const string& filename,
                 parse_and_execute(lines[j-1]);
             }
         }
+    }
+}
+
+void UserInterface::exec_stream(FILE *fp)
+{
+    GetLiner getliner(fp);
+    char *line;
+    while ((line = getliner.next()) != NULL) {
+        string s = line;
+        if (F->get_verbosity() >= 0)
+            show_message (os_quot, "> " + s);
+        parse_and_execute(s);
     }
 }
 

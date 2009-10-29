@@ -1,26 +1,21 @@
 $Id$
 
-Help is needed:
-|
-|- C++ coding: see the list of ideas at the end of this file
-`- graphics: make PNG icons for toolbar. XPM format (now in use) doesn't support
-   alpha channel, and the toolbar doesn't look good.
-
-
 ---------- TODO list and tentative development plan  ----------------
-
-* add sglite to 3rdparty/ ?
 
 * powder diffraction add-on - Pawley fitting 
 
-* CLI: filter out "inf"s from data passed to gnuplot
+* add sglite licence to docs
+
+* document "commands !"
+
+* GUI: "extend zoom up" doesn't work well with negative-y data
+
+--------------> 0.9.0
 
 * GUI: there is ugly vertical line (a part of the fitted curve) in points
   where the value is undefined (e.g. in ReadShockley function for x=0).
 
-* problem: SGLITE_CPPFLAGS conflict with --disable-3rdparty
-
---------------> 0.9.0
+* CLI: filter out "inf"s from data passed to gnuplot
 
 * GUI: when dataset is changed and the active function (i.e. the function
   in the bottom of the sidebar) is not in the new active dataset, the active
@@ -29,6 +24,8 @@ Help is needed:
 
 * GUI: saving background and reusing it for the next dataset (i.e. loading
   saved background, changing it a bit and substracting)
+
+* document info-numeric-format
 
 * higher precision on exporting xy data
 
@@ -218,6 +215,9 @@ Help is needed:
     hwhm and shape equal for all functions)
 
 -------  Ideas for people, who would like to contribute:  -----------
+
+- graphics: make PNG icons for toolbar. XPM format (now in use) doesn't support
+   alpha channel, and the toolbar doesn't look good.
 
 - write a function to calculate a Voigt/Faddeeva function, based on one 
   (or more) of papers published about it. I mean here an approximation more 

@@ -261,6 +261,8 @@ AC_CHECK_LIB([m], [finite], [AC_DEFINE([HAVE_FINITE], [1],
 AC_CHECK_LIB([m], [isnan], [AC_DEFINE([HAVE_ISNAN], [1],
 	                            [Define if isnan function is available])])
 
+AC_CHECK_FUNCS([popen getline])
+
 AC_DEFINE_UNQUOTED(CONFIGURE_BUILD, "$ac_cv_build", [ac_cv_build])
 AC_DEFINE_UNQUOTED(CONFIGURE_ARGS, "$ac_configure_args", [ac_configure_args])
 
