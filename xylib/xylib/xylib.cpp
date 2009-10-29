@@ -398,10 +398,10 @@ string get_wildcards_string(string const& all_files)
                     ext_list += ";";
                 ext_list += "*." + (*i)->exts[j];
 #ifdef HAVE_ZLIB
-                ext_list += "*." + (*i)->exts[j] + ".gz";
+                ext_list += ";*." + (*i)->exts[j] + ".gz";
 #endif
 #ifdef HAVE_BZLIB
-                ext_list += "*." + (*i)->exts[j] + ".bz2";
+                ext_list += ";*." + (*i)->exts[j] + ".bz2";
 #endif
             }
         }
