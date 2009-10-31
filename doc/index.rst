@@ -64,6 +64,26 @@ New version **notifications** from FreshMeat:
 `emails <http://freshmeat.net/projects/fityk/>`_ or
 `feeds <http://freshmeat.net/projects/fityk/releases.atom>`_.
 
+.. raw:: html
+
+   <div align="center" style="font-size:x-small; margin-top:20px;">
+   <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+   <input type="hidden" name="cmd" value="_donations">
+   <input type="hidden" name="business" value="wojdyr@gmail.com">
+   <input type="hidden" name="lc" value="US">
+   <input type="hidden" name="item_name" value="Fityk">
+   <input type="hidden" name="currency_code" value="USD">
+   <input type="hidden" name="bn" value="PP-DonationsBF:btn_donateCC_LG.gif:NonHosted">
+   <input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal">
+   <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
+   </form>
+   <p>
+   Alternatively, you may donate via
+   <a href="http://moneybookers.com">moneybookers</a> to wojdyr@gmail.com
+   </p>
+   </div>
+
+
 History
 =======
 
@@ -102,18 +122,7 @@ or, if it already is on the list, in assigning higher priority to it.
 
 If for some reasons you do not want to use the group,
 you may contact directly the maintainer of the program:
-`Marcin Wojdyr <http://www.unipress.waw.pl/~wojdyr/>`_  wojdyr at gmail.com
-
-Donations
-=========
-
-.. image:: project-support.jpg
-   :alt: Support This Project
-   :align: center
-   :target: http://sourceforge.net/donate/index.php?group_id=79434
-
-Donations go through PayPal, but you don't need a PayPal account,
-you can pay by credit/debit card.
+`Marcin Wojdyr <http://www.unipress.waw.pl/~wojdyr/>`_  wojdyr@gmail.com.
 
 
 .. raw:: html
