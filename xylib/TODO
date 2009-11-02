@@ -1,10 +1,11 @@
 * handle CR as a newline (and perhaps also others from 
   http://en.wikipedia.org/wiki/Newline)
-* is Rigaku RIG just another common extension for rigaku_dat?   
+* is Rigaku RIG just another common extension for rigaku_dat? If yes, add it.
 * implement GSAS format (see gsas.cpp for comments) 
 * PANalytical XRDML
 * consider adding JCAMP format (Standard NMR Data Format)
 * "read text as nan" option for text files, for reading CSV files with both 
   text and numeric colums
+* text format: handle other numeric formats (e.g. ',' as a decimal separator)
 * (?) support URIs (using libcurl, libfetch or boost:asio)
 

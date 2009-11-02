@@ -1,6 +1,6 @@
 // Author: Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id: $
+// $Id$
 //
 // 
 
@@ -10,12 +10,7 @@
 #include <vector>
 #include <string>
 #include "atomtables.h"
-
-struct SeitzMatrix
-{
-    int R[9];
-    int T[3]; // divide by 12. before use
-};
+#include "sgtables.h"
 
 struct TransVec
 {
@@ -27,7 +22,6 @@ struct TransVec
 // symmetry operations for the space group
 struct SgOps
 {
-    //T_SgOps s;
     std::vector<SeitzMatrix> seitz; // Seitz matrices
     std::vector<TransVec> tr; // translation vectors
     bool inv; // has center of inversion
@@ -35,22 +29,7 @@ struct SgOps
 };
 
 
-struct SpaceGroupSetting
-{
-    int sgnumber; // space group number (1-230)
-    char ext; // '1', '2', 'H', 'R' or '\0'
-    char qualif[5]; // e.g. "-cba" or "b1"
-
-    char HM[11]; // H-M symbol; nul-terminated string
-    char Hall[16]; // Hall symbol; nul-terminated string
-};
-
 std::string fullHM(const SpaceGroupSetting *sgs);
-
-    // number that goes after SG number in PowderCell .cel file (1-18 or 0)
-    //char powdercell_setting;
-extern const SpaceGroupSetting space_group_settings[];
-extern const char* SchoenfliesSymbols[];
 
 const SpaceGroupSetting* parse_any_sg_symbol(const char *symbol);
 
@@ -191,8 +170,6 @@ extern const char *CrystalSystemNames[];
 extern const SpaceGroupSetting space_group_settings[];
 
 void add_symmetric_images(Atom& a, const SgOps& sg_ops);
-
-const SpaceGroupSetting* find_first_sg_with_number(int sgn);
 
 // Returns the order of the space group,
 // i.e. the maximum number of symmetry equivalent positions.

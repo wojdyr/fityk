@@ -9,11 +9,3 @@ these dependencies), following dependencies are distributed with fityk:
 * additional Boost headers - some of them are required by Spirit (and are
   distributed with Spirit as 'miniboost'), other are required by xylib.
 
-* sglite - AFAIK this library is not available separately.
-  See http://cctbx.sourceforge.net/current/history_sgtbx.html for more info.
-  I needed something simpler than sgtbx and the author SgLite and sgtbx,
-  Ralf W. Grosse-Kunstleve, wrote:
-    I recommend you use sglite from the PyMOL sourceforge site (get via svn).
-    In the license, replace PyMOL with the name of your program.
-  This library is linked statically and not installed.
-

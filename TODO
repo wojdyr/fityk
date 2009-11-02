@@ -2,13 +2,18 @@ $Id$
 
 ---------- TODO list and tentative development plan  ----------------
 
-* powder diffraction add-on - Pawley fitting 
+* GUI: more exact zooming (set variables with more significant digits)
 
-* add sglite licence to docs
+* powder diffraction add-on - Pawley fitting 
 
 * document "commands !"
 
 * GUI: "extend zoom up" doesn't work well with negative-y data
+
+* $ fityk *
+  Error: Unexpected format for filetype: text; data not found in file.
+   - should write: file is empty
+   - should write the filename
 
 --------------> 0.9.0
 
@@ -151,6 +156,8 @@ $Id$
        asked to select point/range/rectangle in plot
 
 * ? more sophisticated algorithms for peak detection
+    - compare methods from origin pkfind, peakfit and other programs
+    - research papers: http://dx.doi.org/10.1016/j.chroma.2004.11.073
 
 * fitting: GA fitting options, 
   a way to "shake" parameters for L-M

@@ -133,10 +133,6 @@ if test "$enable_3rdparty" = "yes"; then
 	CPPFLAGS="$CPPFLAGS -I$srcdir/3rdparty"
 fi
 
-# we don't expect SgLite to be installed anywhere,
-# so there is no point in making special flags for it
-SGLITE_CPPFLAGS="-I\$(top_builddir)/3rdparty/"
-
 AC_CHECK_HEADER([boost/spirit/core.hpp], [], [AC_MSG_ERROR(
  [Boost::Spirit headers were not found or your compiler can't compile it.
   If you use source from svn, make sure you have Spirit installed (see INSTALL).
@@ -242,7 +238,6 @@ AC_SUBST(CPPFLAGS_3RDPARTY)
 AC_SUBST(XYLIB_CPPFLAGS)
 AC_SUBST(XYLIB_LDADD)
 AC_SUBST(XYLIB_DIR)
-AC_SUBST(SGLITE_CPPFLAGS)
 AC_SUBST(SAMPLES_DIR)
 AC_SUBST(LIBRARY_VERSION_FLAG)
 
@@ -275,7 +270,6 @@ AC_CONFIG_FILES([Makefile fityk.iss
 		 samples/Makefile
 		 config/Makefile
 		 3rdparty/Makefile
-		 3rdparty/sglite/Makefile
 		 xylib/Makefile
 		 xylib/xylib/Makefile
 		 python/Makefile])
