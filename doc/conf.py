@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
-# NOTE: if you have images in html/ and not in this directory
-# you need to copy them here:
-# cp html/_static/* html/_images/* . # this is more than enough
-#
 # ATM I'm using sphinx from 1.0-hg with a few hacks.
-# hopefully in the future these hacks won't be necessary
+# Hopefully in the future these hacks won't be necessary
+# To use normal Sphinx: 
+# - copy manually the files in html_static_path below
+#   to html/_static/ and comment out this line.
+# - comment out the line starting with "html_sidebars"
+#
+# If you use sphinx older than 1.0, remove "sphinx.ext.extlinks" from
+# the extensions list below. Some links in index.html won't be rendered
+# properly, but the documentation should be usable.
 #
 # sphinx-build -d ./doctrees/ -b html . html
 
@@ -25,7 +29,7 @@ default_role = None
 highlight_language = "none"
 
 html_theme = "sphinxdoc"
-html_theme_options = { "nosidebar": True }
+#html_theme_options = { "nosidebar": True }
 html_sidebars = {'index': "nosidebar" }
 html_short_title = 'Fityk %s manual' % version
 html_title = html_short_title

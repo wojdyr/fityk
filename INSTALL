@@ -74,12 +74,10 @@ To compile source code from Subversion, automake, autoconf and libtool are
 needed.  Run ./autogen.sh instead of ./configure. See the file autogen.sh 
 for details.
 
-If you don't want to compile GUI, you still must have at least wxwin.m4 file 
-from wxWidgets (you can copy it from wxWidgets tarball into fityk/config/).
-
-There are additional tools needed to run make in doc/ subdirectory
-(to convert XML DocBook document to HTML). If you don't want to bother 
-with it, either use --without-doc configure option or run `make' only in src/ 
+Sphinx (http://sphinx.pocoo.org/) is used to generate the manual.
+See doc/conf.py for details.
+If you don't want to bother with installing another program,
+either use --without-doc configure option or run `make' only in src/ 
 subdirectory. Manual won't be installed then. 
 
 Fityk uses Boost::Spirit. Only some header files are needed and these files

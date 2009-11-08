@@ -1347,7 +1347,7 @@ for s in sgtbx.space_group_symbol_iterator():
     sm = '""'.join(encode_xyz(m.as_xyz())
                    for m in sgtbx.space_group(s.hall()).smx()
                    if not m.is_unit_mx())
-    print '{ %3d, %3s, %6s, %-13s %-17s,\n   { "%s" } },' % (
+    print '{ %3d, %3s, %6s, %-13s %-17s,\n  "%s" },' % (
             s.number(), ext, qualif, hm, hall, sm)
 #endif
 

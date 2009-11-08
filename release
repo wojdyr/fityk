@@ -73,7 +73,7 @@ elif [ $1 -eq 1 ]; then
 
 
 elif [ $1 -eq 2 ]; then
- echo  go to buildtest/ and run tests ...
+ echo  go to builds/ and run tests ...
  
 elif [ $1 -eq 3 ]; then
  echo  make tarball

@@ -28,7 +28,6 @@ $(srcdir)/html/intro.html \
 $(srcdir)/html/searchindex.js \
 $(srcdir)/html/fityk-manual.html \
 $(srcdir)/html/_images/fityk076.png \
-$(srcdir)/html/_images/project-support.jpg \
 $(srcdir)/html/_images/math/9e9c8a0fb6a92d4c3f969ab7a959a80f3069e3c9.png \
 $(srcdir)/html/_images/math/5e97a8af68fbc8e357d3ee0eba452022b06c1875.png \
 $(srcdir)/html/_images/math/7532b41a34c9ca592694135d1de65eeb8d9ce036.png \

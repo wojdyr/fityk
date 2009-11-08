@@ -1,6 +1,8 @@
 $Id$
 
 User-visible changes in version 0.9.0  (2009-  -  ):
+* xyConvert (which requires wx 2.9) is built by default.
+  Added flag --disable-xyconvert, which must be used with wx 2.8.
 * install html docs into $docdir (previously it was installed into $pkgdatadir)
 * bug fixes
 
