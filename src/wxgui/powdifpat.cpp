@@ -240,7 +240,7 @@ void PowderBook::initialize_quick_phase_list()
     while (cont)
     {
         wxString path = cel_dir + filename;
-        CelFile cel = read_cel_file(path.fn_str());
+        CelFile cel = read_cel_file(path.c_str());
         if (cel.sgs != NULL)
             quick_phase_list[wx2s(filename)] = cel;
         cont = dir.GetNext(&filename);
@@ -309,11 +309,11 @@ wxPanel* PowderBook::PrepareIntroPanel()
     wxStaticBoxSizer *legend_box = new wxStaticBoxSizer(wxHORIZONTAL,
                                                         panel, wxT("Legend"));
     wxFlexGridSizer *legend = new wxFlexGridSizer(2, 5, 5);
-    legend->Add(new wxStaticBitmap(panel, -1, get_lock_xpm()),
+    legend->Add(new wxStaticBitmap(panel, -1, wxBitmap(get_lock_xpm())),
                 wxSizerFlags().Center().Right());
     legend->Add(new wxStaticText(panel, -1, wxT("constant parameter")),
                 wxSizerFlags().Center().Left());
-    legend->Add(new wxStaticBitmap(panel, -1, get_lock_open_xpm()),
+    legend->Add(new wxStaticBitmap(panel, -1, wxBitmap(get_lock_open_xpm())),
                 wxSizerFlags().Center().Right());
     legend->Add(new wxStaticText(panel, -1,
                                  wxT("parameter should be optimized")),
@@ -683,7 +683,7 @@ void PhasePanel::OnAddToQLButton(wxCommandEvent&)
     quick_phase_lb->SetStringSelection(name);
     powder_book->quick_phase_list[wx2s(name)] = cel;
     wxString path = get_cel_files_dir() + name;
-    write_cel_file(cel, path.fn_str());
+    write_cel_file(cel, path.c_str());
 }
 
 void PhasePanel::OnClearButton(wxCommandEvent& event)
@@ -1210,7 +1210,7 @@ void PowderBook::OnQuickListImport(wxCommandEvent&)
             continue;
         }
         else {
-            CelFile cel = read_cel_file(paths[i].fn_str());
+            CelFile cel = read_cel_file(paths[i].c_str());
             if (cel.sgs != NULL)
                 quick_phase_list[wx2s(name)] = cel;
         }

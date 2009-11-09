@@ -3,7 +3,7 @@
 lib_LTLIBRARIES = libxy.la
 
 libxy_la_LDFLAGS = -version-info 1:0:0
-libxy_la_LIBADD = @COMPRESSING_LIBS@
+libxy_la_LIBADD = @XYLIB_ADDLIB@
 
 # This is useful when building as a part of fityk (which provides subset of
 # boost library in 3rdparty/ dir). It's not used in standalone xylib build,

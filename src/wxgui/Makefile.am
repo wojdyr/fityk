@@ -49,7 +49,7 @@ fityk_LDADD = ../libfityk.la libceria.a @WX_LIBS@ $(fityk_res)
 if XYCONVERT
 bin_PROGRAMS += xyconvert
 xyconvert_SOURCES = xybrowser.cpp uplot.cpp uplot.h cmn.cpp cmn.h
-xyconvert_CPPFLAGS = @WX_CPPFLAGS@ @XYLIB_CPPFLAGS@ -DXYCONVERT
+xyconvert_CPPFLAGS = @WX_CPPFLAGS@ @CPPFLAGS_3RDPARTY@ @XYLIB_CPPFLAGS@ -DXYCONVERT
 xyconvert_LDADD = @WX_LIBS@ @XYLIB_LDADD@ $(xyconvert_res)
 endif
 

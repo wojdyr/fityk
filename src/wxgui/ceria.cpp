@@ -633,7 +633,7 @@ const Anode anodes[] = {
 };
 
 
-extern const char* default_cel_files[] = {
+const char* default_cel_files[] = {
 
 "cell  4.358 4.358 4.358  90 90 90\n"
 "Si   14  0 0 0\n"

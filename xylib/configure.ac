@@ -22,7 +22,7 @@ AC_PROG_CXX
 AC_PROG_LIBTOOL
 
 # Checks for libraries.
-COMPRESSING_LIBS=
+XYLIB_ADDLIB=
 if test "$with_zlib" = "yes"; then
   AC_CHECK_LIB([z], [gzopen],
                [AC_DEFINE([HAVE_ZLIB], [1], [Define if zlib is available])],
@@ -30,7 +30,7 @@ if test "$with_zlib" = "yes"; then
   [zlib library was not found.
    Either use flag --without-zlib or install the library.
  ])])
-  COMPRESSING_LIBS="$COMPRESSING_LIBS -lz"
+  XYLIB_ADDLIB="$XYLIB_ADDLIB -lz"
   AC_CHECK_HEADER([zlib.h], [], [AC_MSG_ERROR([
    zlib.h header was not found. Either use flag --without-zlib or install
    zlib library (including header files).
@@ -44,7 +44,7 @@ if test "$with_bzlib" = "yes"; then
   [bzlib library was not found.
    Either use flag --without-bzlib or install the library.
  ])])
-  COMPRESSING_LIBS="$COMPRESSING_LIBS -lbz2"
+  XYLIB_ADDLIB="$XYLIB_ADDLIB -lbz2"
   AC_CHECK_HEADER([bzlib.h], [], [AC_MSG_ERROR([
    bzlib.h header was not found. Either use flag --without-bzlib or install
    bzlib library (including header files).
@@ -74,7 +74,7 @@ AC_CHECK_HEADERS([tr1/memory],
 # see xylib/Makefile.am for comments on CPPFLAGS_3RDPARTY
 AC_SUBST(CPPFLAGS_3RDPARTY)
 
-AC_SUBST(COMPRESSING_LIBS)
+AC_SUBST(XYLIB_ADDLIB)
 
 AC_OUTPUT([
 	   Makefile

@@ -241,6 +241,10 @@ AC_SUBST(XYLIB_DIR)
 AC_SUBST(SAMPLES_DIR)
 AC_SUBST(LIBRARY_VERSION_FLAG)
 
+# define XYLIB_ADDLIB for compatibility with xylib/configure.ac
+XYLIB_ADDLIB=
+AC_SUBST(XYLIB_ADDLIB)
+
 # before checking erf, see if a basic math function (and linking) works
 AC_CHECK_LIB([m], [sin], [], [])
 # check for erf and erfc function
