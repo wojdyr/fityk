@@ -54,7 +54,7 @@ void FPlot::set_font(wxDC &dc, wxFont const& font)
         dc.SetFont(font);
 }
 
-void FPlot::draw_dashed_vert_line(int X, wxPenStyle style)
+void FPlot::draw_inverted_line(int X, wxPenStyle style, LineOrientation orient)
 {
     if (X != INT_MIN) {
         wxClientDC dc(this);
@@ -66,8 +66,14 @@ void FPlot::draw_dashed_vert_line(int X, wxPenStyle style)
             pen.SetStyle(style);
             dc.SetPen(pen);
         }
-        int h = get_pixel_height(dc);
-        dc.DrawLine (X, 0, X, h);
+        if (orient == kVerticalLine) {
+            int h = get_pixel_height(dc);
+            dc.DrawLine(X, 0, X, h);
+        }
+        else { // orient == kHorizontalLine
+            int w = get_pixel_width(dc);
+            dc.DrawLine(0, X, w, X);
+        }
     }
 }
 
@@ -79,32 +85,42 @@ void FPlot::draw_crosshair(int X, int Y)
     dc.CrossHair(X, Y);
 }
 
-bool FPlot::vert_line_following_cursor (MouseActEnum ma, int x, int x0)
+void FPlot::start_line_following_cursor(int x0, LineOrientation orient)
 {
-    if (ma == mat_start) {
-        draw_dashed_vert_line(x0);
-        vlfc_prev_x0 = x0;
-        connect_esc_to_cancel(true);
-    }
-    else {
-        if (vlfc_prev_x == INT_MIN)
-            return false;
-        draw_dashed_vert_line(vlfc_prev_x); //clear (or draw again) old line
-    }
-    if (ma == mat_move || ma == mat_start) {
-        draw_dashed_vert_line(x);
-        vlfc_prev_x = x;
-    }
-    else if (ma == mat_redraw) {
-        draw_dashed_vert_line(vlfc_prev_x0);
-    }
-    else { // mat_stop
-        draw_dashed_vert_line(vlfc_prev_x0); //clear
-        vlfc_prev_x = vlfc_prev_x0 = INT_MIN;
-        connect_esc_to_cancel(false);
+    lfc_orient = orient;
+    lfc_prev_x0 = x0;
+    lfc_prev_x = x0+1;
+    draw_inverted_line(lfc_prev_x0, wxPENSTYLE_SHORT_DASH, lfc_orient);
+    draw_inverted_line(lfc_prev_x, wxPENSTYLE_SHORT_DASH, lfc_orient);
+    connect_esc_to_cancel(true);
+}
+
+bool FPlot::line_following_cursor(MouseActEnum ma, int x)
+{
+    if (lfc_prev_x == INT_MIN)
+        return false;
+    //clear (or draw again) old line
+    draw_inverted_line(lfc_prev_x, wxPENSTYLE_SHORT_DASH, lfc_orient);
+    switch (ma) {
+        case mat_move:
+            draw_inverted_line(x, wxPENSTYLE_SHORT_DASH, lfc_orient);
+            lfc_prev_x = x;
+            break;
+        case mat_redraw:
+            draw_inverted_line(lfc_prev_x0, wxPENSTYLE_SHORT_DASH, lfc_orient);
+            break;
+        case mat_stop:
+            // clear
+            draw_inverted_line(lfc_prev_x0, wxPENSTYLE_SHORT_DASH, lfc_orient);
+            lfc_prev_x = lfc_prev_x0 = INT_MIN;
+            connect_esc_to_cancel(false);
+            break;
+        default:
+            assert(0);
     }
     return true;
 }
+
 
 void draw_line_with_style(wxDC& dc, wxPenStyle style,
                           wxCoord X1, wxCoord Y1, wxCoord X2, wxCoord Y2)

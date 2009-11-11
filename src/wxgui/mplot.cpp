@@ -247,7 +247,8 @@ void MainPlot::OnPaint(wxPaintEvent&)
     frame->draw_crosshair(-1, -1);
     limit1 = limit2 = INT_MIN;
     buffered_draw();
-    vert_line_following_cursor(mat_redraw);//draw, if necessary, vertical lines
+    // if necessary, redraw inverted lines
+    line_following_cursor(mat_redraw);
     peak_draft(mat_redraw);
     draw_moving_func(mat_redraw);
 }
@@ -793,6 +794,8 @@ void MainPlot::update_mouse_hints()
                 break;
             case mmd_zoom:
                 left = "zoom"; right = "menu";
+                shift_left = "vertical zoom";
+                shift_right = "horizontal zoom";
                 mode_name = "normal";
                 break;
             case mmd_bg:
@@ -831,16 +834,17 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
     if (pressed_mouse_button == 0) {
         if (mode == mmd_range) {
             if (!ctrl_on_down)
-                vert_line_following_cursor(mat_move, event.GetX());
+                line_following_cursor(mat_move, event.GetX());
             else
-                vert_line_following_cursor(mat_stop);
+                line_following_cursor(mat_stop);
         }
         if (visible_peaktops(mode))
             look_for_peaktop (event);
         frame->draw_crosshair(X, Y);
     }
     else {
-        vert_line_following_cursor(mat_move, event.GetX());
+        line_following_cursor(mat_move,
+                   lfc_orient == kVerticalLine ? event.GetX() : event.GetY());
         draw_moving_func(mat_move, event.GetX(), event.GetY(),
                          event.ShiftDown());
         peak_draft(mat_move, event.GetX(), event.GetY());
@@ -878,8 +882,8 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
         if (r) {
             limit1 = xs.px(x1);
             limit2 = xs.px(x2);
-            draw_dashed_vert_line(limit1, wxPENSTYLE_DOT_DASH);
-            draw_dashed_vert_line(limit2, wxPENSTYLE_DOT_DASH);
+            draw_inverted_line(limit1, wxPENSTYLE_DOT_DASH, kVerticalLine);
+            draw_inverted_line(limit2, wxPENSTYLE_DOT_DASH, kVerticalLine);
         }
         else
             limit1 = limit2 = INT_MIN;
@@ -887,8 +891,8 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
     else { //was over peak, but now is not
         frame->set_status_text("");
         set_mouse_mode(basic_mode);
-        draw_dashed_vert_line(limit1, wxPENSTYLE_DOT_DASH);
-        draw_dashed_vert_line(limit2, wxPENSTYLE_DOT_DASH);
+        draw_inverted_line(limit1, wxPENSTYLE_DOT_DASH, kVerticalLine);
+        draw_inverted_line(limit2, wxPENSTYLE_DOT_DASH, kVerticalLine);
         limit1 = limit2 = INT_MIN;
     }
 }
@@ -899,7 +903,7 @@ void MainPlot::cancel_mouse_press()
         draw_temporary_rect(mat_stop);
         draw_moving_func(mat_stop);
         peak_draft(mat_stop);
-        vert_line_following_cursor(mat_stop);
+        line_following_cursor(mat_stop);
         mouse_press_X = mouse_press_Y = INT_MIN;
         pressed_mouse_button = 0;
         frame->set_status_text("");
@@ -926,14 +930,27 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     mouse_press_Y = event.GetY();
     fp x = xs.val (event.GetX());
     fp y = ys.val (event.GetY());
-    if ((button == 1 && (ctrl_on_down || mode == mmd_zoom)) || button == 2) {
+    if (button == 2 || // middle button always zooms
+        (button == 1 &&
+         (ctrl_on_down || (mode == mmd_zoom && !shift_on_down)))) {
         draw_temporary_rect(mat_start, event.GetX(), event.GetY());
         SetCursor(wxCURSOR_MAGNIFIER);
         frame->set_status_text("Select second corner to zoom...");
     }
-    else if (button == 3 && (ctrl_on_down || mode == mmd_zoom)) {
+    else if (button == 3 &&
+               (ctrl_on_down || (mode == mmd_zoom && !shift_on_down))) {
         show_popup_menu (event);
         cancel_mouse_press();
+    }
+    else if (button == 1 && mode == mmd_zoom && shift_on_down) {
+        SetCursor(wxCURSOR_SIZENS);
+        start_line_following_cursor(mouse_press_Y, kHorizontalLine);
+        frame->set_status_text("Select vertical span...");
+    }
+    else if (button == 3 && mode == mmd_zoom && shift_on_down) {
+        SetCursor(wxCURSOR_SIZEWE);
+        start_line_following_cursor(mouse_press_X, kVerticalLine);
+        frame->set_status_text("Select horizontal span...");
     }
     else if (button == 1 && mode == mmd_peak) {
         frame->get_sidebar()->activate_function(over_peak);
@@ -961,7 +978,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         frame->set_status_text("Add drawed peak...");
     }
     else if (button == 3 && mode == mmd_add) {
-        vert_line_following_cursor(mat_start, mouse_press_X+1, mouse_press_X);
+        start_line_following_cursor(mouse_press_X, kVerticalLine);
         SetCursor(wxCURSOR_SIZEWE);
         frame->set_status_text("Select range to add a peak in it...");
     }
@@ -989,8 +1006,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         }
         else {
             SetCursor(wxCURSOR_SIZEWE);
-            vert_line_following_cursor(mat_start, mouse_press_X+1,
-                                                           mouse_press_X);
+            start_line_following_cursor(mouse_press_X, kVerticalLine);
             status_info = "Select data range to ";
         }
         frame->set_status_text(status_info + (button==1 ? "activate..."
@@ -1024,7 +1040,9 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     // if Down and Up events are at the same position -> cancel
 
     // zoom
-    if ((button == 1 && (ctrl_on_down || mode == mmd_zoom)) || button == 2) {
+    if (button == 2 ||
+        (button == 1 &&
+         (ctrl_on_down || (mode == mmd_zoom && !shift_on_down)))) {
         draw_temporary_rect(mat_stop);
         if (dist_X + dist_Y >= 10) {
             fp x1 = xs.val(mouse_press_X);
@@ -1036,7 +1054,32 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
                     min(x1,x2), max(x1,x2), min(y1,y2), max(y1,y2));
             frame->change_zoom(buffer);
         }
-        frame->set_status_text("");
+        else
+            frame->set_status_text("");
+    }
+    else if (button == 1 && mode == mmd_zoom && shift_on_down) {
+        line_following_cursor(mat_stop);
+        if (dist_Y >= 5) {
+            fp y1 = ys.val(mouse_press_Y);
+            fp y2 = ys.val(event.GetY());
+            char buffer[128];
+            sprintf(buffer, ". [%.12g:%.12g]", min(y1,y2), max(y1,y2));
+            frame->change_zoom(buffer);
+        }
+        else
+            frame->set_status_text("");
+    }
+    else if (button == 3 && mode == mmd_zoom && shift_on_down) {
+        line_following_cursor(mat_stop);
+        if (dist_X >= 5) {
+            fp x1 = xs.val(mouse_press_X);
+            fp x2 = xs.val(event.GetX());
+            char buffer[128];
+            sprintf(buffer, "[%.12g:%.12g] .", min(x1,x2), max(x1,x2));
+            frame->change_zoom(buffer);
+        }
+        else
+            frame->set_status_text("");
     }
     // drag peak
     else if (mode == mmd_peak && button == 1) {
@@ -1050,7 +1093,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     }
     // activate or disactivate data
     else if (mode == mmd_range && button != 2) {
-        vert_line_following_cursor(mat_stop);
+        line_following_cursor(mat_stop);
         draw_temporary_rect(mat_stop);
         string c = (button == 1 ? "A = a or " : "A = a and not ");
         if (!shift_on_down && dist_X >= 5) {
@@ -1088,7 +1131,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
                           + frame->get_global_parameters()
                           + frame->get_in_datasets());
         }
-        vert_line_following_cursor(mat_stop);
+        line_following_cursor(mat_stop);
     }
     else {
         ;// nothing - action done in OnButtonDown()

@@ -63,7 +63,8 @@ void AuxPlot::OnPaint(wxPaintEvent&)
 {
     frame->draw_crosshair(-1, -1);
     buffered_draw();
-    vert_line_following_cursor(mat_redraw);//draw, if necessary, vertical lines
+    //draw, if necessary, vertical or horizontal lines
+    line_following_cursor(mat_redraw);
 }
 
 inline double model_value(vector<Point>::const_iterator pt, Model const* model)
@@ -196,7 +197,7 @@ void AuxPlot::draw_zoom_text(wxDC& dc, bool set_pen)
 void AuxPlot::OnMouseMove(wxMouseEvent &event)
 {
     int X = event.GetX();
-    vert_line_following_cursor(mat_move, X);
+    line_following_cursor(mat_move, X);
     frame->set_status_coords(xs.val(X), ys.val(event.GetY()), pte_aux);
     if (X < move_plot_margin_width)
         SetCursor(wxCURSOR_POINT_LEFT);
@@ -315,7 +316,7 @@ void AuxPlot::OnLeftDown (wxMouseEvent &event)
         frame->scroll_view_horizontally(+0.33); // -->
     else {
         mouse_press_X = X;
-        vert_line_following_cursor(mat_start, mouse_press_X+1, mouse_press_X);
+        start_line_following_cursor(mouse_press_X, kVerticalLine);
         SetCursor(wxCURSOR_SIZEWE);
         frame->set_status_text("Select x range and release button to zoom...");
         CaptureMouse();
@@ -325,7 +326,7 @@ void AuxPlot::OnLeftDown (wxMouseEvent &event)
 bool AuxPlot::cancel_mouse_left_press()
 {
     if (mouse_press_X != INT_MIN) {
-        vert_line_following_cursor(mat_stop);
+        line_following_cursor(mat_stop);
         ReleaseMouse();
         mouse_press_X = INT_MIN;
         SetCursor(wxCURSOR_CROSS);
