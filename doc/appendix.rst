@@ -223,5 +223,5 @@ Following people have contributed to this manual (in chronological order):
 Marcin Wojdyr (maintainer), Stan Gierlotka, Jaap Folmer, Michael Richardson.
 
 ..
-  $Id: $ 
+  $Id$ 
 

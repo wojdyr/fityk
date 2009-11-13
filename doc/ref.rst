@@ -1586,16 +1586,20 @@ Scripts can be executed using the command::
 
    commands < filename
 
-It is possible to execute only selected lines (from line *m* to *n*)::
+You can select lines that are to be executed::
 
-   commands < filename[m:n]
+   commands < filename[m:n] # this executes lines from m to n
 
-There is also a command::
+It is also possible to execute standard output from an external program::
+
+   commands ! program [args...]
+
+The command::
 
    dump > filename
 
-which writes the current state of the program
-together with all datasets to a single .fit file.
+writes the current state of the program
+(including all datasets) to a single .fit file.
 
 The command ``sleep sec`` makes the program wait *sec* seconds
 before continuing.
@@ -1607,5 +1611,5 @@ Commands that start with ``!`` are passed (without '!')
 to the ``system()`` call.
 
 ..
-  $Id: $ 
+  $Id$ 
 

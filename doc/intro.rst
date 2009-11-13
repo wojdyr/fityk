@@ -66,5 +66,5 @@ There are also people using it on MacOS X (have a look at the
 fityk-users mailing list archives for details).
 
 ..
-  $Id: $ 
+  $Id$ 
 

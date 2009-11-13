@@ -1,6 +1,7 @@
 $Id$
 
 User-visible changes in version 0.9.0  (2009-  -  ):
+* a syntax to execute output from external program: command ! program [args...]
 * xyConvert (which requires wx 2.9) is built by default.
   Added flag --disable-xyconvert, which must be used with wx 2.8.
 * install html docs into $docdir (previously it was installed into $pkgdatadir)

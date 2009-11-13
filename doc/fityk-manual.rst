@@ -15,5 +15,5 @@ Fityk |version| - User's Manual
    appendix
 
 ..
-  $Id: $ 
+  $Id$ 
 

@@ -215,5 +215,5 @@ rectangle), this can be cancelled by pressing another button when the
 first one is pressed.
 
 ..
-  $Id: $ 
+  $Id$ 
 

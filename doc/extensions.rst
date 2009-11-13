@@ -177,5 +177,5 @@ if you have any. Consider sharing your function with other users (using
 :wiki:`FitykWiki <>` or mailing list).
 
 ..
-  $Id: $ 
+  $Id$ 
 
