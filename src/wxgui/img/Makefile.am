@@ -76,6 +76,13 @@ mouse16.h \
 sbprefs.h \
 ok24.h \
  \
+info32.h \
+peak32.h \
+radiation32.h \
+rubik32.h \
+run32.h \
+sizes32.h \
+ \
 fityk96.h \
  \
 fityk.ico \

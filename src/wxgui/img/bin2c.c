@@ -71,7 +71,7 @@ void process(const char *ifname, const char *ofname)
                        fputc('\n', ofile);
                        col = 1;
                }
-               fprintf(ofile, "0x%.2x, ", c);
+               fprintf(ofile, "0x%.2x,", c);
                col += 6;
 
        }

@@ -11,7 +11,7 @@
 #include <wx/tooltip.h>
 
 #include "statbar.h"
-#include "../common.h" //wx2s, s2wx, GET_BMP
+#include "cmn.h" //wx2s, s2wx, GET_BMP
 #include "../datatrans.h" //get_dt_code(), get_value_for_point()
 
 // icons

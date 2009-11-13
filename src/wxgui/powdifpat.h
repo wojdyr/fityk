@@ -73,6 +73,7 @@ private:
     wxPanel* PrepareSamplePanel();
     wxPanel* PreparePeakPanel();
     wxPanel* PrepareActionPanel();
+    wxPanel* PrepareSizeStrainPanel();
     void initialize_quick_phase_list();
 };
 

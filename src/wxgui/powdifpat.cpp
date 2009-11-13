@@ -3,10 +3,7 @@
 // $Id$
 
 //TODO:
-// phases quick-list: read/save from/to file,
-// import cel files
 // replace UTF8 chars with hex
-// peaks: peak formula, widths, shapes
 // make a (preview) release
 //
 // enable x-ray / neutron switching (different LPF and scattering factors)
@@ -40,6 +37,14 @@
 #include "../logic.h"
 #include "../data.h"
 #endif
+
+// icons
+#include "img/info32.h"
+#include "img/peak32.h"
+#include "img/radiation32.h"
+#include "img/rubik32.h"
+#include "img/run32.h"
+#include "img/sizes32.h"
 
 using namespace std;
 
@@ -123,10 +128,11 @@ public:
     void OnClearButton(wxCommandEvent& event);
     void OnAddToQLButton(wxCommandEvent& event);
     void OnNameChanged(wxCommandEvent& event);
-    void OnSpaceGroupChanged(wxCommandEvent& event);
+    void OnSpaceGroupChanged(wxCommandEvent&);
     void OnSpaceGroupChanging(wxCommandEvent&)
                                { powder_book->deselect_phase_quick_list(); }
-    void OnParameterChanged(wxCommandEvent& event);
+    void OnParameterChanging(wxCommandEvent&);
+    void OnParameterChanged(wxCommandEvent&);
     void OnLineToggled(wxCommandEvent& event);
     void OnLineSelected(wxCommandEvent& event);
     void OnAtomsFocus(wxFocusEvent&);
@@ -197,11 +203,12 @@ PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
     initialize_quick_phase_list();
 
     wxImageList *image_list = new wxImageList(32, 32);
-    image_list->Add(wxBitmap(wxImage("img/info32.png")));
-    image_list->Add(wxBitmap(wxImage("img/radiation32.png")));
-    image_list->Add(wxBitmap(wxImage("img/rubik32.png")));
-    image_list->Add(wxBitmap(wxImage("img/peak32.png")));
-    image_list->Add(wxBitmap(wxImage("img/run32.png")));
+    image_list->Add(GET_BMP(info32));
+    image_list->Add(GET_BMP(radiation32));
+    image_list->Add(GET_BMP(rubik32));
+    image_list->Add(GET_BMP(peak32));
+    image_list->Add(GET_BMP(run32));
+    image_list->Add(GET_BMP(sizes32));
     AssignImageList(image_list);
 
     AddPage(PrepareIntroPanel(), wxT("intro"), false, 0);
@@ -209,7 +216,7 @@ PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
     AddPage(PrepareSamplePanel(), wxT("sample"), false, 2);
     AddPage(PreparePeakPanel(), wxT("peak"), false, 3);
     AddPage(PrepareActionPanel(), wxT("action"), false, 4);
-    //AddPage(PrepareActionPanel(), wxEmptyString, false, 4);
+    AddPage(PrepareSizeStrainPanel(), wxT("size-strain"), false, 5);
 
     Connect(GetId(), wxEVT_COMMAND_LISTBOOK_PAGE_CHANGED,
             (wxObjectEventFunction) &PowderBook::OnPageChanged);
@@ -256,24 +263,18 @@ wxPanel* PowderBook::PrepareIntroPanel()
     "about symmetry group, unit cell and radiation wavelength.\n"
     "At this moment the program is experimental and the old PowderCell\n"
     "is definitely more reliable.\n"
-    "Actually this is stand-alone version of fityk's tool that prepares to\n"
-    "Pawley method analysis of powder diffraction data.\n";
+    "This is a stand-alone version of a dialog in fityk program.\n";
 #else
     "Before you start, you should have:\n"
     "  - data (powder diffraction pattern) loaded,\n"
     "  - only interesting data range active,\n"
-    "  - and baseline (background) either removed manually,\n"
+    "  - baseline (background) either removed manually\n"
     "    or modeled with e.g. polynomial.\n"
     "\n"
     "This window will help you to build a model for your data. "
     "The model has constrained position of peaks and "
     "not constrained intensities. Fitting this model (all variables "
-    "at the same time) is "
-    "known as Pawley's method. LeBail's method is similar, "
-    "but the fitting procedure is more complex.\n"
-    "\n"
-    "This window will not analyze the final result for you. "
-    "But there is another window that can help with size-strain analysis.\n"
+    "at the same time) is known as Pawley method.\n"
     "\n"
     "Good luck!\n";
 #endif
@@ -604,18 +605,15 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
     Connect(sg_tc->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
             (wxObjectEventFunction) &PhasePanel::OnSpaceGroupChanging);
 
-    Connect(par_a->get_text_ctrl()->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
-            (wxObjectEventFunction) &PhasePanel::OnParameterChanged);
-    Connect(par_b->get_text_ctrl()->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
-            (wxObjectEventFunction) &PhasePanel::OnParameterChanged);
-    Connect(par_c->get_text_ctrl()->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
-            (wxObjectEventFunction) &PhasePanel::OnParameterChanged);
-    Connect(par_alpha->get_text_ctrl()->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
-            (wxObjectEventFunction) &PhasePanel::OnParameterChanged);
-    Connect(par_beta->get_text_ctrl()->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
-            (wxObjectEventFunction) &PhasePanel::OnParameterChanged);
-    Connect(par_gamma->get_text_ctrl()->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
-            (wxObjectEventFunction) &PhasePanel::OnParameterChanged);
+    const LockableRealCtrl* param_controls[] =
+            { par_a, par_b, par_c, par_alpha, par_beta, par_gamma };
+    for (int i = 0; i != sizeof(param_controls) / sizeof(par_a); ++i) {
+        wxWindowID id = param_controls[i]->get_text_ctrl()->GetId();
+        Connect(id, wxEVT_COMMAND_TEXT_UPDATED,
+                (wxObjectEventFunction) &PhasePanel::OnParameterChanging);
+        Connect(id, wxEVT_COMMAND_TEXT_ENTER,
+                (wxObjectEventFunction) &PhasePanel::OnParameterChanged);
+    }
 
     Connect(hkl_list->GetId(), wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,
             (wxObjectEventFunction) &PhasePanel::OnLineToggled);
@@ -827,10 +825,15 @@ void PhasePanel::set_ortho_angles()
     par_gamma->set_value(90.);
 }
 
-void PhasePanel::OnParameterChanged(wxCommandEvent&)
+void PhasePanel::OnParameterChanging(wxCommandEvent&)
 {
     update_disabled_parameters();
     powder_book->deselect_phase_quick_list();
+}
+
+void PhasePanel::OnParameterChanged(wxCommandEvent&)
+{
+    update_miller_indices();
     sample_plot->refresh();
 }
 
@@ -862,6 +865,7 @@ wxString make_info_string_for_line(const PlanesWithSameD& bp,
         sfac_str += wxString::Format(wxT("%g"), sqrt(i->F2));
     }
     info += wxString::Format(wxT("\nd=%g\n"), bp.d);
+    //TODO: info += wxString::Format(wxT("2T=...
     info += mult_str + wxT("\n") + sfac_str;
     info += wxString::Format(wxT("\nLorentz-polarization: %g"), bp.lpf);
     info += wxString::Format(wxT("\ntotal intensity: %g"), bp.intensity);
@@ -1069,6 +1073,49 @@ wxPanel* PowderBook::PreparePeakPanel()
     wxPanel *panel = new wxPanel(this);
     wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 
+    wxArrayString peak_choices;
+    peak_choices.Add(wxT("Gaussian"));
+    peak_choices.Add(wxT("Lorentzian"));
+    peak_choices.Add(wxT("Pearson VII"));
+    peak_choices.Add(wxT("Pseudo-Voigt"));
+    peak_choices.Add(wxT("Voigt"));
+    wxRadioBox *peak_rb;
+    wxRadioBox *width_rb;
+    wxRadioBox *shape_rb;
+    peak_rb = new wxRadioBox(panel, -1, wxT("peak function"),
+                             wxDefaultPosition, wxDefaultSize, peak_choices, 5);
+    sizer->Add(peak_rb, wxSizerFlags().Expand().Border());
+
+    wxArrayString peak_widths;
+    peak_widths.Add(wxT("independent"));
+    peak_widths.Add(wxT("the same (in phase)"));
+    peak_widths.Add(wxT("Lowe-Ma"));
+    peak_widths.Add(wxT("Mod-TCHpV"));
+    width_rb = new wxRadioBox(panel, -1, wxT("peak width"),
+                              wxDefaultPosition, wxDefaultSize, peak_widths, 5);
+    sizer->Add(width_rb, wxSizerFlags().Expand().Border());
+
+    wxArrayString peak_shapes;
+    peak_shapes.Add(wxT("independent"));
+    peak_shapes.Add(wxT("the same (in phase)"));
+    peak_shapes.Add(wxT("f(2T)=A+B*2T"));
+    //peak_shapes.Add(wxT("A+B/2T+C/(2T)^2"));
+    peak_shapes.Add(wxT("Mod-TCHpV"));
+    shape_rb = new wxRadioBox(panel, -1, wxT("peak shape"),
+                              wxDefaultPosition, wxDefaultSize, peak_shapes, 5);
+    sizer->Add(shape_rb, wxSizerFlags().Expand().Border());
+
+    wxSizer *stp_sizer = new wxStaticBoxSizer(wxHORIZONTAL, panel,
+                                              wxT("initial parameters"));
+    wxSizer *par_sizer = new wxGridSizer(3, 2, 2);
+    wxSizerFlags flags = wxSizerFlags().Right();
+    LockableRealCtrl *par_u, *par_v, *par_w;
+    par_u = addMaybeRealCtrl(panel, wxT("U ="),  par_sizer, flags);
+    par_v = addMaybeRealCtrl(panel, wxT("V ="),  par_sizer, flags);
+    par_w = addMaybeRealCtrl(panel, wxT("W ="),  par_sizer, flags);
+    stp_sizer->Add(par_sizer, wxSizerFlags(1).Expand());
+    sizer->Add(stp_sizer, wxSizerFlags().Border().Expand());
+
     /*  Npr=0, 1, 5 - Pseudo-Voigt,  shape - see (3.21)
      *  Npr=4 - 3 * Pseudo-Voigt
      *  Npr=2, 3, 6 - Pearson VII - shape - see (3.23)
@@ -1081,6 +1128,16 @@ wxPanel* PowderBook::PreparePeakPanel()
 }
 
 wxPanel* PowderBook::PrepareActionPanel()
+{
+    wxPanel *panel = new wxPanel(this);
+    wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+
+    panel->SetSizerAndFit(sizer);
+
+    return panel;
+}
+
+wxPanel* PowderBook::PrepareSizeStrainPanel()
 {
     wxPanel *panel = new wxPanel(this);
     wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
