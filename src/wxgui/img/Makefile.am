@@ -76,6 +76,7 @@ mouse16.h \
 sbprefs.h \
 ok24.h \
  \
+correction.h \
 info32.h \
 peak32.h \
 radiation32.h \

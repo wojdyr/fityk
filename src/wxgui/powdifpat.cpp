@@ -36,7 +36,8 @@
 #include "../data.h"
 #endif
 
-// icons
+// icons and images
+#include "img/correction.h"
 #include "img/info32.h"
 #include "img/peak32.h"
 #include "img/radiation32.h"
@@ -390,8 +391,8 @@ wxPanel* PowderBook::PrepareInstrumentPanel()
 
     wxSizer *corr_sizer = new wxStaticBoxSizer(wxVERTICAL, panel,
                                            wxT("corrections (use with care)"));
-    wxBitmap formula(wxT("img/correction.png"), wxBITMAP_TYPE_PNG);
-    corr_sizer->Add(new StaticBitmap(panel, formula), wxSizerFlags().Border());
+    corr_sizer->Add(new StaticBitmap(panel, GET_BMP(correction)),
+                    wxSizerFlags().Border());
 
     wxSizer *g_sizer = new wxGridSizer(2, 5, 5);
     for (int i = 1; i <= 6; ++i) {
