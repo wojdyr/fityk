@@ -331,6 +331,11 @@ DataSet* load_stream(istream &is, FormatInfo const* fi,
                      vector<string> const& options)
 {
     assert(fi != NULL);
+    // check if the file is not empty
+    is.peek();
+    if (is.eof())
+        throw FormatError("The file is empty.");
+
     DataSet *pd = (*fi->ctor)();
     pd->options = options;
     pd->load_data(is);

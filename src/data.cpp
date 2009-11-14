@@ -325,14 +325,13 @@ void Data::load_file (string const& fn,
     if (fn.empty())
         return;
 
-    shared_ptr<const xylib::DataSet> xyds(xylib::cached_load_file(fn, options));
-
-    clear(); //removing previous file
-
-    vector<int> bb = blocks.empty() ? vector1(0) : blocks;
-
     string block_name;
     try {
+        shared_ptr<const xylib::DataSet> xyds(
+                                         xylib::cached_load_file(fn, options));
+        clear(); //removing previous file
+        vector<int> bb = blocks.empty() ? vector1(0) : blocks;
+
         for (vector<int>::const_iterator b = bb.begin(); b != bb.end(); ++b) {
             assert(xyds);
             xylib::Block const* block = xyds->get_block(*b);
