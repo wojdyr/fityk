@@ -43,6 +43,7 @@ public:
     void OnQuickListImport(wxCommandEvent&);
     void OnLambdaChange(wxCommandEvent& event);
     void OnPageChanged(wxListbookEvent& event);
+    void OnPeakRadio(wxCommandEvent& event);
     PhasePanel *get_phase_panel(int n);
     PhasePanel *get_current_phase_panel();
     void deselect_phase_quick_list();
@@ -67,6 +68,8 @@ private:
 #else
     const Data* data;
 #endif
+    wxRadioBox *peak_rb, *width_rb, *shape_rb;
+    wxTextCtrl *peak_txt;
 
     wxPanel* PrepareIntroPanel();
     wxPanel* PrepareInstrumentPanel();

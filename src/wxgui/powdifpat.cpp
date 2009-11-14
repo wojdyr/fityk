@@ -3,11 +3,9 @@
 // $Id$
 
 //TODO:
-// replace UTF8 chars with hex
-// make a (preview) release
-//
+// finish "peak" page and the next pages
 // enable x-ray / neutron switching (different LPF and scattering factors)
-// buffer plot with data
+// buffer the plot with data
 // import .cif files
 // action: info about old and new models, button to add/update the model
 
@@ -344,7 +342,7 @@ wxPanel* PowderBook::PrepareInstrumentPanel()
     hsizer->AddStretchSpacer();
 
     wxArrayString xaxis_choices;
-    xaxis_choices.Add(wxT("2θ")); //03B8
+    xaxis_choices.Add(wxT("2\u03B8")); //\u03B8 = theta
     xaxis_choices.Add(wxT("Q"));
     wxRadioBox *xaxis_rb = new wxRadioBox(panel, -1, wxT("data x axis"),
                                           wxDefaultPosition, wxDefaultSize,
@@ -561,9 +559,10 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
     par_a = addMaybeRealCtrl(this, wxT("a ="),  par_sizer, flags);
     par_b = addMaybeRealCtrl(this, wxT("b ="),  par_sizer, flags);
     par_c = addMaybeRealCtrl(this, wxT("c ="),  par_sizer, flags);
-    par_alpha = addMaybeRealCtrl(this, wxT("α ="),  par_sizer, flags);//03B1
-    par_beta = addMaybeRealCtrl(this, wxT("β ="),  par_sizer, flags); //03B2
-    par_gamma = addMaybeRealCtrl(this, wxT("γ ="),  par_sizer, flags);//03B3
+    // greek letters: alpha \u03B1, beta \u03B2, gamma \u03B3
+    par_alpha = addMaybeRealCtrl(this, wxT("\u03B1 ="), par_sizer, flags);
+    par_beta = addMaybeRealCtrl(this, wxT("\u03B2 ="),  par_sizer, flags);
+    par_gamma = addMaybeRealCtrl(this, wxT("\u03B3 ="),  par_sizer, flags);
     stp_sizer->Add(par_sizer, wxSizerFlags(1).Expand());
     vsizer->Add(stp_sizer, wxSizerFlags().Border().Expand());
 
@@ -865,7 +864,6 @@ wxString make_info_string_for_line(const PlanesWithSameD& bp,
         sfac_str += wxString::Format(wxT("%g"), sqrt(i->F2));
     }
     info += wxString::Format(wxT("\nd=%g\n"), bp.d);
-    //TODO: info += wxString::Format(wxT("2T=...
     info += mult_str + wxT("\n") + sfac_str;
     info += wxString::Format(wxT("\nLorentz-polarization: %g"), bp.lpf);
     info += wxString::Format(wxT("\ntotal intensity: %g"), bp.intensity);
@@ -873,7 +871,7 @@ wxString make_info_string_for_line(const PlanesWithSameD& bp,
         double lambda = powder_book->get_lambda(i);
         if (lambda == 0.)
             break;
-        wxString format = (i == 0 ? wxT("\npeak center: %g") : wxT(", %g"));
+        wxString format = (i == 0 ? wxT("\n2\u03B8: %g") : wxT(", %g"));
         info += wxString::Format(format, lambda);
     }
     return info;
@@ -1079,17 +1077,15 @@ wxPanel* PowderBook::PreparePeakPanel()
     peak_choices.Add(wxT("Pearson VII"));
     peak_choices.Add(wxT("Pseudo-Voigt"));
     peak_choices.Add(wxT("Voigt"));
-    wxRadioBox *peak_rb;
-    wxRadioBox *width_rb;
-    wxRadioBox *shape_rb;
     peak_rb = new wxRadioBox(panel, -1, wxT("peak function"),
                              wxDefaultPosition, wxDefaultSize, peak_choices, 5);
+    peak_rb->SetSelection(3 /*Pseudo-Voigt*/);
     sizer->Add(peak_rb, wxSizerFlags().Expand().Border());
 
     wxArrayString peak_widths;
     peak_widths.Add(wxT("independent"));
     peak_widths.Add(wxT("the same (in phase)"));
-    peak_widths.Add(wxT("Lowe-Ma"));
+    peak_widths.Add(wxT("f(2\u03B8)"));
     peak_widths.Add(wxT("Mod-TCHpV"));
     width_rb = new wxRadioBox(panel, -1, wxT("peak width"),
                               wxDefaultPosition, wxDefaultSize, peak_widths, 5);
@@ -1098,12 +1094,21 @@ wxPanel* PowderBook::PreparePeakPanel()
     wxArrayString peak_shapes;
     peak_shapes.Add(wxT("independent"));
     peak_shapes.Add(wxT("the same (in phase)"));
-    peak_shapes.Add(wxT("f(2T)=A+B*2T"));
-    //peak_shapes.Add(wxT("A+B/2T+C/(2T)^2"));
+    peak_shapes.Add(wxT("f(2\u03B8)"));
+    // f(2T)=A+B/2T+C/(2T)^2 or A+B*2T
     peak_shapes.Add(wxT("Mod-TCHpV"));
     shape_rb = new wxRadioBox(panel, -1, wxT("peak shape"),
                               wxDefaultPosition, wxDefaultSize, peak_shapes, 5);
     sizer->Add(shape_rb, wxSizerFlags().Expand().Border());
+    peak_txt = new wxTextCtrl(panel, -1,
+                         wxT("This tool doesn't work yet,\n")
+                         wxT("but your feedback is welcome!\n")
+                         wxT("What do you expect from this dialog?\n")
+                         wxT("http://groups.google.com/group/fityk-users/\n"),
+                         wxDefaultPosition, wxSize(-1, 200),
+                         wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE|wxTE_AUTO_URL);
+    peak_txt->SetBackgroundColour(GetBackgroundColour());
+    sizer->Add(peak_txt, wxSizerFlags().Expand().Border());
 
     wxSizer *stp_sizer = new wxStaticBoxSizer(wxHORIZONTAL, panel,
                                               wxT("initial parameters"));
@@ -1111,8 +1116,8 @@ wxPanel* PowderBook::PreparePeakPanel()
     wxSizerFlags flags = wxSizerFlags().Right();
     LockableRealCtrl *par_u, *par_v, *par_w;
     par_u = addMaybeRealCtrl(panel, wxT("U ="),  par_sizer, flags);
-    par_v = addMaybeRealCtrl(panel, wxT("V ="),  par_sizer, flags);
-    par_w = addMaybeRealCtrl(panel, wxT("W ="),  par_sizer, flags);
+    par_v = addMaybeRealCtrl(panel, wxT(".. ="),  par_sizer, flags);
+    par_w = addMaybeRealCtrl(panel, wxT(".. ="),  par_sizer, flags);
     stp_sizer->Add(par_sizer, wxSizerFlags(1).Expand());
     sizer->Add(stp_sizer, wxSizerFlags().Border().Expand());
 
@@ -1123,6 +1128,9 @@ wxPanel* PowderBook::PreparePeakPanel()
      */
 
     panel->SetSizerAndFit(sizer);
+
+    Connect(peak_rb->GetId(), wxEVT_COMMAND_RADIOBOX_SELECTED,
+            (wxObjectEventFunction) &PowderBook::OnPeakRadio);
 
     return panel;
 }
@@ -1314,6 +1322,22 @@ double PowderBook::get_lambda(int n) const
     if (n < 0 || n >= (int) lambda_ctrl.size())
         return 0;
     return lambda_ctrl[n]->get_value();
+}
+
+void PowderBook::OnPeakRadio(wxCommandEvent& event)
+{
+    int sel = event.GetSelection();
+    bool has_shape = (sel > 1); // not Gaussian nor Lorentzian
+    shape_rb->Enable(has_shape);
+    bool is_pv = (sel == 3);
+    if (!is_pv && width_rb->GetSelection() == 3 /*Mod-TCHpV*/)
+        width_rb->SetSelection(0);
+    width_rb->Enable(3 /*Mod-TCHpV*/, is_pv);
+    if (has_shape) {
+        if (!is_pv && shape_rb->GetSelection() == 3 /*Mod-TCHpV*/)
+            shape_rb->SetSelection(0);
+        shape_rb->Enable(3 /*Mod-TCHpV*/, is_pv);
+    }
 }
 
 

@@ -2,13 +2,7 @@ $Id$
 
 ---------- TODO list and tentative development plan  ----------------
 
-* GUI: more exact zooming (set variables with more significant digits)
-
-* powder diffraction add-on - Pawley fitting 
-
-* document "commands !"
-
-* GUI: "extend zoom up" doesn't work well with negative-y data
+* GUI: set variables with more significant digits
 
 * $ fityk *
   Error: Unexpected format for filetype: text; data not found in file.
@@ -16,6 +10,14 @@ $Id$
    - should write the filename
 
 --------------> 0.9.0
+
+* finish powder diffraction add-on (Pawley fitting)
+
+* GUI: "extend zoom up" doesn't work well with negative-y data
+
+* GUI: Fit-all doesn't work when there is x=nan in dataset
+
+* GUI BUG: minor tics are not drawn on the very left side of x axis
 
 * GUI: there is ugly vertical line (a part of the fitted curve) in points
   where the value is undefined (e.g. in ReadShockley function for x=0).
@@ -73,9 +75,6 @@ $Id$
 
 * data import: possibility to use xylib column/block name as title
 
-* xylib: allow compressed (.gz, .bz2) data files (only in standalone version,
-  if Boost.Iostreams headers and libbzip2 and/or zlib are present)
-
 * magic default parameters: if $default__name is defined: when functions 
   with parameter `name' are "guessed", this parameter is set to $default__name
   (e.g. user sets $default__shape=2.5 to have initial value of Pearson7.shape
@@ -109,8 +108,6 @@ $Id$
   - ? changing data point size and line separately for each dataset,
 
 * unused variables should not slow down fitting
-
-* (GUI) vertical scaling using mouse on main plot near to left edge of the plot 
 
 * a command to delete all functions or variables
 
@@ -199,6 +196,7 @@ $Id$
   Or perhaps it's better to use antlr?
   Maybe a custom math parser based on muparser or FunctionParser could be used
   for math expressions?
+  Or use embedded Lua where possible?
 
 * when wxWidgets 3.x will be available in major Linux distributions:
   - open-file dialog (with preview) will use XyBrowser
