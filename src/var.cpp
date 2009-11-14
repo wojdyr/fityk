@@ -98,7 +98,7 @@ string Variable::get_formula(vector<fp> const &parameters) const
     assert(nr >= -1);
     vector<string> vn = concat_pairs("$", varnames);
     return nr == -1 ? get_op_trees().back()->str(&vn)
-                    : "~" + S(parameters[nr]);
+                    : "~" + eS(parameters[nr]);
 }
 
 void Variable::recalculate(vector<Variable*> const &variables,

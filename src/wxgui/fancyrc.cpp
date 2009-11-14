@@ -24,7 +24,7 @@
 using namespace std;
 
 static
-wxString double2wxstr(double v) { return wxString::Format(wxT("%g"), v); }
+wxString double2wxstr(double v) { return wxString::Format(wxT("%.7g"), v); }
 
 //===============================================================
 //                      ValueChangingWidget

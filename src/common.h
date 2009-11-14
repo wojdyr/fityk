@@ -110,6 +110,14 @@ inline std::string S(char const k) { return std::string(1, k); }
 inline std::string S(std::string const &k) { return k; }
 inline std::string S() { return std::string(); }
 
+// more exact version of S(); convert double number with 12 significant digits
+inline std::string eS(double d)
+{
+    char buffer[24];
+    sprintf(buffer, "%.12g", d);
+    return std::string(buffer);
+}
+
 /// True if the string contains only a real number
 bool is_double (std::string const& s);
 

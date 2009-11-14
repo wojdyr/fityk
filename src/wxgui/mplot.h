@@ -77,7 +77,7 @@ public:
         void change_value(fp x, fp dx, int dX);
         std::string get_cmd() const {
             return how != no_drag && value != ini_value ?
-                "$" + variable_name + " = ~" + S(value) + "; " : "";
+                "$" + variable_name + " = ~" + eS(value) + "; " : "";
         }
     };
 

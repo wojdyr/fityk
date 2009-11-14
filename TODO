@@ -2,10 +2,6 @@ $Id$
 
 ---------- TODO list and tentative development plan  ----------------
 
-* GUI: set variables with more significant digits
-
---------------> 0.9.0
-
 * finish powder diffraction add-on (Pawley fitting)
 
 * GUI: "extend zoom up" doesn't work well with negative-y data
