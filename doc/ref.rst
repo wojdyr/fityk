@@ -496,7 +496,7 @@ can be used for example:
 A sum of datasets contains all points from all component datasets.
 If you want to merge points with the same x value, use::
 
-   @+ = sum_same_x @*n* + @*m* + ...
+   @+ = sum_same_x @n + @m + ...
 
 Each dataset has a separate :ref:`model <model>`,
 that can be fitted to the data. This is explained in the next chapter.
@@ -506,7 +506,7 @@ When loading file, a title is automatically created, either using
 the filename or by reading it from the file (depending on the format
 of the file). Titles can be changed using the command::
 
-   `set @*n*.title=*new-title*`.
+   set @n.title=new-title
 
 To print the title of the dataset, type ``info title in @n``.
 
@@ -1509,11 +1509,11 @@ The following ``info`` arguments are recognized:
 
 + datasets
 
-+ data \[in @*n*]
++ data \[in @\ *n*]
 
-+ title \[in @*n*]
++ title \[in @\ *n*]
 
-+ filename \[in @*n*]
++ filename \[in @\ *n*]
 
 + commands
 
@@ -1523,25 +1523,25 @@ The following ``info`` arguments are recognized:
 
 + set
 
-+ fit \[in @*n*]
++ fit \[in @\ *n*]
 
 + fit-history
 
-+ errors \[in @*n*]
++ errors \[in @\ *n*]
 
-+ formula \[in @*n*]
++ formula \[in @\ *n*]
 
-+ peaks \[in @*n*]
++ peaks \[in @\ *n*]
 
-+ guess \[x-range] \[in @*n*]
++ guess \[x-range] \[in @\ *n*]
 
-+ *data-expression* [in @*n*]
++ *data-expression* [in @\ *n*]
 
-+ [@*n*.]F
++ [@\ *n*.]F
 
-+ [@*n*.]Z
++ [@\ *n*.]Z
 
-+ [@*n*.]dF(*data-expression*)
++ [@\ *n*.]dF(*data-expression*)
 
 + der *mathematic-function*
 
