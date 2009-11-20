@@ -10,7 +10,7 @@ class GaussianFitter(Fityk):
             raise ValueError("File `%s' not found." % filename)
         self.filename = filename
         self.execute("@0 < '%s'" % filename)
-        print "Data info:", self.get_info("@0")
+        print "Data info:", self.get_info("data in @0")
 
     def run(self):
         self.execute("%g = guess Gaussian")

@@ -6,7 +6,7 @@ $Id$
 
 * GUI: "extend zoom up" doesn't work well with negative-y data
 
-* GUI: Fit-all doesn't work when there is x=nan in dataset
+* GUI BUG: Fit-all doesn't work when there is x=nan in dataset
 
 * GUI BUG: minor tics are not drawn on the very left side of x axis
 
@@ -46,7 +46,7 @@ $Id$
 
 * (GUI) plot horizontal/vertical lines 
      can be used to show theoretical peak positions in XRD
-     (or to make stress-strain curves in MD with marked simulation restarts)
+     (or to mark simulation restarts in data from MD)
      Syntax: 
              plot line x=42.2 label="foo" in @*
              plot line y=1000.3 label="foo" in @*
@@ -168,7 +168,7 @@ $Id$
     http://coin-or.org
     http://www-unix.mcs.anl.gov/otc/Guide/faq/nonlinear-programming-faq.html 
     levmar: http://www.ics.forth.gr/~lourakis/levmar/
-    OpenOpt: http://scipy.org/scipy/scikits/wiki/OpenOpt
+    OpenOpt: http://openopt.org/
 
 * fitting: robust fit - other error distributions then Gaussian, 
   eg. Lorenzian...; so called 'maximum-likelihood method' -- using Poisson
