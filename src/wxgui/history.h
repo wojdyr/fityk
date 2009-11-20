@@ -11,6 +11,8 @@
 #include <wx/wx.h>
 #include <wx/listctrl.h>
 
+class wxSpinEvent;
+
 class SumHistoryDlg : public wxDialog
 {
 public:
