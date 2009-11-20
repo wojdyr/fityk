@@ -7,7 +7,7 @@
 
 #include "plot.h"
 
-enum Aux_plot_kind_enum
+enum AuxPlotKind
 {
     apk_empty,
     apk_diff,
@@ -51,7 +51,7 @@ public:
 private:
     FPlot* master;
     wxString name;
-    Aux_plot_kind_enum kind;
+    AuxPlotKind kind;
     bool mark_peak_ctrs;
     bool reversed_diff;
     double y_zoom, y_zoom_base;

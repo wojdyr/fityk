@@ -17,6 +17,29 @@
 class Function;
 class HintReceiver;
 
+// operation started by pressing mouse button
+enum MouseOperation
+{
+    // press-move-release operation
+    kRectangularZoom,
+    kVerticalZoom,
+    kHorizontalZoom,
+    kActivateSpan,
+    kDisactivateSpan,
+    kActivateRect,
+    kDisactivateRect,
+    kAddPeakInRange,
+    kAddPeakTriangle,
+    kDragPeak,
+    // one-click operation
+    kShowPlotMenu,
+    kShowPeakMenu,
+    kAddBgPoint,
+    kDeleteBgPoint,
+    // nothing
+    kNoMouseOp
+};
+
 class BgManager
 {
 public:
@@ -182,8 +205,7 @@ private:
     wxColour groupCol[max_group_cols], peakCol[max_peak_cols];
     wxColour dataColour[max_data_cols];
     int pressed_mouse_button;
-    bool ctrl_on_down;
-    bool shift_on_down;
+    MouseOperation mouse_op;
     int over_peak; /// the cursor is over peaktop of this peak
     int limit1, limit2; /// for drawing function limits (vertical lines)
     FunctionMouseDrag fmd; //for function dragging
@@ -211,7 +233,8 @@ private:
     void draw_rect (int X1, int Y1, int X2, int Y2);
     bool visible_peaktops(MouseModeEnum mode);
     void add_peak_from_draft(int X, int Y);
-    bool can_disactivate();
+    bool can_activate();
+    MouseOperation what_mouse_operation(wxMouseEvent const& event);
 
     DECLARE_EVENT_TABLE()
 };

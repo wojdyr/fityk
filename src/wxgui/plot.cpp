@@ -80,39 +80,39 @@ void FPlot::draw_inverted_line(int X, wxPenStyle style, LineOrientation orient)
 void FPlot::draw_crosshair(int X, int Y)
 {
     wxClientDC dc(this);
-    dc.SetLogicalFunction (wxINVERT);
+    dc.SetLogicalFunction(wxINVERT);
     dc.SetPen(*wxBLACK_DASHED_PEN);
     dc.CrossHair(X, Y);
 }
 
-void FPlot::start_line_following_cursor(int x0, LineOrientation orient)
+void FPlot::start_line_following_cursor(int X0, LineOrientation orient)
 {
     lfc_orient = orient;
-    lfc_prev_x0 = x0;
-    lfc_prev_x = x0+1;
-    draw_inverted_line(lfc_prev_x0, wxPENSTYLE_SHORT_DASH, lfc_orient);
-    draw_inverted_line(lfc_prev_x, wxPENSTYLE_SHORT_DASH, lfc_orient);
+    lfc_prev_X0 = X0;
+    lfc_prev_X = X0+1;
+    draw_inverted_line(lfc_prev_X0, wxPENSTYLE_SHORT_DASH, lfc_orient);
+    draw_inverted_line(lfc_prev_X, wxPENSTYLE_SHORT_DASH, lfc_orient);
     connect_esc_to_cancel(true);
 }
 
-bool FPlot::line_following_cursor(MouseActEnum ma, int x)
+bool FPlot::line_following_cursor(MouseActEnum ma, int X)
 {
-    if (lfc_prev_x == INT_MIN)
+    if (lfc_prev_X == INT_MIN)
         return false;
     //clear (or draw again) old line
-    draw_inverted_line(lfc_prev_x, wxPENSTYLE_SHORT_DASH, lfc_orient);
+    draw_inverted_line(lfc_prev_X, wxPENSTYLE_SHORT_DASH, lfc_orient);
     switch (ma) {
         case mat_move:
-            draw_inverted_line(x, wxPENSTYLE_SHORT_DASH, lfc_orient);
-            lfc_prev_x = x;
+            draw_inverted_line(X, wxPENSTYLE_SHORT_DASH, lfc_orient);
+            lfc_prev_X = X;
             break;
         case mat_redraw:
-            draw_inverted_line(lfc_prev_x0, wxPENSTYLE_SHORT_DASH, lfc_orient);
+            draw_inverted_line(lfc_prev_X0, wxPENSTYLE_SHORT_DASH, lfc_orient);
             break;
         case mat_stop:
             // clear
-            draw_inverted_line(lfc_prev_x0, wxPENSTYLE_SHORT_DASH, lfc_orient);
-            lfc_prev_x = lfc_prev_x0 = INT_MIN;
+            draw_inverted_line(lfc_prev_X0, wxPENSTYLE_SHORT_DASH, lfc_orient);
+            lfc_prev_X = lfc_prev_X0 = INT_MIN;
             connect_esc_to_cancel(false);
             break;
         default:

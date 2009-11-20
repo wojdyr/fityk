@@ -61,7 +61,7 @@ END_EVENT_TABLE()
 
 void AuxPlot::OnPaint(wxPaintEvent&)
 {
-    frame->draw_crosshair(-1, -1);
+    frame->update_crosshair(-1, -1);
     buffered_draw();
     //draw, if necessary, vertical or horizontal lines
     line_following_cursor(mat_redraw);
@@ -204,7 +204,7 @@ void AuxPlot::OnMouseMove(wxMouseEvent &event)
     else if (X > GetClientSize().GetWidth() - move_plot_margin_width)
         SetCursor(wxCURSOR_POINT_RIGHT);
     else {
-        frame->draw_crosshair(X, -1);
+        frame->update_crosshair(X, -1);
         SetCursor(wxCURSOR_CROSS);
     }
 }
@@ -212,7 +212,7 @@ void AuxPlot::OnMouseMove(wxMouseEvent &event)
 void AuxPlot::OnLeaveWindow (wxMouseEvent&)
 {
     frame->clear_status_coords();
-    frame->draw_crosshair(-1, -1);
+    frame->update_crosshair(-1, -1);
 }
 
 bool AuxPlot::is_zoomable()
@@ -258,7 +258,7 @@ void AuxPlot::read_settings(wxConfigBase *cf)
 {
     wxString path = wxT("/AuxPlot_") + name;
     cf->SetPath(path);
-    kind = static_cast <Aux_plot_kind_enum> (cf->Read (wxT("kind"), apk_diff));
+    kind = static_cast<AuxPlotKind>(cf->Read (wxT("kind"), apk_diff));
     mark_peak_ctrs = cfg_read_bool (cf, wxT("markCtr"), false);
     reversed_diff = cfg_read_bool (cf, wxT("reversedDiff"), false);
     auto_zoom_y = false;
@@ -408,7 +408,7 @@ void AuxPlot::OnMiddleDown (wxMouseEvent&)
 
 void AuxPlot::OnPopupPlot (wxCommandEvent& event)
 {
-    kind = static_cast<Aux_plot_kind_enum>(event.GetId()-ID_aux_plot0);
+    kind = static_cast<AuxPlotKind>(event.GetId()-ID_aux_plot0);
     //fit_y_zoom();
     fit_y_once = true;
     refresh();

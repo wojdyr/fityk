@@ -153,8 +153,9 @@ void PlotPane::show_aux(int n, bool show)
 }
 
 
-/// draw "crosshair cursor" -> erase old and draw new
-void PlotPane::draw_crosshair(int X, int Y)
+/// draw "crosshair cursor" -> erase old and draw new;
+/// can be used to draw vertical line, by calling with Y=-1
+void PlotPane::update_crosshair(int X, int Y)
 {
     static bool drawn = false;
     static int oldX = 0, oldY = 0;
@@ -162,7 +163,8 @@ void PlotPane::draw_crosshair(int X, int Y)
         do_draw_crosshair(oldX, oldY);
         drawn = false;
     }
-    if (crosshair_cursor && X >= 0) {
+    // there is a 
+    if ((crosshair_cursor || Y == -1) && X >= 0) {
         do_draw_crosshair(X, Y);
         oldX = X;
         oldY = Y;

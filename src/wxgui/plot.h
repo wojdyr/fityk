@@ -86,10 +86,10 @@ public:
          pen_width(1),
          draw_sigma(false),
          mouse_press_X(INT_MIN), mouse_press_Y(INT_MIN),
-         lfc_prev_x(INT_MIN), lfc_prev_x0(INT_MIN),
+         lfc_prev_X(INT_MIN), lfc_prev_X0(INT_MIN),
          esc_seed_(NULL) {}
 
-    ~FPlot() {}
+    virtual ~FPlot() {}
 
     // in wxGTK 2.9 it seems that changing this to true doesn't make
     // the window accept focus
@@ -120,14 +120,14 @@ protected:
     bool x_grid, y_grid;
     int x_max_tics, y_max_tics, x_tic_size, y_tic_size;
     int mouse_press_X, mouse_press_Y;
-    int lfc_prev_x, lfc_prev_x0; // lines following cursor (either vert. or h.)
+    int lfc_prev_X, lfc_prev_X0; // lines following cursor (either vert. or h.)
     LineOrientation lfc_orient;
     std::vector<wxPoint> special_points; //used to mark positions of peak tops
     wxWindow *esc_seed_; // temporary source of OnKeyDown() events
 
     void draw_inverted_line(int X, wxPenStyle style, LineOrientation orient);
-    void start_line_following_cursor(int x0, LineOrientation orient);
-    bool line_following_cursor(MouseActEnum ma, int x=0);
+    void start_line_following_cursor(int X0, LineOrientation orient);
+    bool line_following_cursor(MouseActEnum ma, int X=0);
     void draw_xtics (wxDC& dc, View const& v, bool set_pen=true);
     void draw_ytics (wxDC& dc, View const &v, bool set_pen=true);
     double get_max_abs_y(double (*compute_y)(std::vector<Point>::const_iterator,

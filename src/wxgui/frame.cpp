@@ -1282,7 +1282,7 @@ void FFrame::OnChangeMouseMode (wxCommandEvent& event)
             break;
         case ID_G_M_RANGE:
         case ID_ft_m_range:
-            mode = mmd_range;
+            mode = mmd_activate;
             GetMenuBar()->Check(ID_G_M_RANGE, true);
             if (toolbar)
                 toolbar->ToggleTool(ID_ft_m_range, true);
@@ -1734,9 +1734,9 @@ void FFrame::refresh_plots(bool now, WhichPlot which_plot)
     plot_pane->refresh_plots(now, which_plot);
 }
 
-void FFrame::draw_crosshair(int X, int Y)
+void FFrame::update_crosshair(int X, int Y)
 {
-    plot_pane->draw_crosshair(X, Y);
+    plot_pane->update_crosshair(X, Y);
 }
 
 void FFrame::focus_input(wxKeyEvent& event)
@@ -1917,7 +1917,7 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
                  wxBitmap(active_mode_xpm), wxNullBitmap,
                  wxT("Data-Range Mode"),
                  wxT("Use mouse for activating and disactivating data (try also with [Shift])"));
-    ToggleTool(ID_ft_m_range, m == mmd_range);
+    ToggleTool(ID_ft_m_range, m == mmd_activate);
     AddRadioTool(ID_ft_m_bg, wxT("Background"),
                  wxBitmap(bg_mode_xpm), wxNullBitmap,
                  wxT("Baseline Mode"),

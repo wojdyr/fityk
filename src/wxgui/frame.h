@@ -174,7 +174,7 @@ public:
     void change_zoom(const std::string& s);
     void scroll_view_horizontally(fp step);
     void refresh_plots(bool now, WhichPlot which_plot);
-    void draw_crosshair(int X, int Y);
+    void update_crosshair(int X, int Y);
     void focus_input(wxKeyEvent& event);
     void edit_in_input(std::string const& s);
     void after_cmd_updates();

@@ -235,7 +235,7 @@ END_EVENT_TABLE()
 MainPlot::MainPlot (wxWindow *parent)
     : FPlot(parent), bgm(xs),
       basic_mode(mmd_zoom), mode(mmd_zoom),
-      pressed_mouse_button(0), ctrl_on_down(false), shift_on_down(false),
+      pressed_mouse_button(0),
       over_peak(-1), limit1(INT_MIN), limit2(INT_MIN),
       hint_receiver(NULL)
 {
@@ -244,7 +244,7 @@ MainPlot::MainPlot (wxWindow *parent)
 
 void MainPlot::OnPaint(wxPaintEvent&)
 {
-    frame->draw_crosshair(-1, -1);
+    frame->update_crosshair(-1, -1);
     limit1 = limit2 = INT_MIN;
     buffered_draw();
     // if necessary, redraw inverted lines
@@ -289,7 +289,7 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
 
     set_scale(get_pixel_width(dc), get_pixel_height(dc));
 
-    frame->draw_crosshair(-1, -1); //erase crosshair before redrawing plot
+    frame->update_crosshair(-1, -1); //erase crosshair before redrawing plot
 
     int Ymax = get_pixel_height(dc);
     prepare_peaktops(model, Ymax);
@@ -334,7 +334,7 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
 bool MainPlot::visible_peaktops(MouseModeEnum mode)
 {
     return (mode == mmd_zoom || mode == mmd_add || mode == mmd_peak
-            || mode == mmd_range);
+            || mode == mmd_activate);
 }
 
 void MainPlot::draw_x_axis (wxDC& dc, bool set_pen)
@@ -659,7 +659,7 @@ void MainPlot::save_settings(wxConfigBase *cf) const
 void MainPlot::OnLeaveWindow (wxMouseEvent&)
 {
     frame->clear_status_coords();
-    frame->draw_crosshair(-1, -1);
+    frame->update_crosshair(-1, -1);
 }
 
 void MainPlot::show_popup_menu (wxMouseEvent &event)
@@ -729,16 +729,16 @@ void MainPlot::OnPeakDelete(wxCommandEvent&)
 
 void MainPlot::OnPeakGuess(wxCommandEvent&)
 {
-    if (over_peak >= 0) {
-        Function const* p = ftk->get_function(over_peak);
-        if (p->has_center()) {
-            fp ctr = p->center();
-            fp plusmin = max(fabs(p->fwhm()), p->iwidth());
-            ftk->exec(p->xname + " = guess " + p->type_name + " ["
-                             + S(ctr-plusmin) + ":" + S(ctr+plusmin) + "]"
-                             + frame->get_global_parameters()
-                             + frame->get_in_datasets());
-        }
+    if (over_peak < 0)
+        return;
+    Function const* p = ftk->get_function(over_peak);
+    if (p->has_center()) {
+        fp ctr = p->center();
+        fp plusmin = max(fabs(p->fwhm()), p->iwidth());
+        char buffer[64];
+        sprintf(buffer, " [%.12g:%.12g]", ctr-plusmin, ctr+plusmin);
+        ftk->exec(p->xname + " = guess " + p->type_name + buffer
+                  + frame->get_global_parameters() + frame->get_in_datasets());
     }
 }
 
@@ -806,7 +806,7 @@ void MainPlot::update_mouse_hints()
                 left = "manual add";  right = "add in range";
                 mode_name = "add-peak";
                 break;
-            case mmd_range:
+            case mmd_activate:
                 left = "activate";  right = "disactivate";
                 mode_name = "data range";
                 shift_left = "activate rectangle";
@@ -831,24 +831,22 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
     int Y = event.GetY();
     frame->set_status_coords(xs.val(X), ys.val(Y), pte_main);
 
-    if (pressed_mouse_button == 0) {
-        if (mode == mmd_range) {
-            if (!ctrl_on_down)
-                line_following_cursor(mat_move, event.GetX());
-            else
-                line_following_cursor(mat_stop);
-        }
-        if (visible_peaktops(mode))
-            look_for_peaktop (event);
-        frame->draw_crosshair(X, Y);
+    if (pressed_mouse_button != 0) {
+        line_following_cursor(mat_move, lfc_orient == kVerticalLine ? X : Y);
+        draw_moving_func(mat_move, X, Y, event.ShiftDown());
+        peak_draft(mat_move, X, Y);
+        draw_temporary_rect(mat_move, X, Y);
     }
-    else {
-        line_following_cursor(mat_move,
-                   lfc_orient == kVerticalLine ? event.GetX() : event.GetY());
-        draw_moving_func(mat_move, event.GetX(), event.GetY(),
-                         event.ShiftDown());
-        peak_draft(mat_move, event.GetX(), event.GetY());
-        draw_temporary_rect(mat_move, event.GetX(), event.GetY());
+    else { // no button pressed
+        if (visible_peaktops(mode))
+            look_for_peaktop(event);
+        int cY = Y; // cross-hair Y. If negative, only vertical line is drawn.
+        // In mmd_activate span mode, draw line following cursor
+        if (mode == mmd_activate) {
+            if (!(event.AltDown() || event.CmdDown()))
+                cY = -1;
+        }
+        frame->update_crosshair(X, cY);
     }
 }
 
@@ -865,7 +863,7 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
     if (over_peak == nearest)
         return;
 
-    //if we are here, over_peak != nearest; changing cursor and statusbar text
+    // if we are here, over_peak != nearest; changing cursor and statusbar text
     // and show limits
     over_peak = nearest;
     if (nearest != -1) {
@@ -912,6 +910,39 @@ void MainPlot::cancel_mouse_press()
     }
 }
 
+MouseOperation MainPlot::what_mouse_operation(wxMouseEvent const& event)
+{
+    bool ctrl = (event.AltDown() || event.CmdDown());
+    bool shift = event.ShiftDown();
+    int button = event.GetButton();
+    if (button == 2 || // middle button always zooms
+        (button == 1 && (ctrl || (mode == mmd_zoom && !shift))))
+        return kRectangularZoom;
+    else if (button == 3 && (ctrl || (mode == mmd_zoom && !shift)))
+        return kShowPlotMenu;
+    else if (button == 1 && mode == mmd_zoom && shift)
+        return kVerticalZoom;
+    else if (button == 3 && mode == mmd_zoom && shift)
+        return kHorizontalZoom;
+    else if (button == 1 && mode == mmd_peak)
+        return kDragPeak;
+    else if (button == 3 && mode == mmd_peak)
+        return kShowPeakMenu;
+    else if (button == 1 && mode == mmd_bg)
+        return kAddBgPoint;
+    else if (button == 3 && mode == mmd_bg)
+        return kDeleteBgPoint;
+    else if (button == 1 && mode == mmd_add)
+        return kAddPeakTriangle;
+    else if (button == 3 && mode == mmd_add)
+        return kAddPeakInRange;
+    else if (button == 1 && mode == mmd_activate)
+        return shift ? kActivateRect : kActivateSpan;
+    else if (button == 3 && mode == mmd_activate)
+        return shift ? kDisactivateRect : kDisactivateSpan;
+    else
+        return kNoMouseOp;
+}
 
 void MainPlot::OnButtonDown (wxMouseEvent &event)
 {
@@ -921,70 +952,67 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         return;
     }
 
-    frame->draw_crosshair(-1, -1);
-    int button = event.GetButton();
-    pressed_mouse_button = button;
-    ctrl_on_down = (event.AltDown() || event.CmdDown());
-    shift_on_down = event.ShiftDown();
+    frame->update_crosshair(-1, -1);
+    pressed_mouse_button = event.GetButton();
     mouse_press_X = event.GetX();
     mouse_press_Y = event.GetY();
-    fp x = xs.val (event.GetX());
-    fp y = ys.val (event.GetY());
-    if (button == 2 || // middle button always zooms
-        (button == 1 &&
-         (ctrl_on_down || (mode == mmd_zoom && !shift_on_down)))) {
+    fp x = xs.val(event.GetX());
+    fp y = ys.val(event.GetY());
+    mouse_op = what_mouse_operation(event);
+    if (mouse_op == kRectangularZoom) {
         draw_temporary_rect(mat_start, event.GetX(), event.GetY());
         SetCursor(wxCURSOR_MAGNIFIER);
         frame->set_status_text("Select second corner to zoom...");
     }
-    else if (button == 3 &&
-               (ctrl_on_down || (mode == mmd_zoom && !shift_on_down))) {
-        show_popup_menu (event);
+    else if (mouse_op == kShowPlotMenu) {
+        show_popup_menu(event);
         cancel_mouse_press();
     }
-    else if (button == 1 && mode == mmd_zoom && shift_on_down) {
+    else if (mouse_op == kShowPeakMenu) {
+        show_peak_menu(event);
+        cancel_mouse_press();
+    }
+    else if (mouse_op == kVerticalZoom) {
         SetCursor(wxCURSOR_SIZENS);
         start_line_following_cursor(mouse_press_Y, kHorizontalLine);
         frame->set_status_text("Select vertical span...");
     }
-    else if (button == 3 && mode == mmd_zoom && shift_on_down) {
+    else if (mouse_op == kHorizontalZoom) {
         SetCursor(wxCURSOR_SIZEWE);
         start_line_following_cursor(mouse_press_X, kVerticalLine);
         frame->set_status_text("Select horizontal span...");
     }
-    else if (button == 1 && mode == mmd_peak) {
+    else if (mouse_op == kDragPeak) {
         frame->get_sidebar()->activate_function(over_peak);
         draw_moving_func(mat_start, event.GetX(), event.GetY());
         frame->set_status_text("Moving " + ftk->get_function(over_peak)->xname
                                 + "...");
     }
-    else if (button == 3 && mode == mmd_peak) {
-        show_peak_menu(event);
-        cancel_mouse_press();
-    }
-    else if (button == 1 && mode == mmd_bg) {
+    else if (mouse_op == kAddBgPoint) {
         bgm.add_background_point(x, y);
         refresh();
     }
-    else if (button == 3 && mode == mmd_bg) {
+    else if (mouse_op == kDeleteBgPoint) {
         bgm.rm_background_point(x);
         refresh();
     }
-    else if (button == 1 && mode == mmd_add) {
+    else if (mouse_op == kAddPeakTriangle) {
         func_draft_kind
             = get_function_kind(Function::get_formula(frame->get_peak_type()));
         peak_draft (mat_start, event.GetX(), event.GetY());
         SetCursor(wxCURSOR_SIZING);
         frame->set_status_text("Add drawed peak...");
     }
-    else if (button == 3 && mode == mmd_add) {
+    else if (mouse_op == kAddPeakInRange) {
         start_line_following_cursor(mouse_press_X, kVerticalLine);
         SetCursor(wxCURSOR_SIZEWE);
         frame->set_status_text("Select range to add a peak in it...");
     }
-    else if (button != 2 && mode == mmd_range) {
-        if (button == 1) {
-            if (!can_disactivate()) {
+    else if (mouse_op == kActivateSpan || mouse_op == kDisactivateSpan ||
+             mouse_op == kActivateRect || mouse_op == kDisactivateRect) {
+        string act_str;
+        if (mouse_op == kActivateSpan || mouse_op == kActivateRect) {
+            if (!can_activate()) {
                 cancel_mouse_press();
                 wxMessageBox(
                  wxT("You pressed the left mouse button in data-range mode,")
@@ -997,25 +1025,27 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
                              wxOK|wxICON_INFORMATION);
                 return;
             }
+            act_str = "activate";
         }
-        string status_info;
-        if (shift_on_down) {
+        else
+            act_str = "disactivate";
+        string status_beginning;
+        if (mouse_op == kActivateRect || mouse_op == kDisactivateRect) {
             SetCursor(wxCURSOR_SIZENWSE);
             draw_temporary_rect(mat_start, event.GetX(), event.GetY());
-            status_info = "Select data in rectangle to ";
+            status_beginning = "Select data in rectangle to ";
         }
         else {
             SetCursor(wxCURSOR_SIZEWE);
             start_line_following_cursor(mouse_press_X, kVerticalLine);
-            status_info = "Select data range to ";
+            status_beginning = "Select data range to ";
         }
-        frame->set_status_text(status_info + (button==1 ? "activate..."
-                                                        : "disactivate..."));
+        frame->set_status_text(status_beginning + act_str + "...");
     }
     update_mouse_hints();
 }
 
-bool MainPlot::can_disactivate()
+bool MainPlot::can_activate()
 {
     vector<int> sel = frame->get_sidebar()->get_selected_data_indices();
     for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i) {
@@ -1040,9 +1070,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     // if Down and Up events are at the same position -> cancel
 
     // zoom
-    if (button == 2 ||
-        (button == 1 &&
-         (ctrl_on_down || (mode == mmd_zoom && !shift_on_down)))) {
+    if (mouse_op == kRectangularZoom) {
         draw_temporary_rect(mat_stop);
         if (dist_X + dist_Y >= 10) {
             fp x1 = xs.val(mouse_press_X);
@@ -1057,24 +1085,24 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         else
             frame->set_status_text("");
     }
-    else if (button == 1 && mode == mmd_zoom && shift_on_down) {
+    else if (mouse_op == kVerticalZoom) {
         line_following_cursor(mat_stop);
         if (dist_Y >= 5) {
             fp y1 = ys.val(mouse_press_Y);
             fp y2 = ys.val(event.GetY());
-            char buffer[128];
+            char buffer[64];
             sprintf(buffer, ". [%.12g:%.12g]", min(y1,y2), max(y1,y2));
             frame->change_zoom(buffer);
         }
         else
             frame->set_status_text("");
     }
-    else if (button == 3 && mode == mmd_zoom && shift_on_down) {
+    else if (mouse_op == kHorizontalZoom) {
         line_following_cursor(mat_stop);
         if (dist_X >= 5) {
             fp x1 = xs.val(mouse_press_X);
             fp x2 = xs.val(event.GetX());
-            char buffer[128];
+            char buffer[64];
             sprintf(buffer, "[%.12g:%.12g] .", min(x1,x2), max(x1,x2));
             frame->change_zoom(buffer);
         }
@@ -1082,7 +1110,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             frame->set_status_text("");
     }
     // drag peak
-    else if (mode == mmd_peak && button == 1) {
+    else if (mouse_op == kDragPeak) {
         if (dist_X + dist_Y >= 2) {
             string cmd = fmd.get_cmd();
             if (!cmd.empty())
@@ -1092,36 +1120,39 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         frame->set_status_text("");
     }
     // activate or disactivate data
-    else if (mode == mmd_range && button != 2) {
+    else if (mouse_op == kActivateSpan || mouse_op == kDisactivateSpan ||
+             mouse_op == kActivateRect || mouse_op == kDisactivateRect) {
         line_following_cursor(mat_stop);
         draw_temporary_rect(mat_stop);
-        string c = (button == 1 ? "A = a or " : "A = a and not ");
-        if (!shift_on_down && dist_X >= 5) {
+        bool rect = (mouse_op == kActivateRect || mouse_op == kDisactivateRect);
+        string c = (mouse_op == kActivateSpan || mouse_op == kActivateRect
+                    ? "A = a or " : "A = a and not ");
+        if (!rect && dist_X >= 5) {
             fp xmin = xs.val (min (event.GetX(), mouse_press_X));
             fp xmax = xs.val (max (event.GetX(), mouse_press_X));
-            string cond = "(" + S(xmin) + "< x <" + S(xmax) + ")";
+            string cond = "(" + eS(xmin) + "< x <" + eS(xmax) + ")";
             ftk->exec(c + cond + frame->get_in_datasets());
         }
-        else if (shift_on_down && dist_X + dist_Y >= 10) {
+        else if (rect && dist_X + dist_Y >= 10) {
             fp x1 = xs.val(mouse_press_X);
             fp x2 = xs.val(event.GetX());
             fp y1 = ys.val(mouse_press_Y);
             fp y2 = ys.val(event.GetY());
-            string cond = "(" + S(min(x1,x2)) + " < x < " + S(max(x1,x2))
-                   + " and " + S(min(y1,y2)) + " < y < " + S(max(y1,y2)) + ")";
+            string cond = "(" + eS(min(x1,x2)) + " < x < " + eS(max(x1,x2))
+                 + " and " + eS(min(y1,y2)) + " < y < " + eS(max(y1,y2)) + ")";
             ftk->exec(c + cond + frame->get_in_datasets());
         }
         frame->set_status_text("");
     }
     // add peak (left button)
-    else if (mode == mmd_add && button == 1) {
+    else if (mouse_op == kAddPeakTriangle) {
         frame->set_status_text("");
         peak_draft(mat_stop, event.GetX(), event.GetY());
         if (func_draft_kind == fk_linear || dist_X + dist_Y >= 5)
             add_peak_from_draft(event.GetX(), event.GetY());
     }
     // add peak (in range)
-    else if (mode == mmd_add && button == 3) {
+    else if (mouse_op == kAddPeakInRange) {
         frame->set_status_text("");
         if (dist_X >= 5) {
             fp x1 = xs.val(mouse_press_X);

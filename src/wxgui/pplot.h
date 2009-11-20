@@ -35,7 +35,7 @@ public:
                      { assert(n>=0 && n<2); return aux_plot[n]; }
     void show_aux(int n, bool show);
     bool aux_visible(int n) const;
-    void draw_crosshair(int X, int Y);
+    void update_crosshair(int X, int Y);
 
     bool crosshair_cursor;
 private:

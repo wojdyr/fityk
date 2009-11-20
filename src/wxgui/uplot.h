@@ -19,6 +19,7 @@ public:
     static wxString format_label(double x) { return wxString::Format("%g", x); }
 
     BufferedPanel(wxWindow *parent);
+    virtual ~BufferedPanel() {}
 
     /// mark panel as dirty and needing replotting,
     /// to be called when the content of panel is changed
@@ -36,8 +37,6 @@ public:
     void set_bg_color(wxColour const& c);
     /// get background color
     wxColour const& get_bg_color() const { return bg_color_; }
-
-protected:
 
 private:
     wxMemoryDC memory_dc_;
