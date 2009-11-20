@@ -2,7 +2,7 @@
 
 lib_LTLIBRARIES = libxy.la
 
-libxy_la_LDFLAGS = -version-info 1:0:0
+libxy_la_LDFLAGS = -version-info 2:0:1
 libxy_la_LIBADD = @XYLIB_ADDLIB@
 
 # This is useful when building as a part of fityk (which provides subset of

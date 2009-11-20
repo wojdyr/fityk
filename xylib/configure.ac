@@ -2,7 +2,7 @@
 # after changing, run "autoreconf --install --verbose"
 
 AC_PREREQ(2.59)
-AC_INIT([xylib], [0.4], [])
+AC_INIT([xylib], [0.5], [])
 AC_CONFIG_SRCDIR([xylib/xylib.cpp])
 AC_CONFIG_HEADER([config.h])
 
@@ -69,6 +69,15 @@ AC_CHECK_HEADERS([sys/types.h sys/stat.h], [],
 AC_CHECK_HEADERS([tr1/memory],
                  [AC_DEFINE([XYLIB_HAVE_TR1_MEMORY], [1],
 	                            [Define if <tr1/memory> is available])])
+
+# We change directly the header xylib/cache.h, because including <config.h>
+# in this header would cause problems in programs using xylib.
+uses_tr1_memory=`grep '#define XYLIB_USE_TR1_MEMORY ' $srcdir/xylib/cache.h | sed 's/.*\([01]\)/\1/g'`
+if test "$ac_cv_header_tr1_memory" = "yes" && test $uses_tr1_memory != "1"; then
+    sed -i 's/\(#define XYLIB_USE_TR1_MEMORY\) 0/\1 1/' $srcdir/xylib/cache.h
+elif test "$ac_cv_header_tr1_memory" != "yes" && test $uses_tr1_memory = "1"; then
+    sed -i 's/\(#define XYLIB_USE_TR1_MEMORY\) 1/\1 0/' $srcdir/xylib/cache.h
+fi
 
 # this is for compatibility with fityk configure.ac 
 # see xylib/Makefile.am for comments on CPPFLAGS_3RDPARTY

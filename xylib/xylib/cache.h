@@ -20,9 +20,10 @@
 #include <string>
 #include <vector>
 
-// XXX: to handle XYLIB_HAVE_TR1_MEMORY in this file we would need to define
-// it here (by creating cache.h.in), because we shouldn't include <config.h>.
-#if 0 //XYLIB_HAVE_TR1_MEMORY
+// the value here (1 or 0) is set by xylib configure script
+#define XYLIB_USE_TR1_MEMORY 1
+
+#if XYLIB_USE_TR1_MEMORY
 # include <tr1/memory>
   using std::tr1::shared_ptr;
 #else
