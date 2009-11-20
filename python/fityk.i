@@ -32,9 +32,22 @@ namespace std {
         }
         $1=PyFile_AsFile($input);
     }
+#elif defined(SWIGLUA)
+    namespace std
+    {
+        class runtime_error : public exception {
+        public:
+          explicit runtime_error (const string& what_arg);
+        };
+    }
+
+    %typemap(throws) fityk::ExecuteError {
+        lua_pushstring(L,$1.what()); SWIG_fail;
+    }
+
 #else
 #warning \
-    fityk.i was tested only with Python. If you use it with other \
+    fityk.i was tested only with Python and Lua. If you use it with other \
     languages, or you had to modify it, please let me know - wojdyr@gmail.com
 #endif
 
