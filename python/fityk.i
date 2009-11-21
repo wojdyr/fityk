@@ -18,20 +18,40 @@ namespace std {
     %template(DoubleVector) vector<double>;
 }
 
-// str() is used in class Point and exceptions
-%rename(__str__) str();
-
-// it's not easy to wrap this function
+// it can be wrapped only using typemaps
 %ignore set_show_message;
 
 #if defined(SWIGPYTHON)
-    %typemap(in) std::FILE * {
-        if (!PyFile_Check($input)) {
-            PyErr_SetString(PyExc_TypeError, "expected PyFile");
-            return NULL;
-        }
-        $1=PyFile_AsFile($input);
+    // str() is used in class Point and exceptions
+    %rename(__str__) str();
+
+    %include "file.i"
+    %apply FILE* { std::FILE* };
+
+    %typemap(check) PyObject *pyfunc {
+        if (!PyCallable_Check($1))
+            SWIG_exception(SWIG_TypeError,"Expected function.");
     }
+    %{
+    PyObject *_py_show_message_func = NULL;
+    static void PythonShowMessageCallBack(std::string const& s)
+    {
+        PyObject *arglist = Py_BuildValue("(s)", s.c_str());
+        PyEval_CallObject(_py_show_message_func, arglist);
+        Py_DECREF(arglist);
+    }
+    %}
+    %extend fityk::Fityk {
+        void py_set_show_message(PyObject *pyfunc) {
+            if (_py_show_message_func != NULL)
+                Py_DECREF(_py_show_message_func);
+            _py_show_message_func = pyfunc;
+            self->set_show_message(PythonShowMessageCallBack);
+            Py_INCREF(pyfunc);
+        }
+    }
+
+
 #elif defined(SWIGLUA)
     namespace std
     {
@@ -52,5 +72,4 @@ namespace std {
 #endif
 
 %include "fityk.h"
-
 
