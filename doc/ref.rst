@@ -858,8 +858,8 @@ Note that not all functions support this optimization.
 
 If you have a number of loaded dataset, and the functions in different
 datasets do not share parameters, it is faster to fit the datasets
-sequentially (``fit @0; fit @1; ...``)
-then parallelly (``fit @*``).
+sequentially (``fit in @0; fit in @1; ...``)
+then parallelly (``fit in @*``).
 
 Each simple-variable slows down the fitting, although
 this is often negligible.
@@ -976,7 +976,7 @@ e.g. ::
 
 - Name of the function is optional.
 
-- Some of the parameters can be specified with syntax *parameter*=*variable*.
+- Some of the parameters can be specified with syntax *parameter*\ =\ *variable*.
 
 - As an exception, if the range is omitted and the parameter *center*
   is given, the peak is searched around the *center*,
@@ -1139,7 +1139,7 @@ Fitting related commands
 
 To fit model to data, use command
 
-fit[+] [number-of-iterations] [in @n, ...]
+fit[+] [number-of-iterations] [in @n ...]
 
 The plus sign (+) prevents initialization of the fitting method.
 It is used to continue the previous fitting where it left off.
