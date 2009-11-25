@@ -112,7 +112,7 @@ string Fityk::get_info(string const& s, bool full)
     try {
         string result;
         size_t end = get_info_string(ftk, s, full, result);
-        if (end == string::npos)
+        if (end < s.size()) // not all the string was parsed
             throw SyntaxError();
         return result;
     } catch (ExecuteError& e) {
