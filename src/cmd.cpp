@@ -346,19 +346,3 @@ Commands::Status parse_and_execute(string const& str)
     }
 }
 
-string get_info_string(string const& s, bool full)
-{
-    cmdgram::no_info_output = true;
-    try {
-        bool r = parse_and_execute_e((full ? "info+ " : "info ") + s);
-        if (!r)
-            throw ExecuteError("Syntax error in info argument");
-    } catch (ExecuteError &) {
-        cmdgram::no_info_output = false;
-        throw;
-    }
-    cmdgram::no_info_output = false;
-    return cmdgram::prepared_info;
-}
-
-

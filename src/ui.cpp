@@ -101,34 +101,6 @@ void Commands::put_output_message(string const& s) const
     }
 }
 
-vector<string> Commands::get_commands(int from, int to, bool with_status) const
-{
-    if (from < 0)
-        from += cmds.size();
-    if (to < 0)
-        to += cmds.size();
-    vector<string> r;
-    if (!cmds.empty())
-        for (int i = max(from, 0); i < min(to, size(cmds)); ++i) {
-            string s;
-            if (with_status)
-                s = cmds[i].str();
-            else
-                s = cmds[i].cmd;
-            r.push_back(s);
-        }
-    return r;
-}
-
-int Commands::count_commands_with_status(Status st) const
-{
-    int cnt = 0;
-    for (vector<Cmd>::const_iterator i = cmds.begin(); i != cmds.end(); ++i)
-        if (i->status == st)
-            ++cnt;
-    return cnt;
-}
-
 string Commands::get_info(bool extended) const
 {
     string s = S(command_counter) + " commands since the start of the program,";
@@ -136,12 +108,17 @@ string Commands::get_info(bool extended) const
         s += " of which:";
     else
         s += "\nin last " + S(cmds.size()) + " commands:";
-    s += "\n  " + S(count_commands_with_status(status_ok))
-              + " executed successfully"
-        + "\n  " + S(count_commands_with_status(status_execute_error))
-          + " finished with execute error"
-        + "\n  " + S(count_commands_with_status(status_syntax_error))
-          + " with syntax error";
+    int n_ok = 0, n_execute_error = 0, n_syntax_error = 0;
+    for (vector<Cmd>::const_iterator i = cmds.begin(); i != cmds.end(); ++i)
+        if (i->status == status_ok)
+            ++n_ok;
+        else if (i->status == status_execute_error)
+            ++n_execute_error;
+        else if (i->status == status_syntax_error)
+            ++n_syntax_error;
+    s += "\n  " + S(n_ok) + " executed successfully"
+        + "\n  " + S(n_execute_error) + " finished with execute error"
+        + "\n  " + S(n_syntax_error) + " with syntax error";
     if (log_filename.empty())
         s += "\nCommands are not logged to any file.";
     else

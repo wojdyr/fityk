@@ -181,13 +181,14 @@ $Id$
 
 -------  Anticipated upgrades  -----------
 
-* when Boost::Spirit 2x is released/stable, parsers will be rewritten and 
-  libfityk will be made thread-safe (removing all `AL' and all static class 
-  members and global variables) (?)
-  Or perhaps it's better to use antlr?
-  Maybe a custom math parser based on muparser or FunctionParser could be used
-  for math expressions?
-  Or use embedded Lua where possible?
+* consider migration to Boost::Spirit 2. Alternatives are: using antlr or
+  hand-crafted parser. For data operations, one of math parsers could be used:
+       muParser http://muparser.sourceforge.net/
+        http://www.codeproject.com/KB/recipes/FastMathParser.aspx?msg=2942508
+       Function Parser http://warp.povusers.org/FunctionParser/
+     we would need at least support for user-defined function compilers
+     (to have syntax "sum(y if 3<x<8)") and callbacks for arrays (x[n+3])
+  some statements can be replaced with functions of embedded Lua
 
 * when wxWidgets 3.x will be available in major Linux distributions:
   - open-file dialog (with preview) will use XyBrowser

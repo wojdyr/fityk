@@ -217,7 +217,8 @@ bool VariableManager::is_variable_referred(int i,
     return false;
 }
 
-vector<string> VariableManager::get_variable_references(string const &name)
+vector<string>
+VariableManager::get_variable_references(string const &name) const
 {
     int idx = find_variable_nr(name);
     vector<string> refs;
@@ -461,7 +462,7 @@ Variable const* VariableManager::find_variable(string const &name) const
     return variables[n];
 }
 
-int VariableManager::find_nr_var_handling_param(int p)
+int VariableManager::find_nr_var_handling_param(int p) const
 {
     assert(p >= 0 && p < size(parameters));
     for (size_t i = 0; i < variables.size(); ++i)
@@ -471,7 +472,7 @@ int VariableManager::find_nr_var_handling_param(int p)
     return 0;
 }
 
-int VariableManager::find_parameter_variable(int par)
+int VariableManager::find_parameter_variable(int par) const
 {
     for (int i = 0; i < size(variables); ++i)
         if (variables[i]->get_nr() == par)

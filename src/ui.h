@@ -20,7 +20,7 @@ class Ftk;
 class Commands
 {
 public:
-    static const int max_cmd = 1024;
+    static const int max_cmd = 4096;
     enum Status { status_ok, status_execute_error, status_syntax_error };
 
     struct Cmd
@@ -35,12 +35,7 @@ public:
     Commands() : command_counter(0) {}
     void put_command(std::string const& c, Status s);
     void put_output_message(std::string const& s) const;
-    std::string get_command(int n) const { assert(is_index(n, cmds));
-                                           return cmds[n].cmd; }
-    Status get_status(int n) const { assert(is_index(n, cmds));
-                                     return cmds[n].status; }
-    std::vector<std::string> get_commands(int from, int to,
-                                          bool with_status) const;
+    std::vector<Cmd> const& get_cmds() const { return cmds; }
     std::string get_info(bool extended) const;
     void start_logging(std::string const& filename, bool with_output,
                        Ftk const* F);
@@ -48,14 +43,12 @@ public:
     std::string get_log_file() const { return log_filename; }
     bool get_log_with_output() const { return log_with_output; }
 
-  protected:
+  private:
     int command_counter; //!=cmds.size() if max_cmd was exceeded
     std::vector<Cmd> cmds;
     std::string log_filename;
     mutable std::ofstream log;
     bool log_with_output;
-
-    int count_commands_with_status(Status st) const;
 };
 
 /// commands, messages and plot refreshing

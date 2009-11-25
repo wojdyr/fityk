@@ -18,8 +18,4 @@ Commands::Status parse_and_execute(std::string const& str);
 /// like parse_and_execute(), but returns false on syntax error, throw exception on execute error
 bool parse_and_execute_e(std::string const& str);
 
-/// return output of info command
-std::string get_info_string(std::string const& s, bool full);
-
-
 #endif

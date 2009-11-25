@@ -54,14 +54,22 @@ public:
 
     int append_dm(Data *data=0);
     void remove_dm(int d);
+
+    std::vector<DataAndModel*> const& get_dms() const { return dms; }
     int get_dm_count() const { return dms.size(); }
+
     DataAndModel* get_dm(int n) { return dms[check_dm_number(n)]; }
     DataAndModel const* get_dm(int n) const { return dms[check_dm_number(n)]; }
-    std::vector<DataAndModel*> const& get_dms() const { return dms; }
+
+    Data const* get_data(int n) const { return get_dm(n)->data(); }
     Data *get_data(int n) { return get_dm(n)->data(); }
+
+    Model const* get_model(int n) const { return get_dm(n)->model(); }
     Model *get_model(int n)   { return get_dm(n)->model(); }
+
     bool contains_dm(DataAndModel const* p) const
                       { return count(dms.begin(), dms.end(), p) > 0; }
+
     std::string find_function_name(std::string const &fstr) const;
     const Function* find_function_any(std::string const &fstr) const;
 
@@ -73,7 +81,7 @@ public:
 
     FitMethodsContainer const* get_fit_container() const {return fit_container;}
     FitMethodsContainer* get_fit_container() { return fit_container; }
-    Fit* get_fit();
+    Fit* get_fit() const;
 
     /// Send warning to UI.
     void warn(std::string const &s) const;

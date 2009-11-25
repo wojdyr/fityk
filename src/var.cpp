@@ -162,6 +162,7 @@ Variable const* Variable::freeze_original(fp val)
 #define leaf_node_d reduced_node_d
 #endif
 
+// don't use inner_node_d[], it returns wrong tree_parse_info::length
 template <typename ScannerT>
 FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
 {
@@ -189,7 +190,10 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
                 ;
 
     exptoken    =  real_const
-                |  inner_node_d[ch_p('(') >> expression >> ')']
+                //|  inner_node_d[ch_p('(') >> expression >> ')']
+                |  discard_node_d[ch_p('(')]
+                   >> expression
+                   >> discard_node_d[ch_p(')')]
                 |  root_node_d[ as_lower_d[ str_p("sqrt") | "exp"
                                           | "erfc" | "erf" | "log10" | "ln"
                                           | "sinh" | "cosh" | "tanh"
@@ -199,8 +203,11 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
                                           ] ]
                    >>  inner_node_d[ch_p('(') >> expression >> ')']
                 | root_node_d[ as_lower_d["voigt"] ]
-                  >>  inner_node_d[ch_p('(') >> expression >> ',']
-                  >>  discard_last_node_d[expression >> ')']
+                  >>  discard_node_d[ch_p('(')]
+                  >>  expression
+                  >>  discard_node_d[ch_p(',')]
+                  >>  expression
+                  >>  discard_node_d[ch_p(')')]
                 |  variable
                 ;
 

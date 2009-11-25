@@ -1142,19 +1142,20 @@ vector<OpTree*> calculate_deriv(const_tm_iter_t const &i,
 
 
 /// debug utility, shows symbolic derivatives of given formula
-string get_derivatives_str(string const &formula)
+size_t get_derivatives_str(const char* formula, string& result)
 {
-    string s;
-    tree_parse_info<> info = ast_parse(formula.c_str(), FuncG>>end_p, space_p);
-    if (!info.full)
-        throw ExecuteError("Can't parse formula: " + formula);
+    tree_parse_info<> info = ast_parse(formula, FuncG, space_p);
+    printf("%d, %s\n", (int) info.length, formula);
+    if (!info.match)
+        throw ExecuteError("Can't parse formula: " + string(formula));
     const_tm_iter_t const &root = info.trees.begin();
     vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID, info);
     vector<OpTree*> results = calculate_deriv(root, vars);
-    s = "f(" + join_vector(vars, ", ") + ") = " + results.back()->str(&vars);
+    result += "f(" + join_vector(vars, ", ") + ") = "
+              + results.back()->str(&vars);
     for (size_t i = 0; i != vars.size(); ++i)
-        s += "\ndf / d " + vars[i] + " = " + results[i]->str(&vars);
+        result += "\ndf / d " + vars[i] + " = " + results[i]->str(&vars);
     purge_all_elements(results);
-    return s;
+    return info.length;
 }
 

@@ -24,16 +24,14 @@ class DataAndModel;
 
 namespace cmdgram {
 
-extern bool with_plus, deep_cp;
+extern bool with_plus;
 extern std::string t, t2, t3;
 extern int tmp_int, tmp_int2, dm_pref;
-extern double tmp_real, tmp_real2;
+extern double tmp_real;
 extern std::vector<std::string> vt, vr;
 extern std::vector<int> vn, vds;
 extern const int new_dataset;
 extern const int all_datasets;
-extern bool no_info_output;
-extern std::string prepared_info;
 
 std::vector<DataAndModel*> get_datasets_from_indata();
 

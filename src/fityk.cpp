@@ -15,6 +15,7 @@
 #include "fit.h"
 #include "cmd.h"
 #include "func.h"
+#include "info.h"
 
 using namespace std;
 
@@ -109,7 +110,11 @@ string Fityk::get_info(string const& s, bool full)
                                              throw(SyntaxError, ExecuteError)
 {
     try {
-        return get_info_string(s, full);
+        string result;
+        size_t end = get_info_string(ftk, s, full, result);
+        if (end == string::npos)
+            throw SyntaxError();
+        return result;
     } catch (ExecuteError& e) {
         if (startswith(e.what(), "Syntax error"))
             throw SyntaxError();

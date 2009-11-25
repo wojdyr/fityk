@@ -256,7 +256,7 @@ Commands::Status Ftk::exec(std::string const &s)
     return get_ui()->exec_and_log(s);
 }
 
-Fit* Ftk::get_fit()
+Fit* Ftk::get_fit() const
 {
     int nr = get_settings()->get_e("fitting-method");
     return get_fit_container()->get_method(nr);

@@ -39,13 +39,13 @@ public:
     ///returns -1 if not found or idx in variables if found
     int find_variable_nr(std::string const &name) const;
     Variable const* find_variable(std::string const &name) const;
-    int find_nr_var_handling_param(int p);
-    Variable const* find_variable_handling_param(int p)
+    int find_nr_var_handling_param(int p) const;
+    Variable const* find_variable_handling_param(int p) const
                 { return variables[find_nr_var_handling_param(p)]; }
 
     /// search for "simple" variable which handles parameter par
     /// returns -1 if not found or idx in variables if found
-    int find_parameter_variable(int par);
+    int find_parameter_variable(int par) const;
 
     /// remove unreffered variables and parameters
     void remove_unreferred();
@@ -84,7 +84,8 @@ public:
     void use_external_parameters(std::vector<fp> const &ext_param);
     void put_new_parameters(std::vector<fp> const &aa);
     fp variation_of_a(int n, fp variat) const;
-    std::vector<std::string> get_variable_references(std::string const &name);
+    std::vector<std::string>
+        get_variable_references(std::string const &name) const;
 
 protected:
     Ftk const* F;

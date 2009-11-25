@@ -95,17 +95,16 @@ find_matching_bracket(string const& formula, string::size_type left_pos)
         closing = '}';
     else
         assert(0);
-    size_t pos = left_pos;
-    int open_bracket_counter = 1;
-    while (open_bracket_counter > 0) {
-        ++pos;
-        if (formula[pos] == closing)
-            --open_bracket_counter;
-        else if (formula[pos] == opening)
-            ++open_bracket_counter;
-        assert(formula[pos]);
+    int level = 1;
+    for (size_t p = left_pos+1; p < formula.size() && level > 0; ++p) {
+        if (formula[p] == closing) {
+            if (level == 1)
+                return p;
+            --level;
+        }
+        else if (formula[p] == opening)
+            ++level;
     }
-    assert(formula[pos] == closing);
-    return pos;
+    throw ExecuteError("Matching bracket `" + S(closing) + "' not found.");
 }
 

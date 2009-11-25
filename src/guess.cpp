@@ -101,24 +101,21 @@ fp Guess::compute_data_fwhm(int from, int max_pos, int to, fp level)
     return max (fwhm, epsilon);
 }
 
-void Guess::parse_range(vector<string> const& range,
+void Guess::parse_range(string const& left, string const& right,
                         fp& range_from, fp& range_to)
 {
-    assert (range.size() == 2);
-    string le = range[0];
-    string ri = range[1];
-    if (le.empty())
+    if (left.empty())
         range_from = data->get_x_min();
-    else if (le == ".")
+    else if (left == ".")
         range_from = F->view.left;
     else
-        range_from = strtod(le.c_str(), 0);
-    if (ri.empty())
+        range_from = strtod(left.c_str(), 0);
+    if (right.empty())
         range_to = data->get_x_max();
-    else if (ri == ".")
+    else if (right == ".")
         range_to = F->view.right;
     else
-        range_to = strtod(ri.c_str(), 0);
+        range_to = strtod(right.c_str(), 0);
 }
 
 void Guess::get_point_range(fp range_from, fp range_to,
@@ -202,29 +199,41 @@ void Guess::remove_peak(string const& name)
         }
 }
 
-string Guess::get_guess_info(vector<string> const& range)
+void Guess::get_guess_info(RealRange const& range, string& result)
 {
-    string s;
+    // TODO: pass RealRange to estimate_*_parameters()
     fp range_from, range_to;
-    parse_range(range, range_from, range_to);
+    if (range.from == RealRange::kInf)
+        range_from = data->get_x_min();
+    else if (range.from == RealRange::kNone)
+        range_from = F->view.left;
+    else
+        range_from = range.from_val;
+
+    if (range.to == RealRange::kInf)
+        range_to = data->get_x_max();
+    else if (range.to == RealRange::kNone)
+        range_to = F->view.right;
+    else
+        range_to = range.to_val;
 
     fp c = 0., h = 0., a = 0., fwhm = 0.;
     estimate_peak_parameters(range_from, range_to,
                              &c, &h, &a, &fwhm);
     if (h != 0.)
-        s += "center: " + S(c) + ", height: " + S(h) + ", area: " + S(a)
+        result += "center: " + S(c) + ", height: " + S(h) + ", area: " + S(a)
             + ", FWHM: " + S(fwhm) + "\n";
     fp slope = 0, intercept = 0, avgy = 0;
     estimate_linear_parameters(range_from, range_to,
                                &slope, &intercept, &avgy);
-    s += "slope: " + S(slope) + ", intercept: " + S(intercept)
+    result += "slope: " + S(slope) + ", intercept: " + S(intercept)
         + ", avg-y: " + S(avgy);
-    return s;
 }
 
 /// guessed parameters are appended to vars
 void Guess::guess(string const& name, string const& function,
-                          vector<string> const& range, vector<string>& vars)
+                  string const& from_str, string const& to_str,
+                  vector<string>& vars)
 {
     remove_peak(name);
     // variables given explicitely by user (usually none)
@@ -237,7 +246,7 @@ void Guess::guess(string const& name, string const& function,
 
     // handle a special case with implicit range:
     //  %peak = guess Gaussian center=$peak_center
-    if (range[0].empty() && range[1].empty()
+    if (from_str.empty() && to_str.empty()
             && contains_element(vars_lhs, "center")) {
         int ci = find(vars_lhs.begin(), vars_lhs.end(), "center")
             - vars_lhs.begin();
@@ -249,7 +258,7 @@ void Guess::guess(string const& name, string const& function,
         range_to = center + delta;
     }
     else
-        parse_range(range, range_from, range_to);
+        parse_range(from_str, to_str, range_from, range_to);
 
     FunctionKind k = get_function_kind(Function::get_formula(function));
     if (k == fk_peak) {

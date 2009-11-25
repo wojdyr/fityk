@@ -171,7 +171,7 @@ Z += %c
 X = x + @0.Z(x)
 del %c
 i %fun(extremum(%fun, 10, 50))
-i s[x=19.92]^2 in @0, y[x=19.92] in @0
+i s[x=19.92]^2, y[x=19.92] in @0
 
 
 plot 
@@ -210,16 +210,16 @@ i+ Bleh, %bleh
 del %bleh
 #TODO def Foo(a,b,c)= ....formula...
 
-
-info commands[2:5] # commands from script are not stored in commands[] ...
-info commands[8]   # ... so it can be empty
-info+ commands[8]
+# commands from script are not stored in commands[], so it can be empty
+# we only use empty ranges, to avoid errors
+info commands[0:0]
+info commands[:]
+info commands[0:] >tmp_foo.fit
+info+ commands[:0] >>tmp_foo.fit
 commands > tmp_log.fit
 commands+ > tmp_log.fit
 commands > /dev/null
 commands < tmp_log.fit # it's an empty file (with some comments)
-info commands[0:4] >tmp_foo.fit 
-info+ commands[0] >>tmp_foo.fit 
 
 info @0 (x, y) 
 info @* (x, y, s) > tmp_foo2.xy

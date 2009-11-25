@@ -11,14 +11,23 @@ class DataAndModel;
 class Ftk;
 class Data;
 
+// used for "info guess" now,
+// TODO: use it in all places where real-number range is passed
+struct RealRange
+{
+    enum What { kNone, kInf, kNumber };
+    What from, to;
+    fp from_val, to_val;
+};
+
 /// guessing initial parameters of functions
 class Guess
 {
 public:
     Guess(Ftk const *F_, DataAndModel const* dm_);
-    std::string get_guess_info(std::vector<std::string> const& range);
+    void get_guess_info(RealRange const& range, std::string& result);
     void guess(std::string const& name, std::string const& function,
-               std::vector<std::string> const& range,
+               std::string const& from_str, std::string const& to_str,
                std::vector<std::string>& vars);
 protected:
     Ftk const* const F;
@@ -37,7 +46,7 @@ protected:
     fp data_area (int from, int to);
     int max_data_y_pos (int from, int to);
     fp compute_data_fwhm (int from, int max_pos, int to, fp level);
-    void parse_range(std::vector<std::string> const& range,
+    void parse_range(std::string const& left, std::string const& right,
                      fp& range_from, fp& range_to);
     void remove_peak(std::string const& name);
 };
