@@ -46,8 +46,8 @@ struct CelFile
     std::vector<AtomInCell> atoms;
 };
 
-CelFile read_cel_file(const char* path);
-void write_cel_file(CelFile const& cel, const char* path);
+CelFile read_cel_file(FILE* f);
+void write_cel_file(CelFile const& cel, FILE* f);
 void write_default_cel_files(const char* path_prefix);
 
 
@@ -90,7 +90,7 @@ struct Plane : public Miller
     double F2; // |F_hkl|^2 (_not_ multiplied by multiplicity)
 
     Plane() {}
-    Plane(Miller const& hkl) : Miller(hkl), multiplicity(1.), F2(0.){}
+    Plane(Miller const& hkl) : Miller(hkl), multiplicity(1), F2(0.){}
 };
 
 struct PlanesWithSameD

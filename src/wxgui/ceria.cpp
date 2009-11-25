@@ -677,11 +677,10 @@ NULL
 };
 
 
-CelFile read_cel_file(const char* path)
+CelFile read_cel_file(FILE *f)
 {
     CelFile cel;
     cel.sgs = NULL;
-    FILE *f = fopen(path, "r");
     if (!f)
         return cel;
     char s[20];
@@ -739,17 +738,13 @@ CelFile read_cel_file(const char* path)
         else if (!isspace(c))
             break;
     }
-    fclose(f);
     return cel;
 }
 
-void write_cel_file(CelFile const& cel, const char* path)
+void write_cel_file(CelFile const& cel, FILE *f)
 {
-    for (int i = 1; i != 104; ++i)
-        assert(find_Z_in_pse(i)->Z == i);
-    FILE *f = fopen(path, "w");
-    if (!f)
-        return;
+    //for (int i = 1; i != 104; ++i)
+    //    assert(find_Z_in_pse(i)->Z == i);
     fprintf(f, "cell  %g %g %g  %g %g %g\n", cel.a, cel.b, cel.c,
                                              cel.alpha, cel.beta, cel.gamma);
     for (vector<AtomInCell>::const_iterator i = cel.atoms.begin();
@@ -767,7 +762,6 @@ void write_cel_file(CelFile const& cel, const char* path)
         fprintf(f, "%s", cel.sgs->qualif);
     }
     fprintf(f, "\n");
-    fclose(f);
 }
 
 void write_default_cel_files(const char* path_prefix)

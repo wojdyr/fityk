@@ -134,7 +134,7 @@ ProportionalSplitter::ProportionalSplitter(wxWindow* parent, wxWindowID id,
     : wxSplitterWindow(parent, id, wxDefaultPosition, size, style),
       m_proportion(proportion), m_firstpaint(true)
 {
-    wxASSERT(m_proportion >= 0. && m_proportion <= 1.);
+    //wxASSERT(m_proportion >= 0. && m_proportion <= 1.);
     SetMinimumPaneSize(20);
     ResetSash();
     Connect(GetId(), wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,

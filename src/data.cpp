@@ -159,7 +159,7 @@ namespace {
 void merge_same_x(vector<Point> &pp, bool avg)
 {
     int count_same = 1;
-    fp x0;
+    fp x0 = 0; // 0 is assigned only to avoid compiler warnings
     for (int i = pp.size() - 2; i >= 0; --i) {
         if (count_same == 1)
             x0 = pp[i+1].x;

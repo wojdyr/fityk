@@ -20,18 +20,12 @@ enum PlotTypeEnum { pte_main, pte_aux };
 // used in refresh_plots()
 enum WhichPlot { kMainPlot, kAllPlots };
 
-inline wxString pchar2wx(char const* pc)
-{
-    return wxString(pc, wxConvUTF8);
-}
+inline wxString pchar2wx(char const* pc) { return wxString(pc, wxConvLibc); }
 
 inline wxString s2wx(std::string const& s) { return pchar2wx(s.c_str()); }
 
-
 inline std::string wx2s(wxString const& w)
-{
-    return std::string((const char*) w.mb_str(wxConvUTF8));
-}
+                        { return std::string((const char*) w.mb_str()); }
 
 inline wxArrayString stl2wxArrayString(std::vector<std::string> const& vs)
 {

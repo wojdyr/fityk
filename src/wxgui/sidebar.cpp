@@ -770,13 +770,13 @@ void SideBar::OnDataFocusChanged(wxListEvent &)
     update_data_inf();
 }
 
-void SideBar::OnDataSelectionChanged(wxListEvent &event)
+void SideBar::OnDataSelectionChanged(wxListEvent &/*event*/)
 {
     if (data_look->GetSelection() != 0) // ! all datasets
         frame->refresh_plots(false, kAllPlots);
-    bool selected = (event.GetEventType() == wxEVT_COMMAND_LIST_ITEM_SELECTED);
-    assert (selected
-            || event.GetEventType() == wxEVT_COMMAND_LIST_ITEM_DESELECTED);
+    //bool selected= (event.GetEventType() == wxEVT_COMMAND_LIST_ITEM_SELECTED);
+    //assert (selected
+    //        || event.GetEventType() == wxEVT_COMMAND_LIST_ITEM_DESELECTED);
     //long index = event.GetIndex();
     //ftk->msg("id:" + S(index) + " e.sel:" + S(selected)
     //         + " issel:" + S(d->list->IsSelected(index))

@@ -66,7 +66,7 @@ InputLine::InputLine(wxWindow *parent, wxWindowID id,
                       0, this);
     // read history
     if (!hist_file.IsEmpty()) {
-        std::ifstream f(hist_file.c_str());
+        std::ifstream f(hist_file.mb_str());
         char line[512];
         while (f.getline(line, 512))
             m_history.Add(wxString(line, wxConvUTF8));
@@ -81,7 +81,7 @@ InputLine::~InputLine()
     // write history
     if (hist_file.IsEmpty())
         return;
-    std::ofstream f(hist_file.c_str());
+    std::ofstream f(hist_file.mb_str());
     if (!f)
         return;
     for (size_t i = 0; i < m_history.GetCount(); ++i) {

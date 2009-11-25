@@ -21,6 +21,7 @@
 #include <wx/listctrl.h>
 #include <wx/stdpaths.h>
 #include <wx/dir.h>
+#include <wx/filename.h>
 
 #include "powdifpat.h"
 #include "atomtables.h"
@@ -237,7 +238,7 @@ void PowderBook::initialize_quick_phase_list()
     wxString cel_dir = get_cel_files_dir();
     if (!wxDirExists(cel_dir)) {
         wxMkdir(cel_dir);
-        write_default_cel_files(wx2s(cel_dir).c_str());
+        write_default_cel_files((const char*) cel_dir.mb_str());
     }
 
     wxDir dir(cel_dir);
@@ -245,10 +246,13 @@ void PowderBook::initialize_quick_phase_list()
     bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
     while (cont)
     {
-        wxString path = cel_dir + filename;
-        CelFile cel = read_cel_file(path.c_str());
-        if (cel.sgs != NULL)
-            quick_phase_list[wx2s(filename)] = cel;
+        FILE *f = wxFopen(cel_dir + filename, wxT("r"));
+        if (f) {
+            CelFile cel = read_cel_file(f);
+            fclose(f);
+            if (cel.sgs != NULL)
+                quick_phase_list[wx2s(filename)] = cel;
+        }
         cont = dir.GetNext(&filename);
     }
 }
@@ -530,7 +534,7 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
     h0sizer->Add(name_tc, wxSizerFlags().Center().Border());
 
     wxBoxSizer *h2sizer = new wxBoxSizer(wxHORIZONTAL);
-    s_qadd_btn = new wxButton(this, wxID_ADD, "Add to quick list");
+    s_qadd_btn = new wxButton(this, wxID_ADD, wxT("Add to quick list"));
     h2sizer->Add(s_qadd_btn, wxSizerFlags().Border());
     h2sizer->AddStretchSpacer();
     wxButton *s_clear_btn = new wxButton(this, wxID_CLEAR);
@@ -642,7 +646,7 @@ void PhasePanel::OnSpaceGroupButton(wxCommandEvent& event)
 void PhasePanel::OnAddToQLButton(wxCommandEvent&)
 {
     wxString name = name_tc->GetValue();
-    if (name.find("|") != string::npos) {
+    if (name.find(wxT("|")) != string::npos) {
         wxMessageBox(wxT("The pipe character '|' is not allowed in name."),
                      wxT("Error"), wxOK|wxICON_ERROR);
         return;
@@ -680,8 +684,11 @@ void PhasePanel::OnAddToQLButton(wxCommandEvent&)
 
     quick_phase_lb->SetStringSelection(name);
     powder_book->quick_phase_list[wx2s(name)] = cel;
-    wxString path = get_cel_files_dir() + name;
-    write_cel_file(cel, path.c_str());
+    FILE *f = wxFopen(get_cel_files_dir() + name, wxT("w"));
+    if (f) {
+        write_cel_file(cel, f);
+        fclose(f);
+    }
 }
 
 void PhasePanel::OnClearButton(wxCommandEvent& event)
@@ -755,7 +762,7 @@ void PhasePanel::change_space_group()
     sg_tc->ChangeValue(s2wx(fullHM(cr_.sgs)));
     sg_nr_st->SetLabel(wxString::Format(wxT("no. %d, %s, order %d"),
                                         cr_.sgs->sgnumber,
-                                        get_crystal_system_name(cr_.xs()),
+                          pchar2wx(get_crystal_system_name(cr_.xs())).c_str(),
                                         get_sg_order(cr_.sg_ops)));
     enable_parameter_fields();
     update_disabled_parameters();
@@ -1015,11 +1022,12 @@ void PhasePanel::set_phase(string const& name, CelFile const& cel)
         if (pse == NULL)
             continue;
         atoms_str += wxString::Format(wxT("%s %g %g %g\n"),
-                                      pse->symbol, i->x, i->y, i->z);
+                                      pchar2wx(pse->symbol).c_str(),
+                                      i->x, i->y, i->z);
     }
     atoms_tc->ChangeValue(atoms_str);
     cr_.atoms.clear();
-    line_with_error_ = parse_atoms(atoms_str.c_str(), cr_);
+    line_with_error_ = parse_atoms((const char*) atoms_str.mb_str(), cr_);
     wxString info = make_info_string_for_atoms(cr_.atoms, line_with_error_);
     info_tc->SetValue(info);
     atoms_show_help_ = false;
@@ -1200,13 +1208,13 @@ void PowderBook::OnAnodeSelected(wxCommandEvent& event)
     // set new value
     wxString s = anode_lb->GetString(n);
     for (Anode const* i = anodes; i->name; ++i) {
-        if (s.StartsWith(i->name)) {
+        if (s.StartsWith(pchar2wx(i->name))) {
             double a1 = 0, a2 = 0;
-            if (s.EndsWith("A12")) {
+            if (s.EndsWith(wxT("A12"))) {
                 a1 = i->alpha1;
                 a2 = i->alpha2;
             }
-            else if (s.EndsWith("A1")) {
+            else if (s.EndsWith(wxT("A1"))) {
                 a1 = i->alpha1;
             }
             else
@@ -1276,9 +1284,13 @@ void PowderBook::OnQuickListImport(wxCommandEvent&)
             continue;
         }
         else {
-            CelFile cel = read_cel_file(paths[i].c_str());
-            if (cel.sgs != NULL)
-                quick_phase_list[wx2s(name)] = cel;
+            FILE *f = wxFopen(paths[i], wxT("r"));
+            if (f) {
+                CelFile cel = read_cel_file(f);
+                fclose(f);
+                if (cel.sgs != NULL)
+                    quick_phase_list[wx2s(name)] = cel;
+            }
         }
         quick_phase_lb->Append(name);
     }
@@ -1471,22 +1483,29 @@ IMPLEMENT_APP(App)
 
 
 static const wxCmdLineEntryDesc cmdLineDesc[] = {
+#if wxCHECK_VERSION(2, 9, 0)
     { wxCMD_LINE_SWITCH, "V", "version",
           "output version information and exit", wxCMD_LINE_VAL_NONE, 0 },
     { wxCMD_LINE_PARAM,  0, 0, "data file", wxCMD_LINE_VAL_STRING,
                                             wxCMD_LINE_PARAM_OPTIONAL },
+#else
+    { wxCMD_LINE_SWITCH, wxT("V"), wxT("version"),
+          wxT("output version information and exit"), wxCMD_LINE_VAL_NONE, 0 },
+    { wxCMD_LINE_PARAM,  0, 0, wxT("data file"), wxCMD_LINE_VAL_STRING,
+                                            wxCMD_LINE_PARAM_OPTIONAL },
+#endif
     { wxCMD_LINE_NONE, 0, 0, 0,  wxCMD_LINE_VAL_NONE, 0 }
 };
 
 
 bool App::OnInit()
 {
-    version = "0.1.0";
+    version = wxT("0.1.0");
 
     // write numbers in C locale
     setlocale(LC_NUMERIC, "C");
 
-    SetAppName("powdifpat");
+    SetAppName(wxT("powdifpat"));
 
     // parse command line parameters
     wxCmdLineParser cmdLineParser(cmdLineDesc, argc, argv);
@@ -1495,7 +1514,7 @@ bool App::OnInit()
         return false;
     }
     if (cmdLineParser.Found(wxT("V"))) {
-        wxMessageOutput::Get()->Printf("powdifpat " + version + "\n");
+        wxMessageOutput::Get()->Printf(wxT("powdifpat ") + version + wxT("\n"));
         return false;
     }
 
@@ -1504,7 +1523,7 @@ bool App::OnInit()
     wxFrame *frame = new wxFrame(NULL, wxID_ANY, GetAppName());
 
 #ifdef __WXMSW__
-    frame->SetIcon(wxIcon("powdifpat")); // load from a resource
+    frame->SetIcon(wxIcon(wxT("powdifpat"))); // load from a resource
 #else
     wxIconBundle ib;
     ib.AddIcon(wxIcon(powdifpat48_xpm));
@@ -1549,14 +1568,10 @@ void App::OnAbout(wxCommandEvent&)
 {
     wxAboutDialogInfo adi;
     adi.SetVersion(version);
-    wxString desc = "Powder diffraction pattern generator.\n";
+    wxString desc = wxT("Powder diffraction pattern generator.\n");
     adi.SetDescription(desc);
-    adi.SetWebSite("http://www.unipress.waw.pl/fityk/powdifpat/");
-    wxString copyright = "(C) 2008 - 2009 Marcin Wojdyr <wojdyr@gmail.com>";
-#ifdef __WXGTK__
-    copyright.Replace("(C)", "\xc2\xa9");
-#endif
-    adi.SetCopyright(copyright);
+    adi.SetWebSite(wxT("http://www.unipress.waw.pl/fityk/powdifpat/"));
+    adi.SetCopyright(wxT("(C) 2008 - 2009 Marcin Wojdyr <wojdyr@gmail.com>"));
     wxAboutBox(adi);
 }
 

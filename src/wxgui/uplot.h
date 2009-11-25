@@ -16,7 +16,8 @@ class BufferedPanel : public wxPanel
 public:
     /// Round real to integer. Defined here to avoid dependency on ../common.h.
     static int iround(double d) { return static_cast<int>(floor(d+0.5)); }
-    static wxString format_label(double x) { return wxString::Format("%g", x); }
+    static wxString format_label(double x)
+                                { return wxString::Format(wxT("%g"), x); }
 
     BufferedPanel(wxWindow *parent);
     virtual ~BufferedPanel() {}
