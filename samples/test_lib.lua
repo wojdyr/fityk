@@ -37,6 +37,8 @@ function GaussianFitter:run()
     print("Gaussian center: ".. self.f:get_variable_value("%gauss.center"))
 end
 
+ftk:redir_messages(io.stdout)
+-- ftk:redir_messages(nil) -- nil disables output
 GaussianFitter:read_data("nacl01.dat")
 GaussianFitter:run()
 ftk:execute("dump >tmp_dump.fit")

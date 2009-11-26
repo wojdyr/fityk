@@ -35,6 +35,8 @@ test -z "$enable_powdifpat" && enable_powdifpat="no"
 
 AC_ARG_ENABLE(python,
 [  --enable-python         build python bindings to libfityk])
+AC_ARG_ENABLE(lua,
+[  --enable-lua            build lua bindings to libfityk])
 
 AC_ARG_ENABLE(3rdparty,
 [  --disable-3rdparty      do not use 3rdparty directory @<:@default=enable@:>@])
@@ -207,9 +209,18 @@ AM_CONDITIONAL([DOC_DIR], [test "$with_doc" != no])
 if test "$enable_python" = "yes"; then
     AM_PATH_PYTHON(2.3)
     AC_PYTHON_DEVEL
-    AC_PROG_SWIG(1.3.17)
 fi
-AM_CONDITIONAL([SWIG_DIR], [test "$enable_python" = yes])
+AM_CONDITIONAL([PYTHON_ENABLED], [test "$enable_python" = yes])
+
+if test "$enable_lua" = "yes"; then
+    AX_LUA_HEADERS
+    AX_LUA_LIBS
+    AX_LUA_LIB_VERSION(500)
+fi
+AM_CONDITIONAL([LUA_ENABLED], [test "$enable_lua" = yes])
+
+AM_CONDITIONAL([SWIG_DIR], [test "$enable_python" = yes -o "$enable_lua" = yes])
+AM_COND_IF([SWIG_DIR], [AC_PROG_SWIG(1.3.17)])
 
 AC_SUBST(SRCSUBDIRS)
 AC_SUBST(CPPFLAGS_3RDPARTY)

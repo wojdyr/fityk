@@ -26,7 +26,6 @@ namespace std {
     %rename(__str__) str();
 
     %include "file.i"
-    %apply FILE* { std::FILE* };
 
     %typemap(check) PyObject *pyfunc {
         if (!PyCallable_Check($1))
@@ -65,11 +64,26 @@ namespace std {
         lua_pushstring(L,$1.what()); SWIG_fail;
     }
 
+    %typemap(in) FILE * {
+        FILE **f;
+        if (lua_isnil(L, $input))
+            $1=NULL;
+        else {
+            f = (FILE **)luaL_checkudata(L, $input, "FILE*");
+            if (*f == NULL)
+                luaL_error(L, "attempt to use a closed file");
+            $1=*f;
+        }
+    }
+
+    // set_show_message can be probably wrapped using swig1.3/lua/lua_fnptr.i
+
 #else
 #warning \
     fityk.i was tested only with Python and Lua. If you use it with other \
     languages, or you had to modify it, please let me know - wojdyr@gmail.com
 #endif
 
+%apply FILE* { std::FILE* };
 %include "fityk.h"
 
