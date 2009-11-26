@@ -3,12 +3,12 @@
 lib_LTLIBRARIES = libxy.la
 
 libxy_la_LDFLAGS = -version-info 2:0:1
-libxy_la_LIBADD = @XYLIB_ADDLIB@
+libxy_la_LIBADD = $(XYLIB_ADDLIB)
 
 # This is useful when building as a part of fityk (which provides subset of
 # boost library in 3rdparty/ dir). It's not used in standalone xylib build,
 # which requires boost library to be installed (just to make it easier).
-libxy_la_CPPFLAGS = @CPPFLAGS_3RDPARTY@
+libxy_la_CPPFLAGS = $(CPPFLAGS_3RDPARTY)
 
 
 libxy_la_SOURCES = xylib.cpp cache.cpp brucker_raw.cpp \

@@ -6,12 +6,12 @@ BUILT_SOURCES = $(srcdir)/fityk_python.cpp $(srcdir)/fityk_lua.cpp
 python_PYTHON = $(srcdir)/fityk.py
 pyexec_LTLIBRARIES = _fityk.la
 _fityk_la_SOURCES = $(srcdir)/fityk_python.cpp $(SWIG_SOURCES)
-_fityk_la_CPPFLAGS = $(SWIG_PYTHON_CPPFLAGS) -I$(top_srcdir)/src
-_fityk_la_LDFLAGS = @LIBRARY_VERSION_FLAG@ -module
+_fityk_la_CPPFLAGS = $(PYTHON_CPPFLAGS) -I$(top_srcdir)/src
+_fityk_la_LDFLAGS = $(LIBRARY_VERSION_FLAG) -module
 _fityk_la_LIBADD = ../src/libfityk.la
 
 $(srcdir)/fityk_python.cpp : $(SWIG_SOURCES) $(top_srcdir)/src/fityk.h
-	$(SWIG) $(SWIG_PYTHON_OPT) -I$(top_srcdir)/src -o $@ $<
+	$(SWIG) -c++ -python -I$(top_srcdir)/src -o $@ $<
 $(srcdir)/fityk.py : $(srcdir)/fityk_python.cpp
 
 $(srcdir)/fityk_lua.cpp : $(SWIG_SOURCES) $(top_srcdir)/src/fityk.h

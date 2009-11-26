@@ -134,7 +134,7 @@ if test "$enable_3rdparty" = "yes"; then
 fi
 
 AC_CHECK_HEADER([boost/spirit/core.hpp], [], [AC_MSG_ERROR(
- [Boost::Spirit headers were not found or your compiler can't compile it.
+ [Boost::Spirit headers were not found or your compiler can not compile it.
   If you use source from svn, make sure you have Spirit installed (see INSTALL).
  ])])
 
@@ -152,19 +152,13 @@ fi
 if test "$with_xylib" = "yes"; then
 	XYLIB_CPPFLAGS="-I\$(top_srcdir)/xylib"
 	XYLIB_LDADD="\$(top_builddir)/xylib/xylib/libxy.la"
-	XYLIB_DIR=xylib
 else
 	XYLIB_CPPFLAGS=
         XYLIB_LDADD="-lxy"
-	XYLIB_DIR=
 fi
+AM_CONDITIONAL([XYLIB_DIR], [test "$with_xylib" = yes])
 
-if test "$with_samples" = "yes"; then
-    SAMPLES_DIR=samples
-else
-    SAMPLES_DIR=
-fi
-
+AM_CONDITIONAL([SAMPLES_DIR], [test "$with_samples" = yes])
 
 AC_LANG_POP([C++]) dnl C is faster than C++
 
@@ -209,36 +203,23 @@ if test "$enable_CLI" != "no"; then
     fi
 
     AC_CHECK_HEADER(unistd.h, [], [AC_MSG_ERROR(
-      [You don't have an unistd.h header, that is required to build cfityk.])])
+      [You do not have an unistd.h header, that is required to build cfityk.])])
 
 fi
 
-if test "$with_doc" != "no"; then
-    DOC=doc
-else
-    DOC=
-fi
+AM_CONDITIONAL([DOC_DIR], [test "$with_doc" != no])
 
 if test "$enable_python" = "yes"; then
     AM_PATH_PYTHON(2.3)
     AC_PYTHON_DEVEL
     AC_PROG_SWIG(1.3.17)
-    SWIG="$SWIG -c++"
-    AC_SUBST([SWIG_PYTHON_OPT],[-python])
-    AC_SUBST([SWIG_PYTHON_CPPFLAGS],[$PYTHON_CPPFLAGS])
-    PYBINDINGDIR=python
-else
-    PYBINDINGDIR=
 fi
+AM_CONDITIONAL([SWIG_DIR], [test "$enable_python" = yes])
 
 AC_SUBST(SRCSUBDIRS)
-AC_SUBST(DOC)
-AC_SUBST(PYBINDINGDIR)
 AC_SUBST(CPPFLAGS_3RDPARTY)
 AC_SUBST(XYLIB_CPPFLAGS)
 AC_SUBST(XYLIB_LDADD)
-AC_SUBST(XYLIB_DIR)
-AC_SUBST(SAMPLES_DIR)
 AC_SUBST(LIBRARY_VERSION_FLAG)
 
 # define XYLIB_ADDLIB for compatibility with xylib/configure.ac
@@ -272,8 +253,6 @@ AC_CONFIG_FILES([Makefile fityk.iss
 		 src/wxgui/img/Makefile
 		 doc/Makefile
 		 samples/Makefile
-		 config/Makefile
-		 3rdparty/Makefile
 		 xylib/Makefile
 		 xylib/xylib/Makefile
 		 python/Makefile])

@@ -8,7 +8,7 @@ EXTRA_DIST = winres.rc xyconvert.rc powdifpat.rc
 # tested only on MinGW
 if OS_WIN32
 AM_LDFLAGS = -mwindows
-RC_FLAGS_ALL=$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS) @WX_CPPFLAGS@
+RC_FLAGS_ALL=$(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS) $(WX_CPPFLAGS)
 RC_FLAGS=`echo $(RC_FLAGS_ALL) | sed -e 's/-mthreads//g' `
 fityk_res = winres.o
 $(fityk_res): winres.rc img/fityk.ico
@@ -42,15 +42,15 @@ fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 		powdifpat.cpp powdifpat.h
 
 
-fityk_CPPFLAGS = @WX_CPPFLAGS@ @CPPFLAGS_3RDPARTY@ @XYLIB_CPPFLAGS@ $(HELP_DEF)
-fityk_CXXFLAGS = @WX_CXXFLAGS_ONLY@
-fityk_LDADD = ../libfityk.la libceria.a @WX_LIBS@ $(fityk_res)
+fityk_CPPFLAGS = $(WX_CPPFLAGS) $(CPPFLAGS_3RDPARTY) $(XYLIB_CPPFLAGS) $(HELP_DEF)
+fityk_CXXFLAGS = $(WX_CXXFLAGS_ONLY)
+fityk_LDADD = ../libfityk.la libceria.a $(WX_LIBS) $(fityk_res)
 
 if XYCONVERT
 bin_PROGRAMS += xyconvert
 xyconvert_SOURCES = xybrowser.cpp uplot.cpp uplot.h cmn.cpp cmn.h
-xyconvert_CPPFLAGS = @WX_CPPFLAGS@ @CPPFLAGS_3RDPARTY@ @XYLIB_CPPFLAGS@ -DXYCONVERT
-xyconvert_LDADD = @WX_LIBS@ @XYLIB_LDADD@ $(xyconvert_res)
+xyconvert_CPPFLAGS = $(WX_CPPFLAGS) $(CPPFLAGS_3RDPARTY) $(XYLIB_CPPFLAGS) -DXYCONVERT
+xyconvert_LDADD = $(WX_LIBS) $(XYLIB_LDADD) $(xyconvert_res)
 endif
 
 inputline: sample_inputline.cpp inputline.cpp inputline.h callback.h
@@ -61,7 +61,7 @@ if POWDIFPAT
 bin_PROGRAMS += powdifpat
 powdifpat_SOURCES = powdifpat.cpp powdifpat.h \
 		    uplot.cpp uplot.h cmn.cpp cmn.h fancyrc.cpp fancyrc.h
-powdifpat_CPPFLAGS = @WX_CPPFLAGS@ @XYLIB_CPPFLAGS@ -DSTANDALONE_POWDIFPAT
-powdifpat_LDADD = libceria.a @WX_LIBS@ @XYLIB_LDADD@ $(powdifpat_res)
+powdifpat_CPPFLAGS = $(WX_CPPFLAGS) $(XYLIB_CPPFLAGS) -DSTANDALONE_POWDIFPAT
+powdifpat_LDADD = libceria.a $(WX_LIBS) $(XYLIB_LDADD) $(powdifpat_res)
 endif
 
