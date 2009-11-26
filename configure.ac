@@ -255,6 +255,6 @@ AC_CONFIG_FILES([Makefile fityk.iss
 		 samples/Makefile
 		 xylib/Makefile
 		 xylib/xylib/Makefile
-		 python/Makefile])
+		 swig/Makefile])
 AC_OUTPUT
 

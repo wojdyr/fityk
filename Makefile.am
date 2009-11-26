@@ -19,7 +19,7 @@ if SAMPLES_DIR
 SUBDIRS += samples
 endif
 if SWIG_DIR
-SUBDIRS += python
+SUBDIRS += swig
 endif
 
 icondir = $(datadir)/pixmaps
