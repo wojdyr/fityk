@@ -64,11 +64,6 @@ AC_ARG_WITH(options,
 
 AM_OPTIONS_WXCONFIG
 
-# both CLI and GUI can't be disabled.
-if test "$enable_CLI" = "no" -a "$enable_GUI" = "no"; then
-	AC_MSG_ERROR([Disabling both GUI and CLI versions makes no sense.])
-fi
-
 #################################
 # MS Windows specific macros
 

@@ -8,13 +8,15 @@ EXTRA_DIST = fityk.iss fityk.url fityk.svg \
 	     macosx/fityk.icns
 AUTOMAKE_OPTIONS = dist-bzip2
 
-SUBDIRS = src
+SUBDIRS=
 if XYLIB_DIR
 SUBDIRS += xylib
 endif
 if DOC_DIR
 SUBDIRS += doc
 endif
+# src must be built after xylib
+SUBDIRS += src
 if SAMPLES_DIR
 SUBDIRS += samples
 endif
