@@ -1,8 +1,8 @@
 # $Id$
 
-ACLOCAL_AMFLAGS = -I config
+ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = fityk.iss fityk.url fityk.svg \
-	     config/readline.m4 \
+	     m4/readline.m4 \
 	     3rdparty/README 3rdparty/boost \
 	     macosx/README.txt macosx/Makefile macosx/Info.plist.in \
 	     macosx/fityk.icns

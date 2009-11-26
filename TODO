@@ -10,6 +10,9 @@ $Id$
 
 * GUI BUG: minor tics are not drawn on the very left side of x axis
 
+* build xylib as a subpackage:
+  http://www.gnu.org/software/hello/manual/automake/Subpackages.html
+
 * GUI: there is ugly vertical line (a part of the fitted curve) in points
   where the value is undefined (e.g. in ReadShockley function for x=0).
 
