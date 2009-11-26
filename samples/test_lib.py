@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os.path
+import os.path, sys
 from fityk import Fityk
 
 class GaussianFitter(Fityk):
@@ -31,5 +31,11 @@ g = GaussianFitter("nacl01.dat")
 g.run()
 g.save_session("tmp_dump.fit")
 
+# output from commands can be handled by callback function in Python
+def show_msg(s):
+    print "output:", s
+g.py_set_show_message(show_msg)
 
+# or it can be redirected to file
+g.redir_messages(sys.stderr)
 
