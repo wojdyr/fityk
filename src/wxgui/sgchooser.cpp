@@ -78,15 +78,14 @@ SpaceGroupChooser::SpaceGroupChooser(wxWindow* parent)
 
     Connect(system_c->GetId(), wxEVT_COMMAND_CHOICE_SELECTED,
             (wxObjectEventFunction) &SpaceGroupChooser::OnSystemChoice);
-    Connect(system_c->GetId(), wxEVT_COMMAND_LIST_ITEM_FOCUSED,
-            (wxObjectEventFunction) &SpaceGroupChooser::OnListItemActivated);
-    Connect(system_c->GetId(), wxEVT_COMMAND_LIST_ITEM_ACTIVATED,
+    //Connect(list->GetId(), wxEVT_COMMAND_LIST_ITEM_FOCUSED,
+    //        (wxObjectEventFunction) &SpaceGroupChooser::OnListItemFocused);
+    Connect(list->GetId(), wxEVT_COMMAND_LIST_ITEM_ACTIVATED,
             (wxObjectEventFunction) &SpaceGroupChooser::OnListItemActivated);
 }
 
 void SpaceGroupChooser::OnListItemActivated(wxCommandEvent&)
 {
-    printf("DEBUG: OnListItemActivated\n");
     EndModal(wxID_OK);
 }
 
