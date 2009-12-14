@@ -134,7 +134,9 @@ BEGIN_EVENT_TABLE(SideBar, ProportionalSplitter)
 END_EVENT_TABLE()
 
 SideBar::SideBar(wxWindow *parent, wxWindowID id)
-: ProportionalSplitter(parent, id, 0.75), bp_func(0), active_function(-1)
+    : ProportionalSplitter(parent, id, 0.75),
+      bp_func(0), active_function(-1),
+      skipOnFuncFocusChanged_(false)
 {
     //wxPanel *upper = new wxPanel(this, -1);
     //wxBoxSizer *upper_sizer = new wxBoxSizer(wxVERTICAL);
@@ -603,7 +605,9 @@ void SideBar::update_func_list(bool nondata_changed)
         }
     }
     old_func_size = func_size;
+    skipOnFuncFocusChanged_ = true;
     f->list->populate(func_data, func_images, pos);
+    skipOnFuncFocusChanged_ = false;
 }
 
 void SideBar::update_var_list()
@@ -646,7 +650,8 @@ int SideBar::get_focused_data() const
     }
     else if (focused < 0) {
         focused = 0;
-        lv->Focus(focused);
+        if (lv->GetItemCount() != 0)
+            lv->Focus(focused);
     }
     return focused;
 }
@@ -673,7 +678,8 @@ vector<int> SideBar::get_selected_data_indices()
         sel.push_back(i);
     if (sel.empty()) {
         int n = get_focused_data();
-        lv->Select(n, true);
+        if (lv->GetItemCount() > n)
+            lv->Select(n, true);
         sel.push_back(n);
     }
     return sel;
@@ -736,12 +742,22 @@ void SideBar::activate_function(int n)
 {
     active_function = n;
     do_activate_function();
-    int pos = n;
+
+    int pos;
     if (filter_ch->GetSelection() > 0)
         pos = f->list->FindItem(-1, s2wx(active_function_name));
-    f->list->Focus(pos);
-    for (int i = 0; i != f->list->GetItemCount(); ++i)
-        f->list->Select(i, i==pos);
+    else if (n < f->list->GetItemCount())
+        pos = n;
+    else
+        pos = -1;
+
+    if (pos != -1) {
+        skipOnFuncFocusChanged_ = true;
+        f->list->Focus(pos);
+        skipOnFuncFocusChanged_ = false;
+        for (int i = 0; i != f->list->GetItemCount(); ++i)
+            f->list->Select(i, i == pos);
+    }
 }
 
 void SideBar::do_activate_function()
@@ -1108,6 +1124,8 @@ vector<string> SideBar::get_selected_vars() const
 
 void SideBar::OnFuncFocusChanged(wxListEvent&)
 {
+    if (skipOnFuncFocusChanged_)
+        return;
     int n = f->list->GetFocusedItem();
     if (n == -1)
         active_function = -1;

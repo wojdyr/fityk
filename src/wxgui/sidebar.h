@@ -101,6 +101,7 @@ private:
     wxCheckBox *dpline_cb, *dpsigma_cb;
     int active_function;
     std::string active_function_name;
+    bool skipOnFuncFocusChanged_;
 
     void update_func_list(bool nondata_changed);
     void update_var_list();
