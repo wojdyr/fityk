@@ -285,8 +285,8 @@ LockableRealCtrl::LockableRealCtrl(wxWindow* parent, bool percent)
 double LockableRealCtrl::get_value() const
 {
     double d;
-    text->GetValue().ToDouble(&d);
-    return d;
+    bool ok = text->GetValue().ToDouble(&d);
+    return ok ? d : 0.;
 }
 
 void LockableRealCtrl::set_value(double value)
