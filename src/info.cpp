@@ -744,7 +744,7 @@ void output_info(Ftk const* F, string const& args, bool full)
         }
         pos = args.find_first_not_of(" \t\r\n", pos);
         size_t end;
-        if (pos == '\'') {
+        if (args[pos] == '\'') {
             ++pos;
             end = args.find('\'', pos);
             if (end == string::npos)
@@ -755,6 +755,8 @@ void output_info(Ftk const* F, string const& args, bool full)
             end = args.find_first_of(" \t\r\n", pos);
         }
         string filename = args.substr(pos, end-pos);
+        if (end < args.size() && args[end] == '\'')
+            ++end;
         if (args.find_first_not_of(" \t\r\n", end) != string::npos)
             //SyntaxError
             throw ExecuteError("unexpected trailing chars after filename `"
