@@ -57,7 +57,8 @@ string get_word(string const& t, size_t &pos, const char* end_chars=" \t\r\n,")
     return word;
 }
 
-const char* find_outer_comma(const char* p)
+// find the next char from the given string that is not inside brackets
+const char* find_outer_char(const char* p, const char* char_list)
 {
     int level = 0;
     while (*p != '\0' && level >= 0) {
@@ -65,7 +66,7 @@ const char* find_outer_comma(const char* p)
             ++level;
         else if (*p == ')')
             --level;
-        else if (*p == ',' && level == 0)
+        else if (level == 0 && strchr(char_list, *p) != NULL)
             return p;
         ++p;
     }
@@ -106,9 +107,11 @@ void parse_datasets(Ftk const* F, string const& t, size_t &pos,
 VecDM parse_in_data(Ftk const* F, string const& t, size_t &pos)
 {
     VecDM ret;
+    size_t old_pos = pos;
     if (get_word(t, pos) != "in") {
         if (F->get_dm_count() == 1)
             ret.push_back(const_cast<DataAndModel*>(F->get_dm(0)));
+        pos = old_pos;
         return ret;
     }
     vector<int> numbers;
@@ -303,10 +306,14 @@ void get_info_data_expr(Ftk const* F, string const& args, size_t& pos,
     vector<string> expressions;
     const char* start = args.c_str() + pos;
     while (start < expr_end) {
-        const char *comma = find_outer_comma(start);
+        const char *comma = find_outer_char(start, ",>");
         if (comma == NULL)
             comma = expr_end;
         expressions.push_back(string(start, comma));
+        if (*comma == '>') {
+            end_pos = comma - args.c_str();
+            break;
+        }
         start = comma + 1;
     }
 
@@ -529,7 +536,7 @@ void get_info_points(Ftk const* F, string const& args, size_t& pos,
     const char *p = args.c_str() + pos + 1;
     vector<string> expressions;
     for (;;) {
-        const char *end = find_outer_comma(p);
+        const char *end = find_outer_char(p, ",");
         if (end == NULL) {
             expressions.push_back(string(p, args.c_str() + right_b));
             break;
