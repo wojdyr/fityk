@@ -244,25 +244,27 @@ public:
         : wxBitmapButton(parent, -1, wxBitmap(lock_xpm),
                          wxDefaultPosition, wxDefaultSize, wxNO_BORDER),
           //text(text_),
-          locked(true)
+          locked_(true)
     {
         Connect(GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
                 (wxObjectEventFunction) &LockButton::OnClick);
     }
 
-    void OnClick(wxCommandEvent&)
+    void set_lock(bool locked)
     {
-        locked = !locked;
-        SetBitmapLabel(wxBitmap(locked ? lock_xpm : lock_open_xpm));
-        //text->Enable(!locked);
-        //text->SetEditable(!locked);
+        locked_ = locked;
+        SetBitmapLabel(wxBitmap(locked_ ? lock_xpm : lock_open_xpm));
+        //text->Enable(!locked_);
+        //text->SetEditable(!locked_);
     }
 
-    bool is_locked() const { return locked; }
+    void OnClick(wxCommandEvent&) { set_lock(!locked_); }
+
+    bool is_locked() const { return locked_; }
 
 private:
     //wxTextCtrl *text;
-    bool locked;
+    bool locked_;
 };
 
 LockableRealCtrl::LockableRealCtrl(wxWindow* parent, bool percent)
@@ -298,6 +300,11 @@ void LockableRealCtrl::set_value(double value)
 bool LockableRealCtrl::is_locked() const
 {
     return lock->is_locked();
+}
+
+void LockableRealCtrl::set_lock(bool locked)
+{
+    lock->set_lock(locked);
 }
 
 const char **get_lock_xpm() { return lock_xpm; }

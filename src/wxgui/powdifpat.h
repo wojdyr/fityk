@@ -44,6 +44,8 @@ public:
     void OnLambdaChange(wxCommandEvent& event);
     void OnPageChanged(wxListbookEvent& event);
     void OnPeakRadio(wxCommandEvent& event);
+    void OnWidthRadio(wxCommandEvent& event);
+    void OnShapeRadio(wxCommandEvent& event);
     PhasePanel *get_phase_panel(int n);
     PhasePanel *get_current_phase_panel();
     void deselect_phase_quick_list();
@@ -70,6 +72,7 @@ private:
 #endif
     wxRadioBox *peak_rb, *width_rb, *shape_rb;
     wxTextCtrl *peak_txt;
+    LockableRealCtrl *par_u, *par_v, *par_w, *par_z, *par_a, *par_b, *par_c;
 
     wxPanel* PrepareIntroPanel();
     wxPanel* PrepareInstrumentPanel();
@@ -78,6 +81,7 @@ private:
     wxPanel* PrepareActionPanel();
     wxPanel* PrepareSizeStrainPanel();
     void initialize_quick_phase_list();
+    void update_peak_parameters();
 };
 
 #if !STANDALONE_POWDIFPAT

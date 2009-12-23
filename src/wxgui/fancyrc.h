@@ -74,6 +74,7 @@ class LockableRealCtrl : public wxPanel
 public:
     LockableRealCtrl(wxWindow* parent, bool percent=false);
     bool is_locked() const;
+    void set_lock(bool locked);
     bool is_null() const { return text->IsEmpty(); }
     double get_value() const;
     wxString get_string() const { return text->GetValue(); }

@@ -3,7 +3,8 @@
 // $Id$
 
 //TODO:
-// finish "peak" page and the next pages
+// finish action page and the next pages
+// deconvolution of instrumental profile
 // enable x-ray / neutron switching (different LPF and scattering factors)
 // buffer the plot with data
 // import .cif files
@@ -159,10 +160,12 @@ private:
 namespace {
 
 LockableRealCtrl *addMaybeRealCtrl(wxWindow *parent, wxString const& label,
-                                   wxSizer *sizer, wxSizerFlags const& flags)
+                                   wxSizer *sizer, wxSizerFlags const& flags,
+                                   bool locked=true)
 {
     wxStaticText *st = new wxStaticText(parent, -1, label);
     LockableRealCtrl *ctrl = new LockableRealCtrl(parent);
+    ctrl->set_lock(locked);
     wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
     hsizer->Add(st, 0, wxALIGN_CENTER_VERTICAL);
     hsizer->Add(ctrl, 0);
@@ -259,12 +262,13 @@ wxPanel* PowderBook::PrepareIntroPanel()
     "  - baseline (background) either removed manually\n"
     "    or modeled with e.g. polynomial.\n"
     "\n"
-    "This window will help you to build a model for your data. "
-    "The model has constrained position of peaks and "
-    "not constrained intensities. Fitting this model (all variables "
-    "at the same time) is known as Pawley method.\n"
+    "This window will help you to build a model for powder diffraction data. "
+    "The model has constrained position of peaks "
+    "and not constrained intensities. "
+    "Then you can fit the model to your data (all variables at the same time), "
+    "what is known as Pawley method.\n"
     "\n"
-    "Good luck!\n";
+    "This is only a preview, work in progress, it does not work!\n";
 #endif
 
     wxPanel *panel = new wxPanel(this);
@@ -1072,60 +1076,60 @@ wxPanel* PowderBook::PreparePeakPanel()
     peak_choices.Add(wxT("Pearson VII"));
     peak_choices.Add(wxT("Pseudo-Voigt"));
     peak_choices.Add(wxT("Voigt"));
+    peak_choices.Add(wxT("Split-Gaussian"));
+    peak_choices.Add(wxT("Split-PearsonVII"));
     peak_rb = new wxRadioBox(panel, -1, wxT("peak function"),
                              wxDefaultPosition, wxDefaultSize, peak_choices, 5);
     peak_rb->SetSelection(3 /*Pseudo-Voigt*/);
     sizer->Add(peak_rb, wxSizerFlags().Expand().Border());
 
     wxArrayString peak_widths;
-    peak_widths.Add(wxT("independent"));
-    peak_widths.Add(wxT("the same (in phase)"));
-    peak_widths.Add(wxT("f(2\u03B8)"));
-    peak_widths.Add(wxT("Mod-TCHpV"));
+    peak_widths.Add(wxT("independent for each hkl"));
+    peak_widths.Add(wxT("the same for all (not recommended)"));
+    peak_widths.Add(wxT("H\u00B2=U tan\u00B2\u03B8 + V tan\u03B8 + W + ")
+                    wxT("Z/cos\u00B2\u03B8"));
     width_rb = new wxRadioBox(panel, -1, wxT("peak width"),
-                              wxDefaultPosition, wxDefaultSize, peak_widths, 5);
+                              wxDefaultPosition, wxDefaultSize, peak_widths, 1);
     sizer->Add(width_rb, wxSizerFlags().Expand().Border());
 
     wxArrayString peak_shapes;
-    peak_shapes.Add(wxT("independent"));
-    peak_shapes.Add(wxT("the same (in phase)"));
-    peak_shapes.Add(wxT("f(2\u03B8)"));
-    // f(2T)=A+B/2T+C/(2T)^2 or A+B*2T
-    peak_shapes.Add(wxT("Mod-TCHpV"));
+    peak_shapes.Add(wxT("independent for each hkl"));
+    peak_shapes.Add(wxT("the same for all"));
+    peak_shapes.Add(wxT("A + B (2\u03B8) + C (2\u03B8)\u00B2"));
+    peak_shapes.Add(wxT("A + B / (2\u03B8) + C / (2\u03B8)\u00B2"));
     shape_rb = new wxRadioBox(panel, -1, wxT("peak shape"),
-                              wxDefaultPosition, wxDefaultSize, peak_shapes, 5);
+                              wxDefaultPosition, wxDefaultSize, peak_shapes, 1);
     sizer->Add(shape_rb, wxSizerFlags().Expand().Border());
-    peak_txt = new wxTextCtrl(panel, -1,
-                         wxT("This tool doesn't work yet,\n")
-                         wxT("but your feedback is welcome!\n")
-                         wxT("What do you expect from this dialog?\n")
-                         wxT("http://groups.google.com/group/fityk-users/\n"),
-                         wxDefaultPosition, wxSize(-1, 200),
-                         wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE|wxTE_AUTO_URL);
-    peak_txt->SetBackgroundColour(GetBackgroundColour());
-    sizer->Add(peak_txt, wxSizerFlags().Expand().Border());
 
     wxSizer *stp_sizer = new wxStaticBoxSizer(wxHORIZONTAL, panel,
                                               wxT("initial parameters"));
-    wxSizer *par_sizer = new wxGridSizer(3, 2, 2);
+    wxSizer *par_sizer = new wxGridSizer(4, 10, 5);
     wxSizerFlags flags = wxSizerFlags().Right();
-    LockableRealCtrl *par_u, *par_v, *par_w;
-    par_u = addMaybeRealCtrl(panel, wxT("U ="),  par_sizer, flags);
-    par_v = addMaybeRealCtrl(panel, wxT(".. ="),  par_sizer, flags);
-    par_w = addMaybeRealCtrl(panel, wxT(".. ="),  par_sizer, flags);
+    par_u = addMaybeRealCtrl(panel, wxT("U ="),  par_sizer, flags, false);
+    par_v = addMaybeRealCtrl(panel, wxT("V ="),  par_sizer, flags, false);
+    par_w = addMaybeRealCtrl(panel, wxT("W ="),  par_sizer, flags, false);
+    par_z = addMaybeRealCtrl(panel, wxT("Z ="),  par_sizer, flags, false);
+    par_a = addMaybeRealCtrl(panel, wxT("A ="),  par_sizer, flags, false);
+    par_b = addMaybeRealCtrl(panel, wxT("B ="),  par_sizer, flags, false);
+    par_c = addMaybeRealCtrl(panel, wxT("C ="),  par_sizer, flags, false);
     stp_sizer->Add(par_sizer, wxSizerFlags(1).Expand());
     sizer->Add(stp_sizer, wxSizerFlags().Border().Expand());
 
-    /*  Npr=0, 1, 5 - Pseudo-Voigt,  shape - see (3.21)
-     *  Npr=4 - 3 * Pseudo-Voigt
-     *  Npr=2, 3, 6 - Pearson VII - shape - see (3.23)
-     *  FWHM - see (3.20)
-     */
+    //peak_txt = new wxTextCtrl(panel, -1, wxT(""),
+    //                          wxDefaultPosition, wxSize(-1, 200),
+    //                          wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
+    //peak_txt->SetBackgroundColour(GetBackgroundColour());
+    //sizer->Add(peak_txt, wxSizerFlags().Expand().Border());
 
+    update_peak_parameters();
     panel->SetSizerAndFit(sizer);
 
     Connect(peak_rb->GetId(), wxEVT_COMMAND_RADIOBOX_SELECTED,
             (wxObjectEventFunction) &PowderBook::OnPeakRadio);
+    Connect(width_rb->GetId(), wxEVT_COMMAND_RADIOBOX_SELECTED,
+            (wxObjectEventFunction) &PowderBook::OnWidthRadio);
+    Connect(shape_rb->GetId(), wxEVT_COMMAND_RADIOBOX_SELECTED,
+            (wxObjectEventFunction) &PowderBook::OnShapeRadio);
 
     return panel;
 }
@@ -1135,8 +1139,18 @@ wxPanel* PowderBook::PrepareActionPanel()
     wxPanel *panel = new wxPanel(this);
     wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 
-    panel->SetSizerAndFit(sizer);
+    wxTextCtrl *txt = new wxTextCtrl(panel, -1,
+                         wxT("This tool doesn't work yet,\n")
+                         wxT("            it is only a preview.\n")
+                         wxT("Your feedback is welcome!\n")
+                         wxT("What do you expect from this dialog?\n")
+                         wxT("http://groups.google.com/group/fityk-users/\n"),
+                         wxDefaultPosition, wxSize(-1, 200),
+                         wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE|wxTE_AUTO_URL);
+    txt->SetBackgroundColour(GetBackgroundColour());
+    sizer->Add(txt, wxSizerFlags(1).Expand().Border());
 
+    panel->SetSizerAndFit(sizer);
     return panel;
 }
 
@@ -1325,20 +1339,48 @@ double PowderBook::get_lambda(int n) const
 
 void PowderBook::OnPeakRadio(wxCommandEvent& event)
 {
+    // enable/disable peak and shape radiobuttons
     int sel = event.GetSelection();
-    bool has_shape = (sel > 1); // not Gaussian nor Lorentzian
+    bool has_shape = (sel > 1 && sel != 5); // not (Split-)Gaussian/Lorentzian
     shape_rb->Enable(has_shape);
-    bool is_pv = (sel == 3);
-    if (!is_pv && width_rb->GetSelection() == 3 /*Mod-TCHpV*/)
+
+    // Split-* functions don't have width/shape set as f(2T) now.
+    // This could be implemented (two sets of parameters - for left and right).
+    bool is_split = (sel >= 5);
+    if (is_split && width_rb->GetSelection() == 2 /*f(2T)*/)
         width_rb->SetSelection(0);
-    width_rb->Enable(3 /*Mod-TCHpV*/, is_pv);
+    width_rb->Enable(2, !is_split);
     if (has_shape) {
-        if (!is_pv && shape_rb->GetSelection() == 3 /*Mod-TCHpV*/)
+        if (is_split && shape_rb->GetSelection() >= 2 /*f(2T)*/)
             shape_rb->SetSelection(0);
-        shape_rb->Enable(3 /*Mod-TCHpV*/, is_pv);
+        shape_rb->Enable(2, !is_split);
+        shape_rb->Enable(3, !is_split);
     }
+
+    update_peak_parameters();
 }
 
+void PowderBook::OnWidthRadio(wxCommandEvent&)
+{
+    update_peak_parameters();
+}
+
+void PowderBook::OnShapeRadio(wxCommandEvent&)
+{
+    update_peak_parameters();
+}
+
+void PowderBook::update_peak_parameters()
+{
+    //int p_idx = peak_rb->GetSelection();
+    //int w_idx = width_rb->GetSelection();
+    //int s_idx = shape_rb->GetSelection();
+    bool has_shape = shape_rb->IsEnabled();
+    par_a->Enable(has_shape);
+    par_b->Enable(has_shape);
+    par_c->Enable(has_shape);
+    //peak_txt->SetValue(s);
+}
 
 
 #if STANDALONE_POWDIFPAT
