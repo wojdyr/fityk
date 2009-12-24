@@ -668,8 +668,8 @@ TransEditorDlg::TransEditorDlg(wxWindow* parent, wxWindowID id,
     flexsizer->Add(description_tc, 0, wxALL|wxEXPAND, 5);
     flexsizer->Add(new wxStaticText(this, -1, wxT("code")), 0, wxALL, 5);
     flexsizer->Add(code_tc, 0, wxALL|wxEXPAND, 5);
-    flexsizer->AddGrowableRow(2); // description
-    flexsizer->AddGrowableRow(3); // code
+    flexsizer->AddGrowableRow(1); // description
+    flexsizer->AddGrowableRow(2); // code
     flexsizer->AddGrowableCol(1);
     top_sizer->Add(flexsizer, 0, wxEXPAND);
     top_sizer->Add(inmenu_cb, 0, wxALL, 5);
