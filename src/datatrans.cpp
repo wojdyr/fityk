@@ -31,7 +31,7 @@
 //     k...m means that expression is executed for k, k+1, ... m-1. Not for m.
 //
 // Assignments are executed for n = 0, ..., M-1 (if assignments are joined
-// with '&', all are executed for n=0, then all for n=1, and so on).
+// with ',', all are executed for n=0, then all for n=1, and so on).
 // Before transformation the new point coordinates are a copy of the old ones.
 //
 // There is a special function sum(), which can be used as a real value.
