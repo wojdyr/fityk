@@ -879,7 +879,8 @@ wxString make_info_string_for_atoms(const vector<Atom>& atoms, int error_line)
 {
     wxString info = wxT("In unit cell:");
     for (vector<Atom>::const_iterator i = atoms.begin(); i != atoms.end(); ++i){
-        info += wxString::Format(wxT(" %d %s "), (int)i->pos.size(), i->symbol);
+        info += wxString::Format(wxT(" %d %s "), (int) i->pos.size(),
+                                                 pchar2wx(i->symbol).c_str());
     }
     if (error_line != -1)
         info += wxString::Format(wxT("\nError in line %d."), error_line);
