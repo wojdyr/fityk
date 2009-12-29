@@ -11,7 +11,6 @@
 #endif
 
 #include <wx/cmdline.h>
-#include <wx/fs_zip.h>
 #include <wx/fileconf.h>
 #include <wx/stdpaths.h>
 #if wxUSE_TOOLTIPS
@@ -163,7 +162,6 @@ bool FApp::OnInit(void)
     ftk->get_ui()->set_compute_ui(gui_compute_ui);
     ftk->get_ui()->set_exec_command(gui_exec_command);
 
-    wxFileSystem::AddHandler(new wxZipFSHandler);
     wxImage::AddHandler(new wxPNGHandler);
 
     //global settings
