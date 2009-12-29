@@ -28,7 +28,7 @@ private:
     void process_argv(wxCmdLineParser &cmdLineParser);
 };
 
-wxString get_full_path_of_help_file (wxString const& name);
+wxString get_help_url(wxString const& name);
 
 DECLARE_APP(FApp)
 

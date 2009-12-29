@@ -1,97 +1,79 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 // $Id$
+//
+// EditTransDlg: Data > Edit Transformations
 
-#ifndef FITYK__WX_DATAEDIT__H__
-#define FITYK__WX_DATAEDIT__H__
+#ifndef FITYK_WX_DATAEDIT_H_
+#define FITYK_WX_DATAEDIT_H_
 
 #include <string>
 #include <vector>
-#include <wx/grid.h>
-#include <wx/listctrl.h>
 
 class Data;
 
 struct DataTransform
 {
-    std::string name;
-    std::string description;
-    std::string code;
+    wxString name;
+    wxString description;
+    wxString code;
     bool in_menu;
+    bool is_changed;
 
-    DataTransform(const std::string& name_, const std::string& description_,
-                  const std::string& code_, bool in_menu_=false)
+    DataTransform(const wxString& name_, const wxString& description_,
+                  const wxString& code_, bool in_menu_=false)
         : name(name_), description(description_),
-          code(code_), in_menu(in_menu_) {}
-   DataTransform(std::string line);
-   std::string as_fileline() const;
+          code(code_), in_menu(in_menu_), is_changed(false) {}
+    DataTransform(const std::string& line);
+    std::string as_fileline();
+    wxString get_display_name() const
+        { return is_changed ? wxT("*") + name : name; }
 };
 
 
-class DataEditorDlg : public wxDialog
+class EditTransDlg : public wxDialog
 {
     friend class DataTable;
     typedef std::vector<std::pair<int,Data*> > ndnd_type;
 public:
-    DataEditorDlg (wxWindow* parent, wxWindowID id, ndnd_type const& dd);
-    void OnRevert (wxCommandEvent& event);
-    void OnSaveAs (wxCommandEvent& event);
-    void OnAdd (wxCommandEvent& event);
-    void OnRemove (wxCommandEvent& event);
-    void OnUp (wxCommandEvent& event);
-    void OnDown (wxCommandEvent& event);
-    void OnSave (wxCommandEvent& event);
-    void OnReset (wxCommandEvent& event);
-    void OnApply (wxCommandEvent& event);
-    void OnReZoom (wxCommandEvent& event);
-    void OnHelp (wxCommandEvent& event);
-    void OnClose (wxCommandEvent& event);
-    void OnCodeText (wxCommandEvent&) { CodeText(); }
-    void CodeText();
-    void OnESelected (wxListEvent&) { ESelected(); }
-    void ESelected();
-    void OnEActivated (wxListEvent& event);
-    void update_data(ndnd_type const& dd);
+    EditTransDlg (wxWindow* parent, wxWindowID id, ndnd_type const& dd);
     static std::vector<DataTransform> const& get_transforms()
                                                     { return transforms; }
-    static void read_transforms(bool reset=false);
-    static void execute_tranform(std::string code);
-protected:
+    static void read_transforms(bool skip_file);
+    static void execute_tranform(std::string const& code);
+
+private:
     static std::vector<DataTransform> transforms;
-    wxGrid *grid;
     ndnd_type ndnd;
-    wxStaticText *filename_label, *title_label, *description;
-    wxListCtrl *trans_list;
-    wxTextCtrl *code;
-    wxButton *revert_btn, *save_as_btn, *apply_btn, *rezoom_btn, *help_btn,
-             *add_btn, *remove_btn, *up_btn, *down_btn,
-             *save_btn, *reset_btn;
-
-    void initialize_transforms(bool reset=false);
-    int get_selected_item();
-    void insert_trans_list_item(int n);
-    void select_transform(int item);
-    bool is_revertable() const;
-    void refresh_grid();
-    DECLARE_EVENT_TABLE()
-};
-
-
-class TransEditorDlg : public wxDialog
-{
-public:
-    TransEditorDlg(wxWindow* parent, wxWindowID id, DataTransform& ex_,
-                   const std::vector<DataTransform>& transforms_, int pos_);
-    void OnOK(wxCommandEvent &event);
-protected:
-    DataTransform& ex;
-    const std::vector<DataTransform>& transforms;
-    int pos;
+    wxCheckListBox *trans_list;
     wxTextCtrl *name_tc, *description_tc, *code_tc;
-    wxCheckBox *inmenu_cb;
+    wxButton *add_btn, *remove_btn, *up_btn, *down_btn,
+             *save_btn, *revert_btn, *todefault_btn,
+             *apply_btn, *rezoom_btn, *undo_btn, *help_btn;
 
-    DECLARE_EVENT_TABLE()
+    void OnAdd(wxCommandEvent& event);
+    void OnRemove(wxCommandEvent& event);
+    void OnUp(wxCommandEvent& event);
+    void OnDown(wxCommandEvent& event);
+    void OnSave(wxCommandEvent& event);
+    void OnRevert(wxCommandEvent& event);
+    void OnToDefault(wxCommandEvent& event);
+    void OnApply(wxCommandEvent& event);
+    void OnReZoom(wxCommandEvent& event);
+    void OnUndo(wxCommandEvent&);
+    void OnNameText(wxCommandEvent&);
+    void OnDescText(wxCommandEvent&);
+    void OnCodeText(wxCommandEvent&);
+    void OnListItemSelected(wxCommandEvent&) { update_right_side(); }
+    void OnListItemToggled(wxCommandEvent& event);
+
+    void init();
+    void initialize_checklist();
+    bool update_apply_button();
+    void update_right_side();
+    static std::string get_code(std::string const& code,
+                                std::string const& appendix);
 };
 
-#endif
+#endif // FITYK_WX_DATAEDIT_H_
 

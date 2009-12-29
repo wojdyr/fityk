@@ -156,6 +156,8 @@ $Id$
 * fitting:
 	simulated annealing (it can replace LM shake_before option)
 	perhaps also BFGS, conjugate gradients methods
+	Rosenbrock Method:
+	  http://www.applied-mathematics.net/optimization/rosenbrock.html
 
 * fitting: investigate using a library for nonlinear fitting/optimization:
   I don't know about any library good enough to justify migration.  

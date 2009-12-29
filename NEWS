@@ -1,6 +1,9 @@
 $Id$
 
 User-visible changes in version 0.9.0  (2009-  -  ):
+* GUI: Data > Editor dialog was replaced with two dialogs: Data > Table
+  and Data > Edit Transformations
+* added Lua bindings (configure option --enable-lua)
 * a syntax to execute output from external program: command ! program [args...]
 * xyConvert (which requires wx 2.9) is built by default.
   Added flag --disable-xyconvert, which must be used with wx 2.8.

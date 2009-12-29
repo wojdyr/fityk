@@ -71,6 +71,7 @@ public:
     void OnDataXLoad     (wxCommandEvent& event);
     void OnDataRecent    (wxCommandEvent& event);
     void OnDataRevert    (wxCommandEvent& event);
+    void OnDataTable     (wxCommandEvent& event);
     void OnDataEditor    (wxCommandEvent& event);
     void OnSavedDT       (wxCommandEvent& event);
     void OnDataMerge     (wxCommandEvent&);

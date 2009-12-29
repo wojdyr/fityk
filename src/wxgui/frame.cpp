@@ -43,6 +43,7 @@
 #include "pplot.h"
 #include "sidebar.h"
 #include "print.h"
+#include "datatable.h"
 #include "dataedit.h"
 #include "defmgr.h"
 #include "sdebug.h"
@@ -120,6 +121,7 @@ enum {
     ID_D_RECENT                , //and next ones
     ID_D_RECENT_END = ID_D_RECENT+30 ,
     ID_D_REVERT                ,
+    ID_D_TABLE                 ,
     ID_D_EDITOR                ,
     ID_D_SDT                   ,
     ID_D_SDT_END = ID_D_SDT+50 ,
@@ -261,6 +263,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU_RANGE (ID_D_RECENT+1, ID_D_RECENT_END, FFrame::OnDataRecent)
     EVT_UPDATE_UI (ID_D_REVERT, FFrame::OnDataRevertUpdate)
     EVT_MENU (ID_D_REVERT,      FFrame::OnDataRevert)
+    EVT_MENU (ID_D_TABLE,       FFrame::OnDataTable)
     EVT_MENU (ID_D_EDITOR,      FFrame::OnDataEditor)
     EVT_MENU_RANGE (ID_D_SDT+1, ID_D_SDT_END, FFrame::OnSavedDT)
     EVT_MENU (ID_D_MERGE,       FFrame::OnDataMerge)
@@ -600,11 +603,12 @@ void FFrame::set_menubar()
               wxT("Reload data from file(s)"));
     data_menu->AppendSeparator();
 
-    data_menu->Append (ID_D_EDITOR, wxT("&Editor\tCtrl-E"),
-                                                     wxT("Open data editor"));
+    data_menu->Append (ID_D_TABLE, wxT("T&able"), wxT("Data Table"));
     this->data_ft_menu = new wxMenu;
-    data_menu->Append (ID_D_SDT, wxT("&Saved Transformations"), data_ft_menu,
-                                 wxT("Saved data transformations"));
+    data_menu->Append (ID_D_SDT, wxT("&Transformations"), data_ft_menu,
+                                 wxT("Custom data transformations"));
+    data_menu->Append (ID_D_EDITOR, wxT("E&dit Transformations..."),
+                                    wxT("Open editor of data operations"));
     data_menu->AppendSeparator();
     data_menu->Append (ID_D_MERGE, wxT("&Merge Points..."),
                                         wxT("Reduce the number of points"));
@@ -814,12 +818,10 @@ void FFrame::update_menu_previous_zooms()
 
 void FFrame::OnShowHelp(wxCommandEvent&)
 {
-    wxString help_file = wxString(wxT("html")) + wxFILE_SEP_PATH
-                         + wxT("fityk-manual.html");
-    wxString help_path = get_full_path_of_help_file(help_file);
-    bool r = wxLaunchDefaultBrowser(wxT("file://") + help_path);
+    wxString help_url = get_help_url(wxT("fityk-manual.html"));
+    bool r = wxLaunchDefaultBrowser(help_url);
     if (!r)
-        wxMessageBox(wxT("Can't open browser.\n Manual is here:\n") + help_path,
+        wxMessageBox(wxT("Can't open browser.\nManual is here:\n") + help_url,
                      wxT("Manual"), wxOK|wxICON_INFORMATION);
 }
 
@@ -900,47 +902,49 @@ void FFrame::OnDataRevert (wxCommandEvent&)
     ftk->exec(cmd);
 }
 
+void FFrame::OnDataTable(wxCommandEvent&)
+{
+    int data_nr = get_focused_data_index();
+    DataTableDlg data_table(this, -1, data_nr, ftk->get_data(data_nr));
+    data_table.ShowModal();
+}
+
 void FFrame::OnDataEditor (wxCommandEvent&)
 {
     vector<pair<int,Data*> > dd;
     vector<int> sel = get_selected_data_indices();
     for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i)
         dd.push_back(make_pair(*i, ftk->get_data(*i)));
-    DataEditorDlg data_editor(this, -1, dd);
+    EditTransDlg data_editor(this, -1, dd);
     data_editor.ShowModal();
+    update_menu_saved_tranforms();
 }
 
-void FFrame::update_menu_saved_tranforms ()
+void FFrame::update_menu_saved_tranforms()
 {
-    const vector<DataTransform> &all = DataEditorDlg::get_transforms();
-    vector<DataTransform> transforms;
-    for (vector<DataTransform>::const_iterator i = all.begin();
-            i != all.end(); ++i)
-        if (i->in_menu)
-            transforms.push_back(*i);
-    int menu_len = data_ft_menu->GetMenuItemCount();
-    for (int i = 0; i < size(transforms); ++i) {
-        int id = ID_D_SDT+i+1;
-        wxString name = s2wx(transforms[i].name);
-        if (i >= menu_len)
-            data_ft_menu->Append(id, name);
-        else if (data_ft_menu->GetLabel(id) == name)
-            continue;
-        else
-            data_ft_menu->SetLabel(id, name);
-    }
-    for (int i = size(transforms); i < menu_len; ++i)
+    // delete old items
+    int item_count = data_ft_menu->GetMenuItemCount();
+    for (int i = 0; i != item_count; ++i)
         data_ft_menu->Delete(ID_D_SDT+i+1);
+    // create new items
+    const vector<DataTransform> &all = EditTransDlg::get_transforms();
+    int counter = 0;
+    for (vector<DataTransform>::const_iterator i = all.begin();
+                                                        i != all.end(); ++i)
+        if (i->in_menu) {
+            ++counter;
+            data_ft_menu->Append(ID_D_SDT+counter, i->name, i->description);
+        }
 }
 
 void FFrame::OnSavedDT (wxCommandEvent& event)
 {
     string name = wx2s(GetMenuBar()->GetLabel(event.GetId()));
-    const vector<DataTransform> &transforms = DataEditorDlg::get_transforms();
+    const vector<DataTransform> &transforms = EditTransDlg::get_transforms();
     for (vector<DataTransform>::const_iterator i = transforms.begin();
             i != transforms.end(); ++i)
         if (i->name == name) {
-            DataEditorDlg::execute_tranform(i->code);
+            EditTransDlg::execute_tranform(wx2s(i->code));
             return;
         }
 }
