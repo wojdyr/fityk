@@ -48,6 +48,7 @@ public:
                                      int m, int n, const char *mname);
     fp compute_r_squared(std::vector<fp> const &A,
                          std::vector<DataAndModel*> const& dms);
+    bool is_param_used(int n) const { return par_usage[n]; }
 protected:
     Ftk *F;
     std::vector<DataAndModel*> dmdm_;
