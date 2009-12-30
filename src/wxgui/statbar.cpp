@@ -29,15 +29,22 @@ FStatusBar::FStatusBar(wxWindow *parent)
         : wxPanel(parent, -1), last_x(0), last_y(0)
 {
     wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
-    split = new wxSplitterWindow(this, -1);
+    split = new wxSplitterWindow(this, -1, wxDefaultPosition, wxDefaultSize, 0);
     text = new wxStaticText(split, -1, wxT(""));
-    coords = new wxStaticText(split, -1, wxT(""), wxDefaultPosition, wxSize(150, 3));
+    coords = new wxStaticText(split, -1, wxT(""),
+                              wxDefaultPosition, wxSize(150, -1));
     split->SplitVertically(text, coords);
     split->SetSashGravity(1.0);
     split->SetMinimumPaneSize(50);
     sizer->Add(split, wxSizerFlags(1).Centre().Border(wxLEFT));
 
-    wxBitmapButton *prefbtn = new wxBitmapButton(this, -1, GET_BMP(sbprefs));
+    wxBitmapButton *prefbtn = new wxBitmapButton
+#ifdef __WXMSW__
+        // on wxMSW the default width is too small
+        (this, -1, GET_BMP(sbprefs), wxDefaultPosition, wxSize(22, -1));
+#else
+        (this, -1, GET_BMP(sbprefs));
+#endif
     prefbtn->SetToolTip(wxT("configure status bar"));
     sizer->Add(prefbtn, wxSizerFlags().Expand().Centre());
 
