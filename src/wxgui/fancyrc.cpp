@@ -111,7 +111,7 @@ FancyRealCtrl::FancyRealCtrl(wxWindow* parent, wxWindowID id,
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
     // KFTextCtrl is a wxTextCtrl which sends wxEVT_COMMAND_TEXT_ENTER
     // when loses the focus
-    tc = new KFTextCtrl(this, -1, double2wxstr(value));
+    tc = new KFTextCtrl(this, -1, double2wxstr(value), 80);
     tc->SetToolTip(tip);
     tc->SetEditable(!locked);
     sizer->Add(tc, 1, wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND, 1);
