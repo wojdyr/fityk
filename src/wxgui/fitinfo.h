@@ -20,6 +20,10 @@ public:
     bool Initialize();
 private:
     wxTextCtrl *left_tc, *right_tc;
+    wxCheckBox *scale_cb;
+    double wssr_over_dof;
+    void update_right_tc();
+    void OnDivideCheckbox(wxCommandEvent&) { update_right_tc(); }
 };
 
 #endif // FITYK_WX_FITINFO_H_
