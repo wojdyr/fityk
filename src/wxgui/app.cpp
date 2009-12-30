@@ -299,7 +299,7 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
 //                        on Mac: appname.app/Contents/Resources bundle subdir
 //                        on Win: dir where executable is
 //   HELP_DIR = $(pkgdatadir), not defined on Win
-//   {exedir}/../../doc/ - for uninstalled program
+//   {exedir}/../../doc/ and {exedir}/../../../doc/ - for uninstalled program
 wxString get_help_url(wxString const& name)
 {
     wxString dir = wxFILE_SEP_PATH + wxString(wxT("html"));
