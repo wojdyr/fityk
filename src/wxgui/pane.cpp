@@ -131,7 +131,14 @@ void OutputWin::append_text (OutputStyle style, const wxString& str)
 
     SetDefaultStyle (wxTextAttr (text_color[style]));
     AppendText (str);
-    //ShowPosition(GetLastPosition());
+
+    // in wxMSW 2.9.1(trunk) there is a scrolling-related bug:
+    // when the control is auto-scrolled after appending text, 
+    // the page gets blank. Clicking on scrollbar shows the text again.
+    // Below is a workaround.
+#ifdef __WXMSW__
+    ScrollLines(1);
+#endif
 }
 
 void OutputWin::OnConfigure (wxCommandEvent&)
