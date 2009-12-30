@@ -860,15 +860,7 @@ void SideBar::update_data_inf()
         return;
     wxTextCtrl* inf = d->inf;
     inf->Clear();
-    wxTextAttr defattr = inf->GetDefaultStyle();
-    wxFont font = defattr.GetFont();
-    wxTextAttr boldattr = defattr;
-    font.SetWeight(wxFONTWEIGHT_BOLD);
-    boldattr.SetFont(font);
-
-    inf->SetDefaultStyle(boldattr);
-    inf->AppendText(s2wx("@" + S(n) + "\n"));
-    inf->SetDefaultStyle(defattr);
+    inf->AppendText(wxString::Format(wxT("@%d: "), n));
     inf->AppendText(s2wx(ftk->get_data(n)->get_info()));
     wxFileName fn(s2wx(ftk->get_data(n)->get_filename()));
     if (fn.IsOk() && !fn.IsAbsolute()) {
@@ -887,18 +879,9 @@ void SideBar::update_func_inf()
     inf->Clear();
     if (active_function < 0)
         return;
-    wxTextAttr defattr = inf->GetDefaultStyle();
-    wxFont font = defattr.GetFont();
-    wxTextAttr boldattr = defattr;
-    font.SetWeight(wxFONTWEIGHT_BOLD);
-    boldattr.SetFont(font);
-
     Function const* func = ftk->get_function(active_function);
-    inf->SetDefaultStyle(boldattr);
-    inf->AppendText(s2wx(func->xname));
-    inf->SetDefaultStyle(defattr);
     if (func->has_center())
-        inf->AppendText(wxT("\nCenter: ") + s2wx(S(func->center())));
+        inf->AppendText(wxT("Center: ") + s2wx(S(func->center())));
     if (func->has_area())
         inf->AppendText(wxT("\nArea: ") + s2wx(S(func->area())));
     if (func->has_height())
@@ -928,20 +911,12 @@ void SideBar::update_var_inf()
     int n = get_focused_var();
     if (n < 0)
         return;
-    wxTextAttr defattr = inf->GetDefaultStyle();
-    wxFont font = defattr.GetFont();
-    wxTextAttr boldattr = defattr;
-    font.SetWeight(wxFONTWEIGHT_BOLD);
-    boldattr.SetFont(font);
-
     Variable const* var = ftk->get_variable(n);
-    inf->SetDefaultStyle(boldattr);
     string t = var->xname + " = " + var->get_formula(ftk->get_parameters());
     inf->AppendText(s2wx(t));
-    inf->SetDefaultStyle(defattr);
     vector<string> in = ftk->get_variable_references(var->name);
     if (!in.empty())
-        inf->AppendText(s2wx("\nIn:\n    " + join_vector(in, "\n    ")));
+        inf->AppendText(s2wx("\nIn: " + join_vector(in, ", ")));
     inf->ShowPosition(0);
 }
 
