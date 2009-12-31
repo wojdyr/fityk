@@ -196,15 +196,19 @@ void EditTransDlg::init()
     right_sizer->Add(description_tc, wxSizerFlags().Expand().Border());
     wxBoxSizer *cl_sizer = new wxBoxSizer(wxHORIZONTAL);
     cl_sizer->Add(new wxStaticText(right_panel, -1, wxT("Code:")),
-                  wxSizerFlags().Align(wxALIGN_CENTER_VERTICAL|wxLEFT));
+                  wxSizerFlags().Border().Center());
     wxString help_url = get_help_url(wxT("ref.html"))
-                        + wxT("#data-transformations");
+#ifndef __WXMSW__
+          // wxMSW converts URI back to filename, and it can't handle #fragment
+          + wxT("#data-transformations")
+#endif
+          ;
     wxHyperlinkCtrl *help_ctrl = new wxHyperlinkCtrl(right_panel, -1,
                                                   wxT("see syntax reference"),
                                                   help_url);
     cl_sizer->AddStretchSpacer();
-    cl_sizer->Add(help_ctrl, wxSizerFlags().Right());
-    right_sizer->Add(cl_sizer, wxSizerFlags().Expand().Border(wxLEFT|wxRIGHT));
+    cl_sizer->Add(help_ctrl, wxSizerFlags().Center().Border(wxRIGHT));
+    right_sizer->Add(cl_sizer, wxSizerFlags().Expand());
     code_tc = new wxTextCtrl(right_panel, -1, wxEmptyString,
                              wxDefaultPosition, wxSize(-1, 100),
                              wxTE_MULTILINE|wxHSCROLL|wxVSCROLL);
@@ -331,9 +335,8 @@ void EditTransDlg::OnAdd(wxCommandEvent&)
     transforms.insert(transforms.begin() + pos, new_transform);
     trans_list->Insert(name, pos);
     trans_list->SetSelection(pos);
-    name_tc->ChangeValue(name);
-    description_tc->ChangeValue(wxEmptyString);
-    code_tc->ChangeValue(wxEmptyString);
+    update_right_side();
+    apply_btn->Enable(false);
     name_tc->SetFocus();
     name_tc->SetSelection(-1, -1);
 }
@@ -412,13 +415,11 @@ void EditTransDlg::OnApply(wxCommandEvent&)
 {
     string code = wx2s(code_tc->GetValue());
     execute_tranform(code);
-    rezoom_btn->Enable();
 }
 
 void EditTransDlg::OnReZoom(wxCommandEvent&)
 {
     frame->GViewAll();
-    rezoom_btn->Enable(false);
 }
 
 void EditTransDlg::OnUndo(wxCommandEvent& event)

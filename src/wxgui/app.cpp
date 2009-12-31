@@ -13,9 +13,8 @@
 #include <wx/cmdline.h>
 #include <wx/fileconf.h>
 #include <wx/stdpaths.h>
-#if wxUSE_TOOLTIPS
-    #include <wx/tooltip.h>
-#endif
+#include <wx/filesys.h>
+#include <wx/tooltip.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -321,7 +320,7 @@ wxString get_help_url(wxString const& name)
 
     wxString path = paths.FindAbsoluteValidPath(name);
     if (!path.IsEmpty())
-        return wxT("file://") + path;
+        return wxFileSystem::FileNameToURL(path);
     else
         return wxT("http://www.unipress.waw.pl/fityk/") + name;
 }
