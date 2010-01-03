@@ -80,6 +80,14 @@ void FunctionMouseDrag::Drag::change_value(fp x, fp dx, int dX)
         assert(0);
 }
 
+string FunctionMouseDrag::Drag::get_cmd() const
+{
+    if (how != no_drag && value != ini_value)
+        return "$" + variable_name + " = ~" + eS(value) + "; ";
+    else
+        return "";
+}
+
 void FunctionMouseDrag::Drag::set(Function const* p, int idx,
                                   drag_type how_, fp multiplier_)
 {
@@ -172,7 +180,7 @@ void FunctionMouseDrag::move(bool shift, int X, int Y, fp x, fp y)
     hor.change_value(x, x - px, X - pX);
     if (hor.how != no_drag) {
         values[hor.parameter_idx] = hor.value;
-        sib->change_bp_parameter_value(hor.parameter_idx, hor.value);
+        sib->change_parameter_value(hor.parameter_idx, hor.value);
         sidebar_dirty = true;
     }
     pX = X;
@@ -182,7 +190,7 @@ void FunctionMouseDrag::move(bool shift, int X, int Y, fp x, fp y)
     vert.change_value(y, y - py, Y - pY);
     if (vert.how != no_drag) {
         values[vert.parameter_idx] = vert.value;
-        sib->change_bp_parameter_value(vert.parameter_idx, vert.value);
+        sib->change_parameter_value(vert.parameter_idx, vert.value);
         sidebar_dirty = true;
     }
     pY = Y;
@@ -192,7 +200,7 @@ void FunctionMouseDrag::move(bool shift, int X, int Y, fp x, fp y)
 void FunctionMouseDrag::stop()
 {
     if (sidebar_dirty) {
-        frame->get_sidebar()->update_bottom_panel();
+        frame->get_sidebar()->update_param_panel();
         sidebar_dirty = false;
     }
 }
@@ -237,7 +245,9 @@ MainPlot::MainPlot (wxWindow *parent)
       basic_mode(mmd_zoom), mode(mmd_zoom),
       pressed_mouse_button(0),
       over_peak(-1), limit1(INT_MIN), limit2(INT_MIN),
-      hint_receiver(NULL)
+      hint_receiver(NULL),
+      draw_xor_peak_n(0),
+      draw_xor_peak_points(NULL)
 {
     set_cursor();
 }
@@ -1213,18 +1223,17 @@ bool MainPlot::draw_moving_func(MouseActEnum ma, int X, int Y, bool shift)
 
     Function const* p = ftk->get_function(over_peak);
 
-    if (ma != mat_start) {
-        if (func_nr != over_peak)
+    if (ma != mat_start && func_nr != over_peak)
             return false;
-        draw_xor_peak(p, fmd.get_values()); //clear old or redraw
-    }
+
 
     if (ma == mat_redraw)
-        ; //do nothing, already redrawn
+        redraw_xor_peak();
     else if (ma == mat_start) {
         func_nr = over_peak;
         fmd.start(p, X, Y, xs.val(X), ys.val(Y));
-        draw_xor_peak(p, fmd.get_values());
+        bool erase_previous = false;
+        draw_xor_peak(p, fmd.get_values(), erase_previous);
         prevX = X;
         prevY = Y;
         old_cursor = GetCursor();
@@ -1234,11 +1243,13 @@ bool MainPlot::draw_moving_func(MouseActEnum ma, int X, int Y, bool shift)
     else if (ma == mat_move) {
         fmd.move(shift, X, Y, xs.val(X), ys.val(Y));
         frame->set_status_text(fmd.get_status());
-        draw_xor_peak(p, fmd.get_values());
+        bool erase_previous = true;
+        draw_xor_peak(p, fmd.get_values(), erase_previous);
         prevX = X;
         prevY = Y;
     }
     else if (ma == mat_stop) {
+        redraw_xor_peak();
         func_nr = -1;
         if (old_cursor.Ok()) {
             SetCursor(old_cursor);
@@ -1251,7 +1262,8 @@ bool MainPlot::draw_moving_func(MouseActEnum ma, int X, int Y, bool shift)
 }
 
 
-void MainPlot::draw_xor_peak(Function const* func, vector<fp> const& p_values)
+void MainPlot::draw_xor_peak(Function const* func, vector<fp> const& p_values,
+                             bool erase_previous)
 {
     wxClientDC dc(this);
     dc.SetLogicalFunction (wxINVERT);
@@ -1264,12 +1276,37 @@ void MainPlot::draw_xor_peak(Function const* func, vector<fp> const& p_values)
     for (int i = 0; i < n; ++i)
         xx[i] = xs.val(i);
     func->calculate_values_with_params(xx, yy, p_values);
-    vector<int> YY(n);
+
+    if (erase_previous && draw_xor_peak_points != NULL)
+        dc.DrawLines(draw_xor_peak_n, draw_xor_peak_points);
+    if (n != draw_xor_peak_n) {
+        draw_xor_peak_n = n;
+        delete draw_xor_peak_points;
+        draw_xor_peak_points = new wxPoint[n];
+        for (int i = 0; i < n; ++i)
+            draw_xor_peak_points[i].x = i;
+    }
+
     for (int i = 0; i < n; ++i)
-        YY[i] = ys.px(yy[i]);
-    for (int i = 1; i < n; i++)
-        dc.DrawLine (i-1, YY[i-1], i, YY[i]);
+        draw_xor_peak_points[i].y = ys.px(yy[i]);
+    dc.DrawLines(n, draw_xor_peak_points);
 }
+
+void MainPlot::redraw_xor_peak(bool clear)
+{
+    if (draw_xor_peak_n == 0 || draw_xor_peak_points == NULL)
+        return;
+    wxClientDC dc(this);
+    dc.SetLogicalFunction (wxINVERT);
+    dc.SetPen(*wxBLACK_DASHED_PEN);
+    dc.DrawLines(draw_xor_peak_n, draw_xor_peak_points);
+    if (clear) {
+        delete draw_xor_peak_points;
+        draw_xor_peak_points = NULL;
+        draw_xor_peak_n = 0;
+    }
+}
+
 
 void MainPlot::peak_draft(MouseActEnum ma, int X_, int Y_)
 {

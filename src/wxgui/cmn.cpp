@@ -231,6 +231,7 @@ void ProportionalSplitter::OnPaint(wxPaintEvent &event)
 void KFTextCtrl::OnKillFocus(wxFocusEvent&)
 {
     wxCommandEvent ev(wxEVT_COMMAND_TEXT_ENTER, GetId());
+    ev.SetEventObject(this);
     ProcessEvent(ev);
 }
 

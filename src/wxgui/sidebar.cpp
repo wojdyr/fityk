@@ -135,7 +135,7 @@ END_EVENT_TABLE()
 
 SideBar::SideBar(wxWindow *parent, wxWindowID id)
     : ProportionalSplitter(parent, id, 0.75),
-      bp_func(0), active_function(-1),
+      pp_func(NULL), active_function(-1),
       skipOnFuncFocusChanged_(false)
 {
     //wxPanel *upper = new wxPanel(this, -1);
@@ -143,8 +143,9 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     nb = new wxNotebook(this, -1);
     //upper_sizer->Add(nb, 1, wxEXPAND);
     //upper->SetSizerAndFit(upper_sizer);
-    bottom_panel = new wxPanel(this, -1);
-    SplitHorizontally(nb, bottom_panel);
+    param_panel = new ParameterPanel(this, -1, this);
+    param_panel->set_key_sink(frame, wxKeyEventHandler(FFrame::focus_input));
+    SplitHorizontally(nb, param_panel);
 
     //-----  data page  -----
     data_page = new wxPanel(nb, -1);
@@ -278,18 +279,6 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     var_sizer->Add(var_buttons_sizer, 0, wxEXPAND);
     var_page->SetSizerAndFit(var_sizer);
     nb->AddPage(var_page, wxT("variables"));
-
-    //-----
-    wxBoxSizer* bp_topsizer = new wxBoxSizer(wxVERTICAL);
-    bp_label = new wxStaticText(bottom_panel, -1, wxT(""),
-                                wxDefaultPosition, wxDefaultSize,
-                                wxST_NO_AUTORESIZE|wxALIGN_CENTRE);
-    bp_topsizer->Add(bp_label, 0, wxEXPAND|wxALL, 5);
-    bp_sizer = new wxFlexGridSizer(2, 0, 0);
-    bp_sizer->AddGrowableCol(1);
-    bp_topsizer->Add(bp_sizer, 1, wxEXPAND);
-    bottom_panel->SetSizer(bp_topsizer);
-    bottom_panel->SetAutoLayout(true);
 }
 
 void SideBar::OnDataButtonNew (wxCommandEvent&)
@@ -443,9 +432,9 @@ void SideBar::OnFuncButtonNew (wxCommandEvent&)
 
 void SideBar::OnFuncButtonEdit (wxCommandEvent&)
 {
-    if (!bp_func)
+    if (!pp_func)
         return;
-    string t = bp_func->get_current_assignment(ftk->get_variables(),
+    string t = pp_func->get_current_assignment(ftk->get_variables(),
                                                ftk->get_parameters());
     frame->edit_in_input(t);
 }
@@ -524,7 +513,7 @@ void SideBar::update_lists(bool nondata_changed)
     update_data_inf();
     update_func_inf();
     update_var_inf();
-    update_bottom_panel();
+    update_param_panel();
     Thaw();
 }
 
@@ -555,7 +544,7 @@ void SideBar::update_func_list(bool nondata_changed)
         active_function = func_size - 1;
     else {
         if (active_function >= func_size ||
-                ftk->get_function(active_function) != bp_func)
+                ftk->get_function(active_function) != pp_func)
             active_function = ftk->find_function_nr(active_function_name);
         if (active_function == -1 || func_size == old_func_size+1)
             active_function = func_size - 1;
@@ -768,7 +757,7 @@ void SideBar::do_activate_function()
         active_function_name = "";
     frame->refresh_plots(false, kMainPlot);
     update_func_inf();
-    update_bottom_panel();
+    update_param_panel();
 }
 
 // Focus is _not_ used for data-related operations, only for function-related
@@ -920,141 +909,6 @@ void SideBar::update_var_inf()
     inf->ShowPosition(0);
 }
 
-void SideBar::add_variable_to_bottom_panel(Variable const* var,
-                                           string const& tv_name)
-{
-    wxStaticText* name_st = new wxStaticText(bottom_panel, -1, s2wx(tv_name));
-    bp_sizer->Add(name_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 1);
-    bp_statict.push_back(name_st);
-    if (var->is_simple() || var->is_constant()) {
-        FancyRealCtrl *frc = new FancyRealCtrl(bottom_panel, -1,
-                                               var->get_value(),
-                                               s2wx(var->xname),
-                                               !var->is_simple(),
-                            make_callback<FancyRealCtrl const*>().V1(this,
-                                            &SideBar::on_changing_frc_value),
-                            make_callback<FancyRealCtrl const*>().V1(this,
-                                            &SideBar::on_changed_frc_value),
-                            make_callback<FancyRealCtrl const*>().V1(this,
-                                            &SideBar::on_toggled_frc_lock));
-        frc->ConnectToOnKeyDown(wxKeyEventHandler(FFrame::focus_input), frame);
-        bp_sizer->Add(frc, 1, wxALL|wxEXPAND, 1);
-        bp_frc.push_back(frc);
-    }
-    else {
-        string t = var->xname + " = " + var->get_formula(ftk->get_parameters());
-        wxStaticText *var_st = new wxStaticText(bottom_panel, -1, s2wx(t));
-        bp_sizer->Add(var_st, 1, wxALL|wxEXPAND|wxALIGN_CENTER_VERTICAL, 1);
-        bp_statict.push_back(var_st);
-        bp_frc.push_back(0);
-    }
-}
-
-/// draw function draft with XOR
-void SideBar::on_changing_frc_value(FancyRealCtrl const* frc)
-{
-    vector<fp> p_values(bp_func->nv);
-    for (int i = 0; i < bp_func->nv; ++i) {
-        string xname = "$" + bp_func->get_var_name(i);
-        p_values[i] = wx2s(frc->GetTip()) != xname ? bp_func->get_var_value(i)
-                                                   : frc->GetValue();
-    }
-    frame->get_main_plot()->draw_xor_peak(bp_func, p_values);
-}
-
-void SideBar::on_changed_frc_value(FancyRealCtrl const* frc)
-{
-    ftk->exec(wx2s(frc->GetTip()) + " = ~" + wx2s(frc->GetValueStr()));
-}
-
-void SideBar::on_toggled_frc_lock(FancyRealCtrl const* frc)
-{
-    string vname = wx2s(frc->GetTip());
-    ftk->exec(vname + " = " + (frc->IsLocked() ? "{" : "~{") + vname + "}");
-}
-
-void SideBar::clear_bottom_panel()
-{
-    for (vector<wxStaticText*>::iterator i = bp_statict.begin();
-                                                i != bp_statict.end(); ++i)
-        (*i)->Destroy();
-    bp_statict.clear();
-    for (vector<FancyRealCtrl*>::iterator i = bp_frc.begin();
-                                                      i != bp_frc.end(); ++i)
-        if (*i)
-            (*i)->Destroy();
-    bp_frc.clear();
-    bp_label->SetLabel(wxT(""));
-    bp_sig.clear();
-}
-
-vector<bool> SideBar::make_bottom_panel_sig(Function const* func)
-{
-    vector<bool> sig;
-    for (int i = 0; i < size(func->type_var_names); ++i) {
-        Variable const* var = ftk->get_variable(func->get_var_idx(i));
-        sig.push_back(var->is_simple() || var->is_constant());
-    }
-    return sig;
-}
-
-void SideBar::change_bp_parameter_value(int idx, double value)
-{
-    if (idx < (int)bp_frc.size())
-        bp_frc[idx]->SetTemporaryValue(value);
-}
-
-void SideBar::update_bottom_panel()
-{
-    if (active_function < 0) {
-        clear_bottom_panel();
-        bp_func = 0;
-        return;
-    }
-    bottom_panel->Freeze();
-    bp_func = ftk->get_function(active_function);
-    wxString new_label = s2wx(bp_func->xname + " : " + bp_func->type_name);
-    if (bp_label->GetLabel() != new_label)
-        bp_label->SetLabel(new_label);
-    vector<bool> sig = make_bottom_panel_sig(bp_func);
-    if (sig != bp_sig) {
-        clear_bottom_panel();
-        bp_sig = sig;
-        for (int i = 0; i < bp_func->nv; ++i) {
-            Variable const* var = ftk->get_variable(bp_func->get_var_idx(i));
-            add_variable_to_bottom_panel(var, bp_func->type_var_names[i]);
-        }
-        int sash_pos = GetClientSize().GetHeight() - 3
-                         - bottom_panel->GetSizer()->GetMinSize().GetHeight();
-        if (sash_pos < GetSashPosition())
-            SetSashPosition(max(50, sash_pos));
-    }
-    else {
-        vector<wxStaticText*>::iterator st = bp_statict.begin();
-        for (int i = 0; i < bp_func->nv; ++i) {
-            string const& t = bp_func->type_var_names[i];
-            (*st)->SetLabel(s2wx(t));
-            ++st;
-            Variable const* var = ftk->get_variable(bp_func->get_var_idx(i));
-            if (var->is_simple() || var->is_constant()) {
-                bp_frc[i]->SetValue(var->get_value());
-                bp_frc[i]->SetTip(s2wx(var->xname));
-                if (bp_frc[i]->IsLocked() != !var->is_simple())
-                    bp_frc[i]->ToggleLock();
-            }
-            else {
-                assert (bp_frc[i] == 0);
-                string f = var->xname + " = "
-                                   + var->get_formula(ftk->get_parameters());
-                (*st)->SetLabel(s2wx(f));
-                ++st;
-            }
-        }
-    }
-    bottom_panel->Layout();
-    bottom_panel->Thaw();
-}
-
 bool SideBar::howto_plot_dataset(int n, bool& shadowed, int& offset) const
 {
     // choice_idx: 0: "show all datasets"
@@ -1154,5 +1008,71 @@ void SideBar::make_same_func_par(string const& p, bool checked)
     }
     ftk->exec(cmd);
 }
+
+void SideBar::on_parameter_changing(const std::vector<double>& values)
+{
+    bool erase_previous = true;
+    frame->get_main_plot()->draw_xor_peak(pp_func, values, erase_previous);
+}
+
+void SideBar::on_parameter_changed(int n)
+{
+    frame->get_main_plot()->redraw_xor_peak(true); // erase xor line
+    string vname = wx2s(param_panel->get_label2(n));
+    ftk->exec(vname + " = ~" + eS(param_panel->get_value(n)));
+}
+
+void SideBar::on_parameter_lock_toggled(int n, bool locked)
+{
+    string vname = wx2s(param_panel->get_label2(n));
+    ftk->exec(vname + " = " + (locked ? "{" : "~{") + vname + "}");
+}
+
+void SideBar::change_parameter_value(int idx, double value)
+{
+    if (idx < param_panel->get_count())
+        param_panel->set_value(idx, value);
+}
+
+void SideBar::update_param_panel()
+{
+    int old_count = param_panel->get_count();
+    if (active_function < 0) {
+        param_panel->delete_row_range(0, old_count);
+        pp_func = NULL;
+        return;
+    }
+
+    pp_func = ftk->get_function(active_function);
+
+    wxString new_label = s2wx(pp_func->xname + " : " + pp_func->type_name);
+    if (param_panel->get_title() != new_label)
+        param_panel->set_title(new_label);
+
+    if (pp_func->nv < old_count)
+        param_panel->delete_row_range(pp_func->nv, old_count);
+
+    for (int i = 0; i < pp_func->nv; ++i) {
+        Variable const* var = ftk->get_variable(pp_func->get_var_idx(i));
+        wxString label = s2wx(pp_func->type_var_names[i]);
+        if (var->is_simple() || var->is_constant()) {
+            bool locked = var->is_constant();
+            param_panel->set_normal_parameter(i, label, var->get_value(),
+                                              locked, var->xname);
+        }
+        else
+            param_panel->set_disabled_parameter(i, label, var->get_value(),
+                                                var->xname);
+    }
+
+    if (pp_func->nv != old_count) {
+        param_panel->Layout();
+        int sash_pos = GetClientSize().GetHeight() - 3
+                         - param_panel->GetSizer()->GetMinSize().GetHeight();
+        if (sash_pos < GetSashPosition())
+            SetSashPosition(max(50, sash_pos));
+    }
+}
+
 
 

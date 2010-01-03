@@ -12,7 +12,8 @@
 #include <vector>
 #include <string>
 
-#include "cmn.h" //ProportionalSplitter
+#include "cmn.h" // ProportionalSplitter
+#include "fancyrc.h" // ParameterPanelObserver
 
 class GradientDlg;
 class FancyRealCtrl;
@@ -22,7 +23,7 @@ class Function;
 class Variable;
 
 
-class SideBar : public ProportionalSplitter
+class SideBar : public ProportionalSplitter, public ParameterPanelObserver
 {
 public:
     SideBar(wxWindow *parent, wxWindowID id=-1);
@@ -80,20 +81,21 @@ public:
     void update_data_inf();
     void update_func_inf();
     void update_var_inf();
-    void update_bottom_panel();
+    void update_param_panel();
     void delete_selected_items();
-    void draw_function_draft(FancyRealCtrl const* frc) const;
-    void change_bp_parameter_value(int idx, double value);
+    void change_parameter_value(int idx, double value);
     std::string get_datasets_for_plot();
+
+    // implementation of ParameterPanelObserver
+    virtual void on_parameter_changing(const std::vector<double>& values);
+    virtual void on_parameter_changed(int n);
+    virtual void on_parameter_lock_toggled(int n, bool locked);
+
 private:
     wxNotebook *nb;
-    wxPanel *data_page, *func_page, *var_page, *bottom_panel;
-    wxFlexGridSizer* bp_sizer;
-    wxStaticText *bp_label;
-    std::vector<FancyRealCtrl*> bp_frc;
-    std::vector<wxStaticText*> bp_statict;
-    std::vector<bool> bp_sig; /// bottom panel "signature" (widget order)
-    Function const* bp_func; ///bottom panel function
+    wxPanel *data_page, *func_page, *var_page;
+    Function const* pp_func; ///parameter panel function
+    ParameterPanel *param_panel;
     DataListPlusText *d;
     ListPlusText *f, *v;
     wxChoice *data_look, *filter_ch;
@@ -105,14 +107,7 @@ private:
 
     void update_func_list(bool nondata_changed);
     void update_var_list();
-    void add_variable_to_bottom_panel(Variable const* var,
-                                      std::string const& tv_name);
-    void clear_bottom_panel();
-    std::vector<bool> make_bottom_panel_sig(Function const* func);
     void do_activate_function();
-    void on_changing_frc_value(FancyRealCtrl const* frc);
-    void on_changed_frc_value(FancyRealCtrl const* frc);
-    void on_toggled_frc_lock(FancyRealCtrl const* frc);
     void make_same_func_par(std::string const& p, bool checked);
 
     DECLARE_EVENT_TABLE()

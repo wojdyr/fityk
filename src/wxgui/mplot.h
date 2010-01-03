@@ -98,10 +98,7 @@ public:
         Drag() : how(no_drag) {}
         void set(Function const* p, int idx, drag_type how_, fp multiplier_);
         void change_value(fp x, fp dx, int dX);
-        std::string get_cmd() const {
-            return how != no_drag && value != ini_value ?
-                "$" + variable_name + " = ~" + eS(value) + "; " : "";
-        }
+        std::string get_cmd() const;
     };
 
     FunctionMouseDrag() : sidebar_dirty(false) {}
@@ -183,7 +180,9 @@ public:
     void set_func_color(int n, wxColour const& col)
         { peakCol[n % max_peak_cols] = col; }
     bool get_x_reversed() const { return x_reversed; }
-    void draw_xor_peak(Function const* func, std::vector<fp> const& p_values);
+    void draw_xor_peak(Function const* func, std::vector<fp> const& p_values,
+                       bool erase_previous);
+    void redraw_xor_peak(bool clear=false);
     void show_popup_menu(wxMouseEvent &event);
     void set_hint_receiver(HintReceiver *hr)
         { hint_receiver = hr; update_mouse_hints(); }
@@ -211,6 +210,9 @@ private:
     FunctionMouseDrag fmd; //for function dragging
     FunctionKind func_draft_kind; // for function adding (with drawing draft)
     HintReceiver *hint_receiver; // used to set mouse hints, probably statusbar
+    // variables used in draw_xor_peak() and redraw_xor_peak()
+    int draw_xor_peak_n;
+    wxPoint* draw_xor_peak_points;
 
     void draw_x_axis (wxDC& dc, bool set_pen=true);
     void draw_y_axis (wxDC& dc, bool set_pen=true);
