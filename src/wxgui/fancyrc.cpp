@@ -51,11 +51,23 @@ void ValueChangingWidget::OnTimer(wxTimerEvent&)
 {
     wxMouseState state = wxGetMouseState();
     int slider_pos = GetValue();
+#if wxCHECK_VERSION(2, 9, 0)
     if (state.LeftIsDown())
+#else
+    if (state.LeftDown())
+#endif
         observer_->change_value(this, slider_pos*0.001);
+#if wxCHECK_VERSION(2, 9, 0)
     else if (state.MiddleIsDown())
+#else
+    else if (state.MiddleDown())
+#endif
         observer_->change_value(this, slider_pos*0.0001);
+#if wxCHECK_VERSION(2, 9, 0)
     else if (state.RightIsDown())
+#else
+    else if (state.RightDown())
+#endif
         observer_->change_value(this, slider_pos*0.00001);
     else {
         timer_.Stop();
