@@ -52,6 +52,9 @@ InputLine::InputLine(wxWindow *parent, wxWindowID id,
     sizer->Add(m_button, 0, wxEXPAND);
     SetSizer(sizer);
     SetMinSize(wxSize(-1, m_text->GetBestSize().y));
+#if !wxCHECK_VERSION(2, 9, 0)
+# define wxEVT_SPIN wxEVT_SCROLL_THUMBTRACK
+#endif
     m_button->Connect(wxEVT_SPIN, wxSpinEventHandler(InputLine::OnSpinButton),
                       NULL, this);
     m_text->Connect(wxEVT_KEY_DOWN,
