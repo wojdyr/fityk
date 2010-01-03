@@ -41,9 +41,7 @@ IOPane::IOPane(wxWindow *parent, wxWindowID id)
 
     // on Linux platform GUI and CLI history is stored in the same file
     wxString hist_file = get_conf_file("history");
-    input_field = new InputLine(this, -1,
-              make_callback<wxString const&>().V1(this, &IOPane::OnInputLine),
-              hist_file);
+    input_field = new InputLine(this, -1, this, hist_file);
     output_win = new OutputWin (this, -1);
     io_sizer->Add (output_win, 1, wxEXPAND);
     io_sizer->Add (input_field, 0, wxEXPAND);
@@ -58,7 +56,7 @@ void IOPane::edit_in_input(string const& s)
     input_field->SetFocus();
 }
 
-void IOPane::OnInputLine(wxString const& s)
+void IOPane::ProcessInputLine(wxString const& s)
 {
     frame->set_status_text(wx2s(s));
     ftk->exec(wx2s(s)); //displaying and executing command

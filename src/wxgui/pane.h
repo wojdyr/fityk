@@ -14,6 +14,7 @@
 #include <wx/fontpicker.h>
 
 #include "../common.h" // OutputStyle
+#include "inputline.h" // InputLineObserver
 
 class IOPane;
 class MainPlot;
@@ -49,12 +50,15 @@ private:
 
 
 /// A pane containing input line and output window.
-class IOPane : public wxPanel
+class IOPane : public wxPanel, public InputLineObserver
 {
 public:
     IOPane(wxWindow *parent, wxWindowID id=-1);
     void edit_in_input(std::string const& s);
-    void OnInputLine(wxString const& s);
+
+    // implementation of InputLineObserver
+    virtual void ProcessInputLine(wxString const& s);
+
     OutputWin *output_win;
     InputLine *input_field;
 };

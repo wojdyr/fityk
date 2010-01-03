@@ -1,21 +1,16 @@
 // InputLine sample, by Marcin Wojdyr, public domain
 
-#include "wx/wxprec.h"
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
-#ifndef WX_PRECOMP
-    #include "wx/wx.h"
-#endif
-
+#include <wx/wx.h>
 #include "inputline.h"
-#include "callback.h"
 
-class Frame : public wxFrame
+class Frame : public wxFrame, public InputLineObserver
 {
 public:
     Frame();
-    void AddLine(wxString const& s) { m_output->AppendText(s + wxT("\n")); }
+    // implementation of InputLineObserver
+    virtual void ProcessInputLine(const wxString& s)
+        { m_output->AppendText(s + wxT("\n")); }
+
 private:
     InputLine* m_input;
     wxTextCtrl* m_output;
@@ -38,10 +33,8 @@ IMPLEMENT_APP(App)
 Frame::Frame() : wxFrame(0, wxID_ANY, wxT("InputLine sample"))
 {
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-    m_input = new InputLine(this, wxID_ANY,
-                 make_callback<wxString const&>().V1(this, &Frame::AddLine),
-                 wxT(""));
-    m_output = new wxTextCtrl(this, wxID_ANY, wxT(""),
+    m_input = new InputLine(this, wxID_ANY, this, wxEmptyString);
+    m_output = new wxTextCtrl(this, wxID_ANY, wxEmptyString,
                               wxDefaultPosition, wxDefaultSize,
                               wxTE_MULTILINE|wxTE_READONLY);
     sizer->Add(m_input, 0, wxEXPAND);

@@ -30,7 +30,7 @@ libceria_a_SOURCES = ceria.cpp ceria.h atomtables.c atomtables.h \
 		     sgtables.c sgtables.h
 
 fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
-		inputline.cpp inputline.h callback.h \
+		inputline.cpp inputline.h \
 		listptxt.cpp listptxt.h dload.cpp dload.h pplot.cpp pplot.h \
 		statbar.cpp statbar.h pane.cpp pane.h sidebar.cpp sidebar.h \
 		history.cpp history.h datatable.cpp datatable.h \
@@ -53,9 +53,9 @@ xyconvert_CPPFLAGS = $(WX_CPPFLAGS) $(CPPFLAGS_3RDPARTY) $(XYLIB_CPPFLAGS) -DXYC
 xyconvert_LDADD = $(WX_LIBS) $(XYLIB_LDADD) $(xyconvert_res)
 endif
 
-inputline: sample_inputline.cpp inputline.cpp inputline.h callback.h
-	`wx-config --cxx` `wx-config --cxxflags` -g -Wall -W -O0 -o $@ $< inputline.cpp `wx-config --libs`
-
+inputline: sample_inputline.cpp inputline.cpp inputline.h
+	`wx-config --cxx` `wx-config --cxxflags` -g -Wall -W -O0 -o $@ \
+	    $< $(srcdir)/inputline.cpp `wx-config --libs`
 
 if POWDIFPAT
 bin_PROGRAMS += powdifpat

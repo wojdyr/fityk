@@ -34,15 +34,9 @@
 #include "inputline.h"
 
 
-BEGIN_EVENT_TABLE(InputLine, wxPanel)
-    EVT_SPIN(-1, InputLine::OnSpinButton)
-    //KEY_DOWN events from wxTextCtrl and wxSpinButtonare Connect()-ed
-END_EVENT_TABLE()
-
 InputLine::InputLine(wxWindow *parent, wxWindowID id,
-                     V1Callback<wxString const&> const& receiver,
-                     wxString const& hist_file_)
-    : wxPanel(parent, id), m_hpos(0), m_receiver(receiver),
+                     InputLineObserver* observer, wxString const& hist_file_)
+    : wxPanel(parent, id), m_hpos(0), m_observer(observer),
       hist_file(hist_file_)
 {
     m_text = new wxTextCtrl(this, wxID_ANY, wxT(""),
@@ -58,12 +52,14 @@ InputLine::InputLine(wxWindow *parent, wxWindowID id,
     sizer->Add(m_button, 0, wxEXPAND);
     SetSizer(sizer);
     SetMinSize(wxSize(-1, m_text->GetBestSize().y));
-    m_text->Connect(wxID_ANY, wxEVT_KEY_DOWN,
+    m_button->Connect(wxEVT_SPIN, wxSpinEventHandler(InputLine::OnSpinButton),
+                      NULL, this);
+    m_text->Connect(wxEVT_KEY_DOWN,
                     wxKeyEventHandler(InputLine::OnKeyDownAtText),
-                    0, this);
-    m_button->Connect(wxID_ANY, wxEVT_KEY_DOWN,
+                    NULL, this);
+    m_button->Connect(wxEVT_KEY_DOWN,
                       wxKeyEventHandler(InputLine::OnKeyDownAtSpinButton),
-                      0, this);
+                      NULL, this);
     // read history
     if (!hist_file.IsEmpty()) {
         std::ifstream f(hist_file.mb_str());
@@ -126,7 +122,7 @@ void InputLine::OnInputLine(const wxString& line)
     m_history.Last() = line;
     m_history.Add(wxT(""));
     GoToHistoryEnd();
-    m_receiver(line);
+    m_observer->ProcessInputLine(line);
     m_text->SetFocus();
 }
 
