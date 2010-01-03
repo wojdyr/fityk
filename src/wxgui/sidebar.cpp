@@ -1058,11 +1058,11 @@ void SideBar::update_param_panel()
         if (var->is_simple() || var->is_constant()) {
             bool locked = var->is_constant();
             param_panel->set_normal_parameter(i, label, var->get_value(),
-                                              locked, var->xname);
+                                              locked, s2wx(var->xname));
         }
         else
             param_panel->set_disabled_parameter(i, label, var->get_value(),
-                                                var->xname);
+                                                s2wx(var->xname));
     }
 
     if (pp_func->nv != old_count) {

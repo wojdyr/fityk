@@ -256,6 +256,9 @@ DataTableDlg::DataTableDlg(wxWindow* parent, wxWindowID id,
             wxCommandEventHandler(DataTableDlg::OnUpdateCheckBox));
     Connect(wxID_APPLY, wxEVT_COMMAND_BUTTON_CLICKED,
             wxCommandEventHandler(DataTableDlg::OnApply));
+#if !wxCHECK_VERSION(2, 9, 0)
+#  define wxEVT_GRID_CELL_CHANGED wxEVT_GRID_CELL_CHANGE
+#endif
     Connect(grid->GetId(), wxEVT_GRID_CELL_CHANGED,
             wxGridEventHandler(DataTableDlg::OnCellChanged));
 }
