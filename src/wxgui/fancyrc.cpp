@@ -273,7 +273,12 @@ void ParameterPanel::append_row()
     data.label = new wxStaticText(this, -1, wxEmptyString);
     // KFTextCtrl is a wxTextCtrl which sends wxEVT_COMMAND_TEXT_ENTER
     // when un-focused.
-    data.text = new KFTextCtrl(this, -1, wxEmptyString);
+#ifdef __WXMSW__
+    int text_width = 60;
+#else
+    int text_width = 80;
+#endif
+    data.text = new KFTextCtrl(this, -1, wxEmptyString, text_width);
     data.rsizer = new wxBoxSizer(wxHORIZONTAL);
     data.lock = new LockButton(this, false);
     data.arm = new ValueChangingWidget(this, -1, this);
@@ -283,7 +288,11 @@ void ParameterPanel::append_row()
     data.rsizer->Add(data.arm, wxSizerFlags().Center());
     data.rsizer->Add(data.label2, wxSizerFlags().Center());
 
-    grid_sizer_->Add(data.label, wxSizerFlags().Center());
+    grid_sizer_->Add(data.label, wxSizerFlags().Center()
+#ifdef __WXMSW__
+                                 .Border(wxLEFT, 2)
+#endif
+                                   );
     grid_sizer_->Add(data.text, wxSizerFlags().Expand().Center()
                                          .Border(wxLEFT|wxTOP|wxBOTTOM, 2));
     grid_sizer_->Add(data.rsizer, wxSizerFlags().Center());

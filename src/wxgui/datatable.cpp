@@ -226,7 +226,7 @@ private:
 DataTableDlg::DataTableDlg(wxWindow* parent, wxWindowID id,
                            int data_nr, Data* data)
     : wxDialog(parent, id,
-               wxString::Format(wxT("@%d "), data_nr) + wx2s(data->get_title()),
+               wxString::Format(wxT("@%d "), data_nr) + s2wx(data->get_title()),
                wxDefaultPosition, wxDefaultSize,
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {

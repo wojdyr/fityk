@@ -37,7 +37,6 @@ $Id$
 * GUI: Data>Load should use default load dir (as Quick Load)
 
 * GUI: enhance Fit->Info dialog:
-  - option to scale errors with sqrt(WSSR/DoF)
   - show where each variable is used (e.g. "%_1.height" or "2 refs")
   - covariance matrix
 

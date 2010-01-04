@@ -939,7 +939,7 @@ void FFrame::update_menu_saved_tranforms()
 
 void FFrame::OnSavedDT (wxCommandEvent& event)
 {
-    string name = wx2s(GetMenuBar()->GetLabel(event.GetId()));
+    wxString name = GetMenuBar()->GetLabel(event.GetId());
     const vector<DataTransform> &transforms = EditTransDlg::get_transforms();
     for (vector<DataTransform>::const_iterator i = transforms.begin();
             i != transforms.end(); ++i)

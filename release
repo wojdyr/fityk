@@ -5,7 +5,7 @@ version=0.9.0
 WEB="iris.unipress.waw.pl:/d2/people/wojdyr/www/fityk2/"
 SF_NEW_RELEASE="https://sourceforge.net/project/admin/newrelease.php?package_id=80864&group_id=79434"
 
-MINGW_DIR=cross_win32
+MINGW_DIR=mingw-build
 ALL_WIN_FILES=all_files #inside of $MINGW_DIR
 
 win_setup_filename=cross_win32/all_files/Output/fityk-$version-setup.exe
@@ -87,9 +87,9 @@ elif [ $1 -eq 3 ]; then
  
 elif [ $1 -eq 4 ]; then
  echo Building MS Windows version
- #WXMSWINSTALL=/home/wojdyr/local/mingw32msvc/
- WXMSWINSTALL=/home/wojdyr/local/mingw32/
- PATH=$PATH:$HOME/local/mingw32/bin
+ WXMSWINSTALL=/home/wojdyr/local/mingw32msvc/
+ #WXMSWINSTALL=/home/wojdyr/local/mingw32/
+ #PATH=$PATH:$HOME/local/mingw32/bin
  #
  # wxWidgets where cross-compiled using debian mingw32* packages:
  #      download wxAll
@@ -118,16 +118,16 @@ elif [ $1 -eq 4 ]; then
  #        --disable-pnm --disable-mdi --disable-richtext
  #      make; make install
  #
- rm -rf $MINGW_DIR
- mkdir $MINGW_DIR
+ #rm -rf $MINGW_DIR
+ mkdir -p $MINGW_DIR
  cd $MINGW_DIR
  tar xjf ../$tarball_filename
- SRC_DIR=fityk-$version
+ SRC_DIR=..
  # host: MinGW from .deb: i586-mingw32msvc, built locally: i586-pc-mingw32
- $SRC_DIR/configure --build=x86_64-pc-linux-gnu --host=i586-pc-mingw32 \
-   CXXFLAGS="-O3" LDFLAGS="-s" --disable-CLI --with-wx-prefix=$WXMSWINSTALL \
-   --with-xylib
-
+ $SRC_DIR/configure --build=x86_64-pc-linux-gnu --host=i586-mingw32msvc \
+   CXXFLAGS="-O3" LDFLAGS="-s" --disable-CLI --with-xylib \
+   --enable-static --disable-shared \
+   --with-wx-config=/home/wojdyr/local/mingw32msvc/bin/wx-config
  make || exit
  mkdir -p $ALL_WIN_FILES/samples $ALL_WIN_FILES/src
  cp fityk.iss $SRC_DIR/fityk.url $SRC_DIR/COPYING $SRC_DIR/TODO \
@@ -135,13 +135,7 @@ elif [ $1 -eq 4 ]; then
  cp -r $SRC_DIR/doc/html/ $ALL_WIN_FILES/
  cp $SRC_DIR/samples/*.fit $SRC_DIR/samples/*.dat $SRC_DIR/samples/README \
     $ALL_WIN_FILES/samples/
-
- #cp src/wxgui/fityk.exe $ALL_WIN_FILES/src/
- # due to unsolved problem, perhaps in libtool, making executables gives:
- #../../libtool: line 8376: $func_ltwrapper_scriptname_result: ambiguous redirect
- # and we take the executable from .libs/ 
- #cp src/wxgui/fityk.exe $ALL_WIN_FILES/src/
- cp src/wxgui/.libs/fityk.exe $ALL_WIN_FILES/src/
+ cp src/wxgui/fityk.exe $ALL_WIN_FILES/src/
 
  #echo '"C:\Program Files\HTML Help Workshop\hhc.exe" doc\htmlhelp.hhp' \
  #       				    >$ALL_WIN_FILES/build_help.cmd

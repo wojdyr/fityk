@@ -135,6 +135,7 @@ void OutputWin::append_text (OutputStyle style, const wxString& str)
     // the page gets blank. Clicking on scrollbar shows the text again.
     // Below is a workaround.
 #ifdef __WXMSW__
+    ScrollLines(-1);
     ScrollLines(1);
 #endif
 }

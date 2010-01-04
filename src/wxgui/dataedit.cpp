@@ -121,8 +121,8 @@ string DataTransform::as_fileline()
     description.Replace(wxT("|"), wxT("/"));
     code.Replace(wxT("|"), wxT("/"));
     // The second field is reserved. It used to be "category".
-    wxString s = name + "||" + description + "|" + code
-               + "|" + (in_menu ? "Y" : "N");
+    wxString s = name + wxT("||") + description + wxT("|") + code
+               + wxT("|") + (in_menu ? wxT("Y") : wxT("N"));
     s.Replace(wxT("\n"), wxT(";"));
     return wx2s(s);
 }

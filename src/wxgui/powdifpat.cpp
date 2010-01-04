@@ -1507,6 +1507,8 @@ PowderDiffractionDlg::PowderDiffractionDlg(wxWindow* parent, wxWindowID id)
     PowderBook *pb = new PowderBook(this, wxID_ANY);
     sizer->Add(pb, wxSizerFlags(1).Expand());
     SetSizerAndFit(sizer);
+    if (GetClientSize().GetHeight() < 440)
+        SetClientSize(-1, 440);
 }
 
 #endif
