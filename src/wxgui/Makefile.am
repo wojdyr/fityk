@@ -22,7 +22,7 @@ powdifpat_res = powdifpatres.o
 $(powdifpat_res): powdifpat.rc img/powdifpat.ico
 	$(RC) -o $@ $(RC_FLAGS) $<
 else
-HELP_DEF= -DHELP_DIR=\"$(docdir)\"
+HELP_DEF= -DHELP_DIR=\"$(pkgdatadir)\"
 endif  #OS_WIN32
 
 noinst_LIBRARIES = libceria.a

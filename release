@@ -80,7 +80,7 @@ elif [ $1 -eq 3 ]; then
  rm -rf xylib/aclocal.m4 xylib/autom4te.cache/ xylib/config.* xylib/configure \
        xylib/depcomp xylib/install-sh xylib/libtool xylib/ltmain.sh \
        xylib/missing xylib/stamp-h1
- ./autogen.sh --prefix=$HOME/local --enable-python --with-xylib --with-samples
+ ./autogen.sh --prefix=$HOME/local
  make dist-bzip2
 
 # TODO: testing mac compilation
@@ -121,7 +121,7 @@ elif [ $1 -eq 4 ]; then
  #rm -rf $MINGW_DIR
  mkdir -p $MINGW_DIR
  cd $MINGW_DIR
- tar xjf ../$tarball_filename
+ #tar xjf ../$tarball_filename
  SRC_DIR=..
  # host: MinGW from .deb: i586-mingw32msvc, built locally: i586-pc-mingw32
  $SRC_DIR/configure --build=x86_64-pc-linux-gnu --host=i586-mingw32msvc \
