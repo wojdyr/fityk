@@ -87,6 +87,7 @@ New version **notifications** from FreshMeat:
 History
 =======
 
+* 2010-01-05 Version 0.9.0
 * 2009-08-20 Version 0.8.9
 * 2009-06-21 Version 0.8.8 (no Windows exe this time)
 * 2009-06-11 Version 0.8.7
