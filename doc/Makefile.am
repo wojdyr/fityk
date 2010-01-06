@@ -33,6 +33,7 @@ $(srcdir)/html/_images/math/5e97a8af68fbc8e357d3ee0eba452022b06c1875.png \
 $(srcdir)/html/_images/math/7532b41a34c9ca592694135d1de65eeb8d9ce036.png \
 $(srcdir)/html/_images/math/727873d2cbeda3d30f41bee18cb2bf5ea1071fa1.png \
 $(srcdir)/html/_images/math/fa35d9fc104207e09a712110ac81612c5b279a6c.png \
+$(srcdir)/html/_images/math/d42d721494e6efb7767fe03727752b5a9b16861f.png \
 $(srcdir)/html/_images/math/b72439b28d639f1999aeecd537d21df605ad8db8.png \
 $(srcdir)/html/_images/math/61c594c97b61f72af93af4e61894b3f16a3bbb30.png \
 $(srcdir)/html/_images/math/ee5c7c921b3334f6ecf58c241eeea42acf0ce71e.png \
@@ -89,7 +90,7 @@ all-local: $(srcdir)/html/appendix.html
 $(srcdir)/html/appendix.html: $(srcdir)/appendix.rst $(srcdir)/fityk-manual.rst $(srcdir)/index.rst $(srcdir)/ref.rst $(srcdir)/extensions.rst $(srcdir)/getstarted.rst $(srcdir)/intro.rst $(srcdir)/conf.py 
 	$(SPHINX) -b html $(srcdir) $(srcdir)/html
 	rm -f $(srcdir)/html/objects.inv $(srcdir)/html/.buildinfo
-	sed -i -e 's/fityk — free peak fitting software &mdash; Fityk 0.8.9 manual/fityk \&mdash; free peak fitting software/' $(srcdir)/html/index.html
+	sed -i 's/fityk . free peak fitting software &mdash; Fityk 0.... manual/fityk \&mdash; free peak fitting software/' $(srcdir)/html/index.html
 
 pdf:
 	rm -rf $(srcdir)/doctrees/

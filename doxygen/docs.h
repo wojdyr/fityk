@@ -13,7 +13,7 @@
  * - src/ - fityk library (libfityk)
  * - src/wxgui/ - wxWidgets-based GUI
  * - src/cli/   - readline/gnuplot based CLI
- * - src/python/   - python bindings to libfityk
+ * - src/swig/   - bindings to libfityk
  * \par
  * libfityk - parsers
  *
@@ -55,7 +55,8 @@
  * They can have more liberal licence than GPL.
  *
  * - GUI input line, see: http://wxforum.shadonet.com/viewtopic.php?t=13005
- * - GUI FancyRealCtrl, see: http://wxforum.shadonet.com/viewtopic.php?t=13471
+ * - controls for input of real numbers in wxgui/fancyrc.* 
+ *   (see outdated post at http://wxforum.shadonet.com/viewtopic.php?t=13471)
  * - optional-suffix-parser for Boost.Spirit in src/optional_suffix.h
  *   see also: http://article.gmane.org/gmane.comp.parsers.spirit.general/7797
  */

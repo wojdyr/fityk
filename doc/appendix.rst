@@ -47,7 +47,8 @@ names (like "height", "center" and "hwhm") replaced with
 **Pearson VII (Pearson7):**
 
 .. math:: 
-   y = \frac{a_0}{\pi a_2\left[1+\left(\frac{x-a_1}{a_2}\right)^2\right]}
+   y = \frac{a_0} {\left[1+\left(\frac{x-a_1}{a_2}\right)^2
+                           \left(2^{\frac{1}{a_3}}-1\right)\right]^{a_3}}
 
 **Split-Pearson-VII (SplitPearson7):**
 

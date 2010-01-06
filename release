@@ -3,12 +3,11 @@
 
 version=0.9.0
 WEB="iris.unipress.waw.pl:/d2/people/wojdyr/www/fityk2/"
-SF_NEW_RELEASE="https://sourceforge.net/project/admin/newrelease.php?package_id=80864&group_id=79434"
 
 MINGW_DIR=mingw-build
 ALL_WIN_FILES=all_files #inside of $MINGW_DIR
 
-win_setup_filename=cross_win32/all_files/Output/fityk-$version-setup.exe
+win_setup_filename=$MINGW_DIR/all_files/Output/fityk-$version-setup.exe
 tarball_filename=fityk-$version.tar.bz2
 
 if [ $# -eq 0 ]; then 
@@ -161,16 +160,16 @@ elif [ $1 -eq 9 ]; then
  echo  putting docs on www   
  echo destination: $WEB
  cd doc/ 
- #make all pdf
- #echo "sending PDF manual..."
- #scp latex/fityk-manual.pdf $WEB/
+ make all pdf
+ echo "sending PDF manual..."
+ scp latex/fityk-manual.pdf $WEB/
  echo sending html
  scp -r html/* $WEB/
- #echo generating doxygen docs...
- #cd ../doxygen/
- #doxygen
- #echo sending doxygen docs... 
- #scp -r html/ $WEB/doxygen/
+ echo generating doxygen docs...
+ cd ../doxygen/
+ doxygen
+ echo sending doxygen docs... 
+ scp -r html/ $WEB/doxygen/
  cd ..
  
 

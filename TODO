@@ -2,6 +2,9 @@ $Id$
 
 ---------- TODO list and tentative development plan  ----------------
 
+* fix compilation with gcc flags:
+  -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2
+
 * finish powder diffraction add-on (Pawley fitting)
 
 * GUI: "extend zoom up" doesn't work well with negative-y data
