@@ -25,6 +25,13 @@
 #include "datatrans.h"
 #include "stdio.h"
 
+#ifdef _MSC_VER
+#define popen _popen
+#define pclose _pclose
+#define HAVE_POPEN
+#endif
+
+
 using namespace std;
 using namespace cmdgram;
 
@@ -65,18 +72,19 @@ void do_exec_prog_output(char const* a, char const* b)
 {
     string s(a, b);
     FILE* f = NULL;
-#if HAVE_POPEN
+#ifdef HAVE_POPEN
     f = popen(s.c_str(), "r");
 #else
     AL->warn ("popen() was disabled during compilation.");
 #endif
-    // consider using _popen() on Windows for compilers that don't have popen()
 
     if (!f)
         return;
 
     AL->get_ui()->exec_stream(f);
+#ifdef HAVE_POPEN
     pclose(f);
+#endif
 }
 
 void do_fit(char const*, char const*)

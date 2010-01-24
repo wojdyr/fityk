@@ -9,6 +9,11 @@
 #error "This library does not have C API."
 #endif
 
+#ifdef _MSC_VER
+// ignore warning "C++ exception specification ignored..."
+#pragma warning( disable : 4290 )
+#endif
+
 #include <string>
 #include <vector>
 #include <cstdio>

@@ -234,7 +234,7 @@ void UserInterface::exec_script(const string& filename,
                     p[nx].x = x;
                     p[ny].y = y;
                     p[ns].sigma = sigma;
-                    p[na].is_active = a;
+                    p[na].is_active = (a != 0);
                     // check if we need to sort the data
                     if ((nx > 0 && p[nx-1].x > x)
                         || (nx+1 < size(p) && x > p[nx+1].x))

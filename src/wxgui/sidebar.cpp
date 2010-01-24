@@ -191,7 +191,7 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
                                             wxBitmap(shiftup_xpm)),
                          0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
     shiftup_sc = new SpinCtrl(data_page, ID_DP_SHIFTUP, 0, 0, 80, 40);
-    shiftup_sc->SetToolTip(wxT("shift up (in \% of plot height)"));
+    shiftup_sc->SetToolTip(wxT("shift up (in % of plot height)"));
     data_spin_sizer->Add(shiftup_sc, 0);
     data_sizer->Add(data_spin_sizer, 0, wxEXPAND);
 

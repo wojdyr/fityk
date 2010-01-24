@@ -20,6 +20,10 @@
 #include <string.h>
 #include <math.h>
 
+#ifdef _MSC_VER
+// disable warning about truncation from 'double' to 'float'
+#pragma warning (disable : 4305)
+#endif
 
 /* Periodic system of elements data.
  * This data can be also found in cctbx, ObjCryst and atominfo.

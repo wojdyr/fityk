@@ -2,9 +2,8 @@
 // Licence: GNU General Public License ver. 2+
 // $Id$
 
-/*
- *  various headers and definitions. Included by all files.
- */
+ //  Various headers and definitions. Included by almost all files.
+
 #ifndef FITYK__COMMON__H__
 #define FITYK__COMMON__H__
 
@@ -27,6 +26,24 @@
 #include "fityk.h" //ExecuteError
 using fityk::ExecuteError;
 using fityk::ExitRequestedException;
+
+// MS VC++ has no erf, erfc, trunc, snprintf functions
+#ifdef _MSC_VER
+// boost.math requires boost.mpl, we don't keep it in 3rdparty/
+//#include <boost/math/special_functions/erf.hpp>
+//using boost::math::erf
+//using boost::math:erfc
+// erf.c contains public domain implementation of erf and erfc,
+// found in Ruby (missing/erf.c)
+extern "C" {
+    double erf(double x);
+    double erfc(double x);
+}
+inline double trunc(double a) { return a >= 0 ? floor(a) : ceil(a); }
+#define snprintf sprintf_s
+// disable warning about unsafe sprintf in eS()
+#pragma warning( disable : 4996 )
+#endif
 
 //--------------------------  N U M E R I C  --------------------------------
 
@@ -80,20 +97,6 @@ inline bool is_finite(fp a)
 
 /// Round real to integer.
 inline int iround(fp d) { return static_cast<int>(floor(d+0.5)); }
-
-#ifndef __GNUC__
-        // These functions are missing in some compilers. If your compiler
-        // has these function, please modify the #if above.
-#warning "Functions erf and erfc in fityk are working only with GCC."
-#warning "Please try to fix this in common.h header. "
-        // fake definitions
-	inline float erfc(float f) { return 0.5f; }
-	inline float erf(float f) { return 0.5f; }
-
-        // this one is correct
-	inline float trunc(float f) { return (float) (int) f; }
-#endif	// !__GNUC__
-
 
 //---------------------------  S T R I N G  --------------------------------
 

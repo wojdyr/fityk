@@ -1,7 +1,8 @@
-// This file is used only on MS Windows platform. 
-// It can be compiled by windres
+// This file is used only on MS Windows platform.
+// It can be compiled by windres.
 
 // wxWidgets resource definitions
-#include "wx/msw/wx.rc"
+#include <wx/msw/wx.rc>
+
 // program icon
-xyconvert ICON "img/xyconvert.ico" 
+xyconvert ICON "img/xyconvert.ico"

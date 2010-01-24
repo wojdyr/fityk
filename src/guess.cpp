@@ -390,7 +390,7 @@ bool is_defvalue_guessable(string defvalue, FunctionKind k)
     try {
         get_transform_expression_value(defvalue, 0);
     }
-    catch (ExecuteError &e) {
+    catch (ExecuteError& /*e*/) {
         return false;
     }
     return true;

@@ -180,7 +180,7 @@ void PreviewPlot::load_dataset(string const& filename,
     try {
         data = xylib::cached_load_file(filename, filetype, options);
         data_updated = true;
-    } catch (runtime_error const& e) {
+    } catch (runtime_error const& /*e*/) {
         data_updated = false;
     }
 }
@@ -667,7 +667,7 @@ void App::OnConvert(wxCommandEvent&)
                 continue;
 
         }
-        ofstream f(new_filename);
+        ofstream f(new_filename.mb_str());
         try {
             wxBusyCursor wait;
             xylib::DataSet const *ds = xylib::load_file(wx2s(paths[i]),

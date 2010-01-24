@@ -8,7 +8,7 @@
 #include <math.h>
 #include "voigt.h"
 
-///     To calculate the Faddeeva function
+///     Calculates the Faddeeva function
 ///     and partial derivatives of the Voigt function for y>=0
 ///     (from http://www.atm.ox.ac.uk/user/wells/voigt.html)
 /// arguments:
@@ -20,15 +20,15 @@
 void humdev(const float x, const float y,
             float &k, float &l, float &dkdx, float &dkdy)
 {
-    static const float c[6] = { 1.0117281,     -0.75197147,      0.012557727,
-                                0.010022008,   -2.4206814e-4,    5.0084806e-7 };
-    static const float s[6] = { 1.393237,       0.23115241,     -0.15535147,
-                                0.0062183662,   9.1908299e-5,   -6.2752596e-7 };
-    static const float t[6] = { 0.31424038,     0.94778839,      1.5976826,
-                                2.2795071,      3.020637,        3.8897249 };
+    static const float c[6] = { 1.0117281f,     -0.75197147f,      0.012557727f,
+                                0.010022008f,   -2.4206814e-4f,    5.0084806e-7f };
+    static const float s[6] = { 1.393237f,       0.23115241f,     -0.15535147f,
+                                0.0062183662f,   9.1908299e-5f,   -6.2752596e-7f };
+    static const float t[6] = { 0.31424038f,     0.94778839f,      1.5976826f,
+                                2.2795071f,      3.020637f,        3.8897249f };
 
-    static const float rrtpi = 0.56418958; // 1/SQRT(pi)
-    static const double drtpi = 0.5641895835477563; // 1/SQRT(pi)
+    static const float rrtpi = 0.56418958f; // 1/SQRT(pi)
+    static const double drtpi = 0.5641895835477563f; // 1/SQRT(pi)
 
     static float a0, b1, c0, c2, d0, d1, d2, e0, e2, e4, f1, f3, f5,
                  g0, g2, g4, g6, h0, h2, h4, h6, p0, p2, p4, p6, p8,
@@ -36,7 +36,7 @@ void humdev(const float x, const float y,
                  mf[6], pf[6], mq[6], mt[6], pq[6], pt[6], xm[6], ym[6],
                  xp[6], yp[6];
 
-    static float old_y = -1.;
+    static float old_y = -1.f;
 
     static bool rgb, rgc, rgd;
     static float yq, xlima, xlimb, xlimc, xlim4;
@@ -45,10 +45,10 @@ void humdev(const float x, const float y,
         old_y = y;
         rgb = true, rgc = true, rgd = true;
         yq = y * y;
-        xlima = (float)146.7 - y;
-        xlimb = (float)24. - y;
-        xlimc = (float)7.4 - y;
-        xlim4 = y * (float)18.1 + (float)1.65;
+        xlima = 146.7f - y;
+        xlimb = 24.f - y;
+        xlimc = 7.4f - y;
+        xlim4 = y * 18.1f + 1.65f;
     }
 
     float abx = fabs(x);
@@ -67,16 +67,16 @@ void humdev(const float x, const float y,
     else if (abx > xlimb) { //  Region B
         if (rgb) {
             rgb = false;
-            a0 = yq + (float).5;
-            b1 = yq - (float).5;
+            a0 = yq + .5f;
+            b1 = yq - .5f;
             d0 = a0 * a0;
             d2 = b1 + b1;
-            c0 = yq * ((float)1. - d2) + (float)1.5;
+            c0 = yq * (1.f - d2) + 1.5f;
             c2 = a0 + a0;
-            r0 = yq * ((float).25 - yq * (yq + (float).5)) + (float).125;
-            r2 = yq * (yq + (float)5.) + (float).25;
+            r0 = yq * (.25f - yq * (yq + .5f)) + .125f;
+            r2 = yq * (yq + 5.f) + .25f;
         }
-        float d = (float)1. / (d0 + xq * (d2 + xq));
+        float d = 1.f / (d0 + xq * (d2 + xq));
         d1 = d * rrtpi;
         k = d1 * (a0 + xq) * y;
         l = d1 * (b1 + xq) * x;
@@ -172,18 +172,18 @@ void humdev(const float x, const float y,
                         + (float).6276985;
             }
             float u = (p0 + xq * (p2 + xq * (p4 + xq * (p6 + xq * p8))))
-                                                        * (float)1.7724538;
-            float d = (float)1. / (z0 + xq * (z2 + xq * (z4 + xq
+                                                        * 1.7724538f;
+            float d = 1.f / (z0 + xq * (z2 + xq * (z4 + xq
                                                 * (z6 + xq * (z8 + xq)))));
             k = d * u;
-            l = d * (float)1.7724538 * x * (q1 + xq * (q3 +
-                    xq * (q5 + xq * (q7 + xq * (float).3183291))));
+            l = d * 1.7724538f * x * (q1 + xq * (q3 +
+                    xq * (q5 + xq * (q7 + xq * .3183291f))));
             dkdy = 2 * ((double) x * (double) l
                                     + (double) y * (double) k - drtpi);
         }
 
         else {     // Use CPF12
-            float ypy0 = y + (float)1.5;
+            float ypy0 = y + 1.5f;
             float ypy0q = ypy0 * ypy0;
             k = (float)0.;
             l = (float)0.;
@@ -215,10 +215,10 @@ void humdev(const float x, const float y,
             else {               //  Humlicek CPF12 Region II
                 float yp2y0 = y + (float)3.;
                 for (int j = 0; j <= 5; ++j) {
-                    k += (c[j] * (mq[j] * mf[j] - ym[j] * (float)1.5)
-                             + s[j] * yp2y0 * xm[j]) / (mq[j] + (float)2.25)
-                          + (c[j] * (pq[j] * pf[j] - yp[j] * (float)1.5)
-                            - s[j] * yp2y0 * xp[j]) / (pq[j] + (float)2.25);
+                    k += (c[j] * (mq[j] * mf[j] - ym[j] * 1.5f)
+                             + s[j] * yp2y0 * xm[j]) / (mq[j] + 2.25f)
+                          + (c[j] * (pq[j] * pf[j] - yp[j] * 1.5f)
+                            - s[j] * yp2y0 * xp[j]) / (pq[j] + 2.25f);
                 }
                 k = y * k + exp(-xq);
                 dkdy = 2 * ((double) x * (double) l
@@ -235,7 +235,7 @@ void humdev(const float x, const float y,
 
 
 
-///   To calculate the Faddeeva function with relative error less than 10^(-4).
+///   Calculates the Faddeeva function with relative error less than 10^(-4).
 ///     (from http://www.atm.ox.ac.uk/user/wells/voigt.html)
 /// arguments:
 ///  x, y - Faddeeva/Voigt function arguments
@@ -243,19 +243,19 @@ void humdev(const float x, const float y,
 float humlik(const float x, const float y)
 {
 
-    static const float c[6] = { 1.0117281,     -0.75197147,      0.012557727,
-                                0.010022008,   -2.4206814e-4,    5.0084806e-7 };
-    static const float s[6] = { 1.393237,       0.23115241,     -0.15535147,
-                                0.0062183662,   9.1908299e-5,   -6.2752596e-7 };
-    static const float t[6] = { 0.31424038,     0.94778839,      1.5976826,
-                                2.2795071,      3.020637,        3.8897249 };
+    static const float c[6] = { 1.0117281f,     -0.75197147f,      0.012557727f,
+                                0.010022008f,   -2.4206814e-4f,    5.0084806e-7f };
+    static const float s[6] = { 1.393237f,       0.23115241f,     -0.15535147f,
+                                0.0062183662f,   9.1908299e-5f,   -6.2752596e-7f };
+    static const float t[6] = { 0.31424038f,     0.94778839f,      1.5976826f,
+                                2.2795071f,      3.020637f,        3.8897249f };
 
-    const float rrtpi = 0.56418958; // 1/SQRT(pi)
+    const float rrtpi = 0.56418958f; // 1/SQRT(pi)
 
     static float a0, d0, d2, e0, e2, e4, h0, h2, h4, h6,
                  p0, p2, p4, p6, p8, z0, z2, z4, z6, z8;
     static float mf[6], pf[6], mq[6], pq[6], xm[6], ym[6], xp[6], yp[6];
-    static float old_y = -1.;
+    static float old_y = -1.f;
     static bool rg1, rg2, rg3;
     static float xlim0, xlim1, xlim2, xlim3, xlim4;
     static float yq, yrrtpi;
@@ -265,11 +265,11 @@ float humlik(const float x, const float y)
         yrrtpi = y * rrtpi;
         rg1 = true, rg2 = true, rg3 = true;
         if (y < 70.55) {
-            xlim0 = sqrt(y * (40. - y * 3.6) + 15100.);
-            xlim1 = (y >= 8.425 ?  0. : sqrt(164. - y * (y * 1.8 + 4.3)));
-            xlim2 = 6.8 - y;
-            xlim3 = y * 2.4;
-            xlim4 = y * 18.1 + 1.65;
+            xlim0 = sqrt(y * (40.f - y * 3.6f) + 15100.f);
+            xlim1 = (y >= 8.425 ?  0.f : sqrt(164.f - y * (y * 1.8f + 4.3f)));
+            xlim2 = 6.8f - y;
+            xlim3 = y * 2.4f;
+            xlim4 = y * 18.1f + 1.65f;
             if (y <= 1e-6)
                 xlim2 = xlim1 = xlim0;
         }
@@ -284,9 +284,9 @@ float humlik(const float x, const float y)
     else if (abx >= xlim1) {            //  Humlicek W4 Region 1
         if (rg1) {  // First point in Region 1
             rg1 = false;
-            a0 = yq + 0.5;  //Region 1 y-dependents
+            a0 = yq + 0.5f;  //Region 1 y-dependents
             d0 = a0 * a0;
-            d2 = yq + yq - 1.;
+            d2 = yq + yq - 1.f;
         }
         return rrtpi / (d0 + xq * (d2 + xq)) * y * (a0 + xq);
     }
@@ -295,13 +295,13 @@ float humlik(const float x, const float y)
         if (rg2) {  //First point in Region 2
             rg2 = false;
             // Region 2 y-dependents
-            h0 = yq * (yq * (yq * (yq + 6.) + 10.5) + 4.5) + 0.5625;
-            h2 = yq * (yq * (yq * 4. + 6.) + 9.) - 4.5;
-            h4 = 10.5 - yq * (6. - yq * 6.);
-            h6 = yq * 4. - 6.;
-            e0 = yq * (yq * (yq + 5.5) + 8.25) + 1.875;
-            e2 = yq * (yq * 3. + 1.) + 5.25;
-            e4 = h6 * 0.75;
+            h0 = yq * (yq * (yq * (yq + 6.f) + 10.5f) + 4.5f) + 0.5625f;
+            h2 = yq * (yq * (yq * 4.f + 6.f) + 9.f) - 4.5f;
+            h4 = 10.5f - yq * (6.f - yq * 6.f);
+            h6 = yq * 4.f - 6.f;
+            e0 = yq * (yq * (yq + 5.5f) + 8.25f) + 1.875f;
+            e2 = yq * (yq * 3.f + 1.f) + 5.25f;
+            e4 = h6 * 0.75f;
         }
         return rrtpi / (h0 + xq * (h2 + xq * (h4 + xq * (h6 + xq))))
                  * y * (e0 + xq * (e2 + xq * (e4 + xq)));
@@ -312,61 +312,61 @@ float humlik(const float x, const float y)
             rg3 = false;
             //Region 3 y-dependents
             z0 = y * (y * (y * (y * (y * (y * (y * (y * (y * (y
-                    + 13.3988) + 88.26741) + 369.1989) + 1074.409)
-                    + 2256.981) + 3447.629) + 3764.966) + 2802.87)
-                    + 1280.829) + 272.1014;
-            z2 = y * (y * (y * (y * (y * (y * (y * (y * 5.  + 53.59518)
-                    + 266.2987) + 793.4273) + 1549.675) + 2037.31)
-                    + 1758.336) + 902.3066) + 211.678;
-            z4 = y * (y * (y * (y * (y * (y * 10. + 80.39278) + 269.2916)
-                    + 479.2576) + 497.3014) + 308.1852) + 78.86585;
-            z6 = y * (y * (y * (y * 10. + 53.59518) + 92.75679)
-                    + 55.02933) + 22.03523;
-            z8 = y * (y * 5. + 13.3988) + 1.49646;
-            p0 = y * (y * (y * (y * (y * (y * (y * (y * (y * 0.3183291
-                    + 4.264678) + 27.93941) + 115.3772) + 328.2151) +
-                    662.8097) + 946.897) + 919.4955) + 549.3954)
-                    + 153.5168;
-            p2 = y * (y * (y * (y * (y * (y * (y * 1.2733163 + 12.79458)
-                    + 56.81652) + 139.4665) + 189.773) + 124.5975)
-                    - 1.322256) - 34.16955;
-            p4 = y * (y * (y * (y * (y * 1.9099744 + 12.79568)
-                    + 29.81482) + 24.01655) + 10.46332) + 2.584042;
-            p6 = y * (y * (y * 1.273316 + 4.266322) + 0.9377051)
-                    - 0.07272979;
-            p8 = y * .3183291 + 5.480304e-4;
+                    + 13.3988f) + 88.26741f) + 369.1989f) + 1074.409f)
+                    + 2256.981f) + 3447.629f) + 3764.966f) + 2802.87f)
+                    + 1280.829f) + 272.1014f;
+            z2 = y * (y * (y * (y * (y * (y * (y * (y * 5.f  + 53.59518f)
+                    + 266.2987f) + 793.4273f) + 1549.675f) + 2037.31f)
+                    + 1758.336f) + 902.3066f) + 211.678f;
+            z4 = y * (y * (y * (y * (y * (y * 10.f + 80.39278f) + 269.2916f)
+                    + 479.2576f) + 497.3014f) + 308.1852f) + 78.86585f;
+            z6 = y * (y * (y * (y * 10.f + 53.59518f) + 92.75679f)
+                    + 55.02933f) + 22.03523f;
+            z8 = y * (y * 5.f + 13.3988f) + 1.49646f;
+            p0 = y * (y * (y * (y * (y * (y * (y * (y * (y * 0.3183291f
+                    + 4.264678f) + 27.93941f) + 115.3772f) + 328.2151f) +
+                    662.8097f) + 946.897f) + 919.4955f) + 549.3954f)
+                    + 153.5168f;
+            p2 = y * (y * (y * (y * (y * (y * (y * 1.2733163f + 12.79458f)
+                    + 56.81652f) + 139.4665f) + 189.773f) + 124.5975f)
+                    - 1.322256f) - 34.16955f;
+            p4 = y * (y * (y * (y * (y * 1.9099744f + 12.79568f)
+                    + 29.81482f) + 24.01655f) + 10.46332f) + 2.584042f;
+            p6 = y * (y * (y * 1.273316f + 4.266322f) + 0.9377051f)
+                    - 0.07272979f;
+            p8 = y * .3183291f + 5.480304e-4f;
         }
-        return 1.7724538 / (z0 + xq * (z2 + xq * (z4 + xq * (z6 +
+        return 1.7724538f / (z0 + xq * (z2 + xq * (z4 + xq * (z6 +
                 xq * (z8 + xq)))))
                   * (p0 + xq * (p2 + xq * (p4 + xq * (p6 + xq * p8))));
     }
 
     else {  //  Humlicek CPF12 algorithm
-        float ypy0 = y + 1.5;
+        float ypy0 = y + 1.5f;
         float ypy0q = ypy0 * ypy0;
         for (int j = 0; j <= 5; ++j) {
             float d = x - t[j];
             mq[j] = d * d;
-            mf[j] = 1. / (mq[j] + ypy0q);
+            mf[j] = 1.f / (mq[j] + ypy0q);
             xm[j] = mf[j] * d;
             ym[j] = mf[j] * ypy0;
             d = x + t[j];
             pq[j] = d * d;
-            pf[j] = 1. / (pq[j] + ypy0q);
+            pf[j] = 1.f / (pq[j] + ypy0q);
             xp[j] = pf[j] * d;
             yp[j] = pf[j] * ypy0;
         }
-        float k = 0.;
+        float k = 0.f;
         if (abx <= xlim4) // Humlicek CPF12 Region I
             for (int j = 0; j <= 5; ++j)
                 k += c[j] * (ym[j]+yp[j]) - s[j] * (xm[j]-xp[j]);
         else {           // Humlicek CPF12 Region II
-            float yf = y + 3.;
+            float yf = y + 3.f;
             for (int j = 0; j <= 5; ++j)
-                k += (c[j] * (mq[j] * mf[j] - ym[j] * 1.5)
-                         + s[j] * yf * xm[j]) / (mq[j] + 2.25)
-                        + (c[j] * (pq[j] * pf[j] - yp[j] * 1.5)
-                           - s[j] * yf * xp[j]) / (pq[j] + 2.25);
+                k += (c[j] * (mq[j] * mf[j] - ym[j] * 1.5f)
+                         + s[j] * yf * xm[j]) / (mq[j] + 2.25f)
+                        + (c[j] * (pq[j] * pf[j] - yp[j] * 1.5f)
+                           - s[j] * yf * xp[j]) / (pq[j] + 2.25f);
             k = y * k + exp(-xq);
         }
         return k;

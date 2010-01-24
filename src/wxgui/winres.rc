@@ -2,6 +2,6 @@
 // It can be compiled by windres
 
 // wxWidgets resource definitions
-#include "wx/msw/wx.rc"
+#include <wx/msw/wx.rc>
 // program icon
 fityk ICON "img/fityk.ico" 
