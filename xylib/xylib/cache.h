@@ -20,8 +20,11 @@
 #include <string>
 #include <vector>
 
+// MSVC has shared_ptr in <memory>, but let's use boost
+#ifndef _MSC_VER
 // the value here (1 or 0) is set by xylib configure script
 #define XYLIB_USE_TR1_MEMORY 1
+#endif
 
 #if XYLIB_USE_TR1_MEMORY
 # include <tr1/memory>

@@ -9,6 +9,9 @@
 
 using namespace std;
 using namespace xylib::util;
+using boost::uint16_t;
+using boost::uint32_t;
+
 
 namespace xylib {
 

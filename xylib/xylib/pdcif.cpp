@@ -13,6 +13,10 @@
 #include "pdcif.h"
 #include "util.h"
 
+#ifdef _MSC_VER
+#pragma warning (disable : 4355) // this used in base member initializer list
+#endif
+
 using namespace std;
 using namespace boost::spirit;
 using namespace xylib::util;
@@ -304,7 +308,7 @@ bool is_pd_data_tag(string const& s)
     return false;
 }
 
-class DatasetActions;
+struct DatasetActions;
 
 #define DECLARE_DATASET_ACTION(name) \
 struct name { \
@@ -342,8 +346,12 @@ LoopValue::LoopValue(int kind_, string const& s)
     val = my_strtod(val_s);
     int ierr = my_strtol(err_s);
     string::size_type dot_pos = val_s.find('.');
-    int frac_len = (dot_pos == string::npos ? 0 : val_s.size() - dot_pos - 1);
-    err = ierr * pow(10., -frac_len);
+	if (dot_pos == string::npos)
+		err = ierr;
+	else {
+        int frac_len = (int) (val_s.size() - dot_pos - 1);
+		err = ierr * pow(10., -frac_len);
+	}
 }
 
 struct DatasetActions
@@ -448,8 +456,8 @@ void t_on_loop_value::operator()(IteratorT, IteratorT) const
 template <typename IteratorT>
 void t_on_loop_finish::operator()(IteratorT, IteratorT) const
 {
-    int ncol = da.loop_tags.size();
-    int nrow = da.loop_values.size() / ncol;
+    int ncol = (int) da.loop_tags.size();
+    int nrow = (int) da.loop_values.size() / ncol;
     if (ncol == 0 || nrow == 0)
         return;
     vector<VecColumn*> cols;
@@ -513,7 +521,7 @@ void PdCifDataSet::load_data(std::istream &f)
         parse(vec.begin(), vec.end(), p);
     format_assert(info.full,
                   "Parse error at character " + S(info.stop - vec.begin()));
-    int n = actions.block_list.size();
+    int n = (int) actions.block_list.size();
     if (n == 0)
         throw RunTimeError("pdCIF file was read, "
                            + S(actions.invalid_line_counter) + " invalid lines,"

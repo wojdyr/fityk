@@ -164,7 +164,7 @@ public:
     ~Block();
 
     /// number of real columns, not including 0-th pseudo-column
-    int get_column_count() const { return cols.size(); }
+    int get_column_count() const { return (int) cols.size(); }
     /// get column, 0-th column is index of point
     const Column& get_column(int n) const;
 
@@ -200,7 +200,7 @@ public:
     virtual ~DataSet();
 
     /// number of blocks (usually 1)
-    int get_block_count() const { return blocks.size(); }
+    int get_block_count() const { return (int) blocks.size(); }
 
     /// get block n (block 0 is first)
     Block const* get_block(int n) const;

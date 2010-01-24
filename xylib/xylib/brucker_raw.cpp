@@ -237,8 +237,8 @@ void BruckerRawDataSet::load_version1_01(std::istream &f)
         f.ignore(56);  // move ptr to the data_start
 
         unsigned cur_range_steps = steps;
-        float x_step = step_size;
-        float x_start = start_2theta;
+        double x_step = step_size;
+        double x_start = start_2theta;
         StepColumn *xcol = new StepColumn(x_start, x_step);
         blk->add_column(xcol);
 

@@ -92,7 +92,7 @@ public:
     VecColumn() : Column(0.) {}
 
     // implementation of the base interface
-    int get_point_count() const { return data.size(); }
+    int get_point_count() const { return (int) data.size(); }
     double get_value (int n) const
     {
         if (n < 0 || n >= get_point_count())

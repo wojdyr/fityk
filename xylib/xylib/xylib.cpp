@@ -106,7 +106,7 @@ const Column& Block::get_column(int n) const
 {
     if (n == 0)
         return *index_column;
-    int c = (n < 0 ? n + cols.size() : n - 1);
+    int c = (n < 0 ? n + (int) cols.size() : n - 1);
     if (c < 0 || c >= (int) cols.size())
         throw RunTimeError("column index out of range: " + S(n));
     return *cols[c];
@@ -145,12 +145,12 @@ vector<Block*> Block::split_on_column_lentgh()
             int new_b_idx = -1;
             for (size_t j = 1; j < result.size(); ++j) {
                 if (result[j]->get_point_count() == n) {
-                    new_b_idx = j;
+                    new_b_idx = (int) j;
                     break;
                 }
             }
             if (new_b_idx == -1) {
-                new_b_idx = result.size();
+                new_b_idx = (int) result.size();
                 Block* new_block = new Block;
                 new_block->meta = meta;
                 new_block->name = name + "_" + S(n);
@@ -204,7 +204,7 @@ struct decompressing_istreambuf : public std::streambuf
     // should be called only when the buffer is full, double the buffer size 
     void double_buf()
     {
-        int old_size = writeptr_ - bufdata_;
+        int old_size = (int) (writeptr_ - bufdata_);
         bufdata_ = (char*) realloc(bufdata_, 2 * old_size);
         if (!bufdata_)
             throw RunTimeError("Can't allocate memory (" + S(2*old_size)
@@ -286,7 +286,7 @@ DataSet* load_file(string const& path, string const& format_name,
 {
     DataSet *ret = NULL;
     // open stream
-    int len = path.size();
+    int len = (int) path.size();
     bool gzipped = (len > 3 && path.substr(len-3) == ".gz");
     bool bz2ed = (len > 4 && path.substr(len-4) == ".bz2");
     if (gzipped) {

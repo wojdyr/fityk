@@ -56,7 +56,7 @@ void XfitXddDataSet::load_data(std::istream &f)
 {
     skip_c_style_comments(f);
     Block *block = read_ssel_and_data(f);
-    format_assert(block);
+    format_assert(block != NULL);
     blocks.push_back(block);
 }
 

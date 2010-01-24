@@ -103,7 +103,7 @@ void UxdDataSet::load_data(std::istream &f)
             ycol->add_values_from_str(line);
         }
     }
-    format_assert(blk);
+    format_assert(blk != NULL);
 }
 
 } // namespace xylib
