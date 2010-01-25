@@ -45,9 +45,8 @@ public:
 
     virtual wxString GetValue(int row, int col)
     {
-        assert(col != 0);
-        //if (col == 0)
-        //    return GetValueAsBool(row, col) ? wxT("1") : wxT("0");
+        if (col == 0)
+            return GetValueAsBool(row, col) ? wxT("1") : wxT("0");
         if (row == GetNumberRows() - 1 && !has_last_num[col-1])
             return wxEmptyString;
         return wxString::Format((col == 3 ? wxT("%g") : wxT("%.12g")),
