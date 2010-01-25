@@ -146,11 +146,7 @@ bool FApp::OnInit(void)
         return false; //false = exit the application
     }
     else if (cmdLineParser.Found(wxT("V"))) {
-        // TODO:
-        // with -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2:
-        // error: format not a string literal and no format arguments
-        wxMessageOutput::Get()->Printf(wxT("fityk version ")
-                                       + pchar2wx(VERSION) + wxT("\n"));
+        wxMessageOutput::Get()->Printf(wxT("fityk version %s\n"), wxT(VERSION));
         return false; //false = exit the application
     } //the rest of options will be processed in process_argv()
 
