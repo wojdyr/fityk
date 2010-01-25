@@ -2,6 +2,9 @@
 SUBDIRS = . $(SRCSUBDIRS)
 DIST_SUBDIRS = cli wxgui
 
+# erf.c is used by compilers that don't have erf in <math.h>, e.g. VC++
+EXTRA_DIST = erf.c
+
 lib_LTLIBRARIES = libfityk.la
 
 libfityk_la_LDFLAGS = $(LIBRARY_VERSION_FLAG)

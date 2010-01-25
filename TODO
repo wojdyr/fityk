@@ -2,8 +2,11 @@ $Id$
 
 ---------- TODO list and tentative development plan  ----------------
 
-* fix compilation with gcc flags:
-  -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2
+* fix windows bug - popup warning after GUI > load config > built-in
+
+* add cfityk.exe to Windows build
+
+--- 0.9.1
 
 * finish powder diffraction add-on (Pawley fitting)
 
@@ -164,6 +167,7 @@ $Id$
 * fitting: investigate using a library for nonlinear fitting/optimization:
   I don't know about any library good enough to justify migration.  
   The list of libraries in this category:
+    NLopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
     COOOL: http://coool.mines.edu/ 
     GAUL: http://gaul.sourceforge.net/, 
     WNLIB: http://www.willnaylor.com/wnlib.html
@@ -176,6 +180,7 @@ $Id$
     http://www-unix.mcs.anl.gov/otc/Guide/faq/nonlinear-programming-faq.html 
     levmar: http://www.ics.forth.gr/~lourakis/levmar/
     OpenOpt: http://openopt.org/
+
 
 * fitting: robust fit - other error distributions then Gaussian, 
   eg. Lorenzian...; so called 'maximum-likelihood method' -- using Poisson
@@ -195,6 +200,7 @@ $Id$
        Function Parser http://warp.povusers.org/FunctionParser/
      we would need at least support for user-defined function compilers
      (to have syntax "sum(y if 3<x<8)") and callbacks for arrays (x[n+3])
+    another parser is GNU libmatheval
   some statements can be replaced with functions of embedded Lua
 
 * when wxWidgets 3.x will be available in major Linux distributions:

@@ -1,7 +1,7 @@
 # $Id$
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([fityk], [0.9.0])
+AC_INIT([fityk], [0.9.1])
 #AC_REVISION([$Revision$])
 LIBRARY_VERSION_FLAG="-version-info 2:0:0"
 
