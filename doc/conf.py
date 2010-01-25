@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 
-# ATM I'm using sphinx from 1.0-hg with a few hacks.
-# Hopefully in the future these hacks won't be necessary
-# To use normal Sphinx: 
+# ATM I'm using sphinx 1.0 from hg.
+#
+# If you use sphinx older than 1.0: 
+# - remove "sphinx.ext.extlinks" from the extensions list below. Some links
+#   in index.html won't be rendered properly.
 # - copy manually the files in html_static_path below
 #   to html/_static/ and comment out this line.
 # - comment out the line starting with "html_sidebars"
-#
-# If you use sphinx older than 1.0, remove "sphinx.ext.extlinks" from
-# the extensions list below. Some links in index.html won't be rendered
-# properly, but the documentation should be usable.
 #
 # sphinx-build -d ./doctrees/ -b html . html
 
@@ -22,19 +20,19 @@ source_suffix = '.rst'
 source_encoding = 'utf-8'
 master_doc = 'fityk-manual'
 project = 'Fityk'
-copyright = '2001-2009, Fityk Developers'
-version = '0.9.0'
+copyright = '2001-2010, Fityk Developers'
+version = '0.9.1'
 release = version
 default_role = None
 highlight_language = "none"
 
 html_theme = "sphinxdoc"
-#html_theme_options = { "nosidebar": True }
-html_sidebars = {'index': "nosidebar" }
+html_sidebars = {'index': [],
+                 '**': ['globaltoc.html', 'sourcelink.html', 'searchbox.html']}
 html_short_title = 'Fityk %s manual' % version
 html_title = html_short_title
 html_favicon = 'fityk.ico'
-html_static_path = [html_favicon, 'fityk-banner.png', 'fityk.css',
+html_static_path = ['fityk-banner.png', 'fityk.css',
                     'unipress-button.png', 'wxwidgets_powered.png']
 html_style = 'fityk.css'
 html_last_updated_fmt = '%Y-%m-%d'
@@ -51,12 +49,12 @@ latex_elements = { 'papersize': 'a4paper' # 'letterpaper'
                  }
 #latex_appendices = ['appendix']
 
-download_prefix = 'http://downloads.sourceforge.net/fityk/'
+sf_dir = 'http://downloads.sourceforge.net/fityk/'
 msw_filename = 'fityk-%s-setup' % version
 source_filename = 'fityk-%s' % version
 extlinks = {
-    'wiki': ('http://sourceforge.net/apps/trac/fityk/wiki/', ''),
-    'sf-download-msw': (download_prefix + msw_filename, msw_filename),
-    'sf-download-source': (download_prefix + source_filename, source_filename),
+    'wiki': ('http://sourceforge.net/apps/trac/fityk/wiki/%s', ''),
+    'sf-download-msw': (sf_dir + msw_filename + '%s', msw_filename),
+    'sf-download-source': (sf_dir + source_filename + '%s', source_filename),
     }
 
