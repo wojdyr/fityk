@@ -33,7 +33,6 @@ $(srcdir)/html/_images/math/5e97a8af68fbc8e357d3ee0eba452022b06c1875.png \
 $(srcdir)/html/_images/math/7532b41a34c9ca592694135d1de65eeb8d9ce036.png \
 $(srcdir)/html/_images/math/727873d2cbeda3d30f41bee18cb2bf5ea1071fa1.png \
 $(srcdir)/html/_images/math/fa35d9fc104207e09a712110ac81612c5b279a6c.png \
-$(srcdir)/html/_images/math/d42d721494e6efb7767fe03727752b5a9b16861f.png \
 $(srcdir)/html/_images/math/b72439b28d639f1999aeecd537d21df605ad8db8.png \
 $(srcdir)/html/_images/math/61c594c97b61f72af93af4e61894b3f16a3bbb30.png \
 $(srcdir)/html/_images/math/ee5c7c921b3334f6ecf58c241eeea42acf0ce71e.png \
@@ -43,6 +42,7 @@ $(srcdir)/html/_images/math/9f4a323840470c45eb00c5896ba579edc0f0799f.png \
 $(srcdir)/html/_images/math/d953af3188b3c252a5220e76255e375ee0afaf07.png \
 $(srcdir)/html/_images/math/707fc7dbf98d8f4f39c6bdf3f6c025ed948789c9.png \
 $(srcdir)/html/_images/math/d3d29774850d1fa81d750fef3ed9b65ee66c524e.png \
+$(srcdir)/html/_images/math/deaf305680f8dc36524842ef15f13f33789dbbd4.png \
 $(srcdir)/html/_images/math/ce4588fd900d02afcbd260bc07f54cce49a7dc4a.png \
 $(srcdir)/html/_images/math/7508455f7c089e149392451dec57d771370d63ce.png \
 $(srcdir)/html/_images/math/19f15eacccc345c3179259320491956f3f23887a.png \
