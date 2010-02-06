@@ -14,8 +14,13 @@
 #include <ctype.h>
 #include <time.h>
 #include <string.h>
-#include <unistd.h>
-#include <signal.h>
+#ifdef _WIN32
+# include <windows.h>
+# include <direct.h> // _getcwd()
+#else
+# include <unistd.h>
+# include <signal.h>
+#endif
 // readline header will be included later, unless NO_READLINE is defined
 
 #include "../common.h"
@@ -47,11 +52,15 @@ void cli_do_draw_plot (bool /*now*/)
 
 void cli_wait(float seconds)
 {
+#ifdef _WIN32
+    Sleep(int(seconds*1e3));
+#else //!_WIN32
     seconds = fabs(seconds);
     timespec ts;
     ts.tv_sec = static_cast<int>(seconds);
     ts.tv_nsec = static_cast<int>((seconds - ts.tv_sec) * 1e9);
     nanosleep(&ts, 0);
+#endif //_WIN32
 }
 
 //-----------------------------------------------------------------
@@ -71,13 +80,17 @@ string get_config_dir()
     char t[200];
     char *home_dir = getenv("HOME");
     if (!home_dir) {
+#ifdef _WIN32
+        _getcwd(t, 200);
+#else
         getcwd(t, 200);
+#endif
         home_dir = t;
     }
     // '/' is assumed as path separator
     dir = S(home_dir) + "/" + config_dirname + "/";
     if (access(dir.c_str(), X_OK) != 0)
-        dir = ""; //gcc 2.95 have no std::string.clear() method
+        dir = "";
     first_run = false;
     return dir;
 }
@@ -452,9 +465,11 @@ void interrupt_handler (int /*signum*/)
 
 int main (int argc, char **argv)
 {
+#ifndef _WIN32
     // setting Ctrl-C handler
     if (signal (SIGINT, interrupt_handler) == SIG_IGN)
         signal (SIGINT, SIG_IGN);
+#endif //_WIN32
 
     // process command-line arguments
     bool exec_init_file = true;
@@ -471,7 +486,7 @@ int main (int argc, char **argv)
               "  -q, --quit            don't enter interactive shell\n";
             return 0;
         }
-        else if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--version")) {
+        else if (!strcmp(argv[i], "-V") || !strcmp(argv[i], "--version")) {
             cout << "fityk version " VERSION "\n";
             return 0;
         }

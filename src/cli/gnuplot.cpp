@@ -27,17 +27,20 @@ extern Ftk* ftk;
 char GnuPlot::path_to_gnuplot[]="gnuplot";
 
 GnuPlot::GnuPlot()
+    : gnuplot_pipe(NULL)
 {
     fork_and_make_pipe ();
 }
 
 GnuPlot::~GnuPlot()
 {
-    fclose(gnuplot_pipe);  //it closes gnuplot
+    if (gnuplot_pipe)
+        fclose(gnuplot_pipe);
 }
 
 void GnuPlot::fork_and_make_pipe ()
 {
+#ifndef _WIN32
     int     fd[2];
     pid_t   childpid;
     pipe(fd);
@@ -65,10 +68,14 @@ void GnuPlot::fork_and_make_pipe ()
         close (fd[0]);
         gnuplot_pipe  = fdopen (fd[1], "w"); //fdopen() - POSIX, not ANSI
     }
+#endif //!_WIN32
 }
 
 bool GnuPlot::gnuplot_pipe_ok()
 {
+#ifdef _WIN32
+    return false;
+#else //!_WIN32
     static bool give_up = false;
     if (give_up)
         return false;
@@ -92,6 +99,7 @@ bool GnuPlot::gnuplot_pipe_ok()
     }
     signal (SIGPIPE, shp);
     return true;
+#endif //_WIN32
 }
 
 int GnuPlot::plot()
