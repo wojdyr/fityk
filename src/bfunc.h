@@ -215,7 +215,7 @@ class FuncLogNormal : public Function
     bool has_height() const { return true; }
     fp height() const { return vv[0]; }
     bool has_fwhm() const { return true; }
-    fp fwhm() const   { return fabs(vv[2]); }
+    fp fwhm() const;
     bool has_area() const { return true; }
     fp area() const   { return vv[0]/sqrt(M_LN2/M_PI)
         /(2.0/vv[2])/exp(-vv[3]*vv[3]/4.0/M_LN2); }

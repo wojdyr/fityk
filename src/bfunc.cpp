@@ -1002,3 +1002,9 @@ bool FuncLogNormal::get_nonzero_range (fp level, fp &left, fp &right) const
     return true;
 }
 
+// cf. eq. 28 of Maroncelli, M.; Fleming, G.R. J. Phys. Chem. 1987, 86, 6221-6239.
+fp FuncLogNormal::fwhm() const
+{
+   return vv[2]*sinh(vv[3])/vv[3];
+}
+
