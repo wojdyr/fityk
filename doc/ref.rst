@@ -183,8 +183,8 @@ See :ref:`transform` for details.
 
 .. _transform:
 
-Data transformations
---------------------
+Data point transformations
+--------------------------
 
 Every data point has four properties: x coordinate, y coordinate,
 standard deviation of y and active/inactive flag. Lower case
@@ -378,33 +378,6 @@ A few examples::
     Y = y / darea(y) # normalize data area
     i darea(y-F(x) if 20<x<25)
 
-.. _datasetop:
-
-There is also another kind of transformations,
-:dfn:`dataset tranformation`, which operate on a whole dataset,
-not single points. The syntax (for one dataset) is::
-
-   @0 = dataset-transformation @0
-
-where *dataset-transformation* can be one of:
-
-``sum_same_x``
-    Merges points which distance in x is smaller than
-    :ref:`epsilon <epsilon>`.
-    x of a merged point is the average,
-    and y and sigma are sums of components.
-
-``avg_same_x``
-    The same as sum_same_x, but y and sigma of a merged point
-    is set as an average of components.
-
-``shirley_bg``
-    Calculates Shirley background
-    (useful in X-ray photoelectron spectroscopy).
-
-``rm_shirley_bg``
-    Calculates data with removed Shirley background.
-
 .. _funcindt:
 
 Functions and variables in data transformation
@@ -477,26 +450,8 @@ The first one uses existing data slot and the second one creates
 a new slot.  Using @+ increases the number of datasets,
 and command ``delete @n`` decreases it.
 
-The syntax::
-
-   @n = dataset-transformation @m + @k + ...
-
-   @+ = dataset-transformation @m + @k + ...
-
-can be used for example:
-
-- to duplicate a dataset (``@+ = @n``),
-
-- to create a new dataset as a sum of two or more existing sets
-  (``@+ = @n + @m + ...``),
-
-- to perform :ref:`dataset transformations <datasetop>`, e.g. to remove
-  Shirley background (``@n = rm_shirley_bg @n``).
-
-A sum of datasets contains all points from all component datasets.
-If you want to merge points with the same x value, use::
-
-   @+ = sum_same_x @n + @m + ...
+The dataset can be duplicate (``@+ = @n``) or transformed,
+more on this in :ref:`the next section <datasettr>`.
 
 Each dataset has a separate :ref:`model <model>`,
 that can be fitted to the data. This is explained in the next chapter.
@@ -512,6 +467,51 @@ To print the title of the dataset, type ``info title in @n``.
 
 You calculate values of a data expression for each dataset and print
 a list of results, e.g. ``i+ avg(y) in @*``.
+
+.. _datasettr:
+
+Dataset transformations
+-----------------------
+
+There is also another kind of transformations,
+:dfn:`dataset tranformation`, which operate on a whole dataset,
+not single points::
+
+   @n = dataset-transformation @m
+
+or more generally::
+
+   @n = dataset-transformation @m + @k + ...
+
+where *dataset-transformation* can be one of:
+
+``sum_same_x``
+    Merges points which distance in x is smaller than
+    :ref:`epsilon <epsilon>`.
+    x of a merged point is the average,
+    and y and sigma are sums of components.
+
+``avg_same_x``
+    The same as sum_same_x, but y and sigma of a merged point
+    is set as an average of components.
+
+``shirley_bg``
+    Calculates Shirley background
+    (useful in X-ray photoelectron spectroscopy).
+
+``rm_shirley_bg``
+    Calculates data with removed Shirley background.
+
+A sum of datasets (``@n + @m + ...``) contains all points from all component
+datasets. If datasets have the same x values, the sum of y values can be
+obtained using ``@+ = sum_same_x @n + @m + ...``.
+
+Examples::
+
+  @+ = @0 # duplicate the dataset
+  @+ = @0 + @1 # create a new dataset from @0 and @1
+  @0 = rm_shirley_bg @0 # remove Shirley background 
+
 
 .. _dexport:
 
