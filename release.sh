@@ -124,7 +124,7 @@ elif [ $1 -eq 4 ]; then
  SRC_DIR=..
  # host: MinGW from .deb: i586-mingw32msvc, built locally: i586-pc-mingw32
  $SRC_DIR/configure --build=x86_64-pc-linux-gnu --host=i586-mingw32msvc \
-   CXXFLAGS="-O3" LDFLAGS="-s" --disable-CLI --with-xylib \
+   CXXFLAGS="-O3" LDFLAGS="-s" --without-readline --with-xylib \
    --enable-static --disable-shared \
    --with-wx-config=/home/wojdyr/local/mingw32msvc/bin/wx-config
  make || exit
