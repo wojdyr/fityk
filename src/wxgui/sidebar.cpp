@@ -929,7 +929,7 @@ vector<string> SideBar::get_selected_func() const
     vector<string> dd;
     for (int i = f->list->GetFirstSelected(); i != -1;
                                             i = f->list->GetNextSelected(i))
-        dd.push_back(ftk->get_function(i)->xname);
+        dd.push_back("%" + wx2s(f->list->GetItemText(i)));
     //if (dd.empty() && f->list->GetItemCount() > 0) {
     //    int n = f->list->GetFocusedItem();
     //    dd.push_back(ftk->get_function(n == -1 ? 0 : n)->xname);
@@ -943,10 +943,6 @@ vector<string> SideBar::get_selected_vars() const
     for (int i = v->list->GetFirstSelected(); i != -1;
                                              i = v->list->GetNextSelected(i))
         dd.push_back(ftk->get_variable(i)->xname);
-    //if (dd.empty() && v->list->GetItemCount() > 0) {
-    //    int n = v->list->GetFocusedItem();
-    //    dd.push_back(ftk->get_function(n == -1 ? 0 : n)->xname);
-    //}
     return dd;
 }
 
