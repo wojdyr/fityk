@@ -39,15 +39,8 @@ Data from experiment
 Loading data
 ------------
 
-The basic file format is ascii text file with every line
-corresponding to one data point. If there are more than two columns
-of numbers, it can be specified which columns corresponds to x and y,
-and, optionally, also sigma.
-Numbers in line can be separated by whitespace, commas or semicolons.
-Lines that can't be read as numbers are ignored.
-
-The `xylib library <http://www.unipress.waw.pl/fityk/xylib/>`_
-is used to read data from file.  New formats can be easily added.
+Data files are read using the
+`xylib library <http://www.unipress.waw.pl/fityk/xylib/>`_.
 
 Points are loaded from files using the command::
 
@@ -97,8 +90,8 @@ Supported filetypes
 ~~~~~~~~~~~~~~~~~~~
 
 text
-    ASCII format. If option first-line-header is given,
-    the first line is read as title.
+    ASCII text, multicolumn numeric data.
+    The details are given in the next section.
 
 dbws
     format used by DBWS (program for Rietveld analysis)
@@ -139,6 +132,51 @@ pdcif
 
 ...
     what else would you like to have here?
+
+Reading text files
+~~~~~~~~~~~~~~~~~~
+The *xylib* library can read TSV or CSV formats (tab or comma separated
+values). In fact, the values can be separated by any whitespace character
+or by one of ,;: punctations, or by any combination of these.
+
+Empty lines and comments that start with hash (#) are skipped.
+
+Since there is a lot of files in the world that contain numeric data mixed
+with text, unless the :option:`strict` option is given
+any text that can not be interpreted as a number is regarded a start of
+comment (the rest of the line is ignored).
+
+Note that the file is parsed regardless of blocks and columns specified
+by the user. The data read from the file are first stored in a table
+with *m* columns and *n* rows.
+If some of the lines have 3 numbers in it, and some have 5 numbers, we can
+either discard the lines that have 3 numbers or we can discard the numbers
+in 4th and 5th column. Usually the latter is done, unless it seems that the
+shorter lines should be ignored. The line is ignored:
+
+* if it is the last line in the file and it contains less numbers than other
+  lines (probably the program was terminated while writing the file),
+
+* if it contains only one number, but the prior lines had more numbers,
+
+* if all the (not ignored) prior lines and the next line are longer
+
+.. note:: Xylib doesn't handle well nan's and inf's in the data. This will be
+          improved in the future.
+
+Data blocks and columns may have names. These names are used to set
+a title of the dataset (see :ref:`multidata` for details).
+If the option :option:`first-line-header` is given and the number of words
+in the first line is equal to the number of data columns,
+each word is used as a name of corresponding column.
+If the number of words is different, the first line is used as a name of the
+block.
+If the :option:`last-line-header` option is given, the line preceding
+the first data line is used to set either column names or the block name.
+
+If the file starts with the "`LAMMPS (`" string,
+the :option:`last-line-header` option is set implicitely.
+This is very helpful when plotting data from LAMMPS log files.
 
 Active and inactive points
 --------------------------
@@ -457,9 +495,15 @@ Each dataset has a separate :ref:`model <model>`,
 that can be fitted to the data. This is explained in the next chapter.
 
 Each dataset also has a title (it does not have to be unique, however).
-When loading file, a title is automatically created, either using
-the filename or by reading it from the file (depending on the format
-of the file). Titles can be changed using the command::
+When loading file, a title is automatically created:
+
+* if there is a name associated with the column *ycol*, the title
+  is based on it;
+* otherwise, if there is a name associated with the data block read from file,
+  the title is set to this name;
+* otherwise, the title is based on the filename
+
+Titles can be changed using the command::
 
    set @n.title=new-title
 

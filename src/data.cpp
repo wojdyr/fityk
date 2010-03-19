@@ -371,6 +371,11 @@ void Data::load_file (string const& fn,
                 if (!xcol.name.empty())
                     block_name += "(" + xcol.name + ")";
             }
+            else if (!block->name.empty()) {
+                if (!block_name.empty())
+                    block_name += "/";
+                block_name += block->name;
+            }
         }
     } catch (runtime_error const& e) {
         throw ExecuteError(e.what());
