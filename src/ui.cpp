@@ -199,6 +199,7 @@ void UserInterface::output_message (OutputStyle style, const string& s) const
 void UserInterface::exec_script(const string& filename,
                                 const vector<pair<int,int> >& selected_lines)
 {
+    user_interrupt = false;
     ifstream file(filename.c_str(), ios::in);
     if (!file) {
         F->warn("Can't open file: " + filename);
@@ -251,6 +252,12 @@ void UserInterface::exec_script(const string& filename,
             }
             replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);
             parse_and_execute(s);
+
+            if (user_interrupt) {
+                user_interrupt = false;
+                F->msg ("Script stopped by signal INT.");
+                return;
+            }
         }
     }
 
@@ -284,6 +291,12 @@ void UserInterface::exec_script(const string& filename,
                 // result of parse_and_execute here is neglected. Errors in
                 // script don't change status of command, which executes script
                 parse_and_execute(lines[j-1]);
+
+                if (user_interrupt) {
+                    user_interrupt = false;
+                    F->msg ("Script stopped by signal INT.");
+                    return;
+                }
             }
         }
     }

@@ -1209,10 +1209,12 @@ stopping criteria:
 
 - and the number of evaluations of the objective function (WSSR), specified
   by the value of option :option:`max-wssr-evaluations` (0=unlimited).
-  It is approximately proportional to time of computations,
-  because most of time in fitting process is taken by evaluating WSSR.
+  It is approximately proportional to the time of computations.
 
 There are also other criteria, different for each method.
+
+On Unix, fitting can be interrupted by sending the `INT` signal to the program.
+This is usually done by pressing Ctrl-C in the terminal.
 
 If you give too small *number-of-iterations* to the command ``fit``,
 and fit is not converged, it makes sense to use command ``fit+``

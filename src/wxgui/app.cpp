@@ -134,9 +134,21 @@ Commands::Status gui_exec_command(const string& s)
 }
 //-------------------------------------------------------------------------
 
+void interrupt_handler (int /*signum*/)
+{
+    //set flag for breaking long computations
+    user_interrupt = true;
+}
+
 
 bool FApp::OnInit(void)
 {
+#ifndef _WIN32
+    // setting Ctrl-C handler
+    if (signal (SIGINT, interrupt_handler) == SIG_IGN)
+        signal (SIGINT, SIG_IGN);
+#endif //_WIN32
+
     SetAppName(wxT("fityk"));
 
     // if options can be parsed
