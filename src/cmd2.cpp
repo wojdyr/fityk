@@ -209,8 +209,8 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
     dataset_handling
           //load from file
         = (dataset_lhs >> '<' >> CompactStrG [clear_a(vt)]
-           >> !(lexeme_d[+(alnum_p | '-' | '_')] [push_back_a(vt)]
-                % ',')
+           >> *( lexeme_d[+(alnum_p | '-' | '_')] [push_back_a(vt)]
+               )
           ) [&do_import_dataset]
           //sum / duplicate
         | dataset_lhs >> ch_p('=') [clear_a(vn)] [assign_a(t, empty)]
