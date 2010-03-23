@@ -2,14 +2,7 @@ $Id$
 
 ---------- TODO list and tentative development plan  ----------------
 
-* GUI: enhance Fit->Info dialog:
-  - show where each variable is used (e.g. "%_1.height" or "2 refs")
-
 * GUI: plot in @2 doesn't change plotted dataset
-
-* use the same approximation in FuncVoigtA::fwhm() as in FuncVoigt::fwhm,
-  see wikipedia for reference:
-  http://en.wikipedia.org/wiki/Voigt_profile#cite_note-0
 
 * fix windows bug - popup warning after GUI > load config > built-in
 

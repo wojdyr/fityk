@@ -108,6 +108,12 @@ Journal of Quantitative Spectroscopy & Radiative Transfer
 (See also: http://www.atm.ox.ac.uk/user/wells/voigt.html).
 The approximation is very fast, but not very exact.
 
+FWHM is estimated using approximation by Olivero and Longbothum
+(`JQSRT 17, 233 (1977)`__):
+:math:`0.5346 w_L + \sqrt{0.2169 w_L^2 + w_G^2}`.
+
+__ http://dx.doi.org/10.1016/0022-4073(77)90161-3
+
 **VoigtA:**
 
 .. math:: 
