@@ -10,12 +10,12 @@ In this part of the manual:
 - several concepts (such as *simple-variable* and *compound-variable*),
   that reflect the internal design of the program, are introduced,
 
-- the syntax of the fityk mini-language is explained,
+- the syntax of the Fityk mini-language is explained,
 
 - it is rarely mentioned, that in the GUI typing the commands can be usually
   avoided and most of the operations can be done with mouse clicking.
 
-The fityk mini-language consists of *commands*.
+The Fityk mini-language consists of *commands*.
 
 Basically, there is one command per line.  If for some reason it is more
 comfortable to place more than one command in one line, they can be
@@ -182,7 +182,7 @@ Active and inactive points
 --------------------------
 
 We often have the situation that only a part of the data from a file is
-of interest. In fityk, each point is either *active* or *inactive*.
+of interest. In Fityk, each point is either *active* or *inactive*.
 Inactive points are excluded from fitting and all calculations.
 A data :ref:`transformation <transform>`::
 
@@ -406,7 +406,7 @@ A few examples::
     X = x[0] + n * (x[M-1]-x[0]) / (M-1),  Y = y[x=X], S = s[x=X], A = a[x=X]
     # take the first 2000 points, average them and subtract as background
     Y = y - avg(y if n<2000)
-    # fityk can also be used as a simple calculator
+    # Fityk can also be used as a simple calculator
     i 2+2 #4
     i sin(pi/4)+cos(pi/4) #1.41421
     i gamma(10) #362880
@@ -809,7 +809,7 @@ Example::
   just use it on the right-hand side of the definition.
 
 - There are special names of parameters,
-  that fityk understands:
+  that Fityk understands:
 
   * if the functions is peak-like:
     ``height``, ``center``, ``fwhm``, ``area``, ``hwhm``,
@@ -1081,7 +1081,7 @@ to this chapter. The full list is in :ref:`info`
 
 ``info peaks in @n``
     Show parameters of functions from dataset *n*.
-    With the plus sign (+) after ``info``, symmetric errors of the
+    With the plus sign (+) after ``info``, uncertainties of the
     parameters are also included.
 
 
@@ -1167,15 +1167,6 @@ Formulae can be found e.g. in
 `GSL Manual <http://www.gnu.org/software/gsl/manual/>`_,
 chapter *Linear regression. Overview* (weighted data version).
 
-.. note:: Some programs scale standard deviations of the parameters
-   with the standard deviation of the fit
-   :math:`\sigma_f=\sqrt{\chi^2/n_{DoF}}`,
-   where :math:`n_{DoF}` is the number of degrees of freedom,
-   i.e. the number of active data points minus the number of independent
-   parameters.
-
-   Fityk is **not** doing this.
-
 .. _fitting_cmd:
 
 Fitting related commands
@@ -1226,11 +1217,6 @@ will plot a model after every iteration, to visualize progress.
 
 ``info fit`` shows goodness-of-fit.
 
-To see symmetric errors use ``info errors``.
-``info+ errors`` additionally shows the variance-covariance matrix.
-Individual symmetric errors of simple-variables can be accessed as
-``$variable.error`` or e.g. ``%func.height.error``
-
 Available methods can be mixed together, e.g. it is sensible
 to obtain initial parameter estimates using the Simplex method,
 and then fit it using Levenberg-Marquardt.
@@ -1256,6 +1242,76 @@ fit history *n*
 fit history clear
     clear the history
 
+Uncertainty in the model parameters
+-----------------------------------
+
+From the book J. Wolberg, *Data Analysis Using the Method of Least Squares: Extracting the Most Information from Experiments*, Springer, 2006, p.50:
+
+   (...) we turn to the task of determining the uncertainties associated
+   with the :math:`a_k`'s. The usual measures of uncertainty are standard
+   deviation (i.e., :math:`\sigma` or variance (i.e., :math:`\sigma^2`) so
+   we seek an expression that allows us to estimate the :math:`\sigma_{a_k}`'s.
+   It can be shown (...) that the following expression gives us an unbiased
+   estimate of :math:`\sigma_{a_k}`:
+
+.. math::
+  \sigma_{a_k}^{2}=\frac{S}{n-p}C_{kk}^{-1}
+
+Note that :math:`\sigma_{a_k}` is a square root of the value above.
+In this formula *n-p*, the number of (active) data points minus the number
+of independent parameters, is equal to the number of degrees of freedom.
+*S* is another symbol for :math:`\chi^2` (the latter symbol is used e.g. in
+*Numerical Recipes*).
+
+Terms of the *C* matrix are given as (p. 47 in the same book):
+
+.. math::
+  C_{jk}=\sum_{i=1}^n w_i \frac{\partial f}{\partial a_j} \frac{\partial f}{\partial a_k}
+
+:math:`\sigma_{a_k}` above is often called a *standard error*.
+Having standard errors, it is easy to calculate confidence intervals.
+Now another book will be cited: H. Motulsky and A. Christopoulos,
+*Fitting Models to Biological Data Using Linear and Nonlinear Regression:
+A Practical Guide to Curve Fitting*, Oxford University Press, 2004.
+This book can be `downloaded for free`__ as a manual to GraphPad Prism 4.
+
+__ http://www.graphpad.com/manuals/prism4/RegressionBook.pdf
+
+   The standard errors reported by most nonlinear regression programs (...)
+   are "approximate" or "asymptotic". Accordingly, the confidence intervals
+   computed using these errors should also be considered approximate.
+
+   It would be a mistake to assume that the "95% confidence intervals" reported
+   by nonlinear regression have exactly a 95% chance of enclosing the true
+   parameter values. The chance that the true value of the parameter is within
+   the reported confidence interval may not be exactly 95%. Even so, the
+   asymptotic confidence intervals will give you a good sense of how precisely
+   you have determined the value of the parameter.
+
+   The calculations only work if nonlinear regression has converged on a
+   sensible fit. If the regression converged on a false minimum, then the
+   sum-of-squares as well as the parameter values will be wrong, so the
+   reported standard error and confidence intervals won’t be helpful.
+
+
+The book describes also more accurate ways to calculate confidence intervals,
+such use Monte Carlo simulations.
+
+
+In Fityk:
+
+* ``info errors`` shows values of :math:`\sigma_{a_k}`.
+* ``info+ errors`` additionally shows the matrix :math:`C^{-1}`.
+* Individual symmetric errors of simple-variables can be accessed as
+  ``$variable.error`` or e.g. ``%func.height.error``.
+* confidence intervals are on the TODO list (in the meantime you can compute
+  them by hand, see p.103 in the GraphPad book)
+
+.. note:: In Fityk 0.9.0 and earlier ``info errors`` reported values of
+          :math:`\sqrt{C_{kk}^{-1}}`, which makes sense if the standard
+          deviations of *y*'s are set accurately. This formula is derived
+          in *Numerical Recipes*.
+ 
 .. _levmar:
 
 Levenberg-Marquardt

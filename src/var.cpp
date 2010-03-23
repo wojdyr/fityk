@@ -16,11 +16,6 @@
 using namespace std;
 using namespace boost::spirit;
 
-
-bool VariableUser::is_directly_dependent_on(int idx) {
-    return count(var_idx.begin(), var_idx.end(), idx);
-}
-
 /// checks if *this depends (directly or indirectly) on variable with index idx
 bool VariableUser::is_dependent_on(int idx,
                                    vector<Variable*> const &variables) const

@@ -228,8 +228,9 @@ VariableManager::get_variable_references(string const &name) const
             refs.push_back((*i)->xname);
     for (vector<Function*>::const_iterator i = functions.begin();
             i != functions.end(); ++i)
-        if ((*i)->is_directly_dependent_on(idx))
-            refs.push_back((*i)->xname);
+        for (int j = 0; j < (*i)->get_vars_count(); ++j)
+            if ((*i)->get_var_idx(j) == idx)
+                refs.push_back((*i)->xname + "." + (*i)->type_var_names[j]);
     return refs;
 }
 

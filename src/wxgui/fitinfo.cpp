@@ -49,7 +49,7 @@ bool FitInfoDlg::Initialize()
         else
             s.Printf(wxT("%d datasets\n"), (int) dms.size());
         s += wxString::Format(
-                wxT("points: %d\nDoF: %d\nWSSR: %g\nSSR: %g\nWSSR/DoF: %g\n")
+                wxT("points: %d\n\nDoF: %d\nWSSR: %g\nSSR: %g\nWSSR/DoF: %g\n")
                 wxT("R-squared: %g\n"),
                 points, dof, wssr, ssr, wssr_over_dof, r2);
     } catch (ExecuteError &e) {
@@ -65,14 +65,19 @@ bool FitInfoDlg::Initialize()
     left_tc->SetValue(s);
     wxPanel *right_panel = new wxPanel(hsplit);
     wxSizer *rsizer = new wxBoxSizer(wxVERTICAL);
-    rsizer->Add(new wxStaticText(right_panel, -1, wxT("Symmetric errors")),
-                wxSizerFlags().Border().Center());
-    scale_cb = new wxCheckBox(right_panel, -1,
-                              wxT("multiply errors by sqrt(WSSR/DoF)"));
-    rsizer->Add(scale_cb, wxSizerFlags().Border(wxRIGHT).Right());
+    wxArrayString choices;
+    // \u00B1 == +/-
+    choices.Add(wxT("\u00B1 standard errors: sqrt(WSSR/DoF COV_kk)"));
+    choices.Add(wxT("\u00B1 sqrt(COV_kk)"));
+    choices.Add(wxT("covariance matrix"));
+    right_c = new wxChoice(right_panel, -1, wxDefaultPosition, wxDefaultSize,
+                           choices);
+    right_c->SetSelection(0);
+    rsizer->Add(right_c, wxSizerFlags().Expand().Border());
     right_tc = new wxTextCtrl(right_panel, -1, wxT(""),
                               wxDefaultPosition, wxDefaultSize,
-                              wxTE_MULTILINE|wxTE_RICH|wxTE_READONLY);
+                              wxTE_MULTILINE|wxTE_RICH|wxTE_READONLY|
+                              wxTE_DONTWRAP);
     wxFont font(10, wxFONTFAMILY_TELETYPE,
                             wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     wxTextAttr attr;
@@ -91,8 +96,8 @@ bool FitInfoDlg::Initialize()
 
     update_right_tc();
 
-    Connect(scale_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
-            wxCommandEventHandler(FitInfoDlg::OnDivideCheckbox));
+    Connect(right_c->GetId(), wxEVT_COMMAND_CHOICE_SELECTED,
+            wxCommandEventHandler(FitInfoDlg::OnChoice));
 
     return true;
 }
@@ -100,25 +105,58 @@ bool FitInfoDlg::Initialize()
 void FitInfoDlg::update_right_tc()
 {
     ::Fit *fit = ftk->get_fit();
-    fp scale = 1.;
-    if (scale_cb->GetValue())
-        scale = sqrt(wssr_over_dof);
+    int choice = right_c->GetSelection();
     vector<DataAndModel*> dms = frame->get_selected_dms();
-    vector<fp> alpha = fit->get_covariance_matrix(dms);
     vector<fp> const &pp = ftk->get_parameters();
+    int na = pp.size();
     wxString s;
-    for (size_t i = 0; i < pp.size(); ++i) {
-        if (fit->is_param_used(i)) {
-            fp err = sqrt(alpha[i*pp.size() + i]);
-            string const& xname = ftk->find_variable_handling_param(i)->xname;
-            // \u00B1 == +/-
-            s += wxString::Format(wxT("\n%10s = %10g \u00B1 "),
-                                  xname.c_str(), pp[i]);
-            if (err == 0.)
-                s += wxT("??");
-            else
-                s += wxString::Format(wxT("%g"), err * scale);
+    if (choice == 0 || choice == 1) {
+        fp scale = (choice == 0 ? 1. : 1. / sqrt(wssr_over_dof));
+        vector<fp> errors = fit->get_standard_errors(dms);
+        for (int i = 0; i < na; ++i) {
+            if (fit->is_param_used(i)) {
+                const Variable *var = ftk->find_variable_handling_param(i);
+                vector<string> in = ftk->get_variable_references(var->name);
+                string name = var->xname;
+                if (in.size() == 1 && in[0][0] == '%')
+                    name += " = " + in[0];
+                else if (in.size() == 1)
+                    name += " (in " + in[0] + ")";
+                else
+                    name += " (" + S(in.size()) + " refs)";
+                // \u00B1 == +/-
+                s += wxString::Format(wxT("\n%20s = %10g \u00B1 "),
+                                      name.c_str(), pp[i]);
+                if (errors[i] == 0.)
+                    s += wxT("??");
+                else
+                    s += wxString::Format(wxT("%g"), scale * errors[i]);
+            }
         }
+    }
+    else {
+        s = wxT("          ");
+        vector<fp> alpha = fit->get_covariance_matrix(dms);
+        for (int i = 0; i < na; ++i)
+            if (fit->is_param_used(i))
+                s += wxString::Format(wxT("%10s"),
+                        ftk->find_variable_handling_param(i)->xname.c_str());
+        for (int i = 0; i < na; ++i) {
+            if (fit->is_param_used(i)) {
+                s += wxString::Format(wxT("\n%10s"),
+                        ftk->find_variable_handling_param(i)->xname.c_str());
+                for (int j = 0; j < na; ++j) {
+                    if (fit->is_param_used(j)) {
+                        fp val = alpha[na*i + j];
+                        if (fabs(val) < 1e-99)
+                            s += wxT("         0");
+                        else
+                            s += wxString::Format(wxT(" %9.2e"), val);
+                    }
+                }
+            }
+        }
+
     }
     // On wxMSW 2.9.0 wxTextCtrl::ChangeValue() ignores default styles
     //right_tc->ChangeValue(s);

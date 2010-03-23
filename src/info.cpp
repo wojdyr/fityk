@@ -422,7 +422,7 @@ void get_info_peaks(Ftk const* F, VecDM const& v, bool full,
 {
     vector<fp> errors;
     if (full)
-        errors = F->get_fit()->get_symmetric_errors(v);
+        errors = F->get_fit()->get_standard_errors(v);
     for (VecDM::const_iterator i = v.begin(); i != v.end(); ++i)
         result += "\n# " + (*i)->data()->get_title()
                 + "\n" + (*i)->model()->get_peak_parameters(errors) + "\n";

@@ -35,7 +35,7 @@ public:
     std::vector<fp>
         get_covariance_matrix(std::vector<DataAndModel*> const&dms);
     std::vector<fp>
-        get_symmetric_errors(std::vector<DataAndModel*> const& dms);
+        get_standard_errors(std::vector<DataAndModel*> const& dms);
     //std::vector<DataAndModel*> const& get_datsums() const { return dmdm_; }
     static fp compute_wssr_for_data (DataAndModel const* dm, bool weigthed);
     fp do_compute_wssr(std::vector<fp> const &A,
@@ -114,7 +114,7 @@ public:
     Fit* get_method(int n) const
                     { assert(n >= 0 && n<size(methods_)); return methods_[n]; }
     std::vector<Fit*> const& get_methods() const { return methods_; }
-    fp get_symmetric_error(Variable const* var);
+    fp get_standard_error(Variable const* var);
     void outdated_error_cache() { dirty_error_cache_ = true; }
 
 private:

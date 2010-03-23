@@ -65,7 +65,7 @@ vector<fp> Fit::get_covariance_matrix(vector<DataAndModel*> const& dms)
     //sometimes some parameters are unused, although formally are "used".
     //E.g. SplitGaussian with center < min(active x) will have hwhm1 unused
     //Anyway, if i'th column/row in alpha are only zeros, we must
-    //do something about it -- symmetric error is undefined
+    //do something about it -- standard error is undefined
     vector<int> undef;
     for (int i = 0; i < na; ++i) {
         bool has_nonzero = false;
@@ -88,30 +88,34 @@ vector<fp> Fit::get_covariance_matrix(vector<DataAndModel*> const& dms)
     return alpha;
 }
 
-vector<fp> Fit::get_symmetric_errors(vector<DataAndModel*> const& dms)
+vector<fp> Fit::get_standard_errors(vector<DataAndModel*> const& dms)
 {
-    vector<fp> alpha = get_covariance_matrix(dms);
     vector<fp> errors(na);
+    vector<fp> alpha = get_covariance_matrix(dms);
+    vector<fp> const &pp = F->get_parameters();
+    int dof = get_dof(dms);
+    fp wssr = do_compute_wssr(pp, dms, true);
     for (int i = 0; i < na; ++i)
-        errors[i] = sqrt(alpha[i*na + i]);
+        errors[i] = sqrt(wssr / dof * alpha[i*na + i]);
     return errors;
 }
 
 string Fit::get_error_info(vector<DataAndModel*> const& dms, bool matrix)
 {
-    vector<fp> alpha = get_covariance_matrix(dms);
+    vector<fp> errors = get_standard_errors(dms);
     vector<fp> const &pp = F->get_parameters();
     string s;
-    s = "Symmetric errors: ";
+    s = "Standard errors: ";
     for (int i = 0; i < na; i++) {
         if (par_usage[i]) {
-            fp err = sqrt(alpha[i*na + i]);
+            fp err = errors[i];
             s += "\n" + F->find_variable_handling_param(i)->xname
                 + " = " + S(pp[i])
                 + " +- " + (err == 0. ? string("??") : S(err));
         }
     }
     if (matrix) {
+        vector<fp> alpha = get_covariance_matrix(dms);
         s += "\nCovariance matrix\n    ";
         for (int i = 0; i < na; ++i)
             if (par_usage[i])
@@ -533,13 +537,13 @@ FitMethodsContainer::~FitMethodsContainer()
     purge_all_elements(methods_);
 }
 
-fp FitMethodsContainer::get_symmetric_error(Variable const* var)
+fp FitMethodsContainer::get_standard_error(Variable const* var)
 {
     if (!var->is_simple())
-        return -1.; // value signaling unknown symmetric error
+        return -1.; // value signaling unknown standard error
     if (dirty_error_cache_
             || errors_cache_.size() != F->get_parameters().size()) {
-        errors_cache_ = F->get_fit()->get_symmetric_errors(F->get_dms());
+        errors_cache_ = F->get_fit()->get_standard_errors(F->get_dms());
     }
     return errors_cache_[var->get_nr()];
 }

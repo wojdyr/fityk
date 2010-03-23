@@ -165,7 +165,7 @@ void push_var::operator()(char const* a, char const* b) const
     if (dot == b) // variable
         value = var->get_value();
     else  // ".error"
-        value = AL->get_fit_container()->get_symmetric_error(var);
+        value = AL->get_fit_container()->get_standard_error(var);
     push_double::operator()(value);
 }
 
@@ -187,7 +187,7 @@ void push_func_param::operator()(char const* a, char const* b) const
             throw ExecuteError("Errors of pseudo-parameters (" + pstr
                                + ") can not be accessed. ");
         Variable const* var = AL->find_variable(f->get_param_varname(pstr));
-        value = AL->get_fit_container()->get_symmetric_error(var);
+        value = AL->get_fit_container()->get_standard_error(var);
     }
     push_double::operator()(value);
 }

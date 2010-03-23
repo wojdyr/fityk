@@ -33,8 +33,11 @@ public:
         : name(name_), prefix(prefix_), xname(prefix_+name), varnames(vars) {}
     virtual ~VariableUser() {}
     bool is_auto_delete() const { return name.size() > 0 && name[0] == '_'; }
+
     bool is_dependent_on(int idx, std::vector<Variable*> const &variables)const;
-    bool is_directly_dependent_on(int idx);
+    bool is_directly_dependent_on(int idx) const
+                                  { return contains_element(var_idx, idx); }
+
     virtual void set_var_idx(std::vector<Variable*> const& variables);
     int get_var_idx(int n) const
              { assert(n >= 0 && n < size(var_idx)); return var_idx[n]; }
