@@ -196,7 +196,7 @@ vector<double> scale_tics_step (double beg, double end, int max_tics,
             s *= 5;
         else
             s *= 10;
-        for (double t = s * ceil(beg / s); t < end; t += s) {
+        for (double t = s * floor(beg / s); t < end; t += s) {
             if (t > beg) {
                 // make sure that 0 is not displayed as e.g. -2.7893e-17
                 if (fabs(t) < 1e-6 * fabs(min_step))
