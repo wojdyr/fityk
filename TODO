@@ -2,11 +2,7 @@ $Id$
 
 ---------- TODO list and tentative development plan  ----------------
 
-* GUI: plot in @2 doesn't change plotted dataset
-
 * fix windows bug - popup warning after GUI > load config > built-in
-
-* GUI BUG: minor tics are not drawn on the very left of x axis
 
 --- 0.9.1
 

@@ -74,6 +74,7 @@ public:
     //bool is_func_selected(int n) const;
     int set_selection(int page) { return nb->SetSelection(page); }
     void activate_function(int n);
+    void select_datasets(const std::vector<int>& datasets);
     std::vector<std::string> get_selected_data() const;
     bool howto_plot_dataset(int n, bool& shadowed, int& offset) const;
     std::vector<std::string> get_selected_func() const;

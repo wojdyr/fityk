@@ -1838,6 +1838,11 @@ vector<DataAndModel*> FFrame::get_selected_dms()
     return dms;
 }
 
+void FFrame::view_dataset()
+{
+    sidebar->select_datasets(ftk->view.get_datasets());
+}
+
 MainPlot* FFrame::get_main_plot()
 {
     return plot_pane->get_plot();

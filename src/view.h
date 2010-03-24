@@ -45,8 +45,8 @@ public:
 
     // F is used only in fit_zoom(), can be NULL
     View(Ftk const* F_)
-        : left(0), right(180.), bottom(-50), top(1e3), F(F_), datasets(1,0),
-          log_x(false), log_y(false) {}
+        : left(0), right(180.), bottom(-50), top(1e3), F(F_), datasets_(1,0),
+          log_x_(false), log_y_(false) {}
     fp width() const { return right - left; }
     fp height() const { return top - bottom; }
     std::string str() const;
@@ -54,15 +54,15 @@ public:
                        std::vector<int> const& dd);
     /// fit specified edges to the data range
     void fit_zoom(int flag=fit_all);
-    std::vector<int> const& get_datasets() const { return datasets; }
+    std::vector<int> const& get_datasets() const { return datasets_; }
     // set range
     void set(fp l, fp r, fp b, fp t, int flag=change_all);
-    void set_log_scale(bool log_x_, bool log_y_)
-                                         { log_x = log_x_; log_y = log_y_; }
+    void set_log_scale(bool log_x, bool log_y)
+                                         { log_x_ = log_x; log_y_ = log_y; }
 private:
     Ftk const* F;
-    std::vector<int> datasets;
-    bool log_x, log_y;
+    std::vector<int> datasets_;
+    bool log_x_, log_y_;
 
     void get_x_range(std::vector<Data const*> datas, fp &x_min, fp &x_max);
     void get_y_range(std::vector<Data const*> datas,

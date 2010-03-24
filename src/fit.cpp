@@ -299,7 +299,7 @@ bool Fit::post_fit (const std::vector<fp>& aa, fp chi2)
         F->msg ("Better fit NOT found (WSSR = " + S(chi2)
                     + ", was " + S(wssr_before) + ").\nParameters NOT changed");
         F->use_external_parameters(a_orig);
-        F->get_ui()->draw_plot(3, true);
+        F->get_ui()->draw_plot(3, UserInterface::kRepaintImmediately);
     }
     return better;
 }
@@ -434,7 +434,7 @@ void Fit::iteration_plot(vector<fp> const &A, bool changed, fp wssr)
         return;
     if (changed) {
         F->use_external_parameters(A);
-        F->get_ui()->draw_plot(3, true);
+        F->get_ui()->draw_plot(3, UserInterface::kRepaintImmediately);
     }
     if (refresh_period > 0)
         F->msg("Iter: " + S(iter_nr) + "/"

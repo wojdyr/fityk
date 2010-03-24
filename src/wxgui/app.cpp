@@ -77,8 +77,12 @@ void gui_show_message(OutputStyle style, const string& s)
     frame->output_text(style, s + "\n");
 }
 
-void gui_do_draw_plot(bool now)
+void gui_do_draw_plot(UserInterface::RepaintMode mode)
 {
+    if (mode == UserInterface::kRepaintDataset)
+        frame->view_dataset();
+    bool now = (mode == UserInterface::kRepaintImmediately ||
+                mode == UserInterface::kRepaintDataset);
     frame->refresh_plots(now, kAllPlots);
 }
 

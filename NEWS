@@ -4,6 +4,7 @@ User-visible changes in version 0.9.1  (2010-0 -  ):
 * added cfityk to Windows installer
 * Unix only: fitting can be interrupted by the INT signal
 * changed output of "info errors", see the manual for details
+* GUI: "plot in @n" changes selected datasets (useful in scripts)
 * many bugs fixed
 
 User-visible changes in version 0.9.0  (2010-01-05):

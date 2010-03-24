@@ -185,6 +185,7 @@ public:
     int get_focused_data_index();
     std::vector<int> get_selected_data_indices();
     std::vector<DataAndModel*> get_selected_dms();
+    void view_dataset(); // set dataset(s) from Ftk::view
     //std::string get_focused_data_str();
     //std::string get_in_dataset();
     std::string get_in_datasets();

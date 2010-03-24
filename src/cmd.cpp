@@ -142,7 +142,7 @@ void do_undefine_func(char const*, char const*)
 void do_replot(char const*, char const*)
 {
     if (AL->is_plot_outdated()) {
-        AL->get_ui()->draw_plot(2, false);
+        AL->get_ui()->draw_plot(2, UserInterface::kRepaint);
     }
 }
 

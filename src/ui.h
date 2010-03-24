@@ -56,6 +56,12 @@ public:
 class UserInterface
 {
 public:
+    enum RepaintMode {
+        kRepaint, // repaint can be delayed
+        kRepaintImmediately, // repaint immediately
+        kRepaintDataset // paint immediately dataset selected in class View
+    };
+
     /// it's used to disable all messages
     bool keep_quiet;
 
@@ -65,7 +71,7 @@ public:
     {}
 
     /// Update plot if pri<=auto_plot.   If !now, update can be delayed
-    void draw_plot(int pri, bool now);
+    void draw_plot(int pri, RepaintMode mode);
 
     /// sent message - to user input and to log file (if logging is on)
     void output_message (OutputStyle style, std::string const &s) const;
@@ -91,7 +97,7 @@ public:
     void process_cmd_line_filename(std::string const& par);
 
     // callbacks
-    typedef void t_do_draw_plot(bool now);
+    typedef void t_do_draw_plot(RepaintMode mode);
     void set_do_draw_plot(t_do_draw_plot *func) { do_draw_plot_ = func; }
 
     typedef void t_show_message(OutputStyle style, std::string const& s);
@@ -128,8 +134,8 @@ private:
     UserInterface (UserInterface const&); //disable
     UserInterface& operator= (UserInterface const&); //disable
 
-    void do_draw_plot(bool now)
-        { if (do_draw_plot_) (*do_draw_plot_)(now); }
+    void do_draw_plot(RepaintMode mode)
+        { if (do_draw_plot_) (*do_draw_plot_)(mode); }
     /// show message to user
     void show_message (OutputStyle style, std::string const& s) const
         { if (show_message_) (*show_message_)(style, s); }

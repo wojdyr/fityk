@@ -44,7 +44,7 @@ void cli_show_message (OutputStyle style, const string& s)
     cout << s << endl;
 }
 
-void cli_do_draw_plot (bool /*now*/)
+void cli_do_draw_plot (UserInterface::RepaintMode /*mode*/)
 {
     static GnuPlot my_gnuplot;
     my_gnuplot.plot();

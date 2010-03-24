@@ -116,7 +116,7 @@ void do_load_data_sum(char const*, char const*)
 void do_plot(char const*, char const*)
 {
     AL->view.parse_and_set(vr, get_dm_indices_from_indata());
-    AL->get_ui()->draw_plot(1, true);
+    AL->get_ui()->draw_plot(1, UserInterface::kRepaintDataset);
 }
 
 void do_output_info(char const* a, char const* b)

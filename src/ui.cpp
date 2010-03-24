@@ -34,7 +34,7 @@ private:
 };
 
 // simple replacement for GNU getline() (returns int, not ssize_t)
-int our_getline (char **lineptr, size_t *n, FILE *stream)
+int our_getline(char **lineptr, size_t *n, FILE *stream)
 {
     int c;
     int counter = 0;
@@ -180,7 +180,7 @@ Commands::Status UserInterface::exec_and_log(string const &c)
     return r;
 }
 
-void UserInterface::output_message (OutputStyle style, const string& s) const
+void UserInterface::output_message(OutputStyle style, const string& s) const
 {
     if (keep_quiet)
         return;
@@ -314,16 +314,16 @@ void UserInterface::exec_stream(FILE *fp)
     }
 }
 
-void UserInterface::draw_plot (int pri, bool now)
+void UserInterface::draw_plot(int pri, RepaintMode mode)
 {
     if (pri <= F->get_settings()->get_autoplot()) {
-        do_draw_plot(now);
+        do_draw_plot(mode);
         F->updated_plot();
     }
 }
 
 
-Commands::Status UserInterface::exec_command (std::string const &s)
+Commands::Status UserInterface::exec_command(std::string const &s)
 {
     return exec_command_ ? (*exec_command_)(s) : parse_and_execute(s);
 }
