@@ -611,7 +611,9 @@ void MainPlot::read_settings(wxConfigBase *cf)
     point_radius = cf->Read (wxT("point_radius"), 1);
     line_between_points = cfg_read_bool(cf,wxT("line_between_points"), false);
     draw_sigma = cfg_read_bool(cf,wxT("draw_sigma"), false);
-    plabelFont = cfg_read_font(cf, wxT("plabelFont"), *wxNORMAL_FONT);
+    wxFont default_plabel_font(10, wxFONTFAMILY_DEFAULT,
+                               wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+    plabelFont = cfg_read_font(cf, wxT("plabelFont"), default_plabel_font);
     plabel_format = wx2s(cf->Read(wxT("plabel_format"), wxT("<area>")));
     vertical_plabels = cfg_read_bool(cf, wxT("vertical_plabels"), false);
     x_max_tics = cf->Read(wxT("xMaxTics"), 7);

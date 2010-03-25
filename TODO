@@ -2,10 +2,6 @@ $Id$
 
 ---------- TODO list and tentative development plan  ----------------
 
-* fix windows bug - popup warning after GUI > load config > built-in
-
---- 0.9.1
-
 * A way to define split functions as UDFs. Like this:
   SplitGaussian(h, c, hwhm1, hwhm2) = if x < c then Gaussian(h,c,hwhm1) \
                                       else Gaussian(h,c,hwhm2)
