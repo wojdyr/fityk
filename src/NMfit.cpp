@@ -141,7 +141,7 @@ void NMfit::compute_coord_sum()
 
 bool NMfit::termination_criteria(int iter, fp convergence)
 {
-    F->msg ("#" + S(iter_nr) + " (ev:" + S(evaluations) + "): best:"
+    F->vmsg("#" + S(iter_nr) + " (ev:" + S(evaluations) + "): best:"
                 + S(best->wssr) + " worst:" + S(worst->wssr) + ", "
                 + S(s_worst->wssr) + " [V * |" + S(volume_factor) + "|]");
     bool stop = false;
@@ -159,7 +159,7 @@ bool NMfit::termination_criteria(int iter, fp convergence)
 *DEBUG - END*/
     //checking stop conditions
     if (common_termination_criteria(iter))
-        stop=true;
+        stop = true;
     if (is_zero(worst->wssr)) {
         F->msg ("All vertices have WSSR < epsilon=" + S(epsilon));
         return true;
