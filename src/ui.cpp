@@ -254,7 +254,6 @@ void UserInterface::exec_script(const string& filename,
             parse_and_execute(s);
 
             if (user_interrupt) {
-                user_interrupt = false;
                 F->msg ("Script stopped by signal INT.");
                 return;
             }

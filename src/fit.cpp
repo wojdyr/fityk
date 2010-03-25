@@ -307,6 +307,8 @@ bool Fit::post_fit (const std::vector<fp>& aa, fp chi2)
 fp Fit::draw_a_from_distribution (int nr, char distribution, fp mult)
 {
     assert (nr >= 0 && nr < na);
+    if (!par_usage[nr])
+        return a_orig[nr];
     fp dv = 0;
     switch (distribution) {
         case 'g':
@@ -409,7 +411,6 @@ bool Fit::common_termination_criteria(int iter)
 {
     bool stop = false;
     if (user_interrupt) {
-        user_interrupt = false;
         F->msg ("Fitting stopped manually.");
         stop = true;
     }
