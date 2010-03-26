@@ -47,9 +47,7 @@ Download
 * Fresh **Linux RPMs** `from OBS <http://download.opensuse.org/repositories/home://wojdyr/>`_.
   Good Linux distros and FreeBSD ports also have fityk packaged.
 
-* A bit old **MacOSX**
-  `universal binary <http://agni.phys.iit.edu/~kmcivor/fityk/>`_
-  (ver. 0.8.2) compiled by Ken McIvor. Read more in the :wiki:`wiki <MacOSX>`.
+* **MacOSX**: see details :wiki:`here <MacOSX>`.
 
 * `Older versions
   <http://sourceforge.net/project/showfiles.php?group_id=79434>`_
@@ -87,6 +85,7 @@ New version **notifications** from FreshMeat:
 History
 =======
 
+* 2010-03-25 Version 0.9.1
 * 2010-01-05 Version 0.9.0
 * 2009-08-20 Version 0.8.9
 * 2009-06-21 Version 0.8.8 (no Windows exe this time)
