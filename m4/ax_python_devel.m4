@@ -1,10 +1,10 @@
 # ===========================================================================
-#         http://www.nongnu.org/autoconf-archive/ac_python_devel.html
+#      http://www.gnu.org/software/autoconf-archive/ax_python_devel.html
 # ===========================================================================
 #
 # SYNOPSIS
 #
-#   AC_PYTHON_DEVEL([version])
+#   AX_PYTHON_DEVEL([version])
 #
 # DESCRIPTION
 #
@@ -66,7 +66,10 @@
 #   modified version of the Autoconf Macro, you may extend this special
 #   exception to the GPL to apply to your modified version as well.
 
-AC_DEFUN([AC_PYTHON_DEVEL],[
+#serial 4
+
+AU_ALIAS([AC_PYTHON_DEVEL], [AX_PYTHON_DEVEL])
+AC_DEFUN([AX_PYTHON_DEVEL],[
 	#
 	# Allow the use of a (user set) custom python version
 	#

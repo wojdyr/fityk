@@ -208,7 +208,7 @@ AM_CONDITIONAL([DOC_DIR], [test "$with_doc" != no])
 
 if test "$enable_python" = "yes"; then
     AM_PATH_PYTHON(2.3)
-    AC_PYTHON_DEVEL
+    AX_PYTHON_DEVEL
 fi
 AM_CONDITIONAL([PYTHON_ENABLED], [test "$enable_python" = yes])
 
@@ -220,7 +220,11 @@ fi
 AM_CONDITIONAL([LUA_ENABLED], [test "$enable_lua" = yes])
 
 AM_CONDITIONAL([SWIG_DIR], [test "$enable_python" = yes -o "$enable_lua" = yes])
-AM_COND_IF([SWIG_DIR], [AC_PROG_SWIG(1.3.17)])
+# check for SWIG even if it's not needed, because "make dist" may need it,
+# but don't show an error if it is not needed
+AM_COND_IF([SWIG_DIR], [AX_PKG_SWIG(1.3.17)],
+                       [AX_PKG_SWIG(1.3.17, [], [])])
+
 
 AC_SUBST(SRCSUBDIRS)
 AC_SUBST(CPPFLAGS_3RDPARTY)
