@@ -21,6 +21,10 @@
 #include <vector>
 #include <string>
 
+#ifndef _WIN32
+# include <signal.h>
+#endif
+
 #include "app.h"
 #include "cmn.h"
 #include "frame.h"
