@@ -12,7 +12,7 @@ namespace xylib {
 
 const FormatInfo BruckerRawDataSet::fmt_info(
     "bruker_raw",
-    "Siemens/Bruker RAW ver. 1/2/3/4",
+    "Siemens/Bruker RAW",
     vector<string>(1, "raw"),
     true,                       // whether binary
     true,                       // whether has multi-blocks
@@ -26,7 +26,7 @@ bool BruckerRawDataSet::check(istream &f)
     string head = read_string(f, 4);
     return head == "RAW " // ver. 1
            || head == "RAW2" // ver. 2
-           || (head == "RAW1" && read_string(f, 3) == ".01"); // ver. 1.01
+           || (head == "RAW1" && read_string(f, 3) == ".01"); // ver. 3
 }
 
 
@@ -150,100 +150,136 @@ void BruckerRawDataSet::load_version2(std::istream &f)
     }
 }
 
-// contributed by Andreas Breslau
+// Contributed by Andreas Breslau.
+// Changed by Marcin Wojdyr, based on the file structure specification:
+//  DIFFRAC^plus XCH V.5.0 Release 2002. USER'S MANUAL. APPENDIX A.
 void BruckerRawDataSet::load_version1_01(std::istream &f)
 {
-    meta["format version"] = "1.01";
+    meta["format version"] = "3";
 
-    // unknown values (maybe)
-    float unknown_flt=0.0;
+    // file header - 712 bytes
+    // the offset is already 4
+    f.ignore(4); // ignore bytes 4-7
+    int file_status = read_uint32_le(f);        // address 8 
+    if (file_status == 1)
+        meta["file status"] = "done";
+    else if (file_status == 2)
+        meta["file status"] = "active";
+    else if (file_status == 3)
+        meta["file status"] = "aborted";
+    else if (file_status == 4)
+        meta["file status"] = "interrupted";
+    int range_cnt = read_uint32_le(f);          // address 12
 
-    // start at pos 4
-    f.ignore(8); 				// now pos 12
-    unsigned range_cnt = read_uint16_le(f);	// now pos 14
+    meta["MEASURE_DATE"] = read_string(f, 10);  // address 16
+    meta["MEASURE_TIME"] = read_string(f, 10);  // address 26
+    meta["USER"] = read_string(f, 72);          // address 36
+    meta["SITE"] = read_string(f, 218);         // address 108
+    meta["SAMPLE_ID"] = read_string(f, 60);     // address 326
+    meta["COMMENT"] = read_string(f,160);       // address 386
+    f.ignore(2); // apparently there is a bug in docs, 386+160 != 548
+    f.ignore(4); // goniometer code             // address 548
+    f.ignore(4); // goniometer stage code       // address 552
+    f.ignore(4); // sample loader code          // address 556
+    f.ignore(4); // goniometer controller code  // address 560
+    f.ignore(4); // (R4) goniometer radius      // address 564
+    f.ignore(4); // (R4) fixed divergence...    // address 568
+    f.ignore(4); // (R4) fixed sample slit...   // address 572
+    f.ignore(4); // primary Soller slit         // address 576
+    f.ignore(4); // primary monochromator       // address 580
+    f.ignore(4); // (R4) fixed antiscatter...   // address 584
+    f.ignore(4); // (R4) fixed detector slit... // address 588
+    f.ignore(4); // secondary Soller slit       // address 592
+    f.ignore(4); // fixed thin film attachment  // address 596
+    f.ignore(4); // beta filter                 // address 600
+    f.ignore(4); // secondary monochromator     // address 604
+    meta["ANODE_MATERIAL"] = read_string(f,4);  // address 608
+    f.ignore(4); // unused                      // address 612
+    meta["ALPHA_AVERAGE"] = S(read_dbl_le(f));  // address 616
+    meta["ALPHA1"] = S(read_dbl_le(f));         // address 624
+    meta["ALPHA2"] = S(read_dbl_le(f));         // address 632
+    meta["BETA"] = S(read_dbl_le(f));           // address 640
+    meta["ALPHA_RATIO"] = S(read_dbl_le(f));    // address 648
+    f.ignore(4); // (C4) unit name              // address 656
+    f.ignore(4); // (R4) intensity beta:a1      // address 660
+    meta["measurement time"] = S(read_flt_le(f)); // address 664
+    f.ignore(43); // unused                     // address 668
+    f.ignore(1); // hardware dependency ...     // address 711
+    //assert(f.tellg() == 712);
 
-    // add file-scope meta-info
-    f.ignore(2);				// now pos 16
-    meta["MEASURE_DATE"] = read_string(f, 8);	// now pos 24
-    f.ignore(2);				// now pos 26
-    meta["MEASURE_TIME"] = read_string(f, 8);	// now pos 34
-    f.ignore(74);				// now pos 108
-    meta["SITE"] = read_string(f, 218);	// now pos 326
-    meta["SAMPLE_ID"] = read_string(f, 59);	// now pos 385
-    f.ignore(1);				// now pos 386
-    meta["COMMENT"] = read_string(f,159);	// now pos 545
-    f.ignore(23);				// now pos 568
-
-    unknown_flt = read_flt_le(f);		// now pos 572
-// maybe AntiScatteringSlit/DivergenceSlit/NearSampleSlit
-    unknown_flt = read_flt_le(f);		// now pos 576
-// same as last
-    f.ignore(8);				// now pos 584
-
-    unknown_flt = read_flt_le(f);		// now pos 588
-// same as last
-    unknown_flt = read_flt_le(f);		// now pos 592
-// maybe DetectorSlit
-
-    f.ignore(16);				// now pos 608
-    meta["ANODE_MATERIAL"] = read_string(f,2);		// now pos 610
-    f.ignore(6);				// now pos 616
-    meta["ALPHA_AVERAGE"] = S(read_dbl_le(f));	// now pos 624
-    meta["ALPHA1"] = S(read_dbl_le(f));		// now pos 632
-    meta["ALPHA2"] = S(read_dbl_le(f));		// now pos 640
-    meta["BETA"] = S(read_dbl_le(f));		// now pos 648
-    meta["ALPHA_RATIO"] = S(read_dbl_le(f));	// now pos 656
-    f.ignore(44);				// now pos 700
-
-    unknown_flt =read_flt_le(f);		// now pos 704
-// maybe DetectorSlit/SampleChanger
-
-    f.ignore(8);				// now pos 712, end of global parameters
-
-    for (unsigned cur_range = 0; cur_range < range_cnt; ++cur_range) {
+    // range header
+    for (int cur_range = 0; cur_range < range_cnt; ++cur_range) {
         Block* blk = new Block;
-        unsigned cur_header_len = read_uint16_le(f);	// now pos 714
-        format_assert (cur_header_len > 0);//FIXME: what values are allowed here
-	f.ignore(2);				// now pos 716
-	unsigned steps = read_uint16_le(f);		// now pos 718
-	blk->meta["STEPS"] = S(steps);
-	f.ignore(2);				// now pos 720
-	double start_theta = read_dbl_le(f);	// now pos 728
-	blk->meta["START_THETA"]= S(start_theta);
-	double start_2theta = read_dbl_le(f);	// now pos 736
-	blk->meta["START_2THETA"] = S(start_2theta);
-	f.ignore(76);				// now pos 812
-	blk->meta["HIGH_VOLTAGE"] = S(read_flt_le(f));	// now pos 816
-	blk->meta["AMPLIFIER_GAIN"] = S(read_flt_le(f));	// now pos 820
-	blk->meta["DISCRIMINATOR_1_LOWER_LEVEL"] = S(read_flt_le(f));	// now pos 824
-	f.ignore(24);				// now pos 848 ('unkn')
-	f.ignore(40);				// now pos 888
-	double step_size = read_dbl_le(f);		// now pos 896
-	blk->meta["STEP_SIZE"] = S(step_size);
-	f.ignore(8);				// now pos 904
-	blk->meta["TIME_PER_STEP"] = S(read_flt_le(f));	// now pos 908
-	f.ignore(12);				// now pos 920
-	blk->meta["ROTATION_SPEED [rpm]"] = S(read_flt_le(f));	// now pos 924
+        int header_len = read_uint32_le(f);     // address 0
+        format_assert (header_len == 304);
+        int steps = read_uint32_le(f);          // address 4
+        blk->meta["STEPS"] = S(steps);
+        double start_theta = read_dbl_le(f);    // address 8
+        blk->meta["START_THETA"]= S(start_theta);
+        double start_2theta = read_dbl_le(f);   // address 16
+        blk->meta["START_2THETA"] = S(start_2theta);
 
-	unknown_flt = read_flt_le(f);		// now pos 928
-	unknown_flt = read_flt_le(f);		// now pos 932
-	unknown_flt = read_flt_le(f);		// now pos 936
+        f.ignore(8); // Chi drive start         // address 24
+        f.ignore(8); // Phi drive start         // address 32
+        f.ignore(8); // x drive start           // address 40
+        f.ignore(8); // y drive start           // address 48
+        f.ignore(8); // z drive start           // address 56
+        f.ignore(8);                            // address 64
+        f.ignore(6);                            // address 72
+        f.ignore(2); // unused                  // address 78
+        f.ignore(8); // (R8) variable antiscat. // address 80
+        f.ignore(6);                            // address 88
+        f.ignore(2); // unused                  // address 94
+        f.ignore(4); // detector code           // address 96
+        blk->meta["HIGH_VOLTAGE"] = S(read_flt_le(f)); // address 100
+        blk->meta["AMPLIFIER_GAIN"] = S(read_flt_le(f)); // 104
+        blk->meta["DISCRIMINATOR_1_LOWER_LEVEL"] = S(read_flt_le(f)); // 108
+        f.ignore(4);                            // address 112
+        f.ignore(4);                            // address 116
+        f.ignore(8);                            // address 120
+        f.ignore(4);                            // address 128
+        f.ignore(4);                            // address 132
+        f.ignore(5);                            // address 136
+        f.ignore(3); // unused                  // address 141
+        f.ignore(8);                            // address 144
+        f.ignore(8);                            // address 152
+        f.ignore(8);                            // address 160
+        f.ignore(4);                            // address 168
+        f.ignore(4); // unused                  // address 172
+        double step_size = read_dbl_le(f);      // address 176
+        blk->meta["STEP_SIZE"] = S(step_size);
+        f.ignore(8);                            // address 184
+        blk->meta["TIME_PER_STEP"] = S(read_flt_le(f)); // 192
+        f.ignore(4);                            // address 196
+        f.ignore(4);                            // address 200
+        f.ignore(4);                            // address 204
+        blk->meta["ROTATION_SPEED [rpm]"] = S(read_flt_le(f));  // 208
+        f.ignore(4);                            // address 212
+        f.ignore(4);                            // address 216
+        f.ignore(4);                            // address 220
+        blk->meta["GENERATOR_VOLTAGE"] = S(read_uint32_le(f)); // 224
+        blk->meta["GENERATOR_CURRENT"] = S(read_uint32_le(f)); // 228
+        f.ignore(4);                            // address 232
+        f.ignore(4); // unused                  // address 236
+        blk->meta["USED_LAMBDA"] = S(read_dbl_le(f)); // 240
+        f.ignore(4);                            // address 248
+        f.ignore(4);                            // address 252
+        int supplementary_headers_size = read_uint32_le(f); // address 256
+        f.ignore(4);                            // address 260
+        f.ignore(4);                            // address 264
+        f.ignore(4);  // unused                 // address 268
+        f.ignore(8);                            // address 272
+        f.ignore(24); // unused                 // address 280
+        //assert(f.tellg() == 712 + (cur_range + 1) * header_len);
 
-	blk->meta["GENERATOR_VOLTAGE"] = S(read_uint16_le(f));	// now pos 938
-	f.ignore(2);				// now pos 940
-	blk->meta["GENERATOR_CURRENT"] = S(read_uint16_le(f));	// now pos 942
-	f.ignore(10);				// now pos 952
-	blk->meta["USED_LAMBDA"] = S(read_dbl_le(f));	// pow pos 960
-        f.ignore(56);  // move ptr to the data_start
+        if (supplementary_headers_size > 0)
+            f.ignore(supplementary_headers_size);
 
-        unsigned cur_range_steps = steps;
-        double x_step = step_size;
-        double x_start = start_2theta;
-        StepColumn *xcol = new StepColumn(x_start, x_step);
+        StepColumn *xcol = new StepColumn(start_2theta, step_size);
         blk->add_column(xcol);
 
         VecColumn *ycol = new VecColumn;
-        for(unsigned i = 0; i < cur_range_steps; ++i) {
+        for (int i = 0; i < steps; ++i) {
             float y = read_flt_le(f);
             ycol->add_val(y);
         }
