@@ -2,7 +2,7 @@
 # after changing, run "autoreconf --install --verbose"
 
 AC_PREREQ(2.59)
-AC_INIT([xylib], [0.5], [])
+AC_INIT([xylib], [0.6], [])
 AC_CONFIG_AUX_DIR([.])
 AC_CONFIG_SRCDIR([xylib/xylib.cpp])
 AC_CONFIG_HEADER([config.h])

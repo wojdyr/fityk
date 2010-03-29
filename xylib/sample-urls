@@ -16,7 +16,7 @@ http://sdpd.univ-lemans.fr/course/week-1/sample4.raw
 http://sdpd.univ-lemans.fr/course/week-1/sample5.raw
 http://sdpd.univ-lemans.fr/course/week-1/sample6.raw
 
-# Siemens/Bruker diffract v2/v3 raw files
+# Siemens/Bruker diffract v2 raw files
 http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/raw/cpd-1a.raw
 http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/raw/cpd-1b.raw
 http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/raw/cpd-1c.raw
@@ -28,6 +28,8 @@ http://www.mx.iucr.org/iucr-top/comm/cpd/QARR/raw/cpd-3.raw
 http://www.unipress.waw.pl/fityk/xylib_samples/Cu3Au-1.raw
 http://www.unipress.waw.pl/fityk/xylib_samples/Cu3Au-2.raw
 http://www.unipress.waw.pl/fityk/xylib_samples/format1.raw
+# sample from Bjørn Tore Lønstad
+http://www.unipress.waw.pl/fityk/xylib_samples/BT86.raw
 
 #  pdCIF format files
 #http://pubs.acs.org/subscribe/journals/inocaj/suppinfo/41/i14/ic0111177/ic0111177.cif
@@ -60,6 +62,8 @@ http://sdpd.univ-lemans.fr/course/week-1/sample2.uxd
 http://sdpd.univ-lemans.fr/course/week-1/sample3.uxd
 http://sdpd.univ-lemans.fr/course/week-1/sample4.uxd
 http://sdpd.univ-lemans.fr/DU-SDPD/solutions/week-3/synchro.uxd
+# sample from Bjørn Tore Lønstad
+http://www.unipress.waw.pl/fityk/xylib_samples/BT86.UXD
 
 # Rigaku dat files
 # There are Rigaku ".dat" sample files at:

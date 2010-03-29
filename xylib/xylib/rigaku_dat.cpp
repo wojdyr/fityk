@@ -12,7 +12,7 @@ namespace xylib {
 
 const FormatInfo RigakuDataSet::fmt_info(
     "rigaku_dat",
-    "Rigaku dat Format",
+    "Rigaku DAT",
     vector<string>(1, "dat"),
     false,                       // whether binary
     true,                        // whether has multi-blocks

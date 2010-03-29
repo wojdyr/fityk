@@ -1,3 +1,6 @@
+* build Windows DLL's (__declspec(dllexport))
+* C API
+* xyconv - option to not output meta-data
 * handle CR as a newline (and perhaps also others from 
   http://en.wikipedia.org/wiki/Newline)
 * is Rigaku RIG just another common extension for rigaku_dat? If yes, add it.
