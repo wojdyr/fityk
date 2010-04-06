@@ -30,9 +30,9 @@ public :
                              std::vector<std::string> const& options,
                              int first_block);
 
-    Data(Ftk const* F_) : F(F_),
-                          given_x(INT_MAX), given_y(INT_MAX), given_s(INT_MAX),
-                          x_step(0.), y_min(0.), y_max(1e3) {}
+    Data(Ftk const* F_)
+        : F(F_), given_x_(INT_MAX), given_y_(INT_MAX), given_s_(INT_MAX),
+                  x_step_(0.), y_min_(0.), y_max_(1e3) {}
     ~Data() {}
     std::string get_info() const;
 
@@ -46,52 +46,52 @@ public :
     void load_data_sum(std::vector<Data const*> const& dd,
                        std::string const& op);
     void clear();
-    void add_point(Point const& pt) { p.push_back(pt); }; //don't use it
+    void add_point(Point const& pt) { p_.push_back(pt); }; //don't use it
     void add_one_point(double x, double y, double sigma);
-    fp get_x(int n) const { return p[active_p[n]].x; }
-    fp get_y(int n) const { return p[active_p[n]].y; }
-    fp get_sigma (int n) const { return p[active_p[n]].sigma; }
-    int get_n() const { return active_p.size(); }
-    bool is_empty() const { return p.empty(); }
+    fp get_x(int n) const { return p_[active_p_[n]].x; }
+    fp get_y(int n) const { return p_[active_p_[n]].y; }
+    fp get_sigma (int n) const { return p_[active_p_[n]].sigma; }
+    int get_n() const { return active_p_.size(); }
+    bool is_empty() const { return p_.empty(); }
     bool has_any_info() const { return !is_empty() || !get_title().empty(); }
-    fp get_x_step() const { return x_step; } /// 0.0 if not fixed
+    fp get_x_step() const { return x_step_; } /// 0.0 if not fixed
     void transform(const std::string &s);
-    void after_transform(); // update x_step, active_p, y_min, y_max
+    void after_transform(); // update x_step_, active_p_, y_min_, y_max_
     void update_active_p();
     //int auto_range (fp y_level, fp x_margin);
     std::string range_as_string () const;
     int get_lower_bound_ac (fp x) const;
     int get_upper_bound_ac (fp x) const;
     std::string const& get_title() const { return title; }
-    std::string const& get_filename() const { return filename; }
+    std::string const& get_filename() const { return filename_; }
 
     void recompute_y_bounds();
     fp get_y_at (fp x) const;
     //return points at x (if any) or (usually) after it.
     std::vector<Point>::const_iterator get_point_at(fp x) const;
-    fp get_x_min() const { return p.empty() ? 0 : p.front().x; }
-    fp get_x_max() const { return p.empty() ? 180. : p.back().x; }
-    fp get_y_min() const { return y_min; }
-    fp get_y_max() const { return y_max; }
-    std::vector<Point> const& points() const { return p; }
-    std::vector<Point>& get_mutable_points() { return p; }
-    int get_given_x() const { return given_x; }
-    int get_given_y() const { return given_y; }
-    int get_given_s() const { return given_s; }
-    std::vector<std::string> get_given_options() const { return given_options; }
+    fp get_x_min() const;
+    fp get_x_max() const;
+    fp get_y_min() const { return y_min_; }
+    fp get_y_max() const { return y_max_; }
+    std::vector<Point> const& points() const { return p_; }
+    std::vector<Point>& get_mutable_points() { return p_; }
+    int get_given_x() const { return given_x_; }
+    int get_given_y() const { return given_y_; }
+    int get_given_s() const { return given_s_; }
+    std::vector<std::string> get_given_options() const {return given_options_;}
     static std::string read_one_line_as_title(std::ifstream& f, int column=-1);
     void revert();
 private:
     Ftk const* F;
-    std::string filename;
-    int given_x, given_y, given_s;/// columns given when loading the file
-    std::vector<int> given_blocks;
-    std::vector<std::string> given_options;
-    fp x_step; // 0.0 if not fixed;
-    bool has_sigma;
-    std::vector<Point> p;
-    std::vector<int> active_p;
-    fp y_min, y_max;
+    std::string filename_;
+    int given_x_, given_y_, given_s_;/// columns given when loading the file
+    std::vector<int> given_blocks_;
+    std::vector<std::string> given_options_;
+    fp x_step_; // 0.0 if not fixed;
+    bool has_sigma_;
+    std::vector<Point> p_;
+    std::vector<int> active_p_;
+    fp y_min_, y_max_;
 
     Data (Data&); //disable
     fp find_step();
