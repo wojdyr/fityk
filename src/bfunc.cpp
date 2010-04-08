@@ -11,10 +11,9 @@ using namespace std;
 
 
 #define FUNC_CALCULATE_VALUE_BEGIN(NAME) \
-void Func##NAME::calculate_value(vector<fp> const &xx, vector<fp> &yy) const\
+void Func##NAME::calculate_value_in_range(vector<fp> const &xx, vector<fp> &yy,\
+                                          int first, int last) const\
 {\
-    int first, last; \
-    get_nonzero_idx_range(xx, first, last); \
     for (int i = first; i < last; ++i) {\
         fp x = xx[i];
 
@@ -45,13 +44,12 @@ void Func##NAME::calculate_value(vector<fp> const &xx, vector<fp> &yy) const\
 
 
 #define FUNC_CALCULATE_VALUE_DERIV_BEGIN(NAME) \
-void Func##NAME::calculate_value_deriv(vector<fp> const &xx, \
-                                         vector<fp> &yy, \
-                                         vector<fp> &dy_da, \
-                                         bool in_dx) const \
+void Func##NAME::calculate_value_deriv_in_range(vector<fp> const &xx, \
+                                                vector<fp> &yy, \
+                                                vector<fp> &dy_da, \
+                                                bool in_dx, \
+                                                int first, int last) const \
 { \
-    int first, last; \
-    get_nonzero_idx_range(xx, first, last); \
     int dyn = dy_da.size() / xx.size(); \
     vector<fp> dy_dv(nv); \
     for (int i = first; i < last; ++i) { \
@@ -72,21 +70,24 @@ void Func##NAME::calculate_value_deriv(vector<fp> const &xx, \
 const char *FuncConstant::formula
 = "Constant(a=avgy) = a";
 
-void FuncConstant::calculate_value(vector<fp> const&/*xx*/, vector<fp>&yy) const
+void FuncConstant::calculate_value_in_range(vector<fp> const&/*xx*/,
+                                            vector<fp>& yy,
+                                            int first, int last) const
 {
-    for (vector<fp>::iterator i = yy.begin(); i != yy.end(); ++i)
-        *i += vv[0];
+    for (int i = first; i < last; ++i)
+        yy[i] += vv[0];
 }
 
-void FuncConstant::calculate_value_deriv(vector<fp> const &xx,
-                                         vector<fp> &yy,
-                                         vector<fp> &dy_da,
-                                         bool in_dx) const
+void FuncConstant::calculate_value_deriv_in_range(vector<fp> const &xx,
+                                                  vector<fp> &yy,
+                                                  vector<fp> &dy_da,
+                                                  bool in_dx,
+                                                  int first, int last) const
 {
     // dy_da.size() == xx.size() * (parameters.size()+1)
     int dyn = dy_da.size() / xx.size();
     vector<fp> dy_dv(nv);
-    for (int i = 0; i < size(yy); ++i) {
+    for (int i = first; i < last; ++i) {
         dy_dv[0] = 1.;
         fp dy_dx = 0;
         PUT_DERIVATIVES_AND_VALUE(vv[0]);
@@ -249,7 +250,8 @@ bool FuncGaussian::get_nonzero_range (fp level, fp &left, fp &right) const
 
 const char *FuncSplitGaussian::formula
 = "SplitGaussian(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5) = "
-                   "height*exp(-ln(2)*((x-center)/(x<center?hwhm1:hwhm2))^2)#";
+                   "if x < center then Gaussian(height, center, hwhm1)"
+                   " else Gaussian(height, center, hwhm2)";
 
 void FuncSplitGaussian::more_precomputations()
 {
@@ -411,8 +413,8 @@ fp FuncPearson7::area() const
 const char *FuncSplitPearson7::formula
 = "SplitPearson7(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5, "
                                                         "shape1=2, shape2=2) = "
-    "height/(1+((x-center)/(x<center?hwhm1:hwhm2))^2"
-              "*(2^(1/(x<center?shape1:shape2))-1))^(x<center?shape1:shape2)#";
+    "if x < center then Pearson7(height, center, hwhm1, shape1)"
+    " else Pearson7(height, center, hwhm2, shape2)";
 
 void FuncSplitPearson7::more_precomputations()
 {

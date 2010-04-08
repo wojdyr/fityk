@@ -261,6 +261,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
                       >> (no_actions_d[FuncG]  % ',')
                       >> ')'
                       ) % '+')
+                     | str_p("if ") >> +~chset_p("\n;#")
                      | no_actions_d[FuncG] //Custom Function
                        >> !("where"
                             >> (function_param >> '=' >> no_actions_d[FuncG])

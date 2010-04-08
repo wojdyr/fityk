@@ -156,7 +156,7 @@ void Ftk::dump_all_as_script(string const &filename)
     vector<UdfContainer::UDF> const& udfs = UdfContainer::get_udfs();
     for (vector<UdfContainer::UDF>::const_iterator i = udfs.begin();
             i != udfs.end(); ++i)
-        if (!i->is_builtin)
+        if (!i->builtin)
             os << "define " << i->formula << endl;
     os << endl;
     for (vector<Function*>::const_iterator i = functions.begin();

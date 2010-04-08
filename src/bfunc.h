@@ -24,10 +24,14 @@ private:\
     Func##NAME (const Func##NAME&); \
 public:\
     static const char *formula; \
-    void calculate_value(std::vector<fp> const &xx, std::vector<fp> &yy) const;\
-    void calculate_value_deriv(std::vector<fp> const &xx, \
-                               std::vector<fp> &yy, std::vector<fp> &dy_da, \
-                               bool in_dx=false) const;
+    void calculate_value_in_range(std::vector<fp> const &xx, \
+                                  std::vector<fp> &yy, \
+                                  int first, int last) const;\
+    void calculate_value_deriv_in_range(std::vector<fp> const &xx, \
+                                        std::vector<fp> &yy, \
+                                        std::vector<fp> &dy_da, \
+                                        bool in_dx, \
+                                        int first, int last) const;
 
 //////////////////////////////////////////////////////////////////////////
 

@@ -167,11 +167,21 @@ Function* Function::factory (Ftk const* F,
     FACTORY_FUNC(LogNormal)
     else if (UdfContainer::is_defined(type_name)) {
         UdfContainer::UDF const* udf = UdfContainer::get_udf(type_name);
-        if (udf->is_compound)
-            return new CompoundFunction(F, name, type_name, vars);
+        if (udf->type == UdfContainer::kCompound) {
+            CompoundFunction* f= new CompoundFunction(F, name, type_name, vars);
+            f->init();
+            return f;
+        }
+        else if (udf->type == UdfContainer::kSplit) {
+            SplitFunction* f = new SplitFunction(F, name, type_name, vars);
+            f->init();
+            return f;
+        }
+        else if (udf->type == UdfContainer::kCustom) {
+            return new CustomFunction(F, name, type_name, vars, udf->op_trees);
+        }
         else
-            return new CustomFunction(F, name, type_name, vars,
-                                      udf->op_trees);
+            assert(!"unexpected udf type");
     }
     else
         throw ExecuteError("Undefined type of function: " + type_name);
@@ -244,7 +254,7 @@ int Function::is_builtin(int n)
     assert (n >= 0 && n < nb + size(UdfContainer::udfs));
     if (n < nb)
         return 2;
-    else if (UdfContainer::udfs[n-nb].is_builtin)
+    else if (UdfContainer::udfs[n-nb].builtin)
         return 1;
     else
         return 0;
@@ -273,28 +283,42 @@ void Function::erased_parameter(int k)
 }
 
 
-void Function::get_nonzero_idx_range(std::vector<fp> const &xx,
-                                     int &first, int &last) const
+void Function::calculate_value(std::vector<fp> const &x,
+                               std::vector<fp> &y) const
 {
-    //precondition: xx is sorted
     fp left, right;
     bool r = get_nonzero_range(F->get_settings()->get_cut_level(), left, right);
     if (r) {
-        first = lower_bound(xx.begin(), xx.end(), left) - xx.begin();
-        last = upper_bound(xx.begin(), xx.end(), right) - xx.begin();
+        int first = lower_bound(x.begin(), x.end(), left) - x.begin();
+        int last = upper_bound(x.begin(), x.end(), right) - x.begin();
+        this->calculate_value_in_range(x, y, first, last);
     }
-    else {
-        first = 0;
-        last = xx.size();
-    }
+    else
+        this->calculate_value_in_range(x, y, 0, x.size());
 }
 
 fp Function::calculate_value(fp x) const
 {
     calc_val_xx[0] = x;
     calc_val_yy[0] = 0.;
-    calculate_value(calc_val_xx, calc_val_yy);
+    calculate_value_in_range(calc_val_xx, calc_val_yy, 0, 1);
     return calc_val_yy[0];
+}
+
+void Function::calculate_value_deriv(std::vector<fp> const &x,
+                                     std::vector<fp> &y,
+                                     std::vector<fp> &dy_da,
+                                     bool in_dx) const
+{
+    fp left, right;
+    bool r = get_nonzero_range(F->get_settings()->get_cut_level(), left, right);
+    if (r) {
+        int first = lower_bound(x.begin(), x.end(), left) - x.begin();
+        int last = upper_bound(x.begin(), x.end(), right) - x.begin();
+        this->calculate_value_deriv_in_range(x, y, dy_da, in_dx, first, last);
+    }
+    else
+        this->calculate_value_deriv_in_range(x, y, dy_da, in_dx, 0, x.size());
 }
 
 void Function::calculate_values_with_params(vector<fp> const& x,
@@ -310,6 +334,7 @@ void Function::calculate_values_with_params(vector<fp> const& x,
     this_->vv = backup_vv;
     this_->more_precomputations();
 }
+
 
 bool Function::has_other_prop(std::string const& name)
 {
@@ -567,31 +592,63 @@ fp Function::find_extremum(fp x1, fp x2, int max_iter) const
 
 namespace UdfContainer {
 
+const char* default_udfs[] = {
+"ExpDecay(a=0, t=1) = "
+    "a*exp(-x/t)",
+"GaussianA(area, center, hwhm) = "
+    "Gaussian(area/hwhm/sqrt(pi/ln(2)), center, hwhm)",
+"LogNormalA(area, center, width=fwhm, asym=0.1) = "
+    "LogNormal(sqrt(ln(2)/pi)*(2*area/width)*exp(-asym^2/4/ln(2)), center, width, asym)",
+"LorentzianA(area, center, hwhm) = "
+    "Lorentzian(area/hwhm/pi, center, hwhm)",
+"Pearson7A(area, center, hwhm, shape=2) = "
+    "Pearson7(area/(hwhm*exp(lgamma(shape-0.5)-lgamma(shape))*sqrt(pi/(2^(1/shape)-1))), center, hwhm, shape)",
+"PseudoVoigtA(area, center, hwhm, shape=0.5) = "
+    "GaussianA(area*(1-shape), center, hwhm) + "
+    "LorentzianA(area*shape, center, hwhm)",
+"SplitLorentzian(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5) = "
+    "if x < center then Lorentzian(height, center, hwhm1)"
+    " else Lorentzian(height, center, hwhm2)",
+"SplitPseudoVoigt(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5, shape1=0.5, shape2=0.5) = "
+    "if x < center then PseudoVoigt(height, center, hwhm1, shape1)"
+    " else PseudoVoigt(height, center, hwhm2, shape2)",
+};
+
 vector<UDF> udfs;
 
 void initialize_udfs()
 {
-    vector<string> formulae = split_string(
-"GaussianA(area, center, hwhm) = Gaussian(area/hwhm/sqrt(pi/ln(2)), center, hwhm)\n"
-"LorentzianA(area, center, hwhm) = Lorentzian(area/hwhm/pi, center, hwhm)\n"
-"Pearson7A(area, center, hwhm, shape=2) = Pearson7(area/(hwhm*exp(lgamma(shape-0.5)-lgamma(shape))*sqrt(pi/(2^(1/shape)-1))), center, hwhm, shape)\n"
-"PseudoVoigtA(area, center, hwhm, shape=0.5) = GaussianA(area*(1-shape), center, hwhm) + LorentzianA(area*shape, center, hwhm)\n"
-"ExpDecay(a=0, t=1) = a*exp(-x/t)\n"
-"LogNormalA(area, center, width=fwhm, asym=0.1) = LogNormal(sqrt(ln(2)/pi)*(2*area/width)*exp(-asym^2/4/ln(2)), center, width, asym)",
-  "\n");
     udfs.clear();
-    for (vector<string>::const_iterator i = formulae.begin();
-                                                    i != formulae.end(); ++i)
-        udfs.push_back(UDF(*i, true));
+    int n = sizeof(default_udfs) / sizeof(default_udfs[0]);
+    for (int i = 0; i != n; ++i)
+        udfs.push_back(UDF(default_udfs[i], true));
 }
 
-bool is_compounded(string const& formula)
+// formula can be either a full formula or only RHS
+UdfType get_udf_type(string const& formula)
 {
+    // locate the start of RHS (search for the last '=', because default
+    // parameters also can have '=')
     string::size_type t = formula.rfind('=');
+    // the string formula may contain only RHS
+    if (t == string::npos)
+        t = 0;
+    else
+        ++t;
+
+    // skip blanks
+    t = formula.find_first_not_of(" \t\r\n", t);
     assert(t != string::npos);
-    t = formula.find_first_not_of(" \t\r\n", t+1);
-    assert(t != string::npos);
-    return isupper(formula[t]);
+
+    // we don't parse the formula here, we just determine type of the UDF
+    // assuming that the formula is correct
+    if (isupper(formula[t]))
+        return kCompound;
+    else if (formula[t] == 'i' && t + 2 < formula.size() &&
+             formula[t+1] == 'f' && isspace(formula[t+2]))
+        return kSplit;
+    else
+        return kCustom;
 }
 
 vector<OpTree*> make_op_trees(string const& formula)
@@ -608,6 +665,47 @@ vector<OpTree*> make_op_trees(string const& formula)
                                            + "' only at the right hand side.");
     vector<OpTree*> op_trees = calculate_deriv(info.trees.begin(), lhs_vars);
     return op_trees;
+}
+
+UDF::UDF(std::string const& formula_, bool is_builtin_)
+    : formula(formula_),
+      builtin(is_builtin_)
+{
+    name = Function::get_typename_from_formula(formula_);
+    type = get_udf_type(formula_);
+    if (type == kCustom)
+        op_trees = make_op_trees(formula);
+}
+
+// that's oversimplified atm,
+// we require spaces, because words if/then/else can be part of parameter name:
+// "if ", " then " and " else ".
+vector<string> get_if_then_else_parts(string const &formula, bool full)
+{
+    vector<string> parts;
+    size_t pos = (full ? formula.rfind('=') + 1 : 0);
+    pos = formula.find("if ", pos);
+    if (pos == string::npos)
+        throw ExecuteError("Wrong syntax in the formula, `if ' not found.");
+    size_t after_if = formula.find_first_not_of(" \t\r\n", pos+2);
+    if (after_if == string::npos)
+        throw ExecuteError("Wrong syntax in the formula.");
+    pos = formula.find(" then ", after_if);
+    if (pos == string::npos)
+        throw ExecuteError("Wrong syntax in the formula, ` then ' not found.");
+    parts.push_back(formula.substr(after_if, pos - after_if));
+    size_t after_then = formula.find_first_not_of(" \t\r\n", pos+6);
+    if (after_then == string::npos)
+        throw ExecuteError("Wrong syntax in the formula.");
+    pos = formula.find(" else ", after_then);
+    if (pos == string::npos)
+        throw ExecuteError("Wrong syntax in the formula, ` else ' not found.");
+    parts.push_back(formula.substr(after_then, pos - after_then));
+    size_t after_else = formula.find_first_not_of(" \t\r\n", pos+6);
+    if (after_else == string::npos)
+        throw ExecuteError("Wrong syntax in the formula.");
+    parts.push_back(formula.substr(after_else));
+    return parts;
 }
 
 void check_fudf_rhs(string const& rhs, vector<string> const& lhs_vars)
@@ -631,8 +729,8 @@ void check_fudf_rhs(string const& rhs, vector<string> const& lhs_vars)
 
 void check_rhs(string const& rhs, vector<string> const& lhs_vars)
 {
-    string::size_type t = rhs.find_first_not_of(" \t\r\n");
-    if (t != string::npos && isupper(rhs[t])) { //compound
+    UdfType type = get_udf_type(rhs);
+    if (type == kCompound) {
         parse_info<> info
             = parse(rhs.c_str(),
                     ((lexeme_d[(upper_p >> +alnum_p)]
@@ -646,7 +744,26 @@ void check_rhs(string const& rhs, vector<string> const& lhs_vars)
         for (vector<string>::const_iterator i = rf.begin(); i != rf.end(); ++i)
             check_cpd_rhs_function(*i, lhs_vars);
     }
-    else { //udf, not compound
+    else if (type == kSplit) {
+        vector<string> parts = get_if_then_else_parts(rhs, false);
+        assert(parts.size() == 3);
+
+        check_cpd_rhs_function(parts[1], lhs_vars);
+        check_cpd_rhs_function(parts[2], lhs_vars);
+
+        tree_parse_info<> info = ast_parse(parts[0].c_str(),
+                                           str_p("x") >> "<" >> FuncG >> end_p,
+                                           space_p);
+        if (!info.full)
+            throw ExecuteError("Syntax error in `if' formula");
+        vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID,
+                                                   info);
+        for (vector<string>::const_iterator i = vars.begin();
+                                                        i != vars.end(); ++i)
+            if (!contains_element(lhs_vars, *i))
+                throw ExecuteError("Unexpected parameter in `if': " + *i);
+    }
+    else if (type == kCustom) {
         check_fudf_rhs(rhs, lhs_vars);
     }
 }
@@ -665,7 +782,7 @@ void define(std::string const &formula)
     }
 
     check_rhs(Function::get_rhs_from_formula(formula), lhs_vars);
-    if (is_defined(type) && !get_udf(type)->is_builtin) {
+    if (is_defined(type) && !get_udf(type)->builtin) {
         //defined, but can be undefined; don't undefine function implicitely
         throw ExecuteError("Function `" + type + "' is already defined. "
                            "You can try to undefine it.");
@@ -676,26 +793,40 @@ void define(std::string const &formula)
     udfs.push_back(UDF(formula));
 }
 
+bool is_definition_dependend_on(UDF const& udf, string const& type)
+{
+    if (udf.type == kCompound) {
+        vector<string> rf = get_cpd_rhs_components(udf.formula, true);
+        for (vector<string>::const_iterator k = rf.begin(); k != rf.end(); ++k){
+            if (Function::get_typename_from_formula(*k) == type)
+                return true;
+        }
+        return false;
+    }
+    else if (udf.type == kSplit) {
+        vector<string> rf = get_if_then_else_parts(udf.formula, true);
+        return Function::get_typename_from_formula(rf[1]) == type ||
+               Function::get_typename_from_formula(rf[2]) == type;
+    }
+    else
+        return false;
+}
+
 void undefine(std::string const &type)
 {
     for (vector<UDF>::iterator i = udfs.begin(); i != udfs.end(); ++i)
         if (i->name == type) {
-            if (i->is_builtin)
+            if (i->builtin)
                 throw ExecuteError("Built-in compound function "
                                                     "can't be undefined.");
             //check if other definitions depend on it
             for (vector<UDF>::const_iterator j = udfs.begin();
                                                   j != udfs.end(); ++j) {
-                if (!j->is_builtin)
-                    continue;
-                vector<string> rf = get_cpd_rhs_components(j->formula, true);
-                for (vector<string>::const_iterator k = rf.begin();
-                                                          k != rf.end(); ++k) {
-                    if (Function::get_typename_from_formula(*k) == type)
-                        throw ExecuteError("Can not undefine function `" + type
-                                            + "', because function `" + j->name
-                                            + "' depends on it.");
-                }
+                // built-in function can't depend on user-defined
+                if (!j->builtin && is_definition_dependend_on(*j, type))
+                    throw ExecuteError("Can not undefine function `" + type
+                                        + "', because function `" + j->name
+                                        + "' depends on it.");
             }
             udfs.erase(i);
             return;
@@ -728,7 +859,7 @@ void check_cpd_rhs_function(std::string const& fun,
     if (tvars.size() != gvars.size())
         throw ExecuteError("Function `" + t + "' requires "
                                       + S(tvars.size()) + " parameters.");
-    // ... and check if these parameters are ok
+    // ... and check these parameters
     for (vector<string>::const_iterator j=gvars.begin(); j != gvars.end(); ++j){
         tree_parse_info<> info = ast_parse(j->c_str(), FuncG >> end_p, space_p);
         assert(info.full);
@@ -744,7 +875,7 @@ void check_cpd_rhs_function(std::string const& fun,
     }
 }
 
-/// find components of RHS (split sum "A() + B() + ...")
+/// find components of RHS (split sum "A(...) + B(...) + ...")
 vector<string> get_cpd_rhs_components(string const &formula, bool full)
 {
     vector<string> result;
@@ -772,11 +903,20 @@ CompoundFunction::CompoundFunction(Ftk const* F,
     : Function(F, name, vars, get_formula(type)),
       vmgr(F)
 {
+}
+
+void CompoundFunction::init()
+{
+    vector<string> rf = UdfContainer::get_cpd_rhs_components(type_formula,true);
+    init_components(rf);
+}
+
+void CompoundFunction::init_components(vector<string>& rf)
+{
     vmgr.silent = true;
     for (int j = 0; j != nv; ++j)
         vmgr.assign_variable(varnames[j], ""); // mirror variables
 
-    vector<string> rf = UdfContainer::get_cpd_rhs_components(type_formula,true);
     for (vector<string>::iterator i = rf.begin(); i != rf.end(); ++i) {
         for (int j = 0; j != nv; ++j) {
             replace_words(*i, type_var_names[j], vmgr.get_variable(j)->xname);
@@ -812,23 +952,26 @@ void CompoundFunction::more_precomputations()
     vmgr.use_parameters();
 }
 
-void CompoundFunction::calculate_value(vector<fp> const &xx,
-                                       vector<fp> &yy) const
+void CompoundFunction::calculate_value_in_range(vector<fp> const &xx,
+                                                vector<fp> &yy,
+                                                int first, int last) const
 {
     vector<Function*> const& functions = vmgr.get_functions();
     for (vector<Function*>::const_iterator i = functions.begin();
             i != functions.end(); ++i)
-        (*i)->calculate_value(xx, yy);
+        (*i)->calculate_value_in_range(xx, yy, first, last);
 }
 
-void CompoundFunction::calculate_value_deriv(vector<fp> const &xx,
+void CompoundFunction::calculate_value_deriv_in_range(
+                                             vector<fp> const &xx,
                                              vector<fp> &yy, vector<fp> &dy_da,
-                                             bool in_dx) const
+                                             bool in_dx,
+                                             int first, int last) const
 {
     vector<Function*> const& functions = vmgr.get_functions();
     for (vector<Function*>::const_iterator i = functions.begin();
             i != functions.end(); ++i)
-        (*i)->calculate_value_deriv(xx, yy, dy_da, in_dx);
+        (*i)->calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, first, last);
 }
 
 string CompoundFunction::get_current_formula(string const& x) const
@@ -945,23 +1088,23 @@ void CustomFunction::more_precomputations()
     afo.prepare_optimized_codes(vv);
 }
 
-void CustomFunction::calculate_value(vector<fp> const &xx,
-                                     vector<fp> &yy) const
+void CustomFunction::calculate_value_in_range(vector<fp> const &xx,
+                                              vector<fp> &yy,
+                                              int first, int last) const
 {
-    //int first, last;
-    //get_nonzero_idx_range(xx, first, last);
-    //for (int i = first; i < last; ++i) {
-    for (size_t i = 0; i < xx.size(); ++i) {
+    for (int i = first; i < last; ++i) {
         yy[i] += afo.run_vm_val(xx[i]);
     }
 }
 
-void CustomFunction::calculate_value_deriv(vector<fp> const &xx,
+void CustomFunction::calculate_value_deriv_in_range(
+                                           vector<fp> const &xx,
                                            vector<fp> &yy, vector<fp> &dy_da,
-                                           bool in_dx) const
+                                           bool in_dx,
+                                           int first, int last) const
 {
     int dyn = dy_da.size() / xx.size();
-    for (size_t i = 0; i < yy.size(); ++i) {
+    for (int i = first; i < last; ++i) {
         afo.run_vm_der(xx[i]);
 
         if (!in_dx) {
@@ -980,5 +1123,79 @@ void CustomFunction::calculate_value_deriv(vector<fp> const &xx,
     }
 }
 
+///////////////////////////////////////////////////////////////////////
 
+SplitFunction::SplitFunction(Ftk const* F,
+                             string const &name,
+                             string const &type,
+                             vector<string> const &vars)
+    : CompoundFunction(F, name, type, vars)
+{
+}
+
+void SplitFunction::init()
+{
+    vector<string> rf = UdfContainer::get_if_then_else_parts(type_formula,true);
+    string split_expr = rf[0].substr(rf[0].find('<') + 1);
+    rf.erase(rf.begin());
+    init_components(rf);
+    for (int j = 0; j != nv; ++j)
+        replace_words(split_expr, type_var_names[j],
+                                  vmgr.get_variable(j)->xname);
+    vmgr.assign_variable("", split_expr);
+}
+
+void SplitFunction::calculate_value_in_range(vector<fp> const &xx,
+                                             vector<fp> &yy,
+                                             int first, int last) const
+{
+    double xsplit = vmgr.get_variables().back()->get_value();
+    int t = lower_bound(xx.begin(), xx.end(), xsplit) - xx.begin();
+    vmgr.get_function(0)->calculate_value_in_range(xx, yy, first, t);
+    vmgr.get_function(1)->calculate_value_in_range(xx, yy, t, last);
+}
+
+void SplitFunction::calculate_value_deriv_in_range(
+                                          vector<fp> const &xx,
+                                          vector<fp> &yy, vector<fp> &dy_da,
+                                          bool in_dx,
+                                          int first, int last) const
+{
+    double xsplit = vmgr.get_variables().back()->get_value();
+    int t = lower_bound(xx.begin(), xx.end(), xsplit) - xx.begin();
+    vmgr.get_function(0)->
+        calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, first, t);
+    vmgr.get_function(1)->
+        calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, t, last);
+}
+
+string SplitFunction::get_current_formula(string const& x) const
+{
+    double xsplit = vmgr.get_variables().back()->get_value();
+    return "if x < " + S(xsplit)
+        + " then " + vmgr.get_function(0)->get_current_formula(x)
+        + " else " + vmgr.get_function(1)->get_current_formula(x);
+}
+
+bool SplitFunction::get_nonzero_range(fp level, fp& left, fp& right) const
+{
+    vector<Function*> const& ff = vmgr.get_functions();
+    fp dummy;
+    return ff[0]->get_nonzero_range(level, left, dummy) &&
+           ff[0]->get_nonzero_range(level, dummy, right);
+}
+
+bool SplitFunction::has_height() const
+{
+    vector<Function*> const& ff = vmgr.get_functions();
+    return ff[0]->has_height() && ff[1]->has_height() &&
+        is_eq(ff[0]->height(), ff[1]->height());
+}
+
+bool SplitFunction::has_center() const
+{
+    vector<Function*> const& ff = vmgr.get_functions();
+    return ff[0]->has_center() && ff[1]->has_center() &&
+        is_eq(ff[0]->center(), ff[1]->center());
+}
 

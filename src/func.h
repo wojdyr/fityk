@@ -47,24 +47,31 @@ public:
       get_defvalues_from_formula(std::string const& formula);
 
     /// calculate value at x[i] and _add_ the result to y[i] (for each i)
-    virtual void calculate_value(std::vector<fp> const &x,
-                                 std::vector<fp> &y) const = 0;
-    virtual void calculate_value_deriv(std::vector<fp> const &x,
-                                       std::vector<fp> &y,
-                                       std::vector<fp> &dy_da,
-                                       bool in_dx=false) const  = 0;
-    void do_precomputations(std::vector<Variable*> const &variables);
-    virtual void more_precomputations() {}
-    void erased_parameter(int k);
+    virtual void calculate_value_in_range(std::vector<fp> const &x,
+                                          std::vector<fp> &y,
+                                          int first, int last) const = 0;
+    void calculate_value(std::vector<fp> const &x, std::vector<fp> &y) const;
     fp calculate_value(fp x) const; ///wrapper around array version
     /// calculate function value assuming function parameters has given values
     virtual void calculate_values_with_params(std::vector<fp> const& x,
                                               std::vector<fp>& y,
                                           std::vector<fp> const& alt_vv) const;
+
+    virtual void calculate_value_deriv_in_range(std::vector<fp> const &x,
+                                                std::vector<fp> &y,
+                                                std::vector<fp> &dy_da,
+                                                bool in_dx,
+                                                int first, int last) const = 0;
+    void calculate_value_deriv(std::vector<fp> const &x,
+                               std::vector<fp> &y,
+                               std::vector<fp> &dy_da,
+                               bool in_dx=false) const;
+
+    void do_precomputations(std::vector<Variable*> const &variables);
+    virtual void more_precomputations() {}
+    void erased_parameter(int k);
     virtual bool get_nonzero_range(fp/*level*/, fp&/*left*/, fp&/*right*/) const
                                                               { return false; }
-    void get_nonzero_idx_range(std::vector<fp> const &x,
-                               int &first, int &last) const;
 
     virtual bool has_center() const { return center_idx != -1; }
     virtual fp center() const { return center_idx==-1 ? 0. : vv[center_idx]; }
@@ -125,23 +132,17 @@ private:
 
 namespace UdfContainer
 {
-    bool is_compounded(std::string const& formula);
-    std::vector<OpTree*> make_op_trees(std::string const& formula);
+    enum UdfType { kCompound, kSplit, kCustom };
 
     struct UDF
     {
         std::string name;
         std::string formula; //full definition
-        bool is_compound;
-        bool is_builtin;
+        UdfType type;
+        bool builtin;
         std::vector<OpTree*> op_trees;
 
-        UDF(std::string const& formula_, bool is_builtin_=false)
-            : name(Function::get_typename_from_formula(formula_)),
-              formula(formula_),
-              is_compound(is_compounded(formula_)),
-              is_builtin(is_builtin_)
-            { if (!is_compound) op_trees = make_op_trees(formula); }
+        UDF(std::string const& formula_, bool is_builtin_=false);
     };
 
     extern std::vector<UDF> udfs;
@@ -174,10 +175,13 @@ class CompoundFunction: public Function
 public:
 
     void more_precomputations();
-    void calculate_value(std::vector<fp> const &xx, std::vector<fp> &yy) const;
-    void calculate_value_deriv(std::vector<fp> const &xx,
-                               std::vector<fp> &yy, std::vector<fp> &dy_da,
-                               bool in_dx=false) const;
+    void calculate_value_in_range(std::vector<fp> const &xx,
+                                  std::vector<fp> &yy,
+                                  int first, int last) const;
+    void calculate_value_deriv_in_range(std::vector<fp> const &xx,
+                                   std::vector<fp> &yy, std::vector<fp> &dy_da,
+                                   bool in_dx,
+                                   int first, int last) const;
     std::string get_current_formula(std::string const& x = "x") const;
     bool has_center() const;
     fp center() const { return vmgr.get_function(0)->center(); }
@@ -190,13 +194,19 @@ public:
     bool get_nonzero_range(fp level, fp& left, fp& right) const;
     void precomputations_for_alternative_vv();
     void set_var_idx(std::vector<Variable*> const& variables);
-private:
+
+protected:
     VariableManager vmgr;
 
     CompoundFunction(Ftk const* F,
                      std::string const &name,
                      std::string const &type,
                      std::vector<std::string> const &vars);
+
+    void init_components(std::vector<std::string>& rf);
+
+private:
+    void init();
     CompoundFunction (const CompoundFunction&); //disable
 };
 
@@ -208,10 +218,14 @@ class CustomFunction: public Function
     friend class Function;
 public:
     void more_precomputations();
-    void calculate_value(std::vector<fp> const &xx, std::vector<fp> &yy) const;
-    void calculate_value_deriv(std::vector<fp> const &xx,
-                               std::vector<fp> &yy, std::vector<fp> &dy_da,
-                               bool in_dx=false) const;
+    void calculate_value_in_range(std::vector<fp> const &xx,
+                                  std::vector<fp> &yy,
+                                  int first, int last) const;
+    void calculate_value_deriv_in_range(std::vector<fp> const &xx,
+                                        std::vector<fp> &yy,
+                                        std::vector<fp> &dy_da,
+                                        bool in_dx,
+                                        int first, int last) const;
     void set_var_idx(std::vector<Variable*> const& variables);
     std::string get_bytecode() const { return afo.get_vmcode_info(); }
 private:
@@ -224,6 +238,42 @@ private:
     fp value;
     std::vector<fp> derivatives;
     AnyFormulaO afo;
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+/// split function, defined using "if x < ... then ... else ..."
+class SplitFunction: public CompoundFunction
+{
+    friend class Function;
+public:
+    void calculate_value_in_range(std::vector<fp> const &xx,
+                                  std::vector<fp> &yy,
+                                  int first, int last) const;
+    void calculate_value_deriv_in_range(std::vector<fp> const &xx,
+                                        std::vector<fp> &yy,
+                                        std::vector<fp> &dy_da,
+                                        bool in_dx,
+                                        int first, int last) const;
+    std::string get_current_formula(std::string const& x = "x") const;
+    virtual bool has_height() const;
+    virtual fp height() const { return vmgr.get_function(0)->height(); }
+    virtual bool has_fwhm() const { return false; }
+    virtual fp fwhm() const { return 0; }
+    virtual bool has_area() const { return false; }
+    virtual fp area() const { return 0; }
+    virtual bool has_center() const;
+    virtual fp center() const { return vmgr.get_function(0)->center(); }
+    bool get_nonzero_range(fp level, fp& left, fp& right) const;
+
+private:
+    SplitFunction(Ftk const* F,
+                  std::string const &name,
+                  std::string const &type,
+                  std::vector<std::string> const &vars);
+    void init();
+
+    SplitFunction(const SplitFunction&); //disable
 };
 
 #endif
