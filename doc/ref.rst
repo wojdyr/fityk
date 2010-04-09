@@ -829,10 +829,18 @@ Example::
   the special names listed above with exeption of ``hwhm`` (use
   ``fwhm/2`` instead).
 
-UDFs can be defined either by giving a full formula,
-or as a sum of already defined functions, with possible
-:dfn:`re-parametrization`
-(see GaussianArea and GLSum below for the example of the latter).
+UDFs can be defined in a few ways:
+
+- by giving a full formula, like in the example above,
+
+- as a :dfn:`re-parametrization` of existing function
+  (see the ``GaussianArea`` example below),
+
+- as a sum of already defined functions
+  (see the ``GLSum`` example below),
+
+- ``if x <`` *expression* ``then`` *Function1(...)* ``else`` *Function2(...)*
+  (see the ``SplitL`` example below).
 
 When giving a full formula, right-hand side of the equality sign
 is similar to the :ref:`definiton of variable <variables>`,
@@ -870,18 +878,27 @@ Defined functions can be undefined using command ``undefine``.
 
 Examples::
 
-    # first how some built-in functions could be defined
+    # this is how some built-in functions could be defined
     define MyGaussian(height, center, hwhm) = height*exp(-ln(2)*((x-center)/hwhm)^2)
     define MyLorentzian(height, center, hwhm) = height/(1+((x-center)/hwhm)^2)
     define MyCubic(a0=height,a1=0, a2=0, a3=0) = a0 + a1*x + a2*x^2 + a3*x^3
+
     # supersonic beam arrival time distribution
     define SuBeArTiDi(c, s, v0, dv) = c*(s/x)^3*exp(-(((s/x)-v0)/dv)^2)/x
+
     # area-based Gaussian can be defined as modification of built-in Gaussian
     # (it is the same as built-in GaussianA function)
     define GaussianArea(area, center, hwhm) = Gaussian(area/fwhm/sqrt(pi*ln(2)), center, hwhm)
-    # sum of Gaussian and Lorentzian, a.k.a PseudoVoigt (should be in one line)
+
+    # sum of Gaussian and Lorentzian, a.k.a. PseudoVoigt (should be in one line)
     define GLSum(height, center, hwhm, shape) = Gaussian(height*(1-shape), center, hwhm)
     + Lorentzian(height*shape, center, hwhm)
+
+    # split-Gaussian, the same as built-in SplitGaussian (should be in one line)
+    define SplitG(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5) =
+      if x < center then Lorentzian(height, center, hwhm1)
+                    else Lorentzian(height, center, hwhm2)
+
     # to change definition of UDF, first undefine previous definition
     undefine GaussianArea
 
@@ -1441,7 +1458,7 @@ possible options.
 
 ``set option`` shows the current value of the *option*.
 
-``option = value`` changes the *option*.
+``set option = value`` changes the *option*.
 
 It is possible to change the value of the option temporarily using syntax::
 

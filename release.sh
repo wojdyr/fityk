@@ -134,7 +134,7 @@ elif [ $1 -eq 4 ]; then
  cp -r $SRC_DIR/doc/html/ $ALL_WIN_FILES/
  cp $SRC_DIR/samples/*.fit $SRC_DIR/samples/*.dat $SRC_DIR/samples/README \
     $ALL_WIN_FILES/samples/
- cp src/wxgui/fityk.exe $ALL_WIN_FILES/src/
+ cp src/wxgui/fityk.exe src/cli/cfityk.exe $ALL_WIN_FILES/src/
 
  #echo '"C:\Program Files\HTML Help Workshop\hhc.exe" doc\htmlhelp.hhp' \
  #       				    >$ALL_WIN_FILES/build_help.cmd

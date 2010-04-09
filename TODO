@@ -2,6 +2,9 @@ $Id$
 
 ---------- TODO list and tentative development plan  ----------------
 
+* BUG (Windows): In aux plot, in menu, "Fit to window" and options above don't
+  refresh the window
+
 * A way to define split functions as UDFs. Like this:
   SplitGaussian(h, c, hwhm1, hwhm2) = if x < c then Gaussian(h,c,hwhm1) \
                                       else Gaussian(h,c,hwhm2)
@@ -25,8 +28,6 @@ $Id$
 
 * GUI: there is ugly vertical line (a part of the fitted curve) in points
   where the value is undefined (e.g. in ReadShockley function for x=0).
-
-* CLI: filter out "inf"s from data passed to gnuplot
 
 * GUI: when dataset is changed and the active function (i.e. the function
   in the bottom of the sidebar) is not in the new active dataset, the active
@@ -56,8 +57,8 @@ $Id$
              plot line y=1000.3 label="foo" in @*
              plot no lines in @*
 
-* (GUI) stopping fitting interactively (when user doesn't want to wait longer);
-  "stop" bitmap button? in right left corner? 
+* (GUI) a simple (for user) way to interrupt fitting or script
+  Requires two thread and thread-safety.
 
 -------------->
 
@@ -69,8 +70,6 @@ $Id$
        a clean interface to XOR-drawing 
 
 * GUI: should (and where) windows size & position be stored?
-
-* data import: possibility to use xylib column/block name as title
 
 * magic default parameters: if $default__name is defined: when functions 
   with parameter `name' are "guessed", this parameter is set to $default__name
@@ -148,6 +147,7 @@ $Id$
 * ? more sophisticated algorithms for peak detection
     - compare methods from origin pkfind, peakfit and other programs
     - research papers: http://dx.doi.org/10.1016/j.chroma.2004.11.073
+                       http://dx.doi.org/10.1002/cem.1005
 
 * fitting: GA fitting options, 
   a way to "shake" parameters for L-M
@@ -188,7 +188,8 @@ $Id$
 -------  Anticipated upgrades  -----------
 
 * consider migration to Boost::Spirit 2. Alternatives are: using antlr or
-  hand-crafted parser. For data operations, one of math parsers could be used:
+  hand-crafted parser (simple lexer could be based on boost.tokenizer).
+  For data operations, one of math parsers could be used:
        muParser http://muparser.sourceforge.net/
         http://www.codeproject.com/KB/recipes/FastMathParser.aspx?msg=2942508
        Function Parser http://warp.povusers.org/FunctionParser/

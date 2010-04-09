@@ -39,6 +39,13 @@ names (like "height", "center" and "hwhm") replaced with
 .. math:: 
    y = \frac{a_0}{1+\left(\frac{x-a_1}{a_2}\right)^2}
 
+**SplitLorentzian:**
+
+.. math:: 
+   y(x;a_0,a_1,a_2,a_3) = \begin{cases}
+   \textrm{Lorentzian}(x;a_0,a_1,a_2) & x\leq a_1\\
+   \textrm{Lorentzian}(x;a_0,a_1,a_3) & x>a_1\end{cases}
+
 **LorentzianA:**
 
 .. math:: 
@@ -50,14 +57,14 @@ names (like "height", "center" and "hwhm") replaced with
    y = \frac{a_0} {\left[1+\left(\frac{x-a_1}{a_2}\right)^2
                            \left(2^{\frac{1}{a_3}}-1\right)\right]^{a_3}}
 
-**Split-Pearson-VII (SplitPearson7):**
+**split Pearson VII (SplitPearson7):**
 
 .. math:: 
    y(x;a_{0},a_{1},a_{2},a_{3},a_{4},a_{5}) = \begin{cases}
     \textrm{Pearson7}(x;a_0,a_1,a_2,a_4) & x\leq a_1\\
     \textrm{Pearson7}(x;a_0,a_1,a_3,a_5) & x>a_1\end{cases}
 
-**Pearson-VII-Area (Pearson7A):**
+**Pearson VII Area (Pearson7A):**
 
 .. math:: 
    y = \frac{a_0\Gamma(a_3)\sqrt{2^{\frac{1}{a_3}}-1}}
@@ -77,7 +84,14 @@ Pseudo-Voigt is a name given to the sum of Gaussian and Lorentzian.
 :math:`a_3` parameters in Pearson VII and Pseudo-Voigt
 are not related.
 
-**Pseudo-Voigt-Area (PseudoVoigtA):**
+**split Pseudo-Voigt (SplitPseudoVoigt):**
+
+.. math:: 
+   y(x;a_{0},a_{1},a_{2},a_{3},a_{4},a_{5}) = \begin{cases}
+    \textrm{PseudoVoigt}(x;a_0,a_1,a_2,a_4) & x\leq a_1\\
+    \textrm{PseudoVoigt}(x;a_0,a_1,a_3,a_5) & x>a_1\end{cases}
+
+**Pseudo-Voigt Area (PseudoVoigtA):**
 
 .. math:: 
    y = a_0 \left[\frac{(1-a_3)\sqrt{\ln(2)}}{a_2\sqrt{\pi}}
@@ -152,57 +166,101 @@ __ http://dx.doi.org/10.1016/0022-4073(77)90161-3
 
 .. _shortenings:
 
-Appendix B. Command shortenings
-###############################
+Appendix B. Grammar
+###################
 
-The pipe symbol (\|) shows the minimum length of the command. "def|ine" means
-that command "define" can be shortened as "def", "defi" or "defin".
-Commands not listed here cannot be shortened.
-Arguments of "info" command also cannot be shortened
-(i.e. you must write "i fit", not "i f").
+The syntax of the fityk mini-language (it can be called a
+:dfn:`domain-specific language`) will be defined formally during the work
+on a new parser.
 
-+ c|ommands
+The syntax below (in extended BNF) is not complete and may change in the future.
 
-+ def|ine
+Note that each line is parsed and executed separately and no new line
+characters are expected. ::
 
-+ f|it
+  line ::= [{statement ';'} statement] [comment] |
+           '!' { AllChars }
 
-+ g|uess
+  comment ::= '#' { AllChars } 
 
-+ i|nfo
+  statement ::= [with_stat] ( commands_stat |
+                              define_stat |
+                              delete_stat |
+                              fit_stat |
+                              guess_stat |
+                              info_stat |
+                              plot_stat |
+                              set_stat |
+                              undefine_stat |
+                              assign_stat |
+                              dataset_stat |
+                              dump_stat |
+                              "quit" |
+                              "reset" |
+                              "sleep" Number |
+                              transform_stat )
 
-+ p|lot
+  with_stat ::= With option {',' option}
 
-+ s|et
+  commands_stat ::= Commands ...TODO
 
-+ undef|ine
+  define_stat ::= Define define_arg
 
-+ w|ith
+  delete_stat ::= Delete ...TODO
+
+  fit_stat ::= Fit fit_arg
+
+  guess_stat ::= Guess ...TODO
+
+  info_stat ::= Info info_arg {',' info_arg} [redir]
+
+  plot_stat ::= Plot ...TODO
+
+  set_stat ::= Set (option {',' option} | name)
+
+  undefine_stat ::= Undefine Word {, Word}
+
+  assign_stat ::=  TODO
+
+  dataset_stat ::= TODO
+
+  dump_stat ::= "dump" redir (* to be replaced with info state *)
+
+  transform_stat ::= TODO
+
+
+  option ::= name '=' value
+
+  string ::= QuotedString | Word
+
+  QuotedString ::= "'" { AllChars − "'" } "'"
+
+  Word ::= { AllChars - (Whitespace | ';' | ',' | '#' ) }
+           
+  AllChars ::= ? all characters ?
+
+  Commands ::= "c" | "co" | "com" | ... | "commands"
+  Define ::= "def" | ... | "define"
+  Delete ::= "del" | ... | "delete"
+  Guess ::= "g" | ... | "guess"
+  Info ::= "i" | ... | "info"
+  Plot ::= "p" | ... | "plot"
+  Set ::= "s" | "se" | "set"
+  Undefine ::= "undef" | ... | "undefine"
+  With ::= "w" | ... | "with"
+
+..
+  TODO
+  fit_stat ::= Fit fit_arg {',' fit_arg}
+  dump -> info state
+  commands > file -> set logfile file
+  commands < file -> include 
+  commands ! cmd -> include ! cmd
+
 
 .. _license:
 
-Appendix C. Literature
-######################
-
-The following books were helpful when writing the program (from scientific,
-not programming side).
-
-William Press, Saul Teukolsky, William Vetterling, Brian Flannery. *Numerical Recipes in C*. http://www.nr.com
-
-Peter Gans. *Data Fitting in the Chemical Sciences by the Method of Least Squares*. John Wiley & Sons. 1992.
-
-Siegmund Brandt. *Data Analysis*. Springer Verlag. 1999.
-
-*PeakFit 4.0 for Windows User's Manual*. AISN Software. 1997.
-
-..
-    Zbigniew Michalewicz. *Algorytmy genetyczne + struktury danych = programy ewolucyjne*. WNT. 1996.
-
-    R. A. Young. *The Rietveld Method*. Oxford University Press. 1993.
-
-    R. A. Young. *User's Guide to Program DBWS-9807a*. 2000.
-
-Appendix D. License
+Appendix C. License
 ###################
 
 Fityk is free software; you can redistribute it and/or modify
@@ -218,10 +276,10 @@ GNU General Public License for more details.
 Text of the license is distributed with the program
 in the file :file:`COPYING`.
 
-Appendix E. About this manual
+Appendix D. About this manual
 #############################
 
-This manual is written ReStructuredText.
+This manual is written using ReStructuredText.
 All changes, improvements, corrections, etc. are welcome.
 Use the ``Show Source`` link to get the source of the page, save it,
 edit, and send me either modified version or patch containing changes.

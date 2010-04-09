@@ -1,5 +1,7 @@
 $Id$
 
+User-visible changes in version 0.9.2  (2010-  -  ):
+
 User-visible changes in version 0.9.1  (2010-03-25):
 * added cfityk to Windows installer
 * Unix only: fitting can be interrupted by the INT signal
