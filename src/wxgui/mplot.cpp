@@ -1137,22 +1137,20 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         line_following_cursor(mat_stop);
         draw_temporary_rect(mat_stop);
         bool rect = (mouse_op == kActivateRect || mouse_op == kDisactivateRect);
-        string c = (mouse_op == kActivateSpan || mouse_op == kActivateRect
-                    ? "A = a or " : "A = a and not ");
-        if (!rect && dist_X >= 5) {
-            fp xmin = xs.val (min (event.GetX(), mouse_press_X));
-            fp xmax = xs.val (max (event.GetX(), mouse_press_X));
-            string cond = "(" + eS(xmin) + "< x <" + eS(xmax) + ")";
-            ftk->exec(c + cond + frame->get_in_datasets());
-        }
-        else if (rect && dist_X + dist_Y >= 10) {
+        bool ok = (!rect && dist_X >= 5) ||
+                  (rect && dist_X + dist_Y >= 10);
+        if (ok) {
+            string c = (mouse_op == kActivateSpan || mouse_op == kActivateRect
+                        ? "A = a or" : "A = a and not");
             fp x1 = xs.val(mouse_press_X);
             fp x2 = xs.val(event.GetX());
-            fp y1 = ys.val(mouse_press_Y);
-            fp y2 = ys.val(event.GetY());
-            string cond = "(" + eS(min(x1,x2)) + " < x < " + eS(max(x1,x2))
-                 + " and " + eS(min(y1,y2)) + " < y < " + eS(max(y1,y2)) + ")";
-            ftk->exec(c + cond + frame->get_in_datasets());
+            string cond = eS(min(x1,x2)) + " < x < " + eS(max(x1,x2));
+            if (rect) {
+                fp y1 = ys.val(mouse_press_Y);
+                fp y2 = ys.val(event.GetY());
+                cond += " and " + eS(min(y1,y2)) + " < y < " + eS(max(y1,y2));
+            }
+            ftk->exec(c + " (" + cond + ")" + frame->get_in_datasets());
         }
         frame->set_status_text("");
     }
