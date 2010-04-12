@@ -1,7 +1,7 @@
 # $Id: Makefile.am 354 2007-11-19 12:38:52Z wojdyr $
 SUBDIRS = xylib
 
-EXTRA_DIST = web.css sample-urls
+EXTRA_DIST = web.css sample-urls xylib_capi.py
 
 bin_PROGRAMS = xyconv
 
