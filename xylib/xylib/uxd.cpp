@@ -4,6 +4,9 @@
 
 #define BUILDING_XYLIB
 #include "uxd.h"
+
+#include <cerrno>
+
 #include "util.h"
 
 using namespace std;
@@ -62,25 +65,81 @@ _COUNTS
      ...
 ; Repeat if there are more blocks/ranges
 
+Later versions of this format are more complicated.
+In particular, two column data, e.g. angle and counts, are supported.
 */
+
+// get all numbers in the first legal line
+// sep is _optional_ separator that can be used in addition to white space
+static
+void add_values_from_str(string const& str, char sep,
+                         VecColumn** cols, int ncols)
+{
+    const char* p = str.c_str();
+    while (isspace(*p) || *p == sep)
+        ++p;
+    int n = 0;
+    while (*p != 0) {
+        char *endptr = NULL;
+        errno = 0; // To distinguish success/failure after call
+        double val = strtod(p, &endptr);
+        if (p == endptr)
+            throw(xylib::FormatError("Number not found in line:\n" + str));
+        if (errno != 0)
+            throw(xylib::FormatError("Numeric overflow or underflow in line:\n"
+                                     + str));
+        cols[n]->add_val(val);
+        ++n;
+        if (n == ncols)
+            n = 0;
+        p = endptr;
+        while (isspace(*p) || *p == sep)
+            ++p;
+    }
+}
 
 void UxdDataSet::load_data(std::istream &f)
 {
     Block *blk = NULL;
-    VecColumn *ycol = NULL;
+    VecColumn* cols[2] = { NULL, NULL };
+    int ncols = 0;
     string line;
     double start=0., step=0.;
+    bool peak_list = false;
 
     while (get_valid_line(f, line, ';')) {
         if (str_startwith(line, "_DRIVE")) { // block starts
             blk = new Block;
         }
-        else if (str_startwith(line, "_COUNT")) { // data starts
-            StepColumn *xcol = new StepColumn(start, step);
+        else if (str_startwith(line, "_COUNT") ||
+                 str_startwith(line, "_CPS")) {
+            ncols = 1;
+            StepColumn* xcol = new StepColumn(start, step);
             blk->add_column(xcol);
-            ycol = new VecColumn;
+            VecColumn* ycol = new VecColumn;
             blk->add_column(ycol);
+            cols[0] = ycol;
+            ncols = 1;
             blocks.push_back(blk);
+            peak_list = false;
+        }
+        else if (str_startwith(line, "_2THETACOUNTS") ||
+                 str_startwith(line, "_2THETACPS") ||
+                 str_startwith(line, "_2THETACOUNTSTIME")) { // data starts
+            VecColumn* xcol = new VecColumn;
+            blk->add_column(xcol);
+            VecColumn* ycol = new VecColumn;
+            blk->add_column(ycol);
+            cols[0] = xcol;
+            cols[1] = ycol;
+            ncols = 2;
+            blocks.push_back(blk);
+            peak_list = false;
+        }
+        // these keywords specify peak list, which we are not interested in
+        else if (str_startwith(line, "_D-I") ||
+                 str_startwith(line, "_2THETA-I")) {
+            peak_list = true;
         }
         else if (str_startwith(line, "_")) { // meta-data
             // other meta key-value pair.
@@ -99,9 +158,11 @@ void UxdDataSet::load_data(std::istream &f)
                     meta[key] = val;
             }
         }
-        else { //data
+        else if (!peak_list) { //data
             format_assert(is_numeric(line[0]), "line: "+line);
-            ycol->add_values_from_str(line);
+            format_assert(cols[0] != NULL,
+                          "Data started without raw data keyword:\n" + line);
+            add_values_from_str(line, ',', cols, ncols);
         }
     }
     format_assert(blk != NULL);
