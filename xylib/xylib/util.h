@@ -140,7 +140,6 @@ public:
     }
 };
 
-} // namespace util
-} // namespace xylib
+} } // namespace xylib::util
 
 #endif // XYLIB_UTIL_H_

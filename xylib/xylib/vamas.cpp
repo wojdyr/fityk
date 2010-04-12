@@ -2,8 +2,11 @@
 // Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
-#include <cstring>
+#define BUILDING_XYLIB
 #include "vamas.h"
+
+#include <cstring>
+
 #include "util.h"
 
 using namespace std;

@@ -2,9 +2,11 @@
 // Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
+#define BUILDING_XYLIB
+#include "gsas.h"
+
 #include <cstdio>
 
-#include "gsas.h"
 #include "util.h"
 
 using namespace std;

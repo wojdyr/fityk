@@ -2,9 +2,12 @@
 // Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
+#define BUILDING_XYLIB
+#include "canberra_mca.h"
+
 #include <cmath>
 #include <boost/cstdint.hpp>
-#include "canberra_mca.h"
+
 #include "util.h"
 
 using namespace std;

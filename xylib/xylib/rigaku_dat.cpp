@@ -2,6 +2,7 @@
 // Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
+#define BUILDING_XYLIB
 #include "rigaku_dat.h"
 #include "util.h"
 

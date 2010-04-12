@@ -13,16 +13,31 @@
 #define XYLIB_CACHE_H_
 
 #ifndef __cplusplus
-#error "This library does not have C API."
+#error "xylib/cache.h is a C++ only header."
 #endif
 
 #include <ctime>
 #include <string>
 #include <vector>
 
+// XYLIB_API is a mark for API classes and functions,
+// used to decorate classes and functions for Win32 DLL linking.
+#ifdef XYLIB_API
+# undef XYLIB_API
+#endif
+#if defined(_WIN32) && defined(BUILDING_XYLIB) && \
+        (defined(XYLIB_DLL) || defined(DLL_EXPORT))
+# define XYLIB_API  __declspec(dllexport)
+#elif defined(_WIN32) && defined(XYLIB_DLL)
+# define XYLIB_API  __declspec(dllimport)
+#else
+# define XYLIB_API
+#endif
+
 // MSVC has shared_ptr in <memory>, but let's use boost
 #ifndef _MSC_VER
 // the value here (1 or 0) is set by xylib configure script
+// (yes, the configure script can modify this file!)
 #define XYLIB_USE_TR1_MEMORY 1
 #endif
 
@@ -41,7 +56,7 @@ namespace xylib
 class DataSet;
 
 // singleton
-class Cache
+class XYLIB_API Cache
 {
 public:
     // get instance

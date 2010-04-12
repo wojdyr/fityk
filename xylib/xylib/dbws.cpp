@@ -2,9 +2,12 @@
 // Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
+#define BUILDING_XYLIB
+#include "dbws.h"
+
 #include <cmath>
 #include <cstdlib>
-#include "dbws.h"
+
 #include "util.h"
 
 using namespace std;

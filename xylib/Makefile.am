@@ -9,7 +9,10 @@ dist_man_MANS = xyconv.1
 
 xyconv_SOURCES = xyconv.cpp
 
-LDADD = xylib/libxy.la -lm
+xyconv_LDADD = xylib/libxy.la -lm
+if USE_XYLIB_DLL
+xyconv_CPPFLAGS = -DXYLIB_DLL
+endif
 
 index.html: README
 	rst2html --stylesheet-path=web.css README index.html

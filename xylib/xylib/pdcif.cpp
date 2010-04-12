@@ -2,6 +2,8 @@
 // Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
+#define BUILDING_XYLIB
+#include "pdcif.h"
 
 #include <map>
 
@@ -10,7 +12,6 @@
 #include <boost/spirit/utility/chset.hpp>
 #include <boost/spirit/actor/increment_actor.hpp>
 
-#include "pdcif.h"
 #include "util.h"
 
 #ifdef _MSC_VER

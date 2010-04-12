@@ -29,6 +29,7 @@ void print_usage()
 "  -v     output version information and exit\n"
 "  -h     show this help message and exit\n"
 "  -i     show information about filetype\n"
+"  -s     do not output metadata\n"
 "  -g     guess filetype of file \n";
 }
 
@@ -42,9 +43,10 @@ void print_version()
 
 void list_supported_formats()
 {
-    for (int i = 0; xylib::formats[i] != NULL; ++i)
-        cout << setw(20) << left << xylib::formats[i]->name << ": "
-             << xylib::formats[i]->desc << endl;
+    const xylib::FormatInfo* format = NULL;
+    for (int i = 0; (format = xylib::get_format(i)) != NULL; ++i)
+        cout << setw(20) << left << format->name << ": "
+             << format->desc << endl;
 }
 
 int print_guessed_filetype(string const& path)
@@ -153,11 +155,11 @@ void export_plain_text(xylib::DataSet const *d, string const &fname,
 
 
 int convert_file(string const& input, string const& output,
-                 string const& filetype)
+                 string const& filetype, bool with_metadata)
 {
     try {
         xylib::DataSet *d = xylib::load_file(input, filetype);
-        export_plain_text(d, output, true);
+        export_plain_text(d, output, with_metadata);
         delete d;
     } catch (runtime_error const& e) {
         cerr << "Error. " << e.what() << endl;
@@ -197,10 +199,15 @@ int main(int argc, char **argv)
 
     string filetype;
     bool option_m = false;
+    bool option_s = false;
     int n = 1;
     while (n < argc - 1) {
         if (strcmp(argv[n], "-m") == 0) {
             option_m = true;
+            ++n;
+        }
+        else if (strcmp(argv[n], "-s") == 0) {
+            option_s = true;
             ++n;
         }
         else if (strcmp(argv[n], "-t") == 0 && n+1 < argc - 1) {
@@ -222,11 +229,11 @@ int main(int argc, char **argv)
                 out.erase(p);
             out += ".xy";
             cout << "converting " << argv[n] << " to " << out << endl;
-            convert_file(argv[n], out, filetype);
+            convert_file(argv[n], out, filetype, !option_s);
         }
         return 0;
     }
     else
-        return convert_file(argv[argc-2], argv[argc-1], filetype);
+        return convert_file(argv[argc-2], argv[argc-1], filetype, !option_s);
 }
 

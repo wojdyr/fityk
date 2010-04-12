@@ -2,9 +2,12 @@
 // Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
+#define BUILDING_XYLIB
+#include "text.h"
+
 #include <cerrno>
 #include <cstdlib>
-#include "text.h"
+
 #include "util.h"
 
 using namespace std;

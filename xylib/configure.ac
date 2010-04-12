@@ -18,6 +18,10 @@ AC_ARG_WITH(bzlib,
  [  --without-bzlib               disable bzlib support (reading .bz2 files)])
 test -z "$with_bzlib" && with_bzlib="yes"
 
+
+# support building of Windows DLLs
+AC_LIBTOOL_WIN32_DLL
+
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_LIBTOOL
@@ -79,6 +83,14 @@ if test "$ac_cv_header_tr1_memory" = "yes" && test $uses_tr1_memory != "1"; then
 elif test "$ac_cv_header_tr1_memory" != "yes" && test $uses_tr1_memory = "1"; then
     sed -i 's/\(#define XYLIB_USE_TR1_MEMORY\) 1/\1 0/' $srcdir/xylib/cache.h
 fi
+
+# this is used in Makefile.am to define XYLIB_DLL when building xyconv
+AM_CONDITIONAL(USE_XYLIB_DLL, false)
+case $host in
+    *mingw*)
+        AM_CONDITIONAL(USE_XYLIB_DLL, test "X$enable_static" = "Xno")
+    ;;
+esac
 
 # this is for compatibility with fityk configure.ac 
 # see xylib/Makefile.am for comments on CPPFLAGS_3RDPARTY

@@ -34,9 +34,21 @@
 #ifndef XYLIB_XYLIB_H_
 #define XYLIB_XYLIB_H_
 
-#ifndef __cplusplus
-#error "This library does not have C API."
+// XYLIB_API is a mark for API classes and functions,
+// used to decorate classes and functions for Win32 DLL linking.
+#ifdef XYLIB_API
+# undef XYLIB_API
 #endif
+#if defined(_WIN32) && defined(BUILDING_XYLIB) && \
+        (defined(XYLIB_DLL) || defined(DLL_EXPORT))
+# define XYLIB_API  __declspec(dllexport)
+#elif defined(_WIN32) && defined(XYLIB_DLL)
+# define XYLIB_API  __declspec(dllimport)
+#else
+# define XYLIB_API
+#endif
+
+#ifdef __cplusplus
 
 #include <string>
 #include <vector>
@@ -50,19 +62,19 @@
 ///  XYLIB_VERSION / 100 % 100 is the minor version
 ///  XYLIB_VERSION / 10000 is the major version
 
-#define XYLIB_VERSION 400 // 0.4.0
+#define XYLIB_VERSION 600 // 0.6.0
 
 
 namespace xylib
 {
 
 /// see also XYLIB_VERSION
-std::string get_version();
+XYLIB_API const char* get_version();
 
 class DataSet;
 
 /// stores format related info
-struct FormatInfo
+struct XYLIB_API FormatInfo
 {
     typedef bool (*t_checker)(std::istream&);
     typedef DataSet* (*t_ctor)();
@@ -93,21 +105,20 @@ struct FormatInfo
     bool check(std::istream& f) const { return !checker || (*checker)(f); }
 };
 
-/// NULL-terminated array of all supported filetypes
-extern const FormatInfo *formats[];
-
-const FormatInfo* get_format(int n);
+/// all supported filetypes can be iterated by calling this function
+/// with 0, 1, ... until NULL is returned.
+XYLIB_API const FormatInfo* get_format(int n);
 
 
 /// unexpected format, unexpected EOF, etc
-class FormatError : public std::runtime_error
+class XYLIB_API FormatError : public std::runtime_error
 {
 public:
     FormatError(std::string const& msg) : std::runtime_error(msg) {};
 };
 
 /// all errors other than format error
-class RunTimeError : public std::runtime_error
+class XYLIB_API RunTimeError : public std::runtime_error
 {
 public:
     RunTimeError(std::string const& msg) : std::runtime_error(msg) {};
@@ -115,7 +126,7 @@ public:
 
 
 /// abstract base class for a column
-class Column
+class XYLIB_API Column
 {
 public:
     std::string name; /// Column can have a name (but usually it doesn't have)
@@ -141,7 +152,7 @@ public:
 
 /// stores meta-data (additional data, that usually describe x-y data)
 /// for block or dataset. For example: date of the experiment, wavelength, ...
-class MetaData : public std::map<std::string, std::string>
+class XYLIB_API MetaData : public std::map<std::string, std::string>
 {
 public:
     bool has_key(std::string const& key) const { return find(key) != end(); }
@@ -151,7 +162,7 @@ public:
 
 
 /// a block of data
-class Block
+class XYLIB_API Block
 {
 public:
     /// handy pseudo-column that returns index of point as value
@@ -186,7 +197,7 @@ protected:
 
 /// DataSet represents data stored typically in one file.
 // may consist of one or more block(s) of X-Y data
-class DataSet
+class XYLIB_API DataSet
 {
 public:
     // pointer to FormatInfo of a class derived from DataSet
@@ -234,27 +245,51 @@ protected:
 
 /// if format_name is not given, it is guessed
 /// return value: pointer to Dataset that contains all data read from file
-DataSet* load_file(std::string const& path, std::string const& format_name="",
-                   std::vector<std::string> const& options
+XYLIB_API DataSet* load_file(std::string const& path,
+                             std::string const& format_name="",
+                             std::vector<std::string> const& options
                                                 = std::vector<std::string>());
 
 /// return value: pointer to Dataset that contains all data read from file
-DataSet* load_stream(std::istream &is, FormatInfo const* fi,
-                     std::vector<std::string> const& options);
+XYLIB_API DataSet* load_stream(std::istream &is, FormatInfo const* fi,
+                               std::vector<std::string> const& options);
 
 /// guess a format of the file; does NOT handle compressed files
-FormatInfo const* guess_filetype(std::string const& path, std::istream &f);
+XYLIB_API FormatInfo const* guess_filetype(std::string const& path,
+                                           std::istream &f);
 
 /// returns FormatInfo that has a name format_name
-FormatInfo const* string_to_format(std::string const& format_name);
+XYLIB_API FormatInfo const* string_to_format(std::string const& format_name);
 
 /// return wildcard for file dialog in format:
 /// "ASCII X Y Files (*)|*|Sietronics Sieray CPI (*.cpi)|*.cpi"
-std::string get_wildcards_string(std::string const& all_files="*");
+XYLIB_API std::string get_wildcards_string(std::string const& all_files="*");
 
 } // namespace xylib
 
+extern "C" {
 
+#else // !__cplusplus
+
+/* minimal C API */
+XYLIB_API const char* xylib_get_version();
+XYLIB_API void* xylib_load_file(const char* path, const char* format_name);
+XYLIB_API void* xylib_get_block(void* dataset, int block);
+XYLIB_API int xylib_count_columns(void* block);
+XYLIB_API int xylib_count_rows(void* block, int column);
+XYLIB_API double xylib_get_data(void* block, int column, int row);
+XYLIB_API const char* xylib_dataset_metadata(void* dataset, const char* key);
+XYLIB_API const char* xylib_block_metadata(void* block, const char* key);
+XYLIB_API void xylib_free_dataset(void* dataset);
+
+#endif //__cplusplus
+
+#ifdef __cplusplus
+}
+#endif //__cplusplus
+
+// For internal use only.
+#ifdef BUILDING_XYLIB
 // macro used in declarations of classes derived from DataSet
 #define OBLIGATORY_DATASET_MEMBERS(class_name) \
     public: \
@@ -263,6 +298,7 @@ std::string get_wildcards_string(std::string const& all_files="*");
         static bool check(std::istream &f); \
         static DataSet* ctor() { return new class_name; } \
         static const FormatInfo fmt_info;
+#endif
 
 #endif // XYLIB_XYLIB_H_
 

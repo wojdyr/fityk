@@ -2,9 +2,12 @@
 // Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
+#define BUILDING_XYLIB
 #include "winspec_spe.h"
-#include "util.h"
+
 #include <cmath>
+
+#include "util.h"
 
 using namespace std;
 using namespace xylib::util;

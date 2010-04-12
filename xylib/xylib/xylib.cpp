@@ -2,6 +2,7 @@
 // Licence: Lesser GNU Public License 2.1 (LGPL)
 // $Id$
 
+#define BUILDING_XYLIB
 #include "xylib.h"
 
 #include <cassert>
@@ -42,7 +43,7 @@ using namespace xylib::util;
 
 namespace xylib {
 
-const FormatInfo *formats[] = {
+XYLIB_API const FormatInfo *formats[] = {
     &CpiDataSet::fmt_info,
     &UxdDataSet::fmt_info,
     &RigakuDataSet::fmt_info,
@@ -420,14 +421,93 @@ string get_wildcards_string(string const& all_files)
 }
 
 /// see also XYLIB_VERSION
-string get_version()
+const char* get_version()
 {
-    int major = XYLIB_VERSION / 10000;
-    int minor = XYLIB_VERSION / 100 % 100;
-    int subminor = XYLIB_VERSION % 100;
-    return S(major) + "." + S(minor) + "." + S(subminor);
+    static bool initialized = false;
+    static char ver[16];
+    if (!initialized) {
+        sprintf(ver, "%d.%d.%d", XYLIB_VERSION / 10000,
+                                 XYLIB_VERSION / 100 % 100,
+                                 XYLIB_VERSION % 100);
+        initialized = true;
+    }
+    return ver;
 }
 
 } // namespace xylib
+
+// implementation of C API
+extern "C" {
+
+using namespace xylib;
+
+const char* xylib_get_version()
+{
+    return get_version();
+}
+
+void* xylib_load_file(const char* path, const char* format_name)
+{
+    try {
+        return (void*) load_file(path, format_name != NULL ? format_name : "");
+    }
+    catch (RunTimeError&) {
+        return NULL;
+    }
+}
+
+void* xylib_get_block(void* dataset, int block)
+{
+    try {
+        return (void*) ((DataSet*) dataset)->get_block(block);
+    }
+    catch (RunTimeError&) {
+        return NULL;
+    }
+}
+
+int xylib_count_columns(void* block)
+{
+    return ((Block*) block)->get_column_count();
+}
+
+int xylib_count_rows(void* block, int column)
+{
+    if (column < 0 || column >= xylib_count_columns(block))
+        return 0;
+    return ((Block*) block)->get_column(column).get_point_count();
+}
+
+double xylib_get_data(void* block, int column, int row)
+{
+    return ((Block*) block)->get_column(column).get_value(row);
+}
+
+const char* xylib_dataset_metadata(void* dataset, const char* key)
+{
+    try {
+        return ((DataSet*) dataset)->meta.get(key).c_str();
+    }
+    catch (RunTimeError&) {
+        return NULL;
+    }
+}
+
+const char* xylib_block_metadata(void* block, const char* key)
+{
+    try {
+        return ((Block*) block)->meta.get(key).c_str();
+    }
+    catch (RunTimeError&) {
+        return NULL;
+    }
+}
+
+void xylib_free_dataset(void* dataset)
+{
+    delete (DataSet*) dataset;
+}
+
+} // extern "C"
 
 
