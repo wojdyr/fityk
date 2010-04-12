@@ -271,7 +271,10 @@ extern "C" {
 
 #else // !__cplusplus
 
-/* minimal C API */
+/* Minimal C API.
+ * Note that blocks and rows are indexed from 0, but columns are indexed from 1,
+ * because pseudo-column 0 contains indices of points.
+ **/
 XYLIB_API const char* xylib_get_version();
 XYLIB_API void* xylib_load_file(const char* path, const char* format_name);
 XYLIB_API void* xylib_get_block(void* dataset, int block);

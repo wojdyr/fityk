@@ -473,7 +473,7 @@ int xylib_count_columns(void* block)
 
 int xylib_count_rows(void* block, int column)
 {
-    if (column < 0 || column >= xylib_count_columns(block))
+    if (column < 0 || column > xylib_count_columns(block))
         return 0;
     return ((Block*) block)->get_column(column).get_point_count();
 }

@@ -114,8 +114,10 @@ void export_plain_text(xylib::DataSet const *d, string const &fname,
 
     // output the file-level meta-info
     of << "# exported by xylib from a " << d->fi->name << " file" << endl;
-    if (with_metadata)
+    if (with_metadata) {
         export_metadata(of, d->meta);
+        of << endl;
+    }
 
     for (int i = 0; i < range_num; ++i) {
         const xylib::Block *block = d->get_block(i);
