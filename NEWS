@@ -1,6 +1,10 @@
 $Id$
 
 User-visible changes in version 0.9.2  (2010-  -  ):
+* user-defined functions: split functions can be defined in this way:
+  SplitG(h,c,w1,w2) = if x < c then Gaussian(h,c,w1) else Gaussian(h,c,w2)
+* a couple of bug fixes
+
 
 User-visible changes in version 0.9.1  (2010-03-25):
 * added cfityk to Windows installer

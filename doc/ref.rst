@@ -396,25 +396,40 @@ that fulfil given criteria.
 
 A few examples::
 
-    Y[1...] = Y[n-1] + y[n] # integrate
-    x[...-1] = (x[n]+x[n+1])/2;  # reduces
-    y[...-1] = y[n]+y[n+1];      # two times
-    delete(n%2==1)               # number of points
-    delete(not a) # delete inactive points
-    X = 4*pi * sin(x/2*pi/180) / 1.54051 # changes x scale (2theta -> Q)
+    # integrate
+    Y[1...] = Y[n-1] + y[n] 
+
+    # delete inactive points
+    delete(not a) 
+
+    # reduce twice the number of points, averaging x and adding y
+    x[...-1] = (x[n]+x[n+1])/2
+    y[...-1] = y[n]+y[n+1]
+    delete(n%2==1)
+
+    # change x scale of diffraction pattern (2theta -> Q)
+    X = 4*pi * sin(x/2*pi/180) / 1.54051
+
     # make equal step, keep the number of points the same
     X = x[0] + n * (x[M-1]-x[0]) / (M-1),  Y = y[x=X], S = s[x=X], A = a[x=X]
+
     # take the first 2000 points, average them and subtract as background
     Y = y - avg(y if n<2000)
-    # Fityk can also be used as a simple calculator
+
+    # Fityk can be used as a simple calculator
     i 2+2 #4
     i sin(pi/4)+cos(pi/4) #1.41421
     i gamma(10) #362880
-    # examples of aggregate functions
+
+    # normalize data area
+    Y = y / darea(y)
+
+    # calculations that use aggregate functions
     i max(y) # the largest y value
-    i sum(y>avg(y)) # the number of points which have y value greater than arithmetic mean
-    Y = y / darea(y) # normalize data area
-    i darea(y-F(x) if 20<x<25)
+    i max(y if a) # the largest y value in the active range
+    i sum(y>100) # count the points that have y greater than 100
+    i sum(y>avg(y)) # count the points that have y greater than the arithmetic mean
+    i darea(y-F(x) if 20<x<25) # example of more complex syntax
 
 .. _funcindt:
 

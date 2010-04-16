@@ -5,23 +5,27 @@ $Id$
 * BUG (Windows): In aux plot, in menu, "Fit to window" and options above don't
   refresh the window
 
-* A way to define split functions as UDFs. Like this:
-  SplitGaussian(h, c, hwhm1, hwhm2) = if x < c then Gaussian(h,c,hwhm1) \
-                                      else Gaussian(h,c,hwhm2)
-
-* FFT data transformation using KISS FFT library,
+* FFT data transformation using either KISS FFT or FFTW library,
   fft[-inv]-xx, where xx is re, im, amp, e.g. @n = fft-re @3 
 
 * convolution and deconvolution of two datasets or a dataset with Gaussian:
   convolve @0 @1; convolve @0 2.3; deconvolve @0 3.4
 
---- 0.9.2
-
-* finish powder diffraction add-on (Pawley fitting)
+* document info-numeric-format
 
 * GUI: "extend zoom up" doesn't work well with negative-y data
 
 * GUI BUG: Fit-all doesn't work when there is x=nan in dataset
+
+* higher precision on exporting xy data
+
+* "info 12, fit" doesn't work, although "info fit, 12" works.
+
+* info: support quoted strings, e.g. info '2+2=', 2+2
+
+--- 0.9.2
+
+* finish powder diffraction add-on (Pawley fitting)
 
 * build xylib as a subpackage:
   http://www.gnu.org/software/hello/manual/automake/Subpackages.html
@@ -36,10 +40,6 @@ $Id$
 
 * GUI: saving background and reusing it for the next dataset (i.e. loading
   saved background, changing it a bit and substracting)
-
-* document info-numeric-format
-
-* higher precision on exporting xy data
 
 * add functions cot and coth
 
@@ -63,6 +63,9 @@ $Id$
 -------------->
 
 * confidence intervals of model parameters (95%, 99%)
+  http://www.boost.org/doc/libs/1_42_0/libs/math/doc/sf_and_dist/html/math_toolkit/dist/stat_tut/weg/st_eg/tut_mean_intervals.html
+
+* ? confidence intervals for data
 
 * data smoothing (Savitzky-Golay and/or other methods)
 
@@ -124,10 +127,8 @@ $Id$
   perhaps using gsl_sf_log_erfc or exp(x*x)*erfc(x) from
   http://www.netlib.org/specfun/erf
 
-* improve Voigt function (cut-tails, better approx.) 
-  eg. http://portal.acm.org/citation.cfm?doid=77626.77629
-
-* ? confidence intervals for data
+* improve Voigt function (cut-tails, better approximation),
+  there are dozens of papers on Voigt calculation, mostly in JQSRT.
 
 * GUI: menu Functions:
   Functions > Peak-Find Info -> animation
