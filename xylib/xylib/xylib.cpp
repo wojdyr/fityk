@@ -451,7 +451,7 @@ void* xylib_load_file(const char* path, const char* format_name)
     try {
         return (void*) load_file(path, format_name != NULL ? format_name : "");
     }
-    catch (RunTimeError&) {
+    catch (std::exception&) {
         return NULL;
     }
 }
