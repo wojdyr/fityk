@@ -38,13 +38,6 @@ AC_ARG_ENABLE(python,
 AC_ARG_ENABLE(lua,
 [  --enable-lua            build lua bindings to libfityk])
 
-AC_ARG_ENABLE(3rdparty,
-[  --disable-3rdparty      do not use 3rdparty directory @<:@default=enable@:>@])
-test -z "$enable_3rdparty" && enable_3rdparty="yes"
-
-AC_ARG_WITH(xylib,
-[  --with-xylib            use built-in xylib, not standalone one @<:@default=no@:>@])
-
 AC_ARG_WITH(samples,
 [  --with-samples          install samples as documentation])
 
@@ -113,47 +106,14 @@ AC_CHECK_HEADER(sstream, [], [AC_MSG_ERROR(
  [You don't have a <sstream> header. It is a part of standard C++ library.
   Either you have too old compiler, or standard C++ library can't be found.])])
 
-if test "$with_xylib" != "yes"; then
-    AC_CHECK_HEADER([xylib/xylib.h], [], [AC_MSG_ERROR(
- [xylib headers were not found.
-  Either use --with-xylib flag or install xylib separately.
+AC_CHECK_HEADER([xylib/xylib.h], [], [AC_MSG_ERROR(
+ [xylib headers were not found. You may need to install xylib first.
  ])])
-fi
-
-# use headers from 3rdparty/
-# CPPFLAGS="$CPPFLAGS -I\$(top_srcdir)/3rdparty" #doesn't work here(?),
-# or substitutes top_srcdir only in Makefile's(?)
-OLD_CPPFLAGS=$CPPFLAGS
-# can it cause problems?
-# CPPFLAGS is set here only for this test, and it is changed later
-if test "$enable_3rdparty" = "yes"; then
-	CPPFLAGS="$CPPFLAGS -I$srcdir/3rdparty"
-fi
 
 AC_CHECK_HEADER([boost/spirit/core.hpp], [], [AC_MSG_ERROR(
  [Boost::Spirit headers were not found or your compiler can not compile it.
-  If you use source from svn, make sure you have Spirit installed (see INSTALL).
+  Make sure you have Boost headers installed.
  ])])
-
-# see comments above...
-CPPFLAGS=$OLD_CPPFLAGS
-
-
-
-if test "$enable_3rdparty" = "yes"; then
-	CPPFLAGS_3RDPARTY="-I\$(top_srcdir)/3rdparty"
-else
-	CPPFLAGS_3RDPARTY=
-fi
-
-if test "$with_xylib" = "yes"; then
-	XYLIB_CPPFLAGS="-I\$(top_srcdir)/xylib"
-	XYLIB_LDADD="\$(top_builddir)/xylib/xylib/libxy.la"
-else
-	XYLIB_CPPFLAGS=
-        XYLIB_LDADD="-lxy"
-fi
-AM_CONDITIONAL([XYLIB_DIR], [test "$with_xylib" = yes])
 
 AM_CONDITIONAL([SAMPLES_DIR], [test "$with_samples" = yes])
 
@@ -227,14 +187,7 @@ AM_COND_IF([SWIG_DIR], [AX_PKG_SWIG(1.3.17)],
 
 
 AC_SUBST(SRCSUBDIRS)
-AC_SUBST(CPPFLAGS_3RDPARTY)
-AC_SUBST(XYLIB_CPPFLAGS)
-AC_SUBST(XYLIB_LDADD)
 AC_SUBST(LIBRARY_VERSION_FLAG)
-
-# define XYLIB_ADDLIB for compatibility with xylib/configure.ac
-XYLIB_ADDLIB=
-AC_SUBST(XYLIB_ADDLIB)
 
 # before checking erf, see if a basic math function (and linking) works
 AC_CHECK_LIB([m], [sin], [], [])
@@ -263,8 +216,6 @@ AC_CONFIG_FILES([Makefile fityk.iss
 		 src/wxgui/img/Makefile
 		 doc/Makefile
 		 samples/Makefile
-		 xylib/Makefile
-		 xylib/xylib/Makefile
 		 swig/Makefile])
 AC_OUTPUT
 

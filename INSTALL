@@ -4,6 +4,8 @@ Requirements
 
 both CLI and GUI
   modern c++ compiler (eg. GCC)
+  Boost libraries (headers only)
+  xylib library - http://xylib.sf.net
 only for CLI (command line interface, cfityk): 
   readline library >= 4.2 (optional)
   gnuplot program (for graph output, optional)
@@ -52,9 +54,6 @@ See fityk-users mailing list for details.
 Configuration Options
 =====================
 
-If you don't have xylib library installed, just add --with-xylib flag 
-to configure. This will build the library before building fityk.
-
 For debugging:
 ./configure CXXFLAGS="-g -O0 -fno-inline -W -Wall" --enable-static
 
@@ -65,8 +64,6 @@ To build python bindings, use --enable-python option.
 
 ./configure --help shows more options, but most of them are useless.
         
-
-
 Subversion
 ==========
 
@@ -79,12 +76,6 @@ See doc/conf.py for details.
 If you don't want to bother with installing another program,
 either use --without-doc configure option or run `make' only in src/ 
 subdirectory. Manual won't be installed then. 
-
-Fityk uses Boost::Spirit. Only some header files are needed and these files
-are included in 3rdparty/ directory in fityk tarballs, but are not kept in svn.
-Either install the Boost libraries (e.g. ver. 1.35)
-or just copy 3rdparty/boost/ from fityk tarball.
-
 
 ###########################################################################
 #       the rest of the file contains generic instructions that come      #

@@ -42,15 +42,15 @@ fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 		powdifpat.cpp powdifpat.h sgchooser.cpp sgchooser.h
 
 
-fityk_CPPFLAGS = $(WX_CPPFLAGS) $(CPPFLAGS_3RDPARTY) $(XYLIB_CPPFLAGS) $(HELP_DEF)
+fityk_CPPFLAGS = $(WX_CPPFLAGS) $(HELP_DEF)
 fityk_CXXFLAGS = $(WX_CXXFLAGS_ONLY)
 fityk_LDADD = ../libfityk.la libceria.a $(WX_LIBS) $(fityk_res)
 
 if XYCONVERT
 bin_PROGRAMS += xyconvert
 xyconvert_SOURCES = xybrowser.cpp uplot.cpp uplot.h cmn.cpp cmn.h
-xyconvert_CPPFLAGS = $(WX_CPPFLAGS) $(CPPFLAGS_3RDPARTY) $(XYLIB_CPPFLAGS) -DXYCONVERT
-xyconvert_LDADD = $(WX_LIBS) $(XYLIB_LDADD) $(xyconvert_res)
+xyconvert_CPPFLAGS = $(WX_CPPFLAGS) -DXYCONVERT
+xyconvert_LDADD = $(WX_LIBS) -lxy $(xyconvert_res)
 endif
 
 inputline: sample_inputline.cpp inputline.cpp inputline.h
@@ -61,7 +61,7 @@ if POWDIFPAT
 bin_PROGRAMS += powdifpat
 powdifpat_SOURCES = powdifpat.cpp powdifpat.h sgchooser.cpp sgchooser.h \
 		    uplot.cpp uplot.h cmn.cpp cmn.h fancyrc.cpp fancyrc.h
-powdifpat_CPPFLAGS = $(WX_CPPFLAGS) $(XYLIB_CPPFLAGS) -DSTANDALONE_POWDIFPAT
-powdifpat_LDADD = libceria.a $(WX_LIBS) $(XYLIB_LDADD) $(powdifpat_res)
+powdifpat_CPPFLAGS = $(WX_CPPFLAGS) -DSTANDALONE_POWDIFPAT
+powdifpat_LDADD = libceria.a $(WX_LIBS) -lxy $(powdifpat_res)
 endif
 

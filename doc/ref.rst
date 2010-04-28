@@ -265,7 +265,7 @@ Expressions can contain:
 
 - constant ``pi``,
 
-- binary operators: ``+``, ``-``, ``\*``, ``/``, ``^``,
+- binary operators: ``+``, ``-``, ``*``, ``/``, ``^``,
 
 - one argument functions:
 

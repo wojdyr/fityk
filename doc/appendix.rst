@@ -180,64 +180,82 @@ characters are expected. ::
 
   line ::= [{statement ';'} statement] [comment] |
            '!' { AllChars }
+  (* TODO: line ::= statement  -- exactly one statement per line, no ';' *)
 
   comment ::= '#' { AllChars } 
 
-  statement ::= [with_stat] ( commands_stat |
-                              define_stat |
-                              delete_stat |
-                              fit_stat |
-                              guess_stat |
-                              info_stat |
-                              plot_stat |
-                              set_stat |
-                              undefine_stat |
-                              assign_stat |
-                              dataset_stat |
-                              dump_stat |
-                              "quit" |
-                              "reset" |
-                              "sleep" Number |
-                              transform_stat )
+  statement ::= [with_st] ( commands_st |
+                            define_st |
+                            delete_st |
+                            fit_st |
+                            guess_st |
+                            info_st |
+                            plot_st |
+                            set_st |
+                            undefine_st |
+                            assign_st |
+                            dataset_st |
+                            dump_st |
+                            "quit" |
+                            "reset" |
+                            "sleep" Number |
+                            transform_st )
 
-  with_stat ::= With option {',' option}
+  with_st ::= With option {',' option}
 
-  commands_stat ::= Commands ...TODO
+  commands_st ::= Commands ...TODO
+      (* TODO: commands > file -> set logfile file *)
+      (* TODO: commands < file -> exec file *)
+      (* TODO: commands ! shell command -> exec ! shell command *)
 
-  define_stat ::= Define define_arg
+  define_st ::= Define ...TODO
 
-  delete_stat ::= Delete ...TODO
+  delete_st ::= Delete delete_arg {, delete_arg}
+  delete_arg ::= Varname | func_id | Dataset
 
-  fit_stat ::= Fit fit_arg
+  fit_st ::= Fit fit_arg in_arg
+  fit_arg ::= ['+'] Number | undo | redo | history Number | history clear
 
-  guess_stat ::= Guess ...TODO
+  guess_st ::= Guess ...TODO
 
-  info_stat ::= Info info_arg {',' info_arg} [redir]
+  info_st ::= Info info_arg {',' info_arg} [redir]
 
-  plot_stat ::= Plot ...TODO
+  dump_st ::= "dump" redir (* to be replaced with info state *)
 
-  set_stat ::= Set (option {',' option} | name)
+  plot_st ::= Plot ...TODO
 
-  undefine_stat ::= Undefine Word {, Word}
+  set_st ::= Set (option {',' option} | name)
 
-  assign_stat ::=  TODO
+  undefine_st ::= Undefine Word {, Word}
 
-  dataset_stat ::= TODO
+  assign_st ::= Varname '=' TODO |
+                func_id '=' TODO |
+                Funcname '.' Word '=' TODO |
+                Dataset '.' ('F'|'Z') '.' Word '=' TODO |
+                Dataset '.' "title" '=' TODO
 
-  dump_stat ::= "dump" redir (* to be replaced with info state *)
+  dataset_st ::= (Dataset | "@+") ( '<' Filename {option} |
+                                    '=' [Word] Dataset { '+' Dataset } {Word} )
 
-  transform_stat ::= TODO
+  transform_st ::= transform_lhs '=' data_expression
 
+
+  func_id = Funcname |
+            ('F'|'Z') '[' Number ']'
 
   option ::= name '=' value
 
   string ::= QuotedString | Word
+
 
   QuotedString ::= "'" { AllChars − "'" } "'"
 
   Word ::= { AllChars - (Whitespace | ';' | ',' | '#' ) }
            
   AllChars ::= ? all characters ?
+
+  Varname ::= '$' Word
+  Funcname ::= '%' Word
 
   Commands ::= "c" | "co" | "com" | ... | "commands"
   Define ::= "def" | ... | "define"
@@ -251,11 +269,9 @@ characters are expected. ::
 
 ..
   TODO
-  fit_stat ::= Fit fit_arg {',' fit_arg}
-  dump -> info state
-  commands > file -> set logfile file
-  commands < file -> include 
-  commands ! cmd -> include ! cmd
+  
+  "in @" comma issue: "fit in @0, @1" but "info in @0 @1"
+
 
 
 .. _license:
