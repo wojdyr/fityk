@@ -93,8 +93,17 @@ void do_import_dataset(char const*, char const*)
             throw ExecuteError("Options can't be given when reverting data");
         AL->get_data(tmp_int)->revert();
     }
-    else
-        AL->import_dataset(tmp_int, t, vt);
+    else {
+        string format, options;
+        if (vt.size() > 0)
+            format = vt[0];
+        if (vt.size() > 1) {
+            options = vt[1];
+            for (size_t i = 2; i < vt.size(); ++i)
+                options += " " + vt[i];
+        }
+        AL->import_dataset(tmp_int, t, format, options);
+    }
     AL->outdated_plot();
 }
 void do_revert_data(char const*, char const*)

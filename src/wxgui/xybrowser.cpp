@@ -74,7 +74,7 @@ public:
     void OnPaint(wxPaintEvent &event);
     void draw(wxDC &dc, bool);
     void load_dataset(string const& filename, string const& filetype,
-                      vector<string> const& options);
+                      string const& options);
     shared_ptr<const xylib::DataSet> get_data() const { return data; }
     void make_outdated() { data_updated = false; }
 
@@ -144,10 +144,10 @@ void PreviewPlot::draw(wxDC &dc, bool)
         dc.DrawText (label, X - tw/2, Y + 1);
         dc.DrawLine (X, Y, X, Y - 4);
     }
-    if (!xcol.name.empty()) {
+    if (!xcol.get_name().empty()) {
         wxCoord tw, th;
-        dc.GetTextExtent (xcol.name, &tw, &th);
-        dc.DrawText (xcol.name, (W - tw)/2, 2);
+        dc.GetTextExtent (xcol.get_name(), &tw, &th);
+        dc.DrawText (xcol.get_name(), (W - tw)/2, 2);
     }
 
     // ... vertical
@@ -160,10 +160,10 @@ void PreviewPlot::draw(wxDC &dc, bool)
         dc.DrawText (label, dc.DeviceToLogicalX(5), Y - th/2);
         dc.DrawLine (dc.DeviceToLogicalX(0), Y, dc.DeviceToLogicalX(4), Y);
     }
-    if (!ycol.name.empty()) {
+    if (!ycol.get_name().empty()) {
         wxCoord tw, th;
-        dc.GetTextExtent (ycol.name, &tw, &th);
-        dc.DrawRotatedText (ycol.name, W - 2, (H - tw)/2, 270);
+        dc.GetTextExtent (ycol.get_name(), &tw, &th);
+        dc.DrawRotatedText (ycol.get_name(), W - 2, (H - tw)/2, 270);
     }
 
     // draw data
@@ -175,7 +175,7 @@ void PreviewPlot::draw(wxDC &dc, bool)
 
 void PreviewPlot::load_dataset(string const& filename,
                                string const& filetype,
-                               vector<string> const& options)
+                               string const& options)
 {
     try {
         data = xylib::cached_load_file(filename, filetype, options);
@@ -375,7 +375,8 @@ void XyFileBrowser::update_block_list()
     vector<string> bb;
     if (plot_preview && plot_preview->get_data().get() != NULL)
         for (int i = 0; i < plot_preview->get_data()->get_block_count(); ++i) {
-            const string& name = plot_preview->get_data()->get_block(i)->name;
+            const string& name =
+                plot_preview->get_data()->get_block(i)->get_name();
             bb.push_back(name.empty() ? "Block #" + S(i+1) : name);
         }
     else {
@@ -468,8 +469,7 @@ void XyFileBrowser::update_plot_preview()
     if (auto_plot_cb->GetValue()) {
         wxString path = get_one_path();
         if (!path.IsEmpty()) {
-            vector<string> options;
-            plot_preview->load_dataset(wx2s(path), get_filetype(), options);
+            plot_preview->load_dataset(wx2s(path), get_filetype(), "");
             plot_preview->idx_x = x_column->GetValue();
             plot_preview->idx_y = y_column->GetValue();
             plot_preview->block_nr = block_ch->GetSelection();
@@ -482,7 +482,7 @@ string XyFileBrowser::get_filetype() const
 {
     int idx = filectrl->GetFilterIndex();
     if (idx > 0)
-        return xylib::get_format(idx - 1)->name;
+        return xylib_get_format(idx - 1)->name;
     else
         return "";
 }
@@ -541,7 +541,7 @@ static const wxCmdLineEntryDesc cmdLineDesc[] = {
 bool App::OnInit()
 {
     // to make life simpler, use the same version number as xylib
-    version = xylib::get_version();
+    version = xylib_get_version();
 
     // reading numbers won't work with decimal points different than '.'
     setlocale(LC_NUMERIC, "C");
@@ -650,7 +650,7 @@ void App::OnConvert(wxCommandEvent&)
 
     wxArrayString paths;
     browser->filectrl->GetPaths(paths);
-    vector<string> options;
+    string options;
 
     for (size_t i = 0; i < paths.GetCount(); ++i) {
         wxFileName old_filename(paths[i]);
@@ -683,13 +683,16 @@ void App::OnConvert(wxCommandEvent&)
                 f << "# converted by xyConvert " << version << " from file:\n";
                 f << "# " << new_filename << endl;
                 if (ds->get_block_count() > 1)
-                    f << "# (block " << block_nr << ") " << block->name << endl;
+                    f << "# (block " << block_nr << ") "
+                      << block->get_name() << endl;
                 if (block->get_column_count() > 2) {
-                    f << "#" << (xcol.name.empty() ? string("x") : xcol.name)
-                      << "\t" << (ycol.name.empty() ? string("y") : ycol.name);
+                    f << "#" << (xcol.get_name().empty() ? string("x")
+                                                         : xcol.get_name())
+                      << "\t" << (ycol.get_name().empty() ? string("y")
+                                                          : ycol.get_name());
                     if (has_err)
-                        f << "\t" << (ecol->name.empty() ? string("err")
-                                                         : ecol->name);
+                        f << "\t" << (ecol->get_name().empty() ? string("err")
+                                                         : ecol->get_name());
                     f << endl;
                 }
             }

@@ -60,7 +60,7 @@ public:
     void OnPaint(wxPaintEvent &event);
     void draw(wxDC &dc, bool);
     void load_dataset(string const& filename, string const& filetype,
-                      vector<string> const& options);
+                      string const& options);
     shared_ptr<const xylib::DataSet> get_data() const { return data; }
     void make_outdated() { data_updated = false; }
 
@@ -97,7 +97,7 @@ void PreviewPlot::draw(wxDC &dc, bool)
     const int np = block->get_point_count();
     draw_tics(dc, xcol.get_min(), xcol.get_max(np),
                   ycol.get_min(), ycol.get_max(np));
-    draw_axis_labels(dc, xcol.name, ycol.name);
+    draw_axis_labels(dc, xcol.get_name(), ycol.get_name());
 
     // draw data
     dc.SetPen(*wxGREEN_PEN);
@@ -108,7 +108,7 @@ void PreviewPlot::draw(wxDC &dc, bool)
 
 void PreviewPlot::load_dataset(string const& filename,
                                string const& filetype,
-                               vector<string> const& options)
+                               string const& options)
 {
     try {
         data = xylib::cached_load_file(filename, filetype, options);
@@ -302,7 +302,8 @@ void DLoadDlg::update_block_list()
     vector<string> bb;
     if (plot_preview && plot_preview->get_data().get() != NULL)
         for (int i = 0; i < plot_preview->get_data()->get_block_count(); ++i) {
-            const string& name = plot_preview->get_data()->get_block(i)->name;
+            const string& name =
+                plot_preview->get_data()->get_block(i)->get_name();
             bb.push_back(name.empty() ? "Block #" + S(i+1) : name);
         }
     else {
@@ -397,8 +398,7 @@ void DLoadDlg::update_plot_preview()
         plot_preview->idx_x = x_column->GetValue();
         plot_preview->idx_y = y_column->GetValue();
         plot_preview->block_nr = block_ch->GetSelection();
-        plot_preview->load_dataset(wx2s(dir_ctrl->GetFilePath()),
-                                   "", vector<string>());
+        plot_preview->load_dataset(wx2s(dir_ctrl->GetFilePath()), "", "");
     }
     else
         plot_preview->make_outdated();

@@ -102,7 +102,7 @@ public:
 
     /// import dataset (or multiple datasets, in special cases)
     void import_dataset(int slot, std::string const& filename,
-                        std::vector<std::string> const& options);
+                        std::string const& format, std::string const& options);
 
     /// called after changes that (possibly) need to be reflected in the plot
     /// (IOW when plot needs to be updated). This function is also used

@@ -25,9 +25,11 @@ class Data
 public :
     std::string title;
     static int count_blocks(std::string const& fn,
-                            std::vector<std::string> const& options);
+                            std::string const& format,
+                            std::string const& options);
     static int count_columns(std::string const& fn,
-                             std::vector<std::string> const& options,
+                             std::string const& format,
+                             std::string const& options,
                              int first_block);
 
     Data(Ftk const* F_)
@@ -39,7 +41,7 @@ public :
     void load_file(std::string const& fn,
                    int idx_x, int idx_y, int idx_s,
                    std::vector<int> const& blocks,
-                   std::vector<std::string> const& options);
+                   std::string const& format, std::string const& options);
 
     int load_arrays(std::vector<fp> const& x, std::vector<fp> const& y,
                    std::vector<fp> const& sigma, std::string const& data_title);
@@ -78,15 +80,16 @@ public :
     int get_given_x() const { return given_x_; }
     int get_given_y() const { return given_y_; }
     int get_given_s() const { return given_s_; }
-    std::vector<std::string> get_given_options() const {return given_options_;}
     static std::string read_one_line_as_title(std::ifstream& f, int column=-1);
     void revert();
+
 private:
     Ftk const* F;
     std::string filename_;
     int given_x_, given_y_, given_s_;/// columns given when loading the file
     std::vector<int> given_blocks_;
-    std::vector<std::string> given_options_;
+    std::string given_format_;
+    std::string given_options_;
     fp x_step_; // 0.0 if not fixed;
     bool has_sigma_;
     std::vector<Point> p_;

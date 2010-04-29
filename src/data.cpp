@@ -150,7 +150,7 @@ void Data::revert()
     // this->filename_ should not be passed by ref to load_file(), because it's
     // cleared before being used
     load_file(old_filename, given_x_, given_y_, given_s_,
-              given_blocks_, given_options_);
+              given_blocks_, given_format_, given_options_);
     title = old_title;
 }
 
@@ -302,16 +302,20 @@ void Data::add_one_point(double x, double y, double sigma)
     }
 }
 
-int Data::count_blocks(string const& fn, vector<string> const& options)
+int Data::count_blocks(string const& fn,
+                       string const& format, string const& options)
 {
-    shared_ptr<const xylib::DataSet> xyds(xylib::cached_load_file(fn, options));
+    shared_ptr<const xylib::DataSet> xyds(
+                                xylib::cached_load_file(fn, format, options));
     return xyds->get_block_count();
 }
 
-int Data::count_columns(string const& fn, vector<string> const& options,
-                               int first_block)
+int Data::count_columns(string const& fn,
+                        string const& format, string const& options,
+                        int first_block)
 {
-    shared_ptr<const xylib::DataSet> xyds(xylib::cached_load_file(fn, options));
+    shared_ptr<const xylib::DataSet> xyds(
+                                xylib::cached_load_file(fn, format, options));
     return xyds->get_block(first_block)->get_column_count();
 }
 
@@ -320,7 +324,7 @@ int Data::count_columns(string const& fn, vector<string> const& options,
 void Data::load_file (string const& fn,
                       int idx_x, int idx_y, int idx_s,
                       vector<int> const& blocks,
-                      vector<string> const& options)
+                      string const& format, string const& options)
 {
     if (fn.empty())
         return;
@@ -328,7 +332,7 @@ void Data::load_file (string const& fn,
     string block_name;
     try {
         shared_ptr<const xylib::DataSet> xyds(
-                                         xylib::cached_load_file(fn, options));
+                                xylib::cached_load_file(fn, format, options));
         clear(); //removing previous file
         vector<int> bb = blocks.empty() ? vector1(0) : blocks;
 
@@ -357,24 +361,24 @@ void Data::load_file (string const& fn,
                 }
                 has_sigma_ = true;
             }
-            if (xcol.step != 0.) { // column has fixed step
-                x_step_ = xcol.step;
+            if (xcol.get_step() != 0.) { // column has fixed step
+                x_step_ = xcol.get_step();
                 if (x_step_ < 0) {
                     reverse(p_.begin(), p_.end());
                     x_step_ = -x_step_;
                 }
             }
-            if (!ycol.name.empty()) {
+            if (!ycol.get_name().empty()) {
                 if (!block_name.empty())
                     block_name += "/";
-                block_name += ycol.name;
-                if (!xcol.name.empty())
-                    block_name += "(" + xcol.name + ")";
+                block_name += ycol.get_name();
+                if (!xcol.get_name().empty())
+                    block_name += "(" + xcol.get_name() + ")";
             }
-            else if (!block->name.empty()) {
+            else if (!block->get_name().empty()) {
                 if (!block_name.empty())
                     block_name += "/";
-                block_name += block->name;
+                block_name += block->get_name();
             }
         }
     } catch (runtime_error const& e) {

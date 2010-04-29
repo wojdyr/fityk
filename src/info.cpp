@@ -323,7 +323,7 @@ void get_info_data_expr(Ftk const* F, string const& args, size_t& pos,
                                                 j != expressions.end(); ++j) {
             fp k = get_transform_expression_value(*j, data);
             result += F->get_settings()->format_double(k)
-                      + (j == expressions.end() - 1 ? "\n" : ", ");
+                      + (j == expressions.end() - 1 ? "\n" : " ");
         }
     }
     else {
@@ -336,7 +336,7 @@ void get_info_data_expr(Ftk const* F, string const& args, size_t& pos,
                                                 j != expressions.end(); ++j) {
                 fp k = get_transform_expression_value(*j, F->get_data(*i));
                 result += F->get_settings()->format_double(k)
-                          + (j == expressions.end() - 1 ? "\n" : ", ");
+                          + (j == expressions.end() - 1 ? "\n" : " ");
             }
         }
     }
@@ -359,7 +359,7 @@ void get_info_version(bool full, string& result)
             "\nBoost.Spirit version: " + S(SPIRIT_VERSION / 0x1000)
                             + "." + S(SPIRIT_VERSION % 0x1000 / 0x0100)
                             + "." + S(SPIRIT_VERSION % 0x0100)
-            + "\nxylib version:" + xylib::get_version();
+            + "\nxylib version:" + xylib_get_version();
     else
         result += VERSION;
 }

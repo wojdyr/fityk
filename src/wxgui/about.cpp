@@ -47,7 +47,7 @@ AboutDlg::AboutDlg(wxWindow* parent)
                                        SPIRIT_VERSION / 0x1000,
                                        SPIRIT_VERSION % 0x1000 / 0x0100,
                                        SPIRIT_VERSION % 0x0100));
-    txt->AppendText(wxT("powered by xylib ") + s2wx(xylib::get_version())
+    txt->AppendText(wxT("powered by xylib ") + pchar2wx(xylib_get_version())
                     + wxT("\n"));
     txt->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour,
                                     *wxNORMAL_FONT));

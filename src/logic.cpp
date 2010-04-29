@@ -452,7 +452,7 @@ vector<int> parse_int_range(string const& s, int maximum)
 
 
 void Ftk::import_dataset(int slot, string const& filename,
-                         vector<string> const& options)
+                         string const& format, string const& options)
 {
     const int new_dataset = -1;
 
@@ -474,14 +474,14 @@ void Ftk::import_dataset(int slot, string const& filename,
         string::size_type bpos = filename.rfind(':', end_pos - 1);
         string::size_type blen = end_pos - bpos - 1;
         if (blen > 0) {
-            int block_count = Data::count_blocks(fn, options);
+            int block_count = Data::count_blocks(fn, format, options);
             string range = filename.substr(bpos+1, blen);
             block_range = parse_int_range(range, block_count-1);
         }
         end_pos = bpos;
 
         int first_block = block_range.empty() ? 0 : block_range[0];
-        int col_count = Data::count_columns(fn, options, first_block);
+        int col_count = Data::count_columns(fn, format, options, first_block);
         for (int i = 2; i >= 0; --i) {
             string::size_type pos = filename.rfind(':', end_pos - 1);
             string::size_type len = end_pos - pos - 1;
@@ -515,14 +515,14 @@ void Ftk::import_dataset(int slot, string const& filename,
             // load data into new slot
             auto_ptr<Data> data(new Data(this));
             data->load_file(fn, idx_x, indices[1][i], idx_s,
-                            block_range, options);
+                            block_range, format, options);
             append_dm(data.release());
         }
         else {
             // if slot == new_dataset and there is only one dataset,
             // then get_data(slot) will point to this single slot
             get_data(slot)->load_file(fn, idx_x, indices[1][i], idx_s,
-                                      block_range, options);
+                                      block_range, format, options);
         }
     }
 

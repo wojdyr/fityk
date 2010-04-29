@@ -45,10 +45,11 @@ struct ExecuteError : public std::runtime_error
     const char* str() { return what(); } // used by SWIG
 };
 
-/// syntax error exception, used only in public API
-struct SyntaxError : public std::exception
+/// syntax error exception
+struct SyntaxError : public std::invalid_argument
 {
-    const char* str() { return ""; } // used by SWIG
+    SyntaxError(const std::string& msg="") : invalid_argument(msg) {}
+    const char* str() { return what(); } // used by SWIG
 };
 
 
