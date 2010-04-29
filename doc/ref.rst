@@ -452,7 +452,7 @@ It is possible to calculate some properties of %functions:
   from *x1* to *x2* using trapezoidal rule with *n* equal steps.
 
 - ``findx(%f, x1, x2, y)`` finds *x* in interval (*x1*, *x2*) such that
-  %f(*x*)=*y* using bisection method combined with Newton-Raphson method.
+  %f(*x*)=\ *y* using bisection method combined with Newton-Raphson method.
   It is a requirement that %f(*x1*) < *y* < %f(*x2*).
 
 - ``extremum(%f, x1, x2)`` finds *x* in interval (*x1*, *x2*)
