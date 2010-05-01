@@ -1514,10 +1514,25 @@ void FFrame::OnGScrollRight (wxCommandEvent&)
 
 void FFrame::OnGScrollUp (wxCommandEvent&)
 {
-    fp const factor = 2.;
-    fp new_top = ftk->view.bottom + factor * ftk->view.height();
+    View const& view = ftk->view;
+    Scale const& scale = plot_pane->get_plot()->get_y_scale();
+    fp top, bottom;
+    if (scale.logarithm) {
+        top = 10 * view.top;
+        bottom = 0.1 * view.bottom;
+    }
+    else {
+        fp const factor = 2.;
+        int Y0 = scale.px(0);
+        int H = plot_pane->get_plot()->GetSize().GetHeight();
+        bool Y0_visible = (Y0 >= 0 && Y0 < H);
+        double pivot = (Y0_visible ? 0. : (view.bottom + view.top) / 2);
+        top = pivot + factor * (view.top - pivot);
+        bottom = pivot + factor * (view.bottom - pivot);
+    }
+
     char buffer[128];
-    sprintf(buffer, ". [.:%.12g]", new_top);
+    sprintf(buffer, ". [%.12g:%.12g]", bottom, top);
     change_zoom(buffer);
 }
 
@@ -1919,22 +1934,24 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     MouseModeEnum m = frame ? frame->plot_pane->get_plot()->get_mouse_mode()
                               : mmd_zoom;
     AddRadioTool(ID_ft_m_zoom, wxT("Zoom"),
-                 wxBitmap(zoom_mode_xpm), wxNullBitmap, wxT("Normal Mode"),
+                 wxBitmap(zoom_mode_xpm), wxNullBitmap,
+                 wxT("Normal Mode [F1]"),
                  wxT("Use mouse for zooming, moving peaks etc."));
     ToggleTool(ID_ft_m_zoom, m == mmd_zoom);
     AddRadioTool(ID_ft_m_range, wxT("Range"),
                  wxBitmap(active_mode_xpm), wxNullBitmap,
-                 wxT("Data-Range Mode"),
+                 wxT("Data-Range Mode [F2]"),
                  wxT("Use mouse for activating and disactivating data (try also with [Shift])"));
     ToggleTool(ID_ft_m_range, m == mmd_activate);
     AddRadioTool(ID_ft_m_bg, wxT("Background"),
                  wxBitmap(bg_mode_xpm), wxNullBitmap,
-                 wxT("Baseline Mode"),
+                 wxT("Baseline Mode [F3]"),
                  wxT("Use mouse for subtracting background"));
     ToggleTool(ID_ft_m_bg, m == mmd_bg);
     AddRadioTool(ID_ft_m_add, wxT("Add peak"),
                  wxBitmap(addpeak_mode_xpm), wxNullBitmap,
-                 wxT("Add-Peak Mode"), wxT("Use mouse for adding new peaks"));
+                 wxT("Add-Peak Mode [F4]"),
+                 wxT("Use mouse for adding new peaks"));
     ToggleTool(ID_ft_m_add, m == mmd_add);
     AddSeparator();
     // view
@@ -1990,6 +2007,7 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     AddSeparator();
     peak_choice = new wxChoice(this, ID_ft_peakchoice);
     peak_choice->SetSize(130, -1);
+    //peak_choice->SetToolTip(wxT("function"));
     AddControl (peak_choice);
     AddTool (ID_ft_s_aa, wxT("add"), wxBitmap(add_peak_xpm), wxNullBitmap,
              wxITEM_NORMAL, wxT("auto-add"), wxT("Add peak automatically"));

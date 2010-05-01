@@ -5,9 +5,6 @@ $Id$
 * BUG (Windows): In aux plot, in menu, "Fit to window" and options above don't
   refresh the window
 
-* GUI: "extend zoom up" should not change the position of x axis on the screen
-  (if there is no y=0 visible, the line through x tics should be invariant)
-
 * change syntax of split functions to ?:
 
 --- 0.9.2

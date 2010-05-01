@@ -134,6 +134,12 @@ void draw_line_with_style(wxDC& dc, wxPenStyle style,
     dc.SetPen(pen);
 }
 
+static wxString format_label(double d)
+{
+    wxString fmt = fabs(d) < 1e9 ? wxT("%.12g") : wxT("%g");
+    return wxString::Format(fmt, d);
+}
+
 /// draw x axis tics
 void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
 {
@@ -160,7 +166,7 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
                                                     i != x_tics.end(); ++i) {
         int X = xs.px(*i);
         dc.DrawLine (X, Y, X, Y - x_tic_size);
-        wxString label = wxString::Format(wxT("%.12g"), *i);
+        wxString label = format_label(*i);
         wxCoord w;
         dc.GetTextExtent (label, &w, 0);
         dc.DrawText (label, X - w/2, Y + 1);
@@ -202,7 +208,7 @@ void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
                                                     i != y_tics.end(); ++i) {
         int Y = ys.px(*i);
         dc.DrawLine (X, Y, X + y_tic_size, Y);
-        wxString label = wxString::Format(wxT("%.12g"), *i);
+        wxString label = format_label(*i);
         if (x_axis_visible && label == wxT("0"))
             continue;
         wxCoord w, h;
