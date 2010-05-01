@@ -4,7 +4,7 @@
 
 
 #include "about.h"
-#include <boost/spirit/version.hpp> // SPIRIT_VERSION
+#include <boost/version.hpp> // BOOST_VERSION
 #include <xylib/xylib.h> // get_version()
 #include <wx/hyperlink.h>
 
@@ -43,10 +43,10 @@ AboutDlg::AboutDlg(wxWindow* parent)
     txt->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour,
                                     *wxITALIC_FONT));
     txt->AppendText(wxT("powered by ") wxVERSION_STRING wxT("\n"));
-    txt->AppendText(wxString::Format(wxT("powered by Boost.Spirit %d.%d.%d\n"),
-                                       SPIRIT_VERSION / 0x1000,
-                                       SPIRIT_VERSION % 0x1000 / 0x0100,
-                                       SPIRIT_VERSION % 0x0100));
+    txt->AppendText(wxString::Format(wxT("powered by Boost %d.%d.%d\n"),
+                                     BOOST_VERSION / 100000,
+                                     BOOST_VERSION / 100 % 1000,
+                                     BOOST_VERSION % 100));
     txt->AppendText(wxT("powered by xylib ") + pchar2wx(xylib_get_version())
                     + wxT("\n"));
     txt->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour,

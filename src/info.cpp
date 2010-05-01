@@ -14,6 +14,7 @@
 //#include <iostream>
 
 #include <xylib/xylib.h> //get_version()
+#include <boost/version.hpp> // BOOST_VERSION
 
 #include "logic.h"
 #include "func.h"
@@ -356,9 +357,9 @@ void get_info_version(bool full, string& result)
             "\nCompiler version: " __VERSION__
 #endif
             "\nCompilation date: " __DATE__
-            "\nBoost.Spirit version: " + S(SPIRIT_VERSION / 0x1000)
-                            + "." + S(SPIRIT_VERSION % 0x1000 / 0x0100)
-                            + "." + S(SPIRIT_VERSION % 0x0100)
+            "\nBoost version: " + S(BOOST_VERSION / 100000)
+                          + "." + S(BOOST_VERSION / 100 % 1000)
+                          + "." + S(BOOST_VERSION % 100)
             + "\nxylib version:" + xylib_get_version();
     else
         result += VERSION;
