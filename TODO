@@ -5,13 +5,10 @@ $Id$
 * BUG (Windows): In aux plot, in menu, "Fit to window" and options above don't
   refresh the window
 
-* document info-numeric-format
-  (check if it works with exporting xy data)
-
 * GUI: "extend zoom up" should not change the position of x axis on the screen
   (if there is no y=0 visible, the line through x tics should be invariant)
 
-* remove 3rdparty directory
+* change syntax of split functions to ?:
 
 --- 0.9.2
 
@@ -27,6 +24,10 @@ $Id$
 
 * convolution and deconvolution of two datasets or a dataset with Gaussian:
   convolve @0 @1; convolve @0 2.3; deconvolve @0 3.4
+
+* embed Lua interpreter
+
+* make possible something like this: $min = {min(y if a) in @*}
 
 * GUI: there is ugly vertical line (a part of the fitted curve) in points
   where the value is undefined (e.g. in ReadShockley function for x=0).

@@ -674,13 +674,13 @@ void FFrame::set_menubar()
 
     wxMenu* gui_menu = new wxMenu;
     wxMenu* gui_menu_mode = new wxMenu;
-    gui_menu_mode->AppendRadioItem (ID_G_M_ZOOM, wxT("&Normal\tCtrl-N"),
+    gui_menu_mode->AppendRadioItem (ID_G_M_ZOOM, wxT("&Normal\tF1"),
                               wxT("Use mouse for zooming, moving peaks etc."));
-    gui_menu_mode->AppendRadioItem (ID_G_M_RANGE, wxT("&Range\tCtrl-I"),
+    gui_menu_mode->AppendRadioItem (ID_G_M_RANGE, wxT("&Range\tF2"),
                      wxT("Use mouse for activating and disactivating data"));
-    gui_menu_mode->AppendRadioItem (ID_G_M_BG, wxT("&Baseline\tCtrl-B"),
+    gui_menu_mode->AppendRadioItem (ID_G_M_BG, wxT("&Baseline\tF3"),
                                 wxT("Use mouse for subtracting background"));
-    gui_menu_mode->AppendRadioItem (ID_G_M_ADD, wxT("&Peak-Add\tCtrl-K"),
+    gui_menu_mode->AppendRadioItem (ID_G_M_ADD, wxT("&Peak-Add\tF4"),
                                     wxT("Use mouse for adding new peaks"));
     gui_menu->Append(ID_G_MODE, wxT("&Mode"), gui_menu_mode);
     wxMenu* baseline_menu = new wxMenu;
@@ -780,7 +780,7 @@ void FFrame::set_menubar()
     wxMenu *help_menu = new wxMenu;
 
 
-    append_mi(help_menu, ID_H_MANUAL, GET_BMP(book16), wxT("&Manual\tF1"),
+    append_mi(help_menu, ID_H_MANUAL, GET_BMP(book16), wxT("&Manual"),
               wxT("User's Manual"));
     append_mi(help_menu, ID_H_CONTACT, GET_BMP(bug16), wxT("&Report a Problem"),
                       wxT("Feedback is always appreciated."));
@@ -1989,6 +1989,7 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     EnableTool(ID_ft_b_strip, (m == mmd_bg));
     AddSeparator();
     peak_choice = new wxChoice(this, ID_ft_peakchoice);
+    peak_choice->SetSize(130, -1);
     AddControl (peak_choice);
     AddTool (ID_ft_s_aa, wxT("add"), wxBitmap(add_peak_xpm), wxNullBitmap,
              wxITEM_NORMAL, wxT("auto-add"), wxT("Add peak automatically"));

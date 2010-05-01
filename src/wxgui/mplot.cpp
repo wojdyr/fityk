@@ -1819,8 +1819,6 @@ void BgManager::add_background_point(fp x, fp y)
                              wxT("and the new one will be created.\n")
                              wxT("It will make impossible to undo\n")
                              wxT("removing the old background.\n\n")
-                             wxT("Use GUI->Mode->Baseline Handling->Clear...\n")
-                             wxT("to forget the old background explicitly.\n\n")
                              wxT("Continue?"),
                              wxT("Do you want to start a new background?"),
                              wxICON_QUESTION|wxYES_NO);
