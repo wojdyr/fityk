@@ -186,7 +186,7 @@ of interest. In Fityk, each point is either *active* or *inactive*.
 Inactive points are excluded from fitting and all calculations.
 A data :ref:`transformation <transform>`::
 
-   A = boolean-condition-to-be-active
+   A = boolean-condition
 
 can be used to change the state of points.
 
@@ -306,7 +306,8 @@ Expressions can contain:
   ``!=`` (or ``<>``), ``TRUE``, ``FALSE``.
 
 The value of a data expression can be shown using the command ``info``,
-see examples at the end of this section.
+see examples at the end of this section. The precision of printed numbers
+is governed by the option :ref:`info-numeric-format <info_numeric_format>`.
 
 Linear interpolation of y (or any other property: s,a,X,Y,S,A)
 between two points can be calculated using special syntax::
@@ -595,6 +596,9 @@ transformations can also be used in the column list.
 Additionally, F and Z can be used with dataset prefix, e.g. ::
 
    info @0 (n+1, x, y, F(x), y-F(x), Z(x), %foo(x), a, sin(pi*x)+y^2) > file.tsv
+
+The option :ref:`info-numeric-format <info_numeric_format>`
+can be used to change the format and precision of all numbers.
 
 .. _model:
 
@@ -1518,6 +1522,14 @@ guess-at-center-pm
 
 height-correction
     See :ref:`guess`.
+
+.. _info_numeric_format:
+
+info-numeric-format
+    Format of numbers printed by the ``info`` command. It takes as a value
+    a format string, the same as ``sprintf()`` in the C language.
+    For example ``set info-numeric-format=%.3f`` changes the precision
+    of numbers to 3 digits after the decimal point. Default value: ``%g``.
 
 lm-*
     Setting to tune :ref:`Levenberg-Marquardt <levmar>`
