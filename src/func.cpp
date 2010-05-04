@@ -607,11 +607,11 @@ const char* default_udfs[] = {
     "GaussianA(area*(1-shape), center, hwhm) + "
     "LorentzianA(area*shape, center, hwhm)",
 "SplitLorentzian(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5) = "
-    "if x < center then Lorentzian(height, center, hwhm1)"
-    " else Lorentzian(height, center, hwhm2)",
+    "x < center ? Lorentzian(height, center, hwhm1)"
+    " : Lorentzian(height, center, hwhm2)",
 "SplitPseudoVoigt(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5, shape1=0.5, shape2=0.5) = "
-    "if x < center then PseudoVoigt(height, center, hwhm1, shape1)"
-    " else PseudoVoigt(height, center, hwhm2, shape2)",
+    "x < center ? PseudoVoigt(height, center, hwhm1, shape1)"
+    " : PseudoVoigt(height, center, hwhm2, shape2)",
 };
 
 vector<UDF> udfs;
@@ -644,8 +644,7 @@ UdfType get_udf_type(string const& formula)
     // assuming that the formula is correct
     if (isupper(formula[t]))
         return kCompound;
-    else if (formula[t] == 'i' && t + 2 < formula.size() &&
-             formula[t+1] == 'f' && isspace(formula[t+2]))
+    else if (formula.find('?', t) != string::npos)
         return kSplit;
     else
         return kCustom;
@@ -684,27 +683,15 @@ vector<string> get_if_then_else_parts(string const &formula, bool full)
 {
     vector<string> parts;
     size_t pos = (full ? formula.rfind('=') + 1 : 0);
-    pos = formula.find("if ", pos);
-    if (pos == string::npos)
-        throw ExecuteError("Wrong syntax in the formula, `if ' not found.");
-    size_t after_if = formula.find_first_not_of(" \t\r\n", pos+2);
-    if (after_if == string::npos)
-        throw ExecuteError("Wrong syntax in the formula.");
-    pos = formula.find(" then ", after_if);
-    if (pos == string::npos)
-        throw ExecuteError("Wrong syntax in the formula, ` then ' not found.");
-    parts.push_back(formula.substr(after_if, pos - after_if));
-    size_t after_then = formula.find_first_not_of(" \t\r\n", pos+6);
-    if (after_then == string::npos)
-        throw ExecuteError("Wrong syntax in the formula.");
-    pos = formula.find(" else ", after_then);
-    if (pos == string::npos)
-        throw ExecuteError("Wrong syntax in the formula, ` else ' not found.");
-    parts.push_back(formula.substr(after_then, pos - after_then));
-    size_t after_else = formula.find_first_not_of(" \t\r\n", pos+6);
-    if (after_else == string::npos)
-        throw ExecuteError("Wrong syntax in the formula.");
-    parts.push_back(formula.substr(after_else));
+    size_t qmark_pos = formula.find('?', pos);
+    if (qmark_pos == string::npos)
+        throw ExecuteError("Wrong syntax of the formula.");
+    size_t colon_pos = formula.find(':', qmark_pos);
+    if (colon_pos == string::npos)
+        throw ExecuteError("Wrong syntax of the formula: '?' requires ':'");
+    parts.push_back(formula.substr(pos, qmark_pos - pos));
+    parts.push_back(formula.substr(qmark_pos + 1, colon_pos - qmark_pos - 1));
+    parts.push_back(formula.substr(colon_pos + 1));
     return parts;
 }
 

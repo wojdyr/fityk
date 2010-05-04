@@ -858,7 +858,7 @@ UDFs can be defined in a few ways:
 - as a sum of already defined functions
   (see the ``GLSum`` example below),
 
-- ``if x <`` *expression* ``then`` *Function1(...)* ``else`` *Function2(...)*
+- ``x <`` *expression* ``?`` *Function1(...)* ``:`` *Function2(...)*
   (see the ``SplitL`` example below).
 
 When giving a full formula, right-hand side of the equality sign
@@ -915,8 +915,8 @@ Examples::
 
     # split-Gaussian, the same as built-in SplitGaussian (should be in one line)
     define SplitG(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5) =
-      if x < center then Lorentzian(height, center, hwhm1)
-                    else Lorentzian(height, center, hwhm2)
+      x < center ? Lorentzian(height, center, hwhm1)
+                 : Lorentzian(height, center, hwhm2)
 
     # to change definition of UDF, first undefine previous definition
     undefine GaussianArea

@@ -103,7 +103,7 @@ void PlotWithTics::draw_tics(wxDC &dc, double x_min, double x_max,
     vector<double> tics = scale_tics_step(x_min, x_max, 4, minors);
     for (vector<double>::const_iterator i = tics.begin(); i != tics.end(); ++i){
         int X = getX(*i);
-        wxString label = format_label(*i);
+        wxString label = format_label(*i, x_max - x_min);
         wxCoord tw, th;
         dc.GetTextExtent (label, &tw, &th);
         int Y = dc.DeviceToLogicalY(H - th - 2);
@@ -115,7 +115,7 @@ void PlotWithTics::draw_tics(wxDC &dc, double x_min, double x_max,
     tics = scale_tics_step(y_min, y_max, 4, minors);
     for (vector<double>::const_iterator i = tics.begin(); i != tics.end(); ++i){
         int Y = getY(*i);
-        wxString label = format_label(*i);
+        wxString label = format_label(*i, y_max - y_min);
         wxCoord tw, th;
         dc.GetTextExtent (label, &tw, &th);
         dc.DrawText (label, dc.DeviceToLogicalX(5), Y - th/2);

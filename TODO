@@ -5,7 +5,9 @@ $Id$
 * BUG (Windows): In aux plot, in menu, "Fit to window" and options above don't
   refresh the window
 
-* change syntax of split functions to ?:
+* GUI: change default window size and plot background color
+
+* configure.ac: check version of boost and xylib
 
 --- 0.9.2
 
