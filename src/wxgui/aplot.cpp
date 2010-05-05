@@ -17,6 +17,7 @@
 #include "aplot.h"
 #include "frame.h"
 #include "../model.h"
+#include "../func.h"
 #include "../data.h"
 #include "../logic.h"
 
@@ -67,6 +68,8 @@ void AuxPlot::OnPaint(wxPaintEvent&)
     line_following_cursor(mat_redraw);
 }
 
+namespace {
+
 inline double model_value(vector<Point>::const_iterator pt, Model const* model)
 {
     return model->value(pt->x);
@@ -115,8 +118,11 @@ double rdiff_y_perc_of_data_for_draw_data (vector<Point>::const_iterator i,
     return i->y ? (model_value(i, model) - i->y) / i->y * 100 : 0;
 }
 
+} // anonymous namespace
+
 void AuxPlot::draw(wxDC &dc, bool monochrome)
 {
+    //cout << "AuxPlot::draw()" << endl;
     int pos = frame->get_focused_data_index();
     Data const* data = ftk->get_data(pos);
     Model const* model = ftk->get_model(pos);
@@ -135,10 +141,15 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
         dc.SetPen(wxPen(xAxisCol, pen_width));
 
     if (mark_peak_ctrs) {
-        int ymax = pixel_height;
-        std::vector<wxPoint> const& t = master->get_special_points();
-        for (vector<wxPoint>::const_iterator i = t.begin(); i != t.end(); i++)
-            dc.DrawLine(i->x, 0, i->x, ymax);
+        vector<int> const& idx = model->get_ff_idx();
+        for (vector<int>::const_iterator i = idx.begin(); i != idx.end(); ++i) {
+            Function const *f = ftk->get_function(*i);
+            if (f->has_center()) {
+                fp x = f->center();
+                int X = xs.px(x - model->zero_shift(x));
+                dc.DrawLine(X, 0, X, pixel_height);
+            }
+        }
     }
 
     if (kind == apk_empty || data->is_empty())

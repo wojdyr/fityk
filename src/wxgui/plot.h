@@ -99,8 +99,6 @@ public:
     void draw_crosshair(int X, int Y);
     void set_scale(int pixel_width, int pixel_height);
     int get_special_point_at_pointer(wxMouseEvent& event);
-    std::vector<wxPoint> const& get_special_points() const
-                                                { return special_points; }
     Scale const& get_x_scale() const { return xs; }
     Scale const& get_y_scale() const { return ys; }
     virtual void save_settings(wxConfigBase *cf) const;

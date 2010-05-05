@@ -294,7 +294,7 @@ void MainPlot::draw_dataset(wxDC& dc, int n, bool set_pen)
 void MainPlot::draw(wxDC &dc, bool monochrome)
 {
     //cout << "MainPlot::draw()" << endl;
-    int focused_data = frame->get_sidebar()->get_focused_data();
+    int focused_data = frame->get_focused_data_index();
     Model const* model = ftk->get_model(focused_data);
 
     set_scale(get_pixel_width(dc), get_pixel_height(dc));
@@ -522,7 +522,6 @@ void MainPlot::prepare_peaktops(Model const* model, int Ymax)
         special_points[k] = wxPoint(X, Y);
     }
 }
-
 
 void MainPlot::prepare_peak_labels(Model const* model)
 {
