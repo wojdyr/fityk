@@ -90,18 +90,19 @@ void OutputWin::show_fancy_dashes() {
 void OutputWin::read_settings(wxConfigBase *cf)
 {
     cf->SetPath(wxT("/OutputWin/Colors"));
-    text_color[os_normal] = cfg_read_color(cf, wxT("normal"),
-                                                      wxColour(150, 150, 150));
-    text_color[os_warn] = cfg_read_color(cf, wxT("warn"),
-                                                    wxColour(200, 0, 0));
-    text_color[os_quot] = cfg_read_color(cf, wxT("quot"),
-                                                    wxColour(50, 50, 255));
-    text_color[os_input] = cfg_read_color(cf, wxT("input"),
-                                                     wxColour(0, 200, 0));
     bg_color = cfg_read_color(cf, wxT("bg"), wxColour(20, 20, 20));
+    text_color[UserInterface::kNormal] =
+        cfg_read_color(cf, wxT("normal"), wxColour(160, 160, 160));
+    text_color[UserInterface::kInput] =
+        cfg_read_color(cf, wxT("input"), wxColour(64, 133, 73));
+    text_color[UserInterface::kQuoted] =
+        cfg_read_color(cf, wxT("quot"), wxColour(122, 142, 220));
+    text_color[UserInterface::kWarning] =
+        cfg_read_color(cf, wxT("warn"), wxColour(192, 64, 64));
+
     cf->SetPath(wxT("/OutputWin"));
     wxFont font = cfg_read_font(cf, wxT("font"), wxNullFont);
-    SetDefaultStyle (wxTextAttr(text_color[os_quot], bg_color, font));
+    SetDefaultStyle(wxTextAttr(bg_color, bg_color, font));
     SetBackgroundColour(bg_color);
     if (IsEmpty())
         show_fancy_dashes();
@@ -111,16 +112,16 @@ void OutputWin::read_settings(wxConfigBase *cf)
 void OutputWin::save_settings(wxConfigBase *cf) const
 {
     cf->SetPath(wxT("/OutputWin/Colors"));
-    cfg_write_color (cf, wxT("normal"), text_color[os_normal]);
-    cfg_write_color (cf, wxT("warn"), text_color[os_warn]);
-    cfg_write_color (cf, wxT("quot"), text_color[os_quot]);
-    cfg_write_color (cf, wxT("input"), text_color[os_input]);
+    cfg_write_color (cf, wxT("normal"), text_color[UserInterface::kNormal]);
+    cfg_write_color (cf, wxT("warn"), text_color[UserInterface::kWarning]);
+    cfg_write_color (cf, wxT("quot"), text_color[UserInterface::kQuoted]);
+    cfg_write_color (cf, wxT("input"), text_color[UserInterface::kInput]);
     cfg_write_color (cf, wxT("bg"), bg_color);
     cf->SetPath(wxT("/OutputWin"));
     cfg_write_font (cf, wxT("font"), GetDefaultStyle().GetFont());
 }
 
-void OutputWin::append_text (OutputStyle style, const wxString& str)
+void OutputWin::append_text (UserInterface::Style style, const wxString& str)
 {
     const int max_len = 1048576;
     const int delta = 262144;
@@ -203,24 +204,28 @@ OutputWinConfDlg::OutputWinConfDlg(wxWindow* parent, wxWindowID id,
              cr = wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL|wxALIGN_RIGHT);
 
     gsizer->Add(new wxStaticText(this, -1, wxT("background color")), cr);
-    bg_cpicker = new wxColourPickerCtrl(this, -1, ow->bg_color);
-    gsizer->Add(bg_cpicker, cl);
+    cp_bg = new wxColourPickerCtrl(this, -1, ow->bg_color);
+    gsizer->Add(cp_bg, cl);
 
     gsizer->Add(new wxStaticText(this, -1, wxT("input color")), cr);
-    t0_cpicker = new wxColourPickerCtrl(this, -1, ow->text_color[os_input]);
-    gsizer->Add(t0_cpicker, cl);
+    cp_input = new wxColourPickerCtrl(this, -1,
+                                      ow->text_color[UserInterface::kInput]);
+    gsizer->Add(cp_input, cl);
 
     gsizer->Add(new wxStaticText(this, -1, wxT("output color")), cr);
-    t1_cpicker = new wxColourPickerCtrl(this, -1, ow->text_color[os_normal]);
-    gsizer->Add(t1_cpicker, cl);
+    cp_output = new wxColourPickerCtrl(this, -1,
+                                      ow->text_color[UserInterface::kNormal]);
+    gsizer->Add(cp_output, cl);
 
     gsizer->Add(new wxStaticText(this, -1, wxT("quotation color")), cr);
-    t2_cpicker = new wxColourPickerCtrl(this, -1, ow->text_color[os_quot]);
-    gsizer->Add(t2_cpicker, cl);
+    cp_quote = new wxColourPickerCtrl(this, -1,
+                                      ow->text_color[UserInterface::kQuoted]);
+    gsizer->Add(cp_quote, cl);
 
     gsizer->Add(new wxStaticText(this, -1, wxT("warning color")), cr);
-    t3_cpicker = new wxColourPickerCtrl(this, -1, ow->text_color[os_warn]);
-    gsizer->Add(t3_cpicker, cl);
+    cp_warning = new wxColourPickerCtrl(this, -1,
+                                      ow->text_color[UserInterface::kWarning]);
+    gsizer->Add(cp_warning, cl);
 
     hsizer->Add(gsizer, wxSizerFlags());
 
@@ -254,16 +259,16 @@ OutputWinConfDlg::OutputWinConfDlg(wxWindow* parent, wxWindowID id,
             (wxObjectEventFunction) &OutputWinConfDlg::OnSystemFontCheckbox);
     Connect(font_picker->GetId(), wxEVT_COMMAND_FONTPICKER_CHANGED,
             (wxObjectEventFunction) &OutputWinConfDlg::OnFontChange);
-    Connect(bg_cpicker->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
-            (wxObjectEventFunction) &OutputWinConfDlg::OnColorBg);
-    Connect(t0_cpicker->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
-            (wxObjectEventFunction) &OutputWinConfDlg::OnColorT0);
-    Connect(t1_cpicker->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
-            (wxObjectEventFunction) &OutputWinConfDlg::OnColorT1);
-    Connect(t2_cpicker->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
-            (wxObjectEventFunction) &OutputWinConfDlg::OnColorT2);
-    Connect(t3_cpicker->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
-            (wxObjectEventFunction) &OutputWinConfDlg::OnColorT3);
+    Connect(cp_bg->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
+            (wxObjectEventFunction) &OutputWinConfDlg::OnColor);
+    Connect(cp_input->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
+            (wxObjectEventFunction) &OutputWinConfDlg::OnColor);
+    Connect(cp_output->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
+            (wxObjectEventFunction) &OutputWinConfDlg::OnColor);
+    Connect(cp_quote->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
+            (wxObjectEventFunction) &OutputWinConfDlg::OnColor);
+    Connect(cp_warning->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
+            (wxObjectEventFunction) &OutputWinConfDlg::OnColor);
 }
 
 void OutputWinConfDlg::OnSystemFontCheckbox(wxCommandEvent& event)
@@ -284,22 +289,43 @@ void OutputWinConfDlg::OnFontChange(wxFontPickerEvent& event)
     show_preview();
 }
 
+void OutputWinConfDlg::OnColor(wxColourPickerEvent& event)
+{
+    int id = event.GetId();
+    if (id == cp_bg->GetId())
+        ow->set_bg_color(event.GetColour());
+    else if (id == cp_input->GetId())
+        ow->text_color[UserInterface::kInput] = event.GetColour();
+    else if (id == cp_output->GetId())
+        ow->text_color[UserInterface::kNormal] = event.GetColour();
+    else if (id == cp_quote->GetId())
+        ow->text_color[UserInterface::kQuoted] = event.GetColour();
+    else if (id == cp_warning->GetId())
+        ow->text_color[UserInterface::kWarning] = event.GetColour();
+    show_preview();
+}
+
 void OutputWinConfDlg::show_preview()
 {
+    const wxColour& output = ow->text_color[UserInterface::kNormal];
+    const wxColour& input = ow->text_color[UserInterface::kInput];
+    const wxColour& quote = ow->text_color[UserInterface::kQuoted];
+    const wxColour& warning = ow->text_color[UserInterface::kWarning];
+
     preview->Clear();
     preview->SetBackgroundColour(ow->bg_color);
     preview->SetDefaultStyle(ow->GetDefaultStyle());
-    preview->SetDefaultStyle (wxTextAttr (ow->text_color[os_normal]));
+    preview->SetDefaultStyle(wxTextAttr(output));
     preview->AppendText(wxT("\nsettings preview\n\n"));
-    preview->SetDefaultStyle (wxTextAttr (ow->text_color[os_input]));
+    preview->SetDefaultStyle(wxTextAttr(input));
     preview->AppendText(wxT("=-> i pi\n"));
-    preview->SetDefaultStyle (wxTextAttr (ow->text_color[os_normal]));
+    preview->SetDefaultStyle(wxTextAttr(output));
     preview->AppendText(wxT("3.14159\n"));
-    preview->SetDefaultStyle (wxTextAttr (ow->text_color[os_input]));
+    preview->SetDefaultStyle(wxTextAttr(input));
     preview->AppendText(wxT("=-> c < file.fit\n"));
-    preview->SetDefaultStyle (wxTextAttr (ow->text_color[os_quot]));
+    preview->SetDefaultStyle(wxTextAttr(quote));
     preview->AppendText(wxT("1> bleh in file\n"));
-    preview->SetDefaultStyle (wxTextAttr (ow->text_color[os_warn]));
+    preview->SetDefaultStyle(wxTextAttr(warning));
     preview->AppendText(wxT("Syntax error.\n"));
 }
 

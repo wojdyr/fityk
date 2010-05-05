@@ -37,9 +37,9 @@ Ftk* ftk = 0;
 
 //------ UserInterface - implementation of CLI specific methods ------
 
-void cli_show_message (OutputStyle style, const string& s)
+void cli_show_message (UserInterface::Style style, const string& s)
 {
-    if (style == os_warn)
+    if (style == UserInterface::kWarning)
         cout << '\a';
     cout << s << endl;
 }

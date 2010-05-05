@@ -280,11 +280,11 @@ void AuxPlot::read_settings(wxConfigBase *cf)
     cf->SetPath(wxT("Visible"));
     // nothing here now
     cf->SetPath(wxT("../Colors"));
-    set_bg_color(cfg_read_color (cf, wxT("bg"), wxColour(52, 52, 52)));
+    set_bg_color(cfg_read_color (cf, wxT("bg"), wxColour(34, 34, 34)));
     activeDataCol = cfg_read_color (cf, wxT("active_data"),
-                                                       wxColour (wxT("GREEN")));
+                                                       wxColour(wxT("GREEN")));
     inactiveDataCol = cfg_read_color(cf,wxT("inactive_data"),
-                                                      wxColour (128, 128, 128));
+                                                      wxColour(128, 128, 128));
     cf->SetPath(wxT(".."));
     FPlot::read_settings(cf);
     refresh();

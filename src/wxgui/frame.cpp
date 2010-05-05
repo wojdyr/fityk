@@ -357,8 +357,8 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
 
     //sizer, splitters, etc.
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-    v_splitter = new ProportionalSplitter(this, -1, 0.8);
-    main_pane = new ProportionalSplitter(v_splitter, -1, 0.7);
+    v_splitter = new ProportionalSplitter(this, -1, 0.75);
+    main_pane = new ProportionalSplitter(v_splitter, -1, 0.75);
     plot_pane = new PlotPane(main_pane);
     io_pane = new IOPane(main_pane);
     main_pane->SplitHorizontally(plot_pane, io_pane);
@@ -486,7 +486,7 @@ void FFrame::read_settings(wxConfigBase *cf)
     SwitchStatbar(cfg_read_bool(cf, wxT("ShowStatbar"), true));
     int display_w, display_h;
     wxDisplaySize(&display_w, &display_h);
-    int default_h = display_h >= 768 ? 640 : 400;
+    int default_h = display_h >= 768 ? 670 : 400;
     int default_w = default_h * 3 / 2;
     int w = cf->Read(wxT("w"), default_w),
         h = cf->Read(wxT("h"), default_h);
@@ -1741,7 +1741,7 @@ void FFrame::clear_status_coords()
         status_bar->clear_coords();
 }
 
-void FFrame::output_text(OutputStyle style, const string& str)
+void FFrame::output_text(UserInterface::Style style, const string& str)
 {
     io_pane->output_win->append_text(style, s2wx(str));
 }

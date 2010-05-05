@@ -25,15 +25,17 @@ fityk::t_show_message *simple_message_handler = 0;
 
 FILE* message_sink = 0;
 
-void message_handler(OutputStyle style, std::string const& s)
+// a bridge between fityk::set_show_message()
+// and UserInterface::set_show_message()
+void message_handler(UserInterface::Style style, std::string const& s)
 {
-    if (simple_message_handler && style != os_input)
+    if (simple_message_handler && style != UserInterface::kInput)
         (*simple_message_handler)(s);
 }
 
-void message_redir(OutputStyle style, std::string const& s)
+void message_redir(UserInterface::Style style, std::string const& s)
 {
-    if (message_sink && style != os_input)
+    if (message_sink && style != UserInterface::kInput)
         fprintf(message_sink, "%s\n", s.c_str());
 }
 

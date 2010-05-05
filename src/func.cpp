@@ -185,6 +185,7 @@ Function* Function::factory (Ftk const* F,
     }
     else
         throw ExecuteError("Undefined type of function: " + type_name);
+    return NULL; // to avoid warnings
 }
 
 const char* builtin_formulas[] = {

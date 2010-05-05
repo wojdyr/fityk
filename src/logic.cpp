@@ -227,27 +227,27 @@ int Ftk::check_dm_number(int n) const
 /// Send warning to UI.
 void Ftk::warn(std::string const &s) const
 {
-    get_ui()->output_message(os_warn, s);
+    get_ui()->output_message(UserInterface::kWarning, s);
 }
 
 /// Send implicitely requested message to UI.
 void Ftk::rmsg(std::string const &s) const
 {
-    get_ui()->output_message(os_normal, s);
+    get_ui()->output_message(UserInterface::kNormal, s);
 }
 
 /// Send message to UI.
 void Ftk::msg(std::string const &s) const
 {
     if (get_verbosity() >= 0)
-         get_ui()->output_message(os_normal, s);
+         get_ui()->output_message(UserInterface::kNormal, s);
 }
 
 /// Send verbose message to UI.
 void Ftk::vmsg(std::string const &s) const
 {
     if (get_verbosity() >= 1)
-         get_ui()->output_message(os_normal, s);
+         get_ui()->output_message(UserInterface::kNormal, s);
 }
 
 /// execute command(s) from string

@@ -13,7 +13,7 @@
 #include <wx/clrpicker.h>
 #include <wx/fontpicker.h>
 
-#include "../common.h" // OutputStyle
+#include "../ui.h" // UserInterface::Style
 #include "inputline.h" // InputLineObserver
 
 class IOPane;
@@ -31,7 +31,7 @@ public:
     OutputWin (wxWindow *parent, wxWindowID id,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize);
-    void append_text (OutputStyle style, const wxString& str);
+    void append_text (UserInterface::Style style, const wxString& str);
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
     void show_fancy_dashes();
@@ -71,24 +71,14 @@ public:
 private:
     OutputWin *ow;
     wxStaticText *font_label;
-    wxColourPickerCtrl *bg_cpicker;
-    wxColourPickerCtrl *t0_cpicker, *t1_cpicker, *t2_cpicker, *t3_cpicker;
+    wxColourPickerCtrl *cp_bg, *cp_input, *cp_output, *cp_quote, *cp_warning;
     wxFontPickerCtrl *font_picker;
     wxTextCtrl *preview;
 
     void show_preview();
     void OnSystemFontCheckbox(wxCommandEvent& event);
     void OnFontChange(wxFontPickerEvent& event);
-    void OnColorBg(wxColourPickerEvent& event)
-        { ow->set_bg_color(event.GetColour()); show_preview(); }
-    void OnColorT0(wxColourPickerEvent& event)
-        { ow->text_color[0] = event.GetColour(); show_preview(); }
-    void OnColorT1(wxColourPickerEvent& event)
-        { ow->text_color[1] = event.GetColour(); show_preview(); }
-    void OnColorT2(wxColourPickerEvent& event)
-        { ow->text_color[2] = event.GetColour(); show_preview(); }
-    void OnColorT3(wxColourPickerEvent& event)
-        { ow->text_color[3] = event.GetColour(); show_preview(); }
+    void OnColor(wxColourPickerEvent& event);
 };
 
 #endif

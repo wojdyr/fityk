@@ -62,6 +62,15 @@ public:
         kRepaintDataset // paint immediately dataset selected in class View
     };
 
+    // 4 styles are supported by output_message()
+    enum Style
+    {
+        kNormal,
+        kWarning,
+        kQuoted,
+        kInput
+    };
+
     /// it's used to disable all messages
     bool keep_quiet;
 
@@ -74,7 +83,7 @@ public:
     void draw_plot(int pri, RepaintMode mode);
 
     /// sent message - to user input and to log file (if logging is on)
-    void output_message (OutputStyle style, std::string const &s) const;
+    void output_message (Style style, std::string const &s) const;
 
     void start_log (std::string const &filename, bool with_output)
                     { commands.start_logging(filename, with_output, F); }
@@ -100,7 +109,7 @@ public:
     typedef void t_do_draw_plot(RepaintMode mode);
     void set_do_draw_plot(t_do_draw_plot *func) { do_draw_plot_ = func; }
 
-    typedef void t_show_message(OutputStyle style, std::string const& s);
+    typedef void t_show_message(Style style, std::string const& s);
     void set_show_message(t_show_message *func) { show_message_ = func; }
 
     typedef Commands::Status t_exec_command (std::string const &s);
@@ -137,7 +146,7 @@ private:
     void do_draw_plot(RepaintMode mode)
         { if (do_draw_plot_) (*do_draw_plot_)(mode); }
     /// show message to user
-    void show_message (OutputStyle style, std::string const& s) const
+    void show_message (Style style, std::string const& s) const
         { if (show_message_) (*show_message_)(style, s); }
 
     /// Execute command(s) from string

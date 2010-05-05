@@ -10,7 +10,7 @@
 
 #include <wx/filename.h>
 #include "cmn.h"  // enums
-#include "../common.h" //s2wx
+#include "../ui.h" // UserInterface::Style
 
 //struct z_names_type;
 struct f_names_type;
@@ -171,7 +171,7 @@ public:
     void set_status_text(std::string const& text);
     void set_status_coords(fp x, fp y, PlotTypeEnum pte);
     void clear_status_coords();
-    void output_text(OutputStyle style, std::string const& str);
+    void output_text(UserInterface::Style style, std::string const& str);
     void change_zoom(const std::string& s);
     void scroll_view_horizontally(fp step);
     void refresh_plots(bool now, WhichPlot which_plot);

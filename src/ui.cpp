@@ -180,14 +180,14 @@ Commands::Status UserInterface::exec_and_log(string const &c)
     return r;
 }
 
-void UserInterface::output_message(OutputStyle style, const string& s) const
+void UserInterface::output_message(Style style, const string& s) const
 {
     if (keep_quiet)
         return;
     show_message(style, s);
     commands.put_output_message(s);
-    if (style == os_warn && F->get_settings()->get_b("exit-on-warning")) {
-        show_message(os_normal, "Warning -> exiting program.");
+    if (style == kWarning && F->get_settings()->get_b("exit-on-warning")) {
+        show_message(kNormal, "Warning -> exiting program.");
         throw ExitRequestedException();
     }
 }
@@ -219,7 +219,7 @@ void UserInterface::exec_script(const string& filename,
             if (s.empty())
                 continue;
             if (F->get_verbosity() >= 0)
-                show_message (os_quot, S(line_index) + "> " + s);
+                show_message (kQuoted, S(line_index) + "> " + s);
 
             // optimize reading data lines like this:
             // X[93]=23.5124, Y[93]=122, S[93]=11.0454, A[93]=1 in @0
@@ -286,7 +286,7 @@ void UserInterface::exec_script(const string& filename,
                 if (lines[j-1].empty())
                     continue;
                 if (F->get_verbosity() >= 0)
-                    show_message (os_quot, S(j) + "> " + lines[j-1]);
+                    show_message (kQuoted, S(j) + "> " + lines[j-1]);
                 // result of parse_and_execute here is neglected. Errors in
                 // script don't change status of command, which executes script
                 parse_and_execute(lines[j-1]);
@@ -308,7 +308,7 @@ void UserInterface::exec_stream(FILE *fp)
     while ((line = getliner.next()) != NULL) {
         string s = line;
         if (F->get_verbosity() >= 0)
-            show_message (os_quot, "> " + s);
+            show_message (kQuoted, "> " + s);
         parse_and_execute(s);
     }
 }

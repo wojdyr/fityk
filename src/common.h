@@ -345,9 +345,7 @@ extern const std::string help_filename;
 
 
 /// Get current date and time as formatted string
-std::string time_now ();
-
-enum OutputStyle  { os_normal, os_warn, os_quot, os_input };
+std::string time_now();
 
 #endif
 
