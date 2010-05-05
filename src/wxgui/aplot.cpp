@@ -269,7 +269,7 @@ void AuxPlot::read_settings(wxConfigBase *cf)
     cf->SetPath(wxT("Visible"));
     // nothing here now
     cf->SetPath(wxT("../Colors"));
-    set_bg_color(cfg_read_color (cf, wxT("bg"), wxColour(50, 50, 50)));
+    set_bg_color(cfg_read_color (cf, wxT("bg"), wxColour(52, 52, 52)));
     activeDataCol = cfg_read_color (cf, wxT("active_data"),
                                                        wxColour (wxT("GREEN")));
     inactiveDataCol = cfg_read_color(cf,wxT("inactive_data"),

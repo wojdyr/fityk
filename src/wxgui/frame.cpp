@@ -484,12 +484,13 @@ void FFrame::read_settings(wxConfigBase *cf)
     cf->SetPath(wxT("/Frame"));
     SwitchToolbar(cfg_read_bool(cf, wxT("ShowToolbar"), true));
     SwitchStatbar(cfg_read_bool(cf, wxT("ShowStatbar"), true));
-    int x = cf->Read(wxT("x"), 50),
-        y = cf->Read(wxT("y"), 50),
-        w = cf->Read(wxT("w"), 650),
-        h = cf->Read(wxT("h"), 400);
-    Move(x, y);
-    SetClientSize(w, h);
+    int display_w, display_h;
+    wxDisplaySize(&display_w, &display_h);
+    int default_h = display_h >= 768 ? 640 : 400;
+    int default_w = default_h * 3 / 2;
+    int w = cf->Read(wxT("w"), default_w),
+        h = cf->Read(wxT("h"), default_h);
+    SetSize(w, h);
     v_splitter->SetProportion(cfg_read_double(cf, wxT("VertSplitProportion"),
                                               0.8));
     SwitchSideBar(cfg_read_bool(cf, wxT("ShowSideBar"), true));
@@ -519,11 +520,8 @@ void FFrame::save_settings(wxConfigBase *cf) const
     cf->Write(wxT("MainPaneProportion"), main_pane->GetProportion());
     cf->Write(wxT("ShowIOPane"), main_pane->IsSplit());
     cf->Write(wxT("ShowCrosshair"), plot_pane->crosshair_cursor);
-    int x, y, w, h;
+    int w, h;
     GetClientSize(&w, &h);
-    GetPosition(&x, &y);
-    cf->Write(wxT("x"), (long) x);
-    cf->Write(wxT("y"), (long) y);
     cf->Write(wxT("w"), (long) w);
     cf->Write(wxT("h"), (long) h);
     //cf->Write (wxT("BotWinHeight"), bottom_window->GetClientSize().GetHeight());

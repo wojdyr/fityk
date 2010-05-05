@@ -5,10 +5,6 @@ $Id$
 * BUG (Windows): In aux plot, in menu, "Fit to window" and options above don't
   refresh the window
 
-* GUI: change default window size and plot background color
-
-* configure.ac: check version of boost and xylib
-
 --- 0.9.2
 
 * finish powder diffraction add-on (Pawley fitting)
@@ -69,8 +65,6 @@ $Id$
 
 * GUI: refactor MainPlot - mouse event handling based on subscriptions,
        a clean interface to XOR-drawing 
-
-* GUI: should (and where) windows size & position be stored?
 
 * magic default parameters: if $default__name is defined: when functions 
   with parameter `name' are "guessed", this parameter is set to $default__name

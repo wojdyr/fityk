@@ -99,25 +99,29 @@ AC_HEADER_STDC
 if test "$ac_cv_header_stdc" != yes; then
 	AC_MSG_ERROR([ANSI C header files not found :-(])
 fi
-# use c++ for testing <sstream>
 
+# use c++ for testing <sstream>
 AC_LANG_PUSH([C++])
+
 AC_CHECK_HEADER(sstream, [], [AC_MSG_ERROR(
  [You don't have a <sstream> header. It is a part of standard C++ library.
   Either you have too old compiler, or standard C++ library can't be found.])])
-
-AC_CHECK_HEADER([xylib/xylib.h], [], [AC_MSG_ERROR(
- [xylib headers were not found. You may need to install xylib first.
- ])])
 
 AC_CHECK_HEADER([boost/spirit/core.hpp], [], [AC_MSG_ERROR(
  [Boost::Spirit headers were not found or your compiler can not compile it.
   Make sure you have Boost headers installed.
  ])])
 
-AM_CONDITIONAL([SAMPLES_DIR], [test "$with_samples" = yes])
-
 AC_LANG_POP([C++]) dnl C is faster than C++
+
+AC_CHECK_HEADER([xylib/xylib.h], [], [AC_MSG_ERROR(
+ [xylib headers were not found. You may need to install xylib first.
+ ])])
+
+AC_CHECK_LIB([xy], [xylib_get_version], [], [AC_MSG_ERROR(
+ [xylib >= 0.6 is not installed])])
+
+AM_CONDITIONAL([SAMPLES_DIR], [test "$with_samples" = yes])
 
 SRCSUBDIRS=
 # Checks for version specific libraries and headers.

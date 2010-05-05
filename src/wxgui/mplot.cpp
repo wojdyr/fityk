@@ -587,7 +587,7 @@ void MainPlot::draw_background(wxDC& dc, bool set_pen)
 void MainPlot::read_settings(wxConfigBase *cf)
 {
     cf->SetPath(wxT("/MainPlot/Colors"));
-    set_bg_color(cfg_read_color(cf, wxT("bg"), wxColour(wxT("BLACK"))));
+    set_bg_color(cfg_read_color(cf, wxT("bg"), wxColour(48, 48, 48)));
     for (int i = 0; i < max_data_cols; i++)
         dataColour[i] = cfg_read_color(cf, wxString::Format(wxT("data/%i"), i),
                                                wxColour(0, 255, 0));
