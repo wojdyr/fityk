@@ -73,9 +73,8 @@ BEGIN_EVENT_TABLE(OutputWin, wxTextCtrl)
     EVT_KEY_DOWN   (                      OutputWin::OnKeyDown)
 END_EVENT_TABLE()
 
-OutputWin::OutputWin (wxWindow *parent, wxWindowID id,
-                      const wxPoint& pos, const wxSize& size)
-    : wxTextCtrl(parent, id, wxT(""), pos, size,
+OutputWin::OutputWin (wxWindow *parent, wxWindowID id)
+    : wxTextCtrl(parent, id, wxT(""), wxDefaultPosition, wxDefaultSize,
                  wxTE_MULTILINE|wxTE_RICH|wxNO_BORDER|wxTE_READONLY)
 {}
 
@@ -90,7 +89,7 @@ void OutputWin::show_fancy_dashes() {
 void OutputWin::read_settings(wxConfigBase *cf)
 {
     cf->SetPath(wxT("/OutputWin/Colors"));
-    bg_color = cfg_read_color(cf, wxT("bg"), wxColour(20, 20, 20));
+    bg_color = cfg_read_color(cf, wxT("bg"), wxColour(28, 28, 28));
     text_color[UserInterface::kNormal] =
         cfg_read_color(cf, wxT("normal"), wxColour(160, 160, 160));
     text_color[UserInterface::kInput] =

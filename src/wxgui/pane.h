@@ -28,9 +28,7 @@ class OutputWin : public wxTextCtrl
 {
     friend class OutputWinConfDlg;
 public:
-    OutputWin (wxWindow *parent, wxWindowID id,
-                const wxPoint& pos = wxDefaultPosition,
-                const wxSize& size = wxDefaultSize);
+    OutputWin(wxWindow *parent, wxWindowID id);
     void append_text (UserInterface::Style style, const wxString& str);
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);

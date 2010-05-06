@@ -346,7 +346,7 @@ END_EVENT_TABLE()
 FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
                  const long style)
     : wxFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, style),
-      main_pane(0), sidebar(0), status_bar(0), toolbar(0)
+      main_pane(NULL), sidebar(NULL), status_bar(NULL), toolbar(NULL)
 {
     const int default_peak_nr = 7; // Gaussian
     peak_type_nr = wxConfig::Get()->Read(wxT("/DefaultFunctionType"),
@@ -357,8 +357,8 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
 
     //sizer, splitters, etc.
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-    v_splitter = new ProportionalSplitter(this, -1, 0.75);
-    main_pane = new ProportionalSplitter(v_splitter, -1, 0.75);
+    v_splitter = new ProportionalSplitter(this);
+    main_pane = new ProportionalSplitter(v_splitter);
     plot_pane = new PlotPane(main_pane);
     io_pane = new IOPane(main_pane);
     main_pane->SplitHorizontally(plot_pane, io_pane);
@@ -491,11 +491,11 @@ void FFrame::read_settings(wxConfigBase *cf)
     int w = cf->Read(wxT("w"), default_w),
         h = cf->Read(wxT("h"), default_h);
     SetSize(w, h);
-    v_splitter->SetProportion(cfg_read_double(cf, wxT("VertSplitProportion"),
-                                              0.8));
+    v_splitter->SetProportion(
+                        cfg_read_double(cf, wxT("VertSplitProportion"), 0.75));
     SwitchSideBar(cfg_read_bool(cf, wxT("ShowSideBar"), true));
-    main_pane->SetProportion(cfg_read_double(cf,
-                                             wxT("MainPaneProportion"), 0.7));
+    main_pane->SetProportion(
+                        cfg_read_double(cf, wxT("MainPaneProportion"), 0.84));
     SwitchIOPane(cfg_read_bool(cf, wxT("ShowIOPane"), true));
     SwitchCrosshair(cfg_read_bool(cf, wxT("ShowCrosshair"), false));
 }

@@ -16,7 +16,7 @@ using namespace std;
 
 
 PlotPane::PlotPane(wxWindow *parent, wxWindowID id)
-    : ProportionalSplitter(parent, id, 0.75),
+    : ProportionalSplitter(parent, id),
       crosshair_cursor(false)
 {
     plot = new MainPlot(this);
@@ -63,9 +63,9 @@ void PlotPane::save_settings(wxConfigBase *cf) const
 void PlotPane::read_settings(wxConfigBase *cf)
 {
     cf->SetPath(wxT("/PlotPane"));
-    SetProportion(cfg_read_double(cf, wxT("PlotPaneProportion"), 0.75));
-    aux_split->SetProportion(cfg_read_double(cf, wxT("AuxPlotsProportion"),
-                                                         0.5));
+    SetProportion(cfg_read_double(cf, wxT("PlotPaneProportion"), 0.80));
+    aux_split->SetProportion(
+                        cfg_read_double(cf, wxT("AuxPlotsProportion"), 0.5));
     show_aux(0, cfg_read_bool(cf, wxT("ShowAuxPane0"), true));
     show_aux(1, cfg_read_bool(cf, wxT("ShowAuxPane1"), false));
     plot->read_settings(cf);

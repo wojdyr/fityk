@@ -423,18 +423,21 @@ void AuxPlot::OnPopupPlot (wxCommandEvent& event)
     //fit_y_zoom();
     fit_y_once = true;
     refresh();
+    Refresh(false); // needed on Windows (i don't know why)
 }
 
 void AuxPlot::OnPopupPlotCtr (wxCommandEvent& event)
 {
     mark_peak_ctrs = event.IsChecked();
     refresh();
+    Refresh(false); // needed on Windows (i don't know why)
 }
 
 void AuxPlot::OnPopupReversedDiff (wxCommandEvent& event)
 {
     reversed_diff = event.IsChecked();
     refresh();
+    Refresh(false); // needed on Windows (i don't know why)
 }
 
 void AuxPlot::OnPopupColor (wxCommandEvent& event)
@@ -477,6 +480,7 @@ void AuxPlot::OnPopupYZoomFit (wxCommandEvent&)
     //fit_y_zoom();
     fit_y_once = true;
     refresh();
+    Refresh(false); // needed on Windows (i don't know why)
 }
 
 void AuxPlot::fit_y_zoom(Data const* data, Model const* model)
@@ -530,6 +534,7 @@ void AuxPlot::OnPopupYZoomAuto (wxCommandEvent&)
     if (auto_zoom_y) {
         //fit_y_zoom() is called from draw
         refresh();
+        Refresh(false); // needed on Windows (i don't know why)
     }
 }
 
