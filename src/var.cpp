@@ -115,15 +115,15 @@ void Variable::recalculate(vector<Variable*> const &variables,
                 recursive_derivatives.back().mult *= derivatives[i];
             }
         }
-  }
-  else if (nr == -2) {
-      if (original) {
-          value = original->value;
-          recursive_derivatives = original->recursive_derivatives;
-      }
-  }
-  else
-      assert(0);
+    }
+    else if (nr == -2) {
+        if (original) {
+            value = original->value;
+            recursive_derivatives = original->recursive_derivatives;
+        }
+    }
+    else
+        assert(0);
 }
 
 void Variable::erased_parameter(int k)
