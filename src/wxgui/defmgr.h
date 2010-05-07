@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 #include <wx/grid.h>
-//#include "wx_common.h"
+#include "../func.h"
 
 
 class DefinitionMgrDlg : public wxDialog
@@ -20,7 +20,7 @@ public:
         std::vector<std::string> parameters;
         std::vector<std::string> defvalues;
         std::string rhs;
-        int builtin;
+        Function::HowDefined kind;
 
         std::string get_full_definition() const;
     };

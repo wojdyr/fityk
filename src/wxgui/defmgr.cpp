@@ -55,7 +55,7 @@ END_EVENT_TABLE()
 
 DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
     : wxDialog(parent, -1, wxT("Function Definition Manager"),
-               wxDefaultPosition, wxSize(600, 500),
+               wxDefaultPosition, wxDefaultSize,
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
       selected(0)
 {
@@ -123,8 +123,8 @@ DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
     top_sizer->Add(CreateButtonSizer (wxOK|wxCANCEL),
                    0, wxALL|wxALIGN_CENTER, 5);
 
-    SetSizer(top_sizer);
-    top_sizer->SetSizeHints(this);
+    SetSizerAndFit(top_sizer);
+    SetSize(560, 512);
 
     fill_function_list();
     lb->SetSelection(selected);
@@ -143,7 +143,7 @@ void DefinitionMgrDlg::fill_function_list()
         fde.parameters = Function::get_varnames_from_formula(formula);
         fde.defvalues = Function::get_defvalues_from_formula(formula);
         fde.rhs = Function::get_rhs_from_formula(formula);
-        fde.builtin = Function::is_builtin(i);
+        fde.kind = Function::how_defined(i);
         orig[i] = fde;
         lb->Append(s2wx(fde.name));
     }
@@ -152,28 +152,38 @@ void DefinitionMgrDlg::fill_function_list()
 
 bool DefinitionMgrDlg::check_definition()
 {
+    bool ok = true;
     FunctionDefinitonElems const& fde = modified[selected];
-    if (!fde.builtin) {
+    wxString label;
+    if (fde.kind == Function::kUserDefined) {
         string value = wx2s(def_tc->GetValue());
-        vector<string> lhs_vars(fde.parameters.size());
-        for (size_t i = 0; i < fde.parameters.size(); ++i)
-            lhs_vars[i] = fde.parameters[i];
-        try {
-            UdfContainer::check_rhs(value, lhs_vars);
+        if (value.find_first_not_of(" \t\r\n") != string::npos) {
+            vector<string> lhs_vars(fde.parameters.size());
+            for (size_t i = 0; i < fde.parameters.size(); ++i)
+                lhs_vars[i] = fde.parameters[i];
+            try {
+                UdfContainer::check_rhs(value, lhs_vars);
+            }
+            catch (ExecuteError &e) {
+                wxString what = s2wx(string(e.what()));
+                label = wxT("definition ( ") + what + wxT("):");
+                ok = false;
+            }
         }
-        catch (ExecuteError &e) {
-            wxString what = s2wx(string(e.what()));
-            def_label_st->SetLabel(wxT("definition: (error: ")+what+wxT(")"));
-            add_btn->Enable(false);
-            FindWindow(wxID_OK)->Enable(false);
-            return false;
+        else {
+            label = wxT("definition (empty)");
+            ok = false;
         }
     }
-    def_label_st->SetLabel(wxT("definition:"));
-    //Layout(); // to resize def_label_st
-    add_btn->Enable(true);
-    FindWindow(wxID_OK)->Enable(true);
-    return true;
+    if (ok) {
+        label = (fde.kind == Function::kCoded ?
+                        wxT("definition (equivalent):") : wxT("definition:"));
+    }
+
+    def_label_st->SetLabel(label);
+    add_btn->Enable(ok);
+    FindWindow(wxID_OK)->Enable(ok);
+    return ok;
 }
 
 void DefinitionMgrDlg::update_guess_comment()
@@ -194,7 +204,7 @@ void DefinitionMgrDlg::update_guess_comment()
 bool DefinitionMgrDlg::save_changes()
 {
     FunctionDefinitonElems& prev = modified[selected];
-    if (!prev.builtin) {
+    if (prev.kind == Function::kUserDefined) {
         // check if changed values are correct
         if (!name_comment_st->GetLabel().IsEmpty()) {
             lb->SetSelection(selected);
@@ -244,7 +254,8 @@ void DefinitionMgrDlg::select_function(bool init)
         par_g->SetCellValue(i, 0, s2wx(fde.parameters[i]));
         par_g->SetCellValue(i, 1, s2wx(fde.defvalues[i]));
     }
-    if (!fde.builtin) {
+    bool editable = (fde.kind == Function::kUserDefined);
+    if (editable) {
         par_g->SetCellValue(fde.parameters.size(), 0, wxT(""));
         par_g->SetCellValue(fde.parameters.size(), 1, wxT(""));
     }
@@ -252,16 +263,12 @@ void DefinitionMgrDlg::select_function(bool init)
         par_g->DeleteRows(fde.parameters.size(), 1);
     }
     par_g->EndBatch();
-    wxString definition = s2wx(fde.rhs);
-    if (fde.builtin == 2)
-        definition += wxT("\n\n[This definition is for information only]")
-                      wxT("\n[The function is coded in C++]");
 
-    def_tc->SetValue(definition);
-    name_tc->SetEditable(!fde.builtin);
-    par_g->EnableEditing(!fde.builtin);
-    def_tc->SetEditable(!fde.builtin);
-    remove_btn->Enable(!fde.builtin);
+    def_tc->SetValue(s2wx(fde.rhs));
+    name_tc->SetEditable(editable);
+    par_g->EnableEditing(editable);
+    def_tc->SetEditable(editable);
+    remove_btn->Enable(editable);
     update_guess_comment();
 }
 
@@ -403,8 +410,8 @@ bool DefinitionMgrDlg::is_name_in_modified(string const& name)
 
 void DefinitionMgrDlg::OnNameChanged(wxCommandEvent &)
 {
-    if (modified[selected].builtin) {
-        name_comment_st->SetLabel(wxT("[built-in, not editable]"));
+    if (modified[selected].kind != Function::kUserDefined) {
+        name_comment_st->SetLabel(wxT("built-in, not editable"));
         return;
     }
     string name = strip_string(wx2s(name_tc->GetValue()));
@@ -434,7 +441,7 @@ void DefinitionMgrDlg::OnAddButton(wxCommandEvent &)
     if (!check_definition())
         return;
     FunctionDefinitonElems fde;
-    fde.builtin = 0;
+    fde.kind = Function::kUserDefined;
     modified.push_back(fde);
     lb->Append(wxT(""));
     lb->SetSelection(lb->GetCount() - 1);
@@ -446,7 +453,7 @@ void DefinitionMgrDlg::OnAddButton(wxCommandEvent &)
 void DefinitionMgrDlg::OnRemoveButton(wxCommandEvent &)
 {
     int n = selected;
-    if (modified[n].builtin)
+    if (modified[n].kind)
         return;
     lb->SetSelection(0);
     select_function(true);

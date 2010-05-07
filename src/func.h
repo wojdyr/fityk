@@ -13,6 +13,14 @@ class Ftk;
 class Function : public VariableUser
 {
 public:
+
+    enum HowDefined
+    {
+        kCoded, // built-in, coded in C++
+        kInterpreted, // built-in formula interpreted as UDF (see default_udfs)
+        kUserDefined // defined by user
+    };
+
     struct Multi
     {
         int p; int n; fp mult;
@@ -36,7 +44,7 @@ public:
     static std::vector<std::string> get_all_types();
     static std::string get_formula(int n);
     static std::string get_formula(std::string const& type);
-    static int is_builtin(int n);
+    static HowDefined how_defined(int n);
 
     static std::string get_typename_from_formula(std::string const &formula)
      {return strip_string(std::string(formula, 0, formula.find_first_of("(")));}

@@ -248,17 +248,16 @@ string Function::get_formula(string const& type)
     return "";
 }
 
-/// returns: 2 if built-in, in C++, 1 if buit-in UDF, 0 if defined by user
-int Function::is_builtin(int n)
+Function::HowDefined Function::how_defined(int n)
 {
     int nb = sizeof(builtin_formulas) / sizeof(builtin_formulas[0]);
     assert (n >= 0 && n < nb + size(UdfContainer::udfs));
     if (n < nb)
-        return 2;
+        return kCoded;
     else if (UdfContainer::udfs[n-nb].builtin)
-        return 1;
+        return kInterpreted;
     else
-        return 0;
+        return kUserDefined;
 }
 
 void Function::do_precomputations(vector<Variable*> const &variables)
@@ -639,7 +638,8 @@ UdfType get_udf_type(string const& formula)
 
     // skip blanks
     t = formula.find_first_not_of(" \t\r\n", t);
-    assert(t != string::npos);
+    if (t == string::npos)
+        throw ExecuteError("Empty definition.");
 
     // we don't parse the formula here, we just determine type of the UDF
     // assuming that the formula is correct
