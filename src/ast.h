@@ -68,11 +68,11 @@ struct OpTree
     explicit OpTree(int n, OpTree *arg1, OpTree *arg2);
 
     ~OpTree() { delete c1; delete c2; }
-    std::string str(const std::vector<std::string> *vars=0);
-    std::string str_b(bool b=true, const std::vector<std::string> *vars=0)
+    std::string str(const std::vector<std::string> *vars=NULL);
+    std::string str_b(bool b, const std::vector<std::string> *vars)
                             { return b ? "(" + str(vars) + ")" : str(vars); }
     std::string ascii_tree(int width=64, int start=0,
-                           const std::vector<std::string> *vars=0);
+                           const std::vector<std::string> *vars=NULL);
     OpTree* copy() const;
     //void swap_args() { assert(c1 && c2); OpTree *t=c1; c1=c2; c2=t; }
     OpTree* remove_c1() { OpTree *t=c1; c1=0; return t; }

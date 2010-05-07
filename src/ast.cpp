@@ -55,7 +55,7 @@ string OpTree::str(const vector<string> *vars)
 {
     if (op < 0) {
         int v_nr = -op-1;
-        return vars->empty() ? "var"+S(v_nr) : (*vars)[v_nr];
+        return vars == NULL || vars->empty() ? "var"+S(v_nr) : (*vars)[v_nr];
     }
     switch (op) {
         case 0:       return S(val);
