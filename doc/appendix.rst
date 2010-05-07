@@ -248,7 +248,7 @@ characters are expected. ::
   string ::= QuotedString | Word
 
 
-  QuotedString ::= "'" { AllChars − "'" } "'"
+  QuotedString ::= "'" { AllChars - "'" } "'"
 
   Word ::= { AllChars - (Whitespace | ';' | ',' | '#' ) }
            
