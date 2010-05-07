@@ -15,15 +15,16 @@ if [ $# -eq 0 ]; then
  echo usage: $0 step_nr
  echo steps:
  echo 0. prepare new version and increase version number 
- echo 1. test if everything compiles after distclean, run samples
- echo 2. test if svn can be compiled with other settings
- echo 3. make tarball
+ echo 1. run samples
+ echo "2. cd builds/ && make all"
+ echo 3. make tarball, update daily shapshots
  echo 4. compile windows version and make installer
  echo 5. https://build.opensuse.org/project/show?project=home%3Awojdyr
  echo 8. SourceForge release
  echo 9. put docs on www
  echo "10. http://freshmeat.net/projects/fityk/releases/new "
  echo "    http://www.gnomefiles.org/devs/index.php?login    "
+ echo "11. (optional) update xyconvert"
  exit
 fi
 
@@ -41,41 +42,30 @@ if [ $1 -eq 0 ]; then
  echo and doc/conf.py:
  grep 'version =' doc/conf.py
  echo
+ svn update
  echo svnversion: `svnversion`
  echo Do not forget to update NEWS and doc/index.rst
 
 
 
 elif [ $1 -eq 1 ]; then
- echo  testing compilation and instalation after make distclean
-
- ./autogen.sh
- make distclean
- BUILD_DIR=test1
- rm -rf $BUILD_DIR
- mkdir $BUILD_DIR
- cd $BUILD_DIR
- ../configure --prefix=$HOME/local --enable-python --with-samples
- make 
- make install
  echo run samples...
  cd ../samples
- cfityk nacl01.fit 
- cfityk test_syntax.fit 
- fityk nacl01.fit
- fityk SiC_Zn.fit
+ ./src/cli/cfityk nacl01.fit 
+ ./src/cli/cfityk test_syntax.fit 
+ ./src/wxgui/fityk nacl01.fit
+ ./src/wxgui/fityk SiC_Zn.fit
 
 
 elif [ $1 -eq 2 ]; then
- echo  go to builds/ and run tests ...
+ cd builds/ && make all
  
 elif [ $1 -eq 3 ]; then
  echo  make tarball
- ./autogen.sh --prefix=$HOME/local
  make dist-bzip2
+ cd builds/
+ make daily
 
-# TODO: testing mac compilation
- 
 elif [ $1 -eq 4 ]; then
  echo Building MS Windows version
  WXMSWINSTALL=$HOME/local/mingw32msvc/
@@ -109,16 +99,18 @@ elif [ $1 -eq 4 ]; then
  #        --disable-pnm --disable-mdi --disable-richtext
  #      make; make install
  #
- #rm -rf $MINGW_DIR
+ rm -rf $MINGW_DIR
  mkdir -p $MINGW_DIR
  cd $MINGW_DIR
- #tar xjf ../$tarball_filename
- SRC_DIR=..
+ tar xjf ../$tarball_filename || exit 1
+ SRC_DIR=fityk-$version/
+ MDIR=$HOME/local/mingw32msvc
  # host: MinGW from .deb: i586-mingw32msvc, built locally: i586-pc-mingw32
  $SRC_DIR/configure --build=x86_64-pc-linux-gnu --host=i586-mingw32msvc \
-   CXXFLAGS="-O3" LDFLAGS="-s" --without-readline \
-   --enable-static --disable-shared \
-   --with-wx-config=$HOME/local/mingw32msvc/bin/wx-config
+   CPPFLAGS="-I$HOME/local/src/boost_1_42_0/ -I$MDIR/include/" \
+   LDFLAGS="-s -L$MDIR/lib" CXXFLAGS="-O3" \
+   --without-readline --enable-static --disable-shared \
+   --with-wx-config=$MDIR/bin/wx-config
  make || exit
  mkdir -p $ALL_WIN_FILES/samples $ALL_WIN_FILES/src
  cp fityk.iss $SRC_DIR/fityk.url $SRC_DIR/COPYING $SRC_DIR/TODO \
@@ -167,8 +159,18 @@ elif [ $1 -eq 9 ]; then
 
 elif [ $1 -eq 10 ]; then
  echo announce: freshmeat.net gnomefiles.com
- # TODO: freshmeat-submit
  
+elif [ $1 -eq 11 ]; then
+ echo "11. (optional) update xyconvert"
+ xylib_version=0.6
+ cp -f $MINGW_DIR/src/wxgui/xyconvert.exe . || exit 1
+ rm -f xyconvert-$xylib_version.zip
+ zip xyconvert-$xylib_version.zip xyconvert.exe
+ rm -f xyconvert.exe
+ (cd src/wxgui/ && make xyconvert.html)
+ scp src/wxgui/xyconvert.html $WEB/xyconvert/index.html
+ scp xyconvert-$xylib_version.zip $WEB/xyconvert/
+
 else
  echo unexpected step number: $1
 fi
