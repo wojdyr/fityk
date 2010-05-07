@@ -65,3 +65,6 @@ powdifpat_CPPFLAGS = $(WX_CPPFLAGS) -DSTANDALONE_POWDIFPAT
 powdifpat_LDADD = libceria.a $(WX_LIBS) -lxy $(powdifpat_res)
 endif
 
+xyconvert.html: xyconvert.rst
+	rst2html --stylesheet-path=$$HOME/xylib/trunk/web.css $< $@
+
