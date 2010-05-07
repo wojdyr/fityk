@@ -58,9 +58,18 @@ namespace std {
         public:
           explicit runtime_error (const string& what_arg);
         };
+
+        class invalid_argument : public exception {
+        public:
+          explicit invalid_argument (const string& what_arg);
+        };
     }
 
     %typemap(throws) fityk::ExecuteError {
+        lua_pushstring(L,$1.what()); SWIG_fail;
+    }
+
+    %typemap(throws) fityk::SyntaxError {
         lua_pushstring(L,$1.what()); SWIG_fail;
     }
 
