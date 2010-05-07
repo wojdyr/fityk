@@ -42,7 +42,6 @@ private:
     fp linear_scaling_a, linear_scaling_c, linear_scaling_b;
     fp std_dev_stop;
     int iter_with_no_progresss_stop;
-    fp wssr_stop;
     int autoplot_indiv_nr;
     std::vector<Individual> pop1, pop2, *pop, *opop;
     int iteration;

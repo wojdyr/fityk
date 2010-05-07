@@ -67,7 +67,6 @@ GAfit::GAfit(Ftk* F)
     fpar["linear-scaling-b"] = &linear_scaling_b;
     fpar["rel-std-dev-stop"] = &std_dev_stop;
     ipar["iterations-with-no-progresss-stop"] = &iter_with_no_progresss_stop;
-    fpar["wssr-stop"] = &wssr_stop;
     irpar["autoplot-indiv-nr"] = IntRange(&autoplot_indiv_nr, -1, 999999999);
     */
 }
@@ -480,10 +479,6 @@ bool GAfit::termination_criteria_and_print_info (int iter)
     if (iter_with_no_progresss_stop > 0
           && no_progress_iters >= iter_with_no_progresss_stop) {
         F->msg("No progress in " + S(no_progress_iters) + " iterations. Stop");
-        stop = true;
-    }
-    if (min <= wssr_stop) {
-        F->msg("WSSR is small enough to stop");
         stop = true;
     }
     return stop;
