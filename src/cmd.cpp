@@ -34,18 +34,21 @@ namespace {
 void do_assign_var(char const* a, char const* b)
 {
     AL->assign_variable(string(t, 1), string(a,b));
+    AL->use_parameters();
     AL->outdated_plot();  //TODO only if...
 }
 
 void do_assign_func(char const*, char const*)
 {
     t = AL->assign_func(t2, t, vt);
+    AL->use_parameters();
     AL->outdated_plot(); //TODO only if function in @active
 }
 
 void do_assign_func_copy(char const*, char const*)
 {
     t = AL->assign_func_copy(t2, t);
+    AL->use_parameters();
     AL->outdated_plot(); //TODO only if function in @active
 }
 
@@ -61,6 +64,7 @@ void do_subst_func_param(char const* a, char const* b)
     }
     else
         AL->substitute_func_param(t, t2, string(a,b));
+    AL->use_parameters();
     AL->outdated_plot(); //TODO only if...
 }
 

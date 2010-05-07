@@ -59,10 +59,11 @@ void VariableManager::sort_variables()
 ///  else makes variable and returns its name
 string VariableManager::get_or_make_variable(string const& func)
 {
+    string ret;
     assert(!func.empty());
     string tmp1, tmp2;
     if (parse(func.c_str(), VariableLhsG).full) // $foo
-        return string(func, 1);
+        ret = string(func, 1);
     else if (parse(func.c_str(),
                    (FunctionLhsG
                    | !lexeme_d['@' >> uint_p >> '.']
@@ -71,10 +72,11 @@ string VariableManager::get_or_make_variable(string const& func)
                    >> '.' >>
                    lexeme_d[alpha_p >> *(alnum_p|'_')][assign_a(tmp2)]
                   ).full) {                     // %bar.bleh
-        return F->find_function_any(tmp1)->get_param_varname(tmp2);
+        ret = F->find_function_any(tmp1)->get_param_varname(tmp2);
     }
     else                                       // anything else
-        return assign_variable("", func);
+        ret = assign_variable("", func);
+    return ret;
 }
 
 
@@ -300,7 +302,6 @@ string VariableManager::put_into_variables(Variable* new_var)
     var->set_var_idx(variables);
     int old_pos = find_variable_nr(var->name);
     if (old_pos == -1) {
-        var->recalculate(variables, parameters);
         variables.push_back(var.release());
     }
     else {
@@ -315,7 +316,6 @@ string VariableManager::put_into_variables(Variable* new_var)
         }
         remove_unreferred();
     }
-    use_parameters();
     return var_name;
 }
 
@@ -558,31 +558,25 @@ vector<string> VariableManager::get_vars_from_kw(string const &function,
     return vv;
 }
 
-vector<string> VariableManager::make_varnames(string const &function,
-                                              vector<string> const &vars)
-{
-    vector<string> varnames;
-    bool has_eq = (vars.empty() || vars[0].find('=') != string::npos);
-    for (vector<string>::const_iterator i = vars.begin(); i != vars.end(); ++i)
-        if ((i->find('=') != string::npos) != has_eq)
-            throw ExecuteError("Either use keywords for all parameters"
-                               " or for none");
-    vector<string> vv = (!has_eq ? vars : get_vars_from_kw(function, vars));
-    for (int i = 0; i < size(vv); ++i)
-        varnames.push_back(get_or_make_variable(vv[i]));
-    return varnames;
-}
-
 string VariableManager::assign_func(string const &name, string const &function,
-                                    vector<string> const &vars, bool parse_vars)
+                                    vector<string> const &vars)
 {
     Function *func = 0;
     try {
-        func = Function::factory(F,
-                                 name.empty() ? next_func_name() : name,
-                                 function,
-                                 parse_vars ? make_varnames(function, vars)
-                                            : vars);
+        string func_name = name.empty() ? next_func_name() : name;
+
+        vector<string> varnames;
+        bool has_eq = (vars.empty() || vars[0].find('=') != string::npos);
+        for (vector<string>::const_iterator i = vars.begin();
+                                                        i != vars.end(); ++i)
+            if ((i->find('=') != string::npos) != has_eq)
+                throw ExecuteError("Either use keywords for all parameters"
+                                   " or for none");
+        vector<string> vv = (has_eq ? get_vars_from_kw(function, vars) : vars);
+        for (size_t i = 0; i < vv.size(); ++i)
+            varnames.push_back(get_or_make_variable(vv[i]));
+
+        func = Function::factory(F, func_name, function, varnames);
     } catch (ExecuteError &) {
         remove_unreferred();
         throw;
@@ -611,7 +605,6 @@ string VariableManager::do_assign_func(Function* func)
         if (!silent)
             F->msg("New function %" + func->name + " was created.");
     }
-    func->do_precomputations(variables);
     return func->name;
 }
 
@@ -653,7 +646,10 @@ string VariableManager::assign_func_copy(string const &name, string const &orig)
         assert(varmap.count(of->get_var_idx(i)));
         varnames.push_back(varmap[of->get_var_idx(i)]);
     }
-    return assign_func(name, of->type_name, varnames, false);
+
+    string func_name = name.empty() ? next_func_name() : name;
+    Function *func = Function::factory(F, func_name, of->type_name, varnames);
+    return do_assign_func(func);
 }
 
 void VariableManager::substitute_func_param(string const &name,
@@ -666,7 +662,6 @@ void VariableManager::substitute_func_param(string const &name,
     Function* k = functions[nr];
     k->substitute_param(k->get_param_nr(param), get_or_make_variable(var));
     k->set_var_idx(variables);
-    k->do_precomputations(variables);
     remove_unreferred();
 }
 

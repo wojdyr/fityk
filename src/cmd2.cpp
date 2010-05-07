@@ -153,6 +153,7 @@ void do_guess(char const*, char const*)
         string real_name = AL->assign_func(name, function, vars);
         dm->model()->add_function_to(real_name, Model::kF);
     }
+    AL->use_parameters();
     AL->outdated_plot();
 }
 

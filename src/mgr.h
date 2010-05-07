@@ -63,8 +63,7 @@ public:
 
     std::string assign_func(std::string const &name,
                             std::string const &function,
-                            std::vector<std::string> const &vars,
-                            bool parse_vars=true);
+                            std::vector<std::string> const &vars);
     std::string assign_func_copy(std::string const &name,
                                  std::string const &orig);
     void substitute_func_param(std::string const &name,
@@ -105,8 +104,6 @@ protected:
                               std::vector<std::string> const &ignore_vars
                                                  =std::vector<std::string>(),
                               std::string *first_referrer=0);
-    std::vector<std::string> make_varnames(std::string const &function,
-                                          std::vector<std::string> const &vars);
     std::vector<std::string> get_vars_from_kw(std::string const &function,
                                          std::vector<std::string> const &vars);
     std::string make_var_copy_name(Variable const* v);
