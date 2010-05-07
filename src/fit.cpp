@@ -90,11 +90,12 @@ vector<fp> Fit::get_covariance_matrix(vector<DataAndModel*> const& dms)
 
 vector<fp> Fit::get_standard_errors(vector<DataAndModel*> const& dms)
 {
-    vector<fp> errors(na);
-    vector<fp> alpha = get_covariance_matrix(dms);
     vector<fp> const &pp = F->get_parameters();
-    int dof = get_dof(dms);
     fp wssr = do_compute_wssr(pp, dms, true);
+    int dof = get_dof(dms);
+    vector<fp> alpha = get_covariance_matrix(dms);
+    // `na' was set by functions above
+    vector<fp> errors(na);
     for (int i = 0; i < na; ++i)
         errors[i] = sqrt(wssr / dof * alpha[i*na + i]);
     return errors;
