@@ -85,12 +85,11 @@ New version **notifications** from FreshMeat:
 History
 =======
 
+* 2010-05-07 Version 0.9.2
 * 2010-03-25 Version 0.9.1
 * 2010-01-05 Version 0.9.0
 * 2009-08-20 Version 0.8.9
-* 2009-06-21 Version 0.8.8 (no Windows exe this time)
-* 2009-06-11 Version 0.8.7
-* 2008-04-15 Version 0.8.6
+* 2009-06-21 Version 0.8.8
 
 See the full history (and what's new in each release) in the
 `NEWS file <http://fityk.svn.sourceforge.net/svnroot/fityk/trunk/NEWS>`_.

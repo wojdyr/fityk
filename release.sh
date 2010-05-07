@@ -1,8 +1,8 @@
 #!/bin/bash 
 # $Id$
 
-version=0.9.1
-WEB="iris.unipress.waw.pl:/d2/people/wojdyr/www/fityk2/"
+version=0.9.2
+WEB="iris.unipress.waw.pl:www/fityk2/"
 
 MINGW_DIR=mingw-build
 ALL_WIN_FILES=all_files #inside of $MINGW_DIR
@@ -23,7 +23,6 @@ if [ $# -eq 0 ]; then
  echo 8. SourceForge release
  echo 9. put docs on www
  echo "10. http://freshmeat.net/projects/fityk/releases/new "
- echo "    http://freshmeat.net/projects/xylib/releases/new  "
  echo "    http://www.gnomefiles.org/devs/index.php?login    "
  exit
 fi
@@ -36,10 +35,6 @@ echo -n '===>'
 
 
 if [ $1 -eq 0 ]; then
- echo increase version number in configure.ac
- echo "please do it!  See the line with AC_INIT(fityk, x.y.z)"
- echo "and the line with version=x.x.x in this release script"
- echo
  echo now the version in this script is: $version
  echo and configure.ac contains:
  grep AC_INIT configure.ac
@@ -60,7 +55,7 @@ elif [ $1 -eq 1 ]; then
  rm -rf $BUILD_DIR
  mkdir $BUILD_DIR
  cd $BUILD_DIR
- ../configure --prefix=$HOME/local --enable-python --with-xylib --with-samples
+ ../configure --prefix=$HOME/local --enable-python --with-samples
  make 
  make install
  echo run samples...
@@ -76,9 +71,6 @@ elif [ $1 -eq 2 ]; then
  
 elif [ $1 -eq 3 ]; then
  echo  make tarball
- rm -rf xylib/aclocal.m4 xylib/autom4te.cache/ xylib/config.* xylib/configure \
-       xylib/depcomp xylib/install-sh xylib/libtool xylib/ltmain.sh \
-       xylib/missing xylib/stamp-h1
  ./autogen.sh --prefix=$HOME/local
  make dist-bzip2
 
@@ -86,8 +78,8 @@ elif [ $1 -eq 3 ]; then
  
 elif [ $1 -eq 4 ]; then
  echo Building MS Windows version
- WXMSWINSTALL=/home/wojdyr/local/mingw32msvc/
- #WXMSWINSTALL=/home/wojdyr/local/mingw32/
+ WXMSWINSTALL=$HOME/local/mingw32msvc/
+ #WXMSWINSTALL=$HOME/local/mingw32/
  #PATH=$PATH:$HOME/local/mingw32/bin
  #
  # wxWidgets where cross-compiled using debian mingw32* packages:
@@ -124,9 +116,9 @@ elif [ $1 -eq 4 ]; then
  SRC_DIR=..
  # host: MinGW from .deb: i586-mingw32msvc, built locally: i586-pc-mingw32
  $SRC_DIR/configure --build=x86_64-pc-linux-gnu --host=i586-mingw32msvc \
-   CXXFLAGS="-O3" LDFLAGS="-s" --without-readline --with-xylib \
+   CXXFLAGS="-O3" LDFLAGS="-s" --without-readline \
    --enable-static --disable-shared \
-   --with-wx-config=/home/wojdyr/local/mingw32msvc/bin/wx-config
+   --with-wx-config=$HOME/local/mingw32msvc/bin/wx-config
  make || exit
  mkdir -p $ALL_WIN_FILES/samples $ALL_WIN_FILES/src
  cp fityk.iss $SRC_DIR/fityk.url $SRC_DIR/COPYING $SRC_DIR/TODO \

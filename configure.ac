@@ -1,7 +1,7 @@
 # $Id$
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([fityk], [0.9.1])
+AC_INIT([fityk], [0.9.2])
 #AC_REVISION([$Revision$])
 LIBRARY_VERSION_FLAG="-version-info 2:0:0"
 
@@ -118,8 +118,14 @@ AC_CHECK_HEADER([xylib/xylib.h], [], [AC_MSG_ERROR(
  [xylib headers were not found. You may need to install xylib first.
  ])])
 
-AC_CHECK_LIB([xy], [xylib_get_version], [], [AC_MSG_ERROR(
- [xylib >= 0.6 is not installed])])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([@%:@include <xylib/xylib.h>], [
+#if XYLIB_VERSION < 600
+# error "xylib >= 0.6 is required"
+#endif
+  ])],
+  [], [AC_MSG_ERROR([xylib >= 0.6 is not installed])])
+
 
 AM_CONDITIONAL([SAMPLES_DIR], [test "$with_samples" = yes])
 
