@@ -14,6 +14,8 @@
 
 #include <boost/spirit/include/classic_core.hpp>
 #include <boost/spirit/include/classic_ast.hpp>
+#include <boost/math/special_functions/gamma.hpp>
+#include <boost/math/special_functions/digamma.hpp>
 
 #include <sstream>
 #include <string>
@@ -506,7 +508,7 @@ OpTree* do_acos(OpTree *a)
 OpTree* do_lgamma(OpTree *a)
 {
     if (a->op == 0) {
-        double val = lgammafn(a->val);
+        double val = boost::math::lgamma(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -517,7 +519,7 @@ OpTree* do_lgamma(OpTree *a)
 OpTree* do_digamma(OpTree *a)
 {
     if (a->op == 0) {
-        double val = lgammafn(a->val);
+        double val = boost::math::digamma(a->val);
         delete a;
         return new OpTree(val);
     }

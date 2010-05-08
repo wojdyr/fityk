@@ -4,8 +4,6 @@ $Id$
 
 * finish powder diffraction add-on (Pawley fitting)
 
-* replace nmath.cpp with boost.math
-
 * command info:
   - "info 12, fit" doesn't work, although "info fit, 12" works.
   - support quoted strings, e.g. info '2+2=', 2+2

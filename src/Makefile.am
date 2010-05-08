@@ -13,7 +13,7 @@ libfityk_la_SOURCES = logic.cpp view.cpp cmd3.cpp cmd2.cpp cmd.cpp common.cpp \
 		 datatrans4.cpp info.cpp \
 		 settings.cpp ui.cpp GAfit.cpp LMfit.cpp guess.cpp NMfit.cpp \
 		 model.cpp fit.cpp voigt.cpp \
-		 numfuncs.cpp nmath.cpp fityk.cpp \
+		 numfuncs.cpp fityk.cpp \
 		 \
                  common.h data.h datatrans.h datatrans2.h datatrans3.h \
 		 datatrans4.h info.h \

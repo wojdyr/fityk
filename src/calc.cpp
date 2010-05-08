@@ -8,6 +8,9 @@
 #include "numfuncs.h"
 #include "voigt.h"
 
+#include <boost/math/special_functions/gamma.hpp>
+#include <boost/math/special_functions/digamma.hpp>
+
 using namespace std;
 
 namespace {
@@ -165,10 +168,10 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
                 *stackPtr = acos(*stackPtr);
                 break;
             case OP_LGAMMA:
-                *stackPtr = lgammafn(*stackPtr);
+                *stackPtr = boost::math::lgamma(*stackPtr);
                 break;
             case OP_DIGAMMA:
-                *stackPtr = digamma(*stackPtr);
+                *stackPtr = boost::math::digamma(*stackPtr);
                 break;
             case OP_ABS:
                 *stackPtr = fabs(*stackPtr);

@@ -4,10 +4,14 @@
 /// Built-in function definitions
 
 #include "bfunc.h"
+
+#include <boost/math/special_functions/gamma.hpp>
+
 #include "voigt.h"
 #include "numfuncs.h"
 
 using namespace std;
+using boost::math::lgamma;
 
 
 #define FUNC_CALCULATE_VALUE_BEGIN(NAME) \
@@ -402,7 +406,7 @@ fp FuncPearson7::area() const
 {
     if (vv[3] <= 0.5)
         return 0.;
-    fp g = exp(lgammafn(vv[3] - 0.5) - lgammafn(vv[3]));
+    fp g = exp(lgamma(vv[3] - 0.5) - lgamma(vv[3]));
     return vv[0] * 2 * fabs(vv[2])
         * sqrt(M_PI) * g / (2 * sqrt (vv[4]));
     //in f_val_precomputations(): vv[4] = pow (2, 1. / a3) - 1;
@@ -480,8 +484,8 @@ fp FuncSplitPearson7::area() const
 {
     if (vv[4] <= 0.5 || vv[5] <= 0.5)
         return 0.;
-    fp g1 = exp(lgammafn(vv[4] - 0.5) - lgammafn(vv[4]));
-    fp g2 = exp(lgammafn(vv[5] - 0.5) - lgammafn(vv[5]));
+    fp g1 = exp(lgamma(vv[4] - 0.5) - lgamma(vv[4]));
+    fp g2 = exp(lgamma(vv[5] - 0.5) - lgamma(vv[5]));
     return vv[0] * fabs(vv[2]) * sqrt(M_PI) * g1 / (2 * sqrt (vv[6]))
          + vv[0] * fabs(vv[3]) * sqrt(M_PI) * g2 / (2 * sqrt (vv[7]));
 }

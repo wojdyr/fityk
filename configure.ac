@@ -107,6 +107,11 @@ AC_CHECK_HEADER(sstream, [], [AC_MSG_ERROR(
  [You don't have a <sstream> header. It is a part of standard C++ library.
   Either you have too old compiler, or standard C++ library can't be found.])])
 
+AC_CHECK_HEADER([boost/math/special_functions/gamma.hpp], [], [AC_MSG_ERROR(
+ [Boost::Math headers not found.
+  Make sure you have Boost >= 1.36 installed.
+ ])])
+
 AC_CHECK_HEADER([boost/spirit/include/classic_core.hpp], [], [AC_MSG_ERROR(
  [Boost::Spirit headers not found.
   Make sure you have Boost >= 1.36 installed.

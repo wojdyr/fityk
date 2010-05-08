@@ -136,6 +136,8 @@
 //#include "logic.h"
 //#include <boost/spirit/core.hpp>
 
+#include <boost/math/special_functions/gamma.hpp>
+
 //using namespace std;
 //using namespace boost::spirit::classic;
 using namespace datatrans;
@@ -430,10 +432,10 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 STACK_OP *stackPtr = sqrt(*stackPtr);
                 break;
             case OP_GAMMA:
-                STACK_OP *stackPtr = gammafn(*stackPtr);
+                STACK_OP *stackPtr = boost::math::tgamma(*stackPtr);
                 break;
             case OP_LGAMMA:
-                STACK_OP *stackPtr = lgammafn(*stackPtr);
+                STACK_OP *stackPtr = boost::math::lgamma(*stackPtr);
                 break;
             case OP_EXP:
                 STACK_OP *stackPtr = exp(*stackPtr);
