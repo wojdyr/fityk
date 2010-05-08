@@ -4,7 +4,7 @@ $Id$
 
 * finish powder diffraction add-on (Pawley fitting)
 
-* replace erf.cpp and nmath.cpp with boost.math
+* replace nmath.cpp with boost.math
 
 * command info:
   - "info 12, fit" doesn't work, although "info fit, 12" works.

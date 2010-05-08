@@ -29,16 +29,9 @@ using fityk::ExitRequestedException;
 
 // MS VC++ has no erf, erfc, trunc, snprintf functions
 #ifdef _MSC_VER
-// boost.math requires boost.mpl, we don't keep it in 3rdparty/
-//#include <boost/math/special_functions/erf.hpp>
-//using boost::math::erf
-//using boost::math:erfc
-// erf.c contains public domain implementation of erf and erfc,
-// found in Ruby (missing/erf.c)
-extern "C" {
-    double erf(double x);
-    double erfc(double x);
-}
+#include <boost/math/special_functions/erf.hpp>
+using boost::math::erf
+using boost::math:erfc
 inline double trunc(double a) { return a >= 0 ? floor(a) : ceil(a); }
 #define snprintf sprintf_s
 // disable warning about unsafe sprintf in eS()
