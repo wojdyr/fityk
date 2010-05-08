@@ -8,13 +8,13 @@
 #include "ast.h"
 
 #include <stdlib.h>
-#include <boost/spirit/core.hpp>
+#include <boost/spirit/include/classic_core.hpp>
 #include <boost/spirit/version.hpp>
 #include <algorithm>
 #include <memory>
 
 using namespace std;
-using namespace boost::spirit;
+using namespace boost::spirit::classic;
 
 /// checks if *this depends (directly or indirectly) on variable with index idx
 bool VariableUser::is_dependent_on(int idx,

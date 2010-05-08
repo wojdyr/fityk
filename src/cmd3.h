@@ -13,10 +13,10 @@
 /// this file is included only by datatrans*.cpp
 
 #include "common.h"
-#include <boost/spirit/core.hpp>
+#include <boost/spirit/include/classic_core.hpp>
 
 
-using namespace boost::spirit;
+using namespace boost::spirit::classic;
 
 /// a part of command grammar
 struct Cmd3Grammar : public grammar<Cmd3Grammar>

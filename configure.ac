@@ -107,9 +107,9 @@ AC_CHECK_HEADER(sstream, [], [AC_MSG_ERROR(
  [You don't have a <sstream> header. It is a part of standard C++ library.
   Either you have too old compiler, or standard C++ library can't be found.])])
 
-AC_CHECK_HEADER([boost/spirit/core.hpp], [], [AC_MSG_ERROR(
- [Boost::Spirit headers were not found or your compiler can not compile it.
-  Make sure you have Boost headers installed.
+AC_CHECK_HEADER([boost/spirit/include/classic_core.hpp], [], [AC_MSG_ERROR(
+ [Boost::Spirit headers not found.
+  Make sure you have Boost >= 1.36 installed.
  ])])
 
 AC_LANG_POP([C++]) dnl C is faster than C++

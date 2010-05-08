@@ -6,12 +6,12 @@
 #define FITYK__DATATRANS__H__
 
 
-#include <boost/spirit/core.hpp>
+#include <boost/spirit/include/classic_core.hpp>
 
 #include "common.h"
 #include "data.h" //Point
 
-using namespace boost::spirit;
+using namespace boost::spirit::classic;
 
 class Data;
 

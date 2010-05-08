@@ -137,7 +137,7 @@
 //#include <boost/spirit/core.hpp>
 
 //using namespace std;
-//using namespace boost::spirit;
+//using namespace boost::spirit::classic;
 using namespace datatrans;
 
 //#include "ui.h"

@@ -20,10 +20,10 @@
 #include "numfuncs.h"
 #include "logic.h"
 #include "fityk.h"
-#include <boost/spirit/core.hpp>
+#include <boost/spirit/include/classic_core.hpp>
 
 using namespace std;
-using namespace boost::spirit;
+using namespace boost::spirit::classic;
 
 namespace datatrans {
 

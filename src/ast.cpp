@@ -12,9 +12,8 @@
 // constant-merge (merge identical constants)
 
 
-
-#include <boost/spirit/core.hpp>
-#include <boost/spirit/tree/ast.hpp>
+#include <boost/spirit/include/classic_core.hpp>
+#include <boost/spirit/include/classic_ast.hpp>
 
 #include <sstream>
 #include <string>
@@ -34,7 +33,7 @@
 
 ////////////////////////////////////////////////////////////////////////////
 using namespace std;
-using namespace boost::spirit;
+using namespace boost::spirit::classic;
 
 //typedef char const*         iterator_t;
 //typedef tree_match<iterator_t> parse_tree_match_t;

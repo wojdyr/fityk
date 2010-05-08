@@ -6,13 +6,13 @@
 /// so they must be splitted into separate compilation units
 /// that's the only reason why this file is not a part of cmd.cpp
 
-#include <boost/spirit/core.hpp>
-#include <boost/spirit/actor/assign_actor.hpp>
-#include <boost/spirit/actor/push_back_actor.hpp>
-#include <boost/spirit/actor/clear_actor.hpp>
-#include <boost/spirit/utility/chset.hpp>
-#include <boost/spirit/utility/chset_operators.hpp>
-#include <boost/spirit/utility.hpp>
+#include <boost/spirit/include/classic_core.hpp>
+#include <boost/spirit/include/classic_assign_actor.hpp>
+#include <boost/spirit/include/classic_push_back_actor.hpp>
+#include <boost/spirit/include/classic_clear_actor.hpp>
+#include <boost/spirit/include/classic_chset.hpp>
+#include <boost/spirit/include/classic_chset_operators.hpp>
+#include <boost/spirit/include/classic_utility.hpp>
 
 #include "cmd3.h"
 #include "cmd2.h"

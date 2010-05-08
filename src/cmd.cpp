@@ -2,12 +2,13 @@
 // Licence: GNU General Public License ver. 2+
 // $Id$
 
-#include <boost/spirit/core.hpp>
-#include <boost/spirit/actor/assign_actor.hpp>
-#include <boost/spirit/actor/push_back_actor.hpp>
-#include <boost/spirit/actor/clear_actor.hpp>
-#include <boost/spirit/utility/chset.hpp>
-//#include <boost/spirit/utility/chset_operators.hpp>
+#include <boost/spirit/include/classic_core.hpp>
+#include <boost/spirit/include/classic_assign_actor.hpp>
+#include <boost/spirit/include/classic_push_back_actor.hpp>
+#include <boost/spirit/include/classic_clear_actor.hpp>
+#include <boost/spirit/include/classic_chset.hpp>
+//#include <boost/spirit/include/classic_chset_operators.hpp>
+
 #include <stdlib.h>
 #include <utility>
 #include <algorithm>
@@ -25,7 +26,7 @@
 #include "optional_suffix.h"
 
 using namespace std;
-using namespace boost::spirit;
+using namespace boost::spirit::classic;
 
 using namespace cmdgram;
 

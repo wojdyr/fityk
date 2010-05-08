@@ -6,16 +6,11 @@
 #define FITYK__OPTIONAL_SUFFIX__H
 
 #include <boost/ref.hpp>
-#include <boost/spirit/core/assert.hpp>
-#include <boost/spirit/core/parser.hpp>
+#include <boost/spirit/include/classic_assert.hpp>
+#include <boost/spirit/include/classic_parser.hpp>
+#include <boost/spirit/include/classic_directives.hpp>
 
-// In boost<1.37 composite/impl/directives.ipp was included directly:
-// but since there is no such header in boost 1.37, this was changed
-// to include whole composite/directives.hpp header.
-//#include <boost/spirit/core/composite/impl/directives.ipp>
-#include <boost/spirit/core/composite/directives.hpp>
-
-using namespace boost::spirit;
+using namespace boost::spirit::classic;
 
 template<
     typename RT,
@@ -75,9 +70,9 @@ public:
     optional_suffix_seq_parser(IteratorT base_first_,
                                IteratorT suffix_first_)
     : base_first(base_first_),
-      base_last(boost::spirit::impl::get_last(base_first_)),
+      base_last(boost::spirit::classic::impl::get_last(base_first_)),
       suffix_first(suffix_first_),
-      suffix_last(boost::spirit::impl::get_last(suffix_first_)){}
+      suffix_last(boost::spirit::classic::impl::get_last(suffix_first_)){}
 
     template <typename ScannerT>
     typename parser_result<self_t, ScannerT>::type
@@ -127,7 +122,7 @@ public:
     parse(ScannerT const& scan) const
     {
         typedef typename parser_result<self_t, ScannerT>::type result_t;
-        return boost::spirit::impl::contiguous_parser_parse<result_t>
+        return boost::spirit::classic::impl::contiguous_parser_parse<result_t>
             (seq, scan, scan);
     }
 

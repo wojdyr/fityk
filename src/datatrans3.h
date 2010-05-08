@@ -12,9 +12,9 @@
 ///
 /// this file is included only by datatrans*.cpp
 
-#include <boost/spirit/core.hpp>
+#include <boost/spirit/include/classic_core.hpp>
 
-using namespace boost::spirit;
+using namespace boost::spirit::classic;
 
 /// a part of data expression grammar
 struct DataE2Grammar : public grammar<DataE2Grammar>

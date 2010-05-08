@@ -14,10 +14,10 @@
 
 #include <memory>
 #include <ctype.h>
-#include <boost/spirit/core.hpp>
+#include <boost/spirit/include/classic_core.hpp>
 
 using namespace std;
-using namespace boost::spirit;
+using namespace boost::spirit::classic;
 
 std::vector<fp> Function::calc_val_xx(1);
 std::vector<fp> Function::calc_val_yy(1);

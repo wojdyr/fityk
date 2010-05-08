@@ -15,7 +15,7 @@
 
 #include <stdlib.h>
 #include <ctype.h>
-#include <boost/spirit/core.hpp>
+#include <boost/spirit/include/classic_core.hpp>
 #include <algorithm>
 #include <memory>
 

@@ -5,9 +5,9 @@
 #ifndef FITYK__AST__H__
 #define FITYK__AST__H__
 
-#include <boost/spirit/core.hpp>
-#include <boost/spirit/tree/ast.hpp>
-using namespace boost::spirit;
+#include <boost/spirit/include/classic_core.hpp>
+#include <boost/spirit/include/classic_ast.hpp>
+using namespace boost::spirit::classic;
 
 /// used for functions and variables
 /// there is a different set of opcodes for data transformation
