@@ -208,7 +208,20 @@ define Bleh(a) = Linear(0, a)
 %bleh = Bleh(~{pi})
 i+ Bleh, %bleh
 del %bleh
-#TODO def Foo(a,b,c)= ....formula...
+
+#definitions from the manual
+define MyGaussian(height, center, hwhm) = height*exp(-ln(2)*((x-center)/hwhm)^2)
+define SplitL(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5) =  x < center ? Lorentzian(height, center, hwhm1) : Lorentzian(height, center, hwhm2)
+define ReadShockley(sigma0=1, a=1) = sigma0 * t * (a - ln(t)) where t=x*pi/180
+define FullGBE(k, alpha) = k * alpha * eta * (eta / tanh(eta) - ln (2*sinh(eta))) where eta = 2*pi/alpha * sin(theta/2), theta=x*pi/180
+define MyLorentzian(height, center, hwhm) = height/(1+((x-center)/hwhm)^2)
+define MyCubic(a0=height,a1=0, a2=0, a3=0) = a0 + a1*x + a2*x^2 + a3*x^3
+define SuBeArTiDi(c, s, v0, dv) = c*(s/x)^3*exp(-(((s/x)-v0)/dv)^2)/x
+define GaussianArea(area, center, hwhm) = Gaussian(area/hwhm/sqrt(pi/ln(2)), center, hwhm)
+define GLSum(height, center, hwhm, shape) = Gaussian(height*(1-shape), center, hwhm) + Lorentzian(height*shape, center, hwhm)
+define SplitG(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5) = x < center ? Lorentzian(height, center, hwhm1) : Lorentzian(height, center, hwhm2)
+undefine GaussianArea
+
 
 # commands from script are not stored in commands[], so it can be empty
 # we only use empty ranges, to avoid errors

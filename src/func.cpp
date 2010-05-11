@@ -743,13 +743,14 @@ void check_rhs(string const& rhs, vector<string> const& lhs_vars)
                                            str_p("x") >> "<" >> FuncG >> end_p,
                                            space_p);
         if (!info.full)
-            throw ExecuteError("Syntax error in `if' formula");
+            throw ExecuteError("Syntax error in the the split condition.");
         vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID,
                                                    info);
         for (vector<string>::const_iterator i = vars.begin();
                                                         i != vars.end(); ++i)
             if (!contains_element(lhs_vars, *i))
-                throw ExecuteError("Unexpected parameter in `if': " + *i);
+                throw ExecuteError(
+                        "Unexpected parameter in the condition: " + *i);
     }
     else if (type == kCustom) {
         check_fudf_rhs(rhs, lhs_vars);

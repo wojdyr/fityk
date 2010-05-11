@@ -907,7 +907,7 @@ Examples::
 
     # area-based Gaussian can be defined as modification of built-in Gaussian
     # (it is the same as built-in GaussianA function)
-    define GaussianArea(area, center, hwhm) = Gaussian(area/fwhm/sqrt(pi*ln(2)), center, hwhm)
+    define GaussianArea(area, center, hwhm) = Gaussian(area/hwhm/sqrt(pi/ln(2)), center, hwhm)
 
     # sum of Gaussian and Lorentzian, a.k.a. PseudoVoigt (should be in one line)
     define GLSum(height, center, hwhm, shape) = Gaussian(height*(1-shape), center, hwhm)
