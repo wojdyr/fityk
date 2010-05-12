@@ -633,6 +633,7 @@ size_t get_info_string(Ftk const* F, string const& args, bool full,
     }
     else if (word == "dops") {
         result += get_trans_repr(args.substr(pos));
+        pos = args.size();
     }
     else if (word == "fit") {
         VecDM v = parse_in_data(F, args, pos);
