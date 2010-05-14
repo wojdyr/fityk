@@ -359,13 +359,6 @@ void skip_to_end(vector<int>::const_iterator &i)
         ++i;
 }
 
-vector<int>::const_iterator find_end(vector<int>::const_iterator i)
-{
-    while (*i != OP_END)
-        ++i;
-    return i;
-}
-
 template<typename T>
 fp get_var_with_idx(fp idx, vector<Point> const& points, T Point::*t)
 {

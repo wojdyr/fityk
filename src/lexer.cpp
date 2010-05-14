@@ -34,8 +34,7 @@ string Lexer::get_string(const Token& token)
     }
 }
 
-namespace {
-
+inline
 string get_quoted_string(const Token& token)
 {
     return '"' + Lexer::get_string(token) + '"';
@@ -93,8 +92,6 @@ string token2str(const Token& token)
             assert(!"unexpected token in token2str()");
     }
 }
-
-} // anonymous namespace
 
 void Lexer::read_token()
 {

@@ -107,4 +107,6 @@ private:
     int opened_paren_, opened_square_, opened_curly_;
 };
 
+std::string token2str(const Token& token);
+
 #endif // FITYK__LEXER__H__
