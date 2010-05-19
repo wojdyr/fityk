@@ -65,7 +65,7 @@ of your class:
 
     class FuncFoo : public Function
     {
-    DECLARE_FUNC_OBLIGATORY_METHODS(Foo)
+    DECLARE_FUNC_OBLIGATORY_METHODS(Foo, Function)
 
 If you want to make some calculations every time parameters of the function
 are changed, you can do it in method do_precomputations.
@@ -131,10 +131,10 @@ Write how to calculate the value of the function:
 
 ::
 
-    FUNC_CALCULATE_VALUE_BEGIN(Foo)
+    CALCULATE_VALUE_BEGIN(Foo)
     fp xa1a2 = (x - vv[1]) / vv[2];
     fp inv_denomin = 1. / (1 + xa1a2 * xa1a2);
-    FUNC_CALCULATE_VALUE_END(vv[0] * inv_denomin)
+    CALCULATE_VALUE_END(vv[0] * inv_denomin)
 
 The expression at the end (i.e. vv[0]*inv_denomin) is the calculated value.
 xa1xa2 and inv_denomin are variables introduced to simplify the
@@ -146,7 +146,7 @@ Usually it is more difficult to calculate derivatives:
 
 ::
 
-    FUNC_CALCULATE_VALUE_DERIV_BEGIN(Foo)
+    CALCULATE_DERIV_BEGIN(Foo)
     fp xa1a2 = (x - vv[1]) / vv[2];
     fp inv_denomin = 1. / (1 + xa1a2 * xa1a2);
     dy_dv[0] = inv_denomin;
@@ -154,7 +154,7 @@ Usually it is more difficult to calculate derivatives:
     dy_dv[1] = dcenter;
     dy_dv[2] = dcenter * xa1a2;
     dy_dx = -dcenter;
-    FUNC_CALCULATE_VALUE_DERIV_END(vv[0] * inv_denomin)
+    CALCULATE_DERIV_END(vv[0] * inv_denomin)
 
 You must set derivatives
 dy_dv[n] for n=0,1,...,(number of parameters of your function - 1)
