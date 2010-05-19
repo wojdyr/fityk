@@ -350,20 +350,6 @@ or ::
 
 and created simply by increasing the value of ``M``.
 
-There are two parametrized functions: ``spline`` and ``interpolate``.
-The general syntax is::
-
-   parametrizedfunc [param1, param2](expression)
-
-e.g. ::
-
-   spline[22.1, 37.9, 48.1, 17.2, 93.0, 20.7](x)
-
-will give the value of a *cubic spline interpolation* through points
-(22.1, 37.9), (48.1, 17.2), ... in x.
-Spline function is used for manual background subtraction via the GUI.
-Function ``interpolate`` is similar, but gives a *polyline interpolation*.
-
 There are also aggregate functions:
 
 - ``min`` (the smallest value),
@@ -437,17 +423,41 @@ A few examples::
 Functions and variables in data transformation
 ----------------------------------------------
 
-information in this section are not often used in practice.
-Read it after reading :ref:`model`.
+You may postpone reading this section and read about the :ref:`model` first.
 
 Variables ($foo) and functions (%bar) can be used in data transformations,
-and a current value of data expression can be assigned to a variable.
+e.g.::
+
+    Y = y / $foo  # divides all y's by $foo
+    Y = y - %f(x) # subtracts function %f from data
+    Y = y - @0.F(x) # subtracts all functions in F
+
+    # Fit constant x-correction (e.g. a shift in the scale of the instrument
+    # collecting data), correct the data and remove the correction from the model.
+    Z = Constant(~0)
+    fit
+    X = x + @0.Z(x) # data transformation is here
+    Z = 0
+
+In the *Baseline Mode* in the GUI, functions ``Spline()`` and ``Polyline()``
+are used to substract background, that have been manually marked by the user.
+Clicking ``Strip background`` results in a commands like this::
+
+    %bg0 = Spline(14.2979,62.1253, 39.5695,35.0676, 148.553,49.9493)
+    Y = y - %bg0(x)
+
+.. note:: The GUI uses functions named ``%bgX``, where *X* is the index of the
+          dataset, and the type of the function is either ``Spline``
+          or ``Polyline``, to handle the baseline. This allows user to set
+          the function manually (or in a script) and then edit the baseline
+          in the *Baseline Mode*.
+
 Values of the function parameters (e.g. ``%fun.a0``) and pseudo-parameters
 Center, Height, FWHM and Area (e.g. ``%fun.Area``) can also be used.
 Pseudo-parameters are supported only by functions, which know
 how to calculate these properties.
 
-It is possible to calculate some properties of %functions:
+It is also possible to calculate some properties of %functions:
 
 - ``numarea(%f, x1, x2, n)`` gives area integrated numerically
   from *x1* to *x2* using trapezoidal rule with *n* equal steps.
@@ -462,18 +472,9 @@ It is possible to calculate some properties of %functions:
 
 A few examples::
 
-    $foo = {y[0]} # data expression can be used in variable assignment
-    $foo2 = {y[0] in @0}  # dataset can be given if necessary
-    Y = y / $foo  # and variables can be used in data transformation
-    Y = y - %f(x) # subtracts function %f from data
-    Y = y - @0.F(x) # subtracts all functions in F
-    Z += Constant(~0)  # fit constant x-correction (this can be caused...
-    fit                # ...by a shift in scale of the instrument collecting data),
-    X = x + @0.Z(x)  # ...remove it from the dataset,
-    Z = 0            # ...and clear the x-correction in the model
     info numarea(%fun, 0, 100, 10000) # shows area of function %fun
-    info %fun.Area  # it is not always supported
     info %_1(extremum(%_1, 40, 50)) # shows extremum value
+    
     # calculate FWHM numerically, value 50 can be tuned
     $c = {%f.Center}
     i findx(%f, $c, $c+50, %f.Height/2) - findx(%f, $c, $c-50, %f.Height/2)
@@ -697,12 +698,14 @@ and the functions
 This is a subset of the functions used in
 :ref:`data transformations <transform>`.
 
-Variables can be used in data tranformations,
-e.g. ``Y=y/$a``.
+The value of the data expression can be used in the variable definition.
+The expression must be in braces, e.g. ``$bleh={3+5}``.
+The *simple variable* can be created by preceding the left brace
+with the tilde (``$bleh=~{3+5}``). A few examples::
 
-The value of the data expression can be used in the variable definition,
-but it must be inside braces, e.g. ``$bleh={3+5}``
-or, to create a simple variable: ``$bleh=~{3+5}``.
+    $foo = {y[0]}
+    $foo2 = {y[0] in @0}  # dataset can be given if necessary
+    $foo3 = {min(y if a) in @0}
 
 Sometimes it is useful to freeze a variable, i.e. to prevent it from
 changing while fitting. There is no special syntax for it,
@@ -803,6 +806,26 @@ in this manner::
 Functions can be deleted using the command::
 
    delete %function
+
+Variadic functions
+------------------
+
+*Variadic* function types have variable number of parameters.
+Two variadic function types are defined::
+    Spline(x1, y1, x2, y2, ...)
+    Polyline(x1, y1, x2, y2, ...)
+
+For example ``%f``::
+
+    %f = Spline(22.1, 37.9, 48.1, 17.2, 93.0, 20.7)
+
+is the *cubic spline interpolation* through points
+(22.1, 37.9), (48.1, 17.2), ....
+
+The ``Polyline`` function is similar, but gives the *polyline interpolation*.
+
+Both ``Spline`` and ``Polyline`` functions are primarily used
+for the manual baseline subtraction via the GUI.
 
 .. _udf:
 

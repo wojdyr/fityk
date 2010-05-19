@@ -81,11 +81,6 @@ enum DataTransformVMOperator
     OP_FUNC, OP_SUM_F, OP_SUM_Z, OP_NUMAREA, OP_FINDX, OP_FIND_EXTR
 };
 
-/// parametrized functions
-enum {
-    PF_INTERPOLATE, PF_SPLINE
-};
-
 }
 
 int get_op_priority(int op)

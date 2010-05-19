@@ -64,12 +64,6 @@
 //functions: sqrt exp log10 ln sin cos tan atan asin acos abs min2 max2 round
 // boolean: AND, OR, >, >=, <, <=, = (or ==), != (or <>), TRUE, FALSE, NOT
 //
-//parametrized functions: spline, interpolate //TODO->polyline
-// The general syntax is: pfunc[param1, param2,...](expression),
-//  eg. spline[22.1, 37.9, 48.1, 17.2, 93.0, 20.7](x)
-// spline - cubic spline interpolation, parameters are x1, y1, x2, y2, ...
-// interpolate - polyline interpolation, parameters are x1, y1, x2, y2, ...
-//
 // All computations are performed using real numbers, but using round for
 // comparisions should not be neccessary. Two numbers that differ less
 // than epsilon (see: common.h) ie. abs(a-b)<epsilon, are considered equal.
@@ -291,7 +285,6 @@ string dt_op(int op)
     OP_(DO_ONCE) OP_(RESIZE) OP_(ORDER) OP_(DELETE) OP_(BEGIN) OP_(END)
     OP_(END_AGGREGATE) OP_(AGCONDITION)
     OP_(AGSUM) OP_(AGMIN) OP_(AGMAX) OP_(AGAREA) OP_(AGAVG) OP_(AGSTDDEV)
-    OP_(PARAMETERIZED) OP_(PLIST_BEGIN) OP_(PLIST_SEP) OP_(PLIST_END)
     OP_(FUNC) OP_(SUM_F) OP_(SUM_Z) OP_(NUMAREA) OP_(FINDX) OP_(FIND_EXTR)
     return S(op);
 };
@@ -317,10 +310,6 @@ string get_code_as_text(vector<int> const& code, vector<fp> const& numbers)
             ++i;
             txt += "(" + S(numbers[*i]) + ")";
         }
-        if (*i == OP_PARAMETERIZED && i+1 != code.end()) {
-            ++i;
-            txt += "[" + S(*i) + "]";
-        }
     }
     return txt;
 }
@@ -328,7 +317,6 @@ string get_code_as_text(vector<int> const& code, vector<fp> const& numbers)
 
 vector<int> code;        //  VM code
 vector<fp> numbers;  //  VM data (numeric values)
-vector<ParameterizedFunction*> parameterized; // also used by VM
 const int stack_size = 128;  //should be enough,
                               //there are no checks for stack overflow
 
@@ -336,8 +324,6 @@ void clear_parse_vecs()
 {
     code.clear();
     numbers.clear();
-    //TODO shared_ptr
-    purge_all_elements(parameterized);
 }
 
 vector<int>::const_iterator
@@ -549,11 +535,6 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                                        "Does anyone need it?");
                 break;
 #endif //not STANDALONE_DATATRANS
-
-            case OP_PARAMETERIZED:
-                i++;
-                STACK_OP *stackPtr = parameterized[*i]->calculate(*stackPtr);
-                break;
 
             //binary-operators
             case OP_MIN2:
@@ -935,9 +916,6 @@ void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
 {
     vector<fp> stack(stack_size);
     int M = (int) new_points.size();
-    for (vector<ParameterizedFunction*>::iterator i = parameterized.begin();
-            i != parameterized.end(); ++i)
-        (*i)->prepare_parameters(old_points);
     replace_aggregates(M, old_points, code, code.begin());
     // first execute one-time operations: sorting, x[15]=3, etc.
     // n==M => one-time op.
@@ -970,18 +948,7 @@ string get_trans_repr(string const& s)
         r = compile_data_expression(s);
     if (!r)
         return "ERROR";
-    string txt = get_code_as_text(code, numbers);
-    for (size_t i = 0; i != parameterized.size(); ++i) {
-        ParameterizedFunction *p = parameterized[i];
-        txt += "\n P" + S(i) + ":" + p->get_name() + "["
-            + join_vector(p->get_params(), ", ") + "]";
-        map<int, vector<int> > const& pc = p->get_pcodes();
-        for (map<int, vector<int> >::const_iterator j = pc.begin();
-                j != pc.end(); ++j)
-            txt += "\n   a[" + S(j->first) + "] <- "
-                + get_code_as_text(j->second, numbers);
-    }
-    return txt;
+    return get_code_as_text(code, numbers);
 }
 
 bool compile_data_transformation(string const& str)
@@ -1044,9 +1011,6 @@ fp get_transform_expr_value(vector<int>& code_, vector<Point> const& points)
     static vector<fp> stack(stack_size);
     int M = (int) points.size();
     vector<Point> new_points = points;
-    for (vector<int>::const_iterator i = code_.begin(); i != code_.end(); ++i)
-        if (*i == OP_PARAMETERIZED)
-            parameterized[*(i+1)]->prepare_parameters(points);
     replace_aggregates(M, points, code_, code_.begin());
     // n==M => one-time op.
     bool t = execute_code(M, M, stack, points, new_points, code_);
@@ -1062,9 +1026,8 @@ bool get_dt_code(string const& s, vector<int>& code_, vector<fp>& numbers_)
         return false;
 
     for (vector<int>::iterator i = code.begin(); i != code.end(); ++i)
-        if (*i == OP_PARAMETERIZED
-                || *i == OP_AGMIN || *i == OP_AGMAX || *i == OP_AGSUM
-                || *i == OP_AGAREA || *i == OP_AGAVG || *i == OP_AGSTDDEV)
+        if (*i == OP_AGMIN || *i == OP_AGMAX || *i == OP_AGSUM ||
+                *i == OP_AGAREA || *i == OP_AGAVG || *i == OP_AGSTDDEV)
             return false;
     code_ = code;
     numbers_ = numbers;
@@ -1097,9 +1060,6 @@ vector<fp> get_all_point_expressions(string const &s, Data const* data,
     int M = (int) points.size();
     vector<Point> new_points = points;
     vector<fp> stack(stack_size);
-    for (vector<ParameterizedFunction*>::iterator i = parameterized.begin();
-            i != parameterized.end(); ++i)
-        (*i)->prepare_parameters(points);
     replace_aggregates(M, points, code, code.begin());
     for (int i = 0; i < M; ++i) {
         if (only_active && !points[i].is_active)

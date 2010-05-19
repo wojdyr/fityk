@@ -200,12 +200,13 @@ $Id$
        - use wxDataViewCtrl instead of wxListCtrl
        - no extra dialog for adding transformation
        - remove "description" field, use comments in "code" instead
-   
   - use wxDataViewCtrl for the lists at the sidebar,
     refactor ListWithColors::populate(), add sorting by clicking on column 
     header (use case: sort functions by centers)
   - use wxToggleBitmapButton buttons on sidebar>functions (buttons that make 
     hwhm and shape equal for all functions)
+
+  Writing Qt GUI is also considered.
 
 -------  Ideas for people, who would like to contribute:  -----------
 

@@ -44,13 +44,6 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
 #endif //not STANDALONE_DATATRANS
         ;
 
-    parameterized_args
-        =  ch_p('[') [push_op(OP_PLIST_BEGIN)]
-            >> DataExpressionG % ch_p(',')[push_op(OP_PLIST_SEP)]
-                >>  ch_p(']') [push_op(OP_PLIST_END)]
-                    >> '(' >> DataExpressionG >> ')'
-        ;
-
     real_variable
         =  ("x" >> index) [push_op(OP_VAR_x)]
         |  ("y" >> index) [push_op(OP_VAR_y)]
@@ -88,10 +81,6 @@ DataE2Grammar::definition<ScannerT>::definition(DataE2Grammar const& /*self*/)
             >> aggregate_arg
         |   as_lower_d["darea"] [push_op(OP_AGAREA)]
             >> aggregate_arg
-        |   (as_lower_d["interpolate"] >> parameterized_args)
-                                          [parameterized_op(PF_INTERPOLATE)]
-        |   (as_lower_d["spline"] >> parameterized_args)
-                                          [parameterized_op(PF_SPLINE)]
         |   real_variable   //"s" is checked after "sin" and "sqrt"
         ;
 }

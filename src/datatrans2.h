@@ -27,40 +27,8 @@ using namespace boost::spirit::classic;
 
 namespace datatrans {
 
-/// used in data expressions, a base class for eg. SplineFunction
-class ParameterizedFunction
-{
-public:
-    ParameterizedFunction(std::vector<fp> const& params_,
-                          std::map<int, std::vector<int> > const& pcodes_)
-        : params(params_), pcodes(pcodes_) {}
-    virtual ~ParameterizedFunction() {}
-    virtual fp calculate(fp x) = 0;
-
-    /// The parameters can be also given as expressions. In such a case,
-    /// the code for n-th parameter is stored in pcodes[n], and params[n]
-    /// is initially 0 and prepare_parameters() must be called before
-    /// calling calculate().
-    void prepare_parameters(std::vector<Point> const& points);
-
-    // name of the function -- for debugging
-    virtual const char *get_name() const = 0;
-    vector<fp> const& get_params() const { return params; }
-    std::map<int, std::vector<int> >const& get_pcodes() const { return pcodes; }
-protected:
-    /// parameters of the function (given in [])
-    std::vector<fp> params;
-    /// codes for parameters, if not just simple numbers
-    std::map<int, std::vector<int> > pcodes;
-
-    /// called by prepare_parameters(), no need to call it explicitely
-    virtual void do_prepare() = 0;
-};
-
-
 extern vector<int> code;        //  VM code
 extern vector<fp> numbers;  //  VM data
-extern vector<ParameterizedFunction*> parameterized; // also used by VM
 extern const int stack_size;  //should be enough,
                               //there are no checks for stack overflow
 
@@ -98,13 +66,7 @@ enum DataTransformVMOperator
     OP_DO_ONCE, OP_RESIZE, OP_ORDER, OP_DELETE, OP_BEGIN, OP_END,
     OP_END_AGGREGATE, OP_AGCONDITION,
     OP_AGSUM, OP_AGMIN, OP_AGMAX, OP_AGAREA, OP_AGAVG, OP_AGSTDDEV,
-    OP_PARAMETERIZED, OP_PLIST_BEGIN, OP_PLIST_SEP, OP_PLIST_END,
     OP_FUNC, OP_SUM_F, OP_SUM_Z, OP_NUMAREA, OP_FINDX, OP_FIND_EXTR
-};
-
-/// parametrized functions
-enum {
-    PF_INTERPOLATE, PF_SPLINE
 };
 
 //-- functors used in the grammar for putting VM code and data into vectors --
@@ -159,19 +121,6 @@ inline void push_neg_op(char const*, char const*)
     else
         code.push_back(OP_NEG);
 }
-
-
-struct parameterized_op
-{
-    parameterized_op(int op_) : op(op_) {}
-
-    void push() const;
-    void operator()(char const*, char const*) const { push(); }
-    void operator()(char) const { push(); }
-
-    int op;
-};
-
 
 } //namespace
 
