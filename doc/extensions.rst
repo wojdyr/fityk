@@ -119,7 +119,7 @@ Write the function formula in this way:
 
 ::
 
-    const char \*FuncFoo::formula
+    const char *FuncFoo::formula
     = "Foo(height, center, hwhm) = height/(1+((x-center)/hwhm)^2)";
 
 The syntax of the formula is the similar as that of

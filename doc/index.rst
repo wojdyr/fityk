@@ -44,8 +44,7 @@ Download
 
 * **Source code**: :sf-download-source:`.tar.bz2`
 * **MS Windows** Installer: :sf-download-msw:`.exe`
-* Fresh **Linux RPMs** `from OBS <http://download.opensuse.org/repositories/home://wojdyr/>`_.
-  Good Linux distros and FreeBSD ports also have fityk packaged.
+* Fresh **Linux RPMs** from OBS_, **DEBs** from PPA_ or debian-xray_
 
 * **MacOSX**: see details :wiki:`here <MacOSX>`.
 
@@ -57,6 +56,10 @@ Download
 
 * The latest code:
   ``svn co https://fityk.svn.sourceforge.net/svnroot/fityk/trunk fityk``
+
+.. _OBS: http://download.opensuse.org/repositories/home://wojdyr/
+.. _PPA: https://launchpad.net/~wojdyr/+archive/fityk
+.. _debian-xray: http://debian-xray.iit.edu/
 
 New version **notifications** from FreshMeat:
 `emails <http://freshmeat.net/projects/fityk/>`_ or
