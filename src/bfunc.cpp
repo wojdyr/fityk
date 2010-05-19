@@ -1021,3 +1021,26 @@ CALCULATE_DERIV_END(t)
 
 ///////////////////////////////////////////////////////////////////////
 
+const char *FuncPolyline::formula
+= "Polyline() = linear interpolation #";
+
+void FuncPolyline::more_precomputations()
+{
+    q_.resize(nv() / 2);
+    for (size_t i = 0; i < q_.size(); ++i) {
+        q_[i].x = vv[2*i];
+        q_[i].y = vv[2*i+1];
+    }
+}
+
+CALCULATE_VALUE_BEGIN(FuncPolyline)
+    fp t = get_linear_interpolation(q_, x);
+CALCULATE_VALUE_END(t)
+
+CALCULATE_DERIV_BEGIN(FuncPolyline)
+    dy_dx = 0; // unused
+    fp t = get_linear_interpolation(q_, x);
+CALCULATE_DERIV_END(t)
+
+///////////////////////////////////////////////////////////////////////
+

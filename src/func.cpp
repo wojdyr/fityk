@@ -181,6 +181,7 @@ Function* Function::factory (Ftk const* F,
     FACTORY_FUNC(PielaszekCube)
     FACTORY_FUNC(LogNormal)
     FACTORY_FUNC(Spline)
+    FACTORY_FUNC(Polyline)
 
     else if (UdfContainer::is_defined(type_name)) {
         UdfContainer::UDF const* udf = UdfContainer::get_udf(type_name);
@@ -222,7 +223,8 @@ const char* builtin_formulas[] = {
     FuncDoniachSunjic::formula,
     FuncPielaszekCube::formula,
     FuncLogNormal::formula,
-    FuncSpline::formula
+    FuncSpline::formula,
+    FuncPolyline::formula
 };
 
 vector<string> Function::get_all_types()

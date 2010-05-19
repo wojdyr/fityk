@@ -72,7 +72,8 @@ string VariableManager::get_or_make_variable(string const& func)
                    >> '.' >>
                    lexeme_d[alpha_p >> *(alnum_p|'_')][assign_a(tmp2)]
                   ).full) {                     // %bar.bleh
-        ret = F->find_function_any(tmp1)->get_param_varname(tmp2);
+        const Function* f = F->find_function_any(tmp1);
+        ret = f->get_var_name(f->get_param_nr(tmp2));
     }
     else                                       // anything else
         ret = assign_variable("", func);

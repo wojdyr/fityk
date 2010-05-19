@@ -1765,7 +1765,7 @@ void FFrame::update_toolbar()
     if (!toolbar)
         return;
     BgManager* bgm = plot_pane->get_bg_manager();
-    toolbar->ToggleTool(ID_ft_b_strip, bgm->has_fn() && bgm->get_stripped());
+    toolbar->ToggleTool(ID_ft_b_strip, bgm->has_fn() && bgm->stripped());
     toolbar->EnableTool(ID_ft_f_run, !ftk->get_parameters().empty());
     toolbar->EnableTool(ID_ft_f_undo, ftk->get_fit_container()->can_undo());
     toolbar->EnableTool(ID_ft_v_pr, !plot_pane->get_zoom_hist().empty());

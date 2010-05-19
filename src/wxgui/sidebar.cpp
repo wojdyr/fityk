@@ -334,6 +334,8 @@ void SideBar::OnDataButtonCopyF (wxCommandEvent&)
     if (!ftk->get_model(n)->get_zz_names().empty()
             || !ftk->get_model(n+1)->get_zz_names().empty())
         cmd += "; @" + S(n+1) + ".Z=copy(@" + S(n) + ".Z)";
+    if (ftk->find_function_nr("bg" + S(n)) != -1)
+        cmd += "; %bg" + S(n+1) + "=copy(%bg" + S(n) + ")";
     update_data_buttons();
     ftk->exec(cmd);
 }

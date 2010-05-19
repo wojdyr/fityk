@@ -63,7 +63,7 @@ public:
     void set_as_convex_hull();
     std::vector<int> calculate_bgline(int window_width, Scale const& y_scale);
     std::vector<PointQ> const& get_bg() const { return bg_; }
-    bool get_stripped() const;
+    bool stripped() const;
 
 protected:
     Scale const& x_scale_;

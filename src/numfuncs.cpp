@@ -9,11 +9,15 @@
 
 using namespace std;
 
-vector<PointQ>::iterator
-get_interpolation_segment(vector<PointQ> &bb,  fp x)
+/// returns position pos in sorted vector of points, *pos and *(pos+1) are
+/// required segment for interpolation
+/// optimized for sequenced calling with slowly increasing x's
+template<typename T>
+typename vector<T>::iterator
+get_interpolation_segment(vector<T> &bb,  fp x)
 {
     //optimized for sequence of x = x1, x2, x3, x1 < x2 < x3...
-    static vector<PointQ>::iterator pos = bb.begin();
+    static typename vector<T>::iterator pos = bb.begin();
     assert (size(bb) > 1);
     if (x <= bb.front().x)
         return bb.begin();
@@ -31,7 +35,7 @@ get_interpolation_segment(vector<PointQ> &bb,  fp x)
         if (pos->x <= x && (pos+1 == bb.end() || x <= (pos+1)->x))
             return pos;
     }
-    pos = lower_bound(bb.begin(), bb.end(), PointQ(x, 0)) - 1;
+    pos = lower_bound(bb.begin(), bb.end(), T(x, 0)) - 1;
     // pos >= bb.begin() because x > bb.front().x
     return pos;
 }
@@ -77,15 +81,26 @@ fp get_spline_interpolation(vector<PointQ> &bb, fp x)
     return t;
 }
 
-fp get_linear_interpolation(vector<PointQ> &bb, fp x)
+template <typename T>
+fp get_linear_interpolation_(vector<T> &bb, fp x)
 {
     if (bb.empty())
         return 0.;
     if (bb.size() == 1)
         return bb[0].y;
-    vector<PointQ>::iterator pos = get_interpolation_segment(bb, x);
+    typename vector<T>::iterator pos = get_interpolation_segment(bb, x);
     fp a = ((pos + 1)->y - pos->y) / ((pos + 1)->x - pos->x);
     return pos->y + a * (x  - pos->x);
+}
+
+fp get_linear_interpolation(vector<PointQ> &bb, fp x)
+{
+    return get_linear_interpolation_(bb, x);
+}
+
+fp get_linear_interpolation(vector<PointD> &bb, fp x)
+{
+    return get_linear_interpolation_(bb, x);
 }
 
 
@@ -129,7 +144,7 @@ fp rand_cauchy()
 }
 
 
-void SimplePolylineConvex::push_point(Point const& p)
+void SimplePolylineConvex::push_point(PointD const& p)
 {
     if (vertices_.size() < 2
             || is_left(*(vertices_.end() - 2), *(vertices_.end() - 1), p))

@@ -116,8 +116,6 @@ public:
     std::string const& get_param(int n) const { return type_params[n]; }
     int get_param_nr(std::string const& param) const;
     int get_param_nr_nothrow(std::string const& param) const;
-    std::string get_param_varname(std::string const& param) const
-                                { return get_var_name(get_param_nr(param)); }
     fp get_param_value(std::string const& param) const;
     /// similar to get_param_value(), but doesn't throw exceptions and doesn't
     /// search for pseudo-parameters

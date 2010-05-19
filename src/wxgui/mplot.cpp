@@ -783,8 +783,6 @@ void MainPlot::set_mouse_mode(MouseModeEnum m)
     set_cursor();
     if (old == mmd_bg)
         bgm.define_bg_func();
-    if (mode == mmd_bg)
-        bgm.bg_from_func();
     if (old == mmd_bg || mode == mmd_bg
                         || visible_peaktops(old) != visible_peaktops(mode))
         refresh();
@@ -1769,6 +1767,7 @@ void BgManager::update_focused_data(int idx)
     define_bg_func();
     data_idx_ = idx;
     bg_from_func();
+    frame->update_toolbar();
 }
 
 string BgManager::get_bg_name() const
@@ -1782,13 +1781,17 @@ void BgManager::set_stripped(bool value)
     stripped_[data_idx_] = value;
 }
 
-bool BgManager::get_stripped() const
+bool BgManager::stripped() const
 {
-    return data_idx_ < (int) stripped_.size() && stripped_[data_idx_];
+    return is_index(data_idx_, stripped_) && stripped_[data_idx_];
 }
 
 void BgManager::bg_from_func()
 {
+    if (data_idx_ == -1 || stripped()) {
+        bg_.clear();
+        return;
+    }
     string name = get_bg_name();
     int nr = ftk->find_function_nr(name);
     if (nr == -1) {
@@ -1812,7 +1815,7 @@ void BgManager::add_background_point(fp x, fp y)
 {
     if (bg_.empty() && ftk->find_function_nr(get_bg_name()) >= 0) {
         int r = wxMessageBox(wxT("Function %") + s2wx(get_bg_name())
-                             + wxT("already exists\n")
+                             + wxT(" already exists\n")
                              wxT("and your actions may overwrite it.\n")
                              wxT("Continue?"),
                              wxT("Start a new background?"),
@@ -1855,8 +1858,33 @@ void BgManager::define_bg_func()
 {
     if (bg_.empty())
         return;
-    string cmd = "%" + get_bg_name() + " = "
-                 + (spline_ ? "Spline(" : "Interpolate(");
+
+    string name = get_bg_name();
+    string ftype = (spline_ ? "Spline" : "Polyline");
+
+    // if the function already exists and if it's exactly the same, return
+    int nr = ftk->find_function_nr(name);
+    if (nr != -1) {
+        const Function *f = ftk->get_function(nr);
+        if (f->type_name == ftype && f->nv() == 2 * (int) bg_.size()) {
+            bool the_same = true;
+            for (size_t i = 0; i != bg_.size(); ++i) {
+                const Variable *vx = ftk->find_variable(f->get_var_name(2*i));
+                const Variable *vy = ftk->find_variable(f->get_var_name(2*i+1));
+                if (!vx->is_auto_delete() || !vx->is_constant() ||
+                        S(vx->get_value()) != S(bg_[i].x) ||
+                    !vy->is_auto_delete() || !vy->is_constant() ||
+                        S(vy->get_value()) != S(bg_[i].y)) {
+                    the_same = false;
+                    break;
+                }
+            }
+            if (the_same)
+                return;
+        }
+    }
+
+    string cmd = "%" + name + " = " + ftype + "(";
     for (vector<PointQ>::const_iterator i = bg_.begin(); i != bg_.end(); i++)
         cmd += S(i->x) + "," + S(i->y) + (i+1 == bg_.end() ? ")" : ", ");
     ftk->exec(cmd);
@@ -1870,7 +1898,6 @@ void BgManager::strip_background()
     bg_.clear();
     set_stripped(true);
     ftk->exec("Y = y - %" + get_bg_name() + "(x)" + frame->get_in_datasets());
-    //frame->update_toolbar();
 }
 
 void BgManager::add_background()
@@ -1904,7 +1931,7 @@ void BgManager::set_as_convex_hull()
     const Data* data = ftk->get_data(data_idx_);
     for (int i = 0; i < data->get_n(); ++i)
         convex.push_point(data->get_x(i), data->get_y(i));
-    vector<SimplePolylineConvex::Point> const& vertices = convex.get_vertices();
+    vector<PointD> const& vertices = convex.get_vertices();
     bg_.resize(vertices.size());
     for (size_t i = 0; i != bg_.size(); ++i) {
         bg_[i].x = vertices[i].x;

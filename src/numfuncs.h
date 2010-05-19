@@ -9,6 +9,15 @@
 #include "common.h"
 
 
+struct PointD
+{
+    fp x, y;
+    PointD() {}
+    PointD(fp x_, fp y_) : x(x_), y(y_) {}
+    bool operator< (const PointD& b) const { return x < b.x; }
+};
+
+
 /// Points used for parametrized functions. They have q parameter, that
 /// is used for cubic spline computation
 struct PointQ
@@ -17,17 +26,8 @@ struct PointQ
     fp q; /* q is used for spline */
     PointQ() {}
     PointQ(fp x_, fp y_) : x(x_), y(y_) {}
+    bool operator< (const PointQ& b) const { return x < b.x; }
 };
-
-inline bool operator< (const PointQ& p, const PointQ& q)
-{ return p.x < q.x; }
-
-
-/// returns position pos in sorted vector of points, *pos and *(pos+1) are
-/// required segment for interpolation
-/// optimized for sequenced calling with slowly increasing x's
-std::vector<PointQ>::iterator
-get_interpolation_segment(std::vector<PointQ> &bb, fp x);
 
 /// must be run before computing value of cubic spline in point x
 /// results are written in PointQ::q
@@ -35,6 +35,8 @@ get_interpolation_segment(std::vector<PointQ> &bb, fp x);
 void prepare_spline_interpolation (std::vector<PointQ> &bb);
 
 fp get_spline_interpolation(std::vector<PointQ> &bb, fp x);
+
+fp get_linear_interpolation(std::vector<PointD> &bb, fp x);
 fp get_linear_interpolation(std::vector<PointQ> &bb, fp x);
 
 // random number utilities
@@ -52,16 +54,15 @@ fp rand_cauchy();
 class SimplePolylineConvex
 {
 public:
-    struct Point { double x, y; };
-    void push_point(double x, double y) { Point p = {x, y}; push_point(p); }
-    void push_point(Point const& p);
-    std::vector<Point> const& get_vertices() const { return vertices_; }
+    void push_point(double x, double y) { push_point(PointD(x, y)); }
+    void push_point(PointD const& p);
+    std::vector<PointD> const& get_vertices() const { return vertices_; }
     // test if point p2 left of the line through p0 and p1
-    static bool is_left(Point const& p0, Point const& p1, Point const& p2)
+    static bool is_left(PointD const& p0, PointD const& p1, PointD const& p2)
         { return (p1.x - p0.x)*(p2.y - p0.y) > (p2.x - p0.x)*(p1.y - p0.y); }
 
 private:
-    std::vector<Point> vertices_;
+    std::vector<PointD> vertices_;
 };
 
 #endif

@@ -228,5 +228,13 @@ private:
     mutable std::vector<PointQ> q_;
 };
 
+class FuncPolyline : public VarArgFunction
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(Polyline, VarArgFunction)
+    void more_precomputations();
+private:
+    mutable std::vector<PointD> q_;
+};
+
 
 #endif

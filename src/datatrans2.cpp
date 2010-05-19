@@ -36,7 +36,7 @@ public:
 
     void do_prepare() {
         for (int i = 0; i < size(params) - 1; i += 2)
-            bb.push_back(PointQ(params[i], params[i+1]));
+            bb.push_back(PointD(params[i], params[i+1]));
     }
 
     fp calculate(fp x) { return get_linear_interpolation(bb, x); }
@@ -44,7 +44,7 @@ public:
     const char *get_name() const { return "interpolate"; }
 
 private:
-    std::vector<PointQ> bb;
+    std::vector<PointD> bb;
 };
 
 
@@ -186,7 +186,8 @@ void push_func_param::operator()(char const* a, char const* b) const
         if (!islower(pstr[0]))
             throw ExecuteError("Errors of pseudo-parameters (" + pstr
                                + ") can not be accessed. ");
-        Variable const* var = AL->find_variable(f->get_param_varname(pstr));
+        string varname = f->get_var_name(f->get_param_nr(pstr));
+        Variable const* var = AL->find_variable(varname);
         value = AL->get_fit_container()->get_standard_error(var);
     }
     push_double::operator()(value);
