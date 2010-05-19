@@ -19,12 +19,12 @@ set verbosity = verbose
 # predefined data transformations
 M=500
 x=n/100
-M=500; x=n/100; y=sin(x); s=1 
+M=500; x=n/100; y=sin(x); s=1
 Y[1...] = Y[n-1] + y[n];S = sqrt(max2(1,y))
 Y[...-1] = (y[n+1]-y[n])/(x[n+1]-x[n]);X[...-1] = (x[n+1]+x[n])/2
 M=M-1;S = sqrt(max2(1,y))
 S = s / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0);
-Y = y / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0) 	   
+Y = y / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0)
 X[...-1] = (x[n]+x[n+1])/2;Y[...-1] = y[n]+y[n+1];
 S[...-1] = sqrt(s[n]^2+s[n]^2); delete(n%2==1)
 Y=max2(y,0)
@@ -67,20 +67,20 @@ guess Gaussian
 plot in @0
 sleep 0.3
 %lo = guess LorentzianA [38:44]
-%pe = Pearson7(height=~1901, center=~75.313, hwhm=~1/2, shape=2.4) 
-F += %pe  	 
+%pe = Pearson7(height=~1901, center=~75.313, hwhm=~1/2, shape=2.4)
+F += %pe
 %ble = copy(%pe)
 dele %pe
-F += Pearson7(~2000, ~75, ~0.6, ~2) 
+F += Pearson7(~2000, ~75, ~0.6, ~2)
 fit 2 in @0
 fit+ 15
 with fitting-method=Nelder-Mead-simplex fit 10
 with fitting-method=Genetic-Algorithms fit 10
 %fun = copy(%_1)
 i+ %ble, %lo
-$a = %ble.shape   
-$a = %ble.shape + %lo.hwhm 
-$b = ~{%ble.shape} + {%lo.hwhm} 
+$a = %ble.shape
+$a = %ble.shape + %lo.hwhm
+$b = ~{%ble.shape} + {%lo.hwhm}
 $abc = F[0].hwhm + 1
 $abc = {F[0].hwhm + 0.1}
 @0.F[0].hwhm = $abc
@@ -88,14 +88,14 @@ F.hwhm = $abc
 F.hwhm = ~{F[0].hwhm + 0.1}
 %lo_cp = copy(@0.F[1])
 del %lo_cp
-fit 
-fit history 0 
-fit h -1 
-f u 
+fit
+fit history 0
+fit h -1
+f u
 f redo
 fi undo
 fi re
-fit history clear 
+fit history clear
 
 
 info version
@@ -159,11 +159,11 @@ i+ GaussianA, Gaussian, Linear
 
 # data expressions
 $foo = {y[0] in @0} + 1
-$foo = 3 + 1    
+$foo = 3 + 1
 Y = y / $foo
-i 2*(findx(%fun, %fun.Center, %fun.Center+10, %fun.Height/2) - %fun.Center) 
+i 2*(findx(%fun, %fun.Center, %fun.Center+10, %fun.Height/2) - %fun.Center)
 i %fun.FWHM
-%c = Constant(~0.001) 
+%c = Constant(~0.001)
 Z = %c + %fun
 Z -= %c
 Z = 0
@@ -174,14 +174,14 @@ i %fun(extremum(%fun, 10, 50))
 i s[x=19.92]^2, y[x=19.92] in @0
 
 
-plot 
+plot
 p [30:40.2][-1:]
-p . . 
+p . .
 plot . [:1000]
 plo [:50]
 pl [40:] .
-plo [] in @* 
-plo [:50] in @0 
+plo [] in @*
+plo [:50] in @0
 
 @+ = @0
 @+ = 0
@@ -202,7 +202,7 @@ $t4=sin($t1)^2+(-cos($t1))^2
 $t5=voigt($t4, ~3)
 
 define Bleh(area, center, fwhm, shape) = GaussianA(area*(1-shape), center, fwhm) + LorentzianA(area*shape, center, fwhm+0.2)
-%bleh = Bleh(~123., 30, ~4, ~0.5)     
+%bleh = Bleh(~123., 30, ~4, ~0.5)
 undefine Bleh
 define Bleh(a) = Linear(0, a)
 %bleh = Bleh(~{pi})
@@ -234,7 +234,7 @@ commands+ > tmp_log.fit
 commands > /dev/null
 commands < tmp_log.fit # it's an empty file (with some comments)
 
-info @0 (x, y) 
+info @0 (x, y)
 info @* (x, y, s) > tmp_foo2.xy
 info @0 (x, y, a) > tmp_foo3.xy
 info @0 (x, y, s, @0.F(x), (y-@0.F(x))/s, a) > tmp_foo4.xy
@@ -248,7 +248,7 @@ dump > tmp_dump.fit
 
 # settings
 set can-cancel-guess # only shows info
-set can-cancel-guess = 1   
+set can-cancel-guess = 1
 set cut-function-level = 0
 set fitting-method = Levenberg-Marquardt
 set formula-export-style = normal
