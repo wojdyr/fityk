@@ -43,30 +43,37 @@ enum MouseOperation
 class BgManager
 {
 public:
-    typedef std::vector<PointQ>::iterator bg_iterator;
-    typedef std::vector<PointQ>::const_iterator bg_const_iterator;
+    //minimal distance in X between bg points
+    static const int min_dist = 8;
 
-    BgManager(Scale const& x_scale_) : x_scale(x_scale_), min_dist(8),
-                                     spline_bg(true) {}
+    BgManager(Scale const& x_scale)
+        : x_scale_(x_scale), spline_(true), data_idx_(-1) {}
+    void update_focused_data(int idx);
     void add_background_point(fp x, fp y);
     void rm_background_point(fp x);
     void clear_background();
-    void forget_background() { clear_background(); bg_backup.clear(); }
     void strip_background();
-    void undo_strip_background();
-    bool can_strip() const { return !bg.empty(); }
-    bool can_undo() const { return !bg_backup.empty(); }
-    void set_spline_bg(bool s) { spline_bg=s; }
+    // reverses strip_background(), unless %bgX was changed in the meantime  
+    void add_background();
+    void define_bg_func();
+    void bg_from_func();
+    bool can_strip() const { return !bg_.empty(); }
+    bool has_fn() const;
+    void set_spline_bg(bool s) { spline_ = s; }
     void set_as_convex_hull();
     std::vector<int> calculate_bgline(int window_width, Scale const& y_scale);
-    bg_const_iterator begin() const { return bg.begin(); }
-    bg_const_iterator end() const { return bg.end(); }
+    std::vector<PointQ> const& get_bg() const { return bg_; }
+    bool get_stripped() const;
+
 protected:
-    Scale const& x_scale;
-    int min_dist; //minimal distance in X between bg points
-    bool spline_bg;
-    std::vector<PointQ> bg, bg_backup;
-    std::string cmd_tail;
+    Scale const& x_scale_;
+    bool spline_;
+    std::vector<PointQ> bg_;
+    std::vector<bool> stripped_;
+    int data_idx_;
+
+    std::string get_bg_name() const;
+    void set_stripped(bool value);
 };
 
 

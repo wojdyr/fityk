@@ -232,7 +232,7 @@ VariableManager::get_variable_references(string const &name) const
             i != functions.end(); ++i)
         for (int j = 0; j < (*i)->get_vars_count(); ++j)
             if ((*i)->get_var_idx(j) == idx)
-                refs.push_back((*i)->xname + "." + (*i)->type_var_names[j]);
+                refs.push_back((*i)->xname + "." + (*i)->get_param(j));
     return refs;
 }
 

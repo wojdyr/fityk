@@ -5,22 +5,17 @@
 #define FITYK__BFUNC__H__
 
 #include "func.h"
+#include "numfuncs.h" // PointQ
 
 // a new class can be derived from class-derived-from-Function,
 // but it should use the first constructor (with formula)
-#define DECLARE_FUNC_OBLIGATORY_METHODS(NAME) \
+#define DECLARE_FUNC_OBLIGATORY_METHODS(NAME, PARENT) \
     friend class Function;\
-protected:\
-    Func##NAME (Ftk const* F, \
-                std::string const &name, \
-                std::vector<std::string> const &vars, \
-                std::string const &formula_) \
-        : Function(F, name, vars, formula_) {} \
 private:\
     Func##NAME (Ftk const* F, \
                 std::string const &name, \
                 std::vector<std::string> const &vars) \
-        : Function(F, name, vars, formula) {} \
+        : PARENT(F, name, vars, formula) {} \
     Func##NAME (const Func##NAME&); \
 public:\
     static const char *formula; \
@@ -37,43 +32,43 @@ public:\
 
 class FuncConstant : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(Constant)
+    DECLARE_FUNC_OBLIGATORY_METHODS(Constant, Function)
 };
 
 class FuncLinear : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(Linear)
+    DECLARE_FUNC_OBLIGATORY_METHODS(Linear, Function)
 };
 
 class FuncQuadratic : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(Quadratic)
+    DECLARE_FUNC_OBLIGATORY_METHODS(Quadratic, Function)
 };
 
 class FuncCubic : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(Cubic)
+    DECLARE_FUNC_OBLIGATORY_METHODS(Cubic, Function)
 };
 
 class FuncPolynomial4 : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(Polynomial4)
+    DECLARE_FUNC_OBLIGATORY_METHODS(Polynomial4, Function)
 };
 
 class FuncPolynomial5 : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(Polynomial5)
+    DECLARE_FUNC_OBLIGATORY_METHODS(Polynomial5, Function)
 };
 
 
 class FuncPolynomial6 : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(Polynomial6)
+    DECLARE_FUNC_OBLIGATORY_METHODS(Polynomial6, Function)
 };
 
 class FuncGaussian : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(Gaussian)
+    DECLARE_FUNC_OBLIGATORY_METHODS(Gaussian, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
     fp center() const { return vv[1]; }
@@ -87,7 +82,7 @@ class FuncGaussian : public Function
 
 class FuncSplitGaussian : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(SplitGaussian)
+    DECLARE_FUNC_OBLIGATORY_METHODS(SplitGaussian, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
     fp center() const { return vv[1]; }
@@ -102,7 +97,7 @@ class FuncSplitGaussian : public Function
 
 class FuncLorentzian : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(Lorentzian)
+    DECLARE_FUNC_OBLIGATORY_METHODS(Lorentzian, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
     fp center() const { return vv[1]; }
@@ -116,7 +111,7 @@ class FuncLorentzian : public Function
 
 class FuncPearson7 : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(Pearson7)
+    DECLARE_FUNC_OBLIGATORY_METHODS(Pearson7, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
     fp center() const { return vv[1]; }
@@ -130,7 +125,7 @@ class FuncPearson7 : public Function
 
 class FuncSplitPearson7 : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(SplitPearson7)
+    DECLARE_FUNC_OBLIGATORY_METHODS(SplitPearson7, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
     fp center() const { return vv[1]; }
@@ -144,7 +139,7 @@ class FuncSplitPearson7 : public Function
 
 class FuncPseudoVoigt : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(PseudoVoigt)
+    DECLARE_FUNC_OBLIGATORY_METHODS(PseudoVoigt, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
     fp center() const { return vv[1]; }
@@ -159,7 +154,7 @@ class FuncPseudoVoigt : public Function
 
 class FuncVoigt : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(Voigt)
+    DECLARE_FUNC_OBLIGATORY_METHODS(Voigt, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
     fp center() const { return vv[1]; }
@@ -175,7 +170,7 @@ class FuncVoigt : public Function
 
 class FuncVoigtA : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(VoigtA)
+    DECLARE_FUNC_OBLIGATORY_METHODS(VoigtA, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
     fp center() const { return vv[1]; }
@@ -189,7 +184,7 @@ class FuncVoigtA : public Function
 
 class FuncEMG : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(EMG)
+    DECLARE_FUNC_OBLIGATORY_METHODS(EMG, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
     bool has_center() const { return true; }
@@ -198,7 +193,7 @@ class FuncEMG : public Function
 
 class FuncDoniachSunjic : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(DoniachSunjic)
+    DECLARE_FUNC_OBLIGATORY_METHODS(DoniachSunjic, Function)
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
     bool has_center() const { return true; }
     fp center() const { return vv[3]; }
@@ -206,13 +201,13 @@ class FuncDoniachSunjic : public Function
 
 class FuncPielaszekCube : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(PielaszekCube)
+    DECLARE_FUNC_OBLIGATORY_METHODS(PielaszekCube, Function)
     fp center() const { return vv[1]; }
 };
 
 class FuncLogNormal : public Function
 {
-    DECLARE_FUNC_OBLIGATORY_METHODS(LogNormal)
+    DECLARE_FUNC_OBLIGATORY_METHODS(LogNormal, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
     fp center() const { return vv[1]; }
@@ -223,6 +218,14 @@ class FuncLogNormal : public Function
     bool has_area() const { return true; }
     fp area() const   { return vv[0]/sqrt(M_LN2/M_PI)
         /(2.0/vv[2])/exp(-vv[3]*vv[3]/4.0/M_LN2); }
+};
+
+class FuncSpline : public VarArgFunction
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(Spline, VarArgFunction)
+    void more_precomputations();
+private:
+    mutable std::vector<PointQ> q_;
 };
 
 

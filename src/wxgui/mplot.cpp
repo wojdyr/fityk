@@ -98,7 +98,7 @@ void FunctionMouseDrag::Drag::set(Function const* p, int idx,
     }
     how = how_;
     parameter_idx = idx;
-    parameter_name = p->type_var_names[idx];
+    parameter_name = p->get_param(idx);
     variable_name = p->get_var_name(idx);
     value = ini_value = p->get_var_value(idx);
     multiplier = multiplier_;
@@ -146,7 +146,7 @@ bool FunctionMouseDrag::bind_parameter_to_drag(Drag &drag, string const& name,
                                               fp multiplier)
 {
     // search for Function(..., height, ...)
-    int idx = index_of_element(p->type_var_names, name);
+    int idx = p->get_param_nr_nothrow(name);
     if (idx != -1) {
         drag.set(p, idx, how, multiplier);
         return true;
@@ -332,6 +332,7 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
     if (visible_peaktops(mode) && !monochrome)
         draw_peaktops(dc, model);
     if (mode == mmd_bg) {
+        bgm.update_focused_data(focused_data);
         draw_background(dc);
     }
     else {
@@ -577,7 +578,8 @@ void MainPlot::draw_background(wxDC& dc, bool set_pen)
     }
 
     // bg points (circles)
-    for (BgManager::bg_const_iterator i = bgm.begin(); i != bgm.end(); i++) {
+    const vector<PointQ>& bg = bgm.get_bg();
+    for (vector<PointQ>::const_iterator i = bg.begin(); i != bg.end(); i++) {
         dc.DrawCircle(xs.px(i->x), ys.px(i->y), 3);
         dc.DrawCircle(xs.px(i->x), ys.px(i->y), 4);
     }
@@ -772,13 +774,19 @@ void MainPlot::set_mouse_mode(MouseModeEnum m)
 {
     if (pressed_mouse_button) cancel_mouse_press();
     MouseModeEnum old = mode;
+    if (old == m)
+        return;
     if (m != mmd_peak)
         basic_mode = m;
     mode = m;
     update_mouse_hints();
     set_cursor();
-    if (old != mode && (old == mmd_bg || mode == mmd_bg
-                        || visible_peaktops(old) != visible_peaktops(mode)))
+    if (old == mmd_bg)
+        bgm.define_bg_func();
+    if (mode == mmd_bg)
+        bgm.bg_from_func();
+    if (old == mmd_bg || mode == mmd_bg
+                        || visible_peaktops(old) != visible_peaktops(mode))
         refresh();
 }
 
@@ -880,9 +888,8 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
     if (nearest != -1) {
         Function const* f = ftk->get_function(over_peak);
         string s = f->xname + " " + f->type_name + " ";
-        vector<string> const& vn = f->type_var_names;
-        for (int i = 0; i < size(vn); ++i)
-            s += " " + vn[i] + "=" + S(f->get_var_value(i));
+        for (int i = 0; i < f->nv(); ++i)
+            s += " " + f->get_param(i) + "=" + S(f->get_var_value(i));
         frame->set_status_text(s);
         set_mouse_mode(mmd_peak);
         fp x1=0., x2=0.;
@@ -1755,144 +1762,137 @@ void ConfigurePLabelsDlg::OnChangeLabelFont (wxCommandEvent&)
 //           BgManager (for interactive background setting)
 //===============================================================
 
-/*
-// outdated
-void auto_background (int n, fp p1, bool is_perc1, fp p2, bool is_perc2)
+void BgManager::update_focused_data(int idx)
 {
-    //FIXME: Do you know any good algorithm, that can extract background
-    //       from data?
-    if (n <= 0 || n >= size(p) / 2)
+    if (data_idx_ == idx)
         return;
-    int ps = p.size();
-    for (int i = 0; i < n; i++) {
-        int l = ps * i / n;
-        int u = ps * (i + 1) / n;
-        vector<fp> v (u - l);
-        for (int k = l; k < u; k++)
-            v[k - l] = p[k].orig_y;
-        sort (v.begin(), v.end());
-        int y_avg_beg = 0, y_avg_end = v.size();
-        if (is_perc1) {
-            p1 = min (max (p1, 0.), 100.);
-            y_avg_beg = static_cast<int>(v.size() * p1 / 100);
-        }
-        else {
-            y_avg_beg = upper_bound (v.begin(), v.end(), v[0] + p1) - v.begin();
-            if (y_avg_beg == size(v))
-                y_avg_beg--;
-        }
-        if (is_perc2) {
-            p2 = min (max (p2, 0.), 100.);
-            y_avg_end = y_avg_beg + static_cast<int>(v.size() * p2 / 100);
-        }
-        else {
-            fp end_val = v[y_avg_beg] + p2;
-            y_avg_end = upper_bound (v.begin(), v.end(), end_val) - v.begin();
-        }
-        if (y_avg_beg < 0)
-            y_avg_beg = 0;
-        if (y_avg_end > size(v))
-            y_avg_end = v.size();
-        if (y_avg_beg >= y_avg_end) {
-            if (y_avg_beg >= size(v))
-                y_avg_beg = v.size() - 1;
-            y_avg_end = y_avg_beg + 1;
-        }
-        int counter = 0;
-        fp y = 0;
-        for (int j = y_avg_beg; j < y_avg_end; j++){
-            counter++;
-            y += v[j];
-        }
-        y /= counter;
-        add_background_point ((p[l].x + p[u - 1].x) / 2, y, bgc_bg);
+    define_bg_func();
+    data_idx_ = idx;
+    bg_from_func();
+}
+
+string BgManager::get_bg_name() const
+{
+    return "bg" + S(data_idx_);
+}
+
+void BgManager::set_stripped(bool value)
+{
+    stripped_.resize(ftk->get_dm_count());
+    stripped_[data_idx_] = value;
+}
+
+bool BgManager::get_stripped() const
+{
+    return data_idx_ < (int) stripped_.size() && stripped_[data_idx_];
+}
+
+void BgManager::bg_from_func()
+{
+    string name = get_bg_name();
+    int nr = ftk->find_function_nr(name);
+    if (nr == -1) {
+        bg_.clear();
+        return;
+    }
+    const Function *f = ftk->get_function(nr);
+    if (f->type_name != "Spline" && f->type_name != "Polyline") {
+        bg_.clear();
+        return;
+    }
+    int len = f->nv() / 2;
+    bg_.resize(len);
+    for (int i = 0; i < len; ++i) {
+        bg_[i].x = f->get_var_value(2*i);
+        bg_[i].y = f->get_var_value(2*i+1);
     }
 }
-*/
-
 
 void BgManager::add_background_point(fp x, fp y)
 {
-    if (!bg_backup.empty()) {
-        int r = wxMessageBox(wxT("The old background will be removed\n")
-                             wxT("and the new one will be created.\n")
-                             wxT("It will make impossible to undo\n")
-                             wxT("removing the old background.\n\n")
+    if (bg_.empty() && ftk->find_function_nr(get_bg_name()) >= 0) {
+        int r = wxMessageBox(wxT("Function %") + s2wx(get_bg_name())
+                             + wxT("already exists\n")
+                             wxT("and your actions may overwrite it.\n")
                              wxT("Continue?"),
-                             wxT("Do you want to start a new background?"),
+                             wxT("Start a new background?"),
                              wxICON_QUESTION|wxYES_NO);
-        if (r == wxYES) {
-            bg_backup.clear();
-            frame->update_toolbar();
-        }
-        else
+        if (r != wxYES)
             return;
+        set_stripped(false);
     }
     rm_background_point(x);
     PointQ t(x, y);
-    bg_iterator l = lower_bound(bg.begin(), bg.end(), t);
-    bg.insert (l, t);
+    vector<PointQ>::iterator l = lower_bound(bg_.begin(), bg_.end(), t);
+    bg_.insert (l, t);
 }
 
 void BgManager::rm_background_point (fp x)
 {
-    int X = x_scale.px(x);
-    fp lower = x_scale.val(X - min_dist);
-    fp upper = x_scale.val(X + min_dist);
+    int X = x_scale_.px(x);
+    fp lower = x_scale_.val(X - min_dist);
+    fp upper = x_scale_.val(X + min_dist);
     if (lower > upper)
         swap(lower, upper);
-    bg_iterator l = lower_bound(bg.begin(), bg.end(), PointQ(lower, 0));
-    bg_iterator u = upper_bound (bg.begin(), bg.end(), PointQ(upper, 0));
-    if (u > l) {
-        bg.erase(l, u);
-        ftk->vmsg (S(u - l) + " background points removed.");
-    }
+    vector<PointQ>::iterator l = lower_bound(bg_.begin(), bg_.end(),
+                                             PointQ(lower, 0));
+    vector<PointQ>::iterator u = upper_bound(bg_.begin(), bg_.end(),
+                                             PointQ(upper, 0));
+    if (u > l)
+        bg_.erase(l, u);
 }
 
 void BgManager::clear_background()
 {
-    int n = bg.size();
-    bg.clear();
-    if (n != 0)
-        ftk->vmsg (S(n) + " background points deleted.");
+    bg_.clear();
+    string name = get_bg_name();
+    int nr = ftk->find_function_nr(name);
+    if (nr != -1)
+        ftk->exec("delete %" + name);
+}
+
+void BgManager::define_bg_func()
+{
+    if (bg_.empty())
+        return;
+    string cmd = "%" + get_bg_name() + " = "
+                 + (spline_ ? "Spline(" : "Interpolate(");
+    for (vector<PointQ>::const_iterator i = bg_.begin(); i != bg_.end(); i++)
+        cmd += S(i->x) + "," + S(i->y) + (i+1 == bg_.end() ? ")" : ", ");
+    ftk->exec(cmd);
 }
 
 void BgManager::strip_background()
 {
-    if (bg.empty())
+    if (bg_.empty())
         return;
-    vector<fp> pars;
-    for (bg_const_iterator i = bg.begin(); i != bg.end(); i++) {
-        pars.push_back(i->x);
-        pars.push_back(i->y);
-    }
-    bg_backup = bg;
-    cmd_tail = (spline_bg ? "spline[" : "interpolate[")
-               + join_vector(pars, ", ") + "](x)"
-               + frame->get_in_datasets();
-    clear_background();
-    ftk->exec("Y = y - " + cmd_tail);
-    ftk->vmsg("Background stripped.");
+    define_bg_func();
+    bg_.clear();
+    set_stripped(true);
+    ftk->exec("Y = y - %" + get_bg_name() + "(x)" + frame->get_in_datasets());
+    //frame->update_toolbar();
 }
 
-void BgManager::undo_strip_background()
+void BgManager::add_background()
 {
-    if (bg_backup.empty())
+    string name = get_bg_name();
+    int nr = ftk->find_function_nr(name);
+    if (nr == -1)
         return;
-    bg = bg_backup;
-    bg_backup.clear();
-    ftk->exec("Y = y + " + cmd_tail);
+    set_stripped(false);
+    bg_from_func();
+    ftk->exec("Y = y + %" + name + "(x)" + frame->get_in_datasets());
 }
 
 vector<int> BgManager::calculate_bgline(int window_width, Scale const& y_scale)
 {
     vector<int> bgline(window_width);
-    if (spline_bg)
-        prepare_spline_interpolation(bg);
+    if (spline_)
+        prepare_spline_interpolation(bg_);
     for (int i = 0; i < window_width; i++) {
-        fp x = x_scale.val(i);
-        fp y = spline_bg ? get_spline_interpolation(bg, x)
-                         : get_linear_interpolation(bg, x);
+        fp x = x_scale_.val(i);
+        fp y = spline_ ? get_spline_interpolation(bg_, x)
+                       : get_linear_interpolation(bg_, x);
         bgline[i] = y_scale.px(y);
     }
     return bgline;
@@ -1901,15 +1901,20 @@ vector<int> BgManager::calculate_bgline(int window_width, Scale const& y_scale)
 void BgManager::set_as_convex_hull()
 {
     SimplePolylineConvex convex;
-    vector<int> sel = frame->get_selected_data_indices();
-    if (sel.size() != 1)
-        return;
-    const Data* data = ftk->get_data(sel[0]);
+    const Data* data = ftk->get_data(data_idx_);
     for (int i = 0; i < data->get_n(); ++i)
-        convex.push_point(PointQ(data->get_x(i), data->get_y(i)));
-
-    bg = convex.get_vertices();
-    bg_backup.clear();
+        convex.push_point(data->get_x(i), data->get_y(i));
+    vector<SimplePolylineConvex::Point> const& vertices = convex.get_vertices();
+    bg_.resize(vertices.size());
+    for (size_t i = 0; i != bg_.size(); ++i) {
+        bg_[i].x = vertices[i].x;
+        bg_[i].y = vertices[i].y;
+    }
 }
 
+bool BgManager::has_fn() const
+{
+    string name = get_bg_name();
+    return ftk->find_function_nr(name) != -1;
+}
 

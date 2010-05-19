@@ -15,7 +15,8 @@ struct PointQ
 {
     fp x, y;
     fp q; /* q is used for spline */
-    PointQ (fp x_, fp y_) : x(x_), y(y_) {}
+    PointQ() {}
+    PointQ(fp x_, fp y_) : x(x_), y(y_) {}
 };
 
 inline bool operator< (const PointQ& p, const PointQ& q)
@@ -51,14 +52,16 @@ fp rand_cauchy();
 class SimplePolylineConvex
 {
 public:
-    void push_point(PointQ const& p);
-    std::vector<PointQ> const& get_vertices() const { return vertices; }
+    struct Point { double x, y; };
+    void push_point(double x, double y) { Point p = {x, y}; push_point(p); }
+    void push_point(Point const& p);
+    std::vector<Point> const& get_vertices() const { return vertices_; }
     // test if point p2 left of the line through p0 and p1
-    static bool is_left(PointQ const& p0, PointQ const& p1, PointQ const& p2)
-    { return (p1.x - p0.x)*(p2.y - p0.y) > (p2.x - p0.x)*(p1.y - p0.y); }
+    static bool is_left(Point const& p0, Point const& p1, Point const& p2)
+        { return (p1.x - p0.x)*(p2.y - p0.y) > (p2.x - p0.x)*(p1.y - p0.y); }
 
 private:
-    std::vector<PointQ> vertices;
+    std::vector<Point> vertices_;
 };
 
 #endif

@@ -521,7 +521,7 @@ void FFrame::save_settings(wxConfigBase *cf) const
     cf->Write(wxT("ShowIOPane"), main_pane->IsSplit());
     cf->Write(wxT("ShowCrosshair"), plot_pane->crosshair_cursor);
     int w, h;
-    GetClientSize(&w, &h);
+    GetSize(&w, &h);
     cf->Write(wxT("w"), (long) w);
     cf->Write(wxT("h"), (long) h);
     //cf->Write (wxT("BotWinHeight"), bottom_window->GetClientSize().GetHeight());
@@ -682,11 +682,11 @@ void FFrame::set_menubar()
                                     wxT("Use mouse for adding new peaks"));
     gui_menu->Append(ID_G_MODE, wxT("&Mode"), gui_menu_mode);
     wxMenu* baseline_menu = new wxMenu;
-    baseline_menu->Append (ID_G_M_BG_STRIP, wxT("&Strip baseline"),
-                           wxT("Subtract selected baseline from data"));
-    baseline_menu->Append (ID_G_M_BG_UNDO, wxT("&Undo strip baseline"),
-                           wxT("Subtract selected baseline from data"));
-    baseline_menu->Append (ID_G_M_BG_CLEAR, wxT("&Clear/forget baseline"),
+    baseline_menu->Append (ID_G_M_BG_STRIP, wxT("&Substract baseline"),
+                           wxT("Subtract baseline function from data"));
+    baseline_menu->Append (ID_G_M_BG_UNDO, wxT("&Add baseline"),
+                           wxT("Add baseline function to data"));
+    baseline_menu->Append (ID_G_M_BG_CLEAR, wxT("&Clear baseline"),
                            wxT("Clear baseline points, disable undo"));
     baseline_menu->AppendSeparator();
     baseline_menu->Append (ID_G_M_BG_HULL, wxT("&Set as convex hull"),
@@ -1187,7 +1187,7 @@ void FFrame::OnReset (wxCommandEvent&)
                          wxT("Are you sure?"),
                          wxYES_NO | wxCANCEL | wxCENTRE | wxICON_QUESTION);
     if (r == wxYES) {
-        plot_pane->get_bg_manager()->forget_background();
+        plot_pane->get_bg_manager()->clear_background();
         ftk->exec("reset");
     }
 }
@@ -1252,27 +1252,6 @@ void FFrame::OnEditInit (wxCommandEvent&)
 
 void FFrame::OnChangeMouseMode (wxCommandEvent& event)
 {
-    //const MainPlot* plot = plot_pane->get_plot();
-    //if (plot->get_mouse_mode() == mmd_bg && plot->can_strip()) {
-    //    int r = wxMessageBox(wxT("You have selected the baseline,"
-    //                         wxT(" but have not\n"))
-    //                         wxT("stripped it. Do you want to change data\n")
-    //                         wxT("and strip selected baseline?\n")
-    //                         wxT("If you want to stay in background mode,\n")
-    //                         wxT("press Cancel."),
-    //                         wxT("Want to strip background?"),
-    //                         wxICON_QUESTION|wxYES_NO|wxCANCEL);
-    //    if (r == wxYES)
-    //        plot_pane->get_bg_manager()->strip_background();
-    //    else if (r == wxNO)
-    //        plot_pane->get_bg_manager()->clear_background();
-    //    else { //wxCANCEL
-    //        GetMenuBar()->Check(ID_G_M_BG, true);
-    //        if (toolbar)
-    //            toolbar->ToggleTool(ID_ft_m_bg, true);
-    //        return;
-    //    }
-    //}
     MouseModeEnum mode = mmd_zoom;
     switch (event.GetId()) {
         case ID_G_M_ZOOM:
@@ -1357,13 +1336,13 @@ void FFrame::OnMenuBgStripUpdate(wxUpdateUIEvent& event)
 
 void FFrame::OnMenuBgUndoUpdate(wxUpdateUIEvent& event)
 {
-    event.Enable(plot_pane->get_bg_manager()->can_undo());
+    event.Enable(plot_pane->get_bg_manager()->has_fn());
 }
 
 void FFrame::OnMenuBgClearUpdate(wxUpdateUIEvent& event)
 {
     BgManager* bgm = plot_pane->get_bg_manager();
-    event.Enable(bgm->can_strip() || bgm->can_undo());
+    event.Enable(bgm->can_strip() || bgm->has_fn());
 }
 
 void FFrame::OnStripBg(wxCommandEvent&)
@@ -1373,12 +1352,12 @@ void FFrame::OnStripBg(wxCommandEvent&)
 
 void FFrame::OnUndoBg(wxCommandEvent&)
 {
-    plot_pane->get_bg_manager()->undo_strip_background();
+    plot_pane->get_bg_manager()->add_background();
 }
 
 void FFrame::OnClearBg(wxCommandEvent&)
 {
-    plot_pane->get_bg_manager()->forget_background();
+    plot_pane->get_bg_manager()->clear_background();
     refresh_plots(false, kMainPlot);
 }
 
@@ -1785,7 +1764,8 @@ void FFrame::update_toolbar()
     update_autoadd_enabled();
     if (!toolbar)
         return;
-    toolbar->ToggleTool(ID_ft_b_strip, plot_pane->get_bg_manager()->can_undo());
+    BgManager* bgm = plot_pane->get_bg_manager();
+    toolbar->ToggleTool(ID_ft_b_strip, bgm->has_fn() && bgm->get_stripped());
     toolbar->EnableTool(ID_ft_f_run, !ftk->get_parameters().empty());
     toolbar->EnableTool(ID_ft_f_undo, ftk->get_fit_container()->can_undo());
     toolbar->EnableTool(ID_ft_v_pr, !plot_pane->get_zoom_hist().empty());
@@ -2054,12 +2034,18 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
         case ID_ft_v_pr:
             frame->OnPreviousZoom(dummy_cmd_event);
             break;
-        case ID_ft_b_strip:
-            if (event.IsChecked())
-                frame->plot_pane->get_bg_manager()->strip_background();
+        case ID_ft_b_strip: {
+            BgManager* bgm = frame->plot_pane->get_bg_manager();
+            if (event.IsChecked()) {
+                if (bgm->can_strip())
+                    bgm->strip_background();
+                else
+                    ToggleTool(ID_ft_b_strip, false);
+            }
             else
-                frame->plot_pane->get_bg_manager()->undo_strip_background();
+                bgm->add_background();
             break;
+        }
         case ID_ft_f_run :
             ftk->exec("fit" + frame->get_in_datasets());
             break;

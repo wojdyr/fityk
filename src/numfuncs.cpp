@@ -129,15 +129,15 @@ fp rand_cauchy()
 }
 
 
-void SimplePolylineConvex::push_point(PointQ const& p)
+void SimplePolylineConvex::push_point(Point const& p)
 {
-    if (vertices.size() < 2
-            || is_left(*(vertices.end() - 2), *(vertices.end() - 1), p))
-        vertices.push_back(p);
+    if (vertices_.size() < 2
+            || is_left(*(vertices_.end() - 2), *(vertices_.end() - 1), p))
+        vertices_.push_back(p);
     else {
-        // the middle point (the last one currently in vertices) is not convex
+        // the middle point (the last one currently in vertices_) is not convex
         // remove it and check again the last three points
-        vertices.pop_back();
+        vertices_.pop_back();
         push_point(p);
     }
 }

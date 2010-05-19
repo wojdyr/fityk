@@ -14,25 +14,34 @@ using namespace std;
 using boost::math::lgamma;
 
 
-#define FUNC_CALCULATE_VALUE_BEGIN(NAME) \
-void Func##NAME::calculate_value_in_range(vector<fp> const &xx, vector<fp> &yy,\
-                                          int first, int last) const\
+#define CALCULATE_VALUE_BEGIN(NAME) \
+void NAME::calculate_value_in_range(vector<fp> const &xx, vector<fp> &yy,\
+                                    int first, int last) const\
 {\
     for (int i = first; i < last; ++i) {\
         fp x = xx[i];
 
 
-#define FUNC_CALCULATE_VALUE_END(VAL) \
+#define CALCULATE_VALUE_END(VAL) \
         yy[i] += (VAL);\
     }\
 }
 
-#define FUNC_CALCULATE_VALUE(NAME, VAL) \
-    FUNC_CALCULATE_VALUE_BEGIN(NAME) \
-    FUNC_CALCULATE_VALUE_END(VAL)
+#define CALCULATE_DERIV_BEGIN(NAME) \
+void NAME::calculate_value_deriv_in_range(vector<fp> const &xx, \
+                                          vector<fp> &yy, \
+                                          vector<fp> &dy_da, \
+                                          bool in_dx, \
+                                          int first, int last) const \
+{ \
+    int dyn = dy_da.size() / xx.size(); \
+    vector<fp> dy_dv(nv()); \
+    for (int i = first; i < last; ++i) { \
+        fp x = xx[i]; \
+        fp dy_dx;
 
 
-#define PUT_DERIVATIVES_AND_VALUE(VAL) \
+#define CALCULATE_DERIV_END(VAL) \
         if (!in_dx) { \
             yy[i] += (VAL); \
             for (vector<Multi>::const_iterator j = multi.begin(); \
@@ -44,29 +53,9 @@ void Func##NAME::calculate_value_in_range(vector<fp> const &xx, vector<fp> &yy,\
             for (vector<Multi>::const_iterator j = multi.begin(); \
                     j != multi.end(); ++j) \
                 dy_da[dyn*i+j->p] += dy_da[dyn*i+dyn-1] * dy_dv[j->n]*j->mult;\
-        }
-
-
-#define FUNC_CALCULATE_VALUE_DERIV_BEGIN(NAME) \
-void Func##NAME::calculate_value_deriv_in_range(vector<fp> const &xx, \
-                                                vector<fp> &yy, \
-                                                vector<fp> &dy_da, \
-                                                bool in_dx, \
-                                                int first, int last) const \
-{ \
-    int dyn = dy_da.size() / xx.size(); \
-    vector<fp> dy_dv(nv); \
-    for (int i = first; i < last; ++i) { \
-        fp x = xx[i]; \
-        fp dy_dx;
-
-
-#define FUNC_CALCULATE_VALUE_DERIV_END(VAL) \
-        PUT_DERIVATIVES_AND_VALUE(VAL)  \
+        } \
     } \
 }
-
-
 
 
 ///////////////////////////////////////////////////////////////////////
@@ -82,21 +71,11 @@ void FuncConstant::calculate_value_in_range(vector<fp> const&/*xx*/,
         yy[i] += vv[0];
 }
 
-void FuncConstant::calculate_value_deriv_in_range(vector<fp> const &xx,
-                                                  vector<fp> &yy,
-                                                  vector<fp> &dy_da,
-                                                  bool in_dx,
-                                                  int first, int last) const
-{
-    // dy_da.size() == xx.size() * (parameters.size()+1)
-    int dyn = dy_da.size() / xx.size();
-    vector<fp> dy_dv(nv);
-    for (int i = first; i < last; ++i) {
-        dy_dv[0] = 1.;
-        fp dy_dx = 0;
-        PUT_DERIVATIVES_AND_VALUE(vv[0]);
-    }
-}
+CALCULATE_DERIV_BEGIN(FuncConstant)
+    (void) x;
+    dy_dv[0] = 1.;
+    dy_dx = 0;
+CALCULATE_DERIV_END(vv[0])
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -104,13 +83,14 @@ const char *FuncLinear::formula
 = "Linear(a0=intercept,a1=slope) = a0 + a1 * x";
 
 
-FUNC_CALCULATE_VALUE(Linear, vv[0] + x*vv[1])
+CALCULATE_VALUE_BEGIN(FuncLinear)
+CALCULATE_VALUE_END(vv[0] + x*vv[1])
 
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(Linear)
+CALCULATE_DERIV_BEGIN(FuncLinear)
     dy_dv[0] = 1.;
     dy_dv[1] = x;
     dy_dx = vv[1];
-FUNC_CALCULATE_VALUE_DERIV_END(vv[0] + x*vv[1])
+CALCULATE_DERIV_END(vv[0] + x*vv[1])
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -118,14 +98,15 @@ const char *FuncQuadratic::formula
 = "Quadratic(a0=avgy, a1=0, a2=0) = a0 + a1*x + a2*x^2";
 
 
-FUNC_CALCULATE_VALUE(Quadratic, vv[0] + x*vv[1] + x*x*vv[2])
+CALCULATE_VALUE_BEGIN(FuncQuadratic)
+CALCULATE_VALUE_END(vv[0] + x*vv[1] + x*x*vv[2])
 
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(Quadratic)
+CALCULATE_DERIV_BEGIN(FuncQuadratic)
     dy_dv[0] = 1.;
     dy_dv[1] = x;
     dy_dv[2] = x*x;
     dy_dx = vv[1] + 2*x*vv[2];
-FUNC_CALCULATE_VALUE_DERIV_END(vv[0] + x*vv[1] + x*x*vv[2])
+CALCULATE_DERIV_END(vv[0] + x*vv[1] + x*x*vv[2])
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -133,15 +114,16 @@ const char *FuncCubic::formula
 = "Cubic(a0=avgy, a1=0, a2=0, a3=0) = a0 + a1*x + a2*x^2 + a3*x^3";
 
 
-FUNC_CALCULATE_VALUE(Cubic, vv[0] + x*vv[1] + x*x*vv[2] + x*x*x*vv[3])
+CALCULATE_VALUE_BEGIN(FuncCubic)
+CALCULATE_VALUE_END(vv[0] + x*vv[1] + x*x*vv[2] + x*x*x*vv[3])
 
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(Cubic)
+CALCULATE_DERIV_BEGIN(FuncCubic)
     dy_dv[0] = 1.;
     dy_dv[1] = x;
     dy_dv[2] = x*x;
     dy_dv[3] = x*x*x;
     dy_dx = vv[1] + 2*x*vv[2] + 3*x*x*vv[3];
-FUNC_CALCULATE_VALUE_DERIV_END(vv[0] + x*vv[1] + x*x*vv[2] + x*x*x*vv[3])
+CALCULATE_DERIV_END(vv[0] + x*vv[1] + x*x*vv[2] + x*x*x*vv[3])
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -150,17 +132,18 @@ const char *FuncPolynomial4::formula
                                  "a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4";
 
 
-FUNC_CALCULATE_VALUE(Polynomial4, vv[0] + x*vv[1] + x*x*vv[2]
-                                         + x*x*x*vv[3] + x*x*x*x*vv[4])
+CALCULATE_VALUE_BEGIN(FuncPolynomial4)
+CALCULATE_VALUE_END(vv[0] + x*vv[1] + x*x*vv[2] + x*x*x*vv[3]
+                                          + x*x*x*x*vv[4])
 
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(Polynomial4)
+CALCULATE_DERIV_BEGIN(FuncPolynomial4)
     dy_dv[0] = 1.;
     dy_dv[1] = x;
     dy_dv[2] = x*x;
     dy_dv[3] = x*x*x;
     dy_dv[4] = x*x*x*x;
     dy_dx = vv[1] + 2*x*vv[2] + 3*x*x*vv[3] + 4*x*x*x*vv[4];
-FUNC_CALCULATE_VALUE_DERIV_END(vv[0] + x*vv[1] + x*x*vv[2] + x*x*x*vv[3]
+CALCULATE_DERIV_END(vv[0] + x*vv[1] + x*x*vv[2] + x*x*x*vv[3]
                                       + x*x*x*x*vv[4])
 
 ///////////////////////////////////////////////////////////////////////
@@ -170,10 +153,11 @@ const char *FuncPolynomial5::formula
                              "a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5";
 
 
-FUNC_CALCULATE_VALUE(Polynomial5, vv[0] + x*vv[1] + x*x*vv[2]
+CALCULATE_VALUE_BEGIN(FuncPolynomial5)
+CALCULATE_VALUE_END(vv[0] + x*vv[1] + x*x*vv[2]
                                + x*x*x*vv[3] + x*x*x*x*vv[4] + x*x*x*x*x*vv[5])
 
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(Polynomial5)
+CALCULATE_DERIV_BEGIN(FuncPolynomial5)
     dy_dv[0] = 1.;
     dy_dv[1] = x;
     dy_dv[2] = x*x;
@@ -181,7 +165,7 @@ FUNC_CALCULATE_VALUE_DERIV_BEGIN(Polynomial5)
     dy_dv[4] = x*x*x*x;
     dy_dv[5] = x*x*x*x*x;
     dy_dx = vv[1] + 2*x*vv[2] + 3*x*x*vv[3] + 4*x*x*x*vv[4] + 5*x*x*x*x*vv[5];
-FUNC_CALCULATE_VALUE_DERIV_END(vv[0] + x*vv[1] + x*x*vv[2]
+CALCULATE_DERIV_END(vv[0] + x*vv[1] + x*x*vv[2]
                                + x*x*x*vv[3] + x*x*x*x*vv[4] + x*x*x*x*x*vv[5])
 
 ///////////////////////////////////////////////////////////////////////
@@ -191,11 +175,11 @@ const char *FuncPolynomial6::formula
                      "a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5 + a6*x^6";
 
 
-FUNC_CALCULATE_VALUE(Polynomial6, vv[0] + x*vv[1] + x*x*vv[2]
-                               + x*x*x*vv[3] + x*x*x*x*vv[4] + x*x*x*x*x*vv[5]
-                               + x*x*x*x*x*x*vv[6])
+CALCULATE_VALUE_BEGIN(FuncPolynomial6)
+CALCULATE_VALUE_END(vv[0] + x*vv[1] + x*x*vv[2] + x*x*x*vv[3] +
+                         x*x*x*x*vv[4] + x*x*x*x*x*vv[5] + x*x*x*x*x*x*vv[6])
 
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(Polynomial6)
+CALCULATE_DERIV_BEGIN(FuncPolynomial6)
     dy_dv[0] = 1.;
     dy_dv[1] = x;
     dy_dv[2] = x*x;
@@ -205,9 +189,8 @@ FUNC_CALCULATE_VALUE_DERIV_BEGIN(Polynomial6)
     dy_dv[6] = x*x*x*x*x*x;
     dy_dx = vv[1] + 2*x*vv[2] + 3*x*x*vv[3] + 4*x*x*x*vv[4] + 5*x*x*x*x*vv[5]
             + 6*x*x*x*x*x*vv[6];
-FUNC_CALCULATE_VALUE_DERIV_END(vv[0] + x*vv[1] + x*x*vv[2]
-                               + x*x*x*vv[3] + x*x*x*x*vv[4] + x*x*x*x*x*vv[5]
-                               + x*x*x*x*x*x*vv[6])
+CALCULATE_DERIV_END(vv[0] + x*vv[1] + x*x*vv[2] + x*x*x*vv[3] +
+                         x*x*x*x*vv[4] + x*x*x*x*x*vv[5] + x*x*x*x*x*x*vv[6])
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -221,12 +204,12 @@ void FuncGaussian::more_precomputations()
         vv[2] = epsilon;
 }
 
-FUNC_CALCULATE_VALUE_BEGIN(Gaussian)
+CALCULATE_VALUE_BEGIN(FuncGaussian)
     fp xa1a2 = (x - vv[1]) / vv[2];
     fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
-FUNC_CALCULATE_VALUE_END(vv[0] * ex)
+CALCULATE_VALUE_END(vv[0] * ex)
 
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(Gaussian)
+CALCULATE_DERIV_BEGIN(FuncGaussian)
     fp xa1a2 = (x - vv[1]) / vv[2];
     fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
     dy_dv[0] = ex;
@@ -234,7 +217,7 @@ FUNC_CALCULATE_VALUE_DERIV_BEGIN(Gaussian)
     dy_dv[1] = dcenter;
     dy_dv[2] = dcenter * xa1a2;
     dy_dx = -dcenter;
-FUNC_CALCULATE_VALUE_DERIV_END(vv[0]*ex)
+CALCULATE_DERIV_END(vv[0]*ex)
 
 bool FuncGaussian::get_nonzero_range (fp level, fp &left, fp &right) const
 {
@@ -265,13 +248,13 @@ void FuncSplitGaussian::more_precomputations()
         vv[3] = epsilon;
 }
 
-FUNC_CALCULATE_VALUE_BEGIN(SplitGaussian)
+CALCULATE_VALUE_BEGIN(FuncSplitGaussian)
     fp hwhm = (x < vv[1] ? vv[2] : vv[3]);
     fp xa1a2 = (x - vv[1]) / hwhm;
     fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
-FUNC_CALCULATE_VALUE_END(vv[0] * ex)
+CALCULATE_VALUE_END(vv[0] * ex)
 
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(SplitGaussian)
+CALCULATE_DERIV_BEGIN(FuncSplitGaussian)
     fp hwhm = (x < vv[1] ? vv[2] : vv[3]);
     fp xa1a2 = (x - vv[1]) / hwhm;
     fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
@@ -287,7 +270,7 @@ FUNC_CALCULATE_VALUE_DERIV_BEGIN(SplitGaussian)
         dy_dv[3] = dcenter * xa1a2;
     }
     dy_dx = -dcenter;
-FUNC_CALCULATE_VALUE_DERIV_END(vv[0]*ex)
+CALCULATE_DERIV_END(vv[0]*ex)
 
 bool FuncSplitGaussian::get_nonzero_range (fp level, fp &left, fp &right) const
 {
@@ -317,12 +300,12 @@ void FuncLorentzian::more_precomputations()
         vv[2] = epsilon;
 }
 
-FUNC_CALCULATE_VALUE_BEGIN(Lorentzian)
+CALCULATE_VALUE_BEGIN(FuncLorentzian)
     fp xa1a2 = (x - vv[1]) / vv[2];
     fp inv_denomin = 1. / (1 + xa1a2 * xa1a2);
-FUNC_CALCULATE_VALUE_END(vv[0] * inv_denomin)
+CALCULATE_VALUE_END(vv[0] * inv_denomin)
 
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(Lorentzian)
+CALCULATE_DERIV_BEGIN(FuncLorentzian)
     fp xa1a2 = (x - vv[1]) / vv[2];
     fp inv_denomin = 1. / (1 + xa1a2 * xa1a2);
     dy_dv[0] = inv_denomin;
@@ -330,7 +313,7 @@ FUNC_CALCULATE_VALUE_DERIV_BEGIN(Lorentzian)
     dy_dv[1] = dcenter;
     dy_dv[2] = dcenter * xa1a2;
     dy_dx = -dcenter;
-FUNC_CALCULATE_VALUE_DERIV_END(vv[0] * inv_denomin)
+CALCULATE_DERIV_END(vv[0] * inv_denomin)
 
 bool FuncLorentzian::get_nonzero_range (fp level, fp &left, fp &right) const
 {
@@ -362,15 +345,15 @@ void FuncPearson7::more_precomputations()
     vv[4] = pow(2, 1. / vv[3]) - 1;
 }
 
-FUNC_CALCULATE_VALUE_BEGIN(Pearson7)
+CALCULATE_VALUE_BEGIN(FuncPearson7)
     fp xa1a2 = (x - vv[1]) / vv[2];
     fp xa1a2sq = xa1a2 * xa1a2;
     fp pow_2_1_a3_1 = vv[4]; //pow (2, 1. / a3) - 1;
     fp denom_base = 1 + xa1a2sq * pow_2_1_a3_1;
     fp inv_denomin = pow (denom_base, - vv[3]);
-FUNC_CALCULATE_VALUE_END(vv[0] * inv_denomin)
+CALCULATE_VALUE_END(vv[0] * inv_denomin)
 
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(Pearson7)
+CALCULATE_DERIV_BEGIN(FuncPearson7)
     fp xa1a2 = (x - vv[1]) / vv[2];
     fp xa1a2sq = xa1a2 * xa1a2;
     fp pow_2_1_a3_1 = vv[4]; //pow (2, 1. / a3) - 1;
@@ -384,7 +367,7 @@ FUNC_CALCULATE_VALUE_DERIV_BEGIN(Pearson7)
     dy_dv[3] = vv[0] * inv_denomin * (M_LN2 * (pow_2_1_a3_1 + 1)
                        * xa1a2sq / (denom_base * vv[3]) - log(denom_base));
     dy_dx = -dcenter;
-FUNC_CALCULATE_VALUE_DERIV_END(vv[0] * inv_denomin)
+CALCULATE_DERIV_END(vv[0] * inv_denomin)
 
 
 bool FuncPearson7::get_nonzero_range (fp level, fp &left, fp &right) const
@@ -433,16 +416,16 @@ void FuncSplitPearson7::more_precomputations()
     vv[7] = pow(2, 1. / vv[5]) - 1;
 }
 
-FUNC_CALCULATE_VALUE_BEGIN(SplitPearson7)
+CALCULATE_VALUE_BEGIN(FuncSplitPearson7)
     int lr = x < vv[1] ? 0 : 1;
     fp xa1a2 = (x - vv[1]) / vv[2+lr];
     fp xa1a2sq = xa1a2 * xa1a2;
     fp pow_2_1_a3_1 = vv[6+lr]; //pow(2, 1./shape) - 1;
     fp denom_base = 1 + xa1a2sq * pow_2_1_a3_1;
     fp inv_denomin = pow(denom_base, - vv[4+lr]);
-FUNC_CALCULATE_VALUE_END(vv[0] * inv_denomin)
+CALCULATE_VALUE_END(vv[0] * inv_denomin)
 
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(SplitPearson7)
+CALCULATE_DERIV_BEGIN(FuncSplitPearson7)
     int lr = x < vv[1] ? 0 : 1;
     fp hwhm = vv[2+lr];
     fp shape = vv[4+lr];
@@ -460,7 +443,7 @@ FUNC_CALCULATE_VALUE_DERIV_BEGIN(SplitPearson7)
     dy_dv[4+lr] = vv[0] * inv_denomin * (M_LN2 * (pow_2_1_a3_1 + 1)
                            * xa1a2sq / (denom_base * shape) - log(denom_base));
     dy_dx = -dcenter;
-FUNC_CALCULATE_VALUE_DERIV_END(vv[0] * inv_denomin)
+CALCULATE_DERIV_END(vv[0] * inv_denomin)
 
 
 bool FuncSplitPearson7::get_nonzero_range (fp level, fp &left, fp &right) const
@@ -503,14 +486,14 @@ void FuncPseudoVoigt::more_precomputations()
         vv[2] = epsilon;
 }
 
-FUNC_CALCULATE_VALUE_BEGIN(PseudoVoigt)
+CALCULATE_VALUE_BEGIN(FuncPseudoVoigt)
     fp xa1a2 = (x - vv[1]) / vv[2];
     fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
     fp lor = 1. / (1 + xa1a2 * xa1a2);
     fp without_height =  (1-vv[3]) * ex + vv[3] * lor;
-FUNC_CALCULATE_VALUE_END(vv[0] * without_height)
+CALCULATE_VALUE_END(vv[0] * without_height)
 
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(PseudoVoigt)
+CALCULATE_DERIV_BEGIN(FuncPseudoVoigt)
     fp xa1a2 = (x - vv[1]) / vv[2];
     fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
     fp lor = 1. / (1 + xa1a2 * xa1a2);
@@ -522,7 +505,7 @@ FUNC_CALCULATE_VALUE_DERIV_BEGIN(PseudoVoigt)
     dy_dv[2] = dcenter * xa1a2;
     dy_dv[3] =  vv[0] * (lor - ex);
     dy_dx = -dcenter;
-FUNC_CALCULATE_VALUE_DERIV_END(vv[0] * without_height)
+CALCULATE_DERIV_END(vv[0] * without_height)
 
 bool FuncPseudoVoigt::get_nonzero_range (fp level, fp &left, fp &right) const
 {
@@ -558,14 +541,14 @@ void FuncVoigt::more_precomputations()
         vv[2] = epsilon;
 }
 
-FUNC_CALCULATE_VALUE_BEGIN(Voigt)
+CALCULATE_VALUE_BEGIN(FuncVoigt)
     // humdev/humlik routines require with y (a3 here) parameter >0.
     float k;
     fp xa1a2 = (x - vv[1]) / vv[2];
     k = humlik(xa1a2, fabs(vv[3]));
-FUNC_CALCULATE_VALUE_END(vv[0] * vv[4] * k)
+CALCULATE_VALUE_END(vv[0] * vv[4] * k)
 
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(Voigt)
+CALCULATE_DERIV_BEGIN(FuncVoigt)
     // humdev/humlik routines require with y (a3 here) parameter >0.
     // here fabs(vv[3]) is used, and dy_dv[3] is negated if vv[3]<0.
     float k;
@@ -581,7 +564,7 @@ FUNC_CALCULATE_VALUE_DERIV_BEGIN(Voigt)
     if (vv[3] < 0)
         dy_dv[3] = -dy_dv[3];
     dy_dx = -dcenter;
-FUNC_CALCULATE_VALUE_DERIV_END(a0a4 * k)
+CALCULATE_DERIV_END(a0a4 * k)
 
 bool FuncVoigt::get_nonzero_range (fp level, fp &left, fp &right) const
 {
@@ -661,14 +644,14 @@ void FuncVoigtA::more_precomputations()
         vv[2] = epsilon;
 }
 
-FUNC_CALCULATE_VALUE_BEGIN(VoigtA)
+CALCULATE_VALUE_BEGIN(FuncVoigtA)
     // humdev/humlik routines require with y (a3 here) parameter >0.
     float k;
     fp xa1a2 = (x - vv[1]) / vv[2];
     k = humlik(xa1a2, fabs(vv[3]));
-FUNC_CALCULATE_VALUE_END(vv[0] / (sqrt(M_PI) * vv[2]) * k)
+CALCULATE_VALUE_END(vv[0] / (sqrt(M_PI) * vv[2]) * k)
 
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(VoigtA)
+CALCULATE_DERIV_BEGIN(FuncVoigtA)
     // humdev/humlik routines require with y (a3 here) parameter >0.
     // here fabs(vv[3]) is used, and dy_dv[3] is negated if vv[3]<0.
     float k;
@@ -684,7 +667,7 @@ FUNC_CALCULATE_VALUE_DERIV_BEGIN(VoigtA)
     if (vv[3] < 0)
         dy_dv[3] = -dy_dv[3];
     dy_dx = -dcenter;
-FUNC_CALCULATE_VALUE_DERIV_END(f * k)
+CALCULATE_DERIV_END(f * k)
 
 bool FuncVoigtA::get_nonzero_range (fp level, fp &left, fp &right) const
 {
@@ -724,7 +707,7 @@ void FuncEMG::more_precomputations()
 bool FuncEMG::get_nonzero_range(fp/*level*/, fp&/*left*/, fp&/*right*/) const
     { return false; }
 
-FUNC_CALCULATE_VALUE_BEGIN(EMG)
+CALCULATE_VALUE_BEGIN(FuncEMG)
     fp a = vv[0];
     fp bx = vv[1] - x;
     fp c = vv[2];
@@ -735,9 +718,9 @@ FUNC_CALCULATE_VALUE_BEGIN(EMG)
     fp erf_arg = (bx/c + c/d) / M_SQRT2;
     fp t = fact * ex * (d >= 0 ? erfc(erf_arg) : -erfc(-erf_arg));
     //fp t = fact * ex * (d >= 0 ? 1-erf(erf_arg) : -1-erf(erf_arg));
-FUNC_CALCULATE_VALUE_END(t)
+CALCULATE_VALUE_END(t)
 
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(EMG)
+CALCULATE_DERIV_BEGIN(FuncEMG)
     fp a = vv[0];
     fp bx = vv[1] - x;
     fp c = vv[2];
@@ -762,7 +745,7 @@ FUNC_CALCULATE_VALUE_DERIV_BEGIN(EMG)
     //                             + sqrt(M_PI/2) * (c*c/d + b+d-x) * er);
     dy_dv[3] = a*c/(d*d*d)*ex * (c/eee - ser * (c*cc + sqrt(M_PI/2)*(bx+d)));
     dy_dx = - dy_dv[1];
-FUNC_CALCULATE_VALUE_DERIV_END(a*t)
+CALCULATE_DERIV_END(a*t)
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -774,15 +757,15 @@ bool FuncDoniachSunjic::get_nonzero_range(fp/*level*/, fp&/*left*/,
                                           fp&/*right*/) const
 { return false; }
 
-FUNC_CALCULATE_VALUE_BEGIN(DoniachSunjic)
+CALCULATE_VALUE_BEGIN(FuncDoniachSunjic)
     fp h = vv[0];
     fp a = vv[1];
     fp F = vv[2];
     fp xE = x - vv[3];
     fp t = h * cos(M_PI*a/2 + (1-a)*atan(xE/F)) / pow(F*F+xE*xE, (1-a)/2);
-FUNC_CALCULATE_VALUE_END(t)
+CALCULATE_VALUE_END(t)
 
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(DoniachSunjic)
+CALCULATE_DERIV_BEGIN(FuncDoniachSunjic)
     fp h = vv[0];
     fp a = vv[1];
     fp F = vv[2];
@@ -800,7 +783,7 @@ FUNC_CALCULATE_VALUE_DERIV_BEGIN(DoniachSunjic)
     dy_dv[2] = h * ac*p/fe2 * (xE*si - F*co);
     dy_dv[3] = h * ac*p/fe2 * (xE*co + si*F);
     dy_dx = -dy_dv[3];
-FUNC_CALCULATE_VALUE_DERIV_END(h*t)
+CALCULATE_DERIV_END(h*t)
 ///////////////////////////////////////////////////////////////////////
 
 
@@ -808,7 +791,7 @@ const char *FuncPielaszekCube::formula
 = "PielaszekCube(a=height*0.016, center, r=300, s=150) = ...#";
 
 
-FUNC_CALCULATE_VALUE_BEGIN(PielaszekCube)
+CALCULATE_VALUE_BEGIN(FuncPielaszekCube)
     fp height = vv[0];
     fp center = vv[1];
     fp R = vv[2];
@@ -824,9 +807,9 @@ FUNC_CALCULATE_VALUE_BEGIN(PielaszekCube)
                           * cos(2*(-1.5 + R2/(2.*s2)) * atan((q*s2)/R))))/
            (2.*q2*(-1.5 + R2/(2.*s2))* (-1 + R2/(2.*s2))*s4)))/
       (sqrt(2*M_PI)*q2*(-0.5 + R2/(2.*s2))* s2);
-FUNC_CALCULATE_VALUE_END(t)
+CALCULATE_VALUE_END(t)
 
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(PielaszekCube)
+CALCULATE_DERIV_BEGIN(FuncPielaszekCube)
     fp height = vv[0];
     fp center = vv[1];
     fp R = vv[2];
@@ -928,7 +911,7 @@ FUNC_CALCULATE_VALUE_DERIV_BEGIN(PielaszekCube)
     dy_dv[2] = dR;
     dy_dv[3] = ds;
     dy_dx = dcenter;
-FUNC_CALCULATE_VALUE_DERIV_END(height*t);
+CALCULATE_DERIV_END(height*t);
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -948,16 +931,16 @@ void FuncLogNormal::more_precomputations()
         vv[3] = 0.001;
 }
 
-FUNC_CALCULATE_VALUE_BEGIN(LogNormal)
+CALCULATE_VALUE_BEGIN(FuncLogNormal)
     fp a = 2.0 * vv[3] * (x - vv[1]) / vv[2];
     fp ex = 0.0;
     if (a > -1.0) {
         fp b = log(1 + a) / vv[3];
         ex = vv[0] * exp_(-M_LN2 * b * b);
     }
-FUNC_CALCULATE_VALUE_END(ex)
+CALCULATE_VALUE_END(ex)
 
-FUNC_CALCULATE_VALUE_DERIV_BEGIN(LogNormal)
+CALCULATE_DERIV_BEGIN(FuncLogNormal)
     fp a = 2.0 * vv[3] * (x - vv[1]) / vv[2];
     fp ex;
     if (a > -1.0) {
@@ -979,7 +962,7 @@ FUNC_CALCULATE_VALUE_DERIV_BEGIN(LogNormal)
         dy_dv[3] = 0.0;
         dy_dx = 0.0;
     }
-FUNC_CALCULATE_VALUE_DERIV_END(ex)
+CALCULATE_DERIV_END(ex)
 
 bool FuncLogNormal::get_nonzero_range (fp level, fp &left, fp &right) const
 { /* untested */
@@ -1010,4 +993,31 @@ fp FuncLogNormal::fwhm() const
 {
    return vv[2]*sinh(vv[3])/vv[3];
 }
+
+///////////////////////////////////////////////////////////////////////
+
+const char *FuncSpline::formula
+= "Spline() = cubic spline #";
+
+void FuncSpline::more_precomputations()
+{
+    q_.resize(nv() / 2);
+    for (size_t i = 0; i < q_.size(); ++i) {
+        q_[i].x = vv[2*i];
+        q_[i].y = vv[2*i+1];
+    }
+    prepare_spline_interpolation(q_);
+
+}
+
+CALCULATE_VALUE_BEGIN(FuncSpline)
+    fp t = get_spline_interpolation(q_, x);
+CALCULATE_VALUE_END(t)
+
+CALCULATE_DERIV_BEGIN(FuncSpline)
+    dy_dx = 0; // unused
+    fp t = get_spline_interpolation(q_, x);
+CALCULATE_DERIV_END(t)
+
+///////////////////////////////////////////////////////////////////////
 

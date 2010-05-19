@@ -482,7 +482,7 @@ void SideBar::read_settings(wxConfigBase *cf)
     d->split(cfg_read_double(cf, wxT("dataProportion"), 0.75));
     f->split(cfg_read_double(cf, wxT("funcProportion"), 0.75));
     v->split(cfg_read_double(cf, wxT("varProportion"), 0.75));
-    data_look->Select(cf->Read(wxT("dataLook"), 0L));
+    data_look->Select(cf->Read(wxT("dataLook"), 1L));
 }
 
 void SideBar::save_settings(wxConfigBase *cf) const
@@ -822,10 +822,9 @@ void SideBar::update_func_buttons()
     bool has_hwhm = false, has_shape = false;
     for (vector<Function*>::const_iterator i = ftk->get_functions().begin();
                                          i != ftk->get_functions().end(); ++i) {
-        vector<string> const& t = (*i)->type_var_names;
-        if (find(t.begin(), t.end(), "hwhm") != t.end())
+        if ((*i)->get_param_nr_nothrow("hwhm") != -1)
             has_hwhm = true;
-        if (find(t.begin(), t.end(), "shape") != t.end())
+        if ((*i)->get_param_nr_nothrow("shape") != -1)
             has_shape = true;
     }
     func_page->FindWindow(ID_FP_HWHM)->Enable(has_hwhm);
@@ -978,23 +977,31 @@ void SideBar::OnVarFocusChanged(wxListEvent&)
     update_var_inf();
 }
 
+bool SideBar::find_value_of_param(string const& p, double* value)
+{
+    if (active_function != -1) {
+        Function const* f = ftk->get_function(active_function);
+        bool found = f->get_param_value_nothrow(p, *value);
+        if (found)
+            return true;
+    }
+
+    vector<Function*> const& ff = ftk->get_functions();
+    for (vector<Function*>::const_iterator i = ff.begin(); i != ff.end(); ++i) {
+        bool found = (*i)->get_param_value_nothrow(p, *value);
+        if (found)
+            return true;
+    }
+    return false;
+}
+
 void SideBar::make_same_func_par(string const& p, bool checked)
 {
     string varname = "_" + p;
     string cmd;
     if (checked) {
-
-        // find value
-        fp value = 0;
-        bool found = false;
-        if (active_function != -1) {
-            Function const* f = ftk->get_function(active_function);
-            found = f->get_param_value_safe(p, value);
-        }
-        vector<Function*> const& ff = ftk->get_functions();
-        for (vector<Function*>::const_iterator i = ff.begin();
-                                                 i != ff.end() && !found; ++i)
-            found = (*i)->get_param_value_safe(p, value);
+        fp value = 0.;
+        bool found = find_value_of_param(p, &value);
         if (!found)
             return;
 
@@ -1057,12 +1064,13 @@ void SideBar::update_param_panel()
     if (param_panel->get_title() != new_label)
         param_panel->set_title(new_label);
 
-    if (pp_func->nv < old_count)
-        param_panel->delete_row_range(pp_func->nv, old_count);
+    int new_count = min(pp_func->nv(), 8);
+    if (new_count < old_count)
+        param_panel->delete_row_range(new_count, old_count);
 
-    for (int i = 0; i < pp_func->nv; ++i) {
+    for (int i = 0; i < new_count; ++i) {
         Variable const* var = ftk->get_variable(pp_func->get_var_idx(i));
-        wxString label = s2wx(pp_func->type_var_names[i]);
+        wxString label = s2wx(pp_func->get_param(i));
         if (var->is_simple() || var->is_constant()) {
             bool locked = var->is_constant();
             param_panel->set_normal_parameter(i, label, var->get_value(),
@@ -1073,7 +1081,7 @@ void SideBar::update_param_panel()
                                                 s2wx(var->xname));
     }
 
-    if (pp_func->nv != old_count) {
+    if (new_count != old_count) {
         param_panel->Layout();
         int sash_pos = GetClientSize().GetHeight() - 3
                          - param_panel->GetSizer()->GetMinSize().GetHeight();

@@ -27,11 +27,10 @@ public:
         Multi(int n_, Variable::ParMult const& pm)
             : p(pm.p), n(n_), mult(pm.mult) {}
     };
+
     std::string const type_formula; //eg. Gaussian(a,b,c) = a*(...)
     std::string const type_name;
-    std::vector<std::string> const type_var_names;
     std::string const type_rhs;
-    int const nv; /// number of variables
 
     Function(Ftk const* F_,
              std::string const &name_,
@@ -53,6 +52,9 @@ public:
       get_varnames_from_formula(std::string const& formula);
     static std::vector<std::string>
       get_defvalues_from_formula(std::string const& formula);
+
+    /// number of variables
+    int nv() const { return (int) type_params.size(); }
 
     /// calculate value at x[i] and _add_ the result to y[i] (for each i)
     virtual void calculate_value_in_range(std::vector<fp> const &x,
@@ -111,13 +113,15 @@ public:
     bool has_outdated_type() const
         { return type_formula != Function::get_formula(type_name); }
     virtual std::string get_current_formula(std::string const& x = "x") const;
+    std::string const& get_param(int n) const { return type_params[n]; }
     int get_param_nr(std::string const& param) const;
+    int get_param_nr_nothrow(std::string const& param) const;
     std::string get_param_varname(std::string const& param) const
                                 { return get_var_name(get_param_nr(param)); }
     fp get_param_value(std::string const& param) const;
     /// similar to get_param_value(), but doesn't throw exceptions and doesn't
     /// search for pseudo-parameters
-    bool get_param_value_safe(std::string const& param, fp &value) const;
+    bool get_param_value_nothrow(std::string const& param, fp &value) const;
     fp numarea(fp x1, fp x2, int nsteps) const;
     fp find_x_with_value(fp x1, fp x2, fp val, int max_iter=1000) const;
     fp find_extremum(fp x1, fp x2, int max_iter=1000) const;
@@ -126,14 +130,33 @@ public:
                                             { this->more_precomputations(); }
 protected:
     Ftk const* F;
-    int const center_idx;
     std::vector<fp> vv; /// current variable values
     std::vector<Multi> multi;
+    std::vector<std::string> type_params;
+    int center_idx;
+
+    virtual void init();
+
+private:
+
+    static std::vector<fp> calc_val_xx, calc_val_yy;
 
     /// find index of parameter named "center"; returns -1 if not found
     int find_center_in_typevars() const;
-private:
-    static std::vector<fp> calc_val_xx, calc_val_yy;
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class VarArgFunction : public Function
+{
+    friend class Function;
+protected:
+    VarArgFunction(Ftk const* F_,
+                   std::string const &name_,
+                   std::vector<std::string> const &vars,
+                   std::string const &formula_)
+        : Function(F_, name_, vars, formula_) {}
+    virtual void init();
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -214,7 +237,7 @@ protected:
     void init_components(std::vector<std::string>& rf);
 
 private:
-    void init();
+    virtual void init();
     CompoundFunction (const CompoundFunction&); //disable
 };
 
@@ -279,7 +302,7 @@ private:
                   std::string const &name,
                   std::string const &type,
                   std::vector<std::string> const &vars);
-    void init();
+    virtual void init();
 
     SplitFunction(const SplitFunction&); //disable
 };
