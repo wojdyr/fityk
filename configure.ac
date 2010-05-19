@@ -117,11 +117,11 @@ AC_CHECK_HEADER([boost/spirit/include/classic_core.hpp], [], [AC_MSG_ERROR(
   Make sure you have Boost >= 1.36 installed.
  ])])
 
-AC_LANG_POP([C++]) dnl C is faster than C++
-
 AC_CHECK_HEADER([xylib/xylib.h], [], [AC_MSG_ERROR(
  [xylib headers were not found. You may need to install xylib first.
  ])])
+
+AC_LANG_POP([C++]) dnl C is faster than C++
 
 AC_COMPILE_IFELSE(
   [AC_LANG_PROGRAM([@%:@include <xylib/xylib.h>], [
