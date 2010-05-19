@@ -1,7 +1,7 @@
 #!/bin/bash 
 # $Id$
 
-version=0.9.2
+version=0.9.3
 WEB="iris.unipress.waw.pl:www/fityk2/"
 
 MINGW_DIR=mingw-build
