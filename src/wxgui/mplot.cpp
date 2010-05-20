@@ -1148,11 +1148,12 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
                         ? "A = a or" : "A = a and not");
             fp x1 = xs.val(mouse_press_X);
             fp x2 = xs.val(event.GetX());
-            string cond = eS(min(x1,x2)) + " < x < " + eS(max(x1,x2));
+            string cond = eS(min(x1,x2)) + " < x and x < " + eS(max(x1,x2));
             if (rect) {
                 fp y1 = ys.val(mouse_press_Y);
                 fp y2 = ys.val(event.GetY());
-                cond += " and " + eS(min(y1,y2)) + " < y < " + eS(max(y1,y2));
+                cond += " and "
+                        + eS(min(y1,y2)) + " < y and y < " + eS(max(y1,y2));
             }
             ftk->exec(c + " (" + cond + ")" + frame->get_in_datasets());
         }

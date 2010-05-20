@@ -231,7 +231,8 @@ characters are expected. ::
   assign_st ::= Varname '=' TODO |
                 func_id '=' TODO |
                 Funcname '.' Word '=' TODO |
-                Dataset '.' ('F'|'Z') '.' Word '=' TODO |
+                Dataset '.' 'F' '=' TODO |
+                Dataset '.' 'F' '.' Word '=' TODO |
                 Dataset '.' "title" '=' TODO
 
   dataset_st ::= (Dataset | "@+") ( '<' Filename {option} |
@@ -241,7 +242,8 @@ characters are expected. ::
 
 
   func_id = Funcname |
-            ('F'|'Z') '[' Number ']'
+            (* TODO: Dataset '.' 'z' | *)
+            Dataset '.' 'F' '[' Number ']'
 
   option ::= name '=' value
 

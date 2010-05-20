@@ -416,7 +416,7 @@ A few examples::
     i max(y if a) # the largest y value in the active range
     i sum(y>100) # count the points that have y greater than 100
     i sum(y>avg(y)) # count the points that have y greater than the arithmetic mean
-    i darea(y-F(x) if 20<x<25) # example of more complex syntax
+    i darea(y-F(x) if 20<x and x<25) # example of more complex syntax
 
 .. _funcindt:
 

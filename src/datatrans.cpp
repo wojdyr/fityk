@@ -279,7 +279,7 @@ string dt_op(int op)
     OP_(VAR_n) OP_(VAR_M) OP_(NUMBER)
     OP_(OR) OP_(AFTER_OR) OP_(AND) OP_(AFTER_AND) OP_(NOT)
     OP_(TERNARY) OP_(TERNARY_MID) OP_(AFTER_TERNARY) OP_(DELETE_COND)
-    OP_(GT) OP_(GE) OP_(LT) OP_(LE) OP_(EQ) OP_(NEQ) OP_(NCMP_HACK)
+    OP_(GT) OP_(GE) OP_(LT) OP_(LE) OP_(EQ) OP_(NEQ)
     OP_(RANGE) OP_(INDEX) OP_(x_IDX)
     OP_(ASSIGN_X) OP_(ASSIGN_Y) OP_(ASSIGN_S) OP_(ASSIGN_A)
     OP_(DO_ONCE) OP_(RESIZE) OP_(ORDER) OP_(DELETE) OP_(BEGIN) OP_(END)
@@ -608,13 +608,6 @@ bool execute_code(int n, int &M, vector<fp>& stack,
             case OP_NEQ:
                 STACK_OFFSET_CHANGE(-1)
                 STACK_OP *stackPtr = is_neq(*stackPtr, *(stackPtr+1));
-                break;
-
-                // next comparision hack, see rbool rule for more...
-            case OP_NCMP_HACK:
-                STACK_OFFSET_CHANGE(+1)
-                // put number that is accidentally in unused part of the stack
-                STACK_OP *stackPtr = *(stackPtr+1);
                 break;
 
             // putting-number-to-stack-operators

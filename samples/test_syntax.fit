@@ -126,10 +126,10 @@ i GaussianA, Gaussian, Linear
 i SplitGaussian
 i formula
 i min(y), max(s)
-i min(y if 20<x<25)
+i min(y if 20<x and x<25)
 i sum(y-y[0])
 i avg(y*y), stddev(y if y > avg(y))
-i darea(y-@0.F(x) if 15<x<20)
+i darea(y-@0.F(x) if 15<x and x<20)
 
 
 info+ version, variables

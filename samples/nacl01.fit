@@ -3,7 +3,7 @@
 
 @0 < '_EXECUTED_SCRIPT_DIR_/nacl01.dat'  # load data from file 
 
-a = (23.0 < x < 26.0)  # disactivate data outside of (23.0,26.0) range.
+a = (23.0 < x and x < 26.0)  # disactivate data outside of (23.0,26.0) range.
 
 %p = Gaussian(~60000, ~24.6, ~0.2) # define function %p with type Gaussian
                                    # and fittable parameters 

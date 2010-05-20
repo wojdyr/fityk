@@ -132,37 +132,13 @@ DataExpressionGrammar::definition<ScannerT>::definition(
         ;
 
     rbool
-    // a hack for handling 10 < x < 20
-    // how it works:
-    //  3 < 5.2
-    //    op:    OP_NUMBER(3)    OP_NUMBER(5.2)   OP_LT
-    //    stack:    ... 3         ... 3 5.2      ... 1 5.2
-    //    stack end:    ^                 ^          ^
-    //  3 < 5.2 < 4 (continued previous example)
-    //    op:     OP_AND     OP_NCMP_HACK  OP_NUMBER(4) OP_LT  OP_AFTER_AND
-    //    stack: ... 1 5.2   ... 5.2       ... 5.2 4   ... 0 4     (flag)
-    //    s. end:  ^               ^               ^       ^
         = rprec2
-           >> !(( ("<=" >> rprec2) [push_op(OP_LE)]
-                | (">=" >> rprec2) [push_op(OP_GE)]
-                | (str_p("==") >> rprec2)  [push_op(OP_EQ)]
-                | ((str_p("!=")|"<>") >> rprec2)  [push_op(OP_NEQ)]
-                | ('<' >> rprec2)  [push_op(OP_LT)]
-                | ('>' >> rprec2)  [push_op(OP_GT)]
-                )
-                >> *( (str_p("<=")[push_op(OP_AND, OP_NCMP_HACK)]
-                        >> rprec2) [push_op(OP_LE, OP_AFTER_AND)]
-                    | (str_p(">=")[push_op(OP_AND, OP_NCMP_HACK)]
-                        >> rprec2) [push_op(OP_GE, OP_AFTER_AND)]
-                    | (str_p("==")[push_op(OP_AND, OP_NCMP_HACK)]
-                        >> rprec2) [push_op(OP_EQ, OP_AFTER_AND)]
-                    | ((str_p("!=")|"<>")[push_op(OP_AND, OP_NCMP_HACK)]
-                        >> rprec2)  [push_op(OP_NEQ, OP_AFTER_AND)]
-                    | (ch_p('<')[push_op(OP_AND, OP_NCMP_HACK)]
-                        >> rprec2) [push_op(OP_LT, OP_AFTER_AND)]
-                    | (ch_p('>')[push_op(OP_AND, OP_NCMP_HACK)]
-                        >> rprec2) [push_op(OP_GT, OP_AFTER_AND)]
-                    )
+           >> !( ("<=" >> rprec2) [push_op(OP_LE)]
+               | (">=" >> rprec2) [push_op(OP_GE)]
+               | (str_p("==") >> rprec2)  [push_op(OP_EQ)]
+               | ((str_p("!=")|"<>") >> rprec2)  [push_op(OP_NEQ)]
+               | ('<' >> rprec2)  [push_op(OP_LT)]
+               | ('>' >> rprec2)  [push_op(OP_GT)]
                )
         ;
 
