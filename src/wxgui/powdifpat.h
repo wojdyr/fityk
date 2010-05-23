@@ -73,6 +73,7 @@ private:
     wxRadioBox *peak_rb, *width_rb, *shape_rb;
     wxTextCtrl *peak_txt;
     LockableRealCtrl *par_u, *par_v, *par_w, *par_z, *par_a, *par_b, *par_c;
+    wxTextCtrl *action_txt;
 
     wxPanel* PrepareIntroPanel();
     wxPanel* PrepareInstrumentPanel();
@@ -82,6 +83,7 @@ private:
     wxPanel* PrepareSizeStrainPanel();
     void initialize_quick_phase_list();
     void update_peak_parameters();
+    wxString prepare_commands();
 };
 
 #if !STANDALONE_POWDIFPAT

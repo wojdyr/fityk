@@ -28,6 +28,7 @@
 #include "sgchooser.h"
 #include "atomtables.h"
 #include "../common.h"
+#include "../func.h"
 #include "cmn.h"
 #include "uplot.h" // BufferedPanel, scale_tics_step()
 #include "fancyrc.h" // LockableRealCtrl 
@@ -125,7 +126,7 @@ public:
     void OnAtomsUnfocus(wxFocusEvent&);
     void OnAtomsChanged(wxCommandEvent& event);
     void set_phase(string const& name, CelFile const& cel);
-    const Crystal& get_crystal() { return cr_; }
+    const Crystal& get_crystal() const { return cr_; }
     bool editing_atoms() const { return editing_atoms_; }
     int get_selected_hkl() const { return hkl_list->GetSelection(); }
 
@@ -426,6 +427,16 @@ PlotWithLines::PlotWithLines(wxWindow* parent, PhasePanel* phase_panel,
     set_bg_color(wxColour(64, 64, 64));
 }
 
+double get_max_intensity(const vector<PlanesWithSameD>& bp)
+{
+    double max_intensity = 0.;
+    for (vector<PlanesWithSameD>::const_iterator i = bp.begin();
+                                                        i != bp.end(); ++i)
+        if (i->intensity > max_intensity)
+            max_intensity = i->intensity;
+    return max_intensity;
+}
+
 void PlotWithLines::draw(wxDC &dc, bool)
 {
     draw_tics(dc, powder_book_->x_min, powder_book_->x_max,
@@ -444,14 +455,10 @@ void PlotWithLines::draw(wxDC &dc, bool)
         return;
     const vector<PlanesWithSameD>& bp = phase_panel_->get_crystal().bp;
     int selected = phase_panel_->get_selected_hkl();
-    double max_intensity = 0.;
-    for (vector<PlanesWithSameD>::const_iterator i = bp.begin();
-                                                        i != bp.end(); ++i)
-        if (i->intensity > max_intensity)
-            max_intensity = i->intensity;
-    double y_scaling = 0;
+    double max_intensity = get_max_intensity(bp);;
+    double h_mult = 0;
     if (max_intensity > 0)
-        y_scaling = powder_book_->y_max / max_intensity;
+        h_mult = powder_book_->y_max / max_intensity;
     for (vector<PlanesWithSameD>::const_iterator i = bp.begin();
                                                         i != bp.end(); ++i) {
         if (!i->enabled)
@@ -465,7 +472,7 @@ void PlotWithLines::draw(wxDC &dc, bool)
         // draw short line at the bottom to mark position of the peak
         dc.DrawLine(X, Y0, X, (Yx+Y0)/2);
         if (i->intensity && !phase_panel_->editing_atoms()) {
-            int Y1 = getY(y_scaling * i->intensity);
+            int Y1 = getY(h_mult * i->intensity);
             // draw line that has height proportional to peak intensity
             dc.DrawLine(X, Yx, X, Y1);
         }
@@ -1086,7 +1093,7 @@ wxPanel* PowderBook::PreparePeakPanel()
 
     wxArrayString peak_widths;
     peak_widths.Add(wxT("independent for each hkl"));
-    peak_widths.Add(wxT("the same for all (not recommended)"));
+    peak_widths.Add(wxT("the same for all (initial value: V)"));
     peak_widths.Add(wxT("H\u00B2=U tan\u00B2\u03B8 + V tan\u03B8 + W + ")
                     wxT("Z/cos\u00B2\u03B8"));
     width_rb = new wxRadioBox(panel, -1, wxT("peak width"),
@@ -1094,8 +1101,8 @@ wxPanel* PowderBook::PreparePeakPanel()
     sizer->Add(width_rb, wxSizerFlags().Expand().Border());
 
     wxArrayString peak_shapes;
-    peak_shapes.Add(wxT("independent for each hkl"));
-    peak_shapes.Add(wxT("the same for all"));
+    peak_shapes.Add(wxT("independent for each hkl (initial value: A)"));
+    peak_shapes.Add(wxT("the same for all (initial value: A)"));
     peak_shapes.Add(wxT("A + B (2\u03B8) + C (2\u03B8)\u00B2"));
     peak_shapes.Add(wxT("A + B / (2\u03B8) + C / (2\u03B8)\u00B2"));
     shape_rb = new wxRadioBox(panel, -1, wxT("peak shape"),
@@ -1116,12 +1123,6 @@ wxPanel* PowderBook::PreparePeakPanel()
     stp_sizer->Add(par_sizer, wxSizerFlags(1).Expand());
     sizer->Add(stp_sizer, wxSizerFlags().Border().Expand());
 
-    //peak_txt = new wxTextCtrl(panel, -1, wxT(""),
-    //                          wxDefaultPosition, wxSize(-1, 200),
-    //                          wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
-    //peak_txt->SetBackgroundColour(GetBackgroundColour());
-    //sizer->Add(peak_txt, wxSizerFlags().Expand().Border());
-
     update_peak_parameters();
     panel->SetSizerAndFit(sizer);
 
@@ -1140,19 +1141,199 @@ wxPanel* PowderBook::PrepareActionPanel()
     wxPanel *panel = new wxPanel(this);
     wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 
-    wxTextCtrl *txt = new wxTextCtrl(panel, -1,
-                         wxT("This tool doesn't work yet,\n")
-                         wxT("            it is only a preview.\n")
-                         wxT("Your feedback is welcome!\n")
-                         wxT("What do you expect from this dialog?\n")
-                         wxT("http://groups.google.com/group/fityk-users/\n"),
-                         wxDefaultPosition, wxSize(-1, 200),
-                         wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE|wxTE_AUTO_URL);
-    txt->SetBackgroundColour(GetBackgroundColour());
-    sizer->Add(txt, wxSizerFlags(1).Expand().Border());
+    action_txt = new wxTextCtrl(panel, -1, wxEmptyString,
+                                wxDefaultPosition, wxSize(-1, 200),
+                                wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
+    action_txt->SetBackgroundColour(GetBackgroundColour());
+    sizer->Add(action_txt, wxSizerFlags(1).Expand().Border());
+    wxButton *apply_btn = new wxButton(panel, wxID_APPLY);
+    sizer->Add(apply_btn, wxSizerFlags().Right().Border(wxLEFT|wxRIGHT));
 
     panel->SetSizerAndFit(sizer);
     return panel;
+}
+
+wxString get_var(LockableRealCtrl *ctrl, double mult = 1.)
+{
+    return wxString::Format(ctrl->is_locked() ? wxT("%.9g") : wxT("~%.9g"),
+                            ctrl->get_value() * mult);
+}
+
+wxString hkl2wxstr(const Miller& hkl)
+{
+    wxString s;
+    bool separate = !(hkl.h > -10 && hkl.h < 10 &&
+                      hkl.k > -10 && hkl.k < 10 &&
+                      hkl.l > -10 && hkl.l < 10);
+    if (hkl.h < 0)
+        s += "m";
+    s += wxString::Format(wxT("%d"), hkl.h);
+    if (separate)
+        s += "_";
+    if (hkl.k < 0)
+        s += "m";
+    s += wxString::Format(wxT("%d"), hkl.k);
+    if (separate)
+        s += "_";
+    if (hkl.l < 0)
+        s += "m";
+    s += wxString::Format(wxT("%d"), hkl.l);
+    return s;
+}
+
+// All variable and function names have "pd" prefix.
+// Each name is composed from a few parts.
+// One example: "$pd1b_c201":
+//  "pd" - prefix
+//  "1" - first phase (usually there is only one phase)
+//  "b" - first wavelength
+//  "_" - separator
+//  "c" - center
+//  "201" - hkl=(201)
+// The variable $pd1a_c201 contains the center (position) of the (201)
+// reflection of the first phase, in the radiation of the first wavelenth.
+wxString PowderBook::prepare_commands()
+{
+    wxString s;
+    //wavelength
+    char lambda_symbol = 'a';
+    for (size_t i = 0; i != lambda_ctrl.size(); ++i) {
+        if (!lambda_ctrl[i]->is_nonzero() || !intensity_ctrl[i]->is_nonzero())
+            continue;
+        s += wxString::Format(wxT("$pd_lambda_%c = %s\n"), lambda_symbol,
+                                              get_var(lambda_ctrl[i]).c_str());
+        if (i != 0) {
+            s += wxString::Format(wxT("$pd_intens_%c = %s%9g\n"),
+                                  lambda_symbol,
+                                  get_var(intensity_ctrl[i]).c_str(), 0.01);
+        }
+        ++lambda_symbol;
+    }
+
+    // corrections
+    s += wxT("\n");
+    if (UdfContainer::get_udf("PdXcorr") != NULL)
+        s += wxT("undefine PdXcorr\n");
+    wxString xc_args, xc_vargs, xc_def;
+    wxString xc_formulas[] = { wxT("p1/tan(x)"),
+                               wxT("p2/sin(x)"),
+                               wxT("p3/tan(x/2)"),
+                               wxT("p4*sin(x)"),
+                               wxT("p5*cos(x/2)"),
+                               wxT("p6") };
+    for (int i = 0; i != (int) corr_ctrl.size(); ++i) {
+        if (corr_ctrl[0]->is_nonzero()) {
+            if (!xc_args.empty()) {
+                xc_args += wxT(", ");
+                xc_vargs += wxT(", ");
+                xc_def += wxT(" + ");
+            }
+            xc_args += wxString::Format(wxT("p%d"), i+1);
+            xc_vargs += wxString::Format(wxT("$pd_p%d"), i+1);
+            xc_def += xc_formulas[i];
+            s += wxString::Format(wxT("$pd_p%d = %s\n"), i+1,
+                                  get_var(corr_ctrl[i]).c_str());
+        }
+    }
+    if (!xc_args.empty()) {
+        s += wxT("define PdXcorr(") + xc_args + wxT(") = ") + xc_def
+            + wxT("\n");
+        s += wxT("%pd_xcorr = PdXcorr(") + xc_vargs + wxT(")\n");
+        s += wxT("@n.Z = %pd_xcorr\n");
+    }
+
+    double max_intensity = get_max_intensity(
+                                        get_phase_panel(0)->get_crystal().bp);
+    double h_mult = max_intensity > 0 ? y_max / max_intensity : 100;
+
+    bool has_u = par_u->is_nonzero();
+    bool has_v = par_v->is_nonzero();
+    bool has_w = par_w->is_nonzero();
+    bool has_z = par_z->is_nonzero();
+    double u_val = par_u->get_value();
+    double v_val = par_v->get_value();
+    double w_val = par_w->get_value();
+    double z_val = par_z->get_value();
+    if (peak_rb->GetSelection() == 2 /*H2=Utan2T...*/) {
+        if (has_u)
+            s += "$pd_u = " + get_var(par_u);
+        if (has_v)
+            s += "$pd_v = " + get_var(par_v);
+        if (has_w)
+            s += "$pd_w = " + get_var(par_w);
+        if (has_z)
+            s += "$pd_z = " + get_var(par_z);
+    }
+    else if (peak_rb->GetSelection() == 1 /*H2=Utan2T...*/) {
+        s += "$pd_v = " + (has_v ? get_var(par_v) : wxString(wxT("0")));
+    }
+
+    // A, B, C
+
+    for (int i = 0; i < (int) sample_nb->GetPageCount() - 1; ++i) {
+        const PhasePanel* p = get_phase_panel(i);
+        const Crystal& cr = p->get_crystal();
+        wxString pre = wxString::Format(wxT("$pd%d_"), i);
+        s += pre + wxT("a = ") + get_var(p->par_a) + "\n";
+        if (p->par_b->IsEnabled())
+            s += pre + wxT("b = ") + get_var(p->par_b) + "\n";
+        if (p->par_c->IsEnabled())
+            s += pre + wxT("c = ") + get_var(p->par_c) + "\n";
+        double d2r = M_PI/180.;
+        if (p->par_alpha->IsEnabled())
+            s += pre + wxT("alpha = ") + get_var(p->par_alpha, d2r) + "\n";
+        if (p->par_beta->IsEnabled())
+            s += pre + wxT("beta = ") + get_var(p->par_beta, d2r) + "\n";
+        if (p->par_gamma->IsEnabled())
+            s += pre + wxT("gamma = ") + get_var(p->par_gamma, d2r) + "\n";
+        for (vector<PlanesWithSameD>::const_iterator j = cr.bp.begin();
+                                                     j != cr.bp.end(); ++j) {
+            if (!j->enabled)
+                continue;
+            const Miller& hkl = j->planes[0];
+            wxString hkl_str = hkl2wxstr(hkl);
+            wxString hvar = pre + wxT("h") + hkl_str;
+            wxString svar = pre + wxT("s") + hkl_str;
+            double h = h_mult * j->intensity;
+            double lambda1 = get_lambda(0);
+            double ctr = 180 / M_PI * 2 * asin(lambda1 / (2 * j->d));
+            s +=  hvar + wxString::Format(wxT(" = ~%5g\n"), h);
+            wxString wvar;
+            if (peak_rb->GetSelection() == 0 /*independent*/) {
+                wvar = pre + wxT("w") + hkl_str;
+                double t = tan(ctr/2);
+                double c = cos(ctr/2);
+                double fwhm = u_val*t*t + v_val*t + w_val + z_val/(c*c);
+                s +=  wvar + wxString::Format(wxT(" = ~%5g\n"), fwhm);
+            }
+            else if (peak_rb->GetSelection() == 1 /*the same*/) {
+                wvar = wxT("$pd_w");
+            }
+            else if (peak_rb->GetSelection() == 2 /*H2=Utan2T...*/) {
+                wvar = pre + wxT("w") + hkl_str;
+                //s +=  wvar + " = sqrt($pd_u*tan(%s/2)^2 + $pd_v*tan(%s/2) + w + z/cos(%s/2)^2" + cvar _ "/2)" + pre ")" + ... + "\n";
+                //s +=  svar + " = " + ... + "\n";
+            }
+            for (char wave = 'a'; wave != lambda_symbol; ++wave) {
+                wxString cvar = wxString::Format(wxT("$pd%d%c_c%s"),
+                                                 i, lambda_symbol,
+                                                 hkl_str.c_str());
+                //$c_zn201 = 360/pi * asin($lambda / 2. * sqrt(4/3 * (2^2+0^2+2*0) / $zn_a^2 + 1^2/$zn_c^2 ))
+                wxString rd_str; // d^-1
+                rd_str.Printf(wxT("sqrt(%d)/$par_a"),
+                              hkl.h*hkl.h + hkl.k*hkl.k + hkl.l*hkl.l);
+                s += cvar + wxT(" = 360/pi * asin($lambda/2 * ") + rd_str
+                    + wxT(")\n");
+                wxString type = wxT("Gaussian");
+                s += wxString::Format(wxT("%%pd%d%c_%s = %s(%s, %s, %s)\n"),
+                                      i, lambda_symbol, hkl_str.c_str(),
+                                      type.c_str(),
+                                      hvar.c_str(), cvar.c_str(), wvar.c_str());
+            }
+        }
+    }
+
+    return s;
 }
 
 wxPanel* PowderBook::PrepareSizeStrainPanel()
@@ -1311,6 +1492,9 @@ void PowderBook::OnPageChanged(wxListbookEvent& event)
             p->sample_plot->refresh();
         }
     }
+    else if (event.GetSelection() == 3) { // action
+        action_txt->SetValue(prepare_commands());
+    }
 }
 
 PhasePanel *PowderBook::get_phase_panel(int n)
@@ -1374,13 +1558,15 @@ void PowderBook::OnShapeRadio(wxCommandEvent&)
 void PowderBook::update_peak_parameters()
 {
     //int p_idx = peak_rb->GetSelection();
-    //int w_idx = width_rb->GetSelection();
+    int w_idx = width_rb->GetSelection();
     //int s_idx = shape_rb->GetSelection();
+    par_u->Enable(w_idx != 1);
+    par_v->Enable(w_idx != 1);
+    par_z->Enable(w_idx != 1);
     bool has_shape = shape_rb->IsEnabled();
     par_a->Enable(has_shape);
     par_b->Enable(has_shape);
     par_c->Enable(has_shape);
-    //peak_txt->SetValue(s);
 }
 
 

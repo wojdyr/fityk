@@ -150,6 +150,15 @@ void LockableRealCtrl::set_lock(bool locked)
     lock->set_lock(locked);
 }
 
+bool LockableRealCtrl::is_nonzero() const
+{
+    double d;
+    bool ok = text->GetValue().ToDouble(&d);
+    if (!ok)
+        return false;
+    return d != 0. || !is_locked();
+}
+
 
 ParameterPanel::ParameterPanel(wxWindow* parent, wxWindowID id,
                                ParameterPanelObserver *observer)

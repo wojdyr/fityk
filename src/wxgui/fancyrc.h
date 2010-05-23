@@ -32,6 +32,7 @@ public:
     bool is_locked() const;
     void set_lock(bool locked);
     bool is_null() const { return text->IsEmpty(); }
+    bool is_nonzero() const; // non-zero value or not locked
     double get_value() const;
     wxString get_string() const { return text->GetValue(); }
     void set_string(wxString const& s) { text->ChangeValue(s); }
