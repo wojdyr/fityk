@@ -21,11 +21,11 @@ const char* startup_commands_filename = "init";
 
 
 // utils for reading FILE
-class GetLiner
+class LineReader
 {
 public:
-    GetLiner(FILE *fp) : fp_(fp), len_(160), buf_((char*) malloc(len_)) {}
-    ~GetLiner() { free(buf_); }
+    LineReader(FILE *fp) : fp_(fp), len_(160), buf_((char*) malloc(len_)) {}
+    ~LineReader() { free(buf_); }
     char *next();
 private:
     FILE *fp_;
@@ -50,7 +50,7 @@ int our_getline(char **lineptr, size_t *n, FILE *stream)
     return c == EOF ? -1 : counter;
 }
 
-char* GetLiner::next()
+char* LineReader::next()
 {
 #if HAVE_GETLINE
     int n = getline(&buf_, &len_, fp_);
@@ -63,6 +63,7 @@ char* GetLiner::next()
         buf_[n-1] = '\0';
     return n == -1 ? NULL : buf_;
 }
+
 
 
 string Commands::Cmd::str() const
@@ -303,13 +304,33 @@ void UserInterface::exec_script(const string& filename,
 
 void UserInterface::exec_stream(FILE *fp)
 {
-    GetLiner getliner(fp);
+    LineReader reader(fp);
     char *line;
-    while ((line = getliner.next()) != NULL) {
+    while ((line = reader.next()) != NULL) {
         string s = line;
         if (F->get_verbosity() >= 0)
             show_message (kQuoted, "> " + s);
         parse_and_execute(s);
+    }
+}
+
+void UserInterface::exec_string_as_script(const char* s)
+{
+    const char* start = s;
+    for (;;) {
+        const char* new_line = strchr(start, '\n');
+        const char* end = (new_line != NULL ? new_line : start + strlen(start));
+        while (isspace(*(end-1)) && end > start)
+            --end;
+        if (end > start) { // skip blank lines
+            string line(start, end);
+            if (F->get_verbosity() >= 0)
+                show_message (kQuoted, "> " + line);
+            parse_and_execute(line);
+        }
+        if (new_line == NULL)
+            break;
+        start = new_line + 1;
     }
 }
 

@@ -98,6 +98,7 @@ public:
         { exec_script(filename, std::vector<std::pair<int,int> >()); }
 
     void exec_stream (FILE *fp);
+    void exec_string_as_script(const char* s);
 
     Commands::Status exec_and_log(std::string const &c);
     //int get_verbosity() const { return F->get_verbosity(); }
