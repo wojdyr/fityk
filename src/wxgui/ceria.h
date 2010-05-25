@@ -183,6 +183,4 @@ struct Anode
 
 extern const Anode anodes[];
 
-extern const char* default_cel_files[];
-
 #endif // FITYK_WX_CERIA_H_

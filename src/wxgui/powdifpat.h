@@ -44,13 +44,15 @@ public:
     void OnLambdaChange(wxCommandEvent& event);
     void OnPageChanged(wxListbookEvent& event);
     void OnPeakRadio(wxCommandEvent& event);
+    void OnPeakSplit(wxCommandEvent& event);
     void OnWidthRadio(wxCommandEvent& event);
     void OnShapeRadio(wxCommandEvent& event);
     PhasePanel *get_phase_panel(int n);
     PhasePanel *get_current_phase_panel();
     void deselect_phase_quick_list();
     double get_lambda(int n) const;
-    wxListBox *get_quick_phase_lb() { return quick_phase_lb; }
+    wxListBox *get_saved_phase_lb() { return saved_phase_lb; }
+    void update_phase_labels(PhasePanel* p);
     double get_x_min() const { return x_min; }
     double get_x_max() const { return x_max; }
 #if STANDALONE_POWDIFPAT
@@ -59,7 +61,7 @@ public:
 #endif
 
 private:
-    wxListBox *anode_lb, *quick_phase_lb;
+    wxListBox *anode_lb, *saved_phase_lb;
     std::vector<LockableRealCtrl*> lambda_ctrl, intensity_ctrl, corr_ctrl;
     wxNotebook *sample_nb;
     double x_min, x_max, y_max;
@@ -71,6 +73,7 @@ private:
     const Data* data;
 #endif
     wxRadioBox *peak_rb, *width_rb, *shape_rb;
+    wxCheckBox *split_cb;
     wxTextCtrl *peak_txt;
     LockableRealCtrl *par_u, *par_v, *par_w, *par_z, *par_a, *par_b, *par_c;
     wxTextCtrl *action_txt;
@@ -84,6 +87,7 @@ private:
     void initialize_quick_phase_list();
     void update_peak_parameters();
     wxString prepare_commands();
+    wxString get_peak_name() const;
 };
 
 #if !STANDALONE_POWDIFPAT

@@ -137,7 +137,7 @@ private:
 
     wxTextCtrl *name_tc, *sg_tc;
     LockableRealCtrl *par_a, *par_b, *par_c, *par_alpha, *par_beta, *par_gamma;
-    wxButton *s_qadd_btn;
+    wxButton *save_btn;
     wxCheckListBox *hkl_list;
     wxTextCtrl *atoms_tc, *info_tc;
     wxStaticText *sg_nr_st;
@@ -239,8 +239,10 @@ void PowderBook::initialize_quick_phase_list()
         if (f) {
             CelFile cel = read_cel_file(f);
             fclose(f);
-            if (cel.sgs != NULL)
-                quick_phase_list[wx2s(filename)] = cel;
+            if (cel.sgs != NULL) {
+                wxString name = wxFileName(filename).GetName();
+                quick_phase_list[wx2s(name)] = cel;
+            }
         }
         cont = dir.GetNext(&filename);
     }
@@ -297,7 +299,7 @@ wxPanel* PowderBook::PrepareIntroPanel()
     range_sizer->Add(range_to, wxSizerFlags().Center().Border());
     intro_sizer->Add(range_sizer);
     Connect(file_picker->GetId(), wxEVT_COMMAND_FILEPICKER_CHANGED,
-            (wxObjectEventFunction) &PowderBook::OnFilePicked);
+            wxCommandEventHandler(PowderBook::OnFilePicked));
 #endif
 
     wxStaticBoxSizer *legend_box = new wxStaticBoxSizer(wxHORIZONTAL,
@@ -406,14 +408,14 @@ wxPanel* PowderBook::PrepareInstrumentPanel()
 
     for (size_t i = 0; i < lambda_ctrl.size(); ++i)
         lambda_ctrl[i]->Connect(wxID_ANY, wxEVT_COMMAND_TEXT_UPDATED,
-                           (wxObjectEventFunction) &PowderBook::OnLambdaChange,
+                           wxCommandEventHandler(PowderBook::OnLambdaChange),
                            NULL, this);
     for (size_t i = 1; i < intensity_ctrl.size(); ++i)
         intensity_ctrl[i]->Connect(wxID_ANY, wxEVT_COMMAND_TEXT_UPDATED,
-                           (wxObjectEventFunction) &PowderBook::OnLambdaChange,
+                           wxCommandEventHandler(PowderBook::OnLambdaChange),
                            NULL, this);
     Connect(anode_lb->GetId(), wxEVT_COMMAND_LISTBOX_SELECTED,
-            (wxObjectEventFunction) &PowderBook::OnAnodeSelected);
+            wxCommandEventHandler(PowderBook::OnAnodeSelected));
 
     return panel;
 }
@@ -530,8 +532,8 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
     h0sizer->Add(name_tc, wxSizerFlags().Center().Border());
 
     wxBoxSizer *h2sizer = new wxBoxSizer(wxHORIZONTAL);
-    s_qadd_btn = new wxButton(this, wxID_ADD, wxT("Add to quick list"));
-    h2sizer->Add(s_qadd_btn, wxSizerFlags().Border());
+    save_btn = new wxButton(this, wxID_SAVE);
+    h2sizer->Add(save_btn, wxSizerFlags().Border());
     h2sizer->AddStretchSpacer();
     wxButton *s_clear_btn = new wxButton(this, wxID_CLEAR);
     h2sizer->Add(s_clear_btn, wxSizerFlags().Border());
@@ -594,7 +596,7 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
 
     Connect(sg_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             (wxObjectEventFunction) &PhasePanel::OnSpaceGroupButton);
-    Connect(s_qadd_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
+    Connect(save_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             (wxObjectEventFunction) &PhasePanel::OnAddToQLButton);
     Connect(s_clear_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             (wxObjectEventFunction) &PhasePanel::OnClearButton);
@@ -647,8 +649,8 @@ void PhasePanel::OnAddToQLButton(wxCommandEvent&)
                      wxT("Error"), wxOK|wxICON_ERROR);
         return;
     }
-    wxListBox *quick_phase_lb = powder_book->get_quick_phase_lb();
-    if (quick_phase_lb->FindString(name) != wxNOT_FOUND) {
+    wxListBox *saved_phase_lb = powder_book->get_saved_phase_lb();
+    if (saved_phase_lb->FindString(name) != wxNOT_FOUND) {
         int answer = wxMessageBox(wxT("Name `") + name
                                         + wxT("' already exists.\nOverwrite?"),
                                   wxT("Overwrite?"), wxYES_NO|wxICON_QUESTION);
@@ -656,7 +658,7 @@ void PhasePanel::OnAddToQLButton(wxCommandEvent&)
             return;
     }
     else
-        quick_phase_lb->Append(name);
+        saved_phase_lb->Append(name);
 
     CelFile cel;
     cel.sgs = cr_.sgs;
@@ -678,9 +680,9 @@ void PhasePanel::OnAddToQLButton(wxCommandEvent&)
         cel.atoms.push_back(aic);
     }
 
-    quick_phase_lb->SetStringSelection(name);
+    saved_phase_lb->SetStringSelection(name);
     powder_book->quick_phase_list[wx2s(name)] = cel;
-    FILE *f = wxFopen(get_cel_files_dir() + name, wxT("w"));
+    FILE *f = wxFopen(get_cel_files_dir() + name + wxT(".cel"), wxT("w"));
     if (f) {
         write_cel_file(cel, f);
         fclose(f);
@@ -689,51 +691,22 @@ void PhasePanel::OnAddToQLButton(wxCommandEvent&)
 
 void PhasePanel::OnClearButton(wxCommandEvent& event)
 {
-    size_t sel = nb_parent->GetSelection();
-    if (sel < nb_parent->GetPageCount() - 1) {
-        nb_parent->SetSelection(nb_parent->GetPageCount() - 1);
-        nb_parent->DeletePage(sel);
-    }
-    else {
-        name_tc->Clear();
-        sg_tc->Clear();
-        par_a->Clear();
-        par_b->Clear();
-        par_c->Clear();
-        par_alpha->Clear();
-        par_beta->Clear();
-        par_gamma->Clear();
-        OnSpaceGroupChanged(event);
-    }
+    name_tc->Clear();
+    sg_tc->Clear();
+    par_a->Clear();
+    par_b->Clear();
+    par_c->Clear();
+    par_alpha->Clear();
+    par_beta->Clear();
+    par_gamma->Clear();
+    OnSpaceGroupChanged(event);
+    powder_book->update_phase_labels(this);
 }
 
 void PhasePanel::OnNameChanged(wxCommandEvent&)
 {
-    wxString name = name_tc->GetValue();
-    bool valid = !name.empty();
-    int last = nb_parent->GetPageCount() - 1;
-    int active = nb_parent->GetSelection();
-    wxString empty_label = wxT("+");
-    bool last_empty = (nb_parent->GetPageText(last) == empty_label);
-
-    s_qadd_btn->Enable(valid);
-    nb_parent->SetPageText(active, valid ? name : empty_label);
-
-    if (valid) {
-        bool has_empty = false;
-        for (size_t i = 0; i < nb_parent->GetPageCount(); ++i)
-            if (nb_parent->GetPageText(last) == empty_label) {
-                has_empty = true;
-                break;
-            }
-        if (!has_empty) {
-            PhasePanel *page = new PhasePanel(nb_parent, powder_book);
-            nb_parent->AddPage(page, wxT("+"));
-        }
-    }
-    else if (!valid && active != last && last_empty) {
-        nb_parent->DeletePage(last);
-    }
+    powder_book->deselect_phase_quick_list();
+    powder_book->update_phase_labels(this);
 }
 
 void PhasePanel::OnSpaceGroupChanged(wxCommandEvent&)
@@ -900,7 +873,7 @@ void PhasePanel::OnLineSelected(wxCommandEvent& event)
     if (event.IsSelection()) {
         int n = event.GetSelection();
         PlanesWithSameD const& bp = cr_.bp[n];
-        info_tc->SetValue(make_info_string_for_line(bp, powder_book));
+        info_tc->ChangeValue(make_info_string_for_line(bp, powder_book));
     }
     sample_plot->refresh();
 }
@@ -912,7 +885,7 @@ void PhasePanel::OnAtomsFocus(wxFocusEvent&)
         atoms_show_help_ = false;
     }
     wxString info = make_info_string_for_atoms(cr_.atoms, line_with_error_);
-    info_tc->SetValue(info);
+    info_tc->ChangeValue(info);
     editing_atoms_ = true;
     sample_plot->refresh();
 }
@@ -1004,7 +977,8 @@ void PhasePanel::update_miller_indices()
 
 void PhasePanel::set_phase(string const& name, CelFile const& cel)
 {
-    name_tc->SetValue(s2wx(name));
+    name_tc->ChangeValue(s2wx(name));
+    powder_book->update_phase_labels(this);
     cr_.set_space_group(cel.sgs);
     change_space_group();
     par_a->set_string(wxString::Format(wxT("%g"), (cel.a)));
@@ -1036,23 +1010,23 @@ wxPanel* PowderBook::PrepareSamplePanel()
 {
     wxPanel *panel = new wxPanel(this);
     wxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxSizer *quick_sizer = new wxStaticBoxSizer(wxVERTICAL, panel,
-                                                wxT("quick list"));
-    quick_phase_lb = new wxListBox(panel, -1, wxDefaultPosition, wxDefaultSize,
+    wxSizer *left_sizer = new wxStaticBoxSizer(wxVERTICAL, panel,
+                                               wxT("saved structures"));
+    saved_phase_lb = new wxListBox(panel, -1, wxDefaultPosition, wxDefaultSize,
                                    0, NULL, wxLB_SINGLE|wxLB_SORT);
 
     for (map<string, CelFile>::const_iterator i
               = quick_phase_list.begin(); i != quick_phase_list.end(); ++i)
-        quick_phase_lb->Append(s2wx(i->first));
+        saved_phase_lb->Append(s2wx(i->first));
 
-    quick_sizer->Add(quick_phase_lb, wxSizerFlags(1).Border().Expand());
-    wxButton *s_qremove_btn = new wxButton(panel, wxID_REMOVE);
-    quick_sizer->Add(s_qremove_btn,
-                     wxSizerFlags().Center().Border(wxLEFT|wxRIGHT));
-    wxButton *s_qimport_btn = new wxButton(panel, wxID_OPEN, wxT("Import"));
-    quick_sizer->Add(s_qimport_btn, wxSizerFlags().Center().Border());
+    left_sizer->Add(saved_phase_lb, wxSizerFlags(1).Border().Expand());
+    wxButton *s_remove_btn = new wxButton(panel, wxID_REMOVE);
+    left_sizer->Add(s_remove_btn,
+                    wxSizerFlags().Center().Border(wxLEFT|wxRIGHT));
+    wxButton *s_import_btn = new wxButton(panel, wxID_OPEN, wxT("Import"));
+    left_sizer->Add(s_import_btn, wxSizerFlags().Center().Border());
 
-    sizer->Add(quick_sizer, wxSizerFlags().Expand());
+    sizer->Add(left_sizer, wxSizerFlags().Expand());
 
     sample_nb = new wxNotebook(panel, -1, wxDefaultPosition, wxDefaultSize,
                                wxNB_BOTTOM);
@@ -1063,11 +1037,11 @@ wxPanel* PowderBook::PrepareSamplePanel()
 
     panel->SetSizerAndFit(sizer);
 
-    Connect(quick_phase_lb->GetId(), wxEVT_COMMAND_LISTBOX_SELECTED,
+    Connect(saved_phase_lb->GetId(), wxEVT_COMMAND_LISTBOX_SELECTED,
             (wxObjectEventFunction) &PowderBook::OnQuickPhaseSelected);
-    Connect(s_qremove_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
+    Connect(s_remove_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             (wxObjectEventFunction) &PowderBook::OnQuickListRemove);
-    Connect(s_qimport_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
+    Connect(s_import_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             (wxObjectEventFunction) &PowderBook::OnQuickListImport);
 
     return panel;
@@ -1084,16 +1058,17 @@ wxPanel* PowderBook::PreparePeakPanel()
     peak_choices.Add(wxT("Pearson VII"));
     peak_choices.Add(wxT("Pseudo-Voigt"));
     peak_choices.Add(wxT("Voigt"));
-    peak_choices.Add(wxT("Split-Gaussian"));
-    peak_choices.Add(wxT("Split-PearsonVII"));
     peak_rb = new wxRadioBox(panel, -1, wxT("peak function"),
                              wxDefaultPosition, wxDefaultSize, peak_choices, 5);
     peak_rb->SetSelection(3 /*Pseudo-Voigt*/);
     sizer->Add(peak_rb, wxSizerFlags().Expand().Border());
 
+    split_cb = new wxCheckBox(panel, -1, wxT("split (different widths and shapes for both sides)"));
+    sizer->Add(split_cb, wxSizerFlags().Border());
+
     wxArrayString peak_widths;
     peak_widths.Add(wxT("independent for each hkl"));
-    peak_widths.Add(wxT("the same for all (initial value: V)"));
+    peak_widths.Add(wxT("the same for all (not recommended)"));
     peak_widths.Add(wxT("H\u00B2=U tan\u00B2\u03B8 + V tan\u03B8 + W + ")
                     wxT("Z/cos\u00B2\u03B8"));
     width_rb = new wxRadioBox(panel, -1, wxT("peak width"),
@@ -1116,8 +1091,10 @@ wxPanel* PowderBook::PreparePeakPanel()
     par_u = addMaybeRealCtrl(panel, wxT("U ="),  par_sizer, flags, false);
     par_v = addMaybeRealCtrl(panel, wxT("V ="),  par_sizer, flags, false);
     par_w = addMaybeRealCtrl(panel, wxT("W ="),  par_sizer, flags, false);
+    par_w->set_value(0.1);
     par_z = addMaybeRealCtrl(panel, wxT("Z ="),  par_sizer, flags, false);
     par_a = addMaybeRealCtrl(panel, wxT("A ="),  par_sizer, flags, false);
+    par_a->set_value(0.8); // valid value for both Voigt and Pearson7
     par_b = addMaybeRealCtrl(panel, wxT("B ="),  par_sizer, flags, false);
     par_c = addMaybeRealCtrl(panel, wxT("C ="),  par_sizer, flags, false);
     stp_sizer->Add(par_sizer, wxSizerFlags(1).Expand());
@@ -1127,13 +1104,28 @@ wxPanel* PowderBook::PreparePeakPanel()
     panel->SetSizerAndFit(sizer);
 
     Connect(peak_rb->GetId(), wxEVT_COMMAND_RADIOBOX_SELECTED,
-            (wxObjectEventFunction) &PowderBook::OnPeakRadio);
+            wxCommandEventHandler(PowderBook::OnPeakRadio));
+    Connect(split_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(PowderBook::OnPeakSplit));
     Connect(width_rb->GetId(), wxEVT_COMMAND_RADIOBOX_SELECTED,
-            (wxObjectEventFunction) &PowderBook::OnWidthRadio);
+            wxCommandEventHandler(PowderBook::OnWidthRadio));
     Connect(shape_rb->GetId(), wxEVT_COMMAND_RADIOBOX_SELECTED,
-            (wxObjectEventFunction) &PowderBook::OnShapeRadio);
+            wxCommandEventHandler(PowderBook::OnShapeRadio));
 
     return panel;
+}
+
+wxString PowderBook::get_peak_name() const
+{
+    wxString s;
+    switch (peak_rb->GetSelection()) {
+        case 0: s = wxT("Gaussian"); break;
+        case 1: s = wxT("Lorentzian"); break;
+        case 2: s = wxT("Pearson7"); break;
+        case 3: s = wxT("PseudoVoigt"); break;
+        case 4: s = wxT("Voigt"); break;
+    }
+    return split_cb->GetValue() ? wxT("Split") + s : s;
 }
 
 wxPanel* PowderBook::PrepareActionPanel()
@@ -1203,7 +1195,7 @@ wxString PowderBook::prepare_commands()
         s += wxString::Format(wxT("$pd_lambda_%c = %s\n"), lambda_symbol,
                                               get_var(lambda_ctrl[i]).c_str());
         if (i != 0) {
-            s += wxString::Format(wxT("$pd_intens_%c = %s%9g\n"),
+            s += wxString::Format(wxT("$pd_intens_%c = %s%.9g\n"),
                                   lambda_symbol,
                                   get_var(intensity_ctrl[i]).c_str(), 0.01);
         }
@@ -1211,7 +1203,6 @@ wxString PowderBook::prepare_commands()
     }
 
     // corrections
-    s += wxT("\n");
     if (UdfContainer::get_udf("PdXcorr") != NULL)
         s += wxT("undefine PdXcorr\n");
     wxString xc_args, xc_vargs, xc_def;
@@ -1222,7 +1213,7 @@ wxString PowderBook::prepare_commands()
                                wxT("p5*cos(x/2)"),
                                wxT("p6") };
     for (int i = 0; i != (int) corr_ctrl.size(); ++i) {
-        if (corr_ctrl[0]->is_nonzero()) {
+        if (corr_ctrl[i]->is_nonzero()) {
             if (!xc_args.empty()) {
                 xc_args += wxT(", ");
                 xc_vargs += wxT(", ");
@@ -1254,25 +1245,38 @@ wxString PowderBook::prepare_commands()
     double v_val = par_v->get_value();
     double w_val = par_w->get_value();
     double z_val = par_z->get_value();
-    if (peak_rb->GetSelection() == 2 /*H2=Utan2T...*/) {
+    s += wxT("\n");
+    int width_sel = width_rb->GetSelection();
+    if (width_sel == 2 /*H2=Utan2T...*/) {
         if (has_u)
-            s += "$pd_u = " + get_var(par_u);
+            s += "$pd_u = " + get_var(par_u) + wxT("\n");
         if (has_v)
-            s += "$pd_v = " + get_var(par_v);
+            s += "$pd_v = " + get_var(par_v) + wxT("\n");
         if (has_w)
-            s += "$pd_w = " + get_var(par_w);
+            s += "$pd_w = " + get_var(par_w) + wxT("\n");
         if (has_z)
-            s += "$pd_z = " + get_var(par_z);
+            s += "$pd_z = " + get_var(par_z) + wxT("\n");
     }
-    else if (peak_rb->GetSelection() == 1 /*H2=Utan2T...*/) {
-        s += "$pd_v = " + (has_v ? get_var(par_v) : wxString(wxT("0")));
+    else if (width_sel == 1 /*the same*/) {
+        // assert(has_w);
+        s += "$pd_w = " + get_var(par_w) + wxT("\n");
     }
 
-    // A, B, C
+    bool has_a = par_a->IsEnabled() && par_a->is_nonzero();
+    bool has_b = par_b->IsEnabled() && par_b->is_nonzero();
+    bool has_c = par_c->IsEnabled() && par_c->is_nonzero();
+    double a_val = par_a->get_value();
+    if (has_a)
+        s += "$pd_a = " + get_var(par_u) + wxT("\n");
+    if (has_b)
+        s += "$pd_b = " + get_var(par_u) + wxT("\n");
+    if (has_c)
+        s += "$pd_c = " + get_var(par_u) + wxT("\n");
 
     for (int i = 0; i < (int) sample_nb->GetPageCount() - 1; ++i) {
         const PhasePanel* p = get_phase_panel(i);
         const Crystal& cr = p->get_crystal();
+        s += wxT("\n# ") + p->name_tc->GetValue() + wxT("\n");
         wxString pre = wxString::Format(wxT("$pd%d_"), i);
         s += pre + wxT("a = ") + get_var(p->par_a) + "\n";
         if (p->par_b->IsEnabled())
@@ -1293,42 +1297,69 @@ wxString PowderBook::prepare_commands()
             const Miller& hkl = j->planes[0];
             wxString hkl_str = hkl2wxstr(hkl);
             wxString hvar = pre + wxT("h") + hkl_str;
-            wxString svar = pre + wxT("s") + hkl_str;
             double h = h_mult * j->intensity;
             double lambda1 = get_lambda(0);
             double ctr = 180 / M_PI * 2 * asin(lambda1 / (2 * j->d));
-            s +=  hvar + wxString::Format(wxT(" = ~%5g\n"), h);
-            wxString wvar;
-            if (peak_rb->GetSelection() == 0 /*independent*/) {
-                wvar = pre + wxT("w") + hkl_str;
+            s +=  hvar + wxString::Format(wxT(" = ~%.5g\n"), h);
+
+            wxString wvar = pre + wxT("w") + hkl_str;
+            if (width_sel == 0 /*independent*/) {
                 double t = tan(ctr/2);
                 double c = cos(ctr/2);
-                double fwhm = u_val*t*t + v_val*t + w_val + z_val/(c*c);
-                s +=  wvar + wxString::Format(wxT(" = ~%5g\n"), fwhm);
+                double fwhm = (u_val*t*t + v_val*t + w_val + z_val/(c*c)) / 2;
+                s +=  wvar + wxString::Format(wxT(" = ~%.5g\n"), fwhm);
             }
-            else if (peak_rb->GetSelection() == 1 /*the same*/) {
-                wvar = wxT("$pd_w");
+            else if (width_sel == 1 /*the same*/) {
+                s +=  wvar + wxT(" = sqrt($pd_w)\n");
             }
-            else if (peak_rb->GetSelection() == 2 /*H2=Utan2T...*/) {
-                wvar = pre + wxT("w") + hkl_str;
+            else if (width_sel == 2 /*H2=Utan2T...*/) {
                 //s +=  wvar + " = sqrt($pd_u*tan(%s/2)^2 + $pd_v*tan(%s/2) + w + z/cos(%s/2)^2" + cvar _ "/2)" + pre ")" + ... + "\n";
                 //s +=  svar + " = " + ... + "\n";
             }
+
+            bool has_shape = peak_rb->GetSelection() < 2;
+            wxString svar = pre + wxT("s") + hkl_str;
+            int shape_sel = shape_rb->GetSelection();
+            if (shape_sel == 0 /*independent*/) {
+                s += svar + wxString::Format(wxT(" = ~%.5g\n"), a_val);
+            }
+            else if (shape_sel == 1 /*the same*/) {
+                // overwrite svar, to use directly $pd_a in the %function
+                svar = wxT("$pd_a");
+            }
+            else if (shape_sel == 2) {
+                s += svar + wxT(" = $pd_a + $pd_b*x + $pd_c*x*x\n");
+            }
+            else if (shape_sel == 3) {
+                s += svar + wxT(" = $pd_a + $pd_b/x + $pd_c/(x*x)\n");
+            }
+
             for (char wave = 'a'; wave != lambda_symbol; ++wave) {
                 wxString cvar = wxString::Format(wxT("$pd%d%c_c%s"),
-                                                 i, lambda_symbol,
-                                                 hkl_str.c_str());
+                                                 i, wave, hkl_str.c_str());
                 //$c_zn201 = 360/pi * asin($lambda / 2. * sqrt(4/3 * (2^2+0^2+2*0) / $zn_a^2 + 1^2/$zn_c^2 ))
                 wxString rd_str; // d^-1
                 rd_str.Printf(wxT("sqrt(%d)/$par_a"),
                               hkl.h*hkl.h + hkl.k*hkl.k + hkl.l*hkl.l);
                 s += cvar + wxT(" = 360/pi * asin($lambda/2 * ") + rd_str
                     + wxT(")\n");
-                wxString type = wxT("Gaussian");
-                s += wxString::Format(wxT("%%pd%d%c_%s = %s(%s, %s, %s)\n"),
-                                      i, lambda_symbol, hkl_str.c_str(),
-                                      type.c_str(),
-                                      hvar.c_str(), cvar.c_str(), wvar.c_str());
+                s += wxString::Format(wxT("%%pd%d%c_%s = "),
+                                      i, wave, hkl_str.c_str());
+                s += get_peak_name();
+                // all functions have height and center
+                s += wxString::Format(wxT("(%s, %s, "),
+                                      hvar.c_str(), cvar.c_str());
+                if (split_cb->GetValue()) { // split function
+                    s += wvar + wxT(", ") + wvar;
+                    if (has_shape)
+                        s += wxT(", ") + svar + wxT(", ") + svar;
+                }
+                else { // normal (not split) function
+                    s += wvar;
+                    if (has_shape)
+                        s += wxT(", ") + svar;
+                }
+                s += wxT(")\n");
             }
         }
     }
@@ -1415,26 +1446,26 @@ void PowderBook::OnQuickPhaseSelected(wxCommandEvent& event)
     int n = event.GetSelection();
     if (n < 0)
         return;
-    string name = wx2s(quick_phase_lb->GetString(n));
+    string name = wx2s(saved_phase_lb->GetString(n));
     CelFile const& cel = quick_phase_list[name];
     PhasePanel *panel = get_current_phase_panel();
     assert(panel->GetParent() == sample_nb);
     panel->set_phase(name, cel);
-    panel->s_qadd_btn->Enable(false);
+    panel->save_btn->Enable(false);
     panel->sample_plot->refresh();
 }
 
 void PowderBook::OnQuickListRemove(wxCommandEvent&)
 {
-    int n = quick_phase_lb->GetSelection();
+    int n = saved_phase_lb->GetSelection();
     if (n < 0)
         return;
 
-    string name = wx2s(quick_phase_lb->GetString(n));
-    assert(quick_phase_lb->GetCount() == quick_phase_list.size());
+    string name = wx2s(saved_phase_lb->GetString(n));
+    assert(saved_phase_lb->GetCount() == quick_phase_list.size());
 
-    quick_phase_lb->SetSelection(wxNOT_FOUND);
-    quick_phase_lb->Delete(n);
+    saved_phase_lb->SetSelection(wxNOT_FOUND);
+    saved_phase_lb->Delete(n);
     quick_phase_list.erase(name);
 }
 
@@ -1453,7 +1484,7 @@ void PowderBook::OnQuickListImport(wxCommandEvent&)
         wxFileName fn(paths[i]);
         wxString name = fn.GetName();
         wxString ext = fn.GetExt();
-        if (quick_phase_lb->FindString(name) != wxNOT_FOUND) {
+        if (saved_phase_lb->FindString(name) != wxNOT_FOUND) {
             int answer = wxMessageBox(wxT("Name `") + name
                     + wxT("' already exists.\nOverwrite?"),
                     wxT("Overwrite?"), wxYES_NO|wxICON_QUESTION);
@@ -1474,7 +1505,7 @@ void PowderBook::OnQuickListImport(wxCommandEvent&)
                     quick_phase_list[wx2s(name)] = cel;
             }
         }
-        quick_phase_lb->Append(name);
+        saved_phase_lb->Append(name);
     }
 }
 
@@ -1509,10 +1540,10 @@ PhasePanel *PowderBook::get_current_phase_panel()
 
 void PowderBook::deselect_phase_quick_list()
 {
-    quick_phase_lb->SetSelection(wxNOT_FOUND);
+    saved_phase_lb->SetSelection(wxNOT_FOUND);
     PhasePanel *panel = get_current_phase_panel();
-    if (!panel->name_tc->GetValue().empty())
-        panel->s_qadd_btn->Enable(true);
+    bool valid = !panel->name_tc->GetValue().empty();
+    panel->save_btn->Enable(valid);
 }
 
 double PowderBook::get_lambda(int n) const
@@ -1526,23 +1557,25 @@ void PowderBook::OnPeakRadio(wxCommandEvent& event)
 {
     // enable/disable peak and shape radiobuttons
     int sel = event.GetSelection();
-    bool has_shape = (sel > 1 && sel != 5); // not (Split-)Gaussian/Lorentzian
+    bool has_shape = (sel > 1); // not Gaussian/Lorentzian
     shape_rb->Enable(has_shape);
+    update_peak_parameters();
+}
 
+void PowderBook::OnPeakSplit(wxCommandEvent& event)
+{
     // Split-* functions don't have width/shape set as f(2T) now.
     // This could be implemented (two sets of parameters - for left and right).
-    bool is_split = (sel >= 5);
+    bool is_split = event.IsChecked();
     if (is_split && width_rb->GetSelection() == 2 /*f(2T)*/)
         width_rb->SetSelection(0);
     width_rb->Enable(2, !is_split);
-    if (has_shape) {
+    if (shape_rb->IsEnabled()) {
         if (is_split && shape_rb->GetSelection() >= 2 /*f(2T)*/)
             shape_rb->SetSelection(0);
         shape_rb->Enable(2, !is_split);
         shape_rb->Enable(3, !is_split);
     }
-
-    update_peak_parameters();
 }
 
 void PowderBook::OnWidthRadio(wxCommandEvent&)
@@ -1557,16 +1590,46 @@ void PowderBook::OnShapeRadio(wxCommandEvent&)
 
 void PowderBook::update_peak_parameters()
 {
-    //int p_idx = peak_rb->GetSelection();
-    int w_idx = width_rb->GetSelection();
-    //int s_idx = shape_rb->GetSelection();
-    par_u->Enable(w_idx != 1);
-    par_v->Enable(w_idx != 1);
-    par_z->Enable(w_idx != 1);
+    // if the width is to be the same for all peaks, only W is enabled
+    bool has_uvz = (width_rb->GetSelection() != 1);
+    par_u->Enable(has_uvz);
+    par_v->Enable(has_uvz);
+    par_z->Enable(has_uvz);
+
     bool has_shape = shape_rb->IsEnabled();
     par_a->Enable(has_shape);
     par_b->Enable(has_shape);
     par_c->Enable(has_shape);
+}
+
+// update wxNoteBook page labels: set the current page name to be the same
+// as the name in wxTextCtrl, make sure there is always one empty page.
+void PowderBook::update_phase_labels(PhasePanel* p)
+{
+    wxString name = p->name_tc->GetValue();
+    bool valid = !name.empty();
+    int last = sample_nb->GetPageCount() - 1;
+    int active = sample_nb->GetSelection();
+    wxString empty_label = wxT("+");
+    bool last_empty = (sample_nb->GetPageText(last) == empty_label);
+
+    sample_nb->SetPageText(active, valid ? name : empty_label);
+
+    if (valid) {
+        bool has_empty = false;
+        for (size_t i = 0; i < sample_nb->GetPageCount(); ++i)
+            if (sample_nb->GetPageText(last) == empty_label) {
+                has_empty = true;
+                break;
+            }
+        if (!has_empty) {
+            PhasePanel *page = new PhasePanel(sample_nb, this);
+            sample_nb->AddPage(page, wxT("+"));
+        }
+    }
+    else if (active != last && last_empty) {
+        sample_nb->DeletePage(last);
+    }
 }
 
 
@@ -1664,9 +1727,9 @@ bool App::OnInit()
     frame->Show();
 
     Connect(about->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
-            (wxObjectEventFunction) &App::OnAbout);
+            wxCommandEventHandler(App::OnAbout));
     Connect(close->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
-            (wxObjectEventFunction) &App::OnClose);
+            wxCommandEventHandler(App::OnClose));
     return true;
 }
 

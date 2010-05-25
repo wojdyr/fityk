@@ -848,7 +848,7 @@ UDF const* get_udf(std::string const &type)
     for (vector<UDF>::const_iterator i = udfs.begin(); i != udfs.end(); ++i)
         if (i->name == type)
             return &(*i);
-    return 0;
+    return NULL;
 }
 
 

@@ -636,14 +636,16 @@ const Anode anodes[] = {
 };
 
 
-const char* default_cel_files[] = {
+const char* default_cel_files[][2] = {
 
+{"bSiC",
 "cell  4.358 4.358 4.358  90 90 90\n"
 "Si   14  0 0 0\n"
 "C     6  0.25 0.25 0.25\n"
-"rgnr 216\n"
-"filename bSiC",
+"rgnr 216"
+},
 
+{"aSiC",
 "cell  3.082 3.082 15.123  90 90 120\n"
 "SI1  14  0       0       0\n"
 "SI2  14  0.3333  0.6667  0.1667\n"
@@ -651,32 +653,36 @@ const char* default_cel_files[] = {
 "C1    6  0.0     0.0     0.125\n"
 "C2    6  0.3333  0.6667  0.2917\n"
 "C3    6  0.3333  0.6667  0.9583\n"
-"rgnr 186\n"
-"filename aSiC",
+"rgnr 186",
+},
 
+{"NaCl",
 "cell  5.64009 5.64009 5.64009  90 90 90\n"
 "Na   11   0   0   0\n"
 "Cl   17   0.5 0   0\n"
-"rgnr 225\n"
-"filename NaCl",
+"rgnr 225"
+},
 
+{"diamond",
 "cell  3.5595 3.5595 3.5595  90 90 90\n"
 "C     6  0 0 0\n"
-"rgnr 227\n"
-"filename diamond",
+"rgnr 227"
+},
 
+{"Si",
 "cell  5.4309 5.4309 5.4309  90 90 90\n"
 "Si   14  0 0 0\n"
-"rgnr 227\n"
-"filename Si",
+"rgnr 227"
+},
 
+{"CeO2",
 "cell  5.41 5.41 5.41  90 90 90\n"
 "Ce   58  0   0   0\n"
 "O     8  0.25 0.25 0.25\n"
-"rgnr 225\n"
-"filename CeO2",
+"rgnr 225"
+},
 
-NULL
+{NULL, NULL}
 };
 
 
@@ -758,7 +764,7 @@ void write_cel_file(CelFile const& cel, FILE *f)
     }
     int sgn = cel.sgs->sgnumber;
     fprintf(f, "rgnr %d", sgn);
-    if (sgn != 1 && (cel.sgs-1)->sgnumber != sgn) {
+    if (sgn != 1 && (cel.sgs-1)->sgnumber == sgn) {
         fprintf(f, " :");
         if (cel.sgs->ext != 0)
             fprintf(f, "%c", cel.sgs->ext);
@@ -769,14 +775,12 @@ void write_cel_file(CelFile const& cel, FILE *f)
 
 void write_default_cel_files(const char* path_prefix)
 {
-    const char* special_str = "\nfilename ";
-    for (const char** s = default_cel_files; *s != NULL; ++s) {
-        const char* fn = strstr(*s, special_str) + strlen(special_str);
-        string filename = string(path_prefix) + fn;
+    for (const char*(*s)[2] = default_cel_files; (*s)[0] != NULL; ++s) {
+        string filename = string(path_prefix) + (*s)[0] + ".cel";
         FILE *f = fopen(filename.c_str(), "w");
         if (!f)
             continue;
-        fprintf(f, "%s\n", *s);
+        fprintf(f, "%s\n", (*s)[1]);
         fclose(f);
     }
 }
