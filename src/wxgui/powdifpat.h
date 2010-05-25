@@ -47,6 +47,7 @@ public:
     void OnPeakSplit(wxCommandEvent& event);
     void OnWidthRadio(wxCommandEvent& event);
     void OnShapeRadio(wxCommandEvent& event);
+    void OnApply(wxCommandEvent&);
     PhasePanel *get_phase_panel(int n);
     PhasePanel *get_current_phase_panel();
     void deselect_phase_quick_list();
