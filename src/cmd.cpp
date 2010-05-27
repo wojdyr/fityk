@@ -286,7 +286,8 @@ struct CmdGrammar : public grammar<CmdGrammar>
         statement
             = !temporary_set
             >> ( (optional_suffix_p("del","ete")[clear_a(vt)][clear_a(vn)]
-                  >> ( VariableLhsG [push_back_a(vt)]
+                  >> ( lexeme_d[(ch_p('%')|'$') >> +(alnum_p|'_'|'*')]
+                                                              [push_back_a(vt)]
                      | func_id [push_back_a(vt, t)]
                      | lexeme_d['@' >> uint_p[push_back_a(vn)]]) % ',')
                                                                  [&do_delete]

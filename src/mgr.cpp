@@ -18,6 +18,7 @@
 #include <boost/spirit/include/classic_core.hpp>
 #include <algorithm>
 #include <memory>
+#include <set>
 
 using namespace std;
 
@@ -197,13 +198,11 @@ string VariableManager::assign_variable(string const &name, string const &rhs)
     return put_into_variables(var);
 }
 
-bool VariableManager::is_variable_referred(int i,
-                                           vector<string> const &ignore_vars,
-                                           string *first_referrer)
+bool VariableManager::is_variable_referred(int i, string *first_referrer)
 {
+    // A variable can be referred only by variables with larger index.
     for (int j = i+1; j < size(variables); ++j) {
-        if (variables[j]->is_directly_dependent_on(i)
-                    && !contains_element(ignore_vars, variables[j]->name)) {
+        if (variables[j]->is_directly_dependent_on(i)) {
             if (first_referrer)
                 *first_referrer = variables[j]->xname;
             return true;
@@ -347,26 +346,71 @@ string VariableManager::assign_variable_copy(string const& name,
     return put_into_variables(var);
 }
 
+// matches name against pattern containing '*' (wildcard)
+static
+bool matches(const char* name, const char* pattern)
+{
+    for (;;) {
+        if (*pattern == '\0')
+            return *name == '\0';
+        else if (*pattern == '*') {
+            if (pattern[1] == '\0')
+                return true;
+            const char *here = name;
+            while (*name != '\0')
+                ++name;
+            while (name != here) {
+                if (matches(name, pattern))
+                    return true;
+                --name;
+            }
+        }
+        else {
+            if (*name != *pattern)
+                return false;
+            ++name;
+        }
+        ++pattern;
+    }
+}
+
+// names can contains '*' wildcards
 void VariableManager::delete_variables(vector<string> const &names)
 {
-    const int n = names.size();
-    vector<int> nrs (n);
-    for (int i = 0; i < n; ++i) {
-        int k = find_variable_nr(names[i]);
-        if (k == -1)
-            throw ExecuteError("undefined variable: $" + names[i]);
+    if (names.empty())
+        return;
+
+    set<int> nn;
+    // find indices of variables, expanding wildcards
+    for (vector<string>::const_iterator i=names.begin(); i != names.end(); ++i){
+        if (i->find('*') == string::npos) {
+            int k = find_variable_nr(*i);
+            if (k == -1)
+                throw ExecuteError("undefined variable: $" + *i);
+            nn.insert(k);
+        }
+        else
+            for (size_t j = 0; j != variables.size(); ++j)
+                if (matches(variables[j]->name.c_str(), i->c_str()))
+                    nn.insert(j);
+    }
+
+    // Delete variables. The descending index order is required to make
+    // is_variable_referred() and variables.erase() work properly.
+    for (set<int>::const_reverse_iterator i = nn.rbegin(); i != nn.rend(); ++i){
+        // Check for dependencies.
         string first_referrer;
-        if (is_variable_referred(k, names, &first_referrer))
-            throw ExecuteError("can't delete $" + names[i] + " because "
-                               + first_referrer + " depends on it.");
-        nrs[i] = k;
+        if (is_variable_referred(*i, &first_referrer)) {
+            remove_unreferred(); // post-delete
+            throw ExecuteError("can't delete $" + get_variable(*i)->name +
+                             " because " + first_referrer + " depends on it.");
+        }
+
+        delete variables[*i];
+        variables.erase(variables.begin() + *i);
     }
-    sort(nrs.begin(), nrs.end());
-    for (int i = n-1; i >= 0; --i) {
-        int k = nrs[i];
-        delete variables[k];
-        variables.erase(variables.begin() + k);
-    }
+
+    // post-delete
     remove_unreferred();
 }
 
@@ -374,13 +418,29 @@ void VariableManager::delete_funcs(vector<string> const &names)
 {
     if (names.empty())
         return;
+
+    set<int> nn;
+    // find indices of functions, expanding wildcards
     for (vector<string>::const_iterator i=names.begin(); i != names.end(); ++i){
-        int k = find_function_nr(*i);
-        if (k == -1)
-            throw ExecuteError("undefined function: %" + *i);
-        delete functions[k];
-        functions.erase(functions.begin() + k);
+        if (i->find('*') == string::npos) {
+            int k = find_function_nr(*i);
+            if (k == -1)
+                throw ExecuteError("undefined function: %" + *i);
+            nn.insert(k);
+        }
+        else
+            for (size_t j = 0; j != functions.size(); ++j)
+                if (matches(functions[j]->name.c_str(), i->c_str()))
+                    nn.insert(j);
     }
+
+    // Delete functions. The descending index order is needed by .erase().
+    for (set<int>::const_reverse_iterator i = nn.rbegin(); i != nn.rend(); ++i){
+        delete functions[*i];
+        functions.erase(functions.begin() + *i);
+    }
+
+    // post-delete
     remove_unreferred();
     for (vector<Model*>::iterator i = models.begin(); i != models.end(); ++i)
         (*i)->find_function_indices();
