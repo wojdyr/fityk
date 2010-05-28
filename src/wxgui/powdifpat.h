@@ -25,7 +25,6 @@ class LockableRealCtrl;
 class PhasePanel;
 class RealNumberCtrl;
 
-
 class PowderBook : public wxListbook
 {
     friend class PlotWithLines;
@@ -63,6 +62,15 @@ public:
 #endif
 
 private:
+    // used to store extra phase data (i.e. data not stored in variables)
+    struct PhasePanelExtraData
+    {
+        wxString name;
+        wxString sg;
+        wxString atoms;
+    };
+    static std::vector<PhasePanelExtraData> phase_desc;
+
     wxListBox *anode_lb, *saved_phase_lb;
     std::vector<LockableRealCtrl*> lambda_ctrl, intensity_ctrl, corr_ctrl;
     wxNotebook *sample_nb;
@@ -74,7 +82,7 @@ private:
 #else
     const Data* data;
 #endif
-    wxRadioBox *peak_rb, *width_rb, *shape_rb;
+    wxRadioBox *peak_rb, *center_rb, *width_rb, *shape_rb;
     wxCheckBox *split_cb;
     wxTextCtrl *peak_txt;
     LockableRealCtrl *par_u, *par_v, *par_w, *par_z, *par_a, *par_b, *par_c;
@@ -91,6 +99,7 @@ private:
     wxString prepare_commands();
     void fill_forms();
     wxString get_peak_name() const;
+    void save_phase_desc();
 };
 
 #if !STANDALONE_POWDIFPAT

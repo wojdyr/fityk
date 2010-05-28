@@ -3,12 +3,13 @@
 // $Id$
 
 //TODO:
-// finish action page and the next pages
+// finish fill_forms()
+// support non-tetraghonal phases
+//
 // deconvolution of instrumental profile
 // enable x-ray / neutron switching (different LPF and scattering factors)
 // buffer the plot with data
 // import .cif files
-// action: info about old and new models, button to add/update the model
 
 #include <cmath>
 #include <cstring>
@@ -176,6 +177,7 @@ LockableRealCtrl *addMaybeRealCtrl(wxWindow *parent, wxString const& label,
 
 } // anonymous namespace
 
+vector<PowderBook::PhasePanelExtraData> PowderBook::phase_desc;
 
 PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
     : wxListbook(parent, id), x_min(10), x_max(150), y_max(1000), data(NULL)
@@ -1067,9 +1069,17 @@ wxPanel* PowderBook::PreparePeakPanel()
     split_cb = new wxCheckBox(panel, -1, wxT("split (different widths and shapes for both sides)"));
     sizer->Add(split_cb, wxSizerFlags().Border());
 
+    wxArrayString center_choices;
+    center_choices.Add(wxT("independent for each peak"));
+    center_choices.Add(wxT("constrained by wavelength and lattice parameters"));
+    center_rb = new wxRadioBox(panel, -1, wxT("peak position"),
+                         wxDefaultPosition, wxDefaultSize, center_choices, 1);
+    center_rb->SetSelection(1);
+    center_rb->Enable(0, false);
+    sizer->Add(center_rb, wxSizerFlags().Expand().Border());
+
     wxArrayString peak_widths;
     peak_widths.Add(wxT("independent for each hkl"));
-    peak_widths.Add(wxT("the same for all (not recommended)"));
     peak_widths.Add(wxT("H\u00B2=U tan\u00B2\u03B8 + V tan\u03B8 + W + ")
                     wxT("Z/cos\u00B2\u03B8"));
     width_rb = new wxRadioBox(panel, -1, wxT("peak width"),
@@ -1078,7 +1088,6 @@ wxPanel* PowderBook::PreparePeakPanel()
 
     wxArrayString peak_shapes;
     peak_shapes.Add(wxT("independent for each hkl (initial value: A)"));
-    peak_shapes.Add(wxT("the same for all (initial value: A)"));
     peak_shapes.Add(wxT("A + B (2\u03B8) + C (2\u03B8)\u00B2"));
     peak_shapes.Add(wxT("A + B / (2\u03B8) + C / (2\u03B8)\u00B2"));
     shape_rb = new wxRadioBox(panel, -1, wxT("peak shape"),
@@ -1174,7 +1183,7 @@ wxPanel* PowderBook::PrepareActionPanel()
     wxButton *ok_btn = new wxButton(panel, wxID_OK);
     a_set_sizer->Add(ok_btn, wxSizerFlags().Right().Border(wxLEFT|wxRIGHT));
 
-    sizer->Add(a_set_sizer, wxSizerFlags().Expand().Border());
+    sizer->Add(a_set_sizer, wxSizerFlags(1).Expand().Border());
 
     panel->SetSizerAndFit(sizer);
 
@@ -1299,8 +1308,9 @@ wxString PowderBook::prepare_commands()
     double w_val = par_w->get_value();
     double z_val = par_z->get_value();
     s += wxT("\n");
+
     int width_sel = width_rb->GetSelection();
-    if (width_sel == 2 /*H2=Utan2T...*/) {
+    if (width_sel == 1 /*H2=Utan2T...*/) {
         if (has_u)
             s += "$pd_u = " + get_var(par_u) + wxT("\n");
         if (has_v)
@@ -1309,10 +1319,6 @@ wxString PowderBook::prepare_commands()
             s += "$pd_w = " + get_var(par_w) + wxT("\n");
         if (has_z)
             s += "$pd_z = " + get_var(par_z) + wxT("\n");
-    }
-    else if (width_sel == 1 /*the same*/) {
-        // assert(has_w);
-        s += "$pd_w = " + get_var(par_w) + wxT("\n");
     }
 
     bool has_a = par_a->IsEnabled() && par_a->is_nonzero();
@@ -1343,6 +1349,10 @@ wxString PowderBook::prepare_commands()
             s += pre + wxT("beta = ") + get_var(p->par_beta, d2r) + "\n";
         if (p->par_gamma->IsEnabled())
             s += pre + wxT("gamma = ") + get_var(p->par_gamma, d2r) + "\n";
+
+        bool has_shape = peak_rb->GetSelection() >= 2;
+        int shape_sel = shape_rb->GetSelection();
+
         for (vector<PlanesWithSameD>::const_iterator j = cr.bp.begin();
                                                      j != cr.bp.end(); ++j) {
             if (!j->enabled)
@@ -1355,6 +1365,13 @@ wxString PowderBook::prepare_commands()
             double ctr = 180 / M_PI * 2 * asin(lambda1 / (2 * j->d));
             s +=  hvar + wxString::Format(wxT(" = ~%.5g\n"), h);
 
+            // we need to pre-define $pdXa_cHKL if wvar or svar depend on it
+            wxString cvar_a = wxString::Format(wxT("$pd%da_c%s"),
+                                               i, hkl_str.c_str());
+            if (width_sel == 1 || (has_shape && shape_sel >= 1)) {
+                s += cvar_a + wxT(" = 0 # will be changed\n");
+            }
+
             wxString wvar = pre + wxT("w") + hkl_str;
             if (width_sel == 0 /*independent*/) {
                 double t = tan(ctr/2);
@@ -1362,37 +1379,74 @@ wxString PowderBook::prepare_commands()
                 double hwhm = sqrt(u_val*t*t + v_val*t + w_val + z_val/(c*c))/2;
                 s += wvar + wxString::Format(wxT(" = ~%.5g\n"), hwhm);
             }
-            else if (width_sel == 1 /*the same*/) {
-                s +=  wvar + wxT(" = sqrt($pd_w)\n");
-            }
-            else if (width_sel == 2 /*H2=Utan2T...*/) {
-                //s +=  wvar + " = sqrt($pd_u*tan(%s/2)^2 + $pd_v*tan(%s/2) + w + z/cos(%s/2)^2" + cvar _ "/2)" + pre ")" + ... + "\n";
-                //s +=  svar + " = " + ... + "\n";
+            else if (width_sel == 1 /*H2=Utan2T...*/) {
+                s +=  wvar + wxT(" = sqrt(");
+                if (has_u)
+                    s += wxT("$pd_u*tan(") + cvar_a + wxT("/2)^2");
+                if (has_v) {
+                    if (has_u)
+                        s += wxT(" + ");
+                    s += wxT("$pd_v*tan(") + cvar_a + wxT("/2)");
+                }
+                if (has_w) {
+                    if (has_u || has_v)
+                        s += wxT(" + ");
+                    s += wxT("$pd_w");
+                }
+                if (has_z) {
+                    if (has_u || has_v || has_w)
+                        s += wxT(" + ");
+                    s += wxT("$pd_z/cos(") + cvar_a + wxT("/2)^2");
+                }
+                s += wxT(")\n");
             }
 
-            bool has_shape = peak_rb->GetSelection() >= 2;
             wxString svar = pre + wxT("s") + hkl_str;
-            int shape_sel = shape_rb->GetSelection();
             if (shape_sel == 0 /*independent*/) {
                 s += svar + wxString::Format(wxT(" = ~%.5g\n"), a_val);
             }
-            else if (shape_sel == 1 /*the same*/) {
-                // overwrite svar, to use directly $pd_a in the %function
-                svar = wxT("$pd_a");
-            }
-            else if (shape_sel == 2) {
-                s += svar + wxT(" = $pd_a + $pd_b*x + $pd_c*x*x\n");
-            }
-            else if (shape_sel == 3) {
-                s += svar + wxT(" = $pd_a + $pd_b/x + $pd_c/(x*x)\n");
+            else if (shape_sel == 1 || shape_sel == 2) {
+                s += svar + wxT(" = ");
+                if (has_a)
+                    s += wxT("$pd_a");
+                if (has_b) {
+                    if (has_a)
+                        s += wxT(" + ");
+                    s += (shape_sel == 1 ? wxT("$pd_b*") : wxT("$pd_b/"))
+                         + cvar_a;
+                }
+                if (has_c) {
+                    if (has_a || has_b)
+                        s += wxT(" + ");
+                    s += (shape_sel == 1 ? wxT("$pd_c*") : wxT("$pd_c/("))
+                         + cvar_a + wxT("*") + cvar_a +
+                         (shape_sel == 1 ? wxT("") : wxT(")"));
+                }
+                s += wxT("\n");
             }
 
             for (char wave = 'a'; wave != lambda_symbol; ++wave) {
                 wxString cvar = wxString::Format(wxT("$pd%d%c_c%s"),
                                                  i, wave, hkl_str.c_str());
                 wxString rd_str; // d^-1
-                rd_str.Printf(wxT("sqrt(%d)/$pd%d_a"),
-                              hkl.h*hkl.h + hkl.k*hkl.k + hkl.l*hkl.l, i);
+                switch (cr.xs()) {
+                    case CubicSystem: // use only a
+                        rd_str.Printf(wxT("sqrt(%d)/$pd%d_a"),
+                                hkl.h*hkl.h + hkl.k*hkl.k + hkl.l*hkl.l, i);
+                        break;
+                    case OrthorhombicSystem: // use a and c
+                        rd_str.Printf(wxT("sqrt(%d/$pd%d_a^2 + %d/$pd%d_c^2)"),
+                                  hkl.h*hkl.h + hkl.k*hkl.k, i, hkl.l*hkl.l, i);
+                        break;
+                    case TetragonalSystem: // use a, b, c
+                        rd_str.Printf(
+                 wxT("sqrt((%d/$pd%d_a)^2 + (%d/$pd%d_b)^2 + (%d/$pd%d_c)^2)"),
+                                      hkl.h, i, hkl.k, i, hkl.l, i);
+                        break;
+                    //TODO
+                    default:
+                        break;
+                }
                 s += wxString::Format(
                           wxT("%s = 360/pi * asin($pd_lambda_%c/2 * %s)\n"),
                           cvar.c_str(), wave, rd_str.c_str());
@@ -1439,27 +1493,18 @@ void var2lockctrl(const string& varname, LockableRealCtrl* ctrl, double mult=1.)
 // fills the form using assigned previously $pd* and %pd functions 
 void PowderBook::fill_forms()
 {
-    //wavelength
+    //instrument page
     for (size_t i = 0; i != lambda_ctrl.size(); ++i) {
         char wave = 'a' + i;
         var2lockctrl("pd_lambda_" + S(wave), lambda_ctrl[i]);
         var2lockctrl("pd_intens_" + S(wave), intensity_ctrl[i], 100);
     }
-
     // corrections
     for (size_t i = 0; i != corr_ctrl.size(); ++i) {
         var2lockctrl("pd_" + S(i+1), lambda_ctrl[i]);
     }
 
-    var2lockctrl("pd_u", par_u);
-    var2lockctrl("pd_v", par_v);
-    var2lockctrl("pd_w", par_w);
-    var2lockctrl("pd_z", par_z);
-    var2lockctrl("pd_a", par_a);
-    var2lockctrl("pd_b", par_b);
-    var2lockctrl("pd_c", par_c);
-
-    //TODO: store phase name, space group and atoms for each phase
+    // sample page
     for (size_t i = 0; ; ++i) {
         string pre = "pd" + S(i) + "_";
         int k = ftk->find_variable_nr(pre + "a");
@@ -1469,15 +1514,33 @@ void PowderBook::fill_forms()
             PhasePanel *page = new PhasePanel(sample_nb, this);
             sample_nb->AddPage(page, wxT("unknown"));
         }
-        const PhasePanel* p = get_phase_panel(i);
+        PhasePanel* p = get_phase_panel(i);
         var2lockctrl(pre+"a", p->par_a);
         var2lockctrl(pre+"b", p->par_b);
         var2lockctrl(pre+"c", p->par_c);
         var2lockctrl(pre+"alpha", p->par_alpha);
         var2lockctrl(pre+"beta", p->par_beta);
         var2lockctrl(pre+"gamma", p->par_gamma);
+
+        if (i < phase_desc.size()) {
+            p->name_tc->SetValue(phase_desc[i].name);
+            p->sg_tc->ChangeValue(phase_desc[i].sg);
+            wxCommandEvent dummy;
+            p->OnSpaceGroupChanged(dummy);
+            p->atoms_tc->SetValue(phase_desc[i].atoms);
+            //TODO: deselect peaks
+        }
     }
 
+    // peak page
+    var2lockctrl("pd_u", par_u);
+    var2lockctrl("pd_v", par_v);
+    var2lockctrl("pd_w", par_w);
+    var2lockctrl("pd_z", par_z);
+    var2lockctrl("pd_a", par_a);
+    var2lockctrl("pd_b", par_b);
+    var2lockctrl("pd_c", par_c);
+    // TODO: peak function, peak width, peak shape
 }
 
 wxPanel* PowderBook::PrepareSizeStrainPanel()
@@ -1686,14 +1749,14 @@ void PowderBook::OnPeakSplit(wxCommandEvent& event)
     // Split-* functions don't have width/shape set as f(2T) now.
     // This could be implemented (two sets of parameters - for left and right).
     bool is_split = event.IsChecked();
-    if (is_split && width_rb->GetSelection() == 2 /*f(2T)*/)
+    if (is_split && width_rb->GetSelection() == 1 /*f(2T)*/)
         width_rb->SetSelection(0);
-    width_rb->Enable(2, !is_split);
+    width_rb->Enable(1, !is_split);
     if (shape_rb->IsEnabled()) {
-        if (is_split && shape_rb->GetSelection() >= 2 /*f(2T)*/)
+        if (is_split && shape_rb->GetSelection() >= 1 /*f(2T)*/)
             shape_rb->SetSelection(0);
+        shape_rb->Enable(1, !is_split);
         shape_rb->Enable(2, !is_split);
-        shape_rb->Enable(3, !is_split);
     }
 }
 
@@ -1709,12 +1772,6 @@ void PowderBook::OnShapeRadio(wxCommandEvent&)
 
 void PowderBook::update_peak_parameters()
 {
-    // if the width is to be the same for all peaks, only W is enabled
-    bool has_uvz = (width_rb->GetSelection() != 1);
-    par_u->Enable(has_uvz);
-    par_v->Enable(has_uvz);
-    par_z->Enable(has_uvz);
-
     bool has_shape = shape_rb->IsEnabled();
     par_a->Enable(has_shape);
     par_b->Enable(has_shape);
@@ -1761,10 +1818,23 @@ void PowderBook::OnOk(wxCommandEvent&)
 {
     wxString script = action_txt->GetValue();
     ftk->get_ui()->exec_string_as_script(script.mb_str());
+    save_phase_desc();
 #if !STANDALONE_POWDIFPAT
     wxDialog* dialog = static_cast<wxDialog*>(GetParent());
     dialog->EndModal(wxID_OK);
 #endif
+}
+
+void PowderBook::save_phase_desc()
+{
+    int n = (int) sample_nb->GetPageCount() - 1;
+    phase_desc.resize(n);
+    for (int i = 0; i < n; ++i) {
+        const PhasePanel* p = get_phase_panel(i);
+        phase_desc[i].name = p->name_tc->GetValue();
+        phase_desc[i].sg = p->sg_tc->GetValue();
+        phase_desc[i].atoms = p->atoms_tc->GetValue();
+    }
 }
 
 #if STANDALONE_POWDIFPAT
