@@ -586,7 +586,7 @@ bool has_one_word(const char* p)
 {
     while (isspace(*p) || ispunct(*p))
         ++p;
-    while (isalnum(*p))
+    while (isalnum(*p) || *p == '_')
         ++p;
     return (*p == '\0' || *p == ',');
 }
