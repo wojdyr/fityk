@@ -394,8 +394,10 @@ void MainPlot::draw_peaks(wxDC& dc, Model const* model, bool set_pen)
     int n = get_pixel_width(dc);
     vector<fp> xx(n), yy(n);
     vector<int> YY(n);
-    for (int i = 0; i < n; ++i)
+    for (int i = 0; i < n; ++i) {
         xx[i] = xs.val(i);
+        xx[i] += model->zero_shift(xx[i]);
+    }
     for (int k = 0; k < size(idx); k++) {
         fill(yy.begin(), yy.end(), 0.);
         Function const* f = ftk->get_function(idx[k]);
@@ -508,15 +510,18 @@ void MainPlot::prepare_peaktops(Model const* model, int Ymax)
         fp x;
         int X, Y;
         if (f->has_center()) {
-            x = f->center();
-            X = xs.px (x - model->zero_shift(x));
-        }
-        else {
-            X = k * 10;
+            fp ctr = f->center();
+            X = xs.px (ctr - model->zero_shift(ctr));
+            // instead of these two lines we could simply do x=ctr,
+            // but it would be slightly inaccurate
             x = xs.val(X);
             x += model->zero_shift(x);
         }
-        //FIXME: check if these zero_shift()'s above are needed
+        else {
+            X = k * 10 + 5;
+            x = xs.val(X);
+            x += model->zero_shift(x);
+        }
         Y = ys.px(f->calculate_value(x));
         if (Y < 0 || Y > Ymax)
             Y = Y0;
