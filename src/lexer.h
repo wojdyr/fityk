@@ -62,6 +62,13 @@ struct Token
 class Lexer
 {
 public:
+    // XXX: idea - perhaps we should introduce a rule that kMath mode
+    // is used after '=' until ',' or ';'.
+    // The needed changes would be:
+    //  - set autoplot values
+    //  - set fitting-method values
+    //  - info M-3 => info M - 3 or info =M-3
+    // kWord mode should also include '*' in words, to allow "delete %pd*".
     enum Mode
     {
         kMath, // word boundary on '-', "a-x" has 3 tokens
