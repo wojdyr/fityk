@@ -628,12 +628,15 @@ const char* default_udfs[] = {
 "PseudoVoigtA(area, center, hwhm, shape=0.5) = "
     "GaussianA(area*(1-shape), center, hwhm) + "
     "LorentzianA(area*shape, center, hwhm)",
-"SplitLorentzian(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5) = "
+"SplitLorentzian(height, center, hwhm1=fwhm/2, hwhm2=fwhm/2) = "
     "x < center ? Lorentzian(height, center, hwhm1)"
     " : Lorentzian(height, center, hwhm2)",
-"SplitPseudoVoigt(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5, shape1=0.5, shape2=0.5) = "
+"SplitPseudoVoigt(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm/2, shape1=0.5, shape2=0.5) = "
     "x < center ? PseudoVoigt(height, center, hwhm1, shape1)"
     " : PseudoVoigt(height, center, hwhm2, shape2)",
+"SplitVoigt(height, center, hwhm1=fwhm/2, hwhm2=fwhm/2, shape1=0.5, shape2=0.5) = "
+    "x < center ? Voigt(height, center, hwhm1, shape1)"
+    " : Voigt(height, center, hwhm2, shape2)",
 };
 
 vector<UDF> udfs;
