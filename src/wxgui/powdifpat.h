@@ -47,7 +47,8 @@ public:
     void OnPeakSplit(wxCommandEvent& event);
     void OnWidthRadio(wxCommandEvent& event);
     void OnShapeRadio(wxCommandEvent& event);
-    void OnApply(wxCommandEvent&);
+    void OnDelButton(wxCommandEvent&);
+    void OnOk(wxCommandEvent&);
     PhasePanel *get_phase_panel(int n);
     PhasePanel *get_current_phase_panel();
     void deselect_phase_quick_list();
@@ -77,7 +78,7 @@ private:
     wxCheckBox *split_cb;
     wxTextCtrl *peak_txt;
     LockableRealCtrl *par_u, *par_v, *par_w, *par_z, *par_a, *par_b, *par_c;
-    wxTextCtrl *action_txt;
+    wxTextCtrl *action_del_txt, *action_txt;
 
     wxPanel* PrepareIntroPanel();
     wxPanel* PrepareInstrumentPanel();
@@ -88,6 +89,7 @@ private:
     void initialize_quick_phase_list();
     void update_peak_parameters();
     wxString prepare_commands();
+    void fill_forms();
     wxString get_peak_name() const;
 };
 

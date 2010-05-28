@@ -206,6 +206,7 @@ PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
     AddPage(PreparePeakPanel(), wxT("peak"), false, 3);
     AddPage(PrepareActionPanel(), wxT("action"), false, 4);
     AddPage(PrepareSizeStrainPanel(), wxT("size-strain"), false, 5);
+    fill_forms();
 
     Connect(GetId(), wxEVT_COMMAND_LISTBOOK_PAGE_CHANGED,
             (wxObjectEventFunction) &PowderBook::OnPageChanged);
@@ -265,13 +266,13 @@ wxPanel* PowderBook::PrepareIntroPanel()
     "  - baseline (background) either removed manually\n"
     "    or modeled with e.g. polynomial.\n"
     "\n"
-    "This window will help you to build a model for powder diffraction data. "
+    "This tool can build a model for powder diffraction data, "
     "The model has constrained position of peaks "
     "and not constrained intensities. "
-    "Then you can fit the model to your data (all variables at the same time), "
-    "what is known as Pawley method.\n"
+    "Then you can fit the model to your data (all variables at the same time). "
+    "This type of refinement is known as Pawley method.\n"
     "\n"
-    "This is only a preview, work in progress, it does not work!\n";
+    "This tool is new in fityk 0.9.3. The next release will contain more features.\n";
 #endif
 
     wxPanel *panel = new wxPanel(this);
@@ -1133,18 +1134,54 @@ wxPanel* PowderBook::PrepareActionPanel()
     wxPanel *panel = new wxPanel(this);
     wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 
+    wxStaticBoxSizer *action_del_sizer;
+    action_del_sizer = new wxStaticBoxSizer(wxHORIZONTAL, panel,
+                                            wxT("Delete the old XRPD model"));
+    action_del_txt = new wxTextCtrl(panel, -1,
+                                    wxT("delete %pd*, $pd*"),
+                                    wxDefaultPosition, wxDefaultSize,
+                                    wxTE_READONLY);
+    action_del_sizer->Add(action_del_txt, wxSizerFlags(1).Border());
+    wxButton *action_del_btn = new wxButton(panel, wxID_APPLY);
+    action_del_sizer->Add(action_del_btn, wxSizerFlags().Border());
+
+    vector<Variable*> const& vv = ftk->get_variables();
+    bool has_old_model = false;
+    for (vector<Variable*>::const_iterator i = vv.begin(); i != vv.end(); ++i){
+        if (startswith((*i)->name, "pd")) {
+            has_old_model = true;
+            break;
+        }
+    }
+    action_del_txt->Enable(has_old_model);
+    action_del_btn->Enable(has_old_model);
+    action_del_sizer->GetStaticBox()->Enable(has_old_model);
+    sizer->Add(action_del_sizer, wxSizerFlags().Expand().Border());
+
+    wxStaticBoxSizer *a_set_sizer = new wxStaticBoxSizer(wxVERTICAL, panel,
+                                                   wxT("Set the XRPD model"));
     action_txt = new wxTextCtrl(panel, -1, wxEmptyString,
                                 wxDefaultPosition, wxSize(-1, 200),
                                 wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
-    action_txt->SetBackgroundColour(GetBackgroundColour());
-    sizer->Add(action_txt, wxSizerFlags(1).Expand().Border());
-    wxButton *apply_btn = new wxButton(panel, wxID_APPLY);
-    sizer->Add(apply_btn, wxSizerFlags().Right().Border(wxLEFT|wxRIGHT));
+    //action_txt->SetBackgroundColour(GetBackgroundColour());
+    a_set_sizer->Add(action_txt, wxSizerFlags(1).Expand().Border());
+    a_set_sizer->Add(new wxStaticText(panel, -1,
+     wxT("Press OK to execute the script above that prepares the XRPD model.")
+     wxT("\nOK closes this window.")
+     wxT(" If the initial model is good, fit it to the data.")
+     wxT("\nThis tool can be reopened at any time to tune the model.")),
+                     wxSizerFlags().Border());
+    wxButton *ok_btn = new wxButton(panel, wxID_OK);
+    a_set_sizer->Add(ok_btn, wxSizerFlags().Right().Border(wxLEFT|wxRIGHT));
+
+    sizer->Add(a_set_sizer, wxSizerFlags().Expand().Border());
 
     panel->SetSizerAndFit(sizer);
 
-    Connect(apply_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
-            wxCommandEventHandler(PowderBook::OnApply));
+    Connect(action_del_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
+            wxCommandEventHandler(PowderBook::OnDelButton));
+    Connect(ok_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
+            wxCommandEventHandler(PowderBook::OnOk));
 
     return panel;
 }
@@ -1191,6 +1228,13 @@ wxString hkl2wxstr(const Miller& hkl)
 wxString PowderBook::prepare_commands()
 {
     wxString s;
+
+    wxString ds_pref;
+    if (ftk->get_dm_count() > 1) {
+        int data_nr = frame->get_focused_data_index();
+        ds_pref.Printf(wxT("@%d."), data_nr);
+    }
+
     //wavelength
     char lambda_symbol = 'a';
     for (size_t i = 0; i != lambda_ctrl.size(); ++i) {
@@ -1199,9 +1243,9 @@ wxString PowderBook::prepare_commands()
         s += wxString::Format(wxT("$pd_lambda_%c = %s\n"), lambda_symbol,
                                               get_var(lambda_ctrl[i]).c_str());
         if (i != 0) {
-            s += wxString::Format(wxT("$pd_intens_%c = %s%.9g\n"),
+            s += wxString::Format(wxT("$pd_intens_%c = %s\n"),
                                   lambda_symbol,
-                                  get_var(intensity_ctrl[i]).c_str(), 0.01);
+                                  get_var(intensity_ctrl[i], 0.01).c_str());
         }
         ++lambda_symbol;
     }
@@ -1231,10 +1275,15 @@ wxString PowderBook::prepare_commands()
         }
     }
     if (!xc_args.empty()) {
-        s += wxT("define PdXcorr(") + xc_args + wxT(") = ") + xc_def
-            + wxT("\n");
-        s += wxT("%pd_xcorr = PdXcorr(") + xc_vargs + wxT(")\n");
-        s += wxT("@n.Z = %pd_xcorr\n");
+        if (xc_args == wxT("p6")) { // special case, we don't need "define"
+            s += wxT("%pd_xcorr = Constant($pd_p6)\n");
+        }
+        else {
+            s += wxT("define PdXcorr(") + xc_args + wxT(") = ") + xc_def
+                + wxT("\n");
+            s += wxT("%pd_xcorr = PdXcorr(") + xc_vargs + wxT(")\n");
+        }
+        s += ds_pref + wxT("Z = %pd_xcorr\n");
     }
 
     double max_intensity = get_max_intensity(
@@ -1271,11 +1320,11 @@ wxString PowderBook::prepare_commands()
     bool has_c = par_c->IsEnabled() && par_c->is_nonzero();
     double a_val = par_a->get_value();
     if (has_a)
-        s += "$pd_a = " + get_var(par_u) + wxT("\n");
+        s += "$pd_a = " + get_var(par_a) + wxT("\n");
     if (has_b)
-        s += "$pd_b = " + get_var(par_u) + wxT("\n");
+        s += "$pd_b = " + get_var(par_b) + wxT("\n");
     if (has_c)
-        s += "$pd_c = " + get_var(par_u) + wxT("\n");
+        s += "$pd_c = " + get_var(par_c) + wxT("\n");
 
     for (int i = 0; i < (int) sample_nb->GetPageCount() - 1; ++i) {
         const PhasePanel* p = get_phase_panel(i);
@@ -1351,8 +1400,11 @@ wxString PowderBook::prepare_commands()
                                                   i, wave, hkl_str.c_str());
                 s += fname + wxT(" = ") + get_peak_name();
                 // all functions have height and center
+                wxString height = hvar;
+                if (wave != 'a')
+                    height += wxString::Format(wxT("*$pd_intens_%c"), wave);
                 s += wxString::Format(wxT("(%s, %s, "),
-                                      hvar.c_str(), cvar.c_str());
+                                      height.c_str(), cvar.c_str());
                 if (split_cb->GetValue()) { // split function
                     s += wvar + wxT(", ") + wvar;
                     if (has_shape)
@@ -1364,8 +1416,7 @@ wxString PowderBook::prepare_commands()
                         s += wxT(", ") + svar;
                 }
                 s += wxT(")\n");
-                //TODO @n.
-                s += wxT("F += ") + fname + wxT("\n");
+                s += ds_pref + wxT("F += ") + fname + wxT("\n");
             }
         }
     }
@@ -1373,10 +1424,72 @@ wxString PowderBook::prepare_commands()
     return s;
 }
 
+static
+void var2lockctrl(const string& varname, LockableRealCtrl* ctrl, double mult=1.)
+{
+    int k = ftk->find_variable_nr(varname);
+    if (k == -1)
+        return;
+    const Variable* v = ftk->get_variable(k);
+    ctrl->set_value(v->get_value() * mult);
+    ctrl->set_lock(v->is_constant());
+}
+
+// this function does the opposite to prepare_commands():
+// fills the form using assigned previously $pd* and %pd functions 
+void PowderBook::fill_forms()
+{
+    //wavelength
+    for (size_t i = 0; i != lambda_ctrl.size(); ++i) {
+        char wave = 'a' + i;
+        var2lockctrl("pd_lambda_" + S(wave), lambda_ctrl[i]);
+        var2lockctrl("pd_intens_" + S(wave), intensity_ctrl[i], 100);
+    }
+
+    // corrections
+    for (size_t i = 0; i != corr_ctrl.size(); ++i) {
+        var2lockctrl("pd_" + S(i+1), lambda_ctrl[i]);
+    }
+
+    var2lockctrl("pd_u", par_u);
+    var2lockctrl("pd_v", par_v);
+    var2lockctrl("pd_w", par_w);
+    var2lockctrl("pd_z", par_z);
+    var2lockctrl("pd_a", par_a);
+    var2lockctrl("pd_b", par_b);
+    var2lockctrl("pd_c", par_c);
+
+    //TODO: store phase name, space group and atoms for each phase
+    for (size_t i = 0; ; ++i) {
+        string pre = "pd" + S(i) + "_";
+        int k = ftk->find_variable_nr(pre + "a");
+        if (k == -1)
+            break;
+        if (i == sample_nb->GetPageCount()) {
+            PhasePanel *page = new PhasePanel(sample_nb, this);
+            sample_nb->AddPage(page, wxT("unknown"));
+        }
+        const PhasePanel* p = get_phase_panel(i);
+        var2lockctrl(pre+"a", p->par_a);
+        var2lockctrl(pre+"b", p->par_b);
+        var2lockctrl(pre+"c", p->par_c);
+        var2lockctrl(pre+"alpha", p->par_alpha);
+        var2lockctrl(pre+"beta", p->par_beta);
+        var2lockctrl(pre+"gamma", p->par_gamma);
+    }
+
+}
+
 wxPanel* PowderBook::PrepareSizeStrainPanel()
 {
     wxPanel *panel = new wxPanel(this);
     wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+    wxTextCtrl *txt = new wxTextCtrl(panel, -1, wxEmptyString,
+                                wxDefaultPosition, wxDefaultSize,
+                                wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
+    txt->SetBackgroundColour(GetBackgroundColour());
+    txt->ChangeValue(wxT("It should be easy to put here simple size-strain analysis, like Williamson-Hall. But first we'd like to handle somehow instrumental broadening."));
+    sizer->Add(txt, wxSizerFlags(1).Expand().Border());
 
     panel->SetSizerAndFit(sizer);
 
@@ -1638,10 +1751,20 @@ void PowderBook::update_phase_labels(PhasePanel* p)
     }
 }
 
-void PowderBook::OnApply(wxCommandEvent&)
+void PowderBook::OnDelButton(wxCommandEvent&)
+{
+    wxString script = action_del_txt->GetValue();
+    ftk->get_ui()->exec_string_as_script(script.mb_str());
+}
+
+void PowderBook::OnOk(wxCommandEvent&)
 {
     wxString script = action_txt->GetValue();
     ftk->get_ui()->exec_string_as_script(script.mb_str());
+#if !STANDALONE_POWDIFPAT
+    wxDialog* dialog = static_cast<wxDialog*>(GetParent());
+    dialog->EndModal(wxID_OK);
+#endif
 }
 
 #if STANDALONE_POWDIFPAT

@@ -186,11 +186,8 @@ public:
     std::vector<int> get_selected_data_indices();
     std::vector<DataAndModel*> get_selected_dms();
     void view_dataset(); // set dataset(s) from Ftk::view
-    //std::string get_focused_data_str();
-    //std::string get_in_dataset();
     std::string get_in_datasets();
     std::string get_global_parameters();
-    //std::string get_in_one_or_all_datasets();
     MainPlot* get_main_plot();
     MainPlot const* get_main_plot() const;
     void update_data_pane();
