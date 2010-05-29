@@ -63,27 +63,35 @@ int Guess::max_data_y_pos(int from, int to)
     return pos;
 }
 
-fp Guess::compute_data_fwhm(int from, int max_pos, int to, fp level)
+fp Guess::compute_data_fwhm(int from, int max_pos, int to)
 {
     assert (from <= max_pos && max_pos <= to);
-    const fp hm = my_y(max_pos) * level;
+    const fp hm = 0.5 * my_y(max_pos);
     const int limit = 3;
-    int l = from, r = to, counter = 0;
-    for (int i = max_pos; i >= from; i--){ //going down (and left) from maximum
+    int l = from, r = to;
+
+    // first we search the width of the left side of the peak
+    int counter = 0;
+    for (int i = max_pos; i >= from; --i) {
         fp y = my_y(i);
         if (y > hm) {
-            if (counter > 0) //previous point had y < hm
-                counter--;  // compensating it; perhaps it was only fluctuation
+            if (counter > 0) // previous point had y < hm
+                counter--;   // compensate it, it was only fluctuation
         }
         else {
-            counter++;     //this point is below half (if level==0.5) width
-            if (counter >= limit) { // but i want `limit' points below to be
-                l = min (i + counter, max_pos);// sure that it's not fuctuation
+            counter++;
+            // we found a point below `hm', but we need to find `limit' points
+            // below `hm' to be sure that it's not a fluctuation
+            if (counter == limit) {
+                l = i + counter;
                 break;
             }
         }
     }
-    for (int i = max_pos; i <= to; i++) { //the same for right half of peak
+
+    // do the same for the right side
+    counter = 0;
+    for (int i = max_pos; i <= to; i++) {
         fp y = my_y(i);
         if (y > hm) {
             if (counter > 0)
@@ -91,12 +99,14 @@ fp Guess::compute_data_fwhm(int from, int max_pos, int to, fp level)
         }
         else {
             counter++;
-            if (counter >= limit) {
-                r = max (i - counter, max_pos);
+            if (counter == limit) {
+                // +1 here is intentionally not symmetric with the left side
+                r = i - counter + 1;
                 break;
             }
         }
     }
+
     fp fwhm = data->get_x(r) - data->get_x(l);
     return max (fwhm, epsilon);
 }
@@ -154,7 +164,7 @@ void Guess::estimate_peak_parameters(fp range_from, fp range_to,
     fp center_ = data->get_x(max_y_pos);
     if (center)
         *center = center_;
-    fp fwhm_ = compute_data_fwhm(l_bor, max_y_pos, r_bor, 0.5)
+    fp fwhm_ = compute_data_fwhm(l_bor, max_y_pos, r_bor)
                                * F->get_settings()->get_f("width-correction");
     if (fwhm)
         *fwhm = fwhm_;

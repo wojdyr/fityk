@@ -45,7 +45,7 @@ protected:
     fp my_y (int n);
     fp data_area (int from, int to);
     int max_data_y_pos (int from, int to);
-    fp compute_data_fwhm (int from, int max_pos, int to, fp level);
+    fp compute_data_fwhm (int from, int max_pos, int to);
     void parse_range(std::string const& left, std::string const& right,
                      fp& range_from, fp& range_to);
     void remove_peak(std::string const& name);
