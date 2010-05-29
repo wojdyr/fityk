@@ -851,7 +851,7 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
     //display coords in status bar
     int X = event.GetX();
     int Y = event.GetY();
-    frame->set_status_coords(xs.val(X), ys.val(Y), pte_main);
+    frame->set_status_coords(xs.valr(X), ys.valr(Y), pte_main);
 
     if (pressed_mouse_button != 0) {
         line_following_cursor(mat_move, lfc_orient == kVerticalLine ? X : Y);
@@ -977,8 +977,8 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     pressed_mouse_button = event.GetButton();
     mouse_press_X = event.GetX();
     mouse_press_Y = event.GetY();
-    fp x = xs.val(event.GetX());
-    fp y = ys.val(event.GetY());
+    fp x = xs.valr(event.GetX());
+    fp y = ys.valr(event.GetY());
     mouse_op = what_mouse_operation(event);
     if (mouse_op == kRectangularZoom) {
         draw_temporary_rect(mat_start, event.GetX(), event.GetY());
@@ -1094,10 +1094,10 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     if (mouse_op == kRectangularZoom) {
         draw_temporary_rect(mat_stop);
         if (dist_X + dist_Y >= 10) {
-            fp x1 = xs.val(mouse_press_X);
-            fp x2 = xs.val(event.GetX());
-            fp y1 = ys.val(mouse_press_Y);
-            fp y2 = ys.val(event.GetY());
+            fp x1 = xs.valr(mouse_press_X);
+            fp x2 = xs.valr(event.GetX());
+            fp y1 = ys.valr(mouse_press_Y);
+            fp y2 = ys.valr(event.GetY());
             char buffer[128];
             sprintf(buffer, "[%.12g:%.12g] [%.12g:%.12g]",
                     min(x1,x2), max(x1,x2), min(y1,y2), max(y1,y2));
@@ -1109,8 +1109,8 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     else if (mouse_op == kVerticalZoom) {
         line_following_cursor(mat_stop);
         if (dist_Y >= 5) {
-            fp y1 = ys.val(mouse_press_Y);
-            fp y2 = ys.val(event.GetY());
+            fp y1 = ys.valr(mouse_press_Y);
+            fp y2 = ys.valr(event.GetY());
             char buffer[64];
             sprintf(buffer, ". [%.12g:%.12g]", min(y1,y2), max(y1,y2));
             frame->change_zoom(buffer);
@@ -1121,8 +1121,8 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     else if (mouse_op == kHorizontalZoom) {
         line_following_cursor(mat_stop);
         if (dist_X >= 5) {
-            fp x1 = xs.val(mouse_press_X);
-            fp x2 = xs.val(event.GetX());
+            fp x1 = xs.valr(mouse_press_X);
+            fp x2 = xs.valr(event.GetX());
             char buffer[64];
             sprintf(buffer, "[%.12g:%.12g] .", min(x1,x2), max(x1,x2));
             frame->change_zoom(buffer);
@@ -1151,12 +1151,12 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         if (ok) {
             string c = (mouse_op == kActivateSpan || mouse_op == kActivateRect
                         ? "A = a or" : "A = a and not");
-            fp x1 = xs.val(mouse_press_X);
-            fp x2 = xs.val(event.GetX());
+            fp x1 = xs.valr(mouse_press_X);
+            fp x2 = xs.valr(event.GetX());
             string cond = eS(min(x1,x2)) + " < x and x < " + eS(max(x1,x2));
             if (rect) {
-                fp y1 = ys.val(mouse_press_Y);
-                fp y2 = ys.val(event.GetY());
+                fp y1 = ys.valr(mouse_press_Y);
+                fp y2 = ys.valr(event.GetY());
                 cond += " and "
                         + eS(min(y1,y2)) + " < y and y < " + eS(max(y1,y2));
             }
@@ -1175,12 +1175,12 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     else if (mouse_op == kAddPeakInRange) {
         frame->set_status_text("");
         if (dist_X >= 5) {
-            fp x1 = xs.val(mouse_press_X);
-            fp x2 = xs.val(event.GetX());
+            fp x1 = xs.valr(mouse_press_X);
+            fp x2 = xs.valr(event.GetX());
             ftk->exec("guess " + frame->get_peak_type()
-                          + " [" + S(min(x1,x2)) + " : " + S(max(x1,x2)) + "]"
-                          + frame->get_global_parameters()
-                          + frame->get_in_datasets());
+                        + " [" + eS(min(x1,x2)) + " : " + eS(max(x1,x2)) + "]"
+                        + frame->get_global_parameters()
+                        + frame->get_in_datasets());
         }
         line_following_cursor(mat_stop);
     }
@@ -1196,16 +1196,16 @@ void MainPlot::add_peak_from_draft(int X, int Y)
 {
     string args;
     if (func_draft_kind == fk_linear) {
-        fp y = ys.val(Y);
-        args = "slope=~" + S(0) + ", intercept=~" + S(y) + ", avgy=~" + S(y);
+        fp y = ys.valr(Y);
+        args = "slope=~0, intercept=~" + S(y) + ", avgy=~" + S(y);
     }
     else {
-        fp height = ys.val(Y);
-        fp center = xs.val(mouse_press_X);
-        fp fwhm = fabs(center - xs.val(X));
+        fp height = ys.valr(Y);
+        fp center = xs.valr(mouse_press_X);
+        fp fwhm = 2 * fabs(center - xs.valr(X));
         fp area = height * fwhm;
-        args = "height=~" + S(height) + ", center=~" + S(center)
-                 + ", fwhm=~" + S(fwhm) + ", area=~" + S(area);
+        args = "height=~" + eS(height) + ", center=~" + eS(center)
+                 + ", fwhm=~" + eS(fwhm) + ", area=~" + eS(area);
         string global = frame->get_global_parameters();
         if (!global.empty())
             args += "," + global;
@@ -1241,7 +1241,7 @@ bool MainPlot::draw_moving_func(MouseActEnum ma, int X, int Y, bool shift)
         redraw_xor_peak();
     else if (ma == mat_start) {
         func_nr = over_peak;
-        fmd.start(p, X, Y, xs.val(X), ys.val(Y));
+        fmd.start(p, X, Y, xs.valr(X), ys.valr(Y));
         bool erase_previous = false;
         draw_xor_peak(p, fmd.get_values(), erase_previous);
         prevX = X;
@@ -1251,7 +1251,7 @@ bool MainPlot::draw_moving_func(MouseActEnum ma, int X, int Y, bool shift)
         connect_esc_to_cancel(true);
     }
     else if (ma == mat_move) {
-        fmd.move(shift, X, Y, xs.val(X), ys.val(Y));
+        fmd.move(shift, X, Y, xs.valr(X), ys.valr(Y));
         frame->set_status_text(fmd.get_status());
         bool erase_previous = true;
         draw_xor_peak(p, fmd.get_values(), erase_previous);

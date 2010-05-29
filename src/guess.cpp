@@ -130,8 +130,8 @@ void Guess::get_point_range(fp range_from, fp range_to,
                  data->get_n() - 1);
     if (l_bor >= r_bor)
         throw ExecuteError("Searching peak outside of data points range. "
-                           "Abandoned. Tried at [" + S(range_from) + " : "
-                           + S(range_to) + "]");
+                           "Abandoned. Tried at [" + eS(range_from) + " : "
+                           + eS(range_to) + "]");
 }
 
 
@@ -143,7 +143,7 @@ void Guess::estimate_peak_parameters(fp range_from, fp range_to,
     int max_y_pos = max_data_y_pos(l_bor, r_bor);
     if (max_y_pos == l_bor || max_y_pos == r_bor - 1) {
         string s = "Estimating peak parameters: peak outside of search scope."
-                  " Tried at [" + S(range_from) + " : " + S(range_to) + "]";
+                  " Tried at [" + eS(range_from) + " : " + eS(range_to) + "]";
         if (F->get_settings()->get_b("can-cancel-guess"))
             throw ExecuteError(s + " Canceled.");
         F->msg(s);
@@ -221,7 +221,7 @@ void Guess::get_guess_info(RealRange const& range, string& result)
     estimate_peak_parameters(range_from, range_to,
                              &c, &h, &a, &fwhm);
     if (h != 0.)
-        result += "center: " + S(c) + ", height: " + S(h) + ", area: " + S(a)
+        result += "center: " + eS(c) + ", height: " + S(h) + ", area: " + S(a)
             + ", FWHM: " + S(fwhm) + "\n";
     fp slope = 0, intercept = 0, avgy = 0;
     estimate_linear_parameters(range_from, range_to,
@@ -266,25 +266,25 @@ void Guess::guess(string const& name, string const& function,
         estimate_peak_parameters(range_from, range_to,
                                  &c, &h, &a, &fwhm);
         if (!contains_element(vars_lhs, "center"))
-            vars.push_back("center=~"+S(c));
+            vars.push_back("center=~"+eS(c));
         if (!contains_element(vars_lhs, "height"))
-            vars.push_back("height=~"+S(h));
+            vars.push_back("height=~"+eS(h));
         if (!contains_element(vars_lhs, "fwhm")
                 && !contains_element(vars_lhs, "hwhm"))
-            vars.push_back("fwhm=~"+S(fwhm));
+            vars.push_back("fwhm=~"+eS(fwhm));
         if (!contains_element(vars_lhs, "area"))
-            vars.push_back("area=~"+S(a));
+            vars.push_back("area=~"+eS(a));
     }
     else if (k == fk_linear) {
         fp slope, intercept, avgy;
         estimate_linear_parameters(range_from, range_to,
                                    &slope, &intercept, &avgy);
         if (!contains_element(vars_lhs, "slope"))
-            vars.push_back("slope=~"+S(slope));
+            vars.push_back("slope=~"+eS(slope));
         if (!contains_element(vars_lhs, "intercept"))
-            vars.push_back("intercept=~"+S(intercept));
+            vars.push_back("intercept=~"+eS(intercept));
         if (!contains_element(vars_lhs, "avgy"))
-            vars.push_back("avgy=~"+S(avgy));
+            vars.push_back("avgy=~"+eS(avgy));
     }
 }
 

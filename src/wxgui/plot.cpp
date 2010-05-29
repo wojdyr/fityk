@@ -39,6 +39,23 @@ void Scale::set(fp m, fp M, int pixels)
     scale = pixels / (reversed ? -h : h);
 }
 
+double Scale::valr(int px) const
+{
+    if (logarithm) {
+        double val = exp(px / scale + origin);
+        double delta = fabs(val - exp((px-1) / scale + origin));
+        double t = pow(10, floor(log10(delta)));
+        return floor(val / t + 0.5) * t;
+    }
+    else {
+        double val = px / scale + origin;
+        double delta = fabs(0.5 / scale);
+        double t = pow(10, floor(log10(delta)));
+        return floor(val / t + 0.5) * t;
+    }
+}
+
+
 //===============================================================
 //                FPlot (plot with data and fitted curves)
 //===============================================================

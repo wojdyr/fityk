@@ -43,6 +43,10 @@ public:
     /// pixel -> value
     inline double val(int px) const;
 
+    // Returns the same value as val(), but rounded in a smart way,
+    // so when the number is formatted with "%.12g", it is not too long.
+    double valr(int px) const;
+
     // set scale using minimum and maximum logical values and width/height
     // of the screen in pixels.
     // In case of y scale, where pixel=0 is at the top, m and M are switched

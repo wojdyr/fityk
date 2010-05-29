@@ -209,7 +209,7 @@ void AuxPlot::OnMouseMove(wxMouseEvent &event)
 {
     int X = event.GetX();
     line_following_cursor(mat_move, X);
-    frame->set_status_coords(xs.val(X), ys.val(event.GetY()), pte_aux);
+    frame->set_status_coords(xs.valr(X), ys.valr(event.GetY()), pte_aux);
     if (X < move_plot_margin_width)
         SetCursor(wxCURSOR_POINT_LEFT);
     else if (X > GetClientSize().GetWidth() - move_plot_margin_width)
