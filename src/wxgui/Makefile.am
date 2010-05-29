@@ -44,7 +44,7 @@ fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 
 fityk_CPPFLAGS = $(WX_CPPFLAGS) $(HELP_DEF)
 fityk_CXXFLAGS = $(WX_CXXFLAGS_ONLY)
-fityk_LDADD = ../libfityk.la libceria.a $(WX_LIBS) $(fityk_res)
+fityk_LDADD = ../libfityk.la libceria.a -lxy $(WX_LIBS) $(fityk_res)
 
 if XYCONVERT
 bin_PROGRAMS += xyconvert
