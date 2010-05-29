@@ -812,6 +812,7 @@ Variadic functions
 
 *Variadic* function types have variable number of parameters.
 Two variadic function types are defined::
+
     Spline(x1, y1, x2, y2, ...)
     Polyline(x1, y1, x2, y2, ...)
 

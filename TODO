@@ -8,6 +8,7 @@ $Id$
   - "info 12, fit" doesn't work, although "info fit, 12" works.
   - support quoted strings, e.g. info '2+2=', 2+2
   - use new lexer
+  - "info peaks" should use info-numeric-format
 
 * FFT data transformation using either KISS FFT or FFTW library,
   fft[-inv]-xx, where xx is re, im, amp, e.g. @n = fft-re @3 
@@ -90,8 +91,6 @@ $Id$
   - ? changing data point size and line separately for each dataset,
 
 * unused variables should not slow down fitting
-
-* a command to delete all functions or variables
 
 * support variables in range in data transformation: Y[$foo-1] = 0
 

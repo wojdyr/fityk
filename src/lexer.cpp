@@ -31,6 +31,7 @@ string Lexer::get_string(const Token& token)
             return string(p+1);
         default:
             assert(!"Unexpected token in get_string()");
+            return "";
     }
 }
 
@@ -90,6 +91,7 @@ string token2str(const Token& token)
 
         default:
             assert(!"unexpected token in token2str()");
+            return "";
     }
 }
 

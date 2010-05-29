@@ -1208,17 +1208,17 @@ wxString hkl2wxstr(const Miller& hkl)
                       hkl.k > -10 && hkl.k < 10 &&
                       hkl.l > -10 && hkl.l < 10);
     if (hkl.h < 0)
-        s += "m";
+        s += wxT("m");
     s += wxString::Format(wxT("%d"), hkl.h);
     if (separate)
-        s += "_";
+        s += wxT("_");
     if (hkl.k < 0)
-        s += "m";
+        s += wxT("m");
     s += wxString::Format(wxT("%d"), hkl.k);
     if (separate)
-        s += "_";
+        s += wxT("_");
     if (hkl.l < 0)
-        s += "m";
+        s += wxT("m");
     s += wxString::Format(wxT("%d"), hkl.l);
     return s;
 }
@@ -1312,13 +1312,13 @@ wxString PowderBook::prepare_commands()
     int width_sel = width_rb->GetSelection();
     if (width_sel == 1 /*H2=Utan2T...*/) {
         if (has_u)
-            s += "$pd_u = " + get_var(par_u) + wxT("\n");
+            s += wxT("$pd_u = ") + get_var(par_u) + wxT("\n");
         if (has_v)
-            s += "$pd_v = " + get_var(par_v) + wxT("\n");
+            s += wxT("$pd_v = ") + get_var(par_v) + wxT("\n");
         if (has_w)
-            s += "$pd_w = " + get_var(par_w) + wxT("\n");
+            s += wxT("$pd_w = ") + get_var(par_w) + wxT("\n");
         if (has_z)
-            s += "$pd_z = " + get_var(par_z) + wxT("\n");
+            s += wxT("$pd_z = ") + get_var(par_z) + wxT("\n");
     }
 
     bool has_a = par_a->IsEnabled() && par_a->is_nonzero();
@@ -1326,29 +1326,29 @@ wxString PowderBook::prepare_commands()
     bool has_c = par_c->IsEnabled() && par_c->is_nonzero();
     double a_val = par_a->get_value();
     if (has_a)
-        s += "$pd_a = " + get_var(par_a) + wxT("\n");
+        s += wxT("$pd_a = ") + get_var(par_a) + wxT("\n");
     if (has_b)
-        s += "$pd_b = " + get_var(par_b) + wxT("\n");
+        s += wxT("$pd_b = ") + get_var(par_b) + wxT("\n");
     if (has_c)
-        s += "$pd_c = " + get_var(par_c) + wxT("\n");
+        s += wxT("$pd_c = ") + get_var(par_c) + wxT("\n");
 
     for (int i = 0; i < (int) sample_nb->GetPageCount() - 1; ++i) {
         const PhasePanel* p = get_phase_panel(i);
         const Crystal& cr = p->get_crystal();
         s += wxT("\n# ") + p->name_tc->GetValue() + wxT("\n");
         wxString pre = wxString::Format(wxT("$pd%d_"), i);
-        s += pre + wxT("a = ") + get_var(p->par_a) + "\n";
+        s += pre + wxT("a = ") + get_var(p->par_a) + wxT("\n");
         if (p->par_b->IsEnabled())
-            s += pre + wxT("b = ") + get_var(p->par_b) + "\n";
+            s += pre + wxT("b = ") + get_var(p->par_b) + wxT("\n");
         if (p->par_c->IsEnabled())
-            s += pre + wxT("c = ") + get_var(p->par_c) + "\n";
+            s += pre + wxT("c = ") + get_var(p->par_c) + wxT("\n");
         double d2r = M_PI/180.;
         if (p->par_alpha->IsEnabled())
-            s += pre + wxT("alpha = ") + get_var(p->par_alpha, d2r) + "\n";
+            s += pre + wxT("alpha = ") + get_var(p->par_alpha, d2r) + wxT("\n");
         if (p->par_beta->IsEnabled())
-            s += pre + wxT("beta = ") + get_var(p->par_beta, d2r) + "\n";
+            s += pre + wxT("beta = ") + get_var(p->par_beta, d2r) + wxT("\n");
         if (p->par_gamma->IsEnabled())
-            s += pre + wxT("gamma = ") + get_var(p->par_gamma, d2r) + "\n";
+            s += pre + wxT("gamma = ") + get_var(p->par_gamma, d2r) + wxT("\n");
 
         bool has_shape = peak_rb->GetSelection() >= 2;
         int shape_sel = shape_rb->GetSelection();
