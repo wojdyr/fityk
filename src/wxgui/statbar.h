@@ -37,6 +37,7 @@ public:
     void set_coords(double x, double y, PlotTypeEnum pte);
     void clear_coords() { coords->SetLabel(wxEmptyString); }
     bool set_extra_value(std::string const& s);
+    void update_extra_fmt();
     wxString const& get_extra_value() const { return extra_value; }
 
     void save_settings(wxConfigBase *cf) const;
@@ -55,11 +56,7 @@ private:
     std::vector<int> e_code; // bytecode for calculating extra value
     std::vector<double> e_numbers; // numbers for the bytecode in e_code
 
-    // The format for numbers is "% a.bf" where a=int_len+x_prec, b=x_prec
-    static const int int_len = 4;
-    int x_prec; // precision of x coordinate shown at status bar
-    int y_prec; // precision of y
-    int e_prec; // precision of extra value
+    int e_prec; // precision of extra value shown at status bar
 
     bool show_btn;
     bool show_hints;
@@ -67,7 +64,7 @@ private:
     double last_x, last_y;
     PlotTypeEnum last_pte;
 
-    wxString fmt_main, fmt_aux;
+    wxString extra_fmt;
     wxStaticText *text;
     wxStaticText *coords;
     wxStaticText *lmouse_hint, *rmouse_hint;
@@ -75,7 +72,6 @@ private:
     wxStaticBitmap *mousebmp;
     wxSplitterWindow *split;
 
-    void set_coords_format();
     void show_or_hide();
 };
 
@@ -92,7 +88,7 @@ private:
     FStatusBar *sb;
     wxTextCtrl *extra_tc;
     wxCheckBox *show_btn_cb, *show_hints_cb;
-    wxSpinCtrl *x_prec_sc, *y_prec_sc, *e_prec_sc;
+    wxSpinCtrl *e_prec_sc;
     wxStaticBitmap *okbmp;
 };
 

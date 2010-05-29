@@ -31,8 +31,13 @@ FStatusBar::FStatusBar(wxWindow *parent)
     wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
     split = new wxSplitterWindow(this, -1, wxDefaultPosition, wxDefaultSize, 0);
     text = new wxStaticText(split, -1, wxT(""));
+
     coords = new wxStaticText(split, -1, wxT(""),
-                              wxDefaultPosition, wxSize(150, -1));
+                              wxDefaultPosition, wxSize(240, -1));
+    wxFont font = coords->GetFont();
+    font.SetFamily(wxFONTFAMILY_TELETYPE);
+    coords->SetFont(font);
+
     split->SplitVertically(text, coords);
     split->SetSashGravity(1.0);
     split->SetMinimumPaneSize(50);
@@ -88,8 +93,6 @@ void FStatusBar::save_settings(wxConfigBase *cf) const
     cf->Write(wxT("coord_width"), coord_width);
     cf->Write(wxT("show_btn"), show_btn);
     cf->Write(wxT("show_hints"), show_hints);
-    cf->Write(wxT("x_prec"), x_prec);
-    cf->Write(wxT("y_prec"), y_prec);
     cf->Write(wxT("e_prec"), e_prec);
     cf->Write(wxT("extraValue"), extra_value);
 }
@@ -100,28 +103,13 @@ void FStatusBar::read_settings(wxConfigBase *cf)
     int coord_width = cf->Read(wxT("coord_width"), 200);
     show_btn = cfg_read_bool(cf, wxT("show_btn"), true);
     show_hints = cfg_read_bool(cf, wxT("show_hints"), true);
-    x_prec = cf->Read(wxT("x_prec"), 3);
-    y_prec = cf->Read(wxT("y_prec"), 1);
     e_prec = cf->Read(wxT("e_prec"), 3);
     wxString ev = cf->Read(wxT("extraValue"), wxT(""));
 
     set_extra_value(wx2s(ev));
+    update_extra_fmt();
     split->SetSashPosition(-coord_width);
     show_or_hide();
-}
-
-void FStatusBar::set_coords_format()
-{
-    fmt_main.Printf(wxT("%% %d.%df  %% %d.%df"),
-                    int_len+x_prec, x_prec, int_len+y_prec, y_prec);
-    fmt_aux.Printf(wxT("%% %d.%df  [%% %d.%df]"),
-                   int_len+x_prec, x_prec, int_len+y_prec, y_prec);
-    if (!extra_value.IsEmpty()) {
-        wxString extra_fmt
-            = wxString::Format(wxT("  -> %% %d.%df"), int_len+e_prec, e_prec);
-        fmt_main += extra_fmt;
-        fmt_aux += extra_fmt;
-    }
 }
 
 void FStatusBar::set_hints(string const& left, string const& right,
@@ -144,13 +132,23 @@ void FStatusBar::set_hints(string const& left, string const& right,
     Layout();
 }
 
+void FStatusBar::update_extra_fmt()
+{
+    extra_fmt = wxString::Format(wxT(" : %% -.%df"), e_prec);
+}
+
 void FStatusBar::set_coords(double x, double y, PlotTypeEnum pte)
 {
-    double val = 0;
-    if (!extra_value.IsEmpty())
-        val = get_value_for_point(e_code, e_numbers, x, y);
-    wxString const& fmt = (pte == pte_main ? fmt_main : fmt_aux);
-    coords->SetLabel(wxString::Format(fmt, x, y, val));
+    wxString label = wxString::Format(wxT("% -8.12g"), x);
+
+    label += wxString::Format((pte == pte_main ? wxT(" % -7.12g")
+                                               : wxT(" [% -7.12g]")),
+                              y);
+    if (!extra_value.IsEmpty()) {
+        double val = get_value_for_point(e_code, e_numbers, x, y);
+        label += wxString::Format(extra_fmt, val);
+    }
+    coords->SetLabel(label);
     last_x = x;
     last_y = y;
     last_pte = pte;
@@ -161,7 +159,6 @@ bool FStatusBar::set_extra_value(string const& s)
     if (!s.empty() && !get_dt_code(s, e_code, e_numbers))
         return false;
     extra_value = s2wx(s);
-    set_coords_format();
     return true;
 }
 
@@ -176,6 +173,7 @@ void FStatusBar::show_or_hide()
 
 void FStatusBar::OnPrefButton(wxCommandEvent&)
 {
+    show_last_coordinates();
     ConfStatBarDlg dlg(NULL, -1, this);
     dlg.ShowModal();
 }
@@ -211,48 +209,36 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
     top_sizer->Add(show_hints_cb, wxSizerFlags().Border());
 
     wxStaticBoxSizer *f_sizer = new wxStaticBoxSizer(wxVERTICAL, this,
-                                                     wxT("coordinates"));
+                                                     wxT("extra value"));
 
     wxStaticText *evcomment = new wxStaticText(this, -1,
-                 wxT("In addition to x and y, extra numeric value ")
-                 wxT("(function of x and/or y) can be shown, e.g.:")
-                 wxT("\n4*pi*sin(x/2*pi/180)/1.54051"));
+  wxT("In addition to the x and y, extra numeric value (a function")
+  wxT("\nof x and/or y) can be shown on the status bar, e.g.:")
+  wxT("\n4*pi*sin(x/2*pi/180)/1.5405"));
     evcomment->SetFont(*wxITALIC_FONT);
     f_sizer->Add(evcomment, wxSizerFlags().Border());
 
-    wxBoxSizer *evsizer = new wxBoxSizer(wxHORIZONTAL);
-    evsizer->Add(new wxStaticText(this, -1, wxT("extra value formula")),
-                 wxSizerFlags().Center().Border(wxRIGHT));
+    wxFlexGridSizer *gsizer = new wxFlexGridSizer(3, 5, 5);
+    gsizer->AddGrowableCol(1);
+
+    gsizer->Add(new wxStaticText(this, -1, wxT("formula")),
+                wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL|wxALIGN_RIGHT));
     extra_tc = new wxTextCtrl(this, -1, sb->extra_value);
-    evsizer->Add(extra_tc, wxSizerFlags(1).Center());
+    gsizer->Add(extra_tc, wxSizerFlags().Expand().Center());
     okbmp = new wxStaticBitmap(this, -1, GET_BMP(ok24));
-    evsizer->Add(okbmp, wxSizerFlags().Center()
+    gsizer->Add(okbmp, wxSizerFlags().Center()
 #if wxCHECK_VERSION(2, 8, 8)
             .ReserveSpaceEvenIfHidden()
 #endif
                 );
-    f_sizer->Add(evsizer, wxSizerFlags().Expand().Border());
 
-    wxGridSizer *gsizer = new wxGridSizer(2, 5, 5);
-
-    wxSizerFlags cl = wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL);
-    wxSizerFlags cr
-                = wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL|wxALIGN_RIGHT);
-
-    gsizer->Add(new wxStaticText(this, -1, wxT("precision of x")), cr);
-    x_prec_sc = new SpinCtrl(this, -1, sb->x_prec, 0, 9, 40);
-    gsizer->Add(x_prec_sc, cl);
-
-    gsizer->Add(new wxStaticText(this, -1, wxT("precision of y")), cr);
-    y_prec_sc = new SpinCtrl(this, -1, sb->y_prec, 0, 9, 40);
-    gsizer->Add(y_prec_sc, cl);
-
-    gsizer->Add(new wxStaticText(this, -1,wxT("precision of extra value")), cr);
+    gsizer->Add(new wxStaticText(this, -1,wxT("precision")),
+                wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL|wxALIGN_RIGHT));
     e_prec_sc = new SpinCtrl(this, -1, sb->e_prec, 0, 9, 40);
-    gsizer->Add(e_prec_sc, cl);
+    gsizer->Add(e_prec_sc, wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL));
 
-    f_sizer->Add(gsizer, wxSizerFlags(1).Border());
-    top_sizer->Add(f_sizer, wxSizerFlags().Expand().Border());
+    f_sizer->Add(gsizer, wxSizerFlags(1).Expand().Border());
+    top_sizer->Add(f_sizer, wxSizerFlags(1).Expand().Border());
 
     top_sizer->Add(persistance_note_sizer(this),
                    wxSizerFlags().Expand().Border());
@@ -269,14 +255,8 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
             (wxObjectEventFunction) &ConfStatBarDlg::OnShowBtnCheckbox);
     Connect(show_hints_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
             (wxObjectEventFunction) &ConfStatBarDlg::OnShowHintsCheckbox);
-
     Connect(extra_tc->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
             (wxObjectEventFunction) &ConfStatBarDlg::OnExtraValueChange);
-
-    Connect(x_prec_sc->GetId(), wxEVT_COMMAND_SPINCTRL_UPDATED,
-            (wxObjectEventFunction) &ConfStatBarDlg::OnPrecisionSpin);
-    Connect(y_prec_sc->GetId(), wxEVT_COMMAND_SPINCTRL_UPDATED,
-            (wxObjectEventFunction) &ConfStatBarDlg::OnPrecisionSpin);
     Connect(e_prec_sc->GetId(), wxEVT_COMMAND_SPINCTRL_UPDATED,
             (wxObjectEventFunction) &ConfStatBarDlg::OnPrecisionSpin);
 }
@@ -293,15 +273,11 @@ void ConfStatBarDlg::OnShowHintsCheckbox(wxCommandEvent& event)
     sb->show_or_hide();
 }
 
-void ConfStatBarDlg::OnPrecisionSpin(wxCommandEvent& event)
+void ConfStatBarDlg::OnPrecisionSpin(wxCommandEvent&)
 {
-    if (event.GetId() == x_prec_sc->GetId())
-        sb->x_prec = x_prec_sc->GetValue();
-    else if (event.GetId() == y_prec_sc->GetId())
-        sb->y_prec = y_prec_sc->GetValue();
-    else if (event.GetId() == e_prec_sc->GetId())
-        sb->e_prec = e_prec_sc->GetValue();
-    sb->set_coords_format();
+    //if (event.GetId() == e_prec_sc->GetId())
+    sb->e_prec = e_prec_sc->GetValue();
+    sb->update_extra_fmt();
     sb->show_last_coordinates();
 }
 
