@@ -16,7 +16,7 @@ libfityk_la_SOURCES = logic.cpp view.cpp lexer.cpp \
 		 model.cpp fit.cpp voigt.cpp \
 		 numfuncs.cpp fityk.cpp \
 		 \
-                 common.h lexer.h data.h
+                 common.h lexer.h data.h \
 		 datatrans.h datatrans2.h datatrans3.h datatrans4.h info.h \
 		 settings.h GAfit.h LMfit.h guess.h NMfit.h logic.h view.h \
 		 model.h fit.h ui.h voigt.h \
