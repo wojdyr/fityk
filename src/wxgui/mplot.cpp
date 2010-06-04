@@ -247,7 +247,8 @@ MainPlot::MainPlot (wxWindow *parent)
       over_peak(-1), limit1(INT_MIN), limit2(INT_MIN),
       hint_receiver(NULL),
       draw_xor_peak_n(0),
-      draw_xor_peak_points(NULL)
+      draw_xor_peak_points(NULL),
+      auto_freeze_(false)
 {
     set_cursor();
 }
@@ -1079,6 +1080,31 @@ bool MainPlot::can_activate()
     return false;
 }
 
+static
+void freeze_functions_in_range(double x1, double x2, bool freeze)
+{
+    string cmd;
+    for (vector<Function*>::const_iterator i = ftk->get_functions().begin();
+                                        i != ftk->get_functions().end(); ++i) {
+        if (!(*i)->has_center())
+            continue;
+        double ctr = (*i)->center();
+        if (!(x1 < ctr && ctr < x2))
+            continue;
+        for (int j = 0; j != (*i)->get_vars_count(); ++j) {
+            Variable const* var = ftk->get_variable((*i)->get_var_idx(j));
+            if (freeze && var->is_simple()) {
+                cmd += "$" + var->name + "=" + eS(var->get_value()) + "; ";
+            }
+            else if (!freeze && var->is_constant()) {
+                cmd += "$" + var->name + "=~" + eS(var->get_value()) + "; ";
+            }
+        }
+    }
+    if (!cmd.empty())
+        ftk->exec(cmd);
+}
+
 void MainPlot::OnButtonUp (wxMouseEvent &event)
 {
     int button = event.GetButton();
@@ -1149,11 +1175,13 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         bool ok = (!rect && dist_X >= 5) ||
                   (rect && dist_X + dist_Y >= 10);
         if (ok) {
-            string c = (mouse_op == kActivateSpan || mouse_op == kActivateRect
-                        ? "A = a or" : "A = a and not");
+            bool activate = mouse_op==kActivateSpan || mouse_op==kActivateRect;
+            string c = (activate ? "A = a or" : "A = a and not");
             fp x1 = xs.valr(mouse_press_X);
             fp x2 = xs.valr(event.GetX());
-            string cond = eS(min(x1,x2)) + " < x and x < " + eS(max(x1,x2));
+            if (x1 > x2)
+                swap(x1, x2);
+            string cond = eS(x1) + " < x and x < " + eS(x2);
             if (rect) {
                 fp y1 = ys.valr(mouse_press_Y);
                 fp y2 = ys.valr(event.GetY());
@@ -1161,6 +1189,9 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
                         + eS(min(y1,y2)) + " < y and y < " + eS(max(y1,y2));
             }
             ftk->exec(c + " (" + cond + ")" + frame->get_in_datasets());
+
+            if (auto_freeze_ && !rect)
+                freeze_functions_in_range(x1, x2, !activate);
         }
         frame->set_status_text("");
     }

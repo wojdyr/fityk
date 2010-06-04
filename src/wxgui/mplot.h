@@ -193,6 +193,7 @@ public:
     void show_popup_menu(wxMouseEvent &event);
     void set_hint_receiver(HintReceiver *hr)
         { hint_receiver = hr; update_mouse_hints(); }
+    void set_auto_freeze(bool value) { auto_freeze_ = value; }
 
 private:
     MouseModeEnum basic_mode,
@@ -220,6 +221,7 @@ private:
     // variables used in draw_xor_peak() and redraw_xor_peak()
     int draw_xor_peak_n;
     wxPoint* draw_xor_peak_points;
+    bool auto_freeze_;
 
     void draw_x_axis (wxDC& dc, bool set_pen=true);
     void draw_y_axis (wxDC& dc, bool set_pen=true);

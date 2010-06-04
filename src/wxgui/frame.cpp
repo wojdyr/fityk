@@ -132,6 +132,7 @@ enum {
     ID_DEFMGR                  ,
     ID_S_GUESS                 ,
     ID_S_PFINFO                ,
+    ID_S_AUTOFREEZE            ,
     ID_S_FUNCLIST              ,
     ID_S_VARLIST               ,
     ID_S_EXPORTP               ,
@@ -275,6 +276,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_DEFMGR,        FFrame::OnDefinitionMgr)
     EVT_MENU (ID_S_GUESS,       FFrame::OnSGuess)
     EVT_MENU (ID_S_PFINFO,      FFrame::OnSPFInfo)
+    EVT_MENU (ID_S_AUTOFREEZE,  FFrame::OnAutoFreeze)
     EVT_MENU (ID_S_FUNCLIST,    FFrame::OnSFuncList)
     EVT_MENU (ID_S_VARLIST,     FFrame::OnSVarList)
     EVT_MENU (ID_S_EXPORTP,     FFrame::OnSExport)
@@ -629,6 +631,8 @@ void FFrame::set_menubar()
     sum_menu->Append (ID_S_GUESS, wxT("&Guess Peak"),wxT("Guess and add peak"));
     sum_menu->Append (ID_S_PFINFO, wxT("Peak-Find &Info"),
                                 wxT("Show where guessed peak would be placed"));
+    sum_menu->AppendCheckItem(ID_S_AUTOFREEZE, wxT("Auto-Freeze"),
+        wxT("In Data-Range mode: freeze functions in disactivated range"));
     sum_menu->AppendSeparator();
     sum_menu->Append (ID_S_FUNCLIST, wxT("Show &Function List"),
                                 wxT("Open `Functions' tab on right-hand pane"));
@@ -1012,6 +1016,11 @@ void FFrame::OnSPFInfo (wxCommandEvent&)
 {
     ftk->exec("info guess" + get_in_datasets());
     //TODO animations showing peak positions
+}
+
+void FFrame::OnAutoFreeze(wxCommandEvent& event)
+{
+    plot_pane->get_plot()->set_auto_freeze(event.IsChecked());
 }
 
 void FFrame::OnSFuncList (wxCommandEvent&)

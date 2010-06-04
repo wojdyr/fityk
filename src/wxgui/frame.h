@@ -82,6 +82,7 @@ public:
     void OnDefinitionMgr (wxCommandEvent&);
     void OnSGuess        (wxCommandEvent& event);
     void OnSPFInfo       (wxCommandEvent& event);
+    void OnAutoFreeze    (wxCommandEvent& event);
     void OnSFuncList     (wxCommandEvent& event);
     void OnSVarList      (wxCommandEvent& event);
     void OnSExport       (wxCommandEvent& event);
