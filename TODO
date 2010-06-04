@@ -76,10 +76,6 @@ $Id$
 * add a new function category: sigmoids/steps (now function can be guessed as
   "peak" and "linear"). (GUI): drawing drafts for the new category.
 
-* "auto-freeze" option in settings, that automatically locks/unlocks all 
-  parameters of a peak when the data range containing the center of this peak 
-  is disactivated/activated
-
 --------------> 
 
 * add alpha channel to toolbar icons
