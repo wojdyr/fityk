@@ -101,6 +101,7 @@ protected:
     Variable *create_variable(std::string const &name, std::string const &rhs);
     std::string put_into_variables(Variable* new_var);
     bool is_variable_referred(int i, std::string *first_referrer = NULL);
+    void reindex_all();
     std::vector<std::string> get_vars_from_kw(std::string const &function,
                                          std::vector<std::string> const &vars);
     std::string make_var_copy_name(Variable const* v);

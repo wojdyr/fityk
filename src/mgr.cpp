@@ -236,6 +236,18 @@ VariableManager::get_variable_references(string const &name) const
     return refs;
 }
 
+// set indices corresponding to variable names in all functions and variables
+void VariableManager::reindex_all()
+{
+    for (vector<Variable*>::iterator i = variables.begin();
+            i != variables.end(); ++i)
+        (*i)->set_var_idx(variables);
+    for (vector<Function*>::iterator i = functions.begin();
+            i != functions.end(); ++i) {
+        (*i)->set_var_idx(variables);
+    }
+}
+
 void VariableManager::remove_unreferred()
 {
     // remove auto-delete marked variables, which are not referred by others
@@ -246,14 +258,10 @@ void VariableManager::remove_unreferred()
                 variables.erase(variables.begin() + i);
             }
         }
+
     // re-index all functions and variables (in any case)
-    for (vector<Variable*>::iterator i = variables.begin();
-            i != variables.end(); ++i)
-        (*i)->set_var_idx(variables);
-    for (vector<Function*>::iterator i = functions.begin();
-            i != functions.end(); ++i) {
-        (*i)->set_var_idx(variables);
-    }
+    reindex_all();
+
     // remove unreferred parameters
     for (int i = size(parameters)-1; i >= 0; --i) {
         bool del=true;
@@ -401,6 +409,7 @@ void VariableManager::delete_variables(vector<string> const &names)
         // Check for dependencies.
         string first_referrer;
         if (is_variable_referred(*i, &first_referrer)) {
+            reindex_all();
             remove_unreferred(); // post-delete
             throw ExecuteError("can't delete $" + get_variable(*i)->name +
                              " because " + first_referrer + " depends on it.");
@@ -411,6 +420,7 @@ void VariableManager::delete_variables(vector<string> const &names)
     }
 
     // post-delete
+    reindex_all();
     remove_unreferred();
 }
 
