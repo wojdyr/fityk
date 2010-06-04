@@ -82,7 +82,7 @@ Function::Function (Ftk const* F_,
 void Function::init()
 {
     type_params = get_varnames_from_formula(type_formula);
-    center_idx = find_center_in_typevars();
+    center_idx = index_of_element(type_params, "center");
 
     if (vv.size() != type_params.size())
         throw ExecuteError("Function " + type_name + " requires "
@@ -137,16 +137,6 @@ vector<string> Function::get_defvalues_from_formula(string const& formula)
     }
     return defaults;
 }
-
-int Function::find_center_in_typevars() const
-{
-      if (contains_element(type_params, "center"))
-          return find(type_params.begin(), type_params.end(), "center")
-                                                      - type_params.begin();
-      else
-          return -1;
-}
-
 
 Function* Function::factory (Ftk const* F,
                              string const &name_, string const &type_name,

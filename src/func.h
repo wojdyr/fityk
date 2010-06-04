@@ -136,11 +136,7 @@ protected:
     virtual void init();
 
 private:
-
     static std::vector<fp> calc_val_xx, calc_val_yy;
-
-    /// find index of parameter named "center"; returns -1 if not found
-    int find_center_in_typevars() const;
 };
 
 //////////////////////////////////////////////////////////////////////////
