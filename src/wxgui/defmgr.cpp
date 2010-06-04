@@ -18,6 +18,7 @@
 #include "defmgr.h"
 #include "cmn.h" //s2wx, wx2s, close_it
 #include "../func.h"
+#include "../udf.h"
 #include "../guess.h" //FunctionKind
 
 using namespace std;

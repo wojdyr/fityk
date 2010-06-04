@@ -21,6 +21,7 @@
 #include "var.h"
 #include "model.h"
 #include "func.h"
+#include "udf.h"
 #include "logic.h"
 #include "settings.h"
 #include "optional_suffix.h"

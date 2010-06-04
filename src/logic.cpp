@@ -20,6 +20,7 @@
 #include "settings.h"
 #include "mgr.h"
 #include "func.h"
+#include "udf.h"
 
 using namespace std;
 

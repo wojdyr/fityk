@@ -29,7 +29,7 @@
 #include "sgchooser.h"
 #include "atomtables.h"
 #include "../common.h"
-#include "../func.h"
+#include "../udf.h"
 #include "cmn.h"
 #include "uplot.h" // BufferedPanel, scale_tics_step()
 #include "fancyrc.h" // LockableRealCtrl 
