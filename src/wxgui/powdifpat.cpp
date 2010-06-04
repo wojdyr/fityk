@@ -133,7 +133,6 @@ public:
 
 private:
     static const wxString default_atom_string;
-    wxNotebook *nb_parent;
     PowderBook *powder_book;
 
     wxTextCtrl *name_tc, *sg_tc;
@@ -144,7 +143,7 @@ private:
     wxStaticText *sg_nr_st;
     bool atoms_show_help_;
     bool editing_atoms_;
-    PlotWithLines *sample_plot;
+    PlotWithLines *sample_plot_;
     // line number with the first syntax error atoms_tc; -1 if correct
     int line_with_error_;
 
@@ -178,6 +177,7 @@ LockableRealCtrl *addMaybeRealCtrl(wxWindow *parent, wxString const& label,
 } // anonymous namespace
 
 vector<PowderBook::PhasePanelExtraData> PowderBook::phase_desc;
+int PowderBook::xaxis_sel = 0;
 
 PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
     : wxListbook(parent, id), x_min(10), x_max(150), y_max(1000), data(NULL)
@@ -344,17 +344,20 @@ wxPanel* PowderBook::PrepareInstrumentPanel()
     wxArrayString xaxis_choices;
     xaxis_choices.Add(wxT("2\u03B8")); //\u03B8 = theta
     xaxis_choices.Add(wxT("Q"));
-    wxRadioBox *xaxis_rb = new wxRadioBox(panel, -1, wxT("data x axis"),
+    xaxis_choices.Add(wxT("d"));
+    xaxis_rb = new wxRadioBox(panel, -1, wxT("data x axis"),
                                           wxDefaultPosition, wxDefaultSize,
                                           xaxis_choices, 3);
-    xaxis_rb->Enable(1, false);
+    xaxis_rb->SetSelection(xaxis_sel);
     hsizer->Add(xaxis_rb, wxSizerFlags().Border());
     hsizer->AddSpacer(50);
     sizer->Add(hsizer, wxSizerFlags().Expand());
 
-    wxSizer *wave_sizer = new wxStaticBoxSizer(wxHORIZONTAL, panel,
+    // wavelength panel
+    wave_panel = new wxPanel(panel, -1);
+    wxSizer *wave_sizer = new wxStaticBoxSizer(wxHORIZONTAL, wave_panel,
                                                wxT("wavelengths"));
-    anode_lb = new wxListBox(panel, -1);
+    anode_lb = new wxListBox(wave_panel, -1);
     for (Anode const* i = anodes; i->name; ++i) {
         anode_lb->Append(pchar2wx(i->name));
         anode_lb->Append(pchar2wx(i->name) + wxT(" A1"));
@@ -363,16 +366,16 @@ wxPanel* PowderBook::PrepareInstrumentPanel()
     wave_sizer->Add(anode_lb, wxSizerFlags(1).Border().Expand());
 
     wxSizer *lambda_sizer = new wxFlexGridSizer(2, 5, 5);
-    lambda_sizer->Add(new wxStaticText(panel, -1, wxT("wavelength")),
+    lambda_sizer->Add(new wxStaticText(wave_panel, -1, wxT("wavelength")),
                   wxSizerFlags().Center());
-    lambda_sizer->Add(new wxStaticText(panel, -1, wxT("intensity")),
+    lambda_sizer->Add(new wxStaticText(wave_panel, -1, wxT("intensity")),
                   wxSizerFlags().Center());
     for (int i = 0; i < max_wavelengths; ++i) {
-        LockableRealCtrl *lambda = new LockableRealCtrl(panel);
+        LockableRealCtrl *lambda = new LockableRealCtrl(wave_panel);
         lambda_sizer->Add(lambda);
         lambda_ctrl.push_back(lambda);
 
-        LockableRealCtrl *intens = new LockableRealCtrl(panel, true);
+        LockableRealCtrl *intens = new LockableRealCtrl(wave_panel, true);
         lambda_sizer->Add(intens);
         intensity_ctrl.push_back(intens);
 
@@ -386,8 +389,12 @@ wxPanel* PowderBook::PrepareInstrumentPanel()
     lambda_sizer->AddSpacer(1);
 
     wave_sizer->Add(lambda_sizer, wxSizerFlags(1).Border());
-    sizer->Add(wave_sizer, wxSizerFlags().Expand());
+    wave_panel->SetSizerAndFit(wave_sizer);
+    if (xaxis_sel != 0)
+        wave_panel->Enable(false);
+    sizer->Add(wave_panel, wxSizerFlags().Expand());
 
+    // x corrections
     wxSizer *corr_sizer = new wxStaticBoxSizer(wxVERTICAL, panel,
                                            wxT("corrections (use with care)"));
     corr_sizer->Add(new StaticBitmap(panel, GET_BMP(correction)),
@@ -419,6 +426,8 @@ wxPanel* PowderBook::PrepareInstrumentPanel()
                            NULL, this);
     Connect(anode_lb->GetId(), wxEVT_COMMAND_LISTBOX_SELECTED,
             wxCommandEventHandler(PowderBook::OnAnodeSelected));
+    Connect(xaxis_rb->GetId(), wxEVT_COMMAND_RADIOBOX_SELECTED,
+            wxCommandEventHandler(PowderBook::OnXAxisSelected));
 
     return panel;
 }
@@ -455,9 +464,6 @@ void PlotWithLines::draw(wxDC &dc, bool)
     int Y0 = dc.GetSize().GetHeight();
     int Yx = getY(0); // Y of x axis
     dc.SetPen(*wxRED_PEN);
-    double lambda1 = powder_book_->get_lambda(0);
-    if (lambda1 == 0.)
-        return;
     const vector<PlanesWithSameD>& bp = phase_panel_->get_crystal().bp;
     int selected = phase_panel_->get_selected_hkl();
     double max_intensity = get_max_intensity(bp);;
@@ -472,13 +478,14 @@ void PlotWithLines::draw(wxDC &dc, bool)
         if (is_selected)
             //wxYELLOW_PEN and wxYELLOW were added in 2.9
             dc.SetPen(wxPen(wxColour(255, 255, 0)));
-        double two_theta = 180 / M_PI * 2 * asin(lambda1 / (2 * i->d));
-        int X = getX(two_theta);
+        double x = powder_book_->d2x(i->d);
+        int X = getX(x);
         // draw short line at the bottom to mark position of the peak
         dc.DrawLine(X, Y0, X, (Yx+Y0)/2);
         if (i->intensity && !phase_panel_->editing_atoms()) {
             int Y1 = getY(h_mult * i->intensity);
             // draw line that has height proportional to peak intensity
+            // TODO: draw with dotted style, to make data visible
             dc.DrawLine(X, Yx, X, Y1);
         }
         // set it back to normal color
@@ -523,7 +530,7 @@ const wxString PhasePanel::default_atom_string =
     wxT("C 0.25 0.25 0.25");
 
 PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
-        : wxPanel(parent), nb_parent(parent), powder_book(powder_book_),
+        : wxPanel(parent), powder_book(powder_book_),
           line_with_error_(-1)
 {
     wxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
@@ -576,7 +583,7 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
 
     ProportionalSplitter *hkl_split = new ProportionalSplitter(vsplit,-1, 0.4);
     hkl_list = new wxCheckListBox(hkl_split, -1);
-    sample_plot = new PlotWithLines(hkl_split, this, powder_book);
+    sample_plot_ = new PlotWithLines(hkl_split, this, powder_book);
 
     ProportionalSplitter *atom_split = new ProportionalSplitter(vsplit,-1, 0.6);
     atoms_tc = new wxTextCtrl(atom_split, -1, wxEmptyString,
@@ -591,7 +598,7 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
     info_tc->SetBackgroundColour(powder_book->GetBackgroundColour());
 
     vsplit->SplitHorizontally(hkl_split, atom_split);
-    hkl_split->SplitVertically(hkl_list, sample_plot);
+    hkl_split->SplitVertically(hkl_list, sample_plot_);
     atom_split->SplitVertically(atoms_tc, info_tc);
 
     vsizer->Add(vsplit, wxSizerFlags(1).Expand().Border());
@@ -719,7 +726,7 @@ void PhasePanel::OnSpaceGroupChanged(wxCommandEvent&)
     cr_.set_space_group(sgs);
     change_space_group();
     powder_book->deselect_phase_quick_list();
-    sample_plot->refresh();
+    sample_plot_->refresh();
 }
 
 void PhasePanel::change_space_group()
@@ -814,7 +821,7 @@ void PhasePanel::OnParameterChanging(wxCommandEvent&)
 void PhasePanel::OnParameterChanged(wxCommandEvent&)
 {
     update_miller_indices();
-    sample_plot->refresh();
+    sample_plot_->refresh();
 }
 
 void PhasePanel::OnLineToggled(wxCommandEvent& event)
@@ -824,7 +831,7 @@ void PhasePanel::OnLineToggled(wxCommandEvent& event)
     // event.IsChecked() is not set (wxGTK 2.9)
     bp.enabled = hkl_list->IsChecked(n);
 
-    sample_plot->refresh();
+    sample_plot_->refresh();
 }
 
 wxString make_info_string_for_line(const PlanesWithSameD& bp,
@@ -878,7 +885,7 @@ void PhasePanel::OnLineSelected(wxCommandEvent& event)
         PlanesWithSameD const& bp = cr_.bp[n];
         info_tc->ChangeValue(make_info_string_for_line(bp, powder_book));
     }
-    sample_plot->refresh();
+    sample_plot_->refresh();
 }
 
 void PhasePanel::OnAtomsFocus(wxFocusEvent&)
@@ -890,7 +897,7 @@ void PhasePanel::OnAtomsFocus(wxFocusEvent&)
     wxString info = make_info_string_for_atoms(cr_.atoms, line_with_error_);
     info_tc->ChangeValue(info);
     editing_atoms_ = true;
-    sample_plot->refresh();
+    sample_plot_->refresh();
 }
 
 void PhasePanel::OnAtomsUnfocus(wxFocusEvent&)
@@ -904,7 +911,7 @@ void PhasePanel::OnAtomsUnfocus(wxFocusEvent&)
         info_tc->SetValue(make_info_string_for_line(bp, powder_book));
     }
     editing_atoms_ = false;
-    sample_plot->refresh();
+    sample_plot_->refresh();
 }
 
 bool isspace(const char* s)
@@ -953,29 +960,27 @@ void PhasePanel::update_miller_indices()
     double gamma = par_gamma->get_value() * M_PI / 180.;
 
     double lambda = powder_book->get_lambda(0);
-
-    double max_2theta = powder_book->get_x_max() * M_PI / 180;
+    double min_d = powder_book->get_min_d();
 
     hkl_list->Clear();
     if (a <= 0 || b <= 0 || c <= 0 || alpha <= 0 || beta <= 0 || gamma <= 0
-            || lambda <= 0 || max_2theta <= 0) {
+            || min_d <= 0) {
         return;
     }
     cr_.set_unit_cell(a, b, c, alpha, beta, gamma);
 
-    double min_d = lambda / (2 * sin(max_2theta / 2.));
     cr_.generate_reflections(min_d);
     cr_.calculate_intensities(lambda);
 
-    for (vector<PlanesWithSameD>::const_iterator i = cr_.bp.begin();
+    for (vector<PlanesWithSameD>::iterator i = cr_.bp.begin();
                                                 i != cr_.bp.end(); ++i) {
+        i->enabled = powder_book->is_d_active(i->d);
         char a = (i->planes.size() == 1 ? ' ' : '*');
         Miller const& m = i->planes[0];
         hkl_list->Append(wxString::Format(wxT("(%d,%d,%d)%c  d=%g"),
                                           m.h, m.k, m.l, a, i->d));
+        hkl_list->Check(hkl_list->GetCount() - 1, i->enabled);
     }
-    for (size_t i = 0; i < hkl_list->GetCount(); ++i)
-        hkl_list->Check(i, true);
 }
 
 void PhasePanel::set_phase(string const& name, CelFile const& cel)
@@ -1244,20 +1249,27 @@ wxString PowderBook::prepare_commands()
         ds_pref.Printf(wxT("@%d."), data_nr);
     }
 
+    int xaxis_val = xaxis_rb->GetSelection();
+
     //wavelength
     char lambda_symbol = 'a';
-    for (size_t i = 0; i != lambda_ctrl.size(); ++i) {
-        if (!lambda_ctrl[i]->is_nonzero() || !intensity_ctrl[i]->is_nonzero())
-            continue;
-        s += wxString::Format(wxT("$pd_lambda_%c = %s\n"), lambda_symbol,
+    if (xaxis_val == 0) {
+        for (size_t i = 0; i != lambda_ctrl.size(); ++i) {
+            if (!lambda_ctrl[i]->is_nonzero()
+                    || !intensity_ctrl[i]->is_nonzero())
+                continue;
+            s += wxString::Format(wxT("$pd_lambda_%c = %s\n"), lambda_symbol,
                                               get_var(lambda_ctrl[i]).c_str());
-        if (i != 0) {
-            s += wxString::Format(wxT("$pd_intens_%c = %s\n"),
-                                  lambda_symbol,
-                                  get_var(intensity_ctrl[i], 0.01).c_str());
+            if (i != 0) {
+                s += wxString::Format(wxT("$pd_intens_%c = %s\n"),
+                                      lambda_symbol,
+                                      get_var(intensity_ctrl[i], 0.01).c_str());
+            }
+            ++lambda_symbol;
         }
-        ++lambda_symbol;
     }
+    else
+        ++lambda_symbol;
 
     // corrections
     if (UdfContainer::get_udf("PdXcorr") != NULL)
@@ -1440,16 +1452,22 @@ wxString PowderBook::prepare_commands()
                         break;
                     case TetragonalSystem: // use a, b, c
                         rd_str.Printf(
-                 wxT("sqrt((%d/$pd%d_a)^2 + (%d/$pd%d_b)^2 + (%d/$pd%d_c)^2)"),
-                                      hkl.h, i, hkl.k, i, hkl.l, i);
+                       wxT("sqrt(%d/$pd%d_a^2 + %d/$pd%d_b^2 + %d/$pd%d_c^2)"),
+                            hkl.h*hkl.h, i, hkl.k*hkl.k, i, hkl.l*hkl.l, i);
                         break;
                     //TODO
                     default:
                         break;
                 }
-                s += wxString::Format(
-                          wxT("%s = 360/pi * asin($pd_lambda_%c/2 * %s)\n"),
-                          cvar.c_str(), wave, rd_str.c_str());
+                s += cvar;
+                if (xaxis_val == 0) // 2T
+                    s += wxString::Format(
+                               wxT(" = 360/pi * asin($pd_lambda_%c/2 * %s)\n"),
+                               wave, rd_str.c_str());
+                else if (xaxis_val == 1) // Q
+                    s += wxString::Format(wxT(" = 2*pi*%s\n"), rd_str.c_str());
+                else if (xaxis_val == 2) // d
+                    s += wxString::Format(wxT(" = 1/%s\n"), rd_str.c_str());
                 wxString fname = wxString::Format(wxT("%%pd%d%c_%s"),
                                                   i, wave, hkl_str.c_str());
                 s += fname + wxT(" = ") + get_peak_name();
@@ -1501,7 +1519,7 @@ void PowderBook::fill_forms()
     }
     // corrections
     for (size_t i = 0; i != corr_ctrl.size(); ++i) {
-        var2lockctrl("pd_" + S(i+1), lambda_ctrl[i]);
+        var2lockctrl("pd_" + S(i+1), corr_ctrl[i]);
     }
 
     // sample page
@@ -1579,7 +1597,7 @@ void PowderBook::set_file(wxString const& path)
         range_from->set(x_min);
         range_to->set(x_max);
         for (size_t i = 0; i < sample_nb->GetPageCount(); ++i)
-            get_phase_panel(i)->sample_plot->refresh();
+            get_phase_panel(i)->sample_plot_->refresh();
     } catch (runtime_error const& e) {
         data = NULL;
         wxMessageBox(wxT("Can not load file:\n") + s2wx(e.what()),
@@ -1587,6 +1605,12 @@ void PowderBook::set_file(wxString const& path)
     }
 }
 #endif
+
+void PowderBook::OnXAxisSelected(wxCommandEvent&)
+{
+    bool use_wavelength = (xaxis_rb->GetSelection() == 0);
+    wave_panel->Enable(use_wavelength);
+}
 
 void PowderBook::OnAnodeSelected(wxCommandEvent& event)
 {
@@ -1634,7 +1658,7 @@ void PowderBook::OnQuickPhaseSelected(wxCommandEvent& event)
     assert(panel->GetParent() == sample_nb);
     panel->set_phase(name, cel);
     panel->save_btn->Enable(false);
-    panel->sample_plot->refresh();
+    panel->sample_plot_->refresh();
 }
 
 void PowderBook::OnQuickListRemove(wxCommandEvent&)
@@ -1702,7 +1726,7 @@ void PowderBook::OnPageChanged(wxListbookEvent& event)
         for (size_t i = 0; i != sample_nb->GetPageCount(); ++i) {
             PhasePanel* p = get_phase_panel(i);
             p->update_miller_indices();
-            p->sample_plot->refresh();
+            p->sample_plot_->refresh();
         }
     }
     else if (event.GetSelection() == 4) { // action
@@ -1732,7 +1756,42 @@ double PowderBook::get_lambda(int n) const
 {
     if (n < 0 || n >= (int) lambda_ctrl.size())
         return 0;
+    if (xaxis_rb->GetSelection() != 0)
+        return 0.;
     return lambda_ctrl[n]->get_value();
+}
+
+double PowderBook::d2x(double d) const
+{
+    int xaxis_val = xaxis_rb->GetSelection();
+    if (xaxis_val == 0) { // 2T
+        double lambda0 = lambda_ctrl[0]->get_value();
+        return 180 / M_PI * 2 * asin(lambda0 / (2 * d));
+    }
+    else if (xaxis_val == 1) // Q
+        return 2 * M_PI / d;
+    else if (xaxis_val == 2) // d
+        return d;
+    return 0.;
+}
+
+double PowderBook::is_d_active(double d) const
+{
+    double x = d2x(d);
+    vector<Point>::const_iterator point = data->get_point_at(x);
+    return point != data->points().end() && point->is_active;
+}
+
+double PowderBook::get_min_d() const
+{
+    int xaxis_val = xaxis_rb->GetSelection();
+    if (xaxis_val == 0) // 2T
+        return get_lambda(0) / (2 * sin(x_max * M_PI / 180 / 2.));
+    else if (xaxis_val == 1) // Q
+        return 2 * M_PI / x_max;
+    else if (xaxis_val == 2) // d
+        return x_min;
+    return 0;
 }
 
 void PowderBook::OnPeakRadio(wxCommandEvent& event)
@@ -1827,6 +1886,8 @@ void PowderBook::OnOk(wxCommandEvent&)
 
 void PowderBook::save_phase_desc()
 {
+    xaxis_sel = xaxis_rb->GetSelection();
+
     int n = (int) sample_nb->GetPageCount() - 1;
     phase_desc.resize(n);
     for (int i = 0; i < n; ++i) {

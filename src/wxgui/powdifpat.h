@@ -36,6 +36,7 @@ public:
     std::map<std::string, CelFile> quick_phase_list;
 
     PowderBook(wxWindow* parent, wxWindowID id);
+    void OnXAxisSelected(wxCommandEvent& event);
     void OnAnodeSelected(wxCommandEvent& event);
     void OnQuickPhaseSelected(wxCommandEvent& event);
     void OnQuickListRemove(wxCommandEvent&);
@@ -52,6 +53,9 @@ public:
     PhasePanel *get_current_phase_panel();
     void deselect_phase_quick_list();
     double get_lambda(int n) const;
+    double get_min_d() const;
+    double d2x(double d) const;
+    double is_d_active(double d) const;
     wxListBox *get_saved_phase_lb() { return saved_phase_lb; }
     void update_phase_labels(PhasePanel* p);
     double get_x_min() const { return x_min; }
@@ -69,8 +73,10 @@ private:
         wxString sg;
         wxString atoms;
     };
+    static int xaxis_sel;
     static std::vector<PhasePanelExtraData> phase_desc;
 
+    wxPanel *wave_panel;
     wxListBox *anode_lb, *saved_phase_lb;
     std::vector<LockableRealCtrl*> lambda_ctrl, intensity_ctrl, corr_ctrl;
     wxNotebook *sample_nb;
@@ -82,7 +88,7 @@ private:
 #else
     const Data* data;
 #endif
-    wxRadioBox *peak_rb, *center_rb, *width_rb, *shape_rb;
+    wxRadioBox *xaxis_rb, *peak_rb, *center_rb, *width_rb, *shape_rb;
     wxCheckBox *split_cb;
     wxTextCtrl *peak_txt;
     LockableRealCtrl *par_u, *par_v, *par_w, *par_z, *par_a, *par_b, *par_c;

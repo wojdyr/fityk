@@ -448,6 +448,8 @@ void Crystal::generate_reflections(double min_d)
 
     // set upper limit for iteration of Miller indices
     // TODO: smarter algorithm, like in uctbx::unit_cell::max_miller_indices()
+    //       (note that min_d can be wrong, don't generate more than 1000
+    //        reflections)
     int max_h = 20;
     int max_k = 20;
     int max_l = 20;
@@ -520,12 +522,16 @@ void calculate_total_intensity(PlanesWithSameD &bp, const vector<Atom>& atoms,
                                double lambda)
 {
     double stol = 1. / (2 * bp.d); // == sin(T) / lambda
-    double T = asin(stol * lambda); // theta
 
-    // for x-rays, we assume K=0.5 and
-    // LP = (1 + cos(2T)^2) / (cos(T) sin(T)^2)
-    //  (Pecharsky & Zavalij, eq. (2.70), p. 192)
-    bp.lpf = (1 + cos(2*T)*cos(2*T)) / (cos(T)*sin(T)*sin(T));
+    if (lambda > 0) {
+        double T = asin(stol * lambda); // theta
+        // for x-rays, we assume K=0.5 and
+        // LP = (1 + cos(2T)^2) / (cos(T) sin(T)^2)
+        //  (Pecharsky & Zavalij, eq. (2.70), p. 192)
+        bp.lpf = (1 + cos(2*T)*cos(2*T)) / (cos(T)*sin(T)*sin(T));
+    }
+    else
+        bp.lpf = 1.;
 
     double t = 0;
     for (vector<Plane>::iterator i = bp.planes.begin();
