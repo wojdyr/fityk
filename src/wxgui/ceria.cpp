@@ -497,7 +497,8 @@ void Crystal::generate_reflections(double min_d)
 
 
 // stol = sin(theta)/lambda
-void calculate_intensity(Plane& p, const vector<Atom>& atoms, double stol)
+void set_F2(Plane& p, const vector<Atom>& atoms,
+                 RadiationType radiation, double stol)
 {
     // calculating F_hkl, (Pecharsky & Zavalij, eq. (2.89) and (2.103))
     // assuming population g = 1
@@ -506,8 +507,10 @@ void calculate_intensity(Plane& p, const vector<Atom>& atoms, double stol)
     double F_img = 0;
     for (vector<Atom>::const_iterator i = atoms.begin(); i != atoms.end(); ++i){
         double f = 1.;
-        if (i->xray_sf)
+        if (radiation == kXRay && i->xray_sf)
             f = calculate_it92_factor(i->xray_sf, stol*stol);
+        else if (radiation == kNeutron && i->neutron_sf)
+            f = i->neutron_sf->bond_coh_scatt_length;
         for (vector<Pos>::const_iterator j = i->pos.begin();
                                                 j != i->pos.end(); ++j) {
             double hx = p.h * j->x + p.k * j->y + p.l * j->z;
@@ -518,36 +521,41 @@ void calculate_intensity(Plane& p, const vector<Atom>& atoms, double stol)
     p.F2 = F_real*F_real + F_img*F_img;
 }
 
-void calculate_total_intensity(PlanesWithSameD &bp, const vector<Atom>& atoms,
-                               double lambda)
+void set_lpf(PlanesWithSameD &bp, RadiationType radiation, double lambda)
 {
-    double stol = 1. / (2 * bp.d); // == sin(T) / lambda
-
-    if (lambda > 0) {
-        double T = asin(stol * lambda); // theta
-        // for x-rays, we assume K=0.5 and
-        // LP = (1 + cos(2T)^2) / (cos(T) sin(T)^2)
-        //  (Pecharsky & Zavalij, eq. (2.70), p. 192)
-        bp.lpf = (1 + cos(2*T)*cos(2*T)) / (cos(T)*sin(T)*sin(T));
-    }
-    else
+    if (lambda == 0)
         bp.lpf = 1.;
-
-    double t = 0;
-    for (vector<Plane>::iterator i = bp.planes.begin();
-                                                i != bp.planes.end(); ++i) {
-        calculate_intensity(*i, atoms, stol);
-        t += i->multiplicity * i->F2;
+    else {
+        double T = asin(bp.stol() * lambda); // theta
+        if (radiation == kXRay) {
+            // for x-rays, we assume K=0.5 and
+            // LP = (1 + cos(2T)^2) / (cos(T) sin(T)^2)
+            //  (Pecharsky & Zavalij, eq. (2.70), p. 192)
+            bp.lpf = (1 + cos(2*T)*cos(2*T)) / (cos(T)*sin(T)*sin(T));
+        }
+        else if (radiation == kNeutron) {
+            // Kisi & Howard, Applications of Neutron Powder Diffraction (2.38)
+            // no polarization only the Lorentz factor:
+            // 1 / (4 sin^2(T) cos(T))
+            bp.lpf = 1 / (4 * sin(T)*sin(T)*cos(T));
+        }
     }
-    bp.intensity = bp.lpf * t;
 }
 
-void Crystal::calculate_intensities(double lambda)
+void Crystal::update_intensities(RadiationType r, double lambda)
 {
     if (atoms.empty())
         return;
-    for (vector<PlanesWithSameD>::iterator i = bp.begin(); i != bp.end(); ++i)
-        calculate_total_intensity(*i, atoms, lambda);
+    for (vector<PlanesWithSameD>::iterator i = bp.begin(); i != bp.end(); ++i) {
+        set_lpf(*i, r, lambda);
+        double t = 0;
+        for (vector<Plane>::iterator j = i->planes.begin();
+                                     j != i->planes.end(); ++j) {
+            set_F2(*j, atoms, r, i->stol());
+            t += j->multiplicity * j->F2;
+        }
+        i->intensity = i->lpf * t;
+    }
 }
 
 double UnitCell::calculate_V() const

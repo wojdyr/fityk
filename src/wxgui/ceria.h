@@ -12,6 +12,12 @@
 #include "atomtables.h"
 #include "sgtables.h"
 
+enum RadiationType
+{
+    kXRay,
+    kNeutron
+};
+
 struct TransVec
 {
     int x, y, z; // divide by 12. before use
@@ -103,6 +109,7 @@ struct PlanesWithSameD
 
     bool operator<(const PlanesWithSameD& p) const { return d > p.d; }
     void add(Miller const& hkl, const SgOps& sg_ops);
+    double stol() const { return 1. / (2 * d); } // returns sin(theta)/lambda
 };
 
 struct Pos // position in unit cell, 0 <= x,y,z < 1
@@ -156,7 +163,7 @@ public:
     void set_unit_cell(double a, double b, double c,
                        double alpha, double beta, double gamma)
         { delete uc; uc = new UnitCell(a, b, c, alpha, beta, gamma); }
-    void calculate_intensities(double lambda);
+    void update_intensities(RadiationType r, double lambda);
     CrystalSystem xs() const
         { return sgs ? get_crystal_system(sgs->sgnumber) : UndefinedSystem; }
 private:

@@ -7,7 +7,6 @@
 // support non-tetraghonal phases
 //
 // deconvolution of instrumental profile
-// enable x-ray / neutron switching (different LPF and scattering factors)
 // buffer the plot with data
 // import .cif files
 
@@ -332,11 +331,11 @@ wxPanel* PowderBook::PrepareInstrumentPanel()
     wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
     wxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
 
-    wxRadioBox *radiation_rb = new wxRadioBox(panel, -1, wxT("radiation"),
+    radiation_rb = new wxRadioBox(panel, -1, wxT("radiation"),
                                   wxDefaultPosition, wxDefaultSize,
                                   ArrayString(wxT("x-ray"), wxT("neutron")),
                                   1, wxRA_SPECIFY_ROWS);
-    radiation_rb->Enable(1, false);
+    radiation_rb->SetToolTip(wxT("used only to set initial intensities"));
     hsizer->AddSpacer(50);
     hsizer->Add(radiation_rb, wxSizerFlags().Border());
     hsizer->AddStretchSpacer();
@@ -348,6 +347,10 @@ wxPanel* PowderBook::PrepareInstrumentPanel()
     xaxis_rb = new wxRadioBox(panel, -1, wxT("data x axis"),
                                           wxDefaultPosition, wxDefaultSize,
                                           xaxis_choices, 3);
+    // \u03C0 = pi, \u03BB = lambda
+    wxString desc = wxT("Q = 4 \u03C0 sin(\u03B8) / \u03BB\n")
+                    wxT("d = \u03BB / (2 sin \u03B8)");
+    xaxis_rb->SetToolTip(desc);
     xaxis_rb->SetSelection(xaxis_sel);
     hsizer->Add(xaxis_rb, wxSizerFlags().Border());
     hsizer->AddSpacer(50);
@@ -463,7 +466,13 @@ void PlotWithLines::draw(wxDC &dc, bool)
     // draw lines
     int Y0 = dc.GetSize().GetHeight();
     int Yx = getY(0); // Y of x axis
-    dc.SetPen(*wxRED_PEN);
+
+    wxPen peak_pen(*wxRED, 1, wxPENSTYLE_DOT);
+    //wxYELLOW_PEN and wxYELLOW were added in 2.9
+    wxPen sel_peak_pen(wxColour(255, 255, 0));
+    wxPen mark_pen = *wxRED_PEN;
+
+    dc.SetPen(peak_pen);
     const vector<PlanesWithSameD>& bp = phase_panel_->get_crystal().bp;
     int selected = phase_panel_->get_selected_hkl();
     double max_intensity = get_max_intensity(bp);;
@@ -475,22 +484,17 @@ void PlotWithLines::draw(wxDC &dc, bool)
         if (!i->enabled)
             continue;
         bool is_selected = (i - bp.begin() == selected);
-        if (is_selected)
-            //wxYELLOW_PEN and wxYELLOW were added in 2.9
-            dc.SetPen(wxPen(wxColour(255, 255, 0)));
+        dc.SetPen(is_selected ? sel_peak_pen : mark_pen);
         double x = powder_book_->d2x(i->d);
         int X = getX(x);
         // draw short line at the bottom to mark position of the peak
         dc.DrawLine(X, Y0, X, (Yx+Y0)/2);
         if (i->intensity && !phase_panel_->editing_atoms()) {
             int Y1 = getY(h_mult * i->intensity);
+            dc.SetPen(is_selected ? sel_peak_pen : peak_pen);
             // draw line that has height proportional to peak intensity
-            // TODO: draw with dotted style, to make data visible
             dc.DrawLine(X, Yx, X, Y1);
         }
-        // set it back to normal color
-        if (is_selected)
-            dc.SetPen(*wxRED_PEN);
     }
 }
 
@@ -740,7 +744,7 @@ void PhasePanel::change_space_group()
 
     sg_tc->ChangeValue(s2wx(fullHM(cr_.sgs)));
     const char* system = get_crystal_system_name(cr_.xs());
-    sg_nr_st->SetLabel(wxString::Format(wxT("no. %d, %s, order %d"),
+    sg_nr_st->SetLabel(wxString::Format(wxT("%d, %s, order %d"),
                                         cr_.sgs->sgnumber,
                                         pchar2wx(system).c_str(),
                                         get_sg_order(cr_.sg_ops)));
@@ -903,8 +907,7 @@ void PhasePanel::OnAtomsFocus(wxFocusEvent&)
 void PhasePanel::OnAtomsUnfocus(wxFocusEvent&)
 {
     double lambda = powder_book->get_lambda(0);
-    if (lambda > 0)
-        cr_.calculate_intensities(lambda);
+    cr_.update_intensities(powder_book->get_radiation_type(), lambda);
     int n = hkl_list->GetSelection();
     if (n >= 0) {
         PlanesWithSameD const& bp = cr_.bp[n];
@@ -961,6 +964,7 @@ void PhasePanel::update_miller_indices()
 
     double lambda = powder_book->get_lambda(0);
     double min_d = powder_book->get_min_d();
+    RadiationType radiation = powder_book->get_radiation_type();
 
     hkl_list->Clear();
     if (a <= 0 || b <= 0 || c <= 0 || alpha <= 0 || beta <= 0 || gamma <= 0
@@ -970,7 +974,7 @@ void PhasePanel::update_miller_indices()
     cr_.set_unit_cell(a, b, c, alpha, beta, gamma);
 
     cr_.generate_reflections(min_d);
-    cr_.calculate_intensities(lambda);
+    cr_.update_intensities(radiation, lambda);
 
     for (vector<PlanesWithSameD>::iterator i = cr_.bp.begin();
                                                 i != cr_.bp.end(); ++i) {
@@ -1750,6 +1754,14 @@ void PowderBook::deselect_phase_quick_list()
     PhasePanel *panel = get_current_phase_panel();
     bool valid = !panel->name_tc->GetValue().empty();
     panel->save_btn->Enable(valid);
+}
+
+RadiationType PowderBook::get_radiation_type() const
+{
+    if (radiation_rb->GetSelection() == 0)
+        return kXRay;
+    else
+        return kNeutron;
 }
 
 double PowderBook::get_lambda(int n) const

@@ -52,6 +52,7 @@ public:
     PhasePanel *get_phase_panel(int n);
     PhasePanel *get_current_phase_panel();
     void deselect_phase_quick_list();
+    RadiationType get_radiation_type() const;
     double get_lambda(int n) const;
     double get_min_d() const;
     double d2x(double d) const;
@@ -88,7 +89,8 @@ private:
 #else
     const Data* data;
 #endif
-    wxRadioBox *xaxis_rb, *peak_rb, *center_rb, *width_rb, *shape_rb;
+    wxRadioBox *radiation_rb, *xaxis_rb;
+    wxRadioBox *peak_rb, *center_rb, *width_rb, *shape_rb;
     wxCheckBox *split_cb;
     wxTextCtrl *peak_txt;
     LockableRealCtrl *par_u, *par_v, *par_w, *par_z, *par_a, *par_b, *par_c;
