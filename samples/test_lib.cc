@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <cmath>
 
 #include <fityk.h>
 
@@ -10,6 +11,17 @@ int main()
 {
     Fityk *f = new Fityk;
     cout << f->get_info("version", true) << endl;
+    cout << "ln(2) = " << f->get_info("ln(2)") << endl;
+    const double mu = 12.345;
+    for (int i = 0; i != 500; ++i) {
+        double x = i / 100. + 10;
+        double y = ceil(100 * exp(-(x-mu)*(x-mu)/2));
+        f->add_point(x, y, sqrt(y));
+    }
+    f->execute("Y = randnormal(y, s)");
+    f->execute("%gauss = guess Gaussian");
+    f->execute("fit");
+    cout << "peak center: " << f->get_info("%gauss.Center") << endl;
     delete f;
     return 0;
 }
