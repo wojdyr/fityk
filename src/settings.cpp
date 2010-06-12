@@ -310,7 +310,7 @@ string Settings::set_script() const
 void Settings::do_srand()
 {
     int random_seed = get_i("pseudo-random-seed");
-    int rs = random_seed >= 0 ? random_seed : (int) time(0);
+    int rs = random_seed > 0 ? random_seed : (int) time(NULL);
     srand(rs);
     F->vmsg("Seed for a sequence of pseudo-random numbers: " + S(rs));
 }
