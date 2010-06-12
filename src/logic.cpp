@@ -3,7 +3,6 @@
 // $Id$
 
 #include <stdio.h>
-#include <fstream>
 #include <time.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -133,82 +132,89 @@ string Ftk::find_function_name(string const &fstr) const
 
 void Ftk::dump_all_as_script(string const &filename)
 {
-    ofstream os(filename.c_str(), ios::out);
-    if (!os) {
+    FILE* f = fopen(filename.c_str(), "w");
+    if (!f) {
         warn ("Can't open file: " + filename);
         return;
     }
-    os << fityk_version_line << endl;
-    os << "## dumped at: " << time_now() << endl;
-    os << "set verbosity = quiet #the rest of the file is not shown\n";
-    os << "set autoplot = never\n";
-    os << "reset\n";
-    os << "# ------------  settings  ------------\n";
-    os << get_settings()->set_script() << endl;
-    os << "# ------------  variables and functions  ------------\n";
+    fprintf(f, "%s\n", fityk_version_line);
+    fprintf(f, "## dumped at: %s\n", time_now().c_str());
+    fprintf(f, "set verbosity = quiet #the rest of the file is not shown\n");
+    fprintf(f, "set autoplot = never\n");
+    fprintf(f, "reset\n");
+    fprintf(f, "# ------------  settings  ------------\n");
+    fprintf(f, "%s\n", get_settings()->set_script().c_str());
+    fprintf(f, "# ------------  variables and functions  ------------\n");
     // We define here also auto-removed variables and functions,
     // so the script can't trigger VariableManager::remove_unreferred()
     // nor VariableManager::auto_remove_functions() until all references
     // are reproduced.
     for (vector<Variable*>::const_iterator i = variables.begin();
             i != variables.end(); ++i)
-        os << (*i)->xname << " = " << (*i)->get_formula(parameters) << endl;
-    os << endl;
+        fprintf(f, "%s = %s\n", (*i)->xname.c_str(),
+                                (*i)->get_formula(parameters).c_str());
+    fprintf(f, "\n");
     vector<UdfContainer::UDF> const& udfs = UdfContainer::get_udfs();
     for (vector<UdfContainer::UDF>::const_iterator i = udfs.begin();
             i != udfs.end(); ++i)
         if (!i->builtin)
-            os << "define " << i->formula << endl;
-    os << endl;
+            fprintf(f, "define %s\n", i->formula.c_str());
+    fprintf(f, "\n");
     for (vector<Function*>::const_iterator i = functions.begin();
             i != functions.end(); ++i) {
         if ((*i)->has_outdated_type()) {
             string new_formula = Function::get_formula((*i)->type_name);
             if (!new_formula.empty())
-                os << "undefine " << (*i)->type_name << endl;
-            os << "define " << (*i)->type_formula << endl;
-            os << (*i)->get_basic_assignment() << endl;
-            os << "undefine " << (*i)->type_name << endl;
+                fprintf(f, "undefine %s\n", (*i)->type_name.c_str());
+            fprintf(f, "define %s\n", (*i)->type_formula.c_str());
+            fprintf(f, "%s\n", (*i)->get_basic_assignment().c_str());
+            fprintf(f, "undefine %s\n", (*i)->type_name.c_str());
             if (!new_formula.empty())
-                os << "define " << new_formula << endl;
+                fprintf(f, "define %s\n", new_formula.c_str());
         }
         else
-            os << (*i)->get_basic_assignment() << endl;
+            fprintf(f, "%s\n", (*i)->get_basic_assignment().c_str());
     }
-    os << endl;
-    os << "# ------------  datasets and models  ------------\n";
+    fprintf(f, "\n");
+    fprintf(f, "# ------------  datasets and models  ------------\n");
     for (int i = 0; i != get_dm_count(); ++i) {
         Data const* data = get_data(i);
         if (i != 0)
-            os << "@+ = 0\n";
+            fprintf(f, "@+ = 0\n");
         if (!data->get_title().empty())
-            os << "set @" << i << ".title = '" << data->get_title() << "'\n";
+            fprintf(f, "set @%d.title = '%s'\n", i, data->get_title().c_str());
         int m = data->points().size();
-        os << "M=" << m << " in @" << i << endl;
-        os << "X=" << data->get_x_max() << " in @" << i
-            << " # =max(x), prevents sorting." << endl;
+        fprintf(f, "M=%d in @%d\n", m, i);
+        fprintf(f, "X=%g in @%d # =max(x), prevents sorting.\n",
+                   data->get_x_max(), i);
         for (int j = 0; j != m; ++j) {
             Point const& p = data->points()[j];
-            os << "X[" << j << "]=" << p.x << ", Y[" << j << "]=" << p.y
-                << ", S[" << j << "]=" << p.sigma
-                << ", A[" << j << "]=" << (p.is_active ? 1 : 0)
-                << " in @" << i << endl;
+            fprintf(f, "X[%d]=%.8g, Y[%d]=%.8g, S[%d]=%g, A[%d]=%d in @%d\n",
+                       j, p.x, j, p.y, j, p.sigma, j, (int) p.is_active, i);
         }
-        os << endl;
+        fprintf(f, "\n");
         Model const* model = get_model(i);
-        if (!model->get_ff_names().empty())
-            os << "@" << i << ".F = "
-                << join_vector(concat_pairs("%", model->get_ff_names()), " + ")
-                << endl;
-        if (!model->get_zz_names().empty())
-            os << "@" << i << ".Z = "
-                << join_vector(concat_pairs("%", model->get_zz_names()), " + ")
-                << endl;
-        os << endl;
+        vector<string> const& ff = model->get_ff_names();
+        if (!ff.empty()) {
+            fprintf(f, "@%d.F = %%%s", i, ff[0].c_str());
+            for (size_t j = 1; j < ff.size(); ++j)
+                fprintf(f, " + %%%s", ff[j].c_str());
+            fprintf(f, "\n");
+        }
+        vector<string> const& zz = model->get_zz_names();
+        if (!zz.empty()) {
+            fprintf(f, "@%d.F = %%%s", i, zz[0].c_str());
+            for (size_t j = 1; j < zz.size(); ++j)
+                fprintf(f, " + %%%s", zz[j].c_str());
+            fprintf(f, "\n");
+        }
+        fprintf(f, "\n");
     }
-    os << "plot " << view.str() << " in @" << view.get_datasets()[0] << endl;
-    os << "set autoplot = " << get_settings()->getp("autoplot") << endl;
-    os << "set verbosity = " << get_settings()->getp("verbosity") << endl;
+    fprintf(f, "plot %s in @%d\n", view.str().c_str(), view.get_datasets()[0]);
+    fprintf(f, "set autoplot = %s\n", get_settings()->getp("autoplot").c_str());
+    fprintf(f, "set verbosity = %s\n",
+               get_settings()->getp("verbosity").c_str());
+    fclose(f);
 }
 
 
