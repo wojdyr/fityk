@@ -189,7 +189,7 @@ void Ftk::dump_all_as_script(string const &filename)
                    data->get_x_max(), i);
         for (int j = 0; j != m; ++j) {
             Point const& p = data->points()[j];
-            fprintf(f, "X[%d]=%.8g, Y[%d]=%.8g, S[%d]=%g, A[%d]=%d in @%d\n",
+            fprintf(f, "X[%d]=%.12g, Y[%d]=%.12g, S[%d]=%g, A[%d]=%d in @%d\n",
                        j, p.x, j, p.y, j, p.sigma, j, (int) p.is_active, i);
         }
         fprintf(f, "\n");
