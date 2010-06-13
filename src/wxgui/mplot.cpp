@@ -506,6 +506,7 @@ void MainPlot::prepare_peaktops(Model const* model, int Ymax)
     vector<int> const& idx = model->get_ff_idx();
     int n = idx.size();
     special_points.resize(n);
+    int no_ctr_idx = 0;
     for (int k = 0; k < n; k++) {
         Function const *f = ftk->get_function(idx[k]);
         fp x;
@@ -519,7 +520,8 @@ void MainPlot::prepare_peaktops(Model const* model, int Ymax)
             x += model->zero_shift(x);
         }
         else {
-            X = k * 10 + 5;
+            X = no_ctr_idx * 10 + 5;
+            ++no_ctr_idx;
             x = xs.val(X);
             x += model->zero_shift(x);
         }
