@@ -448,8 +448,6 @@ void Crystal::generate_reflections(double min_d)
 
     // set upper limit for iteration of Miller indices
     // TODO: smarter algorithm, like in uctbx::unit_cell::max_miller_indices()
-    //       (note that min_d can be wrong, don't generate more than 1000
-    //        reflections)
     int max_h = 20;
     int max_k = 20;
     int max_l = 20;
@@ -459,6 +457,10 @@ void Crystal::generate_reflections(double min_d)
         max_k = (int) (uc->b / min_d);
         max_l = (int) (uc->c / min_d);
     }
+    // Don't generate too many reflections (it could happen
+    // when user chooses Q instead of 2T, or puts wrong wavelength)
+    if (max_h * max_k * max_l > 8000)
+        max_h = max_k = max_l = 20;
 
     for (int h = 0; h != max_h+1; h = inc_neg(h))
         for (int k = 0; k != max_k+1; k = inc_neg(k))
@@ -536,8 +538,10 @@ void set_lpf(PlanesWithSameD &bp, RadiationType radiation, double lambda)
         else if (radiation == kNeutron) {
             // Kisi & Howard, Applications of Neutron Powder Diffraction (2.38)
             // no polarization only the Lorentz factor:
-            // 1 / (4 sin^2(T) cos(T))
+            // L = 1 / (4 sin^2(T) cos(T))
             bp.lpf = 1 / (4 * sin(T)*sin(T)*cos(T));
+            // for TOF diffractometers with a fixed diffraction angle:
+            // L = d^4 sin(theta)
         }
     }
 }

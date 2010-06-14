@@ -273,6 +273,8 @@ wxPanel* PowderBook::PrepareIntroPanel()
     "Then you can fit the model to your data (all variables at the same time). "
     "This type of refinement is known as Pawley method.\n"
     "\n"
+    "The CCTBX library have been used to generate space group data.\n"
+    "\n"
     "This tool is new in fityk 0.9.3. The next release will contain more features.\n";
 #endif
 
@@ -1313,7 +1315,7 @@ wxString PowderBook::prepare_commands()
 
     double max_intensity = get_max_intensity(
                                         get_phase_panel(0)->get_crystal().bp);
-    double h_mult = max_intensity > 0 ? y_max / max_intensity : 100;
+    double h_mult = y_max / (max_intensity > 0 ? max_intensity : 2);
 
     bool has_u = par_u->is_nonzero();
     bool has_v = par_v->is_nonzero();
@@ -1376,10 +1378,10 @@ wxString PowderBook::prepare_commands()
             const Miller& hkl = j->planes[0];
             wxString hkl_str = hkl2wxstr(hkl);
             wxString hvar = pre + wxT("h") + hkl_str;
-            double h = h_mult * j->intensity;
+            double h = h_mult * max(j->intensity, 1.);
             double lambda1 = get_lambda(0);
             double ctr = 180 / M_PI * 2 * asin(lambda1 / (2 * j->d));
-            s +=  hvar + wxString::Format(wxT(" = ~%.5g\n"), h);
+            s += hvar + wxString::Format(wxT(" = ~%.5g\n"), h);
 
             // we need to pre-define $pdXa_cHKL if wvar or svar depend on it
             wxString cvar_a = wxString::Format(wxT("$pd%da_c%s"),
