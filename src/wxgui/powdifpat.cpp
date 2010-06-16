@@ -1472,8 +1472,13 @@ wxString PowderBook::prepare_commands()
                                wave, rd_str.c_str());
                 else if (xaxis_val == 1) // Q
                     s += wxString::Format(wxT(" = 2*pi*%s\n"), rd_str.c_str());
-                else if (xaxis_val == 2) // d
-                    s += wxString::Format(wxT(" = 1/%s\n"), rd_str.c_str());
+                else if (xaxis_val == 2) { // d
+                    if (cr.xs() == CubicSystem) // we can simplify this one
+                        s += wxString::Format(wxT(" = $pd%d_a/sqrt(%d)\n"),
+                                   i, hkl.h*hkl.h + hkl.k*hkl.k + hkl.l*hkl.l);
+                    else
+                        s += wxString::Format(wxT(" = 1/%s\n"), rd_str.c_str());
+                }
                 wxString fname = wxString::Format(wxT("%%pd%d%c_%s"),
                                                   i, wave, hkl_str.c_str());
                 s += fname + wxT(" = ") + get_peak_name();
