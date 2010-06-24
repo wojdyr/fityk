@@ -1,6 +1,6 @@
 $Id$
 
-User-visible changes in version 0.9.3  (2010-0 -  ):
+User-visible changes in version 0.9.3  (2010-06-24):
 * changed implementation of gamma and related functions (using boost.math now)
 * syntax: so-called parametrized-functions spline[] and interpolate[]
   are replaced by so-called variadic functions Spline() and Polyline().
@@ -11,6 +11,8 @@ User-visible changes in version 0.9.3  (2010-0 -  ):
 * GUI: added Functions > Auto-Freeze option that automatically locks/unlocks
   parameters of a peak when a data range containing the center of this peak 
   is disactivated/activated
+* GUI: added option GUI > Zoom All Shows Y=0
+* required Boost version (only in the compilation time) is now >= 1.36
 
 User-visible changes in version 0.9.2  (2010-05-07):
 * To compile fityk, Boost (only headers) and xylib must be installed first.

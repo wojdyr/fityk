@@ -47,8 +47,13 @@ $Id$
              plot line y=1000.3 label="foo" in @*
              plot no lines in @*
 
+* fitting: stopping criterium based on elapsed time
+
 * (GUI) a simple (for user) way to interrupt fitting or script
   Requires two thread and thread-safety.
+
+* "%_1.height = ~{sqrt(%_1.height)}^2" creates $_5 before $_4 - check if this
+  is safe.
 
 -------------->
 

@@ -178,9 +178,7 @@ The syntax below (in extended BNF) is not complete and may change in the future.
 Note that each line is parsed and executed separately and no new line
 characters are expected. ::
 
-  line ::= [{statement ';'} statement] [comment] |
-           '!' { AllChars }
-  (* TODO: line ::= statement  -- exactly one statement per line, no ';' *)
+  line ::= [{statement ';'} statement] [comment]
 
   comment ::= '#' { AllChars } 
 
@@ -199,6 +197,7 @@ characters are expected. ::
                             "quit" |
                             "reset" |
                             "sleep" Number |
+                            '!' { AllChars } |
                             transform_st )
 
   with_st ::= With option {',' option}

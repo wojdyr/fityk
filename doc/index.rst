@@ -1,5 +1,5 @@
 
-.. title:: fityk --- free peak fitting software
+.. title:: fityk --- peak fitting software
 
 Overview
 ========
@@ -8,36 +8,42 @@ Overview
    :alt: [screenshot]
    :align: right
    :scale: 50
+   :class: screenshot
 
-**Fityk** *[fi:tik]* is for **peak fitting**.
+Fityk *[fi:tik]* is a program for nonlinear least squares **curve fitting**.
+It is also useful for data processing and visualization.
 
-Longer version: fityk is a program for nonlinear fitting of analytical
-functions (especially peak-shaped) to data (usually experimental data). There
-are also people using it to remove the baseline from data, or to display data
-only.
+Fityk is usually used...
 
-It is reportedly used in crystallography, chromatography, photoluminescence and
-photoelectron spectroscopy, infrared and Raman spectroscopy, to name but a few.
+* by scientists, who analyse data from powder diffraction, chromatography,
+  photoluminescence and photoelectron spectroscopy,
+  infrared and Raman spectroscopy, and other experimental techniques,
+.. 
 
-Fityk knows about common peak-shaped functions (Gaussian, Lorentzian, Voigt,
-Pearson VII, bifurcated Gaussian, EMG, Doniach-Sunjic, etc.) and polynomials.
-It also supports user-defined functions.
+* to fit bell-shaped functions (Gaussian, Lorentzian, Voigt,
+  Pearson VII, bifurcated Gaussian, EMG, Doniach-Sunjic, etc.),
 
-Fityk offers intuitive graphical interface (and also command line interface),
-variouse optimization methods (standard Marquardt least-square algorithm,
-Genetic Algorithms, Nelder-Mead simplex), equality constraints, modelling error
-of x coordinate of points (eg. zero-shift of instrument), handling series of
-datasets, automation of common tasks with scripts, and more.
+... but any functions can be fitted to any 2D data.
 
-It is a portable (Linux, FreeBSD, MS Windows, MacOS X) and free software
-(`GPL <http://www.gnu.org/copyleft/gpl.html>`_).
+Features
+========
 
-Both graphical and command line interfaces use *libfityk* library.
-The library is written in C++, and comes with Python bindings.
-
-`Xylib library <http://www.unipress.waw.pl/fityk/xylib/>`_
-is used for reading data files.
-
+* intuitive graphical interface (and also command line interface),
+* support for many data file formats, thanks to
+  `xylib library <http://www.unipress.waw.pl/fityk/xylib/>`_,
+* dozens of built-in functions and support for user-defined functions,
+* equality constraints,
+* modelling errors of the *x* coordinate of points (that can be caused by
+  instrumental zero-shift or by sample displacement in powder diffraction),
+* peak detection algorithm,
+* various optimization methods (standard Marquardt least-squares algorithm,
+  Genetic Algorithms, Nelder-Mead simplex),
+* handling series of datasets,
+* automation with scripts,
+* an add-on for powder diffraction data (Pawley refinement)
+* modular :wiki:`architecture <architecture>`,
+* open source licence (GPL),
+* portability.
 
 Download
 ========
@@ -46,24 +52,30 @@ Download
 * **MS Windows** Installer: :sf-download-msw:`.exe`
 * Fresh **Linux RPMs** from OBS_, **DEBs** from PPA_ or debian-xray_
 
-* **MacOSX**: see details :wiki:`here <MacOSX>`.
-
-* `Older versions
-  <http://sourceforge.net/project/showfiles.php?group_id=79434>`_
-  of the program
+* **Mac OS X**: see details :wiki:`here <MacOSX>`.
 
 * `Daily builds <http://fityk.sourceforge.net/daily/>`_
 
 * The latest code:
   ``svn co https://fityk.svn.sourceforge.net/svnroot/fityk/trunk fityk``
 
+.. * `Older versions
+  <http://sourceforge.net/project/showfiles.php?group_id=79434>`_
+  of the program
+
+
 .. _OBS: http://download.opensuse.org/repositories/home://wojdyr/
 .. _PPA: https://launchpad.net/~wojdyr/+archive/fityk
 .. _debian-xray: http://debian-xray.iit.edu/
 
-New version **notifications** from FreshMeat:
+Version 0.9.3 was released on 2010-06-24
+(`changelog <http://fityk.svn.sourceforge.net/svnroot/fityk/trunk/NEWS>`_).
+
+FreshMeat provides new version **notifications**:
 `emails <http://freshmeat.net/projects/fityk/>`_ or
 `feeds <http://freshmeat.net/projects/fityk/releases.atom>`_.
+
+
 
 .. raw:: html
 
@@ -85,18 +97,6 @@ New version **notifications** from FreshMeat:
    </div>
 
 
-History
-=======
-
-* 2010-05-07 Version 0.9.2
-* 2010-03-25 Version 0.9.1
-* 2010-01-05 Version 0.9.0
-* 2009-08-20 Version 0.8.9
-* 2009-06-21 Version 0.8.8
-
-See the full history (and what's new in each release) in the
-`NEWS file <http://fityk.svn.sourceforge.net/svnroot/fityk/trunk/NEWS>`_.
-
 Documentation
 =============
 
@@ -113,8 +113,7 @@ Questions or comments?
 
 Join the Google group
 `fityk-users <http://groups.google.com/group/fityk-users/>`_.
-You may select option "no mail" when joining and use the web interface to read
-and send messages.
+You may select option "no mail" and use the web interface to send messages.
 Feel free to send questions, comments, bug reports, new feature requests
 or success stories.
 
@@ -143,8 +142,18 @@ you may contact directly the maintainer of the program:
    </a>
    </p>
 
-   <script language="JavaScript" type="text/javascript"> <!--
+   <script type="text/javascript"> <!--
    if (window != top) top.location.href = location.href;
+   $(document).ready(function(){
+     $("#features").hide();
+     $("#overview").append(
+      "<p id='expand_features'><a href=''>[More &gt;&gt;]</a></p>");
+     $("#expand_features a").click(function(event){
+       $(this).parent().hide();
+       $("#features").show('slow');
+       event.preventDefault();
+     });
+   });
    //--> </script>
 
 ..

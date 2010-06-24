@@ -14,7 +14,7 @@ OutputBaseFilename=fityk-@VERSION@-setup
 UninstallFilesDir={app}
 DefaultDirName={pf}\Fityk
 DefaultGroupName=Fityk
-LicenseFile=COPYING
+;LicenseFile=COPYING
 SolidCompression=yes
 ChangesAssociations=yes
 

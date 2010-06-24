@@ -37,24 +37,26 @@ echo -n '===>'
 
 if [ $1 -eq 0 ]; then
  echo now the version in this script is: $version
- echo and configure.ac contains:
+ echo configure.ac:
  grep AC_INIT configure.ac
- echo and doc/conf.py:
+ echo doc/conf.py:
  grep 'version =' doc/conf.py
+ echo doc/index.rst:
+ grep 'Version ' doc/index.rst
+ echo NEWS:
+ head -4 NEWS | grep version
  echo
  svn update
  echo svnversion: `svnversion`
- echo Do not forget to update NEWS and doc/index.rst
-
 
 
 elif [ $1 -eq 1 ]; then
  echo run samples...
- cd ../samples
- ./src/cli/cfityk nacl01.fit 
- ./src/cli/cfityk test_syntax.fit 
- ./src/wxgui/fityk nacl01.fit
- ./src/wxgui/fityk SiC_Zn.fit
+ cd ./samples
+ ../src/cli/cfityk nacl01.fit 
+ ../src/cli/cfityk test_syntax.fit 
+ ../src/wxgui/fityk nacl01.fit
+ ../src/wxgui/fityk SiC_Zn.fit
 
 
 elif [ $1 -eq 2 ]; then

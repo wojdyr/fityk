@@ -360,7 +360,7 @@ void get_info_version(bool full, string& result)
             "\nBoost version: " + S(BOOST_VERSION / 100000)
                           + "." + S(BOOST_VERSION / 100 % 1000)
                           + "." + S(BOOST_VERSION % 100)
-            + "\nxylib version:" + xylib_get_version();
+            + "\nxylib version: " + xylib_get_version();
     else
         result += VERSION;
 }
