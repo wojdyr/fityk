@@ -46,7 +46,7 @@ public:
     // F is used only in fit_zoom(), can be NULL
     View(Ftk const* F_)
         : left(0), right(180.), bottom(-50), top(1e3), F(F_), datasets_(1,0),
-          log_x_(false), log_y_(false) {}
+          log_x_(false), log_y_(false), y0_factor_(10.) {}
     fp width() const { return right - left; }
     fp height() const { return top - bottom; }
     std::string str() const;
@@ -59,10 +59,13 @@ public:
     void set(fp l, fp r, fp b, fp t, int flag=change_all);
     void set_log_scale(bool log_x, bool log_y)
                                          { log_x_ = log_x; log_y_ = log_y; }
+    fp y0_factor() const { return y0_factor_; }
+    void set_y0_factor(fp f) { y0_factor_ = f; }
 private:
     Ftk const* F;
     std::vector<int> datasets_;
     bool log_x_, log_y_;
+    fp y0_factor_;
 
     void get_x_range(std::vector<Data const*> datas, fp &x_min, fp &x_max);
     void get_y_range(std::vector<Data const*> datas,

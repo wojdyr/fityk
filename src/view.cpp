@@ -164,11 +164,11 @@ void View::get_y_range(vector<Data const*> datas, vector<Model const*> models,
     }
 
     // include or not include zero
-    if (!log_y_) {
-        const fp show_zero_factor = 0.1;
-        if (y_min > 0 && y_max - y_min > show_zero_factor * y_max)
+    if (!log_y_ && y0_factor_ > 0) {
+        fp dy = y_max - y_min;
+        if (y_min > 0 && y0_factor_ * dy > y_max)
             y_min = 0;
-        else if (y_max < 0 && y_max - y_min > show_zero_factor * fabs(y_min))
+        else if (y_max < 0 && y0_factor_ * dy > fabs(y_min))
             y_max = 0;
     }
 }
