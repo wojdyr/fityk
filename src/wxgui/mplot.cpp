@@ -1515,9 +1515,9 @@ void MainPlot::OnConfigurePLabels (wxCommandEvent&)
     dialog.ShowModal();
 }
 
-void MainPlot::OnZoomAll (wxCommandEvent&)
+void MainPlot::OnZoomAll(wxCommandEvent&)
 {
-    frame->OnGViewAll(dummy_cmd_event);
+    frame->GViewAll();
 }
 
 //===============================================================

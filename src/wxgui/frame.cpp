@@ -193,6 +193,7 @@ enum {
     ID_G_FULLSCRN              ,
     ID_G_V_ALL                 ,
     ID_G_V_VERT                ,
+    ID_G_SHOWY0                ,
     ID_G_V_SCROLL_L            ,
     ID_G_V_SCROLL_R            ,
     ID_G_V_SCROLL_U            ,
@@ -320,9 +321,10 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_C_OUTPUT,    FFrame::OnConfigureOutputWin)
     EVT_MENU (ID_G_C_SB,        FFrame::OnConfigureStatusBar)
     EVT_MENU (ID_G_CROSSHAIR,   FFrame::OnSwitchCrosshair)
-    EVT_MENU (ID_G_FULLSCRN,   FFrame::OnSwitchFullScreen)
+    EVT_MENU (ID_G_FULLSCRN,    FFrame::OnSwitchFullScreen)
     EVT_MENU (ID_G_V_ALL,       FFrame::OnGViewAll)
     EVT_MENU (ID_G_V_VERT,      FFrame::OnGFitHeight)
+    EVT_MENU (ID_G_SHOWY0,      FFrame::OnGShowY0)
     EVT_MENU (ID_G_V_SCROLL_L,  FFrame::OnGScrollLeft)
     EVT_MENU (ID_G_V_SCROLL_R,  FFrame::OnGScrollRight)
     EVT_MENU (ID_G_V_SCROLL_U,  FFrame::OnGScrollUp)
@@ -500,6 +502,8 @@ void FFrame::read_settings(wxConfigBase *cf)
                         cfg_read_double(cf, wxT("MainPaneProportion"), 0.84));
     SwitchIOPane(cfg_read_bool(cf, wxT("ShowIOPane"), true));
     SwitchCrosshair(cfg_read_bool(cf, wxT("ShowCrosshair"), false));
+    ftk->view.set_y0_factor(cfg_read_double(cf, wxT("ShowY0"), 10));
+    GetMenuBar()->Check(ID_G_SHOWY0, ftk->view.y0_factor() != 0);
 }
 
 void FFrame::save_all_settings(wxConfigBase *cf) const
@@ -522,6 +526,7 @@ void FFrame::save_settings(wxConfigBase *cf) const
     cf->Write(wxT("MainPaneProportion"), main_pane->GetProportion());
     cf->Write(wxT("ShowIOPane"), main_pane->IsSplit());
     cf->Write(wxT("ShowCrosshair"), plot_pane->crosshair_cursor);
+    cf->Write(wxT("ShowY0"), ftk->view.y0_factor());
     int w, h;
     GetSize(&w, &h);
     cf->Write(wxT("w"), (long) w);
@@ -747,6 +752,8 @@ void FFrame::set_menubar()
               wxT("Zoom &All\tCtrl-A"), wxT("View whole data"));
     gui_menu->Append (ID_G_V_VERT, wxT("Fit &vertically\tCtrl-V"),
                       wxT("Adjust vertical zoom"));
+    gui_menu->AppendCheckItem(ID_G_SHOWY0, wxT("Zoom All Shows Y=&0"),
+                        wxT("Tend to include Y=0 when adjusting view."));
     gui_menu->Append (ID_G_V_SCROLL_L, wxT("Scroll &Left\tCtrl-["),
                       wxT("Scroll view left"));
     gui_menu->Append (ID_G_V_SCROLL_R, wxT("Scroll &Right\tCtrl-]"),
@@ -1488,6 +1495,11 @@ void FFrame::OnGFitHeight (wxCommandEvent&)
     change_zoom(". []");
 }
 
+void FFrame::OnGShowY0(wxCommandEvent& e)
+{
+    ftk->view.set_y0_factor(e.IsChecked() ? 10 : 0);
+}
+
 void FFrame::OnGScrollLeft (wxCommandEvent&)
 {
     scroll_view_horizontally(-0.5);
@@ -1943,20 +1955,20 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     AddSeparator();
     // view
     AddTool (ID_G_V_ALL, wxT("Whole"), wxBitmap(zoom_all_xpm), wxNullBitmap,
-             wxITEM_NORMAL, wxT("View whole"),
+             wxITEM_NORMAL, wxT("View whole [Ctrl+A]"),
              wxT("Fit data in window"));
     AddTool(ID_G_V_VERT, wxT("Fit height"),
             wxBitmap(zoom_vert_xpm), wxNullBitmap, wxITEM_NORMAL,
-            wxT("Fit vertically"), wxT("Set optimal y scale"));
+            wxT("Fit vertically [Ctrl+V]"), wxT("Set optimal y scale"));
     AddTool(ID_G_V_SCROLL_L, wxT("<-- scroll"),
             wxBitmap(zoom_left_xpm), wxNullBitmap, wxITEM_NORMAL,
-            wxT("Scroll left"), wxT("Scroll view left"));
+            wxT("Scroll left (Ctrl+[)"), wxT("Scroll view left"));
     AddTool(ID_G_V_SCROLL_R, wxT("scroll -->"),
             wxBitmap(zoom_right_xpm), wxNullBitmap, wxITEM_NORMAL,
-            wxT("Scroll right"), wxT("Scroll view right"));
+            wxT("Scroll right (Ctrl+])"), wxT("Scroll view right"));
     AddTool(ID_G_V_SCROLL_U, wxT("V-zoom-out"),
             wxBitmap(zoom_up_xpm), wxNullBitmap, wxITEM_NORMAL,
-            wxT("Extend zoom up"), wxT("Double vertical range"));
+            wxT("Extend zoom up [Ctrl+-]"), wxT("Double vertical range"));
     AddTool(ID_ft_v_pr, wxT("Back"), wxBitmap(zoom_prev_xpm), wxNullBitmap,
             wxITEM_NORMAL, wxT("Previous view"),
             wxT("Go to previous View"));
@@ -1964,15 +1976,16 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     //file
     AddTool(ID_SESSION_INCLUDE, wxT("Execute"),
             wxBitmap(run_script_xpm), wxNullBitmap, wxITEM_NORMAL,
-            wxT("Execute script"), wxT("Execute (include) script from file"));
+            wxT("Execute script [Ctrl+X]"),
+            wxT("Execute (include) script from file"));
     AddTool(ID_SESSION_DUMP, wxT("Dump"),
             wxBitmap(save_script_xpm), wxNullBitmap, wxITEM_NORMAL,
-            wxT("Dump session to file"),
+            wxT("Save session to file"),
             wxT("Dump current session to file"));
     AddSeparator();
     //data
     AddTool(ID_D_QLOAD, wxT("Load"), wxBitmap(open_data_xpm), wxNullBitmap,
-            wxITEM_NORMAL, wxT("Load file"),
+            wxITEM_NORMAL, wxT("Load file [Ctrl+O]"),
             wxT("Load data from file"));
     AddTool(ID_D_XLOAD, wxT("Load2"),
             wxBitmap(open_data_custom_xpm), wxNullBitmap, wxITEM_NORMAL,
@@ -2039,6 +2052,8 @@ void FToolBar::OnSwitchSideBar (wxCommandEvent& event)
 
 void FToolBar::OnClickTool (wxCommandEvent& event)
 {
+    wxCommandEvent dummy_cmd_event;
+
     switch (event.GetId()) {
         case ID_ft_v_pr:
             frame->OnPreviousZoom(dummy_cmd_event);

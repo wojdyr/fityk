@@ -119,11 +119,6 @@ void add_apply_close_buttons(wxWindow *parent, wxSizer *top_sizer)
     top_sizer->Add(s, 0, wxALL|wxALIGN_CENTER, 0);
 }
 
-//dummy events declared in wx_common.h
-wxMouseEvent dummy_mouse_event;
-wxCommandEvent dummy_cmd_event;
-
-
 //===============================================================
 //                            ProportionalSplitter
 //===============================================================

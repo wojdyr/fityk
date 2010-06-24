@@ -159,8 +159,9 @@ public:
     void OnShowPopupMenu(wxCommandEvent& ev);
     void OnConfigureStatusBar(wxCommandEvent& event);
     void OnConfigureOutputWin(wxCommandEvent& event);
-    void OnSwitchCrosshair(wxCommandEvent& ev){SwitchCrosshair(ev.IsChecked());}
+    void OnSwitchCrosshair(wxCommandEvent& e) {SwitchCrosshair(e.IsChecked());}
     void OnSwitchFullScreen(wxCommandEvent& event);
+    void OnGShowY0(wxCommandEvent& e);
     void save_config_as(wxString const& name);
     void read_config(wxString const& name);
     void save_all_settings(wxConfigBase *cf) const;

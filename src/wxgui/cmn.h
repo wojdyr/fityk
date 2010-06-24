@@ -95,10 +95,6 @@ bool should_focus_input(wxKeyEvent& event);
 bool change_color_dlg(wxColour& col);
 void add_apply_close_buttons(wxWindow *parent, wxSizer *top_sizer);
 
-//dummy events -- useful when calling event handler functions
-extern wxMouseEvent dummy_mouse_event;
-extern wxCommandEvent dummy_cmd_event;
-
 /// based on http://wiki.wxpython.org/index.cgi/ProportionalSplitterWindow
 /// it is like wxSplitterWindow, but when resized, both windows are resized
 /// proporionally
