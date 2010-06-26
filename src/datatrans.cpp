@@ -190,6 +190,44 @@ int main(int argc, char **argv)
 
 #endif //STANDALONE_DATATRANS
 
+namespace {
+
+bool x_lt(const Point &p1, const Point &p2) { return p1.x < p2.x; }
+bool x_gt(const Point &p1, const Point &p2) { return p1.x > p2.x; }
+bool y_lt(const Point &p1, const Point &p2) { return p1.y < p2.y; }
+bool y_gt(const Point &p1, const Point &p2) { return p1.y > p2.y; }
+bool s_lt(const Point &p1, const Point &p2) { return p1.sigma < p2.sigma; }
+bool s_gt(const Point &p1, const Point &p2) { return p1.sigma > p2.sigma; }
+bool a_lt(const Point &p1, const Point &p2)
+                                        { return p1.is_active < p2.is_active; }
+bool a_gt(const Point &p1, const Point &p2)
+                                        { return p1.is_active > p2.is_active; }
+
+// pre: string(a, b) has format ?(+|-) [a-zA-Z]
+void push_order_code(const char* a, const char*)
+{
+    const char *s = a;
+    while (isspace(*s))
+        ++s;
+    int sign = 1;
+    if (*s == '-') {
+        sign = -1;
+        ++s;
+    }
+    else if (*s == '+')
+        ++s;
+    while (isspace(*s))
+        ++s;
+    int c = tolower(*s);
+    if (c != 'x' && c != 'y' && c != 's' && c != 'a')
+        throw ExecuteError("`order=' can be followed only by x, y, s or a.");
+    code.push_back(OP_DO_ONCE);
+    push_double()(sign * c);
+    code.push_back(OP_ORDER);
+}
+
+}
+
 
 //----------------------------  grammar  ----------------------------------
 template <typename ScannerT>
@@ -216,16 +254,6 @@ DataTransformGrammar::definition<ScannerT>::definition(
             >> ']'
         ;
 
-    order
-        =  ('-' >> as_lower_d["x"])        [push_the_double(-1.)]
-        |  (!ch_p('+') >> as_lower_d["x"]) [push_the_double(+1.)]
-        |  ('-' >> as_lower_d["y"])        [push_the_double(-2.)]
-        |  (!ch_p('+') >> as_lower_d["y"]) [push_the_double(+2.)]
-        |  ('-' >> as_lower_d["s"])        [push_the_double(-3.)]
-        |  (!ch_p('+') >> as_lower_d["s"]) [push_the_double(+3.)]
-        ;
-
-
     assignment //not only assignments
         =  (as_lower_d["x"] >> !range >> '=' >> DataExpressionG)
                                                      [push_op(OP_ASSIGN_X)]
@@ -237,8 +265,8 @@ DataTransformGrammar::definition<ScannerT>::definition(
                                                      [push_op(OP_ASSIGN_A)]
         |  ((ch_p('M') >> '=') [push_op(OP_DO_ONCE)]
            >> DataExpressionG) [push_op(OP_RESIZE)]
-        |  ((as_lower_d["order"] >> '=') [push_op(OP_DO_ONCE)]
-           >> order) [push_op(OP_ORDER)]
+        |  as_lower_d["order"] >> '='
+           >> (!(ch_p('+')|'-') >> alpha_p) [&push_order_code]
         |  (as_lower_d["delete"] >> eps_p('[') [push_op(OP_DO_ONCE)]
             >> range) [push_op(OP_DELETE)]
         |  (as_lower_d["delete"] >> '(' >> DataExpressionG >> ')')
@@ -790,21 +818,37 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 int ord = iround(*stackPtr);
                 stackPtr--;
                 DT_DEBUG("in OP_ORDER with " + S(ord))
-                if (ord == 1) {
+                if (ord == 'x') {
                     DT_DEBUG("sort x_lt")
                     stable_sort(new_points.begin(), new_points.end(), x_lt);
                 }
-                else if(ord == -1) {
+                else if (ord == -'x') {
                     DT_DEBUG("sort x_gt")
                     stable_sort(new_points.begin(), new_points.end(), x_gt);
                 }
-                else if(ord == 2) {
+                else if (ord == 'y') {
                     DT_DEBUG("sort y_lt")
                     stable_sort(new_points.begin(), new_points.end(), y_lt);
                 }
-                else if(ord == -2) {
+                else if (ord == -'y') {
                     DT_DEBUG("sort y_gt")
                     stable_sort(new_points.begin(), new_points.end(), y_gt);
+                }
+                else if (ord == 's') {
+                    DT_DEBUG("sort s_lt")
+                    stable_sort(new_points.begin(), new_points.end(), s_lt);
+                }
+                else if (ord == -'s') {
+                    DT_DEBUG("sort s_gt")
+                    stable_sort(new_points.begin(), new_points.end(), s_gt);
+                }
+                else if (ord == 'a') {
+                    DT_DEBUG("sort a_lt")
+                    stable_sort(new_points.begin(), new_points.end(), a_lt);
+                }
+                else if (ord == -'a') {
+                    DT_DEBUG("sort a_gt")
+                    stable_sort(new_points.begin(), new_points.end(), a_gt);
                 }
                 break;
               }

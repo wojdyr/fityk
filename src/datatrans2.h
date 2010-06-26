@@ -32,19 +32,6 @@ extern vector<fp> numbers;  //  VM data
 extern const int stack_size;  //should be enough,
                               //there are no checks for stack overflow
 
-inline bool x_lt(const Point &p1, const Point &p2) { return p1.x < p2.x; }
-inline bool x_gt(const Point &p1, const Point &p2) { return p1.x > p2.x; }
-inline bool y_lt(const Point &p1, const Point &p2) { return p1.y < p2.y; }
-inline bool y_gt(const Point &p1, const Point &p2) { return p1.y > p2.y; }
-inline bool sigma_lt(const Point &p1, const Point &p2)
-                                              { return p1.sigma < p2.sigma; }
-inline bool sigma_gt(const Point &p1, const Point &p2)
-                                              { return p1.sigma > p2.sigma; }
-inline bool active_lt(const Point &p1, const Point &p2)
-                                        { return p1.is_active < p2.is_active; }
-inline bool active_gt(const Point &p1, const Point &p2)
-                                        { return p1.is_active > p2.is_active; }
-
 /// operators used in VM code
 enum DataTransformVMOperator
 {
