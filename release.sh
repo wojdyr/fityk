@@ -1,7 +1,7 @@
 #!/bin/bash 
 # $Id$
 
-version=0.9.3
+version=0.9.4
 WEB="iris.unipress.waw.pl:www/fityk2/"
 
 MINGW_DIR=mingw-build
@@ -57,6 +57,7 @@ elif [ $1 -eq 1 ]; then
  ../src/cli/cfityk test_syntax.fit 
  ../src/wxgui/fityk nacl01.fit
  ../src/wxgui/fityk SiC_Zn.fit
+ ./test_lib
 
 
 elif [ $1 -eq 2 ]; then
@@ -140,6 +141,7 @@ elif [ $1 -eq 8 ]; then
  rm -r $version/
  echo now you may go to:
  echo https://sourceforge.net/project/admin/explorer.php?group_id=79434
+ echo or to http://sourceforge.net/projects/fityk/files/
  
 
 elif [ $1 -eq 9 ]; then
