@@ -267,8 +267,6 @@ DataTransformGrammar::definition<ScannerT>::definition(
            >> DataExpressionG) [push_op(OP_RESIZE)]
         |  as_lower_d["order"] >> '='
            >> (!(ch_p('+')|'-') >> alpha_p) [&push_order_code]
-        |  (as_lower_d["delete"] >> eps_p('[') [push_op(OP_DO_ONCE)]
-            >> range) [push_op(OP_DELETE)]
         |  (as_lower_d["delete"] >> '(' >> DataExpressionG >> ')')
                                                    [push_op(OP_DELETE_COND)]
         ;
@@ -310,7 +308,7 @@ string dt_op(int op)
     OP_(GT) OP_(GE) OP_(LT) OP_(LE) OP_(EQ) OP_(NEQ)
     OP_(RANGE) OP_(INDEX) OP_(x_IDX)
     OP_(ASSIGN_X) OP_(ASSIGN_Y) OP_(ASSIGN_S) OP_(ASSIGN_A)
-    OP_(DO_ONCE) OP_(RESIZE) OP_(ORDER) OP_(DELETE) OP_(BEGIN) OP_(END)
+    OP_(DO_ONCE) OP_(RESIZE) OP_(ORDER) OP_(BEGIN) OP_(END)
     OP_(END_AGGREGATE) OP_(AGCONDITION)
     OP_(AGSUM) OP_(AGMIN) OP_(AGMAX) OP_(AGAREA) OP_(AGAVG) OP_(AGSTDDEV)
     OP_(FUNC) OP_(SUM_F) OP_(SUM_Z) OP_(NUMAREA) OP_(FINDX) OP_(FIND_EXTR)
@@ -757,11 +755,6 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                     n += M;
                 if (n < 0 || n >= M)
                     skip_to_end(i);
-                if (*(i+1) == OP_DELETE) {
-                    new_points.erase(new_points.begin() + n);
-                    M--;
-                    skip_to_end(i);
-                }
                 break;
             case OP_RANGE:
               {
@@ -774,14 +767,6 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 stackPtr--;
                 if (left < 0)
                     left += M;
-                if (*(i+1) == OP_DELETE) {
-                    if (0 < left && left < right && right <= M) {
-                        new_points.erase(new_points.begin()+left,
-                                         new_points.begin()+right);
-                        M = size(new_points);
-                    }
-                    skip_to_end(i);
-                }
                 else {
                     //if n not in [i...j] then skip to prevent OP_ASSIGN_.
                     bool n_between = (left <= n && n < right);
@@ -852,9 +837,6 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 }
                 break;
               }
-            case OP_DELETE:
-                assert(0); //OP_DELETE is processed in OP_INDEX or OP_RANGE
-                break;
             default:
                 DT_DEBUG("Unknown operator in VM code: " + S(*i))
                 assert(0);

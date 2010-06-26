@@ -1,5 +1,8 @@
 $Id$
 
+User-visible changes in version 0.9.4  (2010-  -  ):
+* removed syntax delete[range], used delete(condition) instead
+
 User-visible changes in version 0.9.3  (2010-06-24):
 * changed implementation of gamma and related functions (using boost.math now)
 * syntax: so-called parametrized-functions spline[] and interpolate[]

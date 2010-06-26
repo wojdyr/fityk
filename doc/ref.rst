@@ -343,54 +343,16 @@ For example, half of the points with largest *σ* can be disactivated with::
 
    order=s, a = (n < M/2)
 
-Points can be deleted using the following syntax::
-
-   delete[index-or-range]
-
-or ::
-
-   delete(condition)
-
-and created simply by increasing the value of ``M``.
-
-There are also aggregate functions:
-
-- ``min`` (the smallest value),
-
-- ``max`` (the largest value),
-
-- ``sum`` (sum of all values),
-
-- ``avg`` (arithmetic mean of all values),
-
-- ``stddev`` (standard deviation of all values),
-
-- ``darea`` (``darea(y)`` gives the interpolated area under data points,
-          and can be used to normalize the area.
-          ``darea`` is implemented as *t\*(x[n+1]-x[n-1])/2*,
-          where *t* is the value of the *expression*).
-
-They have two forms::
-
-   aggregatefunc(expression)
-
-   aggregatefunc(expression if condition)
-
-In the first form the value of *expression* is calculated for all points.
-In the second, only the points for which the *condition* is true are
-taken into account.
-
-True value in data expression is represented numerically by 1.,
-and false by 0, so ``sum`` can be also used to count points
-that fulfil given criteria.
+Points can be created or deleted by changing the value of ``M``.
+It is also possible specify a condition for points that are to be deleted,
+using expression ``delete(condition)``, e.g.::
+    
+    delete(not a) # delete inactive points
 
 A few examples::
 
     # integrate
     Y[1...] = Y[n-1] + y[n] 
-
-    # delete inactive points
-    delete(not a) 
 
     # reduce twice the number of points, averaging x and adding y
     x[...-1] = (x[n]+x[n+1])/2
@@ -411,15 +373,47 @@ A few examples::
     i sin(pi/4)+cos(pi/4) #1.41421
     i gamma(10) #362880
 
-    # normalize data area
-    Y = y / darea(y)
 
-    # calculations that use aggregate functions
+Aggregate functions
+-------------------
+
+Aggregate functions have syntax::
+
+   aggregate(expression [if condition])
+
+and return a single value, calculated from values of all points
+for which the given condition is true. If the condition is omitted, all points
+in the dataset are taken into account.
+
+The following aggregate functions are recognized:
+
+* ``min()`` --- the smallest value,
+
+* ``max()`` --- the largest value,
+
+* ``sum()`` --- the sum,
+
+* ``avg()`` --- the arithmetic mean,
+
+* ``stddev()`` --- the standard deviation,
+
+* ``darea()`` --- a function used to normalize the area (see the example below).
+          It returns the sum of
+          *expression*\ \*(*x*\ [*n*\ +1]-*x*\ [*n*-1])/2.
+          In particular, ``darea(y)`` returns the interpolated area under
+          data points.
+
+.. note:: There is no ``count`` function, use ``sum(1 if criterium)`` instead.
+
+Examples (``i`` is a shortcut for ``info``, it prints calculated value)::
+
+    i avg(y) # print the average y value
     i max(y) # the largest y value
+    i max(y if x > 40 and x < 60)   # the largest y value for x in (40, 60)
     i max(y if a) # the largest y value in the active range
-    i sum(y>100) # count the points that have y greater than 100
-    i sum(y>avg(y)) # count the points that have y greater than the arithmetic mean
-    i darea(y-F(x) if 20<x and x<25) # example of more complex syntax
+    i sum(1 if y>100) # the number of points that have y above 100
+    i sum(1 if y>avg(y)) # aggregate functions can be nested
+    Y = y / darea(y) # normalize data area
 
 .. _funcindt:
 
