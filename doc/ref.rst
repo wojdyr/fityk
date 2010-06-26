@@ -198,20 +198,20 @@ disactivate points with mouse.
 Standard deviation (or weight)
 ------------------------------
 
-When fitting data, we assume that only the y coordinate is subject to
+When fitting data, we assume that only the *y* coordinate is subject to
 statistical errors in measurement. This is a common assumption.
-To see how the y standard deviation :math:`\sigma` influences fitting
+To see how the *y*'s standard deviation, *σ*, influences fitting
 (optimization), look at the weighted sum of squared residuals formula
 in :ref:`nonlinear`.
 We can also think about weights of points -- every point has a weight
 assigned, that is equal :math:`w_i=1/\sigma_i^2`.
 
 Standard deviation of points can be
-:ref:`read from file <DataLoad>` together with the x and y
-coordinates. Otherwise, it is set either to max(sqrt(y), 1.0)
+:ref:`read from file <DataLoad>` together with the *x* and *y*
+coordinates. Otherwise, it is set either to max(*y*:sup:`1/2`, 1)
 or to 1, depending on the value of :option:`data-default-sigma` option.
 Setting std. dev. as a square root of the value is common
-and has theoretical ground when y is the number of independent events.
+and has theoretical ground when *y* is the number of independent events.
 You can always change standard deviation, e.g. make it equal for every
 point with command: ``S=1``.
 See :ref:`transform` for details.
@@ -224,8 +224,8 @@ See :ref:`transform` for details.
 Data point transformations
 --------------------------
 
-Every data point has four properties: x coordinate, y coordinate,
-standard deviation of y and active/inactive flag. Lower case
+Every data point has four properties: *x* coordinate, *y* coordinate,
+standard deviation of *y* and active/inactive flag. Lower case
 letters ``x``, ``y``, ``s``, ``a`` stand for these properties
 before transformation,
 and upper case ``X``, ``Y``, ``S``, ``A`` for the same properties
@@ -233,16 +233,17 @@ after transformation.
 ``M`` stands for the number of points.
 
 Data can be transformed using assignments.
-Command ``Y=-y`` will change the sign of the y coordinate
+For example, the ``Y=-y`` command changes the sign of the *y* coordinate
 of every point.
 
 You can apply transformation to selected points:
-``Y[3]=1.2`` will change point with index 3
-(which is 4th point, because first has index 0),
-and ``Y[3..6]=1.2`` will do the same for points with
-indices 3, 4, 5, but not 6. ``Y[2..]=1.2``
-will apply the transformation to points with index 2 and above.
-You can guess what ``Y[..6]=1.2`` does.
+
+* ``Y[3]=1.2`` changes the point with index 3
+  (i.e., the 4th point, the first has index 0),
+* ``Y[3..6]=1.2`` --- the points with indices 3, 4, 5, but not 6,
+* ``Y[2..]=1.2`` --- the points with indices 2, 3, ...
+* ``Y[..4]=1.2`` --- the points with indices 0, 1, 2, 3.
+* ``Y=1.2`` --- all points
 
 Most of operations are executed sequentially for points from the first
 to the last one. ``n`` stands for the index of currently transformed point.
@@ -319,26 +320,28 @@ the first/last point is returned.
 
 .. note:: All operations are performed on real numbers.
 
-Two numbers that differ less than *epsilon*
-(see :ref:`option epsilon <epsilon>`)
-i.e. abs(a-b)<:option:`epsilon`, are considered equal.
+Two numbers that differ less than *ε*
+(the value of *ε* is set by the :ref:`option epsilon <epsilon>`)
+are considered equal.
 
-Indices are also computed in real number domain,
+Indices are also computed in the real number domain,
 and then rounded to the nearest integer.
 
-Transformations can be joined with comma (,), e.g. ::
+Transformations separated by commas (``,``) form a sequance of transformations.
+For example, it is possible to swap axes with the command ::
 
    X=y, Y=x
 
-swaps axes.
 
-Before and after executing transformations, points are always
-sorted according to their x coordinate. You can temporarily change
-the order of points using ``order=t``, where *t* is one of
-``x``, ``y``, ``s``, ``a``, ``-x``, ``-y``, ``-s``, ``-a``.
-This only makes sense for a sequence of transformations (joined
-with comma), as after finishing each transformation points will be
-reordered again. This feature is rarely useful.
+Points are sorted according to their *x* coordinate. The sorting is performed
+after each transformation.
+
+In the sequance of transformations the order of points can be temporarily
+changed with the ``order=t`` expression,
+where *t* is one of ``x``, ``y``, ``s``, ``a``, ``-x``, ``-y``, ``-s``, ``-a``.
+For example, half of the points with largest *σ* can be disactivated with::
+
+   order=s, a = (n < M/2)
 
 Points can be deleted using the following syntax::
 
@@ -1309,7 +1312,7 @@ From the book J. Wolberg, *Data Analysis Using the Method of Least Squares: Extr
 
    (...) we turn to the task of determining the uncertainties associated
    with the :math:`a_k`'s. The usual measures of uncertainty are standard
-   deviation (i.e., :math:`\sigma` or variance (i.e., :math:`\sigma^2`) so
+   deviation (i.e., *σ*) or variance (i.e., *σ*:sup:`2`) so
    we seek an expression that allows us to estimate the :math:`\sigma_{a_k}`'s.
    It can be shown (...) that the following expression gives us an unbiased
    estimate of :math:`\sigma_{a_k}`:
@@ -1361,7 +1364,7 @@ such use Monte Carlo simulations.
 In Fityk:
 
 * ``info errors`` shows values of :math:`\sigma_{a_k}`.
-* ``info+ errors`` additionally shows the matrix :math:`C^{-1}`.
+* ``info+ errors`` additionally shows the matrix *C*:sup:`--1`.
 * Individual symmetric errors of simple-variables can be accessed as
   ``$variable.error`` or e.g. ``%func.height.error``.
 * confidence intervals are on the TODO list (in the meantime you can compute
@@ -1406,7 +1409,7 @@ criteria.
   option (default: 10^15), usually when due to limited numerical precision
   WSSR is no longer changing, the fitting is also stopped.
 
-.. |lambda| replace:: :math:`\lambda`
+.. |lambda| replace:: *λ*
 
 .. COMMENT: <para>
       L-M method finds a minimum quickly. The question is, if it is the

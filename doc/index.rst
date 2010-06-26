@@ -1,8 +1,8 @@
 
-.. title:: fityk --- peak fitting software
+.. title:: fityk --- curve fitting software
 
-Overview
-========
+Overview ---
+============
 
 .. image:: fityk076.png
    :alt: [screenshot]
@@ -13,17 +13,18 @@ Overview
 Fityk *[fi:tik]* is a program for nonlinear least squares **curve fitting**.
 It is also useful for data processing and visualization.
 
-Fityk is usually used...
+Fityk is primarily used...
 
-* by scientists, who analyse data from powder diffraction, chromatography,
+* by scientists who analyse data from powder diffraction, chromatography,
   photoluminescence and photoelectron spectroscopy,
   infrared and Raman spectroscopy, and other experimental techniques,
-.. 
+
+..
 
 * to fit bell-shaped functions (Gaussian, Lorentzian, Voigt,
   Pearson VII, bifurcated Gaussian, EMG, Doniach-Sunjic, etc.),
 
-... but any functions can be fitted to any 2D data.
+... but any functions can be fitted to any 2D (x-y) data.
 
 Features
 ========
@@ -102,7 +103,7 @@ Documentation
 
 `The manual <fityk-manual.html>`_
 (`PDF <http://www.unipress.waw.pl/fityk/fityk-manual.pdf>`_)
-documents mostly commands of the fityk mini-language.
+documents mainly commands of the fityk mini-language.
 
 `Trac Wiki <http://sourceforge.net/apps/trac/fityk/>`_
 contains all other informations.
@@ -147,7 +148,7 @@ you may contact directly the maintainer of the program:
    $(document).ready(function(){
      $("#features").hide();
      $("#overview").append(
-      "<p id='expand_features'><a href=''>[More &gt;&gt;]</a></p>");
+      "<p id='expand_features'><a href=''>More &raquo;</a></p>");
      $("#expand_features a").click(function(event){
        $(this).parent().hide();
        $("#features").show('slow');

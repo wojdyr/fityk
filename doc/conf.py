@@ -40,14 +40,23 @@ html_use_smartypants = True
 html_use_modindex = False
 html_use_index = False
 html_add_permalinks = False
+#html_compact_lists = True
 
 latex_documents = [
   ('fityk-manual', 'fityk-manual.tex', 'Fityk manual', '', 'manual', True),
 ]
 latex_logo = 'fityk-banner.pdf'
-latex_elements = { 'papersize': 'a4paper' # 'letterpaper'
-                 }
+latex_elements = {
+    'papersize': 'a4paper', # 'letterpaper'
+    'utf8extra': r"""
+         \DeclareUnicodeCharacter{00A0}{\nobreakspace}
+         \DeclareUnicodeCharacter{03C3}{\ensuremath{\sigma}}
+         """
+}
+
 #latex_appendices = ['appendix']
+latex_show_pagerefs = True
+latex_show_urls = True
 
 sf_dir = 'http://downloads.sourceforge.net/fityk/'
 msw_filename = 'fityk-%s-setup' % version

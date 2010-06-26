@@ -33,7 +33,6 @@ $(srcdir)/html/_images/math/9e9c8a0fb6a92d4c3f969ab7a959a80f3069e3c9.png \
 $(srcdir)/html/_images/math/5e97a8af68fbc8e357d3ee0eba452022b06c1875.png \
 $(srcdir)/html/_images/math/7532b41a34c9ca592694135d1de65eeb8d9ce036.png \
 $(srcdir)/html/_images/math/727873d2cbeda3d30f41bee18cb2bf5ea1071fa1.png \
-$(srcdir)/html/_images/math/fa35d9fc104207e09a712110ac81612c5b279a6c.png \
 $(srcdir)/html/_images/math/c1bc1d463e6642b69aecd742fefeb4bce4bd3d52.png \
 $(srcdir)/html/_images/math/b72439b28d639f1999aeecd537d21df605ad8db8.png \
 $(srcdir)/html/_images/math/61c594c97b61f72af93af4e61894b3f16a3bbb30.png \
@@ -47,9 +46,7 @@ $(srcdir)/html/_images/math/707fc7dbf98d8f4f39c6bdf3f6c025ed948789c9.png \
 $(srcdir)/html/_images/math/bea4d576937a04ec200b1037fc8ee33e8f744cb1.png \
 $(srcdir)/html/_images/math/d3d29774850d1fa81d750fef3ed9b65ee66c524e.png \
 $(srcdir)/html/_images/math/deaf305680f8dc36524842ef15f13f33789dbbd4.png \
-$(srcdir)/html/_images/math/ce4588fd900d02afcbd260bc07f54cce49a7dc4a.png \
 $(srcdir)/html/_images/math/7508455f7c089e149392451dec57d771370d63ce.png \
-$(srcdir)/html/_images/math/1f9dde26fcc951cb30c787bb39043e4354b9b367.png \
 $(srcdir)/html/_images/math/19f15eacccc345c3179259320491956f3f23887a.png \
 $(srcdir)/html/_images/math/38b394ef8f2ecd34817add552d9daa3fe8b9e017.png \
 $(srcdir)/html/_images/math/695f416425dbcafe8c762a1e8c533023350a525d.png \
@@ -69,7 +66,6 @@ $(srcdir)/html/_images/math/75870e6ce52429cdac61f596a15826f179ae817e.png \
 $(srcdir)/html/_images/math/349202f044a9aca8885d8084005ea099f1816b94.png \
 $(srcdir)/html/_images/math/9fabdcba50c720ea1ae42cd0b4f1d3eb5f367e56.png \
 $(srcdir)/html/_images/math/412787c048e28774dc63fc27db42dc52ca858de7.png \
-$(srcdir)/html/_images/math/741fb9098efcb98055f467f87630a5d0ca599b6b.png \
 $(srcdir)/html/_images/math/c2ec895a1a42f04814ac1e370c4b8ca8fb702167.png \
 $(srcdir)/html/_images/math/a1f49d0ef1ed40eddc5de7055dc1378db1e4a95c.png \
 $(srcdir)/html/_images/math/23decadd8b245289f5fa993f2c99e0ac9cff56dc.png \
@@ -97,7 +93,8 @@ all-local: $(srcdir)/html/appendix.html
 $(srcdir)/html/appendix.html: $(srcdir)/appendix.rst $(srcdir)/fityk-manual.rst $(srcdir)/index.rst $(srcdir)/ref.rst $(srcdir)/extensions.rst $(srcdir)/getstarted.rst $(srcdir)/intro.rst $(srcdir)/conf.py 
 	$(SPHINX) -b html $(srcdir) $(srcdir)/html
 	rm -f $(srcdir)/html/objects.inv $(srcdir)/html/.buildinfo
-	sed -i 's/fityk . free peak fitting software &mdash; Fityk 0.... manual/fityk \&mdash; free peak fitting software/' $(srcdir)/html/index.html
+	sed -i 's/&mdash; Fityk 0.... manual//' $(srcdir)/html/index.html
+	sed -i 's/—/\&#8212;/' $(srcdir)/html/index.html # replace \u8212
 
 pdf:
 	rm -rf $(srcdir)/doctrees/
