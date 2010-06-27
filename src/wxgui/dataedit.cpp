@@ -60,7 +60,7 @@ static const char *default_transforms[] = {
 "|Y",
 
 "equilibrate step||make equal step, keep the number of points"
-"|X = x[0] + n * (x[M-1]-x[0]) / (M-1), Y = y[x=X], S = s[x=X], A = a[x=X]"
+"|X = x[0] + n * (x[M-1]-x[0]) / (M-1), Y = y[index(X)], S = s[index(X)], A = a[index(X)]"
 "|Y",
 
 "zero negative y||zero the Y value; of points with negative Y"

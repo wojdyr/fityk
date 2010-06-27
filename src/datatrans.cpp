@@ -109,7 +109,7 @@
 //     for for-many-points operations (perhaps it should be separated).
 //
 //   * execute do-once operations (eg. order=x, x[3]=4)
-//     and computes value of sum()
+//     and computes value of aggregate functions
 //
 //   * execute all assignments for every point (from first to last),
 //     unless the point is outside of specified range.
@@ -297,7 +297,7 @@ string dt_op(int op)
     OP_(ABS)  OP_(ROUND)
     OP_(ATAN) OP_(ASIN) OP_(ACOS)
     OP_(LOG10) OP_(LN)  OP_(SQRT)  OP_(POW)
-    OP_(GAMMA) OP_(LGAMMA) OP_(VOIGT)
+    OP_(GAMMA) OP_(LGAMMA) OP_(VOIGT) OP_(XINDEX)
     OP_(ADD)   OP_(SUB)   OP_(MUL)   OP_(DIV)  OP_(MOD)
     OP_(MIN2)   OP_(MAX2) OP_(RANDNORM) OP_(RANDU)
     OP_(VAR_X) OP_(VAR_Y) OP_(VAR_S) OP_(VAR_A)
@@ -306,7 +306,7 @@ string dt_op(int op)
     OP_(OR) OP_(AFTER_OR) OP_(AND) OP_(AFTER_AND) OP_(NOT)
     OP_(TERNARY) OP_(TERNARY_MID) OP_(AFTER_TERNARY) OP_(DELETE_COND)
     OP_(GT) OP_(GE) OP_(LT) OP_(LE) OP_(EQ) OP_(NEQ)
-    OP_(RANGE) OP_(INDEX) OP_(x_IDX)
+    OP_(RANGE) OP_(INDEX)
     OP_(ASSIGN_X) OP_(ASSIGN_Y) OP_(ASSIGN_S) OP_(ASSIGN_A)
     OP_(DO_ONCE) OP_(RESIZE) OP_(ORDER) OP_(BEGIN) OP_(END)
     OP_(END_AGGREGATE) OP_(AGCONDITION)
@@ -491,7 +491,7 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 STACK_OP *stackPtr = floor(*stackPtr + 0.5);
                 break;
 
-            case OP_x_IDX:
+            case OP_XINDEX:
                 STACK_OP *stackPtr = find_idx_in_sorted(old_points, *stackPtr);
                 break;
 
@@ -941,7 +941,6 @@ void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
     bool t = execute_code(M, M, stack, old_points, new_points, code);
     if (!t)
         return;
-#if 1
     vector<int> to_be_deleted;
     for (int n = 0; n != M; n++) {
         bool r = execute_code(n, M, stack, old_points, new_points, code);
@@ -952,9 +951,6 @@ void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
         for (vector<int>::const_iterator i = to_be_deleted.end() - 1;
                                              i >= to_be_deleted.begin(); --i)
             new_points.erase(new_points.begin() + *i);
-#else
-    //multipoint_execute_code(M, stack, old_points, new_points, code);
-#endif
 }
 
 } //namespace

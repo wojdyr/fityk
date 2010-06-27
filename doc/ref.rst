@@ -190,8 +190,8 @@ A data :ref:`transformation <transform>`::
 
 can be used to change the state of points.
 
-In the GUI, there is a ``Data-Range Mode`` that allows to activate and
-disactivate points with mouse.
+In the GUI, there is a ``Data-Range Mode`` that allows activating and
+disactivating points with mouse.
 
 .. _weights:
 
@@ -303,35 +303,36 @@ Expressions can contain:
   which performs *expression1* if condition is true
   and *expression2* otherwise.
   Conditions can be built using boolean operators and comparisions:
-  ``AND``, ``OR``, ``NOT``, ``>``, ``>=``, ``<``, ``<=``, ``==``,
-  ``!=`` (or ``<>``), ``TRUE``, ``FALSE``.
+  ``and``, ``or``, ``not``, ``>``, ``>=``, ``<``, ``<=``, ``==``,
+  ``!=`` (or ``<>``), ``true``, ``false``.
 
 The value of a data expression can be shown using the command ``info``,
 see examples at the end of this section. The precision of printed numbers
 is governed by the option :ref:`info-numeric-format <info_numeric_format>`.
 
-Linear interpolation of y (or any other property: s,a,X,Y,S,A)
-between two points can be calculated using special syntax::
-
-   y[x=expression]
-
-If the given x is outside of the current data range, the value of
-the first/last point is returned.
-
 .. note:: All operations are performed on real numbers.
+
+Indices, like all other values, are computed in the real number domain.
+If the index is not equal to integer, linear interpolation of the property is
+calculated. For example, ``y[2.5]`` is equal to ``(y[2]+[3])/2``.
+
+The special ``index(arg)`` function returns the index of point that has
+*x* equal *arg*, or, if there is no such point, the linear interpolation
+of two neighbouring indices (see the second example below).
 
 Two numbers that differ less than *ε*
 (the value of *ε* is set by the :ref:`option epsilon <epsilon>`)
 are considered equal.
 
-Indices are also computed in the real number domain,
-and then rounded to the nearest integer.
-
 Transformations separated by commas (``,``) form a sequance of transformations.
-For example, it is possible to swap axes with the command ::
+During the sequance, the vectors ``x``, ``y``, ``s`` and ``a`` that contain
+old values are not changed. This makes possible to swap the axes::
 
    X=y, Y=x
 
+or to equilibrate the step of data (with interpolation of *y* and *σ*)::
+
+   X = x[0] + n * (x[M-1]-x[0]) / (M-1), Y = y[index(X)], S = s[index(X)]
 
 Points are sorted according to their *x* coordinate. The sorting is performed
 after each transformation.
@@ -362,13 +363,11 @@ A few examples::
     # change x scale of diffraction pattern (2theta -> Q)
     X = 4*pi * sin(x/2*pi/180) / 1.54051
 
-    # make equal step, keep the number of points the same
-    X = x[0] + n * (x[M-1]-x[0]) / (M-1),  Y = y[x=X], S = s[x=X], A = a[x=X]
-
     # take the first 2000 points, average them and subtract as background
     Y = y - avg(y if n<2000)
 
-    # Fityk can be used as a simple calculator
+    # Fityk can be used as a calculator.
+    # `i' is a shortcut for `info', it prints calculated value
     i 2+2 #4
     i sin(pi/4)+cos(pi/4) #1.41421
     i gamma(10) #362880
@@ -405,7 +404,7 @@ The following aggregate functions are recognized:
 
 .. note:: There is no ``count`` function, use ``sum(1 if criterium)`` instead.
 
-Examples (``i`` is a shortcut for ``info``, it prints calculated value)::
+Examples::
 
     i avg(y) # print the average y value
     i max(y) # the largest y value
@@ -413,6 +412,7 @@ Examples (``i`` is a shortcut for ``info``, it prints calculated value)::
     i max(y if a) # the largest y value in the active range
     i sum(1 if y>100) # the number of points that have y above 100
     i sum(1 if y>avg(y)) # aggregate functions can be nested
+    i y[min(n if y > 100)] # the first (from the left) value of y above 100
     Y = y / darea(y) # normalize data area
 
 .. _funcindt:

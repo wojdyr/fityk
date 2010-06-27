@@ -60,7 +60,7 @@ enum DataTransformVMOperator
     OP_NEG=-200, OP_EXP, OP_ERFC, OP_ERF, OP_SIN, OP_COS,  OP_TAN,
     OP_SINH, OP_COSH, OP_TANH, OP_ABS,  OP_ROUND,
     OP_ATAN, OP_ASIN, OP_ACOS, OP_LOG10, OP_LN,  OP_SQRT,  OP_POW,
-    OP_GAMMA, OP_LGAMMA, OP_VOIGT,
+    OP_GAMMA, OP_LGAMMA, OP_VOIGT, OP_XINDEX,
     OP_ADD,   OP_SUB,   OP_MUL,   OP_DIV,  OP_MOD,
     OP_MIN2,   OP_MAX2, OP_RANDNORM, OP_RANDU,
     OP_VAR_X, OP_VAR_FIRST_OP=OP_VAR_X, OP_VAR_Y, OP_VAR_S, OP_VAR_A,
@@ -70,7 +70,7 @@ enum DataTransformVMOperator
     OP_OR, OP_AFTER_OR, OP_AND, OP_AFTER_AND, OP_NOT,
     OP_TERNARY, OP_TERNARY_MID, OP_AFTER_TERNARY, OP_DELETE_COND,
     OP_GT, OP_GE, OP_LT, OP_LE, OP_EQ, OP_NEQ,
-    OP_RANGE, OP_INDEX, OP_x_IDX,
+    OP_RANGE, OP_INDEX,
     OP_ASSIGN_X, OP_ASSIGN_Y, OP_ASSIGN_S, OP_ASSIGN_A,
     OP_DO_ONCE, OP_RESIZE, OP_ORDER, OP_BEGIN, OP_END,
     OP_END_AGGREGATE, OP_AGCONDITION,
@@ -128,6 +128,7 @@ string function_name(int op)
         case OP_ACOS: return "acos";
         case OP_ABS: return "abs";
         case OP_ROUND: return "round";
+        case OP_XINDEX: return "index";
         // 2-args functions
         case OP_MOD: return "mod";
         case OP_VOIGT: return "void";
@@ -163,6 +164,7 @@ int get_function_narg(int op)
         case OP_ACOS:
         case OP_ABS:
         case OP_ROUND:
+        case OP_XINDEX:
             return 1;
         // 2-args functions
         case OP_MOD:
@@ -269,7 +271,7 @@ void ExpressionParser::put_var(int op)
 
 //TODO:
 //    OP_DELETE_COND,
-//    OP_RANGE, OP_INDEX, OP_x_IDX,
+//    OP_RANGE, OP_INDEX, OP_XINDEX,
 //    OP_ASSIGN_X, OP_ASSIGN_Y, OP_ASSIGN_S, OP_ASSIGN_A,
 //    OP_DO_ONCE, OP_RESIZE, OP_ORDER, OP_BEGIN, OP_END,
 //
@@ -364,6 +366,8 @@ void ExpressionParser::parse(Lexer& lex)
                         put_function(OP_ABS);
                     else if (word == "round")
                         put_function(OP_ROUND);
+                    else if (word == "index")
+                        put_function(OP_XINDEX);
                     // 2-args functions
                     else if (word == "mod")
                         put_function(OP_MOD);
