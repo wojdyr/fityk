@@ -185,7 +185,7 @@ void Ftk::dump_all_as_script(string const &filename)
             fprintf(f, "set @%d.title = '%s'\n", i, data->get_title().c_str());
         int m = data->points().size();
         fprintf(f, "M=%d in @%d\n", m, i);
-        fprintf(f, "X=%g in @%d # =max(x), prevents sorting.\n",
+        fprintf(f, "X=%.12g in @%d # =max(x), prevents sorting.\n",
                    data->get_x_max(), i);
         for (int j = 0; j != m; ++j) {
             Point const& p = data->points()[j];
