@@ -78,6 +78,7 @@ vector<DataAndModel*> get_datasets_from_indata()
 }
 
 CompactStrGrammar  CompactStrG;
+InDataGrammar InDataG;
 
 } //namespace cmdgram
 
@@ -177,18 +178,6 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
     static const char *dot = ".";
     static const char *empty = "";
 
-
-    in_data
-        = eps_p [clear_a(vds)]
-        >> !("in" >> (lexeme_d['@' >> (uint_p [push_back_a(vds)]
-                                      |ch_p('*')[push_back_a(vds, all_datasets)]
-                                      )
-                              ]
-                       % ','
-                     )
-            )
-        ;
-
     dm_prefix
         = lexeme_d['@' >> uint_p [assign_a(dm_pref)]
            >> '.']
@@ -250,7 +239,7 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
           >> !((function_param >> '=' >> no_actions_d[FuncG])
                                                        [push_back_a(vt)]
                % ',')
-          >> in_data
+          >> InDataG
         ;
 
     optional_plus
@@ -264,7 +253,7 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
            >> (+chset<>(anychar_p - chset<>(";#"))) [&do_output_info]
           )
         | (optional_suffix_p("p","lot") [clear_a(vr)]
-           >> plot_range >> plot_range >> in_data) [&do_plot]
+           >> plot_range >> plot_range >> InDataG) [&do_plot]
         | guess [&do_guess]
         | dataset_handling
         | optional_suffix_p("s","et")

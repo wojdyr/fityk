@@ -141,17 +141,6 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
     static const int minus_one = -1;
     static const char *empty = "";
 
-
-    in_data
-        = eps_p [clear_a(vds)]
-        >> !("in" >> (lexeme_d['@' >> uint_p [push_back_a(vds)]
-                               ]
-                       % ','
-                     | str_p("@*") [push_back_a(vds, all_datasets)]
-                     )
-            )
-        ;
-
     optional_plus
         = str_p("+") [assign_a(with_plus, true_)]
         | eps_p [assign_a(with_plus, false_)]
@@ -182,7 +171,7 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
           //                                  % ',')
           //     >> !("not" >>   (%name | $name)[push_back_a()]
           //                                  % ',')
-          >> in_data
+          >> InDataG
         ;
 
 
@@ -190,7 +179,7 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
         = str_p("reset") [&do_reset]
         | ("sleep" >> ureal_p[assign_a(tmp_real)])[&do_sleep]
         | (str_p("dump") >> '>' >> CompactStrG)[&do_dump]
-        | (no_actions_d[DataTransformG][assign_a(t)] >> in_data)[&do_transform]
+        | (no_actions_d[DataTransformG][assign_a(t)] >> InDataG)[&do_transform]
         | optional_suffix_p("s","et") >> (set_arg % ',')
         | optional_suffix_p("c","ommands") >> commands_arg
         | optional_suffix_p("f","it")

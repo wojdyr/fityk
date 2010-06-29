@@ -55,6 +55,30 @@ struct CompactStrGrammar : public grammar<CompactStrGrammar>
 
 extern CompactStrGrammar CompactStrG;
 
+struct InDataGrammar : public grammar<InDataGrammar>
+{
+    template <typename ScannerT>
+    struct definition
+    {
+      definition(InDataGrammar const& /*self*/)
+      {
+          in_data
+              = eps_p [clear_a(vds)]
+              >> !("in" >> (lexeme_d['@' >> uint_p [push_back_a(vds)]
+                                     ]
+                             % ','
+                           | str_p("@*") [push_back_a(vds, all_datasets)]
+                           )
+                  )
+              ;
+      }
+      rule<ScannerT> in_data;
+      rule<ScannerT> const& start() const { return in_data; }
+    };
+};
+
+extern InDataGrammar InDataG;
+
 } // namespace cmdgram
 
 
@@ -67,7 +91,7 @@ struct Cmd2Grammar : public grammar<Cmd2Grammar>
     definition(Cmd2Grammar const& self);
 
     rule<ScannerT> transform, type_name, function_param,
-                   in_data, dm_prefix,
+                   dm_prefix,
                    dataset_handling, guess,
                    dataset_lhs, dataset_nr,
                    optional_plus,
