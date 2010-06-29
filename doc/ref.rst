@@ -225,48 +225,60 @@ Data point transformations
 --------------------------
 
 Every data point has four properties: *x* coordinate, *y* coordinate,
-standard deviation of *y* and active/inactive flag. Lower case
-letters ``x``, ``y``, ``s``, ``a`` stand for these properties
-before transformation,
-and upper case ``X``, ``Y``, ``S``, ``A`` for the same properties
-after transformation.
-``M`` stands for the number of points.
+standard deviation of *y* and active/inactive flag.
+These properties can be changed using symbols ``X``, ``Y``, ``S`` and ``A``,
+respectively. It is possible to either change a single point or apply
+a transformation to all points. For example:
 
-Data can be transformed using assignments.
-For example, the ``Y=-y`` command changes the sign of the *y* coordinate
-of every point.
+* ``Y[3]=1.2`` assigns the *y* coordinate of the 4th point (0 is first),
+* ``Y = -y`` changes the sign of the *y* coordinate for all points.
 
-You can apply transformation to selected points:
+On the left side of the equality sign you can have one of symbols ``X``, ``Y``,
+``S``, ``A``, possibly with the index in brackets. The symbols on the left
+side are case insensitive.
 
-* ``Y[3]=1.2`` changes the point with index 3
-  (i.e., the 4th point, the first has index 0),
-* ``Y[3..6]=1.2`` --- the points with indices 3, 4, 5, but not 6,
-* ``Y[2..]=1.2`` --- the points with indices 2, 3, ...
-* ``Y[..4]=1.2`` --- the points with indices 0, 1, 2, 3.
-* ``Y=1.2`` --- all points
+The right hand side is a mathematical expression that can have special
+variables:
 
-Most of operations are executed sequentially for points from the first
-to the last one. ``n`` stands for the index of currently transformed point.
-The sequance of commands::
+* lower case letters ``x``, ``y``, ``s``, ``a`` represent properties of data
+  points before transformation,
 
-    M=500; x=n/100; y=sin(x)
+* upper case ``X``, ``Y``, ``S``, ``A`` stand for the same properties
+  after transformation,
 
-will generate the sinusoid dataset with 500 points.
+* ``M`` stands for the number of points.
 
-If you have more than one dataset, you have to specify explicitly
-which dataset transformation applies to. See :ref:`multidata` for details.
+* ``n`` stands for the index of currently transformed point,
+  e.g., ``Y=y[M-n-1]`` means that *n*-th point (*n*\ =0, 1, ... M-1)
+  is assigned *y* value of the *n*-th point from the end.
 
-.. note:: Points are kept sorted according to their x coordinate,
-   so changing x coordinate of points
-   will also change the order and indices of points.
+Before the transformation a new array of points is created as a copy of the
+old array.
+Operations are applied sequentially from the first point to the last one,
+so while ``Y[n+1]`` and ``y[n+1]`` have always the same value,
+``Y[n-1]`` and ``y[n-1]`` may differ. For example, the two commands::
+
+   Y = y[n] + y[n-1]
+   Y = y[n] + Y[n-1]
+
+differ. The first one adds to each point the value of the previous point.
+The second one adds the value of the previous point *after* transformation,
+so effectively it adds the sum of all previous points.
+The index ``[n]`` could be omitted (``Y = y + y[n-1]``).
+The value of undefined points, like ``y[-1]`` and ``Y[-1]``,
+is explained later in this section.
 
 Expressions can contain:
 
 - real numbers in normal or scientific format (e.g. ``1.23e5``),
 
-- constant ``pi``,
+- constants ``pi``, ``true`` (1), ``false`` (0)
 
 - binary operators: ``+``, ``-``, ``*``, ``/``, ``^``,
+
+- boolean operators: ``and``, ``or``, ``not``,
+
+- comparisions: ``>``, ``>=``, ``<``, ``<=``, ``==``, ``!=``.
 
 - one argument functions:
 
@@ -300,29 +312,55 @@ Expressions can contain:
     = :math:`\frac{b}{\pi} \int_{-\infty}^{+\infty} \frac{\exp(-t^2)}{b^2+(a-t)^2} dt`
 
 - ternary ``?:`` operator: ``condition ?  expression1 : expression2``,
-  which performs *expression1* if condition is true
-  and *expression2* otherwise.
-  Conditions can be built using boolean operators and comparisions:
-  ``and``, ``or``, ``not``, ``>``, ``>=``, ``<``, ``<=``, ``==``,
-  ``!=`` (or ``<>``), ``true``, ``false``.
+  which returns *expression1* if condition is true and *expression2* otherwise.
 
-The value of a data expression can be shown using the command ``info``,
-see examples at the end of this section. The precision of printed numbers
-is governed by the option :ref:`info-numeric-format <info_numeric_format>`.
+A few examples.
 
-.. note:: All operations are performed on real numbers.
+* In the case of diffraction patterns, it is possible to change the *x* scale
+  between *Q* and 2\ *θ*:: 
 
-Indices, like all other values, are computed in the real number domain.
-If the index is not equal to integer, linear interpolation of the property is
-calculated. For example, ``y[2.5]`` is equal to ``(y[2]+[3])/2``.
+    X = 4*pi * sin(x/2*pi/180) / 1.54051 # Cu 2θ -> Q
 
-The special ``index(arg)`` function returns the index of point that has
-*x* equal *arg*, or, if there is no such point, the linear interpolation
-of two neighbouring indices (see the second example below).
+* Negative *y* values can be zeroed with command::
 
+    Y=max2(y,0)
+
+* All standard deviations can be set to 1::
+
+    S=1
+    
+* It is possible to select active range of data::
+
+    A = x > 40 and x < 60
+
+All operations are performed on **real numbers**.
 Two numbers that differ less than *ε*
 (the value of *ε* is set by the :ref:`option epsilon <epsilon>`)
 are considered equal.
+
+Points can be created or deleted by changing the value of ``M``.
+For example, the following commands::
+
+    M=500; x=n/100; y=sin(x)
+
+create 500 points and generate a sinusoid.
+
+Points are kept sorted according to their *x* coordinate.
+The sorting is performed after each transformation.
+
+.. note:: Changing the *x* coordinate may change the order
+          and indices of points.
+
+Indices, like all other values, are computed in the real number domain.
+If the index is not integer (it is compared using *ε* to the rounded value):
+
+* ``x``, ``y``, ``s``, ``a`` are interpolated linearly.
+  For example, ``y[2.5]`` is equal to ``(y[2]+[3])/2``.
+  If the index is less than 0 or larger than M-1, the value for the first
+  or the last point, respectively, is returned.
+
+* For ``X``, ``Y``, ``S``, ``A`` the index is rounded to integer.
+  If the index is less than 0 or larger than M-1, 0 is returned.
 
 Transformations separated by commas (``,``) form a sequance of transformations.
 During the sequance, the vectors ``x``, ``y``, ``s`` and ``a`` that contain
@@ -330,47 +368,35 @@ old values are not changed. This makes possible to swap the axes::
 
    X=y, Y=x
 
-or to equilibrate the step of data (with interpolation of *y* and *σ*)::
+The special ``index(arg)`` function returns the index of point that has
+*x* equal *arg*, or, if there is no such point, the linear interpolation
+of two neighbouring indices. This enables equilibrating the step of data
+(with interpolation of *y* and *σ*)::
 
    X = x[0] + n * (x[M-1]-x[0]) / (M-1), Y = y[index(X)], S = s[index(X)]
 
-Points are sorted according to their *x* coordinate. The sorting is performed
-after each transformation.
-
-In the sequance of transformations the order of points can be temporarily
-changed with the ``order=t`` expression,
-where *t* is one of ``x``, ``y``, ``s``, ``a``, ``-x``, ``-y``, ``-s``, ``-a``.
-For example, half of the points with largest *σ* can be disactivated with::
-
-   order=s, a = (n < M/2)
-
-Points can be created or deleted by changing the value of ``M``.
-It is also possible specify a condition for points that are to be deleted,
+It is possible to delete points for which given condition is true,
 using expression ``delete(condition)``, e.g.::
     
     delete(not a) # delete inactive points
 
-A few examples::
-
-    # integrate
-    Y[1...] = Y[n-1] + y[n] 
-
     # reduce twice the number of points, averaging x and adding y
-    x[...-1] = (x[n]+x[n+1])/2
-    y[...-1] = y[n]+y[n+1]
+    x = (x[n]+x[n+1])/2
+    y = y[n]+y[n+1]
     delete(n%2==1)
 
-    # change x scale of diffraction pattern (2theta -> Q)
-    X = 4*pi * sin(x/2*pi/180) / 1.54051
+The value of a data expression can be shown using command ``info``.
+The precision of printed numbers is governed by the
+:ref:`info-numeric-format <info_numeric_format>` option.
+The ``info`` command can be also used as a calculator::
 
-    # take the first 2000 points, average them and subtract as background
-    Y = y - avg(y if n<2000)
-
-    # Fityk can be used as a calculator.
-    # `i' is a shortcut for `info', it prints calculated value
+    # `i' is a shortcut for `info'
     i 2+2 #4
     i sin(pi/4)+cos(pi/4) #1.41421
     i gamma(10) #362880
+
+If you have more than one dataset, you have to specify explicitly to which
+dataset the transformation applies to. See :ref:`multidata` for details.
 
 
 Aggregate functions
@@ -413,7 +439,12 @@ Examples::
     i sum(1 if y>100) # the number of points that have y above 100
     i sum(1 if y>avg(y)) # aggregate functions can be nested
     i y[min(n if y > 100)] # the first (from the left) value of y above 100
+
+    # take the first 2000 points, average them and subtract as background
+    Y = y - avg(y if n<2000)
+
     Y = y / darea(y) # normalize data area
+
 
 .. _funcindt:
 
@@ -1768,8 +1799,7 @@ The command::
 writes the current state of the program
 (including all datasets) to a single .fit file.
 
-The command ``sleep sec`` makes the program wait *sec* seconds
-before continuing.
+The command ``sleep sec`` makes the program wait *sec* seconds.
 
 The command ``quit`` works as expected.
 If it is found in a script it quits the program, not only the script.

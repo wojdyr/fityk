@@ -21,80 +21,95 @@ using namespace std;
 // ';' will be replaced by line break
 static const char *default_transforms[] = {
 
-"std.dev.=1||"
+"std.dev.=1"
+"||"
 "|s=1"
 "|Y",
 
-"std.dev.=sqrt(y)||std.dev. = sqrt(y) (or 1 if y<1)"
-"|sqrt(max2(1,y))"
+"std.dev.=sqrt(y)"
+"||std.dev. = sqrt(y) (or 1 if y<1)"
+"|s=sqrt(max2(1,y))"
 "|Y",
 
-"integrate||"
-"|Y[0] = 0"
-";Y[1...] = Y[n-1] + (x[n] - x[n-1]) * (y[n-1] + y[n]) / 2"
+"integrate"
+"||"
+"|Y = Y[n-1] + (x[n] - x[n-1]) * (y[n-1] + y[n]) / 2"
 "|Y",
 
-"differentiate||compute numerical derivative f'(x)"
-"|Y[...-1] = (y[n+1]-y[n])/(x[n+1]-x[n])"
-";X[...-1] = (x[n+1]+x[n])/2"
+"differentiate"
+"||compute numerical derivative f'(x)"
+"|Y = (y[n+1]-y[n])/(x[n+1]-x[n])"
+";X = (x[n+1]+x[n])/2"
 ";M=M-1"
 ";S = sqrt(max2(1,y))"
 "|Y",
 
-"accumulate||Accumulate y of data and adjust std. dev."
-"|Y[1...] = Y[n-1] + y[n]"
+"accumulate"
+"||Accumulate y of data and adjust std. dev."
+"|Y = Y[n-1] + y[n]"
 ";S = sqrt(max2(1,y))"
 "|Y",
 
-"normalize area||"
+"normalize area"
+"||"
 "divide all Y (and std. dev.) values by the current data area"
 " (it gives unit area)"
 "|Y = y/darea(y), S = s / darea(y)"
 "|Y",
 
-"reduce 2x||join every two adjacent points"
-"|X[...-1] = (x[n]+x[n+1])/2"
-";Y[...-1] = y[n]+y[n+1]"
-";S[...-1] = sqrt(s[n]^2+s[n]^2)"
+"reduce 2x"
+"||join every two adjacent points"
+"|X = (x[n]+x[n+1])/2"
+";Y = y[n]+y[n+1]"
+";S = s[n]+s[n+1]"
 ";delete(n%2==1)"
 "|Y",
 
-"equilibrate step||make equal step, keep the number of points"
+"equilibrate step"
+"||make equal step, keep the number of points"
 "|X = x[0] + n * (x[M-1]-x[0]) / (M-1), Y = y[index(X)], S = s[index(X)], A = a[index(X)]"
 "|Y",
 
-"zero negative y||zero the Y value; of points with negative Y"
+"zero negative y"
+"||zero the Y value; of points with negative Y"
 "|Y=max2(y,0)"
 "|Y",
 
-"clear inactive||delete inactive points"
+"clear inactive"
+"||delete inactive points"
 "|delete(not a)"
 "|Y",
 
-"swap axes||Swap X and Y axes and adjust std. dev."
+"swap axes"
+"||Swap X and Y axes and adjust std. dev."
 "|Y=x , X=y , S=sqrt(max2(1,Y))"
 "|N",
 
-"generate sinusoid||replaces current data with sinusoid"
+"generate sinusoid"
+"||replaces current data with sinusoid"
 "|M=2000"
 ";x=n/100"
 ";y=sin(x)"
 ";s=1"
 "|N",
 
-"invert||inverts y value of points"
+"invert"
+"||inverts y value of points"
 "|Y=-y"
 "|N",
 
-"activate all||activate all data points"
+"activate all"
+"||activate all data points"
 "|a=true"
 "|N",
 
-"Q -> 2theta(Cu)||rescale X axis (for powder diffraction patterns)"
+"Q -> 2theta(Cu)"
+"||rescale X axis (for powder diffraction patterns)"
 "|X = asin(x/(4*pi)*1.54051) * 2*180/pi"
 "|N",
 
-"2theta(Cu) -> Q||rescale X axis (for powder diffraction patterns)"
+"2theta(Cu) -> Q"
+"||rescale X axis (for powder diffraction patterns)"
 "|X = 4*pi * sin(x/2*pi/180) / 1.54051"
 "|N"
 };

@@ -8,100 +8,6 @@
 // $ g++ -I../3rdparty -DSTANDALONE_DATATRANS datatrans*.cpp numfuncs.cpp -o dt
 // $ ./dt
 
-// right hand variables:
-//       arrays (index in square brackets can be ommitted and n is assumed):
-//              x[] - x coordinate of point before transformation (old x)
-//              X[] - x coordinate after transformation (new x),
-//              y[], Y[] - y coordinate of point (before/after transformation)
-//              s[], S[]  -  std. dev. of y,
-//              a[], A[] - active point, either 0 or 1
-//       scalars:
-//              M - size of arrays,
-//              n - current index (index of currently transformed point)
-// upper-case variables are assignable
-// assignment syntax:
-//        or: assignable_var = expression     --> executed for all points
-//        or: assignable_var[k] = expression  --> executed for k-th point
-//        or: assignable_var[k...m] = expression
-//        or: assignable_var[k...] = expression
-//        or: assignable_var[...k] = expression
-//   where k and m are integers (negative are counted from the end:
-//                               -1 is last, -2 one before last, and so on)
-//                               FIXME: should x[-1] also mean x[M-1]?
-//     k...m means that expression is executed for k, k+1, ... m-1. Not for m.
-//
-// Assignments are executed for n = 0, ..., M-1 (if assignments are joined
-// with ',', all are executed for n=0, then all for n=1, and so on).
-// Before transformation the new point coordinates are a copy of the old ones.
-//
-// There is a special function sum(), which can be used as a real value.
-// and returns a sum over all points of value of expression
-// eg. sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0) -> area.
-// The value of sum() is computed before transformation.
-//
-//
-// There are statements, that are executed only once:
-//    M=...,
-//    order=...
-// and assignments T[k]=..., if these statements are joined with other
-// assignments using ',', they are executed first, before iteration over all
-// indices.
-//
-//        M=length (eg. M=M+5 or M=100) changes number of points:
-//        either appends new data points with x=y=sigma=0, is_active=false,
-//        or deletes last points.
-//        order=[-]coordinate (eg. order=x, order=-x)
-//        sort data points; sorting is stable. After finishing transform
-//        command, points are sorted using x.
-//        delete[k] (or delete[k...m])
-//        delete(condition)
-//           deletion and change of M is postponed to the end of computation
-//
-
-// operators: binary +, -, *, /, % , ^
-// ternary operator:       condition ? expression1 : expression2
-//
-//functions: sqrt exp log10 ln sin cos tan atan asin acos abs min2 max2 round
-// boolean: AND, OR, >, >=, <, <=, = (or ==), != (or <>), TRUE, FALSE, NOT
-//
-// All computations are performed using real numbers, but using round for
-// comparisions should not be neccessary. Two numbers that differ less
-// than epsilon (see: common.h) ie. abs(a-b)<epsilon, are considered equal.
-// Indices are also computed in real number domain,
-// and if they are not integers, interpolation of two values
-// is taken (i.e of values with indices floor(idx) and ceil(idx)
-//
-//
-// Syntax examples:
-//    set standard deviation as sqrt(max2(1,y))
-//                         s = sqrt(max2(1,y))
-//         or (the same):  s = sqrt(max2(1,y[n]))
-//                    or:  S = sqrt(max2(1,y[n]))
-//                    or:  S = sqrt(max2(1,Y[n]))
-//                    or:  S = sqrt(max2(1,Y))
-//
-//    integration:   Y[1...] = Y[n-1] + y[n]
-//
-//    swaping x and y axes: y=x , x=y , s=sqrt(Y)
-//                      or: y=x , x=y , s=sqrt(x)
-//
-//    smoothing: Y[1...-1] = (y[n-1] + y[n+1])/2
-//
-//    reducing: order = x, # not neccessary, points are always in this order
-//              x[...-1] = (x[n]+x[n+1])/2,
-//              y[...-1] = y[n]+y[n+1],
-//              delete(n%2==1)
-//
-//    delete inactive points:    delete(not a)
-//    normalize area:
-//           y = y / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0)
-//
-//    subtract spline baseline given by points (22.17, 37.92), (48.06, 17.23),
-//                                              (93.03, 20.68).
-//    y = y - spline[22.17, 37.92,  48.06, 17.23,  93.03, 20.68](x)
-//
-
-//-----------------------------------------------------------------
 // how it works:
 //   * parse string and prepare VM code (list of operators)
 //     and data (list of numbers). There is one VM code and
@@ -123,12 +29,6 @@
 #include "datatrans2.h"
 #include "model.h"
 #include "voigt.h"
-//#include "common.h"
-//#include "data.h"
-//#include "var.h"
-//#include "numfuncs.h"
-//#include "logic.h"
-//#include <boost/spirit/core.hpp>
 
 #include <boost/math/special_functions/gamma.hpp>
 
@@ -235,23 +135,9 @@ DataTransformGrammar::definition<ScannerT>::definition(
                                           DataTransformGrammar const& /*self*/)
 {
     range
-        =  '[' >>
-              ( eps_p(int_p >> ']')[push_op(OP_DO_ONCE)]
-                >> int_p [push_double()] [push_op(OP_INDEX)]
-              | (
-                  ch_p('n') [push_the_double(0.)] [push_the_double(0.)]
-                | (
-                    ( int_p [push_double()]
-                    | eps_p [push_the_double(0.)]
-                    )
-                     >> (str_p("...") | "..")
-                     >> ( int_p [push_double()]
-                        | eps_p [push_the_double(0)]
-                        )
-                   )
-                ) [push_op(OP_RANGE)]
-              )
-            >> ']'
+        =  ch_p('[') [push_op(OP_DO_ONCE)]
+           >> int_p [push_double()] [push_op(OP_INDEX)]
+           >> ']'
         ;
 
     assignment //not only assignments
@@ -306,7 +192,7 @@ string dt_op(int op)
     OP_(OR) OP_(AFTER_OR) OP_(AND) OP_(AFTER_AND) OP_(NOT)
     OP_(TERNARY) OP_(TERNARY_MID) OP_(AFTER_TERNARY) OP_(DELETE_COND)
     OP_(GT) OP_(GE) OP_(LT) OP_(LE) OP_(EQ) OP_(NEQ)
-    OP_(RANGE) OP_(INDEX)
+    OP_(INDEX)
     OP_(ASSIGN_X) OP_(ASSIGN_Y) OP_(ASSIGN_S) OP_(ASSIGN_A)
     OP_(DO_ONCE) OP_(RESIZE) OP_(ORDER) OP_(BEGIN) OP_(END)
     OP_(END_AGGREGATE) OP_(AGCONDITION)
@@ -374,8 +260,12 @@ void skip_to_end(vector<int>::const_iterator &i)
 template<typename T>
 fp get_var_with_idx(fp idx, vector<Point> const& points, T Point::*t)
 {
-    if (idx < 0 || idx+1 > points.size())
+    if (points.empty())
         return 0.;
+    else if (idx <= 0)
+        return points[0].*t;
+    else if (idx >= points.size() - 1)
+        return points.back().*t;
     else if (is_eq(idx, iround(idx)))
         return points[iround(idx)].*t;
     else {
@@ -756,25 +646,6 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 if (n < 0 || n >= M)
                     skip_to_end(i);
                 break;
-            case OP_RANGE:
-              {
-                //x[i...j]= or delete[i...j]
-                int right = iround(*stackPtr); //Last In First Out
-                stackPtr--;
-                if (right <= 0)
-                    right += M;
-                int left = iround(*stackPtr);
-                stackPtr--;
-                if (left < 0)
-                    left += M;
-                else {
-                    //if n not in [i...j] then skip to prevent OP_ASSIGN_.
-                    bool n_between = (left <= n && n < right);
-                    if (!n_between)
-                        skip_to_end(i);
-                }
-                break;
-              }
             case OP_BEGIN:
               {
                 bool next_op_once = (*(i+1) == OP_DO_ONCE);
@@ -987,7 +858,7 @@ vector<Point> transform_data(string const& str, vector<Point> const& old_points)
         throw ExecuteError("Syntax error in data transformation formula.");
 
     // and then execute compiled code.
-    vector<Point> new_points = old_points; //initial values of new_points
+    vector<Point> new_points = old_points;
     execute_vm_code(old_points, new_points);
     return new_points;
 }
@@ -1084,6 +955,5 @@ vector<fp> get_all_point_expressions(string const &s, Data const* data,
     }
     return values;
 }
-
 
 
