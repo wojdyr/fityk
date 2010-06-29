@@ -90,12 +90,8 @@ public:
     void stop_log() { commands.stop_logging(); }
     Commands const& get_commands() const { return commands; }
 
-    /// Excute all commands (or these from specified lines) from file.
-    /// In other words, run a script (.fit).
-    void exec_script (std::string const &filename,
-                      std::vector<std::pair<int,int> > const &selected_lines);
-    void exec_script (std::string const &filename)
-        { exec_script(filename, std::vector<std::pair<int,int> >()); }
+    /// Excute commands from file, i.e. run a script (.fit).
+    void exec_script (std::string const &filename);
 
     void exec_stream (FILE *fp);
     void exec_string_as_script(const char* s);

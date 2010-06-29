@@ -6,6 +6,7 @@ User-visible changes in version 0.9.4  (2010-  -  ):
 * removed data range syntax, e.g. X[3...10]=15. It can be replaced
   with X = n >= 3 and n < 10 ? 15 : x
 * removed syntax "order="
+* removed syntax "commands < file[m:n]", only the whole file can be executed
 
 User-visible changes in version 0.9.3  (2010-06-24):
 * changed implementation of gamma and related functions (using boost.math now)

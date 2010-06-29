@@ -62,10 +62,7 @@ void do_commands_logging(char const*, char const*)
 
 void do_exec_file(char const*, char const*)
 {
-    vector<pair<int,int> > vpn;
-    for (int i = 0; i < size(vn); i+=2)
-        vpn.push_back(make_pair(vn[i],vn[i+1]));
-    AL->get_ui()->exec_script(t, vpn);
+    AL->get_ui()->exec_script(t);
 }
 
 void do_exec_prog_output(char const* a, char const* b)
@@ -164,11 +161,7 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
         = eps_p [assign_a(t, empty)]
           >> optional_plus
           >> ( (ch_p('>') >> CompactStrG) [&do_commands_logging]
-             | (ch_p('<') [clear_a(vn)]
-                 >> CompactStrG
-                 >> *(IntRangeG[push_back_a(vn, tmp_int)]
-                                             [push_back_a(vn, tmp_int2)])
-               ) [&do_exec_file]
+             | (ch_p('<') >> CompactStrG) [&do_exec_file]
              | ch_p('!') >> (+~ch_p('\n')) [&do_exec_prog_output]
              )
         ;

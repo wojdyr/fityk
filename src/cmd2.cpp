@@ -77,7 +77,6 @@ vector<DataAndModel*> get_datasets_from_indata()
     return result;
 }
 
-IntRangeGrammar  IntRangeG;
 CompactStrGrammar  CompactStrG;
 
 } //namespace cmdgram

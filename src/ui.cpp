@@ -194,11 +194,7 @@ void UserInterface::output_message(Style style, const string& s) const
 }
 
 
-/// Items in selected_lines are ranges (first, after-last).
-/// Lines in a file are numbered from 1.
-/// If selected_lines are empty all lines from file are executed.
-void UserInterface::exec_script(const string& filename,
-                                const vector<pair<int,int> >& selected_lines)
+void UserInterface::exec_script(const string& filename)
 {
     user_interrupt = false;
     ifstream file(filename.c_str(), ios::in);
@@ -209,95 +205,52 @@ void UserInterface::exec_script(const string& filename,
 
     string dir = get_directory(filename);
 
-    // most common case - execute all file
     // optimized for reading large embedded datasets
-    if (selected_lines.empty()) {
-        int line_index = 0;
-        string s;
-        int dirty_data = -1;
-        while (getline (file, s)) {
-            ++line_index;
-            if (s.empty())
+    int line_index = 0;
+    string s;
+    int dirty_data = -1;
+    while (getline (file, s)) {
+        ++line_index;
+        if (s.empty())
+            continue;
+        if (F->get_verbosity() >= 0)
+            show_message (kQuoted, S(line_index) + "> " + s);
+
+        // optimize reading data lines like this:
+        // X[93]=23.5124, Y[93]=122, S[93]=11.0454, A[93]=1 in @0
+        if (s.size() > 20 && s[0] == 'X') {
+            int nx, ny, ns, na, a, nd;
+            double x, y, sigma;
+            if (sscanf(s.c_str(),
+                       "X[%d]=%lf, Y[%d]=%lf, S[%d]=%lf, A[%d]=%d in @%d",
+                       &nx, &x, &ny, &y, &ns, &sigma, &na, &a, &nd) == 9
+                 && nx >= 0 && nx < size(F->get_data(nd)->points())
+                 && nx == ny && nx == ns && nx == na) {
+                vector<Point>& p = F->get_data(nd)->get_mutable_points();
+                p[nx].x = x;
+                p[ny].y = y;
+                p[ns].sigma = sigma;
+                p[na].is_active = (a != 0);
+                // check if we need to sort the data
+                if ((nx > 0 && p[nx-1].x > x)
+                    || (nx+1 < size(p) && x > p[nx+1].x))
+                    sort(p.begin(), p.end());
+                if (dirty_data != -1 && dirty_data != nd)
+                    F->get_data(dirty_data)->after_transform();
+                dirty_data = nd;
                 continue;
-            if (F->get_verbosity() >= 0)
-                show_message (kQuoted, S(line_index) + "> " + s);
-
-            // optimize reading data lines like this:
-            // X[93]=23.5124, Y[93]=122, S[93]=11.0454, A[93]=1 in @0
-            if (s.size() > 20 && s[0] == 'X') {
-                int nx, ny, ns, na, a, nd;
-                double x, y, sigma;
-                if (sscanf(s.c_str(),
-                           "X[%d]=%lf, Y[%d]=%lf, S[%d]=%lf, A[%d]=%d in @%d",
-                           &nx, &x, &ny, &y, &ns, &sigma, &na, &a, &nd) == 9
-                     && nx >= 0 && nx < size(F->get_data(nd)->points())
-                     && nx == ny && nx == ns && nx == na) {
-                    vector<Point>& p = F->get_data(nd)->get_mutable_points();
-                    p[nx].x = x;
-                    p[ny].y = y;
-                    p[ns].sigma = sigma;
-                    p[na].is_active = (a != 0);
-                    // check if we need to sort the data
-                    if ((nx > 0 && p[nx-1].x > x)
-                        || (nx+1 < size(p) && x > p[nx+1].x))
-                        sort(p.begin(), p.end());
-                    if (dirty_data != -1 && dirty_data != nd)
-                        F->get_data(dirty_data)->after_transform();
-                    dirty_data = nd;
-                    continue;
-                }
-            }
-            if (dirty_data != -1) {
-                F->get_data(dirty_data)->after_transform();
-                dirty_data = -1;
-            }
-            replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);
-            parse_and_execute(s);
-
-            if (user_interrupt) {
-                F->msg ("Script stopped by signal INT.");
-                return;
             }
         }
-    }
-
-    else { // execute specified lines from the file
-        // read in all lines from the file for easier manipulations
-        vector<string> lines;
-        string s;
-        while (getline (file, s)) {
-            replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);
-            lines.push_back(s);
+        if (dirty_data != -1) {
+            F->get_data(dirty_data)->after_transform();
+            dirty_data = -1;
         }
+        replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);
+        parse_and_execute(s);
 
-        for (vector<pair<int,int> >::const_iterator i = selected_lines.begin();
-                                            i != selected_lines.end(); i++) {
-            int f = i->first;
-            int t = i->second;
-            if (f < 0)
-                f += lines.size();
-            if (t < 0)
-                t += lines.size();
-            // f and t are 1-based (not 0-based)
-            if (f < 1)
-                f = 1;
-            if (t > (int) lines.size())
-                t = lines.size();
-            for (int j = f; j <= t; ++j) {
-                if (lines[j-1].empty())
-                    continue;
-                if (F->get_verbosity() >= 0)
-                    show_message (kQuoted, S(j) + "> " + lines[j-1]);
-                // result of parse_and_execute here is neglected. Errors in
-                // script don't change status of command, which executes script
-                parse_and_execute(lines[j-1]);
-
-                if (user_interrupt) {
-                    user_interrupt = false;
-                    F->msg ("Script stopped by signal INT.");
-                    return;
-                }
-            }
+        if (user_interrupt) {
+            F->msg ("Script stopped by signal INT.");
+            return;
         }
     }
 }

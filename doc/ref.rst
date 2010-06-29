@@ -1784,11 +1784,7 @@ Scripts can be executed using the command::
 
    commands < filename
 
-You can select lines that are to be executed::
-
-   commands < filename[m:n] # this executes lines from m to n
-
-It is also possible to execute standard output from an external program::
+It is also possible to execute the standard output from external program::
 
    commands ! program [args...]
 
