@@ -1,13 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# ATM I'm using sphinx 1.0 from hg.
-#
-# If you use sphinx older than 1.0: 
-# - remove "sphinx.ext.extlinks" from the extensions list below. Some links
-#   in index.html won't be rendered properly.
-# - copy manually the files in html_static_path below
-#   to html/_static/ and comment out this line.
-# - comment out the line starting with "html_sidebars"
+# For Sphinx 1.0.
 #
 # sphinx-build -d ./doctrees/ -b html . html
 
@@ -41,6 +34,7 @@ html_use_modindex = False
 html_use_index = False
 html_add_permalinks = False
 #html_compact_lists = True
+html_show_copyright = False
 
 latex_documents = [
   ('fityk-manual', 'fityk-manual.tex', 'Fityk manual', '', 'manual', True),

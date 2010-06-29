@@ -290,8 +290,11 @@ struct CmdGrammar : public grammar<CmdGrammar>
                   >> ( lexeme_d[(ch_p('%')|'$') >> +(alnum_p|'_'|'*')]
                                                               [push_back_a(vt)]
                      | func_id [push_back_a(vt, t)]
-                     | lexeme_d['@' >> uint_p[push_back_a(vn)]]) % ',')
-                                                                 [&do_delete]
+                     | lexeme_d['@' >> uint_p[push_back_a(vn)]]
+                   //| ('(' >> DataExpressionG >> ')' >> in_data)
+                   //                                         [push_back_a(vt)]
+                     )
+                  % ',') [&do_delete]
                | str_p("quit") [&do_quit]
                | assign_var
                | subst_func_param

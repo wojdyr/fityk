@@ -2,6 +2,12 @@ $Id$
 
 ---------- TODO list and tentative development plan  ----------------
 
+* remove % from data expressions, use it only in %functions
+
+* delete() should be handled outside of data expressions,
+  as delete command, e.g. delete (n=3) in @2, @3
+  using get_all_point_expressions()
+
 * finish powder diffraction add-on (Pawley fitting)
 
 * command info:
