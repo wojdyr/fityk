@@ -14,7 +14,7 @@
 //     data array for both do-once operations
 //     for for-many-points operations (perhaps it should be separated).
 //
-//   * execute do-once operations (eg. order=x, x[3]=4)
+//   * execute do-once operations (eg. x[3]=4)
 //     and computes value of aggregate functions
 //
 //   * execute all assignments for every point (from first to last),
@@ -90,44 +90,6 @@ int main(int argc, char **argv)
 
 #endif //STANDALONE_DATATRANS
 
-namespace {
-
-bool x_lt(const Point &p1, const Point &p2) { return p1.x < p2.x; }
-bool x_gt(const Point &p1, const Point &p2) { return p1.x > p2.x; }
-bool y_lt(const Point &p1, const Point &p2) { return p1.y < p2.y; }
-bool y_gt(const Point &p1, const Point &p2) { return p1.y > p2.y; }
-bool s_lt(const Point &p1, const Point &p2) { return p1.sigma < p2.sigma; }
-bool s_gt(const Point &p1, const Point &p2) { return p1.sigma > p2.sigma; }
-bool a_lt(const Point &p1, const Point &p2)
-                                        { return p1.is_active < p2.is_active; }
-bool a_gt(const Point &p1, const Point &p2)
-                                        { return p1.is_active > p2.is_active; }
-
-// pre: string(a, b) has format ?(+|-) [a-zA-Z]
-void push_order_code(const char* a, const char*)
-{
-    const char *s = a;
-    while (isspace(*s))
-        ++s;
-    int sign = 1;
-    if (*s == '-') {
-        sign = -1;
-        ++s;
-    }
-    else if (*s == '+')
-        ++s;
-    while (isspace(*s))
-        ++s;
-    int c = tolower(*s);
-    if (c != 'x' && c != 'y' && c != 's' && c != 'a')
-        throw ExecuteError("`order=' can be followed only by x, y, s or a.");
-    code.push_back(OP_DO_ONCE);
-    push_double()(sign * c);
-    code.push_back(OP_ORDER);
-}
-
-}
-
 
 //----------------------------  grammar  ----------------------------------
 template <typename ScannerT>
@@ -151,8 +113,6 @@ DataTransformGrammar::definition<ScannerT>::definition(
                                                      [push_op(OP_ASSIGN_A)]
         |  ((ch_p('M') >> '=') [push_op(OP_DO_ONCE)]
            >> DataExpressionG) [push_op(OP_RESIZE)]
-        |  as_lower_d["order"] >> '='
-           >> (!(ch_p('+')|'-') >> alpha_p) [&push_order_code]
         |  (as_lower_d["delete"] >> '(' >> DataExpressionG >> ')')
                                                    [push_op(OP_DELETE_COND)]
         ;
@@ -194,7 +154,7 @@ string dt_op(int op)
     OP_(GT) OP_(GE) OP_(LT) OP_(LE) OP_(EQ) OP_(NEQ)
     OP_(INDEX)
     OP_(ASSIGN_X) OP_(ASSIGN_Y) OP_(ASSIGN_S) OP_(ASSIGN_A)
-    OP_(DO_ONCE) OP_(RESIZE) OP_(ORDER) OP_(BEGIN) OP_(END)
+    OP_(DO_ONCE) OP_(RESIZE) OP_(BEGIN) OP_(END)
     OP_(END_AGGREGATE) OP_(AGCONDITION)
     OP_(AGSUM) OP_(AGMIN) OP_(AGMAX) OP_(AGAREA) OP_(AGAVG) OP_(AGSTDDEV)
     OP_(FUNC) OP_(SUM_F) OP_(SUM_Z) OP_(NUMAREA) OP_(FINDX) OP_(FIND_EXTR)
@@ -668,46 +628,6 @@ bool execute_code(int n, int &M, vector<fp>& stack,
                 stackPtr--;
                 new_points.resize(M);
                 break;
-            case OP_ORDER:
-              {
-                assert(once);
-                int ord = iround(*stackPtr);
-                stackPtr--;
-                DT_DEBUG("in OP_ORDER with " + S(ord))
-                if (ord == 'x') {
-                    DT_DEBUG("sort x_lt")
-                    stable_sort(new_points.begin(), new_points.end(), x_lt);
-                }
-                else if (ord == -'x') {
-                    DT_DEBUG("sort x_gt")
-                    stable_sort(new_points.begin(), new_points.end(), x_gt);
-                }
-                else if (ord == 'y') {
-                    DT_DEBUG("sort y_lt")
-                    stable_sort(new_points.begin(), new_points.end(), y_lt);
-                }
-                else if (ord == -'y') {
-                    DT_DEBUG("sort y_gt")
-                    stable_sort(new_points.begin(), new_points.end(), y_gt);
-                }
-                else if (ord == 's') {
-                    DT_DEBUG("sort s_lt")
-                    stable_sort(new_points.begin(), new_points.end(), s_lt);
-                }
-                else if (ord == -'s') {
-                    DT_DEBUG("sort s_gt")
-                    stable_sort(new_points.begin(), new_points.end(), s_gt);
-                }
-                else if (ord == 'a') {
-                    DT_DEBUG("sort a_lt")
-                    stable_sort(new_points.begin(), new_points.end(), a_lt);
-                }
-                else if (ord == -'a') {
-                    DT_DEBUG("sort a_gt")
-                    stable_sort(new_points.begin(), new_points.end(), a_gt);
-                }
-                break;
-              }
             default:
                 DT_DEBUG("Unknown operator in VM code: " + S(*i))
                 assert(0);
@@ -807,7 +727,7 @@ void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
     vector<fp> stack(stack_size);
     int M = (int) new_points.size();
     replace_aggregates(M, old_points, code, code.begin());
-    // first execute one-time operations: sorting, x[15]=3, etc.
+    // first execute one-time operations: e.g. x[15]=3
     // n==M => one-time op.
     bool t = execute_code(M, M, stack, old_points, new_points, code);
     if (!t)

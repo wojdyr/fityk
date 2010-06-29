@@ -59,7 +59,7 @@ struct DataTransformGrammar : public grammar<DataTransformGrammar>
   {
     definition(DataTransformGrammar const& /*self*/);
 
-    rule<ScannerT> assignment, statement, range, order;
+    rule<ScannerT> assignment, statement, range;
 
     rule<ScannerT> const& start() const { return statement; }
   };
