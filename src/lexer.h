@@ -63,7 +63,7 @@ class Lexer
 {
 public:
     // XXX: idea - perhaps we should introduce a rule that kMath mode
-    // is used after '=' until ',' or ';'.
+    // is used after '=' until outer ',' or ';'.
     // The needed changes would be:
     //  - set autoplot values
     //  - set fitting-method values
@@ -78,6 +78,10 @@ public:
     // get string associated with the token. Works only with:
     // kTokenName, kTokenString, kTokenVarname, kTokenFuncname, kTokenShell.
     static std::string get_string(const Token& token);
+
+    // get string associated with the token.
+    static std::string get_raw(const Token& token)
+        { return std::string(token.str, token.info.length); }
 
     Lexer(const char* input)
         : input_(input), cur_(input), mode_(kWord), peeked_(false),
