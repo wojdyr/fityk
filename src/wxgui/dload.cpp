@@ -459,7 +459,7 @@ string DLoadDlg::get_command(string const& ds, int d_nr)
 
     string filetype;
     //if (title_cb->IsChecked())
-    //    filetype = " text, first-line-header";
+    //    filetype = " text, first_line_header";
 
     bool def_sqrt = (ftk->get_settings()->getp("data-default-sigma") == "sqrt");
     bool set_sqrt = sd_sqrt_cb->GetValue();

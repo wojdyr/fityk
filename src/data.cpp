@@ -302,11 +302,23 @@ void Data::add_one_point(double x, double y, double sigma)
     }
 }
 
+// the same as replace_all(options, "_", "-")
+static string tr_opt(string options)
+{
+    size_t pos = 0;
+    while ((pos = options.find('_', pos)) != string::npos)
+    {
+        options[pos] = '-';
+        ++pos;
+    }
+    return options;
+}
+
 int Data::count_blocks(string const& fn,
                        string const& format, string const& options)
 {
     shared_ptr<const xylib::DataSet> xyds(
-                                xylib::cached_load_file(fn, format, options));
+                        xylib::cached_load_file(fn, format, tr_opt(options)));
     return xyds->get_block_count();
 }
 
@@ -315,10 +327,9 @@ int Data::count_columns(string const& fn,
                         int first_block)
 {
     shared_ptr<const xylib::DataSet> xyds(
-                                xylib::cached_load_file(fn, format, options));
+                        xylib::cached_load_file(fn, format, tr_opt(options)));
     return xyds->get_block(first_block)->get_column_count();
 }
-
 
 // for column indices, INT_MAX is used as not given
 void Data::load_file (string const& fn,
@@ -332,7 +343,7 @@ void Data::load_file (string const& fn,
     string block_name;
     try {
         shared_ptr<const xylib::DataSet> xyds(
-                                xylib::cached_load_file(fn, format, options));
+                        xylib::cached_load_file(fn, format, tr_opt(options)));
         clear(); //removing previous file
         vector<int> bb = blocks.empty() ? vector1(0) : blocks;
 

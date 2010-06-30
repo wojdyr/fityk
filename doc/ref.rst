@@ -71,7 +71,7 @@ indices, if any).
 Multiple y columns and/or blocks can be specified, see the examples below::
 
     @0 < foo.vms
-    @0 < foo.fii text first-line-header
+    @0 < foo.fii text first_line_header
     @0 < foo.dat:1:4:: # x,y - 1st and 4th columns
     @0 < foo.dat:1:3,4:: # load two dataset (with y in columns 3,4)
     @0 < foo.dat:1:3..5:: # load three dataset (with y in columns 3,4,5)
@@ -166,16 +166,16 @@ shorter lines should be ignored. The line is ignored:
 
 Data blocks and columns may have names. These names are used to set
 a title of the dataset (see :ref:`multidata` for details).
-If the option :option:`first-line-header` is given and the number of words
+If the option :option:`first_line_header` is given and the number of words
 in the first line is equal to the number of data columns,
 each word is used as a name of corresponding column.
 If the number of words is different, the first line is used as a name of the
 block.
-If the :option:`last-line-header` option is given, the line preceding
+If the :option:`last_line_header` option is given, the line preceding
 the first data line is used to set either column names or the block name.
 
 If the file starts with the "`LAMMPS (`" string,
-the :option:`last-line-header` option is set implicitely.
+the :option:`last_line_header` option is set implicitely.
 This is very helpful when plotting data from LAMMPS log files.
 
 Active and inactive points
@@ -1436,7 +1436,7 @@ criteria.
 
 .. |lambda| replace:: *λ*
 
-.. COMMENT: <para>
+.. COMMENT: it is outdated, but may be re-used in the future
       L-M method finds a minimum quickly. The question is, if it is the
       global minimum.  It can be a good idea to add a small random vector to
       the vector of parameters and try again. This small shift vector is added,
@@ -1450,7 +1450,6 @@ criteria.
       directly proportional to both value of
       <parameter class="option">shake-before</parameter> option and width of
       parameter's domain.
-      </para>
 
 .. _nelder:
 
