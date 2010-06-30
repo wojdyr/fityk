@@ -427,6 +427,19 @@ void Data::transform(const string &s)
     after_transform();
 }
 
+void Data::delete_points(const string &condition)
+{
+    vector<fp> del = get_all_point_expressions(condition, this, false);
+    vector<Point> new_p;
+    new_p.reserve(p_.size());
+    for (size_t i = 0; i != p_.size(); ++i)
+        if (fabs(del[i]) < 0.5)
+            new_p.push_back(p_[i]);
+    p_ = new_p;
+    after_transform();
+}
+
+
 void Data::after_transform()
 {
     x_step_ = find_step();

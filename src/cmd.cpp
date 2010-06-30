@@ -25,6 +25,7 @@
 #include "logic.h"
 #include "settings.h"
 #include "optional_suffix.h"
+#include "datatrans.h"
 
 using namespace std;
 using namespace boost::spirit::classic;
@@ -120,13 +121,33 @@ void do_remove_from_fz(char const* a, char const*)
 
 void do_delete(char const*, char const*)
 {
+    // delete datasets
     if (!vn.empty()) {
         sort(vn.begin(), vn.end());
         reverse(vn.begin(), vn.end());
         for (vector<int>::const_iterator i = vn.begin(); i != vn.end(); ++i)
             AL->remove_dm(*i);
     }
-    AL->delete_funcs_and_vars(vt);
+
+    // delete functions/variables
+    vector<string> vars, funcs;
+    for (vector<string>::const_iterator i = vt.begin(); i != vt.end(); ++i) {
+        if ((*i)[0] == '$')
+            vars.push_back(string(*i, 1));
+        else if ((*i)[0] == '%')
+            funcs.push_back(string(*i, 1));
+    }
+    AL->delete_funcs(funcs);
+    AL->delete_variables(vars);
+
+    // delete data points
+    if (vt.size() == 1 && vt[0][0] == '(') {
+        vector<DataAndModel*> dsds = get_datasets_from_indata();
+        for (vector<DataAndModel*>::const_iterator i = dsds.begin();
+                                                        i != dsds.end(); ++i)
+            (*i)->data()->delete_points(vt[0]);
+    }
+
     AL->outdated_plot(); //TODO only if...
 }
 
@@ -287,14 +308,14 @@ struct CmdGrammar : public grammar<CmdGrammar>
         statement
             = !temporary_set
             >> ( (optional_suffix_p("del","ete")[clear_a(vt)][clear_a(vn)]
-                  >> ( lexeme_d[(ch_p('%')|'$') >> +(alnum_p|'_'|'*')]
+                  >> (( lexeme_d[(ch_p('%')|'$') >> +(alnum_p|'_'|'*')]
                                                               [push_back_a(vt)]
-                     | func_id [push_back_a(vt, t)]
-                     | lexeme_d['@' >> uint_p[push_back_a(vn)]]
-                   //| ('(' >> DataExpressionG >> ')' >> in_data)
-                   //                                         [push_back_a(vt)]
-                     )
-                  % ',') [&do_delete]
+                      | func_id [push_back_a(vt, t)]
+                      | lexeme_d['@' >> uint_p[push_back_a(vn)]]
+                      ) % ','
+                     | ('(' >> DataExpressionG >> ')') [push_back_a(vt)]
+                       >> InDataG)
+                     ) [&do_delete]
                | str_p("quit") [&do_quit]
                | assign_var
                | subst_func_param

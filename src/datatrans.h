@@ -26,7 +26,7 @@ fp get_transform_expr_value(std::vector<int>& code_,
                             std::vector<Point> const& points);
 std::vector<fp> get_all_point_expressions(std::string const &s,
                                           Data const* data,
-                                          bool only_active=true);
+                                          bool only_active);
 bool get_dt_code(std::string const& s,
                  std::vector<int>& code_, std::vector<fp>& numbers_);
 std::string get_trans_repr(std::string const& s);

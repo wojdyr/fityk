@@ -113,8 +113,6 @@ DataTransformGrammar::definition<ScannerT>::definition(
                                                      [push_op(OP_ASSIGN_A)]
         |  ((ch_p('M') >> '=') [push_op(OP_DO_ONCE)]
            >> DataExpressionG) [push_op(OP_RESIZE)]
-        |  (as_lower_d["delete"] >> '(' >> DataExpressionG >> ')')
-                                                   [push_op(OP_DELETE_COND)]
         ;
 
     statement
@@ -150,7 +148,7 @@ string dt_op(int op)
     OP_(VAR_x) OP_(VAR_y) OP_(VAR_s) OP_(VAR_a)
     OP_(VAR_n) OP_(VAR_M) OP_(NUMBER)
     OP_(OR) OP_(AFTER_OR) OP_(AND) OP_(AFTER_AND) OP_(NOT)
-    OP_(TERNARY) OP_(TERNARY_MID) OP_(AFTER_TERNARY) OP_(DELETE_COND)
+    OP_(TERNARY) OP_(TERNARY_MID) OP_(AFTER_TERNARY)
     OP_(GT) OP_(GE) OP_(LT) OP_(LE) OP_(EQ) OP_(NEQ)
     OP_(INDEX)
     OP_(ASSIGN_X) OP_(ASSIGN_Y) OP_(ASSIGN_S) OP_(ASSIGN_A)
@@ -257,8 +255,6 @@ fp find_idx_in_sorted(vector<Point> const& pp, fp x)
 // Return value:
 //  if once==true (one-time pass).
 //   true means: it is neccessary to call this function for every point.
-//  if iterative pass:
-//   true means: delete this point.
 // n: index of point; //     special value: n==M: one-time operations
 //     n(==M) can be changed in OP_INDEX
 // M: number of all points (==new_points.size())
@@ -590,15 +586,9 @@ bool execute_code(int n, int &M, vector<fp>& stack,
             case OP_AFTER_TERNARY:
                 break;
 
-            case OP_DELETE_COND:
-                if (!is_zero(*stackPtr))
-                    return_value = true;
-                stackPtr--;
-                break;
-
             //transformation condition
             case OP_INDEX:
-                assert(once);  //x[n]= or delete[n]
+                assert(once);  //x[n]=
                 n = iround(*stackPtr);//changing n(!!) for use in OP_ASSIGN_
                 stackPtr--;
                 if (n < 0)
@@ -654,7 +644,7 @@ void replace_aggregates(int M, vector<Point> const& old_points,
             fp result = 0.;
             fp mean = 0.; //needed for OP_AGSTDDEV
             int counter = 0;
-            vector<Point> fake_new_points(M);
+            vector<Point> dummy_points(M);
             ++i;
             while (*i != OP_AGCONDITION && *i != OP_END_AGGREGATE)
                 ++i;
@@ -668,12 +658,12 @@ void replace_aggregates(int M, vector<Point> const& old_points,
             }
             for (int n = 0; n != M; n++) {
                 if (!ccode.empty()) {
-                    execute_code(n,M,stack, old_points, fake_new_points, ccode);
+                    execute_code(n,M,stack, old_points, dummy_points, ccode);
                     if (is_eq(stack.front(), 0))
                         continue;
                 }
                 ++counter;
-                execute_code(n, M, stack, old_points, fake_new_points, acode);
+                execute_code(n, M, stack, old_points, dummy_points, acode);
                 if (op == OP_AGSUM)
                     result += stack.front();
                 else if (op == OP_AGMIN) {
@@ -732,16 +722,9 @@ void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
     bool t = execute_code(M, M, stack, old_points, new_points, code);
     if (!t)
         return;
-    vector<int> to_be_deleted;
     for (int n = 0; n != M; n++) {
-        bool r = execute_code(n, M, stack, old_points, new_points, code);
-        if (r)
-            to_be_deleted.push_back(n);
+        execute_code(n, M, stack, old_points, new_points, code);
     }
-    if (!to_be_deleted.empty())
-        for (vector<int>::const_iterator i = to_be_deleted.end() - 1;
-                                             i >= to_be_deleted.begin(); --i)
-            new_points.erase(new_points.begin() + *i);
 }
 
 } //namespace

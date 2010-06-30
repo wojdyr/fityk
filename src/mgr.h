@@ -70,7 +70,6 @@ public:
                                std::string const &param,
                                std::string const &var);
     void delete_funcs(std::vector<std::string> const &names);
-    void delete_funcs_and_vars(std::vector<std::string> const &xnames);
     ///returns -1 if not found or idx in variables if found
     int find_function_nr(std::string const &name) const;
     Function const* find_function(std::string const &name) const;

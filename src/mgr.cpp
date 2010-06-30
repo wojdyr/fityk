@@ -483,23 +483,6 @@ void VariableManager::auto_remove_functions()
     }
 }
 
-void VariableManager::delete_funcs_and_vars(vector<string> const &xnames)
-{
-    vector<string> vars, funcs;
-    for (vector<string>::const_iterator i = xnames.begin();
-            i != xnames.end(); ++i) {
-        if ((*i)[0] == '$')
-            vars.push_back(string(*i, 1));
-        else if ((*i)[0] == '%')
-            funcs.push_back(string(*i, 1));
-        else
-            assert(0);
-    }
-    delete_funcs(funcs);
-    delete_variables(vars);
-}
-
-
 int VariableManager::find_function_nr(string const &name) const
 {
     string only_name = !name.empty() && name[0]=='%' ? string(name,1) : name;
