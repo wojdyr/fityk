@@ -75,7 +75,7 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
     m_choices.Add(wxT("Genetic Algorithm"));
     method_c = new wxChoice(this, -1, wxDefaultPosition, wxDefaultSize,
                             m_choices);
-    int method_nr = ftk->get_settings()->get_e("fitting-method");
+    int method_nr = ftk->get_settings()->get_e("fitting_method");
     method_c->SetSelection(method_nr);
     method_sizer->Add(method_c, 0, wxALL, 5);
     top_sizer->Add(method_sizer, 0);
@@ -89,7 +89,7 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
     max_sizer->Add(nomaxiter_st, 0, wxRIGHT|wxALIGN_CENTER_VERTICAL, 5);
     max_sizer->Add(new wxStaticText(this, -1, wxT("max. WSSR evaluations")),
                    0, wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT, 5);
-    int default_max_eval = ftk->get_settings()->get_i("max-wssr-evaluations");
+    int default_max_eval = ftk->get_settings()->get_i("max_wssr_evaluations");
     maxeval_sc = new SpinCtrl(this, -1, default_max_eval, 0, 999999, 70);
     max_sizer->Add(maxeval_sc, 0, wxALL, 5);
     nomaxeval_st = new wxStaticText(this, -1, wxT("(unlimited)"));
@@ -100,7 +100,7 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
     initialize_cb->SetValue(initialize);
     top_sizer->Add(initialize_cb, 0, wxALL, 5);
 
-    bool autop = (ftk->get_settings()->getp("autoplot") == "on-fit-iteration");
+    bool autop = (ftk->get_settings()->getp("autoplot") == "on_fit_iteration");
     autoplot_cb = new wxCheckBox(this, -1,
                                  wxT("refresh plot after each iteration"));
     autoplot_cb->SetValue(autop);
@@ -144,21 +144,21 @@ void FitRunDlg::OnOK(wxCommandEvent&)
 {
     string cmd;
     int m = method_c->GetSelection();
-    if (m != ftk->get_settings()->get_e("fitting-method"))
-        cmd += "with fitting-method="
+    if (m != ftk->get_settings()->get_e("fitting_method"))
+        cmd += "with fitting_method="
             + ftk->get_fit_container()->get_method(m)->name + " ";
 
-    bool autop = (ftk->get_settings()->getp("autoplot") == "on-fit-iteration");
+    bool autop = (ftk->get_settings()->getp("autoplot") == "on_fit_iteration");
     if (autoplot_cb->GetValue() != autop) {
         cmd += string(cmd.empty() ? "with" : ",") + " autoplot=";
-        cmd += (autoplot_cb->GetValue() ? "on-fit-iteration "
-                                        : "on-plot-change ");
+        cmd += (autoplot_cb->GetValue() ? "on_fit_iteration "
+                                        : "on_plot_change ");
     }
 
     int max_eval = maxeval_sc->GetValue();
-    if (max_eval != ftk->get_settings()->get_i("max-wssr-evaluations"))
+    if (max_eval != ftk->get_settings()->get_i("max_wssr_evaluations"))
         cmd += (cmd.empty() ? "with" : ",")
-                + string(" max-wssr-evaluations=") + S(max_eval) + " ";
+                + string(" max_wssr_evaluations=") + S(max_eval) + " ";
 
     bool ini = initialize_cb->GetValue();
     cmd +=  ini ? "fit " : "fit+ ";

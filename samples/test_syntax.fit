@@ -8,9 +8,9 @@
 
 # first set some options useful for testing
 
-set exit-on-warning = 1
+set exit_on_warning = 1
 set autoplot = never
-set pseudo-random-seed = 174924
+set pseudo_random_seed = 174924
 set verbosity = verbose
 
 
@@ -74,8 +74,8 @@ dele %pe
 F += Pearson7(~2000, ~75, ~0.6, ~2)
 fit 2 in @0
 fit+ 15
-with fitting-method=Nelder-Mead-simplex fit 10
-with fitting-method=Genetic-Algorithms fit 10
+with fitting_method=Nelder_Mead_simplex fit 10
+with fitting_method=Genetic_Algorithms fit 10
 %fun = copy(%_1)
 i+ %ble, %lo
 $a = %ble.shape
@@ -116,7 +116,7 @@ i @0.dF(12*3)
 i data in @0
 i filename in @0, title in @0
 i fit
-i fit-history
+i fit_history
 i set
 i errors
 i guess in @0
@@ -149,7 +149,7 @@ i+ @0.dF(12*3)
 i+ data in @0
 i+ filename, title
 i+ fit
-i+ fit-history
+i+ fit_history
 i+ set
 i+ errors
 i+ guess in @0
@@ -247,34 +247,34 @@ info+ peaks in @* > tmp_foo9.xy
 dump > tmp_dump.fit
 
 # settings
-set can-cancel-guess # only shows info
-set can-cancel-guess = 1
-set cut-function-level = 0
-set fitting-method = Levenberg-Marquardt
-set formula-export-style = normal
-set guess-at-center-pm = 1
-set height-correction = 1
-set lm-lambda-down-factor = 10
-set lm-lambda-start = 0.001
-set lm-lambda-up-factor = 10
-set lm-max-lambda = 1e+15
-set lm-stop-rel-change = 0.0001
-set max-wssr-evaluations = 1000
-set nm-convergence = 0.0001
-set nm-distribution = bound
-set nm-move-all = 0
-set nm-move-factor = 1
-set variable-domain-percent = 30
-set width-correction = 1
+set can_cancel_guess # only shows info
+set can_cancel_guess = 1
+set cut_function_level = 0
+set fitting_method = Levenberg_Marquardt
+set formula_export_style = normal
+set guess_at_center_pm = 1
+set height_correction = 1
+set lm_lambda_down_factor = 10
+set lm_lambda_start = 0.001
+set lm_lambda_up_factor = 10
+set lm_max_lambda = 1e+15
+set lm_stop_rel_change = 0.0001
+set max_wssr_evaluations = 1000
+set nm_convergence = 0.0001
+set nm_distribution = bound
+set nm_move_all = 0
+set nm_move_factor = 1
+set variable_domain_percent = 30
+set width_correction = 1
 set epsilon = 1e-12
-set data-default-sigma=one
-set data-default-sigma=sqrt
+set data_default_sigma=one
+set data_default_sigma=sqrt
 set verbosity = debug
 set verbosity = normal
 set verbosity = quiet
 set verbosity = verbose
 
-set exit-on-warning = 0
+set exit_on_warning = 0
 reset
 #quit
 

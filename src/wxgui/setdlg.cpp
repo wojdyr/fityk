@@ -106,10 +106,10 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     wxBoxSizer *sizer_general = new wxBoxSizer(wxVERTICAL);
 
     sigma_ch = addEnumSetting(page_general, wxT("default std. dev. of data y:"),
-                              "data-default-sigma", sizer_general);
+                              "data_default_sigma", sizer_general);
     cut_func = addRealNumberCtrl(page_general,
                                  wxT("f(x) can be assumed 0, if |f(x)|<"),
-                                 settings->getp("cut-function-level"),
+                                 settings->getp("cut_function_level"),
                                  sizer_general);
 
     verbosity_ch = addEnumSetting(page_general,
@@ -117,13 +117,13 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
                                   "verbosity", sizer_general);
     exit_cb = addCheckbox(page_general,
                           wxT("quit if error or warning was generated"),
-                          settings->get_b("exit-on-warning"),
+                          settings->get_b("exit_on_warning"),
                           sizer_general);
 
     wxStaticText *seed_st = new wxStaticText(page_general, -1,
                         wxT("pseudo-random generator seed (0 = time-based)"));
     seed_sp = new SpinCtrl(page_general, -1,
-                         settings->get_i("pseudo-random-seed"), 0, 999999,
+                         settings->get_i("pseudo_random_seed"), 0, 999999,
                          70);
     wxBoxSizer *sizer_general_seed = new wxBoxSizer(wxHORIZONTAL);
     sizer_general_seed->Add(seed_st, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
@@ -131,7 +131,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     sizer_general->Add(sizer_general_seed, 0, wxEXPAND);
 
     export_f_ch = addEnumSetting(page_general, wxT("style of formula export"),
-                                "formula-export-style", sizer_general);
+                                "formula_export_style", sizer_general);
 
     eps_rc = addRealNumberCtrl(page_general,
                                wxT("epsilon for floating-point comparison"),
@@ -145,16 +145,16 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
 
     height_correction = addRealNumberCtrl(page_peakfind,
                            wxT("factor used to correct detected peak height"),
-                           settings->getp("height-correction"),
+                           settings->getp("height_correction"),
                            sizer_pf);
     width_correction = addRealNumberCtrl(page_peakfind,
                            wxT("factor used to correct detected peak width"),
-                           settings->getp("width-correction"),
+                           settings->getp("width_correction"),
                            sizer_pf);
 
     cancel_poos = addCheckbox(page_peakfind,
                           wxT("cancel peak guess, if the result is doubtful"),
-                          settings->get_b("can-cancel-guess"),
+                          settings->get_b("can_cancel_guess"),
                           sizer_pf);
     //sizer_pf->Add(cancel_poos, 0, wxALL, 5);
 
@@ -178,7 +178,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     wxStaticText *mwssre_st = new wxStaticText(page_fit_common, -1,
                                                wxT("max. WSSR evaluations"));
     mwssre_sp = new SpinCtrl(page_fit_common, -1,
-                       settings->get_i("max-wssr-evaluations"), 0, 999999,
+                       settings->get_i("max_wssr_evaluations"), 0, 999999,
                        70);
     sizer_fcstop->Add(mwssre_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     sizer_fcstop->Add(mwssre_sp, 0, wxALL, 5);
@@ -186,11 +186,11 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
 
     domain_p = addRealNumberCtrl(page_fit_common,
                                  wxT("default domain of variable is +/-"),
-                                 settings->getp("variable-domain-percent"),
+                                 settings->getp("variable_domain_percent"),
                                  sizer_fcmn,
                                  wxT("%"));
 
-    bool autop = (settings->getp("autoplot") == "on-fit-iteration");
+    bool autop = (settings->getp("autoplot") == "on_fit_iteration");
     autoplot_cb = addCheckbox(page_fit_common,
                               wxT("refresh plot after each iteration"),
                               autop, sizer_fcmn);
@@ -198,7 +198,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     wxStaticText *delay_st = new wxStaticText(page_fit_common, -1,
                             wxT("time (in sec.) between stats/plot updates"));
     delay_sp = new SpinCtrl(page_fit_common, -1,
-                            settings->get_i("refresh-period"), -1, 9999,
+                            settings->get_i("refresh_period"), -1, 9999,
                             70);
     wxBoxSizer *delay_sizer = new wxBoxSizer(wxHORIZONTAL);
     delay_sizer->Add(delay_st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
@@ -213,18 +213,18 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     wxStaticBoxSizer *sizer_flmlambda = new wxStaticBoxSizer(wxVERTICAL,
                                 page_fit_LM, wxT("lambda parameter"));
     lm_lambda_ini = addRealNumberCtrl(page_fit_LM, wxT("initial value"),
-                      settings->getp("lm-lambda-start"), sizer_flmlambda);
+                      settings->getp("lm_lambda_start"), sizer_flmlambda);
     lm_lambda_up = addRealNumberCtrl(page_fit_LM, wxT("increasing factor"),
-                 settings->getp("lm-lambda-up-factor"), sizer_flmlambda);
+                 settings->getp("lm_lambda_up_factor"), sizer_flmlambda);
     lm_lambda_down = addRealNumberCtrl(page_fit_LM, wxT("decreasing factor"),
-                settings->getp("lm-lambda-down-factor"), sizer_flmlambda);
+                settings->getp("lm_lambda_down_factor"), sizer_flmlambda);
     sizer_flm->Add(sizer_flmlambda, 0, wxEXPAND|wxALL, 5);
     wxStaticBoxSizer *sizer_flmstop = new wxStaticBoxSizer(wxVERTICAL,
                                 page_fit_LM, wxT("termination criteria"));
     lm_stop = addRealNumberCtrl(page_fit_LM, wxT("WSSR relative change <"),
-                     settings->getp("lm-stop-rel-change"), sizer_flmstop);
+                     settings->getp("lm_stop_rel_change"), sizer_flmstop);
     lm_max_lambda = addRealNumberCtrl(page_fit_LM, wxT("max. value of lambda"),
-                     settings->getp("lm-max-lambda"), sizer_flmstop);
+                     settings->getp("lm_max_lambda"), sizer_flmstop);
     sizer_flm->Add(sizer_flmstop, 0, wxEXPAND|wxALL, 5);
     add_persistence_note(page_fit_LM, sizer_flm);
     page_fit_LM->SetSizerAndFit(sizer_flm);
@@ -238,19 +238,19 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
 
     nm_move_all = addCheckbox(page_fit_NM,
                            wxT("randomize all vertices (otherwise on is left)"),
-                           settings->get_b("nm-move-all"), sizer_fnmini);
+                           settings->get_b("nm_move_all"), sizer_fnmini);
     nm_distrib = addEnumSetting(page_fit_NM, wxT("distribution type"),
-                                "nm-distribution", sizer_fnmini);
+                                "nm_distribution", sizer_fnmini);
     nm_move_factor = addRealNumberCtrl(page_fit_NM,
                          wxT("factor by which domain is expanded"),
-                         settings->getp("nm-move-factor"), sizer_fnmini);
+                         settings->getp("nm_move_factor"), sizer_fnmini);
     sizer_fnm->Add(sizer_fnmini, 0, wxEXPAND|wxALL, 5);
 
     wxStaticBoxSizer *sizer_fnmstop = new wxStaticBoxSizer(wxVERTICAL,
                                 page_fit_NM, wxT("termination criteria"));
     nm_convergence = addRealNumberCtrl(page_fit_NM,
                          wxT("worst and best relative difference"),
-                         settings->getp("nm-convergence"), sizer_fnmstop);
+                         settings->getp("nm_convergence"), sizer_fnmstop);
     sizer_fnm->Add(sizer_fnmstop, 0, wxEXPAND|wxALL, 5);
     add_persistence_note(page_fit_NM, sizer_fnm);
     page_fit_NM->SetSizerAndFit(sizer_fnm);
@@ -332,30 +332,30 @@ SettingsDlg::pair_vec SettingsDlg::get_changed_items()
 {
     pair_vec result;
     map<string, string> m;
-    m["data-default-sigma"] = wx2s(sigma_ch->GetStringSelection());
-    m["cut-function-level"] = wx2s(cut_func->GetValue());
+    m["data_default_sigma"] = wx2s(sigma_ch->GetStringSelection());
+    m["cut_function_level"] = wx2s(cut_func->GetValue());
     m["verbosity"] = wx2s(verbosity_ch->GetStringSelection());
-    m["exit-on-warning"] = exit_cb->GetValue() ? "1" : "0";
-    m["pseudo-random-seed"] = S(seed_sp->GetValue());
-    m["formula-export-style"] = wx2s(export_f_ch->GetStringSelection());
+    m["exit_on_warning"] = exit_cb->GetValue() ? "1" : "0";
+    m["pseudo_random_seed"] = S(seed_sp->GetValue());
+    m["formula_export_style"] = wx2s(export_f_ch->GetStringSelection());
     m["epsilon"] = wx2s(eps_rc->GetValue());
-    m["height-correction"] = wx2s(height_correction->GetValue());
-    m["width-correction"] = wx2s(width_correction->GetValue());
-    m["can-cancel-guess"] = cancel_poos->GetValue() ? "1" : "0";
-    m["max-wssr-evaluations"] = S(mwssre_sp->GetValue());
-    m["variable-domain-percent"] = wx2s(domain_p->GetValue());
-    m["autoplot"] = autoplot_cb->GetValue() ? "on-fit-iteration"
-                                            : "on-plot-change";
-    m["refresh-period"] = S(delay_sp->GetValue());
-    m["lm-lambda-start"] = wx2s(lm_lambda_ini->GetValue());
-    m["lm-lambda-up-factor"] = wx2s(lm_lambda_up->GetValue());
-    m["lm-lambda-down-factor"] = wx2s(lm_lambda_down->GetValue());
-    m["lm-stop-rel-change"] = wx2s(lm_stop->GetValue());
-    m["lm-max-lambda"] = wx2s(lm_max_lambda->GetValue());
-    m["nm-move-all"] = nm_move_all->GetValue() ? "1" : "0";
-    m["nm-distribution"] = wx2s(nm_distrib->GetStringSelection());
-    m["nm-move-factor"] = wx2s(nm_move_factor->GetValue());
-    m["nm-convergence"] = wx2s(nm_convergence->GetValue());
+    m["height_correction"] = wx2s(height_correction->GetValue());
+    m["width_correction"] = wx2s(width_correction->GetValue());
+    m["can_cancel_guess"] = cancel_poos->GetValue() ? "1" : "0";
+    m["max_wssr_evaluations"] = S(mwssre_sp->GetValue());
+    m["variable_domain_percent"] = wx2s(domain_p->GetValue());
+    m["autoplot"] = autoplot_cb->GetValue() ? "on_fit_iteration"
+                                            : "on_plot_change";
+    m["refresh_period"] = S(delay_sp->GetValue());
+    m["lm_lambda_start"] = wx2s(lm_lambda_ini->GetValue());
+    m["lm_lambda_up_factor"] = wx2s(lm_lambda_up->GetValue());
+    m["lm_lambda_down_factor"] = wx2s(lm_lambda_down->GetValue());
+    m["lm_stop_rel_change"] = wx2s(lm_stop->GetValue());
+    m["lm_max_lambda"] = wx2s(lm_max_lambda->GetValue());
+    m["nm_move_all"] = nm_move_all->GetValue() ? "1" : "0";
+    m["nm_distribution"] = wx2s(nm_distrib->GetStringSelection());
+    m["nm_move_factor"] = wx2s(nm_move_factor->GetValue());
+    m["nm_convergence"] = wx2s(nm_convergence->GetValue());
     vector<string> kk = ftk->get_settings()->expanp();
     for (vector<string>::const_iterator i = kk.begin(); i != kk.end(); ++i)
         if (m.count(*i) && m[*i] != ftk->get_settings()->getp(*i))

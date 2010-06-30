@@ -154,18 +154,18 @@ void Guess::estimate_peak_parameters(fp range_from, fp range_to,
     if (max_y_pos == l_bor || max_y_pos == r_bor - 1) {
         string s = "Estimating peak parameters: peak outside of search scope."
                   " Tried at [" + eS(range_from) + " : " + eS(range_to) + "]";
-        if (F->get_settings()->get_b("can-cancel-guess"))
+        if (F->get_settings()->get_b("can_cancel_guess"))
             throw ExecuteError(s + " Canceled.");
         F->msg(s);
     }
     fp h = my_y(max_y_pos);
     if (height)
-        *height = h * F->get_settings()->get_f("height-correction");
+        *height = h * F->get_settings()->get_f("height_correction");
     fp center_ = data->get_x(max_y_pos);
     if (center)
         *center = center_;
     fp fwhm_ = compute_data_fwhm(l_bor, max_y_pos, r_bor)
-                               * F->get_settings()->get_f("width-correction");
+                               * F->get_settings()->get_f("width_correction");
     if (fwhm)
         *fwhm = fwhm_;
     get_point_range(center_-fwhm_, center_+fwhm_, l_bor, r_bor);
@@ -263,7 +263,7 @@ void Guess::guess(string const& name, string const& function,
         string ctr_str = string(vars[ci], vars[ci].find('=') + 1);
         replace_all(ctr_str, "~", "");
         fp center = get_transform_expression_value(ctr_str, 0);
-        fp delta = F->get_settings()->get_f("guess-at-center-pm");
+        fp delta = F->get_settings()->get_f("guess_at_center_pm");
         range_from = center - delta;
         range_to = center + delta;
     }

@@ -432,7 +432,7 @@ void get_info_peaks(Ftk const* F, VecDM const& v, bool full,
 void get_info_formula(Ftk const* F, VecDM const& v, bool full,
                     string& result)
 {
-    bool gnuplot = F->get_settings()->get_e("formula-export-style") == 1;
+    bool gnuplot = F->get_settings()->get_e("formula_export_style") == 1;
     for (VecDM::const_iterator i = v.begin(); i != v.end(); ++i)
         result += "\n# " + (*i)->data()->get_title()
                 + "\n" + (*i)->model()->get_formula(!full, gnuplot);
@@ -572,7 +572,7 @@ void get_info_points(Ftk const* F, string const& args, size_t& pos,
     for (size_t i = 0; i != titles.size(); ++i)
         result += (i == 0 ? "#" : "\t") + titles[i];
     result += "\n";
-    const char *format= F->get_settings()->get_s("info-numeric-format").c_str();
+    const char *format= F->get_settings()->get_s("info_numeric_format").c_str();
     char buf[64];
     for (size_t i = 0; i != r[0].size(); ++i)
         for (size_t j = 0; j != r.size(); ++j) {
@@ -620,7 +620,7 @@ size_t get_info_string(Ftk const* F, string const& args, bool full,
         result += F->view.str();
     else if (word == "set")
         result += F->get_settings()->print_usage();
-    else if (word == "fit-history")
+    else if (word == "fit_history")
         result += F->get_fit_container()->param_history_info();
     else if (word == "guess")
         get_info_guess(F, args, pos, result);

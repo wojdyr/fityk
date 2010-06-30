@@ -725,7 +725,7 @@ fp VariableManager::variation_of_a (int n, fp variat) const
     Domain const& dom = get_variable(n)->domain;
     fp ctr = dom.is_ctr_set() ? dom.get_ctr() : parameters[n];
     fp sgm = dom.is_set() ? dom.get_sigma()
-            : ctr * F->get_settings()->get_f("variable-domain-percent") / 100.;
+            : ctr * F->get_settings()->get_f("variable_domain_percent") / 100.;
     return ctr + sgm * variat;
 }
 

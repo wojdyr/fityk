@@ -156,7 +156,7 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
         ;
 
     set_arg
-        = (+chset_p("a-z-")) [assign_a(t2)]
+        = (+chset_p("a-z_")) [assign_a(t2)]
           >> ('=' >> CompactStrG [&do_set]
              | eps_p[&do_set_show]
              )

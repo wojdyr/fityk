@@ -74,7 +74,7 @@ public:
     std::string format_double(fp d) const
     {
         char buf[32];
-        const char *format = get_s("info-numeric-format").c_str();
+        const char *format = get_s("info_numeric_format").c_str();
         snprintf(buf, 31, format, d);
         return buf;
     }

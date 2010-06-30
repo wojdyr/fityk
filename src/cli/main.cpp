@@ -138,7 +138,7 @@ const char *commands[] = { "info", "plot", "delete", "set", "fit",
         };
 
 const char *after_info[] = { "variables", "types", "functions", "datasets",
-         "commands", "view", "set", "fit", "fit-history", "errors", "formula",
+         "commands", "view", "set", "fit", "fit_history", "errors", "formula",
          "peaks", "guess", "F", "Z", "formula", "dF"
         };
 

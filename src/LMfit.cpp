@@ -14,7 +14,7 @@
 using namespace std;
 
 LMfit::LMfit(Ftk* F)
-    : Fit(F, "Levenberg-Marquardt"),
+    : Fit(F, "Levenberg_Marquardt"),
       shake_before (0), shake_type ('u')
 {
     /*
@@ -37,7 +37,7 @@ fp LMfit::init()
         F->warn ("No data points. What should I fit ?");
         return -1;
     }
-    lambda = F->get_settings()->get_f("lm-lambda-start");
+    lambda = F->get_settings()->get_f("lm_lambda_start");
     //TODO what to do with this shake?
     if (shake_before > 0.) {
         for (int i = 0; i < na; i++)
@@ -60,8 +60,8 @@ void LMfit::autoiter()
     F->vmsg("\t === Levenberg-Marquardt method ===");
     F->vmsg ("Initial values:  lambda=" + S(lambda) + "  WSSR=" + S(chi2));
     F->vmsg ("Max. number of iterations: " + max_iterations);
-    fp stop_rel = F->get_settings()->get_f("lm-stop-rel-change");
-    fp max_lambda = F->get_settings()->get_f("lm-max-lambda");
+    fp stop_rel = F->get_settings()->get_f("lm_stop_rel_change");
+    fp max_lambda = F->get_settings()->get_f("lm_max_lambda");
     if (stop_rel > 0) {
         F->vmsg ("Will stop when relative change of WSSR is "
                   "twice in row below " + S (stop_rel * 100.) + "%");
@@ -134,11 +134,11 @@ bool LMfit::do_iteration()
         chi2 = chi2_;
         a = beta_;
         compute_derivatives(a, dmdm_, alpha, beta);
-        lambda /= F->get_settings()->get_f("lm-lambda-down-factor");
+        lambda /= F->get_settings()->get_f("lm_lambda_down_factor");
         return true;
     }
     else {// worse fitting
-        lambda *= F->get_settings()->get_f("lm-lambda-up-factor");
+        lambda *= F->get_settings()->get_f("lm_lambda_up_factor");
         return false;
     }
 }

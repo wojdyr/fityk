@@ -187,7 +187,7 @@ void UserInterface::output_message(Style style, const string& s) const
         return;
     show_message(style, s);
     commands.put_output_message(s);
-    if (style == kWarning && F->get_settings()->get_b("exit-on-warning")) {
+    if (style == kWarning && F->get_settings()->get_b("exit_on_warning")) {
         show_message(kNormal, "Warning -> exiting program.");
         throw ExitRequestedException();
     }

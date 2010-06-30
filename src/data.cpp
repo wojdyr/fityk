@@ -83,7 +83,7 @@ void Data::post_load()
         return;
     string inf = S(p_.size()) + " points.";
     if (!has_sigma_) {
-        int dds = F->get_settings()->get_e("data-default-sigma");
+        int dds = F->get_settings()->get_e("data_default_sigma");
         if (dds == 's') {
             for (vector<Point>::iterator i = p_.begin(); i < p_.end(); i++)
                 i->sigma = i->y > 1. ? sqrt (i->y) : 1.;

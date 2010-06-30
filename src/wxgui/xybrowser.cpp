@@ -306,7 +306,7 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent, wxWindowID id)
     left_sizer->Add (columns_panel, 0, wxALL|wxEXPAND, 5);
 
 #if 0
-    bool def_sqrt = (ftk->get_settings()->getp("data-default-sigma") == "sqrt");
+    bool def_sqrt = (ftk->get_settings()->getp("data_default_sigma") == "sqrt");
     sd_sqrt_cb = new wxCheckBox(left_panel, ID_SDS,
                                 wxT("set std. dev. as max(sqrt(y), 1.0)"));
     sd_sqrt_cb->SetValue(def_sqrt);

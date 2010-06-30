@@ -36,71 +36,70 @@ Settings::Settings(Ftk const* F_)
 
     map<char, string> autoplot_enum;
     autoplot_enum [1] = "never";
-    autoplot_enum [2] = "on-plot-change";
-    autoplot_enum [3] = "on-fit-iteration";
+    autoplot_enum [2] = "on_plot_change";
+    autoplot_enum [3] = "on_fit_iteration";
     insert_enum("autoplot", autoplot_enum, 2);
     autoplot_ = 2;
 
-    bpar["exit-on-warning"] = false;
+    bpar["exit_on_warning"] = false;
 
     fpar["epsilon"] = epsilon;
 
     map<char, string> data_sigma_enum;
     data_sigma_enum ['s'] = "sqrt";
     data_sigma_enum ['1'] = "one";
-    insert_enum("data-default-sigma", data_sigma_enum, 's');
+    insert_enum("data_default_sigma", data_sigma_enum, 's');
 
     // 0 -> time-based seed
-    ipar["pseudo-random-seed"] = 0;
+    ipar["pseudo_random_seed"] = 0;
 
     map<char, string> sum_export_style_enum;
     sum_export_style_enum [0] = "normal";
     sum_export_style_enum [1] = "gnuplot";
-    insert_enum("formula-export-style", sum_export_style_enum, 0);
+    insert_enum("formula_export_style", sum_export_style_enum, 0);
 
-    // undocumented (testing)
-    spar["info-numeric-format"] = "%g";
+    spar["info_numeric_format"] = "%g";
 
     // Function
-    fpar["cut-function-level"] = cut_function_level_ = 0.;
+    fpar["cut_function_level"] = cut_function_level_ = 0.;
 
     // guess
-    bpar ["can-cancel-guess"] = true;
-    fpar ["height-correction"] = 1.;
-    fpar ["width-correction"] = 1.;
-    fpar ["guess-at-center-pm"] = 1.;
+    bpar ["can_cancel_guess"] = true;
+    fpar ["height_correction"] = 1.;
+    fpar ["width_correction"] = 1.;
+    fpar ["guess_at_center_pm"] = 1.;
 
     //Fit
     map<char, string> fitting_method_enum;
     vector<Fit*> const& fm = F->get_fit_container()->get_methods();
     for (int i = 0; i < size(fm); ++i)
         fitting_method_enum[i] = fm[i]->name;
-    insert_enum("fitting-method", fitting_method_enum, 0);
+    insert_enum("fitting_method", fitting_method_enum, 0);
 
     //  - common
-    ipar["max-wssr-evaluations"] = 1000;
-    ipar["refresh-period"] = 4;
-    fpar["variable-domain-percent"] = 30.;
+    ipar["max_wssr_evaluations"] = 1000;
+    ipar["refresh_period"] = 4;
+    fpar["variable_domain_percent"] = 30.;
 
     //  - Lev-Mar
-    fpar["lm-lambda-start"] = 0.001;
-    fpar["lm-lambda-up-factor"] = 10;
-    fpar["lm-lambda-down-factor"] = 10;
-    fpar["lm-stop-rel-change"] = 1e-4;
-    fpar["lm-max-lambda"] = 1e+15;
+    fpar["lm_lambda_start"] = 0.001;
+    fpar["lm_lambda_up_factor"] = 10;
+    fpar["lm_lambda_down_factor"] = 10;
+    fpar["lm_stop_rel_change"] = 1e-4;
+    fpar["lm_max_lambda"] = 1e+15;
 
     //  - Nelder-Mead
-    fpar["nm-convergence"] = 0.0001;
-    bpar["nm-move-all"] = false;
+    fpar["nm_convergence"] = 0.0001;
+    bpar["nm_move_all"] = false;
 
     map<char, string> distrib_enum;
     distrib_enum ['u'] = "uniform";
     distrib_enum ['g'] = "gauss";
     distrib_enum ['l'] = "lorentz";
     distrib_enum ['b'] = "bound";
-    insert_enum("nm-distribution", distrib_enum, 'b');
+    insert_enum("nm_distribution", distrib_enum, 'b');
 
-    fpar["nm-move-factor"] = 1;
+    fpar["nm_move_factor"] = 1;
 
     //  - Genetic Algorithms
     //TODO
@@ -137,7 +136,7 @@ void Settings::setp_core(string const& k, string const& v)
         int d;
         if (istringstream (v) >> d) {
             ipar[k] = d;
-            if (k == "pseudo-random-seed")
+            if (k == "pseudo_random_seed")
                 do_srand();
             return;
         }
@@ -147,7 +146,7 @@ void Settings::setp_core(string const& k, string const& v)
         if (istringstream (v) >> d) {
             fpar[k] = d;
             //optimization
-            if (k == "cut-function-level")
+            if (k == "cut_function_level")
                 cut_function_level_ = d;
             else if (k == "epsilon") {
                 if (d <= 0.) {
@@ -309,7 +308,7 @@ string Settings::set_script() const
 
 void Settings::do_srand()
 {
-    int random_seed = get_i("pseudo-random-seed");
+    int random_seed = get_i("pseudo_random_seed");
     int rs = random_seed > 0 ? random_seed : (int) time(NULL);
     srand(rs);
     F->vmsg("Seed for a sequence of pseudo-random numbers: " + S(rs));

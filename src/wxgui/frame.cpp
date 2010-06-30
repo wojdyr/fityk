@@ -1068,7 +1068,7 @@ void FFrame::OnSExport (wxCommandEvent& event)
 
 void FFrame::OnFMethodUpdate (wxUpdateUIEvent& event)
 {
-    int n = ftk->get_settings()->get_e("fitting-method");
+    int n = ftk->get_settings()->get_e("fitting_method");
     event.Check (ID_F_M + n == event.GetId());
 }
 
@@ -1095,7 +1095,7 @@ void FFrame::OnMenuFitHistoryUpdate(wxUpdateUIEvent& event)
 void FFrame::OnFOneOfMethods (wxCommandEvent& event)
 {
     int m = event.GetId() - ID_F_M;
-    ftk->exec("set fitting-method="
+    ftk->exec("set fitting_method="
              + ftk->get_fit_container()->get_method(m)->name);
 }
 

@@ -209,7 +209,7 @@ assigned, that is equal :math:`w_i=1/\sigma_i^2`.
 Standard deviation of points can be
 :ref:`read from file <DataLoad>` together with the *x* and *y*
 coordinates. Otherwise, it is set either to max(*y*:sup:`1/2`, 1)
-or to 1, depending on the value of :option:`data-default-sigma` option.
+or to 1, depending on the value of :option:`data_default_sigma` option.
 Setting std. dev. as a square root of the value is common
 and has theoretical ground when *y* is the number of independent events.
 You can always change standard deviation, e.g. make it equal for every
@@ -388,7 +388,7 @@ using expression ``delete(condition)``, e.g.::
 
 The value of a data expression can be shown using command ``info``.
 The precision of printed numbers is governed by the
-:ref:`info-numeric-format <info_numeric_format>` option.
+:ref:`info_numeric_format <info_numeric_format>` option.
 The ``info`` command can be also used as a calculator::
 
     # `i' is a shortcut for `info'
@@ -627,7 +627,7 @@ Additionally, F and Z can be used with dataset prefix, e.g. ::
 
    info @0 (n+1, x, y, F(x), y-F(x), Z(x), %foo(x), a, sin(pi*x)+y^2) > file.tsv
 
-The option :ref:`info-numeric-format <info_numeric_format>`
+The option :ref:`info_numeric_format <info_numeric_format>`
 can be used to change the format and precision of all numbers.
 
 .. _model:
@@ -770,8 +770,8 @@ The syntax is as follows::
                        # the value of the variable is used
 
 If the domain is not specified, the value of
-:option:`variable-domain-percent` option is used
-(domain is +/- *value-of-variable* * :option:`variable-domain-percent` / 100)
+:option:`variable_domain_percent` option is used
+(domain is +/- *value-of-variable* * :option:`variable_domain_percent` / 100)
 
 Function types and functions
 ----------------------------
@@ -982,9 +982,9 @@ Speed of computations
 With default settings, the value of every function is calculated
 at every point. Functions such as Gaussian often have non-neglegible
 values only in a small fraction of all points. To speed up the calculation,
-set the option :option:`cut-function-level`
+set the option :option:`cut_function_level`
 to a non-zero value. For each function the range with values
-greater than :option:`cut-function-level`
+greater than :option:`cut_function_level`
 will be estimated, and all values outside of this range are
 considered to be equal zero.
 Note that not all functions support this optimization.
@@ -1113,7 +1113,7 @@ e.g. ::
 
 - As an exception, if the range is omitted and the parameter *center*
   is given, the peak is searched around the *center*,
-  +/- value of the option :option:`guess-at-center-pm`.
+  +/- value of the option :option:`guess_at_center_pm`.
 
 Fityk offers only a primitive algorithm for peak-detection.
 It looks for the highest point in a given range, and than tries
@@ -1121,11 +1121,11 @@ to find the width of the peak.
 
 If the highest point is found near the boundary of the given range,
 it is very probable that it is not the peak top,
-and, if the option :option:`can-cancel-guess` is set to true,
+and, if the option :option:`can_cancel_guess` is set to true,
 the guess is cancelled.
 
 There are two real-number options related to ``guess``:
-:option:`height-correction` and :option:`width-correction`.
+:option:`height_correction` and :option:`width_correction`.
 The default value for them is 1.
 The guessed height and width are multiplied by the values of these
 options respectively.
@@ -1183,7 +1183,7 @@ using the ``info`` command redirected to a file::
 .. _formula_export_style:
 
 The style of the formula output,
-governed by the :option:`formula-export-style` option,
+governed by the :option:`formula_export_style` option,
 can be either ``normal`` (exp(-x^2)) or ``gnuplot`` (exp(-x**2)).
 
 The list of parameters of functions can be exported using the command::
@@ -1277,10 +1277,10 @@ iterations can be smaller.
 
 Fitting methods can be set using the set command::
 
-  set fitting-method = method
+  set fitting_method = method
 
-where method is one of: ``Levenberg-Marquardt``, ``Nelder-Mead-simplex``,
-``Genetic-Algorithms``.
+where method is one of: ``Levenberg_Marquardt``, ``Nelder_Mead_simplex``,
+``Genetic_Algorithms``.
 
 All non-linear fitting methods are iterative, and there are two common
 stopping criteria:
@@ -1288,7 +1288,7 @@ stopping criteria:
 - the number of iterations and it can be specified after the ``fit`` command.
 
 - and the number of evaluations of the objective function (WSSR), specified
-  by the value of option :option:`max-wssr-evaluations` (0=unlimited).
+  by the value of option :option:`max_wssr_evaluations` (0=unlimited).
   It is approximately proportional to the time of computations.
 
 There are also other criteria, different for each method.
@@ -1300,7 +1300,7 @@ If you give too small *number-of-iterations* to the command ``fit``,
 and fit is not converged, it makes sense to use command ``fit+``
 to process further iterations.
 
-Setting ``set autoplot = on-fit-iteration``
+Setting ``set autoplot = on_fit_iteration``
 will plot a model after every iteration, to visualize progress.
 (see :ref:`autoplot <autoplot>`)
 
@@ -1322,7 +1322,7 @@ fit undo
 fit redo
     move forward in the parameter history
 
-info fit-history
+info fit_history
     show number of items in the history
 
 fit history *n*
@@ -1417,21 +1417,21 @@ When |lambda| increases, the shift vector is rotated toward the direction
 of steepest descent and the length of the shift vector decreases. (The
 shift vector is a vector that is added to the parameter vector.) If a
 better fit is found on iteration, |lambda| is decreased -- it is divided by
-the value of :option:`lm-lambda-down-factor` option (default: 10).
+the value of :option:`lm_lambda_down_factor` option (default: 10).
 Otherwise, |lambda| is multiplied by the value of
-:option:`lm-lambda-up-factor` (default: 10).
+:option:`lm_lambda_up_factor` (default: 10).
 The initial |lambda| value is equal to
-:option:`lm-lambda-start` (default: 0.0001).
+:option:`lm_lambda_start` (default: 0.0001).
 
 The Marquardt method has two stopping criteria other than the common
 criteria.
 
 - If it happens twice in sequence, that the relative
   change of the value of the objective function (WSSR) is smaller than
-  the value of the :option:`lm-stop-rel-change` option, the
+  the value of the :option:`lm_stop_rel_change` option, the
   fit is considered to have converged and is stopped.
 
-- If |lambda| is greater than the value of the :option:`lm-max-lambda`
+- If |lambda| is greater than the value of the :option:`lm_max_lambda`
   option (default: 10^15), usually when due to limited numerical precision
   WSSR is no longer changing, the fitting is also stopped.
 
@@ -1487,28 +1487,28 @@ This method is also described in previously mentioned
 *Numerical Recipes* (chapter 10.4) and *Data Analysis* (chapter 10.8).
 
 There are a few options for tuning this method. One of these is a
-stopping criterium :option:`nm-convergence`. If the value of the
+stopping criterium :option:`nm_convergence`. If the value of the
 expression 2(*M*-*m*)/(*M*+*m*), where *M* and *m* are the values of the
 worst and best vertices respectively (values of objective functions of
 vertices, to be precise!), is smaller then the value of
-:option:`nm-convergence` option, fitting is stopped. In other words,
+:option:`nm_convergence` option, fitting is stopped. In other words,
 fitting is stopped if all vertices are almost at the same level.
 
 The remaining options are related to initialization of the simplex.
 Before starting iterations, we have to choose a set of points in space
 of the parameters, called vertices.  Unless the option
-:option:`nm-move-all` is set, one of these points will be the current
+:option:`nm_move_all` is set, one of these points will be the current
 point -- values that parameters have at this moment. All but this one
 are drawn as follows: each parameter of each vertex is drawn separately.
 It is drawn from a distribution that has its center in the center of the
 :ref:`domain <domain>` of the parameter, and a width proportional to
-both width of the domain and value of the :option:`nm-move-factor`
+both width of the domain and value of the :option:`nm_move_factor`
 parameter.  Distribution shape can be set using the option
-:option:`nm-distribution` as one of: ``uniform``, ``gaussian``,
+:option:`nm_distribution` as one of: ``uniform``, ``gaussian``,
 ``lorentzian`` and ``bound``. The last one causes the value of the
 parameter to be either the greatest or smallest value in the domain of
 the parameter -- one of the two bounds of the domain (assuming that
-:option:`nm-move-factor` is equal 1).
+:option:`nm_move_factor` is equal 1).
 
 Genetic Algorithms
 ------------------
@@ -1540,13 +1540,13 @@ The examples at the end of this chapter should clarify this.
 autoplot
     See :ref:`autoplot <autoplot>`.
 
-can-cancel-guess
+can_cancel_guess
     See :ref:`guess`.
 
-cut-function-level
+cut_function_level
     See :ref:`speed`.
 
-data-default-sigma
+data_default_sigma
     See :ref:`weights`.
 
 .. _epsilon:
@@ -1558,76 +1558,76 @@ epsilon
     You may want to decrease it when you work with very small values,
     like 10^-10.
 
-exit-on-warning
-    If the option :option:`exit-on-warning`
+exit_on_warning
+    If the option :option:`exit_on_warning`
     is set, any warning will close the program.
     This ensures that no warnings can be overlooked.
 
-fitting-method
+fitting_method
     See :ref:`fitting_cmd`.
 
-formula-export-style
+formula_export_style
     See :ref:`details in the section "Model" <formula_export_style>`.
 
-guess-at-center-pm
+guess_at_center_pm
     See :ref:`guess`.
 
-height-correction
+height_correction
     See :ref:`guess`.
 
 .. _info_numeric_format:
 
-info-numeric-format
+info_numeric_format
     Format of numbers printed by the ``info`` command. It takes as a value
     a format string, the same as ``sprintf()`` in the C language.
-    For example ``set info-numeric-format=%.3f`` changes the precision
+    For example ``set info_numeric_format=%.3f`` changes the precision
     of numbers to 3 digits after the decimal point. Default value: ``%g``.
 
-lm-*
-    Setting to tune :ref:`Levenberg-Marquardt <levmar>`
+lm_*
+    Setting to tune :ref:`Levenberg_Marquardt <levmar>`
     fitting method.
 
-max-wssr-evaluations
+max_wssr_evaluations
     See :ref:`fitting_cmd`.
 
-nm-*
+nm_*
     Setting to tune
     :ref:`Nelder-Mead downhill simplex <nelder>`
     fitting method.
 
-pseudo-random-seed
+pseudo_random_seed
     Some fitting methods and functions, such as
     ``randnormal`` in data expressions use a pseudo-random
     number generator.  In some situations one may want to have repeatable
     and predictable results of the fitting, e.g.  to make a presentation.
     Seed for a new sequence of pseudo-random numbers can be set using the
-    option :option:`pseudo-random-seed`.  If it
+    option :option:`pseudo_random_seed`.  If it
     is set to 0, the seed is based on the current time and a sequence of
     pseudo-random numbers is different each time.
 
-refresh-period
+refresh_period
     During time-consuming computations (like fitting) user interface can
     remain not changed for this time (in seconds).
     This option was introduced, because on one hand frequent refreshing of
     the program's window notably slows down fitting, and on the other hand
     irresponsive program is a frustrating experience.
 
-variable-domain-percent
+variable_domain_percent
     See :ref:`the section about variables <domain>`.
 
 verbosity
     Possible values: quiet, normal, verbose, debug.
 
-width-correction
+width_correction
     See :ref:`guess`.
 
 Examples::
 
-    set fitting-method  # show info
-    set fitting-method = Nelder-Mead-simplex # change default method
+    set fitting_method  # show info
+    set fitting_method = Nelder_Mead_simplex # change default method
     set verbosity = verbose
-    with fitting-method = Levenberg-Marquardt fit 10
-    with fitting-method=Levenberg-Marquardt, verbosity=only-warnings fit 10
+    with fitting_method = Levenberg_Marquardt fit 10
+    with fitting_method=Levenberg_Marquardt, verbosity=quiet fit 10
 
 Other commands
 ==============
@@ -1723,7 +1723,7 @@ The following ``info`` arguments are recognized:
 
 + fit \[in @\ *n*]
 
-+ fit-history
++ fit_history
 
 + errors \[in @\ *n*]
 

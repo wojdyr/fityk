@@ -29,7 +29,7 @@ $zn_a = ~2.67; $zn_c = ~4.924 #hexagonal Zn
 
 # peak hkl=(220) of SiC
 $c_sic220 = 360/pi * asin(sqrt(2^2+2^2+0) / $sic_a / 2 * $lambda)
-set guess-at-center-pm = 1
+set guess_at_center_pm = 1
 %sic220 = guess PseudoVoigt center=$c_sic220
 
 # Zn (002) 

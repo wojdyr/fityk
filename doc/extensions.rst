@@ -81,7 +81,7 @@ in :file:`src/bfunc.cpp`.
 
 If you want to optimize the calculation of your function by neglecting
 its value outside of a given range
-(see option :option:`cut-function-level`
+(see option :option:`cut_function_level`
 in the program),
 you will need to use the method:
 

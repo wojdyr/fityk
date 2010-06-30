@@ -348,7 +348,7 @@ void Fit::fit(int max_iter, vector<DataAndModel*> const& dms)
     F->get_fit_container()->push_param_history(a_orig);
     iter_nr = 0;
     evaluations = 0;
-    max_evaluations_ = F->get_settings()->get_i("max-wssr-evaluations");
+    max_evaluations_ = F->get_settings()->get_i("max_wssr_evaluations");
     user_interrupt = false;
     init(); //method specific init
     max_iterations = max_iter;
@@ -428,7 +428,7 @@ bool Fit::common_termination_criteria(int iter)
 
 void Fit::iteration_plot(vector<fp> const &A, bool changed, fp wssr)
 {
-    int refresh_period = F->get_settings()->get_i("refresh-period");
+    int refresh_period = F->get_settings()->get_i("refresh_period");
     if (refresh_period < 0)
         return;
     time_t now = time(0);

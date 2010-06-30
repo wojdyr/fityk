@@ -300,7 +300,7 @@ struct CmdGrammar : public grammar<CmdGrammar>
 
         temporary_set
             = optional_suffix_p("w","ith")
-              >> ((+(lower_p | '-'))[assign_a(t2)]
+              >> ((+(lower_p | '_'))[assign_a(t2)]
                   >> '=' >> CompactStrG[&do_temporary_set]
                  ) % ','
             ;
