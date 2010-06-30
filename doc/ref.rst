@@ -304,6 +304,7 @@ Expressions can contain:
 
 - two argument functions:
 
+  * ``mod`` (modulo)
   * ``min2``
   * ``max2`` (e.g. ``max2(3,5)`` will give 5),
   * ``randuniform(a, b)`` (random number from interval (a, b)),
@@ -383,7 +384,7 @@ using expression ``delete(condition)``, e.g.::
     # reduce twice the number of points, averaging x and adding y
     x = (x[n]+x[n+1])/2
     y = y[n]+y[n+1]
-    delete(n%2==1)
+    delete(mod(n,2) == 1)
 
 The value of a data expression can be shown using command ``info``.
 The precision of printed numbers is governed by the

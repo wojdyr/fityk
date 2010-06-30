@@ -1,9 +1,6 @@
 // data expression parser
 //
 
-// differences:
-//   do not use "x < y < z"
-
 #include "lexer.h"
 #include "fityk.h" //SyntaxError
 #include "datatrans.h"
@@ -87,7 +84,6 @@ int get_op_priority(int op)
         case OP_NEG: return 8;
         case OP_MUL: return 7;
         case OP_DIV: return 7;
-        case OP_MOD: return 7;
         case OP_ADD: return 6;
         case OP_SUB: return 6;
         case OP_GT: return 5;
@@ -131,9 +127,9 @@ string function_name(int op)
         case OP_XINDEX: return "index";
         // 2-args functions
         case OP_MOD: return "mod";
-        case OP_VOIGT: return "void";
         case OP_MIN2: return "min2";
         case OP_MAX2: return "max2";
+        case OP_VOIGT: return "voigt";
         case OP_RANDNORM: return "randnormal";
         case OP_RANDU: return "randuniform";
         default: return "";
@@ -168,9 +164,9 @@ int get_function_narg(int op)
             return 1;
         // 2-args functions
         case OP_MOD:
-        case OP_VOIGT:
         case OP_MIN2:
         case OP_MAX2:
+        case OP_VOIGT:
         case OP_RANDNORM:
         case OP_RANDU:
             return 2;
@@ -370,12 +366,12 @@ void ExpressionParser::parse(Lexer& lex)
                     // 2-args functions
                     else if (word == "mod")
                         put_function(OP_MOD);
-                    else if (word == "voigt")
-                        put_function(OP_VOIGT);
                     else if (word == "min2")
                         put_function(OP_MIN2);
                     else if (word == "max2")
                         put_function(OP_MAX2);
+                    else if (word == "voigt")
+                        put_function(OP_VOIGT);
                     else if (word == "randnormal")
                         put_function(OP_RANDNORM);
                     else if (word == "randuniform")

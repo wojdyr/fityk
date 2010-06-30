@@ -47,6 +47,8 @@ DataExprFunGrammar::definition<ScannerT>::definition(
         |   (as_lower_d["abs("] >> DataExpressionG >> ')') [push_op(OP_ABS)]
         |   (as_lower_d["round("] >> DataExpressionG >> ')')[push_op(OP_ROUND)]
 
+        |   (as_lower_d["mod"] >> '(' >> DataExpressionG >> ','
+                                  >> DataExpressionG >> ')') [push_op(OP_MOD)]
         |   (as_lower_d["min2"] >> '(' >> DataExpressionG >> ','
                                   >> DataExpressionG >> ')') [push_op(OP_MIN2)]
         |   (as_lower_d["max2"] >> '(' >> DataExpressionG >> ','

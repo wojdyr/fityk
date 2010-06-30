@@ -26,7 +26,7 @@ M=M-1;S = sqrt(max2(1,y))
 S = s / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0);
 Y = y / sum(n > 0 ? (x[n] - x[n-1]) * (y[n-1] + y[n])/2 : 0)
 X = n<M-1?(x[n]+x[n+1])/2:x;Y = y[n]+y[n+1];
-S = sqrt(s[n]^2+s[n+1]^2); delete(n%2==1)
+S = sqrt(s[n]^2+s[n+1]^2); delete(mod(n,2)==1)
 Y=max2(y,0)
 delete(not a)
 Y=x , X=y , S=sqrt(max2(1,Y))

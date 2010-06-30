@@ -62,7 +62,7 @@ static const char *default_transforms[] = {
 "|X = (x[n]+x[n+1])/2"
 ";Y = y[n]+y[n+1]"
 ";S = s[n]+s[n+1]"
-";delete(n%2==1)"
+";delete(mod(n,2)==1)"
 "|Y",
 
 "equilibrate step"

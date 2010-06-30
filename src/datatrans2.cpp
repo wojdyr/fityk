@@ -120,7 +120,6 @@ DataExpressionGrammar::definition<ScannerT>::definition(
         =   rprec4
             >> *(   ('*' >> rprec4)[push_op(OP_MUL)]
                 |   ('/' >> rprec4)[push_op(OP_DIV)]
-                |   ('%' >> rprec4)[push_op(OP_MOD)]
                 )
         ;
 
