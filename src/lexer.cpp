@@ -2,6 +2,9 @@
 // Licence: GNU General Public License ver. 2+
 // $Id: $
 
+// TODO: sometimes include '*' in words, to allow "delete %pd*".
+//
+
 #include "lexer.h"
 
 #include <string.h>
@@ -249,15 +252,9 @@ void Lexer::read_token()
                 ptr = endptr;
                 tok_.type = kTokenNumber;
             }
-            else if (isalnum(*ptr) || *ptr == '_') {
-                if (mode_ == kMath) {
-                    while (isalnum(*ptr) || *ptr == '_')
-                        ++ptr;
-                }
-                else { // kWord
-                    while (isalnum(*ptr) || *ptr == '_' || *ptr == '-')
-                        ++ptr;
-                }
+            else if (isalpha(*ptr) || *ptr == '_') {
+                while (isalnum(*ptr) || *ptr == '_')
+                    ++ptr;
                 tok_.info.length = ptr - tok_.str;
                 tok_.type = kTokenName;
             }
@@ -322,17 +319,13 @@ void Lexer::throw_syntax_error(const string& msg)
 
 int main(int argc, char **argv)
 {
-    if (argc != 3) {
-        printf("Usage: lexer mode string      where mode is 'w' or 'm'");
+    if (argc != 2) {
+        printf("Usage: lexer string");
         return 1;
     }
-    const char* str = argv[2];
-    bool math = (argv[1][0] == 'm');
+    const char* str = argv[1];
 
     Lexer lex(str);
-    if (math)
-        lex.set_mode(Lexer::kMath);
-    printf("scanning (%s mode): %s\n", (math ? "math" : "word"), str);
     fflush(stdout);
     for (;;) {
         Token token = lex.get_token();

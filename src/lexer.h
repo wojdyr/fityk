@@ -62,12 +62,6 @@ struct Token
 class Lexer
 {
 public:
-    // kWord mode should also include '*' in words, to allow "delete %pd*".
-    enum Mode
-    {
-        kMath, // word boundary on '-', "a-x" has 3 tokens
-        kWord  // no boundary on '-', "fit-history" has one token
-    };
 
     // get string associated with the token. Works only with:
     // kTokenName, kTokenString, kTokenVarname, kTokenFuncname, kTokenShell.
@@ -78,10 +72,8 @@ public:
         { return std::string(token.str, token.info.length); }
 
     Lexer(const char* input)
-        : input_(input), cur_(input), mode_(kWord), peeked_(false),
+        : input_(input), cur_(input), peeked_(false),
           opened_paren_(0), opened_square_(0), opened_curly_(0) {}
-
-    void set_mode(Mode mode) { mode_ = mode; }
 
     Token get_token();
 
@@ -106,7 +98,6 @@ private:
 
     const char* const input_; // used for diagnostic messages only
     const char* cur_;
-    Mode mode_;
     bool peeked_;
     Token tok_;
     int opened_paren_, opened_square_, opened_curly_;

@@ -266,7 +266,7 @@ void ExpressionParser::put_var(int op)
 }
 
 //TODO:
-//    OP_INDEX, OP_XINDEX,
+//    OP_INDEX,
 //    OP_ASSIGN_X, OP_ASSIGN_Y, OP_ASSIGN_S, OP_ASSIGN_A,
 //    OP_DO_ONCE, OP_RESIZE, OP_BEGIN, OP_END,
 //
@@ -608,7 +608,6 @@ int main(int argc, char **argv)
     cout << "old: " << old_text << endl;
     cout << "new: ";
     Lexer lex(argv[1]);
-    lex.set_mode(Lexer::kMath);
     try {
         ExpressionParser parser;
         parser.parse(lex);
