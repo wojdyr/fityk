@@ -180,7 +180,7 @@ void Guess::estimate_linear_parameters(fp range_from, fp range_to,
     get_point_range(range_from, range_to, l_bor, r_bor);
 
     fp sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0;
-    for (int i = l_bor; i < r_bor; i++) {
+    for (int i = l_bor; i <= r_bor; i++) {
         fp x = data->get_x(i);
         fp y = my_y(i);
         sx += x;
@@ -189,7 +189,7 @@ void Guess::estimate_linear_parameters(fp range_from, fp range_to,
         syy += y*y;
         sxy += x*y;
     }
-    int n = r_bor - l_bor;
+    int n = r_bor - l_bor + 1;
     *slope = (n * sxy - sx * sy) / (n * sxx - sx * sx);
     *intercept = (sy - (*slope) * sx) / n;
     *avgy = sy / n;
