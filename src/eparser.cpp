@@ -27,17 +27,23 @@ public:
     vector<int> code;    //  VM code
     vector<fp> numbers;  //  VM data (numeric values)
 
-    ExpressionParser()
-        : expected_(kValue) {}
+    // contains variables (including expressions like @0.F[1].height.error)
+    // and names of custom functions (e.g. %foo or F or @0.F[3]).
+    // In resolve_names() the variables are replaced by numbers,
+    // and function names by indices.
+    vector<string> names;
+
+    ExpressionParser() : expected_(kValue), support_transform_(false) {}
+
+    void set_support_transform(bool v) { support_transform_ = v; }
 
     void parse(Lexer& lex);
-    std::string get_code_as_text() {
-        return datatrans::get_code_as_text(code, numbers);
-    }
+    void resolve_names(...);
 
 private:
-    vector<int> opstack_; // operator stack
-    ExpectedType expected_; // used to give more meaningful error messages
+    vector<int> opstack_; // operator stack for shunting-yard algorithm
+    ExpectedType expected_;
+    bool support_transform_;
 
     void put_number(double value);
     void put_unary_op(int op);
@@ -252,6 +258,11 @@ void ExpressionParser::put_array_var(Lexer& lex, int op)
         opstack_.push_back(op);
         expected_ = kValue;
     }
+    else if (lex.peek_token().type == kTokenAssign) {
+        if (!support_transform_)
+            lex.throw_syntax_error("unexpected '='");
+        // TODO
+    }
     else {
         code.push_back(OP_VAR_n);
         code.push_back(op);
@@ -266,11 +277,13 @@ void ExpressionParser::put_var(int op)
 }
 
 //TODO:
-//    OP_INDEX,
 //    OP_ASSIGN_X, OP_ASSIGN_Y, OP_ASSIGN_S, OP_ASSIGN_A,
-//    OP_DO_ONCE, OP_RESIZE, OP_BEGIN, OP_END,
 //
-//    OP_FUNC, OP_SUM_F, OP_SUM_Z, OP_NUMAREA, OP_FINDX, OP_FIND_EXTR
+//    OP_INDEX, OP_DO_ONCE, OP_RESIZE, OP_BEGIN, OP_END,
+//
+//    OP_FUNC, OP_SUM_F, OP_SUM_Z,
+//
+//    OP_NUMAREA, OP_FINDX, OP_FIND_EXTR
 
 
 // implementation of the shunting-yard algorithm
@@ -611,7 +624,9 @@ int main(int argc, char **argv)
     try {
         ExpressionParser parser;
         parser.parse(lex);
-        string new_text = parser.get_code_as_text();
+        string new_text
+            = datatrans::get_code_as_text(parser.code, parser.numbers);
+
         cout << new_text << endl;
         cout << (old_text == new_text ? "same" : "NOT same") << endl;
     }

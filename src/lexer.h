@@ -10,13 +10,13 @@
 enum TokenType
 {
     // tokens with additional info, see TokenInfo
-    kTokenName, // length
-    kTokenString, // length
-    kTokenNumber, // double
-    kTokenDataset, // dataset @n or @* TODO: @+
-    kTokenVarname, // length
-    kTokenFuncname, // length
-    kTokenShell, // length
+    kTokenName, // name (info.length)
+    kTokenString, // 'string' (info.length)
+    kTokenNumber, // number (info.number: double)
+    kTokenDataset, // @n or @* TODO: @+ (info.dataset)
+    kTokenVarname, // $variable (info.length)
+    kTokenFuncname, // %function (info.length)
+    kTokenShell, // ! command args (info.length)
 
     // multi-char tokens
     kTokenLE, kTokenGE, // <= >=

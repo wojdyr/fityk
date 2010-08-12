@@ -238,6 +238,24 @@ string Settings::typep (string const& k) const
         throw ExecuteError("Unknown option: " +  k);
 }
 
+Settings::ValueType Settings::get_value_type(std::string const& k) const
+{
+    if (ipar.count(k))
+        return kInt;
+    else if (fpar.count(k))
+        return kFloat;
+    else if (bpar.count(k))
+        return kBool;
+    else if (irpar.count(k))
+        return kIntFromRange;
+    else if (epar.count (k))
+        return kStringEnum;
+    else if (spar.count(k))
+        return kString;
+    else
+        assert(0);
+}
+
 vector<string> Settings::expanp(string const& k) const
 {
     vector<string> e;

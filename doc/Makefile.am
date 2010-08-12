@@ -95,6 +95,7 @@ $(srcdir)/html/appendix.html: $(srcdir)/appendix.rst $(srcdir)/fityk-manual.rst 
 	rm -f $(srcdir)/html/objects.inv $(srcdir)/html/.buildinfo
 	sed -i 's/&mdash; Fityk 0.... manual//' $(srcdir)/html/index.html
 	sed -i 's/—/\&#8212;/' $(srcdir)/html/index.html # replace \u8212
+	sed -i 's/σ/\&#963;/' $(srcdir)/html/index.html # replace sigma
 
 pdf:
 	rm -rf $(srcdir)/doctrees/

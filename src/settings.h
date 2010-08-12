@@ -31,6 +31,8 @@ public:
             : e(e_), v(v_) {}
     };
 
+    enum ValueType { kInt, kFloat, kBool, kString, kStringEnum, kIntFromRange };
+
     Settings(Ftk const* F_);
     /// get value of integer option
     inline int get_i(std::string const& k) const;
@@ -46,6 +48,9 @@ public:
     /// get value of string option
     std::string const& get_s(std::string const& k) const
                   { assert(spar.count(k)); return spar.find(k)->second; }
+
+    /// return value type of the option
+    ValueType get_value_type(std::string const& k) const;
 
     /// set value of option (string v is parsed according to option type)
     void setp (std::string const& k, std::string const& v);

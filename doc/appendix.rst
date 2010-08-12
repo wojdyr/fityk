@@ -213,7 +213,11 @@ characters are expected. ::
   delete_arg ::= Varname | func_id | Dataset
 
   fit_st ::= Fit fit_arg in_arg
-  fit_arg ::= ['+'] Number | undo | redo | history Number | history clear
+  fit_arg ::= ['+'] Number |
+              "undo" |
+              "redo" |
+              "history" Number |
+              "history clear"
 
   guess_st ::= Guess ...TODO
 
@@ -229,7 +233,7 @@ characters are expected. ::
 
   assign_st ::= Varname '=' TODO |
                 func_id '=' TODO |
-                Funcname '.' Word '=' TODO |
+                func_id '.' Word '=' TODO |
                 Dataset '.' 'F' '=' TODO |
                 Dataset '.' 'F' '.' Word '=' TODO |
                 Dataset '.' "title" '=' TODO
@@ -261,6 +265,7 @@ characters are expected. ::
   Commands ::= "c" | "co" | "com" | ... | "commands"
   Define ::= "def" | ... | "define"
   Delete ::= "del" | ... | "delete"
+  Fit ::= "f" | "fi" | "fit"
   Guess ::= "g" | ... | "guess"
   Info ::= "i" | ... | "info"
   Plot ::= "p" | ... | "plot"

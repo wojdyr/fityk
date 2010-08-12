@@ -2,6 +2,22 @@ $Id$
 
 ---------- TODO list and tentative development plan  ----------------
 
+* GUI: ask what to do when opening file with multiple blocks
+       in settings: ask when opening file with multiple datasets
+
+* subtracting another dataset with interpolation of the subtrahend
+  (this is important for subtracting background from a file);
+  for consistency, `+' should add interpolated data, and 'U' can stand
+  for a sum of sets.
+  GUI: Data > Subtract data from file
+
+* GUI: "Recent baselines" in the menu (to enable loading a recent baseline,
+  changing it a bit and subtracting)
+
+* GUI: use capital letters in menu
+
+-------- 0.9.4
+
 * finish powder diffraction add-on (Pawley fitting)
 
 * command info:
@@ -28,9 +44,6 @@ $Id$
   function should also be changed (to the function that was active last time
   this dataset was active)
 
-* GUI: saving background and reusing it for the next dataset (i.e. loading
-  saved background, changing it a bit and substracting)
-
 * add functions cot and coth
 
 * GUI: redesign gradient dialog
@@ -54,8 +67,6 @@ $Id$
 
 * "%_1.height = ~{sqrt(%_1.height)}^2" creates $_5 before $_4 - check if this
   is safe.
-
--------------->
 
 * confidence intervals of model parameters (95%, 99%)
   http://www.boost.org/doc/libs/1_42_0/libs/math/doc/sf_and_dist/html/math_toolkit/dist/stat_tut/weg/st_eg/tut_mean_intervals.html
@@ -81,8 +92,6 @@ $Id$
 * add a new function category: sigmoids/steps (now function can be guessed as
   "peak" and "linear"). (GUI): drawing drafts for the new category.
 
---------------> 
-
 * add alpha channel to toolbar icons
 
 * (GUI) single dialog for configuring main plot (and also aux. plots) (?)
@@ -94,8 +103,6 @@ $Id$
 * unused variables should not slow down fitting
 
 * support variables in range in data transformation: Y[$foo-1] = 0
-
------------------- 
 
 * GUI: use wxGraphicsContext or Cairo for drawing plots with antialiasing
 

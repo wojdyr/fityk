@@ -1,8 +1,8 @@
 
 .. title:: fityk --- curve fitting software
 
-Overview ---
-============
+Overview
+========
 
 .. image:: fityk076.png
    :alt: [screenshot]

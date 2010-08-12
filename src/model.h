@@ -67,9 +67,13 @@ public:
 private:
     Ftk const* F;
     VariableManager &mgr;
+    /// names of functions in F, i.e. names of component functions
     std::vector<std::string> ff_names;
+    /// names of functions in Z, i.e. functions that comprise x-correction
     std::vector<std::string> zz_names;
+    /// indices corresponding to names in ff_names
     std::vector<int> ff_idx;
+    /// indices corresponding to names in zz_names
     std::vector<int> zz_idx;
 
     void do_find_function_indices(std::vector<std::string> &names,
