@@ -203,7 +203,7 @@ void Ftk::dump_all_as_script(string const &filename)
         }
         vector<string> const& zz = model->get_zz_names();
         if (!zz.empty()) {
-            fprintf(f, "@%d.F = %%%s", i, zz[0].c_str());
+            fprintf(f, "@%d.Z = %%%s", i, zz[0].c_str());
             for (size_t j = 1; j < zz.size(); ++j)
                 fprintf(f, " + %%%s", zz[j].c_str());
             fprintf(f, "\n");
