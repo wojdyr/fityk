@@ -226,7 +226,7 @@ fp Model::approx_max(fp x_min, fp x_max) const
 string Model::get_peak_parameters(vector<fp> const& errors) const
 {
     string s;
-    s += "# Peak Type     Center  Height  Area    FWHM    parameters...\n";
+    s += "# Peak_Type     Center  Height  Area    FWHM    parameters...\n";
     for (vector<int>::const_iterator i=ff_idx.begin(); i != ff_idx.end(); i++){
         Function const* p = mgr.get_function(*i);
         s += p->xname + "  " + p->type_name
