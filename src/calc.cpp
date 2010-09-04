@@ -215,7 +215,7 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
             // stack overflow not checked
             case OP_CONSTANT:
                 stackPtr++;
-                i++;
+                i++; // OP_CONSTANT opcode is always followed by index
                 *stackPtr = vmdata[*i];
                 break;
 
@@ -226,6 +226,9 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
                 break;
             case OP_PUT_DERIV:
                 i++;
+                // the OP_PUT_DERIV opcode is followed by a number n,
+                // the derivative is calculated with respect to n'th variable
+                assert(*i < derivatives.size());
                 derivatives[*i] = *stackPtr;
                 stackPtr--;
                 break;

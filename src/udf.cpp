@@ -308,7 +308,7 @@ CompoundFunction::CompoundFunction(Ftk const* F,
                                    string const &type,
                                    vector<string> const &vars)
     : Function(F, name, vars, get_formula(type)),
-      vmgr(F)
+      vmgr_(F)
 {
 }
 
@@ -321,16 +321,16 @@ void CompoundFunction::init()
 
 void CompoundFunction::init_components(vector<string>& rf)
 {
-    vmgr.silent = true;
+    vmgr_.silent = true;
     for (int j = 0; j != nv(); ++j)
-        vmgr.assign_variable(varnames[j], ""); // mirror variables
+        vmgr_.assign_variable(varnames[j], ""); // mirror variables
 
     for (vector<string>::iterator i = rf.begin(); i != rf.end(); ++i) {
         for (int j = 0; j != nv(); ++j) {
-            replace_words(*i, type_params[j], vmgr.get_variable(j)->xname);
+            replace_words(*i, type_params[j], vmgr_.get_variable(j)->xname);
         }
-        vmgr.assign_func("", get_typename_from_formula(*i),
-                             get_varnames_from_formula(*i));
+        vmgr_.assign_func("", get_typename_from_formula(*i),
+                              get_varnames_from_formula(*i));
     }
 }
 
@@ -338,33 +338,33 @@ void CompoundFunction::set_var_idx(vector<Variable*> const& variables)
 {
     VariableUser::set_var_idx(variables);
     for (int i = 0; i < nv(); ++i)
-        vmgr.get_variable(i)->set_original(variables[get_var_idx(i)]);
+        vmgr_.get_variable(i)->set_original(variables[get_var_idx(i)]);
 }
 
-/// vv was changed, but not variables, mirror variables in vmgr must be frozen
+/// vv was changed, but not variables, mirror variables in vmgr_ must be frozen
 void CompoundFunction::precomputations_for_alternative_vv()
 {
     vector<Variable const*> backup(nv());
     for (int i = 0; i < nv(); ++i) {
         //prevent change in use_parameters()
-        backup[i] = vmgr.get_variable(i)->freeze_original(vv[i]);
+        backup[i] = vmgr_.get_variable(i)->freeze_original(vv[i]);
     }
-    vmgr.use_parameters();
+    vmgr_.use_parameters();
     for (int i = 0; i < nv(); ++i) {
-        vmgr.get_variable(i)->set_original(backup[i]);
+        vmgr_.get_variable(i)->set_original(backup[i]);
     }
 }
 
 void CompoundFunction::more_precomputations()
 {
-    vmgr.use_parameters();
+    vmgr_.use_parameters();
 }
 
 void CompoundFunction::calculate_value_in_range(vector<fp> const &xx,
                                                 vector<fp> &yy,
                                                 int first, int last) const
 {
-    vector<Function*> const& functions = vmgr.get_functions();
+    vector<Function*> const& functions = vmgr_.get_functions();
     for (vector<Function*>::const_iterator i = functions.begin();
             i != functions.end(); ++i)
         (*i)->calculate_value_in_range(xx, yy, first, last);
@@ -376,7 +376,7 @@ void CompoundFunction::calculate_value_deriv_in_range(
                                              bool in_dx,
                                              int first, int last) const
 {
-    vector<Function*> const& functions = vmgr.get_functions();
+    vector<Function*> const& functions = vmgr_.get_functions();
     for (vector<Function*>::const_iterator i = functions.begin();
             i != functions.end(); ++i)
         (*i)->calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, first, last);
@@ -385,7 +385,7 @@ void CompoundFunction::calculate_value_deriv_in_range(
 string CompoundFunction::get_current_formula(string const& x) const
 {
     string t;
-    vector<Function*> const& functions = vmgr.get_functions();
+    vector<Function*> const& functions = vmgr_.get_functions();
     for (vector<Function*>::const_iterator i = functions.begin();
             i != functions.end(); ++i) {
         if (i != functions.begin())
@@ -397,7 +397,7 @@ string CompoundFunction::get_current_formula(string const& x) const
 
 bool CompoundFunction::has_center() const
 {
-    vector<Function*> const& ff = vmgr.get_functions();
+    vector<Function*> const& ff = vmgr_.get_functions();
     for (size_t i = 0; i < ff.size(); ++i) {
         if (!ff[i]->has_center()
                 || (i > 0 && ff[i-1]->center() != ff[i]->center()))
@@ -410,7 +410,7 @@ bool CompoundFunction::has_center() const
 ///  height is a sum of heights
 bool CompoundFunction::has_height() const
 {
-    vector<Function*> const& ff = vmgr.get_functions();
+    vector<Function*> const& ff = vmgr_.get_functions();
     if (ff.size() == 1)
         return ff[0]->has_center();
     for (size_t i = 0; i < ff.size(); ++i) {
@@ -424,7 +424,7 @@ bool CompoundFunction::has_height() const
 fp CompoundFunction::height() const
 {
     fp height = 0;
-    vector<Function*> const& ff = vmgr.get_functions();
+    vector<Function*> const& ff = vmgr_.get_functions();
     for (size_t i = 0; i < ff.size(); ++i) {
         height += ff[i]->height();
     }
@@ -433,18 +433,18 @@ fp CompoundFunction::height() const
 
 bool CompoundFunction::has_fwhm() const
 {
-    vector<Function*> const& ff = vmgr.get_functions();
+    vector<Function*> const& ff = vmgr_.get_functions();
     return ff.size() == 1 && ff[0]->has_fwhm();
 }
 
 fp CompoundFunction::fwhm() const
 {
-    return vmgr.get_function(0)->fwhm();
+    return vmgr_.get_function(0)->fwhm();
 }
 
 bool CompoundFunction::has_area() const
 {
-    vector<Function*> const& ff = vmgr.get_functions();
+    vector<Function*> const& ff = vmgr_.get_functions();
     for (size_t i = 0; i < ff.size(); ++i)
         if (!ff[i]->has_area())
             return false;
@@ -454,7 +454,7 @@ bool CompoundFunction::has_area() const
 fp CompoundFunction::area() const
 {
     fp a = 0;
-    vector<Function*> const& ff = vmgr.get_functions();
+    vector<Function*> const& ff = vmgr_.get_functions();
     for (size_t i = 0; i < ff.size(); ++i) {
         a += ff[i]->area();
     }
@@ -463,7 +463,7 @@ fp CompoundFunction::area() const
 
 bool CompoundFunction::get_nonzero_range(fp level, fp& left, fp& right) const
 {
-    vector<Function*> const& ff = vmgr.get_functions();
+    vector<Function*> const& ff = vmgr_.get_functions();
     if (ff.size() == 1)
         return ff[0]->get_nonzero_range(level, left, right);
     else
@@ -478,8 +478,9 @@ CustomFunction::CustomFunction(Ftk const* F,
                                vector<string> const &vars,
                                vector<OpTree*> const& op_trees)
     : Function(F, name, vars, get_formula(type)),
-      derivatives(nv()+1),
-      afo(op_trees, value, derivatives)
+      // don't use nv() here, it's not set until init()
+      derivatives_(vars.size()+1),
+      afo_(op_trees, value_, derivatives_)
 {
 }
 
@@ -487,13 +488,13 @@ CustomFunction::CustomFunction(Ftk const* F,
 void CustomFunction::set_var_idx(vector<Variable*> const& variables)
 {
     VariableUser::set_var_idx(variables);
-    afo.tree_to_bytecode(var_idx.size());
+    afo_.tree_to_bytecode(var_idx.size());
 }
 
 
 void CustomFunction::more_precomputations()
 {
-    afo.prepare_optimized_codes(vv);
+    afo_.prepare_optimized_codes(vv);
 }
 
 void CustomFunction::calculate_value_in_range(vector<fp> const &xx,
@@ -501,7 +502,7 @@ void CustomFunction::calculate_value_in_range(vector<fp> const &xx,
                                               int first, int last) const
 {
     for (int i = first; i < last; ++i) {
-        yy[i] += afo.run_vm_val(xx[i]);
+        yy[i] += afo_.run_vm_val(xx[i]);
     }
 }
 
@@ -513,20 +514,20 @@ void CustomFunction::calculate_value_deriv_in_range(
 {
     int dyn = dy_da.size() / xx.size();
     for (int i = first; i < last; ++i) {
-        afo.run_vm_der(xx[i]);
+        afo_.run_vm_der(xx[i]);
 
         if (!in_dx) {
-            yy[i] += value;
+            yy[i] += value_;
             for (vector<Multi>::const_iterator j = multi.begin();
                     j != multi.end(); ++j)
-                dy_da[dyn*i+j->p] += derivatives[j->n] * j->mult;
-            dy_da[dyn*i+dyn-1] += derivatives.back();
+                dy_da[dyn*i+j->p] += derivatives_[j->n] * j->mult;
+            dy_da[dyn*i+dyn-1] += derivatives_.back();
         }
         else {
             for (vector<Multi>::const_iterator j = multi.begin();
                     j != multi.end(); ++j)
                 dy_da[dyn*i+j->p] += dy_da[dyn*i+dyn-1]
-                                       * derivatives[j->n] * j->mult;
+                                       * derivatives_[j->n] * j->mult;
         }
     }
 }
@@ -550,18 +551,18 @@ void SplitFunction::init()
     init_components(rf);
     for (int j = 0; j != nv(); ++j)
         replace_words(split_expr, type_params[j],
-                                  vmgr.get_variable(j)->xname);
-    vmgr.assign_variable("", split_expr);
+                                  vmgr_.get_variable(j)->xname);
+    vmgr_.assign_variable("", split_expr);
 }
 
 void SplitFunction::calculate_value_in_range(vector<fp> const &xx,
                                              vector<fp> &yy,
                                              int first, int last) const
 {
-    double xsplit = vmgr.get_variables().back()->get_value();
+    double xsplit = vmgr_.get_variables().back()->get_value();
     int t = lower_bound(xx.begin(), xx.end(), xsplit) - xx.begin();
-    vmgr.get_function(0)->calculate_value_in_range(xx, yy, first, t);
-    vmgr.get_function(1)->calculate_value_in_range(xx, yy, t, last);
+    vmgr_.get_function(0)->calculate_value_in_range(xx, yy, first, t);
+    vmgr_.get_function(1)->calculate_value_in_range(xx, yy, t, last);
 }
 
 void SplitFunction::calculate_value_deriv_in_range(
@@ -570,25 +571,25 @@ void SplitFunction::calculate_value_deriv_in_range(
                                           bool in_dx,
                                           int first, int last) const
 {
-    double xsplit = vmgr.get_variables().back()->get_value();
+    double xsplit = vmgr_.get_variables().back()->get_value();
     int t = lower_bound(xx.begin(), xx.end(), xsplit) - xx.begin();
-    vmgr.get_function(0)->
+    vmgr_.get_function(0)->
         calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, first, t);
-    vmgr.get_function(1)->
+    vmgr_.get_function(1)->
         calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, t, last);
 }
 
 string SplitFunction::get_current_formula(string const& x) const
 {
-    double xsplit = vmgr.get_variables().back()->get_value();
+    double xsplit = vmgr_.get_variables().back()->get_value();
     return "x < " + S(xsplit)
-        + " ? " + vmgr.get_function(0)->get_current_formula(x)
-        + " : " + vmgr.get_function(1)->get_current_formula(x);
+        + " ? " + vmgr_.get_function(0)->get_current_formula(x)
+        + " : " + vmgr_.get_function(1)->get_current_formula(x);
 }
 
 bool SplitFunction::get_nonzero_range(fp level, fp& left, fp& right) const
 {
-    vector<Function*> const& ff = vmgr.get_functions();
+    vector<Function*> const& ff = vmgr_.get_functions();
     fp dummy;
     return ff[0]->get_nonzero_range(level, left, dummy) &&
            ff[0]->get_nonzero_range(level, dummy, right);
@@ -596,14 +597,14 @@ bool SplitFunction::get_nonzero_range(fp level, fp& left, fp& right) const
 
 bool SplitFunction::has_height() const
 {
-    vector<Function*> const& ff = vmgr.get_functions();
+    vector<Function*> const& ff = vmgr_.get_functions();
     return ff[0]->has_height() && ff[1]->has_height() &&
         is_eq(ff[0]->height(), ff[1]->height());
 }
 
 bool SplitFunction::has_center() const
 {
-    vector<Function*> const& ff = vmgr.get_functions();
+    vector<Function*> const& ff = vmgr_.get_functions();
     return ff[0]->has_center() && ff[1]->has_center() &&
         is_eq(ff[0]->center(), ff[1]->center());
 }
