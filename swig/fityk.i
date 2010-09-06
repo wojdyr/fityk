@@ -2,7 +2,7 @@
 // Licence: GNU General Public License version 2
 // $Id$
 
-// tests for bindings are in samples/ directory (*.py)
+// tests for bindings are in samples/ directory
 
 %module fityk
 %feature("autodoc", "1");
@@ -87,10 +87,29 @@ namespace std {
 
     // set_show_message can be probably wrapped using swig1.3/lua/lua_fnptr.i
 
+#elif defined(SWIGPERL)
+    %typemap(in) FILE * {
+        if (!SvTRUE($input))
+            $1=NULL;
+        else
+            $1 = PerlIO_exportFILE(IoIFP(sv_2io($input)), NULL);
+    }
+
+    %typemap(throws) fityk::ExecuteError {
+        std::string msg = std::string("Runtime error: ") + $1.what() + "\n ";
+        croak(msg.c_str());
+    }
+
+    %typemap(throws) fityk::SyntaxError {
+        std::string msg = std::string("Syntax error. ") + $1.what() + "\n ";
+        croak(msg.c_str());
+    }
+
+
 #else
 #warning \
-    fityk.i was tested only with Python and Lua. If you use it with other \
-    languages, or you had to modify it, please let me know - wojdyr@gmail.com
+    fityk.i supports Python, Perl and Lua.\
+    If you use another language, please let me know - wojdyr@gmail.com
 #endif
 
 %apply FILE* { std::FILE* };
