@@ -56,7 +56,7 @@ public:
     double get_lambda(int n) const;
     double get_min_d() const;
     double d2x(double d) const;
-    double is_d_active(double d) const;
+    bool is_d_active(double d) const;
     wxListBox *get_saved_phase_lb() { return saved_phase_lb; }
     void update_phase_labels(PhasePanel* p);
     double get_x_min() const { return x_min; }

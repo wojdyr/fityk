@@ -207,7 +207,9 @@ PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
     AddPage(PreparePeakPanel(), wxT("peak"), false, 3);
     AddPage(PrepareActionPanel(), wxT("action"), false, 4);
     AddPage(PrepareSizeStrainPanel(), wxT("size-strain"), false, 5);
+#if !STANDALONE_POWDIFPAT
     fill_forms();
+#endif
 
     Connect(GetId(), wxEVT_COMMAND_LISTBOOK_PAGE_CHANGED,
             (wxObjectEventFunction) &PowderBook::OnPageChanged);
@@ -303,7 +305,7 @@ wxPanel* PowderBook::PrepareIntroPanel()
     range_sizer->Add(range_to, wxSizerFlags().Center().Border());
     intro_sizer->Add(range_sizer);
     Connect(file_picker->GetId(), wxEVT_COMMAND_FILEPICKER_CHANGED,
-            wxCommandEventHandler(PowderBook::OnFilePicked));
+            (wxObjectEventFunction) &PowderBook::OnFilePicked);
 #endif
 
     wxStaticBoxSizer *legend_box = new wxStaticBoxSizer(wxHORIZONTAL,
@@ -1152,6 +1154,7 @@ wxString PowderBook::get_peak_name() const
 wxPanel* PowderBook::PrepareActionPanel()
 {
     wxPanel *panel = new wxPanel(this);
+#if !STANDALONE_POWDIFPAT
     wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 
     wxStaticBoxSizer *action_del_sizer;
@@ -1203,6 +1206,7 @@ wxPanel* PowderBook::PrepareActionPanel()
     Connect(ok_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             wxCommandEventHandler(PowderBook::OnOk));
 
+#endif //!STANDALONE_POWDIFPAT
     return panel;
 }
 
@@ -1234,6 +1238,7 @@ wxString hkl2wxstr(const Miller& hkl)
     return s;
 }
 
+#if !STANDALONE_POWDIFPAT
 // All variable and function names have "pd" prefix.
 // Each name is composed from a few parts.
 // One example: "$pd1b_c201":
@@ -1571,6 +1576,7 @@ void PowderBook::fill_forms()
     var2lockctrl("pd_c", par_c);
     // TODO: peak function, peak width, peak shape
 }
+#endif //!STANDALONE_POWDIFPAT
 
 wxPanel* PowderBook::PrepareSizeStrainPanel()
 {
@@ -1741,7 +1747,9 @@ void PowderBook::OnPageChanged(wxListbookEvent& event)
         }
     }
     else if (event.GetSelection() == 4) { // action
+#if !STANDALONE_POWDIFPAT
         action_txt->SetValue(prepare_commands());
+#endif
     }
 }
 
@@ -1794,11 +1802,15 @@ double PowderBook::d2x(double d) const
     return 0.;
 }
 
-double PowderBook::is_d_active(double d) const
+bool PowderBook::is_d_active(double d) const
 {
+#if !STANDALONE_POWDIFPAT
     double x = d2x(d);
     vector<Point>::const_iterator point = data->get_point_at(x);
     return point != data->points().end() && point->is_active;
+#else
+    return true;
+#endif
 }
 
 double PowderBook::get_min_d() const
@@ -1886,6 +1898,7 @@ void PowderBook::update_phase_labels(PhasePanel* p)
     }
 }
 
+#if !STANDALONE_POWDIFPAT
 void PowderBook::OnDelButton(wxCommandEvent&)
 {
     wxString script = action_del_txt->GetValue();
@@ -1897,11 +1910,10 @@ void PowderBook::OnOk(wxCommandEvent&)
     wxString script = action_txt->GetValue();
     ftk->get_ui()->exec_string_as_script(script.mb_str());
     save_phase_desc();
-#if !STANDALONE_POWDIFPAT
     wxDialog* dialog = static_cast<wxDialog*>(GetParent());
     dialog->EndModal(wxID_OK);
-#endif
 }
+#endif
 
 void PowderBook::save_phase_desc()
 {
