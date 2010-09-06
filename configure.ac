@@ -34,9 +34,11 @@ AC_ARG_ENABLE(powdifpat,
 test -z "$enable_powdifpat" && enable_powdifpat="no"
 
 AC_ARG_ENABLE(python,
-[  --enable-python         build python bindings to libfityk])
+[  --enable-python         build Python bindings to libfityk])
 AC_ARG_ENABLE(lua,
-[  --enable-lua            build lua bindings to libfityk])
+[  --enable-lua            build Lua bindings to libfityk])
+AC_ARG_ENABLE(perl,
+[  --enable-perl           build Perl bindings to libfityk])
 
 AC_ARG_WITH(samples,
 [  --with-samples          install samples as documentation])
@@ -194,7 +196,14 @@ if test "$enable_lua" = "yes"; then
 fi
 AM_CONDITIONAL([LUA_ENABLED], [test "$enable_lua" = yes])
 
-AM_CONDITIONAL([SWIG_DIR], [test "$enable_python" = yes -o "$enable_lua" = yes])
+#if test "$enable_perl" = "yes"; then
+#    AC_CHECK_PROG(PERL, perl, "yes")
+#fi
+#AM_CONDITIONAL([PERL_ENABLED], [test "$enable_perl" = yes])
+
+AM_CONDITIONAL([SWIG_DIR], [test "$enable_python" = yes \
+				 -o "$enable_lua" = yes \
+				 -o "$enable_perl" = yes])
 # check for SWIG even if it's not needed, because "make dist" may need it,
 # but don't show an error if it is not needed
 AM_COND_IF([SWIG_DIR], [AX_PKG_SWIG(1.3.17)],

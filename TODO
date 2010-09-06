@@ -31,6 +31,8 @@ $Id$
 
 * convolution and deconvolution of two datasets or a dataset with Gaussian:
   convolve @0 @1; convolve @0 2.3; deconvolve @0 3.4
+  
+* data transformations: add aggregate functions argmin and argmax
 
 * embed Lua interpreter
 

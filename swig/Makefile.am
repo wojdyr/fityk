@@ -2,7 +2,8 @@
 EXTRA_DIST =
 
 SWIG_SOURCES = fityk.i
-BUILT_SOURCES = $(srcdir)/fityk_python.cpp $(srcdir)/fityk_lua.cpp
+BUILT_SOURCES = $(srcdir)/fityk_python.cpp $(srcdir)/fityk_lua.cpp \
+		$(srcdir)/fityk_perl.cpp $(srcdir)/fityk.pm
 python_PYTHON = $(srcdir)/fityk.py
 
 if PYTHON_ENABLED
@@ -30,7 +31,16 @@ $(srcdir)/fityk.py: $(srcdir)/fityk_python.cpp
 $(srcdir)/fityk_lua.cpp: $(SWIG_SOURCES) $(top_srcdir)/src/fityk.h
 	$(SWIG) -c++ -lua -I$(top_srcdir)/src -o $@ $<
 
+$(srcdir)/fityk_perl.cpp: $(SWIG_SOURCES) $(top_srcdir)/src/fityk.h
+	$(SWIG) -c++ -perl -I$(top_srcdir)/src -o $@ $<
+$(srcdir)/fityk.pm: $(srcdir)/fityk_perl.cpp
+
 #lua: $(srcdir)/fityk_lua.cpp
 #	$(CXX) -fPIC -I/usr/include/lua5.1 -I$(top_srcdir)/src -c fityk_lua.cpp
 #	$(CXX) -shared fityk_lua.o -L$(top_srcdir)/src/.libs -lfityk -o fityk.so
-#
+
+perl: $(srcdir)/fityk_perl.cpp
+        PERL_CPPFLAGS=-I/usr/lib/perl/5.10.1/CORE
+	$(CXX) -fPIC $(PERL_CPPFLAGS) -I$(top_srcdir)/src -c fityk_perl.cpp
+	$(CXX) -shared fityk_perl.o -L$(top_srcdir)/src/.libs -lfityk -o fityk.so
+
