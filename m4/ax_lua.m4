@@ -1,5 +1,5 @@
 # ===========================================================================
-#             http://www.nongnu.org/autoconf-archive/ax_lua.html
+#          http://www.gnu.org/software/autoconf-archive/ax_lua.html
 # ===========================================================================
 #
 # SYNOPSIS
@@ -72,6 +72,8 @@
 #   modified version of the Autoconf Macro, you may extend this special
 #   exception to the GPL to apply to your modified version as well.
 
+#serial 7
+
 dnl Helper function to declare extra options
 AC_DEFUN([_AX_LUA_OPTS],
   [AC_ARG_WITH([lua-prefix],
@@ -108,7 +110,7 @@ AC_DEFUN([AX_LUA_VERSION],
   AC_MSG_CHECKING([Lua version is in range $1 <= v < $2])
   _AX_LUA_VERSIONS($1, $2)
   if test "x$LUA" != x; then
-    lua_text_version=$($LUA -v 2>&1 | head -n 1 | cut -d' ' -f2)
+    lua_text_version=$(LUA_INIT= $LUA -v 2>&1 | head -n 1 | cut -d' ' -f2)
     case $lua_text_version in
     5.1*)
       lua_version=501

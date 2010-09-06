@@ -62,7 +62,7 @@
 #   modified version of the Autoconf Macro, you may extend this special
 #   exception to the GPL to apply to your modified version as well.
 
-#serial 6
+#serial 7
 
 AC_DEFUN([AX_PKG_SWIG],[
         AC_PATH_PROG([SWIG],[swig])
@@ -105,9 +105,15 @@ AC_DEFUN([AX_PKG_SWIG],[
                         if test -z "$available_patch" ; then
                                 [available_patch=0]
                         fi
-                        if test $available_major -ne $required_major \
-                                -o $available_minor -ne $required_minor \
-                                -o $available_patch -lt $required_patch ; then
+                        # Convert the version tuple into a single number for easier comparison.
+                        # Using base 100 should be safe since SWIG internally uses BCD values
+                        # to encode its version number.
+                        required_swig_vernum=`expr $required_major \* 10000 \
+                            \+ $required_minor \* 100 \+ $required_patch`
+                        available_swig_vernum=`expr $available_major \* 10000 \
+                            \+ $available_minor \* 100 \+ $available_patch`
+
+                        if test $available_swig_vernum -lt $required_swig_vernum; then
                                 AC_MSG_WARN([SWIG version >= $1 is required.  You have $swig_version.])
                                 SWIG=''
                                 m4_ifval([$3],[$3],[])
