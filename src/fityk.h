@@ -42,21 +42,18 @@ namespace fityk
 struct ExecuteError : public std::runtime_error
 {
     ExecuteError(const std::string& msg) : runtime_error(msg) {}
-    const char* str() { return what(); } // used by SWIG
 };
 
 /// syntax error exception
 struct SyntaxError : public std::invalid_argument
 {
     SyntaxError(const std::string& msg="") : invalid_argument(msg) {}
-    const char* str() { return what(); } // used by SWIG
 };
 
 
 /// exception thrown to finish the program (on command "quit")
 struct ExitRequestedException : std::exception
 {
-    const char* str() { return ""; } // used by SWIG
 };
 
 /// data point
@@ -68,7 +65,7 @@ struct Point
     Point();
     Point(double x_, double y_);
     Point(double x_, double y_, double sigma_);
-    std::string str();
+    std::string str() const;
 };
 inline bool operator< (Point const& p, Point const& q) { return p.x < q.x; }
 
@@ -107,6 +104,24 @@ public:
     /// add one data point to dataset
     void add_point(double x, double y, double sigma, int dataset=0)
                                                      throw(ExecuteError);
+
+    // @}
+
+    /// @name handling of program errors
+    // @{
+
+    /// If set true, throws exceptions. Default: true.
+    void set_throws(bool state) { throws_ = state; }
+
+    /// Return error handling mode: true if exceptions are thrown.
+    bool get_throws() const { return throws_; }
+
+    ///\brief Returns string that represents last error or empty string.
+    /// Useful when exceptions are not used. See also: clear_last_error().
+    std::string const& last_error() const { return last_error_; }
+
+    /// Clear last error message. See also: last_error().
+    void clear_last_error() { last_error_.clear(); }
 
     // @}
 
@@ -175,7 +190,9 @@ public:
     // @}
 
 private:
-    Ftk *ftk;
+    Ftk *ftk_;
+    bool throws_;
+    std::string last_error_;
 };
 
 } // namespace

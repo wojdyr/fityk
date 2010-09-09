@@ -4,7 +4,13 @@
 
 // tests for bindings are in samples/ directory
 
+#if defined(SWIGPERL)
+// Perl has convention of capitalized module names
+%module Fityk
+#else
 %module fityk
+#endif
+
 %feature("autodoc", "1");
 
 %{
@@ -21,10 +27,11 @@ namespace std {
 // it can be wrapped only using typemaps
 %ignore set_show_message;
 
-#if defined(SWIGPYTHON)
-    // str() is used in class Point and exceptions
-    %rename(__str__) str();
+%extend fityk::Point { std::string __str__() { return $self->str(); } }
+%extend fityk::SyntaxError { const char* __str__() { return $self->what(); } }
+%extend fityk::ExecuteError { const char* __str__() { return $self->what(); } }
 
+#if defined(SWIGPYTHON)
     %include "file.i"
 
     %typemap(check) PyObject *pyfunc {
@@ -86,6 +93,7 @@ namespace std {
     }
 
     // set_show_message can be probably wrapped using swig1.3/lua/lua_fnptr.i
+
 
 #elif defined(SWIGPERL)
     %typemap(in) FILE * {
