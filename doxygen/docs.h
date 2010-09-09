@@ -13,7 +13,7 @@
  * - src/ - fityk library (libfityk)
  * - src/wxgui/ - wxWidgets-based GUI
  * - src/cli/   - readline/gnuplot based CLI
- * - src/swig/   - bindings to libfityk
+ * - swig/   - bindings to libfityk
  * \par
  * libfityk - parsers
  *

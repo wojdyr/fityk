@@ -35,12 +35,14 @@ $(srcdir)/fityk_perl.cpp: $(SWIG_SOURCES) $(top_srcdir)/src/fityk.h
 	$(SWIG) -c++ -perl -I$(top_srcdir)/src -o $@ $<
 $(srcdir)/fityk.pm: $(srcdir)/fityk_perl.cpp
 
+
+LIBFITYK_LINK=-L$(top_srcdir)/src/.libs -lfityk
+
 #lua: $(srcdir)/fityk_lua.cpp
 #	$(CXX) -fPIC -I/usr/include/lua5.1 -I$(top_srcdir)/src -c fityk_lua.cpp
-#	$(CXX) -shared fityk_lua.o -L$(top_srcdir)/src/.libs -lfityk -o fityk.so
+#	$(CXX) -shared fityk_lua.o $(LIBFITYK_LINK) -o fityk.so
 
 perl: $(srcdir)/fityk_perl.cpp
-        PERL_CPPFLAGS=-I/usr/lib/perl/5.10.1/CORE
-	$(CXX) -fPIC $(PERL_CPPFLAGS) -I$(top_srcdir)/src -c fityk_perl.cpp
-	$(CXX) -shared fityk_perl.o -L$(top_srcdir)/src/.libs -lfityk -o fityk.so
+	$(CXX) -fPIC `perl -MExtUtils::Embed -e perl_inc` -I$(top_srcdir)/src -c fityk_perl.cpp
+	$(CXX) -shared fityk_perl.o $(LIBFITYK_LINK) -o Fityk.so
 

@@ -228,7 +228,7 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
                 i++;
                 // the OP_PUT_DERIV opcode is followed by a number n,
                 // the derivative is calculated with respect to n'th variable
-                assert(*i < derivatives.size());
+                assert(*i < (int) derivatives.size());
                 derivatives[*i] = *stackPtr;
                 stackPtr--;
                 break;
