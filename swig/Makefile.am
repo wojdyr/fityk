@@ -3,7 +3,7 @@ EXTRA_DIST =
 
 SWIG_SOURCES = fityk.i
 BUILT_SOURCES = $(srcdir)/fityk_python.cpp $(srcdir)/fityk_lua.cpp \
-		$(srcdir)/fityk_perl.cpp $(srcdir)/fityk.pm
+		$(srcdir)/fityk_perl.cpp $(srcdir)/Fityk.pm
 python_PYTHON = $(srcdir)/fityk.py
 
 if PYTHON_ENABLED
@@ -33,7 +33,7 @@ $(srcdir)/fityk_lua.cpp: $(SWIG_SOURCES) $(top_srcdir)/src/fityk.h
 
 $(srcdir)/fityk_perl.cpp: $(SWIG_SOURCES) $(top_srcdir)/src/fityk.h
 	$(SWIG) -c++ -perl -I$(top_srcdir)/src -o $@ $<
-$(srcdir)/fityk.pm: $(srcdir)/fityk_perl.cpp
+$(srcdir)/Fityk.pm: $(srcdir)/fityk_perl.cpp
 
 
 LIBFITYK_LINK=-L$(top_srcdir)/src/.libs -lfityk
