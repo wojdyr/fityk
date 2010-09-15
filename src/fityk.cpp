@@ -117,11 +117,6 @@ void Fityk::execute(string const& s)  throw(SyntaxError, ExecuteError,
     CATCH_EXECUTE_ERROR
 }
 
-bool Fityk::safe_execute(string const& s)  throw(ExitRequestedException)
-{
-    return ftk_->exec(s) == Commands::status_ok;
-}
-
 string Fityk::get_info(string const& s, bool full)
                                              throw(SyntaxError, ExecuteError)
 {

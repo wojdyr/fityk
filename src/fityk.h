@@ -91,9 +91,6 @@ public:
     void execute(std::string const& s) throw(SyntaxError, ExecuteError,
                                              ExitRequestedException);
 
-    /// execute command; returns false on error
-    bool safe_execute(std::string const& s) throw(ExitRequestedException);
-
     /// load data
     void load_data(int dataset,
                    std::vector<double> const& x,
@@ -107,17 +104,17 @@ public:
 
     // @}
 
-    /// @name handling of program errors
+    /// @name (alternative to exceptions) handling of program errors
     // @{
 
-    /// If set true, throws exceptions. Default: true.
+    /// If set to false, does not throw exceptions. Default: true.
     void set_throws(bool state) { throws_ = state; }
 
     /// Return error handling mode: true if exceptions are thrown.
     bool get_throws() const { return throws_; }
 
-    ///\brief Returns string that represents last error or empty string.
-    /// Useful when exceptions are not used. See also: clear_last_error().
+    ///\brief Returns a string with last error or an empty string.
+    /// Useful after calling set_throws(false). See also: clear_last_error().
     std::string const& last_error() const { return last_error_; }
 
     /// Clear last error message. See also: last_error().
