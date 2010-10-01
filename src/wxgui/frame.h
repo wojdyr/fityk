@@ -60,10 +60,10 @@ public:
     ~FFrame();
     //void OnSize (wxSizeEvent& event);
 
-    void OnShowHelp (wxCommandEvent& event);
-    void OnAbout (wxCommandEvent& event);
-    void OnContact (wxCommandEvent& event);
-    void OnQuit (wxCommandEvent& event);
+    void OnShowHelp(wxCommandEvent& event);
+    void OnAbout(wxCommandEvent& event);
+    void OnOnline(wxCommandEvent& event);
+    void OnQuit(wxCommandEvent& event);
 
     void OnDataRevertUpdate (wxUpdateUIEvent& event);
     void OnDataExportUpdate (wxUpdateUIEvent& event);

@@ -53,7 +53,6 @@ zoom_vert.xpm \
 zshift.xpm \
  \
 book16.h \
-bug16.h \
 export16.h \
 fileopen16.h \
 filereload16.h \
@@ -70,6 +69,7 @@ run16.h \
 runmacro16.h \
 stopmacro16.h \
 undo16.h \
+web16.h \
 zoom-fit16.h \
 \
 mouse16.h \

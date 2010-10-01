@@ -14,8 +14,6 @@ $Id$
 * GUI: "Recent baselines" in the menu (to enable loading a recent baseline,
   changing it a bit and subtracting)
 
-* GUI: use capital letters in menu
-
 -------- 0.9.4
 
 * finish powder diffraction add-on (Pawley fitting)

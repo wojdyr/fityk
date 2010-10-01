@@ -88,7 +88,6 @@
 #include "img/zoom_vert.xpm"
 
 #include "img/book16.h"
-#include "img/bug16.h"
 #include "img/export16.h"
 #include "img/fileopen16.h"
 #include "img/filereload16.h"
@@ -105,6 +104,7 @@
 #include "img/stopmacro16.h"
 #include "img/undo16.h"
 #include "img/revert16.h"
+#include "img/web16.h"
 #include "img/zoom-fit16.h"
 #include "img/powdifpat16.xpm"
 
@@ -112,10 +112,19 @@ using namespace std;
 FFrame *frame = NULL;
 Ftk *ftk = NULL;
 
+static const wxString discussions_url(
+        wxT("http://groups.google.com/group/fityk-users/topics"));
+static const wxString website_url(
+        wxT("http://www.unipress.waw.pl/fityk/"));
+static const wxString wiki_url(
+        wxT("http://sourceforge.net/apps/trac/fityk/"));
+
 enum {
     // menu
     ID_H_MANUAL        = 24001 ,
-    ID_H_CONTACT               ,
+    ID_H_WEBSITE               ,
+    ID_H_WIKI                  ,
+    ID_H_DISCUSSIONS           ,
     ID_D_QLOAD                 ,
     ID_D_XLOAD                 ,
     ID_D_RECENT                , //and next ones
@@ -340,7 +349,9 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_SCONFAS,     FFrame::OnConfigSaveAs)
 
     EVT_MENU (ID_H_MANUAL,      FFrame::OnShowHelp)
-    EVT_MENU (ID_H_CONTACT,     FFrame::OnContact)
+    EVT_MENU (ID_H_WEBSITE,     FFrame::OnOnline)
+    EVT_MENU (ID_H_WIKI,        FFrame::OnOnline)
+    EVT_MENU (ID_H_DISCUSSIONS, FFrame::OnOnline)
     EVT_MENU (wxID_ABOUT,       FFrame::OnAbout)
     EVT_MENU (wxID_EXIT,        FFrame::OnQuit)
 END_EVENT_TABLE()
@@ -538,21 +549,21 @@ void FFrame::set_menubar()
 {
     wxMenu* session_menu = new wxMenu;
     append_mi(session_menu, ID_SESSION_INCLUDE, GET_BMP(runmacro16),
-              wxT("&Execute script\tCtrl-X"),
+              wxT("&Execute Script\tCtrl-X"),
               wxT("Execute commands from a file"));
     session_menu->Append (ID_SESSION_REINCLUDE, wxT("R&e-Execute script"),
              wxT("Reset & execute commands from the file included last time"));
     session_menu->Enable (ID_SESSION_REINCLUDE, false);
-    session_menu->Append (ID_S_DEBUGGER, wxT("Script debu&gger"),
+    session_menu->Append (ID_S_DEBUGGER, wxT("Script Debu&gger"),
                                        wxT("Show script editor and debugger"));
     append_mi(session_menu, ID_SESSION_RESET, GET_BMP(reload16), wxT("&Reset"),
                                       wxT("Reset current session"));
     session_menu->AppendSeparator();
     wxMenu *session_log_menu = new wxMenu;
     append_mi(session_log_menu, ID_LOG_START, GET_BMP(recordmacro16),
-           wxT("Choose log file"), wxT("Start logging to file (make script)"));
+           wxT("Choose Log File"), wxT("Start logging to file (make script)"));
     append_mi(session_log_menu, ID_LOG_STOP, GET_BMP(stopmacro16),
-              wxT("Stop logging"), wxT("Finish logging to file"));
+              wxT("Stop Logging"), wxT("Finish logging to file"));
     session_log_menu->AppendCheckItem(ID_LOG_WITH_OUTPUT,wxT("Log also output"),
                           wxT("output can be included in logfile as comments"));
     session_log_menu->AppendSeparator();
@@ -560,7 +571,7 @@ void FFrame::set_menubar()
                             wxT("Save all commands executed so far to file"));
     session_menu->Append(ID_SESSION_LOG, wxT("&Logging"), session_log_menu);
     append_mi(session_menu, ID_SESSION_DUMP, GET_BMP(filesaveas16),
-              wxT("&Save session..."),
+              wxT("&Save Session..."),
               wxT("Save current program state as script file"));
     session_menu->AppendSeparator();
     session_menu->Append(ID_PAGE_SETUP, wxT("Page Se&tup..."),
@@ -582,7 +593,7 @@ void FFrame::set_menubar()
                          wxT("Copy plots to clipboard."));
 #endif
     append_mi(session_menu, ID_SAVE_IMAGE, GET_BMP(image16),
-              wxT("Sa&ve as Image..."), wxT("Save plot as PNG image."));
+              wxT("Sa&ve As Image..."), wxT("Save plot as PNG image."));
     session_menu->AppendSeparator();
     append_mi(session_menu, ID_SESSION_SET, GET_BMP(preferences16),
               wxT("&Settings"), wxT("Preferences and options"));
@@ -629,7 +640,7 @@ void FFrame::set_menubar()
 
     wxMenu* sum_menu = new wxMenu;
     func_type_menu = new wxMenu;
-    sum_menu->Append (ID_G_M_PEAK, wxT("Function &type"), func_type_menu);
+    sum_menu->Append (ID_G_M_PEAK, wxT("Function &Type"), func_type_menu);
     // the function list is created in update_menu_functions()
     append_mi(sum_menu, ID_DEFMGR, GET_BMP(function16),
               wxT("&Definition Manager"), wxT("Add or modify funtion types"));
@@ -656,7 +667,7 @@ void FFrame::set_menubar()
     wxMenu* fit_method_menu = new wxMenu;
     fit_method_menu->AppendRadioItem (ID_F_M+0, wxT("&Levenberg-Marquardt"),
                                                 wxT("gradient based method"));
-    fit_method_menu->AppendRadioItem (ID_F_M+1, wxT("Nelder-Mead &simplex"),
+    fit_method_menu->AppendRadioItem (ID_F_M+1, wxT("Nelder-Mead &Simplex"),
                                   wxT("slow but simple and reliable method"));
     fit_method_menu->AppendRadioItem (ID_F_M+2, wxT("&Genetic Algorithm"),
                                                 wxT("almost AI"));
@@ -750,7 +761,7 @@ void FFrame::set_menubar()
     gui_menu->AppendSeparator();
     append_mi(gui_menu, ID_G_V_ALL, GET_BMP(zoom_fit16),
               wxT("Zoom &All\tCtrl-A"), wxT("View whole data"));
-    gui_menu->Append (ID_G_V_VERT, wxT("Fit &vertically\tCtrl-V"),
+    gui_menu->Append (ID_G_V_VERT, wxT("Fit &Vertically\tCtrl-V"),
                       wxT("Adjust vertical zoom"));
     gui_menu->AppendCheckItem(ID_G_SHOWY0, wxT("Zoom All Shows Y=&0"),
                         wxT("Tend to include Y=0 when adjusting view."));
@@ -767,32 +778,36 @@ void FFrame::set_menubar()
     gui_menu->Append(ID_G_V_ZOOM_PREV, wxT("&Previous Zooms"),
                      gui_menu_zoom_prev);
     gui_menu->AppendSeparator();
-    gui_menu->Append(ID_G_LCONF1, wxT("Load &default config"),
+    gui_menu->Append(ID_G_LCONF1, wxT("Load &Default Config"),
                                             wxT("Default configuration file"));
-    gui_menu->Append(ID_G_LCONF2, wxT("Load &alt. config"),
+    gui_menu->Append(ID_G_LCONF2, wxT("Load &Alt. Config"),
                                         wxT("Alternative configuration file"));
     wxMenu* gui_menu_lconfig = new wxMenu;
     gui_menu_lconfig->Append(ID_G_LCONFB, wxT("&built-in"),
                                                wxT("Built-in configuration"));
     gui_menu_lconfig->AppendSeparator();
     update_config_menu(gui_menu_lconfig);
-    gui_menu->Append(ID_G_LCONF, wxT("&Load config..."), gui_menu_lconfig);
+    gui_menu->Append(ID_G_LCONF, wxT("&Load Config..."), gui_menu_lconfig);
     wxMenu* gui_menu_sconfig = new wxMenu;
-    gui_menu_sconfig->Append(ID_G_SCONF1, wxT("as default"),
+    gui_menu_sconfig->Append(ID_G_SCONF1, wxT("As Default"),
                      wxT("Save current configuration to default config file"));
-    gui_menu_sconfig->Append(ID_G_SCONF2, wxT("as alternative"),
+    gui_menu_sconfig->Append(ID_G_SCONF2, wxT("As Alternative"),
                  wxT("Save current configuration to alternative config file"));
-    gui_menu_sconfig->Append(ID_G_SCONFAS, wxT("as ..."),
+    gui_menu_sconfig->Append(ID_G_SCONFAS, wxT("As ..."),
                  wxT("Save current configuration to other config file"));
-    gui_menu->Append(ID_G_SCONF, wxT("&Save current config"), gui_menu_sconfig);
+    gui_menu->Append(ID_G_SCONF, wxT("&Save Current Config"), gui_menu_sconfig);
 
     wxMenu *help_menu = new wxMenu;
 
 
     append_mi(help_menu, ID_H_MANUAL, GET_BMP(book16), wxT("&Manual"),
               wxT("User's Manual"));
-    append_mi(help_menu, ID_H_CONTACT, GET_BMP(bug16), wxT("&Report a Problem"),
-                      wxT("Feedback is always appreciated."));
+    append_mi(help_menu, ID_H_WEBSITE, GET_BMP(web16), wxT("&Visit Website"),
+              website_url);
+    append_mi(help_menu, ID_H_WIKI, GET_BMP(web16), wxT("&Visit Wiki"),
+              wiki_url);
+    append_mi(help_menu, ID_H_DISCUSSIONS, GET_BMP(web16),
+              wxT("&Visit Discussions"), discussions_url);
     help_menu->Append(wxID_ABOUT, wxT("&About..."), wxT("Show about dialog"));
 
     wxMenuBar *menu_bar = new wxMenuBar();
@@ -841,13 +856,20 @@ void FFrame::OnAbout(wxCommandEvent&)
     dlg->Destroy();
 }
 
-void FFrame::OnContact(wxCommandEvent&)
+void FFrame::OnOnline(wxCommandEvent& event)
 {
-    wxString url = wxT("http://groups.google.com/group/fityk-users/topics");
-    bool r = wxLaunchDefaultBrowser(url);
+    const wxString* url;
+    if (event.GetId() == ID_H_WEBSITE)
+        url = &website_url;
+    else if (event.GetId() == ID_H_WIKI)
+        url = &wiki_url;
+    else //if (event.GetId() == ID_H_DISCUSSIONS)
+        url = &discussions_url;
+    bool r = wxLaunchDefaultBrowser(*url);
     if (!r)
-        wxMessageBox(wxT("Read instructions at the programs webpage.\n"),
-                     wxT("feedback"), wxOK|wxICON_INFORMATION);
+        wxMessageBox(wxT("Can not open URL in browser,")
+                     wxT("\nplease open it manually:") + *url,
+                     wxT("Browser Launch Failed"), wxOK);
 }
 
 void FFrame::OnDataQLoad (wxCommandEvent&)
