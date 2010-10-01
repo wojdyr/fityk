@@ -37,8 +37,8 @@ AC_ARG_ENABLE(python,
 [  --enable-python         build Python bindings to libfityk])
 AC_ARG_ENABLE(lua,
 [  --enable-lua            build Lua bindings to libfityk])
-AC_ARG_ENABLE(perl,
-[  --enable-perl           build Perl bindings to libfityk])
+#AC_ARG_ENABLE(perl,
+#[  --enable-perl           build Perl bindings to libfityk])
 
 AC_ARG_WITH(samples,
 [  --with-samples          install samples as documentation])
