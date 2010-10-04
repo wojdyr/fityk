@@ -30,6 +30,7 @@
 #include <ctype.h>
 
 #include <xylib/xylib.h>
+#include <xylib/cache.h>
 
 #include "frame.h"
 #include "plot.h"
@@ -868,7 +869,7 @@ void FFrame::OnOnline(wxCommandEvent& event)
     bool r = wxLaunchDefaultBrowser(*url);
     if (!r)
         wxMessageBox(wxT("Can not open URL in browser,")
-                     wxT("\nplease open it manually:") + *url,
+                     wxT("\nplease open it manually:\n") + *url,
                      wxT("Browser Launch Failed"), wxOK);
 }
 
@@ -879,22 +880,50 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
                        wxT("All Files (*)|*|")
                                        + s2wx(xylib::get_wildcards_string()),
                        wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
-    if (fdlg.ShowModal() == wxID_OK) {
-        wxArrayString paths;
-        fdlg.GetPaths(paths);
-        int count = paths.GetCount();
-        string cmd;
-        for (int i = 0; i < count; ++i) {
-            if (i != 0)
-                cmd += " ; ";
-            cmd += "@+ <'" + wx2s(paths[i]) + "'";
-            add_recent_data_file(wx2s(paths[i]));
-        }
-        ftk->exec(cmd);
-        if (count > 1)
-            SwitchSideBar(true);
-    }
+    int ret = fdlg.ShowModal();
     dir = fdlg.GetDirectory();
+    if (ret != wxID_OK)
+        return;
+
+    wxArrayString paths;
+    fdlg.GetPaths(paths);
+    int count = paths.GetCount();
+    string cmd;
+    if (count == 1) {
+        string f = wx2s(paths[0]);
+        shared_ptr<const xylib::DataSet> d = xylib::cached_load_file(f, "", "");
+        if (d->get_block_count() > 1) {
+            wxArrayString choices;
+            for (int i = 0; i < d->get_block_count(); ++i) {
+                wxString name = s2wx(d->get_block(i)->get_name());
+                if (name.empty())
+                    name.Printf(wxT("Block #%d"), i+1);
+                choices.push_back(name);
+            }
+            wxMultiChoiceDialog mdlg(this, wxT("Select data blocks:"),
+                                     wxT("Choose blocks"), choices);
+            wxArrayInt sel;
+            sel.push_back(0);
+            mdlg.SetSelections(sel);
+            if (mdlg.ShowModal() != wxID_OK)
+                return;
+            sel = mdlg.GetSelections();
+            paths.clear();
+            for (size_t i = 0; i < sel.size(); ++i)
+                paths.push_back(s2wx(f + "::::" + S(i)));
+        }
+    }
+
+    for (size_t i = 0; i < paths.size(); ++i) {
+        if (i != 0)
+            cmd += " ; ";
+        cmd += "@+ <'" + wx2s(paths[i]) + "'";
+        add_recent_data_file(wx2s(paths[i]));
+    }
+
+    ftk->exec(cmd);
+    if (count > 1)
+        SwitchSideBar(true);
 }
 
 void FFrame::OnDataXLoad (wxCommandEvent&)
