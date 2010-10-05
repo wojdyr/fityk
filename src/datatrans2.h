@@ -20,10 +20,13 @@
 #include "numfuncs.h"
 #include "logic.h"
 #include "fityk.h"
+#include "eparser.h"
 #include <boost/spirit/include/classic_core.hpp>
 
 using namespace std;
 using namespace boost::spirit::classic;
+
+using namespace dataVM;
 
 namespace datatrans {
 
@@ -31,30 +34,6 @@ extern vector<int> code;        //  VM code
 extern vector<fp> numbers;  //  VM data
 extern const int stack_size;  //should be enough,
                               //there are no checks for stack overflow
-
-/// operators used in VM code
-enum DataTransformVMOperator
-{
-    OP_NEG=-200, OP_EXP, OP_ERFC, OP_ERF, OP_SIN, OP_COS,  OP_TAN,
-    OP_SINH, OP_COSH, OP_TANH, OP_ABS,  OP_ROUND,
-    OP_ATAN, OP_ASIN, OP_ACOS, OP_LOG10, OP_LN,  OP_SQRT,  OP_POW,
-    OP_GAMMA, OP_LGAMMA, OP_VOIGT, OP_XINDEX,
-    OP_ADD,   OP_SUB,   OP_MUL,   OP_DIV,  OP_MOD,
-    OP_MIN2,   OP_MAX2, OP_RANDNORM, OP_RANDU,
-    OP_VAR_X, OP_VAR_FIRST_OP=OP_VAR_X, OP_VAR_Y, OP_VAR_S, OP_VAR_A,
-    OP_VAR_x, OP_VAR_y, OP_VAR_s, OP_VAR_a,
-    OP_VAR_n, OP_VAR_M, OP_VAR_LAST_OP=OP_VAR_M,
-    OP_NUMBER,
-    OP_OR, OP_AFTER_OR, OP_AND, OP_AFTER_AND, OP_NOT,
-    OP_TERNARY, OP_TERNARY_MID, OP_AFTER_TERNARY,
-    OP_GT, OP_GE, OP_LT, OP_LE, OP_EQ, OP_NEQ,
-    OP_INDEX,
-    OP_ASSIGN_X, OP_ASSIGN_Y, OP_ASSIGN_S, OP_ASSIGN_A,
-    OP_DO_ONCE, OP_RESIZE, OP_BEGIN, OP_END,
-    OP_END_AGGREGATE, OP_AGCONDITION,
-    OP_AGSUM, OP_AGMIN, OP_AGMAX, OP_AGAREA, OP_AGAVG, OP_AGSTDDEV,
-    OP_FUNC, OP_SUM_F, OP_SUM_Z, OP_NUMAREA, OP_FINDX, OP_FIND_EXTR
-};
 
 //-- functors used in the grammar for putting VM code and data into vectors --
 

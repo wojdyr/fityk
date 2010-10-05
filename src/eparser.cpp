@@ -1,86 +1,31 @@
-// data expression parser
+// This file is part of fityk program. Copyright (C) Marcin Wojdyr
+// Licence: GNU General Public License ver. 2+
+// $Id: $
 //
+// data expression parser
 
-#include "lexer.h"
-#include "fityk.h" //SyntaxError
-#include "datatrans.h"
-//#include "datatrans2.h"
+#include "eparser.h"
 
 #include <iostream>
 #include <cstring>
+#include <cmath>
+
+#include "lexer.h"
+#include "common.h"
+
+#define BUILD_EPARSER 0
 
 using namespace std;
 
-namespace datatrans {
-string get_code_as_text(vector<int> const& code, vector<fp> const& numbers);
-}
+using namespace dataVM;
 
-class ExpressionParser
+bool is_data_dependent_code(const vector<int>& code)
 {
-public:
-    enum ExpectedType
-    {
-        kValue,
-        kOperator,
-    };
-
-    vector<int> code;    //  VM code
-    vector<fp> numbers;  //  VM data (numeric values)
-
-    // contains variables (including expressions like @0.F[1].height.error)
-    // and names of custom functions (e.g. %foo or F or @0.F[3]).
-    // In resolve_names() the variables are replaced by numbers,
-    // and function names by indices.
-    vector<string> names;
-
-    ExpressionParser() : expected_(kValue), support_transform_(false) {}
-
-    void set_support_transform(bool v) { support_transform_ = v; }
-
-    void parse(Lexer& lex);
-    void resolve_names(...);
-
-private:
-    vector<int> opstack_; // operator stack for shunting-yard algorithm
-    ExpectedType expected_;
-    bool support_transform_;
-
-    void put_number(double value);
-    void put_unary_op(int op);
-    void put_binary_op(int op);
-    void put_function(int op);
-    void put_ag_function(int op);
-    void put_array_var(Lexer& lex, int op);
-    void put_var(int op);
-    void pop_onto_que();
-};
-
-namespace {
-
-/// operators used in VM code
-enum DataTransformVMOperator
-{
-    OP_NEG=-200, OP_EXP, OP_ERFC, OP_ERF, OP_SIN, OP_COS,  OP_TAN,
-    OP_SINH, OP_COSH, OP_TANH, OP_ABS,  OP_ROUND,
-    OP_ATAN, OP_ASIN, OP_ACOS, OP_LOG10, OP_LN,  OP_SQRT,  OP_POW,
-    OP_GAMMA, OP_LGAMMA, OP_VOIGT, OP_XINDEX,
-    OP_ADD,   OP_SUB,   OP_MUL,   OP_DIV,  OP_MOD,
-    OP_MIN2,   OP_MAX2, OP_RANDNORM, OP_RANDU,
-    OP_VAR_X, OP_VAR_FIRST_OP=OP_VAR_X, OP_VAR_Y, OP_VAR_S, OP_VAR_A,
-    OP_VAR_x, OP_VAR_y, OP_VAR_s, OP_VAR_a,
-    OP_VAR_n, OP_VAR_M, OP_VAR_LAST_OP=OP_VAR_M,
-    OP_NUMBER,
-    OP_OR, OP_AFTER_OR, OP_AND, OP_AFTER_AND, OP_NOT,
-    OP_TERNARY, OP_TERNARY_MID, OP_AFTER_TERNARY,
-    OP_GT, OP_GE, OP_LT, OP_LE, OP_EQ, OP_NEQ,
-    OP_INDEX,
-    OP_ASSIGN_X, OP_ASSIGN_Y, OP_ASSIGN_S, OP_ASSIGN_A,
-    OP_DO_ONCE, OP_RESIZE, OP_BEGIN, OP_END,
-    OP_END_AGGREGATE, OP_AGCONDITION,
-    OP_AGSUM, OP_AGMIN, OP_AGMAX, OP_AGAREA, OP_AGAVG, OP_AGSTDDEV,
-    OP_FUNC, OP_SUM_F, OP_SUM_Z, OP_NUMAREA, OP_FINDX, OP_FIND_EXTR
-};
-
+    for (vector<int>::const_iterator i = code.begin(); i != code.end(); ++i)
+        if ((*i >= OP_VAR_FIRST_OP && *i <= OP_VAR_LAST_OP)
+                || *i == OP_END_AGGREGATE)
+            return true;
+    return false;
 }
 
 int get_op_priority(int op)
@@ -212,6 +157,10 @@ void ExpressionParser::pop_onto_que()
 
 void ExpressionParser::put_number(double value)
 {
+    if (expected_ == kOperator) {
+        finished_ = true;
+        return;
+    }
     //cout << "put_number() " << value << endl;
     code.push_back(OP_NUMBER);
     int number_pos = numbers.size();
@@ -222,12 +171,20 @@ void ExpressionParser::put_number(double value)
 
 void ExpressionParser::put_unary_op(int op)
 {
+    if (expected_ == kOperator) {
+        finished_ = true;
+        return;
+    }
     opstack_.push_back(op);
     expected_ = kValue;
 }
 
 void ExpressionParser::put_binary_op(int op)
 {
+    if (expected_ != kOperator) {
+        finished_ = true;
+        return;
+    }
     //cout << "put_binary_op() " << op << endl;
     int pri = get_op_priority(op);
     while (!opstack_.empty() && get_op_priority(opstack_.back()) >= pri)
@@ -258,11 +215,6 @@ void ExpressionParser::put_array_var(Lexer& lex, int op)
         opstack_.push_back(op);
         expected_ = kValue;
     }
-    else if (lex.peek_token().type == kTokenAssign) {
-        if (!support_transform_)
-            lex.throw_syntax_error("unexpected '='");
-        // TODO
-    }
     else {
         code.push_back(OP_VAR_n);
         code.push_back(op);
@@ -278,7 +230,6 @@ void ExpressionParser::put_var(int op)
 
 //TODO:
 //    OP_ASSIGN_X, OP_ASSIGN_Y, OP_ASSIGN_S, OP_ASSIGN_A,
-//
 //    OP_INDEX, OP_DO_ONCE, OP_RESIZE, OP_BEGIN, OP_END,
 //
 //    OP_FUNC, OP_SUM_F, OP_SUM_Z,
@@ -292,9 +243,9 @@ void ExpressionParser::parse(Lexer& lex)
     code.clear();
     numbers.clear();
     opstack_.clear();
-    bool finished = false;
-    while (!finished) {
-        Token token = lex.get_token();
+    finished_ = false;
+    while (!finished_) {
+        const Token token = lex.get_token();
         //cout << "> " << token2str(token) << endl;
         switch (token.type) {
             case kTokenNumber:
@@ -314,9 +265,7 @@ void ExpressionParser::parse(Lexer& lex)
                     code.push_back(OP_OR);
                 }
                 else if (word == "if") {
-                    for (;;) {
-                        if (opstack_.empty())
-                            lex.throw_syntax_error("unexpected 'if'");
+                    while (!opstack_.empty()) {
                         // don't pop '(' from the stack
                         int op = opstack_.back();
                         if (op == '(')
@@ -328,13 +277,20 @@ void ExpressionParser::parse(Lexer& lex)
                         opstack_.pop_back();
                         code.push_back(op);
                     }
-                    if (opstack_.size() < 2 ||
-                            *(opstack_.end() - 2) != OP_END_AGGREGATE)
+                    if (opstack_.empty())
+                        finished_ = false;
+                    else if (opstack_.size() < 2 ||
+                             *(opstack_.end() - 2) != OP_END_AGGREGATE)
                         lex.throw_syntax_error(
                                 "'if' outside of aggregate function");
-                    code.push_back(OP_AGCONDITION);
+                    else
+                        code.push_back(OP_AGCONDITION);
                 }
                 else if (lex.peek_token().type == kTokenOpen) {
+                    if (expected_ == kOperator) {
+                        finished_ = true;
+                        break;
+                    }
                     // 1-arg functions
                     if (word == "sqrt")
                         put_function(OP_SQRT);
@@ -438,10 +394,18 @@ void ExpressionParser::parse(Lexer& lex)
                 break;
             }
             case kTokenOpen:
+                if (expected_ == kOperator) {
+                    finished_ = true;
+                    break;
+                }
                 opstack_.push_back('(');
                 expected_ = kValue;
                 break;
             case kTokenLSquare:
+                if (expected_ == kOperator) {
+                    finished_ = true;
+                    break;
+                }
                 opstack_.push_back('[');
                 expected_ = kValue;
                 break;
@@ -454,9 +418,9 @@ void ExpressionParser::parse(Lexer& lex)
                     if (op == '(')
                         break;
                     else if (op == '[')
-                        lex.throw_syntax_error("mismatching '[' or ')'");
+                        lex.throw_syntax_error("mismatching '[' and ')'");
                     else if (op == OP_TERNARY_MID)
-                        lex.throw_syntax_error("mismatching '?' or ')'");
+                        lex.throw_syntax_error("mismatching '?' and ')'");
                     code.push_back(op);
                 }
 
@@ -467,10 +431,9 @@ void ExpressionParser::parse(Lexer& lex)
                         int narg = opstack_.back() + 1;
                         int expected_narg = get_function_narg(top);
                         if (narg != expected_narg)
-                            lex.throw_syntax_error( "function "
-                                    + function_name(top) + "expects "
-                                    + S(expected_narg) + " arguments, not "
-                                    + S(narg));
+                            lex.throw_syntax_error(
+                             "function " + function_name(top) + "expects "
+                             + S(expected_narg) + " arguments, not " + S(narg));
                         opstack_.pop_back(); // remove arg count
                     }
                     else if (top == OP_END_AGGREGATE) {
@@ -480,9 +443,7 @@ void ExpressionParser::parse(Lexer& lex)
                 expected_ = kOperator;
                 break;
             case kTokenComma:
-                for (;;) {
-                    if (opstack_.empty())
-                        lex.throw_syntax_error("unexpected ','");
+                while (!opstack_.empty()) {
                     // unlike in kTokenClose, don't pop '(' from the stack
                     int op = opstack_.back();
                     if (op == '(')
@@ -494,9 +455,14 @@ void ExpressionParser::parse(Lexer& lex)
                     opstack_.pop_back();
                     code.push_back(op);
                 }
-                if (opstack_.size() < 3 || !is_function(*(opstack_.end() - 2)))
+                if (opstack_.empty())
+                    finished_ = true;
+                else if (opstack_.size() < 3 ||
+                         !is_function(*(opstack_.end() - 2)))
                     lex.throw_syntax_error("',' outside of function");
-                ++ *(opstack_.end() - 3);
+                else
+                    // func op is preceded by arg counter, see put_function()
+                    ++ *(opstack_.end() - 3);
                 break;
             case kTokenRSquare:
                 for (;;) {
@@ -507,9 +473,9 @@ void ExpressionParser::parse(Lexer& lex)
                     if (op == '[')
                         break;
                     else if (op == '(')
-                        lex.throw_syntax_error("mismatching '('");
+                        lex.throw_syntax_error("mismatching '(' and ']'");
                     else if (op == OP_TERNARY_MID)
-                        lex.throw_syntax_error("mismatching '?'");
+                        lex.throw_syntax_error("mismatching '?' and ']'");
                     code.push_back(op);
                 }
                 if (opstack_.empty() || !is_array_var(opstack_.back()))
@@ -519,9 +485,7 @@ void ExpressionParser::parse(Lexer& lex)
                 expected_ = kOperator;
                 break;
             case kTokenEOL:
-                if (expected_ != kOperator)
-                    lex.throw_syntax_error("unexpected end of expression");
-                finished = true;
+                finished_ = true;
                 break;
             case kTokenPower:
                 put_binary_op(OP_POW);
@@ -594,10 +558,17 @@ void ExpressionParser::parse(Lexer& lex)
             case kTokenSemicolon:
             case kTokenDot:
             case kTokenTilde:
-                lex.throw_syntax_error("unexpected token");
+                finished_ = true;
                 break;
         }
+
+        if (finished_ && token.type != kTokenEOL)
+                lex.go_back(token);
     }
+    // the expression should not end with operator
+    if (expected_ != kOperator)
+        lex.throw_syntax_error("unexpected token or end of expression");
+
     // no more tokens to read
     while (!opstack_.empty()) {
         int op = opstack_.back();
@@ -607,20 +578,29 @@ void ExpressionParser::parse(Lexer& lex)
         else if (op == '[')
             lex.throw_syntax_error("mismatching '['");
         else if (op == OP_TERNARY_MID)
-            lex.throw_syntax_error("mismatching '?'");
+            lex.throw_syntax_error("ternary '?' without ':'");
         code.push_back(op);
     }
 }
 
+#if BUILD_EPARSER
+
+#include "datatrans.h"
+
+namespace datatrans {
+string get_code_as_text(vector<int> const& code, vector<double> const& numbers);
+}
 
 int main(int argc, char **argv)
 {
     if (argc != 2)
         return 1;
-    string old_text = get_trans_repr(argv[1]);
+    const char* expr = argv[1];
+
+    string old_text = get_trans_repr(expr);
     cout << "old: " << old_text << endl;
     cout << "new: ";
-    Lexer lex(argv[1]);
+    Lexer lex(expr);
     try {
         ExpressionParser parser;
         parser.parse(lex);
@@ -633,6 +613,9 @@ int main(int argc, char **argv)
     catch (fityk::SyntaxError& e) {
         cout << "ERROR: " << e.what() << endl;
     }
+    cout << "parsed " << lex.scanned_chars() << " chars, next token: "
+        << token2str(lex.peek_token()) << endl;
     return 0;
 }
+#endif
 

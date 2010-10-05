@@ -766,15 +766,6 @@ vector<Point> transform_data(string const& str, vector<Point> const& old_points)
     return new_points;
 }
 
-bool is_data_dependent_code(vector<int> const& code)
-{
-    for (vector<int>::const_iterator i = code.begin(); i != code.end(); ++i)
-        if ((*i >= OP_VAR_FIRST_OP && *i <= OP_VAR_LAST_OP)
-                || *i == OP_END_AGGREGATE)
-            return true;
-    return false;
-}
-
 bool is_data_dependent_expression(string const& s)
 {
     if (!compile_data_expression(s)) //it fills `code'

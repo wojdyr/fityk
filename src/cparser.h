@@ -7,13 +7,14 @@
 
 #include <string>
 #include "ui.h"
+#include "lexer.h"
 
 class StatementList;
 
 class Parser
 {
 public:
-    Parser();
+    Parser(Ftk* F);
     ~Parser();
 
     // Parses the string. Throws SyntaxError.
@@ -29,10 +30,18 @@ public:
     // The same as parse(), but it doesn't throw. Returns true on success.
     bool check_command_syntax(const std::string& str);
 
+    // for debugging only
+    void print_statements() const;
+
 private:
-    string str_;
+    Ftk* F_;
+    std::string str_;
     bool ok_;
     StatementList *sts_;
+
+    void parse_set_args(Lexer& lex, std::vector<Token>& args);
+    void execute_command_with(const std::vector<Token>& args);
+    void execute_command_set(const std::vector<Token>& args);
 };
 
 #endif //FITYK_CPARSER_H_

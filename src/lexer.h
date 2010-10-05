@@ -92,6 +92,7 @@ public:
     int opened_curly() { return opened_curly_; }
 
     void throw_syntax_error(const std::string& msg="");
+    int scanned_chars() const { return  cur_ - input_; }
 
 private:
     void read_token();
