@@ -2,8 +2,11 @@
 // Licence: GNU General Public License ver. 2+
 // $Id: $
 
+/// This lexer (scanner) is not used yet.
+/// In the future it will replace the current lexer/parser.
+/// Lexical analyser. Takes characters and yields tokens.
+
 // TODO: sometimes include '*' in words, to allow "delete %pd*".
-//
 
 #include "lexer.h"
 
@@ -23,13 +26,13 @@ string Lexer::get_string(const Token& token)
     const char* p = token.str;
     switch (token.type) {
         case kTokenName:
-            return string(p, p + token.info.length);
+            return string(p, token.info.length);
         case kTokenString:
-            return string(p+1, p + token.info.length - 1);
+            return string(p+1, token.info.length - 2);
         case kTokenVarname:
-            return string(p+1, p + token.info.length);
+            return string(p+1, token.info.length - 1);
         case kTokenFuncname:
-            return string(p+1, p + token.info.length);
+            return string(p+1, token.info.length - 1);
         case kTokenShell:
             return string(p+1);
         default:
@@ -44,23 +47,17 @@ string get_quoted_string(const Token& token)
     return '"' + Lexer::get_string(token) + '"';
 }
 
-string token2str(const Token& token)
+const char* tokentype2str(TokenType tt)
 {
-    switch (token.type) {
-        case kTokenName:
-            return "NAME " + get_quoted_string(token);
-        case kTokenString:
-            return "STRING " + get_quoted_string(token);
-        case kTokenVarname:
-            return "VARNAME " + get_quoted_string(token);
-        case kTokenFuncname:
-            return "FUNCNAME " + get_quoted_string(token);
-        case kTokenShell:
-            return "SHELL " + get_quoted_string(token);
-        case kTokenNumber:
-            return "NUMBER " + S(token.info.number);
-        case kTokenDataset:
-            return "DATASET " + S(token.info.dataset);
+    switch (tt) {
+        case kTokenName: return "NAME";
+        case kTokenString: return "STRING";
+        case kTokenVarname: return "VARNAME";
+        case kTokenFuncname: return "FUNCNAME";
+        case kTokenShell: return "SHELL";
+        case kTokenNumber: return "NUMBER";
+        case kTokenDataset: return "DATASET";
+
         case kTokenLE: return "<=";
         case kTokenGE: return ">=";
         case kTokenNE: return "!=";
@@ -93,8 +90,27 @@ string token2str(const Token& token)
         case kTokenEOL: return "EOL";
 
         default:
-            assert(!"unexpected token in token2str()");
-            return "";
+            assert(!"unexpected token in tokentype2str()");
+            return NULL;
+    }
+}
+
+string token2str(const Token& token)
+{
+    string s = tokentype2str(token.type);
+    switch (token.type) {
+        case kTokenName:
+        case kTokenString:
+        case kTokenVarname:
+        case kTokenFuncname:
+        case kTokenShell:
+            return s + " " + get_quoted_string(token);
+        case kTokenNumber:
+            return s + " " + S(token.info.number);
+        case kTokenDataset:
+            return s + " " + S(token.info.dataset);
+        default:
+            return s;
     }
 }
 
@@ -269,19 +285,15 @@ Token Lexer::get_token()
     if (!peeked_)
         read_token();
     peeked_ = false;
-    if (tok_.type == kTokenOpen)
-        ++opened_paren_;
-    else if (tok_.type == kTokenLSquare)
-        ++opened_square_;
-    else if (tok_.type == kTokenLCurly)
-        ++opened_curly_;
-    else if (tok_.type == kTokenClose)
-        --opened_paren_;
-    else if (tok_.type == kTokenRSquare)
-        --opened_square_;
-    else if (tok_.type == kTokenRCurly)
-        --opened_curly_;
     return tok_;
+}
+
+Token Lexer::get_expected_token(TokenType tt)
+{
+    if (peek_token().type != tt)
+        throw_syntax_error(S("expected ") + tokentype2str(tt) + " instead of "
+                           + tokentype2str(peek_token().type));
+    return get_token();
 }
 
 const Token& Lexer::peek_token()
@@ -296,18 +308,6 @@ void Lexer::go_back(const Token& token)
 {
     cur_ = token.str;
     peeked_ = false;
-    if (token.type == kTokenOpen)
-        --opened_paren_;
-    else if (token.type == kTokenLSquare)
-        --opened_square_;
-    else if (token.type == kTokenLCurly)
-        --opened_curly_;
-    else if (token.type == kTokenClose)
-        ++opened_paren_;
-    else if (token.type == kTokenRSquare)
-        ++opened_square_;
-    else if (token.type == kTokenRCurly)
-        ++opened_curly_;
 }
 
 void Lexer::throw_syntax_error(const string& msg)
@@ -315,25 +315,3 @@ void Lexer::throw_syntax_error(const string& msg)
     throw SyntaxError("Parsing error: " + msg);
 }
 
-#ifdef TEST_FITYK_LEXER
-
-int main(int argc, char **argv)
-{
-    if (argc != 2) {
-        printf("Usage: lexer string");
-        return 1;
-    }
-    const char* str = argv[1];
-
-    Lexer lex(str);
-    fflush(stdout);
-    for (;;) {
-        Token token = lex.get_token();
-        string s = token2str(token);
-        printf("%s\n", s.c_str());
-        if (token.type == kTokenEOL)
-            break;
-    }
-    return 0;
-}
-#endif // TEST_FITYK_LEXER

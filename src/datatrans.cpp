@@ -131,33 +131,6 @@ DataTransformGrammar DataTransformG;
 
 namespace datatrans {
 
-/// debuging utility
-#define OP_(x) \
-    if (op == OP_##x) return #x;
-string dt_op(int op)
-{
-    OP_(NEG)   OP_(EXP)
-    OP_(SIN)   OP_(COS)  OP_(TAN)  OP_(SINH) OP_(COSH)  OP_(TANH)
-    OP_(ABS)  OP_(ROUND)
-    OP_(ATAN) OP_(ASIN) OP_(ACOS)
-    OP_(LOG10) OP_(LN)  OP_(SQRT)  OP_(POW)
-    OP_(GAMMA) OP_(LGAMMA) OP_(VOIGT) OP_(XINDEX)
-    OP_(ADD)   OP_(SUB)   OP_(MUL)   OP_(DIV)  OP_(MOD)
-    OP_(MIN2)   OP_(MAX2) OP_(RANDNORM) OP_(RANDU)
-    OP_(VAR_X) OP_(VAR_Y) OP_(VAR_S) OP_(VAR_A)
-    OP_(VAR_x) OP_(VAR_y) OP_(VAR_s) OP_(VAR_a)
-    OP_(VAR_n) OP_(VAR_M) OP_(NUMBER)
-    OP_(OR) OP_(AFTER_OR) OP_(AND) OP_(AFTER_AND) OP_(NOT)
-    OP_(TERNARY) OP_(TERNARY_MID) OP_(AFTER_TERNARY)
-    OP_(GT) OP_(GE) OP_(LT) OP_(LE) OP_(EQ) OP_(NEQ)
-    OP_(INDEX)
-    OP_(ASSIGN_X) OP_(ASSIGN_Y) OP_(ASSIGN_S) OP_(ASSIGN_A)
-    OP_(DO_ONCE) OP_(RESIZE) OP_(BEGIN) OP_(END)
-    OP_(END_AGGREGATE) OP_(AGCONDITION)
-    OP_(AGSUM) OP_(AGMIN) OP_(AGMAX) OP_(AGAREA) OP_(AGAVG) OP_(AGSTDDEV)
-    OP_(FUNC) OP_(SUM_F) OP_(SUM_Z) OP_(NUMAREA) OP_(FINDX) OP_(FIND_EXTR)
-    return S(op);
-};
 
 /// debuging utility
 string dt_ops(vector<int> const& code)
@@ -171,18 +144,6 @@ string dt_ops(vector<int> const& code)
     return r;
 }
 
-string get_code_as_text(vector<int> const& code, vector<fp> const& numbers)
-{
-    string txt;
-    for (vector<int>::const_iterator i = code.begin(); i != code.end(); ++i) {
-        txt += " " + dt_op(*i);
-        if (*i == OP_NUMBER && i+1 != code.end()) {
-            ++i;
-            txt += "(" + S(numbers[*i]) + ")";
-        }
-    }
-    return txt;
-}
 //------------------------  Virtual Machine  --------------------------------
 
 vector<int> code;        //  VM code
@@ -728,7 +689,6 @@ void execute_vm_code(const vector<Point> &old_points, vector<Point> &new_points)
 }
 
 } //namespace
-
 
 string get_trans_repr(string const& s)
 {

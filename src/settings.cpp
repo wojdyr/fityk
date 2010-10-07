@@ -253,7 +253,7 @@ Settings::ValueType Settings::get_value_type(std::string const& k) const
     else if (spar.count(k))
         return kString;
     else
-        assert(0);
+        return kNotFound;
 }
 
 vector<string> Settings::expanp(string const& k) const

@@ -31,7 +31,16 @@ public:
             : e(e_), v(v_) {}
     };
 
-    enum ValueType { kInt, kFloat, kBool, kString, kStringEnum, kIntFromRange };
+    enum ValueType
+    {
+        kInt,
+        kFloat,
+        kBool,
+        kString,
+        kStringEnum,
+        kIntFromRange,
+        kNotFound // used as a return value from get_value_type()
+    };
 
     Settings(Ftk const* F_);
     /// get value of integer option

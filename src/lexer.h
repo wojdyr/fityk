@@ -2,6 +2,10 @@
 // Licence: GNU General Public License ver. 2+
 // $Id: $
 
+/// This lexer (scanner) is not used yet.
+/// In the future it will replace the current lexer/parser.
+/// Lexical analyser. Takes characters and yields tokens.
+
 #ifndef FITYK__LEXER__H__
 #define FITYK__LEXER__H__
 
@@ -72,26 +76,24 @@ public:
         { return std::string(token.str, token.info.length); }
 
     Lexer(const char* input)
-        : input_(input), cur_(input), peeked_(false),
-          opened_paren_(0), opened_square_(0), opened_curly_(0) {}
+        : input_(input), cur_(input), peeked_(false) {}
 
     Token get_token();
 
     const Token& peek_token();
+
+    Token get_expected_token(TokenType tt);
 
     // Filename is expected by parser. Reads any sequence of non-blank
     // characters (with exception of ' and #) as a file.
     // The filename can be inside 'single quotes'.
     Token get_filename_token();
 
-    // works properly only if the last token is used as argument
     void go_back(const Token& token);
 
-    int opened_paren() { return opened_paren_; }
-    int opened_square() { return opened_square_; }
-    int opened_curly() { return opened_curly_; }
-
     void throw_syntax_error(const std::string& msg="");
+
+    const char* pchar() const { return cur_; }
     int scanned_chars() const { return  cur_ - input_; }
 
 private:
@@ -101,7 +103,6 @@ private:
     const char* cur_;
     bool peeked_;
     Token tok_;
-    int opened_paren_, opened_square_, opened_curly_;
 };
 
 std::string token2str(const Token& token);

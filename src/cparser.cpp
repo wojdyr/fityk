@@ -2,6 +2,8 @@
 // Licence: GNU General Public License ver. 2+
 // $Id: $
 
+/// This parser is not used yet.
+/// In the future it will replace the current parser (cmd* files)
 /// Command parser.
 
 #include "cparser.h"
@@ -26,6 +28,7 @@ enum CommandType
     kCmdReset,
     kCmdSet,
     kCmdSleep,
+    kCmdUndef,
     kCmdQuit,
     kCmdNull
 };
@@ -51,8 +54,10 @@ const char* commandtype2str(CommandType c)
         case kCmdReset:  return "Reset";
         case kCmdSet:    return "Set";
         case kCmdSleep:  return "Sleep";
+        case kCmdUndef:  return "Undef";
         case kCmdQuit:   return "Quit";
         case kCmdNull:   return "Null";
+        default: return NULL; // avoid warning
     }
 }
 
@@ -69,6 +74,17 @@ bool is_command(const Token& token, const char* cmd_base,
               strncmp(token.str + base_len, cmd_suffix, left_chars) == 0);
 }
 
+Token read_expr(Lexer& lex)
+{
+    Token t;
+    t.type = kTokenName;
+    t.str = lex.pchar();
+    ExpressionParser ep;
+    ep.parse(lex);
+    t.info.length = lex.pchar() - t.str;
+    return t;
+}
+
 Token parse_and_calculate_expr(Lexer& lex)
 {
     Token ret;
@@ -76,8 +92,7 @@ Token parse_and_calculate_expr(Lexer& lex)
     ret.str = lex.peek_token().str;
     ExpressionParser ep;
     ep.parse(lex);
-    //TODO
-    //ret.info.number = ep.calculate_expression_value();
+    ret.info.number = ep.calculate_expression_value();
     return ret;
 }
 
@@ -104,7 +119,10 @@ void Parser::parse_set_args(Lexer& lex, vector<Token>& args)
         Settings *settings = F_->get_settings();
         Settings::ValueType t = settings->get_value_type(Lexer::get_raw(key));
         Token value;
-        if (t == Settings::kString || t == Settings::kStringEnum) {
+        if (t == Settings::kNotFound) {
+            lex.throw_syntax_error("no such option: " + Lexer::get_raw(key));
+        }
+        else if (t == Settings::kString || t == Settings::kStringEnum) {
             value = lex.get_token();
             if (value.type != kTokenName)
                 lex.throw_syntax_error("a string was expected as option value"
@@ -138,8 +156,52 @@ void Parser::execute_command_set(const vector<Token>& args)
                        Lexer::get_string(args[i]));
 }
 
+bool is_function_type(const Token& tk)
+{
+    return tk.type == kTokenName && tk.info.length >= 2 && isupper(tk.str[0]);
+}
+
 void parse_define_args(Lexer& lex, vector<Token>& args)
 {
+    Token tk = lex.get_token();
+    if (!is_function_type(tk))
+        lex.throw_syntax_error("expected FunctionName after `define'");
+    args.push_back(tk);
+    lex.get_expected_token(kTokenOpen);
+    for (;;) {
+        tk = lex.get_token();
+        if (tk.type == kTokenClose)
+            break;
+        if (tk.type != kTokenName)
+            lex.throw_syntax_error("unexpected token in argument list");
+        args.push_back(tk);
+        if (lex.peek_token().type == kTokenAssign) {
+            lex.get_token(); // discard '='
+            args.push_back(read_expr(lex));
+        }
+        else {
+            Token t;
+            t.type = kTokenEOL;
+            args.push_back(t);
+        }
+        if (lex.peek_token().type == kTokenComma)
+            lex.get_token(); // discard ','
+        else if (lex.peek_token().type != kTokenClose)
+            lex.throw_syntax_error("unexpected token after arg #"
+                                   + S(args.size()/2 + 1));
+    }
+    tk = lex.get_expected_token(kTokenAssign);
+    args.push_back(tk);
+    tk = lex.get_token();
+    if (is_function_type(tk)) { // CompoundFunction
+    }
+    else if (tk.type == kTokenName && tk.info.length == 1 && tk.str[0] == 'x'
+             && lex.peek_token().type == kTokenLT) {
+        // SplitFunction
+    }
+    else {
+        // CustomFunction
+    }
     /*
    type_name
     >> '(' >> !((function_param >> !('=' >> no_actions_d[FuncG])) % ',')
@@ -162,6 +224,24 @@ void parse_define_args(Lexer& lex, vector<Token>& args)
 void execute_command_define(const vector<Token>& args)
 {
     //UdfContainer::define(s);
+}
+
+void parse_undefine_args(Lexer& lex, vector<Token>& args)
+{
+    for (;;) {
+        Token t = lex.get_expected_token(kTokenName);
+        args.push_back(t);
+        if (lex.peek_token().type == kTokenComma)
+            lex.get_token();
+        else
+            break;
+    }
+}
+
+void execute_command_undefine(const vector<Token>& args)
+{
+    for (vector<Token>::const_iterator i = args.begin(); i != args.end(); ++i)
+        UdfContainer::undefine(Lexer::get_string(*i));
 }
 
 void parse_delete_args(Lexer& lex, vector<Token>& args)
@@ -216,6 +296,8 @@ void Parser::parse(const string& str)
                 parse_set_args(lex, s.args);
             }
             else if (is_command(token, "undef","ine")) {
+                s.cmd = kCmdUndef;
+                parse_undefine_args(lex, s.args);
             }
             else if (is_command(token, "quit","")) {
                 s.cmd = kCmdQuit;
@@ -299,6 +381,13 @@ void Parser::execute()
                 break;
             case kCmdDefine:
                 break;
+            case kCmdReset:
+                F_->reset();
+                F_->outdated_plot();
+                break;
+            case kCmdQuit:
+                throw ExitRequestedException();
+                break;
             default:
                 break;
         }
@@ -338,24 +427,18 @@ bool Parser::check_command_syntax(const string& str)
     return true;
 }
 
-void Parser::print_statements() const
+string Parser::get_statements_repr() const
 {
+    // if ok_ ...
+    string r;
     for (StatementList::const_iterator s = sts_->begin();
                                                     s != sts_->end(); ++s) {
-        printf("%s", commandtype2str(s->cmd));
+        r += commandtype2str(s->cmd);
         for (vector<Token>::const_iterator i = s->args.begin();
                                                     i != s->args.end(); ++i)
-            printf("   %s", token2str(*i).c_str());
-        printf("\n");
+            r += "   " + token2str(*i);
+        r += "\n";
     }
-}
-
-int main(int argc, char **argv)
-{
-    assert(argc == 2);
-    Ftk ftk;
-    Parser parser(&ftk);
-    parser.parse(argv[1]);
-    parser.print_statements();
+    return r;
 }
 

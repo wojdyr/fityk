@@ -24,6 +24,9 @@
 #include "model.h"
 #include "datatrans.h"
 #include "guess.h"
+#include "cparser.h"
+#include "eparser.h"
+#include "lexer.h"
 
 #ifndef CONFIGURE_BUILD
 # define CONFIGURE_BUILD "UNKNOWN"
@@ -633,6 +636,36 @@ size_t get_info_string(Ftk const* F, string const& args, bool full,
     }
     else if (word == "dops") {
         result += get_trans_repr(args.substr(pos));
+        pos = args.size();
+    }
+    else if (word == "dops2") {
+        Lexer lex(args.c_str() + pos);
+        try {
+            ExpressionParser parser;
+            parser.parse(lex);
+            result += get_code_as_text(parser.code, parser.numbers);
+        }
+        catch (fityk::SyntaxError& e) {
+            result += "ERROR at " + S(lex.scanned_chars()) + ": " + e.what();
+        }
+        result += "\nnext token: " + token2str(lex.peek_token());
+        pos = args.size();
+    }
+    else if (word == "parser") {
+        Parser parser(const_cast<Ftk*>(F));
+        try {
+            parser.parse(args.substr(pos));
+            result += parser.get_statements_repr();
+        }
+        catch (fityk::SyntaxError& e) {
+            result += string("ERR: ") + e.what();
+        }
+        pos = args.size();
+    }
+    else if (word == "lexer") {
+        Lexer lex(args.c_str() + pos);
+        for (Token t = lex.get_token(); t.type != kTokenEOL; t =lex.get_token())
+            result += token2str(t) + "\n";
         pos = args.size();
     }
     else if (word == "fit") {

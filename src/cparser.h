@@ -2,6 +2,10 @@
 // Licence: GNU General Public License ver. 2+
 // $Id: $
 
+/// This parser is not used yet.
+/// In the future it will replace the current parser (cmd* files)
+/// Command parser.
+
 #ifndef FITYK_CPARSER_H_
 #define FITYK_CPARSER_H_
 
@@ -31,7 +35,7 @@ public:
     bool check_command_syntax(const std::string& str);
 
     // for debugging only
-    void print_statements() const;
+    std::string get_statements_repr() const;
 
 private:
     Ftk* F_;

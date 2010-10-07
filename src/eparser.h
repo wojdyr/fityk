@@ -2,7 +2,9 @@
 // Licence: GNU General Public License ver. 2+
 // $Id: $
 
-// data expression parser
+/// This parser is not used yet.
+/// In the future it will replace the current parser (datatrans* files)
+/// Data expression parser.
 
 #ifndef FITYK_EPARSER_H_
 #define FITYK_EPARSER_H_
@@ -15,7 +17,7 @@ class Lexer;
 namespace dataVM {
 
 /// operators used in VM code
-enum DataTransformVMOperator
+enum VMOp
 {
     OP_NEG=-200, OP_EXP, OP_ERFC, OP_ERF, OP_SIN, OP_COS,  OP_TAN,
     OP_SINH, OP_COSH, OP_TANH, OP_ABS,  OP_ROUND,
@@ -35,10 +37,19 @@ enum DataTransformVMOperator
     OP_DO_ONCE, OP_RESIZE, OP_BEGIN, OP_END,
     OP_END_AGGREGATE, OP_AGCONDITION,
     OP_AGSUM, OP_AGMIN, OP_AGMAX, OP_AGAREA, OP_AGAVG, OP_AGSTDDEV,
-    OP_FUNC, OP_SUM_F, OP_SUM_Z, OP_NUMAREA, OP_FINDX, OP_FIND_EXTR
+    OP_FUNC, OP_SUM_F, OP_SUM_Z, OP_NUMAREA, OP_FINDX, OP_FIND_EXTR,
+
+    // these two are not VM operators, but are handy to have here
+    // and are used in implementation of shunting yard algorithm
+    OP_OPEN_ROUND, OP_OPEN_SQUARE
 };
 
 } // namespace
+
+std::string dt_op(int op);
+
+std::string get_code_as_text(std::vector<int> const& code,
+                             std::vector<double> const& numbers);
 
 bool is_data_dependent_code(const std::vector<int>& code);
 
@@ -63,22 +74,38 @@ public:
 
     ExpressionParser() : expected_(kValue), finished_(false) {}
 
+    /// parse expression
     void parse(Lexer& lex);
+
     //void resolve_names(...);
 
+    /// calculate value of expression that does not depend on dataset
+    double calculate_expression_value() const;
+
 private:
-    std::vector<int> opstack_; // operator stack for the shunting-yard algorithm
+    // operator stack for the shunting-yard algorithm
+    std::vector<dataVM::VMOp> opstack_;
+    // argument counters for functions
+    std::vector<int> arg_cnt_;
+    // expected type of the next token (basic shunting-yard algorithm parses
+    // e.g. two numbers in sequence, like "1 2", ignores the the first one
+    // and doesn't signal error. The expected_ flag is used to stop parsing
+    // such input just after getting token from lexer)
     ExpectedType expected_;
+    // We set this to true when the next token is not part of the expression.
+    // Exception is not thrown, because ExpressionParser can be used as
+    // sub-parser from Parser.
     bool finished_;
 
     void put_number(double value);
-    void put_unary_op(int op);
-    void put_binary_op(int op);
-    void put_function(int op);
-    void put_ag_function(int op);
-    void put_array_var(Lexer& lex, int op);
-    void put_var(int op);
+    void put_unary_op(dataVM::VMOp op);
+    void put_binary_op(dataVM::VMOp op);
+    void put_function(dataVM::VMOp op);
+    void put_ag_function(dataVM::VMOp op);
+    void put_array_var(Lexer& lex, dataVM::VMOp op);
+    void put_var(dataVM::VMOp op);
     void pop_onto_que();
+    void pop_until_bracket();
 };
 
 #endif // FITYK_EPARSER_H_
