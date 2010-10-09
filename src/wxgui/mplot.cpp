@@ -1799,6 +1799,17 @@ void ConfigurePLabelsDlg::OnChangeLabelFont (wxCommandEvent&)
 //           BgManager (for interactive background setting)
 //===============================================================
 
+BgManager::BgManager(Scale const& x_scale)
+    : x_scale_(x_scale), spline_(true), data_idx_(-1)
+{
+    read_recent_baselines();
+}
+
+BgManager::~BgManager()
+{
+    write_recent_baselines();
+}
+
 void BgManager::update_focused_data(int idx)
 {
     if (data_idx_ == idx)
@@ -1823,6 +1834,13 @@ void BgManager::set_stripped(bool value)
 bool BgManager::stripped() const
 {
     return is_index(data_idx_, stripped_) && stripped_[data_idx_];
+}
+
+wxString const& BgManager::get_recent_bg_name(int n) const
+{
+    static const wxString empty;
+    int idx = recent_bg_.size() - 1 - n;
+    return (is_index(idx, recent_bg_) ? recent_bg_[idx].first : empty);
 }
 
 void BgManager::bg_from_func()
@@ -1862,6 +1880,8 @@ void BgManager::add_background_point(fp x, fp y)
         if (r != wxYES)
             return;
         set_stripped(false);
+        frame->update_toolbar();
+
     }
     rm_background_point(x);
     PointQ t(x, y);
@@ -1933,6 +1953,9 @@ void BgManager::strip_background()
 {
     if (bg_.empty())
         return;
+    wxString name = wxDateTime::Now().Format(wxT("%Y-%m-%d %T"));
+    name += wxString::Format(wxT(" (%d points)"), (int) bg_.size());
+    recent_bg_.push_back(make_pair(name, bg_));
     define_bg_func();
     bg_.clear();
     set_stripped(true);
@@ -1964,6 +1987,14 @@ vector<int> BgManager::calculate_bgline(int window_width, Scale const& y_scale)
     return bgline;
 }
 
+void BgManager::set_as_recent(int n)
+{
+    int idx = recent_bg_.size() - 1 - n;
+    if (!is_index(idx, recent_bg_))
+        return;
+    bg_ = recent_bg_[idx].second;
+}
+
 void BgManager::set_as_convex_hull()
 {
     SimplePolylineConvex convex;
@@ -1982,5 +2013,52 @@ bool BgManager::has_fn() const
 {
     string name = get_bg_name();
     return ftk->find_function_nr(name) != -1;
+}
+
+void BgManager::write_recent_baselines()
+{
+    wxConfigBase *c = wxConfig::Get();
+    if (!c)
+        return;
+    wxString t = wxT("/RecentBaselines");
+    if (c->HasGroup(t))
+        c->DeleteGroup(t);
+
+    int len = recent_bg_.size();
+    int start = max(len-10, 0);
+    for (int i = start; i < len; ++i) {
+        wxString group = t + wxString::Format(wxT("/%d"), i-start);
+        c->Write(group + wxT("/Name"), recent_bg_[i].first);
+        wxString points;
+        for (size_t j = 0; j != recent_bg_[i].second.size(); ++j) {
+            const PointQ& p = recent_bg_[i].second[j];
+            points += wxString::Format(wxT("%g %g "), p.x, p.y);
+        }
+        c->Write(group + wxT("/Points"), points);
+    }
+}
+
+void BgManager::read_recent_baselines()
+{
+    recent_bg_.clear();
+    wxConfigBase *c = wxConfig::Get();
+    wxString t = wxT("/RecentBaselines");
+    if (!c || !c->HasGroup(t))
+        return;
+    for (int i = 0; i < 10; i++) {
+        wxString group = t + wxString::Format(wxT("/%d"), i);
+        if (c->HasEntry(group + wxT("/Name"))) {
+            wxString name = c->Read(group + "/Name", wxT("?"));
+            wxString points = c->Read(group + "/Points", wxT(""));
+            vector<string> pp = split_string(wx2s(points), ' ');
+            vector<PointQ> q;
+            for (size_t j = 0; j < pp.size() / 2; ++j) {
+                double x = strtod(pp[2*j].c_str(), NULL);
+                double y = strtod(pp[2*j+1].c_str(), NULL);
+                q.push_back(PointQ(x, y));
+            }
+            recent_bg_.push_back(make_pair(name, q));
+        }
+    }
 }
 

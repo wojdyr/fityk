@@ -2,19 +2,17 @@ $Id$
 
 ---------- TODO list and tentative development plan  ----------------
 
-* GUI: ask what to do when opening file with multiple blocks
-       in settings: ask when opening file with multiple datasets
+* test: changed xylib::get_wildcards_string()
+
+* change fit history clear -> fit clear_history
+
+-------- 0.9.4
 
 * subtracting another dataset with interpolation of the subtrahend
   (this is important for subtracting background from a file);
   for consistency, `+' should add interpolated data, and 'U' can stand
   for a sum of sets.
   GUI: Data > Subtract data from file
-
-* GUI: "Recent baselines" in the menu (to enable loading a recent baseline,
-  changing it a bit and subtracting)
-
--------- 0.9.4
 
 * finish powder diffraction add-on (Pawley fitting)
 

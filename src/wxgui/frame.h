@@ -130,6 +130,7 @@ public:
     void OnStripBg       (wxCommandEvent& event);
     void OnUndoBg        (wxCommandEvent& event);
     void OnClearBg       (wxCommandEvent& event);
+    void OnRecentBg      (wxCommandEvent& event);
     void OnConvexHullBg  (wxCommandEvent& event);
     void OnSplineBg      (wxCommandEvent& event);
     void GViewAll();
@@ -199,12 +200,13 @@ public:
     void update_app_title();
     void add_recent_data_file(std::string const& filename);
     void update_menu_functions();
-    void update_menu_saved_tranforms();
+    void update_menu_saved_transforms();
+    void update_menu_recent_baselines();
     void update_menu_previous_zooms();
     // overridden from wxFrameBase, to show help in our status bar replacement
     void DoGiveHelp(const wxString& help, bool show);
 
-protected:
+private:
     ProportionalSplitter *main_pane;
     PlotPane *plot_pane;
     IOPane *io_pane;
@@ -226,6 +228,7 @@ protected:
     void update_peak_type_list();
     void read_recent_data_files();
     void write_recent_data_files();
+    void change_mouse_mode(MouseModeEnum mode);
 
     DECLARE_EVENT_TABLE()
 };

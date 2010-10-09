@@ -46,8 +46,8 @@ public:
     //minimal distance in X between bg points
     static const int min_dist = 8;
 
-    BgManager(Scale const& x_scale)
-        : x_scale_(x_scale), spline_(true), data_idx_(-1) {}
+    BgManager(Scale const& x_scale);
+    ~BgManager();
     void update_focused_data(int idx);
     void add_background_point(fp x, fp y);
     void rm_background_point(fp x);
@@ -60,15 +60,20 @@ public:
     bool can_strip() const { return !bg_.empty(); }
     bool has_fn() const;
     void set_spline_bg(bool s) { spline_ = s; }
+    void set_as_recent(int n);
     void set_as_convex_hull();
     std::vector<int> calculate_bgline(int window_width, Scale const& y_scale);
     std::vector<PointQ> const& get_bg() const { return bg_; }
     bool stripped() const;
+    wxString const& get_recent_bg_name(int n) const;
+    void read_recent_baselines();
+    void write_recent_baselines();
 
 protected:
     Scale const& x_scale_;
     bool spline_;
     std::vector<PointQ> bg_;
+    std::vector<std::pair<wxString, std::vector<PointQ> > > recent_bg_;
     std::vector<bool> stripped_;
     int data_idx_;
 

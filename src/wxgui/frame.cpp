@@ -129,7 +129,7 @@ enum {
     ID_D_QLOAD                 ,
     ID_D_XLOAD                 ,
     ID_D_RECENT                , //and next ones
-    ID_D_RECENT_END = ID_D_RECENT+30 ,
+    ID_D_RECENT_END = ID_D_RECENT+50 ,
     ID_D_REVERT                ,
     ID_D_TABLE                 ,
     ID_D_EDITOR                ,
@@ -176,14 +176,16 @@ enum {
     ID_G_MODE                  ,
     ID_G_M_ZOOM                ,
     ID_G_M_RANGE               ,
-    ID_G_M_BG                  ,
+    ID_G_M_BG                    ,
     ID_G_M_ADD                 ,
-    ID_G_M_BG_STRIP            ,
-    ID_G_M_BG_UNDO             ,
-    ID_G_M_BG_CLEAR            ,
-    ID_G_M_BG_SPLINE           ,
-    ID_G_M_BG_HULL             ,
-    ID_G_M_BG_SUB              ,
+    ID_G_BG_STRIP              ,
+    ID_G_BG_UNDO               ,
+    ID_G_BG_CLEAR              ,
+    ID_G_BG_SPLINE             ,
+    ID_G_BG_RECENT             ,
+    ID_G_BG_RECENT_END=ID_G_BG_RECENT+50,
+    ID_G_BG_HULL               ,
+    ID_G_BG_SUB                ,
     ID_G_M_PEAK                ,
     ID_G_M_PEAK_N              ,
     ID_G_M_PEAK_N_END = ID_G_M_PEAK_N+300,
@@ -209,7 +211,7 @@ enum {
     ID_G_V_SCROLL_U            ,
     ID_G_V_EXTH                ,
     ID_G_V_ZOOM_PREV           ,
-    ID_G_V_ZOOM_PREV_END = ID_G_V_ZOOM_PREV+40 ,
+    ID_G_V_ZOOM_PREV_END = ID_G_V_ZOOM_PREV+50 ,
     ID_G_LCONF1                ,
     ID_G_LCONF2                ,
     ID_G_LCONF                 ,
@@ -222,17 +224,17 @@ enum {
     ID_G_SCONFAS               ,
 
     // toolbar
-    ID_ft_m_zoom               ,
-    ID_ft_m_range              ,
-    ID_ft_m_bg                 ,
-    ID_ft_m_add                ,
-    ID_ft_v_pr                 ,
-    ID_ft_b_strip              ,
-    ID_ft_f_run                ,
-    ID_ft_f_undo               ,
-    ID_ft_s_aa                 ,
-    ID_ft_sideb                ,
-    ID_ft_peakchoice
+    ID_T_ZOOM                 ,
+    ID_T_RANGE                ,
+    ID_T_BG                   ,
+    ID_T_ADD                  ,
+    ID_T_PZ                   ,
+    ID_T_STRIP                ,
+    ID_T_RUN                  ,
+    ID_T_UNDO                 ,
+    ID_T_AUTO                 ,
+    ID_T_BAR                  ,
+    ID_T_CHOICE
 };
 
 
@@ -313,14 +315,15 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_M_BG,        FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_ADD,       FFrame::OnChangeMouseMode)
     EVT_MENU_RANGE (ID_G_M_PEAK_N, ID_G_M_PEAK_N_END, FFrame::OnChangePeakType)
-    EVT_UPDATE_UI(ID_G_M_BG_STRIP, FFrame::OnMenuBgStripUpdate)
-    EVT_UPDATE_UI(ID_G_M_BG_UNDO, FFrame::OnMenuBgUndoUpdate)
-    EVT_UPDATE_UI(ID_G_M_BG_CLEAR, FFrame::OnMenuBgClearUpdate)
-    EVT_MENU (ID_G_M_BG_STRIP,  FFrame::OnStripBg)
-    EVT_MENU (ID_G_M_BG_UNDO,   FFrame::OnUndoBg)
-    EVT_MENU (ID_G_M_BG_CLEAR,  FFrame::OnClearBg)
-    EVT_MENU (ID_G_M_BG_HULL,   FFrame::OnConvexHullBg)
-    EVT_MENU (ID_G_M_BG_SPLINE, FFrame::OnSplineBg)
+    EVT_UPDATE_UI(ID_G_BG_STRIP, FFrame::OnMenuBgStripUpdate)
+    EVT_UPDATE_UI(ID_G_BG_UNDO, FFrame::OnMenuBgUndoUpdate)
+    EVT_UPDATE_UI(ID_G_BG_CLEAR, FFrame::OnMenuBgClearUpdate)
+    EVT_MENU (ID_G_BG_STRIP,    FFrame::OnStripBg)
+    EVT_MENU (ID_G_BG_UNDO,     FFrame::OnUndoBg)
+    EVT_MENU (ID_G_BG_CLEAR,    FFrame::OnClearBg)
+    EVT_MENU_RANGE (ID_G_BG_RECENT+1, ID_G_BG_RECENT_END, FFrame::OnRecentBg)
+    EVT_MENU (ID_G_BG_HULL,     FFrame::OnConvexHullBg)
+    EVT_MENU (ID_G_BG_SPLINE,   FFrame::OnSplineBg)
     EVT_MENU (ID_G_S_SIDEB,     FFrame::OnSwitchSideBar)
     EVT_MENU_RANGE (ID_G_S_A1, ID_G_S_A2, FFrame::OnSwitchAuxPlot)
     EVT_UPDATE_UI_RANGE (ID_G_S_A1, ID_G_S_A2,  FFrame::OnMenuShowAuxUpdate)
@@ -400,7 +403,8 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     print_mgr = new PrintManager(plot_pane);
 
     update_menu_functions();
-    update_menu_saved_tranforms();
+    update_menu_saved_transforms();
+    update_menu_recent_baselines();
     plot_pane->get_plot()->set_hint_receiver(status_bar);
     io_pane->SetFocus();
 }
@@ -703,23 +707,23 @@ void FFrame::set_menubar()
                                     wxT("Use mouse for adding new peaks"));
     gui_menu->Append(ID_G_MODE, wxT("&Mode"), gui_menu_mode);
     wxMenu* baseline_menu = new wxMenu;
-    baseline_menu->Append (ID_G_M_BG_STRIP, wxT("&Substract baseline"),
+    baseline_menu->Append (ID_G_BG_STRIP, wxT("&Substract baseline"),
                            wxT("Subtract baseline function from data"));
-    baseline_menu->Append (ID_G_M_BG_UNDO, wxT("&Add baseline"),
+    baseline_menu->Append (ID_G_BG_UNDO, wxT("&Add baseline"),
                            wxT("Add baseline function to data"));
-    baseline_menu->Append (ID_G_M_BG_CLEAR, wxT("&Clear baseline"),
+    baseline_menu->Append (ID_G_BG_CLEAR, wxT("&Clear baseline"),
                            wxT("Clear baseline points, disable undo"));
+    wxMenu* recent_b_menu = new wxMenu;
     baseline_menu->AppendSeparator();
-    baseline_menu->Append (ID_G_M_BG_HULL, wxT("&Set as convex hull"),
+    baseline_menu->Append(ID_G_BG_RECENT, wxT("&Recent"), recent_b_menu);
+    baseline_menu->Append (ID_G_BG_HULL, wxT("&Set as convex hull"),
                            wxT("Set baseline as convex hull of data"));
     baseline_menu->AppendSeparator();
-    baseline_menu->AppendCheckItem(ID_G_M_BG_SPLINE,
+    baseline_menu->AppendCheckItem(ID_G_BG_SPLINE,
                                    wxT("&Spline interpolation"),
                                    wxT("Cubic spline interpolation of points"));
-    baseline_menu->Check(ID_G_M_BG_SPLINE, true);
-    gui_menu->Append(ID_G_M_BG_SUB, wxT("Baseline handling"),
-                          baseline_menu);
-    gui_menu->Enable(ID_G_M_BG_SUB, false);
+    baseline_menu->Check(ID_G_BG_SPLINE, true);
+    gui_menu->Append(ID_G_BG_SUB, wxT("Baseline handling"), baseline_menu);
     gui_menu->AppendSeparator();
 
     wxMenu* gui_menu_show = new wxMenu;
@@ -838,6 +842,24 @@ void FFrame::update_menu_previous_zooms()
     for (int i = last, j = 1; i >= 0 && i > last - 10; i--, j++)
         menu->Append(ID_G_V_ZOOM_PREV + j, s2wx(zoom_hist[i]));
     old_zoom_hist = zoom_hist;
+}
+
+// construct GUI -> Baseline Handling -> Previous menu
+void FFrame::update_menu_recent_baselines()
+{
+    wxMenu *menu = GetMenuBar()->FindItem(ID_G_BG_RECENT)->GetSubMenu();
+    // clear menu
+    while (menu->GetMenuItemCount() > 0)
+        menu->Delete(menu->GetMenuItems().GetLast()->GetData());
+
+    for (int i = 0; i < 10; ++i) {
+        wxString name = plot_pane->get_bg_manager()->get_recent_bg_name(i);
+        if (name.empty())
+            break;
+        if (i == 0)
+            name += wxT("\tShift-F3");
+        menu->Append(ID_G_BG_RECENT+i+1, name);
+    }
 }
 
 
@@ -977,10 +999,10 @@ void FFrame::OnDataEditor (wxCommandEvent&)
         dd.push_back(make_pair(*i, ftk->get_data(*i)));
     EditTransDlg data_editor(this, -1, dd);
     data_editor.ShowModal();
-    update_menu_saved_tranforms();
+    update_menu_saved_transforms();
 }
 
-void FFrame::update_menu_saved_tranforms()
+void FFrame::update_menu_saved_transforms()
 {
     // delete old items
     int item_count = data_ft_menu->GetMenuItemCount();
@@ -1317,43 +1339,40 @@ void FFrame::OnEditInit (wxCommandEvent&)
     show_debugger(startup_file);
 }
 
+void FFrame::change_mouse_mode(MouseModeEnum mode)
+{
+    //enum MouseModeEnum { mmd_zoom=0, mmd_bg, mmd_add, mmd_activate, ...
+    int menu_ids[] = { ID_G_M_ZOOM, ID_G_M_BG, ID_G_M_ADD, ID_G_M_RANGE };
+    int tool_ids[] = { ID_T_ZOOM, ID_T_BG, ID_T_ADD, ID_T_RANGE };
+    int idx = mode;
+    GetMenuBar()->Check(menu_ids[idx], true);
+    if (toolbar)
+        toolbar->ToggleTool(tool_ids[idx], true);
+    toolbar->EnableTool(ID_T_STRIP, (mode == mmd_bg));
+    plot_pane->set_mouse_mode(mode);
+}
+
 void FFrame::OnChangeMouseMode (wxCommandEvent& event)
 {
-    MouseModeEnum mode = mmd_zoom;
     switch (event.GetId()) {
         case ID_G_M_ZOOM:
-        case ID_ft_m_zoom:
-            mode = mmd_zoom;
-            GetMenuBar()->Check(ID_G_M_ZOOM, true);
-            if (toolbar)
-                toolbar->ToggleTool(ID_ft_m_zoom, true);
+        case ID_T_ZOOM:
+            change_mouse_mode(mmd_zoom);
             break;
         case ID_G_M_RANGE:
-        case ID_ft_m_range:
-            mode = mmd_activate;
-            GetMenuBar()->Check(ID_G_M_RANGE, true);
-            if (toolbar)
-                toolbar->ToggleTool(ID_ft_m_range, true);
+        case ID_T_RANGE:
+            change_mouse_mode(mmd_activate);
             break;
         case ID_G_M_BG:
-        case ID_ft_m_bg:
-            mode = mmd_bg;
-            GetMenuBar()->Check(ID_G_M_BG, true);
-            if (toolbar)
-                toolbar->ToggleTool(ID_ft_m_bg, true);
+        case ID_T_BG:
+            change_mouse_mode(mmd_bg);
             break;
         case ID_G_M_ADD:
-        case ID_ft_m_add:
-            mode = mmd_add;
-            GetMenuBar()->Check(ID_G_M_ADD, true);
-            if (toolbar)
-                toolbar->ToggleTool(ID_ft_m_add, true);
+        case ID_T_ADD:
+            change_mouse_mode(mmd_add);
             break;
         default: assert(0);
     }
-    toolbar->EnableTool(ID_ft_b_strip, (mode == mmd_bg));
-    GetMenuBar()->Enable(ID_G_M_BG_SUB, (mode == mmd_bg));
-    plot_pane->set_mouse_mode(mode);
 }
 
 void FFrame::update_menu_functions()
@@ -1415,6 +1434,7 @@ void FFrame::OnMenuBgClearUpdate(wxUpdateUIEvent& event)
 void FFrame::OnStripBg(wxCommandEvent&)
 {
     plot_pane->get_bg_manager()->strip_background();
+    update_menu_recent_baselines();
 }
 
 void FFrame::OnUndoBg(wxCommandEvent&)
@@ -1428,8 +1448,18 @@ void FFrame::OnClearBg(wxCommandEvent&)
     refresh_plots(false, kMainPlot);
 }
 
+void FFrame::OnRecentBg(wxCommandEvent& event)
+{
+    int n = event.GetId() - (ID_G_BG_RECENT + 1);
+    change_mouse_mode(mmd_bg);
+    plot_pane->get_bg_manager()->update_focused_data(get_focused_data_index());
+    plot_pane->get_bg_manager()->set_as_recent(n);
+    refresh_plots(false, kMainPlot);
+}
 void FFrame::OnConvexHullBg(wxCommandEvent&)
 {
+    change_mouse_mode(mmd_bg);
+    plot_pane->get_bg_manager()->update_focused_data(get_focused_data_index());
     plot_pane->get_bg_manager()->set_as_convex_hull();
     refresh_plots(false, kMainPlot);
 }
@@ -1447,7 +1477,7 @@ void FFrame::SwitchToolbar(bool show)
         SetToolBar(toolbar);
         update_toolbar();
         update_peak_type_list();
-        toolbar->ToggleTool(ID_ft_sideb, v_splitter->IsSplit());
+        toolbar->ToggleTool(ID_T_BAR, v_splitter->IsSplit());
     }
     else if (!show && GetToolBar()){
         SetToolBar(0);
@@ -1475,7 +1505,7 @@ void FFrame::SwitchSideBar(bool show)
     }
     GetMenuBar()->Check(ID_G_S_SIDEB, show);
     if (toolbar)
-        toolbar->ToggleTool(ID_ft_sideb, show);
+        toolbar->ToggleTool(ID_T_BAR, show);
 }
 
 void FFrame::OnSwitchAuxPlot(wxCommandEvent& ev)
@@ -1494,7 +1524,7 @@ void FFrame::SwitchIOPane (bool show)
         main_pane->Unsplit();
     }
     GetMenuBar()->Check(ID_G_S_IO, show);
-    //if (toolbar) toolbar->ToggleTool(ID_ft_..., show);
+    //if (toolbar) toolbar->ToggleTool(ID_T_..., show);
 }
 
 void FFrame::OnShowPopupMenu(wxCommandEvent& ev)
@@ -1837,10 +1867,10 @@ void FFrame::update_toolbar()
     if (!toolbar)
         return;
     BgManager* bgm = plot_pane->get_bg_manager();
-    toolbar->ToggleTool(ID_ft_b_strip, bgm->has_fn() && bgm->stripped());
-    toolbar->EnableTool(ID_ft_f_run, !ftk->get_parameters().empty());
-    toolbar->EnableTool(ID_ft_f_undo, ftk->get_fit_container()->can_undo());
-    toolbar->EnableTool(ID_ft_v_pr, !plot_pane->get_zoom_hist().empty());
+    toolbar->ToggleTool(ID_T_STRIP, bgm->has_fn() && bgm->stripped());
+    toolbar->EnableTool(ID_T_RUN, !ftk->get_parameters().empty());
+    toolbar->EnableTool(ID_T_UNDO, ftk->get_fit_container()->can_undo());
+    toolbar->EnableTool(ID_T_PZ, !plot_pane->get_zoom_hist().empty());
 }
 
 void FFrame::update_autoadd_enabled()
@@ -1852,7 +1882,7 @@ void FFrame::update_autoadd_enabled()
             enable = false;
     GetMenuBar()->Enable(ID_S_GUESS, enable);
     if (toolbar)
-        toolbar->EnableTool(ID_ft_s_aa, enable);
+        toolbar->EnableTool(ID_T_AUTO, enable);
 }
 
 int FFrame::get_focused_data_index()
@@ -1969,10 +1999,10 @@ void FFrame::DoGiveHelp(const wxString& help, bool show)
 //===============================================================
 
 BEGIN_EVENT_TABLE (FToolBar, wxToolBar)
-    EVT_TOOL_RANGE (ID_ft_m_zoom, ID_ft_m_add, FToolBar::OnChangeMouseMode)
-    EVT_TOOL_RANGE (ID_ft_v_pr, ID_ft_s_aa, FToolBar::OnClickTool)
-    EVT_TOOL (ID_ft_sideb, FToolBar::OnSwitchSideBar)
-    EVT_CHOICE (ID_ft_peakchoice, FToolBar::OnPeakChoice)
+    EVT_TOOL_RANGE (ID_T_ZOOM, ID_T_ADD, FToolBar::OnChangeMouseMode)
+    EVT_TOOL_RANGE (ID_T_PZ, ID_T_AUTO, FToolBar::OnClickTool)
+    EVT_TOOL (ID_T_BAR, FToolBar::OnSwitchSideBar)
+    EVT_CHOICE (ID_T_CHOICE, FToolBar::OnPeakChoice)
 END_EVENT_TABLE()
 
 FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
@@ -1983,26 +2013,26 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     // mode
     MouseModeEnum m = frame ? frame->plot_pane->get_plot()->get_mouse_mode()
                               : mmd_zoom;
-    AddRadioTool(ID_ft_m_zoom, wxT("Zoom"),
+    AddRadioTool(ID_T_ZOOM, wxT("Zoom"),
                  wxBitmap(zoom_mode_xpm), wxNullBitmap,
                  wxT("Normal Mode [F1]"),
                  wxT("Use mouse for zooming, moving peaks etc."));
-    ToggleTool(ID_ft_m_zoom, m == mmd_zoom);
-    AddRadioTool(ID_ft_m_range, wxT("Range"),
+    ToggleTool(ID_T_ZOOM, m == mmd_zoom);
+    AddRadioTool(ID_T_RANGE, wxT("Range"),
                  wxBitmap(active_mode_xpm), wxNullBitmap,
                  wxT("Data-Range Mode [F2]"),
                  wxT("Use mouse for activating and disactivating data (try also with [Shift])"));
-    ToggleTool(ID_ft_m_range, m == mmd_activate);
-    AddRadioTool(ID_ft_m_bg, wxT("Background"),
+    ToggleTool(ID_T_RANGE, m == mmd_activate);
+    AddRadioTool(ID_T_BG, wxT("Background"),
                  wxBitmap(bg_mode_xpm), wxNullBitmap,
                  wxT("Baseline Mode [F3]"),
                  wxT("Use mouse for subtracting background"));
-    ToggleTool(ID_ft_m_bg, m == mmd_bg);
-    AddRadioTool(ID_ft_m_add, wxT("Add peak"),
+    ToggleTool(ID_T_BG, m == mmd_bg);
+    AddRadioTool(ID_T_ADD, wxT("Add peak"),
                  wxBitmap(addpeak_mode_xpm), wxNullBitmap,
                  wxT("Add-Peak Mode [F4]"),
                  wxT("Use mouse for adding new peaks"));
-    ToggleTool(ID_ft_m_add, m == mmd_add);
+    ToggleTool(ID_T_ADD, m == mmd_add);
     AddSeparator();
     // view
     AddTool (ID_G_V_ALL, wxT("Whole"), wxBitmap(zoom_all_xpm), wxNullBitmap,
@@ -2020,7 +2050,7 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     AddTool(ID_G_V_SCROLL_U, wxT("V-zoom-out"),
             wxBitmap(zoom_up_xpm), wxNullBitmap, wxITEM_NORMAL,
             wxT("Extend zoom up [Ctrl+-]"), wxT("Double vertical range"));
-    AddTool(ID_ft_v_pr, wxT("Back"), wxBitmap(zoom_prev_xpm), wxNullBitmap,
+    AddTool(ID_T_PZ, wxT("Back"), wxBitmap(zoom_prev_xpm), wxNullBitmap,
             wxITEM_NORMAL, wxT("Previous view"),
             wxT("Go to previous View"));
     AddSeparator();
@@ -2050,28 +2080,28 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
             wxT("Save data to file"));
     AddSeparator();
     //background
-    AddTool(ID_ft_b_strip, wxT("Strip Bg"),
+    AddTool(ID_T_STRIP, wxT("Strip Bg"),
             wxBitmap(strip_bg_xpm), wxNullBitmap,  wxITEM_CHECK,
             wxT("Strip background"),
             wxT("(Un)Remove selected background from data"));
-    EnableTool(ID_ft_b_strip, (m == mmd_bg));
+    EnableTool(ID_T_STRIP, (m == mmd_bg));
     AddSeparator();
-    peak_choice = new wxChoice(this, ID_ft_peakchoice);
+    peak_choice = new wxChoice(this, ID_T_CHOICE);
     peak_choice->SetSize(130, -1);
     //peak_choice->SetToolTip(wxT("function"));
     AddControl (peak_choice);
-    AddTool (ID_ft_s_aa, wxT("add"), wxBitmap(add_peak_xpm), wxNullBitmap,
+    AddTool (ID_T_AUTO, wxT("add"), wxBitmap(add_peak_xpm), wxNullBitmap,
              wxITEM_NORMAL, wxT("auto-add"), wxT("Add peak automatically"));
     AddSeparator();
     //fit
-    AddTool(ID_ft_f_run, wxT("Run"),
+    AddTool(ID_T_RUN, wxT("Run"),
             wxBitmap(run_fit_xpm), wxNullBitmap, wxITEM_NORMAL,
             wxT("Start fitting"), wxT("Start fitting sum to data"));
-    AddTool(ID_ft_f_undo, wxT("Undo"),
+    AddTool(ID_T_UNDO, wxT("Undo"),
              wxBitmap(undo_fit_xpm), wxNullBitmap, wxITEM_NORMAL,
              wxT("Undo fitting"), wxT("Previous set of parameters"));
     AddSeparator();
-    AddTool(ID_ft_sideb, wxT("SideBar"),
+    AddTool(ID_T_BAR, wxT("SideBar"),
             wxBitmap(right_pane_xpm), wxNullBitmap, wxITEM_CHECK,
             wxT("Datasets Pane"), wxT("Show/hide datasets pane"));
     Realize();
@@ -2106,28 +2136,30 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
     wxCommandEvent dummy_cmd_event;
 
     switch (event.GetId()) {
-        case ID_ft_v_pr:
+        case ID_T_PZ:
             frame->OnPreviousZoom(dummy_cmd_event);
             break;
-        case ID_ft_b_strip: {
+        case ID_T_STRIP: {
             BgManager* bgm = frame->plot_pane->get_bg_manager();
             if (event.IsChecked()) {
-                if (bgm->can_strip())
+                if (bgm->can_strip()) {
                     bgm->strip_background();
+                    frame->update_menu_recent_baselines();
+                }
                 else
-                    ToggleTool(ID_ft_b_strip, false);
+                    ToggleTool(ID_T_STRIP, false);
             }
             else
                 bgm->add_background();
             break;
         }
-        case ID_ft_f_run :
+        case ID_T_RUN:
             ftk->exec("fit" + frame->get_in_datasets());
             break;
-        case ID_ft_f_undo:
+        case ID_T_UNDO:
             ftk->exec("fit undo");
             break;
-        case ID_ft_s_aa:
+        case ID_T_AUTO:
             frame->OnSGuess(dummy_cmd_event);
             break;
         default:
