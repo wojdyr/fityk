@@ -2048,8 +2048,8 @@ void BgManager::read_recent_baselines()
     for (int i = 0; i < 10; i++) {
         wxString group = t + wxString::Format(wxT("/%d"), i);
         if (c->HasEntry(group + wxT("/Name"))) {
-            wxString name = c->Read(group + "/Name", wxT("?"));
-            wxString points = c->Read(group + "/Points", wxT(""));
+            wxString name = c->Read(group + wxT("/Name"), wxT("?"));
+            wxString points = c->Read(group + wxT("/Points"), wxT(""));
             vector<string> pp = split_string(wx2s(points), ' ');
             vector<PointQ> q;
             for (size_t j = 0; j < pp.size() / 2; ++j) {
