@@ -183,12 +183,10 @@ Cmd3Grammar::definition<ScannerT>::definition(Cmd3Grammar const& /*self*/)
         | optional_suffix_p("s","et") >> (set_arg % ',')
         | optional_suffix_p("c","ommands") >> commands_arg
         | optional_suffix_p("f","it")
-          >> (optional_suffix_p("h","istory")
-               >> (int_p [&do_load_fit_history]
-                  | optional_suffix_p("c","lear") [&do_clear_fit_history]
-                  )
+          >> ( optional_suffix_p("h","istory") >> int_p [&do_load_fit_history]
              | optional_suffix_p("u","ndo") [&do_undo_fit]
              | optional_suffix_p("r","edo") [&do_redo_fit]
+             | optional_suffix_p("c","lear_history") [&do_clear_fit_history]
              | fit_arg [&do_fit]
              )
         ;

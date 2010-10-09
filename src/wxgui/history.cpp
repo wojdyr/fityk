@@ -174,7 +174,7 @@ void SumHistoryDlg::compute_wssr()
 
 void SumHistoryDlg::clear_history()
 {
-    ftk->exec("fit history clear");
+    ftk->exec("fit clear_history");
     // we assume that the history is empty now and disable almost everything
     lc->DeleteAllItems();
     up_arrow->Enable(false);
