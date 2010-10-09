@@ -49,11 +49,11 @@ Features
 Download
 ========
 
-* **Source code**: :sf-download-source:`.tar.bz2`
-* **MS Windows** Installer: :sf-download-msw:`.exe`
-* Fresh **Linux RPMs** from OBS_, **DEBs** from PPA_ or debian-xray_
+* Source code: :sf-download-source:`.tar.bz2`
+* MS **Windows** Installer: :sf-download-msw:`.exe`
+* Fresh **Linux** RPMs from OBS_, DEBs from PPA_ or debian-xray_
 
-* **Mac OS X**: see details :wiki:`here <MacOSX>`.
+* Mac **OS X**: see details :wiki:`here <MacOSX>`.
 
 * `Daily builds <http://fityk.sourceforge.net/daily/>`_
 
@@ -69,11 +69,11 @@ Download
 .. _PPA: https://launchpad.net/~wojdyr/+archive/fityk
 .. _debian-xray: http://debian-xray.iit.edu/
 
-Version 0.9.3 was released on 2010-06-24
+Version 0.9.4 was released on 2010-10-09
 (`changelog <http://fityk.svn.sourceforge.net/svnroot/fityk/trunk/NEWS>`_).
 
 FreshMeat provides new version **notifications**:
-`emails <http://freshmeat.net/projects/fityk/>`_ or
+`emails <http://freshmeat.net/projects/fityk/>`_ and
 `feeds <http://freshmeat.net/projects/fityk/releases.atom>`_.
 
 
@@ -108,6 +108,12 @@ documents mainly commands of the fityk mini-language.
 `Trac Wiki <http://sourceforge.net/apps/trac/fityk/>`_
 contains all other informations.
 You are also welcome to contribute.
+
+Citing fityk in academic papers:
+M. Wojdyr,
+`J. Appl. Cryst. 43, 1126-1128 <http://dx.doi.org/10.1107/S0021889810030499>`_
+(2010)
+[`reprint <http://www.unipress.waw.pl/fityk/fityk-JAC-10-reprint.pdf>`_]
 
 Questions or comments?
 ======================

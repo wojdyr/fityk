@@ -209,7 +209,8 @@ characters are expected. ::
 
   define_st ::= Define ...TODO
 
-  delete_st ::= Delete delete_arg {, delete_arg}
+  delete_st ::= Delete ( (delete_arg {, delete_arg}) |
+                         ( '(' data_expression ')' in_arg ) )
   delete_arg ::= Varname | func_id | Dataset
 
   fit_st ::= Fit fit_arg in_arg
@@ -217,7 +218,7 @@ characters are expected. ::
               "undo" |
               "redo" |
               "history" Number |
-              "history clear"
+              "clear_history"
 
   guess_st ::= Guess ...TODO
 

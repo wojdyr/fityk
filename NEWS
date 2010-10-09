@@ -1,6 +1,6 @@
 $Id$
 
-User-visible changes in version 0.9.4  (2010-10-  ):
+User-visible changes in version 0.9.4  (2010-10-09):
 * removed syntax `delete[range]', use `delete(condition)' instead
 * syntax `y[x=15]' replaced with `y[index(15)]'
 * removed data range syntax, e.g. X[3...10]=15. It can be replaced
@@ -9,6 +9,7 @@ User-visible changes in version 0.9.4  (2010-10-  ):
 * removed syntax "commands < file[m:n]", only the whole file can be executed
 * modulo syntax changed from a%b to mod(a,b)
 * syntax: '-' replaced with '_' in settings and 'info fit_history'
+* syntax: 'fit history clear' replaced with 'fit clear_history'
 * added Perl bindings (manual compilation: cd swig/ && make perl)
 * GUI: remember recently subtracted baselines (GUI > Baseline Mode > Recent)
 * bug fixes

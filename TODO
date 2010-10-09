@@ -2,12 +2,6 @@ $Id$
 
 ---------- TODO list and tentative development plan  ----------------
 
-* test: changed xylib::get_wildcards_string()
-
-* change fit history clear -> fit clear_history
-
--------- 0.9.4
-
 * subtracting another dataset with interpolation of the subtrahend
   (this is important for subtracting background from a file);
   for consistency, `+' should add interpolated data, and 'U' can stand

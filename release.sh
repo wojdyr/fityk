@@ -71,47 +71,17 @@ elif [ $1 -eq 3 ]; then
 
 elif [ $1 -eq 4 ]; then
  echo Building MS Windows version
- WXMSWINSTALL=$HOME/local/mingw32msvc/
- #WXMSWINSTALL=$HOME/local/mingw32/
- #PATH=$PATH:$HOME/local/mingw32/bin
- #
- # wxWidgets where cross-compiled using debian mingw32* packages:
- #      download wxAll
- #      tar xjf ../tarballs/wxWidgets-2.6.2.tar.bz2
- #      cd wxWidgets-2.6.2/
- #      mkdir build-mingw
- #      cd build-mingw/
- #      ../configure --build=i686-pc-linux-gnu --host=i586-mingw32msvc \
- #        --with-msw --disable-threads --disable-shared --disable-unicode \
- #        --enable-optimise --prefix=$WXMSWINSTALL \
- #        --disable-compat26 \
- #        --without-regex --without-expat --without-odbc \
- #        --without-opengl --without-libjpeg --without-libtiff \
- #        --disable-html --disable-htmlhelp --disable-stc --disable-intl \
- #        --disable-protocols --disable-protocol --disable-fs_inet \
- #        --disable-sockets --disable-ipc --disable-apple_ieee \
- #        --disable-backtrace \
- #        --disable-debugreport --disable-dialupman  --disable-tarstream \
- #        --disable-sound --disable-mediactrl --disable-url --disable-variant \
- #        --disable-aui --disable-xrc --disable-docview \
- #        --disable-logdialog --disable-animatectrl --disable-calendar \
- #        --disable-datepick --disable-tipwindow --disable-popupwin \
- #        --disable-splash --disable-tipdlg \
- #        --disable-wizarddlg  --disable-miniframe --disable-joystick \
- #        --disable-gif  --disable-pcx --disable-tga --disable-iff \
- #        --disable-pnm --disable-mdi --disable-richtext
- #      make; make install
- #
  rm -rf $MINGW_DIR
  mkdir -p $MINGW_DIR
  cd $MINGW_DIR
  tar xjf ../$tarball_filename || exit 1
  SRC_DIR=fityk-$version/
  MDIR=$HOME/local/mingw32msvc
+ BOOST_DIR=$HOME/local/src/boost_1_42_0/
  # host: MinGW from .deb: i586-mingw32msvc, built locally: i586-pc-mingw32
  $SRC_DIR/configure --build=x86_64-pc-linux-gnu --host=i586-mingw32msvc \
-   CPPFLAGS="-I$HOME/local/src/boost_1_42_0/ -I$MDIR/include/" \
-   LDFLAGS="-s -L$MDIR/lib" CXXFLAGS="-O3" \
+   CPPFLAGS="-I$BOOST_DIR -I$MDIR/include/" \
+   CXXFLAGS="-O3" LDFLAGS="-s -L$MDIR/lib" \
    --without-readline --enable-static --disable-shared \
    --with-wx-config=$MDIR/bin/wx-config
  make || exit
@@ -122,10 +92,6 @@ elif [ $1 -eq 4 ]; then
  cp $SRC_DIR/samples/*.fit $SRC_DIR/samples/*.dat $SRC_DIR/samples/README \
     $ALL_WIN_FILES/samples/
  cp src/wxgui/fityk.exe src/cli/cfityk.exe $ALL_WIN_FILES/src/
-
- #echo '"C:\Program Files\HTML Help Workshop\hhc.exe" doc\htmlhelp.hhp' \
- #       				    >$ALL_WIN_FILES/build_help.cmd
- #echo 'ren doc\htmlhelp.chm fitykhelp.chm' >>$ALL_WIN_FILES/build_help.cmd
  echo everything is in: `pwd`/$ALL_WIN_FILES
  
 
