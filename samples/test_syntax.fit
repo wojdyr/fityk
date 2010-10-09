@@ -95,7 +95,7 @@ f u
 f redo
 fi undo
 fi re
-fit history clear
+fit clear_history
 
 
 info version
