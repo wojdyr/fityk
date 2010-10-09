@@ -25,6 +25,7 @@ enum CommandType
     kCmdWith,
     kCmdDefine,
     kCmdDelete,
+    kCmdFit,
     kCmdReset,
     kCmdSet,
     kCmdSleep,
@@ -51,6 +52,7 @@ const char* commandtype2str(CommandType c)
         case kCmdWith:   return "With";
         case kCmdDefine: return "Define";
         case kCmdDelete: return "Delete";
+        case kCmdFit:    return "Fit";
         case kCmdReset:  return "Reset";
         case kCmdSet:    return "Set";
         case kCmdSleep:  return "Sleep";
@@ -140,14 +142,6 @@ void Parser::parse_set_args(Lexer& lex, vector<Token>& args)
     }
 }
 
-void Parser::execute_command_with(const vector<Token>& args)
-{
-    Settings *settings = F_->get_settings();
-    for (size_t i = 1; i < args.size(); i += 2)
-        settings->set_temporary(Lexer::get_string(args[i-1]),
-                                Lexer::get_string(args[i]));
-}
-
 void Parser::execute_command_set(const vector<Token>& args)
 {
     Settings *settings = F_->get_settings();
@@ -202,6 +196,7 @@ void parse_define_args(Lexer& lex, vector<Token>& args)
     else {
         // CustomFunction
     }
+    //TODO
     /*
    type_name
     >> '(' >> !((function_param >> !('=' >> no_actions_d[FuncG])) % ',')
@@ -221,8 +216,9 @@ void parse_define_args(Lexer& lex, vector<Token>& args)
      */
 }
 
-void execute_command_define(const vector<Token>& args)
+void Parser::execute_command_define(const vector<Token>& args)
 {
+    //TODO
     //UdfContainer::define(s);
 }
 
@@ -238,7 +234,7 @@ void parse_undefine_args(Lexer& lex, vector<Token>& args)
     }
 }
 
-void execute_command_undefine(const vector<Token>& args)
+void Parser::execute_command_undefine(const vector<Token>& args)
 {
     for (vector<Token>::const_iterator i = args.begin(); i != args.end(); ++i)
         UdfContainer::undefine(Lexer::get_string(*i));
@@ -246,9 +242,71 @@ void execute_command_undefine(const vector<Token>& args)
 
 void parse_delete_args(Lexer& lex, vector<Token>& args)
 {
+    if (lex.peek_token().type == kTokenOpen) {
+        //TODO delete (expression) in dataset
+    }
+    else {
+        for (;;) {
+            Token t = lex.get_token();
+            if (t.type != kTokenDataset && t.type != kTokenFuncname
+                    && t.type != kTokenVarname)
+                lex.throw_syntax_error("unexpected arg after `delete'");
+            args.push_back(t);
+            if (lex.peek_token().type == kTokenComma)
+                lex.get_token();
+            else
+                break;
+        }
+    }
 }
 
-void execute_command_delete(const vector<Token>& args)
+
+void Parser::execute_command_delete(const vector<Token>& args)
+{
+    if (args[0].type == kTokenDataset ||
+            args[0].type == kTokenFuncname ||
+            args[0].type == kTokenVarname) {
+        vector<int> ds;
+        vector<string> vars, funcs;
+        for (vector<Token>::const_iterator i = args.begin();
+                i != args.end(); ++i) {
+            if (i->type == kTokenDataset)
+                ds.push_back(i->info.dataset);
+            else if (i->type == kTokenFuncname)
+                funcs.push_back(Lexer::get_string(*i));
+            else if (i->type == kTokenVarname)
+                vars.push_back(Lexer::get_string(*i));
+        }
+        if (!ds.empty()) {
+            sort(ds.rbegin(), ds.rend());
+            for (vector<int>::const_iterator j = ds.begin(); j != ds.end(); ++j)
+                AL->remove_dm(*j);
+        }
+        F_->delete_funcs(funcs);
+        F_->delete_variables(vars);
+    }
+    else {
+        //TODO delete (expression) in dataset
+    }
+}
+
+void parse_fit_args(Lexer& lex, vector<Token>& args)
+{
+    Token t = lex.get_token();
+    if (t.type == kTokenName) {
+        string name = Lexer::get_string(t);
+        if (name == "undo" || name == "redo" || name == "clear_history") {
+            args.push_back(t);
+            return;
+        }
+        else if (name == "history") {
+            args.push_back(t);
+        }
+    }
+    args.push_back(read_expr(lex));
+}
+
+void Parser::execute_command_fit(const vector<Token>& args)
 {
 }
 
@@ -282,8 +340,8 @@ void Parser::parse(const string& str)
             else if (is_command(token, "e","xecute")) {
             }
             else if (is_command(token, "f","it")) {
-                //s.cmd = kCmdDelete;
-                //parse_delete_args(lex, s.args);
+                s.cmd = kCmdFit;
+                parse_fit_args(lex, s.args);
             }
             else if (is_command(token, "g","uess")) {
             }
@@ -376,14 +434,30 @@ void Parser::execute()
                                                     i != sts_->end(); ++i) {
         switch (i->cmd) {
             case kCmdWith:
-                execute_command_with(i->args);
+                execute_command_set(i->args);
                 active_with = true;
                 break;
             case kCmdDefine:
+                execute_command_define(i->args);
+                break;
+            case kCmdDelete:
+                execute_command_delete(i->args);
+                break;
+            case kCmdFit:
+                execute_command_fit(i->args);
                 break;
             case kCmdReset:
                 F_->reset();
                 F_->outdated_plot();
+                break;
+            case kCmdSet:
+                execute_command_set(i->args);
+                break;
+            case kCmdSleep:
+                //execute_command_sleep(i->args);
+                break;
+            case kCmdUndef:
+                execute_command_undefine(i->args);
                 break;
             case kCmdQuit:
                 throw ExitRequestedException();

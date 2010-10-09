@@ -480,13 +480,13 @@ void ExpressionParser::parse(Lexer& lex)
                     int top = opstack_.back();
                     if (is_function(top)) {
                         pop_onto_que();
-                        int narg = opstack_.back() + 1;
-                        int expected_narg = get_function_narg(top);
-                        if (narg != expected_narg)
+                        int n = arg_cnt_.back() + 1;
+                        int expected_n = get_function_narg(top);
+                        if (n != expected_n)
                             lex.throw_syntax_error(
-                             "function " + function_name(top) + "expects "
-                             + S(expected_narg) + " arguments, not " + S(narg));
-                        opstack_.pop_back(); // remove arg count
+                                 "function " + function_name(top) + "expects "
+                                 + S(expected_n) + " arguments, not " + S(n));
+                        arg_cnt_.pop_back();
                     }
                     else if (top == OP_END_AGGREGATE) {
                         pop_onto_que();

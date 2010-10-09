@@ -44,8 +44,11 @@ private:
     StatementList *sts_;
 
     void parse_set_args(Lexer& lex, std::vector<Token>& args);
-    void execute_command_with(const std::vector<Token>& args);
     void execute_command_set(const std::vector<Token>& args);
+    void execute_command_define(const std::vector<Token>& args);
+    void execute_command_delete(const std::vector<Token>& args);
+    void execute_command_fit(const std::vector<Token>& args);
+    void execute_command_undefine(const std::vector<Token>& args);
 };
 
 #endif //FITYK_CPARSER_H_
