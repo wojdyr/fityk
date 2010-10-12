@@ -169,111 +169,146 @@ __ http://dx.doi.org/10.1016/0022-4073(77)90161-3
 Appendix B. Grammar
 ###################
 
-The syntax of the fityk mini-language (it can be called a
-:dfn:`domain-specific language`) will be defined formally during the work
-on a new parser.
+The fityk mini-language (or :dfn:`domain-specific language`) was designed
+to perform easily most common tasks.
+The language has no flow control (but that's what Python, Lua and other
+bindings are for).
+Each line is parsed and executed separately. Typically, one line contains
+one statement. It can also be empty or contain multiple ';'-separated
+statements.
 
 The syntax below (in extended BNF) is not complete and may change in the future.
 
-Note that each line is parsed and executed separately and no new line
-characters are expected. ::
+The colon ':' in quoted strings means that the string can be shortened, e.g.
+"del:ete" mean that any of "del", "dele", "delet" and "delete" can be used.
 
-  line ::= [{statement ';'} statement] [comment]
+
+::
+
+  (* 
+  TODO
+   commands > file            ->   set logfile file
+   commands < file            ->   exec file
+   commands ! shell command   ->   exec ! shell command
+   dump > file                ->   info state > file
+   @n.Z[0]                    ->   @n.z
+  *)
+
+  line ::= [statement {';' statement}] [comment]
 
   comment ::= '#' { AllChars } 
 
-  statement ::= [with_st] ( commands_st |
-                            define_st |
-                            delete_st |
-                            fit_st |
-                            guess_st |
-                            info_st |
-                            plot_st |
-                            set_st |
-                            undefine_st |
-                            assign_st |
-                            dataset_st |
-                            dump_st |
-                            "quit" |
-                            "reset" |
-                            "sleep" Number |
-                            '!' { AllChars } |
-                            transform_st )
+  statement ::= "w:ith" set
+                ( "def:ine" define                   |
+                  "del:ete" (delete | delete_points) |
+                  "e:xecute" exec                    |
+                  "f:it" fit                         |
+                  "g:uess" guess                     |
+                  "i:nfo" info                       |
+                  "p:lot" plot                       |
+                  "s:et" set                         |
+                  "undef:ine" undef                  |
+                  "quit"                             |
+                  "reset"                            |
+                  "sleep" Number                     |
+                  '!' { AllChars }                   |
+                  DatasetL '<' load_arg              |
+                  DatasetL '=' dataset_tr_arg        |
+                  assign                             |
+                  point_tr                           )     
+                [ 'in' dataset  {',' dataset} ]
 
   with_st ::= With option {',' option}
 
-  commands_st ::= Commands ...TODO
-      (* TODO: commands > file -> set logfile file *)
-      (* TODO: commands < file -> exec file *)
-      (* TODO: commands ! shell command -> exec ! shell command *)
+  define ::= Typename '(' ...TODO
 
-  define_st ::= Define ...TODO
+  delete ::= (Varname | func_id | DatasetR) {',' (Varname | func_id | DatasetR)}
 
-  delete_st ::= Delete ( (delete_arg {, delete_arg}) |
-                         ( '(' data_expression ')' in_arg ) )
-  delete_arg ::= Varname | func_id | Dataset
+  delete_points ::= '(' point_rhs ')'
 
-  fit_st ::= Fit fit_arg in_arg
-  fit_arg ::= ['+'] Number |
-              "undo" |
-              "redo" |
-              "history" Number |
-              "clear_history"
+  exec ::= ( filename | '!' { AllChars } )
 
-  guess_st ::= Guess ...TODO
+  fit ::= ['+'] Number |
+          "undo" |
+          "redo" |
+          "history" Number |
+          "clear_history"
 
-  info_st ::= Info info_arg {',' info_arg} [redir]
+  guess ::= Typename [real_range] [assign_par {, assign_par }]
+  TODO:
+  guess ::= Typename ['(' assign_par {, assign_par } ')'] [real_range]
 
-  dump_st ::= "dump" redir (* to be replaced with info state *)
+  info ::= info_arg {',' info_arg} [redir]
 
-  plot_st ::= Plot ...TODO
+  plot ::= [real_range [real_range]]
 
-  set_st ::= Set (option {',' option} | name)
+  set ::= Key '=' value {',' Key '=' value}
 
-  undefine_st ::= Undefine Word {, Word}
+  undefine ::= Typename {, Typename}
 
-  assign_st ::= Varname '=' TODO |
-                func_id '=' TODO |
-                func_id '.' Word '=' TODO |
-                Dataset '.' 'F' '=' TODO |
-                Dataset '.' 'F' '.' Word '=' TODO |
-                Dataset '.' "title" '=' TODO
+  assign ::= var_id '=' var_rhs |
+             func_id '=' func_rhs |
+             model_id '=' model_rhs { + model_rhs} |
+             model_id '+=' model_rhs { + model_rhs } |
+             model_id '-=' func_id |
+             model_id '.' Key '=' var_rhs |
+             Dataset '.' "title" '=' filename
 
-  dataset_st ::= (Dataset | "@+") ( '<' Filename {option} |
-                                    '<' '.' |
-                                    '=' [Word] Dataset { '+' Dataset } {Word} )
+  model_rhs ::= 0 |
+                func_id |
+                func_rhs |
+                model_id |
+                "copy" '(' model_id ")" 
 
-  transform_st ::= transform_lhs '=' data_expression
+  func_rhs ::= Typename '(' assign_par {, assign_par} ')' |
+               "copy" '(' func_id ')'
 
+  assign_par ::= Key '=' var_rhs
 
-  func_id = Funcname |
-            (* TODO: Dataset '.' 'z' | *)
-            Dataset '.' 'F' '[' Number ']'
+  load_arg ::= filename {option} | '.'
 
-  option ::= name '=' value
+  dataset_tr_arg ::= [Key] (Dataset | 0) { '+' Dataset }
 
-  string ::= QuotedString | Word
+  point_tr ::= point_lhs '=' point_rhs
 
+  point_lhs ::= M |
+                (X | Y | S | A) [ '[' var_rhs ']' ]
+
+  point_rhs ::= TODO
+
+  var_rhs ::= TODO
+
+  model_id = [Dataset '.'] ('F'|'Z')
+
+  func_id ::= Funcname |
+              model_id '[' Number ']'
+
+  var_id ::= Varname |
+             func_id '.' Key
+
+  real_range ::= '[' [var_rhs|'.'] ':' [var_rhs|'.'] ']' |
+                 '.'
+
+  filename ::= QuotedString | { AllChars - (Whitespace | ';' | '#' ) }
+
+  Dataset ::= '@' Integer
+  DatasetL ::= Dataset | "@+"
+  DatasetR ::= Dataset | "@*"
+
+  Varname ::= '$' Key
+  Funcname ::= '%' Key
+  Typename ::= Uppercase {Alpha | Digit}
 
   QuotedString ::= "'" { AllChars - "'" } "'"
+  Key ::= (Lowercase | '_') {Lowercase | Digit | '_'}
 
-  Word ::= { AllChars - (Whitespace | ';' | ',' | '#' ) }
-           
-  AllChars ::= ? all characters ?
+  AllChars  ::= ? all characters ?
+  Alpha     ::= ? a-zA-Z ?
+  Lowercase ::= ? a-z ?
+  Uppercase ::= ? A-Z ?
+  Digit     ::= ? 0-9 ?
 
-  Varname ::= '$' Word
-  Funcname ::= '%' Word
 
-  Commands ::= "c" | "co" | "com" | ... | "commands"
-  Define ::= "def" | ... | "define"
-  Delete ::= "del" | ... | "delete"
-  Fit ::= "f" | "fi" | "fit"
-  Guess ::= "g" | ... | "guess"
-  Info ::= "i" | ... | "info"
-  Plot ::= "p" | ... | "plot"
-  Set ::= "s" | "se" | "set"
-  Undefine ::= "undef" | ... | "undefine"
-  With ::= "w" | ... | "with"
 
 ..
   TODO
