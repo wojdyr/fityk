@@ -26,13 +26,13 @@ string Lexer::get_string(const Token& token)
     const char* p = token.str;
     switch (token.type) {
         case kTokenName:
-            return string(p, token.info.length);
+            return string(p, token.length);
         case kTokenString:
-            return string(p+1, token.info.length - 2);
+            return string(p+1, token.length - 2);
         case kTokenVarname:
-            return string(p+1, token.info.length - 1);
+            return string(p+1, token.length - 1);
         case kTokenFuncname:
-            return string(p+1, token.info.length - 1);
+            return string(p+1, token.length - 1);
         case kTokenShell:
             return string(p+1);
         default:
@@ -87,7 +87,7 @@ const char* tokentype2str(TokenType tt)
         case kTokenTilde: return "~";
         case kTokenQMark: return "?";
 
-        case kTokenEOL: return "EOL";
+        case kTokenNop: return "Nop";
 
         default:
             assert(!"unexpected token in tokentype2str()");
@@ -124,14 +124,13 @@ void Lexer::read_token()
     switch (*ptr) {
         case '\0':
         case '#':
-            tok_.type = kTokenEOL;
+            tok_.type = kTokenNop;
             break;
         case '\'': {
             tok_.type = kTokenString;
             const char* end = strchr(ptr + 1, '\'');
             if (end == NULL)
                 throw SyntaxError("unfinished string");
-            tok_.info.length = end - ptr + 1;
             ptr = end + 1;
             break;
         }
@@ -220,7 +219,6 @@ void Lexer::read_token()
             tok_.type = kTokenVarname;
             while (isalnum(*ptr) || *ptr == '_')
                 ++ptr;
-            tok_.info.length = ptr - tok_.str;
             break;
         case '%':
             ++ptr;
@@ -229,7 +227,6 @@ void Lexer::read_token()
             tok_.type = kTokenFuncname;
             while (isalnum(*ptr) || *ptr == '_')
                 ++ptr;
-            tok_.info.length = ptr - tok_.str;
             break;
         case '!':
             ++ptr;
@@ -239,10 +236,8 @@ void Lexer::read_token()
             }
             else {
                 tok_.type = kTokenShell;
-                int len = strlen(ptr);
-                tok_.info.length = len + 1;
-                ptr += len;
-                assert(*ptr == '\0');
+                while (*ptr != '\0')
+                    ++ptr;
             }
             break;
 
@@ -271,12 +266,12 @@ void Lexer::read_token()
             else if (isalpha(*ptr) || *ptr == '_') {
                 while (isalnum(*ptr) || *ptr == '_')
                     ++ptr;
-                tok_.info.length = ptr - tok_.str;
                 tok_.type = kTokenName;
             }
             else
                 throw SyntaxError("unexpected character: " + string(ptr, 1));
     }
+    tok_.length = ptr - tok_.str;
     cur_ = ptr;
 }
 
@@ -294,6 +289,19 @@ Token Lexer::get_expected_token(TokenType tt)
         throw_syntax_error(S("expected ") + tokentype2str(tt) + " instead of "
                            + tokentype2str(peek_token().type));
     return get_token();
+}
+
+Token Lexer::get_token_if(TokenType tt)
+{
+    if (peek_token().type == tt)
+        return get_token();
+    else {
+        Token token;
+        token.type = kTokenNop;
+        token.str = cur_;
+        token.length = 0;
+        return token;
+    }
 }
 
 const Token& Lexer::peek_token()

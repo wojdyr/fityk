@@ -664,7 +664,7 @@ size_t get_info_string(Ftk const* F, string const& args, bool full,
     }
     else if (word == "lexer") {
         Lexer lex(args.c_str() + pos);
-        for (Token t = lex.get_token(); t.type != kTokenEOL; t =lex.get_token())
+        for (Token t = lex.get_token(); t.type != kTokenNop; t =lex.get_token())
             result += token2str(t) + "\n";
         pos = args.size();
     }

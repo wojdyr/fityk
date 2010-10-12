@@ -13,14 +13,16 @@
 
 enum TokenType
 {
-    // tokens with additional info, see TokenInfo
-    kTokenName, // name (info.length)
-    kTokenString, // 'string' (info.length)
+    // textual tokens
+    kTokenName, // name
+    kTokenString, // 'string'
+    kTokenVarname, // $variable
+    kTokenFuncname, // %function
+    kTokenShell, // ! command args
+
+    // tokens with additional info
     kTokenNumber, // number (info.number: double)
     kTokenDataset, // @n or @* TODO: @+ (info.dataset)
-    kTokenVarname, // $variable (info.length)
-    kTokenFuncname, // %function (info.length)
-    kTokenShell, // ! command args (info.length)
 
     // multi-char tokens
     kTokenLE, kTokenGE, // <= >=
@@ -45,22 +47,26 @@ enum TokenType
     kTokenTilde, // ~
     kTokenQMark, // ?
 
-    kTokenEOL
+    kTokenNop, // end of line (returned by Lexer) or placeholder (in Parser)
+    kTokenRaw // special value, not returned by Lexer, used in Parser
 };
 
 
+// with 64-bit alignment sizeof(Token) is 24
 struct Token
 {
-    TokenType type;
-
     const char* str; // position in the string
+    TokenType type;
+    short length; // raw string length (e.g. 3 for 'a')
 
     union
     {
-        short length; // raw string length (e.g. 3 for 'a')
         int dataset;
         double number;
     } info;
+
+    // get string associated with the token.
+    std::string as_string() const { return std::string(str, length); }
 };
 
 class Lexer
@@ -71,10 +77,6 @@ public:
     // kTokenName, kTokenString, kTokenVarname, kTokenFuncname, kTokenShell.
     static std::string get_string(const Token& token);
 
-    // get string associated with the token.
-    static std::string get_raw(const Token& token)
-        { return std::string(token.str, token.info.length); }
-
     Lexer(const char* input)
         : input_(input), cur_(input), peeked_(false) {}
 
@@ -83,6 +85,7 @@ public:
     const Token& peek_token();
 
     Token get_expected_token(TokenType tt);
+    Token get_token_if(TokenType tt);
 
     // Filename is expected by parser. Reads any sequence of non-blank
     // characters (with exception of ' and #) as a file.

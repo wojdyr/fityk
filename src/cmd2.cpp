@@ -108,11 +108,7 @@ void do_import_dataset(char const*, char const*)
     }
     AL->outdated_plot();
 }
-void do_revert_data(char const*, char const*)
-{
-    AL->get_data(tmp_int)->revert();
-    AL->outdated_plot();
-}
+
 void do_load_data_sum(char const*, char const*)
 {
     vector<Data const*> dd;

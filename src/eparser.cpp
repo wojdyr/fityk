@@ -531,7 +531,7 @@ void ExpressionParser::parse(Lexer& lex)
                 expected_ = kOperator;
                 break;
 
-            case kTokenEOL:
+            case kTokenNop:
                 finished_ = true;
                 break;
             case kTokenPower:
@@ -609,7 +609,7 @@ void ExpressionParser::parse(Lexer& lex)
                 break;
         }
 
-        if (finished_ && token.type != kTokenEOL)
+        if (finished_ && token.type != kTokenNop)
                 lex.go_back(token);
     }
     // the expression should not end with operator
