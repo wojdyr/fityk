@@ -177,56 +177,74 @@ Each line is parsed and executed separately. Typically, one line contains
 one statement. It can also be empty or contain multiple ';'-separated
 statements.
 
-The syntax below (in extended BNF) is not complete and may change in the future.
+The grammar below is not complete and may change in the future.
 
-The colon ':' in quoted strings means that the string can be shortened, e.g.
-"del:ete" mean that any of "del", "dele", "delet" and "delete" can be used.
+The grammar is expressed in EBNF-like notation:
 
+* ``{A}`` means repetition (0 or more occurrences of A).
+* ``A % B`` means ``A {B A}`` and the ``%`` operator has the highest precedence.
+* The colon ':' in quoted string means that the string can be shortened, e.g.
+  ``"del:ete"`` mean that any of ``del``, ``dele``, ``delet`` and ``delete``
+  can be used.
+
+The functions that can be used in ``point_rhs`` and ``var_rhs`` are available
+:ref:`here <transform>` and :ref:`here <variables>`, respectively.
+``var_rhs`` contains only a subset of functions from ``point_rhs`` (partly,
+because we need to calculate symbolical derivatives of ``var_rhs``)
 
 ::
 
   (* 
-  TODO
+  planned changes (already included in the grammar below):
    commands > file            ->   set logfile file
    commands < file            ->   exec file
    commands ! shell command   ->   exec ! shell command
    dump > file                ->   info state > file
    @n.Z[0]                    ->   @n.z
+   guess Func [:] center=30   ->   guess Func(center=30) [:]
+   info in @0 @1              ->   info in @0, @1
+
+   %f = guess Func in @0      ->   guess %f=Func in @0
   *)
+  
 
   line ::= [statement {';' statement}] [comment]
 
   comment ::= '#' { AllChars } 
 
-  statement ::= "w:ith" set
+  statement ::= "w:ith" set % ','
                 ( "def:ine" define                   |
                   "del:ete" (delete | delete_points) |
                   "e:xecute" exec                    |
                   "f:it" fit                         |
                   "g:uess" guess                     |
                   "i:nfo" info                       |
-                  "p:lot" plot                       |
-                  "s:et" set                         |
-                  "undef:ine" undef                  |
+                  "p:lot" [range [range]]            |
                   "quit"                             |
                   "reset"                            |
-                  "sleep" Number                     |
+                  "s:et" set % ','                   |
+                  "sleep" numeric                    |
+                  "undef:ine" Typename % ','         |
                   '!' { AllChars }                   |
                   DatasetL '<' load_arg              |
                   DatasetL '=' dataset_tr_arg        |
                   assign                             |
-                  point_tr                           )     
-                [ 'in' dataset  {',' dataset} ]
+                  assign_func                        |
+                  change_model                       |
+                  point_tr {, point_tr}              )     
+                [ "in" DatasetR  % ',' ]
 
-  with_st ::= With option {',' option}
+  define ::= Typename '(' (Key | kwarg) % ',' ')'
+             '=' ( var_rhs |
+                   func_rhs % '+' |
+                   "x <" var_rhs '?' func_rhs ':' func_rhs
+                 )
 
-  define ::= Typename '(' ...TODO
-
-  delete ::= (Varname | func_id | DatasetR) {',' (Varname | func_id | DatasetR)}
+  delete ::= (Varname | func_id | DatasetR) % ','
 
   delete_points ::= '(' point_rhs ')'
 
-  exec ::= ( filename | '!' { AllChars } )
+  exec ::= ( filename | '!' {AllChars} )
 
   fit ::= ['+'] Number |
           "undo" |
@@ -234,25 +252,22 @@ The colon ':' in quoted strings means that the string can be shortened, e.g.
           "history" Number |
           "clear_history"
 
-  guess ::= Typename [real_range] [assign_par {, assign_par }]
-  TODO:
-  guess ::= Typename ['(' assign_par {, assign_par } ')'] [real_range]
+  guess ::= [Funcname '='] Typename ['(' kwarg % ',' ')'] [range]
 
-  info ::= info_arg {',' info_arg} [redir]
+  info ::= info_arg % ',' [('>'|">>") filename]
 
-  plot ::= [real_range [real_range]]
+  info_arg ::= ...
 
-  set ::= Key '=' value {',' Key '=' value}
-
-  undefine ::= Typename {, Typename}
+  set ::= Key '=' (key | QuotedString | numeric)
 
   assign ::= var_id '=' var_rhs |
-             func_id '=' func_rhs |
-             model_id '=' model_rhs { + model_rhs} |
-             model_id '+=' model_rhs { + model_rhs } |
-             model_id '-=' func_id |
              model_id '.' Key '=' var_rhs |
              Dataset '.' "title" '=' filename
+
+  assign_func ::= func_id '=' func_rhs
+
+  change_model ::= model_id ('=' | "+=") model_rhs % '+' |
+                   model_id "-=" func_id
 
   model_rhs ::= 0 |
                 func_id |
@@ -260,23 +275,43 @@ The colon ':' in quoted strings means that the string can be shortened, e.g.
                 model_id |
                 "copy" '(' model_id ")" 
 
-  func_rhs ::= Typename '(' assign_par {, assign_par} ')' |
+  func_rhs ::= Typename '(' arg % ',' ')' |
                "copy" '(' func_id ')'
 
-  assign_par ::= Key '=' var_rhs
+  kwarg ::= Key '=' var_rhs
+
+  arg = var_rhs | kwarg
 
   load_arg ::= filename {option} | '.'
 
-  dataset_tr_arg ::= [Key] (Dataset | 0) { '+' Dataset }
+  dataset_tr_arg ::= [Key] (Dataset | 0) % '+'
 
   point_tr ::= point_lhs '=' point_rhs
 
   point_lhs ::= M |
-                (X | Y | S | A) [ '[' var_rhs ']' ]
+                (X | Y | S | A) [ '[' numeric ']' ]
 
-  point_rhs ::= TODO
+  point_rhs ::= ? Mathematical expression that may use n, M,
+                  x[], y[], s[], a[], X[], Y[], S[] and A[]
+                  variables.
+                  The reference section lists all the operators
+                  and functions that can be used.
+                ?
 
-  var_rhs ::= TODO
+  var_rhs ::= ? Mathematical expression that uses unknown names
+                as variables.
+                Only a subset of functions from point_rhs.
+                Supports point_rhs inside {}, e.g. {max(y) in @0}.
+                Creates variables using '~', like ~10 or ~{2+$foo}.
+              ?
+
+  numeric ::= ? point_rhs without data variables/arrays,
+                usually just a number
+              ?
+
+  (* used in math expressions, translated to numeric constant *)
+  (* example: {max(y) in @0}                                  *)
+  braced_expr ::= '{' point_rhs [ "in" DatasetR % ',' ] '}'
 
   model_id = [Dataset '.'] ('F'|'Z')
 
@@ -286,9 +321,8 @@ The colon ':' in quoted strings means that the string can be shortened, e.g.
   var_id ::= Varname |
              func_id '.' Key
 
-  real_range ::= '[' [var_rhs|'.'] ':' [var_rhs|'.'] ']' |
+  range ::= '[' [numeric|'.'] ':' [numeric|'.'] ']' |
                  '.'
-
   filename ::= QuotedString | { AllChars - (Whitespace | ';' | '#' ) }
 
   Dataset ::= '@' Integer
@@ -307,14 +341,6 @@ The colon ':' in quoted strings means that the string can be shortened, e.g.
   Lowercase ::= ? a-z ?
   Uppercase ::= ? A-Z ?
   Digit     ::= ? 0-9 ?
-
-
-
-..
-  TODO
-  
-  "in @" comma issue: "fit in @0, @1" but "info in @0 @1"
-
 
 
 .. _license:

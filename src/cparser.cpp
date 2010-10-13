@@ -26,6 +26,7 @@ enum CommandType
     kCmdWith,
     kCmdDefine,
     kCmdDelete,
+    kCmdDeleteP,
     kCmdExec,
     kCmdFit,
     kCmdGuess,
@@ -38,6 +39,11 @@ enum CommandType
     kCmdQuit,
     kCmdShell,
     kCmdLoad,
+    kCmdDatasetTr,
+    kCmdAssign,
+    kCmdAssignFunc,
+    kCmdChangeModel,
+    kCmdPointTr,
     kCmdNull
 };
 
@@ -56,23 +62,45 @@ public:
 const char* commandtype2str(CommandType c)
 {
     switch (c) {
-        case kCmdWith:   return "With";
-        case kCmdDefine: return "Define";
-        case kCmdDelete: return "Delete";
-        case kCmdExec:   return "Exec";
-        case kCmdFit:    return "Fit";
-        case kCmdGuess:  return "Guess";
-        case kCmdInfo:   return "Info";
-        case kCmdPlot:   return "Plot";
-        case kCmdReset:  return "Reset";
-        case kCmdSet:    return "Set";
-        case kCmdSleep:  return "Sleep";
-        case kCmdUndef:  return "Undef";
-        case kCmdQuit:   return "Quit";
-        case kCmdShell:  return "Shell";
-        case kCmdLoad:   return "Load";
-        case kCmdNull:   return "Null";
+        case kCmdWith:    return "With";
+        case kCmdDefine:  return "Define";
+        case kCmdDelete:  return "Delete";
+        case kCmdDeleteP: return "Delete";
+        case kCmdExec:    return "Exec";
+        case kCmdFit:     return "Fit";
+        case kCmdGuess:   return "Guess";
+        case kCmdInfo:    return "Info";
+        case kCmdPlot:    return "Plot";
+        case kCmdReset:   return "Reset";
+        case kCmdSet:     return "Set";
+        case kCmdSleep:   return "Sleep";
+        case kCmdUndef:   return "Undef";
+        case kCmdQuit:    return "Quit";
+        case kCmdShell:   return "Shell";
+        case kCmdLoad:    return "Load";
+        case kCmdDatasetTr: return "DatasetTr";
+        case kCmdAssign:  return "Assign";
+        case kCmdAssignFunc: return "AssignFunc";
+        case kCmdChangeModel: return "ChangeModel";
+        case kCmdPointTr: return "PointTr";
+        case kCmdNull:    return "Null";
         default: return NULL; // avoid warning
+    }
+}
+
+// returns true if the command syntax ends with (optional) "in @n"
+bool has_data_arg(CommandType c)
+{
+    switch (c) {
+        case kCmdDeleteP:
+        case kCmdFit:
+        case kCmdGuess:
+        case kCmdInfo:
+        case kCmdPlot:
+        case kCmdPointTr:
+            return true;
+        default:
+            return false;
     }
 }
 
@@ -89,26 +117,17 @@ bool is_command(const Token& token, const char* cmd_base,
               strncmp(token.str + base_len, cmd_suffix, left_chars) == 0);
 }
 
-Token read_expr(Lexer& lex)
+Token read_expr(Lexer& lex, bool calculate_value)
 {
     Token t;
-    t.type = kTokenName;
+    t.type = kTokenRaw;
     t.str = lex.pchar();
     ExpressionParser ep;
     ep.parse(lex);
     t.length = lex.pchar() - t.str;
+    if (calculate_value)
+        t.info.number = ep.calculate_expression_value();
     return t;
-}
-
-Token parse_and_calculate_expr(Lexer& lex)
-{
-    Token ret;
-    ret.type = kTokenNumber;
-    ret.str = lex.peek_token().str;
-    ExpressionParser ep;
-    ep.parse(lex);
-    ret.info.number = ep.calculate_expression_value();
-    return ret;
 }
 
 Parser::Parser(Ftk* F)
@@ -124,17 +143,50 @@ Parser::~Parser()
 // appends two tokens (kTokenNumber/kTokenDot/kTokenNop) to args
 void parse_real_range(Lexer& lex, vector<Token>& args)
 {
-    //TODO
-/*
-    plot_range  //first clear vr if needed
-        = (ch_p('[') >> ']') [push_back_a(vr,empty)][push_back_a(vr,empty)]
-        | '[' >> (real_p|"."|eps_p) [push_back_a(vr)]
-          >> ':' >> (real_p|"."|eps_p) [push_back_a(vr)]
-          >> ']'
-        | str_p(".") [push_back_a(vr,dot)][push_back_a(vr,dot)] // [.:.]
-        | eps_p [push_back_a(vr,empty)][push_back_a(vr,empty)] // [:]
-        ;
-*/
+    Token nop;
+    nop.type = kTokenNop;
+    if (lex.peek_token().type == kTokenDot) {
+        Token t = lex.get_token();
+        args.push_back(t);
+        args.push_back(t); // twice, because '.' here means [.:.]
+    }
+    else if (lex.peek_token().type == kTokenLSquare) {
+        lex.get_token(); // discard '['
+        const Token& t = lex.peek_token();
+        if (t.type == kTokenDot) {
+            args.push_back(t);
+            lex.get_token(); // discard '.'
+            lex.get_expected_token(kTokenColon); // discard ':'
+        }
+        else if (t.type == kTokenColon) {
+            args.push_back(nop);
+            lex.get_token(); // discard ':'
+        }
+        else {
+            args.push_back(read_expr(lex, true));
+            lex.get_expected_token(kTokenColon); // discard ':'
+        }
+
+        const Token& r = lex.peek_token();
+        if (r.type == kTokenDot) {
+            args.push_back(r);
+            lex.get_token(); // discard '.'
+            lex.get_expected_token(kTokenRSquare); // discard ']'
+        }
+        else if (r.type == kTokenRSquare) {
+            lex.get_token(); // discard ']'
+            args.push_back(nop);
+        }
+        else {
+            args.push_back(read_expr(lex, true));
+            lex.get_expected_token(kTokenColon); // discard ']'
+        }
+
+    }
+    else {
+        args.push_back(nop);
+        args.push_back(nop); // we always append two tokens in this function
+    }
 }
 
 // parse ['in' @n[, @m...]]
@@ -167,7 +219,7 @@ void Parser::parse_set_args(Lexer& lex, vector<Token>& args)
                         " ('quote' strings with special characters)");
         }
         else {
-            value = parse_and_calculate_expr(lex);
+            value = read_expr(lex, true);
         }
         args.push_back(value);
 
@@ -207,7 +259,7 @@ void parse_define_args(Lexer& lex, vector<Token>& args)
         args.push_back(tk);
         if (lex.peek_token().type == kTokenAssign) {
             lex.get_token(); // discard '='
-            args.push_back(read_expr(lex));
+            args.push_back(read_expr(lex, false));
         }
         else {
             Token t;
@@ -278,52 +330,47 @@ void Parser::execute_command_undefine(const vector<Token>& args)
 
 void parse_delete_args(Lexer& lex, vector<Token>& args)
 {
-    if (lex.peek_token().type == kTokenOpen) {
-        //TODO delete (expression) in dataset
-    }
-    else {
-        for (;;) {
-            Token t = lex.get_token();
-            if (t.type != kTokenDataset && t.type != kTokenFuncname
-                    && t.type != kTokenVarname)
-                lex.throw_syntax_error("unexpected arg after `delete'");
-            args.push_back(t);
-            if (lex.peek_token().type == kTokenComma)
-                lex.get_token();
-            else
-                break;
-        }
+    for (;;) {
+        Token t = lex.get_token();
+        if (t.type != kTokenDataset && t.type != kTokenFuncname
+                && t.type != kTokenVarname)
+            lex.throw_syntax_error("unexpected arg after `delete'");
+        args.push_back(t);
+        if (lex.peek_token().type == kTokenComma)
+            lex.get_token();
+        else
+            break;
     }
 }
 
-
 void Parser::execute_command_delete(const vector<Token>& args)
 {
-    if (args[0].type == kTokenDataset ||
-            args[0].type == kTokenFuncname ||
-            args[0].type == kTokenVarname) {
-        vector<int> ds;
-        vector<string> vars, funcs;
-        for (vector<Token>::const_iterator i = args.begin();
-                i != args.end(); ++i) {
-            if (i->type == kTokenDataset)
-                ds.push_back(i->info.dataset);
-            else if (i->type == kTokenFuncname)
-                funcs.push_back(Lexer::get_string(*i));
-            else if (i->type == kTokenVarname)
-                vars.push_back(Lexer::get_string(*i));
-        }
-        if (!ds.empty()) {
-            sort(ds.rbegin(), ds.rend());
-            for (vector<int>::const_iterator j = ds.begin(); j != ds.end(); ++j)
-                AL->remove_dm(*j);
-        }
-        F_->delete_funcs(funcs);
-        F_->delete_variables(vars);
+    vector<int> ds;
+    vector<string> vars, funcs;
+    for (vector<Token>::const_iterator i = args.begin(); i != args.end(); ++i) {
+        if (i->type == kTokenDataset)
+            ds.push_back(i->info.dataset);
+        else if (i->type == kTokenFuncname)
+            funcs.push_back(Lexer::get_string(*i));
+        else if (i->type == kTokenVarname)
+            vars.push_back(Lexer::get_string(*i));
     }
-    else {
-        //TODO delete (expression) in dataset
+    if (!ds.empty()) {
+        sort(ds.rbegin(), ds.rend());
+        for (vector<int>::const_iterator j = ds.begin(); j != ds.end(); ++j)
+            AL->remove_dm(*j);
     }
+    F_->delete_funcs(funcs);
+    F_->delete_variables(vars);
+}
+
+void parse_delete_points_args(Lexer& lex, vector<Token>& args)
+{
+    //TODO delete (expression) in dataset
+}
+
+void Parser::execute_command_delete_points(const vector<Token>& args)
+{
 }
 
 void parse_exec_args(Lexer& lex, vector<Token>& args)
@@ -443,8 +490,14 @@ void Parser::parse(const string& str)
                 parse_define_args(lex, s.args);
             }
             else if (is_command(token, "del","ete")) {
-                s.cmd = kCmdDelete;
-                parse_delete_args(lex, s.args);
+                if (lex.peek_token().type == kTokenOpen) {
+                    s.cmd = kCmdDeleteP;
+                    parse_delete_points_args(lex, s.args);
+                }
+                else {
+                    s.cmd = kCmdDelete;
+                    parse_delete_args(lex, s.args);
+                }
             }
             else if (is_command(token, "e","xecute")) {
                 s.cmd = kCmdExec;
@@ -484,7 +537,7 @@ void Parser::parse(const string& str)
             }
             else if (is_command(token, "sleep","")) {
                 s.cmd = kCmdSleep;
-                const Token value = parse_and_calculate_expr(lex);
+                const Token value = read_expr(lex, true);
                 s.args.push_back(value);
             }
             // TODO
@@ -548,7 +601,7 @@ void Parser::parse(const string& str)
         }
         else if (token.type == kTokenDataset &&
                  lex.peek_token().type == kTokenAssign) {
-            //s.cmd = kCmdDatasetTr;
+            s.cmd = kCmdDatasetTr;
             // TODO dataset transformation
         }
         else {

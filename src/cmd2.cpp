@@ -210,7 +210,7 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
           ) [&do_import_dataset]
           //sum / duplicate
         | dataset_lhs >> ch_p('=') [clear_a(vn)] [assign_a(t, empty)]
-          >> !(lexeme_d[lower_p >> +(alnum_p | '-' | '_')] [assign_a(t)])
+          >> !(lexeme_d[lower_p >> +(alnum_p | '_')] [assign_a(t)])
           >> (lexeme_d['@' >> uint_p [push_back_a(vn)]
                       | "0"
                                    ] % '+') [&do_load_data_sum]
