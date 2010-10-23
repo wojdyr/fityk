@@ -15,7 +15,7 @@
 using namespace std;
 
 NMfit::NMfit(Ftk* F)
-    : Fit(F, "Nelder_Mead_simplex")
+    : Fit(F, "nelder_mead_simplex")
 {
 }
 

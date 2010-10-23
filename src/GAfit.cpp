@@ -20,7 +20,7 @@
 using namespace std;
 
 GAfit::GAfit(Ftk* F)
-   : Fit(F, "Genetic_Algorithms"),
+   : Fit(F, "genetic_algorithms"),
      popsize (100), elitism(0),
      mutation_type('u'), p_mutation(0.1), mutate_all_genes(false),
      mutation_strength(0.1), crossover_type('u'), p_crossover(0.3),
@@ -54,8 +54,8 @@ GAfit::GAfit(Ftk* F)
     */
     Selection_enum ['r'] = "roulette";
     Selection_enum ['t'] = "tournament";
-    Selection_enum ['s'] = "SRS";
-    Selection_enum ['d'] = "DS";
+    Selection_enum ['s'] = "srs";
+    Selection_enum ['d'] = "ds";
     /*
     epar.insert (pair<string, Enum_string>("selection-type",
                                Enum_string (Selection_enum, &selection_type)));

@@ -14,7 +14,7 @@
 using namespace std;
 
 LMfit::LMfit(Ftk* F)
-    : Fit(F, "Levenberg_Marquardt"),
+    : Fit(F, "levenberg_marquardt"),
       shake_before (0), shake_type ('u')
 {
     /*

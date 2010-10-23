@@ -1279,8 +1279,8 @@ Fitting methods can be set using the set command::
 
   set fitting_method = method
 
-where method is one of: ``Levenberg_Marquardt``, ``Nelder_Mead_simplex``,
-``Genetic_Algorithms``.
+where method is one of: ``levenberg_marquardt``, ``nelder_mead_simplex``,
+``genetic_algorithms``.
 
 All non-linear fitting methods are iterative, and there are two common
 stopping criteria:
@@ -1584,15 +1584,13 @@ info_numeric_format
     of numbers to 3 digits after the decimal point. Default value: ``%g``.
 
 lm_*
-    Setting to tune :ref:`Levenberg_Marquardt <levmar>`
-    fitting method.
+    Setting to tune the :ref:`Levenberg-Marquardt <levmar>` fitting method.
 
 max_wssr_evaluations
     See :ref:`fitting_cmd`.
 
 nm_*
-    Setting to tune
-    :ref:`Nelder-Mead downhill simplex <nelder>`
+    Setting to tune the :ref:`Nelder-Mead downhill simplex <nelder>`
     fitting method.
 
 pseudo_random_seed
@@ -1624,10 +1622,10 @@ width_correction
 Examples::
 
     set fitting_method  # show info
-    set fitting_method = Nelder_Mead_simplex # change default method
+    set fitting_method = nelder_mead_simplex # change default method
     set verbosity = verbose
-    with fitting_method = Levenberg_Marquardt fit 10
-    with fitting_method=Levenberg_Marquardt, verbosity=quiet fit 10
+    with fitting_method = levenberg_marquardt fit 10
+    with fitting_method=levenberg_marquardt, verbosity=quiet fit 10
 
 Other commands
 ==============
