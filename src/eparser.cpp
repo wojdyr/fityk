@@ -303,9 +303,9 @@ void ExpressionParser::parse(Lexer& lex)
         //cout << "> " << token2str(token) << endl;
         switch (token.type) {
             case kTokenNumber:
-                put_number(token.info.number);
+                put_number(token.value.d);
                 break;
-            case kTokenName: {
+            case kTokenLname: {
                 string word = Lexer::get_string(token);
                 // "not", "and", "or" can be followed by '(' or not.
                 if (word == "not")
@@ -424,18 +424,8 @@ void ExpressionParser::parse(Lexer& lex)
                         put_array_var(lex, OP_VAR_s);
                     else if (word == "a")
                         put_array_var(lex, OP_VAR_a);
-                    else if (word == "X")
-                        put_array_var(lex, OP_VAR_X);
-                    else if (word == "Y")
-                        put_array_var(lex, OP_VAR_Y);
-                    else if (word == "S")
-                        put_array_var(lex, OP_VAR_S);
-                    else if (word == "A")
-                        put_array_var(lex, OP_VAR_A);
                     else if (word == "n")
                         put_var(OP_VAR_n);
-                    else if (word == "M")
-                        put_var(OP_VAR_M);
                     else if (word == "pi")
                         put_number(M_PI);
                     else if (word == "true")
@@ -447,6 +437,24 @@ void ExpressionParser::parse(Lexer& lex)
                 }
                 break;
             }
+            case kTokenUletter:
+                if (expected_ == kOperator) {
+                    finished_ = true;
+                    break;
+                }
+                if (*token.str == 'X')
+                    put_array_var(lex, OP_VAR_X);
+                else if (*token.str == 'Y')
+                    put_array_var(lex, OP_VAR_Y);
+                else if (*token.str == 'S')
+                    put_array_var(lex, OP_VAR_S);
+                else if (*token.str == 'A')
+                    put_array_var(lex, OP_VAR_A);
+                else if (*token.str == 'M')
+                    put_var(OP_VAR_M);
+                else
+                    lex.throw_syntax_error("unknown name: "+ token.as_string());
+                break;
             case kTokenOpen:
                 if (expected_ == kOperator) {
                     finished_ = true;
@@ -592,6 +600,7 @@ void ExpressionParser::parse(Lexer& lex)
                 break;
 
             case kTokenString:
+            case kTokenCname:
             case kTokenDataset:
             case kTokenVarname:
             case kTokenFuncname:
@@ -605,6 +614,7 @@ void ExpressionParser::parse(Lexer& lex)
             case kTokenSemicolon:
             case kTokenDot:
             case kTokenTilde:
+            case kTokenRaw:
                 finished_ = true;
                 break;
         }

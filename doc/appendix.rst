@@ -181,6 +181,7 @@ The grammar below is not complete and may change in the future.
 
 The grammar is expressed in EBNF-like notation:
 
+* ``(*this is a comment*)``
 * ``{A}`` means repetition (0 or more occurrences of A).
 * ``A % B`` means ``A {B A}`` and the ``%`` operator has the highest precedence.
 * The colon ':' in quoted string means that the string can be shortened, e.g.
@@ -224,17 +225,18 @@ because we need to calculate symbolical derivatives of ``var_rhs``)
                   "reset"                            |
                   "s:et" set % ','                   |
                   "sleep" numeric                    |
-                  "undef:ine" Typename % ','         |
+                  "undef:ine" Uname % ','            |
                   '!' { AllChars }                   |
                   DatasetL '<' load_arg              |
                   DatasetL '=' dataset_tr_arg        |
                   assign                             |
                   assign_func                        |
+                  assign_var                         |
                   change_model                       |
                   point_tr {, point_tr}              )     
                 [ "in" DatasetR  % ',' ]
 
-  define ::= Typename '(' (Key | kwarg) % ',' ')'
+  define ::= Uname '(' (Lname | kwarg) % ',' ')'
              '=' ( var_rhs |
                    func_rhs % '+' |
                    "x <" var_rhs '?' func_rhs ':' func_rhs
@@ -252,17 +254,18 @@ because we need to calculate symbolical derivatives of ``var_rhs``)
           "history" Number |
           "clear_history"
 
-  guess ::= [Funcname '='] Typename ['(' kwarg % ',' ')'] [range]
+  guess ::= [Funcname '='] Uname ['(' kwarg % ',' ')'] [range]
 
   info ::= info_arg % ',' [('>'|">>") filename]
 
   info_arg ::= ...
 
-  set ::= Key '=' (key | QuotedString | numeric)
+  set ::= Lname '=' (Lname | QuotedString | numeric)
 
-  assign ::= var_id '=' var_rhs |
-             model_id '.' Key '=' var_rhs |
+  assign ::= model_id '.' Lname '=' var_rhs |
              Dataset '.' "title" '=' filename
+
+  assign_var ::= var_id '=' var_rhs
 
   assign_func ::= func_id '=' func_rhs
 
@@ -275,16 +278,14 @@ because we need to calculate symbolical derivatives of ``var_rhs``)
                 model_id |
                 "copy" '(' model_id ")" 
 
-  func_rhs ::= Typename '(' arg % ',' ')' |
+  func_rhs ::= Uname '(' ([Lname '='] var_rhs) % ',' ')' |
                "copy" '(' func_id ')'
 
-  kwarg ::= Key '=' var_rhs
-
-  arg = var_rhs | kwarg
+  kwarg ::= Lname '=' var_rhs
 
   load_arg ::= filename {option} | '.'
 
-  dataset_tr_arg ::= [Key] (Dataset | 0) % '+'
+  dataset_tr_arg ::= [Lname] (Dataset | 0) % '+'
 
   point_tr ::= point_lhs '=' point_rhs
 
@@ -319,7 +320,7 @@ because we need to calculate symbolical derivatives of ``var_rhs``)
               model_id '[' Number ']'
 
   var_id ::= Varname |
-             func_id '.' Key
+             func_id '.' Lname
 
   range ::= '[' [numeric|'.'] ':' [numeric|'.'] ']' |
                  '.'
@@ -329,12 +330,13 @@ because we need to calculate symbolical derivatives of ``var_rhs``)
   DatasetL ::= Dataset | "@+"
   DatasetR ::= Dataset | "@*"
 
-  Varname ::= '$' Key
-  Funcname ::= '%' Key
-  Typename ::= Uppercase {Alpha | Digit}
+  Varname ::= '$' Lname
+  Funcname ::= '%' Lname
 
   QuotedString ::= "'" { AllChars - "'" } "'"
-  Key ::= (Lowercase | '_') {Lowercase | Digit | '_'}
+  Lname ::= (Lowercase | '_') {Lowercase | Digit | '_'}
+  (* Uname is used for type names and pseudo-parameters (%f.Area) *)
+  Uname ::= Uppercase (Alpha | Digit) {Alpha | Digit}
 
   AllChars  ::= ? all characters ?
   Alpha     ::= ? a-zA-Z ?

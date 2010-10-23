@@ -25,7 +25,9 @@ string Lexer::get_string(const Token& token)
 {
     const char* p = token.str;
     switch (token.type) {
-        case kTokenName:
+        case kTokenLname:
+        case kTokenCname:
+        case kTokenUletter:
             return string(p, token.length);
         case kTokenString:
             return string(p+1, token.length - 2);
@@ -50,13 +52,15 @@ string get_quoted_string(const Token& token)
 const char* tokentype2str(TokenType tt)
 {
     switch (tt) {
-        case kTokenName: return "NAME";
-        case kTokenString: return "STRING";
-        case kTokenVarname: return "VARNAME";
-        case kTokenFuncname: return "FUNCNAME";
-        case kTokenShell: return "SHELL";
-        case kTokenNumber: return "NUMBER";
-        case kTokenDataset: return "DATASET";
+        case kTokenLname: return "lower_case_name";
+        case kTokenCname: return "CamelCaseName";
+        case kTokenUletter: return "Upper-case-letter";
+        case kTokenString: return "'quoted-string'";
+        case kTokenVarname: return "$variable_name";
+        case kTokenFuncname: return "%func_name";
+        case kTokenShell: return "!shell-command";
+        case kTokenNumber: return "number";
+        case kTokenDataset: return "@dataset";
 
         case kTokenLE: return "<=";
         case kTokenGE: return ">=";
@@ -99,16 +103,23 @@ string token2str(const Token& token)
 {
     string s = tokentype2str(token.type);
     switch (token.type) {
-        case kTokenName:
+        case kTokenLname:
+        case kTokenCname:
+        case kTokenUletter:
         case kTokenString:
         case kTokenVarname:
         case kTokenFuncname:
         case kTokenShell:
             return s + " " + get_quoted_string(token);
         case kTokenNumber:
-            return s + " " + S(token.info.number);
+            return s + " " + S(token.value.d);
         case kTokenDataset:
-            return s + " " + S(token.info.dataset);
+            if (token.value.i == Lexer::kAll)
+                return s + " '*'";
+            else if (token.value.i == Lexer::kNew)
+                return s + " '+'";
+            else
+                return s + " " + S(token.value.i);
         default:
             return s;
     }
@@ -186,7 +197,7 @@ void Lexer::read_token()
             ++ptr;
             if (isdigit(*ptr)) {
                 char* endptr;
-                tok_.info.number = strtod(ptr-1, &endptr);
+                tok_.value.d = strtod(ptr-1, &endptr);
                 ptr = endptr;
                 tok_.type = kTokenNumber;
             }
@@ -203,10 +214,12 @@ void Lexer::read_token()
             ++ptr;
             tok_.type = kTokenDataset;
             if (*ptr == '*')
-                tok_.info.dataset = -1;
+                tok_.value.i = kAll;
+            else if (*ptr == '+')
+                tok_.value.i = kNew;
             else if (isdigit(*ptr)) {
                 char *endptr;
-                tok_.info.dataset = strtol(ptr, &endptr, 10);
+                tok_.value.i = strtol(ptr, &endptr, 10);
                 ptr = endptr;
             }
             else
@@ -259,14 +272,24 @@ void Lexer::read_token()
         default:
             if (isdigit(*ptr)) {
                 char* endptr;
-                tok_.info.number = strtod(ptr, &endptr);
+                tok_.value.d = strtod(ptr, &endptr);
                 ptr = endptr;
                 tok_.type = kTokenNumber;
+            }
+            else if (isupper(*ptr)) {
+                ++ptr;
+                if (isalnum(*ptr)) {
+                    while (isalnum(*ptr))
+                        ++ptr;
+                    tok_.type = kTokenCname;
+                }
+                else
+                    tok_.type = kTokenUletter;
             }
             else if (isalpha(*ptr) || *ptr == '_') {
                 while (isalnum(*ptr) || *ptr == '_')
                     ++ptr;
-                tok_.type = kTokenName;
+                tok_.type = kTokenLname;
             }
             else
                 throw SyntaxError("unexpected character: " + string(ptr, 1));
@@ -283,11 +306,66 @@ Token Lexer::get_token()
     return tok_;
 }
 
+const Token& Lexer::peek_token()
+{
+    if (!peeked_)
+        read_token();
+    peeked_ = true;
+    return tok_;
+}
+
+void Lexer::go_back(const Token& token)
+{
+    cur_ = token.str;
+    peeked_ = false;
+}
+
+Token Lexer::get_filename_token()
+{
+    Token t = get_token();
+    if (t.type == kTokenString || t.type == kTokenNop)
+        return get_token();
+    while (!isspace(*cur_) && *cur_ != ';' && *cur_ != '#')
+        ++cur_;
+    t.type = kTokenRaw;
+    t.length = cur_ - t.str;
+    return t;
+}
+
+Token Lexer::get_expected_token(const string& raw)
+{
+    string s = peek_token().as_string();
+    if (s != raw)
+        throw_syntax_error("expected `" + s + "' instead of `" + raw + "'");
+    return get_token();
+}
+
 Token Lexer::get_expected_token(TokenType tt)
 {
-    if (peek_token().type != tt)
-        throw_syntax_error(S("expected ") + tokentype2str(tt) + " instead of "
-                           + tokentype2str(peek_token().type));
+    TokenType p = peek_token().type;
+    if (p != tt)
+        throw_syntax_error(S("expected ") + tokentype2str(tt) +
+                           " instead of " + tokentype2str(p));
+    return get_token();
+}
+
+Token Lexer::get_expected_token(TokenType tt1, TokenType tt2)
+{
+    TokenType p = peek_token().type;
+    if (p != tt1 && p != tt2)
+        throw_syntax_error(S("expected ") + tokentype2str(tt1) +
+                           " or " + tokentype2str(tt2) +
+                           " instead of " + tokentype2str(p));
+    return get_token();
+}
+
+Token Lexer::get_expected_token(TokenType tt, const string& raw)
+{
+    TokenType p = peek_token().type;
+    string s = peek_token().as_string();
+    if (p != tt && s != raw)
+        throw_syntax_error(S("expected ") + tokentype2str(tt) + " or `" + raw
+                           + "' instead of `" + s + "'");
     return get_token();
 }
 
@@ -302,20 +380,6 @@ Token Lexer::get_token_if(TokenType tt)
         token.length = 0;
         return token;
     }
-}
-
-const Token& Lexer::peek_token()
-{
-    if (!peeked_)
-        read_token();
-    peeked_ = true;
-    return tok_;
-}
-
-void Lexer::go_back(const Token& token)
-{
-    cur_ = token.str;
-    peeked_ = false;
 }
 
 void Lexer::throw_syntax_error(const string& msg)

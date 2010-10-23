@@ -56,6 +56,8 @@ private:
     void execute_command_plot(const std::vector<Token>& args);
     void execute_command_undefine(const std::vector<Token>& args);
     void execute_command_load(const std::vector<Token>& args);
+    void execute_command_dataset_tr(const std::vector<Token>& args);
+    void execute_command_assign_func(const std::vector<Token>& args);
 };
 
 #endif //FITYK_CPARSER_H_

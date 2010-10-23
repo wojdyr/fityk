@@ -14,17 +14,23 @@
 enum TokenType
 {
     // textual tokens
-    kTokenName, // name
+    kTokenLname, // (Lowercase | '_') {Lowercase | Digit | '_'}
+    kTokenCname, // Uppercase (Alpha | Digit) {Alpha | Digit}
+    kTokenUletter, // single uppercase letter
     kTokenString, // 'string'
     kTokenVarname, // $variable
     kTokenFuncname, // %function
     kTokenShell, // ! command args
 
-    // tokens with additional info
-    kTokenNumber, // number (info.number: double)
-    kTokenDataset, // @n or @* TODO: @+ (info.dataset)
+    // special value, never returned by get_token();
+    // it can be returned by get_filename_token() or read_expr()
+    kTokenRaw,
 
-    // multi-char tokens
+    // tokens with `value' set
+    kTokenNumber, // number (value.d)
+    kTokenDataset, // @n, @*, @+ (value.i)
+
+    // 2-char tokens
     kTokenLE, kTokenGE, // <= >=
     kTokenNE, // != or <>
     kTokenEQ, // ==
@@ -48,9 +54,7 @@ enum TokenType
     kTokenQMark, // ?
 
     kTokenNop, // end of line (returned by Lexer) or placeholder (in Parser)
-    kTokenRaw // special value, not returned by Lexer, used in Parser
 };
-
 
 // with 64-bit alignment sizeof(Token) is 24
 struct Token
@@ -61,9 +65,9 @@ struct Token
 
     union
     {
-        int dataset;
-        double number;
-    } info;
+        int i;
+        double d;
+    } value;
 
     // get string associated with the token.
     std::string as_string() const { return std::string(str, length); }
@@ -72,9 +76,12 @@ struct Token
 class Lexer
 {
 public:
+    // dataset special values
+    enum { kAll = -1, kNew = -2 };
 
     // get string associated with the token. Works only with:
-    // kTokenName, kTokenString, kTokenVarname, kTokenFuncname, kTokenShell.
+    // kTokenLname, kTokenCname, kTokenUletter,
+    // kTokenString, kTokenVarname, kTokenFuncname, kTokenShell.
     static std::string get_string(const Token& token);
 
     Lexer(const char* input)
@@ -85,6 +92,10 @@ public:
     const Token& peek_token();
 
     Token get_expected_token(TokenType tt);
+    Token get_expected_token(const std::string& raw);
+    Token get_expected_token(TokenType tt1, TokenType tt2);
+    Token get_expected_token(TokenType tt, const std::string& raw);
+
     Token get_token_if(TokenType tt);
 
     // Filename is expected by parser. Reads any sequence of non-blank
