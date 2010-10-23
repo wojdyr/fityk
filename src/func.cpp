@@ -47,7 +47,7 @@ string Function::get_rhs_from_formula(string const &formula)
         string::size_type comma = find_outer_comma(formula, eq + 1);
         string value(formula, eq + 1,
                      comma == string::npos ? string::npos : comma - (eq+1));
-        replace_words(rhs, var, value);
+        replace_words(rhs, var, "("+value+")");
         if (comma == string::npos)
             break;
         v = comma + 1;

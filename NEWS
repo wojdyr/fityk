@@ -1,4 +1,6 @@
 $Id$
+User-visible changes in version 0.9.5  (2010-  -  ):
+* syntax: in "define ... where param=expr" expr is substituted in brackets now
 
 User-visible changes in version 0.9.4  (2010-10-09):
 * removed syntax `delete[range]', use `delete(condition)' instead
