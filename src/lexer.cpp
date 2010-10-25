@@ -23,30 +23,19 @@ using fityk::SyntaxError;
 
 string Lexer::get_string(const Token& token)
 {
-    const char* p = token.str;
     switch (token.type) {
-        case kTokenLname:
-        case kTokenCname:
-        case kTokenUletter:
-            return string(p, token.length);
         case kTokenString:
-            return string(p+1, token.length - 2);
+            return string(token.str+1, token.length - 2);
         case kTokenVarname:
-            return string(p+1, token.length - 1);
+            return string(token.str+1, token.length - 1);
         case kTokenFuncname:
-            return string(p+1, token.length - 1);
+            return string(token.str+1, token.length - 1);
         case kTokenShell:
-            return string(p+1);
+            return string(token.str+1);
         default:
             assert(!"Unexpected token in get_string()");
             return "";
     }
-}
-
-inline
-string get_quoted_string(const Token& token)
-{
-    return '"' + Lexer::get_string(token) + '"';
 }
 
 const char* tokentype2str(TokenType tt)
@@ -61,6 +50,8 @@ const char* tokentype2str(TokenType tt)
         case kTokenShell: return "!shell-command";
         case kTokenNumber: return "number";
         case kTokenDataset: return "@dataset";
+        case kTokenFilename: return "filename";
+        case kTokenExpr: return "expr";
 
         case kTokenLE: return "<=";
         case kTokenGE: return ">=";
@@ -92,10 +83,6 @@ const char* tokentype2str(TokenType tt)
         case kTokenQMark: return "?";
 
         case kTokenNop: return "Nop";
-
-        default:
-            assert(!"unexpected token in tokentype2str()");
-            return NULL;
     }
 }
 
@@ -103,14 +90,17 @@ string token2str(const Token& token)
 {
     string s = tokentype2str(token.type);
     switch (token.type) {
-        case kTokenLname:
-        case kTokenCname:
-        case kTokenUletter:
         case kTokenString:
         case kTokenVarname:
         case kTokenFuncname:
         case kTokenShell:
-            return s + " " + get_quoted_string(token);
+            return s + " \"" + Lexer::get_string(token) + "\"";
+        case kTokenLname:
+        case kTokenCname:
+        case kTokenUletter:
+        case kTokenFilename:
+        case kTokenExpr:
+            return s + " \"" + token.as_string() + "\"";
         case kTokenNumber:
             return s + " " + S(token.value.d);
         case kTokenDataset:
@@ -213,10 +203,14 @@ void Lexer::read_token()
         case '@':
             ++ptr;
             tok_.type = kTokenDataset;
-            if (*ptr == '*')
+            if (*ptr == '*') {
                 tok_.value.i = kAll;
-            else if (*ptr == '+')
+                ++ptr;
+            }
+            else if (*ptr == '+') {
                 tok_.value.i = kNew;
+                ++ptr;
+            }
             else if (isdigit(*ptr)) {
                 char *endptr;
                 tok_.value.i = strtol(ptr, &endptr, 10);
@@ -325,9 +319,9 @@ Token Lexer::get_filename_token()
     Token t = get_token();
     if (t.type == kTokenString || t.type == kTokenNop)
         return get_token();
-    while (!isspace(*cur_) && *cur_ != ';' && *cur_ != '#')
+    while (*cur_ != '\0' && !isspace(*cur_) && *cur_ != ';' && *cur_ != '#')
         ++cur_;
-    t.type = kTokenRaw;
+    t.type = kTokenFilename;
     t.length = cur_ - t.str;
     return t;
 }
@@ -336,26 +330,30 @@ Token Lexer::get_expected_token(const string& raw)
 {
     string s = peek_token().as_string();
     if (s != raw)
-        throw_syntax_error("expected `" + s + "' instead of `" + raw + "'");
+        throw_syntax_error("expected `" + raw + "' instead of `" + s + "'");
     return get_token();
 }
 
 Token Lexer::get_expected_token(TokenType tt)
 {
     TokenType p = peek_token().type;
-    if (p != tt)
-        throw_syntax_error(S("expected ") + tokentype2str(tt) +
-                           " instead of " + tokentype2str(p));
+    if (p != tt) {
+        string msg = S("expected ") + tokentype2str(tt);
+        throw_syntax_error(p == kTokenNop ? msg
+                                    : msg + " instead of " + tokentype2str(p));
+    }
     return get_token();
 }
 
 Token Lexer::get_expected_token(TokenType tt1, TokenType tt2)
 {
     TokenType p = peek_token().type;
-    if (p != tt1 && p != tt2)
-        throw_syntax_error(S("expected ") + tokentype2str(tt1) +
-                           " or " + tokentype2str(tt2) +
-                           " instead of " + tokentype2str(p));
+    if (p != tt1 && p != tt2) {
+        string msg = S("expected ") + tokentype2str(tt1)
+                     + " or " + tokentype2str(tt2);
+        throw_syntax_error(p == kTokenNop ? msg
+                                    : msg + " instead of " + tokentype2str(p));
+    }
     return get_token();
 }
 
@@ -363,9 +361,11 @@ Token Lexer::get_expected_token(TokenType tt, const string& raw)
 {
     TokenType p = peek_token().type;
     string s = peek_token().as_string();
-    if (p != tt && s != raw)
-        throw_syntax_error(S("expected ") + tokentype2str(tt) + " or `" + raw
-                           + "' instead of `" + s + "'");
+    if (p != tt && s != raw) {
+        string msg = S("expected ") + tokentype2str(tt) + " or `" + raw + "'";
+        throw_syntax_error(p == kTokenNop ? msg
+                                    : msg + " instead of `" + s + "'");
+    }
     return get_token();
 }
 
@@ -384,6 +384,10 @@ Token Lexer::get_token_if(TokenType tt)
 
 void Lexer::throw_syntax_error(const string& msg)
 {
-    throw SyntaxError("Parsing error: " + msg);
+    int pos = cur_ - input_;
+    string s = S(pos);
+    if (pos >= 10)
+        s += ", near `" + string(cur_ - 10, cur_) + "'";
+    throw SyntaxError("at " + s + ": " + msg);
 }
 

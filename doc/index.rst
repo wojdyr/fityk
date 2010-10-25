@@ -60,11 +60,6 @@ Download
 * The latest code:
   ``svn co https://fityk.svn.sourceforge.net/svnroot/fityk/trunk fityk``
 
-.. * `Older versions
-  <http://sourceforge.net/project/showfiles.php?group_id=79434>`_
-  of the program
-
-
 .. _OBS: http://download.opensuse.org/repositories/home://wojdyr/
 .. _PPA: https://launchpad.net/~wojdyr/+archive/fityk
 .. _debian-xray: http://debian-xray.iit.edu/

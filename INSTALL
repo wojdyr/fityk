@@ -1,30 +1,16 @@
 
-Requirements
-============
+Prerequisites
+=============
 
-both CLI and GUI
-  modern c++ compiler (eg. GCC)
-  Boost libraries (headers only)
-  xylib library - http://xylib.sf.net
-only for CLI (command line interface, cfityk): 
-  readline library >= 4.2 (optional)
-  gnuplot program (for graph output, optional)
-only for GUI (graphical user interface, fityk):
-  wxWidgets (formerly wxWindows) >= 2.8.4
-
-Compilation of some files with "g++ -O2" can use up to 300-400 MB RAM.
-
+*  c++ compiler (e.g. GCC >= 3.4)
+*  Boost libraries (headers only)
+*  xylib library - http://xylib.sf.net
+*  wxWidgets (wxGTK or wxMSW) >= 2.8.4 (for GUI)
+*  readline library >= 4.2 (optional, for CLI)
+*  gnuplot program (optional, can be used with CLI)
 
 Installation
 ============
-
-Linux (and other unices)  
------------------------- 
-
-Recommended prerequisites: wxGTK (port of wxWidgets) and GCC (>= 3.4) compiler.
-
-If you have wxGTK installed from package for your Linux distro, also "devel" 
-package (e.g. libwxgtk2.8-dev or wxGTK-devel) should be installed.
 
 $ ./configure (optionally followed by options, see: Configuration Options)
 $ make
@@ -37,19 +23,17 @@ Uninstallation of the program installed from source is also easy:
 either do "make uninstall" or manually find and remove all files, e.g.: 
 find /usr/local/ -name \*fityk\* -exec rm -r \{} \;
 
-MS Windows 
-----------                     
 
-MS Windows executable is compiled with MinGW. You may figure out more details
-from `release' file.
-Windows installer is prepared with Inno Setup (configuration in fityk.iss).
+To install the latest version from SVN
+======================================
 
-Mac OS X
---------            
+Install automake, autoconf, libtool.
+Optionally install Sphinx >= 1.0 (http://sphinx.pocoo.org/).
+Before the ./configure step, run:
+$ autoreconf -iv
 
-I don't have Mac, but fityk was reported to run under Mac OS X.
-See fityk-users mailing list for details.
-
+If you do not have Sphinx installed, skip building the manual:
+./configure --without-doc
 
 Configuration Options
 =====================
@@ -64,19 +48,6 @@ To build python bindings, use --enable-python option.
 
 ./configure --help shows more options, but most of them are useless.
         
-Subversion
-==========
-
-To compile source code from Subversion, automake, autoconf and libtool are 
-needed.  Run ./autogen.sh instead of ./configure. See the file autogen.sh 
-for details.
-
-Sphinx (http://sphinx.pocoo.org/) is used to generate the manual.
-See doc/conf.py for details.
-If you don't want to bother with installing another program,
-either use --without-doc configure option or run `make' only in src/ 
-subdirectory. Manual won't be installed then. 
-
 ###########################################################################
 #       the rest of the file contains generic instructions that come      #
 #                        with GNU automake tool                           #

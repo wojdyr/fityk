@@ -22,9 +22,10 @@ enum TokenType
     kTokenFuncname, // %function
     kTokenShell, // ! command args
 
-    // special value, never returned by get_token();
+    // special one, returned only by get_filename_token(), not by get_token()
+    kTokenFilename,
     // it can be returned by get_filename_token() or read_expr()
-    kTokenRaw,
+    kTokenExpr,
 
     // tokens with `value' set
     kTokenNumber, // number (value.d)
@@ -107,8 +108,8 @@ public:
 
     void throw_syntax_error(const std::string& msg="");
 
-    const char* pchar() const { return cur_; }
-    int scanned_chars() const { return  cur_ - input_; }
+    const char* pchar() const { return peeked_ ? tok_.str : cur_; }
+    int scanned_chars() const { return  pchar() - input_; }
 
 private:
     void read_token();

@@ -10,3 +10,10 @@ p.searchtip {
 .compound-middle, .compound-last { margin-top: 0; }
 
 img.screenshot { padding-left: 16px; }
+
+/* TODO: change fonts to something more readable,
+ *
+ *  for math symbols in the text use Century Schoolbook 
+ *       that is more like LaTeX Computer Modern font
+.math { font-family: "Century Schoolbook", serif; }
+*/

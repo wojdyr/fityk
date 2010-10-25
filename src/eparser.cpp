@@ -306,7 +306,7 @@ void ExpressionParser::parse(Lexer& lex)
                 put_number(token.value.d);
                 break;
             case kTokenLname: {
-                string word = Lexer::get_string(token);
+                string word = token.as_string();
                 // "not", "and", "or" can be followed by '(' or not.
                 if (word == "not")
                     put_unary_op(OP_NOT);
@@ -474,8 +474,10 @@ void ExpressionParser::parse(Lexer& lex)
 
             case kTokenClose:
                 pop_until_bracket();
-                if (opstack_.empty())
-                    lex.throw_syntax_error("mismatching ')'");
+                if (opstack_.empty()) {
+                    finished_ = true;
+                    break;
+                }
                 else if (opstack_.back() == OP_OPEN_SQUARE)
                     lex.throw_syntax_error("mismatching '[' and ')'");
                 else if (opstack_.back() == OP_TERNARY_MID)
@@ -506,8 +508,10 @@ void ExpressionParser::parse(Lexer& lex)
 
             case kTokenComma:
                 pop_until_bracket();
-                if (opstack_.empty())
+                if (opstack_.empty()) {
                     finished_ = true;
+                    break;
+                }
                 else if (opstack_.back() == OP_OPEN_SQUARE)
                     lex.throw_syntax_error("unexpected ',' after '['");
                 else if (opstack_.back() == OP_TERNARY_MID)
@@ -524,8 +528,10 @@ void ExpressionParser::parse(Lexer& lex)
 
             case kTokenRSquare:
                 pop_until_bracket();
-                if (opstack_.empty())
-                    lex.throw_syntax_error("mismatching ']'");
+                if (opstack_.empty()) {
+                    finished_ = true;
+                    break;
+                }
                 else if (opstack_.back() == OP_OPEN_ROUND)
                     lex.throw_syntax_error("mismatching '(' and ']'");
                 else if (opstack_.back() == OP_TERNARY_MID)
@@ -587,8 +593,10 @@ void ExpressionParser::parse(Lexer& lex)
                 break;
             case kTokenColon:
                 for (;;) {
-                    if (opstack_.empty())
-                        lex.throw_syntax_error("':' doesn't match '?'");
+                    if (opstack_.empty()) {
+                        finished_ = true;
+                        break;
+                    }
                     // pop OP_TERNARY_MID from the stack onto the que
                     int op = opstack_.back();
                     opstack_.pop_back();
@@ -596,7 +604,8 @@ void ExpressionParser::parse(Lexer& lex)
                     if (op == OP_TERNARY_MID)
                         break;
                 }
-                put_binary_op(OP_AFTER_TERNARY);
+                if (!finished_)
+                    put_binary_op(OP_AFTER_TERNARY);
                 break;
 
             case kTokenString:
@@ -614,8 +623,13 @@ void ExpressionParser::parse(Lexer& lex)
             case kTokenSemicolon:
             case kTokenDot:
             case kTokenTilde:
-            case kTokenRaw:
                 finished_ = true;
+                break;
+
+            // these are never return by get_token()
+            case kTokenFilename:
+            case kTokenExpr:
+                assert(0);
                 break;
         }
 

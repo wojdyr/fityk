@@ -52,6 +52,7 @@ struct Statement
 {
     CommandType cmd;
     std::vector<Token> args;
+    vector<int> datasets;
 };
 
 class StatementList : public std::vector<Statement>
@@ -129,7 +130,7 @@ bool is_command(const Token& token, const char* cmd_base,
 Token read_expr(Lexer& lex, bool calculate_value)
 {
     Token t;
-    t.type = kTokenRaw;
+    t.type = kTokenExpr;
     t.str = lex.pchar();
     ExpressionParser ep;
     ep.parse(lex);
@@ -148,6 +149,7 @@ Parser::~Parser()
 {
     delete sts_;
 }
+
 
 // '.' | ( '[' (Number | '.') ':' (Number | '.') ']' )
 // appends two tokens (kTokenNumber/kTokenDot/kTokenNop) to args
@@ -170,6 +172,10 @@ void parse_real_range(Lexer& lex, vector<Token>& args)
             args.push_back(nop());
             lex.get_token(); // discard ':'
         }
+        else if (t.type == kTokenRSquare) {
+            // omitted ':', never mind
+            args.push_back(nop());
+        }
         else {
             args.push_back(read_expr(lex, true));
             lex.get_expected_token(kTokenColon); // discard ':'
@@ -187,7 +193,7 @@ void parse_real_range(Lexer& lex, vector<Token>& args)
         }
         else {
             args.push_back(read_expr(lex, true));
-            lex.get_expected_token(kTokenColon); // discard ']'
+            lex.get_expected_token(kTokenRSquare); // discard ']'
         }
 
     }
@@ -198,20 +204,18 @@ void parse_real_range(Lexer& lex, vector<Token>& args)
 }
 
 // parse ['in' @n[, @m...]]
-void parse_in_data(Lexer& lex, vector<Token>& args)
+void parse_in_data(Lexer& lex, vector<int>& datasets)
 {
     const Token& t = lex.peek_token();
-    if (t.type != kTokenLname || t.as_string() == "in") {
-        args.push_back(nop());
+    if (t.type != kTokenLname || t.as_string() != "in")
         return;
-    }
 
     lex.get_token(); // discard "in"
     for (;;) {
         Token d = lex.get_expected_token(kTokenDataset);
         if (d.value.i == Lexer::kNew)
             lex.throw_syntax_error("unexpected @+ after 'in'");
-        args.push_back(d);
+        datasets.push_back(d.value.i);
         if (lex.peek_token().type == kTokenComma)
             lex.get_token(); // discard comma
         else
@@ -270,8 +274,7 @@ void Parser::execute_command_set(const vector<Token>& args)
 {
     Settings *settings = F_->get_settings();
     for (size_t i = 1; i < args.size(); i += 2)
-        settings->setp(Lexer::get_string(args[i-1]),
-                       Lexer::get_string(args[i]));
+        settings->setp(args[i-1].as_string(), args[i].as_string());
 }
 
 // '(' [(name '=' expr) % ','] ')'
@@ -283,7 +286,7 @@ void parse_kwargs(Lexer& lex, vector<Token>& args)
         if (t.type == kTokenNop)
             lex.throw_syntax_error("mismatching '('");
         if (t.type != kTokenLname)
-            lex.throw_syntax_error("unexpected token in argument list");
+            lex.throw_syntax_error("expected parameter name");
         args.push_back(t);
         if (lex.peek_token().type == kTokenAssign) {
             lex.get_token(); // discard '='
@@ -358,7 +361,7 @@ void parse_undefine_args(Lexer& lex, vector<Token>& args)
 void Parser::execute_command_undefine(const vector<Token>& args)
 {
     for (vector<Token>::const_iterator i = args.begin(); i != args.end(); ++i)
-        UdfContainer::undefine(Lexer::get_string(*i));
+        UdfContainer::undefine(i->as_string());
 }
 
 void parse_delete_args(Lexer& lex, vector<Token>& args)
@@ -399,11 +402,23 @@ void Parser::execute_command_delete(const vector<Token>& args)
 
 void parse_delete_points_args(Lexer& lex, vector<Token>& args)
 {
-    //TODO delete (expression) in dataset
+    lex.get_expected_token(kTokenOpen); // discard '('
+    args.push_back(read_expr(lex, false));
+    lex.get_expected_token(kTokenOpen); // discard ')'
 }
 
-void Parser::execute_command_delete_points(const vector<Token>& args)
+void Parser::execute_command_delete_points(const Statement& st)
 {
+    assert(st.args.size() == 1);
+    vector<DataAndModel*> dm = get_datasets_from_indata(st.datasets);
+    //Lexer lex(st.args[0].str);
+    //ExpressionParser ep;
+    //ep.parse(lex);
+    for (vector<DataAndModel*>::const_iterator i = dm.begin();
+                                                        i != dm.end(); ++i) {
+        (*i)->data()->delete_points(dm.args[0].as_string());
+        //ep.calculate_expression_value();
+    }
 }
 
 void parse_exec_args(Lexer& lex, vector<Token>& args)
@@ -461,7 +476,6 @@ void parse_guess_args(Lexer& lex, vector<Token>& args)
     if (lex.peek_token().type == kTokenOpen)
         parse_kwargs(lex, args);
     parse_real_range(lex, args);
-    parse_in_data(lex, args);
 }
 
 void Parser::execute_command_guess(const vector<Token>& args)
@@ -481,7 +495,6 @@ void parse_plot_args(Lexer& lex, vector<Token>& args)
 {
     parse_real_range(lex, args);
     parse_real_range(lex, args);
-    parse_in_data(lex, args);
 }
 
 void Parser::execute_command_plot(const vector<Token>& args)
@@ -710,6 +723,8 @@ void Parser::parse(const string& str)
             lex.throw_syntax_error("unexpected token at command beginning");
         }
 
+        parse_in_data(lex, s.datasets);
+
         if (s.cmd == kCmdWith) {
             sts_->resize(sts_->size() + 1);
         }
@@ -743,7 +758,7 @@ void Parser::execute()
                 execute_command_delete(i->args);
                 break;
             case kCmdDeleteP:
-                execute_command_delete_points(i->args);
+                execute_command_delete_points(*i);
                 break;
             case kCmdExec:
                 execute_command_exec(i->args);
@@ -839,11 +854,51 @@ string Parser::get_statements_repr() const
     for (StatementList::const_iterator s = sts_->begin();
                                                     s != sts_->end(); ++s) {
         r += commandtype2str(s->cmd);
+        if (!s->datasets.empty())
+            r += "\tdatasets: " + join_vector(s->datasets, " ") ;
         for (vector<Token>::const_iterator i = s->args.begin();
                                                     i != s->args.end(); ++i)
-            r += "   " + token2str(*i);
+            r += "\n\t" + token2str(*i);
         r += "\n";
     }
     return r;
+}
+
+vector<int> Parser::expand_dataset_indices(const vector<int>& ds)
+{
+    vector<int> result;
+    // no datasets specified
+    if (ds.empty()) {
+        if (F_->get_dm_count() == 1)
+            result.push_back(0);
+        else
+            throw ExecuteError("Dataset must be specified (eg. 'in @0').");
+    }
+    // @*
+    else if (ds.size() == 1 && ds[0] == all_datasets)
+        for (int i = 0; i < F_->get_dm_count(); ++i)
+            result.push_back(i);
+    // general case
+    else
+        for (vector<int>::const_iterator i = ds.begin(); i != ds.end(); ++i)
+            if (*i == all_datasets) {
+                for (int j = 0; j < AL->get_dm_count(); ++j) {
+                    if (!contains_element(result, j))
+                        result.push_back(j);
+                }
+                return result;
+            }
+            else
+                result.push_back(*i);
+    return result;
+}
+
+vector<DataAndModel*> Parser::get_datasets_from_indata(const vector<int>& ds)
+{
+    vector<int> indices = expand_dataset_indices(ds);
+    vector<DataAndModel*> result(indices.size());
+    for (size_t i = 0; i < indices.size(); ++i)
+        result[i] = F_->get_dm(indices[i]);
+    return result;
 }
 

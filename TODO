@@ -2,6 +2,10 @@ $Id$
 
 ---------- TODO list and tentative development plan  ----------------
 
+* finish new parser (cparser.cpp/eparser.cpp/lexer.cpp)
+
+--- 0.9.5 
+
 * subtracting another dataset with interpolation of the subtrahend
   (this is important for subtracting background from a file);
   for consistency, `+' should add interpolated data, and 'U' can stand
@@ -94,10 +98,6 @@ $Id$
 
 * unused variables should not slow down fitting
 
-* support variables in range in data transformation: Y[$foo-1] = 0
-
-* GUI: use wxGraphicsContext or Cairo for drawing plots with antialiasing
-
 * GUI, enhancements for the script editor: 
        - "info ...> file" marked differently than not redirected info 
        - paths of files to be read should be checked 
@@ -172,45 +172,23 @@ $Id$
 * [BUG, won't be fixed]: program crashes on MS Win 9x when data contains NaN 
   (e.g. as a result of asin(x) x>1) and "Zoom all" is called.
 
--------  Anticipated upgrades  -----------
-
-* consider migration to Boost::Spirit 2. Alternatives are: using antlr or
-  hand-crafted parser (simple lexer could be based on boost.tokenizer).
-  For data operations, one of math parsers could be used:
-       muParser http://muparser.sourceforge.net/
-        http://www.codeproject.com/KB/recipes/FastMathParser.aspx?msg=2942508
-       Function Parser http://warp.povusers.org/FunctionParser/
-     we would need at least support for user-defined function compilers
-     (to have syntax "sum(y if 3<x<8)") and callbacks for arrays (x[n+3])
-    another parser is GNU libmatheval
-  some statements can be replaced with functions of embedded Lua
-
-* when wxWidgets 3.x will be available in major Linux distributions:
-  - open-file dialog (with preview) will use XyBrowser
+* when wxWidgets 3 will be available in major Linux distributions:
+  - open-file dialog (with preview) will use xybrowser.cpp
   - file dialogs will be changed to take adventage of custom controls:
       * Choose log file: add "log also output" checkbox
       * Data > Export will be done in one step
       * "Export formula" dialog will have formula-export-style option
-  - button '(un)lock' on variables pane (wxToggleBitmapButton)
-  - Redesign Data Editor:  
-       - use wxDataViewCtrl for spreadsheet.
-       - the spreadsheet should be a separate dialog, and it should also 
-	 be available in "Transformation Mgr" on clicking "Data>>" button
-       - use wxDataViewCtrl instead of wxListCtrl
-       - no extra dialog for adding transformation
-       - remove "description" field, use comments in "code" instead
+  - use wxDataViewCtrl in Data > Table, Data > Edit Transformations
   - use wxDataViewCtrl for the lists at the sidebar,
     refactor ListWithColors::populate(), add sorting by clicking on column 
     header (use case: sort functions by centers)
   - use wxToggleBitmapButton buttons on sidebar>functions (buttons that make 
     hwhm and shape equal for all functions)
 
-  Writing Qt GUI is also considered.
-
 -------  Ideas for people, who would like to contribute:  -----------
 
-- graphics: make PNG icons for toolbar. XPM format (now in use) doesn't support
-   alpha channel, and the toolbar doesn't look good.
+- graphics: new toolbar icons (PNG with alpha channel).
+  Now XPM icons are used, without alpha channel.
 
 - write a function to calculate a Voigt/Faddeeva function, based on one 
   (or more) of papers published about it. I mean here an approximation more 
@@ -224,11 +202,6 @@ $Id$
   to do what Gnu Scientific Library seems to plan: put a few least-squares
   fitting methods with similar interface into one library. 
   It can be part of fityk, a separate library or a part of GSL.
-
-- Add alpha channel to toolbar icons. Fityk icons are usually modified GTK 
-  stock icons. Alpha-channel was removed when converting to xpm format.
-  Now I see icons with alpha-channel look much better (like menu icons,
-  visible in GTK version only), but making the icons again takes time...
 
 - (wxWidgets): On the sidebar FancyRealCtrl is used for changing parameters:
   http://wxforum.shadonet.com/viewtopic.php?t=13471
