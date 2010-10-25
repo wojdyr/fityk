@@ -38,6 +38,7 @@ enum TokenType
     kTokenAppend, // >>
     kTokenDots, // ..
     kTokenPlusMinus, // +-
+    kTokenAddAssign, kTokenSubAssign, // += -=
 
     // single-char tokens: ( ) [ ] { } + - * / ^ < > = ; , : . ~ ?
     kTokenOpen, kTokenClose, // ( )

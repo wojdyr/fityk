@@ -13,7 +13,9 @@
 #include "ui.h"
 #include "lexer.h"
 
+struct Statement;
 class StatementList;
+class DataAndModel;
 
 class Parser
 {
@@ -48,7 +50,7 @@ private:
     void execute_command_set(const std::vector<Token>& args);
     void execute_command_define(const std::vector<Token>& args);
     void execute_command_delete(const std::vector<Token>& args);
-    void execute_command_delete_points(const std::vector<Token>& args);
+    void execute_command_delete_points(const Statement& st);
     void execute_command_exec(const std::vector<Token>& args);
     void execute_command_fit(const std::vector<Token>& args);
     void execute_command_guess(const std::vector<Token>& args);
@@ -57,7 +59,11 @@ private:
     void execute_command_undefine(const std::vector<Token>& args);
     void execute_command_load(const std::vector<Token>& args);
     void execute_command_dataset_tr(const std::vector<Token>& args);
-    void execute_command_assign_func(const std::vector<Token>& args);
+    void execute_command_name_func(const std::vector<Token>& args);
+
+    std::vector<DataAndModel*>
+        get_datasets_from_indata(const std::vector<int>& ds);
+    std::vector<int> expand_dataset_indices(const std::vector<int>& ds);
 };
 
 #endif //FITYK_CPARSER_H_

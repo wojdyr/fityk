@@ -60,6 +60,8 @@ const char* tokentype2str(TokenType tt)
         case kTokenAppend: return ">>";
         case kTokenDots: return "..";
         case kTokenPlusMinus: return "+-";
+        case kTokenAddAssign: return "+=";
+        case kTokenSubAssign: return "-=";
 
         case kTokenOpen: return "(";
         case kTokenClose: return ")";
@@ -84,6 +86,7 @@ const char* tokentype2str(TokenType tt)
 
         case kTokenNop: return "Nop";
     }
+    return NULL; // avoid compiler warning
 }
 
 string token2str(const Token& token)
@@ -176,12 +179,21 @@ void Lexer::read_token()
                 tok_.type = kTokenPlusMinus;
                 ++ptr;
             }
+            else if (*ptr == '=') {
+                tok_.type = kTokenAddAssign;
+                ++ptr;
+            }
             else
                 tok_.type = kTokenPlus;
             break;
         case '-':
             ++ptr;
-            tok_.type = kTokenMinus;
+            if (*ptr == '=') {
+                tok_.type = kTokenSubAssign;
+                ++ptr;
+            }
+            else
+                tok_.type = kTokenMinus;
             break;
         case '.':
             ++ptr;
