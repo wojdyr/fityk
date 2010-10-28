@@ -12,7 +12,11 @@
 #include <vector>
 #include <string>
 
+#include "fityk.h" // struct Point
+using fityk::Point;
+
 class Lexer;
+class Ftk;
 
 namespace dataVM {
 
@@ -54,7 +58,40 @@ std::string get_code_as_text(std::vector<int> const& code,
 bool is_data_dependent_code(const std::vector<int>& code);
 
 
-class ExpressionParser
+class DataVM
+{
+public:
+    DataVM(const Ftk* F) : F_(F) {}
+
+    /// calculate value of expression that does not depend on dataset
+    //double calculate_expression_value() const;
+
+    /// calculate value of expression that does not depend on dataset
+    double calculate() const;
+    /// calculate value of expression that may depend on dataset
+    double calculate(int n, const std::vector<Point>& points) const;
+    /// transform data (X=..., Y=..., S=..., A=...)
+    void transform_data(std::vector<Point>& points);
+
+    std::string list_ops() const { return get_code_as_text(code_, numbers_); }
+
+protected:
+    const Ftk* F_;
+    std::vector<int> code_;    //  VM code
+    std::vector<double> numbers_;  //  VM data (numeric values)
+
+private:
+    inline
+    void run_mutab_op(std::vector<int>::const_iterator& i, double*& stackPtr,
+                      const int n, const std::vector<Point>& old_points,
+                      std::vector<Point>& new_points) const;
+    inline
+    void run_const_op(std::vector<int>::const_iterator& i, double*& stackPtr,
+                      const int n, const std::vector<Point>& old_points,
+                      const std::vector<Point>& new_points) const;
+};
+
+class ExpressionParser : public DataVM
 {
 public:
     enum ExpectedType
@@ -63,24 +100,12 @@ public:
         kOperator,
     };
 
-    std::vector<int> code;    //  VM code
-    std::vector<double> numbers;  //  VM data (numeric values)
-
-    // contains variables (including expressions like @0.F[1].height.error)
-    // and names of custom functions (e.g. %foo or F or @0.F[3]).
-    // In resolve_names() the variables are replaced by numbers,
-    // and function names by indices.
-    std::vector<std::string> names;
-
-    ExpressionParser() : expected_(kValue), finished_(false) {}
+    // if F is NULL, $variables, %functions, etc. are not handled
+    ExpressionParser(const Ftk* F) : DataVM(F), expected_(kValue),
+                                     finished_(false) {}
 
     /// parse expression
-    void parse(Lexer& lex);
-
-    //void resolve_names(...);
-
-    /// calculate value of expression that does not depend on dataset
-    double calculate_expression_value() const;
+    void parse2vm(Lexer& lex, int default_ds);
 
 private:
     // operator stack for the shunting-yard algorithm

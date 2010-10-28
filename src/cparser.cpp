@@ -130,21 +130,57 @@ bool is_command(const Token& token, const char* cmd_base,
               strncmp(token.str + base_len, cmd_suffix, left_chars) == 0);
 }
 
-Token read_expr(Lexer& lex, bool calculate_value)
+// how to evaluate expression:
+// -> value
+//   - [expr:expr]
+//   - F[expr]
+//   - set key=expr
+//   - sleep expr
+//   - X[expr]=...
+//   - X[n]=expr
+// -> ??
+//   - define Func(par[=expr], ...) = ...
+// -> VM code
+//   - X=expr
+//   - delete (expr)
+Token read_expr(Lexer& lex, ExpressionParser& ep, bool calculate_value)
 {
     Token t;
     t.type = kTokenExpr;
     t.str = lex.pchar();
-    ExpressionParser ep;
-    ep.parse(lex);
+    ep.parse2vm(lex, -1);
     t.length = lex.pchar() - t.str;
     if (calculate_value)
-        t.value.d = ep.calculate_expression_value();
+        t.value.d = ep.calculate();
+    else
+        t.value.d = 0.;
+    return t;
+}
+
+//TODO
+// read variable RHS (expression -> AST)
+// -> AST
+//   - guess Func(par=expr) 
+//   - %f = Func([par=]expr, ...)
+//   - $var=expr
+//   - F[Number].param=expr
+//   - %func.param=expr
+//   - F.param=expr
+Token read_vr(Lexer& lex)
+{
+    Token t;
+    t.type = kTokenExpr;
+    t.str = lex.pchar();
+    //TODO this is temporary
+    ExpressionParser ep(NULL);
+    ep.parse2vm(lex, -1);
+    t.length = lex.pchar() - t.str;
+    t.value.d = 0.;
     return t;
 }
 
 Parser::Parser(Ftk* F)
-    : F_(F), ok_(false), sts_(new StatementList)
+    : F_(F), ep_(F), ok_(false), sts_(new StatementList)
 {
 }
 
@@ -156,7 +192,7 @@ Parser::~Parser()
 
 // '.' | ( '[' (Number | '.') ':' (Number | '.') ']' )
 // appends two tokens (kTokenNumber/kTokenDot/kTokenNop) to args
-void parse_real_range(Lexer& lex, vector<Token>& args)
+void parse_real_range(Lexer& lex, ExpressionParser& ep, vector<Token>& args)
 {
     if (lex.peek_token().type == kTokenDot) {
         Token t = lex.get_token();
@@ -180,7 +216,7 @@ void parse_real_range(Lexer& lex, vector<Token>& args)
             args.push_back(nop());
         }
         else {
-            args.push_back(read_expr(lex, true));
+            args.push_back(read_expr(lex, ep, true));
             lex.get_expected_token(kTokenColon); // discard ':'
         }
 
@@ -195,7 +231,7 @@ void parse_real_range(Lexer& lex, vector<Token>& args)
             args.push_back(nop());
         }
         else {
-            args.push_back(read_expr(lex, true));
+            args.push_back(read_expr(lex, ep, true));
             lex.get_expected_token(kTokenRSquare); // discard ']'
         }
 
@@ -227,7 +263,8 @@ void parse_in_data(Lexer& lex, vector<int>& datasets)
 }
 
 // %funcname | [@n.]('F'|'Z') '[' Number ']'
-void parse_func_id(Lexer& lex, vector<Token>& args, bool accept_fz)
+void parse_func_id(Lexer& lex, ExpressionParser& ep, vector<Token>& args,
+                   bool accept_fz)
 {
     Token t = lex.get_token();
     if (t.type == kTokenFuncname) {
@@ -247,7 +284,7 @@ void parse_func_id(Lexer& lex, vector<Token>& args, bool accept_fz)
     if (accept_fz && lex.peek_token().type != kTokenLSquare)
         return;
     lex.get_expected_token(kTokenLSquare); // discard '['
-    args.push_back(read_expr(lex, false));
+    args.push_back(read_expr(lex, ep, true));
     lex.get_expected_token(kTokenRSquare); // discard ']'
 }
 
@@ -275,7 +312,7 @@ void Parser::parse_set_args(Lexer& lex, vector<Token>& args)
             value = lex.get_expected_token(kTokenLname);
         }
         else {
-            value = read_expr(lex, true);
+            value = read_expr(lex, ep_, true);
         }
         args.push_back(value);
 
@@ -293,7 +330,7 @@ void Parser::execute_command_set(const vector<Token>& args)
         settings->setp(args[i-1].as_string(), args[i].as_string());
 }
 
-// '(' [(name '=' expr) % ','] ')'
+// '(' [(name ['=' expr]) % ','] ')'
 void parse_kwargs(Lexer& lex, vector<Token>& args)
 {
     lex.get_expected_token(kTokenOpen);
@@ -306,7 +343,7 @@ void parse_kwargs(Lexer& lex, vector<Token>& args)
         args.push_back(t);
         if (lex.peek_token().type == kTokenAssign) {
             lex.get_token(); // discard '='
-            args.push_back(read_expr(lex, false));
+            args.push_back(read_vr(lex));
         }
         else {
             args.push_back(nop());
@@ -415,19 +452,12 @@ void Parser::execute_command_delete(const vector<Token>& args)
     F_->delete_variables(vars);
 }
 
-void parse_delete_points_args(Lexer& lex, vector<Token>& args)
-{
-    lex.get_expected_token(kTokenOpen); // discard '('
-    args.push_back(read_expr(lex, false));
-    lex.get_expected_token(kTokenOpen); // discard ')'
-}
-
 void Parser::execute_command_delete_points(const Statement& st)
 {
     assert(st.args.size() == 1);
     vector<DataAndModel*> dm = get_datasets_from_indata(st.datasets);
     //Lexer lex(st.args[0].str);
-    //ExpressionParser ep;
+    //ExpressionParser ep(F_);
     //ep.parse(lex);
     for (vector<DataAndModel*>::const_iterator i = dm.begin();
                                                         i != dm.end(); ++i) {
@@ -479,7 +509,7 @@ void Parser::execute_command_fit(const vector<Token>& args)
 }
 
 // [Funcname '='] Uname ['(' kwarg % ',' ')'] [range]
-void parse_guess_args(Lexer& lex, vector<Token>& args)
+void parse_guess_args(Lexer& lex, ExpressionParser& ep, vector<Token>& args)
 {
     Token t = lex.get_expected_token(kTokenCname, kTokenFuncname);
     if (t.type == kTokenFuncname) {
@@ -490,7 +520,7 @@ void parse_guess_args(Lexer& lex, vector<Token>& args)
     args.push_back(t);
     if (lex.peek_token().type == kTokenOpen)
         parse_kwargs(lex, args);
-    parse_real_range(lex, args);
+    parse_real_range(lex, ep, args);
 }
 
 void Parser::execute_command_guess(const vector<Token>& args)
@@ -504,12 +534,6 @@ void parse_info_args(Lexer& lex, vector<Token>& args)
 
 void Parser::execute_command_info(const vector<Token>& args)
 {
-}
-
-void parse_plot_args(Lexer& lex, vector<Token>& args)
-{
-    parse_real_range(lex, args);
-    parse_real_range(lex, args);
 }
 
 void Parser::execute_command_plot(const vector<Token>& args)
@@ -533,7 +557,7 @@ void Parser::execute_command_dataset_tr(const vector<Token>& args)
 {
 }
 
-void parse_assign_func(Lexer& lex, vector<Token>& args)
+void parse_assign_func(Lexer& lex, ExpressionParser& ep, vector<Token>& args)
 {
     Token f = lex.get_expected_token(kTokenCname, "copy");
     lex.get_expected_token(kTokenOpen); // discard '('
@@ -556,7 +580,7 @@ void parse_assign_func(Lexer& lex, vector<Token>& args)
                 args.push_back(nop());
                 lex.go_back(t);
             }
-            args.push_back(read_expr(lex, false));
+            args.push_back(read_vr(lex));
             if (lex.peek_token().type == kTokenComma)
                 lex.get_token(); // discard ','
             else
@@ -567,12 +591,12 @@ void parse_assign_func(Lexer& lex, vector<Token>& args)
         // "copy" '(' func_id ')'
         args.push_back(f); // "copy"
         lex.get_expected_token(kTokenOpen); // discard '('
-        parse_func_id(lex, args, false);
+        parse_func_id(lex, ep, args, false);
     }
     lex.get_expected_token(kTokenClose); // discard ')'
 }
 
-void parse_fz(Lexer& lex, Statement &s)
+void parse_fz(Lexer& lex, ExpressionParser& ep, Statement &s)
 {
     Token t = lex.get_token();
     // F=..., F+=..., F-=...
@@ -584,19 +608,19 @@ void parse_fz(Lexer& lex, Statement &s)
         for (;;) {
             const Token& p = lex.peek_token();
             if (p.type == kTokenCname) {     // Type(...)
-                parse_assign_func(lex, s.args);
+                parse_assign_func(lex, ep, s.args);
             }
             else if (p.as_string() == "0") { // 0
                 s.args.push_back(lex.get_token());
             }
-            else if (p.as_string() == "copy") { // 0
+            else if (p.as_string() == "copy") {
                 s.args.push_back(lex.get_token()); // "copy"
                 lex.get_expected_token(kTokenOpen); // discard '('
-                parse_func_id(lex, s.args, true);
+                parse_func_id(lex, ep, s.args, true);
                 lex.get_expected_token(kTokenClose); // discard ')'
             }
             else
-                parse_func_id(lex, s.args, true);
+                parse_func_id(lex, ep, s.args, true);
             if (lex.peek_token().type == kTokenPlus)
                 s.args.push_back(lex.get_token()); // '+'
             else
@@ -609,11 +633,11 @@ void parse_fz(Lexer& lex, Statement &s)
         lex.get_token(); // discard '.'
         s.args.push_back(lex.get_expected_token(kTokenLname));
         lex.get_expected_token(kTokenAssign); // discard '='
-        s.args.push_back(read_expr(lex, false));
+        s.args.push_back(read_vr(lex));
     }
     // F[Number]...
     else if (t.type == kTokenRSquare) {
-        s.args.push_back(read_expr(lex, true));
+        s.args.push_back(read_expr(lex, ep, true));
         lex.get_expected_token(kTokenRSquare); // discard ']'
         Token k = lex.get_expected_token(kTokenAssign, kTokenDot);
         if (k.type == kTokenAssign) { // F[Number]=...
@@ -621,13 +645,13 @@ void parse_fz(Lexer& lex, Statement &s)
             if (lex.peek_token().type == kTokenFuncname) // ...=%func
                 s.args.push_back(lex.get_token());
             else                                         // ...=Func(...)
-                parse_assign_func(lex, s.args);
+                parse_assign_func(lex, ep, s.args);
         }
         else { // F[Number].param=...
             s.cmd = kCmdAssignParam;
             s.args.push_back(lex.get_expected_token(kTokenLname));
             lex.get_expected_token(kTokenAssign); // discard '='
-            s.args.push_back(read_expr(lex, false));
+            s.args.push_back(read_vr(lex));
         }
     }
     else
@@ -671,7 +695,9 @@ void Parser::parse(const string& str)
             else if (is_command(token, "del","ete")) {
                 if (lex.peek_token().type == kTokenOpen) {
                     s.cmd = kCmdDeleteP;
-                    parse_delete_points_args(lex, s.args);
+                    lex.get_expected_token(kTokenOpen); // discard '('
+                    s.args.push_back(read_expr(lex, ep_, false));
+                    lex.get_expected_token(kTokenOpen); // discard ')'
                 }
                 else {
                     s.cmd = kCmdDelete;
@@ -688,7 +714,7 @@ void Parser::parse(const string& str)
             }
             else if (is_command(token, "g","uess")) {
                 s.cmd = kCmdGuess;
-                parse_guess_args(lex, s.args);
+                parse_guess_args(lex, ep_, s.args);
             }
             else if (is_command(token, "i","nfo")) {
                 s.cmd = kCmdInfo;
@@ -696,7 +722,8 @@ void Parser::parse(const string& str)
             }
             else if (is_command(token, "p","lot")) {
                 s.cmd = kCmdPlot;
-                parse_plot_args(lex, s.args);
+                parse_real_range(lex, ep_, s.args);
+                parse_real_range(lex, ep_, s.args);
             }
             else if (is_command(token, "s","et")) {
                 s.cmd = kCmdSet;
@@ -716,7 +743,7 @@ void Parser::parse(const string& str)
             }
             else if (is_command(token, "sleep","")) {
                 s.cmd = kCmdSleep;
-                Token value = read_expr(lex, true);
+                Token value = read_expr(lex, ep_, true);
                 s.args.push_back(value);
             }
         }
@@ -725,24 +752,26 @@ void Parser::parse(const string& str)
             if (c == 'F' || c == 'Z') {
                 s.args.push_back(nop()); // dataset
                 s.args.push_back(token); // F/Z
-                parse_fz(lex, s);
+                parse_fz(lex, ep_, s);
             }
             else if (c == 'M' || c == 'X' || c == 'Y' || c == 'S' || c == 'A') {
                 s.cmd = kCmdPointTr;
                 s.args.push_back(token);
                 Token t = lex.get_expected_token(kTokenAssign, kTokenLSquare);
                 // X =
-                if (t.type == kTokenAssign)
+                if (t.type == kTokenAssign) {
                     s.args.push_back(nop());
+                    s.args.push_back(read_expr(lex, ep_, false));
+                }
                 // X [expr] =
                 else {
                     if (c == 'M')
                         lex.throw_syntax_error("M can not be indexed.");
-                    s.args.push_back(read_expr(lex, true));
+                    s.args.push_back(read_expr(lex, ep_, true));
                     lex.get_expected_token(kTokenRSquare); // discard ']'
                     lex.get_expected_token(kTokenAssign); // discard '='
+                    s.args.push_back(read_expr(lex, ep_, true));
                 }
-                s.args.push_back(read_expr(lex, false));
             }
             else
                 lex.throw_syntax_error("unknown name: " + token.as_string());
@@ -751,27 +780,30 @@ void Parser::parse(const string& str)
             s.cmd = kCmdShell;
             s.args.push_back(token);
         }
+        // $var=...
         else if (token.type == kTokenVarname &&
                  lex.peek_token().type == kTokenAssign) {
             s.cmd = kCmdNameVar;
             s.args.push_back(token);
             lex.get_token(); // discard '='
-            s.args.push_back(read_expr(lex, false));
+            s.args.push_back(read_vr(lex));
         }
+        // %func=...
         else if (token.type == kTokenFuncname &&
                  lex.peek_token().type == kTokenAssign) {
             s.cmd = kCmdNameFunc;
             s.args.push_back(token);
             lex.get_token(); // discard '='
-            parse_assign_func(lex, s.args);
+            parse_assign_func(lex, ep_, s.args);
         }
+        // %func.param=...
         else if (token.type == kTokenFuncname &&
                  lex.peek_token().type == kTokenDot) {
             s.cmd = kCmdAssignParam;
             lex.get_token(); // discard '.'
             s.args.push_back(lex.get_expected_token(kTokenLname));
             lex.get_expected_token(kTokenAssign); // discard '='
-            s.args.push_back(read_expr(lex, false));
+            s.args.push_back(read_vr(lex));
         }
         else if (token.type == kTokenDataset &&
                  lex.peek_token().type == kTokenDot) {
@@ -788,7 +820,7 @@ void Parser::parse(const string& str)
             else if (arg == "F" || arg == "Z") {
                 s.args.push_back(token); // dataset
                 s.args.push_back(lex.get_token()); // F/Z
-                parse_fz(lex, s);
+                parse_fz(lex, ep_, s);
             }
             else
                 lex.throw_syntax_error("@n. must be followed by F, Z or title");

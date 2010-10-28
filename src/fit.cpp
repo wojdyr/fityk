@@ -539,7 +539,7 @@ FitMethodsContainer::~FitMethodsContainer()
     purge_all_elements(methods_);
 }
 
-fp FitMethodsContainer::get_standard_error(Variable const* var)
+fp FitMethodsContainer::get_standard_error(Variable const* var) const
 {
     if (!var->is_simple())
         return -1.; // value signaling unknown standard error

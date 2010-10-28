@@ -114,12 +114,12 @@ public:
     Fit* get_method(int n) const
                     { assert(n >= 0 && n<size(methods_)); return methods_[n]; }
     std::vector<Fit*> const& get_methods() const { return methods_; }
-    fp get_standard_error(Variable const* var);
+    fp get_standard_error(Variable const* var) const;
     void outdated_error_cache() { dirty_error_cache_ = true; }
 
 private:
     std::vector<Fit*> methods_;
-    std::vector<fp> errors_cache_;
+    mutable std::vector<fp> errors_cache_;
     bool dirty_error_cache_;
 
     FitMethodsContainer (FitMethodsContainer const&); //disable

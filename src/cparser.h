@@ -12,6 +12,7 @@
 #include <string>
 #include "ui.h"
 #include "lexer.h"
+#include "eparser.h"
 
 struct Statement;
 class StatementList;
@@ -41,6 +42,7 @@ public:
 
 private:
     Ftk* F_;
+    ExpressionParser ep_;
     std::string str_;
     bool ok_;
     StatementList *sts_;

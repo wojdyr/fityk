@@ -102,8 +102,9 @@ string token2str(const Token& token)
         case kTokenCname:
         case kTokenUletter:
         case kTokenFilename:
-        case kTokenExpr:
             return s + " \"" + token.as_string() + "\"";
+        case kTokenExpr:
+            return s + " \"" + token.as_string() + "\" ("+S(token.value.d)+")";
         case kTokenNumber:
             return s + " " + S(token.value.d);
         case kTokenDataset:

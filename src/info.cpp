@@ -641,9 +641,9 @@ size_t get_info_string(Ftk const* F, string const& args, bool full,
     else if (word == "dops2") {
         Lexer lex(args.c_str() + pos);
         try {
-            ExpressionParser parser;
-            parser.parse(lex);
-            result += get_code_as_text(parser.code, parser.numbers);
+            ExpressionParser parser(F);
+            parser.parse2vm(lex, -1);
+            result += parser.list_ops();
         }
         catch (fityk::SyntaxError& e) {
             result += "ERROR at " + S(lex.scanned_chars()) + ": " + e.what();
