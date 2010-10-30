@@ -654,8 +654,9 @@ size_t get_info_string(Ftk const* F, string const& args, bool full,
     else if (word == "parser") {
         Parser parser(const_cast<Ftk*>(F));
         try {
-            parser.parse(args.substr(pos));
-            result += parser.get_statements_repr();
+            Lexer lex(args.c_str() + pos);
+            while (parser.parse_statement(lex))
+                result += parser.get_statements_repr();
         }
         catch (fityk::SyntaxError& e) {
             result += string("ERR: ") + e.what();

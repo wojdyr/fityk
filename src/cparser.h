@@ -15,7 +15,6 @@
 #include "eparser.h"
 
 struct Statement;
-class StatementList;
 class DataAndModel;
 
 class Parser
@@ -24,17 +23,20 @@ public:
     Parser(Ftk* F);
     ~Parser();
 
-    // Parses the string. Throws SyntaxError.
-    void parse(const std::string& str);
+    // Parses statement. Throws SyntaxError.
+    // Returns false if no tokens are left.
+    bool parse_statement(Lexer& lex);
 
     // Execute the last parsed string.
     // Throws ExecuteError, ExitRequestedException.
     void execute();
 
-    // Calls parse() and execute(), catches exceptions and returns status.
+    // Calls parse_statement() and execute(),
+    // catches exceptions and returns status.
     Commands::Status parse_and_execute(const std::string& str);
 
-    // The same as parse(), but it doesn't throw. Returns true on success.
+    // The same as parse_statement(), but it doesn't throw.
+    // Returns true on success.
     bool check_command_syntax(const std::string& str);
 
     // for debugging only
@@ -43,10 +45,9 @@ public:
 private:
     Ftk* F_;
     ExpressionParser ep_;
-    std::string str_;
-    bool ok_;
-    StatementList *sts_;
+    Statement *st_;
 
+    void parse_command(Lexer& lex);
     void parse_set_args(Lexer& lex, std::vector<Token>& args);
 
     void execute_command_set(const std::vector<Token>& args);

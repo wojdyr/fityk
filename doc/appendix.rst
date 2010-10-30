@@ -199,7 +199,7 @@ because we need to calculate symbolical derivatives of ``var_rhs``)
   planned changes (already included in the grammar below):
    commands > file            ->   set logfile file
    commands < file            ->   exec file
-   commands ! shell command   ->   exec ! shell command
+   commands ! shell-command   ->   exec ! shell-command
    dump > file                ->   info state > file
    @n.Z[0]                    ->   @n.z
    guess Func [:] center=30   ->   guess Func(center=30) [:]
@@ -213,28 +213,28 @@ because we need to calculate symbolical derivatives of ``var_rhs``)
 
   comment ::= '#' { AllChars } 
 
-  statement ::= "w:ith" set % ','
-                ( "def:ine" define                   |
-                  "del:ete" (delete | delete_points) |
-                  "e:xecute" exec                    |
-                  "f:it" fit                         |
-                  "g:uess" guess                     |
-                  "i:nfo" info                       |
-                  "p:lot" [range [range]]            |
-                  "quit"                             |
-                  "reset"                            |
-                  "s:et" set % ','                   |
-                  "sleep" numeric                    |
-                  "undef:ine" Uname % ','            |
-                  '!' { AllChars }                   |
-                  DatasetL '<' load_arg              |
-                  DatasetL '=' dataset_tr_arg        |
-                  assign                             |
-                  assign_func                        |
-                  assign_var                         |
-                  change_model                       |
-                  point_tr {, point_tr}              )     
-                [ "in" DatasetR  % ',' ]
+  statement ::= ["w:ith" set % ','] command [ "in" DatasetR  % ',' ]
+
+  command ::= ( "def:ine" define                   |
+                "del:ete" (delete | delete_points) |
+                "e:xecute" exec                    |
+                "f:it" fit                         |
+                "g:uess" guess                     |
+                "i:nfo" info                       |
+                "p:lot" [range [range]]            |
+                "quit"                             |
+                "reset"                            |
+                "s:et" set % ','                   |
+                "sleep" numeric                    |
+                "undef:ine" Uname % ','            |
+                '!' { AllChars }                   |
+                DatasetL '<' load_arg              |
+                DatasetL '=' dataset_tr_arg        |
+                assign                             |
+                assign_func                        |
+                assign_var                         |
+                change_model                       |
+                point_tr {, point_tr}              )     
 
   define ::= Uname '(' (Lname | kwarg) % ',' ')'
              '=' ( var_rhs |

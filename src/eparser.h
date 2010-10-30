@@ -17,6 +17,7 @@ using fityk::Point;
 
 class Lexer;
 class Ftk;
+class AggregFunc;
 
 namespace dataVM {
 
@@ -109,7 +110,7 @@ public:
 
 private:
     // operator stack for the shunting-yard algorithm
-    std::vector<dataVM::VMOp> opstack_;
+    std::vector<int> opstack_;
     // argument counters for functions
     std::vector<int> arg_cnt_;
     // expected type of the next token (basic shunting-yard algorithm parses
@@ -126,9 +127,14 @@ private:
     void put_unary_op(dataVM::VMOp op);
     void put_binary_op(dataVM::VMOp op);
     void put_function(dataVM::VMOp op);
-    void put_ag_function(dataVM::VMOp op);
-    void put_array_var(Lexer& lex, dataVM::VMOp op);
+    void put_ag_function(Lexer& lex, int ds, AggregFunc& ag);
+    void put_array_var(bool has_index, dataVM::VMOp op);
     void put_var(dataVM::VMOp op);
+
+    void put_variable_sth(Lexer& lex, const std::string& name);
+    void put_func_sth(Lexer& lex, const std::string& name);
+    void put_fz_sth(Lexer& lex, char fz, int ds);
+
     void pop_onto_que();
     void pop_until_bracket();
 };
