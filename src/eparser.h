@@ -15,6 +15,7 @@
 #include "fityk.h" // struct Point
 using fityk::Point;
 
+struct Token;
 class Lexer;
 class Ftk;
 class AggregFunc;
@@ -22,6 +23,7 @@ class AggregFunc;
 namespace dataVM {
 
 /// operators used in VM code
+// obsolete: OP_INDEX, OP_DO_ONCE, OP_RESIZE, OP_BEGIN, OP_END
 enum VMOp
 {
     OP_NEG=-200, OP_EXP, OP_ERFC, OP_ERF, OP_SIN, OP_COS,  OP_TAN,
@@ -105,8 +107,14 @@ public:
     ExpressionParser(const Ftk* F) : DataVM(F), expected_(kValue),
                                      finished_(false) {}
 
+    /// clear VM code and data
+    void clear_vm();
+
     /// parse expression
     void parse2vm(Lexer& lex, int default_ds);
+
+    /// adds OP_ASSIGN_? to the code
+    void push_assign_lhs(const Token& t);
 
 private:
     // operator stack for the shunting-yard algorithm

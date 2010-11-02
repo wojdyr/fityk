@@ -182,6 +182,12 @@ int get_function_narg(int op)
         case OP_SUM_F:
         case OP_SUM_Z:
             return 1;
+        // "methods" of %f/F/Z
+        case OP_NUMAREA:
+        case OP_FINDX:
+            return 3;
+        case OP_FIND_EXTR:
+            return 2;
         default:
             return 0;
     }
@@ -267,7 +273,7 @@ class AggregFunc
 public:
     AggregFunc() : counter_(0), v_(0.) {}
     virtual ~AggregFunc() {}
-    void put(double x, int n=-1) { ++counter_; op(x, n); }
+    void put(double x, int n) { ++counter_; op(x, n); }
     virtual double value() const { return v_; }
 
 protected:
@@ -358,7 +364,7 @@ void ExpressionParser::put_ag_function(Lexer& lex, int ds, AggregFunc& ag)
     if (t.type == kTokenClose) {
         for (size_t n = 0; n != points.size(); ++n) {
             double x = ep.calculate(n, points);
-            ag.put(x);
+            ag.put(x, n);
         }
     }
     else { // "if"
@@ -369,7 +375,7 @@ void ExpressionParser::put_ag_function(Lexer& lex, int ds, AggregFunc& ag)
             double c = cond_p.calculate(n, points);
             if (fabs(c) >= 0.5) {
                 double x = ep.calculate(n, points);
-                ag.put(x);
+                ag.put(x, n);
             }
         }
     }
@@ -413,16 +419,36 @@ void ExpressionParser::put_func_sth(Lexer& lex, const string& name)
         lex.throw_syntax_error("%functions can not be used here");
     if (lex.peek_token().type == kTokenOpen) {
         int n = F_->find_function_nr(name);
+        if (n == -1)
+            throw ExecuteError("undefined function: %" + name);
         // we will put n into code_ when handling ')'
         opstack_.push_back(n);
         put_function(OP_FUNC);
     }
     else if (lex.peek_token().type == kTokenDot) {
         lex.get_token(); // discard '.'
-        Token t = lex.get_expected_token(kTokenLname);
-        const Function *f = F_->find_function(name);
-        string v = f->get_var_name(f->get_param_nr(t.as_string()));
-        put_variable_sth(lex, v);
+        string word = lex.get_expected_token(kTokenLname).as_string();
+        if (lex.peek_token().type == kTokenOpen) { // method of %function
+            int n = F_->find_function_nr(name);
+            if (n == -1)
+                throw ExecuteError("undefined function: %" + name);
+            // we will put ds into code_ when handling ')'
+            opstack_.push_back(n);
+            opstack_.push_back(OP_FUNC);
+            if (word == "numarea")
+                put_function(OP_NUMAREA);
+            else if (word == "findx")
+                put_function(OP_FINDX);
+            else if (word == "extremum")
+                put_function(OP_FIND_EXTR);
+            else
+                lex.throw_syntax_error("unknown method of F/Z");
+        }
+        else { // property of %function (= $variable)
+            const Function *f = F_->find_function(name);
+            string v = f->get_var_name(f->get_param_nr(word));
+            put_variable_sth(lex, v);
+        }
     }
     else
         lex.throw_syntax_error("expected '.' or '(' after %function");
@@ -450,6 +476,23 @@ void ExpressionParser::put_fz_sth(Lexer& lex, char fz, int ds)
         opstack_.push_back(ds); // we will put ds into code_ when handling ')'
         put_function(fz == 'F' ? OP_SUM_F : OP_SUM_Z);
     }
+    else if (lex.peek_token().type == kTokenDot) {
+        lex.get_token(); // discard '.'
+        string word = lex.get_expected_token(kTokenLname).as_string();
+        if (lex.peek_token().type != kTokenOpen)
+            lex.throw_syntax_error("F/Z has no .properties, only .methods()");
+        // we will put ds into code_ when handling ')'
+        opstack_.push_back(ds);
+        opstack_.push_back(fz == 'F' ? OP_SUM_F : OP_SUM_Z);
+        if (word == "numarea")
+            put_function(OP_NUMAREA);
+        else if (word == "findx")
+            put_function(OP_FINDX);
+        else if (word == "extremum")
+            put_function(OP_FIND_EXTR);
+        else
+            lex.throw_syntax_error("unknown method of F/Z");
+    }
     else {
         lex.throw_syntax_error("unexpected token after F/Z");
     }
@@ -472,37 +515,15 @@ void ExpressionParser::pop_until_bracket()
     }
 }
 
-//TODO:
-// replace_aggregates
-//
-// OP_ASSIGN_X, OP_ASSIGN_Y, OP_ASSIGN_S, OP_ASSIGN_A,
-//  in cparser or eparser:
-//    
-// obsolete: OP_INDEX, OP_DO_ONCE, OP_RESIZE, OP_BEGIN, OP_END,
-//
-// OP_FUNC, OP_SUM_F, OP_SUM_Z:
-//  variables (including expressions like @0.F[1].height.error) -> OP_NUMBER
-//  names of custom functions (e.g. %foo or F or @0.F[3]) -> OP_FUNC/OP_SUM_F/Z
-//
-// OP_NUMAREA, OP_FINDX, OP_FIND_EXTR:
-//   |   (func_or_f_or_z >> '(' >> DataExpressionG >> ')') [push_func()]
-//   |   as_lower_d["numarea"] >> '(' >> (func_or_f_or_z >> ','
-//           >> DataExpressionG >> ',' >> DataExpressionG >> ','
-//           >> DataExpressionG >> ')') [push_op(OP_NUMAREA)] [push_func()]
-//   |   as_lower_d["findx"] >> '(' >> (func_or_f_or_z >> ','
-//           >> DataExpressionG >> ',' >> DataExpressionG >> ','
-//           >> DataExpressionG >> ')') [push_op(OP_FINDX)] [push_func()]
-//   |   as_lower_d["extremum"] >> '(' >> (func_or_f_or_z >> ','
-//           >> DataExpressionG >> ',' >> DataExpressionG >> ')')
-//                                 [push_op(OP_FIND_EXTR)] [push_func()]
-//
-
+void ExpressionParser::clear_vm()
+{
+    code_.clear();
+    numbers_.clear();
+}
 
 // implementation of the shunting-yard algorithm
 void ExpressionParser::parse2vm(Lexer& lex, int default_ds)
 {
-    code_.clear();
-    numbers_.clear();
     opstack_.clear();
     arg_cnt_.clear();
     finished_ = false;
@@ -675,6 +696,20 @@ void ExpressionParser::parse2vm(Lexer& lex, int default_ds)
                     lex.throw_syntax_error("unknown name: "+ token.as_string());
                 break;
             }
+            case kTokenDataset: {
+                if (expected_ == kOperator) {
+                    finished_ = true;
+                    break;
+                }
+                lex.get_expected_token(kTokenDot); // discard '.'
+                Token t = lex.get_expected_token(kTokenUletter);
+                if (*t.str == 'F' || *t.str == 'Z') {
+                    put_fz_sth(lex, *t.str, token.value.i);
+                }
+                else
+                    lex.throw_syntax_error("unknown name: "+ token.as_string());
+                break;
+            }
             case kTokenOpen:
                 if (expected_ == kOperator) {
                     finished_ = true;
@@ -719,6 +754,11 @@ void ExpressionParser::parse2vm(Lexer& lex, int default_ds)
                         arg_cnt_.pop_back();
                         if (top==OP_FUNC || top==OP_SUM_F || top==OP_SUM_Z)
                             pop_onto_que(); // pop function index
+                        else if (top==OP_NUMAREA || top==OP_FINDX ||
+                                 top==OP_FIND_EXTR) {
+                            pop_onto_que(); // pop OP_FUNC/OP_SUM_F/Z
+                            pop_onto_que(); // pop function index
+                        }
                     }
                     else if (top == OP_END_AGGREGATE) {
                         pop_onto_que();
@@ -838,7 +878,6 @@ void ExpressionParser::parse2vm(Lexer& lex, int default_ds)
 
             case kTokenString:
             case kTokenCname:
-            case kTokenDataset:
             case kTokenShell:
             case kTokenAppend:
             case kTokenAddAssign:
@@ -872,6 +911,19 @@ void ExpressionParser::parse2vm(Lexer& lex, int default_ds)
     pop_until_bracket(); // there should be no bracket
     if (!opstack_.empty())
         lex.throw_syntax_error("mismatching '" + S(opstack_.back()) + "'");
+}
+
+void ExpressionParser::push_assign_lhs(const Token& t)
+{
+    VMOp op;
+    switch (toupper(*t.str)) {
+        case 'X': op = OP_ASSIGN_X; break;
+        case 'Y': op = OP_ASSIGN_Y; break;
+        case 'S': op = OP_ASSIGN_S; break;
+        case 'A': op = OP_ASSIGN_A; break;
+        default: assert(0);
+    }
+    code_.push_back(op);
 }
 
 /*

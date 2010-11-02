@@ -17,6 +17,11 @@
 struct Statement;
 class DataAndModel;
 
+
+// Calls Parser::parse_statement() and Runner::execute_statement(),
+// catches exceptions and returns status.
+Commands::Status parse_and_execute_line(Ftk* F, const std::string& str);
+
 class Parser
 {
 public:
@@ -27,13 +32,7 @@ public:
     // Returns false if no tokens are left.
     bool parse_statement(Lexer& lex);
 
-    // Execute the last parsed string.
-    // Throws ExecuteError, ExitRequestedException.
-    void execute();
-
-    // Calls parse_statement() and execute(),
-    // catches exceptions and returns status.
-    Commands::Status parse_and_execute(const std::string& str);
+    Statement& get_statement() { return *st_; }
 
     // The same as parse_statement(), but it doesn't throw.
     // Returns true on success.
@@ -47,26 +46,50 @@ private:
     ExpressionParser ep_;
     Statement *st_;
 
+    Token read_expr(Lexer& lex);
+    Token read_and_calc_expr(Lexer& lex);
+    void parse_fz(Lexer& lex, Statement &s);
+    void parse_assign_func(Lexer& lex, std::vector<Token>& args);
     void parse_command(Lexer& lex);
     void parse_set_args(Lexer& lex, std::vector<Token>& args);
+    void parse_real_range(Lexer& lex, std::vector<Token>& args);
+    void parse_func_id(Lexer& lex, std::vector<Token>& args, bool accept_fz);
+    void parse_guess_args(Lexer& lex, std::vector<Token>& args);
+    //std::vector<DataAndModel*> get_datasets_from_statement();
+    void expand_dataset_glob();
+};
 
-    void execute_command_set(const std::vector<Token>& args);
-    void execute_command_define(const std::vector<Token>& args);
-    void execute_command_delete(const std::vector<Token>& args);
-    void execute_command_delete_points(const Statement& st);
-    void execute_command_exec(const std::vector<Token>& args);
-    void execute_command_fit(const std::vector<Token>& args);
-    void execute_command_guess(const std::vector<Token>& args);
-    void execute_command_info(const std::vector<Token>& args);
-    void execute_command_plot(const std::vector<Token>& args);
-    void execute_command_undefine(const std::vector<Token>& args);
-    void execute_command_load(const std::vector<Token>& args);
-    void execute_command_dataset_tr(const std::vector<Token>& args);
-    void execute_command_name_func(const std::vector<Token>& args);
+class Runner
+{
+public:
+    Runner(Ftk* F) : F_(F) {}
 
-    std::vector<DataAndModel*>
-        get_datasets_from_indata(const std::vector<int>& ds);
-    std::vector<int> expand_dataset_indices(const std::vector<int>& ds);
+    // Execute the last parsed string.
+    // Throws ExecuteError, ExitRequestedException.
+    // The statement is not const, because expressions in it can be re-parsed 
+    // when executing for multiple datasets.
+    void execute_statement(Statement& st);
+
+private:
+    Ftk* F_;
+    int ds_;
+
+    void command_set(const std::vector<Token>& args);
+    void command_define(const std::vector<Token>& args);
+    void command_delete(const std::vector<Token>& args);
+    void command_delete_points(const Statement& st);
+    void command_exec(const std::vector<Token>& args);
+    void command_fit(const std::vector<Token>& args);
+    void command_guess(const std::vector<Token>& args);
+    void command_info(const std::vector<Token>& args);
+    void command_plot(const std::vector<Token>& args);
+    void command_undefine(const std::vector<Token>& args);
+    void command_load(const std::vector<Token>& args);
+    void command_dataset_tr(const std::vector<Token>& args);
+    void command_name_func(const std::vector<Token>& args);
+    void command_all_points_tr(const std::vector<Token>& args);
+
+    void reparse_expressions(Statement& st, int ds);
 };
 
 #endif //FITYK_CPARSER_H_

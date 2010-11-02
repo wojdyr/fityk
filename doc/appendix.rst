@@ -206,6 +206,8 @@ because we need to calculate symbolical derivatives of ``var_rhs``)
    info in @0 @1              ->   info in @0, @1
 
    %f = guess Func in @0      ->   guess %f=Func in @0
+   
+   numarea(%f, 10, 30, 100)   ->   %f.numarea(10, 30, 100)
   *)
   
 
