@@ -26,6 +26,13 @@ using namespace std;
             throw; \
     }
 
+#define CATCH_SYNTAX_ERROR \
+    catch (SyntaxError& e) { \
+        last_error_ = string("SyntaxError: ") + e.what(); \
+        if (throws_) \
+            throw; \
+    }
+
 namespace {
 
 fityk::t_show_message *simple_message_handler = 0;
@@ -117,28 +124,14 @@ void Fityk::execute(string const& s)  throw(SyntaxError, ExecuteError,
     CATCH_EXECUTE_ERROR
 }
 
-string Fityk::get_info(string const& s, bool full)
-                                             throw(SyntaxError, ExecuteError)
+string Fityk::get_info(string const& s) throw(SyntaxError, ExecuteError)
 {
     try {
-        string result;
-        size_t end = get_info_string(ftk_, s, full, result);
-        if (end < s.size()) // not all the string was parsed
-            throw SyntaxError();
-        return result;
-    } catch (ExecuteError& e) {
-        if (startswith(e.what(), "Syntax error")) {
-            last_error_ = "SyntaxError";
-            if (throws_)
-                throw SyntaxError();
-        }
-        else {
-            last_error_ = string("ExecuteError: ") + e.what();
-            if (throws_)
-                throw;
-        }
-        return "";
+        return get_info_string(ftk_, s);
     }
+    CATCH_SYNTAX_ERROR
+    CATCH_EXECUTE_ERROR
+    return "";
 }
 
 int Fityk::get_dataset_count()
@@ -276,11 +269,13 @@ double Fityk::get_rsquared(int dataset)  throw(ExecuteError)
         if (dataset == fityk::all_datasets) {
             double result = 0;
             for (int i = 0; i < ftk_->get_dm_count(); ++i)
-                result += Fit::compute_r_squared_for_data(ftk_->get_dm(i));
+                result += Fit::compute_r_squared_for_data(ftk_->get_dm(i),
+                                                          NULL, NULL);
             return result;
         }
         else {
-            return Fit::compute_r_squared_for_data(ftk_->get_dm(dataset));
+            return Fit::compute_r_squared_for_data(ftk_->get_dm(dataset),
+                                                   NULL, NULL);
         }
     }
     CATCH_EXECUTE_ERROR

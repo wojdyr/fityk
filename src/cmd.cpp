@@ -366,15 +366,15 @@ Commands::Status parse_and_execute(string const& str)
     try {
         bool r = parse_and_execute_e(str);
         if (r)
-            return Commands::status_ok;
+            return Commands::kStatusOk;
         else {
             AL->warn("Syntax error.");
-            return Commands::status_syntax_error;
+            return Commands::kStatusSyntaxError;
         }
     } catch (ExecuteError &e) {
         AL->get_settings()->clear_temporary();
         AL->warn(string("Error: ") + e.what());
-        return Commands::status_execute_error;
+        return Commands::kStatusExecuteError;
     }
 }
 

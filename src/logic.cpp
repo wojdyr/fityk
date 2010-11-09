@@ -227,7 +227,7 @@ int Ftk::check_dm_number(int n) const
             throw ExecuteError("Dataset must be specified.");
     }
     if (n < 0 || n >= get_dm_count())
-        throw ExecuteError("There is no dataset @" + S(n));
+        throw ExecuteError("No such dataset: @" + S(n));
     return n;
 }
 

@@ -38,7 +38,7 @@ int Fit::get_dof(vector<DataAndModel*> const& dms)
     return dof;
 }
 
-string Fit::get_info(vector<DataAndModel*> const& dms)
+string Fit::get_goodness_info(vector<DataAndModel*> const& dms)
 {
     vector<fp> const &pp = F->get_parameters();
     int dof = get_dof(dms);
@@ -58,14 +58,17 @@ vector<fp> Fit::get_covariance_matrix(vector<DataAndModel*> const& dms)
 
     vector<fp> alpha(na*na), beta(na);
     compute_derivatives(pp, dms, alpha, beta);
-    for (int i = 0; i < na; ++i) //to avoid singular matrix, we put fake values
-        if (!par_usage[i]) {     // corresponding unused parameters
+
+    // To avoid singular matrix, put fake values corresponding to unused
+    // parameters.
+    for (int i = 0; i < na; ++i)
+        if (!par_usage[i]) {
             alpha[i*na + i] = 1.;
         }
-    //sometimes some parameters are unused, although formally are "used".
-    //E.g. SplitGaussian with center < min(active x) will have hwhm1 unused
-    //Anyway, if i'th column/row in alpha are only zeros, we must
-    //do something about it -- standard error is undefined
+    // We may have unused parameters with par_usage[] set true,
+    // e.g. SplitGaussian with center < min(active x) will have hwhm1 unused.
+    // If i'th column/row in alpha are only zeros, we must
+    // do something about it -- standard error is undefined
     vector<int> undef;
     for (int i = 0; i < na; ++i) {
         bool has_nonzero = false;
@@ -101,12 +104,11 @@ vector<fp> Fit::get_standard_errors(vector<DataAndModel*> const& dms)
     return errors;
 }
 
-string Fit::get_error_info(vector<DataAndModel*> const& dms, bool matrix)
+string Fit::get_error_info(vector<DataAndModel*> const& dms)
 {
     vector<fp> errors = get_standard_errors(dms);
     vector<fp> const &pp = F->get_parameters();
-    string s;
-    s = "Standard errors: ";
+    string s = "Standard errors:";
     for (int i = 0; i < na; i++) {
         if (par_usage[i]) {
             fp err = errors[i];
@@ -115,26 +117,31 @@ string Fit::get_error_info(vector<DataAndModel*> const& dms, bool matrix)
                 + " +- " + (err == 0. ? string("??") : S(err));
         }
     }
-    if (matrix) {
-        vector<fp> alpha = get_covariance_matrix(dms);
-        s += "\nCovariance matrix\n    ";
-        for (int i = 0; i < na; ++i)
-            if (par_usage[i])
-                s += "\t" + F->find_variable_handling_param(i)->xname;
-        for (int i = 0; i < na; ++i) {
-            if (par_usage[i]) {
-                s += "\n" + F->find_variable_handling_param(i)->xname;
-                for (int j = 0; j < na; ++j) {
-                    if (par_usage[j])
-                        s += "\t" + S(alpha[na*i + j]);
-                }
+    return s;
+}
+
+string Fit::get_cov_info(vector<DataAndModel*> const& dms)
+{
+    string s;
+    vector<fp> alpha = get_covariance_matrix(dms);
+    s += "\nCovariance matrix\n    ";
+    for (int i = 0; i < na; ++i)
+        if (par_usage[i])
+            s += "\t" + F->find_variable_handling_param(i)->xname;
+    for (int i = 0; i < na; ++i) {
+        if (par_usage[i]) {
+            s += "\n" + F->find_variable_handling_param(i)->xname;
+            for (int j = 0; j < na; ++j) {
+                if (par_usage[j])
+                    s += "\t" + S(alpha[na*i + j]);
             }
         }
     }
     return s;
 }
 
-fp Fit::do_compute_wssr(vector<fp> const &A, vector<DataAndModel*> const& dms,
+fp Fit::do_compute_wssr(vector<fp> const &A,
+                        vector<DataAndModel*> const& dms,
                         bool weigthed)
 {
     fp wssr = 0;
@@ -166,19 +173,23 @@ fp Fit::compute_wssr_for_data(DataAndModel const* dm, bool weigthed)
     return wssr;
 }
 
+// R^2 for multiple datasets is calculated with separate mean y for each dataset
 fp Fit::compute_r_squared(vector<fp> const &A, vector<DataAndModel*> const& dms)
 {
-    fp r_squared = 0;
+    fp sum_err = 0, sum_tot = 0, se = 0, st = 0;
     F->use_external_parameters(A);
     for (vector<DataAndModel*>::const_iterator i = dms.begin();
                                                     i != dms.end(); ++i) {
-        r_squared += compute_r_squared_for_data(*i);
+        compute_r_squared_for_data(*i, &se, &st);
+        sum_err += se;
+        sum_tot += st;
     }
-    return r_squared ;
+    return 1 - (sum_err / sum_tot);
 }
 
 //static
-fp Fit::compute_r_squared_for_data(DataAndModel const* dm)
+fp Fit::compute_r_squared_for_data(DataAndModel const* dm,
+                                   fp* sum_err, fp* sum_tot)
 {
     Data const* data = dm->data();
     int n = data->get_n();
@@ -187,22 +198,29 @@ fp Fit::compute_r_squared_for_data(DataAndModel const* dm)
         xx[j] = data->get_x(j);
     vector<fp> yy(n, 0.);
     dm->model()->compute_model(xx, yy);
-    fp mean = 0;
-    fp ssr_curve = 0; // Sum of squares of dist. between fitted curve and data
-    fp ssr_mean = 0 ;  // Sum of squares of distances between mean and data
+    fp ysum = 0;
+    fp ss_err = 0; // Sum of squares of dist. between fitted curve and data
     for (int j = 0; j < n; j++) {
-        mean += data->get_y(j) ;
+        ysum += data->get_y(j) ;
         fp dy = data->get_y(j) - yy[j];
-        ssr_curve += dy * dy ;
+        ss_err += dy * dy ;
     }
-    mean = mean / n;    // Mean computed here.
+    fp mean = ysum / n;
 
-    for (int j = 0 ; j < n ; j++) {
+    fp ss_tot = 0;  // Sum of squares of distances between mean and data
+    for (int j = 0; j < n; j++) {
         fp dy = data->get_y(j) - mean;
-        ssr_mean += dy * dy;
+        ss_tot += dy * dy;
     }
 
-    return 1 - (ssr_curve/ssr_mean); // R^2 as defined.
+    if (sum_err != NULL)
+        *sum_err = ss_err;
+    if (sum_tot != NULL)
+        *sum_tot = ss_tot;
+
+    // R^2, formula from
+    // http://en.wikipedia.org/wiki/Coefficient_of_determination
+    return 1 - (ss_err / ss_tot);
 }
 
 //results in alpha and beta

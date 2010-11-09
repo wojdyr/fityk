@@ -6,18 +6,16 @@
 #define FITYK_INFO_H_
 
 #include <string>
+#include <vector>
+#include "lexer.h" // Token
 
 class Ftk;
 
-/// put output of the "info" command to result, return the postion after
-/// the last parsed character. Parsing starts at position start.
-size_t get_info_string(Ftk const* F, std::string const& args, bool full,
-                       std::string& result,
-                       size_t start=0);
+/// returns output of the "info" command
+std::string get_info_string(Ftk const* F, std::string const& args);
 
-bool get_info_string_safe(Ftk const* F, std::string const& args, bool full,
-                          std::string& result);
+void do_command_info(Ftk const* F, int ds, const std::vector<Token>& args);
 
-void output_info(Ftk const* F, std::string const& args, bool full);
+void do_command_debug(const Ftk* F, const std::string& args);
 
 #endif // FITYK_INFO_H_

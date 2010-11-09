@@ -292,6 +292,15 @@ string Model::get_formula(bool simplify, bool gnuplot_style) const
     return formula;
 }
 
+std::string const& Model::get_func_name(FuncSet fset, int idx) const
+{
+    vector<string> const& names = get_names(fset);
+    if (idx < 0)
+        idx += names.size();
+    if (!is_index(idx, names))
+        throw ExecuteError("wrong [index]: " + S(idx));
+    return names[idx];
+}
 
 fp Model::numarea(fp x1, fp x2, int nsteps) const
 {

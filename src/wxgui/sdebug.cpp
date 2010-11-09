@@ -233,7 +233,7 @@ void ScriptDebugDlg::exec_line(int n)
     Commands::Status r = ftk->exec(s);
     long millisec = sw.Time();
     if (nb->GetSelection() == 0) { //view tab
-        if (r == Commands::status_ok) {
+        if (r == Commands::kStatusOk) {
             list->SetItem(n, 2, wxString::Format(wxT("%.2f"), millisec/1000.));
         }
         else {

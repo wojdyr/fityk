@@ -13,6 +13,8 @@
 #include "logic.h"
 #include "cmd.h"
 #include "data.h"
+#include "cparser.h"
+#include "runner.h"
 
 using namespace std;
 
@@ -68,14 +70,12 @@ char* LineReader::next()
 
 string Commands::Cmd::str() const
 {
-    string s = cmd + " #>";
-    if (status == status_ok)
-        s += "OK";
-    else if (status == status_execute_error)
-        s += "Runtime Error";
-    else //status_syntax_error
-        s += "Syntax Error";
-    return s;
+    switch (status) {
+        case kStatusOk:           return cmd;
+        case kStatusExecuteError: return cmd + " #>Runtime Error";
+        case kStatusSyntaxError:  return cmd + " #>Syntax Error";
+    }
+    return ""; // avoid compiler warnings
 }
 
 void Commands::put_command(string const &c, Commands::Status r)
@@ -102,7 +102,7 @@ void Commands::put_output_message(string const& s) const
     }
 }
 
-string Commands::get_info(bool extended) const
+string Commands::get_history_summary() const
 {
     string s = S(command_counter) + " commands since the start of the program,";
     if (command_counter == size(cmds))
@@ -111,11 +111,11 @@ string Commands::get_info(bool extended) const
         s += "\nin last " + S(cmds.size()) + " commands:";
     int n_ok = 0, n_execute_error = 0, n_syntax_error = 0;
     for (vector<Cmd>::const_iterator i = cmds.begin(); i != cmds.end(); ++i)
-        if (i->status == status_ok)
+        if (i->status == kStatusOk)
             ++n_ok;
-        else if (i->status == status_execute_error)
+        else if (i->status == kStatusExecuteError)
             ++n_execute_error;
-        else if (i->status == status_syntax_error)
+        else if (i->status == kStatusSyntaxError)
             ++n_syntax_error;
     s += "\n  " + S(n_ok) + " executed successfully"
         + "\n  " + S(n_execute_error) + " finished with execute error"
@@ -125,9 +125,6 @@ string Commands::get_info(bool extended) const
     else
         s += S("\nCommands (") + (log_with_output ? "with" : "without")
             + " output) are logged to file: " + log_filename;
-    if (extended) {
-        // no extended info for now
-    }
     return s;
 }
 
@@ -180,6 +177,26 @@ Commands::Status UserInterface::exec_and_log(string const &c)
     commands.put_command(c, r);
     return r;
 }
+
+Commands::Status Commands::parse_and_execute_line(Ftk* F, const string& str)
+{
+    Parser parser(F);
+    Runner runner(F);
+    try {
+        Lexer lex(str.c_str());
+        while (parser.parse_statement(lex))
+            runner.execute_statement(parser.get_statement());
+    } catch (fityk::SyntaxError &e) {
+        //F_->warn(string("Syntax error. ") + e.what());
+        return Commands::kStatusSyntaxError;
+    }
+    catch (ExecuteError &e) {
+        //F_->warn(string("Error: ") + e.what());
+        return Commands::kStatusExecuteError;
+    }
+    return Commands::kStatusOk;
+}
+
 
 void UserInterface::output_message(Style style, const string& s) const
 {

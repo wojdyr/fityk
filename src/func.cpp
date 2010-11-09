@@ -349,30 +349,27 @@ std::string Function::other_props_str() const
     return r;
 }
 
-string Function::get_info(VariableManager const* mgr, bool extended) const
+string Function::get_par_info(VariableManager const* mgr) const
 {
-    string s = get_basic_assignment();
-    if (extended) {
-        s += "\n" + type_formula;
-        for (int i = 0; i < size(var_idx); ++i) {
-            s += "\n" + type_params[i] + " = ";
-            s += mgr->get_variable_info(mgr->get_variable(var_idx[i]), false);
-        }
-        if (this->has_center())
-            if (!contains_element(type_params, string("center")))
-                s += "\nCenter: " + S(center());
-        if (this->has_height())
-            if (!contains_element(type_params, string("height")))
-                s += "\nHeight: " + S(height());
-        if (this->has_fwhm())
-            if (!contains_element(type_params, string("fwhm")))
-                s += "\nFWHM: " + S(fwhm());
-        if (this->has_area())
-            if (!contains_element(type_params, string("area")))
-                s += "\nArea: " + S(area());
-        if (this->has_other_props())
-            s += "\n" + other_props_str();
+    string s = type_formula;
+    for (int i = 0; i < size(var_idx); ++i) {
+        s += "\n" + type_params[i] + " = ";
+        s += mgr->get_variable_info(mgr->get_variable(var_idx[i]));
     }
+    if (this->has_center())
+        if (!contains_element(type_params, string("center")))
+            s += "\nCenter: " + S(center());
+    if (this->has_height())
+        if (!contains_element(type_params, string("height")))
+            s += "\nHeight: " + S(height());
+    if (this->has_fwhm())
+        if (!contains_element(type_params, string("fwhm")))
+            s += "\nFWHM: " + S(fwhm());
+    if (this->has_area())
+        if (!contains_element(type_params, string("area")))
+            s += "\nArea: " + S(area());
+    if (this->has_other_props())
+        s += "\n" + other_props_str();
     return s;
 }
 

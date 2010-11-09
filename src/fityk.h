@@ -137,9 +137,8 @@ public:
     /// @name get data and informations
     // @{
 
-    /// return output of "info ..." or "info+ ..." command
-    std::string get_info(std::string const& s, bool full=false)
-                                              throw(SyntaxError, ExecuteError);
+    /// return output of the info command
+    std::string get_info(std::string const& s) throw(SyntaxError, ExecuteError);
 
     /// returns number of datasets n, always n >= 1
     int get_dataset_count();

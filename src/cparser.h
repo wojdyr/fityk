@@ -14,18 +14,53 @@
 #include "lexer.h"
 #include "eparser.h"
 
-struct Statement;
 class DataAndModel;
 
+enum CommandType
+{
+    kCmdDefine,
+    kCmdDelete,
+    kCmdDeleteP,
+    kCmdExec,
+    kCmdFit,
+    kCmdGuess,
+    kCmdInfo,
+    kCmdPlot,
+    kCmdReset,
+    kCmdSet,
+    kCmdSleep,
+    kCmdUndef,
+    kCmdQuit,
+    kCmdShell,
+    kCmdLoad,
+    kCmdDatasetTr,
+    kCmdNameFunc,
+    kCmdNameVar,
+    kCmdAssignParam,
+    kCmdTitle,
+    kCmdChangeModel,
+    kCmdPointTr,
+    kCmdAllPointsTr,
+    kCmdResizeP,
+    kCmdNull
+};
 
-// Calls Parser::parse_statement() and Runner::execute_statement(),
-// catches exceptions and returns status.
-Commands::Status parse_and_execute_line(Ftk* F, const std::string& str);
+struct Statement
+{
+    std::vector<Token> with_args;
+    CommandType cmd;
+    std::vector<Token> args;
+    std::vector<int> datasets;
+};
+
+// NULL-terminated tables
+extern const char* info_args[];
+extern const char* debug_args[];
 
 class Parser
 {
 public:
-    Parser(Ftk* F);
+    Parser(const Ftk* F);
     ~Parser();
 
     // Parses statement. Throws SyntaxError.
@@ -41,8 +76,11 @@ public:
     // for debugging only
     std::string get_statements_repr() const;
 
+    // temporarily public
+    void parse_info_args(Lexer& lex, std::vector<Token>& args);
+
 private:
-    Ftk* F_;
+    const Ftk* F_;
     ExpressionParser ep_;
     Statement *st_;
 
@@ -56,40 +94,8 @@ private:
     void parse_func_id(Lexer& lex, std::vector<Token>& args, bool accept_fz);
     void parse_guess_args(Lexer& lex, std::vector<Token>& args);
     //std::vector<DataAndModel*> get_datasets_from_statement();
+    void parse_one_info_arg(Lexer& lex, std::vector<Token>& args);
     void expand_dataset_glob();
-};
-
-class Runner
-{
-public:
-    Runner(Ftk* F) : F_(F) {}
-
-    // Execute the last parsed string.
-    // Throws ExecuteError, ExitRequestedException.
-    // The statement is not const, because expressions in it can be re-parsed 
-    // when executing for multiple datasets.
-    void execute_statement(Statement& st);
-
-private:
-    Ftk* F_;
-    int ds_;
-
-    void command_set(const std::vector<Token>& args);
-    void command_define(const std::vector<Token>& args);
-    void command_delete(const std::vector<Token>& args);
-    void command_delete_points(const Statement& st);
-    void command_exec(const std::vector<Token>& args);
-    void command_fit(const std::vector<Token>& args);
-    void command_guess(const std::vector<Token>& args);
-    void command_info(const std::vector<Token>& args);
-    void command_plot(const std::vector<Token>& args);
-    void command_undefine(const std::vector<Token>& args);
-    void command_load(const std::vector<Token>& args);
-    void command_dataset_tr(const std::vector<Token>& args);
-    void command_name_func(const std::vector<Token>& args);
-    void command_all_points_tr(const std::vector<Token>& args);
-
-    void reparse_expressions(Statement& st, int ds);
 };
 
 #endif //FITYK_CPARSER_H_

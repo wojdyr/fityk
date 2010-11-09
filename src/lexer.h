@@ -97,6 +97,7 @@ public:
     Token get_expected_token(const std::string& raw);
     Token get_expected_token(TokenType tt1, TokenType tt2);
     Token get_expected_token(TokenType tt, const std::string& raw);
+    Token get_expected_token(const std::string& raw1, const std::string& raw2);
 
     Token get_token_if(TokenType tt);
 

@@ -135,7 +135,7 @@ Commands::Status gui_exec_command(const string& s)
     }
     catch(ExitRequestedException) {
         frame->Close(true);
-        return Commands::status_ok;
+        return Commands::kStatusOk;
     }
     frame->after_cmd_updates();
     return r;

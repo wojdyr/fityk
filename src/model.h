@@ -51,10 +51,11 @@ public:
     fp zero_shift (fp x) const;
     std::vector<int> const& get_ff_idx() const { return ff_idx; }
     std::vector<int> const& get_zz_idx() const { return zz_idx; }
-    std::vector<std::string> const &get_ff_names() const { return ff_names; }
-    std::vector<std::string> const &get_zz_names() const { return zz_names; }
-    std::vector<std::string> const &get_names(FuncSet fset) const
+    std::vector<std::string> const& get_ff_names() const { return ff_names; }
+    std::vector<std::string> const& get_zz_names() const { return zz_names; }
+    std::vector<std::string> const& get_names(FuncSet fset) const
         { return (fset == kF ? ff_names : zz_names); }
+    std::string const& get_func_name(FuncSet fset, int idx) const;
     std::vector<int> const &get_indices(FuncSet fset) const
         { return (fset == kF ? ff_idx : zz_idx); }
     bool has_any_info() const { return !ff_names.empty() || !zz_names.empty(); }

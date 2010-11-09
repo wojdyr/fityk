@@ -464,13 +464,9 @@ void ExpressionParser::put_fz_sth(Lexer& lex, char fz, int ds)
         ep.parse2vm(lex, ds);
         lex.get_expected_token(kTokenRSquare); // discard ']'
         int idx = iround(ep.calculate());
-            vector<string> const& names =
-                F_->get_dm(ds)->model()->get_names(Model::parse_funcset(fz));
-            if (idx < 0)
-                idx += names.size();
-            if (!is_index(idx, names))
-                throw ExecuteError("wrong [index]: " + S(idx));
-            put_func_sth(lex, names[idx]);
+        Model::FuncSet fset = Model::parse_funcset(fz);
+        const string& name = F_->get_model(ds)->get_func_name(fset, idx);
+        put_func_sth(lex, name);
     }
     else if (lex.peek_token().type == kTokenOpen) {
         opstack_.push_back(ds); // we will put ds into code_ when handling ')'

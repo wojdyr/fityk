@@ -53,9 +53,9 @@ public:
     void auto_remove_functions();
     bool is_function_referred(int n) const;
 
-    std::string get_variable_info(std::string const &s, bool extended) const
-        { return get_variable_info(find_variable(s), extended); }
-    std::string get_variable_info(Variable const* v, bool extended) const;
+    std::string get_variable_info(std::string const &s) const
+        { return get_variable_info(find_variable(s)); }
+    std::string get_variable_info(Variable const* v) const;
     std::vector<fp> const& get_parameters() const { return parameters; }
     std::vector<Variable*> const& get_variables() const { return variables; }
     Variable const* get_variable(int n) const { return variables[n]; }

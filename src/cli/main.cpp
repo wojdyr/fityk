@@ -29,6 +29,7 @@
 #include "../cmd.h"
 #include "../settings.h"
 #include "../func.h"
+#include "../cparser.h" // info_args
 #include "gnuplot.h"
 
 using namespace std;
@@ -137,11 +138,6 @@ const char *commands[] = { "info", "plot", "delete", "set", "fit",
         "commands", "dump", "sleep", "reset", "quit", "guess", "define"
         };
 
-const char *after_info[] = { "variables", "types", "functions", "datasets",
-         "commands", "view", "set", "fit", "fit_history", "errors", "formula",
-         "peaks", "guess", "F", "Z", "formula", "dF"
-        };
-
 char *command_generator (const char *text, int state)
 {
     static unsigned int list_index = 0;
@@ -203,11 +199,9 @@ char *info_generator(const char *text, int state)
         for (vector<string>::const_iterator i = tt.begin(); i != tt.end(); ++i)
             if (!strncmp(i->c_str(), text, strlen(text)))
                 e.push_back(*i);
-        for (size_t i = 0; i < sizeof(after_info) / sizeof(char*); ++i) {
-            const char *name = after_info[i];
-            if (strncmp (name, text, strlen(text)) == 0)
-                e.push_back(name);
-        }
+        for (const char** a = info_args; *a != NULL; ++a)
+            if (strncmp (*a, text, strlen(text)) == 0)
+                e.push_back(*a);
         list_index = 0;
     }
     else
@@ -216,6 +210,20 @@ char *info_generator(const char *text, int state)
         return strdup(e[list_index].c_str());
     else
         return 0;
+}
+
+char *debug_generator (const char *text, int state)
+{
+    static const char** p = NULL;
+    if (!state)
+        p = debug_args;
+    while (*p != NULL) {
+        const char *name = *p;
+        ++p;
+        if (strncmp (name, text, strlen(text)) == 0)
+            return strdup(name);
+    }
+    return NULL;
 }
 
 
@@ -296,13 +304,13 @@ char *set_eq_generator (const char *text, int state)
 }
 
 bool starts_with_command(const char *cmd, int n,
-                 const char* head, const char* tail, char trailing)
+                         const char* head, const char* tail)
 {
     int hlen = strlen(head);
     if (strncmp(head, cmd, hlen) != 0)
         return false;
     for (int i = 0; hlen + i < n; ++i)
-        if (cmd[hlen+i] == trailing)
+        if (isspace(cmd[hlen+i]))
             return i == 0 || strncmp(cmd+hlen, tail, i) == 0;
     return false;
 }
@@ -321,8 +329,8 @@ char **my_completion (const char *text, int start, int end)
         return rl_completion_matches(text, command_generator);
     char *ptr = rl_line_buffer+cmd_start;
     //check if it is after set command or after with
-    if (starts_with_command(ptr, start - cmd_start, "s","et", ' ')
-        || starts_with_command(ptr, start - cmd_start, "w","ith", ' ')) {
+    if (starts_with_command(ptr, start - cmd_start, "s","et")
+        || starts_with_command(ptr, start - cmd_start, "w","ith")) {
         while (*ptr && !isspace(*ptr))
             ++ptr;
         ++ptr;
@@ -343,7 +351,7 @@ char **my_completion (const char *text, int start, int end)
         }
     }
     // FunctionType completion
-    if (starts_with_command(ptr, start - cmd_start, "g","uess", ' ')) {
+    if (starts_with_command(ptr, start - cmd_start, "g","uess")) {
         return rl_completion_matches(text, type_generator);
     }
     // FunctionType or "guess" completion
@@ -361,9 +369,13 @@ char **my_completion (const char *text, int start, int end)
         return rl_completion_matches(text, variable_generator);
 
     // info completion
-    if (starts_with_command(ptr, start - cmd_start, "i","nfo", ' ')
-        || starts_with_command(ptr, start - cmd_start, "i","nfo", '+')) {
+    if (starts_with_command(ptr, start - cmd_start, "i","nfo")) {
         return rl_completion_matches(text, info_generator);
+    }
+
+    // info completion
+    if (starts_with_command(ptr, start - cmd_start, "debug","")) {
+        return rl_completion_matches(text, debug_generator);
     }
 
     ptr = rl_line_buffer + start - 1;

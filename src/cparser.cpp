@@ -15,48 +15,24 @@
 #include "eparser.h"
 #include "settings.h"
 #include "logic.h"
-#include "udf.h"
-#include "data.h"
-#include "fityk.h"
 
 using namespace std;
 using fityk::SyntaxError;
 
-enum CommandType
-{
-    kCmdDefine,
-    kCmdDelete,
-    kCmdDeleteP,
-    kCmdExec,
-    kCmdFit,
-    kCmdGuess,
-    kCmdInfo,
-    kCmdPlot,
-    kCmdReset,
-    kCmdSet,
-    kCmdSleep,
-    kCmdUndef,
-    kCmdQuit,
-    kCmdShell,
-    kCmdLoad,
-    kCmdDatasetTr,
-    kCmdNameFunc,
-    kCmdNameVar,
-    kCmdAssignParam,
-    kCmdTitle,
-    kCmdChangeModel,
-    kCmdPointTr,
-    kCmdAllPointsTr,
-    kCmdResizeP,
-    kCmdNull
+const char* info_args[] = {
+    "version", "compiler", "variables", "variables_full",
+    "types", "types_full", "functions", "functions_full",
+    "dataset_count", "datasets", "view", "set", "fit_history",
+    "filename", "title", "data", "formula", "simplified_formula",
+    "history_summary", "peaks", "peaks_err",
+    "history", "guess",
+    "fit", "errors", "cov",
+    "refs", "par",
+    NULL
 };
 
-struct Statement
-{
-    std::vector<Token> with_args;
-    CommandType cmd;
-    std::vector<Token> args;
-    vector<int> datasets;
+const char* debug_args[] = {
+    "der", "ops", "parse", "lex", NULL
 };
 
 
@@ -150,7 +126,8 @@ Token Parser::read_expr(Lexer& lex)
     t.type = kTokenExpr;
     t.str = lex.pchar();
     ep_.clear_vm();
-    ep_.parse2vm(lex, st_->datasets[0]);
+    int ds = st_->datasets.empty() ? -1 : st_->datasets[0];
+    ep_.parse2vm(lex, ds);
     t.length = lex.pchar() - t.str;
     t.value.d = 0.;
     return t;
@@ -186,7 +163,7 @@ Token read_vr(Lexer& lex)
     return t;
 }
 
-Parser::Parser(Ftk* F)
+Parser::Parser(const Ftk* F)
     : F_(F), ep_(F), st_(new Statement)
 {
 }
@@ -198,7 +175,7 @@ Parser::~Parser()
 
 
 // '.' | ( '[' (Number | '.') ':' (Number | '.') ']' )
-// appends two tokens (kTokenNumber/kTokenDot/kTokenNop) to args
+// appends two tokens (kTokenExpr/kTokenDot/kTokenNop) to args
 void Parser::parse_real_range(Lexer& lex, vector<Token>& args)
 {
     if (lex.peek_token().type == kTokenDot) {
@@ -241,7 +218,6 @@ void Parser::parse_real_range(Lexer& lex, vector<Token>& args)
             args.push_back(read_and_calc_expr(lex));
             lex.get_expected_token(kTokenRSquare); // discard ']'
         }
-
     }
     else {
         args.push_back(nop());
@@ -307,7 +283,7 @@ void Parser::parse_set_args(Lexer& lex, vector<Token>& args)
         const Token eq = lex.get_token();
         if (eq.type != kTokenAssign)
             lex.throw_syntax_error("expected `='");
-        Settings *settings = F_->get_settings();
+        const Settings *settings = F_->get_settings();
         Settings::ValueType t = settings->get_value_type(key.as_string());
         Token value;
         if (t == Settings::kNotFound) {
@@ -329,13 +305,6 @@ void Parser::parse_set_args(Lexer& lex, vector<Token>& args)
         else
             break;
     }
-}
-
-void Runner::command_set(const vector<Token>& args)
-{
-    Settings *settings = F_->get_settings();
-    for (size_t i = 1; i < args.size(); i += 2)
-        settings->setp(args[i-1].as_string(), args[i].as_string());
 }
 
 // '(' [(name ['=' expr]) % ','] ')'
@@ -401,11 +370,6 @@ void parse_define_args(Lexer& lex, vector<Token>& args)
      */
 }
 
-void Runner::command_define(const vector<Token>& /*args*/)
-{
-    //UdfContainer::define(s);
-}
-
 void parse_undefine_args(Lexer& lex, vector<Token>& args)
 {
     for (;;) {
@@ -416,12 +380,6 @@ void parse_undefine_args(Lexer& lex, vector<Token>& args)
         else
             break;
     }
-}
-
-void Runner::command_undefine(const vector<Token>& args)
-{
-    for (vector<Token>::const_iterator i = args.begin(); i != args.end(); ++i)
-        UdfContainer::undefine(i->as_string());
 }
 
 void parse_delete_args(Lexer& lex, vector<Token>& args)
@@ -439,47 +397,12 @@ void parse_delete_args(Lexer& lex, vector<Token>& args)
     }
 }
 
-void Runner::command_delete(const vector<Token>& args)
-{
-    vector<int> ds;
-    vector<string> vars, funcs;
-    for (vector<Token>::const_iterator i = args.begin(); i != args.end(); ++i) {
-        if (i->type == kTokenDataset)
-            ds.push_back(i->value.i);
-        else if (i->type == kTokenFuncname)
-            funcs.push_back(Lexer::get_string(*i));
-        else if (i->type == kTokenVarname)
-            vars.push_back(Lexer::get_string(*i));
-    }
-    if (!ds.empty()) {
-        sort(ds.rbegin(), ds.rend());
-        for (vector<int>::const_iterator j = ds.begin(); j != ds.end(); ++j)
-            AL->remove_dm(*j);
-    }
-    F_->delete_funcs(funcs);
-    F_->delete_variables(vars);
-}
-
-void Runner::command_delete_points(const Statement& st)
-{
-    assert(st.args.size() == 1);
-    //Lexer lex(st.args[0].str);
-    //ExpressionParser ep(F_);
-    //ep.parse2vm(lex);
-    F_->get_data(ds_)->delete_points(st.args[0].as_string());
-    //ep.calculate_expression_value();
-}
-
 void parse_exec_args(Lexer& lex, vector<Token>& args)
 {
     if (lex.peek_token().type == kTokenShell)
         args.push_back(lex.get_token());
     else
         args.push_back(lex.get_filename_token());
-}
-
-void Runner::command_exec(const vector<Token>& /*args*/)
-{
 }
 
 void parse_fit_args(Lexer& lex, vector<Token>& args)
@@ -508,10 +431,6 @@ void parse_fit_args(Lexer& lex, vector<Token>& args)
         lex.go_back(t);
 }
 
-void Runner::command_fit(const vector<Token>& /*args*/)
-{
-}
-
 // [Funcname '='] Uname ['(' kwarg % ',' ')'] [range]
 void Parser::parse_guess_args(Lexer& lex, vector<Token>& args)
 {
@@ -527,22 +446,65 @@ void Parser::parse_guess_args(Lexer& lex, vector<Token>& args)
     parse_real_range(lex, args);
 }
 
-void Runner::command_guess(const vector<Token>& /*args*/)
+void Parser::parse_info_args(Lexer& lex, vector<Token>& args)
 {
+    parse_one_info_arg(lex, args);
+    while (lex.peek_token().type == kTokenComma) {
+        lex.get_token(); // discard ','
+        parse_one_info_arg(lex, args);
+    }
+    //TODO parse redir
 }
 
-void parse_info_args(Lexer& /*lex*/, vector<Token>& /*args*/)
+void Parser::parse_one_info_arg(Lexer& lex, vector<Token>& args)
 {
-    //TODO
+    Token token = lex.get_token();
+    if (token.type == kTokenLname) {
+        string word = token.as_string();
+        const char** pos = info_args;
+        while (*pos != NULL && *pos != word)
+            ++pos;
+        if (*pos == NULL)
+            lex.throw_syntax_error("Unknown info argument: " + word);
+        args.push_back(token);
+        if (word == "history" || word == "guess") {
+            parse_real_range(lex, args);
+        }
+        else if (word == "fit" || word == "errors" || word == "cov") {
+            while (lex.peek_token().type == kTokenDataset)
+                args.push_back(lex.get_token());
+            args.push_back(nop()); // separator
+        }
+        else if (word == "refs") {
+            args.push_back(lex.get_expected_token(kTokenVarname));
+        }
+        else if (word == "par") {
+            args.push_back(lex.get_expected_token(kTokenFuncname));
+        }
+    }
+    else if (token.type == kTokenCname || token.type == kTokenFuncname ||
+             token.type == kTokenVarname) {
+        args.push_back(token);
+    }
+    // handle [@n.]F/Z['['expr']']
+    else if ((token.type == kTokenUletter &&
+                                (*token.str == 'F' || *token.str == 'Z'))
+             || token.type == kTokenDataset) {
+        args.push_back(token);
+        if (token.type == kTokenDataset) {
+            lex.get_expected_token(kTokenDot); // discard '.'
+            args.push_back(lex.get_expected_token("F", "Z"));
+        }
+        if (lex.peek_token().type == kTokenLSquare) {
+            lex.get_token(); // discard '['
+            args.push_back(read_and_calc_expr(lex));
+            lex.get_expected_token(kTokenRSquare); // discard ']'
+        }
+    }
+    else
+        lex.throw_syntax_error("Unknown info argument: " + token.as_string());
 }
 
-void Runner::command_info(const vector<Token>& /*args*/)
-{
-}
-
-void Runner::command_plot(const vector<Token>& /*args*/)
-{
-}
 
 // [Key] (Dataset | 0) % '+'
 void parse_dataset_tr_args(Lexer& lex, vector<Token>& args)
@@ -555,10 +517,6 @@ void parse_dataset_tr_args(Lexer& lex, vector<Token>& args)
         else
             break;
     }
-}
-
-void Runner::command_dataset_tr(const vector<Token>& /*args*/)
-{
 }
 
 void Parser::parse_assign_func(Lexer& lex, vector<Token>& args)
@@ -662,29 +620,6 @@ void Parser::parse_fz(Lexer& lex, Statement &s)
         lex.throw_syntax_error("unexpected token after F/Z");
 }
 
-
-void Runner::command_name_func(const vector<Token>& /*args*/)
-{
-}
-
-
-void Runner::command_load(const vector<Token>& /*args*/)
-{
-}
-
-void Runner::command_all_points_tr(const vector<Token>& args)
-{
-    // args: (kTokenUletter kTokenExpr)+
-    ExpressionParser ep(F_);
-    for (size_t i = 0; i < args.size(); i += 2) {
-        Lexer lex(args[i+1].str);
-        ep.parse2vm(lex, ds_);
-        ep.push_assign_lhs(args[i]);
-    }
-    Data *data = F_->get_data(ds_);
-    ep.transform_data(data->get_mutable_points());
-    data->after_transform();
-}
 
 
 //TODO 
@@ -933,113 +868,6 @@ void Parser::parse_command(Lexer& lex)
     }
 }
 
-// Execute the last parsed string.
-// Throws ExecuteError, ExitRequestedException.
-void Runner::execute_statement(Statement& st)
-{
-    if (st.with_args.empty()) {
-        Settings *settings = F_->get_settings();
-        for (size_t i = 1; i < st.with_args.size(); i += 2)
-            settings->set_temporary(st.with_args[i-1].as_string(),
-                                    st.with_args[i].as_string());
-    }
-
-    try {
-        for (vector<int>::const_iterator i = st.datasets.begin();
-                                            i != st.datasets.end(); ++i) {
-            ds_ = *i;
-            if (i != st.datasets.begin())
-                reparse_expressions(st, *i);
-
-            switch (st.cmd) {
-                case kCmdDefine:
-                    command_define(st.args);
-                    break;
-                case kCmdDelete:
-                    command_delete(st.args);
-                    break;
-                case kCmdDeleteP:
-                    command_delete_points(st);
-                    break;
-                case kCmdExec:
-                    command_exec(st.args);
-                    break;
-                case kCmdFit:
-                    command_fit(st.args);
-                    break;
-                case kCmdGuess:
-                    command_guess(st.args);
-                    break;
-                case kCmdInfo:
-                    command_info(st.args);
-                    break;
-                case kCmdPlot:
-                    command_plot(st.args);
-                    break;
-                case kCmdReset:
-                    F_->reset();
-                    F_->outdated_plot();
-                    break;
-                case kCmdSet:
-                    command_set(st.args);
-                    break;
-                case kCmdSleep:
-                    //command_sleep(st.args);
-                    break;
-                case kCmdUndef:
-                    command_undefine(st.args);
-                    break;
-                case kCmdQuit:
-                    throw ExitRequestedException();
-                    break;
-                case kCmdShell:
-                    system(st.args[0].str);
-                    break;
-                case kCmdLoad:
-                    command_load(st.args);
-                    break;
-                case kCmdNameFunc:
-                    command_name_func(st.args);
-                    break;
-                case kCmdDatasetTr:
-                    command_dataset_tr(st.args);
-                    break;
-                case kCmdAllPointsTr:
-                    command_all_points_tr(st.args);
-                    break;
-                case kCmdAssignParam:
-                case kCmdNameVar:
-                case kCmdChangeModel:
-                case kCmdPointTr:
-                case kCmdResizeP:
-                case kCmdTitle:
-                case kCmdNull:
-                    break;
-            }
-        }
-    }
-    catch (...) {
-        F_->get_settings()->clear_temporary();
-        throw;
-    }
-    F_->get_settings()->clear_temporary();
-}
-
-void Runner::reparse_expressions(Statement& st, int ds)
-{
-    if (st.cmd == kCmdAllPointsTr) // it is parsed in command_all_points_tr()
-        return;
-    ExpressionParser ep(F_);
-    for (vector<Token>::iterator j = st.args.begin(); j != st.args.end(); ++j)
-        if (j->type == kTokenExpr) {
-            Lexer lex(j->str);
-            ep.clear_vm();
-            ep.parse2vm(lex, ds);
-            j->value.d = ep.calculate();
-        }
-}
-
-
 bool Parser::check_command_syntax(const string& str)
 {
     try {
@@ -1107,34 +935,5 @@ void Parser::expand_dataset_glob()
             ds.erase(i);
             --i;
         }
-}
-
-/*
-vector<DataAndModel*> Runner::get_datasets_from_statement()
-{
-    vector<DataAndModel*> result(st_->datasets.size());
-    for (size_t i = 0; i != st_->datasets.size(); ++i)
-        result[i] = F_->get_dm(st_->datasets[i]);
-    return result;
-}
-*/
-
-Commands::Status parse_and_execute_line(Ftk* F, const string& str)
-{
-    Parser parser(F);
-    Runner runner(F);
-    try {
-        Lexer lex(str.c_str());
-        while (parser.parse_statement(lex))
-            runner.execute_statement(parser.get_statement());
-    } catch (SyntaxError &e) {
-        //F_->warn(string("Syntax error. ") + e.what());
-        return Commands::status_syntax_error;
-    }
-    catch (ExecuteError &e) {
-        //F_->warn(string("Error: ") + e.what());
-        return Commands::status_execute_error;
-    }
-    return Commands::status_ok;
 }
 

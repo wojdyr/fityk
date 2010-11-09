@@ -28,19 +28,21 @@ public:
     bool is_initialized() const { return !dmdm_.empty(); }
     bool is_initialized(std::vector<DataAndModel*> const& dms) const
                                                     { return dms == dmdm_; }
-    std::string get_info(std::vector<DataAndModel*> const& dms);
+    std::string get_goodness_info(std::vector<DataAndModel*> const& dms);
     int get_dof(std::vector<DataAndModel*> const& dms);
-    std::string get_error_info(std::vector<DataAndModel*> const& dms,
-                               bool matrix=false);
+    std::string get_error_info(std::vector<DataAndModel*> const& dms);
+    std::string get_cov_info(std::vector<DataAndModel*> const& dms);
     std::vector<fp>
-        get_covariance_matrix(std::vector<DataAndModel*> const&dms);
+        get_covariance_matrix(std::vector<DataAndModel*> const& dms);
     std::vector<fp>
         get_standard_errors(std::vector<DataAndModel*> const& dms);
     //std::vector<DataAndModel*> const& get_datsums() const { return dmdm_; }
     static fp compute_wssr_for_data (DataAndModel const* dm, bool weigthed);
     fp do_compute_wssr(std::vector<fp> const &A,
-                       std::vector<DataAndModel*> const& dms, bool weigthed);
-    static fp compute_r_squared_for_data(DataAndModel const* dm) ;
+                       std::vector<DataAndModel*> const& dms,
+                       bool weigthed);
+    static fp compute_r_squared_for_data(DataAndModel const* dm,
+                                         fp* sum_err, fp* sum_tot);
     void Jordan (std::vector<fp>& A, std::vector<fp>& b, int n);
     void reverse_matrix (std::vector<fp>&A, int n);
     // pretty-print matrix m x n stored in vec. `mname' is name/comment.

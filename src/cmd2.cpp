@@ -24,6 +24,7 @@
 #include "model.h"
 #include "guess.h"
 #include "var.h"
+#include "cparser.h"
 
 using namespace std;
 
@@ -128,7 +129,20 @@ void do_plot(char const*, char const*)
 
 void do_output_info(char const* a, char const* b)
 {
-    output_info(AL, string(a,b), with_plus);
+    string s(a, b);
+    Lexer lex(s.c_str());
+    Parser cp(AL);
+    vector<Token> tt;
+    cp.parse_info_args(lex, tt);
+    if (lex.peek_token().type != kTokenNop)
+        lex.throw_syntax_error("unexpected token");
+    do_command_info(AL, -1, tt);
+}
+
+void do_output_debug(char const* a, char const* b)
+{
+    string s(a, b);
+    do_command_debug(AL, s);
 }
 
 void do_guess(char const*, char const*)
@@ -245,9 +259,9 @@ Cmd2Grammar::definition<ScannerT>::definition(Cmd2Grammar const& /*self*/)
 
     statement
         = (optional_suffix_p("i","nfo")
-           >> optional_plus
            >> (+chset<>(anychar_p - chset<>(";#"))) [&do_output_info]
           )
+        | ("debug " >> (+chset<>(anychar_p)) [&do_output_debug])
         | (optional_suffix_p("p","lot") [clear_a(vr)]
            >> plot_range >> plot_range >> InDataG) [&do_plot]
         | guess [&do_guess]

@@ -21,7 +21,7 @@ class Commands
 {
 public:
     static const int max_cmd = 4096;
-    enum Status { status_ok, status_execute_error, status_syntax_error };
+    enum Status { kStatusOk, kStatusExecuteError, kStatusSyntaxError };
 
     struct Cmd
     {
@@ -36,12 +36,16 @@ public:
     void put_command(std::string const& c, Status s);
     void put_output_message(std::string const& s) const;
     std::vector<Cmd> const& get_cmds() const { return cmds; }
-    std::string get_info(bool extended) const;
+    std::string get_history_summary() const;
     void start_logging(std::string const& filename, bool with_output,
                        Ftk const* F);
     void stop_logging();
     std::string get_log_file() const { return log_filename; }
     bool get_log_with_output() const { return log_with_output; }
+
+    // Calls Parser::parse_statement() and Runner::execute_statement(),
+    // catches exceptions and returns status.
+    Commands::Status parse_and_execute_line(Ftk* F, const std::string& str);
 
   private:
     int command_counter; //!=cmds.size() if max_cmd was exceeded

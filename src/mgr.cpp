@@ -283,8 +283,7 @@ void VariableManager::remove_unreferred()
     }
 }
 
-string VariableManager::get_variable_info(Variable const* v,
-                                          bool extended) const
+string VariableManager::get_variable_info(Variable const* v) const
 {
     string s = v->xname + " = " + v->get_formula(parameters) + " = "
                + F->get_settings()->format_double(v->get_value());
@@ -292,13 +291,6 @@ string VariableManager::get_variable_info(Variable const* v,
         s += "  " + v->domain.str();
     if (v->is_auto_delete())
         s += "  [auto]";
-    if (extended && v->get_nr() == -1) {
-        vector<string> vn = concat_pairs("$", v->get_varnames());
-        for (int i = 0; i < v->get_vars_count(); ++i)
-            s += "\nd(" + v->xname + ")/d($" + v->get_var_name(i) + "): "
-              + v->get_op_trees()[i]->str(&vn) + " == "
-              + F->get_settings()->format_double(v->get_derivative(i));
-    }
     return s;
 }
 

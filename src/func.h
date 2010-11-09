@@ -106,7 +106,7 @@ public:
     fp get_var_value(int n) const
              { assert(n>=0 && n<size(vv)); return vv[n]; }
     std::vector<fp> get_var_values() const  { return vv; }
-    std::string get_info(VariableManager const* mgr, bool extended) const;
+    std::string get_par_info(VariableManager const* mgr) const;
     std::string get_basic_assignment() const;
     std::string get_current_assignment(std::vector<Variable*> const &variables,
                                        std::vector<fp> const &parameters) const;
