@@ -45,6 +45,7 @@ latex_elements = {
     'utf8extra': r"""
          \DeclareUnicodeCharacter{00A0}{\nobreakspace}
          \DeclareUnicodeCharacter{03C3}{\ensuremath{\sigma}}
+         \DeclareUnicodeCharacter{2212}{\ensuremath{-}}
          """
 }
 

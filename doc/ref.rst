@@ -174,8 +174,8 @@ block.
 If the :option:`last_line_header` option is given, the line preceding
 the first data line is used to set either column names or the block name.
 
-If the file starts with the "`LAMMPS (`" string,
-the :option:`last_line_header` option is set implicitely.
+If the file starts with the "``LAMMPS (``" string,
+the :option:`last_line_header` option is set automatically.
 This is very helpful when plotting data from LAMMPS log files.
 
 Active and inactive points
@@ -1293,8 +1293,8 @@ stopping criteria:
 
 There are also other criteria, different for each method.
 
-On Unix, fitting can be interrupted by sending the `INT` signal to the program.
-This is usually done by pressing Ctrl-C in the terminal.
+On Unix, fitting can be interrupted by sending the ``INT`` signal to the
+program. This is usually done by pressing Ctrl-C in the terminal.
 
 If you give too small *number-of-iterations* to the command ``fit``,
 and fit is not converged, it makes sense to use command ``fit+``
@@ -1304,7 +1304,11 @@ Setting ``set autoplot = on_fit_iteration``
 will plot a model after every iteration, to visualize progress.
 (see :ref:`autoplot <autoplot>`)
 
-``info fit`` shows goodness-of-fit.
+``info fit`` shows measures of goodness-of-fit, including :math:`\chi^2`,
+reduced :math:`\chi^2` and R-squared:
+
+.. math::
+   R^2 \equiv 1 - {{\sum_i (y_i - f_i)^2} \over {\sum_i (y_i-\bar{y})^2}}
 
 Available methods can be mixed together, e.g. it is sensible
 to obtain initial parameter estimates using the Simplex method,
@@ -1488,8 +1492,8 @@ This method is also described in previously mentioned
 
 There are a few options for tuning this method. One of these is a
 stopping criterium :option:`nm_convergence`. If the value of the
-expression 2(*M*-*m*)/(*M*+*m*), where *M* and *m* are the values of the
-worst and best vertices respectively (values of objective functions of
+expression 2(*M*\ −\ *m*)/(*M*\ +\ *m*), where *M* and *m* are the values
+of the worst and best vertices respectively (values of objective functions of
 vertices, to be precise!), is smaller then the value of
 :option:`nm_convergence` option, fitting is stopped. In other words,
 fitting is stopped if all vertices are almost at the same level.
@@ -1554,9 +1558,9 @@ data_default_sigma
 epsilon
     It is used for floating-point comparison:
     a and b are considered equal when
-    \|a-b|<:option:`epsilon`.
+    \|a−b|<:option:`epsilon`.
     You may want to decrease it when you work with very small values,
-    like 10^-10.
+    like 10\ :sup:`−10`.
 
 exit_on_warning
     If the option :option:`exit_on_warning`
