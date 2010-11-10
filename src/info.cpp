@@ -354,6 +354,7 @@ void do_command_debug(const Ftk* F, const string& args)
     Lexer lex(args.c_str());
     Token token = lex.get_token();
     string word = token.as_string();
+
     if (word == "parse") {
         Parser parser(const_cast<Ftk*>(F));
         try {
@@ -364,6 +365,92 @@ void do_command_debug(const Ftk* F, const string& args)
             r += string("ERR: ") + e.what();
         }
     }
+
+    else if (word == "lex") {
+        for (Token t = lex.get_token(); t.type != kTokenNop; t =lex.get_token())
+            r += token2str(t) + "\n";
+    }
+
+    else if (word == "expr") {
+        try {
+            ExpressionParser parser(F);
+            parser.parse2vm(lex, -1);
+            r += parser.list_ops();
+        }
+        catch (fityk::SyntaxError& e) {
+            r += "ERROR at " + S(lex.scanned_chars()) + ": " + e.what();
+        }
+        if (lex.peek_token().type != kTokenNop)
+            r += "\nnext token: " + token2str(lex.peek_token());
+    }
+
+    else if (word == "der") {
+        get_derivatives_str(lex.pchar(), r);
+    }
+
+    // show values of derivatives for all variables
+    else if (word == "rd") {
+        for (int i = 0; i < size(F->get_variables()); ++i) {
+            Variable const* var = F->get_variable(i);
+            r += var->xname + ": ";
+            vector<Variable::ParMult> const& rd
+                                        = var->get_recursive_derivatives();
+            for (vector<Variable::ParMult>::const_iterator i = rd.begin();
+                                                           i != rd.end(); ++i)
+                r += "p" + S(i->p) + "="
+                    + F->find_variable_handling_param(i->p)->xname
+                    + " *" + S(i->mult) + "    ";
+            r += "\n";
+        }
+    }
+
+    // show varnames and var_idx from VariableUser
+    else if (word == "idx") {
+        for (size_t i = 0; i != F->get_functions().size(); ++i)
+            r += S(i) + ": " + F->get_function(i)->get_debug_idx_info() + "\n";
+        for (size_t i = 0; i != F->get_variables().size(); ++i)
+            r += S(i) + ": " + F->get_variable(i)->get_debug_idx_info() + "\n";
+    }
+
+    // compares numeric and symbolic derivatives
+    else if (word == "dF") {
+        //TODO ds
+        int ds = 0;
+        ExpressionParser ep(F);
+        ep.parse2vm(lex, ds);
+        double x = ep.calculate();
+        Model const* model = F->get_model(ds);
+        vector<fp> symb = model->get_symbolic_derivatives(x);
+        vector<fp> num = model->get_numeric_derivatives(x, 1e-4);
+        assert (symb.size() == num.size());
+        r += "F(" + S(x) + ")=" + S(model->value(x));
+        for (int i = 0; i < size(num); ++i) {
+            if (is_neq(symb[i], 0) || is_neq(num[i], 0))
+                r += "\ndF / d " + F->find_variable_handling_param(i)->xname
+                    + " = (symb.) " + S(symb[i]) + " = (num.) " + S(num[i]);
+        }
+    }
+
+    // show %function's bytecode
+    else if (token.type == kTokenFuncname) {
+        Function const* f = F->find_function(Lexer::get_string(token));
+        r += f->get_bytecode();
+    }
+
+    // show derivatives of $variable
+    else if (token.type == kTokenVarname) {
+        Variable const* v = F->find_variable(Lexer::get_string(token));
+        vector<string> vn = concat_pairs("$", v->get_varnames());
+        for (int i = 0; i < v->get_vars_count(); ++i) {
+            string formula = v->get_op_trees()[i]->str(&vn);
+            double value = v->get_derivative(i);
+            if (i != 0)
+                r += "\n";
+            r += "d(" + v->xname + ")/d($" + v->get_var_name(i) + "): "
+              + formula + " == " + F->get_settings()->format_double(value);
+        }
+    }
+
     else
         r += "unexpected arg: " + word;
     F->rmsg(r);
