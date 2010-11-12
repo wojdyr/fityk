@@ -1,8 +1,9 @@
 
 .. title:: fityk --- curve fitting software
 
-Overview
-========
+..
+    Overview
+    ========
 
 .. image:: fityk076.png
    :alt: [screenshot]
@@ -10,10 +11,10 @@ Overview
    :scale: 50
    :class: screenshot
 
-Fityk *[fi:tik]* is a program for nonlinear least squares **curve fitting**.
-It is also useful for data processing and visualization.
+Fityk *[fi:tik]* is a program for data processing
+and nonlinear **curve fitting**.
 
-Fityk is primarily used...
+It is primarily used...
 
 * by scientists who analyse data from powder diffraction, chromatography,
   photoluminescence and photoelectron spectroscopy,
@@ -24,17 +25,17 @@ Fityk is primarily used...
 * to fit bell-shaped functions (Gaussian, Lorentzian, Voigt,
   Pearson VII, bifurcated Gaussian, EMG, Doniach-Sunjic, etc.),
 
-... but any functions can be fitted to any 2D (x-y) data.
+... but any functions can be fitted to any 2D (i.e. *x*,\ *y*) data.
 
 Features
 ========
 
 * intuitive graphical interface (and also command line interface),
 * support for many data file formats, thanks to
-  `xylib library <http://www.unipress.waw.pl/fityk/xylib/>`_,
+  the `xylib library <http://www.unipress.waw.pl/fityk/xylib/>`_,
 * dozens of built-in functions and support for user-defined functions,
 * equality constraints,
-* modelling errors of the *x* coordinate of points (that can be caused by
+* modelling error of the *x* coordinate of points (that can be caused by
   instrumental zero-shift or by sample displacement in powder diffraction),
 * peak detection algorithm,
 * various optimization methods (standard Marquardt least-squares algorithm,
@@ -49,24 +50,30 @@ Features
 Download
 ========
 
-* Source code: :sf-download-source:`.tar.bz2`
-* MS **Windows** Installer: :sf-download-msw:`.exe`
-* Fresh **Linux** RPMs from OBS_, DEBs from PPA_ or debian-xray_
+|ico-win| MS Windows: :sf-download-msw:`.exe`
 
-* Mac **OS X**: see details :wiki:`here <MacOSX>`.
+|ico-tux| Fresh Linux RPMs from OBS_ and DEBs from PPA_ or debian-xray_
 
-* `Daily builds <http://fityk.sourceforge.net/daily/>`_
-
-* The latest code:
-  ``svn co https://fityk.svn.sourceforge.net/svnroot/fityk/trunk fityk``
+|ico-osx| Mac OS X: see details :wiki:`here <MacOSX>`.
 
 .. _OBS: http://download.opensuse.org/repositories/home://wojdyr/
 .. _PPA: https://launchpad.net/~wojdyr/+archive/fityk
 .. _debian-xray: http://debian-xray.iit.edu/
+.. |ico-win| image:: ico-win.png
+.. |ico-tux| image:: ico-tux.png
+.. |ico-osx| image:: ico-osx.png
+
+
+Source code: :sf-download-source:`.tar.bz2` or the latest revision from
+
+.. _svn:
+
+::
+
+    svn co https://fityk.svn.sourceforge.net/svnroot/fityk/trunk fityk
 
 Version 0.9.4 was released on 2010-10-09
 (`changelog <http://fityk.svn.sourceforge.net/svnroot/fityk/trunk/NEWS>`_).
-
 FreshMeat provides new version **notifications**:
 `emails <http://freshmeat.net/projects/fityk/>`_ and
 `feeds <http://freshmeat.net/projects/fityk/releases.atom>`_.
@@ -102,7 +109,7 @@ documents mainly commands of the fityk mini-language.
 
 `Trac Wiki <http://sourceforge.net/apps/trac/fityk/>`_
 contains all other informations.
-You are also welcome to contribute.
+You are welcome to contribute.
 
 Citing fityk in academic papers:
 M. Wojdyr,
@@ -110,18 +117,18 @@ M. Wojdyr,
 (2010)
 [`reprint <http://www.unipress.waw.pl/fityk/fityk-JAC-10-reprint.pdf>`_]
 
-Questions or comments?
-======================
+Questions?
+==========
 
 Join the Google group
 `fityk-users <http://groups.google.com/group/fityk-users/>`_.
 You may select option "no mail" and use the web interface to send messages.
 Feel free to send questions, comments, bug reports, new feature requests
-or success stories.
+and success stories.
 
 Asking for a new feature usually results in adding the request to
 the `TODO list <http://fityk.svn.sourceforge.net/svnroot/fityk/trunk/TODO>`_
-or, if it already is on the list, in assigning higher priority to it.
+or, if it already is in the list, in assigning higher priority to it.
 
 If for some reasons you do not want to use the group,
 you may contact directly the maintainer of the program:
@@ -130,43 +137,28 @@ you may contact directly the maintainer of the program:
 
 .. raw:: html
 
-   <p>&nbsp;</p>
-   <p>
-   Thanks to:
-   <a href="http://www.unipress.waw.pl">
-   <img src="_static/unipress-button.png" alt="Developed in Unipress" title="Developed in Unipress" />
-   </a>
-   <a href="http://www.wxwidgets.org">
-   <img src="_static/wxwidgets_powered.png" alt="Built with wxWidgets" title="Built with wxWidgets" />
-   </a>
-   <a href="http://sourceforge.net/projects/fityk">
-   <img src="http://sflogo.sourceforge.net/sflogo.php?group_id=79434&type=10" alt="Get Fityk at SourceForge.net" title="Hosted at SourceForge.net" />
-   </a>
-   </p>
-
    <script type="text/javascript"> <!--
    if (window != top) top.location.href = location.href;
    $(document).ready(function(){
      $("#features").hide();
-     $("#overview").append(
+     $("#features").prev().after(
       "<p id='expand_features'><a href=''>More &raquo;</a></p>");
      $("#expand_features a").click(function(event){
        $(this).parent().hide();
        $("#features").show('slow');
        event.preventDefault();
      });
+     $("#svn").hide();
+     $("#svn").prev().append(
+      "<span id='expand_svn'> <a href=''>SVN &raquo;</a></span>");
+     var svn_shown = true;
+     $("#expand_svn a").click(function(event){
+       $(this).html('SVN ' + (svn_shown ? '&laquo;' : '&raquo'));
+       $("#svn").toggle('fast');
+       svn_shown = !svn_shown;
+       event.preventDefault();
+     });
    });
    //--> </script>
-
-..
-   <script type="text/javascript"><!--
-   google_ad_client = "pub-6047722981051633";
-   google_ad_slot = "7961920150";
-   google_ad_width = 728;
-   google_ad_height = 15;
-   //--></script>
-   <script type="text/javascript"
-    src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-   </script>
 
 

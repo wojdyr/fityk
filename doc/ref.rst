@@ -39,8 +39,7 @@ Data from experiment
 Loading data
 ------------
 
-Data files are read using the
-`xylib library <http://www.unipress.waw.pl/fityk/xylib/>`_.
+Data files are read using the `xylib library <http://xylib.sourceforge.net/>`_.
 
 Points are loaded from files using the command::
 
@@ -106,9 +105,6 @@ uxd
 bruker_raw
     Simens-Bruker RAW format (version 1,2,3)
 
-canberra_mca
-    Spectral data stored by Canberra MCA systems
-
 rigaku_dat
     Rigaku dat format (powder diffraction data)
 
@@ -130,8 +126,7 @@ spe
 pdcif
     CIF for powder diffraction
 
-...
-    what else would you like to have here?
+The full list is available at: http://xylib.sourceforge.net/.
 
 Reading text files
 ~~~~~~~~~~~~~~~~~~
@@ -1202,9 +1197,8 @@ Nonlinear optimization
 
 This is the core. We have a set of observations (data points), to which
 we want to fit a *model* that depends on adjustable parameters.
-Let me quote *Numerical Recipes*,
-chapter 15.0, page 656 (if you do not know the book, visit
-http://www.nr.com):
+Let me quote `Numerical Recipes <http://www.nrbook.com/a/bookcpdf.php>`_,
+chapter 15.0, page 656):
 
     The basic approach in all cases is usually the same: You choose or design
     a figure-of-merit function (merit function, for short) that measures the
@@ -1231,8 +1225,8 @@ http://www.nr.com):
     sure am I that there is not a very much better fit in some corner of
     parameter space?"
 
-Our function of merit is WSSR - the weighted sum of
-squared residuals, also called chi-square:
+Our function of merit is the weighted sum of squared residuals (WSSR),
+also called chi-square:
 
 .. math::
   \chi^{2}(\mathbf{a})

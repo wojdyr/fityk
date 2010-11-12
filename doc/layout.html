@@ -1,10 +1,15 @@
 {% extends "!layout.html" %}
 
+{% set reldelim1 = ' ' %}
+{% set reldelim2 = ' &nbsp; ' %}
+
 {% block rootrellink %}
-  <li><a href="http://www.unipress.waw.pl/fityk/">Fityk home</a>&nbsp;|&nbsp;</li>
-  <li><a href="http://sourceforge.net/apps/trac/fityk/">Wiki/Trac</a>&nbsp;|&nbsp;</li>
-  <li><a href="{{ pathto(master_doc) }}">{{ shorttitle|e }}</a>{{ reldelim1 }}</li>
+  <li><a href="http://www.unipress.waw.pl/fityk/">Fityk home</a>&nbsp;&nbsp;&nbsp;</li>
+  <li><a href="http://sourceforge.net/apps/trac/fityk/">Wiki/Trac</a>&nbsp;&nbsp;&nbsp;</li>
+  {{ super() }}
 {% endblock %}
+
+{% block relbar1 %}{% endblock %}
 
 {% block header %}
 <div style="background-color: white; text-align: center; padding: 10px 10px 10px 10px">

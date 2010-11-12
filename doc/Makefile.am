@@ -28,6 +28,9 @@ $(srcdir)/html/_static/underscore.js \
 $(srcdir)/html/intro.html \
 $(srcdir)/html/searchindex.js \
 $(srcdir)/html/fityk-manual.html \
+$(srcdir)/html/_images/ico-tux.png \
+$(srcdir)/html/_images/ico-win.png \
+$(srcdir)/html/_images/ico-osx.png \
 $(srcdir)/html/_images/fityk076.png \
 $(srcdir)/html/_images/math/9e9c8a0fb6a92d4c3f969ab7a959a80f3069e3c9.png \
 $(srcdir)/html/_images/math/5e97a8af68fbc8e357d3ee0eba452022b06c1875.png \
@@ -35,6 +38,7 @@ $(srcdir)/html/_images/math/7532b41a34c9ca592694135d1de65eeb8d9ce036.png \
 $(srcdir)/html/_images/math/727873d2cbeda3d30f41bee18cb2bf5ea1071fa1.png \
 $(srcdir)/html/_images/math/c1bc1d463e6642b69aecd742fefeb4bce4bd3d52.png \
 $(srcdir)/html/_images/math/b72439b28d639f1999aeecd537d21df605ad8db8.png \
+$(srcdir)/html/_images/math/340fc244db3ba9529e48c3b43d3e3d1d56ab13ac.png \
 $(srcdir)/html/_images/math/61c594c97b61f72af93af4e61894b3f16a3bbb30.png \
 $(srcdir)/html/_images/math/ee5c7c921b3334f6ecf58c241eeea42acf0ce71e.png \
 $(srcdir)/html/_images/math/572b65ebc3f438b176b4ca4a890799f2f72564af.png \
@@ -84,7 +88,7 @@ dist_man_MANS = fityk.1
 
 EXTRA_DIST  = appendix.rst fityk-manual.rst index.rst ref.rst \
 	      extensions.rst getstarted.rst intro.rst \
-	      layout.html conf.py
+	      layout.html conf.py fityk_ext.py
 
 SPHINX = sphinx-build -a -d ./doctrees/
 

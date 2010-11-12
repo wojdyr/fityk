@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
-# For Sphinx 1.0.
+# Sphinx v1.0.4
 #
 # sphinx-build -d ./doctrees/ -b html . html
 
+import sys, os
+sys.path.append(os.path.abspath('.'))
 
-extensions = ["sphinx.ext.pngmath", "sphinx.ext.extlinks"]
+extensions = ["sphinx.ext.pngmath", "sphinx.ext.extlinks", "fityk_ext"]
 
 exclude_trees = ['html', 'latex', '.svn']
 templates_path = ['.']
@@ -17,7 +19,10 @@ copyright = '2001-2010, Fityk Developers'
 version = '0.9.4'
 release = version
 default_role = None
-highlight_language = "none"
+
+#highlight_language = "none"
+highlight_language = "fityk"
+pygments_style = "trac"
 
 html_theme = "sphinxdoc"
 html_sidebars = {'index': [],

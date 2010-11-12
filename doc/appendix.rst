@@ -182,169 +182,191 @@ The grammar below is not complete and may change in the future.
 The grammar is expressed in EBNF-like notation:
 
 * ``(*this is a comment*)``
-* ``{A}`` means repetition (0 or more occurrences of A).
-* ``A % B`` means ``A {B A}`` and the ``%`` operator has the highest precedence.
+* ``A*`` means 0 or more occurrences of A.
+* ``A+`` means 1 or more occurrences of A.
+* ``A % B`` means ``A (B A)*`` and the ``%`` operator has the highest
+  precedence. For example: ``statement % ";" comment`` is the same as
+  ``statement (";" statement)* comment``.
 * The colon ':' in quoted string means that the string can be shortened, e.g.
   ``"del:ete"`` mean that any of ``del``, ``dele``, ``delet`` and ``delete``
   can be used.
 
-The functions that can be used in ``point_rhs`` and ``var_rhs`` are available
+The functions that can be used in ``p_expr`` and ``v_expr`` are available
 :ref:`here <transform>` and :ref:`here <variables>`, respectively.
-``var_rhs`` contains only a subset of functions from ``point_rhs`` (partly,
+``var_rhs`` contains only a subset of functions from ``p_expr`` (partly,
 because we need to calculate symbolical derivatives of ``var_rhs``)
+
 
 ::
 
-  (* 
-  planned changes (already included in the grammar below):
+   (* 
+   planned changes (already included in the grammar below):
    commands > file            ->   set logfile file
    commands < file            ->   exec file
    commands ! shell-command   ->   exec ! shell-command
    dump > file                ->   info state > file
-   @n.Z[0]                    ->   @n.z
    guess Func [:] center=30   ->   guess Func(center=30) [:]
-   info in @0 @1              ->   info in @0, @1
 
    %f = guess Func in @0      ->   guess %f=Func in @0
    
    numarea(%f, 10, 30, 100)   ->   %f.numarea(10, 30, 100)
-  *)
-  
 
-  line ::= [statement {';' statement}] [comment]
+   cmd in @m, @n              -> @m @n: cmd
+   * )
 
-  comment ::= '#' { AllChars } 
+**Line structure**
 
-  statement ::= ["w:ith" set % ','] command [ "in" DatasetR  % ',' ]
+.. productionlist::
+   line: `statement` % ";" [`comment`]
+   statement: [Dataset+ ":"] [`options`] `command`
+   options: "w:ith" `set` % ","
+   comment: "#" AllChars* 
 
-  command ::= ( "def:ine" define                   |
-                "del:ete" (delete | delete_points) |
-                "e:xecute" exec                    |
-                "f:it" fit                         |
-                "g:uess" guess                     |
-                "i:nfo" info                       |
-                "p:lot" [range [range]]            |
-                "quit"                             |
-                "reset"                            |
-                "s:et" set % ','                   |
-                "sleep" numeric                    |
-                "undef:ine" Uname % ','            |
-                '!' { AllChars }                   |
-                DatasetL '<' load_arg              |
-                DatasetL '=' dataset_tr_arg        |
-                assign                             |
-                assign_func                        |
-                assign_var                         |
-                change_model                       |
-                point_tr {, point_tr}              )     
+**Commands**
 
-  define ::= Uname '(' (Lname | kwarg) % ',' ')'
-             '=' ( var_rhs |
-                   func_rhs % '+' |
-                   "x <" var_rhs '?' func_rhs ':' func_rhs
-                 )
+The kCmd* names in the comments correspond to constants in the code.
 
-  delete ::= (Varname | func_id | DatasetR) % ','
+.. productionlist::
+   command: (
+    : "debug" RestOfLine            | (*kCmdDebug*)
+    : "def:ine" `define`              | (*kCmdDefine*)
+    : "del:ete" `delete`              | (*kCmdDelete*)
+    : "del:ete" `delete_points`       | (*kCmdDeleteP*)
+    : "e:xecute" `exec`               | (*kCmdExec*)
+    : "f:it" `fit`                    | (*kCmdFit*)
+    : "g:uess" `guess`                | (*kCmdGuess*)
+    : "i:nfo" `info_arg` % "," `redir`  | (*kCmdInfo*)
+    : "p:lot" [`range` [`range`]]       | (*kCmdPlot*)
+    : "pr:int" `print` `redir`          | (*kCmdPrint*)
+    : "quit"                        | (*kCmdQuit*)
+    : "reset"                       | (*kCmdReset*)
+    : "s:et" `set` % ","              | (*kCmdSet*)
+    : "sleep" `expr`                  | (*kCmdSleep*)
+    : "title" "=" `filename`          | (*kCmdTitle*)
+    : "undef:ine" Uname % ","       | (*kCmdUndef*)
+    : "!" RestOfLine                    | (*kCmdShell*)
+    : Dataset "<" `load_arg`          | (*kCmdLoad*)
+    : Dataset "=" `dataset_tr_arg`    | (*kCmdDatasetTr*)
+    : Funcname "=" `func_rhs`         | (*kCmdNameFunc*)
+    : `param` "=" `v_expr`              | (*kCmdAssignParam*)
+    : Varname "=" `v_expr`            | (*kCmdNameVar*)
+    : `model_id` ("="|"+=") `model_rhs` | (*kCmdChangeModel*)
+    : `model_id` "-=" `func_id`         | (*also kCmdChangeModel*)
+    : (`p_attr` "[" `expr` "]" "=" `p_expr`) % "," | (*kCmdPointTr*)
+    : (`p_attr` "=" `p_expr`) % ","     | (*kCmdAllPointsTr*)
+    : "M" "=" `expr`                  | (*kCmdResizeP*)
+    : ""                            ) (*kCmdNull*)
 
-  delete_points ::= '(' point_rhs ')'
+**Other rules**
 
-  exec ::= ( filename | '!' {AllChars} )
+.. productionlist::
+   define: Uname "(" (Lname [ "=" `v_expr`]) % "," ")" "="
+         :    ( `v_expr` |
+         :      `type_inst` % "+" |
+         :      "x" "<" `v_expr` "?" `type_inst` ":" `type_inst`
+         :    )
+   delete: (Varname | `func_id` | Dataset) % ","
+   delete_points: "(" p_expr ")"
+   exec: `filename` |
+       : "!" RestOfLine
+   fit: ["+"] `Number` |
+      : "undo" |
+      : "redo" |
+      : "history" `Number` |
+      : "clear_history"
+   guess: [Funcname "="] Uname ["(" (Lname "=" `v_expr`) % "," ")"] [`range`]
+   info_arg: ...TODO
+   print: ...TODO
+   redir: [(">" | ">>") `filename`]
+   set: Lname "=" (Lname | QuotedString | `expr`)
+   param: `func_id` "." Lname |
+        : `model_id` "." Lname
+   model_rhs: "0" |
+            : `func_id` |
+            : `func_rhs` |
+            : `model_id` |
+            : "copy" "(" `model_id` ")" 
+   func_rhs: `type_inst` |
+           : "copy" "(" `func_id` ")"
+   type_inst: Uname "(" ([Lname "="] `v_expr`) % "," ")" |
+   load_arg: `filename` Lname* |
+           :   "."
+   dataset_tr_arg: [Lname] (Dataset | "0") % "+"
+   p_attr: ("X" | "Y" | "S" | "A")
+   point_lhs:  `point_attr` [ "[" expr `"]"` ]
+   model_id: [Dataset "."] ("F"|"Z")
+   func_id: Funcname |
+          : `model_id` "[" Number "]"
+   var_id: Varname |
+         : `func_id` "." Lname
+   range: "[" [`expr`|"."] ":" [`expr`|"."] "]" | "."
+   filename: QuotedString | NonblankString
 
-  fit ::= ['+'] Number |
-          "undo" |
-          "redo" |
-          "history" Number |
-          "clear_history"
+**Mathematical expressions**
 
-  guess ::= [Funcname '='] Uname ['(' kwarg % ',' ')'] [range]
+.. productionlist::
+   expr: expr_or ? expr_or : expr_or
+   expr_or: expr_and % "or"
+   expr_and: expr_not % "and"
+   expr_not: "not" expr_not | comparison
+   comparison: arith % ("<"|">"|"=="|">="|"<="|"!=")
+   arith: term % ("+"|"-")
+   term: factor % ("*"|"/")
+   factor: ('+'|'-') factor | power
+   power: atom ['**' factor]
+   atom: Number | "true" | "false" | "pi" |
+       : math_func | braced_expr | ?others?
+   math_func: "sqrt" "(" expr ")" |
+            : "gamma" "(" expr ")" |
+            :  ...
+   braced_expr: "{" [Dataset+ ":"] p_expr "}"
 
-  info ::= info_arg % ',' [('>'|">>") filename]
+The ``atom`` rule also accepts some fityk expressions, such as $variable,
+%function.parameter, %function(expr), etc.
 
-  info_arg ::= ...
+``p_expr`` and ``v_expr`` are similar to ``expr``,
+but they use additional variables in the ``atom`` rule.
 
-  set ::= Lname '=' (Lname | QuotedString | numeric)
+``p_expr`` recognizes ``n``, ``M``, ``x``, ``y``, ``s``, ``a``, ``X``, ``Y``,
+``S`` and ``A``. All of them but ``n`` and ``M`` can be indexed
+(e.g.  ``x[4]``), and any expression can be given as an index.
+Example: ``(x+x[n-1])/2``.
 
-  assign ::= model_id '.' Lname '=' var_rhs |
-             Dataset '.' "title" '=' filename
+``v_expr`` uses all unknown names (``Lname``) as variables. The tilde (``~``)
+can be used to create simple-variables.
+Only a subset of functions (``math_func``) from ``expr`` is supported.
+Examples: ``a+b*x^2``, ``~5``.
 
-  assign_var ::= var_id '=' var_rhs
+Since ``v_expr`` is used to define variables and user-defined functions,
+the program calculates symbolically derivatives of ``v_expr``.
+That is why not all the function from ``expr`` are supported
+(they may be added in the future).
 
-  assign_func ::= func_id '=' func_rhs
+**Lexer**
 
-  change_model ::= model_id ('=' | "+=") model_rhs % '+' |
-                   model_id "-=" func_id
+Below, some of the tokens produced by the lexer (a.k.a scanner or tokenizer)
+are defined.
 
-  model_rhs ::= 0 |
-                func_id |
-                func_rhs |
-                model_id |
-                "copy" '(' model_id ")" 
+In the code, there is one token for ``Dataset*`` and it is then checked
+in the parser.
 
-  func_rhs ::= Uname '(' ([Lname '='] var_rhs) % ',' ')' |
-               "copy" '(' func_id ')'
+Lexer is context-dependend: ``NonblankString`` and ``RestOfLine``
+are produced only when they are expected in the grammar.
 
-  kwarg ::= Lname '=' var_rhs
+``Uname`` is used only for type names (Gaussian)
+and pseudo-parameters (%f.Area).
 
-  load_arg ::= filename {option} | '.'
-
-  dataset_tr_arg ::= [Lname] (Dataset | 0) % '+'
-
-  point_tr ::= point_lhs '=' point_rhs
-
-  point_lhs ::= M |
-                (X | Y | S | A) [ '[' numeric ']' ]
-
-  point_rhs ::= ? Mathematical expression that may use n, M,
-                  x[], y[], s[], a[], X[], Y[], S[] and A[]
-                  variables.
-                  The reference section lists all the operators
-                  and functions that can be used.
-                ?
-
-  var_rhs ::= ? Mathematical expression that uses unknown names
-                as variables.
-                Only a subset of functions from point_rhs.
-                Supports point_rhs inside {}, e.g. {max(y) in @0}.
-                Creates variables using '~', like ~10 or ~{2+$foo}.
-              ?
-
-  numeric ::= ? point_rhs without data variables/arrays,
-                usually just a number
-              ?
-
-  (* used in math expressions, translated to numeric constant *)
-  (* example: {max(y) in @0}                                  *)
-  braced_expr ::= '{' point_rhs [ "in" DatasetR % ',' ] '}'
-
-  model_id = [Dataset '.'] ('F'|'Z')
-
-  func_id ::= Funcname |
-              model_id '[' Number ']'
-
-  var_id ::= Varname |
-             func_id '.' Lname
-
-  range ::= '[' [numeric|'.'] ':' [numeric|'.'] ']' |
-                 '.'
-  filename ::= QuotedString | { AllChars - (Whitespace | ';' | '#' ) }
-
-  Dataset ::= '@' Integer
-  DatasetL ::= Dataset | "@+"
-  DatasetR ::= Dataset | "@*"
-
-  Varname ::= '$' Lname
-  Funcname ::= '%' Lname
-
-  QuotedString ::= "'" { AllChars - "'" } "'"
-  Lname ::= (Lowercase | '_') {Lowercase | Digit | '_'}
-  (* Uname is used for type names and pseudo-parameters (%f.Area) *)
-  Uname ::= Uppercase (Alpha | Digit) {Alpha | Digit}
-
-  AllChars  ::= ? all characters ?
-  Alpha     ::= ? a-zA-Z ?
-  Lowercase ::= ? a-z ?
-  Uppercase ::= ? A-Z ?
-  Digit     ::= ? 0-9 ?
+.. productionlist::
+   Dataset: "@"(Digit+|"+"|"*")
+   Varname: "$" Lname
+   Funcname: "%" Lname
+   QuotedString: "'" (AllChars - "'")* "'"
+   Lname: (Lowercase | "_") (Lowercase | Digit | "_")*
+   Uname: Uppercase AlphaNum+
+   Number: ?number in format supported by strtod()?
+   ShellCommand: "!" AllChars*
+   NonblankString: (AllChars - (Whitespace | ";" | "#" ))*
+   RestOfLine: AllChars*
 
 
 .. _license:

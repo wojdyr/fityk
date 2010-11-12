@@ -54,15 +54,15 @@ The program comes in two versions: the GUI (Graphical User Interface)
 version - more comfortable for most users, and the CLI (Command Line
 Interface) version (named *cfityk* to differentiate).
 
-If the CLI version was compiled with the *GNU Readline Library*, command
-line editing and command history as per *bash* will be available.
-Especially useful is ``TAB``-expanding.  Data and curves fitted to data
-are visualized with *gnuplot* (if it is installed).
-
 The GUI version is written using the
 `wxWidgets <http://www.wxwidgets.org>`_
 library  and can be run on Unix species with GTK+ and on MS Windows.
 There are also people using it on MacOS X (see details :wiki:`in the wiki <MacOSX>`).
+
+If the CLI version was compiled with the *GNU Readline Library*, command
+line editing and command history as per *bash* will be available.
+Especially useful is ``TAB``-expanding.  Data and curves fitted to data
+are visualized with *gnuplot* (if it is installed, not on Windows).
 
 ..
   $Id$ 
