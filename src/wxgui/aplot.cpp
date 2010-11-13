@@ -166,9 +166,8 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
         dc.DrawLine (X0, 0, X0, pixel_height);
     }
     if (ytics_visible) {
-        View v(NULL);
-        v.set(0, 0, ys.val(pixel_height), ys.val(0));
-        draw_ytics(dc, v, !monochrome);
+        Rect rect(0, 0, ys.val(pixel_height), ys.val(0));
+        draw_ytics(dc, rect, !monochrome);
     }
 
     fp (*f)(vector<Point>::const_iterator, Model const*) = 0;

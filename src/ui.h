@@ -15,6 +15,8 @@ class wxString;
 struct NumberedLine;
 class Data;
 class Ftk;
+class Parser;
+class Runner;
 
 /// used for storing commands and logging commands to file
 class Commands
@@ -42,10 +44,6 @@ public:
     void stop_logging();
     std::string get_log_file() const { return log_filename; }
     bool get_log_with_output() const { return log_with_output; }
-
-    // Calls Parser::parse_statement() and Runner::execute_statement(),
-    // catches exceptions and returns status.
-    Commands::Status parse_and_execute_line(Ftk* F, const std::string& str);
 
   private:
     int command_counter; //!=cmds.size() if max_cmd was exceeded
@@ -78,10 +76,8 @@ public:
     /// it's used to disable all messages
     bool keep_quiet;
 
-    UserInterface(Ftk* F_)
-        : keep_quiet(false), F(F_), show_message_(NULL), do_draw_plot_(NULL),
-          exec_command_(NULL), refresh_(NULL), compute_ui_(NULL), wait_(NULL)
-    {}
+    UserInterface(Ftk* F);
+    ~UserInterface();
 
     /// Update plot if pri<=auto_plot.   If !now, update can be delayed
     void draw_plot(int pri, RepaintMode mode);
@@ -90,9 +86,9 @@ public:
     void output_message (Style style, std::string const &s) const;
 
     void start_log (std::string const &filename, bool with_output)
-                    { commands.start_logging(filename, with_output, F); }
-    void stop_log() { commands.stop_logging(); }
-    Commands const& get_commands() const { return commands; }
+                    { commands_.start_logging(filename, with_output, F_); }
+    void stop_log() { commands_.stop_logging(); }
+    Commands const& get_commands() const { return commands_; }
 
     /// Excute commands from file, i.e. run a script (.fit).
     void exec_script (std::string const &filename);
@@ -101,7 +97,13 @@ public:
     void exec_string_as_script(const char* s);
 
     Commands::Status exec_and_log(std::string const &c);
-    //int get_verbosity() const { return F->get_verbosity(); }
+
+    // Calls Parser::parse_statement() and Runner::execute_statement(),
+    // catches exceptions and returns status.
+    Commands::Status execute_line(const std::string& str);
+
+    /// return true if the syntax is correct
+    bool check_syntax(std::string const& str);
 
 
     void process_cmd_line_filename(std::string const& par);
@@ -132,14 +134,16 @@ public:
     void wait(float seconds) { if (wait_) (*wait_)(seconds); }
 
 private:
-    Ftk* F;
+    Ftk* F_;
     t_show_message *show_message_;
     t_do_draw_plot *do_draw_plot_;
     t_exec_command *exec_command_;
     t_refresh *refresh_;
     t_compute_ui *compute_ui_;
     t_wait *wait_;
-    Commands commands;
+    Commands commands_;
+    Parser *parser_;
+    Runner *runner_;
 
     UserInterface (UserInterface const&); //disable
     UserInterface& operator= (UserInterface const&); //disable

@@ -171,40 +171,62 @@ void Commands::stop_logging()
 }
 
 
+
+UserInterface::UserInterface(Ftk* F)
+        : keep_quiet(false), F_(F), show_message_(NULL), do_draw_plot_(NULL),
+          exec_command_(NULL), refresh_(NULL), compute_ui_(NULL), wait_(NULL)
+{
+    parser_ = new Parser(F);
+    runner_ = new Runner(F);
+}
+
+UserInterface::~UserInterface()
+{
+    delete parser_;
+    delete runner_;
+}
+
 Commands::Status UserInterface::exec_and_log(string const &c)
 {
     Commands::Status r = this->exec_command(c);
-    commands.put_command(c, r);
+    commands_.put_command(c, r);
     return r;
 }
 
-Commands::Status Commands::parse_and_execute_line(Ftk* F, const string& str)
+Commands::Status UserInterface::execute_line(const string& str)
 {
-    Parser parser(F);
-    Runner runner(F);
     try {
         Lexer lex(str.c_str());
-        while (parser.parse_statement(lex))
-            runner.execute_statement(parser.get_statement());
-    } catch (fityk::SyntaxError &e) {
-        //F_->warn(string("Syntax error. ") + e.what());
+        while (parser_->parse_statement(lex))
+            runner_->execute_statement(parser_->get_statement());
+    }
+    catch (fityk::SyntaxError &e) {
+        F_->warn(string("Syntax error: ") + e.what());
         return Commands::kStatusSyntaxError;
     }
     catch (ExecuteError &e) {
-        //F_->warn(string("Error: ") + e.what());
+        F_->warn(string("Error: ") + e.what());
         return Commands::kStatusExecuteError;
     }
+
+    if (F_->is_plot_outdated())
+        draw_plot(2, UserInterface::kRepaint);
+
     return Commands::kStatusOk;
 }
 
+bool UserInterface::check_syntax(string const& str)
+{
+    return parser_->check_syntax(str);
+}
 
 void UserInterface::output_message(Style style, const string& s) const
 {
     if (keep_quiet)
         return;
     show_message(style, s);
-    commands.put_output_message(s);
-    if (style == kWarning && F->get_settings()->get_b("exit_on_warning")) {
+    commands_.put_output_message(s);
+    if (style == kWarning && F_->get_settings()->get_b("exit_on_warning")) {
         show_message(kNormal, "Warning -> exiting program.");
         throw ExitRequestedException();
     }
@@ -216,7 +238,7 @@ void UserInterface::exec_script(const string& filename)
     user_interrupt = false;
     ifstream file(filename.c_str(), ios::in);
     if (!file) {
-        F->warn("Can't open file: " + filename);
+        F_->warn("Can't open file: " + filename);
         return;
     }
 
@@ -230,7 +252,7 @@ void UserInterface::exec_script(const string& filename)
         ++line_index;
         if (s.empty())
             continue;
-        if (F->get_verbosity() >= 0)
+        if (F_->get_verbosity() >= 0)
             show_message (kQuoted, S(line_index) + "> " + s);
 
         // optimize reading data lines like this:
@@ -241,9 +263,9 @@ void UserInterface::exec_script(const string& filename)
             if (sscanf(s.c_str(),
                        "X[%d]=%lf, Y[%d]=%lf, S[%d]=%lf, A[%d]=%d in @%d",
                        &nx, &x, &ny, &y, &ns, &sigma, &na, &a, &nd) == 9
-                 && nx >= 0 && nx < size(F->get_data(nd)->points())
+                 && nx >= 0 && nx < size(F_->get_data(nd)->points())
                  && nx == ny && nx == ns && nx == na) {
-                vector<Point>& p = F->get_data(nd)->get_mutable_points();
+                vector<Point>& p = F_->get_data(nd)->get_mutable_points();
                 p[nx].x = x;
                 p[ny].y = y;
                 p[ns].sigma = sigma;
@@ -253,20 +275,20 @@ void UserInterface::exec_script(const string& filename)
                     || (nx+1 < size(p) && x > p[nx+1].x))
                     sort(p.begin(), p.end());
                 if (dirty_data != -1 && dirty_data != nd)
-                    F->get_data(dirty_data)->after_transform();
+                    F_->get_data(dirty_data)->after_transform();
                 dirty_data = nd;
                 continue;
             }
         }
         if (dirty_data != -1) {
-            F->get_data(dirty_data)->after_transform();
+            F_->get_data(dirty_data)->after_transform();
             dirty_data = -1;
         }
         replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);
-        parse_and_execute(s);
+        execute_line(s);
 
         if (user_interrupt) {
-            F->msg ("Script stopped by signal INT.");
+            F_->msg ("Script stopped by signal INT.");
             return;
         }
     }
@@ -278,9 +300,9 @@ void UserInterface::exec_stream(FILE *fp)
     char *line;
     while ((line = reader.next()) != NULL) {
         string s = line;
-        if (F->get_verbosity() >= 0)
+        if (F_->get_verbosity() >= 0)
             show_message (kQuoted, "> " + s);
-        parse_and_execute(s);
+        execute_line(s);
     }
 }
 
@@ -288,34 +310,35 @@ void UserInterface::exec_string_as_script(const char* s)
 {
     const char* start = s;
     for (;;) {
-        const char* new_line = strchr(start, '\n');
-        const char* end = (new_line != NULL ? new_line : start + strlen(start));
+        const char* end = start;
+        while (*end != '\0' && *end != '\n')
+            ++end;
         while (isspace(*(end-1)) && end > start)
             --end;
         if (end > start) { // skip blank lines
             string line(start, end);
-            if (F->get_verbosity() >= 0)
+            if (F_->get_verbosity() >= 0)
                 show_message (kQuoted, "> " + line);
-            parse_and_execute(line);
+            execute_line(line);
         }
-        if (new_line == NULL)
+        if (*end == '\0')
             break;
-        start = new_line + 1;
+        start = end + 1;
     }
 }
 
 void UserInterface::draw_plot(int pri, RepaintMode mode)
 {
-    if (pri <= F->get_settings()->get_autoplot()) {
+    if (pri <= F_->get_settings()->get_autoplot()) {
         do_draw_plot(mode);
-        F->updated_plot();
+        F_->updated_plot();
     }
 }
 
 
 Commands::Status UserInterface::exec_command(std::string const &s)
 {
-    return exec_command_ ? (*exec_command_)(s) : parse_and_execute(s);
+    return exec_command_ ? (*exec_command_)(s) : execute_line(s);
 }
 
 bool is_fityk_script(string filename)

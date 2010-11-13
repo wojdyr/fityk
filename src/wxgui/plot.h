@@ -19,7 +19,7 @@
 
 class Model;
 class Data;
-class View;
+class Rect;
 
 enum MouseActEnum  { mat_start, mat_stop, mat_move, mat_redraw };
 
@@ -130,8 +130,8 @@ protected:
     void draw_inverted_line(int X, wxPenStyle style, LineOrientation orient);
     void start_line_following_cursor(int X0, LineOrientation orient);
     bool line_following_cursor(MouseActEnum ma, int X=0);
-    void draw_xtics (wxDC& dc, View const& v, bool set_pen=true);
-    void draw_ytics (wxDC& dc, View const &v, bool set_pen=true);
+    void draw_xtics (wxDC& dc, Rect const& v, bool set_pen=true);
+    void draw_ytics (wxDC& dc, Rect const &v, bool set_pen=true);
     double get_max_abs_y(double (*compute_y)(std::vector<Point>::const_iterator,
                                              Model const*),
                          std::vector<Point>::const_iterator first,

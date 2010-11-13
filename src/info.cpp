@@ -126,9 +126,8 @@ void info_history(Ftk const* F, const Token& t1, const Token& t2,
         result += cmds[i].str() + "\n";
 }
 
-RealRange args2range(const Token& t1, const Token& t2)
+void args2range(const Token& t1, const Token& t2, RealRange &range)
 {
-    RealRange range;
     if (t1.type == kTokenExpr) {
         range.from = RealRange::kNumber;
         range.from_val = t1.value.d;
@@ -141,7 +140,6 @@ RealRange args2range(const Token& t1, const Token& t2)
     }
     else
         range.to = RealRange::kInf;
-    return range;
 }
 
 int eval_info_args(const Ftk* F, int ds, const vector<Token>& args,
@@ -226,7 +224,8 @@ int eval_info_args(const Ftk* F, int ds, const vector<Token>& args,
                 n += 2;
             }
             else if (word == "guess") {
-                RealRange range = args2range(args[n+1], args[n+2]);
+                RealRange range;
+                args2range(args[n+1], args[n+2], range);
                 Guess(F, F->get_dm(ds)).get_guess_info(range, result);
                 n += 2;
             }

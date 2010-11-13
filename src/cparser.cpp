@@ -47,25 +47,25 @@ const char* commandtype2str(CommandType c)
         case kCmdGuess:   return "Guess";
         case kCmdInfo:    return "Info";
         case kCmdPlot:    return "Plot";
+        case kCmdQuit:    return "Quit";
         case kCmdReset:   return "Reset";
         case kCmdSet:     return "Set";
         case kCmdSleep:   return "Sleep";
+        case kCmdTitle:   return "Title";
         case kCmdUndef:   return "Undef";
-        case kCmdQuit:    return "Quit";
         case kCmdShell:   return "Shell";
         case kCmdLoad:    return "Load";
         case kCmdDatasetTr: return "DatasetTr";
         case kCmdNameFunc: return "NameFunc";
         case kCmdAssignParam: return "AssignParam";
         case kCmdNameVar: return "NameVar";
-        case kCmdTitle:   return "Title";
         case kCmdChangeModel: return "ChangeModel";
         case kCmdPointTr: return "PointTr";
         case kCmdAllPointsTr: return "AllPointsTr";
         case kCmdResizeP: return "ResizeP";
         case kCmdNull:    return "Null";
-        default: return NULL; // avoid warning
     }
+    return NULL; // avoid warning
 }
 
 // returns true if the command syntax ends with (optional) "in @n"
@@ -389,6 +389,7 @@ void parse_delete_args(Lexer& lex, vector<Token>& args)
         if (t.type != kTokenDataset && t.type != kTokenFuncname
                 && t.type != kTokenVarname)
             lex.throw_syntax_error("unexpected arg after `delete'");
+        // TODO: allow "delete %pd*".
         args.push_back(t);
         if (lex.peek_token().type == kTokenComma)
             lex.get_token();
@@ -399,8 +400,10 @@ void parse_delete_args(Lexer& lex, vector<Token>& args)
 
 void parse_exec_args(Lexer& lex, vector<Token>& args)
 {
-    if (lex.peek_token().type == kTokenShell)
-        args.push_back(lex.get_token());
+    if (lex.peek_token().type == kTokenBang) {
+        lex.get_token(); // discard '!'
+        args.push_back(lex.get_rest_of_line());
+    }
     else
         args.push_back(lex.get_filename_token());
 }
@@ -423,11 +426,15 @@ void parse_fit_args(Lexer& lex, vector<Token>& args)
     else if (t.type == kTokenPlus) {
         args.push_back(t);
         args.push_back(lex.get_expected_token(kTokenNumber));
+        if (lex.peek_token().type == kTokenDataset)
+            throw ExecuteError("No need to specify datasets to continue fit.");
     }
     else if (t.type == kTokenNumber) {
         args.push_back(t);
+        while (lex.peek_token().type == kTokenDataset)
+            args.push_back(lex.get_token());
     }
-    else
+    else // no args
         lex.go_back(t);
 }
 
@@ -724,6 +731,10 @@ void Parser::parse_command(Lexer& lex)
             parse_real_range(lex, s.args);
             parse_real_range(lex, s.args);
         }
+        else if (is_command(token, "quit","")) {
+            s.cmd = kCmdQuit;
+            // no args
+        }
         else if (is_command(token, "s","et")) {
             s.cmd = kCmdSet;
             parse_set_args(lex, s.args);
@@ -731,10 +742,6 @@ void Parser::parse_command(Lexer& lex)
         else if (is_command(token, "undef","ine")) {
             s.cmd = kCmdUndef;
             parse_undefine_args(lex, s.args);
-        }
-        else if (is_command(token, "quit","")) {
-            s.cmd = kCmdQuit;
-            // no args
         }
         else if (is_command(token, "reset","")) {
             s.cmd = kCmdReset;
@@ -744,6 +751,12 @@ void Parser::parse_command(Lexer& lex)
             s.cmd = kCmdSleep;
             Token value = read_and_calc_expr(lex);
             s.args.push_back(value);
+        }
+        else if (is_command(token, "title","")) {
+            // [@n:] "title" '='
+            s.cmd = kCmdTitle;
+            lex.get_expected_token(kTokenAssign); // discard '='
+            s.args.push_back(lex.get_filename_token());
         }
     }
     else if (token.type == kTokenUletter) {
@@ -800,9 +813,9 @@ void Parser::parse_command(Lexer& lex)
         else
             lex.throw_syntax_error("unknown name: " + token.as_string());
     }
-    else if (token.type == kTokenShell) {
+    else if (token.type == kTokenBang) {
         s.cmd = kCmdShell;
-        s.args.push_back(token);
+        s.args.push_back(lex.get_rest_of_line());
     }
     // $var=...
     else if (token.type == kTokenVarname &&
@@ -834,20 +847,13 @@ void Parser::parse_command(Lexer& lex)
         s.args.push_back(token); // dataset
         lex.get_token(); // discard '.'
         string arg = lex.peek_token().as_string();
-        if (arg == "title") {
-            // Dataset '.' "title" '='
-            s.cmd = kCmdTitle;
-            lex.get_token(); // discard "title"
-            lex.get_expected_token(kTokenAssign); // discard '='
-            s.args.push_back(lex.get_filename_token());
-        }
-        else if (arg == "F" || arg == "Z") {
+        if (arg == "F" || arg == "Z") {
             s.args.push_back(token); // dataset
             s.args.push_back(lex.get_token()); // F/Z
             parse_fz(lex, s);
         }
         else
-            lex.throw_syntax_error("@n. must be followed by F, Z or title");
+            lex.throw_syntax_error("@n. must be followed by F or Z");
     }
     else if (token.type == kTokenDataset &&
              lex.peek_token().type == kTokenLT) {
@@ -868,7 +874,7 @@ void Parser::parse_command(Lexer& lex)
     }
 }
 
-bool Parser::check_command_syntax(const string& str)
+bool Parser::check_syntax(const string& str)
 {
     try {
         Lexer lex(str.c_str());

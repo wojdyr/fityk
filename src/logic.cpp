@@ -20,6 +20,7 @@
 #include "mgr.h"
 #include "func.h"
 #include "udf.h"
+#include "lexer.h" // Lexer::kNew
 
 using namespace std;
 
@@ -40,23 +41,23 @@ Ftk::Ftk()
 {
     // reading numbers won't work with decimal points different than '.'
     setlocale(LC_NUMERIC, "C");
-    ui = new UserInterface(this);
+    ui_ = new UserInterface(this);
     initialize();
-    AL = this;
+    //AL = this;
 }
 
 Ftk::~Ftk()
 {
     destroy();
-    delete ui;
+    delete ui_;
 }
 
 // initializations common for ctor and reset()
 void Ftk::initialize()
 {
-    fit_container = new FitMethodsContainer(this);
+    fit_container_ = new FitMethodsContainer(this);
     // Settings ctor is using FitMethodsContainer
-    settings = new Settings(this);
+    settings_ = new Settings(this);
     view = View(this);
     dirty_plot_ = true;
     append_dm();
@@ -67,10 +68,10 @@ void Ftk::initialize()
 // cleaning common for dtor and reset()
 void Ftk::destroy()
 {
-    purge_all_elements(dms);
+    purge_all_elements(dms_);
     VariableManager::do_reset();
-    delete fit_container;
-    delete settings;
+    delete fit_container_;
+    delete settings_;
 }
 
 // reset everything but UserInterface (and related settings)
@@ -79,27 +80,27 @@ void Ftk::reset()
     string verbosity = get_settings()->getp("verbosity");
     string autoplot = get_settings()->getp("autoplot");
     destroy();
-    ui->keep_quiet = true;
+    ui_->keep_quiet = true;
     initialize();
     get_settings()->setp("verbosity", verbosity);
     get_settings()->setp("autoplot", autoplot);
-    ui->keep_quiet = false;
+    ui_->keep_quiet = false;
 }
 
 int Ftk::append_dm(Data *data)
 {
     DataAndModel* dm = new DataAndModel(this, data);
-    dms.push_back(dm);
-    return dms.size() - 1;
+    dms_.push_back(dm);
+    return dms_.size() - 1;
 }
 
 void Ftk::remove_dm(int d)
 {
-    if (d < 0 || d >= size(dms))
+    if (d < 0 || d >= size(dms_))
         throw ExecuteError("there is no such dataset: @" + S(d));
-    delete dms[d];
-    dms.erase(dms.begin() + d);
-    if (dms.empty())
+    delete dms_[d];
+    dms_.erase(dms_.begin() + d);
+    if (dms_.empty())
         append_dm();
 }
 
@@ -280,147 +281,6 @@ int atoi_all(string const& s)
     return n;
 }
 
-// TODO finish and use this class for parsing ranges,
-// instead of parse_int_range()
-#if 0
-
-// Represents ordered set of uints.
-// Can be specified as a set of numbers and ranges, e.g. string "0,2..5,3,..9".
-// If length is specified, upper limit can be omitted and negative numbers
-// can be given as they were counted from the end (-1 means the last one,
-// -2 is length-2, etc.). The range runs from the start to the end inclusively.
-// Should be accessed as iterator, using first() and next().
-// example:
-//    IndexRanges r("3..-2");
-//    if (r.need
-class IndexRanges
-{
-public:
-    static const char sep;
-    static const char* dots;
-    //static bool check_syntax();
-
-    IndexRanges(string const& s) : length_(-1) { set_from_string(s.c_str()); }
-    // true if the string contains negative numbers; in this case calling
-    // set_length() is required before calling get_first().
-    bool needs_length() const { return needs_length_; }
-    // The length will be added to all negative values (i.e. -2 -> length-2).
-    // It is not checked if indices are in range <0, length).
-    bool set_length(int length);
-
-    // true if it was initialized with valid string
-    bool ok() const { return !ranges_.empty(); }
-
-    // Get first index. Can be called many times.
-    int get_first();
-    // get next index; return -1 if all indices were returned
-    int get_next();
-    string str() const;
-
-private:
-    vector<pair<int,int> > ranges_;
-    bool needs_length_;
-    int length_;
-    vector<pair<int,int> >::const_iterator cur_pair_;
-    int cur_offset_;
-
-    void set_from_string(const char* s);
-    int calc(int n) { return n >= 0 ? n : n + length_; }
-};
-
-const char IndexRanges::sep = ',';
-const char* IndexRanges::dots = "..";
-
-bool IndexRanges::check_syntax()
-{
-    TODO
-}
-
-void IndexRanges::set_from_string(const char* s)
-{
-    if (s == NULL || *s == '\0')
-        return;
-
-    needs_length_ = false;
-    const char *a = s;
-    while (a != NULL) {
-        char *endptr;
-        // if there are no digits, strtol returns 0, thats what we need
-        int lo = strtol(a, &endptr, 10);
-        int hi = lo;
-        if (strncmp(endptr, dots, strlen(dots)) == 0) {
-            a = endptr + strlen(dots);
-            hi = strtol(a, &endptr, 10);
-            if (endptr == a)
-                hi = -1;
-        }
-        while (isspace(*endptr))
-            ++endptr;
-        if (*endptr == sep || *endptr == '\0')
-            a = endptr;
-        else { // error
-            ranges_.clear();
-            return;
-        }
-        if (lo < 0 || hi < 0)
-            needs_length_ = true;
-        if (lo <= hi || (lo >= 0 && hi < 0)) // non-empty range
-            ranges_.push_back(make_pair(lo, hi));
-    }
-
-    // this is used as a flag, -1 means that first() was not called
-    cur_offset_ = -1;
-}
-
-bool IndexRanges::set_length(int length)
-{
-    length_ = length;
-}
-
-int IndexRanges::get_first()
-{
-    if (!ok() || (needs_length_ && length_ <= 0))
-        return -1;
-    cur_pair_ = ranges_.begin();
-    cur_offset_ = 0;
-    return calc(cur_pair_->first);
-}
-
-int IndexRanges::get_next()
-{
-    assert(cur_offset_ >= 0);
-
-    if (calc(cur_pair_->first) + cur_offset_ < calc(cur_pair_->second)) {
-        ++cur_offset_;
-        return calc(cur_pair_->first) + cur_offset_;
-    }
-    else if (cur_pair_ + 1 != ranges_.end()) {
-        ++cur_pair_;
-        cur_offset_ = 0;
-        return calc(cur_pair_->first);
-    }
-    else
-        return -1;
-}
-
-string IndexRanges::str() const
-{
-    string s;
-    for (vector<pair<int,int> >::const_iterator i = ranges_.begin();
-                                                    i != ranges_.end(); ++i) {
-        if (i != ranges_.begin())
-            s += sep;
-        if (i->first == i->second)
-            s += S(i->first);
-        else {
-            s += S(i->first) + dots;
-            if (i->second != -1)
-                s += S(i->second);
-        }
-    }
-    return s;
-}
-#endif
 
 // e.g.: "1,3..5,7" -> 1,3,4,5,7
 //       "4"        -> 4
@@ -461,7 +321,7 @@ vector<int> parse_int_range(string const& s, int maximum)
 void Ftk::import_dataset(int slot, string const& filename,
                          string const& format, string const& options)
 {
-    const int new_dataset = -1;
+    const bool new_dataset = (slot == Lexer::kNew);
 
     // split "filename" (e.g. "foo.dat:1:2,3::") into real filename
     // and colon-separated indices
@@ -508,7 +368,7 @@ void Ftk::import_dataset(int slot, string const& filename,
         throw ExecuteError("Only one column x can be specified");
     if (indices[2].size() > 1)
         throw ExecuteError("Only one column sigma can be specified");
-    if (indices[1].size() > 1 && slot != new_dataset)
+    if (indices[1].size() > 1 && !new_dataset)
         throw ExecuteError("Multiple y columns can be specified only with @+");
 
     int idx_x = indices[0].empty() ?  INT_MAX : indices[0][0];
@@ -517,8 +377,7 @@ void Ftk::import_dataset(int slot, string const& filename,
     int idx_s = indices[2].empty() ? INT_MAX : indices[2][0];
 
     for (size_t i = 0; i < indices[1].size(); ++i) {
-        if (slot == new_dataset
-            && (get_dm_count() != 1 || get_dm(0)->has_any_info())) {
+        if (new_dataset && (get_dm_count() != 1 || get_dm(0)->has_any_info())) {
             // load data into new slot
             auto_ptr<Data> data(new Data(this));
             data->load_file(fn, idx_x, indices[1][i], idx_s,
@@ -526,25 +385,27 @@ void Ftk::import_dataset(int slot, string const& filename,
             append_dm(data.release());
         }
         else {
-            // if slot == new_dataset and there is only one dataset,
-            // then get_data(slot) will point to this single slot
-            get_data(slot)->load_file(fn, idx_x, indices[1][i], idx_s,
-                                      block_range, format, options);
+            // if new_dataset is true, there is only one dataset
+            int n = new_dataset ? 0 : slot;
+            get_data(n)->load_file(fn, idx_x, indices[1][i], idx_s,
+                                   block_range, format, options);
         }
     }
 
-    if (get_dm_count() == 1)
-        view.fit_zoom();
+    if (get_dm_count() == 1) {
+        RealRange r; // default value: [:]
+        view.fit_zoom(r, r);
+    }
 }
 
 void Ftk::outdated_plot()
 {
     dirty_plot_ = true;
-    fit_container->outdated_error_cache();
+    fit_container_->outdated_error_cache();
 }
 
 // the use of this global variable in libfityk will be eliminated,
 // because it's not thread safe.
-Ftk* AL = 0;
+//Ftk* AL = 0;
 
 

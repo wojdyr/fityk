@@ -11,6 +11,31 @@
 #include "common.h"
 #include "data.h" //Point
 
+inline
+fp get_transform_expression_value(std::string const &s, Data const* data)
+{ return 0; }
+
+// wxgui/statbar.cpp
+inline
+fp get_value_for_point(std::vector<int> const& /*code_*/,
+                       std::vector<fp> const& /*numbers_*/, fp /*x*/, fp /*y*/)
+{ return 0; }
+
+inline
+bool get_dt_code(std::string const& /*s*/,
+                 std::vector<int>& /*code_*/, std::vector<fp>& /*numbers_*/)
+{ return false; }
+
+// wxgui/dataedit.cpp
+inline
+bool compile_data_transformation(std::string const& str) { return false; }
+
+// wxgui/dialogs.cpp DataExportDlg::OnTextChanged
+inline
+bool compile_data_expression(std::string const& str) { return false; }
+
+/*
+
 using namespace boost::spirit::classic;
 
 class Data;
@@ -40,7 +65,7 @@ struct DataExpressionGrammar : public grammar<DataExpressionGrammar>
   template <typename ScannerT>
   struct definition
   {
-    definition(DataExpressionGrammar const& /*self*/);
+    definition(DataExpressionGrammar const& self);
 
     rule<ScannerT> rprec1, rbool_or, rbool_and, rbool_not, rbool,
                    rprec2, rprec3, rprec4, rprec5;
@@ -57,7 +82,7 @@ struct DataTransformGrammar : public grammar<DataTransformGrammar>
   template <typename ScannerT>
   struct definition
   {
-    definition(DataTransformGrammar const& /*self*/);
+    definition(DataTransformGrammar const& self);
 
     rule<ScannerT> assignment, statement, range;
 
@@ -68,6 +93,7 @@ struct DataTransformGrammar : public grammar<DataTransformGrammar>
 extern DataTransformGrammar DataTransformG;
 
 
+*/
 
 
 #endif

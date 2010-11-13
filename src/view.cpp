@@ -28,8 +28,7 @@ string View::str() const
     return string(buffer);
 }
 
-
-void View::fit_zoom(int flag)
+void View::fit_zoom(const RealRange& hor, const RealRange& ver)
 {
     assert(!datasets_.empty());
 
@@ -43,7 +42,7 @@ void View::fit_zoom(int flag)
     for (size_t i = 1; i < datasets_.size(); ++i)
         datas[i] = F->get_dm(datasets_[i])->data();
 
-    if (flag&fit_left || flag&fit_right) {
+    if (hor.from == RealRange::kInf || hor.to == RealRange::kInf) {
         fp x_min=0, x_max=0;
         get_x_range(datas, x_min, x_max);
         if (x_min == x_max) {
@@ -54,21 +53,21 @@ void View::fit_zoom(int flag)
             x_min = max(epsilon, x_min);
             x_max = max(epsilon, x_max);
             fp margin = log(x_max / x_min) * relative_x_margin;
-            if (flag&fit_left)
+            if (hor.from == RealRange::kInf)
                 left = exp(log(x_min) - margin);
-            if (flag&fit_right)
+            if (hor.to == RealRange::kInf)
                 right = exp(log(x_max) + margin);
         }
         else {
             fp margin = (x_max - x_min) * relative_x_margin;
-            if (flag&fit_left)
+            if (hor.from == RealRange::kInf)
                 left = x_min - margin;
-            if (flag&fit_right)
+            if (hor.to == RealRange::kInf)
                 right = x_max + margin;
         }
     }
 
-    if (flag&fit_top || flag&fit_bottom) {
+    if (ver.from == RealRange::kInf || ver.to == RealRange::kInf) {
         fp y_min=0, y_max=0;
         get_y_range(datas, models, y_min, y_max);
         if (y_min == y_max) {
@@ -79,16 +78,16 @@ void View::fit_zoom(int flag)
             y_min = max(epsilon, y_min);
             y_max = max(epsilon, y_max);
             fp margin = log(y_max / y_min) * relative_y_margin;
-            if (flag&fit_bottom)
+            if (ver.from == RealRange::kInf)
                 bottom = exp(log(y_min) - margin);
-            if (flag&fit_top)
+            if (ver.to == RealRange::kInf)
                 top = exp(log(y_max) + margin);
         }
         else {
             fp margin = (y_max - y_min) * relative_y_margin;
-            if (flag&fit_bottom)
+            if (ver.from == RealRange::kInf)
                 bottom = y_min - margin;
-            if (flag&fit_top)
+            if (ver.to == RealRange::kInf)
                 top = y_max + margin;
         }
     }
@@ -174,55 +173,24 @@ void View::get_y_range(vector<Data const*> datas, vector<Model const*> models,
 }
 
 
-void View::parse_and_set(std::vector<std::string> const& lrbt,
-                         vector<int> const& dd)
+void View::parse_and_set(const RealRange& hor, const RealRange& ver,
+                         const vector<int>& dd)
 {
-    assert(lrbt.size() == 4);
-    string const &left = lrbt[0];
-    string const &right = lrbt[1];
-    string const &bottom = lrbt[2];
-    string const &top = lrbt[3];
-    fp l=0., r=0., b=0., t=0.;
-    int flag = 0;
-    if (left.empty())
-        flag |= fit_left;
-    else if (left != ".") {
-        flag |= change_left;
-        l = strtod(left.c_str(), 0);
-    }
-    if (right.empty())
-        flag |= fit_right;
-    else if (right != ".") {
-        flag |= change_right;
-        r = strtod(right.c_str(), 0);
-    }
-    if (bottom.empty())
-        flag |= fit_bottom;
-    else if (bottom != ".") {
-        flag |= change_bottom;
-        b = strtod(bottom.c_str(), 0);
-    }
-    if (top.empty())
-        flag |= fit_top;
-    else if (top != ".") {
-        flag |= change_top;
-        t = strtod(top.c_str(), 0);
-    }
-    set(l, r, b, t, flag);
+    set_bounds(hor, ver);
     set_datasets(dd);
-    fit_zoom(flag);
+    fit_zoom(hor, ver);
 }
 
 
-void View::set(fp l, fp r, fp b, fp t, int flag)
+void View::set_bounds(const RealRange& hor, const RealRange& ver)
 {
-    if (flag & change_left)
-        left = l;
-    if (flag & change_right)
-        right = r;
-    if (flag & change_top)
-        top = t;
-    if (flag & change_bottom)
-        bottom = b;
+    if (hor.from == RealRange::kNumber)
+        left = hor.from_val;
+    if (hor.to == RealRange::kNumber)
+        right = hor.to_val;
+    if (ver.from == RealRange::kNumber)
+        bottom = ver.from_val;
+    if (ver.to == RealRange::kNumber)
+        top = ver.to_val;
 }
 

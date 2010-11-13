@@ -10,15 +10,7 @@ enum FunctionKind { fk_peak, fk_linear /*, fk_step*/, fk_unknown };
 class DataAndModel;
 class Ftk;
 class Data;
-
-// used for "info guess" now,
-// TODO: use it in all places where real-number range is passed
-struct RealRange
-{
-    enum What { kNone, kInf, kNumber };
-    What from, to;
-    fp from_val, to_val;
-};
+struct RealRange;
 
 /// guessing initial parameters of functions
 class Guess

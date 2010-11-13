@@ -97,30 +97,21 @@ std::string Point::str() const { return "(" + S(x) + "; " + S(y) + "; " +
 Fityk::Fityk()
     : throws_(true)
 {
-    if (AL != 0)
-        throw ExecuteError("Program is not thread-safe yet, "
-                            "so you can only have one Fityk instance.");
     ftk_ = new Ftk;
-    AL = ftk_;
 }
 
 Fityk::~Fityk()
 {
     delete ftk_;
-    AL = 0;
 }
 
 void Fityk::execute(string const& s)  throw(SyntaxError, ExecuteError,
                                             ExitRequestedException)
 {
     try {
-        bool r = parse_and_execute_e(s);
-        if (!r) {
-            last_error_ = "SyntaxError";
-            if (throws_)
-                throw SyntaxError();
-        }
+        ftk_->get_ui()->execute_line(s);
     }
+    CATCH_SYNTAX_ERROR
     CATCH_EXECUTE_ERROR
 }
 

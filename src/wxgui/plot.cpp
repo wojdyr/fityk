@@ -152,7 +152,7 @@ void draw_line_with_style(wxDC& dc, wxPenStyle style,
 }
 
 /// draw x axis tics
-void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
+void FPlot::draw_xtics (wxDC& dc, Rect const &v, bool set_pen)
 {
     if (set_pen) {
         dc.SetPen(wxPen(xAxisCol, pen_width));
@@ -196,7 +196,7 @@ void FPlot::draw_xtics (wxDC& dc, View const &v, bool set_pen)
 }
 
 /// draw y axis tics
-void FPlot::draw_ytics (wxDC& dc, View const &v, bool set_pen)
+void FPlot::draw_ytics (wxDC& dc, Rect const &v, bool set_pen)
 {
     if (set_pen) {
         dc.SetPen(wxPen(xAxisCol, pen_width));
@@ -381,7 +381,7 @@ void FPlot::change_tics_font()
 
 void FPlot::set_scale(int pixel_width, int pixel_height)
 {
-    View const &v = ftk->view;
+    Rect const &v = ftk->view;
     if (pixel_width > 0)
 	xs.set(v.left, v.right, pixel_width);
     if (pixel_height > 0)

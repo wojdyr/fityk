@@ -55,11 +55,11 @@ public:
     int append_dm(Data *data=0);
     void remove_dm(int d);
 
-    std::vector<DataAndModel*> const& get_dms() const { return dms; }
-    int get_dm_count() const { return dms.size(); }
+    std::vector<DataAndModel*> const& get_dms() const { return dms_; }
+    int get_dm_count() const { return dms_.size(); }
 
-    DataAndModel* get_dm(int n) { return dms[check_dm_number(n)]; }
-    DataAndModel const* get_dm(int n) const { return dms[check_dm_number(n)]; }
+    DataAndModel* get_dm(int n) { return dms_[check_dm_number(n)]; }
+    DataAndModel const* get_dm(int n) const { return dms_[check_dm_number(n)]; }
 
     Data const* get_data(int n) const { return get_dm(n)->data(); }
     Data *get_data(int n) { return get_dm(n)->data(); }
@@ -68,19 +68,20 @@ public:
     Model *get_model(int n)   { return get_dm(n)->model(); }
 
     bool contains_dm(DataAndModel const* p) const
-                      { return count(dms.begin(), dms.end(), p) > 0; }
+                      { return count(dms_.begin(), dms_.end(), p) > 0; }
 
     std::string find_function_name(std::string const &fstr) const;
     const Function* find_function_any(std::string const &fstr) const;
 
-    Settings const* get_settings() const { return settings; }
-    Settings* get_settings() { return settings; }
+    Settings const* get_settings() const { return settings_; }
+    Settings* get_settings() { return settings_; }
 
-    UserInterface const* get_ui() const { return ui; }
-    UserInterface* get_ui() { return ui; }
+    UserInterface const* get_ui() const { return ui_; }
+    UserInterface* get_ui() { return ui_; }
 
-    FitMethodsContainer const* get_fit_container() const {return fit_container;}
-    FitMethodsContainer* get_fit_container() { return fit_container; }
+    FitMethodsContainer const* get_fit_container() const
+        { return fit_container_; }
+    FitMethodsContainer* get_fit_container() { return fit_container_; }
     Fit* get_fit() const;
 
     /// Send warning to UI.
@@ -95,7 +96,7 @@ public:
     /// Send verbose message to UI.
     void vmsg(std::string const &s) const;
 
-    int get_verbosity() const { return settings->get_verbosity(); }
+    int get_verbosity() const { return settings_->get_verbosity(); }
 
     /// execute command(s) from string
     Commands::Status exec(std::string const &s);
@@ -116,10 +117,10 @@ public:
     bool is_plot_outdated() { return dirty_plot_; }
 
 protected:
-    std::vector<DataAndModel*> dms;
-    Settings* settings;
-    UserInterface* ui;
-    FitMethodsContainer* fit_container;
+    std::vector<DataAndModel*> dms_;
+    Settings* settings_;
+    UserInterface* ui_;
+    FitMethodsContainer* fit_container_;
     bool dirty_plot_;
 
     void initialize();
@@ -130,6 +131,6 @@ private:
     int check_dm_number(int n) const;
 };
 
-extern Ftk* AL;
+//extern Ftk* AL;
 
 #endif

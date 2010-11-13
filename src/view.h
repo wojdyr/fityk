@@ -15,6 +15,26 @@ class Data;
 class Model;
 class Ftk;
 
+// used for "info guess" now,
+// TODO: use it in all places where real-number range is passed
+struct RealRange
+{
+    enum What { kNone, kInf, kNumber };
+    What from, to;
+    fp from_val, to_val;
+
+    RealRange() : from(kInf), to(kInf) {}
+};
+
+struct Rect
+{
+    fp left, right, bottom, top;
+
+    Rect(fp l, fp r, fp b, fp t) : left(l), right(r), bottom(b), top(t) {}
+    fp width() const { return right - left; }
+    fp height() const { return top - bottom; }
+};
+
 /// manages view, i.e. x and y range visible currently to the user
 /// user can set view in `plot' command, using string like "[20:][-100:1000]"
 /// plot command requires also to specify dataset(s), if there is more than
@@ -23,42 +43,24 @@ class Ftk;
 /// Applications using libfityk can ignore datasets stored in this class or use
 /// only the first one, or all.
 /// most difficult part here is finding an "auto" view for given data and model
-class View
+class View: public Rect
 {
 public:
-    enum {
-        change_left = 1,
-        change_right = 2,
-        change_top = 4,
-        change_bottom = 8,
-        change_all = change_left|change_right|change_top|change_bottom,
-        fit_left = 16,
-        fit_right = 32,
-        fit_horizontally=fit_left|fit_right,
-        fit_top = 64,
-        fit_bottom = 128,
-        fit_vertically = fit_top|fit_bottom,
-        fit_all= fit_horizontally|fit_vertically
-    };
     static const fp relative_x_margin, relative_y_margin;
-    fp left, right, bottom, top;
 
     // F is used only in fit_zoom(), can be NULL
     View(Ftk const* F_)
-        : left(0), right(180.), bottom(-50), top(1e3), F(F_), datasets_(1,0),
+        : Rect(0, 180., -50, 1e3), F(F_), datasets_(1,0),
           log_x_(false), log_y_(false), y0_factor_(10.) {}
-    fp width() const { return right - left; }
-    fp height() const { return top - bottom; }
     std::string str() const;
-    void parse_and_set(std::vector<std::string> const& lrbt,
+    void parse_and_set(const RealRange& hor, const RealRange& ver,
                        std::vector<int> const& dd);
     /// fit specified edges to the data range
-    void fit_zoom(int flag=fit_all);
+    void fit_zoom(const RealRange& hor, const RealRange& ver);
     std::vector<int> const& get_datasets() const { return datasets_; }
     // set range
-    void set(fp l, fp r, fp b, fp t, int flag=change_all);
-    void set_log_scale(bool log_x, bool log_y)
-                                         { log_x_ = log_x; log_y_ = log_y; }
+    void set_bounds(const RealRange& hor, const RealRange& ver);
+    void set_log_scale(bool log_x, bool log_y) { log_x_=log_x; log_y_=log_y; }
     fp y0_factor() const { return y0_factor_; }
     void set_y0_factor(fp f) { y0_factor_ = f; }
 private:

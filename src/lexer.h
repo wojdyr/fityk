@@ -20,12 +20,13 @@ enum TokenType
     kTokenString, // 'string'
     kTokenVarname, // $variable
     kTokenFuncname, // %function
-    kTokenShell, // ! command args
 
     // special one, returned only by get_filename_token(), not by get_token()
     kTokenFilename,
     // it can be returned by get_filename_token() or read_expr()
     kTokenExpr,
+    // it can be returned by get_rest_of_line()
+    kTokenRest,
 
     // tokens with `value' set
     kTokenNumber, // number (value.d)
@@ -54,6 +55,7 @@ enum TokenType
     kTokenColon, // :
     kTokenTilde, // ~
     kTokenQMark, // ?
+    kTokenBang, // !
 
     kTokenNop, // end of line (returned by Lexer) or placeholder (in Parser)
 };
@@ -83,7 +85,7 @@ public:
 
     // get string associated with the token. Works only with:
     // kTokenLname, kTokenCname, kTokenUletter,
-    // kTokenString, kTokenVarname, kTokenFuncname, kTokenShell.
+    // kTokenString, kTokenVarname, kTokenFuncname.
     static std::string get_string(const Token& token);
 
     Lexer(const char* input)
@@ -105,6 +107,9 @@ public:
     // characters (with exception of ' and #) as a file.
     // The filename can be inside 'single quotes'.
     Token get_filename_token();
+
+    // Reads rest of the line and returns kTokenRest
+    Token get_rest_of_line();
 
     void go_back(const Token& token);
 

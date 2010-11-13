@@ -206,7 +206,7 @@ void ScriptDebugDlg::add_line(int n, string const& line)
     list->SetItemData(pos, is_comment ? 1 : 0); //to be skipped if comment
     if (is_comment)
         list->SetItemTextColour(pos, *wxGREEN);
-    else if (!check_command_syntax(head))
+    else if (!ftk->get_ui()->check_syntax(head))
         list->SetItemBackgroundColour(pos, *wxRED);
     else if (head[nonblank] == 'i' || head[nonblank] == 'p') { //info or plot
         list->SetItemTextColour(pos, *wxBLUE);

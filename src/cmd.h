@@ -9,6 +9,7 @@
 #include "common.h"
 #include "ui.h"
 
+/* API disabled
 /// return true if the syntax is correct
 bool check_command_syntax(std::string const& str);
 
@@ -17,5 +18,6 @@ Commands::Status parse_and_execute(std::string const& str);
 
 /// like parse_and_execute(), but returns false on syntax error, throw exception on execute error
 bool parse_and_execute_e(std::string const& str);
+*/
 
 #endif

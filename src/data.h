@@ -47,6 +47,7 @@ public :
                    std::vector<fp> const& sigma, std::string const& data_title);
     void load_data_sum(std::vector<Data const*> const& dd,
                        std::string const& op);
+    void set_points(const std::vector<Point>& p);
     void clear();
     void add_point(Point const& pt) { p_.push_back(pt); }; //don't use it
     void add_one_point(double x, double y, double sigma);
@@ -58,7 +59,6 @@ public :
     bool has_any_info() const { return !is_empty() || !get_title().empty(); }
     fp get_x_step() const { return x_step_; } /// 0.0 if not fixed
     void transform(const std::string &s);
-    void delete_points(const std::string &condition);
     void after_transform(); // update x_step_, active_p_, y_min_, y_max_
     void update_active_p();
     //int auto_range (fp y_level, fp x_margin);

@@ -6,8 +6,6 @@
 /// In the future it will replace the current lexer/parser.
 /// Lexical analyser. Takes characters and yields tokens.
 
-// TODO: sometimes include '*' in words, to allow "delete %pd*".
-
 #include "lexer.h"
 
 #include <string.h>
@@ -30,8 +28,6 @@ string Lexer::get_string(const Token& token)
             return string(token.str+1, token.length - 1);
         case kTokenFuncname:
             return string(token.str+1, token.length - 1);
-        case kTokenShell:
-            return string(token.str+1);
         default:
             assert(!"Unexpected token in get_string()");
             return "";
@@ -47,11 +43,11 @@ const char* tokentype2str(TokenType tt)
         case kTokenString: return "'quoted-string'";
         case kTokenVarname: return "$variable_name";
         case kTokenFuncname: return "%func_name";
-        case kTokenShell: return "!shell-command";
         case kTokenNumber: return "number";
         case kTokenDataset: return "@dataset";
         case kTokenFilename: return "filename";
         case kTokenExpr: return "expr";
+        case kTokenRest: return "rest-of-line";
 
         case kTokenLE: return "<=";
         case kTokenGE: return ">=";
@@ -83,6 +79,7 @@ const char* tokentype2str(TokenType tt)
         case kTokenColon: return ":";
         case kTokenTilde: return "~";
         case kTokenQMark: return "?";
+        case kTokenBang: return "!";
 
         case kTokenNop: return "Nop";
     }
@@ -96,12 +93,11 @@ string token2str(const Token& token)
         case kTokenString:
         case kTokenVarname:
         case kTokenFuncname:
-        case kTokenShell:
-            return s + " \"" + Lexer::get_string(token) + "\"";
         case kTokenLname:
         case kTokenCname:
         case kTokenUletter:
         case kTokenFilename:
+        case kTokenRest:
             return s + " \"" + token.as_string() + "\"";
         case kTokenExpr:
             return s + " \"" + token.as_string() + "\" ("+S(token.value.d)+")";
@@ -196,6 +192,17 @@ void Lexer::read_token()
             else
                 tok_.type = kTokenMinus;
             break;
+
+        case '!':
+            ++ptr;
+            if (*ptr == '=') {
+                tok_.type = kTokenNE;
+                ++ptr;
+            }
+            else
+                tok_.type = kTokenBang;
+            break;
+
         case '.':
             ++ptr;
             if (isdigit(*ptr)) {
@@ -247,18 +254,6 @@ void Lexer::read_token()
             tok_.type = kTokenFuncname;
             while (isalnum(*ptr) || *ptr == '_')
                 ++ptr;
-            break;
-        case '!':
-            ++ptr;
-            if (*ptr == '=') {
-                tok_.type = kTokenNE;
-                ++ptr;
-            }
-            else {
-                tok_.type = kTokenShell;
-                while (*ptr != '\0')
-                    ++ptr;
-            }
             break;
 
         case '(': tok_.type = kTokenOpen;      ++ptr; break;
@@ -336,6 +331,17 @@ Token Lexer::get_filename_token()
         ++cur_;
     t.type = kTokenFilename;
     t.length = cur_ - t.str;
+    return t;
+}
+
+Token Lexer::get_rest_of_line()
+{
+    Token t = get_token();
+    while (t.str + t.length != '\0')
+        ++t.length;
+    if (t.type == kTokenString || t.type == kTokenNop)
+        return get_token();
+    t.type = kTokenRest;
     return t;
 }
 

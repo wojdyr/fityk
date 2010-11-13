@@ -131,7 +131,7 @@ Commands::Status gui_exec_command(const string& s)
     wxBusyCursor wait;
     Commands::Status r;
     try {
-        r = parse_and_execute(s);
+        r = ftk->get_ui()->execute_line(s);
     }
     catch(ExitRequestedException) {
         frame->Close(true);
@@ -307,8 +307,8 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
     if (ftk->get_dm_count() > 1) {
         frame->SwitchSideBar(true);
         // zoom to show all loaded datafiles
-        ftk->view.parse_and_set(vector<string>(4),
-                                range_vector(0, ftk->get_dm_count()));
+        RealRange r;
+        ftk->view.parse_and_set(r, r, range_vector(0, ftk->get_dm_count()));
     }
 }
 

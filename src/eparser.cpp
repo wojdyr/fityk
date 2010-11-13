@@ -874,7 +874,7 @@ void ExpressionParser::parse2vm(Lexer& lex, int default_ds)
 
             case kTokenString:
             case kTokenCname:
-            case kTokenShell:
+            case kTokenBang:
             case kTokenAppend:
             case kTokenAddAssign:
             case kTokenSubAssign:
@@ -892,6 +892,7 @@ void ExpressionParser::parse2vm(Lexer& lex, int default_ds)
             // these are never return by get_token()
             case kTokenFilename:
             case kTokenExpr:
+            case kTokenRest:
                 assert(0);
                 break;
         }

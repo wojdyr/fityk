@@ -7,14 +7,16 @@
 
 #include <vector>
 #include "lexer.h" // Token
+#include "eparser.h"
 
 class Ftk;
 struct Statement;
+class DataAndModel;
 
 class Runner
 {
 public:
-    Runner(Ftk* F) : F_(F) {}
+    Runner(Ftk* F) : F_(F), ep_(F) {}
 
     // Execute the last parsed string.
     // Throws ExecuteError, ExitRequestedException.
@@ -24,24 +26,27 @@ public:
 
 private:
     Ftk* F_;
-    int ds_;
+    ExpressionParser ep_;
 
     void command_set(const std::vector<Token>& args);
     void command_define(const std::vector<Token>& args);
     void command_delete(const std::vector<Token>& args);
-    void command_delete_points(const Statement& st);
+    void command_delete_points(const Statement& st, int ds);
     void command_exec(const std::vector<Token>& args);
-    void command_fit(const std::vector<Token>& args);
+    void command_fit(const std::vector<Token>& args, int ds);
     void command_guess(const std::vector<Token>& args);
-    void command_info(const std::vector<Token>& args);
+    void command_info(const std::vector<Token>& args, int ds);
     void command_plot(const std::vector<Token>& args);
     void command_undefine(const std::vector<Token>& args);
     void command_load(const std::vector<Token>& args);
     void command_dataset_tr(const std::vector<Token>& args);
     void command_name_func(const std::vector<Token>& args);
-    void command_all_points_tr(const std::vector<Token>& args);
+    void command_all_points_tr(const std::vector<Token>& args, int ds);
 
     void reparse_expressions(Statement& st, int ds);
+    void read_dms(std::vector<Token>::const_iterator first,
+                  std::vector<Token>::const_iterator last,
+                  std::vector<DataAndModel*>& dms);
 };
 
 

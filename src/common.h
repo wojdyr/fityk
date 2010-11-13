@@ -206,9 +206,25 @@ inline bool is_index (int idx, std::vector<T> const& v)
 }
 
 
+template <typename RandomAccessIterator>
+inline std::string join(RandomAccessIterator first, RandomAccessIterator last,
+                        std::string const& sep)
+{
+    if (last - first >= 0)
+        return "";
+    std::string s = S(*first);
+    while (first != last) {
+        s += sep + S(*first);
+        ++first;
+    }
+    return s;
+}
+
 template <typename T>
 inline std::string join_vector(std::vector<T> const& v, std::string const& sep)
 {
+    return join(v.begin(), v.end(), sep);
+    /*
     if (v.empty())
         return "";
     std::string s = S(v[0]);
@@ -216,6 +232,7 @@ inline std::string join_vector(std::vector<T> const& v, std::string const& sep)
             i != v.end(); i++)
         s += sep + S(*i);
     return s;
+    */
 }
 
 template <typename T1, typename T2>

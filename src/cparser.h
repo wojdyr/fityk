@@ -26,18 +26,18 @@ enum CommandType
     kCmdGuess,
     kCmdInfo,
     kCmdPlot,
+    kCmdQuit,
     kCmdReset,
     kCmdSet,
     kCmdSleep,
+    kCmdTitle,
     kCmdUndef,
-    kCmdQuit,
     kCmdShell,
     kCmdLoad,
     kCmdDatasetTr,
     kCmdNameFunc,
     kCmdNameVar,
     kCmdAssignParam,
-    kCmdTitle,
     kCmdChangeModel,
     kCmdPointTr,
     kCmdAllPointsTr,
@@ -57,6 +57,8 @@ struct Statement
 extern const char* info_args[];
 extern const char* debug_args[];
 
+const char* commandtype2str(CommandType c);
+
 class Parser
 {
 public:
@@ -69,9 +71,8 @@ public:
 
     Statement& get_statement() { return *st_; }
 
-    // The same as parse_statement(), but it doesn't throw.
     // Returns true on success.
-    bool check_command_syntax(const std::string& str);
+    bool check_syntax(const std::string& str);
 
     // for debugging only
     std::string get_statements_repr() const;

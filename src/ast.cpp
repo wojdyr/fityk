@@ -879,6 +879,8 @@ fp get_constant_value(string const &s)
 {
     if (s == "pi")
         return M_PI;
+    /*
+     * TODO
     else if (s[0] == '{') {
         assert(*(s.end()-1) == '}');
         string expr(s.begin()+1, s.end()-1);
@@ -900,6 +902,7 @@ fp get_constant_value(string const &s)
             data = AL->get_data(0);
         return get_transform_expression_value(expr, data);
     }
+    */
     else {
         fp val = strtod(s.c_str(), 0);
         //if (val != 0. && fabs(val) < epsilon)

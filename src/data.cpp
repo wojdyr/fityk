@@ -121,23 +121,30 @@ void Data::recompute_y_bounds() {
 int Data::load_arrays(const vector<fp> &x, const vector<fp> &y,
                       const vector<fp> &sigma, const string &data_title)
 {
-    size_t size = y.size();
-    assert(y.size() == size);
-    assert(sigma.empty() || sigma.size() == size);
+    assert(x.size() == y.size());
+    assert(sigma.empty() || sigma.size() == y.size());
     clear();
     title = data_title;
+    p_.resize(y.size());
     if (sigma.empty())
-        for (size_t i = 0; i < size; ++i)
-            p_.push_back (Point (x[i], y[i]));
+        for (size_t i = 0; i != y.size(); ++i)
+            p_[i] = Point(x[i], y[i]);
     else {
-        for (size_t i = 0; i < size; ++i)
-            p_.push_back (Point (x[i], y[i], sigma[i]));
+        for (size_t i = 0; i != y.size(); ++i)
+            p_[i] = Point(x[i], y[i], sigma[i]);
         has_sigma_ = true;
     }
     sort(p_.begin(), p_.end());
     x_step_ = find_step();
     post_load();
     return p_.size();
+}
+
+void Data::set_points(const vector<Point> &p)
+{
+    p_ = p;
+    sort(p_.begin(), p_.end());
+    after_transform();
 }
 
 void Data::revert()
@@ -433,26 +440,28 @@ fp Data::get_y_at (fp x) const
 
 void Data::transform(const string &s)
 {
+    /*TODO
     p_ = transform_data(s, p_);
-    sort(p_.begin(), p_.end());
+    */
     after_transform();
 }
 
-void Data::delete_points(const string &condition)
+// std::is_sorted() is added C++0x
+template <typename T>
+bool is_vector_sorted(vector<T> const& v)
 {
-    vector<fp> del = get_all_point_expressions(condition, this, false);
-    vector<Point> new_p;
-    new_p.reserve(p_.size());
-    for (size_t i = 0; i != p_.size(); ++i)
-        if (fabs(del[i]) < 0.5)
-            new_p.push_back(p_[i]);
-    p_ = new_p;
-    after_transform();
+    if (v.size() <= 1)
+        return true;
+    for (typename vector<T>::const_iterator i = v.begin()+1; i != v.end(); ++i)
+            if (*(i+1) < *i)
+                return false;
+    return true;
 }
-
 
 void Data::after_transform()
 {
+    if (!is_vector_sorted(p_))
+        sort(p_.begin(), p_.end());
     x_step_ = find_step();
     update_active_p();
     recompute_y_bounds();
