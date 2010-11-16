@@ -8,7 +8,7 @@
 #include "plot.h"
 #include "cmn.h"
 #include "../numfuncs.h" // PointQ definition
-#include "../guess.h" // enum FunctionKind
+#include "../guess.h" // enum Guess::Kind
 
 
 /// it cares about visualization of spline / polyline background
@@ -221,7 +221,7 @@ private:
     int over_peak; /// the cursor is over peaktop of this peak
     int limit1, limit2; /// for drawing function limits (vertical lines)
     FunctionMouseDrag fmd; //for function dragging
-    FunctionKind func_draft_kind; // for function adding (with drawing draft)
+    Guess::Kind func_draft_kind; // for function adding (with drawing draft)
     HintReceiver *hint_receiver; // used to set mouse hints, probably statusbar
     // variables used in draw_xor_peak() and redraw_xor_peak()
     int draw_xor_peak_n;

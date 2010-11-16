@@ -126,22 +126,6 @@ void info_history(Ftk const* F, const Token& t1, const Token& t2,
         result += cmds[i].str() + "\n";
 }
 
-void args2range(const Token& t1, const Token& t2, RealRange &range)
-{
-    if (t1.type == kTokenExpr) {
-        range.from = RealRange::kNumber;
-        range.from_val = t1.value.d;
-    }
-    else
-        range.from = RealRange::kInf;
-    if (t2.type == kTokenExpr) {
-        range.to = RealRange::kNumber;
-        range.to_val = t2.value.d;
-    }
-    else
-        range.to = RealRange::kInf;
-}
-
 int eval_info_args(const Ftk* F, int ds, const vector<Token>& args,
                    string& result)
 {
@@ -224,9 +208,11 @@ int eval_info_args(const Ftk* F, int ds, const vector<Token>& args,
                 n += 2;
             }
             else if (word == "guess") {
-                RealRange range;
-                args2range(args[n+1], args[n+2], range);
-                Guess(F, F->get_dm(ds)).get_guess_info(range, result);
+                int lb, rb;
+                get_data_range(F->get_data(ds), args, n, &lb, &rb);
+                Guess g(F->get_settings());
+                g.initialize(F->get_dm(ds), lb, rb, -1);
+                g.get_guess_info(result);
                 n += 2;
             }
 
@@ -291,7 +277,7 @@ int eval_info_args(const Ftk* F, int ds, const vector<Token>& args,
                 ++n;
             }
             const Model* model = F->get_model(k);
-            Model::FuncSet fz = Model::parse_funcset(*args[n].str);
+            char fz = *args[n].str;
             if (is_index(n+1, args) && args[n+1].type == kTokenExpr) {
                 ++n;
                 int idx = iround(args[n].value.d);
@@ -300,7 +286,7 @@ int eval_info_args(const Ftk* F, int ds, const vector<Token>& args,
                 result += f->get_basic_assignment();
             }
             else {
-                result += join_vector(model->get_names(fz), ", ");
+                result += join_vector(model->get_fz(fz).names, ", ");
             }
         }
         ++n;
@@ -453,5 +439,22 @@ void do_command_debug(const Ftk* F, const string& args)
     else
         r += "unexpected arg: " + word;
     F->rmsg(r);
+}
+
+bool get_data_range(const Data* data, const vector<Token>& args, int n,
+                    int* lb, int* rb)
+{
+    *lb = 0;
+    *rb = data->get_n(); // number of active points
+    if (n < (int) args.size()) { // the range [from:to] was given
+        double range_from = args[n].value.d;
+        double range_to = args[n+1].value.d;
+        if (*lb >= *rb)
+            throw ExecuteError("invalid range");
+        *lb = data->get_lower_bound_ac(range_from);
+        *rb = data->get_upper_bound_ac(range_to);
+        return true;
+    }
+    return false;
 }
 

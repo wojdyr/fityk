@@ -391,7 +391,7 @@ void MainPlot::draw_groups (wxDC& /*dc*/, Model const*, bool)
 void MainPlot::draw_peaks(wxDC& dc, Model const* model, bool set_pen)
 {
     fp level = 0;
-    vector<int> const& idx = model->get_ff_idx();
+    vector<int> const& idx = model->get_ff().idx;
     int n = get_pixel_width(dc);
     vector<fp> xx(n), yy(n);
     vector<int> YY(n);
@@ -434,7 +434,7 @@ void MainPlot::draw_peaktop_selection (wxDC& dc, Model const* model)
     int n = frame->get_sidebar()->get_active_function();
     if (n == -1)
         return;
-    vector<int> const& idx = model->get_ff_idx();
+    vector<int> const& idx = model->get_ff().idx;
     vector<int>::const_iterator t = find(idx.begin(), idx.end(), n);
     if (t != idx.end()) {
         wxPoint const&p = special_points[t-idx.begin()];
@@ -449,7 +449,7 @@ void MainPlot::draw_plabels (wxDC& dc, Model const* model, bool set_pen)
     prepare_peak_labels(model); //TODO re-prepare only when peaks where changed
     set_font(dc, plabelFont);
     vector<wxRect> previous;
-    vector<int> const& idx = model->get_ff_idx();
+    vector<int> const& idx = model->get_ff().idx;
     for (int k = 0; k < size(idx); k++) {
         const wxPoint &peaktop = special_points[k];
         if (set_pen)
@@ -503,7 +503,7 @@ static bool operator< (const wxPoint& a, const wxPoint& b)
 void MainPlot::prepare_peaktops(Model const* model, int Ymax)
 {
     int Y0 = ys.px(0);
-    vector<int> const& idx = model->get_ff_idx();
+    vector<int> const& idx = model->get_ff().idx;
     int n = idx.size();
     special_points.resize(n);
     int no_ctr_idx = 0;
@@ -534,7 +534,7 @@ void MainPlot::prepare_peaktops(Model const* model, int Ymax)
 
 void MainPlot::prepare_peak_labels(Model const* model)
 {
-    vector<int> const& idx = model->get_ff_idx();
+    vector<int> const& idx = model->get_ff().idx;
     plabels.resize(idx.size());
     for (int k = 0; k < size(idx); k++) {
         Function const *f = ftk->get_function(idx[k]);
@@ -879,7 +879,7 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
 {
     int focused_data = frame->get_sidebar()->get_focused_data();
     Model const* model = ftk->get_model(focused_data);
-    vector<int> const& idx = model->get_ff_idx();
+    vector<int> const& idx = model->get_ff().idx;
     if (special_points.size() != idx.size())
         refresh();
     int n = get_special_point_at_pointer(event);
@@ -1201,7 +1201,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     else if (mouse_op == kAddPeakTriangle) {
         frame->set_status_text("");
         peak_draft(mat_stop, event.GetX(), event.GetY());
-        if (func_draft_kind == fk_linear || dist_X + dist_Y >= 5)
+        if (func_draft_kind == Guess::kLinear || dist_X + dist_Y >= 5)
             add_peak_from_draft(event.GetX(), event.GetY());
     }
     // add peak (in range)
@@ -1228,7 +1228,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
 void MainPlot::add_peak_from_draft(int X, int Y)
 {
     string args;
-    if (func_draft_kind == fk_linear) {
+    if (func_draft_kind == Guess::kLinear) {
         fp y = ys.valr(Y);
         args = "slope=~0, intercept=~" + S(y) + ", avgy=~" + S(y);
     }
@@ -1386,7 +1386,7 @@ void MainPlot::draw_peak_draft(int Ctr, int Hwhm, int Y)
     dc.SetLogicalFunction (wxINVERT);
     dc.SetPen(*wxBLACK_DASHED_PEN);
     int Y0 = ys.px(0);
-    if (func_draft_kind == fk_linear) {
+    if (func_draft_kind == Guess::kLinear) {
         dc.DrawLine (0, Y, get_pixel_width(dc), Y);
     }
     else {

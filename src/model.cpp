@@ -30,94 +30,27 @@ Model::~Model()
 }
 
 
-void Model::do_find_function_indices(vector<string> &names,
-                                     vector<int> &idx)
-{
-    idx.clear();
-    for (int i = 0; i < size(names); ){
-        int k = mgr.find_function_nr(names[i]);
-        if (k == -1)
-            names.erase(names.begin() + i);
-        else {
-            idx.push_back(k);
-            ++i;
-        }
-    }
-}
-
-void Model::find_function_indices()
-{
-    do_find_function_indices(ff_names, ff_idx);
-    do_find_function_indices(zz_names, zz_idx);
-}
-
 /// checks if this model depends on the variable with index idx
 bool Model::is_dependent_on_var(int idx) const
 {
     std::vector<Variable*> const& vv = mgr.get_variables();
-    for (vector<int>::const_iterator i = ff_idx.begin(); i != ff_idx.end(); i++)
+    for (vector<int>::const_iterator i = ff_.idx.begin();
+                                                       i != ff_.idx.end(); i++)
         if (mgr.get_function(*i)->is_dependent_on(idx, vv))
             return true;
-    for (vector<int>::const_iterator i = zz_idx.begin(); i != zz_idx.end(); i++)
+    for (vector<int>::const_iterator i = zz_.idx.begin();
+                                                       i != zz_.idx.end(); i++)
         if (mgr.get_function(*i)->is_dependent_on(idx, vv))
             return true;
     return false;
-}
-
-void Model::remove_all_functions_from(FuncSet fset)
-{
-    if (fset == kF) {
-        ff_names.clear();
-        ff_idx.clear();
-    }
-    else { // (fset == kZ)
-        zz_names.clear();
-        zz_idx.clear();
-    }
-}
-
-void Model::remove_function_from(string const &name, FuncSet fset)
-{
-    string only_name = !name.empty() && name[0]=='%' ? string(name,1) : name;
-    // first remove function if it is already in ff or zz
-    int idx = index_of_element(get_names(fset), only_name);
-    if (idx == -1)
-        throw ExecuteError("function %" + only_name + " is not in "+str(fset));
-    if (fset == kF) {
-        ff_names.erase(ff_names.begin() + idx);
-        ff_idx.erase(ff_idx.begin() + idx);
-    }
-    else { // (fset == kZ)
-        zz_names.erase(zz_names.begin() + idx);
-        zz_idx.erase(zz_idx.begin() + idx);
-    }
-}
-
-void Model::add_function_to(string const &name, FuncSet fset)
-{
-    string only_name = !name.empty() && name[0]=='%' ? string(name,1) : name;
-    int idx = mgr.find_function_nr(only_name);
-    if (idx == -1)
-        throw ExecuteError("function %" + only_name + " not found.");
-    if (contains_element(get_names(fset), only_name)) {
-        F->msg("function %" + only_name + " already in " + str(fset) + ".");
-        return;
-    }
-    if (fset == kF) {
-        ff_names.push_back(only_name);
-        ff_idx.push_back(idx);
-    }
-    else if (fset == kZ) {
-        zz_names.push_back(only_name);
-        zz_idx.push_back(idx);
-    }
 }
 
 fp Model::value(fp x) const
 {
     x += zero_shift(x);
     fp y = 0;
-    for (vector<int>::const_iterator i = ff_idx.begin(); i != ff_idx.end(); i++)
+    for (vector<int>::const_iterator i = ff_.idx.begin();
+                                                    i != ff_.idx.end(); i++)
         y += mgr.get_function(*i)->calculate_value(x);
     return y;
 }
@@ -125,19 +58,23 @@ fp Model::value(fp x) const
 fp Model::zero_shift(fp x) const
 {
     fp z = 0;
-    for (vector<int>::const_iterator i = zz_idx.begin(); i != zz_idx.end(); i++)
+    for (vector<int>::const_iterator i = zz_.idx.begin();
+                                                    i != zz_.idx.end(); i++)
         z += mgr.get_function(*i)->calculate_value(x);
     return z;
 }
 
-void Model::compute_model(vector<fp> &x, vector<fp> &y) const
+void Model::compute_model(vector<fp> &x, vector<fp> &y, int ignore_func) const
 {
     // add x-correction to x
-    for (vector<int>::const_iterator i = zz_idx.begin(); i != zz_idx.end(); i++)
+    for (vector<int>::const_iterator i = zz_.idx.begin();
+                                                     i != zz_.idx.end(); i++)
         mgr.get_function(*i)->calculate_value(x, x);
     // add y-value to y
-    for (vector<int>::const_iterator i = ff_idx.begin(); i != ff_idx.end(); i++)
-        mgr.get_function(*i)->calculate_value(x, y);
+    for (vector<int>::const_iterator i = ff_.idx.begin();
+                                                     i != ff_.idx.end(); i++)
+        if (*i != ignore_func)
+            mgr.get_function(*i)->calculate_value(x, y);
 }
 
 // returns y values in y, x is changed in place to x+Z,
@@ -153,13 +90,18 @@ void Model::compute_model_with_derivs(vector<fp> &x, vector<fp> &y,
     if (x.empty())
         return;
     fill (dy_da.begin(), dy_da.end(), 0);
+
     // add x-correction to x
-    for (vector<int>::const_iterator i = zz_idx.begin(); i != zz_idx.end(); i++)
+    for (vector<int>::const_iterator i = zz_.idx.begin();
+                                                      i != zz_.idx.end(); i++)
         mgr.get_function(*i)->calculate_value(x, x);
+
     // calculate value and derivatives
-    for (vector<int>::const_iterator i = ff_idx.begin(); i != ff_idx.end(); i++)
+    for (vector<int>::const_iterator i = ff_.idx.begin();
+                                                      i != ff_.idx.end(); i++)
         mgr.get_function(*i)->calculate_value_deriv(x, y, dy_da, false);
-    for (vector<int>::const_iterator i = zz_idx.begin(); i != zz_idx.end(); i++)
+    for (vector<int>::const_iterator i = zz_.idx.begin();
+                                                      i != zz_.idx.end(); i++)
         mgr.get_function(*i)->calculate_value_deriv(x, y, dy_da, true);
 }
 
@@ -205,7 +147,8 @@ fp Model::approx_max(fp x_min, fp x_max) const
     fp x = x_min;
     fp y_max = value(x);
     vector<fp> xx;
-    for (vector<int>::const_iterator i=ff_idx.begin(); i != ff_idx.end(); i++) {
+    for (vector<int>::const_iterator i=ff_.idx.begin();
+                                                  i != ff_.idx.end(); i++) {
         fp ctr = mgr.get_function(*i)->center();
         if (x_min < ctr && ctr < x_max)
             xx.push_back(ctr);
@@ -227,7 +170,8 @@ string Model::get_peak_parameters(vector<fp> const& errors) const
 {
     string s;
     s += "# Peak_Type     Center  Height  Area    FWHM    parameters...\n";
-    for (vector<int>::const_iterator i=ff_idx.begin(); i != ff_idx.end(); i++){
+    for (vector<int>::const_iterator i=ff_.idx.begin();
+                                                    i != ff_.idx.end(); ++i) {
         Function const* p = mgr.get_function(*i);
         s += p->xname + "  " + p->type_name
             + "  "+ S(p->center()) + " " + S(p->height()) + " " + S(p->area())
@@ -250,15 +194,17 @@ string Model::get_peak_parameters(vector<fp> const& errors) const
 
 string Model::get_formula(bool simplify, bool gnuplot_style) const
 {
-    if (ff_names.empty())
+    if (ff_.names.empty())
         return "0";
     string shift;
-    for (vector<int>::const_iterator i = zz_idx.begin(); i != zz_idx.end(); i++)
+    for (vector<int>::const_iterator i = zz_.idx.begin();
+                                                    i != zz_.idx.end(); i++)
         shift += "+(" + mgr.get_function(*i)->get_current_formula() + ")";
     string x = "(x" + shift + ")";
     string formula;
-    for (vector<int>::const_iterator i = ff_idx.begin(); i != ff_idx.end(); i++)
-        formula += (i==ff_idx.begin() ? "" : "+")
+    for (vector<int>::const_iterator i = ff_.idx.begin();
+                                                    i != ff_.idx.end(); i++)
+        formula += (i==ff_.idx.begin() ? "" : "+")
                    + mgr.get_function(*i)->get_current_formula(x);
     if (simplify) {
         // check if formula has not-expanded-functions, like Voigt(2,3,4,5)
@@ -292,9 +238,9 @@ string Model::get_formula(bool simplify, bool gnuplot_style) const
     return formula;
 }
 
-std::string const& Model::get_func_name(FuncSet fset, int idx) const
+std::string const& Model::get_func_name(char c, int idx) const
 {
-    vector<string> const& names = get_names(fset);
+    vector<string> const& names = get_fz(c).names;
     if (idx < 0)
         idx += names.size();
     if (!is_index(idx, names))
@@ -307,7 +253,8 @@ fp Model::numarea(fp x1, fp x2, int nsteps) const
     x1 += zero_shift(x1);
     x2 += zero_shift(x2);
     fp a = 0;
-    for (vector<int>::const_iterator i = ff_idx.begin(); i != ff_idx.end(); i++)
+    for (vector<int>::const_iterator i = ff_.idx.begin();
+                                                    i != ff_.idx.end(); i++)
         a += mgr.get_function(*i)->numarea(x1, x2, nsteps);
     return a;
 }

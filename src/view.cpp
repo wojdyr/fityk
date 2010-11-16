@@ -28,9 +28,14 @@ string View::str() const
     return string(buffer);
 }
 
-void View::fit_zoom(const RealRange& hor, const RealRange& ver)
+void View::change_view(const RealRange& hor, const RealRange& ver)
 {
     assert(!datasets_.empty());
+
+    left = hor.from;
+    right = hor.to;
+    bottom = ver.from;
+    top = ver.to;
 
     // For the first dataset in `dataset' (@n, it doesn't contain @*) both
     // data points and models are considered.
@@ -42,7 +47,7 @@ void View::fit_zoom(const RealRange& hor, const RealRange& ver)
     for (size_t i = 1; i < datasets_.size(); ++i)
         datas[i] = F->get_dm(datasets_[i])->data();
 
-    if (hor.from == RealRange::kInf || hor.to == RealRange::kInf) {
+    if (hor.from_inf() || hor.to_inf()) {
         fp x_min=0, x_max=0;
         get_x_range(datas, x_min, x_max);
         if (x_min == x_max) {
@@ -53,21 +58,21 @@ void View::fit_zoom(const RealRange& hor, const RealRange& ver)
             x_min = max(epsilon, x_min);
             x_max = max(epsilon, x_max);
             fp margin = log(x_max / x_min) * relative_x_margin;
-            if (hor.from == RealRange::kInf)
+            if (hor.from_inf())
                 left = exp(log(x_min) - margin);
-            if (hor.to == RealRange::kInf)
+            if (hor.to_inf())
                 right = exp(log(x_max) + margin);
         }
         else {
             fp margin = (x_max - x_min) * relative_x_margin;
-            if (hor.from == RealRange::kInf)
+            if (hor.from_inf())
                 left = x_min - margin;
-            if (hor.to == RealRange::kInf)
+            if (hor.to_inf())
                 right = x_max + margin;
         }
     }
 
-    if (ver.from == RealRange::kInf || ver.to == RealRange::kInf) {
+    if (ver.from_inf() || ver.to_inf()) {
         fp y_min=0, y_max=0;
         get_y_range(datas, models, y_min, y_max);
         if (y_min == y_max) {
@@ -78,16 +83,16 @@ void View::fit_zoom(const RealRange& hor, const RealRange& ver)
             y_min = max(epsilon, y_min);
             y_max = max(epsilon, y_max);
             fp margin = log(y_max / y_min) * relative_y_margin;
-            if (ver.from == RealRange::kInf)
+            if (ver.from_inf())
                 bottom = exp(log(y_min) - margin);
-            if (ver.to == RealRange::kInf)
+            if (ver.to_inf())
                 top = exp(log(y_max) + margin);
         }
         else {
             fp margin = (y_max - y_min) * relative_y_margin;
-            if (ver.from == RealRange::kInf)
+            if (ver.from_inf())
                 bottom = y_min - margin;
-            if (ver.to == RealRange::kInf)
+            if (ver.to_inf())
                 top = y_max + margin;
         }
     }
@@ -152,7 +157,7 @@ void View::get_y_range(vector<Data const*> datas, vector<Model const*> models,
     for (vector<Model const*>::const_iterator i = models.begin();
                                                      i != models.end(); ++i) {
         Model const* model = *i;
-        if (!model->has_any_info())
+        if (model->get_ff().empty())
             continue;
         // estimated model maximum
         fp model_y_max = model->approx_max(left, right);
@@ -170,27 +175,5 @@ void View::get_y_range(vector<Data const*> datas, vector<Model const*> models,
         else if (y_max < 0 && y0_factor_ * dy > fabs(y_min))
             y_max = 0;
     }
-}
-
-
-void View::parse_and_set(const RealRange& hor, const RealRange& ver,
-                         const vector<int>& dd)
-{
-    set_bounds(hor, ver);
-    set_datasets(dd);
-    fit_zoom(hor, ver);
-}
-
-
-void View::set_bounds(const RealRange& hor, const RealRange& ver)
-{
-    if (hor.from == RealRange::kNumber)
-        left = hor.from_val;
-    if (hor.to == RealRange::kNumber)
-        right = hor.to_val;
-    if (ver.from == RealRange::kNumber)
-        bottom = ver.from_val;
-    if (ver.to == RealRange::kNumber)
-        top = ver.to_val;
 }
 

@@ -5,42 +5,33 @@
 #ifndef FITYK__GUESS__H__
 #define FITYK__GUESS__H__
 
-enum FunctionKind { fk_peak, fk_linear /*, fk_step*/, fk_unknown };
+#include <vector>
 
 class DataAndModel;
-class Ftk;
-class Data;
-struct RealRange;
+class Settings;
+
 
 /// guessing initial parameters of functions
 class Guess
 {
 public:
-    Guess(Ftk const *F_, DataAndModel const* dm_);
-    void get_guess_info(RealRange const& range, std::string& result);
-    void guess(std::string const& name, std::string const& function,
-               std::string const& from_str, std::string const& to_str,
-               std::vector<std::string>& vars);
-protected:
-    Ftk const* const F;
-    Data const* const data;
-    // only these peaks/functions are considered
-    std::vector<int> real_peaks;
+    enum Kind { kPeak, kLinear /*, kStep*/, kUnknown };
 
-    void estimate_peak_parameters (fp range_from, fp range_to,
-                                   fp *center, fp *height, fp *area, fp *fwhm);
-    void estimate_linear_parameters(fp range_from, fp range_to,
-                                    fp *slope, fp *intercept, fp *avgy);
-    // helper used by estimate_xxxx_parameters()
-    void get_point_range(fp range_from, fp range_to, int &l_bor, int &r_bor);
+    Guess(Settings const *settings);
+    //void initialize(std::vector<fp> const& xx, std::vector<fp> const& yy)
+    //                                                 { xx_ = xx; yy_ = yy; }
+    void initialize(const DataAndModel* dm, int lb, int rb, int ignore_idx);
+    void guess(std::string const& function, std::vector<std::string>& par_names,
+                                        std::vector<std::string>& par_values);
+    void get_guess_info(std::string& result);
 
-    fp my_y (int n);
-    fp data_area (int from, int to);
-    int max_data_y_pos (int from, int to);
-    fp compute_data_fwhm (int from, int max_pos, int to);
-    void parse_range(std::string const& left, std::string const& right,
-                     fp& range_from, fp& range_to);
-    void remove_peak(std::string const& name);
+private:
+    Settings const* settings_;
+    std::vector<fp> xx_, yy_;
+
+    void estimate_peak_parameters (fp *center, fp *height, fp *area, fp *fwhm);
+    void estimate_linear_parameters(fp *slope, fp *intercept, fp *avgy);
+    fp find_fwhm (int pos, fp *area);
 };
 
 
@@ -49,10 +40,10 @@ bool is_function_guessable(std::string const& formula,
 
 bool is_function_guessable(std::vector<std::string> const& vars,
                            std::vector<std::string> const& defv,
-                           FunctionKind* fk);
+                           Guess::Kind* kind);
 
-bool is_defvalue_guessable(std::string defvalue, FunctionKind k);
-FunctionKind get_function_kind(std::string const& formula);
+bool is_defvalue_guessable(std::string defvalue, Guess::Kind kind);
+Guess::Kind get_function_kind(std::string const& formula);
 
 #endif
 

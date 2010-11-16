@@ -141,7 +141,7 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
         dc.SetPen(wxPen(xAxisCol, pen_width));
 
     if (mark_peak_ctrs) {
-        vector<int> const& idx = model->get_ff_idx();
+        vector<int> const& idx = model->get_ff().idx;
         for (vector<int>::const_iterator i = idx.begin(); i != idx.end(); ++i) {
             Function const *f = ftk->get_function(*i);
             if (f->has_center()) {

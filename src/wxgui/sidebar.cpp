@@ -331,8 +331,8 @@ void SideBar::OnDataButtonCopyF (wxCommandEvent&)
     d->list->Select(n+1, true);
     d->list->Focus(n+1);
     string cmd = "@" + S(n+1) + ".F=copy(@" + S(n) + ".F)";
-    if (!ftk->get_model(n)->get_zz_names().empty()
-            || !ftk->get_model(n+1)->get_zz_names().empty())
+    if (!ftk->get_model(n)->get_zz().names.empty()
+            || !ftk->get_model(n+1)->get_zz().names.empty())
         cmd += "; @" + S(n+1) + ".Z=copy(@" + S(n) + ".Z)";
     if (ftk->find_function_nr("bg" + S(n)) != -1)
         cmd += "; %bg" + S(n+1) + "=copy(%bg" + S(n) + ")";
@@ -449,7 +449,7 @@ void SideBar::OnFuncButtonChType (wxCommandEvent&)
 void SideBar::OnFuncButtonCol (wxCommandEvent&)
 {
     vector<int> const& ffi
-        = ftk->get_model(frame->get_focused_data_index())->get_ff_idx();
+        = ftk->get_model(frame->get_focused_data_index())->get_ff().idx;
     vector<int>::const_iterator in_ff = find(ffi.begin(), ffi.end(),
                                                          active_function);
     if (in_ff == ffi.end())
@@ -558,8 +558,8 @@ void SideBar::update_func_list(bool nondata_changed)
 
     int pos = -1;
     for (int i = 0; i < func_size; ++i) {
-        if (filter_model && !contains_element(filter_model->get_ff_idx(), i)
-                           && !contains_element(filter_model->get_zz_idx(), i))
+        if (filter_model && !contains_element(filter_model->get_ff().idx, i)
+                           && !contains_element(filter_model->get_zz().idx, i))
             continue;
         if (i == active_function)
             pos = new_func_col_id.size();
@@ -570,8 +570,8 @@ void SideBar::update_func_list(bool nondata_changed)
         func_data.push_back(f->has_area() ? S(f->area()).c_str() : "-");
         func_data.push_back(f->has_height() ? S(f->height()).c_str() : "-");
         func_data.push_back(f->has_fwhm() ? S(f->fwhm()).c_str() : "-");
-        vector<int> const& ffi = model->get_ff_idx();
-        vector<int> const& zzi = model->get_zz_idx();
+        vector<int> const& ffi = model->get_ff().idx;
+        vector<int> const& zzi = model->get_zz().idx;
         vector<int>::const_iterator in_ff = find(ffi.begin(), ffi.end(), i);
         int color_id = -2;
         if (in_ff != ffi.end())
@@ -896,9 +896,9 @@ void SideBar::update_func_inf()
         inf->AppendText(wxT("\n") + s2wx(func->other_props_str()));
     vector<string> in;
     for (int i = 0; i < ftk->get_dm_count(); ++i) {
-        if (contains_element(ftk->get_model(i)->get_ff_idx(), active_function))
+        if (contains_element(ftk->get_model(i)->get_ff().idx, active_function))
             in.push_back("@" + S(i) + ".F");
-        if (contains_element(ftk->get_model(i)->get_zz_idx(), active_function))
+        if (contains_element(ftk->get_model(i)->get_zz().idx, active_function))
             in.push_back("@" + S(i) + ".Z");
     }
     if (!in.empty())
@@ -1009,7 +1009,7 @@ void SideBar::make_same_func_par(string const& p, bool checked)
 
         cmd += "$" + varname + " = ~" + S(value);
         for (int i = 0; i < ftk->get_dm_count(); ++i)
-            if (ftk->get_model(i)->get_ff_names().size() > 0)
+            if (ftk->get_model(i)->get_ff().names.size() > 0)
                 cmd += "; @" + S(i) + ".F." + p + " = $" + varname;
     }
     else {
@@ -1018,7 +1018,7 @@ void SideBar::make_same_func_par(string const& p, bool checked)
             return;
         fp value = ftk->get_variable(nr)->get_value();
         for (int i = 0; i < ftk->get_dm_count(); ++i)
-            if (ftk->get_model(i)->get_ff_names().size() > 0)
+            if (ftk->get_model(i)->get_ff().names.size() > 0)
                 cmd += "@" + S(i) + ".F." + p + " = " + S(value) + "; ";
         // the variable was auto-deleted.
         //cmd += "delete " + varname;

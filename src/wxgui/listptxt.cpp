@@ -201,8 +201,8 @@ void DataListPlusText::update_data_list(bool nondata_changed)
     for (int i = 0; i < ftk->get_dm_count(); ++i) {
         DataAndModel const* dm = ftk->get_dm(i);
         data_data.push_back(S(i));
-        data_data.push_back(S(dm->model()->get_ff_names().size())
-                            + "+" + S(dm->model()->get_zz_names().size()));
+        data_data.push_back(S(dm->model()->get_ff().names.size())
+                            + "+" + S(dm->model()->get_zz().names.size()));
         data_data.push_back(dm->data()->get_title());
         data_data.push_back(dm->data()->get_filename());
     }

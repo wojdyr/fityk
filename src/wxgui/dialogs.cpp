@@ -259,7 +259,7 @@ DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id, int data_idx)
     wxString all_func;
     if (data_idx_ >= 0) {
         vector<string> const& ff_names
-            = ftk->get_model(data_idx_)->get_ff_names();
+            = ftk->get_model(data_idx_)->get_ff().names;
         for (vector<string>::const_iterator i = ff_names.begin();
                                                       i != ff_names.end(); ++i)
             all_func += wxT(", %") + s2wx(*i) + wxT("(x)");

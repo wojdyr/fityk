@@ -10,7 +10,6 @@
 #include "lexer.h" // Token
 
 class Ftk;
-class RealRange;
 
 /// returns output of the "info" command
 std::string get_info_string(Ftk const* F, std::string const& args);
@@ -19,6 +18,10 @@ void do_command_info(Ftk const* F, int ds, const std::vector<Token>& args);
 
 void do_command_debug(const Ftk* F, const std::string& args);
 
-void args2range(const Token& t1, const Token& t2, RealRange &range);
+// utils used in both runner.cpp and info.cpp
+class Data;
+bool get_data_range(const Data* data, const std::vector<Token>& args, int n,
+                    int* lb, int* rb);
+
 
 #endif // FITYK_INFO_H_

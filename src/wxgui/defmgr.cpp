@@ -19,7 +19,7 @@
 #include "cmn.h" //s2wx, wx2s, close_it
 #include "../func.h"
 #include "../udf.h"
-#include "../guess.h" //FunctionKind
+#include "../guess.h" //Guess::Kind
 
 using namespace std;
 
@@ -190,13 +190,13 @@ bool DefinitionMgrDlg::check_definition()
 void DefinitionMgrDlg::update_guess_comment()
 {
     FunctionDefinitonElems const& fde = modified[selected];
-    FunctionKind fk;
+    Guess::Kind fk;
     bool r = is_function_guessable(fde.parameters, fde.defvalues, &fk);
     if (!r)
         guess_label_st->SetLabel(wxT("The function can not be guessed."));
-    else if (fk == fk_peak)
+    else if (fk == Guess::kPeak)
         guess_label_st->SetLabel(wxT("The function can be guessed as peak."));
-    else if (fk == fk_linear)
+    else if (fk == Guess::kLinear)
         guess_label_st->SetLabel(wxT("The function can be guessed as linear."));
     else
         guess_label_st->SetLabel(wxT(""));
@@ -378,8 +378,8 @@ void DefinitionMgrDlg::OnEndCellEdit(wxGridEvent &event)
         if (new_row)
             par_g->SetCellValue(row, col, wxT(""));
         else {
-            if (is_defvalue_guessable(new_val, fk_linear)
-                    || is_defvalue_guessable(new_val, fk_peak)) {
+            if (is_defvalue_guessable(new_val, Guess::kLinear)
+                    || is_defvalue_guessable(new_val, Guess::kPeak)) {
                 fde.defvalues[row] = new_val;
                 update_guess_comment();
             }

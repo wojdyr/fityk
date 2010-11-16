@@ -30,7 +30,9 @@ DataAndModel::DataAndModel(Ftk *F, Data* data)
 
 bool DataAndModel::has_any_info() const
 {
-    return data()->has_any_info() || model()->has_any_info();
+    return data()->has_any_info() ||
+           !model()->get_ff().empty() ||
+           !model()->get_zz().empty();
 }
 
 
@@ -104,33 +106,6 @@ void Ftk::remove_dm(int d)
         append_dm();
 }
 
-const Function* Ftk::find_function_any(string const &fstr) const
-{
-    if (fstr.empty())
-        return 0;
-    return VariableManager::find_function(find_function_name(fstr));
-}
-
-string Ftk::find_function_name(string const &fstr) const
-{
-    if (fstr[0] == '%' || islower(fstr[0]))
-        return fstr;
-    int pos = 0;
-    int pref = -1;
-    if (fstr[0] == '@') {
-        pos = fstr.find(".") + 1;
-        pref = strtol(fstr.c_str()+1, 0, 10);
-    }
-    Model::FuncSet fset = Model::parse_funcset(fstr[pos]);
-    vector<string> const &names = get_dm(pref)->model()->get_names(fset);
-    int idx_ = strtol(fstr.c_str()+pos+2, 0, 10);
-    int idx = (idx_ >= 0 ? idx_ : idx_ + names.size());
-    if (!is_index(idx, names))
-        throw ExecuteError("There is no item with index " + S(idx_));
-    return names[idx];
-}
-
-
 void Ftk::dump_all_as_script(string const &filename)
 {
     FILE* f = fopen(filename.c_str(), "w");
@@ -195,14 +170,14 @@ void Ftk::dump_all_as_script(string const &filename)
         }
         fprintf(f, "\n");
         Model const* model = get_model(i);
-        vector<string> const& ff = model->get_ff_names();
+        vector<string> const& ff = model->get_ff().names;
         if (!ff.empty()) {
             fprintf(f, "@%d.F = %%%s", i, ff[0].c_str());
             for (size_t j = 1; j < ff.size(); ++j)
                 fprintf(f, " + %%%s", ff[j].c_str());
             fprintf(f, "\n");
         }
-        vector<string> const& zz = model->get_zz_names();
+        vector<string> const& zz = model->get_zz().names;
         if (!zz.empty()) {
             fprintf(f, "@%d.Z = %%%s", i, zz[0].c_str());
             for (size_t j = 1; j < zz.size(); ++j)
@@ -394,7 +369,7 @@ void Ftk::import_dataset(int slot, string const& filename,
 
     if (get_dm_count() == 1) {
         RealRange r; // default value: [:]
-        view.fit_zoom(r, r);
+        view.change_view(r, r);
     }
 }
 

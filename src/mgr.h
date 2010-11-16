@@ -11,6 +11,7 @@ class Variable;
 class Function;
 class Ftk;
 class Model;
+struct FunctionSum;
 
 /// keeps all functions and variables
 class VariableManager
@@ -84,6 +85,7 @@ public:
     fp variation_of_a(int n, fp variat) const;
     std::vector<std::string>
         get_variable_references(std::string const &name) const;
+    void update_indices_in_models();
 
 protected:
     Ftk const* F;
@@ -107,6 +109,7 @@ protected:
     std::string next_var_name(); ///generate name for "anonymous" variable
     std::string next_func_name();///generate name for "anonymous" function
     void do_reset();
+    void update_indices(FunctionSum& sum);
 };
 
 #endif

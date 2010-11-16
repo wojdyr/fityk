@@ -17,73 +17,43 @@
 
 using namespace std;
 
-Guess::Guess(Ftk const *F_, DataAndModel const* dm)
-    : F(F_), data(dm->data())
+Guess::Guess(Settings const *settings) : settings_(settings)
 {
-    real_peaks = dm->model()->get_ff_idx();
 }
 
-fp Guess::my_y(int n)
+void Guess::initialize(const DataAndModel* dm, int lb, int rb, int ignore_idx)
 {
-    fp x = data->get_x(n);
-    fp y = data->get_y(n);
-    for (vector<int>::const_iterator i = real_peaks.begin();
-                                             i != real_peaks.end(); i++)
-	y -= F->get_function(*i)->calculate_value(x);
-    return y;
+    xx_.resize(rb - lb);
+    for (int j = lb; j != rb; ++j)
+        xx_[j] = dm->data()->get_x(j);
+    yy_.clear(); // just in case
+    yy_.resize(rb - lb, 0.);
+    dm->model()->compute_model(xx_, yy_, ignore_idx);
+    for (int j = lb; j != rb; ++j)
+        yy_[j] = dm->data()->get_y(j) - yy_[j];
 }
 
-fp Guess::data_area(int from, int to)
-{
-    fp area = 0;
-    fp x_prev = data->get_x(from);
-    fp y_prev = my_y(from);
-    for (int i = from + 1; i <= to; i++) {
-        fp x =  data->get_x(i);
-        fp y =  my_y(i);
-        area += (x - x_prev) * (y_prev + y) / 2;
-        x_prev = x;
-        y_prev = y;
-    }
-    return area;
-}
 
-int Guess::max_data_y_pos(int from, int to)
+fp Guess::find_fwhm(int pos, fp* area)
 {
-    assert (from < to);
-    int pos = from;
-    fp maxy = my_y(from);
-    for (int i = from + 1; i < to; i++) {
-        fp y = my_y(i);
-        if (y > maxy) {
-            maxy = y;
-            pos = i;
-        }
-    }
-    return pos;
-}
-
-fp Guess::compute_data_fwhm(int from, int max_pos, int to)
-{
-    assert (from <= max_pos && max_pos <= to);
-    const fp hm = 0.5 * my_y(max_pos);
-    const int limit = 3;
-    int l = from, r = to;
+    const fp hm = 0.5 * yy_[pos];
+    const int n = 3;
+    int left_pos = 0;
+    int right_pos = yy_.size() - 1;
 
     // first we search the width of the left side of the peak
     int counter = 0;
-    for (int i = max_pos; i >= from; --i) {
-        fp y = my_y(i);
-        if (y > hm) {
+    for (int i = pos; i > 0; --i) {
+        if (yy_[i] > hm) {
             if (counter > 0) // previous point had y < hm
-                counter--;   // compensate it, it was only fluctuation
+                --counter;   // compensate it, it was only fluctuation
         }
         else {
-            counter++;
-            // we found a point below `hm', but we need to find `limit' points
+            ++counter;
+            // we found a point below `hm', but we need to find `n' points
             // below `hm' to be sure that it's not a fluctuation
-            if (counter == limit) {
-                l = i + counter;
+            if (counter == n) {
+                left_pos = i + counter;
                 break;
             }
         }
@@ -91,216 +61,135 @@ fp Guess::compute_data_fwhm(int from, int max_pos, int to)
 
     // do the same for the right side
     counter = 0;
-    for (int i = max_pos; i <= to; i++) {
-        fp y = my_y(i);
-        if (y > hm) {
+    for (int i = pos; i < right_pos; i++) {
+        if (yy_[i] > hm) {
             if (counter > 0)
                 counter--;
         }
         else {
             counter++;
-            if (counter == limit) {
-                // +1 here is intentionally not symmetric with the left side
-                r = i - counter + 1;
+            if (counter == n) {
+                // +1 here is intentionally asymmetric with the left side
+                right_pos = i - counter + 1;
                 break;
             }
         }
     }
 
-    fp fwhm = data->get_x(r) - data->get_x(l);
-    return max (fwhm, epsilon);
-}
-
-void Guess::parse_range(string const& left, string const& right,
-                        fp& range_from, fp& range_to)
-{
-    if (left.empty())
-        range_from = data->get_x_min();
-    else if (left == ".")
-        range_from = F->view.left;
-    else
-        range_from = strtod(left.c_str(), 0);
-    if (right.empty())
-        range_to = data->get_x_max();
-    else if (right == ".")
-        range_to = F->view.right;
-    else
-        range_to = strtod(right.c_str(), 0);
-}
-
-void Guess::get_point_range(fp range_from, fp range_to,
-                            int &l_bor, int &r_bor)
-{
-///    F->use_parameters();
-    if (data->get_n() <= 0)
-        throw ExecuteError("No active data.");
-
-    l_bor = max (data->get_lower_bound_ac (range_from), 0);
-    r_bor = min (data->get_upper_bound_ac (range_to),
-                 data->get_n() - 1);
-    if (l_bor >= r_bor)
-        throw ExecuteError("Searching peak outside of data points range. "
-                           "Abandoned. Tried at [" + eS(range_from) + " : "
-                           + eS(range_to) + "]");
-}
-
-
-void Guess::estimate_peak_parameters(fp range_from, fp range_to,
-                                     fp *center, fp *height, fp *area, fp *fwhm)
-{
-    int l_bor, r_bor;
-    get_point_range(range_from, range_to, l_bor, r_bor);
-    int max_y_pos = max_data_y_pos(l_bor, r_bor);
-    if (max_y_pos == l_bor || max_y_pos == r_bor - 1) {
-        string s = "Estimating peak parameters: peak outside of search scope."
-                  " Tried at [" + eS(range_from) + " : " + eS(range_to) + "]";
-        if (F->get_settings()->get_b("can_cancel_guess"))
-            throw ExecuteError(s + " Canceled.");
-        F->msg(s);
+    if (area) {
+        *area = 0;
+        for (int i = left_pos; i < right_pos; ++i)
+            *area += (xx_[i+1] - xx_[i]) * (yy_[i] + yy_[i+1]) / 2;
     }
-    fp h = my_y(max_y_pos);
-    if (height)
-        *height = h * F->get_settings()->get_f("height_correction");
-    fp center_ = data->get_x(max_y_pos);
-    if (center)
-        *center = center_;
-    fp fwhm_ = compute_data_fwhm(l_bor, max_y_pos, r_bor)
-                               * F->get_settings()->get_f("width_correction");
-    if (fwhm)
-        *fwhm = fwhm_;
-    get_point_range(center_-fwhm_, center_+fwhm_, l_bor, r_bor);
-    if (area)
-        *area = data_area(l_bor, r_bor);
+
+    fp fwhm = xx_[right_pos] - xx_[left_pos];
+    return max(fwhm, epsilon);
 }
 
-void Guess::estimate_linear_parameters(fp range_from, fp range_to,
-                                       fp *slope, fp *intercept, fp *avgy)
+void Guess::estimate_peak_parameters(fp *center, fp *height, fp *area, fp *fwhm)
 {
-    int l_bor, r_bor;
-    get_point_range(range_from, range_to, l_bor, r_bor);
+    int pos = max_element(yy_.begin(), yy_.end()) - yy_.begin();
 
+    if (pos == 0 || pos == (int) yy_.size() - 1) {
+        if (settings_->get_b("can_cancel_guess"))
+            throw ExecuteError("Peak outside of the range.");
+    }
+    if (height)
+        *height = yy_[pos] * settings_->get_f("height_correction");
+    if (center)
+        *center = xx_[pos];
+    if (fwhm || area) {
+        fp f = find_fwhm(pos, area) * settings_->get_f("width_correction");
+        if (fwhm)
+            *fwhm = f;
+    }
+}
+
+void Guess::estimate_linear_parameters(fp *slope, fp *intercept, fp *avgy)
+{
     fp sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0;
-    for (int i = l_bor; i <= r_bor; i++) {
-        fp x = data->get_x(i);
-        fp y = my_y(i);
+    int n = yy_.size();
+    for (int i = 0; i != n; ++i) {
+        fp x = xx_[i];
+        fp y = yy_[i];
         sx += x;
         sy += y;
         sxx += x*x;
         syy += y*y;
         sxy += x*y;
     }
-    int n = r_bor - l_bor + 1;
     *slope = (n * sxy - sx * sy) / (n * sxx - sx * sx);
     *intercept = (sy - (*slope) * sx) / n;
     *avgy = sy / n;
 }
 
 
-void Guess::remove_peak(string const& name)
+void Guess::get_guess_info(string& result)
 {
-    if (name.empty())
-	return;
-    assert(name[0] == '%');
-    for (vector<int>::iterator i = real_peaks.begin();
-                                             i != real_peaks.end(); i++)
-        if (F->get_function(*i)->xname == name) {
-            real_peaks.erase(i);
-            return;
-        }
-}
-
-void Guess::get_guess_info(RealRange const& range, string& result)
-{
-    // TODO: pass RealRange to estimate_*_parameters()
-    fp range_from, range_to;
-    if (range.from == RealRange::kInf)
-        range_from = data->get_x_min();
-    else if (range.from == RealRange::kNone)
-        range_from = F->view.left;
-    else
-        range_from = range.from_val;
-
-    if (range.to == RealRange::kInf)
-        range_to = data->get_x_max();
-    else if (range.to == RealRange::kNone)
-        range_to = F->view.right;
-    else
-        range_to = range.to_val;
-
     fp c = 0., h = 0., a = 0., fwhm = 0.;
-    estimate_peak_parameters(range_from, range_to,
-                             &c, &h, &a, &fwhm);
+    estimate_peak_parameters(&c, &h, &a, &fwhm);
     if (h != 0.)
         result += "center: " + eS(c) + ", height: " + S(h) + ", area: " + S(a)
             + ", FWHM: " + S(fwhm) + "\n";
     fp slope = 0, intercept = 0, avgy = 0;
-    estimate_linear_parameters(range_from, range_to,
-                               &slope, &intercept, &avgy);
+    estimate_linear_parameters(&slope, &intercept, &avgy);
     result += "slope: " + S(slope) + ", intercept: " + S(intercept)
         + ", avg-y: " + S(avgy);
 }
 
 /// guessed parameters are appended to vars
-void Guess::guess(string const& name, string const& function,
-                  string const& from_str, string const& to_str,
-                  vector<string>& vars)
+void Guess::guess(string const& function, vector<string>& par_names,
+                  vector<string>& par_values)
 {
-    remove_peak(name);
-    // variables given explicitely by user (usually none)
-    vector<string> vars_lhs(vars.size());
-    for (int i = 0; i < size(vars); ++i)
-        vars_lhs[i] = string(vars[i], 0, vars[i].find('='));
+    if (xx_.empty())
+        throw ExecuteError("Guessing in empty range");
 
-    // get range
-    fp range_from, range_to;
+    vector<string>::const_iterator ctr =
+        find(par_names.begin(), par_names.end(), "center");
 
-    // handle a special case with implicit range:
-    //  %peak = guess Gaussian center=$peak_center
-    if (from_str.empty() && to_str.empty()
-            && contains_element(vars_lhs, "center")) {
-        int ci = find(vars_lhs.begin(), vars_lhs.end(), "center")
-            - vars_lhs.begin();
-        string ctr_str = string(vars[ci], vars[ci].find('=') + 1);
-        replace_all(ctr_str, "~", "");
-        fp center = get_transform_expression_value(ctr_str, 0);
-        fp delta = F->get_settings()->get_f("guess_at_center_pm");
-        range_from = center - delta;
-        range_to = center + delta;
-    }
-    else
-        parse_range(from_str, to_str, range_from, range_to);
-
-    FunctionKind k = get_function_kind(Function::get_formula(function));
-    if (k == fk_peak) {
+    Kind k = get_function_kind(Function::get_formula(function));
+    if (k == kPeak) {
         fp c = 0., h = 0., a = 0., fwhm = 0.;
-        estimate_peak_parameters(range_from, range_to,
-                                 &c, &h, &a, &fwhm);
-        if (!contains_element(vars_lhs, "center"))
-            vars.push_back("center=~"+eS(c));
-        if (!contains_element(vars_lhs, "height"))
-            vars.push_back("height=~"+eS(h));
-        if (!contains_element(vars_lhs, "fwhm")
-                && !contains_element(vars_lhs, "hwhm"))
-            vars.push_back("fwhm=~"+eS(fwhm));
-        if (!contains_element(vars_lhs, "area"))
-            vars.push_back("area=~"+eS(a));
+        estimate_peak_parameters(&c, &h, &a, &fwhm);
+        if (ctr != par_names.end()) {
+            par_names.push_back("center");
+            par_values.push_back("~"+eS(c));
+        }
+        if (!contains_element(par_names, "height")) {
+            par_names.push_back("height");
+            par_values.push_back("~"+eS(h));
+        }
+        if (!contains_element(par_names, "fwhm")
+                && !contains_element(par_names, "hwhm")) {
+            par_names.push_back("fwhm");
+            par_values.push_back("~"+eS(fwhm));
+        }
+        if (!contains_element(par_names, "area")) {
+            par_names.push_back("area");
+            par_values.push_back("~"+eS(a));
+        }
     }
-    else if (k == fk_linear) {
+    else if (k == kLinear) {
         fp slope, intercept, avgy;
-        estimate_linear_parameters(range_from, range_to,
-                                   &slope, &intercept, &avgy);
-        if (!contains_element(vars_lhs, "slope"))
-            vars.push_back("slope=~"+eS(slope));
-        if (!contains_element(vars_lhs, "intercept"))
-            vars.push_back("intercept=~"+eS(intercept));
-        if (!contains_element(vars_lhs, "avgy"))
-            vars.push_back("avgy=~"+eS(avgy));
+        estimate_linear_parameters(&slope, &intercept, &avgy);
+        if (!contains_element(par_names, "slope")) {
+            par_names.push_back("slope");
+            par_values.push_back("~"+eS(slope));
+        }
+        if (!contains_element(par_names, "intercept")) {
+            par_names.push_back("intercept");
+            par_values.push_back("~"+eS(intercept));
+        }
+        if (!contains_element(par_names, "avgy")) {
+            par_names.push_back("avgy");
+            par_values.push_back("~"+eS(avgy));
+        }
     }
 }
 
 namespace {
 
-FunctionKind get_defvalue_kind(std::string const& d)
+Guess::Kind get_defvalue_kind(std::string const& d)
 {
     static vector<string> linear_p(3), peak_p(4);
     static bool initialized = false;
@@ -315,24 +204,24 @@ FunctionKind get_defvalue_kind(std::string const& d)
         initialized = true;
     }
     if (contains_element(linear_p, d))
-        return fk_linear;
+        return Guess::kLinear;
     else if (contains_element(peak_p, d))
-        return fk_peak;
+        return Guess::kPeak;
     else
-        return fk_unknown;
+        return Guess::kUnknown;
 }
 
-FunctionKind get_function_kind_from_varnames(vector<string> const& vars)
+Guess::Kind get_function_kind_from_varnames(vector<string> const& vars)
 {
     for (vector<string>::const_iterator i = vars.begin(); i != vars.end(); ++i){
-        FunctionKind k = get_defvalue_kind(*i);
-        if (k != fk_unknown)
+        Guess::Kind k = get_defvalue_kind(*i);
+        if (k != Guess::kUnknown)
             return k;
     }
-    return fk_unknown;
+    return Guess::kUnknown;
 }
 
-FunctionKind get_function_kind_from_defvalues(vector<string> const& defv)
+Guess::Kind get_function_kind_from_defvalues(vector<string> const& defv)
 {
     for (vector<string>::const_iterator i = defv.begin(); i != defv.end(); ++i){
         int start = -1;
@@ -344,54 +233,54 @@ FunctionKind get_function_kind_from_defvalues(vector<string> const& defv)
             }
             else {
                 if (!isalnum(c) && c != '_') {
-                    FunctionKind k
+                    Guess::Kind k
                         = get_defvalue_kind(string(*i, start, j-start));
-                    if (k != fk_unknown)
+                    if (k != Guess::kUnknown)
                         return k;
                     start = -1;
                 }
             }
         }
         if (start != -1) {
-            FunctionKind k = get_defvalue_kind(string(*i, start));
-            if (k != fk_unknown)
+            Guess::Kind k = get_defvalue_kind(string(*i, start));
+            if (k != Guess::kUnknown)
                 return k;
         }
     }
-    return fk_unknown;
+    return Guess::kUnknown;
 }
 
 } // anonymous namespace
 
-FunctionKind get_function_kind(string const& formula)
+Guess::Kind get_function_kind(string const& formula)
 {
     vector<string> vars = Function::get_varnames_from_formula(formula);
-    FunctionKind k = get_function_kind_from_varnames(vars);
-    if (k != fk_unknown)
+    Guess::Kind k = get_function_kind_from_varnames(vars);
+    if (k != Guess::kUnknown)
         return k;
     vector<string> defv = Function::get_defvalues_from_formula(formula);
     return get_function_kind_from_defvalues(defv);
 }
 
-bool is_parameter_guessable(string const& name, FunctionKind k)
+bool is_parameter_guessable(string const& name, Guess::Kind k)
 {
-    if (k == fk_linear)
+    if (k == Guess::kLinear)
         return name == "slope" || name == "intercept" || name == "avgy";
-    else if (k == fk_peak)
+    else if (k == Guess::kPeak)
         return name == "center" || name == "height" || name == "fwhm"
             || name == "area" || name == "hwhm";
     else
         return false;
 }
 
-bool is_defvalue_guessable(string defvalue, FunctionKind k)
+bool is_defvalue_guessable(string defvalue, Guess::Kind k)
 {
-    if (k == fk_linear) {
+    if (k == Guess::kLinear) {
         replace_words(defvalue, "slope", "1");
         replace_words(defvalue, "intercept", "1");
         replace_words(defvalue, "avgy", "1");
     }
-    else if (k == fk_peak) {
+    else if (k == Guess::kPeak) {
         replace_words(defvalue, "center", "1");
         replace_words(defvalue, "height", "1");
         replace_words(defvalue, "fwhm", "1");
@@ -413,7 +302,7 @@ bool is_function_guessable(string const& formula, bool check_defvalue)
     string all_names(formula, lb+1, rb-lb-1);
     vector<string> nd = split_string(all_names, ',');
 
-    FunctionKind k = get_function_kind(formula);
+    Guess::Kind k = get_function_kind(formula);
     vector<string> vars, defv;
     for (vector<string>::const_iterator i = nd.begin(); i != nd.end(); ++i) {
         string::size_type eq = i->find('=');
@@ -432,17 +321,17 @@ bool is_function_guessable(string const& formula, bool check_defvalue)
 
 bool is_function_guessable(vector<string> const& vars,
                            vector<string> const& defv,
-                           FunctionKind* fk)
+                           Guess::Kind* kind)
 {
-    FunctionKind k = get_function_kind_from_varnames(vars);
-    if (k == fk_unknown)
+    Guess::Kind k = get_function_kind_from_varnames(vars);
+    if (k == Guess::kUnknown)
         k = get_function_kind_from_defvalues(defv);
     for (size_t i = 0; i != vars.size(); ++i)
         if (!is_parameter_guessable(vars[i], k)
                              && !is_defvalue_guessable(defv[i], k))
                 return false;
-    if (fk)
-        *fk = k;
+    if (kind)
+        *kind = k;
     return true;
 }
 

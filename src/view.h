@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <float.h>
 
 #include "common.h"
 
@@ -15,15 +16,12 @@ class Data;
 class Model;
 class Ftk;
 
-// used for "info guess" now,
-// TODO: use it in all places where real-number range is passed
 struct RealRange
 {
-    enum What { kNone, kInf, kNumber };
-    What from, to;
-    fp from_val, to_val;
-
-    RealRange() : from(kInf), to(kInf) {}
+    double from, to;
+    RealRange() : from(-DBL_MAX), to(DBL_MAX) {}
+    bool from_inf() const { return from == -DBL_MAX; }
+    bool to_inf() const { return to == DBL_MAX; }
 };
 
 struct Rect
@@ -48,18 +46,15 @@ class View: public Rect
 public:
     static const fp relative_x_margin, relative_y_margin;
 
-    // F is used only in fit_zoom(), can be NULL
     View(Ftk const* F_)
         : Rect(0, 180., -50, 1e3), F(F_), datasets_(1,0),
           log_x_(false), log_y_(false), y0_factor_(10.) {}
     std::string str() const;
-    void parse_and_set(const RealRange& hor, const RealRange& ver,
-                       std::vector<int> const& dd);
     /// fit specified edges to the data range
-    void fit_zoom(const RealRange& hor, const RealRange& ver);
+    void change_view(const RealRange& hor, const RealRange& ver);
+    /// set datasets that are to be used when fitting viewed area to data
+    void set_datasets(std::vector<int> const& dd);
     std::vector<int> const& get_datasets() const { return datasets_; }
-    // set range
-    void set_bounds(const RealRange& hor, const RealRange& ver);
     void set_log_scale(bool log_x, bool log_y) { log_x_=log_x; log_y_=log_y; }
     fp y0_factor() const { return y0_factor_; }
     void set_y0_factor(fp f) { y0_factor_ = f; }
@@ -73,9 +68,6 @@ private:
     void get_y_range(std::vector<Data const*> datas,
                      std::vector<Model const*> models,
                      fp &y_min, fp &y_max);
-
-    /// set datasets that are to be used when fitting viewed area to data
-    void set_datasets(std::vector<int> const& dd);
 };
 
 #endif

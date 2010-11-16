@@ -61,6 +61,7 @@ void VariableManager::sort_variables()
 string VariableManager::get_or_make_variable(string const& func)
 {
     string ret;
+/* TODO
     assert(!func.empty());
     string tmp1, tmp2;
     if (parse(func.c_str(), VariableLhsG).full) // $foo
@@ -78,6 +79,7 @@ string VariableManager::get_or_make_variable(string const& func)
     }
     else                                       // anything else
         ret = assign_variable("", func);
+*/
     return ret;
 }
 
@@ -444,16 +446,15 @@ void VariableManager::delete_funcs(vector<string> const &names)
 
     // post-delete
     remove_unreferred();
-    for (vector<Model*>::iterator i = models.begin(); i != models.end(); ++i)
-        (*i)->find_function_indices();
+    update_indices_in_models();
 }
 
 bool VariableManager::is_function_referred(int n) const
 {
     for (vector<Model*>::const_iterator i = models.begin();
                                                     i != models.end(); ++i) {
-        if (contains_element((*i)->get_ff_idx(), n)
-                || contains_element((*i)->get_zz_idx(), n))
+        if (contains_element((*i)->get_ff().idx, n)
+                || contains_element((*i)->get_zz().idx, n))
             return true;
     }
     return false;
@@ -469,17 +470,14 @@ void VariableManager::auto_remove_functions()
         }
     if (func_size != size(functions)) {
         remove_unreferred();
-        for (vector<Model*>::iterator i = models.begin();
-                                                    i != models.end(); ++i)
-            (*i)->find_function_indices();
+        update_indices_in_models();
     }
 }
 
 int VariableManager::find_function_nr(string const &name) const
 {
-    string only_name = !name.empty() && name[0]=='%' ? string(name,1) : name;
     for (int i = 0; i < size(functions); ++i)
-        if (functions[i]->name == only_name)
+        if (functions[i]->name == name)
             return i;
     return -1;
 }
@@ -488,8 +486,7 @@ const Function* VariableManager::find_function(string const &name) const
 {
     int n = find_function_nr(name);
     if (n == -1)
-        throw ExecuteError("undefined function: "
-                                       + (name[0]=='%' ? name : "%"+name));
+        throw ExecuteError("undefined function: %" + name);
     return functions[n];
 }
 
@@ -633,24 +630,18 @@ string VariableManager::assign_func(string const &name, string const &function,
 string VariableManager::do_assign_func(Function* func)
 {
     func->set_var_idx(variables);
-    //if there is already function with the same name -- replace
-    bool found = false;
-    for (int i = 0; i < size(functions); ++i) {
-        if (functions[i]->name == func->name) {
-            delete functions[i];
-            functions[i] = func;
-            if (!silent)
-                F->msg("New function %" + func->name +" replaced the old one.");
-            remove_unreferred();
-            found = true;
-            break;
-        }
+    // if there is already function with the same name -- replace
+    int nr = find_function_nr(func->name);
+    if (nr != -1) {
+        delete functions[nr];
+        functions[nr] = func;
+        remove_unreferred();
     }
-    if (!found) {
+    else {
         functions.push_back(func);
-        if (!silent)
-            F->msg("New function %" + func->name + " was created.");
     }
+    if (!silent)
+        F->msg("%" + func->name + (nr == -1 ? " created." : " replaced."));
     return func->name;
 }
 
@@ -748,7 +739,28 @@ void VariableManager::do_reset()
     purge_all_elements(variables);
     parameters.clear();
     //don't delete models, they should unregister itself
-    for (vector<Model*>::iterator i = models.begin(); i != models.end(); ++i)
-        (*i)->find_function_indices();
+    update_indices_in_models();
 }
 
+void VariableManager::update_indices(FunctionSum& sum)
+{
+    sum.idx.clear();
+    size_t i = 0;
+    while (i < sum.names.size()) {
+        int k = find_function_nr(sum.names[i]);
+        if (k == -1)
+            sum.names.erase(sum.names.begin() + i);
+        else {
+            sum.idx.push_back(k);
+            ++i;
+        }
+    }
+}
+
+void VariableManager::update_indices_in_models()
+{
+    for (vector<Model*>::iterator i = models.begin(); i != models.end(); ++i){
+        update_indices((*i)->get_ff());
+        update_indices((*i)->get_zz());
+    }
+}

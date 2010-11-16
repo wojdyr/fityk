@@ -70,9 +70,6 @@ public:
     bool contains_dm(DataAndModel const* p) const
                       { return count(dms_.begin(), dms_.end(), p) > 0; }
 
-    std::string find_function_name(std::string const &fstr) const;
-    const Function* find_function_any(std::string const &fstr) const;
-
     Settings const* get_settings() const { return settings_; }
     Settings* get_settings() { return settings_; }
 

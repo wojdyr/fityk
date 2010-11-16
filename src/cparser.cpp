@@ -178,20 +178,10 @@ Parser::~Parser()
 // appends two tokens (kTokenExpr/kTokenDot/kTokenNop) to args
 void Parser::parse_real_range(Lexer& lex, vector<Token>& args)
 {
-    if (lex.peek_token().type == kTokenDot) {
-        Token t = lex.get_token();
-        args.push_back(t);
-        args.push_back(t); // twice, because '.' here means [.:.]
-    }
-    else if (lex.peek_token().type == kTokenLSquare) {
+    if (lex.peek_token().type == kTokenLSquare) {
         lex.get_token(); // discard '['
         const Token& t = lex.peek_token();
-        if (t.type == kTokenDot) {
-            args.push_back(t);
-            lex.get_token(); // discard '.'
-            lex.get_expected_token(kTokenColon); // discard ':'
-        }
-        else if (t.type == kTokenColon) {
+        if (t.type == kTokenColon) {
             args.push_back(nop());
             lex.get_token(); // discard ':'
         }
@@ -205,12 +195,7 @@ void Parser::parse_real_range(Lexer& lex, vector<Token>& args)
         }
 
         const Token& r = lex.peek_token();
-        if (r.type == kTokenDot) {
-            args.push_back(r);
-            lex.get_token(); // discard '.'
-            lex.get_expected_token(kTokenRSquare); // discard ']'
-        }
-        else if (r.type == kTokenRSquare) {
+        if (r.type == kTokenRSquare) {
             lex.get_token(); // discard ']'
             args.push_back(nop());
         }
@@ -265,8 +250,10 @@ void Parser::parse_func_id(Lexer& lex, vector<Token>& args, bool accept_fz)
     if (t.as_string() != "F" && t.as_string() != "Z")
         lex.throw_syntax_error("expected %function ID");
     args.push_back(t);
-    if (accept_fz && lex.peek_token().type != kTokenLSquare)
+    if (accept_fz && lex.peek_token().type != kTokenLSquare) {
+        args.push_back(nop());
         return;
+    }
     lex.get_expected_token(kTokenLSquare); // discard '['
     args.push_back(read_and_calc_expr(lex));
     lex.get_expected_token(kTokenRSquare); // discard ']'
@@ -568,10 +555,9 @@ void Parser::parse_assign_func(Lexer& lex, vector<Token>& args)
 void Parser::parse_fz(Lexer& lex, Statement &s)
 {
     Token t = lex.get_token();
-    // F=..., F+=..., F-=...
-    // ('='|'+='|'-=') (0 | %f | Type(...) | copy(%f) | F | copy(F)) % '+'
-    if (t.type == kTokenAssign || t.type == kTokenAddAssign
-            || t.type == kTokenSubAssign) {
+    // F=..., F+=...
+    // ('='|'+=') (0 | %f | Type(...) | copy(%f) | F | copy(F)) % '+'
+    if (t.type == kTokenAssign || t.type == kTokenAddAssign) {
         s.cmd = kCmdChangeModel;
         s.args.push_back(t);
         for (;;) {
@@ -728,7 +714,10 @@ void Parser::parse_command(Lexer& lex)
         }
         else if (is_command(token, "p","lot")) {
             s.cmd = kCmdPlot;
-            parse_real_range(lex, s.args);
+            if (lex.peek_token().type == kTokenDot)
+                s.args.push_back(lex.get_token());
+            else
+                parse_real_range(lex, s.args);
             parse_real_range(lex, s.args);
         }
         else if (is_command(token, "quit","")) {
