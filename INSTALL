@@ -28,12 +28,12 @@ To install the latest version from SVN
 ======================================
 
 Install automake, autoconf, libtool.
-Optionally install Sphinx >= 1.0 (http://sphinx.pocoo.org/).
 Before the ./configure step, run:
 $ autoreconf -iv
 
-If you do not have Sphinx installed, skip building the manual:
-./configure --without-doc
+If you do not have Sphinx >= 1.0 (http://sphinx.pocoo.org/) and LaTeX installed,
+skip building the manual:
+$ ./configure --without-doc
 
 Configuration Options
 =====================

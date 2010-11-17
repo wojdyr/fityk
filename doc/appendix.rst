@@ -228,7 +228,7 @@ The kCmd* names in the comments correspond to constants in the code.
 
 .. productionlist::
    command: (
-    : "debug" RestOfLine            | (*kCmdDebug*)
+    : "deb:ug" RestOfLine           | (*kCmdDebug*)
     : "def:ine" `define`              | (*kCmdDefine*)
     : "del:ete" `delete`              | (*kCmdDelete*)
     : "del:ete" `delete_points`       | (*kCmdDeleteP*)
@@ -236,7 +236,7 @@ The kCmd* names in the comments correspond to constants in the code.
     : "f:it" `fit`                    | (*kCmdFit*)
     : "g:uess" `guess`                | (*kCmdGuess*)
     : "i:nfo" `info_arg` % "," `redir`  | (*kCmdInfo*)
-    : "p:lot" [`range` [`range`]]       | (*kCmdPlot*)
+    : "p:lot" [(`range`|".") [`range`]] | (*kCmdPlot*)
     : "pr:int" `print` `redir`          | (*kCmdPrint*)
     : "quit"                        | (*kCmdQuit*)
     : "reset"                       | (*kCmdReset*)
@@ -269,10 +269,11 @@ The kCmd* names in the comments correspond to constants in the code.
    delete_points: "(" p_expr ")"
    exec: `filename` |
        : "!" RestOfLine
-   fit: ["+"] `Number` |
+   fit: [Number] [Dataset*] |
+      : "+" Number |
       : "undo" |
       : "redo" |
-      : "history" `Number` |
+      : "history" Number |
       : "clear_history"
    guess: [Funcname "="] Uname ["(" (Lname "=" `v_expr`) % "," ")"] [`range`]
    info_arg: ...TODO
@@ -299,7 +300,7 @@ The kCmd* names in the comments correspond to constants in the code.
           : `model_id` "[" Number "]"
    var_id: Varname |
          : `func_id` "." Lname
-   range: "[" [`expr`|"."] ":" [`expr`|"."] "]" | "."
+   range: "[" [`expr`] ":" [`expr`] "]"
    filename: QuotedString | NonblankString
 
 **Mathematical expressions**
@@ -344,16 +345,12 @@ That is why not all the function from ``expr`` are supported
 
 **Lexer**
 
-Below, some of the tokens produced by the lexer (a.k.a scanner or tokenizer)
-are defined.
+Below, some of the tokens produced by the fityk lexer are defined.
 
-In the code, there is one token for ``Dataset*`` and it is then checked
-in the parser.
-
-Lexer is context-dependend: ``NonblankString`` and ``RestOfLine``
+The lexer is context-dependend: ``NonblankString`` and ``RestOfLine``
 are produced only when they are expected in the grammar.
 
-``Uname`` is used only for type names (Gaussian)
+``Uname`` is used only for function types (Gaussian)
 and pseudo-parameters (%f.Area).
 
 .. productionlist::
@@ -363,8 +360,7 @@ and pseudo-parameters (%f.Area).
    QuotedString: "'" (AllChars - "'")* "'"
    Lname: (Lowercase | "_") (Lowercase | Digit | "_")*
    Uname: Uppercase AlphaNum+
-   Number: ?number in format supported by strtod()?
-   ShellCommand: "!" AllChars*
+   Number: ?number read by strtod()?
    NonblankString: (AllChars - (Whitespace | ";" | "#" ))*
    RestOfLine: AllChars*
 

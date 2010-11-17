@@ -337,11 +337,10 @@ Token Lexer::get_filename_token()
 Token Lexer::get_rest_of_line()
 {
     Token t = get_token();
-    while (t.str + t.length != '\0')
-        ++t.length;
-    if (t.type == kTokenString || t.type == kTokenNop)
-        return get_token();
+    while (*cur_ != '\0')
+        ++cur_;
     t.type = kTokenRest;
+    t.length = cur_ - t.str;
     return t;
 }
 

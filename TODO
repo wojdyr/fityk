@@ -2,7 +2,26 @@ $Id$
 
 ---------- TODO list and tentative development plan  ----------------
 
+* GUI bug: when "show all datasets" is selected, zooming doesn't work
+
 * finish new parser (cparser.cpp/eparser.cpp/lexer.cpp)
+
+* make possible something like this:  $min = @*.min(y if a)
+
+* data transformations: add aggregate functions argmin and argmax
+
+* [BUG] parsing problems: "a=a" => OK (should be error)  "a=ab" => Syntax error
+
+* command info:
+  - "info 12, fit" doesn't work, although "info fit, 12" works.
+  - support quoted strings, e.g. info '2+2=', 2+2
+  - use new lexer
+  - "info peaks" should use info-numeric-format
+  - @*: info filename, F[1].area, F[1].area.error >>file
+  - info y[$var]
+  - ',' at the end prevents new line
+
+* GUI: Data>Load should use default load dir (as Quick Load)
 
 --- 0.9.5 
 
@@ -14,23 +33,13 @@ $Id$
 
 * finish powder diffraction add-on (Pawley fitting)
 
-* command info:
-  - "info 12, fit" doesn't work, although "info fit, 12" works.
-  - support quoted strings, e.g. info '2+2=', 2+2
-  - use new lexer
-  - "info peaks" should use info-numeric-format
-
 * FFT data transformation using either KISS FFT or FFTW library,
   fft[-inv]-xx, where xx is re, im, amp, e.g. @n = fft-re @3 
 
 * convolution and deconvolution of two datasets or a dataset with Gaussian:
   convolve @0 @1; convolve @0 2.3; deconvolve @0 3.4
   
-* data transformations: add aggregate functions argmin and argmax
-
 * embed Lua interpreter
-
-* make possible something like this: $min = {min(y if a) in @*}
 
 * GUI: there is ugly vertical line (a part of the fitted curve) in points
   where the value is undefined (e.g. in ReadShockley function for x=0).
@@ -44,17 +53,10 @@ $Id$
 
 * GUI: redesign gradient dialog
 
-* GUI: Data>Load should use default load dir (as Quick Load)
-
-* [BUG] parsing problems: "a=a" => OK (should be error)  "a=ab" => Syntax error
-
-* (GUI) plot horizontal/vertical lines 
+* (GUI) plot horizontal/vertical lines
      can be used to show theoretical peak positions in XRD
      (or to mark simulation restarts in data from MD)
-     Syntax: 
-             plot line x=42.2 label="foo" in @*
-             plot line y=1000.3 label="foo" in @*
-             plot no lines in @*
+     Syntax: line x=42.2 label="foo"
 
 * fitting: stopping criterium based on elapsed time
 
@@ -88,7 +90,7 @@ $Id$
 * add a new function category: sigmoids/steps (now function can be guessed as
   "peak" and "linear"). (GUI): drawing drafts for the new category.
 
-* add alpha channel to toolbar icons
+* add alpha channel to the toolbar icons
 
 * (GUI) single dialog for configuring main plot (and also aux. plots) (?)
   - now in Configure axes / peak labels fonts are changed (but shouldn't) 
@@ -113,8 +115,8 @@ $Id$
   perhaps using gsl_sf_log_erfc or exp(x*x)*erfc(x) from
   http://www.netlib.org/specfun/erf
 
-* improve Voigt function (cut-tails, better approximation),
-  there are dozens of papers on Voigt calculation, mostly in JQSRT.
+* Use a better approximation of Voigt function than the one used now.
+  There are dozens of papers on Voigt calculation, mostly in JQSRT.
 
 * GUI: menu Functions:
   Functions > Peak-Find Info -> animation
@@ -126,18 +128,13 @@ $Id$
     eg. in Pearson shape > 0.5 , shape < 1e9
     what if parameter is out of domain? change? disable function?
 
-* ? cmd/GUI: plot peak-groups: ==> plot (%a+%b+%c)  
-
-* ?GUI: Data Editor - left/right/top/bottom - magic keywords: user would be
-       asked to select point/range/rectangle in plot
-
 * ? more sophisticated algorithms for peak detection
     - compare methods from origin pkfind, peakfit and other programs
     - research papers: http://dx.doi.org/10.1016/j.chroma.2004.11.073
                        http://dx.doi.org/10.1002/cem.1005
 
-* fitting: GA fitting options, 
-  a way to "shake" parameters for L-M
+* fitting: GA fitting options,
+  replace "shake_before" in LMfit.cpp with separate "randomize" method
 
 * fitting:
 	simulated annealing (it can replace LM shake_before option)
@@ -145,10 +142,10 @@ $Id$
 	Rosenbrock Method:
 	  http://www.applied-mathematics.net/optimization/rosenbrock.html
 
-* fitting: investigate using a library for nonlinear fitting/optimization:
-  I don't know about any library good enough to justify migration.  
+* fitting: consider using 3rd-party library for nonlinear fitting/optimization.
   The list of libraries in this category:
     NLopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
+    ALGLIB: http://www.alglib.net/
     COOOL: http://coool.mines.edu/ 
     GAUL: http://gaul.sourceforge.net/, 
     WNLIB: http://www.willnaylor.com/wnlib.html
@@ -162,15 +159,11 @@ $Id$
     levmar: http://www.ics.forth.gr/~lourakis/levmar/
     OpenOpt: http://openopt.org/
 
-
-* fitting: robust fit - other error distributions then Gaussian, 
-  eg. Lorenzian...; so called 'maximum-likelihood method' -- using Poisson
-  error distribution.
+* fitting:
+  robust fit - other error distributions then Gaussian, eg. Lorenzian...;
+  so called 'maximum-likelihood method' -- using Poisson error distribution.
 
 * ? exporting formulae in MathML (when option formula-export-style == mathml)
-
-* [BUG, won't be fixed]: program crashes on MS Win 9x when data contains NaN 
-  (e.g. as a result of asin(x) x>1) and "Zoom all" is called.
 
 * when wxWidgets 3 will be available in major Linux distributions:
   - open-file dialog (with preview) will use xybrowser.cpp
@@ -185,29 +178,3 @@ $Id$
   - use wxToggleBitmapButton buttons on sidebar>functions (buttons that make 
     hwhm and shape equal for all functions)
 
--------  Ideas for people, who would like to contribute:  -----------
-
-- graphics: new toolbar icons (PNG with alpha channel).
-  Now XPM icons are used, without alpha channel.
-
-- write a function to calculate a Voigt/Faddeeva function, based on one 
-  (or more) of papers published about it. I mean here an approximation more 
-  exact that the standard Humlicek one. GSL would probably also accept
-  such a function in C.
-  http://sources.redhat.com/ml/gsl-discuss/2004-q4/msg00061.html
-
-- see the note about EMG function above
-
-- if you have some expertise in nonlinear optimization methods, it's possible
-  to do what Gnu Scientific Library seems to plan: put a few least-squares
-  fitting methods with similar interface into one library. 
-  It can be part of fityk, a separate library or a part of GSL.
-
-- (wxWidgets): On the sidebar FancyRealCtrl is used for changing parameters:
-  http://wxforum.shadonet.com/viewtopic.php?t=13471
-  It would be better to use a custom (3D?) control instead of wxSlider,
-  perhaps similar to controls used in Google Earth for zoom and tilt.
-
-- anything else
-
----------------------------------------------------------------------

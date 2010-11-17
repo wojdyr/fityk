@@ -134,24 +134,18 @@ void read_and_execute_input()
 }
 
 
-const char *commands[] = { "info", "plot", "delete", "set", "fit",
-        "commands", "dump", "sleep", "reset", "quit", "guess", "define"
-        };
-
 char *command_generator (const char *text, int state)
 {
-    static unsigned int list_index = 0;
+    static const char** p = NULL;
     if (!state)
-        list_index = 0;
-    while (list_index < sizeof(commands) / sizeof(char*)) {
-        const char *name = commands[list_index];
-        list_index++;
+        p = command_list;
+    while (*p != NULL) {
+        const char *name = *p;
+        ++p;
         if (strncmp (name, text, strlen(text)) == 0)
             return strdup(name);
     }
-    //if (!state)
-        //return strdup(text); // to prevent file expansion
-    return 0;
+    return NULL;
 }
 
 char *type_generator(const char *text, int state)

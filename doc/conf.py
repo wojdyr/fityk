@@ -47,11 +47,10 @@ latex_documents = [
 latex_logo = 'fityk-banner.pdf'
 latex_elements = {
     'papersize': 'a4paper', # 'letterpaper'
-    'utf8extra': r"""
-         \DeclareUnicodeCharacter{00A0}{\nobreakspace}
-         \DeclareUnicodeCharacter{03C3}{\ensuremath{\sigma}}
-         \DeclareUnicodeCharacter{2212}{\ensuremath{-}}
-         """
+    'inputenc': r"""
+         \usepackage{ucs}
+         \usepackage[utf8x]{inputenc}""",
+    'utf8extra': ''
 }
 
 #latex_appendices = ['appendix']

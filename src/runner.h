@@ -35,7 +35,6 @@ private:
     void command_exec(const std::vector<Token>& args);
     void command_fit(const std::vector<Token>& args, int ds);
     void command_guess(const std::vector<Token>& args, int ds);
-    void command_info(const std::vector<Token>& args, int ds);
     void command_plot(const std::vector<Token>& args);
     void command_undefine(const std::vector<Token>& args);
     void command_load(const std::vector<Token>& args);

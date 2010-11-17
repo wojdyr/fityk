@@ -18,6 +18,7 @@ class DataAndModel;
 
 enum CommandType
 {
+    kCmdDebug,
     kCmdDefine,
     kCmdDelete,
     kCmdDeleteP,
@@ -26,6 +27,7 @@ enum CommandType
     kCmdGuess,
     kCmdInfo,
     kCmdPlot,
+    kCmdPrint,
     kCmdQuit,
     kCmdReset,
     kCmdSet,
@@ -53,7 +55,8 @@ struct Statement
     std::vector<int> datasets;
 };
 
-// NULL-terminated tables
+// NULL-terminated tables, used for tab-expansion.
+extern const char* command_list[];
 extern const char* info_args[];
 extern const char* debug_args[];
 
@@ -79,6 +82,7 @@ public:
 
     // temporarily public
     void parse_info_args(Lexer& lex, std::vector<Token>& args);
+    void parse_print_args(Lexer& lex, std::vector<Token>& args);
 
 private:
     const Ftk* F_;

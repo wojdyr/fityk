@@ -25,7 +25,7 @@ It is primarily used...
 * to fit bell-shaped functions (Gaussian, Lorentzian, Voigt,
   Pearson VII, bifurcated Gaussian, EMG, Doniach-Sunjic, etc.),
 
-... but any functions can be fitted to any 2D (i.e. *x*,\ *y*) data.
+... but any functions can be fitted to any 2D (*x*,\ *y*) data.
 
 Features
 ========

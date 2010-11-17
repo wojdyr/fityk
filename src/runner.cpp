@@ -229,11 +229,6 @@ void Runner::command_guess(const vector<Token>& args, int ds)
     F_->outdated_plot();
 }
 
-void Runner::command_info(const vector<Token>& args, int ds)
-{
-    do_command_info(F_, ds, args);
-}
-
 void Runner::command_plot(const vector<Token>& args)
 {
     vector<int> dd; //TODO
@@ -244,9 +239,15 @@ void Runner::command_plot(const vector<Token>& args)
     F_->get_ui()->draw_plot(1, UserInterface::kRepaintDataset);
 }
 
-void Runner::command_dataset_tr(const vector<Token>& /*args*/)
+void Runner::command_dataset_tr(const vector<Token>& args)
 {
-    //TODO
+    int n = args[0].value.i;
+    string tr = args[1].as_string();
+    vector<Data const*> dd;
+    for (size_t i = 2; i < args.size(); ++i)
+        if (args[i].type == kTokenDataset)
+            dd.push_back(F_->get_data(args[i].value.i));
+    F_->get_data(n)->load_data_sum(dd, tr);
 }
 
 void Runner::command_name_func(const vector<Token>& /*args*/)
@@ -262,6 +263,7 @@ void Runner::command_assign_param(const vector<Token>& /*args*/, int /*ds*/)
 void Runner::command_name_var(const vector<Token>& /*args*/, int /*ds*/)
 {
     //TODO
+    //VariableManager::assign_variable
 }
 
 int get_fz_or_func(const Ftk *F, int ds, vector<Token>::const_iterator a,
@@ -449,6 +451,9 @@ void Runner::execute_statement(Statement& st)
 
             printf("ds:%d  cmd=%s  #args:%d\n", *i, commandtype2str(st.cmd), (int) st.args.size());
             switch (st.cmd) {
+                case kCmdDebug:
+                    run_debug(F_, *i, st.args[0], st.args[1]);
+                    break;
                 case kCmdDefine:
                     command_define(st.args);
                     break;
@@ -468,10 +473,13 @@ void Runner::execute_statement(Statement& st)
                     command_guess(st.args, *i);
                     break;
                 case kCmdInfo:
-                    command_info(st.args, *i);
+                    run_info(F_, *i, kCmdInfo, st.args);
                     break;
                 case kCmdPlot:
                     command_plot(st.args);
+                    break;
+                case kCmdPrint:
+                    run_info(F_, *i, kCmdPrint, st.args);
                     break;
                 case kCmdReset:
                     F_->reset();

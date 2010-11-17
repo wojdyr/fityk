@@ -3,7 +3,6 @@
 // $Id: $
 
 /// This parser is not used yet.
-/// In the future it will replace the current parser (cmd* files)
 /// Command parser.
 
 #include "cparser.h"
@@ -19,6 +18,11 @@
 using namespace std;
 using fityk::SyntaxError;
 
+const char *command_list[] = {
+    "debug", "define", "delete", "exec", "fit", "guess", "info", "plot",
+    "quit", "reset", "set", "sleep", "title", "undefine"
+};
+
 const char* info_args[] = {
     "version", "compiler", "variables", "variables_full",
     "types", "types_full", "functions", "functions_full",
@@ -32,13 +36,15 @@ const char* info_args[] = {
 };
 
 const char* debug_args[] = {
-    "der", "ops", "parse", "lex", NULL
+    // %functions and $variables are also accepted as args
+    "parse", "lex", "expr", "der", "rd", "idx", "df", NULL
 };
 
 
 const char* commandtype2str(CommandType c)
 {
     switch (c) {
+        case kCmdDebug:   return "Debug";
         case kCmdDefine:  return "Define";
         case kCmdDelete:  return "Delete";
         case kCmdDeleteP: return "Delete";
@@ -47,6 +53,7 @@ const char* commandtype2str(CommandType c)
         case kCmdGuess:   return "Guess";
         case kCmdInfo:    return "Info";
         case kCmdPlot:    return "Plot";
+        case kCmdPrint:   return "Print";
         case kCmdQuit:    return "Quit";
         case kCmdReset:   return "Reset";
         case kCmdSet:     return "Set";
@@ -68,6 +75,7 @@ const char* commandtype2str(CommandType c)
     return NULL; // avoid warning
 }
 
+/*
 // returns true if the command syntax ends with (optional) "in @n"
 bool has_data_arg(CommandType c)
 {
@@ -85,6 +93,7 @@ bool has_data_arg(CommandType c)
             return false;
     }
 }
+*/
 
 Token nop()
 {
@@ -499,15 +508,35 @@ void Parser::parse_one_info_arg(Lexer& lex, vector<Token>& args)
         lex.throw_syntax_error("Unknown info argument: " + token.as_string());
 }
 
+void Parser::parse_print_args(Lexer& lex, vector<Token>& args)
+{
+    for (;;) {
+        if (lex.peek_token().type == kTokenString)
+            args.push_back(lex.get_token());
+        //TODO data expr read_and_calc_expr()
+        //else
+        //    parse_one_info_arg(lex, args);
+        if (lex.peek_token().type == kTokenComma)
+            lex.get_token(); // discard ','
+        else
+            break;
+    }
+    //TODO parse redir
+}
+
 
 // [Key] (Dataset | 0) % '+'
 void parse_dataset_tr_args(Lexer& lex, vector<Token>& args)
 {
     args.push_back(lex.get_token_if(kTokenLname));
     for (;;) {
-        args.push_back(lex.get_expected_token(kTokenDataset, "0"));
+        Token t = lex.get_expected_token(kTokenDataset, "0");
+        if (t.type == kTokenDataset && (t.value.i == Lexer::kAll ||
+                                        t.value.i == Lexer::kNew))
+            lex.throw_syntax_error("expected @number");
+        args.push_back(t);
         if (lex.peek_token().type == kTokenPlus)
-            args.push_back(lex.get_token()); // append '+'
+            lex.get_token(); // discard '+'
         else
             break;
     }
@@ -621,8 +650,6 @@ void Parser::parse_fz(Lexer& lex, Statement &s)
 // @1.Y=-@1.y
 // @0 @1: fit # one by one
 // fit in @0, @1 # all together
-//
-// handle all commands from has_data_arg()
 
 bool Parser::parse_statement(Lexer& lex)
 {
@@ -680,7 +707,12 @@ void Parser::parse_command(Lexer& lex)
     Statement &s = *st_;
     const Token token = lex.get_token();
     if (token.type == kTokenLname) {
-        if (is_command(token, "def","ine")) {
+        if (is_command(token, "deb","ug")) {
+            s.cmd = kCmdDebug;
+            s.args.push_back(lex.get_token());
+            s.args.push_back(lex.get_rest_of_line());
+        }
+        else if (is_command(token, "def","ine")) {
             s.cmd = kCmdDefine;
             parse_define_args(lex, s.args);
         }
@@ -719,6 +751,10 @@ void Parser::parse_command(Lexer& lex)
             else
                 parse_real_range(lex, s.args);
             parse_real_range(lex, s.args);
+        }
+        else if (is_command(token, "pr","int")) {
+            s.cmd = kCmdPrint;
+            parse_print_args(lex, s.args);
         }
         else if (is_command(token, "quit","")) {
             s.cmd = kCmdQuit;
