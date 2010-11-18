@@ -209,28 +209,6 @@ void Parser::parse_real_range(Lexer& lex, vector<Token>& args)
     }
 }
 
-/*
-// parse ['in' @n[, @m...]]
-void parse_in_data(Lexer& lex, vector<int>& datasets)
-{
-    const Token& t = lex.peek_token();
-    if (t.type != kTokenLname || t.as_string() != "in")
-        return;
-
-    lex.get_token(); // discard "in"
-    for (;;) {
-        Token d = lex.get_expected_token(kTokenDataset);
-        if (d.value.i == Lexer::kNew)
-            lex.throw_syntax_error("unexpected @+ after 'in'");
-        datasets.push_back(d.value.i);
-        if (lex.peek_token().type == kTokenComma)
-            lex.get_token(); // discard comma
-        else
-            break;
-    }
-}
-*/
-
 // %funcname | [@n.]('F'|'Z') '[' Number ']'
 void Parser::parse_func_id(Lexer& lex, vector<Token>& args, bool accept_fz)
 {

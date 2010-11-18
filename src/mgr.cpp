@@ -22,38 +22,62 @@
 
 using namespace std;
 
+VariableManager::VariableManager(Ftk const* F)
+    : silent(false),
+      F_(F),
+      var_autoname_counter_(0),
+      func_autoname_counter_(0)
+{
+}
+
 VariableManager::~VariableManager()
 {
-    purge_all_elements(functions);
-    purge_all_elements(variables);
+    purge_all_elements(functions_);
+    purge_all_elements(variables_);
 }
 
 void VariableManager::unregister_model(Model const *s)
 {
-    vector<Model*>::iterator k = find(models.begin(), models.end(), s);
-    assert (k != models.end());
-    models.erase(k);
+    vector<Model*>::iterator k = find(models_.begin(), models_.end(), s);
+    assert (k != models_.end());
+    models_.erase(k);
 }
 
 void VariableManager::sort_variables()
 {
-    for (vector<Variable*>::iterator i = variables.begin();
-            i != variables.end(); ++i)
-        (*i)->set_var_idx(variables);
+    for (vector<Variable*>::iterator i = variables_.begin();
+            i != variables_.end(); ++i)
+        (*i)->set_var_idx(variables_);
     int pos = 0;
-    while (pos < size(variables)) {
-        int M = variables[pos]->get_max_var_idx();
+    while (pos < size(variables_)) {
+        int M = variables_[pos]->get_max_var_idx();
         if (M > pos) {
-            swap(variables[pos], variables[M]);
-            for (vector<Variable*>::iterator i = variables.begin();
-                    i != variables.end(); ++i)
-                (*i)->set_var_idx(variables);
+            swap(variables_[pos], variables_[M]);
+            for (vector<Variable*>::iterator i = variables_.begin();
+                    i != variables_.end(); ++i)
+                (*i)->set_var_idx(variables_);
         }
         else
             ++pos;
     }
 }
 
+static
+string parse_and_find_fz_idx(const Ftk* F, string const &fstr)
+{
+    int pos = 0;
+    int pref = -1;
+    if (fstr[0] == '@') {
+        pos = fstr.find(".") + 1;
+        pref = strtol(fstr.c_str()+1, 0, 10);
+    }
+    vector<string> const &names = F->get_model(pref)->get_fz(fstr[pos]).names;
+    int idx_ = strtol(fstr.c_str()+pos+2, 0, 10);
+    int idx = (idx_ >= 0 ? idx_ : idx_ + names.size());
+    if (!is_index(idx, names))
+        throw ExecuteError("There is no item with index " + S(idx_));
+    return names[idx];
+}
 
 /// takes string parsable by FuncGrammar and:
 ///  if the string refers to one variable -- returns its name
@@ -61,7 +85,6 @@ void VariableManager::sort_variables()
 string VariableManager::get_or_make_variable(string const& func)
 {
     string ret;
-/* TODO
     assert(!func.empty());
     string tmp1, tmp2;
     if (parse(func.c_str(), VariableLhsG).full) // $foo
@@ -74,12 +97,12 @@ string VariableManager::get_or_make_variable(string const& func)
                    >> '.' >>
                    lexeme_d[alpha_p >> *(alnum_p|'_')][assign_a(tmp2)]
                   ).full) {                     // %bar.bleh
-        const Function* f = F->find_function_any(tmp1);
+        string name = parse_and_find_fz_idx(F_, tmp1);
+        const Function* f = F_->find_function(name);
         ret = f->get_var_name(f->get_param_nr(tmp2));
     }
     else                                       // anything else
         ret = assign_variable("", func);
-*/
     return ret;
 }
 
@@ -167,13 +190,13 @@ string VariableManager::assign_variable(string const &name, string const &rhs)
 
         // avoid changing order of parameters in case of "$_1 = ~1.23"
         int old_pos = find_variable_nr(name);
-        if (old_pos != -1 && variables[old_pos]->is_simple()) {
-            nr = variables[old_pos]->get_nr();
-            parameters[nr] = val; //variable at old_pos will be deleted soon
+        if (old_pos != -1 && variables_[old_pos]->is_simple()) {
+            nr = variables_[old_pos]->get_nr();
+            parameters_[nr] = val; //variable at old_pos will be deleted soon
         }
         else {
-            nr = parameters.size();
-            parameters.push_back(val);
+            nr = parameters_.size();
+            parameters_.push_back(val);
         }
         var = new Variable(nonempty_name, nr);
         if (!domain_str.empty())
@@ -183,8 +206,7 @@ string VariableManager::assign_variable(string const &name, string const &rhs)
         vector<string> vars=find_tokens_in_ptree(FuncGrammar::variableID, info);
         if (contains_element(vars, "x"))
             throw ExecuteError("variable can't depend on x.");
-        for (vector<string>::const_iterator i = vars.begin();
-                                                i != vars.end(); i++)
+        vector_foreach (string, i, vars)
             if ((*i)[0]!='~' && (*i)[0]!='{' && (*i)[0]!='$' && (*i)[0]!='%'
                 && (*i)[0]!='@'
                 && (((*i)[0]!='F' && (*i)[0]!='Z')
@@ -203,15 +225,15 @@ string VariableManager::assign_variable(string const &name, string const &rhs)
 bool VariableManager::is_variable_referred(int i, string *first_referrer)
 {
     // A variable can be referred only by variables with larger index.
-    for (int j = i+1; j < size(variables); ++j) {
-        if (variables[j]->is_directly_dependent_on(i)) {
+    for (int j = i+1; j < size(variables_); ++j) {
+        if (variables_[j]->is_directly_dependent_on(i)) {
             if (first_referrer)
-                *first_referrer = variables[j]->xname;
+                *first_referrer = variables_[j]->xname;
             return true;
         }
     }
-    for (vector<Function*>::iterator j = functions.begin();
-            j != functions.end(); ++j) {
+    for (vector<Function*>::iterator j = functions_.begin();
+            j != functions_.end(); ++j) {
         if ((*j)->is_directly_dependent_on(i)) {
             if (first_referrer)
                 *first_referrer = (*j)->xname;
@@ -226,12 +248,10 @@ VariableManager::get_variable_references(string const &name) const
 {
     int idx = find_variable_nr(name);
     vector<string> refs;
-    for (vector<Variable*>::const_iterator i = variables.begin();
-            i != variables.end(); ++i)
+    vector_foreach (Variable*, i, variables_)
         if ((*i)->is_directly_dependent_on(idx))
             refs.push_back((*i)->xname);
-    for (vector<Function*>::const_iterator i = functions.begin();
-            i != functions.end(); ++i)
+    vector_foreach (Function*, i, functions_)
         for (int j = 0; j < (*i)->get_vars_count(); ++j)
             if ((*i)->get_var_idx(j) == idx)
                 refs.push_back((*i)->xname + "." + (*i)->get_param(j));
@@ -241,23 +261,23 @@ VariableManager::get_variable_references(string const &name) const
 // set indices corresponding to variable names in all functions and variables
 void VariableManager::reindex_all()
 {
-    for (vector<Variable*>::iterator i = variables.begin();
-            i != variables.end(); ++i)
-        (*i)->set_var_idx(variables);
-    for (vector<Function*>::iterator i = functions.begin();
-            i != functions.end(); ++i) {
-        (*i)->set_var_idx(variables);
+    for (vector<Variable*>::iterator i = variables_.begin();
+            i != variables_.end(); ++i)
+        (*i)->set_var_idx(variables_);
+    for (vector<Function*>::iterator i = functions_.begin();
+            i != functions_.end(); ++i) {
+        (*i)->set_var_idx(variables_);
     }
 }
 
 void VariableManager::remove_unreferred()
 {
     // remove auto-delete marked variables, which are not referred by others
-    for (int i = variables.size()-1; i >= 0; --i)
-        if (variables[i]->is_auto_delete()) {
+    for (int i = variables_.size()-1; i >= 0; --i)
+        if (variables_[i]->is_auto_delete()) {
             if (!is_variable_referred(i)) {
-                delete variables[i];
-                variables.erase(variables.begin() + i);
+                delete variables_[i];
+                variables_.erase(variables_.begin() + i);
             }
         }
 
@@ -265,21 +285,21 @@ void VariableManager::remove_unreferred()
     reindex_all();
 
     // remove unreferred parameters
-    for (int i = size(parameters)-1; i >= 0; --i) {
+    for (int i = size(parameters_)-1; i >= 0; --i) {
         bool del=true;
-        for (int j = 0; j < size(variables); ++j)
-            if (variables[j]->get_nr() == i) {
+        for (int j = 0; j < size(variables_); ++j)
+            if (variables_[j]->get_nr() == i) {
                 del=false;
                 break;
             }
         if (del) {
-            parameters.erase(parameters.begin() + i);
+            parameters_.erase(parameters_.begin() + i);
             // take care about parameter indices in variables and functions
-            for (vector<Variable*>::iterator j = variables.begin();
-                    j != variables.end(); ++j)
+            for (vector<Variable*>::iterator j = variables_.begin();
+                    j != variables_.end(); ++j)
                 (*j)->erased_parameter(i);
-            for (vector<Function*>::iterator j = functions.begin();
-                    j != functions.end(); ++j)
+            for (vector<Function*>::iterator j = functions_.begin();
+                    j != functions_.end(); ++j)
                 (*j)->erased_parameter(i);
         }
     }
@@ -287,8 +307,8 @@ void VariableManager::remove_unreferred()
 
 string VariableManager::get_variable_info(Variable const* v) const
 {
-    string s = v->xname + " = " + v->get_formula(parameters) + " = "
-               + F->get_settings()->format_double(v->get_value());
+    string s = v->xname + " = " + v->get_formula(parameters_) + " = "
+               + F_->get_settings()->format_double(v->get_value());
     if (v->domain.is_set())
         s += "  " + v->domain.str();
     if (v->is_auto_delete())
@@ -301,19 +321,19 @@ string VariableManager::put_into_variables(Variable* new_var)
 {
     auto_ptr<Variable> var(new_var);
     string var_name = var->name;
-    var->set_var_idx(variables);
+    var->set_var_idx(variables_);
     int old_pos = find_variable_nr(var->name);
     if (old_pos == -1) {
-        variables.push_back(var.release());
+        variables_.push_back(var.release());
     }
     else {
-        if (var->is_dependent_on(old_pos, variables)) { //check for loops
+        if (var->is_dependent_on(old_pos, variables_)) { //check for loops
             throw ExecuteError("detected loop in variable dependencies of "
                                + var->xname);
         }
-        delete variables[old_pos];
-        variables[old_pos] = var.release();
-        if (variables[old_pos]->get_max_var_idx() > old_pos) {
+        delete variables_[old_pos];
+        variables_[old_pos] = var.release();
+        if (variables_[old_pos]->get_max_var_idx() > old_pos) {
             sort_variables();
         }
         remove_unreferred();
@@ -329,8 +349,8 @@ string VariableManager::assign_variable_copy(string const& name,
     assert(!name.empty());
     if (orig->is_simple()) {
         fp val = orig->get_value();
-        parameters.push_back(val);
-        int nr = parameters.size() - 1;
+        parameters_.push_back(val);
+        int nr = parameters_.size() - 1;
         var = new Variable(name, nr);
     }
     else {
@@ -340,8 +360,7 @@ string VariableManager::assign_variable_copy(string const& name,
             vars.push_back(varmap.find(orig->get_var_idx(i))->second);
         }
         vector<OpTree*> new_op_trees;
-        for (vector<OpTree*>::const_iterator i = orig->get_op_trees().begin();
-                                          i != orig->get_op_trees().end(); ++i)
+        vector_foreach (OpTree*, i, orig->get_op_trees())
             new_op_trees.push_back((*i)->copy());
         var = new Variable(name, vars, new_op_trees);
     }
@@ -383,8 +402,8 @@ void VariableManager::delete_variables(vector<string> const &names)
         return;
 
     set<int> nn;
-    // find indices of variables, expanding wildcards
-    for (vector<string>::const_iterator i=names.begin(); i != names.end(); ++i){
+    // find indices of variables_, expanding wildcards
+    vector_foreach (string, i, names) {
         if (i->find('*') == string::npos) {
             int k = find_variable_nr(*i);
             if (k == -1)
@@ -392,13 +411,13 @@ void VariableManager::delete_variables(vector<string> const &names)
             nn.insert(k);
         }
         else
-            for (size_t j = 0; j != variables.size(); ++j)
-                if (matches(variables[j]->name.c_str(), i->c_str()))
+            for (size_t j = 0; j != variables_.size(); ++j)
+                if (matches(variables_[j]->name.c_str(), i->c_str()))
                     nn.insert(j);
     }
 
-    // Delete variables. The descending index order is required to make
-    // is_variable_referred() and variables.erase() work properly.
+    // Delete variables_. The descending index order is required to make
+    // is_variable_referred() and variables_.erase() work properly.
     for (set<int>::const_reverse_iterator i = nn.rbegin(); i != nn.rend(); ++i){
         // Check for dependencies.
         string first_referrer;
@@ -409,8 +428,8 @@ void VariableManager::delete_variables(vector<string> const &names)
                              " because " + first_referrer + " depends on it.");
         }
 
-        delete variables[*i];
-        variables.erase(variables.begin() + *i);
+        delete variables_[*i];
+        variables_.erase(variables_.begin() + *i);
     }
 
     // post-delete
@@ -425,7 +444,7 @@ void VariableManager::delete_funcs(vector<string> const &names)
 
     set<int> nn;
     // find indices of functions, expanding wildcards
-    for (vector<string>::const_iterator i=names.begin(); i != names.end(); ++i){
+    vector_foreach (string, i, names) {
         if (i->find('*') == string::npos) {
             int k = find_function_nr(*i);
             if (k == -1)
@@ -433,15 +452,15 @@ void VariableManager::delete_funcs(vector<string> const &names)
             nn.insert(k);
         }
         else
-            for (size_t j = 0; j != functions.size(); ++j)
-                if (matches(functions[j]->name.c_str(), i->c_str()))
+            for (size_t j = 0; j != functions_.size(); ++j)
+                if (matches(functions_[j]->name.c_str(), i->c_str()))
                     nn.insert(j);
     }
 
     // Delete functions. The descending index order is needed by .erase().
     for (set<int>::const_reverse_iterator i = nn.rbegin(); i != nn.rend(); ++i){
-        delete functions[*i];
-        functions.erase(functions.begin() + *i);
+        delete functions_[*i];
+        functions_.erase(functions_.begin() + *i);
     }
 
     // post-delete
@@ -451,8 +470,7 @@ void VariableManager::delete_funcs(vector<string> const &names)
 
 bool VariableManager::is_function_referred(int n) const
 {
-    for (vector<Model*>::const_iterator i = models.begin();
-                                                    i != models.end(); ++i) {
+    vector_foreach (Model*, i, models_) {
         if (contains_element((*i)->get_ff().idx, n)
                 || contains_element((*i)->get_zz().idx, n))
             return true;
@@ -462,13 +480,13 @@ bool VariableManager::is_function_referred(int n) const
 
 void VariableManager::auto_remove_functions()
 {
-    int func_size = functions.size();
+    int func_size = functions_.size();
     for (int i = func_size - 1; i >= 0; --i)
-        if (functions[i]->is_auto_delete() && !is_function_referred(i)) {
-            delete functions[i];
-            functions.erase(functions.begin() + i);
+        if (functions_[i]->is_auto_delete() && !is_function_referred(i)) {
+            delete functions_[i];
+            functions_.erase(functions_.begin() + i);
         }
-    if (func_size != size(functions)) {
+    if (func_size != size(functions_)) {
         remove_unreferred();
         update_indices_in_models();
     }
@@ -476,8 +494,8 @@ void VariableManager::auto_remove_functions()
 
 int VariableManager::find_function_nr(string const &name) const
 {
-    for (int i = 0; i < size(functions); ++i)
-        if (functions[i]->name == name)
+    for (int i = 0; i < size(functions_); ++i)
+        if (functions_[i]->name == name)
             return i;
     return -1;
 }
@@ -487,13 +505,13 @@ const Function* VariableManager::find_function(string const &name) const
     int n = find_function_nr(name);
     if (n == -1)
         throw ExecuteError("undefined function: %" + name);
-    return functions[n];
+    return functions_[n];
 }
 
 int VariableManager::find_variable_nr(string const &name) const
 {
-    for (int i = 0; i < size(variables); ++i)
-        if (variables[i]->name == name)
+    for (int i = 0; i < size(variables_); ++i)
+        if (variables_[i]->name == name)
             return i;
     return -1;
 }
@@ -503,14 +521,14 @@ Variable const* VariableManager::find_variable(string const &name) const
     int n = find_variable_nr(name);
     if (n == -1)
         throw ExecuteError("undefined variable: $" + name);
-    return variables[n];
+    return variables_[n];
 }
 
 int VariableManager::find_nr_var_handling_param(int p) const
 {
-    assert(p >= 0 && p < size(parameters));
-    for (size_t i = 0; i < variables.size(); ++i)
-        if (variables[i]->get_nr() == p)
+    assert(p >= 0 && p < size(parameters_));
+    for (size_t i = 0; i < variables_.size(); ++i)
+        if (variables_[i]->get_nr() == p)
             return i;
     assert(0);
     return 0;
@@ -518,31 +536,31 @@ int VariableManager::find_nr_var_handling_param(int p) const
 
 int VariableManager::find_parameter_variable(int par) const
 {
-    for (int i = 0; i < size(variables); ++i)
-        if (variables[i]->get_nr() == par)
+    for (int i = 0; i < size(variables_); ++i)
+        if (variables_[i]->get_nr() == par)
             return i;
     return -1;
 }
 
 void VariableManager::use_parameters()
 {
-    use_external_parameters(parameters);
+    use_external_parameters(parameters_);
 }
 
 void VariableManager::use_external_parameters(vector<fp> const &ext_param)
 {
-    for (vector<Variable*>::iterator i = variables.begin();
-                i != variables.end(); ++i)
-        (*i)->recalculate(variables, ext_param);
-    for (vector<Function*>::iterator i = functions.begin();
-            i != functions.end(); ++i)
-        (*i)->do_precomputations(variables);
+    for (vector<Variable*>::iterator i = variables_.begin();
+                i != variables_.end(); ++i)
+        (*i)->recalculate(variables_, ext_param);
+    for (vector<Function*>::iterator i = functions_.begin();
+            i != functions_.end(); ++i)
+        (*i)->do_precomputations(variables_);
 }
 
 void VariableManager::put_new_parameters(vector<fp> const &aa)
 {
-    for (size_t i = 0; i < min(aa.size(), parameters.size()); ++i)
-        parameters[i] = aa[i];
+    for (size_t i = 0; i < min(aa.size(), parameters_.size()); ++i)
+        parameters_[i] = aa[i];
     use_parameters();
 }
 
@@ -610,8 +628,7 @@ string VariableManager::assign_func(string const &name, string const &function,
 
         vector<string> varnames;
         bool has_eq = (vars.empty() || vars[0].find('=') != string::npos);
-        for (vector<string>::const_iterator i = vars.begin();
-                                                        i != vars.end(); ++i)
+        vector_foreach (string, i, vars)
             if ((i->find('=') != string::npos) != has_eq)
                 throw ExecuteError("Either use keywords for all parameters"
                                    " or for none");
@@ -619,7 +636,7 @@ string VariableManager::assign_func(string const &name, string const &function,
         for (size_t i = 0; i < vv.size(); ++i)
             varnames.push_back(get_or_make_variable(vv[i]));
 
-        func = Function::factory(F, func_name, function, varnames);
+        func = Function::factory(F_, func_name, function, varnames);
     } catch (ExecuteError &) {
         remove_unreferred();
         throw;
@@ -629,19 +646,19 @@ string VariableManager::assign_func(string const &name, string const &function,
 
 string VariableManager::do_assign_func(Function* func)
 {
-    func->set_var_idx(variables);
+    func->set_var_idx(variables_);
     // if there is already function with the same name -- replace
     int nr = find_function_nr(func->name);
     if (nr != -1) {
-        delete functions[nr];
-        functions[nr] = func;
+        delete functions_[nr];
+        functions_[nr] = func;
         remove_unreferred();
     }
     else {
-        functions.push_back(func);
+        functions_.push_back(func);
     }
     if (!silent)
-        F->msg("%" + func->name + (nr == -1 ? " created." : " replaced."));
+        F_->msg("%" + func->name + (nr == -1 ? " created." : " replaced."));
     return func->name;
 }
 
@@ -670,10 +687,10 @@ string VariableManager::assign_func_copy(string const &name, string const &orig)
 {
     Function const* of = find_function(orig);
     map<int,string> varmap;
-    for (int i = 0; i < size(variables); ++i) {
-        if (!of->is_dependent_on(i, variables))
+    for (int i = 0; i < size(variables_); ++i) {
+        if (!of->is_dependent_on(i, variables_))
             continue;
-        Variable const* var_orig = variables[i];
+        Variable const* var_orig = variables_[i];
         string new_varname = make_var_copy_name(var_orig);
         assign_variable_copy(new_varname, var_orig, varmap);
         varmap[i] = new_varname;
@@ -685,7 +702,7 @@ string VariableManager::assign_func_copy(string const &name, string const &orig)
     }
 
     string func_name = name.empty() ? next_func_name() : name;
-    Function *func = Function::factory(F, func_name, of->type_name, varnames);
+    Function *func = Function::factory(F_, func_name, of->type_name, varnames);
     return do_assign_func(func);
 }
 
@@ -696,26 +713,26 @@ void VariableManager::substitute_func_param(string const &name,
     int nr = find_function_nr(name);
     if (nr == -1)
         throw ExecuteError("undefined function: %" + name);
-    Function* k = functions[nr];
+    Function* k = functions_[nr];
     k->substitute_param(k->get_param_nr(param), get_or_make_variable(var));
-    k->set_var_idx(variables);
+    k->set_var_idx(variables_);
     remove_unreferred();
 }
 
 fp VariableManager::variation_of_a (int n, fp variat) const
 {
-    assert (0 <= n && n < size(get_parameters()));
+    assert (0 <= n && n < size(parameters()));
     Domain const& dom = get_variable(n)->domain;
-    fp ctr = dom.is_ctr_set() ? dom.get_ctr() : parameters[n];
+    fp ctr = dom.is_ctr_set() ? dom.get_ctr() : parameters_[n];
     fp sgm = dom.is_set() ? dom.get_sigma()
-            : ctr * F->get_settings()->get_f("variable_domain_percent") / 100.;
+            : ctr * F_->get_settings()->get_f("variable_domain_percent") / 100.;
     return ctr + sgm * variat;
 }
 
 string VariableManager::next_var_name()
 {
     while (1) {
-        string t = "_" + S(++var_autoname_counter);
+        string t = "_" + S(++var_autoname_counter_);
         if (find_variable_nr(t) == -1)
             return t;
     }
@@ -724,20 +741,19 @@ string VariableManager::next_var_name()
 string VariableManager::next_func_name()
 {
     while (1) {
-        string t = "_" + S(++func_autoname_counter);
+        string t = "_" + S(++func_autoname_counter_);
         if (find_function_nr(t) == -1)
             return t;
     }
 }
 
-//TODO: remove it, use dtor+ctor
 void VariableManager::do_reset()
 {
-    var_autoname_counter = 0;
-    func_autoname_counter = 0;
-    purge_all_elements(functions);
-    purge_all_elements(variables);
-    parameters.clear();
+    purge_all_elements(functions_);
+    purge_all_elements(variables_);
+    var_autoname_counter_ = 0;
+    func_autoname_counter_ = 0;
+    parameters_.clear();
     //don't delete models, they should unregister itself
     update_indices_in_models();
 }
@@ -759,7 +775,7 @@ void VariableManager::update_indices(FunctionSum& sum)
 
 void VariableManager::update_indices_in_models()
 {
-    for (vector<Model*>::iterator i = models.begin(); i != models.end(); ++i){
+    for (vector<Model*>::iterator i = models_.begin(); i != models_.end(); ++i){
         update_indices((*i)->get_ff());
         update_indices((*i)->get_zz());
     }

@@ -213,7 +213,7 @@ Guess::Kind get_defvalue_kind(std::string const& d)
 
 Guess::Kind get_function_kind_from_varnames(vector<string> const& vars)
 {
-    for (vector<string>::const_iterator i = vars.begin(); i != vars.end(); ++i){
+    vector_foreach (string, i, vars) {
         Guess::Kind k = get_defvalue_kind(*i);
         if (k != Guess::kUnknown)
             return k;
@@ -223,7 +223,7 @@ Guess::Kind get_function_kind_from_varnames(vector<string> const& vars)
 
 Guess::Kind get_function_kind_from_defvalues(vector<string> const& defv)
 {
-    for (vector<string>::const_iterator i = defv.begin(); i != defv.end(); ++i){
+    vector_foreach (string, i, defv) {
         int start = -1;
         for (size_t j = 0; j < i->size(); ++j) {
             char c = (*i)[j];
@@ -304,7 +304,7 @@ bool is_function_guessable(string const& formula, bool check_defvalue)
 
     Guess::Kind k = get_function_kind(formula);
     vector<string> vars, defv;
-    for (vector<string>::const_iterator i = nd.begin(); i != nd.end(); ++i) {
+    vector_foreach (string, i, nd) {
         string::size_type eq = i->find('=');
         if (eq == string::npos) { //no defvalue
             if (!is_parameter_guessable(strip_string(*i), k))

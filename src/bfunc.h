@@ -71,13 +71,13 @@ class FuncGaussian : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(Gaussian, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    fp center() const { return vv[1]; }
+    fp center() const { return vv_[1]; }
     bool has_height() const { return true; }
-    fp height() const { return vv[0]; }
+    fp height() const { return vv_[0]; }
     bool has_fwhm() const { return true; }
-    fp fwhm() const   { return 2 * fabs(vv[2]); }
+    fp fwhm() const   { return 2 * fabs(vv_[2]); }
     bool has_area() const { return true; }
-    fp area() const   { return vv[0] * fabs(vv[2]) * sqrt(M_PI / M_LN2); }
+    fp area() const   { return vv_[0] * fabs(vv_[2]) * sqrt(M_PI / M_LN2); }
 };
 
 class FuncSplitGaussian : public Function
@@ -85,13 +85,13 @@ class FuncSplitGaussian : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(SplitGaussian, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    fp center() const { return vv[1]; }
+    fp center() const { return vv_[1]; }
     bool has_height() const { return true; }
-    fp height() const { return vv[0]; }
+    fp height() const { return vv_[0]; }
     bool has_fwhm() const { return true; }
-    fp fwhm() const   { return fabs(vv[2]) + fabs(vv[3]); }
+    fp fwhm() const   { return fabs(vv_[2]) + fabs(vv_[3]); }
     bool has_area() const { return true; }
-    fp area() const   { return vv[0] * (fabs(vv[2]) + fabs(vv[3])) / 2.
+    fp area() const   { return vv_[0] * (fabs(vv_[2]) + fabs(vv_[3])) / 2.
                                      * sqrt(M_PI/M_LN2); }
 };
 
@@ -100,13 +100,13 @@ class FuncLorentzian : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(Lorentzian, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    fp center() const { return vv[1]; }
+    fp center() const { return vv_[1]; }
     bool has_height() const { return true; }
-    fp height() const { return vv[0]; }
+    fp height() const { return vv_[0]; }
     bool has_fwhm() const { return true; }
-    fp fwhm() const   { return 2 * fabs(vv[2]); }
+    fp fwhm() const   { return 2 * fabs(vv_[2]); }
     bool has_area() const { return true; }
-    fp area() const   { return vv[0] * fabs(vv[2]) * M_PI; }
+    fp area() const   { return vv_[0] * fabs(vv_[2]) * M_PI; }
 };
 
 class FuncPearson7 : public Function
@@ -114,12 +114,12 @@ class FuncPearson7 : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(Pearson7, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    fp center() const { return vv[1]; }
+    fp center() const { return vv_[1]; }
     bool has_height() const { return true; }
-    fp height() const { return vv[0]; }
+    fp height() const { return vv_[0]; }
     bool has_fwhm() const { return true; }
-    fp fwhm() const   { return 2 * fabs(vv[2]); }
-    bool has_area() const { return vv[3] > 0.5; }
+    fp fwhm() const   { return 2 * fabs(vv_[2]); }
+    bool has_area() const { return vv_[3] > 0.5; }
     fp area() const;
 };
 
@@ -128,12 +128,12 @@ class FuncSplitPearson7 : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(SplitPearson7, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    fp center() const { return vv[1]; }
+    fp center() const { return vv_[1]; }
     bool has_height() const { return true; }
-    fp height() const { return vv[0]; }
+    fp height() const { return vv_[0]; }
     bool has_fwhm() const { return true; }
-    fp fwhm() const   { return fabs(vv[2]) + fabs(vv[3]); }
-    bool has_area() const { return vv[4] > 0.5 && vv[5] > 0.5; }
+    fp fwhm() const   { return fabs(vv_[2]) + fabs(vv_[3]); }
+    bool has_area() const { return vv_[4] > 0.5 && vv_[5] > 0.5; }
     fp area() const;
 };
 
@@ -142,14 +142,14 @@ class FuncPseudoVoigt : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(PseudoVoigt, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    fp center() const { return vv[1]; }
+    fp center() const { return vv_[1]; }
     bool has_height() const { return true; }
-    fp height() const { return vv[0]; }
+    fp height() const { return vv_[0]; }
     bool has_fwhm() const { return true; }
-    fp fwhm() const   { return 2 * fabs(vv[2]); }
+    fp fwhm() const   { return 2 * fabs(vv_[2]); }
     bool has_area() const { return true; }
-    fp area() const { return vv[0] * fabs(vv[2])
-                      * ((vv[3] * M_PI) + (1 - vv[3]) * sqrt (M_PI / M_LN2)); }
+    fp area() const { return vv_[0] * fabs(vv_[2])
+                  * ((vv_[3] * M_PI) + (1 - vv_[3]) * sqrt (M_PI / M_LN2)); }
 };
 
 class FuncVoigt : public Function
@@ -157,9 +157,9 @@ class FuncVoigt : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(Voigt, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    fp center() const { return vv[1]; }
+    fp center() const { return vv_[1]; }
     bool has_height() const { return true; }
-    fp height() const { return vv[0]; }
+    fp height() const { return vv_[0]; }
     bool has_fwhm() const { return true; }
     fp fwhm() const;
     bool has_area() const { return true; }
@@ -173,13 +173,13 @@ class FuncVoigtA : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(VoigtA, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    fp center() const { return vv[1]; }
+    fp center() const { return vv_[1]; }
     bool has_height() const { return true; }
     fp height() const;
     bool has_fwhm() const { return true; }
     fp fwhm() const;
     bool has_area() const { return true; }
-    fp area() const { return vv[0]; }
+    fp area() const { return vv_[0]; }
 };
 
 class FuncEMG : public Function
@@ -188,7 +188,7 @@ class FuncEMG : public Function
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
     bool has_center() const { return true; }
-    fp center() const { return vv[1]; }
+    fp center() const { return vv_[1]; }
 };
 
 class FuncDoniachSunjic : public Function
@@ -196,13 +196,13 @@ class FuncDoniachSunjic : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(DoniachSunjic, Function)
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
     bool has_center() const { return true; }
-    fp center() const { return vv[3]; }
+    fp center() const { return vv_[3]; }
 };
 
 class FuncPielaszekCube : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(PielaszekCube, Function)
-    fp center() const { return vv[1]; }
+    fp center() const { return vv_[1]; }
 };
 
 class FuncLogNormal : public Function
@@ -210,14 +210,14 @@ class FuncLogNormal : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(LogNormal, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    fp center() const { return vv[1]; }
+    fp center() const { return vv_[1]; }
     bool has_height() const { return true; }
-    fp height() const { return vv[0]; }
+    fp height() const { return vv_[0]; }
     bool has_fwhm() const { return true; }
     fp fwhm() const;
     bool has_area() const { return true; }
-    fp area() const   { return vv[0]/sqrt(M_LN2/M_PI)
-        /(2.0/vv[2])/exp(-vv[3]*vv[3]/4.0/M_LN2); }
+    fp area() const   { return vv_[0]/sqrt(M_LN2/M_PI)
+        /(2.0/vv_[2])/exp(-vv_[3]*vv_[3]/4.0/M_LN2); }
 };
 
 class FuncSpline : public VarArgFunction

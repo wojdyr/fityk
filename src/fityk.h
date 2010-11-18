@@ -21,18 +21,10 @@
 class Ftk;
 
 /// \par
-/// Public C++ API of libfityk is defined in namespace fityk, in file fityk.h
+/// Public C++ API of libfityk: class Fityk and helpers.
 /// \par
-/// If you use it in your program, you may contact fityk developers
-/// (see the webpage for contact info) to let them know about it,
-/// or to request more functions in the API.
-/// \par
-/// See description of Fityk class to see the list of methods it supports.
-/// \par
-/// Only one instance of Fityk class can be used.
-/// \par
-/// \b TODO
-/// - find out how to make bindings to set_show_message() in SWIG
+/// Minimal examples of using libfityk in C++, Python, Lua and Perl are in
+//  samples/hello.* files.
 
 
 namespace fityk

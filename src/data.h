@@ -58,10 +58,8 @@ public :
     bool is_empty() const { return p_.empty(); }
     bool has_any_info() const { return !is_empty() || !get_title().empty(); }
     fp get_x_step() const { return x_step_; } /// 0.0 if not fixed
-    void transform(const std::string &s);
     void after_transform(); // update x_step_, active_p_, y_min_, y_max_
     void update_active_p();
-    //int auto_range (fp y_level, fp x_margin);
     std::string range_as_string () const;
     int get_lower_bound_ac (fp x) const;
     int get_upper_bound_ac (fp x) const;

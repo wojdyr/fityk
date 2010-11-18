@@ -256,16 +256,12 @@ void Data::load_data_sum(vector<Data const*> const& dd, string const& op)
         return;
     }
     // dd can contain this, we can't change p_ or title in-place.
-    std::vector<Point> new_p;
-    string new_title = dd[0]->get_title();
     string new_filename = dd.size() == 1 ? dd[0]->get_filename() : "";
-    for (vector<Data const*>::const_iterator i = dd.begin()+1;
-                                                          i != dd.end(); ++i)
-        new_title += " + " + (*i)->get_title();
-    for (vector<Data const*>::const_iterator i = dd.begin();
-                                                          i != dd.end(); ++i) {
-        vector<Point> const& points = (*i)->points();
-        new_p.insert(new_p.end(), points.begin(), points.end());
+    std::vector<Point> new_p;
+    string new_title;
+    vector_foreach (Data const*, i, dd) {
+        new_title += (i == dd.begin() ? "" : " + ") + (*i)->get_title();
+        new_p.insert(new_p.end(), (*i)->points().begin(), (*i)->points().end());
     }
     sort(new_p.begin(), new_p.end());
     if (!new_p.empty() && !op.empty())
@@ -354,7 +350,7 @@ void Data::load_file (string const& fn,
         clear(); //removing previous file
         vector<int> bb = blocks.empty() ? vector1(0) : blocks;
 
-        for (vector<int>::const_iterator b = bb.begin(); b != bb.end(); ++b) {
+        vector_foreach (int, b, bb) {
             assert(xyds);
             xylib::Block const* block = xyds->get_block(*b);
             xylib::Column const& xcol
@@ -438,14 +434,6 @@ fp Data::get_y_at (fp x) const
     return y1 + (y2 - y1) * (x - x1) / (x2 - x1);
 }
 
-void Data::transform(const string &s)
-{
-    /*TODO
-    p_ = transform_data(s, p_);
-    */
-    after_transform();
-}
-
 // std::is_sorted() is added C++0x
 template <typename T>
 bool is_vector_sorted(vector<T> const& v)
@@ -453,7 +441,7 @@ bool is_vector_sorted(vector<T> const& v)
     if (v.size() <= 1)
         return true;
     for (typename vector<T>::const_iterator i = v.begin()+1; i != v.end(); ++i)
-            if (*(i+1) < *i)
+            if (*i < *(i-1))
                 return false;
     return true;
 }
@@ -477,42 +465,9 @@ void Data::update_active_p()
             active_p_.push_back(i);
 }
 
-// does anyone need it ?
-/*
-int Data::auto_range (fp y_level, fp x_margin)
-{
-    // pre: p_.x sorted
-    if (p_.empty()) {
-        F->warn("No points loaded.");
-        return -1;
-    }
-    bool state = (p_.begin()->y >= y_level);
-    for (vector<Point>::iterator i = p_.begin(); i < p_.end(); i++) {
-        if (state == (i->y >= y_level))
-            i->is_active = state;
-        else if (state && i->y < y_level) {
-            i->is_active = false;
-            vector<Point>::iterator e = lower_bound (p_.begin(), p_.end(),
-                                                        Point(i->x + x_margin));
-            for ( ; i < e; i++)
-                i->is_active = true;
-            state = false;
-        }
-        else { // !state && i->y >= y_level
-            vector<Point>::iterator b =  lower_bound(p_.begin(), p_.end(),
-                                                        Point(i->x - x_margin));
-            for (vector<Point>::iterator j = b; j <= i; j++)
-                j->is_active = true;
-            state = true;
-        }
-    }
-    update_active_p();
-    return active_p_.size();
-}
-*/
 
 //FIXME to remove it or to leave it?
-string Data::range_as_string () const
+string Data::range_as_string() const
 {
     if (active_p_.empty()) {
         F->warn ("File not loaded or all points inactive.");
@@ -581,7 +536,7 @@ vector<Point>::const_iterator Data::get_point_at(fp x) const
 
 fp Data::get_x_min() const
 {
-    for (vector<Point>::const_iterator i = p_.begin(); i != p_.end(); ++i)
+    vector_foreach (Point, i, p_)
         if (is_finite(i->x))
             return i->x;
     return 0.;
@@ -591,7 +546,8 @@ fp Data::get_x_max() const
 {
     if (p_.empty())
         return 180.;
-    for (vector<Point>::const_iterator i = p_.end() - 1; i != p_.begin(); --i)
+    for (vector<Point>::const_reverse_iterator i = p_.rbegin();
+            i != p_.rend(); ++i)
         if (is_finite(i->x))
             return i->x;
     return 180.;

@@ -82,9 +82,9 @@ public:
 };
 
 
-/// the variable is either simple-variable and nr is the index in vector
-/// of parameters, or it is "compound variable" and has nr==-1.
-/// third special case: nr==-2 - it is mirror-variable (such variable
+/// the variable is either simple-variable and nr_ is the index in vector
+/// of parameters, or it is "compound variable" and has nr_==-1.
+/// third special case: nr_==-2 - it is mirror-variable (such variable
 ///        is not recalculated but copied)
 /// In second case, the value and derivatives are calculated
 /// in following steps:
@@ -112,29 +112,29 @@ public:
     void recalculate(std::vector<Variable*> const &variables,
                      std::vector<fp> const &parameters);
 
-    int get_nr() const { return nr; };
+    int get_nr() const { return nr_; };
     void erased_parameter(int k);
-    fp get_value() const { return value; };
+    fp get_value() const { return value_; };
     std::string get_formula(std::vector<fp> const &parameters) const;
     bool is_visible() const { return true; } //for future use
     void set_var_idx(std::vector<Variable*> const& variables);
-    std::vector<ParMult> const& get_recursive_derivatives() const
-                                            { return recursive_derivatives; }
-    bool is_simple() const { return nr != -1; }
-    bool is_constant() const { return nr == -1 && af.is_constant(); }
+    std::vector<ParMult> const& recursive_derivatives() const
+                                            { return recursive_derivatives_; }
+    bool is_simple() const { return nr_ != -1; }
+    bool is_constant() const { return nr_ == -1 && af_.is_constant(); }
     std::vector<OpTree*> const& get_op_trees() const
-                                                { return af.get_op_trees(); }
-    void set_original(Variable const* orig) { assert(nr==-2); original=orig; }
+                                                { return af_.get_op_trees(); }
+    void set_original(Variable const* orig) { assert(nr_==-2); original_=orig; }
     Variable const* freeze_original(fp val);
-    fp get_derivative(int n) const { return derivatives[n]; }
+    fp get_derivative(int n) const { return derivatives_[n]; }
 
 private:
-    int nr; /// see description of this class in .h
-    fp value;
-    std::vector<fp> derivatives;
-    std::vector<ParMult> recursive_derivatives;
-    AnyFormula af; //TODO use auto_ptr<AnyFormula>
-    Variable const* original;
+    int nr_; /// see description of this class in .h
+    fp value_;
+    std::vector<fp> derivatives_;
+    std::vector<ParMult> recursive_derivatives_;
+    AnyFormula af_; //TODO use scoped_ptr<AnyFormula>
+    Variable const* original_;
 };
 
 

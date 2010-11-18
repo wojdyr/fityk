@@ -42,7 +42,7 @@ void Runner::command_define(const vector<Token>& /*args*/)
 
 void Runner::command_undefine(const vector<Token>& args)
 {
-    for (vector<Token>::const_iterator i = args.begin(); i != args.end(); ++i)
+    vector_foreach (Token, i, args)
         UdfContainer::undefine(i->as_string());
 }
 
@@ -50,7 +50,7 @@ void Runner::command_delete(const vector<Token>& args)
 {
     vector<int> dd;
     vector<string> vars, funcs;
-    for (vector<Token>::const_iterator i = args.begin(); i != args.end(); ++i) {
+    vector_foreach (Token, i, args) {
         if (i->type == kTokenDataset)
             dd.push_back(i->value.i);
         else if (i->type == kTokenFuncname)
@@ -60,7 +60,7 @@ void Runner::command_delete(const vector<Token>& args)
     }
     if (!dd.empty()) {
         sort(dd.rbegin(), dd.rend());
-        for (vector<int>::const_iterator j = dd.begin(); j != dd.end(); ++j)
+        vector_foreach (int, j, dd)
             F_->remove_dm(*j);
     }
     F_->delete_funcs(funcs);
@@ -295,8 +295,7 @@ static
 void add_functions_to(const Ftk* F, vector<string> const &names,
                       FunctionSum& sum)
 {
-    for (vector<string>::const_iterator i = names.begin();
-                                                    i != names.end(); ++i) {
+    vector_foreach (string, i, names) {
         int n = F->find_function_nr(*i);
         if (n == -1)
             throw ExecuteError("undefined function: %" + *i);
@@ -336,7 +335,7 @@ void Runner::command_change_model(const vector<Token>& args, int ds)
         if (args[i].type == kTokenLname && args[i].as_string() == "copy") {
             vector<string> v;
             int n_tokens = get_fz_or_func(F_, ds, args.begin()+i+1, v);
-            for (vector<string>::const_iterator j =v.begin(); j != v.end(); ++j)
+            vector_foreach (string, j, v)
                 new_names.push_back(F_->assign_func_copy("", *j));
             i += n_tokens;
         }

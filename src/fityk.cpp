@@ -289,7 +289,7 @@ vector<vector<double> > Fityk::get_covariance_matrix(int dataset)
         vector<DataAndModel*> dss = get_datasets_(ftk_, dataset);
         vector<double> c = ftk_->get_fit()->get_covariance_matrix(dss);
         //reshape
-        size_t na = ftk_->get_parameters().size();
+        size_t na = ftk_->parameters().size();
         assert(c.size() == na * na);
         vector<vector<double> > r(na);
         for (size_t i = 0; i != na; ++i)

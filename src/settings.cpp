@@ -304,7 +304,7 @@ string Settings::print_usage() const
         "set option\n"
         "Available options:";
     vector<string> e = expanp();
-    for (vector<string>::const_iterator i = e.begin(); i != e.end(); i++){
+    for (vector<string>::const_iterator i = e.begin(); i != e.end(); i++) {
         s += "\n " + *i + " = <" + typep(*i) + ">, current value: "+getp(*i);
     }
     return s;

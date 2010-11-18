@@ -103,7 +103,6 @@ private:
     void parse_real_range(Lexer& lex, std::vector<Token>& args);
     void parse_func_id(Lexer& lex, std::vector<Token>& args, bool accept_fz);
     void parse_guess_args(Lexer& lex, std::vector<Token>& args);
-    //std::vector<DataAndModel*> get_datasets_from_statement();
     void parse_one_info_arg(Lexer& lex, std::vector<Token>& args);
     void expand_dataset_glob();
 };

@@ -20,8 +20,7 @@ using namespace boost::spirit::classic;
 bool VariableUser::is_dependent_on(int idx,
                                    vector<Variable*> const &variables) const
 {
-    for (vector<int>::const_iterator i = var_idx.begin();
-            i != var_idx.end(); ++i)
+    vector_foreach (int, i, var_idx)
         if (*i == idx || variables[*i]->is_dependent_on(idx, variables))
             return true;
     return false;
@@ -57,16 +56,16 @@ int VariableUser::get_max_var_idx()
 
 
 // ctor for simple variables and mirror variables
-Variable::Variable(std::string const &name_, int nr_)
-    : VariableUser(name_, "$"),
-      nr(nr_), af(value, derivatives), original(0)
+Variable::Variable(std::string const &name, int nr)
+    : VariableUser(name, "$"),
+      nr_(nr), af_(value_, derivatives_), original_(NULL)
 {
-    assert(!name_.empty());
-    if (nr != -2) {
+    assert(!name.empty());
+    if (nr_ != -2) {
         ParMult pm;
         pm.p = nr_;
         pm.mult = 1;
-        recursive_derivatives.push_back(pm);
+        recursive_derivatives_.push_back(pm);
     }
 }
 
@@ -74,8 +73,8 @@ Variable::Variable(std::string const &name_, int nr_)
 Variable::Variable(std::string const &name_, vector<string> const &vars_,
                    vector<OpTree*> const &op_trees_)
     : VariableUser(name_, "$", vars_),
-      nr(-1), derivatives(vars_.size()),
-      af(op_trees_, value, derivatives), original(0)
+      nr_(-1), derivatives_(vars_.size()),
+      af_(op_trees_, value_, derivatives_), original_(NULL)
 {
     assert(!name_.empty());
 }
@@ -83,43 +82,41 @@ Variable::Variable(std::string const &name_, vector<string> const &vars_,
 void Variable::set_var_idx(vector<Variable*> const& variables)
 {
     VariableUser::set_var_idx(variables);
-    if (nr == -1)
-        af.tree_to_bytecode(var_idx);
+    if (nr_ == -1)
+        af_.tree_to_bytecode(var_idx);
 }
 
 
 string Variable::get_formula(vector<fp> const &parameters) const
 {
-    assert(nr >= -1);
+    assert(nr_ >= -1);
     vector<string> vn = concat_pairs("$", varnames);
-    return nr == -1 ? get_op_trees().back()->str(&vn)
-                    : "~" + eS(parameters[nr]);
+    return nr_ == -1 ? get_op_trees().back()->str(&vn)
+                    : "~" + eS(parameters[nr_]);
 }
 
 void Variable::recalculate(vector<Variable*> const &variables,
                            vector<fp> const &parameters)
 {
-    if (nr >= 0) {
-      value = parameters[nr];
-      assert(derivatives.empty());
+    if (nr_ >= 0) {
+      value_ = parameters[nr_];
+      assert(derivatives_.empty());
     }
-    else if (nr == -1) {
-        af.run_vm(variables);
-        recursive_derivatives.clear();
-        for (int i = 0; i < size(derivatives); ++i) {
+    else if (nr_ == -1) {
+        af_.run_vm(variables);
+        recursive_derivatives_.clear();
+        for (int i = 0; i < size(derivatives_); ++i) {
             Variable *v = variables[var_idx[i]];
-            vector<ParMult> const &pm = v->get_recursive_derivatives();
-            for (vector<ParMult>::const_iterator j = pm.begin();
-                    j != pm.end(); ++j) {
-                recursive_derivatives.push_back(*j);
-                recursive_derivatives.back().mult *= derivatives[i];
+            vector_foreach (ParMult, j, v->recursive_derivatives()) {
+                recursive_derivatives_.push_back(*j);
+                recursive_derivatives_.back().mult *= derivatives_[i];
             }
         }
     }
-    else if (nr == -2) {
-        if (original) {
-            value = original->value;
-            recursive_derivatives = original->recursive_derivatives;
+    else if (nr_ == -2) {
+        if (original_) {
+            value_ = original_->value_;
+            recursive_derivatives_ = original_->recursive_derivatives_;
         }
     }
     else
@@ -128,20 +125,20 @@ void Variable::recalculate(vector<Variable*> const &variables,
 
 void Variable::erased_parameter(int k)
 {
-    if (nr != -1 && nr > k)
-            --nr;
-    for (vector<ParMult>::iterator i = recursive_derivatives.begin();
-                                        i != recursive_derivatives.end(); ++i)
+    if (nr_ != -1 && nr_ > k)
+            --nr_;
+    for (vector<ParMult>::iterator i = recursive_derivatives_.begin();
+                                        i != recursive_derivatives_.end(); ++i)
         if (i->p > k)
             -- i->p;
 }
 
 Variable const* Variable::freeze_original(fp val)
 {
-    assert(nr == -2);
-    Variable const* old = original;
-    original = 0;
-    value = val;
+    assert(nr_ == -2);
+    Variable const* old = original_;
+    original_ = NULL;
+    value_ = val;
     return old;
 }
 

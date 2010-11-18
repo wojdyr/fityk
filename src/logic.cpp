@@ -125,19 +125,16 @@ void Ftk::dump_all_as_script(string const &filename)
     // so the script can't trigger VariableManager::remove_unreferred()
     // nor VariableManager::auto_remove_functions() until all references
     // are reproduced.
-    for (vector<Variable*>::const_iterator i = variables.begin();
-            i != variables.end(); ++i)
+    vector_foreach (Variable*, i, variables_)
         fprintf(f, "%s = %s\n", (*i)->xname.c_str(),
-                                (*i)->get_formula(parameters).c_str());
+                                (*i)->get_formula(parameters_).c_str());
     fprintf(f, "\n");
     vector<UdfContainer::UDF> const& udfs = UdfContainer::get_udfs();
-    for (vector<UdfContainer::UDF>::const_iterator i = udfs.begin();
-            i != udfs.end(); ++i)
+    vector_foreach (UdfContainer::UDF, i, udfs)
         if (!i->builtin)
             fprintf(f, "define %s\n", i->formula.c_str());
     fprintf(f, "\n");
-    for (vector<Function*>::const_iterator i = functions.begin();
-            i != functions.end(); ++i) {
+    vector_foreach (Function*, i, functions_) {
         if ((*i)->has_outdated_type()) {
             string new_formula = Function::get_formula((*i)->type_name);
             if (!new_formula.empty())
@@ -264,7 +261,7 @@ vector<int> parse_int_range(string const& s, int maximum)
 {
     vector<int> values;
     vector<string> t = split_string(s, ",");
-    for (vector<string>::const_iterator i = t.begin(); i != t.end(); ++i) {
+    vector_foreach (string, i, t) {
         string::size_type dots = i->find("..");
         if (dots == string::npos) {
             int n = atoi_all(*i);

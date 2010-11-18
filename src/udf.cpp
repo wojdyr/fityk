@@ -80,7 +80,7 @@ vector<OpTree*> make_op_trees(string const& formula)
     vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID, info);
     vector<string> lhs_vars = Function::get_varnames_from_formula(formula);
     lhs_vars.push_back("x");
-    for (vector<string>::const_iterator i = vars.begin(); i != vars.end(); i++)
+    vector_foreach (string, i, vars)
         if (find(lhs_vars.begin(), lhs_vars.end(), *i) == lhs_vars.end())
             throw ExecuteError("variable `" + *i
                                            + "' only at the right hand side.");
@@ -122,12 +122,11 @@ void check_fudf_rhs(string const& rhs, vector<string> const& lhs_vars)
     if (!info.full)
         throw ExecuteError("Syntax error in formula");
     vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID, info);
-    for (vector<string>::const_iterator i = vars.begin(); i != vars.end(); ++i)
+    vector_foreach (string, i, vars)
         if (*i != "x" && !contains_element(lhs_vars, *i)) {
             throw ExecuteError("Unexpected parameter in formula: " + *i);
         }
-    for (vector<string>::const_iterator i = lhs_vars.begin();
-                                                    i != lhs_vars.end(); ++i)
+    vector_foreach (string, i, lhs_vars)
         if (!contains_element(vars, *i)) {
             throw ExecuteError("Unused parameter in formula: " + *i);
         }
@@ -147,7 +146,7 @@ void check_rhs(string const& rhs, vector<string> const& lhs_vars)
         if (!info.full)
             throw ExecuteError("Syntax error in compound formula.");
         vector<string> rf = get_cpd_rhs_components(rhs, false);
-        for (vector<string>::const_iterator i = rf.begin(); i != rf.end(); ++i)
+        vector_foreach (string, i, rf)
             check_cpd_rhs_function(*i, lhs_vars);
     }
     else if (type == kSplit) {
@@ -164,8 +163,7 @@ void check_rhs(string const& rhs, vector<string> const& lhs_vars)
             throw ExecuteError("Syntax error in the the split condition.");
         vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID,
                                                    info);
-        for (vector<string>::const_iterator i = vars.begin();
-                                                        i != vars.end(); ++i)
+        vector_foreach (string, i, vars)
             if (!contains_element(lhs_vars, *i))
                 throw ExecuteError(
                         "Unexpected parameter in the condition: " + *i);
@@ -179,8 +177,7 @@ void define(std::string const &formula)
 {
     string type = Function::get_typename_from_formula(formula);
     vector<string> lhs_vars = Function::get_varnames_from_formula(formula);
-    for (vector<string>::const_iterator i = lhs_vars.begin();
-                                                    i != lhs_vars.end(); i++) {
+    vector_foreach (string, i, lhs_vars) {
         if (*i == "x")
             throw ExecuteError("x should not be given explicitly as "
                                "function type parameters.");
@@ -204,7 +201,7 @@ bool is_definition_dependend_on(UDF const& udf, string const& type)
 {
     if (udf.type == kCompound) {
         vector<string> rf = get_cpd_rhs_components(udf.formula, true);
-        for (vector<string>::const_iterator k = rf.begin(); k != rf.end(); ++k){
+        vector_foreach (string, k, rf) {
             if (Function::get_typename_from_formula(*k) == type)
                 return true;
         }
@@ -227,8 +224,7 @@ void undefine(std::string const &type)
                 throw ExecuteError("Built-in compound function "
                                                     "can't be undefined.");
             //check if other definitions depend on it
-            for (vector<UDF>::const_iterator j = udfs.begin();
-                                                  j != udfs.end(); ++j) {
+            vector_foreach (UDF, j, udfs) {
                 // built-in function can't depend on user-defined
                 if (!j->builtin && is_definition_dependend_on(*j, type))
                     throw ExecuteError("Can not undefine function `" + type
@@ -242,9 +238,9 @@ void undefine(std::string const &type)
                         + "' which is not defined");
 }
 
-UDF const* get_udf(std::string const &type)
+const UDF* get_udf(std::string const &type)
 {
-    for (vector<UDF>::const_iterator i = udfs.begin(); i != udfs.end(); ++i)
+    vector_foreach (UDF, i, udfs)
         if (i->name == type)
             return &(*i);
     return NULL;
@@ -267,14 +263,13 @@ void check_cpd_rhs_function(std::string const& fun,
         throw ExecuteError("Function `" + t + "' requires "
                                       + S(tvars.size()) + " parameters.");
     // ... and check these parameters
-    for (vector<string>::const_iterator j=gvars.begin(); j != gvars.end(); ++j){
+    vector_foreach (string, j, gvars) {
         tree_parse_info<> info = ast_parse(j->c_str(), FuncG >> end_p, space_p);
         assert(info.full);
         vector<string> vars=find_tokens_in_ptree(FuncGrammar::variableID, info);
         if (contains_element(vars, "x"))
             throw ExecuteError("variable can not depend on x.");
-        for (vector<string>::const_iterator k = vars.begin();
-                                                        k != vars.end(); ++k)
+        vector_foreach (string, k, vars)
             if ((*k)[0] != '~' && (*k)[0] != '{' && (*k)[0] != '$'
                     && (*k)[0] != '%' && !contains_element(lhs_vars, *k))
                 throw ExecuteError("Improper variable given in parameter "
@@ -327,7 +322,7 @@ void CompoundFunction::init_components(vector<string>& rf)
 
     for (vector<string>::iterator i = rf.begin(); i != rf.end(); ++i) {
         for (int j = 0; j != nv(); ++j) {
-            replace_words(*i, type_params[j], vmgr_.get_variable(j)->xname);
+            replace_words(*i, type_params_[j], vmgr_.get_variable(j)->xname);
         }
         vmgr_.assign_func("", get_typename_from_formula(*i),
                               get_varnames_from_formula(*i));
@@ -341,13 +336,13 @@ void CompoundFunction::set_var_idx(vector<Variable*> const& variables)
         vmgr_.get_variable(i)->set_original(variables[get_var_idx(i)]);
 }
 
-/// vv was changed, but not variables, mirror variables in vmgr_ must be frozen
+/// vv_ was changed, but not variables, mirror variables in vmgr_ must be frozen
 void CompoundFunction::precomputations_for_alternative_vv()
 {
     vector<Variable const*> backup(nv());
     for (int i = 0; i < nv(); ++i) {
         //prevent change in use_parameters()
-        backup[i] = vmgr_.get_variable(i)->freeze_original(vv[i]);
+        backup[i] = vmgr_.get_variable(i)->freeze_original(vv_[i]);
     }
     vmgr_.use_parameters();
     for (int i = 0; i < nv(); ++i) {
@@ -364,9 +359,7 @@ void CompoundFunction::calculate_value_in_range(vector<fp> const &xx,
                                                 vector<fp> &yy,
                                                 int first, int last) const
 {
-    vector<Function*> const& functions = vmgr_.get_functions();
-    for (vector<Function*>::const_iterator i = functions.begin();
-            i != functions.end(); ++i)
+    vector_foreach (Function*, i, vmgr_.functions())
         (*i)->calculate_value_in_range(xx, yy, first, last);
 }
 
@@ -376,19 +369,15 @@ void CompoundFunction::calculate_value_deriv_in_range(
                                              bool in_dx,
                                              int first, int last) const
 {
-    vector<Function*> const& functions = vmgr_.get_functions();
-    for (vector<Function*>::const_iterator i = functions.begin();
-            i != functions.end(); ++i)
+    vector_foreach (Function*, i, vmgr_.functions())
         (*i)->calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, first, last);
 }
 
 string CompoundFunction::get_current_formula(string const& x) const
 {
     string t;
-    vector<Function*> const& functions = vmgr_.get_functions();
-    for (vector<Function*>::const_iterator i = functions.begin();
-            i != functions.end(); ++i) {
-        if (i != functions.begin())
+    vector_foreach (Function*, i, vmgr_.functions()) {
+        if (i != vmgr_.functions().begin())
             t += "+";
         t += (*i)->get_current_formula(x);
     }
@@ -397,7 +386,7 @@ string CompoundFunction::get_current_formula(string const& x) const
 
 bool CompoundFunction::has_center() const
 {
-    vector<Function*> const& ff = vmgr_.get_functions();
+    vector<Function*> const& ff = vmgr_.functions();
     for (size_t i = 0; i < ff.size(); ++i) {
         if (!ff[i]->has_center()
                 || (i > 0 && ff[i-1]->center() != ff[i]->center()))
@@ -410,7 +399,7 @@ bool CompoundFunction::has_center() const
 ///  height is a sum of heights
 bool CompoundFunction::has_height() const
 {
-    vector<Function*> const& ff = vmgr_.get_functions();
+    vector<Function*> const& ff = vmgr_.functions();
     if (ff.size() == 1)
         return ff[0]->has_center();
     for (size_t i = 0; i < ff.size(); ++i) {
@@ -424,7 +413,7 @@ bool CompoundFunction::has_height() const
 fp CompoundFunction::height() const
 {
     fp height = 0;
-    vector<Function*> const& ff = vmgr_.get_functions();
+    vector<Function*> const& ff = vmgr_.functions();
     for (size_t i = 0; i < ff.size(); ++i) {
         height += ff[i]->height();
     }
@@ -433,7 +422,7 @@ fp CompoundFunction::height() const
 
 bool CompoundFunction::has_fwhm() const
 {
-    vector<Function*> const& ff = vmgr_.get_functions();
+    vector<Function*> const& ff = vmgr_.functions();
     return ff.size() == 1 && ff[0]->has_fwhm();
 }
 
@@ -444,7 +433,7 @@ fp CompoundFunction::fwhm() const
 
 bool CompoundFunction::has_area() const
 {
-    vector<Function*> const& ff = vmgr_.get_functions();
+    vector<Function*> const& ff = vmgr_.functions();
     for (size_t i = 0; i < ff.size(); ++i)
         if (!ff[i]->has_area())
             return false;
@@ -454,7 +443,7 @@ bool CompoundFunction::has_area() const
 fp CompoundFunction::area() const
 {
     fp a = 0;
-    vector<Function*> const& ff = vmgr_.get_functions();
+    vector<Function*> const& ff = vmgr_.functions();
     for (size_t i = 0; i < ff.size(); ++i) {
         a += ff[i]->area();
     }
@@ -463,7 +452,7 @@ fp CompoundFunction::area() const
 
 bool CompoundFunction::get_nonzero_range(fp level, fp& left, fp& right) const
 {
-    vector<Function*> const& ff = vmgr_.get_functions();
+    vector<Function*> const& ff = vmgr_.functions();
     if (ff.size() == 1)
         return ff[0]->get_nonzero_range(level, left, right);
     else
@@ -494,7 +483,7 @@ void CustomFunction::set_var_idx(vector<Variable*> const& variables)
 
 void CustomFunction::more_precomputations()
 {
-    afo_.prepare_optimized_codes(vv);
+    afo_.prepare_optimized_codes(vv_);
 }
 
 void CustomFunction::calculate_value_in_range(vector<fp> const &xx,
@@ -518,14 +507,12 @@ void CustomFunction::calculate_value_deriv_in_range(
 
         if (!in_dx) {
             yy[i] += value_;
-            for (vector<Multi>::const_iterator j = multi.begin();
-                    j != multi.end(); ++j)
+            vector_foreach (Multi, j, multi_)
                 dy_da[dyn*i+j->p] += derivatives_[j->n] * j->mult;
             dy_da[dyn*i+dyn-1] += derivatives_.back();
         }
         else {
-            for (vector<Multi>::const_iterator j = multi.begin();
-                    j != multi.end(); ++j)
+            vector_foreach (Multi, j, multi_)
                 dy_da[dyn*i+j->p] += dy_da[dyn*i+dyn-1]
                                        * derivatives_[j->n] * j->mult;
         }
@@ -550,7 +537,7 @@ void SplitFunction::init()
     rf.erase(rf.begin());
     init_components(rf);
     for (int j = 0; j != nv(); ++j)
-        replace_words(split_expr, type_params[j],
+        replace_words(split_expr, type_params_[j],
                                   vmgr_.get_variable(j)->xname);
     vmgr_.assign_variable("", split_expr);
 }
@@ -559,7 +546,7 @@ void SplitFunction::calculate_value_in_range(vector<fp> const &xx,
                                              vector<fp> &yy,
                                              int first, int last) const
 {
-    double xsplit = vmgr_.get_variables().back()->get_value();
+    double xsplit = vmgr_.variables().back()->get_value();
     int t = lower_bound(xx.begin(), xx.end(), xsplit) - xx.begin();
     vmgr_.get_function(0)->calculate_value_in_range(xx, yy, first, t);
     vmgr_.get_function(1)->calculate_value_in_range(xx, yy, t, last);
@@ -571,7 +558,7 @@ void SplitFunction::calculate_value_deriv_in_range(
                                           bool in_dx,
                                           int first, int last) const
 {
-    double xsplit = vmgr_.get_variables().back()->get_value();
+    double xsplit = vmgr_.variables().back()->get_value();
     int t = lower_bound(xx.begin(), xx.end(), xsplit) - xx.begin();
     vmgr_.get_function(0)->
         calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, first, t);
@@ -581,7 +568,7 @@ void SplitFunction::calculate_value_deriv_in_range(
 
 string SplitFunction::get_current_formula(string const& x) const
 {
-    double xsplit = vmgr_.get_variables().back()->get_value();
+    double xsplit = vmgr_.variables().back()->get_value();
     return "x < " + S(xsplit)
         + " ? " + vmgr_.get_function(0)->get_current_formula(x)
         + " : " + vmgr_.get_function(1)->get_current_formula(x);
@@ -589,7 +576,7 @@ string SplitFunction::get_current_formula(string const& x) const
 
 bool SplitFunction::get_nonzero_range(fp level, fp& left, fp& right) const
 {
-    vector<Function*> const& ff = vmgr_.get_functions();
+    vector<Function*> const& ff = vmgr_.functions();
     fp dummy;
     return ff[0]->get_nonzero_range(level, left, dummy) &&
            ff[0]->get_nonzero_range(level, dummy, right);
@@ -597,14 +584,14 @@ bool SplitFunction::get_nonzero_range(fp level, fp& left, fp& right) const
 
 bool SplitFunction::has_height() const
 {
-    vector<Function*> const& ff = vmgr_.get_functions();
+    vector<Function*> const& ff = vmgr_.functions();
     return ff[0]->has_height() && ff[1]->has_height() &&
         is_eq(ff[0]->height(), ff[1]->height());
 }
 
 bool SplitFunction::has_center() const
 {
-    vector<Function*> const& ff = vmgr_.get_functions();
+    vector<Function*> const& ff = vmgr_.functions();
     return ff[0]->has_center() && ff[1]->has_center() &&
         is_eq(ff[0]->center(), ff[1]->center());
 }

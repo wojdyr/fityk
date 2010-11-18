@@ -72,8 +72,7 @@ string info_compiler()
 void info_variables(Ftk const* F, string& result)
 {
     result += "Defined variables:";
-    vector<Variable*> const &vv = F->get_variables();
-    for (vector<Variable*>::const_iterator i = vv.begin(); i != vv.end(); ++i)
+    vector_foreach (Variable*, i, F->variables())
         result += "\n" + F->get_variable_info(*i);
 }
 
@@ -81,15 +80,15 @@ void info_types(string& result)
 {
     result += "Defined function types:";
     vector<string> const& tt = Function::get_all_types();
-    for (vector<string>::const_iterator i = tt.begin(); i != tt.end(); ++i)
+    vector_foreach (string, i, tt)
         result += "\n" + Function::get_formula(*i);
 }
 
 void info_functions(Ftk const* F, string& result)
 {
-    vector<Function*> const &ff = F->get_functions();
+    vector<Function*> const &ff = F->functions();
     result += "Defined functions:";
-    for (vector<Function*>::const_iterator i = ff.begin(); i != ff.end(); ++i)
+    vector_foreach (Function*, i, ff)
         result += "\n" + (*i)->get_basic_assignment();
 }
 
@@ -139,7 +138,7 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         else if (word == "compiler")
             result += info_compiler();
         else if (word == "variables")
-            for (size_t i = 0; i < F->get_variables().size(); ++i)
+            for (size_t i = 0; i < F->variables().size(); ++i)
                 result += (i > 0 ? " " : "") + F->get_variable(n)->xname;
         else if (word == "variables_full")
             info_variables(F, result);
@@ -148,7 +147,7 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         else if (word == "types_full")
             info_types(result);
         else if (word == "functions")
-            for (size_t i = 0; i < F->get_functions().size(); ++i)
+            for (size_t i = 0; i < F->functions().size(); ++i)
                 result += (i > 0 ? " " : "") + F->get_function(n)->xname;
         else if (word == "functions_full")
             info_functions(F, result);
@@ -215,11 +214,12 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         // optionally takes datasets as args
         else if (word == "fit" || word == "errors" || word == "cov") {
             vector<DataAndModel*> v;
-            ++ret;
-            while (args[n].type != kTokenNop) {
+            ++n;
+            while (args[n].type == kTokenDataset) {
                 int k = args[n].value.i;
                 DataAndModel* dm = const_cast<DataAndModel*>(F->get_dm(k));
                 v.push_back(dm);
+                ++n;
                 ++ret;
             }
             if (v.empty()) {
@@ -454,13 +454,10 @@ void run_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
 
     // show values of derivatives for all variables
     else if (word == "rd") {
-        for (int i = 0; i < size(F->get_variables()); ++i) {
+        for (int i = 0; i < size(F->variables()); ++i) {
             Variable const* var = F->get_variable(i);
             r += var->xname + ": ";
-            vector<Variable::ParMult> const& rd
-                                        = var->get_recursive_derivatives();
-            for (vector<Variable::ParMult>::const_iterator i = rd.begin();
-                                                           i != rd.end(); ++i)
+            vector_foreach (Variable::ParMult, i, var->recursive_derivatives())
                 r += "p" + S(i->p) + "="
                     + F->find_variable_handling_param(i->p)->xname
                     + " *" + S(i->mult) + "    ";
@@ -470,9 +467,9 @@ void run_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
 
     // show varnames and var_idx from VariableUser
     else if (word == "idx") {
-        for (size_t i = 0; i != F->get_functions().size(); ++i)
+        for (size_t i = 0; i != F->functions().size(); ++i)
             r += S(i) + ": " + F->get_function(i)->get_debug_idx_info() + "\n";
-        for (size_t i = 0; i != F->get_variables().size(); ++i)
+        for (size_t i = 0; i != F->variables().size(); ++i)
             r += S(i) + ": " + F->get_variable(i)->get_debug_idx_info() + "\n";
     }
 

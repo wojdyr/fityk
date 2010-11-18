@@ -87,7 +87,7 @@ SumHistoryDlg::SumHistoryDlg (wxWindow* parent, wxWindowID id)
 void SumHistoryDlg::initialize_lc()
 {
     assert (lc == 0);
-    view_max = ftk->get_parameters().size() - 1;
+    view_max = ftk->parameters().size() - 1;
     assert (view_max != -1);
     for (int i = 0; i < 4; i++)
         view[i] = min (i, view_max);
@@ -156,7 +156,7 @@ void SumHistoryDlg::compute_wssr()
     if (wssr_done)
         return;
     FitMethodsContainer const* fmc = ftk->get_fit_container();
-    vector<double> const orig = ftk->get_parameters();
+    vector<double> const orig = ftk->parameters();
     vector<DataAndModel*> dms = frame->get_selected_dms();
 
     for (int i = 0; i != fmc->get_param_history_size(); ++i) {

@@ -155,7 +155,7 @@ char *type_generator(const char *text, int state)
     if (!state) {
         e.clear();
         vector<string> const tt = Function::get_all_types();
-        for (vector<string>::const_iterator i = tt.begin(); i != tt.end(); ++i)
+        vector_foreach (string, i, tt)
             if (!strncmp(i->c_str(), text, strlen(text)))
                 e.push_back(*i);
         list_index = 0;
@@ -190,7 +190,7 @@ char *info_generator(const char *text, int state)
     if (!state) {
         e.clear();
         vector<string> const tt = Function::get_all_types();
-        for (vector<string>::const_iterator i = tt.begin(); i != tt.end(); ++i)
+        vector_foreach (string, i, tt)
             if (!strncmp(i->c_str(), text, strlen(text)))
                 e.push_back(*i);
         for (const char** a = info_args; *a != NULL; ++a)
@@ -227,8 +227,7 @@ char *function_generator(const char *text, int state)
     static vector<string> e;
     if (!state) {
         e.clear();
-        vector<Function*> const& ff = ftk->get_functions();
-        for (vector<Function*>::const_iterator i=ff.begin(); i != ff.end(); ++i)
+        vector_foreach (Function*, i, ftk->functions())
             if (!strncmp ((*i)->xname.c_str(), text, strlen(text)))
                 e.push_back((*i)->xname);
         list_index = 0;
@@ -247,8 +246,7 @@ char *variable_generator(const char *text, int state)
     static vector<string> e;
     if (!state) {
         e.clear();
-        vector<Variable*> const& vv = ftk->get_variables();
-        for (vector<Variable*>::const_iterator i=vv.begin(); i != vv.end(); ++i)
+        vector_foreach (Variable*, i, ftk->variables())
             if (!strncmp ((*i)->name.c_str(), text, strlen(text)))
                 e.push_back((*i)->name);
         list_index = 0;

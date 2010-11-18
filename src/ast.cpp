@@ -4,14 +4,6 @@
 
 //  Based on ast_calc example from Boost::Spirit by Daniel Nuffer
 
-//TODO:
-// CSE in tree (or in VM code?)
-// new op: SQR? DUP? STORE/WRITE?
-// AST -> VM code
-// output VM code for tests
-// constant-merge (merge identical constants)
-
-
 #include <boost/spirit/include/classic_core.hpp>
 #include <boost/spirit/include/classic_ast.hpp>
 #include <boost/math/special_functions/gamma.hpp>
@@ -33,18 +25,8 @@
 #include "numfuncs.h"
 #include "voigt.h"
 
-////////////////////////////////////////////////////////////////////////////
 using namespace std;
 using namespace boost::spirit::classic;
-
-//typedef char const*         iterator_t;
-//typedef tree_match<iterator_t> parse_tree_match_t;
-//typedef parse_tree_match_t::tree_iterator iter_t;
-//typedef parse_tree_match_t::const_tree_iterator const_iter_t;
-//typedef tree_match<char const*>::const_tree_iterator const_iter_t;
-//typedef tree_match<char const*>::const_tree_iterator const_tm_iter_t;
-
-////////////////////////////////////////////////////////////////////////////
 
 
 OpTree::OpTree(int n, OpTree *arg1) : op(n), c1(arg1), c2(0), val(0.)
@@ -880,7 +862,7 @@ fp get_constant_value(string const &s)
     if (s == "pi")
         return M_PI;
     /*
-     * TODO
+     * TODO: replace get_transform_expression_value()
     else if (s[0] == '{') {
         assert(*(s.end()-1) == '}');
         string expr(s.begin()+1, s.end()-1);

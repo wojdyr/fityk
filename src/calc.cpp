@@ -95,7 +95,7 @@ string ast_op(int op)
 string vmcode2str(vector<int> const& code, vector<fp> const& data)
 {
     string s;
-    for (vector<int>::const_iterator i = code.begin(); i != code.end(); ++i) {
+    vector_foreach (int, i, code) {
         s += ast_op(*i);
         if (*i == OP_CONSTANT) {
             ++i;
@@ -242,10 +242,10 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
 void AnyFormula::run_vm(vector<Variable*> const &variables) const
 {
     vector<double>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
-    for (vector<int>::const_iterator i = vmcode.begin(); i!=vmcode.end(); i++) {
+    vector_foreach (int, i, vmcode) {
         if (*i == OP_VARIABLE) {
             ++stackPtr;
-            ++i;
+            ++i; // skip the next one
             *stackPtr = variables[*i]->get_value();
         }
         else
@@ -322,8 +322,7 @@ void AnyFormulaO::prepare_optimized_codes(vector<fp> const& vv)
 void AnyFormulaO::run_vm_der(fp x) const
 {
     vector<double>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
-    for (vector<int>::const_iterator i = vmcode_der.begin();
-                                             i != vmcode_der.end(); i++) {
+    vector_foreach (int, i, vmcode_der) {
         if (*i == OP_X) {
             stackPtr++;
             *stackPtr = x;
@@ -337,8 +336,7 @@ void AnyFormulaO::run_vm_der(fp x) const
 fp AnyFormulaO::run_vm_val(fp x) const
 {
     vector<double>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
-    for (vector<int>::const_iterator i = vmcode_val.begin();
-                                                i != vmcode_val.end(); i++) {
+    vector_foreach (int, i, vmcode_val) {
         if (*i == OP_X) {
             stackPtr++;
             *stackPtr = x;

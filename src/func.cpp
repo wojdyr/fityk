@@ -58,37 +58,37 @@ string Function::get_rhs_from_formula(string const &formula)
 // Parsing formula (like in initialization below) for every instance
 // of the class is not effective, but the overhead is negligible.
 // The ease of adding new built-in function types is more important.
-Function::Function (Ftk const* F_,
-                    string const &name_,
+Function::Function (Ftk const* F,
+                    string const &name,
                     vector<string> const &vars,
                     string const &formula_)
-    : VariableUser(name_, "%", vars),
+    : VariableUser(name, "%", vars),
       type_formula(formula_),
       type_name(get_typename_from_formula(formula_)),
       type_rhs(get_rhs_from_formula(formula_)),
-      F(F_),
-      vv(vars.size())
+      F_(F),
+      vv_(vars.size())
 {
 }
 
 void Function::init()
 {
-    type_params = get_varnames_from_formula(type_formula);
-    center_idx = index_of_element(type_params, "center");
+    type_params_ = get_varnames_from_formula(type_formula);
+    center_idx_ = index_of_element(type_params_, "center");
 
-    if (vv.size() != type_params.size())
+    if (vv_.size() != type_params_.size())
         throw ExecuteError("Function " + type_name + " requires "
-                           + S(type_params.size()) + " parameters.");
+                           + S(type_params_.size()) + " parameters.");
 }
 
 void VarArgFunction::init()
 {
-    for (size_t i = 0; i != vv.size(); ++i) {
+    for (size_t i = 0; i != vv_.size(); ++i) {
         // so far all the va functions have parameters x1,y1,x2,y2,...
         string p = (i%2 == 0 ? "x" : "y") + S(i/2 + 1);
-        type_params.push_back(p);
+        type_params_.push_back(p);
     }
-    center_idx = -1;
+    center_idx_ = -1;
 }
 
 /// returns type variable names
@@ -102,7 +102,7 @@ vector<string> Function::get_varnames_from_formula(string const& formula)
     if (strip_string(all_names).empty())
         return names;
     vector<string> nd = split_string(all_names, ',');
-    for (vector<string>::const_iterator i = nd.begin(); i != nd.end(); ++i) {
+    vector_foreach (string, i, nd) {
         string::size_type eq = i->find('=');
         if (eq == string::npos)
             names.push_back(strip_string(*i));
@@ -120,7 +120,7 @@ vector<string> Function::get_defvalues_from_formula(string const& formula)
     string all_names(formula, lb+1, rb-lb-1);
     vector<string> nd = split_string(all_names, ',');
     vector<string> defaults;
-    for (vector<string>::const_iterator i = nd.begin(); i != nd.end(); ++i) {
+    vector_foreach (string, i, nd) {
         string::size_type eq = i->find('=');
         if (eq == string::npos)
             defaults.push_back(string());
@@ -131,10 +131,9 @@ vector<string> Function::get_defvalues_from_formula(string const& formula)
 }
 
 Function* Function::factory (Ftk const* F,
-                             string const &name_, string const &type_name,
+                             string const &name, string const &type_name,
                              vector<string> const &vars)
 {
-    string name = name_[0] == '%' ? string(name_, 1) : name_;
     Function* f = NULL;
 
     if (false) {}
@@ -216,8 +215,7 @@ vector<string> Function::get_all_types()
     for (int i = 0; i < nb; ++i)
         types.push_back(get_typename_from_formula(builtin_formulas[i]));
     vector<UdfContainer::UDF> const& uff = UdfContainer::get_udfs();
-    for (vector<UdfContainer::UDF>::const_iterator i = uff.begin();
-                                                        i != uff.end(); ++i)
+    vector_foreach (UdfContainer::UDF, i, uff)
         types.push_back(i->name);
     return types;
 }
@@ -262,21 +260,19 @@ Function::HowDefined Function::how_defined(int n)
 void Function::do_precomputations(vector<Variable*> const &variables)
 {
     //precondition: recalculate() for all variables
-    multi.clear();
+    multi_.clear();
     for (int i = 0; i < size(var_idx); ++i) {
         Variable const *v = variables[var_idx[i]];
-        vv[i] = v->get_value();
-        vector<Variable::ParMult> const &pm = v->get_recursive_derivatives();
-        for (vector<Variable::ParMult>::const_iterator j = pm.begin();
-                j != pm.end(); ++j)
-            multi.push_back(Multi(i, *j));
+        vv_[i] = v->get_value();
+        vector_foreach (Variable::ParMult, j, v->recursive_derivatives())
+            multi_.push_back(Multi(i, *j));
     }
     this->more_precomputations();
 }
 
 void Function::erased_parameter(int k)
 {
-    for (vector<Multi>::iterator i = multi.begin(); i != multi.end(); ++i)
+    vectorm_foreach (Multi, i, multi_)
         if (i->p > k)
             -- i->p;
 }
@@ -286,7 +282,8 @@ void Function::calculate_value(std::vector<fp> const &x,
                                std::vector<fp> &y) const
 {
     fp left, right;
-    bool r = get_nonzero_range(F->get_settings()->get_cut_level(), left, right);
+    double cut_level = F_->get_settings()->get_cut_level();
+    bool r = get_nonzero_range(cut_level, left, right);
     if (r) {
         int first = lower_bound(x.begin(), x.end(), left) - x.begin();
         int last = upper_bound(x.begin(), x.end(), right) - x.begin();
@@ -310,7 +307,8 @@ void Function::calculate_value_deriv(std::vector<fp> const &x,
                                      bool in_dx) const
 {
     fp left, right;
-    bool r = get_nonzero_range(F->get_settings()->get_cut_level(), left, right);
+    double cut_level = F_->get_settings()->get_cut_level();
+    bool r = get_nonzero_range(cut_level, left, right);
     if (r) {
         int first = lower_bound(x.begin(), x.end(), left) - x.begin();
         int last = upper_bound(x.begin(), x.end(), right) - x.begin();
@@ -324,13 +322,13 @@ void Function::calculate_values_with_params(vector<fp> const& x,
                                             vector<fp> &y,
                                             vector<fp> const& alt_vv) const
 {
-    vector<fp> backup_vv = vv;
+    vector<fp> backup_vv = vv_;
     Function* this_ = const_cast<Function*>(this);
-    for (int i = 0; i < min(size(alt_vv), size(vv)); ++i)
-        this_->vv[i] = alt_vv[i];
+    for (int i = 0; i < min(size(alt_vv), size(vv_)); ++i)
+        this_->vv_[i] = alt_vv[i];
     this_->precomputations_for_alternative_vv();
     calculate_value(x, y);
-    this_->vv = backup_vv;
+    this_->vv_ = backup_vv;
     this_->more_precomputations();
 }
 
@@ -344,7 +342,7 @@ std::string Function::other_props_str() const
 {
     string r;
     vector<string> v = get_other_prop_names();
-    for (vector<string>::const_iterator i = v.begin(); i != v.end(); ++i)
+    vector_foreach (string, i, v)
         r += (i == v.begin() ? "" : "\n") + *i + ": " + S(other_prop(*i));
     return r;
 }
@@ -353,20 +351,20 @@ string Function::get_par_info(VariableManager const* mgr) const
 {
     string s = type_formula;
     for (int i = 0; i < size(var_idx); ++i) {
-        s += "\n" + type_params[i] + " = ";
+        s += "\n" + type_params_[i] + " = ";
         s += mgr->get_variable_info(mgr->get_variable(var_idx[i]));
     }
     if (this->has_center())
-        if (!contains_element(type_params, string("center")))
+        if (!contains_element(type_params_, string("center")))
             s += "\nCenter: " + S(center());
     if (this->has_height())
-        if (!contains_element(type_params, string("height")))
+        if (!contains_element(type_params_, string("height")))
             s += "\nHeight: " + S(height());
     if (this->has_fwhm())
-        if (!contains_element(type_params, string("fwhm")))
+        if (!contains_element(type_params_, string("fwhm")))
             s += "\nFWHM: " + S(fwhm());
     if (this->has_area())
-        if (!contains_element(type_params, string("area")))
+        if (!contains_element(type_params_, string("area")))
             s += "\nArea: " + S(area());
     if (this->has_other_props())
         s += "\n" + other_props_str();
@@ -377,8 +375,7 @@ string Function::get_par_info(VariableManager const* mgr) const
 string Function::get_basic_assignment() const
 {
     vector<string> xvarnames;
-    for (vector<string>::const_iterator i = varnames.begin();
-            i != varnames.end(); ++i)
+    vector_foreach (string, i, varnames)
         xvarnames.push_back("$" + *i);
     return xname + " = " + type_name+ "(" + join_vector(xvarnames, ", ") + ")";
 }
@@ -388,10 +385,10 @@ string Function::get_current_assignment(vector<Variable*> const &variables,
                                         vector<fp> const &parameters) const
 {
     vector<string> vs;
-    assert(type_params.size() == var_idx.size());
+    assert(type_params_.size() == var_idx.size());
     for (int i = 0; i < size(var_idx); ++i) {
         Variable const* v = variables[var_idx[i]];
-        string t = type_params[i] + "="
+        string t = type_params_[i] + "="
             + (v->is_simple() ? v->get_formula(parameters) : v->xname);
         vs.push_back(t);
     }
@@ -402,12 +399,12 @@ string Function::get_current_formula(string const& x) const
 {
     string t = type_rhs;
     if (contains_element(t, '#')) {
-        vector<fp> values(vv.begin(), vv.begin() + nv());
+        vector<fp> values(vv_.begin(), vv_.begin() + nv());
         t = type_name + "(" + join_vector(values, ", ") + ")";
     }
     else {
-        for (size_t i = 0; i < type_params.size(); ++i)
-            replace_words(t, type_params[i], S(get_var_value(i)));
+        for (size_t i = 0; i < type_params_.size(); ++i)
+            replace_words(t, type_params_[i], S(get_var_value(i)));
     }
 
     replace_words(t, "x", x);
@@ -424,16 +421,16 @@ int Function::get_param_nr(string const& param) const
 
 int Function::get_param_nr_nothrow(string const& param) const
 {
-    return index_of_element(type_params, param);
+    return index_of_element(type_params_, param);
 }
 
 bool Function::get_param_value_nothrow(string const& param, fp &value) const
 {
-    vector<string>::const_iterator i = find(type_params.begin(),
-                                            type_params.end(), param);
-    if (i == type_params.end())
+    vector<string>::const_iterator i = find(type_params_.begin(),
+                                            type_params_.end(), param);
+    if (i == type_params_.end())
         return false;
-    value = get_var_value(i - type_params.begin());
+    value = get_var_value(i - type_params_.begin());
     return true;
 }
 
@@ -489,7 +486,7 @@ fp Function::find_x_with_value(fp x1, fp x2, fp val, int max_iter) const
                            + S(x1) + "(" + S(y1+val) + ") and "
                            + S(x2) + "(" + S(y2+val) + ").");
     int n = 0;
-    for (vector<Multi>::const_iterator j = multi.begin(); j != multi.end(); ++j)
+    vector_foreach (Multi, j, multi_)
         n = max(j->p + 1, n);
     vector<fp> dy_da(n+1);
     if (y1 == 0)
@@ -539,7 +536,7 @@ fp Function::find_x_with_value(fp x1, fp x2, fp val, int max_iter) const
 fp Function::find_extremum(fp x1, fp x2, int max_iter) const
 {
     int n = 0;
-    for (vector<Multi>::const_iterator j = multi.begin(); j != multi.end(); ++j)
+    vector_foreach (Multi, j, multi_)
         n = max(j->p + 1, n);
     vector<fp> dy_da(n+1);
 

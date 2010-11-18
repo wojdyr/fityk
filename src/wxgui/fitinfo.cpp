@@ -30,7 +30,7 @@ bool FitInfoDlg::Initialize()
     wxString s; // string for the left panel
     try {
         vector<DataAndModel*> dms = frame->get_selected_dms();
-        vector<fp> const &pp = ftk->get_parameters();
+        vector<fp> const &pp = ftk->parameters();
         ::Fit *fit = ftk->get_fit();
         int dof = fit->get_dof(dms);
         fp wssr = fit->do_compute_wssr(pp, dms, true);
@@ -107,7 +107,7 @@ void FitInfoDlg::update_right_tc()
     ::Fit *fit = ftk->get_fit();
     int choice = right_c->GetSelection();
     vector<DataAndModel*> dms = frame->get_selected_dms();
-    vector<fp> const &pp = ftk->get_parameters();
+    vector<fp> const &pp = ftk->parameters();
     int na = pp.size();
     wxString s;
     if (choice == 0 || choice == 1) {

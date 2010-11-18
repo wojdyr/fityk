@@ -378,8 +378,6 @@ void SideBar::OnDataColorsChanged(GradientDlg *gd)
     }
     update_lists();
     frame->refresh_plots(false, kMainPlot);
-    for (vector<int>::const_iterator i = selected.begin();
-            i != selected.end(); ++i)
     for (int i = 0; i != d->list->GetItemCount(); ++i)
         d->list->Select(i, contains_element(selected, i));
 }
@@ -436,8 +434,8 @@ void SideBar::OnFuncButtonEdit (wxCommandEvent&)
 {
     if (!pp_func)
         return;
-    string t = pp_func->get_current_assignment(ftk->get_variables(),
-                                               ftk->get_parameters());
+    string t = pp_func->get_current_assignment(ftk->variables(),
+                                               ftk->parameters());
     frame->edit_in_input(t);
 }
 
@@ -471,10 +469,10 @@ void SideBar::OnVarButtonNew (wxCommandEvent&)
 void SideBar::OnVarButtonEdit (wxCommandEvent&)
 {
     int n = get_focused_var();
-    if (n < 0 || n >= size(ftk->get_variables()))
+    if (n < 0 || n >= size(ftk->variables()))
         return;
     Variable const* var = ftk->get_variable(n);
-    string t = var->xname + " = "+ var->get_formula(ftk->get_parameters());
+    string t = var->xname + " = "+ var->get_formula(ftk->parameters());
     frame->edit_in_input(t);
 }
 
@@ -541,7 +539,7 @@ void SideBar::update_func_list(bool nondata_changed)
     Model const* filter_model = NULL;
     if (filter_ch->GetSelection() > 0)
         filter_model = ftk->get_model(filter_ch->GetSelection()-1);
-    int func_size = ftk->get_functions().size();
+    int func_size = ftk->functions().size();
     if (active_function == -1)
         active_function = func_size - 1;
     else {
@@ -584,8 +582,7 @@ void SideBar::update_func_list(bool nondata_changed)
     if (nondata_changed || func_col_id != new_func_col_id) {
         func_col_id = new_func_col_id;
         func_images = new wxImageList(16, 16);
-        for (vector<int>::const_iterator i = func_col_id.begin();
-                                                i != func_col_id.end(); ++i) {
+        vector_foreach (int, i, func_col_id) {
             if (*i == -2)
                 func_images->Add(wxBitmap(unused_xpm));
             else if (*i == -1)
@@ -605,15 +602,13 @@ void SideBar::update_var_list()
 {
     vector<string> var_data;
     //  count references first
-    vector<Variable*> const& variables = ftk->get_variables();
+    vector<Variable*> const& variables = ftk->variables();
     vector<int> var_vrefs(variables.size(), 0), var_frefs(variables.size(), 0);
-    for (vector<Variable*>::const_iterator i = variables.begin();
-                                                i != variables.end(); ++i) {
+    vector_foreach (Variable*, i, variables) {
         for (int j = 0; j != (*i)->get_vars_count(); ++j)
             var_vrefs[(*i)->get_var_idx(j)]++;
     }
-    for (vector<Function*>::const_iterator i = ftk->get_functions().begin();
-                                         i != ftk->get_functions().end(); ++i) {
+    vector_foreach (Function*, i, ftk->functions()) {
         for (int j = 0; j != (*i)->get_vars_count(); ++j)
             var_frefs[(*i)->get_var_idx(j)]++;
     }
@@ -625,7 +620,7 @@ void SideBar::update_var_list()
                       + S(v->get_vars_count());
         var_data.push_back(refs); //refs
         var_data.push_back(S(v->get_value())); //value
-        var_data.push_back(v->get_formula(ftk->get_parameters()));  //formula
+        var_data.push_back(v->get_formula(ftk->parameters()));  //formula
     }
     v->list->populate(var_data);
 }
@@ -649,7 +644,7 @@ int SideBar::get_focused_data() const
 
 int SideBar::get_focused_var() const
 {
-    if (ftk->get_variables().empty())
+    if (ftk->variables().empty())
         return -1;
     else {
         int n = v->list->GetFocusedItem();
@@ -822,8 +817,7 @@ void SideBar::update_func_buttons()
     func_page->FindWindow(ID_FP_COL)->Enable(sel_f > 0);
 
     bool has_hwhm = false, has_shape = false;
-    for (vector<Function*>::const_iterator i = ftk->get_functions().begin();
-                                         i != ftk->get_functions().end(); ++i) {
+    vector_foreach (Function*, i, ftk->functions()) {
         if ((*i)->get_param_nr_nothrow("hwhm") != -1)
             has_hwhm = true;
         if ((*i)->get_param_nr_nothrow("shape") != -1)
@@ -914,7 +908,7 @@ void SideBar::update_var_inf()
     if (n < 0)
         return;
     Variable const* var = ftk->get_variable(n);
-    string t = var->xname + " = " + var->get_formula(ftk->get_parameters());
+    string t = var->xname + " = " + var->get_formula(ftk->parameters());
     inf->AppendText(s2wx(t));
     vector<string> in = ftk->get_variable_references(var->name);
     if (!in.empty())
@@ -988,8 +982,7 @@ bool SideBar::find_value_of_param(string const& p, double* value)
             return true;
     }
 
-    vector<Function*> const& ff = ftk->get_functions();
-    for (vector<Function*>::const_iterator i = ff.begin(); i != ff.end(); ++i) {
+    vector_foreach (Function*, i, ftk->functions()) {
         bool found = (*i)->get_param_value_nothrow(p, *value);
         if (found)
             return true;

@@ -163,8 +163,7 @@ bool FunctionMouseDrag::bind_parameter_to_drag(Drag &drag, string const& name,
     }
 
     // search for Function(..., foo=height*..., ...)
-    for (vector<string>::const_iterator i = defvalues.begin();
-                                                i != defvalues.end(); ++i)
+    vector_foreach (string, i, defvalues)
         if (startswith(*i, name+"*")) {
             drag.set(p, i - defvalues.begin(), how, multiplier);
             return true;
@@ -311,7 +310,7 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
     }
     //draw datasets (selected and focused at the end)
     vector<int> ord = frame->get_sidebar()->get_ordered_dataset_numbers();
-    for (vector<int>::const_iterator i = ord.begin(); i != ord.end(); ++i)
+    vector_foreach (int, i, ord)
         draw_dataset(dc, *i, !monochrome);
 
     if (xtics_visible)
@@ -422,8 +421,7 @@ void MainPlot::draw_peaktops (wxDC& dc, Model const* model)
 {
     dc.SetPen(wxPen(xAxisCol, pen_width));
     dc.SetBrush (*wxTRANSPARENT_BRUSH);
-    for (vector<wxPoint>::const_iterator i = special_points.begin();
-                                           i != special_points.end(); i++) {
+    vector_foreach (wxPoint, i, special_points) {
         dc.DrawRectangle (i->x - 1, i->y - 1, 3, 3);
     }
     draw_peaktop_selection(dc, model);
@@ -586,8 +584,7 @@ void MainPlot::draw_background(wxDC& dc, bool set_pen)
     }
 
     // bg points (circles)
-    const vector<PointQ>& bg = bgm.get_bg();
-    for (vector<PointQ>::const_iterator i = bg.begin(); i != bg.end(); i++) {
+    vector_foreach (PointQ, i, bgm.get_bg()) {
         dc.DrawCircle(xs.px(i->x), ys.px(i->y), 3);
         dc.DrawCircle(xs.px(i->x), ys.px(i->y), 4);
     }
@@ -1072,7 +1069,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
 bool MainPlot::can_activate()
 {
     vector<int> sel = frame->get_sidebar()->get_selected_data_indices();
-    for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i) {
+    vector_foreach (int, i, sel) {
         Data const* data = ftk->get_data(*i);
         // if data->is_empty() we allow to try disactivate data to let user
         // experiment with mouse right after launching the program
@@ -1086,8 +1083,7 @@ static
 void freeze_functions_in_range(double x1, double x2, bool freeze)
 {
     string cmd;
-    for (vector<Function*>::const_iterator i = ftk->get_functions().begin();
-                                        i != ftk->get_functions().end(); ++i) {
+    vector_foreach (Function*, i, ftk->functions()) {
         if (!(*i)->has_center())
             continue;
         double ctr = (*i)->center();
@@ -1944,7 +1940,7 @@ void BgManager::define_bg_func()
     }
 
     string cmd = "%" + name + " = " + ftype + "(";
-    for (vector<PointQ>::const_iterator i = bg_.begin(); i != bg_.end(); i++)
+    vector_foreach (PointQ, i, bg_)
         cmd += S(i->x) + "," + S(i->y) + (i+1 == bg_.end() ? ")" : ", ");
     ftk->exec(cmd);
 }

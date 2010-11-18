@@ -1147,7 +1147,7 @@ void FFrame::OnFMethodUpdate (wxUpdateUIEvent& event)
 
 void FFrame::OnMenuFitRunUpdate(wxUpdateUIEvent& event)
 {
-    event.Enable(!ftk->get_parameters().empty());
+    event.Enable(!ftk->parameters().empty());
 }
 
 void FFrame::OnMenuFitUndoUpdate(wxUpdateUIEvent& event)
@@ -1868,7 +1868,7 @@ void FFrame::update_toolbar()
         return;
     BgManager* bgm = plot_pane->get_bg_manager();
     toolbar->ToggleTool(ID_T_STRIP, bgm->has_fn() && bgm->stripped());
-    toolbar->EnableTool(ID_T_RUN, !ftk->get_parameters().empty());
+    toolbar->EnableTool(ID_T_RUN, !ftk->parameters().empty());
     toolbar->EnableTool(ID_T_UNDO, ftk->get_fit_container()->can_undo());
     toolbar->EnableTool(ID_T_PZ, !plot_pane->get_zoom_hist().empty());
 }

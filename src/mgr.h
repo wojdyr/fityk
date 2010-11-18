@@ -19,10 +19,9 @@ class VariableManager
 public:
     bool silent;
 
-    VariableManager(Ftk const* F_) : silent(false), F(F_),
-                        var_autoname_counter(0), func_autoname_counter(0) {}
+    VariableManager(Ftk const* F);
     ~VariableManager();
-    void register_model(Model *m) { models.push_back(m); }
+    void register_model(Model *m) { models_.push_back(m); }
     void unregister_model(Model const *m);
 
     /// if name is empty, variable name is generated automatically
@@ -42,7 +41,7 @@ public:
     Variable const* find_variable(std::string const &name) const;
     int find_nr_var_handling_param(int p) const;
     Variable const* find_variable_handling_param(int p) const
-                { return variables[find_nr_var_handling_param(p)]; }
+                { return variables_[find_nr_var_handling_param(p)]; }
 
     /// search for "simple" variable which handles parameter par
     /// returns -1 if not found or idx in variables if found
@@ -57,10 +56,10 @@ public:
     std::string get_variable_info(std::string const &s) const
         { return get_variable_info(find_variable(s)); }
     std::string get_variable_info(Variable const* v) const;
-    std::vector<fp> const& get_parameters() const { return parameters; }
-    std::vector<Variable*> const& get_variables() const { return variables; }
-    Variable const* get_variable(int n) const { return variables[n]; }
-    Variable* get_variable(int n) { return variables[n]; }
+    std::vector<fp> const& parameters() const { return parameters_; }
+    std::vector<Variable*> const& variables() const { return variables_; }
+    Variable const* get_variable(int n) const { return variables_[n]; }
+    Variable* get_variable(int n) { return variables_[n]; }
 
     std::string assign_func(std::string const &name,
                             std::string const &function,
@@ -74,8 +73,8 @@ public:
     ///returns -1 if not found or idx in variables if found
     int find_function_nr(std::string const &name) const;
     Function const* find_function(std::string const &name) const;
-    std::vector<Function*> const& get_functions() const { return functions; }
-    Function const* get_function(int n) const { return functions[n]; }
+    std::vector<Function*> const& functions() const { return functions_; }
+    Function const* get_function(int n) const { return functions_[n]; }
 
     /// calculate value and derivatives of all variables;
     /// do precomputations for all functions
@@ -88,14 +87,14 @@ public:
     void update_indices_in_models();
 
 protected:
-    Ftk const* F;
-    std::vector<Model*> models;
-    std::vector<fp> parameters;
+    Ftk const* F_;
+    std::vector<Model*> models_;
+    std::vector<fp> parameters_;
     /// sorted, a doesn't depend on b if idx(a)>idx(b)
-    std::vector<Variable*> variables;
-    std::vector<Function*> functions;
-    int var_autoname_counter; ///for names for "anonymous" variables
-    int func_autoname_counter; ///for names for "anonymous" functions
+    std::vector<Variable*> variables_;
+    std::vector<Function*> functions_;
+    int var_autoname_counter_; ///for names for "anonymous" variables
+    int func_autoname_counter_; ///for names for "anonymous" functions
 
     std::string do_assign_func(Function* func);
     std::string get_or_make_variable(std::string const& func);

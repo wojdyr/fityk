@@ -105,7 +105,7 @@ void View::get_x_range(vector<Data const*> datas, fp &x_min, fp &x_max)
         throw ExecuteError("Can't find x-y axes ranges for plot");
     x_min = datas.front()->get_x_min();
     x_max = datas.front()->get_x_max();
-    for (vector<Data const*>::const_iterator i = datas.begin()+1;
+    for (vector<Data const*>::const_iterator i = datas.begin() + 1;
             i != datas.end(); ++i) {
         x_min = min(x_min, (*i)->get_x_min());
         x_max = max(x_max, (*i)->get_x_max());
@@ -120,42 +120,39 @@ void View::get_y_range(vector<Data const*> datas, vector<Model const*> models,
         throw ExecuteError("Can't find x-y axes ranges for plot");
     y_min = y_max = (datas.front()->get_n() > 0 ? datas.front()->get_y(0) : 0);
     bool min_max_set = false;
-    for (vector<Data const*>::const_iterator i = datas.begin();
-            i != datas.end(); ++i) {
+    vector_foreach (Data const*, i, datas) {
         vector<Point>::const_iterator f = (*i)->get_point_at(left);
         vector<Point>::const_iterator l = (*i)->get_point_at(right);
         //first we are searching for minimal and max. y in active points
-        for (vector<Point>::const_iterator i = f; i < l; i++) {
-            if (i->is_active && is_finite(i->y)) {
+        for (vector<Point>::const_iterator j = f; j < l; j++) {
+            if (j->is_active && is_finite(j->y)) {
                 min_max_set = true;
-                if (i->y > y_max)
-                    y_max = i->y;
-                if (i->y < y_min)
-                    y_min = i->y;
+                if (j->y > y_max)
+                    y_max = j->y;
+                if (j->y < y_min)
+                    y_min = j->y;
             }
         }
     }
 
     if (!min_max_set || y_min == y_max) { //none or 1 active point, so now we
                                    // search for min. and max. y in all points
-        for (vector<Data const*>::const_iterator i = datas.begin();
-                i != datas.end(); ++i) {
+        vector_foreach (Data const*, i, datas) {
             vector<Point>::const_iterator f = (*i)->get_point_at(left);
             vector<Point>::const_iterator l = (*i)->get_point_at(right);
-            for (vector<Point>::const_iterator i = f; i < l; i++) {
-                if (!is_finite(i->y))
+            for (vector<Point>::const_iterator j = f; j < l; j++) {
+                if (!is_finite(j->y))
                     continue;
                 min_max_set = true;
-                if (i->y > y_max)
-                    y_max = i->y;
-                if (i->y < y_min)
-                    y_min = i->y;
+                if (j->y > y_max)
+                    y_max = j->y;
+                if (j->y < y_min)
+                    y_min = j->y;
             }
         }
     }
 
-    for (vector<Model const*>::const_iterator i = models.begin();
-                                                     i != models.end(); ++i) {
+    vector_foreach (Model const*, i, models) {
         Model const* model = *i;
         if (model->get_ff().empty())
             continue;

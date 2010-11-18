@@ -54,7 +54,7 @@ public:
       get_defvalues_from_formula(std::string const& formula);
 
     /// number of variables
-    int nv() const { return (int) type_params.size(); }
+    int nv() const { return (int) type_params_.size(); }
 
     /// calculate value at x[i] and _add_ the result to y[i] (for each i)
     virtual void calculate_value_in_range(std::vector<fp> const &x,
@@ -83,8 +83,9 @@ public:
     virtual bool get_nonzero_range(fp/*level*/, fp&/*left*/, fp&/*right*/) const
                                                               { return false; }
 
-    virtual bool has_center() const { return center_idx != -1; }
-    virtual fp center() const { return center_idx==-1 ? 0. : vv[center_idx]; }
+    virtual bool has_center() const { return center_idx_ != -1; }
+    virtual fp center() const
+                        { return center_idx_ == -1 ? 0. : vv_[center_idx_]; }
     virtual bool has_height() const { return false; }
     virtual fp height() const { return 0; }
     virtual bool has_fwhm() const { return false; }
@@ -104,8 +105,8 @@ public:
     /// return ready-to-display string with all other properties
     std::string other_props_str() const;
     fp get_var_value(int n) const
-             { assert(n>=0 && n<size(vv)); return vv[n]; }
-    std::vector<fp> get_var_values() const  { return vv; }
+             { assert(n>=0 && n<size(vv_)); return vv_[n]; }
+    std::vector<fp> get_var_values() const  { return vv_; }
     std::string get_par_info(VariableManager const* mgr) const;
     std::string get_basic_assignment() const;
     std::string get_current_assignment(std::vector<Variable*> const &variables,
@@ -113,7 +114,7 @@ public:
     bool has_outdated_type() const
         { return type_formula != Function::get_formula(type_name); }
     virtual std::string get_current_formula(std::string const& x = "x") const;
-    std::string const& get_param(int n) const { return type_params[n]; }
+    std::string const& get_param(int n) const { return type_params_[n]; }
     int get_param_nr(std::string const& param) const;
     int get_param_nr_nothrow(std::string const& param) const;
     fp get_param_value(std::string const& param) const;
@@ -127,11 +128,11 @@ public:
     virtual void precomputations_for_alternative_vv()
                                             { this->more_precomputations(); }
 protected:
-    Ftk const* F;
-    std::vector<fp> vv; /// current variable values
-    std::vector<Multi> multi;
-    std::vector<std::string> type_params;
-    int center_idx;
+    Ftk const* F_;
+    std::vector<fp> vv_; /// current variable values
+    std::vector<Multi> multi_;
+    std::vector<std::string> type_params_;
+    int center_idx_;
 
     virtual void init();
 

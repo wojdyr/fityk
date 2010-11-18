@@ -61,7 +61,7 @@ string dt_op(int op)
 string get_code_as_text(vector<int> const& code, vector<fp> const& numbers)
 {
     string txt;
-    for (vector<int>::const_iterator i = code.begin(); i != code.end(); ++i) {
+    vector_foreach (int, i, code) {
         txt += " " + dt_op(*i);
         if (*i == OP_NUMBER && i+1 != code.end()) {
             ++i;
@@ -73,7 +73,7 @@ string get_code_as_text(vector<int> const& code, vector<fp> const& numbers)
 
 bool is_data_dependent_code(const vector<int>& code)
 {
-    for (vector<int>::const_iterator i = code.begin(); i != code.end(); ++i)
+    vector_foreach (int, i, code)
         if ((*i >= OP_VAR_FIRST_OP && *i <= OP_VAR_LAST_OP)
                 || *i == OP_END_AGGREGATE)
             return true;
@@ -1329,7 +1329,7 @@ void DataVM::transform_data(vector<Point>& points)
     vector<Point> new_points = points;
 
     // do time-consuming checking only for the first point
-    for (vector<int>::const_iterator i = code_.begin(); i != code_.end(); i++) {
+    vector_foreach (int, i, code_) {
         run_mutab_op(i, stackPtr, 0, points, new_points);
         if (stackPtr - stack >= 16)
             throw ExecuteError("stack overflow");
@@ -1337,7 +1337,7 @@ void DataVM::transform_data(vector<Point>& points)
     assert(stackPtr == stack - 1); // ASSIGN_ op must be at the end
 
     for (int n = 1; n != size(points); ++n)
-        for (vector<int>::const_iterator i=code_.begin(); i != code_.end(); i++)
+        vector_foreach (int, i, code_)
             run_mutab_op(i, stackPtr, n, points, new_points);
     new_points = points;
 }
@@ -1352,7 +1352,7 @@ double DataVM::calculate(int n, const vector<Point>& points) const
 {
     double stack[16];
     double* stackPtr = stack - 1; // will be ++'ed first
-    for (vector<int>::const_iterator i = code_.begin(); i != code_.end(); i++) {
+    vector_foreach (int, i, code_) {
         run_const_op(i, stackPtr, n, points, points);
         if (stackPtr - stack >= 16)
             throw ExecuteError("stack overflow");

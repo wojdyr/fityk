@@ -31,8 +31,7 @@ int Fit::get_dof(vector<DataAndModel*> const& dms)
 {
     update_parameters(dms);
     int dof = 0;
-    for (vector<DataAndModel*>::const_iterator i = dms.begin();
-                                                    i != dms.end(); ++i)
+    vector_foreach (DataAndModel*, i, dms)
         dof += (*i)->data()->get_n();
     dof -= count(par_usage.begin(), par_usage.end(), true);
     return dof;
@@ -40,7 +39,7 @@ int Fit::get_dof(vector<DataAndModel*> const& dms)
 
 string Fit::get_goodness_info(vector<DataAndModel*> const& dms)
 {
-    vector<fp> const &pp = F->get_parameters();
+    vector<fp> const &pp = F->parameters();
     int dof = get_dof(dms);
     //update_parameters(dms);
     fp wssr = do_compute_wssr(pp, dms, true);
@@ -53,7 +52,7 @@ string Fit::get_goodness_info(vector<DataAndModel*> const& dms)
 
 vector<fp> Fit::get_covariance_matrix(vector<DataAndModel*> const& dms)
 {
-    vector<fp> const &pp = F->get_parameters();
+    vector<fp> const &pp = F->parameters();
     update_parameters(dms);
 
     vector<fp> alpha(na*na), beta(na);
@@ -85,7 +84,7 @@ vector<fp> Fit::get_covariance_matrix(vector<DataAndModel*> const& dms)
 
     reverse_matrix(alpha, na);
 
-    for (vector<int>::const_iterator i = undef.begin(); i != undef.end(); ++i)
+    vector_foreach (int, i, undef)
         alpha[(*i)*na + (*i)] = 0.;
 
     return alpha;
@@ -93,7 +92,7 @@ vector<fp> Fit::get_covariance_matrix(vector<DataAndModel*> const& dms)
 
 vector<fp> Fit::get_standard_errors(vector<DataAndModel*> const& dms)
 {
-    vector<fp> const &pp = F->get_parameters();
+    vector<fp> const &pp = F->parameters();
     fp wssr = do_compute_wssr(pp, dms, true);
     int dof = get_dof(dms);
     vector<fp> alpha = get_covariance_matrix(dms);
@@ -107,7 +106,7 @@ vector<fp> Fit::get_standard_errors(vector<DataAndModel*> const& dms)
 string Fit::get_error_info(vector<DataAndModel*> const& dms)
 {
     vector<fp> errors = get_standard_errors(dms);
-    vector<fp> const &pp = F->get_parameters();
+    vector<fp> const &pp = F->parameters();
     string s = "Standard errors:";
     for (int i = 0; i < na; i++) {
         if (par_usage[i]) {
@@ -146,8 +145,7 @@ fp Fit::do_compute_wssr(vector<fp> const &A,
 {
     fp wssr = 0;
     F->use_external_parameters(A); //that's the only side-effect
-    for (vector<DataAndModel*>::const_iterator i = dms.begin();
-                                                    i != dms.end(); ++i) {
+    vector_foreach (DataAndModel*, i, dms) {
         wssr += compute_wssr_for_data(*i, weigthed);
     }
     return wssr;
@@ -178,8 +176,7 @@ fp Fit::compute_r_squared(vector<fp> const &A, vector<DataAndModel*> const& dms)
 {
     fp sum_err = 0, sum_tot = 0, se = 0, st = 0;
     F->use_external_parameters(A);
-    for (vector<DataAndModel*>::const_iterator i = dms.begin();
-                                                    i != dms.end(); ++i) {
+    vector_foreach (DataAndModel*, i, dms) {
         compute_r_squared_for_data(*i, &se, &st);
         sum_err += se;
         sum_tot += st;
@@ -233,8 +230,7 @@ void Fit::compute_derivatives(vector<fp> const &A,
     fill(beta.begin(), beta.end(), 0.0);
 
     F->use_external_parameters(A);
-    for (vector<DataAndModel*>::const_iterator i = dms.begin();
-                                                    i != dms.end(); ++i) {
+    vector_foreach (DataAndModel*, i, dms) {
         compute_derivatives_for(*i, alpha, beta);
     }
     // filling second half of alpha[]
@@ -362,7 +358,7 @@ void Fit::fit(int max_iter, vector<DataAndModel*> const& dms)
     ComputeUI compute_ui(F->get_ui());
     update_parameters(dms);
     dmdm_ = dms;
-    a_orig = F->get_parameters();
+    a_orig = F->parameters();
     F->get_fit_container()->push_param_history(a_orig);
     iter_nr = 0;
     evaluations = 0;
@@ -374,8 +370,7 @@ void Fit::fit(int max_iter, vector<DataAndModel*> const& dms)
     // print stats
     int nu = count(par_usage.begin(), par_usage.end(), true);
     int np = 0;
-    for (vector<DataAndModel*>::const_iterator i = dms.begin();
-                                                    i != dms.end(); ++i)
+    vector_foreach (DataAndModel*, i, dms)
         np += (*i)->data()->get_n();
     F->msg ("Fit " + S(nu) + " (of " + S(na) + ") parameters to " + S(np)
             + " points ...");
@@ -387,12 +382,11 @@ void Fit::fit(int max_iter, vector<DataAndModel*> const& dms)
 void Fit::continue_fit(int max_iter)
 {
     start_time_ = last_refresh_time_ = time(0);
-    for (vector<DataAndModel*>::const_iterator i = dmdm_.begin();
-                                                      i != dmdm_.end(); ++i)
-        if (!F->contains_dm(*i) || na != size(F->get_parameters()))
+    vector_foreach (DataAndModel*, i, dmdm_)
+        if (!F->contains_dm(*i) || na != size(F->parameters()))
             throw ExecuteError(name + " method should be initialized first.");
     update_parameters(dmdm_);
-    a_orig = F->get_parameters();  //should it be also updated?
+    a_orig = F->parameters();  //should it be also updated?
     user_interrupt = false;
     evaluations = 0;
     max_iterations = max_iter;
@@ -401,18 +395,17 @@ void Fit::continue_fit(int max_iter)
 
 void Fit::update_parameters(vector<DataAndModel*> const& dms)
 {
-    if (F->get_parameters().empty())
+    if (F->parameters().empty())
         throw ExecuteError("there are no fittable parameters.");
     if (dms.empty())
         throw ExecuteError("No datasets to fit.");
 
-    na = F->get_parameters().size();
+    na = F->parameters().size();
 
     par_usage = vector<bool>(na, false);
     for (int idx = 0; idx < na; ++idx) {
         int var_idx = F->find_nr_var_handling_param(idx);
-        for (vector<DataAndModel*>::const_iterator i = dms.begin();
-                                                        i != dms.end(); ++i) {
+        vector_foreach (DataAndModel*, i, dms) {
             if ((*i)->model()->is_dependent_on_var(var_idx)) {
                 par_usage[idx] = true;
                 break; //go to next idx
@@ -562,7 +555,7 @@ fp FitMethodsContainer::get_standard_error(Variable const* var) const
     if (!var->is_simple())
         return -1.; // value signaling unknown standard error
     if (dirty_error_cache_
-            || errors_cache_.size() != F->get_parameters().size()) {
+            || errors_cache_.size() != F->parameters().size()) {
         errors_cache_ = F->get_fit()->get_standard_errors(F->get_dms());
     }
     return errors_cache_[var->get_nr()];
@@ -577,8 +570,8 @@ fp FitMethodsContainer::get_standard_error(Variable const* var) const
 void ParameterHistoryMgr::load_param_history(int item_nr, bool relative)
 {
     if (item_nr == -1 && relative && !param_history.empty() //undo
-         && param_history[param_hist_ptr].size() == F->get_parameters().size()
-         && param_history[param_hist_ptr] != F->get_parameters())
+         && param_history[param_hist_ptr].size() == F->parameters().size()
+         && param_history[param_hist_ptr] != F->parameters())
         item_nr = 0; // load parameters from param_hist_ptr
     if (relative)
         item_nr += param_hist_ptr;
@@ -594,7 +587,7 @@ void ParameterHistoryMgr::load_param_history(int item_nr, bool relative)
 bool ParameterHistoryMgr::can_undo() const
 {
     return !param_history.empty()
-        && (param_hist_ptr > 0 || param_history[0] != F->get_parameters());
+        && (param_hist_ptr > 0 || param_history[0] != F->parameters());
 }
 
 bool ParameterHistoryMgr::push_param_history(vector<fp> const& aa)
