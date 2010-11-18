@@ -16,7 +16,6 @@
 
 #include "sdebug.h"
 #include "frame.h" //ftk
-#include "../cmd.h" //check_command_syntax()
 #include "../logic.h"
 
 #include "img/open.xpm"

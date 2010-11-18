@@ -11,7 +11,6 @@
 #include "ui.h"
 #include "settings.h"
 #include "logic.h"
-#include "cmd.h"
 #include "data.h"
 #include "cparser.h"
 #include "runner.h"

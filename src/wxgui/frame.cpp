@@ -59,7 +59,6 @@
 #include "../fit.h"
 #include "../data.h"
 #include "../settings.h"
-#include "../cmd.h"
 #include "../guess.h"
 #include "../func.h"
 

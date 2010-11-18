@@ -26,10 +26,9 @@
 #include "../common.h"
 #include "../ui.h"
 #include "../logic.h"
-#include "../cmd.h"
 #include "../settings.h"
 #include "../func.h"
-#include "../cparser.h" // info_args
+#include "../cparser.h" // command_list, info_args, debug_args
 #include "gnuplot.h"
 
 using namespace std;

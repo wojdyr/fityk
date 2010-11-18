@@ -31,7 +31,6 @@
 #include "dataedit.h" //DataEditorDlg::read_transforms()
 #include "sidebar.h" // initializations
 #include "../logic.h"
-#include "../cmd.h"
 
 using namespace std;
 

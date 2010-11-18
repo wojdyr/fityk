@@ -260,10 +260,10 @@ void Runner::command_assign_param(const vector<Token>& /*args*/, int /*ds*/)
     //TODO
 }
 
-void Runner::command_name_var(const vector<Token>& /*args*/, int /*ds*/)
+void Runner::command_name_var(const vector<Token>& args, int /*ds*/)
 {
-    //TODO
-    //VariableManager::assign_variable
+    assert(args.size() == 2);
+    F_->assign_variable(args[0].as_string(), args[1].as_string());
 }
 
 int get_fz_or_func(const Ftk *F, int ds, vector<Token>::const_iterator a,

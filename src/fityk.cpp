@@ -13,7 +13,6 @@
 #include "data.h"
 #include "model.h"
 #include "fit.h"
-#include "cmd.h"
 #include "func.h"
 #include "info.h"
 
