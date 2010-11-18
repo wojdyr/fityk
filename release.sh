@@ -57,7 +57,7 @@ elif [ $1 -eq 1 ]; then
  ../src/cli/cfityk test_syntax.fit 
  ../src/wxgui/fityk nacl01.fit
  ../src/wxgui/fityk SiC_Zn.fit
- ./test_lib
+ ./hello
 
 
 elif [ $1 -eq 2 ]; then
