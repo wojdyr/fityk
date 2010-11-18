@@ -2,6 +2,8 @@ $Id$
 User-visible changes in version 0.9.5  (2010-  -  ):
 * syntax: in "define ... where param=expr" expr is substituted in brackets now
 * values of the fitting_method setting changed to lower case
+* major changes in the `info' command; two new commands, `print' and `debug', 
+  partially took over some functionality of the old `info'. See the manual.
 
 User-visible changes in version 0.9.4  (2010-10-09):
 * removed syntax `delete[range]', use `delete(condition)' instead

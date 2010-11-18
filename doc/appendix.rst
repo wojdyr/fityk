@@ -212,7 +212,14 @@ because we need to calculate symbolical derivatives of ``var_rhs``)
    numarea(%f, 10, 30, 100)   ->   %f.numarea(10, 30, 100)
 
    cmd in @m, @n              -> @m @n: cmd
-   * )
+
+   @0 @1: fit # one by one
+   fit @0 @1 # all together
+
+   info @n (x, y) >> file     -> @n: print all: x, y >> file
+   info @n (x, y, a) >> file  -> @n: print if a: x, y, a >> file
+   info pi+1                  -> print pi+1
+   *)
 
 **Line structure**
 
@@ -367,8 +374,8 @@ and pseudo-parameters (%f.Area).
 
 .. _license:
 
-Appendix C. License
-###################
+Appendix C. Program license
+###########################
 
 Fityk is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

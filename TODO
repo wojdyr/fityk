@@ -10,20 +10,14 @@ $Id$
 
 * data transformations: add aggregate functions argmin and argmax
 
-* [BUG] parsing problems: "a=a" => OK (should be error)  "a=ab" => Syntax error
-
 * command info:
-  - "info 12, fit" doesn't work, although "info fit, 12" works.
-  - support quoted strings, e.g. info '2+2=', 2+2
-  - use new lexer
   - "info peaks" should use info-numeric-format
-  - @*: info filename, F[1].area, F[1].area.error >>file
-  - info y[$var]
-  - ',' at the end prevents new line
-
-* GUI: Data>Load should use default load dir (as Quick Load)
+  - check if this works: @*: print filename, F[1].area, F[1].area.error >>file
+  -                          print y[$var]
 
 --- 0.9.5 
+
+* GUI: Data>Load should use default load dir (as Quick Load)
 
 * subtracting another dataset with interpolation of the subtrahend
   (this is important for subtracting background from a file);

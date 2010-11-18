@@ -11,6 +11,7 @@
 
 class Ftk;
 struct Statement;
+struct Command;
 class DataAndModel;
 
 class Runner
@@ -28,10 +29,11 @@ private:
     Ftk* F_;
     ExpressionParser ep_;
 
+    void execute_command(Command& c, int ds);
     void command_set(const std::vector<Token>& args);
     void command_define(const std::vector<Token>& args);
     void command_delete(const std::vector<Token>& args);
-    void command_delete_points(const Statement& st, int ds);
+    void command_delete_points(const std::vector<Token>& args, int ds);
     void command_exec(const std::vector<Token>& args);
     void command_fit(const std::vector<Token>& args, int ds);
     void command_guess(const std::vector<Token>& args, int ds);
@@ -46,8 +48,6 @@ private:
     void command_assign_param(const std::vector<Token>& args, int ds);
     void command_name_var(const std::vector<Token>& args, int ds);
     void command_change_model(const std::vector<Token>& args, int ds);
-
-    void reparse_expressions(Statement& st, int ds);
     void read_dms(std::vector<Token>::const_iterator first,
                   std::vector<Token>::const_iterator last,
                   std::vector<DataAndModel*>& dms);

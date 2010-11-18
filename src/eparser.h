@@ -78,12 +78,18 @@ public:
 
     std::string list_ops() const { return get_code_as_text(code_, numbers_); }
 
+    void append_code(int op) { code_.push_back(op); }
+    void append_number(double d);
+    /// clear VM code and data
+    void clear_vm() { code_.clear(); numbers_.clear(); }
+
 protected:
     const Ftk* F_;
+
+private:
     std::vector<int> code_;    //  VM code
     std::vector<double> numbers_;  //  VM data (numeric values)
 
-private:
     inline
     void run_mutab_op(std::vector<int>::const_iterator& i, double*& stackPtr,
                       const int n, const std::vector<Point>& old_points,
@@ -107,11 +113,8 @@ public:
     ExpressionParser(const Ftk* F) : DataVM(F), expected_(kValue),
                                      finished_(false) {}
 
-    /// clear VM code and data
-    void clear_vm();
-
     /// parse expression
-    void parse2vm(Lexer& lex, int default_ds);
+    void parse_expr(Lexer& lex, int default_ds);
 
     /// adds OP_ASSIGN_? to the code
     void push_assign_lhs(const Token& t);

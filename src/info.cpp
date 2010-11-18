@@ -292,22 +292,78 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
 int eval_info_args(const Ftk* F, int ds, const vector<Token>& args,
                    string& result)
 {
+    int len = args.size();
+    if (len > 2 && (args[len-2].type == kTokenGT ||
+                    args[len-2].type == kTokenAppend))
+        len -= 2;
     int n = 0;
-    while (n < (int) args.size()) {
+    while (n < len) {
         if (!result.empty())
             result += "\n";
-        //TODO: this may not work with ">> file"
         n += eval_one_info_arg(F, ds, args, n, result);
     }
     return n;
 }
 
+void eval_one_print_arg(const Ftk* F, int ds, const Token& t, string& result)
+{
+    if (t.type == kTokenString)
+        result += Lexer::get_string(t);
+    else if (t.type == kTokenExpr)
+        result += F->get_settings()->format_double(t.value.d);
+    else if (t.as_string() == "filename")
+        result += F->get_data(ds)->get_filename();
+    else if (t.as_string() == "title")
+        result += F->get_data(ds)->get_title();
+    else
+        assert(0);
+}
+
 int eval_print_args(const Ftk* F, int ds, const vector<Token>& args,
                     string& result)
 {
-    int n = 0;
-    //TODO
-    return n;
+    // args: condition (expr|string|"filename"|"title")+
+    int len = args.size();
+    if (len > 2 && (args[len-2].type == kTokenGT ||
+                    args[len-2].type == kTokenAppend))
+        len -= 2;
+    string sep = " ";
+    if (args[0].type == kTokenNop) {
+        for (int n = 1; n < len; ++n) {
+            if (n != 1)
+                result += sep;
+            eval_one_print_arg(F, ds, args[n], result);
+        }
+    }
+    else {
+        vector<ExpressionParser> expr_parsers(args.size() + 1, F);
+        for (int i = 0; i < len; ++i)
+            if (args[i].type == kTokenExpr) {
+                Lexer lex(args[i].str);
+                expr_parsers[i].parse_expr(lex, ds);
+            }
+        const vector<Point>& points = F->get_data(ds)->points();
+        for (int k = 0; k != (int) points.size(); ++k) {
+            if (args[0].type == kTokenExpr) {
+                double cond = expr_parsers[0].calculate(k, points);
+                if (fabs(cond) < 0.5)
+                    continue;
+            }
+            if (!result.empty())
+                result += "\n";
+            for (int n = 1; n < len; ++n) {
+                if (n != 1)
+                    result += sep;
+                if (args[n].type == kTokenExpr) {
+                    double value = expr_parsers[n].calculate(k, points);
+                    result += F->get_settings()->format_double(value);
+                }
+                else
+                    eval_one_print_arg(F, ds, args[n], result);
+            }
+        }
+    }
+    return len;
 }
 
 string get_info_string(Ftk const* F, string const& args)
@@ -382,7 +438,7 @@ void run_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
         Lexer lex(rest.str);
         try {
             ExpressionParser parser(F);
-            parser.parse2vm(lex, -1);
+            parser.parse_expr(lex, -1);
             r += parser.list_ops();
         }
         catch (fityk::SyntaxError& e) {
@@ -424,7 +480,7 @@ void run_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
     else if (word == "df") {
         Lexer lex(rest.str);
         ExpressionParser ep(F);
-        ep.parse2vm(lex, ds);
+        ep.parse_expr(lex, ds);
         double x = ep.calculate();
         Model const* model = F->get_model(ds);
         vector<fp> symb = model->get_symbolic_derivatives(x);

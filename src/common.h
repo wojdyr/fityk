@@ -168,6 +168,11 @@ bool contains_element(std::basic_string<T> const& str, T2 const& t)
 }
 //---------------------------  V E C T O R  --------------------------------
 
+// boost/foreach.hpp includes quite a lot of code. Since only one version
+// is needed here, let's keep it simple
+#define vector_foreach(type, iter, vec) \
+for (vector<type>::const_iterator iter = vec.begin(); iter != vec.end(); ++iter)
+
 /// Makes 1-element vector
 template <typename T>
 inline std::vector<T> vector1 (T a) { return std::vector<T>(1, a); }

@@ -67,12 +67,12 @@ void Runner::command_delete(const vector<Token>& args)
     F_->delete_variables(vars);
 }
 
-void Runner::command_delete_points(const Statement& st, int ds)
+void Runner::command_delete_points(const vector<Token>& args, int ds)
 {
-    assert(st.args.size() == 1);
-    Lexer lex(st.args[0].str);
+    assert(args.size() == 1);
+    Lexer lex(args[0].str);
     ep_.clear_vm();
-    ep_.parse2vm(lex, ds);
+    ep_.parse_expr(lex, ds);
 
     Data *data = F_->get_data(ds);
     const vector<Point>& p = data->points();
@@ -385,7 +385,7 @@ void Runner::command_all_points_tr(const vector<Token>& args, int ds)
     ep_.clear_vm();
     for (size_t i = 0; i < args.size(); i += 2) {
         Lexer lex(args[i+1].str);
-        ep_.parse2vm(lex, ds);
+        ep_.parse_expr(lex, ds);
         ep_.push_assign_lhs(args[i]);
     }
     Data *data = F_->get_data(ds);
@@ -430,6 +430,93 @@ void Runner::command_resize_p(const vector<Token>& args, int ds)
     data->after_transform();
 }
 
+void Runner::execute_command(Command& c, int ds)
+{
+    switch (c.type) {
+        case kCmdDebug:
+            run_debug(F_, ds, c.args[0], c.args[1]);
+            break;
+        case kCmdDefine:
+            command_define(c.args);
+            break;
+        case kCmdDelete:
+            command_delete(c.args);
+            break;
+        case kCmdDeleteP:
+            command_delete_points(c.args, ds);
+            break;
+        case kCmdExec:
+            command_exec(c.args);
+            break;
+        case kCmdFit:
+            command_fit(c.args, ds);
+            break;
+        case kCmdGuess:
+            command_guess(c.args, ds);
+            break;
+        case kCmdInfo:
+            run_info(F_, ds, kCmdInfo, c.args);
+            break;
+        case kCmdPlot:
+            command_plot(c.args);
+            break;
+        case kCmdPrint:
+            run_info(F_, ds, kCmdPrint, c.args);
+            break;
+        case kCmdReset:
+            F_->reset();
+            F_->outdated_plot();
+            break;
+        case kCmdSet:
+            command_set(c.args);
+            break;
+        case kCmdSleep:
+            F_->get_ui()->wait(c.args[0].value.d);
+            break;
+        case kCmdUndef:
+            command_undefine(c.args);
+            break;
+        case kCmdQuit:
+            throw ExitRequestedException();
+            break;
+        case kCmdShell:
+            system(c.args[0].str);
+            break;
+        case kCmdLoad:
+            command_load(c.args);
+            break;
+        case kCmdNameFunc:
+            command_name_func(c.args);
+            break;
+        case kCmdDatasetTr:
+            command_dataset_tr(c.args);
+            break;
+        case kCmdAllPointsTr:
+            command_all_points_tr(c.args, ds);
+            break;
+        case kCmdPointTr:
+            command_point_tr(c.args, ds);
+            break;
+        case kCmdResizeP:
+            command_resize_p(c.args, ds);
+            break;
+        case kCmdTitle:
+            F_->get_data(ds)->title = c.args[0].as_string();
+            break;
+        case kCmdAssignParam:
+            command_assign_param(c.args, ds);
+            break;
+        case kCmdNameVar:
+            command_name_var(c.args, ds);
+            break;
+        case kCmdChangeModel:
+            command_change_model(c.args, ds);
+            break;
+        case kCmdNull:
+            // nothing
+            break;
+    }
+}
 
 // Execute the last parsed string.
 // Throws ExecuteError, ExitRequestedException.
@@ -441,98 +528,26 @@ void Runner::execute_statement(Statement& st)
             settings->set_temporary(st.with_args[i-1].as_string(),
                                     st.with_args[i].as_string());
     }
-
     try {
-        for (vector<int>::const_iterator i = st.datasets.begin();
-                                            i != st.datasets.end(); ++i) {
-            // kCmdAllPointsTr is parsed in command_all_points_tr()
-            if (i != st.datasets.begin() && st.cmd != kCmdAllPointsTr)
-                reparse_expressions(st, *i);
-
-            printf("ds:%d  cmd=%s  #args:%d\n", *i, commandtype2str(st.cmd), (int) st.args.size());
-            switch (st.cmd) {
-                case kCmdDebug:
-                    run_debug(F_, *i, st.args[0], st.args[1]);
-                    break;
-                case kCmdDefine:
-                    command_define(st.args);
-                    break;
-                case kCmdDelete:
-                    command_delete(st.args);
-                    break;
-                case kCmdDeleteP:
-                    command_delete_points(st, *i);
-                    break;
-                case kCmdExec:
-                    command_exec(st.args);
-                    break;
-                case kCmdFit:
-                    command_fit(st.args, *i);
-                    break;
-                case kCmdGuess:
-                    command_guess(st.args, *i);
-                    break;
-                case kCmdInfo:
-                    run_info(F_, *i, kCmdInfo, st.args);
-                    break;
-                case kCmdPlot:
-                    command_plot(st.args);
-                    break;
-                case kCmdPrint:
-                    run_info(F_, *i, kCmdPrint, st.args);
-                    break;
-                case kCmdReset:
-                    F_->reset();
-                    F_->outdated_plot();
-                    break;
-                case kCmdSet:
-                    command_set(st.args);
-                    break;
-                case kCmdSleep:
-                    F_->get_ui()->wait(st.args[0].value.d);
-                    break;
-                case kCmdUndef:
-                    command_undefine(st.args);
-                    break;
-                case kCmdQuit:
-                    throw ExitRequestedException();
-                    break;
-                case kCmdShell:
-                    system(st.args[0].str);
-                    break;
-                case kCmdLoad:
-                    command_load(st.args);
-                    break;
-                case kCmdNameFunc:
-                    command_name_func(st.args);
-                    break;
-                case kCmdDatasetTr:
-                    command_dataset_tr(st.args);
-                    break;
-                case kCmdAllPointsTr:
-                    command_all_points_tr(st.args, *i);
-                    break;
-                case kCmdPointTr:
-                    command_point_tr(st.args, *i);
-                    break;
-                case kCmdResizeP:
-                    command_resize_p(st.args, *i);
-                    break;
-                case kCmdTitle:
-                    F_->get_data(*i)->title = st.args[0].as_string();
-                    break;
-                case kCmdAssignParam:
-                    command_assign_param(st.args, *i);
-                    break;
-                case kCmdNameVar:
-                    command_name_var(st.args, *i);
-                    break;
-                case kCmdChangeModel:
-                    command_change_model(st.args, *i);
-                    break;
-                case kCmdNull:
-                    // nothing
-                    break;
+        vector_foreach (int, i, st.datasets) {
+            const vector<Point>& points = F_->get_data(*i)->points();
+            for (vector<Command>::iterator c = st.commands.begin();
+                                                c != st.commands.end(); ++c) {
+                // For all next datasets, re-evaluate expression in the
+                // context of the current dataset.
+                // Don't evaluate commands that are parsed in command_*().
+                if (i != st.datasets.begin() && (c->type == kCmdAllPointsTr ||
+                                                 c->type == kCmdDeleteP)) {
+                    for (vector<Token>::iterator t = c->args.begin();
+                                                       t != c->args.end(); ++t)
+                        if (t->type == kTokenExpr) {
+                            Lexer lex(t->str);
+                            ep_.clear_vm();
+                            ep_.parse_expr(lex, *i);
+                            t->value.d = ep_.calculate(0, points);
+                        }
+                }
+                execute_command(*c, *i);
             }
         }
     }
@@ -542,16 +557,4 @@ void Runner::execute_statement(Statement& st)
     }
     F_->get_settings()->clear_temporary();
 }
-
-void Runner::reparse_expressions(Statement& st, int ds)
-{
-    for (vector<Token>::iterator j = st.args.begin(); j != st.args.end(); ++j)
-        if (j->type == kTokenExpr) {
-            Lexer lex(j->str);
-            ep_.clear_vm();
-            ep_.parse2vm(lex, ds);
-            j->value.d = ep_.calculate();
-        }
-}
-
 

@@ -219,7 +219,7 @@ void ExpressionParser::pop_onto_que()
 {
     int op = opstack_.back();
     opstack_.pop_back();
-    code_.push_back(op);
+    append_code(op);
 }
 
 void ExpressionParser::put_number(double value)
@@ -229,10 +229,7 @@ void ExpressionParser::put_number(double value)
         return;
     }
     //cout << "put_number() " << value << endl;
-    code_.push_back(OP_NUMBER);
-    int number_pos = numbers_.size();
-    code_.push_back(number_pos);
-    numbers_.push_back(value);
+    append_number(value);
     expected_ = kOperator;
 }
 
@@ -358,7 +355,7 @@ void ExpressionParser::put_ag_function(Lexer& lex, int ds, AggregFunc& ag)
     //cout << "put_ag_function() " << op << endl;
     lex.get_expected_token(kTokenOpen); // discard '('
     ExpressionParser ep(F_);
-    ep.parse2vm(lex, ds);
+    ep.parse_expr(lex, ds);
     const vector<Point>& points = F_->get_data(ds)->points();
     Token t = lex.get_expected_token(kTokenClose, "if");
     if (t.type == kTokenClose) {
@@ -369,7 +366,7 @@ void ExpressionParser::put_ag_function(Lexer& lex, int ds, AggregFunc& ag)
     }
     else { // "if"
         ExpressionParser cond_p(F_);
-        cond_p.parse2vm(lex, ds);
+        cond_p.parse_expr(lex, ds);
         lex.get_expected_token(kTokenClose); // discard ')'
         for (size_t n = 0; n != points.size(); ++n) {
             double c = cond_p.calculate(n, points);
@@ -389,8 +386,8 @@ void ExpressionParser::put_array_var(bool has_index, VMOp op)
         expected_ = kValue;
     }
     else {
-        code_.push_back(OP_VAR_n);
-        code_.push_back(op);
+        append_code(OP_VAR_n);
+        append_code(op);
         expected_ = kOperator;
     }
 }
@@ -461,7 +458,7 @@ void ExpressionParser::put_fz_sth(Lexer& lex, char fz, int ds)
     if (lex.peek_token().type == kTokenLSquare) {
         lex.get_token(); // discard '['
         ExpressionParser ep(F_);
-        ep.parse2vm(lex, ds);
+        ep.parse_expr(lex, ds);
         lex.get_expected_token(kTokenRSquare); // discard ']'
         int idx = iround(ep.calculate());
         const string& name = F_->get_model(ds)->get_func_name(fz, idx);
@@ -495,7 +492,7 @@ void ExpressionParser::put_fz_sth(Lexer& lex, char fz, int ds)
 
 void ExpressionParser::put_var(VMOp op)
 {
-    code_.push_back(op);
+    append_code(op);
     expected_ = kOperator;
 }
 
@@ -506,18 +503,12 @@ void ExpressionParser::pop_until_bracket()
         if (op == OP_OPEN_ROUND || op == OP_OPEN_SQUARE || op == OP_TERNARY_MID)
             break;
         opstack_.pop_back();
-        code_.push_back(op);
+        append_code(op);
     }
 }
 
-void ExpressionParser::clear_vm()
-{
-    code_.clear();
-    numbers_.clear();
-}
-
 // implementation of the shunting-yard algorithm
-void ExpressionParser::parse2vm(Lexer& lex, int default_ds)
+void ExpressionParser::parse_expr(Lexer& lex, int default_ds)
 {
     opstack_.clear();
     arg_cnt_.clear();
@@ -539,11 +530,11 @@ void ExpressionParser::parse2vm(Lexer& lex, int default_ds)
                     put_unary_op(OP_NOT);
                 else if (word == "and") {
                     put_binary_op(OP_AFTER_AND);
-                    code_.push_back(OP_AND);
+                    append_code(OP_AND);
                 }
                 else if (word == "or") {
                     put_binary_op(OP_AFTER_OR);
-                    code_.push_back(OP_OR);
+                    append_code(OP_OR);
                 }
                 else if (word == "if") {
                     pop_until_bracket();
@@ -846,7 +837,7 @@ void ExpressionParser::parse2vm(Lexer& lex, int default_ds)
                 break;
             case kTokenQMark:
                 put_binary_op(OP_TERNARY_MID);
-                code_.push_back(OP_TERNARY);
+                append_code(OP_TERNARY);
                 break;
             case kTokenColon:
                 for (;;) {
@@ -857,7 +848,7 @@ void ExpressionParser::parse2vm(Lexer& lex, int default_ds)
                     // pop OP_TERNARY_MID from the stack onto the que
                     int op = opstack_.back();
                     opstack_.pop_back();
-                    code_.push_back(op);
+                    append_code(op);
                     if (op == OP_TERNARY_MID)
                         break;
                 }
@@ -919,7 +910,7 @@ void ExpressionParser::push_assign_lhs(const Token& t)
         case 'A': op = OP_ASSIGN_A; break;
         default: assert(0);
     }
-    code_.push_back(op);
+    append_code(op);
 }
 
 /*
@@ -1369,5 +1360,13 @@ double DataVM::calculate(int n, const vector<Point>& points) const
     //cerr << "stackPtr: " << stackPtr - stack << endl;
     assert(stackPtr == stack); // no ASSIGN_ at the end
     return stack[0];
+}
+
+void DataVM::append_number(double d)
+{
+    append_code(OP_NUMBER);
+    int number_pos = numbers_.size();
+    append_code(number_pos);
+    numbers_.push_back(d);
 }
 

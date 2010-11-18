@@ -44,7 +44,7 @@ Features
 * automation with scripts,
 * an add-on for powder diffraction data (Pawley refinement)
 * modular :wiki:`architecture <architecture>`,
-* open source licence (GPL),
+* open source licence (`GPL <http://creativecommons.org/licenses/GPL/2.0/>`_),
 * portability.
 
 Download

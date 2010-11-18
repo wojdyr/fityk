@@ -47,12 +47,17 @@ enum CommandType
     kCmdNull
 };
 
+struct Command
+{
+    CommandType type;
+    std::vector<Token> args;
+};
+
 struct Statement
 {
-    std::vector<Token> with_args;
-    CommandType cmd;
-    std::vector<Token> args;
     std::vector<int> datasets;
+    std::vector<Token> with_args;
+    std::vector<Command> commands;
 };
 
 // NULL-terminated tables, used for tab-expansion.
@@ -91,9 +96,9 @@ private:
 
     Token read_expr(Lexer& lex);
     Token read_and_calc_expr(Lexer& lex);
-    void parse_fz(Lexer& lex, Statement &s);
+    void parse_fz(Lexer& lex, Command &cmd);
     void parse_assign_func(Lexer& lex, std::vector<Token>& args);
-    void parse_command(Lexer& lex);
+    void parse_command(Lexer& lex, Command& cmd);
     void parse_set_args(Lexer& lex, std::vector<Token>& args);
     void parse_real_range(Lexer& lex, std::vector<Token>& args);
     void parse_func_id(Lexer& lex, std::vector<Token>& args, bool accept_fz);
