@@ -21,7 +21,6 @@
 #include "../ui.h"
 #include "../fit.h"
 #include "../settings.h"
-#include "../datatrans.h"
 #include "../logic.h"
 #include "../data.h"
 #include "../model.h" // get_ff_names()
@@ -281,9 +280,9 @@ DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id, int data_idx)
             rb->Enable(i, false);
     }
     top_sizer->Add(rb, 0, wxALL|wxEXPAND, 5);
-    inactive_cb = new wxCheckBox(this, ID_DED_INACT_CB,
-                                 wxT("export also inactive points"));
-    top_sizer->Add(inactive_cb, 0, wxALL, 5);
+    only_a_cb = new wxCheckBox(this, ID_DED_INACT_CB,
+                               wxT("only active points"));
+    top_sizer->Add(only_a_cb, 0, wxALL, 5);
     text = new wxTextCtrl(this, ID_DED_TEXT, wxT(""));
     top_sizer->Add(text, 0, wxEXPAND|wxALL, 5);
     top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
@@ -302,7 +301,7 @@ DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id, int data_idx)
     }
     else {
         bool a = cfg_read_bool(config, wxT("/exportDataA"), false);
-        inactive_cb->SetValue(a);
+        only_a_cb->SetValue(!a);
     }
     on_widget_change();
 }
@@ -313,30 +312,19 @@ void DataExportDlg::on_widget_change()
     bool custom = is_custom();
     if (!custom) {
         int n = rb->GetSelection();
-        text->SetValue(cv[n] + (inactive_cb->GetValue() ? wxT(", a"):wxT("")));
+        text->SetValue(cv[n]);
         FindWindow(wxID_OK)->Enable(true);
     }
     text->Enable(custom);
-    inactive_cb->Enable(!custom);
 }
 
 void DataExportDlg::OnTextChanged(wxCommandEvent&)
 {
     if (!text->IsModified())
         return;
-    vector<string> cols = split_string(wx2s(text->GetValue()), ",");
-    bool has_a = false;
-    bool parsable = true;
-    for (vector<string>::const_iterator i = cols.begin(); i != cols.end(); ++i){
-        string t = strip_string(*i);
-        if (t == "a")
-            has_a = true;
-
-        if (!compile_data_expression(t))
-            parsable = false;
-    }
+    string test_cmd = "print " + wx2s(text->GetValue());
+    bool parsable = ftk->get_ui()->check_syntax(test_cmd);
     FindWindow(wxID_OK)->Enable(parsable);
-    inactive_cb->SetValue(has_a);
 }
 
 void DataExportDlg::OnOk(wxCommandEvent& event)
@@ -347,7 +335,7 @@ void DataExportDlg::OnOk(wxCommandEvent& event)
     if (is_custom())
         config->Write(wxT("/exportDataText"), text->GetValue());
     else
-        config->Write(wxT("/exportDataA"), inactive_cb->GetValue());
+        config->Write(wxT("/exportDataA"), !only_a_cb->GetValue());
 
     event.Skip();
 }

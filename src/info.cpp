@@ -20,7 +20,6 @@
 #include "fit.h"
 #include "ast.h"
 #include "model.h"
-#include "datatrans.h"
 #include "guess.h"
 #include "cparser.h"
 #include "eparser.h"

@@ -10,6 +10,7 @@
 #include <wx/config.h>
 
 #include "cmn.h" //SpinCtrl
+#include "../eparser.h" //ExpressionParser
 
 
 // used by MainPlot to set hints on FStatusBar
@@ -36,7 +37,7 @@ public:
                std::string const& shift_left, std::string const& shift_right);
     void set_coords(double x, double y, PlotTypeEnum pte);
     void clear_coords() { coords->SetLabel(wxEmptyString); }
-    bool set_extra_value(std::string const& s);
+    bool set_extra_value(wxString const& s);
     void update_extra_fmt();
     wxString const& get_extra_value() const { return extra_value; }
 
@@ -53,9 +54,7 @@ private:
     // a number calculated as a function of cursor coordinates x and y and
     // shown at the status bar (as a 3rd number, after x and y)
     wxString extra_value;
-    std::vector<int> e_code; // bytecode for calculating extra value
-    std::vector<double> e_numbers; // numbers for the bytecode in e_code
-
+    ExpressionParser extra_parser; // parser/vm for calculating extra value
     int e_prec; // precision of extra value shown at status bar
 
     bool show_btn;

@@ -2,8 +2,6 @@
 // Licence: GNU General Public License ver. 2+
 // $Id: $
 
-/// This parser is not used yet.
-/// In the future it will replace the current parser (datatrans* files)
 /// Data expression parser.
 
 #include "eparser.h"
@@ -15,23 +13,25 @@
 
 #include "lexer.h"
 #include "common.h"
-#include "datatrans.h"
 #include "numfuncs.h"
 #include "voigt.h"
 
 #include "logic.h"
+#include "data.h"
 #include "var.h" // $v
 #include "fit.h" // $var.error
 #include "func.h" // %f(...)
 #include "model.h" // F(...)
 
 using namespace std;
-
 using namespace dataVM;
+
+namespace {
 
 /// debuging utility
 #define OP_(x) \
     if (op == OP_##x) return #x;
+
 string dt_op(int op)
 {
     OP_(NEG)   OP_(EXP)
@@ -58,28 +58,6 @@ string dt_op(int op)
 };
 #undef OP_
 
-string get_code_as_text(vector<int> const& code, vector<fp> const& numbers)
-{
-    string txt;
-    vector_foreach (int, i, code) {
-        txt += " " + dt_op(*i);
-        if (*i == OP_NUMBER && i+1 != code.end()) {
-            ++i;
-            txt += "(" + S(numbers[*i]) + ")";
-        }
-    }
-    return txt;
-}
-
-bool is_data_dependent_code(const vector<int>& code)
-{
-    vector_foreach (int, i, code)
-        if ((*i >= OP_VAR_FIRST_OP && *i <= OP_VAR_LAST_OP)
-                || *i == OP_END_AGGREGATE)
-            return true;
-    return false;
-}
-
 int get_op_priority(int op)
 {
     switch (op) {
@@ -104,7 +82,7 @@ int get_op_priority(int op)
     }
 }
 
-string function_name(int op)
+const char* function_name(int op)
 {
     switch (op) {
         // 1-arg functions
@@ -142,7 +120,6 @@ string function_name(int op)
         default: return "";
     }
 }
-
 
 int get_function_narg(int op)
 {
@@ -215,70 +192,6 @@ bool is_array_var(int op)
     }
 }
 
-void ExpressionParser::pop_onto_que()
-{
-    int op = opstack_.back();
-    opstack_.pop_back();
-    append_code(op);
-}
-
-void ExpressionParser::put_number(double value)
-{
-    if (expected_ == kOperator) {
-        finished_ = true;
-        return;
-    }
-    //cout << "put_number() " << value << endl;
-    append_number(value);
-    expected_ = kOperator;
-}
-
-void ExpressionParser::put_unary_op(VMOp op)
-{
-    if (expected_ == kOperator) {
-        finished_ = true;
-        return;
-    }
-    opstack_.push_back(op);
-    expected_ = kValue;
-}
-
-void ExpressionParser::put_binary_op(VMOp op)
-{
-    if (expected_ != kOperator) {
-        finished_ = true;
-        return;
-    }
-    //cout << "put_binary_op() " << op << endl;
-    int pri = get_op_priority(op);
-    while (!opstack_.empty() && get_op_priority(opstack_.back()) >= pri)
-        pop_onto_que();
-    opstack_.push_back(op);
-    expected_ = kValue;
-}
-
-void ExpressionParser::put_function(VMOp op)
-{
-    //cout << "put_function() " << op << endl;
-    arg_cnt_.push_back(0); // start new counter
-    opstack_.push_back(op);
-    expected_ = kValue;
-}
-
-class AggregFunc
-{
-public:
-    AggregFunc() : counter_(0), v_(0.) {}
-    virtual ~AggregFunc() {}
-    void put(double x, int n) { ++counter_; op(x, n); }
-    virtual double value() const { return v_; }
-
-protected:
-    int counter_;
-    double v_;
-
-    virtual void op(double x, int n) = 0;
-};
 
 class AggregSum : public AggregFunc
 {
@@ -350,6 +263,81 @@ protected:
     virtual double value() const { return sqrt(v_ / (counter_ - 1)); }
 };
 
+} // anonymous namespace
+
+
+void VirtualMachineData::append_number(double d)
+{
+    append_code(OP_NUMBER);
+    int number_pos = numbers_.size();
+    append_code(number_pos);
+    numbers_.push_back(d);
+}
+
+
+string ExpressionParser::list_ops() const
+{
+    string txt;
+    vector_foreach (int, i, vm_.code()) {
+        txt += " " + dt_op(*i);
+        if (*i == OP_NUMBER && i+1 != vm_.code().end()) {
+            ++i;
+            txt += "(" + S(vm_.numbers()[*i]) + ")";
+        }
+    }
+    return txt;
+}
+
+void ExpressionParser::pop_onto_que()
+{
+    int op = opstack_.back();
+    opstack_.pop_back();
+    vm_.append_code(op);
+}
+
+void ExpressionParser::put_number(double value)
+{
+    if (expected_ == kOperator) {
+        finished_ = true;
+        return;
+    }
+    //cout << "put_number() " << value << endl;
+    vm_.append_number(value);
+    expected_ = kOperator;
+}
+
+void ExpressionParser::put_unary_op(Op op)
+{
+    if (expected_ == kOperator) {
+        finished_ = true;
+        return;
+    }
+    opstack_.push_back(op);
+    expected_ = kValue;
+}
+
+void ExpressionParser::put_binary_op(Op op)
+{
+    if (expected_ != kOperator) {
+        finished_ = true;
+        return;
+    }
+    //cout << "put_binary_op() " << op << endl;
+    int pri = get_op_priority(op);
+    while (!opstack_.empty() && get_op_priority(opstack_.back()) >= pri)
+        pop_onto_que();
+    opstack_.push_back(op);
+    expected_ = kValue;
+}
+
+void ExpressionParser::put_function(Op op)
+{
+    //cout << "put_function() " << op << endl;
+    arg_cnt_.push_back(0); // start new counter
+    opstack_.push_back(op);
+    expected_ = kValue;
+}
+
 void ExpressionParser::put_ag_function(Lexer& lex, int ds, AggregFunc& ag)
 {
     //cout << "put_ag_function() " << op << endl;
@@ -379,15 +367,15 @@ void ExpressionParser::put_ag_function(Lexer& lex, int ds, AggregFunc& ag)
     put_number(ag.value());
 }
 
-void ExpressionParser::put_array_var(bool has_index, VMOp op)
+void ExpressionParser::put_array_var(bool has_index, Op op)
 {
     if (has_index) {
         opstack_.push_back(op);
-        expected_ = kValue;
+        expected_ = kIndex;
     }
     else {
-        append_code(OP_VAR_n);
-        append_code(op);
+        vm_.append_code(OP_VAR_n);
+        vm_.append_code(op);
         expected_ = kOperator;
     }
 }
@@ -418,7 +406,7 @@ void ExpressionParser::put_func_sth(Lexer& lex, const string& name)
         int n = F_->find_function_nr(name);
         if (n == -1)
             throw ExecuteError("undefined function: %" + name);
-        // we will put n into code_ when handling ')'
+        // we will put n into code when handling ')'
         opstack_.push_back(n);
         put_function(OP_FUNC);
     }
@@ -429,7 +417,7 @@ void ExpressionParser::put_func_sth(Lexer& lex, const string& name)
             int n = F_->find_function_nr(name);
             if (n == -1)
                 throw ExecuteError("undefined function: %" + name);
-            // we will put ds into code_ when handling ')'
+            // we will put ds into code when handling ')'
             opstack_.push_back(n);
             opstack_.push_back(OP_FUNC);
             if (word == "numarea")
@@ -465,7 +453,7 @@ void ExpressionParser::put_fz_sth(Lexer& lex, char fz, int ds)
         put_func_sth(lex, name);
     }
     else if (lex.peek_token().type == kTokenOpen) {
-        opstack_.push_back(ds); // we will put ds into code_ when handling ')'
+        opstack_.push_back(ds); // we will put ds into code when handling ')'
         put_function(fz == 'F' ? OP_SUM_F : OP_SUM_Z);
     }
     else if (lex.peek_token().type == kTokenDot) {
@@ -473,7 +461,7 @@ void ExpressionParser::put_fz_sth(Lexer& lex, char fz, int ds)
         string word = lex.get_expected_token(kTokenLname).as_string();
         if (lex.peek_token().type != kTokenOpen)
             lex.throw_syntax_error("F/Z has no .properties, only .methods()");
-        // we will put ds into code_ when handling ')'
+        // we will put ds into code when handling ')'
         opstack_.push_back(ds);
         opstack_.push_back(fz == 'F' ? OP_SUM_F : OP_SUM_Z);
         if (word == "numarea")
@@ -490,10 +478,39 @@ void ExpressionParser::put_fz_sth(Lexer& lex, char fz, int ds)
     }
 }
 
-void ExpressionParser::put_var(VMOp op)
+void ExpressionParser::put_var(Op op)
 {
-    append_code(op);
+    vm_.append_code(op);
     expected_ = kOperator;
+}
+
+bool ExpressionParser::put_data_name(const string& word, bool indexed)
+{
+    // data points
+    if (word == "x")
+        put_array_var(indexed, OP_VAR_x);
+    else if (word == "y")
+        put_array_var(indexed, OP_VAR_y);
+    else if (word == "s")
+        put_array_var(indexed, OP_VAR_s);
+    else if (word == "a")
+        put_array_var(indexed, OP_VAR_a);
+    else if (word == "n")
+        put_var(OP_VAR_n);
+    else
+        return false;
+    return true;
+}
+
+bool ExpressionParser::put_custom_name(const string& word,
+                                       const vector<string>& vars)
+{
+    int idx = index_of_element(vars, word);
+    if (idx == -1)
+        return false;
+    vm_.append_code(OP_VAR_n);
+    vm_.append_code(idx);
+    return true;
 }
 
 void ExpressionParser::pop_until_bracket()
@@ -503,12 +520,25 @@ void ExpressionParser::pop_until_bracket()
         if (op == OP_OPEN_ROUND || op == OP_OPEN_SQUARE || op == OP_TERNARY_MID)
             break;
         opstack_.pop_back();
-        append_code(op);
+        vm_.append_code(op);
     }
 }
 
+bool ExpressionParser::parse_full(Lexer& lex, int default_ds,
+                                  const vector<string> *custom_vars)
+{
+    try {
+        parse_expr(lex, default_ds, custom_vars);
+    }
+    catch (...) {
+        return false;
+    }
+    return lex.peek_token().type == kTokenNop;
+}
+
 // implementation of the shunting-yard algorithm
-void ExpressionParser::parse_expr(Lexer& lex, int default_ds)
+void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
+                                  const vector<string> *custom_vars)
 {
     opstack_.clear();
     arg_cnt_.clear();
@@ -530,11 +560,11 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds)
                     put_unary_op(OP_NOT);
                 else if (word == "and") {
                     put_binary_op(OP_AFTER_AND);
-                    append_code(OP_AND);
+                    vm_.append_code(OP_AND);
                 }
                 else if (word == "or") {
                     put_binary_op(OP_AFTER_OR);
-                    append_code(OP_OR);
+                    vm_.append_code(OP_OR);
                 }
                 else if (word == "if") {
                     pop_until_bracket();
@@ -637,25 +667,24 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds)
                         finished_ = true;
                         break;
                     }
-                    bool has_index = (lex.peek_token().type == kTokenLSquare);
-                    if (word == "x")
-                        put_array_var(has_index, OP_VAR_x);
-                    else if (word == "y")
-                        put_array_var(has_index, OP_VAR_y);
-                    else if (word == "s")
-                        put_array_var(has_index, OP_VAR_s);
-                    else if (word == "a")
-                        put_array_var(has_index, OP_VAR_a);
-                    else if (word == "n")
-                        put_var(OP_VAR_n);
-                    else if (word == "pi")
+                    if (word == "pi")
                         put_number(M_PI);
                     else if (word == "true")
                         put_number(1.);
                     else if (word == "false")
                         put_number(0.);
-                    else
-                        lex.throw_syntax_error("unknown name: " + word);
+                    else {
+                        bool found;
+                        if (custom_vars == NULL) {
+                            bool ar = (lex.peek_token().type == kTokenLSquare);
+                            found = put_data_name(word, ar);
+                        }
+                        else {
+                            found = put_custom_name(word, *custom_vars);
+                        }
+                        if (!found)
+                            lex.throw_syntax_error("unknown name: " + word);
+                    }
                 }
                 break;
             }
@@ -705,7 +734,7 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds)
                 expected_ = kValue;
                 break;
             case kTokenLSquare:
-                if (expected_ == kOperator) {
+                if (expected_ != kIndex) {
                     finished_ = true;
                     break;
                 }
@@ -735,8 +764,8 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds)
                         int expected_n = get_function_narg(top);
                         if (n != expected_n)
                             lex.throw_syntax_error(
-                                 "function " + function_name(top) + "expects "
-                                 + S(expected_n) + " arguments, not " + S(n));
+                               S("function ") + function_name(top) + "expects "
+                               + S(expected_n) + " arguments, not " + S(n));
                         arg_cnt_.pop_back();
                         if (top==OP_FUNC || top==OP_SUM_F || top==OP_SUM_Z)
                             pop_onto_que(); // pop function index
@@ -837,7 +866,7 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds)
                 break;
             case kTokenQMark:
                 put_binary_op(OP_TERNARY_MID);
-                append_code(OP_TERNARY);
+                vm_.append_code(OP_TERNARY);
                 break;
             case kTokenColon:
                 for (;;) {
@@ -848,7 +877,7 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds)
                     // pop OP_TERNARY_MID from the stack onto the que
                     int op = opstack_.back();
                     opstack_.pop_back();
-                    append_code(op);
+                    vm_.append_code(op);
                     if (op == OP_TERNARY_MID)
                         break;
                 }
@@ -902,7 +931,7 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds)
 
 void ExpressionParser::push_assign_lhs(const Token& t)
 {
-    VMOp op;
+    Op op;
     switch (toupper(*t.str)) {
         case 'X': op = OP_ASSIGN_X; break;
         case 'Y': op = OP_ASSIGN_Y; break;
@@ -910,32 +939,9 @@ void ExpressionParser::push_assign_lhs(const Token& t)
         case 'A': op = OP_ASSIGN_A; break;
         default: assert(0);
     }
-    append_code(op);
+    vm_.append_code(op);
 }
 
-/*
-// defined in datatrans.cpp
-namespace datatrans {
-bool execute_code(int n, int &M, vector<fp>& stack,
-                  vector<Point> const& old_points, vector<Point>& new_points,
-                  vector<int> const& code);
-extern vector<fp> numbers;  //  VM data (numeric values)
-}
-
-double ExpressionParser::calculate_expression_value() const
-{
-    static vector<fp> stack(128);
-    if (is_data_dependent_code(code_))
-        throw ExecuteError("Expression depends on dataset.");
-    vector<Point> dummy;
-    // n==M => one-time op.
-    int M = 0;
-    datatrans::numbers = numbers;
-    bool t = datatrans::execute_code(0, M, stack, dummy, dummy, code_);
-    assert(!t);
-    return stack.front();
-}
-*/
 
 
 namespace {
@@ -988,11 +994,11 @@ fp find_idx_in_sorted(vector<Point> const& pp, fp x)
         return i - pp.begin() - (i->x - x) / (i->x - (i-1)->x);
 }
 
-}
+} // anonymous namespace
 
 #define STACK_OFFSET_CHANGE(ch) stackPtr+=(ch)
 
-inline void DataVM::run_const_op(vector<int>::const_iterator& i,
+inline void ExprCalculator::run_const_op(vector<int>::const_iterator& i,
                                  double*& stackPtr,
                                  const int n,
                                  const vector<Point>& old_points,
@@ -1204,8 +1210,9 @@ inline void DataVM::run_const_op(vector<int>::const_iterator& i,
         case OP_NUMBER:
             STACK_OFFSET_CHANGE(+1);
             i++;
-            *stackPtr = numbers_[*i];
+            *stackPtr = vm_.numbers()[*i];
             break;
+
         case OP_VAR_n:
             STACK_OFFSET_CHANGE(+1);
             *stackPtr = static_cast<fp>(n);
@@ -1289,7 +1296,7 @@ inline void DataVM::run_const_op(vector<int>::const_iterator& i,
     }
 }
 
-inline void DataVM::run_mutab_op(vector<int>::const_iterator& i,
+inline void ExprCalculator::run_mutab_op(vector<int>::const_iterator& i,
                                  double*& stackPtr,
                                  const int n,
                                  const vector<Point>& old_points,
@@ -1319,7 +1326,7 @@ inline void DataVM::run_mutab_op(vector<int>::const_iterator& i,
     }
 }
 
-void DataVM::transform_data(vector<Point>& points)
+void ExprCalculator::transform_data(vector<Point>& points)
 {
     if (points.empty())
         return;
@@ -1328,31 +1335,27 @@ void DataVM::transform_data(vector<Point>& points)
     double* stackPtr = stack - 1; // will be ++'ed first
     vector<Point> new_points = points;
 
-    // do time-consuming checking only for the first point
-    vector_foreach (int, i, code_) {
+    // do the time-consuming overflow checking only for the first point
+    vector_foreach (int, i, vm_.code()) {
         run_mutab_op(i, stackPtr, 0, points, new_points);
         if (stackPtr - stack >= 16)
             throw ExecuteError("stack overflow");
     }
     assert(stackPtr == stack - 1); // ASSIGN_ op must be at the end
 
+    // the same for the rest of points, but without checks
     for (int n = 1; n != size(points); ++n)
-        vector_foreach (int, i, code_)
+        vector_foreach (int, i, vm_.code())
             run_mutab_op(i, stackPtr, n, points, new_points);
+
     new_points = points;
 }
 
-double DataVM::calculate() const
-{
-    static const vector<Point> empty_vec;
-    return calculate(0, empty_vec);
-}
-
-double DataVM::calculate(int n, const vector<Point>& points) const
+double ExprCalculator::calculate(int n, const vector<Point>& points) const
 {
     double stack[16];
     double* stackPtr = stack - 1; // will be ++'ed first
-    vector_foreach (int, i, code_) {
+    vector_foreach (int, i, vm_.code()) {
         run_const_op(i, stackPtr, n, points, points);
         if (stackPtr - stack >= 16)
             throw ExecuteError("stack overflow");
@@ -1362,11 +1365,26 @@ double DataVM::calculate(int n, const vector<Point>& points) const
     return stack[0];
 }
 
-void DataVM::append_number(double d)
+double ExprCalculator::calculate_custom(const vector<double>& custom_val) const
 {
-    append_code(OP_NUMBER);
-    int number_pos = numbers_.size();
-    append_code(number_pos);
-    numbers_.push_back(d);
+    double stack[16];
+    double* stackPtr = stack - 1; // will be ++'ed first
+    const vector<Point> dummy;
+    vector_foreach (int, i, vm_.code()) {
+        if (*i == OP_CUSTOM) {
+            i++;
+            if (is_index(*i, custom_val))
+                *stackPtr = custom_val[*i];
+            else
+                throw ExecuteError("[internal] variable mismatch");
+                *stackPtr = 0.;
+        }
+        else
+            run_const_op(i, stackPtr, 0, dummy, dummy);
+        if (stackPtr - stack >= 16)
+            throw ExecuteError("stack overflow");
+    }
+    assert(stackPtr == stack); // no ASSIGN_ at the end
+    return stack[0];
 }
 

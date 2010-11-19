@@ -12,7 +12,8 @@
 
 #include "statbar.h"
 #include "cmn.h" //wx2s, s2wx, GET_BMP
-#include "../datatrans.h" //get_dt_code(), get_value_for_point()
+#include "../common.h" //vector2
+#include "../lexer.h" //Lexer
 
 // icons
 #include "img/mouse16.h"
@@ -26,7 +27,7 @@ using namespace std;
 //===============================================================
 
 FStatusBar::FStatusBar(wxWindow *parent)
-        : wxPanel(parent, -1), last_x(0), last_y(0)
+        : wxPanel(parent, -1), extra_parser(NULL), last_x(0), last_y(0)
 {
     wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
     split = new wxSplitterWindow(this, -1, wxDefaultPosition, wxDefaultSize, 0);
@@ -106,7 +107,7 @@ void FStatusBar::read_settings(wxConfigBase *cf)
     e_prec = cf->Read(wxT("e_prec"), 3);
     wxString ev = cf->Read(wxT("extraValue"), wxT(""));
 
-    set_extra_value(wx2s(ev));
+    set_extra_value(ev);
     update_extra_fmt();
     split->SetSashPosition(-coord_width);
     show_or_hide();
@@ -139,13 +140,11 @@ void FStatusBar::update_extra_fmt()
 
 void FStatusBar::set_coords(double x, double y, PlotTypeEnum pte)
 {
-    wxString label = wxString::Format(wxT("% -8.12g"), x);
-
-    label += wxString::Format((pte == pte_main ? wxT(" % -7.12g")
-                                               : wxT(" [% -7.12g]")),
-                              y);
+    wxString fmt = (pte == pte_main ? wxT("% -8.12g % -7.12g")
+                                    : wxT("% -8.12g [% -7.12g]"));
+    wxString label = wxString::Format(fmt, x, y);
     if (!extra_value.IsEmpty()) {
-        double val = get_value_for_point(e_code, e_numbers, x, y);
+        double val = extra_parser.calculate_custom(vector2(x, y));
         label += wxString::Format(extra_fmt, val);
     }
     coords->SetLabel(label);
@@ -154,11 +153,16 @@ void FStatusBar::set_coords(double x, double y, PlotTypeEnum pte)
     last_pte = pte;
 }
 
-bool FStatusBar::set_extra_value(string const& s)
+bool FStatusBar::set_extra_value(wxString const& s)
 {
-    if (!s.empty() && !get_dt_code(s, e_code, e_numbers))
-        return false;
-    extra_value = s2wx(s);
+    static const vector<string> names = vector2(string("x"), string("y"));
+    if (!s.empty()) {
+        Lexer lex(s.mb_str());
+        bool r = extra_parser.parse_full(lex, 0, &names);
+        if (!r)
+            return false;
+    }
+    extra_value = s;
     return true;
 }
 
@@ -283,8 +287,7 @@ void ConfStatBarDlg::OnPrecisionSpin(wxCommandEvent&)
 
 void ConfStatBarDlg::OnExtraValueChange(wxCommandEvent&)
 {
-    string str = wx2s(extra_tc->GetValue());
-    bool ok = sb->set_extra_value(str);
+    bool ok = sb->set_extra_value(extra_tc->GetValue());
     okbmp->Show(ok);
 #if !wxCHECK_VERSION(2, 8, 8)
     GetSizer()->Layout();

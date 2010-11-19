@@ -46,7 +46,7 @@ public:
 protected:
     int data_idx_;
     wxRadioBox *rb;
-    wxCheckBox *inactive_cb;
+    wxCheckBox *only_a_cb;
     wxTextCtrl *text;
     wxArrayString cv;
 

@@ -5,13 +5,14 @@
 #include "mgr.h"
 #include "common.h"
 #include "var.h"
-#include "datatrans.h"
 #include "ast.h"
 #include "ui.h"
 #include "func.h"
 #include "model.h"
 #include "settings.h"
 #include "logic.h" //VariableManager::get_or_make_variable() handles @0.F[1].a
+#include "lexer.h"
+#include "eparser.h"
 
 #include <stdlib.h>
 #include <ctype.h>
@@ -581,6 +582,8 @@ vector<string> VariableManager::get_vars_from_kw(string const &function,
         vars_names[i] = string(vars[i], 0, eq);
         vars_rhs[i] = string(vars[i], eq+1);
     }
+    ExpressionParser ep(NULL);
+    const vector<string> empty;
     vector<string> vv(n);
     for (int i = 0; i < n; ++i) {
         string const& tname = tnames[i];
@@ -594,20 +597,25 @@ vector<string> VariableManager::get_vars_from_kw(string const &function,
         if (!tvalues[i].empty()) {
             for (size_t j = 0; j < vsize; ++j)
                 replace_words(tvalues[i], vars_names[j], vars_rhs[j]);
-            try {
-                fp v = get_transform_expression_value(
-                                      strip_tilde_variable(tvalues[i]), 0);
+            string expr = strip_tilde_variable(tvalues[i]);
+            ep.clear_vm();
+            Lexer lex(expr.c_str());
+            bool r = ep.parse_full(lex, 0, &empty);
+            if (r) {
+                fp v = ep.calculate();
                 vv[i] = "~" + S(v);
                 continue;
             }
-            catch (ExecuteError &) {} //nothing
         }
         // (3rd try) name
         else if (tname == "hwhm") {
             int fwhm_idx = index_of_element(vars_names, "fwhm");
             if (fwhm_idx != -1) {
-                fp v = get_transform_expression_value("0.5*"
-                               + strip_tilde_variable(vars_rhs[fwhm_idx]), 0);
+                string expr = strip_tilde_variable(vars_rhs[fwhm_idx]);
+                ep.clear_vm();
+                Lexer lex(expr.c_str());
+                ep.parse_expr(lex, 0, &empty);
+                fp v = 0.5 * ep.calculate();
                 vv[i] = "~" + S(v);
                 continue;
             }

@@ -13,7 +13,6 @@
 #include "dialogs.h" //export_data_dlg()
 #include "../data.h" // Data, Point
 #include "../logic.h"
-#include "../datatrans.h" //compile_data_transformation()
 
 using namespace std;
 
@@ -498,9 +497,7 @@ bool EditTransDlg::update_apply_button()
 {
     string code = wx2s(code_tc->GetValue());
     string text = get_code(code, "");
-    // to check the syntax, make one command by s/;/,/g
-    replace(text.begin(), text.end(), ';', ',');
-    bool ok = compile_data_transformation(text);
+    bool ok = ftk->get_ui()->check_syntax(text);
     apply_btn->Enable(ok);
     return ok;
 }

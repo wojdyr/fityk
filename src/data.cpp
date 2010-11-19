@@ -6,7 +6,6 @@
 #include "data.h"
 //#include "ui.h"
 #include "numfuncs.h"
-#include "datatrans.h"
 #include "settings.h"
 #include "logic.h"
 
@@ -210,7 +209,7 @@ void shirley_bg(vector<Point> &pp, bool remove)
             Y[i] = pp[i].y - B[i];
         for (int i = 1; i < n; ++i)
             PA[i] = PA[i-1] + (Y[i] + Y[i-1]) / 2 * (pp[i].x - pp[i-1].x);
-        double rel_diff = old_A != 0. ? abs(PA[n-1] - old_A) / old_A : 1.;
+        double rel_diff = old_A != 0. ? fabs(PA[n-1] - old_A) / old_A : 1.;
         if (rel_diff < max_rdiff)
             break;
         old_A = PA[n-1];

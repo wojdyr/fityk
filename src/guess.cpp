@@ -13,7 +13,8 @@
 #include "ui.h"
 #include "func.h"
 #include "settings.h"
-#include "datatrans.h"
+#include "lexer.h"
+#include "eparser.h"
 
 using namespace std;
 
@@ -275,21 +276,22 @@ bool is_parameter_guessable(string const& name, Guess::Kind k)
 
 bool is_defvalue_guessable(string defvalue, Guess::Kind k)
 {
-    if (k == Guess::kLinear) {
-        replace_words(defvalue, "slope", "1");
-        replace_words(defvalue, "intercept", "1");
-        replace_words(defvalue, "avgy", "1");
-    }
-    else if (k == Guess::kPeak) {
-        replace_words(defvalue, "center", "1");
-        replace_words(defvalue, "height", "1");
-        replace_words(defvalue, "fwhm", "1");
-        replace_words(defvalue, "area", "1");
-    }
+    static const vector<string> linear_vars =
+            vector3(string("slope"), string("intercept"), string("avgy"));
+    static const vector<string> peak_vars =
+            vector4(string("center"), string("height"),
+                    string("fwhm"), string("area"));
+    const vector<string> *custom_vars = NULL;
+    if (k == Guess::kLinear)
+        custom_vars = &linear_vars;
+    else if (k == Guess::kPeak)
+        custom_vars = &peak_vars;
     try {
-        get_transform_expression_value(defvalue, 0);
+        Lexer lex(defvalue.c_str());
+        ExpressionParser ep(NULL);
+        ep.parse_expr(lex, 0, custom_vars);
     }
-    catch (ExecuteError& /*e*/) {
+    catch (...) {
         return false;
     }
     return true;

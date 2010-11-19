@@ -20,7 +20,6 @@
 #include "ui.h"
 #include "ast.h"
 #include "var.h"
-#include "datatrans.h"
 #include "logic.h"
 #include "numfuncs.h"
 #include "voigt.h"

@@ -2,8 +2,6 @@
 // Licence: GNU General Public License ver. 2+
 // $Id: $
 
-/// This parser is not used yet.
-/// In the future it will replace the current parser (cmd* files)
 /// Command parser.
 
 #ifndef FITYK_CPARSER_H_
