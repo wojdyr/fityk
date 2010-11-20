@@ -36,6 +36,7 @@ void Runner::command_set(const vector<Token>& args)
 
 void Runner::command_define(const vector<Token>& /*args*/)
 {
+    //TODO
     //UdfContainer::define(s);
 }
 
@@ -178,62 +179,69 @@ void Runner::command_guess(const vector<Token>& args, int ds)
     DataAndModel* dm = F_->get_dm(ds);
     Data const* data = dm->data();
 
-    int n = 0;
     string name; // optional function name
     int ignore_idx = -1;
     if (args[0].type == kTokenFuncname) {
-        name = args[0].as_string();
-        n = 1;
+        name = Lexer::get_string(args[0]);
         ignore_idx = F_->find_function_nr(name);
     }
 
     // function type
-    string function = args[n].as_string();
-    ++n;
+    assert (args[1].type == kTokenCname);
+    string ftype = args[1].as_string();
 
     // kwargs
     vector<string> par_names;
     vector<string> par_values;
-    while (n < (int) args.size() && args[n].type == kTokenLname) {
+    for (size_t n = 2; n < args.size() - 3; n += 2) {
+        assert (args[n].type == kTokenLname);
         par_names.push_back(args[n].as_string());
         par_values.push_back(args[n+1].as_string());
-        n += 2;
     }
 
-    int lb, rb;
-    bool range_given = get_data_range(data, args, n, &lb, &rb);
+    RealRange range = args2range(*(args.end()-2), *(args.end()-1));
+    if (range.from >= range.to)
+        throw ExecuteError("invalid range");
+
     // handle a special case: guess Gaussian(center=$peak_center)
-    if (!range_given && contains_element(par_names, "center")) {
+    if (range.from_inf() && range.to_inf() &&
+            contains_element(par_names, "center")) {
         int ctr_pos = find(par_names.begin(), par_names.end(), "center")
                         - par_names.begin();
         string ctr_str = par_values[ctr_pos];
-        //TODO
-        replace_all(ctr_str, "~", "");
-        //TODO
-        fp center = 0; //get_transform_expression_value(ctr_str, 0);
-
+        Lexer lex(ctr_str.c_str());
+        ep_.parse_expr(lex, ds);
+        fp center = ep_.calculate();
         fp delta = fabs(F_->get_settings()->get_f("guess_at_center_pm"));
-        lb = data->get_lower_bound_ac(center - delta);
-        rb = data->get_upper_bound_ac(center + delta);
+        range.from = center - delta;
+        range.to = center + delta;
     }
+
+    int lb = data->get_lower_bound_ac(range.from);
+    int rb = data->get_upper_bound_ac(range.to);
 
     Guess g(F_->get_settings());
     g.initialize(dm, lb, rb, ignore_idx);
-    g.guess(function, par_names, par_values);
-    //TODO
-    string real_name ;//= F_->assign_func(name, function, vars);
+    g.guess(ftype, par_names, par_values);
+    // for now use the old ugly interface
+    vector<string> vars;
+    for (size_t i = 0; i != par_names.size(); ++i)
+        vars.push_back(par_names[i] + "=" + par_values[i]);
+
+    string real_name = F_->assign_func(name, ftype, vars);
+    int idx = F_->find_function_nr(real_name);
     FunctionSum& ff = dm->model()->get_ff();
     ff.names.push_back(real_name);
-    ff.idx.push_back(F_->find_function_nr(real_name));
+    ff.idx.push_back(idx);
     F_->use_parameters();
     F_->outdated_plot();
 }
 
-void Runner::command_plot(const vector<Token>& args)
+void Runner::command_plot(const vector<Token>& args, int ds)
 {
-    vector<int> dd; //TODO
+    vector<int> dd = vector1(ds); //TODO (plot, view and storing datasets)
     RealRange hor = args2range(args[0], args[1]);
-    RealRange ver = args2range(args[0], args[1]);
+    RealRange ver = args2range(args[2], args[3]);
     F_->view.set_datasets(dd);
     F_->view.change_view(hor, ver);
     F_->get_ui()->draw_plot(1, UserInterface::kRepaintDataset);
@@ -250,9 +258,30 @@ void Runner::command_dataset_tr(const vector<Token>& args)
     F_->get_data(n)->load_data_sum(dd, tr);
 }
 
-void Runner::command_name_func(const vector<Token>& /*args*/)
+// should be reused from kCmdChangeModel
+void Runner::command_name_func(const vector<Token>& args)
 {
-    //TODO
+    string t;
+    string name = Lexer::get_string(args[0]);
+    if (args[1].as_string() == "copy") {
+        t = F_->assign_func_copy(name, Lexer::get_string(args[2]));
+    }
+    else {
+        string ftype = args[1].as_string();
+        // for now use the old ugly interface
+        vector<string> vars;
+        for (size_t i = 2; i < args.size(); i += 2) {
+            string key;
+            if (args[i].type != kTokenNop) // no keyword
+                key += args[i].as_string() + "=";
+            string var = args[i+1].as_string();
+            vars.push_back(key+var);
+        }
+        t = F_->assign_func(name, ftype, vars);
+    }
+    F_->use_parameters();
+    F_->outdated_plot(); //TODO only if function in @active
+    // return t;
 }
 
 void Runner::command_assign_param(const vector<Token>& /*args*/, int /*ds*/)
@@ -265,11 +294,15 @@ void Runner::command_name_var(const vector<Token>& args, int /*ds*/)
     assert(args.size() == 2);
     assert(args[0].type == kTokenVarname);
     F_->assign_variable(Lexer::get_string(args[0]), args[1].as_string());
+    F_->use_parameters();
+    F_->outdated_plot(); // TODO: only for replacing old variable
 }
 
 int get_fz_or_func(const Ftk *F, int ds, vector<Token>::const_iterator a,
                    vector<string>& added)
 {
+    // $func -> 1
+    // (Dataset|Nop) (F|Z) (Expr|Nop)
     if (a->type == kTokenFuncname) {
         added.push_back(Lexer::get_string(*a));
         return 1;
@@ -279,9 +312,10 @@ int get_fz_or_func(const Ftk *F, int ds, vector<Token>::const_iterator a,
         const Model* model = F->get_model(r_ds);
         assert((a+1)->type == kTokenUletter);
         char c = *(a+1)->str;
-        const FunctionSum& s = model->get_fz(c);
-        if ((a+2)->type == kTokenNop)
+        if ((a+2)->type == kTokenNop) {
+            const FunctionSum& s = model->get_fz(c);
             added.insert(added.end(), s.names.begin(), s.names.end());
+        }
         else {
             int idx = iround((a+2)->value.d);
             added.push_back(model->get_func_name(c, idx));
@@ -310,30 +344,29 @@ void add_functions_to(const Ftk* F, vector<string> const &names,
 
 void Runner::command_change_model(const vector<Token>& args, int ds)
 {
-    int n = 0;
-    int lhs_ds = ds;
-    if (args[0].type == kTokenDataset) {
-        lhs_ds = args[0].value.i;
-        n = 1;
-    }
-    Model* model = F_->get_model(lhs_ds);
-    FunctionSum& sum = model->get_fz(*args[n].str);
-    if (args[n+1].type == kTokenAssign) {
+    // args (Dataset|Nop) ("F"|"Z") ("+"|"+=")
+    //      ("0" | $func | Type ... | ("F"|"Z") (Expr|Nop)
+    //       ("copy" ($func | Dataset ("F"|"Z") (Expr|Nop)))
+    //      )+
+    int lhs_ds = (args[0].type == kTokenDataset ? args[0].value.i : ds);
+    FunctionSum& sum = F_->get_model(lhs_ds)->get_fz(*args[1].str);
+    if (args[2].type == kTokenAssign) {
         sum.names.clear();
         sum.idx.clear();
     }
-    vector<Token>::const_iterator begin = args.begin() + n + 2;
     vector<string> new_names;
-
-    for (size_t i = n+2; i < args.size(); ++i) {
-        if (args[i].type == kTokenNumber) // "0"
-            continue;
+    for (size_t i = 3; i < args.size(); ++i) {
+        // $func | Dataset ("F"|"Z")
         int n_tokens = get_fz_or_func(F_, ds, args.begin()+i, new_names);
         if (n_tokens > 0) {
             i += n_tokens - 1;
-            continue;
         }
-        if (args[i].type == kTokenLname && args[i].as_string() == "copy") {
+        // "0"
+        else if (args[i].type == kTokenNumber) {
+            // nothing
+        }
+        // "copy" ...
+        else if (args[i].type == kTokenLname && args[i].as_string() == "copy") {
             vector<string> v;
             int n_tokens = get_fz_or_func(F_, ds, args.begin()+i+1, v);
             vector_foreach (string, j, v)
@@ -349,7 +382,7 @@ void Runner::command_change_model(const vector<Token>& args, int ds)
 
     add_functions_to(F_, new_names, sum);
 
-    if (args[n+1].type == kTokenAssign)
+    if (args[2].type == kTokenAssign)
         F_->auto_remove_functions();
     F_->update_indices_in_models();
     if (lhs_ds == ds)
@@ -458,7 +491,7 @@ void Runner::execute_command(Command& c, int ds)
             run_info(F_, ds, kCmdInfo, c.args);
             break;
         case kCmdPlot:
-            command_plot(c.args);
+            command_plot(c.args, ds);
             break;
         case kCmdPrint:
             run_info(F_, ds, kCmdPrint, c.args);

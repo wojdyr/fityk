@@ -25,6 +25,7 @@
 #include "eparser.h"
 #include "lexer.h"
 #include "ui.h"
+#include "runner.h" // args2range
 
 using namespace std;
 
@@ -182,6 +183,10 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
                 F->get_settings()->get_e("formula_export_style") == 1;
             result += F->get_model(ds)->get_formula(true, gnuplot);
         }
+        else if (word == "state") {
+            //TODO F->save_state(result);
+            //F->dump_all_as_script
+        }
         else if (word == "peaks") {
             vector<fp> errors;
             result += F->get_model(ds)->get_peak_parameters(errors);
@@ -202,11 +207,16 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
             ret += 2;
         }
         else if (word == "guess") {
-            int lb, rb;
-            get_data_range(F->get_data(ds), args, n, &lb, &rb);
-            Guess g(F->get_settings());
-            g.initialize(F->get_dm(ds), lb, rb, -1);
-            g.get_guess_info(result);
+            RealRange range = args2range(args[n], args[n+1]);
+            if (range.from >= range.to)
+                result += "invalid range";
+            else {
+                int lb = F->get_data(ds)->get_lower_bound_ac(range.from);
+                int rb = F->get_data(ds)->get_upper_bound_ac(range.to);
+                Guess g(F->get_settings());
+                g.initialize(F->get_dm(ds), lb, rb, -1);
+                g.get_guess_info(result);
+            }
             ret += 2;
         }
 
@@ -235,17 +245,17 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
 
         // one arg: $var
         else if (word == "refs") {
-            ++ret;
             string name = Lexer::get_string(args[n]);
             vector<string> refs = F->get_variable_references(name);
             result += join_vector(refs, ", ");
+            ++ret;
         }
 
         // one arg: %func
         else if (word == "par") {
-            ++ret;
             string name = Lexer::get_string(args[n]);
             result += F->find_function(name)->get_par_info(F);
+            ++ret;
         }
     }
 
@@ -513,22 +523,5 @@ void run_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
     else
         r += "unexpected arg: " + word;
     F->rmsg(r);
-}
-
-bool get_data_range(const Data* data, const vector<Token>& args, int n,
-                    int* lb, int* rb)
-{
-    *lb = 0;
-    *rb = data->get_n(); // number of active points
-    if (n < (int) args.size()) { // the range [from:to] was given
-        double range_from = args[n].value.d;
-        double range_to = args[n+1].value.d;
-        if (*lb >= *rb)
-            throw ExecuteError("invalid range");
-        *lb = data->get_lower_bound_ac(range_from);
-        *rb = data->get_upper_bound_ac(range_to);
-        return true;
-    }
-    return false;
 }
 

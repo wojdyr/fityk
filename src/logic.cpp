@@ -183,7 +183,8 @@ void Ftk::dump_all_as_script(string const &filename)
         }
         fprintf(f, "\n");
     }
-    fprintf(f, "plot %s in @%d\n", view.str().c_str(), view.get_datasets()[0]);
+    fprintf(f, "plot %s\n", view.str().c_str());
+    // TODO set default dataset "use %s"
     fprintf(f, "set autoplot = %s\n", get_settings()->getp("autoplot").c_str());
     fprintf(f, "set verbosity = %s\n",
                get_settings()->getp("verbosity").c_str());

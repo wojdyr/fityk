@@ -891,6 +891,10 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                 put_func_sth(lex, Lexer::get_string(token));
                 break;
 
+
+            case kTokenTilde: // TODO: only in var_rhs
+                break;
+
             case kTokenString:
             case kTokenCname:
             case kTokenBang:
@@ -904,7 +908,6 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
             case kTokenAssign:
             case kTokenSemicolon:
             case kTokenDot:
-            case kTokenTilde:
                 finished_ = true;
                 break;
 

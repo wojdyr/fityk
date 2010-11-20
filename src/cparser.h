@@ -94,14 +94,17 @@ private:
 
     Token read_expr(Lexer& lex);
     Token read_and_calc_expr(Lexer& lex);
+    Token read_var(Lexer& lex);
     void parse_fz(Lexer& lex, Command &cmd);
     void parse_assign_func(Lexer& lex, std::vector<Token>& args);
     void parse_command(Lexer& lex, Command& cmd);
+    void parse_define_args(Lexer& lex, std::vector<Token>& args);
     void parse_set_args(Lexer& lex, std::vector<Token>& args);
     void parse_real_range(Lexer& lex, std::vector<Token>& args);
     void parse_func_id(Lexer& lex, std::vector<Token>& args, bool accept_fz);
     void parse_guess_args(Lexer& lex, std::vector<Token>& args);
     void parse_one_info_arg(Lexer& lex, std::vector<Token>& args);
+    void parse_kwargs(Lexer& lex, std::vector<Token>& args);
     void expand_dataset_glob();
 };
 

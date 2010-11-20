@@ -8,11 +8,14 @@
 #include <vector>
 #include "lexer.h" // Token
 #include "eparser.h"
+#include "view.h" //RealRange
 
 class Ftk;
 struct Statement;
 struct Command;
 class DataAndModel;
+
+RealRange args2range(const Token& t1, const Token& t2);
 
 class Runner
 {
@@ -37,7 +40,7 @@ private:
     void command_exec(const std::vector<Token>& args);
     void command_fit(const std::vector<Token>& args, int ds);
     void command_guess(const std::vector<Token>& args, int ds);
-    void command_plot(const std::vector<Token>& args);
+    void command_plot(const std::vector<Token>& args, int ds);
     void command_undefine(const std::vector<Token>& args);
     void command_load(const std::vector<Token>& args);
     void command_dataset_tr(const std::vector<Token>& args);

@@ -28,6 +28,7 @@ void Guess::initialize(const DataAndModel* dm, int lb, int rb, int ignore_idx)
     for (int j = lb; j != rb; ++j)
         xx_[j] = dm->data()->get_x(j);
     yy_.clear(); // just in case
+    assert(rb - lb >= 0);
     yy_.resize(rb - lb, 0.);
     dm->model()->compute_model(xx_, yy_, ignore_idx);
     for (int j = lb; j != rb; ++j)
@@ -152,7 +153,7 @@ void Guess::guess(string const& function, vector<string>& par_names,
     if (k == kPeak) {
         fp c = 0., h = 0., a = 0., fwhm = 0.;
         estimate_peak_parameters(&c, &h, &a, &fwhm);
-        if (ctr != par_names.end()) {
+        if (ctr == par_names.end()) {
             par_names.push_back("center");
             par_values.push_back("~"+eS(c));
         }

@@ -193,8 +193,8 @@ The grammar is expressed in EBNF-like notation:
 
 The functions that can be used in ``p_expr`` and ``v_expr`` are available
 :ref:`here <transform>` and :ref:`here <variables>`, respectively.
-``var_rhs`` contains only a subset of functions from ``p_expr`` (partly,
-because we need to calculate symbolical derivatives of ``var_rhs``)
+``v_expr`` contains only a subset of functions from ``p_expr`` (partly,
+because we need to calculate symbolical derivatives of ``v_expr``)
 
 
 ::
