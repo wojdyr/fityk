@@ -384,12 +384,16 @@ string CompoundFunction::get_current_formula(string const& x) const
     return t;
 }
 
-bool CompoundFunction::has_center() const
+bool CompoundFunction::get_center(fp* a) const
 {
     vector<Function*> const& ff = vmgr_.functions();
-    for (size_t i = 0; i < ff.size(); ++i) {
-        if (!ff[i]->has_center()
-                || (i > 0 && ff[i-1]->center() != ff[i]->center()))
+    bool r = ff[0]->get_center(a);
+    if (!r)
+        return false;
+    for (size_t i = 1; i < ff.size(); ++i) {
+        fp b;
+        r = ff[i]->get_center(&b);
+        if (!r || is_neq(*a, b))
             return false;
     }
     return true;
@@ -397,57 +401,43 @@ bool CompoundFunction::has_center() const
 
 /// if consists of >1 functions and centers are in the same place
 ///  height is a sum of heights
-bool CompoundFunction::has_height() const
+bool CompoundFunction::get_height(fp* a) const
 {
     vector<Function*> const& ff = vmgr_.functions();
     if (ff.size() == 1)
-        return ff[0]->has_center();
+        return ff[0]->get_height(a);
+    fp ctr;
+    if (!get_center(&ctr))
+        return false;
+    fp sum = 0;
     for (size_t i = 0; i < ff.size(); ++i) {
-        if (!ff[i]->has_center() || !ff[i]->has_height()
-                || (i > 0 && ff[i-1]->center() != ff[i]->center()))
+        if (!ff[i]->get_height(a))
             return false;
+        sum += *a;
     }
+    *a = sum;
     return true;
 }
 
-fp CompoundFunction::height() const
-{
-    fp height = 0;
-    vector<Function*> const& ff = vmgr_.functions();
-    for (size_t i = 0; i < ff.size(); ++i) {
-        height += ff[i]->height();
-    }
-    return height;
-}
-
-bool CompoundFunction::has_fwhm() const
+bool CompoundFunction::get_fwhm(fp* a) const
 {
     vector<Function*> const& ff = vmgr_.functions();
-    return ff.size() == 1 && ff[0]->has_fwhm();
+    if (ff.size() == 1)
+        return ff[0]->get_fwhm(a);
+    return false;
 }
 
-fp CompoundFunction::fwhm() const
-{
-    return vmgr_.get_function(0)->fwhm();
-}
-
-bool CompoundFunction::has_area() const
+bool CompoundFunction::get_area(fp* a) const
 {
     vector<Function*> const& ff = vmgr_.functions();
+    fp sum = 0;
     for (size_t i = 0; i < ff.size(); ++i)
-        if (!ff[i]->has_area())
+        if (ff[i]->get_area(a))
+            sum += *a;
+        else
             return false;
+    *a = sum;
     return true;
-}
-
-fp CompoundFunction::area() const
-{
-    fp a = 0;
-    vector<Function*> const& ff = vmgr_.functions();
-    for (size_t i = 0; i < ff.size(); ++i) {
-        a += ff[i]->area();
-    }
-    return a;
 }
 
 bool CompoundFunction::get_nonzero_range(fp level, fp& left, fp& right) const
@@ -574,25 +564,25 @@ string SplitFunction::get_current_formula(string const& x) const
         + " : " + vmgr_.get_function(1)->get_current_formula(x);
 }
 
+bool SplitFunction::get_height(fp* a) const
+{
+    vector<Function*> const& ff = vmgr_.functions();
+    fp h2;
+    return ff[0]->get_height(a) && ff[1]->get_height(&h2) && is_eq(*a, h2);
+}
+
+bool SplitFunction::get_center(fp* a) const
+{
+    vector<Function*> const& ff = vmgr_.functions();
+    fp c2;
+    return ff[0]->get_center(a) && ff[1]->get_center(&c2) && is_eq(*a, c2);
+}
+
 bool SplitFunction::get_nonzero_range(fp level, fp& left, fp& right) const
 {
     vector<Function*> const& ff = vmgr_.functions();
     fp dummy;
     return ff[0]->get_nonzero_range(level, left, dummy) &&
            ff[0]->get_nonzero_range(level, dummy, right);
-}
-
-bool SplitFunction::has_height() const
-{
-    vector<Function*> const& ff = vmgr_.functions();
-    return ff[0]->has_height() && ff[1]->has_height() &&
-        is_eq(ff[0]->height(), ff[1]->height());
-}
-
-bool SplitFunction::has_center() const
-{
-    vector<Function*> const& ff = vmgr_.functions();
-    return ff[0]->has_center() && ff[1]->has_center() &&
-        is_eq(ff[0]->center(), ff[1]->center());
 }
 

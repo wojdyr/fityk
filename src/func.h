@@ -83,27 +83,21 @@ public:
     virtual bool get_nonzero_range(fp/*level*/, fp&/*left*/, fp&/*right*/) const
                                                               { return false; }
 
-    virtual bool has_center() const { return center_idx_ != -1; }
-    virtual fp center() const
-                        { return center_idx_ == -1 ? 0. : vv_[center_idx_]; }
-    virtual bool has_height() const { return false; }
-    virtual fp height() const { return 0; }
-    virtual bool has_fwhm() const { return false; }
-    virtual fp fwhm() const { return 0; }
-    virtual bool has_area() const { return false; }
-    virtual fp area() const { return 0; }
-    bool has_iwidth() const { return this->has_area() && this->has_height(); }
-    fp iwidth() const { fp h=this->height(); return h ? this->area()/h : 0.; }
-    virtual std::vector<std::string> get_other_prop_names() const
-                                    { return std::vector<std::string>(); }
-    /// has function other properties (e.g. like Lorentzian-FWHM of Voigt)
-    bool has_other_props() const { return !get_other_prop_names().empty(); }
-    /// check if has "other" property named `name' defined
-    bool has_other_prop(std::string const& name);
-    /// get other property, first check with has_other_prop
-    virtual fp other_prop(std::string const&) const { return 0; }
-    /// return ready-to-display string with all other properties
-    std::string other_props_str() const;
+    // properties
+
+    virtual bool get_center(fp* a) const;
+    virtual bool get_height(fp* /*a*/) const { return false; }
+    virtual bool get_fwhm(fp* /*a*/) const { return false; }
+    virtual bool get_area(fp* /*a*/) const { return false; }
+    // integral width := area / height
+    bool get_iwidth(fp* a) const;
+
+    /// get list of other properties (e.g. like Lorentzian-FWHM of Voigt)
+    virtual const std::vector<std::string>& get_other_prop_names() const
+                { static const std::vector<std::string> empty; return empty; }
+    /// returns value of the property, or 0 if not defined
+    virtual fp get_other_prop(std::string const&) const { return 0; }
+
     fp get_var_value(int n) const
              { assert(n>=0 && n<size(vv_)); return vv_[n]; }
     std::vector<fp> get_var_values() const  { return vv_; }

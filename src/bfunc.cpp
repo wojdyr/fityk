@@ -232,6 +232,12 @@ bool FuncGaussian::get_nonzero_range (fp level, fp &left, fp &right) const
     return true;
 }
 
+bool FuncGaussian::get_area(fp* a) const
+{
+    *a = vv_[0] * fabs(vv_[2]) * sqrt(M_PI / M_LN2);
+    return true;
+}
+
 ///////////////////////////////////////////////////////////////////////
 
 const char *FuncSplitGaussian::formula
@@ -283,6 +289,12 @@ bool FuncSplitGaussian::get_nonzero_range (fp level, fp &left, fp &right) const
         left = vv_[1] - w1;
         right = vv_[1] + w2;
     }
+    return true;
+}
+
+bool FuncSplitGaussian::get_area(fp* a) const
+{
+    *a = vv_[0] * (fabs(vv_[2])+fabs(vv_[3])) / 2. * sqrt(M_PI/M_LN2);
     return true;
 }
 
@@ -385,14 +397,14 @@ bool FuncPearson7::get_nonzero_range (fp level, fp &left, fp &right) const
     return true;
 }
 
-fp FuncPearson7::area() const
+bool FuncPearson7::get_area(fp* a) const
 {
     if (vv_[3] <= 0.5)
-        return 0.;
+        return false;
     fp g = exp(lgamma(vv_[3] - 0.5) - lgamma(vv_[3]));
-    return vv_[0] * 2 * fabs(vv_[2])
-        * sqrt(M_PI) * g / (2 * sqrt (vv_[4]));
     //in f_val_precomputations(): vv_[4] = pow (2, 1. / a3) - 1;
+    *a = vv_[0] * 2 * fabs(vv_[2]) * sqrt(M_PI) * g / (2 * sqrt(vv_[4]));
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -463,14 +475,15 @@ bool FuncSplitPearson7::get_nonzero_range (fp level, fp &left, fp &right) const
     return true;
 }
 
-fp FuncSplitPearson7::area() const
+bool FuncSplitPearson7::get_area(fp* a) const
 {
     if (vv_[4] <= 0.5 || vv_[5] <= 0.5)
-        return 0.;
+        return false;
     fp g1 = exp(lgamma(vv_[4] - 0.5) - lgamma(vv_[4]));
     fp g2 = exp(lgamma(vv_[5] - 0.5) - lgamma(vv_[5]));
-    return vv_[0] * fabs(vv_[2]) * sqrt(M_PI) * g1 / (2 * sqrt (vv_[6]))
-         + vv_[0] * fabs(vv_[3]) * sqrt(M_PI) * g2 / (2 * sqrt (vv_[7]));
+    *a =   vv_[0] * fabs(vv_[2]) * sqrt(M_PI) * g1 / (2 * sqrt(vv_[6]))
+         + vv_[0] * fabs(vv_[3]) * sqrt(M_PI) * g2 / (2 * sqrt(vv_[7]));
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -519,6 +532,13 @@ bool FuncPseudoVoigt::get_nonzero_range (fp level, fp &left, fp &right) const
         left = vv_[1] - w;
         right = vv_[1] + w;
     }
+    return true;
+}
+
+bool FuncPseudoVoigt::get_area(fp* a) const
+{
+    *a = vv_[0] * fabs(vv_[2])
+              * ((vv_[3] * M_PI) + (1 - vv_[3]) * sqrt(M_PI / M_LN2));
     return true;
 }
 
@@ -599,22 +619,26 @@ static fp voigt_fwhm(fp a2, fp a3)
     return fV;
 }
 
-fp FuncVoigt::fwhm() const
+bool FuncVoigt::get_fwhm(fp* a) const
 {
-    return voigt_fwhm(vv_[2], vv_[3]);
+    *a = voigt_fwhm(vv_[2], vv_[3]);
+    return true;
 }
 
-fp FuncVoigt::area() const
+bool FuncVoigt::get_area(fp* a) const
 {
-    return vv_[0] * fabs(vv_[2] * sqrt(M_PI) * vv_[4]);
+    *a = vv_[0] * fabs(vv_[2] * sqrt(M_PI) * vv_[4]);
+    return true;
 }
 
-vector<string> FuncVoigt::get_other_prop_names() const
+const vector<string>& FuncVoigt::get_other_prop_names() const
 {
-    return vector2(string("GaussianFWHM"), string("LorentzianFWHM"));
+    static const vector<string> p = vector2(string("GaussianFWHM"),
+                                            string("LorentzianFWHM"));
+    return p;
 }
 
-fp FuncVoigt::other_prop(string const& name) const
+fp FuncVoigt::get_other_prop(string const& name) const
 {
     if (name == "GaussianFWHM") {
         fp sigma = fabs(vv_[2]) / M_SQRT2;
@@ -682,14 +706,16 @@ bool FuncVoigtA::get_nonzero_range (fp level, fp &left, fp &right) const
     return true;
 }
 
-fp FuncVoigtA::fwhm() const
+bool FuncVoigtA::get_fwhm(fp* a) const
 {
-    return voigt_fwhm(vv_[2], vv_[3]);
+    *a = voigt_fwhm(vv_[2], vv_[3]);
+    return true;
 }
 
-fp FuncVoigtA::height() const
+bool FuncVoigtA::get_height(fp* a) const
 {
-    return vv_[0] / fabs(vv_[2] * sqrt(M_PI) * vv_[4]);
+    *a = vv_[0] / fabs(vv_[2] * sqrt(M_PI) * vv_[4]);
+    return true;
 }
 
 
@@ -988,10 +1014,17 @@ bool FuncLogNormal::get_nonzero_range (fp level, fp &left, fp &right) const
     return true;
 }
 
-// cf. eq. 28 of Maroncelli, M.; Fleming, G.R. J. Phys. Chem. 1987, 86, 6221-6239.
-fp FuncLogNormal::fwhm() const
+//cf. eq. 28 of Maroncelli, M.; Fleming, G.R. J. Phys. Chem. 1987, 86, 6221-6239
+bool FuncLogNormal::get_fwhm(fp* a) const
 {
-   return vv_[2]*sinh(vv_[3])/vv_[3];
+   *a = vv_[2]*sinh(vv_[3])/vv_[3];
+   return true;
+}
+
+bool FuncLogNormal::get_area(fp* a) const
+{
+    *a = vv_[0]/sqrt(M_LN2/M_PI) / (2.0/vv_[2]) / exp(-vv_[3]*vv_[3]/4.0/M_LN2);
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////

@@ -139,8 +139,9 @@ fp Model::approx_max(fp x_min, fp x_max) const
     fp y_max = value(x);
     vector<fp> xx;
     vector_foreach (int, i, ff_.idx) {
-        fp ctr = mgr.get_function(*i)->center();
-        if (x_min < ctr && ctr < x_max)
+        fp ctr;
+        if (mgr.get_function(*i)->get_center(&ctr)
+                && x_min < ctr && ctr < x_max)
             xx.push_back(ctr);
     }
     xx.push_back(x_max);
@@ -158,13 +159,30 @@ fp Model::approx_max(fp x_min, fp x_max) const
 
 string Model::get_peak_parameters(vector<fp> const& errors) const
 {
+    // TODO: use info-numeric-format
     string s;
-    s += "# Peak_Type     Center  Height  Area    FWHM    parameters...\n";
+    s += "# PeakType\tCenter\tHeight\tArea\tFWHM\tparameters...\n";
     vector_foreach (int, i, ff_.idx) {
         Function const* p = mgr.get_function(*i);
-        s += p->xname + "  " + p->type_name
-            + "  "+ S(p->center()) + " " + S(p->height()) + " " + S(p->area())
-            + " " + S(p->fwhm()) + "  ";
+        s += p->xname + "  " + p->type_name;
+        fp a;
+        if (p->get_center(&a))
+            s += "\t"+S(a);
+        else
+            s += "\tx";
+        if (p->get_height(&a))
+            s += "\t"+S(a);
+        else
+            s += "\tx";
+        if (p->get_area(&a))
+            s += "\t"+S(a);
+        else
+            s += "\tx";
+        if (p->get_fwhm(&a))
+            s += "\t"+S(a);
+        else
+            s += "\tx";
+        s += "\t";
         for (int j = 0; j < p->get_vars_count(); ++j) {
             s += " " + S(p->get_var_value(j));
             if (!errors.empty()) {

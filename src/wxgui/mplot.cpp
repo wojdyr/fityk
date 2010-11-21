@@ -507,10 +507,9 @@ void MainPlot::prepare_peaktops(Model const* model, int Ymax)
     int no_ctr_idx = 0;
     for (int k = 0; k < n; k++) {
         Function const *f = ftk->get_function(idx[k]);
-        fp x;
+        fp x, ctr;
         int X, Y;
-        if (f->has_center()) {
-            fp ctr = f->center();
+        if (f->get_center(&ctr)) {
             X = xs.px (ctr - model->zero_shift(ctr));
             // instead of these two lines we could simply do x=ctr,
             // but it would be slightly inaccurate
@@ -543,16 +542,17 @@ void MainPlot::prepare_peak_labels(Model const* model)
             if (right == string::npos)
                 break;
             string tag(label, pos+1, right-pos-1);
+            fp a;
             if (tag == "area")
-                label.replace(pos, right-pos+1, S(f->area()));
+                label.replace(pos, right-pos+1, f->get_area(&a) ? S(a) : " ");
             else if (tag == "height")
-                label.replace(pos, right-pos+1, S(f->height()));
+                label.replace(pos, right-pos+1, f->get_height(&a) ? S(a) : " ");
             else if (tag == "center")
-                label.replace(pos, right-pos+1, S(f->center()));
+                label.replace(pos, right-pos+1, f->get_center(&a) ? S(a) : " ");
             else if (tag == "fwhm")
-                label.replace(pos, right-pos+1, S(f->fwhm()));
+                label.replace(pos, right-pos+1, f->get_fwhm(&a) ? S(a) : " ");
             else if (tag == "ib")
-                label.replace(pos, right-pos+1, S(f->area()/f->height()));
+                label.replace(pos, right-pos+1, f->get_iwidth(&a) ? S(a) : " ");
             else if (tag == "name")
                 label.replace(pos, right-pos+1, f->name);
             else if (tag == "br")
@@ -728,8 +728,9 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
     peak_menu.Append(ID_peak_popup_info, wxT("Show &Info"));
     peak_menu.Append(ID_peak_popup_del, wxT("&Delete"));
     peak_menu.Append(ID_peak_popup_guess, wxT("&Guess parameters"));
+    fp dummy;
     peak_menu.Enable(ID_peak_popup_guess,
-                     ftk->get_function(over_peak)->has_center());
+                     ftk->get_function(over_peak)->get_center(&dummy));
     PopupMenu (&peak_menu, event.GetX(), event.GetY());
 }
 
@@ -750,12 +751,17 @@ void MainPlot::OnPeakGuess(wxCommandEvent&)
     if (over_peak < 0)
         return;
     Function const* p = ftk->get_function(over_peak);
-    if (p->has_center()) {
-        fp ctr = p->center();
-        fp plusmin = max(fabs(p->fwhm()), p->iwidth());
+    fp ctr;
+    if (p->get_center(&ctr)) {
+        fp plusmin = 0, fwhm, iw;
+        if (p->get_fwhm(&fwhm))
+            plusmin = fabs(fwhm);
+        if (p->get_iwidth(&iw) && fabs(iw) > plusmin)
+            plusmin = fabs(iw);
+        plusmin = max(plusmin, 1.);
         char buffer[64];
         sprintf(buffer, " [%.12g:%.12g]", ctr-plusmin, ctr+plusmin);
-        ftk->exec(p->xname + " = guess " + p->type_name + buffer
+        ftk->exec("guess " + p->xname + " = " + p->type_name + buffer
                   + frame->get_global_parameters() + frame->get_in_datasets());
     }
 }
@@ -1084,9 +1090,9 @@ void freeze_functions_in_range(double x1, double x2, bool freeze)
 {
     string cmd;
     vector_foreach (Function*, i, ftk->functions()) {
-        if (!(*i)->has_center())
+        fp ctr;
+        if (!(*i)->get_center(&ctr))
             continue;
-        double ctr = (*i)->center();
         if (!(x1 < ctr && ctr < x2))
             continue;
         for (int j = 0; j != (*i)->get_vars_count(); ++j) {

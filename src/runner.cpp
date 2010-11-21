@@ -135,14 +135,17 @@ void Runner::read_dms(vector<Token>::const_iterator first,
 
 void Runner::command_fit(const vector<Token>& args, int ds)
 {
-    if (args.empty())
+    if (args.empty()) {
         F_->get_fit()->fit(-1, vector1(F_->get_dm(ds)));
+        F_->outdated_plot();
+    }
     else if (args[0].type == kTokenDataset) {
         vector<DataAndModel*> dms;
         read_dms(args.begin(), args.end(), dms);
         F_->get_fit()->fit(-1, dms);
+        F_->outdated_plot();
     }
-    if (args[0].type == kTokenNumber) {
+    else if (args[0].type == kTokenNumber) {
         int n_steps = iround(args[0].value.d);
         vector<DataAndModel*> dms;
         if (args.size() > 1)
@@ -150,10 +153,12 @@ void Runner::command_fit(const vector<Token>& args, int ds)
         else
             dms.push_back(F_->get_dm(ds));
         F_->get_fit()->fit(n_steps, dms);
+        F_->outdated_plot();
     }
     else if (args[0].type == kTokenPlus) {
         int n_steps = iround(args[1].value.d);
         F_->get_fit()->continue_fit(n_steps);
+        F_->outdated_plot();
     }
     else if (args[0].as_string() == "undo") {
         F_->get_fit_container()->load_param_history(-1, true);
@@ -284,9 +289,55 @@ void Runner::command_name_func(const vector<Token>& args)
     // return t;
 }
 
-void Runner::command_assign_param(const vector<Token>& /*args*/, int /*ds*/)
+static
+string get_func(const Ftk *F, int ds, vector<Token>::const_iterator a)
 {
-    //TODO
+    if (a->type == kTokenFuncname)
+        return Lexer::get_string(*a);
+    else {
+        assert (a->type == kTokenDataset || a->type == kTokenNop);
+        assert((a+1)->type == kTokenUletter);
+        assert((a+2)->type == kTokenExpr);
+        assert((a+1)->type == kTokenUletter);
+        if (a->type == kTokenDataset)
+            ds = a->value.i;
+        char c = *(a+1)->str;
+        int idx = iround((a+2)->value.d);
+        return F->get_model(ds)->get_func_name(c, idx);
+    }
+}
+
+void Runner::command_assign_param(const vector<Token>& args, int ds)
+{
+    // args: Funcname Lname Expr
+    // args: (Dataset|Nop) (F|Z) Expr Lname Expr
+    string name = get_func(F_, ds, args.begin());
+    string param = (args.end()-2)->as_string();
+    string var = (args.end()-1)->as_string();
+    F_->substitute_func_param(name, param, var);
+    F_->use_parameters();
+    F_->outdated_plot();
+}
+
+void Runner::command_assign_all(const vector<Token>& args, int ds)
+{
+    // args: (Dataset|Nop) (F|Z) Lname Expr
+    assert(args[0].type == kTokenDataset || args[0].type == kTokenNop);
+    assert(args[1].type == kTokenUletter);
+    assert(args[2].type == kTokenLname);
+    assert(args[3].type == kTokenExpr);
+    if (args[0].type == kTokenDataset)
+        ds = args[0].value.i;
+    char c = *args[1].str;
+    string param = args[2].as_string();
+    string var = args[3].as_string();
+    const FunctionSum& fz = F_->get_model(ds)->get_fz(c);
+    vector_foreach (string, i, fz.names) {
+        if (F_->find_function(*i)->get_param_nr_nothrow(param) != -1)
+            F_->substitute_func_param(*i, param, var);
+    }
+    F_->use_parameters();
+    F_->outdated_plot();
 }
 
 void Runner::command_name_var(const vector<Token>& args, int /*ds*/)
@@ -298,11 +349,12 @@ void Runner::command_name_var(const vector<Token>& args, int /*ds*/)
     F_->outdated_plot(); // TODO: only for replacing old variable
 }
 
+static
 int get_fz_or_func(const Ftk *F, int ds, vector<Token>::const_iterator a,
                    vector<string>& added)
 {
     // $func -> 1
-    // (Dataset|Nop) (F|Z) (Expr|Nop)
+    // (Dataset|Nop) (F|Z) (Expr|Nop) -> 3
     if (a->type == kTokenFuncname) {
         added.push_back(Lexer::get_string(*a));
         return 1;
@@ -538,6 +590,9 @@ void Runner::execute_command(Command& c, int ds)
             break;
         case kCmdAssignParam:
             command_assign_param(c.args, ds);
+            break;
+        case kCmdAssignAll:
+            command_assign_all(c.args, ds);
             break;
         case kCmdNameVar:
             command_name_var(c.args, ds);

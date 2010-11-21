@@ -564,10 +564,11 @@ void SideBar::update_func_list(bool nondata_changed)
         Function const* f = ftk->get_function(i);
         func_data.push_back(f->name);
         func_data.push_back(f->type_name);
-        func_data.push_back(f->has_center() ? S(f->center()).c_str() : "-");
-        func_data.push_back(f->has_area() ? S(f->area()).c_str() : "-");
-        func_data.push_back(f->has_height() ? S(f->height()).c_str() : "-");
-        func_data.push_back(f->has_fwhm() ? S(f->fwhm()).c_str() : "-");
+        fp a;
+        func_data.push_back(f->get_center(&a) ? S(a) : S("-"));
+        func_data.push_back(f->get_area(&a)   ? S(a) : S("-"));
+        func_data.push_back(f->get_height(&a) ? S(a) : S("-"));
+        func_data.push_back(f->get_fwhm(&a)   ? S(a) : S("-"));
         vector<int> const& ffi = model->get_ff().idx;
         vector<int> const& zzi = model->get_zz().idx;
         vector<int>::const_iterator in_ff = find(ffi.begin(), ffi.end(), i);
@@ -876,18 +877,20 @@ void SideBar::update_func_inf()
     if (active_function < 0)
         return;
     Function const* func = ftk->get_function(active_function);
-    if (func->has_center())
-        inf->AppendText(wxString::Format(wxT("Center: %.10g"), func->center()));
-    if (func->has_area())
-        inf->AppendText(wxT("\nArea: ") + s2wx(S(func->area())));
-    if (func->has_height())
-        inf->AppendText(wxT("\nHeight: ") + s2wx(S(func->height())));
-    if (func->has_fwhm())
-        inf->AppendText(wxT("\nFWHM: ") + s2wx(S(func->fwhm())));
-    if (func->has_iwidth())
-        inf->AppendText(wxT("\nInt. Width: ") + s2wx(S(func->iwidth())));
-    if (func->has_other_props())
-        inf->AppendText(wxT("\n") + s2wx(func->other_props_str()));
+    fp a;
+    if (func->get_center(&a))
+        inf->AppendText(wxString::Format(wxT("Center: %.10g"), a));
+    if (func->get_area(&a))
+        inf->AppendText(wxT("\nArea: ") + s2wx(S(a)));
+    if (func->get_height(&a))
+        inf->AppendText(wxT("\nHeight: ") + s2wx(S(a)));
+    if (func->get_fwhm(&a))
+        inf->AppendText(wxT("\nFWHM: ") + s2wx(S(a)));
+    if (func->get_iwidth(&a))
+        inf->AppendText(wxT("\nInt. Width: ") + s2wx(S(a)));
+    vector_foreach (string, i, func->get_other_prop_names())
+        inf->AppendText(s2wx("\n" + *i + ": " + S(func->get_other_prop(*i))));
+
     vector<string> in;
     for (int i = 0; i < ftk->get_dm_count(); ++i) {
         if (contains_element(ftk->get_model(i)->get_ff().idx, active_function))

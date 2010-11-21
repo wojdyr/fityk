@@ -332,19 +332,23 @@ void Function::calculate_values_with_params(vector<fp> const& x,
     this_->more_precomputations();
 }
 
-
-bool Function::has_other_prop(std::string const& name)
+bool Function::get_center(fp* a) const
 {
-    return contains_element(get_other_prop_names(), name);
+    if (center_idx_ != -1) {
+        *a = vv_[center_idx_];
+        return true;
+    }
+    return false;
 }
 
-std::string Function::other_props_str() const
+bool Function::get_iwidth(fp* a) const
 {
-    string r;
-    vector<string> v = get_other_prop_names();
-    vector_foreach (string, i, v)
-        r += (i == v.begin() ? "" : "\n") + *i + ": " + S(other_prop(*i));
-    return r;
+    fp area, height;
+    if (this->get_area(&area) && this->get_height(&height)) {
+        *a = height != 0. ? area / height : 0.;
+        return true;
+    }
+    return false;
 }
 
 string Function::get_par_info(VariableManager const* mgr) const
@@ -354,20 +358,21 @@ string Function::get_par_info(VariableManager const* mgr) const
         s += "\n" + type_params_[i] + " = ";
         s += mgr->get_variable_info(mgr->get_variable(var_idx[i]));
     }
-    if (this->has_center())
+    fp a;
+    if (this->get_center(&a))
         if (!contains_element(type_params_, string("center")))
-            s += "\nCenter: " + S(center());
-    if (this->has_height())
+            s += "\nCenter: " + S(a);
+    if (this->get_height(&a))
         if (!contains_element(type_params_, string("height")))
-            s += "\nHeight: " + S(height());
-    if (this->has_fwhm())
+            s += "\nHeight: " + S(a);
+    if (this->get_fwhm(&a))
         if (!contains_element(type_params_, string("fwhm")))
-            s += "\nFWHM: " + S(fwhm());
-    if (this->has_area())
+            s += "\nFWHM: " + S(a);
+    if (this->get_area(&a))
         if (!contains_element(type_params_, string("area")))
-            s += "\nArea: " + S(area());
-    if (this->has_other_props())
-        s += "\n" + other_props_str();
+            s += "\nArea: " + S(a);
+    vector_foreach (string, i, this->get_other_prop_names())
+        s += "\n" + *i + ": " + S(get_other_prop(*i));
     return s;
 }
 
@@ -438,19 +443,20 @@ fp Function::get_param_value(string const& param) const
 {
     if (param.empty())
         throw ExecuteError("Empty parameter name??");
+    fp a;
     if (islower(param[0]))
         return get_var_value(get_param_nr(param));
-    else if (param == "Center" && has_center()) {
-        return center();
+    else if (param == "Center" && get_center(&a)) {
+        return a;
     }
-    else if (param == "Height" && has_height()) {
-        return height();
+    else if (param == "Height" && get_height(&a)) {
+        return a;
     }
-    else if (param == "FWHM" && has_fwhm()) {
-        return fwhm();
+    else if (param == "FWHM" && get_fwhm(&a)) {
+        return a;
     }
-    else if (param == "Area" && has_area()) {
-        return area();
+    else if (param == "Area" && get_area(&a)) {
+        return a;
     }
     else
         throw ExecuteError("Function " + xname + " (" + type_name

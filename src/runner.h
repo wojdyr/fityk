@@ -49,6 +49,7 @@ private:
     void command_point_tr(const std::vector<Token>& args, int ds);
     void command_resize_p(const std::vector<Token>& args, int ds);
     void command_assign_param(const std::vector<Token>& args, int ds);
+    void command_assign_all(const std::vector<Token>& args, int ds);
     void command_name_var(const std::vector<Token>& args, int ds);
     void command_change_model(const std::vector<Token>& args, int ds);
     void read_dms(std::vector<Token>::const_iterator first,

@@ -59,14 +59,10 @@ public:
                                    bool in_dx,
                                    int first, int last) const;
     std::string get_current_formula(std::string const& x = "x") const;
-    bool has_center() const;
-    fp center() const { return vmgr_.get_function(0)->center(); }
-    bool has_height() const;
-    fp height() const;
-    bool has_fwhm() const;
-    fp fwhm() const;
-    bool has_area() const;
-    fp area() const;
+    bool get_center(fp* a) const;
+    bool get_height(fp* a) const;
+    bool get_fwhm(fp* a) const;
+    bool get_area(fp* a) const;
     bool get_nonzero_range(fp level, fp& left, fp& right) const;
     void precomputations_for_alternative_vv();
     void set_var_idx(std::vector<Variable*> const& variables);
@@ -133,14 +129,10 @@ public:
                                         bool in_dx,
                                         int first, int last) const;
     std::string get_current_formula(std::string const& x = "x") const;
-    virtual bool has_height() const;
-    virtual fp height() const { return vmgr_.get_function(0)->height(); }
-    virtual bool has_fwhm() const { return false; }
-    virtual fp fwhm() const { return 0; }
-    virtual bool has_area() const { return false; }
-    virtual fp area() const { return 0; }
-    virtual bool has_center() const;
-    virtual fp center() const { return vmgr_.get_function(0)->center(); }
+    virtual bool get_height(fp* a) const;
+    virtual bool get_fwhm(fp*) const { return false; }
+    virtual bool get_area(fp*) const { return false; }
+    virtual bool get_center(fp* a) const;
     bool get_nonzero_range(fp level, fp& left, fp& right) const;
 
 private:

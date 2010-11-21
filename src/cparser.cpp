@@ -67,6 +67,7 @@ const char* commandtype2str(CommandType c)
         case kCmdDatasetTr: return "DatasetTr";
         case kCmdNameFunc: return "NameFunc";
         case kCmdAssignParam: return "AssignParam";
+        case kCmdAssignAll: return "AssignAll";
         case kCmdNameVar: return "NameVar";
         case kCmdChangeModel: return "ChangeModel";
         case kCmdPointTr: return "PointTr";
@@ -607,8 +608,7 @@ void Parser::parse_fz(Lexer& lex, Command &cmd)
     }
     // F.param= ...
     else if (t.type == kTokenDot) {
-        cmd.type = kCmdAssignParam;
-        lex.get_token(); // discard '.'
+        cmd.type = kCmdAssignAll;
         cmd.args.push_back(lex.get_expected_token(kTokenLname));
         lex.get_expected_token(kTokenAssign); // discard '='
         cmd.args.push_back(read_var(lex));
@@ -845,6 +845,7 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
     else if (token.type == kTokenFuncname &&
              lex.peek_token().type == kTokenDot) {
         cmd.type = kCmdAssignParam;
+        cmd.args.push_back(token);
         lex.get_token(); // discard '.'
         cmd.args.push_back(lex.get_expected_token(kTokenLname));
         lex.get_expected_token(kTokenAssign); // discard '='
@@ -856,7 +857,6 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
         lex.get_token(); // discard '.'
         string arg = lex.peek_token().as_string();
         if (arg == "F" || arg == "Z") {
-            cmd.args.push_back(token); // dataset
             cmd.args.push_back(lex.get_token()); // F/Z
             parse_fz(lex, cmd);
         }

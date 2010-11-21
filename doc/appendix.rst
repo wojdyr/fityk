@@ -219,6 +219,8 @@ because we need to calculate symbolical derivatives of ``v_expr``)
    info @n (x, y) >> file     -> @n: print all: x, y >> file
    info @n (x, y, a) >> file  -> @n: print if a: x, y, a >> file
    info pi+1                  -> print pi+1
+
+   F -= %f                    -> not possible (use delete %f or F = ...)
    *)
 
 **Line structure**
@@ -251,14 +253,14 @@ The kCmd* names in the comments correspond to constants in the code.
     : "sleep" `expr`                  | (*kCmdSleep*)
     : "title" "=" `filename`          | (*kCmdTitle*)
     : "undef:ine" Uname % ","       | (*kCmdUndef*)
-    : "!" RestOfLine                    | (*kCmdShell*)
+    : "!" RestOfLine                | (*kCmdShell*)
     : Dataset "<" `load_arg`          | (*kCmdLoad*)
     : Dataset "=" `dataset_tr_arg`    | (*kCmdDatasetTr*)
     : Funcname "=" `func_rhs`         | (*kCmdNameFunc*)
-    : `param` "=" `v_expr`              | (*kCmdAssignParam*)
+    : `func_id` "." Lname "=" `v_expr`  | (*kCmdAssignParam*)
+    : `model_id` "." Lname "=" `v_expr` | (*kCmdAssignAll*)
     : Varname "=" `v_expr`            | (*kCmdNameVar*)
     : `model_id` ("="|"+=") `model_rhs` | (*kCmdChangeModel*)
-    : `model_id` "-=" `func_id`         | (*also kCmdChangeModel*)
     : (`p_attr` "[" `expr` "]" "=" `p_expr`) % "," | (*kCmdPointTr*)
     : (`p_attr` "=" `p_expr`) % ","     | (*kCmdAllPointsTr*)
     : "M" "=" `expr`                  | (*kCmdResizeP*)
@@ -287,8 +289,6 @@ The kCmd* names in the comments correspond to constants in the code.
    print: ...TODO
    redir: [(">" | ">>") `filename`]
    set: Lname "=" (Lname | QuotedString | `expr`)
-   param: `func_id` "." Lname |
-        : `model_id` "." Lname
    model_rhs: "0" |
             : `func_id` |
             : `func_rhs` |

@@ -50,7 +50,6 @@ public:
     ~Ftk();
     /// reset everything but UserInterface (and related settings)
     void reset();
-    void dump_all_as_script (std::string const &filename);
 
     int append_dm(Data *data=0);
     void remove_dm(int d);
@@ -113,7 +112,7 @@ public:
     /// returns true if the plot should be replotted
     bool is_plot_outdated() { return dirty_plot_; }
 
-protected:
+private:
     std::vector<DataAndModel*> dms_;
     Settings* settings_;
     UserInterface* ui_;
@@ -122,8 +121,6 @@ protected:
 
     void initialize();
     void destroy();
-
-private:
     /// verify that n is the valid number for get_dm() and return n
     int check_dm_number(int n) const;
 };
