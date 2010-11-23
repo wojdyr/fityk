@@ -16,7 +16,6 @@
 
 #include <stdlib.h>
 #include <ctype.h>
-#include <boost/spirit/include/classic_core.hpp>
 #include <algorithm>
 #include <memory>
 #include <set>
@@ -88,10 +87,10 @@ string VariableManager::get_or_make_variable(string const& func)
     string ret;
     assert(!func.empty());
     string tmp1, tmp2;
-    if (parse(func.c_str(), VariableLhsG).full) // $foo
+    if (parse(func.c_str(), lexeme_d["$" >> +(alnum_p | '_')]).full) // $foo
         ret = string(func, 1);
     else if (parse(func.c_str(),
-                   (FunctionLhsG
+                   ( lexeme_d["%" >> +(alnum_p | '_')]
                    | !lexeme_d['@' >> uint_p >> '.']
                      >> (str_p("F[")|"Z[") >> int_p >> ch_p(']')
                    ) [assign_a(tmp1)]
@@ -106,7 +105,6 @@ string VariableManager::get_or_make_variable(string const& func)
         ret = assign_variable("", func);
     return ret;
 }
-
 
 namespace {
 

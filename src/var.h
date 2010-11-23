@@ -138,40 +138,6 @@ private:
 };
 
 
-/// grammar for parsing "$variable_name_here"
-struct VariableLhsGrammar : public grammar<VariableLhsGrammar>
-{
-  template <typename ScannerT>
-  struct definition
-  {
-    definition(VariableLhsGrammar const& /*self*/)
-    {
-        t = lexeme_d["$" >> +(alnum_p | '_')];
-    }
-    rule<ScannerT> t;
-    rule<ScannerT> const& start() const { return t; }
-  };
-};
-
-extern VariableLhsGrammar  VariableLhsG;
-
-/// grammar for parsing "%function_name_here"
-struct FunctionLhsGrammar : public grammar<FunctionLhsGrammar>
-{
-  template <typename ScannerT>
-  struct definition
-  {
-    definition(FunctionLhsGrammar const& /*self*/)
-    {
-        t = lexeme_d["%" >> +(alnum_p | '_')];
-    }
-    rule<ScannerT> t;
-    rule<ScannerT> const& start() const { return t; }
-  };
-};
-
-extern FunctionLhsGrammar  FunctionLhsG;
-
 /// grammar for parsing mathematic expressions (eg. variable right hand side)
 struct FuncGrammar : public grammar<FuncGrammar>
 {

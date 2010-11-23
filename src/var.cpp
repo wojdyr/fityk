@@ -8,7 +8,6 @@
 #include "ast.h"
 
 #include <stdlib.h>
-#include <boost/spirit/include/classic_core.hpp>
 #include <boost/spirit/version.hpp>
 #include <algorithm>
 #include <memory>
@@ -172,8 +171,7 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
                               >> !('[' >> !real_p >> "+-" >> real_p >> ']')]
                 | leaf_node_d["~{" >> lexeme_d[+~ch_p('}') >> '}']
                               >> !('[' >> !real_p >> "+-" >> real_p >> ']')]
-                // using FunctionLhsG causes crash
-                | leaf_node_d[(lexeme_d["%" >> +(alnum_p | '_')] //FunctionLhsG
+                | leaf_node_d[(lexeme_d["%" >> +(alnum_p | '_')]
                               | !lexeme_d['@' >> uint_p >> '.']
                                 >> (str_p("F[")|"Z[") >> int_p >> ch_p(']')
                               )
@@ -247,7 +245,4 @@ std::string simplify_formula(std::string const &formula)
 
 
 FuncGrammar FuncG;
-VariableLhsGrammar VariableLhsG;
-FunctionLhsGrammar  FunctionLhsG;
-
 
