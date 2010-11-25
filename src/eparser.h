@@ -175,6 +175,7 @@ private:
     void put_binary_op(dataVM::Op op);
     void put_function(dataVM::Op op);
     void put_ag_function(Lexer& lex, int ds, AggregFunc& ag);
+    void put_value_from_curly(Lexer& lex, int ds);
     void put_array_var(bool has_index, dataVM::Op op);
     void put_var(dataVM::Op op);
     bool put_data_name(const std::string& word, bool indexed);

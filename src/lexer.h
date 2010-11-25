@@ -103,6 +103,9 @@ public:
 
     Token get_token_if(TokenType tt);
 
+    // Unlike get_token(), allow '*' in $variables and %functions. 
+    Token get_glob_token();
+
     // Filename is expected by parser. Reads any sequence of non-blank
     // characters (with exception of ' and #) as a file.
     // The filename can be inside 'single quotes'.
@@ -119,7 +122,7 @@ public:
     int scanned_chars() const { return  pchar() - input_; }
 
 private:
-    void read_token();
+    void read_token(bool allow_glob=false);
 
     const char* const input_; // used for diagnostic messages only
     const char* cur_;

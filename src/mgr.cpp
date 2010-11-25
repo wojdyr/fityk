@@ -366,34 +366,6 @@ string VariableManager::assign_variable_copy(string const& name,
     return put_into_variables(var);
 }
 
-// matches name against pattern containing '*' (wildcard)
-static
-bool matches(const char* name, const char* pattern)
-{
-    for (;;) {
-        if (*pattern == '\0')
-            return *name == '\0';
-        else if (*pattern == '*') {
-            if (pattern[1] == '\0')
-                return true;
-            const char *here = name;
-            while (*name != '\0')
-                ++name;
-            while (name != here) {
-                if (matches(name, pattern))
-                    return true;
-                --name;
-            }
-        }
-        else {
-            if (*name != *pattern)
-                return false;
-            ++name;
-        }
-        ++pattern;
-    }
-}
-
 // names can contains '*' wildcards
 void VariableManager::delete_variables(vector<string> const &names)
 {
@@ -411,7 +383,7 @@ void VariableManager::delete_variables(vector<string> const &names)
         }
         else
             for (size_t j = 0; j != variables_.size(); ++j)
-                if (matches(variables_[j]->name.c_str(), i->c_str()))
+                if (match_glob(variables_[j]->name.c_str(), i->c_str()))
                     nn.insert(j);
     }
 
@@ -452,7 +424,7 @@ void VariableManager::delete_funcs(vector<string> const &names)
         }
         else
             for (size_t j = 0; j != functions_.size(); ++j)
-                if (matches(functions_[j]->name.c_str(), i->c_str()))
+                if (match_glob(functions_[j]->name.c_str(), i->c_str()))
                     nn.insert(j);
     }
 

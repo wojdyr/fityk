@@ -115,7 +115,7 @@ string token2str(const Token& token)
     }
 }
 
-void Lexer::read_token()
+void Lexer::read_token(bool allow_glob)
 {
     tok_.str = cur_;
     while (isspace(*tok_.str))
@@ -241,18 +241,22 @@ void Lexer::read_token()
             break;
         case '$':
             ++ptr;
-            if (! (isalpha(*ptr) || *ptr == '_'))
+            // allow_glob decides if the '*' is read ("delete $p*")
+            // or not ("$c=$a*$b"). Always read "$*" (it's not ambigous and
+            // we do't want error when peeking)
+            if (! (isalpha(*ptr) || *ptr == '_' || *ptr == '*'))
                 throw SyntaxError("unexpected character after '$'");
             tok_.type = kTokenVarname;
-            while (isalnum(*ptr) || *ptr == '_')
+            while (isalnum(*ptr) || *ptr == '_' || (allow_glob && *ptr == '*'))
                 ++ptr;
             break;
         case '%':
             ++ptr;
-            if (! (isalpha(*ptr) || *ptr == '_'))
+            // the same rules as in the case of '$'
+            if (! (isalpha(*ptr) || *ptr == '_' || *ptr == '*'))
                 throw SyntaxError("unexpected character after '%'");
             tok_.type = kTokenFuncname;
-            while (isalnum(*ptr) || *ptr == '_')
+            while (isalnum(*ptr) || *ptr == '_' || (allow_glob && *ptr == '*'))
                 ++ptr;
             break;
 
@@ -320,6 +324,17 @@ void Lexer::go_back(const Token& token)
 {
     cur_ = token.str;
     peeked_ = false;
+}
+
+Token Lexer::get_glob_token()
+{
+    if (peeked_) {
+        // un-peek
+        cur_ = tok_.str;
+        peeked_ = false;
+    }
+    read_token(true);
+    return tok_;
 }
 
 Token Lexer::get_filename_token()

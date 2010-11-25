@@ -69,13 +69,6 @@ string info_compiler()
         + "\nxylib version: " + xylib_get_version();
 }
 
-void info_variables(Ftk const* F, string& result)
-{
-    result += "Defined variables:";
-    vector_foreach (Variable*, i, F->variables())
-        result += "\n" + F->get_variable_info(*i);
-}
-
 void info_types(string& result)
 {
     result += "Defined function types:";
@@ -84,15 +77,36 @@ void info_types(string& result)
         result += "\n" + Function::get_formula(*i);
 }
 
-void info_functions(Ftk const* F, string& result)
+
+void info_functions(const Ftk* F, const string& name, string& result)
 {
-    vector<Function*> const &ff = F->functions();
-    result += "Defined functions:";
-    vector_foreach (Function*, i, ff)
-        result += "\n" + (*i)->get_basic_assignment();
+    if (!contains_element(name, '*')) {
+        const Function *f = F->find_function(name);
+        result += f->get_basic_assignment();
+    }
+    else {
+        vector_foreach (Function*, i, F->functions())
+            if (match_glob((*i)->name.c_str(), name.c_str()))
+                result += (result.empty() ? "" : "\n")
+                          + (*i)->get_basic_assignment();
+    }
 }
 
-void info_func_type(string const& functype, string& result)
+void info_variables(const Ftk* F, const string& name, string& result)
+{
+    if (!contains_element(name, '*')) {
+        const Variable* var = F->find_variable(name);
+        result += F->get_variable_info(var);
+    }
+    else {
+        vector_foreach (Variable*, i, F->variables())
+            if (match_glob((*i)->name.c_str(), name.c_str()))
+                result += (result.empty() ? "" : "\n")
+                          + F->get_variable_info(*i);
+    }
+}
+
+void info_func_type(const string& functype, string& result)
 {
     string m = Function::get_formula(functype);
     if (m.empty())
@@ -104,7 +118,7 @@ void info_func_type(string const& functype, string& result)
     }
 }
 
-void info_history(Ftk const* F, const Token& t1, const Token& t2,
+void info_history(const Ftk* F, const Token& t1, const Token& t2,
                   string& result)
 {
     const vector<Commands::Cmd>& cmds = F->get_ui()->get_commands().get_cmds();
@@ -212,8 +226,6 @@ void Ftk::dump_all_as_script(string const &filename)
 }
 */
 
-
-
 int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
                       string& result)
 {
@@ -229,8 +241,6 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         else if (word == "variables")
             for (size_t i = 0; i < F->variables().size(); ++i)
                 result += (i > 0 ? " " : "") + F->get_variable(n)->xname;
-        else if (word == "variables_full")
-            info_variables(F, result);
         else if (word == "types")
             result += join_vector(Function::get_all_types(), " ");
         else if (word == "types_full")
@@ -238,8 +248,6 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         else if (word == "functions")
             for (size_t i = 0; i < F->functions().size(); ++i)
                 result += (i > 0 ? " " : "") + F->get_function(n)->xname;
-        else if (word == "functions_full")
-            info_functions(F, result);
         else if (word == "dataset_count")
             result += S(F->get_dm_count());
         else if (word == "datasets") {
@@ -348,18 +356,17 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         }
     }
 
-    // no keyword arg
+    // FuncType
     else if (args[n].type == kTokenCname)
         info_func_type(args[n].as_string(), result);
 
     // %func
-    else if (args[n].type == kTokenFuncname) {
-        const Function *f = F->find_function(Lexer::get_string(args[n]));
-        result += f->get_basic_assignment();
-    }
+    else if (args[n].type == kTokenFuncname)
+        info_functions(F, Lexer::get_string(args[n]), result);
+
     // $var
     else if (args[n].type == kTokenVarname)
-        result += F->get_variable_info(Lexer::get_string(args[n]));
+        info_variables(F, Lexer::get_string(args[n]), result);
 
     // handle [@n.]F/Z['['expr']']
     else if ((args[n].type == kTokenUletter &&
@@ -606,6 +613,18 @@ void run_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
                 r += "\n";
             r += "d(" + v->xname + ")/d($" + v->get_var_name(i) + "): "
               + formula + " == " + F->get_settings()->format_double(value);
+        }
+    }
+
+    // tests the match_glob()
+    else if (word == "glob") {
+        Lexer lex(rest.str);
+        string pattern = lex.get_filename_token().as_string();
+        Token t;
+        while ((t = lex.get_filename_token()).type != kTokenNop) {
+            string s = t.as_string();
+            if (match_glob(s.c_str(), pattern.c_str()))
+                r += s + " ";
         }
     }
 

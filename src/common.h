@@ -166,6 +166,10 @@ bool contains_element(std::basic_string<T> const& str, T2 const& t)
 {
     return (str.find(t) != std::basic_string<T>::npos);
 }
+
+/// matches name against pattern containing '*' (wildcard)
+bool match_glob(const char* name, const char* pattern);
+
 //---------------------------  V E C T O R  --------------------------------
 
 // boost/foreach.hpp includes quite a lot of code. Since only one version

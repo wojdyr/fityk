@@ -108,3 +108,30 @@ find_matching_bracket(string const& formula, string::size_type left_pos)
     throw ExecuteError("Matching bracket `" + S(closing) + "' not found.");
 }
 
+
+bool match_glob(const char* name, const char* pattern)
+{
+    while (*pattern != '\0') {
+        if (*pattern == '*') {
+            if (pattern[1] == '\0')
+                return true;
+            const char *here = name;
+            while (*name != '\0')
+                ++name;
+            while (name != here) {
+                if (match_glob(name, pattern))
+                    return true;
+                --name;
+            }
+        }
+        else {
+            if (*name != *pattern)
+                return false;
+            ++name;
+        }
+        ++pattern;
+    }
+    // if we are here (*pattern == '\0')
+    return *name == '\0';
+}
+

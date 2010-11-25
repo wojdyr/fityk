@@ -367,6 +367,15 @@ void ExpressionParser::put_ag_function(Lexer& lex, int ds, AggregFunc& ag)
     put_number(ag.value());
 }
 
+void ExpressionParser::put_value_from_curly(Lexer& lex, int ds)
+{
+    ExpressionParser ep(F_);
+    ep.parse_expr(lex, ds);
+    lex.get_expected_token(kTokenRCurly); // discard '}'
+    double x = ep.calculate(0, F_->get_data(ds)->points());
+    put_number(x);
+}
+
 void ExpressionParser::put_array_var(bool has_index, Op op)
 {
     if (has_index) {
@@ -895,6 +904,10 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
             case kTokenTilde: // TODO: only in var_rhs
                 break;
 
+            case kTokenLCurly:
+                put_value_from_curly(lex, default_ds);
+                break;
+
             case kTokenString:
             case kTokenCname:
             case kTokenBang:
@@ -903,7 +916,6 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
             case kTokenSubAssign:
             case kTokenDots:
             case kTokenPlusMinus:
-            case kTokenLCurly:
             case kTokenRCurly:
             case kTokenAssign:
             case kTokenSemicolon:
