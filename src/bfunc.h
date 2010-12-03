@@ -6,19 +6,18 @@
 
 #include "func.h"
 #include "numfuncs.h" // PointQ
+#include "tplate.h" // Tplate::Ptr
+#include "common.h" // DISALLOW_COPY_AND_ASSIGN
 
-// a new class can be derived from class-derived-from-Function,
-// but it should use the first constructor (with formula)
 #define DECLARE_FUNC_OBLIGATORY_METHODS(NAME, PARENT) \
-    friend class Function;\
 private:\
+    DISALLOW_COPY_AND_ASSIGN(Func##NAME); \
+public:\
     Func##NAME (Ftk const* F, \
                 std::string const &name, \
+                Tplate::Ptr tp, \
                 std::vector<std::string> const &vars) \
-        : PARENT(F, name, vars, formula) {} \
-    Func##NAME (const Func##NAME&); \
-public:\
-    static const char *formula; \
+        : PARENT(F, name, tp, vars) {} \
     void calculate_value_in_range(std::vector<fp> const &xx, \
                                   std::vector<fp> &yy, \
                                   int first, int last) const;\
@@ -186,6 +185,22 @@ class FuncLogNormal : public Function
     bool get_height(fp* a) const { *a = vv_[0]; return true; }
     bool get_fwhm(fp* a) const;
     bool get_area(fp* a) const;
+};
+
+
+class VarArgFunction : public Function
+{
+protected:
+    VarArgFunction(const Ftk* F,
+                   const std::string &name,
+                   Tplate::Ptr tp,
+                   const std::vector<std::string> &vars)
+        : Function(F, name, tp, vars) {}
+    virtual void init() { center_idx_ = -1; }
+
+    // so far all the va functions have parameters x1,y1,x2,y2,...
+    virtual const std::string get_param(int n) const
+            { return (n % 2 == 0 ? "x" : "y") + S(n/2 + 1); }
 };
 
 class FuncSpline : public VarArgFunction

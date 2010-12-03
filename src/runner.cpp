@@ -7,7 +7,8 @@
 #include "cparser.h"
 #include "eparser.h"
 #include "logic.h"
-#include "udf.h"
+#include "tplate.h"
+#include "func.h"
 #include "data.h"
 #include "fityk.h"
 #include "info.h"
@@ -34,17 +35,10 @@ void Runner::command_set(const vector<Token>& args)
         settings->setp(args[i-1].as_string(), args[i].as_string());
 }
 
-void Runner::command_define(const vector<Token>& /*args*/)
-{
-    //TODO
-    //UdfContainer::define(s);
-}
-
-
 void Runner::command_undefine(const vector<Token>& args)
 {
     vector_foreach (Token, i, args)
-        UdfContainer::undefine(i->as_string());
+        F_->get_tpm()->undefine(i->as_string());
 }
 
 void Runner::command_delete(const vector<Token>& args)
@@ -209,17 +203,17 @@ void Runner::command_guess(const vector<Token>& args, int ds)
         throw ExecuteError("invalid range");
 
     // handle a special case: guess Gaussian(center=$peak_center)
-    if (range.from_inf() && range.to_inf() &&
-            contains_element(par_names, "center")) {
-        int ctr_pos = find(par_names.begin(), par_names.end(), "center")
-                        - par_names.begin();
-        string ctr_str = par_values[ctr_pos];
-        Lexer lex(ctr_str.c_str());
-        ep_.parse_expr(lex, ds);
-        fp center = ep_.calculate();
-        fp delta = fabs(F_->get_settings()->get_f("guess_at_center_pm"));
-        range.from = center - delta;
-        range.to = center + delta;
+    if (range.from_inf() && range.to_inf()) {
+        int ctr_pos = index_of_element(par_names, "center");
+        if (ctr_pos != -1) {
+            string ctr_str = par_values[ctr_pos];
+            Lexer lex(ctr_str.c_str());
+            ep_.parse_expr(lex, ds);
+            fp center = ep_.calculate();
+            fp delta = fabs(F_->get_settings()->get_f("guess_at_center_pm"));
+            range.from = center - delta;
+            range.to = center + delta;
+        }
     }
 
     int lb = data->get_lower_bound_ac(range.from);
@@ -227,7 +221,8 @@ void Runner::command_guess(const vector<Token>& args, int ds)
 
     Guess g(F_->get_settings());
     g.initialize(dm, lb, rb, ignore_idx);
-    g.guess(ftype, par_names, par_values);
+    const Tplate* tp = F_->get_tpm()->get_tp(ftype);
+    g.guess(tp, par_names, par_values);
     // for now use the old ugly interface
     vector<string> vars;
     for (size_t i = 0; i != par_names.size(); ++i)
@@ -244,11 +239,13 @@ void Runner::command_guess(const vector<Token>& args, int ds)
 
 void Runner::command_plot(const vector<Token>& args, int ds)
 {
-    vector<int> dd = vector1(ds); //TODO (plot, view and storing datasets)
     RealRange hor = args2range(args[0], args[1]);
     RealRange ver = args2range(args[2], args[3]);
-    F_->view.set_datasets(dd);
-    F_->view.change_view(hor, ver);
+    vector<int> dd;
+    for (size_t i = 4; i < args.size(); ++i)
+        dd.push_back(args[i].value.i);
+    expand_dataset_glob(F_, dd, ds);
+    F_->view.change_view(hor, ver, dd);
     F_->get_ui()->draw_plot(1, UserInterface::kRepaintDataset);
 }
 
@@ -426,7 +423,7 @@ void Runner::command_change_model(const vector<Token>& args, int ds)
             i += n_tokens;
         }
         else if (args[i].type == kTokenCname) { // func rhs
-            //TODO
+            //TODO F += Foo(1,2)
         }
         else
             assert(0);
@@ -522,7 +519,7 @@ void Runner::execute_command(Command& c, int ds)
             run_debug(F_, ds, c.args[0], c.args[1]);
             break;
         case kCmdDefine:
-            command_define(c.args);
+            F_->get_tpm()->define(c.defined_tp);
             break;
         case kCmdDelete:
             command_delete(c.args);
@@ -540,13 +537,13 @@ void Runner::execute_command(Command& c, int ds)
             command_guess(c.args, ds);
             break;
         case kCmdInfo:
-            run_info(F_, ds, kCmdInfo, c.args);
+            run_info_or_print(F_, ds, kCmdInfo, c.args);
             break;
         case kCmdPlot:
             command_plot(c.args, ds);
             break;
         case kCmdPrint:
-            run_info(F_, ds, kCmdPrint, c.args);
+            run_info_or_print(F_, ds, kCmdPrint, c.args);
             break;
         case kCmdReset:
             F_->reset();

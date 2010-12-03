@@ -43,7 +43,7 @@ class AnyFormulaO : public AnyFormula
 {
 public:
     AnyFormulaO(std::vector<OpTree*> const &op_trees_,
-               fp &value_, std::vector<fp>& derivatives_)
+                fp &value_, std::vector<fp>& derivatives_)
         : AnyFormula(op_trees_, value_, derivatives_) {}
     void tree_to_bytecode(size_t var_idx_size);
     void prepare_optimized_codes(std::vector<fp> const& vv);

@@ -493,33 +493,53 @@ void ExpressionParser::put_var(Op op)
     expected_ = kOperator;
 }
 
-bool ExpressionParser::put_data_name(const string& word, bool indexed)
+void ExpressionParser::put_name(Lexer& lex,
+                                const string& word,
+                                const vector<string>* custom_vars,
+                                vector<string>* new_vars)
 {
-    // data points
-    if (word == "x")
-        put_array_var(indexed, OP_VAR_x);
-    else if (word == "y")
-        put_array_var(indexed, OP_VAR_y);
-    else if (word == "s")
-        put_array_var(indexed, OP_VAR_s);
-    else if (word == "a")
-        put_array_var(indexed, OP_VAR_a);
-    else if (word == "n")
-        put_var(OP_VAR_n);
-    else
-        return false;
-    return true;
-}
-
-bool ExpressionParser::put_custom_name(const string& word,
-                                       const vector<string>& vars)
-{
-    int idx = index_of_element(vars, word);
-    if (idx == -1)
-        return false;
-    vm_.append_code(OP_VAR_n);
-    vm_.append_code(idx);
-    return true;
+    if (word == "pi")
+        put_number(M_PI);
+    else if (word == "true")
+        put_number(1.);
+    else if (word == "false")
+        put_number(0.);
+    else {
+        if (custom_vars == NULL) { // data points
+            bool has_index = (lex.peek_token().type == kTokenLSquare);
+            if (word == "x")
+                put_array_var(has_index, OP_VAR_x);
+            else if (word == "y")
+                put_array_var(has_index, OP_VAR_y);
+            else if (word == "s")
+                put_array_var(has_index, OP_VAR_s);
+            else if (word == "a")
+                put_array_var(has_index, OP_VAR_a);
+            else if (word == "n")
+                put_var(OP_VAR_n);
+            else
+                lex.throw_syntax_error("unknown name: " + word);
+        }
+        else {
+            int idx = index_of_element(*custom_vars, word);
+            if (idx != -1) {
+                vm_.append_code(OP_CUSTOM);
+                vm_.append_code(idx);
+            }
+            else if (new_vars != NULL) {
+                int idx2 = index_of_element(*new_vars, word);
+                if (idx2 == -1) {
+                    idx2 = new_vars->size();
+                    new_vars->push_back(word);
+                }
+                vm_.append_code(OP_CUSTOM);
+                // new_vars is to be appended to custom_vars later
+                vm_.append_code(custom_vars->size() + idx2);
+            }
+            else
+                lex.throw_syntax_error("unknown name: " + word);
+        }
+    }
 }
 
 void ExpressionParser::pop_until_bracket()
@@ -547,7 +567,8 @@ bool ExpressionParser::parse_full(Lexer& lex, int default_ds,
 
 // implementation of the shunting-yard algorithm
 void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
-                                  const vector<string> *custom_vars)
+                                  const vector<string> *custom_vars,
+                                  vector<string> *new_vars)
 {
     opstack_.clear();
     arg_cnt_.clear();
@@ -676,24 +697,7 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                         finished_ = true;
                         break;
                     }
-                    if (word == "pi")
-                        put_number(M_PI);
-                    else if (word == "true")
-                        put_number(1.);
-                    else if (word == "false")
-                        put_number(0.);
-                    else {
-                        bool found;
-                        if (custom_vars == NULL) {
-                            bool ar = (lex.peek_token().type == kTokenLSquare);
-                            found = put_data_name(word, ar);
-                        }
-                        else {
-                            found = put_custom_name(word, *custom_vars);
-                        }
-                        if (!found)
-                            lex.throw_syntax_error("unknown name: " + word);
-                    }
+                    put_name(lex, word, custom_vars, new_vars);
                 }
                 break;
             }

@@ -153,10 +153,9 @@ char *type_generator(const char *text, int state)
     static vector<string> e;
     if (!state) {
         e.clear();
-        vector<string> const tt = Function::get_all_types();
-        vector_foreach (string, i, tt)
-            if (!strncmp(i->c_str(), text, strlen(text)))
-                e.push_back(*i);
+        vector_foreach (Tplate::Ptr, i, ftk->get_tpm()->tpvec())
+            if (!strncmp((*i)->name.c_str(), text, strlen(text)))
+                e.push_back((*i)->name);
         list_index = 0;
     }
     else
@@ -188,10 +187,9 @@ char *info_generator(const char *text, int state)
     static vector<string> e;
     if (!state) {
         e.clear();
-        vector<string> const tt = Function::get_all_types();
-        vector_foreach (string, i, tt)
-            if (!strncmp(i->c_str(), text, strlen(text)))
-                e.push_back(*i);
+        vector_foreach (Tplate::Ptr, i, ftk->get_tpm()->tpvec())
+            if (!strncmp((*i)->name.c_str(), text, strlen(text)))
+                e.push_back((*i)->name);
         for (const char** a = info_args; *a != NULL; ++a)
             if (strncmp (*a, text, strlen(text)) == 0)
                 e.push_back(*a);

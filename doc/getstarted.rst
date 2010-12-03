@@ -123,6 +123,8 @@ option, if given, and processes command line arguments:
   (``file.xy:1:3,4,5::`` or ``file.xy:1:3..5::``) -- it will load
   each y column as a separate dataset, with the same values of x.
 
+.. highlight:: none
+
 There are also other parameters to the CLI and GUI versions of the program.
 Option "-h" (on MS Windows "/h") gives the full listing::
 

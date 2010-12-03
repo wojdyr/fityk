@@ -7,6 +7,7 @@
 #include "var.h"
 #include "ast.h"
 #include "ui.h"
+#include "tplate.h"
 #include "func.h"
 #include "model.h"
 #include "settings.h"
@@ -538,12 +539,11 @@ void VariableManager::put_new_parameters(vector<fp> const &aa)
 vector<string> VariableManager::get_vars_from_kw(string const &function,
                                                  vector<string> const &vars)
 {
-    string formula = Function::get_formula(function);
-    if (formula.empty())
+    const Tplate *tp = F_->get_tpm()->get_tp(function);
+    if (tp == NULL)
         throw ExecuteError("Undefined type of function: " + function);
-    vector<string> tnames = Function::get_varnames_from_formula(formula);
-    vector<string> tvalues = Function::get_defvalues_from_formula(formula);
-    int n = tnames.size();
+    string formula = tp->as_formula();
+    int n = tp->pars.size();
     size_t vsize = vars.size();
     vector<string> vars_names(vsize), vars_rhs(vsize);
     for (size_t i = 0; i < vsize; ++i) {
@@ -556,7 +556,7 @@ vector<string> VariableManager::get_vars_from_kw(string const &function,
     const vector<string> empty;
     vector<string> vv(n);
     for (int i = 0; i < n; ++i) {
-        string const& tname = tnames[i];
+        string const& tname = tp->pars[i];
         // (1st try) variables given in vars
         int tname_idx = index_of_element(vars_names, tname);
         if (tname_idx != -1) {
@@ -564,10 +564,11 @@ vector<string> VariableManager::get_vars_from_kw(string const &function,
             continue;
         }
         // (2nd try) use default parameter value
-        if (!tvalues[i].empty()) {
+        if (!tp->defvals[i].empty()) {
+            string dv = tp->defvals[i];
             for (size_t j = 0; j < vsize; ++j)
-                replace_words(tvalues[i], vars_names[j], vars_rhs[j]);
-            string expr = strip_tilde_variable(tvalues[i]);
+                replace_words(dv, vars_names[j], vars_rhs[j]);
+            string expr = strip_tilde_variable(dv);
             ep.clear_vm();
             Lexer lex(expr.c_str());
             bool r = ep.parse_full(lex, 0, &empty);
@@ -577,24 +578,23 @@ vector<string> VariableManager::get_vars_from_kw(string const &function,
                 continue;
             }
         }
-        // (3rd try) name
-        else if (tname == "hwhm") {
-            int fwhm_idx = index_of_element(vars_names, "fwhm");
-            if (fwhm_idx != -1) {
-                string expr = strip_tilde_variable(vars_rhs[fwhm_idx]);
-                ep.clear_vm();
-                Lexer lex(expr.c_str());
-                ep.parse_expr(lex, 0, &empty);
-                fp v = 0.5 * ep.calculate();
-                vv[i] = "~" + S(v);
-                continue;
-            }
-        }
 
         throw ExecuteError("Can't create function " + function
                                + " because " + tname + " is unknown.");
     }
     return vv;
+}
+
+Function* VariableManager::create_function(string const &name,
+                                           string const &type_name,
+                                           vector<string> const &vars) const
+{
+    Tplate::Ptr tp = F_->get_tpm()->get_shared_tp(type_name);
+    if (!tp)
+        throw ExecuteError("Undefined type of function: " + type_name);
+    Function* f = (*tp->create)(F_, name, tp, vars);
+    f->init();
+    return f;
 }
 
 string VariableManager::assign_func(string const &name, string const &function,
@@ -614,7 +614,7 @@ string VariableManager::assign_func(string const &name, string const &function,
         for (size_t i = 0; i < vv.size(); ++i)
             varnames.push_back(get_or_make_variable(vv[i]));
 
-        func = Function::factory(F_, func_name, function, varnames);
+        func = create_function(func_name, function, varnames);
     } catch (ExecuteError &) {
         remove_unreferred();
         throw;
@@ -680,7 +680,7 @@ string VariableManager::assign_func_copy(string const &name, string const &orig)
     }
 
     string func_name = name.empty() ? next_func_name() : name;
-    Function *func = Function::factory(F_, func_name, of->type_name, varnames);
+    Function *func = create_function(func_name, of->tp()->name, varnames);
     return do_assign_func(func);
 }
 

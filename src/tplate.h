@@ -1,0 +1,81 @@
+// This file is part of fityk program. Copyright (C) Marcin Wojdyr
+// Licence: GNU General Public License ver. 2+
+// $Id: $
+#ifndef FITYK_TPLATE_H_
+#define FITYK_TPLATE_H_
+
+#include <vector>
+#include <string>
+#include <boost/shared_ptr.hpp>
+
+#include "common.h" // DISALLOW_COPY_AND_ASSIGN
+
+class Ftk;
+class Function;
+struct OpTree;
+
+/// template -- function type, like Gaussian(height, center, hwhm) = ...,
+/// which can be used to create %functions by binding $variables to template's
+/// parameters.
+struct Tplate
+{
+    typedef boost::shared_ptr<const Tplate> Ptr;
+    typedef Function* (*create_type)(const Ftk*, const std::string&,
+                                     Ptr, const std::vector<std::string>&);
+
+    //enum HowDefined { kCoded, kSum, kSplit, kCustom };
+
+    struct Component
+    {
+        Ptr p;
+        std::vector<std::string> values;
+    };
+
+    std::string name;
+    std::vector<std::string> pars; //TODO: args
+    std::vector<std::string> defvals;
+    std::string rhs;
+    bool linear_d; // uses Guess::linear_traits
+    bool peak_d;   // uses Guess::peak_traits
+    create_type create;
+    std::vector<Component> components; // kSum, kSplit
+    std::vector<OpTree*> op_trees;     // kCustom
+
+    Tplate() {}
+    std::string as_formula() const;
+
+
+private:
+    DISALLOW_COPY_AND_ASSIGN(Tplate);
+};
+
+
+/// template manager
+class TplateMgr
+{
+public:
+    TplateMgr();
+
+    /// stores the formula
+    void define(Tplate::Ptr tp);
+
+    /// removes the definition
+    void undefine(const std::string& name);
+
+    const Tplate* get_tp(const std::string& name) const;
+    Tplate::Ptr get_shared_tp(const std::string& name) const;
+
+    const std::vector<Tplate::Ptr>& tpvec() const { return tpvec_; }
+
+private:
+    std::vector<Tplate::Ptr> tpvec_;
+
+    void add_builtin_types();
+    void add(const char* name, const char* cs_pars, const char* cs_dv,
+             const char* rhs, bool linear_d, bool peak_d,
+             Tplate::create_type create);
+
+    DISALLOW_COPY_AND_ASSIGN(TplateMgr);
+};
+
+#endif // FITYK_TPLATE_H_

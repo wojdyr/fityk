@@ -192,14 +192,23 @@ inline std::vector<T> vector2 (T a, T b)
 /// Make 3-element vector
 template <typename T>
 inline std::vector<T> vector3 (T a, T b, T c)
-    { std::vector<T> v = std::vector<T>(3, a); v[1] = b; v[2] = c; return v;}
+    { std::vector<T> v = std::vector<T>(3); v[0]=a; v[1]=b; v[2]=c; return v;}
 
 /// Make 4-element vector
 template <typename T>
 inline std::vector<T> vector4 (T a, T b, T c, T d) {
-    std::vector<T> v = std::vector<T>(4, a); v[1] = b; v[2] = c; v[3] = d;
+    std::vector<T> v = std::vector<T>(4); v[0]=a; v[1]=b; v[2]=c; v[3]=d;
     return v;
 }
+
+/// Make n-element vector, e.g.: vector_of<int>(1)(2)(3)(4)(5)
+template <typename T>
+struct vector_of: public std::vector<T>
+{
+    vector_of(const T& t) { (*this)(t); }
+    vector_of& operator()(const T& t) { this->push_back(t); return *this; }
+};
+
 
 /// Make (u-l)-element vector, filled by numbers: l, l+1, ..., u-1.
 std::vector<int> range_vector(int l, int u);
@@ -222,7 +231,7 @@ template <typename RandomAccessIterator>
 inline std::string join(RandomAccessIterator first, RandomAccessIterator last,
                         std::string const& sep)
 {
-    if (last - first >= 0)
+    if (last - first <= 0)
         return "";
     std::string s = S(*first);
     while (first != last) {
@@ -298,7 +307,7 @@ void purge_all_elements(std::vector<T*> &vec)
 
 /// check if vector (first arg) contains given element (second arg)
 template<typename T, typename T2>
-bool contains_element(std::vector<T> const& vec, T2 const& t)
+bool contains_element(T const& vec, T2 const& t)
 {
     return (find(vec.begin(), vec.end(), t) != vec.end());
 }

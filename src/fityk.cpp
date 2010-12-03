@@ -40,13 +40,13 @@ FILE* message_sink = 0;
 
 // a bridge between fityk::set_show_message()
 // and UserInterface::set_show_message()
-void message_handler(UserInterface::Style style, std::string const& s)
+void message_handler(UserInterface::Style style, string const& s)
 {
     if (simple_message_handler && style != UserInterface::kInput)
         (*simple_message_handler)(s);
 }
 
-void message_redir(UserInterface::Style style, std::string const& s)
+void message_redir(UserInterface::Style style, string const& s)
 {
     if (message_sink && style != UserInterface::kInput)
         fprintf(message_sink, "%s\n", s.c_str());
@@ -89,7 +89,7 @@ Point::Point() : x(0), y(0), sigma(1), is_active(true) {}
 Point::Point(double x_, double y_) : x(x_), y(y_), sigma(1), is_active(true) {}
 Point::Point(double x_, double y_, fp sigma_) : x(x_), y(y_), sigma(sigma_),
                                                 is_active(true) {}
-std::string Point::str() const { return "(" + S(x) + "; " + S(y) + "; " +
+string Point::str() const { return "(" + S(x) + "; " + S(y) + "; " +
                                  S(sigma) + (is_active ? ")*" : ") "); }
 
 
@@ -192,10 +192,10 @@ double Fityk::get_variable_value(string const& name)  throw(ExecuteError)
 }
 
 void Fityk::load_data(int dataset,
-                      std::vector<double> const& x,
-                      std::vector<double> const& y,
-                      std::vector<double> const& sigma,
-                      std::string const& title)     throw(ExecuteError)
+                      vector<double> const& x,
+                      vector<double> const& y,
+                      vector<double> const& sigma,
+                      string const& title)     throw(ExecuteError)
 {
     try {
         ftk_->get_data(dataset)->load_arrays(x, y, sigma, title);
@@ -229,7 +229,7 @@ void Fityk::set_show_message(t_show_message *func)
     ftk_->get_ui()->set_show_message(message_handler);
 }
 
-void Fityk::redir_messages(std::FILE *stream)
+void Fityk::redir_messages(FILE *stream)
 {
     message_sink = stream;
     ftk_->get_ui()->set_show_message(message_redir);

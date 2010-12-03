@@ -34,7 +34,6 @@ private:
 
     void execute_command(Command& c, int ds);
     void command_set(const std::vector<Token>& args);
-    void command_define(const std::vector<Token>& args);
     void command_delete(const std::vector<Token>& args);
     void command_delete_points(const std::vector<Token>& args, int ds);
     void command_exec(const std::vector<Token>& args);

@@ -284,7 +284,7 @@ string Fit::print_matrix (const vector<fp>& vec, int m, int n,
             h << vec[i] << (i < n - 1 ? ", " : " }") ;
     }
     else { //matrix
-        std::string blanks (strlen(mname) + 1, ' ');
+        string blanks (strlen(mname) + 1, ' ');
         for (int j = 0; j < m; j++){
             if (j > 0)
                 h << blanks << "  ";
@@ -297,18 +297,17 @@ string Fit::print_matrix (const vector<fp>& vec, int m, int n,
     return h.str();
 }
 
-bool Fit::post_fit (const std::vector<fp>& aa, fp chi2)
+bool Fit::post_fit (const vector<fp>& aa, fp chi2)
 {
-    F->msg(name + " method. " + S(iter_nr) + " iterations, "
-            + S(evaluations) + " evaluations in "
-            + S(time(0)-start_time_) + "s.");
+    int elapsed = time(0)-start_time_;
+    F->msg(name + ": " + S(iter_nr) + " iterations, "
+           + S(evaluations) + " evaluations, " + S(elapsed) + " sec.");
     bool better = (chi2 < wssr_before);
     if (better) {
         F->get_fit_container()->push_param_history(aa);
         F->put_new_parameters(aa);
-        F->msg ("Better fit found (WSSR = " + S(chi2)
-                 + ", was " + S(wssr_before)
-                 + ", " + S((chi2 - wssr_before) / wssr_before * 100) + "%).");
+        double percent_change = (chi2 - wssr_before) / wssr_before * 100.;
+        F->msg("WSSR: " + S(chi2) + " (" + S(percent_change) + "%)");
     }
     else {
         F->msg ("Better fit NOT found (WSSR = " + S(chi2)
@@ -354,6 +353,7 @@ private:
 /// initialize and run fitting procedure for not more than max_iter iterations
 void Fit::fit(int max_iter, vector<DataAndModel*> const& dms)
 {
+    //TODO: use timespec tp; clock_gettime(CLOCK_MONOTONIC, &tp);
     start_time_ = last_refresh_time_ = time(0);
     ComputeUI compute_ui(F->get_ui());
     update_parameters(dms);
@@ -372,8 +372,8 @@ void Fit::fit(int max_iter, vector<DataAndModel*> const& dms)
     int np = 0;
     vector_foreach (DataAndModel*, i, dms)
         np += (*i)->data()->get_n();
-    F->msg ("Fit " + S(nu) + " (of " + S(na) + ") parameters to " + S(np)
-            + " points ...");
+    F->msg ("Fitting " + S(nu) + " (of " + S(na) + ") parameters to "
+            + S(np) + " points ...");
 
     autoiter();
 }
@@ -603,7 +603,7 @@ bool ParameterHistoryMgr::push_param_history(vector<fp> const& aa)
 }
 
 
-std::string ParameterHistoryMgr::param_history_info() const
+string ParameterHistoryMgr::param_history_info() const
 {
     string s = "Parameter history contains " + S(param_history.size())
         + " items.";

@@ -1203,7 +1203,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     else if (mouse_op == kAddPeakTriangle) {
         frame->set_status_text("");
         peak_draft(mat_stop, event.GetX(), event.GetY());
-        if (func_draft_kind == Guess::kLinear || dist_X + dist_Y >= 5)
+        if (dist_X + dist_Y >= 5)
             add_peak_from_draft(event.GetX(), event.GetY());
     }
     // add peak (in range)
@@ -1232,7 +1232,7 @@ void MainPlot::add_peak_from_draft(int X, int Y)
     string args;
     if (func_draft_kind == Guess::kLinear) {
         fp y = ys.valr(Y);
-        args = "slope=~0, intercept=~" + S(y) + ", avgy=~" + S(y);
+        args = "slope=~0, intercept=~" + eS(y) + ", avgy=~" + eS(y);
     }
     else {
         fp height = ys.valr(Y);
@@ -1389,6 +1389,7 @@ void MainPlot::draw_peak_draft(int Ctr, int Hwhm, int Y)
     dc.SetPen(*wxBLACK_DASHED_PEN);
     int Y0 = ys.px(0);
     if (func_draft_kind == Guess::kLinear) {
+        //TODO draw linear draft with slope
         dc.DrawLine (0, Y, get_pixel_width(dc), Y);
     }
     else {

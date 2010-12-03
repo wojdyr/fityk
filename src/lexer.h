@@ -93,6 +93,7 @@ public:
 
     Token get_token();
 
+    // look ahead and read the next token without removing it
     const Token& peek_token();
 
     Token get_expected_token(TokenType tt);
@@ -101,7 +102,11 @@ public:
     Token get_expected_token(TokenType tt, const std::string& raw);
     Token get_expected_token(const std::string& raw1, const std::string& raw2);
 
+    // if the next token is of type `tt' get it, otherwise return kTokenNop
     Token get_token_if(TokenType tt);
+
+    bool discard_token_if(TokenType tt)
+        { return get_token_if(tt).type != kTokenNop; }
 
     // Unlike get_token(), allow '*' in $variables and %functions. 
     Token get_glob_token();

@@ -238,7 +238,7 @@ string Settings::typep (string const& k) const
         throw ExecuteError("Unknown option: " +  k);
 }
 
-Settings::ValueType Settings::get_value_type(std::string const& k) const
+Settings::ValueType Settings::get_value_type(string const& k) const
 {
     if (ipar.count(k))
         return kInt;
@@ -332,7 +332,7 @@ void Settings::do_srand()
     F->vmsg("Seed for a sequence of pseudo-random numbers: " + S(rs));
 }
 
-void Settings::set_temporary(std::string const& k, std::string const& v)
+void Settings::set_temporary(string const& k, string const& v)
 {
     old_values.push_back(make_pair(k, getp(k)));
     setp_core(k, v);

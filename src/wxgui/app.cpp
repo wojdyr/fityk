@@ -307,8 +307,7 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
         frame->SwitchSideBar(true);
         // zoom to show all loaded datafiles
         RealRange r;
-        ftk->view.set_datasets(range_vector(0, ftk->get_dm_count()));
-        ftk->view.change_view(r, r);
+        ftk->view.change_view(r, r, range_vector(0, ftk->get_dm_count()));
     }
 }
 

@@ -16,6 +16,7 @@
 
 #include "logic.h"
 #include "func.h"
+#include "tplate.h"
 #include "data.h"
 #include "fit.h"
 #include "ast.h"
@@ -69,15 +70,6 @@ string info_compiler()
         + "\nxylib version: " + xylib_get_version();
 }
 
-void info_types(string& result)
-{
-    result += "Defined function types:";
-    vector<string> const& tt = Function::get_all_types();
-    vector_foreach (string, i, tt)
-        result += "\n" + Function::get_formula(*i);
-}
-
-
 void info_functions(const Ftk* F, const string& name, string& result)
 {
     if (!contains_element(name, '*')) {
@@ -106,15 +98,15 @@ void info_variables(const Ftk* F, const string& name, string& result)
     }
 }
 
-void info_func_type(const string& functype, string& result)
+void info_func_type(const Ftk* F, const string& functype, string& result)
 {
-    string m = Function::get_formula(functype);
-    if (m.empty())
+    const Tplate* tp = F->get_tpm()->get_tp(functype);
+    if (tp == NULL)
         result += "undefined";
     else {
-        result += m;
-        if (m.find(" where ") != string::npos)
-            result += "\n = " + Function::get_rhs_from_formula(m);
+        result += tp->as_formula();
+        if (tp->rhs.find(" where ") != string::npos)
+            result += "\n = " + Function::do_substitutions(tp->rhs);
     }
 }
 
@@ -139,92 +131,77 @@ void info_history(const Ftk* F, const Token& t1, const Token& t2,
         result += cmds[i].str() + "\n";
 }
 
-/*
-void Ftk::dump_all_as_script(string const &filename)
+void save_state(Ftk* F, string& r)
 {
-    FILE* f = fopen(filename.c_str(), "w");
-    if (!f) {
-        warn ("Can't open file: " + filename);
-        return;
+    if (!r.empty())
+        r += "\n";
+    r += fityk_version_line;
+    r += "\n## dumped at: " + time_now();
+    r += "\nset verbosity = quiet #the rest of the file is not shown";
+    r += "\nset autoplot = never";
+    r += "\nreset";
+    r += "\n# ------------  settings  ------------";
+    r += "\n" + F->get_settings()->set_script();
+    r += "\n# ------------  (un)defines  ------------";
+    TplateMgr default_tpm;
+    vector_foreach (Tplate::Ptr, i, default_tpm.tpvec()) {
+        const Tplate* t = F->get_tpm()->get_tp((*i)->name);
+        if (t == NULL || t->as_formula() != (*i)->as_formula())
+            r += "\nundefine " + (*i)->name;
     }
-    fprintf(f, "%s\n", fityk_version_line);
-    fprintf(f, "## dumped at: %s\n", time_now().c_str());
-    fprintf(f, "set verbosity = quiet #the rest of the file is not shown\n");
-    fprintf(f, "set autoplot = never\n");
-    fprintf(f, "reset\n");
-    fprintf(f, "# ------------  settings  ------------\n");
-    fprintf(f, "%s\n", get_settings()->set_script().c_str());
-    fprintf(f, "# ------------  variables and functions  ------------\n");
-    // We define here also auto-removed variables and functions,
-    // so the script can't trigger VariableManager::remove_unreferred()
-    // nor VariableManager::auto_remove_functions() until all references
-    // are reproduced.
-    vector_foreach (Variable*, i, variables_)
-        fprintf(f, "%s = %s\n", (*i)->xname.c_str(),
-                                (*i)->get_formula(parameters_).c_str());
-    fprintf(f, "\n");
-    vector<UdfContainer::UDF> const& udfs = UdfContainer::get_udfs();
-    vector_foreach (UdfContainer::UDF, i, udfs)
-        if (!i->builtin)
-            fprintf(f, "define %s\n", i->formula.c_str());
-    fprintf(f, "\n");
-    vector_foreach (Function*, i, functions_) {
-        if ((*i)->has_outdated_type()) {
-            string new_formula = Function::get_formula((*i)->type_name);
-            if (!new_formula.empty())
-                fprintf(f, "undefine %s\n", (*i)->type_name.c_str());
-            fprintf(f, "define %s\n", (*i)->type_formula.c_str());
-            fprintf(f, "%s\n", (*i)->get_basic_assignment().c_str());
-            fprintf(f, "undefine %s\n", (*i)->type_name.c_str());
-            if (!new_formula.empty())
-                fprintf(f, "define %s\n", new_formula.c_str());
-        }
+    vector_foreach (Tplate::Ptr, i, F->get_tpm()->tpvec()) {
+        string formula = (*i)->as_formula();
+        const Tplate* t = default_tpm.get_tp((*i)->name);
+        if (t == NULL || t->as_formula() != formula)
+            r += "\ndefine " + formula;
         else
-            fprintf(f, "%s\n", (*i)->get_basic_assignment().c_str());
+            r += "\n# define " + formula;
     }
-    fprintf(f, "\n");
-    fprintf(f, "# ------------  datasets and models  ------------\n");
-    for (int i = 0; i != get_dm_count(); ++i) {
-        Data const* data = get_data(i);
+    r += "\n";
+    r += "\n# ------------  variables and functions  ------------";
+    // The script must not trigger VariableManager::remove_unreferred()
+    // or VariableManager::auto_remove_functions() until all references
+    // are reproduced.
+    vector_foreach (Variable*, i, F->variables())
+        r += "\n" + (*i)->xname + " = " + (*i)->get_formula(F->parameters());
+    r += "\n";
+    vector_foreach (Function*, i, F->functions())
+        r +="\n" + (*i)->get_basic_assignment();
+    r += "\n";
+    r += "\n# ------------  datasets and models  ------------";
+    for (int i = 0; i != F->get_dm_count(); ++i) {
+        const Data* data = F->get_data(i);
         if (i != 0)
-            fprintf(f, "@+ = 0\n");
-        if (!data->get_title().empty())
-            fprintf(f, "set @%d.title = '%s'\n", i, data->get_title().c_str());
+            r += "\n@+ = 0";
+        // TODO set default dataset "use %s"
+        //r += "\nuse @" + S(i);
+        r += "\ntitle = '" + data->get_title() + "'";
         int m = data->points().size();
-        fprintf(f, "M=%d in @%d\n", m, i);
-        fprintf(f, "X=%.12g in @%d # =max(x), prevents sorting.\n",
-                   data->get_x_max(), i);
+        r += "\nM=" + S(m);
+        r += "\nX=" + eS(data->get_x_max()) + "# =max(x), prevents sorting.";
         for (int j = 0; j != m; ++j) {
-            Point const& p = data->points()[j];
-            fprintf(f, "X[%d]=%.12g, Y[%d]=%.12g, S[%d]=%g, A[%d]=%d in @%d\n",
-                       j, p.x, j, p.y, j, p.sigma, j, (int) p.is_active, i);
+            const Point& p = data->points()[j];
+            string idx = "[" + S(j) + "]=";
+            r += "\nX" + idx + eS(p.x) +
+                 ", Y" + idx + eS(p.y) +
+                 ", S" + idx + eS(p.sigma) +
+                 ", A" + idx + (p.is_active ? "1" : "0");
         }
-        fprintf(f, "\n");
-        Model const* model = get_model(i);
-        vector<string> const& ff = model->get_ff().names;
-        if (!ff.empty()) {
-            fprintf(f, "@%d.F = %%%s", i, ff[0].c_str());
-            for (size_t j = 1; j < ff.size(); ++j)
-                fprintf(f, " + %%%s", ff[j].c_str());
-            fprintf(f, "\n");
-        }
+        r += "\n";
+        const Model* model = F->get_model(i);
+        const vector<string>& ff = model->get_ff().names;
+        if (!ff.empty())
+            r += "\nF = %" + join_vector(ff, " + %");
         vector<string> const& zz = model->get_zz().names;
-        if (!zz.empty()) {
-            fprintf(f, "@%d.Z = %%%s", i, zz[0].c_str());
-            for (size_t j = 1; j < zz.size(); ++j)
-                fprintf(f, " + %%%s", zz[j].c_str());
-            fprintf(f, "\n");
-        }
-        fprintf(f, "\n");
+        if (!zz.empty())
+            r += "\nZ = %" + join_vector(zz, " + %");
+        r += "\n";
     }
-    fprintf(f, "plot %s\n", view.str().c_str());
-    // TODO set default dataset "use %s"
-    fprintf(f, "set autoplot = %s\n", get_settings()->getp("autoplot").c_str());
-    fprintf(f, "set verbosity = %s\n",
-               get_settings()->getp("verbosity").c_str());
-    fclose(f);
+    r += "\nplot " + F->view.str();
+    // TODO set current dataset "use %s"
+    r += "\nset autoplot = " + F->get_settings()->getp("autoplot");
+    r += "\nset verbosity = " + F->get_settings()->getp("verbosity");
 }
-*/
 
 int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
                       string& result)
@@ -242,9 +219,8 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
             for (size_t i = 0; i < F->variables().size(); ++i)
                 result += (i > 0 ? " " : "") + F->get_variable(n)->xname;
         else if (word == "types")
-            result += join_vector(Function::get_all_types(), " ");
-        else if (word == "types_full")
-            info_types(result);
+            vector_foreach (Tplate::Ptr, i, F->get_tpm()->tpvec())
+                result += (*i)->name + " ";
         else if (word == "functions")
             for (size_t i = 0; i < F->functions().size(); ++i)
                 result += (i > 0 ? " " : "") + F->get_function(n)->xname;
@@ -358,7 +334,7 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
 
     // FuncType
     else if (args[n].type == kTokenCname)
-        info_func_type(args[n].as_string(), result);
+        info_func_type(F, args[n].as_string(), result);
 
     // %func
     else if (args[n].type == kTokenFuncname)
@@ -394,13 +370,9 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
     return ret;
 }
 
-int eval_info_args(const Ftk* F, int ds, const vector<Token>& args,
+int eval_info_args(const Ftk* F, int ds, const vector<Token>& args, int len,
                    string& result)
 {
-    int len = args.size();
-    if (len > 2 && (args[len-2].type == kTokenGT ||
-                    args[len-2].type == kTokenAppend))
-        len -= 2;
     int n = 0;
     while (n < len) {
         if (!result.empty())
@@ -424,14 +396,10 @@ void eval_one_print_arg(const Ftk* F, int ds, const Token& t, string& result)
         assert(0);
 }
 
-int eval_print_args(const Ftk* F, int ds, const vector<Token>& args,
+int eval_print_args(const Ftk* F, int ds, const vector<Token>& args, int len,
                     string& result)
 {
     // args: condition (expr|string|"filename"|"title")+
-    int len = args.size();
-    if (len > 2 && (args[len-2].type == kTokenGT ||
-                    args[len-2].type == kTokenAppend))
-        len -= 2;
     string sep = " ";
     if (args[0].type == kTokenNop) {
         for (int n = 1; n < len; ++n) {
@@ -480,20 +448,23 @@ string get_info_string(Ftk const* F, string const& args)
     if (lex.peek_token().type != kTokenNop)
         lex.throw_syntax_error("unexpected token");
     string result;
-    eval_info_args(F, -1, tt, result);
+    eval_info_args(F, -1, tt, tt.size(), result);
     return result;
 }
 
-void run_info(const Ftk* F, int ds,
-              CommandType cmd, const std::vector<Token>& args)
+void run_info_or_print(const Ftk* F, int ds,
+                       CommandType cmd, const vector<Token>& args)
 {
     string info;
-    int n;
+    int len = args.size();
+    bool redir = (len > 2 && (args[len-2].type == kTokenGT ||
+                              args[len-2].type == kTokenAppend));
+    int n_args = redir ? len - 2 : len;
     if (cmd == kCmdInfo)
-        n = eval_info_args(F, ds, args, info);
+        eval_info_args(F, ds, args, n_args, info);
     else // cmd == kCmdPrint
-        n = eval_print_args(F, ds, args, info);
-    if (n == (int) args.size()) { // no redirection to file
+        eval_print_args(F, ds, args, n_args, info);
+    if (!redir) { // no redirection to file
         int max_screen_info_length = 2048;
         int more = (int) info.length() - max_screen_info_length;
         if (more > 0) {
@@ -503,11 +474,10 @@ void run_info(const Ftk* F, int ds,
         F->rmsg(info);
     }
     else {
-        assert(n == (int) args.size() - 2);
-        assert(args[n].type == kTokenGT || args[n].type == kTokenAppend);
-        assert(args[n+1].type == kTokenFilename);
-        ios::openmode mode = (args[n].type == kTokenGT ? ios::trunc : ios::app);
-        string filename = args[n+1].as_string();
+        assert(args.back().type == kTokenFilename);
+        ios::openmode mode = ((args.end() - 1)->type == kTokenGT ? ios::trunc
+                                                                 : ios::app);
+        string filename = args.back().as_string();
         ofstream os(filename.c_str(), ios::out | mode);
         if (!os)
             throw ExecuteError("Can't open file: " + filename);

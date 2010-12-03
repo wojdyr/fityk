@@ -980,15 +980,20 @@ bool SideBar::find_value_of_param(string const& p, double* value)
 {
     if (active_function != -1) {
         Function const* f = ftk->get_function(active_function);
+        int idx = f->get_param_nr_nothrow(p);
         bool found = f->get_param_value_nothrow(p, *value);
-        if (found)
+        if (idx != -1) {
+            *value = f->get_var_value(idx);
             return true;
+        }
     }
 
     vector_foreach (Function*, i, ftk->functions()) {
-        bool found = (*i)->get_param_value_nothrow(p, *value);
-        if (found)
+        int idx = (*i)->get_param_nr_nothrow(p);
+        if (idx != -1) {
+            *value = (*i)->get_var_value(idx);
             return true;
+        }
     }
     return false;
 }

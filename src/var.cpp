@@ -55,7 +55,7 @@ int VariableUser::get_max_var_idx()
 
 
 // ctor for simple variables and mirror variables
-Variable::Variable(std::string const &name, int nr)
+Variable::Variable(string const &name, int nr)
     : VariableUser(name, "$"),
       nr_(nr), af_(value_, derivatives_), original_(NULL)
 {
@@ -69,7 +69,7 @@ Variable::Variable(std::string const &name, int nr)
 }
 
 // ctor for compound variables
-Variable::Variable(std::string const &name_, vector<string> const &vars_,
+Variable::Variable(string const &name_, vector<string> const &vars_,
                    vector<OpTree*> const &op_trees_)
     : VariableUser(name_, "$", vars_),
       nr_(-1), derivatives_(vars_.size()),
@@ -223,15 +223,15 @@ FuncGrammar::definition<ScannerT>::definition(FuncGrammar const& /*self*/)
 // explicit template instantiation -- to accelerate compilation
 #if SPIRIT_VERSION >= 0x1805
 template FuncGrammar::definition<scanner<char const*, scanner_policies<skip_parser_iteration_policy<space_parser, iteration_policy>, ast_match_policy<char const*, node_val_data_factory<nil_t> >, action_policy> > >::definition(FuncGrammar const&);
-template FuncGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(FuncGrammar const&);
+//template FuncGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(FuncGrammar const&);
 #else
 template FuncGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<action_policy> > > >::definition(FuncGrammar const&);
-template FuncGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<no_actions_action_policy<action_policy> > > > >::definition(FuncGrammar const&);
+//template FuncGrammar::definition<scanner<char const*, scanner_policies<skipper_iteration_policy<iteration_policy>, match_policy, no_actions_action_policy<no_actions_action_policy<action_policy> > > > >::definition(FuncGrammar const&);
 #endif
 
 /// small and slow utility function
 /// uses calculate_deriv() to simplify formulae
-std::string simplify_formula(std::string const &formula)
+string simplify_formula(string const &formula)
 {
     tree_parse_info<> info = ast_parse(formula.c_str(), FuncG>>end_p, space_p);
     assert(info.full);

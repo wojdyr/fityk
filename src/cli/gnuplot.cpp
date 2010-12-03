@@ -105,7 +105,7 @@ bool GnuPlot::gnuplot_pipe_ok()
 int GnuPlot::plot()
 {
     // plot only active data with sum
-    int dm_number = ftk->view.get_datasets()[0];
+    int dm_number = ftk->default_dm();
     DataAndModel const* dm = ftk->get_dm(dm_number);
     Data const* data = dm->data();
     Model const* model = dm->model();

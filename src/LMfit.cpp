@@ -78,7 +78,7 @@ void LMfit::autoiter()
             if (d / prev_chi2 < stop_rel || chi2 == 0) {
                 small_change_counter++;
                 if (small_change_counter >= 2 || chi2 == 0) {
-                    F->msg("Fitting converged.");
+                    F->msg("... converged.");
                     break;
                 }
             }

@@ -139,7 +139,8 @@ public:
 
     /// parse expression
     void parse_expr(Lexer& lex, int default_ds,
-                    const std::vector<std::string> *custom_vars=NULL);
+                    const std::vector<std::string> *custom_vars=NULL,
+                    std::vector<std::string> *new_vars=NULL);
 
     // does not throw; returns true if all string is parsed
     bool parse_full(Lexer& lex, int default_ds,
@@ -178,9 +179,9 @@ private:
     void put_value_from_curly(Lexer& lex, int ds);
     void put_array_var(bool has_index, dataVM::Op op);
     void put_var(dataVM::Op op);
-    bool put_data_name(const std::string& word, bool indexed);
-    bool put_custom_name(const std::string& word,
-                         const std::vector<std::string>& vars);
+    void put_name(Lexer& lex, const std::string& word,
+                  const std::vector<std::string>* custom_vars,
+                  std::vector<std::string>* new_vars);
     void put_variable_sth(Lexer& lex, const std::string& name);
     void put_func_sth(Lexer& lex, const std::string& name);
     void put_fz_sth(Lexer& lex, char fz, int ds);

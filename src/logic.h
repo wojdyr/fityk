@@ -19,6 +19,7 @@ class UserInterface;
 class FitMethodsContainer;
 class Fit;
 class Model;
+class TplateMgr;
 
 
 /// keeps Data and its Model
@@ -69,6 +70,8 @@ public:
     bool contains_dm(DataAndModel const* p) const
                       { return count(dms_.begin(), dms_.end(), p) > 0; }
 
+    int default_dm() const { return 0; }
+
     Settings const* get_settings() const { return settings_; }
     Settings* get_settings() { return settings_; }
 
@@ -79,6 +82,9 @@ public:
         { return fit_container_; }
     FitMethodsContainer* get_fit_container() { return fit_container_; }
     Fit* get_fit() const;
+
+    TplateMgr const* get_tpm() const { return tplate_mgr_; }
+    TplateMgr* get_tpm() { return tplate_mgr_; }
 
     /// Send warning to UI.
     void warn(std::string const &s) const;
@@ -117,6 +123,7 @@ private:
     Settings* settings_;
     UserInterface* ui_;
     FitMethodsContainer* fit_container_;
+    TplateMgr* tplate_mgr_;
     bool dirty_plot_;
 
     void initialize();
@@ -124,7 +131,5 @@ private:
     /// verify that n is the valid number for get_dm() and return n
     int check_dm_number(int n) const;
 };
-
-//extern Ftk* AL;
 
 #endif

@@ -58,9 +58,6 @@ void NAME::calculate_value_deriv_in_range(vector<fp> const &xx, \
 
 ///////////////////////////////////////////////////////////////////////
 
-const char *FuncConstant::formula
-= "Constant(a=avgy) = a";
-
 void FuncConstant::calculate_value_in_range(vector<fp> const&/*xx*/,
                                             vector<fp>& yy,
                                             int first, int last) const
@@ -77,10 +74,6 @@ CALCULATE_DERIV_END(vv_[0])
 
 ///////////////////////////////////////////////////////////////////////
 
-const char *FuncLinear::formula
-= "Linear(a0=intercept,a1=slope) = a0 + a1 * x";
-
-
 CALCULATE_VALUE_BEGIN(FuncLinear)
 CALCULATE_VALUE_END(vv_[0] + x*vv_[1])
 
@@ -91,10 +84,6 @@ CALCULATE_DERIV_BEGIN(FuncLinear)
 CALCULATE_DERIV_END(vv_[0] + x*vv_[1])
 
 ///////////////////////////////////////////////////////////////////////
-
-const char *FuncQuadratic::formula
-= "Quadratic(a0=avgy, a1=0, a2=0) = a0 + a1*x + a2*x^2";
-
 
 CALCULATE_VALUE_BEGIN(FuncQuadratic)
 CALCULATE_VALUE_END(vv_[0] + x*vv_[1] + x*x*vv_[2])
@@ -108,10 +97,6 @@ CALCULATE_DERIV_END(vv_[0] + x*vv_[1] + x*x*vv_[2])
 
 ///////////////////////////////////////////////////////////////////////
 
-const char *FuncCubic::formula
-= "Cubic(a0=avgy, a1=0, a2=0, a3=0) = a0 + a1*x + a2*x^2 + a3*x^3";
-
-
 CALCULATE_VALUE_BEGIN(FuncCubic)
 CALCULATE_VALUE_END(vv_[0] + x*vv_[1] + x*x*vv_[2] + x*x*x*vv_[3])
 
@@ -124,11 +109,6 @@ CALCULATE_DERIV_BEGIN(FuncCubic)
 CALCULATE_DERIV_END(vv_[0] + x*vv_[1] + x*x*vv_[2] + x*x*x*vv_[3])
 
 ///////////////////////////////////////////////////////////////////////
-
-const char *FuncPolynomial4::formula
-= "Polynomial4(a0=avgy, a1=0, a2=0, a3=0, a4=0) = "
-                                 "a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4";
-
 
 CALCULATE_VALUE_BEGIN(FuncPolynomial4)
 CALCULATE_VALUE_END(vv_[0] + x*vv_[1] + x*x*vv_[2] + x*x*x*vv_[3]
@@ -145,11 +125,6 @@ CALCULATE_DERIV_END(vv_[0] + x*vv_[1] + x*x*vv_[2] + x*x*x*vv_[3]
                                       + x*x*x*x*vv_[4])
 
 ///////////////////////////////////////////////////////////////////////
-
-const char *FuncPolynomial5::formula
-= "Polynomial5(a0=avgy, a1=0, a2=0, a3=0, a4=0, a5=0) = "
-                             "a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5";
-
 
 CALCULATE_VALUE_BEGIN(FuncPolynomial5)
 CALCULATE_VALUE_END(vv_[0] + x*vv_[1] + x*x*vv_[2]
@@ -169,11 +144,6 @@ CALCULATE_DERIV_END(vv_[0] + x*vv_[1] + x*x*vv_[2]
 
 ///////////////////////////////////////////////////////////////////////
 
-const char *FuncPolynomial6::formula
-= "Polynomial6(a0=avgy, a1=0, a2=0, a3=0, a4=0, a5=0, a6=0) = "
-                     "a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5 + a6*x^6";
-
-
 CALCULATE_VALUE_BEGIN(FuncPolynomial6)
 CALCULATE_VALUE_END(vv_[0] + x*vv_[1] + x*x*vv_[2] + x*x*x*vv_[3] +
                         x*x*x*x*vv_[4] + x*x*x*x*x*vv_[5] + x*x*x*x*x*x*vv_[6])
@@ -192,10 +162,6 @@ CALCULATE_DERIV_END(vv_[0] + x*vv_[1] + x*x*vv_[2] + x*x*x*vv_[3] +
                         x*x*x*x*vv_[4] + x*x*x*x*x*vv_[5] + x*x*x*x*x*x*vv_[6])
 
 ///////////////////////////////////////////////////////////////////////
-
-const char *FuncGaussian::formula
-= "Gaussian(height, center, hwhm) = "
-               "height*exp(-ln(2)*((x-center)/hwhm)^2)";
 
 void FuncGaussian::more_precomputations()
 {
@@ -239,11 +205,6 @@ bool FuncGaussian::get_area(fp* a) const
 }
 
 ///////////////////////////////////////////////////////////////////////
-
-const char *FuncSplitGaussian::formula
-= "SplitGaussian(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5) = "
-                   "if x < center then Gaussian(height, center, hwhm1)"
-                   " else Gaussian(height, center, hwhm2)";
 
 void FuncSplitGaussian::more_precomputations()
 {
@@ -300,11 +261,6 @@ bool FuncSplitGaussian::get_area(fp* a) const
 
 ///////////////////////////////////////////////////////////////////////
 
-const char *FuncLorentzian::formula
-= "Lorentzian(height, center, hwhm) = "
-                        "height/(1+((x-center)/hwhm)^2)";
-
-
 void FuncLorentzian::more_precomputations()
 {
     if (fabs(vv_[2]) < epsilon)
@@ -341,10 +297,6 @@ bool FuncLorentzian::get_nonzero_range (fp level, fp &left, fp &right) const
 }
 
 ///////////////////////////////////////////////////////////////////////
-
-const char *FuncPearson7::formula
-= "Pearson7(height, center, hwhm, shape=2) = "
-                   "height/(1+((x-center)/hwhm)^2*(2^(1/shape)-1))^shape";
 
 void FuncPearson7::more_precomputations()
 {
@@ -408,12 +360,6 @@ bool FuncPearson7::get_area(fp* a) const
 }
 
 ///////////////////////////////////////////////////////////////////////
-
-const char *FuncSplitPearson7::formula
-= "SplitPearson7(height, center, hwhm1=fwhm*0.5, hwhm2=fwhm*0.5, "
-                                                        "shape1=2, shape2=2) = "
-    "if x < center then Pearson7(height, center, hwhm1, shape1)"
-    " else Pearson7(height, center, hwhm2, shape2)";
 
 void FuncSplitPearson7::more_precomputations()
 {
@@ -488,11 +434,6 @@ bool FuncSplitPearson7::get_area(fp* a) const
 
 ///////////////////////////////////////////////////////////////////////
 
-const char *FuncPseudoVoigt::formula
-= "PseudoVoigt(height, center, hwhm, shape=0.5) = "
-                        "height*((1-shape)*exp(-ln(2)*((x-center)/hwhm)^2)"
-                                 "+shape/(1+((x-center)/hwhm)^2))";
-
 void FuncPseudoVoigt::more_precomputations()
 {
     if (fabs(vv_[2]) < epsilon)
@@ -543,10 +484,6 @@ bool FuncPseudoVoigt::get_area(fp* a) const
 }
 
 ///////////////////////////////////////////////////////////////////////
-
-const char *FuncVoigt::formula
-= "Voigt(height, center, gwidth=fwhm*0.4, shape=0.1) ="
-                            " convolution of Gaussian and Lorentzian #";
 
 void FuncVoigt::more_precomputations()
 {
@@ -654,10 +591,6 @@ fp FuncVoigt::get_other_prop(string const& name) const
 
 ///////////////////////////////////////////////////////////////////////
 
-const char *FuncVoigtA::formula
-= "VoigtA(area, center, gwidth=fwhm*0.4, shape=0.1) = "
-                            "convolution of Gaussian and Lorentzian #";
-
 void FuncVoigtA::more_precomputations()
 {
     if (vv_.size() != 6)
@@ -721,11 +654,6 @@ bool FuncVoigtA::get_height(fp* a) const
 
 ///////////////////////////////////////////////////////////////////////
 
-const char *FuncEMG::formula
-= "EMG(a=height, b=center, c=fwhm*0.4, d=fwhm*0.04) ="
-                " a*c*(2*pi)^0.5/(2*d) * exp((b-x)/d + c^2/(2*d^2))"
-                " * (abs(d)/d - erf((b-x)/(2^0.5*c) + c/(2^0.5*d)))";
-
 void FuncEMG::more_precomputations()
 {
 }
@@ -775,10 +703,6 @@ CALCULATE_DERIV_END(a*t)
 
 ///////////////////////////////////////////////////////////////////////
 
-const char *FuncDoniachSunjic::formula
-= "DoniachSunjic(h=height, a=0.1, F=1, E=center) ="
-    "h * cos(pi*a/2 + (1-a)*atan((x-E)/F)) / (F^2+(x-E)^2)^((1-a)/2)";
-
 bool FuncDoniachSunjic::get_nonzero_range(fp/*level*/, fp&/*left*/,
                                           fp&/*right*/) const
 { return false; }
@@ -811,10 +735,6 @@ CALCULATE_DERIV_BEGIN(FuncDoniachSunjic)
     dy_dx = -dy_dv[3];
 CALCULATE_DERIV_END(h*t)
 ///////////////////////////////////////////////////////////////////////
-
-
-const char *FuncPielaszekCube::formula
-= "PielaszekCube(a=height*0.016, center, r=300, s=150) = ...#";
 
 
 CALCULATE_VALUE_BEGIN(FuncPielaszekCube)
@@ -943,9 +863,6 @@ CALCULATE_DERIV_END(height*t);
 
 // Implemented by Mirko Scholz. The formula is taken from:
 // Bingemann, D.; Ernsting, N. P. J. Chem. Phys. 1995, 102, 2691–2700.
-const char *FuncLogNormal::formula
-= "LogNormal(height, center, width=fwhm, asym = 0.1) = "
-"height*exp(-ln(2)*(ln(2.0*asym*(x-center)/width+1)/asym)^2)";
 
 void FuncLogNormal::more_precomputations()
 {
@@ -1029,9 +946,6 @@ bool FuncLogNormal::get_area(fp* a) const
 
 ///////////////////////////////////////////////////////////////////////
 
-const char *FuncSpline::formula
-= "Spline() = cubic spline #";
-
 void FuncSpline::more_precomputations()
 {
     q_.resize(nv() / 2);
@@ -1053,9 +967,6 @@ CALCULATE_DERIV_BEGIN(FuncSpline)
 CALCULATE_DERIV_END(t)
 
 ///////////////////////////////////////////////////////////////////////
-
-const char *FuncPolyline::formula
-= "Polyline() = linear interpolation #";
 
 void FuncPolyline::more_precomputations()
 {

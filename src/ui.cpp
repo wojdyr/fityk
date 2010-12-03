@@ -335,7 +335,7 @@ void UserInterface::draw_plot(int pri, RepaintMode mode)
 }
 
 
-Commands::Status UserInterface::exec_command(std::string const &s)
+Commands::Status UserInterface::exec_command(string const &s)
 {
     return exec_command_ ? (*exec_command_)(s) : execute_line(s);
 }

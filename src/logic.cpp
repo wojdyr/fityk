@@ -19,7 +19,7 @@
 #include "settings.h"
 #include "mgr.h"
 #include "func.h"
-#include "udf.h"
+#include "tplate.h"
 #include "lexer.h" // Lexer::kNew
 
 using namespace std;
@@ -45,7 +45,6 @@ Ftk::Ftk()
     setlocale(LC_NUMERIC, "C");
     ui_ = new UserInterface(this);
     initialize();
-    //AL = this;
 }
 
 Ftk::~Ftk()
@@ -60,11 +59,11 @@ void Ftk::initialize()
     fit_container_ = new FitMethodsContainer(this);
     // Settings ctor is using FitMethodsContainer
     settings_ = new Settings(this);
+    tplate_mgr_ = new TplateMgr;
     view = View(this);
     dirty_plot_ = true;
     append_dm();
     get_settings()->do_srand();
-    UdfContainer::initialize_udfs();
 }
 
 // cleaning common for dtor and reset()
@@ -74,6 +73,7 @@ void Ftk::destroy()
     VariableManager::do_reset();
     delete fit_container_;
     delete settings_;
+    delete tplate_mgr_;
 }
 
 // reset everything but UserInterface (and related settings)
@@ -120,33 +120,33 @@ int Ftk::check_dm_number(int n) const
 }
 
 /// Send warning to UI.
-void Ftk::warn(std::string const &s) const
+void Ftk::warn(string const &s) const
 {
     get_ui()->output_message(UserInterface::kWarning, s);
 }
 
 /// Send implicitely requested message to UI.
-void Ftk::rmsg(std::string const &s) const
+void Ftk::rmsg(string const &s) const
 {
     get_ui()->output_message(UserInterface::kNormal, s);
 }
 
 /// Send message to UI.
-void Ftk::msg(std::string const &s) const
+void Ftk::msg(string const &s) const
 {
     if (get_verbosity() >= 0)
          get_ui()->output_message(UserInterface::kNormal, s);
 }
 
 /// Send verbose message to UI.
-void Ftk::vmsg(std::string const &s) const
+void Ftk::vmsg(string const &s) const
 {
     if (get_verbosity() >= 1)
          get_ui()->output_message(UserInterface::kNormal, s);
 }
 
 /// execute command(s) from string
-Commands::Status Ftk::exec(std::string const &s)
+Commands::Status Ftk::exec(string const &s)
 {
     return get_ui()->exec_and_log(s);
 }
@@ -281,7 +281,7 @@ void Ftk::import_dataset(int slot, string const& filename,
 
     if (get_dm_count() == 1) {
         RealRange r; // default value: [:]
-        view.change_view(r, r);
+        view.change_view(r, r, vector1(0));
     }
 }
 

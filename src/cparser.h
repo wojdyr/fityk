@@ -11,6 +11,7 @@
 #include "ui.h"
 #include "lexer.h"
 #include "eparser.h"
+#include "tplate.h"
 
 class DataAndModel;
 
@@ -50,6 +51,7 @@ struct Command
 {
     CommandType type;
     std::vector<Token> args;
+    Tplate::Ptr defined_tp; // used to parse the "define" command
 };
 
 struct Statement
@@ -96,18 +98,25 @@ private:
     Token read_expr(Lexer& lex);
     Token read_and_calc_expr(Lexer& lex);
     Token read_var(Lexer& lex);
+    Token read_define_arg(Lexer& lex,
+                          const std::vector<std::string>& allowed_names,
+                          std::vector<std::string> *new_names);
+    Token read_default_value(Lexer& lex);
     void parse_fz(Lexer& lex, Command &cmd);
     void parse_assign_func(Lexer& lex, std::vector<Token>& args);
     void parse_command(Lexer& lex, Command& cmd);
-    void parse_define_args(Lexer& lex, std::vector<Token>& args);
+    void parse_component(Lexer& lex, const std::vector<std::string>& lhs_vars,
+                         Tplate::Component* c);
+    Tplate::Ptr parse_define_args(Lexer& lex);
     void parse_set_args(Lexer& lex, std::vector<Token>& args);
     CommandType parse_xysa_args(Lexer& lex, std::vector<Token>& args);
     void parse_real_range(Lexer& lex, std::vector<Token>& args);
     void parse_func_id(Lexer& lex, std::vector<Token>& args, bool accept_fz);
     void parse_guess_args(Lexer& lex, std::vector<Token>& args);
     void parse_one_info_arg(Lexer& lex, std::vector<Token>& args);
-    void parse_kwargs(Lexer& lex, std::vector<Token>& args);
-    void expand_dataset_glob();
 };
+
+void expand_dataset_glob(const Ftk* F, std::vector<int>& ds_list,
+                         int default_ds);
 
 #endif //FITYK_CPARSER_H_

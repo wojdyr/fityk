@@ -15,6 +15,15 @@
 #include "settings.h"
 #include "logic.h"
 #include "data.h"
+#include "guess.h" // peak_traits, linear_traits
+
+// create_* functions defined in tplate.cpp
+Function* create_CompoundFunction(const Ftk* F, const std::string& name,
+                        Tplate::Ptr tp, const std::vector<std::string>& vars);
+Function* create_SplitFunction(const Ftk* F, const std::string& name,
+                        Tplate::Ptr tp, const std::vector<std::string>& vars);
+Function* create_CustomFunction(const Ftk* F, const std::string& name,
+                        Tplate::Ptr tp, const std::vector<std::string>& vars);
 
 using namespace std;
 using fityk::SyntaxError;
@@ -25,12 +34,10 @@ const char *command_list[] = {
 };
 
 const char* info_args[] = {
-    "version", "compiler", "variables",
-    "types", "types_full", "functions",
+    "version", "compiler", "variables", "types", "functions",
     "dataset_count", "datasets", "view", "set", "fit_history",
     "filename", "title", "data", "formula", "simplified_formula",
-    "state",
-    "history_summary", "peaks", "peaks_err",
+    "state", "history_summary", "peaks", "peaks_err",
     "history", "guess",
     "fit", "errors", "cov",
     "refs", "par",
@@ -77,26 +84,6 @@ const char* commandtype2str(CommandType c)
     }
     return NULL; // avoid warning
 }
-
-/*
-// returns true if the command syntax ends with (optional) "in @n"
-bool has_data_arg(CommandType c)
-{
-    switch (c) {
-        case kCmdDeleteP:
-        case kCmdFit:
-        case kCmdGuess:
-        case kCmdInfo:
-        case kCmdPlot:
-        case kCmdPointTr:
-        case kCmdAllPointsTr:
-        case kCmdResizeP:
-            return true;
-        default:
-            return false;
-    }
-}
-*/
 
 Token nop()
 {
@@ -162,6 +149,19 @@ Token Parser::read_var(Lexer& lex)
     t.type = kTokenExpr;
     t.str = lex.pchar();
     ep_.parse_expr(lex, -1);
+    t.length = lex.pchar() - t.str;
+    t.value.d = 0.;
+    return t;
+}
+
+// see the command above
+Token Parser::read_define_arg(Lexer& lex, const vector<string>& allowed_names,
+                              vector<string> *new_names)
+{
+    Token t;
+    t.type = kTokenExpr;
+    t.str = lex.pchar();
+    ep_.parse_expr(lex, -1, &allowed_names, new_names);
     t.length = lex.pchar() - t.str;
     t.value.d = 0.;
     return t;
@@ -233,7 +233,7 @@ void Parser::parse_func_id(Lexer& lex, vector<Token>& args, bool accept_fz)
 // member, because uses Settings::get_value_type()
 void Parser::parse_set_args(Lexer& lex, vector<Token>& args)
 {
-    for (;;) {
+    do {
         const Token key = lex.get_token();
         if (key.type != kTokenLname)
             lex.throw_syntax_error("expected option name");
@@ -257,111 +257,161 @@ void Parser::parse_set_args(Lexer& lex, vector<Token>& args)
             value = read_and_calc_expr(lex);
         }
         args.push_back(value);
+    } while (lex.discard_token_if(kTokenComma));
+}
 
-        if (lex.peek_token().type == kTokenComma)
-            lex.get_token(); // discard comma
+
+class ArgReader
+{
+public:
+    ArgReader(Lexer& lex) : lex_(lex)
+    {
+        lex_.get_expected_token(kTokenOpen);
+        flag_ = (lex.get_token_if(kTokenClose).type == kTokenNop ? 0 : 1);
+    }
+
+    bool next_arg()
+    {
+        if (flag_ == 0) // no args
+            return false;
+        else if (flag_ == 1) { // at the beginning
+            flag_ = 2;
+            return true;
+        }
+        else // now either ',' or ')'
+            return (lex_.get_expected_token(kTokenComma, kTokenClose).type
+                    == kTokenComma);
+    }
+
+private:
+    Lexer& lex_;
+    int flag_;
+};
+
+// FuncType "(" [ArgExpr % ","] ")"
+void Parser::parse_component(Lexer& lex, const vector<string>& lhs_vars,
+                             Tplate::Component* c)
+{
+    Token name = lex.get_expected_token(kTokenCname);
+    c->p = F_->get_tpm()->get_shared_tp(name.as_string());
+    c->values.clear();
+    ArgReader ar(lex);
+    while (ar.next_arg()) {
+        Token t = read_define_arg(lex, lhs_vars, NULL);
+        c->values.push_back(t.as_string());
+    }
+}
+
+// Tplate
+Tplate::Ptr Parser::parse_define_args(Lexer& lex)
+{
+    boost::shared_ptr<Tplate> tp(new Tplate);
+    // FuncType
+    tp->name = lex.get_expected_token(kTokenCname).as_string();
+
+    // '(' [(arg_name ['=' default_value]) % ','] ')'
+    ArgReader arg_reader(lex);
+    const vector<string> empty;
+    vector<string> new_vars;
+    while (arg_reader.next_arg()) {
+        string name = lex.get_expected_token(kTokenLname).as_string();
+        if (name == "x") {
+            if (lex.peek_token().type == kTokenAssign)
+                lex.throw_syntax_error("do not use x at left-hand side.");
+            continue; // ignore this "x"
+        }
+        tp->pars.push_back(name);
+        string default_value;
+        if (lex.discard_token_if(kTokenAssign))
+            default_value = read_define_arg(lex, empty, &new_vars).as_string();
         else
+            new_vars.push_back(name);
+        tp->defvals.push_back(default_value);
+    }
+
+    tp->linear_d = false;
+    vector_foreach (string, i, new_vars)
+        if (contains_element(Guess::linear_traits, *i)) {
+            tp->linear_d = true;
             break;
-    }
-}
-
-// '(' [(name ['=' expr]) % ','] ')'
-void Parser::parse_kwargs(Lexer& lex, vector<Token>& args)
-{
-    lex.get_expected_token(kTokenOpen);
-    while (lex.peek_token().type != kTokenClose) {
-        Token t = lex.get_token();
-        if (t.type == kTokenNop)
-            lex.throw_syntax_error("mismatching '('");
-        if (t.type != kTokenLname)
-            lex.throw_syntax_error("expected parameter name");
-        args.push_back(t);
-        if (lex.peek_token().type == kTokenAssign) {
-            lex.get_token(); // discard '='
-            args.push_back(read_var(lex));
         }
-        else {
-            args.push_back(nop());
+    tp->peak_d = false;
+    vector_foreach (string, i, new_vars)
+        if (contains_element(Guess::peak_traits, *i)) {
+            tp->peak_d = true;
+            break;
         }
-        if (lex.peek_token().type == kTokenComma)
-            lex.get_token(); // discard ','
-        else if (lex.peek_token().type != kTokenClose)
-            lex.throw_syntax_error("unexpected token after arg #"
-                                   + S(args.size()/2 + 1));
-    }
-    lex.get_token(); // discard ')'
-}
 
-void Parser::parse_define_args(Lexer& lex, vector<Token>& args)
-{
-    Token t = lex.get_expected_token(kTokenCname);
-    args.push_back(t);
-    parse_kwargs(lex, args);
-    t = lex.get_expected_token(kTokenAssign);
-    args.push_back(t);
-    t = lex.get_token();
-    if (t.type == kTokenCname) { // CompoundFunction
+    // '='
+    lex.get_expected_token(kTokenAssign); // discard '='
+
+    // RHS
+    Token t = lex.get_token();
+    // CompoundFunction, RHS: Component % "+"
+    if (t.type == kTokenCname) {
+        lex.go_back(t);
+        do {
+            Tplate::Component c;
+            parse_component(lex, tp->pars, &c);
+            tp->components.push_back(c);
+        } while (lex.discard_token_if(kTokenPlus));
+        tp->create = &create_CompoundFunction;
     }
-    else if (t.as_string() == "x" && lex.peek_token().type == kTokenLT) {
-        // SplitFunction
+
+    // SplitFunction, RHS: "x" "<" Arg ? Component : Component 
+    else if (t.as_string() == "x" && lex.discard_token_if(kTokenLT)) {
+        tp->components.resize(3);
+        string split_point = read_define_arg(lex, tp->pars, NULL).as_string();
+        tp->components[0].values.push_back(split_point);
+        lex.get_expected_token(kTokenQMark); // discard '?'
+        parse_component(lex, tp->pars, &tp->components[1]);
+        lex.get_expected_token(kTokenColon); // discard ':'
+        parse_component(lex, tp->pars, &tp->components[2]);
+        tp->create = &create_SplitFunction;
     }
+
+    // CustomFunction
     else {
-        // CustomFunction
+        tp->pars.push_back("x");
+        vector<string> extra_names;
+        read_define_arg(lex, tp->pars, &extra_names);
+        tp->pars.pop_back();
+        if (lex.peek_token().as_string() == "where") {
+            lex.get_token(); // discard "where"
+            do {
+                //TODO "where"
+                //>> (function_param >> '=' >> no_actions_d[FuncG])
+            } while (lex.discard_token_if(kTokenComma));
+        }
+        tp->create = &create_CustomFunction;
     }
-    //TODO
-    /*
-   type_name
-    >> '(' >> !((function_param >> !('=' >> no_actions_d[FuncG])) % ',')
-    >> ')' >> '='
-                  >> (((type_name >> '('  // CompoundFunction
-                      >> (no_actions_d[FuncG]  % ',')
-                      >> ')'
-                      ) % '+')
-                     | str_p("x") >> str_p("<") >> +~chset_p("\n;#")
-
-                     | no_actions_d[FuncG] //Custom Function
-                       >> !("where"
-                            >> (function_param >> '=' >> no_actions_d[FuncG])
-                                % ','
-                           )
-                     )
-     */
+    tp->rhs = string(t.str, lex.pchar());
+    return tp;
 }
 
 void parse_undefine_args(Lexer& lex, vector<Token>& args)
 {
-    for (;;) {
-        Token t = lex.get_expected_token(kTokenCname);
-        args.push_back(t);
-        if (lex.peek_token().type == kTokenComma)
-            lex.get_token();
-        else
-            break;
-    }
+    do {
+        args.push_back(lex.get_expected_token(kTokenCname));
+    } while (lex.discard_token_if(kTokenComma));
 }
 
 void parse_delete_args(Lexer& lex, vector<Token>& args)
 {
-    for (;;) {
+    do {
         // allow "delete %pd*" or %* or $foo* or $*.
         Token t = lex.get_glob_token();
         if (t.type != kTokenDataset && t.type != kTokenFuncname
                 && t.type != kTokenVarname)
             lex.throw_syntax_error("unexpected arg after `delete'");
         args.push_back(t);
-        if (lex.peek_token().type == kTokenComma)
-            lex.get_token();
-        else
-            break;
-    }
+    } while (lex.discard_token_if(kTokenComma));
 }
 
 void parse_exec_args(Lexer& lex, vector<Token>& args)
 {
-    if (lex.peek_token().type == kTokenBang) {
-        lex.get_token(); // discard '!'
+    if (lex.discard_token_if(kTokenBang))
         args.push_back(lex.get_rest_of_line());
-    }
     else
         args.push_back(lex.get_filename_token());
 }
@@ -408,19 +458,40 @@ void Parser::parse_guess_args(Lexer& lex, vector<Token>& args)
     else
         args.push_back(nop());
     args.push_back(t);
-    if (lex.peek_token().type == kTokenOpen)
-        parse_kwargs(lex, args);
+    if (lex.peek_token().type == kTokenOpen) {
+        lex.get_expected_token(kTokenOpen);
+        Token t = lex.get_token_if(kTokenClose);
+        while (t.type != kTokenClose) {
+            args.push_back(lex.get_expected_token(kTokenLname));
+            lex.get_expected_token(kTokenAssign); // discard '='
+            args.push_back(read_var(lex));
+            t = lex.get_expected_token(kTokenComma, kTokenClose);
+        }
+    }
     parse_real_range(lex, args);
+}
+
+static
+void parse_redir(Lexer& lex, vector<Token>& args)
+{
+    if (lex.peek_token().type == kTokenGT ||
+            lex.peek_token().type == kTokenAppend) {
+        args.push_back(lex.get_token());
+        Token f = lex.get_filename_token();
+        if (f.type == kTokenNop)
+            lex.throw_syntax_error("expected filename");
+        args.push_back(f);
+    }
 }
 
 void Parser::parse_info_args(Lexer& lex, vector<Token>& args)
 {
+    if (lex.peek_token().type == kTokenNop) // no args
+        return;
     parse_one_info_arg(lex, args);
-    while (lex.peek_token().type == kTokenComma) {
-        lex.get_token(); // discard ','
+    while (lex.discard_token_if(kTokenComma))
         parse_one_info_arg(lex, args);
-    }
-    //TODO parse redir
+    parse_redir(lex, args);
 }
 
 void Parser::parse_one_info_arg(Lexer& lex, vector<Token>& args)
@@ -493,7 +564,7 @@ void Parser::parse_print_args(Lexer& lex, vector<Token>& args)
     }
     else
         args.push_back(nop());
-    for (;;) {
+    do {
         if (lex.peek_token().type == kTokenString)
             args.push_back(lex.get_token());
         else if (lex.peek_token().as_string() == "filename" ||
@@ -504,12 +575,8 @@ void Parser::parse_print_args(Lexer& lex, vector<Token>& args)
             args.push_back(t);
         }
 
-        if (lex.peek_token().type == kTokenComma)
-            lex.get_token(); // discard ','
-        else
-            break;
-    }
-    //TODO parse redir
+    } while (lex.discard_token_if(kTokenComma));
+    parse_redir(lex, args);
 }
 
 CommandType Parser::parse_xysa_args(Lexer& lex, vector<Token>& args)
@@ -519,9 +586,8 @@ CommandType Parser::parse_xysa_args(Lexer& lex, vector<Token>& args)
     if (t.type == kTokenAssign) {
         for (;;) {
             args.push_back(read_expr(lex));
-            if (lex.peek_token().type != kTokenComma)
+            if (!lex.discard_token_if(kTokenComma))
                 break;
-            lex.get_token(); // discard ','
             Token a = lex.get_expected_token(kTokenUletter);
             char d = *a.str;
             if (d != 'X' && d != 'Y' && d != 'S' && d != 'A')
@@ -538,9 +604,8 @@ CommandType Parser::parse_xysa_args(Lexer& lex, vector<Token>& args)
             lex.get_expected_token(kTokenRSquare); // discard ']'
             lex.get_expected_token(kTokenAssign); // discard '='
             args.push_back(read_and_calc_expr(lex));
-            if (lex.peek_token().type != kTokenComma)
+            if (!lex.discard_token_if(kTokenComma))
                 break;
-            lex.get_token(); // discard ','
             Token a = lex.get_expected_token(kTokenUletter);
             char d = *a.str;
             if (d != 'X' && d != 'Y' && d != 'S' && d != 'A')
@@ -556,34 +621,29 @@ CommandType Parser::parse_xysa_args(Lexer& lex, vector<Token>& args)
 void parse_dataset_tr_args(Lexer& lex, vector<Token>& args)
 {
     args.push_back(lex.get_token_if(kTokenLname));
-    for (;;) {
+    do {
         Token t = lex.get_expected_token(kTokenDataset, "0");
         if (t.type == kTokenDataset && (t.value.i == Lexer::kAll ||
                                         t.value.i == Lexer::kNew))
             lex.throw_syntax_error("expected @number");
         args.push_back(t);
-        if (lex.peek_token().type == kTokenPlus)
-            lex.get_token(); // discard '+'
-        else
-            break;
-    }
+    } while (lex.discard_token_if(kTokenPlus));
 }
 
 void Parser::parse_assign_func(Lexer& lex, vector<Token>& args)
 {
     Token f = lex.get_expected_token(kTokenCname, "copy");
-    lex.get_expected_token(kTokenOpen); // discard '('
     if (f.type == kTokenCname) {
         // Uname '(' ([Lname '='] v_expr) % ',' ')'
         args.push_back(f);
         bool has_kwarg = false;
-        while (lex.peek_token().type != kTokenClose) {
+        ArgReader arg_reader(lex);
+        while (arg_reader.next_arg()) {
             Token t = lex.get_token();
-            if (lex.peek_token().type == kTokenAssign) {
+            if (lex.discard_token_if(kTokenAssign)) {
                 if (t.type != kTokenLname)
                     lex.throw_syntax_error("wrong token before '='");
                 args.push_back(t);
-                lex.get_token(); // discard '='
                 has_kwarg = true;
             }
             else {
@@ -593,10 +653,6 @@ void Parser::parse_assign_func(Lexer& lex, vector<Token>& args)
                 lex.go_back(t);
             }
             args.push_back(read_var(lex));
-            if (lex.peek_token().type == kTokenComma)
-                lex.get_token(); // discard ','
-            else
-                break;
         }
     }
     else {
@@ -604,8 +660,8 @@ void Parser::parse_assign_func(Lexer& lex, vector<Token>& args)
         args.push_back(f); // "copy"
         lex.get_expected_token(kTokenOpen); // discard '('
         parse_func_id(lex, args, false);
+        lex.get_expected_token(kTokenClose); // discard ')'
     }
-    lex.get_expected_token(kTokenClose); // discard ')'
 }
 
 void Parser::parse_fz(Lexer& lex, Command &cmd)
@@ -690,14 +746,12 @@ bool Parser::parse_statement(Lexer& lex)
                 st_->datasets.push_back(t.value.i);
                 t = lex.get_expected_token(kTokenDataset, kTokenColon);
             }
-            expand_dataset_glob();
         }
         else {
             lex.go_back(first);
         }
     }
-    if (st_->datasets.empty())
-        st_->datasets.push_back(0); //TODO default ds
+    expand_dataset_glob(F_, st_->datasets, F_->default_dm());
 
     if (first.type == kTokenLname && is_command(first, "w","ith")) {
         lex.get_token(); // discard "with"
@@ -705,14 +759,13 @@ bool Parser::parse_statement(Lexer& lex)
     }
 
     parse_command(lex, st_->commands[0]);
-    while (lex.peek_token().type == kTokenSemicolon) {
-        lex.get_token(); // discard ';'
+    while (lex.discard_token_if(kTokenSemicolon)) {
         st_->commands.resize(st_->commands.size() + 1);
         parse_command(lex, st_->commands.back());
     }
 
     if (lex.peek_token().type != kTokenNop)
-        lex.throw_syntax_error("unexpected or extra token");
+        lex.throw_syntax_error("unexpected end of command");
 
     return true;
 }
@@ -729,7 +782,7 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
         }
         else if (is_command(token, "def","ine")) {
             cmd.type = kCmdDefine;
-            parse_define_args(lex, cmd.args);
+            cmd.defined_tp = parse_define_args(lex);
         }
         else if (is_command(token, "del","ete")) {
             if (lex.peek_token().type == kTokenOpen) {
@@ -761,11 +814,10 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
         }
         else if (is_command(token, "p","lot")) {
             cmd.type = kCmdPlot;
-            if (lex.peek_token().type == kTokenDot)
-                cmd.args.push_back(lex.get_token());
-            else
-                parse_real_range(lex, cmd.args);
             parse_real_range(lex, cmd.args);
+            parse_real_range(lex, cmd.args);
+            while (lex.peek_token().type == kTokenDataset)
+                cmd.args.push_back(lex.get_token());
         }
         else if (is_command(token, "pr","int")) {
             cmd.type = kCmdPrint;
@@ -916,36 +968,30 @@ string Parser::get_statements_repr() const
     return r;
 }
 
-void Parser::expand_dataset_glob()
+void expand_dataset_glob(const Ftk* F, vector<int>& ds_list, int default_ds)
 {
-    /*
-    // no datasets specified
-    if (ds.empty()) {
-        if (F_->get_dm_count() == 1)
-            result.push_back(0);
-        else
-            throw ExecuteError("Dataset must be specified (eg. 'in @0').");
+    if (ds_list.empty()) {
+        ds_list.push_back(default_ds);
+        return;
     }
-    else */
 
-    vector<int> &ds = st_->datasets;
     // the most common case
-    if (ds.size() == 1) {
-        if (ds[0] == Lexer::kAll)
-            ds = range_vector(0, F_->get_dm_count());
+    if (ds_list.size() == 1) {
+        if (ds_list[0] == Lexer::kAll)
+            ds_list = range_vector(0, F->get_dm_count());
         return;
     }
 
     // general case
-    for (vector<int>::iterator i = ds.begin(); i != ds.end(); ++i)
+    for (vector<int>::iterator i = ds_list.begin(); i != ds_list.end(); ++i)
         if (*i == Lexer::kAll) {
-            for (int j = 0; j != F_->get_dm_count(); ++j) {
-                if (!contains_element(ds, j)) {
-                    ds.insert(i, j);
+            for (int j = 0; j != F->get_dm_count(); ++j) {
+                if (!contains_element(ds_list, j)) {
+                    ds_list.insert(i, j);
                     ++i;
                 }
             }
-            ds.erase(i);
+            ds_list.erase(i);
             --i;
         }
 }

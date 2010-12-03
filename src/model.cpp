@@ -33,7 +33,7 @@ Model::~Model()
 /// checks if this model depends on the variable with index idx
 bool Model::is_dependent_on_var(int idx) const
 {
-    std::vector<Variable*> const& vv = mgr.variables();
+    vector<Variable*> const& vv = mgr.variables();
     vector_foreach (int, i, ff_.idx)
         if (mgr.get_function(*i)->is_dependent_on(idx, vv))
             return true;
@@ -111,7 +111,7 @@ Model::get_symbolic_derivatives(fp x) const
 vector<fp>
 Model::get_numeric_derivatives(fp x, fp numerical_h) const
 {
-    std::vector<fp> av_numder = mgr.parameters();
+    vector<fp> av_numder = mgr.parameters();
     int n = av_numder.size();
     vector<fp> dy_da(n);
     const fp small_number = 1e-10; //it only prevents h==0
@@ -164,7 +164,7 @@ string Model::get_peak_parameters(vector<fp> const& errors) const
     s += "# PeakType\tCenter\tHeight\tArea\tFWHM\tparameters...\n";
     vector_foreach (int, i, ff_.idx) {
         Function const* p = mgr.get_function(*i);
-        s += p->xname + "  " + p->type_name;
+        s += p->xname + "  " + p->tp()->name;
         fp a;
         if (p->get_center(&a))
             s += "\t"+S(a);
@@ -243,7 +243,7 @@ string Model::get_formula(bool simplify, bool gnuplot_style) const
     return formula;
 }
 
-std::string const& Model::get_func_name(char c, int idx) const
+string const& Model::get_func_name(char c, int idx) const
 {
     vector<string> const& names = get_fz(c).names;
     if (idx < 0)

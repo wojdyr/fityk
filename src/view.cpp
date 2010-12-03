@@ -15,12 +15,6 @@ const fp View::relative_x_margin = 1./20.;
 const fp View::relative_y_margin = 1./20.;
 
 
-void View::set_datasets(vector<int> const& dd)
-{
-    datasets_ = dd;
-}
-
-
 string View::str() const
 {
     char buffer[128];
@@ -28,9 +22,10 @@ string View::str() const
     return string(buffer);
 }
 
-void View::change_view(const RealRange& hor, const RealRange& ver)
+void View::change_view(const RealRange& hor, const RealRange& ver,
+                       const vector<int>& datasets)
 {
-    assert(!datasets_.empty());
+    assert(!datasets.empty());
 
     left = hor.from;
     right = hor.to;
@@ -40,12 +35,12 @@ void View::change_view(const RealRange& hor, const RealRange& ver)
     // For the first dataset in `dataset' (@n, it doesn't contain @*) both
     // data points and models are considered.
     // For the next ones only data points.
-    DataAndModel const* first = F->get_dm(datasets_[0]);
+    DataAndModel const* first = F->get_dm(datasets[0]);
     vector<Model const*> models(1, first->model());
-    vector<Data const*> datas(datasets_.size());
+    vector<Data const*> datas(datasets.size());
     datas[0] = first->data();
-    for (size_t i = 1; i < datasets_.size(); ++i)
-        datas[i] = F->get_dm(datasets_[i])->data();
+    for (size_t i = 1; i < datasets.size(); ++i)
+        datas[i] = F->get_dm(datasets[i])->data();
 
     if (hor.from_inf() || hor.to_inf()) {
         fp x_min=0, x_max=0;

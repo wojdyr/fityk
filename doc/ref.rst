@@ -752,8 +752,8 @@ Variables can be deleted using the command::
 
 .. _domain:
 
-Some fitting algorithms need to randomize the parameters of the fitted
-function (i.e. they need to randomize simple variables).
+Some fitting algorithms randomize the parameters of the model
+(i.e. they randomize simple variables).
 For this purpose, the simple variable can have a specified :dfn:`domain`.
 Note that the domain does not imply any constraints on the value
 the variable can have -- it is only a hint for fitting algorithms.

@@ -283,7 +283,7 @@ struct ind_raw_sc_cmp
     }
 };
 
-void GAfit::do_rank_scoring(std::vector<Individual> *popp)
+void GAfit::do_rank_scoring(vector<Individual> *popp)
 {
     // rank in population is assigned to phase_2_score
     // e.g. 0 - the best, 1 - second, (popp.size() - 1) - worst

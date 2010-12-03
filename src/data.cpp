@@ -256,7 +256,7 @@ void Data::load_data_sum(vector<Data const*> const& dd, string const& op)
     }
     // dd can contain this, we can't change p_ or title in-place.
     string new_filename = dd.size() == 1 ? dd[0]->get_filename() : "";
-    std::vector<Point> new_p;
+    vector<Point> new_p;
     string new_title;
     vector_foreach (Data const*, i, dd) {
         new_title += (i == dd.begin() ? "" : " + ") + (*i)->get_title();

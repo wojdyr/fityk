@@ -17,6 +17,12 @@
 #include "eparser.h"
 
 using namespace std;
+using boost::array;
+
+const array<string, 3> Guess::linear_traits =
+                                    {{ "slope", "intercept", "avgy" }};
+const array<string, 4> Guess::peak_traits =
+                                    {{ "center", "height", "hwhm", "area" }};
 
 Guess::Guess(Settings const *settings) : settings_(settings)
 {
@@ -36,7 +42,7 @@ void Guess::initialize(const DataAndModel* dm, int lb, int rb, int ignore_idx)
 }
 
 
-fp Guess::find_fwhm(int pos, fp* area)
+fp Guess::find_hwhm(int pos, fp* area)
 {
     const fp hm = 0.5 * yy_[pos];
     const int n = 3;
@@ -84,11 +90,12 @@ fp Guess::find_fwhm(int pos, fp* area)
             *area += (xx_[i+1] - xx_[i]) * (yy_[i] + yy_[i+1]) / 2;
     }
 
-    fp fwhm = xx_[right_pos] - xx_[left_pos];
-    return max(fwhm, epsilon);
+    fp hwhm = (xx_[right_pos] - xx_[left_pos]) / 2.;
+    return max(hwhm, epsilon);
 }
 
-void Guess::estimate_peak_parameters(fp *center, fp *height, fp *area, fp *fwhm)
+// outputs vector with: center, height, hwhm, area
+void Guess::estimate_peak_parameters(fp *center, fp *height, fp *area, fp *hwhm)
 {
     int pos = max_element(yy_.begin(), yy_.end()) - yy_.begin();
 
@@ -100,10 +107,10 @@ void Guess::estimate_peak_parameters(fp *center, fp *height, fp *area, fp *fwhm)
         *height = yy_[pos] * settings_->get_f("height_correction");
     if (center)
         *center = xx_[pos];
-    if (fwhm || area) {
-        fp f = find_fwhm(pos, area) * settings_->get_f("width_correction");
-        if (fwhm)
-            *fwhm = f;
+    if (hwhm || area) {
+        fp w = find_hwhm(pos, area) * settings_->get_f("width_correction");
+        if (hwhm)
+            *hwhm = w;
     }
 }
 
@@ -128,11 +135,11 @@ void Guess::estimate_linear_parameters(fp *slope, fp *intercept, fp *avgy)
 
 void Guess::get_guess_info(string& result)
 {
-    fp c = 0., h = 0., a = 0., fwhm = 0.;
-    estimate_peak_parameters(&c, &h, &a, &fwhm);
+    fp c = 0., h = 0., a = 0., hwhm = 0.;
+    estimate_peak_parameters(&c, &h, &a, &hwhm);
     if (h != 0.)
         result += "center: " + eS(c) + ", height: " + S(h) + ", area: " + S(a)
-            + ", FWHM: " + S(fwhm) + "\n";
+            + ", FWHM: " + S(hwhm) + "\n";
     fp slope = 0, intercept = 0, avgy = 0;
     estimate_linear_parameters(&slope, &intercept, &avgy);
     result += "slope: " + S(slope) + ", intercept: " + S(intercept)
@@ -140,20 +147,16 @@ void Guess::get_guess_info(string& result)
 }
 
 /// guessed parameters are appended to vars
-void Guess::guess(string const& function, vector<string>& par_names,
-                  vector<string>& par_values)
+void Guess::guess(const Tplate* tp,
+                  vector<string>& par_names, vector<string>& par_values)
 {
     if (xx_.empty())
-        throw ExecuteError("Guessing in empty range");
+        throw ExecuteError("guess in empty range");
 
-    vector<string>::const_iterator ctr =
-        find(par_names.begin(), par_names.end(), "center");
-
-    Kind k = get_function_kind(Function::get_formula(function));
-    if (k == kPeak) {
-        fp c = 0., h = 0., a = 0., fwhm = 0.;
-        estimate_peak_parameters(&c, &h, &a, &fwhm);
-        if (ctr == par_names.end()) {
+    if (tp->peak_d) {
+        fp c = 0., h = 0., a = 0., hwhm = 0.;
+        estimate_peak_parameters(&c, &h, &a, &hwhm);
+        if (!contains_element(par_names, "center")) {
             par_names.push_back("center");
             par_values.push_back("~"+eS(c));
         }
@@ -161,17 +164,16 @@ void Guess::guess(string const& function, vector<string>& par_names,
             par_names.push_back("height");
             par_values.push_back("~"+eS(h));
         }
-        if (!contains_element(par_names, "fwhm")
-                && !contains_element(par_names, "hwhm")) {
-            par_names.push_back("fwhm");
-            par_values.push_back("~"+eS(fwhm));
+        if (!contains_element(par_names, "hwhm")) {
+            par_names.push_back("hwhm");
+            par_values.push_back("~"+eS(hwhm));
         }
         if (!contains_element(par_names, "area")) {
             par_names.push_back("area");
             par_values.push_back("~"+eS(a));
         }
     }
-    else if (k == kLinear) {
+    if (tp->linear_d) {
         fp slope, intercept, avgy;
         estimate_linear_parameters(&slope, &intercept, &avgy);
         if (!contains_element(par_names, "slope")) {
@@ -188,155 +190,4 @@ void Guess::guess(string const& function, vector<string>& par_names,
         }
     }
 }
-
-namespace {
-
-Guess::Kind get_defvalue_kind(std::string const& d)
-{
-    static vector<string> linear_p(3), peak_p(4);
-    static bool initialized = false;
-    if (!initialized) {
-        linear_p[0] = "intercept";
-        linear_p[1] = "slope";
-        linear_p[2] = "avgy";
-        peak_p[0] = "center";
-        peak_p[1] = "height";
-        peak_p[2] = "area";
-        peak_p[3] = "fwhm";
-        initialized = true;
-    }
-    if (contains_element(linear_p, d))
-        return Guess::kLinear;
-    else if (contains_element(peak_p, d))
-        return Guess::kPeak;
-    else
-        return Guess::kUnknown;
-}
-
-Guess::Kind get_function_kind_from_varnames(vector<string> const& vars)
-{
-    vector_foreach (string, i, vars) {
-        Guess::Kind k = get_defvalue_kind(*i);
-        if (k != Guess::kUnknown)
-            return k;
-    }
-    return Guess::kUnknown;
-}
-
-Guess::Kind get_function_kind_from_defvalues(vector<string> const& defv)
-{
-    vector_foreach (string, i, defv) {
-        int start = -1;
-        for (size_t j = 0; j < i->size(); ++j) {
-            char c = (*i)[j];
-            if (start == -1) {
-                if (isalpha(c))
-                    start = j;
-            }
-            else {
-                if (!isalnum(c) && c != '_') {
-                    Guess::Kind k
-                        = get_defvalue_kind(string(*i, start, j-start));
-                    if (k != Guess::kUnknown)
-                        return k;
-                    start = -1;
-                }
-            }
-        }
-        if (start != -1) {
-            Guess::Kind k = get_defvalue_kind(string(*i, start));
-            if (k != Guess::kUnknown)
-                return k;
-        }
-    }
-    return Guess::kUnknown;
-}
-
-} // anonymous namespace
-
-Guess::Kind get_function_kind(string const& formula)
-{
-    vector<string> vars = Function::get_varnames_from_formula(formula);
-    Guess::Kind k = get_function_kind_from_varnames(vars);
-    if (k != Guess::kUnknown)
-        return k;
-    vector<string> defv = Function::get_defvalues_from_formula(formula);
-    return get_function_kind_from_defvalues(defv);
-}
-
-bool is_parameter_guessable(string const& name, Guess::Kind k)
-{
-    if (k == Guess::kLinear)
-        return name == "slope" || name == "intercept" || name == "avgy";
-    else if (k == Guess::kPeak)
-        return name == "center" || name == "height" || name == "fwhm"
-            || name == "area" || name == "hwhm";
-    else
-        return false;
-}
-
-bool is_defvalue_guessable(string defvalue, Guess::Kind k)
-{
-    static const vector<string> linear_vars =
-            vector3(string("slope"), string("intercept"), string("avgy"));
-    static const vector<string> peak_vars =
-            vector4(string("center"), string("height"),
-                    string("fwhm"), string("area"));
-    const vector<string> *custom_vars = NULL;
-    if (k == Guess::kLinear)
-        custom_vars = &linear_vars;
-    else if (k == Guess::kPeak)
-        custom_vars = &peak_vars;
-    try {
-        Lexer lex(defvalue.c_str());
-        ExpressionParser ep(NULL);
-        ep.parse_expr(lex, 0, custom_vars);
-    }
-    catch (...) {
-        return false;
-    }
-    return true;
-}
-
-bool is_function_guessable(string const& formula, bool check_defvalue)
-{
-    int lb = formula.find('(');
-    int rb = find_matching_bracket(formula, lb);
-    string all_names(formula, lb+1, rb-lb-1);
-    vector<string> nd = split_string(all_names, ',');
-
-    Guess::Kind k = get_function_kind(formula);
-    vector<string> vars, defv;
-    vector_foreach (string, i, nd) {
-        string::size_type eq = i->find('=');
-        if (eq == string::npos) { //no defvalue
-            if (!is_parameter_guessable(strip_string(*i), k))
-                return false;
-        }
-        else if (check_defvalue
-                 && !is_parameter_guessable(strip_string(string(*i, 0, eq)), k)
-                 && !is_defvalue_guessable(string(*i, eq+1), k)) {
-                return false;
-        }
-    }
-    return true;
-}
-
-bool is_function_guessable(vector<string> const& vars,
-                           vector<string> const& defv,
-                           Guess::Kind* kind)
-{
-    Guess::Kind k = get_function_kind_from_varnames(vars);
-    if (k == Guess::kUnknown)
-        k = get_function_kind_from_defvalues(defv);
-    for (size_t i = 0; i != vars.size(); ++i)
-        if (!is_parameter_guessable(vars[i], k)
-                             && !is_defvalue_guessable(defv[i], k))
-                return false;
-    if (kind)
-        *kind = k;
-    return true;
-}
-
-
 

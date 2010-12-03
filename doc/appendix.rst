@@ -245,7 +245,7 @@ The kCmd* names in the comments correspond to constants in the code.
     : "f:it" `fit`                    | (*kCmdFit*)
     : "g:uess" `guess`                | (*kCmdGuess*)
     : "i:nfo" `info_arg` % "," `redir`  | (*kCmdInfo*)
-    : "p:lot" [(`range`|".") [`range`]] | (*kCmdPlot*)
+    : "p:lot" [`range`] [`range`] Dataset* | (*kCmdPlot*)
     : "pr:int" `print` `redir`          | (*kCmdPrint*)
     : "quit"                        | (*kCmdQuit*)
     : "reset"                       | (*kCmdReset*)
@@ -271,9 +271,10 @@ The kCmd* names in the comments correspond to constants in the code.
 .. productionlist::
    define: Uname "(" (Lname [ "=" `v_expr`]) % "," ")" "="
          :    ( `v_expr` |
-         :      `type_inst` % "+" |
-         :      "x" "<" `v_expr` "?" `type_inst` ":" `type_inst`
+         :      `component_func` % "+" |
+         :      "x" "<" `v_expr` "?" `component_func` ":" `component_func`
          :    )
+   component_func: Uname "(" `v_expr` % "," ")"
    delete: (Varname | `func_id` | Dataset) % ","
    delete_points: "(" p_expr ")"
    exec: `filename` |
@@ -294,14 +295,12 @@ The kCmd* names in the comments correspond to constants in the code.
             : `func_rhs` |
             : `model_id` |
             : "copy" "(" `model_id` ")" 
-   func_rhs: `type_inst` |
+   func_rhs: Uname "(" ([Lname "="] `v_expr`) % "," ")" |
            : "copy" "(" `func_id` ")"
-   type_inst: Uname "(" ([Lname "="] `v_expr`) % "," ")" |
    load_arg: `filename` Lname* |
-           :   "."
+           : "."
    dataset_tr_arg: [Lname] (Dataset | "0") % "+"
    p_attr: ("X" | "Y" | "S" | "A")
-   point_lhs:  `point_attr` [ "[" expr `"]"` ]
    model_id: [Dataset "."] ("F"|"Z")
    func_id: Funcname |
           : `model_id` "[" Number "]"
@@ -337,8 +336,7 @@ but they use additional variables in the ``atom`` rule.
 
 ``p_expr`` recognizes ``n``, ``M``, ``x``, ``y``, ``s``, ``a``, ``X``, ``Y``,
 ``S`` and ``A``. All of them but ``n`` and ``M`` can be indexed
-(e.g.  ``x[4]``), and any expression can be given as an index.
-Example: ``(x+x[n-1])/2``.
+(e.g.  ``x[4]``).  Example: ``(x+x[n-1])/2``.
 
 ``v_expr`` uses all unknown names (``Lname``) as variables. The tilde (``~``)
 can be used to create simple-variables.

@@ -109,6 +109,10 @@ private:
     std::string next_var_name(); ///generate name for "anonymous" variable
     std::string next_func_name();///generate name for "anonymous" function
     void update_indices(FunctionSum& sum);
+    Function* create_function(const std::string& name,
+                              const std::string& type_name,
+                              const std::vector<std::string>& vars) const;
+
 };
 
 #endif

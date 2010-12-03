@@ -15,7 +15,7 @@ volatile bool user_interrupt = false;
 
 const char* fityk_version_line = "# Fityk script. Fityk version: " VERSION;
 
-vector<int> range_vector (int l, int u)
+vector<int> range_vector(int l, int u)
 {
     vector<int> v(u - l);
     for (int i = l; i < u; i++)
@@ -23,13 +23,13 @@ vector<int> range_vector (int l, int u)
     return v;
 }
 
-std::string time_now ()
+string time_now()
 {
     time_t const t = time(0);
     return ctime (&t);
 }
 
-bool is_double (string const& s) {
+bool is_double(string const& s) {
     char const *c = s.c_str();
     char *endptr;
     strtod(c, &endptr);
@@ -40,7 +40,7 @@ bool is_double (string const& s) {
     return (*endptr == 0);
 }
 
-bool is_int (string const& s) {
+bool is_int(string const& s) {
     char const *c = s.c_str();
     char *endptr;
     strtol(c, &endptr, 10);
