@@ -77,7 +77,7 @@ protected:
     void iteration_plot(std::vector<fp> const &A, bool changed, fp wssr);
 private:
     time_t last_refresh_time_;
-    time_t start_time_;
+    clock_t start_time_;
 
     void compute_derivatives_for(DataAndModel const *dm,
                                  std::vector<fp>& alpha, std::vector<fp>& beta);

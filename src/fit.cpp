@@ -299,9 +299,10 @@ string Fit::print_matrix (const vector<fp>& vec, int m, int n,
 
 bool Fit::post_fit (const vector<fp>& aa, fp chi2)
 {
-    int elapsed = time(0)-start_time_;
+    double elapsed = (clock() - start_time_) / (double) CLOCKS_PER_SEC;
     F->msg(name + ": " + S(iter_nr) + " iterations, "
-           + S(evaluations) + " evaluations, " + S(elapsed) + " sec.");
+           + S(evaluations) + " evaluations, "
+           + format1<double,16>("%.2f", elapsed) + " s. of CPU time.");
     bool better = (chi2 < wssr_before);
     if (better) {
         F->get_fit_container()->push_param_history(aa);
@@ -353,8 +354,8 @@ private:
 /// initialize and run fitting procedure for not more than max_iter iterations
 void Fit::fit(int max_iter, vector<DataAndModel*> const& dms)
 {
-    //TODO: use timespec tp; clock_gettime(CLOCK_MONOTONIC, &tp);
-    start_time_ = last_refresh_time_ = time(0);
+    start_time_ = clock();
+    last_refresh_time_ = time(0);
     ComputeUI compute_ui(F->get_ui());
     update_parameters(dms);
     dmdm_ = dms;
@@ -381,7 +382,8 @@ void Fit::fit(int max_iter, vector<DataAndModel*> const& dms)
 /// run fitting procedure (without initialization)
 void Fit::continue_fit(int max_iter)
 {
-    start_time_ = last_refresh_time_ = time(0);
+    start_time_ = clock();
+    last_refresh_time_ = time(0);
     v_foreach (DataAndModel*, i, dmdm_)
         if (!F->contains_dm(*i) || na != size(F->parameters()))
             throw ExecuteError(name + " method should be initialized first.");
@@ -442,22 +444,21 @@ void Fit::iteration_plot(vector<fp> const &A, bool changed, fp wssr)
     int refresh_period = F->get_settings()->get_i("refresh_period");
     if (refresh_period < 0)
         return;
-    time_t now = time(0);
-    if (now - last_refresh_time_ < refresh_period)
+    if (time(0) - last_refresh_time_ < refresh_period)
         return;
     if (changed) {
         F->use_external_parameters(A);
         F->get_ui()->draw_plot(3, UserInterface::kRepaintImmediately);
     }
     if (refresh_period > 0) {
-        int elapsed = now - start_time_;
+        double elapsed = (clock() - start_time_) / (double) CLOCKS_PER_SEC;
         double percent_change = (wssr - wssr_before) / wssr_before * 100.;
         F->msg("Iter: " + S(iter_nr) + "/"
                 + (max_iterations > 0 ? S(max_iterations) : string("oo"))
                 + "  Eval: " + S(evaluations) + "/"
                 + (max_evaluations_ > 0 ? S(max_evaluations_) : string("oo"))
                 + "  WSSR=" + S(wssr) + " (" + S(percent_change)+ "%)"
-                + "  Elapsed " + S(elapsed) + "s.");
+                + "  CPU time: " + format1<double,16>("%.2f", elapsed) + "s.");
     }
     F->get_ui()->refresh();
     last_refresh_time_ = time(0);
