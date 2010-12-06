@@ -37,7 +37,7 @@ public:
     const Tplate* tp() const { return tp_.get(); }
 
     /// number of variables
-    int nv() const { return (int) tp_->pars.size(); }
+    int nv() const { return (int) tp_->fargs.size(); }
 
     /// calculate value at x[i] and _add_ the result to y[i] (for each i)
     virtual void calculate_value_in_range(const std::vector<fp> &x,
@@ -91,7 +91,7 @@ public:
     virtual std::string get_current_formula(const std::string& x = "x") const;
 
     // VarArgFunction provides different defintion
-    virtual const std::string get_param(int n) const { return tp_->pars[n]; }
+    virtual const std::string get_param(int n) const { return tp_->fargs[n]; }
 
     int get_param_nr(const std::string& param) const;
     int get_param_nr_nothrow(const std::string& param) const;

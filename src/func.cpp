@@ -67,10 +67,10 @@ Function::Function (const Ftk* F,
 
 void Function::init()
 {
-    center_idx_ = index_of_element(tp_->pars, "center");
-    if (vv_.size() != tp_->pars.size())
+    center_idx_ = index_of_element(tp_->fargs, "center");
+    if (vv_.size() != tp_->fargs.size())
         throw ExecuteError("Function " + tp_->name + " requires "
-                           + S(tp_->pars.size()) + " parameters.");
+                           + S(tp_->fargs.size()) + " parameters.");
 }
 
 Function* Function::factory(const Ftk* F,
@@ -116,7 +116,7 @@ void Function::do_precomputations(const vector<Variable*> &variables)
     for (int i = 0; i < size(var_idx); ++i) {
         const Variable *v = variables[var_idx[i]];
         vv_[i] = v->get_value();
-        vector_foreach (Variable::ParMult, j, v->recursive_derivatives())
+        v_foreach (Variable::ParMult, j, v->recursive_derivatives())
             multi_.push_back(Multi(i, *j));
     }
     this->more_precomputations();
@@ -124,7 +124,7 @@ void Function::do_precomputations(const vector<Variable*> &variables)
 
 void Function::erased_parameter(int k)
 {
-    vectorm_foreach (Multi, i, multi_)
+    vm_foreach (Multi, i, multi_)
         if (i->p > k)
             -- i->p;
 }
@@ -210,15 +210,15 @@ string Function::get_par_info(const VariableManager* mgr) const
         s += "\n" + get_param(i) + " = " + mgr->get_variable_info(v);
     }
     fp a;
-    if (this->get_center(&a) && !contains_element(tp_->pars, string("center")))
+    if (this->get_center(&a) && !contains_element(tp_->fargs, string("center")))
         s += "\nCenter: " + S(a);
-    if (this->get_height(&a) && !contains_element(tp_->pars, string("height")))
+    if (this->get_height(&a) && !contains_element(tp_->fargs, string("height")))
         s += "\nHeight: " + S(a);
-    if (this->get_fwhm(&a) && !contains_element(tp_->pars, string("fwhm")))
+    if (this->get_fwhm(&a) && !contains_element(tp_->fargs, string("fwhm")))
         s += "\nFWHM: " + S(a);
-    if (this->get_area(&a) && !contains_element(tp_->pars, string("area")))
+    if (this->get_area(&a) && !contains_element(tp_->fargs, string("area")))
         s += "\nArea: " + S(a);
-    vector_foreach (string, i, this->get_other_prop_names())
+    v_foreach (string, i, this->get_other_prop_names())
         s += "\n" + *i + ": " + S(get_other_prop(*i));
     return s;
 }
@@ -252,8 +252,8 @@ string Function::get_current_formula(const string& x) const
     }
     else {
         t = tp_->rhs;
-        for (size_t i = 0; i < tp_->pars.size(); ++i)
-            replace_words(t, tp_->pars[i], S(get_var_value(i)));
+        for (size_t i = 0; i < tp_->fargs.size(); ++i)
+            replace_words(t, tp_->fargs[i], S(get_var_value(i)));
     }
 
     replace_words(t, "x", x);
@@ -270,7 +270,7 @@ int Function::get_param_nr(const string& param) const
 
 int Function::get_param_nr_nothrow(const string& param) const
 {
-    return index_of_element(tp_->pars, param);
+    return index_of_element(tp_->fargs, param);
 }
 
 fp Function::get_param_value(const string& param) const
@@ -324,7 +324,7 @@ fp Function::find_x_with_value(fp x1, fp x2, fp val, int max_iter) const
                            + S(x1) + "(" + S(y1+val) + ") and "
                            + S(x2) + "(" + S(y2+val) + ").");
     int n = 0;
-    vector_foreach (Multi, j, multi_)
+    v_foreach (Multi, j, multi_)
         n = max(j->p + 1, n);
     vector<fp> dy_da(n+1);
     if (y1 == 0)
@@ -374,7 +374,7 @@ fp Function::find_x_with_value(fp x1, fp x2, fp val, int max_iter) const
 fp Function::find_extremum(fp x1, fp x2, int max_iter) const
 {
     int n = 0;
-    vector_foreach (Multi, j, multi_)
+    v_foreach (Multi, j, multi_)
         n = max(j->p + 1, n);
     vector<fp> dy_da(n+1);
 

@@ -20,26 +20,28 @@ CompoundFunction::CompoundFunction(const Ftk* F,
 void CompoundFunction::init()
 {
     Function::init();
-    /*TODO
-    vector<string> rf = UdfContainer::get_cpd_rhs_components(type_formula,true);
-    init_components(rf);
-    */
+    init_components();
 }
 
-void CompoundFunction::init_components(vector<string>& rf)
+void CompoundFunction::init_components()
 {
     vmgr_.silent = true;
     for (int j = 0; j != nv(); ++j)
         vmgr_.assign_variable(varnames[j], ""); // mirror variables
 
-    for (vector<string>::iterator i = rf.begin(); i != rf.end(); ++i) {
-        for (int j = 0; j != nv(); ++j) {
-            replace_words(*i, tp_->pars[j], vmgr_.get_variable(j)->xname);
+    v_foreach (Tplate::Component, i, tp_->components) {
+        vector<string> args = i->values;
+        vm_foreach (string, arg, args) {
+            for (int j = 0; j != nv(); ++j)
+                replace_words(*arg, tp_->fargs[j],
+                                    vmgr_.get_variable(j)->xname);
         }
-        /*TODO
-        vmgr_.assign_func("", get_typename_from_formula(*i),
-                              get_varnames_from_formula(*i));
-        */
+        if (i->p)
+            vmgr_.assign_func(vmgr_.next_func_name(), i->p->name, args);
+        else {
+            assert (args.size() == 1);
+            vmgr_.assign_variable("", args[0]);
+        }
     }
 }
 
@@ -73,7 +75,7 @@ void CompoundFunction::calculate_value_in_range(vector<fp> const &xx,
                                                 vector<fp> &yy,
                                                 int first, int last) const
 {
-    vector_foreach (Function*, i, vmgr_.functions())
+    v_foreach (Function*, i, vmgr_.functions())
         (*i)->calculate_value_in_range(xx, yy, first, last);
 }
 
@@ -83,14 +85,14 @@ void CompoundFunction::calculate_value_deriv_in_range(
                                              bool in_dx,
                                              int first, int last) const
 {
-    vector_foreach (Function*, i, vmgr_.functions())
+    v_foreach (Function*, i, vmgr_.functions())
         (*i)->calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, first, last);
 }
 
 string CompoundFunction::get_current_formula(string const& x) const
 {
     string t;
-    vector_foreach (Function*, i, vmgr_.functions()) {
+    v_foreach (Function*, i, vmgr_.functions()) {
         if (i != vmgr_.functions().begin())
             t += "+";
         t += (*i)->get_current_formula(x);
@@ -210,12 +212,12 @@ void CustomFunction::calculate_value_deriv_in_range(
 
         if (!in_dx) {
             yy[i] += value_;
-            vector_foreach (Multi, j, multi_)
+            v_foreach (Multi, j, multi_)
                 dy_da[dyn*i+j->p] += derivatives_[j->n] * j->mult;
             dy_da[dyn*i+dyn-1] += derivatives_.back();
         }
         else {
-            vector_foreach (Multi, j, multi_)
+            v_foreach (Multi, j, multi_)
                 dy_da[dyn*i+j->p] += dy_da[dyn*i+dyn-1]
                                        * derivatives_[j->n] * j->mult;
         }
@@ -235,17 +237,7 @@ SplitFunction::SplitFunction(const Ftk* F,
 void SplitFunction::init()
 {
     Function::init();
-    vector<string> rf;
-    /*TODO
-    vector<string> rf = UdfContainer::get_if_then_else_parts(type_formula,true);
-    */
-    string split_expr = rf[0].substr(rf[0].find('<') + 1);
-    rf.erase(rf.begin());
-    init_components(rf);
-    for (int j = 0; j != nv(); ++j)
-        replace_words(split_expr, tp_->pars[j],
-                                  vmgr_.get_variable(j)->xname);
-    vmgr_.assign_variable("", split_expr);
+    init_components();
 }
 
 void SplitFunction::calculate_value_in_range(vector<fp> const &xx,

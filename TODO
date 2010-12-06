@@ -4,7 +4,9 @@ $Id$
 
 * GUI bug: when "show all datasets" is selected, zooming doesn't work
 
-* finish new parser (cparser.cpp/eparser.cpp/lexer.cpp)
+* GUI bug: pointer address is written to history instead of string
+
+* finish new parser (cparser.cpp/eparser.cpp/lexer.cpp/runner.cpp/info.cpp)
 
 * make possible something like this:  $min = @*.min(y if a)
 
@@ -14,6 +16,10 @@ $Id$
   - "info peaks" should use info-numeric-format
   - check if this works: @*: print filename, F[1].area, F[1].area.error >>file
   -                          print y[$var]
+
+* wiki/Updating: write a page how to update fityk scripts
+
+* BUG report: currently, if a script references a non-existent file, fitYK crashes completely.
 
 --- 0.9.5 
 
@@ -139,7 +145,7 @@ $Id$
 * fitting: consider using 3rd-party library for nonlinear fitting/optimization.
   The list of libraries in this category:
     NLopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
-    ALGLIB: http://www.alglib.net/
+    ALGLIB: http://www.alglib.net/ (lsfitcreatewfg)
     COOOL: http://coool.mines.edu/ 
     GAUL: http://gaul.sourceforge.net/, 
     WNLIB: http://www.willnaylor.com/wnlib.html

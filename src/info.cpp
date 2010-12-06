@@ -77,7 +77,7 @@ void info_functions(const Ftk* F, const string& name, string& result)
         result += f->get_basic_assignment();
     }
     else {
-        vector_foreach (Function*, i, F->functions())
+        v_foreach (Function*, i, F->functions())
             if (match_glob((*i)->name.c_str(), name.c_str()))
                 result += (result.empty() ? "" : "\n")
                           + (*i)->get_basic_assignment();
@@ -91,7 +91,7 @@ void info_variables(const Ftk* F, const string& name, string& result)
         result += F->get_variable_info(var);
     }
     else {
-        vector_foreach (Variable*, i, F->variables())
+        v_foreach (Variable*, i, F->variables())
             if (match_glob((*i)->name.c_str(), name.c_str()))
                 result += (result.empty() ? "" : "\n")
                           + F->get_variable_info(*i);
@@ -131,7 +131,7 @@ void info_history(const Ftk* F, const Token& t1, const Token& t2,
         result += cmds[i].str() + "\n";
 }
 
-void save_state(Ftk* F, string& r)
+void save_state(const Ftk* F, string& r)
 {
     if (!r.empty())
         r += "\n";
@@ -144,12 +144,13 @@ void save_state(Ftk* F, string& r)
     r += "\n" + F->get_settings()->set_script();
     r += "\n# ------------  (un)defines  ------------";
     TplateMgr default_tpm;
-    vector_foreach (Tplate::Ptr, i, default_tpm.tpvec()) {
+    default_tpm.add_builtin_types(F->get_ui()->parser());
+    v_foreach (Tplate::Ptr, i, default_tpm.tpvec()) {
         const Tplate* t = F->get_tpm()->get_tp((*i)->name);
         if (t == NULL || t->as_formula() != (*i)->as_formula())
             r += "\nundefine " + (*i)->name;
     }
-    vector_foreach (Tplate::Ptr, i, F->get_tpm()->tpvec()) {
+    v_foreach (Tplate::Ptr, i, F->get_tpm()->tpvec()) {
         string formula = (*i)->as_formula();
         const Tplate* t = default_tpm.get_tp((*i)->name);
         if (t == NULL || t->as_formula() != formula)
@@ -162,10 +163,10 @@ void save_state(Ftk* F, string& r)
     // The script must not trigger VariableManager::remove_unreferred()
     // or VariableManager::auto_remove_functions() until all references
     // are reproduced.
-    vector_foreach (Variable*, i, F->variables())
+    v_foreach (Variable*, i, F->variables())
         r += "\n" + (*i)->xname + " = " + (*i)->get_formula(F->parameters());
     r += "\n";
-    vector_foreach (Function*, i, F->functions())
+    v_foreach (Function*, i, F->functions())
         r +="\n" + (*i)->get_basic_assignment();
     r += "\n";
     r += "\n# ------------  datasets and models  ------------";
@@ -219,7 +220,7 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
             for (size_t i = 0; i < F->variables().size(); ++i)
                 result += (i > 0 ? " " : "") + F->get_variable(n)->xname;
         else if (word == "types")
-            vector_foreach (Tplate::Ptr, i, F->get_tpm()->tpvec())
+            v_foreach (Tplate::Ptr, i, F->get_tpm()->tpvec())
                 result += (*i)->name + " ";
         else if (word == "functions")
             for (size_t i = 0; i < F->functions().size(); ++i)
@@ -233,8 +234,6 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         }
         else if (word == "view")
             result += F->view.str();
-        else if (word == "set")
-            result += F->get_settings()->print_usage();
         else if (word == "fit_history")
             result += F->get_fit_container()->param_history_info();
         else if (word == "filename") {
@@ -257,8 +256,7 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
             result += F->get_model(ds)->get_formula(true, gnuplot);
         }
         else if (word == "state") {
-            //TODO F->save_state(result);
-            //F->dump_all_as_script
+            save_state(F, result);
         }
         else if (word == "peaks") {
             vector<fp> errors;
@@ -274,13 +272,23 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         else if (word == "history_summary")
             result += F->get_ui()->get_commands().get_history_summary();
 
+        else if (word == "set") {
+            if (args[n+1].type == kTokenLname) {
+                string key = args[n+1].as_string();
+                result += F->get_settings()->infop(key);
+            }
+            else
+                result += F->get_settings()->print_usage();
+            ++ret;
+        }
+
         // optional range
         else if (word == "history") {
             info_history(F, args[n+1], args[n+2], result);
             ret += 2;
         }
         else if (word == "guess") {
-            RealRange range = args2range(args[n], args[n+1]);
+            RealRange range = args2range(args[n+1], args[n+2]);
             if (range.from >= range.to)
                 result += "invalid range";
             else {
@@ -379,6 +387,15 @@ int eval_info_args(const Ftk* F, int ds, const vector<Token>& args, int len,
             result += "\n";
         n += eval_one_info_arg(F, ds, args, n, result);
     }
+    if (len == 0) { // special case
+        result += "Available arguments:\n";
+        const char** arg = info_args;
+        while (*arg != NULL) {
+            result += *arg + S(" ");
+            ++arg;
+        }
+        result += "%* $* AnyFunctionT";
+    }
     return n;
 }
 
@@ -446,19 +463,19 @@ string get_info_string(Ftk const* F, string const& args)
     vector<Token> tt;
     cp.parse_info_args(lex, tt);
     if (lex.peek_token().type != kTokenNop)
-        lex.throw_syntax_error("unexpected token");
+        lex.throw_syntax_error("unexpected argument");
     string result;
     eval_info_args(F, -1, tt, tt.size(), result);
     return result;
 }
 
-void run_info_or_print(const Ftk* F, int ds,
-                       CommandType cmd, const vector<Token>& args)
+void command_redirectable(const Ftk* F, int ds,
+                          CommandType cmd, const vector<Token>& args)
 {
     string info;
     int len = args.size();
-    bool redir = (len > 2 && (args[len-2].type == kTokenGT ||
-                              args[len-2].type == kTokenAppend));
+    bool redir = (len >= 2 && (args[len-2].type == kTokenGT ||
+                               args[len-2].type == kTokenAppend));
     int n_args = redir ? len - 2 : len;
     if (cmd == kCmdInfo)
         eval_info_args(F, ds, args, n_args, info);
@@ -485,7 +502,7 @@ void run_info_or_print(const Ftk* F, int ds,
     }
 }
 
-void run_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
+void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
 {
     // args: any-token rest-of-line
     string r;
@@ -532,7 +549,7 @@ void run_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
         for (int i = 0; i < size(F->variables()); ++i) {
             Variable const* var = F->get_variable(i);
             r += var->xname + ": ";
-            vector_foreach (Variable::ParMult, i, var->recursive_derivatives())
+            v_foreach (Variable::ParMult, i, var->recursive_derivatives())
                 r += "p" + S(i->p) + "="
                     + F->find_variable_handling_param(i->p)->xname
                     + " *" + S(i->mult) + "    ";

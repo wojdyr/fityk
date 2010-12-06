@@ -583,7 +583,7 @@ void SideBar::update_func_list(bool nondata_changed)
     if (nondata_changed || func_col_id != new_func_col_id) {
         func_col_id = new_func_col_id;
         func_images = new wxImageList(16, 16);
-        vector_foreach (int, i, func_col_id) {
+        v_foreach (int, i, func_col_id) {
             if (*i == -2)
                 func_images->Add(wxBitmap(unused_xpm));
             else if (*i == -1)
@@ -605,11 +605,11 @@ void SideBar::update_var_list()
     //  count references first
     vector<Variable*> const& variables = ftk->variables();
     vector<int> var_vrefs(variables.size(), 0), var_frefs(variables.size(), 0);
-    vector_foreach (Variable*, i, variables) {
+    v_foreach (Variable*, i, variables) {
         for (int j = 0; j != (*i)->get_vars_count(); ++j)
             var_vrefs[(*i)->get_var_idx(j)]++;
     }
-    vector_foreach (Function*, i, ftk->functions()) {
+    v_foreach (Function*, i, ftk->functions()) {
         for (int j = 0; j != (*i)->get_vars_count(); ++j)
             var_frefs[(*i)->get_var_idx(j)]++;
     }
@@ -818,7 +818,7 @@ void SideBar::update_func_buttons()
     func_page->FindWindow(ID_FP_COL)->Enable(sel_f > 0);
 
     bool has_hwhm = false, has_shape = false;
-    vector_foreach (Function*, i, ftk->functions()) {
+    v_foreach (Function*, i, ftk->functions()) {
         if ((*i)->get_param_nr_nothrow("hwhm") != -1)
             has_hwhm = true;
         if ((*i)->get_param_nr_nothrow("shape") != -1)
@@ -888,7 +888,7 @@ void SideBar::update_func_inf()
         inf->AppendText(wxT("\nFWHM: ") + s2wx(S(a)));
     if (func->get_iwidth(&a))
         inf->AppendText(wxT("\nInt. Width: ") + s2wx(S(a)));
-    vector_foreach (string, i, func->get_other_prop_names())
+    v_foreach (string, i, func->get_other_prop_names())
         inf->AppendText(s2wx("\n" + *i + ": " + S(func->get_other_prop(*i))));
 
     vector<string> in;
@@ -988,7 +988,7 @@ bool SideBar::find_value_of_param(string const& p, double* value)
         }
     }
 
-    vector_foreach (Function*, i, ftk->functions()) {
+    v_foreach (Function*, i, ftk->functions()) {
         int idx = (*i)->get_param_nr_nothrow(p);
         if (idx != -1) {
             *value = (*i)->get_var_value(idx);

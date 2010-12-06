@@ -12,6 +12,7 @@
 
 class Ftk;
 class Function;
+class Parser;
 struct OpTree;
 
 /// template -- function type, like Gaussian(height, center, hwhm) = ...,
@@ -32,9 +33,9 @@ struct Tplate
     };
 
     std::string name;
-    std::vector<std::string> pars; //TODO: args
+    std::vector<std::string> fargs;
     std::vector<std::string> defvals;
-    std::string rhs;
+    std::string rhs; // used in info only, not in calculations
     bool linear_d; // uses Guess::linear_traits
     bool peak_d;   // uses Guess::peak_traits
     create_type create;
@@ -54,7 +55,10 @@ private:
 class TplateMgr
 {
 public:
-    TplateMgr();
+    TplateMgr() {}
+
+    // initialization
+    void add_builtin_types(Parser* p);
 
     /// stores the formula
     void define(Tplate::Ptr tp);
@@ -70,10 +74,9 @@ public:
 private:
     std::vector<Tplate::Ptr> tpvec_;
 
-    void add_builtin_types();
-    void add(const char* name, const char* cs_pars, const char* cs_dv,
+    void add(const char* name, const char* cs_fargs, const char* cs_dv,
              const char* rhs, bool linear_d, bool peak_d,
-             Tplate::create_type create);
+             Tplate::create_type create, Parser* parser=NULL);
 
     DISALLOW_COPY_AND_ASSIGN(TplateMgr);
 };

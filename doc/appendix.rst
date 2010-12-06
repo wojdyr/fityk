@@ -185,8 +185,8 @@ The grammar is expressed in EBNF-like notation:
 * ``A*`` means 0 or more occurrences of A.
 * ``A+`` means 1 or more occurrences of A.
 * ``A % B`` means ``A (B A)*`` and the ``%`` operator has the highest
-  precedence. For example: ``statement % ";" comment`` is the same as
-  ``statement (";" statement)* comment``.
+  precedence. For example: ``term % "+" comment`` is the same as
+  ``term ("+" term)* comment``.
 * The colon ':' in quoted string means that the string can be shortened, e.g.
   ``"del:ete"`` mean that any of ``del``, ``dele``, ``delet`` and ``delete``
   can be used.
@@ -226,9 +226,9 @@ because we need to calculate symbolical derivatives of ``v_expr``)
 **Line structure**
 
 .. productionlist::
-   line: `statement` % ";" [`comment`]
-   statement: [Dataset+ ":"] [`options`] `command`
-   options: "w:ith" `set` % ","
+   line: [`statement`] [`comment`]
+   statement: [Dataset+ ":"] [`with_opts`] `command` % ";"
+   with_opts: "w:ith" (Lname "=" `value`) % ","
    comment: "#" AllChars* 
 
 **Commands**
@@ -237,34 +237,33 @@ The kCmd* names in the comments correspond to constants in the code.
 
 .. productionlist::
    command: (
-    : "deb:ug" RestOfLine           | (*kCmdDebug*)
-    : "def:ine" `define`              | (*kCmdDefine*)
-    : "del:ete" `delete`              | (*kCmdDelete*)
-    : "del:ete" `delete_points`       | (*kCmdDeleteP*)
-    : "e:xecute" `exec`               | (*kCmdExec*)
-    : "f:it" `fit`                    | (*kCmdFit*)
-    : "g:uess" `guess`                | (*kCmdGuess*)
-    : "i:nfo" `info_arg` % "," `redir`  | (*kCmdInfo*)
+    : "deb:ug" RestOfLine              | (*kCmdDebug*)
+    : "def:ine" `define`                 | (*kCmdDefine*)
+    : "del:ete" `delete`                 | (*kCmdDelete*)
+    : "del:ete" `delete_points`          | (*kCmdDeleteP*)
+    : "e:xecute" `exec`                  | (*kCmdExec*)
+    : "f:it" `fit`                       | (*kCmdFit*)
+    : "g:uess" `guess`                   | (*kCmdGuess*)
+    : "i:nfo" `info_arg` % "," `redir`     | (*kCmdInfo*)
     : "p:lot" [`range`] [`range`] Dataset* | (*kCmdPlot*)
-    : "pr:int" `print` `redir`          | (*kCmdPrint*)
-    : "quit"                        | (*kCmdQuit*)
-    : "reset"                       | (*kCmdReset*)
-    : "s:et" `set` % ","              | (*kCmdSet*)
-    : "sleep" `expr`                  | (*kCmdSleep*)
-    : "title" "=" `filename`          | (*kCmdTitle*)
-    : "undef:ine" Uname % ","       | (*kCmdUndef*)
-    : "!" RestOfLine                | (*kCmdShell*)
-    : Dataset "<" `load_arg`          | (*kCmdLoad*)
-    : Dataset "=" `dataset_tr_arg`    | (*kCmdDatasetTr*)
-    : Funcname "=" `func_rhs`         | (*kCmdNameFunc*)
-    : `func_id` "." Lname "=" `v_expr`  | (*kCmdAssignParam*)
-    : `model_id` "." Lname "=" `v_expr` | (*kCmdAssignAll*)
-    : Varname "=" `v_expr`            | (*kCmdNameVar*)
-    : `model_id` ("="|"+=") `model_rhs` | (*kCmdChangeModel*)
+    : "pr:int" `print` `redir`             | (*kCmdPrint*)
+    : "quit"                           | (*kCmdQuit*)
+    : "reset"                          | (*kCmdReset*)
+    : "s:et" (Lname "=" `value`) % ","   | (*kCmdSet*)
+    : "sleep" `expr`                     | (*kCmdSleep*)
+    : "title" "=" `filename`             | (*kCmdTitle*)
+    : "undef:ine" Uname % ","          | (*kCmdUndef*)
+    : "!" RestOfLine                   | (*kCmdShell*)
+    : Dataset "<" `load_arg`             | (*kCmdLoad*)
+    : Dataset "=" `dataset_tr_arg`       | (*kCmdDatasetTr*)
+    : Funcname "=" `func_rhs`            | (*kCmdNameFunc*)
+    : `func_id` "." Lname "=" `v_expr`     | (*kCmdAssignParam*)
+    : `model_id` "." Lname "=" `v_expr`    | (*kCmdAssignAll*)
+    : Varname "=" `v_expr`               | (*kCmdNameVar*)
+    : `model_id` ("="|"+=") `model_rhs`    | (*kCmdChangeModel*)
     : (`p_attr` "[" `expr` "]" "=" `p_expr`) % "," | (*kCmdPointTr*)
-    : (`p_attr` "=" `p_expr`) % ","     | (*kCmdAllPointsTr*)
-    : "M" "=" `expr`                  | (*kCmdResizeP*)
-    : ""                            ) (*kCmdNull*)
+    : (`p_attr` "=" `p_expr`) % ","        | (*kCmdAllPointsTr*)
+    : "M" "=" `expr`                     ) (*kCmdResizeP*)
 
 **Other rules**
 
@@ -289,7 +288,7 @@ The kCmd* names in the comments correspond to constants in the code.
    info_arg: ...TODO
    print: ...TODO
    redir: [(">" | ">>") `filename`]
-   set: Lname "=" (Lname | QuotedString | `expr`)
+   value: (Lname | QuotedString | `expr`) (*value type depends on the option*)
    model_rhs: "0" |
             : `func_id` |
             : `func_rhs` |

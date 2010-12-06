@@ -258,7 +258,7 @@ void Data::load_data_sum(vector<Data const*> const& dd, string const& op)
     string new_filename = dd.size() == 1 ? dd[0]->get_filename() : "";
     vector<Point> new_p;
     string new_title;
-    vector_foreach (Data const*, i, dd) {
+    v_foreach (Data const*, i, dd) {
         new_title += (i == dd.begin() ? "" : " + ") + (*i)->get_title();
         new_p.insert(new_p.end(), (*i)->points().begin(), (*i)->points().end());
     }
@@ -349,7 +349,7 @@ void Data::load_file (string const& fn,
         clear(); //removing previous file
         vector<int> bb = blocks.empty() ? vector1(0) : blocks;
 
-        vector_foreach (int, b, bb) {
+        v_foreach (int, b, bb) {
             assert(xyds);
             xylib::Block const* block = xyds->get_block(*b);
             xylib::Column const& xcol
@@ -535,7 +535,7 @@ vector<Point>::const_iterator Data::get_point_at(fp x) const
 
 fp Data::get_x_min() const
 {
-    vector_foreach (Point, i, p_)
+    v_foreach (Point, i, p_)
         if (is_finite(i->x))
             return i->x;
     return 0.;

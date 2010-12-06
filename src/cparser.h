@@ -86,9 +86,10 @@ public:
     // for debugging only
     std::string get_statements_repr() const;
 
-    // temporarily public
+    // these functions are used to parse command fragments from outside
     void parse_info_args(Lexer& lex, std::vector<Token>& args);
     void parse_print_args(Lexer& lex, std::vector<Token>& args);
+    void parse_define_rhs(Lexer& lex, Tplate *tp);
 
 private:
     const Ftk* F_;

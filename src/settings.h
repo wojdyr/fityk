@@ -66,7 +66,7 @@ public:
     void set_temporary(std::string const& k, std::string const& v);
     void clear_temporary();
     /// get info about option k
-    std::string infop (std::string const& k);
+    std::string infop (std::string const& k) const;
     /// get text information about type of option k
     std::string typep(std::string const& k) const;
     /// get all option keys that start with k

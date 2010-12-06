@@ -60,6 +60,7 @@ void Ftk::initialize()
     // Settings ctor is using FitMethodsContainer
     settings_ = new Settings(this);
     tplate_mgr_ = new TplateMgr;
+    tplate_mgr_->add_builtin_types(ui_->parser());
     view = View(this);
     dirty_plot_ = true;
     append_dm();
@@ -176,7 +177,7 @@ vector<int> parse_int_range(string const& s, int maximum)
 {
     vector<int> values;
     vector<string> t = split_string(s, ",");
-    vector_foreach (string, i, t) {
+    v_foreach (string, i, t) {
         string::size_type dots = i->find("..");
         if (dots == string::npos) {
             int n = atoi_all(*i);

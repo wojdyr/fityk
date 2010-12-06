@@ -153,7 +153,7 @@ char *type_generator(const char *text, int state)
     static vector<string> e;
     if (!state) {
         e.clear();
-        vector_foreach (Tplate::Ptr, i, ftk->get_tpm()->tpvec())
+        v_foreach (Tplate::Ptr, i, ftk->get_tpm()->tpvec())
             if (!strncmp((*i)->name.c_str(), text, strlen(text)))
                 e.push_back((*i)->name);
         list_index = 0;
@@ -187,7 +187,7 @@ char *info_generator(const char *text, int state)
     static vector<string> e;
     if (!state) {
         e.clear();
-        vector_foreach (Tplate::Ptr, i, ftk->get_tpm()->tpvec())
+        v_foreach (Tplate::Ptr, i, ftk->get_tpm()->tpvec())
             if (!strncmp((*i)->name.c_str(), text, strlen(text)))
                 e.push_back((*i)->name);
         for (const char** a = info_args; *a != NULL; ++a)
@@ -224,7 +224,7 @@ char *function_generator(const char *text, int state)
     static vector<string> e;
     if (!state) {
         e.clear();
-        vector_foreach (Function*, i, ftk->functions())
+        v_foreach (Function*, i, ftk->functions())
             if (!strncmp ((*i)->xname.c_str(), text, strlen(text)))
                 e.push_back((*i)->xname);
         list_index = 0;
@@ -243,7 +243,7 @@ char *variable_generator(const char *text, int state)
     static vector<string> e;
     if (!state) {
         e.clear();
-        vector_foreach (Variable*, i, ftk->variables())
+        v_foreach (Variable*, i, ftk->variables())
             if (!strncmp ((*i)->name.c_str(), text, strlen(text)))
                 e.push_back((*i)->name);
         list_index = 0;

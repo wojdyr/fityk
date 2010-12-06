@@ -194,7 +194,7 @@ void Settings::setp_core(string const& k, string const& v)
     throw ExecuteError("'" + v + "' is not a valid value for '" + k + "'");
 }
 
-string Settings::infop (string const& k)
+string Settings::infop (string const& k) const
 {
     return k + " = " + getp(k) + "\ntype: " + typep(k);
 }

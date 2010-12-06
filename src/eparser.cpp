@@ -278,7 +278,7 @@ void VirtualMachineData::append_number(double d)
 string ExpressionParser::list_ops() const
 {
     string txt;
-    vector_foreach (int, i, vm_.code()) {
+    v_foreach (int, i, vm_.code()) {
         txt += " " + dt_op(*i);
         if (*i == OP_NUMBER && i+1 != vm_.code().end()) {
             ++i;
@@ -538,6 +538,7 @@ void ExpressionParser::put_name(Lexer& lex,
             }
             else
                 lex.throw_syntax_error("unknown name: " + word);
+            expected_ = kOperator;
         }
     }
 }
@@ -878,6 +879,12 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                 put_binary_op(OP_NEQ);
                 break;
             case kTokenQMark:
+                // special case, for handling SplitFunction that has
+                // ... expr ":" TypeName ...
+                if (lex.peek_token().type == kTokenCname) {
+                    finished_ = true;
+                    break;
+                }
                 put_binary_op(OP_TERNARY_MID);
                 vm_.append_code(OP_TERNARY);
                 break;
@@ -1355,7 +1362,7 @@ void ExprCalculator::transform_data(vector<Point>& points)
     vector<Point> new_points = points;
 
     // do the time-consuming overflow checking only for the first point
-    vector_foreach (int, i, vm_.code()) {
+    v_foreach (int, i, vm_.code()) {
         run_mutab_op(i, stackPtr, 0, points, new_points);
         if (stackPtr - stack >= 16)
             throw ExecuteError("stack overflow");
@@ -1364,17 +1371,17 @@ void ExprCalculator::transform_data(vector<Point>& points)
 
     // the same for the rest of points, but without checks
     for (int n = 1; n != size(points); ++n)
-        vector_foreach (int, i, vm_.code())
+        v_foreach (int, i, vm_.code())
             run_mutab_op(i, stackPtr, n, points, new_points);
 
-    new_points = points;
+    points.swap(new_points);
 }
 
 double ExprCalculator::calculate(int n, const vector<Point>& points) const
 {
     double stack[16];
     double* stackPtr = stack - 1; // will be ++'ed first
-    vector_foreach (int, i, vm_.code()) {
+    v_foreach (int, i, vm_.code()) {
         run_const_op(i, stackPtr, n, points, points);
         if (stackPtr - stack >= 16)
             throw ExecuteError("stack overflow");
@@ -1389,7 +1396,7 @@ double ExprCalculator::calculate_custom(const vector<double>& custom_val) const
     double stack[16];
     double* stackPtr = stack - 1; // will be ++'ed first
     const vector<Point> dummy;
-    vector_foreach (int, i, vm_.code()) {
+    v_foreach (int, i, vm_.code()) {
         if (*i == OP_CUSTOM) {
             i++;
             if (is_index(*i, custom_val))

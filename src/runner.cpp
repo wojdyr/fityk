@@ -37,7 +37,7 @@ void Runner::command_set(const vector<Token>& args)
 
 void Runner::command_undefine(const vector<Token>& args)
 {
-    vector_foreach (Token, i, args)
+    v_foreach (Token, i, args)
         F_->get_tpm()->undefine(i->as_string());
 }
 
@@ -45,7 +45,7 @@ void Runner::command_delete(const vector<Token>& args)
 {
     vector<int> dd;
     vector<string> vars, funcs;
-    vector_foreach (Token, i, args) {
+    v_foreach (Token, i, args) {
         if (i->type == kTokenDataset)
             dd.push_back(i->value.i);
         else if (i->type == kTokenFuncname)
@@ -55,11 +55,12 @@ void Runner::command_delete(const vector<Token>& args)
     }
     if (!dd.empty()) {
         sort(dd.rbegin(), dd.rend());
-        vector_foreach (int, j, dd)
+        v_foreach (int, j, dd)
             F_->remove_dm(*j);
     }
     F_->delete_funcs(funcs);
     F_->delete_variables(vars);
+    F_->outdated_plot();
 }
 
 void Runner::command_delete_points(const vector<Token>& args, int ds)
@@ -80,6 +81,7 @@ void Runner::command_delete_points(const vector<Token>& args, int ds)
             new_p.push_back(p[n]);
     }
     data->set_points(new_p);
+    F_->outdated_plot();
 }
 
 void Runner::command_exec(const vector<Token>& args)
@@ -184,6 +186,9 @@ void Runner::command_guess(const vector<Token>& args, int ds)
         name = Lexer::get_string(args[0]);
         ignore_idx = F_->find_function_nr(name);
     }
+    else
+        name = F_->next_func_name();
+
 
     // function type
     assert (args[1].type == kTokenCname);
@@ -223,15 +228,15 @@ void Runner::command_guess(const vector<Token>& args, int ds)
     g.initialize(dm, lb, rb, ignore_idx);
     const Tplate* tp = F_->get_tpm()->get_tp(ftype);
     g.guess(tp, par_names, par_values);
-    // for now use the old ugly interface
-    vector<string> vars;
-    for (size_t i = 0; i != par_names.size(); ++i)
-        vars.push_back(par_names[i] + "=" + par_values[i]);
 
-    string real_name = F_->assign_func(name, ftype, vars);
-    int idx = F_->find_function_nr(real_name);
+    // for now use the old ugly interface
+    vector<string> func_args;
+    for (size_t i = 0; i != par_names.size(); ++i)
+        func_args.push_back(par_names[i] + "=" + par_values[i]);
+    int idx = F_->assign_func(name, ftype, func_args);
+
     FunctionSum& ff = dm->model()->get_ff();
-    ff.names.push_back(real_name);
+    ff.names.push_back(name);
     ff.idx.push_back(idx);
     F_->use_parameters();
     F_->outdated_plot();
@@ -258,32 +263,31 @@ void Runner::command_dataset_tr(const vector<Token>& args)
         if (args[i].type == kTokenDataset)
             dd.push_back(F_->get_data(args[i].value.i));
     F_->get_data(n)->load_data_sum(dd, tr);
+    F_->outdated_plot();
 }
 
 // should be reused from kCmdChangeModel
 void Runner::command_name_func(const vector<Token>& args)
 {
-    string t;
     string name = Lexer::get_string(args[0]);
     if (args[1].as_string() == "copy") {
-        t = F_->assign_func_copy(name, Lexer::get_string(args[2]));
+        F_->assign_func_copy(name, Lexer::get_string(args[2]));
     }
     else {
         string ftype = args[1].as_string();
         // for now use the old ugly interface
-        vector<string> vars;
+        vector<string> func_args;
         for (size_t i = 2; i < args.size(); i += 2) {
             string key;
             if (args[i].type != kTokenNop) // no keyword
-                key += args[i].as_string() + "=";
+                key = args[i].as_string() + "=";
             string var = args[i+1].as_string();
-            vars.push_back(key+var);
+            func_args.push_back(key+var);
         }
-        t = F_->assign_func(name, ftype, vars);
+        F_->assign_func(name, ftype, func_args);
     }
     F_->use_parameters();
     F_->outdated_plot(); //TODO only if function in @active
-    // return t;
 }
 
 static
@@ -329,7 +333,7 @@ void Runner::command_assign_all(const vector<Token>& args, int ds)
     string param = args[2].as_string();
     string var = args[3].as_string();
     const FunctionSum& fz = F_->get_model(ds)->get_fz(c);
-    vector_foreach (string, i, fz.names) {
+    v_foreach (string, i, fz.names) {
         if (F_->find_function(*i)->get_param_nr_nothrow(param) != -1)
             F_->substitute_func_param(*i, param, var);
     }
@@ -379,7 +383,7 @@ static
 void add_functions_to(const Ftk* F, vector<string> const &names,
                       FunctionSum& sum)
 {
-    vector_foreach (string, i, names) {
+    v_foreach (string, i, names) {
         int n = F->find_function_nr(*i);
         if (n == -1)
             throw ExecuteError("undefined function: %" + *i);
@@ -418,8 +422,11 @@ void Runner::command_change_model(const vector<Token>& args, int ds)
         else if (args[i].type == kTokenLname && args[i].as_string() == "copy") {
             vector<string> v;
             int n_tokens = get_fz_or_func(F_, ds, args.begin()+i+1, v);
-            vector_foreach (string, j, v)
-                new_names.push_back(F_->assign_func_copy("", *j));
+            v_foreach (string, j, v) {
+                string name = F_->next_func_name();
+                F_->assign_func_copy(name, *j);
+                new_names.push_back(name);
+            }
             i += n_tokens;
         }
         else if (args[i].type == kTokenCname) { // func rhs
@@ -473,6 +480,7 @@ void Runner::command_all_points_tr(const vector<Token>& args, int ds)
     Data *data = F_->get_data(ds);
     ep_.transform_data(data->get_mutable_points());
     data->after_transform();
+    F_->outdated_plot();
 }
 
 
@@ -498,6 +506,7 @@ void Runner::command_point_tr(const vector<Token>& args, int ds)
         else if (c == 'a' || c == 'A')
             p.is_active = (fabs(val) >= 0.5);
     }
+    F_->outdated_plot();
 }
 
 
@@ -510,13 +519,14 @@ void Runner::command_resize_p(const vector<Token>& args, int ds)
     Data *data = F_->get_data(ds);
     data->get_mutable_points().resize(val);
     data->after_transform();
+    F_->outdated_plot();
 }
 
 void Runner::execute_command(Command& c, int ds)
 {
     switch (c.type) {
         case kCmdDebug:
-            run_debug(F_, ds, c.args[0], c.args[1]);
+            command_debug(F_, ds, c.args[0], c.args[1]);
             break;
         case kCmdDefine:
             F_->get_tpm()->define(c.defined_tp);
@@ -537,13 +547,13 @@ void Runner::execute_command(Command& c, int ds)
             command_guess(c.args, ds);
             break;
         case kCmdInfo:
-            run_info_or_print(F_, ds, kCmdInfo, c.args);
+            command_redirectable(F_, ds, kCmdInfo, c.args);
             break;
         case kCmdPlot:
             command_plot(c.args, ds);
             break;
         case kCmdPrint:
-            run_info_or_print(F_, ds, kCmdPrint, c.args);
+            command_redirectable(F_, ds, kCmdPrint, c.args);
             break;
         case kCmdReset:
             F_->reset();
@@ -603,35 +613,44 @@ void Runner::execute_command(Command& c, int ds)
     }
 }
 
+void Runner::recalculate_args(vector<Command>& cmds, int ds)
+{
+    const vector<Point>& points = F_->get_data(ds)->points();
+    vm_foreach (Command, c, cmds) {
+        // Don't evaluate commands that are parsed in command_*().
+        if (c->type == kCmdAllPointsTr || c->type == kCmdDeleteP)
+            continue;
+
+        vm_foreach (Token, t, c->args)
+            if (t->type == kTokenExpr) {
+                Lexer lex(t->str);
+                ep_.clear_vm();
+                ep_.parse_expr(lex, ds);
+                t->value.d = ep_.calculate(/*n=*/0, points);
+            }
+    }
+}
+
 // Execute the last parsed string.
 // Throws ExecuteError, ExitRequestedException.
 void Runner::execute_statement(Statement& st)
 {
-    if (st.with_args.empty()) {
+    if (!st.with_args.empty()) {
         Settings *settings = F_->get_settings();
         for (size_t i = 1; i < st.with_args.size(); i += 2)
             settings->set_temporary(st.with_args[i-1].as_string(),
                                     st.with_args[i].as_string());
     }
     try {
-        vector_foreach (int, i, st.datasets) {
-            const vector<Point>& points = F_->get_data(*i)->points();
-            for (vector<Command>::iterator c = st.commands.begin();
-                                                c != st.commands.end(); ++c) {
-                // For all next datasets, re-evaluate expression in the
-                // context of the current dataset.
-                // Don't evaluate commands that are parsed in command_*().
-                if (i != st.datasets.begin() && (c->type == kCmdAllPointsTr ||
-                                                 c->type == kCmdDeleteP)) {
-                    for (vector<Token>::iterator t = c->args.begin();
-                                                       t != c->args.end(); ++t)
-                        if (t->type == kTokenExpr) {
-                            Lexer lex(t->str);
-                            ep_.clear_vm();
-                            ep_.parse_expr(lex, *i);
-                            t->value.d = ep_.calculate(0, points);
-                        }
-                }
+        v_foreach (int, i, st.datasets) {
+            // The values of expression were calculated when parsing
+            // in the context of the first dataset.
+            // We need to re-evaluate it for all but the first dataset
+            // or if "with ..." options were given (e.g. epsilon can change
+            // the result)
+            if (i != st.datasets.begin() || !st.with_args.empty())
+                recalculate_args(st.commands, *i);
+            vm_foreach (Command, c, st.commands) {
                 execute_command(*c, *i);
             }
         }

@@ -37,7 +37,7 @@ public:
 protected:
     VariableManager vmgr_;
 
-    void init_components(std::vector<std::string>& rf);
+    void init_components();
 
 private:
     virtual void init();

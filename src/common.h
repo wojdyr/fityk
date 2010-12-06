@@ -40,12 +40,9 @@ inline double trunc(double a) { return a >= 0 ? floor(a) : ceil(a); }
 
 //--------------------------  N U M E R I C  --------------------------------
 
-/// favourite floating point type
-#ifdef FP_IS_LDOUBLE
-typedef long double fp;
-#else
+// we used to experiment with float and long double,
+// but now fp is always double
 typedef double fp;
-#endif
 
 /// epsilon is used for comparision of real numbers
 /// defined in settings.cpp; it can be changed in Settings
@@ -77,42 +74,38 @@ inline bool is_finite(fp a)
 # define M_SQRT2 1.4142135623730950488016887242096981  // sqrt(2)
 #endif
 
-/** idea of exp_() is taken from gnuplot:
- *  some machines have trouble with exp(-x) for large x
- *  if MINEXP is defined at compile time, use exp_(x) instead,
- *  which returns 0 for exp_(x) with x < MINEXP
- */
-#ifdef MINEXP
-  inline fp exp_(fp x) { return (x < (MINEXP)) ? 0.0 : exp(x); }
-#else
-#  define exp_(x) exp(x)
-#endif
-
 /// Round real to integer.
 inline int iround(fp d) { return static_cast<int>(floor(d+0.5)); }
 
 //---------------------------  S T R I N G  --------------------------------
 
+template <typename T, int N>
+std::string format1(const char* fmt, T t)
+{
+    char buffer[N];
+    snprintf(buffer, N, fmt, t);
+    return std::string(buffer);
+}
+
+/*
 /// S() converts to string
 template <typename T>
 inline std::string S(T k) {
     return static_cast<std::ostringstream&>(std::ostringstream() << k).str();
 }
+*/
 
 inline std::string S(bool b) { return b ? "true" : "false"; }
-inline std::string S(char const *k) { return std::string(k); }
-inline std::string S(char *k) { return std::string(k); }
-inline std::string S(char const k) { return std::string(1, k); }
-inline std::string S(std::string const &k) { return k; }
+inline std::string S(const char *k) { return std::string(k); }
+inline std::string S(char k) { return std::string(1, k); }
+inline std::string S(const std::string& k) { return k; }
 inline std::string S() { return std::string(); }
-
+inline std::string S(int n) { return format1<int, 16>("%d", n); }
+inline std::string S(size_t n)
+    { return format1<size_t, 16>("%lu", (unsigned long) n); }
+inline std::string S(double d) { return format1<double, 16>("%g", d); }
 // more exact version of S(); convert double number with 12 significant digits
-inline std::string eS(double d)
-{
-    char buffer[24];
-    sprintf(buffer, "%.12g", d);
-    return std::string(buffer);
-}
+inline std::string eS(double d) { return format1<double, 24>("%.12g", d); }
 
 /// True if the string contains only a real number
 bool is_double (std::string const& s);
@@ -174,10 +167,10 @@ bool match_glob(const char* name, const char* pattern);
 
 // boost/foreach.hpp includes quite a lot of code. Since only one version
 // is needed here, let's keep it simple
-#define vector_foreach(type, iter, vec) \
+#define v_foreach(type, iter, vec) \
 for (vector<type>::const_iterator iter = vec.begin(); iter != vec.end(); ++iter)
 
-#define vectorm_foreach(type, iter, vec) \
+#define vm_foreach(type, iter, vec) \
 for (vector<type>::iterator iter = vec.begin(); iter != vec.end(); ++iter)
 
 /// Makes 1-element vector

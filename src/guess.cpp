@@ -30,15 +30,16 @@ Guess::Guess(Settings const *settings) : settings_(settings)
 
 void Guess::initialize(const DataAndModel* dm, int lb, int rb, int ignore_idx)
 {
-    xx_.resize(rb - lb);
-    for (int j = lb; j != rb; ++j)
-        xx_[j] = dm->data()->get_x(j);
+    int len = rb - lb;
+    assert(len >= 0);
+    xx_.resize(len);
+    for (int j = 0; j != len; ++j)
+        xx_[j] = dm->data()->get_x(lb+j);
     yy_.clear(); // just in case
-    assert(rb - lb >= 0);
-    yy_.resize(rb - lb, 0.);
+    yy_.resize(len, 0.);
     dm->model()->compute_model(xx_, yy_, ignore_idx);
-    for (int j = lb; j != rb; ++j)
-        yy_[j] = dm->data()->get_y(j) - yy_[j];
+    for (int j = 0; j != len; ++j)
+        yy_[j] = dm->data()->get_y(lb+j) - yy_[j];
 }
 
 
@@ -135,6 +136,10 @@ void Guess::estimate_linear_parameters(fp *slope, fp *intercept, fp *avgy)
 
 void Guess::get_guess_info(string& result)
 {
+    if (xx_.empty()) {
+        result += "empty range";
+        return;
+    }
     fp c = 0., h = 0., a = 0., hwhm = 0.;
     estimate_peak_parameters(&c, &h, &a, &hwhm);
     if (h != 0.)

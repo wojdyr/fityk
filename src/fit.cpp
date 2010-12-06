@@ -31,7 +31,7 @@ int Fit::get_dof(vector<DataAndModel*> const& dms)
 {
     update_parameters(dms);
     int dof = 0;
-    vector_foreach (DataAndModel*, i, dms)
+    v_foreach (DataAndModel*, i, dms)
         dof += (*i)->data()->get_n();
     dof -= count(par_usage.begin(), par_usage.end(), true);
     return dof;
@@ -84,7 +84,7 @@ vector<fp> Fit::get_covariance_matrix(vector<DataAndModel*> const& dms)
 
     reverse_matrix(alpha, na);
 
-    vector_foreach (int, i, undef)
+    v_foreach (int, i, undef)
         alpha[(*i)*na + (*i)] = 0.;
 
     return alpha;
@@ -145,7 +145,7 @@ fp Fit::do_compute_wssr(vector<fp> const &A,
 {
     fp wssr = 0;
     F->use_external_parameters(A); //that's the only side-effect
-    vector_foreach (DataAndModel*, i, dms) {
+    v_foreach (DataAndModel*, i, dms) {
         wssr += compute_wssr_for_data(*i, weigthed);
     }
     return wssr;
@@ -176,7 +176,7 @@ fp Fit::compute_r_squared(vector<fp> const &A, vector<DataAndModel*> const& dms)
 {
     fp sum_err = 0, sum_tot = 0, se = 0, st = 0;
     F->use_external_parameters(A);
-    vector_foreach (DataAndModel*, i, dms) {
+    v_foreach (DataAndModel*, i, dms) {
         compute_r_squared_for_data(*i, &se, &st);
         sum_err += se;
         sum_tot += st;
@@ -230,7 +230,7 @@ void Fit::compute_derivatives(vector<fp> const &A,
     fill(beta.begin(), beta.end(), 0.0);
 
     F->use_external_parameters(A);
-    vector_foreach (DataAndModel*, i, dms) {
+    v_foreach (DataAndModel*, i, dms) {
         compute_derivatives_for(*i, alpha, beta);
     }
     // filling second half of alpha[]
@@ -370,7 +370,7 @@ void Fit::fit(int max_iter, vector<DataAndModel*> const& dms)
     // print stats
     int nu = count(par_usage.begin(), par_usage.end(), true);
     int np = 0;
-    vector_foreach (DataAndModel*, i, dms)
+    v_foreach (DataAndModel*, i, dms)
         np += (*i)->data()->get_n();
     F->msg ("Fitting " + S(nu) + " (of " + S(na) + ") parameters to "
             + S(np) + " points ...");
@@ -382,7 +382,7 @@ void Fit::fit(int max_iter, vector<DataAndModel*> const& dms)
 void Fit::continue_fit(int max_iter)
 {
     start_time_ = last_refresh_time_ = time(0);
-    vector_foreach (DataAndModel*, i, dmdm_)
+    v_foreach (DataAndModel*, i, dmdm_)
         if (!F->contains_dm(*i) || na != size(F->parameters()))
             throw ExecuteError(name + " method should be initialized first.");
     update_parameters(dmdm_);
@@ -405,7 +405,7 @@ void Fit::update_parameters(vector<DataAndModel*> const& dms)
     par_usage = vector<bool>(na, false);
     for (int idx = 0; idx < na; ++idx) {
         int var_idx = F->find_nr_var_handling_param(idx);
-        vector_foreach (DataAndModel*, i, dms) {
+        v_foreach (DataAndModel*, i, dms) {
             if ((*i)->model()->is_dependent_on_var(var_idx)) {
                 par_usage[idx] = true;
                 break; //go to next idx
@@ -449,14 +449,16 @@ void Fit::iteration_plot(vector<fp> const &A, bool changed, fp wssr)
         F->use_external_parameters(A);
         F->get_ui()->draw_plot(3, UserInterface::kRepaintImmediately);
     }
-    if (refresh_period > 0)
+    if (refresh_period > 0) {
+        int elapsed = now - start_time_;
+        double percent_change = (wssr - wssr_before) / wssr_before * 100.;
         F->msg("Iter: " + S(iter_nr) + "/"
                 + (max_iterations > 0 ? S(max_iterations) : string("oo"))
                 + "  Eval: " + S(evaluations) + "/"
                 + (max_evaluations_ > 0 ? S(max_evaluations_) : string("oo"))
-                + "  WSSR=" + S(wssr)
-                + " (" + S(wssr * 100. / wssr_before)+ "%)"
-                + "  Elapsed " + S(now - start_time_) + "s.");
+                + "  WSSR=" + S(wssr) + " (" + S(percent_change)+ "%)"
+                + "  Elapsed " + S(elapsed) + "s.");
+    }
     F->get_ui()->refresh();
     last_refresh_time_ = time(0);
 }

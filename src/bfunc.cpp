@@ -44,12 +44,12 @@ void NAME::calculate_value_deriv_in_range(vector<fp> const &xx, \
 #define CALCULATE_DERIV_END(VAL) \
         if (!in_dx) { \
             yy[i] += (VAL); \
-            vector_foreach (Multi, j, multi_) \
+            v_foreach (Multi, j, multi_) \
                 dy_da[dyn*i+j->p] += dy_dv[j->n] * j->mult;\
             dy_da[dyn*i+dyn-1] += dy_dx;\
         }\
         else {  \
-            vector_foreach (Multi, j, multi_) \
+            v_foreach (Multi, j, multi_) \
                 dy_da[dyn*i+j->p] += dy_da[dyn*i+dyn-1] * dy_dv[j->n]*j->mult;\
         } \
     } \
@@ -171,12 +171,12 @@ void FuncGaussian::more_precomputations()
 
 CALCULATE_VALUE_BEGIN(FuncGaussian)
     fp xa1a2 = (x - vv_[1]) / vv_[2];
-    fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
+    fp ex = exp(- M_LN2 * xa1a2 * xa1a2);
 CALCULATE_VALUE_END(vv_[0] * ex)
 
 CALCULATE_DERIV_BEGIN(FuncGaussian)
     fp xa1a2 = (x - vv_[1]) / vv_[2];
-    fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
+    fp ex = exp(- M_LN2 * xa1a2 * xa1a2);
     dy_dv[0] = ex;
     fp dcenter = 2 * M_LN2 * vv_[0] * ex * xa1a2 / vv_[2];
     dy_dv[1] = dcenter;
@@ -217,13 +217,13 @@ void FuncSplitGaussian::more_precomputations()
 CALCULATE_VALUE_BEGIN(FuncSplitGaussian)
     fp hwhm = (x < vv_[1] ? vv_[2] : vv_[3]);
     fp xa1a2 = (x - vv_[1]) / hwhm;
-    fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
+    fp ex = exp(- M_LN2 * xa1a2 * xa1a2);
 CALCULATE_VALUE_END(vv_[0] * ex)
 
 CALCULATE_DERIV_BEGIN(FuncSplitGaussian)
     fp hwhm = (x < vv_[1] ? vv_[2] : vv_[3]);
     fp xa1a2 = (x - vv_[1]) / hwhm;
-    fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
+    fp ex = exp(- M_LN2 * xa1a2 * xa1a2);
     dy_dv[0] = ex;
     fp dcenter = 2 * M_LN2 * vv_[0] * ex * xa1a2 / hwhm;
     dy_dv[1] = dcenter;
@@ -442,14 +442,14 @@ void FuncPseudoVoigt::more_precomputations()
 
 CALCULATE_VALUE_BEGIN(FuncPseudoVoigt)
     fp xa1a2 = (x - vv_[1]) / vv_[2];
-    fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
+    fp ex = exp(- M_LN2 * xa1a2 * xa1a2);
     fp lor = 1. / (1 + xa1a2 * xa1a2);
     fp without_height =  (1-vv_[3]) * ex + vv_[3] * lor;
 CALCULATE_VALUE_END(vv_[0] * without_height)
 
 CALCULATE_DERIV_BEGIN(FuncPseudoVoigt)
     fp xa1a2 = (x - vv_[1]) / vv_[2];
-    fp ex = exp_ (- M_LN2 * xa1a2 * xa1a2);
+    fp ex = exp(- M_LN2 * xa1a2 * xa1a2);
     fp lor = 1. / (1 + xa1a2 * xa1a2);
     fp without_height =  (1-vv_[3]) * ex + vv_[3] * lor;
     dy_dv[0] = without_height;
@@ -879,7 +879,7 @@ CALCULATE_VALUE_BEGIN(FuncLogNormal)
     fp ex = 0.0;
     if (a > -1.0) {
         fp b = log(1 + a) / vv_[3];
-        ex = vv_[0] * exp_(-M_LN2 * b * b);
+        ex = vv_[0] * exp(-M_LN2 * b * b);
     }
 CALCULATE_VALUE_END(ex)
 
@@ -888,7 +888,7 @@ CALCULATE_DERIV_BEGIN(FuncLogNormal)
     fp ex;
     if (a > -1.0) {
         fp b = log(1 + a) / vv_[3];
-        ex = exp_(-M_LN2 * b * b);
+        ex = exp(-M_LN2 * b * b);
         dy_dv[0] = ex;
         ex *= vv_[0];
         dy_dv[1] = 4.0*M_LN2/(vv_[2]*(a+1))*ex*b;
@@ -915,9 +915,9 @@ bool FuncLogNormal::get_nonzero_range (fp level, fp &left, fp &right) const
         left = right = 0;
     else {
         //fp w = sqrt (log (fabs(vv_[0]/level)) / M_LN2) * vv_[2];
-        fp w1 = (1-exp_(sqrt(log(fabs(vv_[0]/level))/M_LN2)*vv_[3]))*vv_[2]
+        fp w1 = (1-exp(sqrt(log(fabs(vv_[0]/level))/M_LN2)*vv_[3]))*vv_[2]
             /2.0/vv_[3]+vv_[1];
-        fp w0 = (1-exp_(-sqrt(log(fabs(vv_[0]/level))/M_LN2)*vv_[3]))*vv_[2]
+        fp w0 = (1-exp(-sqrt(log(fabs(vv_[0]/level))/M_LN2)*vv_[3]))*vv_[2]
             /2.0/vv_[3]+vv_[1];
         if (w1>w0) {
             left = w0;

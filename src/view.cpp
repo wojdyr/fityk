@@ -115,7 +115,7 @@ void View::get_y_range(vector<Data const*> datas, vector<Model const*> models,
         throw ExecuteError("Can't find x-y axes ranges for plot");
     y_min = y_max = (datas.front()->get_n() > 0 ? datas.front()->get_y(0) : 0);
     bool min_max_set = false;
-    vector_foreach (Data const*, i, datas) {
+    v_foreach (Data const*, i, datas) {
         vector<Point>::const_iterator f = (*i)->get_point_at(left);
         vector<Point>::const_iterator l = (*i)->get_point_at(right);
         //first we are searching for minimal and max. y in active points
@@ -132,7 +132,7 @@ void View::get_y_range(vector<Data const*> datas, vector<Model const*> models,
 
     if (!min_max_set || y_min == y_max) { //none or 1 active point, so now we
                                    // search for min. and max. y in all points
-        vector_foreach (Data const*, i, datas) {
+        v_foreach (Data const*, i, datas) {
             vector<Point>::const_iterator f = (*i)->get_point_at(left);
             vector<Point>::const_iterator l = (*i)->get_point_at(right);
             for (vector<Point>::const_iterator j = f; j < l; j++) {
@@ -147,7 +147,7 @@ void View::get_y_range(vector<Data const*> datas, vector<Model const*> models,
         }
     }
 
-    vector_foreach (Model const*, i, models) {
+    v_foreach (Model const*, i, models) {
         Model const* model = *i;
         if (model->get_ff().empty())
             continue;

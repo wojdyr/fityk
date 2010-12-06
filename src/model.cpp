@@ -34,10 +34,10 @@ Model::~Model()
 bool Model::is_dependent_on_var(int idx) const
 {
     vector<Variable*> const& vv = mgr.variables();
-    vector_foreach (int, i, ff_.idx)
+    v_foreach (int, i, ff_.idx)
         if (mgr.get_function(*i)->is_dependent_on(idx, vv))
             return true;
-    vector_foreach (int, i, zz_.idx)
+    v_foreach (int, i, zz_.idx)
         if (mgr.get_function(*i)->is_dependent_on(idx, vv))
             return true;
     return false;
@@ -47,7 +47,7 @@ fp Model::value(fp x) const
 {
     x += zero_shift(x);
     fp y = 0;
-    vector_foreach (int, i, ff_.idx)
+    v_foreach (int, i, ff_.idx)
         y += mgr.get_function(*i)->calculate_value(x);
     return y;
 }
@@ -55,7 +55,7 @@ fp Model::value(fp x) const
 fp Model::zero_shift(fp x) const
 {
     fp z = 0;
-    vector_foreach (int, i, zz_.idx)
+    v_foreach (int, i, zz_.idx)
         z += mgr.get_function(*i)->calculate_value(x);
     return z;
 }
@@ -63,10 +63,10 @@ fp Model::zero_shift(fp x) const
 void Model::compute_model(vector<fp> &x, vector<fp> &y, int ignore_func) const
 {
     // add x-correction to x
-    vector_foreach (int, i, zz_.idx)
+    v_foreach (int, i, zz_.idx)
         mgr.get_function(*i)->calculate_value(x, x);
     // add y-value to y
-    vector_foreach (int, i, ff_.idx)
+    v_foreach (int, i, ff_.idx)
         if (*i != ignore_func)
             mgr.get_function(*i)->calculate_value(x, y);
 }
@@ -86,13 +86,13 @@ void Model::compute_model_with_derivs(vector<fp> &x, vector<fp> &y,
     fill (dy_da.begin(), dy_da.end(), 0);
 
     // add x-correction to x
-    vector_foreach (int, i, zz_.idx)
+    v_foreach (int, i, zz_.idx)
         mgr.get_function(*i)->calculate_value(x, x);
 
     // calculate value and derivatives
-    vector_foreach (int, i, ff_.idx)
+    v_foreach (int, i, ff_.idx)
         mgr.get_function(*i)->calculate_value_deriv(x, y, dy_da, false);
-    vector_foreach (int, i, zz_.idx)
+    v_foreach (int, i, zz_.idx)
         mgr.get_function(*i)->calculate_value_deriv(x, y, dy_da, true);
 }
 
@@ -138,7 +138,7 @@ fp Model::approx_max(fp x_min, fp x_max) const
     fp x = x_min;
     fp y_max = value(x);
     vector<fp> xx;
-    vector_foreach (int, i, ff_.idx) {
+    v_foreach (int, i, ff_.idx) {
         fp ctr;
         if (mgr.get_function(*i)->get_center(&ctr)
                 && x_min < ctr && ctr < x_max)
@@ -146,7 +146,7 @@ fp Model::approx_max(fp x_min, fp x_max) const
     }
     xx.push_back(x_max);
     sort(xx.begin(), xx.end());
-    vector_foreach (fp, i, xx) {
+    v_foreach (fp, i, xx) {
         fp x_between = (x + *i)/2.;
         x = *i;
         fp y = max(value(x_between), value(x));
@@ -162,7 +162,7 @@ string Model::get_peak_parameters(vector<fp> const& errors) const
     // TODO: use info-numeric-format
     string s;
     s += "# PeakType\tCenter\tHeight\tArea\tFWHM\tparameters...\n";
-    vector_foreach (int, i, ff_.idx) {
+    v_foreach (int, i, ff_.idx) {
         Function const* p = mgr.get_function(*i);
         s += p->xname + "  " + p->tp()->name;
         fp a;
@@ -204,11 +204,11 @@ string Model::get_formula(bool simplify, bool gnuplot_style) const
     if (ff_.names.empty())
         return "0";
     string shift;
-    vector_foreach (int, i, zz_.idx)
+    v_foreach (int, i, zz_.idx)
         shift += "+(" + mgr.get_function(*i)->get_current_formula() + ")";
     string x = "(x" + shift + ")";
     string formula;
-    vector_foreach (int, i, ff_.idx)
+    v_foreach (int, i, ff_.idx)
         formula += (i==ff_.idx.begin() ? "" : "+")
                    + mgr.get_function(*i)->get_current_formula(x);
     if (simplify) {
@@ -258,7 +258,7 @@ fp Model::numarea(fp x1, fp x2, int nsteps) const
     x1 += zero_shift(x1);
     x2 += zero_shift(x2);
     fp a = 0;
-    vector_foreach (int, i, ff_.idx)
+    v_foreach (int, i, ff_.idx)
         a += mgr.get_function(*i)->numarea(x1, x2, nsteps);
     return a;
 }

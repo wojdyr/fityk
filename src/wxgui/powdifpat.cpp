@@ -451,7 +451,7 @@ PlotWithLines::PlotWithLines(wxWindow* parent, PhasePanel* phase_panel,
 double get_max_intensity(const vector<PlanesWithSameD>& bp)
 {
     double max_intensity = 0.;
-    vector_foreach (PlanesWithSameD, i, bp)
+    v_foreach (PlanesWithSameD, i, bp)
         if (i->intensity > max_intensity)
             max_intensity = i->intensity;
     return max_intensity;
@@ -482,7 +482,7 @@ void PlotWithLines::draw(wxDC &dc, bool)
     double h_mult = 0;
     if (max_intensity > 0)
         h_mult = powder_book_->y_max / max_intensity;
-    vector_foreach (PlanesWithSameD, i, bp) {
+    v_foreach (PlanesWithSameD, i, bp) {
         if (!i->enabled)
             continue;
         bool is_selected = (i - bp.begin() == selected);
@@ -684,7 +684,7 @@ void PhasePanel::OnAddToQLButton(wxCommandEvent&)
     cel.alpha = par_alpha->get_value();
     cel.beta = par_beta->get_value();
     cel.gamma = par_gamma->get_value();
-    vector_foreach (Atom, i, cr_.atoms) {
+    v_foreach (Atom, i, cr_.atoms) {
         t_pse const* pse = find_in_pse(i->symbol);
         assert (pse != NULL);
         AtomInCell aic;
@@ -845,7 +845,7 @@ wxString make_info_string_for_line(const PlanesWithSameD& bp,
     wxString info = wxT("line ");
     wxString mult_str = wxT("multiplicity: ");
     wxString sfac_str = wxT("|F(hkl)|: ");
-    vector_foreach (Plane, i, bp.planes) {
+    v_foreach (Plane, i, bp.planes) {
         if (i != bp.planes.begin()) {
             info += wxT(", ");
             mult_str += wxT(", ");
@@ -872,7 +872,7 @@ wxString make_info_string_for_line(const PlanesWithSameD& bp,
 wxString make_info_string_for_atoms(const vector<Atom>& atoms, int error_line)
 {
     wxString info = wxT("In unit cell:");
-    vector_foreach (Atom, i, atoms) {
+    v_foreach (Atom, i, atoms) {
         info += wxString::Format(wxT(" %d %s "), (int) i->pos.size(),
                                                  pchar2wx(i->symbol).c_str());
     }
@@ -1000,7 +1000,7 @@ void PhasePanel::set_phase(string const& name, CelFile const& cel)
     par_beta->set_string(wxString::Format(wxT("%g"), (cel.beta)));
     par_gamma->set_string(wxString::Format(wxT("%g"), (cel.gamma)));
     wxString atoms_str;
-    vector_foreach (AtomInCell, i, cel.atoms) {
+    v_foreach (AtomInCell, i, cel.atoms) {
         t_pse const* pse = find_Z_in_pse(i->Z);
         if (pse == NULL)
             continue;
@@ -1165,7 +1165,7 @@ wxPanel* PowderBook::PrepareActionPanel()
 
     vector<Variable*> const& vv = ftk->variables();
     bool has_old_model = false;
-    vector_foreach (Variable*, i, vv) {
+    v_foreach (Variable*, i, vv) {
         if (startswith((*i)->name, "pd")) {
             has_old_model = true;
             break;
@@ -1371,7 +1371,7 @@ wxString PowderBook::prepare_commands()
         bool has_shape = peak_rb->GetSelection() >= 2;
         int shape_sel = shape_rb->GetSelection();
 
-        vector_foreach (PlanesWithSameD, j, cr.bp) {
+        v_foreach (PlanesWithSameD, j, cr.bp) {
             if (!j->enabled)
                 continue;
             const Miller& hkl = j->planes[0];

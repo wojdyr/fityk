@@ -19,7 +19,7 @@ using namespace boost::spirit::classic;
 bool VariableUser::is_dependent_on(int idx,
                                    vector<Variable*> const &variables) const
 {
-    vector_foreach (int, i, var_idx)
+    v_foreach (int, i, var_idx)
         if (*i == idx || variables[*i]->is_dependent_on(idx, variables))
             return true;
     return false;
@@ -106,7 +106,7 @@ void Variable::recalculate(vector<Variable*> const &variables,
         recursive_derivatives_.clear();
         for (int i = 0; i < size(derivatives_); ++i) {
             Variable *v = variables[var_idx[i]];
-            vector_foreach (ParMult, j, v->recursive_derivatives()) {
+            v_foreach (ParMult, j, v->recursive_derivatives()) {
                 recursive_derivatives_.push_back(*j);
                 recursive_derivatives_.back().mult *= derivatives_[i];
             }

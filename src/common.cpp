@@ -29,7 +29,7 @@ string time_now()
     return ctime (&t);
 }
 
-bool is_double(string const& s) {
+bool is_double(const string& s) {
     char const *c = s.c_str();
     char *endptr;
     strtod(c, &endptr);
@@ -40,8 +40,8 @@ bool is_double(string const& s) {
     return (*endptr == 0);
 }
 
-bool is_int(string const& s) {
-    char const *c = s.c_str();
+bool is_int(const string& s) {
+    const char *c = s.c_str();
     char *endptr;
     strtol(c, &endptr, 10);
     if (c == endptr)
@@ -51,7 +51,7 @@ bool is_int(string const& s) {
     return (*endptr == 0);
 }
 
-void replace_all(string &s, string const &old, string const &new_)
+void replace_all(string &s, const string &old, const string &new_)
 {
     string::size_type pos = 0;
     while ((pos = s.find(old, pos)) != string::npos) {
@@ -62,7 +62,7 @@ void replace_all(string &s, string const &old, string const &new_)
 
 /// replaces all words `old_word' in text `str' with `new_word'
 ///  word `foo' is in: "4*foo+1" but not in: "foobar", "_foo", "$foo"
-void replace_words(string &t, string const &old_word, string const &new_word)
+void replace_words(string &t, const string &old_word, const string &new_word)
 {
     string::size_type pos = 0;
     while ((pos=t.find(old_word, pos)) != string::npos) {
@@ -80,7 +80,7 @@ void replace_words(string &t, string const &old_word, string const &new_word)
 
 /// find matching bracket for (, [ or {, return position in string
 string::size_type
-find_matching_bracket(string const& formula, string::size_type left_pos)
+find_matching_bracket(const string& formula, string::size_type left_pos)
 {
     if (left_pos == string::npos)
         return string::npos;

@@ -8,41 +8,42 @@
 #include "udf.h"
 #include "bfunc.h"
 #include "ast.h"
+#include "lexer.h"
+#include "cparser.h"
 
 
 using namespace std;
 
+static
+vector<OpTree*> make_op_trees(const Tplate* tp)
+{
+    string rhs = tp->rhs;
+    tree_parse_info<> info = ast_parse(rhs.c_str(), FuncG >> end_p, space_p);
+    assert(info.full);
+    vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID, info);
+    vector<string> lhs_vars = tp->fargs;
+    lhs_vars.push_back("x");
+    v_foreach (string, i, vars)
+        if (find(lhs_vars.begin(), lhs_vars.end(), *i) == lhs_vars.end())
+            throw ExecuteError("variable `" + *i
+                                           + "' only at the right hand side.");
+    vector<OpTree*> op_trees = calculate_deriv(info.trees.begin(), lhs_vars);
+    return op_trees;
+}
+
+
 string Tplate::as_formula() const
 {
     string r = name + "(";
-    for (size_t i = 0; i != pars.size(); ++i) {
+    for (size_t i = 0; i != fargs.size(); ++i) {
         if (i != 0)
             r += ", ";
-        r += pars[i];
+        r += fargs[i];
         if (!defvals[i].empty())
             r += "=" + defvals[i];
     }
     r += ") = " + rhs;
     return r;
-}
-
-void TplateMgr::add(const char* name,
-               const char* cs_pars, // comma-separated parameters
-               const char* cs_dv,   // comma-separated default values
-               const char* rhs,
-               bool linear_d, bool peak_d,
-               Tplate::create_type create)
-{
-    Tplate* t = new Tplate;
-    t->name = name;
-    t->pars = split_string(cs_pars, ',');
-    t->defvals = split_string(cs_dv, ',');
-    t->rhs = rhs;
-    t->linear_d = linear_d;
-    t->peak_d = peak_d;
-    t->create = create;
-    assert(t->pars.size() == t->defvals.size());
-    tpvec_.push_back(Tplate::Ptr(t));
 }
 
 #define FACTORY_FUNC(NAME) \
@@ -76,7 +77,36 @@ FACTORY_FUNC(CustomFunction)
 FACTORY_FUNC(CompoundFunction)
 FACTORY_FUNC(SplitFunction)
 
-void TplateMgr::add_builtin_types()
+
+void TplateMgr::add(const char* name,
+               const char* cs_fargs, // comma-separated parameters
+               const char* cs_dv,    // comma-separated default values
+               const char* rhs,
+               bool linear_d, bool peak_d,
+               Tplate::create_type create,
+               Parser* parser)
+{
+    Tplate* t = new Tplate;
+    t->name = name;
+    t->fargs = split_string(cs_fargs, ',');
+    t->defvals = split_string(cs_dv, ',');
+    t->rhs = rhs;
+    t->linear_d = linear_d;
+    t->peak_d = peak_d;
+    t->create = create;
+    assert(t->fargs.size() == t->defvals.size());
+    tpvec_.push_back(Tplate::Ptr(t));
+
+    if (parser) {
+        Lexer lex(rhs);
+        parser->parse_define_rhs(lex, t);
+        if (create == &create_CustomFunction)
+            t->op_trees = make_op_trees(t);
+    }
+}
+
+
+void TplateMgr::add_builtin_types(Parser* p)
 {
     tpvec_.reserve(32);
 
@@ -175,145 +205,51 @@ void TplateMgr::add_builtin_types()
 
     add("ExpDecay", "a,t", "0,1",
         "a*exp(-x/t)",
-        /*linear_d=*/false, /*peak_d=*/false, &create_CustomFunction);
+        /*linear_d=*/false, /*peak_d=*/false, &create_CustomFunction, p);
 
     add("GaussianA", "area,center,hwhm", ",,",
         "Gaussian(area/hwhm/sqrt(pi/ln(2)), center, hwhm)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_CompoundFunction);
+        /*linear_d=*/false, /*peak_d=*/true, &create_CompoundFunction, p);
 
     add("LogNormalA", "area,center,width,asym", ",,2*hwhm,0.1",
         "LogNormal(sqrt(ln(2)/pi)*(2*area/width)*exp(-asym^2/4/ln(2)), "
                    "center, width, asym)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_CompoundFunction);
+        /*linear_d=*/false, /*peak_d=*/true, &create_CompoundFunction, p);
 
     add("LorentzianA", "area,center,hwhm", ",,",
         "Lorentzian(area/hwhm/pi, center, hwhm)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_CompoundFunction);
+        /*linear_d=*/false, /*peak_d=*/true, &create_CompoundFunction, p);
 
     add("Pearson7A", "area,center,hwhm,shape", ",,,2",
         "Pearson7(area/(hwhm*exp(lgamma(shape-0.5)-lgamma(shape))"
                         "*sqrt(pi/(2^(1/shape)-1))), "
                  "center, hwhm, shape)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_CompoundFunction);
+        /*linear_d=*/false, /*peak_d=*/true, &create_CompoundFunction, p);
 
     add("PseudoVoigtA",
         "area,center,hwhm,shape",
         ",,,0.5",
         "GaussianA(area*(1-shape), center, hwhm)"
          " + LorentzianA(area*shape, center, hwhm)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_CompoundFunction);
+        /*linear_d=*/false, /*peak_d=*/true, &create_CompoundFunction, p);
 
     add("SplitLorentzian", "height,center,hwhm1,hwhm2", ",,hwhm,hwhm",
         "x < center ? Lorentzian(height, center, hwhm1)"
                   " : Lorentzian(height, center, hwhm2)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_SplitFunction);
+        /*linear_d=*/false, /*peak_d=*/true, &create_SplitFunction, p);
 
     add("SplitPseudoVoigt",
         "height,center,hwhm1,hwhm2,shape1,shape2", ",,hwhm,hwhm,0.5,0.5",
         "x < center ? PseudoVoigt(height, center, hwhm1, shape1)"
                   " : PseudoVoigt(height, center, hwhm2, shape2)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_SplitFunction);
+        /*linear_d=*/false, /*peak_d=*/true, &create_SplitFunction, p);
 
     add("SplitVoigt",
         "height,center,hwhm1,hwhm2,shape1,shape2", ",,hwhm,hwhm,0.5,0.5",
         "x < center ? Voigt(height, center, hwhm1, shape1)"
                   " : Voigt(height, center, hwhm2, shape2)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_SplitFunction);
+        /*linear_d=*/false, /*peak_d=*/true, &create_SplitFunction, p);
 }
-
-namespace {
-
-
-vector<OpTree*> make_op_trees(const Tplate* tp)
-{
-    string rhs = tp->rhs;
-    tree_parse_info<> info = ast_parse(rhs.c_str(), FuncG >> end_p, space_p);
-    assert(info.full);
-    vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID, info);
-    vector<string> lhs_vars = tp->pars;
-    lhs_vars.push_back("x");
-    vector_foreach (string, i, vars)
-        if (find(lhs_vars.begin(), lhs_vars.end(), *i) == lhs_vars.end())
-            throw ExecuteError("variable `" + *i
-                                           + "' only at the right hand side.");
-    vector<OpTree*> op_trees = calculate_deriv(info.trees.begin(), lhs_vars);
-    return op_trees;
-}
-
-} // anonymous namespace
-
-/*
-///check for errors in function at RHS
-void TplateMgr::check_cpd_rhs_function(const string& fun,
-                                       const vector<string>& lhs_vars)
-{
-    //check if component function is known
-    string t = Function::get_typename_from_formula(fun);
-    string tf = get_formula(t);
-    if (tf.empty())
-        throw ExecuteError("definition based on undefined function `" + t +"'");
-    //...and if it has proper number of parameters
-    vector<string> tvars = Function::get_varnames_from_formula(tf);
-    vector<string> gvars = Function::get_varnames_from_formula(fun);
-    if (tvars.size() != gvars.size())
-        throw ExecuteError("Function `" + t + "' requires "
-                                      + S(tvars.size()) + " parameters.");
-    // ... and check these parameters
-    vector_foreach (string, j, gvars) {
-        tree_parse_info<> info = ast_parse(j->c_str(), FuncG >> end_p, space_p);
-        assert(info.full);
-        vector<string> vars=find_tokens_in_ptree(FuncGrammar::variableID, info);
-        if (contains_element(vars, "x"))
-            throw ExecuteError("variable can not depend on x.");
-        vector_foreach (string, k, vars)
-            if ((*k)[0] != '~' && (*k)[0] != '{' && (*k)[0] != '$'
-                    && (*k)[0] != '%' && !contains_element(lhs_vars, *k))
-                throw ExecuteError("Improper variable given in parameter "
-                              + S(j-gvars.begin()+1) + " of "+ t + ": " + *k);
-    }
-}
-*/
-
-
-/*
-UDF::UDF(string const& formula_, bool is_builtin_)
-    : formula(formula_)
-{
-    name = Function::get_typename_from_formula(formula_);
-    type = get_udf_type(formula_);
-    if (type == UDF::kCustom)
-        op_trees = make_op_trees(formula);
-}
-*/
-
-TplateMgr::TplateMgr()
-{
-    add_builtin_types();
-}
-
-/*
-void TplateMgr::check_fudf_rhs(string const& rhs,
-                                  vector<string> const& lhs_vars)
-{
-    if (rhs.empty())
-        throw ExecuteError("No formula");
-    tree_parse_info<> info = ast_parse(rhs.c_str(), FuncG >> end_p, space_p);
-    if (!info.full)
-        throw ExecuteError("Syntax error in formula");
-    vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID, info);
-    vector_foreach (string, i, vars)
-        if (*i != "x" && !contains_element(lhs_vars, *i)) {
-            throw ExecuteError("Unexpected parameter in formula: " + *i);
-        }
-    vector_foreach (string, i, lhs_vars)
-        if (!contains_element(vars, *i)) {
-            throw ExecuteError("Unused parameter in formula: " + *i);
-        }
-}
-
-    if (contains_element(tp->pars, "x"))
-        throw ExecuteError("no need to put explicitly x as parameter.");
-*/
 
 void TplateMgr::define(Tplate::Ptr tp)
 {
@@ -338,7 +274,7 @@ void TplateMgr::undefine(string const &type)
 
 const Tplate* TplateMgr::get_tp(string const &type) const
 {
-    vector_foreach (Tplate::Ptr, i, tpvec_)
+    v_foreach (Tplate::Ptr, i, tpvec_)
         if ((*i)->name == type)
             return i->get();
     return NULL;
@@ -346,7 +282,7 @@ const Tplate* TplateMgr::get_tp(string const &type) const
 
 Tplate::Ptr TplateMgr::get_shared_tp(string const &type) const
 {
-    vector_foreach (Tplate::Ptr, i, tpvec_)
+    v_foreach (Tplate::Ptr, i, tpvec_)
         if ((*i)->name == type)
             return *i;
     return Tplate::Ptr();

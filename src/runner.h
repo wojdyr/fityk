@@ -54,6 +54,7 @@ private:
     void read_dms(std::vector<Token>::const_iterator first,
                   std::vector<Token>::const_iterator last,
                   std::vector<DataAndModel*>& dms);
+    void recalculate_args(std::vector<Command>& cmds, int ds);
 };
 
 #endif //FITYK_RUNNER_H_

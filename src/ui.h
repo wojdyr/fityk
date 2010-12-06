@@ -133,6 +133,9 @@ public:
     /// Wait and disable UI for ... seconds.
     void wait(float seconds) { if (wait_) (*wait_)(seconds); }
 
+    /// share parser -- it can be safely reused
+    Parser* parser() const { return parser_; }
+
 private:
     Ftk* F_;
     t_show_message *show_message_;
