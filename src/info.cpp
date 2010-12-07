@@ -366,15 +366,15 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
 
         // one arg: $var
         else if (word == "refs") {
-            string name = Lexer::get_string(args[n]);
+            string name = Lexer::get_string(args[n+1]);
             vector<string> refs = F->get_variable_references(name);
             result += join_vector(refs, ", ");
             ++ret;
         }
 
         // one arg: %func
-        else if (word == "par") {
-            string name = Lexer::get_string(args[n]);
+        else if (word == "prop") {
+            string name = Lexer::get_string(args[n+1]);
             result += info_func_props(F, name);
             ++ret;
         }

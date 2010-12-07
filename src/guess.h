@@ -40,7 +40,6 @@ private:
     Settings const* settings_;
     std::vector<fp> xx_, yy_;
 
-    //void estimate_peak_parameters(fp *center, fp *height, fp *area, fp *hwhm);
     fp find_hwhm(int pos, fp *area);
 };
 

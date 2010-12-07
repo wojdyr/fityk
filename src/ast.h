@@ -13,7 +13,7 @@ using namespace boost::spirit::classic;
 /// there is a different set of opcodes for data transformation
 enum
 {
-    OP_CONSTANT=0,
+    OP_NUMBER=0,
     OP_VARIABLE,
     OP_X,
     OP_PUT_VAL,
@@ -46,8 +46,7 @@ enum
     OP_SUB,
     OP_VOIGT,
     OP_DVOIGT_DX,
-    OP_DVOIGT_DY,
-    OP_END
+    OP_DVOIGT_DY
 };
 
 

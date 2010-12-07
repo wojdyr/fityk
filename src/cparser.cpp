@@ -41,7 +41,7 @@ const char* info_args[] = {
     "set",
     "history", "guess",
     "fit", "errors", "cov",
-    "refs", "par",
+    "refs", "prop",
     NULL
 };
 
@@ -532,7 +532,7 @@ void Parser::parse_one_info_arg(Lexer& lex, vector<Token>& args)
         else if (word == "refs") {
             args.push_back(lex.get_expected_token(kTokenVarname));
         }
-        else if (word == "par") {
+        else if (word == "prop") {
             args.push_back(lex.get_expected_token(kTokenFuncname));
         }
     }

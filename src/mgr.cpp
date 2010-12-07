@@ -109,61 +109,6 @@ string VariableManager::get_or_make_variable(const string& func)
     return ret;
 }
 
-namespace {
-
-void parse_and_set_domain(Variable *var, const string& domain_str)
-{
-    string::size_type lb = domain_str.find('[');
-    string::size_type pm = domain_str.find("+-");
-    string::size_type rb = domain_str.find(']');
-    string ctr_str = strip_string(string(domain_str, lb+1, pm-(lb+1)));
-    string sigma_str(domain_str, pm+2, rb-(pm+2));
-    fp sigma = strtod(sigma_str.c_str(), 0);
-    if (!ctr_str.empty()) {
-        fp ctr = strtod(ctr_str.c_str(), 0);
-        var->domain.set(ctr, sigma);
-    }
-    else
-        var->domain.set_sigma(sigma);
-}
-
-string::size_type skip_variable_value(const string& s, string::size_type pos)
-{
-    string::size_type new_pos;
-    if (s[pos] == '{')
-        new_pos = s.find('}', pos) + 1;
-    else {
-        const char* s_c = s.c_str();
-        char *endptr;
-        strtod(s_c+pos, &endptr);
-        new_pos = endptr - s_c;
-    }
-    while (new_pos < s.size() && isspace(s[new_pos]))
-        ++new_pos;
-    return new_pos;
-}
-
-inline
-string strip_tilde_variable(string s)
-{
-    string::size_type pos = 0;
-    while ((pos = s.find('~', pos)) != string::npos) {
-        s.erase(pos, 1);
-        assert(pos < s.size());
-        pos = skip_variable_value(s, pos);
-        if (pos < s.size()) {
-            if (s[pos] == '[') {
-                string::size_type right_b = s.find(']', pos);
-                assert(right_b != string::npos);
-                s.erase(pos, right_b-pos+1);
-            }
-        }
-    }
-    return s;
-}
-
-} //anonymous namespace
-
 
 int VariableManager::assign_variable(const string &name, const string &rhs)
 {
@@ -181,8 +126,8 @@ int VariableManager::assign_variable(const string &name, const string &rhs)
     if (root->value.id() == FuncGrammar::variableID
             && *root->value.begin() == '~') { //simple variable
         string val_str = string(root->value.begin()+1, root->value.end());
-        string domain_str;
         /*
+        string domain_str;
         string::size_type pos = skip_variable_value(val_str, 0);
         if (pos < val_str.size() && val_str[pos] == '[') {
             domain_str = string(val_str, pos);

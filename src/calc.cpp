@@ -36,7 +36,7 @@ void add_calc_bytecode(const OpTree* tree, const vector<int> &vmvar_idx,
         }
     }
     else if (op == 0) {
-        vmcode.push_back(OP_CONSTANT);
+        vmcode.push_back(OP_NUMBER);
         vmcode.push_back(vmdata.size());
         vmdata.push_back(tree->val);
     }
@@ -57,7 +57,7 @@ void add_calc_bytecode(const OpTree* tree, const vector<int> &vmvar_idx,
 string ast_op(int op)
 {
     switch (op) {
-        OP_(CONSTANT)
+        OP_(NUMBER)
         OP_(VARIABLE)
         OP_(X)
         OP_(PUT_VAL)
@@ -97,13 +97,15 @@ string vmcode2str(vector<int> const& code, vector<fp> const& data)
     string s;
     v_foreach (int, i, code) {
         s += ast_op(*i);
-        if (*i == OP_CONSTANT) {
+        if (*i == OP_NUMBER) {
             ++i;
             assert (*i >= 0 && *i < size(data));
             s += "[" + S(*i) + "](" + S(data[*i]) + ")";
         }
-        else if (*i == OP_VARIABLE || *i == OP_PUT_DERIV)
-            s += "[" + S(*++i) + "]";
+        else if (*i == OP_VARIABLE || *i == OP_PUT_DERIV) {
+            ++i;
+            s += "[" + S(*i) + "]";
+        }
         s += " ";
     }
     return s;
@@ -213,23 +215,23 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
 
             // putting-number-to-stack-operators
             // stack overflow not checked
-            case OP_CONSTANT:
+            case OP_NUMBER:
                 stackPtr++;
-                i++; // OP_CONSTANT opcode is always followed by index
+                i++; // OP_NUMBER opcode is always followed by index
                 *stackPtr = vmdata[*i];
                 break;
 
             //assignment-operators
             case OP_PUT_VAL:
-                value = *stackPtr;
+                value_ = *stackPtr;
                 stackPtr--;
                 break;
             case OP_PUT_DERIV:
                 i++;
                 // the OP_PUT_DERIV opcode is followed by a number n,
                 // the derivative is calculated with respect to n'th variable
-                assert(*i < (int) derivatives.size());
-                derivatives[*i] = *stackPtr;
+                assert(*i < (int) derivatives_.size());
+                derivatives_[*i] = *stackPtr;
                 stackPtr--;
                 break;
 
@@ -238,7 +240,7 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
         }
 }
 
-/// executes VM code, what sets this->value and this->derivatives
+/// executes VM code, what sets this->value_ and this->derivatives_
 void AnyFormula::run_vm(vector<Variable*> const &variables) const
 {
     vector<double>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
@@ -256,15 +258,15 @@ void AnyFormula::run_vm(vector<Variable*> const &variables) const
 
 void AnyFormula::tree_to_bytecode(vector<int> const& var_idx)
 {
-    //assert(var_idx.size() + 1 == op_trees.size());
-    // it's +2, if also dy/dx is in op_trees
+    //assert(var_idx.size() + 1 == op_trees_.size());
+    // it's +2, if also dy/dx is in op_trees_
     vmcode.clear();
     vmdata.clear();
-    add_calc_bytecode(op_trees.back(), var_idx, vmcode, vmdata);
+    add_calc_bytecode(op_trees_.back(), var_idx, vmcode, vmdata);
     vmcode.push_back(OP_PUT_VAL);
-    int n = op_trees.size() - 1;
+    int n = op_trees_.size() - 1;
     for (int i = 0; i < n; ++i) {
-        add_calc_bytecode(op_trees[i], var_idx, vmcode, vmdata);
+        add_calc_bytecode(op_trees_[i], var_idx, vmcode, vmdata);
         vmcode.push_back(OP_PUT_DERIV);
         vmcode.push_back(i);
     }
@@ -272,14 +274,14 @@ void AnyFormula::tree_to_bytecode(vector<int> const& var_idx)
 
 bool AnyFormula::is_constant() const
 {
-    return op_trees.back()->op == 0;
+    return op_trees_.back()->op == 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 
 void AnyFormulaO::tree_to_bytecode(size_t var_idx_size)
 {
-    assert(var_idx_size + 2 == op_trees.size());
+    assert(var_idx_size + 2 == op_trees_.size());
     // we put function's parameter index rather than variable index after
     //  OP_VARIABLE, it is handled in this way in prepare_optimized_codes()
     AnyFormula::tree_to_bytecode(range_vector(0, var_idx_size));
@@ -293,10 +295,10 @@ void AnyFormulaO::prepare_optimized_codes(vector<fp> const& vv)
     vector<int>::iterator value_it = vmcode_der.begin();
     for (vector<int>::iterator i = vmcode_der.begin();
                                         i != vmcode_der.end(); ++i) {
-        if (*i == OP_CONSTANT || *i == OP_PUT_DERIV)
+        if (*i == OP_NUMBER || *i == OP_PUT_DERIV)
             ++i;
         else if (*i == OP_VARIABLE) {
-            *i = OP_CONSTANT;
+            *i = OP_NUMBER;
             ++i;
             fp value = vv[*i]; //see AnyFormulaO::tree_to_bytecode()
             int data_idx = -1;

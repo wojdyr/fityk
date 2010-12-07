@@ -14,24 +14,24 @@ class Variable;
 class AnyFormula
 {
 public:
-    AnyFormula(fp &value_, std::vector<fp>& derivatives_)
-        : value(value_), derivatives(derivatives_) {}
-    AnyFormula(std::vector<OpTree*> const &op_trees_,
-               fp &value_, std::vector<fp>& derivatives_)
-        : value(value_), derivatives(derivatives_), op_trees(op_trees_) {}
+    AnyFormula(fp &value, std::vector<fp>& derivatives)
+        : value_(value), derivatives_(derivatives) {}
+    AnyFormula(std::vector<OpTree*> const &op_trees,
+               fp &value, std::vector<fp>& derivatives)
+        : value_(value), derivatives_(derivatives), op_trees_(op_trees) {}
     /// (re-)create bytecode, required after ::set_var_idx()
     void tree_to_bytecode(std::vector<int> const& var_idx);
     void run_vm(std::vector<Variable*> const &variables) const;
-    std::vector<OpTree*> const& get_op_trees() const { return op_trees; }
+    std::vector<OpTree*> const& get_op_trees() const { return op_trees_; }
     /// check for the simplest case, just constant number
     bool is_constant() const;
 
 protected:
     // these are recalculated every time parameters or variables are changed
-    mutable fp &value;
-    mutable std::vector<fp> &derivatives;
+    mutable fp &value_;
+    mutable std::vector<fp> &derivatives_;
 
-    std::vector<OpTree*> op_trees;
+    std::vector<OpTree*> op_trees_;
     std::vector<int> vmcode; //OP_PUT_DERIV, OP_PUT_VAL, OP_VAR, OP_SIN, etc.
     std::vector<fp> vmdata;
 
@@ -43,8 +43,8 @@ class AnyFormulaO : public AnyFormula
 {
 public:
     AnyFormulaO(std::vector<OpTree*> const &op_trees_,
-                fp &value_, std::vector<fp>& derivatives_)
-        : AnyFormula(op_trees_, value_, derivatives_) {}
+                fp &value, std::vector<fp>& derivatives)
+        : AnyFormula(op_trees_, value, derivatives) {}
     void tree_to_bytecode(size_t var_idx_size);
     void prepare_optimized_codes(std::vector<fp> const& vv);
     fp run_vm_val(fp x) const;

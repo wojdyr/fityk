@@ -20,29 +20,84 @@ class Ftk;
 namespace dataVM {
 
 /// operators used in VM code
-// obsolete: OP_INDEX, OP_DO_ONCE, OP_RESIZE, OP_BEGIN, OP_END
 enum Op
 {
-    OP_NEG=-200, OP_EXP, OP_ERFC, OP_ERF, OP_SIN, OP_COS,  OP_TAN,
-    OP_SINH, OP_COSH, OP_TANH, OP_ABS,  OP_ROUND,
-    OP_ATAN, OP_ASIN, OP_ACOS, OP_LOG10, OP_LN,  OP_SQRT,  OP_POW,
-    OP_GAMMA, OP_LGAMMA, OP_VOIGT, OP_XINDEX,
-    OP_ADD,   OP_SUB,   OP_MUL,   OP_DIV,  OP_MOD,
-    OP_MIN2,   OP_MAX2, OP_RANDNORM, OP_RANDU,
+    // functions R -> R
+    OP_ONE_ARG,
+    OP_NEG = OP_ONE_ARG,
+    OP_EXP,
+    OP_ERFC,
+    OP_ERF,
+    OP_SIN,
+    OP_COS,
+    OP_TAN,
+    OP_SINH,
+    OP_COSH,
+    OP_TANH,
+    OP_ASIN,
+    OP_ACOS,
+    OP_ATAN,
+    OP_LOG10,
+    OP_LN,
+    OP_SQRT,
+    OP_GAMMA,
+    OP_LGAMMA,
+    OP_DIGAMMA,
+    OP_ABS,
+    OP_ROUND,
+
+    // functions (R, R) -> R
+    OP_TWO_ARG,
+    OP_POW = OP_TWO_ARG,
+    OP_MUL,
+    OP_DIV,
+    OP_ADD,
+    OP_SUB,
+    OP_VOIGT,
+    OP_DVOIGT_DX,
+    OP_DVOIGT_DY,
+    OP_MOD,
+    OP_MIN2,
+    OP_MAX2,
+    OP_RANDNORM,
+    OP_RANDU,
+
+    // functions (R, points) -> R
+    OP_XINDEX,
+
+    // properties of points
     OP_VAR_X, OP_VAR_Y, OP_VAR_S, OP_VAR_A,
     OP_VAR_x, OP_VAR_y, OP_VAR_s, OP_VAR_a,
     OP_VAR_n, OP_VAR_M,
+
+    // constant
     OP_NUMBER,
+    // custom symbol (numeric value like OP_NUMBER, but stored externally)
+    OP_CUSTOM,
+
+    // boolean
     OP_OR, OP_AFTER_OR, OP_AND, OP_AFTER_AND, OP_NOT,
     OP_TERNARY, OP_TERNARY_MID, OP_AFTER_TERNARY,
+
+    // comparisons
     OP_GT, OP_GE, OP_LT, OP_LE, OP_EQ, OP_NEQ,
-    OP_INDEX,
+
+    // changing points
     OP_ASSIGN_X, OP_ASSIGN_Y, OP_ASSIGN_S, OP_ASSIGN_A,
-    OP_DO_ONCE, OP_RESIZE, OP_BEGIN, OP_END,
-    OP_END_AGGREGATE, OP_AGCONDITION,
-    OP_AGSUM, OP_AGMIN, OP_AGMAX, OP_AGAREA, OP_AGAVG, OP_AGSTDDEV,
-    OP_FUNC, OP_SUM_F, OP_SUM_Z, OP_NUMAREA, OP_FINDX, OP_FIND_EXTR,
-    OP_CUSTOM,
+
+    // Fityk function-objects
+    OP_FUNC, OP_SUM_F, OP_SUM_Z,
+
+    // (model, R, ...) -> R
+    OP_NUMAREA, OP_FINDX, OP_FIND_EXTR,
+
+    /*
+     * ops defined only in ast.h:
+    OP_VARIABLE,
+    OP_X,
+    OP_PUT_VAL,
+    OP_PUT_DERIV,
+    */
 
     // these two are not VM operators, but are handy to have here
     // and are used in implementation of shunting yard algorithm

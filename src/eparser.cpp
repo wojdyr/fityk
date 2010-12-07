@@ -30,30 +30,34 @@ namespace {
 
 /// debuging utility
 #define OP_(x) \
-    if (op == OP_##x) return #x;
+    case OP_##x: return #x;
 
 string dt_op(int op)
 {
-    OP_(NEG)   OP_(EXP)
-    OP_(SIN)   OP_(COS)  OP_(TAN)  OP_(SINH) OP_(COSH)  OP_(TANH)
-    OP_(ABS)  OP_(ROUND)
-    OP_(ATAN) OP_(ASIN) OP_(ACOS)
-    OP_(LOG10) OP_(LN)  OP_(SQRT)  OP_(POW)
-    OP_(GAMMA) OP_(LGAMMA) OP_(VOIGT) OP_(XINDEX)
-    OP_(ADD)   OP_(SUB)   OP_(MUL)   OP_(DIV)  OP_(MOD)
-    OP_(MIN2)   OP_(MAX2) OP_(RANDNORM) OP_(RANDU)
-    OP_(VAR_X) OP_(VAR_Y) OP_(VAR_S) OP_(VAR_A)
-    OP_(VAR_x) OP_(VAR_y) OP_(VAR_s) OP_(VAR_a)
-    OP_(VAR_n) OP_(VAR_M) OP_(NUMBER)
-    OP_(OR) OP_(AFTER_OR) OP_(AND) OP_(AFTER_AND) OP_(NOT)
-    OP_(TERNARY) OP_(TERNARY_MID) OP_(AFTER_TERNARY)
-    OP_(GT) OP_(GE) OP_(LT) OP_(LE) OP_(EQ) OP_(NEQ)
-    OP_(INDEX)
-    OP_(ASSIGN_X) OP_(ASSIGN_Y) OP_(ASSIGN_S) OP_(ASSIGN_A)
-    OP_(DO_ONCE) OP_(RESIZE) OP_(BEGIN) OP_(END)
-    OP_(END_AGGREGATE) OP_(AGCONDITION)
-    OP_(AGSUM) OP_(AGMIN) OP_(AGMAX) OP_(AGAREA) OP_(AGAVG) OP_(AGSTDDEV)
-    OP_(FUNC) OP_(SUM_F) OP_(SUM_Z) OP_(NUMAREA) OP_(FINDX) OP_(FIND_EXTR)
+    switch (static_cast<Op>(op)) {
+        OP_(NEG)   OP_(EXP)  OP_(ERFC)  OP_(ERF)
+        OP_(SIN)   OP_(COS)  OP_(TAN)  OP_(SINH) OP_(COSH)  OP_(TANH)
+        OP_(ABS)  OP_(ROUND)
+        OP_(ATAN) OP_(ASIN) OP_(ACOS)
+        OP_(LOG10) OP_(LN)  OP_(SQRT)  OP_(POW)
+        OP_(GAMMA) OP_(LGAMMA) OP_(DIGAMMA)
+        OP_(VOIGT) OP_(DVOIGT_DX) OP_(DVOIGT_DY)
+        OP_(XINDEX)
+        OP_(ADD)   OP_(SUB)   OP_(MUL)   OP_(DIV)  OP_(MOD)
+        OP_(MIN2)   OP_(MAX2) OP_(RANDNORM) OP_(RANDU)
+        OP_(VAR_X) OP_(VAR_Y) OP_(VAR_S) OP_(VAR_A)
+        OP_(VAR_x) OP_(VAR_y) OP_(VAR_s) OP_(VAR_a)
+        OP_(VAR_n) OP_(VAR_M) OP_(NUMBER)
+        OP_(OR) OP_(AFTER_OR) OP_(AND) OP_(AFTER_AND) OP_(NOT)
+        OP_(TERNARY) OP_(TERNARY_MID) OP_(AFTER_TERNARY)
+        OP_(GT) OP_(GE) OP_(LT) OP_(LE) OP_(EQ) OP_(NEQ)
+        OP_(ASSIGN_X) OP_(ASSIGN_Y) OP_(ASSIGN_S) OP_(ASSIGN_A)
+        OP_(FUNC) OP_(SUM_F) OP_(SUM_Z)
+        OP_(NUMAREA) OP_(FINDX) OP_(FIND_EXTR)
+        OP_(CUSTOM)
+        OP_(OPEN_ROUND)  OP_(OPEN_SQUARE)
+    }
+
     return S(op);
 };
 #undef OP_
@@ -111,6 +115,8 @@ const char* function_name(int op)
         case OP_MIN2: return "min2";
         case OP_MAX2: return "max2";
         case OP_VOIGT: return "voigt";
+        case OP_DVOIGT_DX: return "dvoigt_dx";
+        case OP_DVOIGT_DY: return "dvoigt_dy";
         case OP_RANDNORM: return "randnormal";
         case OP_RANDU: return "randuniform";
         // Ftk functions
@@ -151,6 +157,8 @@ int get_function_narg(int op)
         case OP_MIN2:
         case OP_MAX2:
         case OP_VOIGT:
+        case OP_DVOIGT_DX:
+        case OP_DVOIGT_DY:
         case OP_RANDNORM:
         case OP_RANDU:
             return 2;
@@ -793,9 +801,6 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                             pop_onto_que(); // pop function index
                         }
                     }
-                    else if (top == OP_END_AGGREGATE) {
-                        pop_onto_que();
-                    }
                 }
 
                 expected_ = kOperator;
@@ -1048,6 +1053,9 @@ inline void ExprCalculator::run_const_op(vector<int>::const_iterator& i,
         case OP_LGAMMA:
             *stackPtr = boost::math::lgamma(*stackPtr);
             break;
+        case OP_DIGAMMA:
+            *stackPtr = boost::math::digamma(*stackPtr);
+            break;
         case OP_EXP:
             *stackPtr = exp(*stackPtr);
             break;
@@ -1206,8 +1214,15 @@ inline void ExprCalculator::run_const_op(vector<int>::const_iterator& i,
             break;
         case OP_VOIGT:
             STACK_OFFSET_CHANGE(-1);
-            *stackPtr = humlik(*stackPtr, *(stackPtr+1))
-                                                           / sqrt(M_PI);
+            *stackPtr = humlik(*stackPtr, *(stackPtr+1)) / sqrt(M_PI);
+            break;
+        case OP_DVOIGT_DX:
+            STACK_OFFSET_CHANGE(-1);
+            *stackPtr = humdev_dkdx(*stackPtr, *(stackPtr+1)) / sqrt(M_PI);
+            break;
+        case OP_DVOIGT_DY:
+            STACK_OFFSET_CHANGE(-1);
+            *stackPtr = humdev_dkdy(*stackPtr, *(stackPtr+1)) / sqrt(M_PI);
             break;
 
         // comparisions
@@ -1314,12 +1329,6 @@ inline void ExprCalculator::run_const_op(vector<int>::const_iterator& i,
         case OP_AFTER_TERNARY:
             break;
 
-        // obsolete
-        case OP_BEGIN:
-        case OP_END:
-        case OP_DO_ONCE:
-        case OP_RESIZE:
-        case OP_INDEX:
         default:
             //cerr << "Unknown operator in VM code: " << *i << endl;
             assert(0);

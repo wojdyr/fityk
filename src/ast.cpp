@@ -1130,17 +1130,16 @@ vector<OpTree*> calculate_deriv(const_tm_iter_t const &i,
 size_t get_derivatives_str(const char* formula, string& result)
 {
     tree_parse_info<> info = ast_parse(formula, FuncG, space_p);
-    printf("%d, %s\n", (int) info.length, formula);
     if (!info.match)
         throw ExecuteError("Can't parse formula: " + string(formula));
     const_tm_iter_t const &root = info.trees.begin();
     vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID, info);
-    vector<OpTree*> results = calculate_deriv(root, vars);
+    vector<OpTree*> trees = calculate_deriv(root, vars);
     result += "f(" + join_vector(vars, ", ") + ") = "
-              + results.back()->str(&vars);
+              + trees.back()->str(&vars);
     for (size_t i = 0; i != vars.size(); ++i)
-        result += "\ndf / d " + vars[i] + " = " + results[i]->str(&vars);
-    purge_all_elements(results);
+        result += "\ndf / d " + vars[i] + " = " + trees[i]->str(&vars);
+    purge_all_elements(trees);
     return info.length;
 }
 

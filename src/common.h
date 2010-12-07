@@ -88,13 +88,11 @@ std::string format1(const char* fmt, T t)
     return std::string(buffer);
 }
 
-/*
 /// S() converts to string
-template <typename T>
-inline std::string S(T k) {
-    return static_cast<std::ostringstream&>(std::ostringstream() << k).str();
-}
-*/
+
+// generic version - disabled to prevent bugs such as printing pointer address
+//template <typename T> inline std::string S(T k)
+// { return static_cast<std::ostringstream&>(std::ostringstream() << k).str(); }
 
 inline std::string S(bool b) { return b ? "true" : "false"; }
 inline std::string S(const char *k) { return std::string(k); }
@@ -228,10 +226,8 @@ inline std::string join(RandomAccessIterator first, RandomAccessIterator last,
     if (last - first <= 0)
         return "";
     std::string s = S(*first);
-    while (first != last) {
-        s += sep + S(*first);
-        ++first;
-    }
+    for (RandomAccessIterator i = first + 1; i != last; ++i)
+        s += sep + S(*i);
     return s;
 }
 
@@ -239,15 +235,6 @@ template <typename T>
 inline std::string join_vector(std::vector<T> const& v, std::string const& sep)
 {
     return join(v.begin(), v.end(), sep);
-    /*
-    if (v.empty())
-        return "";
-    std::string s = S(v[0]);
-    for (typename std::vector<T>::const_iterator i = v.begin() + 1;
-            i != v.end(); i++)
-        s += sep + S(*i);
-    return s;
-    */
 }
 
 /// for vector<T*> - delete object and erase pointer

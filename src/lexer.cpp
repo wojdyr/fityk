@@ -4,7 +4,7 @@
 
 /// This lexer (scanner) is not used yet.
 /// In the future it will replace the current lexer/parser.
-/// Lexical analyser. Takes characters and yields tokens.
+/// Lexical analyser. Takes C string and yields tokens.
 
 #include "lexer.h"
 
@@ -29,8 +29,8 @@ string Lexer::get_string(const Token& token)
         case kTokenFuncname:
             return string(token.str+1, token.length - 1);
         default:
-            assert(!"Unexpected token in get_string()");
-            return "";
+            //assert(!"Unexpected token in get_string()");
+            return token.as_string();
     }
 }
 
@@ -341,7 +341,7 @@ Token Lexer::get_filename_token()
 {
     Token t = get_token();
     if (t.type == kTokenString || t.type == kTokenNop)
-        return get_token();
+        return t;
     while (*cur_ != '\0' && !isspace(*cur_) && *cur_ != ';' && *cur_ != '#')
         ++cur_;
     t.type = kTokenFilename;

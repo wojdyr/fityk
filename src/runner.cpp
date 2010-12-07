@@ -493,7 +493,7 @@ void Runner::command_change_model(const vector<Token>& args, int ds)
 void Runner::command_load(const vector<Token>& args)
 {
     int dataset = args[0].value.i;
-    string filename = args[1].as_string();
+    string filename = Lexer::get_string(args[1]);
     if (filename == ".") { // revert from the file
         if (dataset == Lexer::kNew)
             throw ExecuteError("New dataset (@+) cannot be reverted");
