@@ -22,19 +22,25 @@ public:
     static const boost::array<std::string, 4> peak_traits;
 
     Guess(Settings const *settings);
-    //void initialize(std::vector<fp> const& xx, std::vector<fp> const& yy)
-    //                                                 { xx_ = xx; yy_ = yy; }
+
+    /// Use data points with indexes from lb to rb-1,
+    /// substract the current model from the data, (optionally) with exception
+    /// of function that has index `ignore_idx'.
+    /// This exception is used in "Guess %f = ..." if %f is already defined.
     void initialize(const DataAndModel* dm, int lb, int rb, int ignore_idx);
-    void guess(const Tplate* tp, std::vector<std::string>& par_names,
-                                 std::vector<std::string>& par_values);
+
+    /// returns values corresponding to linear_traits
+    boost::array<double,3> estimate_linear_parameters();
+    /// returns values corresponding to peak_traits
+    boost::array<double,4> estimate_peak_parameters();
+
     void get_guess_info(std::string& result);
 
 private:
     Settings const* settings_;
     std::vector<fp> xx_, yy_;
 
-    void estimate_peak_parameters(fp *center, fp *height, fp *area, fp *hwhm);
-    void estimate_linear_parameters(fp *slope, fp *intercept, fp *avgy);
+    //void estimate_peak_parameters(fp *center, fp *height, fp *area, fp *hwhm);
     fp find_hwhm(int pos, fp *area);
 };
 

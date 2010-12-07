@@ -50,6 +50,13 @@ private:
     DISALLOW_COPY_AND_ASSIGN(Tplate);
 };
 
+// takes keyword args and returns positional args for given function.
+// Used when we get Gaussian(center=1,whatever=2,height=3,hwhm=4)
+// instead of Gaussian(3,1,4)
+std::vector<std::string> reorder_args(Tplate::Ptr,
+                                      const std::vector<std::string> &keys,
+                                      const std::vector<std::string> &values);
+
 
 /// template manager
 class TplateMgr

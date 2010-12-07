@@ -983,7 +983,7 @@ bool SideBar::find_value_of_param(string const& p, double* value)
         int idx = f->get_param_nr_nothrow(p);
         bool found = f->get_param_value_nothrow(p, *value);
         if (idx != -1) {
-            *value = f->get_var_value(idx);
+            *value = f->av()[idx];
             return true;
         }
     }
@@ -991,7 +991,7 @@ bool SideBar::find_value_of_param(string const& p, double* value)
     v_foreach (Function*, i, ftk->functions()) {
         int idx = (*i)->get_param_nr_nothrow(p);
         if (idx != -1) {
-            *value = (*i)->get_var_value(idx);
+            *value = (*i)->av()[idx];
             return true;
         }
     }

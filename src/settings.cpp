@@ -58,7 +58,7 @@ Settings::Settings(Ftk const* F_)
     sum_export_style_enum [1] = "gnuplot";
     insert_enum("formula_export_style", sum_export_style_enum, 0);
 
-    spar["info_numeric_format"] = "%g";
+    spar["info_numeric_format"] = fmt_ = "%g";
 
     // Function
     fpar["cut_function_level"] = cut_function_level_ = 0.;
@@ -101,8 +101,7 @@ Settings::Settings(Ftk const* F_)
 
     fpar["nm_move_factor"] = 1;
 
-    //  - Genetic Algorithms
-    //TODO
+    //TODO //  - Genetic Algorithms
 }
 
 string Settings::getp(string const& k) const
@@ -172,7 +171,7 @@ void Settings::setp_core(string const& k, string const& v)
             return;
         }
     }
-    else if (epar.count (k)){
+    else if (epar.count (k)) {
         EnumString& t = epar.find(k)->second;
         for (map<char,string>::const_iterator i = t.e.begin();
                                                          i != t.e.end(); i++) {
@@ -187,7 +186,9 @@ void Settings::setp_core(string const& k, string const& v)
             }
         }
     }
-    else if (spar.count (k)){
+    else if (spar.count (k)) {
+        if (k == "info_numeric_format")
+            fmt_ = v;
         spar[k] = v;
         return;
     }

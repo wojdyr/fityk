@@ -51,6 +51,15 @@ int VariableUser::get_max_var_idx()
        return *max_element(var_idx.begin(), var_idx.end());
 }
 
+std::string VariableUser::get_debug_idx_info() const
+{
+    string r = xname + ": ";
+    assert(varnames.size() == var_idx.size());
+    for (size_t i = 0; i != varnames.size(); ++i)
+        r += varnames[i] + "/" + S(var_idx[i]) + " ";
+    return r;
+}
+
 ////////////////////////////////////////////////////////////////////////////
 
 
@@ -85,11 +94,12 @@ void Variable::set_var_idx(vector<Variable*> const& variables)
         af_.tree_to_bytecode(var_idx);
 }
 
-
 string Variable::get_formula(vector<fp> const &parameters) const
 {
     assert(nr_ >= -1);
-    vector<string> vn = concat_pairs("$", varnames);
+    vector<string> vn;
+    v_foreach (string, i, varnames)
+        vn.push_back("$" + *i);
     return nr_ == -1 ? get_op_trees().back()->str(&vn)
                     : "~" + eS(parameters[nr_]);
 }
@@ -130,15 +140,6 @@ void Variable::erased_parameter(int k)
                                         i != recursive_derivatives_.end(); ++i)
         if (i->p > k)
             -- i->p;
-}
-
-Variable const* Variable::freeze_original(fp val)
-{
-    assert(nr_ == -2);
-    Variable const* old = original_;
-    original_ = NULL;
-    value_ = val;
-    return old;
 }
 
 ////////////////////////////////////////////////////////////////////////////

@@ -61,16 +61,16 @@ Function::Function (const Ftk* F,
     : VariableUser(name, "%", vars),
       F_(F),
       tp_(tp),
-      vv_(vars.size())
+      av_(vars.size())
 {
 }
 
 void Function::init()
 {
     center_idx_ = index_of_element(tp_->fargs, "center");
-    if (vv_.size() != tp_->fargs.size())
+    if (av_.size() != tp_->fargs.size())
         throw ExecuteError("Function " + tp_->name + " requires "
-                           + S(tp_->fargs.size()) + " parameters.");
+                           + S(tp_->fargs.size()) + " arguments.");
 }
 
 Function* Function::factory(const Ftk* F,
@@ -115,7 +115,7 @@ void Function::do_precomputations(const vector<Variable*> &variables)
     multi_.clear();
     for (int i = 0; i < size(var_idx); ++i) {
         const Variable *v = variables[var_idx[i]];
-        vv_[i] = v->get_value();
+        av_[i] = v->get_value();
         v_foreach (Variable::ParMult, j, v->recursive_derivatives())
             multi_.push_back(Multi(i, *j));
     }
@@ -169,24 +169,10 @@ void Function::calculate_value_deriv(const vector<fp> &x,
         this->calculate_value_deriv_in_range(x, y, dy_da, in_dx, 0, x.size());
 }
 
-void Function::calculate_values_with_params(const vector<fp>& x,
-                                            vector<fp> &y,
-                                            const vector<fp>& alt_vv) const
-{
-    vector<fp> backup_vv = vv_;
-    Function* this_ = const_cast<Function*>(this);
-    for (int i = 0; i < min(size(alt_vv), size(vv_)); ++i)
-        this_->vv_[i] = alt_vv[i];
-    this_->precomputations_for_alternative_vv();
-    calculate_value(x, y);
-    this_->vv_ = backup_vv;
-    this_->more_precomputations();
-}
-
 bool Function::get_center(fp* a) const
 {
     if (center_idx_ != -1) {
-        *a = vv_[center_idx_];
+        *a = av_[center_idx_];
         return true;
     }
     return false;
@@ -202,32 +188,14 @@ bool Function::get_iwidth(fp* a) const
     return false;
 }
 
-string Function::get_par_info(const VariableManager* mgr) const
-{
-    string s = tp_->as_formula();
-    for (int i = 0; i < size(var_idx); ++i) {
-        Variable const* v = mgr->get_variable(var_idx[i]);
-        s += "\n" + get_param(i) + " = " + mgr->get_variable_info(v);
-    }
-    fp a;
-    if (this->get_center(&a) && !contains_element(tp_->fargs, string("center")))
-        s += "\nCenter: " + S(a);
-    if (this->get_height(&a) && !contains_element(tp_->fargs, string("height")))
-        s += "\nHeight: " + S(a);
-    if (this->get_fwhm(&a) && !contains_element(tp_->fargs, string("fwhm")))
-        s += "\nFWHM: " + S(a);
-    if (this->get_area(&a) && !contains_element(tp_->fargs, string("area")))
-        s += "\nArea: " + S(a);
-    v_foreach (string, i, this->get_other_prop_names())
-        s += "\n" + *i + ": " + S(get_other_prop(*i));
-    return s;
-}
-
 /// return sth like: Linear($foo, $_2)
 string Function::get_basic_assignment() const
 {
-    vector<string> vv = concat_pairs("$", varnames);
-    return xname + " = " + tp_->name + "(" + join_vector(vv, ", ") + ")";
+    string r = xname + " = " + tp_->name + "(";
+    v_foreach (string, i, varnames)
+        r += (i == varnames.begin() ? "$" : ", $") + *i;
+    r += ")";
+    return r;
 }
 
 /// return sth like: Linear(a0=$foo, a1=~3.5)
@@ -248,12 +216,12 @@ string Function::get_current_formula(const string& x) const
 {
     string t;
     if (contains_element(tp_->rhs, '#')) {
-        t = tp_->name + "(" + join(vv_.begin(), vv_.begin() + nv(), ", ") + ")";
+        t = tp_->name + "(" + join(av_.begin(), av_.begin() + nv(), ", ") + ")";
     }
     else {
         t = tp_->rhs;
         for (size_t i = 0; i < tp_->fargs.size(); ++i)
-            replace_words(t, tp_->fargs[i], S(get_var_value(i)));
+            replace_words(t, tp_->fargs[i], S(av_[i]));
     }
 
     replace_words(t, "x", x);
@@ -277,7 +245,7 @@ fp Function::get_param_value(const string& param) const
 {
     fp a;
     if (!param.empty() && islower(param[0]))
-        return get_var_value(get_param_nr(param));
+        return av_[get_param_nr(param)];
     else if (param == "Center" && get_center(&a)) {
         return a;
     }

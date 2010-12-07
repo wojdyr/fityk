@@ -30,6 +30,8 @@
 
 using namespace std;
 
+namespace {
+
 string info_compiler()
 {
     return
@@ -110,6 +112,30 @@ void info_func_type(const Ftk* F, const string& functype, string& result)
     }
 }
 
+string info_func_props(const Ftk* F, const string& name)
+{
+    const Function* f = F->find_function(name);
+    string s = f->tp()->as_formula();
+    for (int i = 0; i < f->get_vars_count(); ++i) {
+        Variable const* v = F->get_variable(f->get_var_idx(i));
+        s += "\n" + f->get_param(i) + " = " + F->get_variable_info(v);
+    }
+    fp a;
+    const vector<string>& fargs = f->tp()->fargs;;
+    if (f->get_center(&a) && !contains_element(fargs, string("center")))
+        s += "\nCenter: " + S(a);
+    if (f->get_height(&a) && !contains_element(fargs, string("height")))
+        s += "\nHeight: " + S(a);
+    if (f->get_fwhm(&a) && !contains_element(fargs, string("fwhm")))
+        s += "\nFWHM: " + S(a);
+    if (f->get_area(&a) && !contains_element(fargs, string("area")))
+        s += "\nArea: " + S(a);
+    v_foreach (string, i, f->get_other_prop_names())
+        s += "\n" + *i + ": " + S(f->get_other_prop(*i));
+    return s;
+}
+
+
 void info_history(const Ftk* F, const Token& t1, const Token& t2,
                   string& result)
 {
@@ -129,6 +155,28 @@ void info_history(const Ftk* F, const Token& t1, const Token& t2,
         throw ExecuteError("wrong history range");
     for (int i = from; i < to; ++i)
         result += cmds[i].str() + "\n";
+}
+
+
+void info_guess(const Ftk* F, int ds, const RealRange& range, string& result)
+{
+    if (range.from >= range.to)
+        result += "invalid range";
+    else {
+        int lb = F->get_data(ds)->get_lower_bound_ac(range.from);
+        int rb = F->get_data(ds)->get_upper_bound_ac(range.to);
+        Guess g(F->get_settings());
+        g.initialize(F->get_dm(ds), lb, rb, -1);
+        boost::array<double,4> peak_v = g.estimate_peak_parameters();
+        for (int i = 0; i != 4; ++i)
+            result += (i != 0 ? ", " : "")
+                      + Guess::peak_traits[i] + ": " + S(peak_v[i]);
+        result += "\n";
+        boost::array<double,3> lin_v = g.estimate_linear_parameters();
+        for (int i = 0; i != 3; ++i)
+            result += (i != 0 ? ", " : "")
+                      + Guess::linear_traits[i] + ": " + S(lin_v[i]);
+    }
 }
 
 void save_state(const Ftk* F, string& r)
@@ -218,13 +266,13 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
             result += info_compiler();
         else if (word == "variables")
             for (size_t i = 0; i < F->variables().size(); ++i)
-                result += (i > 0 ? " " : "") + F->get_variable(n)->xname;
+                result += (i > 0 ? " " : "") + F->get_variable(i)->xname;
         else if (word == "types")
             v_foreach (Tplate::Ptr, i, F->get_tpm()->tpvec())
                 result += (*i)->name + " ";
         else if (word == "functions")
             for (size_t i = 0; i < F->functions().size(); ++i)
-                result += (i > 0 ? " " : "") + F->get_function(n)->xname;
+                result += (i > 0 ? " " : "") + F->get_function(i)->xname;
         else if (word == "dataset_count")
             result += S(F->get_dm_count());
         else if (word == "datasets") {
@@ -289,15 +337,7 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         }
         else if (word == "guess") {
             RealRange range = args2range(args[n+1], args[n+2]);
-            if (range.from >= range.to)
-                result += "invalid range";
-            else {
-                int lb = F->get_data(ds)->get_lower_bound_ac(range.from);
-                int rb = F->get_data(ds)->get_upper_bound_ac(range.to);
-                Guess g(F->get_settings());
-                g.initialize(F->get_dm(ds), lb, rb, -1);
-                g.get_guess_info(result);
-            }
+            info_guess(F, ds, range, result);
             ret += 2;
         }
 
@@ -335,7 +375,7 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         // one arg: %func
         else if (word == "par") {
             string name = Lexer::get_string(args[n]);
-            result += F->find_function(name)->get_par_info(F);
+            result += info_func_props(F, name);
             ++ret;
         }
     }
@@ -455,6 +495,8 @@ int eval_print_args(const Ftk* F, int ds, const vector<Token>& args, int len,
     }
     return len;
 }
+
+} // anonymous namespace
 
 string get_info_string(Ftk const* F, string const& args)
 {
@@ -592,7 +634,9 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
     // show derivatives of $variable
     else if (key.type == kTokenVarname) {
         Variable const* v = F->find_variable(Lexer::get_string(key));
-        vector<string> vn = concat_pairs("$", v->get_varnames());
+        vector<string> vn;
+        v_foreach (string, i, v->get_varnames())
+            vn.push_back("$" + *i);
         for (int i = 0; i < v->get_vars_count(); ++i) {
             string formula = v->get_op_trees()[i]->str(&vn);
             double value = v->get_derivative(i);

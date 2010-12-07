@@ -193,6 +193,10 @@ void Runner::command_guess(const vector<Token>& args, int ds)
     // function type
     assert (args[1].type == kTokenCname);
     string ftype = args[1].as_string();
+    Tplate::Ptr tp = F_->get_tpm()->get_shared_tp(ftype);
+    if (!tp)
+        throw ExecuteError("undefined function type: " + ftype);
+
 
     // kwargs
     vector<string> par_names;
@@ -202,11 +206,12 @@ void Runner::command_guess(const vector<Token>& args, int ds)
         par_names.push_back(args[n].as_string());
         par_values.push_back(args[n+1].as_string());
     }
+    vector<string> func_args = reorder_args(tp, par_names, par_values);
 
+    // range
     RealRange range = args2range(*(args.end()-2), *(args.end()-1));
     if (range.from >= range.to)
         throw ExecuteError("invalid range");
-
     // handle a special case: guess Gaussian(center=$peak_center)
     if (range.from_inf() && range.to_inf()) {
         int ctr_pos = index_of_element(par_names, "center");
@@ -221,19 +226,46 @@ void Runner::command_guess(const vector<Token>& args, int ds)
         }
     }
 
+    // initialize guess
     int lb = data->get_lower_bound_ac(range.from);
     int rb = data->get_upper_bound_ac(range.to);
-
     Guess g(F_->get_settings());
     g.initialize(dm, lb, rb, ignore_idx);
-    const Tplate* tp = F_->get_tpm()->get_tp(ftype);
-    g.guess(tp, par_names, par_values);
 
-    // for now use the old ugly interface
-    vector<string> func_args;
-    for (size_t i = 0; i != par_names.size(); ++i)
-        func_args.push_back(par_names[i] + "=" + par_values[i]);
-    int idx = F_->assign_func(name, ftype, func_args);
+    // guess
+    vector<string> gkeys;
+    vector<double> gvals;
+    if (tp->peak_d) {
+        boost::array<double,4> peak_v = g.estimate_peak_parameters();
+        gkeys.insert(gkeys.end(), Guess::peak_traits.begin(),
+                                  Guess::peak_traits.end());
+        gvals.insert(gvals.end(), peak_v.begin(), peak_v.end());
+    }
+    if (tp->linear_d) {
+        boost::array<double,3> lin_v = g.estimate_linear_parameters();
+        gkeys.insert(gkeys.end(), Guess::linear_traits.begin(),
+                                  Guess::linear_traits.end());
+        gvals.insert(gvals.end(), lin_v.begin(), lin_v.end());
+    }
+
+    // calculate default values
+    const vector<string> empty;
+    for (size_t i = 0; i < tp->fargs.size(); ++i) {
+        if (!func_args[i].empty())
+            continue;
+        string dv = tp->defvals[i].empty() ? tp->fargs[i] : tp->defvals[i];
+        ep_.clear_vm();
+        Lexer lex(dv.c_str());
+        bool r = ep_.parse_full(lex, 0, &gkeys);
+        if (!r)
+            throw ExecuteError("Cannot guess `" + dv + "' in " + tp->name);
+        double value = ep_.calculate_custom(gvals);
+        // TODO refactor assign_func()/get_or_make_variable()
+        func_args[i] = "~" + eS(value); // for now, pass the value as string
+    }
+
+    // add function
+    int idx = F_->assign_func(name, tp, func_args);
 
     FunctionSum& ff = dm->model()->get_ff();
     ff.names.push_back(name);
@@ -276,15 +308,25 @@ void Runner::command_name_func(const vector<Token>& args)
     else {
         string ftype = args[1].as_string();
         // for now use the old ugly interface
-        vector<string> func_args;
-        for (size_t i = 2; i < args.size(); i += 2) {
-            string key;
-            if (args[i].type != kTokenNop) // no keyword
-                key = args[i].as_string() + "=";
-            string var = args[i+1].as_string();
-            func_args.push_back(key+var);
+        vector<string> par_names;
+        vector<string> par_values;
+        for (size_t n = 2; n < args.size(); n += 2) {
+            assert (args[n].type == kTokenLname || args[n].type == kTokenNop);
+            if (args[n].type == kTokenLname)
+                par_names.push_back(args[n].as_string());
+            par_values.push_back(args[n+1].as_string());
         }
-        F_->assign_func(name, ftype, func_args);
+        if (!par_names.empty() && par_names.size() != par_values.size())
+            throw ExecuteError("mixed keyword and non-keyword args");
+        Tplate::Ptr tp = F_->get_tpm()->get_shared_tp(ftype);
+        if (!tp)
+            throw ExecuteError("Undefined type of function: " + ftype);
+        if (par_names.empty())
+            F_->assign_func(name, tp, par_values);
+        else {
+            vector<string> func_args = reorder_args(tp, par_names, par_values);
+            F_->assign_func(name, tp, func_args);
+        }
     }
     F_->use_parameters();
     F_->outdated_plot(); //TODO only if function in @active
@@ -345,7 +387,10 @@ void Runner::command_name_var(const vector<Token>& args, int /*ds*/)
 {
     assert(args.size() == 2);
     assert(args[0].type == kTokenVarname);
-    F_->assign_variable(Lexer::get_string(args[0]), args[1].as_string());
+    string name = Lexer::get_string(args[0]);
+    string rhs = args[1].as_string();
+    //TODO domain (args[2], args[3])
+    F_->assign_variable(name, rhs);
     F_->use_parameters();
     F_->outdated_plot(); // TODO: only for replacing old variable
 }

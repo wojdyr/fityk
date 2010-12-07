@@ -70,9 +70,9 @@ class FuncGaussian : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(Gaussian, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    bool get_center(fp* a) const { *a = vv_[1]; return true; }
-    bool get_height(fp* a) const { *a = vv_[0]; return true; }
-    bool get_fwhm(fp* a) const { *a = 2 * fabs(vv_[2]); return true; }
+    bool get_center(fp* a) const { *a = av_[1]; return true; }
+    bool get_height(fp* a) const { *a = av_[0]; return true; }
+    bool get_fwhm(fp* a) const { *a = 2 * fabs(av_[2]); return true; }
     bool get_area(fp* a) const;
 };
 
@@ -81,9 +81,9 @@ class FuncSplitGaussian : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(SplitGaussian, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    bool get_center(fp* a) const { *a = vv_[1]; return true; }
-    bool get_height(fp* a) const { *a = vv_[0]; return true; }
-    bool get_fwhm(fp* a) const { *a = fabs(vv_[2])+fabs(vv_[3]); return true; }
+    bool get_center(fp* a) const { *a = av_[1]; return true; }
+    bool get_height(fp* a) const { *a = av_[0]; return true; }
+    bool get_fwhm(fp* a) const { *a = fabs(av_[2])+fabs(av_[3]); return true; }
     bool get_area(fp* a) const;
 };
 
@@ -92,10 +92,10 @@ class FuncLorentzian : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(Lorentzian, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    bool get_center(fp* a) const { *a = vv_[1]; return true; }
-    bool get_height(fp* a) const { *a = vv_[0]; return true; }
-    bool get_fwhm(fp* a) const { *a = 2 * fabs(vv_[2]); return true; }
-    bool get_area(fp* a) const {*a = vv_[0] * fabs(vv_[2]) * M_PI; return true;}
+    bool get_center(fp* a) const { *a = av_[1]; return true; }
+    bool get_height(fp* a) const { *a = av_[0]; return true; }
+    bool get_fwhm(fp* a) const { *a = 2 * fabs(av_[2]); return true; }
+    bool get_area(fp* a) const {*a = av_[0] * fabs(av_[2]) * M_PI; return true;}
 };
 
 class FuncPearson7 : public Function
@@ -103,9 +103,9 @@ class FuncPearson7 : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(Pearson7, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    bool get_center(fp* a) const { *a = vv_[1]; return true; }
-    bool get_height(fp* a) const { *a = vv_[0]; return true; }
-    bool get_fwhm(fp* a) const { *a = 2 * fabs(vv_[2]); return true; }
+    bool get_center(fp* a) const { *a = av_[1]; return true; }
+    bool get_height(fp* a) const { *a = av_[0]; return true; }
+    bool get_fwhm(fp* a) const { *a = 2 * fabs(av_[2]); return true; }
     bool get_area(fp* a) const;
 };
 
@@ -114,9 +114,9 @@ class FuncSplitPearson7 : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(SplitPearson7, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    bool get_center(fp* a) const { *a = vv_[1]; return true; }
-    bool get_height(fp* a) const { *a = vv_[0]; return true; }
-    bool get_fwhm(fp* a) const { *a = fabs(vv_[2])+fabs(vv_[3]); return true; }
+    bool get_center(fp* a) const { *a = av_[1]; return true; }
+    bool get_height(fp* a) const { *a = av_[0]; return true; }
+    bool get_fwhm(fp* a) const { *a = fabs(av_[2])+fabs(av_[3]); return true; }
     bool get_area(fp* a) const;
 };
 
@@ -125,9 +125,9 @@ class FuncPseudoVoigt : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(PseudoVoigt, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    bool get_center(fp* a) const { *a = vv_[1]; return true; }
-    bool get_height(fp* a) const { *a = vv_[0]; return true; }
-    bool get_fwhm(fp* a) const { *a = 2 * fabs(vv_[2]); return true; }
+    bool get_center(fp* a) const { *a = av_[1]; return true; }
+    bool get_height(fp* a) const { *a = av_[0]; return true; }
+    bool get_fwhm(fp* a) const { *a = 2 * fabs(av_[2]); return true; }
     bool get_area(fp* a) const;
 };
 
@@ -136,8 +136,8 @@ class FuncVoigt : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(Voigt, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    bool get_center(fp* a) const { *a = vv_[1]; return true; }
-    bool get_height(fp* a) const { *a = vv_[0]; return true; }
+    bool get_center(fp* a) const { *a = av_[1]; return true; }
+    bool get_height(fp* a) const { *a = av_[0]; return true; }
     bool get_fwhm(fp* a) const;
     bool get_area(fp* a) const;
     const std::vector<std::string>& get_other_prop_names() const;
@@ -149,10 +149,10 @@ class FuncVoigtA : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(VoigtA, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    bool get_center(fp* a) const { *a = vv_[1]; return true; }
+    bool get_center(fp* a) const { *a = av_[1]; return true; }
     bool get_height(fp* a) const;
     bool get_fwhm(fp* a) const;
-    bool get_area(fp* a) const { *a = vv_[0]; return true; }
+    bool get_area(fp* a) const { *a = av_[0]; return true; }
 };
 
 class FuncEMG : public Function
@@ -160,20 +160,20 @@ class FuncEMG : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(EMG, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    bool get_center(fp* a) const { *a = vv_[1]; return true; }
+    bool get_center(fp* a) const { *a = av_[1]; return true; }
 };
 
 class FuncDoniachSunjic : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(DoniachSunjic, Function)
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    bool get_center(fp* a) const { *a = vv_[3]; return true; }
+    bool get_center(fp* a) const { *a = av_[3]; return true; }
 };
 
 class FuncPielaszekCube : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(PielaszekCube, Function)
-    bool get_center(fp* a) const { *a = vv_[1]; return true; }
+    bool get_center(fp* a) const { *a = av_[1]; return true; }
 };
 
 class FuncLogNormal : public Function
@@ -181,8 +181,8 @@ class FuncLogNormal : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(LogNormal, Function)
     void more_precomputations();
     bool get_nonzero_range (fp level, fp &left, fp &right) const;
-    bool get_center(fp* a) const { *a = vv_[1]; return true; }
-    bool get_height(fp* a) const { *a = vv_[0]; return true; }
+    bool get_center(fp* a) const { *a = av_[1]; return true; }
+    bool get_height(fp* a) const { *a = av_[0]; return true; }
     bool get_fwhm(fp* a) const;
     bool get_area(fp* a) const;
 };

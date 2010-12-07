@@ -28,28 +28,28 @@ public:
     const std::string prefix;
     const std::string xname;
 
-    VariableUser(std::string const &name_, std::string const &prefix_,
-              std::vector<std::string> const &vars = std::vector<std::string>())
+    VariableUser(const std::string &name_, std::string const &prefix_,
+              const std::vector<std::string> &vars = std::vector<std::string>())
         : name(name_), prefix(prefix_), xname(prefix_+name), varnames(vars) {}
     virtual ~VariableUser() {}
     bool is_auto_delete() const { return name.size() > 0 && name[0] == '_'; }
 
-    bool is_dependent_on(int idx, std::vector<Variable*> const &variables)const;
+    bool is_dependent_on(int idx, const std::vector<Variable*> &variables)const;
     bool is_directly_dependent_on(int idx) const
                                   { return contains_element(var_idx, idx); }
 
-    virtual void set_var_idx(std::vector<Variable*> const& variables);
+    virtual void set_var_idx(const std::vector<Variable*>& variables);
     int get_var_idx(int n) const
              { assert(n >= 0 && n < size(var_idx)); return var_idx[n]; }
     int get_max_var_idx();
     int get_vars_count() const { return varnames.size(); }
-    std::vector<std::string> const& get_varnames() const { return varnames; }
+    const std::vector<std::string>& get_varnames() const { return varnames; }
     std::string get_var_name(int n) const
              { assert(n >= 0 && n < size(varnames)); return varnames[n]; }
-    void substitute_param(int n, std::string const &new_p)
+    void substitute_param(int n, const std::string &new_p)
              { assert(n >= 0 && n < size(varnames)); varnames[n] = new_p; }
-    std::string get_debug_idx_info() const { return xname + ": "
-                   + join_vector(concat_pairs(varnames, var_idx, "/"), " "); }
+    std::string get_debug_idx_info() const;
+
 protected:
     std::vector<std::string> varnames; // variable names
     /// var_idx is set after initialization (in derived class)
@@ -125,7 +125,6 @@ public:
     std::vector<OpTree*> const& get_op_trees() const
                                                 { return af_.get_op_trees(); }
     void set_original(Variable const* orig) { assert(nr_==-2); original_=orig; }
-    Variable const* freeze_original(fp val);
     fp get_derivative(int n) const { return derivatives_[n]; }
 
 private:

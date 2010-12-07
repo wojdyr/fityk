@@ -85,13 +85,8 @@ public:
 
     void do_srand();
 
-    std::string format_double(fp d) const
-    {
-        char buf[32];
-        const char *format = get_s("info_numeric_format").c_str();
-        snprintf(buf, 31, format, d);
-        return buf;
-    }
+    std::string format_double(double d) const
+                        { return format1<double, 32>(fmt_.c_str(), d); }
 
 private:
     Ftk const* F;
@@ -106,6 +101,7 @@ private:
     fp cut_function_level_;
     int verbosity_;
     int autoplot_;
+    std::string fmt_;
 
     std::vector<std::pair<std::string, std::string> > old_values;
 

@@ -31,7 +31,7 @@ struct FunctionSum
 class Model
 {
 public:
-    Model(Ftk *F_);
+    Model(Ftk *F);
     ~Model();
 
     // calculate model (single point)
@@ -49,7 +49,7 @@ public:
 
     fp approx_max(fp x_min, fp x_max) const;
     std::string get_formula(bool simplify, bool gnuplot_style) const;
-    std::string get_peak_parameters(std::vector<fp> const& errors) const;
+    std::string get_peak_parameters(const std::vector<fp>& errors) const;
     std::vector<fp> get_symbolic_derivatives(fp x) const;
     std::vector<fp> get_numeric_derivatives(fp x, fp numerical_h) const;
     fp zero_shift (fp x) const;
@@ -63,14 +63,14 @@ public:
     FunctionSum& get_fz(char c) { return (c == 'F' ? ff_ : zz_); }
 
     // throws SyntaxError if index `idx' is wrong
-    std::string const& get_func_name(char c, int idx) const;
+    const std::string& get_func_name(char c, int idx) const;
 
     fp numarea(fp x1, fp x2, int nsteps) const;
     bool is_dependent_on_var(int idx) const;
 
 
 private:
-    Ftk const* F;
+    const Ftk* F_;
     VariableManager &mgr;
     FunctionSum ff_, zz_;
 

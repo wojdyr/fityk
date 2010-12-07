@@ -31,10 +31,11 @@ public:
     bool get_fwhm(fp* a) const;
     bool get_area(fp* a) const;
     bool get_nonzero_range(fp level, fp& left, fp& right) const;
-    void precomputations_for_alternative_vv();
     void set_var_idx(const std::vector<Variable*>& variables);
 
 protected:
+    //std::vector<Variable*> intern_variables_;
+    //std::vector<Function*> intern_functions_;
     VariableManager vmgr_;
 
     void init_components();

@@ -26,8 +26,11 @@ void CompoundFunction::init()
 void CompoundFunction::init_components()
 {
     vmgr_.silent = true;
-    for (int j = 0; j != nv(); ++j)
+    for (int j = 0; j != nv(); ++j) {
         vmgr_.assign_variable(varnames[j], ""); // mirror variables
+        //Variable* var = new Variable(varnames[j], -2);
+        //intern_variables_.push_back(var);
+    }
 
     v_foreach (Tplate::Component, i, tp_->components) {
         vector<string> args = i->values;
@@ -35,12 +38,13 @@ void CompoundFunction::init_components()
             for (int j = 0; j != nv(); ++j)
                 replace_words(*arg, tp_->fargs[j],
                                     vmgr_.get_variable(j)->xname);
+                                    //intern_variables_[j]->xname);
         }
         if (i->p)
-            vmgr_.assign_func(vmgr_.next_func_name(), i->p->name, args);
+            vmgr_.assign_func(vmgr_.next_func_name(), i->p, args);
         else {
             assert (args.size() == 1);
-            vmgr_.assign_variable("", args[0]);
+            vmgr_.assign_variable(vmgr_.next_var_name(), args[0]);
         }
     }
 }
@@ -48,27 +52,21 @@ void CompoundFunction::init_components()
 void CompoundFunction::set_var_idx(vector<Variable*> const& variables)
 {
     VariableUser::set_var_idx(variables);
-    for (int i = 0; i < nv(); ++i)
-        vmgr_.get_variable(i)->set_original(variables[get_var_idx(i)]);
-}
-
-/// vv_ was changed, but not variables, mirror variables in vmgr_ must be frozen
-void CompoundFunction::precomputations_for_alternative_vv()
-{
-    vector<Variable const*> backup(nv());
     for (int i = 0; i < nv(); ++i) {
-        //prevent change in use_parameters()
-        backup[i] = vmgr_.get_variable(i)->freeze_original(vv_[i]);
-    }
-    vmgr_.use_parameters();
-    for (int i = 0; i < nv(); ++i) {
-        vmgr_.get_variable(i)->set_original(backup[i]);
+        const Variable* orig = variables[get_var_idx(i)];
+        vmgr_.variables()[i]->set_original(orig);
     }
 }
 
 void CompoundFunction::more_precomputations()
 {
     vmgr_.use_parameters();
+    /*
+    vm_foreach (Variable*, i, variables_)
+        (*i)->recalculate(intern_variables_, intern_parameters_);
+    vm_foreach (Function*, i, functions_)
+        (*i)->do_precomputations(intern_variables_);
+    */
 }
 
 void CompoundFunction::calculate_value_in_range(vector<fp> const &xx,
@@ -188,7 +186,7 @@ void CustomFunction::set_var_idx(vector<Variable*> const& variables)
 
 void CustomFunction::more_precomputations()
 {
-    afo_.prepare_optimized_codes(vv_);
+    afo_.prepare_optimized_codes(av_);
 }
 
 void CustomFunction::calculate_value_in_range(vector<fp> const &xx,

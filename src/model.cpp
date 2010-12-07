@@ -18,8 +18,8 @@
 
 using namespace std;
 
-Model::Model(Ftk *F_)
-    : F(F_), mgr(*F_)
+Model::Model(Ftk *F)
+    : F_(F), mgr(*F)
 {
     mgr.register_model(this);
 }
@@ -33,7 +33,7 @@ Model::~Model()
 /// checks if this model depends on the variable with index idx
 bool Model::is_dependent_on_var(int idx) const
 {
-    vector<Variable*> const& vv = mgr.variables();
+    const vector<Variable*>& vv = mgr.variables();
     v_foreach (int, i, ff_.idx)
         if (mgr.get_function(*i)->is_dependent_on(idx, vv))
             return true;
@@ -157,38 +157,40 @@ fp Model::approx_max(fp x_min, fp x_max) const
 }
 
 
-string Model::get_peak_parameters(vector<fp> const& errors) const
+string Model::get_peak_parameters(const vector<fp>& errors) const
 {
-    // TODO: use info-numeric-format
     string s;
+    const Settings *settings = F_->get_settings();
     s += "# PeakType\tCenter\tHeight\tArea\tFWHM\tparameters...\n";
     v_foreach (int, i, ff_.idx) {
-        Function const* p = mgr.get_function(*i);
+        const Function* p = mgr.get_function(*i);
         s += p->xname + "  " + p->tp()->name;
         fp a;
         if (p->get_center(&a))
-            s += "\t"+S(a);
+            s += "\t" + settings->format_double(a);
         else
             s += "\tx";
         if (p->get_height(&a))
-            s += "\t"+S(a);
+            s += "\t" + settings->format_double(a);
         else
             s += "\tx";
         if (p->get_area(&a))
-            s += "\t"+S(a);
+            s += "\t" + settings->format_double(a);
         else
             s += "\tx";
         if (p->get_fwhm(&a))
-            s += "\t"+S(a);
+            s += "\t" + settings->format_double(a);
         else
             s += "\tx";
         s += "\t";
         for (int j = 0; j < p->get_vars_count(); ++j) {
-            s += " " + S(p->get_var_value(j));
+            s += " " + settings->format_double(p->av()[j]);
             if (!errors.empty()) {
-                Variable const* var = mgr.get_variable(p->get_var_idx(j));
-                if (var->is_simple())
-                    s += " +/- " + S(errors[var->get_nr()]);
+                const Variable* var = mgr.get_variable(p->get_var_idx(j));
+                if (var->is_simple()) {
+                    double err = errors[var->get_nr()];
+                    s += " +/- " + settings->format_double(err);
+                }
                 else
                     s += " +/- ?";
             }
@@ -243,9 +245,9 @@ string Model::get_formula(bool simplify, bool gnuplot_style) const
     return formula;
 }
 
-string const& Model::get_func_name(char c, int idx) const
+const string& Model::get_func_name(char c, int idx) const
 {
-    vector<string> const& names = get_fz(c).names;
+    const vector<string>& names = get_fz(c).names;
     if (idx < 0)
         idx += names.size();
     if (!is_index(idx, names))

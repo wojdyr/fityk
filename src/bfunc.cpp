@@ -63,56 +63,56 @@ void FuncConstant::calculate_value_in_range(vector<fp> const&/*xx*/,
                                             int first, int last) const
 {
     for (int i = first; i < last; ++i)
-        yy[i] += vv_[0];
+        yy[i] += av_[0];
 }
 
 CALCULATE_DERIV_BEGIN(FuncConstant)
     (void) x;
     dy_dv[0] = 1.;
     dy_dx = 0;
-CALCULATE_DERIV_END(vv_[0])
+CALCULATE_DERIV_END(av_[0])
 
 ///////////////////////////////////////////////////////////////////////
 
 CALCULATE_VALUE_BEGIN(FuncLinear)
-CALCULATE_VALUE_END(vv_[0] + x*vv_[1])
+CALCULATE_VALUE_END(av_[0] + x*av_[1])
 
 CALCULATE_DERIV_BEGIN(FuncLinear)
     dy_dv[0] = 1.;
     dy_dv[1] = x;
-    dy_dx = vv_[1];
-CALCULATE_DERIV_END(vv_[0] + x*vv_[1])
+    dy_dx = av_[1];
+CALCULATE_DERIV_END(av_[0] + x*av_[1])
 
 ///////////////////////////////////////////////////////////////////////
 
 CALCULATE_VALUE_BEGIN(FuncQuadratic)
-CALCULATE_VALUE_END(vv_[0] + x*vv_[1] + x*x*vv_[2])
+CALCULATE_VALUE_END(av_[0] + x*av_[1] + x*x*av_[2])
 
 CALCULATE_DERIV_BEGIN(FuncQuadratic)
     dy_dv[0] = 1.;
     dy_dv[1] = x;
     dy_dv[2] = x*x;
-    dy_dx = vv_[1] + 2*x*vv_[2];
-CALCULATE_DERIV_END(vv_[0] + x*vv_[1] + x*x*vv_[2])
+    dy_dx = av_[1] + 2*x*av_[2];
+CALCULATE_DERIV_END(av_[0] + x*av_[1] + x*x*av_[2])
 
 ///////////////////////////////////////////////////////////////////////
 
 CALCULATE_VALUE_BEGIN(FuncCubic)
-CALCULATE_VALUE_END(vv_[0] + x*vv_[1] + x*x*vv_[2] + x*x*x*vv_[3])
+CALCULATE_VALUE_END(av_[0] + x*av_[1] + x*x*av_[2] + x*x*x*av_[3])
 
 CALCULATE_DERIV_BEGIN(FuncCubic)
     dy_dv[0] = 1.;
     dy_dv[1] = x;
     dy_dv[2] = x*x;
     dy_dv[3] = x*x*x;
-    dy_dx = vv_[1] + 2*x*vv_[2] + 3*x*x*vv_[3];
-CALCULATE_DERIV_END(vv_[0] + x*vv_[1] + x*x*vv_[2] + x*x*x*vv_[3])
+    dy_dx = av_[1] + 2*x*av_[2] + 3*x*x*av_[3];
+CALCULATE_DERIV_END(av_[0] + x*av_[1] + x*x*av_[2] + x*x*x*av_[3])
 
 ///////////////////////////////////////////////////////////////////////
 
 CALCULATE_VALUE_BEGIN(FuncPolynomial4)
-CALCULATE_VALUE_END(vv_[0] + x*vv_[1] + x*x*vv_[2] + x*x*x*vv_[3]
-                                          + x*x*x*x*vv_[4])
+CALCULATE_VALUE_END(av_[0] + x*av_[1] + x*x*av_[2] + x*x*x*av_[3]
+                                          + x*x*x*x*av_[4])
 
 CALCULATE_DERIV_BEGIN(FuncPolynomial4)
     dy_dv[0] = 1.;
@@ -120,15 +120,15 @@ CALCULATE_DERIV_BEGIN(FuncPolynomial4)
     dy_dv[2] = x*x;
     dy_dv[3] = x*x*x;
     dy_dv[4] = x*x*x*x;
-    dy_dx = vv_[1] + 2*x*vv_[2] + 3*x*x*vv_[3] + 4*x*x*x*vv_[4];
-CALCULATE_DERIV_END(vv_[0] + x*vv_[1] + x*x*vv_[2] + x*x*x*vv_[3]
-                                      + x*x*x*x*vv_[4])
+    dy_dx = av_[1] + 2*x*av_[2] + 3*x*x*av_[3] + 4*x*x*x*av_[4];
+CALCULATE_DERIV_END(av_[0] + x*av_[1] + x*x*av_[2] + x*x*x*av_[3]
+                                      + x*x*x*x*av_[4])
 
 ///////////////////////////////////////////////////////////////////////
 
 CALCULATE_VALUE_BEGIN(FuncPolynomial5)
-CALCULATE_VALUE_END(vv_[0] + x*vv_[1] + x*x*vv_[2]
-                       + x*x*x*vv_[3] + x*x*x*x*vv_[4] + x*x*x*x*x*vv_[5])
+CALCULATE_VALUE_END(av_[0] + x*av_[1] + x*x*av_[2]
+                       + x*x*x*av_[3] + x*x*x*x*av_[4] + x*x*x*x*x*av_[5])
 
 CALCULATE_DERIV_BEGIN(FuncPolynomial5)
     dy_dv[0] = 1.;
@@ -137,16 +137,16 @@ CALCULATE_DERIV_BEGIN(FuncPolynomial5)
     dy_dv[3] = x*x*x;
     dy_dv[4] = x*x*x*x;
     dy_dv[5] = x*x*x*x*x;
-    dy_dx = vv_[1] + 2*x*vv_[2] + 3*x*x*vv_[3] + 4*x*x*x*vv_[4]
-               + 5*x*x*x*x*vv_[5];
-CALCULATE_DERIV_END(vv_[0] + x*vv_[1] + x*x*vv_[2]
-                          + x*x*x*vv_[3] + x*x*x*x*vv_[4] + x*x*x*x*x*vv_[5])
+    dy_dx = av_[1] + 2*x*av_[2] + 3*x*x*av_[3] + 4*x*x*x*av_[4]
+               + 5*x*x*x*x*av_[5];
+CALCULATE_DERIV_END(av_[0] + x*av_[1] + x*x*av_[2]
+                          + x*x*x*av_[3] + x*x*x*x*av_[4] + x*x*x*x*x*av_[5])
 
 ///////////////////////////////////////////////////////////////////////
 
 CALCULATE_VALUE_BEGIN(FuncPolynomial6)
-CALCULATE_VALUE_END(vv_[0] + x*vv_[1] + x*x*vv_[2] + x*x*x*vv_[3] +
-                        x*x*x*x*vv_[4] + x*x*x*x*x*vv_[5] + x*x*x*x*x*x*vv_[6])
+CALCULATE_VALUE_END(av_[0] + x*av_[1] + x*x*av_[2] + x*x*x*av_[3] +
+                        x*x*x*x*av_[4] + x*x*x*x*x*av_[5] + x*x*x*x*x*x*av_[6])
 
 CALCULATE_DERIV_BEGIN(FuncPolynomial6)
     dy_dv[0] = 1.;
@@ -156,51 +156,51 @@ CALCULATE_DERIV_BEGIN(FuncPolynomial6)
     dy_dv[4] = x*x*x*x;
     dy_dv[5] = x*x*x*x*x;
     dy_dv[6] = x*x*x*x*x*x;
-    dy_dx = vv_[1] + 2*x*vv_[2] + 3*x*x*vv_[3] + 4*x*x*x*vv_[4]
-                + 5*x*x*x*x*vv_[5] + 6*x*x*x*x*x*vv_[6];
-CALCULATE_DERIV_END(vv_[0] + x*vv_[1] + x*x*vv_[2] + x*x*x*vv_[3] +
-                        x*x*x*x*vv_[4] + x*x*x*x*x*vv_[5] + x*x*x*x*x*x*vv_[6])
+    dy_dx = av_[1] + 2*x*av_[2] + 3*x*x*av_[3] + 4*x*x*x*av_[4]
+                + 5*x*x*x*x*av_[5] + 6*x*x*x*x*x*av_[6];
+CALCULATE_DERIV_END(av_[0] + x*av_[1] + x*x*av_[2] + x*x*x*av_[3] +
+                        x*x*x*x*av_[4] + x*x*x*x*x*av_[5] + x*x*x*x*x*x*av_[6])
 
 ///////////////////////////////////////////////////////////////////////
 
 void FuncGaussian::more_precomputations()
 {
-    if (fabs(vv_[2]) < epsilon)
-        vv_[2] = epsilon;
+    if (fabs(av_[2]) < epsilon)
+        av_[2] = epsilon;
 }
 
 CALCULATE_VALUE_BEGIN(FuncGaussian)
-    fp xa1a2 = (x - vv_[1]) / vv_[2];
+    fp xa1a2 = (x - av_[1]) / av_[2];
     fp ex = exp(- M_LN2 * xa1a2 * xa1a2);
-CALCULATE_VALUE_END(vv_[0] * ex)
+CALCULATE_VALUE_END(av_[0] * ex)
 
 CALCULATE_DERIV_BEGIN(FuncGaussian)
-    fp xa1a2 = (x - vv_[1]) / vv_[2];
+    fp xa1a2 = (x - av_[1]) / av_[2];
     fp ex = exp(- M_LN2 * xa1a2 * xa1a2);
     dy_dv[0] = ex;
-    fp dcenter = 2 * M_LN2 * vv_[0] * ex * xa1a2 / vv_[2];
+    fp dcenter = 2 * M_LN2 * av_[0] * ex * xa1a2 / av_[2];
     dy_dv[1] = dcenter;
     dy_dv[2] = dcenter * xa1a2;
     dy_dx = -dcenter;
-CALCULATE_DERIV_END(vv_[0]*ex)
+CALCULATE_DERIV_END(av_[0]*ex)
 
 bool FuncGaussian::get_nonzero_range (fp level, fp &left, fp &right) const
 {
     if (level == 0)
         return false;
-    else if (fabs(level) >= fabs(vv_[0]))
+    else if (fabs(level) >= fabs(av_[0]))
         left = right = 0;
     else {
-        fp w = sqrt (log (fabs(vv_[0]/level)) / M_LN2) * vv_[2];
-        left = vv_[1] - w;
-        right = vv_[1] + w;
+        fp w = sqrt (log (fabs(av_[0]/level)) / M_LN2) * av_[2];
+        left = av_[1] - w;
+        right = av_[1] + w;
     }
     return true;
 }
 
 bool FuncGaussian::get_area(fp* a) const
 {
-    *a = vv_[0] * fabs(vv_[2]) * sqrt(M_PI / M_LN2);
+    *a = av_[0] * fabs(av_[2]) * sqrt(M_PI / M_LN2);
     return true;
 }
 
@@ -208,26 +208,26 @@ bool FuncGaussian::get_area(fp* a) const
 
 void FuncSplitGaussian::more_precomputations()
 {
-    if (fabs(vv_[2]) < epsilon)
-        vv_[2] = epsilon;
-    if (fabs(vv_[3]) < epsilon)
-        vv_[3] = epsilon;
+    if (fabs(av_[2]) < epsilon)
+        av_[2] = epsilon;
+    if (fabs(av_[3]) < epsilon)
+        av_[3] = epsilon;
 }
 
 CALCULATE_VALUE_BEGIN(FuncSplitGaussian)
-    fp hwhm = (x < vv_[1] ? vv_[2] : vv_[3]);
-    fp xa1a2 = (x - vv_[1]) / hwhm;
+    fp hwhm = (x < av_[1] ? av_[2] : av_[3]);
+    fp xa1a2 = (x - av_[1]) / hwhm;
     fp ex = exp(- M_LN2 * xa1a2 * xa1a2);
-CALCULATE_VALUE_END(vv_[0] * ex)
+CALCULATE_VALUE_END(av_[0] * ex)
 
 CALCULATE_DERIV_BEGIN(FuncSplitGaussian)
-    fp hwhm = (x < vv_[1] ? vv_[2] : vv_[3]);
-    fp xa1a2 = (x - vv_[1]) / hwhm;
+    fp hwhm = (x < av_[1] ? av_[2] : av_[3]);
+    fp xa1a2 = (x - av_[1]) / hwhm;
     fp ex = exp(- M_LN2 * xa1a2 * xa1a2);
     dy_dv[0] = ex;
-    fp dcenter = 2 * M_LN2 * vv_[0] * ex * xa1a2 / hwhm;
+    fp dcenter = 2 * M_LN2 * av_[0] * ex * xa1a2 / hwhm;
     dy_dv[1] = dcenter;
-    if (x < vv_[1]) {
+    if (x < av_[1]) {
         dy_dv[2] = dcenter * xa1a2;
         dy_dv[3] = 0;
     }
@@ -236,26 +236,26 @@ CALCULATE_DERIV_BEGIN(FuncSplitGaussian)
         dy_dv[3] = dcenter * xa1a2;
     }
     dy_dx = -dcenter;
-CALCULATE_DERIV_END(vv_[0]*ex)
+CALCULATE_DERIV_END(av_[0]*ex)
 
 bool FuncSplitGaussian::get_nonzero_range (fp level, fp &left, fp &right) const
 {
     if (level == 0)
         return false;
-    else if (fabs(level) >= fabs(vv_[0]))
+    else if (fabs(level) >= fabs(av_[0]))
         left = right = 0;
     else {
-        fp w1 = sqrt (log (fabs(vv_[0]/level)) / M_LN2) * vv_[2];
-        fp w2 = sqrt (log (fabs(vv_[0]/level)) / M_LN2) * vv_[3];
-        left = vv_[1] - w1;
-        right = vv_[1] + w2;
+        fp w1 = sqrt (log (fabs(av_[0]/level)) / M_LN2) * av_[2];
+        fp w2 = sqrt (log (fabs(av_[0]/level)) / M_LN2) * av_[3];
+        left = av_[1] - w1;
+        right = av_[1] + w2;
     }
     return true;
 }
 
 bool FuncSplitGaussian::get_area(fp* a) const
 {
-    *a = vv_[0] * (fabs(vv_[2])+fabs(vv_[3])) / 2. * sqrt(M_PI/M_LN2);
+    *a = av_[0] * (fabs(av_[2])+fabs(av_[3])) / 2. * sqrt(M_PI/M_LN2);
     return true;
 }
 
@@ -263,35 +263,35 @@ bool FuncSplitGaussian::get_area(fp* a) const
 
 void FuncLorentzian::more_precomputations()
 {
-    if (fabs(vv_[2]) < epsilon)
-        vv_[2] = epsilon;
+    if (fabs(av_[2]) < epsilon)
+        av_[2] = epsilon;
 }
 
 CALCULATE_VALUE_BEGIN(FuncLorentzian)
-    fp xa1a2 = (x - vv_[1]) / vv_[2];
+    fp xa1a2 = (x - av_[1]) / av_[2];
     fp inv_denomin = 1. / (1 + xa1a2 * xa1a2);
-CALCULATE_VALUE_END(vv_[0] * inv_denomin)
+CALCULATE_VALUE_END(av_[0] * inv_denomin)
 
 CALCULATE_DERIV_BEGIN(FuncLorentzian)
-    fp xa1a2 = (x - vv_[1]) / vv_[2];
+    fp xa1a2 = (x - av_[1]) / av_[2];
     fp inv_denomin = 1. / (1 + xa1a2 * xa1a2);
     dy_dv[0] = inv_denomin;
-    fp dcenter = 2 * vv_[0] * xa1a2 / vv_[2] * inv_denomin * inv_denomin;
+    fp dcenter = 2 * av_[0] * xa1a2 / av_[2] * inv_denomin * inv_denomin;
     dy_dv[1] = dcenter;
     dy_dv[2] = dcenter * xa1a2;
     dy_dx = -dcenter;
-CALCULATE_DERIV_END(vv_[0] * inv_denomin)
+CALCULATE_DERIV_END(av_[0] * inv_denomin)
 
 bool FuncLorentzian::get_nonzero_range (fp level, fp &left, fp &right) const
 {
     if (level == 0)
         return false;
-    else if (fabs(level) >= fabs(vv_[0]))
+    else if (fabs(level) >= fabs(av_[0]))
         left = right = 0;
     else {
-        fp w = sqrt (fabs(vv_[0]/level) - 1) * vv_[2];
-        left = vv_[1] - w;
-        right = vv_[1] + w;
+        fp w = sqrt (fabs(av_[0]/level) - 1) * av_[2];
+        left = av_[1] - w;
+        right = av_[1] + w;
     }
     return true;
 }
@@ -300,62 +300,62 @@ bool FuncLorentzian::get_nonzero_range (fp level, fp &left, fp &right) const
 
 void FuncPearson7::more_precomputations()
 {
-    if (fabs(vv_[2]) < epsilon)
-        vv_[2] = epsilon;
-    if (vv_.size() != 5)
-        vv_.resize(5);
-    // not checking for vv_[3]>0.5 nor even >0
-    vv_[4] = pow(2, 1. / vv_[3]) - 1;
+    if (fabs(av_[2]) < epsilon)
+        av_[2] = epsilon;
+    if (av_.size() != 5)
+        av_.resize(5);
+    // not checking for av_[3]>0.5 nor even >0
+    av_[4] = pow(2, 1. / av_[3]) - 1;
 }
 
 CALCULATE_VALUE_BEGIN(FuncPearson7)
-    fp xa1a2 = (x - vv_[1]) / vv_[2];
+    fp xa1a2 = (x - av_[1]) / av_[2];
     fp xa1a2sq = xa1a2 * xa1a2;
-    fp pow_2_1_a3_1 = vv_[4]; //pow (2, 1. / a3) - 1;
+    fp pow_2_1_a3_1 = av_[4]; //pow (2, 1. / a3) - 1;
     fp denom_base = 1 + xa1a2sq * pow_2_1_a3_1;
-    fp inv_denomin = pow (denom_base, - vv_[3]);
-CALCULATE_VALUE_END(vv_[0] * inv_denomin)
+    fp inv_denomin = pow (denom_base, - av_[3]);
+CALCULATE_VALUE_END(av_[0] * inv_denomin)
 
 CALCULATE_DERIV_BEGIN(FuncPearson7)
-    fp xa1a2 = (x - vv_[1]) / vv_[2];
+    fp xa1a2 = (x - av_[1]) / av_[2];
     fp xa1a2sq = xa1a2 * xa1a2;
-    fp pow_2_1_a3_1 = vv_[4]; //pow (2, 1. / a3) - 1;
+    fp pow_2_1_a3_1 = av_[4]; //pow (2, 1. / a3) - 1;
     fp denom_base = 1 + xa1a2sq * pow_2_1_a3_1;
-    fp inv_denomin = pow (denom_base, - vv_[3]);
+    fp inv_denomin = pow (denom_base, - av_[3]);
     dy_dv[0] = inv_denomin;
-    fp dcenter = 2 * vv_[0] * vv_[3] * pow_2_1_a3_1 * xa1a2 * inv_denomin /
-                                                      (denom_base * vv_[2]);
+    fp dcenter = 2 * av_[0] * av_[3] * pow_2_1_a3_1 * xa1a2 * inv_denomin /
+                                                      (denom_base * av_[2]);
     dy_dv[1] = dcenter;
     dy_dv[2] = dcenter * xa1a2;
-    dy_dv[3] = vv_[0] * inv_denomin * (M_LN2 * (pow_2_1_a3_1 + 1)
-                       * xa1a2sq / (denom_base * vv_[3]) - log(denom_base));
+    dy_dv[3] = av_[0] * inv_denomin * (M_LN2 * (pow_2_1_a3_1 + 1)
+                       * xa1a2sq / (denom_base * av_[3]) - log(denom_base));
     dy_dx = -dcenter;
-CALCULATE_DERIV_END(vv_[0] * inv_denomin)
+CALCULATE_DERIV_END(av_[0] * inv_denomin)
 
 
 bool FuncPearson7::get_nonzero_range (fp level, fp &left, fp &right) const
 {
     if (level == 0)
         return false;
-    else if (fabs(level) >= fabs(vv_[0]))
+    else if (fabs(level) >= fabs(av_[0]))
         left = right = 0;
     else {
-        fp t = (pow(fabs(vv_[0]/level), 1./vv_[3]) - 1)
-               / (pow (2, 1./vv_[3]) - 1);
-        fp w = sqrt(t) * vv_[2];
-        left = vv_[1] - w;
-        right = vv_[1] + w;
+        fp t = (pow(fabs(av_[0]/level), 1./av_[3]) - 1)
+               / (pow (2, 1./av_[3]) - 1);
+        fp w = sqrt(t) * av_[2];
+        left = av_[1] - w;
+        right = av_[1] + w;
     }
     return true;
 }
 
 bool FuncPearson7::get_area(fp* a) const
 {
-    if (vv_[3] <= 0.5)
+    if (av_[3] <= 0.5)
         return false;
-    fp g = exp(lgamma(vv_[3] - 0.5) - lgamma(vv_[3]));
-    //in f_val_precomputations(): vv_[4] = pow (2, 1. / a3) - 1;
-    *a = vv_[0] * 2 * fabs(vv_[2]) * sqrt(M_PI) * g / (2 * sqrt(vv_[4]));
+    fp g = exp(lgamma(av_[3] - 0.5) - lgamma(av_[3]));
+    //in f_val_precomputations(): av_[4] = pow (2, 1. / a3) - 1;
+    *a = av_[0] * 2 * fabs(av_[2]) * sqrt(M_PI) * g / (2 * sqrt(av_[4]));
     return true;
 }
 
@@ -363,72 +363,72 @@ bool FuncPearson7::get_area(fp* a) const
 
 void FuncSplitPearson7::more_precomputations()
 {
-    if (fabs(vv_[2]) < epsilon)
-        vv_[2] = epsilon;
-    if (fabs(vv_[3]) < epsilon)
-        vv_[3] = epsilon;
-    if (vv_.size() != 8)
-        vv_.resize(8);
-    // not checking for vv_[3]>0.5 nor even >0
-    vv_[6] = pow(2, 1. / vv_[4]) - 1;
-    vv_[7] = pow(2, 1. / vv_[5]) - 1;
+    if (fabs(av_[2]) < epsilon)
+        av_[2] = epsilon;
+    if (fabs(av_[3]) < epsilon)
+        av_[3] = epsilon;
+    if (av_.size() != 8)
+        av_.resize(8);
+    // not checking for av_[3]>0.5 nor even >0
+    av_[6] = pow(2, 1. / av_[4]) - 1;
+    av_[7] = pow(2, 1. / av_[5]) - 1;
 }
 
 CALCULATE_VALUE_BEGIN(FuncSplitPearson7)
-    int lr = x < vv_[1] ? 0 : 1;
-    fp xa1a2 = (x - vv_[1]) / vv_[2+lr];
+    int lr = x < av_[1] ? 0 : 1;
+    fp xa1a2 = (x - av_[1]) / av_[2+lr];
     fp xa1a2sq = xa1a2 * xa1a2;
-    fp pow_2_1_a3_1 = vv_[6+lr]; //pow(2, 1./shape) - 1;
+    fp pow_2_1_a3_1 = av_[6+lr]; //pow(2, 1./shape) - 1;
     fp denom_base = 1 + xa1a2sq * pow_2_1_a3_1;
-    fp inv_denomin = pow(denom_base, - vv_[4+lr]);
-CALCULATE_VALUE_END(vv_[0] * inv_denomin)
+    fp inv_denomin = pow(denom_base, - av_[4+lr]);
+CALCULATE_VALUE_END(av_[0] * inv_denomin)
 
 CALCULATE_DERIV_BEGIN(FuncSplitPearson7)
-    int lr = x < vv_[1] ? 0 : 1;
-    fp hwhm = vv_[2+lr];
-    fp shape = vv_[4+lr];
-    fp xa1a2 = (x - vv_[1]) / hwhm;
+    int lr = x < av_[1] ? 0 : 1;
+    fp hwhm = av_[2+lr];
+    fp shape = av_[4+lr];
+    fp xa1a2 = (x - av_[1]) / hwhm;
     fp xa1a2sq = xa1a2 * xa1a2;
-    fp pow_2_1_a3_1 = vv_[6+lr]; //pow(2, 1./shape) - 1;
+    fp pow_2_1_a3_1 = av_[6+lr]; //pow(2, 1./shape) - 1;
     fp denom_base = 1 + xa1a2sq * pow_2_1_a3_1;
     fp inv_denomin = pow (denom_base, -shape);
     dy_dv[0] = inv_denomin;
-    fp dcenter = 2 * vv_[0] * shape * pow_2_1_a3_1 * xa1a2 * inv_denomin /
+    fp dcenter = 2 * av_[0] * shape * pow_2_1_a3_1 * xa1a2 * inv_denomin /
                                                       (denom_base * hwhm);
     dy_dv[1] = dcenter;
     dy_dv[2] = dy_dv[3] = dy_dv[4] = dy_dv[5] = 0;
     dy_dv[2+lr] = dcenter * xa1a2;
-    dy_dv[4+lr] = vv_[0] * inv_denomin * (M_LN2 * (pow_2_1_a3_1 + 1)
+    dy_dv[4+lr] = av_[0] * inv_denomin * (M_LN2 * (pow_2_1_a3_1 + 1)
                            * xa1a2sq / (denom_base * shape) - log(denom_base));
     dy_dx = -dcenter;
-CALCULATE_DERIV_END(vv_[0] * inv_denomin)
+CALCULATE_DERIV_END(av_[0] * inv_denomin)
 
 
 bool FuncSplitPearson7::get_nonzero_range (fp level, fp &left, fp &right) const
 {
     if (level == 0)
         return false;
-    else if (fabs(level) >= fabs(vv_[0]))
+    else if (fabs(level) >= fabs(av_[0]))
         left = right = 0;
     else {
-        fp t1 = (pow(fabs(vv_[0]/level), 1./vv_[4]) - 1) / (pow(2, 1./vv_[4]) - 1);
-        fp w1 = sqrt(t1) * vv_[2];
-        fp t2 = (pow(fabs(vv_[0]/level), 1./vv_[5]) - 1) / (pow(2, 1./vv_[5]) - 1);
-        fp w2 = sqrt(t2) * vv_[3];
-        left = vv_[1] - w1;
-        right = vv_[1] + w2;
+        fp t1 = (pow(fabs(av_[0]/level), 1./av_[4]) - 1) / (pow(2, 1./av_[4]) - 1);
+        fp w1 = sqrt(t1) * av_[2];
+        fp t2 = (pow(fabs(av_[0]/level), 1./av_[5]) - 1) / (pow(2, 1./av_[5]) - 1);
+        fp w2 = sqrt(t2) * av_[3];
+        left = av_[1] - w1;
+        right = av_[1] + w2;
     }
     return true;
 }
 
 bool FuncSplitPearson7::get_area(fp* a) const
 {
-    if (vv_[4] <= 0.5 || vv_[5] <= 0.5)
+    if (av_[4] <= 0.5 || av_[5] <= 0.5)
         return false;
-    fp g1 = exp(lgamma(vv_[4] - 0.5) - lgamma(vv_[4]));
-    fp g2 = exp(lgamma(vv_[5] - 0.5) - lgamma(vv_[5]));
-    *a =   vv_[0] * fabs(vv_[2]) * sqrt(M_PI) * g1 / (2 * sqrt(vv_[6]))
-         + vv_[0] * fabs(vv_[3]) * sqrt(M_PI) * g2 / (2 * sqrt(vv_[7]));
+    fp g1 = exp(lgamma(av_[4] - 0.5) - lgamma(av_[4]));
+    fp g2 = exp(lgamma(av_[5] - 0.5) - lgamma(av_[5]));
+    *a =   av_[0] * fabs(av_[2]) * sqrt(M_PI) * g1 / (2 * sqrt(av_[6]))
+         + av_[0] * fabs(av_[3]) * sqrt(M_PI) * g2 / (2 * sqrt(av_[7]));
     return true;
 }
 
@@ -436,50 +436,50 @@ bool FuncSplitPearson7::get_area(fp* a) const
 
 void FuncPseudoVoigt::more_precomputations()
 {
-    if (fabs(vv_[2]) < epsilon)
-        vv_[2] = epsilon;
+    if (fabs(av_[2]) < epsilon)
+        av_[2] = epsilon;
 }
 
 CALCULATE_VALUE_BEGIN(FuncPseudoVoigt)
-    fp xa1a2 = (x - vv_[1]) / vv_[2];
+    fp xa1a2 = (x - av_[1]) / av_[2];
     fp ex = exp(- M_LN2 * xa1a2 * xa1a2);
     fp lor = 1. / (1 + xa1a2 * xa1a2);
-    fp without_height =  (1-vv_[3]) * ex + vv_[3] * lor;
-CALCULATE_VALUE_END(vv_[0] * without_height)
+    fp without_height =  (1-av_[3]) * ex + av_[3] * lor;
+CALCULATE_VALUE_END(av_[0] * without_height)
 
 CALCULATE_DERIV_BEGIN(FuncPseudoVoigt)
-    fp xa1a2 = (x - vv_[1]) / vv_[2];
+    fp xa1a2 = (x - av_[1]) / av_[2];
     fp ex = exp(- M_LN2 * xa1a2 * xa1a2);
     fp lor = 1. / (1 + xa1a2 * xa1a2);
-    fp without_height =  (1-vv_[3]) * ex + vv_[3] * lor;
+    fp without_height =  (1-av_[3]) * ex + av_[3] * lor;
     dy_dv[0] = without_height;
-    fp dcenter = 2 * vv_[0] * xa1a2 / vv_[2]
-                    * (vv_[3]*lor*lor + (1-vv_[3])*M_LN2*ex);
+    fp dcenter = 2 * av_[0] * xa1a2 / av_[2]
+                    * (av_[3]*lor*lor + (1-av_[3])*M_LN2*ex);
     dy_dv[1] = dcenter;
     dy_dv[2] = dcenter * xa1a2;
-    dy_dv[3] =  vv_[0] * (lor - ex);
+    dy_dv[3] =  av_[0] * (lor - ex);
     dy_dx = -dcenter;
-CALCULATE_DERIV_END(vv_[0] * without_height)
+CALCULATE_DERIV_END(av_[0] * without_height)
 
 bool FuncPseudoVoigt::get_nonzero_range (fp level, fp &left, fp &right) const
 {
     if (level == 0)
         return false;
-    else if (fabs(level) >= fabs(vv_[0]))
+    else if (fabs(level) >= fabs(av_[0]))
         left = right = 0;
     else {
         // neglecting Gaussian part and adding 4.0 to compensate it
-        fp w = (sqrt (vv_[3] * fabs(vv_[0]/level) - 1) + 4.) * vv_[2];
-        left = vv_[1] - w;
-        right = vv_[1] + w;
+        fp w = (sqrt (av_[3] * fabs(av_[0]/level) - 1) + 4.) * av_[2];
+        left = av_[1] - w;
+        right = av_[1] + w;
     }
     return true;
 }
 
 bool FuncPseudoVoigt::get_area(fp* a) const
 {
-    *a = vv_[0] * fabs(vv_[2])
-              * ((vv_[3] * M_PI) + (1 - vv_[3]) * sqrt(M_PI / M_LN2));
+    *a = av_[0] * fabs(av_[2])
+              * ((av_[3] * M_PI) + (1 - av_[3]) * sqrt(M_PI / M_LN2));
     return true;
 }
 
@@ -487,38 +487,38 @@ bool FuncPseudoVoigt::get_area(fp* a) const
 
 void FuncVoigt::more_precomputations()
 {
-    if (vv_.size() != 6)
-        vv_.resize(6);
+    if (av_.size() != 6)
+        av_.resize(6);
     float k, l, dkdx, dkdy;
-    humdev(0, fabs(vv_[3]), k, l, dkdx, dkdy);
-    vv_[4] = 1. / k;
-    vv_[5] = dkdy / k;
+    humdev(0, fabs(av_[3]), k, l, dkdx, dkdy);
+    av_[4] = 1. / k;
+    av_[5] = dkdy / k;
 
-    if (fabs(vv_[2]) < epsilon)
-        vv_[2] = epsilon;
+    if (fabs(av_[2]) < epsilon)
+        av_[2] = epsilon;
 }
 
 CALCULATE_VALUE_BEGIN(FuncVoigt)
     // humdev/humlik routines require with y (a3 here) parameter >0.
     float k;
-    fp xa1a2 = (x - vv_[1]) / vv_[2];
-    k = humlik(xa1a2, fabs(vv_[3]));
-CALCULATE_VALUE_END(vv_[0] * vv_[4] * k)
+    fp xa1a2 = (x - av_[1]) / av_[2];
+    k = humlik(xa1a2, fabs(av_[3]));
+CALCULATE_VALUE_END(av_[0] * av_[4] * k)
 
 CALCULATE_DERIV_BEGIN(FuncVoigt)
     // humdev/humlik routines require with y (a3 here) parameter >0.
-    // here fabs(vv_[3]) is used, and dy_dv[3] is negated if vv_[3]<0.
+    // here fabs(av_[3]) is used, and dy_dv[3] is negated if av_[3]<0.
     float k;
-    fp xa1a2 = (x-vv_[1]) / vv_[2];
-    fp a0a4 = vv_[0] * vv_[4];
+    fp xa1a2 = (x-av_[1]) / av_[2];
+    fp a0a4 = av_[0] * av_[4];
     float l, dkdx, dkdy;
-    humdev(xa1a2, fabs(vv_[3]), k, l, dkdx, dkdy);
-    dy_dv[0] = vv_[4] * k;
-    fp dcenter = -a0a4 * dkdx / vv_[2];
+    humdev(xa1a2, fabs(av_[3]), k, l, dkdx, dkdy);
+    dy_dv[0] = av_[4] * k;
+    fp dcenter = -a0a4 * dkdx / av_[2];
     dy_dv[1] = dcenter;
     dy_dv[2] = dcenter * xa1a2;
-    dy_dv[3] = a0a4 * (dkdy - k * vv_[5]);
-    if (vv_[3] < 0)
+    dy_dv[3] = a0a4 * (dkdy - k * av_[5]);
+    if (av_[3] < 0)
         dy_dv[3] = -dy_dv[3];
     dy_dx = -dcenter;
 CALCULATE_DERIV_END(a0a4 * k)
@@ -527,7 +527,7 @@ bool FuncVoigt::get_nonzero_range (fp level, fp &left, fp &right) const
 {
     if (level == 0)
         return false;
-    else if (fabs(level) >= fabs(vv_[0]))
+    else if (fabs(level) >= fabs(av_[0]))
         left = right = 0;
     else {
         //TODO estimate Voigt's non-zero range
@@ -558,13 +558,13 @@ static fp voigt_fwhm(fp a2, fp a3)
 
 bool FuncVoigt::get_fwhm(fp* a) const
 {
-    *a = voigt_fwhm(vv_[2], vv_[3]);
+    *a = voigt_fwhm(av_[2], av_[3]);
     return true;
 }
 
 bool FuncVoigt::get_area(fp* a) const
 {
-    *a = vv_[0] * fabs(vv_[2] * sqrt(M_PI) * vv_[4]);
+    *a = av_[0] * fabs(av_[2] * sqrt(M_PI) * av_[4]);
     return true;
 }
 
@@ -578,11 +578,11 @@ const vector<string>& FuncVoigt::get_other_prop_names() const
 fp FuncVoigt::get_other_prop(string const& name) const
 {
     if (name == "GaussianFWHM") {
-        fp sigma = fabs(vv_[2]) / M_SQRT2;
+        fp sigma = fabs(av_[2]) / M_SQRT2;
         return 2 * sigma * sqrt(2 * M_LN2);
     }
     else if (name == "LorentzianFWHM") {
-        fp gamma = fabs(vv_[2]) * vv_[3];
+        fp gamma = fabs(av_[2]) * av_[3];
         return 2 * gamma;
     }
     else
@@ -593,35 +593,35 @@ fp FuncVoigt::get_other_prop(string const& name) const
 
 void FuncVoigtA::more_precomputations()
 {
-    if (vv_.size() != 6)
-        vv_.resize(6);
-    vv_[4] = 1. / humlik(0, fabs(vv_[3]));
+    if (av_.size() != 6)
+        av_.resize(6);
+    av_[4] = 1. / humlik(0, fabs(av_[3]));
 
-    if (fabs(vv_[2]) < epsilon)
-        vv_[2] = epsilon;
+    if (fabs(av_[2]) < epsilon)
+        av_[2] = epsilon;
 }
 
 CALCULATE_VALUE_BEGIN(FuncVoigtA)
     // humdev/humlik routines require with y (a3 here) parameter >0.
     float k;
-    fp xa1a2 = (x - vv_[1]) / vv_[2];
-    k = humlik(xa1a2, fabs(vv_[3]));
-CALCULATE_VALUE_END(vv_[0] / (sqrt(M_PI) * vv_[2]) * k)
+    fp xa1a2 = (x - av_[1]) / av_[2];
+    k = humlik(xa1a2, fabs(av_[3]));
+CALCULATE_VALUE_END(av_[0] / (sqrt(M_PI) * av_[2]) * k)
 
 CALCULATE_DERIV_BEGIN(FuncVoigtA)
     // humdev/humlik routines require with y (a3 here) parameter >0.
-    // here fabs(vv_[3]) is used, and dy_dv[3] is negated if vv_[3]<0.
+    // here fabs(av_[3]) is used, and dy_dv[3] is negated if av_[3]<0.
     float k;
-    fp xa1a2 = (x-vv_[1]) / vv_[2];
-    fp f = vv_[0] / (sqrt(M_PI) * vv_[2]);
+    fp xa1a2 = (x-av_[1]) / av_[2];
+    fp f = av_[0] / (sqrt(M_PI) * av_[2]);
     float l, dkdx, dkdy;
-    humdev(xa1a2, fabs(vv_[3]), k, l, dkdx, dkdy);
-    dy_dv[0] = k / (sqrt(M_PI) * vv_[2]);
-    fp dcenter = -f * dkdx / vv_[2];
+    humdev(xa1a2, fabs(av_[3]), k, l, dkdx, dkdy);
+    dy_dv[0] = k / (sqrt(M_PI) * av_[2]);
+    fp dcenter = -f * dkdx / av_[2];
     dy_dv[1] = dcenter;
-    dy_dv[2] = dcenter * xa1a2 - f * k / vv_[2];
+    dy_dv[2] = dcenter * xa1a2 - f * k / av_[2];
     dy_dv[3] = f * dkdy;
-    if (vv_[3] < 0)
+    if (av_[3] < 0)
         dy_dv[3] = -dy_dv[3];
     dy_dx = -dcenter;
 CALCULATE_DERIV_END(f * k)
@@ -630,7 +630,7 @@ bool FuncVoigtA::get_nonzero_range (fp level, fp &left, fp &right) const
 {
     if (level == 0)
         return false;
-    else if (fabs(level) >= fabs(vv_[0]))
+    else if (fabs(level) >= fabs(av_[0]))
         left = right = 0;
     else {
         //TODO estimate Voigt's non-zero range
@@ -641,13 +641,13 @@ bool FuncVoigtA::get_nonzero_range (fp level, fp &left, fp &right) const
 
 bool FuncVoigtA::get_fwhm(fp* a) const
 {
-    *a = voigt_fwhm(vv_[2], vv_[3]);
+    *a = voigt_fwhm(av_[2], av_[3]);
     return true;
 }
 
 bool FuncVoigtA::get_height(fp* a) const
 {
-    *a = vv_[0] / fabs(vv_[2] * sqrt(M_PI) * vv_[4]);
+    *a = av_[0] / fabs(av_[2] * sqrt(M_PI) * av_[4]);
     return true;
 }
 
@@ -662,10 +662,10 @@ bool FuncEMG::get_nonzero_range(fp/*level*/, fp&/*left*/, fp&/*right*/) const
     { return false; }
 
 CALCULATE_VALUE_BEGIN(FuncEMG)
-    fp a = vv_[0];
-    fp bx = vv_[1] - x;
-    fp c = vv_[2];
-    fp d = vv_[3];
+    fp a = av_[0];
+    fp bx = av_[1] - x;
+    fp c = av_[2];
+    fp d = av_[3];
     fp fact = a*c*sqrt(2*M_PI)/(2*d);
     fp ex = exp(bx/d + c*c/(2*d*d));
     //fp erf_arg = bx/(M_SQRT2*c) + c/(M_SQRT2*d);
@@ -675,10 +675,10 @@ CALCULATE_VALUE_BEGIN(FuncEMG)
 CALCULATE_VALUE_END(t)
 
 CALCULATE_DERIV_BEGIN(FuncEMG)
-    fp a = vv_[0];
-    fp bx = vv_[1] - x;
-    fp c = vv_[2];
-    fp d = vv_[3];
+    fp a = av_[0];
+    fp bx = av_[1] - x;
+    fp c = av_[2];
+    fp d = av_[3];
     fp cs2d = c/(M_SQRT2*d);
     fp cc = c*sqrt(M_PI/2)/d;
     fp ex = exp(bx/d + cs2d*cs2d); //==exp((c^2+2bd-2dx) / 2d^2)
@@ -708,18 +708,18 @@ bool FuncDoniachSunjic::get_nonzero_range(fp/*level*/, fp&/*left*/,
 { return false; }
 
 CALCULATE_VALUE_BEGIN(FuncDoniachSunjic)
-    fp h = vv_[0];
-    fp a = vv_[1];
-    fp F = vv_[2];
-    fp xE = x - vv_[3];
+    fp h = av_[0];
+    fp a = av_[1];
+    fp F = av_[2];
+    fp xE = x - av_[3];
     fp t = h * cos(M_PI*a/2 + (1-a)*atan(xE/F)) / pow(F*F+xE*xE, (1-a)/2);
 CALCULATE_VALUE_END(t)
 
 CALCULATE_DERIV_BEGIN(FuncDoniachSunjic)
-    fp h = vv_[0];
-    fp a = vv_[1];
-    fp F = vv_[2];
-    fp xE = x - vv_[3];
+    fp h = av_[0];
+    fp a = av_[1];
+    fp F = av_[2];
+    fp xE = x - av_[3];
     fp fe2 = F*F+xE*xE;
     fp ac = 1-a;
     fp p = pow(fe2, -ac/2);
@@ -738,10 +738,10 @@ CALCULATE_DERIV_END(h*t)
 
 
 CALCULATE_VALUE_BEGIN(FuncPielaszekCube)
-    fp height = vv_[0];
-    fp center = vv_[1];
-    fp R = vv_[2];
-    fp s = vv_[3];
+    fp height = av_[0];
+    fp center = av_[1];
+    fp R = av_[2];
+    fp s = av_[3];
     fp s2 = s*s;
     fp s4 = s2*s2;
     fp R2 = R*R;
@@ -756,10 +756,10 @@ CALCULATE_VALUE_BEGIN(FuncPielaszekCube)
 CALCULATE_VALUE_END(t)
 
 CALCULATE_DERIV_BEGIN(FuncPielaszekCube)
-    fp height = vv_[0];
-    fp center = vv_[1];
-    fp R = vv_[2];
-    fp s = vv_[3];
+    fp height = av_[0];
+    fp center = av_[1];
+    fp R = av_[2];
+    fp s = av_[3];
     fp s2 = s*s;
     fp s3 = s*s2;
     fp s4 = s2*s2;
@@ -866,36 +866,36 @@ CALCULATE_DERIV_END(height*t);
 
 void FuncLogNormal::more_precomputations()
 {
-    if (vv_.size() != 4)
-        vv_.resize(4);
-    if (fabs(vv_[2]) < epsilon)
-        vv_[2] = epsilon;
-    if (fabs(vv_[3]) < epsilon)
-        vv_[3] = 0.001;
+    if (av_.size() != 4)
+        av_.resize(4);
+    if (fabs(av_[2]) < epsilon)
+        av_[2] = epsilon;
+    if (fabs(av_[3]) < epsilon)
+        av_[3] = 0.001;
 }
 
 CALCULATE_VALUE_BEGIN(FuncLogNormal)
-    fp a = 2.0 * vv_[3] * (x - vv_[1]) / vv_[2];
+    fp a = 2.0 * av_[3] * (x - av_[1]) / av_[2];
     fp ex = 0.0;
     if (a > -1.0) {
-        fp b = log(1 + a) / vv_[3];
-        ex = vv_[0] * exp(-M_LN2 * b * b);
+        fp b = log(1 + a) / av_[3];
+        ex = av_[0] * exp(-M_LN2 * b * b);
     }
 CALCULATE_VALUE_END(ex)
 
 CALCULATE_DERIV_BEGIN(FuncLogNormal)
-    fp a = 2.0 * vv_[3] * (x - vv_[1]) / vv_[2];
+    fp a = 2.0 * av_[3] * (x - av_[1]) / av_[2];
     fp ex;
     if (a > -1.0) {
-        fp b = log(1 + a) / vv_[3];
+        fp b = log(1 + a) / av_[3];
         ex = exp(-M_LN2 * b * b);
         dy_dv[0] = ex;
-        ex *= vv_[0];
-        dy_dv[1] = 4.0*M_LN2/(vv_[2]*(a+1))*ex*b;
-        dy_dv[2] = 4.0*(x-vv_[1])*M_LN2/(vv_[2]*vv_[2]*(a+1))*ex*b;
-        dy_dv[3] = ex*(2.0*M_LN2*b*b/vv_[3]
-            -4.0*(x-vv_[1])*log(a+1)*M_LN2/(vv_[2]*vv_[3]*vv_[3]*(a+1)));
-        dy_dx = -4.0*M_LN2/(vv_[2]*(a+1))*ex*b;
+        ex *= av_[0];
+        dy_dv[1] = 4.0*M_LN2/(av_[2]*(a+1))*ex*b;
+        dy_dv[2] = 4.0*(x-av_[1])*M_LN2/(av_[2]*av_[2]*(a+1))*ex*b;
+        dy_dv[3] = ex*(2.0*M_LN2*b*b/av_[3]
+            -4.0*(x-av_[1])*log(a+1)*M_LN2/(av_[2]*av_[3]*av_[3]*(a+1)));
+        dy_dx = -4.0*M_LN2/(av_[2]*(a+1))*ex*b;
     }
     else {
         ex = 0.0;
@@ -911,14 +911,14 @@ bool FuncLogNormal::get_nonzero_range (fp level, fp &left, fp &right) const
 { /* untested */
     if (level == 0)
         return false;
-    else if (fabs(level) >= fabs(vv_[0]))
+    else if (fabs(level) >= fabs(av_[0]))
         left = right = 0;
     else {
-        //fp w = sqrt (log (fabs(vv_[0]/level)) / M_LN2) * vv_[2];
-        fp w1 = (1-exp(sqrt(log(fabs(vv_[0]/level))/M_LN2)*vv_[3]))*vv_[2]
-            /2.0/vv_[3]+vv_[1];
-        fp w0 = (1-exp(-sqrt(log(fabs(vv_[0]/level))/M_LN2)*vv_[3]))*vv_[2]
-            /2.0/vv_[3]+vv_[1];
+        //fp w = sqrt (log (fabs(av_[0]/level)) / M_LN2) * av_[2];
+        fp w1 = (1-exp(sqrt(log(fabs(av_[0]/level))/M_LN2)*av_[3]))*av_[2]
+            /2.0/av_[3]+av_[1];
+        fp w0 = (1-exp(-sqrt(log(fabs(av_[0]/level))/M_LN2)*av_[3]))*av_[2]
+            /2.0/av_[3]+av_[1];
         if (w1>w0) {
             left = w0;
             right = w1;
@@ -934,13 +934,13 @@ bool FuncLogNormal::get_nonzero_range (fp level, fp &left, fp &right) const
 //cf. eq. 28 of Maroncelli, M.; Fleming, G.R. J. Phys. Chem. 1987, 86, 6221-6239
 bool FuncLogNormal::get_fwhm(fp* a) const
 {
-   *a = vv_[2]*sinh(vv_[3])/vv_[3];
+   *a = av_[2]*sinh(av_[3])/av_[3];
    return true;
 }
 
 bool FuncLogNormal::get_area(fp* a) const
 {
-    *a = vv_[0]/sqrt(M_LN2/M_PI) / (2.0/vv_[2]) / exp(-vv_[3]*vv_[3]/4.0/M_LN2);
+    *a = av_[0]/sqrt(M_LN2/M_PI) / (2.0/av_[2]) / exp(-av_[3]*av_[3]/4.0/M_LN2);
     return true;
 }
 
@@ -950,8 +950,8 @@ void FuncSpline::more_precomputations()
 {
     q_.resize(nv() / 2);
     for (size_t i = 0; i < q_.size(); ++i) {
-        q_[i].x = vv_[2*i];
-        q_[i].y = vv_[2*i+1];
+        q_[i].x = av_[2*i];
+        q_[i].y = av_[2*i+1];
     }
     prepare_spline_interpolation(q_);
 
@@ -972,8 +972,8 @@ void FuncPolyline::more_precomputations()
 {
     q_.resize(nv() / 2);
     for (size_t i = 0; i < q_.size(); ++i) {
-        q_[i].x = vv_[2*i];
-        q_[i].y = vv_[2*i+1];
+        q_[i].x = av_[2*i];
+        q_[i].y = av_[2*i+1];
     }
 }
 

@@ -6,6 +6,7 @@
 #define FITYK__MGR__H__
 
 #include "common.h"
+#include "tplate.h" // Tplate::Ptr
 
 class Variable;
 class Function;
@@ -24,15 +25,12 @@ public:
     void register_model(Model *m) { models_.push_back(m); }
     void unregister_model(const Model *m);
 
-    /// if name is empty, variable name is generated automatically
-    /// name of created variable is returned
-    std::string assign_variable(const std::string &name,const std::string &rhs);
+    int assign_variable(const std::string &name, const std::string &rhs);
 
     void sort_variables();
 
-    std::string assign_variable_copy(const std::string & name,
-                                     const Variable* orig,
-                                     const std::map<int,std::string>& varmap);
+    void assign_variable_copy(const std::string & name, const Variable* orig,
+                              const std::map<int,std::string>& varmap);
 
     void delete_variables(const std::vector<std::string> &name);
 
@@ -60,7 +58,7 @@ public:
     Variable* get_variable(int n) { return variables_[n]; }
 
     /// returns index of the new function in functions_
-    int assign_func(const std::string &name, const std::string &ftype,
+    int assign_func(const std::string &name, Tplate::Ptr tp,
                     const std::vector<std::string> &vars);
     /// returns index of the new function in functions_
     int assign_func_copy(const std::string &name, const std::string &orig);
@@ -100,19 +98,14 @@ private:
     int var_autoname_counter_; ///for names for "anonymous" variables
     int func_autoname_counter_; ///for names for "anonymous" functions
 
+    int add_variable(Variable* new_var);
     int add_func(Function* func);
-    std::string get_or_make_variable(const std::string& func);
     Variable *create_variable(const std::string &name, const std::string &rhs);
-    std::string put_into_variables(Variable* new_var);
+    std::string get_or_make_variable(const std::string& func);
     bool is_variable_referred(int i, std::string *first_referrer = NULL);
     void reindex_all();
-    std::vector<std::string> get_vars_from_kw(const std::string &function,
-                                         const std::vector<std::string> &vars);
     std::string make_var_copy_name(const Variable* v);
     void update_indices(FunctionSum& sum);
-    Function* create_function(const std::string& name,
-                              const std::string& type_name,
-                              const std::vector<std::string>& vars) const;
 
 };
 

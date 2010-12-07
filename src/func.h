@@ -34,7 +34,7 @@ public:
 
     static std::string do_substitutions(const std::string &formula);
 
-    const Tplate* tp() const { return tp_.get(); }
+    const Tplate::Ptr& tp() const { return tp_; }
 
     /// number of variables
     int nv() const { return (int) tp_->fargs.size(); }
@@ -44,11 +44,7 @@ public:
                                           std::vector<fp> &y,
                                           int first, int last) const = 0;
     void calculate_value(const std::vector<fp> &x, std::vector<fp> &y) const;
-    fp calculate_value(fp x) const; ///wrapper around array version
-    /// calculate function value assuming function parameters has given values
-    virtual void calculate_values_with_params(const std::vector<fp>& x,
-                                              std::vector<fp>& y,
-                                          const std::vector<fp>& alt_vv) const;
+    fp calculate_value(fp x) const; /// wrapper around array version
 
     virtual void calculate_value_deriv_in_range(const std::vector<fp> &x,
                                                 std::vector<fp> &y,
@@ -72,7 +68,7 @@ public:
     virtual bool get_height(fp* /*a*/) const { return false; }
     virtual bool get_fwhm(fp* /*a*/) const { return false; }
     virtual bool get_area(fp* /*a*/) const { return false; }
-    // integral width := area / height
+    /// integral width := area / height
     bool get_iwidth(fp* a) const;
 
     /// get list of other properties (e.g. like Lorentzian-FWHM of Voigt)
@@ -81,10 +77,7 @@ public:
     /// returns value of the property, or 0 if not defined
     virtual fp get_other_prop(const std::string&) const { return 0; }
 
-    fp get_var_value(int n) const
-             { assert(n>=0 && n<size(vv_)); return vv_[n]; }
-    std::vector<fp> get_var_values() const  { return vv_; }
-    std::string get_par_info(const VariableManager* mgr) const;
+    std::vector<fp> av() const  { return av_; }
     std::string get_basic_assignment() const;
     std::string get_current_assignment(const std::vector<Variable*> &variables,
                                        const std::vector<fp> &parameters) const;
@@ -102,15 +95,12 @@ public:
     fp find_extremum(fp x1, fp x2, int max_iter=1000) const;
 
     virtual std::string get_bytecode() const { return "No bytecode"; }
-
-    virtual void precomputations_for_alternative_vv()
-                                            { this->more_precomputations(); }
 protected:
     const Ftk* F_;
     Tplate::Ptr tp_;
-    /// current variable values,
+    /// current values of arguments,
     /// the vector can be extended by derived classes to store temporary values
-    std::vector<fp> vv_;
+    std::vector<fp> av_;
     std::vector<Multi> multi_;
     int center_idx_;
 

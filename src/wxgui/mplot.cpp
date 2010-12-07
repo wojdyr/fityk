@@ -100,7 +100,7 @@ void FunctionMouseDrag::Drag::set(Function const* p, int idx,
     parameter_idx = idx;
     parameter_name = p->get_param(idx);
     variable_name = p->get_var_name(idx);
-    value = ini_value = p->get_var_value(idx);
+    value = ini_value = p->av()[idx];
     multiplier = multiplier_;
     ini_x = 0.;
 }
@@ -122,7 +122,7 @@ void FunctionMouseDrag::start(Function const* p, int X, int Y, fp x, fp y)
         bind_parameter_to_drag(drag_shift_x, "hwhm", p, absolute_value, 0.5)
         || bind_parameter_to_drag(drag_shift_x, "fwhm", p, absolute_value, 0.5);
 
-    values = p->get_var_values();
+    values = p->av();
     status = "Move to change: " + drag_x.parameter_name + "/"
         + drag_y.parameter_name + ", with [Shift]: "
         + drag_shift_x.parameter_name + "/" + drag_shift_y.parameter_name;
@@ -898,7 +898,7 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
         Function const* f = ftk->get_function(over_peak);
         string s = f->xname + " " + f->type_name + " ";
         for (int i = 0; i < f->nv(); ++i)
-            s += " " + f->get_param(i) + "=" + S(f->get_var_value(i));
+            s += " " + f->get_param(i) + "=" + S(f->av()[i]);
         frame->set_status_text(s);
         set_mouse_mode(mmd_peak);
         fp x1=0., x2=0.;
@@ -1320,6 +1320,7 @@ void MainPlot::draw_xor_peak(Function const* func, vector<fp> const& p_values,
     vector<fp> xx(n), yy(n, 0);
     for (int i = 0; i < n; ++i)
         xx[i] = xs.val(i);
+    //TODO create and use new func
     func->calculate_values_with_params(xx, yy, p_values);
 
     if (erase_previous && draw_xor_peak_points != NULL)
@@ -1866,8 +1867,8 @@ void BgManager::bg_from_func()
     int len = f->nv() / 2;
     bg_.resize(len);
     for (int i = 0; i < len; ++i) {
-        bg_[i].x = f->get_var_value(2*i);
-        bg_[i].y = f->get_var_value(2*i+1);
+        bg_[i].x = f->av()[2*i];
+        bg_[i].y = f->av()[2*i+1];
     }
 }
 

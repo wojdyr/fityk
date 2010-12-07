@@ -288,3 +288,17 @@ Tplate::Ptr TplateMgr::get_shared_tp(string const &type) const
     return Tplate::Ptr();
 }
 
+vector<string> reorder_args(Tplate::Ptr tp, const vector<string> &keys,
+                                            const vector<string> &values)
+{
+    assert (keys.size() == values.size());
+    int n = tp->fargs.size();
+    vector<string> vv(n);
+    for (int i = 0; i < n; ++i) {
+        int idx = index_of_element(keys, tp->fargs[i]);
+        if (idx != -1)
+            vv[i] = values[idx];
+    }
+    return vv;
+}
+

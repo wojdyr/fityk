@@ -32,6 +32,8 @@ void Guess::initialize(const DataAndModel* dm, int lb, int rb, int ignore_idx)
 {
     int len = rb - lb;
     assert(len >= 0);
+    if (len == 0)
+        throw ExecuteError("guess: empty range");
     xx_.resize(len);
     for (int j = 0; j != len; ++j)
         xx_[j] = dm->data()->get_x(lb+j);
@@ -96,26 +98,24 @@ fp Guess::find_hwhm(int pos, fp* area)
 }
 
 // outputs vector with: center, height, hwhm, area
-void Guess::estimate_peak_parameters(fp *center, fp *height, fp *area, fp *hwhm)
+// returns values corresponding to peak_traits
+array<double,4> Guess::estimate_peak_parameters()
 {
     int pos = max_element(yy_.begin(), yy_.end()) - yy_.begin();
 
-    if (pos == 0 || pos == (int) yy_.size() - 1) {
-        if (settings_->get_b("can_cancel_guess"))
-            throw ExecuteError("Peak outside of the range.");
-    }
-    if (height)
-        *height = yy_[pos] * settings_->get_f("height_correction");
-    if (center)
-        *center = xx_[pos];
-    if (hwhm || area) {
-        fp w = find_hwhm(pos, area) * settings_->get_f("width_correction");
-        if (hwhm)
-            *hwhm = w;
-    }
+    if ((pos == 0 || pos == (int) yy_.size() - 1) &&
+                    settings_->get_b("can_cancel_guess"))
+        throw ExecuteError("Peak outside of the range.");
+
+    double height = yy_[pos] * settings_->get_f("height_correction");
+    double center = xx_[pos];
+    double area;
+    double hwhm = find_hwhm(pos, &area) * settings_->get_f("width_correction");
+    array<double,4> r = {{ center, height, hwhm, area }};
+    return r;
 }
 
-void Guess::estimate_linear_parameters(fp *slope, fp *intercept, fp *avgy)
+array<double,3> Guess::estimate_linear_parameters()
 {
     fp sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0;
     int n = yy_.size();
@@ -128,71 +128,11 @@ void Guess::estimate_linear_parameters(fp *slope, fp *intercept, fp *avgy)
         syy += y*y;
         sxy += x*y;
     }
-    *slope = (n * sxy - sx * sy) / (n * sxx - sx * sx);
-    *intercept = (sy - (*slope) * sx) / n;
-    *avgy = sy / n;
+    double slope = (n * sxy - sx * sy) / (n * sxx - sx * sx);
+    double intercept = (sy - slope * sx) / n;
+    double avgy = sy / n;
+    array<double,3> r = {{ slope, intercept, avgy }};
+    return r;
 }
 
-
-void Guess::get_guess_info(string& result)
-{
-    if (xx_.empty()) {
-        result += "empty range";
-        return;
-    }
-    fp c = 0., h = 0., a = 0., hwhm = 0.;
-    estimate_peak_parameters(&c, &h, &a, &hwhm);
-    if (h != 0.)
-        result += "center: " + eS(c) + ", height: " + S(h) + ", area: " + S(a)
-            + ", FWHM: " + S(hwhm) + "\n";
-    fp slope = 0, intercept = 0, avgy = 0;
-    estimate_linear_parameters(&slope, &intercept, &avgy);
-    result += "slope: " + S(slope) + ", intercept: " + S(intercept)
-        + ", avg-y: " + S(avgy);
-}
-
-/// guessed parameters are appended to vars
-void Guess::guess(const Tplate* tp,
-                  vector<string>& par_names, vector<string>& par_values)
-{
-    if (xx_.empty())
-        throw ExecuteError("guess in empty range");
-
-    if (tp->peak_d) {
-        fp c = 0., h = 0., a = 0., hwhm = 0.;
-        estimate_peak_parameters(&c, &h, &a, &hwhm);
-        if (!contains_element(par_names, "center")) {
-            par_names.push_back("center");
-            par_values.push_back("~"+eS(c));
-        }
-        if (!contains_element(par_names, "height")) {
-            par_names.push_back("height");
-            par_values.push_back("~"+eS(h));
-        }
-        if (!contains_element(par_names, "hwhm")) {
-            par_names.push_back("hwhm");
-            par_values.push_back("~"+eS(hwhm));
-        }
-        if (!contains_element(par_names, "area")) {
-            par_names.push_back("area");
-            par_values.push_back("~"+eS(a));
-        }
-    }
-    if (tp->linear_d) {
-        fp slope, intercept, avgy;
-        estimate_linear_parameters(&slope, &intercept, &avgy);
-        if (!contains_element(par_names, "slope")) {
-            par_names.push_back("slope");
-            par_values.push_back("~"+eS(slope));
-        }
-        if (!contains_element(par_names, "intercept")) {
-            par_names.push_back("intercept");
-            par_values.push_back("~"+eS(intercept));
-        }
-        if (!contains_element(par_names, "avgy")) {
-            par_names.push_back("avgy");
-            par_values.push_back("~"+eS(avgy));
-        }
-    }
-}
 

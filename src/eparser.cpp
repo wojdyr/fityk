@@ -284,6 +284,10 @@ string ExpressionParser::list_ops() const
             ++i;
             txt += "(" + S(vm_.numbers()[*i]) + ")";
         }
+        else if (*i == OP_CUSTOM && i+1 != vm_.code().end()) {
+            ++i;
+            txt += "(#" + S(*i) + ")";
+        }
     }
     return txt;
 }
@@ -1398,12 +1402,12 @@ double ExprCalculator::calculate_custom(const vector<double>& custom_val) const
     const vector<Point> dummy;
     v_foreach (int, i, vm_.code()) {
         if (*i == OP_CUSTOM) {
+            STACK_OFFSET_CHANGE(+1);
             i++;
             if (is_index(*i, custom_val))
                 *stackPtr = custom_val[*i];
             else
                 throw ExecuteError("[internal] variable mismatch");
-                *stackPtr = 0.;
         }
         else
             run_const_op(i, stackPtr, 0, dummy, dummy);
