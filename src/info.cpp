@@ -411,7 +411,9 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
             result += f->get_basic_assignment();
         }
         else {
-            result += join_vector(model->get_fz(fz).names, ", ");
+            const vector<string>& names = model->get_fz(fz).names;
+            if (!names.empty())
+                result += "%" + join_vector(names, " + %");
         }
     }
     ++ret;

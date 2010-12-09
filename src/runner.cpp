@@ -32,7 +32,7 @@ void Runner::command_set(const vector<Token>& args)
 {
     Settings *settings = F_->get_settings();
     for (size_t i = 1; i < args.size(); i += 2)
-        settings->setp(args[i-1].as_string(), args[i].as_string());
+        settings->setp(args[i-1].as_string(), Lexer::get_string(args[i]));
 }
 
 void Runner::command_undefine(const vector<Token>& args)
@@ -218,6 +218,7 @@ void Runner::command_guess(const vector<Token>& args, int ds)
         if (ctr_pos != -1) {
             string ctr_str = par_values[ctr_pos];
             Lexer lex(ctr_str.c_str());
+            ep_.clear_vm();
             ep_.parse_expr(lex, ds);
             fp center = ep_.calculate();
             fp delta = fabs(F_->get_settings()->get_f("guess_at_center_pm"));
@@ -294,40 +295,53 @@ void Runner::command_dataset_tr(const vector<Token>& args)
     for (size_t i = 2; i < args.size(); ++i)
         if (args[i].type == kTokenDataset)
             dd.push_back(F_->get_data(args[i].value.i));
-    F_->get_data(n)->load_data_sum(dd, tr);
+    if (n == Lexer::kNew) {
+        auto_ptr<Data> data(new Data(F_));
+        data->load_data_sum(dd, tr);
+        F_->append_dm(data.release());
+    }
+    else
+        F_->get_data(n)->load_data_sum(dd, tr);
     F_->outdated_plot();
+}
+
+// returns the number of given args
+static
+int make_func_from_template(Ftk *F, const string& name,
+                            const vector<Token>& args, int pos)
+{
+    string ftype = args[pos].as_string();
+    vector<string> par_names;
+    vector<string> par_values;
+    for (size_t n = pos+1; n < args.size(); n += 2) {
+        if (args[n].type != kTokenLname && args[n].type != kTokenNop)
+            break;
+        if (args[n].type == kTokenLname)
+            par_names.push_back(args[n].as_string());
+        par_values.push_back(args[n+1].as_string());
+    }
+    if (!par_names.empty() && par_names.size() != par_values.size())
+        throw ExecuteError("mixed keyword and non-keyword args");
+    Tplate::Ptr tp = F->get_tpm()->get_shared_tp(ftype);
+    if (!tp)
+        throw ExecuteError("Undefined type of function: " + ftype);
+    vector<string> func_args;
+    if (par_names.empty())
+        func_args = par_values;
+    else
+        func_args = reorder_args(tp, par_names, par_values);
+    F->assign_func(name, tp, func_args);
+    return par_values.size();
 }
 
 // should be reused from kCmdChangeModel
 void Runner::command_name_func(const vector<Token>& args)
 {
     string name = Lexer::get_string(args[0]);
-    if (args[1].as_string() == "copy") {
+    if (args[1].as_string() == "copy") // copy(%f)
         F_->assign_func_copy(name, Lexer::get_string(args[2]));
-    }
-    else {
-        string ftype = args[1].as_string();
-        // for now use the old ugly interface
-        vector<string> par_names;
-        vector<string> par_values;
-        for (size_t n = 2; n < args.size(); n += 2) {
-            assert (args[n].type == kTokenLname || args[n].type == kTokenNop);
-            if (args[n].type == kTokenLname)
-                par_names.push_back(args[n].as_string());
-            par_values.push_back(args[n+1].as_string());
-        }
-        if (!par_names.empty() && par_names.size() != par_values.size())
-            throw ExecuteError("mixed keyword and non-keyword args");
-        Tplate::Ptr tp = F_->get_tpm()->get_shared_tp(ftype);
-        if (!tp)
-            throw ExecuteError("Undefined type of function: " + ftype);
-        if (par_names.empty())
-            F_->assign_func(name, tp, par_values);
-        else {
-            vector<string> func_args = reorder_args(tp, par_names, par_values);
-            F_->assign_func(name, tp, func_args);
-        }
-    }
+    else                               // Foo(...)
+        make_func_from_template(F_, name, args, 1);
     F_->use_parameters();
     F_->outdated_plot(); //TODO only if function in @active
 }
@@ -385,7 +399,7 @@ void Runner::command_assign_all(const vector<Token>& args, int ds)
 
 void Runner::command_name_var(const vector<Token>& args, int /*ds*/)
 {
-    assert(args.size() == 2);
+    assert(args.size() == 4);
     assert(args[0].type == kTokenVarname);
     string name = Lexer::get_string(args[0]);
     string rhs = args[1].as_string();
@@ -448,12 +462,14 @@ void Runner::command_change_model(const vector<Token>& args, int ds)
     //      )+
     int lhs_ds = (args[0].type == kTokenDataset ? args[0].value.i : ds);
     FunctionSum& sum = F_->get_model(lhs_ds)->get_fz(*args[1].str);
-    if (args[2].type == kTokenAssign) {
+    bool removed_functions = false;
+    if (args[2].type == kTokenAssign && !sum.names.empty()) {
         sum.names.clear();
         sum.idx.clear();
+        removed_functions = true;
     }
     vector<string> new_names;
-    for (size_t i = 3; i < args.size(); ++i) {
+    for (size_t i = 3; i < args.size(); i += 2) {
         // $func | Dataset ("F"|"Z")
         int n_tokens = get_fz_or_func(F_, ds, args.begin()+i, new_names);
         if (n_tokens > 0) {
@@ -474,16 +490,21 @@ void Runner::command_change_model(const vector<Token>& args, int ds)
             }
             i += n_tokens;
         }
-        else if (args[i].type == kTokenCname) { // func rhs
-            //TODO F += Foo(1,2)
+        else if (args[i].type == kTokenCname) { // Foo(1,2)
+            string name = F_->next_func_name();
+            int n_args = make_func_from_template(F_, name, args, i);
+            F_->use_parameters();
+            new_names.push_back(name);
+            i += 2 * n_args;
         }
         else
             assert(0);
+        assert(i+1 == args.size() || args[i+1].type == kTokenPlus);
     }
 
     add_functions_to(F_, new_names, sum);
 
-    if (args[2].type == kTokenAssign)
+    if (removed_functions)
         F_->auto_remove_functions();
     F_->update_indices_in_models();
     if (lhs_ds == ds)
@@ -684,7 +705,7 @@ void Runner::execute_statement(Statement& st)
         Settings *settings = F_->get_settings();
         for (size_t i = 1; i < st.with_args.size(); i += 2)
             settings->set_temporary(st.with_args[i-1].as_string(),
-                                    st.with_args[i].as_string());
+                                    Lexer::get_string(st.with_args[i]));
     }
     try {
         v_foreach (int, i, st.datasets) {

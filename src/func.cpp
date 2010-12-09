@@ -70,7 +70,7 @@ void Function::init()
     center_idx_ = index_of_element(tp_->fargs, "center");
     if (av_.size() != tp_->fargs.size())
         throw ExecuteError("Function " + tp_->name + " requires "
-                           + S(tp_->fargs.size()) + " arguments.");
+           + S(tp_->fargs.size()) + " argument(s), got " + S(av_.size()) + ".");
 }
 
 Function* Function::factory(const Ftk* F,

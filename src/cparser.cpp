@@ -704,6 +704,7 @@ void Parser::parse_fz(Lexer& lex, Command &cmd)
             }
             else
                 parse_func_id(lex, cmd.args, true);
+
             if (lex.peek_token().type == kTokenPlus)
                 cmd.args.push_back(lex.get_token()); // '+'
             else
@@ -781,7 +782,8 @@ bool Parser::parse_statement(Lexer& lex)
     }
 
     if (lex.peek_token().type != kTokenNop)
-        lex.throw_syntax_error("unexpected token");
+        lex.throw_syntax_error(S("unexpected token: `")
+                               + tokentype2str(lex.peek_token().type) + "'");
 
     return true;
 }
@@ -882,7 +884,7 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
         else if (c == 'M') {
             cmd.type = kCmdResizeP;
             lex.get_expected_token(kTokenAssign);
-            cmd.args.push_back(read_expr(lex));
+            cmd.args.push_back(read_and_calc_expr(lex));
         }
         else if (c == 'X' || c == 'Y' || c == 'S' || c == 'A') {
             cmd.args.push_back(token);

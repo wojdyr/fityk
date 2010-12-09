@@ -60,6 +60,8 @@ enum TokenType
     kTokenNop, // end of line (returned by Lexer) or placeholder (in Parser)
 };
 
+const char* tokentype2str(TokenType tt);
+
 // with 64-bit alignment sizeof(Token) is 24
 struct Token
 {
