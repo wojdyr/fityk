@@ -984,6 +984,8 @@ namespace {
 vector<int>::const_iterator
 skip_code(vector<int>::const_iterator i, int start_op, int finish_op)
 {
+    //TODO: it doesn't work correctly now, because both op's and indices
+    // are positive and mixed
     int counter = 1;
     while (counter) {
         ++i;

@@ -57,6 +57,7 @@ std::vector<std::string> reorder_args(Tplate::Ptr,
                                       const std::vector<std::string> &keys,
                                       const std::vector<std::string> &values);
 
+std::vector<OpTree*> make_op_trees(const Tplate* tp);
 
 /// template manager
 class TplateMgr

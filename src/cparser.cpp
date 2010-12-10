@@ -325,7 +325,6 @@ void Parser::parse_define_rhs(Lexer& lex, Tplate *tp)
     // CustomFunction
     else {
         lex.go_back(t);
-        tp->fargs.push_back("x");
         vector<string> extra_names;
         string rhs = read_define_arg(lex, tp->fargs, &extra_names).as_string();
         if (lex.peek_token().as_string() == "where") {
@@ -398,6 +397,8 @@ Tplate::Ptr Parser::parse_define_args(Lexer& lex)
     const char* start_rhs = lex.pchar();
     parse_define_rhs(lex, tp.get());
     tp->rhs = string(start_rhs, lex.pchar());
+    if (tp->create == &create_CustomFunction)
+        tp->op_trees = make_op_trees(tp.get());
     return tp;
 }
 

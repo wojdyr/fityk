@@ -14,7 +14,6 @@
 
 using namespace std;
 
-static
 vector<OpTree*> make_op_trees(const Tplate* tp)
 {
     string rhs = tp->rhs;

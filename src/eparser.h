@@ -22,6 +22,11 @@ namespace dataVM {
 /// operators used in VM code
 enum Op
 {
+    // constant
+    OP_NUMBER,
+    // custom symbol (numeric value like OP_NUMBER, but stored externally)
+    OP_CUSTOM,
+
     // functions R -> R
     OP_ONE_ARG,
     OP_NEG = OP_ONE_ARG,
@@ -69,11 +74,6 @@ enum Op
     OP_VAR_X, OP_VAR_Y, OP_VAR_S, OP_VAR_A,
     OP_VAR_x, OP_VAR_y, OP_VAR_s, OP_VAR_a,
     OP_VAR_n, OP_VAR_M,
-
-    // constant
-    OP_NUMBER,
-    // custom symbol (numeric value like OP_NUMBER, but stored externally)
-    OP_CUSTOM,
 
     // boolean
     OP_OR, OP_AFTER_OR, OP_AND, OP_AFTER_AND, OP_NOT,
