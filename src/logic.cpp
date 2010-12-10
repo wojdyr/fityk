@@ -58,13 +58,13 @@ void Ftk::initialize()
 {
     fit_container_ = new FitMethodsContainer(this);
     // Settings ctor is using FitMethodsContainer
-    settings_ = new Settings(this);
+    settings_mgr_ = new SettingsMgr(this);
     tplate_mgr_ = new TplateMgr;
     tplate_mgr_->add_builtin_types(ui_->parser());
     view = View(this);
     dirty_plot_ = true;
     append_dm();
-    get_settings()->do_srand();
+    settings_mgr()->do_srand();
 }
 
 // cleaning common for dtor and reset()
@@ -73,20 +73,20 @@ void Ftk::destroy()
     purge_all_elements(dms_);
     VariableManager::do_reset();
     delete fit_container_;
-    delete settings_;
+    delete settings_mgr_;
     delete tplate_mgr_;
 }
 
 // reset everything but UserInterface (and related settings)
 void Ftk::reset()
 {
-    string verbosity = get_settings()->getp("verbosity");
-    string autoplot = get_settings()->getp("autoplot");
+    int verbosity = get_settings()->verbosity;
+    bool autoplot = get_settings()->autoplot;
     destroy();
     ui_->keep_quiet = true;
     initialize();
-    get_settings()->setp("verbosity", verbosity);
-    get_settings()->setp("autoplot", autoplot);
+    settings_mgr()->set_as_number("verbosity", verbosity);
+    settings_mgr()->set_as_number("autoplot", autoplot);
     ui_->keep_quiet = false;
 }
 
@@ -154,8 +154,12 @@ Commands::Status Ftk::exec(string const &s)
 
 Fit* Ftk::get_fit() const
 {
-    int nr = get_settings()->get_e("fitting_method");
-    return get_fit_container()->get_method(nr);
+    string method_name = get_settings()->fitting_method;
+    v_foreach(Fit*, i, get_fit_container()->methods())
+        if ((*i)->name == method_name)
+            return *i;
+    assert(0);
+    return NULL;
 }
 
 namespace {

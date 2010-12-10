@@ -82,13 +82,13 @@ void Data::post_load()
         return;
     string inf = S(p_.size()) + " points.";
     if (!has_sigma_) {
-        int dds = F->get_settings()->get_e("data_default_sigma");
-        if (dds == 's') {
+        string dds = F->get_settings()->data_default_sigma;
+        if (dds == "sqrt") {
             for (vector<Point>::iterator i = p_.begin(); i < p_.end(); i++)
                 i->sigma = i->y > 1. ? sqrt (i->y) : 1.;
             inf += " No explicit std. dev. Set as sqrt(y)";
         }
-        else if (dds == '1') {
+        else if (dds == "one") {
             for (vector<Point>::iterator i = p_.begin(); i < p_.end(); i++)
                 i->sigma = 1.;
             inf += " No explicit std. dev. Set as equal 1.";

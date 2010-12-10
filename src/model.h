@@ -48,7 +48,7 @@ public:
 
 
     fp approx_max(fp x_min, fp x_max) const;
-    std::string get_formula(bool simplify, bool gnuplot_style) const;
+    std::string get_formula(bool simplify) const;
     std::string get_peak_parameters(const std::vector<fp>& errors) const;
     std::vector<fp> get_symbolic_derivatives(fp x) const;
     std::vector<fp> get_numeric_derivatives(fp x, fp numerical_h) const;

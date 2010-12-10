@@ -208,8 +208,8 @@ Commands::Status UserInterface::execute_line(const string& str)
         return Commands::kStatusExecuteError;
     }
 
-    if (F_->is_plot_outdated())
-        draw_plot(2, UserInterface::kRepaint);
+    if (F_->is_plot_outdated() && F_->get_settings()->autoplot)
+        draw_plot(UserInterface::kRepaint);
 
     return Commands::kStatusOk;
 }
@@ -225,7 +225,7 @@ void UserInterface::output_message(Style style, const string& s) const
         return;
     show_message(style, s);
     commands_.put_output_message(s);
-    if (style == kWarning && F_->get_settings()->get_b("exit_on_warning")) {
+    if (style == kWarning && F_->get_settings()->exit_on_warning) {
         show_message(kNormal, "Warning -> exiting program.");
         throw ExitRequestedException();
     }
@@ -326,12 +326,11 @@ void UserInterface::exec_string_as_script(const char* s)
     }
 }
 
-void UserInterface::draw_plot(int pri, RepaintMode mode)
+void UserInterface::draw_plot(RepaintMode mode)
 {
-    if (pri <= F_->get_settings()->get_autoplot()) {
-        do_draw_plot(mode);
-        F_->updated_plot();
-    }
+    if (do_draw_plot_)
+        (*do_draw_plot_)(mode);
+    F_->updated_plot();
 }
 
 

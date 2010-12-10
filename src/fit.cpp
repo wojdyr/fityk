@@ -314,7 +314,8 @@ bool Fit::post_fit (const vector<fp>& aa, fp chi2)
         F->msg ("Better fit NOT found (WSSR = " + S(chi2)
                     + ", was " + S(wssr_before) + ").\nParameters NOT changed");
         F->use_external_parameters(a_orig);
-        F->get_ui()->draw_plot(3, UserInterface::kRepaintImmediately);
+        if (F->get_settings()->fit_replot)
+            F->get_ui()->draw_plot(UserInterface::kRepaintImmediately);
     }
     return better;
 }
@@ -363,7 +364,7 @@ void Fit::fit(int max_iter, vector<DataAndModel*> const& dms)
     F->get_fit_container()->push_param_history(a_orig);
     iter_nr = 0;
     evaluations = 0;
-    max_evaluations_ = F->get_settings()->get_i("max_wssr_evaluations");
+    max_evaluations_ = F->get_settings()->max_wssr_evaluations;
     user_interrupt = false;
     init(); //method specific init
     max_iterations = max_iter;
@@ -441,14 +442,15 @@ bool Fit::common_termination_criteria(int iter)
 
 void Fit::iteration_plot(vector<fp> const &A, bool changed, fp wssr)
 {
-    int refresh_period = F->get_settings()->get_i("refresh_period");
+    int refresh_period = F->get_settings()->refresh_period;
     if (refresh_period < 0)
         return;
     if (time(0) - last_refresh_time_ < refresh_period)
         return;
     if (changed) {
         F->use_external_parameters(A);
-        F->get_ui()->draw_plot(3, UserInterface::kRepaintImmediately);
+        if (F->get_settings()->fit_replot)
+            F->get_ui()->draw_plot(UserInterface::kRepaintImmediately);
     }
     if (refresh_period > 0) {
         double elapsed = (clock() - start_time_) / (double) CLOCKS_PER_SEC;

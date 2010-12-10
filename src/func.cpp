@@ -133,7 +133,7 @@ void Function::erased_parameter(int k)
 void Function::calculate_value(const vector<fp> &x, vector<fp> &y) const
 {
     fp left, right;
-    double cut_level = F_->get_settings()->get_cut_level();
+    double cut_level = F_->get_settings()->cut_function_level;
     bool r = get_nonzero_range(cut_level, left, right);
     if (r) {
         int first = lower_bound(x.begin(), x.end(), left) - x.begin();
@@ -158,7 +158,7 @@ void Function::calculate_value_deriv(const vector<fp> &x,
                                      bool in_dx) const
 {
     fp left, right;
-    double cut_level = F_->get_settings()->get_cut_level();
+    double cut_level = F_->get_settings()->cut_function_level;
     bool r = get_nonzero_range(cut_level, left, right);
     if (r) {
         int first = lower_bound(x.begin(), x.end(), left) - x.begin();

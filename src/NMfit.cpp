@@ -23,9 +23,9 @@ NMfit::~NMfit() {}
 
 fp NMfit::init()
 {
-    bool move_all = F->get_settings()->get_b("nm_move_all");
-    char distrib = F->get_settings()->get_e("nm_distribution");
-    fp factor = F->get_settings()->get_f("nm_move_factor");
+    bool move_all = F->get_settings()->nm_move_all;
+    char distrib = F->get_settings()->nm_distribution[0];
+    fp factor = F->get_settings()->nm_move_factor;
 
     // 1. all n+1 vertices are the same
     Vertex v(a_orig);
@@ -74,7 +74,7 @@ void NMfit::find_best_worst()
 
 void NMfit::autoiter()
 {
-    fp convergence = F->get_settings()->get_f("nm_convergence");
+    fp convergence = F->get_settings()->nm_convergence;
     wssr_before = compute_wssr(a_orig, dmdm_);
     F->msg("WSSR before starting simplex fit: " + S(wssr_before));
     for (int iter = 0; !termination_criteria(iter, convergence); ++iter) {

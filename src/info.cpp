@@ -32,6 +32,27 @@ using namespace std;
 
 namespace {
 
+// get standard formula and make it parsable by the gnuplot program
+string& gnuplotize_formula(string& formula)
+{
+    replace_all(formula, "^", "**");
+    replace_words(formula, "ln", "log");
+    // avoid integer division (1/2 == 0)
+    string::size_type pos = 0;
+    while ((pos = formula.find('/', pos)) != string::npos) {
+        ++pos;
+        if (!isdigit(formula[pos]))
+            continue;
+        while (pos < formula.length() && isdigit(formula[pos]))
+            ++pos;
+        if (pos == formula.length())
+            formula += ".";
+        else if (pos != '.')
+            formula.insert(pos, ".");
+    }
+    return formula;
+}
+
 string info_compiler()
 {
     return
@@ -189,8 +210,15 @@ void save_state(const Ftk* F, string& r)
     r += "\nset autoplot = never";
     r += "\nreset";
     r += "\n# ------------  settings  ------------";
-    r += "\n" + F->get_settings()->set_script();
-    r += "\n# ------------  (un)defines  ------------";
+    // do not set autoplot and verbosity here
+    vector<string> e = F->settings_mgr()->get_key_list("");
+    v_foreach(string, i, e) {
+        if (*i == "autoplot" || *i == "verbosity")
+            continue;
+        string v = F->settings_mgr()->get_as_string(*i);
+        r += "\nset " + *i + " = " + (v.empty() ? "''" : v);
+    }
+    r += "\n\n# ------------  (un)defines  ------------";
     TplateMgr default_tpm;
     default_tpm.add_builtin_types(F->get_ui()->parser());
     v_foreach (Tplate::Ptr, i, default_tpm.tpvec()) {
@@ -248,8 +276,8 @@ void save_state(const Ftk* F, string& r)
     }
     r += "\nplot " + F->view.str();
     // TODO set current dataset "use %s"
-    r += "\nset autoplot = " + F->get_settings()->getp("autoplot");
-    r += "\nset verbosity = " + F->get_settings()->getp("verbosity");
+    r += "\nset autoplot = " + F->settings_mgr()->get_as_string("autoplot");
+    r += "\nset verbosity = " + F->settings_mgr()->get_as_string("verbosity");
 }
 
 int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
@@ -293,15 +321,17 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         else if (word == "data") {
             result += F->get_data(ds)->get_info();
         }
-        else if (word == "formula") {
-            bool gnuplot =
-                F->get_settings()->get_e("formula_export_style") == 1;
-            result += F->get_model(ds)->get_formula(false, gnuplot);
+        else if (word == "formula")
+            result += F->get_model(ds)->get_formula(false);
+        else if (word == "gnuplot_formula") {
+            string formula = F->get_model(ds)->get_formula(false);
+            result += gnuplotize_formula(formula);
         }
-        else if (word == "simplified_formula") {
-            bool gnuplot =
-                F->get_settings()->get_e("formula_export_style") == 1;
-            result += F->get_model(ds)->get_formula(true, gnuplot);
+        else if (word == "simplified_formula")
+            result += F->get_model(ds)->get_formula(true);
+        else if (word == "simplified_gnuplot_formula") {
+            string formula = F->get_model(ds)->get_formula(true);
+            result += gnuplotize_formula(formula);
         }
         else if (word == "state") {
             save_state(F, result);
@@ -323,10 +353,17 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         else if (word == "set") {
             if (args[n+1].type == kTokenLname) {
                 string key = args[n+1].as_string();
-                result += F->get_settings()->infop(key);
+                result += F->settings_mgr()->get_as_string(key) + "\ntype: "
+                        + F->settings_mgr()->get_type_desc(key);
             }
-            else
-                result += F->get_settings()->print_usage();
+            else {
+                result += "Available options:";
+                vector<string> e = F->settings_mgr()->get_key_list("");
+                v_foreach(string, i, e)
+                    result += "\n " + *i
+                             + " <" + F->settings_mgr()->get_type_desc(*i)
+                             + "> = " + F->settings_mgr()->get_as_string(*i);
+            }
             ++ret;
         }
 
@@ -446,7 +483,7 @@ void eval_one_print_arg(const Ftk* F, int ds, const Token& t, string& result)
     if (t.type == kTokenString)
         result += Lexer::get_string(t);
     else if (t.type == kTokenExpr)
-        result += F->get_settings()->format_double(t.value.d);
+        result += F->settings_mgr()->format_double(t.value.d);
     else if (t.as_string() == "filename")
         result += F->get_data(ds)->get_filename();
     else if (t.as_string() == "title")
@@ -488,7 +525,7 @@ int eval_print_args(const Ftk* F, int ds, const vector<Token>& args, int len,
                     result += sep;
                 if (args[n].type == kTokenExpr) {
                     double value = expr_parsers[n].calculate(k, points);
-                    result += F->get_settings()->format_double(value);
+                    result += F->settings_mgr()->format_double(value);
                 }
                 else
                     eval_one_print_arg(F, ds, args[n], result);
@@ -645,7 +682,7 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
             if (i != 0)
                 r += "\n";
             r += "d(" + v->xname + ")/d($" + v->get_var_name(i) + "): "
-              + formula + " == " + F->get_settings()->format_double(value);
+              + formula + " == " + F->settings_mgr()->format_double(value);
         }
     }
 

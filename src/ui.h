@@ -79,8 +79,8 @@ public:
     UserInterface(Ftk* F);
     ~UserInterface();
 
-    /// Update plot if pri<=auto_plot.   If !now, update can be delayed
-    void draw_plot(int pri, RepaintMode mode);
+    /// redraw plot
+    void draw_plot(RepaintMode mode);
 
     /// sent message - to user input and to log file (if logging is on)
     void output_message (Style style, std::string const &s) const;
@@ -151,8 +151,6 @@ private:
     UserInterface (UserInterface const&); //disable
     UserInterface& operator= (UserInterface const&); //disable
 
-    void do_draw_plot(RepaintMode mode)
-        { if (do_draw_plot_) (*do_draw_plot_)(mode); }
     /// show message to user
     void show_message (Style style, std::string const& s) const
         { if (show_message_) (*show_message_)(style, s); }

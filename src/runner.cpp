@@ -4,6 +4,8 @@
 
 #include "runner.h"
 
+#include <boost/scoped_ptr.hpp>
+
 #include "cparser.h"
 #include "eparser.h"
 #include "logic.h"
@@ -30,9 +32,14 @@ RealRange args2range(const Token& t1, const Token& t2)
 
 void Runner::command_set(const vector<Token>& args)
 {
-    Settings *settings = F_->get_settings();
-    for (size_t i = 1; i < args.size(); i += 2)
-        settings->setp(args[i-1].as_string(), Lexer::get_string(args[i]));
+    SettingsMgr *sm = F_->settings_mgr();
+    for (size_t i = 1; i < args.size(); i += 2) {
+        string key = args[i-1].as_string();
+        if (args[i].type == kTokenExpr)
+            sm->set_as_number(key, args[i].value.d);
+        else
+            sm->set_as_string(key, Lexer::get_string(args[i]));
+    }
 }
 
 void Runner::command_undefine(const vector<Token>& args)
@@ -221,7 +228,7 @@ void Runner::command_guess(const vector<Token>& args, int ds)
             ep_.clear_vm();
             ep_.parse_expr(lex, ds);
             fp center = ep_.calculate();
-            fp delta = fabs(F_->get_settings()->get_f("guess_at_center_pm"));
+            fp delta = fabs(F_->get_settings()->guess_at_center_pm);
             range.from = center - delta;
             range.to = center + delta;
         }
@@ -284,7 +291,7 @@ void Runner::command_plot(const vector<Token>& args, int ds)
         dd.push_back(args[i].value.i);
     expand_dataset_glob(F_, dd, ds);
     F_->view.change_view(hor, ver, dd);
-    F_->get_ui()->draw_plot(1, UserInterface::kRepaintDataset);
+    F_->get_ui()->draw_plot(UserInterface::kRepaintDataset);
 }
 
 void Runner::command_dataset_tr(const vector<Token>& args)
@@ -701,13 +708,12 @@ void Runner::recalculate_args(vector<Command>& cmds, int ds)
 // Throws ExecuteError, ExitRequestedException.
 void Runner::execute_statement(Statement& st)
 {
-    if (!st.with_args.empty()) {
-        Settings *settings = F_->get_settings();
-        for (size_t i = 1; i < st.with_args.size(); i += 2)
-            settings->set_temporary(st.with_args[i-1].as_string(),
-                                    Lexer::get_string(st.with_args[i]));
-    }
+    boost::scoped_ptr<Settings> s_orig;
     try {
+        if (!st.with_args.empty()) {
+            s_orig.reset(new Settings(*F_->get_settings()));
+            command_set(st.with_args);
+        }
         v_foreach (int, i, st.datasets) {
             // The values of expression were calculated when parsing
             // in the context of the first dataset.
@@ -722,9 +728,11 @@ void Runner::execute_statement(Statement& st)
         }
     }
     catch (...) {
-        F_->get_settings()->clear_temporary();
+        if (!st.with_args.empty())
+            F_->settings_mgr()->set_all(*s_orig);
         throw;
     }
-    F_->get_settings()->clear_temporary();
+    if (!st.with_args.empty())
+        F_->settings_mgr()->set_all(*s_orig);
 }
 

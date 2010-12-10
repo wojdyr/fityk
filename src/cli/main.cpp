@@ -261,7 +261,7 @@ char *set_generator(const char *text, int state)
     static unsigned int list_index = 0;
     static vector<string> e;
     if (!state) {
-        e = ftk->get_settings()->expanp(text);
+        e = ftk->settings_mgr()->get_key_list(text);
         list_index = 0;
     }
     else
@@ -272,13 +272,19 @@ char *set_generator(const char *text, int state)
         return 0;
 }
 
-char *set_eq_generator (const char *text, int state)
+char *set_eq_generator(const char *text, int state)
 {
     static unsigned int list_index = 0;
     static vector<string> e;
     if (!state) {
         try {
-            e = ftk->get_settings()->expand_enum(set_eq_str, text);
+            e.clear();
+            const char** a=ftk->settings_mgr()->get_allowed_values(set_eq_str);
+            while (*a) {
+                if (startswith(*a, text))
+                    e.push_back(*a);
+                ++a;
+            }
         } catch (ExecuteError&) {
             return NULL;
         }

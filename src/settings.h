@@ -10,117 +10,92 @@
 
 class Ftk;
 
-struct IntRange
+// settings that can be changed using the set command
+struct Settings
 {
-    int v, l, u;
-    IntRange() : v(0), l(0), u(0) {}
-    IntRange(int v_, int l_, int u_) : v(v_), l(l_), u(u_) {}
+    // general
+    int verbosity;
+    bool autoplot;
+    bool exit_on_warning;
+    double epsilon; // for now, there is also global epsilon
+    const char* data_default_sigma;
+    int pseudo_random_seed;
+    std::string numeric_format;
+    std::string logfile;
+    bool log_full;
+    double cut_function_level;
+
+    // guess
+    bool can_cancel_guess;
+    double height_correction;
+    double width_correction;
+    double guess_at_center_pm;
+
+    // fitting
+    const char* fitting_method;
+    int max_wssr_evaluations;
+    int refresh_period;
+    bool fit_replot;
+    double variable_domain_percent;
+    // fitting - LM
+    double lm_lambda_start;
+    double lm_lambda_up_factor;
+    double lm_lambda_down_factor;
+    double lm_stop_rel_change;
+    double lm_max_lambda;
+    // fitting - NM
+    double nm_convergence;
+    bool nm_move_all;
+    const char* nm_distribution;
+    double nm_move_factor;
 };
 
-/// it stores all setting - variables of various types with names,
-/// such as lambda-starting-value (used in LMfit class)
-class Settings
+/// Wraps class Settings
+class SettingsMgr
 {
 public:
-    /// value of "select one from a list of strings" option
-    struct EnumString
-    {
-        std::map<char, std::string> const e; //all possible values
-        char v; /// selected value
-        EnumString(std::map<char,std::string> const& e_, char v_)
-            : e(e_), v(v_) {}
-    };
-
     enum ValueType
     {
         kInt,
-        kFloat,
+        kDouble,
         kBool,
         kString,
-        kStringEnum,
-        kIntFromRange,
+        kEnum,
         kNotFound // used as a return value from get_value_type()
     };
 
-    Settings(Ftk const* F_);
-    /// get value of integer option
-    inline int get_i(std::string const& k) const;
-    /// get value of real (floating-point) option
-    fp get_f(std::string const& k) const
-                  { assert(fpar.count(k)); return fpar.find(k)->second; }
-    /// get value of boolean option
-    bool get_b(std::string const& k) const
-                  { assert(bpar.count(k)); return bpar.find(k)->second; }
-    /// get value of string-enumeration option
-    char get_e(std::string const& k) const
-                  { assert(epar.count(k)); return epar.find(k)->second.v; }
-    /// get value of string option
-    std::string const& get_s(std::string const& k) const
-                  { assert(spar.count(k)); return spar.find(k)->second; }
+    SettingsMgr(Ftk const* F);
 
     /// return value type of the option
-    ValueType get_value_type(std::string const& k) const;
-
-    /// set value of option (string v is parsed according to option type)
-    void setp (std::string const& k, std::string const& v);
-    void set_temporary(std::string const& k, std::string const& v);
-    void clear_temporary();
-    /// get info about option k
-    std::string infop (std::string const& k) const;
+    ValueType get_value_type(const std::string& k) const;
     /// get text information about type of option k
-    std::string typep(std::string const& k) const;
-    /// get all option keys that start with k
-    std::vector<std::string> expanp (std::string const& k = "") const;
-    std::vector<std::string>
-    expand_enum(std::string const& k, std::string const& t="") const;
-    std::string print_usage() const;
-    std::string set_script() const;
+    std::string get_type_desc(const std::string& k) const;
     /// get value of option as string
-    std::string getp(std::string const& k) const;
+    std::string get_as_string(const std::string& k) const;
 
-    // for faster access
-    fp get_cut_level() const { return cut_function_level_; }
-    int get_verbosity() const { return verbosity_; }
-    int get_autoplot() const { return autoplot_; }
+    // setters
+    void set_as_string(const std::string& k, const std::string& v);
+    void set_as_number(const std::string& k, double v);
+    void set_all(const Settings& s) { m_ = s; epsilon = s.epsilon; }
 
+    /// get all option keys that start with given string
+    std::vector<std::string> get_key_list (const std::string& start) const;
+
+    const char** get_allowed_values(const std::string& k) const;
+
+    const Settings& m() const { return m_; }
+
+    // utilities that use settings
     void do_srand();
-
     std::string format_double(double d) const
-                        { return format1<double, 32>(fmt_.c_str(), d); }
+            { return format1<double, 32>(m_.numeric_format.c_str(), d); }
 
 private:
-    Ftk const* F;
-    std::map <std::string, int> ipar;
-    std::map <std::string, fp> fpar;
-    std::map <std::string, bool> bpar;
-    std::map <std::string, IntRange> irpar;
-    std::map <std::string, EnumString> epar;
-    std::map <std::string, std::string> spar;
+    const Ftk* F_;
+    Settings m_;
 
-    // variables that enable quick access to some settings
-    fp cut_function_level_;
-    int verbosity_;
-    int autoplot_;
-    std::string fmt_;
-
-    std::vector<std::pair<std::string, std::string> > old_values;
-
-    Settings(Settings const&); //disable
-    Settings& operator= (const Settings&); //disable
-    void setp_core(std::string const& k, std::string const& v);
-    void insert_enum(std::string const& name,
-                     std::map<char,std::string> const& e, char value);
+    DISALLOW_COPY_AND_ASSIGN(SettingsMgr);
 };
-
-int Settings::get_i(std::string const& k) const {
-    std::map <std::string, int>::const_iterator t = ipar.find(k);
-    if (t != ipar.end())
-        return t->second;
-    else {
-        assert(irpar.count(k));
-        return irpar.find(k)->second.v;
-    }
-}
 
 #endif
 

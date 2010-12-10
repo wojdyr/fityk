@@ -259,7 +259,7 @@ void VariableManager::remove_unreferred()
 string VariableManager::get_variable_info(const Variable* v) const
 {
     string s = v->xname + " = " + v->get_formula(parameters_) + " = "
-               + F_->get_settings()->format_double(v->get_value());
+               + F_->settings_mgr()->format_double(v->get_value());
     if (v->domain.is_set())
         s += "  " + v->domain.str();
     if (v->is_auto_delete())
@@ -582,7 +582,7 @@ fp VariableManager::variation_of_a (int n, fp variat) const
     const Domain& dom = get_variable(n)->domain;
     fp ctr = dom.is_ctr_set() ? dom.get_ctr() : parameters_[n];
     fp sgm = dom.is_set() ? dom.get_sigma()
-            : ctr * F_->get_settings()->get_f("variable_domain_percent") / 100.;
+            : ctr * F_->get_settings()->variable_domain_percent / 100.;
     return ctr + sgm * variat;
 }
 

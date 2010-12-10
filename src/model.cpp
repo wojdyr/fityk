@@ -160,36 +160,36 @@ fp Model::approx_max(fp x_min, fp x_max) const
 string Model::get_peak_parameters(const vector<fp>& errors) const
 {
     string s;
-    const Settings *settings = F_->get_settings();
+    const SettingsMgr *sm = F_->settings_mgr();
     s += "# PeakType\tCenter\tHeight\tArea\tFWHM\tparameters...\n";
     v_foreach (int, i, ff_.idx) {
         const Function* p = mgr.get_function(*i);
         s += p->xname + "  " + p->tp()->name;
         fp a;
         if (p->get_center(&a))
-            s += "\t" + settings->format_double(a);
+            s += "\t" + sm->format_double(a);
         else
             s += "\tx";
         if (p->get_height(&a))
-            s += "\t" + settings->format_double(a);
+            s += "\t" + sm->format_double(a);
         else
             s += "\tx";
         if (p->get_area(&a))
-            s += "\t" + settings->format_double(a);
+            s += "\t" + sm->format_double(a);
         else
             s += "\tx";
         if (p->get_fwhm(&a))
-            s += "\t" + settings->format_double(a);
+            s += "\t" + sm->format_double(a);
         else
             s += "\tx";
         s += "\t";
         for (int j = 0; j < p->get_vars_count(); ++j) {
-            s += " " + settings->format_double(p->av()[j]);
+            s += " " + sm->format_double(p->av()[j]);
             if (!errors.empty()) {
                 const Variable* var = mgr.get_variable(p->get_var_idx(j));
                 if (var->is_simple()) {
                     double err = errors[var->get_nr()];
-                    s += " +/- " + settings->format_double(err);
+                    s += " +/- " + sm->format_double(err);
                 }
                 else
                     s += " +/- ?";
@@ -201,7 +201,7 @@ string Model::get_peak_parameters(const vector<fp>& errors) const
 }
 
 
-string Model::get_formula(bool simplify, bool gnuplot_style) const
+string Model::get_formula(bool simplify) const
 {
     if (ff_.names.empty())
         return "0";
@@ -224,23 +224,6 @@ string Model::get_formula(bool simplify, bool gnuplot_style) const
         // the simplify_formula() is not working with not-expanded-functions
         if (!has_upper)
             formula = simplify_formula(formula);
-    }
-    if (gnuplot_style) { //gnuplot format is a bit different
-        replace_all(formula, "^", "**");
-        replace_words(formula, "ln", "log");
-        // avoid integer division (1/2 == 0)
-        string::size_type pos = 0;
-        while ((pos = formula.find('/', pos)) != string::npos) {
-            ++pos;
-            if (!isdigit(formula[pos]))
-                continue;
-            while (pos < formula.length() && isdigit(formula[pos]))
-                ++pos;
-            if (pos == formula.length())
-                formula += ".";
-            else if (pos != '.')
-                formula.insert(pos, ".");
-        }
     }
     return formula;
 }

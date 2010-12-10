@@ -1167,8 +1167,14 @@ void FFrame::OnMenuFitHistoryUpdate(wxUpdateUIEvent& event)
 void FFrame::OnFOneOfMethods (wxCommandEvent& event)
 {
     int m = event.GetId() - ID_F_M;
-    ftk->exec("set fitting_method="
-             + ftk->get_fit_container()->get_method(m)->name);
+    string method;
+    if (m == 0)
+        method = "levenberg_marquardt";
+    else if (m == 1)
+        method = "nelder_mead_simplex";
+    else // if (m == 2)
+        method = "genetic_algorithms";
+    ftk->exec("set fitting_method=" method);
 }
 
 void FFrame::OnFRun (wxCommandEvent&)

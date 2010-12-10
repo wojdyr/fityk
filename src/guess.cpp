@@ -103,14 +103,13 @@ array<double,4> Guess::estimate_peak_parameters()
 {
     int pos = max_element(yy_.begin(), yy_.end()) - yy_.begin();
 
-    if ((pos == 0 || pos == (int) yy_.size() - 1) &&
-                    settings_->get_b("can_cancel_guess"))
+    if (settings_->can_cancel_guess && (pos == 0 || pos == (int)yy_.size() - 1))
         throw ExecuteError("Peak outside of the range.");
 
-    double height = yy_[pos] * settings_->get_f("height_correction");
+    double height = yy_[pos] * settings_->height_correction;
     double center = xx_[pos];
     double area;
-    double hwhm = find_hwhm(pos, &area) * settings_->get_f("width_correction");
+    double hwhm = find_hwhm(pos, &area) * settings_->width_correction;
     array<double,4> r = {{ center, height, hwhm, area }};
     return r;
 }

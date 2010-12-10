@@ -36,7 +36,9 @@ const char *command_list[] = {
 const char* info_args[] = {
     "version", "compiler", "variables", "types", "functions",
     "dataset_count", "datasets", "view", "fit_history",
-    "filename", "title", "data", "formula", "simplified_formula",
+    "filename", "title", "data",
+    "formula", "gnuplot_formula",
+    "simplified_formula", "simplified_gnuplot_formula",
     "state", "history_summary", "peaks", "peaks_err",
     "set",
     "history", "guess",
@@ -234,16 +236,16 @@ void Parser::parse_func_id(Lexer& lex, vector<Token>& args, bool accept_fz)
 void Parser::parse_set_args(Lexer& lex, vector<Token>& args)
 {
     do {
-        const Token key = lex.get_expected_token(kTokenLname);
+        Token key = lex.get_expected_token(kTokenLname);
         lex.get_expected_token(kTokenAssign); // discard '='
-        const Settings *settings = F_->get_settings();
-        Settings::ValueType t = settings->get_value_type(key.as_string());
-        if (t == Settings::kNotFound)
+        SettingsMgr::ValueType t =
+            F_->settings_mgr()->get_value_type(key.as_string());
+        if (t == SettingsMgr::kNotFound)
             lex.throw_syntax_error("no such option: " + key.as_string());
         Token value;
-        if (t == Settings::kString)
+        if (t == SettingsMgr::kString)
             value = lex.get_expected_token(kTokenString);
-        else if (t == Settings::kStringEnum)
+        else if (t == SettingsMgr::kEnum)
             value = lex.get_expected_token(kTokenLname);
         else
             value = read_and_calc_expr(lex);

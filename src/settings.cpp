@@ -13,339 +13,225 @@
 
 using namespace std;
 
+union OptVal
+{
+    struct { int Settings::*ptr; int ini; } i;
+    struct { double Settings::*ptr; double ini; } d;
+    struct { bool Settings::*ptr; bool ini; } b;
+    struct { string Settings::*ptr; const char* ini; } s;
+    struct { const char* Settings::*ptr; const char* ini; } e;
+
+    OptVal(int Settings::*p, int ini) { i.ptr = p; i.ini = ini; }
+    OptVal(double Settings::*p, double ini) { d.ptr = p; d.ini = ini; }
+    OptVal(bool Settings::*p, bool ini) { b.ptr = p; b.ini = ini; }
+    OptVal(string Settings::*p, const char* ini) { s.ptr = p; s.ini = ini; }
+    OptVal(const char* Settings::*p, const char* ini) { e.ptr = p; e.ini = ini;}
+};
+
+struct Option
+{
+    const char* name;
+    SettingsMgr::ValueType vtype;
+    OptVal val;
+    const char** allowed_values; // used only for kStringEnum
+};
+
 fp epsilon = 1e-12; // declared in common.h
 
-/// small utility used only in constructor
-void Settings::insert_enum(string const& name,
-                           map<char,string> const& e, char value)
+static const char* data_default_sigma_enum[] =
+{ "sqrt", "one", NULL };
+
+static const char* fitting_method_enum[] =
+{ "levenberg_marquardt", "nelder_mead_simplex", "genetic_algorithms", NULL };
+
+static const char* nm_distribution_enum[] =
+{ "bound", "uniform", "gauss", "lorentz", NULL };
+
+#define OPT(name, type, ini, allowed) \
+{ #name, SettingsMgr::type, OptVal(&Settings::name, ini), allowed }
+
+static const Option options[] = {
+    OPT(verbosity, kInt, 0, NULL),
+    OPT(autoplot, kBool, true, NULL),
+    OPT(exit_on_warning, kBool, false, NULL),
+    OPT(epsilon, kDouble, 1e-12, NULL),
+    OPT(data_default_sigma, kEnum, data_default_sigma_enum[0],
+                                   data_default_sigma_enum),
+    OPT(pseudo_random_seed, kInt, 0, NULL),
+    OPT(numeric_format, kString, "%g", NULL),
+    OPT(logfile, kString, "", NULL),
+    OPT(log_full, kBool, false, NULL),
+    OPT(cut_function_level, kDouble, 0., NULL),
+
+    OPT(can_cancel_guess, kBool, true, NULL),
+    OPT(height_correction, kDouble, 1., NULL),
+    OPT(width_correction, kDouble, 1., NULL),
+    OPT(guess_at_center_pm, kDouble, 1., NULL),
+
+    OPT(fitting_method, kEnum, fitting_method_enum[0], fitting_method_enum),
+    OPT(max_wssr_evaluations, kInt, 1000, NULL),
+    OPT(refresh_period, kInt, 4, NULL),
+    OPT(fit_replot, kBool, false, NULL),
+    OPT(variable_domain_percent, kDouble, 30., NULL),
+
+    OPT(lm_lambda_start, kDouble, 0.001, NULL),
+    OPT(lm_lambda_up_factor, kDouble, 10, NULL),
+    OPT(lm_lambda_down_factor, kDouble, 10, NULL),
+    OPT(lm_stop_rel_change, kDouble, 1e-4, NULL),
+    OPT(lm_max_lambda, kDouble, 1e+15, NULL),
+
+    OPT(nm_convergence, kDouble, 0.0001, NULL),
+    OPT(nm_move_all, kBool, false, NULL),
+    OPT(nm_distribution, kEnum, nm_distribution_enum[0], nm_distribution_enum),
+    OPT(nm_move_factor, kDouble, 1., NULL),
+};
+
+const Option& find_option(const string& name)
 {
-    epar.insert(pair<string, EnumString> (name, EnumString(e, value)));
+    size_t len = sizeof(options) / sizeof(options[0]);
+    for (size_t i = 0; i != len; ++i)
+        if (options[i].name == name)
+            return options[i];
+    throw ExecuteError("Unknown option: " +  name);
 }
 
-Settings::Settings(Ftk const* F_)
-    : F(F_)
+SettingsMgr::SettingsMgr(Ftk const* F)
+    : F_(F)
 {
-    // general
-    map<char, string> verbosity_enum;
-    verbosity_enum [-1]= "quiet";
-    verbosity_enum [0] = "normal";
-    verbosity_enum [1] = "verbose";
-    verbosity_enum [2] = "debug";
-    insert_enum("verbosity", verbosity_enum, 0);
-    verbosity_ = 0;
-
-    map<char, string> autoplot_enum;
-    autoplot_enum [1] = "never";
-    autoplot_enum [2] = "on_plot_change";
-    autoplot_enum [3] = "on_fit_iteration";
-    insert_enum("autoplot", autoplot_enum, 2);
-    autoplot_ = 2;
-
-    bpar["exit_on_warning"] = false;
-
-    fpar["epsilon"] = epsilon;
-
-    map<char, string> data_sigma_enum;
-    data_sigma_enum ['s'] = "sqrt";
-    data_sigma_enum ['1'] = "one";
-    insert_enum("data_default_sigma", data_sigma_enum, 's');
-
-    // 0 -> time-based seed
-    ipar["pseudo_random_seed"] = 0;
-
-    map<char, string> sum_export_style_enum;
-    sum_export_style_enum [0] = "normal";
-    sum_export_style_enum [1] = "gnuplot";
-    insert_enum("formula_export_style", sum_export_style_enum, 0);
-
-    spar["info_numeric_format"] = fmt_ = "%g";
-
-    // Function
-    fpar["cut_function_level"] = cut_function_level_ = 0.;
-
-    // guess
-    bpar ["can_cancel_guess"] = true;
-    fpar ["height_correction"] = 1.;
-    fpar ["width_correction"] = 1.;
-    fpar ["guess_at_center_pm"] = 1.;
-
-    //Fit
-    map<char, string> fitting_method_enum;
-    vector<Fit*> const& fm = F->get_fit_container()->get_methods();
-    for (int i = 0; i < size(fm); ++i)
-        fitting_method_enum[i] = fm[i]->name;
-    insert_enum("fitting_method", fitting_method_enum, 0);
-
-    //  - common
-    ipar["max_wssr_evaluations"] = 1000;
-    ipar["refresh_period"] = 4;
-    fpar["variable_domain_percent"] = 30.;
-
-    //  - Lev-Mar
-    fpar["lm_lambda_start"] = 0.001;
-    fpar["lm_lambda_up_factor"] = 10;
-    fpar["lm_lambda_down_factor"] = 10;
-    fpar["lm_stop_rel_change"] = 1e-4;
-    fpar["lm_max_lambda"] = 1e+15;
-
-    //  - Nelder-Mead
-    fpar["nm_convergence"] = 0.0001;
-    bpar["nm_move_all"] = false;
-
-    map<char, string> distrib_enum;
-    distrib_enum ['u'] = "uniform";
-    distrib_enum ['g'] = "gauss";
-    distrib_enum ['l'] = "lorentz";
-    distrib_enum ['b'] = "bound";
-    insert_enum("nm_distribution", distrib_enum, 'b');
-
-    fpar["nm_move_factor"] = 1;
-
-    //TODO //  - Genetic Algorithms
+    size_t len = sizeof(options) / sizeof(options[0]);
+    for (size_t i = 0; i != len; ++i) {
+        const Option& opt = options[i];
+        if (opt.vtype == kInt)
+            m_.*opt.val.i.ptr = opt.val.i.ini;
+        else if (opt.vtype == kDouble)
+            m_.*opt.val.d.ptr = opt.val.d.ini;
+        else if (opt.vtype == kBool)
+            m_.*opt.val.b.ptr = opt.val.b.ini;
+        else if (opt.vtype == kString)
+            m_.*opt.val.s.ptr = opt.val.s.ini;
+        else if (opt.vtype == kEnum)
+            m_.*opt.val.e.ptr = opt.val.e.ini;
+    }
 }
 
-string Settings::getp(string const& k) const
+string SettingsMgr::get_as_string(string const& k) const
 {
-    if (ipar.count(k)) {
-        return S(ipar.find(k)->second);
-    }
-    else if (fpar.count(k)) {
-        return S(fpar.find(k)->second);
-    }
-    else if (bpar.count(k)) {
-        return bpar.find(k)->second ? "1" : "0";
-    }
-    else if (irpar.count(k)) {
-        return S(irpar.find(k)->second.v);
-    }
-    else if (epar.count(k)) {
-        EnumString const& ens = epar.find(k)->second;
-        return ens.e.find(ens.v)->second;
-    }
-    else if (spar.count(k)) {
-        return spar.find(k)->second;
-    }
-    else
-        throw ExecuteError("Unknown option: " +  k);
+    const Option& opt = find_option(k);
+    if (opt.vtype == kInt)
+        return S(m_.*opt.val.i.ptr);
+    else if (opt.vtype == kDouble)
+        return S(m_.*opt.val.d.ptr);
+    else if (opt.vtype == kBool)
+        return m_.*opt.val.b.ptr ? "1" : "0";
+    else if (opt.vtype == kString)
+        return S(m_.*opt.val.s.ptr);
+    else if (opt.vtype == kEnum)
+        return S(m_.*opt.val.e.ptr);
+    assert(0);
+    return "";
 }
 
-void Settings::setp_core(string const& k, string const& v)
+void SettingsMgr::set_as_string(string const& k, string const& v)
 {
-    if (ipar.count (k)) {
-        int d;
-        if (istringstream (v) >> d) {
-            ipar[k] = d;
-            if (k == "pseudo_random_seed")
-                do_srand();
-            return;
-        }
-    }
-    else if (fpar.count (k)){
-        fp d;
-        if (istringstream (v) >> d) {
-            fpar[k] = d;
-            //optimization
-            if (k == "cut_function_level")
-                cut_function_level_ = d;
-            else if (k == "epsilon") {
-                if (d <= 0.) {
-                    throw ExecuteError("Value of epsilon must be positive.");
-                }
-                epsilon = d;
-            }
-            return;
-        }
-    }
-    else if (bpar.count (k)){
-        bool d;
-        if (istringstream (v) >> d) {
-            bpar[k] = d;
-            return;
-        }
-    }
-    else if (irpar.count (k)) {
-        int d = -1;
-        istringstream (v) >> d;
-        if (irpar[k].l <= d && d <= irpar[k].u) {
-            irpar[k].v = d;
-            return;
-        }
-    }
-    else if (epar.count (k)) {
-        EnumString& t = epar.find(k)->second;
-        for (map<char,string>::const_iterator i = t.e.begin();
-                                                         i != t.e.end(); i++) {
-            if (i->second == v) {
-                t.v = i->first;
-                //optimization
-                if (k == "verbosity")
-                    verbosity_ = t.v;
-                if (k == "autoplot")
-                    autoplot_ = t.v;
-                return;
-            }
-        }
-    }
-    else if (spar.count (k)) {
-        if (k == "info_numeric_format")
-            fmt_ = v;
-        spar[k] = v;
+    string sp = get_as_string(k);
+    if (sp == v) {
+        F_->msg("Option '" + k + "' already has value: " + v);
         return;
     }
-    throw ExecuteError("'" + v + "' is not a valid value for '" + k + "'");
-}
-
-string Settings::infop (string const& k) const
-{
-    return k + " = " + getp(k) + "\ntype: " + typep(k);
-}
-
-void Settings::setp (string const& k, string const& v)
-{
-    string sp = getp(k);
-    if (sp == v)
-        F->msg("Option '" + k + "' already has value: " + v);
-    else {
-        setp_core (k, v);
-        F->msg("Value for '" + k + "' changed from '" + sp + "' to '" + v+"'");
+    const Option& opt = find_option(k);
+    assert(opt.vtype == kString || opt.vtype == kEnum);
+    if (opt.vtype == kString)
+        m_.*opt.val.s.ptr = v;
+    else { // if (opt.vtype == kEnum)
+        const char **ptr = opt.allowed_values;
+        while (*ptr) {
+            if (*ptr == v) {
+                m_.*opt.val.e.ptr = *ptr;
+                return;
+            }
+            ++ptr;
+        }
+        throw ExecuteError("`" + v + "' is not a valid value for `" + k + "'");
     }
 }
 
-string Settings::typep (string const& k) const
+void SettingsMgr::set_as_number(string const& k, double d)
 {
-    if (ipar.count (k)){
-        return "integer number";
+    string sp = get_as_string(k);
+    if (sp == S(d)) {
+        F_->msg("Option '" + k + "' already has value: " + sp);
+        return;
     }
-    else if (fpar.count (k)){
-        return "real number";
+    const Option& opt = find_option(k);
+    assert(opt.vtype == kInt || opt.vtype == kDouble || opt.vtype == kBool);
+    if (opt.vtype == kInt) {
+        m_.*opt.val.i.ptr = iround(d);
+        if (k == "pseudo_random_seed")
+            do_srand();
     }
-    else if (bpar.count (k)){
-        return "boolean (0/1)";
+    else if (opt.vtype == kDouble) {
+        if (k == "epsilon") {
+            if (d <= 0.)
+                throw ExecuteError("Value of epsilon must be positive.");
+            epsilon = d;
+        }
+        m_.*opt.val.d.ptr = d;
     }
-    else if (irpar.count (k)){
-        int u = irpar.find(k)->second.u;
-        int l = irpar.find(k)->second.l;
-        assert(u - l >= 1);
-        return "integer from range: " + S(l) + ", ..., " + S(u);
-    }
-    else if (epar.count (k)){
-        map<char,string> const& e = epar.find(k)->second.e;
-        return "one of: " + join_vector(get_map_values(e), ", ");
-    }
-    else if (spar.count (k)){
-        return "string (a-zA-Z0-9+-.)";
-    }
-    else
-        throw ExecuteError("Unknown option: " +  k);
+    else // if (opt.vtype == kBool)
+        m_.*opt.val.d.ptr = (fabs(d) >= 0.5);
 }
 
-Settings::ValueType Settings::get_value_type(string const& k) const
+SettingsMgr::ValueType SettingsMgr::get_value_type(const string& k) const
 {
-    if (ipar.count(k))
-        return kInt;
-    else if (fpar.count(k))
-        return kFloat;
-    else if (bpar.count(k))
-        return kBool;
-    else if (irpar.count(k))
-        return kIntFromRange;
-    else if (epar.count (k))
-        return kStringEnum;
-    else if (spar.count(k))
-        return kString;
-    else
+    try {
+        return find_option(k).vtype;
+    }
+    catch (ExecuteError&) {
         return kNotFound;
-}
-
-vector<string> Settings::expanp(string const& k) const
-{
-    vector<string> e;
-    int len = k.size();
-    for (map<string,int>::const_iterator i = ipar.begin(); i!=ipar.end();i++)
-        if (!string(i->first, 0, len).compare (k))
-            e.push_back (i->first);
-    for (map<string,fp>::const_iterator i = fpar.begin(); i!=fpar.end(); i++)
-        if (!string(i->first, 0, len).compare (k))
-            e.push_back (i->first);
-    for (map<string,bool>::const_iterator i = bpar.begin();i!=bpar.end();i++)
-        if (!string(i->first, 0, len).compare (k))
-            e.push_back (i->first);
-    for (map<string, IntRange>::const_iterator i = irpar.begin();
-                                                        i != irpar.end(); i++)
-        if (!string(i->first, 0, len).compare (k))
-            e.push_back (i->first);
-    for (map<string, EnumString>::const_iterator i = epar.begin();
-                                                          i != epar.end(); i++)
-        if (!string(i->first, 0, len).compare (k))
-            e.push_back (i->first);
-    for (map<string, string>::const_iterator i = spar.begin();
-                                                          i != spar.end(); i++)
-        if (!string(i->first, 0, len).compare (k))
-            e.push_back (i->first);
-    sort(e.begin(), e.end());
-    return e;
-}
-
-vector<string> Settings::expand_enum(string const& k, string const& t) const
-{
-    vector<string> r;
-    if (epar.count(k) == 0)
-        throw ExecuteError("Unknown option: " +  k);
-    map<char, string> const& es = epar.find(k)->second.e;
-    for (map<char,string>::const_iterator i = es.begin(); i != es.end(); i++)
-        if (!string(i->second, 0, t.size()).compare(t))
-            r.push_back (i->second);
-    return r;
-}
-
-string Settings::print_usage() const
-{
-    string s = "Usage: \n\tset option = value\n"
-        "or, to see the current value: \n\t"
-        "set option\n"
-        "Available options:";
-    vector<string> e = expanp();
-    for (vector<string>::const_iterator i = e.begin(); i != e.end(); i++) {
-        s += "\n " + *i + " = <" + typep(*i) + ">, current value: "+getp(*i);
-    }
-    return s;
-}
-
-/// it doesn't set autoplot and verbosity options
-string Settings::set_script() const
-{
-    vector<string> e = expanp();
-    string s;
-    for (vector<string>::const_iterator i = e.begin(); i != e.end(); i++) {
-        if (*i == "autoplot" || *i == "verbosity")
-            continue;
-        string v = getp(*i);
-        s += "set " + *i + " = " + (v.empty() ? "\"\"" : v) + "\n";
-    }
-    return s;
-}
-
-void Settings::do_srand()
-{
-    int random_seed = get_i("pseudo_random_seed");
-    int rs = random_seed > 0 ? random_seed : (int) time(NULL);
-    srand(rs);
-    F->vmsg("Seed for a sequence of pseudo-random numbers: " + S(rs));
-}
-
-void Settings::set_temporary(string const& k, string const& v)
-{
-    old_values.push_back(make_pair(k, getp(k)));
-    setp_core(k, v);
-}
-
-void Settings::clear_temporary()
-{
-    while(!old_values.empty()) {
-        setp_core(old_values.back().first, old_values.back().second);
-        old_values.pop_back();
     }
 }
 
+string SettingsMgr::get_type_desc(const string& k) const
+{
+    const Option& opt = find_option(k);
+    switch (opt.vtype) {
+        case kInt: return "integer number";
+        case kDouble: return "real number";
+        case kBool: return "boolean (0/1)";
+        case kString: return "'string'";
+        case kEnum: {
+            const char **ptr = opt.allowed_values;
+            string s = "one of: " + S(*ptr);
+            while (*++ptr)
+                s += S(", ") + *ptr;
+            return s;
+        }
+        case kNotFound: assert(0);
+    }
+    return "";
+}
 
+vector<string> SettingsMgr::get_key_list(const string& start) const
+{
+    vector<string> v;
+    size_t len = sizeof(options) / sizeof(options[0]);
+    for (size_t i = 0; i != len; ++i)
+        if (startswith(options[i].name, start))
+            v.push_back(options[i].name);
+    sort(v.begin(), v.end());
+    return v;
+}
+
+const char** SettingsMgr::get_allowed_values(const std::string& k) const
+{
+    return find_option(k).allowed_values;
+}
+
+void SettingsMgr::do_srand()
+{
+    int seed = m_.pseudo_random_seed == 0 ? (int) time(NULL)
+                                          : m_.pseudo_random_seed;
+    srand(seed);
+    F_->vmsg("Seed for pseudo-random numbers: " + S(seed));
+}
 
