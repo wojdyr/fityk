@@ -7,6 +7,7 @@
 #include "vm.h"
 
 #include <boost/math/special_functions/gamma.hpp>
+#include <boost/math/special_functions/digamma.hpp>
 
 #include "common.h"
 #include "voigt.h"
@@ -17,7 +18,6 @@
 #include "model.h" // F(...)
 
 using namespace std;
-using namespace dataVM;
 
 namespace {
 
@@ -72,12 +72,77 @@ double find_idx_in_sorted(vector<Point> const& pp, double x)
         return i - pp.begin() - (i->x - x) / (i->x - (i-1)->x);
 }
 
+/// debuging utility
+#define OP_(x) \
+    case OP_##x: return #x;
+
+string op2str(int op)
+{
+    switch (static_cast<Op>(op)) {
+        OP_(NUMBER) OP_(SYMBOL)
+        OP_(X) OP_(PUT_VAL) OP_(PUT_DERIV)
+        OP_(NEG)   OP_(EXP)  OP_(ERFC)  OP_(ERF)
+        OP_(SIN)   OP_(COS)  OP_(TAN)  OP_(SINH) OP_(COSH)  OP_(TANH)
+        OP_(ABS)  OP_(ROUND)
+        OP_(ATAN) OP_(ASIN) OP_(ACOS)
+        OP_(LOG10) OP_(LN)  OP_(SQRT)  OP_(POW)
+        OP_(GAMMA) OP_(LGAMMA) OP_(DIGAMMA)
+        OP_(VOIGT) OP_(DVOIGT_DX) OP_(DVOIGT_DY)
+        OP_(XINDEX)
+        OP_(ADD)   OP_(SUB)   OP_(MUL)   OP_(DIV)  OP_(MOD)
+        OP_(MIN2)   OP_(MAX2) OP_(RANDNORM) OP_(RANDU)
+        OP_(PX) OP_(PY) OP_(PS) OP_(PA)
+        OP_(Px) OP_(Py) OP_(Ps) OP_(Pa)
+        OP_(Pn) OP_(PM)
+        OP_(OR) OP_(AFTER_OR) OP_(AND) OP_(AFTER_AND) OP_(NOT)
+        OP_(TERNARY) OP_(TERNARY_MID) OP_(AFTER_TERNARY)
+        OP_(GT) OP_(GE) OP_(LT) OP_(LE) OP_(EQ) OP_(NEQ)
+        OP_(ASSIGN_X) OP_(ASSIGN_Y) OP_(ASSIGN_S) OP_(ASSIGN_A)
+        OP_(FUNC) OP_(SUM_F) OP_(SUM_Z)
+        OP_(NUMAREA) OP_(FINDX) OP_(FIND_EXTR)
+        OP_(OPEN_ROUND)  OP_(OPEN_SQUARE)
+    }
+    return S(op);
+};
+#undef OP_
+
 } // anonymous namespace
+
+
+string vm2str(vector<int> const& code, vector<fp> const& data)
+{
+    string s;
+    v_foreach (int, i, code) {
+        s += op2str(*i);
+        if (*i == OP_NUMBER) {
+            ++i;
+            assert (*i >= 0 && *i < size(data));
+            s += "[" + S(*i) + "](" + S(data[*i]) + ")";
+        }
+        else if (*i == OP_SYMBOL || *i == OP_PUT_DERIV) {
+            ++i;
+            s += "[" + S(*i) + "]";
+        }
+        s += " ";
+    }
+    return s;
+
+}
+
+
+void VirtualMachineData::append_number(double d)
+{
+    append_code(OP_NUMBER);
+    int number_pos = numbers_.size();
+    append_code(number_pos);
+    numbers_.push_back(d);
+}
+
 
 #define STACK_OFFSET_CHANGE(ch) stackPtr+=(ch)
 
 inline
-void run_const_op(const Ftk* F, const VirtualMachineData& vm,
+void run_const_op(const Ftk* F, const std::vector<double>& numbers,
                   vector<int>::const_iterator& i,
                   double*& stackPtr,
                   const int n,
@@ -300,43 +365,43 @@ void run_const_op(const Ftk* F, const VirtualMachineData& vm,
         case OP_NUMBER:
             STACK_OFFSET_CHANGE(+1);
             i++;
-            *stackPtr = vm.numbers()[*i];
+            *stackPtr = numbers[*i];
             break;
 
-        case OP_VAR_n:
+        case OP_Pn:
             STACK_OFFSET_CHANGE(+1);
             *stackPtr = static_cast<double>(n);
             break;
-        case OP_VAR_M:
+        case OP_PM:
             STACK_OFFSET_CHANGE(+1);
             *stackPtr = static_cast<double>(old_points.size());
             break;
 
-        case OP_VAR_x:
+        case OP_Px:
             *stackPtr = get_var_with_idx(*stackPtr, old_points, &Point::x);
             break;
-        case OP_VAR_y:
+        case OP_Py:
             *stackPtr = get_var_with_idx(*stackPtr, old_points, &Point::y);
             break;
-        case OP_VAR_s:
+        case OP_Ps:
             *stackPtr = get_var_with_idx(*stackPtr, old_points,
                                          &Point::sigma);
             break;
-        case OP_VAR_a:
+        case OP_Pa:
             *stackPtr = bool(iround(get_var_with_idx(*stackPtr, old_points,
                                                      &Point::is_active)));
             break;
-        case OP_VAR_X:
+        case OP_PX:
             *stackPtr = get_var_with_idx(*stackPtr, new_points, &Point::x);
             break;
-        case OP_VAR_Y:
+        case OP_PY:
             *stackPtr = get_var_with_idx(*stackPtr, new_points, &Point::y);
             break;
-        case OP_VAR_S:
+        case OP_PS:
             *stackPtr = get_var_with_idx(*stackPtr, new_points,
                                          &Point::sigma);
             break;
-        case OP_VAR_A:
+        case OP_PA:
             *stackPtr = bool(iround(get_var_with_idx(*stackPtr, new_points,
                                                      &Point::is_active)));
             break;
@@ -381,7 +446,7 @@ void run_const_op(const Ftk* F, const VirtualMachineData& vm,
 }
 
 inline
-void run_mutab_op(const Ftk* F, const VirtualMachineData& vm,
+void run_mutab_op(const Ftk* F, const std::vector<double>& numbers,
                   vector<int>::const_iterator& i,
                   double*& stackPtr,
                   const int n,
@@ -408,7 +473,7 @@ void run_mutab_op(const Ftk* F, const VirtualMachineData& vm,
             STACK_OFFSET_CHANGE(-1);
             break;
         default:
-            run_const_op(F, vm, i, stackPtr, n, old_points, new_points);
+            run_const_op(F, numbers, i, stackPtr, n, old_points, new_points);
     }
 }
 
@@ -423,7 +488,7 @@ void ExprCalculator::transform_data(vector<Point>& points)
 
     // do the time-consuming overflow checking only for the first point
     v_foreach (int, i, vm_.code()) {
-        run_mutab_op(F_, vm_, i, stackPtr, 0, points, new_points);
+        run_mutab_op(F_, vm_.numbers(), i, stackPtr, 0, points, new_points);
         if (stackPtr - stack >= 16)
             throw ExecuteError("stack overflow");
     }
@@ -432,7 +497,7 @@ void ExprCalculator::transform_data(vector<Point>& points)
     // the same for the rest of points, but without checks
     for (int n = 1; n != size(points); ++n)
         v_foreach (int, i, vm_.code())
-            run_mutab_op(F_, vm_, i, stackPtr, n, points, new_points);
+            run_mutab_op(F_, vm_.numbers(), i, stackPtr, n, points, new_points);
 
     points.swap(new_points);
 }
@@ -442,7 +507,7 @@ double ExprCalculator::calculate(int n, const vector<Point>& points) const
     double stack[16];
     double* stackPtr = stack - 1; // will be ++'ed first
     v_foreach (int, i, vm_.code()) {
-        run_const_op(F_, vm_, i, stackPtr, n, points, points);
+        run_const_op(F_, vm_.numbers(), i, stackPtr, n, points, points);
         if (stackPtr - stack >= 16)
             throw ExecuteError("stack overflow");
     }
@@ -457,7 +522,7 @@ double ExprCalculator::calculate_custom(const vector<double>& custom_val) const
     double* stackPtr = stack - 1; // will be ++'ed first
     const vector<Point> dummy;
     v_foreach (int, i, vm_.code()) {
-        if (*i == OP_CUSTOM) {
+        if (*i == OP_SYMBOL) {
             STACK_OFFSET_CHANGE(+1);
             i++;
             if (is_index(*i, custom_val))
@@ -466,7 +531,7 @@ double ExprCalculator::calculate_custom(const vector<double>& custom_val) const
                 throw ExecuteError("[internal] variable mismatch");
         }
         else
-            run_const_op(F_, vm_, i, stackPtr, 0, dummy, dummy);
+            run_const_op(F_, vm_.numbers(), i, stackPtr, 0, dummy, dummy);
         if (stackPtr - stack >= 16)
             throw ExecuteError("stack overflow");
     }

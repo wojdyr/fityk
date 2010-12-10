@@ -21,43 +21,8 @@
 #include "model.h" // F(...)
 
 using namespace std;
-using namespace dataVM;
 
 namespace {
-
-/// debuging utility
-#define OP_(x) \
-    case OP_##x: return #x;
-
-string dt_op(int op)
-{
-    switch (static_cast<Op>(op)) {
-        OP_(NEG)   OP_(EXP)  OP_(ERFC)  OP_(ERF)
-        OP_(SIN)   OP_(COS)  OP_(TAN)  OP_(SINH) OP_(COSH)  OP_(TANH)
-        OP_(ABS)  OP_(ROUND)
-        OP_(ATAN) OP_(ASIN) OP_(ACOS)
-        OP_(LOG10) OP_(LN)  OP_(SQRT)  OP_(POW)
-        OP_(GAMMA) OP_(LGAMMA) OP_(DIGAMMA)
-        OP_(VOIGT) OP_(DVOIGT_DX) OP_(DVOIGT_DY)
-        OP_(XINDEX)
-        OP_(ADD)   OP_(SUB)   OP_(MUL)   OP_(DIV)  OP_(MOD)
-        OP_(MIN2)   OP_(MAX2) OP_(RANDNORM) OP_(RANDU)
-        OP_(VAR_X) OP_(VAR_Y) OP_(VAR_S) OP_(VAR_A)
-        OP_(VAR_x) OP_(VAR_y) OP_(VAR_s) OP_(VAR_a)
-        OP_(VAR_n) OP_(VAR_M) OP_(NUMBER)
-        OP_(OR) OP_(AFTER_OR) OP_(AND) OP_(AFTER_AND) OP_(NOT)
-        OP_(TERNARY) OP_(TERNARY_MID) OP_(AFTER_TERNARY)
-        OP_(GT) OP_(GE) OP_(LT) OP_(LE) OP_(EQ) OP_(NEQ)
-        OP_(ASSIGN_X) OP_(ASSIGN_Y) OP_(ASSIGN_S) OP_(ASSIGN_A)
-        OP_(FUNC) OP_(SUM_F) OP_(SUM_Z)
-        OP_(NUMAREA) OP_(FINDX) OP_(FIND_EXTR)
-        OP_(CUSTOM)
-        OP_(OPEN_ROUND)  OP_(OPEN_SQUARE)
-    }
-
-    return S(op);
-};
-#undef OP_
 
 int get_op_priority(int op)
 {
@@ -183,14 +148,14 @@ bool is_function(int op)
 bool is_array_var(int op)
 {
     switch (op) {
-        case OP_VAR_x:
-        case OP_VAR_y:
-        case OP_VAR_s:
-        case OP_VAR_a:
-        case OP_VAR_X:
-        case OP_VAR_Y:
-        case OP_VAR_S:
-        case OP_VAR_A:
+        case OP_Px:
+        case OP_Py:
+        case OP_Ps:
+        case OP_Pa:
+        case OP_PX:
+        case OP_PY:
+        case OP_PS:
+        case OP_PA:
             return true;
         default:
             return false;
@@ -270,32 +235,6 @@ protected:
 
 } // anonymous namespace
 
-
-void VirtualMachineData::append_number(double d)
-{
-    append_code(OP_NUMBER);
-    int number_pos = numbers_.size();
-    append_code(number_pos);
-    numbers_.push_back(d);
-}
-
-
-string ExpressionParser::list_ops() const
-{
-    string txt;
-    v_foreach (int, i, vm_.code()) {
-        txt += " " + dt_op(*i);
-        if (*i == OP_NUMBER && i+1 != vm_.code().end()) {
-            ++i;
-            txt += "(" + S(vm_.numbers()[*i]) + ")";
-        }
-        else if (*i == OP_CUSTOM && i+1 != vm_.code().end()) {
-            ++i;
-            txt += "(#" + S(*i) + ")";
-        }
-    }
-    return txt;
-}
 
 void ExpressionParser::pop_onto_que()
 {
@@ -392,7 +331,7 @@ void ExpressionParser::put_array_var(bool has_index, Op op)
         expected_ = kIndex;
     }
     else {
-        vm_.append_code(OP_VAR_n);
+        vm_.append_code(OP_Pn);
         vm_.append_code(op);
         expected_ = kOperator;
     }
@@ -517,22 +456,22 @@ void ExpressionParser::put_name(Lexer& lex,
         if (custom_vars == NULL) { // data points
             bool has_index = (lex.peek_token().type == kTokenLSquare);
             if (word == "x")
-                put_array_var(has_index, OP_VAR_x);
+                put_array_var(has_index, OP_Px);
             else if (word == "y")
-                put_array_var(has_index, OP_VAR_y);
+                put_array_var(has_index, OP_Py);
             else if (word == "s")
-                put_array_var(has_index, OP_VAR_s);
+                put_array_var(has_index, OP_Ps);
             else if (word == "a")
-                put_array_var(has_index, OP_VAR_a);
+                put_array_var(has_index, OP_Pa);
             else if (word == "n")
-                put_var(OP_VAR_n);
+                put_var(OP_Pn);
             else
                 lex.throw_syntax_error("unknown name: " + word);
         }
         else {
             int idx = index_of_element(*custom_vars, word);
             if (idx != -1) {
-                vm_.append_code(OP_CUSTOM);
+                vm_.append_code(OP_SYMBOL);
                 vm_.append_code(idx);
             }
             else if (new_vars != NULL) {
@@ -541,7 +480,7 @@ void ExpressionParser::put_name(Lexer& lex,
                     idx2 = new_vars->size();
                     new_vars->push_back(word);
                 }
-                vm_.append_code(OP_CUSTOM);
+                vm_.append_code(OP_SYMBOL);
                 // new_vars is to be appended to custom_vars later
                 vm_.append_code(custom_vars->size() + idx2);
             }
@@ -718,15 +657,15 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                 }
                 bool has_index = (lex.peek_token().type == kTokenLSquare);
                 if (*token.str == 'X')
-                    put_array_var(has_index, OP_VAR_X);
+                    put_array_var(has_index, OP_PX);
                 else if (*token.str == 'Y')
-                    put_array_var(has_index, OP_VAR_Y);
+                    put_array_var(has_index, OP_PY);
                 else if (*token.str == 'S')
-                    put_array_var(has_index, OP_VAR_S);
+                    put_array_var(has_index, OP_PS);
                 else if (*token.str == 'A')
-                    put_array_var(has_index, OP_VAR_A);
+                    put_array_var(has_index, OP_PA);
                 else if (*token.str == 'M')
-                    put_var(OP_VAR_M);
+                    put_var(OP_PM);
                 else if (*token.str == 'F' || *token.str == 'Z') {
                     put_fz_sth(lex, *token.str, default_ds);
                 }

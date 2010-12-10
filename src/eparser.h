@@ -64,9 +64,6 @@ public:
     /// adds OP_ASSIGN_? to the code
     void push_assign_lhs(const Token& t);
 
-    // debugging utility
-    std::string list_ops() const;
-
 private:
     // operator stack for the shunting-yard algorithm
     std::vector<int> opstack_;
@@ -87,13 +84,13 @@ private:
     bool finished_;
 
     void put_number(double value);
-    void put_unary_op(dataVM::Op op);
-    void put_binary_op(dataVM::Op op);
-    void put_function(dataVM::Op op);
+    void put_unary_op(Op op);
+    void put_binary_op(Op op);
+    void put_function(Op op);
     void put_ag_function(Lexer& lex, int ds, AggregFunc& ag);
     void put_value_from_curly(Lexer& lex, int ds);
-    void put_array_var(bool has_index, dataVM::Op op);
-    void put_var(dataVM::Op op);
+    void put_array_var(bool has_index, Op op);
+    void put_var(Op op);
     void put_name(Lexer& lex, const std::string& word,
                   const std::vector<std::string>* custom_vars,
                   std::vector<std::string>* new_vars);

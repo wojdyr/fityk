@@ -9,46 +9,7 @@
 #include <boost/spirit/include/classic_ast.hpp>
 using namespace boost::spirit::classic;
 
-/// used for functions and variables
-/// there is a different set of opcodes for data transformation
-enum
-{
-    OP_NUMBER=0,
-    OP_VARIABLE,
-    OP_X,
-    OP_PUT_VAL,
-    OP_PUT_DERIV,
-    OP_ONE_ARG,
-    OP_NEG = OP_ONE_ARG,
-    OP_EXP,
-    OP_ERFC,
-    OP_ERF,
-    OP_SINH,
-    OP_COSH,
-    OP_TANH,
-    OP_SIN,
-    OP_COS,
-    OP_TAN,
-    OP_ASIN,
-    OP_ACOS,
-    OP_ATAN,
-    OP_LOG10,
-    OP_LN,
-    OP_SQRT,
-    OP_LGAMMA,
-    OP_DIGAMMA,
-    OP_ABS,
-    OP_TWO_ARG,
-    OP_POW = OP_TWO_ARG,
-    OP_MUL,
-    OP_DIV,
-    OP_ADD,
-    OP_SUB,
-    OP_VOIGT,
-    OP_DVOIGT_DX,
-    OP_DVOIGT_DY
-};
-
+#include "vm.h" // opcodes
 
 /// Node in abstract syntax tree (AST)
 struct OpTree

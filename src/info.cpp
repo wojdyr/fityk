@@ -612,7 +612,7 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
         try {
             ExpressionParser parser(F);
             parser.parse_expr(lex, -1);
-            r += parser.list_ops();
+            r += vm2str(parser.vm().code(), parser.vm().numbers());
         }
         catch (fityk::SyntaxError& e) {
             r += "ERROR at " + S(lex.scanned_chars()) + ": " + e.what();

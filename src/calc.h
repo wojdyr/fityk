@@ -32,8 +32,9 @@ protected:
     mutable std::vector<fp> &derivatives_;
 
     std::vector<OpTree*> op_trees_;
-    std::vector<int> vmcode; //OP_PUT_DERIV, OP_PUT_VAL, OP_VAR, OP_SIN, etc.
-    std::vector<fp> vmdata;
+    std::vector<int> vmcode_; //OP_PUT_DERIV, OP_PUT_VAL, OP_VAR, OP_SIN, etc.
+    std::vector<fp> vmdata_;
+    //VirtualMachineData vm_;
 
     void exec_vm_op_action(std::vector<int>::const_iterator &i,
                            std::vector<double>::iterator &stackPtr) const;
@@ -51,9 +52,9 @@ public:
     void run_vm_der(fp x) const;
     std::string get_vmcode_info() const;
 private:
-    int vmdata_size;
-    std::vector<int> vmcode_val;
-    std::vector<int> vmcode_der;
+    int vmdata_size_;
+    std::vector<int> vmcode_val_;
+    std::vector<int> vmcode_der_;
     void run_vm(); //disable
 };
 

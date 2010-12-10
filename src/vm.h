@@ -12,15 +12,20 @@ using fityk::Point;
 
 class Ftk;
 
-namespace dataVM {
-
 /// operators used in VM code
 enum Op
 {
     // constant
     OP_NUMBER,
-    // custom symbol (numeric value like OP_NUMBER, but stored externally)
-    OP_CUSTOM,
+    // Custom symbol that has associated numeric value.
+    // Like OP_NUMBER, OP_SYMBOL is followed by index,
+    // but the value is stored externally.
+    OP_SYMBOL,
+
+    // ops used only in calc.cpp
+    OP_X,
+    OP_PUT_VAL,
+    OP_PUT_DERIV,
 
     // functions R -> R
     OP_ONE_ARG,
@@ -77,9 +82,9 @@ enum Op
     OP_XINDEX,
 
     // properties of points
-    OP_VAR_X, OP_VAR_Y, OP_VAR_S, OP_VAR_A,
-    OP_VAR_x, OP_VAR_y, OP_VAR_s, OP_VAR_a,
-    OP_VAR_n, OP_VAR_M,
+    OP_PX, OP_PY, OP_PS, OP_PA,
+    OP_Px, OP_Py, OP_Ps, OP_Pa,
+    OP_Pn, OP_PM,
 
     // changing points
     OP_ASSIGN_X, OP_ASSIGN_Y, OP_ASSIGN_S, OP_ASSIGN_A,
@@ -90,21 +95,10 @@ enum Op
     // (model, R, ...) -> R
     OP_NUMAREA, OP_FINDX, OP_FIND_EXTR,
 
-    /*
-     * ops defined only in ast.h:
-    OP_VARIABLE,
-    OP_X,
-    OP_PUT_VAL,
-    OP_PUT_DERIV,
-    */
-
     // these two are not VM operators, but are handy to have here,
     // they and are used in implementation of shunting yard algorithm
     OP_OPEN_ROUND, OP_OPEN_SQUARE
 };
-
-} // namespace dataVM
-
 
 /// handles VM data and provides low-level access to it
 class VirtualMachineData
@@ -120,6 +114,9 @@ private:
     std::vector<int> code_;    //  VM code
     std::vector<double> numbers_;  //  VM data (numeric values)
 };
+
+std::string vm2str(const std::vector<int>& code,
+                   const std::vector<double>& data);
 
 
 class ExprCalculator
@@ -139,6 +136,8 @@ public:
 
     /// transform data (X=..., Y=..., S=..., A=...)
     void transform_data(std::vector<Point>& points);
+
+    const VirtualMachineData& vm() const { return vm_; }
 
 protected:
     const Ftk* F_;
