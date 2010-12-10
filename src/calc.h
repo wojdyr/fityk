@@ -6,11 +6,13 @@
 #define FITYK__CALC__H__
 
 #include "common.h"
+#include "vm.h"
 
 struct OpTree;
 class Variable;
 
 
+// used by Variable
 class AnyFormula
 {
 public:
@@ -32,14 +34,14 @@ protected:
     mutable std::vector<fp> &derivatives_;
 
     std::vector<OpTree*> op_trees_;
-    std::vector<int> vmcode_; //OP_PUT_DERIV, OP_PUT_VAL, OP_VAR, OP_SIN, etc.
-    std::vector<fp> vmdata_;
-    //VirtualMachineData vm_;
+    VirtualMachineData vm_;
 
-    void exec_vm_op_action(std::vector<int>::const_iterator &i,
+    void exec_vm_op_action(const std::vector<double>& numbers,
+                           std::vector<int>::const_iterator &i,
                            std::vector<double>::iterator &stackPtr) const;
 };
 
+// used by CustomFunction
 class AnyFormulaO : public AnyFormula
 {
 public:
@@ -52,9 +54,8 @@ public:
     void run_vm_der(fp x) const;
     std::string get_vmcode_info() const;
 private:
-    int vmdata_size_;
     std::vector<int> vmcode_val_;
-    std::vector<int> vmcode_der_;
+    VirtualMachineData vm_der_;
     void run_vm(); //disable
 };
 

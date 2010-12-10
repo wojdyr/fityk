@@ -21,33 +21,31 @@ vector<double> stack(stack_size);
 
 
 void add_calc_bytecode(const OpTree* tree, const vector<int> &vmvar_idx,
-                       vector<int> &vmcode, vector<fp> &vmdata)
+                       VirtualMachineData& vm)
 {
     int op = tree->op;
     if (op < 0) {
         size_t ii = -op-1;
         if (ii == vmvar_idx.size()) {
-            vmcode.push_back(OP_X);
+            vm.append_code(OP_X);
         }
         else {
             int var_idx = vmvar_idx[ii];
-            vmcode.push_back(OP_SYMBOL);
-            vmcode.push_back(var_idx);
+            vm.append_code(OP_SYMBOL);
+            vm.append_code(var_idx);
         }
     }
     else if (op == 0) {
-        vmcode.push_back(OP_NUMBER);
-        vmcode.push_back(vmdata.size());
-        vmdata.push_back(tree->val);
+        vm.append_number(tree->val);
     }
     else if (op >= OP_ONE_ARG && op < OP_TWO_ARG) { //one argument
-        add_calc_bytecode(tree->c1, vmvar_idx, vmcode, vmdata);
-        vmcode.push_back(op);
+        add_calc_bytecode(tree->c1, vmvar_idx, vm);
+        vm.append_code(op);
     }
     else if (op >= OP_TWO_ARG) { //two arguments
-        add_calc_bytecode(tree->c1, vmvar_idx, vmcode, vmdata);
-        add_calc_bytecode(tree->c2, vmvar_idx, vmcode, vmdata);
-        vmcode.push_back(op);
+        add_calc_bytecode(tree->c1, vmvar_idx, vm);
+        add_calc_bytecode(tree->c2, vmvar_idx, vm);
+        vm.append_code(op);
     }
 }
 
@@ -55,7 +53,8 @@ void add_calc_bytecode(const OpTree* tree, const vector<int> &vmvar_idx,
 
 ////////////////////////////////////////////////////////////////////////////
 
-void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
+void AnyFormula::exec_vm_op_action(const vector<double>& numbers,
+                                   vector<int>::const_iterator &i,
                                    vector<double>::iterator &stackPtr) const
 {
         switch (*i) {
@@ -157,7 +156,7 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
             case OP_NUMBER:
                 stackPtr++;
                 i++; // OP_NUMBER opcode is always followed by index
-                *stackPtr = vmdata_[*i];
+                *stackPtr = numbers[*i];
                 break;
 
             //assignment-operators
@@ -175,6 +174,7 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
                 break;
 
             default:
+                //printf("op:%d\n", *i);
                 assert(0);
         }
 }
@@ -183,14 +183,14 @@ void AnyFormula::exec_vm_op_action(vector<int>::const_iterator &i,
 void AnyFormula::run_vm(vector<Variable*> const &variables) const
 {
     vector<double>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
-    v_foreach (int, i, vmcode_) {
+    v_foreach (int, i, vm_.code()) {
         if (*i == OP_SYMBOL) {
             ++stackPtr;
             ++i; // skip the next one
             *stackPtr = variables[*i]->get_value();
         }
         else
-            exec_vm_op_action(i, stackPtr);
+            exec_vm_op_action(vm_.numbers(), i, stackPtr);
     }
     assert(stackPtr == stack.begin() - 1);
 }
@@ -199,15 +199,14 @@ void AnyFormula::tree_to_bytecode(vector<int> const& var_idx)
 {
     //assert(var_idx.size() + 1 == op_trees_.size());
     // it's +2, if also dy/dx is in op_trees_
-    vmcode_.clear();
-    vmdata_.clear();
-    add_calc_bytecode(op_trees_.back(), var_idx, vmcode_, vmdata_);
-    vmcode_.push_back(OP_PUT_VAL);
+    vm_.clear_data();
+    add_calc_bytecode(op_trees_.back(), var_idx, vm_);
+    vm_.append_code(OP_PUT_VAL);
     int n = op_trees_.size() - 1;
     for (int i = 0; i < n; ++i) {
-        add_calc_bytecode(op_trees_[i], var_idx, vmcode_, vmdata_);
-        vmcode_.push_back(OP_PUT_DERIV);
-        vmcode_.push_back(i);
+        add_calc_bytecode(op_trees_[i], var_idx, vm_);
+        vm_.append_code(OP_PUT_DERIV);
+        vm_.append_code(i);
     }
 }
 
@@ -224,51 +223,37 @@ void AnyFormulaO::tree_to_bytecode(size_t var_idx_size)
     // we put function's parameter index rather than variable index after
     //  OP_SYMBOL, it is handled in this way in prepare_optimized_codes()
     AnyFormula::tree_to_bytecode(range_vector(0, var_idx_size));
-    vmdata_size_ = vmdata_.size();
 }
 
-void AnyFormulaO::prepare_optimized_codes(vector<fp> const& vv)
+void AnyFormulaO::prepare_optimized_codes(const vector<fp>& vv)
 {
-    vmdata_.resize(vmdata_size_);
-    vmcode_der_ = vmcode_;
-    vector<int>::iterator value_it = vmcode_der_.begin();
-    vm_foreach (int, i, vmcode_der_) {
-        if (*i == OP_NUMBER || *i == OP_PUT_DERIV)
-            ++i;
-        else if (*i == OP_SYMBOL) {
-            *i = OP_NUMBER;
-            ++i;
-            fp value = vv[*i]; //see AnyFormulaO::tree_to_bytecode()
-            int data_idx = -1;
-            for (size_t j = 0; j != vmdata_.size(); ++j)
-                if (vmdata_[j] == value) {
-                    data_idx = j;
-                }
-            if (data_idx == -1) {
-                data_idx = vmdata_.size();
-                vmdata_.push_back(value);
-            }
-            else
-                vmdata_[data_idx] = value;
-            *i = data_idx;
-        }
-        else if (*i == OP_PUT_VAL) {
+    vm_der_ = vm_;
+    vm_der_.replace_symbols(vv);
+
+    // find OP_PUT_VAL
+    vector<int>::const_iterator value_it = vm_der_.code().begin();
+    v_foreach (int, i, vm_der_.code()) {
+        if (*i == OP_PUT_VAL) {
             value_it = i;
+            break;
         }
+        else if (*i == OP_NUMBER || *i == OP_PUT_DERIV)
+            ++i;
     }
-    vmcode_val_ = vector<int>(vmcode_der_.begin(), value_it);
+
+    vmcode_val_ = vector<int>(vm_der_.code().begin(), value_it);
 }
 
 void AnyFormulaO::run_vm_der(fp x) const
 {
     vector<double>::iterator stackPtr = stack.begin() - 1;//will be ++'ed first
-    v_foreach (int, i, vmcode_der_) {
+    v_foreach (int, i, vm_der_.code()) {
         if (*i == OP_X) {
             stackPtr++;
             *stackPtr = x;
         }
         else
-            exec_vm_op_action(i, stackPtr);
+            exec_vm_op_action(vm_der_.numbers(), i, stackPtr);
     }
     assert(stackPtr == stack.begin() - 1);
 }
@@ -282,7 +267,7 @@ fp AnyFormulaO::run_vm_val(fp x) const
             *stackPtr = x;
         }
         else
-            exec_vm_op_action(i, stackPtr);
+            exec_vm_op_action(vm_der_.numbers(), i, stackPtr);
     }
     return *stackPtr;
 }
@@ -290,9 +275,9 @@ fp AnyFormulaO::run_vm_val(fp x) const
 
 string AnyFormulaO::get_vmcode_info() const
 {
-    return "not optimized code: " + vm2str(vmcode_, vmdata_)
-        + "\n value code: " + vm2str(vmcode_val_, vmdata_)
-        + "\n value+derivatives code: " + vm2str(vmcode_der_, vmdata_);
+    return "not optimized code: " + vm2str(vm_.code(), vm_.numbers())
+        + "\noptimized code: " + vm2str(vm_der_.code(), vm_der_.numbers())
+        + "\nonly-value code: " + vm2str(vmcode_val_, vm_der_.numbers());
 }
 
 

@@ -21,6 +21,11 @@ using namespace std;
 
 namespace {
 
+bool has_idx(int op)
+{
+    return op == OP_NUMBER || op == OP_SYMBOL || op == OP_PUT_DERIV;
+}
+
 vector<int>::const_iterator
 skip_code(vector<int>::const_iterator i, int start_op, int finish_op)
 {
@@ -29,8 +34,12 @@ skip_code(vector<int>::const_iterator i, int start_op, int finish_op)
     int counter = 1;
     while (counter) {
         ++i;
-        if (*i == finish_op) counter--;
-        else if (*i == start_op)  counter++;
+        if (*i == finish_op)
+            counter--;
+        else if (*i == start_op)
+            counter++;
+        else if (has_idx(*i))
+            ++i;
     }
     return i;
 }
@@ -109,7 +118,7 @@ string op2str(int op)
 } // anonymous namespace
 
 
-string vm2str(vector<int> const& code, vector<fp> const& data)
+string vm2str(vector<int> const& code, vector<double> const& data)
 {
     string s;
     v_foreach (int, i, code) {
@@ -136,6 +145,27 @@ void VirtualMachineData::append_number(double d)
     int number_pos = numbers_.size();
     append_code(number_pos);
     numbers_.push_back(d);
+}
+
+void VirtualMachineData::replace_symbols(const vector<double>& vv)
+{
+    vm_foreach (int, op, code_) {
+        if (*op == OP_SYMBOL) {
+            *op = OP_NUMBER;
+            ++op;
+            double value = vv[*op];
+            vector<double>::iterator x =
+                    find(numbers_.begin(), numbers_.end(), value);
+            if (x != numbers_.end())
+                *op = x - numbers_.begin();
+            else {
+                *op = numbers_.size();
+                numbers_.push_back(value);
+            }
+        }
+        else if (has_idx(*op))
+            ++op;
+    }
 }
 
 

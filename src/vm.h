@@ -110,6 +110,7 @@ public:
     void append_code(int op) { code_.push_back(op); }
     void append_number(double d);
     void clear_data() { code_.clear(); numbers_.clear(); }
+    void replace_symbols(const std::vector<double>& vv);
 private:
     std::vector<int> code_;    //  VM code
     std::vector<double> numbers_;  //  VM data (numeric values)
