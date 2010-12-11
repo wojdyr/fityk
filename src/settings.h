@@ -66,10 +66,20 @@ public:
 
     SettingsMgr(Ftk const* F);
 
+    /// get all option keys that start with given string
+    static std::vector<std::string> get_key_list (const std::string& start);
+
+    /// returns NULL-terminated list of values for kEnum type, NULL otherwise
+    static const char** get_allowed_values(const std::string& k);
+
     /// return value type of the option
-    ValueType get_value_type(const std::string& k) const;
+    static ValueType get_value_type(const std::string& k);
+
     /// get text information about type of option k
-    std::string get_type_desc(const std::string& k) const;
+    static std::string get_type_desc(const std::string& k);
+
+    // getters
+    const Settings& m() const { return m_; }
     /// get value of option as string
     std::string get_as_string(const std::string& k) const;
 
@@ -78,20 +88,13 @@ public:
     void set_as_number(const std::string& k, double v);
     void set_all(const Settings& s) { m_ = s; epsilon = s.epsilon; }
 
-    /// get all option keys that start with given string
-    std::vector<std::string> get_key_list (const std::string& start) const;
-
-    const char** get_allowed_values(const std::string& k) const;
-
-    const Settings& m() const { return m_; }
-
     // utilities that use settings
     void do_srand();
     std::string format_double(double d) const
             { return format1<double, 32>(m_.numeric_format.c_str(), d); }
 
 private:
-    const Ftk* F_;
+    const Ftk* F_; // used for msg() and vmsg()
     Settings m_;
 
     DISALLOW_COPY_AND_ASSIGN(SettingsMgr);

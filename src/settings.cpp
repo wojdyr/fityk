@@ -181,7 +181,7 @@ void SettingsMgr::set_as_number(string const& k, double d)
         m_.*opt.val.d.ptr = (fabs(d) >= 0.5);
 }
 
-SettingsMgr::ValueType SettingsMgr::get_value_type(const string& k) const
+SettingsMgr::ValueType SettingsMgr::get_value_type(const string& k)
 {
     try {
         return find_option(k).vtype;
@@ -191,7 +191,7 @@ SettingsMgr::ValueType SettingsMgr::get_value_type(const string& k) const
     }
 }
 
-string SettingsMgr::get_type_desc(const string& k) const
+string SettingsMgr::get_type_desc(const string& k)
 {
     const Option& opt = find_option(k);
     switch (opt.vtype) {
@@ -211,7 +211,7 @@ string SettingsMgr::get_type_desc(const string& k) const
     return "";
 }
 
-vector<string> SettingsMgr::get_key_list(const string& start) const
+vector<string> SettingsMgr::get_key_list(const string& start)
 {
     vector<string> v;
     size_t len = sizeof(options) / sizeof(options[0]);
@@ -222,7 +222,7 @@ vector<string> SettingsMgr::get_key_list(const string& start) const
     return v;
 }
 
-const char** SettingsMgr::get_allowed_values(const std::string& k) const
+const char** SettingsMgr::get_allowed_values(const std::string& k)
 {
     return find_option(k).allowed_values;
 }
