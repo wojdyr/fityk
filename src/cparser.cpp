@@ -16,7 +16,7 @@
 #include "logic.h"
 #include "data.h"
 #include "guess.h" // peak_traits, linear_traits
-#include "ast.h" // prepare_op_trees()
+#include "ast.h" // prepare_ast_with_der()
 #include "tplate.h"
 
 
@@ -339,12 +339,12 @@ void Parser::parse_define_rhs(Lexer& lex, Tplate *tp)
             if (*i != "x")
                 lex.throw_syntax_error("unknown argument: " + *i);
         }
-        //TODO
-        /*
-        Tplate::Component c;
-        c.cargs.push_back(rhs);
-        tp->components.push_back(c);
-        */
+
+        Lexer lex2(rhs.c_str());
+        ExpressionParser ep(NULL);
+        ep.parse_expr(lex2, -1, &tp->fargs, NULL, true);
+        tp->op_trees = prepare_ast_with_der(ep.vm(), tp->fargs.size() + 1);
+
         tp->create = &create_CustomFunction;
     }
 }
@@ -395,7 +395,6 @@ Tplate::Ptr Parser::parse_define_args(Lexer& lex)
     const char* start_rhs = lex.pchar();
     parse_define_rhs(lex, tp.get());
     tp->rhs = string(start_rhs, lex.pchar());
-    prepare_op_trees(tp.get());
     return tp;
 }
 

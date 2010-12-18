@@ -782,18 +782,6 @@ OpTree* simplify_terms(OpTree *a)
 ////////////////////////////////////////////////////////////////////////////
 
 
-// called after the Tplate is defined
-void prepare_op_trees(Tplate* tp)
-{
-    if (tp->create != &create_CustomFunction)
-        return;
-    Lexer lex(tp->rhs.c_str());
-    ExpressionParser ep(NULL);
-    ep.parse_expr(lex, -1, &tp->fargs, NULL, true);
-    tp->op_trees = prepare_ast_with_der(ep.vm(), tp->fargs.size() + 1);
-}
-
-
 /// simplify exportable formula, i.e. mathematical function f(x),
 /// without variables other than x
 string simplify_formula(string const &formula)
@@ -1114,8 +1102,7 @@ vector<OpTree*> calculate_deriv(vector<int>::const_iterator &i, int len,
   for (int k = 0; k < len+1; ++k)
       results[k] = simplify_terms(results[k]);
 
-  //XXX
-  printf("%s\n", results[len]->str().c_str());
+  //printf("%s\n", results[len]->str().c_str());
   return results;
 }
 

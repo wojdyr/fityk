@@ -209,9 +209,7 @@ void AnyFormula::tree_to_bytecode(vector<int> const& var_idx)
         vm_.append_code(OP_PUT_DERIV);
         vm_.append_code(i);
     }
-    // XXX
-    printf("tree_to_bytecode: var_idx %d\n", (int) var_idx.size());
-    printf("tree_to_bytecode: %s\n", vm2str(vm_).c_str());
+    //printf("tree_to_bytecode: %s\n", vm2str(vm_).c_str());
 }
 
 bool AnyFormula::is_constant() const

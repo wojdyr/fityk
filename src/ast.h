@@ -51,7 +51,6 @@ struct OpTree
 };
 
 std::vector<OpTree*> prepare_ast_with_der(const VMData& vm, int len);
-void prepare_op_trees(Tplate* tp);
 std::string simplify_formula(const std::string &formula);
 void get_derivatives_str(const char* formula, std::string& result);
 

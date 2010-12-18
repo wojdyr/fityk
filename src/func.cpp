@@ -13,46 +13,6 @@ using namespace std;
 vector<fp> Function::calc_val_xx(1);
 vector<fp> Function::calc_val_yy(1);
 
-static
-string::size_type find_outer_comma(const string& s, string::size_type pos)
-{
-    while (1) {
-        string::size_type c = s.find(',', pos);
-        if (c == string::npos)
-            return string::npos;
-        if (count(s.begin() + pos, s.begin() + c, '(')
-                == count(s.begin() + pos, s.begin() + c, ')'))
-            return c;
-        pos = c + 1;
-    }
-}
-
-string Function::do_substitutions(const string &rhs)
-{
-    string::size_type v = rhs.find(" where ");
-
-    if (v == string::npos) // no substitutions
-        return rhs;
-
-    // substitude variables that go after "where"
-    string def = rhs.substr(0, v);
-    v += 7; // strlen(" where ");
-    for (;;) {
-        string::size_type eq = rhs.find('=', v);
-        string var = strip_string(rhs.substr(v, eq-v));
-        if (var.empty())
-            throw ExecuteError("Wrong syntax in rhs after `where'");
-        string::size_type comma = find_outer_comma(rhs, eq + 1);
-        string value(rhs, eq + 1,
-                     comma == string::npos ? string::npos : comma - (eq+1));
-        replace_words(def, var, "("+value+")");
-        if (comma == string::npos)
-            break;
-        v = comma + 1;
-    }
-    return strip_string(def);
-}
-
 Function::Function(const Settings* settings,
                    const string &name,
                    const Tplate::Ptr tp,

@@ -82,7 +82,6 @@ void TplateMgr::add(const char* name,
     if (parser) {
         Lexer lex(rhs);
         parser->parse_define_rhs(lex, tp);
-        prepare_op_trees(tp);
     }
 }
 

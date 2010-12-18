@@ -140,8 +140,11 @@ void info_func_type(const Ftk* F, const string& functype, string& result)
         result += "undefined";
     else {
         result += tp->as_formula();
-        if (tp->rhs.find(" where ") != string::npos)
-            result += "\n = " + Function::do_substitutions(tp->rhs);
+        if (!tp->op_trees.empty()) {
+            vector<string> args = tp->fargs;
+            args.push_back("x");
+            result += "\n = " + tp->op_trees.back()->str(&args);
+        }
     }
 }
 

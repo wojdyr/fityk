@@ -32,8 +32,6 @@ public:
                              const Tplate::Ptr tp,
                              const std::vector<std::string> &vars);
 
-    static std::string do_substitutions(const std::string &formula);
-
     const Tplate::Ptr& tp() const { return tp_; }
 
     /// number of variables
