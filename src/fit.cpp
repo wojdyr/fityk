@@ -111,7 +111,7 @@ string Fit::get_error_info(vector<DataAndModel*> const& dms)
     for (int i = 0; i < na; i++) {
         if (par_usage[i]) {
             fp err = errors[i];
-            s += "\n" + F->find_variable_handling_param(i)->xname
+            s += "\n$" + F->find_variable_handling_param(i)->name
                 + " = " + S(pp[i])
                 + " +- " + (err == 0. ? string("??") : S(err));
         }
@@ -126,10 +126,10 @@ string Fit::get_cov_info(vector<DataAndModel*> const& dms)
     s += "\nCovariance matrix\n    ";
     for (int i = 0; i < na; ++i)
         if (par_usage[i])
-            s += "\t" + F->find_variable_handling_param(i)->xname;
+            s += "\t$" + F->find_variable_handling_param(i)->name;
     for (int i = 0; i < na; ++i) {
         if (par_usage[i]) {
-            s += "\n" + F->find_variable_handling_param(i)->xname;
+            s += "\n$" + F->find_variable_handling_param(i)->name;
             for (int j = 0; j < na; ++j) {
                 if (par_usage[j])
                     s += "\t" + S(alpha[na*i + j]);

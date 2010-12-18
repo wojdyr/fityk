@@ -156,7 +156,7 @@ bool VariableManager::is_variable_referred(int i, string *first_referrer)
     for (int j = i+1; j < size(variables_); ++j) {
         if (variables_[j]->is_directly_dependent_on(i)) {
             if (first_referrer)
-                *first_referrer = variables_[j]->xname;
+                *first_referrer = "$" + variables_[j]->name;
             return true;
         }
     }
@@ -164,7 +164,7 @@ bool VariableManager::is_variable_referred(int i, string *first_referrer)
             j != functions_.end(); ++j) {
         if ((*j)->is_directly_dependent_on(i)) {
             if (first_referrer)
-                *first_referrer = (*j)->xname;
+                *first_referrer = "%" + (*j)->name;
             return true;
         }
     }
@@ -178,11 +178,11 @@ VariableManager::get_variable_references(const string &name) const
     vector<string> refs;
     v_foreach (Variable*, i, variables_)
         if ((*i)->is_directly_dependent_on(idx))
-            refs.push_back((*i)->xname);
+            refs.push_back("$" + (*i)->name);
     v_foreach (Function*, i, functions_)
         for (int j = 0; j < (*i)->get_vars_count(); ++j)
             if ((*i)->get_var_idx(j) == idx)
-                refs.push_back((*i)->xname + "." + (*i)->get_param(j));
+                refs.push_back("%" + (*i)->name + "." + (*i)->get_param(j));
     return refs;
 }
 
@@ -245,7 +245,7 @@ int VariableManager::add_variable(Variable* new_var)
     }
     else {
         if (var->is_dependent_on(pos, variables_)) { //check for loops
-            throw ExecuteError("loop in dependencies of " + var->xname);
+            throw ExecuteError("loop in dependencies of $" + var->name);
         }
         delete variables_[pos];
         variables_[pos] = var.release();

@@ -95,7 +95,7 @@ string info_compiler()
 
 string get_variable_info(const Ftk* F, const Variable* v)
 {
-    string s = v->xname + " = " + v->get_formula(F->parameters()) + " = "
+    string s = "$" + v->name + " = " + v->get_formula(F->parameters()) + " = "
                + F->settings_mgr()->format_double(v->get_value());
     if (v->domain.is_set())
         s += "  " + v->domain.str();
@@ -252,7 +252,7 @@ void save_state(const Ftk* F, string& r)
     // or VariableManager::auto_remove_functions() until all references
     // are reproduced.
     v_foreach (Variable*, i, F->variables())
-        r += "\n" + (*i)->xname + " = " + (*i)->get_formula(F->parameters());
+        r += "\n$" + (*i)->name + " = " + (*i)->get_formula(F->parameters());
     r += "\n";
     v_foreach (Function*, i, F->functions())
         r +="\n" + (*i)->get_basic_assignment();
@@ -306,13 +306,13 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
             result += info_compiler();
         else if (word == "variables")
             for (size_t i = 0; i < F->variables().size(); ++i)
-                result += (i > 0 ? " " : "") + F->get_variable(i)->xname;
+                result += (i > 0 ? " $" : "$") + F->get_variable(i)->name;
         else if (word == "types")
             v_foreach (Tplate::Ptr, i, F->get_tpm()->tpvec())
                 result += (*i)->name + " ";
         else if (word == "functions")
             for (size_t i = 0; i < F->functions().size(); ++i)
-                result += (i > 0 ? " " : "") + F->get_function(i)->xname;
+                result += (i > 0 ? " %" : "%") + F->get_function(i)->name;
         else if (word == "dataset_count")
             result += S(F->get_dm_count());
         else if (word == "datasets") {
@@ -641,10 +641,10 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
     else if (word == "rd") {
         for (int i = 0; i < size(F->variables()); ++i) {
             Variable const* var = F->get_variable(i);
-            r += var->xname + ": ";
+            r += "$" + var->name + ": ";
             v_foreach (Variable::ParMult, i, var->recursive_derivatives())
-                r += "p" + S(i->p) + "="
-                    + F->find_variable_handling_param(i->p)->xname
+                r += "p" + S(i->p) + "=$"
+                    + F->find_variable_handling_param(i->p)->name
                     + " *" + S(i->mult) + "    ";
             r += "\n";
         }
@@ -664,27 +664,27 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
         ExpressionParser ep(F);
         ep.parse_expr(lex, ds);
         double x = ep.calculate();
-        Model const* model = F->get_model(ds);
+        const Model* model = F->get_model(ds);
         vector<fp> symb = model->get_symbolic_derivatives(x);
         vector<fp> num = model->get_numeric_derivatives(x, 1e-4);
         assert (symb.size() == num.size());
         r += "F(" + S(x) + ")=" + S(model->value(x));
         for (int i = 0; i < size(num); ++i) {
             if (is_neq(symb[i], 0) || is_neq(num[i], 0))
-                r += "\ndF / d " + F->find_variable_handling_param(i)->xname
+                r += "\ndF / d$" + F->find_variable_handling_param(i)->name
                     + " = (symb.) " + S(symb[i]) + " = (num.) " + S(num[i]);
         }
     }
 
     // show %function's bytecode
     else if (key.type == kTokenFuncname) {
-        Function const* f = F->find_function(Lexer::get_string(key));
+        const Function* f = F->find_function(Lexer::get_string(key));
         r += f->get_bytecode();
     }
 
     // show derivatives of $variable
     else if (key.type == kTokenVarname) {
-        Variable const* v = F->find_variable(Lexer::get_string(key));
+        const Variable* v = F->find_variable(Lexer::get_string(key));
         vector<string> vn;
         v_foreach (string, i, v->get_varnames())
             vn.push_back("$" + *i);
@@ -693,7 +693,7 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
             double value = v->get_derivative(i);
             if (i != 0)
                 r += "\n";
-            r += "d(" + v->xname + ")/d($" + v->get_var_name(i) + "): "
+            r += "d($" + v->name + ")/d($" + v->get_var_name(i) + "): "
               + formula + " == " + F->settings_mgr()->format_double(value);
         }
     }

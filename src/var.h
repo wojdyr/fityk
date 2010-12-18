@@ -19,11 +19,10 @@ class VariableUser
 public:
     const std::string name;
     const std::string prefix;
-    const std::string xname;
 
     VariableUser(const std::string &name_, std::string const &prefix_,
               const std::vector<std::string> &vars = std::vector<std::string>())
-        : name(name_), prefix(prefix_), xname(prefix_+name), varnames(vars) {}
+        : name(name_), prefix(prefix_), varnames(vars) {}
     virtual ~VariableUser() {}
     bool is_auto_delete() const { return name.size() > 0 && name[0] == '_'; }
 

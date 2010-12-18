@@ -315,9 +315,9 @@ void SideBar::delete_selected_items()
         ftk->exec("delete " + join_vector(d->get_selected_data(), ", "));
     }
     else if (txt == "functions")
-        ftk->exec("delete " + join_vector(get_selected_func(), ", "));
+        ftk->exec("delete %" + join_vector(get_selected_func(), ", %"));
     else if (txt == "variables")
-        ftk->exec("delete " + join_vector(get_selected_vars(), ", "));
+        ftk->exec("delete $" + join_vector(get_selected_vars(), ", $"));
     else
         assert(0);
 }
@@ -472,7 +472,7 @@ void SideBar::OnVarButtonEdit (wxCommandEvent&)
     if (n < 0 || n >= size(ftk->variables()))
         return;
     Variable const* var = ftk->get_variable(n);
-    string t = var->xname + " = "+ var->get_formula(ftk->parameters());
+    string t = "$" + var->name + " = "+ var->get_formula(ftk->parameters());
     frame->edit_in_input(t);
 }
 
@@ -911,7 +911,7 @@ void SideBar::update_var_inf()
     if (n < 0)
         return;
     Variable const* var = ftk->get_variable(n);
-    string t = var->xname + " = " + var->get_formula(ftk->parameters());
+    string t = "$" + var->name + " = " + var->get_formula(ftk->parameters());
     inf->AppendText(s2wx(t));
     vector<string> in = ftk->get_variable_references(var->name);
     if (!in.empty())
@@ -939,7 +939,7 @@ vector<string> SideBar::get_selected_func() const
     vector<string> dd;
     for (int i = f->list->GetFirstSelected(); i != -1;
                                             i = f->list->GetNextSelected(i))
-        dd.push_back("%" + wx2s(f->list->GetItemText(i)));
+        dd.push_back(wx2s(f->list->GetItemText(i)));
     //if (dd.empty() && f->list->GetItemCount() > 0) {
     //    int n = f->list->GetFocusedItem();
     //    dd.push_back(ftk->get_function(n == -1 ? 0 : n)->xname);
@@ -952,7 +952,7 @@ vector<string> SideBar::get_selected_vars() const
     vector<string> dd;
     for (int i = v->list->GetFirstSelected(); i != -1;
                                              i = v->list->GetNextSelected(i))
-        dd.push_back(ftk->get_variable(i)->xname);
+        dd.push_back(ftk->get_variable(i)->name);
     return dd;
 }
 
@@ -1063,7 +1063,7 @@ void SideBar::update_param_panel()
 
     pp_func = ftk->get_function(active_function);
 
-    wxString new_label = s2wx(pp_func->xname + " : " + pp_func->type_name);
+    wxString new_label = s2wx("%" + pp_func->name + " : " + pp_func->type_name);
     if (param_panel->get_title() != new_label)
         param_panel->set_title(new_label);
 
@@ -1077,11 +1077,11 @@ void SideBar::update_param_panel()
         if (var->is_simple() || var->is_constant()) {
             bool locked = var->is_constant();
             param_panel->set_normal_parameter(i, label, var->get_value(),
-                                              locked, s2wx(var->xname));
+                                              locked, s2wx("$"+var->name));
         }
         else
             param_panel->set_disabled_parameter(i, label, var->get_value(),
-                                                s2wx(var->xname));
+                                                s2wx("$"+var->name));
     }
 
     if (new_count != old_count) {

@@ -737,13 +737,13 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
 void MainPlot::PeakInfo()
 {
     if (over_peak >= 0)
-        ftk->exec("info+ " + ftk->get_function(over_peak)->xname);
+        ftk->exec("info prop %" + ftk->get_function(over_peak)->name);
 }
 
 void MainPlot::OnPeakDelete(wxCommandEvent&)
 {
     if (over_peak >= 0)
-        ftk->exec("delete " + ftk->get_function(over_peak)->xname);
+        ftk->exec("delete %" + ftk->get_function(over_peak)->name);
 }
 
 void MainPlot::OnPeakGuess(wxCommandEvent&)
@@ -761,7 +761,7 @@ void MainPlot::OnPeakGuess(wxCommandEvent&)
         plusmin = max(plusmin, 1.);
         char buffer[64];
         sprintf(buffer, " [%.12g:%.12g]", ctr-plusmin, ctr+plusmin);
-        ftk->exec("guess " + p->xname + " = " + p->type_name + buffer
+        ftk->exec("%" + p->name + " = guess " + p->type_name + buffer
                   + frame->get_global_parameters() + frame->get_in_datasets());
     }
 }
@@ -896,7 +896,7 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
     over_peak = nearest;
     if (nearest != -1) {
         Function const* f = ftk->get_function(over_peak);
-        string s = f->xname + " " + f->type_name + " ";
+        string s = "%" + f->name + " " + f->type_name + " ";
         for (int i = 0; i < f->nv(); ++i)
             s += " " + f->get_param(i) + "=" + S(f->av()[i]);
         frame->set_status_text(s);
@@ -1012,7 +1012,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     else if (mouse_op == kDragPeak) {
         frame->get_sidebar()->activate_function(over_peak);
         draw_moving_func(mat_start, event.GetX(), event.GetY());
-        frame->set_status_text("Moving " + ftk->get_function(over_peak)->xname
+        frame->set_status_text("Moving %" + ftk->get_function(over_peak)->name
                                 + "...");
     }
     else if (mouse_op == kAddBgPoint) {

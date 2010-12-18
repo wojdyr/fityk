@@ -51,7 +51,7 @@ int VariableUser::get_max_var_idx()
 
 std::string VariableUser::get_debug_idx_info() const
 {
-    string r = xname + ": ";
+    string r = prefix + name + ": ";
     assert(varnames.size() == var_idx.size());
     for (size_t i = 0; i != varnames.size(); ++i)
         r += varnames[i] + "/" + S(var_idx[i]) + " ";

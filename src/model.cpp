@@ -164,7 +164,7 @@ string Model::get_peak_parameters(const vector<fp>& errors) const
     s += "# PeakType\tCenter\tHeight\tArea\tFWHM\tparameters...\n";
     v_foreach (int, i, ff_.idx) {
         const Function* p = mgr.get_function(*i);
-        s += p->xname + "  " + p->tp()->name;
+        s += "%" + p->name + "  " + p->tp()->name;
         fp a;
         if (p->get_center(&a))
             s += "\t" + sm->format_double(a);

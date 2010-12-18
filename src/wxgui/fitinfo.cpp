@@ -117,7 +117,7 @@ void FitInfoDlg::update_right_tc()
             if (fit->is_param_used(i)) {
                 const Variable *var = ftk->find_variable_handling_param(i);
                 vector<string> in = ftk->get_variable_references(var->name);
-                string name = var->xname;
+                string name = "$" + var->name;
                 if (in.size() == 1 && in[0][0] == '%')
                     name += " = " + in[0];
                 else if (in.size() == 1)
@@ -138,13 +138,14 @@ void FitInfoDlg::update_right_tc()
         s = wxT("          ");
         vector<fp> alpha = fit->get_covariance_matrix(dms);
         for (int i = 0; i < na; ++i)
-            if (fit->is_param_used(i))
-                s += wxString::Format(wxT("%10s"),
-                        ftk->find_variable_handling_param(i)->xname.c_str());
+            if (fit->is_param_used(i)) {
+                string name = "$" + ftk->find_variable_handling_param(i)->name;
+                s += wxString::Format(wxT("$%10s"), name.c_str());
+            }
         for (int i = 0; i < na; ++i) {
             if (fit->is_param_used(i)) {
-                s += wxString::Format(wxT("\n%10s"),
-                        ftk->find_variable_handling_param(i)->xname.c_str());
+                string name = "$" + ftk->find_variable_handling_param(i)->name;
+                s += wxString::Format(wxT("\n%10s"), name.c_str());
                 for (int j = 0; j < na; ++j) {
                     if (fit->is_param_used(j)) {
                         fp val = alpha[na*i + j];

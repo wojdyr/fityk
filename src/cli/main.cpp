@@ -225,8 +225,8 @@ char *function_generator(const char *text, int state)
     if (!state) {
         e.clear();
         v_foreach (Function*, i, ftk->functions())
-            if (!strncmp ((*i)->xname.c_str(), text, strlen(text)))
-                e.push_back((*i)->xname);
+            if (!strncmp((*i)->name.c_str(), text+1, strlen(text+1)))
+                e.push_back("%" + (*i)->name);
         list_index = 0;
     }
     else

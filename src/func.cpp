@@ -187,17 +187,17 @@ bool Function::get_iwidth(fp* a) const
     return false;
 }
 
-/// return sth like: Linear($foo, $_2)
+/// return sth like: %f = Linear($foo, $_2)
 string Function::get_basic_assignment() const
 {
-    string r = xname + " = " + tp_->name + "(";
+    string r = "%" + name + " = " + tp_->name + "(";
     v_foreach (string, i, varnames)
         r += (i == varnames.begin() ? "$" : ", $") + *i;
     r += ")";
     return r;
 }
 
-/// return sth like: Linear(a0=$foo, a1=~3.5)
+/// return sth like: %f = Linear(a0=$foo, a1=~3.5)
 string Function::get_current_assignment(const vector<Variable*> &variables,
                                         const vector<fp> &parameters) const
 {
@@ -205,10 +205,10 @@ string Function::get_current_assignment(const vector<Variable*> &variables,
     for (int i = 0; i < size(var_idx); ++i) {
         const Variable* v = variables[var_idx[i]];
         string t = get_param(i) + "="
-            + (v->is_simple() ? v->get_formula(parameters) : v->xname);
+            + (v->is_simple() ? v->get_formula(parameters) : "$" + v->name);
         vs.push_back(t);
     }
-    return xname + " = " + tp_->name + "(" + join_vector(vs, ", ") + ")";
+    return "%" + name + " = " + tp_->name + "(" + join_vector(vs, ", ") + ")";
 }
 
 string Function::get_current_formula(const string& x) const
@@ -231,7 +231,7 @@ int Function::get_param_nr(const string& param) const
 {
     int n = get_param_nr_nothrow(param);
     if (n == -1)
-        throw ExecuteError(xname + " has no parameter `" + param + "'");
+        throw ExecuteError("%" + name + " has no parameter `" + param + "'");
     return n;
 }
 
@@ -258,7 +258,7 @@ fp Function::get_param_value(const string& param) const
         return a;
     }
     else
-        throw ExecuteError(xname + " (" + tp_->name
+        throw ExecuteError("%" + name + " (" + tp_->name
                            + ") has no parameter `" + param + "'");
 }
 
