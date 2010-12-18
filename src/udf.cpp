@@ -8,6 +8,34 @@
 using namespace std;
 
 
+Function* init_component(const string& func_name, const Tplate::Component& c,
+                         vector<Variable*>& variables, const Settings* settings)
+{
+    assert(c.p);
+    vector<string> varnames;
+    v_foreach (VMData, j, c.cargs) {
+        string var_name;
+        if (j->single_symbol()) {
+            int idx = j->code()[1];
+            var_name = variables[idx]->name;
+        }
+        else {
+            var_name = "_i" + S(variables.size() + 1);
+            //TODO handle OP_TILDE
+            VMData vm = *j;
+            Variable *v = make_compound_variable(var_name, &vm, variables);
+            v->set_var_idx(variables);
+            variables.push_back(v);
+        }
+        varnames.push_back(var_name);
+    }
+    Function *func = (*c.p->create)(settings, func_name, c.p, varnames);
+    func->init();
+    func->set_var_idx(variables);
+    return func;
+}
+
+
 CompoundFunction::CompoundFunction(const Settings* settings,
                                    const string &name,
                                    const Tplate::Ptr tp,
@@ -19,51 +47,18 @@ CompoundFunction::CompoundFunction(const Settings* settings,
 void CompoundFunction::init()
 {
     Function::init();
-    init_components();
-}
 
-void CompoundFunction::init_components()
-{
+    // add mirror-variables
     for (int j = 0; j != nv(); ++j) {
-        // mirror variables
         Variable* var = new Variable(varnames[j], -2);
         intern_variables_.push_back(var);
     }
 
     v_foreach (Tplate::Component, i, tp_->components) {
-        assert(i->p);
-        vector<string> varnames;
-        v_foreach (VMData, j, i->cargs) {
-            string var_name;
-            if (j->single_symbol()) {
-                int idx = j->code()[1];
-                var_name = intern_variables_[idx]->name;
-            }
-            else {
-                var_name = "_i" + S(intern_variables_.size() + 1);
-                //TODO handle OP_TILDE
-                VMData vm = *j;
-                Variable *v = make_compound_variable(var_name, &vm,
-                                                     intern_variables_);
-                v->set_var_idx(intern_variables_);
-                intern_variables_.push_back(v);
-            }
-            varnames.push_back(var_name);
-        }
         string func_name = "_i" + S(intern_functions_.size() + 1);
-        Function *func = (*i->p->create)(settings_, func_name, i->p, varnames);
-        func->init();
-        func->set_var_idx(intern_variables_);
+        Function *func = init_component(func_name, *i, intern_variables_,
+                                        settings_);
         intern_functions_.push_back(func);
-        /*
-        if (i->p)
-            vmgr_.assign_func(vmgr_.next_func_name(), i->p, args);
-        else {
-            assert (args.size() == 1);
-            // TODO: use op_trees
-            vmgr_.make_variable(vmgr_.next_var_name(), args[0]);
-        }
-        */
     }
 }
 
@@ -250,21 +245,49 @@ SplitFunction::SplitFunction(const Settings* settings,
 void SplitFunction::init()
 {
     Function::init();
-#if 0
-    init_components();
-#endif
+
+    // add mirror-variables
+    for (int j = 0; j != nv(); ++j) {
+        Variable* var = new Variable(varnames[j], -2);
+        intern_variables_.push_back(var);
+    }
+
+    left_ = init_component("l", tp_->components[1], intern_variables_,
+                           settings_);
+    right_ = init_component("r", tp_->components[2], intern_variables_,
+                            settings_);
+
+    VMData vm = tp_->components[0].cargs[0];
+    Variable *v = make_compound_variable("split", &vm, intern_variables_);
+    v->set_var_idx(intern_variables_);
+    intern_variables_.push_back(v);
+}
+
+void SplitFunction::set_var_idx(vector<Variable*> const& variables)
+{
+    VariableUser::set_var_idx(variables);
+    for (int i = 0; i < nv(); ++i) {
+        const Variable* orig = variables[get_var_idx(i)];
+        intern_variables_[i]->set_original(orig);
+    }
+}
+
+void SplitFunction::more_precomputations()
+{
+    vm_foreach (Variable*, i, intern_variables_)
+        (*i)->recalculate(intern_variables_, vector<double>());
+    left_->do_precomputations(intern_variables_);
+    right_->do_precomputations(intern_variables_);
 }
 
 void SplitFunction::calculate_value_in_range(const vector<fp> &xx,
                                              vector<fp> &yy,
                                              int first, int last) const
 {
-#if 0
-    double xsplit = vmgr_.variables().back()->get_value();
+    double xsplit = intern_variables_.back()->get_value();
     int t = lower_bound(xx.begin(), xx.end(), xsplit) - xx.begin();
-    vmgr_.get_function(0)->calculate_value_in_range(xx, yy, first, t);
-    vmgr_.get_function(1)->calculate_value_in_range(xx, yy, t, last);
-#endif
+    left_->calculate_value_in_range(xx, yy, first, t);
+    right_->calculate_value_in_range(xx, yy, t, last);
 }
 
 void SplitFunction::calculate_value_deriv_in_range(
@@ -273,51 +296,35 @@ void SplitFunction::calculate_value_deriv_in_range(
                                           bool in_dx,
                                           int first, int last) const
 {
-#if 0
-    double xsplit = vmgr_.variables().back()->get_value();
+    double xsplit = intern_variables_.back()->get_value();
     int t = lower_bound(xx.begin(), xx.end(), xsplit) - xx.begin();
-    vmgr_.get_function(0)->
-        calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, first, t);
-    vmgr_.get_function(1)->
-        calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, t, last);
-#endif
+    left_-> calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, first, t);
+    right_-> calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, t, last);
 }
 
 string SplitFunction::get_current_formula(const string& x) const
 {
-#if 0
-    double xsplit = vmgr_.variables().back()->get_value();
-    return "x < " + S(xsplit)
-        + " ? " + vmgr_.get_function(0)->get_current_formula(x)
-        + " : " + vmgr_.get_function(1)->get_current_formula(x);
-#endif
+    double xsplit = intern_variables_.back()->get_value();
+    return "x < " + S(xsplit) + " ? " + left_->get_current_formula(x)
+                              + " : " + right_->get_current_formula(x);
 }
 
 bool SplitFunction::get_height(fp* a) const
 {
-#if 0
-    vector<Function*> const& ff = vmgr_.functions();
     fp h2;
-    return ff[0]->get_height(a) && ff[1]->get_height(&h2) && is_eq(*a, h2);
-#endif
+    return left_->get_height(a) && right_->get_height(&h2) && is_eq(*a, h2);
 }
 
 bool SplitFunction::get_center(fp* a) const
 {
-#if 0
-    vector<Function*> const& ff = vmgr_.functions();
     fp c2;
-    return ff[0]->get_center(a) && ff[1]->get_center(&c2) && is_eq(*a, c2);
-#endif
+    return left_->get_center(a) && right_->get_center(&c2) && is_eq(*a, c2);
 }
 
 bool SplitFunction::get_nonzero_range(fp level, fp& left, fp& right) const
 {
-#if 0
-    vector<Function*> const& ff = vmgr_.functions();
     fp dummy;
-    return ff[0]->get_nonzero_range(level, left, dummy) &&
-           ff[0]->get_nonzero_range(level, dummy, right);
-#endif
+    return left_->get_nonzero_range(level, left, dummy) &&
+           right_->get_nonzero_range(level, dummy, right);
 }
 
